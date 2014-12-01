@@ -590,7 +590,7 @@ struct FiniteDiffMethod
 			compact_index_type s) const
 	{
 		auto const & f =expr.lhs;
-		auto const & v =expr.rhs
+		auto const & v =expr.rhs;
 		size_t n = geo->component_number(geo->dual(s));
 		size_t D = geo->delta_index(geo->dual(s));
 
@@ -602,7 +602,9 @@ struct FiniteDiffMethod
 
 	template< size_t IL, typename T > inline typename field_traits<T>::value_type
 	calculate(_Field<_impl::MapTo<IL, IL, T>> const & f, compact_index_type s) const
-	DECL_RET_TYPE(calculate(f,s))
+	{
+		return calculate(f,s);
+	}
 
 	template< typename T>
 	typename field_traits<_Field<_impl::MapTo<EDGE, VERTEX, T>>>::value_type
@@ -829,7 +831,7 @@ struct FiniteDiffMethod
 	// For curl_pdx
 
 	template<size_t N , typename T> inline
-	typename field_traits<_Field< _impl::PartialExteriorDerivative< N,EDGE , T >> >::value_type
+	typename field_traits<_Field< _impl::PartialExteriorDerivative< N,EDGE , T > > >::value_type
 	calculate(_Field< _impl::PartialExteriorDerivative< N,EDGE , T >> const & expr,
 			compact_index_type s)
 	{

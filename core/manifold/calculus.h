@@ -302,13 +302,6 @@ struct MapTo
 
 }  // namespace _impl
 
-template<size_t IL, typename T>
-struct _Field<_impl::ExteriorDerivative<IL, T>> : public Expression<
-		_impl::ExteriorDerivative<IL, T>, T, std::nullptr_t>
-{
-	using Expression<_impl::ExteriorDerivative<IL, T>, T, std::nullptr_t>::Expression;
-};
-
 template<size_t IL, size_t IR, typename T>
 struct field_traits<_Field<_impl::MapTo<IL, IR, T> > >
 {
@@ -328,10 +321,10 @@ inline _Field<_impl::MapTo<field_traits<T>::iform, IR, T>> map_to(T const & f)
 namespace _impl
 {
 
-template<size_t IL, typename IR, typename T> struct PartialExteriorDerivative
+template<size_t IL, size_t IR, typename T> struct PartialExteriorDerivative
 {
 };
-template<size_t IL, typename IR, typename T> struct PartialCodifferentialDerivative
+template<size_t IL, size_t IR, typename T> struct PartialCodifferentialDerivative
 {
 };
 } //namespace _impl
@@ -350,6 +343,32 @@ struct _Field<_impl::PartialCodifferentialDerivative<IL, IR, T>> : public Expres
 {
 	using Expression<_impl::PartialCodifferentialDerivative<IL, IR, T>, T,
 			std::nullptr_t>::Expression;
+};
+template<size_t IL, size_t IR, typename T>
+struct field_traits<_Field<_impl::PartialExteriorDerivative<IL, IR, T> > >
+{
+private:
+	static constexpr size_t NDIMS = field_traits<T>::ndims;
+//	static constexpr size_t IL = field_traits<T>::iform;
+
+public:
+	static constexpr size_t ndims = IR < NDIMS ? NDIMS : 0;
+	static constexpr size_t iform = IR + 1;
+	static constexpr bool is_field = field_traits<T>::is_field;
+
+	typedef typename field_traits<T>::value_type value_type;
+
+};
+template<size_t IL, size_t IR, typename T>
+struct field_traits<_Field<_impl::PartialCodifferentialDerivative<IL, IR, T> > >
+{
+private:
+	static constexpr size_t NDIMS = field_traits<T>::ndims;
+//	static constexpr size_t IL = field_traits<T>::iform;
+public:
+	static const size_t ndims = IR > 0 ? NDIMS : 0;
+	static const size_t iform = IR - 1;
+	typedef typename field_traits<T>::value_type value_type;
 };
 
 template<size_t IL, typename T>

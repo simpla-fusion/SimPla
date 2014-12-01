@@ -58,6 +58,7 @@ USE_CASE(em)
 
 	manifold->update();
 
+	auto J = make_form<Real, EDGE>(manifold);
 	auto E = make_form<Real, EDGE>(manifold);
 	auto B = make_form<Real, FACE>(manifold);
 
@@ -74,8 +75,8 @@ USE_CASE(em)
 	{
 		for (size_t s = 0; s < num_of_steps; s += strides)
 		{
-//			E = curl(B) * dt;
-			B = curl(E) * dt;
+			E += curl(B) * dt - J;
+			B += -curl(E) * dt;
 		}
 
 	}
