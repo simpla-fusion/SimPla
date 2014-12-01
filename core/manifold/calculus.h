@@ -42,12 +42,6 @@ template<size_t IL, typename T> struct ExteriorDerivative
 template<size_t IL, typename T> struct CodifferentialDerivative
 {
 };
-
-template<size_t NDIMS, size_t IFORM>
-struct MapTo
-{
-};
-
 } //namespace _impl
 
 template<size_t IL, typename T>
@@ -166,20 +160,6 @@ public:
 	static const size_t iform = IL - 1;
 	typedef typename field_traits<T>::value_type value_type;
 };
-
-//template<size_t NDIMS, size_t IL, typename TL, typename TR>
-//struct field_traits<_Field<Expression<_impl::MapTo<NDIMS, IL>, TL, TR> > >
-//{
-////	static constexpr size_t NDIMS = sp_max<size_t, field_traits<TL>::ndims,
-////			field_traits<TR>::ndims>::value;
-////	static constexpr size_t IL = field_traits<TL>::iform;
-////	static constexpr size_t IR = field_traits<TR>::iform;
-//public:
-//	static const size_t ndims = NDIMS;
-//	static const size_t iform = IL;
-//
-//	typedef typename field_traits<TR>::value_type value_type;
-//};
 
 template<typename T>
 inline auto hodge_star(T const & f)
@@ -308,59 +288,104 @@ ENABLE_IF_DECL_RET_TYPE((field_traits<_Field<T...>>::iform==FACE),
 ;
 ///   @}
 
-/////  \ingroup  FETL
-/////  \defgroup  NonstandardOperations Non-standard operations
-/////   @{
-//template<typename TM, typename TR> inline auto CurlPDX(
-//		_Field<Domain<TM, EDGE>, TR> const & f)
-//				DECL_RET_TYPE((exterior_derivative(f,std::integral_constant<size_t ,0>())))
-//;
-//
-//template<typename TM, typename TR> inline auto CurlPDY(
-//		_Field<Domain<TM, EDGE>, TR> const & f)
-//				DECL_RET_TYPE((exterior_derivative(f,std::integral_constant<size_t ,1>())))
-//;
-//
-//template<typename TM, typename TR> inline auto CurlPDZ(
-//		_Field<Domain<TM, EDGE>, TR> const & f)
-//				DECL_RET_TYPE((exterior_derivative(f,std::integral_constant<size_t ,2>())))
-//;
-//
-//template<typename TM, typename TR> inline auto CurlPDX(
-//		_Field<Domain<TM, FACE>, TR> const & f)
-//				DECL_RET_TYPE((codifferential_derivative(f,std::integral_constant<size_t ,0>())))
-//;
-//
-//template<typename ...T> inline auto CurlPDY(
-//		_Field<T...> const & f)
-//				DECL_RET_TYPE((codifferential_derivative(f,std::integral_constant<size_t ,1>())))
-//;
-//
-//template<typename TM, typename TR>
-//inline auto CurlPDZ(
-//		_Field<Domain<TM, FACE>, TR> const & f)
-//				DECL_RET_TYPE((codifferential_derivative(f,std::integral_constant<size_t ,2>())))
-//;
+///  \ingroup  FETL
+///  \defgroup  NonstandardOperations Non-standard operations
+///   @{
 
-//template<size_t IL, typename TM, size_t IR, typename TR>
-//inline auto MapTo(
-//		_Field<Domain<TM, IR>, TR> const & f)
-//				DECL_RET_TYPE( (_Field<Domain<TM,IL>, _Field<MAPTO,std::integral_constant<size_t ,IL>,_Field<Domain<TM, IR>, TR> > >(std::integral_constant<size_t ,IL>(), f)))
-//;
-//
+namespace _impl
+{
 
-//template<size_t IL, typename ...T>
-//inline _Field<
-//		Expression<
-//				_impl::MapTo<field_traits<_Field<T...> >::ndims,
-//						field_traits<_Field<T...> >::iform>,
-//				std::integral_constant<size_t, IL>, _Field<T...>>> map_to(
-//		_Field<T...> const & f)
-//{
-//	return ((_Field<
-//			Expression<_impl::MapTo, std::integral_constant<size_t, IL>,
-//					_Field<T...>>>(std::integral_constant<size_t, IL>(), f)));
-//}
+template<size_t IL, size_t IR, typename T>
+struct MapTo
+{
+};
+
+}  // namespace _impl
+
+template<size_t IL, typename T>
+struct _Field<_impl::ExteriorDerivative<IL, T>> : public Expression<
+		_impl::ExteriorDerivative<IL, T>, T, std::nullptr_t>
+{
+	using Expression<_impl::ExteriorDerivative<IL, T>, T, std::nullptr_t>::Expression;
+};
+
+template<size_t IL, size_t IR, typename T>
+struct field_traits<_Field<_impl::MapTo<IL, IR, T> > >
+{
+	static constexpr size_t NDIMS = field_traits<T>::ndims;
+public:
+	static const size_t ndims = NDIMS;
+	static const size_t iform = IR;
+
+	typedef typename field_traits<T>::value_type value_type;
+};
+template<size_t IR, typename T>
+inline _Field<_impl::MapTo<field_traits<T>::iform, IR, T>> map_to(T const & f)
+{
+	return std::move((_Field<_impl::MapTo<field_traits<T>::iform, IR, T>>(f)));
+}
+
+namespace _impl
+{
+
+template<size_t IL, typename IR, typename T> struct PartialExteriorDerivative
+{
+};
+template<size_t IL, typename IR, typename T> struct PartialCodifferentialDerivative
+{
+};
+} //namespace _impl
+
+template<size_t IL, size_t IR, typename T>
+struct _Field<_impl::PartialExteriorDerivative<IL, IR, T>> : public Expression<
+		_impl::PartialExteriorDerivative<IL, IR, T>, T, std::nullptr_t>
+{
+	using Expression<_impl::PartialExteriorDerivative<IL, IR, T>, T,
+			std::nullptr_t>::Expression;
+};
+
+template<size_t IL, size_t IR, typename T>
+struct _Field<_impl::PartialCodifferentialDerivative<IL, IR, T>> : public Expression<
+		_impl::PartialCodifferentialDerivative<IL, IR, T>, T, std::nullptr_t>
+{
+	using Expression<_impl::PartialCodifferentialDerivative<IL, IR, T>, T,
+			std::nullptr_t>::Expression;
+};
+
+template<size_t IL, typename T>
+inline auto p_exterior_derivative(T const & f)
+DECL_RET_TYPE(( _Field<_impl::PartialExteriorDerivative<IL,
+				field_traits<T >::iform , T >>(f)))
+;
+template<size_t IL, typename T>
+inline auto p_codifferential_derivative(T const & f)
+DECL_RET_TYPE((_Field< _impl::PartialCodifferentialDerivative<
+				IL,field_traits<T>::iform , T >>(f)))
+;
+template<typename T> inline auto curl_pdx(T const & f)
+ENABLE_IF_DECL_RET_TYPE(field_traits<T>::iform==EDGE,
+		(p_exterior_derivative<0>(f )))
+;
+template<typename T> inline auto curl_pdy(T const & f)
+ENABLE_IF_DECL_RET_TYPE(field_traits<T>::iform==EDGE,
+		(p_exterior_derivative<1>(f )))
+;
+template<typename T> inline auto curl_pdz(T const & f)
+ENABLE_IF_DECL_RET_TYPE(field_traits<T>::iform==EDGE,
+		(p_exterior_derivative<2>(f )))
+;
+template<typename T> inline auto curl_pdx(T const & f)
+ENABLE_IF_DECL_RET_TYPE(field_traits<T>::iform==FACE,
+		(p_codifferential_derivative<0>(f )))
+;
+template<typename T> inline auto curl_pdy(T const & f)
+ENABLE_IF_DECL_RET_TYPE(field_traits<T>::iform==FACE,
+		(p_codifferential_derivative<1>(f )))
+;
+template<typename T> inline auto curl_pdz(T const & f)
+ENABLE_IF_DECL_RET_TYPE(field_traits<T>::iform==FACE,
+		(p_codifferential_derivative<2>(f )))
+;
 
 ///   @}
 
