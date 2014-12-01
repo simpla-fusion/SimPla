@@ -19,6 +19,7 @@ struct DataSet;
 
 void init_io(int argc, char ** argv);
 void close_io();
+std::string cd(std::string const & url);
 
 std::string save(std::string const & url, DataSet const & ds,
 		size_t flag = 0UL);
@@ -27,6 +28,12 @@ template<typename T>
 auto save(std::string const & name, T const & d, size_t flag = 0UL)
 DECL_RET_TYPE((save(name,d.dataset(),flag)))
 
+#define SAVE(_F_) simpla::save(__STRING(_F_),_F_  )
+#ifndef NDEBUG
+#	define DEBUG_SAVE(_F_) simpla::save(__STRING(_F_),_F_ )
+#else
+#   define DEBUG_SAVE(_F_) ""
+#endif
 //template<typename Tuple, size_t ...Is>
 //std::string save_tuple_impl(std::string const & name, Tuple const & d,
 //		index_sequence<Is...>)

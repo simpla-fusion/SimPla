@@ -30,9 +30,9 @@ public:
 	typedef TM mesh_type;
 	typedef typename mesh_type::scalar_type scalar_type;
 
-	mesh_type const &mesh;
+	std::shared_ptr<mesh_type> mesh;
 
-	template<typename TV, size_t iform> using field=Field< TV,Domain<TM,iform> >;
+	template<typename TV, size_t iform> using field=Field< Domain<TM,iform>,TV >;
 
 	field<nTuple<scalar_type, 3>, VERTEX> Ev, Bv;
 
@@ -43,7 +43,7 @@ public:
 	typedef field<nTuple<scalar_type, 3>, VERTEX> J_type;
 
 	template<typename ...Others>
-	ImplicitPushE(mesh_type const & m, Others const &...) :
+	ImplicitPushE(std::shared_ptr<mesh_type> const & m, Others const &...) :
 			mesh(m), BB(mesh), Ev(mesh), Bv(mesh)
 	{
 	}

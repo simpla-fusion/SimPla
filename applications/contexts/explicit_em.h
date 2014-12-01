@@ -16,24 +16,24 @@
 #include <utility>
 
 // Misc
-#include "../../core/utilities/log.h"
-#include "../../core/utilities/pretty_stream.h"
-#include "../../core/physics/physical_constants.h"
+#include "../../core/application/context_base.h"
+#include "../../core/utilities/utilities.h"
+
 // Data IO
-#include "../../core/io/data_stream.h"
+#include "../../core/io/io.h"
 
 // Field
 #include "../../core/manifold/fetl.h"
-#include "../../core/field/save_field.h"
 #include "../../core/field/load_field.h"
 
 // Particle
-#include "../../core/particle/particle_base.h"
+//#include "../../core/particle/particle.h"
+
+// Model
 #include "../../core/model/model.h"
 #include "../../core/model/geqdsk.h"
-#include "../../core/flow_control/context_base.h"
 #include "../../core/numeric/geometric_algorithm.h"
-#include "../../experimental/particle_factory.h"
+//#include "../../experimental/particle_factory.h"
 
 // Solver
 #include "../field_solver/pml.h"
@@ -125,12 +125,12 @@ public:
 
 	bool empty() const
 	{
-		return !model.is_valid();
+		return !model->is_valid();
 	}
 
 	operator bool() const
 	{
-		return model.is_valid();
+		return model->is_valid();
 	}
 
 	// interface end
@@ -141,9 +141,9 @@ public:
 
 	std::string description;
 
-	Model<mesh_type> model;
+	std::shared_ptr<Model<mesh_type>> model;
 
-	template<typename TV, size_t iform> using field=Field<TV,Domain<Model<mesh_type>,iform>>;
+	template<typename TV, size_t iform> using field=_Field<Domain<Model<mesh_type>,iform>,std::shared_ptr<TV>>;
 
 	field<scalar_type, EDGE> E1, dE;
 	field<scalar_type, FACE> B1, dB;
@@ -242,7 +242,7 @@ template<typename TM>
 std::string ExplicitEMContext<TM>::save(std::string const & path) const
 {
 
-	auto abs_path = (GLOBAL_DATA_STREAM.cd(path));
+	auto abs_path = (cd(path));
 
 	VERBOSE << SAVE(E1);
 	VERBOSE << SAVE(B1);
@@ -253,7 +253,7 @@ std::string ExplicitEMContext<TM>::save(std::string const & path) const
 
 	for (auto const & p : particles_)
 	{
-		VERBOSE << p.second->save(abs_path+p.first+"/");
+		VERBOSE << p.second->save(abs_path + p.first + "/");
 	}
 
 	return path;
@@ -275,7 +275,7 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 	if (dict["Model"]["GFile"])
 	{
-		model.mesh_type::load(dict["Model"]["Mesh"]);
+		model->mesh_type::load(dict["Model"]["Mesh"]);
 
 		GEqdsk geqdsk;
 
@@ -289,23 +289,23 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 		std::tie(src_min, src_max) = geqdsk.extents();
 
-		min1 = model.MapTo(geqdsk.InvMapTo(src_min));
-		max1 = model.MapTo(geqdsk.InvMapTo(src_max));
+		min1 = model->MapTo(geqdsk.InvMapTo(src_min));
+		max1 = model->MapTo(geqdsk.InvMapTo(src_max));
 
-		std::tie(min2, max2) = model.extents();
+		std::tie(min2, max2) = model->extents();
 
 		Clipping(min2, max2, &min1, &max1);
 
-		auto dims = model.dimensions();
+		auto dims = model->dimensions();
 
-//		if (model.enable_spectral_method)
+//		if (model->enable_spectral_method)
 //		{
 //
 //			/**
 //			 *  @bug Lua can not handle field with complex value!!
 //			 */
 //
-//			for (int i = 0; i < model.NDIMS; ++i)
+//			for (int i = 0; i < model->NDIMS; ++i)
 //			{
 //				if (dims[i] <= 1)
 //				{
@@ -321,9 +321,9 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 			max1[2] = max2[2];
 		}
 
-		model.extents(min1, max1);
+		model->extents(min1, max1);
 
-		model.update();
+		model->update();
 
 		geqdsk.SetUpMaterial(&model);
 
@@ -345,7 +345,7 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 	}
 	else
 	{
-		if (!model.load(dict["Model"]))
+		if (!model->load(dict["Model"]))
 		{
 			PARSER_ERROR("Configure 'Model' fail!");
 		}
@@ -373,7 +373,8 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 	dE.clear();
 	E0.clear();
 	Jext.clear();
-	GLOBAL_DATA_STREAM.cd("/Input/");
+
+	cd("/Input/");
 
 	VERBOSE << SAVE(ne0);
 	VERBOSE << SAVE(Te0);
@@ -432,7 +433,7 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 //			{
 //				commandToE_.push_back(
 //						E1.CreateCommand(
-//								model.select_by_config(E1.IForm,
+//								model->select_by_config(E1.IForm,
 //										item.second["Select"]),
 //								item.second["Operation"]));
 //			}
@@ -441,7 +442,7 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 //
 //				commandToB_.push_back(
 //						B1.CreateCommand(
-//								model.select_by_config(B1.IForm,
+//								model->select_by_config(B1.IForm,
 //										item.second["Select"]),
 //								item.second["Operation"]));
 //			}
@@ -450,7 +451,7 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 //
 //				commandToJ_.push_back(
 //						Jext.CreateCommand(
-//								model.select_by_config(Jext.IForm,
+//								model->select_by_config(Jext.IForm,
 //										item.second["Select"]),
 //								item.second["Operation"]));
 //			}
@@ -530,7 +531,7 @@ void ExplicitEMContext<TM>::InitPECboundary()
 
 	for (auto s : E1.domain())
 	{
-		if (model.get(s) == model.null_material)
+		if (model->get(s) == model->null_material)
 		{
 			conduct_wall_E_.push_back(s);
 		}
@@ -553,7 +554,7 @@ void ExplicitEMContext<TM>::InitPECboundary()
 
 	for (auto s : B1.domain())
 	{
-		if (model.get(s) == model.null_material)
+		if (model->get(s) == model->null_material)
 		{
 			conduct_wall_B_.push_back(s);
 		}
@@ -587,11 +588,11 @@ void ExplicitEMContext<TM>::next_timestep()
 
 	INFORM
 
-	<< "[" << model.get_clock() << "]"
+	<< "[" << model->get_clock() << "]"
 
-	<< "Simulation Time = " << (model.get_time() / CONSTANTS["s"]) << "[s]";
+	<< "Simulation Time = " << (model->get_time() / CONSTANTS["s"]) << "[s]";
 
-	Real dt = model.get_dt();
+	Real dt = model->get_dt();
 
 // Compute Cycle Begin
 
@@ -622,7 +623,7 @@ void ExplicitEMContext<TM>::next_timestep()
 	LOG_CMD(B1 += dB * 0.5);	//  B(t=0 -> 1/2)
 	ExcuteCommands(commandToB_);
 // Compute Cycle End
-	model.next_timestep();
+	model->next_timestep();
 
 }
 

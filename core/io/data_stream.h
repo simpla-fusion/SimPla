@@ -170,12 +170,6 @@ private:
 //! Global data stream entry
 #define GLOBAL_DATA_STREAM  SingletonHolder<DataStream> ::instance()
 
-#define SAVE(_F_) simpla::save(__STRING(_F_),_F_  )
-#ifndef NDEBUG
-#	define DEBUG_SAVE(_F_) simpla::save(__STRING(_F_),_F_ )
-#else
-#   define DEBUG_SAVE(_F_) ""
-#endif
 }
 // namespace simpla
 

@@ -27,6 +27,12 @@ std::string save(std::string const & url, DataSet const & ds, size_t flag = 0UL)
 {
 	return GLOBAL_DATA_STREAM.write(url,ds,flag);
 }
+
+std::string cd(std::string const & url)
+{
+	return GLOBAL_DATA_STREAM.cd(url );
+}
+
 }
  // namespace simpla
 

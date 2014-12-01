@@ -20,7 +20,6 @@
 #include "../manifold/topology/structured.h"
 #include "../manifold/geometry/cylindrical.h"
 #include "../field/field.h"
-#include "../field/update_ghosts_field.h"
 
 namespace simpla
 {
@@ -203,7 +202,8 @@ public:
 				std::integral_constant<bool,
 						is_ntuple<typename field_traits<TF>::field_value_type>::value>(),
 				name, f);
-		update_ghosts(f);
+		f->sync();
+
 	}
 
 	coordinates_type MapCylindricalToFlux(

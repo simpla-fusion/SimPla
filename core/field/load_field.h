@@ -26,7 +26,7 @@ bool load_field_(TDict const &dict, _Field<T...> *f)
 	typedef typename field_traits<_Field<T...>>::manifold_type mesh_type;
 	typedef typename field_traits<_Field<T...>>::value_type value_type;
 	typedef typename field_traits<_Field<T...>>::field_value_type field_value_type;
-	constexpr size_t iform = field_traits<_Field<T...>>::iform;
+	static constexpr size_t iform = field_traits<_Field<T...>>::iform;
 
 	auto const &domain = f->domain();
 
@@ -55,7 +55,7 @@ bool load_field_(TDict const &dict, _Field<T...> *f)
 		{
 			auto x = domain.get_coordinates(s);
 
-			(*f)[s] = domain.Sample(std::integral_constant<size_t, iform>(), s,
+			(*f)[s] = domain.sample(std::integral_constant<size_t, iform>(), s,
 					v);
 		}
 

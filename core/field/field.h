@@ -61,6 +61,12 @@ public:
 			domain_(domain), data_(std::forward<Args>(args)...)
 	{
 	}
+
+	template<typename TM>
+	_Field(std::shared_ptr<TM> const & m) :
+			domain_(m)
+	{
+	}
 	_Field(this_type const & that) :
 			domain_(that.domain_), data_(that.data_)
 	{
@@ -311,35 +317,6 @@ struct reference_traits<_Field<TD, TC> >
 	typedef _Field<TD, TC> const & type;
 };
 
-//template<typename > struct field_result_of;
-//template<typename ... > struct index_of;
-//
-//template<typename TD, typename TC, typename TI>
-//struct index_of<_Field<TD, TC>, TI>
-//{
-//	typedef typename _Field<TD, TC>::value_type type;
-//};
-//
-//template<typename TOP, typename ...T, typename TI>
-//struct index_of<_Field<Expression<TOP, T...>>, TI>
-//{
-//	typedef typename field_result_of<TOP(T..., TI)>::type type;
-//};
-//
-//template<typename TOP, typename TL, typename TI>
-//struct field_result_of<TOP(TL, TI)>
-//{
-//	typedef typename result_of<TOP(typename index_of<TL, TI>::type)>::type type;
-//};
-//
-//template<typename TOP, typename TL, typename TR, typename TI>
-//struct field_result_of<TOP(TL, TR, TI)>
-//{
-//	typedef typename result_of<
-//			TOP(typename index_of<TL, TI>::type,
-//					typename index_of<TR, TI>::type)>::type type;
-//};
-
 template<typename TDomain, typename TV> using Field= _Field< TDomain,std::shared_ptr<TV> >;
 
 template<typename > struct is_field
@@ -422,26 +399,6 @@ public:
 	typedef typename sp_result_of<TOP(l_type, r_type)>::type value_type;
 
 };
-//// FIXME just a temporary path, need fix
-//template<typename TOP, typename TR>
-//struct field_traits<_Field<Expression<TOP, double, TR> >>
-//{
-//
-//	static constexpr size_t ndims = field_traits<TR>::ndims;
-//
-//	static constexpr size_t iform = field_traits<TR>::iform;
-//
-//};
-//
-//template<typename TOP, typename TL>
-//struct field_traits<_Field<Expression<TOP, TL, double> >>
-//{
-//
-//	static constexpr size_t ndims = field_traits<TL>::ndims;
-//
-//	static constexpr size_t iform = field_traits<TL>::iform;
-//
-//};
 
 template<typename TOP, typename TL, typename TR>
 struct _Field<Expression<TOP, TL, TR>> : public Expression<TOP, TL, TR>
@@ -449,7 +406,6 @@ struct _Field<Expression<TOP, TL, TR>> : public Expression<TOP, TL, TR>
 	typedef _Field<Expression<TOP, TL, TR>> this_type;
 
 	using Expression<TOP, TL, TR>::Expression;
-
 };
 
 template<typename TOP, typename TL, typename TR>
@@ -494,12 +450,6 @@ auto make_field(TD const& d)
 DECL_RET_TYPE((_Field<TD, std::shared_ptr<TV>>( (d) )))
 
 template<typename, size_t> class Domain;
-//
-//template<typename TV, size_t IFORM, typename TM, typename ... Others>
-//auto make_form(TM const &manifold,
-//		Others && ...others)
-//				DECL_RET_TYPE((_Field<std::shared_ptr<TV>,Domain<TM,IFORM>>(
-//										Domain<TM,IFORM>(manifold),std::forward<Others>(others)...)))
 
 template<typename TV, size_t IFORM, typename TM>
 _Field<Domain<TM, IFORM>, std::shared_ptr<TV>> make_form(
