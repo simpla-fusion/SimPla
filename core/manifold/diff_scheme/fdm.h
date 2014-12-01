@@ -105,6 +105,13 @@ struct FiniteDiffMethod
 		return v;
 	}
 
+	template<typename T, size_t ...N, typename ...Others>
+	nTuple<T, N...> const& calculate(nTuple<T, N...> const& v,
+			Others &&... s) const
+	{
+		return v;
+	}
+
 	template<typename ...T, typename ...Others>
 	inline typename nTuple_traits<nTuple<Expression<T...>>> ::primary_type
 	calculate(nTuple<Expression<T...>> const & v, Others &&... s) const

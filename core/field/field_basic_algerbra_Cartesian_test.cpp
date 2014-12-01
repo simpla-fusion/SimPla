@@ -21,22 +21,31 @@ using namespace simpla;
 typedef Manifold<CartesianCoordinates<StructuredMesh, CARTESIAN_ZAXIS>,
 		FiniteDiffMethod, InterpolatorLinear> manifold_type;
 
-typedef testing::Types< //
+typedef testing::Types<
+		//
 
 		Field<Domain<manifold_type, VERTEX>, double> //
-		, Field<Domain<manifold_type, EDGE>, double> //
-		, Field<Domain<manifold_type, FACE>, double> //
-		, Field<Domain<manifold_type, VOLUME>, double> //
-//
-//		, Field<nTuple<double, 3>, Domain<manifold_type, VERTEX>> //s
-//		, Field<nTuple<double, 3>, Domain<manifold_type, EDGE>> //
-//		, Field<nTuple<double, 3>, Domain<manifold_type, FACE>> //
-//		, Field<nTuple<double, 3>, Domain<manifold_type, VOLUME>> //
-//
-//		, Field<nTuple<std::complex<double>, 3, 3>, Domain<manifold_type, VERTEX>> //
-//		, Field<nTuple<std::complex<double>, 3, 3>, Domain<manifold_type, EDGE>> //
-//		, Field<nTuple<double, 3, 3>, Domain<manifold_type, FACE>> //
-//		, Field<nTuple<double, 3, 3>, Domain<manifold_type, VOLUME>> //
+		,
+		Field<Domain<manifold_type, EDGE>, double> //
+		,
+		Field<Domain<manifold_type, FACE>, double> //
+		,
+		Field<Domain<manifold_type, VOLUME>, double> //
+
+		,
+		Field<Domain<manifold_type, VERTEX>, nTuple<double, 3>> //
+		,
+		Field<Domain<manifold_type, EDGE>, nTuple<double, 3>> //
+		,
+		Field<Domain<manifold_type, FACE>, nTuple<double, 3>> //
+		,
+		Field<Domain<manifold_type, VOLUME>, nTuple<double, 3>> //
+
+		,
+		Field<Domain<manifold_type, VERTEX>, nTuple<std::complex<double>, 3, 3>> //
+		, Field<Domain<manifold_type, EDGE>, nTuple<std::complex<double>, 3, 3>> //
+		, Field<Domain<manifold_type, FACE>, nTuple<double, 3, 3>> //
+		, Field<Domain<manifold_type, VOLUME>, nTuple<double, 3, 3>> //
 
 > TypeParamList;
 

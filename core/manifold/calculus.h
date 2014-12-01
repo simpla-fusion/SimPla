@@ -111,7 +111,7 @@ public:
 	static const size_t ndims = sp_max<size_t, IL, IR>::value > 0 ? NDIMS : 0;
 	static const size_t iform = sp_max<size_t, IL, IR>::value - 1;
 
-	typedef typename std::result_of<_impl::multiplies(l_type, r_type)>::type value_type;
+	typedef typename sp_result_of<_impl::multiplies(l_type, r_type)>::type value_type;
 
 };
 
@@ -130,7 +130,7 @@ public:
 	static const size_t ndims = IL + IR <= NDIMS ? NDIMS : 0;
 	static const size_t iform = IL + IR;
 
-	typedef typename std::result_of<_impl::multiplies(l_type, r_type)>::type value_type;
+	typedef typename sp_result_of<_impl::multiplies(l_type, r_type)>::type value_type;
 
 };
 

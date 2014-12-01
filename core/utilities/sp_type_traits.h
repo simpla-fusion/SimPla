@@ -647,6 +647,20 @@ struct sp_min
 {
 	static constexpr TI value = L < R ? L : R;
 };
+template<typename T>
+struct sp_pod_traits
+{
+	typedef T type;
+
+};
+template<typename _Signature>
+class sp_result_of
+{
+	typedef typename std::result_of<_Signature>::type _type;
+public:
+	typedef typename sp_pod_traits<_type>::type type;
+
+};
 }
 // namespace simpla
 #endif /* SP_TYPE_TRAITS_H_ */

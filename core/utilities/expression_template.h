@@ -466,6 +466,7 @@ _SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_BOOLEAN_OPERATOR(<=, less_equal)           
 _SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_BOOLEAN_OPERATOR(>=, greater_equal)                            \
 _SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_FUNCTION(abs)                                           \
 
+
 //#undef _SP_DEFINE_EXPR_BINARY_OPERATOR
 //#undef _SP_DEFINE_EXPR_UNARY_OPERATOR
 //#undef _SP_DEFINE_EXPR_UNARY_FUNCTION

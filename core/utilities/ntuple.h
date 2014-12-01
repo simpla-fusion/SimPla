@@ -319,6 +319,13 @@ struct nTuple_traits<nTuple<BooleanExpression<TOP, T...>> >
 };
 
 template<typename T, size_t ...N>
+struct sp_pod_traits<nTuple<T, N...> >
+{
+	typedef typename nTuple_traits<nTuple<T, N...>>::primary_type type;
+
+};
+
+template<typename T, size_t ...N>
 struct rank<nTuple<T, N...>>
 {
 	static constexpr size_t value =

@@ -352,8 +352,6 @@ template<typename ...T> struct is_field<_Field<T...>>
 	static constexpr bool value = true;
 };
 
-template<typename TOP, typename TL, typename TR> struct Expression;
-
 template<typename ...> struct field_traits;
 
 template<typename T> struct field_traits<T>
@@ -385,6 +383,8 @@ struct field_traits<_Field<TD, TC>>
 /// \defgroup   Field Expression
 /// @{
 
+template<typename TOP, typename TL, typename TR> struct Expression;
+
 template<typename TOP, typename TL>
 struct field_traits<_Field<Expression<TOP, TL, std::nullptr_t> >>
 {
@@ -397,7 +397,7 @@ public:
 
 	static constexpr size_t iform = field_traits<TL>::iform;
 
-	typedef typename std::result_of<TOP(l_type)>::type value_type;
+	typedef typename sp_result_of<TOP(l_type)>::type value_type;
 
 };
 
@@ -419,7 +419,7 @@ public:
 	static const size_t iform = IL;
 	static constexpr bool is_field = true;
 
-	typedef typename std::result_of<TOP(l_type, r_type)>::type value_type;
+	typedef typename sp_result_of<TOP(l_type, r_type)>::type value_type;
 
 };
 //// FIXME just a temporary path, need fix
@@ -467,6 +467,27 @@ struct _Field<BooleanExpression<TOP, TL, TR>> : public Expression<TOP, TL, TR>
 };
 
 DEFINE_EXPRESSOPM_TEMPLATE_BASIC_ALGEBRA(_Field)
+
+#define SP_DEF_BINOP_FIELD_NTUPLE(_OP_,_NAME_)                                                 \
+template<typename ...T1, typename T2, size_t ... N>                                            \
+_Field<Expression<_impl::plus, _Field<T1...>, nTuple<T2, N...> > > operator _OP_(              \
+		_Field<T1...> const & l, nTuple<T2, N...> const &r)                                    \
+{return (_Field<Expression<_impl::_NAME_, _Field<T1...>, nTuple<T2, N...> > >(l, r));}         \
+template<typename T1, size_t ... N, typename ...T2>                                            \
+_Field<Expression<_impl::plus, nTuple<T1, N...>, _Field<T2...> > > operator _OP_(              \
+		nTuple<T1, N...> const & l, _Field< T2...>const &r)                                    \
+{	return (_Field<Expression< _impl::_NAME_,T1,_Field< T2...>>>(l,r));}                       \
+
+
+SP_DEF_BINOP_FIELD_NTUPLE(+, plus)
+SP_DEF_BINOP_FIELD_NTUPLE(-, minus)
+SP_DEF_BINOP_FIELD_NTUPLE(*, multiplies)
+SP_DEF_BINOP_FIELD_NTUPLE(/, divides)
+SP_DEF_BINOP_FIELD_NTUPLE(%, modulus)
+SP_DEF_BINOP_FIELD_NTUPLE(^, bitwise_xor)
+SP_DEF_BINOP_FIELD_NTUPLE(&, bitwise_and)
+SP_DEF_BINOP_FIELD_NTUPLE(|, bitwise_or)
+#undef SP_DEF_BINOP_FIELD_NTUPLE
 
 template<typename TV, typename TD>
 auto make_field(TD const& d)

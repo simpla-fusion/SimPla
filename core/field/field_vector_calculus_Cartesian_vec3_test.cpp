@@ -16,7 +16,7 @@ using namespace simpla;
 
 #define TMESH Manifold<CartesianCoordinates<StructuredMesh, CARTESIAN_ZAXIS>,FiniteDiffMethod, InterpolatorLinear>
 
-#define VEC_VALUE_TYPE nTuple<Real,3>
+#define  VALUE_TYPE nTuple<Real,3>
 
 #include "field_vector_calculus_test.h"
 
