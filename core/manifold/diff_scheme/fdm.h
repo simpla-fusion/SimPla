@@ -66,197 +66,221 @@ struct FiniteDiffMethod
 // Exterior algebra
 //***************************************************************************************************
 
-//	template<typename T>
-//	typename field_traits<T>::value_type calculate(T const& f,
-//			compact_index_type const &s) const;
-
-	template<typename T>
-	T const & calculate(T const & v, compact_index_type s) const;
-	template<typename ...T>
-	typename nTuple_traits<nTuple<Expression<T...>>> ::primary_type
-	calculate(nTuple<Expression<T...>> const & v,
-			compact_index_type s) const;
-
-	template<typename TC, typename TD>
-	typename _Field<TC, TD>::value_type const &
-	calculate( _Field<TC, TD> const &f, compact_index_type const &s) const;
-
-	template<typename TOP, typename TL>
-	typename field_result_of<TOP(TL,compact_index_type)>::type
-	calculate(_Field<Expression<TOP, TL>> const &f,
-			compact_index_type const &s) const;
-
-	template<typename TOP, typename TL, typename TR>
-	typename field_result_of<TOP(TL,TR,compact_index_type)>::type
-	calculate(_Field<Expression<TOP, TL, TR>> const &f,
-			compact_index_type const &s) const;
-
-private:
-
-	template<size_t IFORM, typename TOP, typename TL>
-	inline typename field_result_of<TOP(TL,compact_index_type)>::type
-	calculate_(TOP op, integer_sequence<size_t, IFORM>, TL const& f,
-			compact_index_type s) const
-	{
-		return op(calculate(f,s) );
-	}
-
-	template<typename TOP, size_t IL, size_t IR, typename TL, typename TR>
-	inline typename field_result_of<TOP(TL,TR,compact_index_type)>::type
-	calculate_(TOP op, integer_sequence<size_t, IL, IR>,
-			TL const& l, TR const &r, compact_index_type s) const
-	{
-		return op(calculate(l,s),calculate(r,s) );
-	}
-
-	template<typename TF>
-	inline typename field_result_of<_impl::ExteriorDerivative(TF,compact_index_type)>::type
-	calculate_(_impl::ExteriorDerivative, integer_sequence<size_t, VERTEX>,
-			TF const & f,
-			compact_index_type s) const
-	{
-		auto D = geo->delta_index(s);
-
-		return (calculate(f, s + D) * geo->volume(s + D)
-				- calculate(f, s - D) * geo->volume(s - D)) * geo->inv_volume(s);
-	}
-
-	template<typename TF>
-	inline typename field_result_of<_impl::ExteriorDerivative(TF,compact_index_type)>::type
-	calculate_(_impl::ExteriorDerivative,
-			integer_sequence<size_t, EDGE>, TF const & f,
-			compact_index_type s) const
-	{
-		auto X = geo->delta_index(geo->dual(s));
-		auto Y = geo->roate(X);
-		auto Z = geo->inverse_roate(X);
-
-		return (
-
-				(
-
-						calculate(f, s + Y) * geo->volume(s + Y) //
-						- calculate(f, s - Y) * geo->volume(s - Y)//
-
-				) - (
-
-						calculate(f, s + Z) * geo->volume(s + Z)//
-						- calculate(f, s - Z) * geo->volume(s - Z)//
-
-				)
-
-		) * geo->inv_volume(s);
-
-	}
-
-	template<typename TF>
-	inline typename field_result_of<_impl::ExteriorDerivative(TF,compact_index_type)>::type
-	calculate_(_impl::ExteriorDerivative,
-			integer_sequence<size_t, FACE>, TF const & f,
-			compact_index_type s) const
-	{
-		auto X = geo->DI(0, s);
-		auto Y = geo->DI(1, s);
-		auto Z = geo->DI(2, s);
-
-		return (
-
-				calculate(f, s + X) * geo->volume(s + X)
-
-				- calculate(f, s - X) * geo->volume(s - X) //
-				+ calculate(f, s + Y) * geo->volume(s + Y)//
-				- calculate(f, s - Y) * geo->volume(s - Y)//
-				+ calculate(f, s + Z) * geo->volume(s + Z)//
-				- calculate(f, s - Z) * geo->volume(s - Z)//
-
-		) * geo->inv_volume(s)
-
-		;
-	}
-
-//	template<typename TM, size_t IL, typename TL> void calculate(
-//			_impl::ExteriorDerivative, _Field<Domain<TM, IL>, TL> const & f,
-//			compact_index_type s) const = delete;
+//	template<typename T, typename ...Others>
+//	T const & calculate(T const & v, Others &&... s) const;
 //
-//	template<typename TM, size_t IL, typename TL> void calculate(
-//			_impl::CodifferentialDerivative,
-//			_Field<TL...> const & f, compact_index_type s) const = delete;
+//	template<typename ...T, typename ...Others>
+//	inline typename nTuple_traits<nTuple<Expression<T...>>> ::primary_type
+//	calculate(nTuple<Expression<T...>> const & v, Others &&... s) const;
+//
+//	template<typename TC, typename TD, typename Others>
+//	inline typename _Field<TC, TD>::value_type const &
+//	calculate( _Field<TC, TD> const &f, Others s) const;
+//
+//	template<typename TOP, typename TL, typename ...Others>
+//	inline typename field_result_of<TOP(TL,Others ... )>::type
+//	calculate(_Field<Expression<TOP, TL>> const &f, Others &&... s) const;
+//
+//	template<typename TOP, typename TL, typename TR, typename ...Others>
+//	inline typename field_result_of<TOP(TL,TR,Others ... )>::type
+//	calculate(_Field<Expression<TOP, TL, TR>> const &f, Others &&... s) const;
+//
 
-	template<typename TF>
-	inline typename field_result_of<_impl::CodifferentialDerivative(TF,compact_index_type)>::type
-	calculate_(_impl::CodifferentialDerivative,
-			integer_sequence<size_t, EDGE>, TF const & f,
-			compact_index_type s) const
+	template<typename ...Others>
+	Real calculate(Real v, Others &&... s) const
 	{
-		auto X = geo->DI(0, s);
-		auto Y = geo->DI(1, s);
-		auto Z = geo->DI(2, s);
-
-		return
-
-		-(
-
-				calculate(f, s + X) * geo->dual_volume(s + X)
-
-				- calculate(f, s - X) * geo->dual_volume(s - X)
-
-				+ calculate(f, s + Y) * geo->dual_volume(s + Y)
-
-				- calculate(f, s - Y) * geo->dual_volume(s - Y)
-
-				+ calculate(f, s + Z) * geo->dual_volume(s + Z)
-
-				- calculate(f, s - Z) * geo->dual_volume(s - Z)
-
-		) * geo->inv_dual_volume(s)
-
-		;
-
+		return v;
 	}
 
-	template<typename TF>
-	inline typename field_result_of<_impl::CodifferentialDerivative(TF,compact_index_type)>::type
-	calculate_(_impl::CodifferentialDerivative,
-			integer_sequence<size_t, FACE>, TF const & f,
-			compact_index_type s) const
+	template<typename ...Others>
+	int calculate(int v, Others &&... s) const
 	{
-		auto X = geo->delta_index(s);
-		auto Y = geo->roate(X);
-		auto Z = geo->inverse_roate(X);
-
-		return
-
-		-(
-
-				(calculate(f, s + Y) * (geo->dual_volume(s + Y))
-						- calculate(f, s - Y) * (geo->dual_volume(s - Y)))
-
-				- (calculate(f, s + Z) * (geo->dual_volume(s + Z))
-						- calculate(f, s - Z) * (geo->dual_volume(s - Z)))
-
-		) * geo->inv_dual_volume(s)
-
-		;
+		return v;
 	}
 
-	template<typename TF>
-	inline typename field_result_of<_impl::CodifferentialDerivative(TF,compact_index_type)>::type
-	calculate_(_impl::CodifferentialDerivative,
-			integer_sequence<size_t, VOLUME>, TF const & f,
-			compact_index_type s) const
+	template<typename ...Others>
+	std::complex<Real> calculate(std::complex<Real> v, Others &&... s) const
 	{
-		auto D = geo->delta_index(geo->dual(s));
-		return
-
-		-(
-
-				calculate(f, s + D) * (geo->dual_volume(s + D)) //
-				- calculate(f, s - D) * (geo->dual_volume(s - D))
-
-		) * geo->inv_dual_volume(s)
-
-		;
+		return v;
 	}
+
+	template<typename ...T, typename ...Others>
+	inline typename nTuple_traits<nTuple<Expression<T...>>> ::primary_type
+	calculate(nTuple<Expression<T...>> const & v, Others &&... s) const
+	{
+		typename nTuple_traits<nTuple<Expression<T...>>> ::primary_type res;
+		res=v;
+		return std::move(res);
+	}
+
+	template<typename TC, typename TD, typename ... Others>
+	inline typename field_traits<_Field<TC, TD> >::value_type
+	calculate(_Field<TC, TD> const &f, Others && ... s) const
+	{
+		return f.get(std::forward<Others>(s)...);
+	}
+
+	template<typename TOP, typename TL, typename TR, typename ...Others>
+	inline typename field_traits< _Field<BiOpExpression<TOP, TL, TR>>>::value_type
+	calculate(_Field<BiOpExpression<TOP, TL, TR>> const &f, Others &&... s) const
+	{
+		return f.op_(calculate(f.lhs,std::forward<Others>(s)...),
+				calculate(f.rhs,std::forward<Others>(s)...));
+	}
+
+	template<typename TOP, typename TL, typename ...Others>
+	inline typename field_traits< _Field<UniOpExpression<TOP, TL>>>::value_type
+	calculate(_Field<UniOpExpression<TOP, TL>> const &f, Others &&... s) const
+	{
+		return f.op_(calculate(f.lhs,std::forward<Others>(s)...) );
+	}
+
+//	template<typename T,typename TI>
+//	inline typename field_result_of<_impl::ExteriorDerivative(T ,TI)>::type
+//	calculate_(T const & f, TI s) const
+//	{
+//		auto D = geo->delta_index(s);
+//
+//		return (calculate(f, s + D) * geo->volume(s + D)
+//				- calculate(f, s - D) * geo->volume(s - D)) * geo->inv_volume(s);
+//	}
+//
+//	template<typename TF>
+//	inline typename field_result_of<_impl::ExteriorDerivative(TF,compact_index_type)>::type
+//	calculate_(_impl::ExteriorDerivative,
+//			integer_sequence<size_t, EDGE>, TF const & f,
+//			compact_index_type s) const
+//	{
+//		auto X = geo->delta_index(geo->dual(s));
+//		auto Y = geo->roate(X);
+//		auto Z = geo->inverse_roate(X);
+//
+//		return (
+//
+//				(
+//
+//						calculate(f, s + Y) * geo->volume(s + Y) //
+//						- calculate(f, s - Y) * geo->volume(s - Y)//
+//
+//				) - (
+//
+//						calculate(f, s + Z) * geo->volume(s + Z)//
+//						- calculate(f, s - Z) * geo->volume(s - Z)//
+//
+//				)
+//
+//		) * geo->inv_volume(s);
+//
+//	}
+//
+//	template<typename TF>
+//	inline typename field_result_of<_impl::ExteriorDerivative(TF,compact_index_type)>::type
+//	calculate_(_impl::ExteriorDerivative,
+//			integer_sequence<size_t, FACE>, TF const & f,
+//			compact_index_type s) const
+//	{
+//		auto X = geo->DI(0, s);
+//		auto Y = geo->DI(1, s);
+//		auto Z = geo->DI(2, s);
+//
+//		return (
+//
+//				calculate(f, s + X) * geo->volume(s + X)
+//
+//				- calculate(f, s - X) * geo->volume(s - X) //
+//				+ calculate(f, s + Y) * geo->volume(s + Y)//
+//				- calculate(f, s - Y) * geo->volume(s - Y)//
+//				+ calculate(f, s + Z) * geo->volume(s + Z)//
+//				- calculate(f, s - Z) * geo->volume(s - Z)//
+//
+//		) * geo->inv_volume(s)
+//
+//		;
+//	}
+//
+////	template<typename TM, size_t IL, typename TL> void calculate(
+////			_impl::ExteriorDerivative, _Field<Domain<TM, IL>, TL> const & f,
+////			compact_index_type s) const = delete;
+////
+////	template<typename TM, size_t IL, typename TL> void calculate(
+////			_impl::CodifferentialDerivative,
+////			_Field<TL...> const & f, compact_index_type s) const = delete;
+//
+//	template<typename TF>
+//	inline typename field_result_of<_impl::CodifferentialDerivative(TF,compact_index_type)>::type
+//	calculate_(_impl::CodifferentialDerivative,
+//			integer_sequence<size_t, EDGE>, TF const & f,
+//			compact_index_type s) const
+//	{
+//		auto X = geo->DI(0, s);
+//		auto Y = geo->DI(1, s);
+//		auto Z = geo->DI(2, s);
+//
+//		return
+//
+//		-(
+//
+//				calculate(f, s + X) * geo->dual_volume(s + X)
+//
+//				- calculate(f, s - X) * geo->dual_volume(s - X)
+//
+//				+ calculate(f, s + Y) * geo->dual_volume(s + Y)
+//
+//				- calculate(f, s - Y) * geo->dual_volume(s - Y)
+//
+//				+ calculate(f, s + Z) * geo->dual_volume(s + Z)
+//
+//				- calculate(f, s - Z) * geo->dual_volume(s - Z)
+//
+//		) * geo->inv_dual_volume(s)
+//
+//		;
+//
+//	}
+//
+//	template<typename TF>
+//	inline typename field_result_of<_impl::CodifferentialDerivative(TF,compact_index_type)>::type
+//	calculate_(_impl::CodifferentialDerivative,
+//			integer_sequence<size_t, FACE>, TF const & f,
+//			compact_index_type s) const
+//	{
+//		auto X = geo->delta_index(s);
+//		auto Y = geo->roate(X);
+//		auto Z = geo->inverse_roate(X);
+//
+//		return
+//
+//		-(
+//
+//				(calculate(f, s + Y) * (geo->dual_volume(s + Y))
+//						- calculate(f, s - Y) * (geo->dual_volume(s - Y)))
+//
+//				- (calculate(f, s + Z) * (geo->dual_volume(s + Z))
+//						- calculate(f, s - Z) * (geo->dual_volume(s - Z)))
+//
+//		) * geo->inv_dual_volume(s)
+//
+//		;
+//	}
+//
+//	template<typename TF>
+//	inline typename field_result_of<_impl::CodifferentialDerivative(TF,compact_index_type)>::type
+//	calculate_(_impl::CodifferentialDerivative,
+//			integer_sequence<size_t, VOLUME>, TF const & f,
+//			compact_index_type s) const
+//	{
+//		auto D = geo->delta_index(geo->dual(s));
+//		return
+//
+//		-(
+//
+//				calculate(f, s + D) * (geo->dual_volume(s + D)) //
+//				- calculate(f, s - D) * (geo->dual_volume(s - D))
+//
+//		) * geo->inv_dual_volume(s)
+//
+//		;
+//	}
 
 ////***************************************************************************************************
 //
@@ -849,53 +873,7 @@ private:
 //
 //	return get_value(f, s);
 //}
-template<typename G>
-template<typename T>
-T const &
-FiniteDiffMethod<G>::calculate(T const & v, compact_index_type s) const
-{
-	return v;
-}
-template<typename G>
-template<typename ...T>
-typename nTuple_traits<nTuple<Expression<T...>>> ::primary_type
-FiniteDiffMethod<G>::calculate(nTuple<Expression<T...>> const & v,
-		compact_index_type s) const
-{
-	typename nTuple_traits<nTuple<Expression<T...>>> ::primary_type res;
-	res=v;
-	return std::move(res);
-}
 
-template<typename G>
-template<typename TC, typename TD>
-typename _Field<TC, TD>::value_type const & //
-FiniteDiffMethod<G>::calculate(_Field<TC, TD> const &f,
-		compact_index_type const &s) const
-{
-	return f[s];
-}
-template<typename G>
-template<typename TOP, typename TL>
-typename field_result_of<
-		TOP(TL, typename FiniteDiffMethod<G>::compact_index_type)>::type //
-FiniteDiffMethod<G>::calculate(_Field<Expression<TOP, TL>> const &f,
-		compact_index_type const &s) const
-{
-	return calculate_(f.op_,
-			integer_sequence<size_t, field_traits<TL>::iform>(), f.lhs, s);
-}
-template<typename G>
-template<typename TOP, typename TL, typename TR>
-typename field_result_of<
-		TOP(TL, TR, typename FiniteDiffMethod<G>::compact_index_type)>::type //
-FiniteDiffMethod<G>::calculate(_Field<Expression<TOP, TL, TR>> const &f,
-		compact_index_type const &s) const
-{
-	return (calculate_(f.op_,
-			integer_sequence<size_t, field_traits<TL>::iform,
-					field_traits<TR>::iform>(), f.lhs, f.rhs, s));
-}
 }
 // namespace simpla
 

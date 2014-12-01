@@ -140,13 +140,23 @@ public:
 
 	DataSet dataset() const
 	{
-		return DataSet(
-				{ properties(), data_, make_datatype<value_type>(),
-						domain_.dataspace() });
+		return DataSet( { properties(), data_, make_datatype<value_type>(),
+				domain_.dataspace() });
 	}
 
 // @defgroup Access operation
 // @
+	template<typename ... TI>
+	value_type & get(TI &&... s)
+	{
+		return (get_value(data_, domain_.hash(std::forward<TI>(s)...)));
+	}
+
+	template<typename ... TI>
+	value_type const& get(TI &&... s) const
+	{
+		return (get_value(data_, domain_.hash(std::forward<TI>(s)...)));
+	}
 
 	template<typename TI>
 	value_type & operator[](TI const & s)
@@ -179,13 +189,13 @@ public:
 	}
 
 	template<typename TR> inline this_type &
-	operator =(TR const &that)
+	operator =(TR const&that)
 	{
 		allocate();
 
 		parallel_for(domain_, [&](index_type const & s)
 		{
-			(*this)[s]= domain_.manifold_->calculate(that, s);
+			(*this)[s]= domain_.manifold_->calculate( (that), s);
 		});
 
 		return (*this);
@@ -301,34 +311,34 @@ struct reference_traits<_Field<TD, TC> >
 	typedef _Field<TD, TC> const & type;
 };
 
-template<typename > struct field_result_of;
-template<typename ... > struct index_of;
-
-template<typename TD, typename TC, typename TI>
-struct index_of<_Field<TD, TC>, TI>
-{
-	typedef typename _Field<TD, TC>::value_type type;
-};
-
-template<typename TOP, typename ...T, typename TI>
-struct index_of<_Field<Expression<TOP, T...>>, TI>
-{
-	typedef typename field_result_of<TOP(T..., TI)>::type type;
-};
-
-template<typename TOP, typename TL, typename TI>
-struct field_result_of<TOP(TL, TI)>
-{
-	typedef typename result_of<TOP(typename index_of<TL, TI>::type)>::type type;
-};
-
-template<typename TOP, typename TL, typename TR, typename TI>
-struct field_result_of<TOP(TL, TR, TI)>
-{
-	typedef typename result_of<
-			TOP(typename index_of<TL, TI>::type,
-					typename index_of<TR, TI>::type)>::type type;
-};
+//template<typename > struct field_result_of;
+//template<typename ... > struct index_of;
+//
+//template<typename TD, typename TC, typename TI>
+//struct index_of<_Field<TD, TC>, TI>
+//{
+//	typedef typename _Field<TD, TC>::value_type type;
+//};
+//
+//template<typename TOP, typename ...T, typename TI>
+//struct index_of<_Field<Expression<TOP, T...>>, TI>
+//{
+//	typedef typename field_result_of<TOP(T..., TI)>::type type;
+//};
+//
+//template<typename TOP, typename TL, typename TI>
+//struct field_result_of<TOP(TL, TI)>
+//{
+//	typedef typename result_of<TOP(typename index_of<TL, TI>::type)>::type type;
+//};
+//
+//template<typename TOP, typename TL, typename TR, typename TI>
+//struct field_result_of<TOP(TL, TR, TI)>
+//{
+//	typedef typename result_of<
+//			TOP(typename index_of<TL, TI>::type,
+//					typename index_of<TR, TI>::type)>::type type;
+//};
 
 template<typename TDomain, typename TV> using Field= _Field< TDomain,std::shared_ptr<TV> >;
 
@@ -342,7 +352,8 @@ template<typename ...T> struct is_field<_Field<T...>>
 	static constexpr bool value = true;
 };
 
-template<typename ... >struct Expression;
+template<typename TOP, typename TL, typename TR> struct BiOpExpression;
+template<typename TOP, typename TL> struct UniOpExpression;
 
 template<typename ...> struct field_traits;
 
@@ -352,6 +363,9 @@ template<typename T> struct field_traits<T>
 	static constexpr size_t ndims = 0;
 
 	static constexpr size_t iform = VERTEX;
+
+	typedef T value_type;
+
 };
 
 template<typename TD, typename TC>
@@ -361,56 +375,85 @@ struct field_traits<_Field<TD, TC>>
 	static constexpr size_t ndims = TD::ndims;
 
 	static constexpr size_t iform = TD::iform;
+
+	typedef typename _Field<TD, TC>::value_type value_type;
+
 };
 
 /// \defgroup   Field Expression
 /// @{
 
-template<typename ...> struct field_traits
-{
-	typedef std::nullptr_t domain_type;
-};
-
 template<typename TOP, typename TL>
-struct field_traits<_Field<Expression<TOP, TL> >>
+struct field_traits<_Field<UniOpExpression<TOP, TL> >>
 {
+private:
+	typedef typename field_traits<TL>::value_type l_type;
+public:
 
 	static constexpr size_t ndims = field_traits<TL>::ndims;
 
 	static constexpr size_t iform = field_traits<TL>::iform;
+
+	typedef typename std::result_of<TOP(l_type)>::type value_type;
 
 };
 
 template<typename TOP, typename TL, typename TR>
-struct field_traits<_Field<Expression<TOP, TL, TR> >>
+struct field_traits<_Field<BiOpExpression<TOP, TL, TR> > >
 {
+private:
+	static constexpr size_t NDIMS = sp_max<size_t, field_traits<TL>::ndims,
+			field_traits<TL>::ndims>::value;
 
-	typedef typename std::conditional<is_field<TL>::value, field_traits<TL>,
-			field_traits<TR>>::type traits_type;
+	static constexpr size_t IL = field_traits<TL>::iform;
+	static constexpr size_t IR = field_traits<TR>::iform;
 
-	static constexpr size_t ndims = traits_type::ndims;
+	typedef typename field_traits<TL>::value_type l_type;
+	typedef typename field_traits<TR>::value_type r_type;
 
-	static constexpr size_t iform = traits_type::iform;
+public:
+	static const size_t ndims = NDIMS;
+	static const size_t iform = IL;
+
+	typedef typename std::result_of<TOP(l_type, r_type)>::type value_type;
 
 };
-// FIXME just a temporary path, need fix
-template<typename TOP, typename TR>
-struct field_traits<_Field<Expression<TOP, double, TR> >>
-{
-
-	static constexpr size_t ndims = field_traits<TR>::ndims;
-
-	static constexpr size_t iform = field_traits<TR>::iform;
-
-};
+//// FIXME just a temporary path, need fix
+//template<typename TOP, typename TR>
+//struct field_traits<_Field<Expression<TOP, double, TR> >>
+//{
+//
+//	static constexpr size_t ndims = field_traits<TR>::ndims;
+//
+//	static constexpr size_t iform = field_traits<TR>::iform;
+//
+//};
+//
+//template<typename TOP, typename TL>
+//struct field_traits<_Field<Expression<TOP, TL, double> >>
+//{
+//
+//	static constexpr size_t ndims = field_traits<TL>::ndims;
+//
+//	static constexpr size_t iform = field_traits<TL>::iform;
+//
+//};
 
 template<typename TOP, typename TL>
-struct field_traits<_Field<Expression<TOP, TL, double> >>
+struct _Field<UniOpExpression<TOP, TL>> : public UniOpExpression<TOP, TL>
 {
+	typedef _Field<UniOpExpression<TOP, TL>> this_type;
 
-	static constexpr size_t ndims = field_traits<TL>::ndims;
+	using UniOpExpression<TOP, TL>::UniOpExpression;
 
-	static constexpr size_t iform = field_traits<TL>::iform;
+};
+
+template<typename TOP, typename TL, typename TR>
+struct _Field<BiOpExpression<TOP, TL, TR>> : public BiOpExpression<TOP, TL, TR>
+{
+	typedef _Field<BiOpExpression<TOP, TL, TR>> this_type;
+
+	using BiOpExpression<TOP, TL, TR>::BiOpExpression;
 
 };
 

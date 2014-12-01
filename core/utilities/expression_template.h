@@ -118,6 +118,78 @@ struct Expression<TOP, TL>
 //			DECL_RET_TYPE ((op_( lhs, s) ))
 
 };
+template<typename TOP, typename TL, typename TR>
+struct BiOpExpression
+{
+	typedef BiOpExpression<TOP, TL, TR> this_type;
+	typename reference_traits<TL>::type lhs;
+	typename reference_traits<TR>::type rhs;
+	TOP op_;
+
+	BiOpExpression(this_type const & that) :
+			lhs(that.lhs), rhs(that.rhs), op_(that.op_)
+	{
+	}
+	BiOpExpression(this_type && that) :
+			lhs(that.lhs), rhs(that.rhs), op_(that.op_)
+	{
+	}
+
+	BiOpExpression(TL const& l, TR const& r) :
+			lhs(l), rhs(r), op_()
+	{
+	}
+	BiOpExpression(TOP op, TL const& l, TR const& r) :
+			lhs(l), rhs(r), op_(op)
+	{
+	}
+
+	~BiOpExpression()
+	{
+	}
+
+	template<typename IndexType>
+	inline auto operator[](IndexType const &s) const
+	DECL_RET_TYPE ((op_(get_value(lhs, s), get_value(rhs, s))))
+//			DECL_RET_TYPE ((op_( lhs, rhs, s )))
+
+}
+;
+
+///   \brief  Unary operation
+template<typename TOP, typename TL>
+struct UniOpExpression
+{
+	typedef UniOpExpression<TOP, TL> this_type;
+
+	typename reference_traits<TL>::type lhs;
+
+	TOP op_;
+
+	UniOpExpression(this_type const & that) :
+			lhs(that.lhs), op_(that.op_)
+	{
+	}
+	UniOpExpression(this_type && that) :
+			lhs(that.lhs), op_(that.op_)
+	{
+	}
+
+	UniOpExpression(TL const& l) :
+			lhs(l), op_()
+	{
+	}
+
+	~UniOpExpression()
+	{
+	}
+
+	template<typename IndexType>
+	inline auto operator[](IndexType const &s) const
+	DECL_RET_TYPE ((op_(get_value(lhs, s))))
+//			DECL_RET_TYPE ((op_( lhs, s) ))
+
+};
 
 template<typename TOP, typename ... T>
 class BooleanExpression<TOP, T...> : public Expression<TOP, T...>
@@ -298,31 +370,31 @@ DEF_UNARY_FUNCTION(imag)
 } // namespace _impl
 
 #define _SP_DEFINE_EXPR_BINARY_RIGHT_OPERATOR(_OP_,_OBJ_,_NAME_)                                                  \
-	template<typename ...T1,typename  T2> _OBJ_<Expression<_impl::_NAME_,_OBJ_<T1...>,T2>> \
+	template<typename ...T1,typename  T2> _OBJ_<BiOpExpression<_impl::_NAME_,_OBJ_<T1...>,T2>> \
 	operator _OP_(_OBJ_<T1...> const & l,T2 const &r)  \
-	{return (_OBJ_<Expression<_impl::_NAME_,_OBJ_<T1...>,T2>>(l,r));}                  \
+	{return (_OBJ_<BiOpExpression<_impl::_NAME_,_OBJ_<T1...>,T2>>(l,r));}                  \
 
 
 #define _SP_DEFINE_EXPR_BINARY_OPERATOR(_OP_,_OBJ_,_NAME_)                                                  \
 	template<typename ...T1,typename  T2> \
-	_OBJ_<Expression<_impl::_NAME_,_OBJ_<T1...>,T2>>\
+	_OBJ_<BiOpExpression<_impl::_NAME_,_OBJ_<T1...>,T2>>\
 	operator _OP_(_OBJ_<T1...> const & l,T2 const &r)  \
-	{return (_OBJ_<Expression<_impl::_NAME_,_OBJ_<T1...>,T2>>(l,r));}                  \
+	{return (_OBJ_<BiOpExpression<_impl::_NAME_,_OBJ_<T1...>,T2>>(l,r));}                  \
 	template< typename T1,typename ...T2> \
-	_OBJ_<Expression< _impl::_NAME_,T1,_OBJ_< T2...>>> \
+	_OBJ_<BiOpExpression< _impl::_NAME_,T1,_OBJ_< T2...>>> \
 	operator _OP_(T1 const & l, _OBJ_< T2...>const &r)                    \
-	{return (_OBJ_<Expression< _impl::_NAME_,T1,_OBJ_< T2...>>>(l,r));}                  \
+	{return (_OBJ_<BiOpExpression< _impl::_NAME_,T1,_OBJ_< T2...>>>(l,r));}                  \
 	template< typename ... T1,typename ...T2> \
-	_OBJ_<Expression< _impl::_NAME_,_OBJ_< T1...>,_OBJ_< T2...>>>\
+	_OBJ_<BiOpExpression< _impl::_NAME_,_OBJ_< T1...>,_OBJ_< T2...>>>\
 	operator _OP_(_OBJ_< T1...> const & l,_OBJ_< T2...>  const &r)                    \
-	{return (_OBJ_<Expression< _impl::_NAME_,_OBJ_< T1...>,_OBJ_< T2...>>>(l,r));}                  \
+	{return (_OBJ_<BiOpExpression< _impl::_NAME_,_OBJ_< T1...>,_OBJ_< T2...>>>(l,r));}                  \
 
 
 #define _SP_DEFINE_EXPR_UNARY_OPERATOR(_OP_,_OBJ_,_NAME_)                           \
 		template<typename ...T> \
-		_OBJ_<Expression<_impl::_NAME_,_OBJ_<T...> >> \
+		_OBJ_<UniOpExpression<_impl::_NAME_,_OBJ_<T...> >> \
 		operator _OP_(_OBJ_<T...> const &l)  \
-		{return (_OBJ_<Expression<_impl::_NAME_,_OBJ_<T...> >>(l));}   \
+		{return (_OBJ_<UniOpExpression<_impl::_NAME_,_OBJ_<T...> >>(l));}   \
 
 #define _SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(_OP_,_OBJ_,_NAME_)                                                  \
 	template<typename ...T1,typename  T2> \

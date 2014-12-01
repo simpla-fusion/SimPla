@@ -635,6 +635,18 @@ auto sp_print(OS & os,
 	os << v;
 	return os;
 }
+
+template<typename TI, TI L, TI R>
+struct sp_max
+{
+	static constexpr TI value = L > R ? L : R;
+};
+
+template<typename TI, TI L, TI R>
+struct sp_min
+{
+	static constexpr TI value = L < R ? L : R;
+};
 }
 // namespace simpla
 #endif /* SP_TYPE_TRAITS_H_ */
