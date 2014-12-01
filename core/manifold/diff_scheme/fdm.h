@@ -285,202 +285,223 @@ struct FiniteDiffMethod
 ////***************************************************************************************************
 //
 ////! Form<IR> ^ Form<IR> => Form<IR+IL>
-//	template<typename ... TL, typename ... TR> inline auto calculate(
-//			_impl::Wedge, _Field<TL...> const &l, _Field<TR...> const &r,
-//			compact_index_type s) const->
-//			typename std::enable_if<
-//			field_traits<_Field<TL...>>::iform==VERTEX &&
-//			field_traits<_Field<TR...>>::iform==VERTEX,
-//			decltype(calculate(l,s)*calculate(r,s))>::type
-//	{
-//		return calculate(l, s) * calculate(r, s);
-//	}
-//
-//	template<typename TM, typename TL, typename TR> inline auto calculate(
-//			_impl::Wedge, _Field<Domain<TM, VERTEX>, TL> const &l,
-//			_Field<Domain<TM, EDGE>, TR> const &r,
-//			compact_index_type s) const->decltype(calculate(l,s)*calculate(r,s))
-//	{
-//		auto X = geo->delta_index(s);
-//
-//		return (calculate(l, s - X) + calculate(l, s + X)) * 0.5
-//				* calculate(r, s);
-//	}
-//
-//	template<typename TM, typename TL, typename TR> inline auto calculate(
-//			_impl::Wedge, _Field<Domain<TM, VERTEX>, TL> const &l,
-//			_Field<Domain<TM, FACE>, TR> const &r,
-//			compact_index_type s) const->decltype(calculate(l,s)*calculate(r,s))
-//	{
-//		auto X = geo->delta_index(geo->dual(s));
-//		auto Y = geo->roate(X);
-//		auto Z = geo->inverse_roate(X);
-//
-//		return (
-//
-//		calculate(l, (s - Y) - Z) +
-//
-//		calculate(l, (s - Y) + Z) +
-//
-//		calculate(l, (s + Y) - Z) +
-//
-//		calculate(l, (s + Y) + Z)
-//
-//		) * 0.25 * calculate(r, s);
-//	}
-//
-//	template<typename TM, typename TL, typename TR> inline auto calculate(
-//			_impl::Wedge, _Field<Domain<TM, VERTEX>, TL> const &l,
-//			_Field<Domain<TM, VOLUME>, TR> const &r,
-//			compact_index_type s) const->decltype(calculate(l,s)*calculate(r,s))
-//	{
-//		auto X = geo->DI(0, s);
-//		auto Y = geo->DI(1, s);
-//		auto Z = geo->DI(2, s);
-//
-//		return (
-//
-//		calculate(l, ((s - X) - Y) - Z) +
-//
-//		calculate(l, ((s - X) - Y) + Z) +
-//
-//		calculate(l, ((s - X) + Y) - Z) +
-//
-//		calculate(l, ((s - X) + Y) + Z) +
-//
-//		calculate(l, ((s + X) - Y) - Z) +
-//
-//		calculate(l, ((s + X) - Y) + Z) +
-//
-//		calculate(l, ((s + X) + Y) - Z) +
-//
-//		calculate(l, ((s + X) + Y) + Z)
-//
-//		) * 0.125 * calculate(r, s);
-//	}
-//
-//	template<typename TM, typename TL, typename TR> inline auto calculate(
-//			_impl::Wedge, _Field<Domain<TM, EDGE>, TL> const &l,
-//			_Field<Domain<TM, VERTEX>, TR> const &r,
-//			compact_index_type s) const->decltype(calculate(l,s)*calculate(r,s))
-//	{
-//		auto X = geo->delta_index(s);
-//		return calculate(l, s) * (calculate(r, s - X) + calculate(r, s + X))
-//				* 0.5;
-//	}
-//
-//	template<typename TM, typename TL, typename TR> inline auto calculate(
-//			_impl::Wedge, _Field<Domain<TM, EDGE>, TL> const &l,
-//			_Field<Domain<TM, EDGE>, TR> const &r,
-//			compact_index_type s) const->decltype(calculate(l,s)*calculate(r,s))
-//	{
-//		auto Y = geo->delta_index(geo->roate(geo->dual(s)));
-//		auto Z = geo->delta_index(geo->inverse_roate(geo->dual(s)));
-//
-//		return ((calculate(l, s - Y) + calculate(l, s + Y))
-//				* (calculate(l, s - Z) + calculate(l, s + Z)) * 0.25);
-//	}
-//
-//	template<typename TM, typename TL, typename TR> inline auto calculate(
-//			_impl::Wedge, _Field<Domain<TM, EDGE>, TL> const &l,
-//			_Field<Domain<TM, FACE>, TR> const &r,
-//			compact_index_type s) const->decltype(calculate(l,s)*calculate(r,s))
-//	{
-//		auto X = geo->DI(0, s);
-//		auto Y = geo->DI(1, s);
-//		auto Z = geo->DI(2, s);
-//
-//		return
-//
-//		(
-//
-//		(calculate(l, (s - Y) - Z) + calculate(l, (s - Y) + Z)
-//				+ calculate(l, (s + Y) - Z) + calculate(l, (s + Y) + Z))
-//				* (calculate(r, s - X) + calculate(r, s + X))
-//				+
-//
-//				(calculate(l, (s - Z) - X) + calculate(l, (s - Z) + X)
-//						+ calculate(l, (s + Z) - X)
-//						+ calculate(l, (s + Z) + X))
-//						* (calculate(r, s - Y) + calculate(r, s + Y))
-//				+
-//
-//				(calculate(l, (s - X) - Y) + calculate(l, (s - X) + Y)
-//						+ calculate(l, (s + X) - Y)
-//						+ calculate(l, (s + X) + Y))
-//						* (calculate(r, s - Z) + calculate(r, s + Z))
-//
-//		) * 0.125;
-//	}
-//
-//	template<typename TM, typename TL, typename TR> inline auto calculate(
-//			_impl::Wedge, _Field<Domain<TM, FACE>, TL> const &l,
-//			_Field<Domain<TM, VERTEX>, TR> const &r,
-//			compact_index_type s) const->decltype(calculate(l,s)*calculate(r,s))
-//	{
-//		auto Y = geo->delta_index(geo->roate(geo->dual(s)));
-//		auto Z = geo->delta_index(geo->inverse_roate(geo->dual(s)));
-//
-//		return calculate(l, s)
-//				* (calculate(r, (s - Y) - Z) + calculate(r, (s - Y) + Z)
-//						+ calculate(r, (s + Y) - Z)
-//						+ calculate(r, (s + Y) + Z)) * 0.25;
-//	}
-//
-//	template<typename TM, typename TL, typename TR> inline auto calculate(
-//			_impl::Wedge, _Field<Domain<TM, FACE>, TL> const &r,
-//			_Field<Domain<TM, EDGE>, TR> const &l,
-//			compact_index_type s) const->decltype(calculate(l,s)*calculate(r,s))
-//	{
-//		auto X = geo->DI(0, s);
-//		auto Y = geo->DI(1, s);
-//		auto Z = geo->DI(2, s);
-//
-//		return
-//
-//		(
-//
-//		(calculate(r, (s - Y) - Z) + calculate(r, (s - Y) + Z)
-//				+ calculate(r, (s + Y) - Z) + calculate(r, (s + Y) + Z))
-//				* (calculate(l, s - X) + calculate(l, s + X))
-//
-//				+ (calculate(r, (s - Z) - X) + calculate(r, (s - Z) + X)
-//						+ calculate(r, (s + Z) - X)
-//						+ calculate(r, (s + Z) + X))
-//						* (calculate(l, s - Y) + calculate(l, s + Y))
-//
-//				+ (calculate(r, (s - X) - Y) + calculate(r, (s - X) + Y)
-//						+ calculate(r, (s + X) - Y)
-//						+ calculate(r, (s + X) + Y))
-//						* (calculate(l, s - Z) + calculate(l, s + Z))
-//
-//		) * 0.125;
-//	}
-//
-//	template<typename TM, typename TL, typename TR> inline auto calculate(
-//			_impl::Wedge, _Field<Domain<TM, VOLUME>, TL> const &l,
-//			_Field<Domain<TM, VERTEX>, TR> const &r,
-//			compact_index_type s) const->decltype(calculate(r,s)*calculate(l,s))
-//	{
-//		auto X = geo->DI(0, s);
-//		auto Y = geo->DI(1, s);
-//		auto Z = geo->DI(2, s);
-//
-//		return
-//
-//		calculate(l, s) * (
-//
-//		calculate(r, ((s - X) - Y) - Z) + //
-//				calculate(r, ((s - X) - Y) + Z) + //
-//				calculate(r, ((s - X) + Y) - Z) + //
-//				calculate(r, ((s - X) + Y) + Z) + //
-//				calculate(r, ((s + X) - Y) - Z) + //
-//				calculate(r, ((s + X) - Y) + Z) + //
-//				calculate(r, ((s + X) + Y) - Z) + //
-//				calculate(r, ((s + X) + Y) + Z) //
-//
-//		) * 0.125;
-//	}
+
+	template<typename TL,typename TR>
+	inline typename field_traits<_Field<_impl::Wedge<VERTEX,VERTEX,TL,TR> > >::value_type
+	calculate (_Field<_impl::Wedge<VERTEX,VERTEX,TL,TR>> const & expr,
+			compact_index_type s) const
+	{
+		return (calculate(expr.lhs, s) * calculate(expr.rhs, s));
+	}
+
+	template<typename TL,typename TR>
+	inline typename field_traits<_Field<_impl::Wedge<VERTEX,EDGE,TL,TR> > >::value_type
+	calculate (_Field<_impl::Wedge<VERTEX,EDGE,TL,TR>> const & expr,
+			compact_index_type s) const
+	{
+		auto X = geo->delta_index(s);
+
+		return (calculate(expr.lhs, s - X) + calculate(expr.lhs, s + X)) * 0.5
+		* calculate(expr.rhs, s);
+	}
+
+	template<typename TL,typename TR>
+	inline typename field_traits<_Field<_impl::Wedge<VERTEX,FACE,TL,TR> > >::value_type
+	calculate (_Field<_impl::Wedge<VERTEX,FACE,TL,TR>> const & expr,
+			compact_index_type s) const
+	{
+
+		auto const & l =expr.lhs;
+		auto const & r =expr.rhs;
+
+		auto X = geo->delta_index(geo->dual(s));
+		auto Y = geo->roate(X);
+		auto Z = geo->inverse_roate(X);
+
+		return (
+
+				calculate(l, (s - Y) - Z) +
+
+				calculate(l, (s - Y) + Z) +
+
+				calculate(l, (s + Y) - Z) +
+
+				calculate(l, (s + Y) + Z)
+
+		) * 0.25 * calculate(r, s);
+	}
+
+	template<typename TL,typename TR>
+	inline typename field_traits<_Field<_impl::Wedge<VERTEX,VOLUME,TL,TR> > >::value_type
+	calculate (_Field<_impl::Wedge<VERTEX,VOLUME,TL,TR>> const & expr,
+			compact_index_type s) const
+	{
+
+		auto const & l =expr.lhs;
+		auto const & r =expr.rhs;
+
+		auto X = geo->DI(0, s);
+		auto Y = geo->DI(1, s);
+		auto Z = geo->DI(2, s);
+
+		return (
+
+				calculate(l, ((s - X) - Y) - Z) +
+
+				calculate(l, ((s - X) - Y) + Z) +
+
+				calculate(l, ((s - X) + Y) - Z) +
+
+				calculate(l, ((s - X) + Y) + Z) +
+
+				calculate(l, ((s + X) - Y) - Z) +
+
+				calculate(l, ((s + X) - Y) + Z) +
+
+				calculate(l, ((s + X) + Y) - Z) +
+
+				calculate(l, ((s + X) + Y) + Z)
+
+		) * 0.125 * calculate(r, s);
+	}
+
+	template<typename TL,typename TR>
+	inline typename field_traits<_Field<_impl::Wedge<EDGE,VERTEX,TL,TR> > >::value_type
+	calculate (_Field<_impl::Wedge<EDGE,VERTEX,TL,TR>> const & expr,
+			compact_index_type s) const
+	{
+
+		auto const & l =expr.lhs;
+		auto const & r =expr.rhs;
+
+		auto X = geo->delta_index(s);
+		return calculate(l, s) * (calculate(r, s - X) + calculate(r, s + X))
+		* 0.5;
+	}
+
+	template<typename TL,typename TR>
+	inline typename field_traits<_Field<_impl::Wedge<EDGE,EDGE,TL,TR> > >::value_type
+	calculate (_Field<_impl::Wedge<EDGE,EDGE,TL,TR>> const & expr,
+			compact_index_type s) const
+	{
+		auto const & l =expr.lhs;
+		auto const & r =expr.rhs;
+
+		auto Y = geo->delta_index(geo->roate(geo->dual(s)));
+		auto Z = geo->delta_index(geo->inverse_roate(geo->dual(s)));
+
+		return ((calculate(l, s - Y) + calculate(l, s + Y))
+				* (calculate(l, s - Z) + calculate(l, s + Z)) * 0.25);
+	}
+
+	template<typename TL,typename TR>
+	inline typename field_traits<_Field<_impl::Wedge<EDGE,FACE,TL,TR> > >::value_type
+	calculate (_Field<_impl::Wedge<EDGE,FACE,TL,TR>> const & expr,
+			compact_index_type s) const
+	{
+		auto const & l =expr.lhs;
+		auto const & r =expr.rhs;
+		auto X = geo->DI(0, s);
+		auto Y = geo->DI(1, s);
+		auto Z = geo->DI(2, s);
+
+		return
+
+		(
+
+				(calculate(l, (s - Y) - Z) + calculate(l, (s - Y) + Z)
+						+ calculate(l, (s + Y) - Z) + calculate(l, (s + Y) + Z))
+				* (calculate(r, s - X) + calculate(r, s + X))
+				+
+
+				(calculate(l, (s - Z) - X) + calculate(l, (s - Z) + X)
+						+ calculate(l, (s + Z) - X)
+						+ calculate(l, (s + Z) + X))
+				* (calculate(r, s - Y) + calculate(r, s + Y))
+				+
+
+				(calculate(l, (s - X) - Y) + calculate(l, (s - X) + Y)
+						+ calculate(l, (s + X) - Y)
+						+ calculate(l, (s + X) + Y))
+				* (calculate(r, s - Z) + calculate(r, s + Z))
+
+		) * 0.125;
+	}
+
+	template<typename TL,typename TR>
+	inline typename field_traits<_Field<_impl::Wedge<FACE,VERTEX,TL,TR> > >::value_type
+	calculate (_Field<_impl::Wedge<FACE,VERTEX,TL,TR>> const & expr,
+			compact_index_type s) const
+	{
+		auto const & l =expr.lhs;
+		auto const & r =expr.rhs;
+		auto Y = geo->delta_index(geo->roate(geo->dual(s)));
+		auto Z = geo->delta_index(geo->inverse_roate(geo->dual(s)));
+
+		return calculate(l, s)
+		* (calculate(r, (s - Y) - Z) + calculate(r, (s - Y) + Z)
+				+ calculate(r, (s + Y) - Z)
+				+ calculate(r, (s + Y) + Z)) * 0.25;
+	}
+
+	template<typename TL,typename TR>
+	inline typename field_traits<_Field<_impl::Wedge<FACE,EDGE,TL,TR> > >::value_type
+	calculate (_Field<_impl::Wedge<FACE,EDGE,TL,TR>> const & expr,
+			compact_index_type s) const
+	{
+		auto const & l =expr.lhs;
+		auto const & r =expr.rhs;
+		auto X = geo->DI(0, s);
+		auto Y = geo->DI(1, s);
+		auto Z = geo->DI(2, s);
+
+		return
+
+		(
+
+				(calculate(r, (s - Y) - Z) + calculate(r, (s - Y) + Z)
+						+ calculate(r, (s + Y) - Z) + calculate(r, (s + Y) + Z))
+				* (calculate(l, s - X) + calculate(l, s + X))
+
+				+ (calculate(r, (s - Z) - X) + calculate(r, (s - Z) + X)
+						+ calculate(r, (s + Z) - X)
+						+ calculate(r, (s + Z) + X))
+				* (calculate(l, s - Y) + calculate(l, s + Y))
+
+				+ (calculate(r, (s - X) - Y) + calculate(r, (s - X) + Y)
+						+ calculate(r, (s + X) - Y)
+						+ calculate(r, (s + X) + Y))
+				* (calculate(l, s - Z) + calculate(l, s + Z))
+
+		) * 0.125;
+	}
+
+	template<typename TL,typename TR>
+	inline typename field_traits<_Field<_impl::Wedge<VOLUME,VERTEX,TL,TR> > >::value_type
+	calculate (_Field<_impl::Wedge<VOLUME,VERTEX,TL,TR>> const & expr,
+			compact_index_type s) const
+	{
+		auto const & l =expr.lhs;
+		auto const & r =expr.rhs;
+		auto X = geo->DI(0, s);
+		auto Y = geo->DI(1, s);
+		auto Z = geo->DI(2, s);
+
+		return
+
+		calculate(l, s) * (
+
+				calculate(r, ((s - X) - Y) - Z) + //
+				calculate(r, ((s - X) - Y) + Z) +//
+				calculate(r, ((s - X) + Y) - Z) +//
+				calculate(r, ((s - X) + Y) + Z) +//
+				calculate(r, ((s + X) - Y) - Z) +//
+				calculate(r, ((s + X) - Y) + Z) +//
+				calculate(r, ((s + X) + Y) - Z) +//
+				calculate(r, ((s + X) + Y) + Z)//
+
+		) * 0.125;
+	}
 //
 ////***************************************************************************************************
 //
