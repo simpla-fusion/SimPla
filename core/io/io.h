@@ -11,8 +11,8 @@
 #include <stddef.h>
 #include <string>
 
-#include "../utilities/sp_type_traits.h"
-
+#include "../utilities/utilities.h"
+#include "../data_structure/data_type.h"
 namespace simpla
 {
 struct DataSet;
@@ -34,6 +34,36 @@ DECL_RET_TYPE((save(name,d.dataset(),flag)))
 #else
 #   define DEBUG_SAVE(_F_) ""
 #endif
+
+void set_dataset_attribute(std::string const &url, DataType const & d_type,
+		void const * buff);
+
+void get_dataset_attribute(std::string const &url, DataType const & d_type,
+		void* buff);
+
+void delete_attribute(std::string const &url);
+
+void set_dataset_attribute(std::string const &url, std::string const & str);
+
+template<typename T> void set_dataset_attribute(std::string const & url,
+		T const&v)
+{
+	set_dataset_attribute(url, make_datatype<T>(), &v);
+}
+template<typename T>
+T get_dataset_attribute(std::string const & url)
+{
+	T res;
+
+	get_dataset_attribute(url, make_datatype<T>(), &res);
+
+	return std::move(res);
+}
+
+bool set_dataset_attribute(std::string const &url, Properties const & prop);
+
+Properties get_dataset_attribute(std::string const &url);
+
 //template<typename Tuple, size_t ...Is>
 //std::string save_tuple_impl(std::string const & name, Tuple const & d,
 //		index_sequence<Is...>)

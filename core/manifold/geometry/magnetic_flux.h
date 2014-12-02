@@ -20,7 +20,7 @@ namespace simpla
 /**
  *  \ingroup Geometry
  *
- *  \brief  Magnetic flus coordinates ( R psi phi ) @todo !!!UNIMPLEMENT !!!
+ *  \brief  Magnetic flus coordinates ( R psi phi ) @todo !!!UNIMPLEMENTED !!!
  */
 template<typename Topology>
 struct MagneticFluxGeometry
@@ -45,7 +45,7 @@ struct MagneticFluxGeometry
 	MagneticFluxGeometry(topology_type const & t)
 			: topology(t)
 	{
-		UNIMPLEMENT;
+		UNIMPLEMENTED;
 	}
 	template<typename TDict>
 	MagneticFluxGeometry(topology_type const & t, TDict const & dict)

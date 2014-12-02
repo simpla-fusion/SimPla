@@ -26,7 +26,7 @@ namespace simpla
  *   \defgroup  HDF5  HDF5 interface
  *   \defgroup  XDMF   XDMF interface
  *   \defgroup  NetCDF  NetCDF interface
- *     \brief UNIMPLEMENT notfix
+ *     \brief UNIMPLEMENTED notfix
  *  @}
  *  */
 
@@ -158,6 +158,10 @@ public:
 
 		return std::move(res);
 	}
+
+	bool set_attribute(std::string const &url, Properties const & d_type);
+
+	Properties get_attribute(std::string const &url);
 
 private:
 	struct pimpl_s;

@@ -50,10 +50,11 @@ struct StructuredMesh
 	static constexpr size_t MAX_NUM_VERTEX_PER_CEL = 8;
 	static constexpr size_t ndims = 3;
 	static constexpr size_t DEFAULT_GHOSTS_WIDTH = 3;
-	typedef size_t index_type;
+	typedef size_t size_type;
+	typedef unsigned long index_type;
 	typedef unsigned long compact_index_type;
 	typedef nTuple<Real, ndims> coordinates_type;
-	typedef nTuple<size_t, ndims> index_tuple;
+	typedef nTuple<size_type, ndims> index_tuple;
 private:
 	bool is_valid_ = false;
 public:
@@ -89,7 +90,7 @@ public:
 			return false;
 		}
 
-		dimensions(dict["Dimensions"].template as<nTuple<index_type, 3>>());
+		dimensions(dict["Dimensions"].template as<nTuple<size_type, 3>>());
 
 		return true;
 	}
@@ -167,7 +168,7 @@ public:
 
 		for (int i = 0; i < ndims; ++i)
 		{
-			index_type length = d[i] > 0 ? d[i] : 1;
+			size_type length = d[i] > 0 ? d[i] : 1;
 
 			global_count_[i] = length;
 			global_begin_[i] = (1UL << (INDEX_DIGITS - MAX_DEPTH_OF_TREE - 1))
@@ -186,7 +187,7 @@ public:
 //		local_outer_begin_ = global_begin_;
 //		local_outer_end_ = global_end_;
 //		local_outer_count_ = global_count_;
-		// FIXME UNIMPLEMENT
+		// FIXME UNIMPLEMENTED
 //		DataSpace(ndims, global_begin_, global_end_, DEFAULT_GHOSTS_WIDTH).swap(
 //				data_space_);
 //
@@ -599,8 +600,8 @@ public:
 		typedef std::bidirectional_iterator_tag iterator_category;
 		typedef compact_index_type value_type;
 		typedef long difference_type;
-		typedef index_type * pointer;
-		typedef index_type reference;
+		typedef size_type * pointer;
+		typedef size_type reference;
 
 		index_tuple self_;
 		compact_index_type shift_;
@@ -707,7 +708,7 @@ public:
 		return std::move(res);
 	}
 
-	bool in_range(index_type s) const
+	bool in_range(size_type s) const
 	{
 		index_tuple idx = decompact(s) >> MAX_DEPTH_OF_TREE;
 
@@ -719,7 +720,7 @@ public:
 						&& (global_count_[2] > 1 || idx[2] >= global_begin_[2]));
 	}
 
-	bool in_local_range(index_type s) const
+	bool in_local_range(size_type s) const
 	{
 		auto idx = decompact(s) >> MAX_DEPTH_OF_TREE;
 
@@ -741,29 +742,29 @@ public:
 	//! @name Index Dependent
 	//! @{
 	//!  signed long is 63bit, unsigned long is 64 bit, add a sign bit
-	static constexpr index_type FULL_DIGITS =
-			std::numeric_limits<index_type>::digits;
+	static constexpr size_type FULL_DIGITS =
+			std::numeric_limits<size_type>::digits;
 
-	static constexpr index_type INDEX_DIGITS = (FULL_DIGITS
+	static constexpr size_type INDEX_DIGITS = (FULL_DIGITS
 			- CountBits<FULL_DIGITS>::n) / 3;
 
-	static constexpr index_type INDEX_MASK = (1UL << INDEX_DIGITS) - 1;
+	static constexpr size_type INDEX_MASK = (1UL << INDEX_DIGITS) - 1;
 
-	static constexpr index_type _DI = (1UL
+	static constexpr size_type _DI = (1UL
 			<< (INDEX_DIGITS * 2 + MAX_DEPTH_OF_TREE - 1));
-	static constexpr index_type _DJ = (1UL
+	static constexpr size_type _DJ = (1UL
 			<< (INDEX_DIGITS + MAX_DEPTH_OF_TREE - 1));
-	static constexpr index_type _DK = (1UL << (MAX_DEPTH_OF_TREE - 1));
-	static constexpr index_type _DA = _DI | _DJ | _DK;
+	static constexpr size_type _DK = (1UL << (MAX_DEPTH_OF_TREE - 1));
+	static constexpr size_type _DA = _DI | _DJ | _DK;
 
-	static constexpr index_type INDEX_ROOT_MASK = ((1UL
+	static constexpr size_type INDEX_ROOT_MASK = ((1UL
 			<< (INDEX_DIGITS - MAX_DEPTH_OF_TREE)) - 1) << MAX_DEPTH_OF_TREE;
 
-	static constexpr index_type COMPACT_INDEX_ROOT_MASK = INDEX_ROOT_MASK
+	static constexpr size_type COMPACT_INDEX_ROOT_MASK = INDEX_ROOT_MASK
 			| (INDEX_ROOT_MASK << INDEX_DIGITS)
 			| (INDEX_ROOT_MASK << INDEX_DIGITS * 2);
 
-	static constexpr index_type NO_HEAD_FLAG = ~((~0UL) << (INDEX_DIGITS * 3));
+	static constexpr size_type NO_HEAD_FLAG = ~((~0UL) << (INDEX_DIGITS * 3));
 
 	//mask of direction
 //	static compact_index_type compact(nTuple<NDIMS, index_type> const & idx )
@@ -783,26 +784,29 @@ public:
 	{
 		return
 
-		((static_cast<index_type>(x[0]) & INDEX_MASK) << (INDEX_DIGITS * 2)) |
+		((static_cast<size_type>(x[0]) & INDEX_MASK) << (INDEX_DIGITS * 2)) |
 
-		((static_cast<index_type>(x[1]) & INDEX_MASK) << (INDEX_DIGITS)) |
+		((static_cast<size_type>(x[1]) & INDEX_MASK) << (INDEX_DIGITS)) |
 
-		((static_cast<index_type>(x[2]) & INDEX_MASK))
+		((static_cast<size_type>(x[2]) & INDEX_MASK))
 
 		;
 	}
 
-	static index_tuple decompact(index_type s)
+	static index_tuple decompact(size_type s)
 	{
 
-		return std::move(index_tuple(
-		{ static_cast<index_type>((s >> (INDEX_DIGITS * 2)) & INDEX_MASK),
+		return std::move(
+				index_tuple(
+						{ static_cast<size_type>((s >> (INDEX_DIGITS * 2))
+								& INDEX_MASK),
 
-		static_cast<index_type>((s >> (INDEX_DIGITS)) & INDEX_MASK),
+						static_cast<size_type>((s >> (INDEX_DIGITS))
+								& INDEX_MASK),
 
-		static_cast<index_type>(s & INDEX_MASK)
+						static_cast<size_type>(s & INDEX_MASK)
 
-		}));
+						}));
 	}
 
 	/**
@@ -829,14 +833,14 @@ public:
 	 */
 
 	//! @}
-	static index_type compact_cell_index(index_tuple const & idx,
-			index_type shift)
+	static size_type compact_cell_index(index_tuple const & idx,
+			size_type shift)
 	{
 		size_t mtree = MAX_DEPTH_OF_TREE;
 		return compact(idx << mtree) | shift;
 	}
 
-	static index_tuple decompact_cell_index(index_type s)
+	static index_tuple decompact_cell_index(size_type s)
 	{
 		size_t mtree = MAX_DEPTH_OF_TREE;
 
@@ -844,8 +848,7 @@ public:
 	}
 	//! @name Geometry
 	//! @{
-	Real volume_[8] =
-	{ 1, // 000
+	Real volume_[8] = { 1, // 000
 			1, //001
 			1, //010
 			1, //011
@@ -854,14 +857,11 @@ public:
 			1, //110
 			1  //111
 			};
-	Real inv_volume_[8] =
-	{ 1, 1, 1, 1, 1, 1, 1, 1 };
+	Real inv_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
 
-	Real dual_volume_[8] =
-	{ 1, 1, 1, 1, 1, 1, 1, 1 };
+	Real dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
 
-	Real inv_dual_volume_[8] =
-	{ 1, 1, 1, 1, 1, 1, 1, 1 };
+	Real inv_dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
 
 	nTuple<Real, ndims> inv_extents_, extents_, dx_, inv_dx_;
 
@@ -1044,7 +1044,7 @@ public:
 	}
 
 #else
-#error UNIMPLEMENT!!
+#error UNIMPLEMENTED!!
 #endif
 
 	//! @}
@@ -1080,11 +1080,11 @@ public:
 	{
 		return std::move(
 				index_tuple(
-						{ static_cast<index_type>(x[0] * extents_[0])
+						{ static_cast<size_type>(x[0] * extents_[0])
 								+ (global_begin_[0] << MAX_DEPTH_OF_TREE),
-								static_cast<index_type>(x[1] * extents_[1])
+								static_cast<size_type>(x[1] * extents_[1])
 										+ (global_begin_[1] << MAX_DEPTH_OF_TREE),
-								static_cast<index_type>(x[2] * extents_[2])
+								static_cast<size_type>(x[2] * extents_[2])
 										+ (global_begin_[2] << MAX_DEPTH_OF_TREE) }));
 	}
 
@@ -1122,7 +1122,7 @@ public:
 
 #else
 
-		UNIMPLEMENT;
+		UNIMPLEMENTED;
 #endif
 
 		return std::move(x);
@@ -1140,8 +1140,8 @@ public:
 	 * @return s,r  s is the largest grid point not greater than x.
 	 *       and  \f$ r \in \left[0,1.0\right) \f$ is the normalize  distance between x and s
 	 */
-	inline std::tuple<index_type, coordinates_type> coordinates_global_to_local(
-			coordinates_type const & x, index_type shift = 0UL) const
+	inline std::tuple<size_type, coordinates_type> coordinates_global_to_local(
+			coordinates_type const & x, size_type shift = 0UL) const
 	{
 
 #ifndef ENABLE_SUB_TREE_DEPTH
@@ -1157,16 +1157,16 @@ public:
 		r[2] = x[2] * global_count_[2] + global_begin_[2]
 				- 0.5 * static_cast<Real>(I[2]);
 
-		I[0] = static_cast<index_type>(std::floor(r[0]));
-		I[1] = static_cast<index_type>(std::floor(r[1]));
-		I[2] = static_cast<index_type>(std::floor(r[2]));
+		I[0] = static_cast<size_type>(std::floor(r[0]));
+		I[1] = static_cast<size_type>(std::floor(r[1]));
+		I[2] = static_cast<size_type>(std::floor(r[2]));
 
 		r -= I;
 
-		index_type s = (compact(I) << MAX_DEPTH_OF_TREE) | shift;
+		size_type s = (compact(I) << MAX_DEPTH_OF_TREE) | shift;
 
 #else
-		index_type depth = DepthOfTree(shift);
+		size_type depth = DepthOfTree(shift);
 
 		auto m=( (1UL<<(INDEX_DIGITS-MAX_DEPTH_OF_TREE+depth))-1)<<MAX_DEPTH_OF_TREE;
 
@@ -1196,8 +1196,8 @@ public:
 		return std::move(std::make_tuple(s, r));
 	}
 
-	inline std::tuple<index_type, coordinates_type> coordinates_global_to_local_NGP(
-			std::tuple<index_type, coordinates_type> && z) const
+	inline std::tuple<size_type, coordinates_type> coordinates_global_to_local_NGP(
+			std::tuple<size_type, coordinates_type> && z) const
 	{
 		return std::move(
 				coordinates_global_to_local_NGP(std::get<1>(z), std::get<0>(z)));
@@ -1226,16 +1226,16 @@ public:
 		r[2] = x[2] * global_count_[2] + global_begin_[2]
 				- 0.5 * static_cast<Real>(I[2]);
 
-		I[0] = static_cast<index_type>(std::floor(r[0] + 0.5));
-		I[1] = static_cast<index_type>(std::floor(r[1] + 0.5));
-		I[2] = static_cast<index_type>(std::floor(r[2] + 0.5));
+		I[0] = static_cast<size_type>(std::floor(r[0] + 0.5));
+		I[1] = static_cast<size_type>(std::floor(r[1] + 0.5));
+		I[2] = static_cast<size_type>(std::floor(r[2] + 0.5));
 
 		r -= I;
 
 		compact_index_type s = (compact(I) << MAX_DEPTH_OF_TREE) | shift;
 
 #else
-		UNIMPLEMENT
+		UNIMPLEMENTED
 #endif
 		return std::move(std::make_tuple(s, r));
 	}
@@ -1595,7 +1595,7 @@ public:
 	 *  @name Hash
 	 *  @{
 	 */
-	static index_type mod_(index_type a, index_type L)
+	static size_type mod_(size_type a, size_type L)
 	{
 		return (a + L) % L;
 	}
@@ -1700,7 +1700,7 @@ public:
 	{
 
 		size_t m_tree = MAX_DEPTH_OF_TREE;
-		nTuple<index_type, ndims> d = (decompact(s) >> m_tree)
+		nTuple<size_type, ndims> d = (decompact(s) >> m_tree)
 				- local_outer_begin_;
 
 		size_t res =
@@ -2305,39 +2305,44 @@ public:
 	/** @}*/
 
 	template<typename TV>
-	TV sample(std::integral_constant<size_t, VERTEX>, index_type s,
+	TV sample_(std::integral_constant<size_t, VERTEX>, size_type s,
 			TV const &v) const
 	{
 		return v;
 	}
 
 	template<typename TV>
-	TV sample(std::integral_constant<size_t, VOLUME>, index_type s,
+	TV sample_(std::integral_constant<size_t, VOLUME>, size_type s,
 			TV const &v) const
 	{
 		return v;
 	}
 
 	template<typename TV>
-	TV sample(std::integral_constant<size_t, EDGE>, index_type s,
+	TV sample_(std::integral_constant<size_t, EDGE>, size_type s,
 			nTuple<TV, 3> const &v) const
 	{
 		return v[component_number(s)];
 	}
 
 	template<typename TV>
-	TV sample(std::integral_constant<size_t, FACE>, index_type s,
+	TV sample_(std::integral_constant<size_t, FACE>, size_type s,
 			nTuple<TV, 3> const &v) const
 	{
 		return v[component_number(s)];
 	}
 
 	template<size_t IFORM, typename TV>
-	TV sample(std::integral_constant<size_t, IFORM>, index_type s,
+	TV sample_(std::integral_constant<size_t, IFORM>, size_type s,
 			TV const & v) const
 	{
 		return v;
 	}
+
+	template<size_t IFORM, typename ...Args>
+	auto sample(Args && ... args) const
+	DECL_RET_TYPE((sample_(std::integral_constant<size_t, IFORM>(),
+							std::forward<Args>(args)...)))
 
 }
 ;
@@ -2346,7 +2351,7 @@ inline StructuredMesh::range_type split(
 		StructuredMesh::range_type const & range, size_t num_process,
 		size_t process_num, size_t ghost_width = 0)
 {
-	typedef StructuredMesh::index_type index_type;
+	typedef StructuredMesh::size_type index_type;
 	static constexpr size_t ndims = StructuredMesh::ndims;
 
 	StructuredMesh::iterator ib = begin(range);

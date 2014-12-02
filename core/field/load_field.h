@@ -5,12 +5,14 @@
  *      Author: salmon
  */
 
-#ifndef LOAD_FIELD_H_
-#define LOAD_FIELD_H_
+#ifndef CORE_FIELD_LOAD_FIELD_H_
+#define CORE_FIELD_LOAD_FIELD_H_
 
 #include <string>
 
 #include "../utilities/log.h"
+#include "../model/model.h"
+
 #include "field.h"
 
 namespace simpla
@@ -18,17 +20,16 @@ namespace simpla
 template<typename ... > class _Field;
 
 template<typename TDict, typename ...T>
-bool load_field_(TDict const &dict, _Field<T...> *f)
+bool load(TDict const &dict, _Field<T...> *f)
 {
 	if (!dict)
 		return false;
 
-	typedef typename field_traits<_Field<T...>>::manifold_type mesh_type;
-	typedef typename field_traits<_Field<T...>>::value_type value_type;
 	typedef typename field_traits<_Field<T...>>::field_value_type field_value_type;
-	static constexpr size_t iform = field_traits<_Field<T...>>::iform;
 
-	auto const &domain = f->domain();
+	auto domain = select(f->domain(), dict["Select"]);
+
+	typedef typename decltype(*domain.begin()) index_type;
 
 	if (!f->is_valid())
 	{
@@ -37,6 +38,7 @@ bool load_field_(TDict const &dict, _Field<T...> *f)
 
 	if (dict.is_function())
 	{
+		// TODO Lua.funcition object should be  parallelism
 
 		for (auto s : domain)
 		{
@@ -44,8 +46,7 @@ bool load_field_(TDict const &dict, _Field<T...> *f)
 
 			auto v = dict(x).template as<field_value_type>();
 
-			(*f)[s] = domain.Sample(std::integral_constant<size_t, iform>(), s,
-					v);
+			(*f)[s] = domain.sample(s, v);
 		}
 
 	}
@@ -54,20 +55,19 @@ bool load_field_(TDict const &dict, _Field<T...> *f)
 
 		auto v = dict.template as<field_value_type>();
 
-		for (auto s : domain.select(iform))
+		parallel_for(domain, [&](index_type const &s)
 		{
-			auto x = domain.get_coordinates(s);
+			auto x = domain.coordinates(s);
 
-			(*f)[s] = domain.sample(std::integral_constant<size_t, iform>(), s,
-					v);
-		}
+			(*f)[s] = domain.sample(s, v);
+		});
 
 	}
 	else if (dict.is_string())
 	{
 		std::string url = dict.template as<std::string>();
 		//TODO Read field from data file
-		UNIMPLEMENT << "Read field from data file or other URI";
+		UNIMPLEMENTED << "Read field from data file or other URI";
 
 		return false;
 	}
@@ -76,52 +76,52 @@ bool load_field_(TDict const &dict, _Field<T...> *f)
 
 	return true;
 }
-template<int DIMS, typename TV, typename TDict, typename ...T>
-bool load_field_wrap(nTuple<std::complex<TV>, DIMS>, TDict const &dict,
-		_Field<T...> *f)
-{
-
-	auto ff = make_field<nTuple<Real, DIMS>>(f->domain());
-
-	ff.clear();
-
-	bool success = load_field_(dict, &ff);
-
-	if (success)
-		*f = ff;
-
-	return success;
-}
-
-template<typename TV, typename TDict, typename ... T>
-bool load_field_wrap(std::complex<TV>, TDict const &dict, _Field<T...> *f)
-{
-
-	auto ff = make_field<Real>(f->domain());
-
-	ff.clear();
-
-	bool success = load_field_(dict, &ff);
-
-	if (success)
-		*f = ff;
-
-	return success;
-}
-
-template<typename TV, typename TDict, typename ...T>
-bool load_field_wrap(TV, TDict const &dict, _Field<T...> *f)
-{
-	return load_field_(dict, f);
-}
-
-template<typename TDict, typename ...T>
-bool load_field(TDict const &dict, _Field<T...> *f)
-{
-	typedef typename field_traits<_Field<T...>>::value_type value_type;
-
-	return load_field_wrap(value_type(), dict, f);
-}
+//template<int DIMS, typename TV, typename TDict, typename ...T>
+//bool load_field_wrap(nTuple<std::complex<TV>, DIMS>, TDict const &dict,
+//		_Field<T...> *f)
+//{
+//
+//	auto ff = make_field<nTuple<Real, DIMS>>(f->domain());
+//
+//	ff.clear();
+//
+//	bool success = load_field_(dict, &ff);
+//
+//	if (success)
+//		*f = ff;
+//
+//	return success;
+//}
+//
+//template<typename TV, typename TDict, typename ... T>
+//bool load_field_wrap(std::complex<TV>, TDict const &dict, _Field<T...> *f)
+//{
+//
+//	auto ff = make_field<Real>(f->domain());
+//
+//	ff.clear();
+//
+//	bool success = load_field_(dict, &ff);
+//
+//	if (success)
+//		*f = ff;
+//
+//	return success;
+//}
+//
+//template<typename TV, typename TDict, typename ...T>
+//bool load_field_wrap(TV, TDict const &dict, _Field<T...> *f)
+//{
+//	return load_field_(dict, f);
+//}
+//
+//template<typename TDict, typename ...T>
+//bool load_field(TDict const &dict, _Field<T...> *f)
+//{
+//	typedef typename field_traits<_Field<T...>>::value_type value_type;
+//
+//	return load_field_wrap(value_type(), dict, f);
+//}
 
 //template<typename TDict>
 //void AssignFromDict(TDict const & dict)
@@ -168,4 +168,4 @@ bool load_field(TDict const &dict, _Field<T...> *f)
 //}
 }// namespace simpla
 
-#endif /* LOAD_FIELD_H_ */
+#endif /* CORE_FIELD_LOAD_FIELD_H_ */

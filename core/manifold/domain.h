@@ -187,6 +187,10 @@ public:
 	auto scatter(Args && ...args) const
 	DECL_RET_TYPE((manifold_->scatter(std::forward<Args>(args)...)))
 
+	template<typename ...Args>
+	auto sample(Args && ...args)const
+	DECL_RET_TYPE((manifold_->template sample<iform>(std::forward<Args>(args)...)))
+
 }
 ;
 

@@ -171,7 +171,7 @@ void PML<TM>::load(coordinates_type xmin, coordinates_type xmax)
 template<typename TM>
 void PML<TM>::save(std::string const & path, bool is_verbose) const
 {
-	UNIMPLEMENT;
+	UNIMPLEMENTED;
 }
 
 template<typename OS, typename TM>

@@ -389,7 +389,7 @@ bool GEqdsk::MapToFluxCoordiantes(std::vector<coordinates_type> const&surface,
 {
 	bool success = false;
 
-	UNIMPLEMENT;
+	UNIMPLEMENTED;
 
 	return success;
 

@@ -14,7 +14,6 @@
 #include "../utilities/expression_template.h"
 #include "domain.h"
 
-
 /**
  * \defgroup  FETL Field expression template library
  *
@@ -97,6 +96,9 @@ public:
 	static const size_t iform = NDIMS - IL;
 
 	typedef typename field_traits<T>::value_type value_type;
+
+	typedef typename std::conditional<iform == EDGE || iform == FACE,
+			nTuple<value_type, 3>, value_type>::type field_value_type;
 };
 
 template<size_t IL, size_t IR, typename TL, typename TR>
@@ -117,6 +119,8 @@ public:
 
 	typedef typename sp_result_of<_impl::multiplies(l_type, r_type)>::type value_type;
 
+	typedef typename std::conditional<iform == EDGE || iform == FACE,
+			nTuple<value_type, 3>, value_type>::type field_value_type;
 };
 
 template<size_t IL, size_t IR, typename TL, typename TR>
@@ -136,6 +140,8 @@ public:
 
 	typedef typename sp_result_of<_impl::multiplies(l_type, r_type)>::type value_type;
 
+	typedef typename std::conditional<iform == EDGE || iform == FACE,
+			nTuple<value_type, 3>, value_type>::type field_value_type;
 };
 
 template<size_t IL, typename T>
@@ -152,6 +158,9 @@ public:
 
 	typedef typename field_traits<T>::value_type value_type;
 
+	typedef typename std::conditional<iform == EDGE || iform == FACE,
+			nTuple<value_type, 3>, value_type>::type field_value_type;
+
 };
 template<size_t IL, typename T>
 struct field_traits<_Field<_impl::CodifferentialDerivative<IL, T> > >
@@ -163,6 +172,9 @@ public:
 	static const size_t ndims = IL > 0 ? NDIMS : 0;
 	static const size_t iform = IL - 1;
 	typedef typename field_traits<T>::value_type value_type;
+
+	typedef typename std::conditional<iform == EDGE || iform == FACE,
+			nTuple<value_type, 3>, value_type>::type field_value_type;
 };
 
 template<typename T>

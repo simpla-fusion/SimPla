@@ -340,6 +340,8 @@ template<typename T> struct field_traits<T>
 
 	typedef T value_type;
 
+	typedef T field_value_type;
+
 	static constexpr bool is_field = false;
 
 };
@@ -354,6 +356,9 @@ struct field_traits<_Field<TD, TC>>
 	static constexpr size_t iform = TD::iform;
 
 	typedef typename _Field<TD, TC>::value_type value_type;
+
+	typedef typename std::conditional<iform == EDGE || iform == FACE,
+			nTuple<value_type, 3>, value_type>::type field_value_type;
 
 };
 
@@ -375,6 +380,9 @@ public:
 	static constexpr size_t iform = field_traits<TL>::iform;
 
 	typedef typename sp_result_of<TOP(l_type)>::type value_type;
+
+	typedef typename std::conditional<iform == EDGE || iform == FACE,
+			nTuple<value_type, 3>, value_type>::type field_value_type;
 
 };
 
@@ -398,6 +406,9 @@ public:
 
 	typedef typename sp_result_of<TOP(l_type, r_type)>::type value_type;
 
+	typedef typename std::conditional<iform == EDGE || iform == FACE,
+			nTuple<value_type, 3>, value_type>::type field_value_type;
+
 };
 
 template<typename TOP, typename TL, typename TR>
@@ -417,7 +428,7 @@ struct _Field<BooleanExpression<TOP, TL, TR>> : public Expression<TOP, TL, TR>
 
 	operator bool() const
 	{
-		UNIMPLEMENT;
+		UNIMPLEMENTED;
 		return false;
 	}
 };

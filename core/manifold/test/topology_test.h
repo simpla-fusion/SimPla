@@ -36,7 +36,7 @@ protected:
 	}
 public:
 	typedef TopologyType topology_type;
-	typedef typename topology_type::index_type index_type;
+	typedef typename topology_type::size_type index_type;
 	typedef typename topology_type::compact_index_type compact_index_type;
 	typedef typename topology_type::iterator iterator;
 	typedef typename topology_type::range_type range_type;

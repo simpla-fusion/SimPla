@@ -112,11 +112,11 @@ public:
 
 	void lock()
 	{
-		UNIMPLEMENT;
+		UNIMPLEMENTED;
 	}
 	void unlock()
 	{
-		UNIMPLEMENT;
+		UNIMPLEMENTED;
 	}
 
 	value_type & at(compact_index_type s)
@@ -179,7 +179,7 @@ public:
 	template<typename TD>
 	void fill(TD default_value)
 	{
-		UNIMPLEMENT;
+		UNIMPLEMENTED;
 	}
 
 	void Clear()
@@ -189,19 +189,19 @@ public:
 
 	this_type & operator =(value_type rhs)
 	{
-		UNIMPLEMENT;
+		UNIMPLEMENTED;
 		return (*this);
 	}
 	this_type & operator =(this_type const & rhs)
 	{
-		UNIMPLEMENT;
+		UNIMPLEMENTED;
 
 		return (*this);
 	}
 	template<typename TR>
 	this_type & operator =(TR const & rhs)
 	{
-		UNIMPLEMENT;
+		UNIMPLEMENTED;
 		return (*this);
 	}
 

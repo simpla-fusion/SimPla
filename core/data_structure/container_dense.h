@@ -48,7 +48,7 @@ public:
 	{
 		hash_fun_ = [](key_type)
 		{
-			UNIMPLEMENT;
+			UNIMPLEMENTED;
 
 			return 0;
 		};

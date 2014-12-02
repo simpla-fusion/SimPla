@@ -174,7 +174,7 @@ void Particle<Engine, TDomain, _impl::IsProbeParticle>::load(TDict const & dict,
 
 	if (dict["URL"])
 	{
-		UNIMPLEMENT2(" read particle from file");
+		UNIMPLEMENTED2(" read particle from file");
 
 		// TODO read particle from file
 	}
@@ -198,7 +198,7 @@ bool Particle<Engine, TDomain, _impl::IsProbeParticle>::update()
 template<typename Engine, typename TDomain>
 void Particle<Engine, TDomain, _impl::IsProbeParticle>::sync()
 {
-	UNIMPLEMENT2(" update ghost ");
+	UNIMPLEMENTED2(" update ghost ");
 }
 
 template<typename Engine, typename TDomain>

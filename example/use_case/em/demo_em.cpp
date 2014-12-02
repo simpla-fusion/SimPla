@@ -11,7 +11,7 @@
 #include "../../../core/io/io.h"
 #include "../../../core/manifold/fetl.h"
 #include "../../../core/application/use_case.h"
-
+#include "../../../core/field/load_field.h"
 using namespace simpla;
 
 USE_CASE(em)
@@ -45,13 +45,16 @@ USE_CASE(em)
 
 	options["STRIDES"].as<size_t>(&strides);
 
-	options["DT"].as<Real>(&dt);
-
 	auto manifold = make_manifold<CartesianMesh>();
 
 	manifold->load(options["Mesh"]);
 
 	manifold->update();
+
+	if (options["DT"].as<Real>(&dt))
+	{
+		manifold->dt(dt);
+	}
 
 	// Load initialize value
 
@@ -59,9 +62,9 @@ USE_CASE(em)
 	auto E = make_form<EDGE, Real>(manifold);
 	auto B = make_form<FACE, Real>(manifold);
 
-	VERBOSE_CMD(load_field(options["InitValue"]["B"], &B));
-	VERBOSE_CMD(load_field(options["InitValue"]["E"], &E));
-	VERBOSE_CMD(load_field(options["InitValue"]["J"], &J));
+	VERBOSE_CMD(load(options["InitValue"]["B"], &B));
+	VERBOSE_CMD(load(options["InitValue"]["E"], &E));
+	VERBOSE_CMD(load(options["InitValue"]["J"], &J));
 
 	cd("/Input/");
 
@@ -69,19 +72,24 @@ USE_CASE(em)
 	VERBOSE << SAVE(B);
 	VERBOSE << SAVE(J);
 
-	dt = manifold->dt();
-
 	STDOUT << std::endl;
 	STDOUT << "======== Summary ========" << std::endl;
 	RIGHT_COLUMN(" mesh" ) << " = {" << *manifold << "}" << std::endl;
 	RIGHT_COLUMN(" time step" ) << " = " << num_of_steps << std::endl;
-	RIGHT_COLUMN(" dt" ) << " = " << dt << std::endl;
+	RIGHT_COLUMN(" dt" ) << " = " << manifold->dt() << std::endl;
 	STDOUT << "=========================" << std::endl;
+
+	cd("/Save/");
 
 	if (!options["JUST A TEST"])
 	{
 		for (size_t s = 0; s < num_of_steps; s += strides)
 		{
+
+			VERBOSE_CMD(load(options["Constraint"]["B"], &B));
+			VERBOSE_CMD(load(options["Constraint"]["E"], &E));
+			VERBOSE_CMD(load(options["Constraint"]["J"], &J));
+
 			E += curl(B) * dt - J;
 			B += -curl(E) * dt;
 		}
@@ -90,6 +98,12 @@ USE_CASE(em)
 		VERBOSE << SAVE(B);
 
 	}
+
+	cd("/Output/");
+
+	VERBOSE << SAVE(E);
+	VERBOSE << SAVE(B);
+	VERBOSE << SAVE(J);
 
 }
 

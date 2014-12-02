@@ -185,6 +185,10 @@ public:
 	void delete_attribute(std::string const &obj_name,
 			std::string const & attr_name);
 
+	bool set_attribute(std::string const &url, Properties const & d_type);
+
+	Properties get_attribute(std::string const &url);
+
 	std::tuple<std::string, std::string, std::string, std::string> parser_url(
 			std::string const & url);
 
@@ -541,7 +545,7 @@ void DataStream::pimpl_s::set_attribute(std::string const &url,
 void DataStream::pimpl_s::get_attribute(std::string const &url,
 		DataType const &d_type, void * buff)
 {
-	UNIMPLEMENT;
+	UNIMPLEMENTED;
 }
 void DataStream::pimpl_s::delete_attribute(std::string const &url)
 {
@@ -564,6 +568,22 @@ void DataStream::pimpl_s::delete_attribute(std::string const &url)
 			H5Gclose(g_id);
 	}
 
+}
+
+bool DataStream::pimpl_s::set_attribute(std::string const &url,
+		Properties const & d_type)
+{
+	UNIMPLEMENTED;
+	// TODO UNIMPLEMENTED
+	return false;
+}
+
+Properties DataStream::pimpl_s::get_attribute(std::string const &url)
+{
+	UNIMPLEMENTED;
+	// TODO UNIMPLEMENTED
+
+	return std::move(Properties());
 }
 
 /**
@@ -1241,6 +1261,16 @@ void DataStream::get_attribute(std::string const &url, DataType const & d_type,
 void DataStream::delete_attribute(std::string const &url)
 {
 	pimpl_->delete_attribute(url);
+}
+
+bool DataStream::set_attribute(std::string const &url, Properties const & prop)
+{
+	return pimpl_->set_attribute(url, prop);
+}
+
+Properties DataStream::get_attribute(std::string const &url)
+{
+	return std::move(pimpl_->get_attribute(url));
 }
 
 std::string DataStream::write(std::string const &name, DataSet const &ds,

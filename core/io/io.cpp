@@ -33,6 +33,35 @@ std::string cd(std::string const & url)
 	return GLOBAL_DATA_STREAM.cd(url );
 }
 
+void set_dataset_attribute(std::string const &url, DataType const & d_type,
+		void const * buff)
+{
+	SingletonHolder<DataStream>::instance().set_attribute(url, d_type, buff);
 }
- // namespace simpla
+void set_dataset_attribute(std::string const &url, std::string const & str)
+{
+	SingletonHolder<DataStream>::instance().set_attribute(url, str);
+}
+void get_dataset_attribute(std::string const &url, DataType const & d_type,
+		void* buff)
+{
+	SingletonHolder<DataStream>::instance().get_attribute(url, d_type, buff);
+}
+
+void delete_dataset_attribute(std::string const &url)
+{
+	SingletonHolder<DataStream>::instance().delete_attribute(url);
+}
+
+bool set_dataset_attribute(std::string const &url, Properties const & prop)
+{
+	return SingletonHolder<DataStream>::instance().set_attribute(url, prop);
+}
+
+Properties get_dataset_attribute(std::string const &url)
+{
+	return std::move(SingletonHolder<DataStream>::instance().get_attribute(url));
+}
+}
+// namespace simpla
 
