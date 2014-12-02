@@ -58,6 +58,16 @@ USE_CASE(em)
 		manifold->dt(dt);
 	}
 
+	STDOUT << std::endl;
+
+	STDOUT << "======== Configuration ========" << std::endl;
+	STDOUT << " Description:" << options["Description"].as<std::string>("")
+			<< std::endl;
+	STDOUT << " Options:" << std::endl;
+	RIGHT_COLUMN(" mesh" ) << " = {" << *manifold << "}," << std::endl;
+	RIGHT_COLUMN(" time step" ) << " = " << num_of_steps << std::endl;
+
+	STDOUT << "======== Initlialize ========" << std::endl;
 	// Load initialize value
 
 	auto J = make_form<EDGE, Real>(manifold);
@@ -74,27 +84,16 @@ USE_CASE(em)
 	VERBOSE_CMD(load(options["InitValue"]["B"], &B));
 	VERBOSE_CMD(load(options["InitValue"]["E"], &E));
 	VERBOSE_CMD(load(options["InitValue"]["J"], &J));
-//
-//	cd("/Input/");
-//
-//	VERBOSE << SAVE(E);
-//	VERBOSE << SAVE(B);
-//	VERBOSE << SAVE(J);
 
-	STDOUT << std::endl;
+	cd("/Input/");
 
-	STDOUT << "======== Summary ========" << std::endl;
-	STDOUT << " Description:" << options["Description"].as<std::string>("")
-			<< std::endl;
-	STDOUT << " Options:" << std::endl;
-	RIGHT_COLUMN(" mesh" ) << " = {" << *manifold << "}" << std::endl;
-	RIGHT_COLUMN(" time step" ) << " = " << num_of_steps << std::endl;
-	RIGHT_COLUMN(" dt" ) << " = " << manifold->dt() << std::endl;
-	STDOUT << "=========================" << std::endl;
+	VERBOSE << SAVE(E);
+	VERBOSE << SAVE(B);
+	VERBOSE << SAVE(J);
 
 	STDOUT << "======== START! ========" << std::endl;
 
-//	cd("/Save/");
+	cd("/Save/");
 
 	if (options["JUST_A_TEST"])
 	{
@@ -104,26 +103,24 @@ USE_CASE(em)
 	{
 		for (size_t s = 0; s < num_of_steps; s += strides)
 		{
-//
-//			VERBOSE_CMD(load(options["Constraint"]["B"], &B));
-//			VERBOSE_CMD(load(options["Constraint"]["E"], &E));
-//			VERBOSE_CMD(load(options["Constraint"]["J"], &J));
 
-//			E_src(&E);
+			E_src(&E);
+			J_src(&J);
+			B_src(&B);
 
-			E += curl(B) * dt - J;
-			B += -curl(E) * dt;
+//			E += curl(B) * dt - J;
+//			B += -curl(E) * dt;
 		}
-//
-//		VERBOSE << SAVE(E);
-//		VERBOSE << SAVE(B);
+
+		VERBOSE << SAVE(E);
+		VERBOSE << SAVE(B);
 
 	}
 
-//	cd("/Output/");
-//	VERBOSE << SAVE(E);
-//	VERBOSE << SAVE(B);
-//	VERBOSE << SAVE(J);
+	cd("/Output/");
+	VERBOSE << SAVE(E);
+	VERBOSE << SAVE(B);
+	VERBOSE << SAVE(J);
 	STDOUT << "======== DONE! ========" << std::endl;
 
 }

@@ -60,7 +60,7 @@ struct Constraint<TD, TV>
 	{
 		if (!fun_)
 		{
-			WARNING << "Try load undefined function!";
+			VERBOSE << "Function is not defined! Do nothing!";
 			return;
 		}
 		for (auto s : domain_)
