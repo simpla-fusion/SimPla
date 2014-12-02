@@ -92,30 +92,33 @@ USE_CASE(em)
 	RIGHT_COLUMN(" dt" ) << " = " << manifold->dt() << std::endl;
 	STDOUT << "=========================" << std::endl;
 
-
 	STDOUT << "======== START! ========" << std::endl;
 
 //	cd("/Save/");
 
-//	if (!options["JUST_A_TEST"])
-//	{
-//		for (size_t s = 0; s < num_of_steps; s += strides)
-//		{
-////
-////			VERBOSE_CMD(load(options["Constraint"]["B"], &B));
-////			VERBOSE_CMD(load(options["Constraint"]["E"], &E));
-////			VERBOSE_CMD(load(options["Constraint"]["J"], &J));
+	if (options["JUST_A_TEST"])
+	{
+		STDOUT << " Just test configuration!" << std::endl;
+	}
+	else
+	{
+		for (size_t s = 0; s < num_of_steps; s += strides)
+		{
 //
-////			E_src(&E);
+//			VERBOSE_CMD(load(options["Constraint"]["B"], &B));
+//			VERBOSE_CMD(load(options["Constraint"]["E"], &E));
+//			VERBOSE_CMD(load(options["Constraint"]["J"], &J));
+
+//			E_src(&E);
+
+			E += curl(B) * dt - J;
+			B += -curl(E) * dt;
+		}
 //
-//			E += curl(B) * dt - J;
-//			B += -curl(E) * dt;
-//		}
-////
-////		VERBOSE << SAVE(E);
-////		VERBOSE << SAVE(B);
-//
-//	}
+//		VERBOSE << SAVE(E);
+//		VERBOSE << SAVE(B);
+
+	}
 
 //	cd("/Output/");
 //	VERBOSE << SAVE(E);

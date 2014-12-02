@@ -230,7 +230,7 @@ public:
 
 	void init()
 	{
-		if (self_ == 0)
+		if (self_ == 0 || L_ == nullptr)
 		{
 			L_ = std::shared_ptr<lua_State>(luaL_newstate(), lua_close);
 
@@ -684,37 +684,39 @@ public:
 //		operator[](s).as(v);
 //	}
 
-	template<typename T> inline void set(std::string const & name,
-			T const &v) const
+	template<typename T> inline void set(std::string const & name, T const &v)
+	{
+		CHECK(v);
+
+		if (IsNull())
+			return;
+
+		CHECK(v) << self_ << " " << GLOBAL_REF_IDX_;
+
+		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
+		ToLua(L_, v);
+		lua_setfield(L_.get(), -2, name.c_str());
+		lua_pop(L_.get(), 1);
+	}
+
+	template<typename T> inline void set(int s, T const &v)
 	{
 		if (IsNull())
 			return;
 
 		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
 		ToLua(L_, v);
-//		LuaTrans<T>::To(L_, v);
-		lua_setfield(L_.get(), -2, name.c_str());
-		lua_pop(L_.get(), 1);
-	}
-
-	template<typename T> inline void set(int s, T const &v) const
-	{
-		if (IsNull())
-			return;
-
-		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
-		ToLua(L_.get(), v);
 		lua_rawseti(L_.get(), -2, s);
 		lua_pop(L_.get(), 1);
 	}
 
-	template<typename T> inline void add(T const &v) const
+	template<typename T> inline void add(T const &v)
 	{
 		if (IsNull())
 			return;
 
 		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
-		ToLua(L_.get(), v);
+		ToLua(L_, v);
 		size_t len = lua_rawlen(L_.get(), -1);
 		lua_rawseti(L_.get(), -2, len + 1);
 		lua_pop(L_.get(), 1);
