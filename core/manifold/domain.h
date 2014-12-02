@@ -72,7 +72,7 @@ public:
 //	{
 //	}
 
-	~Domain() = default; // Destructor.
+	virtual ~Domain() = default; // Destructor.
 
 	bool is_valid() const
 	{
@@ -211,6 +211,64 @@ Domain<TM, IFORM> make_domain(Args && ...args)
 	auto m = std::make_shared<TM>(std::forward<Args>(args)...);
 	return std::move(Domain<TM, IFORM>(m));
 }
+
+template<typename RootDomain>
+struct SubDomain: public RootDomain, public std::vector<
+		typename RootDomain::index_type>
+{
+	typedef RootDomain root_domain_type;
+	typedef typename root_domain_type::index_type index_type;
+	typedef SubDomain<root_domain_type> this_type;
+	typedef std::vector<index_type> storage_type;
+
+	SubDomain(RootDomain const & r) :
+			root_domain_type(r)
+	{
+	}
+	SubDomain(this_type const & r) :
+			root_domain_type(r), storage_type(r)
+	{
+	}
+
+	SubDomain(this_type && r) :
+			root_domain_type(r), storage_type(r)
+	{
+	}
+
+	~SubDomain()
+	{
+	}
+
+	auto begin() const
+	DECL_RET_TYPE((root_domain_type::begin()))
+	auto end() const
+	DECL_RET_TYPE((root_domain_type::end()))
+};
+
+template<typename T> struct domain_traits
+{
+	typedef std::nullptr_t manifold_type;
+	static constexpr size_t iform = VERTEX;
+};
+
+template<typename TM, size_t IFORM>
+struct domain_traits<Domain<TM, IFORM> >
+{
+	typedef TM manifold_type;
+	static constexpr size_t iform = IFORM;
+	typedef typename manifold_type::coordinates_type coordinates_type;
+	typedef typename manifold_type::index_type index_type;
+};
+
+template<typename TM, size_t IFORM>
+struct domain_traits<SubDomain<Domain<TM, IFORM> > >
+{
+	typedef TM manifold_type;
+	static constexpr size_t iform = IFORM;
+	typedef typename manifold_type::coordinates_type coordinates_type;
+	typedef typename manifold_type::index_type index_type;
+
+};
 }
 // namespace simpla
 

@@ -435,67 +435,8 @@ FilterRange<TR> Model<TM>::select_by_config(TR const& range,
 	return FilterRange<TR>(range, [=](compact_index_type const &)
 	{	return true;});
 }
-template<typename TM> template<typename TR>
-FilterRange<TR> Model<TM>::SelectByPoints(TR const& range,
-		std::vector<coordinates_type>const & points) const
-{
-	if (points.size() == 1)
-	{
-		return std::move(SelectByNGP(range, points[0]));
-	}
-	else if (points.size() == 2)
-	{
-		return std::move(SelectByRectangle(range, points[0], points[1]));
-	}
-	else
-	{
-		PointInPolygon poly(points);
-		return std::move(SelectByPolylines(range, poly));
-	}
-}
 
-template<typename TM> template<typename TR>
-FilterRange<TR> Model<TM>::SelectByNGP(TR const& range,
-		coordinates_type const & x) const
-{
-	compact_index_type dest;
 
-	std::tie(dest, std::ignore) = manifold_type::coordinates_global_to_local(x);
-
-	if (manifold_type::in_local_range(dest))
-	{
-
-		pred_fun_type pred =
-				[dest]( compact_index_type const & s )->bool
-				{
-					return manifold_type::get_cell_index(s)==manifold_type::get_cell_index(dest);
-				};
-
-		return std::move(FilterRange<TR>(range, std::move(pred)));
-	}
-	else
-	{
-		pred_fun_type pred = []( compact_index_type const & )->bool
-		{
-			return false;
-		};
-
-		return std::move(FilterRange<TR>(range, std::move(pred)));
-	}
-
-}
-
-template<typename TM> template<typename TR>
-FilterRange<TR> Model<TM>::SelectByFunction(TR const& range,
-		std::function<bool(coordinates_type)> fun) const
-{
-	pred_fun_type pred = [fun,this]( compact_index_type const & s )->bool
-	{
-		return fun( this->manifold_type::get_coordinates( s));
-	};
-
-	return std::move(FilterRange<TR>(range, std::move(pred)));
-}
 
 template<typename TM>
 template<typename TR, typename T1, typename T2>
@@ -637,31 +578,6 @@ FilterRange<TR> Model<TM>::SelectByMaterial(TR const& range,
 		return std::move(FilterRange<TR>(range, std::move(pred)));
 	}
 
-}
-
-template<typename TM> template<typename TR>
-FilterRange<TR> Model<TM>::SelectByRectangle(TR const& range,
-		coordinates_type v0, coordinates_type v1) const
-{
-	pred_fun_type pred =
-			[v0,v1,this]( compact_index_type const & s )->bool
-			{
-
-				auto x = this->manifold_type::get_coordinates(s);
-				return ((((v0[0] - x[0]) * (x[0] - v1[0])) >= 0) && (((v0[1] - x[1]) * (x[1] - v1[1])) >= 0)
-						&& (((v0[2] - x[2]) * (x[2] - v1[2])) >= 0));
-			};
-	return std::move(FilterRange<TR>(range, std::move(pred)));
-}
-
-template<typename TM> template<typename TR>
-FilterRange<TR> Model<TM>::SelectByPolylines(TR const& range,
-		PointInPolygon checkPointsInPolygen) const
-{
-
-	return FilterRange<TR>(range,
-			[=](compact_index_type s )->bool
-			{	return (checkPointsInPolygen(this->manifold_type::get_coordinates(s) ));});
 }
 
 }

@@ -11,12 +11,13 @@
 #include <string>
 
 #include "../utilities/log.h"
-#include "../model/model.h"
+#include "../model/select.h"
 
 #include "field.h"
 
 namespace simpla
 {
+
 template<typename ... > class _Field;
 
 template<typename TDict, typename ...T>
@@ -29,7 +30,7 @@ bool load(TDict const &dict, _Field<T...> *f)
 
 	auto domain = select(f->domain(), dict["Select"]);
 
-	typedef typename decltype(*domain.begin()) index_type;
+	typedef decltype(*domain.begin()) index_type;
 
 	if (!f->is_valid())
 	{

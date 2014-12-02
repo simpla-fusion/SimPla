@@ -10,8 +10,10 @@
 #include "../../../core/utilities/utilities.h"
 #include "../../../core/io/io.h"
 #include "../../../core/manifold/fetl.h"
-#include "../../../core/application/use_case.h"
 #include "../../../core/field/load_field.h"
+
+#include "../../../core/application/use_case.h"
+
 using namespace simpla;
 
 USE_CASE(em)
