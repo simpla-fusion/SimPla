@@ -356,7 +356,7 @@ bool GEqdsk::FluxSurface(double psi_j, size_t M, coordinates_type*res,
 
 		nTuple<double, 3> rmax;
 		nTuple<double, 3> t;
-
+		// FIXME ntuple<Expression> auto convert
 		t = center + drz * std::sqrt(rdim * rdim + zdim * zdim) * 0.5;
 
 		std::tie(success, rmax) = boundary.Intersection(center, t);

@@ -198,10 +198,22 @@ public:
 	bool load(TDict const & dict, Others &&...others)
 	{
 
-		if (topology_type::load(dict) && dict["Min"] && dict["Max"])
+		if (!topology_type::is_valid())
+		{
+			RUNTIME_ERROR("Topology is not initialized!");
+			return false;
+
+		}
+
+		if (!dict)
+		{
+			return false;
+		}
+
+		if (dict["Min"] && dict["Max"])
 		{
 
-			LOGGER << "Load CartesianGeometry ";
+			VERBOSE << "Load geometry : Cartesian ";
 
 			extents(
 
@@ -215,11 +227,12 @@ public:
 
 			return true;
 		}
+		else
+		{
+			WARNING << "Configure Error: no Min or Max ";
 
-		WARNING << "Configure Error: no Min or Max ";
-
-		return false;
-
+			return false;
+		}
 	}
 
 	std::string save(std::string const &path) const

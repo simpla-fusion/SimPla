@@ -78,7 +78,7 @@ printNdArray(std::ostream & os, TV const *v, size_t rank, size_t const* d,
 template<typename T, size_t M>
 std::ostream &operator<<(std::ostream & os, nTuple<T, M> const & v)
 {
-	os << "{" << v[M - 1];
+	os << "{" << v[0];
 	for (int i = 1; i < M; ++i)
 	{
 		os << " , " << v[i];

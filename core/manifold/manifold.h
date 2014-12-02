@@ -75,8 +75,10 @@ public:
 	this_type & operator=(this_type const &) = delete;
 
 	template<typename TDict>
-	void load(TDict const &)
+	void load(TDict const & dict)
 	{
+		topology_type::load(dict["Topology"]);
+		geometry_type::load(dict["Geometry"]);
 
 	}
 	bool update()

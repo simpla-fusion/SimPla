@@ -29,8 +29,6 @@ void MPIComm::init(int argc, char** argv)
 {
 	if (comm_ == MPI_COMM_NULL)
 	{
-		bool do_not_execute = false;
-
 		parse_cmd_line(argc, argv,
 
 		[&](std::string const & opt,std::string const & value)->int
@@ -42,8 +40,13 @@ void MPIComm::init(int argc, char** argv)
 			else if( opt=="h" || opt=="help")
 			{
 				SHOW_OPTIONS ("--mt <NUMBER>", "number of threads");
-				do_not_execute=true;
+				no_mpi_=true;
 				return TERMINATE;
+			}
+			else if( opt=="no_mpi" )
+			{
+				no_mpi_=true;
+				return CONTINUE;
 			}
 
 			return CONTINUE;
@@ -51,9 +54,10 @@ void MPIComm::init(int argc, char** argv)
 		}
 
 		);
-		if (!do_not_execute)
-		{
 
+
+		if (!no_mpi_)
+		{
 			MPI_Init(&argc, &argv);
 			if (comm_ == MPI_COMM_NULL)
 				comm_ = MPI_COMM_WORLD;

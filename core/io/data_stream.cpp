@@ -277,7 +277,10 @@ bool DataStream::pimpl_s::command(std::string const & cmd)
 
 void sync_string(std::string * filename_)
 {
+
 #ifdef USE_MPI
+
+	if(!GLOBAL_COMM.is_valid()) return;
 
 	int name_len;
 
@@ -316,6 +319,7 @@ std::tuple<std::string, hid_t> DataStream::pimpl_s::open_file(
 	if (!is_append)
 	{
 #ifdef USE_MPI
+
 		if (GLOBAL_COMM.get_rank() == 0)
 #endif
 		{
@@ -352,7 +356,10 @@ std::tuple<std::string, hid_t> DataStream::pimpl_s::open_file(
 	hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
 
 #ifdef USE_MPI
-	H5Pset_fapl_mpio(plist_id, GLOBAL_COMM.comm(), GLOBAL_COMM.info());
+	if(GLOBAL_COMM.is_valid())
+	{
+		H5Pset_fapl_mpio(plist_id, GLOBAL_COMM.comm(), GLOBAL_COMM.info());
+	}
 #endif
 
 	H5_ERROR(

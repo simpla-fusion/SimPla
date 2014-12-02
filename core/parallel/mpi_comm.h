@@ -28,6 +28,8 @@ class MPIComm
 	int num_process_;
 	int process_num_;
 	MPI_Comm comm_;
+
+	bool no_mpi_ = false;
 public:
 	MPIComm();
 

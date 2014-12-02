@@ -90,6 +90,8 @@ public:
 			return false;
 		}
 
+		VERBOSE << "Load topology : Structured  Mesh ";
+
 		dimensions(dict["Dimensions"].template as<nTuple<size_type, 3>>());
 
 		return true;
@@ -165,7 +167,6 @@ public:
 
 	void dimensions(nTuple<size_t, ndims> const &d)
 	{
-
 		for (int i = 0; i < ndims; ++i)
 		{
 			size_type length = d[i] > 0 ? d[i] : 1;
@@ -796,17 +797,14 @@ public:
 	static index_tuple decompact(size_type s)
 	{
 
-		return std::move(
-				index_tuple(
-						{ static_cast<size_type>((s >> (INDEX_DIGITS * 2))
-								& INDEX_MASK),
+		return std::move(index_tuple(
+		{ static_cast<size_type>((s >> (INDEX_DIGITS * 2)) & INDEX_MASK),
 
-						static_cast<size_type>((s >> (INDEX_DIGITS))
-								& INDEX_MASK),
+		static_cast<size_type>((s >> (INDEX_DIGITS)) & INDEX_MASK),
 
-						static_cast<size_type>(s & INDEX_MASK)
+		static_cast<size_type>(s & INDEX_MASK)
 
-						}));
+		}));
 	}
 
 	/**
@@ -848,7 +846,8 @@ public:
 	}
 	//! @name Geometry
 	//! @{
-	Real volume_[8] = { 1, // 000
+	Real volume_[8] =
+	{ 1, // 000
 			1, //001
 			1, //010
 			1, //011
@@ -857,11 +856,14 @@ public:
 			1, //110
 			1  //111
 			};
-	Real inv_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
+	Real inv_volume_[8] =
+	{ 1, 1, 1, 1, 1, 1, 1, 1 };
 
-	Real dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
+	Real dual_volume_[8] =
+	{ 1, 1, 1, 1, 1, 1, 1, 1 };
 
-	Real inv_dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
+	Real inv_dual_volume_[8] =
+	{ 1, 1, 1, 1, 1, 1, 1, 1 };
 
 	nTuple<Real, ndims> inv_extents_, extents_, dx_, inv_dx_;
 
