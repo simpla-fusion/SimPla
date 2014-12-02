@@ -10,8 +10,8 @@
 
 #include <gtest/gtest.h>
 #include <random>
-#include "field.h"
-#include "../manifold/domain.h"
+#include "../field.h"
+#include "../../manifold/domain.h"
 using namespace simpla;
 
 template<typename TField>

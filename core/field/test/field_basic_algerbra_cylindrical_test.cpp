@@ -8,17 +8,13 @@
 #include <iostream>
 #include <gtest/gtest.h>
 
-#include "../manifold/manifold.h"
-#include "../manifold/geometry/cartesian.h"
-#include "../manifold/topology/structured.h"
-#include "../manifold/diff_scheme/fdm.h"
-#include "../manifold/interpolator/interpolator.h"
-#include "field.h"
-#include "field_basic_algerbra_test.h"
+#include "../../manifold/fetl.h"
+#include "../field.h"
+#include "../field_basic_algerbra_test.h"
 
 using namespace simpla;
 
-typedef Manifold<CartesianCoordinates<StructuredMesh, CARTESIAN_ZAXIS>,
+typedef Manifold<CylindricalCoordinates<StructuredMesh, CARTESIAN_ZAXIS>,
 		FiniteDiffMethod, InterpolatorLinear> manifold_type;
 
 typedef testing::Types<

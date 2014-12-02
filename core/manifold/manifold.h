@@ -11,9 +11,7 @@
 #include <utility>
 #include <vector>
 #include <ostream>
-#include "../utilities/sp_type_traits.h"
-#include "../utilities/primitives.h"
-#include "../utilities/log.h"
+#include "../utilities/utilities.h"
 namespace simpla
 {
 
@@ -41,6 +39,9 @@ class Manifold: public TG,
 public:
 
 	typedef Manifold<TG, Policy1, Policy2> this_type;
+
+	typedef std::shared_ptr<this_type> holder_type;
+
 	typedef TG geometry_type;
 	typedef Policy1<geometry_type> policy1;
 	typedef Policy2<geometry_type> policy2;
@@ -66,7 +67,7 @@ public:
 	Manifold(this_type const & r) = delete;
 
 	template<typename ...Args>
-	static std::shared_ptr<this_type> create(Args &&... args)
+	static holder_type create(Args &&... args)
 	{
 		return std::make_shared<this_type>(std::forward<Args>(args)...);
 	}

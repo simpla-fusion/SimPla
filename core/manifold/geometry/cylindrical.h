@@ -11,10 +11,7 @@
 #include <iostream>
 #include <utility>
 #include <cmath>
-#include "../../utilities/ntuple.h"
-#include "../../utilities/primitives.h"
 #include "../../utilities/utilities.h"
-#include "../../utilities/log.h"
 #include "../../physics/constants.h"
 #include "../../physics/physical_constants.h"
 namespace simpla
@@ -25,7 +22,7 @@ namespace simpla
  *
  *  \brief  cylindrical coordinates (R Z phi)
  */
-template<typename TTopology, size_t  IPhiAxis = 2>
+template<typename TTopology, size_t IPhiAxis = 2>
 class CylindricalCoordinates: public TTopology
 {
 private:
@@ -33,13 +30,13 @@ private:
 public:
 	typedef TTopology topology_type;
 
-	static constexpr size_t  PhiAxis = (IPhiAxis) % 3;
-	static constexpr size_t  RAxis = (PhiAxis + 1) % 3;
-	static constexpr size_t  ZAxis = (PhiAxis + 2) % 3;
+	static constexpr size_t PhiAxis = (IPhiAxis) % 3;
+	static constexpr size_t RAxis = (PhiAxis + 1) % 3;
+	static constexpr size_t ZAxis = (PhiAxis + 2) % 3;
 
 	typedef CylindricalCoordinates<topology_type, PhiAxis> this_type;
 
-	static constexpr size_t  ndims = topology_type::ndims;
+	static constexpr size_t ndims = topology_type::ndims;
 
 	typedef Real scalar_type;
 
@@ -456,12 +453,12 @@ public:
 	}
 //! @}
 
-	auto select(size_t  iform, coordinates_type const & xmin,
+	auto select(size_t iform, coordinates_type const & xmin,
 			coordinates_type const & xmax) const
 					DECL_RET_TYPE((this->topology_type::select(this->topology_type::select(iform), this->CoordinatesToTopology(xmin),this->CoordinatesToTopology(xmax))))
 
 	template<typename ...Args>
-	auto select(size_t  iform,
+	auto select(size_t iform,
 			Args && ...args) const
 					DECL_RET_TYPE((this->topology_type::select(iform,std::forward<Args >(args)...)))
 
@@ -478,43 +475,43 @@ public:
 	}
 
 	template<typename TV>
-	TV Sample(std::integral_constant<size_t , VERTEX>, index_type s,
+	TV sample(std::integral_constant<size_t, VERTEX>, index_type s,
 			TV const &v) const
 	{
 		return v;
 	}
 
 	template<typename TV>
-	TV Sample(std::integral_constant<size_t , VOLUME>, index_type s,
+	TV sample(std::integral_constant<size_t, VOLUME>, index_type s,
 			TV const &v) const
 	{
 		return v;
 	}
 
 	template<typename TV>
-	TV Sample(std::integral_constant<size_t , EDGE>, index_type s,
+	TV sample(std::integral_constant<size_t, EDGE>, index_type s,
 			nTuple<TV, 3> const &v) const
 	{
 		return v[topology_type::component_number(s)];
 	}
 
 	template<typename TV>
-	TV Sample(std::integral_constant<size_t , FACE>, index_type s,
+	TV sample(std::integral_constant<size_t, FACE>, index_type s,
 			nTuple<TV, 3> const &v) const
 	{
 		return v[topology_type::component_number(s)];
 	}
 
-	template<size_t  IFORM, typename TV>
-	TV Sample(std::integral_constant<size_t , IFORM>, index_type s,
+	template<size_t IFORM, typename TV>
+	TV sample(std::integral_constant<size_t, IFORM>, index_type s,
 			TV const & v) const
 	{
 		return v;
 	}
 
-	template<size_t  IFORM, typename TV>
-	typename std::enable_if<(IFORM == EDGE || IFORM == FACE), TV>::type Sample(
-			std::integral_constant<size_t , IFORM>, index_type s,
+	template<size_t IFORM, typename TV>
+	typename std::enable_if<(IFORM == EDGE || IFORM == FACE), TV>::type sample(
+			std::integral_constant<size_t, IFORM>, index_type s,
 			nTuple<TV, ndims> const & v) const
 	{
 		return Normal(s, v);
@@ -563,38 +560,38 @@ public:
 	Real cell_volume(compact_index_type s) const
 	{
 		return topology_type::cell_volume(s) * volume_[1] * volume_[2]
-				* volume_[4] * get_coordinates(s)[RAxis];
+				* volume_[4] * coordinates(s)[RAxis];
 	}
 
 	scalar_type volume(compact_index_type s) const
 	{
-		size_t  n = topology_type::node_id(s);
+		size_t n = topology_type::node_id(s);
 		return topology_type::volume(s) * volume_[n]
 				* (((n & (1UL << (ndims - PhiAxis - 1))) > 0) ?
-						get_coordinates(s)[RAxis] : 1.0);
+						coordinates(s)[RAxis] : 1.0);
 	}
 
 	scalar_type inv_volume(compact_index_type s) const
 	{
-		size_t  n = topology_type::node_id(s);
+		size_t n = topology_type::node_id(s);
 		return topology_type::inv_volume(s) * inv_volume_[n]
 				/ (((n & (1UL << (ndims - PhiAxis - 1))) > 0) ?
-						get_coordinates(s)[RAxis] : 1.0);
+						coordinates(s)[RAxis] : 1.0);
 	}
 
 	scalar_type dual_volume(compact_index_type s) const
 	{
-		size_t  n = topology_type::node_id(topology_type::dual(s));
+		size_t n = topology_type::node_id(topology_type::dual(s));
 		return topology_type::dual_volume(s) * volume_[n]
 				* (((n & (1UL << (ndims - PhiAxis - 1))) > 0) ?
-						get_coordinates(s)[RAxis] : 1.0);
+						coordinates(s)[RAxis] : 1.0);
 	}
 	scalar_type inv_dual_volume(compact_index_type s) const
 	{
-		size_t  n = topology_type::node_id(topology_type::dual(s));
+		size_t n = topology_type::node_id(topology_type::dual(s));
 		return topology_type::inv_dual_volume(s) * inv_volume_[n]
 				/ (((n & (1UL << (ndims - PhiAxis - 1))) > 0) ?
-						get_coordinates(s)[RAxis] : 1.0);
+						coordinates(s)[RAxis] : 1.0);
 	}
 //! @}
 }

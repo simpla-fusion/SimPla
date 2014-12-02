@@ -10,44 +10,25 @@
 #define FETL_H_
 
 #include "../utilities/utilities.h"
+#include "../field/field.h"
 
 #include "manifold.h"
 #include "domain.h"
+#include "calculus.h"
 
 #include "geometry/cartesian.h"
+//#include "geometry/cylindrical.h"
 #include "topology/structured.h"
 #include "diff_scheme/fdm.h"
 #include "interpolator/interpolator.h"
 
-#include "../field/field.h"
-#include "calculus.h"
+namespace simpla
+{
+typedef Manifold<CartesianCoordinates<StructuredMesh>, FiniteDiffMethod,
+		InterpolatorLinear> CartesianMesh;
 
-//#include "field_vector_ops.h"
-//#include "field_constant.h"
-//#include "cache.h"
+//typedef Manifold<CylindricalCoordinates<StructuredMesh>, FiniteDiffMethod,
+//		InterpolatorLinear> CylindricalMesh;
+}  // namespace simpla
 
-/**
- * \defgroup  FETL Field expression template library
- *
- *  \brief Field expression template library
- *
- */
-//namespace simpla
-//{
-//#define DEFINE_FIELDS(TM)                                                                              \
-//typedef TM Mesh;                                                                                       \
-//typedef typename Mesh::iterator iterator ;                                                         \
-//typedef typename Mesh::scalar_type scalar_type;                                                        \
-//typedef typename Mesh::coordinates_type coordinates_type;                                              \
-//template<unsigned int IFORM> using Form = Field<Mesh,IFORM,scalar_type >;              \
-//template<unsigned int IFORM> using VectorForm = Field<Mesh,IFORM,nTuple<3,scalar_type> >;    \
-//template<unsigned int IFORM> using TensorForm = Field<Mesh,IFORM,nTuple<3,nTuple<3,scalar_type> > >;    \
-//template<unsigned int IFORM> using RForm = Field<Mesh,IFORM,Real >;                                               \
-//template<unsigned int IFORM> using RVectorForm = Field<Mesh,IFORM,nTuple<3,Real> >;                               \
-//template<unsigned int IFORM> using RTensorForm = Field<Mesh,IFORM,nTuple<3,nTuple<3,Real> > >;                    \
-//template<unsigned int IFORM> using CForm = Field<Mesh,IFORM,Complex >;                                            \
-//template<unsigned int IFORM> using CVectorForm = Field<Mesh,IFORM,nTuple<3,Complex> >;                            \
-//template<unsigned int IFORM> using CTensorForm = Field<Mesh,IFORM,nTuple<3,nTuple<3,Complex> > >;
-//
-//} // namespace simpla
 #endif  // FETL_H_

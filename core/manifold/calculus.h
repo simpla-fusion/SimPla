@@ -9,14 +9,18 @@
 #define CALCULUS_H_
 #include <type_traits>
 
-#include "../utilities/constant_ops.h"
-#include "../utilities/primitives.h"
-#include "../utilities/ntuple.h"
-#include "../utilities/sp_type_traits.h"
+#include "../utilities/utilities.h"
 #include "../utilities/sp_functional.h"
 #include "../utilities/expression_template.h"
 #include "domain.h"
 
+
+/**
+ * \defgroup  FETL Field expression template library
+ *
+ *  \brief Field expression template library
+ *
+ */
 namespace simpla
 {
 template<typename ... > class _Field;

@@ -5,32 +5,14 @@
  *      Author: salmon
  */
 
-#include "../utilities/ntuple.h"
-#include "../manifold/manifold.h"
-#include "../manifold/geometry/cartesian.h"
-#include "../manifold/topology/structured.h"
-#include "../manifold/diff_scheme/fdm.h"
-#include "../manifold/interpolator/interpolator.h"
-#include "field.h"
+#include "../../manifold/fetl.h"
 
 using namespace simpla;
-//
-//int main(int argc, char **argv)
-//{
-//	typedef Manifold<CartesianCoordinates<StructuredMesh, CARTESIAN_ZAXIS>,
-//			FiniteDiffMethod, InterpolatorLinear> manifold_type;
-//
-//	std::shared_ptr<manifold_type> manifold = std::make_shared<manifold_type>();
-//
-//	auto f3 = make_form<Real, VOLUME>(manifold);
-//	auto f1 = make_form<Real, EDGE>(manifold);
-//	auto f2 = make_form<Real, FACE>(manifold);
-//	auto f0 = make_form<Real, VERTEX>(manifold);
-//
-//	f1 = codifferential_derivative(-exterior_derivative(f1));
-//}
 
-#define TMESH Manifold<CartesianCoordinates<StructuredMesh, CARTESIAN_ZAXIS>,FiniteDiffMethod, InterpolatorLinear>
+
+typedef Manifold<CylindricalCoordinates<StructuredMesh, CARTESIAN_ZAXIS>,
+		FiniteDiffMethod, InterpolatorLinear> m_type;
+typedef Real v_type;
 
 #include "field_vector_calculus_test.h"
 

@@ -451,7 +451,7 @@ DECL_RET_TYPE((_Field<TD, std::shared_ptr<TV>>( (d) )))
 
 template<typename, size_t> class Domain;
 
-template<typename TV, size_t IFORM, typename TM>
+template<size_t IFORM, typename TV, typename TM>
 _Field<Domain<TM, IFORM>, std::shared_ptr<TV>> make_form(
 		std::shared_ptr<TM> manifold)
 {

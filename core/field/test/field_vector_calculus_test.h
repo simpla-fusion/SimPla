@@ -11,28 +11,13 @@
 #include <gtest/gtest.h>
 #include <tuple>
 
-#include "../utilities/log.h"
-#include "../utilities/ntuple.h"
-#include "../utilities/pretty_stream.h"
-#include "../io/data_stream.h"
-#include "../parallel/update_ghosts.h"
-#include "field.h"
+#include "../../utilities/utilities.h"
+#include "../field.h"
+#include "../../io/io.h"
+
 using namespace simpla;
 
-#ifndef TMESH
-#include "../manifold/manifold.h"
-#include "../manifold/geometry/cartesian.h"
-#include "../manifold/topology/structured.h"
-#include "../manifold/diff_scheme/fdm.h"
-#include "../manifold/interpolator/interpolator.h"
-
-typedef Manifold<CartesianCoordinates<StructuredMesh, CARTESIAN_ZAXIS>,
-		FiniteDiffMethod, InterpolatorLinear> TManifold;
-
-#else
-typedef TMESH TManifold;
-#endif
-
+template<typename TM, typename TV>
 class FETLTest: public testing::TestWithParam<
 		std::tuple<nTuple<Real, 3>, nTuple<Real, 3>, nTuple<size_t, 3>,
 				nTuple<Real, 3>> >
@@ -77,12 +62,8 @@ protected:
 	}
 public:
 
-	typedef TManifold manifold_type;
-#ifndef VALUE_TYPE
-	typedef Real value_type;
-#else
-	typedef VALUE_TYPE value_type;
-#endif
+	typedef TM manifold_type;
+	typedef TV value_type;
 
 	typedef typename manifold_type::scalar_type scalar_type;
 	typedef typename manifold_type::iterator iterator;
@@ -130,12 +111,13 @@ public:
 
 	virtual ~FETLTest()
 	{
-
 	}
 
 };
 
-TEST_P(FETLTest, grad0)
+typedef FETLTest<m_type, v_type> TestCase;
+
+TEST_P(TestCase, grad0)
 {
 	auto domain0 = make_domain<VERTEX>(manifold);
 	auto domain1 = make_domain<EDGE>(manifold);
@@ -154,7 +136,7 @@ TEST_P(FETLTest, grad0)
 	{
 		f0[s] = std::sin(inner_product(K_real, manifold->coordinates(s)));
 	};
-	update_ghosts(&f0);
+	f0.sync();
 
 	LOG_CMD(f1 = grad(f0));
 //	LOG_CMD(f1 = exterior_derivative(f0));
@@ -227,7 +209,7 @@ TEST_P(FETLTest, grad0)
 
 }
 
-TEST_P(FETLTest, grad3)
+TEST_P(TestCase, grad3)
 {
 	if (!manifold->is_valid())
 		return;
@@ -246,7 +228,7 @@ TEST_P(FETLTest, grad3)
 	{
 		f3[s] = std::sin(inner_product(K_real, manifold->coordinates(s)));
 	};
-	update_ghosts(&f3);
+	f3.sync();
 	LOG_CMD(f2 = grad(f3));
 
 //	f2 = codifferential_derivative(f3);
@@ -306,7 +288,7 @@ TEST_P(FETLTest, grad3)
 
 }
 
-TEST_P(FETLTest, diverge1)
+TEST_P(TestCase, diverge1)
 {
 	if (!manifold->is_valid())
 		return;
@@ -324,7 +306,7 @@ TEST_P(FETLTest, diverge1)
 	{
 		f1[s] = std::sin(inner_product(K_real, manifold->coordinates(s)));
 	};
-	update_ghosts(&f1);
+	f1.sync();
 	LOG_CMD(f0 = diverge(f1));
 
 //	f0 = codifferential_derivative(f1);
@@ -408,7 +390,7 @@ TEST_P(FETLTest, diverge1)
 
 }
 
-TEST_P(FETLTest, diverge2)
+TEST_P(TestCase, diverge2)
 {
 	if (!manifold->is_valid())
 		return;
@@ -425,7 +407,7 @@ TEST_P(FETLTest, diverge2)
 	{
 		f2[s] = std::sin(inner_product(K_real, manifold->coordinates(s)));
 	};
-	update_ghosts(&f2);
+	f2.sync();
 
 	LOG_CMD(f3 = diverge(f2));
 
@@ -489,7 +471,7 @@ TEST_P(FETLTest, diverge2)
 
 }
 
-TEST_P(FETLTest, curl1)
+TEST_P(TestCase, curl1)
 {
 	if (!manifold->is_valid())
 		return;
@@ -515,7 +497,7 @@ TEST_P(FETLTest, curl1)
 	{
 		f1[s] = std::sin(inner_product(K_real, manifold->coordinates(s)));
 	};
-	update_ghosts(&f1);
+	f1.sync();
 	LOG_CMD(f2 = curl(f1));
 
 	for (auto s : domain2)
@@ -599,7 +581,7 @@ TEST_P(FETLTest, curl1)
 
 }
 
-TEST_P(FETLTest, curl2)
+TEST_P(TestCase, curl2)
 {
 	if (!manifold->is_valid())
 		return;
@@ -625,7 +607,7 @@ TEST_P(FETLTest, curl2)
 	{
 		f2[s] = std::sin(inner_product(K_real, manifold->coordinates(s)));
 	};
-	update_ghosts(&f2);
+	f2.sync();
 	LOG_CMD(f1 = curl(f2));
 //	f1 = codifferential_derivative(f2);
 //	f1 = -f1;
@@ -717,7 +699,7 @@ TEST_P(FETLTest, curl2)
 
 }
 
-TEST_P(FETLTest, identity_curl_grad_f0_eq_0)
+TEST_P(TestCase, identity_curl_grad_f0_eq_0)
 {
 	if (!manifold->is_valid())
 		return;
@@ -742,7 +724,7 @@ TEST_P(FETLTest, identity_curl_grad_f0_eq_0)
 		f0[s] = one * a;
 		m += a * a;
 	}
-	update_ghosts(&f0);
+	f0.sync();
 
 	m = std::sqrt(m) * mod(one);
 
@@ -768,7 +750,7 @@ TEST_P(FETLTest, identity_curl_grad_f0_eq_0)
 
 }
 
-TEST_P(FETLTest, identity_curl_grad_f3_eq_0)
+TEST_P(TestCase, identity_curl_grad_f3_eq_0)
 {
 	if (!manifold->is_valid())
 		return;
@@ -793,7 +775,7 @@ TEST_P(FETLTest, identity_curl_grad_f3_eq_0)
 		f3[s] = a * one;
 		m += a * a;
 	}
-	update_ghosts(&f3);
+	f3.sync();
 	m = std::sqrt(m) * mod(one);
 
 	LOG_CMD(f2 = grad(f3));
@@ -818,7 +800,7 @@ TEST_P(FETLTest, identity_curl_grad_f3_eq_0)
 	ASSERT_LE(std::sqrt(variance_a), error);
 }
 
-TEST_P(FETLTest, identity_div_curl_f1_eq0)
+TEST_P(TestCase, identity_div_curl_f1_eq0)
 {
 	if (!manifold->is_valid())
 		return;
@@ -846,7 +828,7 @@ TEST_P(FETLTest, identity_div_curl_f1_eq0)
 
 		m += a * a;
 	}
-	update_ghosts(&f2);
+	f2.sync();
 
 	m = std::sqrt(m) * mod(one);
 
@@ -872,7 +854,7 @@ TEST_P(FETLTest, identity_div_curl_f1_eq0)
 
 }
 
-TEST_P(FETLTest, identity_div_curl_f2_eq0)
+TEST_P(TestCase, identity_div_curl_f2_eq0)
 {
 	if (!manifold->is_valid())
 		return;
@@ -898,7 +880,7 @@ TEST_P(FETLTest, identity_div_curl_f2_eq0)
 		f1[s] = one * a;
 		m += a * a;
 	}
-	update_ghosts(&f1);
+	f1.sync();
 
 	m = std::sqrt(m) * mod(one);
 
@@ -928,7 +910,7 @@ TEST_P(FETLTest, identity_div_curl_f2_eq0)
 
 }
 
-INSTANTIATE_TEST_CASE_P(FETLCartesian, FETLTest,
+INSTANTIATE_TEST_CASE_P(FETLTEST, TestCase,
 
 testing::Combine(testing::Values(
 
@@ -967,4 +949,5 @@ testing::Values(
 nTuple<Real, 3>( { TWOPI, 3 * TWOPI, TWOPI }))
 
 ));
+
 #endif /* CORE_FIELD_FIELD_VECTOR_CALCULUS_TEST_H_ */

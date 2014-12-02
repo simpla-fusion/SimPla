@@ -15,10 +15,8 @@
 
 #include "../../physics/constants.h"
 #include "../../physics/physical_constants.h"
-#include "../../utilities/ntuple.h"
-#include "../../utilities/log.h"
-#include "../../utilities/primitives.h"
-#include "../../utilities/sp_type_traits.h"
+#include "../../utilities/utilities.h"
+
 #include "../../utilities/sp_range.h"
 
 namespace simpla

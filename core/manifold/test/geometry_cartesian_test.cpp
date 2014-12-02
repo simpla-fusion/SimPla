@@ -6,7 +6,7 @@
  */
 
 #include "../topology/structured.h"
-#include "cartesian.h"
+#include "../geometry/cartesian.h"
 
 #define GEOMETRY  CartesianCoordinates<StructuredMesh>
 

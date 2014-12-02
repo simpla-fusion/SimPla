@@ -5,7 +5,7 @@
  *      @Author: salmon
  */
 
-#include "structured.h"
+#include "../topology/structured.h"
 
 #define TOPOLOGY StructuredMesh
 

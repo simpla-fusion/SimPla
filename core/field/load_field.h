@@ -30,7 +30,10 @@ bool load_field_(TDict const &dict, _Field<T...> *f)
 
 	auto const &domain = f->domain();
 
-	f->clear();
+	if (!f->is_valid())
+	{
+		f->clear();
+	}
 
 	if (dict.is_function())
 	{
@@ -69,7 +72,7 @@ bool load_field_(TDict const &dict, _Field<T...> *f)
 		return false;
 	}
 
-	update_ghosts(f);
+	f->sync();
 
 	return true;
 }

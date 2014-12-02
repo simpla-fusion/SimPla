@@ -5,17 +5,12 @@
  *      Author: salmon
  */
 
-#include <stddef.h>
-#include <cstdlib>
-#include <iostream>
 #include <memory>
 #include <string>
-
-#include "../../../core/application/use_case.h"
 #include "../../../core/utilities/utilities.h"
-#include "../../../core/manifold/fetl.h"
-
 #include "../../../core/io/io.h"
+#include "../../../core/manifold/fetl.h"
+#include "../../../core/application/use_case.h"
 
 using namespace simpla;
 
@@ -52,15 +47,27 @@ USE_CASE(em)
 
 	options["DT"].as<Real>(&dt);
 
-	auto manifold = Manifold<CartesianCoordinates<StructuredMesh> >::create();
+	auto manifold = make_manifold<CartesianMesh>();
 
 	manifold->load(options["Mesh"]);
 
 	manifold->update();
 
-	auto J = make_form<Real, EDGE>(manifold);
-	auto E = make_form<Real, EDGE>(manifold);
-	auto B = make_form<Real, FACE>(manifold);
+	// Load initialize value
+
+	auto J = make_form<EDGE, Real>(manifold);
+	auto E = make_form<EDGE, Real>(manifold);
+	auto B = make_form<FACE, Real>(manifold);
+
+	VERBOSE_CMD(load_field(options["InitValue"]["B"], &B));
+	VERBOSE_CMD(load_field(options["InitValue"]["E"], &E));
+	VERBOSE_CMD(load_field(options["InitValue"]["J"], &J));
+
+	cd("/Input/");
+
+	VERBOSE << SAVE(E);
+	VERBOSE << SAVE(B);
+	VERBOSE << SAVE(J);
 
 	dt = manifold->dt();
 
@@ -78,6 +85,9 @@ USE_CASE(em)
 			E += curl(B) * dt - J;
 			B += -curl(E) * dt;
 		}
+
+		VERBOSE << SAVE(E);
+		VERBOSE << SAVE(B);
 
 	}
 
