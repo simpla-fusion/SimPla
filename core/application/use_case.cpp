@@ -43,6 +43,7 @@ void UseCaseList::run_all_case(int argc, char ** argv)
 	for (auto const & item : list_)
 	{
 		item.second->init(argc, argv);
+
 		item.second->body();
 	}
 }

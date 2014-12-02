@@ -11,9 +11,16 @@
 
 namespace simpla
 {
+ConfigParser::ConfigParser()
+{
+}
 
+ConfigParser::~ConfigParser()
+{
+}
 void ConfigParser::init(int argc, char ** argv)
 {
+
 	argc_ = argc;
 	argv_ = argv;
 	simpla::parse_cmd_line(argc, argv,
@@ -29,7 +36,7 @@ void ConfigParser::init(int argc, char ** argv)
 				}
 				else if (opt=="t"|| opt=="test")
 				{
-					dict_type::set("JUST A TEST",true);
+					dict_type::set("JUST_A_TEST",true);
 					return TERMINATE;
 				}
 				else if (opt=="h"|| opt=="help")
@@ -37,8 +44,9 @@ void ConfigParser::init(int argc, char ** argv)
 					SHOW_OPTIONS("-t,--test","only test configure file");
 					SHOW_OPTIONS("-i,--input <STRING>","input configure file");
 					SHOW_OPTIONS("-e,--execute <STRING>","execute Lua script as configuration");
-					dict_type::set("SHOW_HELP",true);
-					dict_type::set("JUST_A_TEST",true);
+//					dict_type::set("SHOW_HELP",true);
+//					dict_type::set("JUST_A_TEST",true);
+
 					return TERMINATE;
 				}
 				return CONTINUE;

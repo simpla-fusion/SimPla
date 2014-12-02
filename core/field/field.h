@@ -135,6 +135,7 @@ public:
 		if (empty())
 		{
 			container_traits<storage_policy>::allocate(size()).swap(data_);
+			PhysicalObject::update();
 		}
 	}
 

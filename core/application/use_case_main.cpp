@@ -56,6 +56,7 @@ int main(int argc, char **argv)
 		SHOW_OPTIONS("-g,--generator", "Generates  demo configure file");
 
 	}
+
 	init_logger(argc, argv);
 	init_parallel(argc, argv);
 	init_io(argc, argv);

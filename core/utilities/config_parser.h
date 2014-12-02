@@ -20,12 +20,9 @@ struct ConfigParser: public LuaObject
 {
 	typedef LuaObject dict_type;
 
-	ConfigParser()
-	{
-	}
-	~ConfigParser()
-	{
-	}
+	ConfigParser();
+
+	~ConfigParser();
 
 	void init(int argc, char** argv);
 

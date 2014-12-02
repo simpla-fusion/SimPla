@@ -12,10 +12,8 @@
 namespace simpla
 {
 template<typename TD, typename TDict>
-SubDomain<
-		Domain<typename domain_traits<TD>::manifold_type,
-				domain_traits<TD>::iform> > select(TD const & domain,
-		TDict const & dict)
+SubDomain<typename domain_traits<TD>::manifold_type, domain_traits<TD>::iform> select(
+		TD const & domain, TDict const & dict)
 {
 
 	for (auto s : domain)
@@ -26,13 +24,12 @@ SubDomain<
 }
 
 template<typename TD, typename TFun>
-SubDomain<Domain<typename domain_traits<TD>::manifold_type, //
-		domain_traits<TD>::iform> > select_by_function(TD const &domain,
+SubDomain<typename domain_traits<TD>::manifold_type, //
+		domain_traits<TD>::iform> select_by_function(TD const &domain,
 		TFun const & pred)
 {
-	SubDomain<
-			Domain<typename domain_traits<TD>::manifold_type,
-					domain_traits<TD>::iform> > res(domain.manifold());
+	SubDomain<typename domain_traits<TD>::manifold_type,
+			domain_traits<TD>::iform> res(domain.manifold());
 
 	for (auto s : domain)
 	{
@@ -45,8 +42,8 @@ SubDomain<Domain<typename domain_traits<TD>::manifold_type, //
 
 }
 template<typename TD>
-SubDomain<Domain<typename domain_traits<TD>::manifold_type, //
-		domain_traits<TD>::iform> > select_by_polylines(TD const& domain,
+SubDomain<typename domain_traits<TD>::manifold_type, //
+		domain_traits<TD>::iform> select_by_polylines(TD const& domain,
 		PointInPolygon const&checkPointsInPolygen)
 {
 	typedef typename domain_traits<TD>::index_type index_type;
@@ -56,9 +53,8 @@ SubDomain<Domain<typename domain_traits<TD>::manifold_type, //
 }
 
 template<typename TD, typename TC>
-SubDomain<Domain<typename domain_traits<TD>::manifold_type, //
-		domain_traits<TD>::iform> > select_by_NGP(TD const& domain,
-		TC const & x)
+SubDomain<typename domain_traits<TD>::manifold_type, //
+		domain_traits<TD>::iform> select_by_NGP(TD const& domain, TC const & x)
 {
 
 	typedef typename domain_traits<TD>::index_type index_type;
@@ -80,15 +76,14 @@ SubDomain<Domain<typename domain_traits<TD>::manifold_type, //
 	}
 	else
 	{
-		return std::move(
-				SubDomain<Domain<typename domain_traits<TD>::manifold_type, //
-						domain_traits<TD>::iform> >(domain.manifold()));
+		return std::move(SubDomain<typename domain_traits<TD>::manifold_type, //
+				domain_traits<TD>::iform>(domain.manifold()));
 	}
 
 }
 template<typename TD, typename TC>
-SubDomain<Domain<typename domain_traits<TD>::manifold_type, //
-		domain_traits<TD>::iform> > select_by_rectangle(TD const& domain, TC v0,
+SubDomain<typename domain_traits<TD>::manifold_type, //
+		domain_traits<TD>::iform> select_by_rectangle(TD const& domain, TC v0,
 		TC v1)
 {
 	typedef typename domain_traits<TD>::index_type index_type;
@@ -105,12 +100,12 @@ SubDomain<Domain<typename domain_traits<TD>::manifold_type, //
 }
 
 template<typename TD, typename TC>
-SubDomain<Domain<typename domain_traits<TD>::manifold_type, //
-		domain_traits<TD>::iform> > select_by_points(TD const& domain,
+SubDomain<typename domain_traits<TD>::manifold_type, //
+		domain_traits<TD>::iform> select_by_points(TD const& domain,
 		std::vector<TC>const & points)
 {
-	typedef SubDomain<Domain<typename domain_traits<TD>::manifold_type, //
-			domain_traits<TD>::iform> > result_type;
+	typedef SubDomain<typename domain_traits<TD>::manifold_type, //
+			domain_traits<TD>::iform> result_type;
 	if (points.size() == 1)
 	{
 		return std::move(select_by_NGP(domain, points[0]));
@@ -130,12 +125,11 @@ SubDomain<Domain<typename domain_traits<TD>::manifold_type, //
 	}
 }
 template<typename TD, typename TDict>
-SubDomain<Domain<typename domain_traits<TD>::manifold_type, //
-		domain_traits<TD>::iform> > select_by_config(TD const &domain,
-		TDict const & dict)
+SubDomain<typename domain_traits<TD>::manifold_type, //
+		domain_traits<TD>::iform> select_by_config(TD const &domain, TDict dict)
 {
-	typedef SubDomain<Domain<typename domain_traits<TD>::manifold_type, //
-			domain_traits<TD>::iform> > result_type;
+	typedef SubDomain<typename domain_traits<TD>::manifold_type, //
+			domain_traits<TD>::iform> result_type;
 
 	typedef typename domain_traits<TD>::index_type index_type;
 	typedef typename domain_traits<TD>::coordinates_type coordinates_type;
@@ -143,7 +137,7 @@ SubDomain<Domain<typename domain_traits<TD>::manifold_type, //
 	if (dict.is_function())
 	{
 		return std::move(
-				select_by_function(domain, [&]( index_type const & s )->bool
+				select_by_function(domain, [=]( index_type const & s )->bool
 				{
 					auto x=domain.coordinates(s);
 					return (dict(x).template as<bool>());
@@ -160,7 +154,7 @@ SubDomain<Domain<typename domain_traits<TD>::manifold_type, //
 	}
 	else
 	{
-		PARSER_ERROR("Invalid 'Select' options");
+		PARSER_WARNING("Invalid 'Select' options");
 
 		return std::move(result_type(domain.manifold()));
 	}

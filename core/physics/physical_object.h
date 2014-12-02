@@ -48,7 +48,7 @@ struct PhysicalObject
 	virtual bool update()
 	{
 		is_valid_ = true;
-		return true;
+		return is_valid_;
 	}
 
 	virtual Properties const & properties(std::string const & name = "") const

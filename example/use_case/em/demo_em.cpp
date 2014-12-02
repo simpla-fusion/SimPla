@@ -11,7 +11,7 @@
 #include "../../../core/io/io.h"
 #include "../../../core/manifold/fetl.h"
 #include "../../../core/field/load_field.h"
-
+#include "../../../core/field/field_constraint.h"
 #include "../../../core/application/use_case.h"
 
 using namespace simpla;
@@ -29,7 +29,7 @@ USE_CASE(em)
 
 	options.register_cmd_line_option<Real>("DT", "dt");
 
-	if (options["SHOW HELP"])
+	if (options["SHOW_HELP"])
 	{
 		SHOW_OPTIONS("-n,--number_of_steps <NUMBER_OF_STEPS>",
 				"number of steps = <NUMBER_OF_STEPS> ,default="
@@ -64,48 +64,64 @@ USE_CASE(em)
 	auto E = make_form<EDGE, Real>(manifold);
 	auto B = make_form<FACE, Real>(manifold);
 
+	auto E_src = make_constraint<EDGE, Real>(manifold,
+			options["Constraint"]["E"]);
+	auto J_src = make_constraint<EDGE, Real>(manifold,
+			options["Constraint"]["J"]);
+	auto B_src = make_constraint<FACE, Real>(manifold,
+			options["Constraint"]["B"]);
+
 	VERBOSE_CMD(load(options["InitValue"]["B"], &B));
 	VERBOSE_CMD(load(options["InitValue"]["E"], &E));
 	VERBOSE_CMD(load(options["InitValue"]["J"], &J));
-
-	cd("/Input/");
-
-	VERBOSE << SAVE(E);
-	VERBOSE << SAVE(B);
-	VERBOSE << SAVE(J);
+//
+//	cd("/Input/");
+//
+//	VERBOSE << SAVE(E);
+//	VERBOSE << SAVE(B);
+//	VERBOSE << SAVE(J);
 
 	STDOUT << std::endl;
+
 	STDOUT << "======== Summary ========" << std::endl;
+	STDOUT << " Description:" << options["Description"].as<std::string>("")
+			<< std::endl;
+	STDOUT << " Options:" << std::endl;
 	RIGHT_COLUMN(" mesh" ) << " = {" << *manifold << "}" << std::endl;
 	RIGHT_COLUMN(" time step" ) << " = " << num_of_steps << std::endl;
 	RIGHT_COLUMN(" dt" ) << " = " << manifold->dt() << std::endl;
 	STDOUT << "=========================" << std::endl;
 
-	cd("/Save/");
 
-	if (!options["JUST A TEST"])
-	{
-		for (size_t s = 0; s < num_of_steps; s += strides)
-		{
+	STDOUT << "======== START! ========" << std::endl;
 
-			VERBOSE_CMD(load(options["Constraint"]["B"], &B));
-			VERBOSE_CMD(load(options["Constraint"]["E"], &E));
-			VERBOSE_CMD(load(options["Constraint"]["J"], &J));
+//	cd("/Save/");
 
-			E += curl(B) * dt - J;
-			B += -curl(E) * dt;
-		}
+//	if (!options["JUST_A_TEST"])
+//	{
+//		for (size_t s = 0; s < num_of_steps; s += strides)
+//		{
+////
+////			VERBOSE_CMD(load(options["Constraint"]["B"], &B));
+////			VERBOSE_CMD(load(options["Constraint"]["E"], &E));
+////			VERBOSE_CMD(load(options["Constraint"]["J"], &J));
+//
+////			E_src(&E);
+//
+//			E += curl(B) * dt - J;
+//			B += -curl(E) * dt;
+//		}
+////
+////		VERBOSE << SAVE(E);
+////		VERBOSE << SAVE(B);
+//
+//	}
 
-		VERBOSE << SAVE(E);
-		VERBOSE << SAVE(B);
-
-	}
-
-	cd("/Output/");
-
-	VERBOSE << SAVE(E);
-	VERBOSE << SAVE(B);
-	VERBOSE << SAVE(J);
+//	cd("/Output/");
+//	VERBOSE << SAVE(E);
+//	VERBOSE << SAVE(B);
+//	VERBOSE << SAVE(J);
+	STDOUT << "======== DONE! ========" << std::endl;
 
 }
 

@@ -212,25 +212,20 @@ Domain<TM, IFORM> make_domain(Args && ...args)
 	return std::move(Domain<TM, IFORM>(m));
 }
 
-template<typename RootDomain>
-struct SubDomain: public RootDomain, public std::vector<
-		typename RootDomain::index_type>
+template<typename TM, size_t IFORM>
+struct SubDomain: public Domain<TM, IFORM>, public std::vector<
+		typename TM::index_type>
 {
-	typedef RootDomain root_domain_type;
+	typedef Domain<TM, IFORM> root_domain_type;
 	typedef typename root_domain_type::index_type index_type;
-	typedef SubDomain<root_domain_type> this_type;
+	typedef SubDomain<TM, IFORM> this_type;
 	typedef std::vector<index_type> storage_type;
 
-	SubDomain(RootDomain const & r) :
+	SubDomain(root_domain_type const & r) :
 			root_domain_type(r)
 	{
 	}
 	SubDomain(this_type const & r) :
-			root_domain_type(r), storage_type(r)
-	{
-	}
-
-	SubDomain(this_type && r) :
 			root_domain_type(r), storage_type(r)
 	{
 	}
@@ -261,7 +256,7 @@ struct domain_traits<Domain<TM, IFORM> >
 };
 
 template<typename TM, size_t IFORM>
-struct domain_traits<SubDomain<Domain<TM, IFORM> > >
+struct domain_traits<SubDomain<TM, IFORM> >
 {
 	typedef TM manifold_type;
 	static constexpr size_t iform = IFORM;
