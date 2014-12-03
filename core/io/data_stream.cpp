@@ -715,7 +715,6 @@ hid_t DataStream::pimpl_s::create_h5_datatype(DataType const &d_type,
 		}
 
 	}
-
 	return std::move(res);
 }
 
