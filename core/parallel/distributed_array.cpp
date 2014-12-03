@@ -16,10 +16,8 @@
 
 #include "../data_structure/data_set.h"
 #include "../numeric/geometric_algorithm.h"
-#include "../utilities/log.h"
-#include "../utilities/ntuple.h"
-#include "../utilities/primitives.h"
-#include "../utilities/properties.h"
+#include "../utilities/utilities.h"
+
 #include "mpi_comm.h"
 #include "mpi_datatype.h"
 
@@ -164,15 +162,18 @@ void DistributedArray::pimpl_s::init(size_t nd, size_t const * start,
 }
 
 void decomposer_(size_t num_process, size_t process_num, size_t gw,
-		size_t ndims, size_t const *global_begin, size_t const * global_count,
-		size_t * local_outer_begin, size_t * local_outer_end,
-		size_t * local_inner_begin, size_t * local_inner_end)
+		size_t ndims, size_t const *global_start, size_t const * global_count,
+		size_t * local_outer_start, size_t * local_outer_count,
+		size_t * local_inner_start, size_t * local_inner_count)
 {
 	//FIXME this is wrong!!!
-//	local_outer_end = global_end;
-//	local_outer_begin = global_begin;
-//	local_inner_end = global_end;
-//	local_inner_begin = global_begin;
+	for (int i = 0; i < ndims; ++i)
+	{
+		local_outer_count[i] = global_count[i];
+		local_outer_start[i] = global_start[i];
+		local_inner_count[i] = global_count[i];
+		local_inner_start[i] = global_start[i];
+	}
 
 	if (num_process <= 1)
 		return;
@@ -198,12 +199,12 @@ void decomposer_(size_t num_process, size_t process_num, size_t gw,
 	}
 	else
 	{
-		local_inner_begin[n] = (global_count[n] * process_num) / num_process
-				+ global_begin[n];
-		local_inner_end[n] = (global_count[n] * (process_num + 1)) / num_process
-				+ global_begin[n];
-		local_outer_begin[n] = local_inner_begin[n] - gw;
-		local_outer_end[n] = local_inner_end[n] + gw;
+		local_inner_start[n] = (global_count[n] * process_num) / num_process
+				+ global_start[n];
+		local_inner_count[n] = (global_count[n] * (process_num + 1)) / num_process
+				+ global_start[n];
+		local_outer_start[n] = local_inner_start[n] - gw;
+		local_outer_count[n] = local_inner_count[n] + gw;
 	}
 
 }
@@ -280,9 +281,15 @@ void DistributedArray::pimpl_s::decompose()
 			}
 			if (!is_duplicate)
 			{
-				bool f_inner = Clipping(ndims_, local_.outer_start, local_.outer_count, remote.inner_start,
+				bool f_inner = Clipping(ndims_,
+				local_.outer_start,
+				local_.outer_count,
+				remote.inner_start,
 				remote.inner_count);
-				bool f_outer = Clipping(ndims_, local_.inner_start, local_.inner_count, remote.outer_start,
+				bool f_outer = Clipping(ndims_,
+				local_.inner_start,
+				local_.inner_count,
+				remote.outer_start,
 				remote.outer_count);
 
 				bool flag = f_inner && f_outer;
@@ -295,8 +302,10 @@ void DistributedArray::pimpl_s::decompose()
 				{
 					send_recv_.emplace_back(send_recv_s(
 							{	dest, hash(&remote.outer_start[0]), hash(&remote.inner_start[0]),
-								remote.outer_start, remote.outer_count,
-								remote.inner_start, remote.inner_count}));
+								remote.outer_start,
+								remote.outer_count,
+								remote.inner_start,
+								remote.inner_count}));
 				}
 			}
 		}

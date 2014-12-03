@@ -44,6 +44,7 @@
 									<listOptionValue builtIn="false" value="/opt/intel/composer_xe_2013_sp1.3.174/mkl/include"/>
 									<listOptionValue builtIn="false" value="/opt/intel/composer_xe_2013_sp1.3.174/tbb/include"/>
 									<listOptionValue builtIn="false" value="/usr/include/lua5.2"/>
+									<listOptionValue builtIn="false" value="/usr/lib/openmpi/include"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.llvm.cpp.compiler.input.876649347" superClass="cdt.managedbuild.tool.llvm.cpp.compiler.input"/>
 							</tool>
@@ -81,10 +82,10 @@
 		<configuration configurationName="LLVM">
 			<resource resourceType="PROJECT" workspacePath="/SimPla"/>
 		</configuration>
-		<configuration configurationName="Build (GNU)">
+		<configuration configurationName="build-release">
 			<resource resourceType="PROJECT" workspacePath="/SimPla"/>
 		</configuration>
-		<configuration configurationName="build-release">
+		<configuration configurationName="Build (GNU)">
 			<resource resourceType="PROJECT" workspacePath="/SimPla"/>
 		</configuration>
 	</storageModule>

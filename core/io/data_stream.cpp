@@ -40,6 +40,8 @@ struct DataStream::pimpl_s
 	std::string current_groupname_;
 	std::string current_filename_;
 
+	typedef nTuple<hsize_t, MAX_NDIMS_OF_ARRAY> dims_type;
+
 	struct h5_dataset
 	{
 
@@ -51,18 +53,18 @@ struct DataStream::pimpl_s
 
 		size_t ndims;
 
-		nTuple<hsize_t, MAX_NDIMS_OF_ARRAY> f_count;
-		nTuple<hsize_t, MAX_NDIMS_OF_ARRAY> f_start;
-		nTuple<hsize_t, MAX_NDIMS_OF_ARRAY> f_stride;
+		dims_type f_count;
+		dims_type f_start;
+		dims_type f_stride;
 
-		nTuple<hsize_t, MAX_NDIMS_OF_ARRAY> m_count;
-		nTuple<hsize_t, MAX_NDIMS_OF_ARRAY> m_start;
-		nTuple<hsize_t, MAX_NDIMS_OF_ARRAY> m_stride;
+		dims_type m_count;
+		dims_type m_start;
+		dims_type m_stride;
 
-		nTuple<hsize_t, MAX_NDIMS_OF_ARRAY> start;
-		nTuple<hsize_t, MAX_NDIMS_OF_ARRAY> count;
-		nTuple<hsize_t, MAX_NDIMS_OF_ARRAY> stride;
-		nTuple<hsize_t, MAX_NDIMS_OF_ARRAY> block;
+		dims_type start;
+		dims_type count;
+		dims_type stride;
+		dims_type block;
 
 	};
 
@@ -690,7 +692,7 @@ hid_t DataStream::pimpl_s::create_h5_datatype(DataType const &d_type,
 
 		if (is_compact_array && d_type.ndims > 0)
 		{
-			nTuple<hsize_t, MAX_NDIMS_OF_ARRAY> dims;
+			dims_type dims;
 
 			dims = d_type.dimensions_;
 
@@ -999,8 +1001,8 @@ std::string DataStream::pimpl_s::write_array(std::string const & url,
 		{
 			int f_ndims = ds.ndims;
 
-			nTuple<hsize_t, MAX_NDIMS_OF_ARRAY> current_dims;
-			nTuple<hsize_t, MAX_NDIMS_OF_ARRAY> maximum_dims;
+			dims_type current_dims;
+			dims_type maximum_dims;
 
 			current_dims = ds.f_count;
 			maximum_dims = ds.f_count;
@@ -1041,8 +1043,8 @@ std::string DataStream::pimpl_s::write_array(std::string const & url,
 
 			int ndims = H5Sget_simple_extent_ndims(file_space);
 
-			nTuple<hsize_t, MAX_NDIMS_OF_ARRAY> f_count;
-			nTuple<hsize_t, MAX_NDIMS_OF_ARRAY> f_start;
+			dims_type f_count;
+			dims_type f_start;
 
 			H5Sget_simple_extent_dims(file_space, &f_count[0], nullptr);
 

@@ -108,8 +108,8 @@ USE_CASE(em)
 			J_src(&J);
 			B_src(&B);
 
-//			E += curl(B) * dt - J;
-//			B += -curl(E) * dt;
+			E += curl(B) * dt - J;
+			B += -curl(E) * dt;
 		}
 
 		VERBOSE << SAVE(E);
