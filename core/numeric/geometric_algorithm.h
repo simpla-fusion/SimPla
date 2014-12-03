@@ -69,23 +69,24 @@ bool PointInRectangle(nTuple<TR, DIM> const &x, TRange const & range)
 }
 
 template<typename TI>
-bool Clipping(int ndims, TI const & l_begin, TI const & l_end, TI & r_begin,
-		TI & r_end)
+bool Clipping(int ndims, TI const & l_start, TI const & l_count, TI & r_start,
+		TI & r_count)
 {
 	bool has_overlap = false;
 
 	for (int i = 0; i < ndims; ++i)
 	{
-		if (r_end[i] <= l_begin[i] || r_begin[i] >= l_end[i])
+		if (r_start[i] + r_count[i] <= l_start[i]
+				|| r_start[i] >= l_start[i] + l_count[i])
 			return false;
 
-		auto begin = std::max(l_begin[i], r_begin[i]);
-		auto end = std::min(l_end[i], r_end[i]);
+		auto begin = std::max(l_start[i], r_start[i]);
+		auto end = std::min(l_start[i] + l_count[i], r_start[i] + r_count[i]);
 
 		if (end > begin)
 		{
-			r_begin[i] = begin;
-			r_end[i] = end;
+			r_start[i] = begin;
+			r_count[i] = end - begin;
 
 			has_overlap = true;
 		}
@@ -94,26 +95,27 @@ bool Clipping(int ndims, TI const & l_begin, TI const & l_end, TI & r_begin,
 	return has_overlap;
 }
 template<typename TS, size_t NDIMS>
-bool Clipping(nTuple<TS, NDIMS> l_begin, nTuple<TS, NDIMS> l_end,
-		nTuple<TS, NDIMS> *pr_begin, nTuple<TS, NDIMS> *pr_end)
+bool Clipping(nTuple<TS, NDIMS> l_start, nTuple<TS, NDIMS> l_count,
+		nTuple<TS, NDIMS> *pr_start, nTuple<TS, NDIMS> *pr_count)
 {
 	bool has_overlap = false;
 
-	nTuple<TS, NDIMS> & r_begin = *pr_begin;
-	nTuple<TS, NDIMS> & r_end = *pr_end;
+	nTuple<TS, NDIMS> & r_start = *pr_start;
+	nTuple<TS, NDIMS> & r_count = *pr_count;
 
 	for (int i = 0; i < NDIMS; ++i)
 	{
-		if (r_end[i] <= l_begin[i] || r_begin[i] >= l_end[i])
+		if (r_start[i] + r_count[i] <= l_start[i]
+				|| r_start[i] >= l_start[i] + l_count[i])
 			return false;
 
-		TS begin = std::max(l_begin[i], r_begin[i]);
-		TS end = std::min(l_end[i], r_end[i]);
+		TS begin = std::max(l_start[i], r_start[i]);
+		auto end = std::min(l_start[i] + l_count[i], r_start[i] + r_count[i]);
 
 		if (end > begin)
 		{
-			r_begin[i] = begin;
-			r_end[i] = end;
+			r_start[i] = begin;
+			r_count[i] = end - begin;
 
 			has_overlap = true;
 		}
