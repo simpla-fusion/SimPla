@@ -16,6 +16,7 @@
 #include "../utilities/log.h"
 #include "../utilities/primitives.h"
 #include "../data_structure/container_pool.h"
+#include "particle.h"
 namespace simpla
 {
 namespace _impl
@@ -141,9 +142,11 @@ bool Particle<TM, Engine, _impl::IsKineticParticle>::update()
 
 	hash_fun_ = [& ](Point_s const & p)->mid_type
 	{
-		return std::get<0>(domain_.coordinates_global_to_local(
+		return std::get<0>(domain_.manifold()->coordinates_global_to_local(
 						std::get<0>(engine_type::pull_back(p))));
 	};
+
+	return true;
 }
 
 template<typename TM, typename Engine>
@@ -153,6 +156,11 @@ void Particle<TM, Engine, _impl::IsKineticParticle>::sync()
 //	update_ghost(*this);
 }
 
+template<typename TM, typename Engine>
+DataSet Particle<TM, Engine, _impl::IsKineticParticle>::dataset() const
+{
+	return DataSet();
+}
 template<typename TM, typename Engine>
 template<typename ...Args>
 void Particle<TM, Engine, _impl::IsKineticParticle>::next_n_timesteps(
@@ -179,11 +187,16 @@ void Particle<TM, Engine, _impl::IsKineticParticle>::next_n_timesteps(
 template<typename TDomain, typename Engine>
 using KineticParticle=Particle<TDomain, Engine, _impl::IsKineticParticle>;
 
-template<typename Engine, typename TDomain, typename ...Others>
-auto make_kinetic_particle(std::shared_ptr<TDomain> const & d,
-		Others && ... others)
-		DECL_RET_TYPE((std::make_shared<KineticParticle<TDomain,Engine >>(
-								d,std::forward<Others>(others)...)))
+//template<typename Engine, typename TDomain, typename ...Others>
+//auto make_kinetic_particle(TDomain const & d, Others && ... others)
+//DECL_RET_TYPE((std::make_shared<KineticParticle<TDomain,Engine >>(
+//						d,std::forward<Others>(others)...)))
+
+template<typename Engine, typename TM, typename ...Others>
+auto make_kinetic_particle(std::shared_ptr<TM> d, Others && ... others)
+DECL_RET_TYPE((std::make_shared<KineticParticle<Domain<TM,VERTEX>,Engine >>(
+						Domain<TM,VERTEX>(d),std::forward<Others>(others)...)))
+
 }  // namespace simpla
 
 #endif /* CORE_PARTICLE_KINETIC_PARTICLE_H_ */

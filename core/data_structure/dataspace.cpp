@@ -151,9 +151,22 @@ DataSpace::~DataSpace()
 {
 	delete pimpl_;
 }
+
 void DataSpace::swap(DataSpace &other)
 {
 	pimpl_->swap(*other.pimpl_);
+}
+
+DataSpace DataSpace::create_simple(size_t rank, size_t const* count)
+{
+	DataSpace res;
+	size_t start[rank];
+	for (int i = 0; i < rank; ++i)
+	{
+		start[i] = 0;
+	}
+	res.init(rank, start, count);
+	return std::move(res);
 }
 
 bool DataSpace::is_valid() const

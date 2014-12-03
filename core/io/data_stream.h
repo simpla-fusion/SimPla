@@ -19,6 +19,8 @@
 #include "../utilities/ntuple.h"
 #include "../utilities/singleton_holder.h"
 #include "../utilities/any.h"
+
+#include "io.h"
 namespace simpla
 {
 /** \defgroup  DataIO Data input/output system
@@ -38,13 +40,6 @@ namespace simpla
 class DataStream
 {
 public:
-
-	enum
-	{
-		SP_APPEND = 1UL << 2, SP_CACHE = (1UL << 3), SP_RECORD = (1UL << 4),
-
-		SP_UNORDER = (1UL << 5)
-	};
 
 	DataStream();
 

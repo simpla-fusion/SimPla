@@ -18,6 +18,7 @@
 #include "../utilities/sp_iterator_sequence.h"
 #include "../data_structure/data_set.h"
 #include "../parallel/parallel.h"
+#include "particle.h"
 namespace simpla
 {
 namespace _impl
@@ -336,10 +337,12 @@ void Particle<Engine, TDomain, _impl::IsProbeParticle>::next_n_timesteps(
 template<typename TDomain, typename Engine>
 using ProbeParticle=Particle<TDomain, Engine, _impl::IsProbeParticle>;
 
-template<typename Engine, typename TDomain, typename ...Others>
-auto make_probe_particle(TDomain const & d, Others && ... others)
-DECL_RET_TYPE((std::make_shared<ProbeParticle<TDomain,Engine >>(
+template<typename Engine, typename TM, typename ...Others>
+auto make_probe_particle(std::shared_ptr<TM> d, Others && ... others)
+DECL_RET_TYPE((std::make_shared<ProbeParticle<Domain<TM,VERTEX>,Engine >>(
 						d,std::forward<Others>(others)...)))
+
+
 }  // namespace simpla
 
 #endif /* CORE_PARTICLE_PROBE_PARTICLE_H_ */

@@ -23,7 +23,7 @@ void close_io()
 {
 	SingletonHolder<DataStream>::instance().close();
 }
-std::string save(std::string const & url, DataSet const & ds, size_t flag = 0UL)
+std::string save(std::string const & url, DataSet const & ds, size_t flag)
 {
 	return GLOBAL_DATA_STREAM.write(url,ds,flag);
 }

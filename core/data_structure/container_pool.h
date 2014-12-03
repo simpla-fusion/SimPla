@@ -41,8 +41,7 @@ public:
 	//***************************************************************************************************
 	// Constructor
 
-	ContainerPool(hash_func hash) :
-			hash_(hash)
+	ContainerPool()
 	{
 	}
 

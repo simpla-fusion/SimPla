@@ -8,8 +8,6 @@
 #ifndef PARTICLE_H_
 #define PARTICLE_H_
 
-#include "probe_particle.h"
-#include "kinetic_particle.h"
 #include "particle_engine.h"
 namespace simpla
 {
