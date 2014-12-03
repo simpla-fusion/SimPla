@@ -48,10 +48,8 @@ public:
 			ele_size_in_byte_(other.ele_size_in_byte_), t_index_(
 					other.t_index_), ndims(other.ndims)
 	{
-		for (int i = 0; i < ndims; ++i)
-		{
-			dimensions_[i] = other.dimensions_[i];
-		}
+
+		dimensions_ = other.dimensions_;
 
 		std::copy(other.data.begin(), other.data.end(),
 				std::back_inserter(data));
@@ -66,10 +64,8 @@ public:
 		t_index_ = other.t_index_;
 		ele_size_in_byte_ = other.ele_size_in_byte_;
 		ndims = other.ndims;
-		for (int i = 0; i < ndims; ++i)
-		{
-			dimensions_[i] = other.dimensions_[i];
-		}
+		dimensions_ = other.dimensions_;
+
 		std::copy(other.data.begin(), other.data.end(),
 				std::back_inserter(data));
 		return *this;
@@ -77,7 +73,8 @@ public:
 
 	template<typename T> static DataType create()
 	{
-		static_assert( nTuple_traits<T>::ndims< MAX_NDIMS_OF_ARRAY,"the NDIMS of ntuple is bigger than MAX_NDIMS_OF_ARRAY");
+		static_assert( nTuple_traits<T>::ndims< MAX_NDIMS_OF_ARRAY,
+				"the NDIMS of nTuple is bigger than MAX_NDIMS_OF_ARRAY");
 
 		typedef typename nTuple_traits<T>::value_type value_type;
 
@@ -134,8 +131,8 @@ public:
 
 	size_t ele_size_in_byte_ = 0;
 	std::type_index t_index_;
-	unsigned int ndims = 0;
-	size_t dimensions_[MAX_NDIMS_OF_ARRAY];
+	size_t ndims = 0;
+	nTuple<size_t, MAX_NDIMS_OF_ARRAY> dimensions_;
 
 	std::vector<std::tuple<DataType, std::string, int>> data;
 
@@ -143,10 +140,10 @@ public:
 HAS_STATIC_MEMBER_FUNCTION(data_desc)
 template<typename T>
 auto make_datatype()
-ENABLE_IF_DECL_RET_TYPE((!has_static_member_function_data_desc<T>::value),DataType::create<T>())
+		ENABLE_IF_DECL_RET_TYPE((!has_static_member_function_data_desc<T>::value),DataType::create<T>())
 template<typename T>
 auto make_datatype()
-ENABLE_IF_DECL_RET_TYPE((has_static_member_function_data_desc<T>::value),T::data_desc())
+		ENABLE_IF_DECL_RET_TYPE((has_static_member_function_data_desc<T>::value),T::data_desc())
 
 }
 // namespace simpla

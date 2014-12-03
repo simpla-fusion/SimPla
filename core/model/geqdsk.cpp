@@ -208,8 +208,7 @@ std::string GEqdsk::save(std::string const & path) const
 
 	auto dd = geometry_type::dimensions();
 
-	size_t d[2] =
-	{ dd[RAxis], dd[ZAxis] };
+	size_t d[2] = { dd[RAxis], dd[ZAxis] };
 
 	LOGGER << simpla::save("psi", psirz_.data(), 2, nullptr, d) << std::endl;
 
@@ -356,7 +355,7 @@ bool GEqdsk::FluxSurface(double psi_j, size_t M, coordinates_type*res,
 
 		nTuple<double, 3> rmax;
 		nTuple<double, 3> t;
-		// FIXME ntuple<Expression> auto convert
+
 		t = center + drz * std::sqrt(rdim * rdim + zdim * zdim) * 0.5;
 
 		std::tie(success, rmax) = boundary.Intersection(center, t);
@@ -366,7 +365,7 @@ bool GEqdsk::FluxSurface(double psi_j, size_t M, coordinates_type*res,
 			RUNTIME_ERROR(
 					"Illegal Geqdsk configuration: RZ-center is out of the boundary (rzbbb)!  ");
 		}
-		// FIXME ntuple<Expression> auto convert
+
 		nTuple<double, 3> t2 = center + (rmax - center) * 0.1;
 		std::tie(success, res[i]) = find_root(t2, rmax, fun, psi_j, resolution);
 

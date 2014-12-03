@@ -7,9 +7,17 @@
 
 #ifndef CORE_DATA_STRUCTURE_DATASPACE_H_
 #define CORE_DATA_STRUCTURE_DATASPACE_H_
-#include "../parallel/distributed_array.h"
+
+#include <stddef.h>
+#include <string>
+#include <tuple>
+
+#include "../utilities/ntuple.h"
+
 namespace simpla
 {
+
+struct DataSet;
 /**
  *  @brief `DataSpace` define the size and  shape of data set in memory
  *
@@ -19,33 +27,22 @@ class DataSpace
 {
 
 public:
-	static constexpr size_t MAX_NUM_DIMS = DistributedArray::MAX_NUM_DIMS;
 
-	DataSpace() :
-			darray_(nullptr)
-	{
-	}
+	DataSpace();
 
-	template<typename ...Args>
-	DataSpace(Args && ... args)
-	{
-	}
+	DataSpace(DataSpace const &);
 
-	DataSpace(std::shared_ptr<DistributedArray> d) :
-			darray_(d)
-	{
-		update();
-	}
+	~DataSpace();
 
-	~DataSpace()
-	{
-	}
 	void swap(DataSpace &);
 
-	static DataSpace create_simple(size_t rank, size_t const d[])
-	{
-		return DataSpace();
-	}
+	bool is_valid() const;
+
+	Properties & properties(std::string const& key = "");
+
+	Properties const& properties(std::string const& key = "") const;
+
+	static DataSpace create_simple(size_t rank, size_t const d[]);
 
 	template<size_t RANK>
 	static DataSpace create_simple(nTuple<size_t, RANK> const & d)
@@ -53,35 +50,45 @@ public:
 		return std::move(create_simple(RANK, &d[0]));
 	}
 
-	void select(size_t ndims, size_t const* offset_, size_t const*count_);
+	void init(size_t nd, size_t const * start, size_t const * count, size_t gw =
+			2);
 
-	inline size_t get_shape(size_t *global_begin = nullptr,
+	bool sync_ghosts(DataSet *ds, size_t flag = 0);
 
-	size_t *global_end = nullptr,
+	size_t num_of_dims() const;
 
-	size_t *local_outer_begin = nullptr,
+	/**
+	 * dimensions of global data
+	 * @return <global start, global count>
+	 */
+	std::tuple<size_t const *, size_t const *> global_shape() const;
 
-	size_t *local_outer_end = nullptr,
+	/**
+	 * dimensions of data in local memory
+	 * @return <local start, local count>
+	 */
+	std::tuple<size_t const *, size_t const *> local_shape() const;
 
-	size_t *local_inner_begin = nullptr,
+	/**
+	 * logical shape of data in local memory, which  is the result of select_hyperslab
+	 * @return <strat,strides,count,block>
+	 */
+	std::tuple<size_t const *, size_t const *, size_t const *, size_t const *> shape() const;
 
-	size_t *local_inner_end = nullptr) const
-	{
-		return 0;
-	}
-
+	/**
+	 *  select a hyper rectangle from local data
+	 * @param start
+	 * @param count
+	 * @param strides
+	 * @param block
+	 * @return
+	 */
+	bool select_hyperslab(size_t const * start, size_t const * count,
+			size_t const * strides = nullptr, size_t const * block = nullptr);
 private:
 
-	size_t ndims = 0;
-
-	size_t begin[MAX_NUM_DIMS];
-	size_t end[MAX_NUM_DIMS];
-
-	std::shared_ptr<DistributedArray> darray_;
-
-	void update()
-	{
-	}
+	struct pimpl_s;
+	pimpl_s* pimpl_;
 
 };
 template<typename ... Args>

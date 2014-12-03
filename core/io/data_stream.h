@@ -78,46 +78,10 @@ public:
 	/**
 	 *
 	 * @param name             dataset name or path
-	 * @param v                pointer to data
-	 * @param datatype		   data type
-	 * @param ndims_or_number  if data shapes are  nullptr , represents the number of dimensions;
-	 *                         else represents the  number of data
-	 *
-	 * \group data shape
-	 * \{
-	 * @param global_begin
-	 * @param global_end
-	 * @param local_outer_begin
-	 * @param local_outer_end
-	 * @param local_inner_begin
-	 * @param local_inner_end
-	 * \}
+	 * @param ds		  	   data set
 	 * @param flag             flag to define the operation
 	 * @return
 	 */
-	std::string write(std::string const &name,
-
-	void const *v,
-
-	DataType const & datatype,
-
-	size_t ndims_or_number,
-
-	size_t const *global_begin = nullptr,
-
-	size_t const *global_end = nullptr,
-
-	size_t const *local_outer_begin = nullptr,
-
-	size_t const *local_outer_end = nullptr,
-
-	size_t const *local_inner_begin = nullptr,
-
-	size_t const *local_inner_end = nullptr,
-
-	size_t flag = 0UL
-
-	);
 
 	std::string write(std::string const &name, DataSet const & ds, size_t flag =
 			0UL) const;

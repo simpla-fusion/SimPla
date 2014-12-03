@@ -5,6 +5,8 @@ ADD_SUBDIRECTORY( parallel )
 
 ADD_SUBDIRECTORY( io)
 
+ADD_SUBDIRECTORY( data_structure)
+
 ADD_SUBDIRECTORY( utilities  )
 
 ADD_SUBDIRECTORY( physics)

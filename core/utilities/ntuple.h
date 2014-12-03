@@ -103,6 +103,14 @@ public:
 		return (*this);
 	}
 
+	template<typename TR> inline this_type &
+	operator =(TR const *rhs)
+	{
+		_seq_for<dims>::eval(_impl::_assign(), data_, rhs);
+
+		return (*this);
+	}
+
 	template<typename TR>
 	inline this_type & operator +=(TR const &rhs)
 	{

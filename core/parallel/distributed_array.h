@@ -9,28 +9,37 @@
 #define DISTRIBUTED_ARRAY_H_
 
 #include <stddef.h>
-#include <vector>
-
-#include "../data_structure/data_type.h"
-#include "../utilities/ntuple.h"
-#include "../utilities/properties.h"
+#include <string>
+#include <tuple>
 
 namespace simpla
 {
-
+struct DataSet;
+class Properties;
 /* @brief  DistributedArray is used to manage the parallel
- * communication while using the n-dimensional regual array.
+ * communication while using the n-dimensional regular array.
+ * @note
+ *  - DistributedArray is continue in each dimension, which means
+ *    no `strides` or `blocks`
+ *  -
  *
- *  inspired by :
+ * inspired by :
  *  - DMDA in PETSc
  *     http://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/DM/index.html
  *
  *
  *
  **/
+
 struct DistributedArray
 {
 	static constexpr size_t MAX_NUM_DIMS = 10;
+
+	template<typename ...Args>
+	DistributedArray(Args && ... args)
+	{
+		init(std::forward<Args>(args)...);
+	}
 
 	DistributedArray();
 
@@ -38,25 +47,30 @@ struct DistributedArray
 
 	bool is_valid() const;
 
-	Properties const &properties() const;
+	Properties const &properties(std::string const& key = "") const;
 
-	Properties &properties();
+	Properties &properties(std::string const& key = "");
+
+	size_t num_of_dims() const;
+
+	/**
+	 * @return tuple<global_start,global_count>
+	 */
+	std::tuple<size_t const*, size_t const*> global_shape() const;
+
+	/**
+	 * @return tuple<local_outer_start,local_outer_count>
+	 */
+	std::tuple<size_t const*, size_t const*> local_shape() const;
+
+	/**
+	 * @return tuple<local_inner_start,local_inner_count>
+	 */
+	std::tuple<size_t const*, size_t const*> inner_shape() const;
 
 	void init(size_t nd, size_t const * b, size_t const* e, size_t gw = 2);
 
-	void update_ghosts(void* data, DataType const &, size_t *block = nullptr);
-
-	template<typename TV>
-	void update_ghosts(std::shared_ptr<TV> d, size_t *block = nullptr)
-	{
-		update_ghosts(d.get(), DataType::create<TV>(), block);
-	}
-
-	template<typename TV>
-	void update_ghosts(TV * d, size_t *block = nullptr)
-	{
-		update_ghosts(d, DataType::create<TV>(), block);
-	}
+	bool sync_ghosts(DataSet* ds, size_t flag = 0) const;
 
 //	void init(int argc = 0, char** argv = nullptr);
 //

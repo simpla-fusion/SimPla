@@ -174,34 +174,25 @@ public:
 			global_count_[i] = length;
 			global_begin_[i] = (1UL << (INDEX_DIGITS - MAX_DEPTH_OF_TREE - 1))
 					- length / 2;
-			global_end_[i] = global_begin_[i] + length;
-
 		}
+
+		global_end_ = global_begin_ + global_count_;
 
 		global_begin_compact_index_ = compact(global_begin_)
 				<< MAX_DEPTH_OF_TREE;
 
-//		local_inner_begin_ = global_begin_;
-//		local_inner_end_ = global_end_;
-//		local_inner_count_ = global_count_;
-//
-//		local_outer_begin_ = global_begin_;
-//		local_outer_end_ = global_end_;
-//		local_outer_count_ = global_count_;
-		// FIXME UNIMPLEMENTED
-//		DataSpace(ndims, global_begin_, global_end_, DEFAULT_GHOSTS_WIDTH).swap(
-//				data_space_);
-//
-//		data_space_.global_array_->init(ndims, global_begin_, global_end_,
-//				DEFAULT_GHOSTS_WIDTH);
-//
-//		local_inner_begin_ = data_space_.global_array_->local_.inner_begin;
-//		local_inner_end_ = data_space_.global_array_->local_.inner_end;
-//		local_inner_count_ = local_inner_end_ - local_inner_begin_;
-//
-//		local_outer_begin_ = data_space_.global_array_->local_.outer_begin;
-//		local_outer_end_ = data_space_.global_array_->local_.outer_end;
-//		local_outer_count_ = local_outer_end_ - local_outer_begin_;
+		data_space_.init(ndims, &global_begin_[0], &global_count_[0],
+				DEFAULT_GHOSTS_WIDTH);
+
+		std::tie(local_outer_begin_, local_outer_count_) =
+				data_space_.local_shape();
+
+		local_outer_end_ = local_outer_count_ + local_outer_begin_;
+
+		std::tie(local_inner_begin_, std::ignore, local_inner_count_,
+				std::ignore) = data_space_.shape();
+
+		local_inner_end_ = local_inner_count_ + local_inner_begin_;
 
 		local_strides_[2] = 1;
 		local_strides_[1] = local_outer_count_[2] * local_strides_[2];
@@ -797,14 +788,17 @@ public:
 	static index_tuple decompact(size_type s)
 	{
 
-		return std::move(index_tuple(
-		{ static_cast<size_type>((s >> (INDEX_DIGITS * 2)) & INDEX_MASK),
+		return std::move(
+				index_tuple(
+						{ static_cast<size_type>((s >> (INDEX_DIGITS * 2))
+								& INDEX_MASK),
 
-		static_cast<size_type>((s >> (INDEX_DIGITS)) & INDEX_MASK),
+						static_cast<size_type>((s >> (INDEX_DIGITS))
+								& INDEX_MASK),
 
-		static_cast<size_type>(s & INDEX_MASK)
+						static_cast<size_type>(s & INDEX_MASK)
 
-		}));
+						}));
 	}
 
 	/**
@@ -846,8 +840,7 @@ public:
 	}
 	//! @name Geometry
 	//! @{
-	Real volume_[8] =
-	{ 1, // 000
+	Real volume_[8] = { 1, // 000
 			1, //001
 			1, //010
 			1, //011
@@ -856,14 +849,11 @@ public:
 			1, //110
 			1  //111
 			};
-	Real inv_volume_[8] =
-	{ 1, 1, 1, 1, 1, 1, 1, 1 };
+	Real inv_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
 
-	Real dual_volume_[8] =
-	{ 1, 1, 1, 1, 1, 1, 1, 1 };
+	Real dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
 
-	Real inv_dual_volume_[8] =
-	{ 1, 1, 1, 1, 1, 1, 1, 1 };
+	Real inv_dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
 
 	nTuple<Real, ndims> inv_extents_, extents_, dx_, inv_dx_;
 

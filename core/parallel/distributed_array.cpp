@@ -8,11 +8,18 @@
 #ifndef CORE_PARALLEL_DISTRIBUTED_ARRAY_CPP_
 #define CORE_PARALLEL_DISTRIBUTED_ARRAY_CPP_
 
-#include <string>
-
 #include "distributed_array.h"
-#include "../utilities/log.h"
+
+#include <mpi.h>
+#include <memory>
+#include <vector>
+
+#include "../data_structure/data_set.h"
 #include "../numeric/geometric_algorithm.h"
+#include "../utilities/log.h"
+#include "../utilities/ntuple.h"
+#include "../utilities/primitives.h"
+#include "../utilities/properties.h"
 #include "mpi_comm.h"
 #include "mpi_datatype.h"
 
@@ -20,22 +27,20 @@ namespace simpla
 {
 struct DistributedArray::pimpl_s
 {
-	size_t ndims_ = 3;
 
-	int self_id_ = 0;
-
-	Properties prop_;
-
-	size_t gw;
+	typedef nTuple<size_t, MAX_NDIMS_OF_ARRAY> dims_type;
 
 	bool is_valid() const;
 
-	void update_ghosts(void * data, DataType const & data_type, size_t *block =
-	        nullptr);
+	bool sync_ghosts(DataSet * ds, size_t flag) const;
 
 	void decompose();
 
 	void init(size_t nd, size_t const * b, size_t const * e, size_t gw_p = 2);
+
+	Properties & properties(std::string const &key);
+
+	Properties const& properties(std::string const &key) const;
 
 	size_t size() const
 	{
@@ -43,7 +48,7 @@ struct DistributedArray::pimpl_s
 
 		for (int i = 0; i < ndims_; ++i)
 		{
-			res *= (local_.inner_end[i] - local_.inner_begin[i]);
+			res *= local_.inner_count[i];
 		}
 		return res;
 	}
@@ -53,30 +58,39 @@ struct DistributedArray::pimpl_s
 
 		for (int i = 0; i < ndims_; ++i)
 		{
-			res *= (local_.outer_end[i] - local_.outer_begin[i]);
+			res *= local_.outer_count[i];
 		}
 		return res;
 	}
 
 	size_t num_of_dims() const;
-	size_t local_shape(size_t * dims, size_t * offset, size_t * strides,
-	        size_t * count, size_t * block) const;
-	size_t global_shape(size_t * dims, size_t * offset, size_t * strides,
-	        size_t * count, size_t * block) const;
+
+	std::tuple<size_t const*, size_t const*> local_shape() const;
+	std::tuple<size_t const*, size_t const*> global_shape() const;
+	std::tuple<size_t const*, size_t const*> shape() const;
 
 private:
 
-	static constexpr size_t MAX_NUM_OF_DIMS = 10;
-	size_t global_begin_[MAX_NUM_OF_DIMS];
-	size_t global_end_[MAX_NUM_OF_DIMS];
-	size_t global_strides_[MAX_NUM_OF_DIMS];
+	Properties prop_;
+
+	size_t ndims_ = 3;
+
+	int self_id_ = 0;
+
+	size_t gw;
+
+	bool is_valid_ = false;
+
+	dims_type global_start_;
+	dims_type global_count_;
+	dims_type global_strides_;
 
 	struct sub_array_s
 	{
-		size_t outer_begin[MAX_NUM_OF_DIMS];
-		size_t outer_end[MAX_NUM_OF_DIMS];
-		size_t inner_begin[MAX_NUM_OF_DIMS];
-		size_t inner_end[MAX_NUM_OF_DIMS];
+		dims_type outer_start;
+		dims_type outer_count;
+		dims_type inner_start;
+		dims_type inner_count;
 	};
 	sub_array_s local_;
 
@@ -85,103 +99,80 @@ private:
 		int dest;
 		int send_tag;
 		int recv_tag;
-		size_t send_begin[MAX_NUM_OF_DIMS];
-		size_t send_end[MAX_NUM_OF_DIMS];
-		size_t recv_begin[MAX_NUM_OF_DIMS];
-		size_t recv_end[MAX_NUM_OF_DIMS];
+		dims_type send_start;
+		dims_type send_count;
+		dims_type recv_start;
+		dims_type recv_count;
 	};
 
 	std::vector<send_recv_s> send_recv_; // dest, send_tag,recv_tag, sub_array_s
 
 	int hash(size_t const *d) const
-	        {
+	{
 		int res = 0;
 		for (int i = 0; i < ndims_; ++i)
 		{
-			res += ((d[i] - global_begin_[i]
-			        + (global_end_[i] - global_begin_[i]))
-			        % (global_end_[i] - global_begin_[i])) * global_strides_[i];
+			res += ((d[i] - global_start_[i] + global_count_[i])
+					% global_count_[i]) * global_strides_[i];
 		}
 		return res;
 	}
 
 };
 
-void DistributedArray::pimpl_s::init(size_t nd, size_t const * b,
-        size_t const * e, size_t gw_p = 2)
+bool DistributedArray::pimpl_s::is_valid() const
+{
+	return is_valid_;
+}
+
+Properties & DistributedArray::pimpl_s::properties(std::string const &key)
+{
+	return prop_(key);
+}
+Properties const& DistributedArray::pimpl_s::properties(
+		std::string const &key) const
+{
+	return prop_(key);
+}
+
+size_t DistributedArray::pimpl_s::num_of_dims() const
+{
+	return ndims_;
+}
+
+std::tuple<size_t const*, size_t const*> DistributedArray::pimpl_s::local_shape() const
+{
+	return std::forward_as_tuple(&local_.outer_start[0], &local_.outer_count[0]);
+}
+std::tuple<size_t const*, size_t const*> DistributedArray::pimpl_s::global_shape() const
+{
+	return std::forward_as_tuple(&global_start_[0], &global_count_[0]);
+}
+std::tuple<size_t const*, size_t const*> DistributedArray::pimpl_s::shape() const
+{
+	return std::forward_as_tuple(&local_.inner_start[0], &local_.inner_count[0]);
+}
+
+void DistributedArray::pimpl_s::init(size_t nd, size_t const * start,
+		size_t const * count, size_t gw_p)
 {
 	ndims_ = nd;
-
-	for (int i = 0; i < nd; ++i)
-	{
-		global_begin_[i] = b[i];
-		global_end_[i] = e[i];
-	}
+	global_start_ = start;
+	global_count_ = count;
 	gw = gw_p;
 	decompose();
 }
 
-void DistributedArray::pimpl_s::update_ghosts(void * data,
-        DataType const & data_type, size_t * block)
-{
-	if (send_recv_.size() == 0)
-	{
-		return;
-	}
-
-	MPI_Comm comm = GLOBAL_COMM.comm();
-
-	MPI_Request request[send_recv_.size() * 2];
-
-	int count = 0;
-
-	for (auto const & item : send_recv_)
-	{
-		size_t g_outer_count[ndims_];
-		size_t send_count[ndims_];
-		size_t recv_count[ndims_];
-		size_t send_begin[ndims_];
-		size_t recv_begin[ndims_];
-
-		for (int i = 0; i < ndims_; ++i)
-		{
-
-			g_outer_count[i] = local_.outer_end[i]
-			        - local_.outer_begin[i];
-			send_count[i] = item.send_end[i] - item.send_begin[i];
-			recv_count[i] = item.recv_end[i] - item.recv_begin[i];
-			send_begin[i] = item.send_begin[i]
-			        - local_.outer_begin[i];
-			recv_begin[i] = item.recv_begin[i]
-			        - local_.outer_begin[i];
-		}
-		auto send_type = MPIDataType::create(data_type, ndims_, g_outer_count,
-		        send_count, send_begin);
-		auto recv_type = MPIDataType::create(data_type, ndims_, g_outer_count,
-		        recv_count, recv_begin);
-
-		MPI_Isend(data, 1, send_type.type(), item.dest, item.send_tag, comm,
-		        &request[count * 2]);
-		MPI_Irecv(data, 1, recv_type.type(), item.dest, item.recv_tag, comm,
-		        &request[count * 2 + 1]);
-
-		++count;
-	}
-
-	MPI_Waitall(send_recv_.size() * 2, request,
-	MPI_STATUSES_IGNORE);
-
-}
-
 void decomposer_(size_t num_process, size_t process_num, size_t gw,
-        size_t ndims, size_t const *global_begin, size_t const * global_end,
-        size_t * local_outer_begin, size_t * local_outer_end,
-        size_t * local_inner_begin, size_t * local_inner_end)
+		size_t ndims, size_t const *global_begin, size_t const * global_count,
+		size_t * local_outer_begin, size_t * local_outer_end,
+		size_t * local_inner_begin, size_t * local_inner_end)
 {
-	local_outer_end = global_end;
-	local_outer_begin = global_begin;
-	local_inner_end = global_end;
-	local_inner_begin = global_begin;
+	//FIXME this is wrong!!!
+//	local_outer_end = global_end;
+//	local_outer_begin = global_begin;
+//	local_inner_end = global_end;
+//	local_inner_begin = global_begin;
 
 	if (num_process <= 1)
 		return;
@@ -190,15 +181,14 @@ void decomposer_(size_t num_process, size_t process_num, size_t gw,
 	long L = 0;
 	for (int i = 0; i < ndims; ++i)
 	{
-		if ((global_end[i] - global_begin[i]) > L)
+		if (global_count[i] > L)
 		{
-			L = (global_end[i] - global_begin[i]);
+			L = global_count[i];
 			n = i;
 		}
 	}
 
-	if ((2 * gw * num_process > (global_end[n] - global_begin[n])
-	        || num_process > (global_end[n] - global_begin[n])))
+	if ((2 * gw * num_process > global_count[n] || num_process > global_count[n]))
 	{
 
 		RUNTIME_ERROR("Array is too small to split");
@@ -208,10 +198,10 @@ void decomposer_(size_t num_process, size_t process_num, size_t gw,
 	}
 	else
 	{
-		local_inner_begin[n] = ((global_end[n] - global_begin[n]) * process_num)
-		        / num_process + global_begin[n];
-		local_inner_end[n] = ((global_end[n] - global_begin[n])
-		        * (process_num + 1)) / num_process + global_begin[n];
+		local_inner_begin[n] = (global_count[n] * process_num) / num_process
+				+ global_begin[n];
+		local_inner_end[n] = (global_count[n] * (process_num + 1)) / num_process
+				+ global_begin[n];
 		local_outer_begin[n] = local_inner_begin[n] - gw;
 		local_outer_end[n] = local_inner_end[n] + gw;
 	}
@@ -220,13 +210,19 @@ void decomposer_(size_t num_process, size_t process_num, size_t gw,
 
 void DistributedArray::pimpl_s::decompose()
 {
+	if (!GLOBAL_COMM.is_valid()) return;
+
 	int num_process = GLOBAL_COMM.get_size();
 	unsigned int process_num = GLOBAL_COMM.get_rank();
 
 	decomposer_(num_process, process_num, gw, ndims_,  //
-			global_begin_, global_end_,//
-			local_.outer_begin, local_.outer_end,//
-			local_.inner_begin, local_.inner_end);
+	&global_start_ [0] ,
+	&global_count_ [0] ,//
+	&local_.outer_start [0] ,
+	&local_.outer_count[0] ,//
+	&local_.inner_start [0] ,
+	&local_.inner_count [0]
+	);
 
 	self_id_ = (process_num);
 
@@ -237,8 +233,7 @@ void DistributedArray::pimpl_s::decompose()
 
 	for (int i = 1; i < ndims_; ++i)
 	{
-		global_strides_[i] = (global_end_[i] - global_begin_[i])
-		* global_strides_[i - 1];
+		global_strides_[i] =global_count_[i] * global_strides_[i - 1];
 	}
 
 	for (int dest = 0; dest < num_process; ++dest)
@@ -248,9 +243,15 @@ void DistributedArray::pimpl_s::decompose()
 
 		sub_array_s node;
 
-		decomposer_(num_process, dest, gw, ndims_, global_begin_,
-				global_end_, node.outer_begin, node.outer_end,
-				node.inner_begin, node.inner_end);
+		decomposer_(num_process, dest, gw, ndims_,
+		&global_start_ [0],
+		&global_count_ [0],
+		&node.outer_start [0],
+		&node.outer_count [0],
+		&node.inner_start [0],
+		&node.inner_count [0]
+
+		);
 
 		sub_array_s remote;
 
@@ -271,37 +272,84 @@ void DistributedArray::pimpl_s::decompose()
 					continue;
 				}
 
-				auto L = (global_end_[i] - global_begin_[i]) * ((n + 1) % 3 - 1);
+				auto L =global_count_[i] * ((n + 1) % 3 - 1);
 
-				remote.outer_begin[i] += L;
-				remote.outer_end[i] += L;
-				remote.inner_begin[i] += L;
-				remote.inner_end[i] += L;
+				remote.outer_start[i] += L;
+				remote.inner_start[i] += L;
 
 			}
 			if (!is_duplicate)
 			{
-				bool f_inner = Clipping(ndims_, local_.outer_begin, local_.outer_end, remote.inner_begin,
-						remote.inner_end);
-				bool f_outer = Clipping(ndims_, local_.inner_begin, local_.inner_end, remote.outer_begin,
-						remote.outer_end);
+				bool f_inner = Clipping(ndims_, local_.outer_start, local_.outer_count, remote.inner_start,
+				remote.inner_count);
+				bool f_outer = Clipping(ndims_, local_.inner_start, local_.inner_count, remote.outer_start,
+				remote.outer_count);
 
 				bool flag = f_inner && f_outer;
 
 				for (int i = 0; i < ndims_; ++i)
 				{
-					flag = flag && (remote.outer_begin[i] != remote.outer_end[i]);
+					flag = flag && (remote.outer_count[i] != 0);
 				}
 				if (flag)
 				{
 					send_recv_.emplace_back(send_recv_s(
-									{	dest, hash(remote.outer_begin), hash(remote.inner_begin),
-										remote.outer_begin, remote.outer_end, remote.inner_begin, remote.inner_end}));
+							{	dest, hash(&remote.outer_start[0]), hash(&remote.inner_start[0]),
+								remote.outer_start, remote.outer_count,
+								remote.inner_start, remote.inner_count}));
 				}
 			}
 		}
 	}
 
+	is_valid_=true;
+}
+
+bool DistributedArray::pimpl_s::sync_ghosts(DataSet * ds, size_t flag) const
+{
+//#ifdef USE_MPI
+	if (!GLOBAL_COMM.is_valid() || send_recv_.size() == 0)
+	{
+		return true;
+	}
+
+	MPI_Comm comm = GLOBAL_COMM.comm();
+
+	MPI_Request request[send_recv_.size() * 2];
+
+	int count = 0;
+
+	for (auto const & item : send_recv_)
+	{
+		dims_type g_outer_count;
+		dims_type send_count;
+		dims_type recv_count;
+		dims_type send_start;
+		dims_type recv_start;
+
+		g_outer_count = local_.outer_count;
+		send_count = item.send_count;
+		recv_count = item.recv_count;
+		send_start = item.send_start - local_.outer_start;
+		recv_start = item.recv_start - local_.outer_start;
+
+		MPIDataType send_type = MPIDataType::create(ds->datatype, ndims_,
+		&g_outer_count[0], &send_count[0], &send_start[0]);
+		MPIDataType recv_type = MPIDataType::create(ds->datatype, ndims_,
+		&g_outer_count[0], &recv_count[0], &recv_start[0]);
+
+		MPI_Isend(ds->data.get(), 1, send_type.type(), item.dest, item.send_tag,
+		comm, &request[count * 2]);
+		MPI_Irecv(ds->data.get(), 1, recv_type.type(), item.dest, item.recv_tag,
+		comm, &request[count * 2 + 1]);
+
+		++count;
+	}
+
+	MPI_Waitall(send_recv_.size() * 2, request,
+	MPI_STATUSES_IGNORE);
+//#endif
+	return true;
 }
 
 //********************************************************************
@@ -318,26 +366,41 @@ bool DistributedArray::is_valid() const
 {
 	return pimpl_->is_valid();
 }
-Properties & DistributedArray::properties()
+Properties & DistributedArray::properties(std::string const &key)
 {
-	return pimpl_->prop_;
+	return pimpl_->properties(key);
 }
-Properties const& DistributedArray::properties() const
+Properties const& DistributedArray::properties(std::string const &key) const
 {
-	return pimpl_->prop_;
+	return pimpl_->properties(key);
 }
 
 void DistributedArray::init(size_t nd, size_t const * b, size_t const* e,
-        size_t gw = 2)
+		size_t gw)
 {
 	pimpl_->init(nd, b, e, gw);
 }
 
-void DistributedArray::update_ghosts(void* data, DataType const &dtype,
-        size_t *block = nullptr)
+bool DistributedArray::sync_ghosts(DataSet* ds, size_t flag) const
 {
-	pimpl_->update_ghosts(data, dtype, block);
+	return pimpl_->sync_ghosts(ds, flag);
 }
+
+size_t DistributedArray::num_of_dims() const
+{
+	return pimpl_->num_of_dims();
+}
+
+std::tuple<size_t const *, size_t const *> DistributedArray::global_shape() const
+{
+	return pimpl_->global_shape();
+}
+
+std::tuple<size_t const *, size_t const *> DistributedArray::local_shape() const
+{
+	return pimpl_->local_shape();
+}
+
 }  // namespace simpla
 
 #endif /* CORE_PARALLEL_DISTRIBUTED_ARRAY_CPP_ */
