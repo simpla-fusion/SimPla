@@ -199,7 +199,7 @@ DataStream::pimpl_s::~pimpl_s()
 
 void DataStream::pimpl_s::init(int argc, char** argv)
 {
-	bool do_not_execute = false;
+	bool show_help = argc <= 1;
 
 	parse_cmd_line(argc, argv,
 
@@ -217,10 +217,9 @@ void DataStream::pimpl_s::init(int argc, char** argv)
 		{
 			properties.set("Cache Depth",ToValue<size_t>(value));
 		}
-		else if(opt=="h"||opt=="help")
+		else if(opt=="h"||opt=="help"||opt=="t")
 		{
-			SHOW_OPTIONS("-o,--prefix <STRING>", "output file path");
-			do_not_execute=true;
+			show_help=true;
 			return TERMINATE;
 		}
 		return CONTINUE;
@@ -228,12 +227,17 @@ void DataStream::pimpl_s::init(int argc, char** argv)
 
 	);
 
-	current_filename_ = properties["File Name"].template as<std::string>();
-
-	current_groupname_ = "/";
-
-	if (!do_not_execute)
+	if (show_help)
 	{
+		SHOW_OPTIONS("-o,--prefix <STRING>", "output file path");
+
+	}
+	else
+	{
+		current_filename_ = properties["File Name"].template as<std::string>();
+
+		current_groupname_ = "/";
+
 		cd(pwd());
 	}
 

@@ -92,6 +92,7 @@ private:
 void LoggerStreams::init(int argc, char** argv)
 {
 
+	bool show_help = argc > 1;
 	parse_cmd_line(argc, argv,
 
 	[&,this](std::string const & opt,std::string const & value)->int
@@ -114,12 +115,17 @@ void LoggerStreams::init(int argc, char** argv)
 		}
 		else if(opt=="h"|| opt=="help")
 		{
-			SHOW_OPTIONS("-v,--verbose <NUM> ", "Verbose mode")
+			show_help = true;
 		}
 		return CONTINUE;
 	}
 
 	);
+
+	if (show_help)
+	{
+		SHOW_OPTIONS("-v,--verbose <NUM> ", "Verbose mode")
+	}
 
 }
 void LoggerStreams::put(int level, std::string const & msg)

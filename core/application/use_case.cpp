@@ -42,8 +42,6 @@ void UseCaseList::run_all_case(int argc, char ** argv)
 {
 	for (auto const & item : list_)
 	{
-		if (argc <= 1)
-			continue;
 
 		item.second->init(argc, argv);
 

@@ -84,6 +84,12 @@ public:
 	template<typename TDict>
 	bool load(TDict const & dict)
 	{
+
+		if(dict["SHOW_HELP"])
+		{
+			return true;
+		}
+
 		if (!dict["Dimensions"])
 		{
 			WARNING << ("Configure  error: no 'Dimensions'!");
