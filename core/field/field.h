@@ -147,7 +147,7 @@ public:
 
 	DataSet dataset() const
 	{
-		return DataSet( { properties(), data_, make_datatype<value_type>(),
+		return DataSet( { data_, properties(), make_datatype<value_type>(),
 				domain_.dataspace() });
 	}
 
