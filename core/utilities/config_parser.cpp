@@ -23,6 +23,11 @@ void ConfigParser::init(int argc, char ** argv)
 {
 	dict_type::init();
 
+	if(argc<=1)
+	{
+		dict_type::parse_string("SHOW_HELP=true");
+	}
+
 	argc_ = argc;
 	argv_ = argv;
 	simpla::parse_cmd_line(argc, argv,
@@ -50,7 +55,6 @@ void ConfigParser::init(int argc, char ** argv)
 					SHOW_OPTIONS("-e,--execute <STRING>","execute Lua script as configuration");
 
 					dict_type::parse_string("JUST_A_TEST=true");
-
 					dict_type::parse_string("SHOW_HELP=true");
 //					dict_type::set("SHOW_HELP",true);
 //					dict_type::set("JUST_A_TEST",true);

@@ -198,6 +198,11 @@ public:
 	bool load(TDict const & dict, Others &&...others)
 	{
 
+		if(dict["SHOW_HELP"])
+		{
+			return true;
+		}
+
 		if (!topology_type::is_valid())
 		{
 			RUNTIME_ERROR("Topology is not initialized!");
