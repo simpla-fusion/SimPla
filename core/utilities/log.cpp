@@ -92,7 +92,7 @@ private:
 void LoggerStreams::init(int argc, char** argv)
 {
 
-	bool show_help = argc > 1;
+	bool show_help = argc <= 1;
 	parse_cmd_line(argc, argv,
 
 	[&,this](std::string const & opt,std::string const & value)->int
@@ -183,18 +183,18 @@ void LoggerStreams::put(int level, std::string const & msg)
 		case LOG_OUT_RANGE_ERROR:
 		case LOG_LOGIC_ERROR:
 		case LOG_ERROR:
-			std::cerr << std::endl << "\e[1;31m" << prefix << "\e[1;37m" << msg
-					<< "\e[0m" << surfix;
+			std::cerr << "\e[1;31m" << prefix << "\e[1;37m" << msg << "\e[0m"
+					<< surfix;
 			break;
 		case LOG_WARNING:
-			std::cerr << std::endl << "\e[1;32m" << prefix << "\e[1;37m" << msg
-					<< "\e[0m" << surfix;
+			std::cerr << "\e[1;32m" << prefix << "\e[1;37m" << msg << "\e[0m"
+					<< surfix;
 			break;
 		case LOG_STDOUT:
 			std::cout << msg;
 			break;
 		default:
-			std::cout << std::endl << prefix << msg << surfix;
+			std::cout << prefix << msg << surfix;
 		}
 
 	}

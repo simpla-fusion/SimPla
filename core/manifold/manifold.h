@@ -75,15 +75,22 @@ public:
 	this_type & operator=(this_type const &) = delete;
 
 	template<typename TDict>
-	void load(TDict const & dict)
+	bool load(TDict const & dict)
 	{
-		topology_type::load(dict["Topology"]);
-		geometry_type::load(dict["Geometry"]);
+		VERBOSE << "Load Manifold" << std::endl;
 
+		if (!(topology_type::load(dict["Topology"])
+				&& geometry_type::load(dict["Geometry"])))
+		{
+			RUNTIME_ERROR("ERROR: Load Manifold failed!");
+
+			return false;
+		}
+		return true;
 	}
 	bool update()
 	{
-		return true;
+		return topology_type::update() && geometry_type::update();
 	}
 
 };

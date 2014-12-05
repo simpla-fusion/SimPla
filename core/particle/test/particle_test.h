@@ -13,11 +13,11 @@
 #include "../fetl/save_field.h"
 #include "../utilities/log.h"
 #include "../utilities/pretty_stream.h"
-#include "../utilities/lua_state.h"
-
 #include "../parallel/parallel.h"
 
 #include "particle.h"
+
+#include "../../utilities/lua_object.h"
 #include "particle_update_ghosts.h"
 
 using namespace simpla;

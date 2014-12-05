@@ -101,7 +101,8 @@ Properties const& DataSpace::pimpl_s::properties(std::string const& key) const
 void DataSpace::pimpl_s::init(size_t nd, size_t const * b, size_t const* e,
 		size_t gw)
 {
-	darray_ = std::make_shared<DistributedArray>(nd, b, e, gw);
+	darray_ = std::make_shared<DistributedArray>();
+	darray_->init(nd, b, e, gw);
 }
 
 bool DataSpace::pimpl_s::sync_ghosts(DataSet * ds, size_t flag)
@@ -184,6 +185,9 @@ Properties const& DataSpace::properties(std::string const& key) const
 
 void DataSpace::init(size_t nd, size_t const * b, size_t const* e, size_t gw)
 {
+	if (pimpl_ == nullptr)
+		pimpl_ = new pimpl_s;
+
 	pimpl_->init(nd, b, e, gw);
 }
 

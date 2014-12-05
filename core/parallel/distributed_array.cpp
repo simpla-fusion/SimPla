@@ -13,7 +13,6 @@
 #include <mpi.h>
 #include <memory>
 #include <vector>
-
 #include "../data_structure/data_set.h"
 #include "../numeric/geometric_algorithm.h"
 #include "../utilities/utilities.h"
@@ -201,8 +200,8 @@ void decomposer_(size_t num_process, size_t process_num, size_t gw,
 	{
 		local_inner_start[n] = (global_count[n] * process_num) / num_process
 				+ global_start[n];
-		local_inner_count[n] = (global_count[n] * (process_num + 1)) / num_process
-				+ global_start[n];
+		local_inner_count[n] = (global_count[n] * (process_num + 1))
+				/ num_process + global_start[n];
 		local_outer_start[n] = local_inner_start[n] - gw;
 		local_outer_count[n] = local_inner_count[n] + gw;
 	}
@@ -373,7 +372,7 @@ DistributedArray::~DistributedArray()
 }
 bool DistributedArray::is_valid() const
 {
-	return pimpl_->is_valid();
+	return pimpl_ != nullptr && pimpl_->is_valid();
 }
 Properties & DistributedArray::properties(std::string const &key)
 {
@@ -387,6 +386,9 @@ Properties const& DistributedArray::properties(std::string const &key) const
 void DistributedArray::init(size_t nd, size_t const * b, size_t const* e,
 		size_t gw)
 {
+	if (pimpl_ == nullptr)
+		pimpl_ = (new pimpl_s);
+
 	pimpl_->init(nd, b, e, gw);
 }
 

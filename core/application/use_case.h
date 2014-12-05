@@ -15,11 +15,11 @@
 #include <string>
 #include <tuple>
 
-#include "../utilities/lua_state.h"
 #include "../utilities/singleton_holder.h"
 #include "../utilities/utilities.h"
 #include "../utilities/optional.h"
 #include "../utilities/config_parser.h"
+#include "../utilities/lua_object.h"
 #include "application.h"
 
 namespace simpla

@@ -37,9 +37,6 @@ USE_CASE(em)
 		SHOW_OPTIONS("-s,--strides <STRIDES>",
 				" dump record per <STRIDES> steps, default="
 						+ ToString(strides));
-		SHOW_OPTIONS("-dt  <DT>",
-				" value of time step,default =" + ToString(dt));
-
 		return;
 	}
 
@@ -52,11 +49,6 @@ USE_CASE(em)
 	manifold->load(options["Mesh"]);
 
 	manifold->update();
-
-	if (options["DT"].as<Real>(&dt))
-	{
-		manifold->dt(dt);
-	}
 
 	STDOUT << std::endl;
 
@@ -74,6 +66,10 @@ USE_CASE(em)
 	auto E = make_form<EDGE, Real>(manifold);
 	auto B = make_form<FACE, Real>(manifold);
 
+	E.clear();
+	J.clear();
+	B.clear();
+
 	auto E_src = make_constraint<EDGE, Real>(manifold,
 			options["Constraint"]["E"]);
 	auto J_src = make_constraint<EDGE, Real>(manifold,
@@ -86,6 +82,8 @@ USE_CASE(em)
 	VERBOSE_CMD(load(options["InitValue"]["J"], &J));
 
 	cd("/Input/");
+
+	VERBOSE << "Hello" << std::endl;
 
 	VERBOSE << SAVE(E);
 	VERBOSE << SAVE(B);
