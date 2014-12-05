@@ -55,20 +55,15 @@ public:
 			topology_type(), is_valid_(false)
 	{
 
-		xmin_ = coordinates_type(
-		{ 0, 0, 0 });
+		xmin_ = coordinates_type( { 0, 0, 0 });
 
-		xmax_ = coordinates_type(
-		{ 1, 1, 1 });
+		xmax_ = coordinates_type( { 1, 1, 1 });
 
-		inv_length_ = coordinates_type(
-		{ 1.0, 1.0, 1.0 });
+		inv_length_ = coordinates_type( { 1.0, 1.0, 1.0 });
 
-		length_ = coordinates_type(
-		{ 1.0, 1.0, 1.0 });
+		length_ = coordinates_type( { 1.0, 1.0, 1.0 });
 
-		shift_ = coordinates_type(
-		{ 0, 0, 0 });
+		shift_ = coordinates_type( { 0, 0, 0 });
 	}
 
 //	template<typename ... Args>
@@ -77,14 +72,14 @@ public:
 //		load(std::forward<Args>(args)...);
 //	}
 
-	template<typename ... Args>
-	CartesianCoordinates(coordinates_type const & x0,
-			coordinates_type const & x1, Args && ... args) :
-			topology_type(std::forward<Args>(args)...)
-	{
-		extents(x0, x1);
-		update();
-	}
+//	template<typename ... Args>
+//	CartesianCoordinates(coordinates_type const & x0,
+//			coordinates_type const & x1, Args && ... args) :
+//			topology_type(std::forward<Args>(args)...)
+//	{
+//		extents(x0, x1);
+//		update();
+//	}
 
 	~CartesianCoordinates()
 	{
@@ -198,16 +193,10 @@ public:
 	bool load(TDict const & dict, Others &&...others)
 	{
 
-		if(dict["SHOW_HELP"])
-		{
-			return true;
-		}
-
 		if (!topology_type::is_valid())
 		{
 			RUNTIME_ERROR("Topology is not initialized!");
 			return false;
-
 		}
 
 		if (!dict)
@@ -218,7 +207,7 @@ public:
 		if (dict["Min"] && dict["Max"])
 		{
 
-			VERBOSE << "Load geometry : Cartesian ";
+			VERBOSE << "Load geometry : Cartesian " << std::endl;
 
 			extents(
 
@@ -238,12 +227,6 @@ public:
 
 			return false;
 		}
-	}
-
-	std::string save(std::string const &path) const
-	{
-		return topology_type::save(path);
-
 	}
 
 	template<typename OS>
@@ -296,8 +279,7 @@ public:
 	coordinates_type coordinates_from_topology(coordinates_type const &x) const
 	{
 
-		return coordinates_type(
-		{
+		return coordinates_type( {
 
 		x[0] * length_[0] + shift_[0],
 
@@ -310,8 +292,7 @@ public:
 	}
 	coordinates_type coordinates_to_topology(coordinates_type const &x) const
 	{
-		return coordinates_type(
-		{
+		return coordinates_type( {
 
 		(x[0] - shift_[0]) * inv_length_[0],
 
@@ -491,8 +472,7 @@ public:
 	 *\endverbatim
 	 */
 
-	scalar_type volume_[8] =
-	{ 1, // 000
+	scalar_type volume_[8] = { 1, // 000
 			1, //001
 			1, //010
 			1, //011
@@ -501,14 +481,11 @@ public:
 			1, //110
 			1  //111
 			};
-	scalar_type inv_volume_[8] =
-	{ 1, 1, 1, 1, 1, 1, 1, 1 };
+	scalar_type inv_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
 
-	scalar_type dual_volume_[8] =
-	{ 1, 1, 1, 1, 1, 1, 1, 1 };
+	scalar_type dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
 
-	scalar_type inv_dual_volume_[8] =
-	{ 1, 1, 1, 1, 1, 1, 1, 1 };
+	scalar_type inv_dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
 
 public:
 

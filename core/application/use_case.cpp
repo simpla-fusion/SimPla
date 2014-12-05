@@ -15,9 +15,7 @@
 #include <tuple>
 #include <utility>
 
-#include "../simpla_defs.h"
-#include "../utilities/lua_state.h"
-#include "../utilities/parse_command_line.h"
+#include "../utilities/utilities.h"
 
 namespace simpla
 {

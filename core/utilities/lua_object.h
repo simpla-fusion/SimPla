@@ -6,8 +6,8 @@
  * @author salmon
  */
 
-#ifndef INCLUDE_LUA_PARSER_H_
-#define INCLUDE_LUA_PARSER_H_
+#ifndef CORE_UTILITIES_LUA_OBJECT_H_
+#define CORE_UTILITIES_LUA_OBJECT_H_
 
 extern "C"
 {
@@ -230,7 +230,7 @@ public:
 
 	void init()
 	{
-		if (self_ == 0)
+		if (self_ == 0 || L_ == nullptr)
 		{
 			L_ = std::shared_ptr<lua_State>(luaL_newstate(), lua_close);
 
@@ -615,7 +615,7 @@ public:
 		return std::move(as<std::tuple<T...>>());
 	}
 
-	template<typename TRect, typename ...Args> bool as(
+	template<typename TRect, typename ...Args> void as(
 			std::function<TRect(Args ...)> *res) const
 	{
 
@@ -633,11 +633,7 @@ public:
 			*res = [obj](Args ...args)->TRect
 			{	return obj(std::forward<Args>(args)...).template as<TRect>();};
 		}
-		else
-		{
-			return false;
-		}
-		return true;
+
 	}
 
 	template<typename T> inline T as(T const &default_value) const
@@ -654,6 +650,7 @@ public:
 			lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
 			FromLua(L_, lua_gettop(L_.get()), res);
 			lua_pop(L_.get(), 1);
+
 			return true;
 		}
 		else
@@ -687,37 +684,39 @@ public:
 //		operator[](s).as(v);
 //	}
 
-	template<typename T> inline void set(std::string const & name,
-			T const &v) const
+	template<typename T> inline void set(std::string const & name, T const &v)
+	{
+		CHECK(v);
+
+		if (IsNull())
+			return;
+
+		CHECK(v) << self_;
+
+		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
+		ToLua(L_, v);
+		lua_setfield(L_.get(), -2, name.c_str());
+		lua_pop(L_.get(), 1);
+	}
+
+	template<typename T> inline void set(int s, T const &v)
 	{
 		if (IsNull())
 			return;
 
 		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
 		ToLua(L_, v);
-//		LuaTrans<T>::To(L_, v);
-		lua_setfield(L_.get(), -2, name.c_str());
-		lua_pop(L_.get(), 1);
-	}
-
-	template<typename T> inline void set(int s, T const &v) const
-	{
-		if (IsNull())
-			return;
-
-		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
-		ToLua(L_.get(), v);
 		lua_rawseti(L_.get(), -2, s);
 		lua_pop(L_.get(), 1);
 	}
 
-	template<typename T> inline void add(T const &v) const
+	template<typename T> inline void add(T const &v)
 	{
 		if (IsNull())
 			return;
 
 		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
-		ToLua(L_.get(), v);
+		ToLua(L_, v);
 		size_t len = lua_rawlen(L_.get(), -1);
 		lua_rawseti(L_.get(), -2, len + 1);
 		lua_pop(L_.get(), 1);
@@ -1184,7 +1183,6 @@ inline std::ostream & operator<<(std::ostream & os, LuaObject const & obj)
 	os << obj.as<std::string>();
 	return os;
 }
-
 } // namespace simpla
 
-#endif  // INCLUDE_LUA_PARSER_H_
+#endif  // CORE_UTILITIES_LUA_OBJECT_H_

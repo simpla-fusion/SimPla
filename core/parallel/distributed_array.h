@@ -11,7 +11,7 @@
 #include <stddef.h>
 #include <string>
 #include <tuple>
-
+#include <memory>
 namespace simpla
 {
 struct DataSet;
@@ -31,15 +31,15 @@ class Properties;
  *
  **/
 
-struct DistributedArray
+struct DistributedArray: public std::enable_shared_from_this<DistributedArray>
 {
 	static constexpr size_t MAX_NUM_DIMS = 10;
 
-	template<typename ...Args>
-	DistributedArray(Args && ... args)
-	{
-		init(std::forward<Args>(args)...);
-	}
+//	template<typename ...Args>
+//	DistributedArray(Args && ... args)
+//	{
+//		init(std::forward<Args>(args)...);
+//	}
 
 	DistributedArray();
 

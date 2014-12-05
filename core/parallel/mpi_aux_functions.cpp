@@ -193,9 +193,10 @@ std::tuple<std::shared_ptr<ByteType>, int> update_ghost_unorder(
 		{
 			mem_size.push_back(tmp);
 		}
-
 	}
-	int recv_buffer_size=std::accumulate(mem_size.begin(),mem_size.end(),0);
+	int recv_buffer_size=0;
+	for(auto const & v:mem_size)	{		recv_buffer_size+=v;	}
+
 	auto recv_buffer = sp_make_shared_array<ByteType>(recv_buffer_size);
 
 	int pos = 0;

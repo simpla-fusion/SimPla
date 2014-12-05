@@ -65,12 +65,6 @@ public:
 	{
 	}
 
-	StructuredMesh(nTuple<size_t, ndims> const & d)
-	{
-		dimensions(d);
-		update();
-	}
-
 	virtual ~StructuredMesh()
 	{
 	}
@@ -85,22 +79,20 @@ public:
 	bool load(TDict const & dict)
 	{
 
-		if(dict["SHOW_HELP"])
+		if (!dict["Dimensions"].is_table())
 		{
-			return true;
-		}
-
-		if (!dict["Dimensions"])
-		{
-			WARNING << ("Configure  error: no 'Dimensions'!");
+			WARNING << ("Configure  error: no 'Dimensions'!") << std::endl;
 			return false;
 		}
 
-		VERBOSE << "Load topology : Structured  Mesh ";
+		else
+		{
+			VERBOSE << "Load topology : Structured  Mesh " << std::endl;
 
-		dimensions(dict["Dimensions"].template as<nTuple<size_type, 3>>());
+			dimensions(dict["Dimensions"].template as<nTuple<size_type, 3>>());
 
-		return true;
+			return true;
+		}
 	}
 
 	template<typename OS>
@@ -173,6 +165,7 @@ public:
 
 	void dimensions(nTuple<size_t, ndims> const &d)
 	{
+
 		for (int i = 0; i < ndims; ++i)
 		{
 			size_type length = d[i] > 0 ? d[i] : 1;
@@ -189,20 +182,20 @@ public:
 
 		data_space_.init(ndims, &global_begin_[0], &global_count_[0],
 				DEFAULT_GHOSTS_WIDTH);
-
-		std::tie(local_outer_begin_, local_outer_count_) =
-				data_space_.local_shape();
-
-		local_outer_end_ = local_outer_count_ + local_outer_begin_;
-
-		std::tie(local_inner_begin_, std::ignore, local_inner_count_,
-				std::ignore) = data_space_.shape();
-
-		local_inner_end_ = local_inner_count_ + local_inner_begin_;
-
-		local_strides_[2] = 1;
-		local_strides_[1] = local_outer_count_[2] * local_strides_[2];
-		local_strides_[0] = local_outer_count_[1] * local_strides_[1];
+//
+////		std::tie(local_outer_begin_, local_outer_count_) =
+////				data_space_.local_shape();
+////
+////		local_outer_end_ = local_outer_count_ + local_outer_begin_;
+////
+////		std::tie(local_inner_begin_, std::ignore, local_inner_count_,
+////				std::ignore) = data_space_.shape();
+//
+//		local_inner_end_ = local_inner_count_ + local_inner_begin_;
+//
+//		local_strides_[2] = 1;
+//		local_strides_[1] = local_outer_count_[2] * local_strides_[2];
+//		local_strides_[0] = local_outer_count_[1] * local_strides_[1];
 
 		update();
 
@@ -450,7 +443,6 @@ public:
 		range() :
 				mesh(nullptr)
 		{
-
 		}
 
 		range(mesh_type const & m, index_tuple const & b, index_tuple const& e,
@@ -649,7 +641,6 @@ public:
 		void reset(compact_index_type s)
 		{
 			self_ = decompact(s);
-
 			shift_ = delta_index(s);
 
 //			range_.NextCell(*this);

@@ -185,6 +185,13 @@ inline Logger & DONE(Logger & self)
 	return self;
 }
 
+inline Logger & FAILED(Logger & self)
+{
+	self.surffix("\e[1;31m[FAILED]\e[1;37m");
+	return self;
+}
+
+
 inline Logger & START(Logger & self)
 {
 	self.surffix("[START]");
@@ -250,14 +257,14 @@ inline std::string ShowBit(unsigned long s)
 #define PARSER_WARNING(_MSG_)  {{ Logger(LOG_WARNING)<<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"<<"\n\tConfigure fails :"<<(_MSG_) ;}throw(std::runtime_error(""));}
 
 #ifdef NDEBUG
-#  define ASSERT(_EXP_)
+#  define ASSERT(_COND_)
 #else
-#  define ASSERT(_COND_)    assert(_COND_);
+#  define ASSERT(_COND_)   std:: assert(_COND_);
 #endif
 
 //#ifndef NDEBUG
 #define CHECK(_MSG_)    Logger(LOG_DEBUG) <<" "<< (__FILE__) <<": line "<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
-	<<"\n\t"<< __STRING(_MSG_)<<"="<< ( _MSG_)<<" "
+	<<"\n\t"<< __STRING(_MSG_)<<"="<< ( _MSG_)<<std::endl
 
 #define REDUCE_CHECK(_MSG_)    {auto __a= (_MSG_); __a=reduce(__a); if(GLOBAL_COMM.get_rank()==0){ Logger(LOG_DEBUG) <<" "<< (__FILE__) <<": line "<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
 	<<"\n\t GLOBAL_SUM:"<< __STRING(_MSG_)<<"="<<__a;}}
@@ -280,7 +287,7 @@ inline std::string ShowBit(unsigned long s)
 
 #define LOG_CMD(_CMD_) {auto __logger=Logger(LOG_LOG);__logger<<__STRING(_CMD_);_CMD_;__logger<<DONE;}
 
-#define VERBOSE_CMD(_CMD_) {auto __logger=Logger(LOG_VERBOSE);__logger<<__STRING(_CMD_);_CMD_;__logger<<DONE;}
+#define VERBOSE_CMD(_CMD_) {auto __logger=Logger(LOG_VERBOSE);__logger<<__STRING(_CMD_);try{_CMD_;__logger<<DONE;}catch(...){__logger<<FAILED;} }
 
 #define LOG_CMD1(_LEVEL_,_MSG_,_CMD_) {auto __logger=Logger(_LEVEL_);__logger<<_MSG_;_CMD_;__logger<<DONE;}
 
