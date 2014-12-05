@@ -7,9 +7,9 @@
 
 #include "../utilities/log.h"
 #include "../utilities/pretty_stream.h"
-#include "../utilities/lua_state.h"
-
 #include "../parallel/parallel.h"
+
+#include "../../utilities/lua_object.h"
 #include "../parallel/message_comm.h"
 #include "../parallel/mpi_aux_functions.h"
 

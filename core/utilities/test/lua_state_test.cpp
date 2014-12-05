@@ -5,12 +5,13 @@
  *      Author: salmon
  */
 
-#include "../lua_state.h"
 #include "../ntuple.h"
 #include "../pretty_stream.h"
 #include "../primitives.h"
 #include <iostream>
 #include <map>
+
+#include "../lua_object.h"
 using namespace simpla;
 int main(int argc, char** argv)
 {

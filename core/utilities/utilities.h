@@ -15,8 +15,8 @@
 #include "log.h"
 #include "pretty_stream.h"
 #include "parse_command_line.h"
-#include "lua_state.h"
 #include "misc_utilities.h"
 #include "../physics/physical_constants.h"
+#include "lua_object.h"
 
 #endif /* CORE_UTILITIES_MISC_UTILITIES_H_ */

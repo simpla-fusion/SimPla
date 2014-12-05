@@ -10,7 +10,7 @@
 
 #include <string>
 
-#include "lua_state.h"
+#include "lua_object.h"
 #include "parse_command_line.h"
 
 namespace simpla
