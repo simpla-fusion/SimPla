@@ -68,7 +68,8 @@ struct DistributedArray: public std::enable_shared_from_this<DistributedArray>
 	 */
 	std::tuple<size_t const*, size_t const*> inner_shape() const;
 
-	void init(size_t nd, size_t const * b, size_t const* e, size_t gw = 2);
+	void init(size_t nd, size_t const * start, size_t const* count, size_t gw =
+			2);
 
 	bool sync_ghosts(DataSet* ds, size_t flag = 0) const;
 

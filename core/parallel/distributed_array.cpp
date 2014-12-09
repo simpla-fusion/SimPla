@@ -156,6 +156,7 @@ void DistributedArray::pimpl_s::init(size_t nd, size_t const * start,
 	ndims_ = nd;
 	global_start_ = start;
 	global_count_ = count;
+
 	gw = gw_p;
 	decompose();
 }
@@ -165,6 +166,7 @@ void decomposer_(size_t num_process, size_t process_num, size_t gw,
 		size_t * local_outer_start, size_t * local_outer_count,
 		size_t * local_inner_start, size_t * local_inner_count)
 {
+
 	//FIXME this is wrong!!!
 	for (int i = 0; i < ndims; ++i)
 	{
@@ -210,48 +212,43 @@ void decomposer_(size_t num_process, size_t process_num, size_t gw,
 
 void DistributedArray::pimpl_s::decompose()
 {
+
+	local_.outer_start = global_start_;
+	local_.outer_count = global_count_;
+	local_.inner_start = global_start_;
+	local_.inner_count = global_count_;
+
 	if (!GLOBAL_COMM.is_valid()) return;
 
 	int num_process = GLOBAL_COMM.get_size();
 	unsigned int process_num = GLOBAL_COMM.get_rank();
 
 	decomposer_(num_process, process_num, gw, ndims_,  //
-	&global_start_ [0] ,
-	&global_count_ [0] ,//
-	&local_.outer_start [0] ,
-	&local_.outer_count[0] ,//
-	&local_.inner_start [0] ,
-	&local_.inner_count [0]
-	);
+			&global_start_[0], &global_count_[0],  //
+			&local_.outer_start[0], &local_.outer_count[0],  //
+			&local_.inner_start[0], &local_.inner_count[0]);
 
 	self_id_ = (process_num);
-
-	if (num_process <= 1)
-	return;
 
 	global_strides_[0] = 1;
 
 	for (int i = 1; i < ndims_; ++i)
 	{
-		global_strides_[i] =global_count_[i] * global_strides_[i - 1];
+		global_strides_[i] = global_count_[i] * global_strides_[i - 1];
 	}
 
 	for (int dest = 0; dest < num_process; ++dest)
 	{
 		if (dest == self_id_)
-		continue;
+			continue;
 
 		sub_array_s node;
 
-		decomposer_(num_process, dest, gw, ndims_,
-		&global_start_ [0],
-		&global_count_ [0],
-		&node.outer_start [0],
-		&node.outer_count [0],
-		&node.inner_start [0],
-		&node.inner_count [0]
+		decomposer_(num_process, dest, gw, ndims_, &global_start_[0],
+				&global_count_[0], &node.outer_start[0], &node.outer_count[0],
+				&node.inner_start[0], &node.inner_count[0]
 
-		);
+				);
 
 		sub_array_s remote;
 
@@ -272,7 +269,7 @@ void DistributedArray::pimpl_s::decompose()
 					continue;
 				}
 
-				auto L =global_count_[i] * ((n + 1) % 3 - 1);
+				auto L = global_count_[i] * ((n + 1) % 3 - 1);
 
 				remote.outer_start[i] += L;
 				remote.inner_start[i] += L;
@@ -280,16 +277,12 @@ void DistributedArray::pimpl_s::decompose()
 			}
 			if (!is_duplicate)
 			{
-				bool f_inner = Clipping(ndims_,
-				local_.outer_start,
-				local_.outer_count,
-				remote.inner_start,
-				remote.inner_count);
-				bool f_outer = Clipping(ndims_,
-				local_.inner_start,
-				local_.inner_count,
-				remote.outer_start,
-				remote.outer_count);
+				bool f_inner = Clipping(ndims_, local_.outer_start,
+						local_.outer_count, remote.inner_start,
+						remote.inner_count);
+				bool f_outer = Clipping(ndims_, local_.inner_start,
+						local_.inner_count, remote.outer_start,
+						remote.outer_count);
 
 				bool flag = f_inner && f_outer;
 
@@ -299,18 +292,20 @@ void DistributedArray::pimpl_s::decompose()
 				}
 				if (flag)
 				{
-					send_recv_.emplace_back(send_recv_s(
-							{	dest, hash(&remote.outer_start[0]), hash(&remote.inner_start[0]),
-								remote.outer_start,
-								remote.outer_count,
-								remote.inner_start,
-								remote.inner_count}));
+					send_recv_.emplace_back(
+							send_recv_s(
+									{ dest, hash(&remote.outer_start[0]), hash(
+											&remote.inner_start[0]),
+											remote.outer_start,
+											remote.outer_count,
+											remote.inner_start,
+											remote.inner_count }));
 				}
 			}
 		}
 	}
 
-	is_valid_=true;
+	is_valid_ = true;
 }
 
 bool DistributedArray::pimpl_s::sync_ghosts(DataSet * ds, size_t flag) const
@@ -383,13 +378,13 @@ Properties const& DistributedArray::properties(std::string const &key) const
 	return pimpl_->properties(key);
 }
 
-void DistributedArray::init(size_t nd, size_t const * b, size_t const* e,
-		size_t gw)
+void DistributedArray::init(size_t nd, size_t const * start,
+		size_t const* count, size_t gw)
 {
 	if (pimpl_ == nullptr)
 		pimpl_ = (new pimpl_s);
 
-	pimpl_->init(nd, b, e, gw);
+	pimpl_->init(nd, start, count, gw);
 }
 
 bool DistributedArray::sync_ghosts(DataSet* ds, size_t flag) const
