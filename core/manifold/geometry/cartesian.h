@@ -72,14 +72,14 @@ public:
 //		load(std::forward<Args>(args)...);
 //	}
 
-//	template<typename ... Args>
-//	CartesianCoordinates(coordinates_type const & x0,
-//			coordinates_type const & x1, Args && ... args) :
-//			topology_type(std::forward<Args>(args)...)
-//	{
-//		extents(x0, x1);
-//		update();
-//	}
+	template<typename ... Args>
+	CartesianCoordinates(coordinates_type const & x0,
+			coordinates_type const & x1, Args && ... args) :
+			topology_type(std::forward<Args>(args)...)
+	{
+		extents(x0, x1);
+		update();
+	}
 
 	~CartesianCoordinates()
 	{

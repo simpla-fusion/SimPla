@@ -172,7 +172,7 @@ std::shared_ptr<TV> MemoryPool::pop(size_t s)
 
 	}
 
-	if (addr != nullptr)
+	if (addr == nullptr)
 	{
 
 		try
@@ -192,6 +192,7 @@ std::shared_ptr<TV> MemoryPool::pop(size_t s)
 template<typename TV>
 std::shared_ptr<TV> sp_make_shared_array(size_t s = 1)
 {
+
 	return SingletonHolder<MemoryPool>::instance().template pop<TV>(s);
 }
 

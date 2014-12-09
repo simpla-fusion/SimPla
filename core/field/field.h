@@ -134,6 +134,7 @@ public:
 	{
 		if (empty())
 		{
+
 			container_traits<storage_policy>::allocate(size()).swap(data_);
 			PhysicalObject::update();
 		}
@@ -151,30 +152,34 @@ public:
 				domain_.dataspace() });
 	}
 
-// @defgroup Access operation
-// @
+/// @defgroup Access operation
+/// @
 	template<typename ... TI>
 	value_type & get(TI &&... s)
 	{
-		return (get_value(data_, domain_.hash(std::forward<TI>(s)...)));
+		return (container_traits<storage_policy>::get_value(data_,
+				domain_.hash(std::forward<TI>(s)...)));
 	}
 
 	template<typename ... TI>
 	value_type const& get(TI &&... s) const
 	{
-		return (get_value(data_, domain_.hash(std::forward<TI>(s)...)));
+		return (container_traits<storage_policy>::get_value(data_,
+				domain_.hash(std::forward<TI>(s)...)));
 	}
 
 	template<typename TI>
 	value_type & operator[](TI const & s)
 	{
-		return (get_value(data_, domain_.hash(s)));
+		return (container_traits<storage_policy>::get_value(data_,
+				domain_.hash(s)));
 	}
 
 	template<typename TI>
 	value_type const & operator[](TI const & s) const
 	{
-		return (get_value(data_, domain_.hash(s)));
+		return (container_traits<storage_policy>::get_value(data_,
+				domain_.hash(s)));
 	}
 
 ///@}
@@ -200,9 +205,12 @@ public:
 	{
 		allocate();
 
-		parallel_for(domain_, [&](index_type const & s)
+		parallel_for(domain_, [&](domain_type const & sub_domain)
 		{
-			(*this)[s]= domain_.manifold_->calculate( (that), s);
+			for(auto const & s:sub_domain)
+			{
+				(*this)[s]= domain_.manifold_->calculate( (that), s);
+			}
 		});
 
 		return (*this);
@@ -213,11 +221,13 @@ public:
 	{
 		allocate();
 
-		parallel_for(domain_, [&](index_type const & s)
+		parallel_for(domain_, [&](domain_type const & sub_domain)
 		{
-			(*this)[s] +=domain_.calculate(that, s);
+			for(auto const & s:sub_domain)
+			{
+				(*this)[s]+= domain_.manifold_->calculate( (that), s);
+			}
 		});
-
 		return (*this);
 
 	}

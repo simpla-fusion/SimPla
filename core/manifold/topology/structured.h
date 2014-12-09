@@ -64,7 +64,10 @@ public:
 	StructuredMesh()
 	{
 	}
-
+	StructuredMesh(nTuple<size_type, ndims> const &dims)
+	{
+		dimensions(dims);
+	}
 	virtual ~StructuredMesh()
 	{
 	}
@@ -182,20 +185,20 @@ public:
 
 		data_space_.init(ndims, &global_begin_[0], &global_count_[0],
 				DEFAULT_GHOSTS_WIDTH);
-//
-////		std::tie(local_outer_begin_, local_outer_count_) =
-////				data_space_.local_shape();
-////
-////		local_outer_end_ = local_outer_count_ + local_outer_begin_;
-////
-////		std::tie(local_inner_begin_, std::ignore, local_inner_count_,
-////				std::ignore) = data_space_.shape();
-//
-//		local_inner_end_ = local_inner_count_ + local_inner_begin_;
-//
-//		local_strides_[2] = 1;
-//		local_strides_[1] = local_outer_count_[2] * local_strides_[2];
-//		local_strides_[0] = local_outer_count_[1] * local_strides_[1];
+
+		std::tie(local_outer_begin_, local_outer_count_) =
+				data_space_.local_shape();
+
+		local_outer_end_ = local_outer_count_ + local_outer_begin_;
+
+		std::tie(local_inner_begin_, local_inner_count_, std::ignore,
+				std::ignore) = data_space_.shape();
+
+		local_inner_end_ = local_inner_count_ + local_inner_begin_;
+
+		local_strides_[2] = 1;
+		local_strides_[1] = local_outer_count_[2] * local_strides_[2];
+		local_strides_[0] = local_outer_count_[1] * local_strides_[1];
 
 		update();
 
@@ -1687,7 +1690,6 @@ public:
 
 	size_t hash(compact_index_type s) const
 	{
-
 		size_t m_tree = MAX_DEPTH_OF_TREE;
 		nTuple<size_type, ndims> d = (decompact(s) >> m_tree)
 				- local_outer_begin_;

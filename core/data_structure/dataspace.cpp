@@ -28,7 +28,8 @@ struct DataSpace::pimpl_s
 
 	Properties &properties(std::string const& key = "");
 
-	void init(size_t nd, size_t const * b, size_t const* e, size_t gw = 2);
+	void init(size_t nd, size_t const * start, size_t const* count, size_t gw =
+			2);
 
 	bool sync_ghosts(DataSet *ds, size_t flag);
 
@@ -66,10 +67,10 @@ private:
 
 	std::shared_ptr<DistributedArray> darray_;
 
-	size_t * start_ = nullptr;
-	size_t * count_ = nullptr;
-	size_t * stride_ = nullptr;
-	size_t * block_ = nullptr;
+	nTuple<size_t, MAX_NDIMS_OF_ARRAY> start_;
+	nTuple<size_t, MAX_NDIMS_OF_ARRAY> count_;
+	nTuple<size_t, MAX_NDIMS_OF_ARRAY> stride_;
+	nTuple<size_t, MAX_NDIMS_OF_ARRAY> block_;
 
 };
 DataSpace::pimpl_s::pimpl_s()
@@ -77,6 +78,12 @@ DataSpace::pimpl_s::pimpl_s()
 }
 DataSpace::pimpl_s::pimpl_s(pimpl_s const & other)
 {
+
+	darray_ = other.darray_;
+	start_ = other.start_;
+	count_ = other.count_;
+	stride_ = other.stride_;
+	block_ = other.block_;
 }
 DataSpace::pimpl_s::~pimpl_s()
 {
@@ -98,11 +105,11 @@ Properties const& DataSpace::pimpl_s::properties(std::string const& key) const
 	return darray_->properties(key);
 }
 
-void DataSpace::pimpl_s::init(size_t nd, size_t const * b, size_t const* e,
-		size_t gw)
+void DataSpace::pimpl_s::init(size_t nd, size_t const * start,
+		size_t const* count, size_t gw)
 {
 	darray_ = std::make_shared<DistributedArray>();
-	darray_->init(nd, b, e, gw);
+	darray_->init(nd, start, count, gw);
 }
 
 bool DataSpace::pimpl_s::sync_ghosts(DataSet * ds, size_t flag)
@@ -131,7 +138,8 @@ std::tuple<size_t const *, size_t const *> DataSpace::pimpl_s::local_shape() con
 std::tuple<size_t const *, size_t const *, size_t const *, size_t const *> DataSpace::pimpl_s::shape() const
 {
 
-	return std::forward_as_tuple(start_, count_, stride_, block_);
+	return std::forward_as_tuple(&start_[0], &count_[0], &stride_[0],
+			&block_[0]);
 }
 bool DataSpace::pimpl_s::select_hyperslab(size_t const * start,
 		size_t const * count, size_t const * strides, size_t const * block)
@@ -183,12 +191,13 @@ Properties const& DataSpace::properties(std::string const& key) const
 	return pimpl_->properties(key);
 }
 
-void DataSpace::init(size_t nd, size_t const * b, size_t const* e, size_t gw)
+void DataSpace::init(size_t nd, size_t const * start, size_t const* count,
+		size_t gw)
 {
 	if (pimpl_ == nullptr)
 		pimpl_ = new pimpl_s;
 
-	pimpl_->init(nd, b, e, gw);
+	pimpl_->init(nd, start, count, gw);
 }
 
 bool DataSpace::sync_ghosts(DataSet *ds, size_t flag)

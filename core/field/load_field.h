@@ -23,6 +23,10 @@ template<typename ... > class _Field;
 template<typename TDict, typename ...T>
 bool load(TDict const &dict, _Field<T...> *f)
 {
+	if (!f->is_valid())
+	{
+		f->clear();
+	}
 	if (!dict)
 		return false;
 
@@ -31,11 +35,6 @@ bool load(TDict const &dict, _Field<T...> *f)
 	auto domain = select(f->domain(), dict["Select"]);
 
 	typedef decltype(*domain.begin()) index_type;
-
-	if (!f->is_valid())
-	{
-		f->clear();
-	}
 
 	if (dict.is_function())
 	{
@@ -56,7 +55,7 @@ bool load(TDict const &dict, _Field<T...> *f)
 
 		auto v = dict.template as<field_value_type>();
 
-		parallel_for(domain, [&](index_type const &s)
+		parallel_foreach(domain, [&](index_type const &s)
 		{
 			auto x = domain.coordinates(s);
 
