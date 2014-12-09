@@ -50,25 +50,24 @@ USE_CASE(em)
 
 	manifold->update();
 
-	STDOUT << std::endl;
+	LOGGER << "---------- Configuration ---------- " << std::endl
 
-	STDOUT << "======== Configuration ========" << std::endl;
-	STDOUT << " Description:" << options["Description"].as<std::string>("")
-			<< std::endl;
-	STDOUT << " Options:" << std::endl;
-	RIGHT_COLUMN(" mesh" ) << " = {" << *manifold << "}," << std::endl;
-	RIGHT_COLUMN(" time step" ) << " = " << num_of_steps << std::endl;
+	<< " Description=\"" << options["Description"].as<std::string>("") << "\""
+			<< std::endl
 
-	STDOUT << "======== Initlialize ========" << std::endl;
+			<< " Mesh =" << std::endl << "  {" << *manifold << "} " << std::endl
+
+			<< " TIME_STEPS = " << num_of_steps << std::endl;
+
 	// Load initialize value
 
 	auto J = make_form<EDGE, Real>(manifold);
 	auto E = make_form<EDGE, Real>(manifold);
 	auto B = make_form<FACE, Real>(manifold);
 
-	E.clear();
-	J.clear();
-	B.clear();
+	VERBOSE_CMD(load(options["InitValue"]["B"], &B));
+	VERBOSE_CMD(load(options["InitValue"]["E"], &E));
+	VERBOSE_CMD(load(options["InitValue"]["J"], &J));
 
 	auto E_src = make_constraint<EDGE, Real>(manifold,
 			options["Constraint"]["E"]);
@@ -77,49 +76,46 @@ USE_CASE(em)
 	auto B_src = make_constraint<FACE, Real>(manifold,
 			options["Constraint"]["B"]);
 
-	VERBOSE_CMD(load(options["InitValue"]["B"], &B));
-	VERBOSE_CMD(load(options["InitValue"]["E"], &E));
-	VERBOSE_CMD(load(options["InitValue"]["J"], &J));
+	LOGGER << "----------  Dump input ---------- " << std::endl;
 
 	cd("/Input/");
 
-	VERBOSE << "Hello" << std::endl;
+	VERBOSE << SAVE(E) << std::endl;
+	VERBOSE << SAVE(B) << std::endl;
+	VERBOSE << SAVE(J) << std::endl;
 
-	VERBOSE << SAVE(E);
-	VERBOSE << SAVE(B);
-	VERBOSE << SAVE(J);
-
-	STDOUT << "======== START! ========" << std::endl;
+	LOGGER << "----------  START ---------- " << std::endl;
 
 	cd("/Save/");
 
 	if (options["JUST_A_TEST"])
 	{
-		STDOUT << " Just test configuration!" << std::endl;
+		LOGGER << " Just test configuration!" << std::endl;
 	}
 	else
 	{
 		for (size_t s = 0; s < num_of_steps; s += strides)
 		{
 
-			E_src(&E);
-			J_src(&J);
-			B_src(&B);
+//			E_src(&E);
+//			J_src(&J);
+//			B_src(&B);
 
 			E += curl(B) * dt - J;
 			B += -curl(E) * dt;
 		}
 
-		VERBOSE << SAVE(E);
-		VERBOSE << SAVE(B);
+//		VERBOSE << SAVE(E);
+//		VERBOSE << SAVE(B);
 
 	}
 
 	cd("/Output/");
-	VERBOSE << SAVE(E);
-	VERBOSE << SAVE(B);
-	VERBOSE << SAVE(J);
-	STDOUT << "======== DONE! ========" << std::endl;
+	VERBOSE << SAVE(E) << std::endl;
+	VERBOSE << SAVE(B) << std::endl;
+	VERBOSE << SAVE(J) << std::endl;
+
+	LOGGER << "----------  DONE ---------- " << std::endl;
 
 }
 

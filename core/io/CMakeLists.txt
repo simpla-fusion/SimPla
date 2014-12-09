@@ -1,6 +1,6 @@
 
 add_library(io  io.cpp data_stream.cpp  )
-TARGET_LINK_LIBRARIES(io  ${HDF5_LIBRARIES})
+TARGET_LINK_LIBRARIES(io  ${HDF5_LIBRARIES} data_structure)
 
 
 my_test(data_stream_test    )

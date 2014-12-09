@@ -95,7 +95,7 @@ MPI_Info MPIComm::info()
 
 bool MPIComm::is_valid() const
 {
-	return comm_ != MPI_COMM_NULL;
+	return comm_ != MPI_COMM_NULL && num_process_ > 1;
 }
 int MPIComm::get_rank() const
 {

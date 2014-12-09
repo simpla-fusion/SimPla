@@ -39,6 +39,12 @@ template<typename TContainer> struct container_traits
 	{
 		return lhs == rhs;
 	}
+
+	static auto get_value(container_type & d, size_t s)
+	DECL_RET_TYPE((d[s]))
+	static auto get_value(container_type const& d, size_t s)
+	DECL_RET_TYPE((d[s]))
+
 };
 
 template<typename TV> struct container_traits<std::shared_ptr<TV>>
@@ -63,6 +69,14 @@ template<typename TV> struct container_traits<std::shared_ptr<TV>>
 	static bool is_same(container_type const& lhs, container_type const& rhs)
 	{
 		return lhs == rhs;
+	}
+	static TV & get_value(container_type & d, size_t s)
+	{
+		return d.get()[s];
+	}
+	static TV const & get_value(container_type const& d, size_t s)
+	{
+		return d.get()[s];
 	}
 };
 
