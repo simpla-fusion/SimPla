@@ -50,10 +50,9 @@ public:
 		return std::move(create_simple(RANK, &d[0]));
 	}
 
-	void init(size_t nd, size_t const * start, size_t const * count, size_t gw =
-			2);
+	void init(size_t nd, size_t const * dims, size_t const * gw = nullptr);
 
-	bool sync_ghosts(DataSet *ds, size_t flag = 0);
+	bool sync(DataSet *ds, size_t flag = 0);
 
 	size_t num_of_dims() const;
 
@@ -61,13 +60,13 @@ public:
 	 * dimensions of global data
 	 * @return <global start, global count>
 	 */
-	std::tuple<size_t const *, size_t const *> global_shape() const;
+	std::tuple<size_t const *, size_t const *, size_t const *, size_t const *> global_shape() const;
 
 	/**
 	 * dimensions of data in local memory
 	 * @return <local start, local count>
 	 */
-	std::tuple<size_t const *, size_t const *> local_shape() const;
+	std::tuple<size_t const *, size_t const *, size_t const *, size_t const *> local_shape() const;
 
 	/**
 	 * logical shape of data in local memory, which  is the result of select_hyperslab
@@ -85,6 +84,7 @@ public:
 	 */
 	bool select_hyperslab(size_t const * start, size_t const * count,
 			size_t const * strides = nullptr, size_t const * block = nullptr);
+
 private:
 
 	struct pimpl_s;
@@ -96,6 +96,7 @@ DataSpace make_dataspace(Args && ... args)
 {
 	return DataSpace::create_simple(std::forward<Args>(args)...);
 }
+
 }  // namespace simpla
 
 #endif /* CORE_DATA_STRUCTURE_DATASPACE_H_ */

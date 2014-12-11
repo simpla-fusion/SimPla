@@ -46,7 +46,7 @@ public:
 	typedef typename TF::interpolator_type interpolator_type;
 	typedef typename interpolator_type::manifold_type mainfold_type;
 	typedef typename mainfold_type::index_type index_type;
-	typedef typename mainfold_type::compact_index_type compact_index_type;
+	typedef typename mainfold_type::index_type index_type;
 	typedef typename mainfold_type::range_type range_type;
 	typedef typename mainfold_type::iterator iterator;
 	typedef typename mainfold_type::coordinates_type coordinates_type;
@@ -75,13 +75,13 @@ TYPED_TEST_P(TestInterpolator,scatter){
 	static constexpr unsigned int iform = TestFixture::iform;
 	static constexpr unsigned int NDIMS = TestFixture::NDIMS;
 	typedef typename TestFixture::mesh_type mesh_type;
-	typedef typename TestFixture::compact_index_type compact_index_type;
+	typedef typename TestFixture::index_type index_type;
 	typedef typename TestFixture::coordinates_type coordinates_type;
 	typedef typename TestFixture::scalar_type scalar_type;
 	typedef typename TestFixture::interpolator_type interpolator_type;
 
 	auto f= mesh.template make_field<Field<mesh_type,iform,
-	SparseContainer<compact_index_type,scalar_type>>> ();
+	SparseContainer<index_type,scalar_type>>> ();
 
 	typename decltype(f)::field_value_type a;
 
@@ -98,7 +98,7 @@ TYPED_TEST_P(TestInterpolator,scatter){
 
 	scalar_type b=0;
 
-	SparseContainer<compact_index_type,scalar_type>& g=f;
+	SparseContainer<index_type,scalar_type>& g=f;
 
 	for(auto const & v:g)
 	{
@@ -124,7 +124,7 @@ TYPED_TEST_P(TestInterpolator,gather){
 	static constexpr unsigned int iform = TestFixture::iform;
 	static constexpr unsigned int NDIMS = TestFixture::NDIMS;
 	typedef typename TestFixture::mesh_type mesh_type;
-	typedef typename TestFixture::compact_index_type compact_index_type;
+	typedef typename TestFixture::index_type index_type;
 	typedef typename TestFixture::coordinates_type coordinates_type;
 	typedef typename TestFixture::scalar_type scalar_type;
 	typedef typename TestFixture::interpolator_type interpolator_type;

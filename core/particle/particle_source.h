@@ -32,7 +32,7 @@ public:
 	engine_type const & engine;
 private:
 	typedef typename mesh_type::coordinates_type coordinates_type;
-	typedef typename mesh_type::compact_index_type compact_index_type;
+	typedef typename mesh_type::index_type index_type;
 
 	static constexpr unsigned int NDIMS = mesh_type::NDIMS;
 
@@ -41,7 +41,7 @@ private:
 	multi_normal_distribution<NDIMS> v_dist;
 
 	Real inv_sample_density_;
-	compact_index_type s_;
+	index_type s_;
 
 	Real mass_;
 	Real charge_;
@@ -97,7 +97,7 @@ public:
 	{
 		inv_sample_density_ = 1.0 / sample_density;
 	}
-	void set_cell_id(compact_index_type s)
+	void set_cell_id(index_type s)
 	{
 		s_ = s;
 	}

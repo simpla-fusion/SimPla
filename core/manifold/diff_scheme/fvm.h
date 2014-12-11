@@ -39,7 +39,7 @@ public:
 
 	typedef typename geo.index_type index_type;
 
-	typedef typename geo.compact_index_type compact_index_type;
+	typedef typename geo.index_type index_type;
 
 //	typedef Interpolator<this_type, std::nullptr_t> interpolator_type;
 
@@ -87,7 +87,7 @@ public:
 	template<typename TL> inline auto Opcalculus(
 			std::integral_constant<unsigned int, EXTRIORDERIVATIVE>,
 			_Field<this_type, EDGE, TL> const & f,
-			compact_index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
+			index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
 	{
 		auto X = topology_type::delta_index(topology_type::dual(s));
 		auto Y = topology_type::roate(X);
@@ -113,7 +113,7 @@ public:
 	template<typename TL> inline auto Opcalculus(
 			std::integral_constant<unsigned int, EXTRIORDERIVATIVE>,
 			_Field<this_type, FACE, TL> const & f,
-			compact_index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
+			index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
 	{
 		auto X = topology_type::DI(0, s);
 		auto Y = topology_type::DI(1, s);
@@ -144,16 +144,16 @@ public:
 
 	template<unsigned int IL, typename TL> void Opcalculus(
 			std::integral_constant<unsigned int, EXTRIORDERIVATIVE>,
-			_Field<this_type, IL, TL> const & f, compact_index_type s) const = delete;
+			_Field<this_type, IL, TL> const & f, index_type s) const = delete;
 
 	template<unsigned int IL, typename TL> void Opcalculus(
 			std::integral_constant<unsigned int, CODIFFERENTIAL>,
-			_Field<this_type, IL, TL> const & f, compact_index_type s) const = delete;
+			_Field<this_type, IL, TL> const & f, index_type s) const = delete;
 
 	template<typename TL> inline auto Opcalculus(
 			std::integral_constant<unsigned int, CODIFFERENTIAL>,
 			_Field<this_type, EDGE, TL> const & f,
-			compact_index_type s) const->decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
+			index_type s) const->decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
 	{
 		auto X = topology_type::DI(0, s);
 		auto Y = topology_type::DI(1, s);
@@ -189,7 +189,7 @@ public:
 	template<typename TL> inline auto Opcalculus(
 			std::integral_constant<unsigned int, CODIFFERENTIAL>,
 			_Field<this_type, FACE, TL> const & f,
-			compact_index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
+			index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
 	{
 		auto X = topology_type::delta_index(s);
 		auto Y = topology_type::roate(X);
@@ -217,7 +217,7 @@ public:
 	template<typename TL> inline auto Opcalculus(
 			std::integral_constant<unsigned int, CODIFFERENTIAL>,
 			_Field<this_type, VOLUME, TL> const & f,
-			compact_index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
+			index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
 	{
 		auto D = topology_type::delta_index(topology_type::dual(s));
 		return
@@ -243,7 +243,7 @@ public:
 			std::integral_constant<unsigned int, WEDGE>,
 			_Field<this_type, VERTEX, TL> const &l,
 			_Field<this_type, VERTEX, TR> const &r,
-			compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
+			index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
 	{
 		return get_value(l, s) * get_value(r, s);
 	}
@@ -252,7 +252,7 @@ public:
 			std::integral_constant<unsigned int, WEDGE>,
 			_Field<this_type, VERTEX, TL> const &l,
 			_Field<this_type, EDGE, TR> const &r,
-			compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
+			index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
 	{
 		auto X = topology_type::delta_index(s);
 
@@ -264,7 +264,7 @@ public:
 			std::integral_constant<unsigned int, WEDGE>,
 			_Field<this_type, VERTEX, TL> const &l,
 			_Field<this_type, FACE, TR> const &r,
-			compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
+			index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
 	{
 		auto X = topology_type::delta_index(topology_type::dual(s));
 		auto Y = topology_type::roate(X);
@@ -287,7 +287,7 @@ public:
 			std::integral_constant<unsigned int, WEDGE>,
 			_Field<this_type, VERTEX, TL> const &l,
 			_Field<this_type, VOLUME, TR> const &r,
-			compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
+			index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
 	{
 		auto X = topology_type::DI(0, s);
 		auto Y = topology_type::DI(1, s);
@@ -318,7 +318,7 @@ public:
 			std::integral_constant<unsigned int, WEDGE>,
 			_Field<this_type, EDGE, TL> const &l,
 			_Field<this_type, VERTEX, TR> const &r,
-			compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
+			index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
 	{
 		auto X = topology_type::delta_index(s);
 		return get_value(l, s) * (get_value(r, s - X) + get_value(r, s + X))
@@ -329,7 +329,7 @@ public:
 			std::integral_constant<unsigned int, WEDGE>,
 			_Field<this_type, EDGE, TL> const &l,
 			_Field<this_type, EDGE, TR> const &r,
-			compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
+			index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
 	{
 		auto Y = topology_type::delta_index(
 				topology_type::roate(topology_type::dual(s)));
@@ -344,7 +344,7 @@ public:
 			std::integral_constant<unsigned int, WEDGE>,
 			_Field<this_type, EDGE, TL> const &l,
 			_Field<this_type, FACE, TR> const &r,
-			compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
+			index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
 	{
 		auto X = topology_type::DI(0, s);
 		auto Y = topology_type::DI(1, s);
@@ -375,7 +375,7 @@ public:
 			std::integral_constant<unsigned int, WEDGE>,
 			_Field<this_type, FACE, TL> const &l,
 			_Field<this_type, VERTEX, TR> const &r,
-			compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
+			index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
 	{
 		auto Y = topology_type::delta_index(
 				topology_type::roate(topology_type::dual(s)));
@@ -392,7 +392,7 @@ public:
 			std::integral_constant<unsigned int, WEDGE>,
 			_Field<this_type, FACE, TL> const &r,
 			_Field<this_type, EDGE, TR> const &l,
-			compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
+			index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
 	{
 		auto X = topology_type::DI(0, s);
 		auto Y = topology_type::DI(1, s);
@@ -421,7 +421,7 @@ public:
 			std::integral_constant<unsigned int, WEDGE>,
 			_Field<this_type, VOLUME, TL> const &l,
 			_Field<this_type, VERTEX, TR> const &r,
-			compact_index_type s) const ->decltype(get_value(r,s)*get_value(l,s))
+			index_type s) const ->decltype(get_value(r,s)*get_value(l,s))
 	{
 		auto X = topology_type::DI(0, s);
 		auto Y = topology_type::DI(1, s);
@@ -448,7 +448,7 @@ public:
 	template<unsigned int IL, typename TL> inline auto Opcalculus(
 			std::integral_constant<unsigned int, HODGESTAR>,
 			_Field<this_type, IL, TL> const & f,
-			compact_index_type s) const-> typename std::remove_reference<decltype(get_value(f,s))>::type
+			index_type s) const-> typename std::remove_reference<decltype(get_value(f,s))>::type
 	{
 //		auto X = topology_type::DI(0,s);
 //		auto Y = topology_type::DI(1,s);
@@ -482,12 +482,12 @@ public:
 	template<typename TL, typename TR> void Opcalculus(
 			std::integral_constant<unsigned int, INTERIOR_PRODUCT>,
 			nTuple<NDIMS, TR> const & v, _Field<this_type, VERTEX, TL> const & f,
-			compact_index_type s) const = delete;
+			index_type s) const = delete;
 
 	template<typename TL, typename TR> inline auto Opcalculus(
 			std::integral_constant<unsigned int, INTERIOR_PRODUCT>,
 			nTuple<NDIMS, TR> const & v, _Field<this_type, EDGE, TL> const & f,
-			compact_index_type s) const->decltype(get_value(f,s)*v[0])
+			index_type s) const->decltype(get_value(f,s)*v[0])
 	{
 		auto X = topology_type::DI(0, s);
 		auto Y = topology_type::DI(1, s);
@@ -503,7 +503,7 @@ public:
 	template<typename TL, typename TR> inline auto Opcalculus(
 			std::integral_constant<unsigned int, INTERIOR_PRODUCT>,
 			nTuple<NDIMS, TR> const & v, _Field<this_type, FACE, TL> const & f,
-			compact_index_type s) const->decltype(get_value(f,s)*v[0])
+			index_type s) const->decltype(get_value(f,s)*v[0])
 	{
 		unsigned int n = topology_type::component_number(s);
 
@@ -520,7 +520,7 @@ public:
 	template<typename TL, typename TR> inline auto Opcalculus(
 			std::integral_constant<unsigned int, INTERIOR_PRODUCT>,
 			nTuple<NDIMS, TR> const & v, _Field<this_type, VOLUME, TL> const & f,
-			compact_index_type s) const->decltype(get_value(f,s)*v[0])
+			index_type s) const->decltype(get_value(f,s)*v[0])
 	{
 		unsigned int n = topology_type::component_number(
 				topology_type::dual(s));
@@ -537,7 +537,7 @@ public:
 			std::integral_constant<unsigned int, EXTRIORDERIVATIVE>,
 			_Field<this_type, EDGE, TL> const & f,
 			std::integral_constant<unsigned int, N>,
-			compact_index_type s) const-> decltype(get_value(f,s)-get_value(f,s))
+			index_type s) const-> decltype(get_value(f,s)-get_value(f,s))
 	{
 
 		auto X = topology_type::delta_index(topology_type::dual(s));
@@ -555,7 +555,7 @@ public:
 			std::integral_constant<unsigned int, CODIFFERENTIAL>,
 			_Field<this_type, FACE, TL> const & f,
 			std::integral_constant<unsigned int, N>,
-			compact_index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
+			index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
 	{
 
 		auto X = topology_type::delta_index(s);
@@ -577,14 +577,14 @@ public:
 	template<unsigned int IL, typename TR> inline auto Opcalculus(
 			std::integral_constant<unsigned int, MAPTO>,
 			std::integral_constant<unsigned int, IL> const &,
-			_Field<this_type, IL, TR> const & f, compact_index_type s) const
+			_Field<this_type, IL, TR> const & f, index_type s) const
 			DECL_RET_TYPE(get_value(f,s))
 
 	template<typename TR> inline auto Opcalculus(
 			std::integral_constant<unsigned int, MAPTO>,
 			std::integral_constant<unsigned int, VERTEX> const &,
 			_Field<this_type, EDGE, TR> const & f,
-			compact_index_type s) const->nTuple<3,typename std::remove_reference<decltype(get_value(f,s))>::type>
+			index_type s) const->nTuple<3,typename std::remove_reference<decltype(get_value(f,s))>::type>
 	{
 
 		auto X = topology_type::DI(0, s);
@@ -606,7 +606,7 @@ public:
 			std::integral_constant<unsigned int, MAPTO>,
 			std::integral_constant<unsigned int, EDGE> const &,
 			_Field<this_type, VERTEX, TR> const & f,
-			compact_index_type s) const->typename std::remove_reference<decltype(get_value(f,s)[0])>::type
+			index_type s) const->typename std::remove_reference<decltype(get_value(f,s)[0])>::type
 	{
 
 		auto n = topology_type::component_number(s);
@@ -619,7 +619,7 @@ public:
 			std::integral_constant<unsigned int, MAPTO>,
 			std::integral_constant<unsigned int, VERTEX> const &,
 			_Field<this_type, FACE, TR> const & f,
-			compact_index_type s) const->nTuple<3,typename std::remove_reference<decltype(get_value(f,s))>::type>
+			index_type s) const->nTuple<3,typename std::remove_reference<decltype(get_value(f,s))>::type>
 	{
 
 		auto X = topology_type::DI(0, s);
@@ -671,7 +671,7 @@ public:
 			std::integral_constant<unsigned int, MAPTO>,
 			std::integral_constant<unsigned int, FACE> const &,
 			_Field<this_type, VERTEX, TR> const & f,
-			compact_index_type s) const->typename std::remove_reference<decltype(get_value(f,s)[0])>::type
+			index_type s) const->typename std::remove_reference<decltype(get_value(f,s)[0])>::type
 	{
 
 		auto n = topology_type::component_number(topology_type::dual(s));
@@ -700,7 +700,7 @@ public:
 			std::integral_constant<unsigned int, MAPTO>,
 			std::integral_constant<unsigned int, VOLUME>,
 			_Field<this_type, FACE, TR> const & f,
-			compact_index_type s) const->nTuple<3,decltype(get_value(f,s) )>
+			index_type s) const->nTuple<3,decltype(get_value(f,s) )>
 	{
 
 		auto X = topology_type::DI(0, s);
@@ -722,7 +722,7 @@ public:
 			std::integral_constant<unsigned int, MAPTO>,
 			std::integral_constant<unsigned int, FACE>,
 			_Field<this_type, VOLUME, TR> const & f,
-			compact_index_type s) const->typename std::remove_reference<decltype(get_value(f,s)[0])>::type
+			index_type s) const->typename std::remove_reference<decltype(get_value(f,s)[0])>::type
 	{
 
 		auto n = topology_type::component_number(topology_type::dual(s));
@@ -735,7 +735,7 @@ public:
 			std::integral_constant<unsigned int, MAPTO>,
 			std::integral_constant<unsigned int, VOLUME>,
 			_Field<this_type, EDGE, TR> const & f,
-			compact_index_type s) const->nTuple<3,typename std::remove_reference<decltype(get_value(f,s) )>::type>
+			index_type s) const->nTuple<3,typename std::remove_reference<decltype(get_value(f,s) )>::type>
 	{
 
 		auto X = topology_type::DI(0, s);
@@ -787,7 +787,7 @@ public:
 			std::integral_constant<unsigned int, MAPTO>,
 			std::integral_constant<unsigned int, EDGE>,
 			_Field<this_type, VOLUME, TR> const & f,
-			compact_index_type s) const->typename std::remove_reference<decltype(get_value(f,s)[0])>::type
+			index_type s) const->typename std::remove_reference<decltype(get_value(f,s)[0])>::type
 	{
 
 		auto n = topology_type::component_number(topology_type::dual(s));

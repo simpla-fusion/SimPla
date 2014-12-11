@@ -44,15 +44,16 @@ struct _Field<TDomain, Container> : public PhysicalObject
 
 	typedef TDomain domain_type;
 	typedef typename domain_type::index_type index_type;
-	typedef Container storage_policy;
-	typedef _Field<domain_type, storage_policy> this_type;
-	typedef typename container_traits<storage_policy>::value_type value_type;
+
+	typedef Container container_type;
+	typedef _Field<domain_type, container_type> this_type;
+	typedef typename container_traits<container_type>::value_type value_type;
 
 private:
 
 	domain_type domain_;
 
-	storage_policy data_;
+	container_type data_;
 
 public:
 
@@ -99,19 +100,19 @@ public:
 	}
 	size_t size() const
 	{
-		return domain_.max_hash();
+		return domain_.size();
 	}
-	storage_policy & data()
+	container_type & data()
 	{
 		return data_;
 	}
 
-	storage_policy const & data() const
+	container_type const & data() const
 	{
 		return data_;
 	}
 
-	void data(storage_policy d)
+	void data(container_type d)
 	{
 		sp_swap(d, data_);
 	}
@@ -128,14 +129,17 @@ public:
 
 	bool empty() const
 	{
-		return container_traits<storage_policy>::is_empty(data_);
+		return container_traits<container_type>::is_empty(data_);
+	}
+	bool is_valid() const
+	{
+		return !empty();
 	}
 	void allocate()
 	{
-		if (empty())
+		if (!is_valid())
 		{
-
-			container_traits<storage_policy>::allocate(size()).swap(data_);
+			container_traits<container_type>::allocate(size()).swap(data_);
 			PhysicalObject::update();
 		}
 	}
@@ -143,7 +147,7 @@ public:
 	void clear()
 	{
 		allocate();
-		container_traits<storage_policy>::clear(data_, size());
+		container_traits<container_type>::clear(data_, size());
 	}
 
 	DataSet dataset() const
@@ -154,31 +158,27 @@ public:
 
 /// @defgroup Access operation
 /// @
-	template<typename ... TI>
-	value_type & get(TI &&... s)
+	value_type & get(index_type const &s)
 	{
-		return (container_traits<storage_policy>::get_value(data_,
-				domain_.hash(std::forward<TI>(s)...)));
-	}
-
-	template<typename ... TI>
-	value_type const& get(TI &&... s) const
-	{
-		return (container_traits<storage_policy>::get_value(data_,
-				domain_.hash(std::forward<TI>(s)...)));
-	}
-
-	template<typename TI>
-	value_type & operator[](TI const & s)
-	{
-		return (container_traits<storage_policy>::get_value(data_,
+		return (container_traits<container_type>::get_value(data_,
 				domain_.hash(s)));
 	}
 
-	template<typename TI>
-	value_type const & operator[](TI const & s) const
+	value_type const& get(index_type const &s) const
 	{
-		return (container_traits<storage_policy>::get_value(data_,
+		return (container_traits<container_type>::get_value(data_,
+				domain_.hash(s)));
+	}
+
+	value_type & operator[](index_type const & s)
+	{
+		return (container_traits<container_type>::get_value(data_,
+				domain_.hash(s)));
+	}
+
+	value_type const & operator[](index_type const & s) const
+	{
+		return (container_traits<container_type>::get_value(data_,
 				domain_.hash(s)));
 	}
 
@@ -192,7 +192,7 @@ public:
 	{
 		allocate();
 
-		parallel_for(domain_, [&](index_type const & s)
+		parallel_foreach(domain_, [&](index_type const & s)
 		{
 			(*this)[s]=that[s];
 		});
@@ -205,12 +205,9 @@ public:
 	{
 		allocate();
 
-		parallel_for(domain_, [&](domain_type const & sub_domain)
+		parallel_foreach(domain_, [&](index_type const & s)
 		{
-			for(auto const & s:sub_domain)
-			{
-				(*this)[s]= domain_.manifold_->calculate( (that), s);
-			}
+			(*this)[s]= domain_.calculate( (that), s);
 		});
 
 		return (*this);
@@ -221,12 +218,9 @@ public:
 	{
 		allocate();
 
-		parallel_for(domain_, [&](domain_type const & sub_domain)
+		parallel_foreach(domain_, [&](index_type const & s)
 		{
-			for(auto const & s:sub_domain)
-			{
-				(*this)[s]+= domain_.manifold_->calculate( (that), s);
-			}
+			(*this)[s]+= domain_.calculate( (that), s);
 		});
 		return (*this);
 
@@ -236,7 +230,8 @@ public:
 	inline this_type & operator -=(TR const &that)
 	{
 		allocate();
-		parallel_for(domain_, [&](index_type const & s)
+
+		parallel_foreach(domain_, [&](index_type const & s)
 		{
 			(*this)[s] -= domain_.calculate(that, s);
 		});
@@ -249,7 +244,7 @@ public:
 	{
 		allocate();
 
-		parallel_for(domain_, [&](index_type const & s)
+		parallel_foreach(domain_, [&](index_type const & s)
 		{
 			(*this)[s] *= domain_.calculate(that, s);
 		});
@@ -262,7 +257,7 @@ public:
 	{
 		allocate();
 
-		parallel_for(domain_, [&](index_type const & s)
+		parallel_foreach(domain_, [&](index_type const & s)
 		{
 			(*this)[s] /= domain_.calculate(that, s);
 		});
@@ -281,7 +276,9 @@ public:
 	{
 		allocate();
 
-		parallel_for(domain, [&](index_type const & s)
+		parallel_foreach(domain,
+
+		[&](index_type const & s)
 		{
 
 			//FIXME geometry coordinates convert

@@ -31,7 +31,7 @@ struct MagneticFluxGeometry
 
 	static constexpr  unsigned int  NDIMS = topology_type::NDIMS;
 
-	typedef typename topology_type::compact_index_type compact_index_type;
+	typedef typename topology_type::index_type index_type;
 	typedef typename topology_type::coordinates_type coordinates_type;
 	typedef typename topology_type::iterator iterator;
 
@@ -127,9 +127,9 @@ struct MagneticFluxGeometry
 
 	nTuple<NDIMS, Real> dx_;
 
-	DenseContainer<compact_index_type, coordinates_type> mesh_points_;
+	DenseContainer<index_type, coordinates_type> mesh_points_;
 
-	DenseContainer<compact_index_type, coordinates_type> volumes_[4];
+	DenseContainer<index_type, coordinates_type> volumes_[4];
 
 	nTuple<NDIMS, Real> const & get_dx() const
 	{

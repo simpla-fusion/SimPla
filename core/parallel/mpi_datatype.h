@@ -28,28 +28,21 @@ bool GetMPIType(DataType const & datatype_desc, MPI_Datatype * new_type);
 
 /**
  *  \ingroup MPI
- *  \brief MPI convert C++ data type to mpi data type
+ *  \brief MPI convert C++ data type and data space to mpi data type
  */
 struct MPIDataType
 {
-	MPI_Datatype type_ = MPI_DATATYPE_NULL;
-	bool is_commited_ = false;
-	static constexpr unsigned int MAXnTuple_RANK = 10;
 
-	MPIDataType()
-	{
-	}
+	MPIDataType();
 
-	~MPIDataType()
-	{
-		if (is_commited_)
-			MPI_Type_free(&type_);
-	}
+	~MPIDataType();
 
 	static MPIDataType create(DataType const &);
 
-	static MPIDataType create(DataType const & data_type, unsigned int NDIMS, size_t const *outer, size_t const * inner,
-	        size_t const * start, bool c_order_array = true);
+	static MPIDataType create(DataType const & data_type, unsigned int ndims,
+			size_t const * dims, size_t const * offset, size_t const * stride,
+			size_t const * count, size_t const * block, bool c_order_array =
+					true);
 
 	template<typename T, typename ...Others>
 	static MPIDataType create(Others && ... others)
@@ -61,6 +54,11 @@ struct MPIDataType
 	{
 		return type_;
 	}
+
+private:
+	MPI_Datatype type_ = MPI_DATATYPE_NULL;
+
+	bool is_commited_ = false;
 
 };
 
