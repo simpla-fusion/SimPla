@@ -53,11 +53,11 @@ public:
 	typedef std::bitset<MAX_NUM_OF_MEIDA_TYPE> material_type;
 	typedef typename manifold_type::iterator iterator;
 	typedef typename manifold_type::coordinates_type coordinates_type;
-	typedef typename manifold_type::compact_index_type compact_index_type;
+	typedef typename manifold_type::index_type index_type;
 
 	const material_type null_material;
 
-	std::map<compact_index_type, material_type> material_;
+	std::map<index_type, material_type> material_;
 	std::map<std::string, material_type> registered_material_;
 
 	size_t max_material_;
@@ -195,9 +195,9 @@ public:
 		return std::move(res);
 	}
 
-	material_type get(compact_index_type s) const;
+	material_type get(index_type s) const;
 
-	material_type operator[](compact_index_type s) const
+	material_type operator[](index_type s) const
 	{
 		return get(s);
 	}
@@ -207,7 +207,7 @@ public:
 		material_.clear();
 	}
 
-	typedef std::function<bool(compact_index_type const &)> pred_fun_type;
+	typedef std::function<bool(index_type const &)> pred_fun_type;
 
 	template<typename TDict>
 	void modify(TDict const& dict)
@@ -318,7 +318,7 @@ std::ostream & operator<<(std::ostream & os, Model<TM> const & model)
 }
 
 template<typename TM>
-typename Model<TM>::material_type Model<TM>::get(compact_index_type s) const
+typename Model<TM>::material_type Model<TM>::get(index_type s) const
 {
 
 	material_type res = null_material;
@@ -333,7 +333,7 @@ typename Model<TM>::material_type Model<TM>::get(compact_index_type s) const
 	}
 	else
 	{
-		compact_index_type neighbours[manifold_type::MAX_NUM_NEIGHBOUR_ELEMENT];
+		index_type neighbours[manifold_type::MAX_NUM_NEIGHBOUR_ELEMENT];
 
 		int num = this->manifold_type::get_vertices(s, neighbours);
 
@@ -352,7 +352,7 @@ FilterRange<TR> Model<TM>::select_by_config(TR const& range,
 {
 	if (!dict)
 	{
-		pred_fun_type pred = [=]( compact_index_type const & s )->bool
+		pred_fun_type pred = [=]( index_type const & s )->bool
 		{
 			return true;
 		};
@@ -362,7 +362,7 @@ FilterRange<TR> Model<TM>::select_by_config(TR const& range,
 	else if (dict.is_function())
 	{
 		pred_fun_type pred =
-				[=]( compact_index_type const & s )->bool
+				[=]( index_type const & s )->bool
 				{
 					return (dict( this->manifold_type::get_coordinates( s)).template as<bool>());
 				};
@@ -432,7 +432,7 @@ FilterRange<TR> Model<TM>::select_by_config(TR const& range,
 	{
 		PARSER_ERROR("Unknown 'Select' options");
 	}
-	return FilterRange<TR>(range, [=](compact_index_type const &)
+	return FilterRange<TR>(range, [=](index_type const &)
 	{	return true;});
 }
 
@@ -512,7 +512,7 @@ FilterRange<TR> Model<TM>::SelectInterface(TR const& range, T1 pin,
 
 	pred_fun_type pred =
 
-			[=]( compact_index_type const & s )->bool
+			[=]( index_type const & s )->bool
 			{
 
 				material_type res;
@@ -523,7 +523,7 @@ FilterRange<TR> Model<TM>::SelectInterface(TR const& range, T1 pin,
 
 				if (( self & in).none() && ( (self & out).any() || (out == null_material) ))
 				{
-					compact_index_type neighbours[manifold_type::MAX_NUM_NEIGHBOUR_ELEMENT];
+					index_type neighbours[manifold_type::MAX_NUM_NEIGHBOUR_ELEMENT];
 
 					int num=0;
 					switch(iform)
@@ -562,7 +562,7 @@ FilterRange<TR> Model<TM>::SelectByMaterial(TR const& range,
 
 	if (material != null_material)
 	{
-		pred_fun_type pred = [=]( compact_index_type const & s )->bool
+		pred_fun_type pred = [=]( index_type const & s )->bool
 		{
 			return (this->get(s) & material).any();
 		};
@@ -571,7 +571,7 @@ FilterRange<TR> Model<TM>::SelectByMaterial(TR const& range,
 
 	else
 	{
-		pred_fun_type pred = [=]( compact_index_type const & s )->bool
+		pred_fun_type pred = [=]( index_type const & s )->bool
 		{
 			return (this->get(s) == null_material);
 		};

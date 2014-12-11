@@ -26,7 +26,7 @@ namespace simpla
  *
  */
 template<typename TM, typename TPoint>
-class ParticlePool: public ContainerContainer<typename TM::compact_index_type, TPoint>
+class ParticlePool: public ContainerContainer<typename TM::index_type, TPoint>
 {
 	std::mutex write_lock_;
 
@@ -37,7 +37,7 @@ public:
 
 	typedef TPoint particle_type;
 
-	typedef typename TM::compact_index_type key_type;
+	typedef typename TM::index_type key_type;
 
 	typedef ParticlePool<mesh_type, particle_type> this_type;
 

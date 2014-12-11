@@ -48,7 +48,7 @@ public:
 	typedef typename geometry_type::topology_type topology_type;
 	typedef typename geometry_type::coordinates_type coordinates_type;
 	typedef typename geometry_type::index_type index_type;
-	typedef typename geometry_type::compact_index_type compact_index_type;
+	typedef typename geometry_type::index_type index_type;
 	typedef typename geometry_type::iterator iterator;
 	typedef typename geometry_type::scalar_type scalar_type;
 

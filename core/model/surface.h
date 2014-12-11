@@ -30,15 +30,15 @@ namespace simpla
  */
 
 template<typename TM>
-class Surface: public std::map<typename TM::compact_index_type, Vec3>
+class Surface: public std::map<typename TM::index_type, Vec3>
 {
 public:
 	typedef TM mesh_type;
 	typedef Surface<TM> this_type;
-	typedef std::map<typename TM::compact_index_type, Vec3> base_container_type;
+	typedef std::map<typename TM::index_type, Vec3> base_container_type;
 
 	typedef typename mesh_type::iterator mesh_iterator;
-	typedef typename mesh_type::compact_index_type compact_index_type;
+	typedef typename mesh_type::index_type index_type;
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
 	Surface()

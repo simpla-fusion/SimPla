@@ -36,7 +36,7 @@ public:
 
 	typedef typename manifold_type::coordinates_type coordinates_type;
 
-	typedef typename manifold_type::compact_index_type compact_index_type;
+	typedef typename manifold_type::index_type index_type;
 
 	typedef typename manifold_type::index_type index_type;
 

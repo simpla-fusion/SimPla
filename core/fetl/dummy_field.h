@@ -27,14 +27,14 @@ public:
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
-	typedef typename mesh_type::compact_index_type compact_index_type;
+	typedef typename mesh_type::index_type index_type;
 
 	typedef typename mesh_type::iterator mesh_iterator;
 
 	typedef typename std::conditional<(IForm == VERTEX || IForm == VOLUME),  //
 	        value_type, nTuple<NDIMS, value_type> >::type field_value_type;
 
-	typedef std::map<compact_index_type, value_type> container_type;
+	typedef std::map<index_type, value_type> container_type;
 
 	container_type data_;
 
@@ -119,23 +119,23 @@ public:
 		UNIMPLEMENTED;
 	}
 
-	value_type & at(compact_index_type s)
+	value_type & at(index_type s)
 	{
 		return get(s);
 	}
-	value_type const & at(compact_index_type s) const
+	value_type const & at(index_type s) const
 	{
 		return get(s);
 	}
-	value_type & operator[](compact_index_type s)
+	value_type & operator[](index_type s)
 	{
 		return get(s);
 	}
-	value_type & operator[](compact_index_type s) const
+	value_type & operator[](index_type s) const
 	{
 		return get(s);
 	}
-	inline value_type & get(compact_index_type s)
+	inline value_type & get(index_type s)
 	{
 		value_type res;
 		auto it = data_.find(s);
@@ -147,7 +147,7 @@ public:
 		return data_[s];
 	}
 
-	inline value_type const & get(compact_index_type s) const
+	inline value_type const & get(index_type s) const
 	{
 		value_type res;
 		auto it = data_.find(s);

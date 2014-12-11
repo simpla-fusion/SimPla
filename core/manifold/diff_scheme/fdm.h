@@ -33,7 +33,7 @@ struct FiniteDiffMethod
 	typedef FiniteDiffMethod<G> this_type;
 	typedef G geometry_type;
 	typedef typename geometry_type::topology_type topology_type;
-	typedef typename geometry_type::compact_index_type compact_index_type;
+	typedef typename geometry_type::index_type index_type;
 	typedef Real scalar_type;
 	static constexpr size_t NUM_OF_COMPONENT_TYPE = G::ndims + 1;
 	static constexpr size_t ndims = G::ndims;
@@ -207,16 +207,16 @@ struct FiniteDiffMethod
 //
 ////	template<typename TM, size_t IL, typename TL> void calculate(
 ////			_impl::ExteriorDerivative, _Field<Domain<TM, IL>, TL> const & f,
-////			compact_index_type s) const = delete;
+////			index_type s) const = delete;
 ////
 ////	template<typename TM, size_t IL, typename TL> void calculate(
 ////			_impl::CodifferentialDerivative,
-////			_Field<TL...> const & f, compact_index_type s) const = delete;
+////			_Field<TL...> const & f, index_type s) const = delete;
 
 	template<typename T >
 	inline typename field_traits<_Field< _impl::CodifferentialDerivative< EDGE, T> > >::value_type
 	calculate (_Field<_impl::CodifferentialDerivative< EDGE, T>> const & expr,
-			compact_index_type s) const
+			index_type s) const
 	{
 		auto const & f=expr.lhs;
 
@@ -249,7 +249,7 @@ struct FiniteDiffMethod
 	template<typename T >
 	inline typename field_traits<_Field< _impl::CodifferentialDerivative< FACE, T> > >::value_type
 	calculate (_Field<_impl::CodifferentialDerivative< FACE, T>> const & expr,
-			compact_index_type s) const
+			index_type s) const
 	{
 		auto const & f=expr.lhs;
 		auto X = geo->delta_index(s);
@@ -273,7 +273,7 @@ struct FiniteDiffMethod
 	template<typename T >
 	inline typename field_traits<_Field< _impl::CodifferentialDerivative< VOLUME, T> > >::value_type
 	calculate (_Field<_impl::CodifferentialDerivative< VOLUME, T>> const & expr,
-			compact_index_type s) const
+			index_type s) const
 	{
 		auto const & f=expr.lhs;
 		auto D = geo->delta_index(geo->dual(s));
@@ -296,7 +296,7 @@ struct FiniteDiffMethod
 	template<typename TL,typename TR>
 	inline typename field_traits<_Field<_impl::Wedge<VERTEX,VERTEX,TL,TR> > >::value_type
 	calculate (_Field<_impl::Wedge<VERTEX,VERTEX,TL,TR>> const & expr,
-			compact_index_type s) const
+			index_type s) const
 	{
 		return (calculate(expr.lhs, s) * calculate(expr.rhs, s));
 	}
@@ -304,7 +304,7 @@ struct FiniteDiffMethod
 	template<typename TL,typename TR>
 	inline typename field_traits<_Field<_impl::Wedge<VERTEX,EDGE,TL,TR> > >::value_type
 	calculate (_Field<_impl::Wedge<VERTEX,EDGE,TL,TR>> const & expr,
-			compact_index_type s) const
+			index_type s) const
 	{
 		auto X = geo->delta_index(s);
 
@@ -315,7 +315,7 @@ struct FiniteDiffMethod
 	template<typename TL,typename TR>
 	inline typename field_traits<_Field<_impl::Wedge<VERTEX,FACE,TL,TR> > >::value_type
 	calculate (_Field<_impl::Wedge<VERTEX,FACE,TL,TR>> const & expr,
-			compact_index_type s) const
+			index_type s) const
 	{
 
 		auto const & l =expr.lhs;
@@ -341,7 +341,7 @@ struct FiniteDiffMethod
 	template<typename TL,typename TR>
 	inline typename field_traits<_Field<_impl::Wedge<VERTEX,VOLUME,TL,TR> > >::value_type
 	calculate (_Field<_impl::Wedge<VERTEX,VOLUME,TL,TR>> const & expr,
-			compact_index_type s) const
+			index_type s) const
 	{
 
 		auto const & l =expr.lhs;
@@ -375,7 +375,7 @@ struct FiniteDiffMethod
 	template<typename TL,typename TR>
 	inline typename field_traits<_Field<_impl::Wedge<EDGE,VERTEX,TL,TR> > >::value_type
 	calculate (_Field<_impl::Wedge<EDGE,VERTEX,TL,TR>> const & expr,
-			compact_index_type s) const
+			index_type s) const
 	{
 
 		auto const & l =expr.lhs;
@@ -389,7 +389,7 @@ struct FiniteDiffMethod
 	template<typename TL,typename TR>
 	inline typename field_traits<_Field<_impl::Wedge<EDGE,EDGE,TL,TR> > >::value_type
 	calculate (_Field<_impl::Wedge<EDGE,EDGE,TL,TR>> const & expr,
-			compact_index_type s) const
+			index_type s) const
 	{
 		auto const & l =expr.lhs;
 		auto const & r =expr.rhs;
@@ -404,7 +404,7 @@ struct FiniteDiffMethod
 	template<typename TL,typename TR>
 	inline typename field_traits<_Field<_impl::Wedge<EDGE,FACE,TL,TR> > >::value_type
 	calculate (_Field<_impl::Wedge<EDGE,FACE,TL,TR>> const & expr,
-			compact_index_type s) const
+			index_type s) const
 	{
 		auto const & l =expr.lhs;
 		auto const & r =expr.rhs;
@@ -438,7 +438,7 @@ struct FiniteDiffMethod
 	template<typename TL,typename TR>
 	inline typename field_traits<_Field<_impl::Wedge<FACE,VERTEX,TL,TR> > >::value_type
 	calculate (_Field<_impl::Wedge<FACE,VERTEX,TL,TR>> const & expr,
-			compact_index_type s) const
+			index_type s) const
 	{
 		auto const & l =expr.lhs;
 		auto const & r =expr.rhs;
@@ -454,7 +454,7 @@ struct FiniteDiffMethod
 	template<typename TL,typename TR>
 	inline typename field_traits<_Field<_impl::Wedge<FACE,EDGE,TL,TR> > >::value_type
 	calculate (_Field<_impl::Wedge<FACE,EDGE,TL,TR>> const & expr,
-			compact_index_type s) const
+			index_type s) const
 	{
 		auto const & l =expr.lhs;
 		auto const & r =expr.rhs;
@@ -486,7 +486,7 @@ struct FiniteDiffMethod
 	template<typename TL,typename TR>
 	inline typename field_traits<_Field<_impl::Wedge<VOLUME,VERTEX,TL,TR> > >::value_type
 	calculate (_Field<_impl::Wedge<VOLUME,VERTEX,TL,TR>> const & expr,
-			compact_index_type s) const
+			index_type s) const
 	{
 		auto const & l =expr.lhs;
 		auto const & r =expr.rhs;
@@ -515,7 +515,7 @@ struct FiniteDiffMethod
 	template<typename T >
 	inline typename field_traits<_Field< _impl::HodgeStar< VOLUME, T> > >::value_type
 	calculate (_Field<_impl::HodgeStar< VOLUME, T>> const & expr,
-			compact_index_type s) const
+			index_type s) const
 	{
 		auto const & f =expr.lhs;
 //		auto X = geo->DI(0,s);
@@ -550,12 +550,12 @@ struct FiniteDiffMethod
 //	template<typename TM, typename TL, typename TR> void calculate(
 //			_impl::InteriorProduct, nTuple<TR, G::ndims> const & v,
 //			_Field<Domain<TM, VERTEX>, TL> const & f,
-//			compact_index_type s) const = delete;
+//			index_type s) const = delete;
 
 	template<typename TL,typename TR >
 	inline typename field_traits<_Field< _impl::InteriorProduct<EDGE, VERTEX,TL,TR> > >::value_type
 	calculate (_Field<_impl::InteriorProduct<EDGE, VERTEX, TL,TR>> const & expr,
-			compact_index_type s) const
+			index_type s) const
 	{
 		auto const & f =expr.lhs;
 		auto const & v =expr.rhs;
@@ -574,7 +574,7 @@ struct FiniteDiffMethod
 	template<typename TL,typename TR >
 	inline typename field_traits<_Field< _impl::InteriorProduct<FACE, VERTEX,TL,TR> > >::value_type
 	calculate (_Field<_impl::InteriorProduct<FACE, VERTEX, TL,TR>> const & expr,
-			compact_index_type s) const
+			index_type s) const
 	{
 		auto const & f =expr.lhs;
 		auto const & v =expr.rhs;
@@ -594,7 +594,7 @@ struct FiniteDiffMethod
 	template<typename TL,typename TR >
 	inline typename field_traits<_Field< _impl::InteriorProduct<VOLUME, VERTEX,TL,TR> > >::value_type
 	calculate (_Field<_impl::InteriorProduct<VOLUME, VERTEX, TL,TR>> const & expr,
-			compact_index_type s) const
+			index_type s) const
 	{
 		auto const & f =expr.lhs;
 		auto const & v =expr.rhs;
@@ -608,14 +608,14 @@ struct FiniteDiffMethod
 // Non-standard operation
 
 	template< size_t IL, typename T > inline typename field_traits<T>::value_type
-	calculate(_Field<_impl::MapTo<IL, IL, T>> const & f, compact_index_type s) const
+	calculate(_Field<_impl::MapTo<IL, IL, T>> const & f, index_type s) const
 	{
 		return calculate(f,s);
 	}
 
 	template< typename T>
 	typename field_traits<_Field<_impl::MapTo<EDGE, VERTEX, T>>>::value_type
-	map_to(_Field<_impl::MapTo<EDGE, VERTEX, T>> const & expr,compact_index_type s)
+	map_to(_Field<_impl::MapTo<EDGE, VERTEX, T>> const & expr,index_type s)
 	{
 		auto const & f= expr.lhs;
 
@@ -636,7 +636,7 @@ struct FiniteDiffMethod
 
 	template< typename T>
 	typename field_traits<_Field<_impl::MapTo< VERTEX, EDGE,T>>>::value_type
-	map_to(_Field<_impl::MapTo< VERTEX,EDGE, T>> const & expr,compact_index_type s)
+	map_to(_Field<_impl::MapTo< VERTEX,EDGE, T>> const & expr,index_type s)
 	{
 		auto const & f= expr.lhs;
 		auto n = geo->component_number(s);
@@ -647,7 +647,7 @@ struct FiniteDiffMethod
 
 	template< typename T>
 	typename field_traits<_Field<_impl::MapTo< FACE, VERTEX,T>>>::value_type
-	map_to(_Field<_impl::MapTo< FACE,VERTEX, T>> const & expr,compact_index_type s)
+	map_to(_Field<_impl::MapTo< FACE,VERTEX, T>> const & expr,index_type s)
 	{
 		auto const & f= expr.lhs;
 		auto X = geo->DI(0, s);
@@ -697,7 +697,7 @@ struct FiniteDiffMethod
 
 	template< typename T>
 	typename field_traits<_Field<_impl::MapTo< VERTEX,FACE, T>>>::value_type
-	map_to(_Field<_impl::MapTo< VERTEX, FACE, T>> const & expr,compact_index_type s)
+	map_to(_Field<_impl::MapTo< VERTEX, FACE, T>> const & expr,index_type s)
 	{
 		auto const & f= expr.lhs;
 
@@ -725,7 +725,7 @@ struct FiniteDiffMethod
 
 	template< typename T>
 	typename field_traits<_Field<_impl::MapTo< FACE,VOLUME, T>>>::value_type
-	map_to(_Field<_impl::MapTo< FACE,VOLUME,T>> const & expr,compact_index_type s)
+	map_to(_Field<_impl::MapTo< FACE,VOLUME,T>> const & expr,index_type s)
 	{
 		auto const & f= expr.lhs;
 
@@ -747,7 +747,7 @@ struct FiniteDiffMethod
 
 	template< typename T>
 	typename field_traits<_Field<_impl::MapTo<VOLUME, FACE, T>>>::value_type
-	map_to(_Field<_impl::MapTo< VOLUME,FACE,T>> const & expr,compact_index_type s)
+	map_to(_Field<_impl::MapTo< VOLUME,FACE,T>> const & expr,index_type s)
 	{
 		auto const & f= expr.lhs;
 
@@ -759,7 +759,7 @@ struct FiniteDiffMethod
 
 	template< typename T>
 	typename field_traits<_Field<_impl::MapTo<EDGE, VOLUME, T>>>::value_type
-	map_to(_Field<_impl::MapTo<EDGE, VOLUME,T>> const & expr,compact_index_type s)
+	map_to(_Field<_impl::MapTo<EDGE, VOLUME,T>> const & expr,index_type s)
 	{
 		auto const & f= expr.lhs;
 
@@ -811,7 +811,7 @@ struct FiniteDiffMethod
 
 	template< typename T>
 	typename field_traits<_Field<_impl::MapTo< VOLUME,EDGE, T>>>::value_type
-	map_to(_Field<_impl::MapTo< VOLUME,EDGE,T>> const & expr,compact_index_type s)
+	map_to(_Field<_impl::MapTo< VOLUME,EDGE,T>> const & expr,index_type s)
 	{
 		auto const & f= expr.lhs;
 		auto n = geo->component_number(geo->dual(s));
@@ -840,7 +840,7 @@ struct FiniteDiffMethod
 	template<size_t N , typename T> inline
 	typename field_traits<_Field< _impl::PartialExteriorDerivative< N,EDGE , T > > >::value_type
 	calculate(_Field< _impl::PartialExteriorDerivative< N,EDGE , T >> const & expr,
-			compact_index_type s)
+			index_type s)
 	{
 		auto const & f =expr.lhs;
 
@@ -858,7 +858,7 @@ struct FiniteDiffMethod
 	template<size_t N , typename T> inline
 	typename field_traits<_Field< _impl::PartialCodifferentialDerivative< N,FACE , T >> >::value_type
 	calculate(_Field< _impl::PartialCodifferentialDerivative< N,FACE , T >> const & expr,
-			compact_index_type s)
+			index_type s)
 	{
 		auto const & f =expr.lhs;
 

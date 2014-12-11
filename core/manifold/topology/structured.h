@@ -52,7 +52,6 @@ struct StructuredMesh
 	static constexpr size_t DEFAULT_GHOSTS_WIDTH = 3;
 	typedef size_t size_type;
 	typedef unsigned long index_type;
-	typedef unsigned long compact_index_type;
 	typedef nTuple<Real, ndims> coordinates_type;
 	typedef nTuple<size_type, ndims> index_tuple;
 private:
@@ -152,7 +151,7 @@ public:
 
 	index_tuple local_inner_begin_, local_inner_end_, local_inner_count_;
 
-	compact_index_type global_begin_compact_index_ = 0UL;
+	index_type global_begin_compact_index_ = 0UL;
 
 	DataSpace data_space_;
 
@@ -174,8 +173,8 @@ public:
 			size_type length = d[i] > 0 ? d[i] : 1;
 
 			global_count_[i] = length;
-			global_begin_[i] = (1UL << (INDEX_DIGITS - MAX_DEPTH_OF_TREE - 1))
-					- length / 2;
+			global_begin_[i] = 0;
+			//	(1UL << (INDEX_DIGITS - MAX_DEPTH_OF_TREE - 1)) - length / 2;
 		}
 
 		global_end_ = global_begin_ + global_count_;
@@ -189,10 +188,16 @@ public:
 		std::tie(local_outer_begin_, local_outer_count_) =
 				data_space_.local_shape();
 
+		CHECK(local_outer_begin_);
+		CHECK(local_outer_count_);
+
 		local_outer_end_ = local_outer_count_ + local_outer_begin_;
 
 		std::tie(local_inner_begin_, local_inner_count_, std::ignore,
 				std::ignore) = data_space_.shape();
+
+		CHECK(local_inner_begin_);
+		CHECK(local_inner_count_);
 
 		local_inner_end_ = local_inner_count_ + local_inner_begin_;
 
@@ -220,7 +225,7 @@ public:
 		return std::move(std::make_pair(b, e));
 	}
 
-	bool check_memory_bounds(compact_index_type s) const
+	bool check_memory_bounds(index_type s) const
 	{
 		unsigned mtree = MAX_DEPTH_OF_TREE;
 		auto idx = decompact(s) >> mtree;
@@ -433,151 +438,48 @@ public:
 	{
 
 		typedef typename StructuredMesh::iterator iterator;
-#ifndef USE_FORTRAN_ORDER_ARRAY
-		static constexpr size_t ARRAY_ORDER = C_ORDER;
-#else
-		static constexpr size_t ARRAY_ORDER=FOTRAN_ORDER;
-#endif
 
-		mesh_type const * mesh; //FIXME should be shared_ptr
 		index_tuple begin_, end_;
-		compact_index_type shift_;
+		index_type shift_ = 0UL;
 
-		range() :
-				mesh(nullptr)
+		range()
 		{
 		}
 
-		range(mesh_type const & m, index_tuple const & b, index_tuple const& e,
-				compact_index_type shift) :
-				mesh(&m), begin_(b), end_(e), shift_(shift)
+		range(index_tuple const & b, index_tuple const& e, index_type shift) :
+				begin_(b), end_(e), shift_(shift)
 		{
 		}
 
 		range(range const & that) :
-				mesh(that.mesh), begin_(that.begin_), end_(that.end_), shift_(
-						that.shift_)
+				begin_(that.begin_), end_(that.end_), shift_(that.shift_)
 		{
 		}
 		~range()
 		{
 		}
 
-		size_t max_hash() const
-		{
-			return mesh->max_hash(*this);
-		}
-		size_t hash(compact_index_type const & s) const
-		{
-			return mesh->hash(s);
-		}
-	private:
-		void NextCell(iterator & it) const
-		{
-#ifndef USE_FORTRAN_ORDER_ARRAY
-			++it.self_[ndims - 1];
-
-			for (int i = ndims - 1; i > 0; --i)
-			{
-				if (it.self_[i] >= end_[i])
-				{
-					it.self_[i] = begin_[i];
-					++it.self_[i - 1];
-				}
-			}
-#else
-			++it.self_[0];
-
-			for (int i = 0; i < ndims - 1; ++i)
-			{
-				if (it.self_[i] >= end_[i])
-				{
-					it.self_[i] = begin_[i];
-					++it.self_[i + 1];
-				}
-			}
-#endif
-		}
-
-		void PreviousCell(iterator & it) const
-		{
-#ifndef USE_FORTRAN_ORDER_ARRAY
-
-			if (it.self_[ndims - 1] > begin_[ndims - 1])
-				--it.self_[ndims - 1];
-
-			for (int i = ndims - 1; i > 0; --i)
-			{
-				if (it.self_[i] <= begin_[i])
-				{
-					it.self_[i] = end_[i] - 1;
-
-					if (it.self_[i - 1] > begin_[i - 1])
-						--it.self_[i - 1];
-				}
-			}
-
-#else
-
-			++it.self_[0];
-
-			for (int i = 0; i < ndims; ++i)
-			{
-				if (it.self_[i] < begin_[i])
-				{
-					it.self_[i] = end_[i] - 1;
-					--it.self_[i + 1];
-				}
-			}
-
-#endif //USE_FORTRAN_ORDER_ARRAY
-		}
-	public:
-
-		void next(iterator & it) const
-		{
-			auto n = node_id(it.shift_);
-
-			if (n == 0 || n == 1 || n == 6 || n == 7)
-			{
-				NextCell(it);
-			}
-
-			it.shift_ = roate(it.shift_);
-		}
-		void prev(iterator & it) const
-		{
-			auto n = node_id(it.shift_);
-
-			if (n == 0 || n == 4 || n == 3 || n == 7)
-			{
-				PreviousCell(it);
-			}
-
-			it.shift_ = inverse_roate(it.shift_);
-		}
-
 		iterator begin() const
 		{
-			return iterator(*this, begin_);
+			return iterator(begin_, end_, shift_);
 		}
 
 		iterator end() const
 		{
-			iterator e(*this, end_ - 1);
-			NextCell(e);
+			iterator e(begin_, end_, shift_);
+			e.NextCell();
 			return std::move(e);
 		}
 
 		iterator rbegin() const
 		{
-			return iterator(*this, end_ - 1);
+			return iterator(begin_, end_, shift_);
 		}
 
 		iterator rend() const
 		{
 
-			iterator e(*this, begin_ - 1);
+			iterator e(begin_, end_, shift_);
 			--e;
 			return std::move(e);
 		}
@@ -587,29 +489,26 @@ public:
 	//! iterator
 	struct iterator
 	{
-
-		range range_;
-
 		typedef std::bidirectional_iterator_tag iterator_category;
-		typedef compact_index_type value_type;
-		typedef long difference_type;
-		typedef size_type * pointer;
-		typedef size_type reference;
 
-		index_tuple self_;
-		compact_index_type shift_;
+		typedef index_type value_type;
+
+		index_type shift_;
+
+		nTuple<size_type, ndims> self_, begin_, end_;
 
 		iterator(iterator const & r) :
-				self_(r.self_), shift_(r.shift_), range_(r.range_)
+				shift_(r.shift_), self_(r.self_), begin_(r.begin_), end_(r.end_)
 		{
 		}
 		iterator(iterator && r) :
-				self_(r.self_), shift_(r.shift_), range_(r.range_)
+				shift_(r.shift_), self_(r.self_), begin_(r.begin_), end_(r.end_)
 		{
 		}
 
-		iterator(range const & r, index_tuple s) :
-				range_(r), self_(s), shift_(r.shift_)
+		iterator(nTuple<size_type, ndims> const & b,
+				nTuple<size_type, ndims> const e, index_type shift = 0UL) :
+				shift_(shift), self_(b), begin_(b), end_(e)
 		{
 		}
 
@@ -641,18 +540,9 @@ public:
 			return this;
 		}
 
-		void reset(compact_index_type s)
-		{
-			self_ = decompact(s);
-			shift_ = delta_index(s);
-
-//			range_.NextCell(*this);
-//			range_.PreviousCell(*this);
-		}
-
 		iterator & operator ++()
 		{
-			range_.next(*this);
+			next();
 			return *this;
 		}
 		iterator operator ++(int) const
@@ -664,7 +554,7 @@ public:
 
 		iterator & operator --()
 		{
-			range_.prev(*this);
+			prev();
 			return *this;
 		}
 
@@ -675,14 +565,108 @@ public:
 			return std::move(res);
 		}
 
+#ifndef USE_FORTRAN_ORDER_ARRAY
+		static constexpr size_t ARRAY_ORDER = C_ORDER;
+#else
+		static constexpr size_t ARRAY_ORDER=FOTRAN_ORDER;
+#endif
+
+		void NextCell()
+		{
+			CHECK(self_);
+			CHECK(begin_);
+			CHECK(end_);
+#ifndef USE_FORTRAN_ORDER_ARRAY
+			++self_[ndims - 1];
+
+			for (int i = ndims - 1; i > 0; --i)
+			{
+				if (self_[i] >= end_[i])
+				{
+					self_[i] = begin_[i];
+					++self_[i - 1];
+				}
+			}
+#else
+			++self_[0];
+
+			for (int i = 0; i < ndims - 1; ++i)
+			{
+				if (self_[i] >= end_[i])
+				{
+					self_[i] = begin_[i];
+					++self_[i + 1];
+				}
+			}
+#endif
+		}
+
+		void PreviousCell()
+		{
+#ifndef USE_FORTRAN_ORDER_ARRAY
+
+			if (self_[ndims - 1] > begin_[ndims - 1])
+				--self_[ndims - 1];
+
+			for (int i = ndims - 1; i > 0; --i)
+			{
+				if (self_[i] <= begin_[i])
+				{
+					self_[i] = end_[i] - 1;
+
+					if (self_[i - 1] > begin_[i - 1])
+						--self_[i - 1];
+				}
+			}
+
+#else
+
+			++self_[0];
+
+			for (int i = 0; i < ndims; ++i)
+			{
+				if (self_[i] < begin_[i])
+				{
+					self_[i] = end_[i] - 1;
+					--self_[i + 1];
+				}
+			}
+
+#endif //USE_FORTRAN_ORDER_ARRAY
+		}
+	public:
+
+		void next()
+		{
+			CHECK(shift_);
+			auto n = node_id(shift_);
+
+			if (n == 0 || n == 1 || n == 6 || n == 7)
+			{
+				NextCell();
+			}
+
+			shift_ = roate(shift_);
+		}
+		void prev()
+		{
+			auto n = node_id(shift_);
+
+			if (n == 0 || n == 4 || n == 3 || n == 7)
+			{
+				PreviousCell();
+			}
+
+			shift_ = inverse_roate(shift_);
+		}
 	};
 
 	typedef range range_type;
 
 	inline range_type make_range(index_tuple begin, index_tuple end,
-			compact_index_type shift = 0UL) const
+			index_type shift = 0UL) const
 	{
-		return std::move(range_type(*this, begin, end, shift));
+		return std::move(range_type(begin, end, shift));
 	}
 	/** @}*/
 
@@ -759,20 +743,20 @@ public:
 	static constexpr size_type NO_HEAD_FLAG = ~((~0UL) << (INDEX_DIGITS * 3));
 
 	//mask of direction
-//	static compact_index_type compact(nTuple<NDIMS, index_type> const & idx )
+//	static index_type compact(nTuple<NDIMS, index_type> const & idx )
 //	{
 //		return
 //
-//		( static_cast<compact_index_type>( idx[0] & INDEX_MASK) << (INDEX_DIGITS * 2)) |
+//		( static_cast<index_type>( idx[0] & INDEX_MASK) << (INDEX_DIGITS * 2)) |
 //
-//		( static_cast<compact_index_type>( idx[1] & INDEX_MASK) << (INDEX_DIGITS )) |
+//		( static_cast<index_type>( idx[1] & INDEX_MASK) << (INDEX_DIGITS )) |
 //
-//		( static_cast<compact_index_type>( idx[2] & INDEX_MASK) )
+//		( static_cast<index_type>( idx[2] & INDEX_MASK) )
 //
 //		;
 //	}
 	template<typename TS>
-	static compact_index_type compact(TS const & x)
+	static index_type compact(TS const & x)
 	{
 		return
 
@@ -966,71 +950,66 @@ public:
 	}
 #ifndef ENABLE_SUB_TREE_DEPTH
 
-	Real const & volume(compact_index_type s) const
+	Real const & volume(index_type s) const
 	{
 		return volume_[node_id(s)];
 	}
 
-	Real inv_volume(compact_index_type s) const
+	Real inv_volume(index_type s) const
 	{
 		return inv_volume_[node_id(s)];
 	}
 
-	Real dual_volume(compact_index_type s) const
+	Real dual_volume(index_type s) const
 	{
 		return dual_volume_[node_id(s)];
 	}
 
-	Real inv_dual_volume(compact_index_type s) const
+	Real inv_dual_volume(index_type s) const
 	{
 		return inv_dual_volume_[node_id(s)];
 	}
 
-	Real cell_volume(compact_index_type s) const
+	Real cell_volume(index_type s) const
 	{
 		return volume_[1] * volume_[2] * volume_[4];
 	}
 
-	Real volume(compact_index_type s, std::integral_constant<bool, false>) const
+	Real volume(index_type s, std::integral_constant<bool, false>) const
 	{
 		return volume(s);
 	}
 
-	Real inv_volume(compact_index_type s,
-			std::integral_constant<bool, false>) const
+	Real inv_volume(index_type s, std::integral_constant<bool, false>) const
 	{
 		return inv_volume(s);
 	}
 
-	Real inv_dual_volume(compact_index_type s,
+	Real inv_dual_volume(index_type s,
 			std::integral_constant<bool, false>) const
 	{
 		return inv_dual_volume(s);
 	}
-	Real dual_volume(compact_index_type s,
-			std::integral_constant<bool, false>) const
+	Real dual_volume(index_type s, std::integral_constant<bool, false>) const
 	{
 		return dual_volume(s);
 	}
 
-	Real volume(compact_index_type s, std::integral_constant<bool, true>) const
+	Real volume(index_type s, std::integral_constant<bool, true>) const
 	{
 		return in_range(s) ? volume(s) : 0.0;
 	}
 
-	Real inv_volume(compact_index_type s,
-			std::integral_constant<bool, true>) const
+	Real inv_volume(index_type s, std::integral_constant<bool, true>) const
 	{
 		return in_range(s) ? inv_volume(s) : 0.0;
 	}
 
-	Real dual_volume(compact_index_type s,
-			std::integral_constant<bool, true>) const
+	Real dual_volume(index_type s, std::integral_constant<bool, true>) const
 	{
 		return in_range(s) ? dual_volume(s) : 0.0;
 	}
-	Real inv_dual_volume(compact_index_type s,
-			std::integral_constant<bool, true>) const
+	Real inv_dual_volume(index_type s, std::integral_constant<bool, true>) const
 	{
 		return in_range(s) ? inv_dual_volume(s) : 0.0;
 	}
@@ -1087,16 +1066,16 @@ public:
 		return std::move(index_tuple(idx));
 	}
 
-	inline coordinates_type coordinates(compact_index_type s) const
+	inline coordinates_type coordinates(index_type s) const
 	{
 		return std::move(index_to_coordinates(decompact(s)));
 	}
-	inline coordinates_type get_coordinates(compact_index_type s) const
+	inline coordinates_type get_coordinates(index_type s) const
 	{
 		return std::move(index_to_coordinates(decompact(s)));
 	}
 
-	inline coordinates_type coordinates_local_to_global(compact_index_type s,
+	inline coordinates_type coordinates_local_to_global(index_type s,
 			coordinates_type r) const
 	{
 #ifndef ENABLE_SUB_TREE_DEPTH
@@ -1201,8 +1180,8 @@ public:
 	 * @return s,r   s is thte conmpact index of nearest grid point
 	 *    and  \f$ r \in \left[-0.5,0.5\right) \f$   is the normalize  distance between x and s
 	 */
-	inline std::tuple<compact_index_type, coordinates_type> coordinates_global_to_local_NGP(
-			coordinates_type const & x, compact_index_type shift = 0UL) const
+	inline std::tuple<index_type, coordinates_type> coordinates_global_to_local_NGP(
+			coordinates_type const & x, index_type shift = 0UL) const
 	{
 
 #ifndef ENABLE_SUB_TREE_DEPTH
@@ -1224,7 +1203,7 @@ public:
 
 		r -= I;
 
-		compact_index_type s = (compact(I) << MAX_DEPTH_OF_TREE) | shift;
+		index_type s = (compact(I) << MAX_DEPTH_OF_TREE) | shift;
 
 #else
 		UNIMPLEMENTED
@@ -1235,7 +1214,7 @@ public:
 
 	//! @name Index auxiliary functions
 	//! @{
-	static compact_index_type dual(compact_index_type r)
+	static index_type dual(index_type r)
 	{
 #ifndef ENABLE_SUB_TREE_DEPTH
 		return (r & (~_DA)) | ((~(r & _DA)) & _DA);
@@ -1244,14 +1223,14 @@ public:
 		| ((~(r & (_DA >> DepthOfTree(r) ))) & (_DA >> DepthOfTree(r) ));
 #endif
 	}
-	static compact_index_type get_cell_index(compact_index_type r)
+	static index_type get_cell_index(index_type r)
 	{
-//		compact_index_type mask = (1UL << (INDEX_DIGITS - DepthOfTree(r))) - 1;
+//		index_type mask = (1UL << (INDEX_DIGITS - DepthOfTree(r))) - 1;
 //
 //		return r & (~(mask | (mask << INDEX_DIGITS) | (mask << (INDEX_DIGITS * 2))));
 		return r & COMPACT_INDEX_ROOT_MASK;
 	}
-	static size_t node_id(compact_index_type s)
+	static size_t node_id(index_type s)
 	{
 
 #ifndef ENABLE_SUB_TREE_DEPTH
@@ -1274,8 +1253,7 @@ public:
 #endif
 	}
 
-	compact_index_type get_shift(size_t nodeid,
-			compact_index_type h = 0UL) const
+	index_type get_shift(size_t nodeid, index_type h = 0UL) const
 	{
 
 #ifndef ENABLE_SUB_TREE_DEPTH
@@ -1299,9 +1277,9 @@ public:
 #endif
 	}
 
-	compact_index_type get_first_node_shift(size_t iform) const
+	index_type get_first_node_shift(size_t iform) const
 	{
-		compact_index_type nid;
+		index_type nid;
 		switch (iform)
 		{
 		case VERTEX:
@@ -1344,13 +1322,13 @@ public:
 	}
 
 #ifdef ENABLE_SUB_TREE_DEPTH
-	static size_t DepthOfTree(compact_index_type r)
+	static size_t DepthOfTree(index_type r)
 	{
 		return r >> (INDEX_DIGITS * 3);
 	}
 #endif
 
-	static compact_index_type roate(compact_index_type r)
+	static index_type roate(index_type r)
 	{
 
 #ifndef ENABLE_SUB_TREE_DEPTH
@@ -1362,7 +1340,7 @@ public:
 		| ((r & (((_DK)))) << (INDEX_DIGITS * 2));
 
 #else
-		compact_index_type h = DepthOfTree(r);
+		index_type h = DepthOfTree(r);
 
 		return (r & (~(_DA >> h)))
 
@@ -1379,7 +1357,7 @@ public:
 	 * @return
 	 */
 
-	static compact_index_type inverse_roate(compact_index_type s)
+	static index_type inverse_roate(index_type s)
 	{
 
 #ifndef ENABLE_SUB_TREE_DEPTH
@@ -1391,7 +1369,7 @@ public:
 		| ((s & (((_DI)))) >> (INDEX_DIGITS * 2));
 
 #else
-		compact_index_type h = DepthOfTree(s);
+		index_type h = DepthOfTree(s);
 
 		return
 		(s & (~(_DA >> h)))
@@ -1402,7 +1380,7 @@ public:
 #endif
 	}
 
-	static compact_index_type delta_index(compact_index_type r)
+	static index_type delta_index(index_type r)
 	{
 #ifndef ENABLE_SUB_TREE_DEPTH
 		return (r & _DA);
@@ -1411,7 +1389,7 @@ public:
 #endif
 	}
 
-	static compact_index_type DI(size_t i, compact_index_type r)
+	static index_type DI(size_t i, index_type r)
 	{
 #ifndef ENABLE_SUB_TREE_DEPTH
 		return (1UL << (INDEX_DIGITS * (ndims - i - 1) + MAX_DEPTH_OF_TREE - 1));
@@ -1419,7 +1397,7 @@ public:
 		return (1UL << (INDEX_DIGITS * (ndims-i-1)+MAX_DEPTH_OF_TREE - DepthOfTree(r) - 1));
 #endif
 	}
-	static compact_index_type delta_index(size_t i, compact_index_type r)
+	static index_type delta_index(size_t i, index_type r)
 	{
 		return DI(i, r) & r;
 	}
@@ -1429,9 +1407,9 @@ public:
 	 * @param s
 	 * @return
 	 */
-	static compact_index_type component_number(compact_index_type s)
+	static index_type component_number(index_type s)
 	{
-		compact_index_type res = 0;
+		index_type res = 0;
 		switch (node_id(s))
 		{
 		case 4:
@@ -1450,9 +1428,9 @@ public:
 		return res;
 	}
 
-	static size_t IForm(compact_index_type r)
+	static size_t IForm(index_type r)
 	{
-		compact_index_type res = 0;
+		index_type res = 0;
 		switch (node_id(r))
 		{
 		case 0:
@@ -1507,7 +1485,9 @@ public:
 	template<size_t IFORM>
 	range_type select() const
 	{
-		return (range_type(*this, local_inner_begin_, local_inner_end_,
+		CHECK(local_inner_begin_);
+		CHECK(local_inner_end_);
+		return (range_type(local_inner_begin_, local_inner_end_,
 				get_first_node_shift(IFORM)));
 	}
 
@@ -1606,12 +1586,12 @@ public:
 		return res;
 	}
 
-//	std::function<size_t(compact_index_type)> make_hash(range_type r) const
+//	std::function<size_t(index_type)> make_hash(range_type r) const
 //	{
 //		if (!is_valid())
 //			RUNTIME_ERROR("Mesh is not defined!!");
 //
-//		std::function<size_t(compact_index_type)> res;
+//		std::function<size_t(index_type)> res;
 //
 //		index_tuple stride;
 //
@@ -1622,7 +1602,7 @@ public:
 //		stride[0] = local_outer_count_[1] * stride[1];
 //
 //		res =
-//				[=](compact_index_type s)->size_t
+//				[=](index_type s)->size_t
 //				{
 //					size_t m_tree=MAX_DEPTH_OF_TREE;
 //					nTuple<index_type,ndims> d =( decompact(s)>>m_tree)-local_outer_begin_;
@@ -1667,7 +1647,7 @@ public:
 ////		stride[1] = local_outer_count_[2] * stride[2];
 ////		stride[0] = local_outer_count_[1] * stride[1];
 ////#endif
-////		res=[=](compact_index_type s)->size_t
+////		res=[=](index_type s)->size_t
 ////		{
 ////			nTuple<NDIMS,index_type> d =( decompact(s)>>MAX_DEPTH_OF_TREE)-local_outer_begin_;
 ////
@@ -1688,7 +1668,7 @@ public:
 //		return std::move(res);
 //	}
 
-	size_t hash(compact_index_type s) const
+	size_t hash(index_type s) const
 	{
 		size_t m_tree = MAX_DEPTH_OF_TREE;
 		nTuple<size_type, ndims> d = (decompact(s) >> m_tree)
@@ -1728,8 +1708,7 @@ public:
 	 *  @{
 	 */
 
-	inline size_t get_vertices(compact_index_type s,
-			compact_index_type *v) const
+	inline size_t get_vertices(index_type s, index_type *v) const
 	{
 		size_t n = 0;
 		switch (IForm(s))
@@ -1785,16 +1764,16 @@ public:
 
 	template<size_t I>
 	inline size_t get_adjacent_cells(std::integral_constant<size_t, I>,
-			std::integral_constant<size_t, I>, compact_index_type s,
-			compact_index_type *v) const
+			std::integral_constant<size_t, I>, index_type s,
+			index_type *v) const
 	{
 		v[0] = s;
 		return 1;
 	}
 
 	inline size_t get_adjacent_cells(std::integral_constant<size_t, EDGE>,
-			std::integral_constant<size_t, VERTEX>, compact_index_type s,
-			compact_index_type *v) const
+			std::integral_constant<size_t, VERTEX>, index_type s,
+			index_type *v) const
 	{
 		v[0] = s + delta_index(s);
 		v[1] = s - delta_index(s);
@@ -1802,8 +1781,8 @@ public:
 	}
 
 	inline size_t get_adjacent_cells(std::integral_constant<size_t, FACE>,
-			std::integral_constant<size_t, VERTEX>, compact_index_type s,
-			compact_index_type *v) const
+			std::integral_constant<size_t, VERTEX>, index_type s,
+			index_type *v) const
 	{
 		/**
 		 * \verbatim
@@ -1838,8 +1817,8 @@ public:
 	}
 
 	inline size_t get_adjacent_cells(std::integral_constant<size_t, VOLUME>,
-			std::integral_constant<size_t, VERTEX>, compact_index_type s,
-			compact_index_type *v) const
+			std::integral_constant<size_t, VERTEX>, index_type s,
+			index_type *v) const
 	{
 		/**
 		 * \verbatim
@@ -1879,8 +1858,8 @@ public:
 	}
 
 	inline size_t get_adjacent_cells(std::integral_constant<size_t, VERTEX>,
-			std::integral_constant<size_t, EDGE>, compact_index_type s,
-			compact_index_type *v) const
+			std::integral_constant<size_t, EDGE>, index_type s,
+			index_type *v) const
 	{
 		/**
 		 * \verbatim
@@ -1921,8 +1900,8 @@ public:
 	}
 
 	inline size_t get_adjacent_cells(std::integral_constant<size_t, FACE>,
-			std::integral_constant<size_t, EDGE>, compact_index_type s,
-			compact_index_type *v) const
+			std::integral_constant<size_t, EDGE>, index_type s,
+			index_type *v) const
 	{
 
 		/**
@@ -1956,8 +1935,8 @@ public:
 	}
 
 	inline size_t get_adjacent_cells(std::integral_constant<size_t, VOLUME>,
-			std::integral_constant<size_t, EDGE>, compact_index_type s,
-			compact_index_type *v) const
+			std::integral_constant<size_t, EDGE>, index_type s,
+			index_type *v) const
 	{
 
 		/**
@@ -2003,8 +1982,8 @@ public:
 	}
 
 	inline size_t get_adjacent_cells(std::integral_constant<size_t, VERTEX>,
-			std::integral_constant<size_t, FACE>, compact_index_type s,
-			compact_index_type *v) const
+			std::integral_constant<size_t, FACE>, index_type s,
+			index_type *v) const
 	{
 		/**
 		 *\verbatim
@@ -2063,8 +2042,8 @@ public:
 	}
 
 	inline size_t get_adjacent_cells(std::integral_constant<size_t, EDGE>,
-			std::integral_constant<size_t, FACE>, compact_index_type s,
-			compact_index_type *v) const
+			std::integral_constant<size_t, FACE>, index_type s,
+			index_type *v) const
 	{
 
 		/**
@@ -2114,8 +2093,8 @@ public:
 	}
 
 	inline size_t get_adjacent_cells(std::integral_constant<size_t, VOLUME>,
-			std::integral_constant<size_t, FACE>, compact_index_type s,
-			compact_index_type *v) const
+			std::integral_constant<size_t, FACE>, index_type s,
+			index_type *v) const
 	{
 
 		/**
@@ -2156,8 +2135,8 @@ public:
 	}
 
 	inline size_t get_adjacent_cells(std::integral_constant<size_t, VERTEX>,
-			std::integral_constant<size_t, VOLUME>, compact_index_type s,
-			compact_index_type *v) const
+			std::integral_constant<size_t, VOLUME>, index_type s,
+			index_type *v) const
 	{
 		/**
 		 *\verbatim
@@ -2212,8 +2191,8 @@ public:
 	}
 
 	inline size_t get_adjacent_cells(std::integral_constant<size_t, EDGE>,
-			std::integral_constant<size_t, VOLUME>, compact_index_type s,
-			compact_index_type *v) const
+			std::integral_constant<size_t, VOLUME>, index_type s,
+			index_type *v) const
 	{
 
 		/**
@@ -2262,8 +2241,8 @@ public:
 	}
 
 	inline size_t get_adjacent_cells(std::integral_constant<size_t, FACE>,
-			std::integral_constant<size_t, VOLUME>, compact_index_type s,
-			compact_index_type *v) const
+			std::integral_constant<size_t, VOLUME>, index_type s,
+			index_type *v) const
 	{
 
 		/**
@@ -2379,7 +2358,7 @@ inline StructuredMesh::range_type split(
 
 	}
 
-	return std::move(StructuredMesh::range_type(*range.mesh, b, e, shift));
+	return std::move(StructuredMesh::range_type(b, e, shift));
 }
 
 }
