@@ -33,7 +33,7 @@ struct DistributedArray::pimpl_s
 
 	void decompose();
 
-	void init(size_t nd, size_t const * b, size_t const * e, size_t gw_p = 2);
+	void init(size_t nd, size_t const * dims, size_t const * gw_p = nullptr);
 
 	Properties & properties(std::string const &key);
 
@@ -45,7 +45,7 @@ struct DistributedArray::pimpl_s
 
 		for (int i = 0; i < ndims_; ++i)
 		{
-			res *= local_.inner_count[i];
+			res *= local_inner_shape_.count[i];
 		}
 		return res;
 	}
@@ -55,7 +55,7 @@ struct DistributedArray::pimpl_s
 
 		for (int i = 0; i < ndims_; ++i)
 		{
-			res *= local_.outer_count[i];
+			res *= local_outer_shape_.count[i];
 		}
 		return res;
 	}
@@ -74,43 +74,52 @@ private:
 
 	int self_id_ = 0;
 
-	size_t gw;
+	dims_type gw;
 
 	bool is_valid_ = false;
 
-	dims_type global_start_;
-	dims_type global_count_;
-	dims_type global_strides_;
+	dims_type dimensions;
 
-	struct sub_array_s
+	struct hyperslab_s
 	{
-		dims_type outer_start;
-		dims_type outer_count;
-		dims_type inner_start;
-		dims_type inner_count;
+		dims_type offset;
+		dims_type stride;
+		dims_type count;
+		dims_type block;
 	};
-	sub_array_s local_;
+
+	hyperslab_s global_shape_;
+
+	hyperslab_s local_inner_shape_;
+	hyperslab_s local_outer_shape_;
 
 	struct send_recv_s
 	{
+		int src;
 		int dest;
 		int send_tag;
 		int recv_tag;
-		dims_type send_start;
-		dims_type send_count;
-		dims_type recv_start;
-		dims_type recv_count;
+		hyperslab_s send;
+		hyperslab_s recv;
+
 	};
 
 	std::vector<send_recv_s> send_recv_; // dest, send_tag,recv_tag, sub_array_s
 
 	int hash(size_t const *d) const
 	{
+		dims_type g_stride;
+		g_stride[0] = 1;
+
+		for (int i = 1; i < ndims_; ++i)
+		{
+			g_stride[i] = global_shape_.count[i] * g_stride[i - 1];
+		}
 		int res = 0;
 		for (int i = 0; i < ndims_; ++i)
 		{
-			res += ((d[i] - global_start_[i] + global_count_[i])
-					% global_count_[i]) * global_strides_[i];
+			res += ((d[i] - global_shape_.offset[i] + global_shape_.count[i])
+					% global_shape_.count[i]) * g_stride[i];
 		}
 		return res;
 	}
@@ -139,25 +148,40 @@ size_t DistributedArray::pimpl_s::num_of_dims() const
 
 std::tuple<size_t const*, size_t const*> DistributedArray::pimpl_s::local_shape() const
 {
-	return std::forward_as_tuple(&local_.outer_start[0], &local_.outer_count[0]);
+	return std::forward_as_tuple(&local_outer_shape_.offset[0],
+			&local_outer_shape_.count[0]);
 }
 std::tuple<size_t const*, size_t const*> DistributedArray::pimpl_s::global_shape() const
 {
-	return std::forward_as_tuple(&global_start_[0], &global_count_[0]);
+	return std::forward_as_tuple(&global_shape_.offset[0],
+			&global_shape_.count[0]);
 }
 std::tuple<size_t const*, size_t const*> DistributedArray::pimpl_s::shape() const
 {
-	return std::forward_as_tuple(&local_.inner_start[0], &local_.inner_count[0]);
+	return std::forward_as_tuple(&local_inner_shape_.offset[0],
+			&local_inner_shape_.count[0]);
 }
 
-void DistributedArray::pimpl_s::init(size_t nd, size_t const * start,
-		size_t const * count, size_t gw_p)
+void DistributedArray::pimpl_s::init(size_t nd, size_t const * dims,
+		size_t const * gw_p)
 {
 	ndims_ = nd;
-	global_start_ = start;
-	global_count_ = count;
 
-	gw = gw_p;
+	dimensions = dims;
+	global_shape_.count = dims;
+	global_shape_.offset = 0;
+	global_shape_.stride = 1;
+	global_shape_.block = 1;
+
+	if (gw_p != nullptr)
+	{
+		gw = gw_p;
+	}
+	else
+	{
+		gw = 0;
+	}
+
 	decompose();
 }
 
@@ -213,10 +237,10 @@ void decomposer_(size_t num_process, size_t process_num, size_t gw,
 void DistributedArray::pimpl_s::decompose()
 {
 
-	local_.outer_start = global_start_;
-	local_.outer_count = global_count_;
-	local_.inner_start = global_start_;
-	local_.inner_count = global_count_;
+	local_outer_shape_.offset = global_shape_.offset;
+	local_outer_shape_.count = global_shape_.count;
+	local_inner_shape_.offset = global_shape_.offset;
+	local_inner_shape_.count = global_shape_.count;
 
 	if (!GLOBAL_COMM.is_valid()) return;
 
@@ -224,18 +248,11 @@ void DistributedArray::pimpl_s::decompose()
 	unsigned int process_num = GLOBAL_COMM.get_rank();
 
 	decomposer_(num_process, process_num, gw, ndims_,  //
-			&global_start_[0], &global_count_[0],  //
-			&local_.outer_start[0], &local_.outer_count[0],  //
-			&local_.inner_start[0], &local_.inner_count[0]);
+			&global_shape_.offset[0], &global_shape_.count[0],  //
+			&local_outer_shape_.offset[0], &local_outer_shape_.count[0],  //
+			&local_inner_shape_.offset[0], &local_inner_shape_.count[0]);
 
 	self_id_ = (process_num);
-
-	global_strides_[0] = 1;
-
-	for (int i = 1; i < ndims_; ++i)
-	{
-		global_strides_[i] = global_count_[i] * global_strides_[i - 1];
-	}
 
 	for (int dest = 0; dest < num_process; ++dest)
 	{
@@ -244,9 +261,10 @@ void DistributedArray::pimpl_s::decompose()
 
 		sub_array_s node;
 
-		decomposer_(num_process, dest, gw, ndims_, &global_start_[0],
-				&global_count_[0], &node.outer_start[0], &node.outer_count[0],
-				&node.inner_start[0], &node.inner_count[0]
+		decomposer_(num_process, dest, gw, ndims_, &global_shape_.offset[0],
+				&global_shape_.count[0], &node.outer_offset[0],
+				&node.outer_count[0], &node.inner_offset[0],
+				&node.inner_count[0]
 
 				);
 
@@ -269,19 +287,19 @@ void DistributedArray::pimpl_s::decompose()
 					continue;
 				}
 
-				auto L = global_count_[i] * ((n + 1) % 3 - 1);
+				auto L = global_shape_.count[i] * ((n + 1) % 3 - 1);
 
-				remote.outer_start[i] += L;
-				remote.inner_start[i] += L;
+				remote.outer_offset[i] += L;
+				remote.inner_offset[i] += L;
 
 			}
 			if (!is_duplicate)
 			{
-				bool f_inner = Clipping(ndims_, local_.outer_start,
-						local_.outer_count, remote.inner_start,
+				bool f_inner = Clipping(ndims_, local_outer_shape_.offset,
+						local_outer_shape_.count, remote.inner_offset,
 						remote.inner_count);
-				bool f_outer = Clipping(ndims_, local_.inner_start,
-						local_.inner_count, remote.outer_start,
+				bool f_outer = Clipping(ndims_, local_inner_shape_.offset,
+						local_inner_shape_.count, remote.outer_offset,
 						remote.outer_count);
 
 				bool flag = f_inner && f_outer;
@@ -294,11 +312,11 @@ void DistributedArray::pimpl_s::decompose()
 				{
 					send_recv_.emplace_back(
 							send_recv_s(
-									{ dest, hash(&remote.outer_start[0]), hash(
-											&remote.inner_start[0]),
-											remote.outer_start,
+									{ dest, hash(&remote.outer_offset[0]), hash(
+											&remote.inner_offset[0]),
+											remote.outer_offset,
 											remote.outer_count,
-											remote.inner_start,
+											remote.inner_offset,
 											remote.inner_count }));
 				}
 			}
@@ -324,22 +342,26 @@ bool DistributedArray::pimpl_s::sync_ghosts(DataSet * ds, size_t flag) const
 
 	for (auto const & item : send_recv_)
 	{
-		dims_type g_outer_count;
-		dims_type send_count;
-		dims_type recv_count;
-		dims_type send_start;
-		dims_type recv_start;
 
-		g_outer_count = local_.outer_count;
-		send_count = item.send_count;
-		recv_count = item.recv_count;
-		send_start = item.send_start - local_.outer_start;
-		recv_start = item.recv_start - local_.outer_start;
+		dims_type send_offset;
+		send_offset = item.send.offset - local_outer_shape_.offset;
 
 		MPIDataType send_type = MPIDataType::create(ds->datatype, ndims_,
-		&g_outer_count[0], &send_count[0], &send_start[0]);
+		&local_outer_shape_.count[0],
+		&send_offset[0],
+		&item.send.stride[0],
+		&item.send.count[0],
+		&item.send.block[0] );
+
+		dims_type recv_offset;
+		recv_offset = item.recv.offset - local_outer_shape_.offset;
+
 		MPIDataType recv_type = MPIDataType::create(ds->datatype, ndims_,
-		&g_outer_count[0], &recv_count[0], &recv_start[0]);
+		&local_outer_shape_.count[0],
+		&send_offset[0],
+		&item.recv.stride[0],
+		&item.recv.count[0],
+		&item.recv.block[0] ));
 
 		MPI_Isend(ds->data.get(), 1, send_type.type(), item.dest, item.send_tag,
 		comm, &request[count * 2]);
@@ -349,8 +371,7 @@ bool DistributedArray::pimpl_s::sync_ghosts(DataSet * ds, size_t flag) const
 		++count;
 	}
 
-	MPI_Waitall(send_recv_.size() * 2, request,
-	MPI_STATUSES_IGNORE);
+	MPI_Waitall(send_recv_.size() * 2, request, MPI_STATUSES_IGNORE);
 //#endif
 	return true;
 }
@@ -378,13 +399,12 @@ Properties const& DistributedArray::properties(std::string const &key) const
 	return pimpl_->properties(key);
 }
 
-void DistributedArray::init(size_t nd, size_t const * start,
-		size_t const* count, size_t gw)
+void DistributedArray::init(size_t nd, size_t const * dims, size_t const *gw)
 {
 	if (pimpl_ == nullptr)
 		pimpl_ = (new pimpl_s);
 
-	pimpl_->init(nd, start, count, gw);
+	pimpl_->init(nd, dims, gw);
 }
 
 bool DistributedArray::sync_ghosts(DataSet* ds, size_t flag) const

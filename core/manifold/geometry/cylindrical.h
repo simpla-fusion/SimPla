@@ -42,7 +42,7 @@ public:
 
 	typedef typename topology_type::coordinates_type coordinates_type;
 	typedef typename topology_type::index_type index_type;
-	typedef typename topology_type::compact_index_type compact_index_type;
+	typedef typename topology_type::index_type index_type;
 	typedef typename topology_type::iterator iterator;
 
 	typedef nTuple<Real, ndims> vector_type;
@@ -242,7 +242,7 @@ public:
 		return std::move(std::make_pair(xmin_, xmax_));
 	}
 
-	inline coordinates_type dx(compact_index_type s = 0UL) const
+	inline coordinates_type dx(index_type s = 0UL) const
 	{
 
 		coordinates_type res;
@@ -301,16 +301,16 @@ public:
 						std::forward<Args >(args)...));
 	}
 
-	std::tuple<compact_index_type, coordinates_type> coordinates_global_to_local(
+	std::tuple<index_type, coordinates_type> coordinates_global_to_local(
 			coordinates_type x,
-			typename topology_type::compact_index_type shift = 0UL) const
+			typename topology_type::index_type shift = 0UL) const
 	{
 		return std::move(
 				topology_type::coordinates_global_to_local(
 						std::move(CoordinatesToTopology(x)), shift));
 	}
-	std::tuple<compact_index_type, coordinates_type> coordinates_global_to_local_NGP(
-			coordinates_type x, compact_index_type shift = 0UL) const
+	std::tuple<index_type, coordinates_type> coordinates_global_to_local_NGP(
+			coordinates_type x, index_type shift = 0UL) const
 	{
 		return std::move(
 				topology_type::coordinates_global_to_local_NGP(
@@ -552,18 +552,18 @@ public:
 	 *\endverbatim
 	 */
 
-	Real HodgeStarVolumeScale(compact_index_type s) const
+	Real HodgeStarVolumeScale(index_type s) const
 	{
 		return 1.0;
 	}
 
-	Real cell_volume(compact_index_type s) const
+	Real cell_volume(index_type s) const
 	{
 		return topology_type::cell_volume(s) * volume_[1] * volume_[2]
 				* volume_[4] * coordinates(s)[RAxis];
 	}
 
-	scalar_type volume(compact_index_type s) const
+	scalar_type volume(index_type s) const
 	{
 		size_t n = topology_type::node_id(s);
 		return topology_type::volume(s) * volume_[n]
@@ -571,7 +571,7 @@ public:
 						coordinates(s)[RAxis] : 1.0);
 	}
 
-	scalar_type inv_volume(compact_index_type s) const
+	scalar_type inv_volume(index_type s) const
 	{
 		size_t n = topology_type::node_id(s);
 		return topology_type::inv_volume(s) * inv_volume_[n]
@@ -579,14 +579,14 @@ public:
 						coordinates(s)[RAxis] : 1.0);
 	}
 
-	scalar_type dual_volume(compact_index_type s) const
+	scalar_type dual_volume(index_type s) const
 	{
 		size_t n = topology_type::node_id(topology_type::dual(s));
 		return topology_type::dual_volume(s) * volume_[n]
 				* (((n & (1UL << (ndims - PhiAxis - 1))) > 0) ?
 						coordinates(s)[RAxis] : 1.0);
 	}
-	scalar_type inv_dual_volume(compact_index_type s) const
+	scalar_type inv_dual_volume(index_type s) const
 	{
 		size_t n = topology_type::node_id(topology_type::dual(s));
 		return topology_type::inv_dual_volume(s) * inv_volume_[n]

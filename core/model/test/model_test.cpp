@@ -96,7 +96,7 @@ TYPED_TEST_P(TestModel,SelectByNGP){
 
 	x=min*0.7+max*0.3;
 
-	typename manifold_type::compact_index_type dest;
+	typename manifold_type::index_type dest;
 
 	std::tie(dest,std::ignore)=model.coordinates_global_to_local(x);
 

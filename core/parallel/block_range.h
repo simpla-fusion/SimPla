@@ -16,84 +16,248 @@
 namespace simpla
 {
 
-template<typename T, size_t NDIMS = 1>
-class BlockRange
+template<typename TI, size_t N>
+struct BlockRange
 {
-public:
-	typedef BlockRange<T, NDIMS> this_type;
+	typedef nTuple<TI, N> value_type;
 
-	static constexpr size_t ndims = NDIMS;
+	nTuple<TI, N> begin_, end_;
 
-	typedef T single_index_type;
+	struct iterator;
 
-	typedef typename std::conditional<NDIMS == 1, T,
-			nTuple<single_index_type, ndims>>::type index_type;
-
-	BlockRange(index_type b = 0, index_type e = 1) :
-			e_(e), b_(b)
+	BlockRange()
 	{
 	}
 
-	//! Copy constructor
-	BlockRange(this_type const & that) :
-			e_(that.e_), b_(that.b_)
+	BlockRange(BlockRange const & that) :
+			begin_(that.begin_), end_(that.end_)
 	{
 	}
-	//! Split range r into two subranges. [0,d) -> [0,n) [n,d)
-	BlockRange(this_type & r, //
-			size_t n = 1, // numerator
-			size_t d = 2 // denominator
-			) :
-			e_(r.e_), b_(do_split(r.b_, r.e_, n, d))
+	~BlockRange()
+	{
+	}
+//
+//	void next(iterator & it) const
+//	{
+//		auto n = node_id(it.shift_);
+//
+//		if (n == 0 || n == 1 || n == 6 || n == 7)
+//		{
+//			NextCell(it);
+//		}
+//
+//		it.shift_ = roate(it.shift_);
+//	}
+//	void prev(iterator & it) const
+//	{
+//		auto n = node_id(it.shift_);
+//
+//		if (n == 0 || n == 4 || n == 3 || n == 7)
+//		{
+//			PreviousCell(it);
+//		}
+//
+//		it.shift_ = inverse_roate(it.shift_);
+//	}
+
+	iterator begin() const
+	{
+		return iterator(*this, begin_);
+	}
+
+	iterator end() const
+	{
+		iterator e(*this, end_ - 1);
+		++e;
+		return std::move(e);
+	}
+
+
+
+
+
+};
+//! iterator
+template<typename TI, typename TOP>
+void foreach(BlockRange<TI, 3> const & range, TOP const & op)
+{
+	for (TI i0 = range.begin_[0]; i0 < range.end_[0]; ++i0)
+		for (TI i1 = range.begin_[1]; i1 < range.end_[1]; ++i0)
+			for (TI i2 = range.begin_[2]; i2 < range.end_[2]; ++i0)
+			{
+				nTuple<TI, 3> it = { i0, i1, i2 };
+				op(it);
+			}
+}
+
+template<typename TI, typename TOP>
+void foreach(BlockRange<TI, 2> const & range, TOP const & op)
+{
+	for (TI i0 = range.begin_[0]; i0 < range.end_[0]; ++i0)
+		for (TI i1 = range.begin_[1]; i1 < range.end_[1]; ++i0)
+
+		{
+			nTuple<TI, 2> it = { i0, i1 };
+			op(it);
+		}
+}
+
+template<typename TI, typename TOP>
+void foreach(BlockRange<TI, 1> const & range, TOP const & op)
+{
+	for (TI i0 = range.begin_[0]; i0 < range.end_[0]; ++i0)
+	{
+		op(i0);
+	}
+}
+
+template<typename TI, size_t N>
+struct BlockRange<TI, N>::iterator
+{
+	typedef BlockRange<TI, N> range_type;
+
+	typedef std::bidirectional_iterator_tag iterator_category;
+
+	typedef typename range_type::value_type value_type;
+
+	typedef value_type difference_type;
+
+	static constexpr size_t ndims = N;
+
+	value_type self_, begin_, end_;
+
+	iterator(value_type const & b, value_type const & e) :
+			self_(b), begin_(b), end_(e)
+	{
+
+	}
+
+	iterator(iterator const & r) :
+			self_(r.self_), begin_(r.begin_), end_(r.end_)
+	{
+	}
+	iterator(iterator && r) :
+			self_(r.self_), begin_(r.begin_), end_(r.end_)
 	{
 	}
 
-	//! Split range r into two subranges.
-
-	~BlockRange()  //! Destructor
+	~iterator()
 	{
-
 	}
 
-	void swap(this_type & r)
+	bool operator==(iterator const & rhs) const
 	{
-		std::swap(e_, r.e_);
-		std::swap(b_, r.b_);
+		return self_ == rhs.self_;
 	}
 
-	bool empty() const //! True if range is empty
+	bool operator!=(iterator const & rhs) const
 	{
-		return e_ <= b_;
+		return !(this->operator==(rhs));
 	}
 
-	bool is_divisible() const //!True if range can be partitioned into two subranges
+	value_type const & operator*() const
 	{
-		return !((e_ - b_) <= 1);
+		return self_;
+	}
+	value_type & operator*()
+	{
+		return self_;
+	}
+	iterator const * operator->() const
+	{
+		return this;
+	}
+	iterator * operator->()
+	{
+		return this;
 	}
 
-/// \ingroup container_range
-
-private:
-	index_type e_, b_;
-
-	static index_type do_split(index_type & b, index_type & e, size_t n = 1,
-			size_t d = 2, size_t primary_dim = 0)
+	iterator & operator ++()
 	{
-		ASSERT((e - b) > 1);
-
-		index_type res = e;
-
-		get_value(res, primary_dim) = get_value(b, primary_dim)
-				+ (get_value(e, primary_dim) - get_value(b, primary_dim)) * n
-						/ d;
-
-		get_value(b, primary_dim) = get_value(res, primary_dim);
-
+		next();
+		return *this;
+	}
+	iterator operator ++(int) const
+	{
+		iterator res(*this);
+		++res;
 		return std::move(res);
 	}
 
-}
-;
+	iterator & operator --()
+	{
+		prev();
+		return *this;
+	}
+
+	iterator operator --(int) const
+	{
+		iterator res(*this);
+		--res;
+		return std::move(res);
+	}
+private:
+	void next() const
+	{
+#ifndef USE_FORTRAN_ORDER_ARRAY
+		++self_[ndims - 1];
+
+		for (int i = ndims - 1; i > 0; --i)
+		{
+			if (self_[i] >= end_[i])
+			{
+				self_[i] = begin_[i];
+				++self_[i - 1];
+			}
+		}
+#else
+		++self_[0];
+
+		for (int i = 0; i < ndims - 1; ++i)
+		{
+			if (self_[i] >= end_[i])
+			{
+				self_[i] = begin_[i];
+				++self_[i + 1];
+			}
+		}
+#endif
+	}
+
+	void previous() const
+	{
+#ifndef USE_FORTRAN_ORDER_ARRAY
+
+		if (self_[ndims - 1] > begin_[ndims - 1])
+			--self_[ndims - 1];
+
+		for (int i = ndims - 1; i > 0; --i)
+		{
+			if (self_[i] <= begin_[i])
+			{
+				self_[i] = end_[i] - 1;
+
+				if (self_[i - 1] > begin_[i - 1])
+					--self_[i - 1];
+			}
+		}
+
+#else
+
+		++self_[0];
+
+		for (int i = 0; i < ndims; ++i)
+		{
+			if (self_[i] < begin_[i])
+			{
+				self_[i] = end_[i] - 1;
+				--self_[i + 1];
+			}
+		}
+
+#endif //USE_FORTRAN_ORDER_ARRAY
+	}
+};
 
 }
 // namespace simpla

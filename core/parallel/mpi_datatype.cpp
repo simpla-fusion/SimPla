@@ -13,6 +13,16 @@
 namespace simpla
 {
 
+MPIDataType::MPIDataType()
+{
+}
+
+MPIDataType::~MPIDataType()
+{
+	if (is_commited_)
+		MPI_Type_free(&type_);
+}
+
 MPIDataType MPIDataType::create(DataType const & data_type)
 {
 	MPIDataType res;
@@ -60,34 +70,72 @@ MPIDataType MPIDataType::create(DataType const & data_type)
 	return (res);
 }
 
-MPIDataType MPIDataType::create(DataType const & data_type, unsigned int NDIMS, size_t const *outer,
-        size_t const * inner, size_t const * start, bool c_order_array)
+MPIDataType MPIDataType::create(DataType const & data_type, unsigned int ndims,
+		size_t const * dims,        //
+		size_t const * offset,      //
+		size_t const * stride,      //
+		size_t const * count,       //
+		size_t const * block,       //
+		bool c_order_array)
 {
+
 	MPIDataType res;
 
-	const int v_ndims = data_type.ndims;
+	unsigned int mdims = ndims + data_type.ndims;
 
-	int outer1[NDIMS + v_ndims];
-	int inner1[NDIMS + v_ndims];
-	int start1[NDIMS + v_ndims];
-	for (int i = 0; i < NDIMS; ++i)
+	nTuple<int, MAX_NDIMS_OF_ARRAY> m_dims;
+	nTuple<int, MAX_NDIMS_OF_ARRAY> m_count;
+	nTuple<int, MAX_NDIMS_OF_ARRAY> m_stride;
+	nTuple<int, MAX_NDIMS_OF_ARRAY> m_offset;
+	nTuple<int, MAX_NDIMS_OF_ARRAY> m_block;
+
+	auto old_type = MPIDataType::create(data_type);
+
+	if (dims == nullptr)
 	{
-		outer1[i] = outer[i];
-		inner1[i] = inner[i];
-		start1[i] = start[i];
+		WARNING << "Undefined array dimensions!!";
+
+		return old_type;
+	}
+	else
+	{
+		m_dims = dims;
+	}
+	if (offset == nullptr)
+	{
+		m_offset = 0;
+	}
+	else
+	{
+		m_offset = offset;
 	}
 
-	for (int i = 0; i < v_ndims; ++i)
+	if (count == nullptr)
 	{
-		outer1[NDIMS + i] = data_type.dimensions_[i];
-		inner1[NDIMS + i] = data_type.dimensions_[i];
-		start1[NDIMS + i] = 0;
+		m_count = m_dims;
+	}
+	else
+	{
+		m_count = count;
 	}
 
-	auto ele_type = MPIDataType::create(data_type);
+	if (stride != nullptr || block != nullptr)
+	{
+		//TODO create mpi datatype with stride and block
+		WARNING << "UNIMPLEMENTED!! 'stride'  and 'block' are ignored! "
+				<< std::endl;
+	}
 
-	MPI_Type_create_subarray(NDIMS + v_ndims, outer1, inner1, start1, (c_order_array ? MPI_ORDER_C : MPI_ORDER_FORTRAN),
-	        ele_type.type(), &res.type_);
+	for (int i = 0; i < data_type.ndims; ++i)
+	{
+		m_dims[ndims + i] = data_type.dimensions_[i];
+		m_count[ndims + i] = data_type.dimensions_[i];
+		m_offset[ndims + i] = 0;
+	}
+
+	MPI_Type_create_subarray(ndims + data_type.ndims, &m_dims[0], &m_count[0],
+			&m_offset[0], (c_order_array ? MPI_ORDER_C : MPI_ORDER_FORTRAN),
+			old_type.type(), &res.type_);
 
 	MPI_Type_commit(&res.type_);
 

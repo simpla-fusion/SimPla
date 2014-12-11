@@ -49,7 +49,7 @@ struct Particle<TDomain, Engine, _impl::IsKineticParticle> : public Engine,
 
 	typedef typename engine_type::Point_s Point_s;
 
-	typedef typename domain_type::compact_index_type mid_type; // id of mesh point
+	typedef typename domain_type::index_type mid_type; // id of mesh point
 
 	//***************************************************************************************************
 	// Constructor

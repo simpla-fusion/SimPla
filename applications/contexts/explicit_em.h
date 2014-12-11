@@ -527,7 +527,7 @@ bool ExplicitEMContext<TM>::pre_process()
 template<typename TM>
 void ExplicitEMContext<TM>::InitPECboundary()
 {
-	std::vector<typename mesh_type::compact_index_type> conduct_wall_E_;
+	std::vector<typename mesh_type::index_type> conduct_wall_E_;
 
 	for (auto s : E1.domain())
 	{
@@ -550,7 +550,7 @@ void ExplicitEMContext<TM>::InitPECboundary()
 		commandToE_.push_back(fun);
 	}
 
-	std::vector<typename mesh_type::compact_index_type> conduct_wall_B_;
+	std::vector<typename mesh_type::index_type> conduct_wall_B_;
 
 	for (auto s : B1.domain())
 	{

@@ -33,13 +33,13 @@ private:
 	typedef typename mesh_type::coordinates_type coordinates_type;
 	typedef typename mesh_type::scalar_type scalar_type;
 
-	typedef typename mesh_type::compact_index_type compact_index_type;
+	typedef typename mesh_type::index_type index_type;
 
 	static constexpr unsigned int NDIMS = mesh_type::NDIMS;
 
 	typedef Vec3 normal_polar_vec_type;
 
-	std::map<compact_index_type, normal_polar_vec_type> surface_;
+	std::map<index_type, normal_polar_vec_type> surface_;
 
 	typedef std::tuple<coordinates_type, Vec3, scalar_type> c_particle_type;
 
@@ -47,7 +47,7 @@ private:
 
 public:
 	mesh_type const & mesh;
-	std::vector<compact_index_type> range;
+	std::vector<index_type> range;
 
 	template<typename Func>
 	ParticleConstraint(mesh_type const & pm, engine_type const & pe, Func const & fun)

@@ -8,62 +8,62 @@
 #ifndef CORE_PARALLEL_PARALLEL_DUMMY_H_
 #define CORE_PARALLEL_PARALLEL_DUMMY_H_
 
+#include "../utilities/sp_foreach.h"
 namespace simpla
 {
+
+/**
+ *
+ * @param range Range Concept
+ * @param op std::function<void(Range)>
+ */
 template<typename Range, typename OP>
 void parallel_for(Range const & range, OP const & op)
 {
 	op(range);
 }
+
+/**
+ *
+ * @param range Range Concept
+ * @param op std::function<void(*Range::iterator)>
+ */
 template<typename Range, typename OP>
 void parallel_foreach(Range const & range, OP const & op)
 {
-	for (auto const & s : range)
-	{
-		op(s);
-	}
+	sp_foreach(range, op);
 }
+
+/**
+ *
+ * @param range  Range Concept
+ * @param op     std::function<T(Range)>
+ * @param reduce std::function<T(T,T)>
+ * @return T
+ */
 template<typename Value, typename Range, typename OP, typename Reduction>
-auto parallel_reduce(const Range& range, const OP& op,
+auto parallel_reduce(const Range& range, OP const& op,
 		const Reduction& reduce)->
 		typename std::result_of<OP(Range const &)>::type
 {
-//	auto b = begin(range);
-//	auto e = end(range);
-//
-//	auto res = op(get_value(std::forward<Args>(args),*b)...);
-//	++b;
-//
-//	for (; b != e; ++b)
-//	{
-//		reduce(res, op(get_value(std::forward<Args>(args),*b)...));
-//	}
 	return op(range);
 }
+/**
+ *
+ * @param range  Range Concept
+ * @param op     std::function<T(Range)>
+ * @return T
+ */
+template<typename Value, typename Range, typename OP>
+auto parallel_reduce(const Range& range, OP const& op)->
+typename std::result_of<OP(Range const &)>::type
+{
 
-//template<typename Range, typename Reduction, typename Args, typename Value>
-//Value parallel_reduce(const Range& range, const Reduction& reduce, Args&& args)
-//{
-//	auto b = begin(range);
-//	auto e = end(range);
-//
-//	auto res = get_value(std::forward<Args>(args), *b);
-//	++b;
-//
-//	for (; b != e; ++b)
-//	{
-//		res = reduce(res, get_value(std::forward<Args>(args), *b));
-//	}
-//	return res;
-//}
-//template<typename Range, typename Function, typename ... Others>
-//void parallel_for_each(Range& range, const Function& f, Others &&...others)
-//{
-//	for (auto const& s : range)
-//	{
-//		f(get_value(std::forward<Others>(others),*s)...);
-//	}
-//}
-}// namespace simpla
+	typedef typename std::result_of<OP(Range const &)>::type res_type;
+
+	return parallel_reduce(range, op, std::plus<res_type>());
+}
+
+} // namespace simpla
 
 #endif /* CORE_PARALLEL_PARALLEL_DUMMY_H_ */

@@ -18,5 +18,6 @@
 #include "misc_utilities.h"
 #include "../physics/physical_constants.h"
 #include "lua_object.h"
+#include "sp_foreach.h"
 
 #endif /* CORE_UTILITIES_MISC_UTILITIES_H_ */
