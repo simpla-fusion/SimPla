@@ -27,7 +27,7 @@ MPIComm::~MPIComm()
 
 void MPIComm::init(int argc, char** argv)
 {
-	bool show_help = argc <= 1;
+	bool show_help = false;
 	if (comm_ == MPI_COMM_NULL)
 	{
 		parse_cmd_line(argc, argv,

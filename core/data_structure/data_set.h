@@ -11,6 +11,7 @@
 #include <memory>
 
 #include "../utilities/properties.h"
+#include "../utilities/memory_pool.h"
 #include "data_type.h"
 #include "data_space.h"
 
@@ -35,6 +36,16 @@ struct DataSet
 		return data != nullptr && datatype.is_valid() && dataspace.is_valid();
 	}
 };
+
+template<typename T>
+DataSet make_dataset(int rank, size_t const * dims)
+{
+	DataSet res;
+	res.datatype = DataType::create<T>();
+	res.dataspace.init(rank, dims);
+	res.data = sp_make_shared_array<T>(res.dataspace.size());
+	return std::move(res);
+}
 
 }  // namespace simpla
 

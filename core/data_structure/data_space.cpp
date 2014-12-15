@@ -92,7 +92,17 @@ void DataSpace::init(int rank, const size_t * dims)
 	pimpl_->stride = 1;
 	pimpl_->block = 1;
 }
+size_t DataSpace::size() const
+{
+	size_t res = 1;
 
+	for (int i = 0; i < pimpl_->ndims; ++i)
+	{
+		res *= pimpl_->dimensions[i];
+	}
+
+	return res;
+}
 bool DataSpace::is_valid() const
 {
 	return pimpl_ != nullptr && pimpl_->is_valid();
