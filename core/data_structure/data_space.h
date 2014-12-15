@@ -58,6 +58,8 @@ public:
 		return true;
 	}
 
+	size_t size() const;
+
 	DataSpace const & global_space() const;
 
 	/**
