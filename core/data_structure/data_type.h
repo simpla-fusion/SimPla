@@ -71,6 +71,10 @@ public:
 		return *this;
 	}
 
+	bool is_valid() const
+	{
+		return true;
+	}
 	template<typename T> static DataType create()
 	{
 		static_assert( nTuple_traits<T>::ndims< MAX_NDIMS_OF_ARRAY,

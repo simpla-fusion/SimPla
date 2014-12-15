@@ -40,49 +40,61 @@ namespace simpla
 class DataStream
 {
 public:
+	Properties properties;
 
 	DataStream();
 
 	~DataStream();
 
-	Properties & properties();
-	Properties const & properties() const;
-
-	template<typename T> void properties(std::string const & name, T const&v)
-	{
-		properties().set(name, Any(v));
-	}
-
-	template<typename T> T properties(std::string const & name) const
-	{
-		return properties().get(name).template as<T>();
-	}
-
 	void init(int argc = 0, char** argv = nullptr);
 
-	std::string cd(std::string const & url, size_t is_append = 0UL);
+	/**
+	 *	  change the workiong path (file/group) of datastream ,
+	 *
+	 * @param url_hint  <filename>:<group name>/<dataset name>
+	 * @param flag SP_APPEND|SP_RECORD ...
+	 * @return  if dataset exists ,return <true,dataset name>
+	 *         else return ,return <false,dataset name>
+	 *         if <dataset name>=="" return <false,"">
+	 */
+	std::tuple<bool, std::string> cd(std::string const & url,
+			size_t flag = 0UL);
 
+	/**
+	 * @return current working path file/group
+	 */
 	std::string pwd() const;
 
+	/**
+	 *  close dataset,group and file
+	 */
 	void close();
 
-	bool command(std::string const & cmd);
+	/**
+	 * @return true if datastream is initialized.
+	 */
 
 	bool is_valid() const;
 
 	/**
-	 *
-	 * @param name             dataset name or path
+	 * write dataset to url
+	 * @param url             dataset name or path
 	 * @param ds		  	   data set
 	 * @param flag             flag to define the operation
 	 * @return
 	 */
 
-	std::string write(std::string const &name, DataSet const & ds, size_t flag =
-			0UL) const;
+	std::string write(std::string const &url, DataSet const & ds, size_t flag =
+			0UL);
 
-	std::string read(std::string const &name, DataSet *ds,
-			size_t flag = 0UL) const;
+	/**
+	 * 	read dataset from url
+	 * @param url
+	 * @param ds
+	 * @param flag
+	 * @return
+	 */
+	std::string read(std::string const &url, DataSet *ds, size_t flag = 0UL);
 
 	/**
 	 *
@@ -90,7 +102,6 @@ public:
 	 * @param d_type
 	 * @param v
 	 */
-
 	void set_attribute(std::string const &url, DataType const & d_type,
 			void const * buff);
 
@@ -124,8 +135,7 @@ public:
 
 private:
 	struct pimpl_s;
-
-	std::unique_ptr<pimpl_s> pimpl_;
+	pimpl_s * pimpl_;
 
 }
 ;
