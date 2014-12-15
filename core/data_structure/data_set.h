@@ -12,7 +12,7 @@
 
 #include "../utilities/properties.h"
 #include "data_type.h"
-#include "dataspace.h"
+#include "data_space.h"
 
 namespace simpla
 {
@@ -29,6 +29,11 @@ struct DataSet
 	Properties attribute;
 	DataType datatype;
 	DataSpace dataspace;
+
+	bool is_valid() const
+	{
+		return data != nullptr && datatype.is_valid() && dataspace.is_valid();
+	}
 };
 
 }  // namespace simpla
