@@ -45,6 +45,7 @@ public:
 	MPI_Info info();
 
 	bool is_valid() const;
+	int id() const;
 	int get_rank() const;
 	int process_num() const;
 	int get_size() const;

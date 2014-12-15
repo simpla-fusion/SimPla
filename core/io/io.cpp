@@ -30,7 +30,7 @@ std::string save(std::string const & url, DataSet const & ds, size_t flag)
 
 std::string cd(std::string const & url)
 {
-	return GLOBAL_DATA_STREAM.cd(url );
+	return std::get<1>(GLOBAL_DATA_STREAM.cd(url ));
 }
 
 void set_dataset_attribute(std::string const &url, DataType const & d_type,
