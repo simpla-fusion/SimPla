@@ -83,19 +83,19 @@ DataStream::DataStream() :
 	hid_t error_stack = H5Eget_current_stack();
 	H5Eset_auto(error_stack, NULL, NULL);
 
-	properties["File Name"] = std::string("");
-
-	properties["Group Name"] = std::string("/");
-
-	properties["Suffix Width"] = 4;
-
-	properties["Light Data Limit"] = 20;
-
-	properties["Enable Compact Storage"] = false;
-
-	properties["Enable XDMF"] = false;
-
-	properties["Cache Depth"] = static_cast<int>(50);
+//	properties["File Name"] = std::string("");
+//
+//	properties["Group Name"] = std::string("/");
+//
+//	properties["Suffix Width"] = 4;
+//
+//	properties["Light Data Limit"] = 20;
+//
+//	properties["Enable Compact Storage"] = false;
+//
+//	properties["Enable XDMF"] = false;
+//
+//	properties["Cache Depth"] = static_cast<int>(50);
 
 }
 DataStream::~DataStream()
@@ -118,7 +118,10 @@ std::string DataStream::pwd() const
 }
 void DataStream::init(int argc, char** argv)
 {
-	bool show_help = argc <= 1;
+	if (pimpl_ == nullptr)
+		pimpl_ = new pimpl_s;
+
+	bool show_help = false;
 
 	parse_cmd_line(argc, argv,
 
@@ -126,16 +129,20 @@ void DataStream::init(int argc, char** argv)
 	{
 		if(opt=="o"||opt=="prefix")
 		{
-			properties.set("File Name",value);
+			std::tie(pimpl_->current_filename_,pimpl_->current_groupname_,
+					std::ignore,std::ignore)
+			=pimpl_->parser_url(value);
+
+//			properties.set("File Name",value);
 		}
-		else if(opt=="force-write-cache")
-		{
-			properties.set("Force Write Cache",true);
-		}
-		else if(opt=="cache-depth")
-		{
-			properties.set("Cache Depth",ToValue<size_t>(value));
-		}
+//		else if(opt=="force-write-cache")
+//		{
+//			properties.set("Force Write Cache",true);
+//		}
+//		else if(opt=="cache-depth")
+//		{
+//			properties.set("Cache Depth",ToValue<size_t>(value));
+//		}
 		else if(opt=="h"||opt=="help"||opt=="t")
 		{
 			show_help=true;
@@ -149,17 +156,14 @@ void DataStream::init(int argc, char** argv)
 	if (show_help)
 	{
 		SHOW_OPTIONS("-o,--prefix <STRING>", "output file path");
-
 	}
-	else
-	{
-		pimpl_->current_filename_ = properties["File Name"].template as<
-				std::string>();
-
-		pimpl_->current_groupname_ = "/";
-
-		cd(pwd());
-	}
+//	else
+//	{
+////		pimpl_->current_filename_ = properties["File Name"].template as<
+////				std::string>();
+//
+//		pimpl_->current_groupname_ = "/";
+//	}
 
 }
 void bcast_string(std::string * filename_)
@@ -198,9 +202,14 @@ void bcast_string(std::string * filename_)
 std::tuple<bool, std::string> DataStream::cd(std::string const &url,
 		size_t flag)
 {
-	std::string file_name, grp_name, obj_name;
-	std::tie(file_name, grp_name, obj_name, std::ignore) = pimpl_->parser_url(
-			url);
+	std::string file_name = pimpl_->current_filename_, grp_name =
+			pimpl_->current_groupname_, obj_name = "";
+
+	if (url != "")
+	{
+		std::tie(file_name, grp_name, obj_name, std::ignore) =
+				pimpl_->parser_url(url);
+	}
 
 	//TODO using regex parser url
 
@@ -241,7 +250,8 @@ std::tuple<bool, std::string> DataStream::cd(std::string const &url,
 		std::tie(pimpl_->current_groupname_, pimpl_->base_group_id_) =
 				pimpl_->open_group(grp_name);
 	}
-	if (obj_name != "" && (flag & SP_APPEND) != SP_APPEND)
+
+	if (obj_name != "" && ((flag & (SP_APPEND | SP_RECORD)) == 0UL))
 	{
 #if !NO_MPI || USE_MPI
 		if (GLOBAL_COMM.get_rank() == 0)
@@ -259,8 +269,11 @@ std::tuple<bool, std::string> DataStream::cd(std::string const &url,
 		bcast_string(&obj_name);
 	}
 
-	bool is_existed = H5Lexists(pimpl_->base_group_id_, obj_name.c_str(),
-	H5P_DEFAULT) == 0;
+	bool is_existed = false;
+
+	if (obj_name != "")
+		is_existed = H5Lexists(pimpl_->base_group_id_, obj_name.c_str(),
+		H5P_DEFAULT) != 0;
 
 	return std::make_tuple(is_existed, obj_name);
 }
@@ -632,11 +645,7 @@ hid_t DataStream::pimpl_s::create_h5_dataspace(DataSpace const &d_space,
 
 	std::tie(ndims, dims, offset, count, stride, block) = d_space.shape();
 
-	if ((flag & SP_RECORD) == 0)
-	{
-
-	}
-	else if ((flag & SP_RECORD) != 0)
+	if ((flag & SP_RECORD) != 0UL)
 	{
 		dims[ndims] = 1;
 		offset[ndims] = 0;
@@ -649,9 +658,9 @@ hid_t DataStream::pimpl_s::create_h5_dataspace(DataSpace const &d_space,
 	dims_type max_dims;
 	max_dims = dims;
 
-	if ((flag & SP_APPEND) != 0 || (flag & SP_RECORD) != 0)
+	if ((flag & (SP_APPEND | SP_RECORD)) != 0UL)
 	{
-		max_dims[ndims] = H5S_UNLIMITED;
+		max_dims[ndims - 1] = H5S_UNLIMITED;
 	}
 
 	hid_t res = H5Screate_simple(ndims, &dims[0], &max_dims[0]);
@@ -692,7 +701,7 @@ std::string DataStream::write(std::string const & url, DataSet const &ds,
 
 		hid_t dcpl_id = H5P_DEFAULT;
 
-		if ((flag & SP_APPEND) != 0)
+		if ((flag & (SP_APPEND | SP_RECORD)) != 0)
 		{
 			pimpl_s::dims_type current_dims;
 
@@ -732,11 +741,11 @@ std::string DataStream::write(std::string const & url, DataSet const &ds,
 		pimpl_s::dims_type new_f_dimensions;
 		pimpl_s::dims_type new_f_max_dimensions;
 		pimpl_s::dims_type new_f_offset;
-
-		int new_f_ndims = H5Sget_simple_extent_dims(current_f_space,
+		pimpl_s::dims_type new_f_end;
+		int new_f_ndims = H5Sget_simple_extent_dims(f_space,
 				&new_f_dimensions[0], &new_f_max_dimensions[0]);
 
-		H5Sget_select_bounds(f_space, &new_f_offset[0], nullptr);
+		H5Sget_select_bounds(f_space, &new_f_offset[0], &new_f_end[0]);
 
 		ASSERT(current_ndims == current_ndims);
 		ASSERT(new_f_max_dimensions[new_f_ndims-1]==H5S_UNLIMITED);
@@ -745,6 +754,8 @@ std::string DataStream::write(std::string const & url, DataSet const &ds,
 				current_dimensions[new_f_ndims - 1];
 
 		new_f_offset[new_f_ndims - 1] += current_dimensions[new_f_ndims - 1];
+
+		H5Dset_extent(dset, &new_f_dimensions[0]);
 
 		H5Sset_extent_simple(f_space, new_f_ndims, &new_f_dimensions[0],
 				&new_f_max_dimensions[0]);
