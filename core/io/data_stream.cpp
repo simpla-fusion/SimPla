@@ -689,10 +689,9 @@ std::string DataStream::write(std::string const & url, DataSet const &ds,
 
 	hid_t m_type = pimpl_->create_h5_datatype(ds.datatype);
 
-	hid_t m_space = pimpl_->create_h5_dataspace(ds.dataspace);
+	hid_t m_space = pimpl_->create_h5_dataspace(ds.dataspace.local_space());
 
-	hid_t f_space = pimpl_->create_h5_dataspace(ds.dataspace.global_space(),
-			flag);
+	hid_t f_space = pimpl_->create_h5_dataspace(ds.dataspace, flag);
 
 	hid_t dset;
 
