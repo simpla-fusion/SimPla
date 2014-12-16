@@ -69,24 +69,23 @@ bool PointInRectangle(nTuple<TR, DIM> const &x, TRange const & range)
 }
 
 template<typename TI>
-bool Clipping(int ndims, TI const & l_start, TI const & l_count, TI & r_start,
-		TI & r_count)
+bool clipping(int ndims, TI const * l_begin, TI const * l_end, TI * r_begin,
+		TI * r_end)
 {
 	bool has_overlap = false;
 
 	for (int i = 0; i < ndims; ++i)
 	{
-		if (r_start[i] + r_count[i] <= l_start[i]
-				|| r_start[i] >= l_start[i] + l_count[i])
+		if (r_end[i] <= l_begin[i] || r_begin[i] >= l_end[i])
 			return false;
 
-		auto begin = std::max(l_start[i], r_start[i]);
-		auto end = std::min(l_start[i] + l_count[i], r_start[i] + r_count[i]);
+		auto begin = std::max(l_begin[i], r_begin[i]);
+		auto end = std::min(l_end[i], r_end[i]);
 
 		if (end > begin)
 		{
-			r_start[i] = begin;
-			r_count[i] = end - begin;
+			r_begin[i] = begin;
+			r_end[i] = end;
 
 			has_overlap = true;
 		}
@@ -95,33 +94,11 @@ bool Clipping(int ndims, TI const & l_start, TI const & l_count, TI & r_start,
 	return has_overlap;
 }
 template<typename TS, size_t NDIMS>
-bool Clipping(nTuple<TS, NDIMS> l_start, nTuple<TS, NDIMS> l_count,
-		nTuple<TS, NDIMS> *pr_start, nTuple<TS, NDIMS> *pr_count)
+bool clipping(nTuple<TS, NDIMS> l_begin, nTuple<TS, NDIMS> l_end,
+		nTuple<TS, NDIMS> *pr_begin, nTuple<TS, NDIMS> *pr_end)
 {
-	bool has_overlap = false;
-
-	nTuple<TS, NDIMS> & r_start = *pr_start;
-	nTuple<TS, NDIMS> & r_count = *pr_count;
-
-	for (int i = 0; i < NDIMS; ++i)
-	{
-		if (r_start[i] + r_count[i] <= l_start[i]
-				|| r_start[i] >= l_start[i] + l_count[i])
-			return false;
-
-		TS begin = std::max(l_start[i], r_start[i]);
-		auto end = std::min(l_start[i] + l_count[i], r_start[i] + r_count[i]);
-
-		if (end > begin)
-		{
-			r_start[i] = begin;
-			r_count[i] = end - begin;
-
-			has_overlap = true;
-		}
-	}
-
-	return has_overlap;
+	return clipping(NDIMS, &l_begin[0], &l_end[0], &(*pr_begin)[0],
+			&(*pr_end)[0]);
 }
 
 //inline nTuple<Real,3> Distance(nTuple<2, nTuple<Real,3>> p, nTuple<Real,3> const &x)
@@ -236,6 +213,48 @@ void createSurface(TModel const & model, Real width, TSurface * surf)
 ////		}
 ////
 ////	}
+}
+
+/**
+ * decompose a N-dimensional block range [b,e) into 'num_part' parts,
+ * and return the 'proc_num'th part [ob,oe)
+ * @param b minus index of block range
+ * @param e maxim index of block range
+ * @param num_part
+ * @param part_num
+ * @param decompose_method select decompose algorithm (UNIMPLEMENTED)
+ * @return  the 'proc_num'th part [ob,oe)
+ * if 'num_part==0' return [b,e)
+ */
+template<typename TI, size_t N>
+std::tuple<nTuple<TI, N>, nTuple<TI, N>> block_decompose(
+		nTuple<TI, N> const & b, nTuple<TI, N> const & e, int num_part = 0,
+		int part_num = 0, size_t decompose_method = 0UL)
+{
+	if (num_part == 0)
+	{
+		return std::forward_as_tuple(b, e);
+	}
+
+	nTuple<TI, N> ob, oe;
+
+	TI length = 0;
+	int dim_num = 0;
+	for (int i = 0; i < N; ++i)
+	{
+		if (e[i] - b[i] > length)
+		{
+			length = e[i] - b[i];
+			dim_num = i;
+		}
+	}
+
+	ob = b;
+	oe = e;
+	ob[dim_num] = b[dim_num] + (length * part_num) / num_part;
+	oe[dim_num] = b[dim_num] + (length * (part_num + 1)) / num_part;
+
+	return std::forward_as_tuple(ob, oe);
 }
 
 //! @}

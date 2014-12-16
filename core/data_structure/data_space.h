@@ -11,7 +11,7 @@
 #include <stddef.h>
 #include <string>
 #include <tuple>
-
+#include <memory>
 #include "../utilities/ntuple.h"
 
 namespace simpla
@@ -26,12 +26,12 @@ struct DataSet;
 class DataSpace
 {
 public:
+	Properties properties;
 
 	// Creates a null dataspace
 	DataSpace();
 
-	// Creates a simple dataspace
-	DataSpace(int rank, const size_t * dims);
+	DataSpace(int rank, size_t const * dims, const size_t * gw = nullptr);
 
 	// Copy constructor: makes a copy of the original DataSpace object.
 	DataSpace(const DataSpace& other);
@@ -44,11 +44,9 @@ public:
 
 	void swap(DataSpace &);
 
-	void init(int rank, const size_t * dims);
+	void init(int rank, const size_t * dims, const size_t * gw = nullptr);
 
 	bool is_valid() const;
-
-	bool is_distributed() const;
 
 	bool is_simple() const
 	{
@@ -60,23 +58,31 @@ public:
 
 	size_t size() const;
 
-	DataSpace const & global_space() const;
-
 	/**
 	 * @return <ndims,dimensions,start,count,stride,block>
 	 */
-
 	std::tuple<size_t, size_t const *, size_t const *, size_t const *,
 			size_t const *, size_t const *> shape() const;
 
-	bool select_hyperslab(size_t const *start, size_t const * count,
+	bool select_hyperslab(size_t const *offset, size_t const * count,
 			size_t const * stride = nullptr, size_t const * block = nullptr);
 
-	std::map<int, std::shared_ptr<DataSpace>> neighgours;
+	void decompose(int num_procs = 0, size_t const * gw = nullptr);
+
+	bool is_distributed() const;
+
+	DataSpace const & local_space() const;
+
+	std::map<int, DataSpace> const& neighgours() const
+	{
+		return neighgours_;
+	}
 
 private:
 	struct pimpl_s;
-	pimpl_s *pimpl_;
+	pimpl_s * pimpl_;
+
+	std::map<int, DataSpace> neighgours_;
 
 };
 template<typename ... Args>

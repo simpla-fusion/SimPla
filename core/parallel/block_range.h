@@ -15,13 +15,14 @@
 
 namespace simpla
 {
-
-template<typename TI, size_t N>
-struct BlockRange
+template<typename TI, size_t N = 1>
+struct BlockRange;
+template<typename TI>
+struct BlockRange<TI, 1>
 {
-	typedef nTuple<TI, N> value_type;
+	typedef nTuple<TI, 1> value_type;
 
-	nTuple<TI, N> begin_, end_;
+	TI begin_, end_;
 
 	struct iterator;
 
@@ -71,10 +72,6 @@ struct BlockRange
 		++e;
 		return std::move(e);
 	}
-
-
-
-
 
 };
 //! iterator

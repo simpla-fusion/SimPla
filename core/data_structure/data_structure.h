@@ -10,8 +10,8 @@
 
 #include "data_set.h"
 #include "data_type.h"
+#include "data_space.h"
 #include "container_traits.h"
-#include "dataspace.h"
 
 
 #endif /* CORE_DATA_STRUCTURE_DATA_STRUCTURE_H_ */
