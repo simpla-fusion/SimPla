@@ -31,6 +31,8 @@ TEST(datastream,write)
 
 	auto ds = make_dataset<value_type>(ndims, dims);
 
+
+
 	value_type* f0 = reinterpret_cast<value_type*>(ds.data.get());
 	for (size_t i = 0; i < dims[0]; ++i)
 	{

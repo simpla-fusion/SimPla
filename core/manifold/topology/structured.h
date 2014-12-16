@@ -24,7 +24,10 @@
 #include "../../utilities/sp_type_traits.h"
 #include "../../numeric/geometric_algorithm.h"
 #include "../../data_structure/data_structure.h"
-#include "../../parallel/distributed_array.h"
+
+#if !NO_MPI || USE_MPI
+#include "../../parallel/mpi_comm.h"
+#endif
 
 namespace simpla
 {
@@ -40,7 +43,14 @@ struct StructuredMesh
 {
 
 	typedef StructuredMesh this_type;
-	typedef StructuredMesh mesh_type;
+
+	static constexpr size_t ndims = 3;
+
+	typedef unsigned long index_type;
+	typedef nTuple<index_type, ndims> index_tuple;
+
+	typedef unsigned long id_type;
+	typedef nTuple<Real, ndims> coordinates_type;
 
 	enum
 	{
@@ -48,24 +58,21 @@ struct StructuredMesh
 	};
 	static constexpr size_t MAX_NUM_NEIGHBOUR_ELEMENT = 12;
 	static constexpr size_t MAX_NUM_VERTEX_PER_CEL = 8;
-	static constexpr size_t ndims = 3;
 	static constexpr size_t DEFAULT_GHOSTS_WIDTH = 3;
-	typedef size_t size_type;
-	typedef unsigned long index_type;
-	typedef nTuple<Real, ndims> coordinates_type;
-	typedef nTuple<size_type, ndims> index_tuple;
+
 private:
 	bool is_valid_ = false;
 public:
 
+	Properties properties;
 	//***************************************************************************************************
 
 	StructuredMesh()
 	{
 	}
-	StructuredMesh(nTuple<size_type, ndims> const &dims)
+	StructuredMesh(nTuple<size_t, ndims> const &dims)
 	{
-		dimensions(dims);
+		dimensions(&dims[0]);
 	}
 	virtual ~StructuredMesh()
 	{
@@ -80,8 +87,13 @@ public:
 	template<typename TDict>
 	bool load(TDict const & dict)
 	{
-
-		if (!dict["Dimensions"].is_table())
+		if (dict["Type"].template as<std::string>() != get_type_as_string())
+		{
+			RUNTIME_ERROR(
+					"Illegal topology type! "
+							+ dict["Type"].template as<std::string>());
+		}
+		else if (!dict["Dimensions"].is_table())
 		{
 			WARNING << ("Configure  error: no 'Dimensions'!") << std::endl;
 			return false;
@@ -91,7 +103,7 @@ public:
 		{
 			VERBOSE << "Load topology : Structured  Mesh " << std::endl;
 
-			dimensions(dict["Dimensions"].template as<nTuple<size_type, 3>>());
+			dimensions(dict["Dimensions"].template as<nTuple<size_t, 3>>());
 
 			return true;
 		}
@@ -100,7 +112,13 @@ public:
 	template<typename OS>
 	OS & print(OS &os) const
 	{
-		os << " Dimensions =  " << dimensions() << ",";
+		os
+
+		<< " Type = \"" << get_type_as_string() << "\", "
+
+		<< " Dimensions =  " << dimensions() << ","
+
+		<< properties << ",";
 
 		return os;
 	}
@@ -111,11 +129,6 @@ public:
 	static std::string name()
 	{
 		return "StructuredMesh";
-	}
-
-	std::string save(std::string const &path) const
-	{
-		return path;
 	}
 
 	/**@defgroup time
@@ -142,19 +155,15 @@ public:
 	//! @defgroup   Data Set shape
 	//! @{
 
-	index_tuple global_count_;
+	index_tuple dimensions_;
 
-	index_tuple global_begin_, global_end_;
-
-	index_tuple local_outer_begin_, local_outer_end_, local_outer_count_,
-			local_strides_;
+	index_tuple local_outer_begin_, local_outer_end_, local_outer_count_;
 
 	index_tuple local_inner_begin_, local_inner_end_, local_inner_count_;
 
-	index_type global_begin_compact_index_ = 0UL;
+	index_tuple ghost_width;
 
-	DataSpace data_space_;
-
+	index_tuple hash_strides_;
 	//  \verbatim
 	//
 	//   |----------------|----------------|---------------|--------------|------------|
@@ -165,628 +174,13 @@ public:
 	//
 	//  \endverbatim
 
-	void dimensions(nTuple<size_t, ndims> const &d)
-	{
 
-		for (int i = 0; i < ndims; ++i)
-		{
-			size_type length = d[i] > 0 ? d[i] : 1;
 
-			global_count_[i] = length;
-			global_begin_[i] = 0;
-			//	(1UL << (INDEX_DIGITS - MAX_DEPTH_OF_TREE - 1)) - length / 2;
-		}
-
-		global_end_ = global_begin_ + global_count_;
-
-		global_begin_compact_index_ = compact(global_begin_)
-				<< MAX_DEPTH_OF_TREE;
-
-		data_space_.init(ndims, &global_begin_[0], &global_count_[0],
-				DEFAULT_GHOSTS_WIDTH);
-
-		std::tie(local_outer_begin_, local_outer_count_) =
-				data_space_.local_shape();
-
-		CHECK(local_outer_begin_);
-		CHECK(local_outer_count_);
-
-		local_outer_end_ = local_outer_count_ + local_outer_begin_;
-
-		std::tie(local_inner_begin_, local_inner_count_, std::ignore,
-				std::ignore) = data_space_.shape();
-
-		CHECK(local_inner_begin_);
-		CHECK(local_inner_count_);
-
-		local_inner_end_ = local_inner_count_ + local_inner_begin_;
-
-		local_strides_[2] = 1;
-		local_strides_[1] = local_outer_count_[2] * local_strides_[2];
-		local_strides_[0] = local_outer_count_[1] * local_strides_[1];
-
-		update();
-
-	}
-
-	auto dimensions() const
-	DECL_RET_TYPE (global_count_)
-
-	std::pair<coordinates_type, coordinates_type> extents() const
-	{
-		coordinates_type b, e;
-		b = 0;
-
-		for (int i = 0; i < ndims; ++i)
-		{
-			e[i] = global_count_[i] > 1 ? 1.0 : 0.0;
-		}
-
-		return std::move(std::make_pair(b, e));
-	}
-
-	bool check_memory_bounds(index_type s) const
-	{
-		unsigned mtree = MAX_DEPTH_OF_TREE;
-		auto idx = decompact(s) >> mtree;
-		return
-
-		idx[0] >= local_outer_begin_[0]
-
-		&& idx[0] < local_outer_end_[0]
-
-		&& idx[1] >= local_outer_begin_[1]
-
-		&& idx[1] < local_outer_end_[1]
-
-		&& idx[2] >= local_outer_begin_[2]
-
-		&& idx[2] < local_outer_end_[2]
-
-		;
-
-	}
-
-	template<size_t IFORM>
-	DataSpace dataspace() const
-	{
-		DataSpace res(data_space_);
-
-		return std::move(res);
-	}
-
-	template<size_t IFORM>
-	size_t get_num_of_elements() const
-	{
-		return NProduct(global_count_)
-				* ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
-	}
-//
-//	index_tuple local_dimensions() const
-//	{
-//		return local_inner_count_;
-//	}
-//
-//	size_t get_memory_size(size_t iform = VERTEX) const
-//	{
-//		return get_local_memory_size(iform);
-//	}
-//
-//	/**
-//	 *
-//	 * @return tuple <memory shape, begin, count>
-//	 */
-//	std::tuple<index_tuple, index_tuple, index_tuple> get_local_memory_shape() const
-//	{
-//		std::tuple<index_tuple, index_tuple, index_tuple> res;
-//
-//		std::get<0>(res) = local_outer_count_;
-//
-//		std::get<1>(res) = local_inner_begin_ - local_outer_begin_;
-//
-//		std::get<2>(res) = local_inner_count_;
-//
-//		return std::move(res);
-//	}
-//
-//	index_type get_local_num_of_elements(size_t iform = VERTEX) const
-//	{
-//		return NProduct(std::get<2>(get_local_memory_shape()))
-//				* ((iform == VERTEX || iform == VOLUME) ? 1 : 3);
-//	}
-//	index_type get_local_memory_size(size_t iform = VERTEX) const
-//	{
-//		return NProduct(std::get<0>(get_local_memory_shape()))
-//				* ((iform == VERTEX || iform == VOLUME) ? 1 : 3);
-//	}
-//
-//	int dataset_shape(int IFORM, size_t * global_begin = nullptr,
-//			size_t * global_end = nullptr, size_t * local_outer_begin = nullptr,
-//			size_t * local_outer_end = nullptr, size_t * local_inner_begin =
-//					nullptr, size_t * local_inner_end = nullptr) const
-//	{
-//		int rank = 0;
-//
-//		for (int i = 0; i < ndims; ++i)
-//		{
-//			if (global_end_[i] - global_begin_[i] > 1)
-//			{
-//
-//				if (global_begin != nullptr)
-//					global_begin[rank] = global_begin_[i];
-//
-//				if (global_end != nullptr)
-//					global_end[rank] = global_end_[i];
-//
-//				if (local_outer_begin != nullptr)
-//					local_outer_begin[rank] = local_outer_begin_[i];
-//
-//				if (local_outer_end != nullptr)
-//					local_outer_end[rank] = local_outer_end_[i];
-//
-//				if (local_inner_begin != nullptr)
-//					local_inner_begin[rank] = local_inner_begin_[i];
-//
-//				if (local_inner_end != nullptr)
-//					local_inner_end[rank] = local_inner_end_[i];
-//
-//				++rank;
-//			}
-//
-//		}
-//		if (IFORM == EDGE || IFORM == FACE)
-//		{
-//			if (global_begin != nullptr)
-//				global_begin[rank] = 0;
-//
-//			if (global_end != nullptr)
-//				global_end[rank] = 3;
-//
-//			if (local_outer_begin != nullptr)
-//				local_outer_begin[rank] = 0;
-//
-//			if (local_outer_end != nullptr)
-//				local_outer_end[rank] = 3;
-//
-//			if (local_inner_begin != nullptr)
-//				local_inner_begin[rank] = 0;
-//
-//			if (local_inner_end != nullptr)
-//				local_inner_end[rank] = 3;
-//
-//			++rank;
-//		}
-//		return rank;
-//	}
-//
-//	template<typename TR>
-//	int dataset_shape(TR const& range, size_t * global_begin = nullptr,
-//			size_t * global_end = nullptr, size_t * local_outer_begin = nullptr,
-//			size_t * local_outer_end = nullptr, size_t * local_inner_begin =
-//					nullptr, size_t * local_inner_end = nullptr) const
-//	{
-//		size_t IFORM = IForm(*begin(range));
-//		int rank = 0;
-//
-//		index_tuple outer_begin, outer_end, outer_count;
-//
-//		index_tuple inner_begin, inner_end, inner_count;
-//
-//		inner_begin = begin(range).self_;
-//		inner_end = (end(range)--).self_ + 1;
-//
-//		outer_begin = inner_begin + (-local_inner_begin_ + local_outer_begin_);
-//
-//		outer_end = inner_end + (-local_inner_end_ + local_outer_end_);
-//
-//		for (int i = 0; i < ndims; ++i)
-//		{
-//			if (global_end_[i] - global_begin_[i] > 1)
-//			{
-//
-//				if (global_begin != nullptr)
-//					global_begin[rank] = global_begin_[i];
-//
-//				if (global_end != nullptr)
-//					global_end[rank] = global_end_[i];
-//
-//				if (local_outer_begin != nullptr)
-//					local_outer_begin[rank] = outer_begin[i];
-//
-//				if (local_outer_end != nullptr)
-//					local_outer_end[rank] = outer_end[i];
-//
-//				if (local_inner_begin != nullptr)
-//					local_inner_begin[rank] = inner_begin[i];
-//
-//				if (local_inner_end != nullptr)
-//					local_inner_end[rank] = inner_end[i];
-//
-//				++rank;
-//			}
-//
-//		}
-//		if (IFORM == EDGE || IFORM == FACE)
-//		{
-//			if (global_begin != nullptr)
-//				global_begin[rank] = 0;
-//
-//			if (global_end != nullptr)
-//				global_end[rank] = 3;
-//
-//			if (local_outer_begin != nullptr)
-//				local_outer_begin[rank] = 0;
-//
-//			if (local_outer_end != nullptr)
-//				local_outer_end[rank] = 3;
-//
-//			if (local_inner_begin != nullptr)
-//				local_inner_begin[rank] = 0;
-//
-//			if (local_inner_end != nullptr)
-//				local_inner_end[rank] = 3;
-//
-//			++rank;
-//		}
-//		return rank;
-//	}
-
-	/** @{*/
-	struct iterator;
-
-	struct range
-	{
-
-		typedef typename StructuredMesh::iterator iterator;
-
-		index_tuple begin_, end_;
-		index_type shift_ = 0UL;
-
-		range()
-		{
-		}
-
-		range(index_tuple const & b, index_tuple const& e, index_type shift) :
-				begin_(b), end_(e), shift_(shift)
-		{
-		}
-
-		range(range const & that) :
-				begin_(that.begin_), end_(that.end_), shift_(that.shift_)
-		{
-		}
-		~range()
-		{
-		}
-
-		iterator begin() const
-		{
-			return iterator(begin_, end_, shift_);
-		}
-
-		iterator end() const
-		{
-			iterator e(begin_, end_, shift_);
-			e.NextCell();
-			return std::move(e);
-		}
-
-		iterator rbegin() const
-		{
-			return iterator(begin_, end_, shift_);
-		}
-
-		iterator rend() const
-		{
-
-			iterator e(begin_, end_, shift_);
-			--e;
-			return std::move(e);
-		}
-
-	}; //struct range
-
-	//! iterator
-	struct iterator
-	{
-		typedef std::bidirectional_iterator_tag iterator_category;
-
-		typedef index_type value_type;
-
-		index_type shift_;
-
-		nTuple<size_type, ndims> self_, begin_, end_;
-
-		iterator(iterator const & r) :
-				shift_(r.shift_), self_(r.self_), begin_(r.begin_), end_(r.end_)
-		{
-		}
-		iterator(iterator && r) :
-				shift_(r.shift_), self_(r.self_), begin_(r.begin_), end_(r.end_)
-		{
-		}
-
-		iterator(nTuple<size_type, ndims> const & b,
-				nTuple<size_type, ndims> const e, index_type shift = 0UL) :
-				shift_(shift), self_(b), begin_(b), end_(e)
-		{
-		}
-
-		~iterator()
-		{
-		}
-
-		bool operator==(iterator const & rhs) const
-		{
-			return self_ == rhs.self_ && shift_ == rhs.shift_;
-		}
-
-		bool operator!=(iterator const & rhs) const
-		{
-			return !(this->operator==(rhs));
-		}
-
-		value_type operator*() const
-		{
-			return compact(self_ << MAX_DEPTH_OF_TREE) | shift_;
-		}
-
-		iterator const * operator->() const
-		{
-			return this;
-		}
-		iterator * operator->()
-		{
-			return this;
-		}
-
-		iterator & operator ++()
-		{
-			next();
-			return *this;
-		}
-		iterator operator ++(int) const
-		{
-			iterator res(*this);
-			++res;
-			return std::move(res);
-		}
-
-		iterator & operator --()
-		{
-			prev();
-			return *this;
-		}
-
-		iterator operator --(int) const
-		{
-			iterator res(*this);
-			--res;
-			return std::move(res);
-		}
-
-#ifndef USE_FORTRAN_ORDER_ARRAY
-		static constexpr size_t ARRAY_ORDER = C_ORDER;
-#else
-		static constexpr size_t ARRAY_ORDER=FOTRAN_ORDER;
-#endif
-
-		void NextCell()
-		{
-			CHECK(self_);
-			CHECK(begin_);
-			CHECK(end_);
-#ifndef USE_FORTRAN_ORDER_ARRAY
-			++self_[ndims - 1];
-
-			for (int i = ndims - 1; i > 0; --i)
-			{
-				if (self_[i] >= end_[i])
-				{
-					self_[i] = begin_[i];
-					++self_[i - 1];
-				}
-			}
-#else
-			++self_[0];
-
-			for (int i = 0; i < ndims - 1; ++i)
-			{
-				if (self_[i] >= end_[i])
-				{
-					self_[i] = begin_[i];
-					++self_[i + 1];
-				}
-			}
-#endif
-		}
-
-		void PreviousCell()
-		{
-#ifndef USE_FORTRAN_ORDER_ARRAY
-
-			if (self_[ndims - 1] > begin_[ndims - 1])
-				--self_[ndims - 1];
-
-			for (int i = ndims - 1; i > 0; --i)
-			{
-				if (self_[i] <= begin_[i])
-				{
-					self_[i] = end_[i] - 1;
-
-					if (self_[i - 1] > begin_[i - 1])
-						--self_[i - 1];
-				}
-			}
-
-#else
-
-			++self_[0];
-
-			for (int i = 0; i < ndims; ++i)
-			{
-				if (self_[i] < begin_[i])
-				{
-					self_[i] = end_[i] - 1;
-					--self_[i + 1];
-				}
-			}
-
-#endif //USE_FORTRAN_ORDER_ARRAY
-		}
-	public:
-
-		void next()
-		{
-			CHECK(shift_);
-			auto n = node_id(shift_);
-
-			if (n == 0 || n == 1 || n == 6 || n == 7)
-			{
-				NextCell();
-			}
-
-			shift_ = roate(shift_);
-		}
-		void prev()
-		{
-			auto n = node_id(shift_);
-
-			if (n == 0 || n == 4 || n == 3 || n == 7)
-			{
-				PreviousCell();
-			}
-
-			shift_ = inverse_roate(shift_);
-		}
-	};
-
-	typedef range range_type;
-
-	inline range_type make_range(index_tuple begin, index_tuple end,
-			index_type shift = 0UL) const
-	{
-		return std::move(range_type(begin, end, shift));
-	}
-	/** @}*/
-
-	coordinates_type dx() const
-	{
-		coordinates_type res;
-
-		for (int i = 0; i < ndims; ++i)
-		{
-			res[i] =
-					global_count_[i] > 1 ?
-							(1.0 / static_cast<Real>(global_count_[i])) : 0.0;
-		}
-
-		return std::move(res);
-	}
-
-	bool in_range(size_type s) const
-	{
-		index_tuple idx = decompact(s) >> MAX_DEPTH_OF_TREE;
-
-		return true
-				||
-
-				((global_count_[0] > 1 || idx[0] >= global_begin_[0])
-						&& (global_count_[1] > 1 || idx[1] >= global_begin_[1])
-						&& (global_count_[2] > 1 || idx[2] >= global_begin_[2]));
-	}
-
-	bool in_local_range(size_type s) const
-	{
-		auto idx = decompact(s) >> MAX_DEPTH_OF_TREE;
-
-		return
-
-		((global_count_[0] > 1
-				|| (idx[0] >= local_inner_begin_[0]
-						&& idx[0] < local_inner_end_[0])))
-
-				&& ((global_count_[1] > 1
-						|| (idx[1] >= local_inner_begin_[1]
-								&& idx[1] < local_inner_end_[1])))
-
-				&& ((global_count_[2] > 1
-						|| (idx[2] >= local_inner_begin_[2]
-								&& idx[2] < local_inner_end_[2])));
-	}
-	//! @}
 	//! @name Index Dependent
 	//! @{
 	//!  signed long is 63bit, unsigned long is 64 bit, add a sign bit
-	static constexpr size_type FULL_DIGITS =
-			std::numeric_limits<size_type>::digits;
-
-	static constexpr size_type INDEX_DIGITS = (FULL_DIGITS
-			- CountBits<FULL_DIGITS>::n) / 3;
-
-	static constexpr size_type INDEX_MASK = (1UL << INDEX_DIGITS) - 1;
-
-	static constexpr size_type _DI = (1UL
-			<< (INDEX_DIGITS * 2 + MAX_DEPTH_OF_TREE - 1));
-	static constexpr size_type _DJ = (1UL
-			<< (INDEX_DIGITS + MAX_DEPTH_OF_TREE - 1));
-	static constexpr size_type _DK = (1UL << (MAX_DEPTH_OF_TREE - 1));
-	static constexpr size_type _DA = _DI | _DJ | _DK;
-
-	static constexpr size_type INDEX_ROOT_MASK = ((1UL
-			<< (INDEX_DIGITS - MAX_DEPTH_OF_TREE)) - 1) << MAX_DEPTH_OF_TREE;
-
-	static constexpr size_type COMPACT_INDEX_ROOT_MASK = INDEX_ROOT_MASK
-			| (INDEX_ROOT_MASK << INDEX_DIGITS)
-			| (INDEX_ROOT_MASK << INDEX_DIGITS * 2);
-
-	static constexpr size_type NO_HEAD_FLAG = ~((~0UL) << (INDEX_DIGITS * 3));
-
-	//mask of direction
-//	static index_type compact(nTuple<NDIMS, index_type> const & idx )
-//	{
-//		return
-//
-//		( static_cast<index_type>( idx[0] & INDEX_MASK) << (INDEX_DIGITS * 2)) |
-//
-//		( static_cast<index_type>( idx[1] & INDEX_MASK) << (INDEX_DIGITS )) |
-//
-//		( static_cast<index_type>( idx[2] & INDEX_MASK) )
-//
-//		;
-//	}
-	template<typename TS>
-	static index_type compact(TS const & x)
-	{
-		return
-
-		((static_cast<size_type>(x[0]) & INDEX_MASK) << (INDEX_DIGITS * 2)) |
-
-		((static_cast<size_type>(x[1]) & INDEX_MASK) << (INDEX_DIGITS)) |
-
-		((static_cast<size_type>(x[2]) & INDEX_MASK))
-
-		;
-	}
-
-	static index_tuple decompact(size_type s)
-	{
-
-		return std::move(
-				index_tuple(
-						{ static_cast<size_type>((s >> (INDEX_DIGITS * 2))
-								& INDEX_MASK),
-
-						static_cast<size_type>((s >> (INDEX_DIGITS))
-								& INDEX_MASK),
-
-						static_cast<size_type>(s & INDEX_MASK)
-
-						}));
-	}
 
 	/**
-	 *  !! this is obsolete
 	 *  \note
 	 *  \verbatim
 	 * 	Thanks my wife Dr. CHEN Xiang Lan, for her advice on bitwise operation
@@ -809,18 +203,240 @@ public:
 	 */
 
 	//! @}
-	static size_type compact_cell_index(index_tuple const & idx,
-			size_type shift)
+	static constexpr size_t FULL_DIGITS = std::numeric_limits<size_t>::digits;
+
+	static constexpr size_t INDEX_DIGITS = (FULL_DIGITS
+			- CountBits<FULL_DIGITS>::n) / 3;
+
+//	static constexpr size_t INDEX_MASK = (1UL << INDEX_DIGITS) - 1;
+//
+//	static constexpr size_t _DI = (1UL
+//			<< (INDEX_DIGITS * 2 + MAX_DEPTH_OF_TREE - 1));
+//	static constexpr size_t _DJ =
+//			(1UL << (INDEX_DIGITS + MAX_DEPTH_OF_TREE - 1));
+//	static constexpr size_t _DK = (1UL << (MAX_DEPTH_OF_TREE - 1));
+//	static constexpr size_t _DA = _DI | _DJ | _DK;
+//
+//	static constexpr size_t INDEX_ROOT_MASK = ((1UL
+//			<< (INDEX_DIGITS - MAX_DEPTH_OF_TREE)) - 1) << MAX_DEPTH_OF_TREE;
+//
+//	static constexpr size_t COMPACT_INDEX_ROOT_MASK = INDEX_ROOT_MASK
+//			| (INDEX_ROOT_MASK << INDEX_DIGITS)
+//			| (INDEX_ROOT_MASK << INDEX_DIGITS * 2);
+//
+//	static constexpr size_t NO_HEAD_FLAG = ~((~0UL) << (INDEX_DIGITS * 3));
+
+
+
+
+	static constexpr index_type ZERO_INDEX = 1 << INDEX_DIGITS;
+	void dimensions(index_type const * d, index_type const * gw = nullptr)
 	{
-		size_t mtree = MAX_DEPTH_OF_TREE;
-		return compact(idx << mtree) | shift;
+
+		if (gw != nullptr)
+			ghost_width = gw;
+
+		DataSpace sp(ndims, d, &ghost_width[0]);
+
+		std::tie(std::ignore, dimensions_, local_inner_begin_,
+				local_inner_count_, std::ignore, std::ignore) = sp.shape();
+
+		local_inner_end_ = local_inner_begin_ + local_inner_count_;
+
+		std::tie(std::ignore, local_outer_count_, local_outer_begin_,
+				local_outer_count_, std::ignore, std::ignore) =
+				sp.local_space().shape();
+
+		local_outer_begin_ = local_inner_begin_ - local_outer_begin_;
+
+		local_inner_end_ = local_inner_begin_ + local_inner_count_;
+
+		local_outer_begin_ = local_inner_begin_ - local_outer_begin_;
+
+		local_outer_end_ = local_outer_begin_ + local_outer_count_;
+
+		hash_strides_[2] = 1;
+		hash_strides_[1] = local_outer_count_[2] * hash_strides_[2];
+		hash_strides_[0] = local_outer_count_[1] * hash_strides_[1];
+
+		update();
+
 	}
 
-	static index_tuple decompact_cell_index(size_type s)
+	index_tuple const & dimensions() const
 	{
-		size_t mtree = MAX_DEPTH_OF_TREE;
+		return dimensions_;
+	}
 
-		return std::move(decompact(s) >> (mtree));
+	std::pair<coordinates_type, coordinates_type> extents() const
+	{
+		coordinates_type b, e;
+		b = 0;
+
+		for (int i = 0; i < ndims; ++i)
+		{
+			e[i] = dimensions_[i] > 1 ? 1.0 : 0.0;
+		}
+
+		return std::move(std::make_pair(b, e));
+	}
+
+	bool check_memory_bounds(id_type s) const
+	{
+		unsigned mtree = MAX_DEPTH_OF_TREE;
+		auto idx = id_to_index(s) >> mtree;
+		return
+
+		idx[0] >= local_outer_begin_[0]
+
+		&& idx[0] < local_outer_end_[0]
+
+		&& idx[1] >= local_outer_begin_[1]
+
+		&& idx[1] < local_outer_end_[1]
+
+		&& idx[2] >= local_outer_begin_[2]
+
+		&& idx[2] < local_outer_end_[2]
+
+		;
+
+	}
+
+	template<size_t IForm>
+	DataSpace dataspace() const
+	{
+
+		size_t rank = ndims;
+		nTuple<size_t, MAX_NDIMS_OF_ARRAY> g_dims;
+		nTuple<size_t, MAX_NDIMS_OF_ARRAY> g_count;
+		nTuple<size_t, MAX_NDIMS_OF_ARRAY> g_offset;
+		nTuple<size_t, MAX_NDIMS_OF_ARRAY> g_gw;
+
+		g_dims = dimensions_;
+		g_offset = local_inner_begin_;
+		g_count = local_inner_count_;
+		g_gw = ghost_width;
+
+		if (IForm == EDGE || IForm == FACE)
+		{
+			g_dims[rank] = 3;
+			g_offset[rank] = 0;
+			g_count[rank] = 3;
+			g_gw[rank] = 0;
+			++rank;
+		}
+
+		return std::move(DataSpace(rank, &g_dims[0], &g_gw[0]));
+	}
+
+	/** @}*/
+
+	coordinates_type dx() const
+	{
+		coordinates_type res;
+
+		for (int i = 0; i < ndims; ++i)
+		{
+			res[i] =
+					dimensions_[i] > 1 ?
+							(1.0 / static_cast<Real>(dimensions_[i])) : 0.0;
+		}
+
+		return std::move(res);
+	}
+
+	bool in_range(id_type s) const
+	{
+//		index_tuple idx = decompact(s) >> MAX_DEPTH_OF_TREE;
+//
+//		return true
+//				||
+//
+//				((dimensions_[0] > 1 && idx[0] < dimensions_[0])
+//						&& (dimensions_[1] > 1 || idx[1] < dimensions_[1])
+//						&& (dimensions_[2] > 1 || idx[2] < dimensions_[2]))
+
+		return in_local_range(s);
+	}
+
+	bool in_local_range(id_type s) const
+	{
+		auto idx = id_to_index(s) >> MAX_DEPTH_OF_TREE;
+
+		return
+
+		((dimensions_[0] > 1
+				|| (idx[0] >= local_inner_begin_[0]
+						&& idx[0] < local_inner_end_[0])))
+
+				&& ((dimensions_[1] > 1
+						|| (idx[1] >= local_inner_begin_[1]
+								&& idx[1] < local_inner_end_[1])))
+
+				&& ((dimensions_[2] > 1
+						|| (idx[2] >= local_inner_begin_[2]
+								&& idx[2] < local_inner_end_[2])));
+	}
+	//! @}
+
+	//mask of direction
+//	static index_type compact(nTuple<NDIMS, index_type> const & idx )
+//	{
+//		return
+//
+//		( static_cast<index_type>( idx[0] & INDEX_MASK) << (INDEX_DIGITS * 2)) |
+//
+//		( static_cast<index_type>( idx[1] & INDEX_MASK) << (INDEX_DIGITS )) |
+//
+//		( static_cast<index_type>( idx[2] & INDEX_MASK) )
+//
+//		;
+//	}
+	template<typename TS>
+	static id_type index_to_id(TS const & x)
+	{
+		return
+
+		((static_cast<id_type>(x[0] + ZERO_INDEX) & INDEX_MASK)
+				<< (INDEX_DIGITS * 2))
+
+				| ((static_cast<id_type>(x[1] + ZERO_INDEX) & INDEX_MASK)
+						<< (INDEX_DIGITS))
+
+				| ((static_cast<id_type>(x[2] + ZERO_INDEX) & INDEX_MASK))
+
+		;
+	}
+
+	static index_tuple id_to_index(id_type s)
+	{
+
+		return std::move(
+				index_tuple(
+						{ static_cast<index_type>((s >> (INDEX_DIGITS * 2))
+								& INDEX_MASK) - ZERO_INDEX,
+
+						static_cast<index_type>((s >> (INDEX_DIGITS))
+								& INDEX_MASK) - ZERO_INDEX,
+
+						static_cast<index_type>(s & INDEX_MASK) - ZERO_INDEX
+
+						}));
+	}
+
+	template<size_t IFORM>
+	static id_type compact_cell_index(index_tuple const & idx, id_type shift)
+	{
+		index_type mtree = MAX_DEPTH_OF_TREE;
+		return index_to_id(idx << mtree) | shift;
+	}
+
+	static index_tuple decompact_cell_index(id_type s)
+	{
+		index_type mtree = MAX_DEPTH_OF_TREE;
+
+		return std::move(id_to_index(s) >> (mtree));
 	}
 	//! @name Geometry
 	//! @{
@@ -846,8 +462,8 @@ public:
 
 		for (int i = 0; i < ndims; ++i)
 		{
-			Real L = static_cast<Real>(global_count_[i]);
-			if (global_count_[i] <= 1)
+			Real L = static_cast<Real>(dimensions_[i]);
+			if (dimensions_[i] <= 1)
 			{
 				extents_[i] = 0.0;
 				inv_extents_[i] = 0.0;
@@ -857,7 +473,7 @@ public:
 			}
 			else
 			{
-				extents_[i] = static_cast<Real>((global_count_[i])
+				extents_[i] = static_cast<Real>((dimensions_[i])
 						<< MAX_DEPTH_OF_TREE);
 				inv_extents_[i] = 1.0 / extents_[i];
 
@@ -948,75 +564,69 @@ public:
 
 		return is_valid_;
 	}
-#ifndef ENABLE_SUB_TREE_DEPTH
 
-	Real const & volume(index_type s) const
+	Real const & volume(id_type s) const
 	{
 		return volume_[node_id(s)];
 	}
 
-	Real inv_volume(index_type s) const
+	Real inv_volume(id_type s) const
 	{
 		return inv_volume_[node_id(s)];
 	}
 
-	Real dual_volume(index_type s) const
+	Real dual_volume(id_type s) const
 	{
 		return dual_volume_[node_id(s)];
 	}
 
-	Real inv_dual_volume(index_type s) const
+	Real inv_dual_volume(id_type s) const
 	{
 		return inv_dual_volume_[node_id(s)];
 	}
 
-	Real cell_volume(index_type s) const
+	Real cell_volume(id_type s) const
 	{
 		return volume_[1] * volume_[2] * volume_[4];
 	}
 
-	Real volume(index_type s, std::integral_constant<bool, false>) const
+	Real volume(id_type s, std::integral_constant<bool, false>) const
 	{
 		return volume(s);
 	}
 
-	Real inv_volume(index_type s, std::integral_constant<bool, false>) const
+	Real inv_volume(id_type s, std::integral_constant<bool, false>) const
 	{
 		return inv_volume(s);
 	}
 
-	Real inv_dual_volume(index_type s,
-			std::integral_constant<bool, false>) const
+	Real inv_dual_volume(id_type s, std::integral_constant<bool, false>) const
 	{
 		return inv_dual_volume(s);
 	}
-	Real dual_volume(index_type s, std::integral_constant<bool, false>) const
+	Real dual_volume(id_type s, std::integral_constant<bool, false>) const
 	{
 		return dual_volume(s);
 	}
 
-	Real volume(index_type s, std::integral_constant<bool, true>) const
+	Real volume(id_type s, std::integral_constant<bool, true>) const
 	{
 		return in_range(s) ? volume(s) : 0.0;
 	}
 
-	Real inv_volume(index_type s, std::integral_constant<bool, true>) const
+	Real inv_volume(id_type s, std::integral_constant<bool, true>) const
 	{
 		return in_range(s) ? inv_volume(s) : 0.0;
 	}
 
-	Real dual_volume(index_type s, std::integral_constant<bool, true>) const
+	Real dual_volume(id_type s, std::integral_constant<bool, true>) const
 	{
 		return in_range(s) ? dual_volume(s) : 0.0;
 	}
-	Real inv_dual_volume(index_type s, std::integral_constant<bool, true>) const
+	Real inv_dual_volume(id_type s, std::integral_constant<bool, true>) const
 	{
 		return in_range(s) ? inv_dual_volume(s) : 0.0;
 	}
-
-#else
-#error UNIMPLEMENTED!!
-#endif
 
 	//! @}
 
@@ -1032,31 +642,26 @@ public:
 	inline coordinates_type index_to_coordinates(index_tuple const&idx) const
 	{
 
-		return std::move(
-				coordinates_type(
-						{ static_cast<Real>(idx[0]
-								- (global_begin_[0] << MAX_DEPTH_OF_TREE))
-								* inv_extents_[0],
+		return std::move(coordinates_type( {
 
-						static_cast<Real>(idx[1]
-								- (global_begin_[1] << MAX_DEPTH_OF_TREE))
-								* inv_extents_[1],
+		static_cast<Real>(idx[0]) * inv_extents_[0],
 
-						static_cast<Real>(idx[2]
-								- (global_begin_[2] << MAX_DEPTH_OF_TREE))
-								* inv_extents_[2] }));
+		static_cast<Real>(idx[1]) * inv_extents_[1],
+
+		static_cast<Real>(idx[2]) * inv_extents_[2] }));
 	}
 
 	inline index_tuple coordinates_to_index(coordinates_type x) const
 	{
-		return std::move(
-				index_tuple(
-						{ static_cast<size_type>(x[0] * extents_[0])
-								+ (global_begin_[0] << MAX_DEPTH_OF_TREE),
-								static_cast<size_type>(x[1] * extents_[1])
-										+ (global_begin_[1] << MAX_DEPTH_OF_TREE),
-								static_cast<size_type>(x[2] * extents_[2])
-										+ (global_begin_[2] << MAX_DEPTH_OF_TREE) }));
+		return std::move(index_tuple( {
+
+		static_cast<index_type>(x[0] * extents_[0]),
+
+		static_cast<index_type>(x[1] * extents_[1]),
+
+		static_cast<index_type>(x[2] * extents_[2])
+
+		}));
 	}
 
 	inline index_tuple to_cell_index(index_tuple idx) const
@@ -1066,35 +671,25 @@ public:
 		return std::move(index_tuple(idx));
 	}
 
-	inline coordinates_type coordinates(index_type s) const
+	inline coordinates_type id_to_coordinates(id_type s) const
 	{
-		return std::move(index_to_coordinates(decompact(s)));
-	}
-	inline coordinates_type get_coordinates(index_type s) const
-	{
-		return std::move(index_to_coordinates(decompact(s)));
+		return std::move(index_to_coordinates(id_to_index(s)));
 	}
 
-	inline coordinates_type coordinates_local_to_global(index_type s,
+	inline coordinates_type coordinates_local_to_global(id_type s,
 			coordinates_type r) const
 	{
-#ifndef ENABLE_SUB_TREE_DEPTH
 		Real CELL_SCALE_R = static_cast<Real>(1UL << (MAX_DEPTH_OF_TREE));
 		Real INV_CELL_SCALE_R = 1.0 / CELL_SCALE_R;
 
 		coordinates_type x;
 
-		x = r + ((decompact(s) >> MAX_DEPTH_OF_TREE) - global_begin_)
-				+ 0.5 * (decompact((s & _DA)) >> (MAX_DEPTH_OF_TREE - 1));
+		x = r + ((id_to_index(s) >> MAX_DEPTH_OF_TREE))
+				+ 0.5 * (id_to_index((s & _DA)) >> (MAX_DEPTH_OF_TREE - 1));
 
 		x[0] *= dx_[0];
 		x[1] *= dx_[1];
 		x[2] *= dx_[2];
-
-#else
-
-		UNIMPLEMENTED;
-#endif
 
 		return std::move(x);
 	}
@@ -1111,68 +706,29 @@ public:
 	 * @return s,r  s is the largest grid point not greater than x.
 	 *       and  \f$ r \in \left[0,1.0\right) \f$ is the normalize  distance between x and s
 	 */
-	inline std::tuple<size_type, coordinates_type> coordinates_global_to_local(
-			coordinates_type const & x, size_type shift = 0UL) const
+	inline std::tuple<id_type, coordinates_type> coordinates_global_to_local(
+			coordinates_type const & x, id_type shift = 0UL) const
 	{
 
-#ifndef ENABLE_SUB_TREE_DEPTH
-
-		index_tuple I = decompact(shift >> (MAX_DEPTH_OF_TREE - 1));
+		index_tuple I = id_to_index(shift >> (MAX_DEPTH_OF_TREE - 1));
 
 		coordinates_type r;
 
-		r[0] = x[0] * global_count_[0] + global_begin_[0]
-				- 0.5 * static_cast<Real>(I[0]);
-		r[1] = x[1] * global_count_[1] + global_begin_[1]
-				- 0.5 * static_cast<Real>(I[1]);
-		r[2] = x[2] * global_count_[2] + global_begin_[2]
-				- 0.5 * static_cast<Real>(I[2]);
+		r[0] = x[0] * dimensions_[0] - 0.5 * static_cast<Real>(I[0]);
+		r[1] = x[1] * dimensions_[1] - 0.5 * static_cast<Real>(I[1]);
+		r[2] = x[2] * dimensions_[2] - 0.5 * static_cast<Real>(I[2]);
 
-		I[0] = static_cast<size_type>(std::floor(r[0]));
-		I[1] = static_cast<size_type>(std::floor(r[1]));
-		I[2] = static_cast<size_type>(std::floor(r[2]));
+		I[0] = static_cast<index_type>(std::floor(r[0]));
+		I[1] = static_cast<index_type>(std::floor(r[1]));
+		I[2] = static_cast<index_type>(std::floor(r[2]));
 
 		r -= I;
 
-		size_type s = (compact(I) << MAX_DEPTH_OF_TREE) | shift;
+		id_type s = (index_to_id(I) << MAX_DEPTH_OF_TREE) | shift;
 
-#else
-		size_type depth = DepthOfTree(shift);
-
-		auto m=( (1UL<<(INDEX_DIGITS-MAX_DEPTH_OF_TREE+depth))-1)<<MAX_DEPTH_OF_TREE;
-
-		m=m|(m<<INDEX_DIGITS)|(m<<(INDEX_DIGITS*2));
-
-		auto s= ((compact(x)+((~shift)&(_DA>>depth))) &m) |shift;
-
-		x-=decompact(s);
-
-		x/=static_cast<Real>(1UL<<(MAX_DEPTH_OF_TREE-depth));
-
-		s+= global_begin_compact_index_;
-
-//		nTuple<NDIMS, index_type> idx;
-//		idx=x;
-//
-//		idx=((idx+decompact((~shift)&(_DA>>depth)))&(~((1UL<<(MAX_DEPTH_OF_TREE-depth))-1)))+decompact(shift);
-//
-//		x-=idx;
-//
-//		x/=static_cast<Real>(1UL<<(MAX_DEPTH_OF_TREE-depth));
-//
-//		idx+=global_begin_<<MAX_DEPTH_OF_TREE;
-//
-//		auto s= compact(idx);
-#endif
 		return std::move(std::make_tuple(s, r));
 	}
 
-	inline std::tuple<size_type, coordinates_type> coordinates_global_to_local_NGP(
-			std::tuple<size_type, coordinates_type> && z) const
-	{
-		return std::move(
-				coordinates_global_to_local_NGP(std::get<1>(z), std::get<0>(z)));
-	}
 	/**
 	 *
 	 * @param x  coordinates \f$ x \in \left[0,1\right)\f$
@@ -1180,83 +736,59 @@ public:
 	 * @return s,r   s is thte conmpact index of nearest grid point
 	 *    and  \f$ r \in \left[-0.5,0.5\right) \f$   is the normalize  distance between x and s
 	 */
-	inline std::tuple<index_type, coordinates_type> coordinates_global_to_local_NGP(
-			coordinates_type const & x, index_type shift = 0UL) const
+	inline std::tuple<id_type, coordinates_type> coordinates_global_to_local_NGP(
+			std::tuple<id_type, coordinates_type> const &z) const
 	{
+		auto & x = std::get<1>(z);
+		id_type shift = std::get<0>(z);
 
-#ifndef ENABLE_SUB_TREE_DEPTH
-
-		index_tuple I = decompact(shift >> (MAX_DEPTH_OF_TREE - 1));
+		index_tuple I = id_to_index(shift >> (MAX_DEPTH_OF_TREE - 1));
 
 		coordinates_type r;
 
-		r[0] = x[0] * global_count_[0] + global_begin_[0]
-				- 0.5 * static_cast<Real>(I[0]);
-		r[1] = x[1] * global_count_[1] + global_begin_[1]
-				- 0.5 * static_cast<Real>(I[1]);
-		r[2] = x[2] * global_count_[2] + global_begin_[2]
-				- 0.5 * static_cast<Real>(I[2]);
+		r[0] = x[0] * dimensions_[0] - 0.5 * static_cast<Real>(I[0]);
+		r[1] = x[1] * dimensions_[1] - 0.5 * static_cast<Real>(I[1]);
+		r[2] = x[2] * dimensions_[2] - 0.5 * static_cast<Real>(I[2]);
 
-		I[0] = static_cast<size_type>(std::floor(r[0] + 0.5));
-		I[1] = static_cast<size_type>(std::floor(r[1] + 0.5));
-		I[2] = static_cast<size_type>(std::floor(r[2] + 0.5));
+		I[0] = static_cast<index_type>(std::floor(r[0] + 0.5));
+		I[1] = static_cast<index_type>(std::floor(r[1] + 0.5));
+		I[2] = static_cast<index_type>(std::floor(r[2] + 0.5));
 
 		r -= I;
 
-		index_type s = (compact(I) << MAX_DEPTH_OF_TREE) | shift;
+		id_type s = (index_to_id(I) << MAX_DEPTH_OF_TREE) | shift;
 
-#else
-		UNIMPLEMENTED
-#endif
 		return std::move(std::make_tuple(s, r));
 	}
+
 	//! @}
 
 	//! @name Index auxiliary functions
 	//! @{
-	static index_type dual(index_type r)
+	static id_type dual(id_type r)
 	{
-#ifndef ENABLE_SUB_TREE_DEPTH
 		return (r & (~_DA)) | ((~(r & _DA)) & _DA);
-#else
-		return (r & (~(_DA >> DepthOfTree(r) )))
-		| ((~(r & (_DA >> DepthOfTree(r) ))) & (_DA >> DepthOfTree(r) ));
-#endif
+
 	}
-	static index_type get_cell_index(index_type r)
+	static id_type get_cell_index(id_type r)
 	{
 //		index_type mask = (1UL << (INDEX_DIGITS - DepthOfTree(r))) - 1;
 //
 //		return r & (~(mask | (mask << INDEX_DIGITS) | (mask << (INDEX_DIGITS * 2))));
 		return r & COMPACT_INDEX_ROOT_MASK;
 	}
-	static size_t node_id(index_type s)
+	static id_type node_id(id_type s)
 	{
 
-#ifndef ENABLE_SUB_TREE_DEPTH
 		return (((s >> (INDEX_DIGITS * 2 + MAX_DEPTH_OF_TREE - 1)) & 1UL) << 2)
-				|
+				| (((s >> (INDEX_DIGITS + MAX_DEPTH_OF_TREE - 1)) & 1UL) << 1)
+				| ((s >> (MAX_DEPTH_OF_TREE - 1)) & 1UL);
 
-				(((s >> (INDEX_DIGITS + MAX_DEPTH_OF_TREE - 1)) & 1UL) << 1) |
-
-				((s >> (MAX_DEPTH_OF_TREE - 1)) & 1UL);
-#else
-		auto h = DepthOfTree(s);
-
-		return
-
-		(((s >> (INDEX_DIGITS*2+MAX_DEPTH_OF_TREE - h -1))& 1UL) << 2) |
-
-		(((s >>(INDEX_DIGITS +MAX_DEPTH_OF_TREE - h -1 )) & 1UL) << 1) |
-
-		((s >> (MAX_DEPTH_OF_TREE - h -1)) & 1UL);
-#endif
 	}
 
-	index_type get_shift(size_t nodeid, index_type h = 0UL) const
+	id_type get_shift(id_type nodeid, id_type h = 0UL) const
 	{
 
-#ifndef ENABLE_SUB_TREE_DEPTH
 		return
 
 		(((nodeid & 4UL) >> 2) << (INDEX_DIGITS * 2 + MAX_DEPTH_OF_TREE - 1)) |
@@ -1264,22 +796,12 @@ public:
 		(((nodeid & 2UL) >> 1) << (INDEX_DIGITS + MAX_DEPTH_OF_TREE - 1)) |
 
 		((nodeid & 1UL) << (MAX_DEPTH_OF_TREE - 1));
-#else
-		return
 
-		(((nodeid & 4UL) >> 2) << (INDEX_DIGITS*2+MAX_DEPTH_OF_TREE - h -1)) |
-
-		(((nodeid & 2UL) >> 1) << (INDEX_DIGITS +MAX_DEPTH_OF_TREE - h -1 )) |
-
-		((nodeid & 1UL) << (MAX_DEPTH_OF_TREE - h -1)) |
-
-		(h << (INDEX_DIGITS * 3));
-#endif
 	}
 
-	index_type get_first_node_shift(size_t iform) const
+	id_type get_first_node_shift(id_type iform) const
 	{
-		index_type nid;
+		id_type nid;
 		switch (iform)
 		{
 		case VERTEX:
@@ -1321,17 +843,8 @@ public:
 		return res;
 	}
 
-#ifdef ENABLE_SUB_TREE_DEPTH
-	static size_t DepthOfTree(index_type r)
+	static id_type roate(id_type r)
 	{
-		return r >> (INDEX_DIGITS * 3);
-	}
-#endif
-
-	static index_type roate(index_type r)
-	{
-
-#ifndef ENABLE_SUB_TREE_DEPTH
 
 		return (r & (~_DA))
 
@@ -1339,15 +852,6 @@ public:
 
 		| ((r & (((_DK)))) << (INDEX_DIGITS * 2));
 
-#else
-		index_type h = DepthOfTree(r);
-
-		return (r & (~(_DA >> h)))
-
-		| ((r & (((_DI|_DJ) >> h))) >> INDEX_DIGITS)
-
-		| ((r & (((_DK) >> h)))<< (INDEX_DIGITS * 2));
-#endif
 	}
 
 	/**
@@ -1357,10 +861,8 @@ public:
 	 * @return
 	 */
 
-	static index_type inverse_roate(index_type s)
+	static id_type inverse_roate(id_type s)
 	{
-
-#ifndef ENABLE_SUB_TREE_DEPTH
 
 		return (s & (~(_DA)))
 
@@ -1368,36 +870,19 @@ public:
 
 		| ((s & (((_DI)))) >> (INDEX_DIGITS * 2));
 
-#else
-		index_type h = DepthOfTree(s);
-
-		return
-		(s & (~(_DA >> h)))
-
-		| ((s & (((_DK|_DJ) >> h))) << INDEX_DIGITS)
-
-		| ((s & (((_DI) >> h))) >> (INDEX_DIGITS * 2));
-#endif
 	}
 
-	static index_type delta_index(index_type r)
+	static id_type delta_index(id_type r)
 	{
-#ifndef ENABLE_SUB_TREE_DEPTH
 		return (r & _DA);
-#else
-		return (r & (_DA >> (DepthOfTree(r))));
-#endif
 	}
 
-	static index_type DI(size_t i, index_type r)
+	static id_type DI(size_t i, id_type r)
 	{
-#ifndef ENABLE_SUB_TREE_DEPTH
 		return (1UL << (INDEX_DIGITS * (ndims - i - 1) + MAX_DEPTH_OF_TREE - 1));
-#else
-		return (1UL << (INDEX_DIGITS * (ndims-i-1)+MAX_DEPTH_OF_TREE - DepthOfTree(r) - 1));
-#endif
+
 	}
-	static index_type delta_index(size_t i, index_type r)
+	static id_type delta_index(size_t i, id_type r)
 	{
 		return DI(i, r) & r;
 	}
@@ -1407,9 +892,9 @@ public:
 	 * @param s
 	 * @return
 	 */
-	static index_type component_number(index_type s)
+	static id_type component_number(id_type s)
 	{
-		index_type res = 0;
+		id_type res = 0;
 		switch (node_id(s))
 		{
 		case 4:
@@ -1428,9 +913,9 @@ public:
 		return res;
 	}
 
-	static size_t IForm(index_type r)
+	static id_type IForm(id_type r)
 	{
-		index_type res = 0;
+		id_type res = 0;
 		switch (node_id(r))
 		{
 		case 0:
@@ -1455,46 +940,28 @@ public:
 	}
 	//! @}
 
-	/**
-	 *   @name iterator
-	 *   @{
-	 */
+	template<size_t IForm> struct Range;
 
 	/**
 	 *  @name Select
 	 *  @{
 	 */
 private:
-	range_type select_rectangle_(size_t iform, index_tuple const & ib,
-			index_tuple const & ie, index_tuple b, index_tuple e) const
+	template<size_t IFORM>
+	Range<IFORM> select_rectangle_(index_tuple const &ib, index_tuple const &ie,
+			index_tuple b, index_tuple e) const
 	{
-		bool flag = Clipping(ib, ie, &b, &e);
+		clipping(ib, ie, &b, &e);
 
-		if (!flag)
-		{
-			b = ib;
-			e = ib;
-		}
-
-		return std::move(
-				this_type::make_range(b, e, get_first_node_shift(iform)));
+		return std::move(Range<IFORM>(b, e));
 
 	}
 public:
 
 	template<size_t IFORM>
-	range_type select() const
+	Range<IFORM> select() const
 	{
-		CHECK(local_inner_begin_);
-		CHECK(local_inner_end_);
-		return (range_type(local_inner_begin_, local_inner_end_,
-				get_first_node_shift(IFORM)));
-	}
-
-	template<size_t IFORM>
-	range_type select(range_type range) const
-	{
-		return std::move(range);
+		return (Range<IFORM>(local_inner_begin_, local_inner_end_));
 	}
 
 	/**
@@ -1505,43 +972,25 @@ public:
 	 * @param e
 	 * @return
 	 */
-	template<size_t IFORM>
-	auto select(range_type r, index_tuple const & b, index_tuple const &e) const
-	DECL_RET_TYPE(select_rectangle_( IFORM,begin(r).self_,end(r).self_, b, e))
+	template<size_t IForm>
+	auto select(index_tuple const & b, index_tuple const &e) const
+	DECL_RET_TYPE(select_rectangle_<IForm>( b, e,
+					local_inner_begin_, local_inner_end_))
 
 	/**
 	 *
 	 */
 	template<size_t IFORM>
-	range_type select(range_type range, coordinates_type const & xmin,
+	Range<IFORM> select(coordinates_type const & xmin,
 			coordinates_type const &xmax) const
 	{
-		return std::move(range);
+		return std::move(Range<IFORM>());
 	}
-//	auto select(range_type range, coordinates_type const & xmin,
-//			coordinates_type const &xmax) const
-//			DECL_RET_TYPE(select_rectangle_(
-//							IForm(*std::get<0>(range)),	//
-//					std::get<0>(range).self_, end(range).self_,//
-//					to_cell_index(decompact(std::get<0>(coordinates_global_to_local( xmin, get_first_node_shift(IForm(*std::get<0>(range))))))),
-//					to_cell_index(decompact(std::get<0>(coordinates_global_to_local( xmax, get_first_node_shift(IForm(*std::get<0>(range)))))))+1
-//			))
-	template<size_t IFORM>
-	auto select(range_type range1, range_type range2) const
-	DECL_RET_TYPE(select_rectangle_(IFORM,
-					range1.begin().self_, end(range1).self_,	//
-			begin(range2).self_, end(range2).self_//
-	))
 
-//	template<typename ...Args>
-//	auto select(size_t iform, Args &&... args) const
-//	DECL_RET_TYPE (this_type::select(this_type::select(iform),std::forward<Args>(args)...))
 	template<size_t IFORM>
-	range_type select_outer() const
+	Range<IFORM> select_outer() const
 	{
-		return std::move(
-				this_type::make_range(local_outer_begin_, local_outer_end_,
-						get_first_node_shift(IFORM)));
+		return std::move(Range<IFORM>(local_outer_begin_, local_outer_end_));
 	}
 
 	/**
@@ -1554,12 +1003,12 @@ public:
 	 */
 	template<size_t IFORM>
 	auto select_outer(index_tuple const & b, index_tuple const &e) const
-	DECL_RET_TYPE (select_rectangle_(IFORM, b, e, local_outer_begin_,
+	DECL_RET_TYPE (select_rectangle_<IFORM>( b, e, local_outer_begin_,
 					local_outer_end_))
 
 	template<size_t IFORM>
 	auto select_inner(index_tuple const & b, index_tuple const & e) const
-	DECL_RET_TYPE (select_rectangle_(IFORM, b, e, local_inner_begin_,
+	DECL_RET_TYPE (select_rectangle_<IFORM>( b, e, local_inner_begin_,
 					local_inner_end_))
 
 	/**  @} */
@@ -1567,120 +1016,31 @@ public:
 	 *  @name Hash
 	 *  @{
 	 */
-	static size_type mod_(size_type a, size_type L)
+
+	template<size_t IFORM>
+	size_t max_hash() const
+	{
+		return NProduct(local_outer_count_)
+				* ((IFORM == EDGE || IFORM == FACE) ? 3 : 1);
+	}
+
+	static index_type mod_(index_type a, index_type L)
 	{
 		return (a + L) % L;
 	}
 
-	size_t max_hash(range_type r) const
+	size_t hash(id_type s) const
 	{
-		size_t res = NProduct(local_outer_count_);
-
-		auto iform = IForm(*begin(r));
-
-		if (iform == EDGE || iform == FACE)
-		{
-			res *= 3;
-		}
-
-		return res;
-	}
-
-//	std::function<size_t(index_type)> make_hash(range_type r) const
-//	{
-//		if (!is_valid())
-//			RUNTIME_ERROR("Mesh is not defined!!");
-//
-//		std::function<size_t(index_type)> res;
-//
-//		index_tuple stride;
-//
-//		size_t iform = IForm(*begin(r));
-//
-//		stride[2] = 1;
-//		stride[1] = local_outer_count_[2] * stride[2];
-//		stride[0] = local_outer_count_[1] * stride[1];
-//
-//		res =
-//				[=](index_type s)->size_t
-//				{
-//					size_t m_tree=MAX_DEPTH_OF_TREE;
-//					nTuple<index_type,ndims> d =( decompact(s)>>m_tree)-local_outer_begin_;
-//
-//					size_t res =
-//
-//					mod_( d[0], (local_outer_count_[0] )) * stride[0] +
-//
-//					mod_( d[1], (local_outer_count_[1] )) * stride[1] +
-//
-//					mod_( d[2], (local_outer_count_[2] )) * stride[2];
-//
-//					switch (node_id(s))
-//					{
-//						case 4:
-//						case 3:
-//						res = ((res << 1) + res);
-//						break;
-//						case 2:
-//						case 5:
-//						res = ((res << 1) + res) + 1;
-//						break;
-//						case 1:
-//						case 6:
-//						res = ((res << 1) + res) + 2;
-//						break;
-//					}
-//
-//					return res;
-//				};
-//
-//		//+++++++++++++++++++++++++
-////
-////		size_t iform=IForm(*begin(range));
-////
-////#ifdef USE_FORTRAN_ORDER_ARRAY
-////		stride[0] = (iform==EDGE||iform==FACE)?3:1;
-////		stride[1] = local_outer_count_[0] * stride[0];
-////		stride[2] = local_outer_count_[1] * stride[1];
-////#else
-////		stride[2] = (iform==EDGE||iform==FACE)?3:1;
-////		stride[1] = local_outer_count_[2] * stride[2];
-////		stride[0] = local_outer_count_[1] * stride[1];
-////#endif
-////		res=[=](index_type s)->size_t
-////		{
-////			nTuple<NDIMS,index_type> d =( decompact(s)>>MAX_DEPTH_OF_TREE)-local_outer_begin_;
-////
-////			return
-////
-////			mod_( d[0], (local_outer_count_[0] )) * stride[0] +
-////
-////			mod_( d[1], (local_outer_count_[1] )) * stride[1] +
-////
-////			mod_( d[2], (local_outer_count_[2] )) * stride[2] +
-////
-////			component_number(s)
-////
-////			;
-////
-////		};
-//
-//		return std::move(res);
-//	}
-
-	size_t hash(index_type s) const
-	{
-		size_t m_tree = MAX_DEPTH_OF_TREE;
-		nTuple<size_type, ndims> d = (decompact(s) >> m_tree)
-				- local_outer_begin_;
+		id_type m_tree = MAX_DEPTH_OF_TREE;
+		nTuple<index_type, ndims> d = id_to_index(s) - local_outer_begin_;
 
 		size_t res =
 
-		mod_(d[0], (local_outer_count_[0])) * local_strides_[0] +
+		mod_(d[0], (local_outer_count_[0])) * hash_strides_[0] +
 
-		mod_(d[1], (local_outer_count_[1])) * local_strides_[1] +
+		mod_(d[1], (local_outer_count_[1])) * hash_strides_[1] +
 
-		mod_(d[2], (local_outer_count_[2])) * local_strides_[2];
+		mod_(d[2], (local_outer_count_[2])) * hash_strides_[2];
 
 		switch (node_id(s))
 		{
@@ -1708,7 +1068,7 @@ public:
 	 *  @{
 	 */
 
-	inline size_t get_vertices(index_type s, index_type *v) const
+	inline size_t get_vertices(id_type s, id_type *v) const
 	{
 		size_t n = 0;
 		switch (IForm(s))
@@ -1764,16 +1124,14 @@ public:
 
 	template<size_t I>
 	inline size_t get_adjacent_cells(std::integral_constant<size_t, I>,
-			std::integral_constant<size_t, I>, index_type s,
-			index_type *v) const
+			std::integral_constant<size_t, I>, id_type s, id_type *v) const
 	{
 		v[0] = s;
 		return 1;
 	}
 
 	inline size_t get_adjacent_cells(std::integral_constant<size_t, EDGE>,
-			std::integral_constant<size_t, VERTEX>, index_type s,
-			index_type *v) const
+			std::integral_constant<size_t, VERTEX>, id_type s, id_type *v) const
 	{
 		v[0] = s + delta_index(s);
 		v[1] = s - delta_index(s);
@@ -1781,8 +1139,7 @@ public:
 	}
 
 	inline size_t get_adjacent_cells(std::integral_constant<size_t, FACE>,
-			std::integral_constant<size_t, VERTEX>, index_type s,
-			index_type *v) const
+			std::integral_constant<size_t, VERTEX>, id_type s, id_type *v) const
 	{
 		/**
 		 * \verbatim
@@ -1817,8 +1174,7 @@ public:
 	}
 
 	inline size_t get_adjacent_cells(std::integral_constant<size_t, VOLUME>,
-			std::integral_constant<size_t, VERTEX>, index_type s,
-			index_type *v) const
+			std::integral_constant<size_t, VERTEX>, id_type s, id_type *v) const
 	{
 		/**
 		 * \verbatim
@@ -1858,8 +1214,7 @@ public:
 	}
 
 	inline size_t get_adjacent_cells(std::integral_constant<size_t, VERTEX>,
-			std::integral_constant<size_t, EDGE>, index_type s,
-			index_type *v) const
+			std::integral_constant<size_t, EDGE>, id_type s, id_type *v) const
 	{
 		/**
 		 * \verbatim
@@ -1900,8 +1255,7 @@ public:
 	}
 
 	inline size_t get_adjacent_cells(std::integral_constant<size_t, FACE>,
-			std::integral_constant<size_t, EDGE>, index_type s,
-			index_type *v) const
+			std::integral_constant<size_t, EDGE>, id_type s, id_type *v) const
 	{
 
 		/**
@@ -1935,8 +1289,7 @@ public:
 	}
 
 	inline size_t get_adjacent_cells(std::integral_constant<size_t, VOLUME>,
-			std::integral_constant<size_t, EDGE>, index_type s,
-			index_type *v) const
+			std::integral_constant<size_t, EDGE>, id_type s, id_type *v) const
 	{
 
 		/**
@@ -1982,8 +1335,7 @@ public:
 	}
 
 	inline size_t get_adjacent_cells(std::integral_constant<size_t, VERTEX>,
-			std::integral_constant<size_t, FACE>, index_type s,
-			index_type *v) const
+			std::integral_constant<size_t, FACE>, id_type s, id_type *v) const
 	{
 		/**
 		 *\verbatim
@@ -2042,8 +1394,7 @@ public:
 	}
 
 	inline size_t get_adjacent_cells(std::integral_constant<size_t, EDGE>,
-			std::integral_constant<size_t, FACE>, index_type s,
-			index_type *v) const
+			std::integral_constant<size_t, FACE>, id_type s, id_type *v) const
 	{
 
 		/**
@@ -2093,8 +1444,7 @@ public:
 	}
 
 	inline size_t get_adjacent_cells(std::integral_constant<size_t, VOLUME>,
-			std::integral_constant<size_t, FACE>, index_type s,
-			index_type *v) const
+			std::integral_constant<size_t, FACE>, id_type s, id_type *v) const
 	{
 
 		/**
@@ -2135,8 +1485,7 @@ public:
 	}
 
 	inline size_t get_adjacent_cells(std::integral_constant<size_t, VERTEX>,
-			std::integral_constant<size_t, VOLUME>, index_type s,
-			index_type *v) const
+			std::integral_constant<size_t, VOLUME>, id_type s, id_type *v) const
 	{
 		/**
 		 *\verbatim
@@ -2191,8 +1540,7 @@ public:
 	}
 
 	inline size_t get_adjacent_cells(std::integral_constant<size_t, EDGE>,
-			std::integral_constant<size_t, VOLUME>, index_type s,
-			index_type *v) const
+			std::integral_constant<size_t, VOLUME>, id_type s, id_type *v) const
 	{
 
 		/**
@@ -2241,8 +1589,7 @@ public:
 	}
 
 	inline size_t get_adjacent_cells(std::integral_constant<size_t, FACE>,
-			std::integral_constant<size_t, VOLUME>, index_type s,
-			index_type *v) const
+			std::integral_constant<size_t, VOLUME>, id_type s, id_type *v) const
 	{
 
 		/**
@@ -2275,35 +1622,35 @@ public:
 	/** @}*/
 
 	template<typename TV>
-	TV sample_(std::integral_constant<size_t, VERTEX>, size_type s,
+	TV sample_(std::integral_constant<size_t, VERTEX>, size_t s,
 			TV const &v) const
 	{
 		return v;
 	}
 
 	template<typename TV>
-	TV sample_(std::integral_constant<size_t, VOLUME>, size_type s,
+	TV sample_(std::integral_constant<size_t, VOLUME>, size_t s,
 			TV const &v) const
 	{
 		return v;
 	}
 
 	template<typename TV>
-	TV sample_(std::integral_constant<size_t, EDGE>, size_type s,
+	TV sample_(std::integral_constant<size_t, EDGE>, size_t s,
 			nTuple<TV, 3> const &v) const
 	{
 		return v[component_number(s)];
 	}
 
 	template<typename TV>
-	TV sample_(std::integral_constant<size_t, FACE>, size_type s,
+	TV sample_(std::integral_constant<size_t, FACE>, size_t s,
 			nTuple<TV, 3> const &v) const
 	{
 		return v[component_number(s)];
 	}
 
 	template<size_t IFORM, typename TV>
-	TV sample_(std::integral_constant<size_t, IFORM>, size_type s,
+	TV sample_(std::integral_constant<size_t, IFORM>, size_t s,
 			TV const & v) const
 	{
 		return v;
@@ -2316,50 +1663,50 @@ public:
 
 }
 ;
-// class UniformArray
-inline StructuredMesh::range_type split(
-		StructuredMesh::range_type const & range, size_t num_process,
-		size_t process_num, size_t ghost_width = 0)
-{
-	typedef StructuredMesh::size_type index_type;
-	static constexpr size_t ndims = StructuredMesh::ndims;
-
-	StructuredMesh::iterator ib = begin(range);
-	StructuredMesh::iterator ie = end(range);
-
-	auto b = ib.self_;
-	decltype(b) e = (--ie).self_ + 1;
-
-	auto shift = ib.shift_;
-
-	decltype(b) count;
-	count = e - b;
-
-	int n = 0;
-	index_type L = 0;
-	for (int i = 0; i < ndims; ++i)
-	{
-		if (count[i] > L)
-		{
-			L = count[i];
-			n = i;
-		}
-	}
-
-	if ((2 * ghost_width * num_process > count[n] || num_process > count[n]))
-	{
-		if (process_num > 0)
-			count = 0;
-	}
-	else
-	{
-		e[n] = b[n] + (count[n] * (process_num + 1)) / num_process;
-		b[n] += (count[n] * process_num) / num_process;
-
-	}
-
-	return std::move(StructuredMesh::range_type(b, e, shift));
-}
+//// class UniformArray
+//inline StructuredMesh::range_type split(
+//		StructuredMesh::range_type const & range, size_t num_process,
+//		size_t process_num, size_t ghost_width = 0)
+//{
+//
+//	static constexpr size_t ndims = StructuredMesh::ndims;
+//
+//	StructuredMesh::iterator ib = begin(range);
+//	StructuredMesh::iterator ie = end(range);
+//
+//	auto b = ib.self_;
+//	decltype(b) e = (--ie).self_ + 1;
+//
+//	auto shift = ib.shift_;
+//
+//	decltype(b) count;
+//	count = e - b;
+//
+//	int n = 0;
+//	size_t L = 0;
+//	for (int i = 0; i < ndims; ++i)
+//	{
+//		if (count[i] > L)
+//		{
+//			L = count[i];
+//			n = i;
+//		}
+//	}
+//
+//	if ((2 * ghost_width * num_process > count[n] || num_process > count[n]))
+//	{
+//		if (process_num > 0)
+//			count = 0;
+//	}
+//	else
+//	{
+//		e[n] = b[n] + (count[n] * (process_num + 1)) / num_process;
+//		b[n] += (count[n] * process_num) / num_process;
+//
+//	}
+//
+//	return std::move(StructuredMesh::range_type(b, e, shift));
+//}
 
 }
 // namespace simpla

@@ -564,15 +564,31 @@ template<typename T>
 auto rend(T& l)
 ENABLE_IF_DECL_RET_TYPE((!has_member_function_end<T>::value),(--std::get<0>(l)))
 
-template<typename T> T const &compact(T const &v)
+template<typename _T>
+struct is_iterator
 {
-	return v;
-}
+private:
+	typedef std::true_type yes;
+	typedef std::false_type no;
 
-template<typename T> void decompact(T const &v, T * u)
-{
-	*u = v;
-}
+	template<typename _U>
+	static auto test(int) ->
+	decltype(std::declval<_U>().operator *() );
+
+	template<typename > static no test(...);
+
+public:
+
+	static constexpr bool value =
+			!std::is_same<decltype(test<_T>(0)), no>::value;
+};
+
+template<typename TI>
+auto ref(TI & it)
+ENABLE_IF_DECL_RET_TYPE(is_iterator<TI>::value,(*it))
+template<typename TI>
+auto ref(TI & it)
+ENABLE_IF_DECL_RET_TYPE(!is_iterator<TI>::value,(it))
 
 HAS_MEMBER_FUNCTION(swap)
 
