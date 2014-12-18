@@ -221,6 +221,7 @@ void Particle<Engine, TDomain, _impl::IsProbeParticle>::load(TDict const & dict,
 template<typename Engine, typename TDomain>
 bool Particle<Engine, TDomain, _impl::IsProbeParticle>::update()
 {
+	engine_type::update_properties();
 	engine_type::update();
 
 	return true;
@@ -262,6 +263,7 @@ void Particle<Engine, TDomain, _impl::IsProbeParticle>::next_timestep(Real dt,
 {
 	if (data_ == nullptr)
 		return;
+
 //	auto function_selector =
 //			std::integral_constant<bool,
 //					has_member_function_next_timestep<Engine, Real, Real,

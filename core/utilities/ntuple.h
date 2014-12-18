@@ -206,7 +206,8 @@ struct array_to_ntuple_convert<T[N]>
 			typename array_to_ntuple_convert<T>::extents_t,
 			integer_sequence<size_t, N>>::type extents_t;
 
-	typedef typename nTuple_create_trait<T, extents_t>::type type;
+	typedef typename nTuple_create_trait<typename std::remove_all_extents<T>::type,
+			extents_t>::type type;
 };
 
 template<typename, typename, typename > class Expression;

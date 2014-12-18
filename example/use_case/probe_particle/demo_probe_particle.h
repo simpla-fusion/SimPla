@@ -13,10 +13,7 @@
 
 namespace simpla
 {
-//template<typename T, unsigned int Size> struct sp_array_type_wrap<T[Size]>
-//{
-//	typedef T type[Size];
-//};
+
 struct ProbeDemo
 {
 	typedef ProbeDemo this_type;
@@ -29,16 +26,15 @@ struct ProbeDemo
 			double[3], v,
 			Real, f,
 			scalar_type, w,
-			double[3], T
+			double[3][3], T
 	)
 
 	SP_DEFINE_PROPERTIES(
 			Real, mass,
 			Real, charge,
 			Real, temperature,
-			Real[3] , tensor
+			Real[3][3] , pressure
 	)
-
 
 	static constexpr size_t memory_length = 0; //!  declare this engine is memoryless
 
@@ -49,6 +45,7 @@ public:
 	ProbeDemo() :
 			mass(1.0), charge(1.0), temperature(1.0)
 	{
+		pressure = 0;
 		update();
 	}
 

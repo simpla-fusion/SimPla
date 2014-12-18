@@ -56,8 +56,10 @@ USE_CASE(demo_probe_particle)
 
 	auto ion = make_probe_particle<ProbeDemo>();
 
-	ion->load(options["Particle"]);
-
+	ion->mass = 1.0;
+	ion->charge = -1.0;
+	ion->temperature = 1.0e-4;
+	ion->pressure = nTuple<double, 3, 3>( { 1, 2, 3, 4, 5, 6, 7, 8, 9 });
 	ion->update();
 
 	STDOUT << std::endl;
