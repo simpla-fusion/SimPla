@@ -21,6 +21,13 @@ typedef std::nullptr_t NullType;
 struct EmptyType
 {
 };
+struct do_nothing
+{
+	template<typename ...Args>
+	void operator()(Args &&...) const
+	{
+	}
+};
 template<typename T>
 struct remove_all
 {
@@ -635,18 +642,18 @@ struct index_of<TC, TI>
 };
 
 HAS_MEMBER_FUNCTION(print)
-template<typename OS, typename TV>
-auto sp_print(OS & os,
+template<typename TV>
+auto sp_print(std::ostream & os,
 		TV const & v)
-		->typename std::enable_if<has_member_function_print<TV const,OS &>::value,OS &>::type
+		->typename std::enable_if<has_member_function_print<TV const,std::ostream &>::value,std::ostream &>::type
 {
 	return v.print(os);
 }
 
-template<typename OS, typename TV>
-auto sp_print(OS & os,
+template<typename TV>
+auto sp_print(std::ostream & os,
 		TV const & v)
-		->typename std::enable_if<!has_member_function_print<TV const,OS &>::value,OS &>::type
+		->typename std::enable_if<!has_member_function_print<TV const,std::ostream &>::value,std::ostream &>::type
 {
 	os << v;
 	return os;

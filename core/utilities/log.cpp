@@ -93,7 +93,8 @@ private:
 void LoggerStreams::init(int argc, char** argv)
 {
 
-	bool show_help = argc <= 1;
+	bool show_help = false;
+
 	parse_cmd_line(argc, argv,
 
 	[&,this](std::string const & opt,std::string const & value)->int

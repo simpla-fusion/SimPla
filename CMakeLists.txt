@@ -85,7 +85,7 @@ enable_testing()
 ExternalProject_Add(googletest
      PREFIX  ${PROJECT_BINARY_DIR}/third_part 
      #    URL   http://googletest.googlecode.com/files/gtest-1.7.0.zip
-    URL file://${CMAKE_SOURCE_DIR}/third_part/gtest-1.7.0.zip
+    URL file://${CMAKE_SOURCE_DIR}/third_part/src/gtest-1.7.0.zip
      SOURCE_DIR ${PROJECT_BINARY_DIR}/third_part/googletest
      INSTALL_COMMAND "" )
  ExternalProject_Get_Property(googletest SOURCE_DIR)

@@ -19,68 +19,36 @@ namespace simpla
  *
  *   TODO add sth for datatype
  *
- *  \brief  Desciption of data type
+ *  \brief  Description of data type
  *
  */
 struct DataType
 {
-public:
-	DataType() :
-			t_index_(std::type_index(typeid(void)))
-	{
-	}
+	DataType();
 
 	DataType(std::type_index t_index, size_t ele_size_in_byte,
-			unsigned int ndims = 0, size_t* dims = nullptr) :
-			t_index_(t_index), ele_size_in_byte_(ele_size_in_byte), ndims(ndims)
+			unsigned int ndims = 0, size_t* dims = nullptr, std::string name =
+					"");
+	DataType(const DataType & other);
+	DataType(DataType && other);
+	~DataType();
+
+	DataType& operator=(DataType const& other);
+
+	bool is_valid() const;
+
+	template<typename T> static DataType create(std::string const &pname = "")
 	{
-		if (ndims > 0 && dims != nullptr)
-		{
-			for (int i = 0; i < ndims; ++i)
-			{
-				dimensions_[i] = dims[i];
-			}
+		CHECK("wwww" + pname);
 
-		}
-	}
-
-	DataType(const DataType & other) :
-			ele_size_in_byte_(other.ele_size_in_byte_), t_index_(
-					other.t_index_), ndims(other.ndims)
-	{
-
-		dimensions_ = other.dimensions_;
-
-		std::copy(other.data.begin(), other.data.end(),
-				std::back_inserter(data));
-	}
-
-	~DataType()
-	{
-	}
-
-	DataType& operator=(DataType const& other)
-	{
-		t_index_ = other.t_index_;
-		ele_size_in_byte_ = other.ele_size_in_byte_;
-		ndims = other.ndims;
-		dimensions_ = other.dimensions_;
-
-		std::copy(other.data.begin(), other.data.end(),
-				std::back_inserter(data));
-		return *this;
-	}
-
-	bool is_valid() const
-	{
-		return true;
-	}
-	template<typename T> static DataType create()
-	{
 		static_assert( nTuple_traits<T>::ndims< MAX_NDIMS_OF_ARRAY,
 				"the NDIMS of nTuple is bigger than MAX_NDIMS_OF_ARRAY");
 
 		typedef typename nTuple_traits<T>::value_type value_type;
+
+		std::string name = pname;
+		if (name == "")
+			name = typeid(value_type).name() + std::string("aaaaa");
 
 		size_t ele_size_in_byte = sizeof(value_type) / sizeof(ByteType);
 
@@ -90,64 +58,54 @@ public:
 
 		return std::move(
 				DataType(std::type_index(typeid(value_type)), ele_size_in_byte,
-						ndims, &dimensions[0]));
+						ndims, &dimensions[0], name));
 	}
 
-	size_t size_in_byte() const
-	{
-		size_t res = ele_size_in_byte_;
+	size_t size_in_byte() const;
 
-		for (int i = 0; i < ndims; ++i)
-		{
-			res *= dimensions_[i];
-		}
-		return res;
+	size_t ele_size_in_byte() const;
+
+	size_t rank() const;
+
+	size_t extent(size_t n) const;
+
+	bool is_compound() const;
+
+	bool is_same(std::type_index const & other) const;
+
+	template<typename T>
+	bool is_same() const
+	{
+		return is_same(std::type_index(typeid(T)));
 	}
 
-	bool is_compound() const
-	{
-		return data.size() > 0;
-	}
-	template<typename T> bool is_same() const
-	{
-		return t_index_ == std::type_index(typeid(T));
-	}
+	void push_back(DataType const & dtype, std::string const & name, int pos =
+			-1);
 
 	template<typename T>
 	void push_back(std::string const & name, int pos = -1)
 	{
-		if (pos < 0)
-		{
-			if (data.empty())
-			{
-				pos = 0;
-			}
-			else
-			{
-				pos = std::get<2>(*(data.rbegin()))
-						+ std::get<0>(*(data.rbegin())).size_in_byte();
-			}
-		}
-
-		data.push_back(std::make_tuple(DataType::create<T>(), name, pos));
-
+		push_back(DataType::create<T>(), name, pos);
 	}
 
-	size_t ele_size_in_byte_ = 0;
-	std::type_index t_index_;
-	size_t ndims = 0;
-	nTuple<size_t, MAX_NDIMS_OF_ARRAY> dimensions_;
+	std::ostream & print(std::ostream & os) const;
 
-	std::vector<std::tuple<DataType, std::string, int>> data;
+	std::vector<std::tuple<DataType, std::string, int>> const & members()const;
+
+private:
+	struct pimpl_s;
+	pimpl_s *pimpl_;
 
 };
-HAS_STATIC_MEMBER_FUNCTION(data_desc)
+HAS_STATIC_MEMBER_FUNCTION(datatype)
 template<typename T>
-auto make_datatype()
-		ENABLE_IF_DECL_RET_TYPE((!has_static_member_function_data_desc<T>::value),DataType::create<T>())
+auto make_datatype(
+		std::string const & name = "")
+				ENABLE_IF_DECL_RET_TYPE((!has_static_member_function_datatype<T>::value),DataType::create<T>(name))
 template<typename T>
-auto make_datatype()
-		ENABLE_IF_DECL_RET_TYPE((has_static_member_function_data_desc<T>::value),T::data_desc())
+auto make_datatype(
+		std::string const & name = "")
+				ENABLE_IF_DECL_RET_TYPE((has_static_member_function_datatype<T>::value),T::datatype())
 
 }
 // namespace simpla

@@ -23,7 +23,7 @@ int main(int argc, char **argv)
 	init_logger(argc, argv);
 
 	bool no_logo = false;
-	bool show_help = (argc <= 1);
+	bool show_help = false;
 
 	parse_cmd_line(argc, argv,
 

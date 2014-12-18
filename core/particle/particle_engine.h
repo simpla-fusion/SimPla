@@ -228,10 +228,10 @@ namespace simpla
 struct _S_NAME_                                                  \
 {                                                                \
 	SP_PARTICLE_DEFINE_MEMBER(__VA_ARGS__)                                   \
-	static DataType data_desc()                             \
+	static DataType datatype()                             \
 	{                                                             \
-		auto d_type = DataType::create<Point_s>();                \
-		SP_PARTICLE_DEFINE_DESC(_S_NAME_,__VA_ARGS__);                       \
+		auto d_type = DataType::create<Point_s>(#_S_NAME_);  \
+		SP_PARTICLE_DEFINE_DESC(_S_NAME_,__VA_ARGS__);CHECK(d_type);                       \
 		return std::move(d_type);                                 \
 	}                                                             \
 };

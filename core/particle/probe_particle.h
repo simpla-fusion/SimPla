@@ -65,13 +65,16 @@ template<typename ...> struct Particle;
  */
 template<typename Engine, typename TDomain>
 struct Particle<Engine, TDomain, _impl::IsProbeParticle> : public PhysicalObject,
-		public Engine
+		public Engine,
+		std::vector<typename Engine::Point_s>
 {
 	typedef PhysicalObject base_type;
 
 	typedef TDomain domain_type;
 
 	typedef Engine engine_type;
+
+	typedef std::vector<typename Engine::Point_s> container_type;
 
 	typedef Particle<engine_type, domain_type, _impl::IsProbeParticle> this_type;
 
@@ -95,6 +98,14 @@ struct Particle<Engine, TDomain, _impl::IsProbeParticle> : public PhysicalObject
 		return engine_type::properties(name);
 	}
 
+	template<typename ...Args>
+	auto insert(Args && ... args)
+	DECL_RET_TYPE((container_type::insert(std::forward<Args>(args)...)))
+
+	template<typename ...Args>
+	auto emplace(Args && ... args)
+	DECL_RET_TYPE((container_type::insert(std::forward<Args>(args)...)))
+
 	template<typename TDict, typename ...Others>
 	void load(TDict const & dict, Others && ...others);
 
@@ -113,8 +124,7 @@ struct Particle<Engine, TDomain, _impl::IsProbeParticle> : public PhysicalObject
 	template<typename ...Args>
 	void next_n_timesteps(Real dt, size_t num_of_steps, Args && ...args);
 
-	template<typename OS>
-	OS &print(OS & os) const
+	std::ostream& print(std::ostream & os) const
 	{
 		engine_type::print(os);
 //		base_type::print(os);
@@ -135,11 +145,7 @@ struct Particle<Engine, TDomain, _impl::IsProbeParticle> : public PhysicalObject
 	}
 private:
 
-	std::shared_ptr<Point_s> data_;
-
 	Real timer_ = 0.0;
-
-	size_t num_of_points_ = 0;
 
 	size_t memory_length_ = 0;
 
@@ -230,30 +236,12 @@ bool Particle<Engine, TDomain, _impl::IsProbeParticle>::update()
 template<typename Engine, typename TDomain>
 DataSet Particle<Engine, TDomain, _impl::IsProbeParticle>::dataset() const
 {
-	DataSpace ds;
-	if (cache_length_ == 0)
-	{
-		ds = make_dataspace(1, &num_of_points_);
-	}
-	else
-	{
-		size_t dims[2] = { num_of_points_, memory_length_ };
 
-		ds = make_dataspace(2, dims);
+	size_t dims[2] =
+	{ container_type::size(), memory_length_ };
 
-	}
-
-	return std::move(DataSet( {
-
-	data_,
-
-	make_datatype<Point_s>(),
-
-	ds,
-
-	properties()
-
-	}));
+	return std::move(
+			make_dataset(container_type::data(), 1, dims, properties()));
 }
 
 template<typename Engine, typename TDomain>
@@ -261,13 +249,6 @@ template<typename ... Args>
 void Particle<Engine, TDomain, _impl::IsProbeParticle>::next_timestep(Real dt,
 		Args && ...args)
 {
-	if (data_ == nullptr)
-		return;
-
-//	auto function_selector =
-//			std::integral_constant<bool,
-//					has_member_function_next_timestep<Engine, Real, Real,
-//							Args...>::value>();
 
 //	parallel_foreach(make_seq_range(0UL, num_of_points_),
 //
@@ -277,10 +258,9 @@ void Particle<Engine, TDomain, _impl::IsProbeParticle>::next_timestep(Real dt,
 //		next_timestep_(function_selector, p ,dt, std::forward<Args>(args)...);
 //	});
 
-	for (int s = 0; s < num_of_points_; ++s)
+	for (auto & p : *this)
 	{
-		Point_s * p = data_.get() + s;
-		next_timestep_(p, dt, timer_, std::forward<Args>(args)...);
+		next_timestep_(&p, dt, timer_, std::forward<Args>(args)...);
 	}
 
 	timer_ += dt;
@@ -390,11 +370,9 @@ void Particle<Engine, TDomain, _impl::IsProbeParticle>::next_n_timesteps(
 
 	for (int n = 0; n < num_of_steps; ++n)
 	{
-		for (int s = 0; s < num_of_points_; ++s)
+		for (auto & p : *this)
 		{
-			Point_s * p = data_.get() + s;
-
-			next_timestep_(p, dt, std::forward<Args>(args)...);
+			next_timestep_(&p, dt, std::forward<Args>(args)...);
 		}
 
 		timer_ += dt;

@@ -54,12 +54,20 @@ USE_CASE(demo_probe_particle)
 
 	options["DT"].as<Real>(&dt);
 
+	if (options["SHOW_HELP"])
+	{
+		exit(0);
+	}
+
 	auto ion = make_probe_particle<ProbeDemo>();
 
 	ion->mass = 1.0;
 	ion->charge = -1.0;
 	ion->temperature = 1.0e-4;
-	ion->pressure = nTuple<double, 3, 3>( { 1, 2, 3, 4, 5, 6, 7, 8, 9 });
+//	ion->pressure = nTuple<double, 3, 3>(
+//	{ 1, 2, 3, 4, 5, 6, 7, 8, 9 });
+
+	ion->resize(20);
 	ion->update();
 
 	STDOUT << std::endl;
@@ -69,7 +77,7 @@ USE_CASE(demo_probe_particle)
 	RIGHT_COLUMN(" dt" ) << " = " << dt << std::endl;
 	STDOUT << "=========================" << std::endl;
 
-	if (!options["JUST A TEST"])
+	if (!(options["JUST A TEST"]))
 	{
 
 		auto B = [](nTuple<Real,3> const & )
@@ -87,7 +95,7 @@ USE_CASE(demo_probe_particle)
 //		{
 //			ion->next_timestep(dt, E, B);
 //		}
-//		VERBOSE << save("ion", ion->dataset()) << std::endl;
+		VERBOSE << save("ion", ion->dataset()) << std::endl;
 	}
 }
 

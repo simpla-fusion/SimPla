@@ -29,41 +29,41 @@ MPIDataType MPIDataType::create(DataType const & data_type)
 
 	res.is_commited_ = false;
 
-	if (data_type.t_index_ == std::type_index(typeid(int)))
+	if (data_type.is_same<int>())
 	{
 		res.type_ = MPI_INT;
 	}
-	else if (data_type.t_index_ == std::type_index(typeid(long)))
+	else if (data_type.is_same<int>())
 	{
 		res.type_ = MPI_LONG;
 	}
-	else if (data_type.t_index_ == std::type_index(typeid(unsigned long)))
+	else if (data_type.is_same<unsigned long>())
 	{
 		res.type_ = MPI_UNSIGNED_LONG;
 	}
-	else if (data_type.t_index_ == std::type_index(typeid(float)))
+	else if (data_type.is_same<float>())
 	{
 		res.type_ = MPI_FLOAT;
 	}
-	else if (data_type.t_index_ == std::type_index(typeid(double)))
+	else if (data_type.is_same<double>())
 	{
 		res.type_ = MPI_DOUBLE;
 	}
-//	else if (data_type.t_index_ == std::type_index(typeid(long double)))
+//	else if (data_type.is_same<long double>())
 //	{
 //		res.type_ = MPI_LONG_DOUBLE;
 //	}
-//	else if (data_type.t_index_ == std::type_index(typeid(std::complex<double>)))
+//	else if (data_type.is_same<std::complex<double>>())
 //	{
 //		res.type_ = MPI_2DOUBLE_COMPLEX;
 //	}
-//	else if (data_type.t_index_ == std::type_index(typeid(std::complex<float>)))
+//	else if (data_type.is_same<std::complex<float>>())
 //	{
 //		res.type_ = MPI_2COMPLEX;
 //	}
 	else
 	{
-		MPI_Type_contiguous(data_type.ele_size_in_byte_, MPI_BYTE, &res.type_);
+		MPI_Type_contiguous(data_type.ele_size_in_byte(), MPI_BYTE, &res.type_);
 		MPI_Type_commit(&res.type_);
 		res.is_commited_ = true;
 	}
@@ -81,7 +81,7 @@ MPIDataType MPIDataType::create(DataType const & data_type, unsigned int ndims,
 
 	MPIDataType res;
 
-	unsigned int mdims = ndims + data_type.ndims;
+	unsigned int mdims = ndims + data_type.rank();
 
 	nTuple<int, MAX_NDIMS_OF_ARRAY> m_dims;
 	nTuple<int, MAX_NDIMS_OF_ARRAY> m_count;
@@ -126,14 +126,14 @@ MPIDataType MPIDataType::create(DataType const & data_type, unsigned int ndims,
 				<< std::endl;
 	}
 
-	for (int i = 0; i < data_type.ndims; ++i)
+	for (int i = 0; i < data_type.rank(); ++i)
 	{
-		m_dims[ndims + i] = data_type.dimensions_[i];
-		m_count[ndims + i] = data_type.dimensions_[i];
+		m_dims[ndims + i] = data_type.extent(i);
+		m_count[ndims + i] = data_type.extent(i);
 		m_offset[ndims + i] = 0;
 	}
 
-	MPI_Type_create_subarray(ndims + data_type.ndims, &m_dims[0], &m_count[0],
+	MPI_Type_create_subarray(ndims + data_type.rank(), &m_dims[0], &m_count[0],
 			&m_offset[0], (c_order_array ? MPI_ORDER_C : MPI_ORDER_FORTRAN),
 			old_type.type(), &res.type_);
 

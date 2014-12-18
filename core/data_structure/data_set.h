@@ -38,15 +38,33 @@ struct DataSet
 };
 
 template<typename T>
-DataSet make_dataset(int rank, size_t const * dims)
+DataSet make_dataset(int rank, size_t const * dims, Properties const & prop =
+		Properties())
 {
 	DataSet res;
 	res.datatype = DataType::create<T>();
 	res.dataspace.init(rank, dims);
 	res.data = sp_make_shared_array<T>(res.dataspace.size());
+	res.attribute = prop;
 	return std::move(res);
 }
 
+template<typename T>
+DataSet make_dataset(T * p, int rank, size_t const * dims,
+		Properties const & prop = Properties())
+{
+
+	DataSet res;
+
+	res.datatype = DataType::create<T>();
+	res.dataspace.init(rank, dims);
+	res.data = std::shared_ptr<void>(
+			const_cast<void*>(reinterpret_cast<typename std::conditional<
+					std::is_const<T>::value, void const *, void *>::type>(p)),
+			do_nothing());
+	res.attribute = prop;
+	return std::move(res);
+}
 }  // namespace simpla
 
 #endif /* CORE_DATA_STRUCTURE_DATA_SET_H_ */
