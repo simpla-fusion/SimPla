@@ -149,27 +149,27 @@ namespace simpla
 #define SP_PARTICLE_DEFINE_MEMBER_CHOOSE_HELPER(count) SP_PARTICLE_DEFINE_MEMBER_CHOOSE_HELPER1(count)
 #define SP_PARTICLE_DEFINE_MEMBER(...) SP_PARTICLE_DEFINE_MEMBER_CHOOSE_HELPER(COUNT_MACRO_ARGS(__VA_ARGS__)) (__VA_ARGS__)
 
-#define SP_PARTICLE_GET_NAME_HELPER2(_T0_,_N0_) _N0_
-#define SP_PARTICLE_GET_NAME_HELPER4(_T0_,_N0_,_T1_,_N1_) SP_PARTICLE_GET_NAME_HELPER2(_T0_,_N0_) , \
-	  SP_PARTICLE_GET_NAME_HELPER2(_T1_,_N1_)
-#define SP_PARTICLE_GET_NAME_HELPER6(_T0_,_N0_,_T1_,_N1_,_T2_,_N2_)  SP_PARTICLE_GET_NAME_HELPER2(_T0_,_N0_) , \
-	  SP_PARTICLE_GET_NAME_HELPER4(_T1_,_N1_,_T2_,_N2_)
-#define SP_PARTICLE_GET_NAME_HELPER8(_T0_,_N0_,_T1_,_N1_,_T2_,_N2_,_T3_,_N3_) SP_PARTICLE_GET_NAME_HELPER2(_T0_,_N0_) , \
-	  SP_PARTICLE_GET_NAME_HELPER6(_T1_,_N1_,_T2_,_N2_,_T3_,_N3_)
-#define SP_PARTICLE_GET_NAME_HELPER10(_T0_,_N0_,_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_) SP_PARTICLE_GET_NAME_HELPER2(_T0_,_N0_) , \
-	  SP_PARTICLE_GET_NAME_HELPER8(_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_)
-#define SP_PARTICLE_GET_NAME_HELPER12(_T0_,_N0_,_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_) SP_PARTICLE_GET_NAME_HELPER2(_T0_,_N0_) , \
-	  SP_PARTICLE_GET_NAME_HELPER10(_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_)
-#define SP_PARTICLE_GET_NAME_HELPER14(_T0_,_N0_,_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_,_T6_,_N6_) SP_PARTICLE_GET_NAME_HELPER2(_T0_,_N0_) , \
-	  SP_PARTICLE_GET_NAME_HELPER12(_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_,_T6_,_N6_)
-#define SP_PARTICLE_GET_NAME_HELPER16(_T0_,_N0_,_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_,_T6_,_N6_,_T7_,_N7_) SP_PARTICLE_GET_NAME_HELPER2(_T0_,_N0_) , \
-	  SP_PARTICLE_GET_NAME_HELPER14(_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_,_T6_,_N6_,_T7_,_N7_)
-#define SP_PARTICLE_GET_NAME_HELPER18(_T0_,_N0_,_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_,_T6_,_N6_,_T7_,_N7_,_T8_,_N8_) SP_PARTICLE_GET_NAME_HELPER2(_T0_,_N0_) , \
-	  SP_PARTICLE_GET_NAME_HELPER16(_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_,_T6_,_N6_,_T7_,_N7_,_T8_,_N8_)
-
-#define SP_PARTICLE_GET_NAME_CHOOSE_HELPER1(count) SP_PARTICLE_GET_NAME_HELPER##count
-#define SP_PARTICLE_GET_NAME_CHOOSE_HELPER(count) SP_PARTICLE_GET_NAME_CHOOSE_HELPER1(count)
-#define SP_PARTICLE_GET_NAME(...) SP_PARTICLE_GET_NAME_CHOOSE_HELPER(COUNT_MACRO_ARGS(__VA_ARGS__)) (__VA_ARGS__)
+//#define SP_PARTICLE_GET_NAME_HELPER2(_T0_,_N0_) _N0_
+//#define SP_PARTICLE_GET_NAME_HELPER4(_T0_,_N0_,_T1_,_N1_) SP_PARTICLE_GET_NAME_HELPER2(_T0_,_N0_) , \
+//	  SP_PARTICLE_GET_NAME_HELPER2(_T1_,_N1_)
+//#define SP_PARTICLE_GET_NAME_HELPER6(_T0_,_N0_,_T1_,_N1_,_T2_,_N2_)  SP_PARTICLE_GET_NAME_HELPER2(_T0_,_N0_) , \
+//	  SP_PARTICLE_GET_NAME_HELPER4(_T1_,_N1_,_T2_,_N2_)
+//#define SP_PARTICLE_GET_NAME_HELPER8(_T0_,_N0_,_T1_,_N1_,_T2_,_N2_,_T3_,_N3_) SP_PARTICLE_GET_NAME_HELPER2(_T0_,_N0_) , \
+//	  SP_PARTICLE_GET_NAME_HELPER6(_T1_,_N1_,_T2_,_N2_,_T3_,_N3_)
+//#define SP_PARTICLE_GET_NAME_HELPER10(_T0_,_N0_,_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_) SP_PARTICLE_GET_NAME_HELPER2(_T0_,_N0_) , \
+//	  SP_PARTICLE_GET_NAME_HELPER8(_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_)
+//#define SP_PARTICLE_GET_NAME_HELPER12(_T0_,_N0_,_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_) SP_PARTICLE_GET_NAME_HELPER2(_T0_,_N0_) , \
+//	  SP_PARTICLE_GET_NAME_HELPER10(_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_)
+//#define SP_PARTICLE_GET_NAME_HELPER14(_T0_,_N0_,_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_,_T6_,_N6_) SP_PARTICLE_GET_NAME_HELPER2(_T0_,_N0_) , \
+//	  SP_PARTICLE_GET_NAME_HELPER12(_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_,_T6_,_N6_)
+//#define SP_PARTICLE_GET_NAME_HELPER16(_T0_,_N0_,_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_,_T6_,_N6_,_T7_,_N7_) SP_PARTICLE_GET_NAME_HELPER2(_T0_,_N0_) , \
+//	  SP_PARTICLE_GET_NAME_HELPER14(_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_,_T6_,_N6_,_T7_,_N7_)
+//#define SP_PARTICLE_GET_NAME_HELPER18(_T0_,_N0_,_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_,_T6_,_N6_,_T7_,_N7_,_T8_,_N8_) SP_PARTICLE_GET_NAME_HELPER2(_T0_,_N0_) , \
+//	  SP_PARTICLE_GET_NAME_HELPER16(_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_,_T6_,_N6_,_T7_,_N7_,_T8_,_N8_)
+//
+//#define SP_PARTICLE_GET_NAME_CHOOSE_HELPER1(count) SP_PARTICLE_GET_NAME_HELPER##count
+//#define SP_PARTICLE_GET_NAME_CHOOSE_HELPER(count) SP_PARTICLE_GET_NAME_CHOOSE_HELPER1(count)
+//#define SP_PARTICLE_GET_NAME(...) SP_PARTICLE_GET_NAME_CHOOSE_HELPER(COUNT_MACRO_ARGS(__VA_ARGS__)) (__VA_ARGS__)
 
 #define SP_PARTICLE_DEFINE_DESC_HELPER2(_S_NAME_,_T0_,_N0_) d_type.template push_back<typename array_to_ntuple_convert<_T0_>::type>(#_N0_, offsetof(_S_NAME_, _N0_));
 #define SP_PARTICLE_DEFINE_DESC_HELPER4(_S_NAME_,_T0_,_N0_,_T1_,_N1_) SP_PARTICLE_DEFINE_DESC_HELPER2(_S_NAME_,_T0_,_N0_) \
@@ -258,7 +258,7 @@ struct _S_NAME_                                                  \
 //#define SP_PARTICLE_ADD_PROP_CHOOSE_HELPER(count) SP_PARTICLE_ADD_PROP_CHOOSE_HELPER1(count)
 //#define SP_PARTICLE_ADD_PROP(_S_NAME_,...) SP_PARTICLE_ADD_PROP_CHOOSE_HELPER(COUNT_MACRO_ARGS(__VA_ARGS__)) (_S_NAME_,__VA_ARGS__)
 
-#define SP_PARTICLE_LOAD_DICT_HELPER2(_S1_,_S2_,_T0_,_N0_) _N0_=_S2_[#_N0_].template as<typename array_to_ntuple_convert<_T0_>::type>();_S1_.set(#_N0_,_N0_);
+#define SP_PARTICLE_LOAD_DICT_HELPER2(_S1_,_S2_,_T0_,_N0_) _N0_=_S2_[#_N0_].template as<typename array_to_ntuple_convert<_T0_>::type>();
 #define SP_PARTICLE_LOAD_DICT_HELPER4(_S1_,_S2_,_T0_,_N0_,_T1_,_N1_) SP_PARTICLE_LOAD_DICT_HELPER2(_S1_,_S2_,_T0_,_N0_) \
 	  SP_PARTICLE_LOAD_DICT_HELPER2(_S1_,_S2_,_T1_,_N1_)
 #define SP_PARTICLE_LOAD_DICT_HELPER6(_S1_,_S2_,_T0_,_N0_,_T1_,_N1_,_T2_,_N2_)  SP_PARTICLE_LOAD_DICT_HELPER2(_S1_,_S2_,_T0_,_N0_) \
@@ -279,6 +279,29 @@ struct _S_NAME_                                                  \
 #define SP_PARTICLE_LOAD_DICT_CHOOSE_HELPER1(count) SP_PARTICLE_LOAD_DICT_HELPER##count
 #define SP_PARTICLE_LOAD_DICT_CHOOSE_HELPER(count) SP_PARTICLE_LOAD_DICT_CHOOSE_HELPER1(count)
 #define SP_PARTICLE_LOAD_DICT(_S1_,_S2_,...) SP_PARTICLE_LOAD_DICT_CHOOSE_HELPER(COUNT_MACRO_ARGS(__VA_ARGS__)) (_S1_,_S2_,__VA_ARGS__)
+
+
+#define SP_PARTICLE_UPDATE_PROP_HELPER2(_S1_,_T0_,_N0_) _S1_.set(#_N0_,_N0_);
+#define SP_PARTICLE_UPDATE_PROP_HELPER4(_S1_,_T0_,_N0_,_T1_,_N1_) SP_PARTICLE_UPDATE_PROP_HELPER2(_S1_,_T0_,_N0_) \
+	  SP_PARTICLE_UPDATE_PROP_HELPER2(_S1_,_T1_,_N1_)
+#define SP_PARTICLE_UPDATE_PROP_HELPER6(_S1_,_T0_,_N0_,_T1_,_N1_,_T2_,_N2_)  SP_PARTICLE_UPDATE_PROP_HELPER2(_S1_,_T0_,_N0_) \
+	  SP_PARTICLE_UPDATE_PROP_HELPER4(_S1_,_T1_,_N1_,_T2_,_N2_)
+#define SP_PARTICLE_UPDATE_PROP_HELPER8(_S1_,_T0_,_N0_,_T1_,_N1_,_T2_,_N2_,_T3_,_N3_) SP_PARTICLE_UPDATE_PROP_HELPER2(_S1_,_T0_,_N0_) \
+	  SP_PARTICLE_UPDATE_PROP_HELPER6(_S1_,_T1_,_N1_,_T2_,_N2_,_T3_,_N3_)
+#define SP_PARTICLE_UPDATE_PROP_HELPER10(_S1_,_T0_,_N0_,_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_) SP_PARTICLE_UPDATE_PROP_HELPER2(_S1_,_T0_,_N0_) \
+	  SP_PARTICLE_UPDATE_PROP_HELPER8(_S1_,_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_)
+#define SP_PARTICLE_UPDATE_PROP_HELPER12(_S1_,_T0_,_N0_,_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_) SP_PARTICLE_UPDATE_PROP_HELPER2(_S1_,_T0_,_N0_) \
+	  SP_PARTICLE_UPDATE_PROP_HELPER10(_S1_,_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_)
+#define SP_PARTICLE_UPDATE_PROP_HELPER14(_S1_,_T0_,_N0_,_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_,_T6_,_N6_) SP_PARTICLE_UPDATE_PROP_HELPER2(_S1_,_T0_,_N0_) \
+	  SP_PARTICLE_UPDATE_PROP_HELPER12(_S1_,_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_,_T6_,_N6_)
+#define SP_PARTICLE_UPDATE_PROP_HELPER16(_S1_,_T0_,_N0_,_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_,_T6_,_N6_,_T7_,_N7_) SP_PARTICLE_UPDATE_PROP_HELPER2(_S1_,_T0_,_N0_) \
+	  SP_PARTICLE_UPDATE_PROP_HELPER14(_S1_,_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_,_T6_,_N6_,_T7_,_N7_)
+#define SP_PARTICLE_UPDATE_PROP_HELPER18(_S1_,_T0_,_N0_,_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_,_T6_,_N6_,_T7_,_N7_,_T8_,_N8_) SP_PARTICLE_UPDATE_PROP_HELPER2(_S1_,_T0_,_N0_) \
+	  SP_PARTICLE_UPDATE_PROP_HELPER16(_S1_,_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_,_T6_,_N6_,_T7_,_N7_,_T8_,_N8_)
+
+#define SP_PARTICLE_UPDATE_PROP_CHOOSE_HELPER1(count) SP_PARTICLE_UPDATE_PROP_HELPER##count
+#define SP_PARTICLE_UPDATE_PROP_CHOOSE_HELPER(count) SP_PARTICLE_UPDATE_PROP_CHOOSE_HELPER1(count)
+#define SP_PARTICLE_UPDATE_PROP(_S1_,...) SP_PARTICLE_UPDATE_PROP_CHOOSE_HELPER(COUNT_MACRO_ARGS(__VA_ARGS__)) (_S1_,__VA_ARGS__)
 
 //#define SP_PARTICLE_CONVERT_PARAMETER_HELPER2(_S_NAME_,_T0_,_N0_)  typename array_to_ntuple_convert<_T0_>::type p_##_N0_
 //#define SP_PARTICLE_CONVERT_PARAMETER_HELPER4(_S_NAME_,_T0_,_N0_,_T1_,_N1_) SP_PARTICLE_CONVERT_PARAMETER_HELPER2(_S_NAME_,_T0_,_N0_), \
@@ -335,109 +358,112 @@ struct _S_NAME_                                                  \
  *}
  * \endcode
  */
-#define SP_DEFINE_PROPERTIES(...)                                 \
-Properties properties;                                            \
-SP_PARTICLE_DEFINE_MEMBER(__VA_ARGS__)                                       \
-template<typename TDict,typename ...Others> \
-void load(TDict const & dict,Others && ...)                   \
-{                                                                 \
-	SP_PARTICLE_LOAD_DICT(properties,dict,__VA_ARGS__)                        \
-	update();                                                     \
-}     \
-template<typename OS> OS& print(OS &os)const                                                    \
-{ properties.print(os);		return os;	}
+#define SP_DEFINE_PROPERTIES(...)                            \
+Properties properties;                                       \
+SP_PARTICLE_DEFINE_MEMBER(__VA_ARGS__)                       \
+template<typename TDict,typename ...Others>                  \
+void load(TDict const & dict,Others && ...)                  \
+{                                                            \
+	SP_PARTICLE_LOAD_DICT(properties,dict,__VA_ARGS__)       \
+}                                                            \
+void update_properties()                                     \
+{                                                            \
+	SP_PARTICLE_UPDATE_PROP(properties,__VA_ARGS__)          \
+}                                                            \
+template<typename OS> OS& print(OS &os)const                 \
+{  properties.print(os);		return os;	}
 
-template<typename Policy>
-class ParticleEngine
-{
-	typedef ParticleEngine<Policy> this_type;
-	typedef Vec3 coordinates_type;
-	typedef Vec3 vector_type;
-	typedef Real scalar_type;
-
-	SP_DEFINE_POINT_STRUCT(Point_s,
-			coordinates_type ,x,
-			Vec3, v,
-			Real, f,
-			scalar_type, w)
-
-	SP_DEFINE_PROPERTIES(
-			Real, mass,
-			Real, charge,
-			Real, temperature
-	)
-
-	int J_at_the_center;
-
-private:
-	Real cmr_, q_kT_;
-public:
-
-	ParticleEngine() :
-			mass(1.0), charge(1.0), temperature(1.0)
-	{
-		update();
-	}
-
-	void update()
-	{
-		DEFINE_PHYSICAL_CONST
-		cmr_ = charge / mass;
-		q_kT_ = charge / (temperature * boltzmann_constant);
-	}
-
-	~ParticleEngine()
-	{
-	}
-
-	static std::string get_type_as_string()
-	{
-		return "DeltaF";
-	}
-
-	template<typename TE, typename TB, typename TJ>
-	void next_timestep(Point_s const* p0, Point_s * p1, Real dt, TE const &fE,
-			TB const & fB, TJ * J) const
-	{
-		p1->x += p0->v * dt * 0.5;
-
-		auto B = fB(p0->x);
-		auto E = fE(p0->x);
-
-		Vec3 v_;
-
-		auto t = B * (cmr_ * dt * 0.5);
-
-		p1->v += p0->v + E * (cmr_ * dt * 0.5);
-
-		v_ = p1->v + Cross(p1->v, t);
-
-		v_ = Cross(v_, t) / (Dot(t, t) + 1.0);
-
-		p1->v += v_;
-		auto a = (-Dot(E, p1->v) * q_kT_ * dt);
-		p1->w = (-a + (1 + 0.5 * a) * p0->w) / (1 - 0.5 * a);
-
-		p1->v += v_;
-		p1->v += E * (cmr_ * dt * 0.5);
-
-		p1->x += p1->v * dt * 0.5;
-
-		J->scatter_cartesian(
-				std::forward_as_tuple(p1->x, p1->v, p1->f * charge * p1->w));
-
-	}
-
-	static inline Point_s push_forward(coordinates_type const & x,
-			Vec3 const &v, scalar_type f)
-	{
-		return std::move(Point_s(
-		{ x, v, f }));
-	}
-
-	static inline auto pull_back(Point_s const & p)
-	DECL_RET_TYPE((std::make_tuple(p.x,p.v,p.f)))
-};
+//template<typename Policy>
+//class ParticleEngine
+//{
+//	typedef ParticleEngine<Policy> this_type;
+//	typedef Vec3 coordinates_type;
+//	typedef Vec3 vector_type;
+//	typedef Real scalar_type;
+//
+//	SP_DEFINE_POINT_STRUCT(Point_s,
+//			coordinates_type ,x,
+//			Vec3, v,
+//			Real, f,
+//			scalar_type, w)
+//
+//	SP_DEFINE_PROPERTIES(
+//			Real, mass,
+//			Real, charge,
+//			Real, temperature
+//	)
+//
+//	int J_at_the_center;
+//
+//private:
+//	Real cmr_, q_kT_;
+//public:
+//
+//	ParticleEngine() :
+//			mass(1.0), charge(1.0), temperature(1.0)
+//	{
+//		update();
+//	}
+//
+//	void update()
+//	{
+//		DEFINE_PHYSICAL_CONST
+//		cmr_ = charge / mass;
+//		q_kT_ = charge / (temperature * boltzmann_constant);
+//	}
+//
+//	~ParticleEngine()
+//	{
+//	}
+//
+//	static std::string get_type_as_string()
+//	{
+//		return "DeltaF";
+//	}
+//
+//	template<typename TE, typename TB, typename TJ>
+//	void next_timestep(Point_s const* p0, Point_s * p1, Real dt, TE const &fE,
+//			TB const & fB, TJ * J) const
+//	{
+//		p1->x += p0->v * dt * 0.5;
+//
+//		auto B = fB(p0->x);
+//		auto E = fE(p0->x);
+//
+//		Vec3 v_;
+//
+//		auto t = B * (cmr_ * dt * 0.5);
+//
+//		p1->v += p0->v + E * (cmr_ * dt * 0.5);
+//
+//		v_ = p1->v + Cross(p1->v, t);
+//
+//		v_ = Cross(v_, t) / (Dot(t, t) + 1.0);
+//
+//		p1->v += v_;
+//		auto a = (-Dot(E, p1->v) * q_kT_ * dt);
+//		p1->w = (-a + (1 + 0.5 * a) * p0->w) / (1 - 0.5 * a);
+//
+//		p1->v += v_;
+//		p1->v += E * (cmr_ * dt * 0.5);
+//
+//		p1->x += p1->v * dt * 0.5;
+//
+//		J->scatter_cartesian(
+//				std::forward_as_tuple(p1->x, p1->v, p1->f * charge * p1->w));
+//
+//	}
+//
+//	static inline Point_s push_forward(coordinates_type const & x,
+//			Vec3 const &v, scalar_type f)
+//	{
+//		return std::move(Point_s(
+//		{ x, v, f }));
+//	}
+//
+//	static inline auto pull_back(Point_s const & p)
+//	DECL_RET_TYPE((std::make_tuple(p.x,p.v,p.f)))
+//};
 }
 // namespace simpla
 
