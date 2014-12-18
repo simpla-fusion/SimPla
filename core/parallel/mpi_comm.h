@@ -24,13 +24,15 @@ namespace simpla
 
 class MPIComm
 {
+public:
+
 	int num_threads_;
 	int num_process_;
 	int process_num_;
 	MPI_Comm comm_;
 
 	bool no_mpi_ = false;
-public:
+
 	MPIComm();
 
 	MPIComm(int argc, char** argv);

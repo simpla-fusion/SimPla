@@ -61,7 +61,7 @@ struct PhysicalObject
 		return prop_[name];
 	}
 
-	virtual std::ostream& print(std::ostream & os) const
+	virtual std::basic_ostream<char>& print(std::basic_ostream<char>& os) const
 	{
 		return prop_.print(os);
 

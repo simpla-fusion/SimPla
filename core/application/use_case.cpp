@@ -41,9 +41,15 @@ void UseCaseList::run_all_case(int argc, char ** argv)
 	for (auto const & item : list_)
 	{
 
+		LOGGER << "Case [" << item.first << "] is initialized." << std::endl;
+
 		item.second->init(argc, argv);
 
+		LOGGER << "Case [" << item.first << "] start." << std::endl;
+
 		item.second->body();
+
+		LOGGER << "Case [" << item.first << "] is closed." << std::endl;
 	}
 }
 }  // namespace simpla

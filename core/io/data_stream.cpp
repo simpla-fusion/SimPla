@@ -103,7 +103,6 @@ DataStream::~DataStream()
 	if (pimpl_ != nullptr)
 	{
 		close();
-
 	}
 }
 
@@ -118,6 +117,7 @@ std::string DataStream::pwd() const
 }
 void DataStream::init(int argc, char** argv)
 {
+
 	if (pimpl_ == nullptr)
 		pimpl_ = new pimpl_s;
 
@@ -164,6 +164,9 @@ void DataStream::init(int argc, char** argv)
 //
 //		pimpl_->current_groupname_ = "/";
 //	}
+
+	VERBOSE << "DataSteream is initialized!" << std::endl;
+	;
 
 }
 void bcast_string(std::string * filename_)
@@ -291,12 +294,13 @@ void DataStream::close()
 
 		if (pimpl_->base_file_id_ > 0)
 		{
-			H5Fclose(pimpl_->base_file_id_);
-			pimpl_->base_file_id_ = -1;
+//			H5Fclose(pimpl_->base_file_id_);
+//			pimpl_->base_file_id_ = -1;
 		}
 		delete pimpl_;
+		pimpl_ = nullptr;
 	}
-
+	VERBOSE << "DataSteream is closed" << std::endl;
 }
 
 //void DataStream::flush_all()
@@ -513,19 +517,21 @@ std::tuple<std::string, hid_t> DataStream::pimpl_s::open_file(
 
 	hid_t f_id;
 
-	hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
-
-#if !NO_MPI || USE_MPI
-	if (GLOBAL_COMM.is_valid())
-	{
-		H5Pset_fapl_mpio(plist_id, GLOBAL_COMM.comm(), GLOBAL_COMM.info());
-	}
-#endif
-
-	H5_ERROR(
-	f_id = H5Fcreate( filename.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, plist_id));
-
-	H5Pclose(plist_id);
+//	hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
+//
+//#if !NO_MPI || USE_MPI
+//
+//	CHECK(GLOBAL_COMM.no_mpi_);
+//	if (GLOBAL_COMM.is_valid())
+//	{
+//		H5Pset_fapl_mpio(plist_id, GLOBAL_COMM.comm(), GLOBAL_COMM.info());
+//	}
+//#endif
+//
+//	H5_ERROR(
+//	f_id = H5Fcreate( filename.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, plist_id));
+//
+//	H5Pclose(plist_id);
 
 	return std::make_tuple(filename, f_id);
 

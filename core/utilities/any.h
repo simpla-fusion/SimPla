@@ -11,6 +11,7 @@
 #include <memory>
 #include <typeindex>
 #include <iostream>
+#include "ntuple.h"
 namespace simpla
 {
 /**
@@ -19,8 +20,11 @@ namespace simpla
 struct Any
 {
 	template<typename U> Any(U && value) :
-			ptr_(new Derived<typename std::decay<U>::type>(std::forward<U>(value))), t_index_(
-			        std::type_index(typeid(typename std::remove_pointer<U>::type)))
+			ptr_(
+					new Derived<typename std::decay<U>::type>(
+							std::forward<U>(value))), t_index_(
+					std::type_index(
+							typeid(typename std::remove_pointer<U>::type)))
 	{
 	}
 	Any(void) :
@@ -62,32 +66,36 @@ struct Any
 		return t_index_ == std::type_index(typeid(U));
 	}
 	template<class U>
-	U& as()
+	typename array_to_ntuple_convert<U>::type& as()
 	{
-		if (!is<U>())
+		typedef typename array_to_ntuple_convert<U>::type U2;
+
+		if (!is<U2>())
 		{
 //			WARNING << "can not cast " << typeid(U).name() << " to " << t_index_.name() << std::endl;
 			throw std::bad_cast();
 		}
-		auto derived = dynamic_cast<Derived<U>*>(ptr_.get());
+		auto derived = dynamic_cast<Derived<U2>*>(ptr_.get());
 		return derived->m_value;
 	}
 
 	template<class U>
-	U const& as() const
+	typename array_to_ntuple_convert<U>::type const& as() const
 	{
-		if (!is<U>())
+		typedef typename array_to_ntuple_convert<U>::type U2;
+		if (!is<U2>())
 		{
 //			WARNING << "Can not cast " << typeid(U).name() << " to " << t_index_.name() << std::endl;
 			throw std::bad_cast();
 		}
-		auto derived = dynamic_cast<Derived<U> const*>(ptr_.get());
+		auto derived = dynamic_cast<Derived<U2> const*>(ptr_.get());
 		return derived->m_value;
 	}
 
 	Any& operator=(const Any& a)
 	{
-		if (ptr_ == a.ptr_) return *this;
+		if (ptr_ == a.ptr_)
+			return *this;
 		ptr_ = a.clone();
 		t_index_ = a.t_index_;
 		return *this;
@@ -95,9 +103,11 @@ struct Any
 	template<typename T>
 	Any& operator=(T const & v)
 	{
-		if (is<T>())
+		typedef typename array_to_ntuple_convert<T>::type U2;
+
+		if (is<U2>())
 		{
-			as<T>() = v;
+			as<U2>() = v;
 		}
 		else
 		{
@@ -106,7 +116,8 @@ struct Any
 		return *this;
 	}
 
-	std::ostream & print(std::ostream & os) const
+	template<typename OS>
+	OS & print(OS & os) const
 	{
 		return ptr_->print(os);
 	}
@@ -120,6 +131,11 @@ private:
 		}
 		virtual BasePtr clone() const = 0;
 		virtual std::ostream & print(std::ostream & os) const=0;
+		template<typename OS> OS& print(OS & os) const
+		{
+			print(dynamic_cast<std::ostream &>(os));
+			return os;
+		}
 	};
 	template<typename T>
 	struct Derived: Base
@@ -134,6 +150,11 @@ private:
 			return BasePtr(new Derived<T>(m_value));
 		}
 
+		template<typename OS> OS& print(OS & os) const
+		{
+			print(dynamic_cast<std::ostream &>(os));
+			return os;
+		}
 		std::ostream & print(std::ostream & os) const
 		{
 			os << m_value;
@@ -144,7 +165,8 @@ private:
 	};
 	BasePtr clone() const
 	{
-		if (ptr_ != nullptr) return ptr_->clone();
+		if (ptr_ != nullptr)
+			return ptr_->clone();
 		return nullptr;
 	}
 
@@ -152,11 +174,6 @@ private:
 	std::type_index t_index_;
 };
 
-inline std::ostream & operator<<(std::ostream & os, Any const& v)
-{
-	return v.print(os);
-
-}
 }
 
 #endif /* ANY_H_ */
