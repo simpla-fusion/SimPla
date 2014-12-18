@@ -13,7 +13,6 @@
 #include <type_traits>
 #include <complex>
 #include "sp_type_traits.h"
-#include "log.h"
 
 namespace simpla
 {

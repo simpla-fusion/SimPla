@@ -191,7 +191,6 @@ inline Logger & FAILED(Logger & self)
 	return self;
 }
 
-
 inline Logger & START(Logger & self)
 {
 	self.surffix("[START]");
@@ -263,19 +262,18 @@ inline std::string ShowBit(unsigned long s)
 #  define ASSERT(_COND_)   std::assert(_COND_);
 #endif
 
-//#ifndef NDEBUG
+#ifndef NDEBUG
 #define CHECK(_MSG_)    Logger(LOG_DEBUG) <<" "<< (__FILE__) <<": line "<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
 	<<"\n\t"<< __STRING(_MSG_)<<"="<< ( _MSG_)<<std::endl
+#else
+#	define CHECK(_MSG_)
+#endif
 
 #define REDUCE_CHECK(_MSG_)    {auto __a= (_MSG_); __a=reduce(__a); if(GLOBAL_COMM.get_rank()==0){ Logger(LOG_DEBUG) <<" "<< (__FILE__) <<": line "<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
 	<<"\n\t GLOBAL_SUM:"<< __STRING(_MSG_)<<"="<<__a;}}
 
 #define RIGHT_COLUMN(_FIRST_) STDOUT <<std::setw(15) <<std::right << _FIRST_
 #define LEFT_COLUMN(_FIRST_) STDOUT <<std::setw(15) <<std::left << _FIRST_
-
-//#else
-//#	define CHECK(_MSG_)
-//#endif
 
 #define INFORM2(_MSG_) Logger(LOG_INFORM)<<__STRING(_MSG_)<<" = "<<_MSG_;
 

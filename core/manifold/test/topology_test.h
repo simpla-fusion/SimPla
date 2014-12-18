@@ -13,12 +13,7 @@
 #include "../../utilities/utilities.h"
 using namespace simpla;
 
-//#ifndef Tmake_hashOPOLOGY
-//#include "structured.h"
-//typedef SurturedMesh TopologyType;
-//#else
 typedef TOPOLOGY TopologyType;
-//#endif
 
 class TestTopology: public testing::TestWithParam<
 		nTuple<size_t, TopologyType::ndims> >
@@ -195,7 +190,11 @@ TEST_P(TestTopology, coordinates)
 
 	typename topology_type::coordinates_type x = 0.21235 * (xmax - xmin) + xmin;
 
-	typename topology_type::coordinates_type r;
+	for (int i = 0; i < 3; ++i)
+	{
+		if (dims[i] <= 1)
+			x[i] = 0.0;
+	}
 
 	EXPECT_EQ(x,
 			topology.coordinates_local_to_global(

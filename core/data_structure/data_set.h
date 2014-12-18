@@ -27,9 +27,9 @@ namespace simpla
 struct DataSet
 {
 	std::shared_ptr<void> data;
-	Properties attribute;
 	DataType datatype;
 	DataSpace dataspace;
+	Properties attribute;
 
 	bool is_valid() const
 	{

@@ -27,7 +27,9 @@ MPIComm::~MPIComm()
 
 void MPIComm::init(int argc, char** argv)
 {
+
 	bool show_help = false;
+
 	if (comm_ == MPI_COMM_NULL)
 	{
 		parse_cmd_line(argc, argv,
@@ -73,13 +75,19 @@ void MPIComm::init(int argc, char** argv)
 
 	}
 
+	VERBOSE << "MPI Comm is initialized!" << std::endl;
 }
 void MPIComm::close()
 {
 	if (comm_ != MPI_COMM_NULL)
+	{
 		MPI_Finalize();
 
-	comm_ = MPI_COMM_NULL;
+		comm_ = MPI_COMM_NULL;
+
+		VERBOSE << "MPI Comm is closed!" << std::endl;
+	}
+
 }
 
 MPI_Comm MPIComm::comm()
@@ -95,7 +103,7 @@ MPI_Info MPIComm::info()
 
 bool MPIComm::is_valid() const
 {
-	return comm_ != MPI_COMM_NULL && num_process_ > 1;
+	return !no_mpi_ && comm_ != MPI_COMM_NULL && num_process_ > 1;
 }
 int MPIComm::id() const
 {
