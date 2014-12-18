@@ -15,16 +15,13 @@
 
 #include "../../../core/application/use_case.h"
 #include "../../../core/utilities/utilities.h"
-#include "../../../core/manifold/manifold.h"
-#include "../../../core/manifold/geometry/cartesian.h"
-#include "../../../core/manifold/topology/structured.h"
-#include "../../../core/manifold/diff_scheme/fdm.h"
-#include "../../../core/manifold/interpolator/interpolator.h"
 #include "../../../core/particle/particle.h"
-
+#include "../../../core/particle/probe_particle.h"
+#include "../../../core/particle/particle_engine.h"
 #include "../../../core/io/io.h"
+using namespace simpla;
 
-USE_CASE(trace)
+USE_CASE(demo_probe_particle)
 {
 
 	size_t num_of_steps = 1000;
@@ -57,24 +54,15 @@ USE_CASE(trace)
 
 	options["DT"].as<Real>(&dt);
 
-	auto manifold = Manifold<CartesianCoordinates<StructuredMesh> >::create();
-
-	auto ion = make_probe_particle<PICDemo>(manifold);
-
-	manifold->load(options["Mesh"]);
+	auto ion = make_probe_particle<ProbeDemo>();
 
 	ion->load(options["Particle"]);
-
-	ion->properties("Cache Length") = strides;
-
-	manifold->update();
 
 	ion->update();
 
 	STDOUT << std::endl;
 	STDOUT << "======== Summary ========" << std::endl;
-	RIGHT_COLUMN(" mesh" ) << " = {" << *manifold << "}" << std::endl;
-	RIGHT_COLUMN(" ion") << " = " << "{" << ion << "}" << std::endl;
+	RIGHT_COLUMN(" ion") << " = " << "{" << *ion << "}" << std::endl;
 	RIGHT_COLUMN(" time step" ) << " = " << num_of_steps << std::endl;
 	RIGHT_COLUMN(" dt" ) << " = " << dt << std::endl;
 	STDOUT << "=========================" << std::endl;
@@ -93,15 +81,11 @@ USE_CASE(trace)
 					{	0,0,2});
 		};
 
-		for (size_t s = 0; s < num_of_steps; s += strides)
-		{
-			ion->next_n_timesteps(strides, dt, E, B);
-
-			save("ion", ion->dataset());
-
-		}
-
+//		for (size_t s = 0; s < num_of_steps; s += strides)
+//		{
+//			ion->next_timestep(dt, E, B);
+//		}
+//		VERBOSE << save("ion", ion->dataset()) << std::endl;
 	}
-
 }
 

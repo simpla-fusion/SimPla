@@ -6,8 +6,8 @@
  *      Author: yuzhi
  */
 
-#ifndef INCLUDEnTuple_H_
-#define INCLUDEnTuple_H_
+#ifndef CORE_UTILITIES_NTUPLE_H_
+#define CORE_UTILITIES_NTUPLE_H_
 
 #include <stddef.h>
 #include "expression_template.h"
@@ -173,17 +173,40 @@ struct make_pod_array<TV, integer_sequence<TI, N...>>
 	typedef typename nTuple<TV, N...>::pod_type type;
 };
 
-template<typename ...> struct make_ntuple;
+template<typename ...> struct nTuple_create_trait;
 template<typename TV, typename TI, TI ... N>
-struct make_ntuple<TV, integer_sequence<TI, N...>>
+struct nTuple_create_trait<TV, integer_sequence<TI, N...>>
 {
 	typedef nTuple<TV, N...> type;
 };
 
 template<typename TV, typename TI>
-struct make_ntuple<TV, integer_sequence<TI>>
+struct nTuple_create_trait<TV, integer_sequence<TI>>
 {
 	typedef TV type;
+};
+/**
+ * @brief Convert fixed size build-in array to nTuple
+ *
+ * Example:
+ *  typename array_to_ntuple_convert<double[3][4]>::type = nTuple<double,3,4>
+ */
+template<typename T>
+struct array_to_ntuple_convert
+{
+	typedef integer_sequence<size_t> extents_t;
+
+	typedef T type;
+};
+template<typename T, size_t N>
+struct array_to_ntuple_convert<T[N]>
+{
+
+	typedef typename cat_integer_sequence<
+			typename array_to_ntuple_convert<T>::extents_t,
+			integer_sequence<size_t, N>>::type extents_t;
+
+	typedef typename nTuple_create_trait<T, extents_t>::type type;
 };
 
 template<typename, typename, typename > class Expression;
@@ -272,7 +295,7 @@ struct nTuple_traits<nTuple<TV, N, M...> >
 
 	typedef typename make_pod_array<value_type, dimensions>::type pod_type;
 
-	typedef typename make_ntuple<value_type, dimensions>::type primary_type;
+	typedef typename nTuple_create_trait<value_type, dimensions>::type primary_type;
 
 };
 
@@ -289,7 +312,7 @@ public:
 
 	typedef typename make_pod_array<value_type, dimensions>::type pod_type;
 
-	typedef typename make_ntuple<value_type, dimensions>::type primary_type;
+	typedef typename nTuple_create_trait<value_type, dimensions>::type primary_type;
 
 };
 template<typename TOP, typename TL, typename TR>
@@ -308,7 +331,7 @@ public:
 
 	typedef typename make_pod_array<value_type, dimensions>::type pod_type;
 
-	typedef typename make_ntuple<value_type, dimensions>::type primary_type;
+	typedef typename nTuple_create_trait<value_type, dimensions>::type primary_type;
 
 };
 
@@ -554,4 +577,4 @@ DEFINE_EXPRESSOPM_TEMPLATE_BASIC_ALGEBRA2(nTuple)
 }
 //namespace simpla
 
-#endif  // INCLUDEnTuple_H_
+#endif  // CORE_UTILITIES_NTUPLE_H_

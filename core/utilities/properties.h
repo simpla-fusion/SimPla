@@ -9,6 +9,7 @@
 #define PROPERTIES_H_
 #include <map>
 #include <string>
+#include "ntuple.h"
 #include "any.h"
 namespace simpla
 {
@@ -45,30 +46,6 @@ public:
 		return *this;
 	}
 
-	template<typename T>
-	T & as()
-	{
-		return value_.template as<T>();
-	}
-
-	template<typename T>
-	T as(T const & default_v) const
-	{
-		if (value_.empty())
-		{
-			return default_v;
-		}
-		else
-		{
-			return value_.template as<T>();
-		}
-	}
-
-	template<typename T>
-	T const & as() const
-	{
-		return value_.template as<T>();
-	}
 	inline bool empty() const // STL style
 	{
 		return value_.empty() && base_type::empty();
@@ -106,27 +83,52 @@ public:
 			return it->second;
 		}
 	}
+	template<typename T>
+	auto as()
+			DECL_RET_TYPE((value_.template as<typename array_to_ntuple_convert<T>::type>()))
 
 	template<typename T>
-	T get(std::string const & key, T const & v) const
+	auto as() const
+			DECL_RET_TYPE((value_.template as<typename array_to_ntuple_convert<T>::type>()))
+
+	template<typename T>
+	typename array_to_ntuple_convert<T>::type as(T const & default_v) const
 	{
-		auto it = base_type::find(key);
-		if (it != base_type::end() && it->second.value_.is<T>())
+		typename array_to_ntuple_convert<T>::type res = default_v;
+		if (!value_.empty())
 		{
-			return it->second.value_.as<T>();
+			res =
+					value_.template as<typename array_to_ntuple_convert<T>::type>();
 		}
-		else
-		{
-			return v;
-		}
+
+		return std::move(res);
 	}
 
 	template<typename T>
-	void set(std::string const & key, T const & v)
+	typename array_to_ntuple_convert<T>::type get(std::string const & key,
+			T const & default_v) const
+	{
+		typename array_to_ntuple_convert<T>::type res = default_v;
+
+		auto it = base_type::find(key);
+
+		if (it != base_type::end() && it->second.value_.is<T>())
+		{
+			res = it->second.value_.template as<T>();
+		}
+		return std::move(res);
+	}
+
+	template<typename T>
+	void set(std::string const & key, T   v)
 	{
 		get(key) = v;
 	}
-
+	template<typename T>
+	void operator()(std::string const & key, T && v)
+	{
+		set(key, std::forward<T>(v));
+	}
 	inline Properties & operator[](key_type const & key)
 	{
 		return get(key);
@@ -144,20 +146,15 @@ public:
 	{
 		return get(key);
 	}
-	template<typename T>
-	void operator()(std::string const & key, T && v)
-	{
-		set(key, std::forward<T>(v));
-	}
 
-	Any & value()
-	{
-		return value_;
-	}
-	Any const& value() const
-	{
-		return value_;
-	}
+//	Any & value()
+//	{
+//		return value_;
+//	}
+//	Any const& value() const
+//	{
+//		return value_;
+//	}
 	inline Properties const& operator[](key_type const & key) const
 	{
 		return get(key);
@@ -167,7 +164,24 @@ public:
 		return get(key);
 	}
 
-	std::ostream & print(std::ostream & os) const;
+	template<typename OS>
+	OS &print(OS & os) const
+	{
+		for (auto const& item : *this)
+		{
+
+			os << item.first << " =  ";
+			item.second.value_.print(os);
+			os << " , ";
+			if (item.second.size() > 0)
+			{
+				item.second.print(os);
+			}
+
+		}
+		return os;
+	}
+
 //	template<typename T>
 //	bool set(std::string const & key, T && v)
 //	{
@@ -186,8 +200,6 @@ public:
 //		}
 //	}
 };
-
-std::ostream & operator<<(std::ostream & os, Properties const & prop);
 }  // namespace simpla
 
 #endif /* PROPERTIES_H_ */

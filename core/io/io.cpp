@@ -21,6 +21,7 @@ void init_io(int argc, char ** argv)
 
 void close_io()
 {
+
 	SingletonHolder<DataStream>::instance().close();
 }
 std::string save(std::string const & url, DataSet const & ds, size_t flag)

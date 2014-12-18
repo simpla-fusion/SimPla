@@ -20,6 +20,8 @@ int main(int argc, char **argv)
 {
 	using namespace simpla;
 
+	init_logger(argc, argv);
+
 	bool no_logo = false;
 	bool show_help = (argc <= 1);
 
@@ -56,16 +58,14 @@ int main(int argc, char **argv)
 		SHOW_OPTIONS("-g,--generator", "Generates  demo configure file");
 	}
 
-	init_logger(argc, argv);
-	init_parallel(argc, argv);
 	init_io(argc, argv);
+	init_parallel(argc, argv);
 
 	RunAllUseCase(argc, argv);
 
 	close_io();
 	close_parallel();
 	close_logger();
-
 	return 0;
 
 }

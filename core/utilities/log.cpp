@@ -24,6 +24,7 @@ namespace simpla
  */
 struct LoggerStreams //: public SingletonHolder<LoggerStreams>
 {
+	bool is_opened_ = false;
 	size_t line_width_;
 
 	size_t mpi_rank_ = 0, mpi_size_ = 1;
@@ -38,13 +39,13 @@ struct LoggerStreams //: public SingletonHolder<LoggerStreams>
 	}
 	~LoggerStreams()
 	{
-		if (std_out_visable_level_ >= LOG_INFORM)
-			std::cout << std::endl;
 
-		fs.close();
+		close();
+
 	}
 
 	void init(int argc, char** argv);
+	void close();
 
 	inline void open_file(std::string const & name)
 	{
@@ -125,6 +126,24 @@ void LoggerStreams::init(int argc, char** argv)
 	if (show_help)
 	{
 		SHOW_OPTIONS("-v,--verbose <NUM> ", "Verbose mode")
+	}
+	is_opened_ = true;
+	VERBOSE << "LoggerStream is initialized!" << std::endl;
+
+}
+void LoggerStreams::close()
+{
+
+	if (is_opened_)
+	{
+		VERBOSE << "LoggerStream is closed!" << std::endl;
+		if (std_out_visable_level_ >= LOG_INFORM)
+			std::cout << std::endl;
+
+		if (fs.is_open())
+			fs.close();
+
+		is_opened_ = false;
 	}
 
 }
@@ -294,6 +313,7 @@ void init_logger(int argc, char**argv)
 }
 void close_logger()
 {
+	SingletonHolder<LoggerStreams>::instance().close();
 }
 }
 // namespace simpla

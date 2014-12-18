@@ -224,9 +224,9 @@ public:
 
 	static constexpr size_t CELL_ID_MASK =
 
-	(CELL_ID_MASK_ << (FLOATING_POINT_POS * 2))
+	(CELL_ID_MASK_ << (INDEX_DIGITS * 2))
 
-	| (CELL_ID_MASK_ << (FLOATING_POINT_POS))
+	| (CELL_ID_MASK_ << (INDEX_DIGITS))
 
 	| (CELL_ID_MASK_);
 
@@ -719,11 +719,13 @@ public:
 	static std::tuple<id_type, coordinates_type> coordinates_global_to_local(
 			coordinates_type const & x, id_type shift = 0UL)
 	{
-		id_type s = coordinates_to_id(x) & (shift | CELL_ID_MASK);
+		id_type s = (coordinates_to_id(x) & CELL_ID_MASK) | shift;
 
 		coordinates_type r;
 
 		r = x - id_to_coordinates(s);
+
+		ASSERT(inner_product(r, r) < 1.0);
 
 		return std::move(std::forward_as_tuple(s, r));
 	}

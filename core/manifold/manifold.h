@@ -47,7 +47,7 @@ public:
 	typedef Policy2<geometry_type> policy2;
 	typedef typename geometry_type::topology_type topology_type;
 	typedef typename geometry_type::coordinates_type coordinates_type;
-	typedef typename geometry_type::index_type index_type;
+	typedef typename geometry_type::id_type id_type;
 	typedef typename geometry_type::index_type index_type;
 	typedef typename geometry_type::iterator iterator;
 	typedef typename geometry_type::scalar_type scalar_type;

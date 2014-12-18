@@ -602,10 +602,10 @@ public:
 		}
 
 	}
-
-	template<typename T> inline T as() const
+	template<typename T>
+	inline typename array_to_ntuple_convert<T>::type as() const
 	{
-		T res;
+		typename array_to_ntuple_convert<T>::type res;
 		as(&res);
 		return std::move(res);
 	}
@@ -686,12 +686,9 @@ public:
 
 	template<typename T> inline void set(std::string const & name, T const &v)
 	{
-		CHECK(v);
 
 		if (IsNull())
 			return;
-
-		CHECK(v) << self_;
 
 		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
 		ToLua(L_, v);
