@@ -40,8 +40,6 @@ struct DataType
 	template<typename T>
 	static DataType create(std::string const &name = "")
 	{
-		CHECK("asdasdasd");
-
 		typedef typename std::remove_cv<T>::type type;
 		static_assert( nTuple_traits<type>::ndims< MAX_NDIMS_OF_ARRAY,
 				"the NDIMS of nTuple is bigger than MAX_NDIMS_OF_ARRAY");

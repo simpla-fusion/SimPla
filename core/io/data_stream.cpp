@@ -571,8 +571,6 @@ std::tuple<std::string, hid_t> DataStream::pimpl_s::open_group(
 hid_t DataStream::pimpl_s::create_h5_datatype(DataType const &d_type,
 		size_t is_compact_array) const
 {
-	LOGGER << d_type << std::endl;
-
 	hid_t res = H5T_NO_CLASS;
 
 	if (!d_type.is_compound())

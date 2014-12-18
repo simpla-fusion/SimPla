@@ -193,6 +193,7 @@ std::ostream & DataType::print(std::ostream & os) const
 		auto it = pimpl_->data_.begin();
 		auto ie = pimpl_->data_.end();
 
+		os << "\t";
 		std::get<0>(*it).print(os);
 		os << "\t" << std::get<1>(*it);
 
@@ -200,7 +201,7 @@ std::ostream & DataType::print(std::ostream & os) const
 
 		for (; it != ie; ++it)
 		{
-			os << "," << std::endl;
+			os << "," << std::endl << "\t";
 			std::get<0>(*it).print(os);
 			os << "\t" << std::get<1>(*it);
 		}
@@ -208,7 +209,7 @@ std::ostream & DataType::print(std::ostream & os) const
 	}
 	else
 	{
-		os << "\t" << pimpl_->name_;
+		os << pimpl_->name_;
 		for (auto const & d : pimpl_->extents_)
 		{
 			os << "[" << d << "]";
