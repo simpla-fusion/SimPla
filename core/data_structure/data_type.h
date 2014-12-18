@@ -37,24 +37,23 @@ struct DataType
 
 	bool is_valid() const;
 
-	template<typename T> static DataType create(std::string const &pname = "")
+	template<typename T>
+	static DataType create(std::string const &name = "")
 	{
-		CHECK("wwww" + pname);
+		CHECK("asdasdasd");
 
-		static_assert( nTuple_traits<T>::ndims< MAX_NDIMS_OF_ARRAY,
+		typedef typename std::remove_cv<T>::type type;
+		static_assert( nTuple_traits<type>::ndims< MAX_NDIMS_OF_ARRAY,
 				"the NDIMS of nTuple is bigger than MAX_NDIMS_OF_ARRAY");
 
-		typedef typename nTuple_traits<T>::value_type value_type;
-
-		std::string name = pname;
-		if (name == "")
-			name = typeid(value_type).name() + std::string("aaaaa");
+		typedef typename nTuple_traits<type>::value_type value_type;
 
 		size_t ele_size_in_byte = sizeof(value_type) / sizeof(ByteType);
 
-		auto ndims = nTuple_traits<T>::dimensions::size();
+		auto ndims = nTuple_traits<type>::dimensions::size();
 
-		auto dimensions = seq2ntuple(typename nTuple_traits<T>::dimensions());
+		auto dimensions = seq2ntuple(
+				typename nTuple_traits<type>::dimensions());
 
 		return std::move(
 				DataType(std::type_index(typeid(value_type)), ele_size_in_byte,
@@ -90,7 +89,7 @@ struct DataType
 
 	std::ostream & print(std::ostream & os) const;
 
-	std::vector<std::tuple<DataType, std::string, int>> const & members()const;
+	std::vector<std::tuple<DataType, std::string, int>> const & members() const;
 
 private:
 	struct pimpl_s;

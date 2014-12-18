@@ -129,8 +129,6 @@ void DataStream::init(int argc, char** argv)
 	{
 		if(opt=="o"||opt=="prefix")
 		{
-			CHECK(value);
-
 			std::tie(pimpl_->current_filename_,pimpl_->current_groupname_,
 					std::ignore,std::ignore)
 			=pimpl_->parser_url(value);
@@ -207,8 +205,6 @@ void bcast_string(std::string * filename_)
 std::tuple<bool, std::string> DataStream::cd(std::string const &url,
 		size_t flag)
 {
-	CHECK(url);
-
 	std::string file_name = pimpl_->current_filename_;
 	std::string grp_name = pimpl_->current_groupname_;
 	std::string obj_name = "";
@@ -524,14 +520,15 @@ std::tuple<std::string, hid_t> DataStream::pimpl_s::open_file(
 
 	H5_ERROR(plist_id= H5Pcreate(H5P_FILE_ACCESS));
 
-//#if !NO_MPI || USE_MPI
-//	if (GLOBAL_COMM.is_valid())
-//	{
-//		H5Pset_fapl_mpio(plist_id, GLOBAL_COMM.comm(), GLOBAL_COMM.info());
-//	}
-//#endif
+#if !NO_MPI || USE_MPI
+	if (GLOBAL_COMM.is_valid())
+	{
+		H5Pset_fapl_mpio(plist_id, GLOBAL_COMM.comm(), GLOBAL_COMM.info());
+	}
+#endif
 
 	hid_t f_id;
+
 	H5_ERROR(
 			f_id = H5Fcreate( filename.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, plist_id));
 
@@ -641,8 +638,6 @@ hid_t DataStream::pimpl_s::create_h5_datatype(DataType const &d_type,
 	if (res == H5T_NO_CLASS)
 	{
 		WARNING << "H5 datatype convert failed!" << std::endl;
-
-		CHECK(d_type);
 	}
 	return (res);
 }
@@ -714,106 +709,106 @@ std::string DataStream::write(std::string const & url, DataSet const &ds,
 
 	hid_t dset;
 
-//	if (!is_existed)
-//	{
-//
-//		hid_t dcpl_id = H5P_DEFAULT;
-//
-//		if ((flag & (SP_APPEND | SP_RECORD)) != 0)
-//		{
-//			pimpl_s::dims_type current_dims;
-//
-//			int f_ndims = H5Sget_simple_extent_ndims(f_space);
-//
-//			H5_ERROR(
-//					H5Sget_simple_extent_dims(f_space, &current_dims[0],
-//							nullptr));
-//
-//			H5_ERROR(dcpl_id = H5Pcreate(H5P_DATASET_CREATE));
-//
-//			H5_ERROR(H5Pset_chunk(dcpl_id, f_ndims, &current_dims[0]));
-//		}
-//
-//		H5_ERROR(
-//				dset = H5Dcreate(pimpl_->base_group_id_, dsname.c_str(), m_type, f_space, H5P_DEFAULT, dcpl_id, H5P_DEFAULT));
-//
-//		if (dcpl_id != H5P_DEFAULT)
-//		{
-//			H5_ERROR(H5Pclose(dcpl_id));
-//		}
-//		H5_ERROR(H5Fflush(pimpl_->base_group_id_, H5F_SCOPE_GLOBAL));
-//	}
-//	else
-//	{
-//
-//		H5_ERROR(
-//				dset = H5Dopen(pimpl_->base_group_id_, dsname.c_str(), H5P_DEFAULT));
-//
-//		pimpl_s::dims_type current_dimensions;
-//
-//		hid_t current_f_space;
-//
-//		H5_ERROR(current_f_space = H5Dget_space(dset));
-//
-//		int current_ndims = H5Sget_simple_extent_dims(current_f_space,
-//				&current_dimensions[0], nullptr);
-//
-//		H5_ERROR(H5Sclose(current_f_space));
-//
-//		pimpl_s::dims_type new_f_dimensions;
-//		pimpl_s::dims_type new_f_max_dimensions;
-//		pimpl_s::dims_type new_f_offset;
-//		pimpl_s::dims_type new_f_end;
-//		int new_f_ndims = H5Sget_simple_extent_dims(f_space,
-//				&new_f_dimensions[0], &new_f_max_dimensions[0]);
-//
-//		H5_ERROR(H5Sget_select_bounds(f_space, &new_f_offset[0], &new_f_end[0]));
-//
-//		ASSERT(current_ndims == current_ndims);
-//		ASSERT(new_f_max_dimensions[new_f_ndims-1]==H5S_UNLIMITED);
-//
-//		new_f_dimensions[new_f_ndims - 1] +=
-//				current_dimensions[new_f_ndims - 1];
-//
-//		new_f_offset[new_f_ndims - 1] += current_dimensions[new_f_ndims - 1];
-//
-//		H5_ERROR(H5Dset_extent(dset, &new_f_dimensions[0]));
-//
-//		H5_ERROR(
-//				H5Sset_extent_simple(f_space, new_f_ndims, &new_f_dimensions[0],
-//						&new_f_max_dimensions[0]));
-//
-//		nTuple<hssize_t, MAX_NDIMS_OF_ARRAY> new_f_offset2;
-//
-//		new_f_offset2 = new_f_offset;
-//
-//		H5_ERROR(H5Soffset_simple(f_space, &new_f_offset2[0]));
-//
-//	}
-//
-//// create property list for collective DataSet write.
-//#if !NO_MPI || USE_MPI
-//	if (GLOBAL_COMM.is_valid())
-//	{
-//		hid_t plist_id = H5Pcreate(H5P_DATASET_XFER);
-//		H5_ERROR(H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_INDEPENDENT));
-//		H5_ERROR(H5Dwrite(dset, m_type, m_space, f_space, plist_id, ds.data.get()));
-//		H5_ERROR(H5Pclose(plist_id));
-//	}
-//	else
-//#endif
-//	{
-//		H5_ERROR( H5Dwrite(dset, m_type , m_space, f_space,
-//				H5P_DEFAULT, ds.data.get()));
-//	}
-//
-//	H5_ERROR(H5Dclose(dset));
-//
-//	if (m_space != H5S_ALL)
-//		H5_ERROR(H5Sclose(m_space));
-//
-//	if (f_space != H5S_ALL)
-//		H5_ERROR(H5Sclose(f_space));
+	if (!is_existed)
+	{
+
+		hid_t dcpl_id = H5P_DEFAULT;
+
+		if ((flag & (SP_APPEND | SP_RECORD)) != 0)
+		{
+			pimpl_s::dims_type current_dims;
+
+			int f_ndims = H5Sget_simple_extent_ndims(f_space);
+
+			H5_ERROR(
+					H5Sget_simple_extent_dims(f_space, &current_dims[0],
+							nullptr));
+
+			H5_ERROR(dcpl_id = H5Pcreate(H5P_DATASET_CREATE));
+
+			H5_ERROR(H5Pset_chunk(dcpl_id, f_ndims, &current_dims[0]));
+		}
+
+		H5_ERROR(
+				dset = H5Dcreate(pimpl_->base_group_id_, dsname.c_str(), m_type, f_space, H5P_DEFAULT, dcpl_id, H5P_DEFAULT));
+
+		if (dcpl_id != H5P_DEFAULT)
+		{
+			H5_ERROR(H5Pclose(dcpl_id));
+		}
+		H5_ERROR(H5Fflush(pimpl_->base_group_id_, H5F_SCOPE_GLOBAL));
+	}
+	else
+	{
+
+		H5_ERROR(
+				dset = H5Dopen(pimpl_->base_group_id_, dsname.c_str(), H5P_DEFAULT));
+
+		pimpl_s::dims_type current_dimensions;
+
+		hid_t current_f_space;
+
+		H5_ERROR(current_f_space = H5Dget_space(dset));
+
+		int current_ndims = H5Sget_simple_extent_dims(current_f_space,
+				&current_dimensions[0], nullptr);
+
+		H5_ERROR(H5Sclose(current_f_space));
+
+		pimpl_s::dims_type new_f_dimensions;
+		pimpl_s::dims_type new_f_max_dimensions;
+		pimpl_s::dims_type new_f_offset;
+		pimpl_s::dims_type new_f_end;
+		int new_f_ndims = H5Sget_simple_extent_dims(f_space,
+				&new_f_dimensions[0], &new_f_max_dimensions[0]);
+
+		H5_ERROR(H5Sget_select_bounds(f_space, &new_f_offset[0], &new_f_end[0]));
+
+		ASSERT(current_ndims == current_ndims);
+		ASSERT(new_f_max_dimensions[new_f_ndims-1]==H5S_UNLIMITED);
+
+		new_f_dimensions[new_f_ndims - 1] +=
+				current_dimensions[new_f_ndims - 1];
+
+		new_f_offset[new_f_ndims - 1] += current_dimensions[new_f_ndims - 1];
+
+		H5_ERROR(H5Dset_extent(dset, &new_f_dimensions[0]));
+
+		H5_ERROR(
+				H5Sset_extent_simple(f_space, new_f_ndims, &new_f_dimensions[0],
+						&new_f_max_dimensions[0]));
+
+		nTuple<hssize_t, MAX_NDIMS_OF_ARRAY> new_f_offset2;
+
+		new_f_offset2 = new_f_offset;
+
+		H5_ERROR(H5Soffset_simple(f_space, &new_f_offset2[0]));
+
+	}
+
+// create property list for collective DataSet write.
+#if !NO_MPI || USE_MPI
+	if (GLOBAL_COMM.is_valid())
+	{
+		hid_t plist_id = H5Pcreate(H5P_DATASET_XFER);
+		H5_ERROR(H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_INDEPENDENT));
+		H5_ERROR(H5Dwrite(dset, m_type, m_space, f_space, plist_id, ds.data.get()));
+		H5_ERROR(H5Pclose(plist_id));
+	}
+	else
+#endif
+	{
+		H5_ERROR( H5Dwrite(dset, m_type , m_space, f_space,
+				H5P_DEFAULT, ds.data.get()));
+	}
+
+	H5_ERROR(H5Dclose(dset));
+
+	if (m_space != H5S_ALL)
+		H5_ERROR(H5Sclose(m_space));
+
+	if (f_space != H5S_ALL)
+		H5_ERROR(H5Sclose(f_space));
 
 	if (H5Tcommitted(m_type) > 0)
 	{

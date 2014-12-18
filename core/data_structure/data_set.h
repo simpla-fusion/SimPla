@@ -42,7 +42,7 @@ DataSet make_dataset(int rank, size_t const * dims, Properties const & prop =
 		Properties())
 {
 	DataSet res;
-	res.datatype = DataType::create<T>();
+	res.datatype = make_datatype<T>("");
 	res.dataspace.init(rank, dims);
 	res.data = sp_make_shared_array<T>(res.dataspace.size());
 	res.attribute = prop;
@@ -56,7 +56,7 @@ DataSet make_dataset(T * p, int rank, size_t const * dims,
 
 	DataSet res;
 
-	res.datatype = DataType::create<T>();
+	res.datatype = make_datatype<T>("");
 	res.dataspace.init(rank, dims);
 	res.data = std::shared_ptr<void>(
 			const_cast<void*>(reinterpret_cast<typename std::conditional<

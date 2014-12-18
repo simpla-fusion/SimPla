@@ -231,7 +231,7 @@ struct _S_NAME_                                                  \
 	static DataType datatype()                             \
 	{                                                             \
 		auto d_type = DataType::create<Point_s>(#_S_NAME_);  \
-		SP_PARTICLE_DEFINE_DESC(_S_NAME_,__VA_ARGS__);CHECK(d_type);                       \
+		SP_PARTICLE_DEFINE_DESC(_S_NAME_,__VA_ARGS__);        \
 		return std::move(d_type);                                 \
 	}                                                             \
 };
@@ -279,7 +279,6 @@ struct _S_NAME_                                                  \
 #define SP_PARTICLE_LOAD_DICT_CHOOSE_HELPER1(count) SP_PARTICLE_LOAD_DICT_HELPER##count
 #define SP_PARTICLE_LOAD_DICT_CHOOSE_HELPER(count) SP_PARTICLE_LOAD_DICT_CHOOSE_HELPER1(count)
 #define SP_PARTICLE_LOAD_DICT(_S1_,_S2_,...) SP_PARTICLE_LOAD_DICT_CHOOSE_HELPER(COUNT_MACRO_ARGS(__VA_ARGS__)) (_S1_,_S2_,__VA_ARGS__)
-
 
 #define SP_PARTICLE_UPDATE_PROP_HELPER2(_S1_,_T0_,_N0_) _S1_.set(#_N0_,_N0_);
 #define SP_PARTICLE_UPDATE_PROP_HELPER4(_S1_,_T0_,_N0_,_T1_,_N1_) SP_PARTICLE_UPDATE_PROP_HELPER2(_S1_,_T0_,_N0_) \
