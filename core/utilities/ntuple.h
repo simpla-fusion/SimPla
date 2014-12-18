@@ -18,23 +18,38 @@
 namespace simpla
 {
 /**
- * \brief nTuple :n-tuple
+ * @defgroup primary_data_type Primary Data Type
+ * @{
+ *   @defgroup ntuple
+ * @}
  *
- *   Semantics:
+ * @ingroup ntuple
+ * @brief nTuple :n-tuple
+ *
+ * Semantics:
  *    n-tuple is a sequence (or ordered list) of n elements, where n is a positive
- *      size_t   eger. There is also one 0-tuple, an empty sequence. An n-tuple is defined
+ *    integral. There is also one 0-tuple, an empty sequence. An n-tuple is defined
  *    inductively using the construction of an ordered pair. Tuples are usually
  *    written by listing the elements within parenthesis '( )' and separated by
  *    commas; for example, (2, 7, 4, 1, 7) denotes a 5-tuple.
  *    \note  http://en.wikipedia.org/wiki/Tuple
- *   Implement
- *   template< size_t     n,typename T> struct nTuple;
+ *
+ * Implement:
+ *
+ *   template<typename T, size_t ... n> struct nTuple;
+ *
  *   nTuple<double,5> t={1,2,3,4,5};
  *
  *   nTuple<T,N...> primary ntuple
- *   nTuple<Expression<TOP,TExpr>> unary nTuple expression
- *   nTuple<Expression<TOP,TExpr1,TExpr2>> binary nTuple expression
  *
+ *   nTuple<Expression<TOP,TExpr>> unary nTuple expression
+ *
+ *   nTuple<Expression<TOP,TExpr1,TExpr2>> binary nTuple expression
+ * @note
+ *
+ *   nTuple<T,N> equiv. build-in array T[N]
+ *
+ *   nTuple<T,N,M> equiv. build-in array T[N][M]
  **/
 
 /// n-dimensional primary type
@@ -206,8 +221,8 @@ struct array_to_ntuple_convert<T[N]>
 			typename array_to_ntuple_convert<T>::extents_t,
 			integer_sequence<size_t, N>>::type extents_t;
 
-	typedef typename nTuple_create_trait<typename std::remove_all_extents<T>::type,
-			extents_t>::type type;
+	typedef typename nTuple_create_trait<
+			typename std::remove_all_extents<T>::type, extents_t>::type type;
 };
 
 template<typename, typename, typename > class Expression;
@@ -357,17 +372,18 @@ struct sp_pod_traits<nTuple<T, N...> >
 
 };
 
-template<typename T, size_t ...N>
-struct rank<nTuple<T, N...>>
-{
-	static constexpr size_t value =
-			nTuple_traits<nTuple<T, N...>>::dimensions::size();
-};
+//template<typename T, size_t ...N>
+//struct rank<nTuple<T, N...>>
+//{
+//	static constexpr size_t value =
+//			nTuple_traits<nTuple<T, N...>>::dimensions::size();
+//};
 
 template<typename TInts, TInts ...N>
 nTuple<TInts, sizeof...(N)> seq2ntuple(integer_sequence<TInts, N...>)
 {
-	return std::move(nTuple<TInts, sizeof...(N)>( { N... }));
+	return std::move(nTuple<TInts, sizeof...(N)>(
+	{ N... }));
 }
 
 typedef nTuple<Real, 3> Vec3;
@@ -482,9 +498,10 @@ template<typename T1, size_t ... N1, typename T2, size_t ... N2> inline auto cro
 		nTuple<T1, N1...> const & l, nTuple<T2, N2...> const & r)
 		->nTuple<decltype(get_value(l,0)*get_value(r,0)),3>
 {
-	nTuple<decltype(get_value(l,0)*get_value(r,0)), 3> res = { l[1] * r[2]
-			- l[2] * r[1], l[2] * get_value(r, 0) - get_value(l, 0) * r[2],
-			get_value(l, 0) * r[1] - l[1] * get_value(r, 0) };
+	nTuple<decltype(get_value(l,0)*get_value(r,0)), 3> res =
+	{ l[1] * r[2] - l[2] * r[1], l[2] * get_value(r, 0)
+			- get_value(l, 0) * r[2], get_value(l, 0) * r[1]
+			- l[1] * get_value(r, 0) };
 	return std::move(res);
 }
 
@@ -578,4 +595,43 @@ DEFINE_EXPRESSOPM_TEMPLATE_BASIC_ALGEBRA2(nTuple)
 }
 //namespace simpla
 
+namespace std
+{
+/**
+ * C++11 <type_traits>
+ * @ref http://en.cppreference.com/w/cpp/types/rank
+ */
+template<typename T, size_t ...N>
+struct rank<simpla::nTuple<T, N...>> : public std::integral_constant<
+		std::size_t, sizeof...(N)>
+{
+};
+
+/**
+ * C++11 <type_traits>
+ * @ref http://en.cppreference.com/w/cpp/types/extent
+ */
+
+template<class T, std::size_t N, std::size_t ...M>
+struct extent<simpla::nTuple<T, N, M...>, 0> : std::integral_constant<
+		std::size_t, N>
+{
+};
+
+template<std::size_t I, class T, std::size_t N, std::size_t ...M>
+struct extent<simpla::nTuple<T, N, M...>, I> : public std::integral_constant<
+		std::size_t, std::extent<simpla::nTuple<T, M...>, I - 1>::value>
+{
+};
+
+/**
+ * C++11 <type_traits>
+ * @ref http://en.cppreference.com/w/cpp/types/remove_all_extents
+ */
+template<class T, std::size_t ...M>
+struct remove_all_extents<simpla::nTuple<T, M...> >
+{
+	typedef T type;
+};
+}  // namespace std
 #endif  // CORE_UTILITIES_NTUPLE_H_
