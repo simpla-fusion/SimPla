@@ -893,6 +893,47 @@ template<unsigned int N, typename T> struct LuaTrans<nTuple<T, N>>
 	}
 };
 
+template<typename T, size_t N, size_t ...M> struct LuaTrans<nTuple<T, N, M...>>
+{
+	typedef nTuple<T, N, M...> value_type;
+
+	static inline unsigned int From(std::shared_ptr<lua_State> L,
+			unsigned int idx, value_type * v, value_type const &default_value =
+					value_type())
+	{
+		if (lua_istable(L.get(), idx))
+		{
+			size_t num = lua_rawlen(L.get(), idx);
+			for (size_t s = 0; s < N; ++s)
+			{
+				lua_rawgeti(L.get(), idx, s % num + 1);
+				FromLua(L, -1, &((*v)[s]));
+				lua_pop(L.get(), 1);
+			}
+
+		}
+		else
+		{
+			*v = default_value;
+		}
+		return 1;
+	}
+	static inline unsigned int To(std::shared_ptr<lua_State> L,
+			value_type const & v)
+	{
+		lua_newtable(L.get());
+
+		for (int i = 0; i < N; ++i)
+		{
+			lua_pushinteger(L.get(), i);
+			LuaTrans<T>::To(L, v[i]);
+			lua_settable(L.get(), -3);
+		}
+		return 1;
+
+	}
+};
+
 template<typename TC> void PushContainer(std::shared_ptr<lua_State> L,
 		TC const & v)
 {
