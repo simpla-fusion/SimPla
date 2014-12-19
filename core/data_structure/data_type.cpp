@@ -42,11 +42,11 @@ DataType::DataType(std::type_index t_index, size_t ele_size_in_byte,
 
 	if (ndims > 0 && dims != nullptr)
 	{
+		pimpl_->extents_.resize(ndims);
 		for (int i = 0; i < ndims; ++i)
 		{
 			pimpl_->extents_[i] = dims[i];
 		}
-
 	}
 
 	if (pimpl_->name_ == "")
@@ -160,8 +160,7 @@ bool DataType::is_same(std::type_index const &other) const
 	return pimpl_->t_index_ == other;
 }
 
-void DataType::push_back(DataType const & d_type, std::string const & name,
-		int pos)
+void DataType::push_back(DataType && d_type, std::string const & name, int pos)
 {
 	if (pos < 0)
 	{
@@ -176,7 +175,7 @@ void DataType::push_back(DataType const & d_type, std::string const & name,
 		}
 	}
 
-	pimpl_->data_.push_back(std::make_tuple(d_type, name, pos));
+	pimpl_->data_.push_back(std::forward_as_tuple(d_type, name, pos));
 
 }
 std::ostream & DataType::print(std::ostream & os) const

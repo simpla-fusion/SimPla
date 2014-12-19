@@ -800,6 +800,8 @@ std::string DataStream::write(std::string const & url, DataSet const &ds,
 				H5P_DEFAULT, ds.data.get()));
 	}
 
+
+
 	H5_ERROR(H5Dclose(dset));
 
 	if (m_space != H5S_ALL)

@@ -33,7 +33,7 @@ std::string save(std::string const & url, DataSet const & ds,
 
 template<typename T>
 auto save(std::string const & name, T const & d, size_t flag = 0UL)
-DECL_RET_TYPE((save(name,d.dataset(),flag)))
+DECL_RET_TYPE(save(name, make_dataset(d), flag))
 
 #define SAVE(_F_) simpla::save(__STRING(_F_),_F_  )
 #ifndef NDEBUG

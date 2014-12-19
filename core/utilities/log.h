@@ -262,12 +262,12 @@ inline std::string ShowBit(unsigned long s)
 #  define ASSERT(_COND_)   std::assert(_COND_);
 #endif
 
-#ifndef NDEBUG
+//#ifndef NDEBUG
 #define CHECK(_MSG_)    Logger(LOG_DEBUG) <<" "<< (__FILE__) <<": line "<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
 	<<"\n\t"<< __STRING(_MSG_)<<"="<< ( _MSG_)<<std::endl
-#else
-#	define CHECK(_MSG_)
-#endif
+//#else
+//#	define CHECK(_MSG_)
+//#endif
 
 #define REDUCE_CHECK(_MSG_)    {auto __a= (_MSG_); __a=reduce(__a); if(GLOBAL_COMM.get_rank()==0){ Logger(LOG_DEBUG) <<" "<< (__FILE__) <<": line "<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
 	<<"\n\t GLOBAL_SUM:"<< __STRING(_MSG_)<<"="<<__a;}}

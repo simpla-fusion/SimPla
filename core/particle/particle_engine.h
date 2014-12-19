@@ -171,7 +171,7 @@ namespace simpla
 //#define SP_PARTICLE_GET_NAME_CHOOSE_HELPER(count) SP_PARTICLE_GET_NAME_CHOOSE_HELPER1(count)
 //#define SP_PARTICLE_GET_NAME(...) SP_PARTICLE_GET_NAME_CHOOSE_HELPER(COUNT_MACRO_ARGS(__VA_ARGS__)) (__VA_ARGS__)
 
-#define SP_PARTICLE_DEFINE_DESC_HELPER2(_S_NAME_,_T0_,_N0_) d_type.template push_back<typename array_to_ntuple_convert<_T0_>::type>(#_N0_, offsetof(_S_NAME_, _N0_));
+#define SP_PARTICLE_DEFINE_DESC_HELPER2(_S_NAME_,_T0_,_N0_) d_type.push_back(DataType::template create<typename array_to_ntuple_convert<_T0_>::type>(), #_N0_, offsetof(_S_NAME_, _N0_));
 #define SP_PARTICLE_DEFINE_DESC_HELPER4(_S_NAME_,_T0_,_N0_,_T1_,_N1_) SP_PARTICLE_DEFINE_DESC_HELPER2(_S_NAME_,_T0_,_N0_) \
 	  SP_PARTICLE_DEFINE_DESC_HELPER2(_S_NAME_,_T1_,_N1_)
 #define SP_PARTICLE_DEFINE_DESC_HELPER6(_S_NAME_,_T0_,_N0_,_T1_,_N1_,_T2_,_N2_)  SP_PARTICLE_DEFINE_DESC_HELPER2(_S_NAME_,_T0_,_N0_) \
@@ -230,7 +230,7 @@ struct _S_NAME_                                                  \
 	SP_PARTICLE_DEFINE_MEMBER(__VA_ARGS__)                                   \
 	static DataType datatype()                             \
 	{                                                             \
-		auto d_type = DataType::create<Point_s>(#_S_NAME_);  \
+		auto d_type = DataType::create_opaque_type<Point_s>(#_S_NAME_);  \
 		SP_PARTICLE_DEFINE_DESC(_S_NAME_,__VA_ARGS__);        \
 		return std::move(d_type);                                 \
 	}                                                             \

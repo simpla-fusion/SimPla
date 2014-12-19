@@ -13,6 +13,10 @@
 
 namespace simpla
 {
+/**
+ *   \example  Probe particle
+ *    This is an example of probe particle
+ */
 
 struct ProbeDemo
 {
@@ -22,29 +26,11 @@ struct ProbeDemo
 	typedef Real scalar_type;
 
 	SP_DEFINE_POINT_STRUCT(Point_s,
-//			Vec3 ,x,
-//			double[3], v,
+			Vec3 ,x,
+			double[3][3], v,
 			Real, f,
 			Real, w
 	)
-
-//	struct Point_s
-//	{
-//		typename array_to_ntuple_convert<Real>::type f;
-//		typename array_to_ntuple_convert<Real>::type w;
-//
-//		static DataType datatype()
-//		{
-//			auto d_type = DataType::create<Point_s>("Point_s");
-//			d_type.template push_back<
-//					typename array_to_ntuple_convert<Real>::type>("f",
-//					offsetof(Point_s, f));
-//			d_type.template push_back<
-//					typename array_to_ntuple_convert<Real>::type>("w",
-//					offsetof(Point_s, w));
-//			return (d_type);
-//		}
-//	};
 
 	SP_DEFINE_PROPERTIES(
 			Real, mass,

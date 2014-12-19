@@ -10,7 +10,7 @@
 
 #include <memory>
 
-#include "../utilities/properties.h"
+#include "../utilities/utilities.h"
 #include "../utilities/memory_pool.h"
 #include "data_type.h"
 #include "data_space.h"
@@ -37,6 +37,24 @@ struct DataSet
 	}
 };
 
+HAS_MEMBER_FUNCTION(dataset)
+
+template<typename T>
+auto make_dataset(T & d)->
+typename std::enable_if< has_member_function_dataset<T,void>::value,
+decltype(d.dataset())>::type
+{
+	return std::move(d.dataset());
+}
+
+template<typename T>
+auto make_dataset(T * d)->
+typename std::enable_if< has_member_function_dataset<T,void>::value,
+decltype(d->dataset())>::type
+{
+	return std::move(d->dataset());
+}
+
 template<typename T>
 DataSet make_dataset(int rank, size_t const * dims, Properties const & prop =
 		Properties())
@@ -56,13 +74,14 @@ DataSet make_dataset(T * p, int rank, size_t const * dims,
 
 	DataSet res;
 
-	res.datatype = make_datatype<T>("");
+	res.datatype = make_datatype<T>();
 	res.dataspace.init(rank, dims);
 	res.data = std::shared_ptr<void>(
 			const_cast<void*>(reinterpret_cast<typename std::conditional<
 					std::is_const<T>::value, void const *, void *>::type>(p)),
 			do_nothing());
 	res.attribute = prop;
+
 	return std::move(res);
 }
 }  // namespace simpla

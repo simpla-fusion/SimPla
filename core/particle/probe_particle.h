@@ -236,9 +236,7 @@ bool Particle<Engine, TDomain, _impl::IsProbeParticle>::update()
 template<typename Engine, typename TDomain>
 DataSet Particle<Engine, TDomain, _impl::IsProbeParticle>::dataset() const
 {
-
-	size_t dims[2] =
-	{ container_type::size(), memory_length_ };
+	size_t dims[2] = { container_type::size(), memory_length_ };
 
 	return std::move(
 			make_dataset(container_type::data(), 1, dims, properties()));
