@@ -105,8 +105,9 @@ public:
 	void set_attribute(std::string const &url, DataType const & d_type,
 			void const * buff);
 
-	void get_attribute(std::string const &url, DataType const & d_type,
-			void* buff);
+	void set_attribute(std::string const &url, Any const & v);
+
+	Any get_attribute(std::string const &url) const;
 
 	void delete_attribute(std::string const &url);
 
@@ -115,23 +116,11 @@ public:
 		set_attribute(url, std::string(str));
 	}
 
-	template<typename T> void set_attribute(std::string const & url, T const&v)
+	template<typename T>
+	void set_attribute(std::string const & url, T const&v)
 	{
 		set_attribute(url, make_datatype<T>(), &v);
 	}
-	template<typename T>
-	T get_attribute(std::string const & url)
-	{
-		T res;
-
-		get_attribute(url, make_datatype<T>(), &res);
-
-		return std::move(res);
-	}
-
-	bool set_attribute(std::string const &url, Properties const & d_type);
-
-	Properties get_attribute(std::string const &url);
 
 private:
 	struct pimpl_s;

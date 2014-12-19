@@ -37,6 +37,8 @@ struct DataType
 
 	bool is_valid() const;
 
+	size_t size() const;
+
 	size_t size_in_byte() const;
 
 	size_t ele_size_in_byte() const;

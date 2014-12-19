@@ -128,15 +128,20 @@ size_t DataType::ele_size_in_byte() const
 {
 	return pimpl_->ele_size_in_byte_;
 }
-size_t DataType::size_in_byte() const
+
+size_t DataType::size() const
 {
-	size_t res = pimpl_->ele_size_in_byte_;
+	size_t res = 1;
 
 	for (auto const & d : pimpl_->extents_)
 	{
 		res *= d;
 	}
 	return res;
+}
+size_t DataType::size_in_byte() const
+{
+	return pimpl_->ele_size_in_byte_ * size();
 }
 size_t DataType::rank() const
 {

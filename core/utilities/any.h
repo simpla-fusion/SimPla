@@ -12,6 +12,8 @@
 #include <typeindex>
 #include <iostream>
 #include "ntuple.h"
+#include "../data_structure/data_type.h"
+#include "log.h"
 namespace simpla
 {
 /**
@@ -19,34 +21,31 @@ namespace simpla
  */
 struct Any
 {
-	template<typename U> Any(U && value) :
+	template<typename U>
+	Any(U && value) :
 			ptr_(
 					new Derived<typename std::decay<U>::type>(
-							std::forward<U>(value))), t_index_(
-					std::type_index(
-							typeid(typename std::remove_pointer<U>::type)))
+							std::forward<U>(value)))
 	{
 	}
-	Any(void) :
-			t_index_(std::type_index(typeid(void)))
+	Any(void)
 	{
 	}
 	Any(Any& that) :
-			ptr_(that.clone()), t_index_(that.t_index_)
+			ptr_(that.clone())
 	{
 	}
 	Any(Any const& that) :
-			ptr_(that.clone()), t_index_(that.t_index_)
+			ptr_(that.clone())
 	{
 	}
 	Any(Any && that) :
-			ptr_(std::move(that.ptr_)), t_index_(that.t_index_)
+			ptr_(std::move(that.ptr_))
 	{
 	}
 	void swap(Any & other)
 	{
 		std::swap(ptr_, other.ptr_);
-		std::swap(t_index_, other.t_index_);
 	}
 	bool empty() const
 	{
@@ -61,35 +60,53 @@ struct Any
 		return !empty();
 	}
 
-	template<class U> bool is() const
+	DataType datatype() const
 	{
-		return t_index_ == std::type_index(typeid(U));
+		return std::move(ptr_->datatype());
 	}
+
+	void const * data() const
+	{
+		return ptr_->data();
+	}
+	void * data()
+	{
+		return ptr_->data();
+	}
+
+	template<class U>
+	bool is_same() const
+	{
+		return ptr_->is_same<U>();
+	}
+
 	template<class U>
 	typename array_to_ntuple_convert<U>::type& as()
 	{
 		typedef typename array_to_ntuple_convert<U>::type U2;
 
-		if (!is<U2>())
+		if (!is_same<U2>())
 		{
-//			WARNING << "can not cast " << typeid(U).name() << " to " << t_index_.name() << std::endl;
+			Logger(LOG_ERROR) << "Can not cast " << typeid(U).name() << " to "
+					<< ptr_->type_name() << std::endl;
 			throw std::bad_cast();
 		}
-		auto derived = dynamic_cast<Derived<U2>*>(ptr_.get());
-		return derived->m_value;
+		return dynamic_cast<Derived<U2>*>(ptr_.get())->m_value;
 	}
 
 	template<class U>
 	typename array_to_ntuple_convert<U>::type const& as() const
 	{
 		typedef typename array_to_ntuple_convert<U>::type U2;
-		if (!is<U2>())
+
+		if (!is_same<U2>())
 		{
-//			WARNING << "Can not cast " << typeid(U).name() << " to " << t_index_.name() << std::endl;
+			Logger(LOG_ERROR) << "Can not cast " << typeid(U).name() << " to "
+					<< ptr_->type_name() << std::endl;
 			throw std::bad_cast();
 		}
-		auto derived = dynamic_cast<Derived<U2> const*>(ptr_.get());
-		return derived->m_value;
+
+		return dynamic_cast<Derived<U2> const*>(ptr_.get())->m_value;
 	}
 
 	Any& operator=(const Any& a)
@@ -97,7 +114,7 @@ struct Any
 		if (ptr_ == a.ptr_)
 			return *this;
 		ptr_ = a.clone();
-		t_index_ = a.t_index_;
+
 		return *this;
 	}
 	template<typename T>
@@ -105,7 +122,7 @@ struct Any
 	{
 		typedef typename array_to_ntuple_convert<T>::type U2;
 
-		if (is<U2>())
+		if (is_same<U2>())
 		{
 			as<U2>() = v;
 		}
@@ -130,11 +147,17 @@ private:
 		{
 		}
 		virtual BasePtr clone() const = 0;
+		virtual DataType datatype() const=0;
+		virtual void const * data() const=0;
+		virtual void * data()=0;
 		virtual std::ostream & print(std::ostream & os) const=0;
-		template<typename OS> OS& print(OS & os) const
+		virtual bool is_same(std::type_index const &) const=0;
+		virtual std::string type_name() const=0;
+
+		template<typename T>
+		bool is_same() const
 		{
-			print(dynamic_cast<std::ostream &>(os));
-			return os;
+			return is_same(std::type_index(typeid(T)));
 		}
 	};
 	template<typename T>
@@ -149,16 +172,30 @@ private:
 		{
 			return BasePtr(new Derived<T>(m_value));
 		}
-
-		template<typename OS> OS& print(OS & os) const
+		DataType datatype() const
 		{
-			print(dynamic_cast<std::ostream &>(os));
-			return os;
+			return make_datatype<T>();
+		}
+		void const * data() const
+		{
+			return reinterpret_cast<void const *>(&m_value);
+		}
+		void * data()
+		{
+			return reinterpret_cast<void *>(&m_value);
 		}
 		std::ostream & print(std::ostream & os) const
 		{
 			os << m_value;
 			return os;
+		}
+		bool is_same(std::type_index const &t_idx) const
+		{
+			return std::type_index(typeid(T)) == t_idx;
+		}
+		std::string type_name() const
+		{
+			return typeid(T).name();
 		}
 
 		T m_value;
@@ -171,7 +208,6 @@ private:
 	}
 
 	BasePtr ptr_;
-	std::type_index t_index_;
 };
 
 }

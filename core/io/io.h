@@ -42,35 +42,24 @@ DECL_RET_TYPE(save(name, make_dataset(d), flag))
 #   define DEBUG_SAVE(_F_) ""
 #endif
 
-void set_dataset_attribute(std::string const &url, DataType const & d_type,
-		void const * buff);
-
-void get_dataset_attribute(std::string const &url, DataType const & d_type,
-		void* buff);
-
 void delete_attribute(std::string const &url);
 
 void set_dataset_attribute(std::string const &url, std::string const & str);
 
-template<typename T> void set_dataset_attribute(std::string const & url,
-		T const&v)
+void set_dataset_attribute(std::string const &url, Any const & prop);
+
+Any get_dataset_attribute(std::string const &url);
+
+template<typename T>
+void set_dataset_attribute(std::string const & url, T const&v)
 {
-	set_dataset_attribute(url, make_datatype<T>(), &v);
+	set_dataset_attribute(url, Any(v));
 }
 template<typename T>
 T get_dataset_attribute(std::string const & url)
 {
-	T res;
-
-	get_dataset_attribute(url, make_datatype<T>(), &res);
-
-	return std::move(res);
+	return std::move(get_dataset_attribute(url).template as<T>());
 }
-
-bool set_dataset_attribute(std::string const &url, Properties const & prop);
-
-Properties get_dataset_attribute(std::string const &url);
-
 //template<typename Tuple, size_t ...Is>
 //std::string save_tuple_impl(std::string const & name, Tuple const & d,
 //		index_sequence<Is...>)

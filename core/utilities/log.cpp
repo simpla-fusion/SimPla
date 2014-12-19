@@ -31,8 +31,6 @@ struct LoggerStreams //: public SingletonHolder<LoggerStreams>
 
 	static constexpr unsigned int DEFAULT_LINE_WIDTH = 100;
 
-	Properties properties;
-
 	LoggerStreams(int level = LOG_INFORM) :
 			std_out_visable_level_(level), line_width_(DEFAULT_LINE_WIDTH)
 	{
@@ -249,10 +247,7 @@ Logger::~Logger()
 {
 	SingletonHolder<LoggerStreams>::instance().put(level_, buffer_.str());
 }
-Properties & Logger::properties()
-{
-	return SingletonHolder<LoggerStreams>::instance().properties;
-}
+
 void Logger::init(int argc, char** argv)
 {
 	return SingletonHolder<LoggerStreams>::instance().init(argc, argv);

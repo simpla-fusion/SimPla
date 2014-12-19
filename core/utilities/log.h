@@ -20,7 +20,7 @@
 #include <bitset>
 #include <sstream>
 #include <string>
-#include "properties.h"
+
 #include "sp_type_traits.h"
 #include "pretty_stream.h"
 namespace simpla
@@ -65,7 +65,6 @@ public:
 	Logger(Logger && r);
 	~Logger();
 
-	static Properties & properties();
 	static void init(int argc, char** argv);
 	static void set_stdout_visable_level(int l);
 	static void set_mpi_comm(int rank = 0, int size = 1);
