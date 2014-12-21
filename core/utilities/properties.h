@@ -42,7 +42,12 @@ public:
 	{
 	}
 
-	using value_type::operator=;
+	template<typename T>
+	this_type & operator=(T const &v)
+	{
+		value_type(v).swap(*this);
+		return *this;
+	}
 
 	inline bool empty() const // STL style
 	{
@@ -59,6 +64,7 @@ public:
 
 	Properties & get(std::string const & key)
 	{
+
 		if (key == "")
 		{
 			return *this;
@@ -119,7 +125,7 @@ public:
 	}
 
 	template<typename T>
-	void set(std::string const & key, T v)
+	void set(std::string const & key, T const & v)
 	{
 		get(key) = v;
 	}
@@ -146,14 +152,6 @@ public:
 		return get(key);
 	}
 
-//	Any & value()
-//	{
-//		return value_;
-//	}
-//	Any const& value() const
-//	{
-//		return value_;
-//	}
 	inline Properties const& operator[](key_type const & key) const
 	{
 		return get(key);

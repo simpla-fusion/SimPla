@@ -36,9 +36,9 @@ struct ProbeDemo
 			Real, mass,
 			Real, charge,
 			Real, temperature,
-			Real, pressure
-
+			Real[3][3], pressure
 	)
+
 
 	static constexpr size_t memory_length = 0; //!  declare this engine is memoryless
 

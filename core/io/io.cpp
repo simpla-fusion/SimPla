@@ -21,7 +21,6 @@ void init_io(int argc, char ** argv)
 
 void close_io()
 {
-
 	SingletonHolder<DataStream>::instance().close();
 }
 std::string save(std::string const & url, DataSet const & ds, size_t flag)
@@ -29,34 +28,16 @@ std::string save(std::string const & url, DataSet const & ds, size_t flag)
 	return GLOBAL_DATA_STREAM.write(url,ds,flag);
 }
 
+DataSet load(std::string const & url)
+{
+	DataSet ds;
+	GLOBAL_DATA_STREAM.read(url,&ds );
+	return std::move(ds);
+}
+
 std::string cd(std::string const & url)
 {
 	return std::get<1>(GLOBAL_DATA_STREAM.cd(url ));
-}
-
-void set_dataset_attribute(std::string const &url, DataType const & d_type,
-		void const * buff)
-{
-	SingletonHolder<DataStream>::instance().set_attribute(url, d_type, buff);
-}
-void set_dataset_attribute(std::string const &url, std::string const & str)
-{
-	SingletonHolder<DataStream>::instance().set_attribute(url, str);
-}
-
-void set_dataset_attribute(std::string const &url, Any const & prop)
-{
-	SingletonHolder<DataStream>::instance().set_attribute(url, prop);
-}
-
-Any get_dataset_attribute(std::string const &url)
-{
-	return std::move(SingletonHolder<DataStream>::instance().get_attribute(url));
-}
-
-void delete_dataset_attribute(std::string const &url)
-{
-	SingletonHolder<DataStream>::instance().delete_attribute(url);
 }
 
 }

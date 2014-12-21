@@ -99,28 +99,28 @@ public:
 	/**
 	 *
 	 * @param url  <file name>:/<group path>/<obj name>.<attribute>
-	 * @param d_type
 	 * @param v
 	 */
-	void set_attribute(std::string const &url, DataType const & d_type,
-			void const * buff);
-
 	void set_attribute(std::string const &url, Any const & v);
-
-	Any get_attribute(std::string const &url) const;
-
-	void delete_attribute(std::string const &url);
 
 	void set_attribute(std::string const &url, char const str[])
 	{
-		set_attribute(url, std::string(str));
+		set_attribute(url, Any(std::string(str)));
 	}
 
 	template<typename T>
 	void set_attribute(std::string const & url, T const&v)
 	{
-		set_attribute(url, make_datatype<T>(), &v);
+		set_attribute(url, Any(v));
 	}
+
+	void set_attribute(std::string const &url, Properties const &);
+
+	Any get_attribute(std::string const &url) const;
+
+	Properties get_all_attribute(std::string const &url) const;
+
+	void delete_attribute(std::string const &url);
 
 private:
 	struct pimpl_s;

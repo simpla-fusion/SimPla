@@ -35,7 +35,11 @@ struct DataType
 
 	DataType& operator=(DataType const& other);
 
+	void swap(DataType &);
+
 	bool is_valid() const;
+
+	std::string name() const;
 
 	size_t size() const;
 
@@ -47,10 +51,12 @@ struct DataType
 
 	size_t extent(size_t n) const;
 
+	void extent(size_t rank, size_t const*d);
+
 	bool is_compound() const;
-
+	bool is_array() const;
+	bool is_opaque() const;
 	bool is_same(std::type_index const & other) const;
-
 	template<typename T>
 	bool is_same() const
 	{

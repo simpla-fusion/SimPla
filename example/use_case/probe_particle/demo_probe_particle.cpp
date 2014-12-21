@@ -91,10 +91,10 @@ USE_CASE(demo_probe_particle)
 					{	0,0,2});
 		};
 
-//		for (size_t s = 0; s < num_of_steps; s += strides)
-//		{
-//			ion->next_timestep(dt, E, B);
-//		}
+		for (size_t s = 0; s < num_of_steps; s += strides)
+		{
+			ion->next_timestep(dt, E, B);
+		}
 		VERBOSE << save("ion", ion->dataset()) << std::endl;
 	}
 }

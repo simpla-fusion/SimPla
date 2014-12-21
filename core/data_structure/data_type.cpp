@@ -18,7 +18,7 @@ struct DataType::pimpl_s
 	std::string name_;
 	std::vector<size_t> extents_;
 
-	std::vector<std::tuple<DataType, std::string, int>> data_;
+	std::vector<std::tuple<DataType, std::string, int>> members_;
 
 };
 DataType::DataType() :
@@ -87,8 +87,8 @@ DataType::DataType(const DataType & other) :
 
 	std::copy(other.pimpl_->extents_.begin(), other.pimpl_->extents_.end(),
 			std::back_inserter(pimpl_->extents_));
-	std::copy(other.pimpl_->data_.begin(), other.pimpl_->data_.end(),
-			std::back_inserter(pimpl_->data_));
+	std::copy(other.pimpl_->members_.begin(), other.pimpl_->members_.end(),
+			std::back_inserter(pimpl_->members_));
 }
 DataType::DataType(DataType && other) :
 		pimpl_(other.pimpl_)
@@ -114,12 +114,20 @@ DataType& DataType::operator=(DataType const& other)
 
 	std::copy(other.pimpl_->extents_.begin(), other.pimpl_->extents_.end(),
 			std::back_inserter(pimpl_->extents_));
-	std::copy(other.pimpl_->data_.begin(), other.pimpl_->data_.end(),
-			std::back_inserter(pimpl_->data_));
+	std::copy(other.pimpl_->members_.begin(), other.pimpl_->members_.end(),
+			std::back_inserter(pimpl_->members_));
 
 	return *this;
 }
+void DataType::swap(DataType & other)
+{
+	std::swap(pimpl_, other.pimpl_);
+}
 
+std::string DataType::name() const
+{
+	return std::move(pimpl_->t_index_.name());
+}
 bool DataType::is_valid() const
 {
 	return pimpl_->t_index_ != std::type_index(typeid(void));
@@ -151,15 +159,33 @@ size_t DataType::extent(size_t n) const
 {
 	return pimpl_->extents_[n];
 }
+void DataType::extent(size_t rank, size_t const*d)
+{
+	pimpl_->extents_.resize(rank);
+	for (int i = 0; i < rank; ++i)
+	{
+		pimpl_->extents_[i] = d[i];
+	}
 
+}
 std::vector<std::tuple<DataType, std::string, int>> const & DataType::members() const
 {
-	return pimpl_->data_;
+	return pimpl_->members_;
 }
 bool DataType::is_compound() const
 {
-	return pimpl_->data_.size() > 0;
+	return pimpl_->members_.size() > 0;
 }
+bool DataType::is_array() const
+{
+	return pimpl_->extents_.size() > 0;
+}
+bool DataType::is_opaque() const
+{
+	return pimpl_->extents_.size() == 0
+			&& pimpl_->t_index_ == std::type_index(typeid(void));
+}
+
 bool DataType::is_same(std::type_index const &other) const
 {
 	return pimpl_->t_index_ == other;
@@ -169,18 +195,18 @@ void DataType::push_back(DataType && d_type, std::string const & name, int pos)
 {
 	if (pos < 0)
 	{
-		if (pimpl_->data_.empty())
+		if (pimpl_->members_.empty())
 		{
 			pos = 0;
 		}
 		else
 		{
-			pos = std::get<2>(*(pimpl_->data_.rbegin()))
-					+ std::get<0>(*(pimpl_->data_.rbegin())).size_in_byte();
+			pos = std::get<2>(*(pimpl_->members_.rbegin()))
+					+ std::get<0>(*(pimpl_->members_.rbegin())).size_in_byte();
 		}
 	}
 
-	pimpl_->data_.push_back(std::forward_as_tuple(d_type, name, pos));
+	pimpl_->members_.push_back(std::forward_as_tuple(d_type, name, pos));
 
 }
 std::ostream & DataType::print(std::ostream & os) const
@@ -194,8 +220,8 @@ std::ostream & DataType::print(std::ostream & os) const
 
 		<< "{" << std::endl;
 
-		auto it = pimpl_->data_.begin();
-		auto ie = pimpl_->data_.end();
+		auto it = pimpl_->members_.begin();
+		auto ie = pimpl_->members_.end();
 
 		os << "\t";
 		std::get<0>(*it).print(os);
