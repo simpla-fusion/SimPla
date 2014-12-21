@@ -64,22 +64,6 @@ struct DataStream::pimpl_s
 	Any get_attribute(hid_t loc_id, std::string const & name) const;
 	Properties get_attribute(hid_t loc_id, int idx = -1) const;
 
-	//	typedef std::tuple<std::shared_ptr<ByteType>, h5_dataset> CacheDataSet;
-	//
-	//	std::map<std::string, CacheDataSet> cache_;
-//	/**
-//	 *  Convert 'DataSet' to 'h5_dataset'
-//	 *
-//	 * @param ds
-//	 * @param flag
-//	 * @return h5_dataset
-//	 *
-//	 * 	   if global_begin ==nullptr and mpi is enable,
-//	 *      f_count[0] = sum( global_end[0], for all process)
-//	 *      f_begin[0] = sum( global_end[0], for process < this process)
-//	 *
-//	 */
-
 };
 
 DataStream::DataStream() :
@@ -143,17 +127,7 @@ void DataStream::init(int argc, char** argv)
 			std::tie(pimpl_->current_filename_,pimpl_->current_groupname_,
 					std::ignore,std::ignore)
 			=pimpl_->parser_url(value);
-
-//			properties.set("File Name",value);
 		}
-//		else if(opt=="force-write-cache")
-//		{
-//			properties.set("Force Write Cache",true);
-//		}
-//		else if(opt=="cache-depth")
-//		{
-//			properties.set("Cache Depth",ToValue<size_t>(value));
-//		}
 		else if(opt=="h"||opt=="help" )
 		{
 			show_help=true;
@@ -178,38 +152,6 @@ void DataStream::init(int argc, char** argv)
 
 	VERBOSE << "DataSteream is initialized!" << pimpl_->current_filename_
 			<< std::endl;
-
-}
-void bcast_string(std::string * filename_)
-{
-
-#if !NO_MPI || USE_MPI
-
-	if (!GLOBAL_COMM.is_valid()) return;
-
-	int name_len;
-
-	if (GLOBAL_COMM.get_rank()==0) name_len=filename_->size();
-
-	MPI_Bcast(&name_len, 1, MPI_INT, 0, GLOBAL_COMM.comm());
-
-	std::vector<char> buffer(name_len);
-
-	if (GLOBAL_COMM.get_rank()==0)
-	{
-		std::copy(filename_->begin(),filename_->end(),buffer.begin());
-	}
-
-	MPI_Bcast((&buffer[0]), name_len, MPI_CHAR, 0, GLOBAL_COMM.comm());
-
-	buffer.push_back('\0');
-
-	if (GLOBAL_COMM.get_rank()!=0)
-	{
-		*filename_=&buffer[0];
-	}
-
-#endif
 
 }
 
@@ -388,16 +330,25 @@ void DataStream::pimpl_s::set_attribute(hid_t loc_id, std::string const &name,
 	}
 
 }
+void DataStream::pimpl_s::set_attribute(hid_t loc_id, Properties const & prop)
+{
+	for (auto const & item : prop)
+	{
+		set_attribute(loc_id, item.first, item.second);
+	}
+
+}
 Any DataStream::pimpl_s::get_attribute(hid_t loc_id,
 		std::string const &name) const
 {
 
+	UNIMPLEMENTED;
 	return std::move(Any());
 }
 
 Properties DataStream::pimpl_s::get_attribute(hid_t loc_id, int idx) const
 {
-
+	UNIMPLEMENTED;
 	Properties res;
 
 	return std::move(res);
@@ -405,6 +356,7 @@ Properties DataStream::pimpl_s::get_attribute(hid_t loc_id, int idx) const
 
 Any DataStream::get_attribute(std::string const &url) const
 {
+	UNIMPLEMENTED;
 	return std::move(Any());
 }
 void DataStream::delete_attribute(std::string const &url)
@@ -956,6 +908,8 @@ std::string DataStream::write(std::string const & url, DataSet const &ds,
 		H5_ERROR( H5Dwrite(dset, m_type , m_space, f_space,
 				H5P_DEFAULT, ds.data.get()));
 	}
+
+	pimpl_->set_attribute(dset, ds.attribute);
 
 	H5_ERROR(H5Dclose(dset));
 

@@ -215,5 +215,39 @@ std::tuple<std::shared_ptr<ByteType>, int> update_ghost_unorder(
 
 	return std::make_tuple(recv_buffer,recv_buffer_size);
 }
+
+void bcast_string(std::string * filename_)
+{
+
+#if !NO_MPI || USE_MPI
+
+	if (!GLOBAL_COMM.is_valid()) return;
+
+	int name_len;
+
+	if (GLOBAL_COMM.get_rank()==0) name_len=filename_->size();
+
+	MPI_Bcast(&name_len, 1, MPI_INT, 0, GLOBAL_COMM.comm());
+
+	std::vector<char> buffer(name_len);
+
+	if (GLOBAL_COMM.get_rank()==0)
+	{
+		std::copy(filename_->begin(),filename_->end(),buffer.begin());
+	}
+
+	MPI_Bcast((&buffer[0]), name_len, MPI_CHAR, 0, GLOBAL_COMM.comm());
+
+	buffer.push_back('\0');
+
+	if (GLOBAL_COMM.get_rank()!=0)
+	{
+		*filename_=&buffer[0];
+	}
+
+#endif
+
+}
+
 }
 		// namespace simpla

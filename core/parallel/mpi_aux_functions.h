@@ -39,7 +39,7 @@ template<typename T>
 void reduce(T * send_data, T * recv_data, size_t count,
 		std::string const & op_c = "Sum")
 {
-	reduce(send_data, recv_data, count, DataType::create<T>(), op_c);
+	reduce(send_data, recv_data, count, DataType::template create<T>(), op_c);
 
 }
 
@@ -142,5 +142,7 @@ std::tuple<std::shared_ptr<ByteType>, int> update_ghost_unorder(
 				int, // send buffer begin;
 				int  // send buffer size;
 				>> const & info);
+
+void bcast_string(std::string * filename_);
 }  // namespace simpla
 #endif /* MPI_AUX_FUNCTIONS_H_ */
