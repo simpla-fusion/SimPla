@@ -13,6 +13,10 @@
 #include <iomanip>
 #include <chrono>
 
+#if !NO_MPI || USE_MPI
+# include <mpi.h>
+#endif
+
 #include "misc_utilities.h"
 #include "singleton_holder.h"
 #include "parse_command_line.h"
@@ -27,7 +31,7 @@ struct LoggerStreams //: public SingletonHolder<LoggerStreams>
 	bool is_opened_ = false;
 	size_t line_width_;
 
-	size_t mpi_rank_ = 0, mpi_size_ = 1;
+	int mpi_rank_ = 0, mpi_size_ = 1;
 
 	static constexpr unsigned int DEFAULT_LINE_WIDTH = 100;
 
@@ -149,7 +153,8 @@ void LoggerStreams::close()
 void LoggerStreams::put(int level, std::string const & msg)
 {
 
-	if (msg == "" || (level == LOG_INFORM && mpi_rank_ > 0))
+	if (msg == ""
+			|| ((level == LOG_INFORM || level == LOG_MESSAGE) && mpi_rank_ > 0))
 		return;
 
 	std::string prefix(""), surfix("");
@@ -208,7 +213,7 @@ void LoggerStreams::put(int level, std::string const & msg)
 			std::cerr << "\e[1;32m" << prefix << "\e[1;37m" << msg << "\e[0m"
 					<< surfix;
 			break;
-		case LOG_STDOUT:
+		case LOG_MESSAGE:
 			std::cout << msg;
 			break;
 		default:

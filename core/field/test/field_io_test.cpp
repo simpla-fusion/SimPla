@@ -31,7 +31,7 @@ int main(int argc, char **argv)
 {
 	using namespace simpla;
 
-	LOGGER.set_stdout_visable_level(12);
+	LOGGER.set_MESSAGE_visable_level(12);
 
 	GLOBAL_COMM.init(argc,argv);
 	GLOBAL_DATA_STREAM.cd("field_io_test.h5:/");

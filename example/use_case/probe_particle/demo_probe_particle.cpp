@@ -70,12 +70,12 @@ USE_CASE(demo_probe_particle)
 	ion->resize(20);
 	ion->update();
 
-	STDOUT << std::endl;
-	STDOUT << "======== Summary ========" << std::endl;
+	MESSAGE << std::endl;
+	MESSAGE << "======== Summary ========" << std::endl;
 	RIGHT_COLUMN(" ion") << " = " << "{" << *ion << "}" << std::endl;
 	RIGHT_COLUMN(" time step" ) << " = " << num_of_steps << std::endl;
 	RIGHT_COLUMN(" dt" ) << " = " << dt << std::endl;
-	STDOUT << "=========================" << std::endl;
+	MESSAGE << "=========================" << std::endl;
 
 	if (!(options["JUST A TEST"]))
 	{

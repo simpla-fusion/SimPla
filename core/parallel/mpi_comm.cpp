@@ -60,7 +60,6 @@ void MPIComm::init(int argc, char** argv)
 		{
 			SHOW_OPTIONS("--mt <NUMBER>", "number of threads");
 		}
-
 		else if (!no_mpi_)
 		{
 			MPI_Init(&argc, &argv);

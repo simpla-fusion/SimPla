@@ -61,16 +61,16 @@ USE_CASE(em)
 		manifold->dt(dt);
 	}
 
-	STDOUT << std::endl;
+	MESSAGE << std::endl;
 
-	STDOUT << "======== Configuration ========" << std::endl;
-	STDOUT << " Description:" << options["Description"].as<std::string>("")
+	MESSAGE << "======== Configuration ========" << std::endl;
+	MESSAGE << " Description:" << options["Description"].as<std::string>("")
 			<< std::endl;
-	STDOUT << " Options:" << std::endl;
+	MESSAGE << " Options:" << std::endl;
 	RIGHT_COLUMN(" mesh" ) << " = {" << *manifold << "}," << std::endl;
 	RIGHT_COLUMN(" time step" ) << " = " << num_of_steps << std::endl;
 
-	STDOUT << "======== Initlialize ========" << std::endl;
+	MESSAGE << "======== Initlialize ========" << std::endl;
 	// Load initialize value
 
 	auto J = make_form<EDGE, Real>(manifold);
@@ -94,7 +94,7 @@ USE_CASE(em)
 
 	ion->properties("Cache Length") = strides;
 
-	STDOUT << "======== START! ========" << std::endl;
+	MESSAGE << "======== START! ========" << std::endl;
 
 	cd("/Input/");
 
@@ -131,7 +131,7 @@ USE_CASE(em)
 	VERBOSE << SAVE(J);
 	VERBOSE << save("H", *ion);
 
-	STDOUT << "======== DONE! ========" << std::endl;
+	MESSAGE << "======== DONE! ========" << std::endl;
 
 }
 

@@ -105,7 +105,7 @@ typedef TManifold manifold_type;
 
 int main(int argc, char **argv)
 {
-	LOGGER.set_stdout_visable_level(LOG_INFORM);
+	LOGGER.set_MESSAGE_visable_level(LOG_INFORM);
 	LOGGER.init(argc, argv);
 	GLOBAL_COMM.init(argc,argv);
 	GLOBAL_DATA_STREAM.init(argc,argv);

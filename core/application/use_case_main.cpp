@@ -20,7 +20,11 @@ int main(int argc, char **argv)
 {
 	using namespace simpla;
 
+
 	init_logger(argc, argv);
+	init_parallel(argc, argv);
+	init_io(argc, argv);
+
 
 	bool no_logo = false;
 	bool show_help = false;
@@ -31,7 +35,7 @@ int main(int argc, char **argv)
 	{
 		if(opt=="V" || opt=="version")
 		{
-			STDOUT<<"simpla "<< ShowVersion();
+			MESSAGE<<"simpla "<< ShowVersion();
 			TheEnd(0);
 			return TERMINATE;
 		}
@@ -43,23 +47,20 @@ int main(int argc, char **argv)
 	}
 
 	);
-
-	STDOUT << ShowCopyRight() << std::endl;
+	if (GLOBAL_COMM.get_rank() == 0)
+		MESSAGE << ShowCopyRight() << std::endl;
 
 	if (show_help)
 	{
-		STDOUT << " Usage: " << argv[0] << "  <options> ..." << std::endl
+		MESSAGE << " Usage: " << argv[0] << "  <options> ..." << std::endl
 				<< std::endl;
 
-		STDOUT << " Options:" << std::endl;
+		MESSAGE << " Options:" << std::endl;
 
 		SHOW_OPTIONS("-h", "Print help information");
 		SHOW_OPTIONS("-v,--version", "Print version");
 		SHOW_OPTIONS("-g,--generator", "Generates  demo configure file");
 	}
-
-	init_io(argc, argv);
-	init_parallel(argc, argv);
 
 	RunAllUseCase(argc, argv);
 

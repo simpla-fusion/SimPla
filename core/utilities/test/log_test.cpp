@@ -15,7 +15,7 @@ int main(int argc, char **argv)
 
 	LOG_CMD(a = 5);
 
-	Logger::set_stdout_visable_level(10);
+	Logger::set_MESSAGE_visable_level(10);
 
 	auto logger = LOGGER;
 

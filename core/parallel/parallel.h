@@ -23,8 +23,8 @@
 //#	include "parallel_tbb.h"
 //#else
 #	include "parallel_dummy.h"
-#   include "../utilities/sp_range.h"
 //#endif
+#include "mpi_comm.h"
 
 namespace simpla
 {

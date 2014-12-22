@@ -31,7 +31,7 @@ namespace simpla
 enum
 {
 	LOG_FORCE_OUTPUT = -10000,
-	LOG_STDOUT = -10,
+	LOG_MESSAGE = -10,
 	LOG_OUT_RANGE_ERROR = -4,
 	LOG_LOGIC_ERROR = -3,
 	LOG_ERROR = -2,
@@ -236,7 +236,7 @@ inline std::string ShowBit(unsigned long s)
 
 #define LOGGER Logger(LOG_LOG)
 
-#define STDOUT Logger(LOG_STDOUT)
+#define MESSAGE Logger(LOG_MESSAGE)
 
 #define VERBOSE Logger(LOG_VERBOSE)
 
@@ -271,8 +271,8 @@ inline std::string ShowBit(unsigned long s)
 #define REDUCE_CHECK(_MSG_)    {auto __a= (_MSG_); __a=reduce(__a); if(GLOBAL_COMM.get_rank()==0){ Logger(LOG_DEBUG) <<" "<< (__FILE__) <<": line "<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
 	<<"\n\t GLOBAL_SUM:"<< __STRING(_MSG_)<<"="<<__a;}}
 
-#define RIGHT_COLUMN(_FIRST_) STDOUT <<std::setw(15) <<std::right << _FIRST_
-#define LEFT_COLUMN(_FIRST_) STDOUT <<std::setw(15) <<std::left << _FIRST_
+#define RIGHT_COLUMN(_FIRST_) MESSAGE <<std::setw(15) <<std::right << _FIRST_
+#define LEFT_COLUMN(_FIRST_) MESSAGE <<std::setw(15) <<std::left << _FIRST_
 
 #define INFORM2(_MSG_) Logger(LOG_INFORM)<<__STRING(_MSG_)<<" = "<<_MSG_;
 

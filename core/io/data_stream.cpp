@@ -442,39 +442,36 @@ std::tuple<std::string, hid_t> DataStream::pimpl_s::open_file(
 	if (filename == "")
 		filename = current_filename_;
 
-	if (!is_append)
+	if (!is_append && GLOBAL_COMM.get_rank() == 0)
 	{
-#if !NO_MPI || USE_MPI
-		if (GLOBAL_COMM.get_rank() == 0)
-#endif
+		std::string prefix = filename;
+
+		if (filename.size() > 3
+		&& filename.substr(filename.size() - 3) == ".h5")
 		{
-			std::string prefix = filename;
-
-			if (filename.size() > 3
-			&& filename.substr(filename.size() - 3) == ".h5")
-			{
-				prefix = filename.substr(0, filename.size() - 3);
-			}
-
-			/// @todo auto mkdir directory
-
-			filename = prefix +
-
-			AutoIncrease(
-
-			[&](std::string const & suffix)->bool
-			{
-				std::string f=( prefix+suffix);
-				return
-				f==""
-				|| *(f.rbegin())=='/'
-				|| (CheckFileExists(f + ".h5"));
-			}
-
-			) + ".h5";
-
+			prefix = filename.substr(0, filename.size() - 3);
 		}
+
+		/// @todo auto mkdir directory
+
+		filename = prefix +
+
+		AutoIncrease(
+
+		[&](std::string const & suffix)->bool
+		{
+			std::string f=( prefix+suffix);
+			return
+			f==""
+			|| *(f.rbegin())=='/'
+			|| (CheckFileExists(f + ".h5"));
+		}
+
+		) + ".h5";
+
 	}
+
+	bcast_string(&filename);
 
 	hid_t plist_id;
 
