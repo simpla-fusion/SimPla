@@ -56,7 +56,7 @@ USE_CASE(demo_probe_particle)
 
 	if (options["SHOW_HELP"])
 	{
-		exit(0);
+		return;
 	}
 
 	auto ion = make_probe_particle<ProbeDemo>();
@@ -70,12 +70,12 @@ USE_CASE(demo_probe_particle)
 	ion->resize(20);
 	ion->update();
 
-	MESSAGE << std::endl;
-	MESSAGE << "======== Summary ========" << std::endl;
-	RIGHT_COLUMN(" ion") << " = " << "{" << *ion << "}" << std::endl;
-	RIGHT_COLUMN(" time step" ) << " = " << num_of_steps << std::endl;
-	RIGHT_COLUMN(" dt" ) << " = " << dt << std::endl;
-	MESSAGE << "=========================" << std::endl;
+	MESSAGE << endl;
+	MESSAGE << "======== Summary ========" << endl;
+	MESSAGE << (" ion") << " = " << "{" << *ion << "}" << endl;
+	MESSAGE << (" time step") << " = " << num_of_steps << endl;
+	MESSAGE << (" dt") << " = " << dt << endl;
+	MESSAGE << "=========================" << endl;
 
 	if (!(options["JUST A TEST"]))
 	{
@@ -95,7 +95,7 @@ USE_CASE(demo_probe_particle)
 		{
 			ion->next_timestep(dt, E, B);
 		}
-		VERBOSE << save("ion", ion->dataset()) << std::endl;
+		VERBOSE << save("ion", ion->dataset()) << endl;
 	}
 }
 

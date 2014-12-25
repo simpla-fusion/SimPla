@@ -293,9 +293,9 @@ struct check_##_MEMBER_                                               \
            check_boolean<_T_CHKBOOL_,has_static_member_##_MEMBER_<_T_CHKBOOL_>::value>::value;   \
 };
 
-#define CHECK_VALUE( _MEMBER_, _DEFAULT_VALUE_ )                    \
+#define CHECK_MEMBER_VALUE( _MEMBER_, _DEFAULT_VALUE_ )                    \
 template<typename _T_CHKBOOL_>                                                  \
-struct check_##_MEMBER_                                               \
+struct check_member_value_##_MEMBER_                                               \
 {  private:                                                           \
 	HAS_STATIC_MEMBER(_MEMBER_);                                             \
                  \

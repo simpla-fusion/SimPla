@@ -178,6 +178,13 @@ void close_logger();
  * @{
  **/
 
+inline Logger & endl(Logger & self)
+{
+	self << std::endl;
+	self.flush();
+	return self;
+}
+
 inline Logger & DONE(Logger & self)
 {
 	self.surffix("[DONE]");

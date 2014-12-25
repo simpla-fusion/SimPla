@@ -20,25 +20,27 @@ namespace simpla
 #	define IDENTIFY "UNKNOWN"
 #endif
 
-#define AUTHOR " YU Zhi <yuzhi@ipp.ac.cn> "
+#define  AUTHOR " YU Zhi <yuzhi@ipp.ac.cn> "
 
 #ifndef COPYRIGHT
-#	define COPYRIGHT  " All rights reserved."
+#define  COPYRIGHT "All rights reserved. (2009- )"
 #endif
 
-#define SIMPLA_LOGO      "\n"                                  \
-" ____ ___ __  __ ____  _       \n"\
-"/ ___|_ _|  \\/  |  _ \\| | __ _ \n"\
-"\\___ \\| || |\\/| | |_) | |/ _` |\n"\
-" ___) | || |  | |  __/| | (_| |\n"\
-"|____/___|_|  |_|_|   |_|\\__,_|\n"\
-"\n"                                  \
-" SimPla, Plasma Simulator        \n"                         \
-" Build Date: " __DATE__ " " __TIME__"                   \n"\
-" ID:" IDENTIFY "\n"  \
-" Author: " AUTHOR "\n"  \
-COPYRIGHT
-
+static const char SIMPLA_LOGO[] = "\n"
+		"\t        ____ ___ __  __ ____  _       \n"
+		"\t       / ___|_ _|  \\/  |  _ \\| | __ _ \n"
+		"\t       \\___ \\| || |\\/| | |_) | |/ _` |\n"
+		"\t        ___) | || |  | |  __/| | (_| |\n"
+		"\t       |____/___|_|  |_|_|   |_|\\__,_|\n"
+		"\n"
+		"\t Anything that can go wrong, will go wrong. \n"
+		"\t                           -- Murphy's law \n"
+		"\n"
+		" SimPla, Plasma Simulator  \n"
+		" " COPYRIGHT "\n"
+" Build Date: " __DATE__ " " __TIME__"                   \n"
+" ID:" IDENTIFY "\n"
+" Author: " AUTHOR "\n";
 std::string ShowLogo()
 {
 	return SIMPLA_LOGO;

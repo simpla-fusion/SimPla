@@ -65,8 +65,7 @@ template<typename ...> struct Particle;
  */
 template<typename Engine, typename TDomain>
 struct Particle<Engine, TDomain, _impl::IsProbeParticle> : public PhysicalObject,
-		public Engine,
-		std::vector<typename Engine::Point_s>
+		public Engine
 {
 	typedef PhysicalObject base_type;
 
@@ -88,23 +87,17 @@ struct Particle<Engine, TDomain, _impl::IsProbeParticle> : public PhysicalObject
 	// Destroy
 	~Particle();
 
-	Properties const & properties(std::string const & name = "") const
-	{
-		return engine_type::properties(name);
-	}
+	using engine_type::properties;
 
-	Properties & properties(std::string const & name = "")
-	{
-		return engine_type::properties(name);
-	}
-
-	template<typename ...Args>
-	auto insert(Args && ... args)
-	DECL_RET_TYPE((container_type::insert(std::forward<Args>(args)...)))
-
-	template<typename ...Args>
-	auto emplace(Args && ... args)
-	DECL_RET_TYPE((container_type::insert(std::forward<Args>(args)...)))
+//	Properties const & properties(std::string const & name = "") const
+//	{
+//		return engine_type::properties(name);
+//	}
+//
+//	Properties & properties(std::string const & name = "")
+//	{
+//		return engine_type::properties(name);
+//	}
 
 	template<typename TDict, typename ...Others>
 	void load(TDict const & dict, Others && ...others);
@@ -119,15 +112,18 @@ struct Particle<Engine, TDomain, _impl::IsProbeParticle> : public PhysicalObject
 	}
 
 	template<typename ...Args>
-	void next_timestep(Real dt, Args && ...args);
+	void next_timestep(Args && ...args);
 
 	template<typename ...Args>
-	void next_n_timesteps(Real dt, size_t num_of_steps, Args && ...args);
+	void next_n_timesteps(size_t num_of_steps, Real t0, Real dt,
+			Args && ...args);
+
+	template<typename TFun, typename ...Args>
+	void foreach(TFun const & fun, Args && ...args);
 
 	std::ostream& print(std::ostream & os) const
 	{
 		engine_type::print(os);
-//		base_type::print(os);
 		return os;
 	}
 
@@ -135,56 +131,46 @@ struct Particle<Engine, TDomain, _impl::IsProbeParticle> : public PhysicalObject
 
 	DataSet dataset() const;
 
-	Real time() const
-	{
-		return timer_;
-	}
-	void time(Real t)
-	{
-		timer_ = t;
-	}
 private:
 
-	Real timer_ = 0.0;
+	std::shared_ptr<Point_s> data_;
 
-	size_t memory_length_ = 0;
+	size_t step_counter_ = 0;
+	size_t cache_depth_ = 0;
 
-	size_t cache_length_ = 0;
+	size_t number_of_particles_ = 0;
 
-	CHECK_VALUE(is_markov_chain,true);
+	CHECK_MEMBER_VALUE(memory_length,0);
 
-	CHECK_VALUE(memory_length,(check_is_markov_chain<
-					engine_type>::value?0:1));
+	static constexpr size_t memory_length = check_member_value_memory_length<engine_type>::value;
 
-	static constexpr size_t min_memory_length = check_memory_length<engine_type>::value;
-
-	static constexpr bool is_markov_chain = min_memory_length==0;
+	static constexpr bool is_markov_chain = (check_member_value_memory_length<engine_type>::value==0);
 
 	HAS_MEMBER_FUNCTION(next_timestep);
-public:
 
-	template< typename ...Args>
-	inline auto next_timestep_ ( Point_s *p,Real dt,Real time,Args && ... args)const
-	->typename std::enable_if<has_member_function_next_timestep<Engine, Point_s *,Real, Real, Args...>::value,void>::type
+	template<typename TPIterator ,typename ...Args>
+	inline auto next_timestep_selector_(TPIterator p, Real time, Args && ... args)const
+	->typename std::enable_if<
+	has_member_function_next_timestep<Engine,TPIterator, Real, Args...>::value,void>::type
 	{
-		engine_type::next_timestep(p, dt, time, std::forward<Args>(args)...);
+		engine_type::next_timestep(p, time, std::forward<Args>(args)...);
 	}
 
-	template< typename ...Args>
-	inline auto next_timestep_( Point_s *p,Real dt,Real time, Args && ...args)const
+	template< typename TPIterator ,typename ...Args>
+	inline auto next_timestep_selector_( TPIterator p, Real time, Args && ...args)const
 	->typename std::enable_if<
-	( !has_member_function_next_timestep<Engine, Point_s *,Real, Real, Args...>::value) &&
-	( has_member_function_next_timestep<Engine, Point_s *,Real, Args...>::value)
+	( !has_member_function_next_timestep<Engine,TPIterator, Real, Args...>::value) &&
+	( has_member_function_next_timestep<Engine, TPIterator, Args...>::value)
 	,void>::type
 	{
-		engine_type::next_timestep(p, dt, std::forward<Args>(args)...);
+		engine_type::next_timestep(p, std::forward<Args>(args)...);
 	}
 
-	template< typename ...Args>
-	inline auto next_timestep_( Point_s *p,Real dt,Real time, Args && ...args)const
+	template<typename TPIterator , typename ...Args>
+	inline auto next_timestep_selector_( TPIterator p,Real dt,Real time, Args && ...args)const
 	->typename std::enable_if<
-	( !has_member_function_next_timestep<Engine, Point_s *,Real, Real, Args...>::value) &&
-	( !has_member_function_next_timestep<Engine, Point_s *,Real, Args...>::value)
+	( !has_member_function_next_timestep<Engine, TPIterator,Real, Real, Args...>::value) &&
+	( !has_member_function_next_timestep<Engine, TPIterator,Real, Args...>::value)
 	,void>::type
 	{
 //#error UNSPORTED next_timestep
@@ -236,17 +222,23 @@ bool Particle<Engine, TDomain, _impl::IsProbeParticle>::update()
 template<typename Engine, typename TDomain>
 DataSet Particle<Engine, TDomain, _impl::IsProbeParticle>::dataset() const
 {
-	size_t dims[2] = { container_type::size(), memory_length_ };
+	size_t dims[2] = { number_of_particles_, cache_depth_ };
 
 	return std::move(
 			make_dataset(container_type::data(), 1, dims, properties()));
 }
 
 template<typename Engine, typename TDomain>
-template<typename ... Args>
-void Particle<Engine, TDomain, _impl::IsProbeParticle>::next_timestep(Real dt,
+template<typename TFun, typename ... Args>
+void Particle<Engine, TDomain, _impl::IsProbeParticle>::foreach(TFun const& fun,
 		Args && ...args)
 {
+	for (auto & item : *this)
+	{
+		auto p = &item;
+
+		fun(&item, std::forward<Args>(args)...);
+	}
 
 //	parallel_foreach(make_seq_range(0UL, num_of_points_),
 //
@@ -255,13 +247,6 @@ void Particle<Engine, TDomain, _impl::IsProbeParticle>::next_timestep(Real dt,
 //		Point_s * p = data_.get() + n;
 //		next_timestep_(function_selector, p ,dt, std::forward<Args>(args)...);
 //	});
-
-	for (auto & p : *this)
-	{
-		next_timestep_(&p, dt, timer_, std::forward<Args>(args)...);
-	}
-
-	timer_ += dt;
 
 //	if (cache_length_ == 0)
 //	{
@@ -358,23 +343,34 @@ void Particle<Engine, TDomain, _impl::IsProbeParticle>::next_timestep(Real dt,
 
 template<typename Engine, typename TDomain>
 template<typename ... Args>
-void Particle<Engine, TDomain, _impl::IsProbeParticle>::next_n_timesteps(
-		Real dt, size_t num_of_steps, Args && ...args)
+void Particle<Engine, TDomain, _impl::IsProbeParticle>::next_timestep(
+		Args && ...args)
 {
-	auto function_selector =
-			std::integral_constant<bool,
-					has_member_function_next_timestep<Engine, Real, Real,
-							Args...>::value>();
-
-	for (int n = 0; n < num_of_steps; ++n)
+	foreach([&](Point_s * p)
 	{
-		for (auto & p : *this)
+		engine_type::next_timestep(p,std::forward<Args>(args)...);
+	});
+
+	++step_counter_;
+}
+
+template<typename Engine, typename TDomain>
+template<typename ... Args>
+void Particle<Engine, TDomain, _impl::IsProbeParticle>::next_n_timesteps(
+		size_t num_of_steps, Real t0, Real dt, Args && ...args)
+{
+	foreach([&](Point_s * p)
+	{
+		for (int n = 0; n < num_of_steps; ++n)
 		{
-			next_timestep_(&p, dt, std::forward<Args>(args)...);
+			next_timestep_selector_(p,t0,dt,std::forward<Args>(args)...);
+			++p;
+			t0+=dt;
 		}
 
-		timer_ += dt;
-	}
+	});
+
+	step_counter_ += num_of_steps;
 }
 
 template<typename Engine>
