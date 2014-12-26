@@ -368,6 +368,7 @@ void load(TDict const & dict,Others && ...)                  \
 void update_properties()                                     \
 {                                                            \
 	SP_PARTICLE_UPDATE_PROP(properties,__VA_ARGS__)          \
+	properties.update();                                     \
 }                                                            \
 template<typename OS> OS& print(OS &os)const                 \
 {  properties.print(os);		return os;	}

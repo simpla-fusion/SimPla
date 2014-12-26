@@ -24,11 +24,12 @@ private:
 
 	typedef Properties this_type;
 
-	typedef Any value_type;
 	typedef std::string key_type;
 	typedef std::map<key_type, this_type> map_type;
 
 	static const Properties fail_safe_;
+
+	bool is_changed_ = false;
 public:
 	Properties()
 	{
@@ -45,17 +46,26 @@ public:
 	template<typename T>
 	this_type & operator=(T const &v)
 	{
-		value_type(v).swap(*this);
+		Any(v).swap(*this);
 		return *this;
 	}
 
 	inline bool empty() const // STL style
 	{
-		return value_type::empty() && map_type::empty();
+		return Any::empty() && map_type::empty();
 	}
 	inline bool IsNull() const
 	{
 		return empty();
+	}
+	inline bool is_changed() const
+	{
+		return is_changed_;
+	}
+
+	void update()
+	{
+		is_changed_ = false;
 	}
 	operator bool() const
 	{
@@ -64,7 +74,7 @@ public:
 
 	Properties & get(std::string const & key)
 	{
-
+		is_changed_ = true;
 		if (key == "")
 		{
 			return *this;
@@ -88,26 +98,26 @@ public:
 		}
 	}
 
-	template<typename T>
-	auto as()
-			DECL_RET_TYPE((value_type::template as<typename array_to_ntuple_convert<T>::type>()))
-
-	template<typename T>
-	auto as() const
-			DECL_RET_TYPE((value_type::template as<typename array_to_ntuple_convert<T>::type>()))
-
-	template<typename T>
-	typename array_to_ntuple_convert<T>::type as(T const & default_v) const
-	{
-		typename array_to_ntuple_convert<T>::type res = default_v;
-		if (!value_type::empty())
-		{
-			res = value_type::template as<
-					typename array_to_ntuple_convert<T>::type>();
-		}
-
-		return std::move(res);
-	}
+//	template<typename T>
+//	auto as()
+//			DECL_RET_TYPE((value_type::template as<typename array_to_ntuple_convert<T>::type>()))
+//
+//	template<typename T>
+//	auto as() const
+//			DECL_RET_TYPE((value_type::template as<typename array_to_ntuple_convert<T>::type>()))
+//
+//	template<typename T>
+//	typename array_to_ntuple_convert<T>::type as(T const & default_v) const
+//	{
+//		typename array_to_ntuple_convert<T>::type res = default_v;
+//		if (!value_type::empty())
+//		{
+//			res = value_type::template as<
+//					typename array_to_ntuple_convert<T>::type>();
+//		}
+//
+//		return std::move(res);
+//	}
 
 	template<typename T>
 	typename array_to_ntuple_convert<T>::type get(std::string const & key,
@@ -122,6 +132,22 @@ public:
 			res = it->second.template as<T>();
 		}
 		return std::move(res);
+	}
+
+	template<typename T>
+	bool get(std::string const & key, T * v) const
+	{
+		bool is_found = false;
+
+		auto it = map_type::find(key);
+
+		if (it != map_type::end() && it->second.is_same<T>())
+		{
+			*v = it->second.template as<T>();
+
+			is_found = true;
+		}
+		return is_found;
 	}
 
 	template<typename T>
@@ -152,6 +178,15 @@ public:
 		return get(key);
 	}
 
+	Properties const & operator()() const
+	{
+		return *this;
+	}
+	Properties & operator()()
+	{
+		return *this;
+	}
+
 	inline Properties const& operator[](key_type const & key) const
 	{
 		return get(key);
@@ -168,7 +203,7 @@ public:
 		{
 
 			os << item.first << " =  ";
-			item.second.value_type::print(os);
+			item.second.Any::print(os);
 			os << " , ";
 			if (item.second.size() > 0)
 			{

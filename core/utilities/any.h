@@ -81,6 +81,18 @@ struct Any
 	}
 
 	template<class U>
+	bool as(U* v) const
+	{
+		bool is_found = false;
+		if (is_same<U>())
+		{
+			*v = dynamic_cast<Derived<U>*>(ptr_.get())->m_value;
+			is_found = true;
+		}
+		return is_found;
+	}
+
+	template<class U>
 	typename array_to_ntuple_convert<U>::type& as()
 	{
 		typedef typename array_to_ntuple_convert<U>::type U2;

@@ -67,7 +67,7 @@ USE_CASE(demo_probe_particle)
 //	ion->pressure = nTuple<double, 3, 3>(
 //	{ 1, 2, 3, 4, 5, 6, 7, 8, 9 });
 
-	ion->resize(20);
+	ion->buffer.resize(20);
 	ion->update();
 
 	MESSAGE << endl;

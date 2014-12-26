@@ -148,6 +148,10 @@ void DataSpace::decompose(int num_procs, size_t const * gw)
 
 #endif
 }
+void DataSpace::compose(size_t flag)
+{
+
+}
 
 bool DataSpace::is_valid() const
 {

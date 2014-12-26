@@ -84,6 +84,20 @@ DataSet make_dataset(T * p, int rank, size_t const * dims,
 
 	return std::move(res);
 }
+
+template<typename T>
+DataSet make_dataset(std::shared_ptr<T> p, int rank, size_t const * dims,
+		Properties const & prop = Properties())
+{
+
+	DataSet res;
+	res.data = p;
+	res.datatype = make_datatype<T>();
+	res.dataspace = make_dataspace(rank, dims);
+	res.attribute = prop;
+
+	return std::move(res);
+}
 }  // namespace simpla
 
 #endif /* CORE_DATA_STRUCTURE_DATA_SET_H_ */

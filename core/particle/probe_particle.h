@@ -48,12 +48,9 @@ template<typename ...> struct Particle;
  *
  *    default: m0=m1=0
  *
- */
-
-/***
  *  @brief Particle
  *
- *  Require:
+ *  Requirement:
  *    engine_type::next_timestep(Point_s * p, others...);
  *
  *  - if  engine_type::memory_length  is not defined
@@ -67,37 +64,25 @@ template<typename Engine, typename TDomain>
 struct Particle<Engine, TDomain, _impl::IsProbeParticle> : public PhysicalObject,
 		public Engine
 {
-	typedef PhysicalObject base_type;
 
+	//! @defgroup Beginner - Basic usage
+	//! @{
 	typedef TDomain domain_type;
 
 	typedef Engine engine_type;
-
-	typedef std::vector<typename Engine::Point_s> container_type;
 
 	typedef Particle<engine_type, domain_type, _impl::IsProbeParticle> this_type;
 
 	typedef typename engine_type::Point_s Point_s;
 
-	//***************************************************************************************************
-	// Constructor
+	//! Constructor
 	template<typename ...Others>
-	Particle(Others && ...);	// Constructor
+	Particle(Others && ...);
 
-	// Destroy
+	//! Destroy
 	~Particle();
 
 	using engine_type::properties;
-
-//	Properties const & properties(std::string const & name = "") const
-//	{
-//		return engine_type::properties(name);
-//	}
-//
-//	Properties & properties(std::string const & name = "")
-//	{
-//		return engine_type::properties(name);
-//	}
 
 	template<typename TDict, typename ...Others>
 	void load(TDict const & dict, Others && ...others);
@@ -118,27 +103,66 @@ struct Particle<Engine, TDomain, _impl::IsProbeParticle> : public PhysicalObject
 	void next_n_timesteps(size_t num_of_steps, Real t0, Real dt,
 			Args && ...args);
 
-	template<typename TFun, typename ...Args>
-	void foreach(TFun const & fun, Args && ...args);
-
 	std::ostream& print(std::ostream & os) const
 	{
 		engine_type::print(os);
 		return os;
 	}
 
+	template<typename ...Args>
+	void push_back(Args && ...args)
+	{
+		buffer.push_back(std::forward<Args>(args)...);
+	}
+
+	template<typename ...Args>
+	void emplac_back(Args && ...args)
+	{
+		buffer.emplac_back(std::forward<Args>(args)...);
+	}
+
 	bool update();
+
+	void sync();
+
+	//! @}
+
+	//! @defgroup Intermediate
+	//! @{
 
 	DataSet dataset() const;
 
+	template<typename TBuffer>
+	void flush_buffer(size_t number, TBuffer const & ext_buffer);
+
+	//! @}
+
+	//! @defgroup Advanced
+	//! @{
+
+	bool is_changed() const
+	{
+		return engine_type::properties.is_changed() || is_changed_;
+	}
+
+	void inc_step_counter(size_t num_of_steps);
+
+	template<typename TFun>
+	void foreach(TFun const & fun);
+
+	std::vector<Point_s> buffer;
+	std::shared_ptr<Point_s> data;
+
+	//! @}
 private:
 
-	std::shared_ptr<Point_s> data_;
+	bool is_changed_ = false;
 
 	size_t step_counter_ = 0;
+
 	size_t cache_depth_ = 0;
 
-	size_t number_of_particles_ = 0;
+	size_t number_of_points_ = 0;
 
 	CHECK_MEMBER_VALUE(memory_length,0);
 
@@ -173,8 +197,6 @@ private:
 	( !has_member_function_next_timestep<Engine, TPIterator,Real, Args...>::value)
 	,void>::type
 	{
-//#error UNSPORTED next_timestep
-//#warning UNSPORTED next_timestep
 		RUNTIME_ERROR("Wrong Way");
 	}
 
@@ -200,8 +222,6 @@ void Particle<Engine, TDomain, _impl::IsProbeParticle>::load(TDict const & dict,
 	if (dict["URL"])
 	{
 		UNIMPLEMENTED2(" read particle from file");
-
-		// TODO read particle from file
 	}
 	else
 	{
@@ -209,135 +229,75 @@ void Particle<Engine, TDomain, _impl::IsProbeParticle>::load(TDict const & dict,
 	}
 
 }
+template<typename Engine, typename TDomain>
+template<typename TBuffer>
+void Particle<Engine, TDomain, _impl::IsProbeParticle>::flush_buffer(size_t num,
+		TBuffer const & ext_buffer)
+{
+	engine_type::properties("CacheLength").as(&cache_depth_);
 
+	number_of_points_ = num / (memory_length + 1);
+
+	data = sp_make_shared_array<Point_s>(number_of_points_ * cache_depth_);
+
+	//  move data from buffer_ to data_
+	parallel_foreach(make_seq_range(0UL, number_of_points_),
+
+	[&](size_t s)
+	{
+		Point_s * p=data.get();
+
+		for (int i = 0; i <= memory_length; ++i)
+		{
+			p[s*(cache_depth_+1)+i]=ext_buffer[s*memory_length+i];
+		}
+
+	});
+
+}
 template<typename Engine, typename TDomain>
 bool Particle<Engine, TDomain, _impl::IsProbeParticle>::update()
 {
+	if (!is_changed())
+	{
+		return true;
+	}
+
 	engine_type::update_properties();
+
 	engine_type::update();
 
+	flush_buffer(buffer.size(), buffer);
+
+	buffer.clear();
+
+	is_changed_ = false;
+
 	return true;
+
+}
+template<typename Engine, typename TDomain>
+void Particle<Engine, TDomain, _impl::IsProbeParticle>::sync()
+{
 }
 
 template<typename Engine, typename TDomain>
 DataSet Particle<Engine, TDomain, _impl::IsProbeParticle>::dataset() const
 {
-	size_t dims[2] = { number_of_particles_, cache_depth_ };
+	size_t dims[2] = { number_of_points_, cache_depth_ };
 
-	return std::move(
-			make_dataset(container_type::data(), 1, dims, properties()));
+	return std::move(make_dataset(data, 1, dims, properties()));
 }
 
 template<typename Engine, typename TDomain>
-template<typename TFun, typename ... Args>
-void Particle<Engine, TDomain, _impl::IsProbeParticle>::foreach(TFun const& fun,
-		Args && ...args)
+template<typename TFun>
+void Particle<Engine, TDomain, _impl::IsProbeParticle>::foreach(TFun const& fun)
 {
-	for (auto & item : *this)
+
+	parallel_foreach(make_seq_range(0UL, number_of_points_), [&](size_t s)
 	{
-		auto p = &item;
-
-		fun(&item, std::forward<Args>(args)...);
-	}
-
-//	parallel_foreach(make_seq_range(0UL, num_of_points_),
-//
-//	[&](size_t n)
-//	{
-//		Point_s * p = data_.get() + n;
-//		next_timestep_(function_selector, p ,dt, std::forward<Args>(args)...);
-//	});
-
-//	if (cache_length_ == 0)
-//	{
-//
-//		parallel_foreach(make_seq_range(0UL, num_of_points_),
-//
-//		[&](size_t n)
-//		{
-//			Point_s * p = data_.get() + n*cache_length_;
-//
-//			engine_type::next_timestep(p , std::forward<Args>(args)...);
-//
-//		}
-//
-//		);
-//
-//	}
-//	else if (memory_length_ + num_of_steps > cache_length_)
-//	{
-//		size_t a = cache_length_ - memory_length_;
-//		size_t b = num_of_steps - a;
-//
-//		next_n_timesteps(a, std::forward<Args>(args)...);
-//	}
-//	else
-//	{
-//
-//		if (is_markov_chain)
-//		{
-//
-//			parallel_foreach(make_seq_range(0UL, num_of_points_),
-//
-//			[&](size_t n)
-//			{
-//
-//				Point_s * p = data_.get() + n*cache_length_+memory_length_;
-//
-//				for (size_t s = 0; s < num_of_steps; ++s)
-//				{
-//					engine_type::next_timestep(p, std::forward<Args>(args)...);
-//					*(p +1)=*p;
-//					++p;
-//				}
-//
-//			}
-//
-//			);
-//		}
-//		else
-//		{
-//
-//			parallel_foreach(make_seq_range(0UL, num_of_points_),
-//
-//			[&](size_t n)
-//			{
-//
-//				Point_s * p = data_.get() + n*cache_length_+memory_length_;
-//
-//				for (size_t s = 0; s < num_of_steps; ++s)
-//				{
-//					engine_type::next_timestep(p, std::forward<Args>(args)...);
-//					++p;
-//				}
-//
-//			}
-//
-//			);
-//		}
-//
-//		memory_length_ += num_of_steps;
-//
-//		if (memory_length_ == cache_length_)
-//		{
-//
-//			parallel_foreach(make_seq_range(0UL, num_of_points_),
-//
-//			[&](size_t n)
-//			{
-//
-//				Point_s * p0 = (data_.get() + n*cache_length_);
-//
-//				for (size_t s = 0; s < min_memory_length; ++s)
-//				{
-//					*(p0+s)=*(p0+cache_length_-min_memory_length+s);
-//				}
-//
-//			}
-//
-//			);
-//		}
-//	}
+		fun(data.get() + s*(cache_depth_+1));
+	});
 
 }
 
@@ -346,12 +306,17 @@ template<typename ... Args>
 void Particle<Engine, TDomain, _impl::IsProbeParticle>::next_timestep(
 		Args && ...args)
 {
-	foreach([&](Point_s * p)
+
+	parallel_foreach(make_seq_range(0UL, number_of_points_),
+
+	[&](size_t s)
 	{
-		engine_type::next_timestep(p,std::forward<Args>(args)...);
+		engine_type::next_timestep(data.get()
+				+ s*(cache_depth_+1)+step_counter_
+				,std::forward<Args>(args)...);
 	});
 
-	++step_counter_;
+	inc_step_counter(1);
 }
 
 template<typename Engine, typename TDomain>
@@ -359,20 +324,63 @@ template<typename ... Args>
 void Particle<Engine, TDomain, _impl::IsProbeParticle>::next_n_timesteps(
 		size_t num_of_steps, Real t0, Real dt, Args && ...args)
 {
-	foreach([&](Point_s * p)
+
+	if ((num_of_steps + step_counter_) > cache_depth_)
 	{
-		for (int n = 0; n < num_of_steps; ++n)
+		size_t n0 = cache_depth_ - step_counter_;
+		size_t n1 = num_of_steps + step_counter_ - cache_depth_;
+
+		Real t1 = t0 + n0 * dt;
+
+		next_n_timesteps(n0, t0, dt, std::forward<Args>(args)...);
+
+		next_n_timesteps(n1, t1, dt, std::forward<Args>(args)...);
+
+	}
+	else
+	{
+
+		parallel_foreach(make_seq_range(0UL, number_of_points_),
+
+		[&](size_t s)
 		{
-			next_timestep_selector_(p,t0,dt,std::forward<Args>(args)...);
+			Point_s * p=data.get() + s*(cache_depth_+1)+step_counter_;
+
+			for (int i = 0; i < num_of_steps; ++i)
+			{
+				next_timestep_selector_(p
+						,t0,dt,std::forward<Args>(args)...);
+			}
+
 			++p;
 			t0+=dt;
-		}
+		});
 
-	});
+		inc_step_counter(num_of_steps);
+	}
 
-	step_counter_ += num_of_steps;
 }
+template<typename Engine, typename TDomain>
+void Particle<Engine, TDomain, _impl::IsProbeParticle>::inc_step_counter(
+		size_t num_of_steps)
+{
+	step_counter_ += num_of_steps;
 
+	if (step_counter_ >= cache_depth_)
+	{
+		if (cache_depth_ > 0)
+		{
+			foreach([&](Point_s * p)
+			{
+				for (int i = 0; i <= memory_length; ++i)
+				{
+					p[i]=p[cache_depth_-memory_length+i];
+				}
+			});
+		}
+		step_counter_ = memory_length;
+	}
+}
 template<typename Engine>
 using ProbeParticle=Particle< Engine, std::nullptr_t, _impl::IsProbeParticle>;
 

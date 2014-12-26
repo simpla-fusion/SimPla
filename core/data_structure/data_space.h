@@ -69,6 +69,8 @@ public:
 
 	void decompose(int num_procs = 0, size_t const * gw = nullptr);
 
+	void compose(size_t flag = 0UL);
+
 	bool is_distributed() const;
 
 	DataSpace const & local_space() const;

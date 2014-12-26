@@ -60,13 +60,12 @@ int main(int argc, char **argv)
 		SHOW_OPTIONS("-g,--generator", "Generates  demo configure file");
 	}
 
-	{
-		MESSAGE << "--------- START --------- " << endl;
+	MESSAGE << "--------- START --------- " << endl;
 
-		RunAllUseCase(argc, argv);
+	RunAllUseCase(argc, argv);
 
-		MESSAGE << "--------- DONE --------- " << endl;
-	}
+	MESSAGE << "--------- DONE --------- " << endl;
+
 	close_io();
 	close_parallel();
 	close_logger();
