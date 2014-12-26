@@ -20,7 +20,7 @@ namespace simpla
 /**
  * @defgroup primary_data_type Primary Data Type
  * @{
- *   @defgroup ntuple
+ *   @defgroup ntuple n-tuple
  * @}
  *
  * @ingroup ntuple

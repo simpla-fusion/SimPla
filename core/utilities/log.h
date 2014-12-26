@@ -129,7 +129,6 @@ public:
 	 * note how it matches the `LoggerStreamManipulator`
 	 * function signature
 	 *
-	 * \code{
 	 * 	static this_type& endl(this_type& stream)
 	 * {
 	 * 	// print a new line
@@ -140,7 +139,6 @@ public:
 	 * 	stream << "Called Logger::endl!" << std::endl;
 	 *
 	 * 	return stream;
-	 * }
 	 * }
 	 *
 	 *

@@ -1,5 +1,5 @@
 /**
- * \file kinetic_particle.h
+ *  kinetic_particle.h
  *
  * \date    2014年9月1日  下午2:25:26 
  * \author salmon
@@ -16,27 +16,19 @@
 #include "../utilities/log.h"
 #include "../utilities/primitives.h"
 #include "../data_structure/container_pool.h"
-#include "particle.h"
 namespace simpla
 {
-namespace _impl
-{
-
-struct IsKineticParticle;
-
-}  // namespace _impl
-template<typename ...> struct Particle;
 
 /**
- *  @brief Particle<IsUntracable> is a container of untracable particle  .
+ *  @ingroup Particle
  *
- *  -  Particle<IsUntracable> can be sorted;
- *  -  Particle<IsUntracable> is an unordered container;
+ *  @brief KineticParticle is a container of untracable particle  .
+ *  -  KineticParticle is a container of untracable particle  .
+ *  -  KineticParticle can be sorted;
+ *  -  KineticParticle is an unordered container;
  */
-
 template<typename TDomain, typename Engine>
-struct Particle<TDomain, Engine, _impl::IsKineticParticle> : public Engine,
-		public PhysicalObject
+struct KineticParticle: public Engine, public PhysicalObject
 {
 
 	typedef PhysicalObject base_type;
@@ -45,7 +37,7 @@ struct Particle<TDomain, Engine, _impl::IsKineticParticle> : public Engine,
 
 	typedef Engine engine_type;
 
-	typedef Particle<domain_type, engine_type, _impl::IsKineticParticle> this_type;
+	typedef KineticParticle<domain_type, engine_type> this_type;
 
 	typedef typename engine_type::Point_s Point_s;
 
@@ -54,10 +46,10 @@ struct Particle<TDomain, Engine, _impl::IsKineticParticle> : public Engine,
 	//***************************************************************************************************
 	// Constructor
 	template<typename ...Others>
-	Particle(domain_type const &, Others && ...);	// Constructor
+	KineticParticle(domain_type const &, Others && ...);	// Constructor
 
 	// Destroy
-	~Particle();
+	~KineticParticle();
 
 	template<typename TDict, typename ...Others>
 	void load(TDict const & dict, Others && ...others);
@@ -114,30 +106,30 @@ private:
 
 };
 
-template<typename TM, typename Engine>
+template<typename TDomain, typename Engine>
 template<typename ... Others>
-Particle<TM, Engine, _impl::IsKineticParticle>::Particle(
-		domain_type const & pdomain, Others && ...others) :
+KineticParticle<TDomain, Engine>::KineticParticle(domain_type const & pdomain,
+		Others && ...others) :
 		domain_(pdomain)
 {
 
 }
 
-template<typename TM, typename Engine>
-Particle<TM, Engine, _impl::IsKineticParticle>::~Particle()
+template<typename TDomain, typename Engine>
+KineticParticle<TDomain, Engine>::~KineticParticle()
 {
 }
-template<typename TM, typename Engine>
+template<typename TDomain, typename Engine>
 template<typename TDict, typename ...Others>
-void Particle<TM, Engine, _impl::IsKineticParticle>::load(TDict const & dict,
+void KineticParticle<TDomain, Engine>::load(TDict const & dict,
 		Others && ...others)
 {
 	engine_type::load(dict, std::forward<Others>(others)...);
 //	data_.load(dict, std::forward<Others>(others)...);
 }
 
-template<typename TM, typename Engine>
-bool Particle<TM, Engine, _impl::IsKineticParticle>::update()
+template<typename TDomain, typename Engine>
+bool KineticParticle<TDomain, Engine>::update()
 {
 
 	hash_fun_ = [& ](Point_s const & p)->mid_type
@@ -149,22 +141,22 @@ bool Particle<TM, Engine, _impl::IsKineticParticle>::update()
 	return true;
 }
 
-template<typename TM, typename Engine>
-void Particle<TM, Engine, _impl::IsKineticParticle>::sync()
+template<typename TDomain, typename Engine>
+void KineticParticle<TDomain, Engine>::sync()
 {
 //	data_.sort(hash_fun_);
 //	update_ghost(*this);
 }
 
-template<typename TM, typename Engine>
-DataSet Particle<TM, Engine, _impl::IsKineticParticle>::dataset() const
+template<typename TDomain, typename Engine>
+DataSet KineticParticle<TDomain, Engine>::dataset() const
 {
 	return DataSet();
 }
-template<typename TM, typename Engine>
+template<typename TDomain, typename Engine>
 template<typename ...Args>
-void Particle<TM, Engine, _impl::IsKineticParticle>::next_n_timesteps(
-		size_t num_of_steps, Args && ...args)
+void KineticParticle<TDomain, Engine>::next_n_timesteps(size_t num_of_steps,
+		Args && ...args)
 {
 
 //	parallel_for(domain_,
@@ -184,18 +176,16 @@ void Particle<TM, Engine, _impl::IsKineticParticle>::next_n_timesteps(
 
 }
 
-template<typename TDomain, typename Engine>
-using KineticParticle=Particle<TDomain, Engine, _impl::IsKineticParticle>;
-
 //template<typename Engine, typename TDomain, typename ...Others>
 //auto make_kinetic_particle(TDomain const & d, Others && ... others)
 //DECL_RET_TYPE((std::make_shared<KineticParticle<TDomain,Engine >>(
 //						d,std::forward<Others>(others)...)))
 
-template<typename Engine, typename TM, typename ...Others>
-auto make_kinetic_particle(std::shared_ptr<TM> d, Others && ... others)
-DECL_RET_TYPE((std::make_shared<KineticParticle<Domain<TM,VERTEX>,Engine >>(
-						Domain<TM,VERTEX>(d),std::forward<Others>(others)...)))
+template<typename Engine, typename TDomain, typename ...Others>
+auto make_kinetic_particle(std::shared_ptr<TDomain> d,
+		Others && ... others)
+				DECL_RET_TYPE((std::make_shared<KineticParticle<Domain<TDomain,VERTEX>,Engine >>(
+										Domain<TDomain,VERTEX>(d),std::forward<Others>(others)...)))
 
 }  // namespace simpla
 

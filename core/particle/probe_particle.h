@@ -18,17 +18,15 @@
 #include "../utilities/sp_iterator_sequence.h"
 #include "../data_structure/data_set.h"
 #include "../parallel/parallel.h"
-#include "particle.h"
+
 namespace simpla
 {
-namespace _impl
-{
-struct IsProbeParticle;
-}  // namespace _impl
 
-template<typename ...> struct Particle;
 /**
- *  @brief Particle<IsTracable> is a container of particle trajectory.
+ *
+ * @ingroup Particle
+ *
+ * @brief  ProbeParticle is a container of particle trajectory
  *
  *  It can cache the history of particle position.
  *
@@ -48,7 +46,6 @@ template<typename ...> struct Particle;
  *
  *    default: m0=m1=0
  *
- *  @brief Particle
  *
  *  Requirement:
  *    engine_type::next_timestep(Point_s * p, others...);
@@ -60,27 +57,25 @@ template<typename ...> struct Particle;
  *    p-1,p-2,... , p-m are valid and point to "Particles" at previous m steps
  *
  */
-template<typename Engine, typename TDomain>
-struct Particle<Engine, TDomain, _impl::IsProbeParticle> : public PhysicalObject,
-		public Engine
+template<typename Engine>
+struct ProbeParticle: public PhysicalObject, public Engine
 {
 
-	//! @defgroup Beginner - Basic usage
+	//! @defgroup Beginner  Basic usage
 	//! @{
-	typedef TDomain domain_type;
 
 	typedef Engine engine_type;
 
-	typedef Particle<engine_type, domain_type, _impl::IsProbeParticle> this_type;
+	typedef ProbeParticle<engine_type> this_type;
 
 	typedef typename engine_type::Point_s Point_s;
 
 	//! Constructor
 	template<typename ...Others>
-	Particle(Others && ...);
+	ProbeParticle(Others && ...);
 
 	//! Destroy
-	~Particle();
+	~ProbeParticle();
 
 	using engine_type::properties;
 
@@ -202,21 +197,20 @@ private:
 
 };
 
-template<typename Engine, typename TDomain>
+template<typename Engine>
 template<typename ... Others>
-Particle<Engine, TDomain, _impl::IsProbeParticle>::Particle(Others && ...others)
+ProbeParticle<Engine>::ProbeParticle(Others && ...others)
 {
 }
 
-template<typename Engine, typename TDomain>
-Particle<Engine, TDomain, _impl::IsProbeParticle>::~Particle()
+template<typename Engine>
+ProbeParticle<Engine>::~ProbeParticle()
 {
 }
 
-template<typename Engine, typename TDomain>
+template<typename Engine>
 template<typename TDict, typename ...Others>
-void Particle<Engine, TDomain, _impl::IsProbeParticle>::load(TDict const & dict,
-		Others && ...others)
+void ProbeParticle<Engine>::load(TDict const & dict, Others && ...others)
 {
 
 	if (dict["URL"])
@@ -229,10 +223,9 @@ void Particle<Engine, TDomain, _impl::IsProbeParticle>::load(TDict const & dict,
 	}
 
 }
-template<typename Engine, typename TDomain>
+template<typename Engine>
 template<typename TBuffer>
-void Particle<Engine, TDomain, _impl::IsProbeParticle>::flush_buffer(size_t num,
-		TBuffer const & ext_buffer)
+void ProbeParticle<Engine>::flush_buffer(size_t num, TBuffer const & ext_buffer)
 {
 	engine_type::properties("CacheLength").as(&cache_depth_);
 
@@ -255,8 +248,8 @@ void Particle<Engine, TDomain, _impl::IsProbeParticle>::flush_buffer(size_t num,
 	});
 
 }
-template<typename Engine, typename TDomain>
-bool Particle<Engine, TDomain, _impl::IsProbeParticle>::update()
+template<typename Engine>
+bool ProbeParticle<Engine>::update()
 {
 	if (!is_changed())
 	{
@@ -276,22 +269,22 @@ bool Particle<Engine, TDomain, _impl::IsProbeParticle>::update()
 	return true;
 
 }
-template<typename Engine, typename TDomain>
-void Particle<Engine, TDomain, _impl::IsProbeParticle>::sync()
+template<typename Engine>
+void ProbeParticle<Engine>::sync()
 {
 }
 
-template<typename Engine, typename TDomain>
-DataSet Particle<Engine, TDomain, _impl::IsProbeParticle>::dataset() const
+template<typename Engine>
+DataSet ProbeParticle<Engine>::dataset() const
 {
 	size_t dims[2] = { number_of_points_, cache_depth_ };
 
 	return std::move(make_dataset(data, 1, dims, properties()));
 }
 
-template<typename Engine, typename TDomain>
+template<typename Engine>
 template<typename TFun>
-void Particle<Engine, TDomain, _impl::IsProbeParticle>::foreach(TFun const& fun)
+void ProbeParticle<Engine>::foreach(TFun const& fun)
 {
 
 	parallel_foreach(make_seq_range(0UL, number_of_points_), [&](size_t s)
@@ -301,10 +294,9 @@ void Particle<Engine, TDomain, _impl::IsProbeParticle>::foreach(TFun const& fun)
 
 }
 
-template<typename Engine, typename TDomain>
+template<typename Engine>
 template<typename ... Args>
-void Particle<Engine, TDomain, _impl::IsProbeParticle>::next_timestep(
-		Args && ...args)
+void ProbeParticle<Engine>::next_timestep(Args && ...args)
 {
 
 	parallel_foreach(make_seq_range(0UL, number_of_points_),
@@ -319,10 +311,10 @@ void Particle<Engine, TDomain, _impl::IsProbeParticle>::next_timestep(
 	inc_step_counter(1);
 }
 
-template<typename Engine, typename TDomain>
+template<typename Engine>
 template<typename ... Args>
-void Particle<Engine, TDomain, _impl::IsProbeParticle>::next_n_timesteps(
-		size_t num_of_steps, Real t0, Real dt, Args && ...args)
+void ProbeParticle<Engine>::next_n_timesteps(size_t num_of_steps, Real t0,
+		Real dt, Args && ...args)
 {
 
 	if ((num_of_steps + step_counter_) > cache_depth_)
@@ -360,9 +352,8 @@ void Particle<Engine, TDomain, _impl::IsProbeParticle>::next_n_timesteps(
 	}
 
 }
-template<typename Engine, typename TDomain>
-void Particle<Engine, TDomain, _impl::IsProbeParticle>::inc_step_counter(
-		size_t num_of_steps)
+template<typename Engine>
+void ProbeParticle<Engine>::inc_step_counter(size_t num_of_steps)
 {
 	step_counter_ += num_of_steps;
 
@@ -381,8 +372,6 @@ void Particle<Engine, TDomain, _impl::IsProbeParticle>::inc_step_counter(
 		step_counter_ = memory_length;
 	}
 }
-template<typename Engine>
-using ProbeParticle=Particle< Engine, std::nullptr_t, _impl::IsProbeParticle>;
 
 template<typename Engine, typename ...Others>
 auto make_probe_particle(Others && ... others)
