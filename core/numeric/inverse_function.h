@@ -10,7 +10,7 @@
 #include <map>
 namespace simpla
 {
-
+/**@ingroup numeric*/
 template<typename TX, typename TY>
 std::map<TY, TX> Inverse(std::map<TX, TY> const & xy)
 {

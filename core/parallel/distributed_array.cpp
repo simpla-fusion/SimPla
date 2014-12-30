@@ -13,7 +13,8 @@
 #include <mpi.h>
 #include <memory>
 #include <vector>
-#include "../data_structure/data_set.h"
+
+#include "../data_interface/data_set.h"
 #include "../numeric/geometric_algorithm.h"
 #include "../utilities/utilities.h"
 

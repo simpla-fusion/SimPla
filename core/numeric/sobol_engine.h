@@ -11,7 +11,9 @@
 #include "utilities/log.h"
 namespace simpla
 {
-/**
+
+/** @ingroup numeric
+ *
  * \brief Quasi-Random Sequences
  *
  * \note  http://web.maths.unsw.edu.au/~fkuo/sobol/index.html

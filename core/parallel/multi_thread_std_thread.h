@@ -14,7 +14,7 @@
 #include <thread>
 #include <future>
 
-#include "../utilities/sp_range.h"
+#include "../containers/sp_range.h"
 
 namespace simpla
 {
@@ -57,7 +57,7 @@ void parallel_for(TRange && range, Func && fun)
 
 //
 ///**
-// *  \ingroup MULTICORE
+// *  @ingroup MULTICORE
 // *
 // * \brief Parallel for each
 // * @param r
@@ -79,7 +79,7 @@ void parallel_for_each(TRange && range, Func && fun)
 }
 
 /**
- *  \ingroup MULTICORE
+ *  @ingroup MULTICORE
  *
  * \brief Parallel do
  * @param fun

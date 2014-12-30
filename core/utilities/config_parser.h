@@ -16,6 +16,9 @@
 namespace simpla
 {
 
+/**
+ * @ingroup utilities
+ */
 struct ConfigParser: public LuaObject
 {
 	typedef LuaObject dict_type;

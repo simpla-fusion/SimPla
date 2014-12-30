@@ -1,4 +1,4 @@
-Manifold  {#concept_manifold}
+Manifold  {#manifold_concept}
 ===========================
 ## Summary
   \note In mathematics, a _manifold_ is a topological space that resembles Euclidean space near each point. A _differentiable manifold_ is a type of manifold that is locally similar enough to a linear space to allow one to do calculus. 
@@ -67,8 +67,3 @@ Manifold policy concept {#concept_manifold_policy}
 - \subpage concept_topology
 - \subpage concept_interpolator
 - \subpage concept_diff_scheme
-
-
-
-
-

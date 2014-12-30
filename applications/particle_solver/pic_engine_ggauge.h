@@ -23,7 +23,7 @@ namespace simpla
 {
 
 /**
- * \ingroup ParticleEngine
+ * @ingroup ParticleEngine
  * \brief GGauge engine
  */
 template<typename TM, std::size_t   NMATE, bool IMPLICIT = false, typename Interpolator = typename TM::interpolator_type>

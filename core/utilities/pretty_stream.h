@@ -25,7 +25,11 @@
 namespace simpla
 {
 
-//! \ingroup Utilities
+/**
+ * @ingroup utilities
+ * @addtogroup fancy_print Fancy print
+ * @{
+ */
 
 template<typename TV> inline TV const *
 printNdArray(std::ostream & os, TV const *v, size_t rank, size_t const* d,
@@ -268,6 +272,7 @@ operator<<(std::ostream& os, std::multimap<TX, TY, Others...> const& d)
 	return simpla::ContainerOutPut2(os, d.begin(), d.end());
 }
 
+/** @}*/
 }  // namespace std
 
 //namespace _impl

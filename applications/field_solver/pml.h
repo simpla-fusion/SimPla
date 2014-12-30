@@ -19,7 +19,7 @@ namespace simpla
 {
 
 /**
- *  \ingroup FieldSolver
+ *  @ingroup FieldSolver
  *  \brief absorb boundary condition, PML
  */
 template<typename TM>

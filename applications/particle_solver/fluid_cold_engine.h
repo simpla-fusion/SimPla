@@ -26,7 +26,7 @@ class ColdFluid;
 template<typename...> class Particle;
 
 /**
- * \ingroup ParticleEngine
+ * @ingroup ParticleEngine
  * \brief Cold Plasma fluid
  */
 template<typename TM>

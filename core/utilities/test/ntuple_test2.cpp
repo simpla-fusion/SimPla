@@ -6,8 +6,9 @@
  */
 
 #include <iostream>
+
+#include "../sp_integer_sequence.h"
 #include "ntuple.h"
-#include "sp_integer_sequence.h"
 using namespace simpla;
 
 int main(int argc, char **argv)

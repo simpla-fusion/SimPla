@@ -18,9 +18,17 @@ namespace simpla
 template<typename ...> class field_traits;
 
 /**
- * \ingroup Interpolator
+ * @ingroup manifold
  *
- * \brief basic linear interpolator
+ *
+ * @addtogroup interpolator
+ * @brief   mapping discrete points to continue space
+ * @see  @ref interpolator_concept
+ *
+ */
+/**
+ * @ingroup interpolator
+ * @brief basic linear interpolator
  */
 template<typename G>
 class InterpolatorLinear

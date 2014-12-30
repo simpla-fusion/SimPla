@@ -13,16 +13,16 @@
 #include <tuple>
 #include <type_traits>
 
+#include "../../containers/sp_range.h"
 #include "../../physics/constants.h"
 #include "../../physics/physical_constants.h"
 #include "../../utilities/utilities.h"
 
-#include "../../utilities/sp_range.h"
 
 namespace simpla
 {
 /**
- *  \ingroup Geometry
+ *  @ingroup geometry
  *
  *  \brief  Cartesian coordiantes (X Y Z)
  *
@@ -314,7 +314,8 @@ public:
 							coordinates_to_topology(x))))
 
 	/**
-	 * @bug: truncation error of coordinates transform larger than 1000 epsilon (1e4 epsilon for cylindrical coordiantes)
+	 * @bug: truncation error of coordinates transform larger than 1000
+	 *     epsilon (1e4 epsilon for cylindrical coordiantes)
 	 * @param args
 	 * @return
 	 */

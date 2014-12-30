@@ -8,25 +8,7 @@
 #ifndef PARTICLE_H_
 #define PARTICLE_H_
 
-#include "particle_engine.h"
-namespace simpla
-{
-
-/** \defgroup  Particle Particle
- *
- *  \brief Particle  particle concept
+/**
+ *  @addtogroup particle Particle
  */
-
-template<typename ...>struct Particle;
-
-template<typename ...T>
-std::ostream& operator<<(std::ostream & os, Particle<T...> const &p)
-{
-	p.print(os);
-	return os;
-}
-
-}
-// namespace simpla
-
 #endif /* PARTICLE_H_ */

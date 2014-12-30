@@ -19,7 +19,7 @@ namespace simpla
 {
 
 /**
- * \ingroup ParticleEngine
+ * @ingroup ParticleEngine
  * \brief \f$\delta f\f$ engine
  */
 

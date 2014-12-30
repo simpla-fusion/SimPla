@@ -11,7 +11,7 @@
 namespace simpla
 {
 /**
- * \ingroup Numeric
+ * @ingroup numeric
  * cholesky decomposition
  * @param a
  * @return

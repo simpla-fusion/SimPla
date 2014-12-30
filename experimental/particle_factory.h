@@ -10,7 +10,7 @@
 
 #include <string>
 
-#include "../utilities/factory.h"
+#include "../core/design_pattern/factory.h"
 #include "particle_base.h"
 
 namespace simpla

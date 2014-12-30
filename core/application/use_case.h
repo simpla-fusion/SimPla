@@ -24,6 +24,11 @@
 
 namespace simpla
 {
+/** @ingroup application
+ * @{
+ *
+ *  */
+
 class UseCase
 {
 	std::string case_info_;
@@ -83,6 +88,8 @@ inline void RunAllUseCase(int argc, char ** argv)
 }
 
 #define USE_CASE(_use_case_name) SP_APP(_use_case_name,usecase,UseCase)
+
+/** @} */
 
 }  // namespace simpla
 

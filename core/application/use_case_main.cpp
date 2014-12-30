@@ -9,13 +9,18 @@
 #include <string>
 
 #include "../io/io.h"
-#include "../simpla_defs.h"
 #include "../parallel/parallel.h"
+#include "../sp_config.h"
 #include "../utilities/log.h"
 #include "../utilities/parse_command_line.h"
 #include "use_case.h"
 #include "logo.h"
 
+/**
+ *  @ingroup application
+ *
+ *  main entry of user case.
+ */
 int main(int argc, char **argv)
 {
 	using namespace simpla;

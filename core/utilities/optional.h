@@ -10,6 +10,8 @@
 
 namespace simpla
 {
+
+/** @ingroup stl_alt*/
 template<typename T> class optional
 {
 	bool cond_;

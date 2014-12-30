@@ -10,6 +10,7 @@
 #define CORE_UTILITIES_NTUPLE_H_
 
 #include <stddef.h>
+
 #include "expression_template.h"
 #include "primitives.h"
 #include "sp_integer_sequence.h"
@@ -18,12 +19,10 @@
 namespace simpla
 {
 /**
- * @defgroup primary_data_type Primary Data Type
+ * @ingroup general_library
+ * @addtogroup ntuple n-tuple
  * @{
- *   @defgroup ntuple n-tuple
- * @}
  *
- * @ingroup ntuple
  * @brief nTuple :n-tuple
  *
  * Semantics:
@@ -592,6 +591,8 @@ DECL_RET_TYPE(( abs(l)))
 		{return (nTuple<Expression<_impl::_##_NAME_,nTuple<T,N...>, std::nullptr_t>>(r));}     \
 
 DEFINE_EXPRESSOPM_TEMPLATE_BASIC_ALGEBRA2(nTuple)
+
+/** @}*/
 }
 //namespace simpla
 

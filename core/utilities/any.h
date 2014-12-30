@@ -11,11 +11,15 @@
 #include <memory>
 #include <typeindex>
 #include <iostream>
+
+#include "../data_interface/data_type.h"
 #include "ntuple.h"
-#include "../data_structure/data_type.h"
 #include "log.h"
 namespace simpla
 {
+/**
+ *  @ingroup general_library
+ */
 /**
  *   change from http://www.cnblogs.com/qicosmos/p/3420095.html
  */

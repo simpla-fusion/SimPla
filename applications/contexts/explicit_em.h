@@ -44,7 +44,7 @@ namespace simpla
 {
 
 /**
- * \ingroup Application
+ * @ingroup Application
  *
  * \brief Electromagnetic solver
  */

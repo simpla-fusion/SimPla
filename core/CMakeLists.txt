@@ -5,7 +5,7 @@ ADD_SUBDIRECTORY( parallel )
 
 ADD_SUBDIRECTORY( io)
 
-ADD_SUBDIRECTORY( data_structure)
+ADD_SUBDIRECTORY( data_interface)
 
 ADD_SUBDIRECTORY( utilities  )
 
@@ -21,4 +21,4 @@ ADD_SUBDIRECTORY( model )
 
 ADD_SUBDIRECTORY( application )
 
-
+ADD_SUBDIRECTORY( design_pattern )

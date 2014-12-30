@@ -20,7 +20,12 @@ enum
 }
 ;
 /**
- * \ingroup Configure
+ * @ingroup utilities
+ *
+ * @addtogroup configuration Configuration Parser
+ * @{
+ */
+/**
  * \brief Command line parser
  *
  *
@@ -85,5 +90,6 @@ std::tuple<bool, std::string> find_option_from_cmd_line(int argc, char ** argv,
 
 #define SHOW_OPTIONS(_OPT_,_DESC_) MESSAGE <<"  "<<std::setw(25) <<std::left << _OPT_ << _DESC_<<std::endl;
 
+/**@}
 }  // namespace simpla
 #endif /* PARSE_COMMAND_LINE_H_ */

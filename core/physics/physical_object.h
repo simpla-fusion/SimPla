@@ -15,6 +15,8 @@ namespace simpla
 class DataSet;
 class Properties;
 
+
+/** @ingroup physics */
 struct PhysicalObject
 {
 	//! Default constructor

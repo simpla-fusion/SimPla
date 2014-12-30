@@ -17,6 +17,11 @@
 namespace simpla
 {
 
+/** @ingroup physics
+ *
+ * @{
+ **/
+
 class PhysicalConstants
 {
 public:
@@ -27,7 +32,8 @@ public:
 
 	~PhysicalConstants();
 
-	friend std::ostream & operator<<(std::ostream &os, PhysicalConstants const &self);
+	friend std::ostream & operator<<(std::ostream &os,
+			PhysicalConstants const &self);
 
 	template<typename TDict>
 	void load(TDict const & dict)
@@ -40,12 +46,12 @@ public:
 		{
 
 			SetBaseUnit(dict["Type"].template as<std::string>(), //
-			        dict["m"].template as<double>(1.0), //
-			        dict["s"].template as<double>(1.0), //
-			        dict["kg"].template as<double>(1.0), //
-			        dict["C"].template as<double>(1.0), //
-			        dict["K"].template as<double>(1.0), //
-			        dict["mol"].template as<double>(1.0));
+					dict["m"].template as<double>(1.0), //
+					dict["s"].template as<double>(1.0), //
+					dict["kg"].template as<double>(1.0), //
+					dict["C"].template as<double>(1.0), //
+					dict["K"].template as<double>(1.0), //
+					dict["mol"].template as<double>(1.0));
 		}
 	}
 
@@ -53,8 +59,9 @@ public:
 
 	void print(std::basic_ostream<char> & os) const;
 
-	void SetBaseUnit(std::string const & type_name = "SI", double pm = 1, double ps = 1, double pkg = 1, double pC = 1,
-	        double pK = 1, double pMol = 1);
+	void SetBaseUnit(std::string const & type_name = "SI", double pm = 1,
+			double ps = 1, double pkg = 1, double pC = 1, double pK = 1,
+			double pMol = 1);
 
 	inline double operator[](std::string const &s) const
 	{
@@ -97,6 +104,10 @@ std::ostream & operator<<(std::ostream & os, PhysicalConstants const & self);
 
 #define  CONSTANTS    SingletonHolder<PhysicalConstants>::instance()
 
+/**
+ * \brief Define physical constants:
+ *
+ */
 #define DEFINE_PHYSICAL_CONST                                               \
 const double mu0 = CONSTANTS["permeability of free space"];                            \
 const double epsilon0 = CONSTANTS["permittivity of free space"];                       \
@@ -105,6 +116,7 @@ const double speed_of_light2 =  speed_of_light*speed_of_light;                  
 const double proton_mass = CONSTANTS["proton mass"];                                   \
 const double elementary_charge = CONSTANTS["elementary charge"];                       \
 const double boltzmann_constant = CONSTANTS["Boltzmann constant"];
+/** @}*/
 
 }  // namespace simpla
 

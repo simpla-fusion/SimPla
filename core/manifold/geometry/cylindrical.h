@@ -18,7 +18,7 @@ namespace simpla
 {
 
 /**
- *  \ingroup Geometry
+ *  @ingroup geometry
  *
  *  \brief  cylindrical coordinates (R Z phi)
  */

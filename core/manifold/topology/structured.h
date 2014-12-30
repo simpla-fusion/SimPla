@@ -18,12 +18,12 @@
 #include <type_traits>
 #include <utility>
 
+#include "../../data_interface/data_structure.h"
 #include "../../utilities/log.h"
 #include "../../utilities/ntuple.h"
 #include "../../utilities/primitives.h"
 #include "../../utilities/sp_type_traits.h"
 #include "../../numeric/geometric_algorithm.h"
-#include "../../data_structure/data_structure.h"
 
 #if !NO_MPI || USE_MPI
 #include "../../parallel/mpi_comm.h"
@@ -33,7 +33,7 @@ namespace simpla
 {
 
 /**
- * \ingroup Topology
+ * @ingroup topology
  */
 /**
  *  \brief  structured mesh, n-dimensional array
@@ -127,9 +127,9 @@ public:
 		return "StructuredMesh";
 	}
 
-	/**@defgroup time
-	 * @{
-	 */
+	/** @name Time
+	 *  @{
+	 **/
 	unsigned long clock_ = 0UL;
 
 	void next_timestep()
@@ -141,15 +141,17 @@ public:
 		return clock_;
 	}
 
-	//!   @}
+	/**@}*/
 
 	bool is_valid() const
 	{
 		return is_valid_;
 	}
 
-	//! @defgroup   Data Set shape
-	//! @{
+	/**
+	 * @name  Data Shape
+	 * @{
+	 **/
 
 	index_tuple dimensions_;
 
@@ -171,11 +173,8 @@ public:
 	//
 	//  \endverbatim
 
-	//! @name Index Dependent
-	//! @{
-	//!  signed long is 63bit, unsigned long is 64 bit, add a sign bit
-
 	/**
+	 *  signed long is 63bit, unsigned long is 64 bit, add a sign bit
 	 *  \note
 	 *  \verbatim
 	 * 	Thanks my wife Dr. CHEN Xiang Lan, for her advice on bitwise operation
@@ -197,7 +196,6 @@ public:
 	 *  \endverbatim
 	 */
 
-	//! @}
 	static constexpr size_t FULL_DIGITS = std::numeric_limits<size_t>::digits;
 
 	static constexpr size_t INDEX_DIGITS = (FULL_DIGITS
@@ -333,54 +331,6 @@ public:
 		return std::move(DataSpace(rank, &g_dims[0], &g_gw[0]));
 	}
 
-	/** @}*/
-
-//	bool in_range(id_type s) const
-//	{
-////		index_tuple idx = decompact(s) >> MAX_DEPTH_OF_TREE;
-////
-////		return true
-////				||
-////
-////				((dimensions_[0] > 1 && idx[0] < dimensions_[0])
-////						&& (dimensions_[1] > 1 || idx[1] < dimensions_[1])
-////						&& (dimensions_[2] > 1 || idx[2] < dimensions_[2]))
-//
-//		return in_local_range(s);
-//	}
-//
-//	bool in_local_range(id_type s) const
-//	{
-//		auto idx = id_to_index(s) >> MAX_DEPTH_OF_TREE;
-//
-//		return
-//
-//		((dimensions_[0] > 1
-//				|| (idx[0] >= local_inner_begin_[0]
-//						&& idx[0] < local_inner_end_[0])))
-//
-//				&& ((dimensions_[1] > 1
-//						|| (idx[1] >= local_inner_begin_[1]
-//								&& idx[1] < local_inner_end_[1])))
-//
-//				&& ((dimensions_[2] > 1
-//						|| (idx[2] >= local_inner_begin_[2]
-//								&& idx[2] < local_inner_end_[2])));
-//	}
-//	//! @}
-	//mask of direction
-//	static index_type compact(nTuple<NDIMS, index_type> const & idx )
-//	{
-//		return
-//
-//		( static_cast<index_type>( idx[0] & INDEX_MASK) << (INDEX_DIGITS * 2)) |
-//
-//		( static_cast<index_type>( idx[1] & INDEX_MASK) << (INDEX_DIGITS )) |
-//
-//		( static_cast<index_type>( idx[2] & INDEX_MASK) )
-//
-//		;
-//	}
 	template<size_t IFORM>
 	static id_type compact_cell_index(index_tuple const & idx, id_type shift)
 	{
@@ -391,25 +341,13 @@ public:
 	{
 		return std::move(id_to_index(s) >> (FLOATING_POINT_POS));
 	}
-	//! @name Geometry
-	//! For For uniform structured grid, the volume of cell is 1.0
-	//! and dx=1.0
-	//! @{
 
-//	Real volume_[8] = { 1, // 000
-//			1, //001
-//			1, //010
-//			1, //011
-//			1, //100
-//			1, //101
-//			1, //110
-//			1  //111
-//			};
-//	Real inv_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
-//
-//	Real dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
-//
-//	Real inv_dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
+	/**
+	 *   @name Geometry
+	 *   For For uniform structured grid, the volume of cell is 1.0
+	 *   and dx=1.0
+	 *   @{
+	 */
 
 	static constexpr Real COORDINATES_TO_INDEX_FACTOR = static_cast<Real>(1
 			<< FLOATING_POINT_POS);
@@ -617,7 +555,6 @@ public:
 	 * @param s
 	 * @return Coordinates range in [0,1)
 	 */
-
 	static inline coordinates_type index_to_coordinates(index_tuple const&idx)
 	{
 
@@ -1079,11 +1016,11 @@ public:
 		return res;
 
 	}
+	/**@}*/
 
-	/** @}*/
-
-	/** @name   Topology
-	 *  @{
+	/**
+	 * @name Neighgour
+	 * @{
 	 */
 
 	static size_t get_vertices(id_type s, id_type *v)
@@ -1624,7 +1561,7 @@ public:
 
 		return 2;
 	}
-	/** @}*/
+	/**@}*/
 
 	template<typename TV>
 	static TV sample_(std::integral_constant<size_t, VERTEX>, size_t s,

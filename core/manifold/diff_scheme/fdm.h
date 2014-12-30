@@ -24,8 +24,8 @@ namespace simpla
 template<typename ... > class _Field;
 template<typename, size_t> class Domain;
 
-/** \ingroup DiffScheme
- *  \brief template of FvMesh
+/** @ingroup diff_scheme
+ *  @brief   FdMesh
  */
 template<typename G>
 struct FiniteDiffMethod

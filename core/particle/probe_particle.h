@@ -12,11 +12,11 @@
 #include <memory>
 #include <string>
 
+#include "../containers/sp_iterator_sequence.h"
+#include "../data_interface/data_set.h"
 #include "../physics/physical_object.h"
 #include "../utilities/log.h"
 #include "../utilities/primitives.h"
-#include "../utilities/sp_iterator_sequence.h"
-#include "../data_structure/data_set.h"
 #include "../parallel/parallel.h"
 
 namespace simpla
@@ -24,7 +24,7 @@ namespace simpla
 
 /**
  *
- * @ingroup Particle
+ * @ingroup particle_container
  *
  * @brief  ProbeParticle is a container of particle trajectory
  *
@@ -61,9 +61,8 @@ template<typename Engine>
 struct ProbeParticle: public PhysicalObject, public Engine
 {
 
-	//! @defgroup Beginner  Basic usage
+	//! @name   Basic usage
 	//! @{
-
 	typedef Engine engine_type;
 
 	typedef ProbeParticle<engine_type> this_type;
@@ -122,17 +121,17 @@ struct ProbeParticle: public PhysicalObject, public Engine
 
 	//! @}
 
-	//! @defgroup Intermediate
+	//! @name Intermediate
 	//! @{
-
-	DataSet dataset() const;
 
 	template<typename TBuffer>
 	void flush_buffer(size_t number, TBuffer const & ext_buffer);
 
+	DataSet dataset() const;
+
 	//! @}
 
-	//! @defgroup Advanced
+	//! @name Advanced
 	//! @{
 
 	bool is_changed() const
@@ -140,7 +139,14 @@ struct ProbeParticle: public PhysicalObject, public Engine
 		return engine_type::properties.is_changed() || is_changed_;
 	}
 
-	void inc_step_counter(size_t num_of_steps);
+	DataSet dump_cache() const;
+
+	void clear_cache();
+
+	void inc_step_counter(size_t num_of_steps)
+	{
+		step_counter_ += num_of_steps;
+	}
 
 	template<typename TFun>
 	void foreach(TFun const & fun);
@@ -277,11 +283,21 @@ void ProbeParticle<Engine>::sync()
 template<typename Engine>
 DataSet ProbeParticle<Engine>::dataset() const
 {
-	size_t dims[2] = { number_of_points_, cache_depth_ };
+	size_t dims[2] = { number_of_points_, memory_length + 1 };
+
+	return std::move(make_dataset(data + (
+
+	number_of_points_ * (step_counter_ - memory_length)
+
+	), 1, dims, properties()));
+}
+template<typename Engine>
+DataSet ProbeParticle<Engine>::dump_cache() const
+{
+	size_t dims[2] = { number_of_points_, step_counter_ };
 
 	return std::move(make_dataset(data, 1, dims, properties()));
 }
-
 template<typename Engine>
 template<typename TFun>
 void ProbeParticle<Engine>::foreach(TFun const& fun)
@@ -332,30 +348,24 @@ void ProbeParticle<Engine>::next_n_timesteps(size_t num_of_steps, Real t0,
 	else
 	{
 
-		parallel_foreach(make_seq_range(0UL, number_of_points_),
-
-		[&](size_t s)
+		for_each([&](Point_s * p)
 		{
-			Point_s * p=data.get() + s*(cache_depth_+1)+step_counter_;
-
 			for (int i = 0; i < num_of_steps; ++i)
 			{
-				next_timestep_selector_(p
-						,t0,dt,std::forward<Args>(args)...);
+				next_timestep_selector_(p, t0, dt, std::forward<Args>(args)...);
+				++p;
+				t0 += dt;
 			}
-
-			++p;
-			t0+=dt;
 		});
 
 		inc_step_counter(num_of_steps);
 	}
 
 }
+
 template<typename Engine>
-void ProbeParticle<Engine>::inc_step_counter(size_t num_of_steps)
+void ProbeParticle<Engine>::clear_cache()
 {
-	step_counter_ += num_of_steps;
 
 	if (step_counter_ >= cache_depth_)
 	{
@@ -365,14 +375,13 @@ void ProbeParticle<Engine>::inc_step_counter(size_t num_of_steps)
 			{
 				for (int i = 0; i <= memory_length; ++i)
 				{
-					p[i]=p[cache_depth_-memory_length+i];
+					p[i]=p[step_counter_-memory_length+i];
 				}
 			});
 		}
 		step_counter_ = memory_length;
 	}
 }
-
 template<typename Engine, typename ...Others>
 auto make_probe_particle(Others && ... others)
 DECL_RET_TYPE((std::make_shared<ProbeParticle<Engine>>(

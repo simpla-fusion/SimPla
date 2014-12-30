@@ -13,6 +13,8 @@
 namespace simpla
 {
 
+/**  @ingroup numeric*/
+
 template<typename TX, typename TY>
 inline std::map<TX, decltype( std::declval<TX>()*std::declval<TY>())> //
 Integrate(std::map<TX, TY> const & xy)

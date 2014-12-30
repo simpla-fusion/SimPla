@@ -13,8 +13,9 @@
 #include <utility>
 //#include "expression_template.h"
 #include "sp_type_traits.h"
-#include "sp_integer_sequence.h"
 #include "ntuple.h"
+
+#include "../../containers/sp_integer_sequence.h"
 //#include "log.h"
 #include "pretty_stream.h"
 using namespace simpla;

@@ -16,7 +16,7 @@ namespace simpla
 {
 
 /**
- *   \ingroup FieldSolver
+ *   @ingroup FieldSolver
  *
  *   \class ImplicitPushE
  *   \brief implicit electric field pusher

@@ -14,7 +14,7 @@
 
 namespace simpla
 {
-
+/** @ingroup stl_alt */
 template<typename _Tp, _Tp ... _Idx>
 struct integer_sequence
 {
@@ -350,6 +350,7 @@ TOS& seq_print(integer_sequence<TInts, N...>, TOS & os, TA const &d)
 	return os;
 }
 
+/** @}*/
 }
 // namespace simpla
 #endif /* SP_INTEGER_SEQUENCE_H_ */

@@ -23,7 +23,7 @@
 namespace simpla
 {
 /**
- *  \ingroup Logging
+ *  @ingroup Logging
  *  \brief Logging stream, shuold be used  as a singleton
  */
 struct LoggerStreams //: public SingletonHolder<LoggerStreams>

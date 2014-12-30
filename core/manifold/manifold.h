@@ -15,6 +15,12 @@
 namespace simpla
 {
 
+/**
+ * \addtogroup  manifold Manifold
+ *    \brief   Discrete spatial-temporal space \see @ref manifold_concept
+ *    @file manifold.md
+ */
+
 template<typename > class FiniteDiffMethod;
 template<typename > class InterpolatorLinear;
 template<typename, size_t> class Domain;
@@ -22,19 +28,18 @@ template<typename ...> class _Field;
 template<typename, typename, typename > class Expression;
 
 /**
- *
+ *  \ingroup manifold
  *  \brief Manifold
- *
- *
  */
 
 template<typename TG, //
 		template<typename > class Policy1 = FiniteDiffMethod, //
 		template<typename > class Policy2 = InterpolatorLinear>
 class Manifold: public TG,
-		public Policy1<TG>,
-		public Policy2<TG>,
-		public std::enable_shared_from_this<Manifold<TG, Policy1, Policy2>>
+				public Policy1<TG>,
+				public Policy2<TG>,
+				public std::enable_shared_from_this<
+						Manifold<TG, Policy1, Policy2>>
 {
 public:
 

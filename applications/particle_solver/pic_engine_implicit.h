@@ -22,7 +22,7 @@ namespace simpla
 template<typename TM, typename Policy> class Interpolator;
 
 /**
- *  \ingroup ParticleEngine
+ *  @ingroup ParticleEngine
  *  \brief default PIC pusher, using Boris mover
  */
 

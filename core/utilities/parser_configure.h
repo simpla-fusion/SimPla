@@ -13,7 +13,9 @@
 #include "log.h"
 namespace simpla
 {
-
+/**
+ * @ingroup configuration
+ */
 template<typename TDict>
 class ParserConfigure
 {

@@ -12,7 +12,7 @@
 #include <cmath>
 namespace simpla
 {
-
+/** @ingroup numeric */
 class normal_distribution_icdf
 {
 

@@ -20,4 +20,14 @@
 #include "lua_object.h"
 #include "sp_foreach.h"
 
+/**
+ *  @addtogroup utilities Utilities
+ *  @{
+ *    @addtogroup general_library General Library
+ *    @addtogroup stl_alt    Alternative to STL or Boost
+ *
+ *  @}
+ *
+ */
+
 #endif /* CORE_UTILITIES_MISC_UTILITIES_H_ */

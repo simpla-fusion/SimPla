@@ -11,7 +11,7 @@
 #include "../utilities/ntuple.h"
 namespace simpla
 {
-//!  \ingroup Numeric
+//!  @ingroup numeric
 //! @{
 
 /**

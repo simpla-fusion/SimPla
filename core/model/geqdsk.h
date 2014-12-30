@@ -25,12 +25,12 @@ namespace simpla
 {
 
 /**
- * \ingroup Model
+ * @ingroup Model
  * @{
  *   \defgroup GEqdsk  GEqdsk
  * @}
  *
- * \ingroup GEqdsk
+ * @ingroup GEqdsk
  * \brief GEqdsk file paser
  *  default using cylindrical coordinates \f$R,Z,\phi\f$
  * \note http://w3.pppl.gov/ntcc/TORAY/G_EQDSK.pdf

@@ -15,6 +15,11 @@
 #include <complex>
 namespace simpla
 {
+/** @ingroup stl_alt
+ *
+ * @addtogroup type_traits Type traits
+ * @{
+ **/
 
 typedef std::nullptr_t NullType;
 
@@ -684,6 +689,10 @@ public:
 	typedef typename sp_pod_traits<_type>::type type;
 
 };
+
+/**
+ * @} ingroup utilities
+ */
 }
 // namespace simpla
 #endif /* SP_TYPE_TRAITS_H_ */

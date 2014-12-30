@@ -23,17 +23,16 @@
 #include "io.h"
 namespace simpla
 {
-/** \defgroup  DataIO Data input/output system
- *  @{
- *   \defgroup  HDF5  HDF5 interface
- *   \defgroup  XDMF   XDMF interface
- *   \defgroup  NetCDF  NetCDF interface
- *     \brief UNIMPLEMENTED notfix
- *  @}
- *  */
+/** @addtogroup  io   Input/Output
+ *  @brief this module collects the classes used for writing and reading
+ *   data between memory hard disk.
+ **/
 
 /**
- * \ingroup DataIO
+ * @ingroup io
+ *
+ * @{
+ *
  * @class DataStream
  * \brief data stream , should be a singleton
  */
@@ -132,6 +131,7 @@ private:
 //! Global data stream entry
 #define GLOBAL_DATA_STREAM  SingletonHolder<DataStream> ::instance()
 
+/** @} */
 }
 // namespace simpla
 

@@ -18,7 +18,7 @@
 namespace simpla
 {
 /**
- *  \ingroup Geometry
+ *  @ingroup Geometry
  *
  *  \brief  Magnetic flus coordinates ( R psi phi ) @todo !!!UNIMPLEMENTED !!!
  */

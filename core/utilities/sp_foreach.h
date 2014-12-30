@@ -14,6 +14,12 @@ namespace simpla
 HAS_MEMBER_FUNCTION(foreach)
 
 HAS_MEMBER_FUNCTION(reduce)
+
+/** @ingroup   stl_alt
+ * @{
+ *
+ **/
+
 /**
  *
  * @param range Range Concept
@@ -35,7 +41,7 @@ typename std::enable_if<!has_member_function_foreach<Range, OP>::value, void>::t
 		op(s);
 	}
 }
-
+/**@}*/
 }  // namespace simpla
 
 #endif /* CORE_UTILITIES_SP_FOREACH_H_ */

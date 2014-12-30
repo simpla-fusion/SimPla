@@ -17,12 +17,12 @@
 #include <utility>
 #include <vector>
 
+#include "../containers/sp_range_filter.h"
+#include "../containers/sp_iterator_filter.h"
 #include "../utilities/primitives.h"
 #include "../utilities/log.h"
 #include "../utilities/pretty_stream.h"
 #include "../utilities/utilities.h"
-#include "../utilities/sp_iterator_filter.h"
-#include "../utilities/sp_range_filter.h"
 #include "../utilities/sp_type_traits.h"
 
 #include "../numeric/pointinpolygon.h"
@@ -37,7 +37,7 @@ namespace simpla
  */
 
 /**
- *  \ingroup Model
+ *  @ingroup Model
  *  \brief Model
  */
 template<typename TM>

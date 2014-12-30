@@ -16,7 +16,7 @@
 namespace simpla
 {
 /**
- *  \ingroup ParticleEngine
+ *  @ingroup ParticleEngine
  *  \brief default PIC pusher, using Boris mover
  */
 

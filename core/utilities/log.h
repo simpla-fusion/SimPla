@@ -26,7 +26,10 @@
 namespace simpla
 {
 /**
- * \defgroup Logging Diagnostic logging features
+ * @ingroup utilities
+ *
+ * @defgroup Logging   Logging
+ * @{
  */
 enum
 {
@@ -46,8 +49,8 @@ enum
 };
 
 /**
- *  \ingroup Logging
- *  \brief log message buffer,
+ *
+ *  @brief log message buffer,
  */
 class Logger
 {
@@ -170,9 +173,7 @@ public:
 void init_logger(int argc, char**argv);
 void close_logger();
 /**
- * \ingroup Logging
- * \defgroup  logmanip  manip for Logger
- *
+ * @name     manip for Logger
  * @{
  **/
 
@@ -215,8 +216,7 @@ inline std::string ShowBit(unsigned long s)
 /** @} */
 
 /**
- *  \ingroup Logging
- *  \defgroup  LogShortCut    Shortcuts for logging
+ *  @name   Shortcuts for logging
  *  @{
  */
 
@@ -301,6 +301,8 @@ inline std::string ShowBit(unsigned long s)
 #define CHECK_HEX(_MSG_)  std::cout<<std::setfill(' ')<<std::setw(40) <<__STRING(_MSG_)<<" = 0x"<<std::setw(20)<<std::setfill('0')<< std::hex<< ( _MSG_) << std::dec<< std::endl
 
 /** @} */
+
+/** @} defgroup Logging*/
 
 }
 // namespace simpla

@@ -49,7 +49,8 @@ namespace simpla
 //}
 
 /**
- *  \addtogroup GeometryAlgorithm
+ *  @ingroup numeric
+ *  @addtogroup geometry_algorithm
  *  @{
  */
 template<size_t DIM, typename TR, typename TRange>

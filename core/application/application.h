@@ -10,6 +10,11 @@
 
 namespace simpla
 {
+/**
+ *  @addtogroup application Application
+ *  @{
+ *  @brief  framework of application layer.
+ */
 
 #define SP_APP_CLASS_NAME_(_use_case_name,_parent_class_name) _parent_class_name##_##_use_case_name
 
@@ -29,6 +34,8 @@ private:\
 SP_APP_CLASS_NAME_(_use_case_name,_parent_class_name)::info = \
 	use_case_register<SP_APP_CLASS_NAME_(_use_case_name,_parent_class_name)>(( #_use_case_name)) ; \
 void SP_APP_CLASS_NAME_(_use_case_name,_parent_class_name)::body()
+
+/** @} */
 
 }  // namespace simpla
 

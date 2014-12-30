@@ -20,30 +20,28 @@ namespace simpla
 {
 
 /**
- *  @ingroup Particle
+ *  @ingroup particle_container
  *
- *  @brief KineticParticle is a container of untracable particle  .
+ * @brief Kinetic Particle
  *  -  KineticParticle is a container of untracable particle  .
  *  -  KineticParticle can be sorted;
  *  -  KineticParticle is an unordered container;
  */
-template<typename TDomain, typename Engine>
+template<typename Engine, typename TDomain>
 struct KineticParticle: public Engine, public PhysicalObject
 {
-
-	typedef PhysicalObject base_type;
 
 	typedef TDomain domain_type;
 
 	typedef Engine engine_type;
 
-	typedef KineticParticle<domain_type, engine_type> this_type;
+	typedef KineticParticle<engine_type, domain_type> this_type;
 
 	typedef typename engine_type::Point_s Point_s;
 
-	typedef typename domain_type::index_type mid_type; // id of mesh point
+	typedef typename domain_type::id_type id_type; // id of mesh point
 
-	//***************************************************************************************************
+	//****************************************************************
 	// Constructor
 	template<typename ...Others>
 	KineticParticle(domain_type const &, Others && ...);	// Constructor
@@ -86,7 +84,6 @@ struct KineticParticle: public Engine, public PhysicalObject
 	std::ostream& print(std::ostream & os) const
 	{
 		engine_type::print(os);
-		base_type::print(os);
 		return os;
 	}
 
@@ -100,39 +97,39 @@ private:
 
 	domain_type domain_;
 
-	ContainerPool<mid_type, typename engine_type::Point_s> data_;
+	ContainerPool<id_type, typename engine_type::Point_s> data_;
 
-	std::function<mid_type(Point_s const &)> hash_fun_;
+	std::function<id_type(Point_s const &)> hash_fun_;
 
 };
 
-template<typename TDomain, typename Engine>
+template<typename Engine, typename TDomain>
 template<typename ... Others>
-KineticParticle<TDomain, Engine>::KineticParticle(domain_type const & pdomain,
+KineticParticle<Engine, TDomain>::KineticParticle(domain_type const & pdomain,
 		Others && ...others) :
 		domain_(pdomain)
 {
 
 }
 
-template<typename TDomain, typename Engine>
-KineticParticle<TDomain, Engine>::~KineticParticle()
+template<typename Engine, typename TDomain>
+KineticParticle<Engine, TDomain>::~KineticParticle()
 {
 }
-template<typename TDomain, typename Engine>
+template<typename Engine, typename TDomain>
 template<typename TDict, typename ...Others>
-void KineticParticle<TDomain, Engine>::load(TDict const & dict,
+void KineticParticle<Engine, TDomain>::load(TDict const & dict,
 		Others && ...others)
 {
 	engine_type::load(dict, std::forward<Others>(others)...);
 //	data_.load(dict, std::forward<Others>(others)...);
 }
 
-template<typename TDomain, typename Engine>
-bool KineticParticle<TDomain, Engine>::update()
+template<typename Engine, typename TDomain>
+bool KineticParticle<Engine, TDomain>::update()
 {
 
-	hash_fun_ = [& ](Point_s const & p)->mid_type
+	hash_fun_ = [& ](Point_s const & p)->id_type
 	{
 		return std::get<0>(domain_.manifold()->coordinates_global_to_local(
 						std::get<0>(engine_type::pull_back(p))));
@@ -141,21 +138,21 @@ bool KineticParticle<TDomain, Engine>::update()
 	return true;
 }
 
-template<typename TDomain, typename Engine>
-void KineticParticle<TDomain, Engine>::sync()
+template<typename Engine, typename TDomain>
+void KineticParticle<Engine, TDomain>::sync()
 {
 //	data_.sort(hash_fun_);
 //	update_ghost(*this);
 }
 
-template<typename TDomain, typename Engine>
-DataSet KineticParticle<TDomain, Engine>::dataset() const
+template<typename Engine, typename TDomain>
+DataSet KineticParticle<Engine, TDomain>::dataset() const
 {
 	return DataSet();
 }
-template<typename TDomain, typename Engine>
+template<typename Engine, typename TDomain>
 template<typename ...Args>
-void KineticParticle<TDomain, Engine>::next_n_timesteps(size_t num_of_steps,
+void KineticParticle<Engine, TDomain>::next_n_timesteps(size_t num_of_steps,
 		Args && ...args)
 {
 

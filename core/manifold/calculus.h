@@ -14,19 +14,24 @@
 #include "../utilities/expression_template.h"
 #include "domain.h"
 
-/**
- * \defgroup  FETL Field expression template library
- *
- *  \brief Field expression template library
- *
- */
+
 namespace simpla
 {
+
 template<typename ... > class _Field;
 template<typename, size_t> class Domain;
 template<typename, typename, typename > class Expression;
 
-/// \defgroup  ExteriorAlgebra Exterior algebra
+/**
+ * @ingroup manifold expression_template
+ * @addtogroup  FETL
+ * @{
+ *  \brief Field expression template
+ *
+ */
+
+
+/// @name  Exterior algebra
 /// @{
 namespace _impl
 {
@@ -226,7 +231,7 @@ DECL_RET_TYPE( (wedge(lhs,rhs)) )
 
 ///  @}
 
-///  \defgroup  VectorAlgebra Vector algebra
+///  @name    Vector algebra
 ///  @{
 template<typename ...TL, typename TR> inline auto inner_product(
 		_Field<TL...> const & lhs, TR const & rhs)
@@ -304,8 +309,7 @@ ENABLE_IF_DECL_RET_TYPE((field_traits<_Field<T...>>::iform==FACE),
 ;
 ///   @}
 
-///  \ingroup  FETL
-///  \defgroup  NonstandardOperations Non-standard operations
+///  @name    Non-standard operations
 ///   @{
 
 namespace _impl
@@ -423,6 +427,8 @@ ENABLE_IF_DECL_RET_TYPE(field_traits<T>::iform==FACE,
 ;
 
 ///   @}
+
+/**@}*/
 
 }
 // namespace simpla

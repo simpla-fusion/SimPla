@@ -13,7 +13,7 @@
 
 #include <omp.h>
 
-#include "../utilities/sp_range.h"
+#include "../containers/sp_range.h"
 namespace simpla
 {
 
@@ -59,7 +59,7 @@ void parallel_for(TRange & range, std::function<TRange &> const & fun, size_t gr
 
 //
 ///**
-// *  \ingroup MULTICORE
+// *  @ingroup MULTICORE
 // *
 // * \brief Parallel for each
 // * @param r
@@ -83,7 +83,7 @@ void parallel_for_each(TRange & range, TF const & fun, size_t grain_size = 0)
 }
 
 /**
- *  \ingroup MULTICORE
+ *  @ingroup MULTICORE
  *
  * \brief Parallel do
  * @param fun

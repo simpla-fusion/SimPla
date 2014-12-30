@@ -22,8 +22,8 @@ namespace simpla
 
 template<typename ...> class _Field;
 
-/** \ingroup DiffScheme
- *  \brief template of FvMesh
+/** @ingroup diff_scheme
+ *  \brief   FvMesh
  */
 template<typename TGeometry>
 class FiniteVolumeMethod

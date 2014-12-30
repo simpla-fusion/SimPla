@@ -16,7 +16,7 @@
 namespace simpla
 {
 
-/** \ingroup XDMF
+/** @ingroup XDMF
  * @{
  */
 template<typename T>

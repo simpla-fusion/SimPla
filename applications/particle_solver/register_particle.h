@@ -17,7 +17,7 @@ namespace simpla
 {
 
 /**
- *  \ingroup Particle
+ *  @ingroup Particle
  *  @{  \defgroup  ParticleEngine Particle Engine
  *  @}
  */

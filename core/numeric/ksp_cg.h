@@ -13,6 +13,9 @@
 
 namespace simpla
 {
+
+/**@ingroup numeric*/
+
 namespace linear_solver
 {
 

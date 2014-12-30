@@ -13,6 +13,7 @@
 #include "integration.h"
 namespace simpla
 {
+/**  @ingroup numeric*/
 
 template<typename TX, typename TY, typename TIntepolation>
 inline TIntepolation MakeICDF(std::map<double, double> const &fun)

@@ -39,19 +39,16 @@ extern "C"
 #include "misc_utilities.h"
 namespace simpla
 {
+
 /**
- *  \defgroup  Configure  Configuration
- *  @{
- *  \defgroup  EmScript Embaded Scirpt
- *   @{
- *      \defgroup  Convert Convert
- *       \brief Transfer data  between different lanuage
- *      \defgroup  Lua Lua
- *   @}
- *  @}
+ * @ingroup utilities
  */
 
-//! \ingroup Lua
+/**
+ *  \addtogroup  lua_engine  Lua engine
+ *  @{
+ */
+
 #define LUA_ERROR(_L, _MSG_)  Logger(LOG_ERROR)<<"[Lua error]"<<(_MSG_)<<std::string("\n") << lua_tostring(_L, -1) ; lua_pop(_L, 1);throw(std::runtime_error(""));
 
 class LuaIterator;
@@ -83,8 +80,6 @@ inline unsigned int FromLua(std::shared_ptr<lua_State> L, unsigned int idx,
 }
 
 /**
- *
- *  \ingroup   Lua
  *  @class LuaObject
  *  \brief interface to Lua Script
  */
@@ -762,7 +757,7 @@ public:
 
 /**
  *
- *     \ingroup Convert
+ *     @ingroup Convert
  *     @{
  */
 #define DEF_LUA_TRANS(_TYPE_,_TO_FUN_,_FROM_FUN_,_CHECK_FUN_)                                     \
@@ -1221,6 +1216,7 @@ inline std::ostream & operator<<(std::ostream & os, LuaObject const & obj)
 	os << obj.as<std::string>();
 	return os;
 }
+/** @} lua_engine*/
 } // namespace simpla
 
 #endif  // CORE_UTILITIES_LUA_OBJECT_H_

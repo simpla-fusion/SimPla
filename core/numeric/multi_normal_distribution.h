@@ -16,7 +16,8 @@ namespace simpla
 {
 
 /**
- * \ingroup Numeric
+ * @ingroup numeric
+ *
  * \brief A normal continuous distribution for random numbers.
  *
  * The formula for the normal probability density function is

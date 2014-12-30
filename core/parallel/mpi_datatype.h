@@ -13,9 +13,10 @@
 
 #include <utility>
 #include <vector>
+
+#include "../data_interface/data_type.h"
 #include "../utilities/ntuple.h"
 #include "../utilities/sp_type_traits.h"
-#include "../data_structure/data_type.h"
 
 namespace simpla
 {
@@ -27,7 +28,7 @@ bool GetMPIType(DataType const & datatype_desc, MPI_Datatype * new_type);
 }  // namespace _impl
 
 /**
- *  \ingroup MPI
+ *  @ingroup MPI
  *  \brief MPI convert C++ data type and data space to mpi data type
  */
 struct MPIDataType

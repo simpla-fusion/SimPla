@@ -15,6 +15,7 @@
 #include "../utilities/ntuple.h"
 namespace simpla
 {
+/** @ingroup numeric */
 
 template<unsigned int NDIM>
 class rectangle_distribution

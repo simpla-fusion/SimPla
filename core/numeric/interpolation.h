@@ -15,10 +15,7 @@
 #include <map>
 namespace simpla
 {
-
-/**
- *
- * \defgroup  Numeric Numeric
+/**  @ingroup numeric
  * @{
  */
 /*
@@ -122,7 +119,7 @@ public:
 
 };
 /**
- * \ingroup Numeric
+ * @ingroup Numeric
  *
  * \brief Linear Interpolation
  */

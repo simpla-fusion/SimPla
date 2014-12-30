@@ -755,9 +755,8 @@ WARN_LOGFILE           =
 # Note: If this tag is empty the current directory is searched.
 
 INPUT                  =@PROJECT_SOURCE_DIR@/README.md \
-						@PROJECT_SOURCE_DIR@/docs/DesignDocument.md \
-					    @PROJECT_SOURCE_DIR@/core  \
-					    @PROJECT_SOURCE_DIR@/applications \
+						@PROJECT_SOURCE_DIR@/docs \
+					    @PROJECT_SOURCE_DIR@/core \
 						@PROJECT_SOURCE_DIR@/example 
 
 # This tag can be used to specify the character encoding of the source files

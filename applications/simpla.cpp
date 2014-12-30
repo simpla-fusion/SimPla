@@ -13,7 +13,7 @@
 
 #include "../core/io/data_stream.h"
 #include "../core/parallel/mpi_comm.h"
-#include "../core/simpla_defs.h"
+#include "../core/sp_config.h"
 #include "../core/utilities/log.h"
 #include "../core/utilities/lua_state.h"
 #include "../core/utilities/parse_command_line.h"

@@ -13,8 +13,7 @@
 #include <numeric>
 namespace simpla
 {
-
-/**
+/** @ingroup numeric
  * \brief Sampling Uniformly from the Unit Simplex
  * \note  http://www.cs.cmu.edu/~nasmith/papers/smith+tromble.tr04.pdf
  *

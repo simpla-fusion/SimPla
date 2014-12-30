@@ -17,7 +17,7 @@
 
 #include "../manifold/domain.h"
 #include "../physics/physical_object.h"
-#include "../utilities/expression_template.h"
+#include "../design_pattern/expression_template.h"
 #include "../utilities/utilities.h"
 #include "../parallel/parallel.h"
 
@@ -156,8 +156,10 @@ public:
 				domain_.dataspace() });
 	}
 
-/// @defgroup Access operation
-/// @
+	/***
+	 * @name Access operation
+	 * @{
+	 */
 	value_type & get(index_type const &s)
 	{
 		return (container_traits<container_type>::get_value(data_,
@@ -182,11 +184,12 @@ public:
 				domain_.hash(s)));
 	}
 
-///@}
+	/** @} */
 
-/// @defgroup Assignment
-/// @{
-
+	/**
+	 * @name Assignment
+	 * @{
+	 */
 	inline this_type &
 	operator =(this_type const &that)
 	{
@@ -264,7 +267,7 @@ public:
 
 		return (*this);
 	}
-///@}
+	/** @} */
 
 	template<typename TFun> void pull_back(TFun const &fun)
 	{
@@ -370,7 +373,7 @@ struct field_traits<_Field<TD, TC>>
 
 };
 
-/// \defgroup   Field Expression
+/// @name  Field Expression
 /// @{
 
 template<typename TOP, typename TL, typename TR> struct Expression;
