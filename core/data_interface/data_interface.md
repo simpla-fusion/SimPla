@@ -1,4 +1,4 @@
-Data Interface {#data_interface_page}
+Data Interface {#data_interface}
 ==============================================
 \brief  the interface of data structure
 
@@ -9,6 +9,6 @@ and program languages in the memory. Such as, we can transfer an array
 of particle structure in memory to hdf5 library, and save it to disk.
 
 ## See aslo
-  \subpage DataType
-  \subpage DataSpace
-  \subpage DataSet
+- \subpage DataType
+- \subpage DataSpace
+- \subpage DataSet

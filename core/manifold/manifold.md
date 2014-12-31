@@ -63,7 +63,7 @@ Manifold policy concept {#concept_manifold_policy}
 
 
 ## See aslo
-- \subpage concept_geometry 
-- \subpage concept_topology
-- \subpage concept_interpolator
-- \subpage concept_diff_scheme
+- \subpage geometry_concept 
+- \subpage topology_concept
+- \subpage interpolator_concept
+- \subpage diff_scheme_concept

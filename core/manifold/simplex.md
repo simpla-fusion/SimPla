@@ -1,5 +1,5 @@
-Simplex   {#concept_simplex}
+Simplex   {#simplex_concept}
 ======================================
 
 ## See Also
-- \subpage concept_domain
+- \subpage domain_concept

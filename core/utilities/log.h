@@ -23,29 +23,43 @@
 
 #include "sp_type_traits.h"
 #include "pretty_stream.h"
+
+
+
+
 namespace simpla
 {
 /**
  * @ingroup utilities
- *
- * @defgroup Logging   Logging
+ * @defgroup logging   Log
  * @{
+ *
  */
+
+/**
+ * @page log
+ *
+ *
+ *  This is document of Log
+ *
+ */
+
+
 enum
 {
-	LOG_FORCE_OUTPUT = -10000,
-	LOG_MESSAGE = -10,
-	LOG_OUT_RANGE_ERROR = -4,
-	LOG_LOGIC_ERROR = -3,
-	LOG_ERROR = -2,
+	LOG_FORCE_OUTPUT = -10000,//!< LOG_FORCE_OUTPUT
+	LOG_MESSAGE = -10,        //!< LOG_MESSAGE
+	LOG_OUT_RANGE_ERROR = -4, //!< LOG_OUT_RANGE_ERROR
+	LOG_LOGIC_ERROR = -3,     //!< LOG_LOGIC_ERROR
+	LOG_ERROR = -2,           //!< LOG_ERROR
 
-	LOG_WARNING = -1,
+	LOG_WARNING = -1,         //!< LOG_WARNING
 
-	LOG_INFORM = 0,
-	LOG_LOG = 1,
+	LOG_INFORM = 0,           //!< LOG_INFORM
+	LOG_LOG = 1,              //!< LOG_LOG
 
-	LOG_VERBOSE = 11,
-	LOG_DEBUG = -20
+	LOG_VERBOSE = 11,         //!< LOG_VERBOSE
+	LOG_DEBUG = -20           //!< LOG_DEBUG
 };
 
 /**

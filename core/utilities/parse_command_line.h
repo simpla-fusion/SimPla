@@ -11,6 +11,15 @@
 #include <functional>
 #include <string>
 
+
+
+/**
+ * @page cli_parser
+ *
+ *
+ *
+ *
+ */
 namespace simpla
 {
 
@@ -25,12 +34,14 @@ enum
  * @addtogroup configuration Configuration Parser
  * @{
  */
+
+
 /**
  * \brief Command line parser
  *
  *
  * example:
- * @code{.Cpp}
+ * @code{.cpp}
  * 	ParseCmdLine(argc, argv,
  *		[&](std::string const & opt,std::string const & value)->int
  *		{

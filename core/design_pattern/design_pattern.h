@@ -11,7 +11,7 @@
 namespace simpla
 {
 
-/**
+/**  @page design_pattern Design Pattern
  *   @addtogroup design_pattern Design Pattern
  *   @brief  This module collects implementation of some design pattern.
  */

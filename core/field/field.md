@@ -1,4 +1,4 @@
-Field {#concept_field}
+Field Concept{#field_concept}
 =================================
 ## Summary
  \note A _Field_ assigns a scalar/vector/tensor to each point of a mathematical space (typically a Euclidean space or manifold).
@@ -72,6 +72,6 @@ Field {#concept_field}
  `swap(Field &,Field&)`			| swap
  
 ## See also
- - \subpage FETL
- - @ref concept_manifold
- - @ref concept_domain
+ - @ref FETL
+ - @ref manifold_concept
+ - @ref domain_concept

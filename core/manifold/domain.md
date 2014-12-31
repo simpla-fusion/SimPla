@@ -1,4 +1,4 @@
-Domain {#concept_domain}
+Domain Concept {#domain_concept}
 =========================================
 
 ## Summary
@@ -67,5 +67,5 @@ Requirements for  Domain type D as a geometric object, which could be a @ref con
 - @ref concept_manifold
 - @ref concept_topology
 - @ref concept_simplex
-- \subpage domain_iterator
+- \subpage mesh_iterator_concept
 - \subpage block_domain	 

@@ -37,6 +37,16 @@ extern "C"
 #include "ntuple.h"
 #include "any.h"
 #include "misc_utilities.h"
+
+
+/**
+ * @page lua
+ *
+ *
+ *
+ *
+ */
+
 namespace simpla
 {
 
@@ -45,10 +55,9 @@ namespace simpla
  */
 
 /**
- *  \addtogroup  lua_engine  Lua engine
+ *  \addtogroup  lua   Lua engine
  *  @{
  */
-
 #define LUA_ERROR(_L, _MSG_)  Logger(LOG_ERROR)<<"[Lua error]"<<(_MSG_)<<std::string("\n") << lua_tostring(_L, -1) ; lua_pop(_L, 1);throw(std::runtime_error(""));
 
 class LuaIterator;

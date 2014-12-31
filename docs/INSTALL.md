@@ -1,4 +1,4 @@
-Install  {#Install}
+Install  {#install}
 ==========================================
 
 @todo INSTALL doc
