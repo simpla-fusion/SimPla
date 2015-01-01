@@ -12,7 +12,7 @@
 #include <string>
 
 #include "../utilities/utilities.h"
-#include "../data_structure/data_type.h"
+#include "../data_interface/data_type.h"
 namespace simpla
 {
 struct DataSet;

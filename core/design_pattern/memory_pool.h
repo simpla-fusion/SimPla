@@ -12,7 +12,7 @@
 #include <mutex>
 #include <limits>
 #include "singleton_holder.h"
-#include "log.h"
+#include "../utilities/log.h"
 namespace simpla
 {
 

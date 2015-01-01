@@ -8,7 +8,6 @@
 #include <typeinfo>
 #include <typeindex>
 #include "mpi_datatype.h"
-#include "../data_structure/data_type.h"
 
 namespace simpla
 {

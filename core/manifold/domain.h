@@ -11,9 +11,9 @@
 #include <memory>
 #include <type_traits>
 
-#include "../data_structure/dataspace.h"
+#include "../data_interface/data_space.h"
 #include "../utilities/sp_type_traits.h"
-
+#include "../design_pattern/expression_template.h"
 namespace simpla
 {
 
@@ -36,9 +36,7 @@ public:
 
 	typedef typename manifold_type::coordinates_type coordinates_type;
 
-	typedef typename manifold_type::index_type index_type;
-
-	typedef typename manifold_type::index_type index_type;
+	typedef typename manifold_type::id_type id_type;
 
 	typedef size_t difference_type; // Type for difference of two iterators
 
@@ -122,7 +120,13 @@ public:
 
 	size_t size() const
 	{
-		return manifold_->template dataspace<IFORM>().size();
+		return manifold_->template dataspace<iform>().size();
+	}
+
+	template<typename TV>
+	std::shared_ptr<TV> allocate()const
+	{
+		return sp_make_shared_array<TV>(size());
 	}
 //	this_type operator &(this_type const & D1) const // \f$D_0 \cap \D_1\f$
 //	{
@@ -190,6 +194,34 @@ public:
 	template<typename ...Args>
 	auto sample(Args && ...args)const
 	DECL_RET_TYPE((manifold_->template sample<iform>(std::forward<Args>(args)...)))
+
+	template<typename TOP,typename ...Args>
+	void foreach(TOP const & op,Args && ... args)const
+	{
+		for(auto s:range_)
+		{
+			op(get_value(std::forward<Args>(args),hash(s))...);
+		}
+	}
+
+//	template<typename TOP,typename ...Args>
+//	void foreach( Args && ... args)const
+//	{
+//		for(auto s:range_)
+//		{
+//			TOP::operator()(get_value(std::forward<Args>(args),hash(s))...);
+//		}
+//	}
+
+	template<typename TL,typename TFun>
+	void pull_back(TL & l, TFun const &fun)const
+	{
+		for(auto s:range_)
+		{
+			//FIXME geometry coordinates convert
+			get_value(l,hash(s)) = sample( s,fun( coordinates(s) ));
+		}
+	}
 
 }
 ;

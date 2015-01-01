@@ -12,7 +12,7 @@
 #include <limits>
 #include <type_traits>
 #include <complex>
-#include "sp_type_traits.h"
+#include "../utilities/sp_type_traits.h"
 
 namespace simpla
 {
@@ -238,11 +238,11 @@ DEF_BOP(less_equal, <=)
 struct _NAME_                                                                             \
 {                                                                                              \
 	template<typename TL, typename TR>                                                         \
-	void operator()(TL  & l, TR const & r) const                  \
-	{    l _OP_ r;   }                                                                       \
+	constexpr auto operator()(TL  & l, TR const & r) const                  \
+	DECL_RET_TYPE((l _OP_ r))            \
 	template<typename TL, typename TR,typename TI>                                                         \
-	  void operator()(TL  & l, TR const & r,TI const & s) const         \
-	{    get_value(l,s) _OP_ get_value( r,s);    }                                    \
+	constexpr auto operator()(TL  & l, TR const & r,TI const & s) const         \
+	DECL_RET_TYPE((   get_value(l,s) _OP_ get_value( r,s)))          \
 };
 DEF_ASSIGN_OP(_assign, =)
 DEF_ASSIGN_OP(plus_assign, +=)

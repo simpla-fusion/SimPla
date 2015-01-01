@@ -15,7 +15,7 @@
 #include <string>
 #include <tuple>
 
-#include "../utilities/singleton_holder.h"
+#include "../design_pattern/singleton_holder.h"
 #include "../utilities/utilities.h"
 #include "../utilities/optional.h"
 #include "../utilities/config_parser.h"

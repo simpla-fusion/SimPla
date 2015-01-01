@@ -18,8 +18,9 @@
 #endif
 
 #include "misc_utilities.h"
-#include "singleton_holder.h"
 #include "parse_command_line.h"
+#include "../design_pattern/singleton_holder.h"
+
 namespace simpla
 {
 /**

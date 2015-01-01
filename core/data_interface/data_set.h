@@ -13,7 +13,7 @@
 #include "../data_interface/data_space.h"
 #include "../data_interface/data_type.h"
 #include "../utilities/utilities.h"
-#include "../utilities/memory_pool.h"
+#include "../design_pattern/memory_pool.h"
 
 namespace simpla
 {

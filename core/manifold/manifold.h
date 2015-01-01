@@ -36,10 +36,9 @@ template<typename TG, //
 		template<typename > class Policy1 = FiniteDiffMethod, //
 		template<typename > class Policy2 = InterpolatorLinear>
 class Manifold: public TG,
-				public Policy1<TG>,
-				public Policy2<TG>,
-				public std::enable_shared_from_this<
-						Manifold<TG, Policy1, Policy2>>
+		public Policy1<TG>,
+		public Policy2<TG>,
+		public std::enable_shared_from_this<Manifold<TG, Policy1, Policy2>>
 {
 public:
 
@@ -51,10 +50,10 @@ public:
 	typedef Policy1<geometry_type> policy1;
 	typedef Policy2<geometry_type> policy2;
 	typedef typename geometry_type::topology_type topology_type;
+
 	typedef typename geometry_type::coordinates_type coordinates_type;
 	typedef typename geometry_type::id_type id_type;
-	typedef typename geometry_type::index_type index_type;
-	typedef typename geometry_type::iterator iterator;
+//	typedef typename geometry_type::iterator iterator;
 	typedef typename geometry_type::scalar_type scalar_type;
 
 	static constexpr size_t ndims = topology_type::ndims;

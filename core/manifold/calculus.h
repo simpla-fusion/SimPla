@@ -11,7 +11,7 @@
 
 #include "../utilities/utilities.h"
 #include "../utilities/sp_functional.h"
-#include "../utilities/expression_template.h"
+#include "../design_pattern/expression_template.h"
 #include "domain.h"
 
 

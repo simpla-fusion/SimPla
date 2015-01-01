@@ -8,7 +8,7 @@
 #include <stddef.h>
 #include <string>
 
-#include "../utilities/singleton_holder.h"
+#include "../design_pattern/singleton_holder.h"
 #include "data_stream.h"
 
 namespace simpla

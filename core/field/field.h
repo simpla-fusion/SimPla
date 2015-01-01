@@ -12,14 +12,12 @@
 #include <memory>
 #include <type_traits>
 
-#include "../data_structure/container_traits.h"
-#include "../data_structure/data_set.h"
-
-#include "../manifold/domain.h"
-#include "../physics/physical_object.h"
-#include "../design_pattern/expression_template.h"
 #include "../utilities/utilities.h"
-#include "../parallel/parallel.h"
+#include "../physics/physical_object.h"
+
+#include "../data_interface/data_set.h"
+#include "../manifold/domain.h"
+#include "../design_pattern/expression_template.h"
 
 namespace simpla
 {
@@ -33,21 +31,21 @@ template<typename ... >struct _Field;
  *
  *  \brief skeleton of Field data holder
  *   Field is a Associate container
- *     f[index_type i] => value at the discrete point/edge/face i
+ *     f[id_type i] => value at the discrete point/edge/face i
  *   Field is a Function
  *     f(coordinates_type x) =>  field value(scalar/vector/tensor) at the coordinates x
  *   Field is a Expression
  */
-template<typename TDomain, typename Container>
-struct _Field<TDomain, Container> : public PhysicalObject
+template<typename TV, typename TDomain>
+struct _Field<TV, TDomain> : public PhysicalObject
 {
 
 	typedef TDomain domain_type;
-	typedef typename domain_type::index_type index_type;
+	typedef typename domain_type::id_type id_type;
 
-	typedef Container container_type;
-	typedef _Field<domain_type, container_type> this_type;
-	typedef typename container_traits<container_type>::value_type value_type;
+	typedef TV value_type;
+	typedef std::shared_ptr<value_type> container_type;
+	typedef _Field<value_type, domain_type> this_type;
 
 private:
 
@@ -59,7 +57,7 @@ public:
 
 	template<typename ...Args>
 	_Field(domain_type const & domain, Args &&...args) :
-			domain_(domain), data_(std::forward<Args>(args)...)
+			domain_(domain), data_(nullptr)
 	{
 	}
 
@@ -129,7 +127,7 @@ public:
 
 	bool empty() const
 	{
-		return container_traits<container_type>::is_empty(data_);
+		return data_ == nullptr;
 	}
 	bool is_valid() const
 	{
@@ -139,7 +137,7 @@ public:
 	{
 		if (!is_valid())
 		{
-			container_traits<container_type>::allocate(size()).swap(data_);
+			data_ = domain_.template allocate<value_type>();
 			PhysicalObject::update();
 		}
 	}
@@ -152,36 +150,33 @@ public:
 
 	DataSet dataset() const
 	{
-		return DataSet( { data_, properties(), make_datatype<value_type>(),
-				domain_.dataspace() });
+		return DataSet(
+				{ data_, properties(), make_datatype<value_type>(),
+						domain_.dataspace() });
 	}
 
 	/***
 	 * @name Access operation
 	 * @{
 	 */
-	value_type & get(index_type const &s)
+	value_type & get(id_type const &s)
 	{
-		return (container_traits<container_type>::get_value(data_,
-				domain_.hash(s)));
+		return data_.get()[domain_.hash(s)];
 	}
 
-	value_type const& get(index_type const &s) const
+	value_type const& get(id_type const &s) const
 	{
-		return (container_traits<container_type>::get_value(data_,
-				domain_.hash(s)));
+		return data_.get()[domain_.hash(s)];
 	}
 
-	value_type & operator[](index_type const & s)
+	value_type & operator[](id_type const & s)
 	{
-		return (container_traits<container_type>::get_value(data_,
-				domain_.hash(s)));
+		return data_.get()[domain_.hash(s)];
 	}
 
-	value_type const & operator[](index_type const & s) const
+	value_type const & operator[](id_type const & s) const
 	{
-		return (container_traits<container_type>::get_value(data_,
-				domain_.hash(s)));
+		return data_.get()[domain_.hash(s)];
 	}
 
 	/** @} */
@@ -195,10 +190,7 @@ public:
 	{
 		allocate();
 
-		parallel_foreach(domain_, [&](index_type const & s)
-		{
-			(*this)[s]=that[s];
-		});
+		domain_.foreach(_impl::_assign(), data_.get(), that);
 
 		return (*this);
 	}
@@ -208,10 +200,7 @@ public:
 	{
 		allocate();
 
-		parallel_foreach(domain_, [&](index_type const & s)
-		{
-			(*this)[s]= domain_.calculate( (that), s);
-		});
+		domain_.foreach(_impl::_assign(), data_.get(), that);
 
 		return (*this);
 	}
@@ -221,10 +210,8 @@ public:
 	{
 		allocate();
 
-		parallel_foreach(domain_, [&](index_type const & s)
-		{
-			(*this)[s]+= domain_.calculate( (that), s);
-		});
+		domain_.foreach(_impl::plus_assign(), data_.get(), that);
+
 		return (*this);
 
 	}
@@ -234,10 +221,7 @@ public:
 	{
 		allocate();
 
-		parallel_foreach(domain_, [&](index_type const & s)
-		{
-			(*this)[s] -= domain_.calculate(that, s);
-		});
+		domain_.foreach(_impl::minus_assign(), data_.get(), that);
 
 		return (*this);
 	}
@@ -246,11 +230,7 @@ public:
 	inline this_type & operator *=(TR const &that)
 	{
 		allocate();
-
-		parallel_foreach(domain_, [&](index_type const & s)
-		{
-			(*this)[s] *= domain_.calculate(that, s);
-		});
+		domain_.foreach(_impl::multiplies_assign(), data_.get(), that);
 
 		return (*this);
 	}
@@ -259,76 +239,46 @@ public:
 	inline this_type & operator /=(TR const &that)
 	{
 		allocate();
-
-		parallel_foreach(domain_, [&](index_type const & s)
-		{
-			(*this)[s] /= domain_.calculate(that, s);
-		});
+		domain_.foreach(_impl::divides_assign(), data_.get(), that);
 
 		return (*this);
 	}
-	/** @} */
 
 	template<typename TFun> void pull_back(TFun const &fun)
 	{
-		pull_back(domain_, fun);
-	}
-
-	template<typename TD, typename TFun> void pull_back(TD const & domain,
-			TFun const &fun)
-	{
 		allocate();
-
-		parallel_foreach(domain,
-
-		[&](index_type const & s)
-		{
-
-			//FIXME geometry coordinates convert
-
-				(*this)[s] = domain_.sample( s,fun(
-								//domain.MapTo(domain_.InvMapTo(
-								domain_.coordinates(s)
-								//))
-						)
-				);
-			});
-
+		domain_.pull_back(data_.get(), fun);
 	}
+
+	/** @} */
 
 	typedef typename std::conditional<
 			domain_type::iform == VERTEX || domain_type::iform == VOLUME,
 			value_type, nTuple<value_type, 3>>::type field_value_type;
 
-	field_value_type operator()(
+	field_value_type gather(
 			typename domain_type::coordinates_type const& x) const
 	{
-		return std::move(domain_.gather(*this, x));
-	}
-
-	field_value_type gather(typename domain_type::coordinates_type const& x)
-	{
-		return std::move(domain_.gather(*this, x));
+		return std::move(domain_.gather(data_.get(), x));
 
 	}
 
 	template<typename ...Args>
 	void scatter(Args && ... args)
 	{
-		domain_.scatter(const_cast<this_type&>(*this),
-				std::forward<Args>(args)...);
+		domain_.scatter(data_.get(), std::forward<Args>(args)...);
 	}
 
 }
 ;
 
-template<typename TD, typename TC>
-struct reference_traits<_Field<TD, TC> >
+template<typename TV, typename TC>
+struct reference_traits<_Field<TV, TC> >
 {
-	typedef _Field<TD, TC> const & type;
+	typedef _Field<TV, TC> const & type;
 };
 
-template<typename TDomain, typename TV> using Field= _Field< TDomain,std::shared_ptr<TV> >;
+template<typename TV, typename TDomain> using Field= _Field< TV,TDomain >;
 
 template<typename > struct is_field
 {
@@ -357,8 +307,8 @@ template<typename T> struct field_traits<T>
 
 };
 
-template<typename TD, typename TC>
-struct field_traits<_Field<TD, TC>>
+template<typename TV, typename TD>
+struct field_traits<_Field<TV, TD>>
 {
 	static constexpr bool is_field = true;
 
@@ -366,7 +316,7 @@ struct field_traits<_Field<TD, TC>>
 
 	static constexpr size_t iform = TD::iform;
 
-	typedef typename _Field<TD, TC>::value_type value_type;
+	typedef typename _Field<TV, TD>::value_type value_type;
 
 	typedef typename std::conditional<iform == EDGE || iform == FACE,
 			nTuple<value_type, 3>, value_type>::type field_value_type;
@@ -469,16 +419,15 @@ SP_DEF_BINOP_FIELD_NTUPLE(|, bitwise_or)
 
 template<typename TV, typename TD>
 auto make_field(TD const& d)
-DECL_RET_TYPE((_Field<TD, std::shared_ptr<TV>>( (d) )))
+DECL_RET_TYPE((_Field<TV,TD >( (d) )))
 
 template<typename, size_t> class Domain;
 
-template<size_t IFORM, typename TV, typename TM>
-_Field<Domain<TM, IFORM>, std::shared_ptr<TV>> make_form(
-		std::shared_ptr<TM> manifold)
+template<typename TV, size_t IFORM, typename TM>
+_Field<TV, Domain<TM, IFORM> > make_form(std::shared_ptr<TM> manifold)
 {
 	return std::move(
-			_Field<Domain<TM, IFORM>, std::shared_ptr<TV>>(
+			_Field<TV, Domain<TM, IFORM> >(
 					Domain<TM, IFORM>(manifold->shared_from_this())));
 }
 

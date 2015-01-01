@@ -9,7 +9,7 @@
 #include <tuple>
 #include <vector>
 
-#include "../utilities/singleton_holder.h"
+#include "../design_pattern/singleton_holder.h"
 #include "mpi_comm.h"
 #include "mpi_datatype.h"
 

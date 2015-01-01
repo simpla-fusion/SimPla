@@ -12,7 +12,7 @@
 #include <map>
 #include <string>
 #include <utility>
-#include "../utilities/singleton_holder.h"
+#include "../design_pattern/singleton_holder.h"
 
 namespace simpla
 {

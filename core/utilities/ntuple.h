@@ -11,7 +11,7 @@
 
 #include <stddef.h>
 
-#include "expression_template.h"
+#include "../design_pattern/expression_template.h"
 #include "primitives.h"
 #include "sp_integer_sequence.h"
 #include "sp_type_traits.h"

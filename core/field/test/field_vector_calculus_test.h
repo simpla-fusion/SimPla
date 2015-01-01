@@ -66,7 +66,7 @@ public:
 	typedef TV value_type;
 
 	typedef typename manifold_type::scalar_type scalar_type;
-	typedef typename manifold_type::iterator iterator;
+//	typedef typename manifold_type::iterator iterator;
 	typedef typename manifold_type::coordinates_type coordinates_type;
 
 	std::shared_ptr<manifold_type> manifold;

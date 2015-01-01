@@ -15,7 +15,7 @@ extern "C"
 #include <cstring> //for memcopy
 
 #include "data_stream.h"
-#include "../data_structure/data_set.h"
+#include "../data_interface/data_set.h"
 
 #if !NO_MPI || USE_MPI
 #   include "../parallel/parallel.h"
@@ -24,7 +24,7 @@ extern "C"
 #endif
 
 #include "../utilities/utilities.h"
-#include "../utilities/memory_pool.h"
+#include "../design_pattern/memory_pool.h"
 
 #define H5_ERROR( _FUN_ ) if((_FUN_)<0){Logger(LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n HDF5 Error:";H5Eprint(H5E_DEFAULT, stderr);LOGGER<<std::endl;}
 
@@ -144,9 +144,6 @@ void DataStream::init(int argc, char** argv)
 	}
 	else
 	{
-//		pimpl_->current_filename_ = properties["File_Name"].template as<
-//				std::string>();
-
 		pimpl_->current_groupname_ = "/";
 	}
 
@@ -210,9 +207,7 @@ std::tuple<bool, std::string> DataStream::cd(std::string const &url,
 
 	if (obj_name != "" && ((flag & (SP_APPEND | SP_RECORD)) == 0UL))
 	{
-#if !NO_MPI || USE_MPI
 		if (GLOBAL_COMM.get_rank() == 0)
-#endif
 		{
 			obj_name = obj_name +
 
@@ -285,9 +280,6 @@ void DataStream::set_attribute(std::string const &url, Any const & any_v)
 void DataStream::pimpl_s::set_attribute(hid_t loc_id, std::string const &name,
 		Any const & any_v)
 {
-//	hid_t o_id =
-//			(obj_name != "") ?
-//					H5Oopen(loc_id, obj_name.c_str(), H5P_DEFAULT) : g_id;
 
 	if (any_v.is_same<std::string>())
 	{
@@ -477,12 +469,10 @@ std::tuple<std::string, hid_t> DataStream::pimpl_s::open_file(
 
 	H5_ERROR(plist_id= H5Pcreate(H5P_FILE_ACCESS));
 
-#if !NO_MPI || USE_MPI
 	if (GLOBAL_COMM.is_valid())
 	{
 		H5Pset_fapl_mpio(plist_id, GLOBAL_COMM.comm(), GLOBAL_COMM.info());
 	}
-#endif
 
 	hid_t f_id;
 
@@ -643,6 +633,8 @@ DataType DataStream::pimpl_s::convert_data_type_h5_to_sp(hid_t t_id) const
 			|| type_class == H5T_ARRAY)
 	{
 		hid_t atomic_id = H5Tget_native_type(type_class, H5T_DIR_ASCEND);
+
+		UNIMPLEMENTED;
 
 //		switch (atomic_id)
 //		{

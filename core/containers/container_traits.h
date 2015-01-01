@@ -11,7 +11,7 @@
 #include <memory>
 #include <string.h>
 
-#include "../utilities/memory_pool.h"
+#include "../design_pattern/memory_pool.h"
 
 namespace simpla
 {

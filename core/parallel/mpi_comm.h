@@ -16,7 +16,7 @@ extern "C"
 #include <thread>
 #include "../utilities/parse_command_line.h"
 #include "../utilities/misc_utilities.h"
-#include "../utilities/singleton_holder.h"
+#include "../design_pattern/singleton_holder.h"
 #include "../utilities/log.h"
 
 namespace simpla

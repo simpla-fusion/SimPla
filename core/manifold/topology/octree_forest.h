@@ -19,7 +19,7 @@
 #include "../utilities/primitives.h"
 #include "../utilities/sp_type_traits.h"
 #include "../utilities/pretty_stream.h"
-#include "../utilities/memory_pool.h"
+#include "../design_pattern/memory_pool.h"
 #include "../parallel/distributed_array.h"
 
 namespace simpla

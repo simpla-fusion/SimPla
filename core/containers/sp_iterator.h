@@ -7,7 +7,7 @@
 
 #ifndef SP_ITERATOR_H_
 #define SP_ITERATOR_H_
-#include "sp_type_traits.h"
+#include "../utilities/sp_type_traits.h"
 #include <iterator>
 namespace simpla
 {

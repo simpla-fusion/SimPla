@@ -11,7 +11,7 @@
 #include <mutex>
 #include <cstring>
 #include "../utilities/log.h"
-#include "../utilities/memory_pool.h"
+#include "../design_pattern/memory_pool.h"
 #include "../utilities/misc_utilities.h"
 namespace simpla
 {
