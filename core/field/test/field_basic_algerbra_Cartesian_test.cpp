@@ -8,6 +8,7 @@
 #include <iostream>
 #include <gtest/gtest.h>
 
+#include "../../utilities/utilities.h"
 #include "../../manifold/manifold.h"
 #include "../../manifold/geometry/cartesian.h"
 #include "../../manifold/topology/structured.h"
@@ -24,34 +25,37 @@ typedef Manifold<CartesianCoordinates<StructuredMesh, CARTESIAN_ZAXIS>,
 typedef testing::Types<
 		//
 
-		Field<Domain<manifold_type, VERTEX>, double> //
+		Field<double, manifold_type::template Domain<VERTEX>> //
 		,
-		Field<Domain<manifold_type, EDGE>, double> //
+		Field<double, manifold_type::template Domain<EDGE>> //
 		,
-		Field<Domain<manifold_type, FACE>, double> //
+		Field<double, manifold_type::template Domain<FACE>> //
 		,
-		Field<Domain<manifold_type, VOLUME>, double> //
+		Field<double, manifold_type::template Domain<VOLUME>> //
 
 		,
-		Field<Domain<manifold_type, VERTEX>, nTuple<double, 3>> //
+		Field<nTuple<double, 3>, manifold_type::template Domain<VERTEX>> //
 		,
-		Field<Domain<manifold_type, EDGE>, nTuple<double, 3>> //
+		Field<nTuple<double, 3>, manifold_type::template Domain<EDGE>> //
 		,
-		Field<Domain<manifold_type, FACE>, nTuple<double, 3>> //
+		Field<nTuple<double, 3>, manifold_type::template Domain<FACE>> //
 		,
-		Field<Domain<manifold_type, VOLUME>, nTuple<double, 3>> //
+		Field<nTuple<double, 3>, manifold_type::template Domain<VOLUME>> //
 
 		,
-		Field<Domain<manifold_type, VERTEX>, nTuple<std::complex<double>, 3, 3>> //
-		, Field<Domain<manifold_type, EDGE>, nTuple<std::complex<double>, 3, 3>> //
-		, Field<Domain<manifold_type, FACE>, nTuple<double, 3, 3>> //
-		, Field<Domain<manifold_type, VOLUME>, nTuple<double, 3, 3>> //
+		Field<nTuple<std::complex<double>, 3, 3>,
+				manifold_type::template Domain<VERTEX>> //
+		,
+		Field<nTuple<std::complex<double>, 3, 3>,
+				manifold_type::template Domain<EDGE>> //
+		, Field<nTuple<double, 3, 3>, manifold_type::template Domain<FACE>> //
+		, Field<nTuple<double, 3, 3>, manifold_type::template Domain<VOLUME>> //
 
 > TypeParamList;
 
 //#define DECLARE_STATIC_MANIFOLD( _VALUE_TYPE_,_IFORM_ )                            \
 //template<> std::shared_ptr<manifold_type>                                          \
-//TestField<Field<_VALUE_TYPE_, Domain<manifold_type, _IFORM_> >>::manifold =        \
+//TestField<Field<_VALUE_TYPE_, manifold_type::template Domain< _IFORM_> >>::manifold =        \
 //		std::make_shared<manifold_type>(nTuple<Real, 3>( { 0.0, 0.0, 0.0 }),       \
 //				nTuple<Real, 3>( { 1.0, 2.0, 1.0 }), nTuple<size_t, 3>( { 40,      \
 //						12, 10 }));
@@ -64,9 +68,12 @@ typedef testing::Types<
 template<typename TF>
 std::shared_ptr<typename TestField<TF>::manifold_type> TestField<TF>::manifold = //
 		std::make_shared<manifold_type>( //
-				nTuple<Real, 3>( { 0.0, 0.0, 0.0 }), //
-				nTuple<Real, 3>( { 1.0, 2.0, 1.0 }), //
-				nTuple<size_t, 3>( { 40, 12, 10 }) //
+				nTuple<double, 3>(
+				{ 0.0, 0.0, 0.0 }), //
+				nTuple<double, 3>(
+				{ 1.0, 2.0, 1.0 }), //
+				nTuple<size_t, 3>(
+				{ 40, 12, 10 }) //
 						);
 
 INSTANTIATE_TYPED_TEST_CASE_P(FIELD, TestField, TypeParamList);

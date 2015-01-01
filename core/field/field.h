@@ -16,7 +16,6 @@
 #include "../physics/physical_object.h"
 
 #include "../data_interface/data_set.h"
-#include "../manifold/domain.h"
 #include "../design_pattern/expression_template.h"
 
 namespace simpla
@@ -30,44 +29,36 @@ template<typename ... >struct _Field;
 /**
  *
  *  \brief skeleton of Field data holder
- *   Field is a Associate container
- *     f[id_type i] => value at the discrete point/edge/face i
+ *   Field is an Associate container
+ *     f[id_type i] => value at the discrete point/edge/face/volume i
  *   Field is a Function
  *     f(coordinates_type x) =>  field value(scalar/vector/tensor) at the coordinates x
  *   Field is a Expression
  */
 template<typename TV, typename TDomain>
-struct _Field<TV, TDomain> : public PhysicalObject
+struct _Field<TV, TDomain> : public PhysicalObject, public TDomain
 {
 
 	typedef TDomain domain_type;
 	typedef typename domain_type::id_type id_type;
 
 	typedef TV value_type;
-	typedef std::shared_ptr<value_type> container_type;
+	typedef typename domain_type::template container_type<value_type> container_type;
 	typedef _Field<value_type, domain_type> this_type;
 
 private:
-
-	domain_type domain_;
 
 	container_type data_;
 
 public:
 
 	template<typename ...Args>
-	_Field(domain_type const & domain, Args &&...args) :
-			domain_(domain), data_(nullptr)
-	{
-	}
-
-	template<typename TM>
-	_Field(std::shared_ptr<TM> const & m) :
-			domain_(m)
+	_Field(Args &&...args) :
+			domain_type(std::forward<Args>(args)...), data_(nullptr)
 	{
 	}
 	_Field(this_type const & that) :
-			domain_(that.domain_), data_(that.data_)
+			domain_type(that), data_(that.data_)
 	{
 	}
 
@@ -84,22 +75,9 @@ public:
 	void swap(this_type &r)
 	{
 		sp_swap(r.data_, data_);
-		sp_swap(r.domain_, domain_);
+		domain_type::swap(r);
 	}
 
-	domain_type const & domain() const
-	{
-		return domain_;
-	}
-
-	void domain(domain_type d)
-	{
-		sp_swap(d, domain_);
-	}
-	size_t size() const
-	{
-		return domain_.size();
-	}
 	container_type & data()
 	{
 		return data_;
@@ -137,7 +115,7 @@ public:
 	{
 		if (!is_valid())
 		{
-			data_ = domain_.template allocate<value_type>();
+			domain_type::template allocate<value_type>().swap(data_);
 			PhysicalObject::update();
 		}
 	}
@@ -145,14 +123,20 @@ public:
 	void clear()
 	{
 		allocate();
-		container_traits<container_type>::clear(data_, size());
+		container_traits<container_type>::clear(data_, domain_type::size());
 	}
 
+	domain_type & domain()
+	{
+		return *this;
+	}
+	domain_type const & domain() const
+	{
+		return *this;
+	}
 	DataSet dataset() const
 	{
-		return DataSet(
-				{ data_, properties(), make_datatype<value_type>(),
-						domain_.dataspace() });
+		return std::move(domain_type::dataset(data_, properties()));
 	}
 
 	/***
@@ -161,22 +145,22 @@ public:
 	 */
 	value_type & get(id_type const &s)
 	{
-		return data_.get()[domain_.hash(s)];
+		return domain_type::access(data_, s);
 	}
 
 	value_type const& get(id_type const &s) const
 	{
-		return data_.get()[domain_.hash(s)];
+		return domain_type::access(data_, s);
 	}
 
 	value_type & operator[](id_type const & s)
 	{
-		return data_.get()[domain_.hash(s)];
+		return domain_type::access(data_, s);
 	}
 
 	value_type const & operator[](id_type const & s) const
 	{
-		return data_.get()[domain_.hash(s)];
+		return domain_type::access(data_, s);
 	}
 
 	/** @} */
@@ -190,7 +174,7 @@ public:
 	{
 		allocate();
 
-		domain_.foreach(_impl::_assign(), data_.get(), that);
+		domain_type::foreach(_impl::_assign(), data_, that);
 
 		return (*this);
 	}
@@ -200,7 +184,7 @@ public:
 	{
 		allocate();
 
-		domain_.foreach(_impl::_assign(), data_.get(), that);
+		domain_type::foreach(_impl::_assign(), data_, that);
 
 		return (*this);
 	}
@@ -210,7 +194,7 @@ public:
 	{
 		allocate();
 
-		domain_.foreach(_impl::plus_assign(), data_.get(), that);
+		domain_type::foreach(_impl::plus_assign(), data_, that);
 
 		return (*this);
 
@@ -221,7 +205,7 @@ public:
 	{
 		allocate();
 
-		domain_.foreach(_impl::minus_assign(), data_.get(), that);
+		domain_type::foreach(_impl::minus_assign(), data_, that);
 
 		return (*this);
 	}
@@ -230,7 +214,7 @@ public:
 	inline this_type & operator *=(TR const &that)
 	{
 		allocate();
-		domain_.foreach(_impl::multiplies_assign(), data_.get(), that);
+		domain_type::foreach(_impl::multiplies_assign(), data_, that);
 
 		return (*this);
 	}
@@ -239,7 +223,7 @@ public:
 	inline this_type & operator /=(TR const &that)
 	{
 		allocate();
-		domain_.foreach(_impl::divides_assign(), data_.get(), that);
+		domain_type::foreach(_impl::divides_assign(), data_, that);
 
 		return (*this);
 	}
@@ -247,7 +231,7 @@ public:
 	template<typename TFun> void pull_back(TFun const &fun)
 	{
 		allocate();
-		domain_.pull_back(data_.get(), fun);
+		domain_type::pull_back(data_, fun);
 	}
 
 	/** @} */
@@ -259,14 +243,14 @@ public:
 	field_value_type gather(
 			typename domain_type::coordinates_type const& x) const
 	{
-		return std::move(domain_.gather(data_.get(), x));
+		return std::move(domain_type::gather(data_, x));
 
 	}
 
 	template<typename ...Args>
 	void scatter(Args && ... args)
 	{
-		domain_.scatter(data_.get(), std::forward<Args>(args)...);
+		domain_type::scatter(data_, std::forward<Args>(args)...);
 	}
 
 }
@@ -426,9 +410,7 @@ template<typename, size_t> class Domain;
 template<typename TV, size_t IFORM, typename TM>
 _Field<TV, Domain<TM, IFORM> > make_form(std::shared_ptr<TM> manifold)
 {
-	return std::move(
-			_Field<TV, Domain<TM, IFORM> >(
-					Domain<TM, IFORM>(manifold->shared_from_this())));
+	return std::move(_Field<TV, Domain<TM, IFORM> >(manifold));
 }
 
 }

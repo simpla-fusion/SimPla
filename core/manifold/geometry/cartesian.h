@@ -42,7 +42,6 @@ public:
 
 	typedef typename topology_type::coordinates_type coordinates_type;
 	typedef typename topology_type::id_type id_type;
-	typedef typename topology_type::index_type index_type;
 //	typedef typename topology_type::iterator iterator;
 	typedef Real scalar_type;
 
@@ -147,6 +146,9 @@ public:
 	coordinates_type shift_/* = { 0, 0, 0 }*/;
 
 	bool update();
+	void sync()
+	{
+	}
 
 	void updatedt(Real dx2 = 0.0)
 	{
@@ -257,7 +259,7 @@ public:
 	inline auto extents() const
 	DECL_RET_TYPE (std::make_pair(xmin_, xmax_))
 
-	inline coordinates_type dx(index_type s = 0UL) const
+	inline coordinates_type dx(id_type s = 0UL) const
 	{
 		coordinates_type res;
 
@@ -271,13 +273,10 @@ public:
 		return std::move(res);
 	}
 
-	template<typename ... Args>
-	coordinates_type coordinates(Args && ... args) const
+	coordinates_type coordinates(id_type const & s) const
 	{
 		return std::move(
-				coordinates_from_topology(
-						topology_type::get_coordinates(
-								std::forward<Args >(args)...)));
+				coordinates_from_topology(topology_type::id_to_coordinates(s)));
 	}
 
 	coordinates_type coordinates_from_topology(coordinates_type const &x) const
@@ -334,15 +333,15 @@ public:
 								std::forward<Args >(args)...)));
 	}
 
-	std::tuple<index_type, coordinates_type> coordinates_global_to_local(
-			coordinates_type x, index_type shift = 0UL) const
+	std::tuple<id_type, coordinates_type> coordinates_global_to_local(
+			coordinates_type x, id_type shift = 0UL) const
 	{
 		return std::move(
 				topology_type::coordinates_global_to_local(
 						std::move(coordinates_to_topology(x)), shift));
 	}
-	std::tuple<index_type, coordinates_type> coordinates_global_to_local_NGP(
-			coordinates_type x, index_type shift = 0UL) const
+	std::tuple<id_type, coordinates_type> coordinates_global_to_local_NGP(
+			coordinates_type x, id_type shift = 0UL) const
 	{
 		return std::move(
 				topology_type::coordinates_global_to_local_NGP(
@@ -500,33 +499,33 @@ public:
 
 public:
 
-	scalar_type cell_volume(index_type s) const
+	scalar_type cell_volume(id_type s) const
 	{
 		return topology_type::cell_volume(s) * volume_[1] * volume_[2]
 				* volume_[4];
 	}
-	scalar_type volume(index_type s) const
+	scalar_type volume(id_type s) const
 	{
 		return topology_type::volume(s) * volume_[topology_type::node_id(s)];
 	}
-	scalar_type inv_volume(index_type s) const
+	scalar_type inv_volume(id_type s) const
 	{
 		return topology_type::inv_volume(s)
 				* inv_volume_[topology_type::node_id(s)];
 	}
 
-	scalar_type dual_volume(index_type s) const
+	scalar_type dual_volume(id_type s) const
 	{
 		return topology_type::dual_volume(s)
 				* dual_volume_[topology_type::node_id(s)];
 	}
-	scalar_type inv_dual_volume(index_type s) const
+	scalar_type inv_dual_volume(id_type s) const
 	{
 		return topology_type::inv_dual_volume(s)
 				* inv_dual_volume_[topology_type::node_id(s)];
 	}
 
-	Real HodgeStarVolumeScale(index_type s) const
+	Real HodgeStarVolumeScale(id_type s) const
 	{
 		return 1.0;
 	}
@@ -553,7 +552,7 @@ bool CartesianCoordinates<TTopology, ZAXIS>::update()
 			dims[i] = 1;
 	}
 
-	topology_type::dimensions(dims);
+	topology_type::dimensions(&dims[0]);
 	topology_type::update();
 
 	for (size_t i = 0; i < ndims; ++i)

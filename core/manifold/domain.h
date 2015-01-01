@@ -123,11 +123,33 @@ public:
 		return manifold_->template dataspace<iform>().size();
 	}
 
+	template<typename TV> using container_type=std::shared_ptr<TV>;
 	template<typename TV>
 	std::shared_ptr<TV> allocate()const
 	{
 		return sp_make_shared_array<TV>(size());
 	}
+
+	template<typename TV>
+	DataSet dataset(container_type<TV> const& data_,Properties const& prop)const
+	{
+		return
+		DataSet(
+				{	data_, prop , make_datatype<TV>(),
+					dataspace()});
+	}
+	template<typename TV>
+	auto index_value (container_type<TV> & v,id_type s)const
+	DECL_RET_TYPE(v.get()[s])
+
+	template<typename TV>
+	auto index_value (TV* v,id_type s)const
+	DECL_RET_TYPE(v[s])
+
+	template<typename TV>
+	auto index_value (TV const & v,id_type s)const
+	DECL_RET_TYPE(get_value(v,s))
+
 //	this_type operator &(this_type const & D1) const // \f$D_0 \cap \D_1\f$
 //	{
 //		return *this;
@@ -162,13 +184,6 @@ public:
 		return manifold_->template dataspace<iform>( );
 	}
 
-//	template<typename ...Args>
-//	DataSpace dataspace(Args &&... args) const
-//	{
-//		return manifold_->dataspace(
-//				*this,std::forward<Args>(args)...);
-//	}
-
 	template<typename ...Args>
 	auto coordinates(Args && ...args) const
 	DECL_RET_TYPE((manifold_->coordinates(std::forward<Args>(args)...)))
@@ -195,24 +210,14 @@ public:
 	auto sample(Args && ...args)const
 	DECL_RET_TYPE((manifold_->template sample<iform>(std::forward<Args>(args)...)))
 
-	template<typename TOP,typename ...Args>
-	void foreach(TOP const & op,Args && ... args)const
+	template<typename TOP,typename T1,typename ...Args>
+	void foreach(TOP const & op, Args && ... args)const
 	{
 		for(auto s:range_)
 		{
-			op(get_value(std::forward<Args>(args),hash(s))...);
+			op( get_value(std::forward<Args>(args),s)...);
 		}
 	}
-
-//	template<typename TOP,typename ...Args>
-//	void foreach( Args && ... args)const
-//	{
-//		for(auto s:range_)
-//		{
-//			TOP::operator()(get_value(std::forward<Args>(args),hash(s))...);
-//		}
-//	}
-
 	template<typename TL,typename TFun>
 	void pull_back(TL & l, TFun const &fun)const
 	{

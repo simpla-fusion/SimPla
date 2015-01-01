@@ -12,8 +12,8 @@
 #include <tuple>
 
 #include "../../utilities/utilities.h"
-#include "../field.h"
 #include "../../io/io.h"
+#include "../field.h"
 
 using namespace simpla;
 
@@ -46,7 +46,7 @@ protected:
 
 		manifold = make_manifold<manifold_type>();
 
-		manifold->dimensions(dims);
+		manifold->dimensions(&dims[0]);
 		manifold->extents(xmin, xmax);
 		manifold->update();
 
@@ -119,10 +119,10 @@ typedef FETLTest<m_type, v_type> TestCase;
 
 TEST_P(TestCase, grad0)
 {
-	auto domain0 = make_domain<VERTEX>(manifold);
-	auto domain1 = make_domain<EDGE>(manifold);
-	auto domain2 = make_domain<FACE>(manifold);
-	auto domain3 = make_domain<VOLUME>(manifold);
+	auto domain0 = manifold->domain<VERTEX>();
+	auto domain1 = manifold->domain<EDGE>();
+	auto domain2 = manifold->domain<FACE>();
+	auto domain3 = manifold->domain<VOLUME>();
 
 	auto f0 = make_field<value_type>(domain0);
 	auto f1 = make_field<value_type>(domain1);
@@ -196,9 +196,9 @@ TEST_P(TestCase, grad0)
 //		}
 
 	}
-
-	variance /= manifold->template get_num_of_elements<EDGE>();
-	average /= manifold->template get_num_of_elements<EDGE>();
+//
+//	variance /= manifold->template get_num_of_elements<EDGE>();
+//	average /= manifold->template get_num_of_elements<EDGE>();
 	EXPECT_LE(std::sqrt(variance), error);
 	EXPECT_LE(mod(average), error);
 
@@ -214,11 +214,11 @@ TEST_P(TestCase, grad3)
 	if (!manifold->is_valid())
 		return;
 
-	auto domain3 = make_domain<VOLUME>(manifold);
-	auto domain2 = make_domain<FACE>(manifold);
-	auto f2 = make_field<value_type>(make_domain<FACE>(manifold));
-	auto f2b = make_field<value_type>(make_domain<FACE>(manifold));
-	auto f3 = make_field<value_type>(make_domain<VOLUME>(manifold));
+	auto domain3 = manifold->domain<VOLUME>();
+	auto domain2 = manifold->domain<FACE>();
+	auto f2 = make_field<value_type>(manifold->domain<FACE>());
+	auto f2b = make_field<value_type>(manifold->domain<FACE>());
+	auto f3 = make_field<value_type>(manifold->domain<VOLUME>());
 
 	f3.clear();
 	f2.clear();
@@ -293,8 +293,8 @@ TEST_P(TestCase, diverge1)
 	if (!manifold->is_valid())
 		return;
 
-	auto domain0 = make_domain<VERTEX>(manifold);
-	auto domain1 = make_domain<EDGE>(manifold);
+	auto domain0 = manifold->domain<VERTEX>();
+	auto domain1 = manifold->domain<EDGE>();
 	auto f1 = make_field<value_type>(domain1);
 	auto f0 = make_field<value_type>(domain0);
 	auto f0b = make_field<value_type>(domain0);
@@ -395,8 +395,8 @@ TEST_P(TestCase, diverge2)
 	if (!manifold->is_valid())
 		return;
 
-	auto domain3 = make_domain<VOLUME>(manifold);
-	auto domain2 = make_domain<FACE>(manifold);
+	auto domain3 = manifold->domain<VOLUME>();
+	auto domain2 = manifold->domain<FACE>();
 	auto f2 = make_field<value_type>(domain2);
 	auto f3 = make_field<value_type>(domain3);
 
@@ -476,8 +476,8 @@ TEST_P(TestCase, curl1)
 	if (!manifold->is_valid())
 		return;
 
-	auto domain1 = make_domain<EDGE>(manifold);
-	auto domain2 = make_domain<FACE>(manifold);
+	auto domain1 = manifold->domain<EDGE>();
+	auto domain2 = manifold->domain<FACE>();
 	auto f1 = make_field<value_type>(domain1);
 	auto f1b = make_field<value_type>(domain1);
 	auto f2 = make_field<value_type>(domain2);
@@ -586,8 +586,8 @@ TEST_P(TestCase, curl2)
 	if (!manifold->is_valid())
 		return;
 
-	auto domain1 = make_domain<EDGE>(manifold);
-	auto domain2 = make_domain<FACE>(manifold);
+	auto domain1 = manifold->domain<EDGE>();
+	auto domain2 = manifold->domain<FACE>();
 	auto f1 = make_field<value_type>(domain1);
 	auto vf1b = make_field<value_type>(domain1);
 	auto f2 = make_field<value_type>(domain2);
@@ -703,10 +703,10 @@ TEST_P(TestCase, identity_curl_grad_f0_eq_0)
 {
 	if (!manifold->is_valid())
 		return;
-	auto domain0 = make_domain<VERTEX>(manifold);
-	auto domain1 = make_domain<EDGE>(manifold);
-	auto domain2 = make_domain<FACE>(manifold);
-	auto domain3 = make_domain<VOLUME>(manifold);
+	auto domain0 = manifold->domain<VERTEX>();
+	auto domain1 = manifold->domain<EDGE>();
+	auto domain2 = manifold->domain<FACE>();
+	auto domain3 = manifold->domain<VOLUME>();
 	auto f0 = make_field<value_type>(domain0);
 	auto f1 = make_field<value_type>(domain1);
 	auto f2a = make_field<value_type>(domain2);
@@ -754,10 +754,10 @@ TEST_P(TestCase, identity_curl_grad_f3_eq_0)
 {
 	if (!manifold->is_valid())
 		return;
-	auto domain0 = make_domain<VERTEX>(manifold);
-	auto domain1 = make_domain<EDGE>(manifold);
-	auto domain2 = make_domain<FACE>(manifold);
-	auto domain3 = make_domain<VOLUME>(manifold);
+	auto domain0 = manifold->domain<VERTEX>();
+	auto domain1 = manifold->domain<EDGE>();
+	auto domain2 = manifold->domain<FACE>();
+	auto domain3 = manifold->domain<VOLUME>();
 	auto f3 = make_field<value_type>(domain3);
 	auto f1a = make_field<value_type>(domain1);
 	auto f1b = make_field<value_type>(domain1);
@@ -804,10 +804,10 @@ TEST_P(TestCase, identity_div_curl_f1_eq0)
 {
 	if (!manifold->is_valid())
 		return;
-	auto domain0 = make_domain<VERTEX>(manifold);
-	auto domain1 = make_domain<EDGE>(manifold);
-	auto domain2 = make_domain<FACE>(manifold);
-	auto domain3 = make_domain<VOLUME>(manifold);
+	auto domain0 = manifold->domain<VERTEX>();
+	auto domain1 = manifold->domain<EDGE>();
+	auto domain2 = manifold->domain<FACE>();
+	auto domain3 = manifold->domain<VOLUME>();
 	auto f1 = make_field<value_type>(domain1);
 	auto f2 = make_field<value_type>(domain2);
 	auto f0a = make_field<value_type>(domain0);
@@ -858,10 +858,10 @@ TEST_P(TestCase, identity_div_curl_f2_eq0)
 {
 	if (!manifold->is_valid())
 		return;
-	auto domain0 = make_domain<VERTEX>(manifold);
-	auto domain1 = make_domain<EDGE>(manifold);
-	auto domain2 = make_domain<FACE>(manifold);
-	auto domain3 = make_domain<VOLUME>(manifold);
+	auto domain0 = manifold->domain<VERTEX>();
+	auto domain1 = manifold->domain<EDGE>();
+	auto domain2 = manifold->domain<FACE>();
+	auto domain3 = manifold->domain<VOLUME>();
 	auto f1 = make_field<value_type>(domain1);
 	auto f2 = make_field<value_type>(domain2);
 	auto f3a = make_field<value_type>(domain3);
@@ -914,39 +914,56 @@ INSTANTIATE_TEST_CASE_P(FETLTEST, TestCase,
 
 testing::Combine(testing::Values(
 
-nTuple<Real, 3>( { 0.0, 0.0, 0.0 })
+nTuple<Real, 3>(
+{ 0.0, 0.0, 0.0 })
 
-, nTuple<Real, 3>( { -1.0, -2.0, -3.0 })
+, nTuple<Real, 3>(
+{ -1.0, -2.0, -3.0 })
 
 ),
 
 testing::Values(
 
-nTuple<Real, 3>( { 1.0, 2.0, 1.0 }) //
+nTuple<Real, 3>(
+{ 1.0, 2.0, 1.0 }) //
 
-		, nTuple<Real, 3>( { 2.0, 0.0, 0.0 }) //
-		, nTuple<Real, 3>( { 0.0, 2.0, 0.0 }) //
-		, nTuple<Real, 3>( { 0.0, 0.0, 2.0 }) //
-		, nTuple<Real, 3>( { 0.0, 2.0, 2.0 }) //
-		, nTuple<Real, 3>( { 2.0, 0.0, 2.0 }) //
-		, nTuple<Real, 3>( { 2.0, 2.0, 0.0 }) //
+		, nTuple<Real, 3>(
+{ 2.0, 0.0, 0.0 }) //
+		, nTuple<Real, 3>(
+{ 0.0, 2.0, 0.0 }) //
+		, nTuple<Real, 3>(
+{ 0.0, 0.0, 2.0 }) //
+		, nTuple<Real, 3>(
+{ 0.0, 2.0, 2.0 }) //
+		, nTuple<Real, 3>(
+{ 2.0, 0.0, 2.0 }) //
+		, nTuple<Real, 3>(
+{ 2.0, 2.0, 0.0 }) //
 
 		),
 
 testing::Values(
 
-nTuple<size_t, 3>( { 40, 12, 10 }) //
-		, nTuple<size_t, 3>( { 100, 1, 1 }) //
-		, nTuple<size_t, 3>( { 1, 100, 1 }) //
-		, nTuple<size_t, 3>( { 1, 1, 100 }) //
-		, nTuple<size_t, 3>( { 1, 10, 5 }) //
-		, nTuple<size_t, 3>( { 11, 1, 21 }) //
-		, nTuple<size_t, 3>( { 11, 21, 1 }) //
+nTuple<size_t, 3>(
+{ 40, 12, 10 }) //
+		, nTuple<size_t, 3>(
+{ 100, 1, 1 }) //
+		, nTuple<size_t, 3>(
+{ 1, 100, 1 }) //
+		, nTuple<size_t, 3>(
+{ 1, 1, 100 }) //
+		, nTuple<size_t, 3>(
+{ 1, 10, 5 }) //
+		, nTuple<size_t, 3>(
+{ 11, 1, 21 }) //
+		, nTuple<size_t, 3>(
+{ 11, 21, 1 }) //
 		),
 
 testing::Values(
 
-nTuple<Real, 3>( { TWOPI, 3 * TWOPI, TWOPI }))
+nTuple<Real, 3>(
+{ TWOPI, 3 * TWOPI, TWOPI }))
 
 ));
 

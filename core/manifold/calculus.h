@@ -12,14 +12,11 @@
 #include "../utilities/utilities.h"
 #include "../utilities/sp_functional.h"
 #include "../design_pattern/expression_template.h"
-#include "domain.h"
-
 
 namespace simpla
 {
 
 template<typename ... > class _Field;
-template<typename, size_t> class Domain;
 template<typename, typename, typename > class Expression;
 
 /**
@@ -29,7 +26,6 @@ template<typename, typename, typename > class Expression;
  *  \brief Field expression template
  *
  */
-
 
 /// @name  Exterior algebra
 /// @{

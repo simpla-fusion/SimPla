@@ -12,6 +12,7 @@
 #include <random>
 #include "../field.h"
 #include "../../manifold/domain.h"
+#include "../../utilities/utilities.h"
 using namespace simpla;
 
 template<typename TField>
@@ -43,10 +44,10 @@ public:
 	value_type default_value;
 
 	auto make_field() const
-	DECL_RET_TYPE((simpla::make_field<value_type>(domain)))
+	DECL_RET_TYPE((simpla::=make_field<value_type>(domain)))
 
 	auto make_scalar_field() const
-	DECL_RET_TYPE((simpla::make_field<Real>(domain)))
+	DECL_RET_TYPE(( simpla::make_field<double>(domain)))
 
 };
 
