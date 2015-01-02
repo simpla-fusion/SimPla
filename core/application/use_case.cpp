@@ -36,7 +36,7 @@ std::ostream & UseCaseList::print(std::ostream & os)
 	return os;
 }
 
-void UseCaseList::run_all_case(int argc, char ** argv)
+void UseCaseList::run(int argc, char ** argv)
 {
 	for (auto const & item : list_)
 	{

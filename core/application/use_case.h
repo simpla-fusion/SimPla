@@ -72,19 +72,19 @@ struct UseCaseList
 
 	std::ostream & print(std::ostream & os);
 
-	void run_all_case(int argc, char ** argv);
+	void run(int argc, char ** argv);
 
 }
 ;
 
 template<typename T>
-std::string use_case_register(std::string const &name)
+std::string RegisterUseCase(std::string const &name)
 {
 	return SingletonHolder<UseCaseList>::instance().template add<T>(name);
 }
 inline void RunAllUseCase(int argc, char ** argv)
 {
-	SingletonHolder<UseCaseList>::instance().run_all_case(argc, argv);
+	SingletonHolder<UseCaseList>::instance().run(argc, argv);
 }
 
 #define USE_CASE(_use_case_name) SP_APP(_use_case_name,usecase,UseCase)
