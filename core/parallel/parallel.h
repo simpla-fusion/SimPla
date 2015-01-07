@@ -24,6 +24,16 @@
 //#else
 #	include "parallel_dummy.h"
 //#endif
+
+#ifdef USE_TBB
+#include <tbb>
+namespace parallel = tbb;
+#else
+#include <atomic>
+#include <mutex>
+namespace parallel = std;
+#endif
+
 #include "mpi_comm.h"
 
 namespace simpla

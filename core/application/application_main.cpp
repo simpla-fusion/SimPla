@@ -1,19 +1,29 @@
 /*
- * context_main.cpp
+ * application_main.cpp
  *
- *  Created on: 2015年1月2日
+ *  Created on: 2015年1月7日
  *      Author: salmon
  */
+
+#include <iostream>
+#include <string>
 
 #include "../io/io.h"
 #include "../parallel/parallel.h"
 #include "../sp_config.h"
-#include "../utilities/utilities.h"
-#include "context.h"
-using namespace simpla;
+#include "../utilities/log.h"
+#include "../utilities/parse_command_line.h"
+#include "application.h"
+#include "logo.h"
 
+/**
+ *  @ingroup application
+ *
+ *  main entry of user case.
+ */
 int main(int argc, char **argv)
 {
+	using namespace simpla;
 
 	init_logger(argc, argv);
 	init_parallel(argc, argv);
@@ -57,7 +67,7 @@ int main(int argc, char **argv)
 
 	MESSAGE << "--------- START --------- " << endl;
 
-	RunAllUseCase(argc, argv);
+	run_all_apps(argc, argv);
 
 	MESSAGE << "--------- DONE --------- " << endl;
 
@@ -68,4 +78,3 @@ int main(int argc, char **argv)
 	return 0;
 
 }
-

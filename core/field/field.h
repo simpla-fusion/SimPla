@@ -11,7 +11,7 @@
 #include <cstddef>
 #include <memory>
 #include <type_traits>
-
+#include "../parallel/parallel.h"
 #include "../utilities/utilities.h"
 #include "../physics/physical_object.h"
 
@@ -113,9 +113,12 @@ public:
 	}
 	void allocate()
 	{
-		if (!is_valid())
+		if (data_ == nullptr)
 		{
+			auto lock = parallel::lock_guard(mutex_);
+
 			domain_type::template allocate<value_type>().swap(data_);
+
 			PhysicalObject::update();
 		}
 	}

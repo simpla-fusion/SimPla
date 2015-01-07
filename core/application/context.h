@@ -8,65 +8,88 @@
 #ifndef CORE_APPLICATION_CONTEXT_H_
 #define CORE_APPLICATION_CONTEXT_H_
 
+#include <list>
+
+#include "application.h"
+
 namespace simpla
 {
+namespace _impl
+{
 
-class Context
+class split;
+
+}  // namespace _impl
+
+class Context: public SpApp
 {
 public:
+
+	Context(Context &, _impl::split)
 	virtual ~Context();
-
 	virtual void setup(int argc, char const** argv);
+	virtual void teardown();
+	virtual void task_schedule();
 
-	virtual void body();
+	struct Task
+	{
+		Task();
+		virtual ~Task();
+		virtual void body(Context & context);
+	};
 
-	virtual void split();
-
-	virtual void sync();
+	void add_task(std::string const & name, std::shared_ptr<Task> const& p)
+	{
+		task_graph_.emplace_back(name, p);
+	}
+	void body()
+	{
+		for (auto & item : task_graph_)
+		{
+			item.second->body(*this);
+		}
+	}
+private:
+	std::list<std::pair<std::string, std::shared_ptr<Task>>>task_graph_;
 };
-struct ContextList
+
+template<typename TContext>
+std::string add_task(std::string const & ctx_name,
+		std::string const & task_name,
+		std::shared_ptr<Context::Task> const & task)
 {
-	std::map<std::string, std::shared_ptr<Context>> list_;
-
-	std::string add(std::string const & name,
-			std::shared_ptr<Context> const & p);
-
-	template<typename T>
-	std::string add(std::string const & name, std::shared_ptr<T> const & p)
+	auto & app_list = SingletonHolder<SpAppList>::instance();
+	if (app_list.find(ctx_name) == app_list.end())
 	{
-		list_[name] = std::dynamic_pointer_cast<Context>(p);
-		return "Context" + ToString(list_.size()) + "_" + name;
+		register_app<TContext>(ctx_name);
 	}
-	template<typename T>
-	std::string add(std::string const & name)
-	{
-		return add(name, std::make_shared<T>());
-	}
+	std::dynamic_pointer_cast<TContext>(app_list[ctx_name]).add_task(task_name,
+			task);
 
-	std::ostream & print(std::ostream & os);
+	return ctx_name + "." + task_name;
+}
+#define REGISTER_CONTEXT(_name,_type)  \
+const static std::string  _name##_type_str = register_app<_type>(( #_name)) ;
 
-	void run();
-	void sync();
-	void setup(int argc, char const ** argv);
+#define ADD_TASK(_ctx_type,_ctx_name,_task_name)     namespace _impl{                  \
+class _ctx_name##_task_name: public Context::Task                                      \
+{                                                                                      \
+	static const std::string info;                                                     \
+public:                                                                                \
+	typedef _ctx_name##_task_name this_type;                                           \
+                                                                                       \
+	void body(Context & context);                                                      \
+	{                                                                                  \
+		body2( dynamic_cast<_ctx_type&>(context));                                     \
+	}                                                                                  \
+	void body2(_ctx_type & context);                                                   \
+};                                                                                     \
+const std::string _ctx_name##_task_name::info =                                        \
+add_task<_ctx_type>((#_ctx_name, #_task_name,std::make_shared<_ctx_name##_task_name>())) ;   \
+} \
+void _impl::_ctx_name##_task_name::body2(_ctx_type & context)
 
 }
-;
-
-template<typename T>
-std::string RegisterContext(std::string const &name)
-{
-	return SingletonHolder<ContextList>::instance().template add<T>(name);
-}
-inline void RunAllContext()
-{
-	SingletonHolder<ContextList>::instance().run();
-}
-inline void SetUpContext(int argc, char const ** argv)
-{
-	SingletonHolder<ContextList>::instance().setup(argc, argv);
-}
-#define CONTEXT(_context_name) SP_APP(_context_name,context,Context)
-
-}  // namespace simpla
+// namespace simpla
 
 #endif /* CORE_APPLICATION_CONTEXT_H_ */

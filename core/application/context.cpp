@@ -20,59 +20,41 @@
 namespace simpla
 {
 
-std::string ContextList::add(std::string const & name,
-		std::shared_ptr<Context> const & p)
+Context::Context(Context &, _impl::split)
 {
-	list_[name] = p;
-	return "Context" + ToString(list_.size()) + "_" + name;
+
+}
+Context::~Context()
+{
+
+}
+void Context::setup(int argc, char const** argv)
+{
+
+}
+virtual void Context::teardown()
+{
+
+}
+Context Context::split()
+{
+	return Context(*this, _impl::split());
 }
 
-std::ostream & ContextList::print(std::ostream & os)
+void Context::sync()
 {
-	for (auto const & item : list_)
-	{
-		os << item.first << std::endl;
-	}
-	return os;
+
+}
+void Context::add_task(std::string const & name, std::shared_ptr<Task> const& p)
+{
+	task_list_.emplace_back(name, p);
 }
 
-void ContextList::setup(int argc, char const ** argv)
+void Context::body()
 {
-	for (auto const & item : list_)
+	for (auto & item : task_list_)
 	{
-
-		LOGGER << "Context [" << item.first << "] setup ." << std::endl;
-
-		item.second->setup(argc, argv);
-
-		LOGGER << "Context [" << item.first << "] setup done." << std::endl;
-	}
-}
-
-void ContextList::run()
-{
-	for (auto const & item : list_)
-	{
-
-		LOGGER << "Context [" << item.first << "] start." << std::endl;
-
-		item.second->body();
-
-		LOGGER << "Context [" << item.first << "] done." << std::endl;
-	}
-}
-
-
-void ContextList::sync()
-{
-	for (auto const & item : list_)
-	{
-
-		LOGGER << "Context [" << item.first << "] start." << std::endl;
-
-		item.second->sync();
-
-		LOGGER << "Context [" << item.first << "] done." << std::endl;
+		item.second->body(*this);
 	}
 }
 }  // namespace simpla

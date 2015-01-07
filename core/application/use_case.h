@@ -28,66 +28,66 @@ namespace simpla
  * @{
  *
  *  */
+//
+//class UseCase: public SpApp
+//{
+//	std::string case_info_;
+//public:
+//
+//	ConfigParser options;
+//
+//	UseCase()
+//	{
+//	}
+//	virtual ~UseCase()
+//	{
+//	}
+//
+//	virtual void init(int argc, char ** argv)
+//	{
+//		options.init(argc, argv);
+//	}
+//
+//	virtual void body() =0;
+//};
+//
+//struct UseCaseList
+//{
+//	std::map<std::string, std::shared_ptr<UseCase>> list_;
+//
+//	std::string add(std::string const & name,
+//			std::shared_ptr<UseCase> const & p);
+//
+//	template<typename T>
+//	std::string add(std::string const & name, std::shared_ptr<T> const & p)
+//	{
+//		list_[name] = std::dynamic_pointer_cast<UseCase>(p);
+//		return "UseCase" + ToString(list_.size()) + "_" + name;
+//	}
+//	template<typename T>
+//	std::string add(std::string const & name)
+//	{
+//		return add(name, std::make_shared<T>());
+//	}
+//
+//	std::ostream & print(std::ostream & os);
+//
+//	void run(int argc, char ** argv);
+//
+//}
+//;
 
-class UseCase
-{
-	std::string case_info_;
-public:
+//template<typename T>
+//std::string RegisterUseCase(std::string const &name)
+//{
+//	return SingletonHolder<UseCaseList>::instance().template add < T > (name);
+//}
+//inline void RunAllUseCase(int argc, char ** argv)
+//{
+//	SingletonHolder<UseCaseList>::instance().run(argc, argv);
+//}
 
-	ConfigParser options;
-
-	UseCase()
-	{
-	}
-	virtual ~UseCase()
-	{
-	}
-
-	virtual void init(int argc, char ** argv)
-	{
-		options.init(argc, argv);
-	}
-
-	virtual void body() =0;
-};
-
-struct UseCaseList
-{
-	std::map<std::string, std::shared_ptr<UseCase>> list_;
-
-	std::string add(std::string const & name,
-			std::shared_ptr<UseCase> const & p);
-
-	template<typename T>
-	std::string add(std::string const & name, std::shared_ptr<T> const & p)
-	{
-		list_[name] = std::dynamic_pointer_cast<UseCase>(p);
-		return "UseCase" + ToString(list_.size()) + "_" + name;
-	}
-	template<typename T>
-	std::string add(std::string const & name)
-	{
-		return add(name, std::make_shared<T>());
-	}
-
-	std::ostream & print(std::ostream & os);
-
-	void run(int argc, char ** argv);
-
-}
-;
-
-template<typename T>
-std::string RegisterUseCase(std::string const &name)
-{
-	return SingletonHolder<UseCaseList>::instance().template add<T>(name);
-}
-inline void RunAllUseCase(int argc, char ** argv)
-{
-	SingletonHolder<UseCaseList>::instance().run(argc, argv);
-}
-
-#define USE_CASE(_use_case_name) SP_APP(_use_case_name,usecase,UseCase)
+#define USE_CASE(_use_case_name) SP_APP(_use_case_name)
 
 /** @} */
 
