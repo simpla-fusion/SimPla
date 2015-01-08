@@ -16,7 +16,14 @@ class DataSet;
 class Properties;
 
 
-/** @ingroup physics */
+/** @ingroup physics
+ *  @addtogroup physical_object Physical Object
+ *
+ * */
+
+/**
+ * @ingroup physical_object
+ */
 struct PhysicalObject
 {
 	//! Default constructor

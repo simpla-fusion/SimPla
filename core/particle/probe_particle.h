@@ -24,8 +24,12 @@ namespace simpla
 
 /**
  *
- * @ingroup particle_container
- *
+ * @addtogroup particle
+ * @{
+ * @class ProbeParticle
+ * @}
+ */
+/**
  * @brief  ProbeParticle is a container of particle trajectory
  *
  *  It can cache the history of particle position.
@@ -61,19 +65,17 @@ template<typename Engine>
 struct ProbeParticle: public PhysicalObject, public Engine
 {
 
-	//! @name   Basic usage
-	//! @{
 	typedef Engine engine_type;
 
 	typedef ProbeParticle<engine_type> this_type;
 
 	typedef typename engine_type::Point_s Point_s;
 
-	//! Constructor
+	//! @name   Particle Concept
+	//! @{
 	template<typename ...Others>
 	ProbeParticle(Others && ...);
 
-	//! Destroy
 	~ProbeParticle();
 
 	using engine_type::properties;
@@ -97,42 +99,8 @@ struct ProbeParticle: public PhysicalObject, public Engine
 	void next_n_timesteps(size_t num_of_steps, Real t0, Real dt,
 			Args && ...args);
 
-	std::ostream& print(std::ostream & os) const
-	{
-		engine_type::print(os);
-		return os;
-	}
-
-	template<typename ...Args>
-	void push_back(Args && ...args)
-	{
-		buffer.push_back(std::forward<Args>(args)...);
-	}
-
-	template<typename ...Args>
-	void emplac_back(Args && ...args)
-	{
-		buffer.emplac_back(std::forward<Args>(args)...);
-	}
-
-	bool update();
-
-	void sync();
-
-	//! @}
-
-	//! @name Intermediate
-	//! @{
-
 	template<typename TBuffer>
 	void flush_buffer(size_t number, TBuffer const & ext_buffer);
-
-	DataSet dataset() const;
-
-	//! @}
-
-	//! @name Advanced
-	//! @{
 
 	bool is_changed() const
 	{
@@ -148,14 +116,47 @@ struct ProbeParticle: public PhysicalObject, public Engine
 		step_counter_ += num_of_steps;
 	}
 
+	//! @}
+
+	//! @name Physical Object Concept
+	//!   @{
+
+	std::ostream& print(std::ostream & os) const
+	{
+		engine_type::print(os);
+		return os;
+	}
+
+	bool update();
+
+	void sync();
+
+	DataSet dataset() const;
+
+	//! @}
+
+	//! @name Container Concept
+	//! @{
+	template<typename ...Args>
+	void push_back(Args && ...args)
+	{
+		buffer.push_back(std::forward<Args>(args)...);
+	}
+
+	template<typename ...Args>
+	void emplac_back(Args && ...args)
+	{
+		buffer.emplac_back(std::forward<Args>(args)...);
+	}
+
 	template<typename TFun>
 	void foreach(TFun const & fun);
 
-	std::vector<Point_s> buffer;
-	std::shared_ptr<Point_s> data;
-
 	//! @}
 private:
+
+	std::vector<Point_s> buffer;
+	std::shared_ptr<Point_s> data;
 
 	bool is_changed_ = false;
 
@@ -192,7 +193,7 @@ private:
 	}
 
 	template<typename TPIterator , typename ...Args>
-	inline auto next_timestep_selector_( TPIterator p,Real dt,Real time, Args && ...args)const
+	inline auto next_timestep_selector_( TPIterator p,Real time, Real dt,Args && ...args)const
 	->typename std::enable_if<
 	( !has_member_function_next_timestep<Engine, TPIterator,Real, Real, Args...>::value) &&
 	( !has_member_function_next_timestep<Engine, TPIterator,Real, Args...>::value)
@@ -390,6 +391,7 @@ DECL_RET_TYPE((std::make_shared<ProbeParticle<Engine>>(
 template<typename Engine>
 auto make_probe_particle()
 DECL_RET_TYPE((std::make_shared< ProbeParticle<Engine>>( )))
+
 }  // namespace simpla
 
 #endif /* CORE_PARTICLE_PROBE_PARTICLE_H_ */

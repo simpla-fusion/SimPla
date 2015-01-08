@@ -1,4 +1,4 @@
-Physical Object {#physical_object_concept}
+Physical Object Concept {#physical_object_concept}
 =================================
  \note  _Physical Object_  
  
@@ -61,8 +61,5 @@ Physical Object {#physical_object_concept}
   
  
  
-See Also
-======================
-- \subpage particle_concept
-- \subpage field_concept
+
  

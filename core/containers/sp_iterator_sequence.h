@@ -6,9 +6,11 @@
  */
 
 #ifndef CORE_CONTAINERS_SP_ITERATOR_SEQUENCE_H_
-#define CORE_CONTAINERS_SP_ITERATOR_SEQUENCE_H#include "../containers/sp_range.h"
-"
-#include "sp_type_traits.h"
+#define CORE_CONTAINERS_SP_ITERATOR_SEQUENCE_H_
+
+
+#include "../containers/sp_range.h"
+#include "../utilities/sp_type_traits.h"
 
 namespace simpla
 {

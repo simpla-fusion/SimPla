@@ -20,8 +20,9 @@ namespace simpla
 {
 
 /**
- *  @ingroup particle_container
- *
+ * @ingroup particle
+ */
+/**
  * @brief Kinetic Particle
  *  -  KineticParticle is a container of untracable particle  .
  *  -  KineticParticle can be sorted;

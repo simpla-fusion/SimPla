@@ -9,21 +9,20 @@
 #define PARTICLE_ENGINE_H_
 #include <stddef.h>
 #include "../physics/physical_constants.h"
-#include "../utilities/properties.h"
-#include "../utilities/sp_type_traits.h"
-#include "../data_structure/data_type.h"
+#include "../utilities/utilities.h"
+#include "../data_interface/data_type.h"
 namespace simpla
 {
 
+
 /**
-@ingroup particle
-\addtogroup particle_engine Particle Engine
+@page particle_engine_concept ParticleEngine Concept
 - Summary
 
 - Requirements
 The following table lists the requirements for a Particle Engine type E.
 
-Pseudo-Signature  | optional |Semantics
+Pseudo-Signature   |Semantics| optional
 ------------- |----------|----------
 \code E::Point_s \endcode |explicit |data structure and description of single particle/sample point
 \code E( ) \endcode  |explicit | Constructor
@@ -101,6 +100,15 @@ example:
 */
 
 //*******************************************************************************************************
+
+/**
+@ingroup particle
+@addtogroup particle_engine Particle Engine
+@{
+	@brief @ref particle_engine describes the individual behavior of one sample.
+  	@details
+@}
+*/
 /*
  * Count the number of arguments passed to MACRO, very carefully
  * tiptoeing around an MSVC bug where it improperly expands __VA_ARGS__ as a

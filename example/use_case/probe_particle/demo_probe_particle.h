@@ -14,7 +14,7 @@
 namespace simpla
 {
 /**
- *   \example  ProbeParticle
+ *   \example  ProbeParticleExample
  *    This is an example of probe particle
  */
 

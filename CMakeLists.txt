@@ -8,10 +8,7 @@ ENABLE_TESTING()
 include(${PROJECT_SOURCE_DIR}/CMake/utils.cmake)
  
 SET(CMAKE_VERBOSE_MAKEFILE ON)
-#SET(CMAKE_BUILD_TYPE Release)
-#SET(CMAKE_BUILD_TYPE Debug)
 
- 
 SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake ${CMAKE_MODULE_PATH})
@@ -19,7 +16,7 @@ SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake ${CMAKE_MODULE_PATH})
 #SET(CMAKE_CXX_FLAGS_DEBUG " -DDEBUG -g  ")
 #SET(CMAKE_CXX_FLAGS_RELEASE "  -DNDEBUG -O3  ")
  
-MESSAGE(STATUS "Using Compiler ${CMAKE_CXX_COMPILER_ID} ")
+MESSAGE(STATUS "Using C++ Compiler ${CMAKE_CXX_COMPILER_ID} ")
 
 if(${CMAKE_CXX_COMPILER_ID}  STREQUAL "Clang")
   SET(CMAKE_CXX_FLAGS "-fPIC -std=c++11  -fcolor-diagnostics   -ftemplate-backtrace-limit=0   ")
@@ -38,143 +35,37 @@ else()
   SET(CMAKE_CXX_FLAGS "-fPIC -std=c++11  -fopenmp -ftemplate-backtrace-limit=0 ")
 endif ()
 
-
-
-#INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/src)
-
+ 
 FIND_PACKAGE(Lua52)
 INCLUDE_DIRECTORIES(${LUA_INCLUDE_DIR})
 
-#set(MPI_C_COMPILER  $ENV{MPI_ROOT}/bin/mpicc)
-#set(MPI_CXX_COMPILER  $ENV{MPI_ROOT}/bin/mpic++)
 
 FIND_PACKAGE(MPI )
-
 IF(MPI_FOUND)
   INCLUDE_DIRECTORIES(${MPI_INCLUDE_PATH})
   ADD_DEFINITIONS(-DUSE_MPI -DOMPI_SKIP_MPICXX )
-
 ENDIF(MPI_FOUND)
 
-
-
-FIND_PACKAGE(TBB )
-IF(TBB_FOUND)
-    ADD_DEFINITIONS(-DHAVE_TBB )
-    MESSAGE(${TBB_INCLUDE_DIR})
-ENDIF(TBB_FOUND)
-
-
- 
-
- FIND_PACKAGE(HDF5 1.8 COMPONENTS C  HL )
- IF(HDF5_FOUND)
+FIND_PACKAGE(HDF5 1.8 COMPONENTS C  HL )
+IF(HDF5_FOUND)
   INCLUDE_DIRECTORIES(BEFORE ${HDF5_INCLUDE_DIRS} )
   IF(HDF5_IS_PARALLEL)
     ADD_DEFINITIONS(-DUSE_PARALLEL_IO )
   ENDIF(HDF5_IS_PARALLEL)
 ENDIF(HDF5_FOUND)
  
-#FIND_PACKAGE(XDMF)
-#MESSAGE(STATUS "XDMF Install Dir"${XDMF_INSTALL_DIR}) 
  
-
-INCLUDE(ExternalProject)
-
+FIND_PACKAGE(GTest)
 
 enable_testing()
-
-ExternalProject_Add(googletest
-     PREFIX  ${PROJECT_BINARY_DIR}/third_part 
-     #    URL   http://googletest.googlecode.com/files/gtest-1.7.0.zip
-    URL file://${CMAKE_SOURCE_DIR}/third_part/src/gtest-1.7.0.zip
-     SOURCE_DIR ${PROJECT_BINARY_DIR}/third_part/googletest
-     INSTALL_COMMAND "" )
- ExternalProject_Get_Property(googletest SOURCE_DIR)
- ExternalProject_Get_Property(googletest BINARY_DIR)
- INCLUDE_DIRECTORIES(${SOURCE_DIR}/include )
- LINK_DIRECTORIES(${BINARY_DIR})
-
- 
-#ExternalProject_Add(trilinos
-#    PREFIX third_part 
-# #http://trilinos.sandia.gov/download/files/trilinos-11.10.2-Source.tar.bz2
-#    URL file:///${PROJECT_SOURCE_DIR}/third_part/src/trilinos-11.10.2-Source.tar.bz2
-#    SOURCE_DIR ${PROJECT_SOURCE_DIR}/third_part/trilinos
-#    INSTALL_COMMAND "" )
-#ExternalProject_Get_Property(trilinos SOURCE_DIR)
-#ExternalProject_Get_Property(trilinos BINARY_DIR)
-
- 
-#ExternalProject_Add(tbb
-##    PREFIX third_part 
- #http://trilinos.sandia.gov/download/files/trilinos-11.10.2-Source.tar.bz2
-#    URL file:///${PROJECT_SOURCE_DIR}/third_part/src/tbb43_20140724oss_src.tgz
-#    SOURCE_DIR ${PROJECT_SOURCE_DIR}/third_part/tbb43_20140724oss
-#    INSTALL_COMMAND "" )
-#ExternalProject_Get_Property(tbb SOURCE_DIR)
-#ExternalProject_Get_Property(tbb BINARY_DIR)
-#INCLUDE_DIRECTORIES(${SOURCE_DIR}/include )
-#LINK_DIRECTORIES(${BINARY_DIR})
-
-#SET(TBB_INSTALL_DIR  ${PROJECT_SOURCE_DIR}/third_part/tbb43_20140724oss)
+include_directories(${GTEST_INCLUDE_DIRS})
 
 
-#ExternalProject_Add(thrust
-#    PREFIX third_part 
-#    URL  http://thrust.googlecode.com/files/thrust-1.5.1.zip
-#    SOURCE_DIR ${PROJECT_SOURCE_DIR}/third_part/thrust
-#    INSTALL_COMMAND "" )
-#ExternalProject_Get_Property(thrust SOURCE_DIR)
-#ExternalProject_Get_Property(thrust BINARY_DIR)
-#INCLUDE_DIRECTORIES(${SOURCE_DIR}/include )
-#LINK_DIRECTORIES(${BINARY_DIR})
-
-#ExternalProject_Add(pugixml
-#    PREFIX third_part 
-#    #    URL   https://pugixml.googlecode.com/files/pugixml-1.2.tar.gz
-#    URL file:///${PROJECT_SOURCE_DIR}/third_part/src/pugixml-1.2.tar.gz
-#    SOURCE_DIR ${PROJECT_SOURCE_DIR}/third_part/pugixml
-#    INSTALL_COMMAND "" )
-#ExternalProject_Get_Property(pugixml SOURCE_DIR)
-#ExternalProject_Get_Property(pugixml BINARY_DIR)
-#INCLUDE_DIRECTORIES(${SOURCE_DIR}/include )
-#LINK_DIRECTORIES(${BINARY_DIR})
-
-
-
-#ExternalProject_Add(Eigen
-#    PREFIX third_part 
-#    URL  http://bitbucket.org/eigen/eigen/get/3.2.0.tar.bz2
-#    SOURCE_DIR ${PROJECT_SOURCE_DIR}/third_part/Eigen
-#    INSTALL_COMMAND "" )
-#ExternalProject_Get_Property(Eigen SOURCE_DIR)
-#ExternalProject_Get_Property(Eigen BINARY_DIR)
-#INCLUDE_DIRECTORIES(${SOURCE_DIR}/include )
-#LINK_DIRECTORIES(${BINARY_DIR})
-
-#ExternalProject_Add(PHG
-#    PREFIX third_part 
-#    URL  http://lsec.cc.ac.cn/phg/download/phg-0.8.6-20120910.tar.bz2
-#    SOURCE_DIR ${PROJECT_SOURCE_DIR}/third_part/Eigen
-#    INSTALL_COMMAND "" )
-#ExternalProject_Get_Property(PHG SOURCE_DIR)
-#ExternalProject_Get_Property(PHG BINARY_DIR)
-#INCLUDE_DIRECTORIES(${SOURCE_DIR}/include )
-#LINK_DIRECTORIES(${BINARY_DIR})
-
-#ExternalProject_Add(Xdmf
-#    PREFIX third_part
-#    #GIT_REPOSITORY git://paraview.org/Xdmf.git
-#    SOURCE_DIR ${PROJECT_SOURCE_DIR}/third_part/Xdmf
-#    INSTALL_COMMAND "" )
-#ExternalProject_Get_Property(Xdmf SOURCE_DIR)
-#ExternalProject_Get_Property(Xdmf BINARY_DIR)
-#INCLUDE_DIRECTORIES(${SOURCE_DIR}/libsrc ${BINARY_DIR}/libsrc )
-#LINK_DIRECTORIES(${BINARY_DIR}/bin)
-#SET(XDMF_NO_MPI ON)
-
- 
+SET(TBB_ARCH_PLATFORM intel64)
+FIND_PACKAGE(TBB )
+IF(TBB_FOUND)
+ADD_DEFINITIONS(-DHAVE_TBB )
+ENDIF( )
 
 execute_process(COMMAND  git describe --all  --dirty --long
             OUTPUT_VARIABLE PROJECT_IDENTIFY      

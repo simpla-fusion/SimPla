@@ -1,5 +1,13 @@
 Particle Concept{#particle_concept}
 ===================================
 ## Summary
-- Particle is a container of particle trajectory
-- 
+  '''Particle''' is an abstraction from "Phase-space sample".
+
+
+## See Aslo
+- \subpage particle_container_concept
+- \subpage particle_engine_concept
+
+- @ref simpla::ProbeParticle
+- @ref simpla::KineticParticle
+ 
