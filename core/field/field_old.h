@@ -15,9 +15,9 @@
 #include "../data_structure/container_traits.h"
 #include "../data_structure/data_set.h"
 
-#include "../manifold/domain.h"
 #include "../physics/physical_object.h"
 #include "../design_pattern/expression_template.h"
+#include "../diff_geometry/domain.h"
 #include "../utilities/utilities.h"
 #include "../parallel/parallel.h"
 

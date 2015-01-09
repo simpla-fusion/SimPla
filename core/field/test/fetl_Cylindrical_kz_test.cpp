@@ -5,14 +5,14 @@
  *      Author: salmon
  */
 #include <gtest/gtest.h>
+#include "../../diff_geometry/diff_scheme/fdm.h"
+#include "../../diff_geometry/geometry/cylindrical.h"
+#include "../../diff_geometry/interpolator/interpolator.h"
+#include "../../diff_geometry/manifold.h"
+#include "../../diff_geometry/topology/structured.h"
 
 #include "../utilities/ntuple.h"
 
-#include "../manifold/manifold.h"
-#include "../manifold/geometry/cylindrical.h"
-#include "../manifold/topology/structured.h"
-#include "../manifold/diff_scheme/fdm.h"
-#include "../manifold/interpolator/interpolator.h"
 
 using namespace simpla;
 

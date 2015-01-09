@@ -12,13 +12,13 @@
 #include <string>
 #include <vector>
 
+#include "../diff_geometry/geometry/cylindrical.h"
 #include "../utilities/ntuple.h"
 #include "../utilities/primitives.h"
 #include "../numeric/interpolation.h"
 #include "../physics/constants.h"
 #include "../manifold/domain.h"
 #include "../manifold/topology/structured.h"
-#include "../manifold/geometry/cylindrical.h"
 #include "../field/field.h"
 
 namespace simpla

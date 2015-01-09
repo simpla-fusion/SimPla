@@ -5,7 +5,7 @@
  *      Author: salmon
  */
 
-#include "../../manifold/fetl.h"
+#include "../../diff_geometry/fetl.h"
 
 using namespace simpla;
 

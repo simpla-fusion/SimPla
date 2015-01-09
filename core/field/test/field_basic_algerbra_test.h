@@ -10,8 +10,9 @@
 
 #include <gtest/gtest.h>
 #include <random>
+
+#include "../../diff_geometry/domain.h"
 #include "../field.h"
-#include "../../manifold/domain.h"
 #include "../../utilities/utilities.h"
 using namespace simpla;
 

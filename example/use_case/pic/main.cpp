@@ -6,8 +6,8 @@
  */
 
 #include "../../../core/common.h"
+#include "../../../core/diff_geometry/fetl.h"
 #include "../../../core/particle/particle.h"
-#include "../../../core/manifold/fetl.h"
 #include "../../../core/physics/physical_constants.h"
 #include "../../../core/io/data_stream.h"
 #include "../../../core/manifold/domain_dummy.h"

@@ -55,10 +55,10 @@
 //#include "save_particle.h"
 using namespace simpla;
 #include "../field/save_field.h"
-#include "../manifold/manifold.h"
-#include "../manifold/domain.h"
-#include "../manifold/topology/structured.h"
-#include "../manifold/geometry/cartesian.h"
+#include "../../diff_geometry/manifold.h"
+#include "../../diff_geometry/domain.h"
+#include "../../diff_geometry/topology/structured.h"
+#include "../../diff_geometry/geometry/cartesian.h"
 #include "../../applications/particle_solver/pic_engine_fullf.h"
 
 typedef Manifold<CartesianCoordinates<StructuredMesh> > TManifold;

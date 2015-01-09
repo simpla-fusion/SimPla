@@ -20,7 +20,6 @@ namespace simpla
 struct DataSet;
 /**
  * @ingroup data_interface
- * @{
  * @brief  Define the size and  shape of data set in memory/file
  *  Ref. http://www.hdfgroup.org/HDF5/doc/UG/UG_frame12Dataspaces.html
  */

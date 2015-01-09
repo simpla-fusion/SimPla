@@ -13,21 +13,12 @@
 #include "any.h"
 
 
-/**
- * @page properties Properties
- *
- *
- *
- *
- */
-
-
 namespace simpla
 {
 
-/** @ingroup general_library */
 /**
- *   Properties Tree
+ *  @ingroup utilities
+ *  @brief Properties Tree
  *  @todo using shared_ptr storage data
  */
 class Properties: public Any, public std::map<std::string, Properties>

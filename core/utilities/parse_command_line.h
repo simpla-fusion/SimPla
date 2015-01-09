@@ -11,15 +11,6 @@
 #include <functional>
 #include <string>
 
-
-
-/**
- * @page cli_parser
- *
- *
- *
- *
- */
 namespace simpla
 {
 
@@ -30,14 +21,11 @@ enum
 ;
 /**
  * @ingroup utilities
- *
  * @addtogroup configuration Configuration Parser
- * @{
  */
-
-
 /**
- * \brief Command line parser
+ * @ingroup  configuration
+ * @brief Command line parser
  *
  *
  * example:
@@ -89,7 +77,8 @@ void parse_cmd_line(int argc, char **argv,
 		std::function<int(std::string const &, std::string const &)> const & fun);
 
 /**
- *  @brief find an options from command line
+ * @ingroup  configuration
+ * @brief find an options from command line
  * @param argc
  * @param argv
  * @param key
@@ -97,7 +86,6 @@ void parse_cmd_line(int argc, char **argv,
  */
 std::tuple<bool, std::string> find_option_from_cmd_line(int argc, char ** argv,
 		std::string const & key);
-
 
 #define SHOW_OPTIONS(_OPT_,_DESC_) MESSAGE <<"  "<<std::setw(25) <<std::left << _OPT_ << _DESC_<<std::endl;
 

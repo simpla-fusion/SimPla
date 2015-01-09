@@ -16,18 +16,16 @@
 #include "pretty_stream.h"
 #include "parse_command_line.h"
 #include "misc_utilities.h"
-#include "../physics/physical_constants.h"
 #include "lua_object.h"
 #include "sp_foreach.h"
+#include "../physics/physical_constants.h"
 
 /**
  *  @addtogroup utilities Utilities
  *  @{
- *    @addtogroup general_library General Library
- *    @addtogroup stl_alt    Alternative to STL or Boost
- *
+ *   @brief  This module collects   general purpose functions.
+ *   @addtogroup stl_alt  Alternative to STL or Boost
  *  @}
- *
  */
 
 #endif /* CORE_UTILITIES_MISC_UTILITIES_H_ */

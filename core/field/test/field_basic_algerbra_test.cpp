@@ -8,10 +8,10 @@
 #include <iostream>
 #include <gtest/gtest.h>
 
-#include "../manifold/dummy_manifold.h"
-#include "../manifold/domain.h"
 #include "field.h"
 #include "field_basic_algerbra_test.h"
+#include "../../diff_geometry/domain.h"
+#include "../../diff_geometry/dummy_manifold.h"
 
 using namespace simpla;
 

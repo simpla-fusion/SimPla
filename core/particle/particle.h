@@ -8,7 +8,7 @@
 #ifndef PARTICLE_H_
 #define PARTICLE_H_
 
-/**
+/** @ingroup physical_object
  *  @addtogroup particle Particle
  *  @{
  *	  @brief  @ref particle  is an abstraction from  physical particle or "phase-space sample".
@@ -24,26 +24,26 @@
  *- The following table lists the requirements of a Particle type  '''P'''
  *	Pseudo-Signature   |Semantics
  * ------------- |----------
- * \code struct Point_s \endcode | data  type of sample point
- * \code P( ) \endcode    | Constructor
- * \code ~P( ) \endcode  | Destructor
- * \code void  next_timestep(dt, args ...) const; \endcode  | push  particles a time interval 'dt'
- * \code void  next_timestep(t0,t1,dt, args ...) const; \endcode  | push  particles from time 't0' to 't1' with time step 'dt'.
- * \code flush_buffer( ) \endcode  | flush input buffer to internal data container
+ * ` struct Point_s ` | data  type of sample point
+ * ` P( ) `    | Constructor
+ * ` ~P( ) `  | Destructor
+ * ` void  next_timestep(dt, args ...) const; `  | push  particles a time interval 'dt'
+ * ` void  next_timestep(t0,t1,dt, args ...) const; `  | push  particles from time 't0' to 't1' with time step 'dt'.
+ * ` flush_buffer( ) `  | flush input buffer to internal data container
  *
  *- @ref particle meets the requirement of @ref container,
  * Pseudo-Signature   |Semantics
  * ------------- |----------
- * \code push_back(args ...) \endcode    | Constructor
- * \code foreach(TFun const & fun)  \endcode  | Destructor
- * \code dataset() \endcode |  data interface of container
+ * ` push_back(args ...) `    | Constructor
+ * ` foreach(TFun const & fun)  `  | Destructor
+ * ` dataset() ` |  data interface of container
  *
  *- @ref particle meets the requirement of @ref physical_object
  * Pseudo-Signature   |Semantics
  * ------------- |----------
- * \code print(std::ostream & os) \endcode | print decription of object
- * \code update() \endcode | update internal data storage and prepare for execute 'next_timestep'
- * \code sync()  \endcode  | sync. internal data with other processes and threads
+ * ` print(std::ostream & os) ` | print decription of object
+ * ` update() ` | update internal data storage and prepare for execute 'next_timestep'
+ * ` sync()  `  | sync. internal data with other processes and threads
  *
  *
  * ## Description

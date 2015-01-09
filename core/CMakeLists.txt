@@ -15,7 +15,7 @@ ADD_SUBDIRECTORY( field )
 
 ADD_SUBDIRECTORY( particle)
 
-ADD_SUBDIRECTORY( manifold  )
+ADD_SUBDIRECTORY( diff_geometry  )
 
 ADD_SUBDIRECTORY( model )
 

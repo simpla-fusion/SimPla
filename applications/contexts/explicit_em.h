@@ -17,13 +17,13 @@
 
 // Misc
 #include "../../core/application/context_base.h"
+#include "../../core/diff_geometry/fetl.h"
 #include "../../core/utilities/utilities.h"
 
 // Data IO
 #include "../../core/io/io.h"
 
 // Field
-#include "../../core/manifold/fetl.h"
 #include "../../core/field/load_field.h"
 
 // Particle

@@ -23,17 +23,10 @@
 #include "io.h"
 namespace simpla
 {
-/** @addtogroup  io   Input/Output
- *  @brief this module collects the classes used for writing and reading
- *   data between memory hard disk.
- **/
 
 /**
  * @ingroup io
- *
  * @{
- *
- * @class DataStream
  * \brief data stream , should be a singleton
  */
 class DataStream

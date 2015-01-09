@@ -7,13 +7,13 @@
 
 #include <iostream>
 #include <gtest/gtest.h>
+#include "../../diff_geometry/diff_scheme/fdm.h"
+#include "../../diff_geometry/geometry/cartesian.h"
+#include "../../diff_geometry/interpolator/interpolator.h"
+#include "../../diff_geometry/manifold.h"
+#include "../../diff_geometry/topology/structured.h"
 
 #include "../../utilities/utilities.h"
-#include "../../manifold/manifold.h"
-#include "../../manifold/geometry/cartesian.h"
-#include "../../manifold/topology/structured.h"
-#include "../../manifold/diff_scheme/fdm.h"
-#include "../../manifold/interpolator/interpolator.h"
 #include "../field.h"
 #include "field_basic_algerbra_test.h"
 

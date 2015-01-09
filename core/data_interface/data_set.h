@@ -18,18 +18,10 @@
 namespace simpla
 {
 
-/**
- * @addtogroup data_interface Data Interface
- * @{
- * \brief  The interface of data structure
- *
- *  This section describes the interface of data structure."data_inteface"
- *  is a group of classes used to exchange data between different libraries
- *  and program languages in the memory. Such as, we can transfer an array
- *  of particle structure in memory to hdf5 library, and save it to disk.
- */
+
 /**
  * @ingroup data_interface
+ *
  *
  * @brief Describe structure of data in the memory.
  *

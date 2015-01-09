@@ -17,6 +17,11 @@ namespace simpla
 {
 struct DataSet;
 
+/** @addtogroup io
+ *  @brief this module collects the classes used to read /write data file.
+ **/
+ * @{
+ */
 enum
 {
 	SP_APPEND = 1UL << 2, SP_CACHE = (1UL << 3), SP_RECORD = (1UL << 4),
@@ -125,7 +130,7 @@ T get_dataset_attribute(std::string const & url)
 //
 //	return save(name, d_, std::forward<Args>(args)...);
 //}
+/** @}
+ }// namespace simpla
 
-}// namespace simpla
-
-#endif /* CORE_IO_IO_H_ */
+ #endif /* CORE_IO_IO_H_ */

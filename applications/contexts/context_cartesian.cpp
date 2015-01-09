@@ -9,11 +9,11 @@
 #include <string>
 
 #include "../../core/design_pattern/factory.h"
-#include "../../core/manifold/manifold.h"
-#include "../../core/manifold/geometry/cartesian.h"
-#include "../../core/manifold/topology/structured.h"
-#include "../../core/manifold/diff_scheme/fdm.h"
-#include "../../core/manifold/interpolator/interpolator.h"
+#include "../../core/diff_geometry/diff_scheme/fdm.h"
+#include "../../core/diff_geometry/geometry/cartesian.h"
+#include "../../core/diff_geometry/interpolator/interpolator.h"
+#include "../../core/diff_geometry/manifold.h"
+#include "../../core/diff_geometry/topology/structured.h"
 #include "../../core/utilities/lua_state.h"
 #include "explicit_em.h"
 

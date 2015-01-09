@@ -10,8 +10,8 @@
 
 #include <random>
 #include <gtest/gtest.h>
+#include "../../diff_geometry/calculus.h"
 #include "field.h"
-#include "../manifold/calculus.h"
 #include "../utilities/log.h"
 #include "../utilities/primitives.h"
 

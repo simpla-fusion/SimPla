@@ -5,17 +5,13 @@ SIMPla {#mainpage}
 Its long term goal is to provide complete modeling of a fusion device.
 “SimPla” is abbreviation of four words,  __Simulation__, __Integration__, __Multi-physics__ and __Plasma__.
 
-# Overview  {#overview}
+# Document {#detailed}
 
-
+ - @subpage install
+ - @subpage general_convertions
+ - @subpage design_document
+ - @subpage user_guide
  
-
-
-# Detailed Description {#detailed}
-
-
-test 
-
  
 # Building on ShenMa
 

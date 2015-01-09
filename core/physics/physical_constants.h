@@ -17,11 +17,14 @@
 namespace simpla
 {
 
-/** @ingroup physics
- *
- * @{
+/**
+ * @ingroup physics
+ * @addtogroup physical_constant  Physical constants and units
+ */
+/**
+ * @ingroup physical_constant
+ * @brief Physical constants and dimensions
  **/
-
 class PhysicalConstants
 {
 public:
@@ -105,8 +108,9 @@ std::ostream & operator<<(std::ostream & os, PhysicalConstants const & self);
 #define  CONSTANTS    SingletonHolder<PhysicalConstants>::instance()
 
 /**
- * \brief Define physical constants:
- *
+ * @ingroup physical_constant
+ * @brief Define physical constants:
+ * @{
  */
 #define DEFINE_PHYSICAL_CONST                                               \
 const double mu0 = CONSTANTS["permeability of free space"];                            \
@@ -116,8 +120,8 @@ const double speed_of_light2 =  speed_of_light*speed_of_light;                  
 const double proton_mass = CONSTANTS["proton mass"];                                   \
 const double elementary_charge = CONSTANTS["elementary charge"];                       \
 const double boltzmann_constant = CONSTANTS["Boltzmann constant"];
-/** @}*/
+//! @}
 
-}  // namespace simpla
+}// namespace simpla
 
 #endif /* PHYSICAL_CONSTANTS_H_ */

@@ -14,101 +14,100 @@
 namespace simpla
 {
 
-
 /**
-@page particle_engine_concept ParticleEngine Concept
-- Summary
-
-- Requirements
-The following table lists the requirements for a Particle Engine type E.
-
-Pseudo-Signature   |Semantics| optional
-------------- |----------|----------
-\code E::Point_s \endcode |explicit |data structure and description of single particle/sample point
-\code E( ) \endcode  |explicit | Constructor
-\code ~E( ) \endcode |explicit | Destructor
-\code void  next_timestep(Point_s * p, args ...) const; \endcode |explicit | push one particle to next timestep
-\code void  update();\endcode | (optional) |update charge/mass and properties cache
-\code static Point_s  push_forward(Vec3 const & x, Vec3 const &v, Real f);\endcode| (optional)| push forward Cartesian Coordinates x , velocity vector v  and sample weight f to paritlce's coordinates
-\code static std::tuple<Vec3,Vec3,Real>  pull_back(Point_s const & p); \endcode| (optional)| pull back particle coordinates to Cartesian coordinates;
-\code DataType  Point_s::datatype() \endcode |(implicit)| get the description of Point_s's data structure
-\code Properties  properties \endcode |(implicit)| properties of engine
-
-
-example:
-\code
-	struct DemoParticleEngine
-	{
-
-		SP_DEFINE_POINT_STRUCT(Point_s,
-				Vec3 ,x,
-				double[3], v,
-				Real, f,
-				Real, w
-		)
-
-		SP_DEFINE_PROPERTIES(
-				Real, mass,
-				Real, charge,
-				Real, temperature,
-				Real[3][3], pressure
-		)
-
-
-		static constexpr size_t memory_length = 0; //!  declare this engine is memoryless
-
-	private:
-		Real cmr_, q_kT_;
-	public:
-
-		DemoParticleEngine() :
-				mass(1.0), charge(1.0), temperature(1.0)
-		{
-			pressure = 0;
-			update();
-		}
-
-		~DemoParticleEngine()
-		{
-		}
-
-		static std::string get_type_as_string()
-		{
-			return "DemoParticleEngine";
-		}
-
-
-		void update()
-		{
-			DEFINE_PHYSICAL_CONST
-
-			cmr_ = charge / mass;
-			q_kT_ = charge / (temperature * boltzmann_constant);
-		}
-
-		template<typename Point_p, typename TE, typename TB>
-		void next_timestep(Point_p p, Real dt, TE const &fE, TB const & fB) const
-		{
-		 p->x+=p->v*dt;
-		 ....
-		}
-
-	};
-\endcode
-
-
-*/
+ * @ingroup particle
+ * @addtogroup particle_engine  Particle Engine
+ * ## Summary
+ *
+ * ## Requirements
+ * The following table lists the requirements for a @particle_engine type E.
+ *
+ * Pseudo-Signature   |Semantics| optional
+ * ------------- |----------|----------
+ * \code E::Point_s \endcode |explicit |data structure and description of single particle/sample point
+ * \code E( ) \endcode  |explicit | Constructor
+ * \code ~E( ) \endcode |explicit | Destructor
+ * \code void  next_timestep(Point_s * p, args ...) const; \endcode |explicit | push one particle to next timestep
+ * \code void  update();\endcode | (optional) |update charge/mass and properties cache
+ * \code static Point_s  push_forward(Vec3 const & x, Vec3 const &v, Real f);\endcode| (optional)| push forward Cartesian Coordinates x , velocity vector v  and sample weight f to paritlce's coordinates
+ * \code static std::tuple<Vec3,Vec3,Real>  pull_back(Point_s const & p); \endcode| (optional)| pull back particle coordinates to Cartesian coordinates;
+ * \code DataType  Point_s::datatype() \endcode |(implicit)| get the description of Point_s's data structure
+ * \code Properties  properties \endcode |(implicit)| properties of engine
+ *
+ *
+ * ## Example:
+ * \code
+ * 	struct DemoParticleEngine
+ * 	{
+ *
+ * 		SP_DEFINE_POINT_STRUCT(Point_s,
+ * 				Vec3 ,x,
+ * 				double[3], v,
+ * 				Real, f,
+ * 				Real, w
+ * 		)
+ *
+ * 		SP_DEFINE_PROPERTIES(
+ * 				Real, mass,
+ * 				Real, charge,
+ * 				Real, temperature,
+ * 				Real[3][3], pressure
+ * 		)
+ *
+ *
+ * 		static constexpr size_t memory_length = 0; //!  declare this engine is memoryless
+ *
+ * 	private:
+ * 		Real cmr_, q_kT_;
+ * 	public:
+ *
+ * 		DemoParticleEngine() :
+ * 				mass(1.0), charge(1.0), temperature(1.0)
+ * 		{
+ * 			pressure = 0;
+ * 			update();
+ * 		}
+ *
+ * 		~DemoParticleEngine()
+ * 		{
+ * 		}
+ *
+ * 		static std::string get_type_as_string()
+ * 		{
+ * 			return "DemoParticleEngine";
+ * 		}
+ *
+ *
+ * 		void update()
+ * 		{
+ * 			DEFINE_PHYSICAL_CONST
+ *
+ * 			cmr_ = charge / mass;
+ * 			q_kT_ = charge / (temperature * boltzmann_constant);
+ * 		}
+ *
+ * 		template<typename Point_p, typename TE, typename TB>
+ * 		void next_timestep(Point_p p, Real dt, TE const &fE, TB const & fB) const
+ * 		{
+ * 		 p->x+=p->v*dt;
+ * 		 ....
+ * 		}
+ *
+ * 	};
+ * \endcode
+ *
+ *
+ */
 
 //*******************************************************************************************************
-
 /**
-@ingroup particle
-@addtogroup particle_engine Particle Engine
-@{
-	@brief @ref particle_engine describes the individual behavior of one sample.
-  	@details
-@}
-*/
+ @ingroup particle
+ @addtogroup particle_engine Particle Engine
+ @{
+ @brief @ref particle_engine describes the individual behavior of one sample.
+ @details
+ @}
+ */
 /*
  * Count the number of arguments passed to MACRO, very carefully
  * tiptoeing around an MSVC bug where it improperly expands __VA_ARGS__ as a
@@ -197,28 +196,28 @@ example:
  *  \code SP_DEFINE_POINT_STRUCT(Point_s, double, x, double, y, double, z, int, a, int, b, int, c)  \endcode
  *  *Macro Expansion
  *  \code
-struct Point_s
-{
-	double x;
-	double y;
-	double z;
-	int a;
-	int b;
-	int c;
-	static DataType create_datadesc()
-	{
-		auto d_type = DataType::create<Point_s>();
-		d_type.push_back<double>("x", offsetof(Point_s, x));
-		d_type.push_back<double>("y", offsetof(Point_s, y));
-		d_type.push_back<double>("z", offsetof(Point_s, z));
-		d_type.push_back<int>("a", offsetof(Point_s, a));
-		d_type.push_back<int>("b", offsetof(Point_s, b));
-		d_type.push_back<int>("c", offsetof(Point_s, c));
-		;
-		return std::move(d_type);
-	}
-};
-    \endcode
+ struct Point_s
+ {
+ double x;
+ double y;
+ double z;
+ int a;
+ int b;
+ int c;
+ static DataType create_datadesc()
+ {
+ auto d_type = DataType::create<Point_s>();
+ d_type.push_back<double>("x", offsetof(Point_s, x));
+ d_type.push_back<double>("y", offsetof(Point_s, y));
+ d_type.push_back<double>("z", offsetof(Point_s, z));
+ d_type.push_back<int>("a", offsetof(Point_s, a));
+ d_type.push_back<int>("b", offsetof(Point_s, b));
+ d_type.push_back<int>("c", offsetof(Point_s, c));
+ ;
+ return std::move(d_type);
+ }
+ };
+ \endcode
  */
 #define SP_DEFINE_POINT_STRUCT(_S_NAME_,...)                                 \
 struct _S_NAME_                                                  \
@@ -333,22 +332,22 @@ struct _S_NAME_                                                  \
  Real  charge;
  Real  temperature;
  void load(Real  p_mass,
-  	  Real  p_charge,
-  	  Real  p_temperature)
-  {
-  	mass=p_mass;properties.set<Real>("mass",mass);
-  	charge=p_charge;properties.set<Real>("charge",charge);
-  	emperature=p_temperature;properties.set<Real>("temperature",temperature);
-  	update();
-  }
-  template<typename TDict,typename ...Others>
-  void load(TDict const & dict,Others && ...)
-  {
-  	mass=dict["mass"].template as<Real>();properties.template set<Real>("mass",mass);
-  	charge=dict["charge"].template as<Real>();properties.template set<Real>("charge",charge);
-  	temperature=dict["temperature"].template as<Real>();properties.template set<Real>("temperature",temperature);
-  	update();
-}
+ Real  p_charge,
+ Real  p_temperature)
+ {
+ mass=p_mass;properties.set<Real>("mass",mass);
+ charge=p_charge;properties.set<Real>("charge",charge);
+ emperature=p_temperature;properties.set<Real>("temperature",temperature);
+ update();
+ }
+ template<typename TDict,typename ...Others>
+ void load(TDict const & dict,Others && ...)
+ {
+ mass=dict["mass"].template as<Real>();properties.template set<Real>("mass",mass);
+ charge=dict["charge"].template as<Real>();properties.template set<Real>("charge",charge);
+ temperature=dict["temperature"].template as<Real>();properties.template set<Real>("temperature",temperature);
+ update();
+ }
  \endcode
  */
 #define SP_DEFINE_PROPERTIES(...)                            \

@@ -7,8 +7,8 @@
 
 #include <iostream>
 #include <gtest/gtest.h>
+#include "../../diff_geometry/fetl.h"
 
-#include "../../manifold/fetl.h"
 #include "../field.h"
 #include "../field_basic_algerbra_test.h"
 

@@ -14,8 +14,8 @@
 namespace simpla
 {
 /**
- *   \example  ProbeParticleExample
- *    This is an example of probe particle
+ *   @example  ProbeParticleExample Probe Particle
+ *   @brief This is an example of probe particle.
  */
 
 struct ProbeDemo

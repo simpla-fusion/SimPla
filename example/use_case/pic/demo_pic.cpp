@@ -10,10 +10,10 @@
 #include <string>
 #include "../../../core/utilities/utilities.h"
 #include "../../../core/io/io.h"
-#include "../../../core/manifold/fetl.h"
 #include "../../../core/field/load_field.h"
 #include "../../../core/field/field_constraint.h"
 #include "../../../core/application/use_case.h"
+#include "../../../core/diff_geometry/fetl.h"
 
 #include "../../../core/particle/kinetic_particle.h"
 

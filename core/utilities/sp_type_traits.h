@@ -15,8 +15,8 @@
 #include <complex>
 namespace simpla
 {
-/** @ingroup stl_alt
- *
+/**
+ * @ingroup utilities
  * @addtogroup type_traits Type traits
  * @{
  **/

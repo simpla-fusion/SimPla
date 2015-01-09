@@ -1,2 +1,0 @@
-Interpolator    {#interpolator_concept}
-=================================================

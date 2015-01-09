@@ -17,22 +17,14 @@
 #include "log.h"
 
 
-/**
- * @page any Any
- *
- *
- *
- *
- */
+
 
 namespace simpla
 {
 /**
- *  @ingroup general_library
- */
-
-
-/**
+ *  @ingroup utilities
+ *
+ *
  *   change from http://www.cnblogs.com/qicosmos/p/3420095.html
  */
 struct Any

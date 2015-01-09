@@ -19,7 +19,7 @@
 namespace simpla
 {
 /**
- * @ingroup general_library
+ * @ingroup utilities
  * @addtogroup ntuple n-tuple
  * @{
  *
