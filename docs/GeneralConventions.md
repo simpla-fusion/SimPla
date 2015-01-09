@@ -14,3 +14,6 @@ General Conventions {#general_convertions}
 ### 7-dimensional phase-space ###   {#phase_space_7d}  
   @ref phase_space_7d ::
      \f$ \left(t,x,y,z,v_x,v_y,v_z \right) \f$
+     
+### configuration space ### {#configuration_space}
+  @ref configuration_space refer to  the base manifold of phase-space

@@ -20,7 +20,7 @@ template<typename ... > class _Field;
 template<typename, typename, typename > class Expression;
 
 /**
- * @ingroup diff_geo expression_template
+ * @ingroup diff_geo
  *  @{
  *   @addtogroup  linear_algebra Linear Algebra
  *    @brief  This module collects linear algebra operations between field/forms
@@ -268,7 +268,7 @@ inline _Field<_impl::MapTo<field_traits<T>::iform, IR, T>> map_to(T const & f)
 
 /** @} */
 /**
- * @ingroup diff_geo expression_template
+ * @ingroup diff_geo
  * @{
  * @addtogroup  diff_calculus Differential calculus
  * @brief  This module collects differential calculus on fields or forms

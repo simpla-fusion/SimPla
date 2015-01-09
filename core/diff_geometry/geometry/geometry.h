@@ -11,7 +11,7 @@
 /**
  * @ingroup diff_geo
  * @addtogroup  geometry Geometry
- * @brief   spatial-temporal metric
+ * @brief  This module define coordinates and metric on the @ref configuration_space (\f$ \mathbb{R}^{4} \f$)
  *
  * ## Summary
  *   \note Contemporary differential geometry is intrinsic, meaning that the spaces it considers are smooth

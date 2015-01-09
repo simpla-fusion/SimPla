@@ -214,36 +214,7 @@ public:
 	auto index_value (TV const & v,id_type s)const
 	DECL_RET_TYPE(get_value(v,s))
 
-//	this_type operator &(this_type const & D1) const // \f$D_0 \cap \D_1\f$
-//	{
-//		return *this;
-//	}
-//	this_type operator |(this_type const & D1) const // \f$D_0 \cup \D_1\f$
-//	{
-//		return *this;
-//	}
-//	bool operator==(this_type const&)
-//	{
-//		return true;
-//	}
-//	bool is_same(this_type const&);
-//
-//	this_type const & parent() const; // Parent domain
-//
-//	std::tuple<coordinates_type, coordinates_type> boundbox() const // boundbox on _this_ coordinates system
-//	{
-//		return manifold_->geometry_type::boundbox<iform>(range_);
-//	}
-//	std::tuple<nTuple<Real, 3>, nTuple<Real, 3>> cartesian_boundbox() const // boundbox on   _Cartesian_ coordinates system
-//	{
-//		return manifold_->geometry_type::cartesian_boundbox<iform>(range_);
-//	}
-//	DataSpace dataspace() const
-//		{
-//			return manifold_->template dataspace<IFORM>();
-//		}
-
-	DataSpace dataspace() const
+ ,	DataSpace dataspace() const
 	{
 		return manifold_->template dataspace<iform>( );
 	}

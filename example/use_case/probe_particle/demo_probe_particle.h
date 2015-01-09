@@ -14,7 +14,7 @@
 namespace simpla
 {
 /**
- *   @example  ProbeParticleExample Probe Particle
+ *   @example  demo_probe_particle.cpp
  *   @brief This is an example of probe particle.
  */
 

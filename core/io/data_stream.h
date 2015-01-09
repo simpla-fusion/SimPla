@@ -41,7 +41,7 @@ public:
 	void init(int argc = 0, char** argv = nullptr);
 
 	/**
-	 *	  change the workiong path (file/group) of datastream ,
+	 *	  change the working path (file/group) of datastream ,
 	 *
 	 * @param url_hint  <filename>:<group name>/<dataset name>
 	 * @param flag SP_APPEND|SP_RECORD ...
