@@ -12,12 +12,12 @@
 #include <stddef.h>
 
 #include "../design_pattern/expression_template.h"
-#include "primitives.h"
-#include "sp_integer_sequence.h"
-#include "sp_type_traits.h"
+#include "../utilities/integer_sequence.h"
+#include "../utilities/type_traits.h"
 
 namespace simpla
 {
+
 /**
  * @ingroup utilities
  * @addtogroup ntuple n-tuple
@@ -381,17 +381,8 @@ struct sp_pod_traits<nTuple<T, N...> >
 template<typename TInts, TInts ...N>
 nTuple<TInts, sizeof...(N)> seq2ntuple(integer_sequence<TInts, N...>)
 {
-	return std::move(nTuple<TInts, sizeof...(N)>(
-	{ N... }));
+	return std::move(nTuple<TInts, sizeof...(N)>( { N... }));
 }
-
-typedef nTuple<Real, 3> Vec3;
-
-typedef nTuple<Integral, 3> IVec3;
-
-typedef nTuple<Real, 3> RVec3;
-
-typedef nTuple<Complex, 3> CVec3;
 
 template<typename T, size_t N> using Vector=nTuple<T,N>;
 
@@ -420,13 +411,14 @@ void assign(nTuple<T, N...> & l, TR const& r)
 
 template<typename TR, typename T, size_t ... N>
 auto inner_product(nTuple<T, N...> const & l, TR const& r)
-DECL_RET_TYPE(( _seq_reduce<N... >::eval ( _impl::plus(),l*r) ))
+DECL_RET_TYPE ((_seq_reduce<N...>::eval(_impl::plus(), l*r) ))
 
 template<typename TR, typename ...T>
 auto inner_product(nTuple<Expression<T...>> const & l,
 		TR const& r)
-				DECL_RET_TYPE(( seq_reduce(typename nTuple_traits<nTuple<Expression<T...>>>::dimensions(),
-										_impl::plus(),l*r) ))
+				DECL_RET_TYPE ((seq_reduce(typename nTuple_traits<nTuple<Expression<T...>>> ::dimensions(),
+										_impl::plus(),l*r) )
+				)
 
 template<typename T, size_t M, size_t ... N>
 double mod(nTuple<T, M, N...> const & l)
@@ -446,7 +438,7 @@ inline double mod(double const&v)
 
 template<typename TR, typename T, size_t ... N>
 auto dot(nTuple<T, N...> const & l, TR const& r)
-DECL_RET_TYPE((inner_product(l,r) ))
+DECL_RET_TYPE ((inner_product(l, r) ))
 
 template<typename T> inline auto determinant(
 		Matrix<T, 3, 3> const & m)
@@ -497,16 +489,15 @@ template<typename T1, size_t ... N1, typename T2, size_t ... N2> inline auto cro
 		nTuple<T1, N1...> const & l, nTuple<T2, N2...> const & r)
 		->nTuple<decltype(get_value(l,0)*get_value(r,0)),3>
 {
-	nTuple<decltype(get_value(l,0)*get_value(r,0)), 3> res =
-	{ l[1] * r[2] - l[2] * r[1], l[2] * get_value(r, 0)
-			- get_value(l, 0) * r[2], get_value(l, 0) * r[1]
-			- l[1] * get_value(r, 0) };
+	nTuple<decltype(get_value(l,0)*get_value(r,0)), 3> res = { l[1] * r[2]
+			- l[2] * r[1], l[2] * get_value(r, 0) - get_value(l, 0) * r[2],
+			get_value(l, 0) * r[1] - l[1] * get_value(r, 0) };
 	return std::move(res);
 }
 
 template<typename T>
 auto mod(T const & l)
-DECL_RET_TYPE(( abs(l)))
+DECL_RET_TYPE ((abs(l)))
 
 //template<typename T, size_t ...N>
 //auto mod(nTuple<T, N...> const & l)
@@ -592,7 +583,11 @@ DECL_RET_TYPE(( abs(l)))
 
 DEFINE_EXPRESSOPM_TEMPLATE_BASIC_ALGEBRA2(nTuple)
 
+
+
+
 /** @}*/
+
 }
 //namespace simpla
 
@@ -634,5 +629,6 @@ struct remove_all_extents<simpla::nTuple<T, M...> >
 {
 	typedef T type;
 };
+
 }  // namespace std
 #endif  // CORE_UTILITIES_NTUPLE_H_

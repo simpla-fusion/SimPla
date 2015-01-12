@@ -14,7 +14,7 @@
 
 #include "../utilities/ntuple.h"
 #include "../utilities/primitives.h"
-#include "../utilities/sp_type_traits.h"
+#include "../utilities/type_traits.h"
 
 namespace simpla
 {

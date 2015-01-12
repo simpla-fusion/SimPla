@@ -8,7 +8,7 @@
 #ifndef CONTAINER_CACHE_H_
 #define CONTAINER_CACHE_H_
 
-#include "../utilities/sp_type_traits.h"
+#include "../utilities/type_traits.h"
 namespace simpla
 {
 

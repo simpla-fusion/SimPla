@@ -12,7 +12,9 @@
  *
  *  @addtogroup physics Physics
  */
+namespace simpla
+{
 
-
+}  // namespace simpla
 
 #endif /* CORE_PHYSICS_PHYSICS_H_ */

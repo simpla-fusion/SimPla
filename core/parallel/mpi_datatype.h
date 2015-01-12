@@ -16,7 +16,7 @@
 
 #include "../data_interface/data_type.h"
 #include "../utilities/ntuple.h"
-#include "../utilities/sp_type_traits.h"
+#include "../utilities/type_traits.h"
 
 namespace simpla
 {

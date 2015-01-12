@@ -14,7 +14,7 @@
 #include <string>
 #include <utility>
 
-#include "ntuple.h"
+#include "../utilities/ntuple.h"
 /**
  *  @ingroup    utilities
  */

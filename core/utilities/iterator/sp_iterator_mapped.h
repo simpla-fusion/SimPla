@@ -11,8 +11,8 @@
 #include <map>
 #include <memory>
 
-#include "../containers/sp_iterator.h"
-#include "../utilities/sp_type_traits.h"
+#include "../utilities/type_traits.h"
+#include "iterator.h"
 
 namespace simpla
 {

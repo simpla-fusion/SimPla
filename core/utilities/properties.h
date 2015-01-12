@@ -9,7 +9,7 @@
 #define PROPERTIES_H_
 #include <map>
 #include <string>
-#include "ntuple.h"
+#include "../utilities/ntuple.h"
 #include "any.h"
 
 

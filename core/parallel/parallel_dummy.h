@@ -8,7 +8,6 @@
 #ifndef CORE_PARALLEL_PARALLEL_DUMMY_H_
 #define CORE_PARALLEL_PARALLEL_DUMMY_H_
 
-#include "../utilities/sp_foreach.h"
 namespace simpla
 {
 
@@ -28,10 +27,13 @@ void parallel_for(Range const & range, OP const & op)
  * @param range Range Concept
  * @param op std::function<void(*Range::iterator)>
  */
-template<typename Range, typename OP>
-void parallel_foreach(Range const & range, OP const & op)
+template<typename Range, typename Body>
+void parallel_foreach(Range const & range, Body const & body)
 {
-	sp_foreach(range, op);
+	for(auto && i:range)
+	{
+		body(i);
+	}
 }
 
 /**

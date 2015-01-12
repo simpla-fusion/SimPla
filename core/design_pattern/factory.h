@@ -9,15 +9,12 @@
 #define FACTORY_H_
 
 #include <map>
-#include "log.h"
-#include "misc_utilities.h"
 
 namespace simpla
 {
 
-//! @ingroup design_pattern
-
 /**
+ *  @ingroup design_pattern
  * @addtogroup factory Factory
  * @{
  *  \note  Modern C++ Design, Andrei Alexandrescu , Addison Wesley 2001  Charpt 8
@@ -27,7 +24,8 @@ struct Factory
 {
 	typedef TId identifier_type;
 
-	typedef typename std::conditional<std::is_fundamental<TProduct>::value, TProduct, std::shared_ptr<TProduct>>::type product_type;
+	typedef typename std::conditional<std::is_fundamental<TProduct>::value,
+			TProduct, std::shared_ptr<TProduct>>::type product_type;
 	typedef std::function<product_type(Args ...)> create_fun_callback;
 
 	typedef std::map<identifier_type, create_fun_callback> CallbackMap;
@@ -71,8 +69,7 @@ public:
 	}
 
 	template<typename ... Others>
-	auto Register(Others && ... args)
-	DECL_RET_TYPE((callbacks_.insert(std::forward<Others>(args)...)))
+	auto Register(Others && ... args) DECL_RET_TYPE((callbacks_.insert(std::forward<Others>(args)...)))
 
 	int Unregister(identifier_type const & id)
 	{
@@ -81,11 +78,7 @@ public:
 
 }
 ;
-template<typename TId, typename TProduct, typename ...Args>
-std::ostream & operator<<(std::ostream & os, Factory<TId, TProduct, Args...> const & f)
-{
-	return f.print(os);
-}
+
 /** @} */
 }
 // namespace simpla

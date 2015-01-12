@@ -23,7 +23,7 @@
 #include "../utilities/log.h"
 #include "../utilities/pretty_stream.h"
 #include "../utilities/utilities.h"
-#include "../utilities/sp_type_traits.h"
+#include "../utilities/type_traits.h"
 
 #include "../numeric/pointinpolygon.h"
 #include "../numeric/geometric_algorithm.h"

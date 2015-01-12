@@ -14,7 +14,7 @@
 #include <type_traits>
 
 #include "../../diff_geometry/calculus.h"
-#include "../../utilities/sp_type_traits.h"
+#include "../../utilities/type_traits.h"
 #include "../../physics/constants.h"
 #include "../manifold.h"
 #include "../../field/field.h"

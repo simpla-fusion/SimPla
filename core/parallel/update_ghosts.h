@@ -10,7 +10,7 @@
 
 #include <tuple>
 
-#include "../utilities/sp_type_traits.h"
+#include "../utilities/type_traits.h"
 
 namespace simpla
 {

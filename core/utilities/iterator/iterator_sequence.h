@@ -9,8 +9,8 @@
 #define CORE_CONTAINERS_SP_ITERATOR_SEQUENCE_H_
 
 
-#include "../containers/sp_range.h"
-#include "../utilities/sp_type_traits.h"
+#include "range.h"
+#include "../type_traits.h"
 
 namespace simpla
 {

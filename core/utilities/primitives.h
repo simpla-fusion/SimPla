@@ -13,8 +13,9 @@
 #include <cstdlib>
 #include <limits>
 #include <valarray>
-#include "sp_type_traits.h"
-#include "sp_complex.h"
+#include "type_traits.h"
+#include "complex.h"
+#include "ntuple.h"
 namespace simpla
 {
 
@@ -58,6 +59,14 @@ typedef double Real;
 typedef long Integral;
 
 typedef std::complex<Real> Complex;
+
+typedef nTuple<Real, 3> Vec3;
+
+typedef nTuple<Integral, 3> IVec3;
+
+typedef nTuple<Real, 3> RVec3;
+
+typedef nTuple<Complex, 3> CVec3;
 
 static constexpr Real INIFITY = std::numeric_limits<Real>::infinity();
 

@@ -22,7 +22,7 @@
 #include "../../utilities/log.h"
 #include "../../utilities/ntuple.h"
 #include "../../utilities/primitives.h"
-#include "../../utilities/sp_type_traits.h"
+#include "../../utilities/type_traits.h"
 #include "../../numeric/geometric_algorithm.h"
 
 #if !NO_MPI || USE_MPI

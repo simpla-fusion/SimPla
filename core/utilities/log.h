@@ -21,11 +21,8 @@
 #include <sstream>
 #include <string>
 
-#include "sp_type_traits.h"
+#include "../utilities/type_traits.h"
 #include "pretty_stream.h"
-
-
-
 
 namespace simpla
 {
@@ -44,10 +41,9 @@ namespace simpla
  *
  */
 
-
 enum
 {
-	LOG_FORCE_OUTPUT = -10000,//!< LOG_FORCE_OUTPUT
+	LOG_FORCE_OUTPUT = -10000, //!< LOG_FORCE_OUTPUT
 	LOG_MESSAGE = -10,        //!< LOG_MESSAGE
 	LOG_OUT_RANGE_ERROR = -4, //!< LOG_OUT_RANGE_ERROR
 	LOG_LOGIC_ERROR = -3,     //!< LOG_LOGIC_ERROR

@@ -12,7 +12,7 @@
 #include <typeinfo>
 #include <utility>
 //#include "expression_template.h"
-#include "sp_type_traits.h"
+#include "type_traits.h"
 #include "ntuple.h"
 
 #include "../../containers/sp_integer_sequence.h"

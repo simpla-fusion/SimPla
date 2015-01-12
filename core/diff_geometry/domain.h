@@ -12,7 +12,7 @@
 #include <type_traits>
 
 #include "../data_interface/data_space.h"
-#include "../utilities/sp_type_traits.h"
+#include "../utilities/type_traits.h"
 #include "../design_pattern/expression_template.h"
 namespace simpla
 {

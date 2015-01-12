@@ -7,14 +7,15 @@
 
 #ifndef SP_ITERATOR_H_
 #define SP_ITERATOR_H_
-#include "../utilities/sp_type_traits.h"
+#include "../type_traits.h"
 #include <iterator>
 namespace simpla
 {
 
 /**
- *   @addtogroup  iterator
- *@{
+ * @ingroup utilities
+ * @addtogroup  iterator
+ * @{
  *   concept Range is a container
  *   class Range
  *   {

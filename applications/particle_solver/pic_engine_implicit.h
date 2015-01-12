@@ -14,7 +14,7 @@
 
 #include "../../src/fetl/fetl.h"
 #include "../../src/physics/physical_constants.h"
-#include "../../src/utilities/sp_type_traits.h"
+#include "../../src/utilities/type_traits.h"
 
 namespace simpla
 {

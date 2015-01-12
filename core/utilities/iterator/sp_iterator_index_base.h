@@ -8,7 +8,7 @@
 #ifndef SP_ITERATOR_INDEX_BASE_H_
 #define SP_ITERATOR_INDEX_BASE_H_
 
-#include "../containers/sp_iterator.h"
+#include "iterator.h"
 namespace simpla
 {
 

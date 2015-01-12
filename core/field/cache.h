@@ -7,7 +7,7 @@
 
 #ifndef CACHE_H_
 #define CACHE_H_
-#include "../utilities/sp_type_traits.h"
+#include "../utilities/type_traits.h"
 namespace simpla
 {
 

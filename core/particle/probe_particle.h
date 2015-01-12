@@ -12,13 +12,11 @@
 #include <memory>
 #include <string>
 
-#include "../containers/sp_iterator_sequence.h"
-#include "../data_interface/data_set.h"
 #include "../physics/physical_object.h"
-#include "../utilities/log.h"
-#include "../utilities/primitives.h"
+#include "../data_interface/data_set.h"
 #include "../parallel/parallel.h"
-
+#include "../utilities/utilities.h"
+#include "../utilities/iterator/iterator_sequence.h"
 namespace simpla
 {
 
@@ -152,11 +150,12 @@ struct ProbeParticle: public PhysicalObject, public Engine
 	template<typename TFun>
 	void foreach(TFun const & fun);
 
+	std::vector<Point_s> buffer;
+	std::shared_ptr<Point_s> data;
 	//! @}
 private:
 
-	std::vector<Point_s> buffer;
-	std::shared_ptr<Point_s> data;
+
 
 	bool is_changed_ = false;
 
@@ -286,7 +285,7 @@ DataSet ProbeParticle<Engine>::dataset() const
 {
 	size_t dims[2] = { number_of_points_, memory_length + 1 };
 
-	return std::move(make_dataset(data + (
+	return std::move(make_dataset(data.get() + (
 
 	number_of_points_ * (step_counter_ - memory_length)
 

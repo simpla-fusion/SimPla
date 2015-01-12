@@ -1,20 +1,21 @@
 /*
- * sp_integer_sequence.h
+ *  integer_sequence.h
  *
  *  Created on: 2014年9月26日
  *      Author: salmon
  */
 
-#ifndef SP_INTEGER_SEQUENCE_H_
-#define SP_INTEGER_SEQUENCE_H_
+#ifndef CORE_UTILITIES_INTEGER_SEQUENCE_H_
+#define CORE_UTILITIES_INTEGER_SEQUENCE_H_
 
 #include <stddef.h>
 #include <tuple>
-#include "sp_type_traits.h"
+
+#include "../utilities/type_traits.h"
 
 namespace simpla
 {
-/** @ingroup stl_alt */
+/** @ingroup utilities */
 template<typename _Tp, _Tp ... _Idx>
 struct integer_sequence
 {
@@ -284,8 +285,7 @@ template<typename TInts, TInts ...N, typename TOP>
 void seq_for_each(integer_sequence<TInts, N...>, TOP const & op)
 {
 	size_t ndims = sizeof...(N);
-	TInts dims[] =
-	{ N... };
+	TInts dims[] = { N... };
 	TInts idx[ndims];
 
 	for (int i = 0; i < ndims; ++i)
@@ -317,8 +317,7 @@ template<typename TInts, TInts ...N, typename TOS, typename TA>
 TOS& seq_print(integer_sequence<TInts, N...>, TOS & os, TA const &d)
 {
 	size_t ndims = sizeof...(N);
-	TInts dims[] =
-	{ N... };
+	TInts dims[] = { N... };
 	TInts idx[ndims];
 
 	for (int i = 0; i < ndims; ++i)
@@ -353,4 +352,4 @@ TOS& seq_print(integer_sequence<TInts, N...>, TOS & os, TA const &d)
 /** @}*/
 }
 // namespace simpla
-#endif /* SP_INTEGER_SEQUENCE_H_ */
+#endif /* CORE_UTILITIES_INTEGER_SEQUENCE_H_ */

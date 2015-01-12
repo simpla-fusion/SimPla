@@ -13,7 +13,7 @@
 #include "../utilities/constant_ops.h"
 #include "../utilities/primitives.h"
 #include "../utilities/ntuple.h"
-#include "../utilities/sp_type_traits.h"
+#include "../utilities/type_traits.h"
 
 namespace simpla
 {

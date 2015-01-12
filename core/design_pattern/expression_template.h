@@ -12,7 +12,8 @@
 #include <limits>
 #include <type_traits>
 #include <complex>
-#include "../utilities/sp_type_traits.h"
+
+#include "../utilities/type_traits.h"
 
 namespace simpla
 {
@@ -87,8 +88,7 @@ struct Expression
 	DECL_RET_TYPE ((op_(get_value(lhs, s), get_value(rhs, s))))
 //			DECL_RET_TYPE ((op_( lhs, rhs, s )))
 
-}
-;
+};
 
 ///   \brief  Unary operation
 template<typename TOP, typename TL>
@@ -478,7 +478,6 @@ _SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_FUNCTION(abs)                               
 
 /** @}*/
 
-}
-// namespace simpla
+}// namespace simpla
 
 #endif /* EXPRESSION_TEMPLATE_H_ */

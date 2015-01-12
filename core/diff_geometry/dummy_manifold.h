@@ -16,7 +16,7 @@
 #include "../diff_geometry/domain.h"
 #include "../parallel/block_range.h"
 #include "../utilities/primitives.h"
-#include "../utilities/sp_type_traits.h"
+#include "../utilities/type_traits.h"
 
 namespace simpla
 {

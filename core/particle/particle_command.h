@@ -12,7 +12,7 @@
 #include <model/material.h>
 #include <particle/particle.h>
 //#include <utilities/log.h>
-#include <utilities/sp_type_traits.h>
+#include <utilities/type_traits.h>
 #include <utilities/visitor.h>
 #include <functional>
 #include <initializer_list>

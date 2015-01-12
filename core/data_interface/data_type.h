@@ -9,8 +9,9 @@
 #define DATA_TYPE_H_
 #include <typeinfo>
 #include <typeindex>
-#include "../utilities/primitives.h"
 #include "../utilities/ntuple.h"
+
+#include "../utilities/primitives.h"
 #include "../utilities/log.h"
 namespace simpla
 {

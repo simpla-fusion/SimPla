@@ -7,7 +7,7 @@
 
 #ifndef CORE_PARALLEL_BLOCKED_RANGE_H_
 #define CORE_PARALLEL_BLOCKED_RANGE_H_
-#include "../utilities/sp_type_traits.h"
+#include "../utilities/type_traits.h"
 namespace simpla
 {
 class split;

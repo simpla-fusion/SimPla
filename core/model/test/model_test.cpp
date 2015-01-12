@@ -16,7 +16,7 @@
 #include "../../diff_geometry/geometry/cartesian.h"
 #include "../../diff_geometry/interpolator/interpolator.h"
 #include "../../diff_geometry/topology/structured.h"
-#include "../utilities/sp_type_traits.h"
+#include "../utilities/type_traits.h"
 
 using namespace simpla;
 

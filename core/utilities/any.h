@@ -13,7 +13,7 @@
 #include <iostream>
 
 #include "../data_interface/data_type.h"
-#include "ntuple.h"
+#include "../utilities/ntuple.h"
 #include "log.h"
 
 

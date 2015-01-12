@@ -10,7 +10,7 @@
 #include "../containers/sp_iterator_mapped.h"
 #include "../data_structure/container_container.h"
 #include "../utilities/log.h"
-#include "../utilities/sp_type_traits.h"
+#include "../utilities/type_traits.h"
 #include "../parallel/parallel.h"
 #include "../parallel/mpi_aux_functions.h"
 #include "save_particle.h"

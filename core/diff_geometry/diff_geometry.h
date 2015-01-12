@@ -8,6 +8,9 @@
 #ifndef CORE_DIFF_GEOMETRY_DIFF_GEOMETRY_H_
 #define CORE_DIFF_GEOMETRY_DIFF_GEOMETRY_H_
 
+namespace simpla
+{
+
 /**
  *  @addtogroup diff_geo Differential Geometry
  *  @brief Differential geometry is a mathematical discipline that
@@ -45,5 +48,7 @@
  *  @}
  *
  */
+
+}  // namespace simpla
 
 #endif /* CORE_DIFF_GEOMETRY_DIFF_GEOMETRY_H_ */

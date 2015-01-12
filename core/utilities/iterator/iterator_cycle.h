@@ -7,7 +7,7 @@
 
 #ifndef CORE_DATA_STRUCTURE_ITERATOR_CYCLE_H_
 #define CORE_DATA_STRUCTURE_ITERATOR_CYCLE_H_
-#include "../utilities/sp_type_traits.h"
+#include "../utilities/type_traits.h"
 namespace simpla
 {
 /** @ingroup iterator */
