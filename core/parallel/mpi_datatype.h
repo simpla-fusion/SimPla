@@ -15,7 +15,7 @@
 #include <vector>
 
 #include "../data_interface/data_type.h"
-#include "../utilities/ntuple.h"
+#include "../gtl/ntuple.h"
 #include "../utilities/type_traits.h"
 
 namespace simpla

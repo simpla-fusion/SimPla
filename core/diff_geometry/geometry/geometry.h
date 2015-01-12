@@ -1,5 +1,5 @@
-/*
- * geometry.h
+/**
+ * @file  geometry.h
  *
  *  Created on: 2014年12月30日
  *      Author: salmon

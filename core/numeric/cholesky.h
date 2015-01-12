@@ -7,7 +7,7 @@
 
 #ifndef CHOLESKY_H_
 #define CHOLESKY_H_
-#include "../utilities/ntuple.h"
+#include "../gtl/ntuple.h"
 namespace simpla
 {
 /**

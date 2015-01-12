@@ -1,5 +1,5 @@
-/*
- * geometry_magnetic_flux.h
+/**
+ * @file  geometry_magnetic_flux.h
  *
  *  created on: 2014-3-13
  *      Author: salmon
@@ -11,7 +11,7 @@
 #include <iostream>
 #include <utility>
 
-#include "../utilities/ntuple.h"
+#include "../gtl/ntuple.h"
 #include "../utilities/primitives.h"
 #include "../utilities/log.h"
 

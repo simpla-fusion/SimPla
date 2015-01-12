@@ -1,5 +1,5 @@
-/*
- * concept_check.h
+/**
+ * @file concept_check.h
  *
  *  Created on: 2015年1月12日
  *      Author: salmon
@@ -10,6 +10,11 @@
 
 namespace simpla
 {
+/**
+ * @ingroup gtl
+ *  @addtogroup concept_check Concept Checking
+ *  @{
+ */
 #define HAS_MEMBER(_NAME_)                                                                 \
 template<typename _T>                                                                      \
 struct has_member_##_NAME_                                                                 \
@@ -310,6 +315,10 @@ public:
 							&& (std::is_integral<_Args>::value));
 
 };
+
+/**
+ * @}
+ */
 }  // namespace simpla
 
 #endif /* CORE_GPTL_CONCEPT_CHECK_H_ */

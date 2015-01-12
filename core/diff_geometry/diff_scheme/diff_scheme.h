@@ -1,5 +1,5 @@
-/*
- * diff_scheme.h
+/**
+ * @file diff_scheme.h
  *
  *  Created on: 2014年12月30日
  *      Author: salmon

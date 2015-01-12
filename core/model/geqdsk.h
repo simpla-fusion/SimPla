@@ -13,7 +13,7 @@
 #include <vector>
 
 #include "../diff_geometry/geometry/cylindrical.h"
-#include "../utilities/ntuple.h"
+#include "../gtl/ntuple.h"
 #include "../utilities/primitives.h"
 #include "../numeric/interpolation.h"
 #include "../physics/constants.h"

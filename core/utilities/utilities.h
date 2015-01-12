@@ -1,5 +1,5 @@
-/*
- * misc_utilities.h
+/**
+ * @file utilities.h
  *
  *  Created on: 2014年11月24日
  *      Author: salmon
@@ -17,14 +17,13 @@
 #include "lua_object.h"
 
 #include "../utilities/type_traits.h"
-#include "../utilities/ntuple.h"
+#include "../gtl/ntuple.h"
 #include "../physics/physical_constants.h"
 
 /**
  *  @addtogroup utilities Utilities
  *  @{
  *   @brief  This module collects   general purpose functions.
- *   @addtogroup stl_alt  Alternative to STL or Boost
  *  @}
  */
 

@@ -1,5 +1,5 @@
-/*
- * dummy_manifold.h
+/**
+ * @file  dummy_manifold.h
  *
  *  Created on: 2014年11月5日
  *      Author: salmon

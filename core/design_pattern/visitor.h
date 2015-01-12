@@ -1,5 +1,5 @@
-/*
- * visitor.h
+/**
+ * @file visitor.h
  *
  *  created on: 2014-4-23
  *      Author: salmon

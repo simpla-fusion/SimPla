@@ -1,5 +1,5 @@
-/*
- * config_parser.cpp
+/**
+ * @file config_parser.cpp
  *
  *  Created on: 2014年11月24日
  *      Author: salmon

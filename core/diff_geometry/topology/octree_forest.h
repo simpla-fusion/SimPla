@@ -15,7 +15,7 @@
 #include <limits>
 #include <thread>
 #include <iterator>
-#include "../utilities/ntuple.h"
+#include "../gtl/ntuple.h"
 #include "../utilities/primitives.h"
 #include "../utilities/type_traits.h"
 #include "../utilities/pretty_stream.h"

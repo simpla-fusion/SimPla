@@ -1,6 +1,7 @@
-/*Copyright (C) 2007-2011 YU Zhi. All rights reserved.
+/**
+ * Copyright (C) 2007-2011 YU Zhi. All rights reserved.
  * $Id$
- * MemoryPool.h
+ * @file memory_pool.h
  *
  *  created on: 2011-3-2
  *      Author: salmon

@@ -1,5 +1,5 @@
-/*
- * data_type.h
+/**
+ * @file data_type.h
  *
  *  created on: 2014-6-2
  *      Author: salmon
@@ -9,8 +9,8 @@
 #define DATA_TYPE_H_
 #include <typeinfo>
 #include <typeindex>
-#include "../utilities/ntuple.h"
-
+#include "../gtl/ntuple.h"
+#include "../gtl/type_traits.h"
 #include "../utilities/primitives.h"
 #include "../utilities/log.h"
 namespace simpla

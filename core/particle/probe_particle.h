@@ -1,5 +1,5 @@
-/*
- * probe_particle.h
+/**
+ * @file probe_particle.h
  *
  *  Created on: 2014年11月18日
  *      Author: salmon

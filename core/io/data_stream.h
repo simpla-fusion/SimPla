@@ -16,7 +16,7 @@
 #include <vector>
 
 #include "../data_interface/data_set.h"
-#include "../utilities/ntuple.h"
+#include "../gtl/ntuple.h"
 #include "../design_pattern/singleton_holder.h"
 #include "../utilities/any.h"
 

@@ -1,5 +1,5 @@
-/*
- * factory.h
+/**
+ * @file factory.h
  *
  *  created on: 2014-6-13
  *      Author: salmon

@@ -13,16 +13,12 @@
 #include <iostream>
 
 #include "../data_interface/data_type.h"
-#include "../utilities/ntuple.h"
-#include "log.h"
-
-
-
+#include "../gtl/ntuple.h"
 
 namespace simpla
 {
 /**
- *  @ingroup utilities
+ *  @ingroup gtl
  *
  *
  *   change from http://www.cnblogs.com/qicosmos/p/3420095.html

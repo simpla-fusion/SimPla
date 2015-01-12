@@ -1,5 +1,5 @@
-/*
- * task.h
+/**
+ * @file  task.h
  *
  *  Created on: 2015年1月4日
  *      Author: salmon

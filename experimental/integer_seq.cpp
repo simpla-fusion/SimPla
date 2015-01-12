@@ -6,7 +6,7 @@
  */
 #include <iostream>
 #include "../src/utilities/sp_integer_sequence.h"
-#include "../src/utilities/ntuple.h"
+#include "../src/gtl/ntuple.h"
 #include "../src/utilities/pretty_stream.h"
 //struct FOO
 //{

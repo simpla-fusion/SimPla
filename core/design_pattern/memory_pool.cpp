@@ -1,5 +1,5 @@
-/*
- * memory_pool.cpp
+/**
+ * @file memory_pool.cpp
  *
  *  Created on: 2014年11月14日
  *      Author: salmon

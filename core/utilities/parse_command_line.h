@@ -1,5 +1,5 @@
-/*
- * parse_commandline.h
+/**
+ * @file  parse_command_line.h
  *
  *  created on: 2013-12-11
  *      Author: salmon

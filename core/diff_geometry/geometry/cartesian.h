@@ -1,5 +1,5 @@
-/*
- * coordinates_cartesian.h
+/**
+ * @file   cartesian.h
  *
  *  created on: 2014-3-13
  *      Author: salmon

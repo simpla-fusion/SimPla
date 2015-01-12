@@ -1,5 +1,5 @@
-/*
- * complex_ops.h
+/**
+ * @file complex.h
  *
  *  created on: 2013-12-30
  *      Author: salmon
@@ -12,7 +12,7 @@
 namespace std
 {
 
-/** @ingroup gotl */
+/** @ingroup gtl */
 
 #define DEF_COMPLEX_OP(_OP_, _OTHER_)                                                                   \
 template<typename T> inline auto operator _OP_(std::complex<T> const & l, _OTHER_ const & r)                    \

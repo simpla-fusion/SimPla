@@ -1,5 +1,5 @@
 /**
- * \file sp_range.h
+ * @file range.h
  *
  * \date    2014年8月27日  上午9:49:48 
  * \author salmon
@@ -13,6 +13,7 @@
 namespace simpla
 {
 /**
+ * @ingroup gtl
  *  @addtogroup range Range
  *  @{
  *  @brief  Range

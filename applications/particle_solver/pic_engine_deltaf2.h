@@ -11,7 +11,7 @@
 #include <string>
 
 #include "../utilities/primitives.h"
-#include "../utilities/ntuple.h"
+#include "../gtl/ntuple.h"
 
 namespace simpla
 {

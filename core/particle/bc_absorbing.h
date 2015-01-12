@@ -11,7 +11,7 @@
 #include <memory>
 #include <string>
 
-#include "../utilities/ntuple.h"
+#include "../gtl/ntuple.h"
 #include "../utilities/primitives.h"
 #include "particle_boundary.h"
 

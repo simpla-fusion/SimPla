@@ -1,6 +1,7 @@
-/*Copyright (C) 2007-2011 YU Zhi. All rights reserved.
+/**
+ * Copyright (C) 2007-2011 YU Zhi. All rights reserved.
  * $Id: nTuple.h 990 2010-12-14 11:06:21Z salmon $
- * nTuple.h
+ * @file ntuple.h
  *
  *  created on: Jan 27, 2010
  *      Author: yuzhi
@@ -12,14 +13,14 @@
 #include <stddef.h>
 
 #include "../design_pattern/expression_template.h"
-#include "../utilities/integer_sequence.h"
-#include "../utilities/type_traits.h"
+#include "integer_sequence.h"
+#include "type_traits.h"
 
 namespace simpla
 {
 
 /**
- * @ingroup utilities
+ * @ingroup gtl
  * @addtogroup ntuple n-tuple
  * @{
  *

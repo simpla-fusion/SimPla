@@ -13,7 +13,7 @@
 
 #include "../../core/physics/physical_constants.h"
 #include "../../core/utilities/primitives.h"
-#include "../../core/utilities/ntuple.h"
+#include "../../core/gtl/ntuple.h"
 #include "../../core/particle/particle_engine.h"
 namespace simpla
 {

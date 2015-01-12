@@ -1,5 +1,5 @@
-/*
- * structured.h
+/**
+ * @file  structured.h
  *
  *  created on: 2014-2-21
  *      Author: salmon
@@ -20,7 +20,7 @@
 
 #include "../../data_interface/data_interface.h"
 #include "../../utilities/log.h"
-#include "../../utilities/ntuple.h"
+#include "../../gtl/ntuple.h"
 #include "../../utilities/primitives.h"
 #include "../../utilities/type_traits.h"
 #include "../../numeric/geometric_algorithm.h"

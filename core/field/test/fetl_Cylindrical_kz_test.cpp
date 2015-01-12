@@ -11,7 +11,7 @@
 #include "../../diff_geometry/manifold.h"
 #include "../../diff_geometry/topology/structured.h"
 
-#include "../utilities/ntuple.h"
+#include "../gtl/ntuple.h"
 
 
 using namespace simpla;

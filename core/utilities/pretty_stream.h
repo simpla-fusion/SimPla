@@ -1,5 +1,5 @@
-/*
- * pretty_stream.h
+/**
+ * @file  pretty_stream.h
  *
  *  created on: 2013-11-29
  *      Author: salmon
@@ -19,8 +19,8 @@
 #include <utility>
 #include <vector>
 
-#include "../utilities/ntuple.h"
-#include "../utilities/type_traits.h"
+#include "../gtl/ntuple.h"
+#include "../gtl/type_traits.h"
 
 namespace simpla
 {

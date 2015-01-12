@@ -1,5 +1,5 @@
-/*
- * topology.h
+/**
+ * @file  topology.h
  *
  *  Created on: 2014年12月30日
  *      Author: salmon

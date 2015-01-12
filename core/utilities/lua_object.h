@@ -1,6 +1,7 @@
-/*Copyright (C) 2007-2011 YU Zhi. All rights reserved.
+/**
+ * Copyright (C) 2007-2011 YU Zhi. All rights reserved.
  *
- * @file lua_state.h
+ * @file lua_object.h
  *
  * @date 2010-9-22
  * @author salmon
@@ -32,7 +33,7 @@ extern "C"
 #include <utility>
 #include <vector>
 #include <tuple>
-#include "../utilities/ntuple.h"
+#include "../gtl/ntuple.h"
 
 #include "log.h"
 #include "any.h"

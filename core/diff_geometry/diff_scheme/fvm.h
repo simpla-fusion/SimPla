@@ -1,5 +1,5 @@
-/*
- * mesh_rectangle.h
+/**
+ * @file  mesh_rectangle.h
  *
  *  created on: 2014-2-26
  *      Author: salmon

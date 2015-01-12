@@ -13,7 +13,7 @@
 #include <complex>
 #include <valarray>
 
-#include "../utilities/ntuple.h"
+#include "../gtl/ntuple.h"
 #include "../utilities/primitives.h"
 #include "../utilities/log.h"
 

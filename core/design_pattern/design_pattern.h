@@ -1,5 +1,5 @@
-/*
- * design_pattern.h
+/**
+ * @file design_pattern.h
  *
  *  Created on: 2014年12月30日
  *      Author: salmon

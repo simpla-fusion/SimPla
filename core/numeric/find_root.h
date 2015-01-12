@@ -8,7 +8,7 @@
 #ifndef FIND_ROOT_H_
 #define FIND_ROOT_H_
 #include <tuple>
-#include "../utilities/ntuple.h"
+#include "../gtl/ntuple.h"
 namespace simpla
 {
 //!  @ingroup numeric

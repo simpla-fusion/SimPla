@@ -10,7 +10,7 @@
 #include "../../diff_geometry/interpolator/interpolator.h"
 #include "../../diff_geometry/manifold.h"
 #include "../../diff_geometry/topology/structured.h"
-#include "../../utilities/ntuple.h"
+#include "../../gtl/ntuple.h"
 #include "../field.h"
 
 using namespace simpla;

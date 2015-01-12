@@ -8,7 +8,7 @@
 #ifndef INTERPOLATION_H_
 #define INTERPOLATION_H_
 #include "../utilities/log.h"
-#include "../utilities/ntuple.h"
+#include "../gtl/ntuple.h"
 #include <vector>
 #include <cmath>
 #include <algorithm>

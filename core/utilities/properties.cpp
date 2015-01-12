@@ -1,5 +1,5 @@
 /**
- * \file properties.cpp
+ * @file  properties.cpp
  *
  * \date    2014年7月13日  上午8:41:23 
  * \author salmon

@@ -12,7 +12,7 @@
 #include <iterator>
 #include <numeric>
 #include <vector>
-#include "../utilities/ntuple.h"
+#include "../gtl/ntuple.h"
 namespace simpla
 {
 /** @ingroup numeric */

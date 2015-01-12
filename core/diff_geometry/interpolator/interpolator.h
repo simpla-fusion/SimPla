@@ -1,5 +1,5 @@
-/*
- * interpolator.h
+/**
+ * @file  interpolator.h
  *
  *  created on: 2014-4-17
  *      Author: salmon
@@ -9,7 +9,7 @@
 #define INTERPOLATOR_H_
 
 //#include "../../fetl/field_constant.h"
-#include "../../utilities/ntuple.h"
+#include "../../gtl/ntuple.h"
 #include "../../utilities/primitives.h"
 
 namespace simpla

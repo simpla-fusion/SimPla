@@ -1,5 +1,5 @@
 /**
- * \file properties.h
+ * @file   properties.h
  *
  * \date    2014年7月13日  上午7:27:37 
  * \author salmon
@@ -9,9 +9,8 @@
 #define PROPERTIES_H_
 #include <map>
 #include <string>
-#include "../utilities/ntuple.h"
+#include "../gtl/ntuple.h"
 #include "any.h"
-
 
 namespace simpla
 {

@@ -1,5 +1,5 @@
-/*
- *  integer_sequence.h
+/**
+ * @file  integer_sequence.h
  *
  *  Created on: 2014年9月26日
  *      Author: salmon

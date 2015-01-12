@@ -1,5 +1,5 @@
-/*
- * calculus.h
+/**
+ * @file calculus.h
  *
  *  Created on: 2014年9月23日
  *      Author: salmon

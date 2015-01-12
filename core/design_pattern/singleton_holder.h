@@ -1,6 +1,7 @@
-/*Copyright (C) 2007-2011 YU Zhi. All rights reserved.
+/**
+ * Copyright (C) 2007-2011 YU Zhi. All rights reserved.
  * $Id$
- * SingletonHolder.h
+ * @file singleton_holder.h
  *
  *  created on: 2008-04-16
  *      Author: salmon

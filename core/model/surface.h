@@ -12,7 +12,7 @@
 #include <utility>
 #include <vector>
 
-#include "../utilities/ntuple.h"
+#include "../gtl/ntuple.h"
 #include "../utilities/primitives.h"
 #include "../utilities/type_traits.h"
 

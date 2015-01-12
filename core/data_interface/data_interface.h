@@ -1,5 +1,5 @@
-/*
- * data_structure.h
+/**
+ * @file data_structure.h
  *
  *  Created on: 2014年11月10日
  *      Author: salmon

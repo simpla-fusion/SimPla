@@ -1,5 +1,5 @@
-/*
- * configure.h
+/**
+ * @file  config_parser.h
  *
  *  Created on: 2014年11月24日
  *      Author: salmon

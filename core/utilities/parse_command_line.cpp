@@ -1,5 +1,5 @@
-/*
- * parse_command_line.cpp
+/**
+ * @file  parse_command_line.cpp
  *
  *  Created on: 2014年11月21日
  *      Author: salmon

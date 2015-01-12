@@ -1,5 +1,5 @@
-/*
- * logo.cpp
+/**
+ * @file logo.cpp
  *
  *  Created on: 2014年11月21日
  *      Author: salmon

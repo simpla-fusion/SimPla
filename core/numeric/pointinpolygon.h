@@ -10,7 +10,7 @@
 
 #include <vector>
 
-#include "../utilities/ntuple.h"
+#include "../gtl/ntuple.h"
 #include "../utilities/primitives.h"
 #include "../numeric/find_root.h"
 

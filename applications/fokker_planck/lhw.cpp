@@ -16,7 +16,7 @@
 #include "../../src/utilities/lua_state.h"
 #include "../../src/utilities/parse_command_line.h"
 #include "../../src/utilities/utilities.h"
-#include "../../src/utilities/ntuple.h"
+#include "../../src/gtl/ntuple.h"
 #include "../../src/utilities/ntuple_noet.h"
 #include "../../src/physics/physical_constants.h"
 #include "../../src/io/hdf5_datatype.h"

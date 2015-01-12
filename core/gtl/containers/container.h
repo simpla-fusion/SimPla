@@ -1,5 +1,5 @@
-/*
- * container.h
+/**
+ * @file container.h
  *
  *  Created on: 2014年12月30日
  *      Author: salmon
@@ -11,7 +11,7 @@
 
 
 /**
- *  @ingroup utilities
+ *  @ingroup gtl
  *  @addtogroup container Container
  *
  */

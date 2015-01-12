@@ -1,5 +1,5 @@
-/*
- * fdm.h
+/**
+ * @file  fdm.h
  *
  *  Created on: 2014年9月23日
  *      Author: salmon

@@ -12,7 +12,7 @@
 #include "../../../core/io/data_stream.h"
 #include "../../../core/manifold/domain_dummy.h"
 #include "../../../core/utilities/log.h"
-#include "../../../core/utilities/ntuple.h"
+#include "../../../core/gtl/ntuple.h"
 #include "../../../core/utilities/parse_command_line.h"
 #include "../../../core/parallel/message_comm.h"
 

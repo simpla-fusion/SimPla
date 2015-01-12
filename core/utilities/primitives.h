@@ -1,5 +1,5 @@
-/*
- * primitives.h
+/**
+ * @file  primitives.h
  *
  *  created on: 2013-6-24
  *      Author: salmon

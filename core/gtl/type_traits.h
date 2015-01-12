@@ -1,5 +1,5 @@
-/*
- * type_traits.h
+/**
+ * @file type_traits.h
  *
  *  created on: 2014-6-15
  *      Author: salmon

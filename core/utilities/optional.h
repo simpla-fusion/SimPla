@@ -1,5 +1,5 @@
-/*
- * optional.h
+/**
+ * @file  optional.h
  *
  * \date  2014-4-1
  *      \author  salmon

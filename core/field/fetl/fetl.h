@@ -11,7 +11,7 @@
 
 #include "../../diff_geometry/calculus.h"
 #include "../utilities/primitives.h"
-#include "../utilities/ntuple.h"
+#include "../gtl/ntuple.h"
 #include "../utilities/sp_complex.h"
 
 #include "../field/field.h"

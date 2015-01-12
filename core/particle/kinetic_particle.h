@@ -1,5 +1,5 @@
 /**
- *  kinetic_particle.h
+ * @file  kinetic_particle.h
  *
  * \date    2014年9月1日  下午2:25:26 
  * \author salmon

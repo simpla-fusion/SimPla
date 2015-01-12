@@ -16,7 +16,7 @@
 
 #include "../utilities/log.h"
 #include "../utilities/pretty_stream.h"
-#include "../utilities/ntuple.h"
+#include "../gtl/ntuple.h"
 #include "../physics/constants.h"
 #include "../io/data_stream.h"
 #include "../numeric/find_root.h"

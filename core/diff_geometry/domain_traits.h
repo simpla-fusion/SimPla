@@ -1,5 +1,5 @@
-/*
- * domain_traits.h
+/**
+ * @file domain_traits.h
  *
  *  Created on: Oct 16, 2014
  *      Author: salmon

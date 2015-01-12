@@ -1,5 +1,5 @@
-/*
- * diff_geo.h
+/**
+ *  @file diff_geo.h
  *
  *  Created on: 2015年1月9日
  *      Author: salmon

@@ -1,5 +1,5 @@
-/*
- * expression_template.h
+/**
+ * @file expression_template.h
  *
  *  Created on: 2014年9月26日
  *      Author: salmon
@@ -13,7 +13,7 @@
 #include <type_traits>
 #include <complex>
 
-#include "../utilities/type_traits.h"
+#include "../gtl/type_traits.h"
 
 namespace simpla
 {

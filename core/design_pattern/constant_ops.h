@@ -1,5 +1,5 @@
-/*
- * constant_ops.h
+/**
+ * @file constant_ops.h
  *
  *  created on: 2013-11-7
  *      Author: salmon

@@ -1,5 +1,5 @@
 /**
- * sp_iterator.h
+ * @file iterator.h
  *
  * \date 2014-7-4
  * \author salmon
@@ -13,7 +13,7 @@ namespace simpla
 {
 
 /**
- * @ingroup utilities
+ * @ingroup gtl
  * @addtogroup  iterator
  * @{
  *   concept Range is a container

@@ -1,4 +1,5 @@
-/*  ____  _           ____  _
+/**
+ *   ____  _           ____  _
  * / ___|(_)_ __ ___ |  _ \| | __ _
  * \___ \| | '_ ` _ \| |_) | |/ _` |
  *  ___) | | | | | | |  __/| | (_| |
@@ -7,7 +8,7 @@
  *
  *
  *
- * log.h
+ * @file log.h
  *
  *  created on: 2012-3-21
  *      Author: salmon
@@ -21,7 +22,7 @@
 #include <sstream>
 #include <string>
 
-#include "../utilities/type_traits.h"
+#include "../gtl/type_traits.h"
 #include "pretty_stream.h"
 
 namespace simpla
@@ -30,14 +31,6 @@ namespace simpla
  * @ingroup utilities
  * @defgroup logging   Log
  * @{
- *
- */
-
-/**
- * @page log
- *
- *
- *  This is document of Log
  *
  */
 

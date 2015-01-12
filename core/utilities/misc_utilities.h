@@ -1,5 +1,5 @@
-/*
- * utilities.h
+/**
+ * @file misc_utilities.h
  *
  *  created on: 2013-11-24
  *      Author: salmon
@@ -14,7 +14,7 @@
 #include <string>
 #include <utility>
 
-#include "../utilities/ntuple.h"
+#include "../gtl/ntuple.h"
 /**
  *  @ingroup    utilities
  */
