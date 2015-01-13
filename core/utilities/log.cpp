@@ -7,19 +7,15 @@
 
 #include "log.h"
 
+#include <chrono>
 #include <ctime>
 #include <fstream>
-#include <iostream>
 #include <iomanip>
-#include <chrono>
+#include <iostream>
 
-#if !NO_MPI || USE_MPI
-# include <mpi.h>
-#endif
-
+#include "../gtl/design_pattern/singleton_holder.h"
 #include "misc_utilities.h"
 #include "parse_command_line.h"
-#include "../design_pattern/singleton_holder.h"
 
 namespace simpla
 {

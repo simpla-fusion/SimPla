@@ -5,21 +5,19 @@
  *      Author: salmon
  */
 
-#include "../data_interface/data_space.h"
+#include "data_space.h"
 
-#include "../data_interface/data_type.h"
-#include "../utilities/utilities.h"
+#include <algorithm>
+#include <utility>
+
+#include "../gtl/ntuple.h"
 #include "../numeric/geometric_algorithm.h"
-#if  !NO_MPI || USE_MPI
-#include "../parallel/mpi_comm.h"
-#include "../parallel/mpi_datatype.h"
-#endif
 
 namespace simpla
 {
 struct DataSpace::pimpl_s
 {
-	typedef nTuple<size_t, MAX_NDIMS_OF_ARRAY> dims_type;
+	typedef nTuple<size_t, 10> dims_type;
 
 	pimpl_s();
 
@@ -101,9 +99,9 @@ void DataSpace::decompose(int num_procs, size_t const * gw)
 #if !NO_MPI || USE_MPI
 	pimpl_s::dims_type g_begin, g_end, count, l_begin, l_end, l_dims,
 			ghost_width;
-
-	if (num_procs == 0)
-		num_procs = GLOBAL_COMM.get_size();
+//
+//	if (num_procs == 0)
+//		num_procs = GLOBAL_COMM.get_size();
 
 	if (gw == nullptr)
 	{
@@ -145,7 +143,7 @@ void DataSpace::decompose(int num_procs, size_t const * gw)
 	if (pimpl_->local_space_ != nullptr)
 		delete pimpl_->local_space_;
 
-	pimpl_->local_space_ = new DataSpace(neighgours_[GLOBAL_COMM.get_rank()]);
+//	pimpl_->local_space_ = new DataSpace(neighgours_[GLOBAL_COMM.get_rank()]);
 
 #endif
 }

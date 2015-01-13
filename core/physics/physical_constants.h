@@ -11,8 +11,7 @@
 #include <iostream>
 #include <map>
 #include <string>
-#include <utility>
-#include "../design_pattern/singleton_holder.h"
+#include "../utilities/memory_pool.h"
 
 namespace simpla
 {

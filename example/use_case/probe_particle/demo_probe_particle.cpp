@@ -21,7 +21,6 @@
 #include "../../../core/io/io.h"
 using namespace simpla;
 
-
 USE_CASE(demo_probe_particle)
 {
 
@@ -92,11 +91,14 @@ USE_CASE(demo_probe_particle)
 					{	0,0,2});
 		};
 
+		Real t0 = 0.0;
 		for (size_t s = 0; s < num_of_steps; s += strides)
 		{
-			ion->next_timestep(dt, E, B);
+			t0 = ion->next_n_timesteps(strides, t0, dt, E, B);
+
+			VERBOSE << save("ion", ion->dataset(), SP_APPEND) << endl;
 		}
-		VERBOSE << save("ion", ion->dataset()) << endl;
+
 	}
 }
 

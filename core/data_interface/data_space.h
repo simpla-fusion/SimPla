@@ -9,10 +9,10 @@
 #define CORE_DATA_INTERFACE_DATA_SPACE_H_
 
 #include <stddef.h>
-#include <string>
+#include <map>
 #include <tuple>
-#include <memory>
-#include "../utilities/utilities.h"
+
+#include "../gtl/properties.h"
 
 namespace simpla
 {

@@ -13,45 +13,42 @@
 #include <cstdlib>
 #include <limits>
 #include <valarray>
-#include "type_traits.h"
-#include "complex.h"
-#include "ntuple.h"
+#include "../gtl/type_traits.h"
+#include "../gtl/complex.h"
+#include "../gtl/ntuple.h"
 namespace simpla
 {
-
-enum POSITION
-{
-	/*
-	 FULL = -1, // 11111111
-	 CENTER = 0, // 00000000
-	 LEFT = 1, // 00000001
-	 RIGHT = 2, // 00000010
-	 DOWN = 4, // 00000100
-	 UP = 8, // 00001000
-	 BACK = 16, // 00010000
-	 FRONT = 32 //00100000
-	 */
-	FULL = -1,
-	CENTER = 0,
-	LEFT = 1,
-	RIGHT = 2,
-	DOWN = 4,
-	UP = 8,
-	BACK = 16,
-	FRONT = 32
-};
-
-enum ArrayOrder
-{
-	C_ORDER, // SLOW FIRST
-	FORTRAN_ORDER //  FAST_FIRST
-};
-
-enum GeometryFormTypeID
-{
-	VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3
-};
-
+/**
+ *  @ingroup gtl
+ * @{
+ */
+//enum POSITION
+//{
+//	/*
+//	 FULL = -1, // 11111111
+//	 CENTER = 0, // 00000000
+//	 LEFT = 1, // 00000001
+//	 RIGHT = 2, // 00000010
+//	 DOWN = 4, // 00000100
+//	 UP = 8, // 00001000
+//	 BACK = 16, // 00010000
+//	 FRONT = 32 //00100000
+//	 */
+//	FULL = -1, //!< FULL
+//	CENTER = 0, //!< CENTER
+//	LEFT = 1,  //!< LEFT
+//	RIGHT = 2, //!< RIGHT
+//	DOWN = 4,  //!< DOWN
+//	UP = 8,    //!< UP
+//	BACK = 16, //!< BACK
+//	FRONT = 32 //!< FRONT
+//};
+//
+//enum ArrayOrder
+//{
+//	C_ORDER, // SLOW FIRST
+//	FORTRAN_ORDER //  FAST_FIRST
+//};
 typedef int8_t ByteType; // int8_t
 
 typedef double Real;
@@ -156,7 +153,9 @@ DECL_RET_TYPE ((std::fabs(m)))
 //	DECL_RET_TYPE(op(get_index(l,s) ))
 //
 //}  // namespace ops
-
+/**
+ * @}
+ */
 }
 // namespace simpla
 #endif /* PRIMITIVES_H_ */

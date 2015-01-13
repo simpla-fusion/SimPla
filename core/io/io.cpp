@@ -6,9 +6,12 @@
  */
 
 #include <stddef.h>
+#include <algorithm>
 #include <string>
+#include <tuple>
 
-#include "../design_pattern/singleton_holder.h"
+#include "../data_interface/data_set.h"
+#include "../gtl/design_pattern/singleton_holder.h"
 #include "data_stream.h"
 
 namespace simpla

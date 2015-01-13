@@ -7,6 +7,18 @@
 
 #include "mpi_aux_functions.h"
 
+#include <stddef.h>
+#include <algorithm>
+#include <iterator>
+#include <memory>
+#include <string>
+#include <tuple>
+#include <vector>
+
+#include "../gtl/primitives.h"
+#include "../utilities/log.h"
+#include "../utilities/memory_pool.h"
+
 extern "C"
 {
 #include <mpi.h>
@@ -16,8 +28,6 @@ extern "C"
 #include "mpi_datatype.h"
 #include "distributed_array.h"
 
-#include "../utilities/log.h"
-#include "../design_pattern/memory_pool.h"
 namespace simpla
 {
 
@@ -195,7 +205,8 @@ std::tuple<std::shared_ptr<ByteType>, int> update_ghost_unorder(
 		}
 	}
 	int recv_buffer_size=0;
-	for(auto const & v:mem_size)	{		recv_buffer_size+=v;	}
+	for(auto const & v:mem_size)
+	{	recv_buffer_size+=v;}
 
 	auto recv_buffer = sp_make_shared_array<ByteType>(recv_buffer_size);
 

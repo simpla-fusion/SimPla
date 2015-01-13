@@ -7,12 +7,19 @@
 
 #ifndef DATA_TYPE_H_
 #define DATA_TYPE_H_
-#include <typeinfo>
+
+#include <stddef.h>
+#include <iostream>
+#include <string>
+#include <tuple>
+#include <type_traits>
 #include <typeindex>
+#include <vector>
+
+#include "../gtl/concept_check.h"
 #include "../gtl/ntuple.h"
 #include "../gtl/type_traits.h"
-#include "../utilities/primitives.h"
-#include "../utilities/log.h"
+
 namespace simpla
 {
 /**
@@ -73,12 +80,12 @@ struct DataType
 	{
 
 		typedef typename std::remove_cv<T>::type type;
-		static_assert( nTuple_traits<type>::ndims< MAX_NDIMS_OF_ARRAY,
-				"the NDIMS of nTuple is bigger than MAX_NDIMS_OF_ARRAY");
+//		static_assert( nTuple_traits<type>::ndims< MAX_NDIMS_OF_ARRAY,
+//				"the NDIMS of nTuple is bigger than MAX_NDIMS_OF_ARRAY");
 
 		typedef typename nTuple_traits<type>::value_type value_type;
 
-		size_t ele_size_in_byte = sizeof(value_type) / sizeof(ByteType);
+		size_t ele_size_in_byte = sizeof(value_type) / sizeof(char);
 
 		auto ndims = nTuple_traits<type>::dimensions::size();
 

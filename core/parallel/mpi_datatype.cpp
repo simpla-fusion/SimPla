@@ -8,7 +8,7 @@
 #include <typeinfo>
 #include <typeindex>
 #include "mpi_datatype.h"
-
+#include "../utilities/log.h"
 namespace simpla
 {
 

@@ -30,7 +30,16 @@ void parallel_for(Range const & range, OP const & op)
 template<typename Range, typename Body>
 void parallel_foreach(Range const & range, Body const & body)
 {
-	for(auto && i:range)
+	for (auto && i : range)
+	{
+		body(i);
+	}
+}
+
+template<typename Body>
+void parallel_foreach(size_t b, size_t e, Body const & body)
+{
+	for (size_t i = b; i < e; ++i)
 	{
 		body(i);
 	}

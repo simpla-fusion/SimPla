@@ -1,5 +1,5 @@
 /**
- * \file any.h
+ * @file any.h
  *
  * \date    2014年7月13日  上午7:18:19 
  * \author salmon
@@ -8,19 +8,22 @@
 #ifndef ANY_H_
 #define ANY_H_
 
-#include <memory>
-#include <typeindex>
+#include <algorithm>
 #include <iostream>
+#include <memory>
+#include <string>
+#include <type_traits>
+#include <typeindex>
+#include <typeinfo>
 
 #include "../data_interface/data_type.h"
-#include "../gtl/ntuple.h"
+#include "../utilities/log.h"
+#include "ntuple.h"
 
 namespace simpla
 {
 /**
  *  @ingroup gtl
- *
- *
  *   change from http://www.cnblogs.com/qicosmos/p/3420095.html
  */
 struct Any

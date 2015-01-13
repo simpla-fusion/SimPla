@@ -14,25 +14,18 @@
 
 #include "../physics/physical_object.h"
 #include "../data_interface/data_set.h"
-#include "../parallel/parallel.h"
 #include "../utilities/utilities.h"
-#include "../utilities/iterator/iterator_sequence.h"
 namespace simpla
 {
 
 /**
+ * @ingroup particle
  *
- * @addtogroup particle
- * @{
- * @class ProbeParticle
- * @}
- */
-/**
  * @brief  ProbeParticle is a container of particle trajectory
  *
  *  It can cache the history of particle position.
  *
- *  * function next_timestep(Point * p, Real dt, Args && ...)
+ * function next_timestep(Point * p, Real dt, Args && ...)
  *
  *    p - m0  particle position  at m0 steps before
  *
@@ -90,11 +83,44 @@ struct ProbeParticle: public PhysicalObject, public Engine
 		return get_type_as_string_staic();
 	}
 
+	/**
+	 *
+	 * @param args arguments
+	 *
+	 * - Semantics
+	 \code
+	 for( Point_s & point: all particle)
+	 {
+	 engine_type::next_timestep(& point,std::forward<Args>(args)... );
+	 }
+	 \endcode
+	 *
+	 */
 	template<typename ...Args>
 	void next_timestep(Args && ...args);
 
+	/**
+	 *
+	 * @param num_of_steps number of time steps
+	 * @param t0 start time point
+	 * @param dt delta time step
+	 * @param args other arguments
+	 * @return t0+num_of_steps*dt
+	 *
+	 *-Semantics
+	 \code
+	 for(s=0;s<num_of_steps;++s)
+	 {
+	 for( Point_s & point: all particle)
+	 {
+	 engine_type::next_timestep(& point,t0+s*dt,dt,std::forward<Args>(args)... );
+	 }
+	 }
+	 return t0+num_of_steps*dt;
+	 \endcode
+	 */
 	template<typename ...Args>
-	void next_n_timesteps(size_t num_of_steps, Real t0, Real dt,
+	Real next_n_timesteps(size_t num_of_steps, Real t0, Real dt,
 			Args && ...args);
 
 	template<typename TBuffer>
@@ -154,8 +180,6 @@ struct ProbeParticle: public PhysicalObject, public Engine
 	std::shared_ptr<Point_s> data;
 	//! @}
 private:
-
-
 
 	bool is_changed_ = false;
 
@@ -240,18 +264,16 @@ void ProbeParticle<Engine>::flush_buffer(size_t num, TBuffer const & ext_buffer)
 	data = sp_make_shared_array<Point_s>(number_of_points_ * cache_depth_);
 
 	//  move data from buffer_ to data_
-	parallel_foreach(make_seq_range(0UL, number_of_points_),
-
-	[&](size_t s)
+	for (size_t s = 0; s < number_of_points_; ++s)
 	{
-		Point_s * p=data.get();
+		Point_s * p = data.get();
 
 		for (int i = 0; i <= memory_length; ++i)
 		{
-			p[s*(cache_depth_+1)+i]=ext_buffer[s*memory_length+i];
+			p[s * (cache_depth_ + 1) + i] = ext_buffer[s * memory_length + i];
 		}
 
-	});
+	}
 
 }
 template<typename Engine>
@@ -296,7 +318,9 @@ DataSet ProbeParticle<Engine>::dump_cache() const
 {
 	size_t dims[2] = { number_of_points_, step_counter_ };
 
-	return std::move(make_dataset(data, 1, dims, properties()));
+	DataSet ds = make_dataset(data, 1, dims, properties());
+
+	return std::move(ds);
 }
 template<typename Engine>
 template<typename TFun>
@@ -315,9 +339,7 @@ template<typename ... Args>
 void ProbeParticle<Engine>::next_timestep(Args && ...args)
 {
 
-	parallel_foreach(make_seq_range(0UL, number_of_points_),
-
-	[&](size_t s)
+	parallel_foreach(make_seq_range(0UL, number_of_points_), [&](size_t s)
 	{
 		engine_type::next_timestep(data.get()
 				+ s*(cache_depth_+1)+step_counter_
@@ -329,7 +351,7 @@ void ProbeParticle<Engine>::next_timestep(Args && ...args)
 
 template<typename Engine>
 template<typename ... Args>
-void ProbeParticle<Engine>::next_n_timesteps(size_t num_of_steps, Real t0,
+Real ProbeParticle<Engine>::next_n_timesteps(size_t num_of_steps, Real t0,
 		Real dt, Args && ...args)
 {
 
@@ -338,16 +360,13 @@ void ProbeParticle<Engine>::next_n_timesteps(size_t num_of_steps, Real t0,
 		size_t n0 = cache_depth_ - step_counter_;
 		size_t n1 = num_of_steps + step_counter_ - cache_depth_;
 
-		Real t1 = t0 + n0 * dt;
+		t0 = next_n_timesteps(n0, t0, dt, std::forward<Args>(args)...);
 
-		next_n_timesteps(n0, t0, dt, std::forward<Args>(args)...);
-
-		next_n_timesteps(n1, t1, dt, std::forward<Args>(args)...);
+		t0 = next_n_timesteps(n1, t0, dt, std::forward<Args>(args)...);
 
 	}
 	else
 	{
-
 		for_each([&](Point_s * p)
 		{
 			for (int i = 0; i < num_of_steps; ++i)
@@ -360,6 +379,8 @@ void ProbeParticle<Engine>::next_n_timesteps(size_t num_of_steps, Real t0,
 
 		inc_step_counter(num_of_steps);
 	}
+
+	return t0;
 
 }
 

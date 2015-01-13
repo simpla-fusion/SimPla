@@ -1,3 +1,37 @@
+#include <openmpi-x86_64/H5Apublic.h>
+#include <openmpi-x86_64/H5Dpublic.h>
+#include <openmpi-x86_64/H5Epublic.h>
+#include <openmpi-x86_64/H5FDmpi.h>
+#include <openmpi-x86_64/H5FDmpio.h>
+#include <openmpi-x86_64/H5Fpublic.h>
+#include <openmpi-x86_64/H5Gpublic.h>
+#include <openmpi-x86_64/H5Ipublic.h>
+#include <openmpi-x86_64/H5Lpublic.h>
+#include <openmpi-x86_64/H5Opublic.h>
+#include <openmpi-x86_64/H5public.h>
+#include <openmpi-x86_64/H5Ppublic.h>
+#include <openmpi-x86_64/H5Spublic.h>
+#include <openmpi-x86_64/H5Tpublic.h>
+#include <openmpi-x86_64/H5version.h>
+#include <algorithm>
+#include <complex>
+#include <cstdio>
+#include <iostream>
+#include <iterator>
+#include <memory>
+#include <typeindex>
+#include <typeinfo>
+#include <utility>
+
+#include "../data_interface/data_space.h"
+#include "../data_interface/data_type.h"
+#include "../gtl/ntuple.h"
+#include "../gtl/primitives.h"
+#include "../utilities/log.h"
+#include "../utilities/misc_utilities.h"
+#include "../utilities/parse_command_line.h"
+#include "io.h"
+
 /*
  * data_stream.cpp
  *
@@ -24,7 +58,7 @@ extern "C"
 #endif
 
 #include "../utilities/utilities.h"
-#include "../design_pattern/memory_pool.h"
+#include "../utilities/memory_pool.h"
 
 #define H5_ERROR( _FUN_ ) if((_FUN_)<0){Logger(LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n HDF5 Error:";H5Eprint(H5E_DEFAULT, stderr);LOGGER<<std::endl;}
 
@@ -45,7 +79,7 @@ struct DataStream::pimpl_s
 			std::string const & url);
 	std::tuple<std::string, hid_t> open_group(std::string const & path);
 	std::tuple<std::string, hid_t> open_file(std::string const & path,
-			bool is_append = false);
+	bool is_append = false);
 
 	std::string pwd() const;
 
@@ -584,7 +618,7 @@ hid_t DataStream::pimpl_s::convert_data_type_sp_to_h5(DataType const &d_type,
 		for (auto const & item : d_type.members())
 		{
 			hid_t t_member = convert_data_type_sp_to_h5(std::get<0>(item),
-					true);
+			true);
 			H5_ERROR(
 					H5Tinsert(res, std::get<1>(item).c_str(), std::get<2>(item),
 							t_member));

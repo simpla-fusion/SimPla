@@ -8,16 +8,20 @@
 #ifndef CORE_DATA_INTERFACE_DATA_SET_H_
 #define CORE_DATA_INTERFACE_DATA_SET_H_
 
+#include <stddef.h>
+#include <algorithm>
 #include <memory>
+#include <type_traits>
 
-#include "../data_interface/data_space.h"
-#include "../data_interface/data_type.h"
-#include "../utilities/utilities.h"
-#include "../design_pattern/memory_pool.h"
+#include "../gtl/concept_check.h"
+#include "../gtl/properties.h"
+#include "../gtl/type_traits.h"
+#include "../utilities/memory_pool.h"
+#include "data_space.h"
+#include "data_type.h"
 
 namespace simpla
 {
-
 
 /**
  * @ingroup data_interface

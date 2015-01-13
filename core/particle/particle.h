@@ -28,7 +28,7 @@
  * ` P( ) `    | Constructor
  * ` ~P( ) `  | Destructor
  * ` void  next_timestep(dt, args ...) const; `  | push  particles a time interval 'dt'
- * ` void  next_timestep(t0,t1,dt, args ...) const; `  | push  particles from time 't0' to 't1' with time step 'dt'.
+ * ` void  next_timestep(num_of_steps,t0, dt, args ...) const; `  | push  particles from time 't0' to 't1' with time step 'dt'.
  * ` flush_buffer( ) `  | flush input buffer to internal data container
  *
  *- @ref particle meets the requirement of @ref container,

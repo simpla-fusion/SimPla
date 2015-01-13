@@ -8,15 +8,11 @@
 #ifndef GEOMETRY_ALGORITHM_H_
 #define GEOMETRY_ALGORITHM_H_
 
-#include <algorithm>
-#include <cmath>
-#include <complex>
-#include <valarray>
+#include <stddef.h>
+#include <tuple>
 
 #include "../gtl/ntuple.h"
-#include "../utilities/primitives.h"
-#include "../utilities/log.h"
-
+#include "../gtl/primitives.h"
 namespace simpla
 {
 //template<typename TS,  size_t  NDIMS>

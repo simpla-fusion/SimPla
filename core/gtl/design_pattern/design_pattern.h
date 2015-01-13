@@ -12,8 +12,9 @@ namespace simpla
 {
 
 /**
+ * @ingroup gtl
  *   @addtogroup design_pattern Design Pattern
- *   @brief  This module collects implementation of some design patterns.
+ *   @brief  This module collects implementation of  design patterns.
  */
 
 }  // namespace simpla

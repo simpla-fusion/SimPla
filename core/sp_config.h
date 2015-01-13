@@ -91,5 +91,8 @@
 //}
 //
 //}
+namespace simpla
+{
 
+}  // namespace simpla
 #endif /* SIMPLA_DEFS_H_ */

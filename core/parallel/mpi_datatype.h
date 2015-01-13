@@ -9,15 +9,10 @@
 #define MPI_DATATYPE_H_
 
 #include <mpi.h>
-#include <complex>
-
-#include <utility>
-#include <vector>
+#include <stddef.h>
 
 #include "../data_interface/data_type.h"
-#include "../gtl/ntuple.h"
-#include "../utilities/type_traits.h"
-
+#include "../gtl/primitives.h"
 namespace simpla
 {
 namespace _impl

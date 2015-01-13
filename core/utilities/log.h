@@ -21,9 +21,7 @@
 #include <bitset>
 #include <sstream>
 #include <string>
-
 #include "../gtl/type_traits.h"
-#include "pretty_stream.h"
 
 namespace simpla
 {

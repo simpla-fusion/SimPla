@@ -5,13 +5,8 @@
  * \author salmon
  */
 
-#include <string>
-#include <tuple>
-#include <vector>
-
-#include "../design_pattern/singleton_holder.h"
+#include "../gtl/design_pattern/singleton_holder.h"
 #include "mpi_comm.h"
-#include "mpi_datatype.h"
 
 namespace simpla
 {

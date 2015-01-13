@@ -8,16 +8,16 @@
 #ifndef CORE_UTILITIES_MISC_UTILITIES_H_
 #define CORE_UTILITIES_MISC_UTILITIES_H_
 
-#include "primitives.h"
-#include "properties.h"
 #include "log.h"
 #include "pretty_stream.h"
 #include "parse_command_line.h"
 #include "misc_utilities.h"
 #include "lua_object.h"
-
-#include "../utilities/type_traits.h"
+#include "../gtl/primitives.h"
+#include "../gtl/type_traits.h"
 #include "../gtl/ntuple.h"
+#include "../gtl/properties.h"
+
 #include "../physics/physical_constants.h"
 
 /**

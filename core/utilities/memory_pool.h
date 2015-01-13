@@ -6,18 +6,24 @@
  *  created on: 2011-3-2
  *      Author: salmon
  */
-#ifndef INCLUDE_MEMORY_POOL_H_
-#define INCLUDE_MEMORY_POOL_H_
+#ifndef CORE_UTILITIES_MEMORY_POOL_H_
+#define CORE_UTILITIES_MEMORY_POOL_H_
+
+#include <stddef.h>
 #include <map>
 #include <memory>
 #include <mutex>
-#include <limits>
-#include "singleton_holder.h"
-#include "../utilities/log.h"
+#include <new>
+#include <tuple>
+#include <utility>
+
+#include "../gtl/design_pattern/singleton_holder.h"
+#include "log.h"
+
 namespace simpla
 {
 
-/** @ingroup design_pattern
+/** @ingroup utilities
  * @addtogroup memory_pool Memory Pool
  * @{
  * @brief    design to speed up  frequently and repeatedly
@@ -202,4 +208,4 @@ std::shared_ptr<TV> sp_make_shared_array(size_t s = 1)
 }
 // namespace simpla
 
-#endif  // INCLUDE_MEMORY_POOL_H_
+#endif  // CORE_UTILITIES_MEMORY_POOL_H_

@@ -5,13 +5,13 @@
  *      \author  salmon
  */
 
-#ifndef OPTIONAL_H_
-#define OPTIONAL_H_
+#ifndef CORE_GTL_OPTIONAL_H_
+#define CORE_GTL_OPTIONAL_H_
 
 namespace simpla
 {
 
-/** @ingroup utilities*/
+/** @ingroup gtl*/
 template<typename T> class optional
 {
 	bool cond_;
@@ -76,4 +76,4 @@ public:
 };
 }  // namespace simpla
 
-#endif /* OPTIONAL_H_ */
+#endif /* CORE_GTL_OPTIONAL_H_ */

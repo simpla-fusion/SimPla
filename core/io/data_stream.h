@@ -9,18 +9,19 @@
 #ifndef DATA_STREAM_
 #define DATA_STREAM_
 
-#include <map>
-#include <memory>
+#include <stddef.h>
+#include <cstdbool>
 #include <string>
-#include <utility>
-#include <vector>
+#include <tuple>
 
-#include "../data_interface/data_set.h"
-#include "../gtl/ntuple.h"
-#include "../design_pattern/singleton_holder.h"
-#include "../utilities/any.h"
+#include "../gtl/any.h"
+#include "../gtl/properties.h"
 
-#include "io.h"
+namespace simpla
+{
+struct DataSet;
+} /* namespace simpla */
+
 namespace simpla
 {
 

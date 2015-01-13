@@ -10,9 +10,11 @@
 #ifndef CORE_UTILITIES_NTUPLE_H_
 #define CORE_UTILITIES_NTUPLE_H_
 
-#include <stddef.h>
+#include <cmath>
+#include <cstddef>
+#include <type_traits>
 
-#include "../design_pattern/expression_template.h"
+#include "expression_template.h"
 #include "integer_sequence.h"
 #include "type_traits.h"
 
@@ -583,9 +585,6 @@ DECL_RET_TYPE ((abs(l)))
 		{return (nTuple<Expression<_impl::_##_NAME_,nTuple<T,N...>, std::nullptr_t>>(r));}     \
 
 DEFINE_EXPRESSOPM_TEMPLATE_BASIC_ALGEBRA2(nTuple)
-
-
-
 
 /** @}*/
 

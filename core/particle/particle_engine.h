@@ -36,65 +36,65 @@ namespace simpla
  *
  *
  * ## Example:
- * \code
- * 	struct DemoParticleEngine
- * 	{
- *
- * 		SP_DEFINE_POINT_STRUCT(Point_s,
- * 				Vec3 ,x,
- * 				double[3], v,
- * 				Real, f,
- * 				Real, w
- * 		)
- *
- * 		SP_DEFINE_PROPERTIES(
- * 				Real, mass,
- * 				Real, charge,
- * 				Real, temperature,
- * 				Real[3][3], pressure
- * 		)
- *
- *
- * 		static constexpr size_t memory_length = 0; //!  declare this engine is memoryless
- *
- * 	private:
- * 		Real cmr_, q_kT_;
- * 	public:
- *
- * 		DemoParticleEngine() :
- * 				mass(1.0), charge(1.0), temperature(1.0)
- * 		{
- * 			pressure = 0;
- * 			update();
- * 		}
- *
- * 		~DemoParticleEngine()
- * 		{
- * 		}
- *
- * 		static std::string get_type_as_string()
- * 		{
- * 			return "DemoParticleEngine";
- * 		}
- *
- *
- * 		void update()
- * 		{
- * 			DEFINE_PHYSICAL_CONST
- *
- * 			cmr_ = charge / mass;
- * 			q_kT_ = charge / (temperature * boltzmann_constant);
- * 		}
- *
- * 		template<typename Point_p, typename TE, typename TB>
- * 		void next_timestep(Point_p p, Real dt, TE const &fE, TB const & fB) const
- * 		{
- * 		 p->x+=p->v*dt;
- * 		 ....
- * 		}
- *
- * 	};
- * \endcode
+ \code
+ 	struct DemoParticleEngine
+ 	{
+
+ 		SP_DEFINE_POINT_STRUCT(Point_s,
+ 				Vec3 ,x,
+ 				double[3], v,
+ 				Real, f,
+ 				Real, w
+ 		)
+
+ 		SP_DEFINE_PROPERTIES(
+ 				Real, mass,
+ 				Real, charge,
+ 				Real, temperature,
+ 				Real[3][3], pressure
+ 		)
+
+
+ 		static constexpr size_t memory_length = 0; //!  declare this engine is memoryless
+
+ 	private:
+ 		Real cmr_, q_kT_;
+ 	public:
+
+ 		DemoParticleEngine() :
+ 				mass(1.0), charge(1.0), temperature(1.0)
+ 		{
+ 			pressure = 0;
+ 			update();
+ 		}
+
+ 		~DemoParticleEngine()
+ 		{
+ 		}
+
+ 		static std::string get_type_as_string()
+ 		{
+ 			return "DemoParticleEngine";
+ 		}
+
+
+ 		void update()
+ 		{
+ 			DEFINE_PHYSICAL_CONST
+
+ 			cmr_ = charge / mass;
+ 			q_kT_ = charge / (temperature * boltzmann_constant);
+ 		}
+
+ 		template<typename Point_p, typename TE, typename TB>
+ 		void next_timestep(Point_p p, Real dt, TE const &fE, TB const & fB) const
+ 		{
+ 		 p->x+=p->v*dt;
+ 		 ....
+ 		}
+
+ 	};
+ \endcode
  *
  *
  */

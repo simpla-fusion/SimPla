@@ -9,14 +9,15 @@
 #define PROPERTIES_H_
 #include <map>
 #include <string>
-#include "../gtl/ntuple.h"
+#include "ntuple.h"
 #include "any.h"
 
 namespace simpla
 {
 
 /**
- *  @ingroup utilities
+ *  @ingroup gtl
+ *  @{
  *  @brief Properties Tree
  *  @todo using shared_ptr storage data
  */
@@ -29,8 +30,6 @@ private:
 
 	typedef std::string key_type;
 	typedef std::map<key_type, this_type> map_type;
-
-	static const Properties fail_safe_;
 
 	bool is_changed_ = false;
 public:
@@ -235,6 +234,8 @@ public:
 //		}
 //	}
 };
+
+/** @} */
 }  // namespace simpla
 
 #endif /* PROPERTIES_H_ */

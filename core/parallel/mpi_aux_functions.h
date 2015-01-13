@@ -7,7 +7,17 @@
 
 #ifndef MPI_AUX_FUNCTIONS_H_
 #define MPI_AUX_FUNCTIONS_H_
+
+#include <stddef.h>
+#include <memory>
+#include <string>
+#include <tuple>
+#include <vector>
+
 #include "../data_interface/data_type.h"
+#include "../gtl/ntuple.h"
+#include "../gtl/primitives.h"
+
 namespace simpla
 {
 

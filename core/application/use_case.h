@@ -15,11 +15,9 @@
 #include <string>
 #include <tuple>
 
-#include "../design_pattern/singleton_holder.h"
 #include "../utilities/utilities.h"
-#include "../utilities/optional.h"
-#include "../utilities/config_parser.h"
-#include "../utilities/lua_object.h"
+
+#include "../gtl/design_pattern/singleton_holder.h"
 #include "application.h"
 
 namespace simpla
@@ -76,7 +74,6 @@ namespace simpla
 //
 //}
 //;
-
 //template<typename T>
 //std::string RegisterUseCase(std::string const &name)
 //{
@@ -86,7 +83,6 @@ namespace simpla
 //{
 //	SingletonHolder<UseCaseList>::instance().run(argc, argv);
 //}
-
 #define USE_CASE(_use_case_name) SP_APP(_use_case_name)
 
 /** @} */

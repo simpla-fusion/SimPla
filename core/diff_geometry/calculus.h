@@ -170,7 +170,7 @@ DECL_RET_TYPE( (wedge(lhs,rhs)) )
 /** @} */
 /**
  * @ingroup linear_algebra
- * @addtogroup  vector_algebra   Linear algebra of vector fields
+ * @addtogroup  vector_algebra   Linear algebra on vector fields
  * @{
  *   Pseudo-Signature  			| Semantics
  *  -------------------------------|--------------
@@ -276,7 +276,7 @@ inline _Field<_impl::MapTo<field_traits<T>::iform, IR, T>> map_to(T const & f)
  */
 /**
  * @ingroup diff_calculus
- * @addtogroup dif_calculus_form Differential calculus of forms
+ * @addtogroup dif_calculus_form Differential calculus on forms
  * @{
  *   Pseudo-Signature  			| Semantics
  *  -------------------------------|--------------
@@ -363,7 +363,7 @@ DECL_RET_TYPE( (codifferential_derivative(f)) )
 
 /**
  *  @ingroup diff_calculus
- *  @addtogroup vector_calculus Differential calculus of fields
+ *  @addtogroup vector_calculus Differential calculus on fields
  *  @{
  *
  *  Pseudo-Signature  			| Semantics

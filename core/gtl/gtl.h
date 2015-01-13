@@ -12,7 +12,7 @@
 
 /**
  * @addtogroup gtl General Template Library
- * @brief Alternative to STL or Boost
+ * @brief This module collects general templates, which are alternative to STL or Boost.
  *
  */
 
