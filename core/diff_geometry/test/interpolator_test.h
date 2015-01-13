@@ -11,7 +11,7 @@
 
 #include <gtest/gtest.h>
 
-#include "../../data_structure/container_sparse.h"
+#include "../../data_interface/container_sparse.h"
 #include "../../utilities/utilities.h"
 #include "../../field/field.h"
 

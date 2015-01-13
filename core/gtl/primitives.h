@@ -13,6 +13,11 @@
 #include <cstdlib>
 #include <limits>
 #include <valarray>
+
+#ifdef USE_TBB
+#include <tbb/tbb.h>
+#endif
+
 #include "../gtl/type_traits.h"
 #include "../gtl/complex.h"
 #include "../gtl/ntuple.h"
@@ -70,7 +75,6 @@ static constexpr Real INIFITY = std::numeric_limits<Real>::infinity();
 static constexpr Real EPSILON = std::numeric_limits<Real>::epsilon();
 
 static constexpr unsigned int MAX_NDIMS_OF_ARRAY = 10;
-
 static constexpr unsigned int CARTESIAN_XAXIS = 0;
 static constexpr unsigned int CARTESIAN_YAXIS = 1;
 static constexpr unsigned int CARTESIAN_ZAXIS = 2;
@@ -112,50 +116,13 @@ struct is_expression
 template<typename T1> auto abs(T1 const & m)
 DECL_RET_TYPE ((std::fabs(m)))
 
-//
-//template<typename T>
-//auto Reciprocal(T const & f)
-//DECL_RET_TYPE(( 1.0/f))
-//
-//
-//namespace ops
-//{
-//
-//	template<typename TL, typename TI>
-//	constexpr auto get_index(TL const & l, TI s)->TL const&
-//	{
-//		return l;
-//	}
-//	template<typename TL, typename TI>
-//	constexpr auto get_index(TL const * l, TI s)->TL const&
-//	{
-//		return l[s];
-//	}
-//	;
-//	template<  unsigned int    N, typename TL, typename TI>
-//	constexpr auto get_index(nTuple<N, TL> const & l, TI s)->TL const&
-//	{
-//		return l[s];
-//	}
-//
-////ENABLE_IF_DECL_RET_TYPE(is_indexable<TL>::value ,l[s])
-//
-////template<typename TL, typename TI>
-////  auto get_index(TL const & l, TI s)
-////ENABLE_IF_DECL_RET_TYPE(!is_indexable<TL>::value ,l)
-//
-//	template<typename TOP, typename TL, typename TR, typename TI>
-//	auto calculus(TOP op, TL const & l, TR const &r, TI s)
-//	DECL_RET_TYPE(op(get_index(l,s),get_index(r,s)))
-//
-//	template<typename TOP, typename TL, typename TI>
-//	auto calculus(TOP, TL const & l, TI s)
-//	DECL_RET_TYPE(op(get_index(l,s) ))
-//
-//}  // namespace ops
 /**
  * @}
  */
+
+#ifdef USE_TBB
+typedef tbb::split split;
+#endif
 }
 // namespace simpla
 #endif /* PRIMITIVES_H_ */

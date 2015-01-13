@@ -17,16 +17,9 @@
  *  	\defgroup  MULTICORE Multi-thread/core and many-core support
  *  @}
  */
-//#ifdef _OPENMP
-//#	include "parallel_openmp.h"
-//#elif defined(USE_TBB) &&  USE_TBB==on
-//#	include "parallel_tbb.h"
-//#else
-#	include "parallel_dummy.h"
-//#endif
 
 #ifdef USE_TBB
-#include <tbb>
+#include <tbb/tbb.h>
 namespace parallel = tbb;
 #else
 #include <atomic>

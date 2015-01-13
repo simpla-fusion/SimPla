@@ -7,10 +7,10 @@
 
 #ifndef CORE_PARALLEL_BLOCKED_RANGE_H_
 #define CORE_PARALLEL_BLOCKED_RANGE_H_
-#include "../utilities/type_traits.h"
+#include "../gtl/type_traits.h"
+#include "../gtl/primitives.h"
 namespace simpla
 {
-class split;
 template<typename T = size_t, size_t N = 1>
 struct BlockedRange;
 
@@ -96,8 +96,6 @@ private:
 
 };
 
-
-
 /** @{*/
 struct iterator;
 
@@ -151,7 +149,8 @@ struct range
 		return std::move(e);
 	}
 
-}; //struct range
+};
+//struct range
 
 //! iterator
 struct iterator

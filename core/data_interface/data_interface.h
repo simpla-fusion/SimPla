@@ -1,5 +1,5 @@
 /**
- * @file data_structure.h
+ * @file data_interface.h
  *
  *  Created on: 2014年11月10日
  *      Author: salmon

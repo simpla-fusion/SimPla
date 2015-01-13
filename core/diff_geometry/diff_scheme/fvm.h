@@ -13,8 +13,8 @@
 #include <memory>
 #include <type_traits>
 
-#include "../../data_structure/container_dense.h"
-#include "../utilities/type_traits.h"
+#include "../data_interface/container_dense.h"
+#include "../gtl/type_traits.h"
 #include "../physics/constants.h"
 
 namespace simpla
@@ -481,8 +481,8 @@ public:
 
 	template<typename TL, typename TR> void Opcalculus(
 			std::integral_constant<unsigned int, INTERIOR_PRODUCT>,
-			nTuple<NDIMS, TR> const & v, _Field<this_type, VERTEX, TL> const & f,
-			index_type s) const = delete;
+			nTuple<NDIMS, TR> const & v,
+			_Field<this_type, VERTEX, TL> const & f, index_type s) const = delete;
 
 	template<typename TL, typename TR> inline auto Opcalculus(
 			std::integral_constant<unsigned int, INTERIOR_PRODUCT>,
@@ -519,7 +519,8 @@ public:
 
 	template<typename TL, typename TR> inline auto Opcalculus(
 			std::integral_constant<unsigned int, INTERIOR_PRODUCT>,
-			nTuple<NDIMS, TR> const & v, _Field<this_type, VOLUME, TL> const & f,
+			nTuple<NDIMS, TR> const & v,
+			_Field<this_type, VOLUME, TL> const & f,
 			index_type s) const->decltype(get_value(f,s)*v[0])
 	{
 		unsigned int n = topology_type::component_number(
@@ -593,13 +594,13 @@ public:
 
 		return nTuple<3,
 				typename std::remove_reference<decltype(get_value(f,s))>::type>(
-		{
+				{
 
-		(get_value(f, s - X) + get_value(f, s + X)) * 0.5, //
-		(get_value(f, s - Y) + get_value(f, s + Y)) * 0.5, //
-		(get_value(f, s - Z) + get_value(f, s + Z)) * 0.5
+				(get_value(f, s - X) + get_value(f, s + X)) * 0.5, //
+				(get_value(f, s - Y) + get_value(f, s + Y)) * 0.5, //
+				(get_value(f, s - Z) + get_value(f, s + Z)) * 0.5
 
-		});
+				});
 	}
 
 	template<typename TR> inline auto Opcalculus(
@@ -628,43 +629,43 @@ public:
 
 		return nTuple<3,
 				typename std::remove_reference<decltype(get_value(f,s))>::type>(
-		{ (
+				{ (
 
-		get_value(f, (s - Y) - Z) +
+				get_value(f, (s - Y) - Z) +
 
-		get_value(f, (s - Y) + Z) +
+				get_value(f, (s - Y) + Z) +
 
-		get_value(f, (s + Y) - Z) +
+				get_value(f, (s + Y) - Z) +
 
-		get_value(f, (s + Y) + Z)
+				get_value(f, (s + Y) + Z)
 
-		) * 0.25,
+				) * 0.25,
 
-		(
+				(
 
-		get_value(f, (s - Z) - X) +
+				get_value(f, (s - Z) - X) +
 
-		get_value(f, (s - Z) + X) +
+				get_value(f, (s - Z) + X) +
 
-		get_value(f, (s + Z) - X) +
+				get_value(f, (s + Z) - X) +
 
-		get_value(f, (s + Z) + X)
+				get_value(f, (s + Z) + X)
 
-		) * 0.25,
+				) * 0.25,
 
-		(
+				(
 
-		get_value(f, (s - X) - Y) +
+				get_value(f, (s - X) - Y) +
 
-		get_value(f, (s - X) + Y) +
+				get_value(f, (s - X) + Y) +
 
-		get_value(f, (s + X) - Y) +
+				get_value(f, (s + X) - Y) +
 
-		get_value(f, (s + X) + Y)
+				get_value(f, (s + X) + Y)
 
-		) * 0.25
+				) * 0.25
 
-		});
+				});
 	}
 
 	template<typename TR> inline auto Opcalculus(
@@ -709,13 +710,13 @@ public:
 
 		return nTuple<3,
 				typename std::remove_reference<decltype(get_value(f,s))>::type>(
-		{
+				{
 
-		(get_value(f, s - X) + get_value(f, s + X)) * 0.5, //
-		(get_value(f, s - Y) + get_value(f, s + Y)) * 0.5, //
-		(get_value(f, s - Z) + get_value(f, s + Z)) * 0.5
+				(get_value(f, s - X) + get_value(f, s + X)) * 0.5, //
+				(get_value(f, s - Y) + get_value(f, s + Y)) * 0.5, //
+				(get_value(f, s - Z) + get_value(f, s + Z)) * 0.5
 
-		});
+				});
 	}
 
 	template<typename TR> inline auto Opcalculus(
@@ -744,43 +745,43 @@ public:
 
 		return nTuple<3,
 				typename std::remove_reference<decltype(get_value(f,s))>::type>(
-		{ (
+				{ (
 
-		get_value(f, (s - Y) - Z) +
+				get_value(f, (s - Y) - Z) +
 
-		get_value(f, (s - Y) + Z) +
+				get_value(f, (s - Y) + Z) +
 
-		get_value(f, (s + Y) - Z) +
+				get_value(f, (s + Y) - Z) +
 
-		get_value(f, (s + Y) + Z)
+				get_value(f, (s + Y) + Z)
 
-		) * 0.25,
+				) * 0.25,
 
-		(
+				(
 
-		get_value(f, (s - Z) - X) +
+				get_value(f, (s - Z) - X) +
 
-		get_value(f, (s - Z) + X) +
+				get_value(f, (s - Z) + X) +
 
-		get_value(f, (s + Z) - X) +
+				get_value(f, (s + Z) - X) +
 
-		get_value(f, (s + Z) + X)
+				get_value(f, (s + Z) + X)
 
-		) * 0.25,
+				) * 0.25,
 
-		(
+				(
 
-		get_value(f, (s - X) - Y) +
+				get_value(f, (s - X) - Y) +
 
-		get_value(f, (s - X) + Y) +
+				get_value(f, (s - X) + Y) +
 
-		get_value(f, (s + X) - Y) +
+				get_value(f, (s + X) - Y) +
 
-		get_value(f, (s + X) + Y)
+				get_value(f, (s + X) + Y)
 
-		) * 0.25,
+				) * 0.25,
 
-		});
+				});
 	}
 
 	template<typename TR> inline auto Opcalculus(

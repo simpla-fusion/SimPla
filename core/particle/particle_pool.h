@@ -8,7 +8,7 @@
 #ifndef PARTICLE_POOL_H_
 #define PARTICLE_POOL_H_
 #include "../containers/sp_iterator_mapped.h"
-#include "../data_structure/container_container.h"
+#include "../data_interface/container_container.h"
 #include "../utilities/log.h"
 #include "../utilities/type_traits.h"
 #include "../parallel/parallel.h"

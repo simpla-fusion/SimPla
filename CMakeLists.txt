@@ -56,7 +56,6 @@ ENDIF(HDF5_FOUND)
  
  
 FIND_PACKAGE(GTest)
-
 enable_testing()
 include_directories(${GTEST_INCLUDE_DIRS})
 
@@ -64,7 +63,8 @@ include_directories(${GTEST_INCLUDE_DIRS})
 SET(TBB_ARCH_PLATFORM intel64)
 FIND_PACKAGE(TBB )
 IF(TBB_FOUND)
-ADD_DEFINITIONS(-DHAVE_TBB )
+	ADD_DEFINITIONS(-DUSE_TBB )
+	INCLUDE_DIRECTORIES(BEFORE ${TBB_INCLUDE_DIRS} )
 ENDIF( )
 
 execute_process(COMMAND  git describe --all  --dirty --long

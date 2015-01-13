@@ -12,8 +12,8 @@
 #include <memory>
 #include <type_traits>
 
-#include "../data_structure/container_traits.h"
-#include "../data_structure/data_set.h"
+#include "../data_interface/container_traits.h"
+#include "../data_interface/data_set.h"
 
 #include "../physics/physical_object.h"
 #include "../design_pattern/expression_template.h"

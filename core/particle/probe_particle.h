@@ -15,6 +15,8 @@
 #include "../physics/physical_object.h"
 #include "../data_interface/data_set.h"
 #include "../utilities/utilities.h"
+#include "../gtl/primitives.h"
+
 namespace simpla
 {
 
@@ -66,6 +68,8 @@ struct ProbeParticle: public PhysicalObject, public Engine
 	//! @{
 	template<typename ...Others>
 	ProbeParticle(Others && ...);
+
+	ProbeParticle(ProbeParticle&, split);
 
 	~ProbeParticle();
 
@@ -327,10 +331,10 @@ template<typename TFun>
 void ProbeParticle<Engine>::foreach(TFun const& fun)
 {
 
-	parallel_foreach(make_seq_range(0UL, number_of_points_), [&](size_t s)
+	for (size_t s = 0; s < number_of_points_; ++s)
 	{
-		fun(data.get() + s*(cache_depth_+1));
-	});
+		fun(data.get() + s * (cache_depth_ + 1));
+	}
 
 }
 
@@ -339,12 +343,12 @@ template<typename ... Args>
 void ProbeParticle<Engine>::next_timestep(Args && ...args)
 {
 
-	parallel_foreach(make_seq_range(0UL, number_of_points_), [&](size_t s)
+	for (size_t s = 0; s < number_of_points_; ++s)
 	{
-		engine_type::next_timestep(data.get()
-				+ s*(cache_depth_+1)+step_counter_
-				,std::forward<Args>(args)...);
-	});
+		engine_type::next_timestep(
+				data.get() + s * (cache_depth_ + 1) + step_counter_,
+				std::forward<Args>(args)...);
+	}
 
 	inc_step_counter(1);
 }
@@ -367,7 +371,7 @@ Real ProbeParticle<Engine>::next_n_timesteps(size_t num_of_steps, Real t0,
 	}
 	else
 	{
-		for_each([&](Point_s * p)
+		foreach([&](Point_s * p)
 		{
 			for (int i = 0; i < num_of_steps; ++i)
 			{

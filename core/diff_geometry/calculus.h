@@ -32,7 +32,7 @@ template<typename, typename, typename > class Expression;
  */
 /**
  *  @ingroup linear_algebra
- *  @addtogroup exterior_algebra  Exterior algebra of forms
+ *  @addtogroup exterior_algebra  Exterior algebra on forms
  *  @{
  *
  *   Pseudo-Signature  			| Semantics
@@ -367,7 +367,7 @@ DECL_RET_TYPE( (codifferential_derivative(f)) )
  *  @{
  *
  *  Pseudo-Signature  			| Semantics
- * -------------------------------|--------------
+ * -----------------------------|--------------
  * \f$\Omega^{1}\f$=Grad(\f$\Omega^0\f$ )		| Grad
  * \f$\Omega^{0}\f$=Diverge(\f$\Omega^1\f$ )	| Diverge
  * \f$\Omega^{2}\f$=Curl(\f$\Omega^1\f$ )		| Curl

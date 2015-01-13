@@ -12,7 +12,7 @@
 #include "../utilities/utilities.h"
 #include "../physics/constants.h"
 #include "../parallel/mpi_comm.h"
-#include "../data_structure/data_set.h"
+#include "../data_interface/data_set.h"
 
 using namespace simpla;
 
