@@ -10,7 +10,7 @@
 #include <string>
 #include <tuple>
 
-#include "../data_interface/data_set.h"
+#include "../data_representation/data_set.h"
 #include "../gtl/design_pattern/singleton_holder.h"
 #include "data_stream.h"
 

@@ -12,7 +12,8 @@
 #include <string>
 
 #include "../utilities/utilities.h"
-#include "../data_interface/data_type.h"
+#include "../data_representation/data_type.h"
+#include "data_stream.h"
 namespace simpla
 {
 struct DataSet;
@@ -21,12 +22,6 @@ struct DataSet;
  *  @brief this module collects the classes used to read /write data file.
  * @{
  */
-enum
-{
-	SP_APPEND = 1UL << 2, SP_CACHE = (1UL << 3), SP_RECORD = (1UL << 4),
-
-	SP_UNORDER = (1UL << 5)
-};
 
 void init_io(int argc, char ** argv);
 void close_io();

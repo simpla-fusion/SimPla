@@ -16,8 +16,10 @@
  * ## Summary
  *  - @ref particle is used to  describe trajectory in  @ref phase_space_7d  .
  *  - @ref particle is used to  describe the behavior of  discrete samples of
- *   @ref phase_space_7d function  \f$ f\left(t,x,y,z,v_x,v_y,v_z \right) \f$.
- *
+ *    @ref phase_space_7d function  \f$ f\left(t,x,y,z,v_x,v_y,v_z \right) \f$.
+ *  - @ref particle is a @ref container;
+ *  - @ref particle is @ref splittable;
+ *  - @ref particle is a @ref field
  *
  *
  * ## Requirements

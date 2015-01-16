@@ -10,9 +10,10 @@
 
 #include <mpi.h>
 #include <stddef.h>
+#include <cstdbool>
 
-#include "../data_interface/data_type.h"
-#include "../gtl/primitives.h"
+#include "../data_representation/data_type.h"
+
 namespace simpla
 {
 namespace _impl
@@ -38,7 +39,7 @@ struct MPIDataType
 	static MPIDataType create(DataType const & data_type, unsigned int ndims,
 			size_t const * dims, size_t const * offset, size_t const * stride,
 			size_t const * count, size_t const * block, bool c_order_array =
-					true);
+			true);
 
 	template<typename T, typename ...Others>
 	static MPIDataType create(Others && ... others)
@@ -52,6 +53,8 @@ struct MPIDataType
 	}
 
 private:
+
+	static constexpr unsigned int MAX_NDIMS_OF_ARRAY = 10;
 	MPI_Datatype type_ = MPI_DATATYPE_NULL;
 
 	bool is_commited_ = false;

@@ -37,22 +37,23 @@ template<typename TRange, typename Func>
 void parallel_for(TRange && range, Func && fun)
 {
 
-	if (!is_divisible(std::forward<TRange>(range)))
-	{
-		fun(std::forward<TRange>(range));
-	}
-	else
-	{
-
-		auto t_r = split(std::forward<TRange>(range));
-
-		auto f1 = std::async(std::launch::async, [&]()
-		{	parallel_for( std::get<0>(t_r), std::forward<Func>(fun));});
-
-		parallel_for(std::get<1>(t_r), fun);
-
-		f1.get();
-	}
+	tbb::parallel_for(std::forward<Arrgs>(range), std::forward<Func>(fun));
+//	if (!is_divisible(std::forward<TRange>(range)))
+//	{
+//		fun(std::forward<TRange>(range));
+//	}
+//	else
+//	{
+//
+//		auto t_r = split(std::forward<TRange>(range));
+//
+//		auto f1 = std::async(std::launch::async, [&]()
+//		{	parallel_for( std::get<0>(t_r), std::forward<Func>(fun));});
+//
+//		parallel_for(std::get<1>(t_r), fun);
+//
+//		f1.get();
+//	}
 }
 
 //
@@ -92,7 +93,8 @@ void parallel_for_each(TRange && range, Func && fun)
  * @param red_fun
  */
 template<typename TRange, typename TRes, typename Func, typename Reduction>
-void parallel_reduce(TRange && range, TRes const & identity, TRes *res, Func &&fun, Reduction &&reduction)
+void parallel_reduce(TRange && range, TRes const & identity, TRes *res,
+		Func &&fun, Reduction &&reduction)
 {
 
 	if (!is_divisible(std::forward<TRange>(range)))
@@ -106,13 +108,16 @@ void parallel_reduce(TRange && range, TRes const & identity, TRes *res, Func &&f
 
 		auto t_r = split(std::forward<TRange>(range));
 
-		auto f1 = std::async(std::launch::async, [&]()
-		{
-			parallel_reduce( std::get<0>(t_r),identity,&tmp,
-					std::forward<Func>(fun), std::forward<Reduction>(reduction ));
-		});
+		auto f1 =
+				std::async(std::launch::async,
+						[&]()
+						{
+							parallel_reduce( std::get<0>(t_r),identity,&tmp,
+									std::forward<Func>(fun), std::forward<Reduction>(reduction ));
+						});
 
-		parallel_reduce(std::get<1>(t_r), identity, res, std::forward<Func>(fun), std::forward<Reduction>(reduction));
+		parallel_reduce(std::get<1>(t_r), identity, res,
+				std::forward<Func>(fun), std::forward<Reduction>(reduction));
 
 		f1.get();
 
@@ -122,7 +127,8 @@ void parallel_reduce(TRange && range, TRes const & identity, TRes *res, Func &&f
 
 }
 template<typename TRange, typename TRes, typename Func>
-void parallel_reduce(TRange && range, TRes const & identity, TRes *res, Func const &fun)
+void parallel_reduce(TRange && range, TRes const & identity, TRes *res,
+		Func const &fun)
 {
 	parallel_reduce(std::forward<TRange>(range), res, fun, [](TRes &l,TRes *r)
 	{	*r+=l;});

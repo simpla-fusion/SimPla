@@ -5,20 +5,20 @@
  *      Author: salmon
  */
 
-#ifndef CORE_DATA_INTERFACE_DATA_SET_H_
-#define CORE_DATA_INTERFACE_DATA_SET_H_
+#ifndef CORE_DATA_REPRESENTATION_DATA_SET_H_
+#define CORE_DATA_REPRESENTATION_DATA_SET_H_
 
 #include <stddef.h>
 #include <algorithm>
 #include <memory>
 #include <type_traits>
 
+#include "../data_representation/data_space.h"
+#include "../data_representation/data_type.h"
 #include "../gtl/concept_check.h"
 #include "../gtl/properties.h"
 #include "../gtl/type_traits.h"
 #include "../utilities/memory_pool.h"
-#include "data_space.h"
-#include "data_type.h"
 
 namespace simpla
 {
@@ -114,4 +114,4 @@ DataSet make_dataset(std::shared_ptr<T> p, int rank, size_t const * dims,
 
 }  // namespace simpla
 
-#endif /* CORE_DATA_INTERFACE_DATA_SET_H_ */
+#endif /* CORE_DATA_REPRESENTATION_DATA_SET_H_ */

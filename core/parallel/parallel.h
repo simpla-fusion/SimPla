@@ -8,26 +8,26 @@
 #ifndef PARALLEL_H_
 #define PARALLEL_H_
 
-//#include "multi_thread.h"
-
 /**
- *  \defgroup  Parallel Parallel
+ *  @addtogroup  Parallel Parallel
  *  @{
- *  	\defgroup  MPI MPI Communicaion
- *  	\defgroup  MULTICORE Multi-thread/core and many-core support
+ *  	@addtogroup  MPI MPI Communicaion
+ *  	@addtogroup  MULTICORE Multi-thread/core and many-core support
  *  @}
  */
-
-#ifdef USE_TBB
-#include <tbb/tbb.h>
-namespace parallel = tbb;
-#else
-#include <atomic>
-#include <mutex>
-namespace parallel = std;
+#ifndef NO_MPI
+#include "mpi_comm.h"
 #endif
 
-#include "mpi_comm.h"
+#ifdef USE_TBB
+
+#include "multi_thread_tbb.h"
+
+#elif _OPENMP
+#include "multi_thread_openmp.h"
+#else
+#include "multi_thread_std_thread.h"
+#endif
 
 namespace simpla
 {

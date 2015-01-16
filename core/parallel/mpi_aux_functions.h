@@ -14,7 +14,7 @@
 #include <tuple>
 #include <vector>
 
-#include "../data_interface/data_type.h"
+#include "../data_representation/data_type.h"
 #include "../gtl/ntuple.h"
 #include "../gtl/primitives.h"
 

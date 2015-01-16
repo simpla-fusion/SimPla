@@ -16,17 +16,7 @@ namespace simpla
  * @ingroup gtl
  * @addtogroup  iterator
  * @{
- *   concept Range is a container
- *   class Range
- *   {
- *     typedef iterator;
- *     iterator begin();
- *     iterator end();
- *     const_iterator begin()const;
- *     const_iterator end()const;
  *
- *     Range split(int num_process,int process_num); //optional
- *   }
  */
 
 template<typename TIterator, typename TPred = std::nullptr_t,

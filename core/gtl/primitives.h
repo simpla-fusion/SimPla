@@ -49,11 +49,11 @@ namespace simpla
 //	FRONT = 32 //!< FRONT
 //};
 //
-//enum ArrayOrder
-//{
-//	C_ORDER, // SLOW FIRST
-//	FORTRAN_ORDER //  FAST_FIRST
-//};
+enum ArrayOrder
+{
+	C_ORDER, // SLOW FIRST
+	FORTRAN_ORDER //  FAST_FIRST
+};
 typedef int8_t ByteType; // int8_t
 
 typedef double Real;
@@ -122,6 +122,10 @@ DECL_RET_TYPE ((std::fabs(m)))
 
 #ifdef USE_TBB
 typedef tbb::split split;
+#else
+class split
+{
+};
 #endif
 }
 // namespace simpla

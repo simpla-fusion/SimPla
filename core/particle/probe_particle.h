@@ -12,14 +12,13 @@
 #include <memory>
 #include <string>
 
+#include "../data_representation/data_set.h"
 #include "../physics/physical_object.h"
-#include "../data_interface/data_set.h"
 #include "../utilities/utilities.h"
 #include "../gtl/primitives.h"
-
+#include "../gtl/holder.h"
 namespace simpla
 {
-
 /**
  * @ingroup particle
  *
@@ -55,23 +54,30 @@ namespace simpla
  *
  */
 template<typename Engine>
-struct ProbeParticle: public PhysicalObject, public Engine
+struct ProbeParticle: //
+						public PhysicalObject,
+						public Engine,
+						public enable_create_from_this<ProbeParticle<Engine>>
 {
 
+public:
 	typedef Engine engine_type;
 
 	typedef ProbeParticle<engine_type> this_type;
 
 	typedef typename engine_type::Point_s Point_s;
 
+	typedef enable_create_from_this<this_type> base_type;
+
 	//! @name   Particle Concept
 	//! @{
-	template<typename ...Others>
-	ProbeParticle(Others && ...);
+	ProbeParticle();
 
 	ProbeParticle(ProbeParticle&, split);
 
-	~ProbeParticle();
+	ProbeParticle(ProbeParticle const&);
+
+	virtual ~ProbeParticle();
 
 	using engine_type::properties;
 
@@ -92,12 +98,12 @@ struct ProbeParticle: public PhysicalObject, public Engine
 	 * @param args arguments
 	 *
 	 * - Semantics
-	 \code
+	 @code
 	 for( Point_s & point: all particle)
 	 {
 	 engine_type::next_timestep(& point,std::forward<Args>(args)... );
 	 }
-	 \endcode
+	 @endcode
 	 *
 	 */
 	template<typename ...Args>
@@ -112,7 +118,7 @@ struct ProbeParticle: public PhysicalObject, public Engine
 	 * @return t0+num_of_steps*dt
 	 *
 	 *-Semantics
-	 \code
+	 @code
 	 for(s=0;s<num_of_steps;++s)
 	 {
 	 for( Point_s & point: all particle)
@@ -121,7 +127,7 @@ struct ProbeParticle: public PhysicalObject, public Engine
 	 }
 	 }
 	 return t0+num_of_steps*dt;
-	 \endcode
+	 @endcode
 	 */
 	template<typename ...Args>
 	Real next_n_timesteps(size_t num_of_steps, Real t0, Real dt,
@@ -168,21 +174,37 @@ struct ProbeParticle: public PhysicalObject, public Engine
 	template<typename ...Args>
 	void push_back(Args && ...args)
 	{
-		buffer.push_back(std::forward<Args>(args)...);
+		base_type::root().buffer.push_back(std::forward<Args>(args)...);
 	}
 
 	template<typename ...Args>
 	void emplac_back(Args && ...args)
 	{
-		buffer.emplac_back(std::forward<Args>(args)...);
+		base_type::root().buffer.emplac_back(std::forward<Args>(args)...);
+	}
+	Point_s &operator[](size_t s)
+	{
+		return *(data.get() + s * (cache_depth_ + 1) + step_counter_);
+	}
+	Point_s const &operator[](size_t s) const
+	{
+		return *(data.get() + s * (cache_depth_ + 1) + step_counter_);
 	}
 
 	template<typename TFun>
 	void foreach(TFun const & fun);
 
+	bool empty() const
+	{
+		return end_ <= begin_;
+	}
+	bool is_divisible() const
+	{
+		return (end_ - begin_) > 1;
+	}
 	std::vector<Point_s> buffer;
 	std::shared_ptr<Point_s> data;
-	//! @}
+//! @}
 private:
 
 	bool is_changed_ = false;
@@ -191,7 +213,7 @@ private:
 
 	size_t cache_depth_ = 0;
 
-	size_t number_of_points_ = 0;
+	size_t begin_ = 0, end_ = 0;
 
 	CHECK_MEMBER_VALUE(memory_length,0);
 
@@ -228,13 +250,32 @@ private:
 	{
 		RUNTIME_ERROR("Wrong Way");
 	}
-
+	this_type & self()
+	{
+		return *this;
+	}
+	this_type const& self()const
+	{
+		return *this;
+	}
 };
 
 template<typename Engine>
-template<typename ... Others>
-ProbeParticle<Engine>::ProbeParticle(Others && ...others)
+ProbeParticle<Engine>::ProbeParticle()
 {
+}
+template<typename Engine>
+ProbeParticle<Engine>::ProbeParticle(ProbeParticle const&)
+{
+
+}
+template<typename Engine>
+ProbeParticle<Engine>::ProbeParticle(ProbeParticle<Engine> & other, split) :
+		base_type(other)
+{
+	begin_ = other.begin_;
+	end_ = (other.begin_ + other.end_) / 2;
+	other.begin_ = end_;
 }
 
 template<typename Engine>
@@ -268,7 +309,7 @@ void ProbeParticle<Engine>::flush_buffer(size_t num, TBuffer const & ext_buffer)
 	data = sp_make_shared_array<Point_s>(number_of_points_ * cache_depth_);
 
 	//  move data from buffer_ to data_
-	for (size_t s = 0; s < number_of_points_; ++s)
+	for (size_t s = begin_; s < end_; ++s)
 	{
 		Point_s * p = data.get();
 
@@ -331,9 +372,9 @@ template<typename TFun>
 void ProbeParticle<Engine>::foreach(TFun const& fun)
 {
 
-	for (size_t s = 0; s < number_of_points_; ++s)
+	for (size_t s = begin_; s < end_; ++s)
 	{
-		fun(data.get() + s * (cache_depth_ + 1));
+		fun((*this)[s]);
 	}
 
 }
@@ -343,11 +384,9 @@ template<typename ... Args>
 void ProbeParticle<Engine>::next_timestep(Args && ...args)
 {
 
-	for (size_t s = 0; s < number_of_points_; ++s)
+	for (size_t s = begin_; s < end_; ++s)
 	{
-		engine_type::next_timestep(
-				data.get() + s * (cache_depth_ + 1) + step_counter_,
-				std::forward<Args>(args)...);
+		engine_type::next_timestep(&((*this)[s]), std::forward<Args>(args)...);
 	}
 
 	inc_step_counter(1);
@@ -371,15 +410,17 @@ Real ProbeParticle<Engine>::next_n_timesteps(size_t num_of_steps, Real t0,
 	}
 	else
 	{
-		foreach([&](Point_s * p)
+		for (size_t s = begin_; s < end_; ++s)
 		{
+			auto * p = &((*this)[s]);
 			for (int i = 0; i < num_of_steps; ++i)
 			{
 				next_timestep_selector_(p, t0, dt, std::forward<Args>(args)...);
 				++p;
 				t0 += dt;
 			}
-		});
+		}
+		);
 
 		inc_step_counter(num_of_steps);
 	}
@@ -396,25 +437,23 @@ void ProbeParticle<Engine>::clear_cache()
 	{
 		if (cache_depth_ > 0)
 		{
-			foreach([&](Point_s * p)
+			for (size_t s = begin_; s < end_; ++s)
 			{
+				auto * p = &((*this)[s]);
 				for (int i = 0; i <= memory_length; ++i)
 				{
-					p[i]=p[step_counter_-memory_length+i];
+					p[i] = p[step_counter_ - memory_length + i];
 				}
-			});
-		}
-		step_counter_ = memory_length;
+			}
+		);
 	}
+	step_counter_ = memory_length;
+}
 }
 template<typename Engine, typename ...Others>
 auto make_probe_particle(Others && ... others)
-DECL_RET_TYPE((std::make_shared<ProbeParticle<Engine>>(
-						std::forward<Others>(others)...)))
-
-template<typename Engine>
-auto make_probe_particle()
-DECL_RET_TYPE((std::make_shared< ProbeParticle<Engine>>( )))
+DECL_RET_TYPE((ProbeParticle<Engine>::create(
+					std::forward<Others>(others)...)))
 
 }  // namespace simpla
 

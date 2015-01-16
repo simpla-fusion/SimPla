@@ -46,7 +46,7 @@
 # This module defines
 # TBB_INCLUDE_DIRS, where to find task_scheduler_init.h, etc.
 # TBB_LIBRARY_DIRS, where to find libtbb, libtbbmalloc
-# TBB_DEBUG_LIBRARY_DIRS, where to find libtbb_debug, libtbbmalloc_debug
+# TBB_DEBUG_LIBRARY_DIRS, where to find libtbb_debug, libtbbmalloc_delbug
 # TBB_INSTALL_DIR, the base TBB install directory
 # TBB_LIBRARIES, the libraries to link against to use TBB.
 # TBB_DEBUG_LIBRARIES, the libraries to link against to use TBB with debug symbols.
@@ -190,6 +190,7 @@ find_path(TBB_INCLUDE_DIR
 mark_as_advanced(TBB_INCLUDE_DIR)
 
 
+
 #-- Look for libraries
 # GvdB: $ENV{TBB_ARCH_PLATFORM} is set by the build script tbbvars[.bat|.sh|.csh]
 if (NOT $ENV{TBB_ARCH_PLATFORM} STREQUAL "")
@@ -198,6 +199,8 @@ if (NOT $ENV{TBB_ARCH_PLATFORM} STREQUAL "")
          ${_TBB_INSTALL_DIR}/$ENV{TBB_ARCH_PLATFORM}/lib
         )
 endif (NOT $ENV{TBB_ARCH_PLATFORM} STREQUAL "")
+
+message(  ${_TBB_INSTALL_DIR}/lib/$ENV{TBB_ARCH_PLATFORM})
 # Jiri: This block isn't mutually exclusive with the previous one
 #       (hence no else), instead I test if the user really specified
 #       the variables in question.

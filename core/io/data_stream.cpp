@@ -1,39 +1,5 @@
-#include <openmpi-x86_64/H5Apublic.h>
-#include <openmpi-x86_64/H5Dpublic.h>
-#include <openmpi-x86_64/H5Epublic.h>
-#include <openmpi-x86_64/H5FDmpi.h>
-#include <openmpi-x86_64/H5FDmpio.h>
-#include <openmpi-x86_64/H5Fpublic.h>
-#include <openmpi-x86_64/H5Gpublic.h>
-#include <openmpi-x86_64/H5Ipublic.h>
-#include <openmpi-x86_64/H5Lpublic.h>
-#include <openmpi-x86_64/H5Opublic.h>
-#include <openmpi-x86_64/H5public.h>
-#include <openmpi-x86_64/H5Ppublic.h>
-#include <openmpi-x86_64/H5Spublic.h>
-#include <openmpi-x86_64/H5Tpublic.h>
-#include <openmpi-x86_64/H5version.h>
-#include <algorithm>
-#include <complex>
-#include <cstdio>
-#include <iostream>
-#include <iterator>
-#include <memory>
-#include <typeindex>
-#include <typeinfo>
-#include <utility>
-
-#include "../data_interface/data_space.h"
-#include "../data_interface/data_type.h"
-#include "../gtl/ntuple.h"
-#include "../gtl/primitives.h"
-#include "../utilities/log.h"
-#include "../utilities/misc_utilities.h"
-#include "../utilities/parse_command_line.h"
-#include "io.h"
-
-/*
- * data_stream.cpp
+/**
+ * @file data_stream.cpp
  *
  *  created on: 2013-12-12
  *      Author: salmon
@@ -49,7 +15,8 @@ extern "C"
 #include <cstring> //for memcopy
 
 #include "data_stream.h"
-#include "../data_interface/data_set.h"
+
+#include "../data_representation/data_set.h"
 
 #if !NO_MPI || USE_MPI
 #   include "../parallel/parallel.h"
@@ -894,8 +861,8 @@ std::string DataStream::write(std::string const & url, DataSet const &ds,
 
 		H5_ERROR(H5Sget_select_bounds(f_space, &new_f_offset[0], &new_f_end[0]));
 
-		ASSERT(current_ndims == current_ndims);
-		ASSERT(new_f_max_dimensions[new_f_ndims-1]==H5S_UNLIMITED);
+//		ASSERT(current_ndims == current_ndims);
+//		ASSERT(new_f_max_dimensions[new_f_ndims-1]==H5S_UNLIMITED);
 
 		new_f_dimensions[new_f_ndims - 1] +=
 				current_dimensions[new_f_ndims - 1];

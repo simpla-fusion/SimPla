@@ -17,11 +17,11 @@ namespace simpla
  *  @addtogroup range Range
  *  @{
  *  @brief  Range
- *  "
- *    A Range can be recursively subdivided into two parts
- *  - Summary Requirements for type representing a recursively divisible set of values.
- *  - Requirements The following table lists the requirements for a Range type R.
- *  "  --TBB
+ *
+ *  >   A Range can be recursively subdivided into two parts
+ *  > - Summary Requirements for type representing a recursively divisible set of values.
+ *  > - Requirements The following table lists the requirements for a Range type R.
+ *  >                                        -- from TBB
  */
 template<typename TI>
 class Range

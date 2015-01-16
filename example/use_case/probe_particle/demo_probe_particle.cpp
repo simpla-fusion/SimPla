@@ -13,19 +13,22 @@
 #include <memory>
 #include <string>
 
+#include "../../../core/parallel/parallel.h"
+
 #include "../../../core/application/use_case.h"
 #include "../../../core/utilities/utilities.h"
 #include "../../../core/particle/particle.h"
 #include "../../../core/particle/probe_particle.h"
 #include "../../../core/particle/particle_engine.h"
 #include "../../../core/io/io.h"
+
 using namespace simpla;
 
 USE_CASE(demo_probe_particle)
 {
 
 	size_t num_of_steps = 1000;
-	size_t strides = 10;
+	size_t step_length = 10;
 	Real dt = 0.001;
 
 	options.register_cmd_line_option<size_t>("NUMBER_OF_STEPS", "n");
@@ -41,7 +44,7 @@ USE_CASE(demo_probe_particle)
 						+ ToString(num_of_steps));
 		SHOW_OPTIONS("-s,--strides <STRIDES>",
 				" dump record per <STRIDES> steps, default="
-						+ ToString(strides));
+						+ ToString(step_length));
 		SHOW_OPTIONS("-dt  <DT>",
 				" value of time step,default =" + ToString(dt));
 
@@ -50,7 +53,7 @@ USE_CASE(demo_probe_particle)
 
 	options["NUMBER_OF_STEPS"].as(&num_of_steps);
 
-	options["STRIDES"].as<size_t>(&strides);
+	options["STRIDES"].as<size_t>(&step_length);
 
 	options["DT"].as<Real>(&dt);
 
@@ -59,7 +62,9 @@ USE_CASE(demo_probe_particle)
 		return;
 	}
 
-	auto ion = make_probe_particle<ProbeDemo>();
+	auto ion = ProbeParticle<ProbeDemo>::create();
+
+	auto ion2 = ion->create_from_this(split());
 
 	ion->mass = 1.0;
 	ion->charge = -1.0;
@@ -92,9 +97,17 @@ USE_CASE(demo_probe_particle)
 		};
 
 		Real t0 = 0.0;
-		for (size_t s = 0; s < num_of_steps; s += strides)
+		for (size_t s = 0; s < num_of_steps; s += step_length)
 		{
-			t0 = ion->next_n_timesteps(strides, t0, dt, E, B);
+
+			parallel_for(*ion,
+
+			[&](ProbeParticle<ProbeDemo> & p)
+			{
+				p.next_n_timesteps(step_length, t0, dt, E, B);
+			});
+
+			t0 += step_length * dt;
 
 			VERBOSE << save("ion", ion->dataset(), SP_APPEND) << endl;
 		}

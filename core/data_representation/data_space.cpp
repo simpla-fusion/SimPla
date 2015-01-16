@@ -5,8 +5,7 @@
  *      Author: salmon
  */
 
-#include "data_space.h"
-
+#include "../data_representation/data_space.h"
 #include <algorithm>
 #include <utility>
 

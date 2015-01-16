@@ -10,11 +10,10 @@
 #include <tbb/tbb.h>
 namespace simpla
 {
+using tbb::parallel_for;
+using tbb::parallel_do;
+using tbb::parallel_reduce;
 
-void test()
-{
-	tbb::blocked_range3d r;
-}
 }  // namespace simpla
 
 #endif /* MULTI_THREAD_TBB_H_ */

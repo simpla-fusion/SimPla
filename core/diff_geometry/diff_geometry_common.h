@@ -17,7 +17,13 @@ namespace simpla
  */
 enum GeometryFormTypeID
 {
-	VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3
+	VERTEX = 0,
+
+	EDGE = 1,
+
+	FACE = 2,
+
+	VOLUME = 3
 };
 
 /**

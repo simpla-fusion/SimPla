@@ -18,23 +18,41 @@
 #include <type_traits>
 #include <utility>
 
-#include "../../data_interface/data_interface.h"
-#include "../../utilities/log.h"
+#include "../../data_representation/data_interface.h"
+#include "../../utilities/utilities.h"
 #include "../../gtl/ntuple.h"
-#include "../../utilities/primitives.h"
-#include "../../utilities/type_traits.h"
+#include "../../gtl/primitives.h"
 #include "../../numeric/geometric_algorithm.h"
-
-#if !NO_MPI || USE_MPI
-#include "../../parallel/mpi_comm.h"
-#endif
+#include "../diff_geometry_common.h"
 
 namespace simpla
 {
 
 /**
  * @ingroup topology
- *  \brief  structured mesh, n-dimensional array
+ *  @brief  structured mesh, n-dimensional array
+ *
+ *## Cell Shape
+ * - Voxel(hexahedron):
+ * - Define
+ *  \verbatim
+ *                ^y
+ *               /
+ *        z     /
+ *        ^    /
+ *        |  110(6)----------111(7)
+ *        |  /|              /|
+ *        | / |             / |
+ *        |/  |            /  |
+ *       100(4)----------101(5)
+ *        |   |           |   |
+ *        |  010(2)-----------|--011(3)
+ *        |  /            |  /
+ *        | /             | /
+ *        |/              |/
+ *       000(0)----------001(1)---> x
+ * \endverbatim
+ *  - the unit cell width is 1;
  */
 struct StructuredMesh
 {
@@ -91,7 +109,6 @@ public:
 			WARNING << ("Configure  error: no 'Dimensions'!") << std::endl;
 			return false;
 		}
-
 		else
 		{
 			VERBOSE << "Load topology : Structured  Mesh " << std::endl;
@@ -117,28 +134,8 @@ public:
 	}
 	static std::string get_type_as_string()
 	{
-		return std::move(name());
-	}
-	static std::string name()
-	{
 		return "StructuredMesh";
 	}
-
-	/** @name Time
-	 *  @{
-	 **/
-	unsigned long clock_ = 0UL;
-
-	void next_timestep()
-	{
-		++clock_;
-	}
-	unsigned long get_clock() const
-	{
-		return clock_;
-	}
-
-	/**@}*/
 
 	bool is_valid() const
 	{
@@ -369,27 +366,7 @@ public:
 //
 //		}
 //
-//		/**
-//		 * \note
-//		 *  \verbatim
-//		 *                ^y
-//		 *               /
-//		 *        z     /
-//		 *        ^    /
-//		 *        |  110-------------111
-//		 *        |  /|              /|
-//		 *        | / |             / |
-//		 *        |/  |            /  |
-//		 *       100--|----------101  |
-//		 *        | m |           |   |
-//		 *        |  010----------|--011
-//		 *        |  /            |  /
-//		 *        | /             | /
-//		 *        |/              |/
-//		 *       000-------------001---> x
-//		 * \endverbatim
-//		 */
-//
+
 //		volume_[0] = 1;
 ////		volume_[1] /* 001 */= dx_[0];
 ////		volume_[2] /* 010 */= dx_[1];

@@ -13,8 +13,7 @@
 #include <type_traits>
 
 #include "../data_interface/container_traits.h"
-#include "../data_interface/data_set.h"
-
+#include "../data_representation/data_set.h"
 #include "../physics/physical_object.h"
 #include "../design_pattern/expression_template.h"
 #include "../diff_geometry/domain.h"

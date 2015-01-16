@@ -5,7 +5,7 @@ ADD_SUBDIRECTORY( parallel )
 
 ADD_SUBDIRECTORY( io)
 
-ADD_SUBDIRECTORY( data_interface)
+ADD_SUBDIRECTORY( data_representation)
 
 ADD_SUBDIRECTORY( utilities  )
 

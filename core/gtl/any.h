@@ -16,7 +16,7 @@
 #include <typeindex>
 #include <typeinfo>
 
-#include "../data_interface/data_type.h"
+#include "../data_representation/data_type.h"
 #include "../utilities/log.h"
 #include "ntuple.h"
 

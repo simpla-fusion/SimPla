@@ -27,6 +27,13 @@ namespace simpla
  *
  *  \brief  Description of data type
  *
+ *  @todo this class should meet the requirement of XDR
+ *  http://en.wikipedia.org/wiki/External_Data_Representation#XDR_data_types
+ *  see   eXternal Data Representation Standard: Protocol Specification
+ *        eXternal Data Representation: Sun Technical Notes
+ *        XDR: External Data Representation Standard, RFC 1014, Sun Microsystems, Inc., USC-ISI.
+ *        doc/reference/xdr/
+ *
  */
 struct DataType
 {

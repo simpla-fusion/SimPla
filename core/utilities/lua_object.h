@@ -10,6 +10,11 @@
 #ifndef CORE_UTILITIES_LUA_OBJECT_H_
 #define CORE_UTILITIES_LUA_OBJECT_H_
 
+#include <stddef.h>
+#include <cstdbool>
+#include <functional>
+#include <type_traits>
+
 extern "C"
 {
 

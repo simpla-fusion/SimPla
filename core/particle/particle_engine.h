@@ -10,7 +10,7 @@
 #include <stddef.h>
 #include "../physics/physical_constants.h"
 #include "../utilities/utilities.h"
-#include "../data_interface/data_type.h"
+#include "../data_representation/data_type.h"
 namespace simpla
 {
 

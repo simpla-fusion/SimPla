@@ -5,7 +5,7 @@
  *      Author: salmon
  */
 
-#include "data_type.h"
+#include "../data_representation/data_type.h"
 
 namespace simpla
 {

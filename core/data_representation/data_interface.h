@@ -5,13 +5,12 @@
  *      Author: salmon
  */
 
-#ifndef CORE_DATA_INTERFACE_DATA_INTERFACE_H_
-#define CORE_DATA_INTERFACE_DATA_INTERFACE_H_
+#ifndef CORE_DATA_REPRESENTATION_DATA_INTERFACE_H_
+#define CORE_DATA_REPRESENTATION_DATA_INTERFACE_H_
 
-#include "data_set.h"
-#include "data_space.h"
-#include "data_type.h"
-#include "../containers/container_traits.h"
+#include "../data_representation/data_set.h"
+#include "../data_representation/data_space.h"
+#include "../data_representation/data_type.h"
 
 /**
  * @addtogroup data_interface Data Interface
@@ -22,4 +21,4 @@
  * of particle structure in memory to hdf5 library, and save it to disk.
  */
 
-#endif /* CORE_DATA_INTERFACE_DATA_INTERFACE_H_ */
+#endif /* CORE_DATA_REPRESENTATION_DATA_INTERFACE_H_ */

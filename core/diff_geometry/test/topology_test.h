@@ -88,7 +88,7 @@ TEST_P(TestTopology, id_type)
 	EXPECT_EQ(0, topology.node_id(topology.inverse_roate(s)));
 	EXPECT_EQ(0, topology.component_number(topology.roate(s)));
 	EXPECT_EQ(0, topology.component_number(topology.inverse_roate(s)));
-	EXPECT_EQ(VERTEX, topology.node_id(s));
+	EXPECT_EQ(0, topology.node_id(s));
 	EXPECT_EQ(VERTEX, topology.IForm(topology.roate(s)));
 	EXPECT_EQ(VERTEX, topology.IForm(topology.inverse_roate(s)));
 

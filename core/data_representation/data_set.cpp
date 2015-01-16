@@ -5,6 +5,8 @@
  *      Author: salmon
  */
 
+#include "../data_representation/data_set.h"
+
 namespace simpla
 {
 

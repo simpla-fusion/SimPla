@@ -55,16 +55,21 @@ IF(HDF5_FOUND)
 ENDIF(HDF5_FOUND)
  
  
-FIND_PACKAGE(GTest)
+#IF(GTEST_ROOT)
 enable_testing()
-include_directories(${GTEST_INCLUDE_DIRS})
+#INCLUDE(${GTEST_ROOT})
+INCLUDE_DIRECTORIES(${GTEST_ROOT}/include)
+#ENDIF()
+
+
+FIND_PACKAGE(CUDA 7.0)
 
 
 SET(TBB_ARCH_PLATFORM intel64)
 FIND_PACKAGE(TBB )
 IF(TBB_FOUND)
 	ADD_DEFINITIONS(-DUSE_TBB )
-	INCLUDE_DIRECTORIES(BEFORE ${TBB_INCLUDE_DIRS} )
+	INCLUDE_DIRECTORIES(  ${TBB_INCLUDE_DIR} )
 ENDIF( )
 
 execute_process(COMMAND  git describe --all  --dirty --long
@@ -77,9 +82,21 @@ MESSAGE(STATUS "Identify: ${PROJECT_IDENTIFY}")
 
 ADD_DEFINITIONS(-DIDENTIFY=\"${PROJECT_IDENTIFY}\" )
 
+INCLUDE(ExternalProject)
+ExternalProject_Add(googletest
+     PREFIX  ${PROJECT_BINARY_DIR}/external_project 
+     #    URL   http://googletest.googlecode.com/files/gtest-1.7.0.zip
+    URL file://${CMAKE_SOURCE_DIR}/external_project/src/gtest-1.7.0.zip
+     SOURCE_DIR ${PROJECT_BINARY_DIR}/external_project/googletest
+     INSTALL_COMMAND "" )
+ ExternalProject_Get_Property(googletest SOURCE_DIR)
+ ExternalProject_Get_Property(googletest BINARY_DIR)
+ INCLUDE_DIRECTORIES(${SOURCE_DIR}/include )
+ LINK_DIRECTORIES(${BINARY_DIR})
+
 add_subdirectory(core )
 add_subdirectory(applications )
 add_subdirectory(example )
-add_subdirectory(docs )
+add_subdirectory(doc )
 
  
