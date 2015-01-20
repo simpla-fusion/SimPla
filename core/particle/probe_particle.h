@@ -74,9 +74,21 @@ public:
 
 	ProbeParticle(ProbeParticle const&);
 
-	virtual ~ProbeParticle();
+	~ProbeParticle();
 
 	using engine_type::properties;
+
+	std::ostream& print(std::ostream & os) const
+	{
+		engine_type::print(os);
+		return os;
+	}
+
+	bool update();
+
+	void sync();
+
+	DataSet dataset() const;
 
 	template<typename TDict, typename ...Others>
 	void load(TDict const & dict, Others && ...others);
@@ -130,49 +142,6 @@ public:
 	Real next_n_timesteps(size_t num_of_steps, Real t0, Real dt,
 			Args && ...args);
 
-	std::ostream& print(std::ostream & os) const
-	{
-		engine_type::print(os);
-		return os;
-	}
-
-	bool update();
-
-	void sync();
-
-	DataSet dataset() const;
-
-	void upload_cache();
-
-	void download_cache();
-
-	void resize_cache(size_t depth);
-
-	bool cache_is_valid() const
-	{
-		return engine_type::properties.is_changed() || cache_is_valid_;
-	}
-	void cache_depth(size_t d)
-	{
-		resize_cache(d);
-	}
-
-	size_t cache_depth() const
-	{
-		return cache_depth_;
-	}
-
-	DataSet cache() const;
-
-	Point_s &operator[](size_t s)
-	{
-		return *(cache_.get() + (s * cache_depth_ + step_counter_));
-	}
-	Point_s const &operator[](size_t s) const
-	{
-		return *(cache_.get() + (s * cache_depth_ + step_counter_));
-	}
-
 	/**
 	 *  push_back and emplace will invalid data in the cache
 	 * @param args
@@ -202,8 +171,10 @@ public:
 		cache_is_valid_ = false;
 	}
 
-	template<typename TFun>
-	void foreach(TFun const & fun);
+	template<typename TFun, typename ...Args>
+	void foreach(TFun const & fun, Args && ...);
+
+	void increase_step_counter(size_t num_of_steps = 1);
 
 	//! @name   @ref range
 	//! @{
@@ -217,7 +188,38 @@ public:
 	}
 	//! @}
 
-	void increase_step_counter(size_t num_of_steps = 1);
+	void upload_cache();
+
+	void download_cache();
+
+	void resize_cache(size_t depth);
+
+	bool cache_is_valid() const
+	{
+		return engine_type::properties.is_changed() || cache_is_valid_;
+	}
+	void cache_depth(size_t d)
+	{
+		resize_cache(d);
+	}
+
+	size_t cache_depth() const
+	{
+		return cache_depth_;
+	}
+
+	DataSet cache();
+	DataSet cache() const;
+	std::function<void(this_type const &)> on_cache_full;
+
+	Point_s &operator[](size_t s)
+	{
+		return *(cache_.get() + (s * cache_depth_ + step_counter_));
+	}
+	Point_s const &operator[](size_t s) const
+	{
+		return *(cache_.get() + (s * cache_depth_ + step_counter_));
+	}
 
 private:
 
@@ -353,6 +355,11 @@ void ProbeParticle<Engine>::increase_step_counter(size_t num_of_steps)
 
 	if (step_counter_ >= cache_depth_)
 	{
+		if (on_cache_full)
+		{
+			on_cache_full(*this);
+		}
+
 		for (size_t s = begin_; s < end_; ++s)
 		{
 			auto * p = cache_.get() + (s * cache_depth_);
@@ -395,17 +402,16 @@ DataSet ProbeParticle<Engine>::cache() const
 {
 	size_t dims[2] = { cache_width_, step_counter_ };
 
-	DataSet ds = make_dataset(cache_, 1, dims, properties());
-
-	return std::move(ds);
+	return std::move(make_dataset(cache_, 1, dims, properties()));
 }
+
 template<typename Engine>
-template<typename TFun>
-void ProbeParticle<Engine>::foreach(TFun const& fun)
+template<typename TFun, typename ...Args>
+void ProbeParticle<Engine>::foreach(TFun const & fun, Args && ... args)
 {
 	for (size_t s = begin_; s < end_; ++s)
 	{
-		fun((*this)[s]);
+		fun(&(*this)[s], std::forward<Args>(args)...);
 	}
 }
 
@@ -417,12 +423,17 @@ void ProbeParticle<Engine>::next_timestep(Args && ...args)
 	{
 		upload_cache();
 	}
-	for (size_t s = begin_; s < end_; ++s)
+
+	foreach(
+
+	[&](Point_s * p )
 	{
 		engine_type::next_timestep(&((*this)[s]), std::forward<Args>(args)...);
 	}
 
-	increase_step_counter(1);
+	);
+
+	increase_step_counter();
 }
 
 template<typename Engine>
@@ -448,16 +459,23 @@ Real ProbeParticle<Engine>::next_n_timesteps(size_t num_of_steps, Real t0,
 	}
 	else
 	{
-		for (size_t s = begin_; s < end_; ++s)
+
+		foreach(
+
+		[&](Point_s * p )
 		{
-			auto * p = &((*this)[s]);
+			Real t = t0;
 			for (int i = 0; i < num_of_steps; ++i)
 			{
-				next_timestep_selector_(p, t0, dt, std::forward<Args>(args)...);
+				next_timestep_selector_(p, t , dt, std::forward<Args>(args)...);
 				++p;
-				t0 += dt;
+				t += dt;
 			}
 		}
+
+		);
+
+		t0 += num_of_steps * dt;
 
 		increase_step_counter(num_of_steps);
 	}

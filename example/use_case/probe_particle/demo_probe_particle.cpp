@@ -64,15 +64,10 @@ USE_CASE(demo_probe_particle)
 
 	auto ion = ProbeParticle<ProbeDemo>::create();
 
-	auto ion2 = ion->create_from_this(split());
-
 	ion->mass = 1.0;
 	ion->charge = -1.0;
 	ion->temperature = 1.0e-4;
-//	ion->pressure = nTuple<double, 3, 3>(
-//	{ 1, 2, 3, 4, 5, 6, 7, 8, 9 });
 
-//	ion->buffer.resize(20);
 	ion->update();
 
 	MESSAGE << endl;
@@ -96,21 +91,12 @@ USE_CASE(demo_probe_particle)
 					{	0,0,2});
 		};
 
-		Real t0 = 0.0;
-		for (size_t s = 0; s < num_of_steps; s += step_length)
+		ion->on_cache_full = [&](ProbeParticle<ProbeDemo>& p)
 		{
+			VERBOSE << save("ion", p.cache(), SP_APPEND) << endl;
+		};
 
-			parallel_for(*ion,
-
-			[&](ProbeParticle<ProbeDemo> & p)
-			{
-				p.next_n_timesteps(step_length, t0, dt, E, B);
-			});
-
-			t0 += step_length * dt;
-
-			VERBOSE << save("ion", ion->dataset(), SP_APPEND) << endl;
-		}
+		ion->next_n_timesteps(num_of_steps, 0.0, dt, E, B);
 
 	}
 }
