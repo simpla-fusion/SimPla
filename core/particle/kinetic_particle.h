@@ -14,8 +14,7 @@
 
 #include "../physics/physical_object.h"
 #include "../gtl/cache.h"
-#include "../utilities/log.h"
-#include "../utilities/primitives.h"
+#include "../utilities/utilities.h"
 namespace simpla
 {
 
@@ -103,38 +102,9 @@ public:
 	void next_timestep(Args && ...args);
 
 	/**
-	 *
-	 * @param num_of_steps number of time steps
-	 * @param t0 start time point
-	 * @param dt delta time step
-	 * @param args other arguments
-	 * @return t0+num_of_steps*dt
-	 *
-	 *-Semantics
-	 @code
-	 for(s=0;s<num_of_steps;++s)
-	 {
-	 for( Point_s & point: all particle)
-	 {
-	 engine_type::next_timestep(& point,t0+s*dt,dt,std::forward<Args>(args)... );
-	 }
-	 }
-	 return t0+num_of_steps*dt;
-	 @endcode
-	 */
-	template<typename ...Args>
-	Real next_n_timesteps(size_t num_of_steps, Real t0, Real dt,
-			Args && ...args);
-
-	/**
 	 *  push_back and emplace will invalid data in the cache
 	 * @param args
 	 */
-	template<typename ...Args>
-	void push_back(Args && ...args);
-
-	template<typename ...Args>
-	void emplac_back(Args && ...args);
 
 	template<typename TFun, typename ...Args>
 	void foreach(TFun const & fun, Args && ...);
@@ -147,8 +117,7 @@ public:
 			download_cache();
 		}
 
-		data_.push_back(
-				point_index_s(nullptr, Point_s(std::forward<Args>(args)...)));
+		data_.push_back(std::forward<Args>(args)...);
 		cache_is_valid_ = false;
 	}
 
@@ -160,7 +129,7 @@ public:
 			download_cache();
 		}
 
-		data_.emplac_back(nullptr, Point_s(std::forward<Args>(args)...));
+		data_.emplac_back(std::forward<Args>(args)...);
 
 		cache_is_valid_ = false;
 	}
@@ -171,17 +140,7 @@ private:
 
 	domain_type domain_;
 
-	std::function<id_type(Point_s const &)> hash_fun_;
-
-	struct point_index_s
-	{
-		point_index_s* next;
-		Point_s * data;
-	};
-	std::list<std::shared_ptr<Point_s>> data_;
-	std::map<id_type, point_index_s *> index_;
-
-	point_index_s * trash_ = nullptr;
+	std::vector<Point_s> data_;
 
 };
 
@@ -204,7 +163,6 @@ void KineticParticle<Engine, TDomain>::load(TDict const & dict,
 		Others && ...others)
 {
 	engine_type::load(dict, std::forward<Others>(others)...);
-//	data_.load(dict, std::forward<Others>(others)...);
 }
 
 template<typename Engine, typename TDomain>
@@ -223,8 +181,6 @@ bool KineticParticle<Engine, TDomain>::update()
 template<typename Engine, typename TDomain>
 void KineticParticle<Engine, TDomain>::sync()
 {
-//	data_.sort(hash_fun_);
-//	update_ghost(*this);
 }
 
 template<typename Engine, typename TDomain>
@@ -238,7 +194,7 @@ void KineticParticle<Engine, TDomain>::foreach(TFun const & fun,
 	}
 	else
 	{
-		parallel_foreach(index_,
+		parallel_foreach(data_,
 
 		[&](std::pair<id_type,point_index_s*> & item)
 		{
