@@ -1,15 +1,34 @@
 /*
- * holder.h
+ * @file enable_create_from_this.h
  *
  *  Created on: 2015年1月15日
  *      Author: salmon
  */
 
-#ifndef CORE_GTL_HOLDER_H_
-#define CORE_GTL_HOLDER_H_
+#ifndef CORE_GTL_ENABLE_CREATE_FROM_THIS_H_
+#define CORE_GTL_ENABLE_CREATE_FROM_THIS_H_
 #include <memory>
 namespace simpla
 {
+
+#ifdef USE_TBB
+typedef tbb::split op_split;
+#else
+class op_split
+{
+};
+#endif
+
+class op_clone
+{
+};
+
+class op_select
+{
+};
+class op_merge
+{
+};
 /**
  *  @ingroup gtl
  *  @[
@@ -138,42 +157,94 @@ struct enable_create_from_this: public std::enable_shared_from_this<TObject>
 	virtual object_type & self()=0;
 	virtual object_type const & self() const =0;
 
-	using std::enable_shared_from_this<object_type>::shared_from_this;
-
 	/**
 	 *  alias of `std::make_shared<object_type>`
 	 * @param args
 	 * @return
 	 */
 	template<typename ...Args>
-	static holder create(Args && ...args)
+	holder create(Args && ...args)
 	{
 		return std::make_shared<object_type>(std::forward<Args>(args)...);
 	}
 
-	inline static holder create()
+	static holder create()
 	{
 		return holder(new object_type());
 	}
+
+	holder copy_from_this() const
+	{
+		return std::make_shared<object_type>(self());
+	}
+
 	template<typename ...Args>
 	holder create_from_this(Args && ...args)
 	{
-		holder res(new object_type(self(), std::forward<Args>(args)...));
-
-		if (res->root_ == nullptr)
-			res->root_ = shared_from_this();
-		return res;
+		auto res = std::make_shared<object_type>(self(),
+				std::forward<Args>(args)...);
+		res->root_ = root_holder();
+		return std::move(res);
 	}
 
-	holder create_from_this()
+	template<typename ...Args>
+	holder create_from_this(Args && ...args) const
 	{
-		auto res = shared_from_this();
-		if (res->root_ == nullptr)
-			res->root_ = shared_from_this();
-		return res;
+		auto res = std::make_shared<object_type>(self(),
+				std::forward<Args>(args)...);
+		res->root_ = root_holder();
+		return std::move(res);
 	}
 
+	using std::enable_shared_from_this<object_type>::shared_from_this;
+
+	holder split_from_this()
+	{
+		return std::move(create_from_this(self(), op_split()));
+	}
+
+	template<typename ...Args>
+	holder split_from_this(Args && ...args)
+	{
+		return std::move(
+				create_from_this(self(), op_split(),
+						std::forward<Args>(args)...));
+	}
+
+	template<typename ...Args>
+	holder select_from_this(Args && ...args)
+	{
+		return std::move(
+				create_from_this(self(), op_select(),
+						std::forward<Args>(args)...));
+	}
+
+	template<typename ...Args>
+	holder select_from_this(Args && ...args) const
+	{
+		return std::move(
+				create_from_this(self(), op_select(),
+						std::forward<Args>(args)...));
+	}
+
+	holder merge_with_this(object_type && ...args) const
+	{
+		return std::move(
+				create_from_this(self(), op_merge(),
+						std::forward<object_type>(args)...));
+	}
+	holder merge_with_this(object_type && ...args)
+	{
+		return std::move(
+				create_from_this(self(), op_merge(),
+						std::forward<object_type>(args)...));
+	}
 	holder root_holder()
+	{
+		return (root_ == nullptr) ? shared_from_this() : root_;
+	}
+
+	holder root_holder() const
 	{
 		return (root_ == nullptr) ? shared_from_this() : root_;
 	}
@@ -193,6 +264,7 @@ struct enable_create_from_this: public std::enable_shared_from_this<TObject>
 		return root_ == nullptr;
 	}
 };
+
 }  // namespace simpla
 
-#endif /* CORE_GTL_HOLDER_H_ */
+#endif /* CORE_GTL_ENABLE_CREATE_FROM_THIS_H_ */

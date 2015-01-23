@@ -28,7 +28,7 @@ namespace simpla
  *  -  KineticParticle is an unordered container;
  */
 template<typename Engine, typename TDomain>
-struct KineticParticle: public PhysicalObject,
+struct KineticParticle: public SpObject,
 						public Engine,
 						public enable_create_from_this<
 								KineticParticle<Engine, TDomain>>
@@ -133,6 +133,22 @@ public:
 
 		cache_is_valid_ = false;
 	}
+
+	template<typename TIterator>
+	void insert(TIterator const & b, TIterator const &e)
+	{
+		if (!cache_is_valid())
+		{
+			upload_cache();
+		}
+
+		upload_to_cache(b, e);
+
+	}
+
+	void upload_cache();
+
+	void download_cache();
 
 	void sort();
 

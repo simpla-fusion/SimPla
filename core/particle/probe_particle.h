@@ -13,10 +13,10 @@
 #include <string>
 
 #include "../data_representation/data_set.h"
+#include "../gtl/enable_create_from_this.h"
 #include "../physics/physical_object.h"
 #include "../utilities/utilities.h"
 #include "../gtl/primitives.h"
-#include "../gtl/holder.h"
 namespace simpla
 {
 /**
@@ -54,7 +54,7 @@ namespace simpla
  *  -
  */
 template<typename Engine>
-struct ProbeParticle:	public PhysicalObject,
+struct ProbeParticle:	public SpObject,
 						public Engine,
 						public enable_create_from_this<ProbeParticle<Engine>>
 {
@@ -66,7 +66,7 @@ public:
 
 	typedef typename engine_type::Point_s Point_s;
 
-	typedef enable_create_from_this<this_type> base_type;
+	typedef enable_split_from_this<this_type> base_type;
 
 	ProbeParticle();
 
@@ -171,9 +171,6 @@ public:
 		cache_is_valid_ = false;
 	}
 
-	template<typename TFun, typename ...Args>
-	void foreach(TFun const & fun, Args && ...);
-
 	void increase_step_counter(size_t num_of_steps = 1);
 
 	//! @name   @ref range
@@ -186,6 +183,9 @@ public:
 	{
 		return (end_ - begin_) > 1;
 	}
+
+	template<typename TFun, typename ...Args>
+	void foreach(TFun const & fun, Args && ...);
 	//! @}
 
 	void upload_cache();

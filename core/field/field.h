@@ -11,12 +11,12 @@
 #include <cstddef>
 #include <memory>
 #include <type_traits>
-#include "../parallel/parallel.h"
-#include "../utilities/utilities.h"
-#include "../physics/physical_object.h"
 
+#include "../utilities/utilities.h"
 #include "../data_interface/data_set.h"
-#include "../design_pattern/expression_template.h"
+#include "../application/sp_object.h"
+#include "../gtl/design_pattern/expression_template.h"
+#include "../gtl/enable_create_from_this.h"
 
 namespace simpla
 {
@@ -116,31 +116,30 @@ namespace simpla
  */
 template<typename ... >struct _Field;
 
-
-template<typename TV, typename TDomain>
-struct _Field<TV, TDomain> : public PhysicalObject, public TDomain
+template<typename TV, typename TManifold>
+struct _Field<TV, TManifold> : public SpObject, public enable_create_from_this<
+										_Field<TV, TManifold>>
 {
 
-	typedef TDomain domain_type;
-	typedef typename domain_type::id_type id_type;
+	typedef TManifold manifold_type;
+	typedef typename TManifold::id_type id_type;
 
 	typedef TV value_type;
-	typedef typename domain_type::template container_type<value_type> container_type;
-	typedef _Field<value_type, domain_type> this_type;
+	typedef typename manifold_type::template container_type<value_type> container_type;
+	typedef _Field<value_type, manifold_type> this_type;
 
 private:
-
+	manifold_type manifold_;
 	container_type data_;
 
 public:
 
-	template<typename ...Args>
-	_Field(Args &&...args) :
-			domain_type(std::forward<Args>(args)...), data_(nullptr)
+	_Field(manifold_type const & d) :
+			manifold_(d), data_(nullptr)
 	{
 	}
 	_Field(this_type const & that) :
-			domain_type(that), data_(that.data_)
+			manifold_(that.manifold_), data_(that.data_)
 	{
 	}
 
@@ -154,74 +153,63 @@ public:
 		return "Field<>";
 	}
 
-	void swap(this_type &r)
+	object_type & self()
 	{
-		sp_swap(r.data_, data_);
-		domain_type::swap(r);
+		return *this;
+	}
+	object_type const & self() const
+	{
+		return *this;
 	}
 
-	container_type & data()
+	/**
+	 * @name splittable container
+	 * @{
+	 */
+	_Field(this_type & that, op_split) :
+			manifold_(that.manifold_, op_split()), data_(that.data_)
 	{
-		return data_;
 	}
-
-	container_type const & data() const
-	{
-		return data_;
-	}
-
-	void data(container_type d)
-	{
-		sp_swap(d, data_);
-	}
-
-	bool is_same(this_type const & r) const
-	{
-		return data_ == r.data_;
-	}
-	template<typename TR>
-	bool is_same(TR const & r) const
-	{
-		return data_ == r.data_;
-	}
-
 	bool empty() const
 	{
 		return data_ == nullptr;
 	}
-	bool is_valid() const
+
+	bool is_divisible() const
 	{
-		return !empty();
+		return manifold_.is_divisible();
 	}
+
+	template<typename ...Args>
+	void foreach(Args && ... args)
+	{
+		manifold_.foreach(data_, std::forward<Args>(args));
+	}
+	template<typename ...Args>
+	void foreach(Args && ... args) const
+	{
+		manifold_.foreach(data_, std::forward<Args>(args));
+	}
+
+	/**
+	 * @}
+	 */
+
 	void allocate()
 	{
 		if (data_ == nullptr)
 		{
-			auto lock = parallel::lock_guard(mutex_);
+			auto lock = SpObject::lock();
 
-			domain_type::template allocate<value_type>().swap(data_);
+			manifold_.template allocate<value_type>().swap(data_);
 
-			PhysicalObject::update();
+			SpObject::update();
 		}
 	}
-
 	void clear()
 	{
 		allocate();
-		container_traits<container_type>::clear(data_, domain_type::size());
-	}
-
-	domain_type & domain()
-	{
-		return *this;
-	}
-	domain_type const & domain() const
-	{
-		return *this;
-	}
-	DataSet dataset() const
-	{
-		return std::move(domain_type::dataset(data_, properties()));
+		container_traits<container_type>::clear(data_, manifold_.size());
 	}
 
 	/***
@@ -230,28 +218,28 @@ public:
 	 */
 	value_type & get(id_type const &s)
 	{
-		return domain_type::access(data_, s);
+		return manifold_.access(data_, s);
 	}
 
 	value_type const& get(id_type const &s) const
 	{
-		return domain_type::access(data_, s);
+		return manifold_.access(data_, s);
 	}
 
 	value_type & operator[](id_type const & s)
 	{
-		return domain_type::access(data_, s);
+		return manifold_.access(data_, s);
 	}
 
 	value_type const & operator[](id_type const & s) const
 	{
-		return domain_type::access(data_, s);
+		return manifold_.access(data_, s);
 	}
 
 	/** @} */
 
 	/**
-	 * @name Assignment
+	 * @name assignment
 	 * @{
 	 */
 	inline this_type &
@@ -259,7 +247,7 @@ public:
 	{
 		allocate();
 
-		domain_type::foreach(_impl::_assign(), data_, that);
+		manifold_.foreach(_impl::_assign(), data_, that);
 
 		return (*this);
 	}
@@ -269,7 +257,7 @@ public:
 	{
 		allocate();
 
-		domain_type::foreach(_impl::_assign(), data_, that);
+		manifold_.foreach(data_, _impl::_assign(), that);
 
 		return (*this);
 	}
@@ -278,8 +266,7 @@ public:
 	inline this_type & operator +=(TR const &that)
 	{
 		allocate();
-
-		domain_type::foreach(_impl::plus_assign(), data_, that);
+		manifold_.foreach(data_, _impl::plus_assign(), that);
 
 		return (*this);
 
@@ -290,7 +277,7 @@ public:
 	{
 		allocate();
 
-		domain_type::foreach(_impl::minus_assign(), data_, that);
+		manifold_.foreach(data_, _impl::minus_assign(), that);
 
 		return (*this);
 	}
@@ -299,7 +286,7 @@ public:
 	inline this_type & operator *=(TR const &that)
 	{
 		allocate();
-		domain_type::foreach(_impl::multiplies_assign(), data_, that);
+		manifold_.foreach(data_, _impl::multiplies_assign(), that);
 
 		return (*this);
 	}
@@ -308,7 +295,7 @@ public:
 	inline this_type & operator /=(TR const &that)
 	{
 		allocate();
-		domain_type::foreach(_impl::divides_assign(), data_, that);
+		manifold_.foreach(data_, _impl::divides_assign(), that);
 
 		return (*this);
 	}
@@ -316,27 +303,34 @@ public:
 	template<typename TFun> void pull_back(TFun const &fun)
 	{
 		allocate();
-		domain_type::pull_back(data_, fun);
+		manifold_.pull_back(data_, fun);
 	}
 
 	/** @} */
 
 	typedef typename std::conditional<
-			domain_type::iform == VERTEX || domain_type::iform == VOLUME,
+			manifold_type::iform == VERTEX || manifold_type::iform == VOLUME,
 			value_type, nTuple<value_type, 3>>::type field_value_type;
 
 	field_value_type gather(
-			typename domain_type::coordinates_type const& x) const
+			typename manifold_type::coordinates_type const& x) const
 	{
-		return std::move(domain_type::gather(data_, x));
+		return std::move(manifold_.gather(data_, x));
 
 	}
 
 	template<typename ...Args>
 	void scatter(Args && ... args)
 	{
-		domain_type::scatter(data_, std::forward<Args>(args)...);
+		manifold_.scatter(data_, std::forward<Args>(args)...);
 	}
+
+	DataSet dataset() const
+	{
+		return std::move(manifold_.dataset(data_, properties()));
+	}
+
+private:
 
 }
 ;

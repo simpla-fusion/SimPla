@@ -15,8 +15,8 @@ namespace simpla
 class DataSet;
 class Properties;
 
-/** @ingroup physics
- *  @addtogroup physical_object Physical object
+/** @ingroup application
+ *  @addtogroup sp_object SIMPla object
  *  @{
  *  ## Summary
  *   - Particle distribution function is a @ref physical_object;
@@ -75,34 +75,43 @@ class Properties;
  **/
 
 /**
- * @ingroup physical_object
+ * @ingroup sp_object
  */
-struct PhysicalObject
+struct SpObject
 {
 	//! Default constructor
-	PhysicalObject() :
+	SpObject() :
 			is_valid_(false)
 	{
 	}
 	//! destroy.
-	virtual ~PhysicalObject()
+	virtual ~SpObject()
 	{
 	}
 
-	PhysicalObject(const PhysicalObject&); // copy constructor.
+	SpObject(const SpObject&); // copy constructor.
 
 	virtual std::string get_type_as_string() const=0;
 
 	virtual DataSet dataset() const =0; //!< return the data set of PhysicalObject
 
-	virtual bool is_valid()
-	{
-		return is_valid_;
-	}
-
 	virtual void sync()
 	{
 
+	}
+
+	void lock();
+
+	virtual bool is_valid();
+
+	virtual bool empty() const
+	{
+		return true;
+	}
+
+	virtual bool is_divisible() const
+	{
+		return false;
 	}
 	virtual void load()
 	{
@@ -128,6 +137,7 @@ struct PhysicalObject
 		return prop_.print(os);
 
 	}
+
 private:
 	Properties prop_;
 

@@ -119,13 +119,6 @@ DECL_RET_TYPE ((std::fabs(m)))
 /**
  * @}
  */
-#ifdef USE_TBB
-typedef tbb::split split;
-#else
-class split
-{
-};
-#endif
 
 }
 // namespace simpla
