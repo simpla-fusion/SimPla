@@ -27,7 +27,11 @@ namespace simpla
  *
  */
 template<typename TTopology, size_t ZAXIS = CARTESIAN_ZAXIS>
-struct CartesianCoordinates: public TTopology
+struct CartesianCoordinates: //
+								public TTopology,
+								public enable_create_from_this<
+										CartesianCoordinates<
+												CartesianCoordinates, ZAXIS>>
 {
 
 public:

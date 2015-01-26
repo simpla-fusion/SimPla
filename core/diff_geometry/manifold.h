@@ -43,14 +43,14 @@ namespace simpla
  * The following table lists requirements for a Manifold type `M`,
  *
  *  Pseudo-Signature  		| Semantics
- *  -------------------|-------------
+ *  ------------------------|-------------
  *  `M( const M& )` 		| Copy constructor.
- *  `~M()` 				| Destructor.
- *  `geometry_type`		| Geometry type of manifold, which describes coordinates and metric
- *  `topology_type`		| Topology structure of manifold,   topology of grid points
- *  `coordiantes_type` 	| data type of coordinates, i.e. nTuple<3,Real>
+ *  `~M()` 				    | Destructor.
+ *  `geometry_type`		    | Geometry type of manifold, which describes coordinates and metric
+ *  `topology_type`		    | Topology structure of manifold,   topology of grid points
+ *  `coordiantes_type` 	    | data type of coordinates, i.e. nTuple<3,Real>
  *  `index_type`			| data type of the index of grid points, i.e. unsigned long
- *  `Domain  domain()`	| Root domain of manifold
+ *  `Domain  domain()`	    | Root domain of manifold
  *
  *
  * Manifold policy concept {#concept_manifold_policy}
@@ -62,18 +62,18 @@ namespace simpla
  *
  *  The following table lists requirements for a Manifold policy type `P`,
  *
- *  Pseudo-Signature  		| Semantics
+ *  Pseudo-Signature  	   | Semantics
  *  -----------------------|-------------
- *  `P( Geometry  & )` 	| Constructor.
- *  `P( P const  & )`	| Copy constructor.
- *  `~P( )` 				| Copy Destructor.
+ *  `P( Geometry  & )` 	   | Constructor.
+ *  `P( P const  & )`	   | Copy constructor.
+ *  `~P( )` 			   | Copy Destructor.
  *
  * ## Interpolator policy
  *   Interpolator, map between discrete space and continue space, i.e. Gather & Scatter
  *
- *    Pseudo-Signature  		| Semantics
+ *    Pseudo-Signature  	   | Semantics
  *  ---------------------------|-------------
- *  `gather(field_type const &f, coordinates_type x  )` 	| gather data from `f` at coordinates `x`.
+ *  `gather(field_type const &f, coordinates_type x  )` 	    | gather data from `f` at coordinates `x`.
  *  `scatter(field_type &f, coordinates_type x ,value_type v)` 	| scatter `v` to field  `f` at coordinates `x`.
  *
  * ## Calculus  policy
@@ -82,7 +82,7 @@ namespace simpla
  *
  *
  *  Pseudo-Signature  		| Semantics
- *  -----------------------|-------------
+ *  ------------------------|-------------
  *  `calculate(TOP op, field_type const &f, field_type const &f, index_type s ) `	| `calculate`  binary operation `op` at grid point `s`.
  *  `calculate(TOP op, field_type const &f,  index_type s )` 	| `calculate`  unary operation  `op`  at grid point `s`.
  *
@@ -101,11 +101,7 @@ template<typename > class InterpolatorLinear;
 template<size_t IFORM, typename TG, //
 		template<typename > class Policy1 = FiniteDiffMethod, //
 		template<typename > class Policy2 = InterpolatorLinear>
-class Manifold: public TG,
-				public Policy1<TG>,
-				public Policy2<TG>,
-				public enable_create_from_this<
-						Manifold<IFORM, TG, Policy1, Policy2>>
+class Manifold: public TG, public Policy1<TG>, public Policy2<TG>
 {
 public:
 
@@ -206,7 +202,8 @@ public:
 
 	template<typename ...Args>
 	auto sample(Args && ...args)const
-	DECL_RET_TYPE((interpolatpr_policy::template sample<iform>(std::forward<Args>(args)...)))
+	DECL_RET_TYPE(
+			(interpolatpr_policy::template sample<iform>(std::forward<Args>(args)...)))
 
 	template<typename TFun >
 	void foreach(TFun const & fun )const

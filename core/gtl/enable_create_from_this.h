@@ -163,7 +163,7 @@ struct enable_create_from_this: public std::enable_shared_from_this<TObject>
 	 * @return
 	 */
 	template<typename ...Args>
-	holder create(Args && ...args)
+	static holder create(Args && ...args)
 	{
 		return std::make_shared<object_type>(std::forward<Args>(args)...);
 	}
@@ -173,23 +173,24 @@ struct enable_create_from_this: public std::enable_shared_from_this<TObject>
 		return holder(new object_type());
 	}
 
-	holder copy_from_this() const
+	template<typename TOther, typename ...Args>
+	std::shared_ptr<TOther> create_from_this(Args && ...args)
 	{
-		return std::make_shared<object_type>(self());
-	}
+		static_assert( std::is_base_of<object_type,TOther>::value,
+				"this is base of TOther");
 
-	template<typename ...Args>
-	holder create_from_this(Args && ...args)
-	{
 		auto res = std::make_shared<object_type>(self(),
 				std::forward<Args>(args)...);
 		res->root_ = root_holder();
 		return std::move(res);
 	}
 
-	template<typename ...Args>
-	holder create_from_this(Args && ...args) const
+	template<typename TOther, typename ...Args>
+	std::shared_ptr<TOther> create_from_this(Args && ...args) const
 	{
+		static_assert( std::is_base_of<object_type,TOther>::value,
+				"this is base of TOther");
+
 		auto res = std::make_shared<object_type>(self(),
 				std::forward<Args>(args)...);
 		res->root_ = root_holder();
@@ -207,38 +208,38 @@ struct enable_create_from_this: public std::enable_shared_from_this<TObject>
 	holder split_from_this(Args && ...args)
 	{
 		return std::move(
-				create_from_this(self(), op_split(),
+				create_from_this<object_type>(self(), op_split(),
 						std::forward<Args>(args)...));
 	}
 
-	template<typename ...Args>
-	holder select_from_this(Args && ...args)
-	{
-		return std::move(
-				create_from_this(self(), op_select(),
-						std::forward<Args>(args)...));
-	}
-
-	template<typename ...Args>
-	holder select_from_this(Args && ...args) const
-	{
-		return std::move(
-				create_from_this(self(), op_select(),
-						std::forward<Args>(args)...));
-	}
-
-	holder merge_with_this(object_type && ...args) const
-	{
-		return std::move(
-				create_from_this(self(), op_merge(),
-						std::forward<object_type>(args)...));
-	}
-	holder merge_with_this(object_type && ...args)
-	{
-		return std::move(
-				create_from_this(self(), op_merge(),
-						std::forward<object_type>(args)...));
-	}
+//	template<typename ...Args>
+//	holder select_from_this(Args && ...args)
+//	{
+//		return std::move(
+//				create_from_this<object_type>(self(), op_select(),
+//						std::forward<Args>(args)...));
+//	}
+//
+//	template<typename ...Args>
+//	holder select_from_this(Args && ...args) const
+//	{
+//		return std::move(
+//				create_from_this(self(), op_select(),
+//						std::forward<Args>(args)...));
+//	}
+//
+//	holder merge_with_this(object_type && ...args) const
+//	{
+//		return std::move(
+//				create_from_this(self(), op_merge(),
+//						std::forward<object_type>(args)...));
+//	}
+//	holder merge_with_this(object_type && ...args)
+//	{
+//		return std::move(
+//				create_from_this(self(), op_merge(),
+//						std::forward<object_type>(args)...));
+//	}
 	holder root_holder()
 	{
 		return (root_ == nullptr) ? shared_from_this() : root_;
