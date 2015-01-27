@@ -8,7 +8,7 @@
 #include "../../diff_geometry/diff_scheme/fdm.h"
 #include "../../diff_geometry/geometry/cylindrical.h"
 #include "../../diff_geometry/interpolator/interpolator.h"
-#include "../../diff_geometry/manifold.h"
+#include "../../diff_geometry/mesh.h"
 #include "../../diff_geometry/topology/structured.h"
 
 #include "../gtl/ntuple.h"

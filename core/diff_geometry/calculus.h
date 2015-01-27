@@ -10,9 +10,8 @@
 #include <type_traits>
 
 #include "../utilities/utilities.h"
-#include "../utilities/sp_functional.h"
-#include "../design_pattern/expression_template.h"
-
+#include "../gtl/expression_template.h"
+#include "diff_geometry_common.h"
 namespace simpla
 {
 

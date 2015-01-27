@@ -23,7 +23,7 @@
 
 namespace simpla
 {
-typedef Manifold<CartesianCoordinates<StructuredMesh>, FiniteDiffMethod,
+typedef Mesh<CartesianCoordinates<StructuredMesh>, FiniteDiffMethod,
 		InterpolatorLinear> CartesianMesh;
 
 //typedef Manifold<CylindricalCoordinates<StructuredMesh>, FiniteDiffMethod,

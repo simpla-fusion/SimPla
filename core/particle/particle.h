@@ -23,7 +23,8 @@ namespace simpla
  *  - @ref particle is a @ref container;
  *  - @ref particle is @ref splittable;
  *  - @ref particle is a @ref field
- *
+ * ### Data Structure
+ *  -  @ref particle is  `unorder_set<Point_s>`
  *
  * ## Requirements
  *- The following table lists the requirements of a Particle type  '''P'''
@@ -41,7 +42,7 @@ namespace simpla
  * -------------------------------- |----------
  * ` push_back(args ...) `          | Constructor
  * ` foreach(TFun const & fun)  `   | Destructor
- * ` dataset() `                    | data interface of container
+ * ` dataset dump() `               | dump/copy 'data' into a DataSet
  *
  *- @ref particle meets the requirement of @ref physical_object
  *   Pseudo-Signature           | Semantics
@@ -170,7 +171,6 @@ namespace simpla
 //	void foreach(TFun const & fun, Args && ...);
 //
 //};
-
 }
 // namespace simpla
 

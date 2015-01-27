@@ -13,10 +13,14 @@
 #include <type_traits>
 
 #include "../utilities/utilities.h"
-#include "../data_interface/data_set.h"
+#include "../data_representation/data_interface.h"
 #include "../application/sp_object.h"
-#include "../gtl/design_pattern/expression_template.h"
-#include "../gtl/enable_create_from_this.h"
+#include "../gtl/expression_template.h"
+
+#ifdef USE_TBB
+#include <tbb/concurrent_unordered_map.h>
+template<typename K, typename V> using tbb_concurrent_unordered_map= tbb::concurrent_unordered_map<K,V>;
+#endif
 
 namespace simpla
 {
@@ -116,52 +120,43 @@ namespace simpla
  */
 template<typename ... >struct _Field;
 
-template<typename TV, typename TManifold>
-struct _Field<TV, TManifold> : //
-								public SpObject,
-								public enable_create_from_this<
-										_Field<TV, TManifold>>
+template<typename TV, typename TM>
+struct _Field<TV, TM> : public SpObject
 {
 
-	typedef TManifold manifold_type;
-	typedef typename TManifold::id_type id_type;
-
 	typedef TV value_type;
-	typedef typename manifold_type::template container_type<value_type> container_type;
-	typedef _Field<value_type, manifold_type> this_type;
+
+	typedef TM mesh_type;
+
+	typedef typename mesh_type::id_type id_type;
+#ifdef USE_TBB
+	typedef tbb::concurrent_unordered_map<id_type, value_type> container_type;
+#else
+	typedef std::map<id_type, value_type> container_type;
+#endif
+
+	typedef _Field<value_type, mesh_type, container_type> this_type;
 
 private:
-	manifold_type manifold_;
-	container_type data_;
-
+	mesh_type mesh_;
+	std::shared_ptr<container_type> data_;
 public:
 
-	_Field(manifold_type const & d) :
-			manifold_(d), data_(nullptr)
+	_Field(mesh_type const & d) :
+			mesh_(d), data_(nullptr)
 	{
 	}
 	_Field(this_type const & that) :
-			manifold_(that.manifold_), data_(that.data_)
+			mesh_(that.manifold_), data_(that.data_)
 	{
 	}
-
 	~_Field()
 	{
 	}
 
 	std::string get_type_as_string() const
 	{
-//		" + domain_type::get_type_as_string() + "
-		return "Field<>";
-	}
-
-	object_type & self()
-	{
-		return *this;
-	}
-	object_type const & self() const
-	{
-		return *this;
+		return "Field<" + mesh_type::get_type_as_string() + ">";
 	}
 
 	/**
@@ -169,88 +164,61 @@ public:
 	 * @{
 	 */
 	_Field(this_type & that, op_split) :
-			manifold_(that.manifold_, op_split()), data_(that.data_)
+			mesh_(that.manifold_, op_split()), data_(that.data_)
 	{
 	}
+
 	bool empty() const
 	{
-		return data_ == nullptr;
+		return mesh_.empty();
 	}
 
 	bool is_divisible() const
 	{
-		return manifold_.is_divisible();
-	}
-
-	template<typename ...Args>
-	void foreach(Args && ... args)
-	{
-		manifold_.foreach(data_, std::forward<Args>(args));
-	}
-	template<typename ...Args>
-	void foreach(Args && ... args) const
-	{
-		manifold_.foreach(data_, std::forward<Args>(args));
+		return mesh_.is_divisible();
 	}
 
 	/**
 	 * @}
 	 */
-
+	value_type & operator[](id_type const &s)
+	{
+		return (*data_)[s];
+	}
+	value_type const& operator[](id_type const &s) const
+	{
+		return (*data_)[s];
+	}
 	void allocate()
 	{
 		if (data_ == nullptr)
 		{
-			auto lock = SpObject::lock();
+			data_ = std::make_shared<container_type>();
 
-			manifold_.template allocate<value_type>().swap(data_);
-
-			SpObject::update();
 		}
 	}
 	void clear()
 	{
 		allocate();
-		container_traits<container_type>::clear(data_, manifold_.size());
-	}
 
-	/***
-	 * @name Access operation
-	 * @{
-	 */
-	value_type & get(id_type const &s)
-	{
-		return manifold_.access(data_, s);
-	}
+		value_type v;
 
-	value_type const& get(id_type const &s) const
-	{
-		return manifold_.access(data_, s);
-	}
+		v *= 0;
 
-	value_type & operator[](id_type const & s)
-	{
-		return manifold_.access(data_, s);
+		mesh_.foreach(_impl::_assign(), *data_, v);
 	}
-
-	value_type const & operator[](id_type const & s) const
-	{
-		return manifold_.access(data_, s);
-	}
-
-	/** @} */
 
 	/**
 	 * @name assignment
 	 * @{
 	 */
+
 	inline this_type &
 	operator =(this_type const &that)
 	{
+
 		allocate();
-
-		manifold_.foreach(_impl::_assign(), data_, that);
-
+		mesh_.foreach(_impl::_assign(), *data_, that);
 		return (*this);
 	}
 
@@ -258,9 +226,7 @@ public:
 	operator =(TR const&that)
 	{
 		allocate();
-
-		manifold_.foreach(data_, _impl::_assign(), that);
-
+		mesh_.foreach(_impl::_assign(), *data_, that);
 		return (*this);
 	}
 
@@ -268,8 +234,7 @@ public:
 	inline this_type & operator +=(TR const &that)
 	{
 		allocate();
-		manifold_.foreach(data_, _impl::plus_assign(), that);
-
+		mesh_.foreach(_impl::plus_assign(), *data_, that);
 		return (*this);
 
 	}
@@ -278,9 +243,7 @@ public:
 	inline this_type & operator -=(TR const &that)
 	{
 		allocate();
-
-		manifold_.foreach(data_, _impl::minus_assign(), that);
-
+		mesh_.foreach(_impl::minus_assign(), *data_, that);
 		return (*this);
 	}
 
@@ -288,7 +251,7 @@ public:
 	inline this_type & operator *=(TR const &that)
 	{
 		allocate();
-		manifold_.foreach(data_, _impl::multiplies_assign(), that);
+		mesh_.foreach(_impl::multiplies_assign(), *data_, that);
 
 		return (*this);
 	}
@@ -297,42 +260,32 @@ public:
 	inline this_type & operator /=(TR const &that)
 	{
 		allocate();
-		manifold_.foreach(data_, _impl::divides_assign(), that);
-
+		mesh_.foreach(_impl::divides_assign(), *data_, that);
 		return (*this);
 	}
 
 	template<typename TFun> void pull_back(TFun const &fun)
 	{
 		allocate();
-		manifold_.pull_back(data_, fun);
+		mesh_.pull_back(*data_, fun);
 	}
 
 	/** @} */
 
 	typedef typename std::conditional<
-			manifold_type::iform == VERTEX || manifold_type::iform == VOLUME,
+			mesh_type::iform == VERTEX || mesh_type::iform == VOLUME,
 			value_type, nTuple<value_type, 3>>::type field_value_type;
 
-	field_value_type gather(
-			typename manifold_type::coordinates_type const& x) const
+	field_value_type gather(typename mesh_type::coordinates_type const& x) const
 	{
-		return std::move(manifold_.gather(data_, x));
-
+		return std::move(mesh_.gather(*this, x));
 	}
 
 	template<typename ...Args>
 	void scatter(Args && ... args)
 	{
-		manifold_.scatter(data_, std::forward<Args>(args)...);
+		mesh_.scatter(*this, std::forward<Args>(args)...);
 	}
-
-	DataSet dataset() const
-	{
-		return std::move(manifold_.dataset(data_, properties()));
-	}
-
-private:
 
 }
 ;

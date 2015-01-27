@@ -44,7 +44,7 @@ int main(int argc, char **argv)
 
 //	typedef Manifold<CartesianCoordinates<StructuredMesh> > mesh_type;
 
-	DummyManifold<> domain;
+	DummyMesh<> domain;
 //
 //	mesh_type mesh;
 //

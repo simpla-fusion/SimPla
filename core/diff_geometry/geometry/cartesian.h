@@ -13,11 +13,12 @@
 #include <tuple>
 #include <type_traits>
 
-#include "../../containers/sp_range.h"
 #include "../../physics/constants.h"
 #include "../../physics/physical_constants.h"
 #include "../../utilities/utilities.h"
 #include "../diff_geometry_common.h"
+#include "../../gtl/enable_create_from_this.h"
+
 namespace simpla
 {
 /**
@@ -30,8 +31,7 @@ template<typename TTopology, size_t ZAXIS = CARTESIAN_ZAXIS>
 struct CartesianCoordinates: //
 								public TTopology,
 								public enable_create_from_this<
-										CartesianCoordinates<
-												CartesianCoordinates, ZAXIS>>
+										CartesianCoordinates<TTopology, ZAXIS>>
 {
 
 public:

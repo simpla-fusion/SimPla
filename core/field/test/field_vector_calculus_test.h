@@ -17,7 +17,7 @@
 
 using namespace simpla;
 
-template<typename TM, typename TV>
+template<typename TG, typename TV>
 class FETLTest: public testing::TestWithParam<
 		std::tuple<nTuple<Real, 3>, nTuple<Real, 3>, nTuple<size_t, 3>,
 				nTuple<Real, 3>> >
@@ -44,13 +44,13 @@ protected:
 			}
 		}
 
-		manifold = make_manifold<manifold_type>();
+		geometry = std::make_shared<geometry_type>();
 
-		manifold->dimensions(&dims[0]);
-		manifold->extents(xmin, xmax);
-		manifold->update();
+		geometry->dimensions(&dims[0]);
+		geometry->extents(xmin, xmax);
+		geometry->update();
 
-		Vec3 dx = manifold->dx();
+		Vec3 dx = geometry->dx();
 
 		error = 2.0 * std::pow(inner_product(K_real, dx), 2.0);
 
@@ -58,20 +58,20 @@ protected:
 
 	void TearDown()
 	{
-		std::shared_ptr<manifold_type>(nullptr).swap(manifold);
+		std::shared_ptr<geometry_type>(nullptr).swap(geometry);
 	}
 public:
 
-	typedef TM manifold_type;
+	typedef TG geometry_type;
 	typedef TV value_type;
 
-	typedef typename manifold_type::scalar_type scalar_type;
-//	typedef typename manifold_type::iterator iterator;
-	typedef typename manifold_type::coordinates_type coordinates_type;
+	typedef typename geometry_type::scalar_type scalar_type;
+//	typedef typename mesh_type::iterator iterator;
+	typedef typename geometry_type::coordinates_type coordinates_type;
 
-	std::shared_ptr<manifold_type> manifold;
+	std::shared_ptr<geometry_type> geometry;
 
-	static constexpr size_t ndims = manifold_type::ndims;
+	static constexpr size_t ndims = geometry_type::ndims;
 
 	nTuple<Real, 3> xmin;
 
@@ -115,26 +115,26 @@ public:
 
 };
 
-typedef FETLTest<m_type, v_type> TestCase;
+typedef FETLTest<CartesianCoordinates<StructuredMesh, CARTESIAN_ZAXIS>, v_type> TestCase;
 
 TEST_P(TestCase, grad0)
 {
-	auto domain0 = manifold->domain<VERTEX>();
-	auto domain1 = manifold->domain<EDGE>();
-	auto domain2 = manifold->domain<FACE>();
-	auto domain3 = manifold->domain<VOLUME>();
+	auto domain0 = create_mesh<VERTEX>(*geometry);
+	auto domain1 = create_mesh<EDGE>(*geometry);
+	auto domain2 = create_mesh<FACE>(*geometry);
+	auto domain3 = create_mesh<VOLUME>(*geometry);
 
-	auto f0 = make_field<value_type>(domain0);
-	auto f1 = make_field<value_type>(domain1);
-	auto f1b = make_field<value_type>(domain1);
+	auto f0 = make_field<value_type>(*domain0);
+	auto f1 = make_field<value_type>(*domain1);
+	auto f1b = make_field<value_type>(*domain1);
 
 	f0.clear();
 	f1.clear();
 	f1b.clear();
 
-	for (auto s : domain0)
+	for (auto s : *domain0)
 	{
-		f0[s] = std::sin(inner_product(K_real, manifold->coordinates(s)));
+		f0[s] = std::sin(inner_product(K_real, geometry->coordinates(s)));
 	};
 	f0.sync();
 
@@ -150,20 +150,20 @@ TEST_P(TestCase, grad0)
 
 	for (auto s : domain1)
 	{
-		size_t n = manifold->component_number(s);
+		size_t n = geometry->component_number(s);
 
-		auto x = manifold->coordinates(s);
+		auto x = geometry->coordinates(s);
 
 		value_type expect;
 
 		expect = K_real[n] * std::cos(inner_product(K_real, x))
 				+ K_imag[n] * std::sin(inner_product(K_real, x));
 
-		if (manifold->get_type_as_string() == "Cylindrical"
-				&& n == (manifold_type::ZAxis + 1) % 3)
+		if (geometry->get_type_as_string() == "Cylindrical"
+				&& n == (mesh_type::ZAxis + 1) % 3)
 		{
-			auto r = manifold->coordinates(s);
-			expect /= r[(manifold_type::ZAxis + 2) % 3];
+			auto r = geometry->coordinates(s);
+			expect /= r[(mesh_type::ZAxis + 2) % 3];
 		}
 
 		f1b[s] = expect;
@@ -197,8 +197,8 @@ TEST_P(TestCase, grad0)
 
 	}
 //
-//	variance /= manifold->template get_num_of_elements<EDGE>();
-//	average /= manifold->template get_num_of_elements<EDGE>();
+//	variance /= geometry->template get_num_of_elements<EDGE>();
+//	average /= geometry->template get_num_of_elements<EDGE>();
 	EXPECT_LE(std::sqrt(variance), error);
 	EXPECT_LE(mod(average), error);
 
@@ -211,14 +211,13 @@ TEST_P(TestCase, grad0)
 
 TEST_P(TestCase, grad3)
 {
-	if (!manifold->is_valid())
+	if (!geometry->is_valid())
 		return;
-
-	auto domain3 = manifold->domain<VOLUME>();
-	auto domain2 = manifold->domain<FACE>();
-	auto f2 = make_field<value_type>(manifold->domain<FACE>());
-	auto f2b = make_field<value_type>(manifold->domain<FACE>());
-	auto f3 = make_field<value_type>(manifold->domain<VOLUME>());
+	auto domain3 = create_mesh<VOLUME>(*geometry);
+	auto domain2 = create_mesh<FACE>(*geometry);
+	auto f2 = make_field<value_type>(*create_mesh<FACE>(*geometry));
+	auto f2b = make_field<value_type>(*create_mesh<FACE>(*geometry));
+	auto f3 = make_field<value_type>(*create_mesh<VOLUME>(*geometry));
 
 	f3.clear();
 	f2.clear();
@@ -226,7 +225,7 @@ TEST_P(TestCase, grad3)
 
 	for (auto s : domain3)
 	{
-		f3[s] = std::sin(inner_product(K_real, manifold->coordinates(s)));
+		f3[s] = std::sin(inner_product(K_real, geometry->coordinates(s)));
 	};
 	f3.sync();
 	LOG_CMD(f2 = grad(f3));
@@ -241,19 +240,19 @@ TEST_P(TestCase, grad3)
 	for (auto s : domain2)
 	{
 
-		size_t n = manifold->component_number(s);
+		size_t n = geometry->component_number(s);
 
-		auto x = manifold->coordinates(s);
+		auto x = geometry->coordinates(s);
 
 		value_type expect;
 		expect = K_real[n] * std::cos(inner_product(K_real, x))
 				+ K_imag[n] * std::sin(inner_product(K_real, x));
 
-		if (manifold->get_type_as_string() == "Cylindrical"
-				&& n == (manifold_type::ZAxis + 1) % 3)
+		if (geometry->get_type_as_string() == "Cylindrical"
+				&& n == (mesh_type::ZAxis + 1) % 3)
 		{
-			auto r = manifold->coordinates(s);
-			expect /= r[(manifold_type::ZAxis + 2) % 3];
+			auto r = geometry->coordinates(s);
+			expect /= r[(mesh_type::ZAxis + 2) % 3];
 		}
 
 		f2b[s] = expect;
@@ -290,11 +289,11 @@ TEST_P(TestCase, grad3)
 
 TEST_P(TestCase, diverge1)
 {
-	if (!manifold->is_valid())
+	if (!geometry->is_valid())
 		return;
 
-	auto domain0 = manifold->domain<VERTEX>();
-	auto domain1 = manifold->domain<EDGE>();
+	auto domain0 = create_mesh<VERTEX>();
+	auto domain1 = create_mesh<EDGE>();
 	auto f1 = make_field<value_type>(domain1);
 	auto f0 = make_field<value_type>(domain0);
 	auto f0b = make_field<value_type>(domain0);
@@ -304,7 +303,7 @@ TEST_P(TestCase, diverge1)
 
 	for (auto s : domain1)
 	{
-		f1[s] = std::sin(inner_product(K_real, manifold->coordinates(s)));
+		f1[s] = std::sin(inner_product(K_real, geometry->coordinates(s)));
 	};
 	f1.sync();
 	LOG_CMD(f0 = diverge(f1));
@@ -320,35 +319,35 @@ TEST_P(TestCase, diverge1)
 	for (auto s : domain0)
 	{
 
-		auto x = manifold->coordinates(s);
+		auto x = geometry->coordinates(s);
 
 		Real cos_v = std::cos(inner_product(K_real, x));
 		Real sin_v = std::sin(inner_product(K_real, x));
 
 		value_type expect;
 
-		if (manifold->get_type_as_string() == "Cylindrical")
+		if (geometry->get_type_as_string() == "Cylindrical")
 		{
 
 			expect =
 
-			(K_real[(manifold_type::ZAxis + 1) % 3]
-					/ x[(manifold_type::ZAxis + 2) % 3] + //  k_theta
+			(K_real[(mesh_type::ZAxis + 1) % 3] / x[(mesh_type::ZAxis + 2) % 3]
+					+ //  k_theta
 
-					K_real[(manifold_type::ZAxis + 2) % 3] + //  k_r
+					K_real[(mesh_type::ZAxis + 2) % 3] + //  k_r
 
-					K_real[(manifold_type::ZAxis + 3) % 3] //  k_z
+					K_real[(mesh_type::ZAxis + 3) % 3] //  k_z
 			) * cos_v
 
-					+ (K_imag[(manifold_type::ZAxis + 1) % 3]
-							/ x[(manifold_type::ZAxis + 2) % 3] + //  k_theta
+					+ (K_imag[(mesh_type::ZAxis + 1) % 3]
+							/ x[(mesh_type::ZAxis + 2) % 3] + //  k_theta
 
-							K_imag[(manifold_type::ZAxis + 2) % 3] + //  k_r
+							K_imag[(mesh_type::ZAxis + 2) % 3] + //  k_r
 
-							K_imag[(manifold_type::ZAxis + 3) % 3] //  k_z
+							K_imag[(mesh_type::ZAxis + 3) % 3] //  k_z
 					) * sin_v;
 
-			expect += sin_v / x[(manifold_type::ZAxis + 2) % 3]; //A_r
+			expect += sin_v / x[(mesh_type::ZAxis + 2) % 3]; //A_r
 		}
 		else
 		{
@@ -392,11 +391,11 @@ TEST_P(TestCase, diverge1)
 
 TEST_P(TestCase, diverge2)
 {
-	if (!manifold->is_valid())
+	if (!geometry->is_valid())
 		return;
 
-	auto domain3 = manifold->domain<VOLUME>();
-	auto domain2 = manifold->domain<FACE>();
+	auto domain3 = create_mesh<VOLUME>();
+	auto domain2 = create_mesh<FACE>();
 	auto f2 = make_field<value_type>(domain2);
 	auto f3 = make_field<value_type>(domain3);
 
@@ -405,7 +404,7 @@ TEST_P(TestCase, diverge2)
 
 	for (auto s : domain2)
 	{
-		f2[s] = std::sin(inner_product(K_real, manifold->coordinates(s)));
+		f2[s] = std::sin(inner_product(K_real, geometry->coordinates(s)));
 	};
 	f2.sync();
 
@@ -417,36 +416,36 @@ TEST_P(TestCase, diverge2)
 
 	for (auto s : domain3)
 	{
-		auto x = manifold->coordinates(s);
+		auto x = geometry->coordinates(s);
 
 		Real cos_v = std::cos(inner_product(K_real, x));
 		Real sin_v = std::sin(inner_product(K_real, x));
 
 		value_type expect;
 
-		if (manifold->get_type_as_string() == "Cylindrical")
+		if (geometry->get_type_as_string() == "Cylindrical")
 		{
 
 			expect =
 
-			(K_real[(manifold_type::ZAxis + 1) % 3]
-					/ x[(manifold_type::ZAxis + 2) % 3] + //  k_theta
+			(K_real[(mesh_type::ZAxis + 1) % 3] / x[(mesh_type::ZAxis + 2) % 3]
+					+ //  k_theta
 
-					K_real[(manifold_type::ZAxis + 2) % 3] + //  k_r
+					K_real[(mesh_type::ZAxis + 2) % 3] + //  k_r
 
-					K_real[(manifold_type::ZAxis + 3) % 3] //  k_z
+					K_real[(mesh_type::ZAxis + 3) % 3] //  k_z
 			) * cos_v
 
-					+ (K_imag[(manifold_type::ZAxis + 1) % 3]
-							/ x[(manifold_type::ZAxis + 2) % 3] + //  k_theta
+					+ (K_imag[(mesh_type::ZAxis + 1) % 3]
+							/ x[(mesh_type::ZAxis + 2) % 3] + //  k_theta
 
-							K_imag[(manifold_type::ZAxis + 2) % 3] + //  k_r
+							K_imag[(mesh_type::ZAxis + 2) % 3] + //  k_r
 
-							K_imag[(manifold_type::ZAxis + 3) % 3] //  k_z
+							K_imag[(mesh_type::ZAxis + 3) % 3] //  k_z
 					) * sin_v;
 
-			expect += std::sin(inner_product(K_real, manifold->coordinates(s)))
-					/ x[(manifold_type::ZAxis + 2) % 3]; //A_r
+			expect += std::sin(inner_product(K_real, geometry->coordinates(s)))
+					/ x[(mesh_type::ZAxis + 2) % 3]; //A_r
 		}
 		else
 		{
@@ -473,11 +472,11 @@ TEST_P(TestCase, diverge2)
 
 TEST_P(TestCase, curl1)
 {
-	if (!manifold->is_valid())
+	if (!geometry->is_valid())
 		return;
 
-	auto domain1 = manifold->domain<EDGE>();
-	auto domain2 = manifold->domain<FACE>();
+	auto domain1 = create_mesh<EDGE>();
+	auto domain2 = create_mesh<FACE>();
 	auto f1 = make_field<value_type>(domain1);
 	auto f1b = make_field<value_type>(domain1);
 	auto f2 = make_field<value_type>(domain2);
@@ -495,54 +494,52 @@ TEST_P(TestCase, curl1)
 
 	for (auto s : domain1)
 	{
-		f1[s] = std::sin(inner_product(K_real, manifold->coordinates(s)));
+		f1[s] = std::sin(inner_product(K_real, geometry->coordinates(s)));
 	};
 	f1.sync();
 	LOG_CMD(f2 = curl(f1));
 
 	for (auto s : domain2)
 	{
-		auto n = manifold->component_number(s);
+		auto n = geometry->component_number(s);
 
-		auto x = manifold->coordinates(s);
+		auto x = geometry->coordinates(s);
 
 		Real cos_v = std::cos(inner_product(K_real, x));
 		Real sin_v = std::sin(inner_product(K_real, x));
 
 		value_type expect;
 
-		if (manifold->get_type_as_string() == "Cylindrical")
+		if (geometry->get_type_as_string() == "Cylindrical")
 		{
 			switch (n)
 			{
-			case (manifold_type::ZAxis + 1) % 3: // theta
-				expect = (K_real[(manifold_type::ZAxis + 2) % 3]
-						- K_real[(manifold_type::ZAxis + 3) % 3]) * cos_v
-						+ (K_imag[(manifold_type::ZAxis + 2) % 3]
-								- K_imag[(manifold_type::ZAxis + 3) % 3])
+			case (mesh_type::ZAxis + 1) % 3: // theta
+				expect = (K_real[(mesh_type::ZAxis + 2) % 3]
+						- K_real[(mesh_type::ZAxis + 3) % 3]) * cos_v
+						+ (K_imag[(mesh_type::ZAxis + 2) % 3]
+								- K_imag[(mesh_type::ZAxis + 3) % 3]) * sin_v;
+				break;
+			case (mesh_type::ZAxis + 2) % 3: // r
+				expect = (K_real[(mesh_type::ZAxis + 3) % 3]
+						- K_real[(mesh_type::ZAxis + 1) % 3]
+								/ x[(mesh_type::ZAxis + 2) % 3]) * cos_v
+
+						+ (K_imag[(mesh_type::ZAxis + 3) % 3]
+								- K_imag[(mesh_type::ZAxis + 1) % 3]
+										/ x[(mesh_type::ZAxis + 2) % 3])
 								* sin_v;
 				break;
-			case (manifold_type::ZAxis + 2) % 3: // r
-				expect = (K_real[(manifold_type::ZAxis + 3) % 3]
-						- K_real[(manifold_type::ZAxis + 1) % 3]
-								/ x[(manifold_type::ZAxis + 2) % 3]) * cos_v
 
-						+ (K_imag[(manifold_type::ZAxis + 3) % 3]
-								- K_imag[(manifold_type::ZAxis + 1) % 3]
-										/ x[(manifold_type::ZAxis + 2) % 3])
-								* sin_v;
-				break;
-
-			case (manifold_type::ZAxis + 3) % 3: // z
-				expect = (K_real[(manifold_type::ZAxis + 1) % 3]
-						- K_real[(manifold_type::ZAxis + 2) % 3]) * cos_v
-						+ (K_imag[(manifold_type::ZAxis + 1) % 3]
-								- K_imag[(manifold_type::ZAxis + 2) % 3])
-								* sin_v;
+			case (mesh_type::ZAxis + 3) % 3: // z
+				expect = (K_real[(mesh_type::ZAxis + 1) % 3]
+						- K_real[(mesh_type::ZAxis + 2) % 3]) * cos_v
+						+ (K_imag[(mesh_type::ZAxis + 1) % 3]
+								- K_imag[(mesh_type::ZAxis + 2) % 3]) * sin_v;
 
 				expect -= std::sin(
-						inner_product(K_real, manifold->coordinates(s)))
-						/ x[(manifold_type::ZAxis + 2) % 3]; //A_r
+						inner_product(K_real, geometry->coordinates(s)))
+						/ x[(mesh_type::ZAxis + 2) % 3]; //A_r
 				break;
 
 			}
@@ -583,11 +580,11 @@ TEST_P(TestCase, curl1)
 
 TEST_P(TestCase, curl2)
 {
-	if (!manifold->is_valid())
+	if (!geometry->is_valid())
 		return;
 
-	auto domain1 = manifold->domain<EDGE>();
-	auto domain2 = manifold->domain<FACE>();
+	auto domain1 = create_mesh<EDGE>();
+	auto domain2 = create_mesh<FACE>();
 	auto f1 = make_field<value_type>(domain1);
 	auto vf1b = make_field<value_type>(domain1);
 	auto f2 = make_field<value_type>(domain2);
@@ -605,7 +602,7 @@ TEST_P(TestCase, curl2)
 
 	for (auto s : domain2)
 	{
-		f2[s] = std::sin(inner_product(K_real, manifold->coordinates(s)));
+		f2[s] = std::sin(inner_product(K_real, geometry->coordinates(s)));
 	};
 	f2.sync();
 	LOG_CMD(f1 = curl(f2));
@@ -617,47 +614,45 @@ TEST_P(TestCase, curl2)
 	for (auto s : domain1)
 	{
 
-		auto n = manifold->component_number(s);
+		auto n = geometry->component_number(s);
 
-		auto x = manifold->coordinates(s);
+		auto x = geometry->coordinates(s);
 
 		Real cos_v = std::cos(inner_product(K_real, x));
 		Real sin_v = std::sin(inner_product(K_real, x));
 
 		value_type expect;
 
-		if (manifold->get_type_as_string() == "Cylindrical")
+		if (geometry->get_type_as_string() == "Cylindrical")
 		{
 			switch (n)
 			{
-			case (manifold_type::ZAxis + 1) % 3: // theta
-				expect = (K_real[(manifold_type::ZAxis + 2) % 3]
-						- K_real[(manifold_type::ZAxis + 3) % 3]) * cos_v
-						+ (K_imag[(manifold_type::ZAxis + 2) % 3]
-								- K_imag[(manifold_type::ZAxis + 3) % 3])
+			case (mesh_type::ZAxis + 1) % 3: // theta
+				expect = (K_real[(mesh_type::ZAxis + 2) % 3]
+						- K_real[(mesh_type::ZAxis + 3) % 3]) * cos_v
+						+ (K_imag[(mesh_type::ZAxis + 2) % 3]
+								- K_imag[(mesh_type::ZAxis + 3) % 3]) * sin_v;
+				break;
+			case (mesh_type::ZAxis + 2) % 3: // r
+				expect = (K_real[(mesh_type::ZAxis + 3) % 3]
+						- K_real[(mesh_type::ZAxis + 1) % 3]
+								/ x[(mesh_type::ZAxis + 2) % 3]) * cos_v
+
+						+ (K_imag[(mesh_type::ZAxis + 3) % 3]
+								- K_imag[(mesh_type::ZAxis + 1) % 3]
+										/ x[(mesh_type::ZAxis + 2) % 3])
 								* sin_v;
 				break;
-			case (manifold_type::ZAxis + 2) % 3: // r
-				expect = (K_real[(manifold_type::ZAxis + 3) % 3]
-						- K_real[(manifold_type::ZAxis + 1) % 3]
-								/ x[(manifold_type::ZAxis + 2) % 3]) * cos_v
 
-						+ (K_imag[(manifold_type::ZAxis + 3) % 3]
-								- K_imag[(manifold_type::ZAxis + 1) % 3]
-										/ x[(manifold_type::ZAxis + 2) % 3])
-								* sin_v;
-				break;
-
-			case (manifold_type::ZAxis + 3) % 3: // z
-				expect = (K_real[(manifold_type::ZAxis + 1) % 3]
-						- K_real[(manifold_type::ZAxis + 2) % 3]) * cos_v
-						+ (K_imag[(manifold_type::ZAxis + 1) % 3]
-								- K_imag[(manifold_type::ZAxis + 2) % 3])
-								* sin_v;
+			case (mesh_type::ZAxis + 3) % 3: // z
+				expect = (K_real[(mesh_type::ZAxis + 1) % 3]
+						- K_real[(mesh_type::ZAxis + 2) % 3]) * cos_v
+						+ (K_imag[(mesh_type::ZAxis + 1) % 3]
+								- K_imag[(mesh_type::ZAxis + 2) % 3]) * sin_v;
 
 				expect -= std::sin(
-						inner_product(K_real, manifold->coordinates(s)))
-						/ x[(manifold_type::ZAxis + 2) % 3]; //A_r
+						inner_product(K_real, geometry->coordinates(s)))
+						/ x[(mesh_type::ZAxis + 2) % 3]; //A_r
 				break;
 
 			}
@@ -701,12 +696,12 @@ TEST_P(TestCase, curl2)
 
 TEST_P(TestCase, identity_curl_grad_f0_eq_0)
 {
-	if (!manifold->is_valid())
+	if (!geometry->is_valid())
 		return;
-	auto domain0 = manifold->domain<VERTEX>();
-	auto domain1 = manifold->domain<EDGE>();
-	auto domain2 = manifold->domain<FACE>();
-	auto domain3 = manifold->domain<VOLUME>();
+	auto domain0 = create_mesh<VERTEX>();
+	auto domain1 = create_mesh<EDGE>();
+	auto domain2 = create_mesh<FACE>();
+	auto domain3 = create_mesh<VOLUME>();
 	auto f0 = make_field<value_type>(domain0);
 	auto f1 = make_field<value_type>(domain1);
 	auto f2a = make_field<value_type>(domain2);
@@ -752,12 +747,12 @@ TEST_P(TestCase, identity_curl_grad_f0_eq_0)
 
 TEST_P(TestCase, identity_curl_grad_f3_eq_0)
 {
-	if (!manifold->is_valid())
+	if (!geometry->is_valid())
 		return;
-	auto domain0 = manifold->domain<VERTEX>();
-	auto domain1 = manifold->domain<EDGE>();
-	auto domain2 = manifold->domain<FACE>();
-	auto domain3 = manifold->domain<VOLUME>();
+	auto domain0 = create_mesh<VERTEX>();
+	auto domain1 = create_mesh<EDGE>();
+	auto domain2 = create_mesh<FACE>();
+	auto domain3 = create_mesh<VOLUME>();
 	auto f3 = make_field<value_type>(domain3);
 	auto f1a = make_field<value_type>(domain1);
 	auto f1b = make_field<value_type>(domain1);
@@ -802,12 +797,12 @@ TEST_P(TestCase, identity_curl_grad_f3_eq_0)
 
 TEST_P(TestCase, identity_div_curl_f1_eq0)
 {
-	if (!manifold->is_valid())
+	if (!geometry->is_valid())
 		return;
-	auto domain0 = manifold->domain<VERTEX>();
-	auto domain1 = manifold->domain<EDGE>();
-	auto domain2 = manifold->domain<FACE>();
-	auto domain3 = manifold->domain<VOLUME>();
+	auto domain0 = create_mesh<VERTEX>();
+	auto domain1 = create_mesh<EDGE>();
+	auto domain2 = create_mesh<FACE>();
+	auto domain3 = create_mesh<VOLUME>();
 	auto f1 = make_field<value_type>(domain1);
 	auto f2 = make_field<value_type>(domain2);
 	auto f0a = make_field<value_type>(domain0);
@@ -856,12 +851,12 @@ TEST_P(TestCase, identity_div_curl_f1_eq0)
 
 TEST_P(TestCase, identity_div_curl_f2_eq0)
 {
-	if (!manifold->is_valid())
+	if (!geometry->is_valid())
 		return;
-	auto domain0 = manifold->domain<VERTEX>();
-	auto domain1 = manifold->domain<EDGE>();
-	auto domain2 = manifold->domain<FACE>();
-	auto domain3 = manifold->domain<VOLUME>();
+	auto domain0 = create_mesh<VERTEX>();
+	auto domain1 = create_mesh<EDGE>();
+	auto domain2 = create_mesh<FACE>();
+	auto domain3 = create_mesh<VOLUME>();
 	auto f1 = make_field<value_type>(domain1);
 	auto f2 = make_field<value_type>(domain2);
 	auto f3a = make_field<value_type>(domain3);
@@ -914,56 +909,39 @@ INSTANTIATE_TEST_CASE_P(FETLTEST, TestCase,
 
 testing::Combine(testing::Values(
 
-nTuple<Real, 3>(
-{ 0.0, 0.0, 0.0 })
+nTuple<Real, 3>( { 0.0, 0.0, 0.0 })
 
-, nTuple<Real, 3>(
-{ -1.0, -2.0, -3.0 })
+, nTuple<Real, 3>( { -1.0, -2.0, -3.0 })
 
 ),
 
 testing::Values(
 
-nTuple<Real, 3>(
-{ 1.0, 2.0, 1.0 }) //
+nTuple<Real, 3>( { 1.0, 2.0, 1.0 }) //
 
-		, nTuple<Real, 3>(
-{ 2.0, 0.0, 0.0 }) //
-		, nTuple<Real, 3>(
-{ 0.0, 2.0, 0.0 }) //
-		, nTuple<Real, 3>(
-{ 0.0, 0.0, 2.0 }) //
-		, nTuple<Real, 3>(
-{ 0.0, 2.0, 2.0 }) //
-		, nTuple<Real, 3>(
-{ 2.0, 0.0, 2.0 }) //
-		, nTuple<Real, 3>(
-{ 2.0, 2.0, 0.0 }) //
+		, nTuple<Real, 3>( { 2.0, 0.0, 0.0 }) //
+		, nTuple<Real, 3>( { 0.0, 2.0, 0.0 }) //
+		, nTuple<Real, 3>( { 0.0, 0.0, 2.0 }) //
+		, nTuple<Real, 3>( { 0.0, 2.0, 2.0 }) //
+		, nTuple<Real, 3>( { 2.0, 0.0, 2.0 }) //
+		, nTuple<Real, 3>( { 2.0, 2.0, 0.0 }) //
 
 		),
 
 testing::Values(
 
-nTuple<size_t, 3>(
-{ 40, 12, 10 }) //
-		, nTuple<size_t, 3>(
-{ 100, 1, 1 }) //
-		, nTuple<size_t, 3>(
-{ 1, 100, 1 }) //
-		, nTuple<size_t, 3>(
-{ 1, 1, 100 }) //
-		, nTuple<size_t, 3>(
-{ 1, 10, 5 }) //
-		, nTuple<size_t, 3>(
-{ 11, 1, 21 }) //
-		, nTuple<size_t, 3>(
-{ 11, 21, 1 }) //
+nTuple<size_t, 3>( { 40, 12, 10 }) //
+		, nTuple<size_t, 3>( { 100, 1, 1 }) //
+		, nTuple<size_t, 3>( { 1, 100, 1 }) //
+		, nTuple<size_t, 3>( { 1, 1, 100 }) //
+		, nTuple<size_t, 3>( { 1, 10, 5 }) //
+		, nTuple<size_t, 3>( { 11, 1, 21 }) //
+		, nTuple<size_t, 3>( { 11, 21, 1 }) //
 		),
 
 testing::Values(
 
-nTuple<Real, 3>(
-{ TWOPI, 3 * TWOPI, TWOPI }))
+nTuple<Real, 3>( { TWOPI, 3 * TWOPI, TWOPI }))
 
 ));
 
