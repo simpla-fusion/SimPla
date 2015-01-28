@@ -19,7 +19,6 @@
 
 #ifdef USE_TBB
 #include <tbb/concurrent_unordered_map.h>
-template<typename K, typename V> using tbb_concurrent_unordered_map= tbb::concurrent_unordered_map<K,V>;
 #endif
 
 namespace simpla
@@ -120,34 +119,283 @@ namespace simpla
  */
 template<typename ... >struct _Field;
 
-template<typename TV, typename TM>
-struct _Field<TV, TM> : public SpObject
+template<typename TM, typename TV>
+struct _Field<TM, std::vector<TV>> : public SpObject,
+		public enable_create_from_this<_Field<TM, std::vector<TV> > >
 {
-
-	typedef TV value_type;
 
 	typedef TM mesh_type;
 
-	typedef typename mesh_type::id_type id_type;
-#ifdef USE_TBB
-	typedef tbb::concurrent_unordered_map<id_type, value_type> container_type;
-#else
-	typedef std::map<id_type, value_type> container_type;
-#endif
+	typedef TV value_type;
 
-	typedef _Field<value_type, mesh_type, container_type> this_type;
+	typedef typename mesh_type::id_type id_type;
+
+	typedef _Field<mesh_type, container_type> this_type;
 
 private:
 	mesh_type mesh_;
-	std::shared_ptr<container_type> data_;
 public:
 
 	_Field(mesh_type const & d) :
-			mesh_(d), data_(nullptr)
+			mesh_(d)
 	{
 	}
 	_Field(this_type const & that) :
-			mesh_(that.manifold_), data_(that.data_)
+			container_type(that), mesh_(that.mesh_)
+	{
+	}
+	~_Field()
+	{
+	}
+
+	std::string get_type_as_string() const
+	{
+		return "Field<" + mesh_type::get_type_as_string() + ">";
+	}
+
+	this_type & self()
+	{
+		return *this;
+	}
+	this_type const & self() const
+	{
+		return *this;
+	}
+	value_type & operator[](id_type const & s)
+	{
+		return data_[mesh_.hash(s)];
+	}
+	value_type const & operator[](id_type const & s) const
+	{
+		return data_[mesh_.hash(s)];
+	}
+
+	/**
+	 * @name assignment
+	 * @{
+	 */
+
+	inline this_type &
+	operator =(this_type const &that)
+	{
+
+		mesh_.foreach(_impl::_assign(), *this, that);
+		return (*this);
+	}
+
+	template<typename TR> inline this_type &
+	operator =(TR const&that)
+	{
+
+		mesh_.foreach(_impl::_assign(), *this, that);
+		return (*this);
+	}
+
+	template<typename TR>
+	inline this_type & operator +=(TR const &that)
+	{
+
+		mesh_.foreach(_impl::plus_assign(), *this, that);
+		return (*this);
+
+	}
+
+	template<typename TR>
+	inline this_type & operator -=(TR const &that)
+	{
+
+		mesh_.foreach(_impl::minus_assign(), *this, that);
+		return (*this);
+	}
+
+	template<typename TR>
+	inline this_type & operator *=(TR const &that)
+	{
+
+		mesh_.foreach(_impl::multiplies_assign(), *this, that);
+
+		return (*this);
+	}
+
+	template<typename TR>
+	inline this_type & operator /=(TR const &that)
+	{
+
+		mesh_.foreach(_impl::divides_assign(), *this, that);
+		return (*this);
+	}
+
+	template<typename TFun> void pull_back(TFun const &fun)
+	{
+
+		mesh_.pull_back(*this, fun);
+	}
+
+	/** @} */
+
+	typedef typename field_traits<this_type>::field_value_type field_value_type;
+
+	field_value_type gather(typename mesh_type::coordinates_type const& x) const
+	{
+		return std::move(mesh_.gather(*this, x));
+	}
+
+	template<typename ...Args>
+	void scatter(Args && ... args)
+	{
+		mesh_.scatter(*this, std::forward<Args>(args)...);
+	}
+
+}
+;
+template<typename TM, typename TContainer>
+struct _Field<TM, TContainer> : public SpObject,
+		public TContainer,
+		enable_create_from_this<_Field<TM, TContainer>>
+{
+
+	typedef TM mesh_type;
+
+	typedef TContainer container_type;
+
+	typedef typename container_traits<container_type>::value_type value_type;
+
+	typedef typename mesh_type::id_type id_type;
+
+	typedef _Field<mesh_type, container_type> this_type;
+
+private:
+	mesh_type mesh_;
+public:
+
+	_Field(mesh_type const & d) :
+			mesh_(d)
+	{
+	}
+	_Field(this_type const & that) :
+			container_type(that), mesh_(that.mesh_)
+	{
+	}
+	~_Field()
+	{
+	}
+
+	std::string get_type_as_string() const
+	{
+		return "Field<" + mesh_type::get_type_as_string() + ">";
+	}
+
+	this_type & self()
+	{
+		return *this;
+	}
+	this_type const & self() const
+	{
+		return *this;
+	}
+	/**
+	 * @name assignment
+	 * @{
+	 */
+
+	inline this_type &
+	operator =(this_type const &that)
+	{
+
+		mesh_.foreach(_impl::_assign(), *this, that);
+		return (*this);
+	}
+
+	template<typename TR> inline this_type &
+	operator =(TR const&that)
+	{
+
+		mesh_.foreach(_impl::_assign(), *this, that);
+		return (*this);
+	}
+
+	template<typename TR>
+	inline this_type & operator +=(TR const &that)
+	{
+
+		mesh_.foreach(_impl::plus_assign(), *this, that);
+		return (*this);
+
+	}
+
+	template<typename TR>
+	inline this_type & operator -=(TR const &that)
+	{
+
+		mesh_.foreach(_impl::minus_assign(), *this, that);
+		return (*this);
+	}
+
+	template<typename TR>
+	inline this_type & operator *=(TR const &that)
+	{
+
+		mesh_.foreach(_impl::multiplies_assign(), *this, that);
+
+		return (*this);
+	}
+
+	template<typename TR>
+	inline this_type & operator /=(TR const &that)
+	{
+
+		mesh_.foreach(_impl::divides_assign(), *this, that);
+		return (*this);
+	}
+
+	template<typename TFun> void pull_back(TFun const &fun)
+	{
+
+		mesh_.pull_back(*this, fun);
+	}
+
+	/** @} */
+
+	typedef typename field_traits<this_type>::field_value_type field_value_type;
+
+	field_value_type gather(typename mesh_type::coordinates_type const& x) const
+	{
+		return std::move(mesh_.gather(*this, x));
+	}
+
+	template<typename ...Args>
+	void scatter(Args && ... args)
+	{
+		mesh_.scatter(*this, std::forward<Args>(args)...);
+	}
+
+}
+;
+
+template<typename TM, typename TField>
+struct _Field<TField &> : public SpObject,
+		public enable_create_from_this<TField>
+{
+
+	typedef TField field_type;
+
+	typedef typename field_type::mesh_type mesh_type;
+
+	typedef typename field_type::value_type value_type;
+
+	typedef typename mesh_type::id_type id_type;
+
+	typedef _Field<field_type &> this_type;
+
+private:
+	mesh_type mesh_;
+	std::shared_ptr<field_type> root_;
+public:
+
+	template<typename ...Args>
+	_Field(field_type & that, Args && ...args) :
+			mesh_(that.mesh_, std::forward<Args>(args)...), root_(
+					that.root_holder())
 	{
 	}
 	~_Field()
@@ -164,7 +412,7 @@ public:
 	 * @{
 	 */
 	_Field(this_type & that, op_split) :
-			mesh_(that.manifold_, op_split()), data_(that.data_)
+			root_(that.root_holder()), mesh_(that.mesh_, op_split())
 	{
 	}
 
@@ -181,32 +429,6 @@ public:
 	/**
 	 * @}
 	 */
-	value_type & operator[](id_type const &s)
-	{
-		return (*data_)[s];
-	}
-	value_type const& operator[](id_type const &s) const
-	{
-		return (*data_)[s];
-	}
-	void allocate()
-	{
-		if (data_ == nullptr)
-		{
-			data_ = std::make_shared<container_type>();
-
-		}
-	}
-	void clear()
-	{
-		allocate();
-
-		value_type v;
-
-		v *= 0;
-
-		mesh_.foreach(_impl::_assign(), *data_, v);
-	}
 
 	/**
 	 * @name assignment
@@ -216,25 +438,23 @@ public:
 	inline this_type &
 	operator =(this_type const &that)
 	{
-
-		allocate();
-		mesh_.foreach(_impl::_assign(), *data_, that);
+		mesh_.foreach(_impl::_assign(), *root_, that);
 		return (*this);
 	}
 
 	template<typename TR> inline this_type &
 	operator =(TR const&that)
 	{
-		allocate();
-		mesh_.foreach(_impl::_assign(), *data_, that);
+
+		mesh_.foreach(_impl::_assign(), *root_, that);
 		return (*this);
 	}
 
 	template<typename TR>
 	inline this_type & operator +=(TR const &that)
 	{
-		allocate();
-		mesh_.foreach(_impl::plus_assign(), *data_, that);
+
+		mesh_.foreach(_impl::plus_assign(), *root_, that);
 		return (*this);
 
 	}
@@ -242,16 +462,16 @@ public:
 	template<typename TR>
 	inline this_type & operator -=(TR const &that)
 	{
-		allocate();
-		mesh_.foreach(_impl::minus_assign(), *data_, that);
+
+		mesh_.foreach(_impl::minus_assign(), *root_, that);
 		return (*this);
 	}
 
 	template<typename TR>
 	inline this_type & operator *=(TR const &that)
 	{
-		allocate();
-		mesh_.foreach(_impl::multiplies_assign(), *data_, that);
+
+		mesh_.foreach(_impl::multiplies_assign(), *root_, that);
 
 		return (*this);
 	}
@@ -259,44 +479,42 @@ public:
 	template<typename TR>
 	inline this_type & operator /=(TR const &that)
 	{
-		allocate();
-		mesh_.foreach(_impl::divides_assign(), *data_, that);
+
+		mesh_.foreach(_impl::divides_assign(), *root_, that);
 		return (*this);
 	}
 
 	template<typename TFun> void pull_back(TFun const &fun)
 	{
-		allocate();
-		mesh_.pull_back(*data_, fun);
+
+		mesh_.pull_back(*root_, fun);
 	}
 
 	/** @} */
 
-	typedef typename std::conditional<
-			mesh_type::iform == VERTEX || mesh_type::iform == VOLUME,
-			value_type, nTuple<value_type, 3>>::type field_value_type;
+	typedef typename field_traits<this_type>::field_value_type field_value_type;
 
 	field_value_type gather(typename mesh_type::coordinates_type const& x) const
 	{
-		return std::move(mesh_.gather(*this, x));
+		return std::move(mesh_.gather(*root_, x));
 	}
 
 	template<typename ...Args>
 	void scatter(Args && ... args)
 	{
-		mesh_.scatter(*this, std::forward<Args>(args)...);
+		mesh_.scatter(*root_, std::forward<Args>(args)...);
 	}
 
 }
 ;
 
-template<typename TV, typename TC>
-struct reference_traits<_Field<TV, TC> >
+template<typename TM, typename TC, typename ...Others>
+struct reference_traits<_Field<TM, TC, Others...> >
 {
-	typedef _Field<TV, TC> const & type;
+	typedef _Field<TM, TC, Others...> const & type;
 };
 
-template<typename TV, typename TDomain> using Field= _Field< TV,TDomain >;
+template<typename TV, typename TM> using Field= _Field< TM,std::shared_ptr<TV> >;
 
 template<typename > struct is_field
 {
@@ -325,16 +543,18 @@ template<typename T> struct field_traits<T>
 
 };
 
-template<typename TV, typename TD>
-struct field_traits<_Field<TV, TD>>
+template<typename ...T>
+struct field_traits<_Field<T ...>>
 {
 	static constexpr bool is_field = true;
 
-	static constexpr size_t ndims = TD::ndims;
+	typedef typename _Field<T ...>::mesh_type mesh_type;
 
-	static constexpr size_t iform = TD::iform;
+	static constexpr size_t ndims = mesh_type::ndims;
 
-	typedef typename _Field<TV, TD>::value_type value_type;
+	static constexpr size_t iform = mesh_type::iform;
+
+	typedef typename _Field<T ...>::value_type value_type;
 
 	typedef typename std::conditional<iform == EDGE || iform == FACE,
 			nTuple<value_type, 3>, value_type>::type field_value_type;
