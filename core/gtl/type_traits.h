@@ -13,7 +13,7 @@
 #include <tuple>
 #include <utility>
 #include <complex>
-
+#include <map>
 #include "concept_check.h"
 namespace simpla
 {
@@ -75,6 +75,16 @@ template<typename T, typename TI>
 auto get_value(T & v, TI const& s)
 ENABLE_IF_DECL_RET_TYPE(( is_shared_ptr<T >::value ) , v.get()[s])
 
+template<typename T, typename TI>
+T & get_value(std::map<T, TI> & v, TI const& s)
+{
+	return v[s];
+}
+template<typename T, typename TI>
+T const & get_value(std::map<T, TI> const& v, TI const& s)
+{
+	return v[s];
+}
 namespace _impl
 {
 

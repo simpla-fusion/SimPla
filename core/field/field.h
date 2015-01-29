@@ -131,19 +131,159 @@ struct _Field<TM, TContainer> : public SpObject
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
 	typedef TContainer container_type;
-	typedef typename container_traits<container_type>::value_type value_type;
+	typedef typename container_type::mapped_type value_type;
 
 	typedef _Field<mesh_type, container_type> this_type;
 
 private:
 
-	static constexpr bool is_associative_container = false;
-
-//	container_traits<container_type>::is_associative_container;
-
 	mesh_type mesh_;
 
 	typename container_traits<container_type>::holder_type data_;
+
+public:
+
+	_Field(mesh_type const & d) :
+			mesh_(d), data_(std::make_shared<container_type>())
+	{
+
+	}
+	_Field(this_type const & that) :
+			mesh_(that.mesh_), data_(that.data_)
+	{
+	}
+	~_Field()
+	{
+	}
+
+	std::string get_type_as_string() const
+	{
+		return "Field<" + mesh_.get_type_as_string() + ">";
+	}
+	mesh_type const & mesh() const
+	{
+		return mesh_;
+	}
+	void clear()
+	{
+		*this = 0;
+//		container_traits<container_type>::clear(data_, mesh_.max_hash());
+	}
+
+	/** @name range concept
+	 * @{
+	 */
+
+	template<typename ...Args>
+	_Field(this_type & that, Args && ...args) :
+			mesh_(that.mesh_, std::forward<Args>(args)...), data_(that.data_)
+	{
+	}
+	bool empty() const
+	{
+		return mesh_.empty();
+	}
+	bool is_divisible() const
+	{
+		return mesh_.is_divisible();
+	}
+
+	/**@}*/
+
+	/**
+	 * @name assignment
+	 * @{
+	 */
+
+	inline _Field<AssignmentExpression<_impl::_assign, this_type, this_type>> operator =(
+			this_type const &that)
+	{
+		return std::move(
+				_Field<
+						AssignmentExpression<_impl::_assign, this_type,
+								this_type>>(*this, that));
+	}
+
+	template<typename TR>
+	inline _Field<AssignmentExpression<_impl::_assign, this_type, TR>> operator =(
+			TR const &that)
+	{
+		return std::move(
+				_Field<AssignmentExpression<_impl::_assign, this_type, TR>>(
+						*this, that));
+	}
+
+	template<typename TFun> void pull_back(TFun const &fun)
+	{
+		mesh_.pull_back(*data_, fun);
+	}
+
+	/** @} */
+
+	/** @name access
+	 *  @{*/
+
+	typedef typename mesh_type::template field_value_type<value_type> field_value_type;
+
+	field_value_type gather(coordinates_type const& x) const
+	{
+		return std::move(mesh_.gather(*data_, x));
+	}
+
+	template<typename ...Args>
+	void scatter(Args && ... args)
+	{
+		mesh_.scatter(*data_, std::forward<Args>(args)...);
+	}
+
+//	template<typename ...Args>
+//	auto operator()(
+//			Args && ...s)
+//					DECL_RET_TYPE((get( std::integral_constant<bool, is_associative_container>(),std::forward<Args>(s)...)))
+//
+//	template<typename ...Args>
+//	auto operator()(
+//			Args && ...s) const
+//					DECL_RET_TYPE((get( std::integral_constant<bool, is_associative_container>(), std::forward<Args>(s)...)))
+
+	/**@}*/
+
+//	DataSet dump_data() const
+//	{
+//		return DataSet();
+//	}
+public:
+	value_type & operator[](id_type const & s)
+	{
+		return (*data_)[s];
+	}
+	value_type const & operator[](id_type const & s) const
+	{
+		return (*data_)[s];
+	}
+
+}
+;
+
+template<typename TM, typename TV>
+struct _Field<TM, std::shared_ptr<TV>> : public SpObject
+{
+
+	typedef TM mesh_type;
+
+	typedef typename mesh_type::id_type id_type;
+	typedef typename mesh_type::coordinates_type coordinates_type;
+
+	typedef std::shared_ptr<TV> container_type;
+	typedef TV value_type;
+
+	typedef _Field<mesh_type, container_type> this_type;
+
+private:
+
+	mesh_type mesh_;
+
+	std::shared_ptr<TV> data_;
 
 public:
 
@@ -236,31 +376,14 @@ public:
 
 	field_value_type gather(coordinates_type const& x) const
 	{
-		return std::move(mesh_.gather(*data_, x));
+		return std::move(mesh_.gather(data_, x));
 	}
 
 	template<typename ...Args>
 	void scatter(Args && ... args)
 	{
-		mesh_.scatter(*data_, std::forward<Args>(args)...);
+		mesh_.scatter(data_, std::forward<Args>(args)...);
 	}
-
-	value_type & operator[](id_type const & s)
-	{
-		return get(s);
-	}
-	value_type const & operator[](id_type const & s) const
-	{
-		return get(s);
-	}
-
-	template<typename ...Args>
-	auto operator()(Args && ...s)
-	DECL_RET_TYPE((get( std::forward<Args>(s)...)))
-
-	template<typename ...Args>
-	auto operator()(Args && ...s) const
-	DECL_RET_TYPE((get( std::forward<Args>(s)...)))
 
 	/**@}*/
 
@@ -273,42 +396,19 @@ private:
 	{
 		if (data_ == nullptr)
 		{
-			data_ = container_traits<container_type>::allocate(
-					mesh_.max_hash());
+			data_ = sp_make_shared_array<value_type>(mesh_.max_hash());
 		}
 	}
-	template<typename ...Args>
-	value_type & get(Args && ...s)
+
+public:
+	value_type & operator[](id_type const & s)
 	{
-		return get_value(data_, mesh_.hash(std::forward<Args>(s)...));
+		return data_.get()[mesh_.hash(s)];
 	}
-	template<typename ...Args>
-	value_type const& get(Args && ...s) const
+	value_type const & operator[](id_type const & s) const
 	{
-		return get_value(data_, mesh_.hash(std::forward<Args>(s)...));
+		return data_.get()[mesh_.hash(s)];
 	}
-//	auto get(id_type const & s)->
-//	typename std::enable_if< is_associative_container,value_type & >::type
-//	{
-//		return data_->operator[](s);
-//	}
-//	auto get(id_type const & s) const->
-//	typename std::enable_if< is_associative_container,value_type const & >::type
-//	{
-//		return data_->operator[](s);
-//	}
-//	template<typename ...Args>
-//	auto get(Args && ...s)->
-//	typename std::enable_if< is_associative_container,value_type & >::type
-//	{
-//		return data_->operator[](mesh_.id(std::forward<Args>(s)...));
-//	}
-//	template<typename ...Args>
-//	auto get(Args && ...s) const->
-//	typename std::enable_if< is_associative_container,value_type const & >::type
-//	{
-//		return data_->operator[](mesh_.id(std::forward<Args>(s)...));
-//	}
 
 }
 ;

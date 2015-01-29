@@ -20,11 +20,15 @@ namespace simpla
  * @{
  */
 
-template<typename TContainer> struct container_traits
+template<typename TContainer>
+struct container_traits
 {
 	typedef TContainer container_type;
-	typedef typename TContainer::value_type value_type;
+	typedef typename TContainer::key_type key_type;
+	typedef typename TContainer::mapped_type value_type;
 	typedef std::shared_ptr<container_type> holder_type;
+//	HAS_TYPE(key_type);
+	static constexpr bool is_associative_container = true;
 
 	static holder_type allocate(size_t s)
 	{
@@ -45,6 +49,14 @@ template<typename TContainer> struct container_traits
 		return lhs == rhs;
 	}
 
+	static value_type & get_value(holder_type & data, key_type s)
+	{
+		return (*data)[s];
+	}
+	static value_type const & get_value(holder_type const & data, key_type s)
+	{
+		return (*data)[s];
+	}
 };
 
 template<typename TV> struct container_traits<std::shared_ptr<TV>>
@@ -52,6 +64,8 @@ template<typename TV> struct container_traits<std::shared_ptr<TV>>
 	typedef std::shared_ptr<TV> container_type;
 	typedef TV value_type;
 	typedef std::shared_ptr<TV> holder_type;
+
+	static constexpr bool is_associative_container = false;
 
 	static holder_type allocate(size_t s)
 	{
@@ -72,6 +86,14 @@ template<typename TV> struct container_traits<std::shared_ptr<TV>>
 		return lhs == rhs;
 	}
 
+	static value_type & get_value(holder_type & data, size_t s)
+	{
+		return data.get()[s];
+	}
+	static value_type const & get_value(holder_type const & data, size_t s)
+	{
+		return data.get()[s];
+	}
 };
 /** @}*/
 }

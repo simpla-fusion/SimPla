@@ -303,6 +303,14 @@ struct equal_to
 		return std::abs(l - r) <= std::numeric_limits<double>::epsilon();
 	}
 };
+template<typename TOP> struct op_traits
+{
+	typedef logical_or reduction_op;
+};
+template<> struct op_traits<equal_to>
+{
+	typedef logical_and reduction_op;
+};
 
 #define DEF_STD_BINARY_FUNCTION(_NAME_ )                                                               \
 struct _##_NAME_                                                                             \

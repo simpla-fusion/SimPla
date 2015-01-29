@@ -249,17 +249,17 @@ struct nTuple<Expression<T...>> : public Expression<T...>
 
 };
 
-template<typename ... T>
-struct nTuple<BooleanExpression<T...>> : public Expression<T...>
+template<typename TOP, typename ... T>
+struct nTuple<BooleanExpression<TOP, T...>> : public Expression<TOP, T...>
 {
-	typedef nTuple<BooleanExpression<T...>> this_type;
+	typedef nTuple<BooleanExpression<TOP, T...>> this_type;
 
-	using Expression<T...>::Expression;
+	using Expression<TOP, T...>::Expression;
 
 	operator bool() const
 	{
 		return seq_reduce(typename nTuple_traits<this_type>::dimensions(),
-				_impl::logical_and(), *this);
+				typename _impl::op_traits<TOP>::reduction_op(), *this);
 	}
 
 };
@@ -384,7 +384,8 @@ struct sp_pod_traits<nTuple<T, N...> >
 template<typename TInts, TInts ...N>
 nTuple<TInts, sizeof...(N)> seq2ntuple(integer_sequence<TInts, N...>)
 {
-	return std::move(nTuple<TInts, sizeof...(N)>( { N... }));
+	return std::move(nTuple<TInts, sizeof...(N)>(
+	{ N... }));
 }
 
 template<typename T, size_t N> using Vector=nTuple<T,N>;
@@ -492,9 +493,10 @@ template<typename T1, size_t ... N1, typename T2, size_t ... N2> inline auto cro
 		nTuple<T1, N1...> const & l, nTuple<T2, N2...> const & r)
 		->nTuple<decltype(get_value(l,0)*get_value(r,0)),3>
 {
-	nTuple<decltype(get_value(l,0)*get_value(r,0)), 3> res = { l[1] * r[2]
-			- l[2] * r[1], l[2] * get_value(r, 0) - get_value(l, 0) * r[2],
-			get_value(l, 0) * r[1] - l[1] * get_value(r, 0) };
+	nTuple<decltype(get_value(l,0)*get_value(r,0)), 3> res =
+	{ l[1] * r[2] - l[2] * r[1], l[2] * get_value(r, 0)
+			- get_value(l, 0) * r[2], get_value(l, 0) * r[1]
+			- l[1] * get_value(r, 0) };
 	return std::move(res);
 }
 
@@ -630,5 +632,20 @@ struct remove_all_extents<simpla::nTuple<T, M...> >
 	typedef T type;
 };
 
-}  // namespace std
+//template<typename T, size_t I>
+//class std::less<simpla::nTuple<T, I> >
+//{
+//public:
+//	bool operator()(const simpla::nTuple<T, I>& x,
+//			const simpla::nTuple<T, I>& y) const
+//	{
+//		for (int i = 0; i < I; ++i)
+//		{
+//			if (x[i] < y[i])
+//				return true;
+//		}
+//		return false;
+//	}
+//};
+}// namespace std
 #endif  // CORE_GTL_NTUPLE_H_

@@ -1,5 +1,5 @@
 /*
- * parallel.h
+ * @file parallel.h
  *
  *  created on: 2014-3-27
  *      Author: salmon

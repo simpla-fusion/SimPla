@@ -13,7 +13,9 @@
 #include <memory>
 #include <type_traits>
 #include "../gtl/enable_create_from_this.h"
-
+#include "../gtl/primitives.h"
+#include "../gtl/type_traits.h"
+#include "../utilities/utilities.h"
 namespace simpla
 {
 template<typename ...>class _Field;
@@ -73,17 +75,6 @@ public:
 	std::string get_type_as_string() const
 	{
 		return "SimpleMesh";
-	}
-	void swap(this_type & that)
-	{
-		std::swap(xmin_, that.xmin_);
-		std::swap(xmax_, that.xmax_);
-		std::swap(dx_, that.dx_);
-
-		std::swap(offset_, that.offset_);
-		std::swap(count_, that.count_);
-		std::swap(strides_, that.strides_);
-
 	}
 
 	virtual std::basic_ostream<char>& print(std::basic_ostream<char>& os) const
@@ -345,18 +336,20 @@ private:
 	DECL_RET_TYPE (op(get_value(f, s)))
 
 	template<typename TOP, typename TL, typename TR>
-	inline auto calculate_(TOP op, TL & l, TR &r, id_type const &s) const DECL_RET_TYPE( op(get_value( (l),s),get_value(r,s) ) )
+	inline auto calculate_(TOP op, TL & l, TR &r, id_type const &s) const
+	DECL_RET_TYPE( op(get_value( (l),s),get_value(r,s) ) )
 
 public:
 
 	template<typename TOP, typename TL>
-	auto calculate(_Field<Expression<TOP, TL> > const & f, id_type const &s) const
-	DECL_RET_TYPE((calculate_(f.op_,f.lhs,s)))
+	auto calculate(_Field<Expression<TOP, TL> > const & f,
+			id_type const &s) const
+			DECL_RET_TYPE((calculate_(f.op_,f.lhs,s)))
 
 	template<typename TOP, typename TL, typename TR>
 	auto calculate(_Field<Expression<TOP, TL, TR> > const & f,
 			id_type const &s) const
-	DECL_RET_TYPE((calculate_(f.op_,f.lhs,f.rhs,s)))
+			DECL_RET_TYPE((calculate_(f.op_,f.lhs,f.rhs,s)))
 
 	template<typename TC, typename TD>
 	auto calculate(_Field<TC, TD> const & f, id_type const &s) const
@@ -380,7 +373,7 @@ public:
 	auto calculate(T const & v, id_type const &s) const
 	DECL_RET_TYPE ((get_value(v, s)))
 
-}	;
+};
 
 std::ostream & operator<<(std::ostream & os, SimpleMesh const & mesh)
 {

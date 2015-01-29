@@ -1,5 +1,5 @@
 /**
- * \file parallel.cpp
+ * @file parallel.cpp
  *
  * \date    2014年7月28日  上午11:11:49 
  * \author salmon
