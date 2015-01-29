@@ -16,7 +16,7 @@ namespace simpla
 {
 
 template<typename ... > class _Field;
-template<typename, typename, typename > class Expression;
+template<typename ... > class Expression;
 
 /**
  * @ingroup diff_geo

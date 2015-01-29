@@ -34,6 +34,7 @@ namespace simpla
  *     @ref configuration_space, where \f$x\in D\f$ is
  *       coordinates defined in @ref domain \f$D\f$, and  \f$ y \f$
  *       is a scalar/vector/tensor.
+ *  - @ref field is an 'unordered_map<id_type,value_type>'
  *
  * ## Member types
  *  Member type	 				    | Semantics

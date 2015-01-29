@@ -5,9 +5,8 @@ target_link_libraries(field_simple_mesh_test   pthread   utilities  )
 my_test(field_simple_mesh_map_test     field_simple_mesh_map_test.cpp        )
 target_link_libraries(field_simple_mesh_map_test   pthread   utilities  )
  
-
-simpla_test(dummy_manifold_test    field_basic_algerbra_test.cpp)
-target_link_libraries(dummy_manifold_test  io physics  parallel  utilities)
+my_test(field_cartesian_map_test    field_cartesian_map_test.cpp)
+target_link_libraries(field_cartesian_map_test  pthread   utilities)
 
 simpla_test(cartesian_test 					  		
    							field_vector_calculus_Cartesian_test.cpp 
