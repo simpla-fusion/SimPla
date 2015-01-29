@@ -25,7 +25,6 @@ enum GeometryFormTypeID
 
 	VOLUME = 3
 };
-
 /**
  *  @}
  */

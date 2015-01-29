@@ -12,12 +12,13 @@
 #include <typeinfo>
 #include <utility>
 //#include "expression_template.h"
-#include "type_traits.h"
-#include "ntuple.h"
+#include "../type_traits.h"
+#include "../ntuple.h"
+#include "../primitives.h"
 
-#include "../../containers/sp_integer_sequence.h"
+//#include "../sp_integer_sequence.h"
 //#include "log.h"
-#include "pretty_stream.h"
+#include "../../utilities/pretty_stream.h"
 using namespace simpla;
 
 #define EQUATION(_A,_B,_C)  ( -(_A  +TestFixture::a )/(   _B *TestFixture::b -TestFixture::c  )- _C)
@@ -102,8 +103,8 @@ TYPED_TEST(TestNtuple, swap){
 	seq_for_each(typename TestFixture::dimensions(),
 			[&](size_t const idx[TestFixture::dimensions::size()])
 			{
-				EXPECT_DOUBLE_EQ(0, abs(get_value_r(TestFixture::aA,idx)- get_value_r(TestFixture:: vB,idx)));
-				EXPECT_DOUBLE_EQ(0, abs(get_value_r(TestFixture::aB,idx)- get_value_r(TestFixture:: vA,idx)));
+				EXPECT_DOUBLE_EQ(0, std::abs(get_value_r(TestFixture::aA,idx)- get_value_r(TestFixture:: vB,idx)));
+				EXPECT_DOUBLE_EQ(0, std::abs(get_value_r(TestFixture::aB,idx)- get_value_r(TestFixture:: vA,idx)));
 			});
 
 }
@@ -193,6 +194,8 @@ TYPED_TEST(TestNtuple, arithmetic){
 
 }
 }
+
+
 
 TYPED_TEST(TestNtuple, self_assign){
 {

@@ -21,3 +21,4 @@ ADD_SUBDIRECTORY( model )
 
 ADD_SUBDIRECTORY( application )
 
+ADD_SUBDIRECTORY( gtl )

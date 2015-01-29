@@ -23,8 +23,9 @@ namespace simpla
  *  @addtogroup expression_template  Expression Template
  *  @{
  */
-template<typename, typename TL, typename TR> struct Expression;
-template<typename, typename TL, typename TR> struct BooleanExpression;
+template<typename ...>class Expression;
+template<typename ...> struct BooleanExpression;
+template<typename ...> struct AssignmentExpression;
 
 template<typename T>
 struct is_expresson
@@ -49,12 +50,12 @@ struct reference_traits
 
 	|| is_expresson<T>::value;
 
-	typedef typename std::conditional<pass_value, T, T const&>::type type;
+	typedef typename std::conditional<pass_value, T, T const &>::type type;
 
 };
 
 template<typename TOP, typename TL, typename TR>
-struct Expression
+struct Expression<TOP, TL, TR>
 {
 	typedef Expression<TOP, TL, TR> this_type;
 	typename reference_traits<TL>::type lhs;
@@ -126,7 +127,7 @@ struct Expression<TOP, TL, std::nullptr_t>
 };
 
 template<typename TOP, typename TL, typename TR>
-class BooleanExpression: public Expression<TOP, TL, TR>
+class BooleanExpression<TOP, TL, TR> : public Expression<TOP, TL, TR>
 {
 	using Expression<TOP, TL, TR>::Expression;
 
@@ -146,6 +147,43 @@ class BooleanExpression<TOP, TL, std::nullptr_t> : public Expression<TOP, TL,
 	{
 		return false;
 	}
+};
+
+template<typename TOP, typename TL, typename TR>
+struct AssignmentExpression<TOP, TL, TR>
+{
+	typedef AssignmentExpression<TOP, TL, TR> this_type;
+	TL & lhs;
+	typename reference_traits<TR>::type rhs;
+	TOP op_;
+
+	AssignmentExpression(this_type const & that) :
+			lhs(that.lhs), rhs(that.rhs), op_(that.op_)
+	{
+	}
+	AssignmentExpression(this_type && that) :
+			lhs(that.lhs), rhs(that.rhs), op_(that.op_)
+	{
+	}
+
+	AssignmentExpression(TL & l, TR const& r) :
+			lhs(l), rhs(r), op_()
+	{
+	}
+	AssignmentExpression(TOP op, TL & l, TR const& r) :
+			lhs(l), rhs(r), op_(op)
+	{
+	}
+
+	~AssignmentExpression()
+	{
+	}
+
+	template<typename IndexType>
+	inline auto operator[](IndexType const &s) const
+	DECL_RET_TYPE ((op_(get_value(lhs, s), get_value(rhs, s))))
+//			DECL_RET_TYPE ((op_( lhs, rhs, s )))
+
 };
 
 namespace _impl
@@ -251,7 +289,8 @@ DEF_ASSIGN_OP(multiplies_assign, *=)
 DEF_ASSIGN_OP(divides_assign, /=)
 DEF_ASSIGN_OP(modulus_assign, %=)
 
-#undef DEF_BOP
+#undef DEF_ASSIGN_OP
+
 struct equal_to
 {
 	template<typename TL, typename TR>
@@ -335,6 +374,11 @@ DEF_UNARY_FUNCTION(imag)
 	operator _OP_(_OBJ_< T1...> const & l,_OBJ_< T2...>  const &r)                    \
 	{return (_OBJ_<Expression< _impl::_NAME_,_OBJ_< T1...>,_OBJ_< T2...>>>(l,r));}                  \
 
+#define _SP_DEFINE_EXPR_ASSIGNMENT_OPERATOR(_OP_,_OBJ_,_NAME_)                                                  \
+		template<typename ...T1,typename  T2> \
+		_OBJ_<AssignmentExpression<_impl::_NAME_,_OBJ_<T1...>,T2>>\
+		operator _OP_(_OBJ_<T1...>   & l,T2 const &r)  \
+		{return (_OBJ_<AssignmentExpression<_impl::_NAME_,_OBJ_<T1...>,T2>>(l,r));}                  \
 
 #define _SP_DEFINE_EXPR_UNARY_OPERATOR(_OP_,_OBJ_,_NAME_)                           \
 		template<typename ...T> \
@@ -386,47 +430,52 @@ DEF_UNARY_FUNCTION(imag)
 		{return (_OBJ_<Expression<_impl::_##_NAME_,_OBJ_<T ...>, std::nullptr_t>>(r));}   \
 
 
-#define  DEFINE_EXPRESSOPM_TEMPLATE_BASIC_ALGEBRA(_CONCEPT_)                                              \
-_SP_DEFINE_EXPR_BINARY_OPERATOR(+, _CONCEPT_, plus)                                      \
-_SP_DEFINE_EXPR_BINARY_OPERATOR(-, _CONCEPT_, minus)                                     \
-_SP_DEFINE_EXPR_BINARY_OPERATOR(*, _CONCEPT_, multiplies)                                \
-_SP_DEFINE_EXPR_BINARY_OPERATOR(/, _CONCEPT_, divides)                                   \
-_SP_DEFINE_EXPR_BINARY_OPERATOR(%, _CONCEPT_, modulus)                                   \
-_SP_DEFINE_EXPR_BINARY_OPERATOR(^, _CONCEPT_, bitwise_xor)                               \
-_SP_DEFINE_EXPR_BINARY_OPERATOR(&, _CONCEPT_, bitwise_and)                               \
-_SP_DEFINE_EXPR_BINARY_OPERATOR(|, _CONCEPT_, bitwise_or)                                \
-_SP_DEFINE_EXPR_UNARY_OPERATOR(~, _CONCEPT_, bitwise_not)                                \
-_SP_DEFINE_EXPR_UNARY_OPERATOR(+, _CONCEPT_, unary_plus)                                 \
-_SP_DEFINE_EXPR_UNARY_OPERATOR(-, _CONCEPT_, negate)                                     \
-_SP_DEFINE_EXPR_BINARY_RIGHT_OPERATOR(<<, _CONCEPT_, shift_left)                               \
-_SP_DEFINE_EXPR_BINARY_RIGHT_OPERATOR(>>, _CONCEPT_, shift_right)                              \
-_SP_DEFINE_EXPR_BINARY_FUNCTION(atan2, _CONCEPT_)        								 \
-_SP_DEFINE_EXPR_BINARY_FUNCTION(pow, _CONCEPT_)          								 \
-_SP_DEFINE_EXPR_UNARY_FUNCTION(cos, _CONCEPT_)                                           \
-_SP_DEFINE_EXPR_UNARY_FUNCTION(acos, _CONCEPT_)                                          \
-_SP_DEFINE_EXPR_UNARY_FUNCTION(cosh, _CONCEPT_)                                          \
-_SP_DEFINE_EXPR_UNARY_FUNCTION(sin, _CONCEPT_)                                           \
-_SP_DEFINE_EXPR_UNARY_FUNCTION(asin, _CONCEPT_)                                          \
-_SP_DEFINE_EXPR_UNARY_FUNCTION(sinh, _CONCEPT_)                                          \
-_SP_DEFINE_EXPR_UNARY_FUNCTION(tan, _CONCEPT_)                                           \
-_SP_DEFINE_EXPR_UNARY_FUNCTION(tanh, _CONCEPT_)                                          \
-_SP_DEFINE_EXPR_UNARY_FUNCTION(atan, _CONCEPT_)                                          \
-_SP_DEFINE_EXPR_UNARY_FUNCTION(exp, _CONCEPT_)                                           \
-_SP_DEFINE_EXPR_UNARY_FUNCTION(log, _CONCEPT_)                                           \
-_SP_DEFINE_EXPR_UNARY_FUNCTION(log10, _CONCEPT_)                                         \
-_SP_DEFINE_EXPR_UNARY_FUNCTION(sqrt, _CONCEPT_)                                          \
-_SP_DEFINE_EXPR_UNARY_FUNCTION(real, _CONCEPT_)                                          \
-_SP_DEFINE_EXPR_UNARY_FUNCTION(imag, _CONCEPT_)                                          \
-_SP_DEFINE_EXPR_UNARY_BOOLEAN_OPERATOR(!, _CONCEPT_, logical_not)                              \
-_SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(&&, _CONCEPT_, logical_and)                              \
-_SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(||, _CONCEPT_, logical_or)                               \
-_SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(!=, _CONCEPT_, not_equal_to)                             \
-_SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(==, _CONCEPT_, equal_to)                                 \
-_SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(<, _CONCEPT_, less)                                      \
-_SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(>, _CONCEPT_, greater)                                   \
-_SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(<=, _CONCEPT_, less_equal)                               \
-_SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(>=, _CONCEPT_, greater_equal)							 \
-_SP_DEFINE_EXPR_UNARY_FUNCTION(abs, _CONCEPT_)                                           \
+#define  DEFINE_EXPRESSOPM_TEMPLATE_BASIC_ALGEBRA(_CONCEPT_)          \
+_SP_DEFINE_EXPR_BINARY_OPERATOR(+, _CONCEPT_, plus)                   \
+_SP_DEFINE_EXPR_BINARY_OPERATOR(-, _CONCEPT_, minus)                  \
+_SP_DEFINE_EXPR_BINARY_OPERATOR(*, _CONCEPT_, multiplies)             \
+_SP_DEFINE_EXPR_BINARY_OPERATOR(/, _CONCEPT_, divides)                \
+_SP_DEFINE_EXPR_BINARY_OPERATOR(%, _CONCEPT_, modulus)                \
+_SP_DEFINE_EXPR_BINARY_OPERATOR(^, _CONCEPT_, bitwise_xor)            \
+_SP_DEFINE_EXPR_BINARY_OPERATOR(&, _CONCEPT_, bitwise_and)            \
+_SP_DEFINE_EXPR_BINARY_OPERATOR(|, _CONCEPT_, bitwise_or)             \
+_SP_DEFINE_EXPR_UNARY_OPERATOR(~, _CONCEPT_, bitwise_not)             \
+_SP_DEFINE_EXPR_UNARY_OPERATOR(+, _CONCEPT_, unary_plus)              \
+_SP_DEFINE_EXPR_UNARY_OPERATOR(-, _CONCEPT_, negate)                  \
+_SP_DEFINE_EXPR_BINARY_RIGHT_OPERATOR(<<, _CONCEPT_, shift_left)      \
+_SP_DEFINE_EXPR_BINARY_RIGHT_OPERATOR(>>, _CONCEPT_, shift_right)     \
+_SP_DEFINE_EXPR_BINARY_FUNCTION(atan2, _CONCEPT_)        			  \
+_SP_DEFINE_EXPR_BINARY_FUNCTION(pow, _CONCEPT_)          			  \
+_SP_DEFINE_EXPR_UNARY_FUNCTION(cos, _CONCEPT_)                        \
+_SP_DEFINE_EXPR_UNARY_FUNCTION(acos, _CONCEPT_)                       \
+_SP_DEFINE_EXPR_UNARY_FUNCTION(cosh, _CONCEPT_)                       \
+_SP_DEFINE_EXPR_UNARY_FUNCTION(sin, _CONCEPT_)                        \
+_SP_DEFINE_EXPR_UNARY_FUNCTION(asin, _CONCEPT_)                       \
+_SP_DEFINE_EXPR_UNARY_FUNCTION(sinh, _CONCEPT_)                       \
+_SP_DEFINE_EXPR_UNARY_FUNCTION(tan, _CONCEPT_)                        \
+_SP_DEFINE_EXPR_UNARY_FUNCTION(tanh, _CONCEPT_)                       \
+_SP_DEFINE_EXPR_UNARY_FUNCTION(atan, _CONCEPT_)                       \
+_SP_DEFINE_EXPR_UNARY_FUNCTION(exp, _CONCEPT_)                        \
+_SP_DEFINE_EXPR_UNARY_FUNCTION(log, _CONCEPT_)                        \
+_SP_DEFINE_EXPR_UNARY_FUNCTION(log10, _CONCEPT_)                      \
+_SP_DEFINE_EXPR_UNARY_FUNCTION(sqrt, _CONCEPT_)                       \
+_SP_DEFINE_EXPR_UNARY_FUNCTION(real, _CONCEPT_)                       \
+_SP_DEFINE_EXPR_UNARY_FUNCTION(imag, _CONCEPT_)                       \
+_SP_DEFINE_EXPR_UNARY_BOOLEAN_OPERATOR(!, _CONCEPT_, logical_not)     \
+_SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(&&, _CONCEPT_, logical_and)   \
+_SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(||, _CONCEPT_, logical_or)    \
+_SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(!=, _CONCEPT_, not_equal_to)  \
+_SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(==, _CONCEPT_, equal_to)      \
+_SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(<, _CONCEPT_, less)           \
+_SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(>, _CONCEPT_, greater)        \
+_SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(<=, _CONCEPT_, less_equal)    \
+_SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(>=, _CONCEPT_, greater_equal) \
+_SP_DEFINE_EXPR_UNARY_FUNCTION(abs, _CONCEPT_)                        \
+_SP_DEFINE_EXPR_ASSIGNMENT_OPERATOR(+=,_CONCEPT_, plus_assign)        \
+_SP_DEFINE_EXPR_ASSIGNMENT_OPERATOR(-=,_CONCEPT_, minus_assign)       \
+_SP_DEFINE_EXPR_ASSIGNMENT_OPERATOR(*=,_CONCEPT_, multiplies_assign)  \
+_SP_DEFINE_EXPR_ASSIGNMENT_OPERATOR(/=,_CONCEPT_, divides_assign)     \
+_SP_DEFINE_EXPR_ASSIGNMENT_OPERATOR(%=,_CONCEPT_, modulus_assign)     \
 
 
 #define  DEFINE_EXPRESSOPM_TEMPLATE_BASIC_ALGEBRA2(_CONCEPT_)                                              \
@@ -475,7 +524,6 @@ _SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_FUNCTION(abs)                               
 //#undef _SP_DEFINE_EXPR_BINARY_OPERATOR
 //#undef _SP_DEFINE_EXPR_UNARY_OPERATOR
 //#undef _SP_DEFINE_EXPR_UNARY_FUNCTION
-
 
 /** @name Constant Expresions
  * @{*/
@@ -615,6 +663,6 @@ constexpr Zero operator &(Zero, Zero)
 
 /** @}*/
 
-}// namespace simpla
+}   // namespace simpla
 
 #endif /* EXPRESSION_TEMPLATE_H_ */

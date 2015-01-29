@@ -220,26 +220,16 @@ public:
 	{
 		return geometry_->max_hash();
 	}
+	template<typename ...Args>
+	id_type id(Args && ...args) const
+	{
+		return geometry_->id(std::forward<Args>(args)...);
+	}
 
-//	template<typename TV>
-//	DataSet dataset(container_type<TV> const& data_,
-//			Properties const& prop) const
-//	{
-//
-//		return DataSet( { data_, make_datatype<TV>(), dataspace(), prop });
-//	}
-
-	template<typename TV>
-	auto access(std::shared_ptr<TV> & v, id_type s) const
-	DECL_RET_TYPE(v.get()[s])
-
-	template<typename TV>
-	auto access(TV* v, id_type s) const
-	DECL_RET_TYPE(v[s])
-
-	template<typename TV>
-	auto access(TV const & v, id_type s) const
-	DECL_RET_TYPE(get_value(v,s))
+	constexpr id_type id(id_type s) const
+	{
+		return s;
+	}
 
 	template<typename ...Args>
 	auto coordinates(Args && ...args) const

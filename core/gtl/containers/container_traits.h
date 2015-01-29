@@ -11,8 +11,8 @@
 #include <memory>
 #include <string.h>
 
-#include "../design_pattern/memory_pool.h"
-
+#include "../../utilities/memory_pool.h"
+#include "../type_traits.h"
 namespace simpla
 {
 
@@ -24,10 +24,11 @@ template<typename TContainer> struct container_traits
 {
 	typedef TContainer container_type;
 	typedef typename TContainer::value_type value_type;
+	typedef std::shared_ptr<container_type> holder_type;
 
-	static container_type allocate(size_t s)
+	static holder_type allocate(size_t s)
 	{
-		return std::move(container_type(s));
+		return std::move(std::make_shared<container_type>(s));
 	}
 	template<typename ...T>
 	static void clear(T &&...)
@@ -44,19 +45,15 @@ template<typename TContainer> struct container_traits
 		return lhs == rhs;
 	}
 
-	static auto get_value(container_type & d, size_t s)
-	DECL_RET_TYPE ((d[s]))
-	static auto get_value(container_type const& d, size_t s)
-	DECL_RET_TYPE ((d[s]))
-
 };
 
 template<typename TV> struct container_traits<std::shared_ptr<TV>>
 {
 	typedef std::shared_ptr<TV> container_type;
 	typedef TV value_type;
+	typedef std::shared_ptr<TV> holder_type;
 
-	static container_type allocate(size_t s)
+	static holder_type allocate(size_t s)
 	{
 		return sp_make_shared_array<value_type>(s);
 	}
@@ -74,14 +71,7 @@ template<typename TV> struct container_traits<std::shared_ptr<TV>>
 	{
 		return lhs == rhs;
 	}
-	static TV & get_value(container_type & d, size_t s)
-	{
-		return d.get()[s];
-	}
-	static TV const & get_value(container_type const& d, size_t s)
-	{
-		return d.get()[s];
-	}
+
 };
 /** @}*/
 }

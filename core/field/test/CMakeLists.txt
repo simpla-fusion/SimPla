@@ -1,6 +1,6 @@
 
-my_test(field_io_test     field_io_test.cpp        )
-target_link_libraries(field_io_test physics io parallel utilities)
+my_test(field_test     field_test.cpp        )
+target_link_libraries(field_test      application  utilities)
 
  
 

@@ -7,8 +7,8 @@
  *      Author: yuzhi
  */
 
-#ifndef CORE_UTILITIES_NTUPLE_H_
-#define CORE_UTILITIES_NTUPLE_H_
+#ifndef CORE_GTL_NTUPLE_H_
+#define CORE_GTL_NTUPLE_H_
 
 #include <cmath>
 #include <cstddef>
@@ -227,7 +227,7 @@ struct array_to_ntuple_convert<T[N]>
 			typename std::remove_all_extents<T>::type, extents_t>::type type;
 };
 
-template<typename, typename, typename > class Expression;
+template<typename ...>class Expression;
 
 template<typename > struct nTuple_traits;
 
@@ -631,4 +631,4 @@ struct remove_all_extents<simpla::nTuple<T, M...> >
 };
 
 }  // namespace std
-#endif  // CORE_UTILITIES_NTUPLE_H_
+#endif  // CORE_GTL_NTUPLE_H_

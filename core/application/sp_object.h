@@ -93,7 +93,7 @@ struct SpObject
 
 	virtual std::string get_type_as_string() const=0;
 
-	virtual DataSet dataset() const =0; //!< return the data set of PhysicalObject
+//	virtual DataSet dump_data() const {}; //!< return the data set of PhysicalObject
 
 	virtual void sync()
 	{
@@ -102,11 +102,14 @@ struct SpObject
 
 	void lock();
 
-	virtual bool is_valid();
+	virtual bool is_valid()
+	{
+		return true;
+	}
 
 	virtual bool empty() const
 	{
-		return true;
+		return false;
 	}
 
 	virtual bool is_divisible() const
