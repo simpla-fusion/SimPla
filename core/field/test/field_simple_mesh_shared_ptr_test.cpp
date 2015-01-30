@@ -13,7 +13,7 @@ using namespace simpla;
 typedef SimpleMesh mesh_type;
 typedef std::shared_ptr<double> container_type;
 
-#include "field_test.h"
+#include "field_basic_test.h"
 
 INSTANTIATE_TEST_CASE_P(FETLCartesian, TestFieldCase,
 		testing::Values(

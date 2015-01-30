@@ -19,5 +19,5 @@ typedef Mesh<CartesianCoordinates<StructuredMesh, CARTESIAN_ZAXIS>,
 
 typedef nTuple<Real, 3> v_type;
 
-#include "field_vector_calculus_test.h"
+#include "field_diff_calculus_test.h"
 

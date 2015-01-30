@@ -71,7 +71,7 @@ struct Expression<TOP, TL, TR>
 	{
 	}
 
-	Expression(TL const& l, TR const& r) :
+	constexpr Expression(TL const& l, TR const& r) :
 			lhs(l), rhs(r), op_()
 	{
 	}

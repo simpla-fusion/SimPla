@@ -1,12 +1,12 @@
 /*
- * field_test.h
+ * field_basic_test.h
  *
  *  Created on: 2015年1月29日
  *      Author: salmon
  */
 
-#ifndef CORE_FIELD_TEST_FIELD_TEST_H_
-#define CORE_FIELD_TEST_FIELD_TEST_H_
+#ifndef CORE_FIELD_TEST_FIELD_BASIC_TEST_H_
+#define CORE_FIELD_TEST_FIELD_BASIC_TEST_H_
 
 #include <gtest/gtest.h>
 #include <tuple>
@@ -63,6 +63,7 @@ TEST_P(TestFieldCase, index)
 		EXPECT_LE(mod(va * mesh.hash(s) - f1[s]), EPSILON) << s << f1[s]
 				<< " " << va * mesh.hash(s);
 	}
+
 }
 TEST_P(TestFieldCase, assign)
 {
@@ -85,6 +86,9 @@ TEST_P(TestFieldCase, assign)
 		EXPECT_LE(mod(va - f1[s]), EPSILON) << s << f1[s];
 	}
 	EXPECT_EQ(count, mesh.max_hash());
+
+	CHECK(count);
+
 }
 
 TEST_P(TestFieldCase, constant_real)
@@ -189,4 +193,4 @@ TEST_P(TestFieldCase, scalar_field)
 
 	EXPECT_EQ(0,count) << "number of error points =" << count;
 }
-#endif /* CORE_FIELD_TEST_FIELD_TEST_H_ */
+#endif /* CORE_FIELD_TEST_FIELD_BASIC_TEST_H_ */

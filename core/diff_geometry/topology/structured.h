@@ -81,13 +81,14 @@ public:
 	StructuredMesh()
 	{
 	}
-	StructuredMesh(nTuple<size_t, ndims> const &dims)
+	template<typename ...Args>
+	StructuredMesh(nTuple<size_t, ndims> const &count,
+			nTuple<size_t, ndims> const &offset)
 	{
-		dimensions(&dims[0]);
+		dimensions(count, offset);
 	}
-	virtual ~StructuredMesh()
-	{
-	}
+
+	~StructuredMesh() = default;
 
 	this_type & operator=(const this_type&) = delete;
 
@@ -147,7 +148,7 @@ public:
 	 * @{
 	 **/
 
-	index_tuple dimensions_;
+	index_tuple count_, offset_;
 
 	index_tuple local_outer_begin_, local_outer_end_, local_outer_count_;
 
@@ -229,18 +230,25 @@ public:
 //	static constexpr size_t NO_HEAD_FLAG = ~((~0UL) << (INDEX_DIGITS * 3));
 
 	static constexpr index_type ZERO_INDEX = 1 << (INDEX_DIGITS - 1);
-
-	void dimensions(index_type const * d, index_type const * gw = nullptr)
+	void dimensions(index_tuple const & count)
 	{
-		size_t float_point_pos = FLOATING_POINT_POS;
-		index_type zero_index = ZERO_INDEX;
-		dimensions_ = d;
-		local_outer_count_ = dimensions_ << float_point_pos;
-		local_outer_begin_ = zero_index;
+		index_tuple offset;
+		offset = 0;
+		dimensions(count, offset);
+	}
+	void dimensions(index_tuple const & count, index_tuple const & offset,
+			index_type const * gw = nullptr)
+	{
+
+		count_ = count;
+		offset_ = offset;
+
+		local_outer_count_ = count_ << FLOATING_POINT_POS;
+		local_outer_begin_ = ZERO_INDEX;
 		local_outer_end_ = local_outer_begin_ + local_outer_count_;
 
-		local_inner_count_ = dimensions_ << float_point_pos;
-		local_inner_begin_ = zero_index;
+		local_inner_count_ = count_ << FLOATING_POINT_POS;
+		local_inner_begin_ = ZERO_INDEX;
 		local_inner_end_ = local_inner_begin_ + local_inner_count_;
 //		if (gw != nullptr)
 //			ghost_width = gw;
@@ -265,8 +273,8 @@ public:
 //		local_outer_end_ = local_outer_begin_ + local_outer_count_;
 //
 		hash_strides_[2] = 1;
-		hash_strides_[1] = d[2] * hash_strides_[2];
-		hash_strides_[0] = d[1] * hash_strides_[1];
+		hash_strides_[1] = count_[2] * hash_strides_[2];
+		hash_strides_[0] = count_[1] * hash_strides_[1];
 
 		update();
 
@@ -274,7 +282,7 @@ public:
 
 	index_tuple const & dimensions() const
 	{
-		return dimensions_;
+		return count_;
 	}
 
 	bool check_memory_bounds(id_type s) const
@@ -308,7 +316,7 @@ public:
 		nTuple<size_t, MAX_NDIMS_OF_ARRAY> g_offset;
 		nTuple<size_t, MAX_NDIMS_OF_ARRAY> g_gw;
 
-		g_dims = dimensions_;
+		g_dims = count_;
 		g_offset = local_inner_begin_;
 		g_count = local_inner_count_;
 		g_gw = ghost_width;
@@ -326,7 +334,8 @@ public:
 	}
 
 	template<size_t IFORM>
-	static id_type compact_cell_index(index_tuple const & idx, id_type shift)
+	static constexpr id_type compact_cell_index(index_tuple const & idx,
+			id_type shift)
 	{
 		return index_to_id(idx << FLOATING_POINT_POS) | shift;
 	}
@@ -426,15 +435,14 @@ public:
 	{
 		coordinates_type b, e;
 		b = 0;
-		e = dimensions_;
+		e = count_;
 
 		return std::move(std::make_pair(b, e));
 	}
 
-	static coordinates_type dx()
+	static constexpr coordinates_type dx()
 	{
-		coordinates_type r = dx_;
-		return r;
+		return coordinates_type( { 1.0, 1.0, 1.0 });
 	}
 
 	static constexpr Real volume(id_type s)
@@ -529,7 +537,8 @@ public:
 	 * @param s
 	 * @return Coordinates range in [0,1)
 	 */
-	static inline coordinates_type index_to_coordinates(index_tuple const&idx)
+	static constexpr inline coordinates_type index_to_coordinates(
+			index_tuple const&idx)
 	{
 
 		return std::move(
@@ -551,7 +560,8 @@ public:
 						}));
 	}
 
-	static inline index_tuple coordinates_to_index(coordinates_type const &x)
+	static constexpr inline index_tuple coordinates_to_index(
+			coordinates_type const &x)
 	{
 		return std::move(
 				index_tuple(
@@ -569,7 +579,7 @@ public:
 						}));
 	}
 
-	static id_type index_to_id(index_tuple const & x)
+	static constexpr id_type index_to_id(index_tuple const & x)
 	{
 		return
 
@@ -584,7 +594,7 @@ public:
 		);
 	}
 
-	static index_tuple id_to_index(id_type s)
+	static constexpr index_tuple id_to_index(id_type s)
 	{
 
 		return std::move(index_tuple( {
@@ -598,18 +608,18 @@ public:
 		}));
 	}
 
-	static coordinates_type id_to_coordinates(id_type s)
+	static constexpr coordinates_type id_to_coordinates(id_type s)
 	{
 		return std::move(index_to_coordinates(id_to_index(s)));
 	}
-	static id_type coordinates_to_id(coordinates_type const &x)
+	static constexpr id_type coordinates_to_id(coordinates_type const &x)
 	{
 		return std::move(index_to_id(coordinates_to_index(x)));
 	}
 	static coordinates_type coordinates_local_to_global(id_type s,
 			coordinates_type const &r)
 	{
-		return (id_to_coordinates(s) + r);
+		return (static_cast<coordinates_type>(id_to_coordinates(s) + r));
 	}
 
 	static coordinates_type coordinates_local_to_global(
@@ -677,16 +687,16 @@ public:
 
 	//! @name id auxiliary functions
 	//! @{
-	static id_type dual(id_type r)
+	static constexpr id_type dual(id_type r)
 	{
 		return (r & (~_DA)) | ((~(r & _DA)) & _DA);
 
 	}
-	static id_type get_cell_id(id_type r)
+	static constexpr id_type get_cell_id(id_type r)
 	{
 		return r & CELL_ID_MASK;
 	}
-	static id_type node_id(id_type s)
+	static constexpr id_type node_id(id_type s)
 	{
 
 		return (((s >> (INDEX_DIGITS * 2 + FLOATING_POINT_POS - 1)) & 1UL) << 2)
@@ -695,7 +705,7 @@ public:
 
 	}
 
-	id_type get_shift(id_type nodeid, id_type h = 0UL) const
+	static constexpr id_type get_shift(id_type nodeid, id_type h = 0UL)
 	{
 
 		return
@@ -708,51 +718,36 @@ public:
 
 	}
 
-	id_type get_first_node_shift(id_type iform) const
+	static constexpr id_type get_first_node_shift(id_type iform)
 	{
-		id_type nid;
-		switch (iform)
-		{
-		case VERTEX:
-			nid = 0;
-			break;
-		case EDGE:
-			nid = 1;
-			break;
-		case FACE:
-			nid = 6;
-			break;
-		case VOLUME:
-			nid = 7;
-			break;
-		}
+//		id_type nid;
+//		switch (iform)
+//		{
+//		case VERTEX:
+//			nid = 0;
+//			break;
+//		case EDGE:
+//			nid = 1;
+//			break;
+//		case FACE:
+//			nid = 6;
+//			break;
+//		case VOLUME:
+//			nid = 7;
+//			break;
+//		}
+		// FIXME not complete
 
-		return get_shift(nid);
+		return get_shift(0);
 	}
 
-	static size_t get_num_of_comp_per_cell(size_t iform)
+	static constexpr size_t get_num_of_comp_per_cell(size_t iform)
 	{
-		size_t res;
-		switch (iform)
-		{
-		case VERTEX:
-			res = 1;
-			break;
-		case EDGE:
-			res = 3;
-			break;
-		case FACE:
-			res = 3;
-			break;
-		case VOLUME:
-			res = 1;
-			break;
-		}
 
-		return res;
+		return (iform == EDGE || iform == FACE) ? 3 : 1;
 	}
 
-	static id_type inverse_roate(id_type r)
+	static constexpr id_type inverse_roate(id_type r)
 	{
 
 		return (r & (~_DA))
@@ -770,7 +765,7 @@ public:
 	 * @return
 	 */
 
-	static id_type roate(id_type s)
+	static constexpr id_type roate(id_type s)
 	{
 
 		return (s & (~(_DA)))
@@ -781,17 +776,17 @@ public:
 
 	}
 
-	static id_type delta_index(id_type r)
+	static constexpr id_type delta_index(id_type r)
 	{
 		return (r & _DA);
 	}
 
-	static id_type DI(size_t i, id_type r)
+	static constexpr id_type DI(size_t i, id_type r)
 	{
 		return (1UL << (INDEX_DIGITS * i + FLOATING_POINT_POS - 1));
 
 	}
-	static id_type delta_index(size_t i, id_type r)
+	static constexpr id_type delta_index(size_t i, id_type r)
 	{
 		return DI(i, r) & r;
 	}
@@ -801,74 +796,85 @@ public:
 	 * @param s
 	 * @return
 	 */
-	static id_type component_number(id_type s)
+	static constexpr id_type component_number(id_type s)
 	{
-		id_type res = 0;
-		switch (node_id(s))
-		{
-		case 1:
-		case 6:
-			res = 0;
-			break;
-		case 2:
-		case 5:
-			res = 1;
-			break;
-
-		case 4:
-		case 3:
-			res = 2;
-			break;
-		}
-		return res;
+//		id_type res = 0;
+//		switch (node_id(s))
+//		{
+//		case 1:
+//		case 6:
+//			res = 0;
+//			break;
+//		case 2:
+//		case 5:
+//			res = 1;
+//			break;
+//
+//		case 4:
+//		case 3:
+//			res = 2;
+//			break;
+//		}
+		return (node_id(s) == 1 || node_id(s) == 6) ?
+				0 : ((node_id(s) == 2 || node_id(s) == 5) ? 1 : 2);
 	}
 
-	static id_type IForm(id_type r)
+	static constexpr id_type IForm(id_type r)
 	{
-		id_type res = 0;
-		switch (node_id(r))
-		{
-		case 0:
-			res = VERTEX;
-			break;
-		case 1:
-		case 2:
-		case 4:
-			res = EDGE;
-			break;
+//		id_type res = 0;
+//		switch (node_id(r))
+//		{
+//		case 0:
+//			res = VERTEX;
+//			break;
+//		case 1:
+//		case 2:
+//		case 4:
+//			res = EDGE;
+//			break;
+//
+//		case 3:
+//		case 5:
+//		case 6:
+//			res = FACE;
+//			break;
+//
+//		case 7:
+//			res = VOLUME;
+//		}
+		// FIXME : NOT complete;
 
-		case 3:
-		case 5:
-		case 6:
-			res = FACE;
-			break;
+		return (node_id(r) == 0) ? VERTEX : ((node_id(r) == 7) ? VOLUME : FACE)
 
-		case 7:
-			res = VOLUME;
-		}
-		return res;
+		;
 	}
 	//! @}
 
 	template<size_t IForm> struct Range;
 
+//	template<size_t IForm>
+//	static Range<IForm> make_range(nTuple<size_t, ndims> const & b,
+//			nTuple<size_t, ndims> const &e)
+//	{
+//		index_tuple b1, e1;
+//		b1 = (b << FLOATING_POINT_POS) + ZERO_INDEX;
+//		e1 = (e << FLOATING_POINT_POS) + ZERO_INDEX;
+//		CHECK(b1);
+//		CHECK(e1);
+//		return std::move(Range<IForm>(b1, e1));
+//	}
+//	template<size_t IForm>
+//	static Range<IForm> make_range(coordinates_type const & b,
+//			coordinates_type const &e)
+//	{
+//		return std::move(
+//				Range<IForm>(coordinates_to_index(b), coordinates_to_index(e)));
+//	}
+
 	template<size_t IForm>
-	static Range<IForm> make_range(nTuple<size_t, ndims> const & b,
-			nTuple<size_t, ndims> const &e)
+	constexpr Range<IForm> range() const
 	{
-		index_tuple b1, e1;
-		b1 = (b << FLOATING_POINT_POS) + ZERO_INDEX;
-		e1 = (e << FLOATING_POINT_POS) + ZERO_INDEX;
-		CHECK(b1);
-		CHECK(e1);
-		return std::move(Range<IForm>(b1, e1));
-	}
-	template<size_t IForm>
-	static Range<IForm> make_range(coordinates_type const & b,
-			coordinates_type const &e)
-	{
-		return std::move(
-				Range<IForm>(coordinates_to_index(b), coordinates_to_index(e)));
+		return Range<IForm>(local_inner_begin_, local_inner_end_);
 	}
 
 	/**
@@ -888,7 +894,7 @@ private:
 public:
 
 	template<size_t IFORM>
-	Range<IFORM> select() const
+	constexpr Range<IFORM> select() const
 	{
 		return (Range<IFORM>(local_inner_begin_, local_inner_end_));
 	}
@@ -910,14 +916,14 @@ public:
 	 *
 	 */
 	template<size_t IFORM>
-	Range<IFORM> select(coordinates_type const & xmin,
+	constexpr Range<IFORM> select(coordinates_type const & xmin,
 			coordinates_type const &xmax) const
 	{
 		return std::move(Range<IFORM>());
 	}
 
 	template<size_t IFORM>
-	Range<IFORM> select_outer() const
+	constexpr Range<IFORM> select_outer() const
 	{
 		return std::move(Range<IFORM>(local_outer_begin_, local_outer_end_));
 	}
@@ -960,34 +966,36 @@ public:
 
 	size_t hash(id_type s) const
 	{
-		nTuple<index_type, ndims> d = (id_to_index(s) >> FLOATING_POINT_POS)
-				- local_outer_begin_;
+//		nTuple<index_type, ndims> d = (id_to_index(s) >> FLOATING_POINT_POS)
+//				- local_outer_begin_;
+//
+//		size_t res =
+//
+//		mod_(d[0], (local_outer_count_[0])) * hash_strides_[0] +
+//
+//		mod_(d[1], (local_outer_count_[1])) * hash_strides_[1] +
+//
+//		mod_(d[2], (local_outer_count_[2])) * hash_strides_[2];
+//
+//		switch (node_id(s))
+//		{
+//		case 4:
+//		case 3:
+//			res = ((res << 1) + res);
+//			break;
+//		case 2:
+//		case 5:
+//			res = ((res << 1) + res) + 1;
+//			break;
+//		case 1:
+//		case 6:
+//			res = ((res << 1) + res) + 2;
+//			break;
+//		}
+//
+//		return res;
 
-		size_t res =
-
-		mod_(d[0], (local_outer_count_[0])) * hash_strides_[0] +
-
-		mod_(d[1], (local_outer_count_[1])) * hash_strides_[1] +
-
-		mod_(d[2], (local_outer_count_[2])) * hash_strides_[2];
-
-		switch (node_id(s))
-		{
-		case 4:
-		case 3:
-			res = ((res << 1) + res);
-			break;
-		case 2:
-		case 5:
-			res = ((res << 1) + res) + 1;
-			break;
-		case 1:
-		case 6:
-			res = ((res << 1) + res) + 2;
-			break;
-		}
-
-		return res;
+		return 0;
 
 	}
 	/**@}*/
@@ -1579,6 +1587,11 @@ public:
 
 };
 
+class op_split
+{
+
+};
+
 template<size_t IFORM>
 struct StructuredMesh::Range
 {
@@ -1600,6 +1613,10 @@ struct StructuredMesh::Range
 			begin_(that.begin_), end_(that.end_)
 	{
 	}
+	Range(Range & that, op_split) :
+			begin_(that.begin_), end_(that.end_)
+	{
+	}
 	~Range()
 	{
 	}
@@ -1611,7 +1628,11 @@ struct StructuredMesh::Range
 
 	const_iterator end() const
 	{
-		return std::move(const_iterator(begin_, end_));
+		index_tuple s = end_;
+		s -= 1;
+		const_iterator res(begin_, end_, s);
+		++res;
+		return std::move(res);
 	}
 
 };
@@ -1641,9 +1662,13 @@ struct StructuredMesh::Range<IFORM>::const_iterator
 			shift_(r.shift_), self_(r.self_), begin_(r.begin_), end_(r.end_)
 	{
 	}
-
-	const_iterator(index_tuple const & b, index_tuple const e) :
+	const_iterator(index_tuple const & b, index_tuple const &e) :
 			self_(b), begin_(b), end_(e)
+	{
+	}
+	const_iterator(index_tuple const & b, index_tuple const &e,
+			index_tuple const & s) :
+			self_(s), begin_(b), end_(e)
 	{
 	}
 
@@ -1678,18 +1703,18 @@ struct StructuredMesh::Range<IFORM>::const_iterator
 		return std::move(res);
 	}
 
-	const_iterator & operator --()
-	{
-		prev();
-		return *this;
-	}
-
-	const_iterator operator --(int) const
-	{
-		const_iterator res(*this);
-		--res;
-		return std::move(res);
-	}
+//	const_iterator & operator --()
+//	{
+//		prev();
+//		return *this;
+//	}
+//
+//	const_iterator operator --(int) const
+//	{
+//		const_iterator res(*this);
+//		--res;
+//		return std::move(res);
+//	}
 private:
 #ifndef USE_FORTRAN_ORDER_ARRAY
 	static constexpr size_t ARRAY_ORDER = C_ORDER;

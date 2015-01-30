@@ -6,7 +6,7 @@ my_test(field_simple_mesh_map_test     field_simple_mesh_map_test.cpp        )
 target_link_libraries(field_simple_mesh_map_test   pthread   utilities  )
  
 my_test(field_cartesian_map_test    field_cartesian_map_test.cpp)
-target_link_libraries(field_cartesian_map_test  pthread   utilities)
+target_link_libraries(field_cartesian_map_test  pthread physics utilities)
 
 simpla_test(cartesian_test 					  		
    							field_vector_calculus_Cartesian_test.cpp 

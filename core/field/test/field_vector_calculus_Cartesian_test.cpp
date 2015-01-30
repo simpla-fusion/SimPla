@@ -21,5 +21,5 @@ using namespace simpla;
 typedef CartesianCoordinates<StructuredMesh, CARTESIAN_ZAXIS> g_type;
 typedef Real v_type;
 
-#include "field_vector_calculus_test.h"
+#include "field_diff_calculus_test.h"
 

@@ -18,4 +18,4 @@ typedef Mesh<CartesianCoordinates<StructuredMesh, CARTESIAN_ZAXIS>,
 		FiniteDiffMethod, InterpolatorLinear> m_type;
 typedef std::complex<Real> v_type;
 
-#include "field_vector_calculus_test.h"
+#include "field_diff_calculus_test.h"

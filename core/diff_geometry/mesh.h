@@ -129,7 +129,8 @@ public:
 	}
 
 	Mesh(geometry_type const & geo) :
-			geometry_(geo.shared_from_this())
+			geometry_(geo.shared_from_this()), range_(
+					geo.template range<iform>())
 	{
 	}
 
@@ -144,11 +145,18 @@ public:
 	{
 		return "Mesh<" + geometry_->get_type_as_string() + ">";
 	}
-
 	this_type & operator=(this_type const & other)
 	{
 		geometry_ = other.geometry_->shared_from_this();
 		return *this;
+	}
+
+	template<size_t J> using clone_type= Mesh<J,TG, CalculusPolicy, InterpolatorPlolicy>;
+
+	template<size_t J>
+	clone_type<J> clone() const
+	{
+		return clone_type<J>(*geometry_);
 	}
 
 	/** @name Range Concept
@@ -172,19 +180,20 @@ public:
 	template<typename TFun>
 	void serial_foreach(TFun const & fun) const
 	{
-//		for (auto s : range_)
-//		{
-//			fun(s);
-//		}
+		for (auto s : range_)
+		{
+			CHECK(s);
+			fun(s);
+		}
 	}
 
 	template<typename TFun, typename ...Args>
 	void serial_foreach(TFun const &fun, Args &&...args) const
 	{
-//		for (auto s : range_)
-//		{
-//			fun(access(std::forward<Args>(args),s)...);
-//		}
+		for (auto s : range_)
+		{
+			fun(get_value(std::forward<Args>(args),s)...);
+		}
 	}
 
 	template<typename ...Args>
@@ -192,7 +201,7 @@ public:
 	{
 //		parallel_for(*this, [&](this_type const & sub_m)
 //		{
-//			sub_m.serial_foreach(std::forward<Args>(args) ...);
+		this->serial_foreach(std::forward<Args>(args) ...);
 //		});
 	}
 
@@ -208,10 +217,10 @@ public:
 	template<typename ...Args>
 	void pull_back(Args &&...args) const
 	{
-		parallel_for(*this, [&](this_type const & sub_m)
-		{
-			sub_m.serial_pull_back(std::forward<Args>(args) ...);
-		});
+//		parallel_for(*this, [&](this_type const & sub_m)
+//		{
+//			sub_m.serial_pull_back(std::forward<Args>(args) ...);
+//		});
 
 	}
 
@@ -241,10 +250,6 @@ public:
 	}
 
 	template<typename ...Args>
-	auto coordinates(Args && ...args) const
-	DECL_RET_TYPE(( geometry_->coordinates(std::forward<Args>(args)...)))
-
-	template<typename ...Args>
 	auto calculate(Args && ...args) const
 	DECL_RET_TYPE((calculate_policy::calculate(
 							*geometry_,std::forward<Args>(args)...)))
@@ -253,17 +258,13 @@ public:
 	void calculate(
 			_Field<AssignmentExpression<TOP, TL, TR> > const & fexpr) const
 	{
-		serial_foreach(fexpr.op_, fexpr.lhs, fexpr.rhs);
+		CHECK("=====");
+		for (auto s : range_)
+		{
+			CHECK(s);
+			fexpr.op_(fexpr.lhs, fexpr.rhs, s);
+		}
 	}
-	template<typename ...Args>
-	auto gather(Args && ...args) const
-	DECL_RET_TYPE((interpolatpr_policy::gather(
-							*geometry_,std::forward<Args>(args)...)))
-
-	template<typename ...Args>
-	auto scatter(Args && ...args) const
-	DECL_RET_TYPE((interpolatpr_policy::scatter(
-							*geometry_,std::forward<Args>(args)...)))
 
 	range_type const & range() const
 	{
@@ -278,6 +279,20 @@ public:
 		return range_.end();
 	}
 
+	template<typename ...Args>
+	auto coordinates(Args && ...args) const
+	DECL_RET_TYPE(( geometry_->coordinates(std::forward<Args>(args)...)))
+
+	template<typename ...Args>
+	auto gather(Args && ...args) const
+	DECL_RET_TYPE((interpolatpr_policy::gather(
+							*geometry_,std::forward<Args>(args)...)))
+
+	template<typename ...Args>
+	auto scatter(Args && ...args) const
+	DECL_RET_TYPE((interpolatpr_policy::scatter(
+							*geometry_,std::forward<Args>(args)...)))
+
 //	template<typename ...Args>
 //	auto sample(Args && ...args) const
 //	DECL_RET_TYPE(
@@ -285,6 +300,12 @@ public:
 //							*geometry_,std::forward<Args>(args)...)))
 
 };
+
+template<size_t IFORM, size_t I, typename ...Args>
+std::shared_ptr<Mesh<IFORM, Args...>> clone_mesh(Mesh<I, Args...> const& m)
+{
+
+}
 
 template<size_t IFORM, typename TG>
 std::shared_ptr<Mesh<IFORM, TG>> create_mesh(TG const & geo)

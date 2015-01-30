@@ -388,8 +388,7 @@ struct sp_pod_traits<nTuple<T, N...> >
 template<typename TInts, TInts ...N>
 nTuple<TInts, sizeof...(N)> seq2ntuple(integer_sequence<TInts, N...>)
 {
-	return std::move(nTuple<TInts, sizeof...(N)>(
-	{ N... }));
+	return std::move(nTuple<TInts, sizeof...(N)>( { N... }));
 }
 
 template<typename T, size_t N> using Vector=nTuple<T,N>;
@@ -497,10 +496,9 @@ template<typename T1, size_t ... N1, typename T2, size_t ... N2> inline auto cro
 		nTuple<T1, N1...> const & l, nTuple<T2, N2...> const & r)
 		->nTuple<decltype(get_value(l,0)*get_value(r,0)),3>
 {
-	nTuple<decltype(get_value(l,0)*get_value(r,0)), 3> res =
-	{ l[1] * r[2] - l[2] * r[1], l[2] * get_value(r, 0)
-			- get_value(l, 0) * r[2], get_value(l, 0) * r[1]
-			- l[1] * get_value(r, 0) };
+	nTuple<decltype(get_value(l,0)*get_value(r,0)), 3> res = { l[1] * r[2]
+			- l[2] * r[1], l[2] * get_value(r, 0) - get_value(l, 0) * r[2],
+			get_value(l, 0) * r[1] - l[1] * get_value(r, 0) };
 	return std::move(res);
 }
 
@@ -514,79 +512,79 @@ DECL_RET_TYPE ((abs(l)))
 
 #define _SP_DEFINE_nTuple_EXPR_BINARY_RIGHT_OPERATOR(_OP_, _NAME_)                                                  \
 	template<typename T1,size_t ...N1,typename  T2> \
-	nTuple<Expression<_impl::_NAME_,nTuple<T1,N1...>,T2>> \
+	constexpr nTuple<Expression<_impl::_NAME_,nTuple<T1,N1...>,T2>> \
 	operator _OP_(nTuple<T1,N1...> const & l,T2 const &r)  \
 	{return (nTuple<Expression<_impl::_NAME_,nTuple<T1,N1...>,T2>>(l,r)) ;}                 \
 
 
 #define _SP_DEFINE_nTuple_EXPR_BINARY_OPERATOR(_OP_,_NAME_)                                                  \
 	template<typename T1,size_t ...N1,typename  T2> \
-	nTuple<Expression<_impl::_NAME_,nTuple<T1,N1...>,T2>> \
+	constexpr nTuple<Expression<_impl::_NAME_,nTuple<T1,N1...>,T2>> \
 	operator _OP_(nTuple<T1, N1...> const & l,T2 const&r)  \
 	{return (nTuple<Expression<_impl::_NAME_,nTuple<T1,N1...>,T2>>(l,r));}                    \
 	\
 	template< typename T1,typename T2 ,size_t ...N2> \
-	nTuple<Expression< _impl::_NAME_,T1,nTuple< T2,N2...>>> \
+	constexpr nTuple<Expression< _impl::_NAME_,T1,nTuple< T2,N2...>>> \
 	operator _OP_(T1 const & l, nTuple< T2,N2...>const &r)                    \
 	{return (nTuple<Expression< _impl::_NAME_,T1,nTuple< T2,N2...>>>(l,r))  ;}                \
 	\
 	template< typename T1,size_t ... N1,typename T2 ,size_t ...N2>  \
-	nTuple<Expression< _impl::_NAME_,nTuple< T1,N1...>,nTuple< T2,N2...>>>\
+	constexpr nTuple<Expression< _impl::_NAME_,nTuple< T1,N1...>,nTuple< T2,N2...>>>\
 	operator _OP_(nTuple< T1,N1...> const & l,nTuple< T2,N2...>  const &r)                    \
 	{return (nTuple<Expression< _impl::_NAME_,nTuple< T1,N1...>,nTuple< T2,N2...>>>(l,r));}                    \
 
 
 #define _SP_DEFINE_nTuple_EXPR_UNARY_OPERATOR(_OP_,_NAME_)                           \
 		template<typename T,size_t ...N> \
-		nTuple<Expression<_impl::_NAME_,nTuple<T,N...> , std::nullptr_t>> \
+		constexpr nTuple<Expression<_impl::_NAME_,nTuple<T,N...> , std::nullptr_t>> \
 		operator _OP_(nTuple<T,N...> const &l)  \
 		{return (nTuple<Expression<_impl::_NAME_,nTuple<T,N...> , std::nullptr_t>>(l)) ;}    \
 
 
 #define _SP_DEFINE_nTuple_EXPR_BINARY_BOOLEAN_OPERATOR(_OP_,_NAME_)                                                  \
 	template<typename T1,size_t ...N1,typename  T2> \
-	nTuple<BooleanExpression<_impl::_NAME_,nTuple<T1,N1...>,T2>> \
+	constexpr nTuple<BooleanExpression<_impl::_NAME_,nTuple<T1,N1...>,T2>> \
 	operator _OP_(nTuple<T1, N1...> const & l,T2 const&r)  \
 	{return (nTuple<BooleanExpression<_impl::_NAME_,nTuple<T1,N1...>,T2>>(l,r));}                    \
 	\
 	template< typename T1,typename T2 ,size_t ...N2> \
-	nTuple<BooleanExpression< _impl::_NAME_,T1,nTuple< T2,N2...>>> \
+	constexpr nTuple<BooleanExpression< _impl::_NAME_,T1,nTuple< T2,N2...>>> \
 	operator _OP_(T1 const & l, nTuple< T2,N2...>const &r)                    \
 	{return (nTuple<BooleanExpression< _impl::_NAME_,T1,nTuple< T2,N2...>>>(l,r))  ;}                \
 	\
 	template< typename T1,size_t ... N1,typename T2 ,size_t ...N2>  \
-	nTuple<BooleanExpression< _impl::_NAME_,nTuple< T1,N1...>,nTuple< T2,N2...>>>\
+	constexpr nTuple<BooleanExpression< _impl::_NAME_,nTuple< T1,N1...>,nTuple< T2,N2...>>>\
 	operator _OP_(nTuple< T1,N1...> const & l,nTuple< T2,N2...>  const &r)                    \
 	{return (nTuple<BooleanExpression< _impl::_NAME_,nTuple< T1,N1...>,nTuple< T2,N2...>>>(l,r));}                    \
 
 
 #define _SP_DEFINE_nTuple_EXPR_UNARY_BOOLEAN_OPERATOR(_OP_,_NAME_)                           \
 		template<typename T,size_t ...N> \
-		nTuple<BooleanExpression<_impl::_NAME_,nTuple<T,N...> , std::nullptr_t>> \
+		constexpr nTuple<BooleanExpression<_impl::_NAME_,nTuple<T,N...> , std::nullptr_t>> \
 		operator _OP_(nTuple<T,N...> const &l)  \
 		{return (nTuple<BooleanExpression<_impl::_NAME_,nTuple<T,N...> , std::nullptr_t>>(l)) ;}    \
 
 
 #define _SP_DEFINE_nTuple_EXPR_BINARY_FUNCTION(_NAME_)                                                  \
 			template<typename T1,size_t ...N1,typename  T2> \
-			nTuple<BooleanExpression<_impl::_##_NAME_,nTuple<T1,N1...>,T2>> \
+			constexpr	nTuple<BooleanExpression<_impl::_##_NAME_,nTuple<T1,N1...>,T2>> \
 			_NAME_(nTuple<T1,N1...> const & l,T2 const &r)  \
 			{return (nTuple<BooleanExpression<_impl::_##_NAME_,nTuple<T1,N1...>,T2>>(l,r));}       \
 			\
 			template< typename T1,typename T2,size_t ...N2> \
-			nTuple<Expression< _impl::_##_NAME_,T1,nTuple< T2,N2...>>>\
+			constexpr	nTuple<Expression< _impl::_##_NAME_,T1,nTuple< T2,N2...>>>\
 			_NAME_(T1 const & l, nTuple< T2,N2...>const &r)                    \
 			{return (nTuple<Expression< _impl::_##_NAME_,T1,nTuple< T2,N2...>>>(l,r)) ;}       \
 			\
 			template< typename T1,size_t ... N1,typename T2,size_t  ...N2> \
-			nTuple<Expression< _impl::_##_NAME_,nTuple< T1,N1...>,nTuple< T2,N2...>>>\
+			constexpr	nTuple<Expression< _impl::_##_NAME_,nTuple< T1,N1...>,nTuple< T2,N2...>>>\
 			_NAME_(nTuple< T1,N1...> const & l,nTuple< T2,N2...>  const &r)                    \
 			{return (nTuple<Expression< _impl::_##_NAME_,nTuple< T1,N1...>,nTuple< T2,N2...>>>(l,r))  ;}   \
 
 
 #define _SP_DEFINE_nTuple_EXPR_UNARY_FUNCTION( _NAME_)                           \
 		template<typename T,size_t ...N> \
-		nTuple<Expression<_impl::_##_NAME_,nTuple<T,N...>, std::nullptr_t>> \
+		constexpr nTuple<Expression<_impl::_##_NAME_,nTuple<T,N...>, std::nullptr_t>> \
 		_NAME_(nTuple<T,N ...> const &r)  \
 		{return (nTuple<Expression<_impl::_##_NAME_,nTuple<T,N...>, std::nullptr_t>>(r));}     \
 

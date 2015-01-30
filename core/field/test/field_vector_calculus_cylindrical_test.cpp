@@ -14,7 +14,7 @@ typedef Mesh<CylindricalCoordinates<StructuredMesh, CARTESIAN_ZAXIS>,
 		FiniteDiffMethod, InterpolatorLinear> m_type;
 typedef Real v_type;
 
-#include "field_vector_calculus_test.h"
+#include "field_diff_calculus_test.h"
 
 //INSTANTIATE_TEST_CASE_P(FETLCartesian, FETLTest,
 //

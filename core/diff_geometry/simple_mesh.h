@@ -290,46 +290,6 @@ public:
 		return res;
 	}
 
-	coordinates_type coordinates(id_type const & s) const
-	{
-		coordinates_type res;
-		res = (s - offset_) * dx_ + xmin_;
-		return res;
-	}
-	template<typename TV>
-	TV sample(id_type const &s, TV const &v) const
-	{
-		return v;
-	}
-
-	template<typename TD>
-	auto gather(TD const & d,
-			coordinates_type const & x) const->decltype(d[std::declval<id_type>()])
-	{
-		id_type r;
-		r = ((x - xmin_) / dx_ + 0.5);
-
-		return d[r];
-	}
-
-	template<typename TD, typename TV>
-	void scatter(TD & d, coordinates_type const &x, TV const & v) const
-	{
-		id_type r;
-		r = ((x - xmin_) / dx_ + 0.5);
-
-		d[r] += v;
-	}
-
-	template<typename TFun, typename ...Args>
-	void foreach(TFun const &fun, Args && ...args) const
-	{
-		for (auto const &s : *this)
-		{
-			fun(get_value(std::forward<Args>(args),s)...);
-		}
-	}
-
 private:
 	template<typename TOP, typename ... Args>
 	inline auto calculate_(TOP op, Args &&...args, id_type const &s) const
@@ -372,6 +332,46 @@ public:
 	template<typename T>
 	auto calculate(T const & v, id_type const &s) const
 	DECL_RET_TYPE ((get_value(v, s)))
+
+	coordinates_type coordinates(id_type const & s) const
+	{
+		coordinates_type res;
+		res = (s - offset_) * dx_ + xmin_;
+		return res;
+	}
+	template<typename TV>
+	TV sample(id_type const &s, TV const &v) const
+	{
+		return v;
+	}
+
+	template<typename TD>
+	auto gather(TD const & d,
+			coordinates_type const & x) const->decltype(d[std::declval<id_type>()])
+	{
+		id_type r;
+		r = ((x - xmin_) / dx_ + 0.5);
+
+		return d[r];
+	}
+
+	template<typename TD, typename TV>
+	void scatter(TD & d, coordinates_type const &x, TV const & v) const
+	{
+		id_type r;
+		r = ((x - xmin_) / dx_ + 0.5);
+
+		d[r] += v;
+	}
+
+	template<typename TFun, typename ...Args>
+	void foreach(TFun const &fun, Args && ...args) const
+	{
+		for (auto const &s : *this)
+		{
+			fun(get_value(std::forward<Args>(args),s)...);
+		}
+	}
 
 };
 

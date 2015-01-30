@@ -26,7 +26,7 @@ typedef std::unordered_map<typename SimpleMesh::id_type, double, hash_id> contai
 
 typedef SimpleMesh mesh_type;
 
-#include "field_test.h"
+#include "field_basic_test.h"
 
 INSTANTIATE_TEST_CASE_P(FETLCartesian, TestFieldCase,
 		testing::Values(
