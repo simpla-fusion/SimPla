@@ -25,12 +25,7 @@ struct is_map_container;
 }  // namespace _impl
 /**
  * @ingroup field
- *
- *  @brief Field using  associative container 'map'
- *
- *  @details
- *     map container
- *
+ * @brief Field using  associative container 'map'
  */
 template<typename TM, typename TContainer>
 struct _Field<TM, TContainer, _impl::is_map_container> : public SpObject

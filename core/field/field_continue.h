@@ -185,15 +185,15 @@ public:
 		*this = 0;
 	}
 
-private:
-	HAS_CONST_MEMBER_FUNCTION(hash);
-
-	HAS_CONST_MEMBER_FUNCTION(max_hash);
-
-	static_assert(has_const_member_function_hash<TM,typename TM::id_type>::value &&
-			has_const_member_function_max_hash<TM>::value,
-			"Mesh do not support 'sequence container'"
-	);
+//private:
+//	HAS_CONST_MEMBER_FUNCTION(hash);
+//
+//	HAS_CONST_MEMBER_FUNCTION(max_hash);
+//
+//	static_assert(has_const_member_function_hash<TM,typename TM::id_type>::value &&
+//			has_const_member_function_max_hash<TM>::value,
+//			"Mesh do not support 'sequence container'"
+//	);
 };
 
 }
