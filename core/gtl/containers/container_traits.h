@@ -96,6 +96,7 @@ template<typename TV> struct container_traits<std::shared_ptr<TV>>
 	}
 };
 /** @}*/
+
 }
 // namespace simpla
 #endif /* CONTAINER_TRAITS_H_ */

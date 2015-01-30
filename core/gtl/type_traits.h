@@ -41,6 +41,27 @@ struct remove_all
 	typedef typename std::remove_reference<typename std::remove_const<T>::type>::type type;
 };
 
+/**
+ * @name Replace Type
+ * @{
+ */
+
+template<size_t, typename ...> struct replace_template_type;
+
+template<typename TV, typename T0, typename ...Others, template<typename ...> class TT>
+struct replace_template_type<0,TV,TT<T0, Others...> >
+{
+	typedef TT< TV,Others...> type;
+};
+
+template<typename TV, template<typename ...> class TT, typename T0,typename T1,typename ...Others>
+struct replace_template_type<1,TV,TT<T0,T1,Others...> >
+{
+	typedef TT<T0,TV,Others...> type;
+};
+/**
+ * @}
+ */
 #define DECL_RET_TYPE(_EXPR_) ->decltype((_EXPR_)){return (_EXPR_);}
 
 #define ENABLE_IF_DECL_RET_TYPE(_COND_,_EXPR_) \

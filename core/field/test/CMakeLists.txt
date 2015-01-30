@@ -1,6 +1,6 @@
 
-my_test(field_simple_mesh_test     field_simple_mesh_test.cpp        )
-target_link_libraries(field_simple_mesh_test   pthread   utilities  )
+my_test(field_simple_mesh_shared_ptr_test     field_simple_mesh_shared_ptr_test.cpp        )
+target_link_libraries(field_simple_mesh_shared_ptr_test   pthread   utilities  )
 
 my_test(field_simple_mesh_map_test     field_simple_mesh_map_test.cpp        )
 target_link_libraries(field_simple_mesh_map_test   pthread   utilities  )

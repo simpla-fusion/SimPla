@@ -33,30 +33,19 @@ protected:
 public:
 
 	typedef TField field_type;
-	typedef typename TField::mesh_type mesh_type;
-	typedef typename TField::value_type value_type;
-
-	typedef Field<mesh_type, value_type> scalar_field_type;
+	typedef typename field_type::mesh_type mesh_type;
+	typedef typename field_type::value_type value_type;
 
 	mesh_type mesh;
 
-	field_type make_field() const
-	{
-		return std::move(field_type(mesh));
-	}
-	scalar_field_type make_scalar_field() const
-	{
-		return std::move(scalar_field_type(mesh));
-	}
-
 };
 
-typedef TestField<f_type> TestFieldCase;
+typedef TestField<Field<mesh_type, container_type>> TestFieldCase;
 
 TEST_P(TestFieldCase, index)
 {
 
-	auto f1 = make_field();
+	field_type f1(mesh);
 
 	f1.clear();
 
@@ -78,7 +67,7 @@ TEST_P(TestFieldCase, index)
 TEST_P(TestFieldCase, assign)
 {
 
-	auto f1 = make_field();
+	auto f1 = make_field<field_type>(mesh);
 
 	value_type va;
 
@@ -101,9 +90,9 @@ TEST_P(TestFieldCase, assign)
 TEST_P(TestFieldCase, constant_real)
 {
 
-	auto f1 = make_field();
-	auto f2 = make_field();
-	auto f3 = make_field();
+	auto f1 = make_field<field_type>(mesh);
+	auto f2 = make_field<field_type>(mesh);
+	auto f3 = make_field<field_type>(mesh);
 
 	f3 = 1;
 	Real a, b, c;
@@ -131,14 +120,14 @@ TEST_P(TestFieldCase, constant_real)
 TEST_P(TestFieldCase, scalar_field)
 {
 
-	auto f1 = make_field();
-	auto f2 = make_field();
-	auto f3 = make_field();
-	auto f4 = make_field();
+	auto f1 = make_field<field_type>(mesh);
+	auto f2 = make_field<field_type>(mesh);
+	auto f3 = make_field<field_type>(mesh);
+	auto f4 = make_field<field_type>(mesh);
 
-	auto a = make_scalar_field();
-	auto b = make_scalar_field();
-	auto c = make_scalar_field();
+	auto a = f1.template clone<Real>();
+	auto b = f1.template clone<Real>();
+	auto c = f1.template clone<Real>();
 
 	Real ra = 1.0, rb = 10.0, rc = 100.0;
 

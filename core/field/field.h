@@ -7,17 +7,8 @@
 #ifndef CORE_FIELD_FIELD_H_
 #define CORE_FIELD_FIELD_H_
 
-#include <cstdbool>
-#include <cstddef>
-#include <memory>
-#include <type_traits>
-
-#include "../utilities/utilities.h"
-#include "../data_representation/data_interface.h"
-#include "../application/sp_object.h"
-#include "../gtl/expression_template.h"
-#include "../gtl/containers/container_traits.h"
-
+#include "field_expression.h"
+#include "../gtl/type_traits.h"
 namespace simpla
 {
 
@@ -33,8 +24,12 @@ namespace simpla
  *  - @ref field  is function, \f$ y=f(x)\f$ , on the
  *     @ref configuration_space, where \f$x\in D\f$ is
  *       coordinates defined in @ref domain \f$D\f$, and  \f$ y \f$
- *       is a scalar/vector/tensor.
- *  - @ref field is an 'unordered_map<id_type,value_type>'
+ *       is a scalar/vector/tensor.     f(coordinates_type x) =>  field value(scalar/vector/tensor) at the coordinates x
+ *
+ *  - @ref field is an associate container, i.e.'unordered_map<id_type,value_type>'
+ *     f[id_type i] => value at the discrete point/edge/face/volume i
+ *
+ *  - @ref field is an @ref expression
  *
  * ## Member types
  *  Member type	 				    | Semantics
@@ -92,10 +87,6 @@ namespace simpla
  *  `Field & operator=(FieldExpression const &)` | Assign operation,
  *  `Field operator=( const Field& )`            | copy-assignment operator.
  *  `Field operator=( Field&& )`		         | move-assignment operator.
- *  `Field & operator+=(Expression const &)`     | Assign operation +
- *  `Field & operator-=(Expression const &)`     | Assign operation -
- *  `Field & operator/=(Expression const &)`     | Assign operation /
- *  `Field & operator*=(Expression const &)`     | Assign operation *
  *
  * ## Non-member functions
  *  Pseudo-Signature  				| Semantics
@@ -107,475 +98,52 @@ namespace simpla
  *  - @ref mesh_concept
  *  - @ref diff_geometry
  *
- *
- *
  */
 /**
  *  @ingroup field
  *
- *  @brief skeleton of Field data holder
- *   Field is an Associate container
- *     f[id_type i] => value at the discrete point/edge/face/volume i
- *   Field is a Function
- *     f(coordinates_type x) =>  field value(scalar/vector/tensor) at the coordinates x
- *   Field is a Expression
  */
 template<typename ... >struct _Field;
 
-template<typename TM, typename TContainer>
-struct _Field<TM, TContainer> : public SpObject
+namespace _impl
 {
+class is_sequence_container;
 
-	typedef TM mesh_type;
+class is_map_container;
 
-	typedef typename mesh_type::id_type id_type;
-	typedef typename mesh_type::coordinates_type coordinates_type;
+class is_shared_ptr;
 
-	typedef TContainer container_type;
-	typedef typename container_type::mapped_type value_type;
+template<typename TContainer>
+struct field_selector
+{
+	HAS_TYPE(mapped_type);
 
-	typedef _Field<mesh_type, container_type> this_type;
+	HAS_MEMBER_FUNCTION(resize);
 
-private:
+	HAS_CONST_MEMBER_FUNCTION(hash);
 
-	mesh_type mesh_;
+	typedef typename std::conditional<
+	has_type_mapped_type<TContainer>::value,
+	is_map_container,
 
-	typename container_traits<container_type>::holder_type data_;
+	typename std::conditional<has_member_function_resize<TContainer>::value,
+	is_sequence_container,void>::type
 
-public:
-
-	_Field(mesh_type const & d) :
-			mesh_(d), data_(std::make_shared<container_type>())
-	{
-
-	}
-	_Field(this_type const & that) :
-			mesh_(that.mesh_), data_(that.data_)
-	{
-	}
-	~_Field()
-	{
-	}
-
-	std::string get_type_as_string() const
-	{
-		return "Field<" + mesh_.get_type_as_string() + ">";
-	}
-	mesh_type const & mesh() const
-	{
-		return mesh_;
-	}
-	void clear()
-	{
-		*this = 0;
-//		container_traits<container_type>::clear(data_, mesh_.max_hash());
-	}
-
-	/** @name range concept
-	 * @{
-	 */
-
-	template<typename ...Args>
-	_Field(this_type & that, Args && ...args) :
-			mesh_(that.mesh_, std::forward<Args>(args)...), data_(that.data_)
-	{
-	}
-	bool empty() const
-	{
-		return mesh_.empty();
-	}
-	bool is_divisible() const
-	{
-		return mesh_.is_divisible();
-	}
-
-	/**@}*/
-
-	/**
-	 * @name assignment
-	 * @{
-	 */
-
-	inline _Field<AssignmentExpression<_impl::_assign, this_type, this_type>> operator =(
-			this_type const &that)
-	{
-		return std::move(
-				_Field<
-						AssignmentExpression<_impl::_assign, this_type,
-								this_type>>(*this, that));
-	}
-
-	template<typename TR>
-	inline _Field<AssignmentExpression<_impl::_assign, this_type, TR>> operator =(
-			TR const &that)
-	{
-		return std::move(
-				_Field<AssignmentExpression<_impl::_assign, this_type, TR>>(
-						*this, that));
-	}
-
-	template<typename TFun> void pull_back(TFun const &fun)
-	{
-		mesh_.pull_back(*data_, fun);
-	}
-
-	/** @} */
-
-	/** @name access
-	 *  @{*/
-
-	typedef typename mesh_type::template field_value_type<value_type> field_value_type;
-
-	field_value_type gather(coordinates_type const& x) const
-	{
-		return std::move(mesh_.gather(*data_, x));
-	}
-
-	template<typename ...Args>
-	void scatter(Args && ... args)
-	{
-		mesh_.scatter(*data_, std::forward<Args>(args)...);
-	}
-
-//	template<typename ...Args>
-//	auto operator()(
-//			Args && ...s)
-//					DECL_RET_TYPE((get( std::integral_constant<bool, is_associative_container>(),std::forward<Args>(s)...)))
-//
-//	template<typename ...Args>
-//	auto operator()(
-//			Args && ...s) const
-//					DECL_RET_TYPE((get( std::integral_constant<bool, is_associative_container>(), std::forward<Args>(s)...)))
-
-	/**@}*/
-
-//	DataSet dump_data() const
-//	{
-//		return DataSet();
-//	}
-public:
-	value_type & operator[](id_type const & s)
-	{
-		return (*data_)[s];
-	}
-	value_type const & operator[](id_type const & s) const
-	{
-		return (*data_)[s];
-	}
+	>::type type;
+};
 
 }
-;
+ // namespace _impl
+
+template<typename TM, typename TContainer>
+using Field=_Field<TM,TContainer,typename _impl::field_selector<TContainer>::type>;
 
 template<typename TM, typename TV>
-struct _Field<TM, std::shared_ptr<TV>> : public SpObject
-{
-
-	typedef TM mesh_type;
-
-	typedef typename mesh_type::id_type id_type;
-	typedef typename mesh_type::coordinates_type coordinates_type;
-
-	typedef std::shared_ptr<TV> container_type;
-	typedef TV value_type;
-
-	typedef _Field<mesh_type, container_type> this_type;
-
-private:
-
-	mesh_type mesh_;
-
-	std::shared_ptr<TV> data_;
-
-public:
-
-	_Field(mesh_type const & d) :
-			mesh_(d), data_(nullptr)
-	{
-//		static_assert(is_indexable<container_type,id_type>::value ||
-//				is_indexable<container_type,size_t>::value,"illegal container type" );
-
-	}
-	_Field(this_type const & that) :
-			mesh_(that.mesh_), data_(that.data_)
-	{
-	}
-	~_Field()
-	{
-	}
-
-	std::string get_type_as_string() const
-	{
-		return "Field<" + mesh_.get_type_as_string() + ">";
-	}
-	mesh_type const & mesh() const
-	{
-		return mesh_;
-	}
-	void clear()
-	{
-		allocate();
-		container_traits<container_type>::clear(data_, mesh_.max_hash());
-	}
-
-	/** @name range concept
-	 * @{
-	 */
-
-	template<typename ...Args>
-	_Field(this_type & that, Args && ...args) :
-			mesh_(that.mesh_, std::forward<Args>(args)...), data_(that.data_)
-	{
-	}
-	bool empty() const
-	{
-		return mesh_.empty();
-	}
-	bool is_divisible() const
-	{
-		return mesh_.is_divisible();
-	}
-
-	/**@}*/
-
-	/**
-	 * @name assignment
-	 * @{
-	 */
-
-	inline _Field<AssignmentExpression<_impl::_assign, this_type, this_type>> operator =(
-			this_type const &that)
-	{
-		allocate();
-		return std::move(
-				_Field<
-						AssignmentExpression<_impl::_assign, this_type,
-								this_type>>(*this, that));
-	}
-
-	template<typename TR>
-	inline _Field<AssignmentExpression<_impl::_assign, this_type, TR>> operator =(
-			TR const &that)
-	{
-		allocate();
-		return std::move(
-				_Field<AssignmentExpression<_impl::_assign, this_type, TR>>(
-						*this, that));
-	}
-
-	template<typename TFun> void pull_back(TFun const &fun)
-	{
-		allocate();
-		mesh_.pull_back(*data_, fun);
-	}
-
-	/** @} */
-
-	/** @name access
-	 *  @{*/
-
-	typedef typename mesh_type::template field_value_type<value_type> field_value_type;
-
-	field_value_type gather(coordinates_type const& x) const
-	{
-		return std::move(mesh_.gather(data_, x));
-	}
-
-	template<typename ...Args>
-	void scatter(Args && ... args)
-	{
-		mesh_.scatter(data_, std::forward<Args>(args)...);
-	}
-
-	/**@}*/
-
-//	DataSet dump_data() const
-//	{
-//		return DataSet();
-//	}
-private:
-	void allocate()
-	{
-		if (data_ == nullptr)
-		{
-			data_ = sp_make_shared_array<value_type>(mesh_.max_hash());
-		}
-	}
-
-public:
-	value_type & operator[](id_type const & s)
-	{
-		return data_.get()[mesh_.hash(s)];
-	}
-	value_type const & operator[](id_type const & s) const
-	{
-		return data_.get()[mesh_.hash(s)];
-	}
-
-}
-;
-
-template<typename TM, typename TC, typename ...Others>
-struct reference_traits<_Field<TM, TC, Others...> >
-{
-	typedef _Field<TM, TC, Others...> const & type;
-};
-
-template<typename TM, typename TV> using Field= _Field< TM,std::shared_ptr<TV> >;
-
-template<typename > struct is_field
-{
-	static constexpr bool value = false;
-};
-
-template<typename ...T> struct is_field<_Field<T...>>
-{
-	static constexpr bool value = true;
-};
-
-template<typename ...> struct field_traits;
-
-template<typename T> struct field_traits<T>
-{
-
-	typedef std::nullptr_t mesh_type;
-
-	typedef T value_type;
-
-	static constexpr bool is_field = false;
-
-};
-
-template<typename ...T>
-struct field_traits<_Field<T ...>>
-{
-	static constexpr bool is_field = true;
-
-	typedef typename _Field<T ...>::mesh_type mesh_type;
-
-	typedef typename _Field<T ...>::value_type value_type;
-
-};
-
-/// @name  Field Expression
-/// @{
-
-template<typename ...>class Expression;
-template<typename ...>class BooleanExpression;
-
-template<typename TOP, typename TL>
-struct _Field<Expression<TOP, TL, std::nullptr_t>> : public Expression<TOP, TL,
-		std::nullptr_t>
-{
-	typedef typename field_traits<TL>::value_type l_type;
-public:
-
-	typedef typename field_traits<TL>::mesh_type mesh_type;
-
-	typedef typename sp_result_of<TOP(l_type)>::type value_type;
-
-	typedef _Field<Expression<TOP, TL, std::nullptr_t>> this_type;
-
-	using Expression<TOP, TL, std::nullptr_t>::Expression;
-};
-
-template<typename TOP, typename TL, typename TR>
-struct _Field<Expression<TOP, TL, TR>> : public Expression<TOP, TL, TR>
-{
-
-	typedef typename field_traits<TL>::value_type l_type;
-	typedef typename field_traits<TR>::value_type r_type;
-
-public:
-
-	typedef typename sp_result_of<TOP(l_type, r_type)>::type value_type;
-
-	typedef typename field_traits<TL>::mesh_type mesh_type;
-
-	typedef _Field<Expression<TOP, TL, TR>> this_type;
-
-	using Expression<TOP, TL, TR>::Expression;
-};
-
-template<typename TOP, typename TL, typename TR>
-struct _Field<BooleanExpression<TOP, TL, TR>> : public Expression<TOP, TL, TR>
-{
-	typedef bool value_type;
-
-	typedef typename field_traits<TL>::mesh_type mesh_type;
-
-	typedef _Field<BooleanExpression<TOP, TL, TR>> this_type;
-
-	using Expression<TOP, TL, TR>::Expression;
-
-	operator bool() const
-	{
-		UNIMPLEMENTED;
-		return false;
-	}
-};
-
-template<typename TOP, typename TL, typename TR>
-struct _Field<AssignmentExpression<TOP, TL, TR>> : public AssignmentExpression<
-		TOP, TL, TR>
-{
-	typedef AssignmentExpression<TOP, TL, TR> expression_type;
-
-	typedef typename field_traits<TL>::value_type value_type;
-
-	typedef typename field_traits<TL>::mesh_type mesh_type;
-
-	typedef _Field<AssignmentExpression<TOP, TL, TR>> this_type;
-
-	using AssignmentExpression<TOP, TL, TR>::AssignmentExpression;
-
-	bool is_excuted_ = false;
-
-	void excute()
-	{
-		if (!is_excuted_)
-		{
-			expression_type::lhs.mesh().calculate(*this);
-			is_excuted_ = true;
-		}
-
-	}
-	void do_not_excute()
-	{
-		is_excuted_ = true;
-	}
-
-	~_Field()
-	{
-		excute();
-	}
-};
-
-DEFINE_EXPRESSOPM_TEMPLATE_BASIC_ALGEBRA(_Field)
-
-#define SP_DEF_BINOP_FIELD_NTUPLE(_OP_,_NAME_)                                                 \
-template<typename ...T1, typename T2, size_t ... N>                                            \
-_Field<Expression<_impl::plus, _Field<T1...>, nTuple<T2, N...> > > operator _OP_(              \
-		_Field<T1...> const & l, nTuple<T2, N...> const &r)                                    \
-{return (_Field<Expression<_impl::_NAME_, _Field<T1...>, nTuple<T2, N...> > >(l, r));}         \
-template<typename T1, size_t ... N, typename ...T2>                                            \
-_Field<Expression<_impl::plus, nTuple<T1, N...>, _Field<T2...> > > operator _OP_(              \
-		nTuple<T1, N...> const & l, _Field< T2...>const &r)                                    \
-{	return (_Field<Expression< _impl::_NAME_,T1,_Field< T2...>>>(l,r));}                       \
-
-
-SP_DEF_BINOP_FIELD_NTUPLE(+, plus)
-SP_DEF_BINOP_FIELD_NTUPLE(-, minus)
-SP_DEF_BINOP_FIELD_NTUPLE(*, multiplies)
-SP_DEF_BINOP_FIELD_NTUPLE(/, divides)
-SP_DEF_BINOP_FIELD_NTUPLE(%, modulus)
-SP_DEF_BINOP_FIELD_NTUPLE(^, bitwise_xor)
-SP_DEF_BINOP_FIELD_NTUPLE(&, bitwise_and)
-SP_DEF_BINOP_FIELD_NTUPLE(|, bitwise_or)
-#undef SP_DEF_BINOP_FIELD_NTUPLE
-
-template<typename TV, typename TM>
-auto make_field(TM const& mesh)
-DECL_RET_TYPE((_Field<TM,std::shared_ptr<TV> >( mesh )))
+using SimpleField=_Field<TM,std::shared_ptr<TV> >;
+
+template<typename TField, typename ...Args>
+auto make_field(Args && ... args)
+DECL_RET_TYPE((TField( std::forward<Args>(args)... )))
 
 }
 // namespace simpla

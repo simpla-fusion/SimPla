@@ -8,16 +8,18 @@
 #ifndef CORE_GTL_ENABLE_CREATE_FROM_THIS_H_
 #define CORE_GTL_ENABLE_CREATE_FROM_THIS_H_
 #include <memory>
+
 namespace simpla
 {
 
-#ifdef USE_TBB
-typedef tbb::split op_split;
-#else
+//#ifdef USE_TBB
+//#include <tbb/tbb.h>
+//typedef tbb::split op_split;
+//#else
 class op_split
 {
 };
-#endif
+//#endif
 
 class op_clone
 {

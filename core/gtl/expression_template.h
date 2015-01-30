@@ -271,7 +271,16 @@ DEF_BOP(less_equal, <=)
 
 #undef DEF_UOP
 #undef DEF_BOP
-
+/**
+ * ### Assignment Operator
+ *
+ *   Pseudo-Signature 	 				         | Semantics
+ *  ---------------------------------------------|--------------
+ *  `operator+=(Object &,Expression const &)`     | Assign operation +
+ *  `operator-=(Object & ,Expression const &)`     | Assign operation -
+ *  `operator/=(Object & ,Expression const &)`     | Assign operation /
+ *  `operator*=(Object & ,Expression const &)`     | Assign operation *
+ */
 #define DEF_ASSIGN_OP(_NAME_,_OP_)                                                               \
 struct _NAME_                                                                             \
 {                                                                                              \
