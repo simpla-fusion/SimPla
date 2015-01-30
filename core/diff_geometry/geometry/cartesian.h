@@ -96,6 +96,15 @@ public:
 	{
 		return get_type_as_string_static();
 	}
+
+	this_type & self()
+	{
+		return *this;
+	}
+	this_type const& self() const
+	{
+		return *this;
+	}
 	//***************************************************************************************************
 	// Geometric properties
 	// Metric

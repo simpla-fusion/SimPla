@@ -12,6 +12,8 @@
 #include "../../diff_geometry/topology/structured.h"
 #include "../../diff_geometry/mesh.h"
 
+#include "../field_map.h"
+
 using namespace simpla;
 
 typedef Mesh<VERTEX, CartesianCoordinates<StructuredMesh, CARTESIAN_ZAXIS>,

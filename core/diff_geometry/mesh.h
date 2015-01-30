@@ -112,24 +112,38 @@ public:
 	typedef InterpolatorPlolicy<geometry_type> interpolatpr_policy;
 
 	static constexpr size_t iform = IFORM;
+	template<typename TV> using field_value_type=typename
+	std::conditional<iform==VERTEX || iform ==VOLUME,TV,nTuple<TV,3>>::type;
+
+	typedef typename geometry_type::template Range<iform> range_type;
+	typedef typename range_type::const_iterator const_iterator;
 
 private:
-
-	typename geometry_type::holder geometry_;
-	typename geometry_type::range_type range_;
+	typename geometry_type::const_holder geometry_;
+	range_type range_;
 public:
 
+	Mesh() :
+			geometry_(nullptr)
+	{
+	}
+
 	Mesh(geometry_type const & geo) :
-			geometry_(geo.shared_from_this()), range_(geo.get_range())
+			geometry_(geo.shared_from_this())
 	{
 	}
 
 	Mesh(this_type const & other) :
-			geometry_(other.geometry_), range_(other.range_)
+			geometry_(other.geometry_)
 	{
 	}
 
 	~Mesh() = default;
+
+	std::string get_type_as_string() const
+	{
+		return "Mesh<" + geometry_->get_type_as_string() + ">";
+	}
 
 	this_type & operator=(this_type const & other)
 	{
@@ -142,52 +156,53 @@ public:
 	 */
 
 	Mesh(this_type & other, op_split) :
-			geometry_(other.geometry_), range_(other.range_, op_split())
+			geometry_(other.geometry_)
+//	, range_(other.range_, op_split())
 	{
 	}
 	bool is_divisible() const
 	{
-		return range_.is_divisible(); //range_.is_divisible();
+		return false; //range_.is_divisible();
 	}
 	bool empty() const
 	{
-		return range_.empty();
+		return false;
 	}
 
 	template<typename TFun>
 	void serial_foreach(TFun const & fun) const
 	{
-		for (auto s : range_)
-		{
-			fun(s);
-		}
+//		for (auto s : range_)
+//		{
+//			fun(s);
+//		}
 	}
 
 	template<typename TFun, typename ...Args>
 	void serial_foreach(TFun const &fun, Args &&...args) const
 	{
-		for (auto s : range_)
-		{
-			fun(access(std::forward<Args>(args),s)...);
-		}
+//		for (auto s : range_)
+//		{
+//			fun(access(std::forward<Args>(args),s)...);
+//		}
 	}
 
 	template<typename ...Args>
 	void foreach(Args &&...args) const
 	{
-		parallel_for(*this, [&](this_type const & sub_m)
-		{
-			sub_m.serial_foreach(std::forward<Args>(args) ...);
-		});
+//		parallel_for(*this, [&](this_type const & sub_m)
+//		{
+//			sub_m.serial_foreach(std::forward<Args>(args) ...);
+//		});
 	}
 
 	template<typename TFun, typename TContainre>
 	void serial_pull_back(TFun const &fun, TContainre & data) const
 	{
-		for (auto s : range_)
-		{
-			access(data, s) = sample(fun(geometry_->coordinates(s)), s);
-		}
+//		for (auto s : range_)
+//		{
+//			access(data, s) = sample(fun(geometry_->coordinates(s)), s);
+//		}
 	}
 
 	template<typename ...Args>
@@ -204,12 +219,6 @@ public:
 	 * @}
 	 */
 
-	template<typename TV>
-	_Field<this_type, TV> create_field() const
-	{
-		return std::move(_Field<this_type, TV>(*this));
-
-	}
 	template<typename ...Args>
 	size_t hash(Args && ...args) const
 	{
@@ -218,7 +227,7 @@ public:
 
 	size_t max_hash() const
 	{
-		return geometry_->max_hash();
+		return geometry_->template max_hash<iform>();
 	}
 	template<typename ...Args>
 	id_type id(Args && ...args) const
@@ -236,25 +245,44 @@ public:
 	DECL_RET_TYPE(( geometry_->coordinates(std::forward<Args>(args)...)))
 
 	template<typename ...Args>
-	auto calculate(
-			Args && ...args) const
-					DECL_RET_TYPE((calculate_policy::calculate(*geometry_,std::forward<Args>(args)...)))
+	auto calculate(Args && ...args) const
+	DECL_RET_TYPE((calculate_policy::calculate(
+							*geometry_,std::forward<Args>(args)...)))
+
+	template<typename TOP, typename TL, typename TR>
+	void calculate(
+			_Field<AssignmentExpression<TOP, TL, TR> > const & fexpr) const
+	{
+		serial_foreach(fexpr.op_, fexpr.lhs, fexpr.rhs);
+	}
+	template<typename ...Args>
+	auto gather(Args && ...args) const
+	DECL_RET_TYPE((interpolatpr_policy::gather(
+							*geometry_,std::forward<Args>(args)...)))
 
 	template<typename ...Args>
-	auto gather(
-			Args && ...args) const
-					DECL_RET_TYPE((interpolatpr_policy::gather(*geometry_,std::forward<Args>(args)...)))
+	auto scatter(Args && ...args) const
+	DECL_RET_TYPE((interpolatpr_policy::scatter(
+							*geometry_,std::forward<Args>(args)...)))
 
-	template<typename ...Args>
-	auto scatter(
-			Args && ...args) const
-					DECL_RET_TYPE((interpolatpr_policy::scatter(*geometry_,std::forward<Args>(args)...)))
+	range_type const & range() const
+	{
+		return range_;
+	}
+	const_iterator begin() const
+	{
+		return range_.begin();
+	}
+	const_iterator end() const
+	{
+		return range_.end();
+	}
 
-	template<typename ...Args>
-	auto sample(
-			Args && ...args) const
-					DECL_RET_TYPE(
-							(interpolatpr_policy::template sample<iform>(*geometry_,std::forward<Args>(args)...)))
+//	template<typename ...Args>
+//	auto sample(Args && ...args) const
+//	DECL_RET_TYPE(
+//			(geometry_type:: sample<iform>(
+//							*geometry_,std::forward<Args>(args)...)))
 
 };
 

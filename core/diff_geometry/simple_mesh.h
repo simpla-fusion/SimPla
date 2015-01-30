@@ -331,13 +331,13 @@ public:
 	}
 
 private:
-	template<typename TOP, typename TL>
-	inline auto calculate_(TOP op, TL & f, id_type const &s) const
-	DECL_RET_TYPE (op(get_value(f, s)))
+	template<typename TOP, typename ... Args>
+	inline auto calculate_(TOP op, Args &&...args, id_type const &s) const
+	DECL_RET_TYPE (op(get_value(std::forward<Args>(args), s)...))
 
-	template<typename TOP, typename TL, typename TR>
-	inline auto calculate_(TOP op, TL & l, TR &r, id_type const &s) const
-	DECL_RET_TYPE( op(get_value( (l),s),get_value(r,s) ) )
+//	template<typename TOP, typename TL, typename TR>
+//	inline auto calculate_(TOP op, TL & l, TR &r, id_type const &s) const
+//	DECL_RET_TYPE( op(get_value( (l),s),get_value(r,s) ) )
 
 public:
 

@@ -74,7 +74,6 @@ public:
 //	inline typename field_result_of<TOP(TL,TR,Others ... )>::type
 //	calculate(_Field<Expression<TOP, TL, TR>> const &f, Others &&... s) const;
 //
-
 	template<typename ...Others>
 	Real calculate(geometry_type const & geo, Real v, Others &&... s) const
 	{
