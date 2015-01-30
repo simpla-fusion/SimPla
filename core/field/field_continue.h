@@ -26,6 +26,9 @@ namespace _impl
 struct is_sequence_container;
 }  // namespace _impl
 
+/** @ingroup field
+ *  @brief Field using  sequence container,i.e.  'vector'
+ */
 template<typename TM, typename TContainer>
 struct _Field<TM, TContainer, _impl::is_sequence_container> : public SpObject
 {
@@ -50,13 +53,11 @@ private:
 public:
 	template<typename ...Args>
 	_Field(mesh_type const & d, Args && ...args) :
-			mesh_(d)
+			mesh_(d), data_(
+					std::make_shared<container_type>(
+							std::forward<Args>(args...))
 
-//	, data_(
-//			std::make_shared<container_type>(
-//					std::forward<Args>(args...))
-//
-//	)
+							)
 	{
 	}
 	_Field(this_type const & that) :
@@ -153,7 +154,7 @@ public:
 		mesh_.scatter(*this, std::forward<Args>(args)...);
 	}
 
-	/**@}*/
+	/** @} */
 
 //	DataSet dump_data() const
 //	{
@@ -194,6 +195,7 @@ private:
 			"Mesh do not support 'sequence container'"
 	);
 };
+
 }
 // namespace simpla
 

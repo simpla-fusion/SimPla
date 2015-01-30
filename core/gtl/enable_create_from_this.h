@@ -66,7 +66,7 @@ class op_merge
  *
  *  @ref tbb::splittable
  *
- *  @ref https://software.intel.com/zh-cn/node/506141
+ *  @ref [ https://software.intel.com/zh-cn/node/506141 ]
  *
  * ## Requirements
  *

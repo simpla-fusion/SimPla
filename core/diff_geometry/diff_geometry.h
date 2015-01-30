@@ -1,8 +1,8 @@
 /**
- *  @file diff_geo.h
+ *  @file diff_geometry.h
  *
- *  Created on: 2015年1月9日
- *      Author: salmon
+ *  Created on:@date  2015年1月9日
+ *   @author: salmon
  */
 
 #ifndef CORE_DIFF_GEOMETRY_DIFF_GEOMETRY_H_

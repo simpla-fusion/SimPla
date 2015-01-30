@@ -1,5 +1,5 @@
-/*
- * field_expression.h
+/**
+ * @file field_expression.h
  *
  *  Created on: 2015年1月30日
  *      Author: salmon
@@ -11,6 +11,9 @@
 
 namespace simpla
 {
+/** @addtogroup field
+ *  @{
+ */
 template<typename ... >struct _Field;
 
 template<typename TM, typename TC, typename ...Others>
@@ -169,6 +172,8 @@ SP_DEF_BINOP_FIELD_NTUPLE(^, bitwise_xor)
 SP_DEF_BINOP_FIELD_NTUPLE(&, bitwise_and)
 SP_DEF_BINOP_FIELD_NTUPLE(|, bitwise_or)
 #undef SP_DEF_BINOP_FIELD_NTUPLE
+
+/** @} */
 }  // namespace simpla
 
 #endif /* CORE_FIELD_FIELD_EXPRESSION_H_ */

@@ -1,8 +1,8 @@
 /**
- * @file dataspace.cpp
+ * @file data_space.cpp
  *
  *  Created on: 2014年11月13日
- *      Author: salmon
+ *      @author: salmon
  */
 
 #include "../data_representation/data_space.h"

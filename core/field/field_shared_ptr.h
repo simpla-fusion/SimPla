@@ -20,6 +20,14 @@ namespace simpla
 {
 template<typename ...> struct _Field;
 
+/**
+ * @ingroup field
+ * @{
+ */
+
+/**
+ *  Simple Field
+ */
 template<typename TM, typename TV, typename ...Others>
 struct _Field<TM, std::shared_ptr<TV>, Others...> : public SpObject
 {
@@ -185,7 +193,7 @@ struct field_selector<std::shared_ptr<TV>>
 };
 
 }  // namespace _impl
-
+/**@} */
 }
 // namespace simpla
 

@@ -1,12 +1,12 @@
-/*
- * object.h
+/**
+ * @file sp_object.h
  *
- *  Created on: 2014年11月18日
- *      Author: salmon
+ *  Created on: @date 2014年11月18日
+ *   @author: salmon
  */
 
-#ifndef CORE_PHYSICS_PHYSICAL_OBJECT_H_
-#define CORE_PHYSICS_PHYSICAL_OBJECT_H_
+#ifndef CORE_APPLICATION_SP_OBJECT_H_
+#define CORE_APPLICATION_SP_OBJECT_H_
 
 #include <iostream>
 
@@ -149,4 +149,4 @@ private:
 };
 }  // namespace simpla
 
-#endif /* CORE_PHYSICS_PHYSICAL_OBJECT_H_ */
+#endif /* CORE_APPLICATION_SP_OBJECT_H_ */

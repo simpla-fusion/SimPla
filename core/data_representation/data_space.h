@@ -1,8 +1,8 @@
 /**
- * @file dataspace.h
+ * @file data_space.h
  *
  *  Created on: 2014年11月10日
- *      Author: salmon
+ *  @author: salmon
  */
 
 #ifndef CORE_DATA_REPRESENTATION_DATA_SPACE_H_

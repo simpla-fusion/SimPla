@@ -1,4 +1,4 @@
-/*
+/**
  * @file field_map.h
  *
  *  Created on: 2015年1月30日
@@ -18,11 +18,20 @@
 namespace simpla
 {
 template<typename ...>struct _Field;
+
 namespace _impl
 {
 struct is_map_container;
 }  // namespace _impl
-
+/**
+ * @ingroup field
+ *
+ *  @brief Field using  associative container 'map'
+ *
+ *  @details
+ *     map container
+ *
+ */
 template<typename TM, typename TContainer>
 struct _Field<TM, TContainer, _impl::is_map_container> : public SpObject
 {
@@ -44,8 +53,11 @@ private:
 
 public:
 
-	_Field(mesh_type const & d) :
-			mesh_(d), data_(std::make_shared<container_type>())
+	template<typename ...Args>
+	_Field(mesh_type const & d, Args && ... args) :
+			mesh_(d), data_(
+					std::make_shared<container_type>(
+							std::forward<Args>(args)...))
 	{
 
 	}
@@ -81,10 +93,6 @@ public:
 		*this = 0;
 	}
 
-	/** @name range concept
-	 * @{
-	 */
-
 	template<typename ...Args>
 	_Field(this_type & that, Args && ...args) :
 			mesh_(that.mesh_, std::forward<Args>(args)...), data_(that.data_)
@@ -98,13 +106,6 @@ public:
 	{
 		return mesh_.is_divisible();
 	}
-
-	/**@}*/
-
-	/**
-	 * @name assignment
-	 * @{
-	 */
 
 	inline _Field<AssignmentExpression<_impl::_assign, this_type, this_type>> operator =(
 			this_type const &that)
@@ -129,11 +130,6 @@ public:
 		mesh_.pull_back(*data_, fun);
 	}
 
-	/** @} */
-
-	/** @name access
-	 *  @{*/
-
 	typedef typename mesh_type::template field_value_type<value_type> field_value_type;
 
 	field_value_type gather(coordinates_type const& x) const
@@ -146,8 +142,6 @@ public:
 	{
 		mesh_.scatter(*data_, std::forward<Args>(args)...);
 	}
-
-	/**@}*/
 
 //	DataSet dump_data() const
 //	{
@@ -166,6 +160,7 @@ public:
 
 }
 ;
+
 }  // namespace simpla
 
 #endif /* CORE_FIELD_FIELD_MAP_H_ */

@@ -13,9 +13,10 @@ namespace simpla
 {
 
 /**
- *@ingroup physical_object
- *@addtogroup field Field
- *@brief @ref field is an abstraction from physical field on 4d or 3d @ref configuration_space
+ * @ingroup physical_object
+ *
+ * @addtogroup field Field
+ * @brief @ref field is an abstraction from physical field on 4d or 3d @ref configuration_space
  *
  * ## Summary
  *  - @ref field  assigns a scalar/vector/tensor to each point of a
@@ -100,8 +101,12 @@ namespace simpla
  *
  */
 /**
- *  @ingroup field
- *
+ * @ingroup field
+ * @{
+ */
+
+/**
+ * Field Class
  */
 template<typename ... >struct _Field;
 
@@ -145,7 +150,8 @@ template<typename TField, typename ...Args>
 auto make_field(Args && ... args)
 DECL_RET_TYPE((TField( std::forward<Args>(args)... )))
 
+/** @} */
 }
-// namespace simpla
+ // namespace simpla
 
 #endif /* CORE_FIELD_FIELD_H_ */

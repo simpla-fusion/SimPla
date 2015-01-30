@@ -34,10 +34,11 @@ namespace simpla
  *    inductively using the construction of an ordered pair. Tuples are usually
  *    written by listing the elements within parenthesis '( )' and separated by
  *    commas; for example, (2, 7, 4, 1, 7) denotes a 5-tuple.
- *    \note  http://en.wikipedia.org/wiki/Tuple
+ *      [ wiki http://en.wikipedia.org/wiki/Tuple]
  *
  * Implement:
  *
+ * @code{
  *   template<typename T, size_t ... n> struct nTuple;
  *
  *   nTuple<double,5> t={1,2,3,4,5};
@@ -47,11 +48,14 @@ namespace simpla
  *   nTuple<Expression<TOP,TExpr>> unary nTuple expression
  *
  *   nTuple<Expression<TOP,TExpr1,TExpr2>> binary nTuple expression
- * @note
+ *
+ *
  *
  *   nTuple<T,N> equiv. build-in array T[N]
  *
  *   nTuple<T,N,M> equiv. build-in array T[N][M]
+ *
+ *    @endcode}
  **/
 
 /// n-dimensional primary type
