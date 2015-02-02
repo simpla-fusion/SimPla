@@ -78,13 +78,13 @@ public:
 TEST_P(TestTopology, id_type)
 {
 
-	for (int depth = 0; depth < (topology_type::FLOATING_POINT_POS); ++depth)
-	{
-		for (int noid = 0; noid < 8; ++noid)
-			ASSERT_EQ(noid,
-					topology_type::node_id(
-							topology_type::get_shift(noid, depth)));
-	}
+//	for (int depth = 0; depth < (topology_type::FLOATING_POINT_POS); ++depth)
+//	{
+//		for (int noid = 0; noid < 8; ++noid)
+//			ASSERT_EQ(noid,
+//					topology_type::node_id(
+//							topology_type::get_shift(noid, depth)));
+//	}
 
 	{
 		constexpr auto s = topology_type::get_first_node_shift(VERTEX);

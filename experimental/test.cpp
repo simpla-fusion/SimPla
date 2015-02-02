@@ -1,29 +1,31 @@
 #include <iostream>
 
-template<typename T,  int I>
+template<typename T, int I>
 class Foo
 {
- public:
- void foo();
+public:
+
+	double a[4];
+
+	constexpr double foo() const
+	{
+		return a[0] + a[1] + b;
+	}
+
+	double foo2()
+	{
+		double c = 100 + b;
+		return c;
+	}
+	static constexpr int b = 10;
 };
-template<  int I>
-void Foo<int,I>::foo()
-{
-	 std::cout<<"this is a int and I = "<<I<<std::endl; 
-}
-template<   int I>
-void Foo<double,I>::foo()
-{
-	 std::cout<<"this is a double and I = "<<I<<std::endl; 
-}
 
 int main(int argc, char const *argv[])
 {
 	/* code */
-	Foo<int,1> fi;
-	Foo<double,2> fd;
+	Foo<int, 1> fi;
 
-	fi.foo();
-	fd.foo();
+	std::cout << fi.foo() << std::endl;
+	std::cout << fi.foo2() << std::endl;
 	return 0;
 }

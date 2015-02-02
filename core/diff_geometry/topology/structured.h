@@ -243,12 +243,15 @@ public:
 		count_ = count;
 		offset_ = offset;
 
-		local_outer_count_ = count_ << FLOATING_POINT_POS;
-		local_outer_begin_ = ZERO_INDEX;
+//		const size_t floatint_point_pos = FLOATING_POINT_POS;
+//		const size_t zero_index = ZERO_INDEX;
+
+		local_outer_count_ = count_ << static_cast<size_t>(FLOATING_POINT_POS);
+		local_outer_begin_ = static_cast<size_t>(ZERO_INDEX);
 		local_outer_end_ = local_outer_begin_ + local_outer_count_;
 
-		local_inner_count_ = count_ << FLOATING_POINT_POS;
-		local_inner_begin_ = ZERO_INDEX;
+		local_inner_count_ = count_ << static_cast<size_t>(FLOATING_POINT_POS);
+		local_inner_begin_ = static_cast<size_t>(ZERO_INDEX);
 		local_inner_end_ = local_inner_begin_ + local_inner_count_;
 //		if (gw != nullptr)
 //			ghost_width = gw;
@@ -720,25 +723,9 @@ public:
 
 	static constexpr id_type get_first_node_shift(id_type iform)
 	{
-//		id_type nid;
-//		switch (iform)
-//		{
-//		case VERTEX:
-//			nid = 0;
-//			break;
-//		case EDGE:
-//			nid = 1;
-//			break;
-//		case FACE:
-//			nid = 6;
-//			break;
-//		case VOLUME:
-//			nid = 7;
-//			break;
-//		}
-		// FIXME not complete
 
-		return get_shift(0);
+		return iform == VERTEX ?
+				0 : (iform == EDGE ? 1 : (iform == FACE ? 6 : 7));
 	}
 
 	static constexpr size_t get_num_of_comp_per_cell(size_t iform)
@@ -798,78 +785,26 @@ public:
 	 */
 	static constexpr id_type component_number(id_type s)
 	{
-//		id_type res = 0;
-//		switch (node_id(s))
-//		{
-//		case 1:
-//		case 6:
-//			res = 0;
-//			break;
-//		case 2:
-//		case 5:
-//			res = 1;
-//			break;
-//
-//		case 4:
-//		case 3:
-//			res = 2;
-//			break;
-//		}
+
 		return (node_id(s) == 1 || node_id(s) == 6) ?
 				0 : ((node_id(s) == 2 || node_id(s) == 5) ? 1 : 2);
 	}
 
 	static constexpr id_type IForm(id_type r)
 	{
-//		id_type res = 0;
-//		switch (node_id(r))
-//		{
-//		case 0:
-//			res = VERTEX;
-//			break;
-//		case 1:
-//		case 2:
-//		case 4:
-//			res = EDGE;
-//			break;
-//
-//		case 3:
-//		case 5:
-//		case 6:
-//			res = FACE;
-//			break;
-//
-//		case 7:
-//			res = VOLUME;
-//		}
-		// FIXME : NOT complete;
 
-		return (node_id(r) == 0) ? VERTEX : ((node_id(r) == 7) ? VOLUME : FACE)
+		return (node_id(r) == 0) ?
+				VERTEX :
+				((node_id(r) == 1 || node_id(r) == 2 || node_id(r) == 4) ?
+						EDGE :
+						((node_id(r) == 3 || node_id(r) == 5 || node_id(r) == 6) ?
+								FACE : (VOLUME)))
 
 		;
 	}
 	//! @}
 
 	template<size_t IForm> struct Range;
-
-//	template<size_t IForm>
-//	static Range<IForm> make_range(nTuple<size_t, ndims> const & b,
-//			nTuple<size_t, ndims> const &e)
-//	{
-//		index_tuple b1, e1;
-//		b1 = (b << FLOATING_POINT_POS) + ZERO_INDEX;
-//		e1 = (e << FLOATING_POINT_POS) + ZERO_INDEX;
-//		CHECK(b1);
-//		CHECK(e1);
-//		return std::move(Range<IForm>(b1, e1));
-//	}
-//	template<size_t IForm>
-//	static Range<IForm> make_range(coordinates_type const & b,
-//			coordinates_type const &e)
-//	{
-//		return std::move(
-//				Range<IForm>(coordinates_to_index(b), coordinates_to_index(e)));
-//	}
 
 	template<size_t IForm>
 	constexpr Range<IForm> range() const

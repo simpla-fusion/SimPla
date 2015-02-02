@@ -23,6 +23,7 @@ namespace simpla
 
 template<typename ... > class _Field;
 template<typename, size_t> class Domain;
+template<typename ...>class field_traits;
 
 /** @ingroup diff_scheme
  *  @brief   FdMesh
