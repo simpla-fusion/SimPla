@@ -301,11 +301,7 @@ public:
 
 };
 
-template<size_t IFORM, size_t I, typename ...Args>
-std::shared_ptr<Mesh<IFORM, Args...>> clone_mesh(Mesh<I, Args...> const& m)
-{
 
-}
 
 template<size_t IFORM, typename TG>
 std::shared_ptr<Mesh<IFORM, TG>> create_mesh(TG const & geo)

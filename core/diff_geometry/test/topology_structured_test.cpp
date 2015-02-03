@@ -14,7 +14,7 @@
 using namespace simpla;
 
 INSTANTIATE_TEST_CASE_P(Test_Structured, TestTopology,
-		testing::Values(nTuple<size_t, 3>( { 10, 1, 1 }) //
+		testing::Values(nTuple<size_t, 3>( { 10, 12, 1 }) //
 				, nTuple<size_t, 3>( { 1, 17, 1 }) //
 				, nTuple<size_t, 3>( { 1, 1, 10 }) //
 				, nTuple<size_t, 3>( { 1, 17, 17 }) //

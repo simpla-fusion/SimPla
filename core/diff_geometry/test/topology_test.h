@@ -119,7 +119,8 @@ TEST(TestTopologyStatic, coordinates)
 //			t::id_to_coordinates(*begin(range2)));
 //	EXPECT_EQ(xmin + half_dx, t::id_to_coordinates(*begin(range3)));
 	typedef TopologyType t;
-	typename t::coordinates_type x = { 0.21235, 1.2343, 0.1 };
+	typename t::coordinates_type x =
+	{ 0.21235, 1.2343, 0.1 };
 
 	EXPECT_EQ(x,
 			t::coordinates_local_to_global(
@@ -229,8 +230,8 @@ TEST_P(TestTopology, foreach)
 
 	for (auto s : topology.template select<VERTEX>())
 	{
-		CHECK(s);
 		++count;
+
 		data.insert(topology.hash(s));
 	}
 

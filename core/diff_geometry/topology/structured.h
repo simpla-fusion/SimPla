@@ -166,7 +166,8 @@ public:
 
 	coordinates_type m_xmin_, m_xmax_;
 
-	static constexpr coordinates_type m_dx_ = { 1, 1, 1 };
+	static constexpr coordinates_type m_dx_ =
+	{ 1, 1, 1 };
 
 	//  \verbatim
 	//
@@ -245,20 +246,19 @@ public:
 	{
 		m_dimensions_ = d;
 
-//		m_local_outer_count_ = m_dimensions_ << FLOATING_POINT_POS;
+		m_local_outer_count_ = (m_dimensions_ << FLOATING_POINT_POS);
 
 		m_local_outer_begin_ = AXIS_ORIGIN;
 
-		m_local_outer_end_ = m_local_outer_begin_ + m_dimensions_
-				<< FLOATING_POINT_POS;
+		m_local_outer_end_ = (m_dimensions_ << FLOATING_POINT_POS)
+				+ AXIS_ORIGIN;
 
-//		m_local_inner_count_ = m_dimensions_ << FLOATING_POINT_POS;
+		m_local_inner_count_ = (m_dimensions_ << FLOATING_POINT_POS);
 
 		m_local_inner_begin_ = AXIS_ORIGIN;
 
-		m_local_inner_end_ = m_local_inner_begin_
-				+ (m_dimensions_ << FLOATING_POINT_POS);
-
+		m_local_inner_end_ = (m_dimensions_ << FLOATING_POINT_POS)
+				+ AXIS_ORIGIN;
 //		if (gw != nullptr)
 //			ghost_width = gw;
 //
@@ -330,8 +330,8 @@ public:
 		nTuple<size_t, MAX_NDIMS_OF_ARRAY> g_gw;
 
 		g_dims = m_dimensions_;
-		g_offset = m_local_inner_begin_;
-		g_count = m_local_inner_count_;
+		g_offset = m_local_inner_begin_ >> FLOATING_POINT_POS;
+		g_count = m_local_inner_count_ >> FLOATING_POINT_POS;
 		g_gw = m_ghost_width;
 
 		if (IForm == EDGE || IForm == FACE)
@@ -441,7 +441,8 @@ public:
 	static constexpr index_tuple id_to_index(id_type s)
 	{
 
-		return std::move(index_tuple( {
+		return std::move(index_tuple(
+		{
 
 		static_cast<index_type>(s & INDEX_MASK),
 
@@ -563,14 +564,16 @@ public:
 		((nodeid & 1UL) << (FLOATING_POINT_POS - 1));
 
 	}
-	static constexpr id_type m_first_node_shift_[] = { 0, 1, 6, 7 };
+	static constexpr id_type m_first_node_shift_[] =
+	{ 0, 1, 6, 7 };
 
 	static constexpr id_type get_first_node_shift(id_type iform)
 	{
 
 		return get_shift(m_first_node_shift_[iform]);
 	}
-	static constexpr size_t m_num_of_comp_per_cell_[4] = { 1, 3, 3, 1 };
+	static constexpr size_t m_num_of_comp_per_cell_[4] =
+	{ 1, 3, 3, 1 };
 
 	static constexpr size_t get_num_of_comp_per_cell(size_t iform)
 	{
@@ -627,7 +630,8 @@ public:
 	 * @return
 	 */
 
-	static constexpr id_type m_component_number_[] = { 0,  // 000
+	static constexpr id_type m_component_number_[] =
+	{ 0,  // 000
 			0, // 001
 			1, // 010
 			2, // 011
@@ -641,7 +645,8 @@ public:
 		return m_component_number_[node_id(s)];
 	}
 
-	static constexpr id_type m_iform_[] = { //
+	static constexpr id_type m_iform_[] =
+	{ //
 
 			VERTEX, // 000
 					EDGE, // 001
@@ -678,8 +683,6 @@ public:
 	template<size_t IFORM>
 	Range<IFORM> select() const
 	{
-		CHECK(m_local_inner_begin_);
-		CHECK(m_local_inner_end_);
 		return (Range<IFORM>(m_local_inner_begin_, m_local_inner_end_));
 	}
 
@@ -750,8 +753,9 @@ public:
 
 	size_t hash(id_type s) const
 	{
-		nTuple<index_type, ndims> d = (id_to_index(s) >> FLOATING_POINT_POS)
-				- m_local_outer_begin_;
+
+		nTuple<index_type, ndims> d = (id_to_index(s) - m_local_outer_begin_)
+				>> FLOATING_POINT_POS;
 
 		size_t res =
 
@@ -1398,7 +1402,7 @@ struct StructuredMesh_<NDIMS>::Range
 
 	const_iterator end() const
 	{
-		auto t = end_ - 1;
+		auto t = end_ - D_INDEX;
 		const_iterator res(begin_, end_, t);
 		++res;
 
@@ -1445,31 +1449,18 @@ struct StructuredMesh_<NDIMS>::Range<IFORM>::const_iterator
 
 	bool operator==(const_iterator const & rhs) const
 	{
-		CHECK(self_);
-
-		CHECK(shift_);
-
-		CHECK(rhs.self_);
-
-		CHECK(rhs.shift_);
-		CHECK((self_ == rhs.self_));
-		CHECK((shift_ == rhs.shift_));
-
-		CHECK((true && false));
-
-		CHECK(((self_ == rhs.self_) && (shift_ == rhs.shift_)));
-
-		return (self_ == rhs.self_) && (shift_ == rhs.shift_);
+		return (self_[0] == rhs.self_[0]) && (self_[1] == rhs.self_[1])
+				&& (self_[2] == rhs.self_[2]) && (shift_ == rhs.shift_);
 	}
 
-	bool operator!=(const_iterator const & rhs) const
+	constexpr bool operator!=(const_iterator const & rhs) const
 	{
 		return !(this->operator==(rhs));
 	}
 
-	value_type operator*() const
+	constexpr value_type operator*() const
 	{
-		return index_to_id(self_) | shift_;
+		return (index_to_id(self_)) | shift_;
 	}
 
 	const_iterator & operator ++()
@@ -1497,19 +1488,13 @@ struct StructuredMesh_<NDIMS>::Range<IFORM>::const_iterator
 //		return std::move(res);
 //	}
 private:
-#ifndef USE_FORTRAN_ORDER_ARRAY
 	static constexpr size_t ARRAY_ORDER = C_ORDER;
-#else
-	static constexpr size_t ARRAY_ORDER=FOTRAN_ORDER;
-#endif
 
 	void next()
 	{
 
-		if (roate_shift(std::integral_constant<size_t, IFORM>()))
+//		if (roate_shift(std::integral_constant<size_t, IFORM>()))
 		{
-
-#ifndef USE_FORTRAN_ORDER_ARRAY
 			self_[ndims - 1] += D_INDEX;
 
 			for (int i = ndims - 1; i > 0; --i)
@@ -1520,18 +1505,6 @@ private:
 					self_[i - 1] += D_INDEX;
 				}
 			}
-#else
-			self_[0]+=D_INDEX;
-
-			for (int i = 0; i < ndims - 1; ++i)
-			{
-				if (self_[i] >= end_[i])
-				{
-					self_[i] = begin_[i];
-					self_[i + 1]+=D_INDEX;
-				}
-			}
-#endif
 		}
 	}
 
@@ -1539,10 +1512,9 @@ private:
 	{
 		if (inv_roate_shift(std::integral_constant<size_t, IFORM>()))
 		{
-#ifndef USE_FORTRAN_ORDER_ARRAY
 
 			if (self_[ndims - 1] > begin_[ndims - 1])
-				self_[ndims - 1] -= D_INDEX;
+				--self_[ndims - 1];
 
 			for (int i = ndims - 1; i > 0; --i)
 			{
@@ -1551,23 +1523,10 @@ private:
 					self_[i] = end_[i] - 1;
 
 					if (self_[i - 1] > begin_[i - 1])
-						self_[i - 1] -= D_INDEX;
+						--self_[i - 1];
 				}
 			}
 
-#else
-
-			self_[0]-=D_INDEX;
-			for (int i = 0; i < ndims; ++i)
-			{
-				if (self_[i] < begin_[i])
-				{
-					self_[i] = end_[i] - 1;
-					self_[i + 1]-=D_INDEX;
-				}
-			}
-
-#endif //USE_FORTRAN_ORDER_ARRAY
 		}
 	}
 	constexpr bool roate_shift(std::integral_constant<size_t, VERTEX>) const
