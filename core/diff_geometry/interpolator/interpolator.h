@@ -15,7 +15,7 @@ namespace simpla
 {
 
 template<typename ...> class field_traits;
-
+template<size_t> class StructuredMesh_;
 /**
  * @ingroup diff_geo
  * @addtogroup interpolator Interpolator
@@ -180,6 +180,47 @@ public:
 				w);
 	}
 
+	template<typename TV>
+	static TV sample_(geometry_type const & geo,
+			std::integral_constant<size_t, VERTEX>, size_t s, TV const &v)
+	{
+		return v;
+	}
+
+	template<typename TV>
+	static TV sample_(geometry_type const & geo,
+			std::integral_constant<size_t, VOLUME>, size_t s, TV const &v)
+	{
+		return v;
+	}
+
+	template<typename TV>
+	static TV sample_(geometry_type const & geo,
+			std::integral_constant<size_t, EDGE>, size_t s,
+			nTuple<TV, 3> const &v)
+	{
+		return v[topology_type::component_number(s)];
+	}
+
+	template<typename TV>
+	static TV sample_(geometry_type const & geo,
+			std::integral_constant<size_t, FACE>, size_t s,
+			nTuple<TV, 3> const &v)
+	{
+		return v[topology_type::component_number(s)];
+	}
+
+	template<size_t IFORM, typename TV>
+	static TV sample_(geometry_type const & geo,
+			std::integral_constant<size_t, IFORM>, size_t s, TV const & v)
+	{
+		return v;
+	}
+
+	template<size_t IFORM, typename ...Args>
+	static auto sample(Args && ... args)
+	DECL_RET_TYPE((sample_(std::integral_constant<size_t, IFORM>(),
+							std::forward<Args>(args)...)))
 }
 ;
 

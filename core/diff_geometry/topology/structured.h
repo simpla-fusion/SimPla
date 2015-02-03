@@ -54,47 +54,53 @@ namespace simpla
  * \endverbatim
  *  - the unit cell width is 1;
  */
-struct StructuredMesh
+
+template<size_t NDIMS = 3>
+struct StructuredMesh_
 {
 
-	typedef StructuredMesh this_type;
+	typedef StructuredMesh_ this_type;
 
-	static constexpr size_t ndims = 3;
+	static constexpr size_t ndims = NDIMS;
 
 	typedef unsigned long index_type;
+
 	typedef nTuple<index_type, ndims> index_tuple;
 
-	typedef unsigned long id_type;
 	typedef nTuple<Real, ndims> coordinates_type;
+
+	typedef unsigned long id_type;
 
 	static constexpr size_t MAX_NUM_NEIGHBOUR_ELEMENT = 12;
 	static constexpr size_t MAX_NUM_VERTEX_PER_CEL = 8;
 	static constexpr size_t DEFAULT_GHOSTS_WIDTH = 3;
 
+	template<size_t IForm> struct const_iterator;
+
+	template<size_t IForm> struct Range;
+
 private:
 	bool is_valid_ = false;
 public:
 
-	Properties properties;
 	//***************************************************************************************************
 
-	StructuredMesh()
+	StructuredMesh_()
 	{
 	}
-	template<typename ...Args>
-	StructuredMesh(nTuple<size_t, ndims> const &count,
-			nTuple<size_t, ndims> const &offset)
+	StructuredMesh_(nTuple<size_t, ndims> const &dims)
 	{
-		dimensions(count, offset);
+		dimensions(&dims[0]);
 	}
-
-	~StructuredMesh() = default;
+	virtual ~StructuredMesh_()
+	{
+	}
 
 	this_type & operator=(const this_type&) = delete;
 
-	StructuredMesh(const this_type&) = delete;
+	StructuredMesh_(const this_type&) = delete;
 
-	void swap(StructuredMesh & rhs) = delete;
+	void swap(StructuredMesh_ & rhs) = delete;
 
 	template<typename TDict>
 	bool load(TDict const & dict)
@@ -127,9 +133,9 @@ public:
 
 		<< " Type = \"" << get_type_as_string() << "\", "
 
-		<< " Dimensions =  " << dimensions() << ","
+		<< " Dimensions =  " << dimensions()
 
-		<< properties << ",";
+		;
 
 		return os;
 	}
@@ -138,7 +144,7 @@ public:
 		return "StructuredMesh";
 	}
 
-	bool is_valid() const
+	constexpr bool is_valid() const
 	{
 		return is_valid_;
 	}
@@ -148,15 +154,19 @@ public:
 	 * @{
 	 **/
 
-	index_tuple count_, offset_;
+	index_tuple m_dimensions_;
 
-	index_tuple local_outer_begin_, local_outer_end_, local_outer_count_;
+	index_tuple m_local_outer_begin_, m_local_outer_end_, m_local_outer_count_;
 
-	index_tuple local_inner_begin_, local_inner_end_, local_inner_count_;
+	index_tuple m_local_inner_begin_, m_local_inner_end_, m_local_inner_count_;
 
-	index_tuple ghost_width;
+	index_tuple m_ghost_width;
 
-	index_tuple hash_strides_;
+	index_tuple m_hash_strides_;
+
+	coordinates_type m_xmin_, m_xmax_;
+
+	static constexpr coordinates_type m_dx_ = { 1, 1, 1 };
 
 	//  \verbatim
 	//
@@ -229,30 +239,26 @@ public:
 //
 //	static constexpr size_t NO_HEAD_FLAG = ~((~0UL) << (INDEX_DIGITS * 3));
 
-	static constexpr index_type ZERO_INDEX = 1 << (INDEX_DIGITS - 1);
-	void dimensions(index_tuple const & count)
+	static constexpr index_type AXIS_ORIGIN = 1 << (INDEX_DIGITS - 1);
+
+	void dimensions(index_type const * d, index_type const * gw = nullptr)
 	{
-		index_tuple offset;
-		offset = 0;
-		dimensions(count, offset);
-	}
-	void dimensions(index_tuple const & count, index_tuple const & offset,
-			index_type const * gw = nullptr)
-	{
+		m_dimensions_ = d;
 
-		count_ = count;
-		offset_ = offset;
+//		m_local_outer_count_ = m_dimensions_ << FLOATING_POINT_POS;
 
-//		const size_t floatint_point_pos = FLOATING_POINT_POS;
-//		const size_t zero_index = ZERO_INDEX;
+		m_local_outer_begin_ = AXIS_ORIGIN;
 
-		local_outer_count_ = count_ << static_cast<size_t>(FLOATING_POINT_POS);
-		local_outer_begin_ = static_cast<size_t>(ZERO_INDEX);
-		local_outer_end_ = local_outer_begin_ + local_outer_count_;
+		m_local_outer_end_ = m_local_outer_begin_ + m_dimensions_
+				<< FLOATING_POINT_POS;
 
-		local_inner_count_ = count_ << static_cast<size_t>(FLOATING_POINT_POS);
-		local_inner_begin_ = static_cast<size_t>(ZERO_INDEX);
-		local_inner_end_ = local_inner_begin_ + local_inner_count_;
+//		m_local_inner_count_ = m_dimensions_ << FLOATING_POINT_POS;
+
+		m_local_inner_begin_ = AXIS_ORIGIN;
+
+		m_local_inner_end_ = m_local_inner_begin_
+				+ (m_dimensions_ << FLOATING_POINT_POS);
+
 //		if (gw != nullptr)
 //			ghost_width = gw;
 //
@@ -275,9 +281,12 @@ public:
 //
 //		local_outer_end_ = local_outer_begin_ + local_outer_count_;
 //
-		hash_strides_[2] = 1;
-		hash_strides_[1] = count_[2] * hash_strides_[2];
-		hash_strides_[0] = count_[1] * hash_strides_[1];
+		m_hash_strides_[2] = 1;
+		m_hash_strides_[1] = d[2] * m_hash_strides_[2];
+		m_hash_strides_[0] = d[1] * m_hash_strides_[1];
+
+		m_xmin_ = 0;
+		m_xmax_ = m_dimensions_;
 
 		update();
 
@@ -285,25 +294,26 @@ public:
 
 	index_tuple const & dimensions() const
 	{
-		return count_;
+		return m_dimensions_;
 	}
 
 	bool check_memory_bounds(id_type s) const
 	{
-		auto idx = id_to_index(s) >> FLOATING_POINT_POS;
-		return
+//		auto idx = id_to_index(s) >> FLOATING_POINT_POS;
 
-		idx[0] >= local_outer_begin_[0]
+		return true;
 
-		&& idx[0] < local_outer_end_[0]
-
-		&& idx[1] >= local_outer_begin_[1]
-
-		&& idx[1] < local_outer_end_[1]
-
-		&& idx[2] >= local_outer_begin_[2]
-
-		&& idx[2] < local_outer_end_[2]
+//		idx[0] >= m_local_outer_begin_[0]
+//
+//		&& idx[0] < m_local_outer_end_[0]
+//
+//		&& idx[1] >= m_local_outer_begin_[1]
+//
+//		&& idx[1] < m_local_outer_end_[1]
+//
+//		&& idx[2] >= m_local_outer_begin_[2]
+//
+//		&& idx[2] < m_local_outer_end_[2]
 
 		;
 
@@ -319,10 +329,10 @@ public:
 		nTuple<size_t, MAX_NDIMS_OF_ARRAY> g_offset;
 		nTuple<size_t, MAX_NDIMS_OF_ARRAY> g_gw;
 
-		g_dims = count_;
-		g_offset = local_inner_begin_;
-		g_count = local_inner_count_;
-		g_gw = ghost_width;
+		g_dims = m_dimensions_;
+		g_offset = m_local_inner_begin_;
+		g_count = m_local_inner_count_;
+		g_gw = m_ghost_width;
 
 		if (IForm == EDGE || IForm == FACE)
 		{
@@ -336,18 +346,6 @@ public:
 		return std::move(DataSpace(rank, &g_dims[0], &g_gw[0]));
 	}
 
-	template<size_t IFORM>
-	static constexpr id_type compact_cell_index(index_tuple const & idx,
-			id_type shift)
-	{
-		return index_to_id(idx << FLOATING_POINT_POS) | shift;
-	}
-
-	static index_tuple decompact_cell_index(id_type s)
-	{
-		return std::move(id_to_index(s) >> (FLOATING_POINT_POS));
-	}
-
 	/**
 	 *   @name Geometry
 	 *   For For uniform structured grid, the volume of cell is 1.0
@@ -355,192 +353,39 @@ public:
 	 *   @{
 	 */
 
-	static constexpr Real COORDINATES_TO_INDEX_FACTOR = static_cast<Real>(1
-			<< FLOATING_POINT_POS);
-	static constexpr Real INDEX_TO_COORDINATES_FACTOR = 1.0
-			/ COORDINATES_TO_INDEX_FACTOR;
-
-	static constexpr coordinates_type dx_ = { 1.0, 1.0, 1.0 };
-
-	static constexpr coordinates_type inv_dx_ = { 1.0, 1.0, 1.0 };
-
 	bool update()
 	{
-
-//		for (int i = 0; i < ndims; ++i)
-//		{
-//			Real L = static_cast<Real>(dimensions_[i]);
-//
-//			volume_[1UL << (ndims - i - 1)] = 1.0;
-//			dual_volume_[7 - (1UL << (ndims - i - 1))] = 1.0;
-//			inv_volume_[1UL << (ndims - i - 1)] = 1.0;
-//			inv_dual_volume_[7 - (1UL << (ndims - i - 1))] = 1.0;
-//
-//		}
-//
-
-//		volume_[0] = 1;
-////		volume_[1] /* 001 */= dx_[0];
-////		volume_[2] /* 010 */= dx_[1];
-////		volume_[4] /* 100 */= dx_[2];
-//
-//		volume_[3] /* 011 */= volume_[1] * volume_[2];
-//		volume_[5] /* 101 */= volume_[4] * volume_[1];
-//		volume_[6] /* 110 */= volume_[2] * volume_[4];
-//
-//		volume_[7] /* 111 */= volume_[1] * volume_[2] * volume_[4];
-//
-//		dual_volume_[7] = 1;
-////		dual_volume_[6] /* 001 */= dx_[0];
-////		dual_volume_[5] /* 010 */= dx_[1];
-////		dual_volume_[3] /* 100 */= dx_[2];
-//
-//		dual_volume_[4] /* 011 */= dual_volume_[6] * dual_volume_[5];
-//		dual_volume_[2] /* 101 */= dual_volume_[3] * dual_volume_[6];
-//		dual_volume_[1] /* 110 */= dual_volume_[5] * dual_volume_[3];
-//
-//		dual_volume_[0] /* 111 */= dual_volume_[6] * dual_volume_[5]
-//				* dual_volume_[3];
-//
-//		inv_volume_[0] = 1;
-////		inv_volume_[1] /* 001 */= inv_dx_[0];
-////		inv_volume_[2] /* 010 */= inv_dx_[1];
-////		inv_volume_[4] /* 100 */= inv_dx_[2];
-//
-//		inv_volume_[3] /* 011 */= inv_volume_[1] * inv_volume_[2];
-//		inv_volume_[5] /* 101 */= inv_volume_[4] * inv_volume_[1];
-//		inv_volume_[6] /* 110 */= inv_volume_[2] * inv_volume_[4];
-//
-//		inv_volume_[7] /* 111 */= inv_volume_[1] * inv_volume_[2]
-//				* inv_volume_[4];
-//
-//		inv_dual_volume_[7] = 1;
-////		inv_dual_volume_[6] /* 001 */= inv_dx_[0];
-////		inv_dual_volume_[5] /* 010 */= inv_dx_[1];
-////		inv_dual_volume_[3] /* 100 */= inv_dx_[2];
-//
-//		inv_dual_volume_[4] /* 011 */= inv_dual_volume_[6]
-//				* inv_dual_volume_[5];
-//		inv_dual_volume_[2] /* 101 */= inv_dual_volume_[3]
-//				* inv_dual_volume_[6];
-//		inv_dual_volume_[1] /* 110 */= inv_dual_volume_[5]
-//				* inv_dual_volume_[3];
-//
-//		inv_dual_volume_[0] /* 111 */= inv_dual_volume_[6] * inv_dual_volume_[5]
-//				* inv_dual_volume_[3];
-
 		is_valid_ = true;
 
 		return is_valid_;
 	}
 
-	std::pair<coordinates_type, coordinates_type> extents() const
-	{
-		coordinates_type b, e;
-		b = 0;
-		e = count_;
+	/**
+	 *
+	 * @return the bounding box of topology space / mesh
+	 */
 
-		return std::move(std::make_pair(b, e));
-	}
+	constexpr auto extents() const
+	DECL_RET_TYPE((std::forward_as_tuple(m_xmin_, m_xmax_)))
 
-	static constexpr coordinates_type dx()
+	/**
+	 * @return dimensions of unit grid cell
+	 */
+	static constexpr coordinates_type const & dx()
 	{
-		return coordinates_type( { 1.0, 1.0, 1.0 });
+		return m_dx_;
 	}
-
-	static constexpr Real volume(id_type s)
-	{
-//		return volume_[node_id(s)];
-		return 1.0;
-	}
-
-	static constexpr Real inv_volume(id_type s)
-	{
-		return 1.0;
-//		return inv_volume_[node_id(s)];
-	}
-
-	static constexpr Real dual_volume(id_type s)
-	{
-		return 1.0;
-//		return dual_volume_[node_id(s)];
-	}
-
-	static constexpr Real inv_dual_volume(id_type s)
-	{
-		return 1.0;
-//		return inv_dual_volume_[node_id(s)];
-	}
-
-	static constexpr Real cell_volume(id_type s)
-	{
-		return 1.0;
-//		return volume_[1] * volume_[2] * volume_[4];
-	}
-
-	static constexpr Real volume(id_type s, std::integral_constant<bool, false>)
-	{
-		return 1.0;
-//		return volume(s);
-	}
-
-	static constexpr Real inv_volume(id_type s,
-			std::integral_constant<bool, false>)
-	{
-		return 1.0;
-//		return inv_volume(s);
-	}
-
-	static constexpr Real inv_dual_volume(id_type s,
-			std::integral_constant<bool, false>)
-	{
-		return 1.0;
-//		return inv_dual_volume(s);
-	}
-	static constexpr Real dual_volume(id_type s,
-			std::integral_constant<bool, false>)
-	{
-		return 1.0;
-//		return dual_volume(s);
-	}
-
-	static constexpr Real volume(id_type s, std::integral_constant<bool, true>)
-	{
-		return 1.0;
-//		return in_range(s) ? volume(s) : 0.0;
-	}
-
-	static constexpr Real inv_volume(id_type s,
-			std::integral_constant<bool, true>)
-	{
-		return 1.0;
-//		return in_range(s) ? inv_volume(s) : 0.0;
-	}
-
-	static constexpr Real dual_volume(id_type s,
-			std::integral_constant<bool, true>)
-	{
-		return 1.0;
-//		return in_range(s) ? dual_volume(s) : 0.0;
-	}
-	static constexpr Real inv_dual_volume(id_type s,
-			std::integral_constant<bool, true>)
-	{
-		return 1.0;
-//		return in_range(s) ? inv_dual_volume(s) : 0.0;
-	}
-
-	//! @}
 
 	//! @name Coordinates
 	//! @{
 
-	/***
-	 *
-	 * @param s
-	 * @return Coordinates range in [0,1)
-	 */
-	static constexpr inline coordinates_type index_to_coordinates(
+	static constexpr Real COORDINATES_TO_INDEX_FACTOR =
+			static_cast<Real>(FLOATING_POINT_FACTOR);
+
+	static constexpr Real INDEX_TO_COORDINATES_FACTOR = 1.0
+			/ COORDINATES_TO_INDEX_FACTOR;
+
+	static constexpr coordinates_type index_to_coordinates(
 			index_tuple const&idx)
 	{
 
@@ -548,36 +393,32 @@ public:
 				coordinates_type(
 						{
 
-								static_cast<Real>(static_cast<long>(idx[0])
-										- ZERO_INDEX)
-										* INDEX_TO_COORDINATES_FACTOR,
+						static_cast<Real>(static_cast<long>(idx[0])
+								- AXIS_ORIGIN) * INDEX_TO_COORDINATES_FACTOR,
 
-								static_cast<Real>(static_cast<long>(idx[1])
-										- ZERO_INDEX)
-										* INDEX_TO_COORDINATES_FACTOR,
+						static_cast<Real>(static_cast<long>(idx[1])
+								- AXIS_ORIGIN) * INDEX_TO_COORDINATES_FACTOR,
 
-								static_cast<Real>(static_cast<long>(idx[2])
-										- ZERO_INDEX)
-										* INDEX_TO_COORDINATES_FACTOR
+						static_cast<Real>(static_cast<long>(idx[2])
+								- AXIS_ORIGIN) * INDEX_TO_COORDINATES_FACTOR
 
 						}));
 	}
 
-	static constexpr inline index_tuple coordinates_to_index(
-			coordinates_type const &x)
+	static constexpr index_tuple coordinates_to_index(coordinates_type const &x)
 	{
 		return std::move(
 				index_tuple(
 						{
 
 						static_cast<index_type>(static_cast<long>(x[0]
-								* COORDINATES_TO_INDEX_FACTOR) + ZERO_INDEX),
+								* COORDINATES_TO_INDEX_FACTOR) + AXIS_ORIGIN),
 
 						static_cast<index_type>(static_cast<long>(x[1]
-								* COORDINATES_TO_INDEX_FACTOR) + ZERO_INDEX),
+								* COORDINATES_TO_INDEX_FACTOR) + AXIS_ORIGIN),
 
 						static_cast<index_type>(static_cast<long>(x[2]
-								* COORDINATES_TO_INDEX_FACTOR) + ZERO_INDEX)
+								* COORDINATES_TO_INDEX_FACTOR) + AXIS_ORIGIN)
 
 						}));
 	}
@@ -615,17 +456,19 @@ public:
 	{
 		return std::move(index_to_coordinates(id_to_index(s)));
 	}
+
 	static constexpr id_type coordinates_to_id(coordinates_type const &x)
 	{
 		return std::move(index_to_id(coordinates_to_index(x)));
 	}
-	static coordinates_type coordinates_local_to_global(id_type s,
+
+	static constexpr coordinates_type coordinates_local_to_global(id_type s,
 			coordinates_type const &r)
 	{
-		return (static_cast<coordinates_type>(id_to_coordinates(s) + r));
+		return static_cast<coordinates_type>(id_to_coordinates(s) + r);
 	}
 
-	static coordinates_type coordinates_local_to_global(
+	static constexpr coordinates_type coordinates_local_to_global(
 			std::tuple<id_type, coordinates_type> const &z)
 	{
 		return std::move(
@@ -720,18 +563,18 @@ public:
 		((nodeid & 1UL) << (FLOATING_POINT_POS - 1));
 
 	}
+	static constexpr id_type m_first_node_shift_[] = { 0, 1, 6, 7 };
 
 	static constexpr id_type get_first_node_shift(id_type iform)
 	{
 
-		return iform == VERTEX ?
-				0 : (iform == EDGE ? 1 : (iform == FACE ? 6 : 7));
+		return get_shift(m_first_node_shift_[iform]);
 	}
+	static constexpr size_t m_num_of_comp_per_cell_[4] = { 1, 3, 3, 1 };
 
 	static constexpr size_t get_num_of_comp_per_cell(size_t iform)
 	{
-
-		return (iform == EDGE || iform == FACE) ? 3 : 1;
+		return m_num_of_comp_per_cell_[iform];
 	}
 
 	static constexpr id_type inverse_roate(id_type r)
@@ -783,34 +626,38 @@ public:
 	 * @param s
 	 * @return
 	 */
+
+	static constexpr id_type m_component_number_[] = { 0,  // 000
+			0, // 001
+			1, // 010
+			2, // 011
+			2, // 100
+			1, // 101
+			0, // 110
+			0 };
+
 	static constexpr id_type component_number(id_type s)
 	{
-
-		return (node_id(s) == 1 || node_id(s) == 6) ?
-				0 : ((node_id(s) == 2 || node_id(s) == 5) ? 1 : 2);
+		return m_component_number_[node_id(s)];
 	}
+
+	static constexpr id_type m_iform_[] = { //
+
+			VERTEX, // 000
+					EDGE, // 001
+					EDGE, // 010
+					FACE, // 011
+					EDGE, // 100
+					FACE, // 101
+					FACE, // 110
+					VOLUME // 111
+			};
 
 	static constexpr id_type IForm(id_type r)
 	{
-
-		return (node_id(r) == 0) ?
-				VERTEX :
-				((node_id(r) == 1 || node_id(r) == 2 || node_id(r) == 4) ?
-						EDGE :
-						((node_id(r) == 3 || node_id(r) == 5 || node_id(r) == 6) ?
-								FACE : (VOLUME)))
-
-		;
+		return m_iform_[node_id(r)];
 	}
 	//! @}
-
-	template<size_t IForm> struct Range;
-
-	template<size_t IForm>
-	constexpr Range<IForm> range() const
-	{
-		return Range<IForm>(local_inner_begin_, local_inner_end_);
-	}
 
 	/**
 	 *  @name Select
@@ -829,9 +676,11 @@ private:
 public:
 
 	template<size_t IFORM>
-	constexpr Range<IFORM> select() const
+	Range<IFORM> select() const
 	{
-		return (Range<IFORM>(local_inner_begin_, local_inner_end_));
+		CHECK(m_local_inner_begin_);
+		CHECK(m_local_inner_end_);
+		return (Range<IFORM>(m_local_inner_begin_, m_local_inner_end_));
 	}
 
 	/**
@@ -845,22 +694,22 @@ public:
 	template<size_t IForm>
 	auto select(index_tuple const & b, index_tuple const &e) const
 	DECL_RET_TYPE(select_rectangle_<IForm>( b, e,
-					local_inner_begin_, local_inner_end_))
+					m_local_inner_begin_, m_local_inner_end_))
 
 	/**
 	 *
 	 */
 	template<size_t IFORM>
-	constexpr Range<IFORM> select(coordinates_type const & xmin,
+	Range<IFORM> select(coordinates_type const & xmin,
 			coordinates_type const &xmax) const
 	{
 		return std::move(Range<IFORM>());
 	}
 
 	template<size_t IFORM>
-	constexpr Range<IFORM> select_outer() const
+	Range<IFORM> select_outer() const
 	{
-		return std::move(Range<IFORM>(local_outer_begin_, local_outer_end_));
+		return std::move(Range<IFORM>(m_local_outer_begin_, m_local_outer_end_));
 	}
 
 	/**
@@ -873,13 +722,13 @@ public:
 	 */
 	template<size_t IFORM>
 	auto select_outer(index_tuple const & b, index_tuple const &e) const
-	DECL_RET_TYPE (select_rectangle_<IFORM>( b, e, local_outer_begin_,
-					local_outer_end_))
+	DECL_RET_TYPE (select_rectangle_<IFORM>( b, e, m_local_outer_begin_,
+					m_local_outer_end_))
 
 	template<size_t IFORM>
 	auto select_inner(index_tuple const & b, index_tuple const & e) const
-	DECL_RET_TYPE (select_rectangle_<IFORM>( b, e, local_inner_begin_,
-					local_inner_end_))
+	DECL_RET_TYPE (select_rectangle_<IFORM>( b, e, m_local_inner_begin_,
+					m_local_inner_end_))
 
 	/**  @} */
 	/**
@@ -890,7 +739,7 @@ public:
 	template<size_t IFORM>
 	size_t max_hash() const
 	{
-		return NProduct(local_outer_count_)
+		return NProduct(m_local_outer_count_)
 				* ((IFORM == EDGE || IFORM == FACE) ? 3 : 1);
 	}
 
@@ -901,36 +750,34 @@ public:
 
 	size_t hash(id_type s) const
 	{
-//		nTuple<index_type, ndims> d = (id_to_index(s) >> FLOATING_POINT_POS)
-//				- local_outer_begin_;
-//
-//		size_t res =
-//
-//		mod_(d[0], (local_outer_count_[0])) * hash_strides_[0] +
-//
-//		mod_(d[1], (local_outer_count_[1])) * hash_strides_[1] +
-//
-//		mod_(d[2], (local_outer_count_[2])) * hash_strides_[2];
-//
-//		switch (node_id(s))
-//		{
-//		case 4:
-//		case 3:
-//			res = ((res << 1) + res);
-//			break;
-//		case 2:
-//		case 5:
-//			res = ((res << 1) + res) + 1;
-//			break;
-//		case 1:
-//		case 6:
-//			res = ((res << 1) + res) + 2;
-//			break;
-//		}
-//
-//		return res;
+		nTuple<index_type, ndims> d = (id_to_index(s) >> FLOATING_POINT_POS)
+				- m_local_outer_begin_;
 
-		return 0;
+		size_t res =
+
+		mod_(d[0], (m_local_outer_count_[0])) * m_hash_strides_[0] +
+
+		mod_(d[1], (m_local_outer_count_[1])) * m_hash_strides_[1] +
+
+		mod_(d[2], (m_local_outer_count_[2])) * m_hash_strides_[2];
+
+		switch (node_id(s))
+		{
+		case 4:
+		case 3:
+			res = ((res << 1) + res);
+			break;
+		case 2:
+		case 5:
+			res = ((res << 1) + res) + 1;
+			break;
+		case 1:
+		case 6:
+			res = ((res << 1) + res) + 2;
+			break;
+		}
+
+		return res;
 
 	}
 	/**@}*/
@@ -1480,55 +1327,47 @@ public:
 	}
 	/**@}*/
 
-	template<typename TV>
-	static TV sample_(std::integral_constant<size_t, VERTEX>, size_t s,
-			TV const &v)
-	{
-		return v;
-	}
-
-	template<typename TV>
-	static TV sample_(std::integral_constant<size_t, VOLUME>, size_t s,
-			TV const &v)
-	{
-		return v;
-	}
-
-	template<typename TV>
-	static TV sample_(std::integral_constant<size_t, EDGE>, size_t s,
-			nTuple<TV, 3> const &v)
-	{
-		return v[component_number(s)];
-	}
-
-	template<typename TV>
-	static TV sample_(std::integral_constant<size_t, FACE>, size_t s,
-			nTuple<TV, 3> const &v)
-	{
-		return v[component_number(s)];
-	}
-
-	template<size_t IFORM, typename TV>
-	static TV sample_(std::integral_constant<size_t, IFORM>, size_t s,
-			TV const & v)
-	{
-		return v;
-	}
-
-	template<size_t IFORM, typename ...Args>
-	static auto sample(Args && ... args)
-	DECL_RET_TYPE((sample_(std::integral_constant<size_t, IFORM>(),
-							std::forward<Args>(args)...)))
-
 };
 
-class op_split
-{
+using StructuredMesh=StructuredMesh_<3>;
+/**
+ * Solve problem: Undefined reference to static constexpr char[]
+ * http://stackoverflow.com/questions/22172789/passing-a-static-constexpr-variable-by-universal-reference
+ */
+template<size_t NDIMS> constexpr typename StructuredMesh_<NDIMS>::id_type
+StructuredMesh_<NDIMS>::m_component_number_[];
+template<size_t NDIMS> constexpr typename StructuredMesh_<NDIMS>::id_type
+StructuredMesh_<NDIMS>::m_iform_[];
+template<size_t NDIMS> constexpr typename StructuredMesh_<NDIMS>::id_type
+StructuredMesh_<NDIMS>::m_first_node_shift_[];
 
-};
+template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::ndims;
+template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::MAX_NUM_NEIGHBOUR_ELEMENT;
+template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::MAX_NUM_VERTEX_PER_CEL;
+template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::DEFAULT_GHOSTS_WIDTH;
 
+template<size_t NDIMS> constexpr typename StructuredMesh_<NDIMS>::index_type
+StructuredMesh_<NDIMS>::FLOATING_POINT_FACTOR;
+template<size_t NDIMS> constexpr typename StructuredMesh_<NDIMS>::index_type
+StructuredMesh_<NDIMS>::AXIS_ORIGIN;
+template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::FULL_DIGITS;
+template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::INDEX_DIGITS;
+template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::FLOATING_POINT_POS;
+template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::INDEX_MASK;
+template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::D_INDEX;
+template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::_DK;
+template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::_DJ;
+template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::_DI;
+template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::_DA;
+template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::CELL_ID_MASK_;
+template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::CELL_ID_MASK;
+
+template<size_t NDIMS> constexpr Real StructuredMesh_<NDIMS>::COORDINATES_TO_INDEX_FACTOR;
+template<size_t NDIMS> constexpr Real StructuredMesh_<NDIMS>::INDEX_TO_COORDINATES_FACTOR;
+
+template<size_t NDIMS>
 template<size_t IFORM>
-struct StructuredMesh::Range
+struct StructuredMesh_<NDIMS>::Range
 {
 
 	struct const_iterator;
@@ -1548,32 +1387,29 @@ struct StructuredMesh::Range
 			begin_(that.begin_), end_(that.end_)
 	{
 	}
-	Range(Range & that, op_split) :
-			begin_(that.begin_), end_(that.end_)
-	{
-	}
 	~Range()
 	{
 	}
 
 	const_iterator begin() const
 	{
-		return const_iterator(begin_, end_);
+		return const_iterator(begin_, end_, begin_);
 	}
 
 	const_iterator end() const
 	{
-		index_tuple s = end_;
-		s -= 1;
-		const_iterator res(begin_, end_, s);
+		auto t = end_ - 1;
+		const_iterator res(begin_, end_, t);
 		++res;
+
 		return std::move(res);
 	}
 
 };
+template<size_t NDIMS>
 
 template<size_t IFORM>
-struct StructuredMesh::Range<IFORM>::const_iterator
+struct StructuredMesh_<NDIMS>::Range<IFORM>::const_iterator
 {
 	typedef id_type value_type;
 
@@ -1597,23 +1433,33 @@ struct StructuredMesh::Range<IFORM>::const_iterator
 			shift_(r.shift_), self_(r.self_), begin_(r.begin_), end_(r.end_)
 	{
 	}
-	const_iterator(index_tuple const & b, index_tuple const &e) :
-			self_(b), begin_(b), end_(e)
-	{
-	}
+
 	const_iterator(index_tuple const & b, index_tuple const &e,
-			index_tuple const & s) :
+			index_tuple const &s) :
 			self_(s), begin_(b), end_(e)
 	{
 	}
-
 	~const_iterator()
 	{
 	}
 
 	bool operator==(const_iterator const & rhs) const
 	{
-		return self_ == rhs.self_ && shift_ == rhs.shift_;
+		CHECK(self_);
+
+		CHECK(shift_);
+
+		CHECK(rhs.self_);
+
+		CHECK(rhs.shift_);
+		CHECK((self_ == rhs.self_));
+		CHECK((shift_ == rhs.shift_));
+
+		CHECK((true && false));
+
+		CHECK(((self_ == rhs.self_) && (shift_ == rhs.shift_)));
+
+		return (self_ == rhs.self_) && (shift_ == rhs.shift_);
 	}
 
 	bool operator!=(const_iterator const & rhs) const
@@ -1637,7 +1483,7 @@ struct StructuredMesh::Range<IFORM>::const_iterator
 		++res;
 		return std::move(res);
 	}
-
+//
 //	const_iterator & operator --()
 //	{
 //		prev();
