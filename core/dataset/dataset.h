@@ -5,27 +5,34 @@
  *      Author: salmon
  */
 
-#ifndef CORE_DATA_REPRESENTATION_DATA_SET_H_
-#define CORE_DATA_REPRESENTATION_DATA_SET_H_
+#ifndef CORE_DATASET_DATASET_H_
+#define CORE_DATASET_DATASET_H_
 
 #include <stddef.h>
 #include <algorithm>
 #include <memory>
 #include <type_traits>
 
-#include "../data_representation/data_space.h"
-#include "../data_representation/data_type.h"
 #include "../gtl/concept_check.h"
 #include "../gtl/properties.h"
 #include "../gtl/type_traits.h"
 #include "../utilities/memory_pool.h"
+#include "dataspace.h"
+#include "datatype.h"
 
 namespace simpla
 {
+/**
+ * @addtogroup dataset Dataset
+ * @brief This section describes the interface of data set.
+ *
+ * @ref dataset  is a group of classes used to exchange data between different libraries
+ * and program languages in the memory. For example, we can transfer an array
+ * of particle structure in memory to hdf5 library, and save it to disk.
+ */
 
 /**
- * @ingroup data_interface
- *
+ * @ingroup dataset
  *
  * @brief Describe structure of data in the memory.
  *
@@ -114,4 +121,4 @@ DataSet make_dataset(std::shared_ptr<T> p, int rank, size_t const * dims,
 
 }  // namespace simpla
 
-#endif /* CORE_DATA_REPRESENTATION_DATA_SET_H_ */
+#endif /* CORE_DATASET_DATASET_H_ */

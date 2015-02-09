@@ -19,7 +19,7 @@
 
 using namespace simpla;
 
-typedef Mesh<CartesianCoordinates<StructuredMesh, CARTESIAN_ZAXIS>,
+typedef Manifold<CartesianCoordinates<StructuredMesh, CARTESIAN_ZAXIS>,
 		FiniteDiffMethod, InterpolatorLinear> manifold_type;
 
 typedef testing::Types<

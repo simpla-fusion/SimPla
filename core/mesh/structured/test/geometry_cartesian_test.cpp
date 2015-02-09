@@ -5,12 +5,12 @@
  *      Author: salmon
  */
 
-#include "../../diff_geometry/geometry/cartesian.h"
-#include "../../diff_geometry/topology/structured.h"
+#include "../../structured/topology/structured.h"
+#include "../coordinates/cartesian.h"
 
 #define GEOMETRY  CartesianCoordinates<StructuredMesh>
 
-#include "../../diff_geometry/test/geometry_test.h"
+#include "../../structured/test/geometry_test.h"
 
 using namespace simpla;
 

@@ -14,7 +14,7 @@
 
 using namespace simpla;
 
-typedef Mesh<CartesianCoordinates<StructuredMesh, CARTESIAN_ZAXIS>,
+typedef Manifold<CartesianCoordinates<StructuredMesh, CARTESIAN_ZAXIS>,
 		FiniteDiffMethod, InterpolatorLinear> m_type;
 typedef std::complex<Real> v_type;
 

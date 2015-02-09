@@ -11,20 +11,20 @@
 #ifndef FETL_H_
 #define FETL_H_
 
-#include "../diff_geometry/calculus.h"
-#include "../diff_geometry/diff_scheme/fdm.h"
-#include "../diff_geometry/domain.h"
-#include "../diff_geometry/geometry/cartesian.h"
-#include "../diff_geometry/interpolator/interpolator.h"
 #include "../diff_geometry/manifold.h"
-#include "../diff_geometry/topology/structured.h"
 #include "../utilities/utilities.h"
 #include "../field/field.h"
+#include "../structured/calculus.h"
+#include "../structured/diff_scheme/fdm.h"
+#include "../structured/domain.h"
+#include "../structured/interpolator/interpolator.h"
+#include "../structured/topology/structured.h"
+#include "coordinates/cartesian.h"
 
 
 namespace simpla
 {
-typedef Mesh<CartesianCoordinates<StructuredMesh>, FiniteDiffMethod,
+typedef Manifold<CartesianCoordinates<StructuredMesh>, FiniteDiffMethod,
 		InterpolatorLinear> CartesianMesh;
 
 //typedef Manifold<CylindricalCoordinates<StructuredMesh>, FiniteDiffMethod,

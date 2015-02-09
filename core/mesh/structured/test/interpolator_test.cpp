@@ -5,14 +5,13 @@
  *      Author: salmon
  */
 
-#include "../../diff_geometry/test/interpolator_test.h"
-
+#include "../../structured/test/interpolator_test.h"
 #include <tuple>
 
-#include "../../diff_geometry/domain.h"
-#include "../../diff_geometry/geometry/cartesian.h"
-#include "../../diff_geometry/topology/structured.h"
 #include "../../field/field.h"
+#include "../../structured/domain.h"
+#include "../../structured/topology/structured.h"
+#include "../coordinates/cartesian.h"
 
 using namespace simpla;
 

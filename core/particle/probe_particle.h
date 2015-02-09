@@ -12,7 +12,7 @@
 #include <memory>
 #include <string>
 
-#include "../data_representation/data_set.h"
+#include "../dataset/dataset.h"
 #include "../gtl/enable_create_from_this.h"
 #include "../physics/physical_object.h"
 #include "../utilities/utilities.h"

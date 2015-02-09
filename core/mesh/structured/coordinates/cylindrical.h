@@ -5,8 +5,8 @@
  *      Author: salmon
  */
 
-#ifndef COORDINATES_CYLINDRICAL_H_
-#define COORDINATES_CYLINDRICAL_H_
+#ifndef CORE_MESH_STRUCTURED_CORE_MESH_STRUCTURED_COORDINATES_CYLINDRICAL_H_
+#define CORE_MESH_STRUCTURED_COORDINATES_CYLINDRICAL_H_
 
 #include <iostream>
 #include <utility>
@@ -728,4 +728,4 @@ bool CylindricalCoordinates<TTopology, IPhiAxis>::update()
 }
 // namespace simpla
 
-#endif /* COORDINATES_CYLINDRICAL_H_ */
+#endif /* CORE_MESH_STRUCTURED_COORDINATES_CYLINDRICAL_H_ */

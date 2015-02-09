@@ -99,7 +99,7 @@ public:
 	DECL_RET_TYPE((std::make_tuple(p.x,p.v,p.f)))
 };
 
-typedef Mesh<CartesianCoordinates<StructuredMesh> > TManifold;
+typedef Manifold<CartesianCoordinates<StructuredMesh> > TManifold;
 
 typedef TManifold manifold_type;
 

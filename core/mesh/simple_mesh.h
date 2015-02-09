@@ -268,15 +268,8 @@ public:
 		return std::move(res);
 	}
 
-//	template<typename ...Args>
-//	size_t hash(Args && ... args) const
-//	{
-//		return root().hash(std::forward<Args>(args)...);
-//	}
-
 	size_t hash(id_type const & s) const
 	{
-
 		return inner_product(s - offset_, strides_);
 	}
 
@@ -292,7 +285,7 @@ public:
 
 private:
 	template<typename TOP, typename ... Args>
-	inline auto calculate_(TOP op, Args &&...args, id_type const &s) const
+	constexpr auto calculate_(TOP op, Args &&...args, id_type const &s) const
 	DECL_RET_TYPE (op(get_value(std::forward<Args>(args), s)...))
 
 //	template<typename TOP, typename TL, typename TR>
@@ -302,22 +295,21 @@ private:
 public:
 
 	template<typename TOP, typename TL>
-	auto calculate(_Field<Expression<TOP, TL> > const & f,
+	constexpr auto calculate(_Field<Expression<TOP, TL> > const & f,
 			id_type const &s) const
 			DECL_RET_TYPE((calculate_(f.op_,f.lhs,s)))
 
 	template<typename TOP, typename TL, typename TR>
-	auto calculate(_Field<Expression<TOP, TL, TR> > const & f,
+	constexpr auto calculate(_Field<Expression<TOP, TL, TR> > const & f,
 			id_type const &s) const
 			DECL_RET_TYPE((calculate_(f.op_,f.lhs,f.rhs,s)))
 
 	template<typename TC, typename TD>
-	auto calculate(_Field<TC, TD> const & f, id_type const &s) const
+	constexpr auto calculate(_Field<TC, TD> const & f, id_type const &s) const
 	DECL_RET_TYPE ((f[s]))
 
-	template<typename T, size_t ...N>
-	nTuple<T, N...> const& calculate(nTuple<T, N...> const & v,
-			id_type const &s) const
+	template<typename T>
+	constexpr T const& calculate(T const & v, id_type const &s) const
 	{
 		return v;
 	}
@@ -340,7 +332,7 @@ public:
 		return res;
 	}
 	template<typename TV>
-	TV sample(id_type const &s, TV const &v) const
+	constexpr TV sample(id_type const &s, TV const &v) const
 	{
 		return v;
 	}

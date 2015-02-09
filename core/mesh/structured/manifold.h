@@ -5,106 +5,36 @@
  *      Author: salmon
  */
 
-#ifndef CORE_DIFF_GEOMETRY_MESH_H_
-#define CORE_DIFF_GEOMETRY_MESH_H_
+#ifndef CORE_MESH_STRUCTURED_MANIFOLD_H_
+#define CORE_MESH_STRUCTURED_MANIFOLD_H_
 #include <memory>
 #include <utility>
 #include <vector>
 #include <ostream>
 
-#include "../data_representation/data_set.h"
+#include "../../dataset/dataset.h"
 #include "../utilities/utilities.h"
 namespace simpla
 {
-
-/**
- * @ingroup diff_geo
- * \addtogroup  mesh Mesh
- *  @{
- *    \brief   Discrete spatial-temporal space
- *
- * ## Summary
- *  Mesh
- * ## Requirements
- *
- ~~~~~~~~~~~~~{.cpp}
- template <typename Geometry,template<typename> class Policy1,template<typename> class Policy2>
- class Mesh:
- public Geometry,
- public Policy1<Geometry>,
- public Policy2<Geometry>
- {
- .....
- };
- ~~~~~~~~~~~~~
- * The following table lists requirements for a Mesh type `M`,
- *
- *  Pseudo-Signature  		| Semantics
- *  ------------------------|-------------
- *  `M( const M& )` 		| Copy constructor.
- *  `~M()` 				    | Destructor.
- *  `geometry_type`		    | Geometry type of manifold, which describes coordinates and metric
- *  `topology_type`		    | Topology structure of manifold,   topology of grid points
- *  `coordiantes_type` 	    | data type of coordinates, i.e. nTuple<3,Real>
- *  `index_type`			| data type of the index of grid points, i.e. unsigned long
- *  `Domain  domain()`	    | Root domain of manifold
- *
- *
- * Mesh policy concept {#concept_manifold_policy}
- * ================================================
- *   Poilcies define the behavior of manifold , such as  interpolator or calculus;
- ~~~~~~~~~~~~~{.cpp}
- template <typename Geometry > class P;
- ~~~~~~~~~~~~~
- *
- *  The following table lists requirements for a Mesh policy type `P`,
- *
- *  Pseudo-Signature  	   | Semantics
- *  -----------------------|-------------
- *  `P( Geometry  & )` 	   | Constructor.
- *  `P( P const  & )`	   | Copy constructor.
- *  `~P( )` 			   | Copy Destructor.
- *
- * ## Interpolator policy
- *   Interpolator, map between discrete space and continue space, i.e. Gather & Scatter
- *
- *    Pseudo-Signature  	   | Semantics
- *  ---------------------------|-------------
- *  `gather(field_type const &f, coordinates_type x  )` 	    | gather data from `f` at coordinates `x`.
- *  `scatter(field_type &f, coordinates_type x ,value_type v)` 	| scatter `v` to field  `f` at coordinates `x`.
- *
- * ## Calculus  policy
- *  Define calculus operation of  fields on the manifold, such  as algebra or differential calculus.
- *  Differential calculus scheme , i.e. FDM,FVM,FEM,DG ....
- *
- *
- *  Pseudo-Signature  		| Semantics
- *  ------------------------|-------------
- *  `calculate(TOP op, field_type const &f, field_type const &f, index_type s ) `	| `calculate`  binary operation `op` at grid point `s`.
- *  `calculate(TOP op, field_type const &f,  index_type s )` 	| `calculate`  unary operation  `op`  at grid point `s`.
- *
- *  *
- *  @}
- */
 
 template<typename > class FiniteDiffMethod;
 template<typename > class InterpolatorLinear;
 
 /**
  *  \ingroup manifold
- *  \brief Mesh
+ *  \brief manifold
  */
-
-template<size_t IFORM, typename TG, //
-		template<typename > class CalculusPolicy = FiniteDiffMethod, //
-		template<typename > class InterpolatorPlolicy = InterpolatorLinear, //
+template<size_t IFORM, //
+		typename TG, // Geometric space, mesh
+		template<typename > class CalculusPolicy = FiniteDiffMethod, // difference scheme
+		template<typename > class InterpolatorPlolicy = InterpolatorLinear, // interpolation formula
 		template<typename > class ContainerPolicy = std::shared_ptr>
-class Mesh: public CalculusPolicy<TG>, public InterpolatorPlolicy<TG>
+class Manifold
 {
 
 public:
 
-	typedef Mesh<IFORM, TG, CalculusPolicy, InterpolatorPlolicy> this_type;
+	typedef Manifold<IFORM, TG, CalculusPolicy, InterpolatorPlolicy> this_type;
 
 	typedef TG geometry_type;
 	typedef typename geometry_type::id_type id_type;
@@ -123,23 +53,23 @@ private:
 	range_type range_;
 public:
 
-	Mesh() :
+	Manifold() :
 			geometry_(nullptr)
 	{
 	}
 
-	Mesh(geometry_type const & geo) :
+	Manifold(geometry_type const & geo) :
 			geometry_(geo.shared_from_this()), range_(
 					geo.template range<iform>())
 	{
 	}
 
-	Mesh(this_type const & other) :
+	Manifold(this_type const & other) :
 			geometry_(other.geometry_)
 	{
 	}
 
-	~Mesh() = default;
+	~Manifold() = default;
 
 	std::string get_type_as_string() const
 	{
@@ -151,7 +81,7 @@ public:
 		return *this;
 	}
 
-	template<size_t J> using clone_type= Mesh<J,TG, CalculusPolicy, InterpolatorPlolicy>;
+	template<size_t J> using clone_type= Manifold<J,TG, CalculusPolicy, InterpolatorPlolicy>;
 
 	template<size_t J>
 	clone_type<J> clone() const
@@ -163,7 +93,7 @@ public:
 	 * @{
 	 */
 
-	Mesh(this_type & other, op_split) :
+	Manifold(this_type & other, op_split) :
 			geometry_(other.geometry_)
 //	, range_(other.range_, op_split())
 	{
@@ -182,7 +112,6 @@ public:
 	{
 		for (auto s : range_)
 		{
-			CHECK(s);
 			fun(s);
 		}
 	}
@@ -258,10 +187,8 @@ public:
 	void calculate(
 			_Field<AssignmentExpression<TOP, TL, TR> > const & fexpr) const
 	{
-		CHECK("=====");
 		for (auto s : range_)
 		{
-			CHECK(s);
 			fexpr.op_(fexpr.lhs, fexpr.rhs, s);
 		}
 	}
@@ -301,15 +228,13 @@ public:
 
 };
 
-
-
 template<size_t IFORM, typename TG>
-std::shared_ptr<Mesh<IFORM, TG>> create_mesh(TG const & geo)
+std::shared_ptr<Manifold<IFORM, TG>> create_mesh(TG const & geo)
 {
-	return std::make_shared<Mesh<IFORM, TG>>(geo);
+	return std::make_shared<Manifold<IFORM, TG>>(geo);
 }
 
 }
 // namespace simpla
 
-#endif /* CORE_DIFF_GEOMETRY_MESH_H_ */
+#endif /* CORE_MESH_STRUCTURED_MANIFOLD_H_ */

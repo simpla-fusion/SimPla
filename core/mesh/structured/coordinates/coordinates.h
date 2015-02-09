@@ -1,12 +1,15 @@
 /**
- * @file  geometry.h
+ * @file  coordinates.h
  *
  *  Created on: 2014年12月30日
  *      Author: salmon
  */
 
-#ifndef CORE_DIFF_GEOMETRY_GEOMETRY_GEOMETRY_H_
-#define CORE_DIFF_GEOMETRY_GEOMETRY_GEOMETRY_H_
+#ifndef CORE_MESH_STRUCTURED_COORDINATES_COORDINATES_H_
+#define CORE_MESH_STRUCTURED_COORDINATES_COORDINATES_H_
+
+namespace simpla
+{
 
 /**
  * @ingroup diff_geo
@@ -43,4 +46,5 @@
  *  `void G::dt(Real)		`| set time step
  */
 
-#endif /* CORE_DIFF_GEOMETRY_GEOMETRY_GEOMETRY_H_ */
+}  // namespace simpla
+#endif /* CORE_MESH_STRUCTURED_COORDINATES_COORDINATES_H_ */

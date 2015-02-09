@@ -1,12 +1,12 @@
 /*
- * diff_geometry_common.h
+ * @file mesh_common.h
  *
  *  Created on: 2015年1月13日
  *      Author: salmon
  */
 
-#ifndef CORE_DIFF_GEOMETRY_DIFF_GEOMETRY_COMMON_H_
-#define CORE_DIFF_GEOMETRY_DIFF_GEOMETRY_COMMON_H_
+#ifndef CORE_MESH_MESH_COMMON_H_
+#define CORE_MESH_MESH_COMMON_H_
 
 namespace simpla
 {
@@ -15,7 +15,7 @@ namespace simpla
  * @ingroup diff_geo
  * @{
  */
-enum GeometryFormTypeID
+enum ManifoldTypeID
 {
 	VERTEX = 0,
 
@@ -30,4 +30,4 @@ enum GeometryFormTypeID
  */
 }  // namespace simpla
 
-#endif /* CORE_DIFF_GEOMETRY_DIFF_GEOMETRY_COMMON_H_ */
+#endif /* CORE_MESH_MESH_COMMON_H_ */

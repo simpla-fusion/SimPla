@@ -16,7 +16,7 @@
 
 using namespace simpla;
 
-typedef Mesh<VERTEX, CartesianCoordinates<StructuredMesh, CARTESIAN_ZAXIS>,
+typedef Manifold<VERTEX, CartesianCoordinates<StructuredMesh, CARTESIAN_ZAXIS>,
 		FiniteDiffMethod, InterpolatorLinear> mesh_type;
 
 typedef std::unordered_map<typename mesh_type::id_type, double> container_type;

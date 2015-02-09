@@ -5,32 +5,29 @@
  *      Author: salmon
  */
 
-#ifndef COORDINATES_CARTESIAN_H_
-#define COORDINATES_CARTESIAN_H_
+#ifndef CORE_MESH_STRUCTURED_COORDINATES_CARTESIAN_H_
+#define CORE_MESH_STRUCTURED_COORDINATES_CARTESIAN_H_
 
 #include <stddef.h>
 #include <string>
 #include <tuple>
 #include <type_traits>
-
+#include "../../utilities/utilities.h"
 #include "../../physics/constants.h"
 #include "../../physics/physical_constants.h"
-#include "../../utilities/utilities.h"
-#include "../diff_geometry_common.h"
 #include "../../gtl/enable_create_from_this.h"
+#include "../../mesh_common.h"
 
 namespace simpla
 {
 /**
  *  @ingroup geometry
  *
- *  \brief  Cartesian coordiantes (X Y Z)
+ *  \brief  Cartesian coordinates (X Y Z)
  *
  */
 template<typename TTopology, size_t ZAXIS = CARTESIAN_ZAXIS>
-struct CartesianCoordinates: //
-								public TTopology,
-								public enable_create_from_this<
+struct CartesianCoordinates: public TTopology, public enable_create_from_this<
 										CartesianCoordinates<TTopology, ZAXIS>>
 {
 
@@ -46,7 +43,6 @@ public:
 
 	typedef typename topology_type::coordinates_type coordinates_type;
 	typedef typename topology_type::id_type id_type;
-//	typedef typename topology_type::iterator iterator;
 	typedef Real scalar_type;
 
 	CartesianCoordinates(this_type const & rhs) = delete;
@@ -503,28 +499,24 @@ public:
 
 	scalar_type cell_volume(id_type s) const
 	{
-		return topology_type::cell_volume(s) * volume_[1] * volume_[2]
-				* volume_[4];
+		return volume_[1] * volume_[2] * volume_[4];
 	}
 	scalar_type volume(id_type s) const
 	{
-		return topology_type::volume(s) * volume_[topology_type::node_id(s)];
+		return volume_[topology_type::node_id(s)];
 	}
 	scalar_type inv_volume(id_type s) const
 	{
-		return topology_type::inv_volume(s)
-				* inv_volume_[topology_type::node_id(s)];
+		return inv_volume_[topology_type::node_id(s)];
 	}
 
 	scalar_type dual_volume(id_type s) const
 	{
-		return topology_type::dual_volume(s)
-				* dual_volume_[topology_type::node_id(s)];
+		return dual_volume_[topology_type::node_id(s)];
 	}
 	scalar_type inv_dual_volume(id_type s) const
 	{
-		return topology_type::inv_dual_volume(s)
-				* inv_dual_volume_[topology_type::node_id(s)];
+		return inv_dual_volume_[topology_type::node_id(s)];
 	}
 
 	Real HodgeStarVolumeScale(id_type s) const
@@ -672,4 +664,4 @@ bool CartesianCoordinates<TTopology, ZAXIS>::update()
 
 }  // namespace simpla
 
-#endif /* COORDINATES_CARTESIAN_H_ */
+#endif /* CORE_MESH_STRUCTURED_COORDINATES_CARTESIAN_H_ */

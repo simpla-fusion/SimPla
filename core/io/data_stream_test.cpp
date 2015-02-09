@@ -9,7 +9,7 @@
 #include <iostream>
 #include "data_stream.h"
 
-#include "../data_representation/data_set.h"
+#include "../dataset/dataset.h"
 #include "../utilities/utilities.h"
 #include "../physics/constants.h"
 #include "../parallel/mpi_comm.h"

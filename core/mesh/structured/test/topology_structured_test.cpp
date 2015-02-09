@@ -5,11 +5,11 @@
  *      @Author: salmon
  */
 
-#include "../../diff_geometry/topology/structured.h"
+#include "../../structured/topology/structured.h"
 
 #define TOPOLOGY StructuredMesh
 
-#include "../../diff_geometry/test/topology_test.h"
+#include "../../structured/test/topology_test.h"
 
 using namespace simpla;
 

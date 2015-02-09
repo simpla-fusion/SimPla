@@ -23,7 +23,7 @@ namespace simpla
 void RegisterEMContextCartesian(
 		Factory<std::string, ContextBase, LuaObject> * factory)
 {
-	typedef Mesh<CartesianCoordinates<StructuredMesh>> manifold_type;
+	typedef Manifold<CartesianCoordinates<StructuredMesh>> manifold_type;
 
 	factory->Register(
 			ExplicitEMContext<manifold_type>::template CreateFactoryFun<

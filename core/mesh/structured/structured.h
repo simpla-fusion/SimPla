@@ -5,8 +5,8 @@
  *      Author: salmon
  */
 
-#ifndef STRUCTURED_H_
-#define STRUCTURED_H_
+#ifndef MESH_STRUCTURED_H_
+#define MESH_STRUCTURED_H_
 
 #include <stddef.h>
 #include <algorithm>
@@ -18,12 +18,12 @@
 #include <type_traits>
 #include <utility>
 
-#include "../../data_representation/data_interface.h"
+#include "../../../dataset/dataset.h"
 #include "../../utilities/utilities.h"
 #include "../../gtl/ntuple.h"
 #include "../../gtl/primitives.h"
 #include "../../numeric/geometric_algorithm.h"
-#include "../diff_geometry_common.h"
+#include "../mesh_common.h"
 
 namespace simpla
 {
@@ -54,7 +54,6 @@ namespace simpla
  * \endverbatim
  *  - the unit cell width is 1;
  */
-
 template<size_t NDIMS = 3>
 struct StructuredMesh_
 {
@@ -164,20 +163,19 @@ public:
 
 	index_tuple m_hash_strides_;
 
-	coordinates_type m_xmin_, m_xmax_;
+//	coordinates_type m_xmin_, m_xmax_;
+//
+//	static constexpr coordinates_type m_dx_ = { 1, 1, 1 };
 
-	static constexpr coordinates_type m_dx_ =
-	{ 1, 1, 1 };
-
-	//  \verbatim
-	//
-	//   |----------------|----------------|---------------|--------------|------------|
-	//   ^                ^                ^               ^              ^            ^
-	//   |                |                |               |              |            |
-	//global          local_outer      local_inner    local_inner    local_outer     global
-	// _begin          _begin          _begin           _end           _end          _end
-	//
-	//  \endverbatim
+//  \verbatim
+//
+//   |----------------|----------------|---------------|--------------|------------|
+//   ^                ^                ^               ^              ^            ^
+//   |                |                |               |              |            |
+//global          local_outer      local_inner    local_inner    local_outer     global
+// _begin          _begin          _begin           _end           _end          _end
+//
+//  \endverbatim
 
 	/**
 	 *  signed long is 63bit, unsigned long is 64 bit, add a sign bit
@@ -285,8 +283,8 @@ public:
 		m_hash_strides_[1] = d[2] * m_hash_strides_[2];
 		m_hash_strides_[0] = d[1] * m_hash_strides_[1];
 
-		m_xmin_ = 0;
-		m_xmax_ = m_dimensions_;
+//		m_xmin_ = 0;
+//		m_xmax_ = m_dimensions_;
 
 		update();
 
@@ -360,22 +358,6 @@ public:
 		return is_valid_;
 	}
 
-	/**
-	 *
-	 * @return the bounding box of topology space / mesh
-	 */
-
-	constexpr auto extents() const
-	DECL_RET_TYPE((std::forward_as_tuple(m_xmin_, m_xmax_)))
-
-	/**
-	 * @return dimensions of unit grid cell
-	 */
-	static constexpr coordinates_type const & dx()
-	{
-		return m_dx_;
-	}
-
 	//! @name Coordinates
 	//! @{
 
@@ -441,8 +423,7 @@ public:
 	static constexpr index_tuple id_to_index(id_type s)
 	{
 
-		return std::move(index_tuple(
-		{
+		return std::move(index_tuple( {
 
 		static_cast<index_type>(s & INDEX_MASK),
 
@@ -564,16 +545,14 @@ public:
 		((nodeid & 1UL) << (FLOATING_POINT_POS - 1));
 
 	}
-	static constexpr id_type m_first_node_shift_[] =
-	{ 0, 1, 6, 7 };
+	static constexpr id_type m_first_node_shift_[] = { 0, 1, 6, 7 };
 
 	static constexpr id_type get_first_node_shift(id_type iform)
 	{
 
 		return get_shift(m_first_node_shift_[iform]);
 	}
-	static constexpr size_t m_num_of_comp_per_cell_[4] =
-	{ 1, 3, 3, 1 };
+	static constexpr size_t m_num_of_comp_per_cell_[4] = { 1, 3, 3, 1 };
 
 	static constexpr size_t get_num_of_comp_per_cell(size_t iform)
 	{
@@ -630,8 +609,7 @@ public:
 	 * @return
 	 */
 
-	static constexpr id_type m_component_number_[] =
-	{ 0,  // 000
+	static constexpr id_type m_component_number_[] = { 0,  // 000
 			0, // 001
 			1, // 010
 			2, // 011
@@ -645,8 +623,7 @@ public:
 		return m_component_number_[node_id(s)];
 	}
 
-	static constexpr id_type m_iform_[] =
-	{ //
+	static constexpr id_type m_iform_[] = { //
 
 			VERTEX, // 000
 					EDGE, // 001
@@ -1493,7 +1470,7 @@ private:
 	void next()
 	{
 
-//		if (roate_shift(std::integral_constant<size_t, IFORM>()))
+		if (roate_shift(std::integral_constant<size_t, IFORM>()))
 		{
 			self_[ndims - 1] += D_INDEX;
 
@@ -1643,4 +1620,4 @@ private:
 //}
 //}  // namespace std
 
-#endif /* STRUCTURED_H_ */
+#endif /* MESH_STRUCTURED_H_ */

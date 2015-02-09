@@ -7,8 +7,7 @@
 
 #ifndef INTERPOLATOR_TEST_H_
 #define INTERPOLATOR_TEST_H_
-#include "../../diff_geometry/interpolator/interpolator.h"
-
+#include "../../structured/interpolator/interpolator.h"
 #include <gtest/gtest.h>
 
 #include "../../data_interface/container_sparse.h"

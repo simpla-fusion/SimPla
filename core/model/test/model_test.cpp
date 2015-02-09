@@ -60,7 +60,7 @@ protected:
 	}
 public:
 
-	typedef Mesh<CartesianCoordinates<StructuredMesh>, FiniteDiffMethod,
+	typedef Manifold<CartesianCoordinates<StructuredMesh>, FiniteDiffMethod,
 			InterpolatorLinear> manifold_type;
 	typedef Real value_type;
 	typedef typename manifold_type::coordinates_type coordinates_type;

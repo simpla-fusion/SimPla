@@ -26,7 +26,7 @@ using namespace simpla;
 #include "../mesh/mesh_rectangle.h"
 #include "../mesh/uniform_array.h"
 #include "../mesh/geometry_cartesian.h"
-typedef Mesh<CartesianGeometry<UniformArray>, false> TManifold;
+typedef Manifold<CartesianGeometry<UniformArray>, false> TManifold;
 #else
 typedef TMESH TManifold;
 #endif

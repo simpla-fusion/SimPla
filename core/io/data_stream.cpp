@@ -1,3 +1,4 @@
+
 /**
  * @file data_stream.cpp
  *
@@ -16,7 +17,7 @@ extern "C"
 
 #include "data_stream.h"
 
-#include "../data_representation/data_set.h"
+#include "../dataset/dataset.h"
 
 #if !NO_MPI || USE_MPI
 #   include "../parallel/parallel.h"

@@ -5,8 +5,8 @@
  *  @author: salmon
  */
 
-#ifndef CORE_DATA_REPRESENTATION_DATA_SPACE_H_
-#define CORE_DATA_REPRESENTATION_DATA_SPACE_H_
+#ifndef CORE_DATASET_DATASPACE_H_
+#define CORE_DATASET_DATASPACE_H_
 
 #include <stddef.h>
 #include <map>
@@ -102,4 +102,4 @@ DataSpace make_dataspace(Args && ... args)
 
 }  // namespace simpla
 
-#endif /* CORE_DATA_REPRESENTATION_DATA_SPACE_H_ */
+#endif /* CORE_DATASET_DATASPACE_H_ */

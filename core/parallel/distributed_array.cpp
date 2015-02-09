@@ -14,7 +14,7 @@
 #include <memory>
 #include <vector>
 
-#include "../data_representation/data_set.h"
+#include "../dataset/dataset.h"
 #include "../numeric/geometric_algorithm.h"
 #include "../utilities/utilities.h"
 

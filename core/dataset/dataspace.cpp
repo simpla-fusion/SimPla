@@ -5,12 +5,12 @@
  *      @author: salmon
  */
 
-#include "../data_representation/data_space.h"
 #include <algorithm>
 #include <utility>
 
 #include "../gtl/ntuple.h"
 #include "../numeric/geometric_algorithm.h"
+#include "dataspace.h"
 
 namespace simpla
 {
