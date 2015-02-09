@@ -9,8 +9,8 @@
 #define COORDINATES_TEST_H_
 
 #include <gtest/gtest.h>
-#include "../../parallel/parallel.h"
-#include "../../utilities/utilities.h"
+#include "../../../parallel/parallel.h"
+#include "../../../utilities/utilities.h"
 
 using namespace simpla;
 

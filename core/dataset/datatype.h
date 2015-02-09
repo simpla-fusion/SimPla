@@ -1,5 +1,5 @@
 /**
- * @file data_type.h
+ * @file datatype.h
  *
  *  created on: 2014-6-2
  *      Author: salmon

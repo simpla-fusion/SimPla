@@ -13,6 +13,8 @@
 
 #include "../gtl/ntuple.h"
 #include "../gtl/primitives.h"
+#include "../utilities/log.h"
+
 namespace simpla
 {
 //template<typename TS,  size_t  NDIMS>

@@ -10,7 +10,7 @@
 
 #include <gtest/gtest.h>
 
-#include "../../utilities/utilities.h"
+#include "../../../utilities/utilities.h"
 using namespace simpla;
 
 typedef TOPOLOGY TopologyType;

@@ -18,7 +18,7 @@
 #include <type_traits>
 #include <utility>
 
-#include "../../../dataset/dataset.h"
+#include "../../dataset/dataset.h"
 #include "../../utilities/utilities.h"
 #include "../../gtl/ntuple.h"
 #include "../../gtl/primitives.h"

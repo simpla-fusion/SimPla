@@ -21,14 +21,14 @@ template<typename ...>struct _Field;
 
 namespace _impl
 {
-struct is_map_container;
+struct is_maplike_container;
 }  // namespace _impl
 /**
  * @ingroup field
  * @brief Field using  associative container 'map'
  */
 template<typename TM, typename TContainer>
-struct _Field<TM, TContainer, _impl::is_map_container> : public SpObject
+struct _Field<TM, TContainer, _impl::is_maplike_container> : public SpObject
 {
 	typedef TM mesh_type;
 
@@ -38,7 +38,7 @@ struct _Field<TM, TContainer, _impl::is_map_container> : public SpObject
 	typedef TContainer container_type;
 	typedef typename container_type::mapped_type value_type;
 
-	typedef _Field<mesh_type, container_type, _impl::is_map_container> this_type;
+	typedef _Field<mesh_type, container_type, _impl::is_maplike_container> this_type;
 
 private:
 
@@ -71,7 +71,7 @@ public:
 
 	template<typename TU> using clone_field_type=
 	_Field<TM,typename replace_template_type<1,TU,container_type>::type,
-	_impl::is_map_container>;
+	_impl::is_maplike_container>;
 
 	template<typename TU>
 	clone_field_type<TU> clone() const

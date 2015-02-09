@@ -20,10 +20,12 @@ namespace simpla
 /**
  *  @ingroup geometry
  *
- *  \brief  cylindrical coordinates (R Z phi)
+ *  \brief  cylindrical coordinates \f$ \left(R Z \phi \right) \f$
  */
 template<typename TTopology, size_t IPhiAxis = 2>
-class CylindricalCoordinates: public TTopology
+class CylindricalCoordinates: public TTopology, public enable_create_from_this<
+										CylindricalCoordinates<TTopology,
+												IPhiAxis>>
 {
 private:
 	bool is_valid_ = false;
@@ -41,7 +43,7 @@ public:
 	typedef Real scalar_type;
 
 	typedef typename topology_type::coordinates_type coordinates_type;
-	typedef typename topology_type::index_type index_type;
+	typedef typename topology_type::id_type id_type;
 	typedef typename topology_type::index_type index_type;
 	typedef typename topology_type::iterator iterator;
 
@@ -75,8 +77,7 @@ public:
 	}
 	static std::string get_type_as_string_static()
 	{
-		auto phi_axis = PhiAxis;
-		return "Cylindrical" + ToString(phi_axis);
+		return "Cylindrical" + ToString(PhiAxis);
 	}
 
 	std::string get_type_as_string() const
@@ -98,21 +99,21 @@ public:
 		topology_type::next_timestep();
 	}
 
-	void set_time(Real p_time)
+	void time(Real p_time)
 	{
 		time0_ = p_time;
 	}
-	Real get_time() const
+	Real time() const
 	{
 		return static_cast<double>(topology_type::get_clock()) * dt_ + time0_;
 	}
 
-	void set_dt(Real p_dt)
+	void dt(Real p_dt)
 	{
 		dt_ = p_dt;
 	}
 
-	Real get_dt() const
+	Real dt() const
 	{
 		return dt_;
 	}
@@ -170,11 +171,6 @@ public:
 		<< " dt  = " << dt_ << "," << std::endl;
 
 		return os;
-	}
-
-	std::string save(std::string const &path) const
-	{
-		return path;
 	}
 
 	bool is_valid() const
@@ -256,8 +252,8 @@ public:
 
 		return std::move(res);
 	}
-//! @name Normalize coordiantes to  [0,1 )
-//!@{
+	//! @name Normalize coordiantes to  [0,1 )
+	//!@{
 
 	template<typename ... Args>
 	inline coordinates_type coordinates(Args && ... args) const
@@ -316,12 +312,12 @@ public:
 				topology_type::coordinates_global_to_local_NGP(
 						std::move(CoordinatesToTopology(x)), shift));
 	}
-//!@}
-//! @name Coordiantes convert Cylindrical <-> Cartesian
-//! \f$\left(r,z,\phi\right)\Longleftrightarrow\left(x,y,z\right)\f$
-//! @{
+	//!@}
+	//! @name Coordiantes convert Cylindrical <-> Cartesian
+	//! \f$\left(r,z,\phi\right)\Longleftrightarrow\left(x,y,z\right)\f$
+	//! @{
 
-	coordinates_type InvMapTo(coordinates_type const &r) const
+	static constexpr coordinates_type MapToCartesian(coordinates_type const &y)
 	{
 		coordinates_type x;
 
@@ -336,16 +332,19 @@ public:
 		 *  \f}
 		 *
 		 */
-		x[CARTESIAN_XAXIS] = r[RAxis] * std::cos(r[PhiAxis]);
-		x[CARTESIAN_ZAXIS] = r[RAxis] * std::sin(r[PhiAxis]);
-		x[CARTESIAN_YAXIS] = r[ZAxis];
 
-		return std::move(x);
+		return std::move(coordinates_type( {
+
+		y[RAxis] * std::cos(y[PhiAxis]),
+
+		y[RAxis] * std::sin(y[PhiAxis]),
+
+		y[ZAxis] }));
 	}
 
-	coordinates_type MapTo(coordinates_type const &x) const
+	static inline coordinates_type MapFromCartesian(coordinates_type const &x)
 	{
-		coordinates_type r;
+		coordinates_type y;
 		/**
 		 *  @note
 		 *  coordinates transforam
@@ -356,20 +355,22 @@ public:
 		 *  \f}
 		 *
 		 */
-		r[ZAxis] = x[CARTESIAN_YAXIS];
-		r[RAxis] = std::sqrt(
+		y[ZAxis] = x[CARTESIAN_YAXIS];
+		y[RAxis] = std::sqrt(
 				x[CARTESIAN_XAXIS] * x[CARTESIAN_XAXIS]
 						+ x[CARTESIAN_ZAXIS] * x[CARTESIAN_ZAXIS]);
-		r[PhiAxis] = std::atan2(x[CARTESIAN_ZAXIS], x[CARTESIAN_XAXIS]);
+		y[PhiAxis] = std::atan2(x[CARTESIAN_ZAXIS], x[CARTESIAN_XAXIS]);
 
-		return std::move(r);
+		return std::move(y);
 	}
 
 	template<typename TV>
 	std::tuple<coordinates_type, TV> push_forward(
 			std::tuple<coordinates_type, TV> const & Z) const
 	{
-		return std::move(std::make_tuple(MapTo(std::get<0>(Z)), std::get<1>(Z)));
+		return std::move(
+				std::make_tuple(MapFromCartesian(std::get<0>(Z)),
+						std::get<1>(Z)));
 	}
 
 	template<typename TV>
@@ -377,7 +378,7 @@ public:
 			std::tuple<coordinates_type, TV> const & R) const
 	{
 		return std::move(
-				std::make_tuple(InvMapTo(std::get<0>(R)), std::get<1>(R)));
+				std::make_tuple(MapToCartesian(std::get<0>(R)), std::get<1>(R)));
 	}
 
 	/**
@@ -407,7 +408,7 @@ public:
 	std::tuple<coordinates_type, nTuple<TV, ndims> > push_forward(
 			std::tuple<coordinates_type, nTuple<TV, ndims> > const & Z) const
 	{
-		coordinates_type r = MapTo(std::get<0>(Z));
+		coordinates_type r = MapFromCartesian(std::get<0>(Z));
 
 		auto const & v = std::get<1>(Z);
 
@@ -449,76 +450,76 @@ public:
 		v[CARTESIAN_ZAXIS] = u[RAxis] * s + u[PhiAxis] * r[RAxis] * c;
 		v[CARTESIAN_YAXIS] = u[ZAxis];
 
-		return std::move(std::make_tuple(InvMapTo(r), v));
+		return std::move(std::make_tuple(MapToCartesian(r), v));
 	}
 //! @}
 
-	auto select(size_t iform, coordinates_type const & xmin,
-			coordinates_type const & xmax) const
-					DECL_RET_TYPE((this->topology_type::select(this->topology_type::select(iform), this->CoordinatesToTopology(xmin),this->CoordinatesToTopology(xmax))))
+//	auto select(size_t iform, coordinates_type const & xmin,
+//			coordinates_type const & xmax) const
+//					DECL_RET_TYPE((this->topology_type::select(this->topology_type::select(iform), this->CoordinatesToTopology(xmin),this->CoordinatesToTopology(xmax))))
+//
+//	template<typename ...Args>
+//	auto select(size_t iform,
+//			Args && ...args) const
+//					DECL_RET_TYPE((this->topology_type::select(iform,std::forward<Args >(args)...)))
+//
+//	template<typename TV>
+//	TV const& Normal(index_type s, TV const & v) const
+//	{
+//		return v;
+//	}
+//
+//	template<typename TV>
+//	TV const& Normal(index_type s, nTuple<TV, 3> const & v) const
+//	{
+//		return v[topology_type::component_number(s)];
+//	}
+//
+//	template<typename TV>
+//	TV sample(std::integral_constant<size_t, VERTEX>, index_type s,
+//			TV const &v) const
+//	{
+//		return v;
+//	}
+//
+//	template<typename TV>
+//	TV sample(std::integral_constant<size_t, VOLUME>, index_type s,
+//			TV const &v) const
+//	{
+//		return v;
+//	}
+//
+//	template<typename TV>
+//	TV sample(std::integral_constant<size_t, EDGE>, index_type s,
+//			nTuple<TV, 3> const &v) const
+//	{
+//		return v[topology_type::component_number(s)];
+//	}
+//
+//	template<typename TV>
+//	TV sample(std::integral_constant<size_t, FACE>, index_type s,
+//			nTuple<TV, 3> const &v) const
+//	{
+//		return v[topology_type::component_number(s)];
+//	}
+//
+//	template<size_t IFORM, typename TV>
+//	TV sample(std::integral_constant<size_t, IFORM>, index_type s,
+//			TV const & v) const
+//	{
+//		return v;
+//	}
+//
+//	template<size_t IFORM, typename TV>
+//	typename std::enable_if<(IFORM == EDGE || IFORM == FACE), TV>::type sample(
+//			std::integral_constant<size_t, IFORM>, index_type s,
+//			nTuple<TV, ndims> const & v) const
+//	{
+//		return Normal(s, v);
+//	}
 
-	template<typename ...Args>
-	auto select(size_t iform,
-			Args && ...args) const
-					DECL_RET_TYPE((this->topology_type::select(iform,std::forward<Args >(args)...)))
-
-	template<typename TV>
-	TV const& Normal(index_type s, TV const & v) const
-	{
-		return v;
-	}
-
-	template<typename TV>
-	TV const& Normal(index_type s, nTuple<TV, 3> const & v) const
-	{
-		return v[topology_type::component_number(s)];
-	}
-
-	template<typename TV>
-	TV sample(std::integral_constant<size_t, VERTEX>, index_type s,
-			TV const &v) const
-	{
-		return v;
-	}
-
-	template<typename TV>
-	TV sample(std::integral_constant<size_t, VOLUME>, index_type s,
-			TV const &v) const
-	{
-		return v;
-	}
-
-	template<typename TV>
-	TV sample(std::integral_constant<size_t, EDGE>, index_type s,
-			nTuple<TV, 3> const &v) const
-	{
-		return v[topology_type::component_number(s)];
-	}
-
-	template<typename TV>
-	TV sample(std::integral_constant<size_t, FACE>, index_type s,
-			nTuple<TV, 3> const &v) const
-	{
-		return v[topology_type::component_number(s)];
-	}
-
-	template<size_t IFORM, typename TV>
-	TV sample(std::integral_constant<size_t, IFORM>, index_type s,
-			TV const & v) const
-	{
-		return v;
-	}
-
-	template<size_t IFORM, typename TV>
-	typename std::enable_if<(IFORM == EDGE || IFORM == FACE), TV>::type sample(
-			std::integral_constant<size_t, IFORM>, index_type s,
-			nTuple<TV, ndims> const & v) const
-	{
-		return Normal(s, v);
-	}
-
-//! @name Matric/coordinates  depend transform
-//! @{
+	//! @name Metric/coordinates  depend transform
+	//! @{
 
 	Real volume_[8] = { 1, // 000
 			1, //001
@@ -552,48 +553,47 @@ public:
 	 *\endverbatim
 	 */
 
-	Real HodgeStarVolumeScale(index_type s) const
+	constexpr Real HodgeStarVolumeScale(index_type s) const
 	{
 		return 1.0;
 	}
 
-	Real cell_volume(index_type s) const
+	constexpr Real cell_volume(index_type s) const
 	{
-		return topology_type::cell_volume(s) * volume_[1] * volume_[2]
-				* volume_[4] * coordinates(s)[RAxis];
+		return volume_[1] * volume_[2] * volume_[4] * coordinates(s)[RAxis];
 	}
 
-	scalar_type volume(index_type s) const
+	constexpr scalar_type volume(index_type s) const
 	{
 		size_t n = topology_type::node_id(s);
-		return topology_type::volume(s) * volume_[n]
+		return volume_[n]
 				* (((n & (1UL << (ndims - PhiAxis - 1))) > 0) ?
 						coordinates(s)[RAxis] : 1.0);
 	}
 
-	scalar_type inv_volume(index_type s) const
+	constexpr scalar_type inv_volume(index_type s) const
 	{
 		size_t n = topology_type::node_id(s);
-		return topology_type::inv_volume(s) * inv_volume_[n]
+		return inv_volume_[n]
 				/ (((n & (1UL << (ndims - PhiAxis - 1))) > 0) ?
 						coordinates(s)[RAxis] : 1.0);
 	}
 
-	scalar_type dual_volume(index_type s) const
+	constexpr scalar_type dual_volume(index_type s) const
 	{
 		size_t n = topology_type::node_id(topology_type::dual(s));
-		return topology_type::dual_volume(s) * volume_[n]
+		return volume_[n]
 				* (((n & (1UL << (ndims - PhiAxis - 1))) > 0) ?
 						coordinates(s)[RAxis] : 1.0);
 	}
-	scalar_type inv_dual_volume(index_type s) const
+	constexpr scalar_type inv_dual_volume(index_type s) const
 	{
 		size_t n = topology_type::node_id(topology_type::dual(s));
-		return topology_type::inv_dual_volume(s) * inv_volume_[n]
+		return inv_volume_[n]
 				/ (((n & (1UL << (ndims - PhiAxis - 1))) > 0) ?
 						coordinates(s)[RAxis] : 1.0);
 	}
-//! @}
+	//! @}
 }
 ;
 
@@ -725,6 +725,14 @@ bool CylindricalCoordinates<TTopology, IPhiAxis>::update()
 	return true;
 
 }
+template<typename TTopology, size_t IPhiAxis>
+constexpr size_t CylindricalCoordinates<TTopology, IPhiAxis>::PhiAxis;
+
+template<typename TTopology, size_t IPhiAxis>
+constexpr size_t CylindricalCoordinates<TTopology, IPhiAxis>::RAxis;
+
+template<typename TTopology, size_t IPhiAxis>
+constexpr size_t CylindricalCoordinates<TTopology, IPhiAxis>::ZAxis;
 }
 // namespace simpla
 

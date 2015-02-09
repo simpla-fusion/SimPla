@@ -12,10 +12,10 @@
 #include <string>
 #include <tuple>
 #include <type_traits>
-#include "../../utilities/utilities.h"
-#include "../../physics/constants.h"
-#include "../../physics/physical_constants.h"
-#include "../../gtl/enable_create_from_this.h"
+#include "../../../utilities/utilities.h"
+#include "../../../physics/constants.h"
+#include "../../../physics/physical_constants.h"
+#include "../../../gtl/enable_create_from_this.h"
 #include "../../mesh_common.h"
 
 namespace simpla
@@ -101,6 +101,51 @@ public:
 	{
 		return *this;
 	}
+
+	struct Hash
+	{
+		typename holder_type self_;
+
+		Hash(holder_type g) :
+				self_(g)
+		{
+		}
+		Hash(Hash const & other) :
+				self_(other.self_)
+		{
+		}
+		~Hash()
+		{
+		}
+
+	private:
+		template<typename T>
+		constexpr size_t hash_(T const &x,
+				std::integral_constant<bool, false>) const
+		{
+			return geo_->coordiantes_to_id(x);
+		}
+		template<typename T>
+		constexpr size_t hash_(T const &p,
+				std::integral_constant<bool, true>) const
+		{
+			return geo_->coordiantes_to_id(p.x);
+		}
+
+		HAS_MEMBER(x);
+	public:
+		template<typename T>
+		constexpr size_t operator()(T const &x) const
+		{
+			return hash_(std::forward<Args>(x),std::integral_constant<bool, has_member_x<T>::value>());
+		}
+
+	};
+
+	Hash hash_function() const
+	{
+		return Hash(shared_from_this());
+	}
 	//***************************************************************************************************
 	// Geometric properties
 	// Metric
@@ -161,8 +206,8 @@ public:
 		auto dx_ = dx();
 
 		Real safe_dt = CFL_
-				* std::sqrt(dx_[0] * dx_[0] + dx_[1] * dx_[1] + dx_[2] * dx_[2])
-				/ speed_of_light;
+		* std::sqrt(dx_[0] * dx_[0] + dx_[1] * dx_[1] + dx_[2] * dx_[2])
+		/ speed_of_light;
 
 		if (dt_ > safe_dt)
 		{
@@ -182,17 +227,17 @@ public:
 		if (std::imag(kimg[XAxis]) > EPSILON)
 		{
 			dx2 += TWOPI * TWOPI
-					/ (std::imag(kimg[XAxis]) * std::imag(kimg[XAxis]));
+			/ (std::imag(kimg[XAxis]) * std::imag(kimg[XAxis]));
 		}
 		if (std::imag(kimg[ZAxis]) > EPSILON)
 		{
 			dx2 += TWOPI * TWOPI
-					/ (std::imag(kimg[ZAxis]) * std::imag(kimg[ZAxis]));
+			/ (std::imag(kimg[ZAxis]) * std::imag(kimg[ZAxis]));
 		}
 		if (std::imag(kimg[YAxis]) > EPSILON)
 		{
 			dx2 += TWOPI * TWOPI
-					/ (std::imag(kimg[YAxis]) * std::imag(kimg[YAxis]));
+			/ (std::imag(kimg[YAxis]) * std::imag(kimg[YAxis]));
 		}
 
 		updatedt(dx2);
@@ -221,9 +266,9 @@ public:
 
 			extents(
 
-			dict["Min"].template as<nTuple<Real, ndims>>(),
+					dict["Min"].template as<nTuple<Real, ndims>>(),
 
-			dict["Max"].template as<nTuple<Real, ndims>>());
+					dict["Max"].template as<nTuple<Real, ndims>>());
 
 			CFL_ = dict["CFL"].template as<Real>(0.5);
 
@@ -267,11 +312,11 @@ public:
 	{
 		coordinates_type res;
 
-		auto d = topology_type::dx();
+		auto d = topology_type::dimensions();
 
 		for (size_t i = 0; i < ndims; ++i)
 		{
-			res[i] = length_[i] * d[i];
+			res[i] = length_[i] / d[i];
 		}
 
 		return std::move(res);
@@ -286,28 +331,30 @@ public:
 	coordinates_type coordinates_from_topology(coordinates_type const &x) const
 	{
 
-		return coordinates_type( {
+		return coordinates_type(
+				{
 
-		x[0] * length_[0] + shift_[0],
+					x[0] * length_[0] + shift_[0],
 
-		x[1] * length_[1] + shift_[1],
+					x[1] * length_[1] + shift_[1],
 
-		x[2] * length_[2] + shift_[2]
+					x[2] * length_[2] + shift_[2]
 
-		});
+				});
 
 	}
 	coordinates_type coordinates_to_topology(coordinates_type const &x) const
 	{
-		return coordinates_type( {
+		return coordinates_type(
+				{
 
-		(x[0] - shift_[0]) * inv_length_[0],
+					(x[0] - shift_[0]) * inv_length_[0],
 
-		(x[1] - shift_[1]) * inv_length_[1],
+					(x[1] - shift_[1]) * inv_length_[1],
 
-		(x[2] - shift_[2]) * inv_length_[2]
+					(x[2] - shift_[2]) * inv_length_[2]
 
-		});
+				});
 
 	}
 
@@ -322,7 +369,7 @@ public:
 
 	/**
 	 * @bug: truncation error of coordinates transform larger than 1000
-	 *     epsilon (1e4 epsilon for cylindrical coordiantes)
+	 *     epsilon (1e4 epsilon for cylindrical coordinates)
 	 * @param args
 	 * @return
 	 */
@@ -350,9 +397,9 @@ public:
 						std::move(coordinates_to_topology(x)), shift));
 	}
 
-	coordinates_type InvMapTo(coordinates_type const &y) const
+	nTuple<Real, 3> MapToCartesian(coordinates_type const &y) const
 	{
-		coordinates_type x;
+		nTuple<Real, 3> x;
 
 		x[CARTESIAN_XAXIS] = y[XAxis];
 		x[CARTESIAN_YAXIS] = y[YAxis];
@@ -361,7 +408,7 @@ public:
 		return std::move(x);
 	}
 
-	coordinates_type MapTo(coordinates_type const &x) const
+	coordinates_type MapFromCartesian(nTuple<Real, 3> const &x) const
 	{
 
 		coordinates_type y;
@@ -377,7 +424,9 @@ public:
 	std::tuple<coordinates_type, TV> push_forward(
 			std::tuple<coordinates_type, TV> const & Z) const
 	{
-		return std::move(std::make_tuple(MapTo(std::get<0>(Z)), std::get<1>(Z)));
+		return std::move(
+				std::make_tuple(MapFromCartesian(std::get<0>(Z)),
+						std::get<1>(Z)));
 	}
 
 	template<typename TV>
@@ -385,9 +434,27 @@ public:
 			std::tuple<coordinates_type, TV> const & R) const
 	{
 		return std::move(
-				std::make_tuple(InvMapTo(std::get<0>(R)), std::get<1>(R)));
+				std::make_tuple(MapToCartesian(std::get<0>(R)), std::get<1>(R)));
 	}
 
+	coordinates_type Lie_trans(coordiantes_type const & x,
+			nTuple<Real, 3> const & v)
+	{
+		coordinates_type res;
+		res = x + v;
+
+		return std::move(res);
+	}
+
+	coordinates_type Lie_trans(
+			std::tuple<coordiantes_type, nTuple<Real, 3> > const &Z,
+			nTuple<Real, 3> const & v)
+	{
+		coordinates_type res;
+		res = x + v;
+
+		return std::move(res);
+	}
 	/**
 	 *
 	 *   transform vector from Cartesian to Cartesian
@@ -402,7 +469,7 @@ public:
 	std::tuple<coordinates_type, nTuple<TV, ndims> > push_forward(
 			std::tuple<coordinates_type, nTuple<TV, ndims> > const & Z) const
 	{
-		coordinates_type y = MapTo(std::get<0>(Z));
+		coordinates_type y = MapFromCartesian(std::get<0>(Z));
 
 		auto const & v = std::get<1>(Z);
 
@@ -428,7 +495,7 @@ public:
 			std::tuple<coordinates_type, nTuple<TV, ndims> > const & R,
 			size_t CartesianZAxis = 2) const
 	{
-		auto x = InvMapTo(std::get<0>(R));
+		auto x = MapToCartesian(std::get<0>(R));
 		auto const & u = std::get<1>(R);
 
 		nTuple<TV, ndims> v;
@@ -440,24 +507,25 @@ public:
 		return std::move(std::make_tuple(x, v));
 	}
 
-	template<size_t IFORM, typename TR>
-	auto select(TR range, coordinates_type const & xmin,
-			coordinates_type const & xmax) const
-			DECL_RET_TYPE((topology_type::template select<IFORM>(range,
-									this->coordinates_to_topology(xmin),
-									this->coordinates_to_topology(xmax))))
+//	template<size_t IFORM, typename TR>
+//	auto select(TR range, coordinates_type const & xmin,
+//			coordinates_type const & xmax) const
+//			DECL_RET_TYPE((topology_type::template select<IFORM>(range,
+//									this->coordinates_to_topology(xmin),
+//									this->coordinates_to_topology(xmax))))
+//
+//	template<size_t IFORM, typename TR, typename ...Args>
+//	auto select(TR range, Args && ...args) const
+//	DECL_RET_TYPE((topology_type::template select<IFORM>(
+//							range,std::forward<Args >(args)...)))
+//
+//	template<size_t IFORM>
+//	auto select() const
+//	DECL_RET_TYPE((this->topology_type:: template select<IFORM>()))
 
-	template<size_t IFORM, typename TR, typename ...Args>
-	auto select(TR range, Args && ...args) const
-	DECL_RET_TYPE((topology_type::template select<IFORM>(
-							range,std::forward<Args >(args)...)))
-
-	template<size_t IFORM>
-	auto select() const
-	DECL_RET_TYPE((this->topology_type:: template select<IFORM>()))
-//***************************************************************************************************
-// Volume
-//***************************************************************************************************
+	//***************************************************************************************************
+	// Volume
+	//***************************************************************************************************
 
 	/**
 	 *\verbatim
@@ -480,46 +548,50 @@ public:
 	 *\endverbatim
 	 */
 
-	scalar_type volume_[8] = { 1, // 000
-			1, //001
-			1, //010
-			1, //011
-			1, //100
-			1, //101
-			1, //110
-			1  //111
-			};
-	scalar_type inv_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
+	scalar_type volume_[8] =
+	{	1, // 000
+		1,//001
+		1,//010
+		1,//011
+		1,//100
+		1,//101
+		1,//110
+		1//111
+	};
+	scalar_type inv_volume_[8] =
+	{	1, 1, 1, 1, 1, 1, 1, 1};
 
-	scalar_type dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
+	scalar_type dual_volume_[8] =
+	{	1, 1, 1, 1, 1, 1, 1, 1};
 
-	scalar_type inv_dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
+	scalar_type inv_dual_volume_[8] =
+	{	1, 1, 1, 1, 1, 1, 1, 1};
 
 public:
 
-	scalar_type cell_volume(id_type s) const
+	constexpr scalar_type cell_volume(id_type s) const
 	{
 		return volume_[1] * volume_[2] * volume_[4];
 	}
-	scalar_type volume(id_type s) const
+	constexpr scalar_type volume(id_type s) const
 	{
 		return volume_[topology_type::node_id(s)];
 	}
-	scalar_type inv_volume(id_type s) const
+	constexpr scalar_type inv_volume(id_type s) const
 	{
 		return inv_volume_[topology_type::node_id(s)];
 	}
 
-	scalar_type dual_volume(id_type s) const
+	constexpr scalar_type dual_volume(id_type s) const
 	{
 		return dual_volume_[topology_type::node_id(s)];
 	}
-	scalar_type inv_dual_volume(id_type s) const
+	constexpr scalar_type inv_dual_volume(id_type s) const
 	{
 		return inv_dual_volume_[topology_type::node_id(s)];
 	}
 
-	Real HodgeStarVolumeScale(id_type s) const
+	constexpr Real HodgeStarVolumeScale(id_type s) const
 	{
 		return 1.0;
 	}

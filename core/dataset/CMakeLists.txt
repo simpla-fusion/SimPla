@@ -1,2 +1,2 @@
-add_library(data_interface  data_space.cpp data_type.cpp )
+add_library(dataset dataspace.cpp datatype.cpp )
 
