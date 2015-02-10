@@ -1,36 +1,38 @@
-/*
- * particle_update_ghosts.h
+/**
+ * @file particle_sync.h
  *
  *  created on: 2014-6-15
  *      Author: salmon
  */
 
-#ifndef PARTICLE_UPDATE_GHOSTS_H_
-#define PARTICLE_UPDATE_GHOSTS_H_
+#ifndef CORE_PARTICLE_PARTICLE_SYNC_H_
+#define CORE_PARTICLE_PARTICLE_SYNC_H_
+
 #include "../utilities/log.h"
+#include "../parallel/mpi_comm.h"
+#include <mpi.h>
 
 namespace simpla
 {
-template<typename TM, typename TParticle> class ParticlePool;
+template<typename ...> class Particle;
 
-template<typename TM, typename TParticle>
-void update_ghosts(ParticlePool<TM, TParticle> *pool)
+template<typename ... Args>
+void sync(Particle<Args...> *pool)
 {
-#ifdef USE_MPI
 
 	GLOBAL_COMM.barrier();
-	auto const & g_array = pool->mesh.global_array_;
 
+	auto const & g_array = pool->mesh.global_array_;
 	if (g_array.send_recv_.size() == 0)
 	{
 		return;
 	}
-
 	VERBOSE << "update ghosts (particle pool) ";
 
-	typedef ParticlePool<TM, TParticle> pool_type;
+	typedef Particle<Args...> pool_type;
 
-	typedef typename pool_type::particle_type value_type;
+	typedef typename pool_type::Point_s value_type;
+	typedef typename pool_type::geometry_type geometry_type;
 
 	MPI_Comm comm = GLOBAL_COMM.comm();
 
@@ -46,7 +48,8 @@ void update_ghosts(ParticlePool<TM, TParticle> *pool)
 	{
 
 		size_t num = 0;
-		for (auto s : pool->mesh.SelectInner(ParticlePool<TM, TParticle>::IForm, item.send_begin, item.send_end))
+		for (auto s : pool->mesh.SelectInner(Particle<TM, TParticle>::IForm,
+						item.send_begin, item.send_end))
 		{
 			num += pool->get(s).size();
 		}
@@ -55,7 +58,8 @@ void update_ghosts(ParticlePool<TM, TParticle> *pool)
 
 		num = 0;
 
-		for (auto s : pool->mesh.SelectInner(ParticlePool<TM, TParticle>::IForm, item.send_begin, item.send_end))
+		for (auto s : pool->mesh.SelectInner(ParticlePool<TM, TParticle>::IForm,
+						item.send_begin, item.send_end))
 		{
 			for (auto const & p : pool->get(s))
 			{
@@ -64,15 +68,17 @@ void update_ghosts(ParticlePool<TM, TParticle> *pool)
 			}
 		}
 
-		MPI_Isend(&buffer[count][0], buffer[count].size() * sizeof(value_type), MPI_BYTE, item.dest, item.send_tag,
-		        comm, &requests[count]);
+		MPI_Isend(&buffer[count][0], buffer[count].size() * sizeof(value_type),
+				MPI_BYTE, item.dest, item.send_tag, comm, &requests[count]);
 		++count;
 
 	}
 
 	for (auto const & item : g_array.send_recv_)
 	{
-		pool->remove(pool->mesh.select_outer(ParticlePool<TM, TParticle>::IForm, item.recv_begin, item.recv_end));
+		pool->remove(
+				pool->mesh.select_outer(ParticlePool<TM, TParticle>::IForm,
+						item.recv_begin, item.recv_end));
 
 		MPI_Status status;
 
@@ -89,8 +95,8 @@ void update_ghosts(ParticlePool<TM, TParticle> *pool)
 		}
 		buffer[count].resize(mem_size / sizeof(value_type));
 
-		MPI_Irecv(&buffer[count][0], buffer[count].size() * sizeof(value_type), MPI_BYTE, item.dest, item.recv_tag,
-		        comm, &requests[count]);
+		MPI_Irecv(&buffer[count][0], buffer[count].size() * sizeof(value_type),
+				MPI_BYTE, item.dest, item.recv_tag, comm, &requests[count]);
 		++count;
 	}
 
@@ -106,11 +112,13 @@ void update_ghosts(ParticlePool<TM, TParticle> *pool)
 		bool flag = true;
 		for (int n = 0; n < 3; ++n)
 		{
-			if (g_array.send_recv_[i].recv_begin[n] < pool->mesh.global_begin_[n])
+			if (g_array.send_recv_[i].recv_begin[n]
+					< pool->mesh.global_begin_[n])
 			{
 				extents[n] = xmin[n] - xmax[n];
 			}
-			else if (g_array.send_recv_[i].recv_begin[n] >= pool->mesh.global_end_[n])
+			else if (g_array.send_recv_[i].recv_begin[n]
+					>= pool->mesh.global_end_[n])
 			{
 				extents[n] = xmax[n] - xmin[n];
 			}
@@ -131,8 +139,9 @@ void update_ghosts(ParticlePool<TM, TParticle> *pool)
 		}
 		else
 		{
-			std::copy(buffer[num_of_neighbour + i].begin(), buffer[num_of_neighbour + i].end(),
-			        std::back_inserter(cell_buffer));
+			std::copy(buffer[num_of_neighbour + i].begin(),
+					buffer[num_of_neighbour + i].end(),
+					std::back_inserter(cell_buffer));
 		}
 
 	}
@@ -140,9 +149,8 @@ void update_ghosts(ParticlePool<TM, TParticle> *pool)
 
 	pool->add(&cell_buffer);
 
-#endif
 }
 }
 // namespace simpla
 
-#endif /* PARTICLE_UPDATE_GHOSTS_H_ */
+#endif /* CORE_PARTICLE_PARTICLE_SYNC_H_ */

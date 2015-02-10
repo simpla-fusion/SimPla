@@ -12,8 +12,7 @@
 #include "../../utilities/lua_object.h"
 #include "../parallel/message_comm.h"
 #include "../parallel/mpi_aux_functions.h"
-
-#include "particle_update_ghosts.h"
+#include "../particle_sync.h"
 #include "load_particle.h"
 #include "tracable_particle.h"
 

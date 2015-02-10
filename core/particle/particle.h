@@ -11,6 +11,32 @@
 namespace simpla
 {
 
+template<typename TGeo, typename TPoint_s>
+struct particle_hasher
+{
+	typedef TGeo geometry_type;
+	typedef typename geometry_type::id_type key_type;
+	typedef TPoint_s value_type;
+
+	geometry_type const & m_geo_;
+
+	particle_hasher(geometry_type const & geo) :
+			m_geo_(geo)
+	{
+	}
+	~particle_hasher()
+	{
+	}
+
+	constexpr key_type operator()(value_type const & p) const
+	{
+		return m_geo_.coordinates_to_id(p.x);
+	}
+}
+;
+
+template<typename T> void sync(T *);
+
 /** @ingroup physical_object
  *  @addtogroup particle Particle
  *  @{
@@ -64,8 +90,10 @@ namespace simpla
  */
 
 template<typename TG, typename Engine, typename ...Others>
-class Particle: public Engine, public enable_create_from_this<
-		Particle<Engine, Others...>>
+class Particle: public Engine,
+		public sp_sorted_set<typename Engine::Point_s,
+				particle_hasher<TG, typename Engine::Point_s> >,
+		public enable_create_from_this<Particle<Engine, Others...>>
 {
 	typedef TG geometry_type;
 
@@ -73,116 +101,86 @@ class Particle: public Engine, public enable_create_from_this<
 
 	typedef Particle<geometry_type, engine_type, Others...> this_type;
 
-	typedef typename engine_type::Point_s Point_s;
+	typedef typename engine_type::Point_s value_type;
 
-	typedef std::vector<value_type> container_type;
-
-	typedef typename container_type::iterator iterator;
-
-	typedef typename geometry_type::id_type id_type;
+	typedef typename geometry_type::id_type key_type;
 
 private:
 
 	geometry_type const & m_geo_;
 
-	container_type m_data_;
+	typedef sp_sorted_set<value_type, hasher> container_type;
 
-	struct hasher
-	{
-		geometry_type const & m_geo_;
-
-		hasher(geometry_type const & geo) :
-				m_geo_(geo)
-		{
-		}
-		~hasher()
-		{
-		}
-
-		constexpr id_type operator()(iterator const & it) const
-		{
-			return geo_.coordinates_to_id(it->x);
-		}
-	}
-	;
-
-	typedef sp_sorted_set<value_type, hasher> index_container_type;
-
-	typedef typename index_container_type::bucket_type bucket_type;
-
-	index_container_type m_indices_;
+	typedef typename container_type::bucket_type bucket_type;
 
 public:
 	Particle(geometry_type const & geo) :
-			m_geo_(geo), m_indices_(hasher(geo))
+			container_type(hasher(geo)), m_geo_(geo)
 	{
 	}
 
-	Particle(this_type const&);
+	Particle(this_type const& other) = delete;
 
-	~Particle();
-
-	using engine_type::properties;
-	using engine_type::print;
-
-	template<typename ...Args>
-	void push_back(Args && ... args)
+	~Particle()
 	{
-		auto head = m_data_.rbegin();
-
-		m_data_.push_back(std::forward<Args>(args)...);
-
-		++head;
-
-		auto tail = m_data_.end();
-
-		for (auto it = head; it != tail; ++it)
-		{
-			m_indices_.push_back(it);
-		}
 	}
-
-	void insert(value_type const & v)
+	this_type & self()
 	{
-		auto head = m_data_.rbegin();
-
-		m_data_.push_back(std::forward<Args>(args)...);
-
-		++head;
-
-		auto tail = m_data_.end();
-
-		for (auto it = head; it != tail; ++it)
-		{
-			m_indices_.push_back(it);
-		}
+		return *this;
 	}
-
-	template<typename TRange>
-	void clear_out_region(TRange const & range)
+	this_type const& self() const
 	{
-		index_container_type tmp(m_geo_);
-
-		m_indices_.select(range, tmp);
-
+		return *this;
 	}
-
-	template<typename TDict, typename ...Others>
-	void load(TDict const & dict, Others && ...others);
-
-	bool update();
-
-	void sync();
-
-	DataSet dataset() const;
-
-	static std::string get_type_as_string_staic()
+	static std::string get_type_as_string_static()
 	{
 		return engine_type::get_type_as_string();
 	}
 	std::string get_type_as_string() const
 	{
-		return get_type_as_string_staic();
+		return get_type_as_string_static();
+	}
+	geometry_type const & geometry() const
+	{
+		return m_geo_;
+	}
+	using engine_type::properties;
+	using engine_type::print;
+
+	using container_type::push_back;
+	using container_type::insert;
+	using container_type::emplace;
+	using container_type::rehash;
+	using container_type::reserver;
+	using container_type::erase;
+
+	template<typename TDict, typename ...Others>
+	void load(TDict const & dict, Others && ...others)
+	{
+		engine_type::load(dict);
+	}
+
+	bool update()
+	{
+		return true;
+	}
+
+	void sync()
+	{
+		simpla::sync(this);
+	}
+
+	DataSet dataset() const
+	{
+		size_t num;
+
+		std::shared_ptr<value_type> data;
+
+		std::tie(num, data) = m_data_.dump(m_geo_.select<VERTEX>());
+
+		return DataSet(
+		{ data, DataType::create<value_type>(), DataSpace(1, &num),
+				engine_type::properties });
 	}
 
 	//! @}
@@ -200,7 +198,17 @@ public:
 	 *
 	 */
 	template<typename ...Args>
-	void next_timestep(Args && ...args);
+	void next_timestep(Args && ...args)
+	{
+		for (auto & item : m_data_)
+		{
+			for (auto & p : item.second)
+			{
+				engine_type::next_timestep(&p, std::forward<Args>(args)...);
+
+			}
+		}
+	}
 
 	/**
 	 *
@@ -224,16 +232,52 @@ public:
 	 */
 	template<typename ...Args>
 	Real next_n_timesteps(size_t num_of_steps, Real t0, Real dt,
-			Args && ...args);
+			Args && ...args)
+	{
+		for (auto & item : m_data_)
+		{
+			for (auto & p : item.second)
+			{
+				for (int s = 0; s < num_of_steps; ++s)
+				{
+					engine_type::next_timestep(&p, t0 + dt * s, dt,
+							std::forward<Args>(args)...);
+				}
+			}
+		}
+	}
 
-	/**
-	 *  insert and emplace will invalid data in the cache
-	 * @param args
-	 */
+	template<typename TRange, typename TFun, typename ...Args>
+	void foreach(TRange const & range, TFun const & fun, Args && ...)
+	{
+		for (auto const & s : range)
+		{
+			auto it = m_data_.find(s);
+			if (it != m_data_.end())
+			{
+				for (auto & p : it->second)
+				{
+					fun(p, std::forward<Args>(args)...);
+				}
+			}
+		}
+	}
 
-	template<typename TFun, typename ...Args>
-	void foreach(TFun const & fun, Args && ...);
-
+	template<typename TRange, typename TFun, typename ...Args>
+	void foreach(TRange const & range, TFun const & fun, Args && ...) const
+	{
+		for (auto const & s : range)
+		{
+			auto it = m_data_.find(s);
+			if (it != m_data_.end())
+			{
+				for (auto const & p : it->second)
+				{
+					fun(p, std::forward<Args>(args)...);
+				}
+			}
+		}
+	}
 };
 }
 // namespace simpla

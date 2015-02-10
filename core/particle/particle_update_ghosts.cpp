@@ -5,6 +5,6 @@
  * \author salmon
  */
 
-#include "particle_update_ghosts.h"
+#include "particle_sync.h"
 
 

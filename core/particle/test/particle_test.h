@@ -18,7 +18,7 @@
 #include "particle.h"
 
 #include "../../utilities/lua_object.h"
-#include "particle_update_ghosts.h"
+#include "../particle_sync.h"
 
 using namespace simpla;
 

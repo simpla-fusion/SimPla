@@ -128,14 +128,15 @@ public:
 		return std::move(m_data_.at(id).end());
 	}
 
-	void insert(key_type const & key, value_iterator const & b,
-			value_iterator const & e)
+	template<typename TI>
+	void insert(key_type const & key, TI const & b, TI const & e)
 	{
 		auto & dest = m_data_[key];
 		dest.insert(b, e);
 	}
 
-	void push_back(value_iterator const & b, value_iterator const & e)
+	template<typename TI>
+	void push_back(TI const & b, TI const & e)
 	{
 		for (auto it = b; it != e; ++it)
 		{
@@ -189,8 +190,24 @@ public:
 			}
 		}
 	}
-
-	void merge(container_type &other)
+	template<typename TRange>
+	void move_out(TRange const & range, container_type &res)
+	{
+//		parallel_for(range, [&](TRange const & s_range)
+		{
+			for (auto const & key : range)
+			{
+				auto it = m_data_.find(key);
+				if (it != m_data_.end())
+				{
+					auto & dest = res[key];
+					dest.splice_after(dest.cbegin(), it->seond);
+				}
+			}
+		}
+//	);
+	}
+	void move_in(container_type &&other)
 	{
 		for (auto & item : other)
 		{
@@ -201,12 +218,12 @@ public:
 
 	void rehash()
 	{
-		container_type other;
+		container_type other(m_hasher_);
 		for (auto & item : m_data_)
 		{
 			rehash(item, other);
 		}
-		merge(std::move(other));
+		move_in(std::move(other));
 	}
 
 	template<typename TPred>
@@ -222,20 +239,90 @@ public:
 	}
 
 	template<typename TRange>
-	void select(TRange const & range, container_type &other)
+	void reserve(TRange const & range)
 	{
+		container_type res(m_hasher_);
+		move_out(range, res);
+		res.swap(m_data_);
+	}
 
-		for (auto key : range)
+	template<typename TRange>
+	void erase(TRange const & range)
+	{
+		container_type res(m_hasher_);
+		move_out(range, res);
+	}
+
+	template<typename TRange, typename TOut>
+	void copy(TRange const & range, TOut & out) const
+	{
+		for (auto const & key : range)
 		{
-			auto it = m_data_.find(key);
-			if (it != m_data_.end())
+			auto item = m_data_.find(key);
+			if (item != m_data_.end())
 			{
-				auto & dest = other[key];
-				dest.splice_after(dest.cbegin(), it->seond);
+				for (auto const & v : item->second)
+				{
+					out.push_back(v);
+				}
 			}
 		}
 	}
 
+	template<typename TRange>
+	void copy(TRange const & range, size_t max_num, value_type * out) const
+	{
+
+		size_t count = 0;
+		for (auto const & key : range)
+		{
+			auto item = m_data_.find(key);
+			if (item != m_data_.end())
+			{
+				for (auto const & v : item->second)
+				{
+					*(out + count) = v;
+					++count;
+				}
+			}
+		}
+	}
+
+	template<typename TRange>
+	size_t size(TRange const & range) const
+	{
+
+		size_t count = 0;
+		for (auto const & key : range)
+		{
+			auto item = m_data_.find(key);
+			if (item != m_data_.end())
+			{
+				count += item->second.size();
+			}
+		}
+		return count;
+	}
+	size_t size() const
+	{
+
+		size_t count = 0;
+		for (auto const & item : m_data_)
+		{
+			count += item.second.size();
+		}
+		return count;
+	}
+	template<typename TRange>
+	std::tuple<size_t, std::shared_ptr<value_type> > dump(
+			TRange const & range) const
+	{
+		size_t num = size();
+		std::shared_ptr<value_type> data = sp_make_shared_array<value_type>(
+				num);
+
+		return std::make_tuple(num, data);
+	}
 }
 ;
 

@@ -58,7 +58,7 @@ DataSpace::DataSpace(const DataSpace& other) :
 
 }
 
-DataSpace::DataSpace(int rank, size_t const * dims, const size_t * gw)
+DataSpace::DataSpace(int rank, size_t const * dims, const size_t * gw )
 {
 	init(rank, dims, gw);
 }

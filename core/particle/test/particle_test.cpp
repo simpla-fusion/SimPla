@@ -46,9 +46,8 @@
 #include "../../utilities/lua_object.h"
 #include "../parallel/message_comm.h"
 #include "../parallel/mpi_aux_functions.h"
-
+#include "../particle_sync.h"
 #include "kinetic_particle.h"
-#include "particle_update_ghosts.h"
 #include "load_particle.h"
 
 //
