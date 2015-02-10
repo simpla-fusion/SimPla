@@ -52,6 +52,14 @@ public:
 	sp_sorted_set()
 	{
 	}
+	sp_sorted_set(this_type const & other) :
+			m_hash_(other.m_hash_), m_data_(other.m_data_)
+	{
+	}
+	sp_sorted_set(this_type && other) :
+			m_hash_(other.m_hash_), m_data_(other.m_data_)
+	{
+	}
 	sp_sorted_set(hasher const & hash_fun) :
 			m_hash_(hash_fun)
 	{
@@ -127,28 +135,29 @@ public:
 		dest.insert(b, e);
 	}
 
-	void push_back(value_type const & v)
+	void push_back(value_iterator const & b, value_iterator const & e)
 	{
-		m_data_[m_hash_(v)].push_front(v);
+		for (auto it = b; it != e; ++it)
+		{
+			push_back(*it);
+		}
 	}
+
+	template<typename TV>
 	void push_back(value_type && v)
 	{
-		m_data_[m_hash_(v)].push_front(v);
+		m_data_[m_hash_(v)].push_front(std::forward<TV>(v));
 	}
 
-	void push_back(key_type const & key, value_type const & v)
+	template<typename TV>
+	void push_back(key_type const & key, TV && v)
 	{
-		m_data_[key].push_front(v);
+		m_data_[key].push_front(std::forward<TV>(v));
 	}
 
-	void push_back(key_type const & key, value_type && v)
-	{
-		m_data_[key].push_front(v);
-	}
 	void emplace(key_type const & key, Args && ...args)
 	{
-		auto & dest = m_data_[key];
-		dest.emplace_front(std::forward<Args>(args)...);
+		m_data_[key].emplace_front(std::forward<Args>(args)...);
 	}
 
 	void erase(key_type const & key)
@@ -198,6 +207,33 @@ public:
 			rehash(item, other);
 		}
 		merge(std::move(other));
+	}
+
+	template<typename TPred>
+	void remove_bucket_if(TPred const & pred)
+	{
+		for (auto it = m_data_.begin(), ie = m_data_.end(); it != ie; ++it)
+		{
+			if (pred(it->first))
+			{
+				m_data_.erase(it);
+			}
+		}
+	}
+
+	template<typename TRange>
+	void select(TRange const & range, container_type &other)
+	{
+
+		for (auto key : range)
+		{
+			auto it = m_data_.find(key);
+			if (it != m_data_.end())
+			{
+				auto & dest = other[key];
+				dest.splice_after(dest.cbegin(), it->seond);
+			}
+		}
 	}
 
 }
