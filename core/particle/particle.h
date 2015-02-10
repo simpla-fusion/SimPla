@@ -10,19 +10,6 @@
 #include <unordered_set>
 namespace simpla
 {
-namespace _impl
-{
-
-struct const_false
-{
-	template<typename ...Args>
-	static constexpr bool operator()(Args && ...)
-	{
-		return false;
-	}
-};
-
-}  // namespace _impl
 
 /** @ingroup physical_object
  *  @addtogroup particle Particle
@@ -78,21 +65,58 @@ struct const_false
 
 template<typename TG, typename Engine, typename ...Others>
 class Particle: public Engine, public enable_create_from_this<
-						Particle<Engine, Others...>>
+		Particle<Engine, Others...>>
 {
 	typedef TG geometry_type;
 
 	typedef Engine engine_type;
 
-	typedef Particle<engine_type, Others...> this_type;
+	typedef Particle<geometry_type, engine_type, Others...> this_type;
 
 	typedef typename engine_type::Point_s Point_s;
 
-	typename geometry_type::holder_type geo_;
+	typedef std::vector<value_type> container_type;
 
-	container_type data_;
+	typedef typename container_type::iterator iterator;
 
-	Particle(geometry_type const & geo);
+	typedef typename geometry_type::id_type id_type;
+
+private:
+
+	geometry_type const & m_geo_;
+
+	container_type m_data_;
+
+	struct hasher
+	{
+		geometry_type const & m_geo_;
+
+		hasher(geometry_type const & geo) :
+				m_geo_(geo)
+		{
+		}
+		~hasher()
+		{
+		}
+
+		constexpr id_type operator()(iterator const & it) const
+		{
+			return geo_.coordinates_to_id(it->x);
+		}
+	}
+	;
+
+	typedef sp_sorted_set<value_type, hasher> index_container_type;
+
+	typedef typename index_container_type::bucket_type bucket_type;
+
+	index_container_type m_indices_;
+
+public:
+	Particle(geometry_type const & geo) :
+			m_geo_(geo), m_indices_(hasher(geo))
+	{
+	}
 
 	Particle(this_type const&);
 
@@ -101,16 +125,54 @@ class Particle: public Engine, public enable_create_from_this<
 	using engine_type::properties;
 	using engine_type::print;
 
+	template<typename ...Args>
+	void push_back(Args && ... args)
+	{
+		auto head = m_data_.rbegin();
+
+		m_data_.push_back(std::forward<Args>(args)...);
+
+		++head;
+
+		auto tail = m_data_.end();
+
+		for (auto it = head; it != tail; ++it)
+		{
+			m_indices_.push_back(it);
+		}
+	}
+
+	void insert(value_type const & v)
+	{
+		auto head = m_data_.rbegin();
+
+		m_data_.push_back(std::forward<Args>(args)...);
+
+		++head;
+
+		auto tail = m_data_.end();
+
+		for (auto it = head; it != tail; ++it)
+		{
+			m_indices_.push_back(it);
+		}
+	}
+
+	template<typename TRange>
+	void clear_out_region(TRange const & range)
+	{
+		index_container_type tmp(m_geo_);
+
+		m_indices_.select(range, tmp);
+
+	}
+
 	template<typename TDict, typename ...Others>
 	void load(TDict const & dict, Others && ...others);
 
 	bool update();
 
 	void sync();
-
-	void rehash()
-	{
-	}
 
 	DataSet dataset() const;
 
@@ -122,15 +184,6 @@ class Particle: public Engine, public enable_create_from_this<
 	{
 		return get_type_as_string_staic();
 	}
-
-	//! @name   @ref splittable
-	//! @{
-
-	Particle(this_type&, split);
-
-	bool empty() const;
-
-	bool is_divisible() const;
 
 	//! @}
 	/**
@@ -177,12 +230,6 @@ class Particle: public Engine, public enable_create_from_this<
 	 *  insert and emplace will invalid data in the cache
 	 * @param args
 	 */
-
-	template<typename ...Args>
-	void insert(Args && ...args)
-	{
-		data->insert(std::forward<Args>(args)...);
-	}
 
 	template<typename TFun, typename ...Args>
 	void foreach(TFun const & fun, Args && ...);
