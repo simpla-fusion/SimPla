@@ -1,366 +1,207 @@
 /*
- * particle_pool.h
+ * @file sp_sorted_set.h
  *
  *  created on: 2014-4-29
  *      Author: salmon
  */
 
-#ifndef PARTICLE_POOL_H_
-#define PARTICLE_POOL_H_
-#include "../containers/sp_iterator_mapped.h"
-#include "../data_interface/container_container.h"
-#include "../utilities/log.h"
-#include "../utilities/type_traits.h"
-#include "../parallel/parallel.h"
-#include "../parallel/mpi_aux_functions.h"
-#include "save_particle.h"
-#include "particle_update_ghosts.h"
+#ifndef CORE_GTL_CONTAINER_SORTED_SET_H_
+#define CORE_GTL_CONTAINER_SORTED_SET_H_
+
+#include <forward_list>
+#include "../gtl/iterator/indirect_iterator.h"
 
 namespace simpla
 {
-
 /**
- *  @ingroup Particle
+ * @brief an alternative implement of `std::unordered_multiset`
+ * - elements are organized into buckets,
+ * - optimize for frequently rehash,insert and remove
+ * -
  *
- *  \brief particle container
- *
+ *>  Unordered multiset is an associative container that contains set
+ *> of possibly non-unique objects of type Key. --http://en.cppreference.com/w/cpp/container/unordered_multiset
  */
-template<typename TM, typename TPoint>
-class ParticlePool: public ContainerContainer<typename TM::index_type, TPoint>
+template<typename T, typename Hash = std::hash<T>,
+		typename Allocator = std::allocator<T> >
+class sp_sorted_set: public enable_create_from_this<
+		sp_sorted_set<T, Hash, Allocator>>
 {
-	std::mutex write_lock_;
 
 public:
-	static constexpr unsigned int IForm = VERTEX;
+	typedef T value_type;
+	typedef Hash hasher;
+	typedef Allocator allocator_type;
+	typedef typename std::result_of<hasher(value_type const &)>::type key_type;
 
-	typedef TM mesh_type;
+	typedef sp_unordered_set<value_type, hasher, allocator_type> this_type;
 
-	typedef TPoint particle_type;
+	typedef std::forward_list<T, allocator_type> bucket_type;
 
-	typedef typename TM::index_type key_type;
-
-	typedef ParticlePool<mesh_type, particle_type> this_type;
-
-	typedef ContainerContainer<key_type, particle_type> container_type;
-
-	typedef typename container_type::value_type child_container_type;
-
-	typedef typename mesh_type::iterator mesh_iterator;
-
-	typedef typename mesh_type::scalar_type scalar_type;
-
-	typedef typename mesh_type::coordinates_type coordinates_type;
-
-	typedef typename mesh_type::range_type range_type;
+	typedef std::map<key_type, bucket_type> container_type;
 
 private:
 
-	bool is_changed_ = true;
+	HashFun m_hash_;
+
+	container_type m_data_;
 
 public:
-	bool disable_sorting_ = false;
-
-	mesh_type const & mesh;
 
 	// Constructor
-	ParticlePool(mesh_type const & pmesh);
-
+	sp_sorted_set()
+	{
+	}
+	sp_sorted_set(hasher const & hash_fun) :
+			m_hash_(hash_fun)
+	{
+	}
 	// Destructor
-	~ParticlePool();
-
-	void load(std::string const & path)
+	~sp_sorted_set()
 	{
-		//@todo load data from file
 	}
 
-	std::string save(std::string const & path) const;
-
-	void ClearEmpty();
-
-	void add(container_type * other);
-
-	void add(child_container_type *src);
-
-	template<typename TRange>
-	void remove(TRange const & range, child_container_type *other = nullptr);
-
-	template<typename TRange, typename TFun>
-	void remove(TRange const & range, TFun const & fun, child_container_type * other = nullptr);
-
-	template<typename TRange, typename TFun>
-	void modify(TRange const & range, TFun const & fun);
-
-	void Sort();
-
-	size_t Count() const;
-
-	template<typename TR>
-	size_t Count(TR const & range) const;
-
-	bool is_changed() const
+	hasher const & hash_function() const
 	{
-		return is_changed_;
+		return m_hash_;
+	}
+	void swap(container_type & other)
+	{
+		m_data_.swap(other);
+	}
+	void swap(this_type & other)
+	{
+		m_data_.swap(other);
+		std::swap(m_hash_, other.m_hash_);
+	}
+	bucket_type & operator[](key_type const & key)
+	{
+		return m_data_[key];
+	}
+	bucket_type & at(key_type const & key)
+	{
+		return m_data_.at(key);
+	}
+	bucket_type const& at(key_type const & key) const
+	{
+		return m_data_.at(key);
 	}
 
-	void set_changed()
+	typedef typename bucket_type::iterator local_iterator;
+	typedef typename bucket_type::const_iterator const_local_iterator;
+
+	constexpr local_iterator begin(key_type const & id)
 	{
-		is_changed_ = true;
+		return std::move(m_data_[id].begin());
 	}
 
-private:
+	constexpr local_iterator end(key_type const & id)
+	{
+		return std::move(m_data_[id].end());
+	}
+
+	constexpr const_local_iterator cbegin(key_type const & id) const
+	{
+		return std::move(m_data_.at(id).begin());
+	}
+
+	constexpr local_iterator cend(key_type const & id) const
+	{
+		return std::move(m_data_.at(id).end());
+	}
+
+	constexpr const_local_iterator begin(key_type const & id) const
+	{
+		return std::move(m_data_.at(id).begin());
+	}
+
+	constexpr local_iterator end(key_type const & id) const
+	{
+		return std::move(m_data_.at(id).end());
+	}
+
+	void insert(key_type const & key, value_iterator const & b,
+			value_iterator const & e)
+	{
+		auto & dest = m_data_[key];
+		dest.insert(b, e);
+	}
+
+	void push_back(value_type const & v)
+	{
+		m_data_[m_hash_(v)].push_front(v);
+	}
+	void push_back(value_type && v)
+	{
+		m_data_[m_hash_(v)].push_front(v);
+	}
+
+	void push_back(key_type const & key, value_type const & v)
+	{
+		m_data_[key].push_front(v);
+	}
+
+	void push_back(key_type const & key, value_type && v)
+	{
+		m_data_[key].push_front(v);
+	}
+	void emplace(key_type const & key, Args && ...args)
+	{
+		auto & dest = m_data_[key];
+		dest.emplace_front(std::forward<Args>(args)...);
+	}
+
+	void erase(key_type const & key)
+	{
+		m_data_.erase(key);
+	}
+
 	/**
-	 *  resort particles in cell 's', and move out boundary particles to 'dest' container
-	 * @param
+	 *  move  elements  which `hash(value)!=key`  from   `m_data_[key]` to container `other[hash(value)]`
+	 * @param key
+	 * @param other
 	 */
-	template<typename TSrc, typename TDest> void add_to(TSrc *, TDest *dest) const;
-
-}
-;
-
-/***
- * @todo (salmon):  We need a  thread-safe and  high performance allocator for std::map<key_type,std::list<allocator> > !!
- */
-template<typename TM, typename TPoint>
-ParticlePool<TM, TPoint>::ParticlePool(mesh_type const & pmesh)
-		: container_type(), mesh(pmesh), is_changed_(true)
-{
-}
-
-template<typename TM, typename TPoint>
-ParticlePool<TM, TPoint>::~ParticlePool()
-{
-}
-
-template<typename TM, typename TPoint>
-std::string ParticlePool<TM, TPoint>::save(std::string const & name) const
-{
-	return simpla::save(name, *this);
-}
-
-template<typename TM, typename TPoint>
-template<typename TR>
-size_t ParticlePool<TM, TPoint>::Count(TR const & range) const
-{
-
-	VERBOSE << "Count Particles";
-
-	size_t count = 0;
-
-	for (auto s : range)
+	void rehash(std::pair<key_type, bucket_type> & item, container_type & other)
 	{
-
-		auto it = container_type::find(s);
-
-		if (it != container_type::end())
-			count += it->second.size();
-	}
-
-	return count;
-}
-template<typename TM, typename TPoint>
-size_t ParticlePool<TM, TPoint>::Count() const
-{
-
-	return Count(mesh.select(IForm));
-}
-
-template<typename TM, typename TPoint>
-template<typename TSrc, typename TDest>
-void ParticlePool<TM, TPoint>::add_to(TSrc * p_src, TDest *p_dest_contianer) const
-{
-
-	if (p_src->size() == 0)
-	{
-		return;
-	}
-
-	auto pt = p_src->begin();
-
-	auto shift = 0UL; // mesh.get_shift(IForm);
-
-	while (pt != p_src->end())
-	{
-		auto p = pt;
-		++pt;
-
-		auto local_coordiantes = (mesh.coordinates_global_to_local((p->x), shift));
-//		p->x = mesh.coordinates_local_to_global(local_coordiantes);
-		auto & dest = p_dest_contianer->get(std::get<0>(local_coordiantes));
-		dest.splice(dest.begin(), *p_src, p);
-
-	}
-
-}
-
-template<typename TM, typename TPoint>
-void ParticlePool<TM, TPoint>::Sort()
-{
-	if (!is_changed())
-		return;
-
-	VERBOSE << "Sorting Particles";
-
-	//@bug Here should be PARALLEL (multi-threads)
-	container_type buffer;
-
-	for (auto s : mesh.select(IForm))
-	{
-
-		auto it = container_type::find(s);
-
-		if (container_type::find(s) == container_type::end())
-			continue;
-
-		auto pt = it->second.begin();
-
-		auto shift = mesh.get_shift(IForm);
-
-		while (pt != it->second.end())
+		auto const & key = item.first;
+		auto & bucket = item.second;
+		auto pt = bucket.begin();
+		while (pt != bucket.end())
 		{
 			auto p = pt;
 			++pt;
 
-			auto id = std::get<0>(mesh.coordinates_global_to_local((p->x), shift));
-			if (id != s)
+			auto o_key = m_hash_(*p);
+
+			if (o_key != key)
 			{
-				auto & dest = buffer.get((id));
-				dest.splice(dest.begin(), it->second, p);
-
+				auto & dest = other[o_key];
+				dest.splice_after(dest.cbegin(), bucket, p);
 			}
-
-		}
-
-	}
-
-	add(&buffer);
-
-	update_ghosts(this);
-
-	is_changed_ = false;
-
-}
-
-template<typename TM, typename TPoint>
-void ParticlePool<TM, TPoint>::ClearEmpty()
-{
-//	container_type::lock();
-	auto it = container_type::begin(), ie = container_type::end();
-
-	while (it != ie)
-	{
-		auto t = it;
-		++it;
-		if (t->second.empty())
-		{
-			container_type::erase(t);
 		}
 	}
-//	container_type::unlock();
-}
 
-template<typename TM, typename TPoint>
-void ParticlePool<TM, TPoint>::add(container_type * other)
-{
-
-//	container_type::lock();
-	for (auto & v : *other)
+	void merge(container_type &other)
 	{
-		auto & c = this->get(v.first);
-		c.splice(c.begin(), v.second);
-	}
-//	container_type::unlock();
-
-	is_changed_ = false;
-}
-template<typename TM, typename TPoint>
-void ParticlePool<TM, TPoint>::add(child_container_type* other)
-{
-	if (other->size() > 0)
-	{
-		LOG_CMD1(LOG_VERBOSE, ("Add " + ToString(other->size()) + " particles"), add_to(other, this));
-	}
-}
-
-template<typename TM, typename TPoint>
-template<typename TRange>
-void ParticlePool<TM, TPoint>::remove(TRange const & r, child_container_type * other)
-{
-	child_container_type buffer = container_type::create_child();
-
-	for (auto s : r)
-	{
-		auto cell_it = container_type::find(s);
-
-		if (cell_it == container_type::end())
-			continue;
-
-		buffer.splice(buffer.begin(), cell_it->second);
-
-		container_type::erase(cell_it);
-	}
-
-	VERBOSE << ("Remove " + ToString(buffer.size()) + " particles");
-
-	if (other != nullptr)
-		other->splice(other->begin(), buffer);
-
-}
-template<typename TM, typename TPoint>
-template<typename TRange, typename TFun>
-void ParticlePool<TM, TPoint>::remove(TRange const & range, TFun const & fun, child_container_type * other)
-{
-
-	auto buffer = container_type::create_child();
-
-	for (auto s : range)
-	{
-		auto cell_it = container_type::find(s);
-
-		if (cell_it == container_type::end())
-			continue;
-
-		auto it = cell_it->second.begin();
-		auto ie = cell_it->second.end();
-
-		do
+		for (auto & item : other)
 		{
-			auto it_p = it;
-			++it;
-
-			if (fun(*it_p))
-			{
-				buffer.splice(buffer.begin(), cell_it->second, it_p);
-			}
-
-		} while (it != ie);
-
-	}
-	if (other != nullptr)
-		other->splice(other->begin(), buffer);
-
-}
-
-template<typename TM, typename TPoint> template<typename TRange, typename TFun>
-void ParticlePool<TM, TPoint>::modify(TRange const & range, TFun const & fun)
-{
-
-	size_t count = 0;
-	for (auto s : range)
-	{
-		auto it = container_type::find(s);
-		if (it != container_type::end())
-		{
-			for (auto & p : it->second)
-			{
-				fun(&p);
-			}
-			++count;
+			auto & dest = m_data_[item.first];
+			dest.splice_after(dest.cbegin(), item.second);
 		}
 	}
-	if (count > 0)
-		is_changed_ = true;
+
+	void rehash()
+	{
+		container_type other;
+		for (auto & item : m_data_)
+		{
+			rehash(item, other);
+		}
+		merge(std::move(other));
+	}
 
 }
+;
 
 }
 // namespace simpla
@@ -707,7 +548,7 @@ void ParticlePool<TM, TPoint>::modify(TRange const & range, TFun const & fun)
 //	typedef cell_iterator_<true> const_cell_iterator;
 
 //	typedef range_<particle_type> range;
-//	typedef range_<const particle_type> const_range;
+//	typedef range_<const Point_s> const_range;
 
 //	iterator begin()
 //	{
@@ -766,4 +607,4 @@ void ParticlePool<TM, TPoint>::modify(TRange const & range, TFun const & fun)
 //	{
 //		return (base_container_type::crend());
 //	}
-#endif /* PARTICLE_POOL_H_ */
+#endif /* CORE_GTL_CONTAINER_SORTED_SET_H_ */
