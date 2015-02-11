@@ -372,10 +372,39 @@ struct SimpleParticleEngine
 	typedef nTuple<scalar_type, 3> coordinates_type;
 	typedef nTuple<scalar_type, 3> vector_type;
 
-	SP_DEFINE_POINT_STRUCT(Point_s,
-			coordinates_type,x,
-			vector_type, v,
-			scalar_type, f )
+//	SP_DEFINE_POINT_STRUCT(Point_s,
+//			coordinates_type,x,
+//			vector_type, v,
+//			scalar_type, f )
+
+	struct Point_s
+	{
+		coordinates_type x;
+		vector_type v;
+		scalar_type f;
+
+		static DataType datatype()
+		{
+			auto d_type = DataType::create_opaque_type<Point_s>("Point_s");
+			d_type.push_back(
+					make_datatype<
+							typename array_to_ntuple_convert<coordinates_type>::type>(),
+					"x",
+					(reinterpret_cast<size_t>(&reinterpret_cast<const volatile char &>(static_cast<Point_s*>(0)->x))));
+			d_type.push_back(
+					make_datatype<
+							typename array_to_ntuple_convert<vector_type>::type>(),
+					"v",
+					(reinterpret_cast<size_t>(&reinterpret_cast<const volatile char &>(static_cast<Point_s*>(0)->v))));
+			d_type.push_back(
+					make_datatype<
+							typename array_to_ntuple_convert<scalar_type>::type>(),
+					"f",
+					(reinterpret_cast<size_t>(&reinterpret_cast<const volatile char &>(static_cast<Point_s*>(0)->f))));
+			;
+			return std::move(d_type);
+		}
+	};
 
 	SP_DEFINE_PROPERTIES(
 			scalar_type, mass,

@@ -46,16 +46,14 @@ public:
 
 private:
 
-	Hash m_hash_;
+	hasher m_hash_;
 
 	container_type m_data_;
 
 public:
 
 	// Constructor
-	sp_sorted_set()
-	{
-	}
+
 	sp_sorted_set(this_type const & other)
 			: m_hash_(other.m_hash_), m_data_(other.m_data_)
 	{
@@ -64,7 +62,7 @@ public:
 			: m_hash_(other.m_hash_), m_data_(other.m_data_)
 	{
 	}
-	sp_sorted_set(hasher const & hash_fun)
+	sp_sorted_set(hasher const & hash_fun = hasher())
 			: m_hash_(hash_fun)
 	{
 	}
@@ -155,9 +153,10 @@ public:
 	}
 
 	template<typename TV>
-	void push_back(key_type const & key, TV && v)
+	void push_back(key_type const & key, TV const& v)
 	{
-		m_data_[key].push_front(std::forward<TV>(v));
+		m_data_[key].push_back(v);
+		CHECK(m_data_[key].size());
 	}
 
 	template<typename ...Args>

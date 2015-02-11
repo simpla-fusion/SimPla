@@ -133,6 +133,15 @@ public:
 	}
 
 	template<typename TR>
+	inline bool operator ==(TR const &rhs)
+	{
+		return _seq_reduce<
+				min_not_zero<dims,
+						seq_get<0, typename nTuple_traits<TR>::dimensions>::value>::value>::eval(
+				_impl::logical_and(), _impl::equal_to(), data_, rhs);;
+	}
+
+	template<typename TR>
 	inline this_type & operator +=(TR const &rhs)
 	{
 		_seq_for<

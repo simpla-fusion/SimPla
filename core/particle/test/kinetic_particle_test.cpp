@@ -14,7 +14,7 @@
 
 using namespace simpla;
 
-class TestKineticParticle: public testing::TestWithParam<SimpleMesh>
+class TestKineticParticle: public testing::Test
 {
 protected:
 	virtual void SetUp()
@@ -25,19 +25,18 @@ public:
 	typedef SimpleMesh mesh_type;
 	typedef SimpleParticleEngine engine_type;
 	typedef typename mesh_type::coordinates_type coordinates_type;
-	mesh_type m_mesh;
 
 	typedef KineticParticle<mesh_type, engine_type> particle_type;
 
+	static constexpr size_t pic = 10;
+
 	mesh_type mesh;
 
-	nTuple<Real, 3> xmin, xmax;
-
-	nTuple<size_t, 3> dims;
+	typedef typename engine_type::Point_s Point_s;
 
 };
 
-TEST_P(TestKineticParticle,Add)
+TEST_F(TestKineticParticle,Add)
 {
 
 	particle_type p(mesh);
@@ -50,18 +49,20 @@ TEST_P(TestKineticParticle,Add)
 	std::mt19937 rnd_gen(mesh_type::ndims);
 
 	nTuple<Real, 3> v = { 0, 0, 0 };
-
-	int pic = 100;
-
+	CHECK(p.size());
+	size_t count = 0;
 	for (auto s : mesh.range())
 	{
-		for (int i = 0; i < pic; ++i)
+		for (int i = 0; i < 1; ++i)
 		{
-			p.push_back(s, SimpleParticleEngine::Point_s( { x_dist(rnd_gen), v,
-					1.0 }));
+			++count;
+			coordinates_type x = mesh.id_to_coordinates(s);
+			x += x_dist(rnd_gen);
+			p.push_back(s, std::move(Point_s( { x, v, 1.0 })));
 		}
 	}
-
+	CHECK(count);
+	CHECK(p.size());
 //	INFORM << "Add particle DONE " << p.size() << std::endl;
 //
 //	EXPECT_EQ(p.size(), mesh.get_local_memory_size(VERTEX) * pic);
@@ -72,7 +73,7 @@ TEST_P(TestKineticParticle,Add)
 
 }
 
-TEST_P(TestKineticParticle, scatter_n)
+TEST_F(TestKineticParticle, scatter_n)
 {
 
 	SimpleField<mesh_type, Real> n(mesh), n0(mesh);
@@ -123,3 +124,4 @@ TEST_P(TestKineticParticle, scatter_n)
 	}
 
 }
+

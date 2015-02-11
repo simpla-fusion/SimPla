@@ -73,7 +73,8 @@ template<typename ... T> class Particle;
 namespace _impl
 {
 
-template<typename TContainer> struct particle_container_traits
+template<typename TContainer>
+struct particle_container_traits
 {
 	template<typename ...Args>
 	static std::shared_ptr<TContainer> create(Args && ...args)
@@ -98,6 +99,7 @@ class Particle<TM, Engine, TContainer> //
 	typedef Particle<mesh_type, engine_type, container_type> this_type;
 
 	typedef typename container_type::value_type value_type;
+
 	typedef typename container_type::key_type key_type;
 
 private:
@@ -157,8 +159,10 @@ public:
 	}
 
 	template<typename ...Args>
-	auto push_back(Args && ...args)
-	DECL_RET_TYPE((m_data_->push_back(std::forward<Args>(args)...)))
+	void push_back(Args && ...args)
+	{
+		m_data_->push_back(std::forward<Args>(args)...);
+	}
 
 	template<typename ...Args>
 	auto insert(Args && ...args)
@@ -190,6 +194,12 @@ public:
 			UNIMPLEMENTED2("load particle from [DataSrc]");
 		}
 	}
+
+	auto operator[](key_type const & s)
+	DECL_RET_TYPE((*m_data_)[s])
+
+	auto operator[](key_type const & s) const
+	DECL_RET_TYPE((*m_data_)[s])
 
 	bool update()
 	{

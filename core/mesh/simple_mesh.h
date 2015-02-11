@@ -85,13 +85,6 @@ public:
 
 	}
 
-	coordinates_type id_to_coordinates(id_type const & id) const
-	{
-		coordinates_type res;
-		res = id;
-		return std::move(res);
-	}
-
 	template<typename T1, typename T2>
 	void extents(T1 const & xmin, T2 const & xmax)
 	{
@@ -152,7 +145,7 @@ public:
 	coordinates_type id_to_coordinates(T const &i) const
 	{
 		coordinates_type res;
-		res = i;
+		res = i * dx_ + xmin_;
 		return std::move(res);
 	}
 

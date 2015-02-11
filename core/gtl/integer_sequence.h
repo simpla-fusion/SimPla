@@ -211,6 +211,27 @@ struct _seq_reduce<M, N...>
 					DECL_RET_TYPE(
 							( eval( reduction,integer_sequence<size_t >(), std::forward<Args > (args)...) ))
 
+	template<typename Reduction, typename Op, size_t ...L, typename ... Args>
+	static inline auto eval(Reduction const & reduction, Op const & op,
+			integer_sequence<size_t, L...>,
+			Args &&... args)
+					DECL_RET_TYPE(
+							(
+									reduction( _seq_reduce< N... >::eval( reduction,op,
+													integer_sequence<size_t , L..., M>(),
+													std::forward<Args >(args)... ),
+
+											_seq_reduce< M - 1, N... >::eval( reduction,op,
+													integer_sequence<size_t , L...>(),
+													std::forward<Args > (args)... ) )
+							))
+
+	template<typename Reduction, typename Op, typename ...Args>
+	static inline auto eval(Reduction const & reduction, Op const & op,
+			Args && ... args)
+					DECL_RET_TYPE(
+							( eval( reduction,,integer_sequence<size_t >(), std::forward<Args > (args)...) ))
+
 };
 
 template<size_t ...N>
