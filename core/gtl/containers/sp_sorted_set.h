@@ -8,8 +8,13 @@
 #ifndef CORE_GTL_CONTAINER_SORTED_SET_H_
 #define CORE_GTL_CONTAINER_SORTED_SET_H_
 
+#include <stddef.h>
 #include <forward_list>
-#include "../gtl/iterator/indirect_iterator.h"
+#include <map>
+#include <memory>
+#include <tuple>
+#include <type_traits>
+#include <utility>
 
 namespace simpla
 {
@@ -24,8 +29,7 @@ namespace simpla
  */
 template<typename T, typename Hash = std::hash<T>,
 		typename Allocator = std::allocator<T> >
-class sp_sorted_set: public enable_create_from_this<
-		sp_sorted_set<T, Hash, Allocator>>
+class sp_sorted_set
 {
 
 public:
@@ -34,15 +38,15 @@ public:
 	typedef Allocator allocator_type;
 	typedef typename std::result_of<hasher(value_type const &)>::type key_type;
 
-	typedef sp_unordered_set<value_type, hasher, allocator_type> this_type;
+	typedef sp_sorted_set<value_type, hasher, allocator_type> this_type;
 
-	typedef std::forward_list<T, allocator_type> bucket_type;
+	typedef std::list<T, allocator_type> bucket_type;
 
 	typedef std::map<key_type, bucket_type> container_type;
 
 private:
 
-	HashFun m_hash_;
+	Hash m_hash_;
 
 	container_type m_data_;
 
@@ -52,16 +56,16 @@ public:
 	sp_sorted_set()
 	{
 	}
-	sp_sorted_set(this_type const & other) :
-			m_hash_(other.m_hash_), m_data_(other.m_data_)
+	sp_sorted_set(this_type const & other)
+			: m_hash_(other.m_hash_), m_data_(other.m_data_)
 	{
 	}
-	sp_sorted_set(this_type && other) :
-			m_hash_(other.m_hash_), m_data_(other.m_data_)
+	sp_sorted_set(this_type && other)
+			: m_hash_(other.m_hash_), m_data_(other.m_data_)
 	{
 	}
-	sp_sorted_set(hasher const & hash_fun) :
-			m_hash_(hash_fun)
+	sp_sorted_set(hasher const & hash_fun)
+			: m_hash_(hash_fun)
 	{
 	}
 	// Destructor
@@ -98,12 +102,12 @@ public:
 	typedef typename bucket_type::iterator local_iterator;
 	typedef typename bucket_type::const_iterator const_local_iterator;
 
-	constexpr local_iterator begin(key_type const & id)
+	local_iterator begin(key_type const & id)
 	{
 		return std::move(m_data_[id].begin());
 	}
 
-	constexpr local_iterator end(key_type const & id)
+	local_iterator end(key_type const & id)
 	{
 		return std::move(m_data_[id].end());
 	}
@@ -113,7 +117,7 @@ public:
 		return std::move(m_data_.at(id).begin());
 	}
 
-	constexpr local_iterator cend(key_type const & id) const
+	constexpr const_local_iterator cend(key_type const & id) const
 	{
 		return std::move(m_data_.at(id).end());
 	}
@@ -123,7 +127,7 @@ public:
 		return std::move(m_data_.at(id).begin());
 	}
 
-	constexpr local_iterator end(key_type const & id) const
+	constexpr const_local_iterator end(key_type const & id) const
 	{
 		return std::move(m_data_.at(id).end());
 	}
@@ -156,7 +160,8 @@ public:
 		m_data_[key].push_front(std::forward<TV>(v));
 	}
 
-	void emplace(key_type const & key, Args && ...args)
+	template<typename ...Args>
+	void emplace(key_type const &key, Args && ...args)
 	{
 		m_data_[key].emplace_front(std::forward<Args>(args)...);
 	}
@@ -218,7 +223,7 @@ public:
 
 	void rehash()
 	{
-		container_type other(m_hasher_);
+		container_type other(m_hash_);
 		for (auto & item : m_data_)
 		{
 			rehash(item, other);
@@ -241,7 +246,7 @@ public:
 	template<typename TRange>
 	void reserve(TRange const & range)
 	{
-		container_type res(m_hasher_);
+		container_type res(m_hash_);
 		move_out(range, res);
 		res.swap(m_data_);
 	}
@@ -249,7 +254,7 @@ public:
 	template<typename TRange>
 	void erase(TRange const & range)
 	{
-		container_type res(m_hasher_);
+		container_type res(m_hash_);
 		move_out(range, res);
 	}
 

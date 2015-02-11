@@ -51,7 +51,6 @@ public:
 	int process_num() const;
 	int get_size() const;
 	int num_of_process() const;
-	void barrier();
 	void set_num_of_threads(int num);
 	unsigned int get_num_of_threads() const;
 }

@@ -900,7 +900,7 @@ std::string DataStream::write(std::string const & url, DataSet const &ds,
 				H5P_DEFAULT, ds.data.get()));
 	}
 
-	pimpl_->set_attribute(dset, ds.attribute);
+	pimpl_->set_attribute(dset, ds.properties);
 
 	H5_ERROR(H5Dclose(dset));
 

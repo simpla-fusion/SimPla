@@ -126,11 +126,11 @@ int MPIComm::num_of_process() const
 	return num_process_;
 }
 
-void MPIComm::barrier()
-{
-	if (comm_ != MPI_COMM_NULL)
-		MPI_Barrier(comm_);
-}
+//void MPIComm::barrier()
+//{
+//	if (comm_ != MPI_COMM_NULL)
+//		MPI_Barrier(comm_);
+//}
 
 void MPIComm::set_num_of_threads(int num)
 {

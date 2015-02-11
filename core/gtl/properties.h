@@ -37,8 +37,8 @@ public:
 	{
 	}
 	template<typename T>
-	Properties(T const &v) :
-			value_type(v)
+	Properties(T const &v)
+			: value_type(v)
 	{
 	}
 	~Properties()
@@ -214,6 +214,15 @@ public:
 
 		}
 		return os;
+	}
+
+	this_type & operator+=(this_type const & other)
+	{
+		for (auto const & item : other)
+		{
+			map_type::operator[](item.first) = item.second;
+		}
+		return *this;
 	}
 
 //	template<typename T>

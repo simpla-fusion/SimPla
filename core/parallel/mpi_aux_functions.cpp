@@ -41,7 +41,7 @@ std::tuple<int, int> sync_global_location(int count)
 	if ( GLOBAL_COMM.is_valid() && GLOBAL_COMM.get_size() > 1)
 	{
 
-		auto communicator = GLOBAL_COMM.comm();
+		auto comm = GLOBAL_COMM.comm();
 
 		int num_of_process = GLOBAL_COMM.get_size();
 		int porcess_number = GLOBAL_COMM.get_rank();
@@ -53,9 +53,9 @@ std::tuple<int, int> sync_global_location(int count)
 		if (porcess_number == 0)
 		buffer.resize(num_of_process);
 
-		MPI_Gather(&count, 1, m_type.type(), &buffer[0], 1, m_type.type(), 0, communicator);
+		MPI_Gather(&count, 1, m_type.type(), &buffer[0], 1, m_type.type(), 0, comm);
 
-		MPI_Barrier(communicator);
+		MPI_Barrier(comm);
 
 		if (porcess_number == 0)
 		{
@@ -72,9 +72,9 @@ std::tuple<int, int> sync_global_location(int count)
 			}
 			buffer[0] = 0;
 		}
-		MPI_Barrier(communicator);
-		MPI_Scatter(&buffer[0], 1, m_type.type(), &begin, 1, m_type.type(), 0, communicator);
-		MPI_Bcast(&count, 1, m_type.type(), 0, communicator);
+		MPI_Barrier(comm);
+		MPI_Scatter(&buffer[0], 1, m_type.type(), &begin, 1, m_type.type(), 0, comm);
+		MPI_Bcast(&count, 1, m_type.type(), 0, comm);
 	}
 
 	return std::make_tuple(begin, count);
@@ -132,11 +132,11 @@ void reduce(void const* send_data, void * recv_data, size_t count,
 {
 	auto m_type = MPIDataType::create(data_type);
 
-	auto communicator = GLOBAL_COMM.comm();
-	GLOBAL_COMM.barrier();
+	auto comm = GLOBAL_COMM.comm();
+	MPI_Barrier(comm);
 	MPI_Reduce(const_cast<void*>(send_data), (recv_data), count, m_type.type(),
-			get_MPI_Op(op_c), 0, communicator);
-	GLOBAL_COMM.barrier();
+			get_MPI_Op(op_c), 0, comm);
+	MPI_Barrier(comm);
 
 }
 
@@ -146,12 +146,12 @@ void allreduce(void const* send_data, void * recv_data, size_t count,
 
 	auto m_type = MPIDataType::create(data_type);
 
-	auto communicator = GLOBAL_COMM.comm();
-	GLOBAL_COMM.barrier();
+	auto comm = GLOBAL_COMM.comm();
+	MPI_Barrier(comm);
 	MPI_Allreduce(const_cast<void*>(send_data),
 			reinterpret_cast<void*>(recv_data), count, m_type.type(),
-			get_MPI_Op(op_c), communicator);
-	GLOBAL_COMM.barrier();
+			get_MPI_Op(op_c), comm);
+	MPI_Barrier(comm);
 
 }
 
@@ -165,7 +165,8 @@ std::tuple<std::shared_ptr<ByteType>, int> update_ghost_unorder(
 				int  // send buffer size;
 				>> const & info)
 {
-	GLOBAL_COMM.barrier();
+	auto comm = GLOBAL_COMM.comm();
+	MPI_Barrier(comm);
 
 	MPI_Request requests[info.size() * 2];
 
@@ -222,7 +223,7 @@ std::tuple<std::shared_ptr<ByteType>, int> update_ghost_unorder(
 	}
 
 	MPI_Waitall(req_count, requests, MPI_STATUSES_IGNORE);
-	GLOBAL_COMM.barrier();
+	MPI_Barrier(comm);
 
 	return std::make_tuple(recv_buffer,recv_buffer_size);
 }

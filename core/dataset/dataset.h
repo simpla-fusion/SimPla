@@ -45,7 +45,7 @@ struct DataSet
 	std::shared_ptr<void> data;
 	DataType datatype;
 	DataSpace dataspace;
-	Properties attribute;
+	Properties properties;
 
 	bool is_valid() const
 	{
@@ -82,7 +82,7 @@ DataSet make_dataset(int rank, size_t const * dims, Properties const & prop =
 	res.datatype = make_datatype<T>("");
 	res.dataspace.init(rank, dims);
 	res.data = sp_make_shared_array<T>(res.dataspace.size());
-	res.attribute = prop;
+	res.properties = prop;
 	return std::move(res);
 }
 
@@ -99,7 +99,7 @@ DataSet make_dataset(T * p, int rank, size_t const * dims,
 			const_cast<void*>(reinterpret_cast<typename std::conditional<
 					std::is_const<T>::value, void const *, void *>::type>(p)),
 			do_nothing());
-	res.attribute = prop;
+	res.properties = prop;
 
 	return std::move(res);
 }
@@ -113,7 +113,7 @@ DataSet make_dataset(std::shared_ptr<T> p, int rank, size_t const * dims,
 	res.data = p;
 	res.datatype = make_datatype<T>();
 	res.dataspace = make_dataspace(rank, dims);
-	res.attribute = prop;
+	res.properties = prop;
 
 	return std::move(res);
 }

@@ -80,8 +80,8 @@ class Properties;
 struct SpObject
 {
 	//! Default constructor
-	SpObject() :
-			is_valid_(false)
+	SpObject()
+			: is_valid_(false)
 	{
 	}
 	//! destroy.
@@ -94,11 +94,6 @@ struct SpObject
 	virtual std::string get_type_as_string() const=0;
 
 //	virtual DataSet dump_data() const {}; //!< return the data set of PhysicalObject
-
-	virtual void sync()
-	{
-
-	}
 
 	void lock();
 

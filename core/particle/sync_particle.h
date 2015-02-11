@@ -1,12 +1,12 @@
 /**
- * @file particle_sync.h
+ * @file  sync_particle.h
  *
  *  created on: 2014-6-15
  *      Author: salmon
  */
 
-#ifndef CORE_PARTICLE_PARTICLE_SYNC_H_
-#define CORE_PARTICLE_PARTICLE_SYNC_H_
+#ifndef CORE_PARTICLE_SYNC_PARTICLE_H_
+#define CORE_PARTICLE_SYNC_PARTICLE_H_
 
 #include "../utilities/log.h"
 #include "../parallel/mpi_comm.h"
@@ -19,22 +19,20 @@ template<typename ...> class Particle;
 template<typename ... Args>
 void sync(Particle<Args...> *pool)
 {
+	typedef Particle<Args...> particle_type;
+	typedef typename particle_type::mesh_type mesh_type;
+	typedef typename particle_type::Point_s value_type;
 
-	GLOBAL_COMM.barrier();
+	MPI_Comm global_comm = GLOBAL_COMM.comm();
 
-	auto const & g_array = pool->mesh.global_array_;
+	MPI_Barrier(global_comm);
+
+	auto const & g_array = pool->mesh().global_array_;
 	if (g_array.send_recv_.size() == 0)
 	{
 		return;
 	}
 	VERBOSE << "update ghosts (particle pool) ";
-
-	typedef Particle<Args...> pool_type;
-
-	typedef typename pool_type::Point_s value_type;
-	typedef typename pool_type::geometry_type geometry_type;
-
-	MPI_Comm comm = GLOBAL_COMM.comm();
 
 	int num_of_neighbour = g_array.send_recv_.size();
 
@@ -48,8 +46,7 @@ void sync(Particle<Args...> *pool)
 	{
 
 		size_t num = 0;
-		for (auto s : pool->mesh.SelectInner(Particle<TM, TParticle>::IForm,
-						item.send_begin, item.send_end))
+		for (auto s : pool->mesh().select_inner(item.send_begin, item.send_end))
 		{
 			num += pool->get(s).size();
 		}
@@ -58,8 +55,7 @@ void sync(Particle<Args...> *pool)
 
 		num = 0;
 
-		for (auto s : pool->mesh.SelectInner(ParticlePool<TM, TParticle>::IForm,
-						item.send_begin, item.send_end))
+		for (auto s : pool->mesh().select_inner(item.send_begin, item.send_end))
 		{
 			for (auto const & p : pool->get(s))
 			{
@@ -69,20 +65,18 @@ void sync(Particle<Args...> *pool)
 		}
 
 		MPI_Isend(&buffer[count][0], buffer[count].size() * sizeof(value_type),
-				MPI_BYTE, item.dest, item.send_tag, comm, &requests[count]);
+		MPI_BYTE, item.dest, item.send_tag, global_comm, &requests[count]);
 		++count;
 
 	}
 
 	for (auto const & item : g_array.send_recv_)
 	{
-		pool->remove(
-				pool->mesh.select_outer(ParticlePool<TM, TParticle>::IForm,
-						item.recv_begin, item.recv_end));
+		pool->remove(pool->mesh().select_outer(item.recv_begin, item.recv_end));
 
 		MPI_Status status;
 
-		MPI_Probe(item.dest, item.recv_tag, comm, &status);
+		MPI_Probe(item.dest, item.recv_tag, global_comm, &status);
 
 		// When probe returns, the status object has the size and other
 		// attributes of the incoming message. Get the size of the message
@@ -96,7 +90,7 @@ void sync(Particle<Args...> *pool)
 		buffer[count].resize(mem_size / sizeof(value_type));
 
 		MPI_Irecv(&buffer[count][0], buffer[count].size() * sizeof(value_type),
-				MPI_BYTE, item.dest, item.recv_tag, comm, &requests[count]);
+		MPI_BYTE, item.dest, item.recv_tag, global_comm, &requests[count]);
 		++count;
 	}
 
@@ -105,20 +99,20 @@ void sync(Particle<Args...> *pool)
 	auto cell_buffer = pool->create_child();
 	for (int i = 0; i < num_of_neighbour; ++i)
 	{
-		typename TM::coordinates_type xmin, xmax, extents;
+		typename mesh_type::coordinates_type xmin, xmax, extents;
 
-		std::tie(xmin, xmax) = pool->mesh.get_extents();
+		std::tie(xmin, xmax) = pool->mesh().get_extents();
 
 		bool flag = true;
 		for (int n = 0; n < 3; ++n)
 		{
 			if (g_array.send_recv_[i].recv_begin[n]
-					< pool->mesh.global_begin_[n])
+					< pool->mesh().global_begin_[n])
 			{
 				extents[n] = xmin[n] - xmax[n];
 			}
 			else if (g_array.send_recv_[i].recv_begin[n]
-					>= pool->mesh.global_end_[n])
+					>= pool->mesh().global_end_[n])
 			{
 				extents[n] = xmax[n] - xmin[n];
 			}
@@ -145,7 +139,8 @@ void sync(Particle<Args...> *pool)
 		}
 
 	}
-	GLOBAL_COMM.barrier();
+
+	MPI_Barrier(global_comm);
 
 	pool->add(&cell_buffer);
 
@@ -153,4 +148,4 @@ void sync(Particle<Args...> *pool)
 }
 // namespace simpla
 
-#endif /* CORE_PARTICLE_PARTICLE_SYNC_H_ */
+#endif /* CORE_PARTICLE_SYNC_PARTICLE_H_ */

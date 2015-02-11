@@ -10,7 +10,7 @@
 #include <stddef.h>
 #include "../physics/physical_constants.h"
 #include "../utilities/utilities.h"
-#include "../data_representation/data_type.h"
+#include "../dataset/datatype.h"
 namespace simpla
 {
 
@@ -37,63 +37,63 @@ namespace simpla
  *
  * ## Example:
  \code
- 	struct DemoParticleEngine
- 	{
+ struct DemoParticleEngine
+ {
 
- 		SP_DEFINE_POINT_STRUCT(Point_s,
- 				Vec3 ,x,
- 				double[3], v,
- 				Real, f,
- 				Real, w
- 		)
+ SP_DEFINE_POINT_STRUCT(Point_s,
+ Vec3 ,x,
+ double[3], v,
+ Real, f,
+ Real, w
+ )
 
- 		SP_DEFINE_PROPERTIES(
- 				Real, mass,
- 				Real, charge,
- 				Real, temperature,
- 				Real[3][3], pressure
- 		)
-
-
- 		static constexpr size_t memory_length = 0; //!  declare this engine is memoryless
-
- 	private:
- 		Real cmr_, q_kT_;
- 	public:
-
- 		DemoParticleEngine() :
- 				mass(1.0), charge(1.0), temperature(1.0)
- 		{
- 			pressure = 0;
- 			update();
- 		}
-
- 		~DemoParticleEngine()
- 		{
- 		}
-
- 		static std::string get_type_as_string()
- 		{
- 			return "DemoParticleEngine";
- 		}
+ SP_DEFINE_PROPERTIES(
+ Real, mass,
+ Real, charge,
+ Real, temperature,
+ Real[3][3], pressure
+ )
 
 
- 		void update()
- 		{
- 			DEFINE_PHYSICAL_CONST
+ static constexpr size_t memory_length = 0; //!  declare this engine is memoryless
 
- 			cmr_ = charge / mass;
- 			q_kT_ = charge / (temperature * boltzmann_constant);
- 		}
+ private:
+ Real cmr_, q_kT_;
+ public:
 
- 		template<typename Point_p, typename TE, typename TB>
- 		void next_timestep(Point_p p, Real dt, TE const &fE, TB const & fB) const
- 		{
- 		 p->x+=p->v*dt;
- 		 ....
- 		}
+ DemoParticleEngine() :
+ mass(1.0), charge(1.0), temperature(1.0)
+ {
+ pressure = 0;
+ update();
+ }
 
- 	};
+ ~DemoParticleEngine()
+ {
+ }
+
+ static std::string get_type_as_string()
+ {
+ return "DemoParticleEngine";
+ }
+
+
+ void update()
+ {
+ DEFINE_PHYSICAL_CONST
+
+ cmr_ = charge / mass;
+ q_kT_ = charge / (temperature * boltzmann_constant);
+ }
+
+ template<typename Point_p, typename TE, typename TB>
+ void next_timestep(Point_p p, Real dt, TE const &fE, TB const & fB) const
+ {
+ p->x+=p->v*dt;
+ ....
+ }
+
+ };
  \endcode
  *
  *
@@ -366,97 +366,79 @@ void update_properties()                                     \
 template<typename OS> OS& print(OS &os)const                 \
 {  properties.print(os);		return os;	}
 
-//template<typename Policy>
-//class ParticleEngine
-//{
-//	typedef ParticleEngine<Policy> this_type;
-//	typedef Vec3 coordinates_type;
-//	typedef Vec3 vector_type;
-//	typedef Real scalar_type;
-//
-//	SP_DEFINE_POINT_STRUCT(Point_s,
-//			coordinates_type ,x,
-//			Vec3, v,
-//			Real, f,
-//			scalar_type, w)
-//
-//	SP_DEFINE_PROPERTIES(
-//			Real, mass,
-//			Real, charge,
-//			Real, temperature
-//	)
-//
-//	int J_at_the_center;
-//
-//private:
-//	Real cmr_, q_kT_;
-//public:
-//
-//	ParticleEngine() :
-//			mass(1.0), charge(1.0), temperature(1.0)
-//	{
-//		update();
-//	}
-//
-//	void update()
-//	{
-//		DEFINE_PHYSICAL_CONST
-//		cmr_ = charge / mass;
-//		q_kT_ = charge / (temperature * boltzmann_constant);
-//	}
-//
-//	~ParticleEngine()
-//	{
-//	}
-//
-//	static std::string get_type_as_string()
-//	{
-//		return "DeltaF";
-//	}
-//
-//	template<typename TE, typename TB, typename TJ>
-//	void next_timestep(Point_s const* p0, Point_s * p1, Real dt, TE const &fE,
-//			TB const & fB, TJ * J) const
-//	{
-//		p1->x += p0->v * dt * 0.5;
-//
-//		auto B = fB(p0->x);
-//		auto E = fE(p0->x);
-//
-//		Vec3 v_;
-//
-//		auto t = B * (cmr_ * dt * 0.5);
-//
-//		p1->v += p0->v + E * (cmr_ * dt * 0.5);
-//
-//		v_ = p1->v + Cross(p1->v, t);
-//
-//		v_ = Cross(v_, t) / (Dot(t, t) + 1.0);
-//
-//		p1->v += v_;
-//		auto a = (-Dot(E, p1->v) * q_kT_ * dt);
-//		p1->w = (-a + (1 + 0.5 * a) * p0->w) / (1 - 0.5 * a);
-//
-//		p1->v += v_;
-//		p1->v += E * (cmr_ * dt * 0.5);
-//
-//		p1->x += p1->v * dt * 0.5;
-//
-//		J->scatter_cartesian(
-//				std::forward_as_tuple(p1->x, p1->v, p1->f * charge * p1->w));
-//
-//	}
-//
-//	static inline Point_s push_forward(coordinates_type const & x,
-//			Vec3 const &v, scalar_type f)
-//	{
-//		return std::move(Point_s(
-//		{ x, v, f }));
-//	}
-//
-//	static inline auto pull_back(Point_s const & p)
-//	DECL_RET_TYPE((std::make_tuple(p.x,p.v,p.f)))
-//};
+struct SimpleParticleEngine
+{
+	typedef double scalar_type;
+	typedef nTuple<scalar_type, 3> coordinates_type;
+	typedef nTuple<scalar_type, 3> vector_type;
+
+	SP_DEFINE_POINT_STRUCT(Point_s,
+			coordinates_type,x,
+			vector_type, v,
+			scalar_type, f )
+
+	SP_DEFINE_PROPERTIES(
+			scalar_type, mass,
+			scalar_type, charge,
+			scalar_type, temperature
+	)
+
+private:
+	Real cmr_, q_kT_;
+public:
+
+	SimpleParticleEngine()
+			: mass(1.0), charge(1.0), temperature(1.0)
+	{
+		update();
+	}
+
+	void update()
+	{
+		DEFINE_PHYSICAL_CONST
+		cmr_ = charge / mass;
+		q_kT_ = charge / (temperature * boltzmann_constant);
+	}
+
+	~SimpleParticleEngine()
+	{
+	}
+
+	static std::string get_type_as_string()
+	{
+		return "DeltaF";
+	}
+
+	template<typename TE, typename TB, typename TJ>
+	void next_timestep(Point_s * p, Real dt, TE const &fE, TB const & fB,
+			TJ * J) const
+	{
+		p->x += p->v * dt * 0.5;
+
+		auto B = fB(p->x);
+		auto E = fE(p->x);
+
+		Vec3 v_;
+
+		auto t = B * (cmr_ * dt * 0.5);
+
+		p->v += p->v + E * (cmr_ * dt * 0.5);
+
+		v_ = p->v + Cross(p->v, t);
+
+		v_ = Cross(v_, t) / (Dot(t, t) + 1.0) * 2;
+
+		p->v += v_;
+
+		p->v += E * (cmr_ * dt * 0.5);
+
+		p->x += p->v * dt * 0.5;
+
+		J->scatter_cartesian(std::forward_as_tuple(p->x, p->v, p->f * charge));
+
+	}
+
+};
 }
 // namespace simpla
 

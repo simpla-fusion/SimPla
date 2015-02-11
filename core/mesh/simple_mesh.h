@@ -37,7 +37,7 @@ public:
 
 	typedef this_type topology_type;
 
-	template<typename TV> using field_value_type=TV;
+	template<typename TV> using field_value_type = TV;
 
 private:
 
@@ -56,13 +56,13 @@ public:
 	}
 	SimpleMesh(coordinates_type const & xmin, coordinates_type const & xmax,
 			nTuple<size_t, ndims> const& count,
-			nTuple<size_t, ndims> const&offset) :
-			xmin_(xmin), xmax_(xmax), count_(count), offset_(offset)
+			nTuple<size_t, ndims> const&offset)
+			: xmin_(xmin), xmax_(xmax), count_(count), offset_(offset)
 	{
 		update();
 	}
-	SimpleMesh(SimpleMesh const & other) :
-			xmin_(other.xmin_), xmax_(other.xmax_), offset_(other.offset_), count_(
+	SimpleMesh(SimpleMesh const & other)
+			: xmin_(other.xmin_), xmax_(other.xmax_), offset_(other.offset_), count_(
 					other.count_)
 	{
 		update();
@@ -83,6 +83,13 @@ public:
 				<< ", offset=" << offset_ << " }";
 		return os;
 
+	}
+
+	coordinates_type id_to_coordinates(id_type const & id) const
+	{
+		coordinates_type res;
+		res = id;
+		return std::move(res);
 	}
 
 	template<typename T1, typename T2>
@@ -134,6 +141,20 @@ public:
 			}
 		}
 	}
+	template<typename T>
+	id_type coordinates_to_id(T const &x) const
+	{
+		id_type res;
+		res = x;
+		return std::move(res);
+	}
+	template<typename T>
+	coordinates_type id_to_coordinates(T const &i) const
+	{
+		coordinates_type res;
+		res = i;
+		return std::move(res);
+	}
 
 	/**@name range concept
 	 * @{
@@ -166,21 +187,21 @@ public:
 	{
 		id_type begin_, end_, self_;
 
-		const_iterator(id_type const &b, id_type const &e) :
-				begin_(b), end_(e), self_(b)
+		const_iterator(id_type const &b, id_type const &e)
+				: begin_(b), end_(e), self_(b)
 		{
 		}
-		const_iterator(id_type const &b, id_type const &e, id_type const &s) :
-				begin_(b), end_(e), self_(s)
+		const_iterator(id_type const &b, id_type const &e, id_type const &s)
+				: begin_(b), end_(e), self_(s)
 		{
 		}
-		const_iterator(const_iterator const& other) :
-				begin_(other.begin_), end_(other.end_), self_(other.self_)
+		const_iterator(const_iterator const& other)
+				: begin_(other.begin_), end_(other.end_), self_(other.self_)
 		{
 
 		}
-		const_iterator(const_iterator && other) :
-				begin_(other.begin_), end_(other.end_), self_(other.self_)
+		const_iterator(const_iterator && other)
+				: begin_(other.begin_), end_(other.end_), self_(other.self_)
 		{
 
 		}
@@ -266,6 +287,13 @@ public:
 		const_iterator res(offset_, e, s);
 		++res;
 		return std::move(res);
+	}
+
+	typedef std::pair<const_iterator, const_iterator> range_type;
+
+	range_type range() const
+	{
+		return std::make_pair(begin(), end());
 	}
 
 	size_t hash(id_type const & s) const

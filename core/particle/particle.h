@@ -1,39 +1,19 @@
 /*
- * particle.h
+ * @file particle.h
  *
  *  created on: 2012-11-1
  *      Author: salmon
  */
 
-#ifndef PARTICLE_H_
-#define PARTICLE_H_
-#include <unordered_set>
+#ifndef CORE_PARTICLE_PARTICLE_H_
+#define CORE_PARTICLE_PARTICLE_H_
+#include "../application/sp_object.h"
+#include "../utilities/utilities.h"
+#include "../gtl/enable_create_from_this.h"
+#include "../dataset/dataset.h"
+
 namespace simpla
 {
-
-template<typename TGeo, typename TPoint_s>
-struct particle_hasher
-{
-	typedef TGeo geometry_type;
-	typedef typename geometry_type::id_type key_type;
-	typedef TPoint_s value_type;
-
-	geometry_type const & m_geo_;
-
-	particle_hasher(geometry_type const & geo) :
-			m_geo_(geo)
-	{
-	}
-	~particle_hasher()
-	{
-	}
-
-	constexpr key_type operator()(value_type const & p) const
-	{
-		return m_geo_.coordinates_to_id(p.x);
-	}
-}
-;
 
 template<typename T> void sync(T *);
 
@@ -88,38 +68,62 @@ template<typename T> void sync(T *);
  *
  *  @}
  */
+template<typename ... T> class Particle;
 
-template<typename TG, typename Engine, typename ...Others>
-class Particle: public Engine,
-		public sp_sorted_set<typename Engine::Point_s,
-				particle_hasher<TG, typename Engine::Point_s> >,
-		public enable_create_from_this<Particle<Engine, Others...>>
+namespace _impl
 {
-	typedef TG geometry_type;
+
+template<typename TContainer> struct particle_container_traits
+{
+	template<typename ...Args>
+	static std::shared_ptr<TContainer> create(Args && ...args)
+	{
+		return std::make_shared<TContainer>();
+	}
+};
+
+}  // namespace _impl
+
+template<typename TM, typename Engine, typename TContainer>
+class Particle<TM, Engine, TContainer> //
+: public SpObject, public Engine, public enable_create_from_this<
+			Particle<TM, Engine, TContainer> >
+{
+	typedef TM mesh_type;
 
 	typedef Engine engine_type;
 
-	typedef Particle<geometry_type, engine_type, Others...> this_type;
+	typedef TContainer container_type;
 
-	typedef typename engine_type::Point_s value_type;
+	typedef Particle<mesh_type, engine_type, container_type> this_type;
 
-	typedef typename geometry_type::id_type key_type;
+	typedef typename container_type::value_type value_type;
+	typedef typename container_type::key_type key_type;
 
 private:
 
-	geometry_type const & m_geo_;
-
-	typedef sp_sorted_set<value_type, hasher> container_type;
-
-	typedef typename container_type::bucket_type bucket_type;
+	mesh_type m_mesh_;
+	std::shared_ptr<container_type> m_data_;
 
 public:
-	Particle(geometry_type const & geo) :
-			container_type(hasher(geo)), m_geo_(geo)
+	template<typename ...Args>
+	Particle(mesh_type const & m, Args && ...args)
+			: engine_type(std::forward<Args>(args)...), m_mesh_(m), m_data_(
+					_impl::particle_container_traits<container_type>::create(
+							m_mesh_))
 	{
 	}
 
-	Particle(this_type const& other) = delete;
+	Particle(this_type const& other)
+			: engine_type(other), m_mesh_(other.m_mesh_), m_data_(other.m_data_)
+	{
+	}
+
+	Particle(this_type & other, op_split)
+			: engine_type(other), m_mesh_(other.m_mesh_, op_split()), m_data_(
+					other.m_data_)
+	{
+	}
 
 	~Particle()
 	{
@@ -140,24 +144,51 @@ public:
 	{
 		return get_type_as_string_static();
 	}
-	geometry_type const & geometry() const
+	mesh_type const & mesh() const
 	{
-		return m_geo_;
+		return m_mesh_;
 	}
 	using engine_type::properties;
 	using engine_type::print;
 
-	using container_type::push_back;
-	using container_type::insert;
-	using container_type::emplace;
-	using container_type::rehash;
-	using container_type::reserver;
-	using container_type::erase;
+	size_t size() const
+	{
+		return m_data_->size();
+	}
+
+	template<typename ...Args>
+	auto push_back(Args && ...args)
+	DECL_RET_TYPE((m_data_->push_back(std::forward<Args>(args)...)))
+
+	template<typename ...Args>
+	auto insert(Args && ...args)
+	DECL_RET_TYPE((m_data_->insert(std::forward<Args>(args)...)))
+
+	template<typename ...Args>
+	auto rehash(Args && ...args)
+	DECL_RET_TYPE((m_data_->rehash(std::forward<Args>(args)...)))
+
+	template<typename ...Args>
+	auto reserve(Args && ...args)
+	DECL_RET_TYPE((m_data_->reserve(std::forward<Args>(args)...)))
+
+	template<typename ...Args>
+	auto emplace(Args && ...args)
+	DECL_RET_TYPE((m_data_->emplace(std::forward<Args>(args)...)))
+
+	template<typename ...Args>
+	auto erase(Args && ...args)
+	DECL_RET_TYPE((m_data_->erase(std::forward<Args>(args)...)))
 
 	template<typename TDict, typename ...Others>
 	void load(TDict const & dict, Others && ...others)
 	{
-		engine_type::load(dict);
+		engine_type::load(dict, std::forward<Others>(others)...);
+
+		if (dict["DataSrc"])
+		{
+			UNIMPLEMENTED2("load particle from [DataSrc]");
+		}
 	}
 
 	bool update()
@@ -165,22 +196,14 @@ public:
 		return true;
 	}
 
-	void sync()
-	{
-		simpla::sync(this);
-	}
-
 	DataSet dataset() const
 	{
-		size_t num;
 
-		std::shared_ptr<value_type> data;
+		DataSet res = m_data_->dump(m_mesh_.range());
 
-		std::tie(num, data) = m_data_.dump(m_geo_.select<VERTEX>());
+		res.properties += engine_type::properties;
 
-		return DataSet(
-		{ data, DataType::create<value_type>(), DataSpace(1, &num),
-				engine_type::properties });
+		return std::move(res);
 	}
 
 	//! @}
@@ -200,14 +223,10 @@ public:
 	template<typename ...Args>
 	void next_timestep(Args && ...args)
 	{
-		for (auto & item : m_data_)
+		m_data_->foreach(m_mesh_.range(), [&](value_type & p)
 		{
-			for (auto & p : item.second)
-			{
-				engine_type::next_timestep(&p, std::forward<Args>(args)...);
-
-			}
-		}
+			engine_type::next_timestep(&p, std::forward<Args>(args)...);
+		});
 	}
 
 	/**
@@ -234,52 +253,30 @@ public:
 	Real next_n_timesteps(size_t num_of_steps, Real t0, Real dt,
 			Args && ...args)
 	{
-		for (auto & item : m_data_)
+		m_data_->foreach(m_mesh_.range(), [&](value_type & p)
 		{
-			for (auto & p : item.second)
+			for (int s = 0; s < num_of_steps; ++s)
 			{
-				for (int s = 0; s < num_of_steps; ++s)
-				{
-					engine_type::next_timestep(&p, t0 + dt * s, dt,
-							std::forward<Args>(args)...);
-				}
+				engine_type::next_timestep(&p, t0 + dt * s, dt,
+						std::forward<Args>(args)...);
 			}
-		}
+		});
 	}
 
-	template<typename TRange, typename TFun, typename ...Args>
-	void foreach(TRange const & range, TFun const & fun, Args && ...)
+	template<typename ...Args>
+	void foreach(Args && ...args)
 	{
-		for (auto const & s : range)
-		{
-			auto it = m_data_.find(s);
-			if (it != m_data_.end())
-			{
-				for (auto & p : it->second)
-				{
-					fun(p, std::forward<Args>(args)...);
-				}
-			}
-		}
+		m_data_->foreach(m_mesh_.range(), std::forward<Args>(args)...);
 	}
 
-	template<typename TRange, typename TFun, typename ...Args>
-	void foreach(TRange const & range, TFun const & fun, Args && ...) const
+	template<typename ...Args>
+	void foreach(Args && ...args) const
 	{
-		for (auto const & s : range)
-		{
-			auto it = m_data_.find(s);
-			if (it != m_data_.end())
-			{
-				for (auto const & p : it->second)
-				{
-					fun(p, std::forward<Args>(args)...);
-				}
-			}
-		}
+		m_data_->foreach(m_mesh_.range(), std::forward<Args>(args)...);
 	}
-};
+}
+;
 }
 // namespace simpla
 
-#endif /* PARTICLE_H_ */
+#endif /* CORE_PARTICLE_PARTICLE_H_ */

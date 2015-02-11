@@ -9,6 +9,7 @@
 
 #include "field_expression.h"
 #include "../gtl/type_traits.h"
+#include "field_shared_ptr.h"
 namespace simpla
 {
 
