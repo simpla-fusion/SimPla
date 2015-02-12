@@ -15,7 +15,7 @@
 #include <tuple>
 #include <type_traits>
 #include <utility>
-
+#include "../../dataset/dataset.h"
 namespace simpla
 {
 /**
@@ -150,6 +150,12 @@ public:
 
 	template<typename TV>
 	void insert(TV && v)
+	{
+		m_data_[m_hash_(v)].push_front(std::forward<TV>(v));
+	}
+
+	template<typename TV>
+	void push_front(TV && v)
 	{
 		m_data_[m_hash_(v)].push_front(std::forward<TV>(v));
 	}
@@ -315,16 +321,64 @@ public:
 		}
 		return count;
 	}
-	template<typename TRange>
-	std::tuple<size_t, std::shared_ptr<value_type> > dump(
-			TRange const & range) const
-	{
-		size_t num = size();
-		std::shared_ptr<value_type> data = sp_make_shared_array<value_type>(
-				num);
 
-		return std::make_tuple(num, data);
+private:
+	value_type * dump(bucket_type const & bucket, value_type *p) const
+	{
+
+		auto back_insert_it = back_inserter(p);
+
+		std::copy(bucket.begin(), bucket.end(), back_insert_it);
+
+		return back_insert_it.get();
 	}
+public:
+	template<typename TRange>
+	DataSet dataset(TRange const & range) const
+	{
+		std::shared_ptr<value_type> data = sp_make_shared_array<value_type>(
+				size(range));
+
+		value_type * p = data.get();
+		//TODO need parallelization
+		for (auto s : range)
+		{
+			auto it = m_data_.find(m_hash_(s));
+			if (it != m_data_.end())
+			{
+				p = dump(it->second, p);
+
+			}
+
+		}
+
+		size_t num = std::distance(data.get(), p);
+
+		return DataSet(
+				{ data, DataType::create<value_type>(), DataSpace(1, &num),
+						Properties() });
+	}
+
+	DataSet dataset() const
+	{
+		std::shared_ptr<value_type> data = sp_make_shared_array<value_type>(
+				size());
+
+		value_type * p = data.get();
+
+		//TODO need parallelization
+		for (auto const & item : m_data_)
+		{
+			p = dump(item.second, p);
+		}
+
+		size_t num = std::distance(data.get(), p);
+
+		return DataSet(
+				{ data, DataType::create<value_type>(), DataSpace(1, &num),
+						Properties() });
+	}
+
 }
 ;
 

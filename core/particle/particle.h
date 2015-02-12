@@ -90,6 +90,7 @@ class Particle<TM, Engine, TContainer> //
 : public SpObject, public Engine, public enable_create_from_this<
 			Particle<TM, Engine, TContainer> >
 {
+public:
 	typedef TM mesh_type;
 
 	typedef Engine engine_type;
@@ -146,6 +147,15 @@ public:
 	{
 		return *this;
 	}
+
+	container_type & data()
+	{
+		return *m_data_;
+	}
+	container_type const & data() const
+	{
+		return *m_data_;
+	}
 	static std::string get_type_as_string_static()
 	{
 		return engine_type::get_type_as_string();
@@ -178,6 +188,12 @@ public:
 	}
 
 	template<typename ...Args>
+	void push_front(Args && ...args)
+	{
+		m_data_->push_front(std::forward<Args>(args)...);
+	}
+
+	template<typename ...Args>
 	void rehash(Args && ...args)
 	{
 		m_data_->rehash(std::forward<Args>(args)...);
@@ -205,12 +221,16 @@ public:
 			UNIMPLEMENTED2("load particle from [DataSrc]");
 		}
 	}
+	typedef typename container_type::bucket_type bucket_type;
 
-	auto operator[](key_type const & s)
-	DECL_RET_TYPE((*m_data_)[s])
-
-	auto operator[](key_type const & s) const
-	DECL_RET_TYPE((*m_data_)[s])
+	bucket_type & operator[](key_type const & s)
+	{
+		return (*m_data_)[s];
+	}
+	bucket_type const & operator[](key_type const & s) const
+	{
+		return (*m_data_)[s];
+	}
 
 	bool update()
 	{
@@ -220,7 +240,7 @@ public:
 	DataSet dataset() const
 	{
 
-		DataSet res = m_data_->dump(m_mesh_.range());
+		DataSet res = m_data_->dataset(m_mesh_.range());
 
 		res.properties += engine_type::properties;
 

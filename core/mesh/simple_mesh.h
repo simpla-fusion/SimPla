@@ -134,15 +134,13 @@ public:
 			}
 		}
 	}
-	template<typename T>
-	id_type coordinates_to_id(T const &x) const
+	id_type coordinates_to_id(coordinates_type const &x) const
 	{
 		id_type res;
-		res = x;
+		res = (x - xmin_) / dx_;
 		return std::move(res);
 	}
-	template<typename T>
-	coordinates_type id_to_coordinates(T const &i) const
+	coordinates_type id_to_coordinates(id_type const &i) const
 	{
 		coordinates_type res;
 		res = i * dx_ + xmin_;

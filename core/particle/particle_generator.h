@@ -87,22 +87,17 @@ struct ParticleGenerator
 		{
 			return m_z_;
 		}
+
 		value_type const * operator->() const
 		{
 			return &m_z_;
 		}
+
 		output_iterator operator++()
 		{
 			m_z_ = m_dist_(m_rnd_gen_);
 			++m_count_;
 			return *this;
-		}
-
-		output_iterator operator++(int) const
-		{
-			output_iterator res(*this);
-			++res;
-			return std::move(res);
 		}
 
 		bool operator==(output_iterator const & other) const
@@ -127,6 +122,13 @@ struct ParticleGenerator
 		return std::move(output_iterator<TRNDGen>(*this, rnd_gen, pos));
 	}
 };
+
+template<typename EngineType, typename XGen, typename VGen>
+ParticleGenerator<EngineType, XGen, VGen> make_particle_generator(
+		EngineType const & eng, XGen const& xgen, VGen const& vgen)
+{
+	return std::move(ParticleGenerator<EngineType, XGen, VGen>(eng, xgen, vgen));
+}
 
 }  // namespace simpla
 

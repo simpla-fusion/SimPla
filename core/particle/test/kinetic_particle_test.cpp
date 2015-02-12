@@ -14,6 +14,8 @@
 
 #include "../../numeric/rectangle_distribution.h"
 #include "../../numeric/multi_normal_distribution.h"
+#include "../../utilities/memory_pool.h"
+#include "../../gtl/iterator/sp_iterator.h"
 
 using namespace simpla;
 
@@ -40,20 +42,16 @@ public:
 };
 constexpr size_t TestKineticParticle::pic;
 
-TEST_F(TestKineticParticle,Add)
+TEST_F(TestKineticParticle,insert)
 {
 
 	particle_type p(mesh);
 
 	auto extents = mesh.extents();
 
-	ParticleGenerator<engine_type,
+	auto range = mesh.range();
 
-	rectangle_distribution<mesh_type::ndims>,
-
-	multi_normal_distribution<mesh_type::ndims> > p_generator(
-
-	static_cast<engine_type const &>(p),
+	auto p_generator = make_particle_generator(p,
 
 	rectangle_distribution<mesh_type::ndims>(extents),
 
@@ -63,17 +61,34 @@ TEST_F(TestKineticParticle,Add)
 
 	std::mt19937 rnd_gen;
 
-	auto range = mesh.range();
+	size_t num = (mesh.hash(*end(range)) - mesh.hash(*begin(range)));
 
-	size_t num = pic * (mesh.hash(*end(range)) - mesh.hash(*begin(range)));
+	std::copy(p_generator.begin(rnd_gen), p_generator.end(rnd_gen, pic * num),
+			std::front_inserter(p));
 
-	p.insert(p_generator.begin(rnd_gen), p_generator.end(rnd_gen, num));
+	Real variance = 0;
+	Real mean = 0;
 
-	EXPECT_EQ(p.size(), num);
+	for (auto s : range)
+	{
+		size_t n = p.size(mesh.hash(s));
+
+		variance += (static_cast<Real>(n) - pic) * (static_cast<Real>(n) - pic);
+	}
+
+	variance = std::sqrt(variance / (num * pic * pic));
+
+	EXPECT_LE(variance, 1.0 / std::sqrt(pic));
+
+	CHECK(variance);
+
+	EXPECT_EQ(p.size(), pic * num);
+
+	EXPECT_LE(p.data().dataset().dataspace.size(), pic * num);
 
 }
 
-TEST_F(TestKineticParticle, scatter_n)
+TEST_F(TestKineticParticle, dump)
 {
 
 	SimpleField<mesh_type, Real> n(mesh), n0(mesh);
@@ -87,8 +102,6 @@ TEST_F(TestKineticParticle, scatter_n)
 	B.clear();
 	n0.clear();
 	n.clear();
-
-//	scatter(ion, &n, E, B);
 
 	Real q = ion.charge;
 	Real variance = 0.0;
