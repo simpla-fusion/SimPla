@@ -142,16 +142,21 @@ public:
 	}
 
 	template<typename TV>
+	void insert(key_type const & key, TV && v)
+	{
+		m_data_[key].insert_after(m_data_[key].before_begin(),
+				std::forward<TV>(v));
+	}
+
+	template<typename TV>
 	void insert(TV && v)
 	{
-		CHECK(v.x);
-
 		m_data_[m_hash_(v)].push_front(std::forward<TV>(v));
 	}
 
 	void insert(std::initializer_list<value_type> ilist)
 	{
-		push_back(ilist.begin(), ilist.end());
+		insert(ilist.begin(), ilist.end());
 	}
 
 	template<typename InputIter>
@@ -161,13 +166,6 @@ public:
 		{
 			insert(*it);
 		}
-	}
-
-	template<typename TV>
-	void insert(key_type const & key, TV && v)
-	{
-		m_data_[key].insert_after(m_data_[key].before_begin(),
-				std::forward<TV>(v));
 	}
 
 	void insert(key_type const & key, std::initializer_list<value_type> ilist)

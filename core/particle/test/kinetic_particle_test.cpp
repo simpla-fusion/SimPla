@@ -60,16 +60,16 @@ TEST_F(TestKineticParticle,Add)
 	multi_normal_distribution<mesh_type::ndims>()
 
 	);
+
 	std::mt19937 rnd_gen;
-	nTuple<Real, 3> v = { 0, 0, 0 };
+
 	auto range = mesh.range();
-	for (auto s : range)
-	{
-		p.insert(mesh.hash(s), p_generator.begin(rnd_gen),
-				p_generator.end(rnd_gen, 10));
-	}
-	EXPECT_EQ(p.size(),
-			pic * (mesh.hash(*end(range)) - mesh.hash(*begin(range))));
+
+	size_t num = pic * (mesh.hash(*end(range)) - mesh.hash(*begin(range)));
+
+	p.insert(p_generator.begin(rnd_gen), p_generator.end(rnd_gen, num));
+
+	EXPECT_EQ(p.size(), num);
 
 //	sync(&p);
 
