@@ -77,7 +77,7 @@ public:
 	}
 
 	template<typename Generator>
-	nTuple<double, NDIM> operator()(Generator &g)
+	nTuple<double, NDIM> operator()(Generator &g) const
 	{
 		nTuple<double, NDIM> res;
 
@@ -92,7 +92,7 @@ public:
 	}
 
 	template<typename Generator, typename T>
-	void operator()(Generator &g, T* res)
+	void operator()(Generator &g, T* res) const
 	{
 
 		for (int i = 0; i < NDIM; ++i)

@@ -309,6 +309,11 @@ template<typename T>
 auto rend(T& l)
 ENABLE_IF_DECL_RET_TYPE((!has_member_function_end<T>::value),(--std::get<0>(l)))
 
+template<typename TI>
+auto distance(TI const & b, TI const & e)
+DECL_RET_TYPE((e-b))
+
+
 template<typename _T>
 struct is_iterator
 {

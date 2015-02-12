@@ -39,9 +39,8 @@ public:
 	static constexpr size_t ndims = N;
 
 	multi_normal_distribution(RealType pT = 1.0, //
-			nTuple<RealType, N> const &pu =
-			{ 0, 0, 0 }) :
-			u_(pu), normal_dist_(0, 1.0)
+			nTuple<RealType, N> const &pu = { 0, 0, 0 })
+			: u_(pu), normal_dist_(0, 1.0)
 	{
 		for (int i = 0; i < N; ++i)
 			for (int j = 0; j < N; ++j)
@@ -58,8 +57,8 @@ public:
 	}
 
 	multi_normal_distribution(nTuple<RealType, N> const & pT,
-			nTuple<RealType, N> const &pu) :
-			u_(pu), normal_dist_(0, 1.0)
+			nTuple<RealType, N> const &pu)
+			: u_(pu), normal_dist_(0, 1.0)
 	{
 		for (int i = 0; i < N; ++i)
 			for (int j = 0; j < N; ++j)
@@ -76,8 +75,8 @@ public:
 	}
 
 	multi_normal_distribution(nTuple<RealType, N, N> const & pA,
-			nTuple<RealType, N> const &pu) :
-			A_(cholesky_decomposition(pA)), u_(pu), normal_dist_(0, 1.0)
+			nTuple<RealType, N> const &pu)
+			: A_(cholesky_decomposition(pA)), u_(pu), normal_dist_(0, 1.0)
 	{
 	}
 	~multi_normal_distribution()
@@ -103,7 +102,7 @@ public:
 			Generator & g)
 	{
 		nTuple<RealType, N> res;
-		this_type::operator()(g, res);
+		this_type::operator()(g, &res[0]);
 		return std::move(res);
 	}
 

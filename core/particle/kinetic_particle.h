@@ -19,7 +19,7 @@ template<typename TM, typename TPoint_s>
 struct particle_hasher
 {
 	typedef TM mesh_type;
-	typedef typename mesh_type::id_type key_type;
+
 	typedef TPoint_s value_type;
 
 	mesh_type const & m_mesh_;
@@ -32,10 +32,9 @@ struct particle_hasher
 	{
 	}
 
-	constexpr key_type operator()(value_type const & p) const
-	{
-		return m_mesh_.coordinates_to_id(p.x);
-	}
+	constexpr auto operator()(value_type const & p) const
+	DECL_RET_TYPE((m_mesh_.hash(m_mesh_.coordinates_to_id(p.x))))
+
 }
 ;
 template<typename TM, typename T>

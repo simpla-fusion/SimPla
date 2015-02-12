@@ -467,6 +467,12 @@ public:
 
 	}
 
+	Point_s push_forward(coordinates_type const & x, vector_type const &v,
+			Real f = 1.0) const
+	{
+		return Point_s( { x, v, f });
+	}
+
 };
 }
 // namespace simpla

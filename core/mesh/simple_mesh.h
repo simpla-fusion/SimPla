@@ -263,6 +263,11 @@ public:
 
 			return !operator==(other);
 		}
+
+//		size_t operator-(const_iterator const & other) const
+//		{
+//
+//		}
 	};
 
 	const_iterator begin() const

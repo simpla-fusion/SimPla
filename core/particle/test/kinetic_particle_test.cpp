@@ -8,9 +8,12 @@
 #include <gtest/gtest.h>
 #include "../kinetic_particle.h"
 #include "../particle_engine.h"
+#include "../particle_generator.h"
 #include "../../mesh/simple_mesh.h"
 #include "../../field/field.h"
+
 #include "../../numeric/rectangle_distribution.h"
+#include "../../numeric/multi_normal_distribution.h"
 
 using namespace simpla;
 
@@ -35,6 +38,7 @@ public:
 	typedef typename engine_type::Point_s Point_s;
 
 };
+constexpr size_t TestKineticParticle::pic;
 
 TEST_F(TestKineticParticle,Add)
 {
@@ -43,29 +47,29 @@ TEST_F(TestKineticParticle,Add)
 
 	auto extents = mesh.extents();
 
-	rectangle_distribution<mesh_type::ndims> x_dist(extents.first,
-			extents.second);
+	ParticleGenerator<engine_type,
 
-	std::mt19937 rnd_gen(mesh_type::ndims);
+	rectangle_distribution<mesh_type::ndims>,
 
+	multi_normal_distribution<mesh_type::ndims> > p_generator(
+
+	static_cast<engine_type const &>(p),
+
+	rectangle_distribution<mesh_type::ndims>(extents),
+
+	multi_normal_distribution<mesh_type::ndims>()
+
+	);
+	std::mt19937 rnd_gen;
 	nTuple<Real, 3> v = { 0, 0, 0 };
-	CHECK(p.size());
-	size_t count = 0;
-	for (auto s : mesh.range())
+	auto range = mesh.range();
+	for (auto s : range)
 	{
-		for (int i = 0; i < 1; ++i)
-		{
-			++count;
-			coordinates_type x = mesh.id_to_coordinates(s);
-			x += x_dist(rnd_gen);
-			p.push_back(s, std::move(Point_s( { x, v, 1.0 })));
-		}
+		p.insert(mesh.hash(s), p_generator.begin(rnd_gen),
+				p_generator.end(rnd_gen, 10));
 	}
-	CHECK(count);
-	CHECK(p.size());
-//	INFORM << "Add particle DONE " << p.size() << std::endl;
-//
-//	EXPECT_EQ(p.size(), mesh.get_local_memory_size(VERTEX) * pic);
+	EXPECT_EQ(p.size(),
+			pic * (mesh.hash(*end(range)) - mesh.hash(*begin(range))));
 
 //	sync(&p);
 

@@ -110,7 +110,8 @@ private:
 public:
 	template<typename ...Args>
 	Particle(mesh_type const & m, Args && ...args)
-			: engine_type(std::forward<Args>(args)...), m_mesh_(m), m_data_(
+			: engine_type(std::forward<Args>(args)...), m_mesh_(m), //
+			m_data_(
 					_impl::particle_container_traits<container_type>::create(
 							m_mesh_))
 	{
@@ -124,6 +125,13 @@ public:
 	Particle(this_type & other, op_split)
 			: engine_type(other), m_mesh_(other.m_mesh_, op_split()), m_data_(
 					other.m_data_)
+	{
+	}
+	template<typename ... Args>
+	Particle(this_type & other, Args && ...args)
+			: engine_type(other), m_mesh_(other.m_mesh_), m_data_(
+					std::make_shared<container_type>(*other.m_data_,
+							std::forward<Args>(args)...))
 	{
 	}
 
@@ -150,39 +158,42 @@ public:
 	{
 		return m_mesh_;
 	}
+
 	using engine_type::properties;
+
 	using engine_type::print;
 
-	size_t size() const
+	size_t size()
 	{
 		return m_data_->size();
 	}
-
-	template<typename ...Args>
-	void push_back(Args && ...args)
+	size_t size(key_type const & key)
 	{
-		m_data_->push_back(std::forward<Args>(args)...);
+		return m_data_->size(key);
+	}
+	template<typename ...Args>
+	void insert(Args && ...args)
+	{
+		m_data_->insert(std::forward<Args>(args)...);
 	}
 
 	template<typename ...Args>
-	auto insert(Args && ...args)
-	DECL_RET_TYPE((m_data_->insert(std::forward<Args>(args)...)))
+	void rehash(Args && ...args)
+	{
+		m_data_->rehash(std::forward<Args>(args)...);
+	}
 
 	template<typename ...Args>
-	auto rehash(Args && ...args)
-	DECL_RET_TYPE((m_data_->rehash(std::forward<Args>(args)...)))
+	void assign(Args && ...args)
+	{
+		m_data_->assign(std::forward<Args>(args)...);
+	}
 
 	template<typename ...Args>
-	auto reserve(Args && ...args)
-	DECL_RET_TYPE((m_data_->reserve(std::forward<Args>(args)...)))
-
-	template<typename ...Args>
-	auto emplace(Args && ...args)
-	DECL_RET_TYPE((m_data_->emplace(std::forward<Args>(args)...)))
-
-	template<typename ...Args>
-	auto erase(Args && ...args)
-	DECL_RET_TYPE((m_data_->erase(std::forward<Args>(args)...)))
+	void erase(Args && ...args)
+	{
+		m_data_->erase(std::forward<Args>(args)...);
+	}
 
 	template<typename TDict, typename ...Others>
 	void load(TDict const & dict, Others && ...others)
