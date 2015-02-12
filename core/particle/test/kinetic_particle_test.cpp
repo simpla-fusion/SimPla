@@ -71,10 +71,6 @@ TEST_F(TestKineticParticle,Add)
 
 	EXPECT_EQ(p.size(), num);
 
-//	sync(&p);
-
-//	VERBOSE << "update_ghosts particle DONE " << p.size() << std::endl;
-
 }
 
 TEST_F(TestKineticParticle, scatter_n)

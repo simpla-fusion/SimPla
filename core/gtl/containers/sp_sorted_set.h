@@ -245,12 +245,16 @@ public:
 	 *   to container `other[hash(value)]`
 	 * @param key
 	 * @param other
+	 * @return number of moved elements
 	 */
-	void rehash(std::pair<key_type, bucket_type> & item, container_type & other)
+
+	size_t rehash(std::pair<key_type, bucket_type> & item,
+			container_type & other)
 	{
 		auto const & key = item.first;
 		auto & bucket = item.second;
 		auto pt = bucket.begin();
+		size_t count = 0;
 		while (pt != bucket.end())
 		{
 			auto p = pt;
@@ -262,8 +266,11 @@ public:
 			{
 				auto & dest = other[o_key];
 				dest.splice_after(dest.before_begin(), bucket, p);
+				++count;
 			}
 		}
+
+		return count;
 	}
 
 	void rehash()
