@@ -35,6 +35,9 @@ struct particle_hasher
 	constexpr auto operator()(value_type const & p) const
 	DECL_RET_TYPE((m_mesh_.hash(m_mesh_.coordinates_to_id(p.x))))
 
+	template<typename ...Args>
+	constexpr auto operator()(Args &&... args) const
+	DECL_RET_TYPE((m_mesh_.hash(std::forward<Args>(args)...)))
 }
 ;
 template<typename TM, typename T>

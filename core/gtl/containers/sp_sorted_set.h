@@ -303,11 +303,10 @@ public:
 	template<typename TRange>
 	size_t size(TRange const & range) const
 	{
-
 		size_t count = 0;
 		for (auto const & key : range)
 		{
-			count += this->size(key);
+			count += size(m_hash_(key));
 		}
 		return count;
 	}
@@ -347,9 +346,8 @@ public:
 			if (it != m_data_.end())
 			{
 				p = dump(it->second, p);
-
+				CHECK(p - data.get());
 			}
-
 		}
 
 		size_t num = std::distance(data.get(), p);

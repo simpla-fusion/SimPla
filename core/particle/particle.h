@@ -239,7 +239,6 @@ public:
 
 	DataSet dataset() const
 	{
-
 		DataSet res = m_data_->dataset(m_mesh_.range());
 
 		res.properties += engine_type::properties;

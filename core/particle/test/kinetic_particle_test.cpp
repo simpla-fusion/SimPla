@@ -84,7 +84,7 @@ TEST_F(TestKineticParticle,insert)
 
 	EXPECT_EQ(p.size(), pic * num);
 
-	EXPECT_LE(p.data().dataset().dataspace.size(), pic * num);
+	EXPECT_LE(p.dataset().dataspace.size(), pic * num);
 
 }
 
