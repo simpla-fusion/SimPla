@@ -88,7 +88,7 @@ struct particle_container_traits
 template<typename TM, typename Engine, typename TContainer>
 class Particle<TM, Engine, TContainer> //
 : public SpObject, public Engine, public enable_create_from_this<
-			Particle<TM, Engine, TContainer> >
+		Particle<TM, Engine, TContainer> >
 {
 public:
 	typedef TM mesh_type;
@@ -110,27 +110,27 @@ private:
 
 public:
 	template<typename ...Args>
-	Particle(mesh_type const & m, Args && ...args)
-			: engine_type(std::forward<Args>(args)...), m_mesh_(m), //
+	Particle(mesh_type const & m, Args && ...args) :
+			engine_type(std::forward<Args>(args)...), m_mesh_(m), //
 			m_data_(
 					_impl::particle_container_traits<container_type>::create(
 							m_mesh_))
 	{
 	}
 
-	Particle(this_type const& other)
-			: engine_type(other), m_mesh_(other.m_mesh_), m_data_(other.m_data_)
+	Particle(this_type const& other) :
+			engine_type(other), m_mesh_(other.m_mesh_), m_data_(other.m_data_)
 	{
 	}
 
-	Particle(this_type & other, op_split)
-			: engine_type(other), m_mesh_(other.m_mesh_, op_split()), m_data_(
+	Particle(this_type & other, op_split) :
+			engine_type(other), m_mesh_(other.m_mesh_, op_split()), m_data_(
 					other.m_data_)
 	{
 	}
 	template<typename ... Args>
-	Particle(this_type & other, Args && ...args)
-			: engine_type(other), m_mesh_(other.m_mesh_), m_data_(
+	Particle(this_type & other, Args && ...args) :
+			engine_type(other), m_mesh_(other.m_mesh_), m_data_(
 					std::make_shared<container_type>(*other.m_data_,
 							std::forward<Args>(args)...))
 	{
@@ -303,16 +303,25 @@ public:
 		});
 	}
 
-	template<typename ...Args>
-	void foreach(Args && ...args)
+	template<typename TRange, typename TFun>
+	void foreach(TRange const & range, TFun const & fun)
 	{
-		m_data_->foreach(m_mesh_.range(), std::forward<Args>(args)...);
+		m_data_->foreach(range, fun);
 	}
-
-	template<typename ...Args>
-	void foreach(Args && ...args) const
+	template<typename TFun>
+	void foreach(TFun const & fun)
 	{
-		m_data_->foreach(m_mesh_.range(), std::forward<Args>(args)...);
+		m_data_->foreach(m_mesh_.range(), fun);
+	}
+	template<typename TRange, typename TFun>
+	void foreach(TRange const & range, TFun const & fun) const
+	{
+		m_data_->foreach(range, fun);
+	}
+	template<typename TFun>
+	void foreach(TFun const & fun) const
+	{
+		m_data_->foreach(m_mesh_.range(), fun);
 	}
 }
 ;

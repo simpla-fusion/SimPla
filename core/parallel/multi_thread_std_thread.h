@@ -14,7 +14,6 @@
 #include <thread>
 #include <future>
 
-#include "../containers/sp_range.h"
 
 namespace simpla
 {
