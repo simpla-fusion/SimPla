@@ -215,9 +215,20 @@ public:
 		}
 		return os;
 	}
-
-	this_type & operator+=(this_type const & other)
+	this_type & operator =(this_type const & other)
 	{
+		// FIXME  not tested
+
+		Any(other).swap(*this);
+
+		this->append(other);
+
+		return *this;
+	}
+	this_type & append(this_type const & other)
+	{
+		// FIXME  not tested
+
 		for (auto const & item : other)
 		{
 			map_type::operator[](item.first) = item.second;
@@ -225,23 +236,6 @@ public:
 		return *this;
 	}
 
-//	template<typename T>
-//	bool set(std::string const & key, T && v)
-//	{
-//		auto it = base_type::find(key);
-//		if (it == base_type::end())
-//		{
-//			base_type::emplace(key, Any(v));
-//		}
-//		else if (it->second.value_.Is<T>())
-//		{
-//			it->second.value_.AnyCast<T>() = v;
-//		}
-//		else
-//		{
-//			ERROR("try to assign a value with incompatible type ");
-//		}
-//	}
 };
 
 /** @} */

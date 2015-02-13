@@ -200,7 +200,6 @@ if (NOT $ENV{TBB_ARCH_PLATFORM} STREQUAL "")
         )
 endif (NOT $ENV{TBB_ARCH_PLATFORM} STREQUAL "")
 
-message(  ${_TBB_INSTALL_DIR}/lib/$ENV{TBB_ARCH_PLATFORM})
 # Jiri: This block isn't mutually exclusive with the previous one
 #       (hence no else), instead I test if the user really specified
 #       the variables in question.

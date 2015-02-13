@@ -12,25 +12,6 @@
 namespace simpla
 {
 
-//#ifdef USE_TBB
-//#include <tbb/tbb.h>
-//typedef tbb::split op_split;
-//#else
-class op_split
-{
-};
-//#endif
-
-class op_clone
-{
-};
-
-class op_select
-{
-};
-class op_merge
-{
-};
 /**
  *  @ingroup gtl
  *  @[
@@ -144,12 +125,12 @@ struct enable_create_from_this: public std::enable_shared_from_this<TObject>
 
 	holder root_;
 
-	enable_create_from_this() :
-			root_(nullptr)
+	enable_create_from_this()
+			: root_(nullptr)
 	{
 	}
-	enable_create_from_this(this_type & other) :
-			root_(other.root_)
+	enable_create_from_this(this_type & other)
+			: root_(other.root_)
 	{
 	}
 	virtual ~enable_create_from_this()
@@ -200,19 +181,6 @@ struct enable_create_from_this: public std::enable_shared_from_this<TObject>
 	}
 
 	using std::enable_shared_from_this<object_type>::shared_from_this;
-
-	holder split_from_this()
-	{
-		return std::move(create_from_this(self(), op_split()));
-	}
-
-	template<typename ...Args>
-	holder split_from_this(Args && ...args)
-	{
-		return std::move(
-				create_from_this<object_type>(self(), op_split(),
-						std::forward<Args>(args)...));
-	}
 
 //	template<typename ...Args>
 //	holder select_from_this(Args && ...args)

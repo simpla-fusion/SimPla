@@ -23,7 +23,6 @@ class sp_back_insert_iterator<T*> : public std::iterator<
 public:
 
 	typedef T value_type;
-
 	typedef T * container_type;
 
 protected:

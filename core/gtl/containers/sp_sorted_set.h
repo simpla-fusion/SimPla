@@ -16,6 +16,7 @@
 #include <type_traits>
 #include <utility>
 #include "../../dataset/dataset.h"
+#include "../iterator/sp_indirect_iterator.h"
 namespace simpla
 {
 /**
@@ -72,7 +73,7 @@ public:
 	{
 		splice(range, other);
 	}
-// Destructor
+
 	~sp_sorted_set()
 	{
 	}
@@ -291,14 +292,14 @@ public:
 
 	size_t size(key_type const & key) const
 	{
-		size_t res = 0;
+		size_t count = 0;
 
 		auto item = m_data_.find(key);
 		if (item != m_data_.end())
 		{
-			res = std::distance(item->second.begin(), item->second.end());
+			count = std::distance(item->second.begin(), item->second.end());
 		}
-		return res;
+		return count;
 	}
 	template<typename TRange>
 	size_t size(TRange const & range) const
@@ -321,6 +322,64 @@ public:
 		return count;
 	}
 
+	typedef typename container_type::iterator iterator;
+	typedef typename container_type::const_iterator const_iterator;
+
+	iterator begin()
+	{
+		return m_data_.begin();
+	}
+	iterator end()
+	{
+		return m_data_.end();
+	}
+
+	const_iterator begin() const
+	{
+		return m_data_.cbegin();
+	}
+	const_iterator end() const
+	{
+		return m_data_.cend();
+	}
+	const_iterator cbegin() const
+	{
+		return m_data_.cbegin();
+	}
+	const_iterator cend() const
+	{
+		return m_data_.cend();
+	}
+
+	typedef sp_indirect_range<std::set<key_type>, container_type> range_type;
+	typedef sp_indirect_range<std::set<key_type>, const container_type> const_range_type;
+
+	template<typename TRange>
+	range_type range(TRange const & xrange)
+	{
+		typename range_type::keys_type keys;
+
+		for (auto const & id : xrange)
+		{
+			keys.insert(m_hash_(id));
+		}
+
+		return sub_range(std::move(keys), m_data_);
+	}
+
+	template<typename TRange>
+	const_range_type range(TRange const & xrange) const
+	{
+		typename range_type::keys_type keys;
+
+		for (auto const & id : xrange)
+		{
+			keys.insert(m_hash_(id));
+		}
+
+		return sub_range(std::move(keys), m_data_);
+	}
+
 private:
 	value_type * dump(bucket_type const & bucket, value_type *p) const
 	{
@@ -335,22 +394,24 @@ public:
 	template<typename TRange>
 	DataSet dataset(TRange const & range) const
 	{
+		size_t num = size(range);
+
 		std::shared_ptr<value_type> data = sp_make_shared_array<value_type>(
-				size(range));
+				num);
 
 		value_type * p = data.get();
+
 		//TODO need parallelization
 		for (auto s : range)
 		{
 			auto it = m_data_.find(m_hash_(s));
-			if (it != m_data_.end())
+			if (!(it == m_data_.end()))
 			{
 				p = dump(it->second, p);
-				CHECK(p - data.get());
 			}
 		}
 
-		size_t num = std::distance(data.get(), p);
+		ASSERT(std::distance(data.get(), p) == num);
 
 		return DataSet(
 				{ data, DataType::create<value_type>(), DataSpace(1, &num),

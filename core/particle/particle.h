@@ -10,6 +10,7 @@
 #include "../application/sp_object.h"
 #include "../utilities/utilities.h"
 #include "../gtl/enable_create_from_this.h"
+#include "../gtl/iterator/range.h"
 #include "../dataset/dataset.h"
 
 namespace simpla
@@ -88,7 +89,7 @@ struct particle_container_traits
 template<typename TM, typename Engine, typename TContainer>
 class Particle<TM, Engine, TContainer> //
 : public SpObject, public Engine, public enable_create_from_this<
-		Particle<TM, Engine, TContainer> >
+			Particle<TM, Engine, TContainer> >
 {
 public:
 	typedef TM mesh_type;
@@ -110,27 +111,27 @@ private:
 
 public:
 	template<typename ...Args>
-	Particle(mesh_type const & m, Args && ...args) :
-			engine_type(std::forward<Args>(args)...), m_mesh_(m), //
+	Particle(mesh_type const & m, Args && ...args)
+			: engine_type(std::forward<Args>(args)...), m_mesh_(m), //
 			m_data_(
 					_impl::particle_container_traits<container_type>::create(
 							m_mesh_))
 	{
 	}
 
-	Particle(this_type const& other) :
-			engine_type(other), m_mesh_(other.m_mesh_), m_data_(other.m_data_)
+	Particle(this_type const& other)
+			: engine_type(other), m_mesh_(other.m_mesh_), m_data_(other.m_data_)
 	{
 	}
 
-	Particle(this_type & other, op_split) :
-			engine_type(other), m_mesh_(other.m_mesh_, op_split()), m_data_(
+	Particle(this_type & other, op_split)
+			: engine_type(other), m_mesh_(other.m_mesh_, op_split()), m_data_(
 					other.m_data_)
 	{
 	}
 	template<typename ... Args>
-	Particle(this_type & other, Args && ...args) :
-			engine_type(other), m_mesh_(other.m_mesh_), m_data_(
+	Particle(this_type & other, Args && ...args)
+			: engine_type(other), m_mesh_(other.m_mesh_), m_data_(
 					std::make_shared<container_type>(*other.m_data_,
 							std::forward<Args>(args)...))
 	{
@@ -221,6 +222,25 @@ public:
 			UNIMPLEMENTED2("load particle from [DataSrc]");
 		}
 	}
+	template<typename ...Args>
+	typename container_type::range_type range(Args &&... args)
+	{
+		return m_data_->range(std::forward<Args>(args)...);
+	}
+	template<typename ...Args>
+	typename container_type::const_range_type range(Args &&... args) const
+	{
+		return m_data_->range(std::forward<Args>(args)...);
+	}
+	typename container_type::range_type range()
+	{
+		return m_data_->range(m_mesh_.range());
+	}
+	typename container_type::const_range_type range() const
+	{
+		return m_data_->range(m_mesh_.range());
+	}
+
 	typedef typename container_type::bucket_type bucket_type;
 
 	bucket_type & operator[](key_type const & s)
@@ -241,7 +261,10 @@ public:
 	{
 		DataSet res = m_data_->dataset(m_mesh_.range());
 
-		res.properties += engine_type::properties;
+		// FIXME  properties copy failed
+//		res.properties.append(engine_type::properties);
+//		Properties(engine_type::properties).swap(res.properties);
+//		CHECK(res.properties);
 
 		return std::move(res);
 	}
@@ -302,6 +325,11 @@ public:
 			}
 		});
 	}
+
+	struct range
+	{
+
+	};
 
 	template<typename TRange, typename TFun>
 	void foreach(TRange const & range, TFun const & fun)

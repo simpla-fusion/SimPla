@@ -8,6 +8,7 @@
 #ifndef CORE_PARTICLE_PARTICLE_GENERATOR_H_
 #define CORE_PARTICLE_PARTICLE_GENERATOR_H_
 
+
 namespace simpla
 {
 
@@ -129,6 +130,8 @@ ParticleGenerator<EngineType, XGen, VGen> make_particle_generator(
 {
 	return std::move(ParticleGenerator<EngineType, XGen, VGen>(eng, xgen, vgen));
 }
+
+
 
 }  // namespace simpla
 

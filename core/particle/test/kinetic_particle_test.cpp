@@ -7,13 +7,10 @@
 
 #include <gtest/gtest.h>
 #include "../kinetic_particle.h"
-#include "../particle_engine.h"
-#include "../particle_generator.h"
+#include "../simple_particle.h"
 #include "../../mesh/simple_mesh.h"
 #include "../../field/field.h"
 
-#include "../../numeric/rectangle_distribution.h"
-#include "../../numeric/multi_normal_distribution.h"
 #include "../../utilities/memory_pool.h"
 #include "../../gtl/iterator/sp_iterator.h"
 
@@ -51,17 +48,11 @@ TEST_F(TestKineticParticle,insert)
 
 	auto range = mesh.range();
 
-	auto p_generator = make_particle_generator(p,
-
-	rectangle_distribution<mesh_type::ndims>(extents),
-
-	multi_normal_distribution<mesh_type::ndims>()
-
-	);
+	auto p_generator = simple_particle_generator(p, extents, 1.0);
 
 	std::mt19937 rnd_gen;
 
-	size_t num = (mesh.hash(*end(range)) - mesh.hash(*begin(range)));
+	size_t num = range.size();
 
 	std::copy(p_generator.begin(rnd_gen), p_generator.end(rnd_gen, pic * num),
 			std::front_inserter(p));
