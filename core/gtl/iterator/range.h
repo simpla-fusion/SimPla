@@ -21,6 +21,7 @@ class op_split
 {
 };
 
+template<typename ...> class Range;
 /**
  * @ingroup gtl
  *  @addtogroup range Range
@@ -33,59 +34,72 @@ class op_split
  *  >                                        -- from TBB
  */
 template<typename TI>
-class Range
+class Range<TI>
 {
 public:
 
-	typedef TI iterator_type; //! Iterator type for range
+	typedef TI iterator; //! Iterator type for range
 
-	typedef Range<iterator_type> this_type;
+	typedef Range<iterator> this_type;
 
-	typedef typename std::iterator_traits<iterator_type>::difference_type difference_type;
+	typedef typename std::iterator_traits<iterator>::difference_type difference_type;
 
-	Range(iterator_type first, iterator_type last, size_t grainsize = 0)
-			: m_first_(first), m_last_(last), grainsize_(
+	Range()
+	{
+	}
+
+	Range(iterator const &first, iterator const & last)
+			: m_first_(first), m_last_(last)
+	{
+		m_grainsize_ = 0;
+	}
+
+	Range(iterator const &first, iterator const &last,
+			difference_type const &grainsize)
+			: m_first_(first), m_last_(last), m_grainsize_(
 					grainsize == 0 ? std::distance(first, last) : grainsize)
 	{
 	}
 
 	//! Copy constructor
 	Range(this_type const & other)
-			: m_first_(other.m_first_), m_last_(other.m_last_), grainsize_(
-					other.grainsize_)
+			: m_first_(other.m_first_), m_last_(other.m_last_), m_grainsize_(
+					other.m_grainsize_)
 	{
 	}
+
 	Range(this_type & other, op_split)
-			: m_first_(other.m_first_), m_last_(other.m_first_), grainsize_(
-					other.grainsize_)
+			: m_first_(other.m_first_), m_last_(other.m_first_), m_grainsize_(
+					other.m_grainsize_)
 	{
 		std::advance(m_last_, std::distance(other.m_first_, other.m_last_) / 2);
-
 		other.m_first_ = m_last_;
 	}
-	~Range()
+
+	virtual ~Range()
 	{
 	}
-	difference_type size() const
-	{
-		return std::distance(m_first_, m_last_);
-	}
+
 	//! True if range is empty
-	bool empty() const
+	virtual bool empty() const
 	{
 		return m_last_ == m_first_;
 	}
 
 	//!True if range can be partitioned into two subranges
-	bool is_divisible() const
+	virtual bool is_divisible() const
 	{
-		return size() > grainsize_ * 2;
+		return false;
 	}
-
 	//!	Grain size
-	size_t grainsize() const
+	difference_type size() const
 	{
-		return grainsize_;
+		return m_last_ - m_first_;
+	}
+	//!	Grain size
+	difference_type grainsize() const
+	{
+		return m_grainsize_;
 	}
 
 	//**************************************************************************************************
@@ -93,20 +107,20 @@ public:
 	/// concept block range
 	/// Additional Requirements on a Container Range R
 	/// First item 	in range
-	iterator_type begin() const
+	iterator begin() const
 	{
 		return m_first_;
 	}
 	/// One past last item	in range
-	iterator_type end() const
+	iterator end() const
 	{
 		return m_last_;
 	}
 
 private:
-	iterator_type m_first_, m_last_;
+	iterator m_first_, m_last_;
 
-	difference_type grainsize_;
+	difference_type m_grainsize_;
 
 };
 

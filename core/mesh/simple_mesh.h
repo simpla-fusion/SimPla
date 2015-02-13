@@ -178,7 +178,7 @@ public:
 	void calculate(
 			_Field<AssignmentExpression<TOP, TL, TR> > const & fexpr) const
 	{
-		foreach(fexpr.op_, fexpr.lhs, fexpr.rhs);
+//		foreach(fexpr.op_, fexpr.lhs, fexpr.rhs);
 	}
 
 	template<typename T>

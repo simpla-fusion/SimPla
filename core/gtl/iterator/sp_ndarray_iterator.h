@@ -8,33 +8,42 @@
 #ifndef CORE_GTL_ITERATOR_SP_NDARRAY_ITERATOR_H_
 #define CORE_GTL_ITERATOR_SP_NDARRAY_ITERATOR_H_
 #include "range.h"
+
+#include "tbb/blocked_range3d.h"
 namespace simpla
 {
 
 template<size_t NDIMS, typename IndexType = size_t>
 struct sp_ndarray_iterator: public std::iterator<
-		typename std::bidirectional_iterator_tag, nTuple<IndexType, NDIMS>>
+		typename std::bidirectional_iterator_tag, nTuple<IndexType, NDIMS>,
+		nTuple<IndexType, NDIMS> >
 {
 	static constexpr size_t ndims = NDIMS;
+
 	typedef IndexType index_type;
+
 	typedef nTuple<index_type, ndims> indices_tuple;
 
-	typedef nTuple<index_type, ndims> value_type;
-
-	typedef nTuple<typename std::make_unsigned<index_type>::type, ndims> difference_type;
 private:
 	indices_tuple m_min_, m_max_, m_self_;
 public:
-
-	template<typename TIndices>
-	sp_ndarray_iterator(TIndices min, TIndices max)
-			: m_min_(min), m_max_(max), m_self_(min)
+	sp_ndarray_iterator()
 	{
 	}
+
 	template<typename TIndices>
-	sp_ndarray_iterator(TIndices min, TIndices max, TIndices s)
-			: m_min_(min), m_max_(max), m_self_(s)
+	sp_ndarray_iterator(TIndices const &min, TIndices const &max)
 	{
+		m_min_ = min;
+		m_max_ = max;
+		m_self_ = min;
+	}
+	template<typename T1, typename T2, typename T3>
+	sp_ndarray_iterator(T1 const &min, T2 const &max, T3 const &s)
+	{
+		m_min_ = min;
+		m_max_ = max;
+		m_self_ = s;
 	}
 	sp_ndarray_iterator(sp_ndarray_iterator const& other)
 			: m_min_(other.m_min_), m_max_(other.m_max_), m_self_(other.m_self_)
@@ -85,16 +94,16 @@ public:
 
 		return *this;
 	}
-	sp_ndarray_iterator operator++(int) const
+	sp_ndarray_iterator operator++(int)
 	{
 		sp_ndarray_iterator res(*this);
-		++res;
+		++(*this);
 		return std::move(res);
 	}
-	sp_ndarray_iterator operator--(int) const
+	sp_ndarray_iterator operator--(int)
 	{
 		sp_ndarray_iterator res(*this);
-		--res;
+		--(*this);
 		return std::move(res);
 	}
 
@@ -128,7 +137,7 @@ public:
 	}
 	sp_ndarray_range(indices_tuple min, indices_tuple max)
 			: base_range(iterator_type(min, max, min),
-					++iterator_type(min, max, max - 1))
+					(++iterator_type(min, max, max - 1)))
 	{
 //		m_strides_[ndims - 1] = 1;
 //		if (ndims > 1)
@@ -145,11 +154,9 @@ public:
 	{
 	}
 
-	indices_tuple dimensions() const
+	size_t size() const
 	{
-		indices_tuple count = m_max_ - m_min_;
-
-		return count;
+		return NProduct(m_max_ - m_min_);
 	}
 
 	size_t hash(indices_tuple const & s) const
