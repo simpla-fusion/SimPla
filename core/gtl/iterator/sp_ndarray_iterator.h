@@ -45,13 +45,13 @@ public:
 		m_max_ = max;
 		m_self_ = s;
 	}
-	sp_ndarray_iterator(sp_ndarray_iterator const& other)
-			: m_min_(other.m_min_), m_max_(other.m_max_), m_self_(other.m_self_)
+	sp_ndarray_iterator(sp_ndarray_iterator const& other) :
+			m_min_(other.m_min_), m_max_(other.m_max_), m_self_(other.m_self_)
 	{
 
 	}
-	sp_ndarray_iterator(sp_ndarray_iterator && other)
-			: m_min_(other.m_min_), m_max_(other.m_max_), m_self_(other.m_self_)
+	sp_ndarray_iterator(sp_ndarray_iterator && other) :
+			m_min_(other.m_min_), m_max_(other.m_max_), m_self_(other.m_self_)
 	{
 
 	}
@@ -125,32 +125,37 @@ template<size_t NDIMS, typename IndexType = size_t>
 struct sp_ndarray_range: public Range<sp_ndarray_iterator<NDIMS, IndexType> >
 {
 private:
+
+public:
 	static constexpr size_t array_order = C_ORDER;
+	static constexpr size_t ndims = NDIMS;
 	typedef sp_ndarray_iterator<NDIMS, IndexType> iterator_type;
 	typedef Range<sp_ndarray_iterator<NDIMS, IndexType> > base_range;
 	typedef nTuple<IndexType, NDIMS> indices_tuple;
 	indices_tuple m_min_, m_max_, m_strides_;
 
-public:
-	sp_ndarray_range()
+	sp_ndarray_range(indices_tuple min, indices_tuple max) :
+			base_range(iterator_type(min, max, min),
+					(++iterator_type(min, max, max - 1))), m_min_(min), m_max_(
+					max)
+	{
+		m_strides_[ndims - 1] = 1;
+		if (ndims > 1)
+		{
+			for (int i = ndims - 2; i >= 0; --i)
+			{
+				m_strides_[i] = (m_max_[i + 1] - m_min_[i + 1])
+						* m_strides_[i + 1];
+			}
+		}
+	}
+	sp_ndarray_range(sp_ndarray_range const & other) :
+			base_range(other), m_max_(other.m_max_), m_min_(other.m_min_), m_strides_(
+					other.m_strides_)
 	{
 	}
-	sp_ndarray_range(indices_tuple min, indices_tuple max)
-			: base_range(iterator_type(min, max, min),
-					(++iterator_type(min, max, max - 1)))
-	{
-//		m_strides_[ndims - 1] = 1;
-//		if (ndims > 1)
-//		{
-//			for (int i = ndims - 2; i >= 0; --i)
-//			{
-//				m_strides_[i] = count_[i + 1] * m_strides_[i + 1];
-//			}
-//		}
-	}
-
-	sp_ndarray_range(sp_ndarray_range & other, op_split)
-			: base_range(other, op_split())
+	sp_ndarray_range(sp_ndarray_range & other, op_split) :
+			base_range(other, op_split())
 	{
 	}
 

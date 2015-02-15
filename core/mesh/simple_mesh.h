@@ -24,8 +24,7 @@ namespace simpla
 template<typename ...>class _Field;
 template<typename ...>class Expression;
 
-struct SimpleMesh:	public sp_ndarray_range<3, size_t>,
-					public enable_create_from_this<SimpleMesh>
+struct SimpleMesh: public enable_create_from_this<SimpleMesh>
 {
 public:
 
@@ -49,26 +48,23 @@ public:
 
 private:
 
-	coordinates_type m_xmin_, m_xmax_, dx_;
+	coordinates_type m_xmin_, m_xmax_, m_dx_;
 
-	nTuple<size_t, ndims> m_imin_, m_imax_;
+	range_type m_range_;
 
 public:
-	SimpleMesh()
-	{
-		update();
-	}
+
 	SimpleMesh(coordinates_type const & xmin, coordinates_type const & xmax,
 			nTuple<size_t, ndims> const& imin,
-			nTuple<size_t, ndims> const& imax)
-			: range_type(imin, imax), m_xmin_(xmin), m_xmax_(xmax)
+			nTuple<size_t, ndims> const& imax) :
+			m_range_(imin, imax), m_xmin_(xmin), m_xmax_(xmax)
 	{
-		update();
+		m_dx_ = (m_xmax_ - m_xmin_) / (imax - imin);
 	}
-	SimpleMesh(SimpleMesh const & other)
-			: range_type(other), m_xmin_(other.m_xmin_), m_xmax_(other.m_xmax_)
+	SimpleMesh(SimpleMesh const & other) :
+			m_xmin_(other.m_xmin_), m_xmax_(other.m_xmax_), m_dx_(other.m_dx_), m_range_(
+					other.m_range_)
 	{
-		update();
 	}
 
 	~SimpleMesh()
@@ -89,9 +85,9 @@ public:
 
 		<< ", xmax=" << m_xmax_
 
-		<< ", imin=" << *range_type::begin()
+		<< ", imin=" << *m_range_.begin()
 
-		<< ", imax=" << *range_type::end()
+		<< ", imax=" << *m_range_.end()
 
 		<< " }";
 		return os;
@@ -112,18 +108,17 @@ public:
 
 	void update()
 	{
-		dx_ = (m_xmax_ - m_xmin_) / (*range_type::end() - *range_type::begin());
 	}
 	indices_type coordinates_to_id(coordinates_type const &x) const
 	{
 		indices_type res;
-		res = (x - m_xmin_) / dx_;
+		res = (x - m_xmin_) / m_dx_;
 		return std::move(res);
 	}
 	coordinates_type id_to_coordinates(indices_type const &i) const
 	{
 		coordinates_type res;
-		res = i * dx_ + m_xmin_;
+		res = i * m_dx_ + m_xmin_;
 		return std::move(res);
 	}
 
@@ -136,9 +131,14 @@ public:
 		return *this;
 	}
 
-	range_type range() const
+	range_type const & range() const
 	{
-		return *dynamic_cast<range_type const *>(this);
+		return m_range_;
+	}
+	template<typename ...Args>
+	size_t hash(Args &&...args) const
+	{
+		return m_range_.hash(std::forward<Args>(args)...);
 	}
 
 private:
@@ -188,7 +188,7 @@ public:
 	coordinates_type coordinates(indices_type const & s) const
 	{
 		coordinates_type res;
-		res = (s - m_imin_) * dx_ + m_xmin_;
+//		res = (s - m_imin_) * m_dx_ + m_xmin_;
 		return res;
 	}
 	template<typename TV>
@@ -202,7 +202,7 @@ public:
 			coordinates_type const & x) const->decltype(d[std::declval<indices_type>()])
 	{
 		indices_type r;
-		r = ((x - m_xmin_) / dx_ + 0.5);
+		r = ((x - m_xmin_) / m_dx_ + 0.5);
 
 		return d[r];
 	}
@@ -211,7 +211,7 @@ public:
 	void scatter(TD & d, coordinates_type const &x, TV const & v) const
 	{
 		indices_type r;
-		r = ((x - m_xmin_) / dx_ + 0.5);
+		r = ((x - m_xmin_) / m_dx_ + 0.5);
 
 		d[r] += v;
 	}

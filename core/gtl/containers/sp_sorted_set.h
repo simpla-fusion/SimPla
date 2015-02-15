@@ -394,7 +394,10 @@ public:
 	template<typename TRange>
 	DataSet dataset(TRange const & range) const
 	{
-		size_t num = size(range);
+		size_t num = range.size();
+
+		CHECK(range.m_max_);
+		CHECK(range.m_min_);
 
 		std::shared_ptr<value_type> data = sp_make_shared_array<value_type>(
 				num);
