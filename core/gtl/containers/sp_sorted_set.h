@@ -43,28 +43,28 @@ public:
 
 	typedef std::forward_list<T, allocator_type> bucket_type;
 
-	typedef std::map<key_type, bucket_type> container_type;
+	typedef std::map<key_type, bucket_type> base_container_type;
 
 private:
 
 	hasher m_hash_;
 
-	container_type m_data_;
+	base_container_type m_data_;
 
 public:
 
 	// Constructor
 
-	sp_sorted_set(this_type const & other)
-			: m_hash_(other.m_hash_), m_data_(other.m_data_)
+	sp_sorted_set(this_type const & other) :
+			m_hash_(other.m_hash_), m_data_(other.m_data_)
 	{
 	}
-	sp_sorted_set(this_type && other)
-			: m_hash_(other.m_hash_), m_data_(other.m_data_)
+	sp_sorted_set(this_type && other) :
+			m_hash_(other.m_hash_), m_data_(other.m_data_)
 	{
 	}
-	sp_sorted_set(hasher const & hash_fun = hasher())
-			: m_hash_(hash_fun)
+	sp_sorted_set(hasher const & hash_fun = hasher()) :
+			m_hash_(hash_fun)
 	{
 	}
 
@@ -83,7 +83,7 @@ public:
 		return m_hash_;
 	}
 
-	void swap(container_type & other)
+	void swap(base_container_type & other)
 	{
 		m_data_.swap(other);
 	}
@@ -244,7 +244,7 @@ public:
 	template<typename TRange>
 	void erase(TRange const & range)
 	{
-		container_type res(m_hash_);
+		base_container_type res(m_hash_);
 		move_out(range, res);
 	}
 	/**
@@ -256,7 +256,7 @@ public:
 	 */
 
 	size_t rehash(std::pair<key_type, bucket_type> & item,
-			container_type & other)
+			base_container_type & other)
 	{
 		auto const & key = item.first;
 		auto & bucket = item.second;
@@ -282,7 +282,7 @@ public:
 
 	void rehash()
 	{
-		container_type other(m_hash_);
+		base_container_type other(m_hash_);
 		for (auto & item : m_data_)
 		{
 			rehash(item, other);
@@ -322,8 +322,8 @@ public:
 		return count;
 	}
 
-	typedef typename container_type::iterator iterator;
-	typedef typename container_type::const_iterator const_iterator;
+	typedef typename base_container_type::iterator iterator;
+	typedef typename base_container_type::const_iterator const_iterator;
 
 	iterator begin()
 	{
@@ -351,33 +351,55 @@ public:
 		return m_data_.cend();
 	}
 
-	typedef sp_indirect_range<std::set<key_type>, container_type> range_type;
-	typedef sp_indirect_range<std::set<key_type>, const container_type> const_range_type;
-
-	template<typename TRange>
-	range_type range(TRange const & xrange)
+	std::list<std::reference_wrapper<bucket_type>> select()
 	{
-		typename range_type::keys_type keys;
-
-		for (auto const & id : xrange)
+		std::list<std::reference_wrapper<bucket_type>> res;
+		for (auto const & it : m_data_)
 		{
-			keys.insert(m_hash_(id));
+			res.push_back(std::ref(it->second));
 		}
+		return std::move(res);
+	}
 
-		return sub_range(std::move(keys), m_data_);
+	std::list<std::reference_wrapper<const bucket_type>> select() const
+	{
+		std::list<std::reference_wrapper<const bucket_type>> res;
+		for (auto const & it : m_data_)
+		{
+			res.push_back(std::cref(it->second));
+		}
+		return std::move(res);
 	}
 
 	template<typename TRange>
-	const_range_type range(TRange const & xrange) const
+	std::list<std::reference_wrapper<bucket_type>> select(TRange const & xrange)
 	{
-		typename range_type::keys_type keys;
+		std::list<std::reference_wrapper<bucket_type>> res;
+		for (auto const & id : xrange)
+		{
+			auto it = m_data_.find(m_hash_(id));
+			if (it != m_data_.end())
+			{
+				res.push_back(std::ref(it->second));
+			}
+		}
+		return std::move(res);
+	}
+	template<typename TRange>
+	std::list<std::reference_wrapper<const bucket_type>> select(
+			TRange const & xrange) const
+	{
+		std::list<std::reference_wrapper<const bucket_type>> res;
 
 		for (auto const & id : xrange)
 		{
-			keys.insert(m_hash_(id));
+			auto it = m_data_.find(m_hash_(id));
+			if (it != m_data_.end())
+			{
+				res.push_back(std::cref(it->second));
+			}
 		}
-
-		return sub_range(std::move(keys), m_data_);
+		return std::move(res);
 	}
 
 private:
@@ -391,13 +413,16 @@ private:
 		return back_insert_it.get();
 	}
 public:
-	template<typename TRange>
-	DataSet dataset(TRange const & range) const
+	template<typename ...Args>
+	DataSet dataset(Args && ... args) const
 	{
-		size_t num = range.size();
+		auto p_range = select(std::forward<Args>(args)...);
 
-		CHECK(range.m_max_);
-		CHECK(range.m_min_);
+		size_t num = 0;
+		for (bucket_type const & item : p_range)
+		{
+			num += std::distance(item.begin(), item.end());
+		}
 
 		std::shared_ptr<value_type> data = sp_make_shared_array<value_type>(
 				num);
@@ -405,36 +430,12 @@ public:
 		value_type * p = data.get();
 
 		//TODO need parallelization
-		for (auto s : range)
+		for (bucket_type const & item : p_range)
 		{
-			auto it = m_data_.find(m_hash_(s));
-			if (!(it == m_data_.end()))
-			{
-				p = dump(it->second, p);
-			}
+			p = dump(item, p);
 		}
 
 		ASSERT(std::distance(data.get(), p) == num);
-
-		return DataSet(
-				{ data, DataType::create<value_type>(), DataSpace(1, &num),
-						Properties() });
-	}
-
-	DataSet dataset() const
-	{
-		std::shared_ptr<value_type> data = sp_make_shared_array<value_type>(
-				size());
-
-		value_type * p = data.get();
-
-		//TODO need parallelization
-		for (auto const & item : m_data_)
-		{
-			p = dump(item.second, p);
-		}
-
-		size_t num = std::distance(data.get(), p);
 
 		return DataSet(
 				{ data, DataType::create<value_type>(), DataSpace(1, &num),

@@ -314,11 +314,11 @@ struct equal_to
 };
 template<typename TOP> struct op_traits
 {
-	typedef logical_or reduction_op;
-};
-template<> struct op_traits<equal_to>
-{
 	typedef logical_and reduction_op;
+};
+template<> struct op_traits<not_equal_to>
+{
+	typedef logical_or reduction_op;
 };
 
 #define DEF_STD_BINARY_FUNCTION(_NAME_ )                                                               \

@@ -1,5 +1,5 @@
-/*
- * data_stream.h
+/**
+ * @file data_stream.h
  *
  *  created on: 2013-12-11
  *      Author: salmon
@@ -33,15 +33,15 @@ namespace simpla
 
 enum
 {
-	SP_APPEND = 1UL << 2, SP_CACHE = (1UL << 3), SP_RECORD = (1UL << 4),
-
-	SP_UNORDER = (1UL << 5)
+	SP_NEW = 1UL << 1,
+	SP_APPEND = 1UL << 2,
+	SP_CACHE = (1UL << 3),
+	SP_RECORD = (1UL << 4)
 };
 
 class DataStream
 {
 public:
-	Properties properties;
 
 	DataStream();
 

@@ -132,15 +132,15 @@ public:
 		return (*this);
 	}
 
-	template<typename TR>
-	inline bool operator ==(TR const &rhs)
-	{
-		return _seq_reduce<
-				min_not_zero<dims,
-						seq_get<0, typename nTuple_traits<TR>::dimensions>::value>::value>::eval(
-				_impl::logical_and(), _impl::equal_to(), data_, rhs);;
-	}
-
+//	template<typename TR>
+//	inline bool operator ==(TR const &rhs)
+//	{
+//		return _seq_reduce<
+//				min_not_zero<dims,
+//						seq_get<0, typename nTuple_traits<TR>::dimensions>::value>::value>::eval(
+//				_impl::logical_and(), _impl::equal_to(), data_, rhs);;
+//	}
+//
 	template<typename TR>
 	inline this_type & operator +=(TR const &rhs)
 	{
@@ -397,7 +397,8 @@ struct sp_pod_traits<nTuple<T, N...> >
 template<typename TInts, TInts ...N>
 nTuple<TInts, sizeof...(N)> seq2ntuple(integer_sequence<TInts, N...>)
 {
-	return std::move(nTuple<TInts, sizeof...(N)>( { N... }));
+	return std::move(nTuple<TInts, sizeof...(N)>(
+	{ N... }));
 }
 
 template<typename T, size_t N> using Vector=nTuple<T,N>;
@@ -505,9 +506,10 @@ template<typename T1, size_t ... N1, typename T2, size_t ... N2> inline auto cro
 		nTuple<T1, N1...> const & l, nTuple<T2, N2...> const & r)
 		->nTuple<decltype(get_value(l,0)*get_value(r,0)),3>
 {
-	nTuple<decltype(get_value(l,0)*get_value(r,0)), 3> res = { l[1] * r[2]
-			- l[2] * r[1], l[2] * get_value(r, 0) - get_value(l, 0) * r[2],
-			get_value(l, 0) * r[1] - l[1] * get_value(r, 0) };
+	nTuple<decltype(get_value(l,0)*get_value(r,0)), 3> res =
+	{ l[1] * r[2] - l[2] * r[1], l[2] * get_value(r, 0)
+			- get_value(l, 0) * r[2], get_value(l, 0) * r[1]
+			- l[1] * get_value(r, 0) };
 	return std::move(res);
 }
 

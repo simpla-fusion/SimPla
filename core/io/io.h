@@ -12,7 +12,7 @@
 #include <string>
 
 #include "../utilities/utilities.h"
-#include "../data_representation/data_type.h"
+#include "../dataset/datatype.h"
 #include "data_stream.h"
 namespace simpla
 {
@@ -24,7 +24,9 @@ struct DataSet;
  */
 
 void init_io(int argc, char ** argv);
+
 void close_io();
+
 std::string cd(std::string const & url);
 
 std::string save(std::string const & url, DataSet const & ds,

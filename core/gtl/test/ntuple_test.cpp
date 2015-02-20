@@ -85,11 +85,11 @@ nTuple<double, 3>
 
 , nTuple<double, 3, 3>
 
-, nTuple<double, 3, 4, 5>
+//, nTuple<double, 3, 4, 5>
 
-, nTuple<int, 3, 4, 5, 6>
+//, nTuple<int, 3, 4, 5, 6>
 
-, nTuple<std::complex<double>, 3>
+, nTuple<std::complex<double>, 3, 4, 5, 6>
 
 > ntuple_type_lists;
 
@@ -109,6 +109,88 @@ TYPED_TEST(TestNtuple, swap){
 
 }
 }
+TYPED_TEST(TestNtuple, assign_Scalar){
+{
+
+	TestFixture::vA = TestFixture::a;
+
+	seq_for_each(typename TestFixture::dimensions(),
+			[&](size_t const idx[TestFixture::dimensions::size()])
+			{
+				EXPECT_DOUBLE_EQ(0, abs(TestFixture::a- get_value_r(TestFixture:: vA,idx)));
+			}
+	);
+
+}}
+
+TYPED_TEST(TestNtuple, assign_Array){
+{
+	TestFixture::vA = TestFixture::aA;
+
+	seq_for_each(typename TestFixture::dimensions(),
+			[&](size_t const idx[TestFixture::dimensions::size()])
+			{
+				EXPECT_DOUBLE_EQ(0, abs(get_value_r(TestFixture::aA,idx)- get_value_r(TestFixture:: vA,idx)));
+			}
+	);
+
+}}
+TYPED_TEST(TestNtuple, self_assign){
+{
+	TestFixture::vB +=TestFixture::vA;
+
+	seq_for_each(typename TestFixture::dimensions(),
+			[&](size_t const idx[TestFixture::dimensions::size()])
+			{
+				EXPECT_DOUBLE_EQ(0,abs( get_value_r(TestFixture::vB,idx)
+								- (get_value_r(TestFixture::aB,idx)+
+										get_value_r(TestFixture::aA,idx))));
+
+			}
+	);
+
+}
+}
+
+TYPED_TEST(TestNtuple, arithmetic){
+{
+	TestFixture::vD = EQUATION(TestFixture::vA, TestFixture::vB, TestFixture::vC);
+
+	seq_for_each(typename TestFixture::dimensions(),
+			[&](size_t const idx[TestFixture::dimensions::size()])
+			{
+				auto &ta=get_value_r(TestFixture::vA,idx);
+				auto &tb=get_value_r(TestFixture::vB,idx);
+				auto &tc=get_value_r(TestFixture::vC,idx);
+				auto &td=get_value_r(TestFixture::vD,idx);
+
+				EXPECT_DOUBLE_EQ(0, abs(EQUATION(ta,tb,tc ) - td));
+			}
+	);
+
+}
+}
+
+TYPED_TEST(TestNtuple, cross){
+{
+	nTuple< typename TestFixture::value_type,3> vA, vB,vC ,vD;
+
+	for (int i = 0; i < 3; ++i)
+	{
+		vA[i] = (i * 2);
+		vB[i] = (5 - i);
+	}
+
+	for (int i = 0; i < 3; ++i)
+	{
+		vD[i] = vA[(i + 1) % 3] * vB[(i + 2) % 3]
+		- vA[(i + 2) % 3] * vB[(i + 1) % 3];
+	}
+
+	vC=cross(vA,vB);
+	vD-=vC;
+	EXPECT_DOUBLE_EQ(0,abs(vD[0])+abs(vD[1])+abs(vD[2]) );
+}}
 
 TYPED_TEST(TestNtuple, reduce){
 {
@@ -120,7 +202,7 @@ TYPED_TEST(TestNtuple, reduce){
 				expect+=get_value_r(TestFixture::vA,idx);
 			}
 	);
-	auto value=seq_reduce(typename TestFixture::dimensions(), _impl::plus(), TestFixture::vA);
+	auto value=seq_reduce(typename TestFixture::dimensions(),_impl::plus(), TestFixture::vA);
 
 	EXPECT_DOUBLE_EQ(0,abs(expect -value));
 
@@ -149,70 +231,6 @@ TYPED_TEST(TestNtuple, equation ){
 }
 }
 //
-TYPED_TEST(TestNtuple, assign_Scalar){
-{
-
-	TestFixture::vA = TestFixture::a;
-
-	seq_for_each(typename TestFixture::dimensions(),
-			[&](size_t const idx[TestFixture::dimensions::size()])
-			{
-				EXPECT_DOUBLE_EQ(0, abs(TestFixture::a- get_value_r(TestFixture:: vA,idx)));
-			}
-	);
-
-}}
-
-TYPED_TEST(TestNtuple, assign_Array){
-{
-	TestFixture::vA = TestFixture::aA;
-
-	seq_for_each(typename TestFixture::dimensions(),
-			[&](size_t const idx[TestFixture::dimensions::size()])
-			{
-				EXPECT_DOUBLE_EQ(0, abs(get_value_r(TestFixture::aA,idx)- get_value_r(TestFixture:: vA,idx)));
-			}
-	);
-
-}}
-
-TYPED_TEST(TestNtuple, arithmetic){
-{
-	TestFixture::vD = EQUATION(TestFixture::vA, TestFixture::vB, TestFixture::vC);
-
-	seq_for_each(typename TestFixture::dimensions(),
-			[&](size_t const idx[TestFixture::dimensions::size()])
-			{
-				auto &ta=get_value_r(TestFixture::vA,idx);
-				auto &tb=get_value_r(TestFixture::vB,idx);
-				auto &tc=get_value_r(TestFixture::vC,idx);
-				auto &td=get_value_r(TestFixture::vD,idx);
-
-				EXPECT_DOUBLE_EQ(0, abs(EQUATION(ta,tb,tc ) - td));
-			}
-	);
-
-}
-}
-
-
-
-TYPED_TEST(TestNtuple, self_assign){
-{
-	TestFixture::vB +=TestFixture::vA;
-
-	seq_for_each(typename TestFixture::dimensions(),
-			[&](size_t const idx[TestFixture::dimensions::size()])
-			{
-				EXPECT_DOUBLE_EQ(0,abs( get_value_r(TestFixture::vB,idx)
-								- (get_value_r(TestFixture::aB,idx)+
-										get_value_r(TestFixture::aA,idx))));
-
-			}
-	);
-
-}
-}
 
 TYPED_TEST(TestNtuple, inner_product){
 {
@@ -228,27 +246,6 @@ TYPED_TEST(TestNtuple, inner_product){
 	);
 
 	EXPECT_DOUBLE_EQ(0,abs(res- inner_product( TestFixture::vA, TestFixture::vB)));
-}}
-
-TYPED_TEST(TestNtuple, cross){
-{
-	nTuple< typename TestFixture::value_type,3> vA, vB,vC ,vD;
-
-	for (int i = 0; i < 3; ++i)
-	{
-		vA[i] = (i * 2);
-		vB[i] = (5 - i);
-	}
-
-	for (int i = 0; i < 3; ++i)
-	{
-		vD[i] = vA[(i + 1) % 3] * vB[(i + 2) % 3]
-		- vA[(i + 2) % 3] * vB[(i + 1) % 3];
-	}
-
-	vC=cross(vA,vB);
-	vD-=vC;
-	EXPECT_DOUBLE_EQ(0,abs(vD[0])+abs(vD[1])+abs(vD[2]) );
 }}
 
 template<typename > class nTuplePerf1;

@@ -13,6 +13,8 @@
 
 #include "../../utilities/memory_pool.h"
 #include "../../gtl/iterator/sp_iterator.h"
+#include "../../io/data_stream.h"
+#include "../../io/io.h"
 
 using namespace simpla;
 
@@ -29,7 +31,7 @@ protected:
 		nTuple<size_t, 3> imin =
 		{ 0, 0, 0 };
 		nTuple<size_t, 3> imax =
-		{ 10, 12, 14 };
+		{ 10, 10, 10 };
 		mesh = std::shared_ptr<mesh_type>(
 				new mesh_type(xmin, xmax, imin, imax));
 	}
@@ -70,10 +72,9 @@ TEST_F(TestKineticParticle,insert)
 	Real variance = 0;
 	Real mean = 0;
 
-	for (auto s : range)
+	for (typename particle_type::bucket_type const & item : p.select(range))
 	{
-		size_t n = p.size(mesh->hash(s));
-
+		size_t n = std::distance(item.begin(), item.end());
 		variance += (static_cast<Real>(n) - pic) * (static_cast<Real>(n) - pic);
 	}
 
@@ -86,7 +87,8 @@ TEST_F(TestKineticParticle,insert)
 	CHECK(p.size());
 
 	EXPECT_EQ(p.size(), pic * num);
-	EXPECT_LE(p.dataset().dataspace.size(), pic * num);
+
+	LOGGER << save("pic", p.dataset()) << std::endl;
 
 }
 

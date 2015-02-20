@@ -1,4 +1,3 @@
-
 /**
  * @file data_stream.cpp
  *
@@ -80,19 +79,6 @@ DataStream::DataStream() :
 	hid_t error_stack = H5Eget_current_stack();
 	H5Eset_auto(error_stack, NULL, NULL);
 
-//	properties["File Name"] = std::string("");
-//
-//	properties["Group Name"] = std::string("/");
-//
-//	properties["Suffix Width"] = 4;
-//
-//	properties["Light Data Limit"] = 20;
-//
-//	properties["Enable Compact Storage"] = false;
-//
-//	properties["Enable XDMF"] = false;
-//
-//	properties["Cache Depth"] = static_cast<int>(50);
 
 }
 DataStream::~DataStream()
@@ -785,6 +771,7 @@ DataSpace DataStream::pimpl_s::convert_data_space_h5_to_sp(hid_t) const
 std::string DataStream::write(std::string const & url, DataSet const &ds,
 		size_t flag)
 {
+	CHECK(url);
 
 	if (!ds.is_valid())
 	{

@@ -12,25 +12,35 @@
 namespace simpla
 {
 
-template<typename BaseIterator, typename Container>
+template<typename BaseIterator, typename Container, typename Hasher = std::hash<
+		typename std::iterator_traits<BaseIterator>::value_type>>
 struct sp_indirect_iterator: public BaseIterator
 {
 	typedef typename std::iterator_traits<BaseIterator>::value_type key_type;
+
 	typedef Container container_type;
 	typedef BaseIterator base_iterator_type;
+	typedef Hasher hasher_type;
+
 	typedef typename container_traits<container_type>::value_type value_type;
 
 	typedef sp_indirect_iterator<base_iterator_type, container_type> this_type;
 
-	container_type & m_container_;
+	hasher_type m_hasher_;
 
-	sp_indirect_iterator(base_iterator_type const & base_it,
-			container_type & container)
-			: base_iterator_type(base_it), m_container_(container)
+	std::reference_wrapper<container_type> m_container_;
+	sp_indirect_iterator(base_iterator_type const & base_it)
 	{
 	}
-	sp_indirect_iterator(this_type const & other)
-			: base_iterator_type(other), m_container_(other.m_container_)
+	sp_indirect_iterator(base_iterator_type const & base_it,
+			container_type & container, hasher_type hasher = hasher_type()) :
+			base_iterator_type(base_it), m_hasher_(hasher), m_container_(
+					&container)
+	{
+	}
+	sp_indirect_iterator(this_type const & other) :
+			base_iterator_type(other), m_hasher_(other.m_hasher_), m_container_(
+					other.m_container_)
 	{
 
 	}
@@ -41,11 +51,11 @@ struct sp_indirect_iterator: public BaseIterator
 
 	value_type & operator*()
 	{
-		return m_container_[base_iterator_type::operator*()];
+		return m_container_[m_hasher_(base_iterator_type::operator*())];
 	}
 	value_type & operator->()
 	{
-		return m_container_[base_iterator_type::operator*()];
+		return m_container_[m_hasher_(base_iterator_type::operator*())];
 	}
 
 	sp_indirect_iterator operator++(int) const
@@ -76,7 +86,7 @@ sp_indirect_iterator<BaseIterator, Container> indirect_iterator(
 	return sp_indirect_iterator<BaseIterator, Container>(first, container);
 }
 
-template<typename KeyRange, typename ValueContainer>
+template<typename KeyRange, typename ValueContainer, typename Hasher>
 struct sp_indirect_range
 {
 	typedef KeyRange key_range_type;
@@ -87,17 +97,18 @@ struct sp_indirect_range
 
 	typedef typename key_range_type::iterator key_iterator;
 
-	typedef sp_indirect_iterator<key_iterator, value_container_type> iterator;
-	typedef sp_indirect_iterator<key_iterator, const value_container_type> const_iterator;
+	typedef sp_indirect_iterator<key_iterator, value_container_type, Hasher> iterator;
+	typedef sp_indirect_iterator<key_iterator, const value_container_type,
+			Hasher> const_iterator;
 
 	sp_indirect_range(key_range_type && key_range,
-			value_container_type & values)
-			: m_key_range_(key_range), m_value_(values)
+			value_container_type & values) :
+			m_key_range_(key_range), m_value_(values)
 	{
 	}
 
-	sp_indirect_range(sp_indirect_range const & other)
-			: m_key_range_(other.m_key_range_), m_value_(other.m_value_)
+	sp_indirect_range(sp_indirect_range const & other) :
+			m_key_range_(other.m_key_range_), m_value_(other.m_value_)
 	{
 	}
 
@@ -109,8 +120,8 @@ struct sp_indirect_range
 	//! @{
 
 	template<typename ...Others>
-	sp_indirect_range(sp_indirect_range & other, Others &&...others)
-			: m_key_range_(other.m_key_range_, std::forward<Others>(others)...), m_value_(
+	sp_indirect_range(sp_indirect_range & other, Others &&...others) :
+			m_key_range_(other.m_key_range_, std::forward<Others>(others)...), m_value_(
 					other.m_value_)
 	{
 	}
@@ -157,6 +168,7 @@ struct sp_indirect_range
 		return indirect_iterator(m_key_range_.end(), m_value_);
 	}
 };
-}  // namespace simpla
+}
+// namespace simpla
 
 #endif /* CORE_GTL_ITERATOR_SP_INDIRECT_ITERATOR_H_ */
