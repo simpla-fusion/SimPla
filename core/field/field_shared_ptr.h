@@ -180,6 +180,17 @@ public:
 		return data_.get()[mesh_.hash(s)];
 	}
 
+	template<typename ...Args>
+	auto id(Args && ... args)
+	DECL_RET_TYPE((data_.get()[mesh_.hash(std::forward<Args>(args)...)]))
+
+	template<typename ...Args>
+	auto id(Args && ... args) const
+	DECL_RET_TYPE((data_.get()[mesh_.hash(std::forward<Args>(args)...)]))
+
+	template<typename ...Args>
+	auto operator()(Args && ... args) const
+	DECL_RET_TYPE((mesh_.gather(*this,std::forward<Args>(args)...)))
 }
 ;
 namespace _impl

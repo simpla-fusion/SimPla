@@ -192,7 +192,7 @@ public:
 template<typename T1, typename ...T> nTuple<T1, 1 + sizeof...(T)> make_nTuple(T1 && a1,T && ... a)
 {
 	return std::move(nTuple<T1, 1 + sizeof...(T)>(
-					{	a1,a...}));
+					{	std::forward<T1>( a1),std::forward<T>(a)...}));
 }
 
 template<typename ...> struct make_pod_array;

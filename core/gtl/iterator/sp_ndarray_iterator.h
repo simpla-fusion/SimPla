@@ -168,7 +168,10 @@ public:
 	{
 		return inner_product(s - m_min_, m_strides_);
 	}
-
+	size_t hash(size_t ... N) const
+	{
+		return hash(make_nTuple(N...));
+	}
 	size_t max_hash() const
 	{
 		size_t res; // = m_strides_[0] * count_[0];

@@ -51,7 +51,7 @@ struct ParticleGenerator
 	}
 
 	template<typename TRNDGen>
-	struct output_iterator: public std::iterator<std::input_iterator_tag,
+	struct input_iterator: public std::iterator<std::input_iterator_tag,
 			value_type>
 	{
 		typedef TRNDGen rnd_generator;
@@ -63,24 +63,24 @@ struct ParticleGenerator
 		size_t m_count_;
 		value_type m_z_;
 
-		output_iterator(generator_type & gen, rnd_generator & rnd_gen_,
+		input_iterator(generator_type & gen, rnd_generator & rnd_gen_,
 				size_t count = 0)
 				: m_dist_(gen), m_count_(count), m_rnd_gen_(rnd_gen_)
 		{
 		}
-		output_iterator(output_iterator const& other)
+		input_iterator(input_iterator const& other)
 				: m_dist_(other.m_dist_), m_count_(other.m_count_), m_rnd_gen_(
 						other.m_rnd_gen_)
 		{
 		}
 
-		output_iterator(output_iterator && other)
+		input_iterator(input_iterator && other)
 				: m_dist_(other.m_dist_), m_count_(other.m_count_), m_rnd_gen_(
 						other.m_rnd_gen_)
 		{
 		}
 
-		~output_iterator()
+		~input_iterator()
 		{
 		}
 
@@ -94,33 +94,33 @@ struct ParticleGenerator
 			return &m_z_;
 		}
 
-		output_iterator operator++()
+		input_iterator operator++()
 		{
 			m_z_ = m_dist_(m_rnd_gen_);
 			++m_count_;
 			return *this;
 		}
 
-		bool operator==(output_iterator const & other) const
+		bool operator==(input_iterator const & other) const
 		{
 			return m_count_ == other.m_count_;
 		}
 
-		bool operator!=(output_iterator const & other) const
+		bool operator!=(input_iterator const & other) const
 		{
 			return (m_count_ != other.m_count_);
 		}
 	};
 
 	template<typename TRNDGen>
-	output_iterator<TRNDGen> begin(TRNDGen & rnd_gen, size_t pos = 0)
+	input_iterator<TRNDGen> begin(TRNDGen & rnd_gen, size_t pos = 0)
 	{
-		return std::move(output_iterator<TRNDGen>(*this, rnd_gen, pos));
+		return std::move(input_iterator<TRNDGen>(*this, rnd_gen, pos));
 	}
 	template<typename TRNDGen>
-	output_iterator<TRNDGen> end(TRNDGen & rnd_gen, size_t pos = -1)
+	input_iterator<TRNDGen> end(TRNDGen & rnd_gen, size_t pos = -1)
 	{
-		return std::move(output_iterator<TRNDGen>(*this, rnd_gen, pos));
+		return std::move(input_iterator<TRNDGen>(*this, rnd_gen, pos));
 	}
 };
 
