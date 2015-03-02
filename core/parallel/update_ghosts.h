@@ -8,38 +8,17 @@
 #ifndef CORE_PARALLEL_UPDATE_GHOSTS_H_
 #define CORE_PARALLEL_UPDATE_GHOSTS_H_
 
-#include <tuple>
-
-#include "../utilities/type_traits.h"
-
 namespace simpla
 {
-struct DataSpace;
-struct DataType;
 
 template<typename T>
-int update_ghosts(T * f)
+void update_ghosts(T * f, size_t flag = 0)
 {
-	return 0;
+	update_ghosts(f->dataset(), flag);
 }
+class DataSet;
 
-template<typename T>
-auto update_ghosts(T * f)
-DECL_RET_TYPE((update_ghosts(f->dataset())))
-
-template<typename T>
-auto update_ghosts(T & f)
-DECL_RET_TYPE((update_ghosts(f.dataset())))
-
-template<typename ... T>
-int update_ghosts(std::tuple<T...> & dset)
-{
-	return update_ghosts(&*std::get<0>(dset), std::get<1>(dset),
-			std::get<2>(dset));
-}
-
-int update_ghosts(void * data, DataType const & datatype,
-		DataSpace const & space);
+int update_ghosts(DataSet * data, size_t flag = 0);
 
 }  // namespace simpla
 
