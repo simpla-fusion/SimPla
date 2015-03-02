@@ -67,8 +67,8 @@ struct DataStream::pimpl_s
 
 };
 
-DataStream::DataStream()
-		: pimpl_(new pimpl_s)
+DataStream::DataStream() :
+		pimpl_(new pimpl_s)
 {
 
 	pimpl_->base_file_id_ = -1;
@@ -101,7 +101,7 @@ void DataStream::init(int argc, char** argv)
 {
 
 	if (pimpl_ == nullptr)
-		pimpl_ = new pimpl_s;
+		pimpl_ = std::unique_ptr<pimpl_s>(new pimpl_s);
 
 	bool show_help = false;
 
@@ -233,8 +233,8 @@ void DataStream::close()
 			H5_ERROR(H5Fclose(pimpl_->base_file_id_));
 			pimpl_->base_file_id_ = -1;
 		}
-		delete pimpl_;
-		pimpl_ = nullptr;
+
+		std::unique_ptr<pimpl_s>(nullptr).swap(pimpl_);
 	}
 	VERBOSE << "DataSteream is closed" << std::endl;
 }
@@ -785,11 +785,11 @@ std::string DataStream::write(std::string const & url, DataSet const &ds,
 
 	hid_t m_type = pimpl_->convert_data_type_sp_to_h5(ds.datatype);
 
-	hid_t m_space = pimpl_->convert_data_space_sp_to_h5(
-			ds.dataspace.local_space(), SP_NEW);
+	hid_t m_space = pimpl_->convert_data_space_sp_to_h5(ds.dataspace.local(),
+			SP_NEW);
 
-	hid_t f_space = pimpl_->convert_data_space_sp_to_h5(
-			ds.dataspace.global_space(), flag);
+	hid_t f_space = pimpl_->convert_data_space_sp_to_h5(ds.dataspace.global(),
+			flag);
 
 	hid_t dset;
 

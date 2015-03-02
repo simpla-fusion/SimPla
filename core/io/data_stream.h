@@ -125,7 +125,7 @@ public:
 
 private:
 	struct pimpl_s;
-	pimpl_s * pimpl_;
+	std::unique_ptr<pimpl_s> pimpl_;
 
 }
 ;

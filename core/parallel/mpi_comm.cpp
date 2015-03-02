@@ -39,7 +39,7 @@ struct MPIComm::pimpl_s
 
 	void init(int argc, char** argv);
 
-	int get_neighbour(int direction, int disp) const;
+	int get_neighbour(int disp_i, int disp_j = 0, int disp_k = 0) const;
 	nTuple<int, 3> get_coordinate(int rank) const;
 
 	void decompose(int ndims, size_t *count, size_t * offset) const;
@@ -118,22 +118,24 @@ nTuple<int, 3> MPIComm::pimpl_s::get_coordinate(int rank) const
 	coord[0] = rank % m_topology_dims_[0];
 	return std::move(coord);
 }
-int MPIComm::pimpl_s::get_neighbour(int direction, int disp) const
+int MPIComm::pimpl_s::get_neighbour(int disp_i, int disp_j, int disp_k) const
 {
 	nTuple<int, 3> coord;
-	coord = m_topology_coord_;
-	coord[direction] = (coord[direction] + m_topology_dims_[direction] + disp)
-			% m_topology_dims_[direction];
+
+	coord[0] = (coord[0] + m_topology_dims_[0] + disp_i) % m_topology_dims_[0];
+	coord[1] = (coord[1] + m_topology_dims_[1] + disp_j) % m_topology_dims_[1];
+	coord[2] = (coord[2] + m_topology_dims_[2] + disp_k) % m_topology_dims_[2];
+
 	return inner_product(coord, m_topology_strides_);
 }
 
-MPIComm::MPIComm()
-		: pimpl_(nullptr)
+MPIComm::MPIComm() :
+		pimpl_(nullptr)
 {
 }
 
-MPIComm::MPIComm(int argc, char** argv)
-		: pimpl_(nullptr)
+MPIComm::MPIComm(int argc, char** argv) :
+		pimpl_(nullptr)
 {
 	init(argc, argv);
 }
@@ -185,9 +187,9 @@ void MPIComm::init(int argc, char** argv)
 	pimpl_->init(argc, argv);
 }
 
-int MPIComm::get_neighbour(int direction, int disp)
+int MPIComm::get_neighbour(int disp_i, int disp_j, int disp_k) const
 {
-	return pimpl_->get_neighbour(direction, disp);
+	return pimpl_->get_neighbour(disp_i, disp_j, disp_k);
 }
 nTuple<int, 3> const &MPIComm::get_topology() const
 {

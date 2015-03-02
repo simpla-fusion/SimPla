@@ -67,8 +67,8 @@ public:
 			size_t const *, size_t const *> shape() const;
 
 	size_t const * ghost_width() const;
-	DataSpace local_space() const;
-	DataSpace global_space() const;
+	DataSpace local() const;
+	DataSpace global() const;
 
 private:
 	struct pimpl_s;

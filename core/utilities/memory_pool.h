@@ -10,15 +10,9 @@
 #define CORE_UTILITIES_MEMORY_POOL_H_
 
 #include <stddef.h>
-#include <map>
 #include <memory>
-#include <mutex>
-#include <new>
-#include <tuple>
-#include <utility>
 
 #include "../gtl/design_pattern/singleton_holder.h"
-#include "log.h"
 
 namespace simpla
 {
@@ -32,53 +26,29 @@ namespace simpla
  */
 class MemoryPool
 {
-private:
-
-	typedef char byte_type;
-
-	std::mutex locker_;
-
-	std::multimap<size_t, void*> pool_;
-
-	static constexpr size_t ONE_GIGA = 1024l * 1024l * 1024l;
-	static constexpr size_t MAX_BLOCK_SIZE = 4 * ONE_GIGA; //std::numeric_limits<size_t>::max();
-	static constexpr size_t MIN_BLOCK_SIZE = 256;
-
-	size_t max_pool_depth_ = 16 * ONE_GIGA;
-	size_t pool_depth_ = 0;
 
 public:
+	typedef char byte_type;
 
-	MemoryPool() :
-			max_pool_depth_(4 * ONE_GIGA), pool_depth_(0) //2G
-	{
-	}
-	~MemoryPool()
-	{
-		clear();
-	}
+	MemoryPool();
+
+	~MemoryPool();
 
 	//!  unused memory will be freed when total memory size >= pool size
-	inline void max_size(size_t s)
-	{
-		max_pool_depth_ = s;
-	}
+	void max_size(size_t s);
 
 	/**
 	 *  return the total size of memory in pool
 	 * @return
 	 */
-	inline double size() const
-	{
-		return static_cast<double>(pool_depth_);
-	}
+	double size() const;
 
 	/**
 	 *  push memory into pool
 	 * @param d memory address
 	 * @param s size of memory in byte
 	 */
-	inline void push(void * d, size_t s);
+	void push(void * d, size_t s);
 
 	/**
 	 * allocate an array TV[s] from local pool or system memory
@@ -89,12 +59,12 @@ public:
 	 * @param s size of memory in byte
 	 * @return shared point of memory
 	 */
-	template<typename TV>
-	std::shared_ptr<TV> pop(size_t s);
+	void * pop(size_t s);
 
 	void clear();
 
-private:
+	template<typename TV>
+	std::shared_ptr<TV> alloc(size_t s);
 
 	struct deleter_s
 	{
@@ -111,98 +81,27 @@ private:
 			SingletonHolder<MemoryPool>::instance().push(addr_, s_);
 		}
 	};
+private:
+	struct pimpl_s;
+
+	std::unique_ptr<pimpl_s> pimpl_;
 };
 
-inline void MemoryPool::clear()
-{
-	locker_.lock();
-	for (auto & item : pool_)
-	{
-		delete[] reinterpret_cast<byte_type*>(item.second);
-	}
-	locker_.unlock();
-}
-inline void MemoryPool::push(void * p, size_t s)
-{
-	if ((s > MIN_BLOCK_SIZE) && (s < MAX_BLOCK_SIZE))
-	{
-		locker_.lock();
-
-		if ((pool_depth_ + s < max_pool_depth_))
-		{
-			pool_.emplace(s, p);
-			pool_depth_ += s;
-			p = nullptr;
-		}
-
-		locker_.unlock();
-
-	}
-	if (p != nullptr)
-		delete[] reinterpret_cast<byte_type*>(p);
-}
-
 template<typename TV>
-std::shared_ptr<TV> MemoryPool::pop(size_t s)
+std::shared_ptr<TV> MemoryPool::alloc(size_t s)
 {
-	void * addr = nullptr;
 	s *= sizeof(TV) / sizeof(byte_type);
-
-	if ((s > MIN_BLOCK_SIZE) && (s < MAX_BLOCK_SIZE))
-	{
-		locker_.lock();
-
-		// find memory block which is not smaller than demand size
-		auto pt = pool_.lower_bound(s);
-
-		if (pt != pool_.end())
-		{
-			size_t ts = 0;
-
-			std::tie(ts, addr) = *pt;
-
-			if (ts < s * 2)
-			{
-				s = ts;
-
-				pool_.erase(pt);
-
-				pool_depth_ -= s;
-			}
-			else
-			{
-				addr = nullptr;
-			}
-		}
-
-		locker_.unlock();
-
-	}
-
-	if (addr == nullptr)
-	{
-
-		try
-		{
-			addr = reinterpret_cast<void*>(new byte_type[s]);
-
-		} catch (std::bad_alloc const &error)
-		{
-			ERROR_BAD_ALLOC_MEMORY(s, error);
-		}
-
-	}
+	void * addr = pop(s);
 	return std::shared_ptr<TV>(reinterpret_cast<TV*>(addr), deleter_s(addr, s));
 
 }
-
 template<typename TV>
-std::shared_ptr<TV> sp_make_shared_array(size_t s = 1)
+std::shared_ptr<TV> sp_make_shared_array(size_t s)
 {
 
-	return SingletonHolder<MemoryPool>::instance().template pop<TV>(s);
+	return SingletonHolder<MemoryPool>::instance().template alloc<TV>(s);
 }
-
+std::shared_ptr<void> sp_alloc_memory(size_t s);
 /** @} */
 
 }

@@ -104,7 +104,7 @@ bool DataSpace::is_valid() const
 	return pimpl_ != nullptr;
 }
 
-DataSpace DataSpace::local_space() const
+DataSpace DataSpace::local() const
 {
 	pimpl_s::index_tuple local_dims, local_offset;
 
@@ -119,7 +119,7 @@ DataSpace DataSpace::local_space() const
 			&pimpl_->m_stride_[0], &pimpl_->m_block_[0]);
 	return std::move(res);
 }
-DataSpace DataSpace::global_space() const
+DataSpace DataSpace::global() const
 {
 	return *this;
 }

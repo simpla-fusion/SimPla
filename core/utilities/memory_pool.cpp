@@ -6,17 +6,66 @@
  */
 
 #include "memory_pool.h"
+
+#include <stddef.h>
+#include <map>
+#include <mutex>
+#include <new>
+#include <tuple>
+
+#include "../gtl/design_pattern/singleton_holder.h"
+#include "log.h"
 namespace simpla
 {
-MemoryPool::MemoryPool() :
-		max_pool_depth_(4 * ONE_GIGA), pool_depth_(0) //2G
+
+struct MemoryPool::pimpl_s
 {
+
+	std::mutex locker_;
+
+	std::multimap<size_t, void*> pool_;
+
+	static constexpr size_t ONE_GIGA = 1024l * 1024l * 1024l;
+	static constexpr size_t MAX_BLOCK_SIZE = 4 * ONE_GIGA; //std::numeric_limits<size_t>::max();
+	static constexpr size_t MIN_BLOCK_SIZE = 256;
+
+	size_t max_pool_depth_ = 16 * ONE_GIGA;
+	size_t pool_depth_ = 0;
+
+	void push(void * d, size_t s);
+	void * pop(size_t s);
+	void clear();
+};
+
+MemoryPool::MemoryPool() :
+		pimpl_(new pimpl_s) //2G
+{
+	pimpl_->pool_depth_ = 0;
 }
 MemoryPool::~MemoryPool()
 {
 	clear();
 }
+
+//!  unused memory will be freed when total memory size >= pool size
+void MemoryPool::max_size(size_t s)
+{
+	pimpl_->max_pool_depth_ = s;
+}
+
+/**
+ *  return the total size of memory in pool
+ * @return
+ */
+double MemoryPool::size() const
+{
+	return static_cast<double>(pimpl_->pool_depth_);
+}
 void MemoryPool::clear()
+{
+	pimpl_->clear();
+}
+void MemoryPool::pimpl_s::clear()
 {
 	locker_.lock();
 	for (auto & item : pool_)
@@ -26,6 +75,10 @@ void MemoryPool::clear()
 	locker_.unlock();
 }
 void MemoryPool::push(void * p, size_t s)
+{
+	pimpl_->push(p, s);
+}
+void MemoryPool::pimpl_s::push(void * p, size_t s)
 {
 	if ((s > MIN_BLOCK_SIZE) && (s < MAX_BLOCK_SIZE))
 	{
@@ -44,12 +97,15 @@ void MemoryPool::push(void * p, size_t s)
 	if (p != nullptr)
 		delete[] reinterpret_cast<byte_type*>(p);
 }
-
-std::tuple<void*, size_t> MemoryPool::pop_(size_t s)
+void * MemoryPool::pop(size_t s)
+{
+	return pimpl_->pop(s);
+}
+void * MemoryPool::pimpl_s::pop(size_t s)
 {
 	void * addr = nullptr;
 
-
+	if ((s > MIN_BLOCK_SIZE) && (s < MAX_BLOCK_SIZE))
 	{
 		locker_.lock();
 
@@ -80,7 +136,7 @@ std::tuple<void*, size_t> MemoryPool::pop_(size_t s)
 
 	}
 
-	if (addr != nullptr)
+	if (addr == nullptr)
 	{
 
 		try
@@ -93,7 +149,13 @@ std::tuple<void*, size_t> MemoryPool::pop_(size_t s)
 		}
 
 	}
-	return std::shared_ptr<TV>(reinterpret_cast<TV*>(addr), deleter_s(addr, s));
+	return addr;
 
 }
-}  // namespace simpla
+std::shared_ptr<void> sp_alloc_memory(size_t s)
+{
+	void * addr = SingletonHolder<MemoryPool>::instance().pop(s);
+
+	return std::shared_ptr<void>(addr, MemoryPool::deleter_s(addr, s));
+}
+} // namespace simpla
