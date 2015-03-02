@@ -175,17 +175,16 @@ void sync_ghosts(std::vector<send_recv_s> const & send_recv_list,
 
 }
 
-void sync_ghosts_unordered(DataSpace const & space, DataType const & datatype,
+void sync_ghosts_unordered(DataSpace const & space,
 		std::map<int, std::pair<size_t, std::shared_ptr<void> > > const & send_buffer,
 		std::map<int, std::pair<size_t, std::shared_ptr<void> > > & recv_buffer,
 		size_t flag)
 {
-	sync_ghosts_unordered(decompose(space, flag), datatype, send_buffer,
-			recv_buffer, flag);
+	sync_ghosts_unordered(decompose(space, flag), send_buffer, recv_buffer,
+			flag);
 }
 
 void sync_ghosts_unordered(std::vector<send_recv_s> const & send_recv_list,
-		DataType const & datatype,
 		std::map<int, std::pair<size_t, std::shared_ptr<void> > > const & send_buffer,
 		std::map<int, std::pair<size_t, std::shared_ptr<void> > > & recv_buffer,
 		size_t flag)
@@ -202,11 +201,17 @@ void sync_ghosts_unordered(std::vector<send_recv_s> const & send_recv_list,
 
 	for (auto const & item : send_recv_list)
 	{
-
-		MPI_Isend(send_buffer.at(item.remote).second.get(),
-				send_buffer.at(item.remote).first * datatype.size_in_byte(),
-				MPI_BYTE, item.remote, item.send_tag, global_comm.comm(),
-				req_it);
+		auto it = send_buffer.find(item.remote);
+		if (it != send_buffer.end())
+		{
+			MPI_Isend(it->second.second.get(), it->second.first,
+			MPI_BYTE, item.remote, item.send_tag, global_comm.comm(), req_it);
+		}
+		else
+		{
+			MPI_Isend(nullptr, 0,
+			MPI_BYTE, item.remote, item.send_tag, global_comm.comm(), req_it);
+		}
 		++req_it;
 
 	}
