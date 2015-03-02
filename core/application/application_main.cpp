@@ -50,7 +50,7 @@ int main(int argc, char **argv)
 	}
 
 	);
-	if (GLOBAL_COMM.get_rank() == 0)
+	if (GLOBAL_COMM.process_num() == 0)
 
 	MESSAGE << ShowCopyRight() << endl;
 

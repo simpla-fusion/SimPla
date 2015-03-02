@@ -77,7 +77,7 @@ public:
 	}
 	static std::string get_type_as_string_static()
 	{
-		return "Cylindrical" + ToString(PhiAxis);
+		return "Cylindrical" + value_to_string(PhiAxis);
 	}
 
 	std::string get_type_as_string() const
@@ -618,22 +618,22 @@ bool CylindricalCoordinates<TTopology, IPhiAxis>::update()
 
 				+ " coordinates = ("
 
-				+ " R=[ " + ToString(xmin_[RAxis]) + " , "
-						+ ToString(xmax_[RAxis]) + "]"
+				+ " R=[ " + value_to_string(xmin_[RAxis]) + " , "
+						+ value_to_string(xmax_[RAxis]) + "]"
 
-						+ ", Z=[ " + ToString(xmin_[ZAxis]) + " , "
-						+ ToString(xmax_[ZAxis]) + "]"
+						+ ", Z=[ " + value_to_string(xmin_[ZAxis]) + " , "
+						+ value_to_string(xmax_[ZAxis]) + "]"
 
-						+ ", Phi=[ " + ToString(xmin_[PhiAxis]) + " , "
-						+ ToString(xmax_[PhiAxis]) + "] )"
+						+ ", Phi=[ " + value_to_string(xmin_[PhiAxis]) + " , "
+						+ value_to_string(xmax_[PhiAxis]) + "] )"
 
 						+ ", dimension = ("
 
-						+ " R = " + ToString(dims[RAxis])
+						+ " R = " + value_to_string(dims[RAxis])
 
-						+ ", Z = " + ToString(dims[RAxis])
+						+ ", Z = " + value_to_string(dims[RAxis])
 
-						+ ", Phi =" + ToString(dims[PhiAxis]) + ")"
+						+ ", Phi =" + value_to_string(dims[PhiAxis]) + ")"
 
 						);
 	}

@@ -44,7 +44,10 @@ public:
 
 	void swap(DataSpace &);
 
-	void init(int rank, const size_t * dims, const size_t * gw = nullptr);
+	void create(int rank, const size_t * dims, const size_t * gw = nullptr);
+
+	void select_hyperslab(size_t const *offset, size_t const * count,
+			size_t const * stride = nullptr, size_t const * block = nullptr);
 
 	bool is_valid() const;
 
@@ -63,27 +66,13 @@ public:
 	std::tuple<size_t, size_t const *, size_t const *, size_t const *,
 			size_t const *, size_t const *> shape() const;
 
-	bool select_hyperslab(size_t const *offset, size_t const * count,
-			size_t const * stride = nullptr, size_t const * block = nullptr);
-
-	void decompose(int num_procs = 0, size_t const * gw = nullptr);
-
-	void compose(size_t flag = 0UL);
-
-	bool is_distributed() const;
-
-	DataSpace const & local_space() const;
-
-	std::map<int, DataSpace> const& neighgours() const
-	{
-		return neighgours_;
-	}
+	size_t const * ghost_width() const;
+	DataSpace local_space() const;
+	DataSpace global_space() const;
 
 private:
 	struct pimpl_s;
-	pimpl_s * pimpl_;
-
-	std::map<int, DataSpace> neighgours_;
+	std::unique_ptr<pimpl_s> pimpl_;
 
 };
 /**

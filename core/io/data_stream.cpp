@@ -40,7 +40,7 @@ struct DataStream::pimpl_s
 	std::string current_groupname_;
 	std::string current_filename_;
 
-	typedef nTuple<hsize_t, MAX_NDIMS_OF_ARRAY> dims_type;
+	typedef nTuple<hsize_t, MAX_NDIMS_OF_ARRAY> index_tuple;
 
 	std::tuple<std::string, std::string, std::string, std::string> parser_url(
 			std::string const & url);
@@ -67,8 +67,8 @@ struct DataStream::pimpl_s
 
 };
 
-DataStream::DataStream() :
-		pimpl_(new pimpl_s)
+DataStream::DataStream()
+		: pimpl_(new pimpl_s)
 {
 
 	pimpl_->base_file_id_ = -1;
@@ -78,7 +78,6 @@ DataStream::DataStream() :
 
 	hid_t error_stack = H5Eget_current_stack();
 	H5Eset_auto(error_stack, NULL, NULL);
-
 
 }
 DataStream::~DataStream()
@@ -195,7 +194,7 @@ std::tuple<bool, std::string> DataStream::cd(std::string const &url,
 
 	if (obj_name != "" && ((flag & (SP_APPEND | SP_RECORD)) == 0UL))
 	{
-		if (GLOBAL_COMM.get_rank() == 0)
+		if (GLOBAL_COMM.process_num() == 0)
 		{
 			obj_name = obj_name +
 
@@ -422,7 +421,7 @@ std::tuple<std::string, hid_t> DataStream::pimpl_s::open_file(
 	if (filename == "")
 		filename = current_filename_;
 
-	if (!is_append && GLOBAL_COMM.get_rank() == 0)
+	if (!is_append && GLOBAL_COMM.process_num() == 0)
 	{
 		std::string prefix = filename;
 
@@ -727,12 +726,12 @@ hid_t DataStream::pimpl_s::convert_data_space_sp_to_h5(DataSpace const &d_space,
 
 	size_t ndims;
 
-	dims_type dims;
+	index_tuple dims;
 
-	dims_type offset;
-	dims_type count;
-	dims_type stride;
-	dims_type block;
+	index_tuple offset;
+	index_tuple count;
+	index_tuple stride;
+	index_tuple block;
 
 	std::tie(ndims, dims, offset, count, stride, block) = d_space.shape();
 
@@ -746,7 +745,7 @@ hid_t DataStream::pimpl_s::convert_data_space_sp_to_h5(DataSpace const &d_space,
 		++ndims;
 	}
 
-	dims_type max_dims;
+	index_tuple max_dims;
 	max_dims = dims;
 
 	if ((flag & (SP_APPEND | SP_RECORD)) != 0UL)
@@ -771,7 +770,6 @@ DataSpace DataStream::pimpl_s::convert_data_space_h5_to_sp(hid_t) const
 std::string DataStream::write(std::string const & url, DataSet const &ds,
 		size_t flag)
 {
-	CHECK(url);
 
 	if (!ds.is_valid())
 	{
@@ -788,9 +786,10 @@ std::string DataStream::write(std::string const & url, DataSet const &ds,
 	hid_t m_type = pimpl_->convert_data_type_sp_to_h5(ds.datatype);
 
 	hid_t m_space = pimpl_->convert_data_space_sp_to_h5(
-			ds.dataspace.local_space());
+			ds.dataspace.local_space(), SP_NEW);
 
-	hid_t f_space = pimpl_->convert_data_space_sp_to_h5(ds.dataspace, flag);
+	hid_t f_space = pimpl_->convert_data_space_sp_to_h5(
+			ds.dataspace.global_space(), flag);
 
 	hid_t dset;
 
@@ -801,7 +800,7 @@ std::string DataStream::write(std::string const & url, DataSet const &ds,
 
 		if ((flag & (SP_APPEND | SP_RECORD)) != 0)
 		{
-			pimpl_s::dims_type current_dims;
+			pimpl_s::index_tuple current_dims;
 
 			int f_ndims = H5Sget_simple_extent_ndims(f_space);
 
@@ -829,7 +828,7 @@ std::string DataStream::write(std::string const & url, DataSet const &ds,
 		H5_ERROR(
 				dset = H5Dopen(pimpl_->base_group_id_, dsname.c_str(), H5P_DEFAULT));
 
-		pimpl_s::dims_type current_dimensions;
+		pimpl_s::index_tuple current_dimensions;
 
 		hid_t current_f_space;
 
@@ -840,10 +839,10 @@ std::string DataStream::write(std::string const & url, DataSet const &ds,
 
 		H5_ERROR(H5Sclose(current_f_space));
 
-		pimpl_s::dims_type new_f_dimensions;
-		pimpl_s::dims_type new_f_max_dimensions;
-		pimpl_s::dims_type new_f_offset;
-		pimpl_s::dims_type new_f_end;
+		pimpl_s::index_tuple new_f_dimensions;
+		pimpl_s::index_tuple new_f_max_dimensions;
+		pimpl_s::index_tuple new_f_offset;
+		pimpl_s::index_tuple new_f_end;
 		int new_f_ndims = H5Sget_simple_extent_dims(f_space,
 				&new_f_dimensions[0], &new_f_max_dimensions[0]);
 

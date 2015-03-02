@@ -60,7 +60,7 @@ namespace simpla
 //	std::string add(std::string const & name, std::shared_ptr<T> const & p)
 //	{
 //		list_[name] = std::dynamic_pointer_cast<UseCase>(p);
-//		return "UseCase" + ToString(list_.size()) + "_" + name;
+//		return "UseCase" + value_to_string(list_.size()) + "_" + name;
 //	}
 //	template<typename T>
 //	std::string add(std::string const & name)

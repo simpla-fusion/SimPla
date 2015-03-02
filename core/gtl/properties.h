@@ -162,6 +162,12 @@ public:
 	{
 		set(key, std::forward<T>(v));
 	}
+
+	void operator()(Properties const & other)
+	{
+		append(other);
+	}
+
 	inline Properties & operator[](key_type const & key)
 	{
 		return get(key);

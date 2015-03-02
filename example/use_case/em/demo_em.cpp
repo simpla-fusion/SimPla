@@ -34,10 +34,10 @@ USE_CASE(em)
 //	{
 //		SHOW_OPTIONS("-n,--number_of_steps <NUMBER_OF_STEPS>",
 //				"number of steps = <NUMBER_OF_STEPS> ,default="
-//						+ ToString(num_of_steps));
+//						+ value_to_string(num_of_steps));
 //		SHOW_OPTIONS("-s,--strides <STRIDES>",
 //				" dump record per <STRIDES> steps, default="
-//						+ ToString(strides));
+//						+ value_to_string(strides));
 //		return;
 //	}
 //

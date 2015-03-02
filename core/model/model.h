@@ -421,7 +421,7 @@ FilterRange<TR> Model<TM>::select_by_config(TR const& range,
 			else
 			{
 				PARSER_ERROR(
-						"Number of points  [" + ToString(points.size()) + "]<2");
+						"Number of points  [" + value_to_string(points.size()) + "]<2");
 			}
 
 		}

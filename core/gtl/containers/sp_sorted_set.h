@@ -55,16 +55,17 @@ public:
 
 	// Constructor
 
-	sp_sorted_set(this_type const & other) :
-			m_hash_(other.m_hash_), m_data_(other.m_data_)
+	sp_sorted_set(this_type const & other)
+			: m_hash_(other.m_hash_), m_data_(other.m_data_)
 	{
 	}
-	sp_sorted_set(this_type && other) :
-			m_hash_(other.m_hash_), m_data_(other.m_data_)
+
+	sp_sorted_set(this_type && other)
+			: m_hash_(other.m_hash_), m_data_(other.m_data_)
 	{
 	}
-	sp_sorted_set(hasher const & hash_fun = hasher()) :
-			m_hash_(hash_fun)
+	sp_sorted_set(hasher const & hash_fun = hasher())
+			: m_hash_(hash_fun)
 	{
 	}
 

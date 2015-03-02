@@ -180,7 +180,7 @@ LuaObject LuaObject::operator[](std::string const & s) const noexcept
 			lua_pop(L_.get(), 1);
 		}
 
-		return (LuaObject(L_, GLOBAL_REF_IDX_, id, path_ + "." + ToString(s)));
+		return (LuaObject(L_, GLOBAL_REF_IDX_, id, path_ + "." + value_to_string(s)));
 	}
 }
 
@@ -218,8 +218,8 @@ LuaObject LuaObject::at(int s) const
 	if (s > size())
 	{
 		throw(std::out_of_range(
-				"index out of range! " + path_ + "[" + ToString(s) + " > "
-						+ ToString(size()) + " ]"));
+				"index out of range! " + path_ + "[" + value_to_string(s) + " > "
+						+ value_to_string(size()) + " ]"));
 	}
 
 	lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
@@ -230,7 +230,7 @@ LuaObject LuaObject::at(int s) const
 
 	return std::move(
 			LuaObject(L_, GLOBAL_REF_IDX_, res,
-					path_ + "[" + ToString(s) + "]"));
+					path_ + "[" + value_to_string(s) + "]"));
 
 }
 inline LuaObject LuaObject::new_table(std::string const & name,

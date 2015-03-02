@@ -73,27 +73,27 @@ int main(int argc, char **argv)
 	{
 		if( opt=="step")
 		{
-			num_of_step =ToValue<std::size_t  >(value);
+			num_of_step =string_to_value<std::size_t  >(value);
 		}
 		else if(opt=="record")
 		{
-			record_stride =ToValue<std::size_t  >(value);
+			record_stride =string_to_value<std::size_t  >(value);
 		}
 		else if(opt=="i"||opt=="input")
 		{
-			gfile=(ToValue<std::string>(value));
+			gfile=(string_to_value<std::string>(value));
 		}
 		else if(opt=="d"|| opt=="dims")
 		{
-			dims=ToValue<nTuple<3,std::size_t  >>(value);
+			dims=string_to_value<nTuple<3,std::size_t  >>(value);
 		}
 		else if(opt=="m"|| opt=="tordial_model_number")
 		{
-			toridal_model_number=ToValue<std::size_t  >(value);
+			toridal_model_number=string_to_value<std::size_t  >(value);
 		}
 		else if( opt=="dt")
 		{
-			dt=ToValue<Real>(value);
+			dt=string_to_value<Real>(value);
 		}
 		else if(opt=="t")
 		{

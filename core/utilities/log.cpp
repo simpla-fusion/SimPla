@@ -104,7 +104,7 @@ void LoggerStreams::init(int argc, char** argv)
 		}
 		else if(opt=="v" || opt=="verbose")
 		{
-			this->set_stdout_visable_level(ToValue<int>(value));
+			this->set_stdout_visable_level(string_to_value<int>(value));
 		}
 		else if( opt=="quiet")
 		{
@@ -112,7 +112,7 @@ void LoggerStreams::init(int argc, char** argv)
 		}
 		else if( opt=="log_width")
 		{
-			this->set_line_width(ToValue<int>(value));
+			this->set_line_width(string_to_value<int>(value));
 		}
 		else if(opt=="h"|| opt=="help")
 		{
@@ -182,7 +182,7 @@ void LoggerStreams::put(int level, std::string const & msg)
 	}
 	if (mpi_size_ > 1)
 	{
-		prefix += "[" + ToString(mpi_rank_) + "/" + ToString(mpi_size_) + "]";
+		prefix += "[" + value_to_string(mpi_rank_) + "/" + value_to_string(mpi_size_) + "]";
 	}
 
 	prefix += "[" + time_stamp() + "]";

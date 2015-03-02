@@ -139,7 +139,7 @@ public:
 
 	static std::string get_type_as_string()
 	{
-		return "GGauge" + ToString(NMATE);
+		return "GGauge" + value_to_string(NMATE);
 	}
 
 	template<typename OS>

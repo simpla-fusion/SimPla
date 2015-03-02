@@ -22,7 +22,7 @@ std::string SpAppList::add(std::string const & name,
 		std::shared_ptr<SpApp> const & p)
 {
 	(*this)[name] = p;
-	return "SpApp" + ToString(this->size()) + "_" + name;
+	return "SpApp" + value_to_string(this->size()) + "_" + name;
 }
 
 std::ostream & SpAppList::print(std::ostream & os)

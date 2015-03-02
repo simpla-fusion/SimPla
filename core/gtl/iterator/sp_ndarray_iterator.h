@@ -9,7 +9,6 @@
 #define CORE_GTL_ITERATOR_SP_NDARRAY_ITERATOR_H_
 #include "range.h"
 
-#include "tbb/blocked_range3d.h"
 namespace simpla
 {
 
@@ -22,10 +21,10 @@ struct sp_ndarray_iterator: public std::iterator<
 
 	typedef IndexType index_type;
 
-	typedef nTuple<index_type, ndims> indices_tuple;
+	typedef nTuple<index_type, ndims> index_tuple;
 
 private:
-	indices_tuple m_min_, m_max_, m_self_;
+	index_tuple m_min_, m_max_, m_self_;
 public:
 	sp_ndarray_iterator()
 	{
@@ -45,13 +44,13 @@ public:
 		m_max_ = max;
 		m_self_ = s;
 	}
-	sp_ndarray_iterator(sp_ndarray_iterator const& other) :
-			m_min_(other.m_min_), m_max_(other.m_max_), m_self_(other.m_self_)
+	sp_ndarray_iterator(sp_ndarray_iterator const& other)
+			: m_min_(other.m_min_), m_max_(other.m_max_), m_self_(other.m_self_)
 	{
 
 	}
-	sp_ndarray_iterator(sp_ndarray_iterator && other) :
-			m_min_(other.m_min_), m_max_(other.m_max_), m_self_(other.m_self_)
+	sp_ndarray_iterator(sp_ndarray_iterator && other)
+			: m_min_(other.m_min_), m_max_(other.m_max_), m_self_(other.m_self_)
 	{
 
 	}
@@ -59,7 +58,7 @@ public:
 	{
 	}
 
-	indices_tuple const & operator *() const
+	index_tuple const & operator *() const
 	{
 		return m_self_;
 	}
@@ -131,11 +130,12 @@ public:
 	static constexpr size_t ndims = NDIMS;
 	typedef sp_ndarray_iterator<NDIMS, IndexType> iterator_type;
 	typedef Range<sp_ndarray_iterator<NDIMS, IndexType> > base_range;
-	typedef nTuple<IndexType, NDIMS> indices_tuple;
-	indices_tuple m_min_, m_max_, m_strides_;
+	typedef nTuple<IndexType, NDIMS> index_tuple;
+	index_tuple m_min_, m_max_, m_strides_;
+	size_t m_max_hash_;
 
-	sp_ndarray_range(indices_tuple min, indices_tuple max) :
-			base_range(iterator_type(min, max, min),
+	sp_ndarray_range(index_tuple min, index_tuple max)
+			: base_range(iterator_type(min, max, min),
 					(++iterator_type(min, max, max - 1))), m_min_(min), m_max_(
 					max)
 	{
@@ -148,14 +148,17 @@ public:
 						* m_strides_[i + 1];
 			}
 		}
+		m_max_hash_ = m_strides_[0] * (m_max_[0] - m_min_[0]);
 	}
-	sp_ndarray_range(sp_ndarray_range const & other) :
-			base_range(other), m_max_(other.m_max_), m_min_(other.m_min_), m_strides_(
-					other.m_strides_)
+	sp_ndarray_range(sp_ndarray_range const & other)
+			: base_range(other), m_max_(other.m_max_), m_min_(other.m_min_), m_strides_(
+					other.m_strides_), m_max_hash_(other.m_max_hash_)
 	{
 	}
-	sp_ndarray_range(sp_ndarray_range & other, op_split) :
-			base_range(other, op_split())
+	sp_ndarray_range(sp_ndarray_range & other, op_split)
+			: base_range(other, op_split()), m_max_(other.m_max_), m_min_(
+					other.m_min_), m_strides_(other.m_strides_), m_max_hash_(
+					other.m_max_hash_)
 	{
 	}
 
@@ -163,24 +166,28 @@ public:
 	{
 		return NProduct(m_max_ - m_min_);
 	}
-
-	size_t hash(indices_tuple const & s) const
+	size_t max_hash() const
+	{
+		return NProduct(m_max_ - m_min_);
+	}
+	size_t hash(index_tuple const & s) const
 	{
 		return inner_product(s - m_min_, m_strides_);
 	}
-	size_t hash(size_t ... N) const
+
+	size_t hash(size_t N0, size_t N1) const
 	{
-		return hash(make_nTuple(N...));
+		return (N0 - m_min_[0]) * m_strides_[0]
+				+ (N1 - m_min_[1]) * m_strides_[1];
 	}
-	size_t max_hash() const
+
+	size_t hash(size_t N0, size_t N1, size_t N2) const
 	{
-		size_t res; // = m_strides_[0] * count_[0];
-//		if (!is_root())
-//		{
-//			res = root().max_hash();
-//		}
-		return res;
+		return (N0 - m_min_[0]) * m_strides_[0]
+				+ (N1 - m_min_[1]) * m_strides_[1]
+				+ (N2 - m_min_[2]) * m_strides_[2];
 	}
+
 };
 }
 // namespace simpla

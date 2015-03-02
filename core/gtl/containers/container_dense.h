@@ -166,7 +166,7 @@ public:
 	{
 		auto idx=hash_fun_(s);
 
-		if (idx<0 ||idx>=num_of_ele_) OUT_RANGE_ERROR("["+ToString(0)+"~"+ToString(num_of_ele_)+"]");
+		if (idx<0 ||idx>=num_of_ele_) OUT_RANGE_ERROR("["+value_to_string(0)+"~"+value_to_string(num_of_ele_)+"]");
 
 		return data_.get()[idx];
 	}
@@ -174,7 +174,7 @@ public:
 	{
 		auto idx=hash_fun_(s);
 
-		if (idx<0 ||idx>=num_of_ele_) OUT_RANGE_ERROR("["+ToString(0)+"~"+ToString(num_of_ele_)+"]");
+		if (idx<0 ||idx>=num_of_ele_) OUT_RANGE_ERROR("["+value_to_string(0)+"~"+value_to_string(num_of_ele_)+"]");
 
 		return data_.get()[idx];
 

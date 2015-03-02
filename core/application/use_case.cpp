@@ -24,7 +24,7 @@ std::string UseCaseList::add(std::string const & name,
 		std::shared_ptr<UseCase> const & p)
 {
 	list_[name] = p;
-	return "UseCase" + ToString(list_.size()) + "_" + name;
+	return "UseCase" + value_to_string(list_.size()) + "_" + name;
 }
 
 std::ostream & UseCaseList::print(std::ostream & os)

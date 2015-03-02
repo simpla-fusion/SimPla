@@ -120,24 +120,14 @@ struct SpObject
 		return is_valid_;
 	}
 
-	virtual Properties const & properties(std::string const & name = "") const
-	{
-		return prop_[name];
-	}
+	Properties properties;
 
-	virtual Properties & properties(std::string const & name = "")
+	virtual std::ostream &print(std::ostream & os) const
 	{
-		return prop_[name];
-	}
-
-	virtual std::basic_ostream<char>& print(std::basic_ostream<char>& os) const
-	{
-		return prop_.print(os);
-
+		return properties.print(os);
 	}
 
 private:
-	Properties prop_;
 
 	bool is_valid_ = false;
 

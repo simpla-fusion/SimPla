@@ -26,164 +26,43 @@ namespace simpla
 struct DistributedArray::pimpl_s
 {
 
-	typedef nTuple<size_t, MAX_NDIMS_OF_ARRAY> dims_type;
-
-	bool is_valid() const;
-
-	bool sync_ghosts(DataSet * ds, size_t flag) const;
-
-	void decompose();
-
-	void init(size_t nd, size_t const * dims, size_t const * gw_p = nullptr);
-
-	Properties & properties(std::string const &key);
-
-	Properties const& properties(std::string const &key) const;
-
-	size_t size() const
-	{
-		size_t res = 1;
-
-		for (int i = 0; i < ndims_; ++i)
-		{
-			res *= local_inner_shape_.count[i];
-		}
-		return res;
-	}
-	size_t memory_size() const
-	{
-		size_t res = 1;
-
-		for (int i = 0; i < ndims_; ++i)
-		{
-			res *= local_outer_shape_.count[i];
-		}
-		return res;
-	}
-
-	size_t num_of_dims() const;
-
-	std::tuple<size_t const*, size_t const*> local_shape() const;
-	std::tuple<size_t const*, size_t const*> global_shape() const;
-	std::tuple<size_t const*, size_t const*> shape() const;
-
-private:
-
-	Properties prop_;
+	typedef nTuple<size_t, MAX_NDIMS_OF_ARRAY> index_type;
 
 	size_t ndims_ = 3;
 
 	int self_id_ = 0;
 
-	dims_type gw;
-
-	bool is_valid_ = false;
-
-	dims_type dimensions;
-
-	struct hyperslab_s
-	{
-		dims_type offset;
-		dims_type stride;
-		dims_type count;
-		dims_type block;
-	};
-
-	hyperslab_s global_shape_;
-
-	hyperslab_s local_inner_shape_;
-	hyperslab_s local_outer_shape_;
-
-	struct send_recv_s
-	{
-		int src;
-		int dest;
-		int send_tag;
-		int recv_tag;
-		hyperslab_s send;
-		hyperslab_s recv;
-
-	};
-
-	std::vector<send_recv_s> send_recv_; // dest, send_tag,recv_tag, sub_array_s
-
-	int hash(size_t const *d) const
-	{
-		dims_type g_stride;
-		g_stride[0] = 1;
-
-		for (int i = 1; i < ndims_; ++i)
-		{
-			g_stride[i] = global_shape_.count[i] * g_stride[i - 1];
-		}
-		int res = 0;
-		for (int i = 0; i < ndims_; ++i)
-		{
-			res += ((d[i] - global_shape_.offset[i] + global_shape_.count[i])
-					% global_shape_.count[i]) * g_stride[i];
-		}
-		return res;
-	}
+//	std::vector<send_recv_s> send_recv_; // dest, send_tag,recv_tag, sub_array_s
+//
+//	int hash(size_t const *d) const
+//	{
+//		index_type g_stride;
+//		g_stride[0] = 1;
+//
+//		for (int i = 1; i < ndims_; ++i)
+//		{
+//			g_stride[i] = global_shape_.count[i] * g_stride[i - 1];
+//		}
+//		int res = 0;
+//		for (int i = 0; i < ndims_; ++i)
+//		{
+//			res += ((d[i] - global_shape_.offset[i] + global_shape_.count[i])
+//					% global_shape_.count[i]) * g_stride[i];
+//		}
+//		return res;
+//	}
 
 };
 
-bool DistributedArray::pimpl_s::is_valid() const
+void DistributedArray::decompose(size_t nd, int const * dims)
 {
-	return is_valid_;
-}
-
-Properties & DistributedArray::pimpl_s::properties(std::string const &key)
-{
-	return prop_(key);
-}
-Properties const& DistributedArray::pimpl_s::properties(
-		std::string const &key) const
-{
-	return prop_(key);
-}
-
-size_t DistributedArray::pimpl_s::num_of_dims() const
-{
-	return ndims_;
-}
-
-std::tuple<size_t const*, size_t const*> DistributedArray::pimpl_s::local_shape() const
-{
-	return std::forward_as_tuple(&local_outer_shape_.offset[0],
-			&local_outer_shape_.count[0]);
-}
-std::tuple<size_t const*, size_t const*> DistributedArray::pimpl_s::global_shape() const
-{
-	return std::forward_as_tuple(&global_shape_.offset[0],
-			&global_shape_.count[0]);
-}
-std::tuple<size_t const*, size_t const*> DistributedArray::pimpl_s::shape() const
-{
-	return std::forward_as_tuple(&local_inner_shape_.offset[0],
-			&local_inner_shape_.count[0]);
-}
-
-void DistributedArray::pimpl_s::init(size_t nd, size_t const * dims,
-		size_t const * gw_p)
-{
-	ndims_ = nd;
-
-	dimensions = dims;
-	global_shape_.count = dims;
-	global_shape_.offset = 0;
-	global_shape_.stride = 1;
-	global_shape_.block = 1;
-
-	if (gw_p != nullptr)
+	if (nd == 0 || dims != nullptr)
 	{
-		gw = gw_p;
-	}
-	else
-	{
-		gw = 0;
+		int d = GLOBAL_COMM.num_of_process();
+		decompose(1,&d);
+		return;
 	}
 
-	decompose();
 }
 
 void decomposer_(size_t num_process, size_t process_num, size_t gw,
@@ -327,7 +206,7 @@ void DistributedArray::pimpl_s::decompose()
 	is_valid_ = true;
 }
 
-bool DistributedArray::pimpl_s::sync_ghosts(DataSet * ds, size_t flag) const
+bool DistributedArray::sync_ghosts(DataSet * ds, size_t flag) const
 {
 //#ifdef USE_MPI
 	if (!GLOBAL_COMM.is_valid() || send_recv_.size() == 0)
@@ -344,7 +223,7 @@ bool DistributedArray::pimpl_s::sync_ghosts(DataSet * ds, size_t flag) const
 	for (auto const & item : send_recv_)
 	{
 
-		dims_type send_offset;
+		pimpl_s::index_type send_offset;
 		send_offset = item.send.offset - local_outer_shape_.offset;
 
 		MPIDataType send_type = MPIDataType::create(ds->datatype, ndims_,
@@ -354,7 +233,7 @@ bool DistributedArray::pimpl_s::sync_ghosts(DataSet * ds, size_t flag) const
 		&item.send.count[0],
 		&item.send.block[0] );
 
-		dims_type recv_offset;
+		pimpl_s::index_type recv_offset;
 		recv_offset = item.recv.offset - local_outer_shape_.offset;
 
 		MPIDataType recv_type = MPIDataType::create(ds->datatype, ndims_,
@@ -379,53 +258,22 @@ bool DistributedArray::pimpl_s::sync_ghosts(DataSet * ds, size_t flag) const
 
 //********************************************************************
 
-DistributedArray::DistributedArray() :
-		pimpl_(new pimpl_s)
+DistributedArray::DistributedArray(size_t nd, size_t const * dims)
 {
+	if (pimpl_ == nullptr)
+		pimpl_ = std::unique_ptr<pimpl_s> { new pimpl_s };
+
+	pimpl_->init(nd, dims, gw);
+	pimpl_->ndims_ = nd;
+
+	pimpl_->dimensions = dims;
+	pimpl_->global_shape_.count = dims;
+	pimpl_->global_shape_.offset = 0;
+	pimpl_->global_shape_.stride = 1;
+	pimpl_->global_shape_.block = 1;
 }
 DistributedArray::~DistributedArray()
 {
-	delete pimpl_;
-}
-bool DistributedArray::is_valid() const
-{
-	return pimpl_ != nullptr && pimpl_->is_valid();
-}
-Properties & DistributedArray::properties(std::string const &key)
-{
-	return pimpl_->properties(key);
-}
-Properties const& DistributedArray::properties(std::string const &key) const
-{
-	return pimpl_->properties(key);
-}
-
-void DistributedArray::init(size_t nd, size_t const * dims, size_t const *gw)
-{
-	if (pimpl_ == nullptr)
-		pimpl_ = (new pimpl_s);
-
-	pimpl_->init(nd, dims, gw);
-}
-
-bool DistributedArray::sync_ghosts(DataSet* ds, size_t flag) const
-{
-	return pimpl_->sync_ghosts(ds, flag);
-}
-
-size_t DistributedArray::num_of_dims() const
-{
-	return pimpl_->num_of_dims();
-}
-
-std::tuple<size_t const *, size_t const *> DistributedArray::global_shape() const
-{
-	return pimpl_->global_shape();
-}
-
-std::tuple<size_t const *, size_t const *> DistributedArray::local_shape() const
-{
-	return pimpl_->local_shape();
 }
 
 }  // namespace simpla

@@ -63,7 +63,7 @@ public:
 
 		if (it == callbacks_.end())
 		{
-			RUNTIME_ERROR("Can not find id " + ToString(id));
+			RUNTIME_ERROR("Can not find id " + value_to_string(id));
 		}
 		return (it->second)(std::forward<Args>(args)...);
 	}

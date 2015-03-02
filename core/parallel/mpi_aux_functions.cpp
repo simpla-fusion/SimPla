@@ -38,13 +38,13 @@ std::tuple<int, int> sync_global_location(int count)
 {
 	int begin = 0;
 
-	if ( GLOBAL_COMM.is_valid() && GLOBAL_COMM.get_size() > 1)
+	if ( GLOBAL_COMM.is_valid() && GLOBAL_COMM.num_of_process() > 1)
 	{
 
 		auto comm = GLOBAL_COMM.comm();
 
-		int num_of_process = GLOBAL_COMM.get_size();
-		int porcess_number = GLOBAL_COMM.get_rank();
+		int num_of_process = GLOBAL_COMM.num_of_process();
+		int porcess_number = GLOBAL_COMM.process_num( );
 
 		MPIDataType m_type =MPIDataType::create<int>();
 
@@ -231,19 +231,17 @@ std::tuple<std::shared_ptr<ByteType>, int> update_ghost_unorder(
 void bcast_string(std::string * filename_)
 {
 
-#if !NO_MPI || USE_MPI
-
 	if (!GLOBAL_COMM.is_valid()) return;
 
 	int name_len;
 
-	if (GLOBAL_COMM.get_rank()==0) name_len=filename_->size();
+	if (GLOBAL_COMM.process_num()==0) name_len=filename_->size();
 
 	MPI_Bcast(&name_len, 1, MPI_INT, 0, GLOBAL_COMM.comm());
 
 	std::vector<char> buffer(name_len);
 
-	if (GLOBAL_COMM.get_rank()==0)
+	if (GLOBAL_COMM.process_num()==0)
 	{
 		std::copy(filename_->begin(),filename_->end(),buffer.begin());
 	}
@@ -252,12 +250,10 @@ void bcast_string(std::string * filename_)
 
 	buffer.push_back('\0');
 
-	if (GLOBAL_COMM.get_rank()!=0)
+	if (GLOBAL_COMM.process_num()!=0)
 	{
 		*filename_=&buffer[0];
 	}
-
-#endif
 
 }
 

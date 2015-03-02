@@ -16,58 +16,48 @@ namespace simpla
 {
 struct DataSpace::pimpl_s
 {
-	typedef nTuple<size_t, 10> dims_type;
+	typedef nTuple<size_t, 10> index_tuple;
 
-	pimpl_s();
+	size_t m_ndims_ = 3;
 
-	pimpl_s(pimpl_s const &);
+	index_tuple m_dimensions_;
+	index_tuple m_offset_;
+	index_tuple m_stride_;
+	index_tuple m_count_;
+	index_tuple m_block_;
 
-	~pimpl_s();
-
-	void swap(pimpl_s & other);
-
-	bool is_valid() const;
-
-	void init(int rank, const size_t * dims);
-
-	size_t ndims = 3;
-
-	dims_type dimensions;
-	dims_type offset;
-	dims_type stride;
-	dims_type count;
-	dims_type block;
-
-	DataSpace * local_space_;
+	index_tuple m_local_ghost_width_;
 
 };
 
 //===================================================================
 
-DataSpace::DataSpace() :
-		pimpl_(nullptr)
+DataSpace::DataSpace()
+		: pimpl_ { nullptr }
 {
 }
-DataSpace::DataSpace(const DataSpace& other) :
-		pimpl_(nullptr), neighgours_(other.neighgours_)
+DataSpace::DataSpace(const DataSpace& other)
+		: pimpl_ { new pimpl_s }
 {
 	if (other.pimpl_ != nullptr)
 	{
-		pimpl_ = new pimpl_s(*other.pimpl_);
+		pimpl_->m_ndims_ = other.pimpl_->m_ndims_;
+		pimpl_->m_dimensions_ = other.pimpl_->m_dimensions_;
+		pimpl_->m_count_ = other.pimpl_->m_count_;
+		pimpl_->m_offset_ = other.pimpl_->m_offset_;
+		pimpl_->m_stride_ = other.pimpl_->m_stride_;
+		pimpl_->m_block_ = other.pimpl_->m_block_;
+		pimpl_->m_local_ghost_width_ = other.pimpl_->m_local_ghost_width_;
 	}
 
 }
 
-DataSpace::DataSpace(int rank, size_t const * dims, const size_t * gw )
+DataSpace::DataSpace(int rank, size_t const * dims, const size_t * gw)
 {
-	init(rank, dims, gw);
+	create(rank, dims, gw);
 }
 DataSpace::~DataSpace()
 {
-	if (pimpl_ != nullptr)
-	{
-		delete pimpl_;
-	}
 }
 
 DataSpace& DataSpace::operator=(const DataSpace& rhs)
@@ -78,190 +68,108 @@ DataSpace& DataSpace::operator=(const DataSpace& rhs)
 
 void DataSpace::swap(DataSpace &other)
 {
-	pimpl_->swap(*other.pimpl_);
-	neighgours_.swap(other.neighgours_);
+	std::swap(pimpl_->m_ndims_, other.pimpl_->m_ndims_);
+	std::swap(pimpl_->m_dimensions_, other.pimpl_->m_dimensions_);
+	std::swap(pimpl_->m_count_, other.pimpl_->m_count_);
+	std::swap(pimpl_->m_offset_, other.pimpl_->m_offset_);
+	std::swap(pimpl_->m_stride_, other.pimpl_->m_stride_);
+	std::swap(pimpl_->m_block_, other.pimpl_->m_block_);
+	std::swap(pimpl_->m_local_ghost_width_, other.pimpl_->m_local_ghost_width_);
 }
-void DataSpace::init(int rank, const size_t * dims, const size_t * gw)
+void DataSpace::create(int rank, const size_t * dims, const size_t * gw)
 {
 	if (pimpl_ == nullptr)
-		pimpl_ = new pimpl_s;
+		pimpl_ = std::unique_ptr<pimpl_s> { new pimpl_s };
 
-	pimpl_->init(rank, dims);
-
-	if (gw != nullptr)
-		decompose(0, gw);
-
-}
-
-void DataSpace::decompose(int num_procs, size_t const * gw)
-{
-#if !NO_MPI || USE_MPI
-	pimpl_s::dims_type g_begin, g_end, count, l_begin, l_end, l_dims,
-			ghost_width;
-//
-//	if (num_procs == 0)
-//		num_procs = GLOBAL_COMM.get_size();
+	pimpl_->m_ndims_ = rank;
+	pimpl_->m_dimensions_ = dims;
+	pimpl_->m_count_ = dims;
+	pimpl_->m_offset_ = 0;
+	pimpl_->m_stride_ = 1;
+	pimpl_->m_block_ = 1;
 
 	if (gw == nullptr)
 	{
-		ghost_width = 2;
+		pimpl_->m_local_ghost_width_ = 2;
 	}
 	else
 	{
-		ghost_width = gw;
+		pimpl_->m_local_ghost_width_ = gw;
 	}
-
-	for (int proc_num = 0; proc_num < num_procs; ++proc_num)
-	{
-		g_begin = pimpl_->offset;
-		g_end = pimpl_->offset + pimpl_->count;
-
-		std::tie(g_begin, g_begin) = block_decompose(g_begin, g_begin,
-				num_procs, proc_num);
-
-		count = (g_end - g_begin);
-
-		l_dims = (count + ghost_width * 2) * pimpl_->stride;
-
-		neighgours_.emplace(
-				std::make_pair(proc_num,
-						DataSpace(pimpl_->ndims, &pimpl_->dimensions[0])));
-
-		neighgours_[proc_num].select_hyperslab(&g_begin[0], &count[0],
-				&(pimpl_->stride[0]), &(pimpl_->block[0]));
-
-		neighgours_[proc_num].pimpl_->local_space_ = new DataSpace(
-				pimpl_->ndims, &l_dims[0]);
-
-		neighgours_[proc_num].pimpl_->local_space_->select_hyperslab(
-				&ghost_width[0], &count[0], &(pimpl_->stride[0]),
-				&(pimpl_->block[0]));
-
-	}
-
-	if (pimpl_->local_space_ != nullptr)
-		delete pimpl_->local_space_;
-
-//	pimpl_->local_space_ = new DataSpace(neighgours_[GLOBAL_COMM.get_rank()]);
-
-#endif
-}
-void DataSpace::compose(size_t flag)
-{
 
 }
 
 bool DataSpace::is_valid() const
 {
-	return pimpl_ != nullptr && pimpl_->is_valid();
+	return pimpl_ != nullptr;
 }
 
-bool DataSpace::is_distributed() const
+DataSpace DataSpace::local_space() const
 {
-	return neighgours_.size() > 0;
-}
+	pimpl_s::index_tuple local_dims, local_offset;
 
-DataSpace const & DataSpace::local_space() const
-{
-	if (pimpl_->local_space_ != nullptr)
-	{
-		return *(pimpl_->local_space_);
-	}
-	else
-	{
-		return *this;
-	}
-}
+	local_dims = (pimpl_->m_count_ + pimpl_->m_local_ghost_width_ * 2)
+			* pimpl_->m_stride_;
 
-DataSpace::pimpl_s::pimpl_s() :
-		local_space_(nullptr)
-{
+	local_offset = pimpl_->m_local_ghost_width_ * pimpl_->m_stride_;
 
-}
-DataSpace::pimpl_s::pimpl_s(pimpl_s const &other) :
-		local_space_(nullptr)
-{
-	ndims = other.ndims;
-	dimensions = other.dimensions;
-	count = other.count;
-	offset = other.offset;
-	stride = other.stride;
-	block = other.block;
-	if (other.local_space_ != nullptr)
-		local_space_ = new DataSpace(*other.local_space_);
+	DataSpace res(pimpl_->m_ndims_, &local_dims[0], nullptr);
 
+	res.select_hyperslab(&local_offset[0], &pimpl_->m_count_[0],
+			&pimpl_->m_stride_[0], &pimpl_->m_block_[0]);
+	return std::move(res);
 }
-
-DataSpace::pimpl_s::~pimpl_s()
+DataSpace DataSpace::global_space() const
 {
-	if (local_space_ != nullptr)
-		delete local_space_;
+	return *this;
 }
-void DataSpace::pimpl_s::swap(pimpl_s & other)
+size_t const * DataSpace::ghost_width() const
 {
-	std::swap(ndims, other.ndims);
-	std::swap(dimensions, other.dimensions);
-	std::swap(count, other.count);
-	std::swap(offset, other.offset);
-	std::swap(stride, other.stride);
-	std::swap(block, other.block);
-	std::swap(local_space_, other.local_space_);
-}
-void DataSpace::pimpl_s::init(int rank, const size_t * dims)
-{
-	ndims = rank;
-	dimensions = dims;
-	count = dims;
-	offset = 0;
-	stride = 1;
-	block = 1;
-
+	return &(pimpl_->m_local_ghost_width_[0]);
 }
 
 size_t DataSpace::size() const
 {
 	size_t res = 1;
 
-	for (int i = 0; i < pimpl_->ndims; ++i)
+	for (int i = 0; i < pimpl_->m_ndims_; ++i)
 	{
-		res *= pimpl_->dimensions[i];
+		res *= pimpl_->m_dimensions_[i];
 	}
 
 	return res;
 }
 
-bool DataSpace::pimpl_s::is_valid() const
-{
-// TODO valid the data space
-	return true;
-}
-
 std::tuple<size_t, size_t const *, size_t const *, size_t const *,
 		size_t const *, size_t const *> DataSpace::shape() const
 {
-	return std::forward_as_tuple(pimpl_->ndims, //
-			&pimpl_->dimensions[0], //
-			&pimpl_->offset[0], //
-			&pimpl_->count[0], //
-			&pimpl_->stride[0], //
-			&pimpl_->block[0]);
+	return std::forward_as_tuple(pimpl_->m_ndims_, //
+			&pimpl_->m_dimensions_[0], //
+			&pimpl_->m_offset_[0], //
+			&pimpl_->m_count_[0], //
+			&pimpl_->m_stride_[0], //
+			&pimpl_->m_block_[0]);
 }
 
-bool DataSpace::select_hyperslab(size_t const * start, size_t const * count,
+void DataSpace::select_hyperslab(size_t const * start, size_t const * count,
 		size_t const * stride, size_t const * block)
 {
-	if (pimpl_ == nullptr)
-		return false;
-	if (start != nullptr)
-		pimpl_->offset = start;
-	if (count != nullptr)
-		pimpl_->count = count;
-	if (stride != nullptr)
-		pimpl_->stride = stride;
-	if (block != nullptr)
-		pimpl_->block = block;
+	if (pimpl_ != nullptr)
+	{
+		if (start != nullptr)
+			pimpl_->m_offset_ = start;
+		if (count != nullptr)
+			pimpl_->m_count_ = count;
+		if (stride != nullptr)
+			pimpl_->m_stride_ = stride;
+		if (block != nullptr)
+			pimpl_->m_block_ = block;
+	}
+	else
+	{
+		RUNTIME_ERROR("DataSpace is invalid!");
+	}
 
-	return pimpl_->is_valid();
 }
 
 //

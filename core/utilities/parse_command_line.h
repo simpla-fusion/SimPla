@@ -35,11 +35,11 @@ enum
  *		{
  *			if(opt=="n"||opt=="num_of_step")
  *			{
- *				num_of_step =ToValue<size_t>(value);
+ *				num_of_step =string_to_value<size_t>(value);
  *			}
  *			else if(opt=="s"||opt=="record_stride")
  *			{
- *				record_stride =ToValue<size_t>(value);
+ *				record_stride =string_to_value<size_t>(value);
  *			}
  *			else if(opt=="i"||opt=="input")
  *			{

@@ -14,7 +14,7 @@
 #include <tuple>
 #include <vector>
 
-#include "../dataset/datatype.h"
+#include "../dataset/dataset.h"
 #include "../gtl/ntuple.h"
 #include "../gtl/primitives.h"
 
@@ -154,5 +154,9 @@ std::tuple<std::shared_ptr<ByteType>, int> update_ghost_unorder(
 				>> const & info);
 
 void bcast_string(std::string * filename_);
+
+void sync(DataSet *, bool flag);
+void decompose(int ndims, size_t * count, size_t * offset = nullptr);
+
 }  // namespace simpla
 #endif /* MPI_AUX_FUNCTIONS_H_ */

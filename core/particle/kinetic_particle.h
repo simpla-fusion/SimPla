@@ -45,9 +45,9 @@ struct particle_container_traits<sp_sorted_set<T, particle_hasher<TM, T> > >
 {
 	typedef sp_sorted_set<T, particle_hasher<TM, T> > container_type;
 
-	static std::shared_ptr<container_type> create(TM const & mesh)
+	static container_type create(TM const & mesh)
 	{
-		return std::make_shared<container_type>(particle_hasher<TM, T>(mesh));
+		return std::move(container_type(particle_hasher<TM, T>(mesh)));
 	}
 }
 ;

@@ -41,7 +41,7 @@ struct ConfigParser: public LuaObject
 		{
 			if(key==alias )
 			{
-				dict_type::set(key,ToValue<T>(value));
+				dict_type::set(key,string_to_value<T>(value));
 				return TERMINATE;
 			}
 

@@ -48,11 +48,11 @@ int main(int argc, char **argv)
 			{
 				if(opt=="n"||opt=="num_of_step")
 				{
-					num_of_step =ToValue<std::size_t >(value);
+					num_of_step =string_to_value<std::size_t >(value);
 				}
 				else if(opt=="s"||opt=="record_stride")
 				{
-					record_stride =ToValue<std::size_t >(value);
+					record_stride =string_to_value<std::size_t >(value);
 				}
 				else if(opt=="i"||opt=="input")
 				{
@@ -71,7 +71,7 @@ int main(int argc, char **argv)
 				}
 				else if( opt=="context")
 				{
-					context_type =ToValue<std::string>(value);
+					context_type =string_to_value<std::string>(value);
 				}
 				else if(opt=="t")
 				{

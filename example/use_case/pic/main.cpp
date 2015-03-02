@@ -121,11 +121,11 @@ int main(int argc, char **argv)
 	{
 		if(opt=="s" )
 		{
-			timestep=ToValue<size_t>(value);
+			timestep=string_to_value<size_t>(value);
 		}
 		else if(opt=="t" )
 		{
-			dt=ToValue<double>(value);
+			dt=string_to_value<double>(value);
 		}
 		return CONTINUE;
 	}

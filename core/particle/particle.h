@@ -88,8 +88,10 @@ struct particle_container_traits
 
 template<typename TM, typename Engine, typename TContainer>
 class Particle<TM, Engine, TContainer> //
-: public SpObject, public Engine, public enable_create_from_this<
-		Particle<TM, Engine, TContainer> >
+:	public SpObject,
+	public Engine,
+	public TContainer,
+	public enable_create_from_this<Particle<TM, Engine, TContainer> >
 {
 public:
 	typedef TM mesh_type;
@@ -107,39 +109,36 @@ public:
 private:
 
 	mesh_type m_mesh_;
-	std::shared_ptr<container_type> m_data_;
 
 public:
 	template<typename ...Args>
-	Particle(mesh_type const & m, Args && ...args) :
-			engine_type(std::forward<Args>(args)...), m_mesh_(m), //
-			m_data_(
+	Particle(mesh_type const & m, Args && ...args)
+			: engine_type(std::forward<Args>(args)...), //
+			container_type(
 					_impl::particle_container_traits<container_type>::create(
-							m_mesh_))
+							m_mesh_)), m_mesh_(m)
+
 	{
 	}
 
-	Particle(this_type const& other) :
-			engine_type(other), m_mesh_(other.m_mesh_), m_data_(other.m_data_)
+	Particle(this_type const& other)
+			: engine_type(other), container_type(other), m_mesh_(other.m_mesh_)
 	{
 	}
 
-	Particle(this_type & other, op_split) :
-			engine_type(other), m_mesh_(other.m_mesh_, op_split()), m_data_(
-					other.m_data_)
-	{
-	}
 	template<typename ... Args>
-	Particle(this_type & other, Args && ...args) :
-			engine_type(other), m_mesh_(other.m_mesh_), m_data_(
-					std::make_shared<container_type>(*other.m_data_,
-							std::forward<Args>(args)...))
+	Particle(this_type & other, Args && ...args)
+			: engine_type(other), container_type(other,
+					std::forward<Args>(args)...), m_mesh_(other.m_mesh_)
 	{
 	}
 
 	~Particle()
 	{
 	}
+
+	using SpObject::properties;
+
 	this_type & self()
 	{
 		return *this;
@@ -149,14 +148,6 @@ public:
 		return *this;
 	}
 
-	container_type & data()
-	{
-		return *m_data_;
-	}
-	container_type const & data() const
-	{
-		return *m_data_;
-	}
 	static std::string get_type_as_string_static()
 	{
 		return engine_type::get_type_as_string();
@@ -169,49 +160,6 @@ public:
 	{
 		return m_mesh_;
 	}
-
-	using engine_type::properties;
-
-	using engine_type::print;
-
-	size_t size()
-	{
-		return m_data_->size();
-	}
-	size_t size(key_type const & key)
-	{
-		return m_data_->size(key);
-	}
-	template<typename ...Args>
-	void insert(Args && ...args)
-	{
-		m_data_->insert(std::forward<Args>(args)...);
-	}
-
-	template<typename ...Args>
-	void push_front(Args && ...args)
-	{
-		m_data_->push_front(std::forward<Args>(args)...);
-	}
-
-	template<typename ...Args>
-	void rehash(Args && ...args)
-	{
-		m_data_->rehash(std::forward<Args>(args)...);
-	}
-
-	template<typename ...Args>
-	void assign(Args && ...args)
-	{
-		m_data_->assign(std::forward<Args>(args)...);
-	}
-
-	template<typename ...Args>
-	void erase(Args && ...args)
-	{
-		m_data_->erase(std::forward<Args>(args)...);
-	}
-
 	template<typename TDict, typename ...Others>
 	void load(TDict const & dict, Others && ...others)
 	{
@@ -222,57 +170,16 @@ public:
 			UNIMPLEMENTED2("load particle from [DataSrc]");
 		}
 	}
-//	template<typename ...Args>
-//	typename container_type::range_type range(Args &&... args)
-//	{
-//		return m_data_->range(std::forward<Args>(args)...);
-//	}
-//	template<typename ...Args>
-//	typename container_type::const_range_type range(Args &&... args) const
-//	{
-//		return m_data_->range(std::forward<Args>(args)...);
-//	}
-//	typename container_type::range_type range()
-//	{
-//		return m_data_->range(m_mesh_.range());
-//	}
-//	typename container_type::const_range_type range() const
-//	{
-//		return m_data_->range(m_mesh_.range());
-//	}
-	template<typename ...Args>
-	auto select(Args && ...args)
-	DECL_RET_TYPE(m_data_->select(std::forward<Args>(args)...))
-	template<typename ...Args>
-	auto select(Args && ...args) const
-	DECL_RET_TYPE(m_data_->select(std::forward<Args>(args)...))
-
-	typedef typename container_type::bucket_type bucket_type;
-
-	bucket_type & operator[](key_type const & s)
-	{
-		return (*m_data_)[s];
-	}
-	bucket_type const & operator[](key_type const & s) const
-	{
-		return (*m_data_)[s];
-	}
 
 	bool update()
 	{
-		return true;
+		SpObject::properties(engine_type::properties());
+		return SpObject::update();
 	}
 
 	DataSet dataset() const
 	{
-		DataSet res = m_data_->dataset(m_mesh_.range());
-
-		// FIXME  properties copy failed
-//		res.properties.append(engine_type::properties);
-//		Properties(engine_type::properties).swap(res.properties);
-//		CHECK(res.properties);
-
-		return std::move(res);
+		return std::move(container_type::dataset(m_mesh_.range()));
 	}
 
 	//! @}
@@ -292,7 +199,7 @@ public:
 	template<typename ...Args>
 	void next_timestep(Args && ...args)
 	{
-		m_data_->foreach(m_mesh_.range(), [&](value_type & p)
+		container_type::foreach(m_mesh_.range(), [&](value_type & p)
 		{
 			engine_type::next_timestep(&p, std::forward<Args>(args)...);
 		});
@@ -322,7 +229,7 @@ public:
 	Real next_n_timesteps(size_t num_of_steps, Real t0, Real dt,
 			Args && ...args)
 	{
-		m_data_->foreach(m_mesh_.range(), [&](value_type & p)
+		container_type::foreach(m_mesh_.range(), [&](value_type & p)
 		{
 			for (int s = 0; s < num_of_steps; ++s)
 			{
@@ -332,31 +239,6 @@ public:
 		});
 	}
 
-	struct range
-	{
-
-	};
-
-	template<typename TRange, typename TFun>
-	void foreach(TRange const & range, TFun const & fun)
-	{
-		m_data_->foreach(range, fun);
-	}
-	template<typename TFun>
-	void foreach(TFun const & fun)
-	{
-		m_data_->foreach(m_mesh_.range(), fun);
-	}
-	template<typename TRange, typename TFun>
-	void foreach(TRange const & range, TFun const & fun) const
-	{
-		m_data_->foreach(range, fun);
-	}
-	template<typename TFun>
-	void foreach(TFun const & fun) const
-	{
-		m_data_->foreach(m_mesh_.range(), fun);
-	}
 }
 ;
 }

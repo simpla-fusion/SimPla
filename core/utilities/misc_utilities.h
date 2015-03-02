@@ -22,14 +22,7 @@ namespace simpla
 {
 
 template<typename T>
-inline std::string ToString(T const & v)
-{
-	std::ostringstream os;
-	os << v;
-	return os.str();
-}
-template<typename T>
-inline T ToValue(std::string const & str)
+inline T string_to_value(std::string const & str)
 {
 	T v;
 	std::istringstream os(str);
@@ -37,9 +30,22 @@ inline T ToValue(std::string const & str)
 	return std::move(v);
 }
 
+template<typename T>
+inline void string_to_value(std::string const & str, T * v)
+{
+	std::istringstream os(str);
+	os >> *v;
+}
+template<typename T>
+inline std::string value_to_string(T const & v)
+{
+	std::ostringstream os;
+	os << v;
+	return os.str();
+}
 template<unsigned int N, typename T>
-inline std::string ToString(nTuple<T, N> const & v, std::string const & sep =
-		" ")
+inline std::string value_to_string(nTuple<T, N> const & v,
+		std::string const & sep = " ")
 {
 
 	std::ostringstream os;

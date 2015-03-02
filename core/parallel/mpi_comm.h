@@ -8,13 +8,19 @@
 #ifndef MPI_COMM_H_
 #define MPI_COMM_H_
 
+#include <stddef.h>
+#include <cstdbool>
+#include <memory>
+
+#include "../gtl/ntuple.h"
+
 extern "C"
 {
 #include <mpi.h>
 }
 #include <algorithm>
-#include <thread>
 
+#include "../dataset/dataset.h"
 #include "../gtl/design_pattern/singleton_holder.h"
 #include "../utilities/utilities.h"
 
@@ -23,14 +29,8 @@ namespace simpla
 
 class MPIComm
 {
+
 public:
-
-	int num_threads_;
-	int num_process_;
-	int process_num_;
-	MPI_Comm comm_;
-
-	bool no_mpi_ = false;
 
 	MPIComm();
 
@@ -46,13 +46,25 @@ public:
 	MPI_Info info();
 
 	bool is_valid() const;
-	int id() const;
-	int get_rank() const;
+
 	int process_num() const;
-	int get_size() const;
+
 	int num_of_process() const;
-	void set_num_of_threads(int num);
-	unsigned int get_num_of_threads() const;
+
+//	void set_num_of_threads(int num);
+//
+//	unsigned int get_num_of_threads() const;
+
+	nTuple<int, 3> const & get_topology() const;
+
+	int get_neighbour(int direction, int disp);
+
+	nTuple<int, 3> get_coordinate(int rank) const;
+
+	void decompose(int ndims, size_t * count, size_t * offset) const;
+private:
+	struct pimpl_s;
+	std::unique_ptr<pimpl_s> pimpl_;
 }
 ;
 #define GLOBAL_COMM   SingletonHolder<simpla::MPIComm>::instance()
