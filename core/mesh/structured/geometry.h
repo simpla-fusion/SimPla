@@ -13,7 +13,7 @@
 namespace simpla
 {
 
-typedef CartesianCoordinates<StructuredMesh> CartesianGeometry;
+typedef CartesianCoordinates<StructuredMesh> CartesianMesh;
 //typedef CylindricalCoordinates<StructuredMesh> CylindricalGeometry;
 
 }  // namespace simpla

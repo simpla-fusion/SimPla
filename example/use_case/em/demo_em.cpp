@@ -19,17 +19,17 @@ using namespace simpla;
 
 USE_CASE(em)
 {
-	typedef CartesianGeometry mesh_type;
-//	size_t num_of_steps = 1000;
-//	size_t strides = 10;
-//	Real dt = 0.001;
-//
-//	options.register_cmd_line_option<size_t>("NUMBER_OF_STEPS", "n");
-//
-//	options.register_cmd_line_option<size_t>("STRIDES", "s");
-//
-//	options.register_cmd_line_option<Real>("DT", "dt");
-//
+	typedef CartesianMesh mesh_type;
+	size_t num_of_steps = 1000;
+	size_t strides = 10;
+	Real dt = 0.001;
+
+	options.register_cmd_line_option<size_t>("NUMBER_OF_STEPS", "n");
+
+	options.register_cmd_line_option<size_t>("STRIDES", "s");
+
+	options.register_cmd_line_option<Real>("DT", "dt");
+
 //	if (options["SHOW_HELP"])
 //	{
 //		SHOW_OPTIONS("-n,--number_of_steps <NUMBER_OF_STEPS>",
@@ -40,30 +40,40 @@ USE_CASE(em)
 //						+ value_to_string(strides));
 //		return;
 //	}
+
+	options["NUMBER_OF_STEPS"].as(&num_of_steps);
+
+	options["STRIDES"].as<size_t>(&strides);
 //
-//	options["NUMBER_OF_STEPS"].as(&num_of_steps);
-//
-//	options["STRIDES"].as<size_t>(&strides);
-//
+
+	size_t dims[3] = { 10, 10, 10 };
+	size_t xmin[3] = { 0, 0, 0 };
+	size_t xmax[3] = { 1, 1, 1 };
+
 	mesh_type mesh;
 
-	mesh.load(options["Mesh"]);
+	mesh.dimensions(dims);
+	mesh.extents(xmin, xmax);
+	mesh.update();
 
-//	LOGGER << "---------- Configuration ---------- " << std::endl
-//
-//	<< " Description=\"" << options["Description"].as<std::string>("") << "\""
-//			<< std::endl
-//
-//			<< " Mesh =" << std::endl << "  {" << *manifold << "} " << std::endl
-//
-//			<< " TIME_STEPS = " << num_of_steps << std::endl;
+//	mesh.load(options["Mesh"]);
+
+	LOGGER << "[ Configuration ]" << std::endl
+
+	<< " Description=\"" << options["Description"].as<std::string>("") << "\""
+			<< std::endl
+
+			<< " Mesh =" << std::endl << "  {" << mesh << "} " << std::endl
+
+			<< " TIME_STEPS = " << num_of_steps << std::endl
+
+			;
 //
 //	// Load initialize value
 //
 	auto J = make_form<EDGE, Vec3>(mesh);
 	auto E = make_form<EDGE, Real>(mesh);
 	auto B = make_form<FACE, Real>(mesh);
-
 //	VERBOSE_CMD(load(options["InitValue"]["B"], &B));
 //	VERBOSE_CMD(load(options["InitValue"]["E"], &E));
 //	VERBOSE_CMD(load(options["InitValue"]["J"], &J));

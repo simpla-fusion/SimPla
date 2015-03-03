@@ -248,6 +248,7 @@ public:
 	template<typename TDict, typename ...Others>
 	bool load(TDict const & dict, Others &&...others)
 	{
+		topology_type::load(dict,std::forward<Others>(others)...);
 
 		if (!topology_type::is_valid())
 		{
@@ -275,14 +276,14 @@ public:
 
 			dt_ = dict["dt"].template as<Real>(1.0);
 
-			return true;
 		}
 		else
 		{
 			WARNING << "Configure Error: no Min or Max ";
 
-			return false;
 		}
+
+		return true;
 	}
 
 	template<typename OS>
@@ -299,8 +300,8 @@ public:
 		return os;
 	}
 
-	void extents(nTuple<Real, ndims> const& pmin,
-			nTuple<Real, ndims> const& pmax)
+	template<typename T0,typename T1>
+	void extents(T0 const& pmin, T1 const& pmax)
 	{
 		xmin_ = pmin;
 		xmax_ = pmax;

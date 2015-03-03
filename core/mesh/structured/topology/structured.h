@@ -104,25 +104,23 @@ public:
 	template<typename TDict>
 	bool load(TDict const & dict)
 	{
-		if (dict["Type"].template as<std::string>() != get_type_as_string())
+		if (dict["Type"].template as<std::string>("") != get_type_as_string())
 		{
-			RUNTIME_ERROR(
-					"Illegal topology type! "
-							+ dict["Type"].template as<std::string>());
+			WARNING
+					<< "Illegal topology type! "
+							+ dict["Type"].template as<std::string>();
 		}
-		else if (!dict["Dimensions"].is_table())
-		{
-			WARNING << ("Configure  error: no 'Dimensions'!") << std::endl;
-			return false;
-		}
-		else
+
+		if (dict["Dimensions"].is_table())
 		{
 			VERBOSE << "Load topology : Structured  Mesh " << std::endl;
+			auto d = dict["Dimensions"].template as<nTuple<size_t, 3>>();
+			dimensions(&d[0]);
 
-			dimensions(dict["Dimensions"].template as<nTuple<size_t, 3>>());
-
-			return true;
 		}
+
+		return true;
+
 	}
 
 	template<typename OS>
@@ -358,8 +356,8 @@ public:
 		return is_valid_;
 	}
 
-	//! @name Coordinates
-	//! @{
+//! @name Coordinates
+//! @{
 
 	static constexpr Real COORDINATES_TO_INDEX_FACTOR =
 			static_cast<Real>(FLOATING_POINT_FACTOR);
@@ -511,10 +509,10 @@ public:
 		return std::move(std::make_tuple(s, r));
 	}
 
-	//! @}
+//! @}
 
-	//! @name id auxiliary functions
-	//! @{
+//! @name id auxiliary functions
+//! @{
 	static constexpr id_type dual(id_type r)
 	{
 		return (r & (~_DA)) | ((~(r & _DA)) & _DA);
@@ -639,7 +637,7 @@ public:
 	{
 		return m_iform_[node_id(r)];
 	}
-	//! @}
+//! @}
 
 	/**
 	 *  @name Select
@@ -1359,13 +1357,13 @@ struct StructuredMesh_<NDIMS>::Range
 	{
 	}
 
-	Range(index_tuple const & b, index_tuple const& e) :
-			begin_(b), end_(e)
+	Range(index_tuple const & b, index_tuple const& e)
+			: begin_(b), end_(e)
 	{
 	}
 
-	Range(Range const & that) :
-			begin_(that.begin_), end_(that.end_)
+	Range(Range const & that)
+			: begin_(that.begin_), end_(that.end_)
 	{
 	}
 	~Range()
@@ -1406,18 +1404,18 @@ struct StructuredMesh_<NDIMS>::Range<IFORM>::const_iterator
 
 	(_DI | _DJ | _DK)));
 
-	const_iterator(const_iterator const & r) :
-			shift_(r.shift_), self_(r.self_), begin_(r.begin_), end_(r.end_)
+	const_iterator(const_iterator const & r)
+			: shift_(r.shift_), self_(r.self_), begin_(r.begin_), end_(r.end_)
 	{
 	}
-	const_iterator(const_iterator && r) :
-			shift_(r.shift_), self_(r.self_), begin_(r.begin_), end_(r.end_)
+	const_iterator(const_iterator && r)
+			: shift_(r.shift_), self_(r.self_), begin_(r.begin_), end_(r.end_)
 	{
 	}
 
 	const_iterator(index_tuple const & b, index_tuple const &e,
-			index_tuple const &s) :
-			self_(s), begin_(b), end_(e)
+			index_tuple const &s)
+			: self_(s), begin_(b), end_(e)
 	{
 	}
 	~const_iterator()
