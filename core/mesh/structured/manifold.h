@@ -43,6 +43,7 @@ public:
 	typedef InterpolatorPlolicy<geometry_type> interpolatpr_policy;
 	typedef typename geometry_type::coordinates_type coordinates_type;
 	static constexpr size_t iform = IFORM;
+	static constexpr size_t ndims = geometry_type::ndims;
 	template<typename TV> using field_value_type=typename
 	std::conditional<iform==VERTEX || iform ==VOLUME,TV,nTuple<TV,3>>::type;
 
@@ -180,7 +181,8 @@ public:
 	{
 		for (auto s : m_range_)
 		{
-			fexpr.op_(fexpr.lhs, fexpr.rhs, s);
+			fexpr.op_(fexpr.lhs[s],
+					calculate_policy::calculate(*m_geometry_, fexpr.rhs, s));
 		}
 	}
 
@@ -216,7 +218,14 @@ std::shared_ptr<Manifold<IFORM, TG>> create_mesh(TG const & geo)
 {
 	return std::make_shared<Manifold<IFORM, TG>>(geo);
 }
-
+template<size_t IFORM, typename TV, typename TG>
+_Field<Manifold<IFORM, TG>, std::shared_ptr<TV>> make_form(
+		std::shared_ptr<TG> const &geo)
+{
+	typedef Manifold<IFORM, TG> manifold_type;
+	return std::move(
+			_Field<manifold_type, std::shared_ptr<TV>>(manifold_type(*geo)));
+}
 template<size_t IFORM, typename TV, typename TG>
 _Field<Manifold<IFORM, TG>, std::shared_ptr<TV>> make_form(TG const & geo)
 {
@@ -224,6 +233,7 @@ _Field<Manifold<IFORM, TG>, std::shared_ptr<TV>> make_form(TG const & geo)
 	return std::move(
 			_Field<manifold_type, std::shared_ptr<TV>>(manifold_type(geo)));
 }
+
 }
 // namespace simpla
 

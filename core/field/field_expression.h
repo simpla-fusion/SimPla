@@ -54,6 +54,10 @@ struct field_traits<_Field<T ...>>
 
 	typedef typename _Field<T ...>::value_type value_type;
 
+	static constexpr size_t iform = mesh_type::iform;
+
+	static constexpr size_t ndims = mesh_type::ndims;
+
 };
 
 /// @name  Field Expression

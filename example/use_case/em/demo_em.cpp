@@ -8,18 +8,20 @@
 #include "../../../core/application/use_case.h"
 #include <memory>
 #include <string>
+#include "../../../core/mesh/calculus.h"
 #include "../../../core/mesh/structured/geometry.h"
 #include "../../../core/mesh/structured/manifold.h"
 #include "../../../core/mesh/structured/diff_scheme/fdm.h"
 #include "../../../core/mesh/structured/interpolator/interpolator.h"
 #include "../../../core/field/field_shared_ptr.h"
+//#include "../../../core/field/load_field.h"
 #include "../../../core/io/io.h"
 
 using namespace simpla;
 
 USE_CASE(em)
 {
-	typedef CartesianMesh mesh_type;
+
 	size_t num_of_steps = 1000;
 	size_t strides = 10;
 	Real dt = 0.001;
@@ -46,34 +48,37 @@ USE_CASE(em)
 	options["STRIDES"].as<size_t>(&strides);
 //
 
-	size_t dims[3] = { 10, 10, 10 };
+	size_t dims[3] = { 10, 2, 2 };
 	size_t xmin[3] = { 0, 0, 0 };
 	size_t xmax[3] = { 1, 1, 1 };
 
-	mesh_type mesh;
+	auto mesh = make_mesh<CartesianMesh>();
 
-	mesh.dimensions(dims);
-	mesh.extents(xmin, xmax);
-	mesh.update();
+	mesh->dimensions(dims);
+	mesh->extents(xmin, xmax);
+	mesh->update();
 
-//	mesh.load(options["Mesh"]);
+//	mesh->load(options["Mesh"]);
 
 	LOGGER << "[ Configuration ]" << std::endl
 
 	<< " Description=\"" << options["Description"].as<std::string>("") << "\""
 			<< std::endl
 
-			<< " Mesh =" << std::endl << "  {" << mesh << "} " << std::endl
+			<< " Mesh =" << std::endl << "  {" << *mesh << "} " << std::endl
 
 			<< " TIME_STEPS = " << num_of_steps << std::endl
 
 			;
-//
-//	// Load initialize value
-//
-	auto J = make_form<EDGE, Vec3>(mesh);
+
+	// Load initialize value
+
+	auto J = make_form<EDGE, Real>(mesh);
 	auto E = make_form<EDGE, Real>(mesh);
 	auto B = make_form<FACE, Real>(mesh);
+
+	J.clear();
+
 //	VERBOSE_CMD(load(options["InitValue"]["B"], &B));
 //	VERBOSE_CMD(load(options["InitValue"]["E"], &E));
 //	VERBOSE_CMD(load(options["InitValue"]["J"], &J));
@@ -103,16 +108,15 @@ USE_CASE(em)
 //	}
 //	else
 //	{
-//		for (size_t s = 0; s < num_of_steps; s += strides)
-//		{
-//
-////			E_src(&E);
-////			J_src(&J);
-////			B_src(&B);
-//
-//			E += curl(B) * dt - J;
-//			B += -curl(E) * dt;
-//		}
+//	for (size_t s = 0; s < num_of_steps; s += strides)
+	{
+
+//			E_src(&E);
+//			J_src(&J);
+//			B_src(&B);
+		E = curl(B) * dt - J;
+		B = -curl(E) * dt;
+	}
 //
 ////		VERBOSE << SAVE(E);
 ////		VERBOSE << SAVE(B);

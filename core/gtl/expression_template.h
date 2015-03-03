@@ -62,21 +62,21 @@ struct Expression<TOP, TL, TR>
 	typename reference_traits<TR>::type rhs;
 	TOP op_;
 
-	Expression(this_type const & that) :
-			lhs(that.lhs), rhs(that.rhs), op_(that.op_)
+	Expression(this_type const & that)
+			: lhs(that.lhs), rhs(that.rhs), op_(that.op_)
 	{
 	}
-	Expression(this_type && that) :
-			lhs(that.lhs), rhs(that.rhs), op_(that.op_)
+	Expression(this_type && that)
+			: lhs(that.lhs), rhs(that.rhs), op_(that.op_)
 	{
 	}
 
-	constexpr Expression(TL const& l, TR const& r) :
-			lhs(l), rhs(r), op_()
+	constexpr Expression(TL const& l, TR const& r)
+			: lhs(l), rhs(r), op_()
 	{
 	}
-	Expression(TOP op, TL const& l, TR const& r) :
-			lhs(l), rhs(r), op_(op)
+	Expression(TOP op, TL const& l, TR const& r)
+			: lhs(l), rhs(r), op_(op)
 	{
 	}
 
@@ -101,17 +101,17 @@ struct Expression<TOP, TL, std::nullptr_t>
 
 	TOP op_;
 
-	Expression(this_type const & that) :
-			lhs(that.lhs), op_(that.op_)
+	Expression(this_type const & that)
+			: lhs(that.lhs), op_(that.op_)
 	{
 	}
-	Expression(this_type && that) :
-			lhs(that.lhs), op_(that.op_)
+	Expression(this_type && that)
+			: lhs(that.lhs), op_(that.op_)
 	{
 	}
 
-	Expression(TL const& l) :
-			lhs(l), op_()
+	Expression(TL const& l)
+			: lhs(l), op_()
 	{
 	}
 
@@ -157,21 +157,21 @@ struct AssignmentExpression<TOP, TL, TR>
 	typename reference_traits<TR>::type rhs;
 	TOP op_;
 
-	AssignmentExpression(this_type const & that) :
-			lhs(that.lhs), rhs(that.rhs), op_(that.op_)
+	AssignmentExpression(this_type const & that)
+			: lhs(that.lhs), rhs(that.rhs), op_(that.op_)
 	{
 	}
-	AssignmentExpression(this_type && that) :
-			lhs(that.lhs), rhs(that.rhs), op_(that.op_)
+	AssignmentExpression(this_type && that)
+			: lhs(that.lhs), rhs(that.rhs), op_(that.op_)
 	{
 	}
 
-	AssignmentExpression(TL & l, TR const& r) :
-			lhs(l), rhs(r), op_()
+	AssignmentExpression(TL & l, TR const& r)
+			: lhs(l), rhs(r), op_()
 	{
 	}
-	AssignmentExpression(TOP op, TL & l, TR const& r) :
-			lhs(l), rhs(r), op_(op)
+	AssignmentExpression(TOP op, TL & l, TR const& r)
+			: lhs(l), rhs(r), op_(op)
 	{
 	}
 
@@ -285,13 +285,14 @@ DEF_BOP(less_equal, <=)
 struct _NAME_                                                                             \
 {                                                                                              \
 	template<typename TL, typename TR>                                                         \
-	constexpr auto operator()(TL  & l, TR const & r) const                  \
-	DECL_RET_TYPE((l _OP_ r))            \
+	  void operator()(TL  & l, TR const & r) const                  \
+	{ l _OP_ r ; }           \
 	template<typename TL, typename TR,typename TI>                                                         \
-	constexpr auto operator()(TL  & l, TR const & r,TI const & s) const         \
-	DECL_RET_TYPE((   get_value(l,s) _OP_ get_value( r,s)))          \
+	  void operator()(TL  & l, TR const & r,TI const & s)const           \
+	{    get_value(l,s) _OP_ get_value( r,s)   ;    }    \
 };
-DEF_ASSIGN_OP(_assign, =)
+
+//DEF_ASSIGN_OP(_assign, =)
 DEF_ASSIGN_OP(plus_assign, +=)
 DEF_ASSIGN_OP(minus_assign, -=)
 DEF_ASSIGN_OP(multiplies_assign, *=)
@@ -300,6 +301,19 @@ DEF_ASSIGN_OP(modulus_assign, %=)
 
 #undef DEF_ASSIGN_OP
 
+struct _assign
+{
+	template<typename TL, typename TR>
+	void operator()(TL & l, TR const & r) const
+	{
+		l = r;
+	}
+	template<typename TL, typename TR, typename TI>
+	void operator()(TL & l, TR const & r, TI const & s)const
+	{
+		get_value(l, s) = get_value(r, s);
+	}
+};
 struct equal_to
 {
 	template<typename TL, typename TR>

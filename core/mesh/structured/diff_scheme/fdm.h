@@ -114,7 +114,7 @@ public:
 	static inline typename field_traits<_Field<TC, TD> >::value_type
 	calculate(geometry_type const & geo,_Field<TC, TD> const &f, Others && ... s)
 	{
-		return f.get(std::forward<Others>(s)...);
+		return get_value(f,std::forward<Others>(s)...);
 	}
 
 	template<typename TOP, typename TL, typename TR, typename ...Others>

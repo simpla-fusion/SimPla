@@ -53,6 +53,7 @@ public:
 	_Field(mesh_type const & d)
 			: mesh_(d), data_(nullptr)
 	{
+
 	}
 	_Field(this_type const & that)
 			: mesh_(that.mesh_), data_(that.data_)
@@ -111,24 +112,49 @@ public:
 	 * @{
 	 */
 
-	inline _Field<AssignmentExpression<_impl::_assign, this_type, this_type>> operator =(
-			this_type const &that)
+//	inline _Field<AssignmentExpression<_impl::_assign, this_type, this_type>> operator =(
+//			this_type const &that)
+//	{
+//		allocate();
+//
+//		return std::move(
+//				_Field<
+//						AssignmentExpression<_impl::_assign, this_type,
+//								this_type>>(*this, that));
+//	}
+	inline this_type & operator =(this_type const &that)
 	{
 		allocate();
-		return std::move(
-				_Field<
-						AssignmentExpression<_impl::_assign, this_type,
-								this_type>>(*this, that));
+
+		for (auto s : mesh_.range())
+		{
+			this->operator[](s) = mesh_.calculate(that, s);
+		}
+
+		return *this;
 	}
 
 	template<typename TR>
-	inline _Field<AssignmentExpression<_impl::_assign, this_type, TR>> operator =(
-			TR const &that)
+	inline this_type & operator =(TR const &that)
 	{
+//		allocate();
+//		return std::move(
+//				_Field<AssignmentExpression<_impl::_assign, this_type, TR>>(
+//						*this, that));
 		allocate();
-		return std::move(
-				_Field<AssignmentExpression<_impl::_assign, this_type, TR>>(
-						*this, that));
+
+//		parallel_for(mesh_.range(), [&](typename mesh_type::range_type s_range)
+//		{
+		auto s_range = mesh_.range();
+
+		for (auto s : s_range)
+		{
+			CHECK(mesh_.hash(s));
+			this->operator[](s) = mesh_.calculate(that, s);
+		}
+//		});
+
+		return *this;
 	}
 
 	template<typename TFun> void pull_back(TFun const &fun)
@@ -164,8 +190,10 @@ public:
 private:
 	void allocate()
 	{
+		CHECK(mesh_.max_hash());
 		if (data_ == nullptr)
 		{
+			CHECK(mesh_.max_hash());
 			data_ = sp_make_shared_array<value_type>(mesh_.max_hash());
 		}
 	}

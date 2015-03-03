@@ -90,6 +90,7 @@ public:
 	static const size_t iform = NDIMS - IL;
 
 	typedef typename field_traits<T>::value_type value_type;
+	typedef typename field_traits<T>::mesh_type mesh_type;
 
 	typedef typename std::conditional<iform == EDGE || iform == FACE,
 			nTuple<value_type, 3>, value_type>::type field_value_type;
@@ -112,6 +113,7 @@ public:
 	static const size_t iform = sp_max<size_t, IL, IR>::value - 1;
 
 	typedef typename sp_result_of<_impl::multiplies(l_type, r_type)>::type value_type;
+	typedef typename field_traits<TL>::mesh_type mesh_type;
 
 	typedef typename std::conditional<iform == EDGE || iform == FACE,
 			nTuple<value_type, 3>, value_type>::type field_value_type;
@@ -133,6 +135,7 @@ public:
 	static const size_t iform = IL + IR;
 
 	typedef typename sp_result_of<_impl::multiplies(l_type, r_type)>::type value_type;
+	typedef typename field_traits<TL>::mesh_type mesh_type;
 
 	typedef typename std::conditional<iform == EDGE || iform == FACE,
 			nTuple<value_type, 3>, value_type>::type field_value_type;
@@ -258,6 +261,8 @@ public:
 	static const size_t iform = IR;
 
 	typedef typename field_traits<T>::value_type value_type;
+	typedef typename field_traits<T>::mesh_type mesh_type;
+
 };
 template<size_t IR, typename T>
 inline _Field<_impl::MapTo<field_traits<T>::iform, IR, T>> map_to(T const & f)
@@ -321,6 +326,7 @@ public:
 	static constexpr bool is_field = field_traits<T>::is_field;
 
 	typedef typename field_traits<T>::value_type value_type;
+	typedef typename field_traits<T>::mesh_type mesh_type;
 
 	typedef typename std::conditional<iform == EDGE || iform == FACE,
 			nTuple<value_type, 3>, value_type>::type field_value_type;
@@ -336,6 +342,7 @@ public:
 	static const size_t ndims = IL > 0 ? NDIMS : 0;
 	static const size_t iform = IL - 1;
 	typedef typename field_traits<T>::value_type value_type;
+	typedef typename field_traits<T>::mesh_type mesh_type;
 
 	typedef typename std::conditional<iform == EDGE || iform == FACE,
 			nTuple<value_type, 3>, value_type>::type field_value_type;
@@ -444,6 +451,7 @@ public:
 	static constexpr bool is_field = field_traits<T>::is_field;
 
 	typedef typename field_traits<T>::value_type value_type;
+	typedef typename field_traits<T>::mesh_type mesh_type;
 
 };
 template<size_t IL, size_t IR, typename T>
@@ -456,6 +464,8 @@ public:
 	static const size_t ndims = IR > 0 ? NDIMS : 0;
 	static const size_t iform = IR - 1;
 	typedef typename field_traits<T>::value_type value_type;
+	typedef typename field_traits<T>::mesh_type mesh_type;
+
 };
 
 template<size_t IL, typename T>
