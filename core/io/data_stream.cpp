@@ -50,14 +50,13 @@ struct DataStream::pimpl_s
 
 	std::string pwd() const;
 
-	hid_t convert_data_type_sp_to_h5(DataType const &, size_t flag = 0UL) const;
+	hid_t create_h5_datatype(DataType const &, size_t flag = 0UL) const;
 
-	hid_t convert_data_space_sp_to_h5(DataSpace const &,
-			size_t flag = 0UL) const;
+	template<typename TS>
+	hid_t create_h5_dataspace(TS const &, size_t flag = 0UL) const;
 
-	DataType convert_data_type_h5_to_sp(hid_t) const;
-
-	DataSpace convert_data_space_h5_to_sp(hid_t) const;
+	DataType convert_h5_data_type_to_sp(hid_t) const;
+	DataSpace convert_h5_data_space_to_sp(hid_t) const;
 
 	void set_attribute(hid_t loc_id, std::string const & name, Any const & v);
 	void set_attribute(hid_t loc_id, Properties const & v);
@@ -67,8 +66,8 @@ struct DataStream::pimpl_s
 
 };
 
-DataStream::DataStream()
-		: pimpl_(new pimpl_s)
+DataStream::DataStream() :
+		pimpl_(new pimpl_s)
 {
 
 	pimpl_->base_file_id_ = -1;
@@ -291,7 +290,7 @@ void DataStream::pimpl_s::set_attribute(hid_t loc_id, std::string const &name,
 	}
 	else
 	{
-		hid_t m_type = convert_data_type_sp_to_h5(any_v.datatype());
+		hid_t m_type = create_h5_datatype(any_v.datatype());
 
 		hid_t m_space = H5Screate(H5S_SCALAR);
 
@@ -502,7 +501,7 @@ std::tuple<std::string, hid_t> DataStream::pimpl_s::open_group(
 
 }
 
-hid_t DataStream::pimpl_s::convert_data_type_sp_to_h5(DataType const &d_type,
+hid_t DataStream::pimpl_s::create_h5_datatype(DataType const &d_type,
 		size_t is_compact_array) const
 {
 	hid_t res = H5T_NO_CLASS;
@@ -570,7 +569,7 @@ hid_t DataStream::pimpl_s::convert_data_type_sp_to_h5(DataType const &d_type,
 
 		for (auto const & item : d_type.members())
 		{
-			hid_t t_member = convert_data_type_sp_to_h5(std::get<0>(item),
+			hid_t t_member = create_h5_datatype(std::get<0>(item),
 			true);
 			H5_ERROR(
 					H5Tinsert(res, std::get<1>(item).c_str(), std::get<2>(item),
@@ -588,7 +587,7 @@ hid_t DataStream::pimpl_s::convert_data_type_sp_to_h5(DataType const &d_type,
 	return (res);
 }
 
-DataType DataStream::pimpl_s::convert_data_type_h5_to_sp(hid_t t_id) const
+DataType DataStream::pimpl_s::convert_h5_data_type_to_sp(hid_t t_id) const
 {
 
 	bool bad_cast_error = true;
@@ -610,7 +609,7 @@ DataType DataStream::pimpl_s::convert_data_type_h5_to_sp(hid_t t_id) const
 		for (int i = 0, num = H5Tget_nmembers(t_id); i < num; ++i)
 		{
 			dtype.push_back(
-					convert_data_type_h5_to_sp(H5Tget_member_type(t_id, i)),
+					convert_h5_data_type_to_sp(H5Tget_member_type(t_id, i)),
 					std::string(H5Tget_member_name(t_id, i)),
 					H5Tget_member_offset(t_id, i));
 		}
@@ -719,21 +718,20 @@ DataType DataStream::pimpl_s::convert_data_type_h5_to_sp(hid_t t_id) const
 	return std::move(dtype);
 
 }
-
-hid_t DataStream::pimpl_s::convert_data_space_sp_to_h5(DataSpace const &d_space,
+template<typename TS>
+hid_t DataStream::pimpl_s::create_h5_dataspace(TS const &d_shape,
 		size_t flag) const
 {
 
 	size_t ndims;
 
 	index_tuple dims;
-
 	index_tuple offset;
-	index_tuple count;
 	index_tuple stride;
+	index_tuple count;
 	index_tuple block;
 
-	std::tie(ndims, dims, count, offset, stride, block) = d_space.shape();
+	std::tie(ndims, dims, offset, stride, count, block) = d_shape;
 
 	if ((flag & SP_RECORD) != 0UL)
 	{
@@ -762,8 +760,10 @@ hid_t DataStream::pimpl_s::convert_data_space_sp_to_h5(DataSpace const &d_space,
 	return res;
 
 }
-DataSpace DataStream::pimpl_s::convert_data_space_h5_to_sp(hid_t) const
+DataSpace DataStream::pimpl_s::convert_h5_data_space_to_sp(hid_t) const
 {
+	UNIMPLEMENTED;
+
 	return DataSpace();
 }
 
@@ -783,12 +783,11 @@ std::string DataStream::write(std::string const & url, DataSet const &ds,
 
 	std::tie(is_existed, dsname) = this->cd(url, flag);
 
-	hid_t m_type = pimpl_->convert_data_type_sp_to_h5(ds.datatype);
+	hid_t m_type = pimpl_->create_h5_datatype(ds.datatype);
 
-	hid_t m_space = pimpl_->convert_data_space_sp_to_h5(ds.dataspace.local(),
-			SP_NEW);
+	hid_t m_space = pimpl_->create_h5_dataspace(ds.dataspace.shape(), SP_NEW);
 
-	hid_t f_space = pimpl_->convert_data_space_sp_to_h5(ds.dataspace.global(),
+	hid_t f_space = pimpl_->create_h5_dataspace(ds.dataspace.global_shape(),
 			flag);
 
 	hid_t dset;

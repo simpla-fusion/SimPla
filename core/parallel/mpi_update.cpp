@@ -5,34 +5,33 @@
  * @author salmon
  */
 
-#include "../utilities/log.h"
-#include "../dataset/dataset.h"
-#include "mpi_comm.h"
-#include "mpi_datatype.h"
 #include "mpi_update.h"
+#include "../dataset/dataset.h"
+#include "../utilities/log.h"
+
 namespace simpla
 {
 
-std::vector<send_recv_s> decompose(DataSpace const & dataspace,
+std::vector<send_recv_s> make_send_recv_list(DataSpace const & dataspace,
 		DataType const & datatype)
 {
 	std::vector<send_recv_s> res;
 
 	auto & mpi_comm = SingletonHolder<simpla::MPIComm>::instance();
 
-	static constexpr size_t ndims = 3;
+	size_t ndims = 3;
 
-	auto ghost_width = dataspace.ghost_width();
+	nTuple<size_t, MAX_NDIMS_OF_ARRAY> g_dims, g_offset, g_count;
 
-	nTuple<size_t, 3> g_dims, g_offset, g_count;
-
-	std::tie(std::ignore, g_dims, g_offset, g_count, std::ignore, std::ignore) =
-			dataspace.global().shape();
+	std::tie(ndims, g_dims, g_offset, std::ignore, g_count, std::ignore) =
+			dataspace.global_shape();
 
 	nTuple<size_t, 3> l_dims, l_offset, l_count;
 
-	std::tie(std::ignore, l_dims, l_offset, l_count, std::ignore, std::ignore) =
-			dataspace.local().shape();
+	std::tie(std::ignore, l_dims, l_offset, std::ignore, l_count, std::ignore) =
+			dataspace.shape();
+
+	auto ghost_width = dataspace.ghost_width();
 
 	auto mpi_topology = mpi_comm.get_topology();
 
@@ -50,12 +49,12 @@ std::vector<send_recv_s> decompose(DataSpace const & dataspace,
 
 	int count = 0;
 
-	nTuple<size_t, ndims> send_count, send_offset;
-	nTuple<size_t, ndims> recv_count, recv_offset;
+	nTuple<size_t, MAX_NDIMS_OF_ARRAY> send_count, send_offset;
+	nTuple<size_t, MAX_NDIMS_OF_ARRAY> recv_count, recv_offset;
 
 	for (unsigned long s = 0, s_e = (1UL << (ndims * 2)); s < s_e; ++s)
 	{
-		nTuple<int, ndims> coords_shift;
+		nTuple<int, MAX_NDIMS_OF_ARRAY> coords_shift;
 
 		bool is_duplicate = false;
 
@@ -96,7 +95,8 @@ std::vector<send_recv_s> decompose(DataSpace const & dataspace,
 
 			res.emplace_back(
 
-					send_recv_s {
+					send_recv_s
+					{
 
 					mpi_comm.get_neighbour(coords_shift),
 
@@ -129,7 +129,7 @@ void sync_update_dataset(DataSet * dset)
 std::vector<MPI_Request> async_update_dataset(DataSet * dset)
 {
 	return std::move(
-			async_update_continue(decompose(dset->dataspace, dset->datatype),
+			async_update_continue(make_send_recv_list(dset->dataspace, dset->datatype),
 					dset->data.get()));
 }
 std::vector<MPI_Request> async_update_continue(
@@ -148,7 +148,6 @@ std::vector<MPI_Request> async_update_continue(
 
 	for (auto const & item : send_recv_list)
 	{
-
 		MPI_Isend(data, 1, item.send_type.type(), item.remote, item.send_tag,
 				mpi_comm.comm(), req_it);
 		++req_it;

@@ -7,10 +7,13 @@
 
 #ifndef CORE_PARALLEL_MPI_UPDATE_H_
 #define CORE_PARALLEL_MPI_UPDATE_H_
+#include "mpi_comm.h"
+#include "mpi_datatype.h"
 
 namespace simpla
 {
 class DataSet;
+class DataSpace;
 
 template<typename T>
 void sync_ghosts(T * f, size_t flag = 0)
@@ -29,7 +32,7 @@ struct send_recv_s
 	MPIDataType recv_type;
 };
 
-std::vector<send_recv_s> decompose(DataSpace const & dataspace,
+std::vector<send_recv_s> make_send_recv_list(DataSpace const & dataspace,
 		DataType const & datatype);
 
 void sync_update_dataset(DataSet * dset);

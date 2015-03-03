@@ -44,10 +44,14 @@ public:
 
 	void swap(DataSpace &);
 
-	void create(int rank, const size_t * dims, const size_t * gw = nullptr);
+	void create_simple(int rank, const size_t * dims, const size_t * gw =
+			nullptr);
 
 	void select_hyperslab(size_t const *offset, size_t const * count,
 			size_t const * stride = nullptr, size_t const * block = nullptr);
+
+	void decompose(size_t ndims, size_t const * proc_dims,
+			size_t const * proc_coord);
 
 	bool is_valid() const;
 
@@ -66,9 +70,10 @@ public:
 	std::tuple<size_t, size_t const *, size_t const *, size_t const *,
 			size_t const *, size_t const *> shape() const;
 
+	std::tuple<size_t, size_t const *, size_t const *, size_t const *,
+			size_t const *, size_t const *> global_shape() const;
+
 	size_t const * ghost_width() const;
-	DataSpace local() const;
-	DataSpace global() const;
 
 private:
 	struct pimpl_s;

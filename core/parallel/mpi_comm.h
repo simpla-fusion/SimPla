@@ -59,7 +59,8 @@ public:
 
 	int get_neighbour(int disp_i, int disp_j = 0, int disp_k = 0) const;
 
-	int get_neighbour(nTuple<int, 3> const d) const
+	template<typename TI>
+	int get_neighbour(TI const &d) const
 	{
 		return get_neighbour(d[0], d[1], d[2]);
 	}
