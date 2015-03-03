@@ -53,12 +53,12 @@ TEST_P(TestFieldCase, index)
 
 	va = 2.0;
 
-	for (auto const &s : mesh)
+	for (auto const &s : mesh.range())
 	{
 		f1[s] = va * mesh.hash(s);
 	}
 
-	for (auto const &s : mesh)
+	for (auto const &s : mesh.range())
 	{
 		EXPECT_LE(mod(va * mesh.hash(s) - f1[s]), EPSILON) << s << f1[s]
 				<< " " << va * mesh.hash(s);
@@ -79,7 +79,7 @@ TEST_P(TestFieldCase, assign)
 //	f1 += f1;
 
 	size_t count = 0;
-	for (auto const &s : mesh)
+	for (auto const &s : mesh.range())
 	{
 		++count;
 
@@ -112,7 +112,7 @@ TEST_P(TestFieldCase, constant_real)
 
 	LOG_CMD(f3 = -f1 *a +f2*c - f1/b -f1/**/);
 
-	for (auto const& s : mesh)
+	for (auto const& s : mesh.range())
 	{
 		value_type res;
 		res = -f1[s] * a + f2[s] * c - f1[s] / b - f1[s];
@@ -155,16 +155,16 @@ TEST_P(TestFieldCase, scalar_field)
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-	for (auto s : f1.mesh())
+	for (auto s : f1.mesh().range())
 	{
 		f1[s] = va * uniform_dist(gen);
 	}
-	for (auto s : f2.mesh())
+	for (auto s : f2.mesh().range())
 	{
 		f2[s] = vb * uniform_dist(gen);
 	}
 
-	for (auto s : f3.mesh())
+	for (auto s : f3.mesh().range())
 	{
 		f3[s] = vc * uniform_dist(gen);
 	}
@@ -184,7 +184,7 @@ TEST_P(TestFieldCase, scalar_field)
 	 * */
 	count = 0;
 
-	for (auto s : mesh)
+	for (auto s : mesh.range())
 	{
 		value_type res = -f1[s] * ra + f2[s] * rb - f3[s] / rc - f1[s];
 

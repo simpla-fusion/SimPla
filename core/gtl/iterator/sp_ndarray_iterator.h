@@ -57,7 +57,18 @@ public:
 	~sp_ndarray_iterator()
 	{
 	}
+	sp_ndarray_iterator & operator=(sp_ndarray_iterator const& other)
+	{
+		sp_ndarray_iterator(other).swap(*this);
+		return *this;
+	}
+	void swap(sp_ndarray_iterator & other)
+	{
+		std::swap(m_min_, m_min_);
+		std::swap(m_max_, m_max_);
+		std::swap(m_self_, m_self_);
 
+	}
 	index_tuple const & operator *() const
 	{
 		return m_self_;
@@ -132,7 +143,11 @@ public:
 	typedef Range<sp_ndarray_iterator<NDIMS, IndexType> > base_range;
 	typedef nTuple<IndexType, NDIMS> index_tuple;
 	index_tuple m_min_, m_max_, m_strides_;
-	size_t m_max_hash_;
+	size_t m_max_hash_ = 0;
+
+	sp_ndarray_range()
+	{
+	}
 
 	sp_ndarray_range(index_tuple min, index_tuple max)
 			: base_range(iterator_type(min, max, min),
@@ -161,7 +176,20 @@ public:
 					other.m_max_hash_)
 	{
 	}
+	sp_ndarray_range & operator=(sp_ndarray_range const & other)
+	{
+		sp_ndarray_range(other).swap(*this);
+		return *this;
+	}
+	void swap(sp_ndarray_range & other)
+	{
+		base_range::swap(other);
 
+		std::swap(m_max_, other.m_max_);
+		std::swap(m_min_, other.m_min_);
+		std::swap(m_strides_, other.m_strides_);
+		std::swap(m_max_hash_, other.m_max_hash_);
+	}
 	size_t size() const
 	{
 		return NProduct(m_max_ - m_min_);

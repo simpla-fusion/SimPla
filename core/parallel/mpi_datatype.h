@@ -37,9 +37,9 @@ struct MPIDataType
 	static MPIDataType create(DataType const &);
 
 	static MPIDataType create(DataType const & data_type, unsigned int ndims,
-			size_t const * dims, size_t const * offset, size_t const * stride,
-			size_t const * count, size_t const * block, bool c_order_array =
-			true);
+			size_t const * dims, size_t const * count, size_t const * offset,
+			size_t const * stride, size_t const * block,
+			bool c_order_array = true);
 
 	template<typename T, typename ...Others>
 	static MPIDataType create(Others && ... others)

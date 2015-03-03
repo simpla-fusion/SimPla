@@ -80,6 +80,12 @@ public:
 	{
 	}
 
+	void swap(Range & other)
+	{
+		std::swap(m_first_, other.m_first_);
+		std::swap(m_last_, other.m_last_);
+		std::swap(m_grainsize_, other.m_grainsize_);
+	}
 	//! True if range is empty
 	virtual bool empty() const
 	{

@@ -71,9 +71,9 @@ MPIDataType MPIDataType::create(DataType const & data_type)
 
 MPIDataType MPIDataType::create(DataType const & data_type, unsigned int ndims,
 		size_t const * dims,        //
+		size_t const * count,       //
 		size_t const * offset,      //
 		size_t const * stride,      //
-		size_t const * count,       //
 		size_t const * block,       //
 		bool c_order_array)
 {

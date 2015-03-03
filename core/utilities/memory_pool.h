@@ -71,12 +71,15 @@ public:
 		void * addr_;
 		size_t s_;
 
-		deleter_s(void * p, size_t s) :
-				addr_(p), s_(s)
+		deleter_s(void * p, size_t s)
+				: addr_(p), s_(s)
+		{
+		}
+		~deleter_s()
 		{
 		}
 
-		void operator ()(void * ptr)
+		inline void operator ()(void * ptr)
 		{
 			SingletonHolder<MemoryPool>::instance().push(addr_, s_);
 		}

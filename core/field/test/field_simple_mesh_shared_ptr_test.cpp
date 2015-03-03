@@ -6,7 +6,7 @@
  */
 
 #include "../../gtl/ntuple.h"
-#include "../../diff_geometry/simple_mesh.h"
+#include "../../mesh/simple_mesh.h"
 #include "../field_shared_ptr.h"
 using namespace simpla;
 

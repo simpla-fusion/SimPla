@@ -21,11 +21,10 @@ struct DataSpace::pimpl_s
 	size_t m_ndims_ = 3;
 
 	index_tuple m_dimensions_;
+	index_tuple m_count_;
 	index_tuple m_offset_;
 	index_tuple m_stride_;
-	index_tuple m_count_;
 	index_tuple m_block_;
-
 	index_tuple m_local_ghost_width_;
 
 };
@@ -115,8 +114,9 @@ DataSpace DataSpace::local() const
 
 	DataSpace res(pimpl_->m_ndims_, &local_dims[0], nullptr);
 
-	res.select_hyperslab(&local_offset[0], &pimpl_->m_count_[0],
+	res.select_hyperslab(&pimpl_->m_count_[0], &local_offset[0],
 			&pimpl_->m_stride_[0], &pimpl_->m_block_[0]);
+
 	return std::move(res);
 }
 DataSpace DataSpace::global() const
@@ -143,21 +143,21 @@ size_t DataSpace::size() const
 std::tuple<size_t, size_t const *, size_t const *, size_t const *,
 		size_t const *, size_t const *> DataSpace::shape() const
 {
-	return std::forward_as_tuple(pimpl_->m_ndims_, //
+	return std::make_tuple(pimpl_->m_ndims_, //
 			&pimpl_->m_dimensions_[0], //
-			&pimpl_->m_offset_[0], //
 			&pimpl_->m_count_[0], //
+			&pimpl_->m_offset_[0], //
 			&pimpl_->m_stride_[0], //
 			&pimpl_->m_block_[0]);
 }
 
-void DataSpace::select_hyperslab(size_t const * start, size_t const * count,
+void DataSpace::select_hyperslab(size_t const * count, size_t const * offset,
 		size_t const * stride, size_t const * block)
 {
 	if (pimpl_ != nullptr)
 	{
-		if (start != nullptr)
-			pimpl_->m_offset_ = start;
+		if (offset != nullptr)
+			pimpl_->m_offset_ = offset;
 		if (count != nullptr)
 			pimpl_->m_count_ = count;
 		if (stride != nullptr)

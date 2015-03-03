@@ -67,8 +67,8 @@ struct DataStream::pimpl_s
 
 };
 
-DataStream::DataStream() :
-		pimpl_(new pimpl_s)
+DataStream::DataStream()
+		: pimpl_(new pimpl_s)
 {
 
 	pimpl_->base_file_id_ = -1;
@@ -733,7 +733,7 @@ hid_t DataStream::pimpl_s::convert_data_space_sp_to_h5(DataSpace const &d_space,
 	index_tuple stride;
 	index_tuple block;
 
-	std::tie(ndims, dims, offset, count, stride, block) = d_space.shape();
+	std::tie(ndims, dims, count, offset, stride, block) = d_space.shape();
 
 	if ((flag & SP_RECORD) != 0UL)
 	{

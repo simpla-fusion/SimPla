@@ -50,12 +50,12 @@ private:
 
 public:
 
-	_Field(mesh_type const & d) :
-			mesh_(d), data_(nullptr)
+	_Field(mesh_type const & d)
+			: mesh_(d), data_(nullptr)
 	{
 	}
-	_Field(this_type const & that) :
-			mesh_(that.mesh_), data_(that.data_)
+	_Field(this_type const & that)
+			: mesh_(that.mesh_), data_(that.data_)
 	{
 	}
 	~_Field()
@@ -91,13 +91,13 @@ public:
 	 */
 
 	template<typename ...Args>
-	_Field(this_type & that, Args && ...args) :
-			mesh_(that.mesh_, std::forward<Args>(args)...), data_(that.data_)
+	_Field(this_type & that, Args && ...args)
+			: mesh_(that.mesh_, std::forward<Args>(args)...), data_(that.data_)
 	{
 	}
 	bool empty() const
 	{
-		return mesh_.empty();
+		return data_ == nullptr;
 	}
 	bool is_divisible() const
 	{
@@ -171,11 +171,13 @@ private:
 	}
 
 public:
-	value_type & operator[](id_type const & s)
+	template<typename IndexType>
+	value_type & operator[](IndexType const & s)
 	{
 		return data_.get()[mesh_.hash(s)];
 	}
-	value_type const & operator[](id_type const & s) const
+	template<typename IndexType>
+	value_type const & operator[](IndexType const & s) const
 	{
 		return data_.get()[mesh_.hash(s)];
 	}

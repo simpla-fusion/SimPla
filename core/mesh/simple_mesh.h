@@ -53,22 +53,32 @@ private:
 	range_type m_range_;
 
 public:
-
+	SimpleMesh()
+	{
+	}
 	SimpleMesh(coordinates_type const & xmin, coordinates_type const & xmax,
 			nTuple<size_t, ndims> const& imin,
-			nTuple<size_t, ndims> const& imax) :
-			m_range_(imin, imax), m_xmin_(xmin), m_xmax_(xmax)
+			nTuple<size_t, ndims> const& imax)
+			: m_range_(imin, imax), m_xmin_(xmin), m_xmax_(xmax)
 	{
 		m_dx_ = (m_xmax_ - m_xmin_) / (imax - imin);
 	}
-	SimpleMesh(SimpleMesh const & other) :
-			m_xmin_(other.m_xmin_), m_xmax_(other.m_xmax_), m_dx_(other.m_dx_), m_range_(
-					other.m_range_)
+	SimpleMesh(SimpleMesh const & other)
+			: m_xmin_(other.m_xmin_), m_xmax_(other.m_xmax_), m_dx_(
+					other.m_dx_), m_range_(other.m_range_)
 	{
 	}
 
 	~SimpleMesh()
 	{
+	}
+	SimpleMesh & operator=(SimpleMesh const & other)
+	{
+		m_xmin_ = other.m_xmin_;
+		m_xmax_ = other.m_xmax_;
+		m_dx_ = other.m_dx_;
+		m_range_ = other.m_range_;
+		return *this;
 	}
 
 	std::string get_type_as_string() const
@@ -108,6 +118,12 @@ public:
 
 	void update()
 	{
+
+	}
+
+	size_t max_hash() const
+	{
+		return m_range_.max_hash();
 	}
 	indices_type coordinates_to_id(coordinates_type const &x) const
 	{
@@ -140,7 +156,10 @@ public:
 	{
 		return m_range_.hash(std::forward<Args>(args)...);
 	}
-
+	bool is_divisible() const
+	{
+		return m_range_.is_divisible();
+	}
 private:
 	template<typename TOP, typename ... Args>
 	constexpr auto calculate_(TOP op, Args &&...args,
