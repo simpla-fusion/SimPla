@@ -207,6 +207,10 @@ struct field_selector<std::shared_ptr<TV>>
 
 }  // namespace _impl
 /**@} */
+
+template<typename TM, typename TV>
+auto make_field(TM const & mesh)
+DECL_RET_TYPE(( _Field<TM,std::shared_ptr<TV>>(mesh)))
 }
 // namespace simpla
 

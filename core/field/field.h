@@ -147,10 +147,6 @@ using Field=_Field<TM,TContainer,typename _impl::field_selector<TContainer>::typ
 template<typename TM, typename TV>
 using SimpleField=_Field<TM,std::shared_ptr<TV> >;
 
-template<typename TField, typename ...Args>
-auto make_field(Args && ... args)
-DECL_RET_TYPE((TField( std::forward<Args>(args)... )))
-
 /** @} */
 }
  // namespace simpla

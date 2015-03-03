@@ -12,11 +12,11 @@
 #include <cstddef>
 #include <type_traits>
 
-#include "../../gtl/expression_template.h"
-#include "../../gtl/ntuple.h"
-#include "../../gtl/primitives.h"
-#include "../calculus.h"
-#include "../diff_geometry_common.h"
+#include "../../../gtl/expression_template.h"
+#include "../../../gtl/ntuple.h"
+#include "../../../gtl/primitives.h"
+#include "../../calculus.h"
+#include "../../mesh_common.h"
 
 namespace simpla
 {
@@ -57,53 +57,53 @@ public:
 //***************************************************************************************************
 
 //	template<typename T, typename ...Others>
-//	T const & calculate(T const & v, Others &&... s) const;
+//	T const & calculate(T const & v, Others &&... s) ;
 //
 //	template<typename ...T, typename ...Others>
 //	inline typename nTuple_traits<nTuple<Expression<T...>>> ::primary_type
-//	calculate(nTuple<Expression<T...>> const & v, Others &&... s) const;
+//	calculate(nTuple<Expression<T...>> const & v, Others &&... s) ;
 //
 //	template<typename TC, typename TD, typename Others>
 //	inline typename _Field<TC, TD>::value_type const &
-//	calculate( _Field<TC, TD> const &f, Others s) const;
+//	calculate( _Field<TC, TD> const &f, Others s) ;
 //
 //	template<typename TOP, typename TL, typename ...Others>
 //	inline typename field_result_of<TOP(TL,Others ... )>::type
-//	calculate(_Field<Expression<TOP, TL>> const &f, Others &&... s) const;
+//	calculate(_Field<Expression<TOP, TL>> const &f, Others &&... s) ;
 //
 //	template<typename TOP, typename TL, typename TR, typename ...Others>
 //	inline typename field_result_of<TOP(TL,TR,Others ... )>::type
-//	calculate(_Field<Expression<TOP, TL, TR>> const &f, Others &&... s) const;
+//	calculate(_Field<Expression<TOP, TL, TR>> const &f, Others &&... s) ;
 //
 	template<typename ...Others>
-	Real calculate(geometry_type const & geo, Real v, Others &&... s) const
+	static Real calculate(geometry_type const & geo, Real v, Others &&... s)
 	{
 		return v;
 	}
 
 	template<typename ...Others>
-	int calculate(geometry_type const & geo, int v, Others &&... s) const
+	static int calculate(geometry_type const & geo, int v, Others &&... s)
 	{
 		return v;
 	}
 
 	template<typename ...Others>
-	std::complex<Real> calculate(geometry_type const & geo,
-			std::complex<Real> v, Others &&... s) const
+	static std::complex<Real> calculate(geometry_type const & geo,
+			std::complex<Real> v, Others &&... s)
 	{
 		return v;
 	}
 
 	template<typename T, size_t ...N, typename ...Others>
-	nTuple<T, N...> const& calculate(geometry_type const & geo,
-			nTuple<T, N...> const& v, Others &&... s) const
+	static nTuple<T, N...> const& calculate(geometry_type const & geo,
+			nTuple<T, N...> const& v, Others &&... s)
 	{
 		return v;
 	}
 
 	template<typename ...T, typename ...Others>
-	inline typename nTuple_traits<nTuple<Expression<T...>>> ::primary_type
-	calculate(geometry_type const & geo,nTuple<Expression<T...>> const & v, Others &&... s) const
+	static inline typename nTuple_traits<nTuple<Expression<T...>>> ::primary_type
+	calculate(geometry_type const & geo,nTuple<Expression<T...>> const & v, Others &&... s)
 	{
 		typename nTuple_traits<nTuple<Expression<T...>>> ::primary_type res;
 		res=v;
@@ -111,30 +111,30 @@ public:
 	}
 
 	template<typename TC, typename TD, typename ... Others>
-	inline typename field_traits<_Field<TC, TD> >::value_type
-	calculate(geometry_type const & geo,_Field<TC, TD> const &f, Others && ... s) const
+	static inline typename field_traits<_Field<TC, TD> >::value_type
+	calculate(geometry_type const & geo,_Field<TC, TD> const &f, Others && ... s)
 	{
 		return f.get(std::forward<Others>(s)...);
 	}
 
 	template<typename TOP, typename TL, typename TR, typename ...Others>
-	inline typename field_traits< _Field<Expression<TOP, TL, TR>>>::value_type
-	calculate(geometry_type const & geo,_Field<Expression<TOP, TL, TR>> const &f, Others &&... s) const
+	static inline typename field_traits< _Field<Expression<TOP, TL, TR>>>::value_type
+	calculate(geometry_type const & geo,_Field<Expression<TOP, TL, TR>> const &f, Others &&... s)
 	{
 		return f.op_(calculate( geo,f.lhs,std::forward<Others>(s)...),
 				calculate(geo,f.rhs,std::forward<Others>(s)...));
 	}
 
 	template<typename TOP, typename TL, typename ...Others>
-	inline typename field_traits< _Field<Expression<TOP, TL,std::nullptr_t>>>::value_type
-	calculate(geometry_type const & geo,_Field<Expression<TOP, TL,std::nullptr_t>> const &f, Others &&... s) const
+	static inline typename field_traits< _Field<Expression<TOP, TL,std::nullptr_t>>>::value_type
+	calculate(geometry_type const & geo,_Field<Expression<TOP, TL,std::nullptr_t>> const &f, Others &&... s)
 	{
 		return f.op_(calculate(geo,f.lhs,std::forward<Others>(s)...) );
 	}
 
 	template<typename T,typename TI>
-	inline typename field_traits<_Field<_impl::ExteriorDerivative< VERTEX,T> >>::value_type
-	calculate(geometry_type const & geo,_Field<_impl::ExteriorDerivative<VERTEX,T> > const & f, TI s) const
+	static inline typename field_traits<_Field<_impl::ExteriorDerivative< VERTEX,T> >>::value_type
+	calculate(geometry_type const & geo,_Field<_impl::ExteriorDerivative<VERTEX,T> > const & f, TI s)
 	{
 		auto D = geo.delta_index(s);
 
@@ -143,8 +143,8 @@ public:
 	}
 
 	template<typename T,typename TI>
-	inline typename field_traits<_Field<_impl::ExteriorDerivative< EDGE,T> >>::value_type
-	calculate(geometry_type const & geo,_Field<_impl::ExteriorDerivative<EDGE,T> > const & expr, TI s) const
+	static inline typename field_traits<_Field<_impl::ExteriorDerivative< EDGE,T> >>::value_type
+	calculate(geometry_type const & geo,_Field<_impl::ExteriorDerivative<EDGE,T> > const & expr, TI s)
 	{
 		auto const & f=expr.lhs;
 
@@ -171,8 +171,8 @@ public:
 	}
 
 	template<typename T,typename TI>
-	inline typename field_traits<_Field<_impl::ExteriorDerivative< FACE,T> >>::value_type
-	calculate(geometry_type const & geo,_Field<_impl::ExteriorDerivative<FACE,T> > const & expr, TI s) const
+	static inline typename field_traits<_Field<_impl::ExteriorDerivative< FACE,T> >>::value_type
+	calculate(geometry_type const & geo,_Field<_impl::ExteriorDerivative<FACE,T> > const & expr, TI s)
 	{
 		auto const & f=expr.lhs;
 		auto X = geo.DI(0, s);
@@ -196,16 +196,16 @@ public:
 //
 ////	template<typename TM, size_t IL, typename TL> void calculate(
 ////			_impl::ExteriorDerivative, _Field<Domain<TM, IL>, TL> const & f,
-////			index_type s) const = delete;
+////			index_type s)  = delete;
 ////
 ////	template<typename TM, size_t IL, typename TL> void calculate(
 ////			_impl::CodifferentialDerivative,
-////			_Field<TL...> const & f, index_type s) const = delete;
+////			_Field<TL...> const & f, index_type s)  = delete;
 
 	template<typename T >
-	inline typename field_traits<_Field< _impl::CodifferentialDerivative< EDGE, T> > >::value_type
+	static inline typename field_traits<_Field< _impl::CodifferentialDerivative< EDGE, T> > >::value_type
 	calculate(geometry_type const & geo,_Field<_impl::CodifferentialDerivative< EDGE, T>> const & expr,
-			index_type s) const
+			index_type s)
 	{
 		auto const & f=expr.lhs;
 
@@ -236,9 +236,9 @@ public:
 	}
 
 	template<typename T >
-	inline typename field_traits<_Field< _impl::CodifferentialDerivative< FACE, T> > >::value_type
+	static inline typename field_traits<_Field< _impl::CodifferentialDerivative< FACE, T> > >::value_type
 	calculate(geometry_type const & geo,_Field<_impl::CodifferentialDerivative< FACE, T>> const & expr,
-			index_type s) const
+			index_type s)
 	{
 		auto const & f=expr.lhs;
 		auto X = geo.delta_index(s);
@@ -260,9 +260,9 @@ public:
 	}
 
 	template<typename T >
-	inline typename field_traits<_Field< _impl::CodifferentialDerivative< VOLUME, T> > >::value_type
+	static inline typename field_traits<_Field< _impl::CodifferentialDerivative< VOLUME, T> > >::value_type
 	calculate(geometry_type const & geo,_Field<_impl::CodifferentialDerivative< VOLUME, T>> const & expr,
-			index_type s) const
+			index_type s)
 	{
 		auto const & f=expr.lhs;
 		auto D = geo.delta_index(geo.dual(s));
@@ -283,17 +283,17 @@ public:
 ////! Form<IR> ^ Form<IR> => Form<IR+IL>
 
 	template<typename TL,typename TR>
-	inline typename field_traits<_Field<_impl::Wedge<VERTEX,VERTEX,TL,TR> > >::value_type
+	static inline typename field_traits<_Field<_impl::Wedge<VERTEX,VERTEX,TL,TR> > >::value_type
 	calculate(geometry_type const & geo,_Field<_impl::Wedge<VERTEX,VERTEX,TL,TR>> const & expr,
-			index_type s) const
+			index_type s)
 	{
 		return (calculate(expr.lhs, s) * calculate(expr.rhs, s));
 	}
 
 	template<typename TL,typename TR>
-	inline typename field_traits<_Field<_impl::Wedge<VERTEX,EDGE,TL,TR> > >::value_type
+	static inline typename field_traits<_Field<_impl::Wedge<VERTEX,EDGE,TL,TR> > >::value_type
 	calculate(geometry_type const & geo,_Field<_impl::Wedge<VERTEX,EDGE,TL,TR>> const & expr,
-			index_type s) const
+			index_type s)
 	{
 		auto X = geo.delta_index(s);
 
@@ -302,9 +302,9 @@ public:
 	}
 
 	template<typename TL,typename TR>
-	inline typename field_traits<_Field<_impl::Wedge<VERTEX,FACE,TL,TR> > >::value_type
+	static inline typename field_traits<_Field<_impl::Wedge<VERTEX,FACE,TL,TR> > >::value_type
 	calculate(geometry_type const & geo,_Field<_impl::Wedge<VERTEX,FACE,TL,TR>> const & expr,
-			index_type s) const
+			index_type s)
 	{
 
 		auto const & l =expr.lhs;
@@ -328,9 +328,9 @@ public:
 	}
 
 	template<typename TL,typename TR>
-	inline typename field_traits<_Field<_impl::Wedge<VERTEX,VOLUME,TL,TR> > >::value_type
+	static inline typename field_traits<_Field<_impl::Wedge<VERTEX,VOLUME,TL,TR> > >::value_type
 	calculate(geometry_type const & geo,_Field<_impl::Wedge<VERTEX,VOLUME,TL,TR>> const & expr,
-			index_type s) const
+			index_type s)
 	{
 
 		auto const & l =expr.lhs;
@@ -362,9 +362,9 @@ public:
 	}
 
 	template<typename TL,typename TR>
-	inline typename field_traits<_Field<_impl::Wedge<EDGE,VERTEX,TL,TR> > >::value_type
+	static inline typename field_traits<_Field<_impl::Wedge<EDGE,VERTEX,TL,TR> > >::value_type
 	calculate(geometry_type const & geo,_Field<_impl::Wedge<EDGE,VERTEX,TL,TR>> const & expr,
-			index_type s) const
+			index_type s)
 	{
 
 		auto const & l =expr.lhs;
@@ -376,9 +376,9 @@ public:
 	}
 
 	template<typename TL,typename TR>
-	inline typename field_traits<_Field<_impl::Wedge<EDGE,EDGE,TL,TR> > >::value_type
+	static inline typename field_traits<_Field<_impl::Wedge<EDGE,EDGE,TL,TR> > >::value_type
 	calculate(geometry_type const & geo,_Field<_impl::Wedge<EDGE,EDGE,TL,TR>> const & expr,
-			index_type s) const
+			index_type s)
 	{
 		auto const & l =expr.lhs;
 		auto const & r =expr.rhs;
@@ -391,9 +391,9 @@ public:
 	}
 
 	template<typename TL,typename TR>
-	inline typename field_traits<_Field<_impl::Wedge<EDGE,FACE,TL,TR> > >::value_type
+	static inline typename field_traits<_Field<_impl::Wedge<EDGE,FACE,TL,TR> > >::value_type
 	calculate(geometry_type const & geo,_Field<_impl::Wedge<EDGE,FACE,TL,TR>> const & expr,
-			index_type s) const
+			index_type s)
 	{
 		auto const & l =expr.lhs;
 		auto const & r =expr.rhs;
@@ -425,9 +425,9 @@ public:
 	}
 
 	template<typename TL,typename TR>
-	inline typename field_traits<_Field<_impl::Wedge<FACE,VERTEX,TL,TR> > >::value_type
+	static inline typename field_traits<_Field<_impl::Wedge<FACE,VERTEX,TL,TR> > >::value_type
 	calculate(geometry_type const & geo,_Field<_impl::Wedge<FACE,VERTEX,TL,TR>> const & expr,
-			index_type s) const
+			index_type s)
 	{
 		auto const & l =expr.lhs;
 		auto const & r =expr.rhs;
@@ -441,9 +441,9 @@ public:
 	}
 
 	template<typename TL,typename TR>
-	inline typename field_traits<_Field<_impl::Wedge<FACE,EDGE,TL,TR> > >::value_type
+	static inline typename field_traits<_Field<_impl::Wedge<FACE,EDGE,TL,TR> > >::value_type
 	calculate(geometry_type const & geo,_Field<_impl::Wedge<FACE,EDGE,TL,TR>> const & expr,
-			index_type s) const
+			index_type s)
 	{
 		auto const & l =expr.lhs;
 		auto const & r =expr.rhs;
@@ -473,9 +473,9 @@ public:
 	}
 
 	template<typename TL,typename TR>
-	inline typename field_traits<_Field<_impl::Wedge<VOLUME,VERTEX,TL,TR> > >::value_type
+	static inline typename field_traits<_Field<_impl::Wedge<VOLUME,VERTEX,TL,TR> > >::value_type
 	calculate(geometry_type const & geo,_Field<_impl::Wedge<VOLUME,VERTEX,TL,TR>> const & expr,
-			index_type s) const
+			index_type s)
 	{
 		auto const & l =expr.lhs;
 		auto const & r =expr.rhs;
@@ -502,9 +502,9 @@ public:
 ////***************************************************************************************************
 
 	template<typename T >
-	inline typename field_traits<_Field< _impl::HodgeStar< VOLUME, T> > >::value_type
+	static inline typename field_traits<_Field< _impl::HodgeStar< VOLUME, T> > >::value_type
 	calculate(geometry_type const & geo,_Field<_impl::HodgeStar< VOLUME, T>> const & expr,
-			index_type s) const
+			index_type s)
 	{
 		auto const & f =expr.lhs;
 //		auto X = geo.DI(0,s);
@@ -539,12 +539,12 @@ public:
 //	template<typename TM, typename TL, typename TR> void calculate(
 //			_impl::InteriorProduct, nTuple<TR, G::ndims> const & v,
 //			_Field<Domain<TM, VERTEX>, TL> const & f,
-//			index_type s) const = delete;
+//			index_type s)  = delete;
 
 	template<typename TL,typename TR >
-	inline typename field_traits<_Field< _impl::InteriorProduct<EDGE, VERTEX,TL,TR> > >::value_type
+	static inline typename field_traits<_Field< _impl::InteriorProduct<EDGE, VERTEX,TL,TR> > >::value_type
 	calculate(geometry_type const & geo,_Field<_impl::InteriorProduct<EDGE, VERTEX, TL,TR>> const & expr,
-			index_type s) const
+			index_type s)
 	{
 		auto const & f =expr.lhs;
 		auto const & v =expr.rhs;
@@ -561,9 +561,9 @@ public:
 	}
 
 	template<typename TL,typename TR >
-	inline typename field_traits<_Field< _impl::InteriorProduct<FACE, VERTEX,TL,TR> > >::value_type
+	static inline typename field_traits<_Field< _impl::InteriorProduct<FACE, VERTEX,TL,TR> > >::value_type
 	calculate(geometry_type const & geo,_Field<_impl::InteriorProduct<FACE, VERTEX, TL,TR>> const & expr,
-			index_type s) const
+			index_type s)
 	{
 		auto const & f =expr.lhs;
 		auto const & v =expr.rhs;
@@ -581,9 +581,9 @@ public:
 	}
 
 	template<typename TL,typename TR >
-	inline typename field_traits<_Field< _impl::InteriorProduct<VOLUME, VERTEX,TL,TR> > >::value_type
+	static inline typename field_traits<_Field< _impl::InteriorProduct<VOLUME, VERTEX,TL,TR> > >::value_type
 	calculate(geometry_type const & geo,_Field<_impl::InteriorProduct<VOLUME, VERTEX, TL,TR>> const & expr,
-			index_type s) const
+			index_type s)
 	{
 		auto const & f =expr.lhs;
 		auto const & v =expr.rhs;
@@ -596,8 +596,8 @@ public:
 //**************************************************************************************************
 // Non-standard operation
 
-	template< size_t IL, typename T > inline typename field_traits<T>::value_type
-	calculate(geometry_type const & geo,_Field<_impl::MapTo<IL, IL, T>> const & f, index_type s) const
+	template< size_t IL, typename T > static inline typename field_traits<T>::value_type
+	calculate(geometry_type const & geo,_Field<_impl::MapTo<IL, IL, T>> const & f, index_type s)
 	{
 		return calculate(geo,f,s);
 	}
@@ -826,7 +826,7 @@ public:
 
 	// For curl_pdx
 
-	template<size_t N , typename T> inline
+	template<size_t N , typename T> static inline
 	typename field_traits<_Field< _impl::PartialExteriorDerivative< N,EDGE , T > > >::value_type
 	calculate(geometry_type const & geo,_Field< _impl::PartialExteriorDerivative< N,EDGE , T >> const & expr,
 			index_type s)
@@ -844,7 +844,7 @@ public:
 		- (calculate(geo,f, s + Z) - calculate(geo,f, s - Z));
 	}
 
-	template<size_t N , typename T> inline
+	template<size_t N , typename T> static inline
 	typename field_traits<_Field< _impl::PartialCodifferentialDerivative< N,FACE , T >> >::value_type
 	calculate(geometry_type const & geo,_Field< _impl::PartialCodifferentialDerivative< N,FACE , T >> const & expr,
 			index_type s)

@@ -4,19 +4,37 @@
  *  Created on: 2015年1月29日
  *      Author: salmon
  */
+#include <gtest/gtest.h>
 
 #include "../../gtl/ntuple.h"
 #include "../../mesh/simple_mesh.h"
 #include "../field_shared_ptr.h"
-using namespace simpla;
-
-typedef SimpleMesh mesh_type;
-typedef std::shared_ptr<double> container_type;
-
+#include "../field.h"
 #include "field_basic_test.h"
 
-INSTANTIATE_TEST_CASE_P(FETLCartesian, TestFieldCase,
-		testing::Values(
-				SimpleMesh(nTuple<Real, 3>( { 0, 0, 0 }), nTuple<Real, 3>( { 1,
-						1, 1 }), nTuple<size_t, 3>( { 10, 10, 10 }),
-						nTuple<size_t, 3>( { 0, 0, 0 }))));
+using namespace simpla;
+
+typedef Field<SimpleMesh, std::shared_ptr<nTuple<double, 3> > > vfield_type;
+
+template<typename TField, int id>
+struct TestFieldParam
+{
+	typedef TField field_type;
+
+	static SimpleMesh mesh;
+};
+
+typedef _Field<SimpleMesh, std::shared_ptr<double>> field_type;
+
+template<> SimpleMesh TestFieldParam<field_type, 0>::mesh = SimpleMesh();
+template<> SimpleMesh TestFieldParam<field_type, 1>::mesh = SimpleMesh();
+
+typedef testing::Types<
+
+TestFieldParam<field_type, 0>,
+
+TestFieldParam<field_type, 1>
+
+> TypeParamList;
+INSTANTIATE_TYPED_TEST_CASE_P(FIELD, TestField, TypeParamList);
+

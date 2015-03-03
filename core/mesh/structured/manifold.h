@@ -13,9 +13,10 @@
 #include <ostream>
 
 #include "../../dataset/dataset.h"
-#include "../utilities/utilities.h"
+#include "../../utilities/utilities.h"
 namespace simpla
 {
+template<typename ...>struct _Field;
 
 template<typename > class FiniteDiffMethod;
 template<typename > class InterpolatorLinear;
@@ -27,8 +28,8 @@ template<typename > class InterpolatorLinear;
 template<size_t IFORM, //
 		typename TG, // Geometric space, mesh
 		template<typename > class CalculusPolicy = FiniteDiffMethod, // difference scheme
-		template<typename > class InterpolatorPlolicy = InterpolatorLinear, // interpolation formula
-		template<typename > class ContainerPolicy = std::shared_ptr>
+		template<typename > class InterpolatorPlolicy = InterpolatorLinear // interpolation formula
+>
 class Manifold
 {
 
@@ -40,7 +41,7 @@ public:
 	typedef typename geometry_type::id_type id_type;
 	typedef CalculusPolicy<geometry_type> calculate_policy;
 	typedef InterpolatorPlolicy<geometry_type> interpolatpr_policy;
-
+	typedef typename geometry_type::coordinates_type coordinates_type;
 	static constexpr size_t iform = IFORM;
 	template<typename TV> using field_value_type=typename
 	std::conditional<iform==VERTEX || iform ==VOLUME,TV,nTuple<TV,3>>::type;
@@ -49,23 +50,22 @@ public:
 	typedef typename range_type::const_iterator const_iterator;
 
 private:
-	typename geometry_type::const_holder geometry_;
-	range_type range_;
+	std::shared_ptr<const geometry_type> m_geometry_;
+	range_type m_range_;
 public:
 
-	Manifold() :
-			geometry_(nullptr)
+	Manifold()
+			: m_geometry_(nullptr)
 	{
 	}
 
-	Manifold(geometry_type const & geo) :
-			geometry_(geo.shared_from_this()), range_(
-					geo.template range<iform>())
+	Manifold(geometry_type const & geo)
+			: m_geometry_(geo.shared_from_this()), m_range_()
 	{
 	}
 
-	Manifold(this_type const & other) :
-			geometry_(other.geometry_)
+	Manifold(this_type const & other)
+			: m_geometry_(other.m_geometry_)
 	{
 	}
 
@@ -73,11 +73,11 @@ public:
 
 	std::string get_type_as_string() const
 	{
-		return "Mesh<" + geometry_->get_type_as_string() + ">";
+		return "Mesh<" + m_geometry_->get_type_as_string() + ">";
 	}
 	this_type & operator=(this_type const & other)
 	{
-		geometry_ = other.geometry_->shared_from_this();
+		m_geometry_ = other.m_geometry_->shared_from_this();
 		return *this;
 	}
 
@@ -86,16 +86,16 @@ public:
 	template<size_t J>
 	clone_type<J> clone() const
 	{
-		return clone_type<J>(*geometry_);
+		return clone_type<J>(*m_geometry_);
 	}
 
 	/** @name Range Concept
 	 * @{
 	 */
-
-	Manifold(this_type & other, op_split) :
-			geometry_(other.geometry_)
-//	, range_(other.range_, op_split())
+	template<typename ...Others>
+	Manifold(this_type & other, Others && ...others)
+			: m_geometry_(other.m_geometry_), m_range_(other.m_range_,
+					std::forward<Others>(others)...)
 	{
 	}
 	bool is_divisible() const
@@ -110,7 +110,7 @@ public:
 	template<typename TFun>
 	void serial_foreach(TFun const & fun) const
 	{
-		for (auto s : range_)
+		for (auto s : m_range_)
 		{
 			fun(s);
 		}
@@ -119,19 +119,10 @@ public:
 	template<typename TFun, typename ...Args>
 	void serial_foreach(TFun const &fun, Args &&...args) const
 	{
-		for (auto s : range_)
+		for (auto s : m_range_)
 		{
 			fun(get_value(std::forward<Args>(args),s)...);
 		}
-	}
-
-	template<typename ...Args>
-	void foreach(Args &&...args) const
-	{
-//		parallel_for(*this, [&](this_type const & sub_m)
-//		{
-		this->serial_foreach(std::forward<Args>(args) ...);
-//		});
 	}
 
 	template<typename TFun, typename TContainre>
@@ -160,17 +151,17 @@ public:
 	template<typename ...Args>
 	size_t hash(Args && ...args) const
 	{
-		return geometry_->hash(std::forward<Args>(args)...);
+		return m_geometry_->hash(std::forward<Args>(args)...);
 	}
 
 	size_t max_hash() const
 	{
-		return geometry_->template max_hash<iform>();
+		return m_geometry_->template max_hash<iform>();
 	}
 	template<typename ...Args>
 	id_type id(Args && ...args) const
 	{
-		return geometry_->id(std::forward<Args>(args)...);
+		return m_geometry_->id(std::forward<Args>(args)...);
 	}
 
 	constexpr id_type id(id_type s) const
@@ -180,14 +171,14 @@ public:
 
 	template<typename ...Args>
 	auto calculate(Args && ...args) const
-	DECL_RET_TYPE((calculate_policy::calculate(
-							*geometry_,std::forward<Args>(args)...)))
+	DECL_RET_TYPE(( calculate_policy::calculate(
+							*m_geometry_,std::forward<Args>(args)...)))
 
 	template<typename TOP, typename TL, typename TR>
 	void calculate(
 			_Field<AssignmentExpression<TOP, TL, TR> > const & fexpr) const
 	{
-		for (auto s : range_)
+		for (auto s : m_range_)
 		{
 			fexpr.op_(fexpr.lhs, fexpr.rhs, s);
 		}
@@ -195,30 +186,22 @@ public:
 
 	range_type const & range() const
 	{
-		return range_;
-	}
-	const_iterator begin() const
-	{
-		return range_.begin();
-	}
-	const_iterator end() const
-	{
-		return range_.end();
+		return m_range_;
 	}
 
 	template<typename ...Args>
 	auto coordinates(Args && ...args) const
-	DECL_RET_TYPE(( geometry_->coordinates(std::forward<Args>(args)...)))
+	DECL_RET_TYPE(( m_geometry_->coordinates(std::forward<Args>(args)...)))
 
 	template<typename ...Args>
 	auto gather(Args && ...args) const
 	DECL_RET_TYPE((interpolatpr_policy::gather(
-							*geometry_,std::forward<Args>(args)...)))
+							*m_geometry_,std::forward<Args>(args)...)))
 
 	template<typename ...Args>
 	auto scatter(Args && ...args) const
 	DECL_RET_TYPE((interpolatpr_policy::scatter(
-							*geometry_,std::forward<Args>(args)...)))
+							*m_geometry_,std::forward<Args>(args)...)))
 
 //	template<typename ...Args>
 //	auto sample(Args && ...args) const
@@ -234,6 +217,13 @@ std::shared_ptr<Manifold<IFORM, TG>> create_mesh(TG const & geo)
 	return std::make_shared<Manifold<IFORM, TG>>(geo);
 }
 
+template<size_t IFORM, typename TV, typename TG>
+_Field<Manifold<IFORM, TG>, std::shared_ptr<TV>> make_form(TG const & geo)
+{
+	typedef Manifold<IFORM, TG> manifold_type;
+	return std::move(
+			_Field<manifold_type, std::shared_ptr<TV>>(manifold_type(geo)));
+}
 }
 // namespace simpla
 

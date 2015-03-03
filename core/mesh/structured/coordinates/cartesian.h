@@ -34,7 +34,7 @@ struct CartesianCoordinates: public TTopology, public enable_create_from_this<
 public:
 	typedef TTopology topology_type;
 	typedef CartesianCoordinates<topology_type> this_type;
-
+	typedef std::shared_ptr<this_type> holder_type;
 	static constexpr size_t ndims = topology_type::ndims;
 
 	static constexpr size_t XAxis = (ZAXIS + 1) % 3;
@@ -49,8 +49,8 @@ public:
 private:
 	bool is_valid_ = false;
 public:
-	CartesianCoordinates() :
-			topology_type(), is_valid_(false)
+	CartesianCoordinates()
+			: topology_type(), is_valid_(false)
 	{
 
 		xmin_ = coordinates_type( { 0, 0, 0 });
@@ -72,8 +72,8 @@ public:
 
 	template<typename ... Args>
 	CartesianCoordinates(coordinates_type const & x0,
-			coordinates_type const & x1, Args && ... args) :
-			topology_type(std::forward<Args>(args)...)
+			coordinates_type const & x1, Args && ... args)
+			: topology_type(std::forward<Args>(args)...)
 	{
 		extents(x0, x1);
 		update();
@@ -104,14 +104,14 @@ public:
 
 	struct Hash
 	{
-		typename holder_type self_;
+		holder_type self_;
 
-		Hash(holder_type g) :
-				self_(g)
+		Hash(holder_type g)
+				: self_(g)
 		{
 		}
-		Hash(Hash const & other) :
-				self_(other.self_)
+		Hash(Hash const & other)
+				: self_(other.self_)
 		{
 		}
 		~Hash()
@@ -123,13 +123,13 @@ public:
 		constexpr size_t hash_(T const &x,
 				std::integral_constant<bool, false>) const
 		{
-			return geo_->coordiantes_to_id(x);
+			return self_->coordiantes_to_id(x);
 		}
 		template<typename T>
 		constexpr size_t hash_(T const &p,
 				std::integral_constant<bool, true>) const
 		{
-			return geo_->coordiantes_to_id(p.x);
+			return self_->coordiantes_to_id(p.x);
 		}
 
 		HAS_MEMBER(x);
@@ -137,14 +137,15 @@ public:
 		template<typename T>
 		constexpr size_t operator()(T const &x) const
 		{
-			return hash_(std::forward<Args>(x),std::integral_constant<bool, has_member_x<T>::value>());
+			return hash_(x,std::integral_constant<bool, has_member_x<T>::value>());
 		}
 
 	};
 
 	Hash hash_function() const
 	{
-		return Hash(shared_from_this());
+		return Hash(enable_create_from_this<
+				CartesianCoordinates<TTopology, ZAXIS>>::shared_from_this());
 	}
 	//***************************************************************************************************
 	// Geometric properties
@@ -437,7 +438,7 @@ public:
 				std::make_tuple(MapToCartesian(std::get<0>(R)), std::get<1>(R)));
 	}
 
-	coordinates_type Lie_trans(coordiantes_type const & x,
+	coordinates_type Lie_trans(coordinates_type const & x,
 			nTuple<Real, 3> const & v)
 	{
 		coordinates_type res;
@@ -447,11 +448,11 @@ public:
 	}
 
 	coordinates_type Lie_trans(
-			std::tuple<coordiantes_type, nTuple<Real, 3> > const &Z,
+			std::tuple<coordinates_type, nTuple<Real, 3> > const &Z,
 			nTuple<Real, 3> const & v)
 	{
 		coordinates_type res;
-		res = x + v;
+		res = std::get<0>(Z) + v;
 
 		return std::move(res);
 	}

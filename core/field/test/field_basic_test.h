@@ -9,41 +9,41 @@
 #define CORE_FIELD_TEST_FIELD_BASIC_TEST_H_
 
 #include <gtest/gtest.h>
-#include <tuple>
 
 #include "../../utilities/utilities.h"
-#include "../field.h"
 
 using namespace simpla;
 
-template<typename TField>
-class TestField: public testing::TestWithParam<typename TField::mesh_type>
+template<typename TFieldParam>
+class TestField: public testing::Test
 {
-	typedef testing::TestWithParam<typename TField::mesh_type> base_type;
 protected:
 	void SetUp()
 	{
-		LOGGER.set_stdout_visable_level(LOG_VERBOSE);
-		mesh = base_type::GetParam();
-	}
+		LOGGER.set_stdout_visable_level(10);
 
-	void TearDown()
-	{
+		mesh = TFieldParam::mesh;
+
 	}
 public:
 
-	typedef TField field_type;
+	typedef typename TFieldParam::field_type field_type;
+
 	typedef typename field_type::mesh_type mesh_type;
+
 	typedef typename field_type::value_type value_type;
 
 	mesh_type mesh;
-
 };
 
-typedef TestField<Field<mesh_type, container_type>> TestFieldCase;
+TYPED_TEST_CASE_P(TestField);
 
-TEST_P(TestFieldCase, index)
+TYPED_TEST_P(TestField, index){
 {
+	typedef typename TestFixture::field_type field_type;
+	typedef typename TestFixture::value_type value_type;
+
+	auto const & mesh= TestFixture::mesh;
 
 	field_type f1(mesh);
 
@@ -61,12 +61,16 @@ TEST_P(TestFieldCase, index)
 	for (auto const &s : mesh.range())
 	{
 		EXPECT_LE(mod(va * mesh.hash(s) - f1[s]), EPSILON) << s << f1[s]
-				<< " " << va * mesh.hash(s);
+		<< " " << va * mesh.hash(s);
 	}
-
 }
-TEST_P(TestFieldCase, assign)
+}
+TYPED_TEST_P(TestField, assign){
 {
+	typedef typename TestFixture::field_type field_type;
+	typedef typename TestFixture::value_type value_type;
+
+	auto const & mesh= TestFixture::mesh;
 
 	auto f1 = make_field<field_type>(mesh);
 
@@ -88,12 +92,15 @@ TEST_P(TestFieldCase, assign)
 	EXPECT_EQ(count, mesh.max_hash());
 
 	CHECK(count);
-
+}
 }
 
-TEST_P(TestFieldCase, constant_real)
+TYPED_TEST_P(TestField, constant_real){
 {
+	typedef typename TestFixture::field_type field_type;
+	typedef typename TestFixture::value_type value_type;
 
+	auto const & mesh= TestFixture::mesh;
 	auto f1 = make_field<field_type>(mesh);
 	auto f2 = make_field<field_type>(mesh);
 	auto f3 = make_field<field_type>(mesh);
@@ -118,12 +125,15 @@ TEST_P(TestFieldCase, constant_real)
 		res = -f1[s] * a + f2[s] * c - f1[s] / b - f1[s];
 
 		EXPECT_LE(mod( res- f3[s]),EPSILON) << res << " " << f1[s];
-	}
+	}}
 }
 
-TEST_P(TestFieldCase, scalar_field)
+TYPED_TEST_P(TestField, scalar_field){
 {
+	typedef typename TestFixture::field_type field_type;
+	typedef typename TestFixture::value_type value_type;
 
+	auto const & mesh= TestFixture::mesh;
 	auto f1 = make_field<field_type>(mesh);
 	auto f2 = make_field<field_type>(mesh);
 	auto f3 = make_field<field_type>(mesh);
@@ -192,5 +202,8 @@ TEST_P(TestFieldCase, scalar_field)
 	}
 
 	EXPECT_EQ(0,count) << "number of error points =" << count;
-}
+}}
+
+REGISTER_TYPED_TEST_CASE_P(TestField, index, assign, constant_real,
+		scalar_field);
 #endif /* CORE_FIELD_TEST_FIELD_BASIC_TEST_H_ */

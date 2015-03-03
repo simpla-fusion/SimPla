@@ -36,7 +36,7 @@ public:
 
 	typedef sp_ndarray_range<ndims, size_t> range_type;
 
-	typedef nTuple<size_t, ndims> indices_type;
+	typedef nTuple<size_t, ndims> index_type;
 
 	typedef nTuple<Real, ndims> coordinates_type;
 
@@ -85,7 +85,11 @@ public:
 	{
 		return "SimpleMesh";
 	}
+	template<typename TDict>
+	void load(TDict const & dict)
+	{
 
+	}
 	template<typename OS>
 	OS & print(OS & os) const
 	{
@@ -125,13 +129,13 @@ public:
 	{
 		return m_range_.max_hash();
 	}
-	indices_type coordinates_to_id(coordinates_type const &x) const
+	index_type coordinates_to_id(coordinates_type const &x) const
 	{
-		indices_type res;
+		index_type res;
 		res = (x - m_xmin_) / m_dx_;
 		return std::move(res);
 	}
-	coordinates_type id_to_coordinates(indices_type const &i) const
+	coordinates_type id_to_coordinates(index_type const &i) const
 	{
 		coordinates_type res;
 		res = i * m_dx_ + m_xmin_;
@@ -162,9 +166,8 @@ public:
 	}
 private:
 	template<typename TOP, typename ... Args>
-	constexpr auto calculate_(TOP op, Args &&...args,
-			indices_type const &s) const
-			DECL_RET_TYPE (op(get_value(std::forward<Args>(args), s)...))
+	constexpr auto calculate_(TOP op, Args &&...args, index_type const &s) const
+	DECL_RET_TYPE (op(get_value(std::forward<Args>(args), s)...))
 
 //	template<typename TOP, typename TL, typename TR>
 //	inline auto calculate_(TOP op, TL & l, TR &r, id_type const &s) const
@@ -174,21 +177,21 @@ public:
 
 	template<typename TOP, typename TL>
 	constexpr auto calculate(_Field<Expression<TOP, TL> > const & f,
-			indices_type const &s) const
+			index_type const &s) const
 			DECL_RET_TYPE((calculate_(f.op_,f.lhs,s)))
 
 	template<typename TOP, typename TL, typename TR>
 	constexpr auto calculate(_Field<Expression<TOP, TL, TR> > const & f,
-			indices_type const &s) const
+			index_type const &s) const
 			DECL_RET_TYPE((calculate_(f.op_,f.lhs,f.rhs,s)))
 
 	template<typename TC, typename TD>
 	constexpr auto calculate(_Field<TC, TD> const & f,
-			indices_type const &s) const
+			index_type const &s) const
 			DECL_RET_TYPE ((f[s]))
 
 	template<typename T>
-	constexpr T const& calculate(T const & v, indices_type const &s) const
+	constexpr T const& calculate(T const & v, index_type const &s) const
 	{
 		return v;
 	}
@@ -201,26 +204,26 @@ public:
 	}
 
 	template<typename T>
-	auto calculate(T const & v, indices_type const &s) const
+	auto calculate(T const & v, index_type const &s) const
 	DECL_RET_TYPE ((get_value(v, s)))
 
-	coordinates_type coordinates(indices_type const & s) const
+	coordinates_type coordinates(index_type const & s) const
 	{
 		coordinates_type res;
 //		res = (s - m_imin_) * m_dx_ + m_xmin_;
 		return res;
 	}
 	template<typename TV>
-	constexpr TV sample(indices_type const &s, TV const &v) const
+	constexpr TV sample(index_type const &s, TV const &v) const
 	{
 		return v;
 	}
 
 	template<typename TD>
 	auto gather(TD const & d,
-			coordinates_type const & x) const->decltype(d[std::declval<indices_type>()])
+			coordinates_type const & x) const->decltype(d[std::declval<index_type>()])
 	{
-		indices_type r;
+		index_type r;
 		r = ((x - m_xmin_) / m_dx_ + 0.5);
 
 		return d[r];
@@ -229,7 +232,7 @@ public:
 	template<typename TD, typename TV>
 	void scatter(TD & d, coordinates_type const &x, TV const & v) const
 	{
-		indices_type r;
+		index_type r;
 		r = ((x - m_xmin_) / m_dx_ + 0.5);
 
 		d[r] += v;
