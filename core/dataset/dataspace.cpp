@@ -43,24 +43,33 @@ DataSpace::DataSpace(int ndims, size_t const * dims)
 	pimpl_->m_offset_ = 0;
 	pimpl_->m_stride_ = 1;
 	pimpl_->m_block_ = 1;
-	std::unique_ptr<DataSpace>(nullptr).swap(pimpl_->m_global_space_);
+	pimpl_->m_global_space_ = std::unique_ptr<DataSpace>(nullptr);
 }
 DataSpace::DataSpace(const DataSpace& other)
-		: pimpl_ { new pimpl_s }
+		: pimpl_(nullptr)
 {
-	pimpl_->m_ndims_ = other.pimpl_->m_ndims_;
-	pimpl_->m_dimensions_ = other.pimpl_->m_dimensions_;
-	pimpl_->m_count_ = other.pimpl_->m_count_;
-	pimpl_->m_offset_ = other.pimpl_->m_offset_;
-	pimpl_->m_stride_ = other.pimpl_->m_stride_;
-	pimpl_->m_block_ = other.pimpl_->m_block_;
+	if (other.pimpl_ != nullptr)
+	{
+		pimpl_ = std::unique_ptr<pimpl_s> { new pimpl_s };
 
-	std::unique_ptr<DataSpace>(nullptr).swap(pimpl_->m_global_space_);
+		pimpl_->m_ndims_ = other.pimpl_->m_ndims_;
+		pimpl_->m_dimensions_ = other.pimpl_->m_dimensions_;
+		pimpl_->m_count_ = other.pimpl_->m_count_;
+		pimpl_->m_offset_ = other.pimpl_->m_offset_;
+		pimpl_->m_stride_ = other.pimpl_->m_stride_;
+		pimpl_->m_block_ = other.pimpl_->m_block_;
 
-}
-DataSpace::DataSpace(DataSpace&& other)
-		: pimpl_ { std::move(other.pimpl_) }
-{
+		if (other.pimpl_->m_global_space_ != nullptr)
+		{
+			pimpl_->m_global_space_ = std::unique_ptr<DataSpace>(
+					new DataSpace(*other.pimpl_->m_global_space_));
+		}
+		else
+		{
+			pimpl_->m_global_space_ = std::unique_ptr<DataSpace> { nullptr };
+		}
+	}
+
 }
 
 DataSpace::~DataSpace()
@@ -69,13 +78,7 @@ DataSpace::~DataSpace()
 
 void DataSpace::swap(DataSpace &other)
 {
-	std::swap(pimpl_->m_ndims_, other.pimpl_->m_ndims_);
-	std::swap(pimpl_->m_dimensions_, other.pimpl_->m_dimensions_);
-	std::swap(pimpl_->m_count_, other.pimpl_->m_count_);
-	std::swap(pimpl_->m_offset_, other.pimpl_->m_offset_);
-	std::swap(pimpl_->m_stride_, other.pimpl_->m_stride_);
-	std::swap(pimpl_->m_block_, other.pimpl_->m_block_);
-	std::swap(pimpl_->m_global_space_, other.pimpl_->m_global_space_);
+	pimpl_.swap(other.pimpl_);
 }
 DataSpace DataSpace::create_simple(int ndims, const size_t * dims)
 {
@@ -141,27 +144,43 @@ void DataSpace::select_hyperslab(size_t const * offset, size_t const * stride,
 		pimpl_->m_block_ *= block;
 	}
 
+	if (pimpl_->m_global_space_ != nullptr)
+	{
+		pimpl_->m_global_space_->select_hyperslab(offset, stride, count, block);
+	}
+
 }
 DataSpace DataSpace::create_distributed_space(size_t const * gw) const
 {
-	std::unique_ptr<pimpl_s> n_pimpl(new pimpl_s);
 
-	std::unique_ptr<DataSpace>(new DataSpace(*this)).swap(
-			n_pimpl->m_global_space_);
+	DataSpace res;
 
-	n_pimpl->m_dimensions_ = pimpl_->m_count_ * pimpl_->m_block_;
-	n_pimpl->m_offset_ = 0;
-	n_pimpl->m_stride_ = pimpl_->m_block_;
-	n_pimpl->m_count_ = pimpl_->m_count_;
-	n_pimpl->m_block_ = pimpl_->m_block_;
+	res.pimpl_ = std::unique_ptr<pimpl_s>(new pimpl_s);
+
+	if (pimpl_->m_global_space_ == nullptr)
+	{
+		res.pimpl_->m_global_space_ = std::unique_ptr<DataSpace>(
+				new DataSpace(*this));
+	}
+	else
+	{
+		res.pimpl_->m_global_space_ = std::unique_ptr<DataSpace>(
+				new DataSpace(*pimpl_->m_global_space_));
+	}
+
+	res.pimpl_->m_dimensions_ = pimpl_->m_count_ * pimpl_->m_block_;
+	res.pimpl_->m_offset_ = 0;
+	res.pimpl_->m_stride_ = pimpl_->m_block_;
+	res.pimpl_->m_count_ = pimpl_->m_count_;
+	res.pimpl_->m_block_ = pimpl_->m_block_;
+
 	if (gw != nullptr)
 	{
-		n_pimpl->m_offset_ = gw;
-		n_pimpl->m_offset_ *= n_pimpl->m_stride_;
-		n_pimpl->m_dimensions_ += n_pimpl->m_offset_ * 2;
+		res.pimpl_->m_offset_ = gw;
+		res.pimpl_->m_offset_ *= res.pimpl_->m_stride_;
+		res.pimpl_->m_dimensions_ += res.pimpl_->m_offset_ * 2;
 	}
-	DataSpace res;
-	n_pimpl.swap(res.pimpl_);
+
 	return std::move(res);
 
 }

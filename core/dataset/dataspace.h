@@ -36,9 +36,6 @@ public:
 	// Copy constructor: makes a copy of the original DataSpace object.
 	DataSpace(const DataSpace& other);
 
-	// Move constructor
-	DataSpace(DataSpace&& other);
-
 	// Destructor: properly terminates access to this dataspace.
 	~DataSpace();
 
@@ -48,9 +45,7 @@ public:
 	DataSpace& operator=(const DataSpace& rhs)
 	{
 		DataSpace(rhs).swap(*this);
-
 		return *this;
-
 	}
 
 	static DataSpace create_simple(int rank, const size_t * dims);

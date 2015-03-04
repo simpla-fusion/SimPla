@@ -70,6 +70,7 @@ public:
 	nTuple<int, 3> get_coordinate(int rank) const;
 
 	void decompose(int ndims, size_t * offset, size_t * count) const;
+
 private:
 	struct pimpl_s;
 	std::unique_ptr<pimpl_s> pimpl_;

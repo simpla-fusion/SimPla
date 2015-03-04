@@ -93,8 +93,7 @@ public:
 	void fill(T const &v)
 	{
 		deploy();
-		CHECK(m_mesh_.max_hash());
-		CHECK(v);
+
 		std::fill(m_data_.get(), m_data_.get() + m_mesh_.max_hash(), v);
 	}
 
@@ -161,7 +160,6 @@ public:
 
 		for (auto s : s_range)
 		{
-			CHECK(m_mesh_.hash(s));
 			this->operator[](s) = m_mesh_.calculate(that, s);
 		}
 //		});
@@ -201,7 +199,6 @@ public:
 //	}
 	void deploy()
 	{
-
 		if (m_data_ == nullptr)
 		{
 			m_data_ = sp_make_shared_array<value_type>(m_mesh_.max_hash());
@@ -234,18 +231,33 @@ public:
 
 	DataSet dataset()
 	{
-		return std::move(DataSet { m_data_, DataType::create<value_type>(),
-				m_mesh_.dataspace(), properties });
+		DataSet res;
+
+		res.data = m_data_;
+
+		res.datatype = DataType::create<value_type>();
+
+		res.dataspace = m_mesh_.dataspace();
+
+		res.properties = properties;
+
+		return std::move(res);
 	}
 
 	DataSet dataset() const
 	{
-		size_t num = m_mesh_.max_hash();
-		auto data = sp_make_shared_array<value_type>(num);
-		std::copy(m_data_.get(), m_data_.get() + num, data.get());
-		return std::move(
-				DataSet { data, DataType::create<value_type>(),
-						m_mesh_.dataspace(), properties });
+
+		DataSet res;
+
+		res.data = m_data_;
+
+		res.datatype = DataType::create<value_type>();
+
+		res.dataspace = m_mesh_.dataspace();
+
+		res.properties = properties;
+
+		return std::move(res);
 	}
 }
 ;

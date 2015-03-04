@@ -66,8 +66,8 @@ struct DataStream::pimpl_s
 
 };
 
-DataStream::DataStream() :
-		pimpl_(new pimpl_s)
+DataStream::DataStream()
+		: pimpl_(new pimpl_s)
 {
 
 	pimpl_->base_file_id_ = -1;

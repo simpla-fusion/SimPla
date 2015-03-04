@@ -23,7 +23,7 @@ USE_CASE(general_field_op)
 	typedef typename SimpleMesh::coordinates_type coordinates_type;
 	typedef typename SimpleMesh::index_tuple index_tuple;
 
-	index_tuple dims = { 1, 10, 10 };
+	index_tuple dims = { 1, 16, 16 };
 	coordinates_type xmin = { 0, 0, 0 }, xmax = { 1, 1, 1 };
 	auto mesh = make_mesh<SimpleMesh>();
 	mesh->dimensions(dims);
@@ -32,7 +32,16 @@ USE_CASE(general_field_op)
 
 	auto f1 = make_field<double>(mesh);
 
-	f1.fill(GLOBAL_COMM.process_num()+1.345);
+	int count = 0;
+
+	f1.fill(GLOBAL_COMM.process_num() );
+
+	for (auto const & s : mesh->range())
+	{
+		CHECK(count);
+		f1[s] = GLOBAL_COMM.process_num() *100+count;
+		++count;
+	}
 
 	cd("/Output/");
 
