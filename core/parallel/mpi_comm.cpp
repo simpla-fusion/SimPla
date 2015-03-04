@@ -14,9 +14,7 @@
 #include <string>
 
 #include "../gtl/ntuple.h"
-#include "../utilities/log.h"
-#include "../utilities/misc_utilities.h"
-#include "../utilities/parse_command_line.h"
+#include "../utilities/utilities.h"
 
 namespace simpla
 {
@@ -24,25 +22,29 @@ struct MPIComm::pimpl_s
 {
 	enum
 	{
-		NUM_OF_DIMS = 3
+		m_ndims_ = 3
 	};
 
 	int m_num_process_;
 
 	int m_process_num_;
 
-	nTuple<int, 3> m_topology_dims_;
-	nTuple<int, 3> m_topology_strides_;
-	nTuple<int, 3> m_topology_coord_;
+	nTuple<int, m_ndims_> m_topology_dims_;
+	nTuple<int, m_ndims_> m_topology_strides_;
+	nTuple<int, m_ndims_> m_topology_coord_;
 
 	MPI_Comm m_comm_;
 
 	void init(int argc, char** argv);
 
 	int get_neighbour(int disp_i, int disp_j = 0, int disp_k = 0) const;
-	nTuple<int, 3> get_coordinate(int rank) const;
+
+	nTuple<int, m_ndims_> get_coordinate(int rank) const;
+
+	void topology(int nx, int ny, int nz);
 
 	void decompose(int ndims, size_t *count, size_t * offset) const;
+
 };
 
 void MPIComm::pimpl_s::init(int argc, char** argv)
@@ -58,7 +60,7 @@ void MPIComm::pimpl_s::init(int argc, char** argv)
 	MPI_Comm_size(m_comm_, &m_num_process_);
 	MPI_Comm_rank(m_comm_, &m_process_num_);
 
-	m_topology_dims_[0] = m_num_process_;
+	topology(m_num_process_, 1, 1);
 
 	bool show_help = false;
 
@@ -72,12 +74,16 @@ void MPIComm::pimpl_s::init(int argc, char** argv)
 		}
 		else if( opt=="mpi_topology")
 		{
-			string_to_value(value,&m_topology_dims_);
+			nTuple<int, m_ndims_> d;
 
+			string_to_value(value,&d);
+
+			topology(d[0], d[1], d[2]);
 		}
 		else if( opt=="h" || opt=="help")
 		{
 			show_help=true;
+			return TERMINATE;
 		}
 
 		return CONTINUE;
@@ -89,17 +95,54 @@ void MPIComm::pimpl_s::init(int argc, char** argv)
 	if (show_help)
 	{
 		SHOW_OPTIONS("--number_of_threads <NUMBER>", "number of threads");
-		SHOW_OPTIONS("--mpi_topology <NX,NY,NZ>",
+		SHOW_OPTIONS("--mpi_topology <NX NY NZ>",
 				" set communicator's topology");
 		return;
 	}
 
 	LOGGER.set_mpi_comm(m_process_num_, m_num_process_);
 
-	if (NProduct(m_topology_dims_) != m_num_process_)
+	VERBOSE << "MPI communicator is initialized!" << std::endl;
+}
+
+void MPIComm::pimpl_s::decompose(int ndims, size_t * p_offset,
+		size_t *p_count) const
+{
+	nTuple<size_t, MAX_NDIMS_OF_ARRAY> offset, count;
+
+	offset = p_offset;
+	count = p_count;
+	for (int n = 0; n < m_ndims_; ++n)
+	{
+
+		p_offset[n] = offset[n]
+				+ count[n] * m_topology_coord_[n] / m_topology_dims_[n];
+
+		p_count[n] = offset[n]
+				+ count[n] * (m_topology_coord_[n] + 1) / m_topology_dims_[n]
+				- p_offset[n];
+
+		if (p_count[n] <= 0)
+		{
+			RUNTIME_ERROR(
+					"DataSpace decompose fail! Dimension  is smaller than process grid. "
+							"[offset= " + value_to_string(offset) + ", count="
+							+ value_to_string(count));
+		}
+	}
+
+}
+void MPIComm::pimpl_s::topology(int nx, int ny, int nz)
+{
+
+	if (nx * ny * nz != m_num_process_)
 	{
 		RUNTIME_ERROR("MPI topology is invalid!");
 	}
+
+	m_topology_dims_[0] = nx;
+	m_topology_dims_[1] = ny;
+	m_topology_dims_[2] = nz;
 
 	m_topology_strides_[0] = 1;
 	m_topology_strides_[1] = m_topology_dims_[0];
@@ -107,7 +150,6 @@ void MPIComm::pimpl_s::init(int argc, char** argv)
 
 	m_topology_coord_ = get_coordinate(m_process_num_);
 
-	VERBOSE << "MPI communicator is initialized!" << std::endl;
 }
 nTuple<int, 3> MPIComm::pimpl_s::get_coordinate(int rank) const
 {
@@ -129,13 +171,13 @@ int MPIComm::pimpl_s::get_neighbour(int disp_i, int disp_j, int disp_k) const
 	return inner_product(coord, m_topology_strides_);
 }
 
-MPIComm::MPIComm() :
-		pimpl_(nullptr)
+MPIComm::MPIComm()
+		: pimpl_(nullptr)
 {
 }
 
-MPIComm::MPIComm(int argc, char** argv) :
-		pimpl_(nullptr)
+MPIComm::MPIComm(int argc, char** argv)
+		: pimpl_(nullptr)
 {
 	init(argc, argv);
 }
@@ -187,17 +229,26 @@ void MPIComm::init(int argc, char** argv)
 	pimpl_->init(argc, argv);
 }
 
+void MPIComm::topology(int nx, int ny, int nz)
+{
+	return pimpl_->topology(nx, ny, nz);
+}
+
 int MPIComm::get_neighbour(int disp_i, int disp_j, int disp_k) const
 {
 	return pimpl_->get_neighbour(disp_i, disp_j, disp_k);
 }
-nTuple<int, 3> const &MPIComm::get_topology() const
+nTuple<int, 3> const &MPIComm::topology() const
 {
-	return std::move(pimpl_->m_topology_dims_);
+	return (pimpl_->m_topology_dims_);
 }
 nTuple<int, 3> MPIComm::get_coordinate(int rank) const
 {
 	return std::move(pimpl_->get_coordinate(rank));
+}
+void MPIComm::decompose(int ndims, size_t *count, size_t * offset) const
+{
+	pimpl_->decompose(ndims, count, offset);
 }
 
 //void MPIComm::barrier()

@@ -56,7 +56,7 @@ USE_CASE(em)
 
 	mesh->dimensions(dims);
 	mesh->extents(xmin, xmax);
-	mesh->update();
+	mesh->deploy();
 
 //	mesh->load(options["Mesh"]);
 

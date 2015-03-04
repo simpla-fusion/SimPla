@@ -31,38 +31,45 @@ public:
 	// Creates a null dataspace
 	DataSpace();
 
-	DataSpace(int rank, size_t const * dims, const size_t * gw = nullptr);
+	DataSpace(int rank, size_t const * dims);
 
 	// Copy constructor: makes a copy of the original DataSpace object.
 	DataSpace(const DataSpace& other);
 
-	// Assignment operator
-	DataSpace& operator=(const DataSpace& rhs);
+	// Move constructor
+	DataSpace(DataSpace&& other);
 
 	// Destructor: properly terminates access to this dataspace.
 	~DataSpace();
 
 	void swap(DataSpace &);
 
-	void create_simple(int rank, const size_t * dims, const size_t * gw =
-			nullptr);
+	// Assignment operator
+	DataSpace& operator=(const DataSpace& rhs)
+	{
+		DataSpace(rhs).swap(*this);
 
-	void select_hyperslab(size_t const *offset, size_t const * count,
-			size_t const * stride = nullptr, size_t const * block = nullptr);
+		return *this;
 
-	void decompose(size_t ndims, size_t const * proc_dims,
-			size_t const * proc_coord);
+	}
+
+	static DataSpace create_simple(int rank, const size_t * dims);
+
+	DataSpace create_distributed_space(size_t const * gw = nullptr) const;
+
+	void select_hyperslab(size_t const *offset, size_t const * stride,
+			size_t const * count, size_t const * block = nullptr);
 
 	bool is_valid() const;
+
+	bool is_distributed() const;
 
 	bool is_simple() const
 	{
 		/// TODO support  complex selection of data space
 		/// @ref http://www.hdfgroup.org/HDF5/doc/UG/UG_frame12Dataspaces.html
-		return true;
+		return is_valid() && (!is_distributed());
 	}
-
-	size_t size() const;
 
 	/**
 	 * @return <ndims,dimensions,start,count,stride,block>
@@ -72,8 +79,6 @@ public:
 
 	std::tuple<size_t, size_t const *, size_t const *, size_t const *,
 			size_t const *, size_t const *> global_shape() const;
-
-	size_t const * ghost_width() const;
 
 private:
 	struct pimpl_s;

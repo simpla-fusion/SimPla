@@ -338,8 +338,12 @@ public:
 			g_gw[rank] = 0;
 			++rank;
 		}
+		g_dims += g_gw * 2;
+		g_offset += g_gw;
+		DataSpace res(rank, &g_dims[0]);
+		res.select_hyperslab(&g_offset[0], nullptr, &g_count[0], nullptr);
 
-		return std::move(DataSpace(rank, &g_dims[0], &g_gw[0]));
+		return std::move(res);
 	}
 
 	/**

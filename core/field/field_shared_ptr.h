@@ -8,13 +8,16 @@
 #ifndef CORE_FIELD_FIELD_SHARED_PTR_H_
 #define CORE_FIELD_FIELD_SHARED_PTR_H_
 
+#include <stddef.h>
 #include <cstdbool>
 #include <memory>
 #include <string>
 
 #include "../application/sp_object.h"
-#include "../gtl/expression_template.h"
-#include "field_expression.h"
+#include "../dataset/dataset.h"
+#include "../gtl/properties.h"
+#include "../gtl/type_traits.h"
+#include "../utilities/log.h"
 
 namespace simpla
 {
@@ -44,19 +47,19 @@ struct _Field<TM, std::shared_ptr<TV>, Others...> : public SpObject
 
 private:
 
-	mesh_type mesh_;
+	mesh_type m_mesh_;
 
-	std::shared_ptr<TV> data_;
+	std::shared_ptr<TV> m_data_;
 
 public:
 
 	_Field(mesh_type const & d)
-			: mesh_(d), data_(nullptr)
+			: m_mesh_(d), m_data_(nullptr)
 	{
 
 	}
 	_Field(this_type const & that)
-			: mesh_(that.mesh_), data_(that.data_)
+			: m_mesh_(that.m_mesh_), m_data_(that.m_data_)
 	{
 	}
 	~_Field()
@@ -65,11 +68,11 @@ public:
 
 	std::string get_type_as_string() const
 	{
-		return "Field<" + mesh_.get_type_as_string() + ">";
+		return "Field<" + m_mesh_.get_type_as_string() + ">";
 	}
 	mesh_type const & mesh() const
 	{
-		return mesh_;
+		return m_mesh_;
 	}
 
 	template<typename TU> using clone_field_type=
@@ -78,13 +81,21 @@ public:
 	template<typename TU>
 	clone_field_type<TU> clone() const
 	{
-		return clone_field_type<TU>(mesh_);
+		return clone_field_type<TU>(m_mesh_);
 	}
 
 	void clear()
 	{
-		allocate();
+		deploy();
 		*this = 0;
+	}
+	template<typename T>
+	void fill(T const &v)
+	{
+		deploy();
+		CHECK(m_mesh_.max_hash());
+		CHECK(v);
+		std::fill(m_data_.get(), m_data_.get() + m_mesh_.max_hash(), v);
 	}
 
 	/** @name range concept
@@ -93,16 +104,17 @@ public:
 
 	template<typename ...Args>
 	_Field(this_type & that, Args && ...args)
-			: mesh_(that.mesh_, std::forward<Args>(args)...), data_(that.data_)
+			: m_mesh_(that.m_mesh_, std::forward<Args>(args)...), m_data_(
+					that.m_data_)
 	{
 	}
 	bool empty() const
 	{
-		return data_ == nullptr;
+		return m_data_ == nullptr;
 	}
 	bool is_divisible() const
 	{
-		return mesh_.is_divisible();
+		return m_mesh_.is_divisible();
 	}
 
 	/**@}*/
@@ -115,7 +127,7 @@ public:
 //	inline _Field<AssignmentExpression<_impl::_assign, this_type, this_type>> operator =(
 //			this_type const &that)
 //	{
-//		allocate();
+//		deploy();
 //
 //		return std::move(
 //				_Field<
@@ -124,11 +136,11 @@ public:
 //	}
 	inline this_type & operator =(this_type const &that)
 	{
-		allocate();
+		deploy();
 
-		for (auto s : mesh_.range())
+		for (auto s : m_mesh_.range())
 		{
-			this->operator[](s) = mesh_.calculate(that, s);
+			this->operator[](s) = m_mesh_.calculate(that, s);
 		}
 
 		return *this;
@@ -137,20 +149,20 @@ public:
 	template<typename TR>
 	inline this_type & operator =(TR const &that)
 	{
-//		allocate();
+//		deploy();
 //		return std::move(
 //				_Field<AssignmentExpression<_impl::_assign, this_type, TR>>(
 //						*this, that));
-		allocate();
+		deploy();
 
 //		parallel_for(mesh_.range(), [&](typename mesh_type::range_type s_range)
 //		{
-		auto s_range = mesh_.range();
+		auto s_range = m_mesh_.range();
 
 		for (auto s : s_range)
 		{
-			CHECK(mesh_.hash(s));
-			this->operator[](s) = mesh_.calculate(that, s);
+			CHECK(m_mesh_.hash(s));
+			this->operator[](s) = m_mesh_.calculate(that, s);
 		}
 //		});
 
@@ -159,8 +171,8 @@ public:
 
 	template<typename TFun> void pull_back(TFun const &fun)
 	{
-		allocate();
-		mesh_.pull_back(*this, fun);
+		deploy();
+		m_mesh_.pull_back(*this, fun);
 	}
 
 	/** @} */
@@ -172,13 +184,13 @@ public:
 
 	field_value_type gather(coordinates_type const& x) const
 	{
-		return std::move(mesh_.gather(*this, x));
+		return std::move(m_mesh_.gather(*this, x));
 	}
 
 	template<typename ...Args>
 	void scatter(Args && ... args)
 	{
-		mesh_.scatter(*this, std::forward<Args>(args)...);
+		m_mesh_.scatter(*this, std::forward<Args>(args)...);
 	}
 
 	/**@}*/
@@ -187,14 +199,12 @@ public:
 //	{
 //		return DataSet();
 //	}
-private:
-	void allocate()
+	void deploy()
 	{
-		CHECK(mesh_.max_hash());
-		if (data_ == nullptr)
+
+		if (m_data_ == nullptr)
 		{
-			CHECK(mesh_.max_hash());
-			data_ = sp_make_shared_array<value_type>(mesh_.max_hash());
+			m_data_ = sp_make_shared_array<value_type>(m_mesh_.max_hash());
 		}
 	}
 
@@ -202,25 +212,41 @@ public:
 	template<typename IndexType>
 	value_type & operator[](IndexType const & s)
 	{
-		return data_.get()[mesh_.hash(s)];
+		return m_data_.get()[m_mesh_.hash(s)];
 	}
 	template<typename IndexType>
 	value_type const & operator[](IndexType const & s) const
 	{
-		return data_.get()[mesh_.hash(s)];
+		return m_data_.get()[m_mesh_.hash(s)];
 	}
 
 	template<typename ...Args>
 	auto id(Args && ... args)
-	DECL_RET_TYPE((data_.get()[mesh_.hash(std::forward<Args>(args)...)]))
+	DECL_RET_TYPE((m_data_.get()[m_mesh_.hash(std::forward<Args>(args)...)]))
 
 	template<typename ...Args>
 	auto id(Args && ... args) const
-	DECL_RET_TYPE((data_.get()[mesh_.hash(std::forward<Args>(args)...)]))
+	DECL_RET_TYPE((m_data_.get()[m_mesh_.hash(std::forward<Args>(args)...)]))
 
 	template<typename ...Args>
 	auto operator()(Args && ... args) const
-	DECL_RET_TYPE((mesh_.gather(*this,std::forward<Args>(args)...)))
+	DECL_RET_TYPE((m_mesh_.gather(*this,std::forward<Args>(args)...)))
+
+	DataSet dataset()
+	{
+		return std::move(DataSet { m_data_, DataType::create<value_type>(),
+				m_mesh_.dataspace(), properties });
+	}
+
+	DataSet dataset() const
+	{
+		size_t num = m_mesh_.max_hash();
+		auto data = sp_make_shared_array<value_type>(num);
+		std::copy(m_data_.get(), m_data_.get() + num, data.get());
+		return std::move(
+				DataSet { data, DataType::create<value_type>(),
+						m_mesh_.dataspace(), properties });
+	}
 }
 ;
 namespace _impl

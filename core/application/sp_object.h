@@ -114,11 +114,22 @@ struct SpObject
 	virtual void load()
 	{
 	}
-	virtual bool update()
+	virtual void deploy()
 	{
 		is_valid_ = true;
-		return is_valid_;
 	}
+
+	/**
+	 *  get reference of internal data
+	 * @return DataSet
+	 */
+	virtual DataSet dataset()=0;
+
+	/**
+	 * copy internal data to dataset
+	 * @return
+	 */
+	virtual DataSet dataset() const=0;
 
 	Properties properties;
 

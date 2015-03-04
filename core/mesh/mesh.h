@@ -45,6 +45,11 @@ namespace simpla
  * @}
 
  */
+template<typename TM, typename ... Args>
+std::shared_ptr<TM> make_mesh(Args && ...args)
+{
+	return std::make_shared<TM>(std::forward<Args>(args)...);
+}
 }  // namespace simpla
 
 #endif /* CORE_MESH_MESH_H_ */

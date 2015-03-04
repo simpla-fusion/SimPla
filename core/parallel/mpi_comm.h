@@ -55,7 +55,9 @@ public:
 //
 //	unsigned int get_num_of_threads() const;
 
-	nTuple<int, 3> const & get_topology() const;
+	nTuple<int, 3> const & topology() const;
+
+	void topology(int nx, int ny = 1, int nz = 1);
 
 	int get_neighbour(int disp_i, int disp_j = 0, int disp_k = 0) const;
 
@@ -67,7 +69,7 @@ public:
 
 	nTuple<int, 3> get_coordinate(int rank) const;
 
-	void decompose(int ndims, size_t * count, size_t * offset) const;
+	void decompose(int ndims, size_t * offset, size_t * count) const;
 private:
 	struct pimpl_s;
 	std::unique_ptr<pimpl_s> pimpl_;

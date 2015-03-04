@@ -84,7 +84,7 @@ public:
 		return os;
 	}
 
-	bool update();
+	bool deploy();
 
 	void sync();
 
@@ -373,7 +373,7 @@ void ProbeParticle<Engine>::increase_step_counter(size_t num_of_steps)
 	step_counter_ = memory_length;
 }
 template<typename Engine>
-bool ProbeParticle<Engine>::update()
+bool ProbeParticle<Engine>::deploy()
 {
 	engine_type::update_properties();
 	engine_type::update();

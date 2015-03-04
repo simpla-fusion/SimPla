@@ -12,11 +12,7 @@
 #include "topology/structured.h"
 namespace simpla
 {
-template<typename TM, typename ... Args>
-std::shared_ptr<TM> make_mesh(Args && ...args)
-{
-	return std::make_shared<TM>(std::forward<Args>(args)...);
-}
+
 typedef CartesianCoordinates<StructuredMesh> CartesianMesh;
 //typedef CylindricalCoordinates<StructuredMesh> CylindricalGeometry;
 

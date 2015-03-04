@@ -171,10 +171,10 @@ public:
 		}
 	}
 
-	bool update()
+	bool deploy()
 	{
 		SpObject::properties(engine_type::properties());
-		return SpObject::update();
+		return SpObject::deploy();
 	}
 
 	DataSet dataset() const

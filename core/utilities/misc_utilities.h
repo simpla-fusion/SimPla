@@ -15,6 +15,8 @@
 #include <utility>
 
 #include "../gtl/ntuple.h"
+#include "pretty_stream.h"
+
 /**
  *  @ingroup    utilities
  */
@@ -36,6 +38,7 @@ inline void string_to_value(std::string const & str, T * v)
 	std::istringstream os(str);
 	os >> *v;
 }
+
 template<typename T>
 inline std::string value_to_string(T const & v)
 {

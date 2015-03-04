@@ -16,63 +16,53 @@ void parse_cmd_line(int argc, char **argv,
 		return;
 	}
 
-	int i = 1;
-
-	bool ready_to_process = false;
 	std::string opt = "";
 	std::string value = "";
 
-	while (i < argc)
+	for (int i = 0; i < argc; ++i)
 	{
 		char * str = argv[i];
+
 		if (str[0] == '-'
 				&& ((str[1] < '0' || str[1] > '9') && (str[1] != '.'))) // is configure flag
 		{
-			if (opt == "") // if buffer is not empty, clear it
+			if (opt != "" || value != "")
 			{
-
-				if (str[1] == '-') // is long configure flag
+				if (options(opt, value) == TERMINATE)
 				{
-					opt = str + 2;
-					++i;
+					return;
 				}
-				else // is short configure flag
-				{
-					opt = str[1];
-					if (str[2] != '\0')
-					{
-						value = str + 2;
-					}
-					++i;
-				}
+				opt = "";
+				value = "";
 			}
-			else
+
+			if (str[1] == '-') // is long configure flag
 			{
-				ready_to_process = true;
+				opt = str + 2;
+			}
+			else // is short configure flag
+			{
+				opt = str[1];
+				if (str[2] != '\0')
+				{
+					value = str + 2;
+				}
 			}
 
 		}
 		else
 		{
-			value = str;
-			++i;
-			ready_to_process = true;
+			value += " ";
+			value += str;
 		}
-
-		if (ready_to_process || i >= argc)  // buffer is ready to process
-		{
-
-			if (options(opt, value) == TERMINATE)
-				break; // terminate paser stream;
-
-			opt = "";
-			value = "";
-			ready_to_process = false;
-		}
-
 	}
-}
 
+	if (opt != "" || value != "")
+	{
+		options(opt, value);
+	}
+
+}
 
 std::tuple<bool, std::string> find_option_from_cmd_line(int argc, char ** argv,
 		std::string const & key)

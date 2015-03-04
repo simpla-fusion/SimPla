@@ -13,7 +13,7 @@ namespace simpla
 {
 
 std::vector<send_recv_s> make_send_recv_list(DataSpace const & dataspace,
-		DataType const & datatype)
+		DataType const & datatype, size_t const * ghost_width)
 {
 	std::vector<send_recv_s> res;
 
@@ -31,9 +31,7 @@ std::vector<send_recv_s> make_send_recv_list(DataSpace const & dataspace,
 	std::tie(std::ignore, l_dims, l_offset, std::ignore, l_count, std::ignore) =
 			dataspace.shape();
 
-	auto ghost_width = dataspace.ghost_width();
-
-	auto mpi_topology = mpi_comm.get_topology();
+	auto mpi_topology = mpi_comm.topology();
 
 	for (int n = 0; n < ndims; ++n)
 	{
@@ -95,8 +93,7 @@ std::vector<send_recv_s> make_send_recv_list(DataSpace const & dataspace,
 
 			res.emplace_back(
 
-					send_recv_s
-					{
+					send_recv_s {
 
 					mpi_comm.get_neighbour(coords_shift),
 
@@ -129,7 +126,8 @@ void sync_update_dataset(DataSet * dset)
 std::vector<MPI_Request> async_update_dataset(DataSet * dset)
 {
 	return std::move(
-			async_update_continue(make_send_recv_list(dset->dataspace, dset->datatype),
+			async_update_continue(
+					make_send_recv_list(dset->dataspace, dset->datatype),
 					dset->data.get()));
 }
 std::vector<MPI_Request> async_update_continue(

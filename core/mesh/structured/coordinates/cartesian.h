@@ -76,7 +76,7 @@ public:
 			: topology_type(std::forward<Args>(args)...)
 	{
 		extents(x0, x1);
-		update();
+		deploy();
 	}
 
 	~CartesianCoordinates()
@@ -195,7 +195,7 @@ public:
 
 	coordinates_type shift_/* = { 0, 0, 0 }*/;
 
-	bool update();
+	bool deploy();
 	void sync()
 	{
 	}
@@ -601,10 +601,10 @@ public:
 }
 ;
 template<typename TTopology, size_t ZAXIS>
-bool CartesianCoordinates<TTopology, ZAXIS>::update()
+bool CartesianCoordinates<TTopology, ZAXIS>::deploy()
 {
 
-	topology_type::update();
+	topology_type::deploy();
 
 	if (!topology_type::is_valid())
 	{
@@ -621,7 +621,7 @@ bool CartesianCoordinates<TTopology, ZAXIS>::update()
 	}
 
 	topology_type::dimensions(&dims[0]);
-	topology_type::update();
+	topology_type::deploy();
 
 	for (size_t i = 0; i < ndims; ++i)
 	{

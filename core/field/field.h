@@ -6,9 +6,8 @@
  */
 #ifndef CORE_FIELD_FIELD_H_
 #define CORE_FIELD_FIELD_H_
-
-#include "field_expression.h"
 #include "../gtl/type_traits.h"
+#include "field_expression.h"
 #include "field_shared_ptr.h"
 namespace simpla
 {
@@ -141,11 +140,18 @@ struct field_selector
 }
  // namespace _impl
 
-template<typename TM, typename TContainer>
-using Field=_Field<TM,TContainer,typename _impl::field_selector<TContainer>::type>;
-
+template<typename TV, typename TM>
+_Field<TM, std::shared_ptr<TV> > make_field(TM const & mesh)
+{
+return std::move(_Field<TM, std::shared_ptr<TV> >(mesh));
+}
+template<typename TV, typename TM>
+_Field<TM, std::shared_ptr<TV> > make_field(std::shared_ptr<TM> mesh)
+{
+return std::move(_Field<TM, std::shared_ptr<TV> >(*mesh));
+}
 template<typename TM, typename TV>
-using SimpleField=_Field<TM,std::shared_ptr<TV> >;
+using Field=_Field<TM,std::shared_ptr<TV> >;
 
 /** @} */
 }

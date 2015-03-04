@@ -114,14 +114,13 @@ operator>>(std::istream& is, nTuple<T, N> & tv)
 
 	return (is);
 }
-
-template<typename T, size_t N> nTuple<T, N> ToNTuple(std::string const & str)
+template<typename T, size_t N>
+void operator>>(std::string const& is, nTuple<T, N> & v)
 {
-	std::istringstream ss(str);
-	nTuple<T, N> res;
-	ss >> res;
-	return (res);
+	std::istringstream ss(is);
+	ss >> v;
 }
+
 template<typename TX, typename TY, typename ...Others> std::istream&
 get_(std::istream& is, size_t num, std::map<TX, TY, Others...> & a)
 {

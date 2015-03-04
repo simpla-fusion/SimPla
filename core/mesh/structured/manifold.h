@@ -190,7 +190,10 @@ public:
 	{
 		return m_range_;
 	}
-
+	DataSpace dataspace() const
+	{
+		return std::move(m_geometry_->template dataspace<iform>());
+	}
 	template<typename ...Args>
 	auto coordinates(Args && ...args) const
 	DECL_RET_TYPE(( m_geometry_->coordinates(std::forward<Args>(args)...)))

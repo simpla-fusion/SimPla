@@ -10,10 +10,5 @@
 namespace simpla
 {
 
-bool DataSet::sync(size_t flag)
-{
-	return dataspace.sync(data, datatype, flag);
-}
-
 }  // namespace simpla
 

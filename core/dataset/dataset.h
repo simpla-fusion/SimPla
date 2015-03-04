@@ -60,7 +60,7 @@ HAS_MEMBER_FUNCTION(dataset)
 
 template<typename T>
 auto make_dataset(T & d)->
-typename std::enable_if<_impl:: has_member_function_dataset<T,void>::value,
+typename std::enable_if<_impl:: has_member_function_dataset<T >::value,
 decltype(d.dataset())>::type
 {
 	return std::move(d.dataset());
@@ -68,22 +68,10 @@ decltype(d.dataset())>::type
 
 template<typename T>
 auto make_dataset(T * d)->
-typename std::enable_if< _impl:: has_member_function_dataset<T,void>::value,
+typename std::enable_if< _impl:: has_member_function_dataset<T >::value,
 decltype(d->dataset())>::type
 {
 	return std::move(d->dataset());
-}
-
-template<typename T>
-DataSet make_dataset(int rank, size_t const * dims, Properties const & prop =
-		Properties())
-{
-	DataSet res;
-	res.datatype = make_datatype<T>("");
-	res.dataspace.create_simple(rank, dims);
-	res.data = sp_make_shared_array<T>(res.dataspace.size());
-	res.properties = prop;
-	return std::move(res);
 }
 
 template<typename T>
@@ -94,7 +82,7 @@ DataSet make_dataset(T * p, int rank, size_t const * dims,
 	DataSet res;
 
 	res.datatype = make_datatype<T>();
-	res.dataspace.create_simple(rank, dims);
+	res.dataspace = DataSpace::create_simple(rank, dims);
 	res.data = std::shared_ptr<void>(
 			const_cast<void*>(reinterpret_cast<typename std::conditional<
 					std::is_const<T>::value, void const *, void *>::type>(p)),
