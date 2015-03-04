@@ -53,13 +53,13 @@ private:
 
 public:
 
-	_Field(mesh_type const & d)
-			: m_mesh_(d), m_data_(nullptr)
+	_Field(mesh_type const & d) :
+			m_mesh_(d), m_data_(nullptr)
 	{
 
 	}
-	_Field(this_type const & that)
-			: m_mesh_(that.m_mesh_), m_data_(that.m_data_)
+	_Field(this_type const & that) :
+			m_mesh_(that.m_mesh_), m_data_(that.m_data_)
 	{
 	}
 	~_Field()
@@ -73,6 +73,11 @@ public:
 	mesh_type const & mesh() const
 	{
 		return m_mesh_;
+	}
+
+	std::shared_ptr<value_type> data()
+	{
+		return m_data_;
 	}
 
 	template<typename TU> using clone_field_type=
@@ -102,8 +107,8 @@ public:
 	 */
 
 	template<typename ...Args>
-	_Field(this_type & that, Args && ...args)
-			: m_mesh_(that.m_mesh_, std::forward<Args>(args)...), m_data_(
+	_Field(this_type & that, Args && ...args) :
+			m_mesh_(that.m_mesh_, std::forward<Args>(args)...), m_data_(
 					that.m_data_)
 	{
 	}

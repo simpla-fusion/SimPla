@@ -67,8 +67,8 @@ public:
 	{
 	}
 	template<typename TI, typename TX>
-	SimpleMesh(TI const & dimensions, TX const& xmin, TX const& xmax)
-			: m_xmin_(xmin), m_xmax_(xmax), m_count_(dimensions)
+	SimpleMesh(TI const & dimensions, TX const& xmin, TX const& xmax) :
+			m_xmin_(xmin), m_xmax_(xmax), m_count_(dimensions)
 	{
 		m_offset_ = 0;
 		m_ghost_width_ = 0;
@@ -77,11 +77,11 @@ public:
 		m_dx_ = (m_xmax_ - m_xmin_) / m_count_;
 
 	}
-	SimpleMesh(SimpleMesh const & other)
-			: m_xmin_(other.m_xmin_), m_xmax_(other.m_xmax_), m_dx_(
-					other.m_dx_), m_dimensions_(other.m_dimensions_), m_offset_(
-					other.m_offset_), m_count_(other.m_count_), m_grain_size_(
-					other.m_grain_size_), m_dataspace_(other.m_dataspace_)
+	SimpleMesh(SimpleMesh const & other) :
+			m_xmin_(other.m_xmin_), m_xmax_(other.m_xmax_), m_dx_(other.m_dx_), m_dimensions_(
+					other.m_dimensions_), m_offset_(other.m_offset_), m_count_(
+					other.m_count_), m_grain_size_(other.m_grain_size_), m_dataspace_(
+					other.m_dataspace_)
 	{
 	}
 
@@ -181,15 +181,11 @@ public:
 		if (GLOBAL_COMM.num_of_process()>1)
 		{
 			GLOBAL_COMM.decompose(m_ndims_, &m_offset_[0], &m_count_[0]);
-
-			ds.select_hyperslab(&m_offset_[0], nullptr, &m_count_[0], nullptr);
-
-			ds.create_distributed_space(&m_ghost_width_[0]).swap(m_dataspace_);
 		}
-		else
-		{
-			ds.swap(m_dataspace_);
-		}
+
+		ds.select_hyperslab(&m_offset_[0], nullptr, &m_count_[0], nullptr);
+
+		ds.create_distributed_space(&m_ghost_width_[0]).swap(m_dataspace_);
 
 		std::tie(std::ignore, m_dimensions_, m_offset_, std::ignore, m_count_,
 				std::ignore) = m_dataspace_.shape();
@@ -203,7 +199,6 @@ public:
 				m_strides_[i] = m_dimensions_[i + 1] * m_strides_[i + 1];
 			}
 		}
-
 	}
 
 	size_t max_hash() const

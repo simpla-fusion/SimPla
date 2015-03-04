@@ -32,6 +32,8 @@ struct MPIDataType
 
 	MPIDataType();
 
+	MPIDataType(MPIDataType const &);
+
 	~MPIDataType();
 
 	static MPIDataType create(DataType const &);
@@ -49,13 +51,12 @@ struct MPIDataType
 
 	MPI_Datatype const & type(...) const
 	{
-		return type_;
+		return m_type_;
 	}
 
 private:
 
-	static constexpr unsigned int MAX_NDIMS_OF_ARRAY = 10;
-	MPI_Datatype type_ = MPI_DATATYPE_NULL;
+	MPI_Datatype m_type_ = MPI_DATATYPE_NULL;
 
 	bool is_commited_ = false;
 

@@ -29,13 +29,14 @@ struct DataSpace::pimpl_s
 
 //===================================================================
 
-DataSpace::DataSpace()
-		: pimpl_ { nullptr }
+DataSpace::DataSpace() :
+		pimpl_
+		{ nullptr }
 {
 }
 
-DataSpace::DataSpace(int ndims, size_t const * dims)
-		: pimpl_(new pimpl_s)
+DataSpace::DataSpace(int ndims, size_t const * dims) :
+		pimpl_(new pimpl_s)
 {
 	pimpl_->m_ndims_ = ndims;
 	pimpl_->m_dimensions_ = dims;
@@ -45,12 +46,13 @@ DataSpace::DataSpace(int ndims, size_t const * dims)
 	pimpl_->m_block_ = 1;
 	pimpl_->m_global_space_ = std::unique_ptr<DataSpace>(nullptr);
 }
-DataSpace::DataSpace(const DataSpace& other)
-		: pimpl_(nullptr)
+DataSpace::DataSpace(const DataSpace& other) :
+		pimpl_(nullptr)
 {
 	if (other.pimpl_ != nullptr)
 	{
-		pimpl_ = std::unique_ptr<pimpl_s> { new pimpl_s };
+		pimpl_ = std::unique_ptr<pimpl_s>
+		{ new pimpl_s };
 
 		pimpl_->m_ndims_ = other.pimpl_->m_ndims_;
 		pimpl_->m_dimensions_ = other.pimpl_->m_dimensions_;
@@ -66,7 +68,8 @@ DataSpace::DataSpace(const DataSpace& other)
 		}
 		else
 		{
-			pimpl_->m_global_space_ = std::unique_ptr<DataSpace> { nullptr };
+			pimpl_->m_global_space_ = std::unique_ptr<DataSpace>
+			{ nullptr };
 		}
 	}
 
@@ -168,7 +171,7 @@ DataSpace DataSpace::create_distributed_space(size_t const * gw) const
 				new DataSpace(*pimpl_->m_global_space_));
 	}
 
-	res.pimpl_->m_dimensions_ = pimpl_->m_count_ * pimpl_->m_block_;
+	res.pimpl_->m_dimensions_ = pimpl_->m_count_;
 	res.pimpl_->m_offset_ = 0;
 	res.pimpl_->m_stride_ = pimpl_->m_block_;
 	res.pimpl_->m_count_ = pimpl_->m_count_;
@@ -177,7 +180,6 @@ DataSpace DataSpace::create_distributed_space(size_t const * gw) const
 	if (gw != nullptr)
 	{
 		res.pimpl_->m_offset_ = gw;
-		res.pimpl_->m_offset_ *= res.pimpl_->m_stride_;
 		res.pimpl_->m_dimensions_ += res.pimpl_->m_offset_ * 2;
 	}
 

@@ -15,14 +15,6 @@ namespace simpla
 class DataSet;
 class DataSpace;
 
-template<typename T>
-void sync_ghosts(T * f, size_t flag = 0)
-{
-	sync_ghosts(&f->dataset(), flag);
-}
-
-int sync_ghosts(DataSet * data, size_t flag = 0);
-
 struct send_recv_s
 {
 	int remote;
@@ -31,26 +23,24 @@ struct send_recv_s
 	MPIDataType send_type;
 	MPIDataType recv_type;
 };
+void make_send_recv_list(DataSpace const & dataspace, DataType const & datatype,
+		size_t const * pghost_width, std::vector<send_recv_s> *res);
 
-std::vector<send_recv_s> make_send_recv_list(DataSpace const & dataspace,
-		DataType const & datatype);
+void sync_update_dataset(DataSet * dset, size_t const * ghost_width = nullptr,
+		std::vector<MPI_Request> * requests = nullptr);
 
-void sync_update_dataset(DataSet * dset);
-std::vector<MPI_Request> async_update_dataset(DataSet * dset);
-std::vector<MPI_Request> async_update_continue(std::vector<send_recv_s> const &,
-		void * data);
+void sync_update_continue(std::vector<send_recv_s> const &, void * data,
+		std::vector<MPI_Request> * requests = nullptr);
 
 typedef std::tuple<int, // remote id
 		int, //tag
 		size_t, // size
-		std::shared_ptr<void>> send_recv_buffer_s;
+		std::shared_ptr<void> //data
+> send_recv_buffer_s;
 
 void sync_update_unordered(std::vector<send_recv_buffer_s> const & send_buffer,
-		std::vector<send_recv_buffer_s> * recv_buffer);
-
-std::vector<MPI_Request> async_update_unordered(
-		std::vector<send_recv_buffer_s> const & send_buffer,
-		std::vector<send_recv_buffer_s> * recv_buffer);
+		std::vector<send_recv_buffer_s> * recv_buffer,
+		std::vector<MPI_Request> * requests = nullptr);
 
 }  // namespace simpla
 

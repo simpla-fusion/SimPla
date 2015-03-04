@@ -7,19 +7,24 @@
 #include <mpi.h>
 #include <typeinfo>
 #include <typeindex>
+#include "mpi_comm.h"
 #include "mpi_datatype.h"
-#include "../utilities/log.h"
+#include "../utilities/utilities.h"
 namespace simpla
 {
 
 MPIDataType::MPIDataType()
 {
 }
+MPIDataType::MPIDataType(MPIDataType const & other)
+{
+	MPI_ERROR(MPI_Type_dup(other.type(), &m_type_));
+}
 
 MPIDataType::~MPIDataType()
 {
 	if (is_commited_)
-		MPI_Type_free(&type_);
+		MPI_Type_free(&m_type_);
 }
 
 MPIDataType MPIDataType::create(DataType const & data_type)
@@ -30,23 +35,23 @@ MPIDataType MPIDataType::create(DataType const & data_type)
 
 	if (data_type.is_same<int>())
 	{
-		res.type_ = MPI_INT;
+		res.m_type_ = MPI_INT;
 	}
 	else if (data_type.is_same<int>())
 	{
-		res.type_ = MPI_LONG;
+		res.m_type_ = MPI_LONG;
 	}
 	else if (data_type.is_same<unsigned long>())
 	{
-		res.type_ = MPI_UNSIGNED_LONG;
+		res.m_type_ = MPI_UNSIGNED_LONG;
 	}
 	else if (data_type.is_same<float>())
 	{
-		res.type_ = MPI_FLOAT;
+		res.m_type_ = MPI_FLOAT;
 	}
 	else if (data_type.is_same<double>())
 	{
-		res.type_ = MPI_DOUBLE;
+		res.m_type_ = MPI_DOUBLE;
 	}
 //	else if (data_type.is_same<long double>())
 //	{
@@ -62,19 +67,19 @@ MPIDataType MPIDataType::create(DataType const & data_type)
 //	}
 	else
 	{
-		MPI_Type_contiguous(data_type.ele_size_in_byte(), MPI_BYTE, &res.type_);
-		MPI_Type_commit(&res.type_);
+		MPI_Type_contiguous(data_type.ele_size_in_byte(), MPI_BYTE, &res.m_type_);
+		MPI_Type_commit(&res.m_type_);
 		res.is_commited_ = true;
 	}
 	return (res);
 }
 
 MPIDataType MPIDataType::create(DataType const & data_type, unsigned int ndims,
-		size_t const * dims,        //
-		size_t const * count,       //
-		size_t const * offset,      //
-		size_t const * stride,      //
-		size_t const * block,       //
+		size_t const * p_dims,        //
+		size_t const * p_offset,      //
+		size_t const * p_stride,      //
+		size_t const * p_count,       //
+		size_t const * p_block,       //
 		bool c_order_array)
 {
 
@@ -82,15 +87,15 @@ MPIDataType MPIDataType::create(DataType const & data_type, unsigned int ndims,
 
 	unsigned int mdims = ndims + data_type.rank();
 
-	nTuple<int, MAX_NDIMS_OF_ARRAY> m_dims;
-	nTuple<int, MAX_NDIMS_OF_ARRAY> m_count;
-	nTuple<int, MAX_NDIMS_OF_ARRAY> m_stride;
-	nTuple<int, MAX_NDIMS_OF_ARRAY> m_offset;
-	nTuple<int, MAX_NDIMS_OF_ARRAY> m_block;
+	nTuple<int, MAX_NDIMS_OF_ARRAY> l_dims;
+	nTuple<int, MAX_NDIMS_OF_ARRAY> l_offset;
+	nTuple<int, MAX_NDIMS_OF_ARRAY> l_stride;
+	nTuple<int, MAX_NDIMS_OF_ARRAY> l_count;
+	nTuple<int, MAX_NDIMS_OF_ARRAY> l_block;
 
 	auto old_type = MPIDataType::create(data_type);
 
-	if (dims == nullptr)
+	if (p_dims == nullptr)
 	{
 		WARNING << "Undefined array dimensions!!";
 
@@ -98,27 +103,27 @@ MPIDataType MPIDataType::create(DataType const & data_type, unsigned int ndims,
 	}
 	else
 	{
-		m_dims = dims;
+		l_dims = p_dims;
 	}
-	if (offset == nullptr)
+	if (p_offset == nullptr)
 	{
-		m_offset = 0;
+		l_offset = 0;
 	}
 	else
 	{
-		m_offset = offset;
+		l_offset = p_offset;
 	}
 
-	if (count == nullptr)
+	if (p_count == nullptr)
 	{
-		m_count = m_dims;
+		l_count = l_dims;
 	}
 	else
 	{
-		m_count = count;
+		l_count = p_count;
 	}
 
-	if (stride != nullptr || block != nullptr)
+	if (p_stride != nullptr || p_block != nullptr)
 	{
 		//TODO create mpi datatype with stride and block
 		WARNING << "UNIMPLEMENTED!! 'stride'  and 'block' are ignored! "
@@ -127,16 +132,17 @@ MPIDataType MPIDataType::create(DataType const & data_type, unsigned int ndims,
 
 	for (int i = 0; i < data_type.rank(); ++i)
 	{
-		m_dims[ndims + i] = data_type.extent(i);
-		m_count[ndims + i] = data_type.extent(i);
-		m_offset[ndims + i] = 0;
+		l_dims[ndims + i] = data_type.extent(i);
+		l_count[ndims + i] = data_type.extent(i);
+		l_offset[ndims + i] = 0;
 	}
 
-	MPI_Type_create_subarray(ndims + data_type.rank(), &m_dims[0], &m_count[0],
-			&m_offset[0], (c_order_array ? MPI_ORDER_C : MPI_ORDER_FORTRAN),
-			old_type.type(), &res.type_);
+	int mpi_error = MPI_Type_create_subarray(ndims + data_type.rank(),
+			&l_dims[0], &l_count[0], &l_offset[0],
+			(c_order_array ? MPI_ORDER_C : MPI_ORDER_FORTRAN), old_type.type(),
+			&res.m_type_);
 
-	MPI_Type_commit(&res.type_);
+	MPI_Type_commit(&res.m_type_);
 
 	res.is_commited_ = true;
 

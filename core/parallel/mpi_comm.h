@@ -78,6 +78,18 @@ private:
 ;
 #define GLOBAL_COMM   SingletonHolder<simpla::MPIComm>::instance()
 
+
+#define MPI_ERROR(_CMD_)                                                   \
+{                                                                          \
+	int _mpi_error_code_ = MPI_SUCCESS;                                    \
+	if ( ( _mpi_error_code_=  _CMD_) != MPI_SUCCESS)                       \
+	{                                                                      \
+		char _error_msg[MPI_MAX_ERROR_STRING];                             \
+		MPI_Error_string(_mpi_error_code_, _error_msg, nullptr);           \
+		RUNTIME_ERROR(_error_msg);                                         \
+	}                                                                      \
+}
+
 }
 // namespace simpla
 

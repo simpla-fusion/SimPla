@@ -6,18 +6,26 @@
  */
 
 #include "mpi_update.h"
+#include "mpi_datatype.h"
 #include "../dataset/dataset.h"
 #include "../utilities/log.h"
 
 namespace simpla
 {
 
-std::vector<send_recv_s> make_send_recv_list(DataSpace const & dataspace,
-		DataType const & datatype, size_t const * ghost_width)
+void make_send_recv_list(DataSpace const & dataspace, DataType const & datatype,
+		size_t const * pghost_width, std::vector<send_recv_s> *res)
 {
-	std::vector<send_recv_s> res;
-
 	auto & mpi_comm = SingletonHolder<simpla::MPIComm>::instance();
+
+	if (pghost_width == nullptr || mpi_comm.num_of_process() <= 1)
+	{
+		return;
+	}
+
+	nTuple<size_t, MAX_NDIMS_OF_ARRAY> ghost_width;
+
+	ghost_width = pghost_width;
 
 	size_t ndims = 3;
 
@@ -35,13 +43,14 @@ std::vector<send_recv_s> make_send_recv_list(DataSpace const & dataspace,
 
 	for (int n = 0; n < ndims; ++n)
 	{
-		if (mpi_topology[n] < (l_dims[n] + ghost_width[n] * 2))
+		if (mpi_topology[n] > (l_dims[n]))
 		{
 			RUNTIME_ERROR(
 					"DataSpace decompose fail! Dimension  is smaller than process grid. "
 							"[dimensions= " + value_to_string(l_dims)
 							+ ", process dimensions="
-							+ value_to_string(mpi_topology));
+							+ value_to_string(mpi_topology) + ", ghost_width"
+							+ value_to_string(ghost_width));
 		}
 	}
 
@@ -61,29 +70,42 @@ std::vector<send_recv_s> make_send_recv_list(DataSpace const & dataspace,
 
 			coords_shift[n] = ((s >> (n * 2)) & 3UL) - 1;
 
-			switch (coords_shift[n])
+			if (coords_shift[n] == 0)
 			{
-			case -1:
-				send_count[n] = ghost_width[n];
-				send_offset[n] = l_offset[n];
-				recv_count[n] = ghost_width[n];
-				recv_offset[n] = l_offset[n] - ghost_width[n];
-				break;
-			case 0:
 				send_count[n] = l_count[n];
 				send_offset[n] = l_offset[n];
 				recv_count[n] = l_count[n];
 				recv_offset[n] = l_offset[n];
-				break;
-			case 1:
-				send_count[n] = ghost_width[n];
-				send_offset[n] = l_offset[n] + l_count[n] - ghost_width[n];
-				recv_count[n] = ghost_width[n];
-				recv_offset[n] = l_offset[n] + l_count[n];
-				break;
-			default:
-				is_duplicate = true;
-				break;
+			}
+			else
+			{
+				if (ghost_width[n] == 0)
+				{
+					is_duplicate = true;
+					break;
+				}
+				else if (coords_shift[n] == -1)
+				{
+					send_count[n] = ghost_width[n];
+					send_offset[n] = l_offset[n];
+					recv_count[n] = ghost_width[n];
+					recv_offset[n] = (l_offset[n] - ghost_width[n] + l_dims[n])
+							% l_dims[n];
+				}
+				else if (coords_shift[n] == 1)
+				{
+					send_count[n] = ghost_width[n];
+					send_offset[n] = (l_offset[n] + l_count[n] - ghost_width[n]
+							+ l_dims[n]) % l_dims[n];
+					recv_count[n] = ghost_width[n];
+					recv_offset[n] = (l_offset[n] + l_count[n] + l_dims[n])
+							% l_dims[n];
+				}
+				else
+				{
+					is_duplicate = true;
+					break;
+				}
 			}
 
 		}
@@ -91,9 +113,10 @@ std::vector<send_recv_s> make_send_recv_list(DataSpace const & dataspace,
 		if (!is_duplicate)
 		{
 
-			res.emplace_back(
+			res->emplace_back(
 
-					send_recv_s {
+					send_recv_s
+					{
 
 					mpi_comm.get_neighbour(coords_shift),
 
@@ -111,76 +134,75 @@ std::vector<send_recv_s> make_send_recv_list(DataSpace const & dataspace,
 		}
 
 	}
-
-	return std::move(res);
-
 }
 
-void sync_update_dataset(DataSet * dset)
+void sync_update_dataset(DataSet * dset, size_t const * ghost_width,
+		std::vector<MPI_Request> *requests)
 {
-	std::vector<MPI_Request> requests = async_update_dataset(dset);
+	std::vector<send_recv_s> s_r_list;
 
-	MPI_Waitall(requests.size(), &(requests[0]), MPI_STATUSES_IGNORE);
+	make_send_recv_list(dset->dataspace, dset->datatype, ghost_width,
+			&s_r_list);
 
+	sync_update_continue(s_r_list, dset->data.get(), requests);
 }
-std::vector<MPI_Request> async_update_dataset(DataSet * dset)
+
+void sync_update_continue(std::vector<send_recv_s> const & send_recv_list,
+		void * data, std::vector<MPI_Request> *requests)
 {
-	return std::move(
-			async_update_continue(
-					make_send_recv_list(dset->dataspace, dset->datatype),
-					dset->data.get()));
-}
-std::vector<MPI_Request> async_update_continue(
-		std::vector<send_recv_s> const & send_recv_list, void * data)
-
-{
-	auto & mpi_comm = SingletonHolder<simpla::MPIComm>::instance();
-
-	static constexpr size_t ndims = 3;
-
-	std::vector<MPI_Request> requests;
-
-	requests.resize(send_recv_list.size() * 2);
-
-	MPI_Request * req_it = &requests[0];
+	bool is_async = true;
+	if (requests == nullptr)
+	{
+		is_async = false;
+		requests = new std::vector<MPI_Request>;
+	}
+	MPI_Comm mpi_comm = SingletonHolder<simpla::MPIComm>::instance().comm();
 
 	for (auto const & item : send_recv_list)
 	{
-		MPI_Isend(data, 1, item.send_type.type(), item.remote, item.send_tag,
-				mpi_comm.comm(), req_it);
-		++req_it;
-		MPI_Irecv(data, 1, item.recv_type.type(), item.remote, item.recv_tag,
-				mpi_comm.comm(), req_it);
-		++req_it;
+		MPI_Request req1;
 
+		MPI_ERROR(
+				MPI_Isend(data, 1, item.send_type.type(), item.remote,
+						item.send_tag, mpi_comm, &req1));
+
+		requests->push_back(req1);
+
+		MPI_Request req2;
+		MPI_ERROR(
+				MPI_Irecv(data, 1, item.recv_type.type(), item.remote,
+						item.recv_tag, mpi_comm, &req2));
+
+		requests->push_back(req2);
 	}
 
-	return std::move(requests);
+	if (!is_async)
+	{
+		MPI_ERROR(
+				MPI_Waitall(requests->size(), &(*requests)[0], MPI_STATUSES_IGNORE));
+		delete requests;
+	}
+
 }
 
 void sync_update_unordered(std::vector<send_recv_buffer_s> const & send_buffer,
-		std::vector<send_recv_buffer_s> * recv_buffer)
+		std::vector<send_recv_buffer_s> * recv_buffer,
+		std::vector<MPI_Request> *requests)
 {
-	std::vector<MPI_Request> requests = async_update_unordered(send_buffer,
-			recv_buffer);
-
-	MPI_Waitall(requests.size(), &(requests[0]), MPI_STATUSES_IGNORE);
-
-}
-
-std::vector<MPI_Request> async_update_unordered(
-		std::vector<send_recv_buffer_s> const & send_buffer,
-		std::vector<send_recv_buffer_s> * recv_buffer)
-{
-	std::vector<MPI_Request> requests;
+	bool is_async = true;
+	if (requests == nullptr)
+	{
+		is_async = false;
+		requests = new std::vector<MPI_Request>;
+	}
 
 	MPIComm & global_comm = SingletonHolder<simpla::MPIComm>::instance();
 
 	int num_of_reqs = send_buffer.size() + recv_buffer->size();
 
-	requests.resize(num_of_reqs);
+	requests->resize(num_of_reqs);
 
-	MPI_Request * req_it = &requests[0];
+	MPI_Request * req_it = &(*requests)[0];
 
 	std::map<int, std::pair<size_t, std::shared_ptr<void> > > out_buffer;
 
@@ -194,8 +216,8 @@ std::vector<MPI_Request> async_update_unordered(
 
 		std::tie(remote, send_tag, mem_size, data) = *it;
 
-		MPI_Isend(data.get(), mem_size, MPI_BYTE, remote, send_tag,
-				global_comm.comm(), req_it);
+		MPI_ERROR(
+				MPI_Isend(data.get(), mem_size, MPI_BYTE, remote, send_tag, global_comm.comm(), req_it));
 
 		++req_it;
 
@@ -210,13 +232,13 @@ std::vector<MPI_Request> async_update_unordered(
 
 		MPI_Status status;
 
-		MPI_Probe(remote, recv_tag, global_comm.comm(), &status);
+		MPI_ERROR(MPI_Probe(remote, recv_tag, global_comm.comm(), &status));
 
 		// When probe returns, the status object has the size and other
 		// attributes of the incoming message. Get the size of the message
 		int recv_mem_size = 0;
 
-		MPI_Get_count(&status, MPI_BYTE, &recv_mem_size);
+		MPI_ERROR(MPI_Get_count(&status, MPI_BYTE, &recv_mem_size));
 
 		if (recv_mem_size == MPI_UNDEFINED)
 		{
@@ -226,16 +248,19 @@ std::vector<MPI_Request> async_update_unordered(
 		std::shared_ptr<void> data;
 		data = sp_alloc_memory(recv_mem_size);
 
-		MPI_Irecv(data.get(), recv_mem_size,
-
-		MPI_BYTE, remote, recv_tag, global_comm.comm(), req_it);
+		MPI_ERROR(
+				MPI_Irecv(data.get(), recv_mem_size, MPI_BYTE, remote, recv_tag, global_comm.comm(), req_it));
 
 		std::get<2>(*it) = recv_mem_size;
 		std::get<3>(*it) = data;
 		++req_it;
 	}
 
-	return std::move(requests);
+	if (!is_async)
+	{
+		MPI_Waitall(requests->size(), &(*requests)[0], MPI_STATUSES_IGNORE);
+		delete requests;
+	}
 
 }
 
