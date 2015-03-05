@@ -60,6 +60,8 @@ void MPIComm::pimpl_s::init(int argc, char** argv)
 	MPI_Comm_size(m_comm_, &m_num_process_);
 	MPI_Comm_rank(m_comm_, &m_process_num_);
 
+	LOGGER.set_mpi_comm(m_process_num_, m_num_process_);
+
 	topology(m_num_process_, 1, 1);
 
 	bool show_help = false;
@@ -99,8 +101,6 @@ void MPIComm::pimpl_s::init(int argc, char** argv)
 				" set communicator's topology");
 		return;
 	}
-
-	LOGGER.set_mpi_comm(m_process_num_, m_num_process_);
 
 	VERBOSE << "MPI communicator is initialized!" << std::endl;
 }
@@ -149,6 +149,8 @@ void MPIComm::pimpl_s::topology(int nx, int ny, int nz)
 	m_topology_strides_[2] = m_topology_dims_[1] * m_topology_strides_[1];
 
 	m_topology_coord_ = get_coordinate(m_process_num_);
+	CHECK(m_topology_strides_);
+	CHECK(m_topology_coord_);
 
 }
 nTuple<int, 3> MPIComm::pimpl_s::get_coordinate(int rank) const
@@ -164,9 +166,9 @@ int MPIComm::pimpl_s::get_neighbour(int disp_i, int disp_j, int disp_k) const
 {
 	nTuple<int, 3> coord;
 
-	coord[0] = (coord[0] + m_topology_dims_[0] + disp_i) % m_topology_dims_[0];
-	coord[1] = (coord[1] + m_topology_dims_[1] + disp_j) % m_topology_dims_[1];
-	coord[2] = (coord[2] + m_topology_dims_[2] + disp_k) % m_topology_dims_[2];
+	coord[0] = (m_topology_coord_[0] + m_topology_dims_[0] + disp_i) % m_topology_dims_[0];
+	coord[1] = (m_topology_coord_[1] + m_topology_dims_[1] + disp_j) % m_topology_dims_[1];
+	coord[2] = (m_topology_coord_[2] + m_topology_dims_[2] + disp_k) % m_topology_dims_[2];
 
 	return inner_product(coord, m_topology_strides_);
 }

@@ -203,7 +203,7 @@ public:
 
 	size_t max_hash() const
 	{
-		return NProduct(m_count_);
+		return NProduct(m_dimensions_);
 	}
 
 	size_t hash(index_tuple const & s) const

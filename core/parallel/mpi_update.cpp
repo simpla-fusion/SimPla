@@ -18,7 +18,7 @@ void make_send_recv_list(DataSpace const & dataspace, DataType const & datatype,
 {
 	auto & mpi_comm = SingletonHolder<simpla::MPIComm>::instance();
 
-	if (pghost_width == nullptr || mpi_comm.num_of_process() <= 1)
+	if (pghost_width == nullptr /*|| mpi_comm.num_of_process() <= 1*/)
 	{
 		return;
 	}
@@ -33,6 +33,13 @@ void make_send_recv_list(DataSpace const & dataspace, DataType const & datatype,
 
 	std::tie(ndims, g_dims, g_offset, std::ignore, g_count, std::ignore) =
 			dataspace.global_shape();
+
+	nTuple<int, MAX_NDIMS_OF_ARRAY> g_strides;
+
+	g_strides = 0;
+	g_strides[0] = 1;
+	g_strides[1] = g_dims[0];
+	g_strides[2] = g_dims[1] * g_strides[1];
 
 	nTuple<size_t, 3> l_dims, l_offset, l_count;
 
@@ -63,66 +70,93 @@ void make_send_recv_list(DataSpace const & dataspace, DataType const & datatype,
 	{
 		nTuple<int, MAX_NDIMS_OF_ARRAY> coords_shift;
 
-		bool is_duplicate = false;
+		bool is_duplicate = true;
 
 		for (int n = 0; n < ndims; ++n)
 		{
-
 			coords_shift[n] = ((s >> (n * 2)) & 3UL) - 1;
 
-			if (coords_shift[n] == 0)
+			switch (coords_shift[n])
 			{
+			case 0:
 				send_count[n] = l_count[n];
 				send_offset[n] = l_offset[n];
 				recv_count[n] = l_count[n];
 				recv_offset[n] = l_offset[n];
-			}
-			else
-			{
-				if (ghost_width[n] == 0)
-				{
-					is_duplicate = true;
-					break;
-				}
-				else if (coords_shift[n] == -1)
-				{
-					send_count[n] = ghost_width[n];
-					send_offset[n] = l_offset[n];
-					recv_count[n] = ghost_width[n];
-					recv_offset[n] = (l_offset[n] - ghost_width[n] + l_dims[n])
-							% l_dims[n];
-				}
-				else if (coords_shift[n] == 1)
-				{
-					send_count[n] = ghost_width[n];
-					send_offset[n] = (l_offset[n] + l_count[n] - ghost_width[n]
-							+ l_dims[n]) % l_dims[n];
-					recv_count[n] = ghost_width[n];
-					recv_offset[n] = (l_offset[n] + l_count[n] + l_dims[n])
-							% l_dims[n];
-				}
-				else
-				{
-					is_duplicate = true;
-					break;
-				}
+				break;
+			case -1:
+
+				send_count[n] = ghost_width[n];
+				send_offset[n] = l_offset[n];
+				recv_count[n] = ghost_width[n];
+				recv_offset[n] = l_offset[n] - ghost_width[n];
+				is_duplicate = false;
+				break;
+
+			case 1:
+
+				send_count[n] = ghost_width[n];
+				send_offset[n] = l_offset[n] + l_count[n] - ghost_width[n];
+				recv_count[n] = ghost_width[n];
+				recv_offset[n] = l_offset[n] + l_count[n];
+				is_duplicate = false;
+				break;
 			}
 
+			if (send_count[n] == 0 || recv_count[n] == 0)
+			{
+				is_duplicate = true;
+				break;
+			}
 		}
 
 		if (!is_duplicate)
 		{
 
+			int dest = mpi_comm.get_neighbour(coords_shift);
+
+			int send_tag = 0, recv_tag = 0;
+
+			nTuple<int, MAX_NDIMS_OF_ARRAY> send_idx, recv_idx;
+
+			for (int i = 0; i < 3; ++i)
+			{
+				send_idx[i] = (g_offset[i] + send_offset[i] - l_offset[i]
+						+ g_dims[i]) % g_dims[i];
+
+				send_tag += send_idx[i] * g_strides[i];
+
+				recv_idx[i] = (g_offset[i] + recv_offset[i] - l_offset[i]
+						+ g_dims[i]) % g_dims[i];
+
+				recv_tag += recv_idx[i] * g_strides[i];
+			}
+
+//			CHECK(coords_shift);
+//			CHECK(dest);
+//			CHECK(ghost_width);
+//			CHECK(g_offset);
+//			CHECK(g_count);
+//			CHECK(l_offset);
+//			CHECK(l_count);
+//			CHECK(send_count);
+//			CHECK(send_offset);
+//			CHECK(recv_count);
+//			CHECK(recv_offset);
+//			CHECK(send_idx);
+//			CHECK(send_tag);
+//			CHECK(recv_idx);
+//			CHECK(recv_tag);
+
 			res->emplace_back(
 
-					send_recv_s
-					{
+					send_recv_s {
 
-					mpi_comm.get_neighbour(coords_shift),
+					dest,
 
-					static_cast<int>(send_offset[0]),
+					send_tag,
 
-					static_cast<int>(recv_offset[0]),
+					recv_tag,
 
 					MPIDataType::create(datatype, ndims, &l_dims[0],
 							&send_offset[0], nullptr, &send_count[0], nullptr),
@@ -160,6 +194,7 @@ void sync_update_continue(std::vector<send_recv_s> const & send_recv_list,
 
 	for (auto const & item : send_recv_list)
 	{
+
 		MPI_Request req1;
 
 		MPI_ERROR(
@@ -178,6 +213,7 @@ void sync_update_continue(std::vector<send_recv_s> const & send_recv_list,
 
 	if (!is_async)
 	{
+
 		MPI_ERROR(
 				MPI_Waitall(requests->size(), &(*requests)[0], MPI_STATUSES_IGNORE));
 		delete requests;
@@ -258,7 +294,8 @@ void sync_update_unordered(std::vector<send_recv_buffer_s> const & send_buffer,
 
 	if (!is_async)
 	{
-		MPI_Waitall(requests->size(), &(*requests)[0], MPI_STATUSES_IGNORE);
+		MPI_Waitall(requests->size(), &(*requests)[0],
+		MPI_STATUSES_IGNORE);
 		delete requests;
 	}
 
