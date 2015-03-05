@@ -132,9 +132,7 @@ struct field_selector
 	is_map_container,
 
 	typename std::conditional<has_member_function_resize<TContainer>::value,
-	is_sequence_container,void>::type
-
-	>::type type;
+	is_sequence_container,void>::type >::type type;
 };
 
 }

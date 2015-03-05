@@ -149,9 +149,6 @@ void MPIComm::pimpl_s::topology(int nx, int ny, int nz)
 	m_topology_strides_[2] = m_topology_dims_[1] * m_topology_strides_[1];
 
 	m_topology_coord_ = get_coordinate(m_process_num_);
-	CHECK(m_topology_strides_);
-	CHECK(m_topology_coord_);
-
 }
 nTuple<int, 3> MPIComm::pimpl_s::get_coordinate(int rank) const
 {

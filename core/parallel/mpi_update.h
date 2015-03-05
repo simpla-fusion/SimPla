@@ -17,17 +17,19 @@ class DataSpace;
 
 struct send_recv_s
 {
-	int remote;
+	int dest;
 	int send_tag;
 	int recv_tag;
 	MPIDataType send_type;
 	MPIDataType recv_type;
 };
-void make_send_recv_list(DataSpace const & dataspace, DataType const & datatype,
-		size_t const * pghost_width, std::vector<send_recv_s> *res);
+void make_send_recv_list(DataType const & datatype, int ndims,
+		size_t const * l_dims,
+		std::vector<DataSpace::ghosts_shape_s> const & ghost_shape,
+		std::vector<send_recv_s> *res);
 
-void sync_update_dataset(DataSet * dset, size_t const * ghost_width = nullptr,
-		std::vector<MPI_Request> * requests = nullptr);
+//void sync_update_dataset(DataSet * dset, size_t const * ghost_width = nullptr,
+//		std::vector<MPI_Request> * requests = nullptr);
 
 void sync_update_continue(std::vector<send_recv_s> const &, void * data,
 		std::vector<MPI_Request> * requests = nullptr);
@@ -38,8 +40,24 @@ typedef std::tuple<int, // remote id
 		std::shared_ptr<void> //data
 > send_recv_buffer_s;
 
-void sync_update_unordered(std::vector<send_recv_buffer_s> const & send_buffer,
-		std::vector<send_recv_buffer_s> * recv_buffer,
+struct send_buffer_s
+{
+	int dest;
+	int tag;
+	size_t size;
+	std::shared_ptr<void> data;
+};
+
+struct recv_buffer_s
+{
+	int dest;
+	int tag;
+	size_t size;
+	std::shared_ptr<void> data;
+};
+
+void sync_update_varlength(std::vector<send_buffer_s> const & send_buffer,
+		std::vector<recv_buffer_s> * recv_buffer,
 		std::vector<MPI_Request> * requests = nullptr);
 
 }  // namespace simpla

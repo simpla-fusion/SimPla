@@ -120,15 +120,12 @@ struct SpObject
 	}
 
 	/**
-	 *  get reference of internal data
-	 * @return DataSet
+	 *  update ghost values
 	 */
-	virtual DataSet dataset()=0;
+	virtual void sync()
+	{
+	}
 
-	/**
-	 * copy internal data to dataset
-	 * @return
-	 */
 	virtual DataSet dataset() const=0;
 
 	Properties properties;

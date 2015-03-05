@@ -13,173 +13,161 @@
 namespace simpla
 {
 
-void make_send_recv_list(DataSpace const & dataspace, DataType const & datatype,
-		size_t const * pghost_width, std::vector<send_recv_s> *res)
+void make_send_recv_list(DataType const & datatype, int ndims,
+		size_t const * l_dims,
+		std::vector<DataSpace::ghosts_shape_s> const & ghost_shape,
+		std::vector<send_recv_s> *res)
 {
 	auto & mpi_comm = SingletonHolder<simpla::MPIComm>::instance();
 
-	if (pghost_width == nullptr /*|| mpi_comm.num_of_process() <= 1*/)
+	for (auto const & item : ghost_shape)
 	{
-		return;
+		int tag = ((item.coord_shift[0] + 1) & 2UL)
+				|| (((item.coord_shift[1] + 1) & 2UL) << 2UL)
+				|| (((item.coord_shift[2] + 1) & 2UL) << 4UL);
+
+		res->emplace_back(
+
+				send_recv_s {
+
+				mpi_comm.get_neighbour(item.coord_shift),
+
+				tag,
+
+				tag,
+
+				MPIDataType::create(datatype, ndims, l_dims,
+						&item.send_offset[0], nullptr, &item.send_count[0],
+						nullptr),
+
+				MPIDataType::create(datatype, ndims, l_dims,
+						&item.recv_offset[0], nullptr, &item.recv_count[0],
+						nullptr) }
+
+				);
+
 	}
 
-	nTuple<size_t, MAX_NDIMS_OF_ARRAY> ghost_width;
-
-	ghost_width = pghost_width;
-
-	size_t ndims = 3;
-
-	nTuple<size_t, MAX_NDIMS_OF_ARRAY> g_dims, g_offset, g_count;
-
-	std::tie(ndims, g_dims, g_offset, std::ignore, g_count, std::ignore) =
-			dataspace.global_shape();
-
-	nTuple<int, MAX_NDIMS_OF_ARRAY> g_strides;
-
-	g_strides = 0;
-	g_strides[0] = 1;
-	g_strides[1] = g_dims[0];
-	g_strides[2] = g_dims[1] * g_strides[1];
-
-	nTuple<size_t, 3> l_dims, l_offset, l_count;
-
-	std::tie(std::ignore, l_dims, l_offset, std::ignore, l_count, std::ignore) =
-			dataspace.shape();
-
-	auto mpi_topology = mpi_comm.topology();
-
-	for (int n = 0; n < ndims; ++n)
-	{
-		if (mpi_topology[n] > (l_dims[n]))
-		{
-			RUNTIME_ERROR(
-					"DataSpace decompose fail! Dimension  is smaller than process grid. "
-							"[dimensions= " + value_to_string(l_dims)
-							+ ", process dimensions="
-							+ value_to_string(mpi_topology) + ", ghost_width"
-							+ value_to_string(ghost_width));
-		}
-	}
-
-	int count = 0;
-
-	nTuple<size_t, MAX_NDIMS_OF_ARRAY> send_count, send_offset;
-	nTuple<size_t, MAX_NDIMS_OF_ARRAY> recv_count, recv_offset;
-
-	for (unsigned long s = 0, s_e = (1UL << (ndims * 2)); s < s_e; ++s)
-	{
-		nTuple<int, MAX_NDIMS_OF_ARRAY> coords_shift;
-
-		bool is_duplicate = true;
-
-		for (int n = 0; n < ndims; ++n)
-		{
-			coords_shift[n] = ((s >> (n * 2)) & 3UL) - 1;
-
-			switch (coords_shift[n])
-			{
-			case 0:
-				send_count[n] = l_count[n];
-				send_offset[n] = l_offset[n];
-				recv_count[n] = l_count[n];
-				recv_offset[n] = l_offset[n];
-				break;
-			case -1:
-
-				send_count[n] = ghost_width[n];
-				send_offset[n] = l_offset[n];
-				recv_count[n] = ghost_width[n];
-				recv_offset[n] = l_offset[n] - ghost_width[n];
-				is_duplicate = false;
-				break;
-
-			case 1:
-
-				send_count[n] = ghost_width[n];
-				send_offset[n] = l_offset[n] + l_count[n] - ghost_width[n];
-				recv_count[n] = ghost_width[n];
-				recv_offset[n] = l_offset[n] + l_count[n];
-				is_duplicate = false;
-				break;
-			}
-
-			if (send_count[n] == 0 || recv_count[n] == 0)
-			{
-				is_duplicate = true;
-				break;
-			}
-		}
-
-		if (!is_duplicate)
-		{
-
-			int dest = mpi_comm.get_neighbour(coords_shift);
-
-			int send_tag = 0, recv_tag = 0;
-
-			nTuple<int, MAX_NDIMS_OF_ARRAY> send_idx, recv_idx;
-
-			for (int i = 0; i < 3; ++i)
-			{
-				send_idx[i] = (g_offset[i] + send_offset[i] - l_offset[i]
-						+ g_dims[i]) % g_dims[i];
-
-				send_tag += send_idx[i] * g_strides[i];
-
-				recv_idx[i] = (g_offset[i] + recv_offset[i] - l_offset[i]
-						+ g_dims[i]) % g_dims[i];
-
-				recv_tag += recv_idx[i] * g_strides[i];
-			}
-
-//			CHECK(coords_shift);
-//			CHECK(dest);
-//			CHECK(ghost_width);
-//			CHECK(g_offset);
-//			CHECK(g_count);
-//			CHECK(l_offset);
-//			CHECK(l_count);
-//			CHECK(send_count);
-//			CHECK(send_offset);
-//			CHECK(recv_count);
-//			CHECK(recv_offset);
-//			CHECK(send_idx);
-//			CHECK(send_tag);
-//			CHECK(recv_idx);
-//			CHECK(recv_tag);
-
-			res->emplace_back(
-
-					send_recv_s {
-
-					dest,
-
-					send_tag,
-
-					recv_tag,
-
-					MPIDataType::create(datatype, ndims, &l_dims[0],
-							&send_offset[0], nullptr, &send_count[0], nullptr),
-
-					MPIDataType::create(datatype, ndims, &l_dims[0],
-							&recv_offset[0], nullptr, &recv_count[0], nullptr) }
-
-					);
-		}
-
-	}
+//	if (pghost_width == nullptr /*|| mpi_comm.num_of_process() <= 1*/)
+//	{
+//		return;
+//	}
+//
+//	nTuple<size_t, MAX_NDIMS_OF_ARRAY> ghost_width;
+//
+//	ghost_width = pghost_width;
+//
+//	size_t ndims = 3;
+//
+//	nTuple<size_t, MAX_NDIMS_OF_ARRAY> g_dims, g_offset, g_count;
+//
+//	std::tie(ndims, g_dims, g_offset, std::ignore, g_count, std::ignore) =
+//			dataspace.global_shape();
+//
+//	nTuple<size_t, 3> l_dims, l_offset, l_count;
+//
+//	std::tie(std::ignore, l_dims, l_offset, std::ignore, l_count, std::ignore) =
+//			dataspace.shape();
+//
+//	auto mpi_topology = mpi_comm.topology();
+//
+//	for (int n = 0; n < ndims; ++n)
+//	{
+//		if (mpi_topology[n] > (l_dims[n]))
+//		{
+//			RUNTIME_ERROR(
+//					"DataSpace decompose fail! Dimension  is smaller than process grid. "
+//							"[dimensions= " + value_to_string(l_dims)
+//							+ ", process dimensions="
+//							+ value_to_string(mpi_topology) + ", ghost_width"
+//							+ value_to_string(ghost_width));
+//		}
+//	}
+//
+//	int count = 0;
+//
+//	nTuple<size_t, MAX_NDIMS_OF_ARRAY> send_count, send_offset;
+//	nTuple<size_t, MAX_NDIMS_OF_ARRAY> recv_count, recv_offset;
+//
+//	for (unsigned int tag = 0, tag_e = (1UL << (ndims * 2)); tag < tag_e; ++tag)
+//	{
+//		nTuple<int, MAX_NDIMS_OF_ARRAY> coords_shift;
+//
+//		bool tag_is_valid = false;
+//
+//		for (int n = 0; n < ndims; ++n)
+//		{
+//			coords_shift[n] = ((tag >> (n * 2)) & 3UL) - 1;
+//
+//			switch (coords_shift[n])
+//			{
+//			case 0:
+//				send_count[n] = l_count[n];
+//				send_offset[n] = l_offset[n];
+//				recv_count[n] = l_count[n];
+//				recv_offset[n] = l_offset[n];
+//				break;
+//			case -1:
+//
+//				send_count[n] = ghost_width[n];
+//				send_offset[n] = l_offset[n];
+//				recv_count[n] = ghost_width[n];
+//				recv_offset[n] = l_offset[n] - ghost_width[n];
+//				tag_is_valid = true;
+//				break;
+//
+//			case 1:
+//
+//				send_count[n] = ghost_width[n];
+//				send_offset[n] = l_offset[n] + l_count[n] - ghost_width[n];
+//				recv_count[n] = ghost_width[n];
+//				recv_offset[n] = l_offset[n] + l_count[n];
+//				tag_is_valid = true;
+//				break;
+//			}
+//
+//			if (send_count[n] == 0 || recv_count[n] == 0)
+//			{
+//				tag_is_valid = false;
+//				break;
+//			}
+//		}
+//
+//		if (tag_is_valid)
+//		{
+//
+//			res->emplace_back(
+//
+//					send_recv_s {
+//
+//					mpi_comm.get_neighbour(coords_shift),
+//
+//					static_cast<int>(tag),
+//
+//					static_cast<int>(tag),
+//
+//					MPIDataType::create(datatype, ndims, &l_dims[0],
+//							&send_offset[0], nullptr, &send_count[0], nullptr),
+//
+//					MPIDataType::create(datatype, ndims, &l_dims[0],
+//							&recv_offset[0], nullptr, &recv_count[0], nullptr) }
+//
+//					);
+//		}
+//
+//	}
 }
 
-void sync_update_dataset(DataSet * dset, size_t const * ghost_width,
-		std::vector<MPI_Request> *requests)
-{
-	std::vector<send_recv_s> s_r_list;
-
-	make_send_recv_list(dset->dataspace, dset->datatype, ghost_width,
-			&s_r_list);
-
-	sync_update_continue(s_r_list, dset->data.get(), requests);
-}
+//void sync_update_dataset(DataSet * dset, size_t const * ghost_width,
+//		std::vector<MPI_Request> *requests)
+//{
+//	std::vector<send_recv_s> s_r_list;
+//
+//	make_send_recv_list(dset->dataspace, dset->datatype, ghost_width,
+//			&s_r_list);
+//
+//	sync_update_continue(s_r_list, dset->data.get(), requests);
+//}
 
 void sync_update_continue(std::vector<send_recv_s> const & send_recv_list,
 		void * data, std::vector<MPI_Request> *requests)
@@ -190,25 +178,30 @@ void sync_update_continue(std::vector<send_recv_s> const & send_recv_list,
 		is_async = false;
 		requests = new std::vector<MPI_Request>;
 	}
+
 	MPI_Comm mpi_comm = SingletonHolder<simpla::MPIComm>::instance().comm();
 
 	for (auto const & item : send_recv_list)
 	{
 
-		MPI_Request req1;
+		{
+			MPI_Request req;
 
-		MPI_ERROR(
-				MPI_Isend(data, 1, item.send_type.type(), item.remote,
-						item.send_tag, mpi_comm, &req1));
+			MPI_ERROR(
+					MPI_Isend(data, 1, item.send_type.type(), item.dest,
+							item.send_tag, mpi_comm, &req));
 
-		requests->push_back(req1);
+			requests->push_back(std::move(req));
+		}
 
-		MPI_Request req2;
-		MPI_ERROR(
-				MPI_Irecv(data, 1, item.recv_type.type(), item.remote,
-						item.recv_tag, mpi_comm, &req2));
+		{
+			MPI_Request req;
+			MPI_ERROR(
+					MPI_Irecv(data, 1, item.recv_type.type(), item.dest,
+							item.recv_tag, mpi_comm, &req));
 
-		requests->push_back(req2);
+			requests->push_back(std::move(req));
+		}
 	}
 
 	if (!is_async)
@@ -221,8 +214,8 @@ void sync_update_continue(std::vector<send_recv_s> const & send_recv_list,
 
 }
 
-void sync_update_unordered(std::vector<send_recv_buffer_s> const & send_buffer,
-		std::vector<send_recv_buffer_s> * recv_buffer,
+void sync_update_varlength(std::vector<send_buffer_s> const & send_buffer,
+		std::vector<recv_buffer_s> * recv_buffer,
 		std::vector<MPI_Request> *requests)
 {
 	bool is_async = true;
@@ -232,43 +225,27 @@ void sync_update_unordered(std::vector<send_recv_buffer_s> const & send_buffer,
 		requests = new std::vector<MPI_Request>;
 	}
 
-	MPIComm & global_comm = SingletonHolder<simpla::MPIComm>::instance();
-
-	int num_of_reqs = send_buffer.size() + recv_buffer->size();
-
-	requests->resize(num_of_reqs);
-
-	MPI_Request * req_it = &(*requests)[0];
-
-	std::map<int, std::pair<size_t, std::shared_ptr<void> > > out_buffer;
-
-	int count = 0;
+	MPI_Comm mpi_comm = SingletonHolder<simpla::MPIComm>::instance().comm();
 
 	for (auto it = send_buffer.begin(), ie = send_buffer.end(); it != ie; ++it)
 	{
-		int remote, send_tag;
-		size_t mem_size;
-		std::shared_ptr<void> data;
 
-		std::tie(remote, send_tag, mem_size, data) = *it;
+		MPI_Request req;
 
 		MPI_ERROR(
-				MPI_Isend(data.get(), mem_size, MPI_BYTE, remote, send_tag, global_comm.comm(), req_it));
+				MPI_Isend(it->data.get(), it->size, MPI_BYTE, it->dest, it->tag, mpi_comm , &req));
 
-		++req_it;
+		requests->push_back(std::move(req));
 
 	}
 
 	for (auto it = recv_buffer->begin(), ie = recv_buffer->end(); it != ie;
 			++it)
 	{
-		int remote, recv_tag;
-
-		std::tie(remote, recv_tag, std::ignore, std::ignore) = *it;
 
 		MPI_Status status;
 
-		MPI_ERROR(MPI_Probe(remote, recv_tag, global_comm.comm(), &status));
+		MPI_ERROR(MPI_Probe(it->dest, it->tag, mpi_comm, &status));
 
 		// When probe returns, the status object has the size and other
 		// attributes of the incoming message. Get the size of the message
@@ -281,21 +258,25 @@ void sync_update_unordered(std::vector<send_recv_buffer_s> const & send_buffer,
 			RUNTIME_ERROR("Update Ghosts Particle fail");
 		}
 
-		std::shared_ptr<void> data;
-		data = sp_alloc_memory(recv_mem_size);
+		if (it->size < recv_mem_size)
+		{
+			it->data = sp_alloc_memory(recv_mem_size);
+		}
 
-		MPI_ERROR(
-				MPI_Irecv(data.get(), recv_mem_size, MPI_BYTE, remote, recv_tag, global_comm.comm(), req_it));
+		it->size = recv_mem_size;
 
-		std::get<2>(*it) = recv_mem_size;
-		std::get<3>(*it) = data;
-		++req_it;
+		{
+			MPI_Request req;
+			MPI_ERROR(
+					MPI_Irecv(it->data.get(), it->size, MPI_BYTE, it->dest, it->tag, mpi_comm , &req));
+
+			requests->push_back(std::move(req));
+		}
 	}
 
 	if (!is_async)
 	{
-		MPI_Waitall(requests->size(), &(*requests)[0],
-		MPI_STATUSES_IGNORE);
+		MPI_Waitall(requests->size(), &(*requests)[0], MPI_STATUSES_IGNORE);
 		delete requests;
 	}
 

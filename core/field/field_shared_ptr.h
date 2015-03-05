@@ -8,16 +8,20 @@
 #ifndef CORE_FIELD_FIELD_SHARED_PTR_H_
 #define CORE_FIELD_FIELD_SHARED_PTR_H_
 
-#include <stddef.h>
+#include <algorithm>
 #include <cstdbool>
 #include <memory>
 #include <string>
+#include <tuple>
+#include <vector>
 
 #include "../application/sp_object.h"
 #include "../dataset/dataset.h"
+#include "../gtl/ntuple.h"
+#include "../gtl/primitives.h"
 #include "../gtl/properties.h"
 #include "../gtl/type_traits.h"
-#include "../utilities/log.h"
+#include "../parallel/mpi_update.h"
 
 namespace simpla
 {
@@ -53,13 +57,13 @@ private:
 
 public:
 
-	_Field(mesh_type const & d) :
-			m_mesh_(d), m_data_(nullptr)
+	_Field(mesh_type const & d)
+			: m_mesh_(d), m_data_(nullptr)
 	{
 
 	}
-	_Field(this_type const & that) :
-			m_mesh_(that.m_mesh_), m_data_(that.m_data_)
+	_Field(this_type const & that)
+			: m_mesh_(that.m_mesh_), m_data_(that.m_data_)
 	{
 	}
 	~_Field()
@@ -107,8 +111,8 @@ public:
 	 */
 
 	template<typename ...Args>
-	_Field(this_type & that, Args && ...args) :
-			m_mesh_(that.m_mesh_, std::forward<Args>(args)...), m_data_(
+	_Field(this_type & that, Args && ...args)
+			: m_mesh_(that.m_mesh_, std::forward<Args>(args)...), m_data_(
 					that.m_data_)
 	{
 	}
@@ -153,11 +157,10 @@ public:
 	template<typename TR>
 	inline this_type & operator =(TR const &that)
 	{
-//		deploy();
+		deploy();
 //		return std::move(
 //				_Field<AssignmentExpression<_impl::_assign, this_type, TR>>(
 //						*this, that));
-		deploy();
 
 //		parallel_for(mesh_.range(), [&](typename mesh_type::range_type s_range)
 //		{
@@ -198,16 +201,48 @@ public:
 
 	/**@}*/
 
-//	DataSet dump_data() const
-//	{
-//		return DataSet();
-//	}
 	void deploy()
 	{
 		if (m_data_ == nullptr)
 		{
 			m_data_ = sp_make_shared_array<value_type>(m_mesh_.max_hash());
 		}
+
+		int ndims = 3;
+
+		nTuple<size_t, MAX_NDIMS_OF_ARRAY> l_dims;
+
+		std::tie(ndims, l_dims, std::ignore, std::ignore, std::ignore,
+				std::ignore) = m_mesh_.dataspace().shape();
+
+		make_send_recv_list(DataType::create<value_type>(), ndims, &l_dims[0],
+				m_mesh_.ghost_shape(), &m_send_recv_list_);
+	}
+private:
+	std::vector<send_recv_s> m_send_recv_list_;
+public:
+
+	void sync()
+	{
+		VERBOSE << "sync Field" << std::endl;
+
+		sync_update_continue(m_send_recv_list_, m_data_.get());
+	}
+
+	DataSet dataset() const
+	{
+
+		DataSet res;
+
+		res.data = m_data_;
+
+		res.datatype = DataType::create<value_type>();
+
+		res.dataspace = m_mesh_.dataspace();
+
+		res.properties = properties;
+
+		return std::move(res);
 	}
 
 public:
@@ -234,36 +269,6 @@ public:
 	auto operator()(Args && ... args) const
 	DECL_RET_TYPE((m_mesh_.gather(*this,std::forward<Args>(args)...)))
 
-	DataSet dataset()
-	{
-		DataSet res;
-
-		res.data = m_data_;
-
-		res.datatype = DataType::create<value_type>();
-
-		res.dataspace = m_mesh_.dataspace();
-
-		res.properties = properties;
-
-		return std::move(res);
-	}
-
-	DataSet dataset() const
-	{
-
-		DataSet res;
-
-		res.data = m_data_;
-
-		res.datatype = DataType::create<value_type>();
-
-		res.dataspace = m_mesh_.dataspace();
-
-		res.properties = properties;
-
-		return std::move(res);
-	}
 }
 ;
 namespace _impl

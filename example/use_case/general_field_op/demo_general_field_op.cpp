@@ -43,10 +43,14 @@ USE_CASE(general_field_op)
 
 	std::vector<send_recv_s> s_r_list;
 
-	make_send_recv_list(mesh->dataspace(), DataType::create<double>(),
-			&(mesh->ghost_width()[0]), &s_r_list);
+//	make_send_recv_list(DataType::create<double>(), &s_r_list);
 
-	sync_update_continue(s_r_list, f1.data().get());
+//	sync_update_continue(s_r_list, f1.data().get());
+
+	f1.sync();
+	f1.sync();
+	f1.sync();
+	f1.sync();
 
 	cd("/Output2/");
 	VERBOSE << SAVE(f1) << std::endl;

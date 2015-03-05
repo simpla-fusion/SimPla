@@ -9,9 +9,12 @@
 #define CORE_DATASET_DATASPACE_H_
 
 #include <stddef.h>
-#include <map>
+#include <memory>
 #include <tuple>
+#include <vector>
 
+#include "../gtl/ntuple.h"
+#include "../gtl/primitives.h"
 #include "../gtl/properties.h"
 
 namespace simpla
@@ -66,6 +69,17 @@ public:
 		return is_valid() && (!is_distributed());
 	}
 
+	struct ghosts_shape_s
+	{
+		nTuple<int, 3> coord_shift;
+		nTuple<size_t, MAX_NDIMS_OF_ARRAY> send_offset;
+		nTuple<size_t, MAX_NDIMS_OF_ARRAY> send_count;
+		nTuple<size_t, MAX_NDIMS_OF_ARRAY> recv_offset;
+		nTuple<size_t, MAX_NDIMS_OF_ARRAY> recv_count;
+	};
+
+	void ghost_shape(size_t const * ghost_width,
+			std::vector<ghosts_shape_s>*) const;
 	/**
 	 * @return <ndims,dimensions,start,count,stride,block>
 	 */
