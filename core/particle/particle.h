@@ -7,16 +7,25 @@
 
 #ifndef CORE_PARTICLE_PARTICLE_H_
 #define CORE_PARTICLE_PARTICLE_H_
+
+#include <stddef.h>
+#include <algorithm>
+#include <memory>
+#include <string>
+#include <tuple>
+#include <vector>
+
 #include "../application/sp_object.h"
-#include "../utilities/utilities.h"
-#include "../gtl/enable_create_from_this.h"
-#include "../gtl/iterator/range.h"
 #include "../dataset/dataset.h"
+#include "../gtl/enable_create_from_this.h"
+#include "../gtl/primitives.h"
+#include "../gtl/properties.h"
+#include "../parallel/mpi_update.h"
+#include "../utilities/log.h"
+#include "../utilities/memory_pool.h"
 
 namespace simpla
 {
-
-template<typename T> void sync(T *);
 
 /** @ingroup physical_object
  *  @addtogroup particle Particle
@@ -171,10 +180,70 @@ public:
 		}
 	}
 
-	bool deploy()
+	void deploy()
 	{
 		SpObject::properties(engine_type::properties());
-		return SpObject::deploy();
+	}
+
+	void sync()
+	{
+		std::vector<mpi_send_recv_buffer_s> send_recv_buffer;
+
+		auto const & ghost_list = m_mesh_.ghost_shape();
+
+		for (auto const & item : ghost_list)
+		{
+			mpi_send_recv_buffer_s send_recv_s;
+
+			std::tie(send_recv_s.dest, send_recv_s.send_tag) = get_mpi_tag(
+					&item.coord_shift[0]);
+
+			// TODO collect send data
+
+			auto send_range = m_mesh_.select(item.send_offset, item.send_count);
+
+			size_t send_num = container_type::size(send_range);
+
+			send_recv_s.send_size = send_num * sizeof(value_type);
+
+			send_recv_s.send_data = sp_alloc_memory(send_recv_s.send_size);
+
+			value_type *data =
+					reinterpret_cast<value_type*>(send_recv_s.send_data);
+
+			//TODO need parallel optimize
+			for (auto const & key : send_range)
+			{
+				for (auto const & p : container_type::operator[](key))
+				{
+					*data = p;
+					++data;
+				}
+			}
+
+			// TODO clear ghosts cell
+			auto recv_range = m_mesh_.select(item.recv_offset, item.recv_count);
+
+			container_type::erase(recv_range);
+
+			send_recv_s.recv_size = 0;
+			send_recv_s.recv_data = nullptr;
+			send_recv_buffer.push_back(std::move(send_recv_s));
+
+		}
+
+		sync_update_varlength(&send_recv_buffer);
+
+		for (auto const & item : send_recv_buffer)
+		{
+			size_t num = item.recv_size / sizeof(value_type);
+
+			value_type *data =
+					reinterpret_cast<value_type*>(item.recv_data.get());
+
+			container_type::insert(data, data + num);
+		}
+
 	}
 
 	DataSet dataset() const

@@ -219,7 +219,7 @@ public:
 				m_mesh_.ghost_shape(), &m_send_recv_list_);
 	}
 private:
-	std::vector<send_recv_s> m_send_recv_list_;
+	std::vector<mpi_send_recv_s> m_send_recv_list_;
 public:
 
 	void sync()

@@ -41,7 +41,7 @@ USE_CASE(general_field_op)
 
 	VERBOSE << SAVE(f1) << std::endl;
 
-	std::vector<send_recv_s> s_r_list;
+	std::vector<mpi_send_recv_s> s_r_list;
 
 //	make_send_recv_list(DataType::create<double>(), &s_r_list);
 

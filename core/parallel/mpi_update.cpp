@@ -12,25 +12,34 @@
 
 namespace simpla
 {
+std::tuple<int, int> get_mpi_tag(int const * coord)
+{
+	int tag = ((coord[0] + 1) & 2UL) || (((coord[1] + 1) & 2UL) << 2UL)
+			|| (((coord[2] + 1) & 2UL) << 4UL);
 
+	int dest = SingletonHolder<simpla::MPIComm>::instance().get_neighbour(
+			coord);
+
+	return std::make_tuple(dest, tag);
+}
 void make_send_recv_list(DataType const & datatype, int ndims,
 		size_t const * l_dims,
 		std::vector<DataSpace::ghosts_shape_s> const & ghost_shape,
-		std::vector<send_recv_s> *res)
+		std::vector<mpi_send_recv_s> *res)
 {
 	auto & mpi_comm = SingletonHolder<simpla::MPIComm>::instance();
 
 	for (auto const & item : ghost_shape)
 	{
-		int tag = ((item.coord_shift[0] + 1) & 2UL)
-				|| (((item.coord_shift[1] + 1) & 2UL) << 2UL)
-				|| (((item.coord_shift[2] + 1) & 2UL) << 4UL);
+		int dest, tag;
+
+		std::tie(dest, tag) = get_mpi_tag(&item.coord_shift[0]);
 
 		res->emplace_back(
 
-				send_recv_s {
+				mpi_send_recv_s {
 
-				mpi_comm.get_neighbour(item.coord_shift),
+				dest,
 
 				tag,
 
@@ -138,7 +147,7 @@ void make_send_recv_list(DataType const & datatype, int ndims,
 //
 //			res->emplace_back(
 //
-//					send_recv_s {
+//					mpi_send_recv_s {
 //
 //					mpi_comm.get_neighbour(coords_shift),
 //
@@ -161,7 +170,7 @@ void make_send_recv_list(DataType const & datatype, int ndims,
 //void sync_update_dataset(DataSet * dset, size_t const * ghost_width,
 //		std::vector<MPI_Request> *requests)
 //{
-//	std::vector<send_recv_s> s_r_list;
+//	std::vector<mpi_send_recv_s> s_r_list;
 //
 //	make_send_recv_list(dset->dataspace, dset->datatype, ghost_width,
 //			&s_r_list);
@@ -169,7 +178,7 @@ void make_send_recv_list(DataType const & datatype, int ndims,
 //	sync_update_continue(s_r_list, dset->data.get(), requests);
 //}
 
-void sync_update_continue(std::vector<send_recv_s> const & send_recv_list,
+void sync_update_continue(std::vector<mpi_send_recv_s> const & send_recv_list,
 		void * data, std::vector<MPI_Request> *requests)
 {
 	bool is_async = true;
@@ -214,8 +223,8 @@ void sync_update_continue(std::vector<send_recv_s> const & send_recv_list,
 
 }
 
-void sync_update_varlength(std::vector<send_buffer_s> const & send_buffer,
-		std::vector<recv_buffer_s> * recv_buffer,
+void sync_update_varlength(
+		std::vector<mpi_send_recv_buffer_s> * send_recv_buffer,
 		std::vector<MPI_Request> *requests)
 {
 	bool is_async = true;
@@ -227,25 +236,26 @@ void sync_update_varlength(std::vector<send_buffer_s> const & send_buffer,
 
 	MPI_Comm mpi_comm = SingletonHolder<simpla::MPIComm>::instance().comm();
 
-	for (auto it = send_buffer.begin(), ie = send_buffer.end(); it != ie; ++it)
+	for (auto it = send_recv_buffer->begin(), ie = send_recv_buffer->end();
+			it != ie; ++it)
 	{
 
 		MPI_Request req;
 
 		MPI_ERROR(
-				MPI_Isend(it->data.get(), it->size, MPI_BYTE, it->dest, it->tag, mpi_comm , &req));
+				MPI_Isend(it->send_data.get(), it->send_size, MPI_BYTE, it->dest, it->send_tag, mpi_comm , &req));
 
 		requests->push_back(std::move(req));
 
 	}
 
-	for (auto it = recv_buffer->begin(), ie = recv_buffer->end(); it != ie;
-			++it)
+	for (auto it = send_recv_buffer->begin(), ie = send_recv_buffer->end();
+			it != ie; ++it)
 	{
 
 		MPI_Status status;
 
-		MPI_ERROR(MPI_Probe(it->dest, it->tag, mpi_comm, &status));
+		MPI_ERROR(MPI_Probe(it->dest, it->recv_tag, mpi_comm, &status));
 
 		// When probe returns, the status object has the size and other
 		// attributes of the incoming message. Get the size of the message
@@ -258,17 +268,17 @@ void sync_update_varlength(std::vector<send_buffer_s> const & send_buffer,
 			RUNTIME_ERROR("Update Ghosts Particle fail");
 		}
 
-		if (it->size < recv_mem_size)
+		if (it->recv_size < recv_mem_size)
 		{
-			it->data = sp_alloc_memory(recv_mem_size);
+			it->recv_data = sp_alloc_memory(recv_mem_size);
 		}
 
-		it->size = recv_mem_size;
+		it->recv_size = recv_mem_size;
 
 		{
 			MPI_Request req;
 			MPI_ERROR(
-					MPI_Irecv(it->data.get(), it->size, MPI_BYTE, it->dest, it->tag, mpi_comm , &req));
+					MPI_Irecv(it->recv_data.get(), it->recv_size, MPI_BYTE, it->dest, it->recv_tag, mpi_comm , &req));
 
 			requests->push_back(std::move(req));
 		}
