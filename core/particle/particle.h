@@ -209,12 +209,13 @@ public:
 			send_recv_s.send_data = sp_alloc_memory(send_recv_s.send_size);
 
 			value_type *data =
-					reinterpret_cast<value_type*>(send_recv_s.send_data);
+					reinterpret_cast<value_type*>(send_recv_s.send_data.get());
 
 			//TODO need parallel optimize
 			for (auto const & key : send_range)
 			{
-				for (auto const & p : container_type::operator[](key))
+				for (auto const & p : container_type::operator[](
+						m_mesh_.hash(key)))
 				{
 					*data = p;
 					++data;

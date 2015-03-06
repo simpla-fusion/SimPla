@@ -52,6 +52,7 @@ public:
 private:
 
 	coordinates_type m_xmin_, m_xmax_, m_dx_;
+	Real m_dt_;
 	index_tuple m_dimensions_;
 	index_tuple m_offset_;
 	index_tuple m_count_;
@@ -132,6 +133,15 @@ public:
 		<< " }";
 		return os;
 
+	}
+
+	Real dt() const
+	{
+		return m_dt_;
+	}
+	void dt(Real pdt)
+	{
+		m_dt_ = pdt;
 	}
 	template<typename T1>
 	void dimensions(T1 const & d)
@@ -259,12 +269,19 @@ public:
 
 	range_type range() const
 	{
-		return range_type(m_offset_, m_count_);
+		return range_type(m_offset_, m_offset_ + m_count_);
 	}
 	template<typename ...Args>
 	size_t hash(Args &&...args) const
 	{
 		return 1;
+	}
+
+	template<typename T>
+	range_type select(T imin, T imax) const
+	{
+		return range_type(imin, imax);
+
 	}
 
 private:

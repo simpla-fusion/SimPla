@@ -17,6 +17,7 @@
 #include <utility>
 #include "../../dataset/dataset.h"
 #include "../iterator/sp_indirect_iterator.h"
+#include "../iterator/sp_iterator.h"
 namespace simpla
 {
 /**
@@ -224,7 +225,7 @@ public:
 		for (auto it = first; it != last; ++it)
 		{
 			auto & dest = m_data_[it->first];
-			dest.splice_after(dest.before_begin(), it->seond);
+			dest.splice_after(dest.before_begin(), it->second);
 		}
 	}
 
@@ -245,8 +246,11 @@ public:
 	template<typename TRange>
 	void erase(TRange const & range)
 	{
-		base_container_type res(m_hash_);
-		move_out(range, res);
+		for (auto const & key : range)
+		{
+			erase(m_hash_(key));
+		}
+
 	}
 	/**
 	 *  move  elements  which `hash(value)!=key`  from   `m_data_[key]`
@@ -256,7 +260,7 @@ public:
 	 * @return number of moved elements
 	 */
 
-	size_t rehash(std::pair<key_type, bucket_type> & item,
+	size_t rehash(typename base_container_type::value_type & item,
 			base_container_type & other)
 	{
 		auto const & key = item.first;
@@ -283,12 +287,14 @@ public:
 
 	void rehash()
 	{
-		base_container_type other(m_hash_);
+		base_container_type other;
+
 		for (auto & item : m_data_)
 		{
 			rehash(item, other);
 		}
-		move_in(std::move(other));
+
+		splice(other.begin(), other.end());
 	}
 
 	size_t size(key_type const & key) const

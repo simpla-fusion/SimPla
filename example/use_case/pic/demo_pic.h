@@ -38,8 +38,8 @@ private:
 	Real cmr_, q_kT_;
 public:
 
-	PICDemo() :
-			mass(1.0), charge(1.0), temperature(1.0)
+	PICDemo()
+			: mass(1.0), charge(1.0), temperature(1.0)
 	{
 		update();
 	}
@@ -91,10 +91,9 @@ public:
 	}
 
 	static inline Point_s push_forward(coordinates_type const & x,
-			Vec3 const &v, scalar_type f)
+			Vec3 const &v, Real f = 1.0)
 	{
-		return std::move(Point_s(
-		{ x, v, f }));
+		return std::move(Point_s( { x, v, f }));
 	}
 
 	static inline auto pull_back(Point_s const & p)
