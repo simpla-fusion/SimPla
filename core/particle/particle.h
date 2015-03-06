@@ -99,10 +99,10 @@ struct particle_container_traits
 
 template<typename TM, typename Engine, typename TContainer>
 class Particle<TM, Engine, TContainer> //
-:	public SpObject,
-	public Engine,
-	public TContainer,
-	public enable_create_from_this<Particle<TM, Engine, TContainer> >
+: public SpObject,
+		public Engine,
+		public TContainer,
+		public enable_create_from_this<Particle<TM, Engine, TContainer> >
 {
 public:
 	typedef TM mesh_type;
@@ -119,19 +119,19 @@ private:
 	mesh_type m_mesh_;
 public:
 
-	Particle(mesh_type const & m)
-			: m_mesh_(m)
+	Particle(mesh_type const & m) :
+			m_mesh_(m)
 	{
 	}
 
-	Particle(this_type const& other)
-			: engine_type(other), container_type(other), m_mesh_(other.m_mesh_)
+	Particle(this_type const& other) :
+			engine_type(other), container_type(other), m_mesh_(other.m_mesh_)
 	{
 	}
 
 	template<typename ... Args>
-	Particle(this_type & other, Args && ...args)
-			: engine_type(other), container_type(other,
+	Particle(this_type & other, Args && ...args) :
+			engine_type(other), container_type(other,
 					std::forward<Args>(args)...), m_mesh_(other.m_mesh_)
 	{
 	}
@@ -173,6 +173,20 @@ public:
 			UNIMPLEMENTED2("load particle from [DataSrc]");
 		}
 	}
+	bool empty() const
+	{
+		return TContainer::empty();
+	}
+
+	bool is_divisible() const
+	{
+		return TContainer::is_divisible();
+	}
+
+	bool is_valid() const
+	{
+		return engine_type::is_valid();
+	}
 
 	void deploy()
 	{
@@ -181,9 +195,14 @@ public:
 		SpObject::properties.append(engine_type::properties);
 	}
 
+private:
+
+	std::vector<mpi_send_recv_buffer_s> m_send_recv_buffer_;
+
+public:
+
 	void sync()
 	{
-		std::vector<mpi_send_recv_buffer_s> send_recv_buffer;
 
 		auto const & ghost_list = m_mesh_.ghost_shape();
 
@@ -225,13 +244,20 @@ public:
 
 			send_recv_s.recv_size = 0;
 			send_recv_s.recv_data = nullptr;
-			send_recv_buffer.push_back(std::move(send_recv_s));
+			m_send_recv_buffer_.push_back(std::move(send_recv_s));
 
 		}
 
-		sync_update_varlength(&send_recv_buffer);
+		sync_update_varlength(&m_send_recv_buffer_,
+				&(SpObject::m_mpi_requests_));
 
-		for (auto const & item : send_recv_buffer)
+	}
+
+	void wait_to_ready()
+	{
+		SpObject::wait_to_ready();
+
+		for (auto const & item : m_send_recv_buffer_)
 		{
 			size_t count = item.recv_size / sizeof(value_type);
 
@@ -240,12 +266,13 @@ public:
 
 			container_type::insert(data, data + count);
 		}
-
 	}
 
 	template<typename TRange>
 	DataSet dataset(TRange const & p_range) const
 	{
+		ASSERT(is_ready());
+
 		DataSet res;
 
 		res.datatype = DataType::create<value_type>();
@@ -292,33 +319,6 @@ public:
 				.select_hyperslab(&offset, nullptr, &count, nullptr) //
 				.create_distributed_space();
 
-//		int ndim;
-//		nTuple<size_t, 3> l_offset, l_count, l_dims;
-//		l_offset = 0;
-//		l_count = 0;
-//		l_dims = 0;
-//
-//		std::tie(ndim, l_dims, l_offset, std::ignore, l_count, std::ignore) =
-//				dataspace.shape();
-//
-//		CHECK(ndim);
-//		CHECK(l_dims);
-//		CHECK(l_offset);
-//		CHECK(l_count);
-//
-//		nTuple<size_t, 3> g_offset, g_count, g_dims;
-//		g_offset = 0;
-//		g_count = 0;
-//		g_dims = 0;
-//
-//		std::tie(ndim, g_dims, g_offset, std::ignore, g_count, std::ignore) =
-//				dataspace.global_shape();
-//
-//		CHECK(ndim);
-//		CHECK(g_dims);
-//		CHECK(g_offset);
-//		CHECK(g_count);
-
 		return std::move(res);
 	}
 
@@ -344,6 +344,8 @@ public:
 	template<typename ...Args>
 	void next_timestep(Args && ...args)
 	{
+		wait_to_ready();
+
 		container_type::foreach(m_mesh_.range(), [&](value_type & p)
 		{
 			engine_type::next_timestep(&p, std::forward<Args>(args)...);
@@ -374,6 +376,8 @@ public:
 	Real next_n_timesteps(size_t num_of_steps, Real t0, Real dt,
 			Args && ...args)
 	{
+		wait_to_ready();
+
 		container_type::foreach(m_mesh_.range(), [&](value_type & p)
 		{
 			for (int s = 0; s < num_of_steps; ++s)

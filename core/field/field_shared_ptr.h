@@ -57,13 +57,13 @@ private:
 
 public:
 
-	_Field(mesh_type const & d)
-			: m_mesh_(d), m_data_(nullptr)
+	_Field(mesh_type const & d) :
+			m_mesh_(d), m_data_(nullptr)
 	{
 
 	}
-	_Field(this_type const & that)
-			: m_mesh_(that.m_mesh_), m_data_(that.m_data_)
+	_Field(this_type const & that) :
+			m_mesh_(that.m_mesh_), m_data_(that.m_data_)
 	{
 	}
 	~_Field()
@@ -95,13 +95,14 @@ public:
 
 	void clear()
 	{
-		deploy();
+		wait_to_ready();
+
 		*this = 0;
 	}
 	template<typename T>
 	void fill(T const &v)
 	{
-		deploy();
+		wait_to_ready();
 
 		std::fill(m_data_.get(), m_data_.get() + m_mesh_.max_hash(), v);
 	}
@@ -111,8 +112,8 @@ public:
 	 */
 
 	template<typename ...Args>
-	_Field(this_type & that, Args && ...args)
-			: m_mesh_(that.m_mesh_, std::forward<Args>(args)...), m_data_(
+	_Field(this_type & that, Args && ...args) :
+			m_mesh_(that.m_mesh_, std::forward<Args>(args)...), m_data_(
 					that.m_data_)
 	{
 	}
@@ -124,7 +125,10 @@ public:
 	{
 		return m_mesh_.is_divisible();
 	}
-
+	bool is_valid() const
+	{
+		return m_data_ != nullptr;
+	}
 	/**@}*/
 
 	/**
@@ -144,7 +148,7 @@ public:
 //	}
 	inline this_type & operator =(this_type const &that)
 	{
-		deploy();
+		wait_to_ready();
 
 		for (auto s : m_mesh_.range())
 		{
@@ -157,7 +161,8 @@ public:
 	template<typename TR>
 	inline this_type & operator =(TR const &that)
 	{
-		deploy();
+		wait_to_ready();
+
 //		return std::move(
 //				_Field<AssignmentExpression<_impl::_assign, this_type, TR>>(
 //						*this, that));
@@ -177,7 +182,8 @@ public:
 
 	template<typename TFun> void pull_back(TFun const &fun)
 	{
-		deploy();
+		wait_to_ready();
+
 		m_mesh_.pull_back(*this, fun);
 	}
 
@@ -224,13 +230,17 @@ public:
 
 	void sync()
 	{
+		wait_to_ready();
+
 		VERBOSE << "sync Field" << std::endl;
 
-		sync_update_continue(m_send_recv_list_, m_data_.get());
+		sync_update_continue(m_send_recv_list_, m_data_.get(),
+				&(SpObject::m_mpi_requests_));
 	}
 
 	DataSet dataset() const
 	{
+		ASSERT(is_ready());
 
 		DataSet res;
 

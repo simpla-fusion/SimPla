@@ -57,13 +57,13 @@ public:
 	sp_sorted_set()
 	{
 	}
-	sp_sorted_set(this_type const & other)
-			: m_hash_(other.m_hash_), m_data_(other.m_data_)
+	sp_sorted_set(this_type const & other) :
+			m_hash_(other.m_hash_), m_data_(other.m_data_)
 	{
 	}
 
-	sp_sorted_set(this_type && other)
-			: m_hash_(other.m_hash_), m_data_(other.m_data_)
+	sp_sorted_set(this_type && other) :
+			m_hash_(other.m_hash_), m_data_(other.m_data_)
 	{
 	}
 
@@ -98,6 +98,14 @@ public:
 		std::swap(m_hash_, other.m_hash_);
 	}
 
+	bool empty() const
+	{
+		return m_data_.empty();
+	}
+	bool is_divisible() const
+	{
+		return false;
+	}
 	bucket_type & operator[](key_type const & key)
 	{
 		return m_data_[key];

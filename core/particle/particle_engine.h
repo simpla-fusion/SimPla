@@ -393,7 +393,10 @@ void update_properties()                                     \
 }                                                            \
 template<typename OS> OS& print(OS &os)const                 \
 {  properties.print(os);		return os;	}                \
-void deploy( ){ update_properties();update();  }
+private:bool m_is_valid_=false;                              \
+public: bool is_valid()const{return m_is_valid_;}            \
+void deploy( ){ update_properties();update(); m_is_valid_=true;}
+
 }
 // namespace simpla
 

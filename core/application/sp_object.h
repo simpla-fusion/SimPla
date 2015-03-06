@@ -9,7 +9,7 @@
 #define CORE_APPLICATION_SP_OBJECT_H_
 
 #include <iostream>
-
+#include "../parallel/mpi_comm.h"
 namespace simpla
 {
 class DataSet;
@@ -82,62 +82,36 @@ struct SpObject
 	Properties properties;
 
 	//! Default constructor
-	SpObject()
-			: is_valid_(false)
-	{
-	}
+	SpObject();
 	//! destroy.
-	virtual ~SpObject()
-	{
-	}
+	virtual ~SpObject();
 
-	SpObject(const SpObject&); // copy constructor.
+	SpObject(const SpObject&);
 
 	virtual std::string get_type_as_string() const=0;
 
-//	virtual DataSet dump_data() const {}; //!< return the data set of PhysicalObject
-
-	void lock();
-
-	virtual bool is_valid()
-	{
-		return true;
-	}
-
-	virtual bool empty() const
-	{
-		return false;
-	}
-
-	virtual bool is_divisible() const
-	{
-		return false;
-	}
-	virtual void load()
-	{
-	}
-	virtual void deploy()
-	{
-		is_valid_ = true;
-	}
-
-	/**
-	 *  update ghost values
-	 */
-	virtual void sync()
-	{
-	}
-
 	virtual DataSet dataset() const=0;
 
-	virtual std::ostream &print(std::ostream & os) const
-	{
-		return properties.print(os);
-	}
+	virtual bool empty() const = 0;
 
-private:
+	virtual bool is_divisible() const = 0;
 
-	bool is_valid_ = false;
+	virtual bool is_valid() const=0;
+
+	virtual void deploy()=0;
+
+	virtual void sync()=0;
+
+	//virtual	void lock();
+
+	virtual bool is_ready() const;
+	virtual void wait_to_ready();
+	virtual void wait_to_ready() const;
+
+	virtual std::ostream &print(std::ostream & os) const;
+
+protected:
+	std::vector<MPI_Request> m_mpi_requests_;
 
 };
 }  // namespace simpla
