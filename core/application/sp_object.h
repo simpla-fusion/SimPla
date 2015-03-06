@@ -79,6 +79,8 @@ class Properties;
  */
 struct SpObject
 {
+	Properties properties;
+
 	//! Default constructor
 	SpObject()
 			: is_valid_(false)
@@ -127,8 +129,6 @@ struct SpObject
 	}
 
 	virtual DataSet dataset() const=0;
-
-	Properties properties;
 
 	virtual std::ostream &print(std::ostream & os) const
 	{

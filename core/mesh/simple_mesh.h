@@ -52,7 +52,7 @@ public:
 private:
 
 	coordinates_type m_xmin_, m_xmax_, m_dx_;
-	Real m_dt_;
+	Real m_dt_ = 1.0;
 	index_tuple m_dimensions_;
 	index_tuple m_offset_;
 	index_tuple m_count_;

@@ -118,8 +118,8 @@ std::tuple<size_t, size_t const *, size_t const *, size_t const *,
 
 }
 
-void DataSpace::select_hyperslab(size_t const * offset, size_t const * stride,
-		size_t const * count, size_t const * block)
+DataSpace & DataSpace::select_hyperslab(size_t const * offset,
+		size_t const * stride, size_t const * count, size_t const * block)
 {
 	if (!is_valid())
 	{
@@ -143,11 +143,13 @@ void DataSpace::select_hyperslab(size_t const * offset, size_t const * stride,
 	{
 		pimpl_->m_block_ *= block;
 	}
-
+	
 	if (pimpl_->m_global_space_ != nullptr)
 	{
 		pimpl_->m_global_space_->select_hyperslab(offset, stride, count, block);
 	}
+	
+	return *this;
 
 }
 
@@ -168,7 +170,7 @@ DataSpace DataSpace::create_distributed_space(size_t const * gw) const
 		res.pimpl_->m_global_space_ = std::unique_ptr<DataSpace>(
 				new DataSpace(*pimpl_->m_global_space_));
 	}
-
+	res.pimpl_->m_ndims_ = pimpl_->m_ndims_;
 	res.pimpl_->m_dimensions_ = pimpl_->m_count_;
 	res.pimpl_->m_offset_ = 0;
 	res.pimpl_->m_stride_ = pimpl_->m_block_;

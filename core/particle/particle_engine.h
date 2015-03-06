@@ -122,7 +122,8 @@ namespace simpla
 #define COUNT_MACRO_ARGS(...) COUNT_MACRO_ARGS_IMPL((__VA_ARGS__,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0))
 
 /* Pick the right helper macro to invoke. */
-#define SP_PARTICLE_DEFINE_MEMBER_HELPER2(_T0_,_N0_) typename array_to_ntuple_convert<_T0_>::type _N0_;
+#define SP_PARTICLE_DEFINE_MEMBER_HELPER2(_T0_,_N0_)  typename array_to_ntuple_convert<_T0_>::type _N0_;
+
 #define SP_PARTICLE_DEFINE_MEMBER_HELPER4(_T0_,_N0_,_T1_,_N1_) SP_PARTICLE_DEFINE_MEMBER_HELPER2(_T0_,_N0_) \
 	  SP_PARTICLE_DEFINE_MEMBER_HELPER2(_T1_,_N1_)
 #define SP_PARTICLE_DEFINE_MEMBER_HELPER6(_T0_,_N0_,_T1_,_N1_,_T2_,_N2_) SP_PARTICLE_DEFINE_MEMBER_HELPER2(_T0_,_N0_) \
@@ -143,6 +144,33 @@ namespace simpla
 #define SP_PARTICLE_DEFINE_MEMBER_CHOOSE_HELPER1(count) SP_PARTICLE_DEFINE_MEMBER_HELPER##count
 #define SP_PARTICLE_DEFINE_MEMBER_CHOOSE_HELPER(count) SP_PARTICLE_DEFINE_MEMBER_CHOOSE_HELPER1(count)
 #define SP_PARTICLE_DEFINE_MEMBER(...) SP_PARTICLE_DEFINE_MEMBER_CHOOSE_HELPER(COUNT_MACRO_ARGS(__VA_ARGS__)) (__VA_ARGS__)
+
+/* Pick the right helper macro to invoke. */
+#define SP_PROPERTIES_DEFINE_MEMBER_HELPER2(_T0_,_N0_) \
+	private:typename array_to_ntuple_convert<_T0_>::type m_##_N0_; \
+    public:	typename array_to_ntuple_convert<_T0_>::type _N0_()const{return m_##_N0_;} \
+	void _N0_(typename array_to_ntuple_convert<_T0_>::type  v) {  m_##_N0_=v;}
+
+#define SP_PROPERTIES_DEFINE_MEMBER_HELPER4(_T0_,_N0_,_T1_,_N1_) SP_PROPERTIES_DEFINE_MEMBER_HELPER2(_T0_,_N0_) \
+	  SP_PROPERTIES_DEFINE_MEMBER_HELPER2(_T1_,_N1_)
+#define SP_PROPERTIES_DEFINE_MEMBER_HELPER6(_T0_,_N0_,_T1_,_N1_,_T2_,_N2_) SP_PROPERTIES_DEFINE_MEMBER_HELPER2(_T0_,_N0_) \
+	  SP_PROPERTIES_DEFINE_MEMBER_HELPER4(_T1_,_N1_,_T2_,_N2_)
+#define SP_PROPERTIES_DEFINE_MEMBER_HELPER8(_T0_,_N0_,_T1_,_N1_,_T2_,_N2_,_T3_,_N3_) SP_PROPERTIES_DEFINE_MEMBER_HELPER2(_T0_,_N0_) \
+	  SP_PROPERTIES_DEFINE_MEMBER_HELPER6(_T1_,_N1_,_T2_,_N2_,_T3_,_N3_)
+#define SP_PROPERTIES_DEFINE_MEMBER_HELPER10(_T0_,_N0_,_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_) SP_PROPERTIES_DEFINE_MEMBER_HELPER2(_T0_,_N0_) \
+	  SP_PROPERTIES_DEFINE_MEMBER_HELPER8(_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_)
+#define SP_PROPERTIES_DEFINE_MEMBER_HELPER12(_T0_,_N0_,_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_) SP_PROPERTIES_DEFINE_MEMBER_HELPER2(_T0_,_N0_) \
+	  SP_PROPERTIES_DEFINE_MEMBER_HELPER10(_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_)
+#define SP_PROPERTIES_DEFINE_MEMBER_HELPER14(_T0_,_N0_,_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_,_T6_,_N6_) SP_PROPERTIES_DEFINE_MEMBER_HELPER2(_T0_,_N0_) \
+	  SP_PROPERTIES_DEFINE_MEMBER_HELPER12(_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_,_T6_,_N6_)
+#define SP_PROPERTIES_DEFINE_MEMBER_HELPER16(_T0_,_N0_,_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_,_T6_,_N6_,_T7_,_N7_) SP_PROPERTIES_DEFINE_MEMBER_HELPER2(_T0_,_N0_) \
+	  SP_PROPERTIES_DEFINE_MEMBER_HELPER14(_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_,_T6_,_N6_,_T7_,_N7_)
+#define SP_PROPERTIES_DEFINE_MEMBER_HELPER18(_T0_,_N0_,_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_,_T6_,_N6_,_T7_,_N7_,_T8_,_N8_) SP_PROPERTIES_DEFINE_MEMBER_HELPER2(_T0_,_N0_) \
+	  SP_PROPERTIES_DEFINE_MEMBER_HELPER16(_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_,_T6_,_N6_,_T7_,_N7_,_T8_,_N8_)
+
+#define SP_PROPERTIES_DEFINE_MEMBER_CHOOSE_HELPER1(count) SP_PROPERTIES_DEFINE_MEMBER_HELPER##count
+#define SP_PROPERTIES_DEFINE_MEMBER_CHOOSE_HELPER(count) SP_PROPERTIES_DEFINE_MEMBER_CHOOSE_HELPER1(count)
+#define SP_PROPERTIES_DEFINE_MEMBER(...) SP_PROPERTIES_DEFINE_MEMBER_CHOOSE_HELPER(COUNT_MACRO_ARGS(__VA_ARGS__)) (__VA_ARGS__)
 
 //#define SP_PARTICLE_GET_NAME_HELPER2(_T0_,_N0_) _N0_
 //#define SP_PARTICLE_GET_NAME_HELPER4(_T0_,_N0_,_T1_,_N1_) SP_PARTICLE_GET_NAME_HELPER2(_T0_,_N0_) , \
@@ -253,7 +281,7 @@ struct _S_NAME_                                                  \
 //#define SP_PARTICLE_ADD_PROP_CHOOSE_HELPER(count) SP_PARTICLE_ADD_PROP_CHOOSE_HELPER1(count)
 //#define SP_PARTICLE_ADD_PROP(_S_NAME_,...) SP_PARTICLE_ADD_PROP_CHOOSE_HELPER(COUNT_MACRO_ARGS(__VA_ARGS__)) (_S_NAME_,__VA_ARGS__)
 
-#define SP_PARTICLE_LOAD_DICT_HELPER2(_S1_,_S2_,_T0_,_N0_) _N0_=_S2_[#_N0_].template as<typename array_to_ntuple_convert<_T0_>::type>();
+#define SP_PARTICLE_LOAD_DICT_HELPER2(_S1_,_S2_,_T0_,_N0_) m_##_N0_=_S2_[#_N0_].template as<typename array_to_ntuple_convert<_T0_>::type>();
 #define SP_PARTICLE_LOAD_DICT_HELPER4(_S1_,_S2_,_T0_,_N0_,_T1_,_N1_) SP_PARTICLE_LOAD_DICT_HELPER2(_S1_,_S2_,_T0_,_N0_) \
 	  SP_PARTICLE_LOAD_DICT_HELPER2(_S1_,_S2_,_T1_,_N1_)
 #define SP_PARTICLE_LOAD_DICT_HELPER6(_S1_,_S2_,_T0_,_N0_,_T1_,_N1_,_T2_,_N2_)  SP_PARTICLE_LOAD_DICT_HELPER2(_S1_,_S2_,_T0_,_N0_) \
@@ -275,7 +303,7 @@ struct _S_NAME_                                                  \
 #define SP_PARTICLE_LOAD_DICT_CHOOSE_HELPER(count) SP_PARTICLE_LOAD_DICT_CHOOSE_HELPER1(count)
 #define SP_PARTICLE_LOAD_DICT(_S1_,_S2_,...) SP_PARTICLE_LOAD_DICT_CHOOSE_HELPER(COUNT_MACRO_ARGS(__VA_ARGS__)) (_S1_,_S2_,__VA_ARGS__)
 
-#define SP_PARTICLE_UPDATE_PROP_HELPER2(_S1_,_T0_,_N0_) _S1_.set(#_N0_,_N0_);
+#define SP_PARTICLE_UPDATE_PROP_HELPER2(_S1_,_T0_,_N0_) _S1_.set(#_N0_,m_##_N0_);
 #define SP_PARTICLE_UPDATE_PROP_HELPER4(_S1_,_T0_,_N0_,_T1_,_N1_) SP_PARTICLE_UPDATE_PROP_HELPER2(_S1_,_T0_,_N0_) \
 	  SP_PARTICLE_UPDATE_PROP_HELPER2(_S1_,_T1_,_N1_)
 #define SP_PARTICLE_UPDATE_PROP_HELPER6(_S1_,_T0_,_N0_,_T1_,_N1_,_T2_,_N2_)  SP_PARTICLE_UPDATE_PROP_HELPER2(_S1_,_T0_,_N0_) \
@@ -352,7 +380,7 @@ struct _S_NAME_                                                  \
  */
 #define SP_DEFINE_PROPERTIES(...)                            \
 Properties properties;                                       \
-SP_PARTICLE_DEFINE_MEMBER(__VA_ARGS__)                       \
+SP_PROPERTIES_DEFINE_MEMBER(__VA_ARGS__)                       \
 template<typename TDict,typename ...Others>                  \
 void load(TDict const & dict,Others && ...)                  \
 {                                                            \
@@ -364,8 +392,8 @@ void update_properties()                                     \
 	properties.update();                                     \
 }                                                            \
 template<typename OS> OS& print(OS &os)const                 \
-{  properties.print(os);		return os;	}
-
+{  properties.print(os);		return os;	}                \
+void deploy( ){ update_properties();update();  }
 }
 // namespace simpla
 

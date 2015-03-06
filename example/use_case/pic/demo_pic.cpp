@@ -19,7 +19,7 @@
 
 using namespace simpla;
 
-USE_CASE(em)
+USE_CASE(pic)
 {
 
 	size_t num_of_steps = 1000;
@@ -77,15 +77,17 @@ USE_CASE(em)
 			<< std::endl;
 	MESSAGE << " Options:" << std::endl;
 	RIGHT_COLUMN(" mesh" ) << " = {" << *mesh << "}," << std::endl;
-	RIGHT_COLUMN(" time step" ) << " = " << num_of_steps << std::endl;
+	RIGHT_COLUMN(" time_step" ) << " = " << num_of_steps << std::endl;
 
 	MESSAGE << "======== Initlialize ========" << std::endl;
 
 	auto ion = make_kinetic_particle<engine_type>(*mesh);
 
-	ion->load(options["Particle"]);
+	ion->mass(1.0);
 
-	ion->properties["Cache Length"] = strides;
+	ion->charge(2.0);
+
+	ion->temperature(3.0);
 
 	ion->deploy();
 
@@ -97,16 +99,20 @@ USE_CASE(em)
 
 	std::mt19937 rnd_gen;
 
-	size_t num = 1000; //range.size();
+	size_t num = range.size();
 
 	std::copy(p_generator.begin(rnd_gen), p_generator.end(rnd_gen, pic * num),
 			std::front_inserter(*ion));
 
+	VERBOSE << save("H0", ion->dataset()) << std::endl;
+
 	ion->rehash();
+
 	ion->sync();
 
-	// Load initialize value
+	VERBOSE << save("H1", ion->dataset()) << std::endl;
 
+	// Load initialize value
 //	auto J = make_form<EDGE, Real>(mesh);
 //	auto E = make_form<EDGE, Real>(mesh);
 //	auto B = make_form<FACE, Real>(mesh);
@@ -154,7 +160,8 @@ USE_CASE(em)
 //	VERBOSE << SAVE(E) << std::endl;
 //	VERBOSE << SAVE(B) << std::endl;
 //	VERBOSE << SAVE(J) << std::endl;
-	VERBOSE << save("H", *ion) << std::endl;
+
+//	VERBOSE << save("H", ion->dataset()) << std::endl;
 
 	MESSAGE << "======== DONE! ========" << std::endl;
 

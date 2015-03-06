@@ -45,9 +45,18 @@ public:
 	{
 	}
 
+	this_type & operator =(this_type const & other)
+	{
+		Any(dynamic_cast<Any const &>(other)).swap(*this);
+		map_type(dynamic_cast<map_type const &>(other)).swap(*this);
+
+//		map_type(other).swap(*this);
+		return *this;
+	}
 	template<typename T>
 	this_type & operator=(T const &v)
 	{
+
 		Any(v).swap(*this);
 		return *this;
 	}
@@ -221,23 +230,12 @@ public:
 		}
 		return os;
 	}
-	this_type & operator =(this_type const & other)
-	{
-		// FIXME  not tested
 
-		Any(other).swap(*this);
-
-		this->append(other);
-
-		return *this;
-	}
 	this_type & append(this_type const & other)
 	{
-		// FIXME  not tested
-
 		for (auto const & item : other)
 		{
-			map_type::operator[](item.first) = item.second;
+			map_type::operator[](item.first) = (item.second);
 		}
 		return *this;
 	}

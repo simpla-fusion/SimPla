@@ -8,7 +8,6 @@
 #ifndef CORE_PARTICLE_PARTICLE_GENERATOR_H_
 #define CORE_PARTICLE_PARTICLE_GENERATOR_H_
 
-
 namespace simpla
 {
 
@@ -118,7 +117,7 @@ struct ParticleGenerator
 		return std::move(input_iterator<TRNDGen>(*this, rnd_gen, pos));
 	}
 	template<typename TRNDGen>
-	input_iterator<TRNDGen> end(TRNDGen & rnd_gen, size_t pos = -1)
+	input_iterator<TRNDGen> end(TRNDGen & rnd_gen, size_t pos = 0)
 	{
 		return std::move(input_iterator<TRNDGen>(*this, rnd_gen, pos));
 	}
@@ -130,8 +129,6 @@ ParticleGenerator<EngineType, XGen, VGen> make_particle_generator(
 {
 	return std::move(ParticleGenerator<EngineType, XGen, VGen>(eng, xgen, vgen));
 }
-
-
 
 }  // namespace simpla
 

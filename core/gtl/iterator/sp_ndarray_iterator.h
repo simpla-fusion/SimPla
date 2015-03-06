@@ -187,7 +187,7 @@ public:
 	}
 	size_t size() const
 	{
-		return distance(base_range::begin(), base_range::end());
+		return NProduct(m_max_ - m_min_);
 	}
 
 };

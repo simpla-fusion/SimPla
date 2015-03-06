@@ -25,8 +25,7 @@ struct PICDemo
 	SP_DEFINE_POINT_STRUCT(Point_s,
 			coordinates_type ,x,
 			Vec3, v,
-			Real, f,
-			scalar_type, w)
+			Real, f )
 
 	SP_DEFINE_PROPERTIES(
 			Real, mass,
@@ -35,11 +34,11 @@ struct PICDemo
 	)
 
 private:
-	Real cmr_, q_kT_;
+	Real m_cmr_, m_q_kT_;
 public:
 
 	PICDemo()
-			: mass(1.0), charge(1.0), temperature(1.0)
+			: m_mass(1.0), m_charge(1.0), m_temperature(1.0)
 	{
 		update();
 	}
@@ -47,8 +46,8 @@ public:
 	void update()
 	{
 		DEFINE_PHYSICAL_CONST
-		cmr_ = charge / mass;
-		q_kT_ = charge / (temperature * boltzmann_constant);
+		m_cmr_ = m_charge / m_mass;
+		m_q_kT_ = m_charge / (m_temperature * boltzmann_constant);
 	}
 
 	~PICDemo()

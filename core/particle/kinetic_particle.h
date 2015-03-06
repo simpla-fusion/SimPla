@@ -22,10 +22,14 @@ struct particle_hasher
 
 	typedef TPoint_s value_type;
 
-	mesh_type const & m_mesh_;
+	mesh_type const * m_mesh_;
 
+	particle_hasher()
+			: m_mesh_(nullptr)
+	{
+	}
 	particle_hasher(mesh_type const & m)
-			: m_mesh_(m)
+			: m_mesh_(&m)
 	{
 	}
 	~particle_hasher()
@@ -33,24 +37,14 @@ struct particle_hasher
 	}
 
 	constexpr auto operator()(value_type const & p) const
-	DECL_RET_TYPE((m_mesh_.hash(m_mesh_.coordinates_to_id(p.x))))
+	DECL_RET_TYPE((m_mesh_->hash(m_mesh_->coordinates_to_id(p.x))))
 
 	template<typename ...Args>
 	constexpr auto operator()(Args &&... args) const
-	DECL_RET_TYPE((m_mesh_.hash(std::forward<Args>(args)...)))
+	DECL_RET_TYPE((m_mesh_->hash(std::forward<Args>(args)...)))
 }
 ;
-template<typename TM, typename T>
-struct particle_container_traits<sp_sorted_set<T, particle_hasher<TM, T> > >
-{
-	typedef sp_sorted_set<T, particle_hasher<TM, T> > container_type;
 
-	static container_type create(TM const & mesh)
-	{
-		return std::move(container_type(particle_hasher<TM, T>(mesh)));
-	}
-}
-;
 }  // namespace _impl
 
 /**
@@ -71,8 +65,13 @@ template<typename Engine, typename TM, typename ...Others>
 std::shared_ptr<KineticParticle<TM, Engine>> make_kinetic_particle(
 		TM const & mesh, Others && ...others)
 {
-	return std::make_shared<KineticParticle<TM, Engine>>(mesh,
+	auto res = std::make_shared<KineticParticle<TM, Engine>>(mesh,
 			std::forward<Others>(others)...);
+
+	res->hash_function(
+			_impl::particle_hasher<TM, typename Engine::Point_s>(mesh));
+
+	return res;
 }
 
 } // namespace simpla

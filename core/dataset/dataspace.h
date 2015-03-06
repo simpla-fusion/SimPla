@@ -55,7 +55,7 @@ public:
 
 	DataSpace create_distributed_space(size_t const * gw = nullptr) const;
 
-	void select_hyperslab(size_t const *offset, size_t const * stride,
+	DataSpace & select_hyperslab(size_t const *offset, size_t const * stride,
 			size_t const * count, size_t const * block = nullptr);
 
 	bool is_valid() const;

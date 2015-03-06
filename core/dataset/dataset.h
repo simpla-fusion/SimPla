@@ -46,7 +46,17 @@ struct DataSet
 	DataType datatype;
 	DataSpace dataspace;
 	Properties properties;
-
+	DataSet()
+	{
+	}
+	DataSet(DataSet const &other)
+			: data(other.data), datatype(other.datatype), dataspace(
+					other.dataspace), properties(other.properties)
+	{
+	}
+	~DataSet()
+	{
+	}
 	bool is_valid() const
 	{
 		return data != nullptr && datatype.is_valid() && dataspace.is_valid();

@@ -17,7 +17,6 @@
 #include <utility>
 #include "../../dataset/dataset.h"
 #include "../iterator/sp_indirect_iterator.h"
-#include "../iterator/sp_iterator.h"
 namespace simpla
 {
 /**
@@ -55,7 +54,9 @@ private:
 public:
 
 	// Constructor
-
+	sp_sorted_set()
+	{
+	}
 	sp_sorted_set(this_type const & other)
 			: m_hash_(other.m_hash_), m_data_(other.m_data_)
 	{
@@ -63,10 +64,6 @@ public:
 
 	sp_sorted_set(this_type && other)
 			: m_hash_(other.m_hash_), m_data_(other.m_data_)
-	{
-	}
-	sp_sorted_set(hasher const & hash_fun = hasher())
-			: m_hash_(hash_fun)
 	{
 	}
 
@@ -83,6 +80,11 @@ public:
 	hasher const & hash_function() const
 	{
 		return m_hash_;
+	}
+
+	void hash_function(hasher const & h_fun)
+	{
+		m_hash_ = h_fun;
 	}
 
 	void swap(base_container_type & other)
@@ -358,6 +360,14 @@ public:
 		return m_data_.cend();
 	}
 
+	template<typename ...Args>
+	auto find(Args && ...args)
+	DECL_RET_TYPE(this->m_data_.find(m_hash_(std::forward<Args>(args)...)))
+
+	template<typename ...Args>
+	auto find(Args && ...args) const
+	DECL_RET_TYPE(this->m_data_.find(m_hash_(std::forward<Args>(args)...)))
+
 	std::list<std::reference_wrapper<bucket_type>> select()
 	{
 		std::list<std::reference_wrapper<bucket_type>> res;
@@ -407,46 +417,6 @@ public:
 			}
 		}
 		return std::move(res);
-	}
-
-private:
-	value_type * dump(bucket_type const & bucket, value_type *p) const
-	{
-
-		auto back_insert_it = back_inserter(p);
-
-		std::copy(bucket.begin(), bucket.end(), back_insert_it);
-
-		return back_insert_it.get();
-	}
-public:
-	template<typename ...Args>
-	DataSet dataset(Args && ... args) const
-	{
-		auto p_range = select(std::forward<Args>(args)...);
-
-		size_t num = 0;
-		for (bucket_type const & item : p_range)
-		{
-			num += std::distance(item.begin(), item.end());
-		}
-
-		std::shared_ptr<value_type> data = sp_make_shared_array<value_type>(
-				num);
-
-		value_type * p = data.get();
-
-		//TODO need parallelization
-		for (bucket_type const & item : p_range)
-		{
-			p = dump(item, p);
-		}
-
-		ASSERT(std::distance(data.get(), p) == num);
-
-		return DataSet(
-				{ data, DataType::create<value_type>(), DataSpace(1, &num),
-						Properties() });
 	}
 
 }

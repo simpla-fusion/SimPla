@@ -17,12 +17,14 @@
 
 #include "../application/sp_object.h"
 #include "../dataset/dataset.h"
+#include "../utilities/log.h"
+#include "../utilities/memory_pool.h"
 #include "../gtl/enable_create_from_this.h"
 #include "../gtl/primitives.h"
 #include "../gtl/properties.h"
+#include "../gtl/iterator/sp_iterator.h"
 #include "../parallel/mpi_update.h"
-#include "../utilities/log.h"
-#include "../utilities/memory_pool.h"
+#include "../parallel/mpi_aux_functions.h"
 
 namespace simpla
 {
@@ -113,20 +115,12 @@ public:
 
 	typedef typename container_type::value_type value_type;
 
-	typedef typename container_type::key_type key_type;
-
 private:
-
 	mesh_type m_mesh_;
-
 public:
-	template<typename ...Args>
-	Particle(mesh_type const & m, Args && ...args)
-			: engine_type(std::forward<Args>(args)...), //
-			container_type(
-					_impl::particle_container_traits<container_type>::create(
-							m_mesh_)), m_mesh_(m)
 
+	Particle(mesh_type const & m)
+			: m_mesh_(m)
 	{
 	}
 
@@ -182,7 +176,9 @@ public:
 
 	void deploy()
 	{
-		SpObject::properties(engine_type::properties());
+		engine_type::deploy();
+
+		SpObject::properties.append(engine_type::properties);
 	}
 
 	void sync()
@@ -198,7 +194,7 @@ public:
 			std::tie(send_recv_s.dest, send_recv_s.send_tag) = get_mpi_tag(
 					&item.coord_shift[0]);
 
-			// TODO collect send data
+			//   collect send data
 
 			auto send_range = m_mesh_.select(item.send_offset, item.send_count);
 
@@ -211,7 +207,7 @@ public:
 			value_type *data =
 					reinterpret_cast<value_type*>(send_recv_s.send_data.get());
 
-			//TODO need parallel optimize
+			// FIXME need parallel optimize
 			for (auto const & key : send_range)
 			{
 				for (auto const & p : container_type::operator[](
@@ -222,7 +218,7 @@ public:
 				}
 			}
 
-			// TODO clear ghosts cell
+			//  clear ghosts cell
 			auto recv_range = m_mesh_.select(item.recv_offset, item.recv_count);
 
 			container_type::erase(recv_range);
@@ -237,19 +233,98 @@ public:
 
 		for (auto const & item : send_recv_buffer)
 		{
-			size_t num = item.recv_size / sizeof(value_type);
+			size_t count = item.recv_size / sizeof(value_type);
 
 			value_type *data =
 					reinterpret_cast<value_type*>(item.recv_data.get());
 
-			container_type::insert(data, data + num);
+			container_type::insert(data, data + count);
 		}
 
 	}
 
+	template<typename TRange>
+	DataSet dataset(TRange const & p_range) const
+	{
+		DataSet res;
+
+		res.datatype = DataType::create<value_type>();
+		res.properties = SpObject::properties;
+
+		size_t count = 0;
+
+		for (auto const & key : p_range)
+		{
+			auto it = container_type::find(key);
+			if (it != container_type::end())
+			{
+				count += std::distance(it->second.begin(), it->second.end());
+			}
+		}
+
+		res.data = sp_alloc_memory(count * sizeof(value_type));
+
+		value_type * p = reinterpret_cast<value_type *>(res.data.get());
+
+		//TODO need parallel optimize
+
+		auto back_insert_it = back_inserter(p);
+
+		for (auto const & key : p_range)
+		{
+			auto it = container_type::find(key);
+
+			if (it != container_type::end())
+			{
+				std::copy(it->second.begin(), it->second.end(), back_insert_it);
+			}
+		}
+
+		ASSERT(std::distance(data.get(), back_insert_it.get()) == count);
+
+		size_t offset = 0;
+		size_t total_count = count;
+
+		std::tie(offset, total_count) = sync_global_location(count);
+
+		res.dataspace = //
+				DataSpace(1, &total_count) //
+				.select_hyperslab(&offset, nullptr, &count, nullptr) //
+				.create_distributed_space();
+
+//		int ndim;
+//		nTuple<size_t, 3> l_offset, l_count, l_dims;
+//		l_offset = 0;
+//		l_count = 0;
+//		l_dims = 0;
+//
+//		std::tie(ndim, l_dims, l_offset, std::ignore, l_count, std::ignore) =
+//				dataspace.shape();
+//
+//		CHECK(ndim);
+//		CHECK(l_dims);
+//		CHECK(l_offset);
+//		CHECK(l_count);
+//
+//		nTuple<size_t, 3> g_offset, g_count, g_dims;
+//		g_offset = 0;
+//		g_count = 0;
+//		g_dims = 0;
+//
+//		std::tie(ndim, g_dims, g_offset, std::ignore, g_count, std::ignore) =
+//				dataspace.global_shape();
+//
+//		CHECK(ndim);
+//		CHECK(g_dims);
+//		CHECK(g_offset);
+//		CHECK(g_count);
+
+		return std::move(res);
+	}
+
 	DataSet dataset() const
 	{
-		return std::move(container_type::dataset(m_mesh_.range()));
+		return std::move(dataset(m_mesh_.range()));
 	}
 
 	//! @}
