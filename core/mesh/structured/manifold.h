@@ -39,6 +39,8 @@ public:
 
 	typedef TG geometry_type;
 	typedef typename geometry_type::id_type id_type;
+	typedef typename geometry_type::topology_type topology_type;
+	typedef typename geometry_type::index_tuple index_tuple;
 	typedef CalculusPolicy<geometry_type> calculate_policy;
 	typedef InterpolatorPlolicy<geometry_type> interpolatpr_policy;
 	typedef typename geometry_type::coordinates_type coordinates_type;
@@ -55,18 +57,18 @@ private:
 	range_type m_range_;
 public:
 
-	Manifold()
-			: m_geometry_(nullptr)
+	Manifold() :
+			m_geometry_(nullptr)
 	{
 	}
 
-	Manifold(geometry_type const & geo)
-			: m_geometry_(geo.shared_from_this()), m_range_()
+	Manifold(geometry_type const & geo) :
+			m_geometry_(geo.shared_from_this()), m_range_()
 	{
 	}
 
-	Manifold(this_type const & other)
-			: m_geometry_(other.m_geometry_)
+	Manifold(this_type const & other) :
+			m_geometry_(other.m_geometry_)
 	{
 	}
 
@@ -94,8 +96,8 @@ public:
 	 * @{
 	 */
 	template<typename ...Others>
-	Manifold(this_type & other, Others && ...others)
-			: m_geometry_(other.m_geometry_), m_range_(other.m_range_,
+	Manifold(this_type & other, Others && ...others) :
+			m_geometry_(other.m_geometry_), m_range_(other.m_range_,
 					std::forward<Others>(others)...)
 	{
 	}
@@ -106,6 +108,96 @@ public:
 	bool empty() const
 	{
 		return false;
+	}
+	index_tuple m_index_shift_;
+
+	index_tuple m_dimensions_;
+	index_tuple m_offset_;
+	index_tuple m_count_;
+	index_tuple m_strides_;
+
+	DataSpace m_dataspace_;
+
+	std::vector<DataSpace::ghosts_shape_s> m_ghosts_shape_;
+	/**
+	 *   @name Geometry
+	 *   For For uniform structured grid, the volume of cell is 1.0
+	 *   and dx=1.0
+	 *   @{
+	 */
+
+	void deploy()
+	{
+
+		DataSpace ds;
+
+		if (m_dataspace_.is_valid())
+		{
+			m_dataspace_.swap(ds);
+		}
+		else
+		{
+			DataSpace(ndims, &m_count_[0]).swap(ds);
+		}
+
+		if (GLOBAL_COMM.num_of_process() > 1)
+		{
+			GLOBAL_COMM.decompose(ndims, &m_offset_[0], &m_count_[0]);
+		}
+
+		ds.select_hyperslab(&m_offset_[0], nullptr, &m_count_[0], nullptr);
+
+		ds.create_distributed_space(&m_ghost_width_[0]).swap(m_dataspace_);
+
+//		std::tie(std::ignore, m_dimensions_, m_offset_, std::ignore, m_count_,
+//				std::ignore) = m_dataspace_.shape();
+//
+//		m_strides_[m_ndims_ - 1] = 1;
+//
+//		if (ndims > 1)
+//		{
+//			for (int i = ndims - 2; i >= 0; --i)
+//			{
+//				m_strides_[i] = m_dimensions_[i + 1] * m_strides_[i + 1];
+//			}
+//		}
+
+		m_dataspace_.ghost_shape(&m_ghost_width_[0], &m_ghosts_shape_);
+	}
+
+	DataSpace dataspace() const
+	{
+
+		size_t rank = ndims;
+		nTuple<size_t, MAX_NDIMS_OF_ARRAY> g_dims;
+		nTuple<size_t, MAX_NDIMS_OF_ARRAY> g_count;
+		nTuple<size_t, MAX_NDIMS_OF_ARRAY> g_offset;
+		nTuple<size_t, MAX_NDIMS_OF_ARRAY> g_gw;
+
+		g_dims = m_dimensions_;
+		g_offset = m_local_inner_begin_ >> FLOATING_POINT_POS;
+		g_count = m_local_inner_count_ >> FLOATING_POINT_POS;
+		g_gw = m_ghost_width;
+
+		if (IForm == EDGE || IForm == FACE)
+		{
+			g_dims[rank] = 3;
+			g_offset[rank] = 0;
+			g_count[rank] = 3;
+			g_gw[rank] = 0;
+			++rank;
+		}
+		g_dims += g_gw * 2;
+		g_offset += g_gw;
+		DataSpace res(rank, &g_dims[0]);
+		res.select_hyperslab(&g_offset[0], nullptr, &g_count[0], nullptr);
+
+		return std::move(res);
+	}
+
+	std::vector<DataSpace::ghosts_shape_s> const & ghost_shape() const
+	{
+		return m_ghosts_shape_;
 	}
 
 	template<typename TFun>

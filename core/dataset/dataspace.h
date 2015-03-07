@@ -53,7 +53,7 @@ public:
 
 	static DataSpace create_simple(int rank, const size_t * dims);
 
-	DataSpace create_distributed_space(size_t const * gw = nullptr) const;
+	DataSpace & convert_to_local(size_t const * gw = nullptr);
 
 	DataSpace & select_hyperslab(size_t const *offset, size_t const * stride,
 			size_t const * count, size_t const * block = nullptr);
@@ -69,17 +69,6 @@ public:
 		return is_valid() && (!is_distributed());
 	}
 
-	struct ghosts_shape_s
-	{
-		nTuple<int, 3> coord_shift;
-		nTuple<size_t, MAX_NDIMS_OF_ARRAY> send_offset;
-		nTuple<size_t, MAX_NDIMS_OF_ARRAY> send_count;
-		nTuple<size_t, MAX_NDIMS_OF_ARRAY> recv_offset;
-		nTuple<size_t, MAX_NDIMS_OF_ARRAY> recv_count;
-	};
-
-	void ghost_shape(size_t const * ghost_width,
-			std::vector<ghosts_shape_s>*) const;
 	/**
 	 * @return <ndims,dimensions,start,count,stride,block>
 	 */

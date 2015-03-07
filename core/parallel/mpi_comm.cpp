@@ -163,20 +163,23 @@ int MPIComm::pimpl_s::get_neighbour(int disp_i, int disp_j, int disp_k) const
 {
 	nTuple<int, 3> coord;
 
-	coord[0] = (m_topology_coord_[0] + m_topology_dims_[0] + disp_i) % m_topology_dims_[0];
-	coord[1] = (m_topology_coord_[1] + m_topology_dims_[1] + disp_j) % m_topology_dims_[1];
-	coord[2] = (m_topology_coord_[2] + m_topology_dims_[2] + disp_k) % m_topology_dims_[2];
+	coord[0] = (m_topology_coord_[0] + m_topology_dims_[0] + disp_i)
+			% m_topology_dims_[0];
+	coord[1] = (m_topology_coord_[1] + m_topology_dims_[1] + disp_j)
+			% m_topology_dims_[1];
+	coord[2] = (m_topology_coord_[2] + m_topology_dims_[2] + disp_k)
+			% m_topology_dims_[2];
 
 	return inner_product(coord, m_topology_strides_);
 }
 
-MPIComm::MPIComm()
-		: pimpl_(nullptr)
+MPIComm::MPIComm() :
+		pimpl_(nullptr)
 {
 }
 
-MPIComm::MPIComm(int argc, char** argv)
-		: pimpl_(nullptr)
+MPIComm::MPIComm(int argc, char** argv) :
+		pimpl_(nullptr)
 {
 	init(argc, argv);
 }
@@ -250,6 +253,71 @@ void MPIComm::decompose(int ndims, size_t *count, size_t * offset) const
 	pimpl_->decompose(ndims, count, offset);
 }
 
+void get_ghost_shape(size_t ndims, size_t const * l_dims,
+		size_t const * l_offset, size_t const * l_stride,
+		size_t const * l_count, size_t const * l_block,
+		size_t const * ghost_width,
+		std::vector<mpi_ghosts_shape_s>* send_recv_list)
+{
+
+	nTuple<size_t, MAX_NDIMS_OF_ARRAY> send_count, send_offset;
+	nTuple<size_t, MAX_NDIMS_OF_ARRAY> recv_count, recv_offset;
+
+	for (unsigned int tag = 0, tag_e = (1UL << (ndims * 2)); tag < tag_e; ++tag)
+	{
+		nTuple<int, 3> coords_shift;
+
+		bool tag_is_valid = false;
+
+		for (int n = 0; n < ndims; ++n)
+		{
+			coords_shift[n] = ((tag >> (n * 2)) & 3UL) - 1;
+
+			switch (coords_shift[n])
+			{
+			case 0:
+				send_count[n] = l_count[n];
+				send_offset[n] = l_offset[n];
+				recv_count[n] = l_count[n];
+				recv_offset[n] = l_offset[n];
+				break;
+			case -1:
+
+				send_count[n] = ghost_width[n];
+				send_offset[n] = l_offset[n];
+				recv_count[n] = ghost_width[n];
+				recv_offset[n] = l_offset[n] - ghost_width[n];
+				tag_is_valid = true;
+				break;
+
+			case 1:
+
+				send_count[n] = ghost_width[n];
+				send_offset[n] = l_offset[n] + l_count[n] - ghost_width[n];
+				recv_count[n] = ghost_width[n];
+				recv_offset[n] = l_offset[n] + l_count[n];
+				tag_is_valid = true;
+				break;
+			}
+
+			if (send_count[n] == 0 || recv_count[n] == 0)
+			{
+				tag_is_valid = false;
+				break;
+			}
+		}
+
+		if (tag_is_valid)
+		{
+
+			send_recv_list->emplace_back(mpi_ghosts_shape_s
+			{ coords_shift, send_offset, send_count, recv_offset, recv_count }
+
+			);
+		}
+
+	}
+}
 //void MPIComm::barrier()
 //{
 //	if (comm_ != MPI_COMM_NULL)

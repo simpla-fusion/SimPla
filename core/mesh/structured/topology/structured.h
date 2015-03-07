@@ -25,6 +25,8 @@
 #include "../../../numeric/geometric_algorithm.h"
 #include "../../mesh_common.h"
 
+#include "../../../parallel/mpi_comm.h"
+
 namespace simpla
 {
 
@@ -151,20 +153,6 @@ public:
 	 * @{
 	 **/
 
-	index_tuple m_dimensions_;
-
-	index_tuple m_local_outer_begin_, m_local_outer_end_, m_local_outer_count_;
-
-	index_tuple m_local_inner_begin_, m_local_inner_end_, m_local_inner_count_;
-
-	index_tuple m_ghost_width;
-
-	index_tuple m_hash_strides_;
-
-//	coordinates_type m_xmin_, m_xmax_;
-//
-//	static constexpr coordinates_type m_dx_ = { 1, 1, 1 };
-
 //  \verbatim
 //
 //   |----------------|----------------|---------------|--------------|------------|
@@ -174,7 +162,6 @@ public:
 // _begin          _begin          _begin           _end           _end          _end
 //
 //  \endverbatim
-
 	/**
 	 *  signed long is 63bit, unsigned long is 64 bit, add a sign bit
 	 *  \note
@@ -238,59 +225,48 @@ public:
 
 	static constexpr index_type AXIS_ORIGIN = 1 << (INDEX_DIGITS - 1);
 
-	void dimensions(index_type const * d, index_type const * gw = nullptr)
+private:
+
+	index_tuple m_global_dimensions_;
+
+	index_tuple m_global_offset_;
+
+	index_tuple m_local_dimensions_;
+
+	index_tuple m_local_offset_;
+
+	index_tuple m_count_;
+
+	index_tuple m_ghost_width_;
+
+	index_tuple m_hash_strides_;
+
+	DataSpace m_dataspace_;
+
+	std::vector<DataSpace::ghosts_shape_s> m_ghosts_shape_;
+
+public:
+
+	template<typename T>
+	void dimensions(T const& d)
 	{
-		m_dimensions_ = d;
-
-		m_local_outer_count_ = (m_dimensions_ << FLOATING_POINT_POS);
-
-		m_local_outer_begin_ = AXIS_ORIGIN;
-
-		m_local_outer_end_ = (m_dimensions_ << FLOATING_POINT_POS)
-				+ AXIS_ORIGIN;
-
-		m_local_inner_count_ = (m_dimensions_ << FLOATING_POINT_POS);
-
-		m_local_inner_begin_ = AXIS_ORIGIN;
-
-		m_local_inner_end_ = (m_dimensions_ << FLOATING_POINT_POS)
-				+ AXIS_ORIGIN;
-//		if (gw != nullptr)
-//			ghost_width = gw;
-//
-//		DataSpace sp(ndims, d, &ghost_width[0]);
-//
-//		std::tie(std::ignore, dimensions_, local_inner_begin_,
-//				local_inner_count_, std::ignore, std::ignore) = sp.shape();
-//
-//		local_inner_end_ = local_inner_begin_ + local_inner_count_;
-//
-//		std::tie(std::ignore, local_outer_count_, local_outer_begin_,
-//				local_outer_count_, std::ignore, std::ignore) =
-//				sp.local_space().shape();
-//
-//		local_outer_begin_ = local_inner_begin_ - local_outer_begin_;
-//
-//		local_inner_end_ = local_inner_begin_ + local_inner_count_;
-//
-//		local_outer_begin_ = local_inner_begin_ - local_outer_begin_;
-//
-//		local_outer_end_ = local_outer_begin_ + local_outer_count_;
-//
-		m_hash_strides_[2] = 1;
-		m_hash_strides_[1] = d[2] * m_hash_strides_[2];
-		m_hash_strides_[0] = d[1] * m_hash_strides_[1];
-
-//		m_xmin_ = 0;
-//		m_xmax_ = m_dimensions_;
-
-		update();
-
+		m_global_dimensions_ = d;
 	}
 
 	index_tuple const & dimensions() const
 	{
-		return m_dimensions_;
+		return m_global_dimensions_;
+	}
+
+	template<typename T>
+	void ghost_width(T const&d)
+	{
+		m_ghost_width_ = d;
+	}
+
+	index_tuple const & ghost_width() const
+	{
+		return m_ghost_width_;
 	}
 
 	bool check_memory_bounds(id_type s) const
@@ -315,37 +291,6 @@ public:
 
 	}
 
-	template<size_t IForm>
-	DataSpace dataspace() const
-	{
-
-		size_t rank = ndims;
-		nTuple<size_t, MAX_NDIMS_OF_ARRAY> g_dims;
-		nTuple<size_t, MAX_NDIMS_OF_ARRAY> g_count;
-		nTuple<size_t, MAX_NDIMS_OF_ARRAY> g_offset;
-		nTuple<size_t, MAX_NDIMS_OF_ARRAY> g_gw;
-
-		g_dims = m_dimensions_;
-		g_offset = m_local_inner_begin_ >> FLOATING_POINT_POS;
-		g_count = m_local_inner_count_ >> FLOATING_POINT_POS;
-		g_gw = m_ghost_width;
-
-		if (IForm == EDGE || IForm == FACE)
-		{
-			g_dims[rank] = 3;
-			g_offset[rank] = 0;
-			g_count[rank] = 3;
-			g_gw[rank] = 0;
-			++rank;
-		}
-		g_dims += g_gw * 2;
-		g_offset += g_gw;
-		DataSpace res(rank, &g_dims[0]);
-		res.select_hyperslab(&g_offset[0], nullptr, &g_count[0], nullptr);
-
-		return std::move(res);
-	}
-
 	/**
 	 *   @name Geometry
 	 *   For For uniform structured grid, the volume of cell is 1.0
@@ -353,11 +298,70 @@ public:
 	 *   @{
 	 */
 
-	bool update()
+	void deploy()
 	{
-		is_valid_ = true;
 
-		return is_valid_;
+		DataSpace ds(ndims, &m_global_dimensions_[0]);
+
+		m_count_ = m_global_dimensions_;
+		m_global_offset_ = 0;
+
+		if (GLOBAL_COMM.num_of_process() > 1)
+		{
+			GLOBAL_COMM.decompose(ndims, &m_global_offset_[0], &m_count_[0]);
+		}
+
+		ds.select_hyperslab(&m_global_offset_[0], nullptr, &m_count_[0],
+				nullptr);
+
+		ds.convert_to_distributed_space(&m_ghost_width_[0]).swap(m_dataspace_);
+
+		m_dataspace_.ghost_shape(&m_ghost_width_[0], &m_ghosts_shape_);
+
+		std::tie(std::ignore, m_local_dimensions_, m_local_offset_, std::ignore,
+				m_count_, std::ignore) = m_dataspace_.shape();
+
+		m_hash_strides_[ndims - 1] = 1;
+
+		if (ndims > 1)
+		{
+			for (int i = ndims - 2; i >= 0; --i)
+			{
+				m_hash_strides_[i] = m_local_dimensions_[i + 1]
+						* m_hash_strides_[i + 1];
+			}
+		}
+
+		//		if (gw != nullptr)
+		//			ghost_width = gw;
+		//
+		//		DataSpace sp(ndims, d, &ghost_width[0]);
+		//
+		//		std::tie(std::ignore, dimensions_, local_inner_begin_,
+		//				local_inner_count_, std::ignore, std::ignore) = sp.shape();
+		//
+		//		local_inner_end_ = local_inner_begin_ + local_inner_count_;
+		//
+		//		std::tie(std::ignore, local_outer_count_, local_outer_begin_,
+		//				local_outer_count_, std::ignore, std::ignore) =
+		//				sp.local_space().shape();
+		//
+		//		local_outer_begin_ = local_inner_begin_ - local_outer_begin_;
+		//
+		//		local_inner_end_ = local_inner_begin_ + local_inner_count_;
+		//
+		//		local_outer_begin_ = local_inner_begin_ - local_outer_begin_;
+		//
+		//		local_outer_end_ = local_outer_begin_ + local_outer_count_;
+		//
+
+		//		m_xmin_ = 0;
+		//		m_xmax_ = m_dimensions_;
+		is_valid_ = true;
+	}
+	std::vector<DataSpace::ghosts_shape_s> const & ghost_shape() const
+	{
+		return m_ghosts_shape_;
 	}
 
 //! @name Coordinates
@@ -425,7 +429,8 @@ public:
 	static constexpr index_tuple id_to_index(id_type s)
 	{
 
-		return std::move(index_tuple( {
+		return std::move(index_tuple(
+		{
 
 		static_cast<index_type>(s & INDEX_MASK),
 
@@ -547,14 +552,16 @@ public:
 		((nodeid & 1UL) << (FLOATING_POINT_POS - 1));
 
 	}
-	static constexpr id_type m_first_node_shift_[] = { 0, 1, 6, 7 };
+	static constexpr id_type m_first_node_shift_[] =
+	{ 0, 1, 6, 7 };
 
 	static constexpr id_type get_first_node_shift(id_type iform)
 	{
 
 		return get_shift(m_first_node_shift_[iform]);
 	}
-	static constexpr size_t m_num_of_comp_per_cell_[4] = { 1, 3, 3, 1 };
+	static constexpr size_t m_num_of_comp_per_cell_[4] =
+	{ 1, 3, 3, 1 };
 
 	static constexpr size_t get_num_of_comp_per_cell(size_t iform)
 	{
@@ -611,7 +618,8 @@ public:
 	 * @return
 	 */
 
-	static constexpr id_type m_component_number_[] = { 0,  // 000
+	static constexpr id_type m_component_number_[] =
+	{ 0,  // 000
 			0, // 001
 			1, // 010
 			2, // 011
@@ -625,7 +633,8 @@ public:
 		return m_component_number_[node_id(s)];
 	}
 
-	static constexpr id_type m_iform_[] = { //
+	static constexpr id_type m_iform_[] =
+	{ //
 
 			VERTEX, // 000
 					EDGE, // 001
@@ -688,30 +697,6 @@ public:
 		return std::move(Range<IFORM>());
 	}
 
-	template<size_t IFORM>
-	Range<IFORM> select_outer() const
-	{
-		return std::move(Range<IFORM>(m_local_outer_begin_, m_local_outer_end_));
-	}
-
-	/**
-	 * \fn Select
-	 * \brief
-	 * @param range
-	 * @param b
-	 * @param e
-	 * @return
-	 */
-	template<size_t IFORM>
-	auto select_outer(index_tuple const & b, index_tuple const &e) const
-	DECL_RET_TYPE (select_rectangle_<IFORM>( b, e, m_local_outer_begin_,
-					m_local_outer_end_))
-
-	template<size_t IFORM>
-	auto select_inner(index_tuple const & b, index_tuple const & e) const
-	DECL_RET_TYPE (select_rectangle_<IFORM>( b, e, m_local_inner_begin_,
-					m_local_inner_end_))
-
 	/**  @} */
 	/**
 	 *  @name Hash
@@ -721,7 +706,7 @@ public:
 	template<size_t IFORM>
 	size_t max_hash() const
 	{
-		return NProduct(m_local_outer_count_)
+		return NProduct(m_local_dimensions_)
 				* ((IFORM == EDGE || IFORM == FACE) ? 3 : 1);
 	}
 
@@ -733,16 +718,16 @@ public:
 	size_t hash(id_type s) const
 	{
 
-		nTuple<index_type, ndims> d = (id_to_index(s) - m_local_outer_begin_)
-				>> FLOATING_POINT_POS;
+		nTuple<index_type, ndims> d = (id_to_index(s) >> FLOATING_POINT_POS)
+				- m_global_offset_ + m_local_offset_;
 
 		size_t res =
 
-		mod_(d[0], (m_local_outer_count_[0])) * m_hash_strides_[0] +
+		mod_(d[0], (m_local_dimensions_[0])) * m_hash_strides_[0] +
 
-		mod_(d[1], (m_local_outer_count_[1])) * m_hash_strides_[1] +
+		mod_(d[1], (m_local_dimensions_[1])) * m_hash_strides_[1] +
 
-		mod_(d[2], (m_local_outer_count_[2])) * m_hash_strides_[2];
+		mod_(d[2], (m_local_dimensions_[2])) * m_hash_strides_[2];
 
 		switch (node_id(s))
 		{
@@ -1361,13 +1346,13 @@ struct StructuredMesh_<NDIMS>::Range
 	{
 	}
 
-	Range(index_tuple const & b, index_tuple const& e)
-			: begin_(b), end_(e)
+	Range(index_tuple const & b, index_tuple const& e) :
+			begin_(b), end_(e)
 	{
 	}
 
-	Range(Range const & that)
-			: begin_(that.begin_), end_(that.end_)
+	Range(Range const & that) :
+			begin_(that.begin_), end_(that.end_)
 	{
 	}
 	~Range()
@@ -1408,18 +1393,18 @@ struct StructuredMesh_<NDIMS>::Range<IFORM>::const_iterator
 
 	(_DI | _DJ | _DK)));
 
-	const_iterator(const_iterator const & r)
-			: shift_(r.shift_), self_(r.self_), begin_(r.begin_), end_(r.end_)
+	const_iterator(const_iterator const & r) :
+			shift_(r.shift_), self_(r.self_), begin_(r.begin_), end_(r.end_)
 	{
 	}
-	const_iterator(const_iterator && r)
-			: shift_(r.shift_), self_(r.self_), begin_(r.begin_), end_(r.end_)
+	const_iterator(const_iterator && r) :
+			shift_(r.shift_), self_(r.self_), begin_(r.begin_), end_(r.end_)
 	{
 	}
 
 	const_iterator(index_tuple const & b, index_tuple const &e,
-			index_tuple const &s)
-			: self_(s), begin_(b), end_(e)
+			index_tuple const &s) :
+			self_(s), begin_(b), end_(e)
 	{
 	}
 	~const_iterator()

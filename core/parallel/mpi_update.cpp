@@ -24,7 +24,7 @@ std::tuple<int, int> get_mpi_tag(int const * coord)
 }
 void make_send_recv_list(DataType const & datatype, int ndims,
 		size_t const * l_dims,
-		std::vector<DataSpace::ghosts_shape_s> const & ghost_shape,
+		std::vector<mpi_ghosts_shape_s> const & ghost_shape,
 		std::vector<mpi_send_recv_s> *res)
 {
 	auto & mpi_comm = SingletonHolder<simpla::MPIComm>::instance();

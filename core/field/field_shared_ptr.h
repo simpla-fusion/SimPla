@@ -255,6 +255,27 @@ public:
 		return std::move(res);
 	}
 
+	template<typename TFun, typename ...Args>
+	void for_each(TFun const& fun, Args && ...args)
+	{
+		wait_to_ready();
+
+		for (auto const & s : m_mesh_.range(std::forward<Args>(args)...))
+		{
+			fun(m_data_.get()[m_mesh_.hash(s)]);
+		};
+	}
+	template<typename TFun, typename ...Args>
+	void for_each(TFun const& fun, Args && ...args) const
+	{
+		ASSERT(is_ready());
+
+		for (auto const & s : m_mesh_.range(std::forward<Args>(args)...))
+		{
+			fun(m_data_.get()[m_mesh_.hash(s)]);
+		};
+	}
+
 public:
 	template<typename IndexType>
 	value_type & operator[](IndexType const & s)

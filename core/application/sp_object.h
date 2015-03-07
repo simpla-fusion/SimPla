@@ -105,8 +105,8 @@ struct SpObject
 	//virtual	void lock();
 
 	virtual bool is_ready() const;
+
 	virtual void wait_to_ready();
-	virtual void wait_to_ready() const;
 
 	virtual std::ostream &print(std::ostream & os) const;
 

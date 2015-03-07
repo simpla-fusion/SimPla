@@ -78,7 +78,6 @@ private:
 ;
 #define GLOBAL_COMM   SingletonHolder<simpla::MPIComm>::instance()
 
-
 #define MPI_ERROR(_CMD_)                                                   \
 {                                                                          \
 	int _mpi_error_code_ = MPI_SUCCESS;                                    \
@@ -90,6 +89,20 @@ private:
 	}                                                                      \
 }
 
+struct mpi_ghosts_shape_s
+{
+	nTuple<int, 3> coord_shift;
+
+	nTuple<size_t, MAX_NDIMS_OF_ARRAY> send_offset;
+	nTuple<size_t, MAX_NDIMS_OF_ARRAY> send_count;
+	nTuple<size_t, MAX_NDIMS_OF_ARRAY> recv_offset;
+	nTuple<size_t, MAX_NDIMS_OF_ARRAY> recv_count;
+};
+
+void get_ghost_shape(size_t ndims, size_t const * dims, size_t const * offset,
+		size_t const * stride, size_t const * count, size_t const * block,
+		size_t const * ghost_width,
+		std::vector<mpi_ghosts_shape_s>* send_recv_list)  ;
 }
 // namespace simpla
 

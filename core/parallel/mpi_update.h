@@ -25,7 +25,7 @@ struct mpi_send_recv_s
 };
 void make_send_recv_list(DataType const & datatype, int ndims,
 		size_t const * l_dims,
-		std::vector<DataSpace::ghosts_shape_s> const & ghost_shape,
+		std::vector<mpi_ghosts_shape_s> const & ghost_shape,
 		std::vector<mpi_send_recv_s> *res);
 
 void sync_update_continue(std::vector<mpi_send_recv_s> const &, void * data,

@@ -62,15 +62,15 @@ private:
 
 	DataSpace m_dataspace_;
 
-	std::vector<DataSpace::ghosts_shape_s> m_ghosts_shape_;
+	std::vector<mpi_ghosts_shape_s> m_ghosts_shape_;
 
 public:
 	SimpleMesh()
 	{
 	}
 	template<typename TI, typename TX>
-	SimpleMesh(TI const & dimensions, TX const& xmin, TX const& xmax)
-			: m_xmin_(xmin), m_xmax_(xmax), m_count_(dimensions)
+	SimpleMesh(TI const & dimensions, TX const& xmin, TX const& xmax) :
+			m_xmin_(xmin), m_xmax_(xmax), m_count_(dimensions)
 	{
 		m_offset_ = 0;
 		m_ghost_width_ = 0;
@@ -79,11 +79,11 @@ public:
 		m_dx_ = (m_xmax_ - m_xmin_) / m_count_;
 
 	}
-	SimpleMesh(SimpleMesh const & other)
-			: m_xmin_(other.m_xmin_), m_xmax_(other.m_xmax_), m_dx_(
-					other.m_dx_), m_dimensions_(other.m_dimensions_), m_offset_(
-					other.m_offset_), m_count_(other.m_count_), m_grain_size_(
-					other.m_grain_size_), m_dataspace_(other.m_dataspace_)
+	SimpleMesh(SimpleMesh const & other) :
+			m_xmin_(other.m_xmin_), m_xmax_(other.m_xmax_), m_dx_(other.m_dx_), m_dimensions_(
+					other.m_dimensions_), m_offset_(other.m_offset_), m_count_(
+					other.m_count_), m_grain_size_(other.m_grain_size_), m_dataspace_(
+					other.m_dataspace_)
 	{
 	}
 
@@ -146,12 +146,12 @@ public:
 	template<typename T1>
 	void dimensions(T1 const & d)
 	{
-		m_count_ = d;
+		m_dimensions_ = d;
 	}
 
 	index_tuple const & dimensions() const
 	{
-		return m_count_;
+		return m_dimensions_;
 	}
 	template<typename T1>
 	void ghost_width(T1 const & d)
@@ -178,25 +178,19 @@ public:
 	void deploy()
 	{
 
-		DataSpace ds;
-
-		if (m_dataspace_.is_valid())
-		{
-			m_dataspace_.swap(ds);
-		}
-		else
-		{
-			DataSpace(m_ndims_, &m_count_[0]).swap(ds);
-		}
-
+		DataSpace(m_ndims_, &m_dimensions_[0]).swap(m_dataspace_);
+		m_count_ = m_dimensions_;
+		m_offset_ = 0;
 		if (GLOBAL_COMM.num_of_process()>1)
 		{
 			GLOBAL_COMM.decompose(m_ndims_, &m_offset_[0], &m_count_[0]);
 		}
 
-		ds.select_hyperslab(&m_offset_[0], nullptr, &m_count_[0], nullptr);
+		m_dataspace_
 
-		ds.create_distributed_space(&m_ghost_width_[0]).swap(m_dataspace_);
+		.select_hyperslab(&m_offset_[0], nullptr, &m_count_[0], nullptr)
+
+		.convert_to_local(&m_ghost_width_[0]);
 
 		std::tie(std::ignore, m_dimensions_, m_offset_, std::ignore, m_count_,
 				std::ignore) = m_dataspace_.shape();
@@ -211,9 +205,10 @@ public:
 			}
 		}
 
-		m_dataspace_.ghost_shape(&m_ghost_width_[0], &m_ghosts_shape_);
+		get_ghost_shape(m_ndims_, &m_dimensions_[0], &m_offset_[0], nullptr,
+				&m_count_[0], nullptr, &m_ghost_width_[0], &m_ghosts_shape_);
 	}
-	std::vector<DataSpace::ghosts_shape_s> const & ghost_shape() const
+	std::vector<mpi_ghosts_shape_s> const & ghost_shape() const
 	{
 		return m_ghosts_shape_;
 	}

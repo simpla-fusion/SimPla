@@ -317,7 +317,7 @@ public:
 		res.dataspace = //
 				DataSpace(1, &total_count) //
 				.select_hyperslab(&offset, nullptr, &count, nullptr) //
-				.create_distributed_space();
+				.convert_to_distributed_space();
 
 		return std::move(res);
 	}
@@ -328,6 +328,29 @@ public:
 	}
 
 	//! @}
+
+	template<typename TFun, typename ...Args>
+	void for_each(TFun const& fun, Args && ...args)
+	{
+		wait_to_ready();
+
+		container_type::foreach(m_mesh_.range(std::forward<Args>(args)...),
+				[&](value_type & p)
+				{
+					fun(&p );
+				});
+	}
+	template<typename TFun, typename ...Args>
+	void for_each(TFun const& fun, Args && ...args) const
+	{
+		ASSERT(is_ready());
+
+		container_type::foreach(m_mesh_.range(std::forward<Args>(args)...),
+				[&](value_type const & p)
+				{
+					fun(&p );
+				});
+	}
 	/**
 	 *
 	 * @param args arguments

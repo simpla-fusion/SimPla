@@ -29,13 +29,14 @@ struct DataSpace::pimpl_s
 
 //===================================================================
 
-DataSpace::DataSpace()
-		: pimpl_ { nullptr }
+DataSpace::DataSpace() :
+		pimpl_
+		{ nullptr }
 {
 }
 
-DataSpace::DataSpace(int ndims, size_t const * dims)
-		: pimpl_(new pimpl_s)
+DataSpace::DataSpace(int ndims, size_t const * dims) :
+		pimpl_(new pimpl_s)
 {
 	pimpl_->m_ndims_ = ndims;
 	pimpl_->m_dimensions_ = dims;
@@ -45,12 +46,13 @@ DataSpace::DataSpace(int ndims, size_t const * dims)
 	pimpl_->m_block_ = 1;
 	pimpl_->m_global_space_ = std::unique_ptr<DataSpace>(nullptr);
 }
-DataSpace::DataSpace(const DataSpace& other)
-		: pimpl_(nullptr)
+DataSpace::DataSpace(const DataSpace& other) :
+		pimpl_(nullptr)
 {
 	if (other.pimpl_ != nullptr)
 	{
-		pimpl_ = std::unique_ptr<pimpl_s> { new pimpl_s };
+		pimpl_ = std::unique_ptr<pimpl_s>
+		{ new pimpl_s };
 
 		pimpl_->m_ndims_ = other.pimpl_->m_ndims_;
 		pimpl_->m_dimensions_ = other.pimpl_->m_dimensions_;
@@ -66,7 +68,8 @@ DataSpace::DataSpace(const DataSpace& other)
 		}
 		else
 		{
-			pimpl_->m_global_space_ = std::unique_ptr<DataSpace> { nullptr };
+			pimpl_->m_global_space_ = std::unique_ptr<DataSpace>
+			{ nullptr };
 		}
 	}
 
@@ -143,123 +146,35 @@ DataSpace & DataSpace::select_hyperslab(size_t const * offset,
 	{
 		pimpl_->m_block_ *= block;
 	}
-	
+
 	if (pimpl_->m_global_space_ != nullptr)
 	{
 		pimpl_->m_global_space_->select_hyperslab(offset, stride, count, block);
 	}
-	
+
 	return *this;
 
 }
 
-DataSpace DataSpace::create_distributed_space(size_t const * gw) const
+DataSpace & DataSpace::convert_to_local(size_t const * gw)
 {
-
-	DataSpace res;
-
-	res.pimpl_ = std::unique_ptr<pimpl_s>(new pimpl_s);
 
 	if (pimpl_->m_global_space_ == nullptr)
 	{
-		res.pimpl_->m_global_space_ = std::unique_ptr<DataSpace>(
+		pimpl_->m_global_space_ = std::unique_ptr<DataSpace>(
 				new DataSpace(*this));
 	}
-	else
-	{
-		res.pimpl_->m_global_space_ = std::unique_ptr<DataSpace>(
-				new DataSpace(*pimpl_->m_global_space_));
-	}
-	res.pimpl_->m_ndims_ = pimpl_->m_ndims_;
-	res.pimpl_->m_dimensions_ = pimpl_->m_count_;
-	res.pimpl_->m_offset_ = 0;
-	res.pimpl_->m_stride_ = pimpl_->m_block_;
-	res.pimpl_->m_count_ = pimpl_->m_count_;
-	res.pimpl_->m_block_ = pimpl_->m_block_;
+
+	pimpl_->m_dimensions_ = pimpl_->m_count_;
+	pimpl_->m_offset_ = 0;
+	pimpl_->m_stride_ = pimpl_->m_block_;
 
 	if (gw != nullptr)
 	{
-		res.pimpl_->m_offset_ = gw;
-		res.pimpl_->m_dimensions_ += res.pimpl_->m_offset_ * 2;
+		pimpl_->m_offset_ = gw;
+		pimpl_->m_dimensions_ += pimpl_->m_offset_ * 2;
 	}
-
-	return std::move(res);
-
-}
-
-void DataSpace::ghost_shape(size_t const * ghost_width,
-		std::vector<ghosts_shape_s>* send_recv_list) const
-{
-
-	size_t ndims = 3;
-
-	nTuple<size_t, MAX_NDIMS_OF_ARRAY> g_dims, g_offset, g_count;
-
-	std::tie(std::ignore, g_dims, g_offset, std::ignore, g_count, std::ignore) =
-			global_shape();
-
-	nTuple<size_t, MAX_NDIMS_OF_ARRAY> l_dims, l_offset, l_count;
-
-	std::tie(std::ignore, l_dims, l_offset, std::ignore, l_count, std::ignore) =
-			shape();
-
-	nTuple<size_t, MAX_NDIMS_OF_ARRAY> send_count, send_offset;
-	nTuple<size_t, MAX_NDIMS_OF_ARRAY> recv_count, recv_offset;
-
-	for (unsigned int tag = 0, tag_e = (1UL << (ndims * 2)); tag < tag_e; ++tag)
-	{
-		nTuple<int, 3> coords_shift;
-
-		bool tag_is_valid = false;
-
-		for (int n = 0; n < ndims; ++n)
-		{
-			coords_shift[n] = ((tag >> (n * 2)) & 3UL) - 1;
-
-			switch (coords_shift[n])
-			{
-			case 0:
-				send_count[n] = l_count[n];
-				send_offset[n] = l_offset[n];
-				recv_count[n] = l_count[n];
-				recv_offset[n] = l_offset[n];
-				break;
-			case -1:
-
-				send_count[n] = ghost_width[n];
-				send_offset[n] = l_offset[n];
-				recv_count[n] = ghost_width[n];
-				recv_offset[n] = l_offset[n] - ghost_width[n];
-				tag_is_valid = true;
-				break;
-
-			case 1:
-
-				send_count[n] = ghost_width[n];
-				send_offset[n] = l_offset[n] + l_count[n] - ghost_width[n];
-				recv_count[n] = ghost_width[n];
-				recv_offset[n] = l_offset[n] + l_count[n];
-				tag_is_valid = true;
-				break;
-			}
-
-			if (send_count[n] == 0 || recv_count[n] == 0)
-			{
-				tag_is_valid = false;
-				break;
-			}
-		}
-
-		if (tag_is_valid)
-		{
-
-			send_recv_list->emplace_back(ghosts_shape_s { coords_shift,
-					send_offset, send_count, recv_offset, recv_count }
-
-			);
-		}
-
-	}
+	return *this;
 }
 
 //void DataSpace::decompose(size_t ndims, size_t const * proc_dims,
