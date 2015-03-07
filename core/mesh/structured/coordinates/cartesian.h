@@ -28,7 +28,7 @@ namespace simpla
  */
 template<typename TTopology, size_t ZAXIS = CARTESIAN_ZAXIS>
 struct CartesianCoordinates: public TTopology, public enable_create_from_this<
-										CartesianCoordinates<TTopology, ZAXIS>>
+		CartesianCoordinates<TTopology, ZAXIS>>
 {
 
 public:
@@ -45,42 +45,53 @@ public:
 	typedef typename topology_type::id_type id_type;
 	typedef Real scalar_type;
 
-	CartesianCoordinates(this_type const & rhs) = delete;
 private:
 	bool is_valid_ = false;
+
+	coordinates_type m_xmin_ /*= { 0, 0, 0 }*/;
+
+	coordinates_type m_xmax_ /*= { 1, 1, 1 }*/;
+
+	coordinates_type m_inv_length_ /*= { 1.0, 1.0, 1.0 }*/;
+
+	coordinates_type m_length_ /*= { 1.0, 1.0, 1.0 }*/;
+
+	coordinates_type m_shift_/* = { 0, 0, 0 }*/;
 public:
-	CartesianCoordinates()
-			: topology_type(), is_valid_(false)
+	CartesianCoordinates() :
+			topology_type(), is_valid_(false),
+
+			m_xmin_(
+			{ 0, 0, 0 }),
+
+			m_xmax_(
+			{ 1, 1, 1 }),
+
+			m_inv_length_(
+			{ 1.0, 1.0, 1.0 }),
+
+			m_length_(
+			{ 1.0, 1.0, 1.0 }),
+
+			m_shift_(
+			{ 0, 0, 0 })
 	{
 
-		xmin_ = coordinates_type( { 0, 0, 0 });
-
-		xmax_ = coordinates_type( { 1, 1, 1 });
-
-		inv_length_ = coordinates_type( { 1.0, 1.0, 1.0 });
-
-		length_ = coordinates_type( { 1.0, 1.0, 1.0 });
-
-		shift_ = coordinates_type( { 0, 0, 0 });
 	}
 
-//	template<typename ... Args>
-//	CartesianCoordinates(Args && ... args)
-//	{
-//		load(std::forward<Args>(args)...);
-//	}
+	CartesianCoordinates(CartesianCoordinates const & other) :
+			topology_type(other), m_xmin_(other.m_xmin_), m_xmax_(other.m_xmax_) //, m_dx_(other.m_dx_),
 
-	template<typename ... Args>
-	CartesianCoordinates(coordinates_type const & x0,
-			coordinates_type const & x1, Args && ... args)
-			: topology_type(std::forward<Args>(args)...)
 	{
-		extents(x0, x1);
-		deploy();
-	}
 
+	}
 	~CartesianCoordinates()
 	{
+	}
+
+	void swap(CartesianCoordinates & other)
+	{
+		topology_type::swap(other);
 	}
 
 	static std::string get_type_as_string_static()
@@ -106,12 +117,12 @@ public:
 	{
 		holder_type self_;
 
-		Hash(holder_type g)
-				: self_(g)
+		Hash(holder_type g) :
+				self_(g)
 		{
 		}
-		Hash(Hash const & other)
-				: self_(other.self_)
+		Hash(Hash const & other) :
+				self_(other.self_)
 		{
 		}
 		~Hash()
@@ -185,17 +196,7 @@ public:
 		return is_valid_ && topology_type::is_valid();
 	}
 
-	coordinates_type xmin_ /*= { 0, 0, 0 }*/;
-
-	coordinates_type xmax_ /*= { 1, 1, 1 }*/;
-
-	coordinates_type inv_length_ /*= { 1.0, 1.0, 1.0 }*/;
-
-	coordinates_type length_ /*= { 1.0, 1.0, 1.0 }*/;
-
-	coordinates_type shift_/* = { 0, 0, 0 }*/;
-
-	bool deploy();
+	void deploy();
 	void sync()
 	{
 	}
@@ -293,9 +294,9 @@ public:
 
 		os << std::endl
 
-		<< " Min = " << xmin_ << " ,"
+		<< " Min = " << m_xmin_ << " ,"
 
-		<< " Max  = " << xmax_ << "," << " dt  = " << dt_ << ",";
+		<< " Max  = " << m_xmax_ << "," << " dt  = " << dt_ << ",";
 
 		return os;
 	}
@@ -303,12 +304,12 @@ public:
 	template<typename T0,typename T1>
 	void extents(T0 const& pmin, T1 const& pmax)
 	{
-		xmin_ = pmin;
-		xmax_ = pmax;
+		m_xmin_ = pmin;
+		m_xmax_ = pmax;
 	}
 
 	inline auto extents() const
-	DECL_RET_TYPE (std::make_pair(xmin_, xmax_))
+	DECL_RET_TYPE (std::make_pair(m_xmin_, m_xmax_))
 
 	inline coordinates_type dx(id_type s = 0UL) const
 	{
@@ -318,7 +319,7 @@ public:
 
 		for (size_t i = 0; i < ndims; ++i)
 		{
-			res[i] = length_[i] / d[i];
+			res[i] = m_length_[i] / d[i];
 		}
 
 		return std::move(res);
@@ -336,11 +337,11 @@ public:
 		return coordinates_type(
 				{
 
-					x[0] * length_[0] + shift_[0],
+					x[0] * m_length_[0] + m_shift_[0],
 
-					x[1] * length_[1] + shift_[1],
+					x[1] * m_length_[1] + m_shift_[1],
 
-					x[2] * length_[2] + shift_[2]
+					x[2] * m_length_[2] + m_shift_[2]
 
 				});
 
@@ -350,11 +351,11 @@ public:
 		return coordinates_type(
 				{
 
-					(x[0] - shift_[0]) * inv_length_[0],
+					(x[0] - m_shift_[0]) * m_inv_length_[0],
 
-					(x[1] - shift_[1]) * inv_length_[1],
+					(x[1] - m_shift_[1]) * m_inv_length_[1],
 
-					(x[2] - shift_[2]) * inv_length_[2]
+					(x[2] - m_shift_[2]) * m_inv_length_[2]
 
 				});
 
@@ -437,6 +438,16 @@ public:
 	{
 		return std::move(
 				std::make_tuple(MapToCartesian(std::get<0>(R)), std::get<1>(R)));
+	}
+
+	template<typename TD>
+	auto gather(TD const & d, coordinates_type const & x) const
+	DECL_RET_TYPE(topology_type::gather(d,coordinates_to_topology(x)))
+
+	template<typename TD, typename TV>
+	void scatter(TD & d, coordinates_type const &x, TV const & v) const
+	{
+		(topology_type::scatter(d, coordinates_to_topology(x), v));
 	}
 
 	coordinates_type Lie_trans(coordinates_type const & x,
@@ -601,7 +612,7 @@ public:
 }
 ;
 template<typename TTopology, size_t ZAXIS>
-bool CartesianCoordinates<TTopology, ZAXIS>::deploy()
+void CartesianCoordinates<TTopology, ZAXIS>::deploy()
 {
 
 	topology_type::deploy();
@@ -616,7 +627,7 @@ bool CartesianCoordinates<TTopology, ZAXIS>::deploy()
 	for (size_t i = 0; i < ndims; ++i)
 	{
 
-		if ((xmax_[i] - xmin_[i]) < EPSILON)
+		if ((m_xmax_[i] - m_xmin_[i]) < EPSILON)
 			dims[i] = 1;
 	}
 
@@ -625,16 +636,16 @@ bool CartesianCoordinates<TTopology, ZAXIS>::deploy()
 
 	for (size_t i = 0; i < ndims; ++i)
 	{
-		shift_[i] = xmin_[i];
+		m_shift_[i] = m_xmin_[i];
 
 		if (dims[i] <= 1)
 		{
 
-			xmax_[i] = xmin_[i];
+			m_xmax_[i] = m_xmin_[i];
 
-			inv_length_[i] = 0.0;
+			m_inv_length_[i] = 0.0;
 
-			length_[i] = 0.0;
+			m_length_[i] = 0.0;
 
 			volume_[1UL << (ndims - i - 1)] = 1.0;
 
@@ -647,17 +658,17 @@ bool CartesianCoordinates<TTopology, ZAXIS>::deploy()
 		}
 		else
 		{
-			inv_length_[i] = 1.0 / (xmax_[i] - xmin_[i]);
+			m_inv_length_[i] = 1.0 / (m_xmax_[i] - m_xmin_[i]);
 
-			length_[i] = (xmax_[i] - xmin_[i]);
+			m_length_[i] = (m_xmax_[i] - m_xmin_[i]);
 
-			volume_[1UL << (ndims - i - 1)] = length_[i];
+			volume_[1UL << (ndims - i - 1)] = m_length_[i];
 
-			dual_volume_[7 - (1UL << (ndims - i - 1))] = length_[i];
+			dual_volume_[7 - (1UL << (ndims - i - 1))] = m_length_[i];
 
-			inv_volume_[1UL << (ndims - i - 1)] = inv_length_[i];
+			inv_volume_[1UL << (ndims - i - 1)] = m_inv_length_[i];
 
-			inv_dual_volume_[7 - (1UL << (ndims - i - 1))] = inv_length_[i];
+			inv_dual_volume_[7 - (1UL << (ndims - i - 1))] = m_inv_length_[i];
 
 		}
 	}
@@ -733,7 +744,6 @@ bool CartesianCoordinates<TTopology, ZAXIS>::deploy()
 
 	is_valid_ = true;
 
-	return is_valid_;
 }
 
 }  // namespace simpla

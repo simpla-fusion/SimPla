@@ -45,10 +45,10 @@ TEST_P(TestKineticParticle,Add)
 
 	auto extents = mesh.extents();
 
-	rectangle_distribution<mesh_type::m_ndims_> x_dist(extents.first,
+	rectangle_distribution<mesh_type::ndims> x_dist(extents.first,
 			extents.second);
 
-	std::mt19937 rnd_gen(mesh_type::m_ndims_);
+	std::mt19937 rnd_gen(mesh_type::ndims);
 
 	nTuple<Real, 3> v = { 0, 0, 0 };
 

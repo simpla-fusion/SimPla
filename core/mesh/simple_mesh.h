@@ -33,15 +33,15 @@ public:
 
 	typedef SimpleMesh this_type;
 
-	static constexpr size_t m_ndims_ = 3;
+	static constexpr size_t ndims = 3;
 
 	typedef size_t id_type;
 
-	typedef sp_ndarray_range<m_ndims_, size_t> range_type;
+	typedef sp_ndarray_range<ndims, size_t> range_type;
 
-	typedef nTuple<size_t, m_ndims_> index_tuple;
+	typedef nTuple<size_t, ndims> index_tuple;
 
-	typedef nTuple<Real, m_ndims_> coordinates_type;
+	typedef nTuple<Real, ndims> coordinates_type;
 
 	typedef this_type geometry_type;
 
@@ -53,10 +53,12 @@ private:
 
 	coordinates_type m_xmin_, m_xmax_, m_dx_;
 	Real m_dt_ = 1.0;
-	index_tuple m_dimensions_;
-	index_tuple m_offset_;
+	index_tuple m_global_dimensions_;
+	index_tuple m_global_offset_;
+	index_tuple m_local_dimensions_;
+	index_tuple m_local_offset_;
 	index_tuple m_count_;
-	index_tuple m_strides_;
+	index_tuple m_local_strides_;
 	index_tuple m_ghost_width_;
 	index_tuple m_grain_size_;
 
@@ -72,7 +74,7 @@ public:
 	SimpleMesh(TI const & dimensions, TX const& xmin, TX const& xmax) :
 			m_xmin_(xmin), m_xmax_(xmax), m_count_(dimensions)
 	{
-		m_offset_ = 0;
+		m_global_offset_ = 0;
 		m_ghost_width_ = 0;
 		m_grain_size_ = (m_ghost_width_ + 1) * 2;
 
@@ -80,10 +82,23 @@ public:
 
 	}
 	SimpleMesh(SimpleMesh const & other) :
-			m_xmin_(other.m_xmin_), m_xmax_(other.m_xmax_), m_dx_(other.m_dx_), m_dimensions_(
-					other.m_dimensions_), m_offset_(other.m_offset_), m_count_(
-					other.m_count_), m_grain_size_(other.m_grain_size_), m_dataspace_(
-					other.m_dataspace_)
+			m_xmin_(other.m_xmin_), m_xmax_(other.m_xmax_), m_dx_(other.m_dx_),
+
+			m_global_dimensions_(other.m_global_dimensions_),
+
+			m_global_offset_(other.m_global_offset_),
+
+			m_local_dimensions_(other.m_local_dimensions_),
+
+			m_local_offset_(other.m_local_offset_),
+
+			m_count_(other.m_count_),
+
+			m_ghost_width_(other.m_ghost_width_),
+
+			m_grain_size_(other.m_grain_size_),
+
+			m_dataspace_(other.m_dataspace_)
 	{
 	}
 
@@ -97,7 +112,16 @@ public:
 		std::swap(m_xmin_, other.m_xmin_);
 		std::swap(m_xmax_, other.m_xmax_);
 		std::swap(m_dx_, other.m_dx_);
-		std::swap(m_dimensions_, other.m_dimensions_);
+
+		std::swap(m_global_dimensions_, other.m_global_dimensions_);
+		std::swap(m_global_offset_, other.m_global_offset_);
+		std::swap(m_local_dimensions_, other.m_local_dimensions_);
+		std::swap(m_local_offset_, other.m_local_offset_);
+		std::swap(m_count_, other.m_count_);
+		std::swap(m_ghost_width_, other.m_ghost_width_);
+		std::swap(m_grain_size_, other.m_grain_size_);
+		std::swap(m_dataspace_, other.m_dataspace_);
+
 	}
 	SimpleMesh & operator=(SimpleMesh const & other)
 	{
@@ -146,12 +170,12 @@ public:
 	template<typename T1>
 	void dimensions(T1 const & d)
 	{
-		m_dimensions_ = d;
+		m_global_dimensions_ = d;
 	}
 
 	index_tuple const & dimensions() const
 	{
-		return m_dimensions_;
+		return m_global_dimensions_;
 	}
 	template<typename T1>
 	void ghost_width(T1 const & d)
@@ -178,35 +202,40 @@ public:
 	void deploy()
 	{
 
-		DataSpace(m_ndims_, &m_dimensions_[0]).swap(m_dataspace_);
-		m_count_ = m_dimensions_;
-		m_offset_ = 0;
+		DataSpace(ndims, &m_global_dimensions_[0]).swap(m_dataspace_);
+		m_count_ = m_global_dimensions_;
+		m_global_offset_ = 0;
 		if (GLOBAL_COMM.num_of_process()>1)
 		{
-			GLOBAL_COMM.decompose(m_ndims_, &m_offset_[0], &m_count_[0]);
+			GLOBAL_COMM.decompose(ndims, &m_global_offset_[0], &m_count_[0]);
 		}
 
+		CHECK(m_count_);
+
+		m_local_offset_ = m_ghost_width_;
+
+		m_local_dimensions_ = m_count_ + m_ghost_width_ * 2;
+
+		m_local_strides_[ndims - 1] = 1;
+
+		if (ndims > 1)
+		{
+			for (int i = ndims - 2; i >= 0; --i)
+			{
+				m_local_strides_[i] = m_local_dimensions_[i + 1]
+						* m_local_strides_[i + 1];
+			}
+		}
 		m_dataspace_
 
-		.select_hyperslab(&m_offset_[0], nullptr, &m_count_[0], nullptr)
+		.select_hyperslab(&m_global_offset_[0], nullptr, &m_count_[0], nullptr)
 
 		.convert_to_local(&m_ghost_width_[0]);
 
-		std::tie(std::ignore, m_dimensions_, m_offset_, std::ignore, m_count_,
-				std::ignore) = m_dataspace_.shape();
+		get_ghost_shape(ndims, &m_local_dimensions_[0], &m_local_offset_[0],
+				nullptr, &m_count_[0], nullptr, &m_ghost_width_[0],
+				&m_ghosts_shape_);
 
-		m_strides_[m_ndims_ - 1] = 1;
-
-		if (m_ndims_ > 1)
-		{
-			for (int i = m_ndims_ - 2; i >= 0; --i)
-			{
-				m_strides_[i] = m_dimensions_[i + 1] * m_strides_[i + 1];
-			}
-		}
-
-		get_ghost_shape(m_ndims_, &m_dimensions_[0], &m_offset_[0], nullptr,
-				&m_count_[0], nullptr, &m_ghost_width_[0], &m_ghosts_shape_);
 	}
 	std::vector<mpi_ghosts_shape_s> const & ghost_shape() const
 	{
@@ -215,31 +244,54 @@ public:
 
 	size_t max_hash() const
 	{
-		return NProduct(m_dimensions_);
+		CHECK(m_local_dimensions_);
+		size_t res = 1;
+		for (int i = 0; i < ndims; ++i)
+		{
+			res *= m_local_dimensions_[i];
+		}
+		return res;
 	}
 
 	size_t hash(index_tuple const & s) const
 	{
-		return inner_product(s - m_offset_, m_strides_);
+		return inner_product(s + m_local_offset_ - m_global_offset_,
+				m_local_strides_);
 	}
 
 	size_t hash(size_t N0, size_t N1) const
 	{
-		return (N0 - m_offset_[0]) * m_strides_[0]
-				+ (N1 - m_offset_[1]) * m_strides_[1];
+		return (N0 + m_local_offset_[0] - m_global_offset_[0])
+				* m_local_strides_[0]
+				+ (N1 + m_local_offset_[1] - m_global_offset_[1])
+						* m_local_strides_[1];
 	}
 
 	size_t hash(size_t N0, size_t N1, size_t N2) const
 	{
-		return (N0 - m_offset_[0]) * m_strides_[0]
-				+ (N1 - m_offset_[1]) * m_strides_[1]
-				+ (N2 - m_offset_[2]) * m_strides_[2];
+		return (N0 + m_local_offset_[0] - m_global_offset_[0])
+				* m_local_strides_[0]
+				+ (N1 + m_local_offset_[1] - m_global_offset_[1])
+						* m_local_strides_[1]
+				+ (N2 + m_local_offset_[2] - m_global_offset_[2])
+						* m_local_strides_[2];
 	}
 	DataSpace const& dataspace() const
 	{
 		return m_dataspace_;
 	}
-
+	index_tuple coordinates_to_index(coordinates_type const &x) const
+	{
+		index_tuple res;
+		res = (x - m_xmin_) / m_dx_;
+		return std::move(res);
+	}
+	coordinates_type index_to_coordinates(index_tuple const &i) const
+	{
+		coordinates_type res;
+		res = i * m_dx_ + m_xmin_;
+		return std::move(res);
+	}
 	index_tuple coordinates_to_id(coordinates_type const &x) const
 	{
 		index_tuple res;
@@ -264,7 +316,7 @@ public:
 
 	range_type range() const
 	{
-		return range_type(m_offset_, m_offset_ + m_count_);
+		return range_type(m_global_offset_, m_global_offset_ + m_count_);
 	}
 	template<typename ...Args>
 	size_t hash(Args &&...args) const

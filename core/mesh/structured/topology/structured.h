@@ -26,6 +26,7 @@
 #include "../../mesh_common.h"
 
 #include "../../../parallel/mpi_comm.h"
+#include "../../../parallel/mpi_aux_functions.h"
 
 namespace simpla
 {
@@ -76,12 +77,29 @@ struct StructuredMesh_
 	static constexpr size_t MAX_NUM_VERTEX_PER_CEL = 8;
 	static constexpr size_t DEFAULT_GHOSTS_WIDTH = 3;
 
+	static constexpr size_t iform = VERTEX;
+
 	template<size_t IForm> struct const_iterator;
 
 	template<size_t IForm> struct Range;
 
 private:
 	bool is_valid_ = false;
+
+	index_tuple m_global_dimensions_;
+	index_tuple m_global_offset_;
+	index_tuple m_local_dimensions_;
+	index_tuple m_local_offset_;
+	index_tuple m_count_;
+	index_tuple m_local_strides_;
+	index_tuple m_ghost_width_;
+	index_tuple m_grain_size_;
+
+	coordinates_type m_xmin_, m_xmax_, m_dx_;
+
+	DataSpace m_dataspace_;
+
+	std::vector<mpi_ghosts_shape_s> m_ghosts_shape_;
 public:
 
 	//***************************************************************************************************
@@ -89,6 +107,7 @@ public:
 	StructuredMesh_()
 	{
 	}
+
 	StructuredMesh_(nTuple<size_t, ndims> const &dims)
 	{
 		dimensions(&dims[0]);
@@ -97,11 +116,48 @@ public:
 	{
 	}
 
-	this_type & operator=(const this_type&) = delete;
+	StructuredMesh_(StructuredMesh_ const & other) :
+			m_xmin_(other.m_xmin_), m_xmax_(other.m_xmax_), m_dx_(other.m_dx_),
 
-	StructuredMesh_(const this_type&) = delete;
+			m_global_dimensions_(other.m_global_dimensions_),
 
-	void swap(StructuredMesh_ & rhs) = delete;
+			m_global_offset_(other.m_global_offset_),
+
+			m_local_dimensions_(other.m_local_dimensions_),
+
+			m_local_offset_(other.m_local_offset_),
+
+			m_count_(other.m_count_),
+
+			m_ghost_width_(other.m_ghost_width_),
+
+			m_grain_size_(other.m_grain_size_),
+
+			m_dataspace_(other.m_dataspace_)
+	{
+	}
+
+	void swap(StructuredMesh_ & other)
+	{
+		std::swap(m_xmin_, other.m_xmin_);
+		std::swap(m_xmax_, other.m_xmax_);
+		std::swap(m_dx_, other.m_dx_);
+
+		std::swap(m_global_dimensions_, other.m_global_dimensions_);
+		std::swap(m_global_offset_, other.m_global_offset_);
+		std::swap(m_local_dimensions_, other.m_local_dimensions_);
+		std::swap(m_local_offset_, other.m_local_offset_);
+		std::swap(m_count_, other.m_count_);
+		std::swap(m_ghost_width_, other.m_ghost_width_);
+		std::swap(m_grain_size_, other.m_grain_size_);
+		std::swap(m_dataspace_, other.m_dataspace_);
+
+	}
+	this_type & operator=(const this_type& other)
+	{
+		this_type(other).swap(*this);
+		return *this;
+	}
 
 	template<typename TDict>
 	bool load(TDict const & dict)
@@ -117,7 +173,7 @@ public:
 		{
 			VERBOSE << "Load topology : Structured  Mesh " << std::endl;
 			auto d = dict["Dimensions"].template as<nTuple<size_t, 3>>();
-			dimensions(&d[0]);
+			dimensions(d);
 
 		}
 
@@ -146,6 +202,10 @@ public:
 	constexpr bool is_valid() const
 	{
 		return is_valid_;
+	}
+	constexpr bool is_divisible() const
+	{
+		return false;
 	}
 
 	/**
@@ -225,27 +285,10 @@ public:
 
 	static constexpr index_type AXIS_ORIGIN = 1 << (INDEX_DIGITS - 1);
 
-private:
-
-	index_tuple m_global_dimensions_;
-
-	index_tuple m_global_offset_;
-
-	index_tuple m_local_dimensions_;
-
-	index_tuple m_local_offset_;
-
-	index_tuple m_count_;
-
-	index_tuple m_ghost_width_;
-
-	index_tuple m_hash_strides_;
-
-	DataSpace m_dataspace_;
-
-	std::vector<DataSpace::ghosts_shape_s> m_ghosts_shape_;
-
 public:
+	template<typename TV, size_t IFORM = iform>
+	using field_value_type=typename
+	std::conditional<IFORM==EDGE ||IFORM==FACE,nTuple<TV,3>,TV>::type;
 
 	template<typename T>
 	void dimensions(T const& d)
@@ -267,6 +310,17 @@ public:
 	index_tuple const & ghost_width() const
 	{
 		return m_ghost_width_;
+	}
+
+	template<typename T1, typename T2>
+	void extents(T1 const & xmin, T2 const & xmax)
+	{
+		m_xmin_ = xmin;
+		m_xmax_ = xmax;
+	}
+	std::pair<coordinates_type, coordinates_type> extents() const
+	{
+		return std::make_pair(m_xmin_, m_xmax_);
 	}
 
 	bool check_memory_bounds(id_type s) const
@@ -291,82 +345,201 @@ public:
 
 	}
 
-	/**
-	 *   @name Geometry
-	 *   For For uniform structured grid, the volume of cell is 1.0
-	 *   and dx=1.0
-	 *   @{
-	 */
-
 	void deploy()
 	{
-
-		DataSpace ds(ndims, &m_global_dimensions_[0]);
-
+		m_ghost_width_[ndims] = 0;
+		m_global_dimensions_[ndims] = 3; // for IFORM=EDGE or  FACE
 		m_count_ = m_global_dimensions_;
 		m_global_offset_ = 0;
-
-		if (GLOBAL_COMM.num_of_process() > 1)
+		if (GLOBAL_COMM.num_of_process()>1)
 		{
 			GLOBAL_COMM.decompose(ndims, &m_global_offset_[0], &m_count_[0]);
 		}
 
-		ds.select_hyperslab(&m_global_offset_[0], nullptr, &m_count_[0],
-				nullptr);
+		m_local_offset_ = m_ghost_width_;
+		m_local_dimensions_ = m_count_ + m_ghost_width_ * 2;
 
-		ds.convert_to_distributed_space(&m_ghost_width_[0]).swap(m_dataspace_);
-
-		m_dataspace_.ghost_shape(&m_ghost_width_[0], &m_ghosts_shape_);
-
-		std::tie(std::ignore, m_local_dimensions_, m_local_offset_, std::ignore,
-				m_count_, std::ignore) = m_dataspace_.shape();
-
-		m_hash_strides_[ndims - 1] = 1;
+		m_local_strides_[ndims - 1] = 1;
 
 		if (ndims > 1)
 		{
 			for (int i = ndims - 2; i >= 0; --i)
 			{
-				m_hash_strides_[i] = m_local_dimensions_[i + 1]
-						* m_hash_strides_[i + 1];
+				m_local_strides_[i] = m_local_dimensions_[i + 1]
+						* m_local_strides_[i + 1];
 			}
 		}
 
-		//		if (gw != nullptr)
-		//			ghost_width = gw;
-		//
-		//		DataSpace sp(ndims, d, &ghost_width[0]);
-		//
-		//		std::tie(std::ignore, dimensions_, local_inner_begin_,
-		//				local_inner_count_, std::ignore, std::ignore) = sp.shape();
-		//
-		//		local_inner_end_ = local_inner_begin_ + local_inner_count_;
-		//
-		//		std::tie(std::ignore, local_outer_count_, local_outer_begin_,
-		//				local_outer_count_, std::ignore, std::ignore) =
-		//				sp.local_space().shape();
-		//
-		//		local_outer_begin_ = local_inner_begin_ - local_outer_begin_;
-		//
-		//		local_inner_end_ = local_inner_begin_ + local_inner_count_;
-		//
-		//		local_outer_begin_ = local_inner_begin_ - local_outer_begin_;
-		//
-		//		local_outer_end_ = local_outer_begin_ + local_outer_count_;
-		//
-
-		//		m_xmin_ = 0;
-		//		m_xmax_ = m_dimensions_;
 		is_valid_ = true;
 	}
-	std::vector<DataSpace::ghosts_shape_s> const & ghost_shape() const
+
+	DataSpace dataspace(size_t IFORM = iform) const
 	{
-		return m_ghosts_shape_;
+		DataSpace res(
+				(IFORM == VERTEX || IFORM == VOLUME) ? ndims : (ndims + 1),
+				&m_global_dimensions_[0]);
+
+		res
+
+		.select_hyperslab(&m_global_offset_[0], nullptr, &m_count_[0], nullptr)
+
+		.convert_to_local(&m_ghost_width_[0]);
+
+		return std::move(res);
+
+	}
+	void ghost_shape(std::vector<mpi_ghosts_shape_s> *res,
+			size_t IFORM = iform) const
+	{
+		get_ghost_shape(
+				(IFORM == VERTEX || IFORM == VOLUME) ? ndims : (ndims + 1),
+				&m_local_dimensions_[0], &m_local_offset_[0], nullptr,
+				&m_count_[0], nullptr, &m_ghost_width_[0], res);
+
 	}
 
+	std::vector<mpi_ghosts_shape_s> ghost_shape(size_t IFORM = iform) const
+	{
+		std::vector<mpi_ghosts_shape_s> res;
+		ghost_shape(&res, iform);
+		return std::move(res);
+	}
+
+	/**
+	 *  @name Hash
+	 *  @{
+	 */
+
+	size_t max_hash(size_t IFORM = iform) const
+	{
+		return NProduct(m_local_dimensions_)
+				* ((IFORM == EDGE || IFORM == FACE) ? 3 : 1);
+	}
+
+	template<typename TI>
+	size_t hash(TI const & d, size_t IFORM = iform) const
+	{
+
+		size_t res = ((d[0] + m_local_offset_[0] - m_global_offset_[0]
+				+ m_local_dimensions_[0]) % m_local_dimensions_[0])
+				* m_local_strides_[0]
+				+
+
+				((d[0] + m_local_offset_[0] - m_global_offset_[0]
+						+ m_local_dimensions_[0]) % m_local_dimensions_[0])
+						* m_local_strides_[0]
+				+
+
+				((d[0] + m_local_offset_[0] - m_global_offset_[0]
+						+ m_local_dimensions_[0]) % m_local_dimensions_[0])
+						* m_local_strides_[0]
+
+						;
+
+		if (IFORM == EDGE || IFORM == FACE)
+		{
+			res *= 3;
+			res += d[ndims];
+		}
+
+		return res;
+
+	}
+	size_t hash(id_type s, size_t IFORM = iform) const
+	{
+
+		nTuple<index_type, ndims> d = (id_to_index(s) >> FLOATING_POINT_POS);
+
+		size_t res = hash(d, VERTEX);
+
+		switch (node_id(s))
+		{
+		case 4:
+		case 3:
+			res = ((res << 1) + res);
+			break;
+		case 2:
+		case 5:
+			res = ((res << 1) + res) + 1;
+			break;
+		case 1:
+		case 6:
+			res = ((res << 1) + res) + 2;
+			break;
+		}
+
+		return res;
+
+	}
+	/**@}*/
+
+	template<typename TD>
+	auto gather(TD const & d,
+			coordinates_type const & x) const->decltype(d[std::declval<index_tuple>()])
+	{
+		index_tuple r;
+		r = (x + 0.5);
+
+		return d[r];
+	}
+
+	template<typename TD, typename TV>
+	void scatter(TD & d, coordinates_type const &x, TV const & v) const
+	{
+		index_tuple r;
+		r = (x + 0.5);
+
+		d[r] += v;
+	}
+
+//	/**
+//	 *  @name Select
+//	 *  @{
+//	 */
+//private:
+//	template<size_t IFORM>
+//	Range<IFORM> select_rectangle_(index_tuple const &ib, index_tuple const &ie,
+//			index_tuple b, index_tuple e) const
+//	{
+//		clipping(ib, ie, &b, &e);
+//
+//		return std::move(Range<IFORM>(b, e));
+//
+//	}
+//public:
+//
+//	template<size_t IFORM>
+//	Range<IFORM> select() const
+//	{
+//		return (Range<IFORM>(m_local_inner_begin_, m_local_inner_end_));
+//	}
+//
+//	/**
+//	 * \fn Select
+//	 * \brief
+//	 * @param range
+//	 * @param b
+//	 * @param e
+//	 * @return
+//	 */
+//	template<size_t IForm>
+//	auto select(index_tuple const & b, index_tuple const &e) const
+//	DECL_RET_TYPE(select_rectangle_<IForm>( b, e,
+//					m_local_inner_begin_, m_local_inner_end_))
+//
+//	/**
+//	 *
+//	 */
+//	template<size_t IFORM>
+//	Range<IFORM> select(coordinates_type const & xmin,
+//			coordinates_type const &xmax) const
+//	{
+//		return std::move(Range<IFORM>());
+//	}
+//
+//	/**  @} */
 //! @name Coordinates
 //! @{
-
 	static constexpr Real COORDINATES_TO_INDEX_FACTOR =
 			static_cast<Real>(FLOATING_POINT_FACTOR);
 
@@ -651,104 +824,6 @@ public:
 		return m_iform_[node_id(r)];
 	}
 //! @}
-
-	/**
-	 *  @name Select
-	 *  @{
-	 */
-private:
-	template<size_t IFORM>
-	Range<IFORM> select_rectangle_(index_tuple const &ib, index_tuple const &ie,
-			index_tuple b, index_tuple e) const
-	{
-		clipping(ib, ie, &b, &e);
-
-		return std::move(Range<IFORM>(b, e));
-
-	}
-public:
-
-	template<size_t IFORM>
-	Range<IFORM> select() const
-	{
-		return (Range<IFORM>(m_local_inner_begin_, m_local_inner_end_));
-	}
-
-	/**
-	 * \fn Select
-	 * \brief
-	 * @param range
-	 * @param b
-	 * @param e
-	 * @return
-	 */
-	template<size_t IForm>
-	auto select(index_tuple const & b, index_tuple const &e) const
-	DECL_RET_TYPE(select_rectangle_<IForm>( b, e,
-					m_local_inner_begin_, m_local_inner_end_))
-
-	/**
-	 *
-	 */
-	template<size_t IFORM>
-	Range<IFORM> select(coordinates_type const & xmin,
-			coordinates_type const &xmax) const
-	{
-		return std::move(Range<IFORM>());
-	}
-
-	/**  @} */
-	/**
-	 *  @name Hash
-	 *  @{
-	 */
-
-	template<size_t IFORM>
-	size_t max_hash() const
-	{
-		return NProduct(m_local_dimensions_)
-				* ((IFORM == EDGE || IFORM == FACE) ? 3 : 1);
-	}
-
-	static index_type mod_(index_type a, index_type L)
-	{
-		return (a + L) % L;
-	}
-
-	size_t hash(id_type s) const
-	{
-
-		nTuple<index_type, ndims> d = (id_to_index(s) >> FLOATING_POINT_POS)
-				- m_global_offset_ + m_local_offset_;
-
-		size_t res =
-
-		mod_(d[0], (m_local_dimensions_[0])) * m_hash_strides_[0] +
-
-		mod_(d[1], (m_local_dimensions_[1])) * m_hash_strides_[1] +
-
-		mod_(d[2], (m_local_dimensions_[2])) * m_hash_strides_[2];
-
-		switch (node_id(s))
-		{
-		case 4:
-		case 3:
-			res = ((res << 1) + res);
-			break;
-		case 2:
-		case 5:
-			res = ((res << 1) + res) + 1;
-			break;
-		case 1:
-		case 6:
-			res = ((res << 1) + res) + 2;
-			break;
-		}
-
-		return res;
-
-	}
-	/**@}*/
 
 	/**
 	 * @name Neighgour
@@ -1310,6 +1385,7 @@ template<size_t NDIMS> constexpr typename StructuredMesh_<NDIMS>::id_type
 StructuredMesh_<NDIMS>::m_first_node_shift_[];
 
 template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::ndims;
+template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::iform;
 template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::MAX_NUM_NEIGHBOUR_ELEMENT;
 template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::MAX_NUM_VERTEX_PER_CEL;
 template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::DEFAULT_GHOSTS_WIDTH;
