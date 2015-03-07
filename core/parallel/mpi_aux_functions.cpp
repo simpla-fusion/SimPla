@@ -263,6 +263,7 @@ void get_ghost_shape(size_t ndims, size_t const * l_dims,
 		size_t const * ghost_width,
 		std::vector<mpi_ghosts_shape_s>* send_recv_list)
 {
+	send_recv_list->clear();
 
 	nTuple<size_t, MAX_NDIMS_OF_ARRAY> send_count, send_offset;
 	nTuple<size_t, MAX_NDIMS_OF_ARRAY> recv_count, recv_offset;
@@ -271,7 +272,7 @@ void get_ghost_shape(size_t ndims, size_t const * l_dims,
 	{
 		nTuple<int, 3> coords_shift;
 
-		bool tag_is_valid = false;
+		bool tag_is_valid = true;
 
 		for (int n = 0; n < ndims; ++n)
 		{
@@ -291,16 +292,15 @@ void get_ghost_shape(size_t ndims, size_t const * l_dims,
 				send_offset[n] = l_offset[n];
 				recv_count[n] = ghost_width[n];
 				recv_offset[n] = l_offset[n] - ghost_width[n];
-				tag_is_valid = true;
 				break;
-
 			case 1:
-
 				send_count[n] = ghost_width[n];
 				send_offset[n] = l_offset[n] + l_count[n] - ghost_width[n];
 				recv_count[n] = ghost_width[n];
 				recv_offset[n] = l_offset[n] + l_count[n];
-				tag_is_valid = true;
+				break;
+			default:
+				tag_is_valid = false;
 				break;
 			}
 
@@ -309,18 +309,20 @@ void get_ghost_shape(size_t ndims, size_t const * l_dims,
 				tag_is_valid = false;
 				break;
 			}
+
 		}
 
-		if (tag_is_valid)
+		if (tag_is_valid
+				&& (coords_shift[0] != 0 || coords_shift[1] != 0
+						|| coords_shift[2] != 0))
 		{
 
 			send_recv_list->emplace_back(mpi_ghosts_shape_s
-			{ coords_shift, send_offset, send_count, recv_offset, recv_count }
-
-			);
+			{ coords_shift, send_offset, send_count, recv_offset, recv_count });
 		}
 
 	}
+//	CHECK(send_recv_list->size());
 }
 }
 // namespace simpla

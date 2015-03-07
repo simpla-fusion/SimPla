@@ -12,17 +12,17 @@
 
 namespace simpla
 {
-std::tuple<int, int> get_mpi_tag(int const * coord)
+std::tuple<int, int, int> get_mpi_tag(int const * coord)
 {
-	static int count = 0;
-	++count;
-	int tag = ((coord[0] + 1) & 2UL) || (((coord[1] + 1) & 2UL) << 2UL)
-			|| (((coord[2] + 1) & 2UL) << 4UL);
 
+	int send_tag = ((coord[0] + 1) & 3UL) | (((coord[1] + 1) & 3UL) << 2UL)
+			| (((coord[2] + 1) & 3UL) << 4UL);
+	int recv_tag = ((-coord[0] + 1) & 3UL) | (((-coord[1] + 1) & 3UL) << 2UL)
+			| (((-coord[2] + 1) & 3UL) << 4UL);
 	int dest = SingletonHolder<simpla::MPIComm>::instance().get_neighbour(
 			coord);
 
-	return std::make_tuple(dest, tag + count * 100);
+	return std::make_tuple(dest, send_tag, recv_tag);
 }
 void make_send_recv_list(DataType const & datatype, int ndims,
 		size_t const * l_dims,
@@ -34,10 +34,16 @@ void make_send_recv_list(DataType const & datatype, int ndims,
 
 	for (auto const & item : ghost_shape)
 	{
-		int dest, tag;
+		int dest, send_tag, recv_tag;
 
-		std::tie(dest, tag) = get_mpi_tag(&item.coord_shift[0]);
-
+		std::tie(dest, send_tag, recv_tag) = get_mpi_tag(&item.coord_shift[0]);
+//		CHECK(dest);
+//		CHECK(send_tag);
+//		CHECK(recv_tag);
+//		CHECK(item.send_offset);
+//		CHECK(item.send_count);
+//		CHECK(item.recv_offset);
+//		CHECK(item.recv_count);
 		res->emplace_back(
 
 				mpi_send_recv_s
@@ -45,9 +51,9 @@ void make_send_recv_list(DataType const & datatype, int ndims,
 
 				dest,
 
-				tag,
+				send_tag,
 
-				tag,
+				recv_tag,
 
 				MPIDataType::create(datatype, ndims, l_dims,
 						&item.send_offset[0], nullptr, &item.send_count[0],
@@ -59,7 +65,6 @@ void make_send_recv_list(DataType const & datatype, int ndims,
 
 				);
 
-		CHECK(item.send_offset);
 	}
 
 //	if (pghost_width == nullptr /*|| mpi_comm.num_of_process() <= 1*/)

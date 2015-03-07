@@ -130,6 +130,7 @@ USE_CASE(pic)
 	ion->rehash();
 
 	ion->sync();
+	ion->wait_to_ready();
 
 	VERBOSE << save("H1", ion->dataset()) << std::endl;
 

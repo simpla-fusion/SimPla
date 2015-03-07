@@ -30,7 +30,7 @@ USE_CASE(general_field_op)
 	typedef typename mesh_type::index_tuple index_tuple;
 
 	index_tuple dims =
-	{ 16, 1, 1 };
+	{ 16, 16, 16 };
 	index_tuple ghost_width =
 	{ 0, 0, 0 };
 	coordinates_type xmin =
@@ -64,9 +64,9 @@ USE_CASE(general_field_op)
 	VERBOSE << SAVE(f1) << std::endl;
 
 	f1.sync();
-	f1.sync();
-	f1.sync();
-	f1.sync();
+//	f1.sync();
+//	f1.sync();
+//	f1.sync();
 	f1.wait_to_ready();
 
 	cd("/Output2/");

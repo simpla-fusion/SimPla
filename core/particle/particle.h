@@ -210,8 +210,8 @@ public:
 		{
 			mpi_send_recv_buffer_s send_recv_s;
 
-			std::tie(send_recv_s.dest, send_recv_s.send_tag) = get_mpi_tag(
-					&item.coord_shift[0]);
+			std::tie(send_recv_s.dest, send_recv_s.send_tag,
+					send_recv_s.recv_tag) = get_mpi_tag(&item.coord_shift[0]);
 
 			//   collect send data
 

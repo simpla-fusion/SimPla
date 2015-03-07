@@ -32,7 +32,7 @@ void make_send_recv_list(DataType const & datatype, int ndims,
 void sync_update_continue(std::vector<mpi_send_recv_s> const &, void * data,
 		std::vector<MPI_Request> * requests = nullptr);
 
-std::tuple<int, int> get_mpi_tag(int const * coord);
+std::tuple<int, int, int> get_mpi_tag(int const * coord);
 
 struct mpi_send_recv_buffer_s
 {

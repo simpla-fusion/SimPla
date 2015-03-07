@@ -137,7 +137,7 @@ void LoggerStreams::close()
 	if (is_opened_)
 	{
 		VERBOSE << "LoggerStream is closed!" << std::endl;
-		if (std_out_visable_level_ >= LOG_INFORM)
+		if (std_out_visable_level_ >= LOG_INFORM && mpi_rank_ == 0)
 			std::cout << std::endl;
 
 		if (fs.is_open())
@@ -182,7 +182,8 @@ void LoggerStreams::put(int level, std::string const & msg)
 	}
 	if (mpi_size_ > 1)
 	{
-		prefix += "[" + value_to_string(mpi_rank_) + "/" + value_to_string(mpi_size_) + "]";
+		prefix += "[" + value_to_string(mpi_rank_) + "/"
+				+ value_to_string(mpi_size_) + "]";
 	}
 
 	prefix += "[" + time_stamp() + "]";
