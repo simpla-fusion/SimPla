@@ -22,6 +22,7 @@
 #include "../../../utilities/utilities.h"
 #include "../../../gtl/ntuple.h"
 #include "../../../gtl/primitives.h"
+#include "../../../gtl/iterator/sp_ndarray_iterator.h"
 #include "../../../numeric/geometric_algorithm.h"
 #include "../../mesh_common.h"
 
@@ -65,7 +66,7 @@ struct StructuredMesh_
 
 	static constexpr size_t ndims = NDIMS;
 
-	typedef unsigned long index_type;
+	typedef size_t index_type;
 
 	typedef nTuple<index_type, ndims> index_tuple;
 
@@ -97,6 +98,8 @@ private:
 
 	coordinates_type m_xmin_, m_xmax_, m_dx_;
 
+	Real m_dt_ = 1.0;
+
 	DataSpace m_dataspace_;
 
 	std::vector<mpi_ghosts_shape_s> m_ghosts_shape_;
@@ -111,6 +114,7 @@ public:
 	StructuredMesh_(nTuple<size_t, ndims> const &dims)
 	{
 		dimensions(&dims[0]);
+		m_ghost_width_ = 0;
 	}
 	virtual ~StructuredMesh_()
 	{
@@ -126,6 +130,8 @@ public:
 			m_local_dimensions_(other.m_local_dimensions_),
 
 			m_local_offset_(other.m_local_offset_),
+
+			m_local_strides_(other.m_local_strides_),
 
 			m_count_(other.m_count_),
 
@@ -147,6 +153,8 @@ public:
 		std::swap(m_global_offset_, other.m_global_offset_);
 		std::swap(m_local_dimensions_, other.m_local_dimensions_);
 		std::swap(m_local_offset_, other.m_local_offset_);
+		std::swap(m_local_strides_, other.m_local_strides_);
+
 		std::swap(m_count_, other.m_count_);
 		std::swap(m_ghost_width_, other.m_ghost_width_);
 		std::swap(m_grain_size_, other.m_grain_size_);
@@ -283,8 +291,6 @@ public:
 //
 //	static constexpr size_t NO_HEAD_FLAG = ~((~0UL) << (INDEX_DIGITS * 3));
 
-	static constexpr index_type AXIS_ORIGIN = 1 << (INDEX_DIGITS - 1);
-
 public:
 	template<typename TV, size_t IFORM = iform>
 	using field_value_type=typename
@@ -296,10 +302,8 @@ public:
 		m_global_dimensions_ = d;
 	}
 
-	index_tuple const & dimensions() const
-	{
-		return m_global_dimensions_;
-	}
+	auto dimensions() const
+	DECL_RET_TYPE(m_global_dimensions_)
 
 	template<typename T>
 	void ghost_width(T const&d)
@@ -307,9 +311,16 @@ public:
 		m_ghost_width_ = d;
 	}
 
-	index_tuple const & ghost_width() const
+	auto ghost_width() const
+	DECL_RET_TYPE(m_ghost_width_)
+
+	void dt(Real pdt)
 	{
-		return m_ghost_width_;
+		m_dt_ = pdt;
+	}
+	Real dt() const
+	{
+		return m_dt_;
 	}
 
 	template<typename T1, typename T2>
@@ -318,6 +329,7 @@ public:
 		m_xmin_ = xmin;
 		m_xmax_ = xmax;
 	}
+
 	std::pair<coordinates_type, coordinates_type> extents() const
 	{
 		return std::make_pair(m_xmin_, m_xmax_);
@@ -347,8 +359,7 @@ public:
 
 	void deploy()
 	{
-		m_ghost_width_[ndims] = 0;
-		m_global_dimensions_[ndims] = 3; // for IFORM=EDGE or  FACE
+
 		m_count_ = m_global_dimensions_;
 		m_global_offset_ = 0;
 		if (GLOBAL_COMM.num_of_process()>1)
@@ -371,25 +382,45 @@ public:
 		}
 
 		is_valid_ = true;
+
+		VERBOSE << get_type_as_string() << " is deployed!" << std::endl;
+
 	}
 
 	DataSpace dataspace(size_t IFORM = iform) const
 	{
-		DataSpace res(
-				(IFORM == VERTEX || IFORM == VOLUME) ? ndims : (ndims + 1),
-				&m_global_dimensions_[0]);
+		nTuple<size_t, MAX_NDIMS_OF_ARRAY> f_dims;
+		nTuple<size_t, MAX_NDIMS_OF_ARRAY> f_offset;
+		nTuple<size_t, MAX_NDIMS_OF_ARRAY> f_count;
+		nTuple<size_t, MAX_NDIMS_OF_ARRAY> f_ghost_width;
+		int f_ndims = ndims;
+		f_dims = m_global_dimensions_;
+		f_offset = m_global_offset_;
+		f_count = m_count_;
+		f_ghost_width = m_ghost_width_;
+
+		if (!(IFORM == VERTEX || IFORM == VOLUME))
+		{
+			f_ndims = ndims + 1;
+			f_dims[f_ndims - 1] = 3;
+			f_offset[f_ndims - 1] = 0;
+			f_count[f_ndims - 1] = 3;
+			f_ghost_width[f_ndims - 1] = 0;
+		}
+
+		DataSpace res(f_ndims, &f_dims[0]);
 
 		res
 
-		.select_hyperslab(&m_global_offset_[0], nullptr, &m_count_[0], nullptr)
+		.select_hyperslab(&f_offset[0], nullptr, &f_count[0], nullptr)
 
-		.convert_to_local(&m_ghost_width_[0]);
+		.convert_to_local(&f_ghost_width[0]);
 
 		return std::move(res);
 
 	}
-	void ghost_shape(std::vector<mpi_ghosts_shape_s> *res,
-			size_t IFORM = iform) const
+	template<size_t IFORM = iform>
+	void ghost_shape(std::vector<mpi_ghosts_shape_s> *res) const
 	{
 		get_ghost_shape(
 				(IFORM == VERTEX || IFORM == VOLUME) ? ndims : (ndims + 1),
@@ -397,11 +428,11 @@ public:
 				&m_count_[0], nullptr, &m_ghost_width_[0], res);
 
 	}
-
-	std::vector<mpi_ghosts_shape_s> ghost_shape(size_t IFORM = iform) const
+	template<size_t IFORM = iform>
+	std::vector<mpi_ghosts_shape_s> ghost_shape() const
 	{
 		std::vector<mpi_ghosts_shape_s> res;
-		ghost_shape(&res, iform);
+		ghost_shape<IFORM>(&res);
 		return std::move(res);
 	}
 
@@ -409,15 +440,20 @@ public:
 	 *  @name Hash
 	 *  @{
 	 */
-
-	size_t max_hash(size_t IFORM = iform) const
+	template<size_t IFORM = iform>
+	size_t max_hash() const
 	{
-		return NProduct(m_local_dimensions_)
-				* ((IFORM == EDGE || IFORM == FACE) ? 3 : 1);
+		size_t res = 1;
+		for (int i = 0;
+				i < ndims + ((IFORM == VERTEX || IFORM == VOLUME) ? 0 : 1); ++i)
+		{
+			res *= m_local_dimensions_[i];
+		}
+		return res;
 	}
 
-	template<typename TI>
-	size_t hash(TI const & d, size_t IFORM = iform) const
+	template<size_t IFORM, typename TI>
+	size_t hash(TI const & d) const
 	{
 
 		size_t res = ((d[0] + m_local_offset_[0] - m_global_offset_[0]
@@ -425,16 +461,14 @@ public:
 				* m_local_strides_[0]
 				+
 
-				((d[0] + m_local_offset_[0] - m_global_offset_[0]
-						+ m_local_dimensions_[0]) % m_local_dimensions_[0])
-						* m_local_strides_[0]
+				((d[1] + m_local_offset_[1] - m_global_offset_[1]
+						+ m_local_dimensions_[1]) % m_local_dimensions_[1])
+						* m_local_strides_[1]
 				+
 
-				((d[0] + m_local_offset_[0] - m_global_offset_[0]
-						+ m_local_dimensions_[0]) % m_local_dimensions_[0])
-						* m_local_strides_[0]
-
-						;
+				((d[2] + m_local_offset_[2] - m_global_offset_[2]
+						+ m_local_dimensions_[2]) % m_local_dimensions_[2])
+						* m_local_strides_[2];
 
 		if (IFORM == EDGE || IFORM == FACE)
 		{
@@ -445,31 +479,11 @@ public:
 		return res;
 
 	}
-	size_t hash(id_type s, size_t IFORM = iform) const
+
+	template<size_t IFORM = iform>
+	size_t hash(id_type s) const
 	{
-
-		nTuple<index_type, ndims> d = (id_to_index(s) >> FLOATING_POINT_POS);
-
-		size_t res = hash(d, VERTEX);
-
-		switch (node_id(s))
-		{
-		case 4:
-		case 3:
-			res = ((res << 1) + res);
-			break;
-		case 2:
-		case 5:
-			res = ((res << 1) + res) + 1;
-			break;
-		case 1:
-		case 6:
-			res = ((res << 1) + res) + 2;
-			break;
-		}
-
-		return res;
-
+		return hash<IFORM>(id_to_index(s));
 	}
 	/**@}*/
 
@@ -492,10 +506,22 @@ public:
 		d[r] += v;
 	}
 
-//	/**
-//	 *  @name Select
-//	 *  @{
-//	 */
+	/**
+	 *  @name Select
+	 *  @{
+	 */
+
+	template<size_t IFORM = iform>
+	Range<IFORM> range() const
+	{
+		return Range<IFORM>(m_global_offset_, m_global_offset_ + m_count_);
+	}
+	template<typename T, size_t IFORM = iform>
+	Range<IFORM> select(T imin, T imax) const
+	{
+		return Range<IFORM>(imin, imax);
+	}
+
 //private:
 //	template<size_t IFORM>
 //	Range<IFORM> select_rectangle_(index_tuple const &ib, index_tuple const &ie,
@@ -554,14 +580,14 @@ public:
 				coordinates_type(
 						{
 
-						static_cast<Real>(static_cast<long>(idx[0])
-								- AXIS_ORIGIN) * INDEX_TO_COORDINATES_FACTOR,
+						static_cast<Real>(static_cast<long>(idx[0]))
+								* INDEX_TO_COORDINATES_FACTOR,
 
-						static_cast<Real>(static_cast<long>(idx[1])
-								- AXIS_ORIGIN) * INDEX_TO_COORDINATES_FACTOR,
+						static_cast<Real>(static_cast<long>(idx[1]))
+								* INDEX_TO_COORDINATES_FACTOR,
 
-						static_cast<Real>(static_cast<long>(idx[2])
-								- AXIS_ORIGIN) * INDEX_TO_COORDINATES_FACTOR
+						static_cast<Real>(static_cast<long>(idx[2]))
+								* INDEX_TO_COORDINATES_FACTOR
 
 						}));
 	}
@@ -573,28 +599,29 @@ public:
 						{
 
 						static_cast<index_type>(static_cast<long>(x[0]
-								* COORDINATES_TO_INDEX_FACTOR) + AXIS_ORIGIN),
+								* COORDINATES_TO_INDEX_FACTOR)),
 
 						static_cast<index_type>(static_cast<long>(x[1]
-								* COORDINATES_TO_INDEX_FACTOR) + AXIS_ORIGIN),
+								* COORDINATES_TO_INDEX_FACTOR)),
 
 						static_cast<index_type>(static_cast<long>(x[2]
-								* COORDINATES_TO_INDEX_FACTOR) + AXIS_ORIGIN)
+								* COORDINATES_TO_INDEX_FACTOR))
 
 						}));
 	}
 
-	static constexpr id_type index_to_id(index_tuple const & x)
+	template<typename TI>
+	static constexpr id_type index_to_id(TI const & x)
 	{
 		return
 
 		static_cast<id_type>(
 
-		((x[0] & INDEX_MASK)) |
+		(((x[0]) & INDEX_MASK) << FLOATING_POINT_POS) |
 
-		((x[1] & INDEX_MASK) << (INDEX_DIGITS)) |
+		(((x[1]) & INDEX_MASK) << (INDEX_DIGITS + FLOATING_POINT_POS)) |
 
-		((x[2] & INDEX_MASK) << (INDEX_DIGITS * 2))
+		(((x[2]) & INDEX_MASK) << (INDEX_DIGITS * 2 + FLOATING_POINT_POS))
 
 		);
 	}
@@ -602,16 +629,20 @@ public:
 	static constexpr index_tuple id_to_index(id_type s)
 	{
 
-		return std::move(index_tuple(
-		{
+		return std::move(
+				index_tuple(
+						{
 
-		static_cast<index_type>(s & INDEX_MASK),
+						static_cast<index_type>(s & INDEX_MASK)
+								>> FLOATING_POINT_POS,
 
-		static_cast<index_type>((s >> (INDEX_DIGITS)) & INDEX_MASK),
+						static_cast<index_type>((s >> (INDEX_DIGITS))
+								& INDEX_MASK) >> FLOATING_POINT_POS,
 
-		static_cast<index_type>((s >> (INDEX_DIGITS * 2)) & INDEX_MASK)
+						static_cast<index_type>((s >> (INDEX_DIGITS * 2))
+								& INDEX_MASK) >> FLOATING_POINT_POS
 
-		}));
+						}));
 	}
 
 	static constexpr coordinates_type id_to_coordinates(id_type s)
@@ -1370,7 +1401,8 @@ public:
 	}
 	/**@}*/
 
-};
+}
+;
 
 using StructuredMesh=StructuredMesh_<3>;
 /**
@@ -1392,8 +1424,7 @@ template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::DEFAULT_GHOSTS_W
 
 template<size_t NDIMS> constexpr typename StructuredMesh_<NDIMS>::index_type
 StructuredMesh_<NDIMS>::FLOATING_POINT_FACTOR;
-template<size_t NDIMS> constexpr typename StructuredMesh_<NDIMS>::index_type
-StructuredMesh_<NDIMS>::AXIS_ORIGIN;
+
 template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::FULL_DIGITS;
 template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::INDEX_DIGITS;
 template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::FLOATING_POINT_POS;
@@ -1420,11 +1451,15 @@ struct StructuredMesh_<NDIMS>::Range
 
 	Range()
 	{
+		begin_ = 0;
+		end_ = 0;
 	}
 
-	Range(index_tuple const & b, index_tuple const& e) :
-			begin_(b), end_(e)
+	template<typename T0, typename T1>
+	Range(T0 const & b, T1 const& e)
 	{
+		begin_ = b;
+		end_ = e;
 	}
 
 	Range(Range const & that) :
@@ -1442,173 +1477,74 @@ struct StructuredMesh_<NDIMS>::Range
 
 	const_iterator end() const
 	{
-		auto t = end_ - D_INDEX;
-		const_iterator res(begin_, end_, t);
+		const_iterator res(begin_, end_, end_ - 1);
 		++res;
 
 		return std::move(res);
+	}
+	size_t size() const
+	{
+		return NProduct(end_ - begin_)
+				* ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
 	}
 
 };
 template<size_t NDIMS>
-
 template<size_t IFORM>
-struct StructuredMesh_<NDIMS>::Range<IFORM>::const_iterator
+struct StructuredMesh_<NDIMS>::Range<IFORM>::const_iterator:
+
+public std::iterator<typename std::bidirectional_iterator_tag, id_type, size_t>,
+
+public sp_ndarray_iterator<ndims + 1, size_t>
 {
-	typedef id_type value_type;
+private:
+	typedef sp_ndarray_iterator<ndims + 1, size_t> base_iterator;
 
-	index_tuple begin_, end_;
+	static constexpr typename StructuredMesh_<NDIMS>::id_type m_shift_[12] =
+	{	0UL, 0UL, 0UL,
 
-	index_tuple self_;
+		1UL, 2UL, 4UL,
 
-	id_type shift_ = (IFORM == VERTEX) ? (0UL) :
+		6UL, 5UL, 3UL,
 
-	((IFORM == EDGE) ? (_DI) :
+		0UL, 0UL, 0UL};
 
-	((IFORM == FACE) ? (_DJ | _DK) :
-
-	(_DI | _DJ | _DK)));
-
+public:
 	const_iterator(const_iterator const & r) :
-			shift_(r.shift_), self_(r.self_), begin_(r.begin_), end_(r.end_)
-	{
-	}
-	const_iterator(const_iterator && r) :
-			shift_(r.shift_), self_(r.self_), begin_(r.begin_), end_(r.end_)
+	base_iterator(r)
 	{
 	}
 
-	const_iterator(index_tuple const & b, index_tuple const &e,
-			index_tuple const &s) :
-			self_(s), begin_(b), end_(e)
+	template<typename T0, typename T1, typename T2>
+	const_iterator(T0 const & b, T1 const &e, T2 const &s)
 	{
+		nTuple<size_t, ndims + 1> begin, end, self;
+		begin=b;
+		end=e;
+		self=s;
+		begin[ndims] = 0;
+		self[ndims] = 0;
+		end[ndims] = 0;
+
+		base_iterator(begin, end, self).swap(*this);
+
 	}
+
 	~const_iterator()
 	{
 	}
 
-	bool operator==(const_iterator const & rhs) const
+	value_type operator*() const
 	{
-		return (self_[0] == rhs.self_[0]) && (self_[1] == rhs.self_[1])
-				&& (self_[2] == rhs.self_[2]) && (shift_ == rhs.shift_);
+		auto idx = base_iterator::operator*();
+		return index_to_id( idx ) | m_shift_[IFORM * 3 + idx[ndims]];
 	}
 
-	constexpr bool operator!=(const_iterator const & rhs) const
-	{
-		return !(this->operator==(rhs));
-	}
-
-	constexpr value_type operator*() const
-	{
-		return (index_to_id(self_)) | shift_;
-	}
-
-	const_iterator & operator ++()
-	{
-		next();
-		return *this;
-	}
-	const_iterator operator ++(int) const
-	{
-		const_iterator res(*this);
-		++res;
-		return std::move(res);
-	}
-//
-//	const_iterator & operator --()
-//	{
-//		prev();
-//		return *this;
-//	}
-//
-//	const_iterator operator --(int) const
-//	{
-//		const_iterator res(*this);
-//		--res;
-//		return std::move(res);
-//	}
-private:
-	static constexpr size_t ARRAY_ORDER = C_ORDER;
-
-	void next()
-	{
-
-		if (roate_shift(std::integral_constant<size_t, IFORM>()))
-		{
-			self_[ndims - 1] += D_INDEX;
-
-			for (int i = ndims - 1; i > 0; --i)
-			{
-				if (self_[i] >= end_[i])
-				{
-					self_[i] = begin_[i];
-					self_[i - 1] += D_INDEX;
-				}
-			}
-		}
-	}
-
-	void prev()
-	{
-		if (inv_roate_shift(std::integral_constant<size_t, IFORM>()))
-		{
-
-			if (self_[ndims - 1] > begin_[ndims - 1])
-				--self_[ndims - 1];
-
-			for (int i = ndims - 1; i > 0; --i)
-			{
-				if (self_[i] <= begin_[i])
-				{
-					self_[i] = end_[i] - 1;
-
-					if (self_[i - 1] > begin_[i - 1])
-						--self_[i - 1];
-				}
-			}
-
-		}
-	}
-	constexpr bool roate_shift(std::integral_constant<size_t, VERTEX>) const
-	{
-		return true;
-	}
-	constexpr bool roate_shift(std::integral_constant<size_t, VOLUME>) const
-	{
-		return true;
-	}
-
-	constexpr bool inv_roate_shift(std::integral_constant<size_t, VERTEX>) const
-	{
-		return true;
-	}
-	constexpr bool inv_roate_shift(std::integral_constant<size_t, VOLUME>) const
-	{
-		return true;
-	}
-	bool roate_shift(std::integral_constant<size_t, EDGE>)
-	{
-		shift_ = roate(shift_);
-		return node_id(shift_) == 1;
-	}
-
-	bool roate_shift(std::integral_constant<size_t, FACE>)
-	{
-		shift_ = roate(shift_);
-		return node_id(shift_) == 6;
-	}
-	bool inv_roate_shift(std::integral_constant<size_t, EDGE>)
-	{
-		shift_ = inverse_roate(shift_);
-		return node_id(shift_) == 4;
-	}
-
-	bool inv_roate_shift(std::integral_constant<size_t, FACE>)
-	{
-		shift_ = inverse_roate(shift_);
-		return node_id(shift_) == 3;
-	}
 };
+template<size_t NDIMS> template<size_t IFORM> constexpr
+typename StructuredMesh_<NDIMS>::id_type //
+StructuredMesh_<NDIMS>::Range<IFORM>::const_iterator::m_shift_[12];
+
 //inline StructuredMesh::range_type split(
 //		StructuredMesh::range_type const & range, size_t num_process,
 //		size_t process_num, size_t ghost_width = 0)

@@ -4,18 +4,35 @@
  *  Created on: 2014年11月21日
  *      Author: salmon
  */
+
 #include "demo_pic.h"
 
+#include <stddef.h>
+#include <algorithm>
+#include <iostream>
+#include <iterator>
 #include <memory>
+#include <random>
 #include <string>
+#include <utility>
+
+#include "../../../core/application/application.h"
 #include "../../../core/application/use_case.h"
-#include "../../../core/utilities/utilities.h"
+#include "../../../core/dataset/dataset.h"
+#include "../../../core/gtl/containers/sp_sorted_set.h"
+#include "../../../core/gtl/iterator/sp_ndarray_iterator.h"
+#include "../../../core/gtl/primitives.h"
 #include "../../../core/io/io.h"
 #include "../../../core/mesh/mesh.h"
-#include "../../../core/mesh/simple_mesh.h"
-
+#include "../../../core/mesh/structured/coordinates/cartesian.h"
+#include "../../../core/mesh/structured/topology/structured.h"
 #include "../../../core/particle/kinetic_particle.h"
+#include "../../../core/particle/particle.h"
+#include "../../../core/particle/particle_generator.h"
 #include "../../../core/particle/simple_particle_generator.h"
+#include "../../../core/utilities/config_parser.h"
+#include "../../../core/utilities/log.h"
+#include "../../../core/utilities/lua_object.h"
 
 using namespace simpla;
 
@@ -50,17 +67,21 @@ USE_CASE(pic)
 //
 //	options["STRIDES"].as<size_t>(&strides);
 
-	typedef SimpleMesh mesh_type;
+	typedef CartesianCoordinates<StructuredMesh> mesh_type;
 	typedef typename mesh_type::coordinates_type coordinates_type;
 	typedef typename mesh_type::index_tuple index_tuple;
 
 	typedef PICDemo engine_type;
 
 	size_t pic = 100;
-	index_tuple dims = { 1, 16, 16 };
-	index_tuple ghost_width = { 0, 2, 0 };
-	coordinates_type xmin = { 0, 0, 0 };
-	coordinates_type xmax = { 1, 1, 1 };
+	index_tuple dims =
+	{ 1, 16, 16 };
+	index_tuple ghost_width =
+	{ 0, 2, 0 };
+	coordinates_type xmin =
+	{ 0, 0, 0 };
+	coordinates_type xmax =
+	{ 1, 1, 1 };
 
 	auto mesh = make_mesh<mesh_type>();
 

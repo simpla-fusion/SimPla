@@ -258,7 +258,7 @@ public:
 	{
 		for (auto const & key : range)
 		{
-			erase(m_hash_(key));
+			erase((key));
 		}
 
 	}
@@ -319,12 +319,12 @@ public:
 		return count;
 	}
 	template<typename TRange>
-	size_t size(TRange const & range) const
+	size_t size_all(TRange const & range) const
 	{
 		size_t count = 0;
 		for (auto const & key : range)
 		{
-			count += size(m_hash_(key));
+			count += size(key);
 		}
 		return count;
 	}
@@ -368,13 +368,11 @@ public:
 		return m_data_.cend();
 	}
 
-	template<typename ...Args>
-	auto find(Args && ...args)
-	DECL_RET_TYPE(this->m_data_.find(m_hash_(std::forward<Args>(args)...)))
+	auto find(key_type const & key)
+	DECL_RET_TYPE(this->m_data_.find(key))
 
-	template<typename ...Args>
-	auto find(Args && ...args) const
-	DECL_RET_TYPE(this->m_data_.find(m_hash_(std::forward<Args>(args)...)))
+	auto find(key_type const & key) const
+	DECL_RET_TYPE(this->m_data_.find(key))
 
 	std::list<std::reference_wrapper<bucket_type>> select()
 	{
@@ -402,7 +400,7 @@ public:
 		std::list<std::reference_wrapper<bucket_type>> res;
 		for (auto const & id : xrange)
 		{
-			auto it = m_data_.find(m_hash_(id));
+			auto it = m_data_.find(id);
 			if (it != m_data_.end())
 			{
 				res.push_back(std::ref(it->second));
@@ -418,7 +416,7 @@ public:
 
 		for (auto const & id : xrange)
 		{
-			auto it = m_data_.find(m_hash_(id));
+			auto it = m_data_.find(id);
 			if (it != m_data_.end())
 			{
 				res.push_back(std::cref(it->second));

@@ -622,7 +622,7 @@ void CartesianCoordinates<TTopology, ZAXIS>::deploy()
 		ERROR("topology initialize failed!");
 	}
 
-	nTuple<size_t, 3> dims = topology_type::dimensions();
+	auto dims = topology_type::dimensions();
 
 	for (size_t i = 0; i < ndims; ++i)
 	{

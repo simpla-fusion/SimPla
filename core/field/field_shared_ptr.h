@@ -60,9 +60,12 @@ public:
 	_Field(mesh_type const & d) :
 			m_mesh_(d), m_data_(nullptr)
 	{
-
 	}
 	_Field(this_type const & that) :
+			m_mesh_(that.m_mesh_), m_data_(that.m_data_)
+	{
+	}
+	_Field(this_type && that) :
 			m_mesh_(that.m_mesh_), m_data_(that.m_data_)
 	{
 	}
@@ -232,10 +235,14 @@ public:
 	{
 		wait_to_ready();
 
-		VERBOSE << "sync Field" << std::endl;
+		if (m_send_recv_list_.size() > 0)
+		{
 
-		sync_update_continue(m_send_recv_list_, m_data_.get(),
-				&(SpObject::m_mpi_requests_));
+			VERBOSE << "sync Field" << std::endl;
+
+			sync_update_continue(m_send_recv_list_, m_data_.get(),
+					&(SpObject::m_mpi_requests_));
+		}
 	}
 
 	DataSet dataset() const

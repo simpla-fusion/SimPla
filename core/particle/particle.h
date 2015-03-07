@@ -1,5 +1,5 @@
 /*
- * @file particle.h
+ = * @file particle.h
  *
  *  created on: 2012-11-1
  *      Author: salmon
@@ -217,7 +217,7 @@ public:
 
 			auto send_range = m_mesh_.select(item.send_offset, item.send_count);
 
-			size_t send_num = container_type::size(send_range);
+			size_t send_num = container_type::size_all(send_range);
 
 			send_recv_s.send_size = send_num * sizeof(value_type);
 
@@ -282,7 +282,7 @@ public:
 
 		for (auto const & key : p_range)
 		{
-			auto it = container_type::find(key);
+			auto it = container_type::find(m_mesh_.hash(key));
 			if (it != container_type::end())
 			{
 				count += std::distance(it->second.begin(), it->second.end());
@@ -299,7 +299,7 @@ public:
 
 		for (auto const & key : p_range)
 		{
-			auto it = container_type::find(key);
+			auto it = container_type::find(m_mesh_.hash(key));
 
 			if (it != container_type::end())
 			{
@@ -314,10 +314,10 @@ public:
 
 		std::tie(offset, total_count) = sync_global_location(count);
 
-		res.dataspace = //
-				DataSpace(1, &total_count) //
-				.select_hyperslab(&offset, nullptr, &count, nullptr) //
-				.convert_to_distributed_space();
+		DataSpace(1, &total_count).swap(res.dataspace);
+
+		res.dataspace.select_hyperslab(&offset, nullptr, &count, nullptr) //
+		.convert_to_local();
 
 		return std::move(res);
 	}

@@ -44,13 +44,13 @@ public:
 		m_max_ = max;
 		m_self_ = s;
 	}
-	sp_ndarray_iterator(sp_ndarray_iterator const& other)
-			: m_min_(other.m_min_), m_max_(other.m_max_), m_self_(other.m_self_)
+	sp_ndarray_iterator(sp_ndarray_iterator const& other) :
+			m_min_(other.m_min_), m_max_(other.m_max_), m_self_(other.m_self_)
 	{
 
 	}
-	sp_ndarray_iterator(sp_ndarray_iterator && other)
-			: m_min_(other.m_min_), m_max_(other.m_max_), m_self_(other.m_self_)
+	sp_ndarray_iterator(sp_ndarray_iterator && other) :
+			m_min_(other.m_min_), m_max_(other.m_max_), m_self_(other.m_self_)
 	{
 
 	}
@@ -64,9 +64,9 @@ public:
 	}
 	void swap(sp_ndarray_iterator & other)
 	{
-		std::swap(m_min_, m_min_);
-		std::swap(m_max_, m_max_);
-		std::swap(m_self_, m_self_);
+		std::swap(m_min_, other.m_min_);
+		std::swap(m_max_, other.m_max_);
+		std::swap(m_self_, other.m_self_);
 
 	}
 	index_tuple const & operator *() const
@@ -157,19 +157,19 @@ public:
 	}
 
 	template<typename T1, typename T2>
-	sp_ndarray_range(T1 const & min, T2 const & max)
-			: base_range(iterator_type(min, max, min),
+	sp_ndarray_range(T1 const & min, T2 const & max) :
+			base_range(iterator_type(min, max, min),
 					(++iterator_type(min, max, max - 1)))
 	{
 		m_min_ = min;
 		m_max_ = max;
 	}
-	sp_ndarray_range(sp_ndarray_range const & other)
-			: base_range(other), m_max_(other.m_max_), m_min_(other.m_min_)
+	sp_ndarray_range(sp_ndarray_range const & other) :
+			base_range(other), m_max_(other.m_max_), m_min_(other.m_min_)
 	{
 	}
-	sp_ndarray_range(sp_ndarray_range & other, op_split)
-			: base_range(other, op_split()), m_max_(other.m_max_), m_min_(
+	sp_ndarray_range(sp_ndarray_range & other, op_split) :
+			base_range(other, op_split()), m_max_(other.m_max_), m_min_(
 					other.m_min_)
 	{
 	}

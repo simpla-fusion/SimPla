@@ -6,7 +6,6 @@
  */
 
 #include <memory>
-#include <vector>
 
 #include "../../../core/application/application.h"
 #include "../../../core/application/use_case.h"
@@ -15,7 +14,6 @@
 #include "../../../core/io/io.h"
 #include "../../../core/mesh/mesh.h"
 #include "../../../core/mesh/simple_mesh.h"
-#include "../../../core/mesh/structured/coordinates/cartesian.h"
 #include "../../../core/mesh/structured/topology/structured.h"
 #include "../../../core/parallel/mpi_comm.h"
 #include "../../../core/utilities/log.h"
@@ -26,15 +24,15 @@ USE_CASE(general_field_op)
 {
 
 //	typedef CartesianCoordinates<StructuredMesh> mesh_type;
-	typedef StructuredMesh mesh_type;
+	typedef SimpleMesh mesh_type;
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 	typedef typename mesh_type::index_tuple index_tuple;
 
 	index_tuple dims =
-	{ 1, 16, 16 };
+	{ 16, 1, 1 };
 	index_tuple ghost_width =
-	{ 0, 2, 0 };
+	{ 0, 0, 0 };
 	coordinates_type xmin =
 	{ 0, 0, 0 };
 	coordinates_type xmax =
@@ -47,6 +45,18 @@ USE_CASE(general_field_op)
 
 	auto f1 = make_field<double>(mesh);
 
+	auto m_range = mesh->range();
+
+	f1.deploy();
+
+	size_t count = 0;
+
+//	for (auto const & key : m_range)
+//	{
+//		f1[key] = count + (GLOBAL_COMM.process_num()+1) *100;
+//		++count;
+//	}
+
 	f1.fill(GLOBAL_COMM.process_num() );
 
 	cd("/Output/");
@@ -57,6 +67,7 @@ USE_CASE(general_field_op)
 	f1.sync();
 	f1.sync();
 	f1.sync();
+	f1.wait_to_ready();
 
 	cd("/Output2/");
 	VERBOSE << SAVE(f1) << std::endl;

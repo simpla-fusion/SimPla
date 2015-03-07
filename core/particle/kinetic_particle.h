@@ -24,12 +24,12 @@ struct particle_hasher
 
 	mesh_type const * m_mesh_;
 
-	particle_hasher()
-			: m_mesh_(nullptr)
+	particle_hasher() :
+			m_mesh_(nullptr)
 	{
 	}
-	particle_hasher(mesh_type const & m)
-			: m_mesh_(&m)
+	particle_hasher(mesh_type const & m) :
+			m_mesh_(&m)
 	{
 	}
 	~particle_hasher()
@@ -37,11 +37,11 @@ struct particle_hasher
 	}
 
 	constexpr auto operator()(value_type const & p) const
-	DECL_RET_TYPE((m_mesh_->hash(m_mesh_->coordinates_to_id(p.x))))
+	DECL_RET_TYPE((m_mesh_->coordinates_to_id(p.x)))
 
-	template<typename ...Args>
-	constexpr auto operator()(Args &&... args) const
-	DECL_RET_TYPE((m_mesh_->hash(std::forward<Args>(args)...)))
+//	template<typename ...Args>
+//	constexpr auto operator()(Args &&... args) const
+//	DECL_RET_TYPE((m_mesh_->hash(std::forward<Args>(args)...)))
 }
 ;
 

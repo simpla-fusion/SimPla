@@ -127,7 +127,8 @@ void MPIComm::pimpl_s::decompose(int ndims, size_t * p_offset,
 			RUNTIME_ERROR(
 					"DataSpace decompose fail! Dimension  is smaller than process grid. "
 							"[offset= " + value_to_string(offset) + ", count="
-							+ value_to_string(count));
+							+ value_to_string(count) + " ,process grid="
+							+ value_to_string(m_topology_coord_));
 		}
 	}
 

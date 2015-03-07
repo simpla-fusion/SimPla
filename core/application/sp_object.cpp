@@ -32,6 +32,7 @@ bool SpObject::is_ready() const
 		MPI_ERROR(MPI_Testall(m_mpi_requests_.size(), //
 				const_cast<MPI_Request*>(&m_mpi_requests_[0]),//
 				&flag, MPI_STATUSES_IGNORE));
+		CHECK(flag);
 		return flag != 0;
 	}
 
@@ -48,6 +49,8 @@ void SpObject::wait_to_ready()
 	}
 	if (m_mpi_requests_.size() > 0)
 	{
+		CHECK(m_mpi_requests_.size());
+
 		MPI_ERROR(MPI_Waitall( m_mpi_requests_.size(), //
 				const_cast<MPI_Request*>(&m_mpi_requests_[0]),//
 				MPI_STATUSES_IGNORE));
