@@ -8,6 +8,7 @@
 #ifndef CORE_PARALLEL_MPI_UPDATE_H_
 #define CORE_PARALLEL_MPI_UPDATE_H_
 #include "mpi_comm.h"
+#include "mpi_aux_functions.h"
 #include "mpi_datatype.h"
 
 namespace simpla

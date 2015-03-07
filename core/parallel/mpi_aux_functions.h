@@ -155,8 +155,19 @@ std::tuple<std::shared_ptr<ByteType>, int> update_ghost_unorder(
 
 void bcast_string(std::string * filename_);
 
-void sync(DataSet *, bool flag);
-void decompose(int ndims, size_t * count, size_t * offset = nullptr);
+struct mpi_ghosts_shape_s
+{
+	nTuple<int, 3> coord_shift;
 
+	nTuple<size_t, MAX_NDIMS_OF_ARRAY> send_offset;
+	nTuple<size_t, MAX_NDIMS_OF_ARRAY> send_count;
+	nTuple<size_t, MAX_NDIMS_OF_ARRAY> recv_offset;
+	nTuple<size_t, MAX_NDIMS_OF_ARRAY> recv_count;
+};
+
+void get_ghost_shape(size_t ndims, size_t const * dims, size_t const * offset,
+		size_t const * stride, size_t const * count, size_t const * block,
+		size_t const * ghost_width,
+		std::vector<mpi_ghosts_shape_s>* send_recv_list);
 }  // namespace simpla
 #endif /* MPI_AUX_FUNCTIONS_H_ */

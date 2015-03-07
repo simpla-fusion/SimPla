@@ -20,8 +20,8 @@
 #include "../gtl/iterator/range.h"
 #include "../gtl/iterator/sp_ndarray_iterator.h"
 #include "../utilities/utilities.h"
-
 #include "../parallel/mpi_comm.h"
+#include "../parallel/mpi_aux_functions.h"
 namespace simpla
 {
 template<typename ...>class _Field;
