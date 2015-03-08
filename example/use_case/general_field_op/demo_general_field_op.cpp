@@ -5,15 +5,19 @@
  * @author salmon
  */
 
+#include <stddef.h>
 #include <memory>
 
 #include "../../../core/application/application.h"
 #include "../../../core/application/use_case.h"
-#include "../../../core/field/field.h"
 #include "../../../core/field/field_shared_ptr.h"
 #include "../../../core/io/io.h"
 #include "../../../core/mesh/mesh.h"
-#include "../../../core/mesh/simple_mesh.h"
+#include "../../../core/mesh/mesh_common.h"
+#include "../../../core/mesh/structured/diff_scheme/fdm.h"
+#include "../../../core/mesh/structured/interpolator/interpolator.h"
+#include "../../../core/mesh/structured/coordinates/cartesian.h"
+#include "../../../core/mesh/structured/manifold.h"
 #include "../../../core/mesh/structured/topology/structured.h"
 #include "../../../core/parallel/mpi_comm.h"
 #include "../../../core/utilities/log.h"
@@ -23,8 +27,8 @@ using namespace simpla;
 USE_CASE(general_field_op)
 {
 
-//	typedef CartesianCoordinates<StructuredMesh> mesh_type;
-	typedef SimpleMesh mesh_type;
+	typedef CartesianCoordinates<StructuredMesh> mesh_type;
+//	typedef SimpleMesh mesh_type;
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 	typedef typename mesh_type::index_tuple index_tuple;
@@ -43,8 +47,8 @@ USE_CASE(general_field_op)
 	mesh->ghost_width(ghost_width);
 	mesh->deploy();
 
-	auto f1 = make_field<double>(mesh);
-	auto f2 = make_field<double>(mesh);
+	auto f1 = make_form<EDGE, double>(mesh);
+	auto f2 = make_form<FACE, double>(mesh);
 	auto m_range = mesh->range();
 
 	f1.deploy();
@@ -71,6 +75,6 @@ USE_CASE(general_field_op)
 
 	cd("/Output2/");
 	VERBOSE << SAVE(f1) << std::endl;
-	VERBOSE << SAVE(f2	) << std::endl;
+	VERBOSE << SAVE(f2) << std::endl;
 } // USE_CASE(general_field_op)
 

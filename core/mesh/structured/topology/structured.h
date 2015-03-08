@@ -386,8 +386,8 @@ public:
 		VERBOSE << get_type_as_string() << " is deployed!" << std::endl;
 
 	}
-
-	DataSpace dataspace(size_t IFORM = iform) const
+	template<size_t IFORM = iform>
+	DataSpace dataspace() const
 	{
 		nTuple<size_t, MAX_NDIMS_OF_ARRAY> f_dims;
 		nTuple<size_t, MAX_NDIMS_OF_ARRAY> f_offset;
@@ -399,7 +399,7 @@ public:
 		f_count = m_count_;
 		f_ghost_width = m_ghost_width_;
 
-		if (!(IFORM == VERTEX || IFORM == VOLUME))
+		if ((IFORM != VERTEX && IFORM != VOLUME))
 		{
 			f_ndims = ndims + 1;
 			f_dims[f_ndims - 1] = 3;
@@ -422,10 +422,27 @@ public:
 	template<size_t IFORM = iform>
 	void ghost_shape(std::vector<mpi_ghosts_shape_s> *res) const
 	{
-		get_ghost_shape(
-				(IFORM == VERTEX || IFORM == VOLUME) ? ndims : (ndims + 1),
-				&m_local_dimensions_[0], &m_local_offset_[0], nullptr,
-				&m_count_[0], nullptr, &m_ghost_width_[0], res);
+		nTuple<size_t, MAX_NDIMS_OF_ARRAY> f_dims;
+		nTuple<size_t, MAX_NDIMS_OF_ARRAY> f_offset;
+		nTuple<size_t, MAX_NDIMS_OF_ARRAY> f_count;
+		nTuple<size_t, MAX_NDIMS_OF_ARRAY> f_ghost_width;
+		int f_ndims = ndims;
+		f_dims = m_local_dimensions_;
+		f_offset = m_local_offset_;
+		f_count = m_count_;
+		f_ghost_width = m_ghost_width_;
+
+		if ((IFORM != VERTEX && IFORM != VOLUME))
+		{
+			f_ndims = ndims + 1;
+			f_dims[ndims] = 3;
+			f_offset[ndims] = 0;
+			f_count[ndims] = 3;
+			f_ghost_width[ndims] = 0;
+		}
+
+		get_ghost_shape(f_ndims, &f_dims[0], &f_offset[0], nullptr, &f_count[0],
+				nullptr, &f_ghost_width[0], res);
 
 	}
 	template<size_t IFORM = iform>
@@ -443,9 +460,8 @@ public:
 	template<size_t IFORM = iform>
 	size_t max_hash() const
 	{
-		size_t res = 1;
-		for (int i = 0;
-				i < ndims + ((IFORM == VERTEX || IFORM == VOLUME) ? 0 : 1); ++i)
+		size_t res = ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
+		for (int i = 0; i < ndims; ++i)
 		{
 			res *= m_local_dimensions_[i];
 		}
