@@ -532,6 +532,7 @@ public:
 	{
 		return Range<IFORM>(m_global_offset_, m_global_offset_ + m_count_);
 	}
+
 	template<typename T0, typename T1, size_t IFORM = iform>
 	Range<IFORM> select(T0 imin, T1 imax) const
 	{

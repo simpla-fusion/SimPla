@@ -37,13 +37,13 @@ void make_send_recv_list(int object_id, DataType const & datatype, int ndims,
 		int dest, send_tag, recv_tag;
 
 		std::tie(dest, send_tag, recv_tag) = get_mpi_tag(&item.coord_shift[0]);
-		CHECK(dest);
-		CHECK(send_tag);
-		CHECK(recv_tag);
-		CHECK(item.send_offset);
-		CHECK(item.send_count);
-		CHECK(item.recv_offset);
-		CHECK(item.recv_count);
+//		CHECK(dest);
+//		CHECK(send_tag);
+//		CHECK(recv_tag);
+//		CHECK(item.send_offset);
+//		CHECK(item.send_count);
+//		CHECK(item.recv_offset);
+//		CHECK(item.recv_count);
 		res->emplace_back(
 
 				mpi_send_recv_s
@@ -288,7 +288,8 @@ void sync_update_varlength(
 		{
 			MPI_Request req;
 			MPI_ERROR(
-					MPI_Irecv(it->recv_data.get(), it->recv_size, MPI_BYTE, it->dest, it->recv_tag, mpi_comm , &req));
+					MPI_Irecv(it->recv_data.get(), it->recv_size, //
+							MPI_BYTE, it->dest, it->recv_tag, mpi_comm , &req));
 
 			requests->push_back(std::move(req));
 		}

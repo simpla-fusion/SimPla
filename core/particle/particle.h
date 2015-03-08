@@ -199,6 +199,11 @@ private:
 
 public:
 
+	size_t size() const
+	{
+		return container_type::size_all(m_mesh_.range());
+	}
+
 	void sync()
 	{
 
@@ -210,8 +215,11 @@ public:
 
 			std::tie(send_recv_s.dest, send_recv_s.send_tag,
 					send_recv_s.recv_tag) = get_mpi_tag(&item.coord_shift[0]);
-			CHECK(item.send_offset);
-			CHECK(item.send_count);
+
+			send_recv_s.send_tag += SpObject::object_id() * 100;
+
+			send_recv_s.recv_tag += SpObject::object_id() * 100;
+
 			//   collect send data
 
 			auto send_range = m_mesh_.select_local(item.send_offset,
@@ -236,14 +244,15 @@ public:
 				}
 			}
 
-			//  clear ghosts cell
-			auto recv_range = m_mesh_.select(item.recv_offset, item.recv_count);
-
-			container_type::erase(recv_range);
-
 			send_recv_s.recv_size = 0;
 			send_recv_s.recv_data = nullptr;
 			m_send_recv_buffer_.push_back(std::move(send_recv_s));
+
+			//  clear ghosts cell
+			auto recv_range = m_mesh_.select_local(item.recv_offset,
+					item.recv_offset + item.recv_count);
+
+			container_type::erase(recv_range);
 
 		}
 
@@ -259,7 +268,7 @@ public:
 		for (auto const & item : m_send_recv_buffer_)
 		{
 			size_t count = item.recv_size / sizeof(value_type);
-
+			CHECK(count);
 			value_type *data =
 					reinterpret_cast<value_type*>(item.recv_data.get());
 
@@ -313,14 +322,12 @@ public:
 
 		std::tie(offset, total_count) = sync_global_location(count);
 
-		CHECK(count);
-		CHECK(offset);
-		CHECK(total_count);
-
 		DataSpace(1, &total_count).swap(res.dataspace);
 
 		res.dataspace.select_hyperslab(&offset, nullptr, &count, nullptr) //
 		.convert_to_local();
+
+		LOGGER << "dump " << total_count << " particles" << std::endl;
 
 		return std::move(res);
 	}

@@ -75,7 +75,7 @@ USE_CASE(pic)
 
 	size_t pic = 100;
 	index_tuple dims =
-	{ 1, 16, 16 };
+	{ 16, 16, 16 };
 	index_tuple ghost_width =
 	{ 0, 2, 0 };
 	coordinates_type xmin =
@@ -125,13 +125,22 @@ USE_CASE(pic)
 	std::copy(p_generator.begin(rnd_gen), p_generator.end(rnd_gen, pic * num),
 			std::front_inserter(*ion));
 
+//	ion->insert(engine_type::Point_s
+//	{ 0.5, 0.5, 0.5, 4, 5, 6, 1 });
+
+	CHECK(ion->size());
+
+	ion->rehash();
+
 	CHECK(ion->size());
 
 	VERBOSE << save("H0", ion->dataset()) << std::endl;
 
-//	ion->rehash();
 	ion->sync();
+
 	ion->wait();
+
+	CHECK(ion->size());
 
 	VERBOSE << save("H1", ion->dataset()) << std::endl;
 
