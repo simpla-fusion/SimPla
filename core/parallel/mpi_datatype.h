@@ -54,6 +54,8 @@ struct MPIDataType
 		return m_type_;
 	}
 
+	size_t size() const;
+
 private:
 
 	MPI_Datatype m_type_ = MPI_DATATYPE_NULL;

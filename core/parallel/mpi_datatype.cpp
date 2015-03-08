@@ -67,11 +67,13 @@ MPIDataType MPIDataType::create(DataType const & data_type)
 //	}
 	else
 	{
-		MPI_Type_contiguous(data_type.ele_size_in_byte(), MPI_BYTE, &res.m_type_);
+		CHECK(data_type.ele_size_in_byte());
+		MPI_Type_contiguous(data_type.ele_size_in_byte(), MPI_BYTE,
+				&res.m_type_);
 		MPI_Type_commit(&res.m_type_);
 		res.is_commited_ = true;
 	}
-	return (res);
+	return std::move(res);
 }
 
 MPIDataType MPIDataType::create(DataType const & data_type, unsigned int ndims,
@@ -146,7 +148,14 @@ MPIDataType MPIDataType::create(DataType const & data_type, unsigned int ndims,
 
 	res.is_commited_ = true;
 
-	return res;
+	return std::move(res);
+}
+
+size_t MPIDataType::size() const
+{
+	int s = 0;
+	MPI_ERROR(MPI_Type_size(m_type_, &s));
+	return s;
 }
 }  // namespace simpla
 

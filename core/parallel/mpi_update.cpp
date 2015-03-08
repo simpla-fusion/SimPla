@@ -12,12 +12,13 @@
 
 namespace simpla
 {
-std::tuple<int, int, int> get_mpi_tag(int const * coord)
+std::tuple<int, int, int> get_mpi_tag(int obj_id, int const * coord)
 {
 
-	int send_tag = ((coord[0] + 1) & 3UL) | (((coord[1] + 1) & 3UL) << 2UL)
-			| (((coord[2] + 1) & 3UL) << 4UL);
-	int recv_tag = ((-coord[0] + 1) & 3UL) | (((-coord[1] + 1) & 3UL) << 2UL)
+	int send_tag = obj_id * 100 + ((coord[0] + 1) & 3UL)
+			| (((coord[1] + 1) & 3UL) << 2UL) | (((coord[2] + 1) & 3UL) << 4UL);
+	int recv_tag = obj_id * 100 + ((-coord[0] + 1) & 3UL)
+			| (((-coord[1] + 1) & 3UL) << 2UL)
 			| (((-coord[2] + 1) & 3UL) << 4UL);
 	int dest = SingletonHolder<simpla::MPIComm>::instance().get_neighbour(
 			coord);
@@ -36,7 +37,8 @@ void make_send_recv_list(int object_id, DataType const & datatype, int ndims,
 	{
 		int dest, send_tag, recv_tag;
 
-		std::tie(dest, send_tag, recv_tag) = get_mpi_tag(&item.coord_shift[0]);
+		std::tie(dest, send_tag, recv_tag) = get_mpi_tag(object_id,
+				&item.coord_shift[0]);
 //		CHECK(dest);
 //		CHECK(send_tag);
 //		CHECK(recv_tag);
@@ -51,9 +53,9 @@ void make_send_recv_list(int object_id, DataType const & datatype, int ndims,
 
 				dest,
 
-				send_tag + object_id * 100,
+				send_tag,
 
-				recv_tag + object_id * 100,
+				recv_tag,
 
 				MPIDataType::create(datatype, ndims, l_dims,
 						&item.send_offset[0], nullptr, &item.send_count[0],
@@ -253,7 +255,9 @@ void sync_update_varlength(
 		MPI_Request req;
 
 		MPI_ERROR(
-				MPI_Isend(it->send_data.get(), it->send_size, MPI_BYTE, it->dest, it->send_tag, mpi_comm , &req));
+				MPI_Isend(it->send_data.get(), it->send_size,
+						it->datatype.type(), it->dest, it->send_tag, mpi_comm,
+						&req));
 
 		requests->push_back(std::move(req));
 
@@ -269,27 +273,26 @@ void sync_update_varlength(
 
 		// When probe returns, the status object has the size and other
 		// attributes of the incoming message. Get the size of the message
-		int recv_mem_size = 0;
+		int recv_num = 0;
 
-		MPI_ERROR(MPI_Get_count(&status, MPI_BYTE, &recv_mem_size));
+		MPI_ERROR(MPI_Get_count(&status, it->datatype.type(), &recv_num));
 
-		if (recv_mem_size == MPI_UNDEFINED)
+		if (recv_num == MPI_UNDEFINED)
 		{
 			RUNTIME_ERROR("Update Ghosts Particle fail");
 		}
 
-		if (it->recv_size < recv_mem_size)
-		{
-			it->recv_data = sp_alloc_memory(recv_mem_size);
-		}
+		it->recv_data = sp_alloc_memory(recv_num * it->datatype.size());
 
-		it->recv_size = recv_mem_size;
+		it->recv_size = recv_num;
 
 		{
 			MPI_Request req;
 			MPI_ERROR(
-					MPI_Irecv(it->recv_data.get(), it->recv_size, //
-							MPI_BYTE, it->dest, it->recv_tag, mpi_comm , &req));
+					MPI_Irecv(it->recv_data.get(),
+							it->recv_size, //
+							it->datatype.type(), it->dest, it->recv_tag,
+							mpi_comm, &req));
 
 			requests->push_back(std::move(req));
 		}

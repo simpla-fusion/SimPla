@@ -213,23 +213,21 @@ public:
 		{
 			mpi_send_recv_buffer_s send_recv_s;
 
+			send_recv_s.datatype = MPIDataType::create<value_type>();
+
 			std::tie(send_recv_s.dest, send_recv_s.send_tag,
-					send_recv_s.recv_tag) = get_mpi_tag(&item.coord_shift[0]);
-
-			send_recv_s.send_tag += SpObject::object_id() * 100;
-
-			send_recv_s.recv_tag += SpObject::object_id() * 100;
+					send_recv_s.recv_tag) = get_mpi_tag(SpObject::object_id(),
+					&item.coord_shift[0]);
 
 			//   collect send data
 
 			auto send_range = m_mesh_.select_local(item.send_offset,
 					item.send_offset + item.send_count);
 
-			size_t send_num = container_type::size_all(send_range);
+			send_recv_s.send_size = container_type::size_all(send_range);
 
-			send_recv_s.send_size = send_num * sizeof(value_type);
-
-			send_recv_s.send_data = sp_alloc_memory(send_recv_s.send_size);
+			send_recv_s.send_data = sp_alloc_memory(
+					send_recv_s.send_size * send_recv_s.datatype.size());
 
 			value_type *data =
 					reinterpret_cast<value_type*>(send_recv_s.send_data.get());
@@ -267,13 +265,13 @@ public:
 
 		for (auto const & item : m_send_recv_buffer_)
 		{
-			size_t count = item.recv_size / sizeof(value_type);
-			CHECK(count);
+
 			value_type *data =
 					reinterpret_cast<value_type*>(item.recv_data.get());
 
-			container_type::insert(data, data + count);
+			container_type::insert(data, data + item.recv_size);
 		}
+		m_send_recv_buffer_.clear();
 	}
 
 	template<typename TRange>
