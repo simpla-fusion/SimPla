@@ -125,12 +125,13 @@ USE_CASE(pic)
 	std::copy(p_generator.begin(rnd_gen), p_generator.end(rnd_gen, pic * num),
 			std::front_inserter(*ion));
 
+	CHECK(ion->size());
+
 	VERBOSE << save("H0", ion->dataset()) << std::endl;
 
-	ion->rehash();
-
+//	ion->rehash();
 	ion->sync();
-	ion->wait_to_ready();
+	ion->wait();
 
 	VERBOSE << save("H1", ion->dataset()) << std::endl;
 

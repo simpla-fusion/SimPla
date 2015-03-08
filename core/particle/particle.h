@@ -314,6 +314,10 @@ public:
 
 		std::tie(offset, total_count) = sync_global_location(count);
 
+		CHECK(count);
+		CHECK(offset);
+		CHECK(total_count);
+
 		DataSpace(1, &total_count).swap(res.dataspace);
 
 		res.dataspace.select_hyperslab(&offset, nullptr, &count, nullptr) //
@@ -327,7 +331,7 @@ public:
 		return std::move(dataset(m_mesh_.range()));
 	}
 
-	//! @}
+//! @}
 
 	template<typename TFun, typename ...Args>
 	void for_each(TFun const& fun, Args && ...args)

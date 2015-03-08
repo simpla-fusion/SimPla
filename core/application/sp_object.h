@@ -117,11 +117,6 @@ struct SpObject
 
 	virtual bool is_ready() const;
 
-	virtual DataSpace dataspace() const=0;
-	virtual DataType datatype() const=0;
-	virtual void * raw_data()=0;
-	virtual void const* raw_data() const=0;
-
 protected:
 	std::vector<mpi_send_recv_s> m_send_recv_list_;
 	std::vector<MPI_Request> m_mpi_requests_;

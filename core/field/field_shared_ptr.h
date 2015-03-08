@@ -220,24 +220,6 @@ public:
 		SpObject::prepare_sync(m_mesh_.ghost_shape());
 	}
 
-	void *raw_data()
-	{
-		return reinterpret_cast<void*>(m_data_.get());
-	}
-	void const* raw_data() const
-	{
-		return reinterpret_cast<void const*>(m_data_.get());
-	}
-	virtual DataSpace dataspace() const
-	{
-		return m_mesh_.dataspace();
-	}
-
-	DataType datatype() const
-	{
-		return DataType::create<value_type>();
-	}
-
 	DataSet dataset() const
 	{
 		ASSERT(is_ready());
@@ -246,9 +228,9 @@ public:
 
 		res.data = m_data_;
 
-		res.datatype = datatype();
+		res.datatype = DataType::create<value_type>();
 
-		res.dataspace = dataspace();
+		res.dataspace = m_mesh_.dataspace();
 
 		res.properties = SpObject::properties;
 

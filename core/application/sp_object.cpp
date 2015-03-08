@@ -48,19 +48,22 @@ void SpObject::prepare_sync(std::vector<mpi_ghosts_shape_s> const & ghost_shape)
 {
 	int ndims = 3;
 
+	auto ds = dataset();
+
 	nTuple<size_t, MAX_NDIMS_OF_ARRAY> l_dims;
 
 	std::tie(ndims, l_dims, std::ignore, std::ignore, std::ignore, std::ignore) =
-			dataspace().shape();
+			ds.dataspace.shape();
 
-	make_send_recv_list(object_id(), datatype(), ndims, &l_dims[0], ghost_shape,
-			&m_send_recv_list_);
+	make_send_recv_list(object_id(), ds.datatype, ndims, &l_dims[0],
+			ghost_shape, &m_send_recv_list_);
 }
 void SpObject::sync()
 {
 	if (m_send_recv_list_.size() > 0)
 	{
-		sync_update_continue(m_send_recv_list_, raw_data(), &(m_mpi_requests_));
+		sync_update_continue(m_send_recv_list_, dataset().data.get(),
+				&(m_mpi_requests_));
 	}
 }
 
