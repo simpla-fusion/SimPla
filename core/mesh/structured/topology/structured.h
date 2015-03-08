@@ -96,9 +96,9 @@ private:
 	index_tuple m_ghost_width_;
 	index_tuple m_grain_size_;
 
-	coordinates_type m_xmin_, m_xmax_, m_dx_;
+//	coordinates_type m_xmin_, m_xmax_, m_dx_;
 
-	Real m_dt_ = 1.0;
+//	Real m_dt_ = 1.0;
 
 	DataSpace m_dataspace_;
 
@@ -121,7 +121,7 @@ public:
 	}
 
 	StructuredMesh_(StructuredMesh_ const & other) :
-			m_xmin_(other.m_xmin_), m_xmax_(other.m_xmax_), m_dx_(other.m_dx_),
+//			m_xmin_(other.m_xmin_), m_xmax_(other.m_xmax_), m_dx_(other.m_dx_),
 
 			m_global_dimensions_(other.m_global_dimensions_),
 
@@ -145,9 +145,9 @@ public:
 
 	void swap(StructuredMesh_ & other)
 	{
-		std::swap(m_xmin_, other.m_xmin_);
-		std::swap(m_xmax_, other.m_xmax_);
-		std::swap(m_dx_, other.m_dx_);
+//		std::swap(m_xmin_, other.m_xmin_);
+//		std::swap(m_xmax_, other.m_xmax_);
+//		std::swap(m_dx_, other.m_dx_);
 
 		std::swap(m_global_dimensions_, other.m_global_dimensions_);
 		std::swap(m_global_offset_, other.m_global_offset_);
@@ -314,25 +314,29 @@ public:
 	auto ghost_width() const
 	DECL_RET_TYPE(m_ghost_width_)
 
-	void dt(Real pdt)
-	{
-		m_dt_ = pdt;
-	}
+//	void dt(Real pdt)
+//	{
+//		m_dt_ = pdt;
+//	}
 	Real dt() const
 	{
-		return m_dt_;
+		return 1.0; //m_dt_;
 	}
-
-	template<typename T1, typename T2>
-	void extents(T1 const & xmin, T2 const & xmax)
-	{
-		m_xmin_ = xmin;
-		m_xmax_ = xmax;
-	}
-
 	std::pair<coordinates_type, coordinates_type> extents() const
 	{
-		return std::make_pair(m_xmin_, m_xmax_);
+		coordinates_type xmin;
+		coordinates_type xmax;
+		xmin = 0;
+		xmax = m_global_dimensions_;
+		return std::make_pair(xmin, xmax);
+	}
+	std::pair<coordinates_type, coordinates_type> local_extents() const
+	{
+		coordinates_type xmin;
+		coordinates_type xmax;
+		xmin = m_global_offset_;
+		xmax = m_global_offset_ + m_count_;
+		return std::make_pair(xmin, xmax);
 	}
 
 	bool check_memory_bounds(id_type s) const

@@ -73,11 +73,11 @@ USE_CASE(pic)
 
 	typedef PICDemo engine_type;
 
-	size_t pic = 100;
+	size_t pic = 1;
 	index_tuple dims =
-	{ 16, 16, 16 };
+	{ 16, 1, 1 };
 	index_tuple ghost_width =
-	{ 0, 2, 0 };
+	{ 0, 0, 0 };
 	coordinates_type xmin =
 	{ 0, 0, 0 };
 	coordinates_type xmax =
@@ -90,6 +90,8 @@ USE_CASE(pic)
 	mesh->ghost_width(ghost_width);
 	mesh->dt(dt);
 	mesh->deploy();
+
+	CHECK(mesh->local_extents());
 
 	MESSAGE << std::endl;
 
@@ -112,7 +114,7 @@ USE_CASE(pic)
 
 	ion->deploy();
 
-	auto extents = mesh->extents();
+	auto extents = mesh->local_extents();
 
 	auto range = mesh->range();
 
@@ -130,7 +132,7 @@ USE_CASE(pic)
 
 	CHECK(ion->size());
 
-	ion->rehash();
+//	ion->rehash();
 
 	CHECK(ion->size());
 
@@ -139,7 +141,7 @@ USE_CASE(pic)
 	ion->sync();
 
 	ion->wait();
-
+	ion->rehash();
 	CHECK(ion->size());
 
 	VERBOSE << save("H1", ion->dataset()) << std::endl;

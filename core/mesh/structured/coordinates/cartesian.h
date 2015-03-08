@@ -311,6 +311,19 @@ public:
 	inline auto extents() const
 	DECL_RET_TYPE (std::make_pair(m_xmin_, m_xmax_))
 
+	inline std::pair<coordinates_type,coordinates_type> local_extents() const
+	{
+		coordinates_type min,max,p_dx;
+
+		std::tie(min,max)=topology_type::local_extents();
+		p_dx=dx();
+		min*=p_dx;min+=m_xmin_;
+		max*=p_dx;max+=m_xmin_;
+
+		return std::make_pair(min,max);
+
+	}
+
 	inline coordinates_type dx(id_type s = 0UL) const
 	{
 		coordinates_type res;

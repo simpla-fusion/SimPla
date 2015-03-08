@@ -258,7 +258,7 @@ void sync_update_varlength(
 				MPI_Isend(it->send_data.get(), it->send_size,
 						it->datatype.type(), it->dest, it->send_tag, mpi_comm,
 						&req));
-
+		CHECK(it->send_size);
 		requests->push_back(std::move(req));
 
 	}
@@ -285,7 +285,7 @@ void sync_update_varlength(
 		it->recv_data = sp_alloc_memory(recv_num * it->datatype.size());
 
 		it->recv_size = recv_num;
-
+		CHECK(it->recv_size);
 		{
 			MPI_Request req;
 			MPI_ERROR(

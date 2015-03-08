@@ -319,6 +319,9 @@ public:
 		size_t total_count = count;
 
 		std::tie(offset, total_count) = sync_global_location(count);
+		CHECK(count);
+		CHECK(offset);
+		CHECK(total_count);
 
 		DataSpace(1, &total_count).swap(res.dataspace);
 
