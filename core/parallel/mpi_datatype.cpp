@@ -32,8 +32,51 @@ MPIDataType MPIDataType::create(DataType const & data_type)
 	MPIDataType res;
 
 	res.is_commited_ = false;
+	if (data_type.is_compound())
+	{
+		//TODO create MPI structure datatype
+		WARNING << "Should create structured datatype!!" << std::endl;
+		MPI_Type_contiguous(data_type.ele_size_in_byte(), MPI_BYTE,
+				&res.m_type_);
+		MPI_Type_commit(&res.m_type_);
+		res.is_commited_ = true;
 
-	if (data_type.is_same<int>())
+////		int MPI_Type_create_struct(
+////		  int count,
+////		  int array_of_blocklengths[],
+////		  MPI_Aint array_of_displacements[],
+////		  MPI_Datatype array_of_types[],
+////		  MPI_Datatype *newtype
+////		);
+//		int count = 0;
+//
+//		std::vector<int> array_of_blocklengths;
+//		std::vector<MPI_Aint> array_of_displacements;
+//		std::vector<MPI_Datatype> array_of_types;
+//		//		  MPI_Aint array_of_displacements[],
+//		//		  MPI_Datatype array_of_types[],
+//		for (auto const & item : data_type.members())
+//		{
+//			DataType sub_datatype;
+//			std::string name;
+//			int offset;
+//			std::tie(sub_datatype, std::ignore, offset) = item;
+//
+//			MPIDataType sub_mpi_type = MPIDataType::create(sub_datatype);
+//
+//			array_of_blocklengths.push_back(1);
+//			array_of_displacements.push_back(offset);
+//			array_of_types.push_back(sub_mpi_type.type());
+//
+//			++count;
+//		}
+//
+//		MPI_ERROR(MPI_Type_create_struct(count,		//
+//				&array_of_blocklengths[0],		//
+//				&array_of_displacements[0],		//
+//				&array_of_types[0], &res.m_type_));
+	}
+	else if (data_type.is_same<int>())
 	{
 		res.m_type_ = MPI_INT;
 	}
@@ -53,25 +96,39 @@ MPIDataType MPIDataType::create(DataType const & data_type)
 	{
 		res.m_type_ = MPI_DOUBLE;
 	}
-//	else if (data_type.is_same<long double>())
-//	{
-//		res.type_ = MPI_LONG_DOUBLE;
-//	}
-//	else if (data_type.is_same<std::complex<double>>())
-//	{
-//		res.type_ = MPI_2DOUBLE_COMPLEX;
-//	}
-//	else if (data_type.is_same<std::complex<float>>())
-//	{
-//		res.type_ = MPI_2COMPLEX;
-//	}
+	else if (data_type.is_same<long double>())
+	{
+		res.m_type_ = MPI_LONG_DOUBLE;
+	}
+	else if (data_type.is_same<std::complex<double>>())
+	{
+		res.m_type_ = MPI_2DOUBLE_COMPLEX;
+	}
+	else if (data_type.is_same<std::complex<float>>())
+	{
+		res.m_type_ = MPI_2COMPLEX;
+	}
 	else
 	{
-		CHECK(data_type.ele_size_in_byte());
-		MPI_Type_contiguous(data_type.ele_size_in_byte(), MPI_BYTE,
-				&res.m_type_);
-		MPI_Type_commit(&res.m_type_);
-		res.is_commited_ = true;
+		RUNTIME_ERROR("Cannot create MPI datatype:" + data_type.name());
+	}
+
+	if (data_type.is_array())
+	{
+		int dims[data_type.rank()];
+
+		for (int i = 0; i < data_type.rank(); ++i)
+		{
+			dims[i] = data_type.extent(i);
+		}
+//		MPI_Datatype res2 = res;
+		UNIMPLEMENTED;
+//		H5_ERROR(res2 = H5Tarray_create(res, d_type.rank(), dims));
+//
+//		if (H5Tcommitted(res) > 0)
+//			H5_ERROR(H5Tclose(res));
+//
+//		res = res2;
 	}
 	return std::move(res);
 }
