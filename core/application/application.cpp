@@ -14,7 +14,7 @@
 #include <utility>
 
 #include "../utilities/utilities.h"
-
+#include "../parallel/mpi_comm.h"
 namespace simpla
 {
 
@@ -44,8 +44,11 @@ void SpAppList::run(int argc, char ** argv)
 		item.second->setup(argc, argv);
 
 		LOGGER << "Case [" << item.first << "] start." << std::endl;
+		GLOBAL_COMM.barrier();
 
 		item.second->body();
+
+		GLOBAL_COMM.barrier();
 
 		LOGGER << "Case [" << item.first << "] done." << std::endl;
 	}

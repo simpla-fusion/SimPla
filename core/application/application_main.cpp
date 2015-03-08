@@ -66,9 +66,9 @@ int main(int argc, char **argv)
 	}
 
 	MESSAGE << "--------- START --------- " << endl;
-
+	GLOBAL_COMM.barrier();
 	run_all_apps(argc, argv);
-
+	GLOBAL_COMM.barrier();
 	MESSAGE << "--------- DONE --------- " << endl;
 
 	close_io();

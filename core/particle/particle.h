@@ -253,9 +253,9 @@ public:
 
 	}
 
-	void wait_to_ready()
+	void wait()
 	{
-		SpObject::wait_to_ready();
+		SpObject::wait();
 
 		for (auto const & item : m_send_recv_buffer_)
 		{
@@ -332,7 +332,7 @@ public:
 	template<typename TFun, typename ...Args>
 	void for_each(TFun const& fun, Args && ...args)
 	{
-		wait_to_ready();
+		wait();
 
 		container_type::foreach(m_mesh_.range(std::forward<Args>(args)...),
 				[&](value_type & p)
@@ -367,7 +367,7 @@ public:
 	template<typename ...Args>
 	void next_timestep(Args && ...args)
 	{
-		wait_to_ready();
+		wait();
 
 		container_type::foreach(m_mesh_.range(), [&](value_type & p)
 		{
@@ -399,7 +399,7 @@ public:
 	Real next_n_timesteps(size_t num_of_steps, Real t0, Real dt,
 			Args && ...args)
 	{
-		wait_to_ready();
+		wait();
 
 		container_type::foreach(m_mesh_.range(), [&](value_type & p)
 		{

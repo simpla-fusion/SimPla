@@ -24,7 +24,7 @@ std::tuple<int, int, int> get_mpi_tag(int const * coord)
 
 	return std::make_tuple(dest, send_tag, recv_tag);
 }
-void make_send_recv_list(DataType const & datatype, int ndims,
+void make_send_recv_list(int object_id, DataType const & datatype, int ndims,
 		size_t const * l_dims,
 		std::vector<mpi_ghosts_shape_s> const & ghost_shape,
 		std::vector<mpi_send_recv_s> *res)
@@ -51,9 +51,9 @@ void make_send_recv_list(DataType const & datatype, int ndims,
 
 				dest,
 
-				send_tag,
+				send_tag + object_id * 100,
 
-				recv_tag,
+				recv_tag + object_id * 100,
 
 				MPIDataType::create(datatype, ndims, l_dims,
 						&item.send_offset[0], nullptr, &item.send_count[0],

@@ -45,11 +45,16 @@ public:
 	MPI_Comm comm();
 	MPI_Info info();
 
+	void barrier();
+
 	bool is_valid() const;
 
 	int process_num() const;
 
 	int num_of_process() const;
+
+	int generate_object_id();
+
 
 //	void set_num_of_threads(int num);
 //

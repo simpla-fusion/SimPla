@@ -6,25 +6,30 @@
  */
 #include "sp_object.h"
 #include "../parallel/mpi_comm.h"
-
+#include "../parallel/mpi_aux_functions.h"
+#include "../parallel/mpi_update.h"
 namespace simpla
 {
 //! Default constructor
 SpObject::SpObject()
 {
+	m_object_id_ =
+			SingletonHolder<simpla::MPIComm>::instance().generate_object_id();
+}
+
+SpObject::SpObject(const SpObject&)
+{
+	m_object_id_ =
+			SingletonHolder<simpla::MPIComm>::instance().generate_object_id();
 }
 //! destroy.
 SpObject::~SpObject()
 {
 }
 
-SpObject::SpObject(const SpObject&)
-{
-}
-
 bool SpObject::is_ready() const
 {
-	//FIXME this is not multi-thread safe
+	//FIXME this is not multi-threads safe
 
 	if (is_valid() && m_mpi_requests_.size() > 0)
 	{
@@ -39,19 +44,41 @@ bool SpObject::is_ready() const
 	return false;
 
 }
+void SpObject::prepare_sync(std::vector<mpi_ghosts_shape_s> const & ghost_shape)
+{
+	int ndims = 3;
 
-void SpObject::wait_to_ready()
+	nTuple<size_t, MAX_NDIMS_OF_ARRAY> l_dims;
+
+	std::tie(ndims, l_dims, std::ignore, std::ignore, std::ignore, std::ignore) =
+			dataspace().shape();
+
+	make_send_recv_list(object_id(), datatype(), ndims, &l_dims[0], ghost_shape,
+			&m_send_recv_list_);
+}
+void SpObject::sync()
+{
+	if (m_send_recv_list_.size() > 0)
+	{
+		sync_update_continue(m_send_recv_list_, raw_data(), &(m_mpi_requests_));
+	}
+}
+
+void SpObject::wait()
 {
 	//FIXME this is not multi-thread safe
 	if (!is_valid())
 	{
 		deploy();
 	}
+
 	if (m_mpi_requests_.size() > 0)
 	{
+
 		MPI_ERROR(MPI_Waitall( m_mpi_requests_.size(), //
 				const_cast<MPI_Request*>(&m_mpi_requests_[0]),//
 				MPI_STATUSES_IGNORE));
+
 		m_mpi_requests_.clear();
 	}
 }

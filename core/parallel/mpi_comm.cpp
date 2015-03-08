@@ -45,6 +45,9 @@ struct MPIComm::pimpl_s
 
 	void decompose(int ndims, size_t *count, size_t * offset) const;
 
+	int generate_object_id();
+	int m_object_id_count_;
+
 };
 
 void MPIComm::pimpl_s::init(int argc, char** argv)
@@ -55,6 +58,7 @@ void MPIComm::pimpl_s::init(int argc, char** argv)
 	m_num_process_ = 1;
 	m_process_num_ = 0;
 	m_topology_dims_ = 1;
+	m_object_id_count_ = 0;
 
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(m_comm_, &m_num_process_);
@@ -105,6 +109,16 @@ void MPIComm::pimpl_s::init(int argc, char** argv)
 	VERBOSE << "MPI communicator is initialized!" << std::endl;
 }
 
+int MPIComm::pimpl_s::generate_object_id()
+{
+	++m_object_id_count_;
+	return m_object_id_count_;
+}
+int MPIComm::generate_object_id()
+{
+	//TODO need assert (id < INT_MAX)
+	return pimpl_->generate_object_id();
+}
 void MPIComm::pimpl_s::decompose(int ndims, size_t * p_offset,
 		size_t *p_count) const
 {
@@ -207,6 +221,10 @@ MPI_Comm MPIComm::comm()
 MPI_Info MPIComm::info()
 {
 	return MPI_INFO_NULL;
+}
+void MPIComm::barrier()
+{
+	MPI_Barrier(comm());
 }
 
 bool MPIComm::is_valid() const

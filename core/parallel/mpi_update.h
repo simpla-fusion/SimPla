@@ -24,7 +24,7 @@ struct mpi_send_recv_s
 	MPIDataType send_type;
 	MPIDataType recv_type;
 };
-void make_send_recv_list(DataType const & datatype, int ndims,
+void make_send_recv_list(int object_id,DataType const & datatype, int ndims,
 		size_t const * l_dims,
 		std::vector<mpi_ghosts_shape_s> const & ghost_shape,
 		std::vector<mpi_send_recv_s> *res);

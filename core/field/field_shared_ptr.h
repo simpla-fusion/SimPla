@@ -98,14 +98,14 @@ public:
 
 	void clear()
 	{
-		wait_to_ready();
+		wait();
 
 		*this = 0;
 	}
 	template<typename T>
 	void fill(T const &v)
 	{
-		wait_to_ready();
+		wait();
 
 		std::fill(m_data_.get(), m_data_.get() + m_mesh_.max_hash(), v);
 	}
@@ -151,7 +151,7 @@ public:
 //	}
 	inline this_type & operator =(this_type const &that)
 	{
-		wait_to_ready();
+		wait();
 
 		for (auto s : m_mesh_.range())
 		{
@@ -164,7 +164,7 @@ public:
 	template<typename TR>
 	inline this_type & operator =(TR const &that)
 	{
-		wait_to_ready();
+		wait();
 
 //		return std::move(
 //				_Field<AssignmentExpression<_impl::_assign, this_type, TR>>(
@@ -185,7 +185,7 @@ public:
 
 	template<typename TFun> void pull_back(TFun const &fun)
 	{
-		wait_to_ready();
+		wait();
 
 		m_mesh_.pull_back(*this, fun);
 	}
@@ -217,32 +217,25 @@ public:
 			m_data_ = sp_make_shared_array<value_type>(m_mesh_.max_hash());
 		}
 
-		int ndims = 3;
-
-		nTuple<size_t, MAX_NDIMS_OF_ARRAY> l_dims;
-
-		std::tie(ndims, l_dims, std::ignore, std::ignore, std::ignore,
-				std::ignore) = m_mesh_.dataspace().shape();
-
-		make_send_recv_list(DataType::create<value_type>(), ndims, &l_dims[0],
-				m_mesh_.ghost_shape(), &m_send_recv_list_);
+		SpObject::prepare_sync(m_mesh_.ghost_shape());
 	}
-private:
-	std::vector<mpi_send_recv_s> m_send_recv_list_;
-public:
 
-	void sync()
+	void *raw_data()
 	{
-		wait_to_ready();
+		return reinterpret_cast<void*>(m_data_.get());
+	}
+	void const* raw_data() const
+	{
+		return reinterpret_cast<void const*>(m_data_.get());
+	}
+	virtual DataSpace dataspace() const
+	{
+		return m_mesh_.dataspace();
+	}
 
-		if (m_send_recv_list_.size() > 0)
-		{
-
-			VERBOSE << "sync Field" << std::endl;
-
-			sync_update_continue(m_send_recv_list_, m_data_.get(),
-					&(SpObject::m_mpi_requests_));
-		}
+	DataType datatype() const
+	{
+		return DataType::create<value_type>();
 	}
 
 	DataSet dataset() const
@@ -253,11 +246,11 @@ public:
 
 		res.data = m_data_;
 
-		res.datatype = DataType::create<value_type>();
+		res.datatype = datatype();
 
-		res.dataspace = m_mesh_.dataspace();
+		res.dataspace = dataspace();
 
-		res.properties = properties;
+		res.properties = SpObject::properties;
 
 		return std::move(res);
 	}
@@ -265,7 +258,7 @@ public:
 	template<typename TFun, typename ...Args>
 	void for_each(TFun const& fun, Args && ...args)
 	{
-		wait_to_ready();
+		wait();
 
 		for (auto const & s : m_mesh_.range(std::forward<Args>(args)...))
 		{

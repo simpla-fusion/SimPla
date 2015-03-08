@@ -10,6 +10,8 @@
 
 #include <iostream>
 #include "../parallel/mpi_comm.h"
+#include "../parallel/mpi_aux_functions.h"
+#include "../parallel/mpi_update.h"
 namespace simpla
 {
 class DataSet;
@@ -88,6 +90,11 @@ struct SpObject
 
 	SpObject(const SpObject&);
 
+	int object_id() const
+	{
+		return m_object_id_;
+	}
+
 	virtual std::string get_type_as_string() const=0;
 
 	virtual DataSet dataset() const=0;
@@ -100,18 +107,25 @@ struct SpObject
 
 	virtual void deploy()=0;
 
-	virtual void sync()=0;
+	virtual std::ostream &print(std::ostream & os) const;
 
-	//virtual	void lock();
+	virtual void prepare_sync(std::vector<mpi_ghosts_shape_s> const &);
+
+	virtual void sync();
+
+	virtual void wait();
 
 	virtual bool is_ready() const;
 
-	virtual void wait_to_ready();
-
-	virtual std::ostream &print(std::ostream & os) const;
+	virtual DataSpace dataspace() const=0;
+	virtual DataType datatype() const=0;
+	virtual void * raw_data()=0;
+	virtual void const* raw_data() const=0;
 
 protected:
+	std::vector<mpi_send_recv_s> m_send_recv_list_;
 	std::vector<MPI_Request> m_mpi_requests_;
+	int m_object_id_;
 
 };
 }  // namespace simpla

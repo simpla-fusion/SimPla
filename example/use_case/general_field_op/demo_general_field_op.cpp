@@ -32,7 +32,7 @@ USE_CASE(general_field_op)
 	index_tuple dims =
 	{ 16, 16, 16 };
 	index_tuple ghost_width =
-	{ 0, 0, 0 };
+	{ 2, 2, 0 };
 	coordinates_type xmin =
 	{ 0, 0, 0 };
 	coordinates_type xmax =
@@ -44,33 +44,33 @@ USE_CASE(general_field_op)
 	mesh->deploy();
 
 	auto f1 = make_field<double>(mesh);
-
+	auto f2 = make_field<double>(mesh);
 	auto m_range = mesh->range();
 
 	f1.deploy();
-
+	f2.deploy();
 	size_t count = 0;
 
-//	for (auto const & key : m_range)
-//	{
-//		f1[key] = count + (GLOBAL_COMM.process_num()+1) *100;
-//		++count;
-//	}
+	for (auto const & key : m_range)
+	{
+		f1[key] = count + (GLOBAL_COMM.process_num()+1) *100;
+		++count;
+	}
 
-	f1.fill(GLOBAL_COMM.process_num() );
+	f2.fill(GLOBAL_COMM.process_num() );
 
 	cd("/Output/");
 
 	VERBOSE << SAVE(f1) << std::endl;
-
+	VERBOSE << SAVE(f2) << std::endl;
 	f1.sync();
-//	f1.sync();
-//	f1.sync();
-//	f1.sync();
-	f1.wait_to_ready();
+	f2.sync();
+	f2.sync();
+	f1.sync();
+	f1.wait();
 
 	cd("/Output2/");
 	VERBOSE << SAVE(f1) << std::endl;
-
+	VERBOSE << SAVE(f2	) << std::endl;
 } // USE_CASE(general_field_op)
 
