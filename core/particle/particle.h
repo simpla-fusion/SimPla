@@ -197,14 +197,12 @@ public:
 
 private:
 
-	std::vector<mpi_send_recv_buffer_s> m_send_recv_buffer_;
-
 public:
 
 	void sync()
 	{
 
-		auto const & ghost_list = m_mesh_.ghost_shape();
+		auto ghost_list = m_mesh_.ghost_shape();
 
 		for (auto const & item : ghost_list)
 		{
@@ -212,10 +210,12 @@ public:
 
 			std::tie(send_recv_s.dest, send_recv_s.send_tag,
 					send_recv_s.recv_tag) = get_mpi_tag(&item.coord_shift[0]);
-
+			CHECK(item.send_offset);
+			CHECK(item.send_count);
 			//   collect send data
 
-			auto send_range = m_mesh_.select(item.send_offset, item.send_count);
+			auto send_range = m_mesh_.select_local(item.send_offset,
+					item.send_offset + item.send_count);
 
 			size_t send_num = container_type::size_all(send_range);
 
@@ -229,8 +229,7 @@ public:
 			// FIXME need parallel optimize
 			for (auto const & key : send_range)
 			{
-				for (auto const & p : container_type::operator[](
-						m_mesh_.hash(key)))
+				for (auto const & p : container_type::operator[](key))
 				{
 					*data = p;
 					++data;
@@ -282,7 +281,7 @@ public:
 
 		for (auto const & key : p_range)
 		{
-			auto it = container_type::find(m_mesh_.hash(key));
+			auto it = container_type::find(key);
 			if (it != container_type::end())
 			{
 				count += std::distance(it->second.begin(), it->second.end());
@@ -299,7 +298,7 @@ public:
 
 		for (auto const & key : p_range)
 		{
-			auto it = container_type::find(m_mesh_.hash(key));
+			auto it = container_type::find(key);
 
 			if (it != container_type::end())
 			{

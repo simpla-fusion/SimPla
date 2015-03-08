@@ -532,12 +532,21 @@ public:
 	{
 		return Range<IFORM>(m_global_offset_, m_global_offset_ + m_count_);
 	}
-	template<typename T, size_t IFORM = iform>
-	Range<IFORM> select(T imin, T imax) const
+	template<typename T0, typename T1, size_t IFORM = iform>
+	Range<IFORM> select(T0 imin, T1 imax) const
 	{
 		return Range<IFORM>(imin, imax);
 	}
-
+	template<typename T0, typename T1, size_t IFORM = iform>
+	Range<IFORM> select_local(T0 imin, T1 imax) const
+	{
+		index_tuple min, max;
+		min = imin;
+		max = imax;
+		min = min + m_global_offset_ - m_local_offset_;
+		max = max + m_global_offset_ - m_local_offset_;
+		return Range<IFORM>(min, max);
+	}
 //private:
 //	template<size_t IFORM>
 //	Range<IFORM> select_rectangle_(index_tuple const &ib, index_tuple const &ie,
