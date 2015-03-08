@@ -43,7 +43,6 @@ struct DataType
 			unsigned int ndims = 0, size_t* dims = nullptr, std::string name =
 					"");
 	DataType(const DataType & other);
-	DataType(DataType && other);
 	~DataType();
 
 	DataType& operator=(DataType const& other);
@@ -62,8 +61,10 @@ struct DataType
 
 	size_t rank() const;
 
-	size_t extent(size_t n) const;
+	DataType element_type() const;
 
+	size_t extent(size_t n) const;
+	void extent(size_t *d) const;
 	void extent(size_t rank, size_t const*d);
 
 	bool is_compound() const;
@@ -106,7 +107,7 @@ struct DataType
 
 private:
 	struct pimpl_s;
-	pimpl_s *pimpl_;
+	std::unique_ptr<pimpl_s> pimpl_;
 
 	HAS_STATIC_MEMBER_FUNCTION(datatype);
 

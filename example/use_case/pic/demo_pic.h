@@ -22,10 +22,26 @@ struct PICDemo
 	typedef Vec3 vector_type;
 	typedef Real scalar_type;
 
-	SP_DEFINE_POINT_STRUCT(Point_s,
-			coordinates_type ,x,
-			Vec3, v,
-			Real, f )
+//	SP_DEFINE_POINT_STRUCT(Point_s,
+//			coordinates_type ,x,
+//			Vec3, v,
+//			Real, f )
+//	SP_DEFINE_POINT_STRUCT(Point_s,
+//			double[3] ,x
+//	)
+//
+	struct Point_s
+	{
+		nTuple<double, 3> x;
+		static DataType datatype()
+		{
+			auto d_type = DataType::create_opaque_type<Point_s>("Point_s");
+			d_type.push_back(make_datatype<nTuple<double, 3>>(), "x",
+					offsetof(Point_s, x));
+			;
+			return std::move(d_type);
+		}
+	};
 
 	SP_DEFINE_PROPERTIES(
 			Real, mass,
@@ -37,8 +53,8 @@ private:
 	Real m_cmr_, m_q_kT_;
 public:
 
-	PICDemo()
-			: m_mass(1.0), m_charge(1.0), m_temperature(1.0)
+	PICDemo() :
+			m_mass(1.0), m_charge(1.0), m_temperature(1.0)
 	{
 		update();
 	}
@@ -92,11 +108,12 @@ public:
 	static inline Point_s push_forward(coordinates_type const & x,
 			Vec3 const &v, Real f = 1.0)
 	{
-		return std::move(Point_s( { x, v, f }));
+		return std::move(Point_s(
+		{ x }));
 	}
 
 	static inline auto pull_back(Point_s const & p)
-	DECL_RET_TYPE((std::make_tuple(p.x,p.v,p.f)))
+	DECL_RET_TYPE((std::make_tuple(p.x )))
 };
 
 }  // namespace simpla

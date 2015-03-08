@@ -36,11 +36,12 @@ struct MPIDataType
 
 	~MPIDataType();
 
-	static MPIDataType create(DataType const &);
+//	static MPIDataType create(DataType const &);
 
-	static MPIDataType create(DataType const & data_type, unsigned int ndims,
-			size_t const * dims, size_t const * count, size_t const * offset,
-			size_t const * stride, size_t const * block,
+	static MPIDataType create(DataType const & data_type,
+			unsigned int ndims = 0, size_t const * dims = nullptr,
+			size_t const * count = nullptr, size_t const * offset = nullptr,
+			size_t const * stride = nullptr, size_t const * block = nullptr,
 			bool c_order_array = true);
 
 	template<typename T, typename ...Others>
