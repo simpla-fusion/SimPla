@@ -134,6 +134,14 @@ public:
 		return *this;
 	}
 
+	void swap(LuaObject & other)
+	{
+		std::swap(L_, other.L_);
+		std::swap(GLOBAL_REF_IDX_, other.GLOBAL_REF_IDX_);
+		std::swap(self_, other.self_);
+		std::swap(path_, other.path_);
+
+	}
 	~LuaObject()
 	{
 

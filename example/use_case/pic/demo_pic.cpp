@@ -73,131 +73,136 @@ USE_CASE(pic)
 
 	typedef PICDemo engine_type;
 
-	size_t pic = 1;
-	index_tuple dims =
-	{ 16, 1, 1 };
-	index_tuple ghost_width =
-	{ 0, 0, 0 };
-	coordinates_type xmin =
-	{ 0, 0, 0 };
-	coordinates_type xmax =
-	{ 1, 1, 1 };
+	size_t pic = 10;
+	index_tuple dims = { 10, 10, 10 };
+	index_tuple ghost_width = { 0, 0, 0 };
+	coordinates_type xmin = { 0, 0, 0 };
+	coordinates_type xmax = { 1, 1, 1 };
 
-	auto mesh = make_mesh<mesh_type>();
+//	options["dims"].as(&dims);
+//
+//	options["gw"].as(&ghost_width);
 
-	mesh->dimensions(dims);
-	mesh->extents(xmin, xmax);
-	mesh->ghost_width(ghost_width);
-	mesh->dt(dt);
-	mesh->deploy();
+	options["pic"].as(&pic);
 
-	CHECK(mesh->local_extents());
+	CHECK(pic);
 
-	MESSAGE << std::endl;
-
-	MESSAGE << "======== Configuration ========" << std::endl;
-	MESSAGE << " Description:" << options["Description"].as<std::string>("")
-			<< std::endl;
-	MESSAGE << " Options:" << std::endl;
-	RIGHT_COLUMN(" mesh" ) << " = {" << *mesh << "}," << std::endl;
-	RIGHT_COLUMN(" time_step" ) << " = " << num_of_steps << std::endl;
-
-	MESSAGE << "======== Initlialize ========" << std::endl;
-
-	auto ion = make_kinetic_particle<engine_type>(*mesh);
-
-	ion->mass(1.0);
-
-	ion->charge(2.0);
-
-	ion->temperature(3.0);
-
-	ion->deploy();
-
-	auto extents = mesh->local_extents();
-
-	auto range = mesh->range();
-
-	auto p_generator = simple_particle_generator(*ion, extents, 1.0);
-
-	std::mt19937 rnd_gen;
-
-	size_t num = range.size();
-
-	std::copy(p_generator.begin(rnd_gen), p_generator.end(rnd_gen, pic * num),
-			std::front_inserter(*ion));
-
-//	ion->insert(engine_type::Point_s
-//	{ 0.5, 0.5, 0.5, 4, 5, 6, 1 });
-
-	CHECK(ion->size());
-
+//	auto mesh = make_mesh<mesh_type>();
+//
+//	mesh->dimensions(dims);
+//	mesh->extents(xmin, xmax);
+//	mesh->ghost_width(ghost_width);
+//	mesh->dt(dt);
+//	mesh->deploy();
+//
+//	CHECK(mesh->local_extents());
+//
+//	MESSAGE << std::endl;
+//
+//	MESSAGE << "======== Configuration ========" << std::endl;
+//	MESSAGE << " Description:"
+//			<< options["Description"].template as<std::string>("") << std::endl;
+//	MESSAGE << " Options:" << std::endl;
+//	RIGHT_COLUMN(" mesh" ) << " = {" << *mesh << "}," << std::endl;
+//	RIGHT_COLUMN(" time_step" ) << " = " << num_of_steps << std::endl;
+//
+//	MESSAGE << "======== Initlialize ========" << std::endl;
+//
+//	auto ion = make_kinetic_particle<engine_type>(*mesh);
+//
+//	ion->mass(1.0);
+//
+//	ion->charge(2.0);
+//
+//	ion->temperature(3.0);
+//
+//	ion->deploy();
+//
+//	auto extents = mesh->local_extents();
+//
+//	auto range = mesh->range();
+//
+//	auto p_generator = simple_particle_generator(*ion, extents, 1.0);
+//
+//	std::mt19937 rnd_gen;
+//
+//	size_t num = range.size();
+//
+//	std::copy(p_generator.begin(rnd_gen), p_generator.end(rnd_gen, pic * num),
+//			std::front_inserter(*ion));
+//
+////	ion->insert(engine_type::Point_s
+////	{ 0.5, 0.5, 0.5, 4, 5, 6, 1 });
+//
+//	CHECK(ion->size());
+//
+////	ion->rehash();
+//
+//	CHECK(ion->size());
+//
+//	VERBOSE << save("H0", ion->dataset()) << std::endl;
+//
+//	ion->sync();
+//
+//	ion->wait();
+//
 //	ion->rehash();
-
-	CHECK(ion->size());
-
-	VERBOSE << save("H0", ion->dataset()) << std::endl;
-
-	ion->sync();
-
-	ion->wait();
-	ion->rehash();
-	CHECK(ion->size());
-
-	VERBOSE << save("H1", ion->dataset()) << std::endl;
-
-	// Load initialize value
-//	auto J = make_form<EDGE, Real>(mesh);
-//	auto E = make_form<EDGE, Real>(mesh);
-//	auto B = make_form<FACE, Real>(mesh);
+//	CHECK(ion->size());
 //
-//	auto E_src = make_constraint<EDGE, Real>(mesh, options["Constraint"]["E"]);
-//	auto J_src = make_constraint<EDGE, Real>(mesh, options["Constraint"]["J"]);
-//	auto B_src = make_constraint<FACE, Real>(mesh, options["Constraint"]["B"]);
+//	VERBOSE << save("H1", ion->dataset()) << std::endl;
 //
-//	VERBOSE_CMD(load(options["InitValue"]["B"], &B));
-//	VERBOSE_CMD(load(options["InitValue"]["E"], &E));
-//	VERBOSE_CMD(load(options["InitValue"]["J"], &J));
-
-	MESSAGE << "======== START! ========" << std::endl;
-
-//	cd("/Input/");
-//
-////	VERBOSE << SAVE(E);
-////	VERBOSE << SAVE(B);
-////	VERBOSE << SAVE(J);
-//
-//	cd("/Save/");
-//
-//	for (size_t s = 0; s < num_of_steps; ++s)
-//	{
-//
-////		E_src(&E);
-////		B_src(&B);
+//	// Load initialize value
+////	auto J = make_form<EDGE, Real>(mesh);
+////	auto E = make_form<EDGE, Real>(mesh);
+////	auto B = make_form<FACE, Real>(mesh);
 ////
-////		J.clear();
-////		ion->next_timestep(dt, E, B, &J);
-////		J_src(&J);
+////	auto E_src = make_constraint<EDGE, Real>(mesh, options["Constraint"]["E"]);
+////	auto J_src = make_constraint<EDGE, Real>(mesh, options["Constraint"]["J"]);
+////	auto B_src = make_constraint<FACE, Real>(mesh, options["Constraint"]["B"]);
 ////
-////		E += curl(B) * dt - J;
-////		B += -curl(E) * dt;
+////	VERBOSE_CMD(load(options["InitValue"]["B"], &B));
+////	VERBOSE_CMD(load(options["InitValue"]["E"], &E));
+////	VERBOSE_CMD(load(options["InitValue"]["J"], &J));
+//
+//	MESSAGE << "======== START! ========" << std::endl;
+//
+////	cd("/Input/");
 ////
-////		if (s % strides == 0)
-////		{
-////			VERBOSE << save("H", *ion, SP_APPEND);
-////			VERBOSE << save("E", E, SP_APPEND);
-////			VERBOSE << save("B", B, SP_APPEND);
+//////	VERBOSE << SAVE(E);
+//////	VERBOSE << SAVE(B);
+//////	VERBOSE << SAVE(J);
 ////
-////		}
-//	}
-//	cd("/Output/");
-//	VERBOSE << SAVE(E) << std::endl;
-//	VERBOSE << SAVE(B) << std::endl;
-//	VERBOSE << SAVE(J) << std::endl;
-
-//	VERBOSE << save("H", ion->dataset()) << std::endl;
-
-	MESSAGE << "======== DONE! ========" << std::endl;
+////	cd("/Save/");
+////
+////	for (size_t s = 0; s < num_of_steps; ++s)
+////	{
+////
+//////		E_src(&E);
+//////		B_src(&B);
+//////
+//////		J.clear();
+//////		ion->next_timestep(dt, E, B, &J);
+//////		J_src(&J);
+//////
+//////		E += curl(B) * dt - J;
+//////		B += -curl(E) * dt;
+//////
+//////		if (s % strides == 0)
+//////		{
+//////			VERBOSE << save("H", *ion, SP_APPEND);
+//////			VERBOSE << save("E", E, SP_APPEND);
+//////			VERBOSE << save("B", B, SP_APPEND);
+//////
+//////		}
+////	}
+////	cd("/Output/");
+////	VERBOSE << SAVE(E) << std::endl;
+////	VERBOSE << SAVE(B) << std::endl;
+////	VERBOSE << SAVE(J) << std::endl;
+//
+////	VERBOSE << save("H", ion->dataset()) << std::endl;
+//
+//	MESSAGE << "======== DONE! ========" << std::endl;
 
 }
 

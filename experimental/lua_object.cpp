@@ -8,27 +8,27 @@
 
 namespace simpla
 {
-LuaObject::LuaObject() :
-		L_(nullptr), self_(0), GLOBAL_REF_IDX_(0)
+LuaObject::LuaObject()
+		: L_(nullptr), self_(0), GLOBAL_REF_IDX_(0)
 
 {
 }
 
 LuaObject::LuaObject(std::shared_ptr<lua_State> l, unsigned int G,
-		unsigned int s, std::string const & path) :
-		L_(l), GLOBAL_REF_IDX_(G), self_(s), path_(path)
+		unsigned int s, std::string const & path)
+		: L_(l), GLOBAL_REF_IDX_(G), self_(s), path_(path)
 {
 }
-LuaObject::LuaObject(LuaObject const & r) :
-		L_(r.L_), GLOBAL_REF_IDX_(r.GLOBAL_REF_IDX_), path_(r.path_)
+LuaObject::LuaObject(LuaObject const & r)
+		: L_(r.L_), GLOBAL_REF_IDX_(r.GLOBAL_REF_IDX_), path_(r.path_)
 {
 
 	lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, r.self_);
 	self_ = luaL_ref(L_.get(), GLOBAL_REF_IDX_);
 }
 
-LuaObject::LuaObject(LuaObject && r) :
-		L_(r.L_), GLOBAL_REF_IDX_(r.GLOBAL_REF_IDX_), self_(r.self_), path_(
+LuaObject::LuaObject(LuaObject && r)
+		: L_(r.L_), GLOBAL_REF_IDX_(r.GLOBAL_REF_IDX_), self_(r.self_), path_(
 				r.path_)
 {
 	r.self_ = 0;
@@ -180,7 +180,8 @@ LuaObject LuaObject::operator[](std::string const & s) const noexcept
 			lua_pop(L_.get(), 1);
 		}
 
-		return (LuaObject(L_, GLOBAL_REF_IDX_, id, path_ + "." + value_to_string(s)));
+		return (LuaObject(L_, GLOBAL_REF_IDX_, id,
+				path_ + "." + value_to_string(s)));
 	}
 }
 
@@ -218,8 +219,8 @@ LuaObject LuaObject::at(int s) const
 	if (s > size())
 	{
 		throw(std::out_of_range(
-				"index out of range! " + path_ + "[" + value_to_string(s) + " > "
-						+ value_to_string(size()) + " ]"));
+				"index out of range! " + path_ + "[" + value_to_string(s)
+						+ " > " + value_to_string(size()) + " ]"));
 	}
 
 	lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
@@ -302,14 +303,14 @@ void LuaObject::iterator::Next()
 	lua_pop(L_.get(), 1);
 }
 
-LuaObject::iterator::iterator() :
-		L_(nullptr), GLOBAL_IDX_(0), parent_(LUA_NOREF), key_(
+LuaObject::iterator::iterator()
+		: L_(nullptr), GLOBAL_IDX_(0), parent_(LUA_NOREF), key_(
 		LUA_NOREF), value_(LUA_NOREF)
 {
 
 }
-LuaObject::iterator::iterator(iterator const& r) :
-		L_(r.L_), GLOBAL_IDX_(r.GLOBAL_IDX_)
+LuaObject::iterator::iterator(iterator const& r)
+		: L_(r.L_), GLOBAL_IDX_(r.GLOBAL_IDX_)
 {
 
 	lua_rawgeti(L_.get(), GLOBAL_IDX_, r.parent_);
@@ -325,17 +326,17 @@ LuaObject::iterator::iterator(iterator const& r) :
 	value_ = luaL_ref(L_.get(), GLOBAL_IDX_);
 
 }
-LuaObject::iterator::iterator(iterator && r) :
-		L_(r.L_), GLOBAL_IDX_(r.GLOBAL_IDX_), parent_(r.parent_), key_(r.key_), value_(
-				r.value_)
+LuaObject::iterator::iterator(iterator && r)
+		: L_(r.L_), GLOBAL_IDX_(r.GLOBAL_IDX_), parent_(r.parent_), key_(
+				r.key_), value_(r.value_)
 {
 	r.parent_ = LUA_NOREF;
 	r.key_ = LUA_NOREF;
 	r.value_ = LUA_NOREF;
 }
 LuaObject::iterator::iterator(std::shared_ptr<lua_State> L, unsigned int G,
-		unsigned int p, std::string path) :
-		L_(L), GLOBAL_IDX_(G), parent_(p), key_(LUA_NOREF), value_(
+		unsigned int p, std::string path)
+		: L_(L), GLOBAL_IDX_(G), parent_(p), key_(LUA_NOREF), value_(
 		LUA_NOREF), path_(path + "[iterator]")
 {
 	lua_rawgeti(L_.get(), GLOBAL_IDX_, p);
