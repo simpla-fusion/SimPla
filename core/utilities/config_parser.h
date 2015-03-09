@@ -28,63 +28,65 @@ struct ConfigParser
 
 	void init(int argc, char** argv);
 
-	struct DictObject //: public LuaObject
+	struct DictObject: public LuaObject
 	{
-		DictObject()
-				: m_value_("")
+		DictObject() :
+				LuaObject(), m_value_("")
 		{
 
 		}
-//		DictObject(DictObject const & other)
-//				: LuaObject(other), m_value_(other.m_value_)
-//		{
-//		}
-//		DictObject(LuaObject const & lua_obj)
-//				: LuaObject(lua_obj), m_value_("")
-//		{
-//			CHECK("LLL");
-//
-//		}
-		DictObject(std::string const & value)
-				: /*LuaObject(),*/m_value_(value)
+		DictObject(DictObject const & other) :
+				LuaObject(other), m_value_(other.m_value_)
 		{
-			CHECK(value);
+
+		}
+		DictObject(DictObject && other) :
+				LuaObject(other), m_value_(other.m_value_)
+		{
+
+		}
+		DictObject(LuaObject const & lua_obj) :
+				LuaObject(lua_obj), m_value_("")
+		{
+
+		}
+		DictObject(std::string const & value) : /*LuaObject(),*/
+				m_value_(value)
+		{
 		}
 		~DictObject()
 		{
-			CHECK(m_value_);
 		}
 		void swap(DictObject & other)
 		{
-//			CHECK("swap");
-////			LuaObject::swap(other);
-//			std::swap(m_value_, other.m_value_);
+			LuaObject::swap(other);
+			std::swap(m_value_, other.m_value_);
 		}
 
 		DictObject & operator=(DictObject const & other)
 		{
-//			CHECK("===");
-//			DictObject(other).swap(*this);
+			DictObject(other).swap(*this);
 			return *this;
 		}
 
-//		template<typename T>
-//		T as() const
-//		{
-//			CHECK("as");
-////			if (m_value_ != "")
-////			{
-//			return std::move(string_to_value<T>(m_value_));
-////			}
-////			else
-////			{
-//////				if (LuaObject::IsNull())
-//////				{
-//////					RUNTIME_ERROR("undefined lua object!");
-//////				}
-////				return std::move(LuaObject::template as<T>());
-////			}
-//		}
+		template<typename T>
+		T as() const
+		{
+			if (m_value_ != "")
+			{
+
+				return std::move(string_to_value<T>(m_value_));
+			}
+			else if (!LuaObject::IsNull())
+
+			{
+				return std::move(LuaObject::template as<T>());
+			}
+			else
+			{
+				RUNTIME_ERROR("undefined lua object!");
+			}
+		}
 		template<typename T>
 		T as(T const & default_value) const
 		{
@@ -92,21 +94,19 @@ struct ConfigParser
 			{
 				return std::move(string_to_value<T>(m_value_));
 			}
-//			else
-//			{
-//				if (LuaObject::IsNull())
-//				{
-//					RUNTIME_ERROR("undefined lua object!");
-//				}
-//				return std::move(LuaObject::template as<T>(default_value));
-//			}
-			return default_value;
+			else if (!LuaObject::IsNull())
+			{
+				return std::move(LuaObject::template as<T>(default_value));
+			}
+			else
+			{
+				return default_value;
+			}
 		}
 
 		template<typename T>
 		void as(T* v) const
 		{
-//			CHECK(*v);
 			*v = as<T>(*v);
 		}
 	private:
@@ -121,21 +121,19 @@ struct ConfigParser
 		{
 			return std::move(DictObject(it->second));
 		}
-//		else if (!m_lua_object_.IsNull())
-//		{
-//			return std::move(DictObject(m_lua_object_[key]));
-//		}
+		else if (!m_lua_object_.IsNull())
+		{
+			return std::move(DictObject(m_lua_object_[key]));
+		}
 		else
 		{
 			return std::move(DictObject());
 		}
 	}
 
-//	void parse_cmd_line(int argc, char** argv);
-
 private:
 
-//	LuaObject m_lua_object_;
+	LuaObject m_lua_object_;
 	std::map<std::string, std::string> m_kv_map_;
 }
 ;

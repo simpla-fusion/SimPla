@@ -98,27 +98,29 @@ public:
 
 	typedef LuaObject this_type;
 
-	LuaObject()
-			: L_(nullptr), self_(0), GLOBAL_REF_IDX_(0)
+	LuaObject() :
+			L_(nullptr), self_(0), GLOBAL_REF_IDX_(0)
 
 	{
 	}
 
 	LuaObject(std::shared_ptr<lua_State> l, unsigned int G, unsigned int s,
-			std::string const & path = "")
-			: L_(l), GLOBAL_REF_IDX_(G), self_(s), path_(path)
+			std::string const & path = "") :
+			L_(l), GLOBAL_REF_IDX_(G), self_(s), path_(path)
 	{
 	}
-	LuaObject(LuaObject const & r)
-			: L_(r.L_), GLOBAL_REF_IDX_(r.GLOBAL_REF_IDX_), path_(r.path_)
+	LuaObject(LuaObject const & r) :
+			L_(r.L_), GLOBAL_REF_IDX_(r.GLOBAL_REF_IDX_), path_(r.path_)
 	{
-
-		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, r.self_);
-		self_ = luaL_ref(L_.get(), GLOBAL_REF_IDX_);
+		if (L_ != nullptr)
+		{
+			lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, r.self_);
+			self_ = luaL_ref(L_.get(), GLOBAL_REF_IDX_);
+		}
 	}
 
-	LuaObject(LuaObject && r)
-			: L_(r.L_), GLOBAL_REF_IDX_(r.GLOBAL_REF_IDX_), self_(r.self_), path_(
+	LuaObject(LuaObject && r) :
+			L_(r.L_), GLOBAL_REF_IDX_(r.GLOBAL_REF_IDX_), self_(r.self_), path_(
 					r.path_)
 	{
 		r.self_ = 0;
@@ -145,6 +147,10 @@ public:
 	~LuaObject()
 	{
 
+		if (L_ == nullptr)
+		{
+			return;
+		}
 		if (self_ > 0)
 		{
 			luaL_unref(L_.get(), GLOBAL_REF_IDX_, self_);
@@ -281,6 +287,9 @@ public:
 	public:
 		void Next()
 		{
+			if (L_ == nullptr)
+				return;
+
 			lua_rawgeti(L_.get(), GLOBAL_IDX_, parent_);
 
 			int tidx = lua_gettop(L_.get());
@@ -322,15 +331,19 @@ public:
 			lua_pop(L_.get(), 1);
 		}
 	public:
-		iterator()
-				: L_(nullptr), GLOBAL_IDX_(0), parent_(LUA_NOREF), key_(
+		iterator() :
+				L_(nullptr), GLOBAL_IDX_(0), parent_(LUA_NOREF), key_(
 				LUA_NOREF), value_(LUA_NOREF)
 		{
 
 		}
-		iterator(iterator const& r)
-				: L_(r.L_), GLOBAL_IDX_(r.GLOBAL_IDX_)
+		iterator(iterator const& r) :
+				L_(r.L_), GLOBAL_IDX_(r.GLOBAL_IDX_)
 		{
+			if (L_ == nullptr)
+			{
+				return;
+			}
 
 			lua_rawgeti(L_.get(), GLOBAL_IDX_, r.parent_);
 
@@ -345,8 +358,8 @@ public:
 			value_ = luaL_ref(L_.get(), GLOBAL_IDX_);
 
 		}
-		iterator(iterator && r)
-				: L_(r.L_), GLOBAL_IDX_(r.GLOBAL_IDX_), parent_(r.parent_), key_(
+		iterator(iterator && r) :
+				L_(r.L_), GLOBAL_IDX_(r.GLOBAL_IDX_), parent_(r.parent_), key_(
 						r.key_), value_(r.value_)
 		{
 			r.parent_ = LUA_NOREF;
@@ -354,10 +367,15 @@ public:
 			r.value_ = LUA_NOREF;
 		}
 		iterator(std::shared_ptr<lua_State> L, unsigned int G, unsigned int p,
-				std::string path)
-				: L_(L), GLOBAL_IDX_(G), parent_(p), key_(LUA_NOREF), value_(
+				std::string path) :
+				L_(L), GLOBAL_IDX_(G), parent_(p), key_(LUA_NOREF), value_(
 				LUA_NOREF), path_(path + "[iterator]")
 		{
+			if (L_ == nullptr)
+			{
+				return;
+			}
+
 			lua_rawgeti(L_.get(), GLOBAL_IDX_, p);
 			bool is_table = lua_istable(L_.get(), -1);
 			parent_ = luaL_ref(L_.get(), GLOBAL_IDX_);
@@ -375,6 +393,10 @@ public:
 
 		~iterator()
 		{
+			if (L_ == nullptr)
+			{
+				return;
+			}
 			if (key_ != LUA_NOREF)
 			{
 				luaL_unref(L_.get(), GLOBAL_IDX_, key_);
