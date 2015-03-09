@@ -61,20 +61,15 @@ public:
 	CartesianCoordinates() :
 			topology_type(), is_valid_(false),
 
-			m_xmin_(
-			{ 0, 0, 0 }),
+			m_xmin_( { 0, 0, 0 }),
 
-			m_xmax_(
-			{ 1, 1, 1 }),
+			m_xmax_( { 1, 1, 1 }),
 
-			m_inv_length_(
-			{ 1.0, 1.0, 1.0 }),
+			m_inv_length_( { 1.0, 1.0, 1.0 }),
 
-			m_length_(
-			{ 1.0, 1.0, 1.0 }),
+			m_length_( { 1.0, 1.0, 1.0 }),
 
-			m_shift_(
-			{ 0, 0, 0 })
+			m_shift_( { 0, 0, 0 })
 	{
 
 	}
@@ -383,6 +378,13 @@ public:
 	DECL_RET_TYPE((topology_type::coordinates_to_index(
 							coordinates_to_topology(x))))
 
+	inline id_type coordinates_to_id(coordinates_type const &x)const
+	{
+		auto y= coordinates_to_topology(x);
+		CHECK(y);
+		return topology_type::coordinates_to_id(y);
+
+	}
 	/**
 	 * @bug: truncation error of coordinates transform larger than 1000
 	 *     epsilon (1e4 epsilon for cylindrical coordinates)

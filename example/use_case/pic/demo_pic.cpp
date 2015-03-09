@@ -43,29 +43,23 @@ USE_CASE(pic)
 	size_t strides = 10;
 	Real dt = 0.001;
 
-//	options.register_cmd_line_option<size_t>("NUMBER_OF_STEPS", "n");
-//
-//	options.register_cmd_line_option<size_t>("STRIDES", "s");
-//
-//	options.register_cmd_line_option<Real>("DT", "dt");
-//
-//	if (options["SHOW_HELP"])
-//	{
-//		SHOW_OPTIONS("-n,--number_of_steps <NUMBER_OF_STEPS>",
-//				"number of steps = <NUMBER_OF_STEPS> ,default="
-//						+ value_to_string(num_of_steps));
-//		SHOW_OPTIONS("-s,--strides <STRIDES>",
-//				" dump record per <STRIDES> steps, default="
-//						+ value_to_string(strides));
-//		SHOW_OPTIONS("-dt  <DT>",
-//				" value of time step,default =" + value_to_string(dt));
-//
-//		return;
-//	}
-//
-//	options["NUMBER_OF_STEPS"].as(&num_of_steps);
-//
-//	options["STRIDES"].as<size_t>(&strides);
+	if (options["SHOW_HELP"])
+	{
+		SHOW_OPTIONS("-n,--number_of_steps <NUMBER_OF_STEPS>",
+				"number of steps = <NUMBER_OF_STEPS> ,default="
+						+ value_to_string(num_of_steps));
+		SHOW_OPTIONS("-s,--strides <STRIDES>",
+				" dump record per <STRIDES> steps, default="
+						+ value_to_string(strides));
+		SHOW_OPTIONS("-dt  <DT>",
+				" value of time step,default =" + value_to_string(dt));
+
+		return;
+	}
+
+	options["NUMBER_OF_STEPS"].as(&num_of_steps);
+
+	options["STRIDES"].as<size_t>(&strides);
 
 	typedef CartesianCoordinates<StructuredMesh> mesh_type;
 	typedef typename mesh_type::coordinates_type coordinates_type;
@@ -85,7 +79,6 @@ USE_CASE(pic)
 
 	options["pic"].as(&pic);
 
-
 	auto mesh = make_mesh<mesh_type>();
 
 	mesh->dimensions(dims);
@@ -93,7 +86,6 @@ USE_CASE(pic)
 	mesh->ghost_width(ghost_width);
 	mesh->dt(dt);
 	mesh->deploy();
-
 
 	MESSAGE << std::endl;
 
@@ -125,16 +117,37 @@ USE_CASE(pic)
 	std::mt19937 rnd_gen;
 
 	size_t num = range.size();
+//
+//	std::copy(p_generator.begin(rnd_gen), p_generator.end(rnd_gen, pic * num),
+//			std::front_inserter(*ion));
+	CHECK(ion->size());
+	size_t count = 0;
+	for (int i = 0; i < pic * num; ++i)
+	{
+		engine_type::Point_s p;
 
-	std::copy(p_generator.begin(rnd_gen), p_generator.end(rnd_gen, pic * num),
-			std::front_inserter(*ion));
+		p.x = 0;
+
+		p.x[0] = count * 0.1;
+
+		CHECK(p.x);
+
+		++count;
+		ion->insert(std::move(p));
+	}
 
 //	ion->insert(engine_type::Point_s
 //	{ 0.5, 0.5, 0.5, 4, 5, 6, 1 });
+	CHECK(extents);
 
 	CHECK(ion->size());
 
-//	ion->rehash();
+	ion->for_each([](engine_type::Point_s & p)
+	{
+		CHECK(p.x);
+	});
+
+	ion->rehash();
 
 	CHECK(ion->size());
 

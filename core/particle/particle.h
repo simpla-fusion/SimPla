@@ -195,10 +195,6 @@ public:
 		SpObject::properties.append(engine_type::properties);
 	}
 
-private:
-
-public:
-
 	size_t size() const
 	{
 		return container_type::size_all(m_mesh_.range());
@@ -319,9 +315,6 @@ public:
 		size_t total_count = count;
 
 		std::tie(offset, total_count) = sync_global_location(count);
-		CHECK(count);
-		CHECK(offset);
-		CHECK(total_count);
 
 		DataSpace(1, &total_count).swap(res.dataspace);
 
@@ -340,16 +333,19 @@ public:
 
 //! @}
 
-	template<typename TFun, typename ...Args>
-	void for_each(TFun const& fun, Args && ...args)
+	template<typename TFun>
+	void for_each(TFun const& fun)
 	{
 		wait();
 
-		container_type::foreach(m_mesh_.range(std::forward<Args>(args)...),
-				[&](value_type & p)
-				{
-					fun(&p );
-				});
+		for (auto const & s : m_mesh_.range())
+		{
+			for (auto &p : container_type::operator[](s))
+			{
+				fun(p);
+			}
+		}
+
 	}
 	template<typename TFun, typename ...Args>
 	void for_each(TFun const& fun, Args && ...args) const

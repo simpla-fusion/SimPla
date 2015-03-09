@@ -162,9 +162,10 @@ public:
 	}
 
 	template<typename TV>
-	void insert(TV && v)
+	void insert(TV const& v)
 	{
-		m_data_[m_hash_(v)].push_front(std::forward<TV>(v));
+		CHECK(m_hash_(v));
+		m_data_[m_hash_(v)].push_front(v);
 	}
 
 	template<typename TV>
