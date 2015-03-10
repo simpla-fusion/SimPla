@@ -323,7 +323,8 @@ public:
 		res.dataspace.select_hyperslab(&offset, nullptr, &count, nullptr) //
 		.convert_to_local();
 
-		LOGGER << "dump " << total_count << " particles" << std::endl;
+		VERBOSE << "dump particles [" << count << "/" << total_count << "] "
+				<< std::endl;
 
 		return std::move(res);
 	}
