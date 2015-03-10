@@ -120,7 +120,8 @@ public:
 	{
 	}
 
-	StructuredMesh_(StructuredMesh_ const & other) :
+	StructuredMesh_(StructuredMesh_ const & other)
+			:
 //			m_xmin_(other.m_xmin_), m_xmax_(other.m_xmax_), m_dx_(other.m_dx_),
 
 			m_global_dimensions_(other.m_global_dimensions_),
@@ -274,8 +275,9 @@ public:
 
 	static constexpr size_t _DA = _DI | _DJ | _DK;
 
-	static constexpr size_t CELL_ID_MASK_ = ((1UL
-			<< (INDEX_DIGITS - FLOATING_POINT_POS)) - 1) << FLOATING_POINT_POS;
+	static constexpr size_t CELL_ID_MASK_ = //
+			(((1UL << (INDEX_DIGITS - FLOATING_POINT_POS - 1)) - 1)
+					<< (FLOATING_POINT_POS - 1)) & INDEX_MASK;
 
 	static constexpr size_t CELL_ID_MASK =
 
@@ -534,6 +536,13 @@ public:
 	template<size_t IFORM = iform>
 	Range<IFORM> range() const
 	{
+		index_tuple offset;
+		offset = 0;
+		return Range<IFORM>(offset, m_global_dimensions_);
+	}
+	template<size_t IFORM = iform>
+	Range<IFORM> local_range() const
+	{
 		return Range<IFORM>(m_global_offset_, m_global_offset_ + m_count_);
 	}
 
@@ -596,48 +605,38 @@ public:
 //	/**  @} */
 //! @name Coordinates
 //! @{
-	static constexpr Real COORDINATES_TO_INDEX_FACTOR =
-			static_cast<Real>(FLOATING_POINT_FACTOR);
-
-	static constexpr Real INDEX_TO_COORDINATES_FACTOR = 1.0
-			/ COORDINATES_TO_INDEX_FACTOR;
+//	static constexpr Real COORDINATES_TO_INDEX_FACTOR =
+//			static_cast<Real>(FLOATING_POINT_FACTOR);
+//
+//	static constexpr Real INDEX_TO_COORDINATES_FACTOR = 1.0
+//			/ COORDINATES_TO_INDEX_FACTOR;
 
 	static constexpr coordinates_type index_to_coordinates(
 			index_tuple const&idx)
 	{
 
-		return std::move(
-				coordinates_type(
-						{
+		return std::move(coordinates_type( {
 
-						static_cast<Real>(static_cast<long>(idx[0]))
-								* INDEX_TO_COORDINATES_FACTOR,
+		static_cast<Real>(idx[0]),
 
-						static_cast<Real>(static_cast<long>(idx[1]))
-								* INDEX_TO_COORDINATES_FACTOR,
+		static_cast<Real>(idx[1]),
 
-						static_cast<Real>(static_cast<long>(idx[2]))
-								* INDEX_TO_COORDINATES_FACTOR
+		static_cast<Real>(idx[2])
 
-						}));
+		}));
 	}
 
 	static constexpr index_tuple coordinates_to_index(coordinates_type const &x)
 	{
-		return std::move(
-				index_tuple(
-						{
+		return std::move(index_tuple( {
 
-						static_cast<index_type>(static_cast<long>(x[0]
-								* COORDINATES_TO_INDEX_FACTOR)),
+		static_cast<index_type>(x[0]),
 
-						static_cast<index_type>(static_cast<long>(x[1]
-								* COORDINATES_TO_INDEX_FACTOR)),
+		static_cast<index_type>(x[1]),
 
-						static_cast<index_type>(static_cast<long>(x[2]
-								* COORDINATES_TO_INDEX_FACTOR))
+		static_cast<index_type>(x[2])
 
-						}));
+		}));
 	}
 
 	template<typename TI>
@@ -682,7 +681,7 @@ public:
 
 	static constexpr id_type coordinates_to_id(coordinates_type const &x)
 	{
-		return std::move(index_to_id(coordinates_to_index(x)));
+		return (index_to_id(coordinates_to_index(x)));
 	}
 
 	static constexpr coordinates_type coordinates_local_to_global(id_type s,
@@ -786,16 +785,14 @@ public:
 		((nodeid & 1UL) << (FLOATING_POINT_POS - 1));
 
 	}
-	static constexpr id_type m_first_node_shift_[] =
-	{ 0, 1, 6, 7 };
+	static constexpr id_type m_first_node_shift_[] = { 0, 1, 6, 7 };
 
 	static constexpr id_type get_first_node_shift(id_type iform)
 	{
 
 		return get_shift(m_first_node_shift_[iform]);
 	}
-	static constexpr size_t m_num_of_comp_per_cell_[4] =
-	{ 1, 3, 3, 1 };
+	static constexpr size_t m_num_of_comp_per_cell_[4] = { 1, 3, 3, 1 };
 
 	static constexpr size_t get_num_of_comp_per_cell(size_t iform)
 	{
@@ -852,8 +849,7 @@ public:
 	 * @return
 	 */
 
-	static constexpr id_type m_component_number_[] =
-	{ 0,  // 000
+	static constexpr id_type m_component_number_[] = { 0,  // 000
 			0, // 001
 			1, // 010
 			2, // 011
@@ -867,8 +863,7 @@ public:
 		return m_component_number_[node_id(s)];
 	}
 
-	static constexpr id_type m_iform_[] =
-	{ //
+	static constexpr id_type m_iform_[] = { //
 
 			VERTEX, // 000
 					EDGE, // 001
@@ -1467,8 +1462,8 @@ template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::_DA;
 template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::CELL_ID_MASK_;
 template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::CELL_ID_MASK;
 
-template<size_t NDIMS> constexpr Real StructuredMesh_<NDIMS>::COORDINATES_TO_INDEX_FACTOR;
-template<size_t NDIMS> constexpr Real StructuredMesh_<NDIMS>::INDEX_TO_COORDINATES_FACTOR;
+//template<size_t NDIMS> constexpr Real StructuredMesh_<NDIMS>::COORDINATES_TO_INDEX_FACTOR;
+//template<size_t NDIMS> constexpr Real StructuredMesh_<NDIMS>::INDEX_TO_COORDINATES_FACTOR;
 
 template<size_t NDIMS>
 template<size_t IFORM>
@@ -1492,8 +1487,8 @@ struct StructuredMesh_<NDIMS>::Range
 		end_ = e;
 	}
 
-	Range(Range const & that) :
-			begin_(that.begin_), end_(that.end_)
+	Range(Range const & that)
+			: begin_(that.begin_), end_(that.end_)
 	{
 	}
 	~Range()
@@ -1525,7 +1520,10 @@ struct StructuredMesh_<NDIMS>::Range<IFORM>::const_iterator:
 
 public std::iterator<typename std::bidirectional_iterator_tag, id_type, size_t>,
 
-public sp_ndarray_iterator<ndims + 1, size_t>
+																public sp_ndarray_iterator<
+																		ndims
+																				+ 1,
+																		size_t>
 {
 private:
 	typedef sp_ndarray_iterator<ndims + 1, size_t> base_iterator;

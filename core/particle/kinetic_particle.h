@@ -24,12 +24,12 @@ struct particle_hasher
 
 	mesh_type const * m_mesh_;
 
-	particle_hasher() :
-			m_mesh_(nullptr)
+	particle_hasher()
+			: m_mesh_(nullptr)
 	{
 	}
-	particle_hasher(mesh_type const & m) :
-			m_mesh_(&m)
+	particle_hasher(mesh_type const & m)
+			: m_mesh_(&m)
 	{
 	}
 	~particle_hasher()
@@ -56,16 +56,18 @@ struct particle_hasher
  *  -  KineticParticle is sorted;
  *  -  KineticParticle is an unordered container;
  */
-template<typename TM, typename Engine>
-using KineticParticle = Particle<TM,Engine,
-sp_sorted_set<typename Engine::Point_s,
-_impl::particle_hasher<TM, typename Engine::Point_s> > >;
 
 template<typename Engine, typename TM, typename ...Others>
-std::shared_ptr<KineticParticle<TM, Engine>> make_kinetic_particle(
+std::shared_ptr<
+		Particle<TM, Engine,
+				sp_sorted_set<typename Engine::Point_s,
+						_impl::particle_hasher<TM, typename Engine::Point_s> > > > make_kinetic_particle(
 		TM const & mesh, Others && ...others)
 {
-	auto res = std::make_shared<KineticParticle<TM, Engine>>(mesh,
+	typedef Particle<TM, Engine,
+			sp_sorted_set<typename Engine::Point_s,
+					_impl::particle_hasher<TM, typename Engine::Point_s> > > particle_type;
+	auto res = std::make_shared<particle_type>(mesh,
 			std::forward<Others>(others)...);
 
 	res->hash_function(

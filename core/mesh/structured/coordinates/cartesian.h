@@ -28,7 +28,7 @@ namespace simpla
  */
 template<typename TTopology, size_t ZAXIS = CARTESIAN_ZAXIS>
 struct CartesianCoordinates: public TTopology, public enable_create_from_this<
-		CartesianCoordinates<TTopology, ZAXIS>>
+										CartesianCoordinates<TTopology, ZAXIS>>
 {
 
 public:
@@ -57,9 +57,14 @@ private:
 	coordinates_type m_length_ /*= { 1.0, 1.0, 1.0 }*/;
 
 	coordinates_type m_shift_/* = { 0, 0, 0 }*/;
+
+	coordinates_type m_to_topology_factor_;
+
+	coordinates_type m_from_topology_factor_;
+
 public:
-	CartesianCoordinates() :
-			topology_type(), is_valid_(false),
+	CartesianCoordinates()
+			: topology_type(), is_valid_(false),
 
 			m_xmin_( { 0, 0, 0 }),
 
@@ -74,8 +79,9 @@ public:
 
 	}
 
-	CartesianCoordinates(CartesianCoordinates const & other) :
-			topology_type(other), m_xmin_(other.m_xmin_), m_xmax_(other.m_xmax_) //, m_dx_(other.m_dx_),
+	CartesianCoordinates(CartesianCoordinates const & other)
+			: topology_type(other), m_xmin_(other.m_xmin_), m_xmax_(
+					other.m_xmax_) //, m_dx_(other.m_dx_),
 
 	{
 
@@ -112,12 +118,12 @@ public:
 	{
 		holder_type self_;
 
-		Hash(holder_type g) :
-				self_(g)
+		Hash(holder_type g)
+				: self_(g)
 		{
 		}
-		Hash(Hash const & other) :
-				self_(other.self_)
+		Hash(Hash const & other)
+				: self_(other.self_)
 		{
 		}
 		~Hash()
@@ -345,11 +351,11 @@ public:
 		return coordinates_type(
 				{
 
-					x[0] * m_length_[0] + m_shift_[0],
+					x[0] * m_from_topology_factor_[0] + m_shift_[0],
 
-					x[1] * m_length_[1] + m_shift_[1],
+					x[1] * m_from_topology_factor_[1] + m_shift_[1],
 
-					x[2] * m_length_[2] + m_shift_[2]
+					x[2] * m_from_topology_factor_[2] + m_shift_[2]
 
 				});
 
@@ -359,11 +365,11 @@ public:
 		return coordinates_type(
 				{
 
-					(x[0] - m_shift_[0]) * m_inv_length_[0],
+					(x[0] - m_shift_[0]) * m_to_topology_factor_[0],
 
-					(x[1] - m_shift_[1]) * m_inv_length_[1],
+					(x[1] - m_shift_[1]) * m_to_topology_factor_[1],
 
-					(x[2] - m_shift_[2]) * m_inv_length_[2]
+					(x[2] - m_shift_[2]) * m_to_topology_factor_[2]
 
 				});
 
@@ -380,10 +386,7 @@ public:
 
 	inline id_type coordinates_to_id(coordinates_type const &x)const
 	{
-		auto y= coordinates_to_topology(x);
-		CHECK(y);
-		return topology_type::coordinates_to_id(y);
-
+		return topology_type::coordinates_to_id(coordinates_to_topology(x));
 	}
 	/**
 	 * @bug: truncation error of coordinates transform larger than 1000
@@ -647,6 +650,7 @@ void CartesianCoordinates<TTopology, ZAXIS>::deploy()
 	}
 
 	topology_type::dimensions(&dims[0]);
+
 	topology_type::deploy();
 
 	for (size_t i = 0; i < ndims; ++i)
@@ -670,6 +674,8 @@ void CartesianCoordinates<TTopology, ZAXIS>::deploy()
 
 			inv_dual_volume_[7 - (1UL << (ndims - i - 1))] = 1.0;
 
+			m_to_topology_factor_[i] = 0;
+			m_from_topology_factor_[i] = 0;
 		}
 		else
 		{
@@ -684,6 +690,10 @@ void CartesianCoordinates<TTopology, ZAXIS>::deploy()
 			inv_volume_[1UL << (ndims - i - 1)] = m_inv_length_[i];
 
 			inv_dual_volume_[7 - (1UL << (ndims - i - 1))] = m_inv_length_[i];
+
+			m_to_topology_factor_ = dims[i] / (m_xmax_[i] - m_xmin_[i]);
+
+			m_from_topology_factor_[i] = (m_xmax_[i] - m_xmin_[i]) / dims[i];
 
 		}
 	}

@@ -8,8 +8,8 @@
 #ifndef EXAMPLE_USE_CASE_PIC_DEMO_PIC_H_
 #define EXAMPLE_USE_CASE_PIC_DEMO_PIC_H_
 
-#include "../../../core/utilities/utilities.h"
-#include "../../../core/particle/particle_engine.h"
+#include "../../core/utilities/utilities.h"
+#include "../../core/particle/particle_engine.h"
 using namespace simpla;
 
 namespace simpla

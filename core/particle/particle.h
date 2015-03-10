@@ -99,10 +99,10 @@ struct particle_container_traits
 
 template<typename TM, typename Engine, typename TContainer>
 class Particle<TM, Engine, TContainer> //
-: public SpObject,
-		public Engine,
-		public TContainer,
-		public enable_create_from_this<Particle<TM, Engine, TContainer> >
+:	public SpObject,
+	public Engine,
+	public TContainer,
+	public enable_create_from_this<Particle<TM, Engine, TContainer> >
 {
 public:
 	typedef TM mesh_type;
@@ -119,19 +119,19 @@ private:
 	mesh_type m_mesh_;
 public:
 
-	Particle(mesh_type const & m) :
-			m_mesh_(m)
+	Particle(mesh_type const & m)
+			: m_mesh_(m)
 	{
 	}
 
-	Particle(this_type const& other) :
-			engine_type(other), container_type(other), m_mesh_(other.m_mesh_)
+	Particle(this_type const& other)
+			: engine_type(other), container_type(other), m_mesh_(other.m_mesh_)
 	{
 	}
 
 	template<typename ... Args>
-	Particle(this_type & other, Args && ...args) :
-			engine_type(other), container_type(other,
+	Particle(this_type & other, Args && ...args)
+			: engine_type(other), container_type(other,
 					std::forward<Args>(args)...), m_mesh_(other.m_mesh_)
 	{
 	}
@@ -197,7 +197,7 @@ public:
 
 	size_t size() const
 	{
-		return container_type::size_all(m_mesh_.range());
+		return container_type::size_all(m_mesh_.local_range());
 	}
 
 	void sync()
@@ -297,19 +297,21 @@ public:
 
 		//TODO need parallel optimize
 
-		auto back_insert_it = back_inserter(p);
-
 		for (auto const & key : p_range)
 		{
 			auto it = container_type::find(key);
 
 			if (it != container_type::end())
 			{
-				std::copy(it->second.begin(), it->second.end(), back_insert_it);
+				for (auto const & pit : it->second)
+				{
+					*p = pit;
+					++p;
+				}
 			}
 		}
 
-		ASSERT(std::distance(data.get(), back_insert_it.get()) == count);
+		ASSERT(std::distance(data.get(), p) == count);
 
 		size_t offset = 0;
 		size_t total_count = count;
@@ -328,7 +330,7 @@ public:
 
 	DataSet dataset() const
 	{
-		return std::move(dataset(m_mesh_.range()));
+		return std::move(dataset(m_mesh_.local_range()));
 	}
 
 //! @}

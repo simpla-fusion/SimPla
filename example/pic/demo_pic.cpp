@@ -10,29 +10,29 @@
 #include <stddef.h>
 #include <algorithm>
 #include <iostream>
-#include <iterator>
 #include <memory>
 #include <random>
 #include <string>
-#include <utility>
 
-#include "../../../core/application/application.h"
-#include "../../../core/application/use_case.h"
-#include "../../../core/dataset/dataset.h"
-#include "../../../core/gtl/containers/sp_sorted_set.h"
-#include "../../../core/gtl/iterator/sp_ndarray_iterator.h"
-#include "../../../core/gtl/primitives.h"
-#include "../../../core/io/io.h"
-#include "../../../core/mesh/mesh.h"
-#include "../../../core/mesh/structured/coordinates/cartesian.h"
-#include "../../../core/mesh/structured/topology/structured.h"
-#include "../../../core/particle/kinetic_particle.h"
-#include "../../../core/particle/particle.h"
-#include "../../../core/particle/particle_generator.h"
-#include "../../../core/particle/simple_particle_generator.h"
-#include "../../../core/utilities/config_parser.h"
-#include "../../../core/utilities/log.h"
-#include "../../../core/utilities/lua_object.h"
+#include "../../core/utilities/utilities.h"
+
+#include "../../core/io/io.h"
+
+#include "../../core/application/application.h"
+#include "../../core/application/use_case.h"
+
+#include "../../core/gtl/ntuple.h"
+#include "../../core/gtl/primitives.h"
+
+#include "../../core/mesh/mesh.h"
+#include "../../core/mesh/structured/coordinates/cartesian.h"
+#include "../../core/mesh/structured/topology/structured.h"
+
+#include "../../core/particle/particle.h"
+#include "../../core/particle/particle_engine.h"
+#include "../../core/particle/kinetic_particle.h"
+#include "../../core/particle/particle_generator.h"
+#include "../../core/particle/simple_particle_generator.h"
 
 using namespace simpla;
 
@@ -92,11 +92,14 @@ USE_CASE(pic)
 	MESSAGE << "======== Configuration ========" << std::endl;
 	MESSAGE << " Description:"
 			<< options["Description"].template as<std::string>("") << std::endl;
+
 	MESSAGE << " Options:" << std::endl;
+
 	RIGHT_COLUMN(" mesh" ) << " = {" << *mesh << "}," << std::endl;
+
 	RIGHT_COLUMN(" time_step" ) << " = " << num_of_steps << std::endl;
 
-	MESSAGE << "======== Initlialize ========" << std::endl;
+	MESSAGE << "======== Initialize ========" << std::endl;
 
 	auto ion = make_kinetic_particle<engine_type>(*mesh);
 
@@ -110,59 +113,40 @@ USE_CASE(pic)
 
 	auto extents = mesh->local_extents();
 
-	auto range = mesh->range();
+	auto range = mesh->local_range();
 
 	auto p_generator = simple_particle_generator(*ion, extents, 1.0);
 
 	std::mt19937 rnd_gen;
 
 	size_t num = range.size();
+
 //
 //	std::copy(p_generator.begin(rnd_gen), p_generator.end(rnd_gen, pic * num),
 //			std::front_inserter(*ion));
-	CHECK(ion->size());
+
 	size_t count = 0;
+
 	for (int i = 0; i < pic * num; ++i)
 	{
-		engine_type::Point_s p;
-
-		p.x = 0;
-
-		p.x[0] = count * 0.1;
-
-		CHECK(p.x);
-
-		++count;
-		ion->insert(std::move(p));
+		ion->insert(p_generator(rnd_gen));
 	}
 
-//	ion->insert(engine_type::Point_s
-//	{ 0.5, 0.5, 0.5, 4, 5, 6, 1 });
-	CHECK(extents);
-
-	CHECK(ion->size());
-
-	ion->for_each([](engine_type::Point_s & p)
-	{
-		CHECK(p.x);
-	});
+	VERBOSE << save("H0", ion->dataset()) << std::endl;
 
 	ion->rehash();
 
-	CHECK(ion->size());
-
-	VERBOSE << save("H0", ion->dataset()) << std::endl;
+	VERBOSE << save("H1", ion->dataset()) << std::endl;
 
 	ion->sync();
 
 	ion->wait();
 
 	ion->rehash();
-	CHECK(ion->size());
 
-	VERBOSE << save("H1", ion->dataset()) << std::endl;
+	VERBOSE << save("H2", ion->dataset()) << std::endl;
 
-	// Load initialize value
+// Load initialize value
 //	auto J = make_form<EDGE, Real>(mesh);
 //	auto E = make_form<EDGE, Real>(mesh);
 //	auto B = make_form<FACE, Real>(mesh);

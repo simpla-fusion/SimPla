@@ -99,6 +99,6 @@ ExternalProject_Add(googletest
 add_subdirectory(core )
 add_subdirectory(applications )
 add_subdirectory(example )
-add_subdirectory(doc )
+add_subdirectory(docs )
 
  

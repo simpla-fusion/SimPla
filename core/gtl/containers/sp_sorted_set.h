@@ -57,13 +57,13 @@ public:
 	sp_sorted_set()
 	{
 	}
-	sp_sorted_set(this_type const & other) :
-			m_hash_(other.m_hash_), m_data_(other.m_data_)
+	sp_sorted_set(this_type const & other)
+			: m_hash_(other.m_hash_), m_data_(other.m_data_)
 	{
 	}
 
-	sp_sorted_set(this_type && other) :
-			m_hash_(other.m_hash_), m_data_(other.m_data_)
+	sp_sorted_set(this_type && other)
+			: m_hash_(other.m_hash_), m_data_(other.m_data_)
 	{
 	}
 
@@ -162,10 +162,11 @@ public:
 	}
 
 	template<typename TV>
-	void insert(TV const& v)
+	key_type insert(TV const& v)
 	{
-		CHECK(m_hash_(v));
+		auto s = m_hash_(v);
 		m_data_[m_hash_(v)].push_front(v);
+		return s;
 	}
 
 	template<typename TV>
