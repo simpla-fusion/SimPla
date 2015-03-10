@@ -119,15 +119,7 @@ USE_CASE(pic)
 
 	std::mt19937 rnd_gen;
 
-	size_t num = range.size();
-
-//
-//	std::copy(p_generator.begin(rnd_gen), p_generator.end(rnd_gen, pic * num),
-//			std::front_inserter(*ion));
-
-	size_t count = 0;
-
-	for (int i = 0; i < pic * num; ++i)
+	for (int i = 0, ie = pic * range.size(); i < ie; ++i)
 	{
 		ion->insert(p_generator(rnd_gen));
 	}
