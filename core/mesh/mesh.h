@@ -7,7 +7,7 @@
 
 #ifndef CORE_MESH_MESH_H_
 #define CORE_MESH_MESH_H_
-
+#include "mesh_common.h"
 namespace simpla
 {
 
