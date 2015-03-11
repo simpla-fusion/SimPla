@@ -7,115 +7,162 @@
 
 #ifndef CORE_FIELD_FIELD_CONSTRAINT_H_
 #define CORE_FIELD_FIELD_CONSTRAINT_H_
-#include "../manifold/domain.h"
-#include "../model/select.h"
 namespace simpla
 {
 template<typename ...>struct Constraint;
 
-template<typename TD, typename TV>
-struct Constraint<TD, TV>
+template<typename TM, typename TField>
+struct Constraint<TM, TField>
 {
 
-	typedef TD base_domain_type;
+	typedef TM mesh_type;
 
-	typedef Constraint<TD, TV> this_type;
+	typedef TField field_type;
 
-	typedef typename domain_traits<TD>::manifold_type manifold_type;
+	typedef Constraint<mesh_type> this_type;
 
-	static constexpr size_t iform = domain_traits<TD>::iform;
+	typedef typename mesh_type::coordinates_type coordinates_type;
 
-	typedef typename manifold_type::coordinates_type coordinates_type;
+	typedef typename mesh_type::id_type id_type;
 
-	typedef typename manifold_type::index_type index_type;
+	typedef typename field_type::value_type value_type;
 
-	typedef SubDomain<manifold_type, iform> domain_type;
+	typedef typename field_type::field_value_type field_value_type;
 
-	typedef TV value_type;
-	typedef typename std::conditional<iform == EDGE || iform == FACE,
-			nTuple<value_type, 3>, value_type>::type field_value_type;
+	typedef std::function<
+			field_value_type(Real, coordinates_type const &,
+					field_value_type const &)> function_type;
 
-	template<typename TDict>
-	Constraint(std::shared_ptr<manifold_type> m, TDict const & dict) :
-			domain_(Domain<manifold_type, iform>(m))
+	Constraint(mesh_type const &m)
+			: m_mesh_(m)
 	{
-		load(dict);
+	}
+
+	template<typename TFun>
+	Constraint(mesh_type const &m, TFun const & fun = TFun())
+			: m_mesh_(m), m_fun_(fun)
+	{
+	}
+
+	Constraint(this_type const &other)
+			: m_mesh_(other.m_mesh_), m_range_(other.m_range_), m_fun_(
+					other.m_fun_)
+	{
 	}
 
 	~Constraint()
 	{
 	}
 
-	domain_type & domain()
+	void swap(Constraint & other)
 	{
-		return domain_;
-	}
-	domain_type const & domain() const
-	{
-		return domain_;
+		std::swap(m_mesh_, other.m_mesh_);
+		std::swap(m_fun_, other.m_fun_);
+		std::swap(m_range_, other.m_range_);
+
 	}
 
-	template<typename ...T>
-	void operator()(_Field<T...> * f) const
+	void operator()(field_type * f) const
 	{
-		if (!fun_)
+		if (m_range_.size() <= 0)
 		{
-			VERBOSE << "Function is not defined! Do nothing!";
-			return;
+			apply(m_mesh_.range(), f);
 		}
-		for (auto s : domain_)
+		else
 		{
-			auto x = domain_.coordinates(s);
-			field_value_type v;
-			fun_(x, &v);
-			(*f)[s] = domain_.sample(s, v);
+			apply(m_range_, f);
 		}
 	}
-	template<typename TDict> void load(TDict const & dict);
+
+	std::vector<id_type> & range()
+	{
+		return m_range_;
+	}
+
+	template<typename TRange>
+	void range(TRange const & o_range)
+	{
+		for (auto s : o_range)
+		{
+			m_range_.push_back(s);
+		}
+
+	}
+	template<typename TF>
+	void function(TF const & f)
+	{
+		m_fun_ = f;
+	}
+	function_type const & function() const
+	{
+		return m_fun_;
+	}
 
 private:
 
-	domain_type domain_;
+	mesh_type m_mesh_;
 
-	std::function<void(coordinates_type, field_value_type *)> fun_;
+	std::vector<id_type> m_range_;
+
+	function_type m_fun_;
+
+	template<typename TR>
+	void apply(TR const & r, field_type * f) const
+	{
+		for (auto s : r)
+		{
+			auto x = m_mesh_.coordinates(s);
+
+			Real t = m_mesh_.time();
+//
+			(*f)[s] = m_mesh_.sample(m_fun_(1, x, (*f)(x)), s);
+		}
+	}
 };
 
-template<typename TD, typename TV>
-template<typename TDict>
-void Constraint<TD, TV>::load(TDict const & dict)
+template<typename TField, typename TM, typename TDict>
+Constraint<TM, TField> make_constraint(TM const & mesh, TDict const & dict)
 {
-	if (!dict["Select"] || !dict["Operation"])
-	{
-		return;
-	}
-	domain_ = select_by_config(
-			dynamic_cast<Domain<manifold_type, iform> const&>(domain_),
-			dict["Select"]);
+	typedef typename TM::coordinates_type coordinates_type;
 
-	auto op = dict["Operation"];
+	Constraint<TM, TField> res(mesh);
 
-	if (!dict["IsHardConstraint"])
+	typedef typename Constraint<TM, TField>::function_type function_type;
+
+	typedef typename TField::field_value_type field_value_type;
+
+	if (dict["Select"] && !dict["Operation"])
 	{
-		fun_ = [=](coordinates_type x, field_value_type * v)
+
+//	res.range(select_by_config(mesh, dict["Select"]));
+
+		auto op = dict["Operation"];
+
+		if (!dict["IsHardConstraint"])
 		{
-			*v =op(x,*v);
-		};
-	}
-	else
-	{
-		fun_ = [=](coordinates_type x, field_value_type * v)
-		{
-			*v =op(x);
-		};
-	}
 
+			res.function(
+					[=]( Real t,coordinates_type const & x, field_value_type const & v)->field_value_type
+					{
+						return op(t,x, v).template as<field_value_type>();
+					}
+
+					);
+		}
+		else
+		{
+
+			res.function(
+					[=]( Real t,coordinates_type const &x, field_value_type const & v)->field_value_type
+					{
+						return op(t,x).template as<field_value_type>();
+					});
+
+		}
+	}
+	return std::move(res);
 }
-template<size_t IFORM, typename TV, typename TM, typename TDict>
-Constraint<Domain<TM, IFORM>, TV> make_constraint(std::shared_ptr<TM> const & m,
-		TDict const & dict)
-{
-	return std::move(Constraint<Domain<TM, IFORM>, TV>(m, dict));
-}
+
 }
 // namespace simpla
 

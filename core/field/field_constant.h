@@ -8,52 +8,74 @@
 #ifndef FIELD_CONSTANT_H_
 #define FIELD_CONSTANT_H_
 
-#include "../utilities/constant_ops.h"
-
 namespace simpla
 {
-template<typename, size_t> struct Domain;
-template<typename ... > struct _Field;
+template<typename ... >struct _Field;
 
-template<typename TM, size_t IFORM, typename TV>
-struct _Field<Domain<TM, IFORM>, Constant<TV> >
+namespace _impl
 {
 
-	typedef TM mesh_type;
+class this_is_constant;
 
+}  // namespace _impl
+
+template<typename TM, typename TV>
+class _Field<TM, TV, _impl::this_is_constant>
+{
+	typedef _Field<TM, TV, _impl::this_is_constant> this_type;
+
+	typedef TM mesh_type;
+	typedef typename mesh_type::coordiantes_type coordiantes_type;
+	typedef typename mesh_type::id_type id_type;
 	typedef TV value_type;
 
-	static const size_t IForm = IFORM;
+private:
+	mesh_type m_mesh_;
+	value_type m_value_;
+public:
 
-	static const size_t NDIMS = mesh_type::NDIMS;
+	_Field(mesh_type const& m, value_type const & f)
+			: m_mesh_(m), m_value_(f)
+	{
 
-	typedef typename mesh_type::iterator iterator;
-
-	typedef typename Geometry<mesh_type, IForm>::template field_value_type<
-			value_type> field_value_type;
-
-	mesh_type const &mesh;
-
-	const value_type v_;
-
-	_Field(mesh_type const &pmesh, value_type const & v) :
-			mesh(pmesh), v_(v)
+	}
+	_Field(this_type const & other)
+			: m_mesh_(other.m_mesh_), m_value_(other.m_value_)
 	{
 	}
 	~_Field()
 	{
 	}
-	inline const value_type & get(iterator s) const
+
+	void swap(this_type & other)
 	{
-		return v_;
+		std::swap(m_mesh_, other.m_mesh_);
+		std::swap(m_value_, other.m_value_);
 	}
 
-	inline const value_type & operator[](iterator s) const
+	this_type &operator=(this_type const & other)
 	{
-		return get(s);
+		this_type(other).swap(*this);
+		return *this;
 	}
+
+	auto operator[](id_type const &s) const DECL_RET_TYPE(m_mesh_.sample(s, m_value_))
+
+	value_type operator()(coordinates_type const & x) const
+	{
+		return m_value_;
+	}
+
 };
 
-}  // namespace simpla
+template<typename TM, typename TV>
+_Field<TM, TV, _impl::this_is_function> make_field_constant(TM const & m,
+		TV const & v)
+{
+	return std::move(_Field<TM, TV, _impl::this_is_constant>(m, v));
+}
+
+}
+// namespace simpla
 
 #endif /* FIELD_CONSTANT_H_ */

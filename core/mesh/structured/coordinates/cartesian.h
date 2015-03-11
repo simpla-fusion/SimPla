@@ -173,13 +173,13 @@ public:
 	{
 		topology_type::next_timestep();
 	}
-	void set_time(Real p_time)
+	void time(Real p_time)
 	{
 		time0_ = p_time;
 	}
-	Real get_time() const
+	Real time() const
 	{
-		return static_cast<double>(topology_type::get_clock()) * dt_ + time0_;
+		return topology_type::time() * dt_ + time0_;
 	}
 
 	void dt(Real p_dt)

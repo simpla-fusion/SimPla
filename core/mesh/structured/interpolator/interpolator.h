@@ -53,7 +53,7 @@ protected:
 private:
 
 	template<typename TD, typename TIDX>
-	static   auto gather_impl_(TD const & f,
+	static auto gather_impl_(TD const & f,
 			TIDX const & idx) -> decltype(get_value(f, std::get<0>(idx) )* std::get<1>(idx)[0])
 	{
 
@@ -132,8 +132,8 @@ private:
 public:
 
 	template<typename TF, typename TV, typename TW>
-	static auto scatter(geometry_type const & geo, TF &f, coordinates_type const & x,
-			TV const &u,
+	static auto scatter(geometry_type const & geo, TF &f,
+			coordinates_type const & x, TV const &u,
 			TW const &w) ->typename std::enable_if< (field_traits<TF >::iform==VERTEX)>::type
 	{
 
@@ -141,8 +141,8 @@ public:
 	}
 
 	template<typename TF, typename TV, typename TW>
-	static auto scatter(geometry_type const & geo, TF &f, coordinates_type const & x,
-			TV const &u,
+	static auto scatter(geometry_type const & geo, TF &f,
+			coordinates_type const & x, TV const &u,
 			TW const & w) ->typename std::enable_if< (field_traits<TF >::iform==EDGE)>::type
 	{
 		scatter_impl_(f,
@@ -158,8 +158,8 @@ public:
 	}
 
 	template<typename TF, typename TV, typename TW>
-	static auto scatter(geometry_type const & geo, TF &f, coordinates_type const & x,
-			TV const &u,
+	static auto scatter(geometry_type const & geo, TF &f,
+			coordinates_type const & x, TV const &u,
 			TW const &w) ->typename std::enable_if< (field_traits<TF >::iform==FACE)>::type
 	{
 
@@ -175,8 +175,8 @@ public:
 	}
 
 	template<typename TF, typename TV, typename TW>
-	static auto scatter(geometry_type const & geo, TF &f, coordinates_type const & x,
-			TV const &u,
+	static auto scatter(geometry_type const & geo, TF &f,
+			coordinates_type const & x, TV const &u,
 			TW const &w) ->typename std::enable_if< (field_traits<TF >::iform==VOLUME)>::type
 	{
 		scatter_impl_(f, geo.coordinates_global_to_local(x, topology_type::_DA),
@@ -221,8 +221,8 @@ public:
 	}
 
 	template<size_t IFORM, typename ...Args>
-	static auto sample(Args && ... args)
-	DECL_RET_TYPE((sample_(std::integral_constant<size_t, IFORM>(),
+	static auto sample(geometry_type const & geo, Args && ... args)
+	DECL_RET_TYPE((sample_(geo,std::integral_constant<size_t, IFORM>(),
 							std::forward<Args>(args)...)))
 }
 ;

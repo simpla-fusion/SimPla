@@ -298,6 +298,22 @@ public:
 	using field_value_type=typename
 	std::conditional<IFORM==EDGE ||IFORM==FACE,nTuple<TV,3>,TV>::type;
 
+private:
+	Real m_time_ = 0;
+public:
+	void next_timestep()
+	{
+		m_time_ += 1.0;
+	}
+	void time(Real p_time)
+	{
+		m_time_ = p_time;
+	}
+	Real time() const
+	{
+		return m_time_;
+	}
+
 	template<typename T>
 	void dimensions(T const& d)
 	{

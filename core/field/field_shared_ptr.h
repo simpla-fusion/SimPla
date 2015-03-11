@@ -57,16 +57,16 @@ private:
 
 public:
 
-	_Field(mesh_type const & d) :
-			m_mesh_(d), m_data_(nullptr)
+	_Field(mesh_type const & d)
+			: m_mesh_(d), m_data_(nullptr)
 	{
 	}
-	_Field(this_type const & that) :
-			m_mesh_(that.m_mesh_), m_data_(that.m_data_)
+	_Field(this_type const & that)
+			: m_mesh_(that.m_mesh_), m_data_(that.m_data_)
 	{
 	}
-	_Field(this_type && that) :
-			m_mesh_(that.m_mesh_), m_data_(that.m_data_)
+	_Field(this_type && that)
+			: m_mesh_(that.m_mesh_), m_data_(that.m_data_)
 	{
 	}
 	~_Field()
@@ -115,8 +115,8 @@ public:
 	 */
 
 	template<typename ...Args>
-	_Field(this_type & that, Args && ...args) :
-			m_mesh_(that.m_mesh_, std::forward<Args>(args)...), m_data_(
+	_Field(this_type & that, Args && ...args)
+			: m_mesh_(that.m_mesh_, std::forward<Args>(args)...), m_data_(
 					that.m_data_)
 	{
 	}
@@ -139,16 +139,6 @@ public:
 	 * @{
 	 */
 
-//	inline _Field<AssignmentExpression<_impl::_assign, this_type, this_type>> operator =(
-//			this_type const &that)
-//	{
-//		deploy();
-//
-//		return std::move(
-//				_Field<
-//						AssignmentExpression<_impl::_assign, this_type,
-//								this_type>>(*this, that));
-//	}
 	inline this_type & operator =(this_type const &that)
 	{
 		wait();

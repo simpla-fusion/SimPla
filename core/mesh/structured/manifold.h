@@ -57,18 +57,18 @@ private:
 	range_type m_range_;
 public:
 
-	Manifold() :
-			m_geometry_(nullptr)
+	Manifold()
+			: m_geometry_(nullptr)
 	{
 	}
 
-	Manifold(geometry_type const & geo) :
-			m_geometry_(geo.shared_from_this()), m_range_()
+	Manifold(geometry_type const & geo)
+			: m_geometry_(geo.shared_from_this()), m_range_()
 	{
 	}
 
-	Manifold(this_type const & other) :
-			m_geometry_(other.m_geometry_)
+	Manifold(this_type const & other)
+			: m_geometry_(other.m_geometry_)
 	{
 	}
 
@@ -96,8 +96,8 @@ public:
 	 * @{
 	 */
 	template<typename ...Others>
-	Manifold(this_type & other, Others && ...others) :
-			m_geometry_(other.m_geometry_), m_range_(other.m_range_,
+	Manifold(this_type & other, Others && ...others)
+			: m_geometry_(other.m_geometry_), m_range_(other.m_range_,
 					std::forward<Others>(others)...)
 	{
 	}
@@ -211,9 +211,18 @@ public:
 		}
 	}
 
+	Real time() const
+	{
+		return m_geometry_->time();
+	}
+
 	template<typename ...Args>
 	auto coordinates(Args && ...args) const
 	DECL_RET_TYPE(( m_geometry_->coordinates(std::forward<Args>(args)...)))
+
+	template<typename TF>
+	auto sample(TF const & v, id_type s) const
+	DECL_RET_TYPE(interpolatpr_policy::template sample<iform>(*m_geometry_ ,s,v))
 
 	template<typename ...Args>
 	auto gather(Args && ...args) const

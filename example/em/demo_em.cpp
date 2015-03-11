@@ -80,12 +80,9 @@ USE_CASE(em)
 //	VERBOSE_CMD(load(options["InitValue"]["E"], &E));
 //	VERBOSE_CMD(load(options["InitValue"]["J"], &J));
 
-	auto E_src = make_constraint<EDGE, Real>(mesh,
-			options["Constraint"]["E"]);
-	auto J_src = make_constraint<EDGE, Real>(mesh,
-			options["Constraint"]["J"]);
-	auto B_src = make_constraint<FACE, Real>(mesh,
-			options["Constraint"]["B"]);
+	auto E_src = make_constraint<decltype(E)>(E.mesh(), options["Constraint"]["E"]);
+	auto J_src = make_constraint<decltype(J)>(J.mesh(), options["Constraint"]["J"]);
+	auto B_src = make_constraint<decltype(B)>(B.mesh(), options["Constraint"]["B"]);
 //
 //	LOGGER << "----------  Dump input ---------- " << std::endl;
 //
