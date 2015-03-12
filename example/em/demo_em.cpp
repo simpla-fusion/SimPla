@@ -11,11 +11,15 @@
 
 #include "../../core/application/application.h"
 #include "../../core/application/use_case.h"
-#include "../../core/field/field.h"
-#include "../../core/field/field_constraint.h"
-#include "../../core/mesh/structured/cartesian_mesh.h"
+
 #include "../../core/utilities/utilities.h"
 #include "../../core/io/io.h"
+
+#include "../../core/field/field.h"
+#include "../../core/field/field_constraint.h"
+
+#include "../../core/mesh/mesh.h"
+#include "../../core/mesh/structured/cartesian_mesh.h"
 
 using namespace simpla;
 
@@ -80,9 +84,12 @@ USE_CASE(em)
 //	VERBOSE_CMD(load(options["InitValue"]["E"], &E));
 //	VERBOSE_CMD(load(options["InitValue"]["J"], &J));
 
-	auto E_src = make_constraint<decltype(E)>(E.mesh(), options["Constraint"]["E"]);
-	auto J_src = make_constraint<decltype(J)>(J.mesh(), options["Constraint"]["J"]);
-	auto B_src = make_constraint<decltype(B)>(B.mesh(), options["Constraint"]["B"]);
+	auto E_src = make_constraint<decltype(E)>(E.mesh(),
+			options["Constraint"]["E"]);
+	auto J_src = make_constraint<decltype(J)>(J.mesh(),
+			options["Constraint"]["J"]);
+	auto B_src = make_constraint<decltype(B)>(B.mesh(),
+			options["Constraint"]["B"]);
 //
 //	LOGGER << "----------  Dump input ---------- " << std::endl;
 //

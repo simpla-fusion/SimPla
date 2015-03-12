@@ -21,10 +21,6 @@
 namespace simpla
 {
 template<typename ...>struct _Field;
-namespace _impl
-{
-struct is_sequence_container;
-}  // namespace _impl
 
 /** @ingroup field
  *  @brief Field using  sequence container,i.e.  'vector'
@@ -52,16 +48,16 @@ private:
 
 public:
 	template<typename ...Args>
-	_Field(mesh_type const & d, Args && ...args) :
-			mesh_(d), data_(
+	_Field(mesh_type const & d, Args && ...args)
+			: mesh_(d), data_(
 					std::make_shared<container_type>(
 							std::forward<Args>(args...))
 
 							)
 	{
 	}
-	_Field(this_type const & that) :
-			mesh_(that.mesh_), data_(that.data_)
+	_Field(this_type const & that)
+			: mesh_(that.mesh_), data_(that.data_)
 	{
 	}
 	~_Field()
@@ -90,8 +86,8 @@ public:
 	 */
 
 	template<typename ...Args>
-	_Field(this_type & that, Args && ...args) :
-			mesh_(that.mesh_, std::forward<Args>(args)...), data_(that.data_)
+	_Field(this_type & that, Args && ...args)
+			: mesh_(that.mesh_, std::forward<Args>(args)...), data_(that.data_)
 	{
 	}
 	bool empty() const

@@ -12,8 +12,10 @@
 #include <vector>
 #include <ostream>
 
-#include "../../dataset/dataset.h"
-#include "../../utilities/utilities.h"
+#include "../dataset/dataset.h"
+#include "../utilities/utilities.h"
+#include "../field/field.h"
+
 namespace simpla
 {
 template<typename ...>struct _Field;
@@ -21,14 +23,25 @@ template<typename ...>struct _Field;
 template<typename > class FiniteDiffMethod;
 template<typename > class InterpolatorLinear;
 
+enum ManifoldTypeID
+{
+	VERTEX = 0,
+
+	EDGE = 1,
+
+	FACE = 2,
+
+	VOLUME = 3
+};
+
 /**
  *  \ingroup manifold
  *  \brief manifold
  */
 template<size_t IFORM, //
 		typename TG, // Geometric space, mesh
-		template<typename > class CalculusPolicy = FiniteDiffMethod, // difference scheme
-		template<typename > class InterpolatorPlolicy = InterpolatorLinear // interpolation formula
+		typename CalculusPolicy = FiniteDiffMethod<TG>, // difference scheme
+		typename InterpolatorPlolicy = InterpolatorLinear<TG> // interpolation formula
 >
 class Manifold
 {
@@ -41,8 +54,8 @@ public:
 	typedef typename geometry_type::id_type id_type;
 	typedef typename geometry_type::topology_type topology_type;
 	typedef typename geometry_type::index_tuple index_tuple;
-	typedef CalculusPolicy<geometry_type> calculate_policy;
-	typedef InterpolatorPlolicy<geometry_type> interpolatpr_policy;
+	typedef CalculusPolicy calculate_policy;
+	typedef InterpolatorPlolicy interpolatpr_policy;
 	typedef typename geometry_type::coordinates_type coordinates_type;
 	static constexpr size_t iform = IFORM;
 	static constexpr size_t ndims = geometry_type::ndims;
@@ -53,8 +66,9 @@ public:
 	typedef typename range_type::const_iterator const_iterator;
 
 private:
+
 	std::shared_ptr<const geometry_type> m_geometry_;
-	range_type m_range_;
+
 public:
 
 	Manifold()
@@ -63,7 +77,7 @@ public:
 	}
 
 	Manifold(geometry_type const & geo)
-			: m_geometry_(geo.shared_from_this()), m_range_()
+			: m_geometry_(geo.shared_from_this())
 	{
 	}
 
@@ -97,17 +111,8 @@ public:
 	 */
 	template<typename ...Others>
 	Manifold(this_type & other, Others && ...others)
-			: m_geometry_(other.m_geometry_), m_range_(other.m_range_,
-					std::forward<Others>(others)...)
+			: m_geometry_(other.m_geometry_)
 	{
-	}
-	bool is_divisible() const
-	{
-		return false; //range_.is_divisible();
-	}
-	bool empty() const
-	{
-		return false;
 	}
 
 	/**
@@ -121,10 +126,14 @@ public:
 	{
 	}
 
-	range_type const & range() const
-	{
-		return m_range_;
-	}
+	auto range() const
+	DECL_RET_TYPE(m_geometry_->template range<iform>())
+
+	template<typename ...Args>
+	auto select(Args && ... args)
+	DECL_RET_TYPE((m_geometry_->
+					template select<iform>( std::forward<Args>(args)...)))
+
 	DataSpace dataspace() const
 	{
 		return std::move(m_geometry_->template dataspace<iform>());
@@ -132,43 +141,6 @@ public:
 
 	auto ghost_shape()
 	DECL_RET_TYPE(m_geometry_->template ghost_shape<iform>())
-
-	template<typename TFun>
-	void serial_foreach(TFun const & fun) const
-	{
-		for (auto s : m_range_)
-		{
-			fun(s);
-		}
-	}
-
-	template<typename TFun, typename ...Args>
-	void serial_foreach(TFun const &fun, Args &&...args) const
-	{
-		for (auto s : m_range_)
-		{
-			fun(get_value(std::forward<Args>(args),s)...);
-		}
-	}
-
-	template<typename TFun, typename TContainre>
-	void serial_pull_back(TFun const &fun, TContainre & data) const
-	{
-//		for (auto s : range_)
-//		{
-//			access(data, s) = sample(fun(geometry_->coordinates(s)), s);
-//		}
-	}
-
-	template<typename ...Args>
-	void pull_back(Args &&...args) const
-	{
-//		parallel_for(*this, [&](this_type const & sub_m)
-//		{
-//			sub_m.serial_pull_back(std::forward<Args>(args) ...);
-//		});
-
-	}
 
 	/**
 	 * @}
@@ -204,7 +176,7 @@ public:
 	void calculate(
 			_Field<AssignmentExpression<TOP, TL, TR> > const & fexpr) const
 	{
-		for (auto s : m_range_)
+		for (auto s : range())
 		{
 			fexpr.op_(fexpr.lhs[s],
 					calculate_policy::calculate(*m_geometry_, fexpr.rhs, s));
@@ -221,8 +193,9 @@ public:
 	DECL_RET_TYPE(( m_geometry_->coordinates(std::forward<Args>(args)...)))
 
 	template<typename TF>
-	auto sample(TF const & v, id_type s) const
-	DECL_RET_TYPE(interpolatpr_policy::template sample<iform>(*m_geometry_ ,s,v))
+	auto sample(TF const & v,
+			id_type s) const
+					DECL_RET_TYPE(interpolatpr_policy::template sample<iform>(*m_geometry_ ,s,v))
 
 	template<typename ...Args>
 	auto gather(Args && ...args) const
@@ -234,35 +207,44 @@ public:
 	DECL_RET_TYPE((interpolatpr_policy::scatter(
 							*m_geometry_,std::forward<Args>(args)...)))
 
-//	template<typename ...Args>
-//	auto sample(Args && ...args) const
-//	DECL_RET_TYPE(
-//			(geometry_type:: sample<iform>(
-//							*geometry_,std::forward<Args>(args)...)))
-
 };
 
-template<size_t IFORM, typename TG>
-std::shared_ptr<Manifold<IFORM, TG>> create_mesh(TG const & geo)
-{
-	return std::make_shared<Manifold<IFORM, TG>>(geo);
-}
-template<size_t IFORM, typename TV, typename TG>
-_Field<Manifold<IFORM, TG>, std::shared_ptr<TV>> make_form(
-		std::shared_ptr<TG> const &geo)
-{
-	typedef Manifold<IFORM, TG> manifold_type;
-	return std::move(
-			_Field<manifold_type, std::shared_ptr<TV>>(manifold_type(*geo)));
-}
-template<size_t IFORM, typename TV, typename TG>
-_Field<Manifold<IFORM, TG>, std::shared_ptr<TV>> make_form(TG const & geo)
-{
-	typedef Manifold<IFORM, TG> manifold_type;
-	return std::move(
-			_Field<manifold_type, std::shared_ptr<TV>>(manifold_type(geo)));
-}
+//template<size_t IFORM, typename TM, typename TV>
+//using Form=_Field<Manifold<IFORM,TM>,TV, _impl::is_sequence_container >;
+//
+//template<size_t IFORM, typename TV, typename TG>
+//_Field<Manifold<IFORM, TG>, TV, _impl::is_sequence_container> make_form(
+//		std::shared_ptr<TG> const &geo)
+//{
+//	typedef Manifold<IFORM, TG> manifold_type;
+//	return std::move(
+//			_Field<manifold_type, TV, _impl::is_sequence_container>(
+//					manifold_type(*geo)));
+//}
+//template<size_t IFORM, typename TV, typename TG>
+//_Field<Manifold<IFORM, TG>, TV, _impl::is_sequence_container> make_form(
+//		TG const & geo)
+//{
+//	typedef Manifold<IFORM, TG> manifold_type;
+//	return std::move(
+//			_Field<manifold_type, TV, _impl::is_sequence_container>(
+//					manifold_type(geo)));
+//}
+template<typename TM, size_t IFORM, typename TV>
+using Form=_Field<Manifold<IFORM,TM>,TV, _impl::is_sequence_container >;
 
+template<size_t IFORM, typename TV, typename TM>
+_Field<Manifold<IFORM, TM>, TV, _impl::is_sequence_container> make_form(
+		TM const & mesh)
+{
+	return std::move(make_field<TV>(Manifold<IFORM, TM>(mesh)));
+}
+template<size_t IFORM, typename TV, typename TM>
+_Field<Manifold<IFORM, TM>, TV, _impl::is_sequence_container> make_form(
+		std::shared_ptr<TM> const & pmesh)
+{
+	return std::move(make_field<TV>(Manifold<IFORM, TM>(*pmesh)));
+}
 }
 // namespace simpla
 

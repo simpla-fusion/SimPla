@@ -13,7 +13,7 @@
 
 #include "../../../gtl/type_traits.h"
 #include "../../../gtl/ntuple.h"
-#include "../../mesh_common.h"
+#include "../../mesh.h"
 namespace simpla
 {
 

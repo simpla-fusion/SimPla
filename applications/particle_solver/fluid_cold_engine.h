@@ -23,14 +23,14 @@ namespace simpla
 
 class PolicyFluidParticle;
 class ColdFluid;
-template<typename...> class Particle;
+template<typename ...> class Particle;
 
 /**
  * @ingroup ParticleEngine
  * \brief Cold Plasma fluid
  */
 template<typename TM>
-class Particle<TM, ColdFluid, PolicyFluidParticle> : public ParticleBase
+class Particle<TM, ColdFluid, PolicyFluidParticle>
 {
 public:
 	static constexpr std::size_t IForm = VERTEX;
@@ -76,27 +76,6 @@ public:
 	Particle(TDict const & dict, TModel const & model, Args && ... args);
 
 	~Particle();
-
-	template<typename ...Args>
-	static std::shared_ptr<ParticleBase> create(Args && ... args)
-	{
-		std::shared_ptr<this_type> res(
-				new this_type(std::forward<Args>(args)...));
-
-		return std::dynamic_pointer_cast<ParticleBase>(res);
-	}
-
-	template<typename ...Args>
-	static std::pair<std::string,
-			std::function<std::shared_ptr<ParticleBase>(Args const &...)>> CreateFactoryFun()
-	{
-		std::function<std::shared_ptr<ParticleBase>(Args const &...)> call_back =
-				[]( Args const& ...args)
-				{
-					return this_type::create(args...);
-				};
-		return std::move(std::make_pair(get_type_as_string_static(), call_back));
-	}
 
 	template<typename TDict, typename TModel>
 	void load(TDict const & dict, TModel const & model);
@@ -215,8 +194,8 @@ private:
 template<typename TM>
 template<typename TDict, typename TModel, typename ...Args>
 Particle<TM, ColdFluid, PolicyFluidParticle>::Particle(TDict const & dict,
-		TModel const & model, Args && ... args) :
-		mesh(model),
+		TModel const & model, Args && ... args)
+		: mesh(model),
 
 		m(dict["Mass"].template as<Real>(1.0)),
 
@@ -287,8 +266,7 @@ template<typename TM>
 std::string Particle<TM, ColdFluid, PolicyFluidParticle>::save(
 		std::string const & path) const
 {
-
-	GLOBAL_DATA_STREAM.cd(path);
+	cd(path);
 
 	return
 

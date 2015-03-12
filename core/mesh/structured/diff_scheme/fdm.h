@@ -16,7 +16,7 @@
 #include "../../../gtl/ntuple.h"
 #include "../../../gtl/primitives.h"
 #include "../../calculus.h"
-#include "../../mesh_common.h"
+#include "../../mesh.h"
 
 namespace simpla
 {
@@ -110,11 +110,11 @@ public:
 		return std::move(res);
 	}
 
-	template<typename TC, typename TD, typename ... Others>
-	static inline typename field_traits<_Field<TC, TD> >::value_type
-	calculate(geometry_type const & geo,_Field<TC, TD> const &f, Others && ... s)
+	template<typename TM,typename TV, typename ... Others,typename ... Args>
+	static inline TV
+	calculate(geometry_type const & geo,_Field<TM, TV, Others...> const &f, Args && ... s)
 	{
-		return get_value(f,std::forward<Others>(s)...);
+		return get_value(f,std::forward<Args>(s)...);
 	}
 
 	template<typename TOP, typename TL, typename TR, typename ...Others>

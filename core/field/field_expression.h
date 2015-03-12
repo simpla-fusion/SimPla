@@ -8,7 +8,7 @@
 #ifndef CORE_FIELD_FIELD_EXPRESSION_H_
 #define CORE_FIELD_FIELD_EXPRESSION_H_
 #include "../gtl/expression_template.h"
-
+#include "../utilities/log.h"
 namespace simpla
 {
 /** @addtogroup field
@@ -16,10 +16,19 @@ namespace simpla
  */
 template<typename ... >struct _Field;
 
-template<typename TM, typename TC, typename ...Others>
-struct reference_traits<_Field<TM, TC, Others...> >
+namespace _impl
 {
-	typedef _Field<TM, TC, Others...> const & type;
+class is_sequence_container;
+
+class is_associative_container;
+
+}
+// namespace _impl
+
+template<typename TM, typename TV, typename ...Others>
+struct reference_traits<_Field<TM, TV, Others...> >
+{
+	typedef _Field<TM, TV, Others...> const & type;
 };
 
 template<typename > struct is_field

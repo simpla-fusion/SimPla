@@ -101,8 +101,6 @@ struct SpObject
 
 	virtual bool empty() const = 0;
 
-	virtual bool is_divisible() const = 0;
-
 	virtual bool is_valid() const=0;
 
 	virtual void deploy()=0;

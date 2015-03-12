@@ -16,7 +16,7 @@
 #include "../../../physics/constants.h"
 #include "../../../physics/physical_constants.h"
 #include "../../../gtl/enable_create_from_this.h"
-#include "../../mesh_common.h"
+#include "../../mesh.h"
 
 namespace simpla
 {

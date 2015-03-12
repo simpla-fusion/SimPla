@@ -10,7 +10,6 @@
 
 #include "../../../core/application/application.h"
 #include "../../../core/application/use_case.h"
-#include "../../../core/field/field_shared_ptr.h"
 #include "../../../core/io/io.h"
 #include "../../../core/mesh/mesh.h"
 #include "../../../core/mesh/mesh_common.h"
@@ -21,6 +20,7 @@
 #include "../../../core/mesh/structured/topology/structured.h"
 #include "../../../core/parallel/mpi_comm.h"
 #include "../../../core/utilities/log.h"
+#include "../../core/field/field_sequence.h"
 
 using namespace simpla;
 

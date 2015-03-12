@@ -109,13 +109,14 @@ private:
 	template<typename TR>
 	void apply(TR const & r, field_type * f) const
 	{
-		for (auto s : r)
+		if (m_fun_)
 		{
-			auto x = m_mesh_.coordinates(s);
-
-			Real t = m_mesh_.time();
-//
-			(*f)[s] = m_mesh_.sample(m_fun_(1, x, (*f)(x)), s);
+			for (auto s : r)
+			{
+				auto x = m_mesh_.coordinates(s);
+				Real t = m_mesh_.time();
+				(*f)[s] = m_mesh_.sample(m_fun_(1, x, (*f)(x)), s);
+			}
 		}
 	}
 };

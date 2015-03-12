@@ -5,8 +5,8 @@
  *      @author: salmon
  */
 
-#ifndef CORE_FIELD_FIELD_SHARED_PTR_H_
-#define CORE_FIELD_FIELD_SHARED_PTR_H_
+#ifndef CORE_FIELD_FIELD_SEQUENCE_H_
+#define CORE_FIELD_FIELD_SEQUENCE_H_
 
 #include <algorithm>
 #include <cstdbool>
@@ -23,8 +23,11 @@
 #include "../gtl/type_traits.h"
 #include "../parallel/mpi_update.h"
 
+#include "field_expression.h"
+
 namespace simpla
 {
+
 template<typename ...> struct _Field;
 
 /**
@@ -35,8 +38,8 @@ template<typename ...> struct _Field;
 /**
  *  Simple Field
  */
-template<typename TM, typename TV, typename ...Others>
-struct _Field<TM, std::shared_ptr<TV>, Others...> : public SpObject
+template<typename TM, typename TV>
+struct _Field<TM, TV, _impl::is_sequence_container> : public SpObject
 {
 
 	typedef TM mesh_type;
@@ -44,10 +47,11 @@ struct _Field<TM, std::shared_ptr<TV>, Others...> : public SpObject
 	typedef typename mesh_type::id_type id_type;
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
-	typedef std::shared_ptr<TV> container_type;
 	typedef TV value_type;
 
-	typedef _Field<mesh_type, container_type, Others...> this_type;
+	typedef std::shared_ptr<value_type> container_type;
+
+	typedef _Field<mesh_type, value_type, _impl::is_sequence_container> this_type;
 
 private:
 
@@ -88,7 +92,7 @@ public:
 	}
 
 	template<typename TU> using clone_field_type=
-	_Field<TM,std::shared_ptr<TU>,Others... >;
+	_Field<TM,TU, _impl::is_sequence_container >;
 
 	template<typename TU>
 	clone_field_type<TU> clone() const
@@ -124,10 +128,7 @@ public:
 	{
 		return m_data_ == nullptr;
 	}
-	bool is_divisible() const
-	{
-		return m_mesh_.is_divisible();
-	}
+
 	bool is_valid() const
 	{
 		return m_data_ != nullptr;
@@ -274,23 +275,10 @@ public:
 
 }
 ;
-namespace _impl
-{
-class is_sequence_container;
-template<typename TContainer> struct field_selector;
-template<typename TV>
-struct field_selector<std::shared_ptr<TV>>
-{
-	typedef is_sequence_container type;
-};
 
-}  // namespace _impl
 /**@} */
 
-template<typename TM, typename TV>
-auto make_field(TM const & mesh)
-DECL_RET_TYPE(( _Field<TM,std::shared_ptr<TV>>(mesh)))
 }
 // namespace simpla
 
-#endif /* CORE_FIELD_FIELD_SHARED_PTR_H_ */
+#endif /* CORE_FIELD_FIELD_SEQUENCE_H_ */

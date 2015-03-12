@@ -11,7 +11,7 @@
 
 #include "../utilities/utilities.h"
 #include "../gtl/expression_template.h"
-#include "mesh_common.h"
+#include "mesh.h"
 namespace simpla
 {
 

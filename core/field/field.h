@@ -6,9 +6,12 @@
  */
 #ifndef CORE_FIELD_FIELD_H_
 #define CORE_FIELD_FIELD_H_
+
 #include "../gtl/type_traits.h"
 #include "field_expression.h"
-#include "field_shared_ptr.h"
+#include "field_associative.h"
+#include "field_sequence.h"
+
 namespace simpla
 {
 
@@ -110,49 +113,22 @@ namespace simpla
  */
 template<typename ... >struct _Field;
 
-namespace _impl
-{
-class is_sequence_container;
-
-class is_map_container;
-
-class is_shared_ptr;
-
-template<typename TContainer>
-struct field_selector
-{
-	HAS_TYPE(mapped_type);
-
-	HAS_MEMBER_FUNCTION(resize);
-
-	HAS_CONST_MEMBER_FUNCTION(hash);
-
-	typedef typename std::conditional<
-	has_type_mapped_type<TContainer>::value,
-	is_map_container,
-
-	typename std::conditional<has_member_function_resize<TContainer>::value,
-	is_sequence_container,void>::type >::type type;
-};
-
-}
- // namespace _impl
-
 template<typename TV, typename TM>
-_Field<TM, std::shared_ptr<TV> > make_field(TM const & mesh)
+_Field<TM, TV, _impl::is_sequence_container> make_field(TM const & mesh)
 {
-return std::move(_Field<TM, std::shared_ptr<TV> >(mesh));
+	return std::move(_Field<TM, TV, _impl::is_sequence_container>(mesh));
 }
 template<typename TV, typename TM>
-_Field<TM, std::shared_ptr<TV> > make_field(std::shared_ptr<TM> mesh)
+_Field<TM, TV, _impl::is_sequence_container> make_field(
+		std::shared_ptr<TM> mesh)
 {
-return std::move(_Field<TM, std::shared_ptr<TV> >(*mesh));
+	return std::move(_Field<TM, TV, _impl::is_sequence_container>(*mesh));
 }
 template<typename TM, typename TV>
-using Field=_Field<TM,std::shared_ptr<TV> >;
+using Field=_Field<TM,TV, _impl::is_sequence_container >;
 
 /** @} */
 }
- // namespace simpla
+// namespace simpla
 
 #endif /* CORE_FIELD_FIELD_H_ */

@@ -24,7 +24,6 @@
 #include "../../../gtl/primitives.h"
 #include "../../../gtl/iterator/sp_ndarray_iterator.h"
 #include "../../../numeric/geometric_algorithm.h"
-#include "../../mesh_common.h"
 
 #include "../../../parallel/mpi_comm.h"
 #include "../../../parallel/mpi_aux_functions.h"

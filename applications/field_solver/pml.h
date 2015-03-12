@@ -7,20 +7,21 @@
  */
 
 #include <cmath>
-#include <iostream>
+#include <cstdbool>
 #include <string>
 
-#include "../../core/field/field.h"
-#include "../../core/utilities/primitives.h"
-#include "../../core/utilities/log.h"
+#include "../../core/gtl/primitives.h"
+#include "../../core/mesh/mesh.h"
+#include "../../core/mesh/calculus.h"
 #include "../../core/physics/physical_constants.h"
+#include "../../core/utilities/utilities.h"
 
 namespace simpla
 {
 
 /**
  *  @ingroup FieldSolver
- *  \brief absorb boundary condition, PML
+ *  @brief absorb boundary condition, PML
  */
 template<typename TM>
 class PML
@@ -66,7 +67,7 @@ public:
 	template<typename TDict, typename ...Others>
 	void load(TDict const &dict, Others const & ...);
 
-	void load(coordinates_type xmin, coordinates_type xmax);
+	void extents(coordinates_type xmin, coordinates_type xmax);
 
 	void save(std::string const & path, bool is_verbose) const;
 
@@ -84,8 +85,8 @@ public:
 
 template<typename TM>
 template<typename ... Args>
-PML<TM>::PML(mesh_type const & pmesh, Args && ...args) :
-		mesh(pmesh),
+PML<TM>::PML(mesh_type const & pmesh, Args && ...args)
+		: mesh(pmesh),
 
 		a0(pmesh), a1(pmesh), a2(pmesh),
 
@@ -109,16 +110,17 @@ template<typename TM>
 template<typename TDict, typename ...Others>
 void PML<TM>::load(TDict const &dict, Others const & ...)
 {
-	load(dict["Min"].template as<coordinates_type>(),
+	extents(dict["Min"].template as<coordinates_type>(),
 			dict["Max"].template as<coordinates_type>());
 }
 
 template<typename TM>
-void PML<TM>::load(coordinates_type xmin, coordinates_type xmax)
+void PML<TM>::extents(coordinates_type xmin, coordinates_type xmax)
 {
 	LOGGER << "create PML solver [" << xmin << " , " << xmax << " ]";
 
-	DEFINE_PHYSICAL_CONST;
+	DEFINE_PHYSICAL_CONST
+	;
 
 	Real dB = 100, expN = 2;
 
@@ -193,17 +195,17 @@ void PML<TM>::next_timestepE(Real dt,
 
 	auto dX1 = mesh.template make_field<EDGE, scalar_type>();
 
-	dX1 = (-2.0 * dt * s0 * X10 + CurlPDX(B1) / (mu0 * epsilon0) * dt)
+	dX1 = (-2.0 * dt * s0 * X10 + curl_pdx(B1) / (mu0 * epsilon0) * dt)
 			/ (a0 + s0 * dt);
 	X10 += dX1;
 	*dE += dX1;
 
-	dX1 = (-2.0 * dt * s1 * X11 + CurlPDY(B1) / (mu0 * epsilon0) * dt)
+	dX1 = (-2.0 * dt * s1 * X11 + curl_pdy(B1) / (mu0 * epsilon0) * dt)
 			/ (a1 + s1 * dt);
 	X11 += dX1;
 	*dE += dX1;
 
-	dX1 = (-2.0 * dt * s2 * X12 + CurlPDZ(B1) / (mu0 * epsilon0) * dt)
+	dX1 = (-2.0 * dt * s2 * X12 + curl_pdz(B1) / (mu0 * epsilon0) * dt)
 			/ (a2 + s2 * dt);
 	X12 += dX1;
 	*dE += dX1;
@@ -223,15 +225,15 @@ void PML<TM>::next_timestepB(Real dt,
 
 	auto dX2 = mesh.template make_field<FACE, scalar_type>();
 
-	dX2 = (-2.0 * dt * s0 * X20 + CurlPDX(E1) * dt) / (a0 + s0 * dt);
+	dX2 = (-2.0 * dt * s0 * X20 + curl_pdx(E1) * dt) / (a0 + s0 * dt);
 	X20 += dX2;
 	*dB -= dX2;
 
-	dX2 = (-2.0 * dt * s1 * X21 + CurlPDY(E1) * dt) / (a1 + s1 * dt);
+	dX2 = (-2.0 * dt * s1 * X21 + curl_pdy(E1) * dt) / (a1 + s1 * dt);
 	X21 += dX2;
 	*dB -= dX2;
 
-	dX2 = (-2.0 * dt * s2 * X22 + CurlPDZ(E1) * dt) / (a2 + s2 * dt);
+	dX2 = (-2.0 * dt * s2 * X22 + curl_pdz(E1) * dt) / (a2 + s2 * dt);
 	X22 += dX2;
 	*dB -= dX2;
 	LOGGER << DONE;
