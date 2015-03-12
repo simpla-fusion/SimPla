@@ -46,3 +46,7 @@ xmax={LX,LY,LZ}
 
 dt=1.0 --0.5*LX/NX/c
  
+Constraint=
+{
+  E={}
+}
