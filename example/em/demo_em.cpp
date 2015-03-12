@@ -53,7 +53,7 @@ USE_CASE(em)
 	mesh->extents(options["xmin"].as(nTuple<Real, 3>( { 0, 0, 0 })),
 			options["xmax"].as(nTuple<Real, 3>( { 1, 1, 1 })));
 
-	mesh->dt(options["dt"]. as<Real>(1.0));
+	mesh->dt(options["dt"].as<Real>(1.0));
 
 	mesh->deploy();
 
@@ -105,18 +105,19 @@ USE_CASE(em)
 
 	cd("/Save/");
 
-	if (options["JUST_A_TEST"])
+//	if (options["JUST_A_TEST"])
+//	{
+//		LOGGER << " Just test configuration!" << std::endl;
+//	}
+//	else
 	{
-		LOGGER << " Just test configuration!" << std::endl;
-	}
-	else
-	{
-		for (size_t s = 0; s < num_of_steps; s += strides)
+		for (size_t s = 0; s < num_of_steps; ++s)
 		{
+			VERBOSE << "Step [" << s << "/" << num_of_steps << "]" << std::endl;
 
 			E_src(&E);
-			J_src(&J);
-			B_src(&B);
+//			J_src(&J);
+//			B_src(&B);
 			E = curl(B) * dt - J;
 			B = -curl(E) * dt;
 		}

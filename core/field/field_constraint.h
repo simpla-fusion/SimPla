@@ -7,6 +7,7 @@
 
 #ifndef CORE_FIELD_FIELD_CONSTRAINT_H_
 #define CORE_FIELD_FIELD_CONSTRAINT_H_
+#include "../model/select.h"
 namespace simpla
 {
 template<typename ...>struct Constraint;
@@ -33,19 +34,19 @@ struct Constraint<TM, TField>
 			field_value_type(Real, coordinates_type const &,
 					field_value_type const &)> function_type;
 
-	Constraint(mesh_type const &m)
-			: m_mesh_(m)
+	Constraint(mesh_type const &m) :
+			m_mesh_(m)
 	{
 	}
 
 	template<typename TFun>
-	Constraint(mesh_type const &m, TFun const & fun = TFun())
-			: m_mesh_(m), m_fun_(fun)
+	Constraint(mesh_type const &m, TFun const & fun = TFun()) :
+			m_mesh_(m), m_fun_(fun)
 	{
 	}
 
-	Constraint(this_type const &other)
-			: m_mesh_(other.m_mesh_), m_range_(other.m_range_), m_fun_(
+	Constraint(this_type const &other) :
+			m_mesh_(other.m_mesh_), m_range_(other.m_range_), m_fun_(
 					other.m_fun_)
 	{
 	}
@@ -64,6 +65,10 @@ struct Constraint<TM, TField>
 
 	void operator()(field_type * f) const
 	{
+
+		if (!m_fun_)
+			return;
+
 		if (m_range_.size() <= 0)
 		{
 			apply(m_mesh_.range(), f);
@@ -86,8 +91,13 @@ struct Constraint<TM, TField>
 		{
 			m_range_.push_back(s);
 		}
-
 	}
+
+	void range(std::vector<id_type> && o_range)
+	{
+		std::vector<id_type>(o_range).swap(m_range_);
+	}
+
 	template<typename TF>
 	void function(TF const & f)
 	{
@@ -109,15 +119,15 @@ private:
 	template<typename TR>
 	void apply(TR const & r, field_type * f) const
 	{
-		if (m_fun_)
+
+		for (auto s : r)
 		{
-			for (auto s : r)
-			{
-				auto x = m_mesh_.coordinates(s);
-				Real t = m_mesh_.time();
-				(*f)[s] = m_mesh_.sample(m_fun_(1, x, (*f)(x)), s);
-			}
+			auto x = m_mesh_.coordinates(s);
+			Real t = m_mesh_.time();
+
+			(*f)[s] = m_mesh_.sample(m_fun_(t, x, (*f)(x)), s);
 		}
+
 	}
 };
 
@@ -132,34 +142,22 @@ Constraint<TM, TField> make_constraint(TM const & mesh, TDict const & dict)
 
 	typedef typename TField::field_value_type field_value_type;
 
-	if (dict["Select"] && !dict["Operation"])
+	if (dict["Select"] && dict["Operation"])
 	{
+		VERBOSE << "set constraint form lua" << std::endl;
 
-//	res.range(select_by_config(mesh, dict["Select"]));
+		res.range(select_by_config(mesh, mesh.range(), dict["Select"]));
 
-		auto op = dict["Operation"];
+		LuaObject op = dict["Operation"];
 
-		if (!dict["IsHardConstraint"])
+		res.function([=]( Real t,coordinates_type const & x,
+				field_value_type const & v)->field_value_type
 		{
-
-			res.function(
-					[=]( Real t,coordinates_type const & x, field_value_type const & v)->field_value_type
-					{
-						return op(t,x, v).template as<field_value_type>();
-					}
-
-					);
+			return op(t,x, v).template as<field_value_type>();
 		}
-		else
-		{
 
-			res.function(
-					[=]( Real t,coordinates_type const &x, field_value_type const & v)->field_value_type
-					{
-						return op(t,x).template as<field_value_type>();
-					});
+		);
 
-		}
 	}
 	return std::move(res);
 }

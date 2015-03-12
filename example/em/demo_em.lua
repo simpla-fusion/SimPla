@@ -48,5 +48,14 @@ dt=1.0 --0.5*LX/NX/c
  
 Constraint=
 {
-  E={}
+E= {
+    
+    Select= {{0.1,0.1,0},{0.2,0.2,0}},
+    
+    Operation= function(t,x,v )
+      local tau = t*omega_ext+ x[2]*TWOPI/(xmax[3]-xmin[3])
+      local amp=  math.sin(tau) --*(1-math.exp(-tau*tau)
+      return { v[0],v[1],v[2]+amp}
+    end
+  }
 }

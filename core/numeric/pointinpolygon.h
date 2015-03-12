@@ -11,7 +11,7 @@
 #include <vector>
 
 #include "../gtl/ntuple.h"
-#include "../utilities/primitives.h"
+#include "../gtl/primitives.h"
 #include "../numeric/find_root.h"
 
 namespace simpla
@@ -35,8 +35,8 @@ public:
 
 		for (auto const & v : polygen)
 		{
-			polygen_.emplace_back(nTuple<double, 2>(
-			{ v[(Z + 1) % 3], v[(Z + 2) % 3] }));
+			polygen_.emplace_back(
+					nTuple<double, 2>( { v[(Z + 1) % 3], v[(Z + 2) % 3] }));
 		}
 		num_of_vertex_ = polygen_.size();
 		constant_.resize(num_of_vertex_);
