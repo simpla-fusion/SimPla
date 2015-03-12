@@ -74,11 +74,9 @@ struct ConfigParser
 		{
 			if (m_value_ != "")
 			{
-
 				return std::move(string_to_value<T>(m_value_));
 			}
 			else if (!LuaObject::IsNull())
-
 			{
 				return std::move(LuaObject::template as<T>());
 			}

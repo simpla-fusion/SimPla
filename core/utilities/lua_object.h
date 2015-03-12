@@ -52,7 +52,18 @@ namespace simpla
  * @addtogroup  lua   Lua engine
  *  @{
  */
-#define LUA_ERROR(_L, _MSG_)  Logger(LOG_ERROR)<<"[Lua error]"<<(_MSG_)<<std::string("\n") << lua_tostring(_L, -1) ; lua_pop(_L, 1);throw(std::runtime_error(""));
+#define LUA_ERROR( _CMD_ )                                                     \
+{                                                                              \
+   int error=_CMD_;                                                            \
+	if(error!=0)                                                               \
+	{                                                                          \
+     Logger(LOG_ERROR)                                                         \
+      <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"       \
+	  << lua_tostring(L_.get(), -1)<<std::endl ;                                     \
+	 lua_pop(L_.get(), 1);                                                           \
+	 throw(std::runtime_error("Lua error"));                                   \
+	}                                                                          \
+}
 
 class LuaIterator;
 class LuaObject;
@@ -98,19 +109,19 @@ public:
 
 	typedef LuaObject this_type;
 
-	LuaObject() :
-			L_(nullptr), self_(0), GLOBAL_REF_IDX_(0)
+	LuaObject()
+			: L_(nullptr), self_(0), GLOBAL_REF_IDX_(0)
 
 	{
 	}
 
 	LuaObject(std::shared_ptr<lua_State> l, unsigned int G, unsigned int s,
-			std::string const & path = "") :
-			L_(l), GLOBAL_REF_IDX_(G), self_(s), path_(path)
+			std::string const & path = "")
+			: L_(l), GLOBAL_REF_IDX_(G), self_(s), path_(path)
 	{
 	}
-	LuaObject(LuaObject const & r) :
-			L_(r.L_), GLOBAL_REF_IDX_(r.GLOBAL_REF_IDX_), path_(r.path_)
+	LuaObject(LuaObject const & r)
+			: L_(r.L_), GLOBAL_REF_IDX_(r.GLOBAL_REF_IDX_), path_(r.path_)
 	{
 		if (L_ != nullptr)
 		{
@@ -119,8 +130,8 @@ public:
 		}
 	}
 
-	LuaObject(LuaObject && r) :
-			L_(r.L_), GLOBAL_REF_IDX_(r.GLOBAL_REF_IDX_), self_(r.self_), path_(
+	LuaObject(LuaObject && r)
+			: L_(r.L_), GLOBAL_REF_IDX_(r.GLOBAL_REF_IDX_), self_(r.self_), path_(
 					r.path_)
 	{
 		r.self_ = 0;
@@ -262,18 +273,18 @@ public:
 	inline void parse_file(std::string const & filename)
 	{
 		init();
-		if (filename != "" && luaL_dofile(L_.get(), filename.c_str()))
+		if (filename != "")
 		{
-			LUA_ERROR(L_.get(), "Can not parse file " + filename + " ! ");
+			VERBOSE << "Load Lua file:[" << filename << "]" << std::endl;
+			LUA_ERROR(luaL_dofile(L_.get(), filename.c_str()));
 		}
 	}
 	inline void parse_string(std::string const & str)
 	{
 		init();
-		if (luaL_dostring(L_.get(), str.c_str()))
-		{
-			LUA_ERROR(L_.get(), "Parsing string error! \n\t" + str);
-		}
+
+		LUA_ERROR(luaL_dostring(L_.get(), str.c_str()))
+
 	}
 
 	class iterator
@@ -331,14 +342,14 @@ public:
 			lua_pop(L_.get(), 1);
 		}
 	public:
-		iterator() :
-				L_(nullptr), GLOBAL_IDX_(0), parent_(LUA_NOREF), key_(
+		iterator()
+				: L_(nullptr), GLOBAL_IDX_(0), parent_(LUA_NOREF), key_(
 				LUA_NOREF), value_(LUA_NOREF)
 		{
 
 		}
-		iterator(iterator const& r) :
-				L_(r.L_), GLOBAL_IDX_(r.GLOBAL_IDX_)
+		iterator(iterator const& r)
+				: L_(r.L_), GLOBAL_IDX_(r.GLOBAL_IDX_)
 		{
 			if (L_ == nullptr)
 			{
@@ -358,8 +369,8 @@ public:
 			value_ = luaL_ref(L_.get(), GLOBAL_IDX_);
 
 		}
-		iterator(iterator && r) :
-				L_(r.L_), GLOBAL_IDX_(r.GLOBAL_IDX_), parent_(r.parent_), key_(
+		iterator(iterator && r)
+				: L_(r.L_), GLOBAL_IDX_(r.GLOBAL_IDX_), parent_(r.parent_), key_(
 						r.key_), value_(r.value_)
 		{
 			r.parent_ = LUA_NOREF;
@@ -367,8 +378,8 @@ public:
 			r.value_ = LUA_NOREF;
 		}
 		iterator(std::shared_ptr<lua_State> L, unsigned int G, unsigned int p,
-				std::string path) :
-				L_(L), GLOBAL_IDX_(G), parent_(p), key_(LUA_NOREF), value_(
+				std::string path)
+				: L_(L), GLOBAL_IDX_(G), parent_(p), key_(LUA_NOREF), value_(
 				LUA_NOREF), path_(path + "[iterator]")
 		{
 			if (L_ == nullptr)

@@ -38,8 +38,10 @@ GW = 5
 
 omega_ext=omega_ci*1.9
 
+dimensions={10,11,12}
+
 Mesh=
-  {
+{
 
     Topology=
     {
@@ -55,4 +57,4 @@ Mesh=
       dt=0.5*LX/NX/c  -- time step
     },
 
-  }
+}

@@ -11,6 +11,7 @@
 
 namespace simpla
 {
+
 ConfigParser::ConfigParser()
 {
 
@@ -28,16 +29,21 @@ void ConfigParser::init(int argc, char ** argv)
 		m_kv_map_["SHOW_HELP"] = "true";
 	}
 
+	std::string lua_file = argv[0];
+	lua_file += ".lua";
+
+	std::string lua_cmd = "";
+
 	simpla::parse_cmd_line(argc, argv,
 			[&](std::string const & opt,std::string const & value)->int
 			{
 				if(opt=="i"||opt=="input")
 				{
-					m_lua_object_.parse_file(value);
+					lua_file=value;
 				}
 				else if(opt=="e"|| opt=="execute")
 				{
-					m_lua_object_.parse_string(value);
+					lua_cmd=value;
 				}
 				else if (opt=="t"|| opt=="test")
 				{
@@ -65,6 +71,9 @@ void ConfigParser::init(int argc, char ** argv)
 			}
 
 			);
+
+	m_lua_object_.parse_file(lua_file);
+	m_lua_object_.parse_string(lua_cmd);
 
 }
 }  // namespace simpla

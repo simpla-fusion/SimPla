@@ -45,14 +45,14 @@ USE_CASE(em)
 
 	options["STRIDES"].as<size_t>(&strides);
 
-	size_t dims[3] = { 10, 2, 2 };
-	size_t xmin[3] = { 0, 0, 0 };
-	size_t xmax[3] = { 1, 1, 1 };
-
 	auto mesh = make_mesh<CartesianMesh>();
 
-	mesh->dimensions(dims);
-	mesh->extents(xmin, xmax);
+	mesh->dimensions(
+			options["dimensions"].as(nTuple<size_t, 3>( { 10, 10, 10 })));
+
+	mesh->extents(options["xmin"].as(nTuple<Real, 3>( { 0, 0, 0 })),
+			options["xmax"].as(nTuple<Real, 3>( { 1, 1, 1 })));
+
 	mesh->deploy();
 
 	LOGGER << std::endl
