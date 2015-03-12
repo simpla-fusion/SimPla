@@ -38,23 +38,11 @@ GW = 5
 
 omega_ext=omega_ci*1.9
 
-dimensions={10,11,12}
+dimensions={10,11,1 }
 
-Mesh=
-{
+xmin={0.0,0.0,0.0}
 
-    Topology=
-    {
-      Type="CoRectMesh",
-      Dimensions={NX,NY,NZ}, -- number of grid, now only first dimension is valid
-    },
-    Geometry=
-    {
-      Type="Cartesian",
-      Min={0.0,0.0,0.0},
-      Max={LX,LY,LZ},
-      -- dt= 2.0*math.pi/omega_ci/1000.0
-      dt=0.5*LX/NX/c  -- time step
-    },
+xmax={LX,LY,LZ} 
 
-}
+dt=1.0 --0.5*LX/NX/c
+ 

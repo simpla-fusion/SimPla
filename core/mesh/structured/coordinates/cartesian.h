@@ -164,7 +164,7 @@ public:
 	// Metric
 	//***************************************************************************************************
 
-	Real dt_ = 0.0;
+	Real m_dt_ = 1.0;
 	Real time0_ = 0.0;
 	Real CFL_ = 0.5;
 
@@ -179,17 +179,17 @@ public:
 	}
 	Real time() const
 	{
-		return topology_type::time() * dt_ + time0_;
+		return topology_type::time() * m_dt_ + time0_;
 	}
 
-	void dt(Real p_dt)
+	void dt(Real dt)
 	{
-		dt_ = p_dt;
+		m_dt_ = dt;
 	}
 
 	Real dt() const
 	{
-		return dt_;
+		return m_dt_;
 	}
 
 	bool is_valid() const
@@ -212,9 +212,10 @@ public:
 		* std::sqrt(dx_[0] * dx_[0] + dx_[1] * dx_[1] + dx_[2] * dx_[2])
 		/ speed_of_light;
 
-		if (dt_ > safe_dt)
+		if (m_dt_ > safe_dt)
 		{
-			dt_ = safe_dt;
+			VERBOSE<<"dt is change to meet  Courant–Friedrichs–Lewy (CFL) condition !"<<std::endl;
+			m_dt_ = safe_dt;
 		}
 
 	}
@@ -276,7 +277,7 @@ public:
 
 			CFL_ = dict["CFL"].template as<Real>(0.5);
 
-			dt_ = dict["dt"].template as<Real>(1.0);
+			m_dt_ = dict["dt"].template as<Real>(1.0);
 
 		}
 		else
@@ -297,7 +298,7 @@ public:
 
 		<< " Min = " << m_xmin_ << " ,"
 
-		<< " Max  = " << m_xmax_ << "," << " dt  = " << dt_ << ",";
+		<< " Max  = " << m_xmax_ << "," << " dt  = " << m_dt_ << ",";
 
 		return os;
 	}

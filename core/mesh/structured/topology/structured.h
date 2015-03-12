@@ -86,13 +86,13 @@ struct StructuredMesh_
 private:
 	bool is_valid_ = false;
 
-	index_tuple m_global_dimensions_;
-	index_tuple m_global_offset_;
-	index_tuple m_local_dimensions_;
-	index_tuple m_local_offset_;
-	index_tuple m_count_;
+	index_tuple m_global_dimensions_ = { 1, 1, 1 };
+	index_tuple m_global_offset_ = { 0, 0, 0 };
+	index_tuple m_local_dimensions_ = { 1, 1, 1 };
+	index_tuple m_local_offset_ = { 0, 0, 0 };
+	index_tuple m_count_ = { 1, 1, 1 };
 	index_tuple m_local_strides_;
-	index_tuple m_ghost_width_;
+	index_tuple m_ghost_width_ = { 0, 0, 0 };
 	index_tuple m_grain_size_;
 
 //	coordinates_type m_xmin_, m_xmax_, m_dx_;
@@ -481,6 +481,7 @@ public:
 	template<size_t IFORM = iform>
 	size_t max_hash() const
 	{
+
 		size_t res = ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
 		for (int i = 0; i < ndims; ++i)
 		{
