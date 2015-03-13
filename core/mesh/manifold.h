@@ -140,9 +140,11 @@ public:
 		return std::move(m_geometry_->template dataspace<iform>());
 	}
 
-	auto ghost_shape()
+	auto ghost_shape() const
 	DECL_RET_TYPE(m_geometry_->template ghost_shape<iform>())
 
+	auto dx() const
+	DECL_RET_TYPE(m_geometry_->dx())
 	/**
 	 * @}
 	 */

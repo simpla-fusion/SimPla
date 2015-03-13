@@ -34,19 +34,19 @@ struct Constraint<TM, TField>
 			field_value_type(Real, coordinates_type const &,
 					field_value_type const &)> function_type;
 
-	Constraint(mesh_type const &m) :
-			m_mesh_(m)
+	Constraint(mesh_type const &m)
+			: m_mesh_(m)
 	{
 	}
 
 	template<typename TFun>
-	Constraint(mesh_type const &m, TFun const & fun = TFun()) :
-			m_mesh_(m), m_fun_(fun)
+	Constraint(mesh_type const &m, TFun const & fun = TFun())
+			: m_mesh_(m), m_fun_(fun)
 	{
 	}
 
-	Constraint(this_type const &other) :
-			m_mesh_(other.m_mesh_), m_range_(other.m_range_), m_fun_(
+	Constraint(this_type const &other)
+			: m_mesh_(other.m_mesh_), m_range_(other.m_range_), m_fun_(
 					other.m_fun_)
 	{
 	}
@@ -79,7 +79,7 @@ struct Constraint<TM, TField>
 		}
 	}
 
-	std::vector<id_type> & range()
+	std::set<id_type> & range()
 	{
 		return m_range_;
 	}
@@ -112,7 +112,7 @@ private:
 
 	mesh_type m_mesh_;
 
-	std::vector<id_type> m_range_;
+	std::set<id_type> m_range_;
 
 	function_type m_fun_;
 
@@ -142,11 +142,13 @@ Constraint<TM, TField> make_constraint(TM const & mesh, TDict const & dict)
 
 	typedef typename TField::field_value_type field_value_type;
 
-	if (dict["Select"] && dict["Operation"])
+	if (dict["Domain"] && dict["Operation"])
 	{
 		VERBOSE << "set constraint form lua" << std::endl;
 
-		res.range(select_by_config(mesh, mesh.range(), dict["Select"]));
+		select_by_config(mesh, dict["Domain"], mesh.range(), &res.range());
+
+		VERBOSE << "Select " << (res.range().size()) << " nodes." << std::endl;
 
 		LuaObject op = dict["Operation"];
 

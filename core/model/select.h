@@ -10,11 +10,9 @@
 #include "../numeric/pointinpolygon.h"
 namespace simpla
 {
-template<typename TM, typename TFun>
-void select_by_function(TM const & mesh, TFun const & pred,
-		std::set<typename TM::id_type> *res)
+template<typename TM, typename TFun, typename TRes>
+void select_by_function(TM const & mesh, TFun const & pred, TRes *res)
 {
-
 	auto it = res->begin();
 
 	while (it != res->end())
@@ -43,78 +41,35 @@ void select_by_function(TM const & mesh, TFun const & pred,
 
 }
 template<typename TM, typename ... Args>
-void select_by_polylines(TM const & mesh,
-		std::vector<typename TM::coordinates_type>const & poly_lines,
+void select_points_in_polylines(TM const & mesh,
+		std::vector<typename TM::coordinates_type>const & poly_lines, int ZAXIS,
 		Args && ... args)
 {
-	PointInPolygon checkPointsInPolygen(poly_lines);
-	select_by_function(mesh, [&](typename TM::coordiantes_type const &x)
-	{	return checkPointsInPolygen(x);}, std::forward<Args>(args)...);
+	PointInPolygon checkPointsInPolygen(poly_lines, ZAXIS);
+
+	select_by_function(mesh, [&](typename TM::coordinates_type const &x)
+	{	return checkPointsInPolygen(x);},
+
+	std::forward<Args>(args)...);
 }
 
 template<typename TM, typename ...Args>
-void select_by_rectangle(TM const& mesh, std::set<typename TM::id_type> *res,
+void select_points_in_rectangle(TM const& mesh,
 		typename TM::coordinates_type const & v0,
 		typename TM::coordinates_type const & v1, Args && ...args)
 {
 
-	select_by_function(mesh, [&](typename TM::coordiantes_type const &x)
+	select_by_function(mesh, [&](typename TM::coordinates_type const &x)
 	{
 		return (((v0[0] - x[0]) * (x[0] - v1[0])) >= 0)
 		&& (((v0[1] - x[1]) * (x[1] - v1[1])) >= 0)
 		&& (((v0[2] - x[2]) * (x[2] - v1[2])) >= 0);
 	}, std::forward<Args>(args)...);
 
-	return std::move(res);
-
 }
 
 template<typename TM, typename ...Args>
-void select_by_vertics(TM const& mesh,
-		std::vector<typename TM::coordiantes_type>const & points,
-		Args && ...args)
-{
-
-	if (points.size() == 2)
-	{
-		return std::move(
-				select_by_rectangle(mesh, points[0], points[1],
-						std::forward<Args>(args)...));
-	}
-	else if (points.size() > 2)
-	{
-		PointInPolygon poly(points);
-		return std::move(
-				select_by_polylines(mesh, poly, std::forward<Args>(args)...));
-	}
-}
-
-template<typename TM, typename TDict, typename ...Args>
-void select_by_config(TM const& mesh, TDict const & dict, Args && ...args)
-{
-	if (dict.is_function())
-	{
-		return std::move(
-				select_by_function(mesh,
-						[=]( typename TM::coordinates_type const & x )->bool
-						{
-							return (dict(x).template as<bool>());
-						}, std::forward<Args>(args)...));
-
-	}
-	else if (dict.is_table())
-	{
-		std::vector<typename TM::coordinates_type> points;
-
-		dict.as(&points);
-
-		return std::move(
-				select_by_vertics(mesh, points, std::forward<Args>(args)...));
-	}
-}
-
-template<typename TM, typename ...Args>
-void select_near_line_segment(TM const& mesh,
+void select_line_segment(TM const& mesh,
 		typename TM::coordinates_type const & x0,
 		typename TM::coordinates_type const & x1, Args && ...args)
 {
@@ -144,7 +99,7 @@ void select_near_line_segment(TM const& mesh,
 }
 
 template<typename TM, typename ...Args>
-void select_near_polylines(TM const & mesh,
+void select_polylines(TM const & mesh,
 		std::vector<typename TM::coordinates_type> const& polylines,
 		bool is_inner, Args && ...args)
 {
@@ -198,7 +153,52 @@ void select_near_polylines(TM const & mesh,
 			}, //
 			std::forward<Args>(args) ...);
 }
+template<typename TM, typename TDict, typename ...Args>
+void select_by_config(TM const& mesh, TDict const & dict, Args && ...args)
+{
 
+	if (dict.is_function())
+	{
+		select_by_function(mesh,
+				[=]( typename TM::coordinates_type const & x )->bool
+				{
+					return (dict(x).template as<bool>());
+				}, std::forward<Args>(args)...);
+	}
+	else if (dict["Rectangle"])
+	{
+		std::vector<typename TM::coordinates_type> points;
+
+		dict.as(&points);
+
+		select_points_in_rectangle(mesh, points[0], points[1],
+				std::forward<Args>(args)...);
+
+	}
+	else if (dict["Polyline"])
+	{
+		auto obj = dict["Polyline"];
+
+		int ZAXIS = 0;
+
+		std::vector<typename TM::coordinates_type> points;
+
+		obj["ZAXIS"].as(&ZAXIS);
+
+		obj["Points"].as(&points);
+
+		if (obj["OnlyEdge"])
+		{
+			select_polylines(mesh, points, ZAXIS, std::forward<Args>(args)...);
+		}
+		else
+		{
+			select_points_in_polylines(mesh, points, ZAXIS,
+					std::forward<Args>(args)...);
+		}
+	}
+
+}
 }
 // namespace simpla
 

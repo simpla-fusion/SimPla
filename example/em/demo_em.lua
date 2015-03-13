@@ -42,16 +42,25 @@ dimensions={10,11,1 }
 
 xmin={0.0,0.0,0.0}
 
-xmax={LX,LY,LZ} 
+xmax={LX,LY,LZ}
 
 dt=1.0 --0.5*LX/NX/c
- 
-Constraint=
-{
-E= {
-    
-    Select= {{0.1,0.1,0},{0.2,0.2,0}},
-    
+
+Constraint=  {
+  E= {
+
+    Domain= {
+
+      --    Rectangle={{0.1,0.1,0},{0.2,0.2,0}} ,
+
+      Polyline={OnlyEdge=true,
+                  ZAXIS=2,
+                  Points={{0.1,0.1,0},{0.2,0.2,0},{0.3,0.4,0}}} ,
+
+    --    Edge={ZAXIS=0,Points={{0.1,0.1,0},{0.2,0.2,0},{0.3,0.4,0}}}
+
+    },
+
     Operation= function(t,x,v )
       local tau = t*omega_ext+ x[2]*TWOPI/(xmax[3]-xmin[3])
       local amp=  math.sin(tau) --*(1-math.exp(-tau*tau)
