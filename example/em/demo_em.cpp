@@ -72,6 +72,8 @@ USE_CASE(em)
 
 	// Load initialize value
 
+	auto phi = make_form<VERTEX, Real>(mesh);
+
 	auto J = make_form<EDGE, Real>(mesh);
 	auto E = make_form<EDGE, Real>(mesh);
 	auto B = make_form<FACE, Real>(mesh);
@@ -86,51 +88,67 @@ USE_CASE(em)
 //	VERBOSE_CMD(load(options["InitValue"]["E"], &E));
 //	VERBOSE_CMD(load(options["InitValue"]["J"], &J));
 
+	auto phi_bc = make_constraint<decltype(phi)>(phi.mesh(),
+			options["Constraint"]["phi"]);
+
 	auto E_src = make_constraint<decltype(E)>(E.mesh(),
 			options["Constraint"]["E"]);
 	auto J_src = make_constraint<decltype(J)>(J.mesh(),
 			options["Constraint"]["J"]);
 	auto B_src = make_constraint<decltype(B)>(B.mesh(),
 			options["Constraint"]["B"]);
+
+	phi.clear();
+
+	phi = 1.0;
+	cd("/");
+	VERBOSE << save("phi", phi, SP_APPEND) << std::endl;
+	phi_bc(&phi);
+	VERBOSE << save("phi", phi, SP_APPEND) << std::endl;
+
 //
 //	LOGGER << "----------  Dump input ---------- " << std::endl;
 //
-	cd("/Input/");
+//	cd("/Input/");
+//
+////	VERBOSE << SAVE(E) << std::endl;
+////	VERBOSE << SAVE(B) << std::endl;
+////	VERBOSE << SAVE(J) << std::endl;
+//
+//	LOGGER << "----------  START ---------- " << std::endl;
+//
+//	cd("/Save/");
+//
+//	E = 0;
+//
+//	E_src(&E);
 
-	VERBOSE << SAVE(E) << std::endl;
-	VERBOSE << SAVE(B) << std::endl;
-	VERBOSE << SAVE(J) << std::endl;
-
-	LOGGER << "----------  START ---------- " << std::endl;
-
-	cd("/Save/");
-
-//	if (options["JUST_A_TEST"])
+////	if (options["JUST_A_TEST"])
+////	{
+////		LOGGER << " Just test configuration!" << std::endl;
+////	}
+////	else
 //	{
-//		LOGGER << " Just test configuration!" << std::endl;
+//		for (size_t s = 0; s < num_of_steps; ++s)
+//		{
+//			VERBOSE << "Step [" << s << "/" << num_of_steps << "]" << std::endl;
+//
+//			E_src(&E);
+////			J_src(&J);
+////			B_src(&B);
+//			E = curl(B) * dt - J;
+//			B = -curl(E) * dt;
+//		}
+//
+////		VERBOSE << SAVE(E);
+////		VERBOSE << SAVE(B);
+//
 //	}
-//	else
-	{
-		for (size_t s = 0; s < num_of_steps; ++s)
-		{
-			VERBOSE << "Step [" << s << "/" << num_of_steps << "]" << std::endl;
 
-			E_src(&E);
-//			J_src(&J);
-//			B_src(&B);
-			E = curl(B) * dt - J;
-			B = -curl(E) * dt;
-		}
-
-//		VERBOSE << SAVE(E);
-//		VERBOSE << SAVE(B);
-
-	}
-
-	cd("/Output/");
-	VERBOSE << SAVE(E) << std::endl;
-	VERBOSE << SAVE(B) << std::endl;
-	VERBOSE << SAVE(J) << std::endl;
+//	cd("/Output/");
+//	VERBOSE << SAVE(E) << std::endl;
+//	VERBOSE << SAVE(B) << std::endl;
+//	VERBOSE << SAVE(J) << std::endl;
 
 	LOGGER << "----------  DONE ---------- " << std::endl;
 

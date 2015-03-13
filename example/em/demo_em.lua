@@ -32,13 +32,13 @@ NX = 10
 NY = 1
 NZ = 1
 LX = 1  --m --100000*rhoi --0.6
-LY = 2  --2.0*math.pi/k0
+LY = 1  --2.0*math.pi/k0
 LZ = 3  -- 2.0*math.pi/18
 GW = 5
 
 omega_ext=omega_ci*1.9
 
-dimensions={10,11,1 }
+dimensions={100,100,1 }
 
 xmin={0.0,0.0,0.0}
 
@@ -46,25 +46,34 @@ xmax={LX,LY,LZ}
 
 dt=1.0 --0.5*LX/NX/c
 
+--domain_center=function( x  )
+--   return (x[0]-0.5)*( x[0]-0.5 ) +( x[1]-0.5 )*( x[1]-0.5 ) < 0.01
+--end
+domain_center=    {
+  --    Rectangle={{0.1,0.1,0},{0.2,0.2,0}} ,
+  Polyline={OnlyEdge=false,
+    ZAXIS=2,
+    Points={{0.1,0.1,0},{0.2,0.2,0},{0.3,0.4,0}}} ,
+}
+
 Constraint=  {
   E= {
 
-    Domain= {
-
-      --    Rectangle={{0.1,0.1,0},{0.2,0.2,0}} ,
-
-      Polyline={OnlyEdge=true,
-                  ZAXIS=2,
-                  Points={{0.1,0.1,0},{0.2,0.2,0},{0.3,0.4,0}}} ,
-
-    --    Edge={ZAXIS=0,Points={{0.1,0.1,0},{0.2,0.2,0},{0.3,0.4,0}}}
-
-    },
-
+    Domain= domain_center
+    ,
     Operation= function(t,x,v )
       local tau = t*omega_ext+ x[2]*TWOPI/(xmax[3]-xmin[3])
       local amp=  math.sin(tau) --*(1-math.exp(-tau*tau)
-      return { v[0],v[1],v[2]+amp}
+      return { v[0]+100,v[1]+200,v[2]+amp+300}
+    end
+  },
+
+  phi= {
+
+    Domain= domain_center
+    ,
+    Operation= function(t,x,v )
+      return 1.2345
     end
   }
 }

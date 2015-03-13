@@ -8,6 +8,7 @@
 #ifndef CORE_FIELD_FIELD_CONSTRAINT_H_
 #define CORE_FIELD_FIELD_CONSTRAINT_H_
 #include "../model/select.h"
+#include <set>
 namespace simpla
 {
 template<typename ...>struct Constraint;
@@ -93,9 +94,9 @@ struct Constraint<TM, TField>
 		}
 	}
 
-	void range(std::vector<id_type> && o_range)
+	void range(std::set<id_type> && o_range)
 	{
-		std::vector<id_type>(o_range).swap(m_range_);
+		std::set<id_type>(o_range).swap(m_range_);
 	}
 
 	template<typename TF>
@@ -124,7 +125,6 @@ private:
 		{
 			auto x = m_mesh_.coordinates(s);
 			Real t = m_mesh_.time();
-
 			(*f)[s] = m_mesh_.sample(m_fun_(t, x, (*f)(x)), s);
 		}
 

@@ -620,10 +620,10 @@ public:
 		{
 			LOGIC_ERROR(path_ + " is not  a function!");
 		}
-		else
-		{
-			VERBOSE << "execute Lua function" << std::endl;
-		}
+//		else
+//		{
+//			VERBOSE << "execute Lua function" << std::endl;
+//		}
 
 		LUA_ERROR(lua_pcall(L_.get(), ToLua(L_, args...), 1, 0));
 
