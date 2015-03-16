@@ -12,6 +12,7 @@
 #include <string>
 
 #include "../utilities/utilities.h"
+#include "../dataset/dataset.h"
 #include "../dataset/datatype.h"
 #include "data_stream.h"
 namespace simpla

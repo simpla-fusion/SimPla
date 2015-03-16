@@ -17,66 +17,66 @@
 
 namespace simpla
 {
-template<typename TI>
-Range<TI> make_divisible_range(TI const & b, TI const &e)
-{
-	size_t grainsize = b - e;
-
-	int max_thread = std::thread::hardware_concurrency();
-
-	if (grainsize > max_thread * 2)
-	{
-		grainsize = grainsize / max_thread + 1;
-	}
-
-	return std::move(Range<TI>(b, e, grainsize));
-}
-
-template<typename TRange, typename Func>
-void parallel_for(TRange && range, Func && fun)
-{
-
-	tbb::parallel_for(std::forward<Arrgs>(range), std::forward<Func>(fun));
-//	if (!is_divisible(std::forward<TRange>(range)))
+//template<typename TI>
+//Range<TI> make_divisible_range(TI const & b, TI const &e)
+//{
+//	size_t grainsize = b - e;
+//
+//	int max_thread = std::thread::hardware_concurrency();
+//
+//	if (grainsize > max_thread * 2)
 //	{
-//		fun(std::forward<TRange>(range));
+//		grainsize = grainsize / max_thread + 1;
 //	}
-//	else
+//
+//	return std::move(Range<TI>(b, e, grainsize));
+//}
+//
+//template<typename TRange, typename Func>
+//void parallel_for(TRange && range, Func && fun)
+//{
+//
+//	tbb::parallel_for(std::forward<Arrgs>(range), std::forward<Func>(fun));
+////	if (!is_divisible(std::forward<TRange>(range)))
+////	{
+////		fun(std::forward<TRange>(range));
+////	}
+////	else
+////	{
+////
+////		auto t_r = split(std::forward<TRange>(range));
+////
+////		auto f1 = std::async(std::launch::async, [&]()
+////		{	parallel_for( std::get<0>(t_r), std::forward<Func>(fun));});
+////
+////		parallel_for(std::get<1>(t_r), fun);
+////
+////		f1.get();
+////	}
+//}
+//
+////
+/////**
+//// *  @ingroup MULTICORE
+//// *
+//// * \brief Parallel for each
+//// * @param r
+//// * @param fun
+//// */
+//template<typename TRange, typename Func>
+//void parallel_for_each(TRange && range, Func && fun)
+//{
+//
+//	parallel_for(std::forward<TRange>(range),
+//
+//	[&](TRange const & r1)
 //	{
+//		for( auto const & v:r1 )
+//		{	fun(v);}
 //
-//		auto t_r = split(std::forward<TRange>(range));
+//	});
 //
-//		auto f1 = std::async(std::launch::async, [&]()
-//		{	parallel_for( std::get<0>(t_r), std::forward<Func>(fun));});
-//
-//		parallel_for(std::get<1>(t_r), fun);
-//
-//		f1.get();
-//	}
-}
-
-//
-///**
-// *  @ingroup MULTICORE
-// *
-// * \brief Parallel for each
-// * @param r
-// * @param fun
-// */
-template<typename TRange, typename Func>
-void parallel_for_each(TRange && range, Func && fun)
-{
-
-	parallel_for(std::forward<TRange>(range),
-
-	[&](TRange const & r1)
-	{
-		for( auto const & v:r1 )
-		{	fun(v);}
-
-	});
-
-}
+//}
 
 /**
  *  @ingroup MULTICORE

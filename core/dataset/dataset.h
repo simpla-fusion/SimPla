@@ -115,6 +115,21 @@ DataSet make_dataset(std::shared_ptr<T> p, int rank, size_t const * dims,
 
 	return std::move(res);
 }
+
+template<typename T>
+DataSet make_dataset(std::vector<T> const & p)
+{
+
+	DataSet res;
+	size_t num = p.size();
+	res.datatype = make_datatype<T>();
+	res.dataspace = DataSpace::create_simple(1, &num);
+	res.data = std::shared_ptr<void>(
+			const_cast<void*>(reinterpret_cast<void const *>(&p[0])),
+			do_nothing());
+
+	return std::move(res);
+}
 /**@}*/
 
 }  // namespace simpla
