@@ -23,10 +23,10 @@
 #include "../../../gtl/ntuple.h"
 #include "../../../gtl/primitives.h"
 #include "../../../gtl/iterator/sp_ndarray_iterator.h"
-#include "../../../numeric/geometric_algorithm.h"
 
 #include "../../../parallel/mpi_comm.h"
 #include "../../../parallel/mpi_aux_functions.h"
+#include "../../manifold.h"
 
 namespace simpla
 {

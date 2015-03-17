@@ -11,17 +11,13 @@
 #include <stddef.h>
 #include <algorithm>
 #include <bitset>
-#include <functional>
-#include <iostream>
 #include <limits>
 #include <map>
 #include <string>
-#include <type_traits>
-#include <utility>
-#include <vector>
 
-#include "../numeric/pointinpolygon.h"
-#include "../utilities/utilities.h"
+#include "../gtl/primitives.h"
+#include "../gtl/type_traits.h"
+#include "../utilities/log.h"
 
 namespace simpla
 {
@@ -35,9 +31,66 @@ namespace simpla
  *  @ingroup Model
  *   @brief Model
  */
-
-class Model
+template<size_t NDIMS = 3, //
+		size_t AXIS_FLAG = 4 // 0b100
+>
+class Model_
 {
+public:
+
+	typedef size_t id_type;
+
+	static constexpr size_t FULL_DIGITS = std::numeric_limits<size_t>::digits;
+
+	static constexpr size_t INDEX_DIGITS = (FULL_DIGITS
+			- CountBits<FULL_DIGITS>::n) / 3;
+
+	static constexpr size_t FLOATING_POINT_POS = 4;
+
+	static constexpr size_t FLOATING_POINT_FACTOR = 1 << FLOATING_POINT_POS;
+
+	static constexpr Real INDEX_TO_COORDINATES_FACTOR = 1.0
+			/ static_cast<Real>(1 << FLOATING_POINT_POS);
+
+	static constexpr size_t INDEX_MASK = (1UL << (INDEX_DIGITS)) - 1;
+
+	static constexpr size_t D_INDEX = (1UL << (FLOATING_POINT_POS));
+
+	static constexpr size_t _DZ = D_INDEX << (INDEX_DIGITS * 2 - 1);
+
+	static constexpr size_t _DY = D_INDEX << (INDEX_DIGITS - 1);
+
+	static constexpr size_t _DX = D_INDEX >> 1;
+
+	static constexpr size_t CELL_ID_MASK_ = //
+			(((1UL << (INDEX_DIGITS - FLOATING_POINT_POS - 1)) - 1)
+					<< (FLOATING_POINT_POS - 1)) & INDEX_MASK;
+
+	static constexpr size_t CELL_ID_MASK =
+
+	(CELL_ID_MASK_ << (INDEX_DIGITS * 2))
+
+	| (CELL_ID_MASK_ << (INDEX_DIGITS))
+
+	| (CELL_ID_MASK_);
+
+	static constexpr size_t SUB_CELL_ID_MASK_ = 1 << (FLOATING_POINT_POS - 1);
+	;
+	static constexpr size_t SUB_CELL_ID_MASK =
+
+	(SUB_CELL_ID_MASK_ << (INDEX_DIGITS * 2))
+
+	| (SUB_CELL_ID_MASK_ << (INDEX_DIGITS))
+
+	| (SUB_CELL_ID_MASK_);
+
+	static constexpr size_t ID_MASK =
+
+	(((AXIS_FLAG & 1UL) == 0) ? (INDEX_MASK) : 0UL)
+
+	| (((AXIS_FLAG & 2UL) == 0) ? (INDEX_MASK << INDEX_DIGITS) : 0UL)
+
+	| (((AXIS_FLAG & 4UL) == 0) ? (INDEX_MASK << (INDEX_DIGITS * 2)) : 0UL);
 
 public:
 	static constexpr size_t MAX_NUM_OF_MEIDA_TYPE = std::numeric_limits<
@@ -45,41 +98,40 @@ public:
 
 	static constexpr size_t ndims = 3;
 
-	typedef std::bitset<MAX_NUM_OF_MEIDA_TYPE> material_type;
+	static constexpr size_t null_material = 0UL;
 
-	typedef nTuple<Real, ndims> coordinates_type;
+	std::map<id_type, size_t> m_data_;
 
-	typedef size_t id_type;
-
-	const material_type null_material;
-
-	std::map<id_type, material_type> m_data_;
-
-	std::map<std::string, material_type> registered_material_;
+	std::map<std::string, size_t> registered_material_;
 
 	size_t max_material_;
 public:
 
 	enum
 	{
-		NONE = 0, VACUUM = 1, PLASMA, CORE, BOUNDARY, LIMITER,
+		NONE = 0,
+		VACUUM = 1UL << 1,
+		PLASMA = 1UL << 2,
+		CORE = 1UL << 3,
+		BOUNDARY = 1UL << 4,
+		LIMITER = 1UL << 5,
 		// @NOTE: add materials for different physical area or media
-		CUSTOM = 20
+		CUSTOM = 1UL << 20
 	};
 
-	Model() :
-			null_material(0), max_material_(CUSTOM + 1)
+	Model_()
+			: max_material_(CUSTOM << 1)
 	{
 		registered_material_.emplace("NONE", null_material);
 
-		registered_material_.emplace("Vacuum", material_type(1 << VACUUM));
-		registered_material_.emplace("Plasma", material_type(1 << PLASMA));
-		registered_material_.emplace("Core", material_type(1 << CORE));
-		registered_material_.emplace("Boundary", material_type(1 << BOUNDARY));
-		registered_material_.emplace("Limiter", material_type(1 << LIMITER));
+		registered_material_.emplace("Vacuum", (VACUUM));
+		registered_material_.emplace("Plasma", (PLASMA));
+		registered_material_.emplace("Core", (CORE));
+		registered_material_.emplace("Boundary", (BOUNDARY));
+		registered_material_.emplace("Limiter", (LIMITER));
 
 	}
-	~Model()
+	~Model_()
 	{
 	}
 
@@ -88,17 +140,19 @@ public:
 		return m_data_.empty();
 	}
 
-	material_type register_material(std::string const & name)
+	size_t register_material(std::string const & name)
 	{
-		material_type res;
+		size_t res;
 		if (registered_material_.find(name) != registered_material_.end())
 		{
 			res = registered_material_[name];
 		}
 		else if (max_material_ < MAX_NUM_OF_MEIDA_TYPE)
 		{
-			res.set(max_material_);
-			++max_material_;
+			max_material_ = max_material_ << 1;
+
+			res = (max_material_);
+
 		}
 		else
 		{
@@ -107,30 +161,14 @@ public:
 		return res;
 	}
 
-	size_t get_num_of_material_type() const
-	{
-		return max_material_;
-	}
-
-	material_type get_material(material_type const & m) const
-	{
-		return m;
-	}
-
-	material_type get_material(size_t material_pos) const
-	{
-		material_type res;
-		res.set(material_pos);
-		return std::move(res);
-	}
-	material_type get_material(std::string const &name) const
+	size_t get_material(std::string const &name) const
 	{
 
 		if (name == "" || name == "NONE")
 		{
 			return null_material;
 		}
-		material_type res;
+		size_t res;
 
 		try
 		{
@@ -143,13 +181,13 @@ public:
 		return std::move(res);
 	}
 
-	material_type get(id_type s) const
+	size_t get(id_type s) const
 	{
-		auto it = m_data_.find(s);
+		auto it = m_data_.find(s & ID_MASK);
 
 		if (it != m_data_.end())
 		{
-			return *it;
+			return it->second;
 		}
 		else
 		{
@@ -158,7 +196,7 @@ public:
 
 	}
 
-	material_type operator[](id_type s) const
+	size_t operator[](id_type s) const
 	{
 		return get(s);
 	}
@@ -173,40 +211,54 @@ public:
 	{
 		for (auto s : r)
 		{
-			m_data_.erase(s);
+			m_data_.erase(s & ID_MASK);
 		}
 	}
 
-	template<typename TR, typename M>
-	void set(TR const & r, M const& material)
+	template<typename TR>
+	void set(TR const & r, size_t const& tag)
 	{
-		auto tag = get_material(material);
 		for (auto s : r)
 		{
-			m_data_[s] |= tag;
+			m_data_[s & ID_MASK] |= tag;
 		}
 	}
-	template<typename TR, typename M>
-	void unset(TR const & r, M const& material)
+	template<typename TR>
+	void unset(TR const & r, size_t const& tag)
 	{
-		auto tag = get_material(material);
 		for (auto s : r)
 		{
-			m_data_[s] &= ~tag;
+			m_data_[s & ID_MASK] &= ~tag;
 		}
 	}
 
-	template<typename TR, typename TDict>
-	std::set<id_type> select_by_config(TR const& range,
-			TDict const& dict) const;
+	/**
+	 *
+	 * @param s is a FACE or EDGE
+	 * @param in
+	 * @param out
+	 * @return
+	 */
+	bool check_boundary_face(id_type const & s, size_t in)
+	{
+		id_type d = (~s) & SUB_CELL_ID_MASK;
+
+		return ((in & get(s - d)) == 0UL) ^ ((in & get(s + d)) == 0UL);
+	}
+
+//	template<typename TR, typename TDict>
+//	std::set<id_type> select_by_config(TR const& range,
+//			TDict const& dict) const;
 
 }
 ;
+template<size_t NDIMS, size_t AXIS> constexpr size_t Model_<NDIMS, AXIS>::null_material;
 
-//typename Model::material_type Model::get(id_type s) const
+typedef Model_<3, 4> Model;
+//typename Model::size_t Model::get(id_type s) const
 //{
 //
-//	material_type res = null_material;
+//	size_t res = null_material;
 //
 //	if (this->geometry_type::IForm(s) == VERTEX)
 //	{
@@ -388,8 +440,8 @@ public:
 //	 *              |          |
 //	 *              +----------+
 //	 */
-//	material_type in = get_material(pin);
-//	material_type out = get_material(pout);
+//	size_t in = get_material(pin);
+//	size_t out = get_material(pout);
 //
 //	if (in == out)
 //		out = null_material;
@@ -399,7 +451,7 @@ public:
 //			[=]( id_type const & s )->bool
 //			{
 //
-//				material_type res;
+//				size_t res;
 //
 //				auto iform = this->geometry_type::IForm(s);
 //
