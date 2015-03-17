@@ -136,124 +136,117 @@ int boundary_tag(coordinates_type const & x)
 	}
 	return res;
 }
-void divid_points2(std::vector<coordinates_type> const& points,
+
+static constexpr Real PI = 3.14159265353893;
+
+void divid_points2(nTuple<size_t, 3> const & dims,
+		std::vector<coordinates_type> const& points,
 		std::vector<coordinates_type> * res, int ZAXIS = 2)
 {
-	auto first = points.begin();
-	auto second = ++points.begin();
+	int flag[dims[0]][dims[1]][dims[2]];
+	auto i0 = points.rbegin();
+	auto i1 = points.begin();
+	auto i2 = ++points.begin();
 
-	while (first != points.end())
+	coordinates_type x0, x1, x2;
+	x0 = *i0;
+	x1 = *i1;
+	x2 = *i2;
+
+	Real q1 = std::atan2(x1[1] - x0[1], x1[0] - x0[0]);
+
+	Real q2 = std::atan2(x2[1] - x1[1], x2[0] - x1[0]);
+
+	while (i1 != points.end())
 	{
-		coordinates_type x0, x1;
+		coordinates_type xp, xm;
 
-		x0 = *first;
+		xm[0] = std::floor(xp[0]);
+		xm[1] = std::floor(xp[1]);
+		xm[2] = std::floor(xp[2]);
 
-		auto second = ++first;
-
-		if (second == points.end())
+		if (q1 == q2)
 		{
-			second = points.begin();
-		}
-
-		x1 = *second;
-
-		auto tag0 = boundary_tag(x0);
-		auto tag1 = boundary_tag(x1);
-
-		coordinates_type xp = x0;
-
-		if (tag0 == tag1)
-		{
-			switch (tag0)
+			if (-PI / 4 < angle && angle < PI / 4)
 			{
-			case 0:
-				if (x1[1] > x0[1])
-				{
-					xp[0] = std::floor(xp[0]);
-					xp[1] += 1;
-					res->push_back(xp);
-				}
-				else if (x1[1] < x0[1])
-				{
-					xp[0] = std::floor(xp[0]) + 1;
-					xp[1] -= 1;
-					res->push_back(xp);
-				}
-				else if (x1[0] > x0[0])
-				{
-					xp[0] = std::floor(xp[0]);
-					++xp[1];
-					res->push_back(xp);
-					++xp[0];
-					res->push_back(xp);
-					--xp[1];
-					res->push_back(xp);
-				}
-				else
-				{
-					xp[0] = std::floor(xp[0]) + 1;
-					--xp[1];
-					res->push_back(xp);
-					--xp[0];
-					res->push_back(xp);
-					++xp[1];
-					res->push_back(xp);
-				}
-				break;
-			case 1:
-				break;
-			case 2:
-				break;
 
 			}
 		}
-		else if (tag0 == 0 && tag1 == 1)
-		{
-			if (x1[1] > x0[1] && x1[0] > x0[0])
-			{
-				xp[0] = std::floor(xp[0]);
-				xp[1] += 1;
-				res->push_back(xp);
-				++xp[0];
-				res->push_back(xp);
-			}
-			else if (x1[1] < x0[1] && x1[0] > x0[0])
-			{
-				xp[0] = std::floor(xp[0]);
-				xp[1] -= 1;
-				res->push_back(xp);
-				++xp[0];
-				res->push_back(xp);
-			}
-
-			else if (x1[1] > x0[1] && x1[0] < x0[0])
-			{
-				xp[0] = std::floor(xp[0]) + 1;
-				xp[1] += 1;
-				res->push_back(xp);
-				--xp[0];
-				res->push_back(xp);
-			}
-			else if (x1[1] < x0[1] && x1[0] < x0[0])
-			{
-				xp[0] = std::floor(xp[0]) + 1;
-				xp[1] -= 1;
-				res->push_back(xp);
-				--xp[0];
-				res->push_back(xp);
-			}
-
-		}
-//		else if (tag0 == 1 && tag1 == 0)
+//		auto tag0 = boundary_tag(x0);
+//		auto tag1 = boundary_tag(x1);
+//
+//		coordinates_type xp = x0;
+//
+//		if (tag0 == tag1)
 //		{
-//			if (x1[0] > x0[0] && x1[1] > x0[1])
+//			switch (tag0)
 //			{
-//				xp[0] = std::floor(xp[0]) + 1;
+//			case 0:
+//				if (x1[1] > x0[1])
+//				{
+//					xp[0] = std::floor(xp[0]);
+//					xp[1] += 1;
+//					res->push_back(xp);
+//				}
+//				else if (x1[1] < x0[1])
+//				{
+//					xp[0] = std::floor(xp[0]) + 1;
+//					xp[1] -= 1;
+//					res->push_back(xp);
+//				}
+//				else if (x1[0] > x0[0])
+//				{
+//					xp[0] = std::floor(xp[0]);
+//					++xp[1];
+//					res->push_back(xp);
+//					++xp[0];
+//					res->push_back(xp);
+//					--xp[1];
+//					res->push_back(xp);
+//				}
+//				else
+//				{
+//					xp[0] = std::floor(xp[0]) + 1;
+//					--xp[1];
+//					res->push_back(xp);
+//					--xp[0];
+//					res->push_back(xp);
+//					++xp[1];
+//					res->push_back(xp);
+//				}
+//				break;
+//			case 1:
+//
+//				if (x1[0] > x0[0])
+//				{
+//					xp[1] = std::floor(xp[1]) + 1;
+//					++xp[0];
+//					res->push_back(xp);
+//				}
+//				else if (x1[0] < x0[0])
+//				{
+//					xp[1] = std::floor(xp[0]);
+//					--xp[1];
+//					res->push_back(xp);
+//				}
+//
+//				break;
+//			case 2:
+//				break;
+//
+//			}
+//		}
+//		else if (tag0 == 0 && tag1 == 1)
+//		{
+//			if (x1[1] > x0[1] && x1[0] > x0[0])
+//			{
+//				xp[0] = std::floor(xp[0]);
+//				xp[1] += 1;
 //				res->push_back(xp);
-//				--xp[1];
+//				++xp[0];
 //				res->push_back(xp);
 //			}
-//			else if (x1[0] < x0[0] && x1[0] > x0[0])
+//			else if (x1[1] < x0[1] && x1[0] > x0[0])
 //			{
 //				xp[0] = std::floor(xp[0]);
 //				xp[1] -= 1;
@@ -280,32 +273,78 @@ void divid_points2(std::vector<coordinates_type> const& points,
 //			}
 //
 //		}
-//		if (tag0 == tag1)
+//		else if (tag0 == 1 && tag1 == 0)
 //		{
-//			if (tag0 == 0)
+////			if (x1[0] > x0[0] && x1[1] > x0[1])
+////			{
+////				xp[0] = std::floor(xp[0]) + 1;
+////				res->push_back(xp);
+////				--xp[1];
+////				res->push_back(xp);
+////			}
+////			else
+////
+//			if (x1[0] < x0[0] && x1[1] > x0[1])
 //			{
-//
-//				if (x1[1] > x0[1])
-//				{
-//					xp[0] = std::floor(xp[0]);
-//					xp[1] += 1;
-//				}
-//				else
-//				{
-//					xp[0] = std::floor(xp[0]) + 1;
-//					xp[1] -= 1;
-//				}
-//
+//				xp[1] = std::floor(xp[1]);
+//				--xp[0];
+//				res->push_back(xp);
+//				++xp[1];
+//				res->push_back(xp);
 //			}
-//			else if (tag0 == 1)
+//			else if (x1[0] < x0[0] && x1[1] < x0[1])
 //			{
-//
-//				xp[0] += (x1[0] > x0[0]) ? 1 : -1;
-//				xp[1] = std::floor(xp[0]) + ((x1[0] > x0[0]) ? 1 : 0);
-//
+//				xp[1] = std::floor(xp[1]) - 1;
+//				res->push_back(xp);
+//				--xp[0];
+//				res->push_back(xp);
 //			}
+////			else if (x1[1] > x0[1] && x1[0] < x0[0])
+////			{
+////				xp[0] = std::floor(xp[0]);
+////				xp[1] += 1;
+////				res->push_back(xp);
+////				--xp[0];
+////				res->push_back(xp);
+////			}
 //
-//			res->push_back(xp);
+//		}
+////		if (tag0 == tag1)
+////		{
+////			if (tag0 == 0)
+////			{
+////
+////				if (x1[1] > x0[1])
+////				{
+////					xp[0] = std::floor(xp[0]);
+////					xp[1] += 1;
+////				}
+////				else
+////				{
+////					xp[0] = std::floor(xp[0]) + 1;
+////					xp[1] -= 1;
+////				}
+////
+////			}
+////			else if (tag0 == 1)
+////			{
+////
+////				xp[0] += (x1[0] > x0[0]) ? 1 : -1;
+////				xp[1] = std::floor(xp[0]) + ((x1[0] > x0[0]) ? 1 : 0);
+////
+////			}
+////
+////			res->push_back(xp);
+		i0 = i1;
+		i1 = i2;
+		++i2;
+		if (i2 == points.end())
+		{
+			i2 = points.begin();
+		}
+
+		q1 = q2;
+		q2 = std::atan2(x2[1] - x1[1], x2[0] - x1[0]);
 
 	}
 }
@@ -321,7 +360,7 @@ USE_CASE(model)
 
 	divid_points(p0, &p1);
 
-	divid_points2(p1, &p2);
+	divid_points2(p0, &p2);
 
 	LOGGER << p1 << std::endl;
 

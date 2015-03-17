@@ -17,6 +17,76 @@
 
 namespace simpla
 {
+template<typename TC>
+std::tuple<Real, Real, Real> distance_between_lines(TC const& P0, TC const & P1,
+		TC const & Q0, TC const & Q1)
+{
+	Real s = 0.0;
+	Real t = 0.0;
+	Real dist = 0.0;
+
+	auto u = P1 - P0;
+	auto v = Q1 - Q0;
+	auto w0 = P0 - Q0;
+
+	// @ref http://geomalgorithms.com/a07-_distance.html
+	Real a = inner_product(u, u);
+	Real b = inner_product(u, v);
+	Real c = inner_product(v, v);
+	Real d = inner_product(u, w0);
+	Real e = inner_product(v, w0);
+
+	if (std::abs(a * c - b * b) < EPSILON)
+	{
+		//two lines are parallel
+		s = 0;
+		t = 0;
+		dist = d / b;
+	}
+	else
+	{
+		s = (b * e - c * d) / (a * c - b * b);
+
+		t = (a * e - b * d) / (a * c - b * b);
+
+		auto w = w0
+				+ ((b * e - c * d) * u - (a * e - b * d) * v) / (a * c - b * b);
+
+		dist = inner_product(w, w);
+
+	}
+	return std::make_tuple(s, t, dist);
+}
+
+template<typename TC>
+std::tuple<Real, Real> intersection_line_and_triangle(TC const& l0,
+		TC const & l1, TC const & p0, TC const & p1, TC const & p2)
+{
+	Real s, t;
+
+	auto u = p1 - p0;
+	auto v = p2 - p0;
+
+	// @ref http://geomalgorithms.com/a07-_distance.html
+	Real a = inner_product(x1 - x0, x1 - x0);
+	Real b = inner_product(x1 - x0, y1 - y0);
+	Real c = inner_product(y1 - y0, y1 - y0);
+	Real d = inner_product(y0 - x0, x1 - x0);
+	Real e = inner_product(y0 - x0, y1 - y0);
+
+	if (std::abs(a * c - b * b) < EPSILON)
+	{
+		//two lines are parallel
+		s = 0;
+		t = d / b;
+	}
+	else
+	{
+		s = (b * e - c * d) / (a * c - b * b);
+		t = (a * e - b * d) / (a * c - b * b);
+	}
+	return std::make_tuple(s, t);
+}
 //template<typename TS,  size_t  NDIMS>
 //bool Clipping(nTuple<TS,NDIMS> const & l_start, nTuple<TS,NDIMS> const &l_count, nTuple<TS,NDIMS> *pr_start,
 //        nTuple<TS,NDIMS> *pr_count)
