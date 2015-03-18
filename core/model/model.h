@@ -74,16 +74,6 @@ public:
 
 	| (CELL_ID_MASK_);
 
-	static constexpr size_t SUB_CELL_ID_MASK_ = 1 << (FLOATING_POINT_POS - 1);
-	;
-	static constexpr size_t SUB_CELL_ID_MASK =
-
-	(SUB_CELL_ID_MASK_ << (INDEX_DIGITS * 2))
-
-	| (SUB_CELL_ID_MASK_ << (INDEX_DIGITS))
-
-	| (SUB_CELL_ID_MASK_);
-
 	static constexpr size_t ID_MASK =
 
 	(((AXIS_FLAG & 1UL) == 0) ? (INDEX_MASK) : 0UL)
@@ -239,16 +229,12 @@ public:
 	 * @param out
 	 * @return
 	 */
-	bool check_boundary_face(id_type const & s, size_t in)
+	bool check_boundary_surface(id_type const & s, size_t in)
 	{
-		id_type d = (~s) & SUB_CELL_ID_MASK;
+		id_type d = (~s) & (_DX | _DY | _DZ) & ID_MASK;
 
 		return ((in & get(s - d)) == 0UL) ^ ((in & get(s + d)) == 0UL);
 	}
-
-//	template<typename TR, typename TDict>
-//	std::set<id_type> select_by_config(TR const& range,
-//			TDict const& dict) const;
 
 }
 ;

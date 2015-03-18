@@ -26,7 +26,7 @@
 class XdmfArray;
 namespace simpla
 {
-void GEqdsk::Write(std::string const &fname)
+void Write(GEqdsk const & geqdsk,std::string const &fname)
 {
 
 	XdmfDOM dom;
@@ -80,10 +80,10 @@ void GEqdsk::Write(std::string const &fname)
 		grid.SetGridType(XDMF_GRID_UNIFORM);
 		grid.GetTopology()->SetTopologyTypeFromString("POLYLINE");
 
-		XdmfInt64 dims[2] = { static_cast<XdmfInt64>(rzbbb_.size()), 2 };
+		XdmfInt64 dims[2] = { static_cast<XdmfInt64>(m_rzbbb_.size()), 2 };
 		grid.GetTopology()->GetShapeDesc()->SetShape(2, dims);
 		grid.GetTopology()->Set("NodesPerElement", "2");
-		grid.GetTopology()->SetNumberOfElements(rzbbb_.size());
+		grid.GetTopology()->SetNumberOfElements(m_rzbbb_.size());
 
 		XdmfDataItem * data = new XdmfDataItem;
 
@@ -109,7 +109,7 @@ void GEqdsk::Write(std::string const &fname)
 		points->SetShape(2, dims);
 
 		XdmfInt64 s = 0;
-		for (auto const &v : rzbbb_)
+		for (auto const &v : m_rzbbb_)
 		{
 			points->SetValue(s * 3, 0);
 			points->SetValue(s * 3 + 1, v[0]);
@@ -127,10 +127,10 @@ void GEqdsk::Write(std::string const &fname)
 		grid.SetGridType(XDMF_GRID_UNIFORM);
 		grid.GetTopology()->SetTopologyTypeFromString("POLYLINE");
 
-		XdmfInt64 dims[2] = { static_cast<XdmfInt64>(rzbbb_.size()), 2 };
+		XdmfInt64 dims[2] = { static_cast<XdmfInt64>(m_rzbbb_.size()), 2 };
 		grid.GetTopology()->GetShapeDesc()->SetShape(2, dims);
 		grid.GetTopology()->Set("NodesPerElement", "2");
-		grid.GetTopology()->SetNumberOfElements(rzbbb_.size());
+		grid.GetTopology()->SetNumberOfElements(m_rzbbb_.size());
 
 		XdmfDataItem * data = new XdmfDataItem;
 
@@ -156,7 +156,7 @@ void GEqdsk::Write(std::string const &fname)
 		points->SetShape(2, dims);
 
 		XdmfInt64 s = 0;
-		for (auto const &v : rzbbb_)
+		for (auto const &v : m_rzbbb_)
 		{
 			points->SetValue(s * 3, 0);
 			points->SetValue(s * 3 + 1, v[0]);

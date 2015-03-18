@@ -59,24 +59,33 @@ private:
 
 	std::shared_ptr<TV> m_data_;
 
+	std::set<id_type> m_ids_;
+
 public:
 
 	_Field(mesh_type const & d)
 			: m_mesh_(d), m_data_(nullptr)
 	{
 	}
-	_Field(this_type const & that)
-			: m_mesh_(that.m_mesh_), m_data_(that.m_data_)
+	_Field(this_type const & other)
+			: m_mesh_(other.m_mesh_), m_data_(other.m_data_), m_ids_(
+					other.m_ids_)
 	{
 	}
-	_Field(this_type && that)
-			: m_mesh_(that.m_mesh_), m_data_(that.m_data_)
+	_Field(this_type && other)
+			: m_mesh_(other.m_mesh_), m_data_(other.m_data_), m_ids_(
+					other.m_ids_)
 	{
 	}
 	~_Field()
 	{
 	}
-
+	void swap(this_type & other)
+	{
+		std::swap(m_mesh_, other.m_mesh_);
+		std::swap(m_ids_, other.m_ids_);
+		std::swap(m_data_, other.m_data_);
+	}
 	std::string get_type_as_string() const
 	{
 		return "Field<" + m_mesh_.get_type_as_string() + ">";
@@ -100,6 +109,18 @@ public:
 		return clone_field_type<TU>(m_mesh_);
 	}
 
+	template<typename TRange>
+	this_type sub_field(TRange const & r)
+	{
+		this_type other(*this);
+
+		for (auto s : r)
+		{
+			other.m_ids_.insert(s);
+		}
+		return std::move(other);
+	}
+
 	void clear()
 	{
 		wait();
@@ -114,16 +135,15 @@ public:
 		std::fill(m_data_.get(), m_data_.get() + m_mesh_.max_hash(), v);
 	}
 
+	std::set<id_type> const&ids() const
+	{
+		return m_ids_;
+	}
+
 	/** @name range concept
 	 * @{
 	 */
 
-	template<typename ...Args>
-	_Field(this_type & that, Args && ...args)
-			: m_mesh_(that.m_mesh_, std::forward<Args>(args)...), m_data_(
-					that.m_data_)
-	{
-	}
 	bool empty() const
 	{
 		return m_data_ == nullptr;
@@ -144,9 +164,21 @@ public:
 	{
 		wait();
 
-		for (auto s : m_mesh_.range())
+		if (m_ids_.empty())
 		{
-			this->operator[](s) = m_mesh_.calculate(that, s);
+			auto s_range = m_mesh_.range();
+
+			for (auto s : s_range)
+			{
+				this->operator[](s) = m_mesh_.calculate(that, s);
+			}
+		}
+		else
+		{
+			for (auto s : m_ids_)
+			{
+				this->operator[](s) = m_mesh_.calculate(that, s);
+			}
 		}
 
 		return *this;
@@ -157,19 +189,22 @@ public:
 	{
 		wait();
 
-//		return std::move(
-//				_Field<AssignmentExpression<_impl::_assign, this_type, TR>>(
-//						*this, that));
-
-//		parallel_for(mesh_.range(), [&](typename mesh_type::range_type s_range)
-//		{
-		auto s_range = m_mesh_.range();
-
-		for (auto s : s_range)
+		if (m_ids_.empty())
 		{
-			this->operator[](s) = m_mesh_.calculate(that, s);
+			auto s_range = m_mesh_.range();
+
+			for (auto s : s_range)
+			{
+				this->operator[](s) = m_mesh_.calculate(that, s);
+			}
 		}
-//		});
+		else
+		{
+			for (auto s : m_ids_)
+			{
+				this->operator[](s) = m_mesh_.calculate(that, s);
+			}
+		}
 
 		return *this;
 	}
@@ -228,25 +263,50 @@ public:
 		return std::move(res);
 	}
 
-	template<typename TFun, typename ...Args>
-	void for_each(TFun const& fun, Args && ...args)
+	template<typename TFun>
+	void for_each(TFun const& fun)
 	{
 		wait();
 
-		for (auto const & s : m_mesh_.range(std::forward<Args>(args)...))
+		if (m_ids_.empty())
 		{
-			fun(m_data_.get()[m_mesh_.hash(s)]);
-		};
+			auto s_range = m_mesh_.range();
+
+			for (auto s : s_range)
+			{
+				fun(m_data_.get()[m_mesh_.hash(s)]);
+			}
+		}
+		else
+		{
+			for (auto s : m_ids_)
+			{
+				fun(m_data_.get()[m_mesh_.hash(s)]);
+			}
+		}
+
 	}
-	template<typename TFun, typename ...Args>
-	void for_each(TFun const& fun, Args && ...args) const
+	template<typename TFun>
+	void for_each(TFun const& fun) const
 	{
 		ASSERT(is_ready());
 
-		for (auto const & s : m_mesh_.range(std::forward<Args>(args)...))
+		if (m_ids_.empty())
 		{
-			fun(m_data_.get()[m_mesh_.hash(s)]);
-		};
+			auto s_range = m_mesh_.range();
+
+			for (auto s : s_range)
+			{
+				fun(m_data_.get()[m_mesh_.hash(s)]);
+			}
+		}
+		else
+		{
+			for (auto s : m_ids_)
+			{
+				fun(m_data_.get()[m_mesh_.hash(s)]);
+			}
+		}
 	}
 
 public:

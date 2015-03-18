@@ -20,6 +20,8 @@
 #include "../../core/model/model.h"
 #include "../../core/numeric/pointinpolygon.h"
 
+#include "../../core/model/geqdsk.h"
+
 namespace simpla
 {
 
@@ -93,9 +95,14 @@ struct MeshDummy_
 		return std::move(x);
 	}
 
-	static constexpr size_t m_d_[4][3] = { 0, 0, 0, _DX, _DY, _DZ, _DY | _DZ,
-			_DZ | _DX, _DX | _DY, _DX | _DY | _DZ, _DX | _DY | _DZ, _DX | _DY
-					| _DZ };
+	static constexpr size_t m_d_[4][3] = { 0, 0, 0, //
+			_DX, _DY, _DZ, //
+			_DY | _DZ, //
+			_DZ | _DX, //
+			_DX | _DY, //
+			_DX | _DY | _DZ, //
+			_DX | _DY | _DZ, //
+			_DX | _DY | _DZ };
 
 	template<size_t IFORM = 0>
 	static constexpr id_type id(size_t i, size_t j, size_t k, size_t n = 0)
@@ -225,7 +232,7 @@ void find_boundary2D(TPoints const & points, coordinates_type const & shift,
 //		id_type s = MeshDummy::coordinates_to_id(x0);
 
 		res->push_back(x0);
-		res->push_back(distance_point_to_face(x0, p0, p1, p2));
+		res->push_back(distance_point_to_plane(x0, p0, p1, p2));
 
 	}
 
@@ -238,19 +245,53 @@ SP_APP(model)
 
 	typedef typename MeshDummy::id_type id_type;
 
-	std::vector<coordinates_type> p0, p1, p2, p3, p4;
+	std::vector<coordinates_type> p0, p1, p2, p3, p4, p5, p6;
 
-	options["Points"].as(&p0);
+	nTuple<size_t, 3> dims = { 10, 10, 10 };
+
+	if (options["GFile"])
+	{
+		GEqdsk geqdsk(options["GFile"].as<std::string>());
+
+		auto const & glimter = geqdsk.limiter();
+
+		dims = geqdsk.dimensins();
+
+		coordinates_type xmin, xmax;
+
+		std::tie(xmin, xmax) = geqdsk.extents();
+
+		coordinates_type L;
+
+		L = dims / (xmax - xmin);
+
+		std::transform(glimter.begin(), glimter.end(), std::back_inserter(p0),
+				[&](coordinates_type const & x)
+				{
+					return (x-xmin)*L;
+				});
+
+	}
+	else
+	{
+		options["Points"].as(&p0);
+		options["Dimensions"].as(&dims);
+	}
+
+	if (p0.empty())
+	{
+		return;
+	}
 
 	PointInPolygon p_in_p(p0);
 
 	std::set<id_type> IDs;
 
-	for (size_t i = 0; i < 10; ++i)
+	for (size_t i = 0; i < dims[0]; ++i)
 	{
-		for (size_t j = 0; j < 10; ++j)
+		for (size_t j = 0; j < dims[1]; ++j)
 		{
-			for (size_t k = 0; k < 10; ++k)
+			for (size_t k = 0; k < dims[2]; ++k)
 			{
 				coordinates_type x;
 				x[0] = static_cast<Real>(i) + 0.5;
@@ -281,60 +322,87 @@ SP_APP(model)
 
 	model.set(in_side, Model::VACUUM);
 
-	std::set<id_type> boundary;
+	std::set<id_type> boundary_face;
 
-	for (size_t i = 0; i < 10; ++i)
+	for (size_t i = 0; i < dims[0]; ++i)
 	{
-		for (size_t j = 0; j < 10; ++j)
+		for (size_t j = 0; j < dims[1]; ++j)
 		{
-			for (size_t k = 0; k < 10; ++k)
+			for (size_t k = 0; k < dims[2]; ++k)
 			{
 				for (size_t n = 0; n < 3; ++n)
 				{
 					size_t s = MeshDummy::id<2>(i, j, k, n);
 
-					if (model.check_boundary_face(s, Model::VACUUM))
+					if (model.check_boundary_surface(s, Model::VACUUM))
 					{
-						boundary.insert(s);
+						boundary_face.insert(s);
 					}
 
 				}
 			}
 		}
 	}
-	std::transform(boundary.begin(), boundary.end(), std::back_inserter(p2),
-			[&](id_type const &s )
+
+	std::transform(boundary_face.begin(), boundary_face.end(),
+			std::back_inserter(p2), [&](id_type const &s )
 			{
 				return std::move(MeshDummy::id_to_coordinates(s));
 			});
 
-//	LOGGER << p0 << std::endl;
-//
-//	LOGGER << p1 << std::endl;
-//
-//	LOGGER << p2 << std::endl;
-//
+	std::set<id_type> boundary_edge;
+
+	for (auto s : boundary_face)
+	{
+		size_t d[3] = { (s) & MeshDummy::_DX, (s) & MeshDummy::_DY, (s)
+				& MeshDummy::_DZ };
+
+		for (int i = 0; i < 3; ++i)
+		{
+			if (d[i] != 0UL)
+			{
+				boundary_edge.insert(s - d[i]);
+				boundary_edge.insert(s + d[i]);
+			}
+		}
+
+	}
+
+	std::transform(boundary_edge.begin(), boundary_edge.end(),
+			std::back_inserter(p3), [&](id_type const &s )
+			{
+				return std::move(MeshDummy::id_to_coordinates(s));
+			});
+
 	p0.push_back(p0.front());
-//
-//	p1.push_back(p1.front());
-//
-//	p2.push_back(p2.front());
-//
+
 	LOGGER << SAVE(p0) << std::endl;
 	LOGGER << SAVE(p1) << std::endl;
 	LOGGER << SAVE(p2) << std::endl;
-
-	coordinates_type shift = { 0, 0, 0 };
-
-	get_intersctions(p0, shift, &p3);
-
-	find_boundary2D(p3, shift, &p4);
-
-	p3.push_back(p3.front());
 	LOGGER << SAVE(p3) << std::endl;
-
-	size_t dims[2] = { p4.size() / 2, 2 };
-	LOGGER << save("p4", &p4[0], 2, dims) << std::endl;
+//	coordinates_type shift0 = { 0, 0, 0 };
+//
+//	get_intersctions(p0, shift0, &p3);
+//
+//	find_boundary2D(p3, shift0, &p4);
+//
+//	coordinates_type shift1 = { 0.5, 0.5, 0.5 };
+//
+//	get_intersctions(p0, shift1, &p5);
+//
+//	find_boundary2D(p5, shift1, &p6);
+//
+//	p3.push_back(p3.front());
+//	LOGGER << SAVE(p3) << std::endl;
+//
+//	p5.push_back(p5.front());
+//	LOGGER << SAVE(p5) << std::endl;
+//
+//	size_t tdims[2] = { p4.size() / 2, 2 };
+//	LOGGER << save("p4", &p4[0], 2, tdims) << std::endl;
+//
+//	dims[0] = p6.size() / 2;
+//	LOGGER << save("p6", &p6[0], 2, tdims) << std::endl;
 }
 
 } //namespace simpla

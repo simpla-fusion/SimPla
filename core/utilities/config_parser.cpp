@@ -72,7 +72,16 @@ void ConfigParser::init(int argc, char ** argv)
 
 			);
 
-	m_lua_object_.parse_file(lua_file);
+	try
+	{
+		m_lua_object_.parse_file(lua_file);
+
+	} catch (...)
+	{
+		WARNING << "Can not load configure file:[" << lua_file << "]"
+				<< std::endl;
+	}
+
 	m_lua_object_.parse_string(lua_cmd);
 
 }

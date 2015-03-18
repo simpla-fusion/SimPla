@@ -18,7 +18,7 @@ namespace simpla
 {
 
 template<typename T0, typename T1, typename T2, typename T3>
-Vec3 distance_point_to_face(T0 const & x0, T1 const & p0, T2 const & p1,
+Vec3 distance_point_to_plane(T0 const & x0, T1 const & p0, T2 const & p1,
 		T3 const & p2)
 {
 	Vec3 d;

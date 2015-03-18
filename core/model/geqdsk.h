@@ -8,18 +8,19 @@
 #ifndef GEQDSK_H_
 #define GEQDSK_H_
 
+#include <stddef.h>
+#include <algorithm>
+#include <functional>
 #include <iostream>
+#include <map>
 #include <string>
+#include <utility>
 #include <vector>
 
-#include "../diff_geometry/geometry/cylindrical.h"
 #include "../gtl/ntuple.h"
-#include "../utilities/primitives.h"
+#include "../gtl/primitives.h"
+#include "../gtl/type_traits.h"
 #include "../numeric/interpolation.h"
-#include "../physics/constants.h"
-#include "../manifold/domain.h"
-#include "../manifold/topology/structured.h"
-#include "../field/field.h"
 
 namespace simpla
 {
@@ -35,32 +36,41 @@ namespace simpla
  *  default using cylindrical coordinates \f$R,Z,\phi\f$
  * \note http://w3.pppl.gov/ntcc/TORAY/G_EQDSK.pdf
  */
-class GEqdsk: public CylindricalCoordinates<StructuredMesh, 2>
+class GEqdsk
 {
 
 public:
-	typedef CylindricalCoordinates<StructuredMesh, 2> geometry_type;
+
+	typedef nTuple<Real, 3> coordinates_type;
 
 	typedef Interpolation<LinearInterpolation, Real, Real> inter_type;
 
 	typedef MultiDimesionInterpolation<BiLinearInterpolation, Real> inter2d_type;
 
 private:
+	static constexpr size_t PhiAxis = 2;
+	static constexpr size_t RAxis = (PhiAxis + 1) % 3;
+	static constexpr size_t ZAxis = (PhiAxis + 2) % 3;
+
+	nTuple<size_t, 3> m_dims_ = { 1, 1, 1 };
+	coordinates_type m_rzmin_;
+	coordinates_type m_rzmax_;
+
 	bool is_valid_ = false;
-	std::string desc;
+	std::string m_desc_;
 //	size_t nw;//!< Number of horizontal R grid  points
 //	size_t nh;//!< Number of vertical Z grid points
-	Real rdim; //!< Horizontal dimension in meter of computational box
-	Real zdim; //!< Vertical dimension in meter of computational box
-	Real rleft; //!< Minimum R in meter of rectangular computational box
-	Real zmid; //!< Z of center of computational box in meter
-	Real rmaxis = 1.0; //!< R of magnetic axis in meter
+	Real m_rdim_; //!< Horizontal dimension in meter of computational box
+	Real m_zdim_; //!< Vertical dimension in meter of computational box
+	Real m_rleft_; //!< Minimum R in meter of rectangular computational box
+	Real m_zmid_; //!< Z of center of computational box in meter
+	Real m_rmaxis_ = 1.0; //!< R of magnetic axis in meter
 	Real zmaxis = 1.0; //!< Z of magnetic axis in meter
 //	Real simag;//!< Poloidal flux at magnetic axis in Weber / rad
 //	Real sibry;//!< Poloidal flux at the plasma boundary in Weber / rad
-	Real rcenter = 0.5; //!< R in meter of  vacuum toroidal magnetic field BCENTR
-	Real bcenter = 0.5; //!< Vacuum toroidal magnetic field in Tesla at RCENTR
-	Real current = 1.0; //!< Plasma current in Ampere
+	Real m_rcenter_ = 0.5; //!< R in meter of  vacuum toroidal magnetic field BCENTR
+	Real m_bcenter_ = 0.5; //!< Vacuum toroidal magnetic field in Tesla at RCENTR
+	Real m_current_ = 1.0; //!< Plasma current in Ampere
 
 //	coordinates_type rzmin_;
 //	coordinates_type rzmax_;
@@ -74,10 +84,10 @@ private:
 
 //	inter_type qpsi_;//!< q values on uniform flux grid from axis to boundary
 
-	std::vector<coordinates_type> rzbbb_; //!< R,Z of boundary points in meter
-	std::vector<coordinates_type> rzlim_; //!< R,Z of surrounding limiter contour in meter
+	std::vector<coordinates_type> m_rzbbb_; //!< R,Z of boundary points in meter
+	std::vector<coordinates_type> m_rzlim_; //!< R,Z of surrounding limiter contour in meter
 
-	std::map<std::string, inter_type> profile_;
+	std::map<std::string, inter_type> m_profile_;
 
 public:
 	GEqdsk()
@@ -98,49 +108,56 @@ public:
 	{
 	}
 
-	std::string save(std::string const & path) const;
+//	std::string save(std::string const & path) const;
 
 	void load(std::string const &fname);
-
-	void Write(std::string const &fname);
+//
+//	void Write(std::string const &fname);
 
 	void load_profile(std::string const &fname);
 
-	inline Real Profile(std::string const & name,
+	inline Real profile(std::string const & name,
 			coordinates_type const & x) const
 	{
-		return Profile(name, psi(x[RAxis], x[ZAxis]));
+		return profile(name, psi(x[RAxis], x[ZAxis]));
 	}
-	inline Real Profile(std::string const & name, Real R, Real Z) const
+	inline Real profile(std::string const & name, Real R, Real Z) const
 	{
-		return Profile(name, psi(R, Z));
+		return profile(name, psi(R, Z));
 	}
 
-	inline Real Profile(std::string const & name, Real p_psi) const
+	inline Real profile(std::string const & name, Real p_psi) const
 	{
-		return profile_.at(name)(p_psi);
+		return m_profile_.at(name)(p_psi);
 	}
 
-	std::string const &Description() const
+	std::string const &description() const
 	{
-		return desc;
+		return m_desc_;
 	}
 
+	nTuple<size_t, 3> const & dimensins() const
+	{
+		return m_dims_;
+	}
+	std::pair<coordinates_type, coordinates_type> extents() const
+	{
+		return std::make_pair(m_rzmin_, m_rzmax_);
+	}
 	bool is_valid() const
 	{
 		return is_valid_;
-
 	}
 
 	std::ostream & print(std::ostream & os);
 
-	inline std::vector<coordinates_type> const & Boundary() const
+	inline std::vector<coordinates_type> const & boundary() const
 	{
-		return rzbbb_;
+		return m_rzbbb_;
 	}
-	inline std::vector<coordinates_type> const & Limiter() const
+	inline std::vector<coordinates_type> const & limiter() const
 	{
-		return rzlim_;
+		return m_rzlim_;
 	}
 
 	inline Real psi(Real R, Real Z) const
@@ -166,7 +183,7 @@ public:
 		Vec3 res;
 		res[RAxis] = gradPsi[1] / R;
 		res[ZAxis] = -gradPsi[0] / R;
-		res[PhiAxis] = Profile("fpol", R, Z);
+		res[PhiAxis] = profile("fpol", R, Z);
 
 		return std::move(res);
 
@@ -178,38 +195,23 @@ public:
 
 	inline Real JT(Real R, Real Z) const
 	{
-		return R * Profile("pprim", R, Z) + Profile("ffprim", R, Z) / R;
+		return R * profile("pprim", R, Z) + profile("ffprim", R, Z) / R;
 	}
 
 	inline auto JT(coordinates_type const&x) const
 	DECL_RET_TYPE(JT(x[RAxis], x[ZAxis]))
 	;
 
-	bool CheckProfile(std::string const & name) const
+	bool check_profile(std::string const & name) const
 	{
 		return (name == "psi") || (name == "JT") || (name == "B")
-				|| (profile_.find(name) != profile_.end());
+				|| (m_profile_.find(name) != m_profile_.end());
 	}
 
-	template<typename TModel>
-	void SetUpMaterial(TModel *model, size_t toridal_model_number = 0,
-			size_t DestPhiAxis = CARTESIAN_ZAXIS) const;
-
-	template<typename TF>
-	void GetProfile(std::string const & name, TF* f) const
-	{
-		GetProfile_(
-				std::integral_constant<bool,
-						is_ntuple<typename field_traits<TF>::field_value_type>::value>(),
-				name, f);
-		f->sync();
-
-	}
-
-	coordinates_type MapCylindricalToFlux(
+	coordinates_type map_cylindrical_to_flux(
 			coordinates_type const & psi_theta_phi, size_t VecZAxis = 2) const;
 
-	coordinates_type MapFluxFromCylindrical(coordinates_type const & x,
+	coordinates_type map_flux_from_cylindrical(coordinates_type const & x,
 			size_t VecZAxis = 2) const;
 	/**
 	 *  caculate the contour at \f$\Psi_{j}\in\left[0,1\right]\f$
@@ -224,7 +226,7 @@ public:
 	 *
 	 * \todo need improve!!  only valid for internal flux surface \f$\psi \le 1.0\f$; need x-point support
 	 */
-	bool FluxSurface(Real psi_j, size_t M, coordinates_type*res,
+	bool flux_surface(Real psi_j, size_t M, coordinates_type*res,
 			size_t ToPhiAxis = 2, Real resoluton = 0.001);
 
 	/**
@@ -244,83 +246,64 @@ public:
 	 *   1  | constant volume
 	 *
 	 */
-	bool MapToFluxCoordiantes(std::vector<coordinates_type> const&surface,
+	bool map_to_flux_coordiantes(std::vector<coordinates_type> const&surface,
 			std::vector<coordinates_type> *res,
 			std::function<Real(Real, Real)> const & h, size_t PhiAxis = 2);
-private:
 
-	template<typename TF>
-	void GetProfile_(std::integral_constant<bool, true>,
-			std::string const & name, TF* f) const;
-	template<typename TF>
-	void GetProfile_(std::integral_constant<bool, false>,
-			std::string const & name, TF* f) const;
 }
 ;
-template<typename TModel>
-void GEqdsk::SetUpMaterial(TModel *model, size_t toridal_model_number,
-		size_t DestPhiAxis) const
-{
-	model->Set(model->SelectByPolylines(make_domain<VERTEX>(*model), Limiter()),
-			model->RegisterMaterial("Vacuum"));
+//template<typename TF>
+//void GEqdsk::get_profile_(std::integral_constant<bool, true>,
+//		std::string const & name, TF* f) const
+//{
+//	if (name == "B")
+//	{
+//
+//		f->pull_back(*this, [this](coordinates_type const & x)
+//		{	return this->B(x);});
+//
+//	}
+//	else
+//	{
+//		WARNING << "Geqdsk:  Object '" << name << "'[scalar]  does not exist!";
+//	}
+//
+//}
 
-	model->Set(
-			model->SelectByPolylines(make_domain<VERTEX>(*model), Boundary()),
-			model->RegisterMaterial("Plasma"));
-
-}
-template<typename TF>
-void GEqdsk::GetProfile_(std::integral_constant<bool, true>,
-		std::string const & name, TF* f) const
-{
-	if (name == "B")
-	{
-
-		f->pull_back(*this, [this](coordinates_type const & x)
-		{	return this->B(x);});
-
-	}
-	else
-	{
-		WARNING << "Geqdsk:  Object '" << name << "'[scalar]  does not exist!";
-	}
-
-}
-
-template<typename TF>
-void GEqdsk::GetProfile_(std::integral_constant<bool, false>,
-		std::string const & name, TF* f) const
-{
-
-	if (name == "psi")
-	{
-
-		f->pull_back(*this, [this](coordinates_type const & x)
-		{	return this->psi(x);});
-
-	}
-	else if (name == "JT")
-	{
-
-		f->pull_back(*this, [this](coordinates_type const & x)
-		{	return this->JT(x);});
-	}
-	else if (CheckProfile(name))
-	{
-
-		f->pull_back(*this, [this,name](coordinates_type const & x)
-		{	return this->Profile(name,x);});
-
-	}
-	else
-	{
-		WARNING << "Geqdsk:  Object '" << name << "'[scalar]  does not exist!";
-	}
-
-}
-
-std::string XDMFWrite(GEqdsk const & self, std::string const &fname,
-		size_t flag);
+//template<typename TF>
+//void GEqdsk::get_profile_(std::integral_constant<bool, false>,
+//		std::string const & name, TF* f) const
+//{
+//
+//	if (name == "psi")
+//	{
+//
+//		f->pull_back(*this, [this](coordinates_type const & x)
+//		{	return this->psi(x);});
+//
+//	}
+//	else if (name == "JT")
+//	{
+//
+//		f->pull_back(*this, [this](coordinates_type const & x)
+//		{	return this->JT(x);});
+//	}
+//	else if (check_profile(name))
+//	{
+//
+//		f->pull_back(*this, [this,name](coordinates_type const & x)
+//		{	return this->profile(name,x);});
+//
+//	}
+//	else
+//	{
+//		WARNING << "Geqdsk:  Object '" << name << "'[scalar]  does not exist!";
+//	}
+//
+//}
+//
+//std::string XDMFWrite(GEqdsk const & self, std::string const &fname,
+//		size_t flag);
 
 }
 // namespace simpla

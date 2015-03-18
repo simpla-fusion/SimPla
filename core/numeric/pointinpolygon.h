@@ -28,15 +28,26 @@ class PointInPolygon
 	std::vector<double> constant_;
 	std::vector<double> multiple_;
 public:
+	PointInPolygon()
+			: num_of_vertex_(0)
+	{
+	}
+	template<typename ...Args>
+	PointInPolygon(Args && ...args)
+			: num_of_vertex_(0)
+	{
+		deploy(std::forward<Args>(args)...);
+	}
 	template<size_t N>
-	PointInPolygon(std::vector<nTuple<double, N> > const &polygen, size_t Z = 2) :
-			num_of_vertex_(0)
+	void deploy(std::vector<nTuple<double, N> > const &polygen,
+			size_t ZAxis = 2)
 	{
 
 		for (auto const & v : polygen)
 		{
 			polygen_.emplace_back(
-					nTuple<double, 2>( { v[(Z + 1) % 3], v[(Z + 2) % 3] }));
+					nTuple<double, 2>(
+							{ v[(ZAxis + 1) % 3], v[(ZAxis + 2) % 3] }));
 		}
 		num_of_vertex_ = polygen_.size();
 		constant_.resize(num_of_vertex_);
@@ -63,14 +74,14 @@ public:
 		}
 	}
 
-	PointInPolygon(PointInPolygon const& rhs) :
-			polygen_(rhs.polygen_), num_of_vertex_(rhs.num_of_vertex_), constant_(
+	PointInPolygon(PointInPolygon const& rhs)
+			: polygen_(rhs.polygen_), num_of_vertex_(rhs.num_of_vertex_), constant_(
 					rhs.constant_), multiple_(rhs.multiple_)
 	{
 
 	}
-	PointInPolygon(PointInPolygon && rhs) :
-			polygen_(rhs.polygen_), num_of_vertex_(rhs.num_of_vertex_), constant_(
+	PointInPolygon(PointInPolygon && rhs)
+			: polygen_(rhs.polygen_), num_of_vertex_(rhs.num_of_vertex_), constant_(
 					rhs.constant_), multiple_(rhs.multiple_)
 	{
 

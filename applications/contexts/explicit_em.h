@@ -340,7 +340,7 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 		geqdsk.GetProfile("Te", &Te0);
 		geqdsk.GetProfile("Ti", &Ti0);
 
-		description = description + "\n GEqdsk ID:" + geqdsk.Description();
+		description = description + "\n GEqdsk ID:" + geqdsk.description();
 		InitPECboundary();
 	}
 	else

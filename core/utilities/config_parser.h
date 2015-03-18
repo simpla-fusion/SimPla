@@ -30,27 +30,28 @@ struct ConfigParser
 
 	struct DictObject: public LuaObject
 	{
-		DictObject() :
-				LuaObject(), m_value_("")
+		DictObject()
+				: LuaObject(), m_value_("")
 		{
 
 		}
-		DictObject(DictObject const & other) :
-				LuaObject(other), m_value_(other.m_value_)
+		DictObject(DictObject const & other)
+				: LuaObject(other), m_value_(other.m_value_)
 		{
 
 		}
-		DictObject(DictObject && other) :
-				LuaObject(other), m_value_(other.m_value_)
+		DictObject(DictObject && other)
+				: LuaObject(other), m_value_(other.m_value_)
 		{
 
 		}
-		DictObject(LuaObject const & lua_obj) :
-				LuaObject(lua_obj), m_value_("")
+		DictObject(LuaObject const & lua_obj)
+				: LuaObject(lua_obj), m_value_("")
 		{
 
 		}
-		DictObject(std::string const & value) : /*LuaObject(),*/
+		DictObject(std::string const & value)
+				: /*LuaObject(),*/
 				m_value_(value)
 		{
 		}
@@ -67,6 +68,11 @@ struct ConfigParser
 		{
 			DictObject(other).swap(*this);
 			return *this;
+		}
+
+		operator bool() const
+		{
+			return m_value_ != "" || LuaObject::operator bool();
 		}
 
 		template<typename T>

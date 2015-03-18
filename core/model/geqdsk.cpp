@@ -24,6 +24,9 @@
 
 namespace simpla
 {
+constexpr size_t GEqdsk::PhiAxis;
+constexpr size_t GEqdsk::RAxis;
+constexpr size_t GEqdsk::ZAxis;
 
 void GEqdsk::load(std::string const &fname)
 {
@@ -36,11 +39,7 @@ void GEqdsk::load(std::string const &fname)
 		return;
 	}
 
-	nTuple<size_t, ndims> dims;
-	coordinates_type rzmin;
-	coordinates_type rzmax;
-
-	LOGGER << "Load GFile : " << fname;
+	LOGGER << "Load GFile : [" << fname << "]" << std::endl;
 
 	int nw; //Number of horizontal R grid points
 	int nh; //Number of vertical Z grid points
@@ -53,46 +52,39 @@ void GEqdsk::load(std::string const &fname)
 
 	inFileStream_.get(str_buff, 48);
 
-	desc = std::string(str_buff);
+	m_desc_ = std::string(str_buff);
 
 	inFileStream_ >> std::setw(4) >> idum >> nw >> nh;
 
 	inFileStream_ >> std::setw(16)
 
-	>> rdim >> zdim >> rcenter >> rleft >> zmid
+	>> m_rdim_ >> m_zdim_ >> m_rcenter_ >> m_rleft_ >> m_zmid_
 
-	>> rmaxis >> zmaxis >> simag >> sibry >> bcenter
+	>> m_rmaxis_ >> zmaxis >> simag >> sibry >> m_bcenter_
 
-	>> current >> simag >> xdum >> rmaxis >> xdum
+	>> m_current_ >> simag >> xdum >> m_rmaxis_ >> xdum
 
 	>> zmaxis >> xdum >> sibry >> xdum >> xdum;
 
-	rzmin[RAxis] = rleft;
-	rzmax[RAxis] = rleft + rdim;
+	m_rzmin_[RAxis] = m_rleft_;
+	m_rzmax_[RAxis] = m_rleft_ + m_rdim_;
+	m_rzmin_[ZAxis] = m_zmid_ - m_zdim_ / 2;
+	m_rzmax_[ZAxis] = m_zmid_ + m_zdim_ / 2;
+	m_rzmin_[PhiAxis] = 0;
+	m_rzmax_[PhiAxis] = 0;
 
-	rzmin[ZAxis] = zmid - zdim / 2;
-	rzmax[ZAxis] = zmid + zdim / 2;
+	m_dims_[RAxis] = nw;
+	m_dims_[ZAxis] = nh;
+	m_dims_[PhiAxis] = 1;
 
-	rzmin[PhiAxis] = 0;
-	rzmax[PhiAxis] = 0;
-
-	dims[RAxis] = nw;
-	dims[ZAxis] = nh;
-	dims[PhiAxis] = 0;
-
-	geometry_type::dimensions(dims);
-	geometry_type::extents(rzmin, rzmax);
-
-	size_t phi_axis = PhiAxis;
-
-	inter2d_type(dims, rzmin, rzmax, phi_axis).swap(psirz_);
+	inter2d_type(m_dims_, m_rzmin_, m_rzmax_, PhiAxis).swap(psirz_);
 
 #define INPUT_VALUE(_NAME_)                                                            \
 	for (int s = 0; s < nw; ++s)                                              \
 	{                                                                                  \
 		double y;                                                                  \
 		inFileStream_ >> std::setw(16) >> y;                                           \
-		profile_[ _NAME_ ].data().emplace(                                                         \
+		m_profile_[ _NAME_ ].data().emplace(                                                         \
 	      static_cast<double>(s)                                              \
 	          /static_cast<double>(nw-1), y );                               \
 	}                                                                                  \
@@ -123,28 +115,29 @@ void GEqdsk::load(std::string const &fname)
 	inFileStream_ >> std::setw(16) >> rzbbb;
 	inFileStream_ >> std::setw(16) >> rzlim;
 
-	rzbbb_.resize(nbbbs);
-	rzlim_.resize(limitr);
+	m_rzbbb_.resize(nbbbs);
+	m_rzlim_.resize(limitr);
 
 	for (size_t s = 0; s < nbbbs; ++s)
 	{
-		rzbbb_[s][RAxis] = rzbbb[s][0];
-		rzbbb_[s][ZAxis] = rzbbb[s][1];
-		rzbbb_[s][PhiAxis] = 0;
+		m_rzbbb_[s][RAxis] = rzbbb[s][0];
+		m_rzbbb_[s][ZAxis] = rzbbb[s][1];
+		m_rzbbb_[s][PhiAxis] = 0;
 	}
 
 	for (size_t s = 0; s < limitr; ++s)
 	{
-		rzlim_[s][RAxis] = rzlim[s][0];
-		rzlim_[s][ZAxis] = rzlim[s][1];
-		rzlim_[s][PhiAxis] = 0;
+		m_rzlim_[s][RAxis] = rzlim[s][0];
+		m_rzlim_[s][ZAxis] = rzlim[s][1];
+		m_rzlim_[s][PhiAxis] = 0;
 	}
 	load_profile(fname + "_profiles.txt");
 
 }
 void GEqdsk::load_profile(std::string const &fname)
 {
-	LOGGER << "Load GFile Profiles: " << fname;
+	LOGGER << "Load GFile Profiles: [" << fname << "]" << std::endl;
+
 	std::ifstream inFileStream_(fname);
 
 	if (!inFileStream_.is_open())
@@ -181,13 +174,13 @@ void GEqdsk::load_profile(std::string const &fname)
 		{
 			double value;
 			inFileStream_ >> value;
-			profile_[*it].data().emplace(psi, value);
+			m_profile_[*it].data().emplace(psi, value);
 
 		}
 	}
 	std::string profile_list = "psi,B";
 
-	for (auto const & item : profile_)
+	for (auto const & item : m_profile_)
 	{
 		profile_list += " , " + item.first;
 	}
@@ -197,34 +190,34 @@ void GEqdsk::load_profile(std::string const &fname)
 	is_valid_ = true;
 }
 
-std::string GEqdsk::save(std::string const & path) const
-{
-	if (!is_valid())
-	{
-		return "";
-	}
-
-	GLOBAL_DATA_STREAM.cd(path);
-
-	auto dd = geometry_type::dimensions();
-
-	size_t d[2] = { dd[RAxis], dd[ZAxis] };
-
-	LOGGER << simpla::save("psi", psirz_.data(), 2, nullptr, d) << std::endl;
-
-	LOGGER << simpla::save("rzbbb", rzbbb_) << std::endl;
-
-	LOGGER << simpla::save("rzlim", rzlim_) << std::endl;
-
-	for (auto const & p : profile_)
-	{
-		LOGGER << simpla::save(p.first, p.second.data()) << std::endl;
-	}
-	return path;
-}
+//std::string GEqdsk::save(std::string const & path) const
+//{
+//	if (!is_valid())
+//	{
+//		return "";
+//	}
+//
+//	GLOBAL_DATA_STREAM.cd(path);
+//
+//	auto dd = geometry_type::dimensions();
+//
+//	size_t d[2] = { dd[RAxis], dd[ZAxis] };
+//
+//	LOGGER << simpla::save("psi", psirz_.data(), 2, nullptr, d) << std::endl;
+//
+//	LOGGER << simpla::save("rzbbb", rzbbb_) << std::endl;
+//
+//	LOGGER << simpla::save("rzlim", rzlim_) << std::endl;
+//
+//	for (auto const & p : profile_)
+//	{
+//		LOGGER << simpla::save(p.first, p.second.data()) << std::endl;
+//	}
+//	return path;
+//}
 std::ostream & GEqdsk::print(std::ostream & os)
 {
-	std::cout << "--" << desc << std::endl;
+	std::cout << "--" << m_desc_ << std::endl;
 
 //	std::cout << "nw" << "\t= " << nw
 //			<< "\t--  Number of horizontal R grid  points" << std::endl;
@@ -240,7 +233,7 @@ std::ostream & GEqdsk::print(std::ostream & os)
 //			<< "\t-- Vertical dimension in meter of computational box                   "
 //			<< std::endl;
 
-	std::cout << "rcentr" << "\t= " << rcenter
+	std::cout << "rcentr" << "\t= " << m_rcenter_
 			<< "\t--                                                                    "
 			<< std::endl;
 
@@ -252,7 +245,7 @@ std::ostream & GEqdsk::print(std::ostream & os)
 //			<< "\t-- Z of center of computational box in meter                          "
 //			<< std::endl;
 
-	std::cout << "rmaxis" << "\t= " << rmaxis
+	std::cout << "rmaxis" << "\t= " << m_rmaxis_
 			<< "\t-- R of magnetic axis in meter                                        "
 			<< std::endl;
 
@@ -268,15 +261,15 @@ std::ostream & GEqdsk::print(std::ostream & os)
 //			<< "\t-- Poloidal flux at the plasma boundary in Weber / rad                "
 //			<< std::endl;
 
-	std::cout << "rcentr" << "\t= " << rcenter
+	std::cout << "rcentr" << "\t= " << m_rcenter_
 			<< "\t-- R in meter of  vacuum toroidal magnetic field BCENTR               "
 			<< std::endl;
 
-	std::cout << "bcentr" << "\t= " << bcenter
+	std::cout << "bcentr" << "\t= " << m_bcenter_
 			<< "\t-- Vacuum toroidal magnetic field in Tesla at RCENTR                  "
 			<< std::endl;
 
-	std::cout << "current" << "\t= " << current
+	std::cout << "current" << "\t= " << m_current_
 			<< "\t-- Plasma current in Ampere                                          "
 			<< std::endl;
 
@@ -323,18 +316,18 @@ std::ostream & GEqdsk::print(std::ostream & os)
 	return os;
 }
 
-bool GEqdsk::FluxSurface(double psi_j, size_t M, coordinates_type*res,
+bool GEqdsk::flux_surface(double psi_j, size_t M, coordinates_type*res,
 		size_t ToPhiAxis, double resolution)
 {
 	bool success = true;
 
-	PointInPolygon boundary(rzbbb_, PhiAxis);
+	PointInPolygon boundary(m_rzbbb_, PhiAxis);
 
 	nTuple<double, 3> center;
 
 	center[PhiAxis] = 0;
-	center[RAxis] = rcenter;
-	center[ZAxis] = zmid;
+	center[RAxis] = m_rcenter_;
+	center[ZAxis] = m_zmid_;
 
 	nTuple<double, 3> drz;
 
@@ -356,7 +349,8 @@ bool GEqdsk::FluxSurface(double psi_j, size_t M, coordinates_type*res,
 		nTuple<double, 3> rmax;
 		nTuple<double, 3> t;
 
-		t = center + drz * std::sqrt(rdim * rdim + zdim * zdim) * 0.5;
+		t = center
+				+ drz * std::sqrt(m_rdim_ * m_rdim_ + m_zdim_ * m_zdim_) * 0.5;
 
 		std::tie(success, rmax) = boundary.Intersection(center, t);
 
@@ -382,7 +376,8 @@ bool GEqdsk::FluxSurface(double psi_j, size_t M, coordinates_type*res,
 
 }
 
-bool GEqdsk::MapToFluxCoordiantes(std::vector<coordinates_type> const&surface,
+bool GEqdsk::map_to_flux_coordiantes(
+		std::vector<coordinates_type> const&surface,
 		std::vector<coordinates_type> *res,
 		std::function<double(double, double)> const & h, size_t PhiAxis)
 {
