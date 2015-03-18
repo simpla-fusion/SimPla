@@ -84,6 +84,7 @@ namespace simpla
 //	SingletonHolder<UseCaseList>::instance().run(argc, argv);
 //}
 #define USE_CASE(_use_case_name) SP_APP(_use_case_name)
+#define SP_MAIN(_use_case_name) SP_APP(_use_case_name)
 
 /** @} */
 

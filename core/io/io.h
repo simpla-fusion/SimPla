@@ -34,6 +34,13 @@ std::string save(std::string const & url, DataSet const & ds,
 		size_t flag = 0UL);
 
 template<typename T>
+std::string save(std::string const & url, T const * data, int ndims,
+		size_t const * dims, size_t flag = 0UL)
+{
+	return save(url, make_dataset(data, ndims, dims), flag);
+}
+
+template<typename T>
 auto save(std::string const & name, T const & d, size_t flag = 0UL)
 DECL_RET_TYPE(save(name, make_dataset(d), flag))
 

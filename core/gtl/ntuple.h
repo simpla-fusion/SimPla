@@ -433,6 +433,11 @@ template<typename TR, typename T, size_t ... N>
 auto dot(nTuple<T, N...> const & l, TR const& r)
 DECL_RET_TYPE ((_seq_reduce<N...>::eval(_impl::plus(), l*r) ))
 
+template<typename T, size_t ... N>
+auto normal(
+		nTuple<T, N...> const & l)
+				DECL_RET_TYPE((std::sqrt((_seq_reduce<N...>::eval(_impl::plus(), l * l)))))
+
 template<typename TR, typename ...T>
 auto inner_product(nTuple<Expression<T...>> const & l,
 		TR const& r)
@@ -491,7 +496,7 @@ template<typename T> inline auto determinant(
 template<typename T> auto sp_abs(T const &v)
 DECL_RET_TYPE((std::abs(v)))
 template<typename T, size_t ...N> auto sp_abs(nTuple<T, N...> const & m)
-DECL_RET_TYPE((std::sqrt(std::abs(dot(m, m)))))
+DECL_RET_TYPE((std::sqrt(std::abs(inner_product(m, m)))))
 
 template<typename T, size_t ...N> inline
 auto NProduct(nTuple<T, N...> const & v)
@@ -515,6 +520,14 @@ template<typename T1, size_t ... N1, typename T2, size_t ... N2> inline auto cro
 	return std::move(res);
 }
 
+inline nTuple<double, 3> cross(nTuple<double, 3> const & l,
+		nTuple<double, 3> const & r)
+{
+	return std::move(
+			nTuple<double, 3>(
+					{ l[1] * r[2] - l[2] * r[1], l[2] * r[0] - l[0] * r[2], l[0]
+							* r[1] - l[1] * r[0] }));
+}
 template<typename T>
 auto mod(T const & l)
 DECL_RET_TYPE ((abs(l)))

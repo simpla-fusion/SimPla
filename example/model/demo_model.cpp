@@ -12,10 +12,10 @@
 #include <set>
 #include "../../core/gtl/ntuple.h"
 #include "../../core/gtl/primitives.h"
+#include "../../core/numeric/geometric_algorithm.h"
 #include "../../core/utilities/utilities.h"
 #include "../../core/io/io.h"
 #include "../../core/application/application.h"
-#include "../../core/application/use_case.h"
 #include "../../core/dataset/datatype.h"
 #include "../../core/model/model.h"
 #include "../../core/numeric/pointinpolygon.h"
@@ -123,15 +123,122 @@ template<size_t NDIMS>
 constexpr size_t MeshDummy_<NDIMS>::m_d_[4][3];
 
 typedef MeshDummy_<3> MeshDummy;
+static constexpr Real PI = 3.1415926535;
+typedef typename MeshDummy::id_type id_type;
+typedef typename MeshDummy::coordinates_type coordinates_type;
 
-USE_CASE(model)
+template<typename TPoints>
+void get_intersctions(TPoints const & points, coordinates_type const & shift,
+		std::vector<coordinates_type> *res)
+{
+
+	auto first = points.begin();
+
+	while (first != points.end())
+	{
+		size_t ib = res->size();
+
+		auto x0 = *first;
+
+		auto second = ++first;
+
+		if (second == points.end())
+		{
+			second = points.begin();
+		}
+
+		auto x1 = *second;
+
+		for (int n = 0; n < 3; ++n)
+		{
+			nTuple<Real, 3> xp;
+
+			xp = 0;
+
+			Real dx = 1;
+
+			Real k1 = (x1[(n + 1) % 3] - x0[(n + 1) % 3]) / (x1[n] - x0[n]);
+			Real k2 = (x1[(n + 2) % 3] - x0[(n + 2) % 3]) / (x1[n] - x0[n]);
+
+			if (x1[n] > x0[n])
+			{
+				dx = 1;
+				xp[n] = std::floor(x0[n] - shift[n]) + shift[n] + 1;
+			}
+			else
+			{
+				dx = -1;
+				xp[n] = std::floor(x0[n] - shift[n]) + shift[n];
+			}
+			for (; (xp[n] - x0[n]) * (x1[n] - xp[n]) >= 0; xp[n] += dx)
+			{
+				xp[(n + 1) % 3] = (xp[n] - x0[n]) * k1 + x0[(n + 1) % 3];
+				xp[(n + 2) % 3] = (xp[n] - x0[n]) * k2 + x0[(n + 2) % 3];
+				res->push_back(xp);
+			}
+
+		}
+
+		size_t ie = res->size();
+
+		std::sort(&(*res)[ib], &(*res)[ie],
+				[&](coordinates_type const & xa,coordinates_type const & xb)->bool
+				{
+					return inner_product(xb-xa,x1-x0)>0;
+				});
+
+	}
+}
+
+typedef coordinates_type Vec3;
+
+template<typename TPoints>
+void find_boundary2D(TPoints const & points, coordinates_type const & shift,
+		std::vector<coordinates_type> *res, int ZAXIS = 2)
+{
+
+	auto i0 = points.begin();
+
+	while (i0 != points.end())
+	{
+		coordinates_type p0 = *i0;
+		auto i1 = ++i0;
+
+		if (i1 == points.end())
+		{
+			i1 = points.begin();
+		}
+		coordinates_type p1 = *i1;
+
+		coordinates_type p2;
+		p2 = p1;
+
+		p2[ZAXIS] += 1.0;
+
+		coordinates_type x0 = //
+				{ //
+				std::floor(std::min(p0[0], p1[0]) - shift[0]) + shift[0], //
+				std::floor(std::min(p0[1], p1[1]) - shift[1]) + shift[1], //
+				std::floor(std::min(p0[2], p1[2]) - shift[2]) + shift[2]     //
+				};
+		x0 += 0.5;
+//		id_type s = MeshDummy::coordinates_to_id(x0);
+
+		res->push_back(x0);
+		res->push_back(distance_point_to_face(x0, p0, p1, p2));
+
+	}
+
+}
+
+SP_APP(model)
 {
 
 	typedef typename MeshDummy::coordinates_type coordinates_type;
 
 	typedef typename MeshDummy::id_type id_type;
 
-	std::vector<coordinates_type> p0, p1, p2, p3;
+	std::vector<coordinates_type> p0, p1, p2, p3, p4;
 
 	options["Points"].as(&p0);
 
@@ -216,85 +323,23 @@ USE_CASE(model)
 	LOGGER << SAVE(p0) << std::endl;
 	LOGGER << SAVE(p1) << std::endl;
 	LOGGER << SAVE(p2) << std::endl;
-//	LOGGER << SAVE(p3) << std::endl;
+
+	coordinates_type shift = { 0, 0, 0 };
+
+	get_intersctions(p0, shift, &p3);
+
+	find_boundary2D(p3, shift, &p4);
+
+	p3.push_back(p3.front());
+	LOGGER << SAVE(p3) << std::endl;
+
+	size_t dims[2] = { p4.size() / 2, 2 };
+	LOGGER << save("p4", &p4[0], 2, dims) << std::endl;
 }
+
 } //namespace simpla
 
-//namespace simpla
-//{
-//typedef nTuple<Real, 3> coordinates_type;
 //
-//SP_DEFINE_STRUCT(boundary_s, //
-//		coordinates_type, x, //
-//		Real, theta, //
-//		Real, phi, //
-//		Real, r);
-//
-//} // namespace simpla
-//
-//void divid_points(std::vector<coordinates_type> const& points,
-//		std::vector<coordinates_type> * res)
-//{
-//
-//	auto first = points.begin();
-//
-//	while (first != points.end())
-//	{
-//		size_t ib = res->size();
-//
-//		auto x0 = *first;
-//
-//		auto second = ++first;
-//
-//		if (second == points.end())
-//		{
-//			second = points.begin();
-//		}
-//
-//		auto x1 = *second;
-//
-//		for (int n = 0; n < 3; ++n)
-//		{
-//			nTuple<Real, 3> xp;
-//
-//			xp = 0;
-//
-//			Real dx = 1;
-//
-//			Real k1 = (x1[(n + 1) % 3] - x0[(n + 1) % 3]) / (x1[n] - x0[n]);
-//			Real k2 = (x1[(n + 2) % 3] - x0[(n + 2) % 3]) / (x1[n] - x0[n]);
-//
-//			if (x1[n] > x0[n])
-//			{
-//				dx = 1;
-//				xp[n] = std::floor(x0[n]) + 1;
-//			}
-//			else
-//			{
-//				dx = -1;
-//				xp[n] = std::floor(x0[n]);
-//			}
-//			for (; (xp[n] - x0[n]) * (x1[n] - xp[n]) >= 0; xp[n] += dx)
-//			{
-//				xp[(n + 1) % 3] = (xp[n] - x0[n]) * k1 + x0[(n + 1) % 3];
-//				xp[(n + 2) % 3] = (xp[n] - x0[n]) * k2 + x0[(n + 2) % 3];
-//				res->push_back(xp);
-//			}
-//
-//		}
-//
-//		size_t ie = res->size();
-//
-//		std::sort(&(*res)[ib], &(*res)[ie],
-//				[&](coordinates_type const & xa,coordinates_type const & xb)->bool
-//				{
-//					return inner_product(xb-xa,x1-x0)>0;
-//				});
-//
-//	}
-//
-//}
-//static constexpr Real PI = 3.1415926535;
 //
 //template<typename T0, typename T1, typename T2, typename T3>
 //std::tuple<bool, Real, Real, Real> line_segment_intersect(T0 const & P0,
