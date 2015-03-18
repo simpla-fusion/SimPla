@@ -62,27 +62,26 @@ public:
 	template<typename TV> using field_value_type=typename
 	std::conditional<iform==VERTEX || iform ==VOLUME,TV,nTuple<TV,3>>::type;
 
-	typedef typename geometry_type::template Range<iform> range_type;
-	typedef typename range_type::const_iterator const_iterator;
-
+	typedef std::vector<id_type> range_type;
 private:
 
 	std::shared_ptr<const geometry_type> m_geometry_;
 
+	std::vector<id_type> m_ids_;
 public:
 
-	Manifold()
-			: m_geometry_(nullptr)
+	Manifold() :
+			m_geometry_(nullptr)
 	{
 	}
 
-	Manifold(geometry_type const & geo)
-			: m_geometry_(geo.shared_from_this())
+	Manifold(geometry_type const & geo) :
+			m_geometry_(geo.shared_from_this())
 	{
 	}
 
-	Manifold(this_type const & other)
-			: m_geometry_(other.m_geometry_)
+	Manifold(this_type const & other) :
+			m_geometry_(other.m_geometry_)
 	{
 	}
 
@@ -110,8 +109,8 @@ public:
 	 * @{
 	 */
 	template<typename ...Others>
-	Manifold(this_type & other, Others && ...others)
-			: m_geometry_(other.m_geometry_)
+	Manifold(this_type & other, Others && ...others) :
+			m_geometry_(other.m_geometry_)
 	{
 	}
 
@@ -124,16 +123,31 @@ public:
 
 	void deploy()
 	{
-
+		ids(m_geometry_->template range<iform>());
 	}
 
-	auto range() const
-	DECL_RET_TYPE(m_geometry_->template range<iform>())
+	range_type const & range() const
+	{
+		return m_ids_;
+	}
+	range_type const & ids() const
+	{
+		return m_ids_;
+	}
+	range_type & ids()
+	{
+		return m_ids_;
+	}
 
-	template<typename ...Args>
-	auto select(Args && ... args)
-	DECL_RET_TYPE((m_geometry_->
-					template select<iform>( std::forward<Args>(args)...)))
+	template<typename TRange>
+	void ids(TRange const & range)
+	{
+		m_ids_.clear();
+		for (auto s : m_geometry_->template range<iform>())
+		{
+			m_ids_.push_back(s);
+		}
+	}
 
 	DataSpace dataspace() const
 	{
