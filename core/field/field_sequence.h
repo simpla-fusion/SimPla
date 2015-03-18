@@ -59,22 +59,18 @@ private:
 
 	std::shared_ptr<TV> m_data_;
 
-	std::set<id_type> m_ids_;
-
 public:
 
-	_Field(mesh_type const & d)
-			: m_mesh_(d), m_data_(nullptr)
+	_Field(mesh_type const & d) :
+			m_mesh_(d), m_data_(nullptr)
 	{
 	}
-	_Field(this_type const & other)
-			: m_mesh_(other.m_mesh_), m_data_(other.m_data_), m_ids_(
-					other.m_ids_)
+	_Field(this_type const & other) :
+			m_mesh_(other.m_mesh_), m_data_(other.m_data_)
 	{
 	}
-	_Field(this_type && other)
-			: m_mesh_(other.m_mesh_), m_data_(other.m_data_), m_ids_(
-					other.m_ids_)
+	_Field(this_type && other) :
+			m_mesh_(other.m_mesh_), m_data_(other.m_data_)
 	{
 	}
 	~_Field()
@@ -83,7 +79,6 @@ public:
 	void swap(this_type & other)
 	{
 		std::swap(m_mesh_, other.m_mesh_);
-		std::swap(m_ids_, other.m_ids_);
 		std::swap(m_data_, other.m_data_);
 	}
 	std::string get_type_as_string() const
@@ -110,14 +105,12 @@ public:
 	}
 
 	template<typename TRange>
-	this_type sub_field(TRange const & r)
+	this_type sub_field(TRange const & r) const
 	{
 		this_type other(*this);
 
-		for (auto s : r)
-		{
-			other.m_ids_.insert(s);
-		}
+		other.m_mesh_.ids(r);
+
 		return std::move(other);
 	}
 
@@ -133,11 +126,6 @@ public:
 		wait();
 
 		std::fill(m_data_.get(), m_data_.get() + m_mesh_.max_hash(), v);
-	}
-
-	std::set<id_type> const&ids() const
-	{
-		return m_ids_;
 	}
 
 	/** @name range concept
@@ -164,21 +152,11 @@ public:
 	{
 		wait();
 
-		if (m_ids_.empty())
-		{
-			auto s_range = m_mesh_.range();
+		auto s_range = m_mesh_.range();
 
-			for (auto s : s_range)
-			{
-				this->operator[](s) = m_mesh_.calculate(that, s);
-			}
-		}
-		else
+		for (auto s : s_range)
 		{
-			for (auto s : m_ids_)
-			{
-				this->operator[](s) = m_mesh_.calculate(that, s);
-			}
+			this->operator[](s) = m_mesh_.calculate(that, s);
 		}
 
 		return *this;
@@ -189,21 +167,11 @@ public:
 	{
 		wait();
 
-		if (m_ids_.empty())
-		{
-			auto s_range = m_mesh_.range();
+		auto s_range = m_mesh_.range();
 
-			for (auto s : s_range)
-			{
-				this->operator[](s) = m_mesh_.calculate(that, s);
-			}
-		}
-		else
+		for (auto s : s_range)
 		{
-			for (auto s : m_ids_)
-			{
-				this->operator[](s) = m_mesh_.calculate(that, s);
-			}
+			this->operator[](s) = m_mesh_.calculate(that, s);
 		}
 
 		return *this;
@@ -268,21 +236,11 @@ public:
 	{
 		wait();
 
-		if (m_ids_.empty())
-		{
-			auto s_range = m_mesh_.range();
+		auto s_range = m_mesh_.range();
 
-			for (auto s : s_range)
-			{
-				fun(m_data_.get()[m_mesh_.hash(s)]);
-			}
-		}
-		else
+		for (auto s : s_range)
 		{
-			for (auto s : m_ids_)
-			{
-				fun(m_data_.get()[m_mesh_.hash(s)]);
-			}
+			fun(m_data_.get()[m_mesh_.hash(s)]);
 		}
 
 	}
@@ -291,21 +249,11 @@ public:
 	{
 		ASSERT(is_ready());
 
-		if (m_ids_.empty())
-		{
-			auto s_range = m_mesh_.range();
+		auto s_range = m_mesh_.range();
 
-			for (auto s : s_range)
-			{
-				fun(m_data_.get()[m_mesh_.hash(s)]);
-			}
-		}
-		else
+		for (auto s : s_range)
 		{
-			for (auto s : m_ids_)
-			{
-				fun(m_data_.get()[m_mesh_.hash(s)]);
-			}
+			fun(m_data_.get()[m_mesh_.hash(s)]);
 		}
 	}
 
