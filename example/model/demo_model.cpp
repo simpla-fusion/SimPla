@@ -173,13 +173,13 @@ std::tuple<Real, Real> line_intersection(T0 const& P0, T1 const & P1,
  *
  *
  *                 o p2
- *              s1/
+ *              s1/  edge of emergence edge_out
  *      q3-------/-------q2
  *       |      /        |
  *       |     /         |
  *       |    /          |s0
  *       |p1 o-----------+---o p0
- *       |               |
+ *       |               |  edge of incident edge_in
  *      q0---------------q1
  *
  *
@@ -230,20 +230,70 @@ std::tuple<size_t, Real> line_intersect_polygon(coordinates_type x0,
 
 //			x0 = q[i] + s * (q[(i + 1) % num_of_vertex] - q[i]);
 
-			return std::make_tuple(i, s, x0);
+			return std::make_tuple(i, s);
 			break;
 		}
 	}
 
-	return std::make_tuple(-1, 0, x0);
+	return std::make_tuple(-1, 0);
+}
+
+Vec3 normal_vector_of_surface(std::vector<coordinates_type> const & polygons)
+{
+	bool on_same_plane = false;
+	Vec3 n;
+	n = 0;
+	auto first = polygons.begin();
+
+	while (first != polygons.end())
+	{
+		auto second = first;
+		++second;
+		if (second == polygons.end())
+		{
+			second = polygons.begin();
+		}
+		auto third = second;
+		++third;
+		if (third == polygons.end())
+		{
+			third = polygons.begin();
+		}
+
+		Vec3 n1;
+		n1 = cross(*second - *first, *third - *second);
+
+		if (inner_product(n1, n) < 0)
+		{
+			return std::move(Vec3( { 0, 0, 0 }));
+		}
+
+		Real nn = inner_product(n1, n1);
+		if (nn > EPSILON)
+		{
+			n = n1 / nn;
+		}
+
+	}
+	return std::move(n);
+
 }
 
 void polyline_intersect_grid(std::vector<coordinates_type> const & polygons,
-		coordinates_type const & shift, std::vector<id_type> *ids,
+		coordinates_type const & shift, std::map<id_type, Real> *volume,
 		std::vector<coordinates_type> *out_points, const int ZAXIS = 2)
 {
 	const int XAXIS = (ZAXIS + 1) % 3;
 	const int YAXIS = (ZAXIS + 2) % 3;
+	const Real dx = 1.0; // length of edge
+	const Real dA = 1.0; // area of cell
+
+	const coordinates_type n = normal_vector_of_surface(polygons);
+
+	if (inner_product(n, n) < EPSILON)
+	{
+		RUNTIME_ERROR("illegal polygon!");
+	}
 
 	static const id_type id_edge[4] = {
 
@@ -270,22 +320,43 @@ void polyline_intersect_grid(std::vector<coordinates_type> const & polygons,
 
 	};
 
+	/**
+	 *
+	 *             0
+	 *             ^
+	 *       q3----|-----q2
+	 *        |    2     |
+	 *        |          |
+	 *      1<-3        1->3
+	 *        |    0     |
+	 *        q0---|----q1
+	 *             v
+	 *             2
+	 */
+
+	static const id_type convert_out_in_edge_out[4] = { 2, 3, 0, 1 };
+
+	int edge_in = -1;
+	int edge_out = -1;
+
+	Real s_in = 0.0;
+	Real s_out = 0;
+
 	const int num_of_vertex = 4;
 	coordinates_type q[num_of_vertex];
 
-	coordinates_type xp, x_[3];
+	coordinates_type x_[3];
 	coordinates_type *x = x_ + 1;
 
-	x[-1] = *polygons.rbegin();
+	x[-1] = polygons.back();
+	x[0] = polygons.front();
+	x[1] = *(++polygons.begin());
 
 	auto it = polygons.begin();
 
-	x[0] = *it;
-	x[1] = x[0];
-
 	bool is_vertex = true;
 
-	while (it != polygons.end())
+	while (1)
 	{
 		id_type cell_id = MeshIDs::coordinates_to_id(coordinates_type {
 
@@ -293,7 +364,9 @@ void polyline_intersect_grid(std::vector<coordinates_type> const & polygons,
 
 		std::floor(x[0][1] + shift[1]),
 
-		std::floor(x[0][2] + shift[2]) });
+		std::floor(x[0][2] + shift[2])
+
+		});
 
 		q[0] = MeshIDs::id_to_coordinates(cell_id);
 		q[1] = q[0];
@@ -305,90 +378,103 @@ void polyline_intersect_grid(std::vector<coordinates_type> const & polygons,
 		q[2][YAXIS] += 1.0;
 		q[3][YAXIS] += 1.0;
 
-		int out_edge_id = -1;
-		Real s_out = 0;
-
-		Real edge_length = 0.0;
-		Real face_area = 0.0;
-
-		std::tie(out_edge_id, s_out) = line_intersect_polygon(x[0], x[1],
+		std::tie(edge_out, s_out) = line_intersect_polygon(x[0], x[1],
 				num_of_vertex, q, ZAXIS);
 
-		if (out_edge_id < 0)
+		if (edge_out < 0)
 		{
-			++it;
-			x[1] = *it;
+			if (it == polygons.end())
+			{
+				break;
+			}
+
+			// move to next vertex of polygon
+
 			is_vertex = true;
 
+			x[-1] = x[0];
+			x[0] = x[1];
+
+			++it;
+
+			if (it != polygons.end())
+			{
+				x[1] = *it;
+			}
+			else
+			{
+				x[1] = polygons.front();
+			}
 			continue;
 		}
-		else if (is_vertex)
+
+		if (edge_in < 0)
+		{
+			std::tie(edge_in, s_in) = line_intersect_polygon(x[-1], x[0],
+					num_of_vertex, q, ZAXIS);
+
+			if (edge_in < 0)
+			{
+				RUNTIME_ERROR("illegal polygons!");
+			}
+		}
+
+		coordinates_type x_in, x_out;
+
+		x_in = q[edge_in]
+				+ (q[(edge_in + 1) % num_of_vertex] - q[edge_in]) * s_in;
+
+		x_out = q[edge_out]
+				+ (q[(edge_out + 1) % num_of_vertex] - q[edge_out]) * s_out;
+
+		Real face_area = 0.0;
+
+		if (edge_out == edge_in)
+		{
+		}
+		else if (edge_out == (edge_in + 1) % num_of_vertex)
+		{
+			face_area = (1 - (1 - s_in) * s_out * 0.5) * dA;
+		}
+		else if (edge_out == (edge_in + 2) % num_of_vertex)
+		{
+			face_area = (s_in + 1 - s_out) * 0.5 * 1 * dA;
+		}
+		else if (edge_out == (edge_in + 3) % num_of_vertex)
+		{
+			face_area = s_in * (1 - s_out) * 0.5 * dA;
+		}
+
+		if (is_vertex)
 		{
 			/**
 			 *  vertex in cell
 			 */
-			Real s_in;
-			int in_edge_id;
 
-			std::tie(in_edge_id, s_in) = line_intersect_polygon(x[-1], x[0],
-					num_of_vertex, q, ZAXIS);
-
-			if (in_edge_id < 0)
-			{
-				RUNTIME_ERROR("illegal polygons!");
-			}
-
-			x[-1] = q[in_edge_id]
-					+ (q[(in_edge_id + 1) % num_of_vertex] - q[in_edge_id])
-							* s_in;
-
-			coordinates_type x_vertex;
-
-			x_vertex = x[0];
-
-			x[0] = q[out_edge_id]
-					+ (q[(out_edge_id + 1) % num_of_vertex] - q[out_edge_id])
-							* s_out;
+			face_area -= inner_product(n, cross(x[0] - x_in, x_out - x[0]))
+					* 0.5 * dA;
 
 			// TODO calculate area of x-1,x_v,x0
-
 			is_vertex = false;
 		}
 
-		else
-		{
-			/**
-			 *  line cross cell
-			 */
+		// save edge length
+		(*volume)[cell_id + id_edge[edge_out]] = (1 - s_out) * dx;
 
-			x[-1] = x[0];
-
-			x[0] = q[out_edge_id]
-					+ (q[(out_edge_id + 1) % num_of_vertex] - q[out_edge_id])
-							* s_out;
-
-			coordinates_type n;
-
-			n = cross(x[0] - x[-1], x[1] - x[0]);
-
-			if (n[ZAXIS] < 0)
-			{
-				s_out = 1 - s_out;
-			}
-
-		}
+		// save face area
+		(*volume)[cell_id + (MeshIDs::_DI | MeshIDs::_DJ)] = face_area;
 
 		// save current node
-		out_points->push_back(x[0]);
+		out_points->push_back(x_out);
 
-		// move start point to intersect point
-		cell_id += cell_id[out_edge_id];
+		// move to next cell
+		cell_id += id_cell_shift[edge_out];
 
-		// save edge length
-		ids[cell_id + id_edge[out_edge_id]] = edge_length;
-		// save face area
-		ids[cell_id + (MeshIDs::_DI | MeshIDs::_DJ)] = face_area;
+		edge_in = convert_out_in_edge_out[edge_out];
 
+		s_in = 1 - s_in;
+
+		x[0] = x_out;
 	}
 }
 
@@ -536,14 +622,14 @@ SP_APP(model)
 	LOGGER << SAVE(p3) << std::endl;
 	coordinates_type shift0 = { 0, 0, 0 };
 
-	std::vector<id_type> ids;
+	std::map<id_type, Real> volume;
 
-	polyline_intersect_grid(p0, shift0, &ids, &p4);
+	polyline_intersect_grid(p0, shift0, &volume, &p4);
 
-	std::transform(ids.begin(), ids.end(), std::back_inserter(p5),
-			[&](id_type const &s )
+	std::transform(volume.begin(), volume.end(), std::back_inserter(p5),
+			[&](std::pair<id_type,Real> const &item )
 			{
-				return std::move(MeshIDs::id_to_coordinates(s));
+				return std::move(MeshIDs::id_to_coordinates(item.first));
 			});
 
 	LOGGER << SAVE(p4) << std::endl;
