@@ -18,24 +18,16 @@ namespace simpla
 {
 
 template<typename T0, typename T1, typename T2, typename T3>
-Vec3 distance_point_to_plane(T0 const & x0, T1 const & p0, T2 const & p1,
-		T3 const & p2)
+std::tuple<Real, Vec3> distance_point_to_plane(T0 const & x0, T1 const & p0,
+		T2 const & p1, T3 const & p2)
 {
-	Vec3 d;
-	Vec3 n, u, v;
+	Vec3 n;
 
-	u = p1 - p0;
-	v = p2 - p1;
+	n = cross(p1 - p0, p2 - p1);
 
-	n = cross(u, v);
+	n /= inner_product(n, n);
 
-	d[0] = inner_product(p0 - x0, n) / std::sqrt(inner_product(n, n));
-
-	d[1] = std::atan2(n[1], n[0]); //theta
-
-	d[2] = std::atan2(n[2], std::hypot(n[0], n[1])); //phi
-
-	return std::move(d);
+	return std::forward_as_tuple(inner_product(p0 - x0, n), std::move(n));
 
 }
 template<typename T0, typename T1, typename T2, typename T3>
@@ -79,6 +71,32 @@ Vec3 distance_between_lines(T0 const& P0, T1 const & P1, T2 const & Q0,
 
 	Vec3 res = { s, t, dist };
 	return std::move(res);
+}
+
+template<typename T0, typename T1, typename T2>
+Real intersection_line_polygons(T0 const & p0, T1 const & p1,
+		T2 const & polygen)
+{
+
+	auto it = polygen.begin();
+
+	auto q0 = *it;
+	auto q1 = *(++it);
+	auto q2 = *(++it);
+
+	Vec3 n;
+	n = cross(q2 - q1, q1 - q0);
+	n /= std::sqrt(inner_product(n, n));
+
+	it = polygen.begin();
+
+	while (it != polygen.end())
+	{
+		auto q0 = *it;
+		auto q1 = *(++it);
+		q0 -= inner_product(q0, n) * n;
+		q1 -= inner_product(q1, n) * n;
+	}
 }
 
 /**

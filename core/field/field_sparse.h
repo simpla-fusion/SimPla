@@ -1,12 +1,12 @@
 /**
- * @file field_associative.h
+ * @file field_sparse.h
  *
  *  Created on: 2015年1月30日
  *  @author: salmon
  */
 
-#ifndef CORE_FIELD_FIELD_ASSOCIATIVE_H_
-#define CORE_FIELD_FIELD_ASSOCIATIVE_H_
+#ifndef CORE_FIELD_FIELD_SPARSE_H_
+#define CORE_FIELD_FIELD_SPARSE_H_
 
 #include <cstdbool>
 #include <memory>
@@ -145,4 +145,4 @@ public:
 
 }  // namespace simpla
 
-#endif /* CORE_FIELD_FIELD_ASSOCIATIVE_H_ */
+#endif /* CORE_FIELD_FIELD_SPARSE_H_ */

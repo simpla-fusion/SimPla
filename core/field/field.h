@@ -9,8 +9,8 @@
 
 #include "../gtl/type_traits.h"
 #include "field_expression.h"
-#include "field_associative.h"
-#include "field_sequence.h"
+#include "field_dense.h"
+#include "field_sparse.h"
 
 namespace simpla
 {
