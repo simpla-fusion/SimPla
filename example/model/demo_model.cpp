@@ -274,6 +274,8 @@ Vec3 normal_vector_of_surface(std::vector<coordinates_type> const & polygons)
 			n = n1 / nn;
 		}
 
+		++first;
+
 	}
 	return std::move(n);
 
@@ -362,21 +364,21 @@ void polyline_intersect_grid(std::vector<coordinates_type> const & polygons,
 	x[0] = polygons.front();
 	x[1] = *(++polygons.begin());
 
+	id_type cell_id = MeshIDs::coordinates_to_id(coordinates_type {
+
+	std::floor(x[0][0] + shift[0]),
+
+	std::floor(x[0][1] + shift[1]),
+
+	std::floor(x[0][2] + shift[2])
+
+	});
+
 	coordinates_type x_in, x_out;
-
 	auto it = polygons.begin();
-
-	while (1)
+	out_points->push_back(x[0]);
+	while (true)
 	{
-		id_type cell_id = MeshIDs::coordinates_to_id(coordinates_type {
-
-		std::floor(x[0][0] + shift[0]),
-
-		std::floor(x[0][1] + shift[1]),
-
-		std::floor(x[0][2] + shift[2])
-
-		});
 
 		q[0] = MeshIDs::id_to_coordinates(cell_id);
 		q[1] = q[0];
@@ -397,7 +399,7 @@ void polyline_intersect_grid(std::vector<coordinates_type> const & polygons,
 			{
 				break;
 			}
-			out_points->push_back(x[0]);
+
 			// move to next vertex of polygon
 
 			x[-1] = x[0];
@@ -413,7 +415,7 @@ void polyline_intersect_grid(std::vector<coordinates_type> const & polygons,
 			{
 				x[1] = polygons.front();
 			}
-
+			out_points->push_back(x[1]);
 			continue;
 		}
 
@@ -611,12 +613,6 @@ SP_APP(model)
 				return std::move(MeshIDs::id_to_coordinates(s));
 			});
 
-	p0.push_back(p0.front());
-
-	LOGGER << SAVE(p0) << std::endl;
-	LOGGER << SAVE(p1) << std::endl;
-	LOGGER << SAVE(p2) << std::endl;
-	LOGGER << SAVE(p3) << std::endl;
 	coordinates_type shift0 = { 0, 0, 0 };
 
 	std::map<id_type, Real> volume;
@@ -629,6 +625,12 @@ SP_APP(model)
 				return std::move(MeshIDs::id_to_coordinates(item.first));
 			});
 
+	p0.push_back(p0.front());
+
+	LOGGER << SAVE(p0) << std::endl;
+	LOGGER << SAVE(p1) << std::endl;
+	LOGGER << SAVE(p2) << std::endl;
+	LOGGER << SAVE(p3) << std::endl;
 	LOGGER << SAVE(p4) << std::endl;
 	LOGGER << SAVE(p5) << std::endl;
 //
