@@ -295,7 +295,17 @@ void polyline_intersect_grid(std::vector<coordinates_type> const & polygons,
 		RUNTIME_ERROR("illegal polygon!");
 	}
 
-	static const id_type id_edge[4] = {
+	static const id_type id_face_shift[3] = {
+
+	MeshIDs::_DJ | MeshIDs::_DK,
+
+	MeshIDs::_DK | MeshIDs::_DI,
+
+	MeshIDs::_DJ | MeshIDs::_DI
+
+	};
+
+	static const id_type id_edge_shift[4] = {
 
 	MeshIDs::_DI,
 
@@ -352,9 +362,9 @@ void polyline_intersect_grid(std::vector<coordinates_type> const & polygons,
 	x[0] = polygons.front();
 	x[1] = *(++polygons.begin());
 
-	auto it = polygons.begin();
+	coordinates_type x_in, x_out;
 
-	bool is_vertex = true;
+	auto it = polygons.begin();
 
 	while (1)
 	{
@@ -387,10 +397,8 @@ void polyline_intersect_grid(std::vector<coordinates_type> const & polygons,
 			{
 				break;
 			}
-
+			out_points->push_back(x[0]);
 			// move to next vertex of polygon
-
-			is_vertex = true;
 
 			x[-1] = x[0];
 			x[0] = x[1];
@@ -405,6 +413,7 @@ void polyline_intersect_grid(std::vector<coordinates_type> const & polygons,
 			{
 				x[1] = polygons.front();
 			}
+
 			continue;
 		}
 
@@ -413,68 +422,56 @@ void polyline_intersect_grid(std::vector<coordinates_type> const & polygons,
 			std::tie(edge_in, s_in) = line_intersect_polygon(x[-1], x[0],
 					num_of_vertex, q, ZAXIS);
 
+			x_in = q[edge_in]
+					+ (q[(edge_in + 1) % num_of_vertex] - q[edge_in]) * s_in;
+
 			if (edge_in < 0)
 			{
 				RUNTIME_ERROR("illegal polygons!");
 			}
 		}
 
-		coordinates_type x_in, x_out;
-
-		x_in = q[edge_in]
-				+ (q[(edge_in + 1) % num_of_vertex] - q[edge_in]) * s_in;
-
 		x_out = q[edge_out]
 				+ (q[(edge_out + 1) % num_of_vertex] - q[edge_out]) * s_out;
 
-		Real face_area = 0.0;
+		Real face_area = -inner_product(n, cross(x[0] - x_in, x_out - x[0]))
+				* 0.5 * dA;
 
 		if (edge_out == edge_in)
 		{
 		}
 		else if (edge_out == (edge_in + 1) % num_of_vertex)
 		{
-			face_area = (1 - (1 - s_in) * s_out * 0.5) * dA;
+			face_area += (1 - (1 - s_in) * s_out * 0.5) * dA;
 		}
 		else if (edge_out == (edge_in + 2) % num_of_vertex)
 		{
-			face_area = (s_in + 1 - s_out) * 0.5 * 1 * dA;
+			face_area += (s_in + 1 - s_out) * 0.5 * 1 * dA;
 		}
 		else if (edge_out == (edge_in + 3) % num_of_vertex)
 		{
-			face_area = s_in * (1 - s_out) * 0.5 * dA;
+			face_area += s_in * (1 - s_out) * 0.5 * dA;
 		}
 
-		if (is_vertex)
-		{
-			/**
-			 *  vertex in cell
-			 */
-
-			face_area -= inner_product(n, cross(x[0] - x_in, x_out - x[0]))
-					* 0.5 * dA;
-
-			// TODO calculate area of x-1,x_v,x0
-			is_vertex = false;
-		}
-
-		// save edge length
-		(*volume)[cell_id + id_edge[edge_out]] = (1 - s_out) * dx;
-
-		// save face area
-		(*volume)[cell_id + (MeshIDs::_DI | MeshIDs::_DJ)] = face_area;
+		// save edge/face/volume volume
+		(*volume)[cell_id + id_edge_shift[edge_out]] = (1 - s_out) * dx;
+		(*volume)[cell_id + id_face_shift[ZAXIS]] = face_area;
+		(*volume)[cell_id + (MeshIDs::_DA)] = face_area * dx;
 
 		// save current node
 		out_points->push_back(x_out);
 
 		// move to next cell
+
+		x[0] = x_out;
+
 		cell_id += id_cell_shift[edge_out];
 
 		edge_in = convert_out_in_edge_out[edge_out];
 
-		s_in = 1 - s_in;
+		s_in = 1 - s_out;
 
-		x[0] = x_out;
+		x_in = x_out;
 	}
 }
 
