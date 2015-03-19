@@ -212,22 +212,38 @@ std::tuple<Real, Real> line_intersection(T0 const& P0, T1 const & P1,
  *     /
  *    o p1
  */
-void line_segment_intersect_grid(coordinates_type x0, coordinates_type x1,
+
+std::tuple<size_t, Real> line_intersect_polygon(coordinates_type x0,
+		coordinates_type x1, int num_of_vertex, coordinates_type const * q,
+		size_t ZAXIS = 2)
+{
+
+	for (int i = 0; i < num_of_vertex; ++i)
+	{
+		Real s, t;
+
+		std::tie(s, t) = line_intersection(q[i], q[(i + 1) % num_of_vertex], x0,
+				x1);
+
+		if (s >= 0.0 && s <= 1.0 && t > EPSILON && t <= 1.0)
+		{
+
+//			x0 = q[i] + s * (q[(i + 1) % num_of_vertex] - q[i]);
+
+			return std::make_tuple(i, s, x0);
+			break;
+		}
+	}
+
+	return std::make_tuple(-1, 0, x0);
+}
+
+void polyline_intersect_grid(std::vector<coordinates_type> const & polygons,
 		coordinates_type const & shift, std::vector<id_type> *ids,
 		std::vector<coordinates_type> *out_points, const int ZAXIS = 2)
 {
 	const int XAXIS = (ZAXIS + 1) % 3;
 	const int YAXIS = (ZAXIS + 2) % 3;
-
-	bool keep_looking = true;
-
-	id_type cell_id = MeshIDs::coordinates_to_id(coordinates_type {
-
-	std::floor(x0[0] + shift[0]),
-
-	std::floor(x0[1] + shift[1]),
-
-	std::floor(x0[2] + shift[2]) });
 
 	static const id_type id_edge[4] = {
 
@@ -240,6 +256,8 @@ void line_segment_intersect_grid(coordinates_type x0, coordinates_type x1,
 	MeshIDs::_DJ
 
 	};
+	static const id_type id_face = MeshIDs::_DI | MeshIDs::_DJ;
+
 	static const id_type id_cell_shift[4] = {
 
 	-(MeshIDs::_DJ << 1),
@@ -252,10 +270,30 @@ void line_segment_intersect_grid(coordinates_type x0, coordinates_type x1,
 
 	};
 
-	while (keep_looking)
-	{
+	const int num_of_vertex = 4;
+	coordinates_type q[num_of_vertex];
 
-		coordinates_type q[4];
+	coordinates_type xp, x_[3];
+	coordinates_type *x = x_ + 1;
+
+	x[-1] = *polygons.rbegin();
+
+	auto it = polygons.begin();
+
+	x[0] = *it;
+	x[1] = x[0];
+
+	bool is_vertex = true;
+
+	while (it != polygons.end())
+	{
+		id_type cell_id = MeshIDs::coordinates_to_id(coordinates_type {
+
+		std::floor(x[0][0] + shift[0]),
+
+		std::floor(x[0][1] + shift[1]),
+
+		std::floor(x[0][2] + shift[2]) });
 
 		q[0] = MeshIDs::id_to_coordinates(cell_id);
 		q[1] = q[0];
@@ -267,64 +305,90 @@ void line_segment_intersect_grid(coordinates_type x0, coordinates_type x1,
 		q[2][YAXIS] += 1.0;
 		q[3][YAXIS] += 1.0;
 
-		keep_looking = false;
+		int out_edge_id = -1;
+		Real s_out = 0;
 
-		for (int i = 0; i < 4; ++i)
+		Real edge_length = 0.0;
+		Real face_area = 0.0;
+
+		std::tie(out_edge_id, s_out) = line_intersect_polygon(x[0], x[1],
+				num_of_vertex, q, ZAXIS);
+
+		if (out_edge_id < 0)
 		{
-			Real s, t;
+			++it;
+			x[1] = *it;
+			is_vertex = true;
 
-			std::tie(s, t) = line_intersection(q[i], q[(i + 1) % 4], x0, x1);
+			continue;
+		}
+		else if (is_vertex)
+		{
+			/**
+			 *  vertex in cell
+			 */
+			Real s_in;
+			int in_edge_id;
 
-//			VERBOSE << (i) << " " << s << "\t" << q[i] << q[(i + 1) % 4]
-//					<< std::endl;
+			std::tie(in_edge_id, s_in) = line_intersect_polygon(x[-1], x[0],
+					num_of_vertex, q, ZAXIS);
 
-			if (s >= 0.0 && s <= 1.0 && t > EPSILON && t <= 1.0)
+			if (in_edge_id < 0)
 			{
-
-				x0 = q[i] + s * (q[(i + 1) % 4] - q[i]);
-
-				VERBOSE << s << "\t" << x0 << std::endl;
-
-				keep_looking = true;
-
-				ids->push_back(cell_id + id_edge[i]);
-
-				out_points->push_back(x0);
-
-				cell_id += id_cell_shift[i];
-
-				break;
+				RUNTIME_ERROR("illegal polygons!");
 			}
+
+			x[-1] = q[in_edge_id]
+					+ (q[(in_edge_id + 1) % num_of_vertex] - q[in_edge_id])
+							* s_in;
+
+			coordinates_type x_vertex;
+
+			x_vertex = x[0];
+
+			x[0] = q[out_edge_id]
+					+ (q[(out_edge_id + 1) % num_of_vertex] - q[out_edge_id])
+							* s_out;
+
+			// TODO calculate area of x-1,x_v,x0
+
+			is_vertex = false;
 		}
 
-	}
-
-}
-
-void polyline_intersect_grid(std::vector<coordinates_type> const & polygons,
-		coordinates_type const & shift, std::vector<id_type> *ids,
-		std::vector<coordinates_type> *out_points, const int ZAXIS = 2)
-{
-
-	auto it = polygons.begin();
-
-	while (it != polygons.end())
-	{
-		coordinates_type p0 = *it;
-		coordinates_type p1;
-		++it;
-
-		if (it == polygons.end())
-		{
-
-			p1 = *polygons.begin();
-		}
 		else
 		{
-			p1 = *it;
+			/**
+			 *  line cross cell
+			 */
+
+			x[-1] = x[0];
+
+			x[0] = q[out_edge_id]
+					+ (q[(out_edge_id + 1) % num_of_vertex] - q[out_edge_id])
+							* s_out;
+
+			coordinates_type n;
+
+			n = cross(x[0] - x[-1], x[1] - x[0]);
+
+			if (n[ZAXIS] < 0)
+			{
+				s_out = 1 - s_out;
+			}
+
 		}
 
-		line_segment_intersect_grid(p0, p1, shift, ids, out_points, ZAXIS);
+		// save current node
+		out_points->push_back(x[0]);
+
+		// move start point to intersect point
+		cell_id += cell_id[out_edge_id];
+
+		// save edge length
+		ids[cell_id + id_edge[out_edge_id]] = edge_length;
+		// save face area
+		ids[cell_id + (MeshIDs::_DI | MeshIDs::_DJ)] = face_area;
+
 	}
 }
 
