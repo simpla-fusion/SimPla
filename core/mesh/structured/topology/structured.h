@@ -22,11 +22,10 @@
 #include "../../../utilities/utilities.h"
 #include "../../../gtl/ntuple.h"
 #include "../../../gtl/primitives.h"
-#include "../../../gtl/iterator/sp_ndarray_iterator.h"
 
 #include "../../../parallel/mpi_comm.h"
 #include "../../../parallel/mpi_aux_functions.h"
-#include "../../manifold.h"
+#include "../../mesh_ids.h"
 
 namespace simpla
 {
@@ -57,43 +56,37 @@ namespace simpla
  * \endverbatim
  *  - the unit cell width is 1;
  */
-template<size_t NDIMS = 3>
-struct StructuredMesh_
+template<size_t NDIMS = 3, size_t AXIS_FLAG>
+struct StructuredMesh_: public MeshIDs_<NDIMS, AXIS_FLAG>
 {
 
 	typedef StructuredMesh_ this_type;
 
-	static constexpr size_t ndims = NDIMS;
+	typedef MeshIDs_<NDIMS> ids;
 
-	typedef size_t index_type;
+	using ids::ndims;
+	using typename ids::index_type;
+	using typename ids::id_type;
+	using typename ids::index_tuple;
+	using typename ids::coordinates_type;
 
-	typedef nTuple<index_type, ndims> index_tuple;
-
-	typedef nTuple<Real, ndims> coordinates_type;
-
-	typedef unsigned long id_type;
-
-	static constexpr size_t MAX_NUM_NEIGHBOUR_ELEMENT = 12;
-	static constexpr size_t MAX_NUM_VERTEX_PER_CEL = 8;
 	static constexpr size_t DEFAULT_GHOSTS_WIDTH = 3;
-
 	static constexpr size_t iform = VERTEX;
-
-	template<size_t IForm> struct const_iterator;
-
-	template<size_t IForm> struct Range;
 
 private:
 	bool is_valid_ = false;
 
-	index_tuple m_global_dimensions_ = { 1, 1, 1 };
-	index_tuple m_global_offset_ = { 0, 0, 0 };
-	index_tuple m_local_dimensions_ = { 1, 1, 1 };
-	index_tuple m_local_offset_ = { 0, 0, 0 };
-	index_tuple m_count_ = { 1, 1, 1 };
-	index_tuple m_local_strides_;
-	index_tuple m_ghost_width_ = { 0, 0, 0 };
-	index_tuple m_grain_size_;
+	index_tuple m_index_global_dimensions_ = { 1, 1, 1 };
+	index_tuple m_index_global_offset_ = { 0, 0, 0 };
+	index_tuple m_index_local_dimensions_ = { 1, 1, 1 };
+	index_tuple m_index_local_offset_ = { 0, 0, 0 };
+	index_tuple m_index_count_ = { 1, 1, 1 };
+	index_tuple m_index_local_strides_;
+	index_tuple m_index_ghost_width_ = { 0, 0, 0 };
+	index_tuple m_index_grain_size_;
+
+	index_tuple m_index_min_ = { 1, 1, 1 };
+	index_tuple m_index_max_ = { 0, 0, 0 };
 
 //	coordinates_type m_xmin_, m_xmax_, m_dx_;
 
@@ -102,6 +95,7 @@ private:
 	DataSpace m_dataspace_;
 
 	std::vector<mpi_ghosts_shape_s> m_ghosts_shape_;
+
 public:
 
 	//***************************************************************************************************
@@ -113,7 +107,7 @@ public:
 	StructuredMesh_(nTuple<size_t, ndims> const &dims)
 	{
 		dimensions(&dims[0]);
-		m_ghost_width_ = 0;
+		m_index_ghost_width_ = 0;
 	}
 	virtual ~StructuredMesh_()
 	{
@@ -123,21 +117,21 @@ public:
 			:
 //			m_xmin_(other.m_xmin_), m_xmax_(other.m_xmax_), m_dx_(other.m_dx_),
 
-			m_global_dimensions_(other.m_global_dimensions_),
+			m_index_global_dimensions_(other.m_index_global_dimensions_),
 
-			m_global_offset_(other.m_global_offset_),
+			m_index_global_offset_(other.m_index_global_offset_),
 
-			m_local_dimensions_(other.m_local_dimensions_),
+			m_index_local_dimensions_(other.m_index_local_dimensions_),
 
-			m_local_offset_(other.m_local_offset_),
+			m_index_local_offset_(other.m_index_local_offset_),
 
-			m_local_strides_(other.m_local_strides_),
+			m_index_local_strides_(other.m_index_local_strides_),
 
-			m_count_(other.m_count_),
+			m_index_count_(other.m_index_count_),
 
-			m_ghost_width_(other.m_ghost_width_),
+			m_index_ghost_width_(other.m_index_ghost_width_),
 
-			m_grain_size_(other.m_grain_size_),
+			m_index_grain_size_(other.m_index_grain_size_),
 
 			m_dataspace_(other.m_dataspace_)
 	{
@@ -149,15 +143,15 @@ public:
 //		std::swap(m_xmax_, other.m_xmax_);
 //		std::swap(m_dx_, other.m_dx_);
 
-		std::swap(m_global_dimensions_, other.m_global_dimensions_);
-		std::swap(m_global_offset_, other.m_global_offset_);
-		std::swap(m_local_dimensions_, other.m_local_dimensions_);
-		std::swap(m_local_offset_, other.m_local_offset_);
-		std::swap(m_local_strides_, other.m_local_strides_);
+		std::swap(m_index_global_dimensions_, other.m_index_global_dimensions_);
+		std::swap(m_index_global_offset_, other.m_index_global_offset_);
+		std::swap(m_index_local_dimensions_, other.m_index_local_dimensions_);
+		std::swap(m_index_local_offset_, other.m_index_local_offset_);
+		std::swap(m_index_local_strides_, other.m_index_local_strides_);
 
-		std::swap(m_count_, other.m_count_);
-		std::swap(m_ghost_width_, other.m_ghost_width_);
-		std::swap(m_grain_size_, other.m_grain_size_);
+		std::swap(m_index_count_, other.m_index_count_);
+		std::swap(m_index_ghost_width_, other.m_index_ghost_width_);
+		std::swap(m_index_grain_size_, other.m_index_grain_size_);
 		std::swap(m_dataspace_, other.m_dataspace_);
 
 	}
@@ -221,81 +215,9 @@ public:
 	 * @{
 	 **/
 
-//  \verbatim
-//
-//   |----------------|----------------|---------------|--------------|------------|
-//   ^                ^                ^               ^              ^            ^
-//   |                |                |               |              |            |
-//global          local_outer      local_inner    local_inner    local_outer     global
-// _begin          _begin          _begin           _end           _end          _end
-//
-//  \endverbatim
-	/**
-	 *  signed long is 63bit, unsigned long is 64 bit, add a sign bit
-	 *  \note
-	 *  \verbatim
-	 * 	Thanks my wife Dr. CHEN Xiang Lan, for her advice on bitwise operation
-	 * 	    H          m  I           m    J           m K
-	 *  |--------|--------------|--------------|-------------|
-	 *  |11111111|00000000000000|00000000000000|0000000000000| <= _MH
-	 *  |00000000|11111111111111|00000000000000|0000000000000| <= _MI
-	 *  |00000000|00000000000000|11111111111111|0000000000000| <= _MJ
-	 *  |00000000|00000000000000|00000000000000|1111111111111| <= _MK
-	 *
-	 *                      I/J/K
-	 *  | INDEX_DIGITS------------------------>|
-	 *  |  Root------------------->| Leaf ---->|
-	 *  |11111111111111111111111111|00000000000| <=_MRI
-	 *  |00000000000000000000000001|00000000000| <=_DI
-	 *  |00000000000000000000000000|11111111111| <=_MTI
-	 *  | Page NO.->| Tree Root  ->|
-	 *  |00000000000|11111111111111|11111111111| <=_MASK
-	 *  \endverbatim
-	 */
-
-	static constexpr size_t FULL_DIGITS = std::numeric_limits<size_t>::digits;
-
-	static constexpr size_t INDEX_DIGITS = (FULL_DIGITS
-			- CountBits<FULL_DIGITS>::n) / 3;
-
-	static constexpr size_t FLOATING_POINT_POS = 4;
-
-	static constexpr index_type FLOATING_POINT_FACTOR = 1 << FLOATING_POINT_POS;
-
-	static constexpr size_t INDEX_MASK = (1UL << (INDEX_DIGITS)) - 1;
-
-	static constexpr size_t D_INDEX = (1UL << (FLOATING_POINT_POS));
-
-	static constexpr size_t _DK = D_INDEX << (INDEX_DIGITS * 2 - 1);
-
-	static constexpr size_t _DJ = D_INDEX << (INDEX_DIGITS - 1);
-
-	static constexpr size_t _DI = D_INDEX >> 1;
-
-	static constexpr size_t _DA = _DI | _DJ | _DK;
-
-	static constexpr size_t CELL_ID_MASK_ = //
-			(((1UL << (INDEX_DIGITS - FLOATING_POINT_POS - 1)) - 1)
-					<< (FLOATING_POINT_POS - 1)) & INDEX_MASK;
-
-	static constexpr size_t CELL_ID_MASK =
-
-	(CELL_ID_MASK_ << (INDEX_DIGITS * 2))
-
-	| (CELL_ID_MASK_ << (INDEX_DIGITS))
-
-	| (CELL_ID_MASK_);
-
-//	static constexpr size_t COMPACT_INDEX_ROOT_MASK = INDEX_ROOT_MASK
-//			| (INDEX_ROOT_MASK << INDEX_DIGITS)
-//			| (INDEX_ROOT_MASK << INDEX_DIGITS * 2);
-//
-//	static constexpr size_t NO_HEAD_FLAG = ~((~0UL) << (INDEX_DIGITS * 3));
-
 public:
 	template<typename TV, size_t IFORM = iform>
-	using field_value_type=typename
-	std::conditional<IFORM==EDGE ||IFORM==FACE,nTuple<TV,3>,TV>::type;
+	using field_value_type=typename std::conditional<IFORM==EDGE ||IFORM==FACE,nTuple<TV,3>,TV>::type;
 
 private:
 	Real m_time_ = 0;
@@ -316,20 +238,20 @@ public:
 	template<typename T>
 	void dimensions(T const& d)
 	{
-		m_global_dimensions_ = d;
+		m_index_global_dimensions_ = d;
 	}
 
 	auto dimensions() const
-	DECL_RET_TYPE(m_global_dimensions_)
+	DECL_RET_TYPE(m_index_global_dimensions_)
 
 	template<typename T>
 	void ghost_width(T const&d)
 	{
-		m_ghost_width_ = d;
+		m_index_ghost_width_ = d;
 	}
 
 	auto ghost_width() const
-	DECL_RET_TYPE(m_ghost_width_)
+	DECL_RET_TYPE(m_index_ghost_width_)
 
 //	void dt(Real pdt)
 //	{
@@ -344,61 +266,47 @@ public:
 		coordinates_type xmin;
 		coordinates_type xmax;
 		xmin = 0;
-		xmax = m_global_dimensions_;
+		xmax = m_index_global_dimensions_;
 		return std::make_pair(xmin, xmax);
 	}
 	std::pair<coordinates_type, coordinates_type> local_extents() const
 	{
 		coordinates_type xmin;
 		coordinates_type xmax;
-		xmin = m_global_offset_;
-		xmax = m_global_offset_ + m_count_;
+		xmin = m_index_min_;
+		xmax = m_index_max_;
 		return std::make_pair(xmin, xmax);
 	}
 
-	bool check_memory_bounds(id_type s) const
+	std::pair<index_tuple, index_tuple> range() const
 	{
-//		auto idx = id_to_index(s) >> FLOATING_POINT_POS;
-
-		return true;
-
-//		idx[0] >= m_local_outer_begin_[0]
-//
-//		&& idx[0] < m_local_outer_end_[0]
-//
-//		&& idx[1] >= m_local_outer_begin_[1]
-//
-//		&& idx[1] < m_local_outer_end_[1]
-//
-//		&& idx[2] >= m_local_outer_begin_[2]
-//
-//		&& idx[2] < m_local_outer_end_[2]
-
-		;
-
+		return std::make_pair(m_index_min_, m_index_max_);
 	}
 
 	void deploy()
 	{
 
-		m_count_ = m_global_dimensions_;
-		m_global_offset_ = 0;
+		m_index_count_ = m_index_global_dimensions_;
+		m_index_global_offset_ = 0;
 		if (GLOBAL_COMM.num_of_process()>1)
 		{
-			GLOBAL_COMM.decompose(ndims, &m_global_offset_[0], &m_count_[0]);
+			GLOBAL_COMM.decompose(ndims, &m_index_global_offset_[0], &m_index_count_[0]);
 		}
 
-		m_local_offset_ = m_ghost_width_;
-		m_local_dimensions_ = m_count_ + m_ghost_width_ * 2;
+		m_index_min_ = m_index_global_offset_;
+		m_index_max_ = m_index_min_ + m_index_count_;
 
-		m_local_strides_[ndims - 1] = 1;
+		m_index_local_offset_ = m_index_ghost_width_;
+		m_index_local_dimensions_ = m_index_count_ + m_index_ghost_width_ * 2;
+
+		m_index_local_strides_[ndims - 1] = 1;
 
 		if (ndims > 1)
 		{
 			for (int i = ndims - 2; i >= 0; --i)
 			{
-				m_local_strides_[i] = m_local_dimensions_[i + 1]
-						* m_local_strides_[i + 1];
+				m_index_local_strides_[i] = m_index_local_dimensions_[i + 1]
+						* m_index_local_strides_[i + 1];
 			}
 		}
 
@@ -415,10 +323,10 @@ public:
 		nTuple<size_t, MAX_NDIMS_OF_ARRAY> f_count;
 		nTuple<size_t, MAX_NDIMS_OF_ARRAY> f_ghost_width;
 		int f_ndims = ndims;
-		f_dims = m_global_dimensions_;
-		f_offset = m_global_offset_;
-		f_count = m_count_;
-		f_ghost_width = m_ghost_width_;
+		f_dims = m_index_global_dimensions_;
+		f_offset = m_index_global_offset_;
+		f_count = m_index_count_;
+		f_ghost_width = m_index_ghost_width_;
 
 		if ((IFORM != VERTEX && IFORM != VOLUME))
 		{
@@ -448,10 +356,10 @@ public:
 		nTuple<size_t, MAX_NDIMS_OF_ARRAY> f_count;
 		nTuple<size_t, MAX_NDIMS_OF_ARRAY> f_ghost_width;
 		int f_ndims = ndims;
-		f_dims = m_local_dimensions_;
-		f_offset = m_local_offset_;
-		f_count = m_count_;
-		f_ghost_width = m_ghost_width_;
+		f_dims = m_index_local_dimensions_;
+		f_offset = m_index_local_offset_;
+		f_count = m_index_count_;
+		f_ghost_width = m_index_ghost_width_;
 
 		if ((IFORM != VERTEX && IFORM != VOLUME))
 		{
@@ -485,7 +393,7 @@ public:
 		size_t res = ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
 		for (int i = 0; i < ndims; ++i)
 		{
-			res *= m_local_dimensions_[i];
+			res *= m_index_local_dimensions_[i];
 		}
 		return res;
 	}
@@ -494,19 +402,21 @@ public:
 	size_t hash(TI const & d) const
 	{
 
-		size_t res = ((d[0] + m_local_offset_[0] - m_global_offset_[0]
-				+ m_local_dimensions_[0]) % m_local_dimensions_[0])
-				* m_local_strides_[0]
+		size_t res = ((d[0] + m_index_local_offset_[0]
+				- m_index_global_offset_[0] + m_index_local_dimensions_[0])
+				% m_index_local_dimensions_[0]) * m_index_local_strides_[0]
 				+
 
-				((d[1] + m_local_offset_[1] - m_global_offset_[1]
-						+ m_local_dimensions_[1]) % m_local_dimensions_[1])
-						* m_local_strides_[1]
+				((d[1] + m_index_local_offset_[1] - m_index_global_offset_[1]
+						+ m_index_local_dimensions_[1])
+						% m_index_local_dimensions_[1])
+						* m_index_local_strides_[1]
 				+
 
-				((d[2] + m_local_offset_[2] - m_global_offset_[2]
-						+ m_local_dimensions_[2]) % m_local_dimensions_[2])
-						* m_local_strides_[2];
+				((d[2] + m_index_local_offset_[2] - m_index_global_offset_[2]
+						+ m_index_local_dimensions_[2])
+						% m_index_local_dimensions_[2])
+						* m_index_local_strides_[2];
 
 		if (IFORM == EDGE || IFORM == FACE)
 		{
@@ -544,1123 +454,16 @@ public:
 		d[r] += v;
 	}
 
-	/**
-	 *  @name Select
-	 *  @{
-	 */
-
-	template<size_t IFORM = iform>
-	Range<IFORM> range() const
-	{
-		index_tuple offset;
-		offset = 0;
-		return Range<IFORM>(offset, m_global_dimensions_);
-	}
-	template<size_t IFORM = iform>
-	Range<IFORM> local_range() const
-	{
-		return Range<IFORM>(m_global_offset_, m_global_offset_ + m_count_);
-	}
-
-	template<typename T0, typename T1, size_t IFORM = iform>
-	Range<IFORM> select(T0 imin, T1 imax) const
-	{
-		return Range<IFORM>(imin, imax);
-	}
-	template<typename T0, typename T1, size_t IFORM = iform>
-	Range<IFORM> select_local(T0 imin, T1 imax) const
-	{
-		index_tuple min, max;
-		min = imin;
-		max = imax;
-		min = min + m_global_offset_ - m_local_offset_;
-		max = max + m_global_offset_ - m_local_offset_;
-		return Range<IFORM>(min, max);
-	}
-//private:
-//	template<size_t IFORM>
-//	Range<IFORM> select_rectangle_(index_tuple const &ib, index_tuple const &ie,
-//			index_tuple b, index_tuple e) const
-//	{
-//		clipping(ib, ie, &b, &e);
-//
-//		return std::move(Range<IFORM>(b, e));
-//
-//	}
-//public:
-//
-//	template<size_t IFORM>
-//	Range<IFORM> select() const
-//	{
-//		return (Range<IFORM>(m_local_inner_begin_, m_local_inner_end_));
-//	}
-//
-//	/**
-//	 * \fn Select
-//	 * \brief
-//	 * @param range
-//	 * @param b
-//	 * @param e
-//	 * @return
-//	 */
-//	template<size_t IForm>
-//	auto select(index_tuple const & b, index_tuple const &e) const
-//	DECL_RET_TYPE(select_rectangle_<IForm>( b, e,
-//					m_local_inner_begin_, m_local_inner_end_))
-//
-//	/**
-//	 *
-//	 */
-//	template<size_t IFORM>
-//	Range<IFORM> select(coordinates_type const & xmin,
-//			coordinates_type const &xmax) const
-//	{
-//		return std::move(Range<IFORM>());
-//	}
-//
-//	/**  @} */
-//! @name Coordinates
-//! @{
-//	static constexpr Real COORDINATES_TO_INDEX_FACTOR =
-//			static_cast<Real>(FLOATING_POINT_FACTOR);
-//
-//	static constexpr Real INDEX_TO_COORDINATES_FACTOR = 1.0
-//			/ COORDINATES_TO_INDEX_FACTOR;
-
-	static constexpr coordinates_type index_to_coordinates(
-			index_tuple const&idx)
-	{
-
-		return std::move(coordinates_type( {
-
-		static_cast<Real>(idx[0]),
-
-		static_cast<Real>(idx[1]),
-
-		static_cast<Real>(idx[2])
-
-		}));
-	}
-
-	static constexpr index_tuple coordinates_to_index(coordinates_type const &x)
-	{
-		return std::move(index_tuple( {
-
-		static_cast<index_type>(x[0]),
-
-		static_cast<index_type>(x[1]),
-
-		static_cast<index_type>(x[2])
-
-		}));
-	}
-
-	template<typename TI>
-	static constexpr id_type index_to_id(TI const & x)
-	{
-		return
-
-		static_cast<id_type>(
-
-		(((x[0]) & INDEX_MASK) << FLOATING_POINT_POS) |
-
-		(((x[1]) & INDEX_MASK) << (INDEX_DIGITS + FLOATING_POINT_POS)) |
-
-		(((x[2]) & INDEX_MASK) << (INDEX_DIGITS * 2 + FLOATING_POINT_POS))
-
-		);
-	}
-
-	static constexpr index_tuple id_to_index(id_type s)
-	{
-
-		return std::move(
-				index_tuple(
-						{
-
-						static_cast<index_type>(s & INDEX_MASK)
-								>> FLOATING_POINT_POS,
-
-						static_cast<index_type>((s >> (INDEX_DIGITS))
-								& INDEX_MASK) >> FLOATING_POINT_POS,
-
-						static_cast<index_type>((s >> (INDEX_DIGITS * 2))
-								& INDEX_MASK) >> FLOATING_POINT_POS
-
-						}));
-	}
-
-	static constexpr coordinates_type id_to_coordinates(id_type s)
-	{
-		return std::move(index_to_coordinates(id_to_index(s)));
-	}
-
-	static constexpr id_type coordinates_to_id(coordinates_type const &x)
-	{
-		return (index_to_id(coordinates_to_index(x)));
-	}
-
-	static constexpr coordinates_type coordinates_local_to_global(id_type s,
-			coordinates_type const &r)
-	{
-		return static_cast<coordinates_type>(id_to_coordinates(s) + r);
-	}
-
-	static constexpr coordinates_type coordinates_local_to_global(
-			std::tuple<id_type, coordinates_type> const &z)
-	{
-		return std::move(
-				coordinates_local_to_global(std::get<0>(z), std::get<1>(z)));
-	}
-
-	/**
-	 *
-	 * @param x coordinates \f$ x \in \left[0,1\right)\f$
-	 * @param shift
-	 * @return s,r  s is the largest grid point not greater than x.
-	 *       and  \f$ r \in \left[0,1.0\right) \f$ is the normalize  distance between x and s
-	 */
-
-	static std::tuple<id_type, coordinates_type> coordinates_global_to_local(
-			coordinates_type const & x, id_type shift = 0UL)
-	{
-		id_type s = (coordinates_to_id(x) & CELL_ID_MASK) | shift;
-
-		coordinates_type r;
-
-		r = x - id_to_coordinates(s);
-
-		ASSERT(inner_product(r, r) < 1.0);
-
-		return std::move(std::forward_as_tuple(s, r));
-	}
-
-	/**
-	 *
-	 * @param x  coordinates \f$ x \in \left[0,1\right)\f$
-	 * @param shift
-	 * @return s,r   s is thte conmpact index of nearest grid point
-	 *    and  \f$ r \in \left[-0.5,0.5\right) \f$   is the normalize  distance between x and s
-	 */
-	static std::tuple<id_type, coordinates_type> coordinates_global_to_local_NGP(
-			std::tuple<id_type, coordinates_type> const &z)
-	{
-		auto & x = std::get<1>(z);
-		id_type shift = std::get<0>(z);
-
-		index_tuple I = id_to_index(shift >> (FLOATING_POINT_POS - 1));
-
-		coordinates_type r;
-
-		r[0] = x[0] - 0.5 * static_cast<Real>(I[0]);
-		r[1] = x[1] - 0.5 * static_cast<Real>(I[1]);
-		r[2] = x[2] - 0.5 * static_cast<Real>(I[2]);
-
-		I[0] = static_cast<index_type>(std::floor(r[0] + 0.5));
-		I[1] = static_cast<index_type>(std::floor(r[1] + 0.5));
-		I[2] = static_cast<index_type>(std::floor(r[2] + 0.5));
-
-		r -= I;
-
-		id_type s = (index_to_id(I)) | shift;
-
-		return std::move(std::make_tuple(s, r));
-	}
-
-//! @}
-
-//! @name id auxiliary functions
-//! @{
-	static constexpr id_type dual(id_type r)
-	{
-		return (r & (~_DA)) | ((~(r & _DA)) & _DA);
-
-	}
-	static constexpr id_type get_cell_id(id_type r)
-	{
-		return r & CELL_ID_MASK;
-	}
-	static constexpr id_type node_id(id_type s)
-	{
-
-		return (((s >> (INDEX_DIGITS * 2 + FLOATING_POINT_POS - 1)) & 1UL) << 2)
-				| (((s >> (INDEX_DIGITS + FLOATING_POINT_POS - 1)) & 1UL) << 1)
-				| ((s >> (FLOATING_POINT_POS - 1)) & 1UL);
-
-	}
-
-	static constexpr id_type get_shift(id_type nodeid, id_type h = 0UL)
-	{
-
-		return
-
-		(((nodeid & 4UL) >> 2) << (INDEX_DIGITS * 2 + FLOATING_POINT_POS - 1)) |
-
-		(((nodeid & 2UL) >> 1) << (INDEX_DIGITS + FLOATING_POINT_POS - 1)) |
-
-		((nodeid & 1UL) << (FLOATING_POINT_POS - 1));
-
-	}
-	static constexpr id_type m_first_node_shift_[] = { 0, 1, 6, 7 };
-
-	static constexpr id_type get_first_node_shift(id_type iform)
-	{
-
-		return get_shift(m_first_node_shift_[iform]);
-	}
-	static constexpr size_t m_num_of_comp_per_cell_[4] = { 1, 3, 3, 1 };
-
-	static constexpr size_t get_num_of_comp_per_cell(size_t iform)
-	{
-		return m_num_of_comp_per_cell_[iform];
-	}
-
-	static constexpr id_type inverse_roate(id_type r)
-	{
-
-		return (r & (~_DA))
-
-		| ((r & (((_DJ | _DK)))) >> INDEX_DIGITS)
-
-		| ((r & (((_DI)))) << (INDEX_DIGITS * 2));
-
-	}
-
-	/**
-	 *  rotate vector direction  mask
-	 *  (1/2,0,0) => (0,0,1/2) or   (1/2,1/2,0) => (1/2,0,1/2)
-	 * @param s
-	 * @return
-	 */
-
-	static constexpr id_type roate(id_type s)
-	{
-
-		return (s & (~(_DA)))
-
-		| ((s & (((_DI | _DJ)))) << INDEX_DIGITS)
-
-		| ((s & (((_DK)))) >> (INDEX_DIGITS * 2));
-
-	}
-
-	static constexpr id_type delta_index(id_type r)
-	{
-		return (r & _DA);
-	}
-
-	static constexpr id_type DI(size_t i, id_type r)
-	{
-		return (1UL << (INDEX_DIGITS * i + FLOATING_POINT_POS - 1));
-
-	}
-	static constexpr id_type delta_index(size_t i, id_type r)
-	{
-		return DI(i, r) & r;
-	}
-
-	/**
-	 * Get component number or vector direction
-	 * @param s
-	 * @return
-	 */
-
-	static constexpr id_type m_component_number_[] = { 0,  // 000
-			0, // 001
-			1, // 010
-			2, // 011
-			2, // 100
-			1, // 101
-			0, // 110
-			0 };
-
-	static constexpr id_type component_number(id_type s)
-	{
-		return m_component_number_[node_id(s)];
-	}
-
-	static constexpr id_type m_iform_[] = { //
-
-			VERTEX, // 000
-					EDGE, // 001
-					EDGE, // 010
-					FACE, // 011
-					EDGE, // 100
-					FACE, // 101
-					FACE, // 110
-					VOLUME // 111
-			};
-
-	static constexpr id_type IForm(id_type r)
-	{
-		return m_iform_[node_id(r)];
-	}
-//! @}
-
-	/**
-	 * @name Neighgour
-	 * @{
-	 */
-
-	static size_t get_vertices(id_type s, id_type *v)
-	{
-		size_t res = 0;
-		switch (IForm(s))
-		{
-		case VERTEX:
-			res = get_vertices(std::integral_constant<size_t, VERTEX>(), s, v);
-			break;
-		case EDGE:
-			res = get_vertices(std::integral_constant<size_t, EDGE>(), s, v);
-			break;
-		case FACE:
-			res = get_vertices(std::integral_constant<size_t, FACE>(), s, v);
-			break;
-		case VOLUME:
-			res = get_vertices(std::integral_constant<size_t, VOLUME>(), s, v);
-			break;
-		}
-		return res;
-	}
-
-	template<size_t IFORM>
-	static size_t get_vertices(std::integral_constant<size_t, IFORM>, id_type s,
-			id_type *v)
-	{
-		return get_adjacent_cells(std::integral_constant<size_t, IFORM>(),
-				std::integral_constant<size_t, VERTEX>(), s, v);
-	}
-
-	template<size_t I>
-	static inline size_t get_adjacent_cells(std::integral_constant<size_t, I>,
-			std::integral_constant<size_t, I>, id_type s, id_type *v)
-	{
-		v[0] = s;
-		return 1;
-	}
-
-	static inline size_t get_adjacent_cells(
-			std::integral_constant<size_t, EDGE>,
-			std::integral_constant<size_t, VERTEX>, id_type s, id_type *v)
-	{
-		v[0] = s + delta_index(s);
-		v[1] = s - delta_index(s);
-		return 2;
-	}
-
-	static inline size_t get_adjacent_cells(
-			std::integral_constant<size_t, FACE>,
-			std::integral_constant<size_t, VERTEX>, id_type s, id_type *v)
-	{
-		/**
-		 * \verbatim
-		 *                ^y
-		 *               /
-		 *        z     /
-		 *        ^
-		 *        |   2---------------*
-		 *        |  /|              /|
-		 *          / |             / |
-		 *         /  |            /  |
-		 *        3---|-----------*   |
-		 *        | m |           |   |
-		 *        |   1-----------|---*
-		 *        |  /            |  /
-		 *        | /             | /
-		 *        |/              |/
-		 *        0---------------*---> x
-		 * \endverbatim
-		 *
-		 */
-
-		auto di = delta_index(roate(dual(s)));
-		auto dj = delta_index(inverse_roate(dual(s)));
-
-		v[0] = s - di - dj;
-		v[1] = s - di - dj;
-		v[2] = s + di + dj;
-		v[3] = s + di + dj;
-
-		return 4;
-	}
-
-	static inline size_t get_adjacent_cells(
-			std::integral_constant<size_t, VOLUME>,
-			std::integral_constant<size_t, VERTEX>, id_type s, id_type *v)
-	{
-		/**
-		 * \verbatim
-		 *                ^y
-		 *               /
-		 *        z     /
-		 *        ^
-		 *        |   6---------------7
-		 *        |  /|              /|
-		 *          / |             / |
-		 *         /  |            /  |
-		 *        4---|-----------5   |
-		 *        |   |           |   |
-		 *        |   2-----------|---3
-		 *        |  /            |  /
-		 *        | /             | /
-		 *        |/              |/
-		 *        0---------------1   ---> x
-		 *
-		 *   \endverbatim
-		 */
-		auto di = DI(0, s);
-		auto dj = DI(1, s);
-		auto dk = DI(2, s);
-
-		v[0] = ((s - di) - dj) - dk;
-		v[1] = ((s - di) - dj) + dk;
-		v[2] = ((s - di) + dj) - dk;
-		v[3] = ((s - di) + dj) + dk;
-
-		v[4] = ((s + di) - dj) - dk;
-		v[5] = ((s + di) - dj) + dk;
-		v[6] = ((s + di) + dj) - dk;
-		v[7] = ((s + di) + dj) + dk;
-
-		return 8;
-	}
-
-	static inline size_t get_adjacent_cells(
-			std::integral_constant<size_t, VERTEX>,
-			std::integral_constant<size_t, EDGE>, id_type s, id_type *v)
-	{
-		/**
-		 * \verbatim
-		 *
-		 *                ^y
-		 *               /
-		 *        z     /
-		 *        ^
-		 *        |   6---------------7
-		 *        |  /|              /|
-		 *          2 |             / |
-		 *         /  1            /  |
-		 *        4---|-----------5   |
-		 *        |   |           |   |
-		 *        |   2-----------|---3
-		 *        3  /            |  /
-		 *        | 0             | /
-		 *        |/              |/
-		 *        0------E0-------1   ---> x
-		 *
-		 * \endverbatim
-		 */
-
-		auto di = DI(0, s);
-		auto dj = DI(1, s);
-		auto dk = DI(2, s);
-
-		v[0] = s + di;
-		v[1] = s - di;
-
-		v[2] = s + dj;
-		v[3] = s - dj;
-
-		v[4] = s + dk;
-		v[5] = s - dk;
-
-		return 6;
-	}
-
-	static inline size_t get_adjacent_cells(
-			std::integral_constant<size_t, FACE>,
-			std::integral_constant<size_t, EDGE>, id_type s, id_type *v)
-	{
-
-		/**
-		 *\verbatim
-		 *                ^y
-		 *               /
-		 *        z     /
-		 *        ^
-		 *        |   6---------------7
-		 *        |  /|              /|
-		 *          2 |             / |
-		 *         /  1            /  |
-		 *        4---|-----------5   |
-		 *        |   |           |   |
-		 *        |   2-----------|---3
-		 *        3  /            |  /
-		 *        | 0             | /
-		 *        |/              |/
-		 *        0---------------1   ---> x
-		 *
-		 *\endverbatim
-		 */
-		auto d1 = delta_index(roate(dual(s)));
-		auto d2 = delta_index(inverse_roate(dual(s)));
-		v[0] = s - d1;
-		v[1] = s + d1;
-		v[2] = s - d2;
-		v[3] = s + d2;
-
-		return 4;
-	}
-
-	static inline size_t get_adjacent_cells(
-			std::integral_constant<size_t, VOLUME>,
-			std::integral_constant<size_t, EDGE>, id_type s, id_type *v)
-	{
-
-		/**
-		 *\verbatim
-		 *                ^y
-		 *               /
-		 *        z     /
-		 *        ^
-		 *        |   6------10-------7
-		 *        |  /|              /|
-		 *         11 |             9 |
-		 *         /  7            /  6
-		 *        4---|---8-------5   |
-		 *        |   |           |   |
-		 *        |   2-------2---|---3
-		 *        4  /            5  /
-		 *        | 3             | 1
-		 *        |/              |/
-		 *        0-------0-------1   ---> x
-		 *
-		 *\endverbatim
-		 */
-		auto di = DI(0, s);
-		auto dj = DI(1, s);
-		auto dk = DI(2, s);
-
-		v[0] = (s + di) + dj;
-		v[1] = (s + di) - dj;
-		v[2] = (s - di) + dj;
-		v[3] = (s - di) - dj;
-
-		v[4] = (s + dk) + dj;
-		v[5] = (s + dk) - dj;
-		v[6] = (s - dk) + dj;
-		v[7] = (s - dk) - dj;
-
-		v[8] = (s + di) + dk;
-		v[9] = (s + di) - dk;
-		v[10] = (s - di) + dk;
-		v[11] = (s - di) - dk;
-
-		return 12;
-	}
-
-	static inline size_t get_adjacent_cells(
-			std::integral_constant<size_t, VERTEX>,
-			std::integral_constant<size_t, FACE>, id_type s, id_type *v)
-	{
-		/**
-		 *\verbatim
-		 *                ^y
-		 *               /
-		 *        z     /
-		 *        ^
-		 *        |   6---------------7
-		 *        |  /|              /|
-		 *        | / |             / |
-		 *        |/  |            /  |
-		 *        4---|-----------5   |
-		 *        |   |           |   |
-		 *        | 0 2-----------|---3
-		 *        |  /            |  /
-		 *   11   | /      8      | /
-		 *      3 |/              |/
-		 * -------0---------------1   ---> x
-		 *       /| 1
-		 *10    / |     9
-		 *     /  |
-		 *      2 |
-		 *
-		 *
-		 *
-		 *              |
-		 *          7   |   4
-		 *              |
-		 *      --------*---------
-		 *              |
-		 *          6   |   5
-		 *              |
-		 *
-		 *\endverbatim
-		 */
-		auto di = DI(0, s);
-		auto dj = DI(1, s);
-		auto dk = DI(2, s);
-
-		v[0] = (s + di) + dj;
-		v[1] = (s + di) - dj;
-		v[2] = (s - di) + dj;
-		v[3] = (s - di) - dj;
-
-		v[4] = (s + dk) + dj;
-		v[5] = (s + dk) - dj;
-		v[6] = (s - dk) + dj;
-		v[7] = (s - dk) - dj;
-
-		v[8] = (s + di) + dk;
-		v[9] = (s + di) - dk;
-		v[10] = (s - di) + dk;
-		v[11] = (s - di) - dk;
-
-		return 12;
-	}
-
-	static inline size_t get_adjacent_cells(
-			std::integral_constant<size_t, EDGE>,
-			std::integral_constant<size_t, FACE>, id_type s, id_type *v)
-	{
-
-		/**
-		 *\verbatim
-		 *                ^y
-		 *               /
-		 *        z     /
-		 *        ^
-		 *        |   6---------------7
-		 *        |  /|              /|
-		 *        | / |             / |
-		 *        |/  |            /  |
-		 *        4---|-----------5   |
-		 *        |   |           |   |
-		 *        |   2-----------|---3
-		 *        |  /  0         |  /
-		 *        | /      1      | /
-		 *        |/              |/
-		 * -------0---------------1   ---> x
-		 *       /|
-		 *      / |   3
-		 *     /  |       2
-		 *        |
-		 *
-		 *
-		 *
-		 *              |
-		 *          7   |   4
-		 *              |
-		 *      --------*---------
-		 *              |
-		 *          6   |   5
-		 *              |
-		 *
-		 *\endverbatim
-		 */
-
-		auto d1 = delta_index(roate((s)));
-		auto d2 = delta_index(inverse_roate((s)));
-
-		v[0] = s - d1;
-		v[1] = s + d1;
-		v[2] = s - d2;
-		v[3] = s + d2;
-
-		return 4;
-	}
-
-	static inline size_t get_adjacent_cells(
-			std::integral_constant<size_t, VOLUME>,
-			std::integral_constant<size_t, FACE>, id_type s, id_type *v)
-	{
-
-		/**
-		 *\verbatim
-		 *                ^y
-		 *               /
-		 *        z     /
-		 *        ^    /
-		 *        |   6---------------7
-		 *        |  /|              /|
-		 *        | / |    5        / |
-		 *        |/  |     1      /  |
-		 *        4---|-----------5   |
-		 *        | 0 |           | 2 |
-		 *        |   2-----------|---3
-		 *        |  /    3       |  /
-		 *        | /       4     | /
-		 *        |/              |/
-		 * -------0---------------1   ---> x
-		 *       /|
-		 *\endverbatim
-		 */
-
-		auto di = DI(0, s);
-		auto dj = DI(1, s);
-		auto dk = DI(2, s);
-
-		v[0] = s - di;
-		v[1] = s + di;
-
-		v[2] = s - di;
-		v[3] = s + dj;
-
-		v[4] = s - dk;
-		v[5] = s + dk;
-
-		return 6;
-	}
-
-	static inline size_t get_adjacent_cells(
-			std::integral_constant<size_t, VERTEX>,
-			std::integral_constant<size_t, VOLUME>, id_type s, id_type *v)
-	{
-		/**
-		 *\verbatim
-		 *                ^y
-		 *               /
-		 *        z     /
-		 *        ^
-		 *        |   6---------------7
-		 *        |  /|              /|
-		 *        | / |             / |
-		 *        |/  |            /  |
-		 *        4---|-----------5   |
-		 *   3    |   |    0      |   |
-		 *        |   2-----------|---3
-		 *        |  /            |  /
-		 *        | /             | /
-		 *        |/              |/
-		 * -------0---------------1   ---> x
-		 *  3    /|       1
-		 *      / |
-		 *     /  |
-		 *        |
-		 *
-		 *
-		 *
-		 *              |
-		 *          7   |   4
-		 *              |
-		 *      --------*---------
-		 *              |
-		 *          6   |   5
-		 *              |
-		 *
-		 *\endverbatim
-		 */
-
-		auto di = DI(0, s);
-		auto dj = DI(1, s);
-		auto dk = DI(2, s);
-
-		v[0] = ((s - di) - dj) - dk;
-		v[1] = ((s - di) - dj) + dk;
-		v[2] = ((s - di) + dj) - dk;
-		v[3] = ((s - di) + dj) + dk;
-
-		v[4] = ((s + di) - dj) - dk;
-		v[5] = ((s + di) - dj) + dk;
-		v[6] = ((s + di) + dj) - dk;
-		v[7] = ((s + di) + dj) + dk;
-
-		return 8;
-	}
-
-	static inline size_t get_adjacent_cells(
-			std::integral_constant<size_t, EDGE>,
-			std::integral_constant<size_t, VOLUME>, id_type s, id_type *v)
-	{
-
-		/**
-		 *\verbatim
-		 *                ^y
-		 *               /
-		 *        z     /
-		 *        ^
-		 *        |   6---------------7
-		 *        |  /|              /|
-		 *        | / |             / |
-		 *        |/  |            /  |
-		 *        4---|-----------5   |
-		 *        |   |           |   |
-		 *        |   2-----------|---3
-		 *        |  /  0         |  /
-		 *        | /      1      | /
-		 *        |/              |/
-		 * -------0---------------1   ---> x
-		 *       /|
-		 *      / |   3
-		 *     /  |       2
-		 *        |
-		 *
-		 *
-		 *
-		 *              |
-		 *          7   |   4
-		 *              |
-		 *      --------*---------
-		 *              |
-		 *          6   |   5
-		 *              |
-		 *
-		 *\endverbatim
-		 */
-
-		auto d1 = delta_index(roate((s)));
-		auto d2 = delta_index(inverse_roate((s)));
-
-		v[0] = s - d1 - d2;
-		v[1] = s + d1 - d2;
-		v[2] = s - d1 + d2;
-		v[3] = s + d1 + d2;
-		return 4;
-	}
-
-	static inline size_t get_adjacent_cells(
-			std::integral_constant<size_t, FACE>,
-			std::integral_constant<size_t, VOLUME>, id_type s, id_type *v)
-	{
-
-		/**
-		 *\verbatim
-		 *                ^y
-		 *               /
-		 *        z     /
-		 *        ^    /
-		 *        |   6---------------7
-		 *        |  /|              /|
-		 *        | / |             / |
-		 *        |/  |            /  |
-		 *        4---|-----------5   |
-		 *        | 0 |           |   |
-		 *        |   2-----------|---3
-		 *        |  /            |  /
-		 *        | /             | /
-		 *        |/              |/
-		 * -------0---------------1   ---> x
-		 *       /|
-		 *\endverbatim
-		 */
-
-		auto d = delta_index(dual(s));
-		v[0] = s + d;
-		v[1] = s - d;
-
-		return 2;
-	}
-	/**@}*/
-
 }
 ;
 
-using StructuredMesh=StructuredMesh_<3>;
-/**
- * Solve problem: Undefined reference to static constexpr char[]
- * http://stackoverflow.com/questions/22172789/passing-a-static-constexpr-variable-by-universal-reference
- */
-template<size_t NDIMS> constexpr typename StructuredMesh_<NDIMS>::id_type
-StructuredMesh_<NDIMS>::m_component_number_[];
-template<size_t NDIMS> constexpr typename StructuredMesh_<NDIMS>::id_type
-StructuredMesh_<NDIMS>::m_iform_[];
-template<size_t NDIMS> constexpr typename StructuredMesh_<NDIMS>::id_type
-StructuredMesh_<NDIMS>::m_first_node_shift_[];
+template<size_t N, size_t A> constexpr size_t StructuredMesh_<N, A>::DEFAULT_GHOSTS_WIDTH;
+template<size_t N, size_t A> constexpr size_t StructuredMesh_<N, A>::iform;
 
-template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::ndims;
-template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::iform;
-template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::MAX_NUM_NEIGHBOUR_ELEMENT;
-template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::MAX_NUM_VERTEX_PER_CEL;
-template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::DEFAULT_GHOSTS_WIDTH;
-
-template<size_t NDIMS> constexpr typename StructuredMesh_<NDIMS>::index_type
-StructuredMesh_<NDIMS>::FLOATING_POINT_FACTOR;
-
-template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::FULL_DIGITS;
-template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::INDEX_DIGITS;
-template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::FLOATING_POINT_POS;
-template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::INDEX_MASK;
-template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::D_INDEX;
-template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::_DK;
-template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::_DJ;
-template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::_DI;
-template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::_DA;
-template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::CELL_ID_MASK_;
-template<size_t NDIMS> constexpr size_t StructuredMesh_<NDIMS>::CELL_ID_MASK;
-
-//template<size_t NDIMS> constexpr Real StructuredMesh_<NDIMS>::COORDINATES_TO_INDEX_FACTOR;
-//template<size_t NDIMS> constexpr Real StructuredMesh_<NDIMS>::INDEX_TO_COORDINATES_FACTOR;
-
-template<size_t NDIMS>
-template<size_t IFORM>
-struct StructuredMesh_<NDIMS>::Range
-{
-
-	struct const_iterator;
-
-	index_tuple begin_, end_;
-
-	Range()
-	{
-		begin_ = 0;
-		end_ = 0;
-	}
-
-	template<typename T0, typename T1>
-	Range(T0 const & b, T1 const& e)
-	{
-		begin_ = b;
-		end_ = e;
-	}
-
-	Range(Range const & that)
-			: begin_(that.begin_), end_(that.end_)
-	{
-	}
-	~Range()
-	{
-	}
-
-	const_iterator begin() const
-	{
-		return const_iterator(begin_, end_, begin_);
-	}
-
-	const_iterator end() const
-	{
-		const_iterator res(begin_, end_, end_ - 1);
-		++res;
-
-		return std::move(res);
-	}
-	size_t size() const
-	{
-		return NProduct(end_ - begin_)
-				* ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
-	}
-
-};
-template<size_t NDIMS>
-template<size_t IFORM>
-struct StructuredMesh_<NDIMS>::Range<IFORM>::const_iterator:
-
-public std::iterator<typename std::bidirectional_iterator_tag, id_type, size_t>,
-
-																public sp_ndarray_iterator<
-																		ndims
-																				+ 1,
-																		size_t>
-{
-private:
-	typedef sp_ndarray_iterator<ndims + 1, size_t> base_iterator;
-
-	static constexpr typename StructuredMesh_<NDIMS>::id_type m_shift_[12] =
-	{	0UL, 0UL, 0UL,
-
-		1UL, 2UL, 4UL,
-
-		6UL, 5UL, 3UL,
-
-		0UL, 0UL, 0UL};
-
-public:
-	const_iterator(const_iterator const & r) :
-	base_iterator(r)
-	{
-	}
-
-	template<typename T0, typename T1, typename T2>
-	const_iterator(T0 const & b, T1 const &e, T2 const &s)
-	{
-		nTuple<size_t, ndims + 1> begin, end, self;
-		begin=b;
-		end=e;
-		self=s;
-		begin[ndims] = 0;
-		self[ndims] = 0;
-		end[ndims] = 0;
-
-		base_iterator(begin, end, self).swap(*this);
-
-	}
-
-	~const_iterator()
-	{
-	}
-
-	value_type operator*() const
-	{
-		auto idx = base_iterator::operator*();
-		return index_to_id( idx ) | m_shift_[IFORM * 3 + idx[ndims]];
-	}
-
-};
-template<size_t NDIMS> template<size_t IFORM> constexpr
-typename StructuredMesh_<NDIMS>::id_type //
-StructuredMesh_<NDIMS>::Range<IFORM>::const_iterator::m_shift_[12];
-
-//inline StructuredMesh::range_type split(
-//		StructuredMesh::range_type const & range, size_t num_process,
-//		size_t process_num, size_t ghost_width = 0)
-//{
-//
-//	static constexpr size_t ndims = StructuredMesh::ndims;
-//
-//	StructuredMesh::iterator ib = begin(range);
-//	StructuredMesh::iterator ie = end(range);
-//
-//	auto b = ib.self_;
-//	decltype(b) e = (--ie).self_ + 1;
-//
-//	auto shift = ib.shift_;
-//
-//	decltype(b) count;
-//	count = e - b;
-//
-//	int n = 0;
-//	size_t L = 0;
-//	for (int i = 0; i < ndims; ++i)
-//	{
-//		if (count[i] > L)
-//		{
-//			L = count[i];
-//			n = i;
-//		}
-//	}
-//
-//	if ((2 * ghost_width * num_process > count[n] || num_process > count[n]))
-//	{
-//		if (process_num > 0)
-//			count = 0;
-//	}
-//	else
-//	{
-//		e[n] = b[n] + (count[n] * (process_num + 1)) / num_process;
-//		b[n] += (count[n] * process_num) / num_process;
-//
-//	}
-//
-//	return std::move(StructuredMesh::range_type(b, e, shift));
-//}
-
+typedef StructuredMesh_<3, 0> StructuredMesh;
 }
 // namespace simpla
 
-//namespace std
-//{
-//
-//typename iterator_traits<simpla::StructuredMesh::iterator>::difference_type inline //
-//distance(simpla::StructuredMesh::iterator b, simpla::StructuredMesh::iterator e)
-//{
-//
-//	typename simpla::StructuredMesh::iterator::difference_type res;
-//
-//	--e;
-//
-//	res = simpla::NProduct((e).self_ - b.self_ + 1);
-//
-//	switch (simpla::StructuredMesh::IForm(b.shift_))
-//	{
-//	case simpla::EDGE:
-//	case simpla::FACE:
-//		res = res * 3
-//		        + (simpla::StructuredMesh::component_number(e.shift_)
-//		                - simpla::StructuredMesh::component_number(b.shift_)) + 1;
-//		break;
-//	}
-//
-//	return res;
-//}
 //}  // namespace std
 
 #endif /* MESH_STRUCTURED_H_ */

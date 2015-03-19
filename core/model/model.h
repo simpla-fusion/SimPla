@@ -18,7 +18,7 @@
 #include "../gtl/primitives.h"
 #include "../gtl/type_traits.h"
 #include "../utilities/log.h"
-
+#include "../mesh/mesh_ids.h"
 namespace simpla
 {
 
@@ -31,58 +31,17 @@ namespace simpla
  *  @ingroup Model
  *   @brief Model
  */
-template<size_t NDIMS = 3, //
-		size_t AXIS_FLAG = 4 // 0b100
->
-class Model_
+template<size_t NDIMS = 3, size_t AXIS_FLAG = 4>
+class Model_: public MeshIDs_<NDIMS, AXIS_FLAG>
 {
-public:
-
-	typedef size_t id_type;
-
-	static constexpr size_t FULL_DIGITS = std::numeric_limits<size_t>::digits;
-
-	static constexpr size_t INDEX_DIGITS = (FULL_DIGITS
-			- CountBits<FULL_DIGITS>::n) / 3;
-
-	static constexpr size_t FLOATING_POINT_POS = 4;
-
-	static constexpr size_t FLOATING_POINT_FACTOR = 1 << FLOATING_POINT_POS;
-
-	static constexpr Real INDEX_TO_COORDINATES_FACTOR = 1.0
-			/ static_cast<Real>(1 << FLOATING_POINT_POS);
-
-	static constexpr size_t INDEX_MASK = (1UL << (INDEX_DIGITS)) - 1;
-
-	static constexpr size_t D_INDEX = (1UL << (FLOATING_POINT_POS));
-
-	static constexpr size_t _DZ = D_INDEX << (INDEX_DIGITS * 2 - 1);
-
-	static constexpr size_t _DY = D_INDEX << (INDEX_DIGITS - 1);
-
-	static constexpr size_t _DX = D_INDEX >> 1;
-
-	static constexpr size_t CELL_ID_MASK_ = //
-			(((1UL << (INDEX_DIGITS - FLOATING_POINT_POS - 1)) - 1)
-					<< (FLOATING_POINT_POS - 1)) & INDEX_MASK;
-
-	static constexpr size_t CELL_ID_MASK =
-
-	(CELL_ID_MASK_ << (INDEX_DIGITS * 2))
-
-	| (CELL_ID_MASK_ << (INDEX_DIGITS))
-
-	| (CELL_ID_MASK_);
-
-	static constexpr size_t ID_MASK =
-
-	(((AXIS_FLAG & 1UL) == 0) ? (INDEX_MASK) : 0UL)
-
-	| (((AXIS_FLAG & 2UL) == 0) ? (INDEX_MASK << INDEX_DIGITS) : 0UL)
-
-	| (((AXIS_FLAG & 4UL) == 0) ? (INDEX_MASK << (INDEX_DIGITS * 2)) : 0UL);
 
 public:
+
+	using typename MeshIDs_<NDIMS, AXIS_FLAG>::id_type;
+
+	using MeshIDs_<NDIMS, AXIS_FLAG>::ID_MASK;
+	using MeshIDs_<NDIMS, AXIS_FLAG>::_DA;
+
 	static constexpr size_t MAX_NUM_OF_MEIDA_TYPE = std::numeric_limits<
 			unsigned long>::digits;
 
@@ -231,16 +190,17 @@ public:
 	 */
 	bool check_boundary_surface(id_type const & s, size_t in)
 	{
-		id_type d = (~s) & (_DX | _DY | _DZ) & ID_MASK;
+		id_type d = (~s) & (_DA) & ID_MASK;
 
 		return ((in & get(s - d)) == 0UL) ^ ((in & get(s + d)) == 0UL);
 	}
 
 }
 ;
-template<size_t NDIMS, size_t AXIS> constexpr size_t Model_<NDIMS, AXIS>::null_material;
+template<size_t N, size_t A> constexpr size_t Model_<N, A>::null_material;
 
 typedef Model_<3, 4> Model;
+
 //typename Model::size_t Model::get(id_type s) const
 //{
 //

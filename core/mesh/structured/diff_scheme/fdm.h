@@ -35,8 +35,8 @@ public:
 
 	typedef FiniteDiffMethod<G> this_type;
 	typedef G geometry_type;
-	typedef typename geometry_type::topology_type topology_type;
-	typedef typename geometry_type::index_type index_type;
+	typedef typename geometry_type::ids ids;
+	typedef typename geometry_type::id_type id_type;
 	typedef Real scalar_type;
 	static constexpr size_t NUM_OF_COMPONENT_TYPE = G::ndims + 1;
 	static constexpr size_t ndims = G::ndims;
@@ -47,34 +47,13 @@ public:
 
 	FiniteDiffMethod(this_type const & r) = default;
 
-protected:
 	~FiniteDiffMethod() = default;
-public:
+
 	this_type & operator=(this_type const &) = default;
+	//***************************************************************************************************
+	// General algebra
+	//***************************************************************************************************
 
-//***************************************************************************************************
-// Exterior algebra
-//***************************************************************************************************
-
-//	template<typename T, typename ...Others>
-//	T const & calculate(T const & v, Others &&... s) ;
-//
-//	template<typename ...T, typename ...Others>
-//	inline typename nTuple_traits<nTuple<Expression<T...>>> ::primary_type
-//	calculate(nTuple<Expression<T...>> const & v, Others &&... s) ;
-//
-//	template<typename TC, typename TD, typename Others>
-//	inline typename _Field<TC, TD>::value_type const &
-//	calculate( _Field<TC, TD> const &f, Others s) ;
-//
-//	template<typename TOP, typename TL, typename ...Others>
-//	inline typename field_result_of<TOP(TL,Others ... )>::type
-//	calculate(_Field<Expression<TOP, TL>> const &f, Others &&... s) ;
-//
-//	template<typename TOP, typename TL, typename TR, typename ...Others>
-//	inline typename field_result_of<TOP(TL,TR,Others ... )>::type
-//	calculate(_Field<Expression<TOP, TL, TR>> const &f, Others &&... s) ;
-//
 	template<typename ...Others>
 	static Real calculate(geometry_type const & geo, Real v, Others &&... s)
 	{
@@ -132,62 +111,52 @@ public:
 		return f.op_(calculate(geo,f.lhs,std::forward<Others>(s)...) );
 	}
 
-	template<typename T,typename TI>
-	static inline typename field_traits<_Field<_impl::ExteriorDerivative< VERTEX,T> >>::value_type
-	calculate(geometry_type const & geo,_Field<_impl::ExteriorDerivative<VERTEX,T> > const & f, TI s)
+	//***************************************************************************************************
+	// Exterior algebra
+	//***************************************************************************************************
+
+	template<typename T>
+	static inline typename field_traits<_Field<_impl::ExteriorDerivative<VERTEX,T> >>::value_type
+	calculate(geometry_type const & geo,_Field<_impl::ExteriorDerivative<VERTEX,T> > const & f, id_type s)
 	{
-		auto D = geo.delta_index(s);
+		constexpr id_type D = ids::delta_index(s);
 
 		return (calculate(geo,f.lhs, s + D) * geo.volume(s + D)
 				- calculate(geo,f.lhs, s - D) * geo.volume(s - D)) * geo.inv_volume(s);
 	}
 
-	template<typename T,typename TI>
-	static inline typename field_traits<_Field<_impl::ExteriorDerivative< EDGE,T> >>::value_type
-	calculate(geometry_type const & geo,_Field<_impl::ExteriorDerivative<EDGE,T> > const & expr, TI s)
+	template<typename T>
+	static constexpr inline typename field_traits<_Field<_impl::ExteriorDerivative< EDGE,T> >>::value_type
+	calculate(geometry_type const & geo,_Field<_impl::ExteriorDerivative<EDGE,T> > const & expr, id_type s)
 	{
-		auto const & f=expr.lhs;
 
-		auto X = geo.delta_index(geo.dual(s));
-		auto Y = geo.roate(X);
-		auto Z = geo.inverse_roate(X);
+		constexpr id_type X = ids::delta_index(ids::dual(s));
+		constexpr id_type Y = ids::roate(X);
+		constexpr id_type Z = ids::inverse_roate(X);
 
 		return (
-
 				(
-
-						calculate(geo,f, s + Y) * geo.volume(s + Y) //
-						- calculate(geo,f, s - Y) * geo.volume(s - Y)//
-
-				) - (
-
-						calculate(geo,f, s + Z) * geo.volume(s + Z)//
-						- calculate(geo,f, s - Z) * geo.volume(s - Z)//
-
+						calculate(geo,expr.lhs, s + Y) * geo.volume(s + Y) //
+						- calculate(geo,expr.lhs, s - Y) * geo.volume(s - Y) ) - (
+						calculate(geo,expr.lhs, s + Z) * geo.volume(s + Z)//
+						- calculate(geo,expr.lhs, s - Z) * geo.volume(s - Z)//
 				)
 
 		) * geo.inv_volume(s);
 
 	}
 
-	template<typename T,typename TI>
-	static inline typename field_traits<_Field<_impl::ExteriorDerivative< FACE,T> >>::value_type
-	calculate(geometry_type const & geo,_Field<_impl::ExteriorDerivative<FACE,T> > const & expr, TI s)
+	template<typename T>
+	static constexpr inline typename field_traits<_Field<_impl::ExteriorDerivative< FACE,T> >>::value_type
+	calculate(geometry_type const & geo,_Field<_impl::ExteriorDerivative<FACE,T> > const & expr, id_type s)
 	{
-		auto const & f=expr.lhs;
-		auto X = geo.DI(0, s);
-		auto Y = geo.DI(1, s);
-		auto Z = geo.DI(2, s);
-
 		return (
-
-				calculate(geo,f, s + X) * geo.volume(s + X)
-
-				- calculate(geo,f, s - X) * geo.volume(s - X) //
-				+ calculate(geo,f, s + Y) * geo.volume(s + Y)//
-				- calculate(geo,f, s - Y) * geo.volume(s - Y)//
-				+ calculate(geo,f, s + Z) * geo.volume(s + Z)//
-				- calculate(geo,f, s - Z) * geo.volume(s - Z)//
+				calculate(geo,expr.lhs, s + ids::_DI) * geo.volume(s + ids::_DI)
+				- calculate(geo,expr.lhs, s - ids::_DI) * geo.volume(s - ids::_DI)
+				+ calculate(geo,expr.lhs, s + ids::_DJ) * geo.volume(s + ids::_DJ)
+				- calculate(geo,expr.lhs, s - ids::_DJ) * geo.volume(s - ids::_DJ)
+				+ calculate(geo,expr.lhs, s + ids::_DK) * geo.volume(s + ids::_DK)
+				- calculate(geo,expr.lhs, s - ids::_DK) * geo.volume(s - ids::_DK)
 
 		) * geo.inv_volume(s)
 
@@ -196,38 +165,25 @@ public:
 //
 ////	template<typename TM, size_t IL, typename TL> void calculate(
 ////			_impl::ExteriorDerivative, _Field<Domain<TM, IL>, TL> const & f,
-////			index_type s)  = delete;
+////			id_type   s)  = delete;
 ////
 ////	template<typename TM, size_t IL, typename TL> void calculate(
 ////			_impl::CodifferentialDerivative,
-////			_Field<TL...> const & f, index_type s)  = delete;
+////			_Field<TL...> const & f, id_type   s)  = delete;
 
 	template<typename T >
-	static inline typename field_traits<_Field< _impl::CodifferentialDerivative< EDGE, T> > >::value_type
+	static constexpr inline typename field_traits<_Field< _impl::CodifferentialDerivative< EDGE, T> > >::value_type
 	calculate(geometry_type const & geo,_Field<_impl::CodifferentialDerivative< EDGE, T>> const & expr,
-			index_type s)
+			id_type s)
 	{
-		auto const & f=expr.lhs;
-
-		auto X = geo.DI(0, s);
-		auto Y = geo.DI(1, s);
-		auto Z = geo.DI(2, s);
-
 		return
-
 		-(
-
-				calculate(geo,f, s + X) * geo.dual_volume(s + X)
-
-				- calculate(geo,f, s - X) * geo.dual_volume(s - X)
-
-				+ calculate(geo,f, s + Y) * geo.dual_volume(s + Y)
-
-				- calculate(geo,f, s - Y) * geo.dual_volume(s - Y)
-
-				+ calculate(geo,f, s + Z) * geo.dual_volume(s + Z)
-
-				- calculate(geo,f, s - Z) * geo.dual_volume(s - Z)
+				calculate(geo,expr.lhs, s + ids::_DI) * geo.dual_volume(s + ids::_DI)
+				- calculate(geo,expr.lhs, s - ids::_DI) * geo.dual_volume(s - ids::_DI)
+				+ calculate(geo,expr.lhs, s + ids::_DJ) * geo.dual_volume(s + ids::_DJ)
+				- calculate(geo,expr.lhs, s - ids::_DJ) * geo.dual_volume(s - ids::_DJ)
+				+ calculate(geo,expr.lhs, s + ids::_DK) * geo.dual_volume(s + ids::_DK)
+				- calculate(geo,expr.lhs, s - ids::_DK) * geo.dual_volume(s - ids::_DK)
 
 		) * geo.inv_dual_volume(s)
 
@@ -236,23 +192,23 @@ public:
 	}
 
 	template<typename T >
-	static inline typename field_traits<_Field< _impl::CodifferentialDerivative< FACE, T> > >::value_type
+	static constexpr inline typename field_traits<_Field< _impl::CodifferentialDerivative< FACE, T> > >::value_type
 	calculate(geometry_type const & geo,_Field<_impl::CodifferentialDerivative< FACE, T>> const & expr,
-			index_type s)
+			id_type s)
 	{
-		auto const & f=expr.lhs;
-		auto X = geo.delta_index(s);
-		auto Y = geo.roate(X);
-		auto Z = geo.inverse_roate(X);
+
+		constexpr id_type X = ids::delta_index(s);
+		constexpr id_type Y = ids::roate(X);
+		constexpr id_type Z = ids::inverse_roate(X);
 
 		return
 
 		-(
-				(calculate(geo,f, s + Y) * (geo.dual_volume(s + Y))
-						- calculate(geo,f, s - Y) * (geo.dual_volume(s - Y)))
+				(calculate(geo,expr.lhs, s + Y) * (geo.dual_volume(s + Y))
+						- calculate(geo,expr.lhs, s - Y) * (geo.dual_volume(s - Y)))
 
-				- (calculate(geo,f, s + Z) * (geo.dual_volume(s + Z))
-						- calculate(geo,f, s - Z) * (geo.dual_volume(s - Z)))
+				- (calculate(geo,expr.lhs, s + Z) * (geo.dual_volume(s + Z))
+						- calculate(geo,expr.lhs, s - Z) * (geo.dual_volume(s - Z)))
 
 		) * geo.inv_dual_volume(s)
 
@@ -260,18 +216,17 @@ public:
 	}
 
 	template<typename T >
-	static inline typename field_traits<_Field< _impl::CodifferentialDerivative< VOLUME, T> > >::value_type
+	static constexpr inline typename field_traits<_Field< _impl::CodifferentialDerivative< VOLUME, T> > >::value_type
 	calculate(geometry_type const & geo,_Field<_impl::CodifferentialDerivative< VOLUME, T>> const & expr,
-			index_type s)
+			id_type s)
 	{
-		auto const & f=expr.lhs;
-		auto D = geo.delta_index(geo.dual(s));
+		constexpr id_type D = ids::delta_index(ids::dual(s));
 		return
 
 		-(
 
-				calculate(geo,f, s + D) * (geo.dual_volume(s + D)) //
-				- calculate(geo,f, s - D) * (geo.dual_volume(s - D))
+				calculate(geo,expr.lhs, s + D) * (geo.dual_volume(s + D)) //
+				- calculate(geo,expr.lhs, s - D) * (geo.dual_volume(s - D))
 
 		) * geo.inv_dual_volume(s)
 
@@ -285,7 +240,7 @@ public:
 	template<typename TL,typename TR>
 	static inline typename field_traits<_Field<_impl::Wedge<VERTEX,VERTEX,TL,TR> > >::value_type
 	calculate(geometry_type const & geo,_Field<_impl::Wedge<VERTEX,VERTEX,TL,TR>> const & expr,
-			index_type s)
+			id_type s)
 	{
 		return (calculate(expr.lhs, s) * calculate(expr.rhs, s));
 	}
@@ -293,9 +248,9 @@ public:
 	template<typename TL,typename TR>
 	static inline typename field_traits<_Field<_impl::Wedge<VERTEX,EDGE,TL,TR> > >::value_type
 	calculate(geometry_type const & geo,_Field<_impl::Wedge<VERTEX,EDGE,TL,TR>> const & expr,
-			index_type s)
+			id_type s)
 	{
-		auto X = geo.delta_index(s);
+		auto X = ids::delta_index(s);
 
 		return (calculate(expr.lhs, s - X) + calculate(expr.lhs, s + X)) * 0.5
 		* calculate(expr.rhs, s);
@@ -304,33 +259,26 @@ public:
 	template<typename TL,typename TR>
 	static inline typename field_traits<_Field<_impl::Wedge<VERTEX,FACE,TL,TR> > >::value_type
 	calculate(geometry_type const & geo,_Field<_impl::Wedge<VERTEX,FACE,TL,TR>> const & expr,
-			index_type s)
+			id_type s)
 	{
-
-		auto const & l =expr.lhs;
-		auto const & r =expr.rhs;
-
-		auto X = geo.delta_index(geo.dual(s));
-		auto Y = geo.roate(X);
-		auto Z = geo.inverse_roate(X);
+		auto X = ids::delta_index(ids::dual(s));
+		auto Y = ids::roate(X);
+		auto Z = ids::inverse_roate(X);
 
 		return (
 
-				calculate(geo,l, (s - Y) - Z) +
+				calculate(geo,expr.lhs, (s - Y) - Z) +
+				calculate(geo,expr.lhs, (s - Y) + Z) +
+				calculate(geo,expr.lhs, (s + Y) - Z) +
+				calculate(geo,expr.lhs, (s + Y) + Z)
 
-				calculate(geo,l, (s - Y) + Z) +
-
-				calculate(geo,l, (s + Y) - Z) +
-
-				calculate(geo,l, (s + Y) + Z)
-
-		) * 0.25 * calculate(geo,r, s);
+		) * 0.25 * calculate(geo,expr.rhs, s);
 	}
 
 	template<typename TL,typename TR>
 	static inline typename field_traits<_Field<_impl::Wedge<VERTEX,VOLUME,TL,TR> > >::value_type
 	calculate(geometry_type const & geo,_Field<_impl::Wedge<VERTEX,VOLUME,TL,TR>> const & expr,
-			index_type s)
+			id_type s)
 	{
 
 		auto const & l =expr.lhs;
@@ -364,13 +312,13 @@ public:
 	template<typename TL,typename TR>
 	static inline typename field_traits<_Field<_impl::Wedge<EDGE,VERTEX,TL,TR> > >::value_type
 	calculate(geometry_type const & geo,_Field<_impl::Wedge<EDGE,VERTEX,TL,TR>> const & expr,
-			index_type s)
+			id_type s)
 	{
 
 		auto const & l =expr.lhs;
 		auto const & r =expr.rhs;
 
-		auto X = geo.delta_index(s);
+		auto X = ids::delta_index(s);
 		return calculate(geo,l, s) * (calculate(geo,r, s - X) + calculate(geo,r, s + X))
 		* 0.5;
 	}
@@ -378,13 +326,13 @@ public:
 	template<typename TL,typename TR>
 	static inline typename field_traits<_Field<_impl::Wedge<EDGE,EDGE,TL,TR> > >::value_type
 	calculate(geometry_type const & geo,_Field<_impl::Wedge<EDGE,EDGE,TL,TR>> const & expr,
-			index_type s)
+			id_type s)
 	{
 		auto const & l =expr.lhs;
 		auto const & r =expr.rhs;
 
-		auto Y = geo.delta_index(geo.roate(geo.dual(s)));
-		auto Z = geo.delta_index(geo.inverse_roate(geo.dual(s)));
+		auto Y = ids::delta_index(ids::roate(ids::dual(s)));
+		auto Z = ids::delta_index(ids::inverse_roate(ids::dual(s)));
 
 		return ((calculate(geo,l, s - Y) + calculate(geo,l, s + Y))
 				* (calculate(geo,l, s - Z) + calculate(geo,l, s + Z)) * 0.25);
@@ -393,7 +341,7 @@ public:
 	template<typename TL,typename TR>
 	static inline typename field_traits<_Field<_impl::Wedge<EDGE,FACE,TL,TR> > >::value_type
 	calculate(geometry_type const & geo,_Field<_impl::Wedge<EDGE,FACE,TL,TR>> const & expr,
-			index_type s)
+			id_type s)
 	{
 		auto const & l =expr.lhs;
 		auto const & r =expr.rhs;
@@ -405,21 +353,27 @@ public:
 
 		(
 
-				(calculate(geo,l, (s - Y) - Z) + calculate(geo,l, (s - Y) + Z)
-						+ calculate(geo,l, (s + Y) - Z) + calculate(geo,l, (s + Y) + Z))
+				(calculate(geo,l, (s - Y) - Z)
+						+ calculate(geo,l, (s - Y) + Z)
+						+ calculate(geo,l, (s + Y) - Z)
+						+ calculate(geo,l, (s + Y) + Z))
 				* (calculate(geo,r, s - X) + calculate(geo,r, s + X))
 				+
 
-				(calculate(geo,l, (s - Z) - X) + calculate(geo,l, (s - Z) + X)
+				(calculate(geo,l, (s - Z) - X)
+						+ calculate(geo,l, (s - Z) + X)
 						+ calculate(geo,l, (s + Z) - X)
 						+ calculate(geo,l, (s + Z) + X))
-				* (calculate(geo,r, s - Y) + calculate(geo,r, s + Y))
+				* (calculate(geo,r, s - Y)
+						+ calculate(geo,r, s + Y))
 				+
 
-				(calculate(geo,l, (s - X) - Y) + calculate(geo,l, (s - X) + Y)
+				(calculate(geo,l, (s - X) - Y)
+						+ calculate(geo,l, (s - X) + Y)
 						+ calculate(geo,l, (s + X) - Y)
 						+ calculate(geo,l, (s + X) + Y))
-				* (calculate(geo,r, s - Z) + calculate(geo,r, s + Z))
+				* (calculate(geo,r, s - Z)
+						+ calculate(geo,r, s + Z))
 
 		) * 0.125;
 	}
@@ -427,12 +381,12 @@ public:
 	template<typename TL,typename TR>
 	static inline typename field_traits<_Field<_impl::Wedge<FACE,VERTEX,TL,TR> > >::value_type
 	calculate(geometry_type const & geo,_Field<_impl::Wedge<FACE,VERTEX,TL,TR>> const & expr,
-			index_type s)
+			id_type s)
 	{
 		auto const & l =expr.lhs;
 		auto const & r =expr.rhs;
-		auto Y = geo.delta_index(geo.roate(geo.dual(s)));
-		auto Z = geo.delta_index(geo.inverse_roate(geo.dual(s)));
+		auto Y = ids::delta_index(ids::roate(ids::dual(s)));
+		auto Z = ids::delta_index(ids::inverse_roate(ids::dual(s)));
 
 		return calculate(geo,l, s)
 		* (calculate(geo,r, (s - Y) - Z) + calculate(geo,r, (s - Y) + Z)
@@ -443,7 +397,7 @@ public:
 	template<typename TL,typename TR>
 	static inline typename field_traits<_Field<_impl::Wedge<FACE,EDGE,TL,TR> > >::value_type
 	calculate(geometry_type const & geo,_Field<_impl::Wedge<FACE,EDGE,TL,TR>> const & expr,
-			index_type s)
+			id_type s)
 	{
 		auto const & l =expr.lhs;
 		auto const & r =expr.rhs;
@@ -455,19 +409,25 @@ public:
 
 		(
 
-				(calculate(geo,r, (s - Y) - Z) + calculate(geo,r, (s - Y) + Z)
-						+ calculate(geo,r, (s + Y) - Z) + calculate(geo,r, (s + Y) + Z))
+				(calculate(geo,r, (s - Y) - Z)
+						+ calculate(geo,r, (s - Y) + Z)
+						+ calculate(geo,r, (s + Y) - Z)
+						+ calculate(geo,r, (s + Y) + Z))
 				* (calculate(geo,l, s - X) + calculate(geo,l, s + X))
 
-				+ (calculate(geo,r, (s - Z) - X) + calculate(geo,r, (s - Z) + X)
+				+ (calculate(geo,r, (s - Z) - X)
+						+ calculate(geo,r, (s - Z) + X)
 						+ calculate(geo,r, (s + Z) - X)
 						+ calculate(geo,r, (s + Z) + X))
-				* (calculate(geo,l, s - Y) + calculate(geo,l, s + Y))
+				* (calculate(geo,l, s - Y)
+						+ calculate(geo,l, s + Y))
 
-				+ (calculate(geo,r, (s - X) - Y) + calculate(geo,r, (s - X) + Y)
+				+ (calculate(geo,r, (s - X) - Y)
+						+ calculate(geo,r, (s - X) + Y)
 						+ calculate(geo,r, (s + X) - Y)
 						+ calculate(geo,r, (s + X) + Y))
-				* (calculate(geo,l, s - Z) + calculate(geo,l, s + Z))
+				* (calculate(geo,l, s - Z)
+						+ calculate(geo,l, s + Z))
 
 		) * 0.125;
 	}
@@ -475,7 +435,7 @@ public:
 	template<typename TL,typename TR>
 	static inline typename field_traits<_Field<_impl::Wedge<VOLUME,VERTEX,TL,TR> > >::value_type
 	calculate(geometry_type const & geo,_Field<_impl::Wedge<VOLUME,VERTEX,TL,TR>> const & expr,
-			index_type s)
+			id_type s)
 	{
 		auto const & l =expr.lhs;
 		auto const & r =expr.rhs;
@@ -504,7 +464,7 @@ public:
 	template<typename T >
 	static inline typename field_traits<_Field< _impl::HodgeStar< VOLUME, T> > >::value_type
 	calculate(geometry_type const & geo,_Field<_impl::HodgeStar< VOLUME, T>> const & expr,
-			index_type s)
+			id_type s)
 	{
 		auto const & f =expr.lhs;
 //		auto X = geo.DI(0,s);
@@ -539,12 +499,12 @@ public:
 //	template<typename TM, typename TL, typename TR> void calculate(
 //			_impl::InteriorProduct, nTuple<TR, G::ndims> const & v,
 //			_Field<Domain<TM, VERTEX>, TL> const & f,
-//			index_type s)  = delete;
+//			id_type   s)  = delete;
 
 	template<typename TL,typename TR >
 	static inline typename field_traits<_Field< _impl::InteriorProduct<EDGE, VERTEX,TL,TR> > >::value_type
 	calculate(geometry_type const & geo,_Field<_impl::InteriorProduct<EDGE, VERTEX, TL,TR>> const & expr,
-			index_type s)
+			id_type s)
 	{
 		auto const & f =expr.lhs;
 		auto const & v =expr.rhs;
@@ -563,16 +523,16 @@ public:
 	template<typename TL,typename TR >
 	static inline typename field_traits<_Field< _impl::InteriorProduct<FACE, VERTEX,TL,TR> > >::value_type
 	calculate(geometry_type const & geo,_Field<_impl::InteriorProduct<FACE, VERTEX, TL,TR>> const & expr,
-			index_type s)
+			id_type s)
 	{
 		auto const & f =expr.lhs;
 		auto const & v =expr.rhs;
 
-		size_t n = geo.component_number(s);
+		size_t n = ids::component_number(s);
 
-		auto X = geo.delta_index(s);
-		auto Y = geo.roate(X);
-		auto Z = geo.inverse_roate(X);
+		auto X = ids::delta_index(s);
+		auto Y = ids::roate(X);
+		auto Z = ids::inverse_roate(X);
 		return
 
 		(calculate(geo,f, s + Y) + calculate(geo,f, s - Y)) * 0.5 * v[(n + 2) % 3] -
@@ -583,12 +543,12 @@ public:
 	template<typename TL,typename TR >
 	static inline typename field_traits<_Field< _impl::InteriorProduct<VOLUME, VERTEX,TL,TR> > >::value_type
 	calculate(geometry_type const & geo,_Field<_impl::InteriorProduct<VOLUME, VERTEX, TL,TR>> const & expr,
-			index_type s)
+			id_type s)
 	{
 		auto const & f =expr.lhs;
 		auto const & v =expr.rhs;
-		size_t n = geo.component_number(geo.dual(s));
-		size_t D = geo.delta_index(geo.dual(s));
+		size_t n = ids::component_number(ids::dual(s));
+		size_t D = ids::delta_index(ids::dual(s));
 
 		return (calculate(geo,f, s + D) - calculate(geo,f, s - D)) * 0.5 * v[n];
 	}
@@ -597,14 +557,14 @@ public:
 // Non-standard operation
 
 	template< size_t IL, typename T > static inline typename field_traits<T>::value_type
-	calculate(geometry_type const & geo,_Field<_impl::MapTo<IL, IL, T>> const & f, index_type s)
+	calculate(geometry_type const & geo,_Field<_impl::MapTo<IL, IL, T>> const & f, id_type s)
 	{
 		return calculate(geo,f,s);
 	}
 
 	template< typename T>
 	typename field_traits<_Field<_impl::MapTo<EDGE, VERTEX, T>>>::value_type
-	map_to(geometry_type const & geo ,_Field<_impl::MapTo<EDGE, VERTEX, T>> const & expr,index_type s)
+	map_to(geometry_type const & geo ,_Field<_impl::MapTo<EDGE, VERTEX, T>> const & expr,id_type s)
 	{
 		auto const & f= expr.lhs;
 
@@ -625,18 +585,18 @@ public:
 
 	template< typename T>
 	typename field_traits<_Field<_impl::MapTo< VERTEX, EDGE,T>>>::value_type
-	map_to(geometry_type const & geo ,_Field<_impl::MapTo< VERTEX,EDGE, T>> const & expr,index_type s)
+	map_to(geometry_type const & geo ,_Field<_impl::MapTo< VERTEX,EDGE, T>> const & expr,id_type s)
 	{
 		auto const & f= expr.lhs;
-		auto n = geo.component_number(s);
-		auto D = geo.delta_index(s);
+		auto n = ids::component_number(s);
+		auto D = ids::delta_index(s);
 
 		return ((calculate(geo,f, s - D)[n] + calculate(geo,f, s + D)[n]) * 0.5);
 	}
 
 	template< typename T>
 	typename field_traits<_Field<_impl::MapTo< FACE, VERTEX,T>>>::value_type
-	map_to(geometry_type const & geo ,_Field<_impl::MapTo< FACE,VERTEX, T>> const & expr,index_type s)
+	map_to(geometry_type const & geo ,_Field<_impl::MapTo< FACE,VERTEX, T>> const & expr,id_type s)
 	{
 		auto const & f= expr.lhs;
 		auto X = geo.DI(0, s);
@@ -686,14 +646,14 @@ public:
 
 	template< typename T>
 	typename field_traits<_Field<_impl::MapTo< VERTEX,FACE, T>>>::value_type
-	map_to(geometry_type const & geo,_Field<_impl::MapTo< VERTEX, FACE, T>> const & expr,index_type s)
+	map_to(geometry_type const & geo,_Field<_impl::MapTo< VERTEX, FACE, T>> const & expr,id_type s)
 	{
 		auto const & f= expr.lhs;
 
-		auto n = geo.component_number(geo.dual(s));
-		auto X = geo.delta_index(geo.dual(s));
-		auto Y = geo.roate(X);
-		auto Z = geo.inverse_roate(X);
+		auto n = ids::component_number(ids::dual(s));
+		auto X = ids::delta_index(ids::dual(s));
+		auto Y = ids::roate(X);
+		auto Z = ids::inverse_roate(X);
 
 		return (
 
@@ -714,7 +674,7 @@ public:
 
 	template< typename T>
 	typename field_traits<_Field<_impl::MapTo< FACE,VOLUME, T>>>::value_type
-	map_to(geometry_type const & geo,_Field<_impl::MapTo< FACE,VOLUME,T>> const & expr,index_type s)
+	map_to(geometry_type const & geo,_Field<_impl::MapTo< FACE,VOLUME,T>> const & expr,id_type s)
 	{
 		auto const & f= expr.lhs;
 
@@ -736,19 +696,19 @@ public:
 
 	template< typename T>
 	typename field_traits<_Field<_impl::MapTo<VOLUME, FACE, T>>>::value_type
-	map_to(geometry_type const & geo,_Field<_impl::MapTo< VOLUME,FACE,T>> const & expr,index_type s)
+	map_to(geometry_type const & geo,_Field<_impl::MapTo< VOLUME,FACE,T>> const & expr,id_type s)
 	{
 		auto const & f= expr.lhs;
 
-		auto n = geo.component_number(geo.dual(s));
-		auto D = geo.delta_index(geo.dual(s));
+		auto n = ids::component_number(ids::dual(s));
+		auto D = ids::delta_index(ids::dual(s));
 
 		return ((calculate(geo,f, s - D)[n] + calculate(geo,f, s + D)[n]) * 0.5);
 	}
 
 	template< typename T>
 	typename field_traits<_Field<_impl::MapTo<EDGE, VOLUME, T>>>::value_type
-	map_to(geometry_type const & geo,_Field<_impl::MapTo<EDGE, VOLUME,T>> const & expr,index_type s)
+	map_to(geometry_type const & geo,_Field<_impl::MapTo<EDGE, VOLUME,T>> const & expr,id_type s)
 	{
 		auto const & f= expr.lhs;
 
@@ -800,13 +760,13 @@ public:
 
 	template< typename T>
 	typename field_traits<_Field<_impl::MapTo< VOLUME,EDGE, T>>>::value_type
-	map_to(geometry_type const & geo,_Field<_impl::MapTo< VOLUME,EDGE,T>> const & expr,index_type s)
+	map_to(geometry_type const & geo,_Field<_impl::MapTo< VOLUME,EDGE,T>> const & expr,id_type s)
 	{
 		auto const & f= expr.lhs;
-		auto n = geo.component_number(geo.dual(s));
-		auto X = geo.delta_index(geo.dual(s));
-		auto Y = geo.roate(X);
-		auto Z = geo.inverse_roate(X);
+		auto n = ids::component_number(ids::dual(s));
+		auto X = ids::delta_index(ids::dual(s));
+		auto Y = ids::roate(X);
+		auto Z = ids::inverse_roate(X);
 		return (
 
 				(
@@ -829,16 +789,16 @@ public:
 	template<size_t N , typename T> static inline
 	typename field_traits<_Field< _impl::PartialExteriorDerivative< N,EDGE , T > > >::value_type
 	calculate(geometry_type const & geo,_Field< _impl::PartialExteriorDerivative< N,EDGE , T >> const & expr,
-			index_type s)
+			id_type s)
 	{
 		auto const & f =expr.lhs;
 
-		auto X = geo.delta_index(geo.dual(s));
-		auto Y = geo.roate(X);
-		auto Z = geo.inverse_roate(X);
+		auto X = ids::delta_index(ids::dual(s));
+		auto Y = ids::roate(X);
+		auto Z = ids::inverse_roate(X);
 
-		Y = (geo.component_number(Y) == N) ? Y : 0UL;
-		Z = (geo.component_number(Z) == N) ? Z : 0UL;
+		Y = (ids::component_number(Y) == N) ? Y : 0UL;
+		Z = (ids::component_number(Z) == N) ? Z : 0UL;
 
 		return (calculate(geo,f, s + Y) - calculate(geo,f, s - Y))
 		- (calculate(geo,f, s + Z) - calculate(geo,f, s - Z));
@@ -847,16 +807,16 @@ public:
 	template<size_t N , typename T> static inline
 	typename field_traits<_Field< _impl::PartialCodifferentialDerivative< N,FACE , T >> >::value_type
 	calculate(geometry_type const & geo,_Field< _impl::PartialCodifferentialDerivative< N,FACE , T >> const & expr,
-			index_type s)
+			id_type s)
 	{
 		auto const & f =expr.lhs;
 
-		auto X = geo.delta_index(s);
-		auto Y = geo.roate(X);
-		auto Z = geo.inverse_roate(X);
+		auto X = ids::delta_index(s);
+		auto Y = ids::roate(X);
+		auto Z = ids::inverse_roate(X);
 
-		Y = (geo.component_number(Y) == N) ? Y : 0UL;
-		Z = (geo.component_number(Z) == N) ? Z : 0UL;
+		Y = (ids::component_number(Y) == N) ? Y : 0UL;
+		Z = (ids::component_number(Z) == N) ? Z : 0UL;
 
 		return (
 

@@ -1,5 +1,5 @@
 /**
- * @file  mesh.h
+ * @file  manifold.h
  *
  *  Created on: 2014年9月23日
  *      Author: salmon
@@ -15,6 +15,7 @@
 #include "../dataset/dataset.h"
 #include "../utilities/utilities.h"
 #include "../field/field.h"
+#include "mesh_ids.h"
 
 namespace simpla
 {
@@ -22,17 +23,6 @@ template<typename ...>struct _Field;
 
 template<typename > class FiniteDiffMethod;
 template<typename > class InterpolatorLinear;
-
-enum ManifoldTypeID
-{
-	VERTEX = 0,
-
-	EDGE = 1,
-
-	FACE = 2,
-
-	VOLUME = 3
-};
 
 /**
  *  \ingroup manifold
@@ -70,18 +60,18 @@ private:
 	std::vector<id_type> m_ids_;
 public:
 
-	Manifold() :
-			m_geometry_(nullptr)
+	Manifold()
+			: m_geometry_(nullptr)
 	{
 	}
 
-	Manifold(geometry_type const & geo) :
-			m_geometry_(geo.shared_from_this())
+	Manifold(geometry_type const & geo)
+			: m_geometry_(geo.shared_from_this())
 	{
 	}
 
-	Manifold(this_type const & other) :
-			m_geometry_(other.m_geometry_)
+	Manifold(this_type const & other)
+			: m_geometry_(other.m_geometry_)
 	{
 	}
 
@@ -109,8 +99,8 @@ public:
 	 * @{
 	 */
 	template<typename ...Others>
-	Manifold(this_type & other, Others && ...others) :
-			m_geometry_(other.m_geometry_)
+	Manifold(this_type & other, Others && ...others)
+			: m_geometry_(other.m_geometry_)
 	{
 	}
 

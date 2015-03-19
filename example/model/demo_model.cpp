@@ -17,233 +17,323 @@
 #include "../../core/io/io.h"
 #include "../../core/application/application.h"
 #include "../../core/dataset/datatype.h"
+#include "../../core/mesh/mesh_ids.h"
 #include "../../core/model/model.h"
 #include "../../core/numeric/pointinpolygon.h"
-
 #include "../../core/model/geqdsk.h"
 
 namespace simpla
 {
 
-template<size_t NDIMS = 3>
-struct MeshDummy_
-{
-	static constexpr size_t FULL_DIGITS = std::numeric_limits<size_t>::digits;
-
-	static constexpr size_t INDEX_DIGITS = (FULL_DIGITS
-			- CountBits<FULL_DIGITS>::n) / 3;
-
-	static constexpr size_t FLOATING_POINT_POS = 4;
-
-	static constexpr size_t FLOATING_POINT_FACTOR = 1 << FLOATING_POINT_POS;
-
-	static constexpr Real COORDINATES_TO_INDEX_FACTOR = static_cast<Real>(1
-			<< FLOATING_POINT_POS);
-	static constexpr Real INDEX_TO_COORDINATES_FACTOR = 1.0
-			/ COORDINATES_TO_INDEX_FACTOR;
-
-	static constexpr size_t INDEX_MASK = (1UL << (INDEX_DIGITS)) - 1;
-
-	static constexpr size_t D_INDEX = (1UL << (FLOATING_POINT_POS));
-
-	static constexpr size_t _DZ = D_INDEX << (INDEX_DIGITS * 2 - 1);
-
-	static constexpr size_t _DY = D_INDEX << (INDEX_DIGITS - 1);
-
-	static constexpr size_t _DX = D_INDEX >> 1;
-
-	static constexpr size_t CELL_ID_MASK_ = //
-			(((1UL << (INDEX_DIGITS - FLOATING_POINT_POS - 1)) - 1)
-					<< (FLOATING_POINT_POS - 1)) & INDEX_MASK;
-
-	static constexpr size_t CELL_ID_MASK =
-
-	(CELL_ID_MASK_ << (INDEX_DIGITS * 2))
-
-	| (CELL_ID_MASK_ << (INDEX_DIGITS))
-
-	| (CELL_ID_MASK_);
-
-	static constexpr size_t SUB_CELL_ID_MASK_ = 1 << (FLOATING_POINT_POS - 1);
-
-	static constexpr size_t SUB_CELL_ID_MASK =
-
-	(SUB_CELL_ID_MASK_ << (INDEX_DIGITS * 2))
-
-	| (SUB_CELL_ID_MASK_ << (INDEX_DIGITS))
-
-	| (SUB_CELL_ID_MASK_);
-
-	static constexpr size_t ZERO_INDEX = 1UL
-			<< (INDEX_DIGITS - FLOATING_POINT_POS - 1);
-
-	static constexpr Real ZERO_COORDINATE = static_cast<Real>(ZERO_INDEX);
-
-	typedef size_t id_type;
-	typedef nTuple<Real, 3> coordinates_type;
-
-	static coordinates_type id_to_coordinates(id_type s)
-	{
-		coordinates_type x;
-		x[0] = static_cast<Real>(s & INDEX_MASK) * INDEX_TO_COORDINATES_FACTOR
-				- ZERO_COORDINATE;
-		x[1] = static_cast<Real>((s >> INDEX_DIGITS) & INDEX_MASK)
-				* INDEX_TO_COORDINATES_FACTOR - ZERO_COORDINATE;
-		x[2] = static_cast<Real>((s >> (INDEX_DIGITS * 2)) & INDEX_MASK)
-				* INDEX_TO_COORDINATES_FACTOR - ZERO_COORDINATE;
-
-		return std::move(x);
-	}
-
-	static constexpr size_t m_d_[4][3] = { 0, 0, 0, //
-			_DX, _DY, _DZ, //
-			_DY | _DZ, //
-			_DZ | _DX, //
-			_DX | _DY, //
-			_DX | _DY | _DZ, //
-			_DX | _DY | _DZ, //
-			_DX | _DY | _DZ };
-
-	template<size_t IFORM = 0>
-	static constexpr id_type id(size_t i, size_t j, size_t k, size_t n = 0)
-	{
-		return ((i + ZERO_INDEX) << FLOATING_POINT_POS)
-				| ((j + ZERO_INDEX) << (FLOATING_POINT_POS + INDEX_DIGITS))
-				| ((k + ZERO_INDEX) << (FLOATING_POINT_POS + INDEX_DIGITS * 2))
-				| m_d_[IFORM][n];
-	}
-
-	static constexpr id_type coordinates_to_id(coordinates_type const &x)
-	{
-		return (static_cast<size_t>((x[0] + ZERO_COORDINATE)
-				* COORDINATES_TO_INDEX_FACTOR))
-
-				| ((static_cast<size_t>((x[1] + ZERO_COORDINATE)
-						* COORDINATES_TO_INDEX_FACTOR)) << (INDEX_DIGITS))
-
-				| ((static_cast<size_t>((x[2] + ZERO_COORDINATE)
-						* COORDINATES_TO_INDEX_FACTOR)) << (INDEX_DIGITS * 2));
-	}
-
-};
-template<size_t NDIMS>
-constexpr size_t MeshDummy_<NDIMS>::m_d_[4][3];
-
-typedef MeshDummy_<3> MeshDummy;
 static constexpr Real PI = 3.1415926535;
-typedef typename MeshDummy::id_type id_type;
-typedef typename MeshDummy::coordinates_type coordinates_type;
+typedef typename MeshIDs::id_type id_type;
+typedef typename MeshIDs::coordinates_type coordinates_type;
 
-template<typename TPoints>
-void get_intersctions(TPoints const & points, coordinates_type const & shift,
-		std::vector<coordinates_type> *res)
+//template<typename TPoints>
+//void get_intersctions(TPoints const & points, coordinates_type const & shift,
+//		std::vector<coordinates_type> *res)
+//{
+//
+//	auto first = points.begin();
+//
+//	while (first != points.end())
+//	{
+//		size_t ib = res->size();
+//
+//		auto x0 = *first;
+//
+//		auto second = ++first;
+//
+//		if (second == points.end())
+//		{
+//			second = points.begin();
+//		}
+//
+//		auto x1 = *second;
+//
+//		for (int n = 0; n < 3; ++n)
+//		{
+//			nTuple<Real, 3> xp;
+//
+//			xp = 0;
+//
+//			Real dx = 1;
+//
+//			Real k1 = (x1[(n + 1) % 3] - x0[(n + 1) % 3]) / (x1[n] - x0[n]);
+//			Real k2 = (x1[(n + 2) % 3] - x0[(n + 2) % 3]) / (x1[n] - x0[n]);
+//
+//			if (x1[n] > x0[n])
+//			{
+//				dx = 1;
+//				xp[n] = std::floor(x0[n] - shift[n]) + shift[n] + 1;
+//			}
+//			else
+//			{
+//				dx = -1;
+//				xp[n] = std::floor(x0[n] - shift[n]) + shift[n];
+//			}
+//			for (; (xp[n] - x0[n]) * (x1[n] - xp[n]) >= 0; xp[n] += dx)
+//			{
+//				xp[(n + 1) % 3] = (xp[n] - x0[n]) * k1 + x0[(n + 1) % 3];
+//				xp[(n + 2) % 3] = (xp[n] - x0[n]) * k2 + x0[(n + 2) % 3];
+//				res->push_back(xp);
+//			}
+//
+//		}
+//
+//		size_t ie = res->size();
+//
+//		std::sort(&(*res)[ib], &(*res)[ie],
+//				[&](coordinates_type const & xa,coordinates_type const & xb)->bool
+//				{
+//					return inner_product(xb-xa,x1-x0)>0;
+//				});
+//
+//	}
+//}
+//typedef coordinates_type Vec3;
+//
+//template<typename TPoints>
+//void find_boundary2D(TPoints const & points, coordinates_type const & shift,
+//		std::vector<coordinates_type> *res, int ZAXIS = 2)
+//{
+//
+//	auto i0 = points.begin();
+//
+//	while (i0 != points.end())
+//	{
+//		coordinates_type p0 = *i0;
+//		auto i1 = ++i0;
+//
+//		if (i1 == points.end())
+//		{
+//			i1 = points.begin();
+//		}
+//		coordinates_type p1 = *i1;
+//
+//		coordinates_type p2;
+//		p2 = p1;
+//
+//		p2[ZAXIS] += 1.0;
+//
+//		coordinates_type x0 = //
+//				{ //
+//				std::floor(std::min(p0[0], p1[0]) - shift[0]) + shift[0], //
+//				std::floor(std::min(p0[1], p1[1]) - shift[1]) + shift[1], //
+//				std::floor(std::min(p0[2], p1[2]) - shift[2]) + shift[2]     //
+//				};
+//		x0 += 0.5;
+////		id_type s = MeshDummy::coordinates_to_id(x0);
+//
+//		res->push_back(x0);
+//		coordinates_type n;
+//		std::tie(std::ignore, n) = distance_point_to_plane(x0, p0, p1, p2);
+//		res->push_back(n);
+//
+//	}
+//
+//}
+template<typename T0, typename T1, typename T2, typename T3>
+std::tuple<Real, Real> line_intersection(T0 const& P0, T1 const & P1,
+		T2 const & Q0, T3 const & Q1)
 {
+	Real s = 0.0;
+	Real t = 0.0;
 
-	auto first = points.begin();
+	auto u = P1 - P0;
+	auto v = Q1 - Q0;
+	auto w0 = P0 - Q0;
 
-	while (first != points.end())
+	// @ref http://geomalgorithms.com/a07-_distance.html
+	Real a = inner_product(u, u);
+	Real b = inner_product(u, v);
+	Real c = inner_product(v, v);
+	Real d = inner_product(u, w0);
+	Real e = inner_product(v, w0);
+
+	if (std::abs(a * c - b * b) < EPSILON)
 	{
-		size_t ib = res->size();
-
-		auto x0 = *first;
-
-		auto second = ++first;
-
-		if (second == points.end())
-		{
-			second = points.begin();
-		}
-
-		auto x1 = *second;
-
-		for (int n = 0; n < 3; ++n)
-		{
-			nTuple<Real, 3> xp;
-
-			xp = 0;
-
-			Real dx = 1;
-
-			Real k1 = (x1[(n + 1) % 3] - x0[(n + 1) % 3]) / (x1[n] - x0[n]);
-			Real k2 = (x1[(n + 2) % 3] - x0[(n + 2) % 3]) / (x1[n] - x0[n]);
-
-			if (x1[n] > x0[n])
-			{
-				dx = 1;
-				xp[n] = std::floor(x0[n] - shift[n]) + shift[n] + 1;
-			}
-			else
-			{
-				dx = -1;
-				xp[n] = std::floor(x0[n] - shift[n]) + shift[n];
-			}
-			for (; (xp[n] - x0[n]) * (x1[n] - xp[n]) >= 0; xp[n] += dx)
-			{
-				xp[(n + 1) % 3] = (xp[n] - x0[n]) * k1 + x0[(n + 1) % 3];
-				xp[(n + 2) % 3] = (xp[n] - x0[n]) * k2 + x0[(n + 2) % 3];
-				res->push_back(xp);
-			}
-
-		}
-
-		size_t ie = res->size();
-
-		std::sort(&(*res)[ib], &(*res)[ie],
-				[&](coordinates_type const & xa,coordinates_type const & xb)->bool
-				{
-					return inner_product(xb-xa,x1-x0)>0;
-				});
+		//two lines are parallel
+		s = std::numeric_limits<double>::max();
+		t = std::numeric_limits<double>::max();
 
 	}
+	else
+	{
+		s = (b * e - c * d) / (a * c - b * b);
+
+		t = (a * e - b * d) / (a * c - b * b);
+	}
+
+	return std::make_tuple(s, t);
 }
 
-typedef coordinates_type Vec3;
+/**
+ *    Case 0 : vertex in cell
+ *
+ *
+ *                 o p2
+ *              s1/
+ *      q3-------/-------q2
+ *       |      /        |
+ *       |     /         |
+ *       |    /          |s0
+ *       |p1 o-----------+---o p0
+ *       |               |
+ *      q0---------------q1
+ *
+ *
+ */
 
-template<typename TPoints>
-void find_boundary2D(TPoints const & points, coordinates_type const & shift,
-		std::vector<coordinates_type> *res, int ZAXIS = 2)
+/**
+ *     Case 1 : line cut cell
+ *
+ *                 o p1
+ *              s1/
+ *      q3-------/-------q2
+ *       |      /        |
+ *       |     /         |
+ *       |    /          |s0
+ *       |   /           |
+ *      q0--/------------q1
+ *         /s0
+ *        o
+ *       p0
+ *
+ *              o p1
+ *             /
+ *            /s1
+ *       q3--/-------q2
+ *        | /        |
+ *        |/         |
+ *     s0 /          |
+ *       /|          |
+ *      / q0--------q1
+ *     /
+ *    o p1
+ */
+void line_segment_intersect_grid(coordinates_type x0, coordinates_type x1,
+		coordinates_type const & shift, std::vector<id_type> *ids,
+		std::vector<coordinates_type> *out_points, const int ZAXIS = 2)
 {
+	const int XAXIS = (ZAXIS + 1) % 3;
+	const int YAXIS = (ZAXIS + 2) % 3;
 
-	auto i0 = points.begin();
+	bool keep_looking = true;
 
-	while (i0 != points.end())
+	id_type cell_id = MeshIDs::coordinates_to_id(coordinates_type {
+
+	std::floor(x0[0] + shift[0]),
+
+	std::floor(x0[1] + shift[1]),
+
+	std::floor(x0[2] + shift[2]) });
+
+	static const id_type id_edge[4] = {
+
+	MeshIDs::_DI,
+
+	(MeshIDs::_DJ) | (MeshIDs::_DI << 1),
+
+	(MeshIDs::_DJ << 1) | (MeshIDs::_DI),
+
+	MeshIDs::_DJ
+
+	};
+	static const id_type id_cell_shift[4] = {
+
+	-(MeshIDs::_DJ << 1),
+
+	(MeshIDs::_DI << 1),
+
+	(MeshIDs::_DJ << 1),
+
+	-(MeshIDs::_DI << 1)
+
+	};
+
+	while (keep_looking)
 	{
-		coordinates_type p0 = *i0;
-		auto i1 = ++i0;
 
-		if (i1 == points.end())
+		coordinates_type q[4];
+
+		q[0] = MeshIDs::id_to_coordinates(cell_id);
+		q[1] = q[0];
+		q[2] = q[0];
+		q[3] = q[0];
+
+		q[1][XAXIS] += 1.0;
+		q[2][XAXIS] += 1.0;
+		q[2][YAXIS] += 1.0;
+		q[3][YAXIS] += 1.0;
+
+		keep_looking = false;
+
+		for (int i = 0; i < 4; ++i)
 		{
-			i1 = points.begin();
+			Real s, t;
+
+			std::tie(s, t) = line_intersection(q[i], q[(i + 1) % 4], x0, x1);
+
+//			VERBOSE << (i) << " " << s << "\t" << q[i] << q[(i + 1) % 4]
+//					<< std::endl;
+
+			if (s >= 0.0 && s <= 1.0 && t > EPSILON && t <= 1.0)
+			{
+
+				x0 = q[i] + s * (q[(i + 1) % 4] - q[i]);
+
+				VERBOSE << s << "\t" << x0 << std::endl;
+
+				keep_looking = true;
+
+				ids->push_back(cell_id + id_edge[i]);
+
+				out_points->push_back(x0);
+
+				cell_id += id_cell_shift[i];
+
+				break;
+			}
 		}
-		coordinates_type p1 = *i1;
-
-		coordinates_type p2;
-		p2 = p1;
-
-		p2[ZAXIS] += 1.0;
-
-		coordinates_type x0 = //
-				{ //
-				std::floor(std::min(p0[0], p1[0]) - shift[0]) + shift[0], //
-				std::floor(std::min(p0[1], p1[1]) - shift[1]) + shift[1], //
-				std::floor(std::min(p0[2], p1[2]) - shift[2]) + shift[2]     //
-				};
-		x0 += 0.5;
-//		id_type s = MeshDummy::coordinates_to_id(x0);
-
-		res->push_back(x0);
-		res->push_back(distance_point_to_plane(x0, p0, p1, p2));
 
 	}
 
+}
+
+void polyline_intersect_grid(std::vector<coordinates_type> const & polygons,
+		coordinates_type const & shift, std::vector<id_type> *ids,
+		std::vector<coordinates_type> *out_points, const int ZAXIS = 2)
+{
+
+	auto it = polygons.begin();
+
+	while (it != polygons.end())
+	{
+		coordinates_type p0 = *it;
+		coordinates_type p1;
+		++it;
+
+		if (it == polygons.end())
+		{
+
+			p1 = *polygons.begin();
+		}
+		else
+		{
+			p1 = *it;
+		}
+
+		line_segment_intersect_grid(p0, p1, shift, ids, out_points, ZAXIS);
+	}
 }
 
 SP_APP(model)
 {
 
-	typedef typename MeshDummy::coordinates_type coordinates_type;
+	typedef typename MeshIDs::coordinates_type coordinates_type;
 
-	typedef typename MeshDummy::id_type id_type;
+	typedef typename MeshIDs::id_type id_type;
 
 	std::vector<coordinates_type> p0, p1, p2, p3, p4, p5, p6;
 
@@ -285,7 +375,7 @@ SP_APP(model)
 
 	PointInPolygon p_in_p(p0);
 
-	std::set<id_type> IDs;
+	std::set<id_type> volume_in_side;
 
 	for (size_t i = 0; i < dims[0]; ++i)
 	{
@@ -299,28 +389,28 @@ SP_APP(model)
 				x[2] = static_cast<Real>(k) + 0.5;
 
 				if (p_in_p(x))
-					IDs.insert(MeshDummy::coordinates_to_id(x));
+					volume_in_side.insert(MeshIDs::coordinates_to_id(x));
 			}
 		}
 	}
 
-	std::set<id_type> in_side;
+//	std::set<id_type> volume_in_side;
+//
+//	std::copy_if(volume_ids.begin(), volume_ids.end(),
+//			std::inserter(volume_in_side, volume_in_side.begin()), [&](id_type const &s )
+//			{
+//				return p_in_p(MeshIDs::id_to_coordinates(s));
+//			});
 
-	std::copy_if(IDs.begin(), IDs.end(),
-			std::inserter(in_side, in_side.begin()), [&](id_type const &s )
+	std::transform(volume_in_side.begin(), volume_in_side.end(),
+			std::back_inserter(p1), [&](id_type const &s )
 			{
-				return p_in_p(MeshDummy::id_to_coordinates(s));
-			});
-
-	std::transform(in_side.begin(), in_side.end(), std::back_inserter(p1),
-			[&](id_type const &s )
-			{
-				return std::move(MeshDummy::id_to_coordinates(s));
+				return std::move(MeshIDs::id_to_coordinates(s));
 			});
 
 	Model model;
 
-	model.set(in_side, Model::VACUUM);
+	model.set(volume_in_side, Model::VACUUM);
 
 	std::set<id_type> boundary_face;
 
@@ -332,7 +422,7 @@ SP_APP(model)
 			{
 				for (size_t n = 0; n < 3; ++n)
 				{
-					size_t s = MeshDummy::id<2>(i, j, k, n);
+					size_t s = MeshIDs::id<2>(i, j, k, n);
 
 					if (model.check_boundary_surface(s, Model::VACUUM))
 					{
@@ -347,15 +437,15 @@ SP_APP(model)
 	std::transform(boundary_face.begin(), boundary_face.end(),
 			std::back_inserter(p2), [&](id_type const &s )
 			{
-				return std::move(MeshDummy::id_to_coordinates(s));
+				return std::move(MeshIDs::id_to_coordinates(s));
 			});
 
 	std::set<id_type> boundary_edge;
 
 	for (auto s : boundary_face)
 	{
-		size_t d[3] = { (s) & MeshDummy::_DX, (s) & MeshDummy::_DY, (s)
-				& MeshDummy::_DZ };
+		size_t d[3] = { (s) & MeshIDs::_DI, (s) & MeshIDs::_DJ, (s)
+				& MeshIDs::_DK };
 
 		for (int i = 0; i < 3; ++i)
 		{
@@ -371,7 +461,7 @@ SP_APP(model)
 	std::transform(boundary_edge.begin(), boundary_edge.end(),
 			std::back_inserter(p3), [&](id_type const &s )
 			{
-				return std::move(MeshDummy::id_to_coordinates(s));
+				return std::move(MeshIDs::id_to_coordinates(s));
 			});
 
 	p0.push_back(p0.front());
@@ -380,9 +470,20 @@ SP_APP(model)
 	LOGGER << SAVE(p1) << std::endl;
 	LOGGER << SAVE(p2) << std::endl;
 	LOGGER << SAVE(p3) << std::endl;
-//	coordinates_type shift0 = { 0, 0, 0 };
-//
-//	get_intersctions(p0, shift0, &p3);
+	coordinates_type shift0 = { 0, 0, 0 };
+
+	std::vector<id_type> ids;
+
+	polyline_intersect_grid(p0, shift0, &ids, &p4);
+
+	std::transform(ids.begin(), ids.end(), std::back_inserter(p5),
+			[&](id_type const &s )
+			{
+				return std::move(MeshIDs::id_to_coordinates(s));
+			});
+
+	LOGGER << SAVE(p4) << std::endl;
+	LOGGER << SAVE(p5) << std::endl;
 //
 //	find_boundary2D(p3, shift0, &p4);
 //

@@ -1,12 +1,12 @@
 /**
- * @file field_shared_ptr.h
+ * @file field_dense.h
  *
  *  Created on: @date{ 2015-1-30}
  *      @author: salmon
  */
 
-#ifndef CORE_FIELD_FIELD_SEQUENCE_H_
-#define CORE_FIELD_FIELD_SEQUENCE_H_
+#ifndef CORE_FIELD_FIELD_DENSE_H_
+#define CORE_FIELD_FIELD_DENSE_H_
 
 #include <algorithm>
 #include <cstdbool>
@@ -289,4 +289,4 @@ public:
 }
 // namespace simpla
 
-#endif /* CORE_FIELD_FIELD_SEQUENCE_H_ */
+#endif /* CORE_FIELD_FIELD_DENSE_H_ */
