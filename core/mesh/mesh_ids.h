@@ -63,6 +63,9 @@ enum ManifoldTypeID
 template<size_t NDIMS = 3, size_t AXIS_FLAG = 0>
 struct MeshIDs_
 {
+
+	static constexpr size_t ndims = NDIMS;
+
 	static constexpr size_t FULL_DIGITS = std::numeric_limits<size_t>::digits;
 
 	static constexpr size_t INDEX_DIGITS = (FULL_DIGITS
@@ -131,7 +134,7 @@ struct MeshIDs_
 
 	typedef size_t id_type;
 	typedef nTuple<Real, 3> coordinates_type;
-	typedef nTuple<size_t, 3> index_tuple;
+	typedef nTuple<long, 3> index_tuple;
 
 	static constexpr size_t m_sub_node_id_[4][3] = { 0, 0, 0, //
 			_DI >> 1, _DJ >> 1, _DK >> 1, //
@@ -216,6 +219,133 @@ struct MeshIDs_
 
 		| ((static_cast<size_t>((x[2] + COORDINATE_ZERO)  //
 		* COORDINATES_TO_INDEX_FACTOR) & INDEX_MASK) << (INDEX_DIGITS * 2));
+	}
+
+	template<size_t FLOAT_POS = FLOATING_POINT_POS>
+	index_tuple id_to_index(id_type const & s)
+	{
+		return std::move(
+				index_tuple(
+						{
+
+						static_cast<long>((s & INDEX_MASK) >> FLOAT_POS)
+								- static_cast<long>(INDEX_ZERO >> FLOAT_POS),
+
+						static_cast<long>(((s >> (INDEX_DIGITS)) & INDEX_MASK)
+								>> FLOAT_POS)
+								- static_cast<long>(INDEX_ZERO >> FLOAT_POS),
+
+						static_cast<long>(((s >> (INDEX_DIGITS * 2))
+								& INDEX_MASK) >> FLOAT_POS)
+								- static_cast<long>(INDEX_ZERO >> FLOAT_POS)
+
+						}));
+	}
+
+	id_type dual(id_type const & s) const
+	{
+		//TODO
+	}
+
+	template<size_t I_FLOAT_POS = FLOATING_POINT_POS>
+	struct id_hasher
+	{
+
+	private:
+		index_tuple m_offset_;
+		nTuple<size_t, ndims + 1> m_dimensions_;
+		nTuple<size_t, ndims + 1> m_strides_
+	public:
+		typedef id_hasher<I_FLOAT_POS> this_type;
+
+		template<typename T0>
+		id_hasher(T0 const & d)
+		{
+			m_dimensions_ = d;
+			m_offset_ = 0;
+			deploy();
+		}
+
+		template<typename T0, typename T1>
+		id_hasher(T0 const & d, T1 const & offset)
+		{
+			m_dimensions_ = d;
+			m_offset_ = offset;
+			deploy();
+		}
+
+		id_hasher(this_type const & other)
+				: m_dimensions_(other.m_dimensions_), m_offset_(other.m_offset_)
+		{
+			deploy();
+		}
+		id_hasher(this_type && other)
+				: m_dimensions_(other.m_dimensions_), m_offset_(other.m_offset_)
+		{
+			deploy();
+		}
+		~id_hasher()
+		{
+		}
+
+		void swap(this_type & other)
+		{
+			std::swap(m_offset_, other.m_offset_);
+			std::swap(m_dimensions_, other.m_dimensions_);
+			std::swap(m_strides_, other.m_strides_);
+		}
+		this_type & operator=(this_type const & other)
+		{
+			this_type(other).swap(*this);
+			return *this;
+		}
+
+		template<size_t IFORM = VERTEX>
+		size_t max_hash() const
+		{
+			return (m_dimensions_[0] * m_strides_[0])
+					* ((IFORM == EDGE || IFORM == FACE) ? 3 : 1);
+		}
+
+		void deploy()
+		{
+			m_strides_[ndims - 1] = 1;
+
+			if (ndims > 1)
+			{
+				for (int i = ndims - 2; i >= 0; --i)
+				{
+					m_strides_[i] = m_dimensions_[i + 1] * m_strides_[i + 1];
+				}
+			}
+		}
+		constexpr size_t operator()(id_type const & s) const
+		{
+			return inner_product(
+					(id_to_index<I_FLOAT_POS>(s) + m_dimensions_ - m_offset_)
+							% m_dimensions_, m_strides_);
+		}
+
+		template<size_t IFORM>
+		constexpr size_t hash(id_type const & s) const
+		{
+			return inner_product(
+					(id_to_index<I_FLOAT_POS>(s) + m_dimensions_ - m_offset_)
+							% m_dimensions_, m_strides_);
+		}
+
+	};
+
+	typedef SpHashContainer<id_type, Real,
+			id_hasher<MeshIDs::FLOATING_POINT_POS - 1>> volume_container;
+
+	template<typename ...Args>
+	volume_container make_volume_container(Args&& ...args) const
+	{
+		id_hasher<MeshIDs::FLOATING_POINT_POS - 1> hasher(
+				std::forward<Args>(args)...);
+
+		return std::move(volume_container(hasher.max_hash(), std::move(hasher)));
 	}
 
 	//**************************************************************************

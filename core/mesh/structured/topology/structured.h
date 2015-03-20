@@ -22,6 +22,7 @@
 #include "../../../utilities/utilities.h"
 #include "../../../gtl/ntuple.h"
 #include "../../../gtl/primitives.h"
+#include "../../../gtl/containers/sp_hash_container.h"
 
 #include "../../../parallel/mpi_comm.h"
 #include "../../../parallel/mpi_aux_functions.h"
@@ -78,10 +79,11 @@ private:
 
 	index_tuple m_index_global_dimensions_ = { 1, 1, 1 };
 	index_tuple m_index_global_offset_ = { 0, 0, 0 };
+
 	index_tuple m_index_local_dimensions_ = { 1, 1, 1 };
 	index_tuple m_index_local_offset_ = { 0, 0, 0 };
+
 	index_tuple m_index_count_ = { 1, 1, 1 };
-	index_tuple m_index_local_strides_;
 	index_tuple m_index_ghost_width_ = { 0, 0, 0 };
 	index_tuple m_index_grain_size_;
 
@@ -299,17 +301,6 @@ public:
 		m_index_local_offset_ = m_index_ghost_width_;
 		m_index_local_dimensions_ = m_index_count_ + m_index_ghost_width_ * 2;
 
-		m_index_local_strides_[ndims - 1] = 1;
-
-		if (ndims > 1)
-		{
-			for (int i = ndims - 2; i >= 0; --i)
-			{
-				m_index_local_strides_[i] = m_index_local_dimensions_[i + 1]
-						* m_index_local_strides_[i + 1];
-			}
-		}
-
 		is_valid_ = true;
 
 		VERBOSE << get_type_as_string() << " is deployed!" << std::endl;
@@ -348,6 +339,7 @@ public:
 		return std::move(res);
 
 	}
+
 	template<size_t IFORM = iform>
 	void ghost_shape(std::vector<mpi_ghosts_shape_s> *res) const
 	{
@@ -382,57 +374,58 @@ public:
 		return std::move(res);
 	}
 
+	typename MeshIDs::volume_container m_volume_;
+
+	typename MeshIDs::volume_container m_dual_volume_;
+
+	void deploy_volume()
+	{
+
+		m_volume_ = make_valume_container(m_index_local_dimensions_ * 2,
+				(m_index_global_offset_ + m_index_local_offset_) * 2);
+
+		m_dual_volume_ = make_valume_container(m_index_local_dimensions_ * 2,
+				(m_index_global_offset_ + m_index_local_offset_) * 2);
+
+		m_volume_.deploy();
+		m_dual_volume_.deploy();
+
+	}
+
+	Real const &volume(id_type s) const
+	{
+		return m_volume_[s];
+	}
+
+	Real const &dual_volume(id_type s) const
+	{
+		return m_volume_[MeshIDs::dual(s)];
+	}
+
 	/**
 	 *  @name Hash
 	 *  @{
 	 */
-	template<size_t IFORM = iform>
-	size_t max_hash() const
-	{
 
-		size_t res = ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
-		for (int i = 0; i < ndims; ++i)
-		{
-			res *= m_index_local_dimensions_[i];
-		}
-		return res;
-	}
-
-	template<size_t IFORM, typename TI>
-	size_t hash(TI const & d) const
-	{
-
-		size_t res = ((d[0] + m_index_local_offset_[0]
-				- m_index_global_offset_[0] + m_index_local_dimensions_[0])
-				% m_index_local_dimensions_[0]) * m_index_local_strides_[0]
-				+
-
-				((d[1] + m_index_local_offset_[1] - m_index_global_offset_[1]
-						+ m_index_local_dimensions_[1])
-						% m_index_local_dimensions_[1])
-						* m_index_local_strides_[1]
-				+
-
-				((d[2] + m_index_local_offset_[2] - m_index_global_offset_[2]
-						+ m_index_local_dimensions_[2])
-						% m_index_local_dimensions_[2])
-						* m_index_local_strides_[2];
-
-		if (IFORM == EDGE || IFORM == FACE)
-		{
-			res *= 3;
-			res += d[ndims];
-		}
-
-		return res;
-
-	}
+	MeshIDs::id_hasher<MeshIDs::FLOATING_POINT_POS> m_hasher_;
 
 	template<size_t IFORM = iform>
-	size_t hash(id_type s) const
+	constexpr size_t max_hash() const
 	{
-		return hash<IFORM>(id_to_index(s));
+		return m_hasher_.template max_hash<IFORM>();
 	}
+
+	template<size_t IFORM = VERTEX>
+	constexpr size_t hash(id_type const &s) const
+	{
+		return m_hasher_.template hash<IFORM>(s);
+	}
+
+	auto const &hasher() const
+	{
+		return m_hasher_;
+	}
+
 	/**@}*/
 
 	template<typename TD>
