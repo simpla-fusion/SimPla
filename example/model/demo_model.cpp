@@ -134,16 +134,19 @@ typedef typename MeshIDs::coordinates_type coordinates_type;
 //
 //}
 template<typename T0, typename T1, typename T2, typename T3>
-std::tuple<Real, Real> line_intersection(T0 const& P0, T1 const & P1,
-		T2 const & Q0, T3 const & Q1)
+std::tuple<Real, Real> line_intersection2d(T0 const& P0, T1 const & P1,
+		T2 const & Q0, T3 const & Q1, int ZAXIS = 2)
 {
 	Real s = 0.0;
 	Real t = 0.0;
 
-	auto u = P1 - P0;
-	auto v = Q1 - Q0;
-	auto w0 = P0 - Q0;
+	Vec3 u = P1 - P0;
+	Vec3 v = Q1 - Q0;
+	Vec3 w0 = P0 - Q0;
 
+	u[ZAXIS] = 0;
+	v[ZAXIS] = 0;
+	w0[ZAXIS] = 0;
 	// @ref http://geomalgorithms.com/a07-_distance.html
 	Real a = inner_product(u, u);
 	Real b = inner_product(u, v);
@@ -222,8 +225,8 @@ std::tuple<size_t, Real> line_intersect_polygon(coordinates_type x0,
 	{
 		Real s, t;
 
-		std::tie(s, t) = line_intersection(q[i], q[(i + 1) % num_of_vertex], x0,
-				x1);
+		std::tie(s, t) = line_intersection2d(q[i], q[(i + 1) % num_of_vertex],
+				x0, x1, ZAXIS);
 
 		if (s >= 0.0 && s <= 1.0 && t > EPSILON && t <= 1.0)
 		{
@@ -282,7 +285,7 @@ Vec3 normal_vector_of_surface(std::vector<coordinates_type> const & polygons)
 }
 
 void polyline_intersect_grid(std::vector<coordinates_type> const & polygons,
-		coordinates_type const & shift, std::map<id_type, Real> *volume,
+		id_type shift, std::map<id_type, Real> *volume,
 		std::vector<coordinates_type> *out_points, const int ZAXIS = 2)
 {
 	const int XAXIS = (ZAXIS + 1) % 3;
@@ -299,36 +302,36 @@ void polyline_intersect_grid(std::vector<coordinates_type> const & polygons,
 
 	static const id_type id_face_shift[3] = {
 
-	MeshIDs::_DJ | MeshIDs::_DK,
+	(MeshIDs::_DJ | MeshIDs::_DK) >> 1,
 
-	MeshIDs::_DK | MeshIDs::_DI,
+	(MeshIDs::_DK | MeshIDs::_DI) >> 1,
 
-	MeshIDs::_DJ | MeshIDs::_DI
+	(MeshIDs::_DJ | MeshIDs::_DI) >> 1
 
 	};
 
 	static const id_type id_edge_shift[4] = {
 
-	MeshIDs::_DI,
+	MeshIDs::_DI >> 1,
 
-	(MeshIDs::_DJ) | (MeshIDs::_DI << 1),
+	(MeshIDs::_DJ >> 1) | (MeshIDs::_DI),
 
-	(MeshIDs::_DJ << 1) | (MeshIDs::_DI),
+	(MeshIDs::_DJ) | (MeshIDs::_DI >> 1),
 
-	MeshIDs::_DJ
+	MeshIDs::_DJ >> 1
 
 	};
-	static const id_type id_face = MeshIDs::_DI | MeshIDs::_DJ;
+	static const id_type id_face = (MeshIDs::_DI | MeshIDs::_DJ) >> 1;
 
 	static const id_type id_cell_shift[4] = {
 
-	-(MeshIDs::_DJ << 1),
+	-(MeshIDs::_DJ),
 
-	(MeshIDs::_DI << 1),
+	(MeshIDs::_DI),
 
-	(MeshIDs::_DJ << 1),
+	(MeshIDs::_DJ),
 
-	-(MeshIDs::_DI << 1)
+	-(MeshIDs::_DI)
 
 	};
 
@@ -364,22 +367,30 @@ void polyline_intersect_grid(std::vector<coordinates_type> const & polygons,
 	x[0] = polygons.front();
 	x[1] = *(++polygons.begin());
 
-	id_type cell_id = MeshIDs::coordinates_to_id(coordinates_type {
-
-	std::floor(x[0][0] + shift[0]),
-
-	std::floor(x[0][1] + shift[1]),
-
-	std::floor(x[0][2] + shift[2])
-
-	});
+//	id_type cell_id = MeshIDs::coordinates_to_id(coordinates_type {
+//
+//	std::floor(x[0][0] + shift[0]),
+//
+//	std::floor(x[0][1] + shift[1]),
+//
+//	std::floor(x[0][2] + shift[2])
+//
+//	});
+	shift |= MeshIDs::ID_ZERO;
+	id_type cell_id = MeshIDs::coordinates_to_id(
+			x[0] - MeshIDs::id_to_coordinates(shift))
+			& (MeshIDs::CELL_ID_MASK | (MeshIDs::_DA >> 1));
 
 	coordinates_type x_in, x_out;
 	auto it = polygons.begin();
-	out_points->push_back(x[0]);
+
 	while (true)
 	{
 
+//		CHECK_BIT(cell_id);
+//		CHECK_BIT(MeshIDs::_DA);
+//		CHECK_BIT(MeshIDs::ID_ZERO);
+//		CHECK_BIT(MeshIDs::CELL_ID_MASK);
 		q[0] = MeshIDs::id_to_coordinates(cell_id);
 		q[1] = q[0];
 		q[2] = q[0];
@@ -389,6 +400,8 @@ void polyline_intersect_grid(std::vector<coordinates_type> const & polygons,
 		q[2][XAXIS] += 1.0;
 		q[2][YAXIS] += 1.0;
 		q[3][YAXIS] += 1.0;
+
+		out_points->push_back(x[0]);
 
 		std::tie(edge_out, s_out) = line_intersect_polygon(x[0], x[1],
 				num_of_vertex, q, ZAXIS);
@@ -415,9 +428,10 @@ void polyline_intersect_grid(std::vector<coordinates_type> const & polygons,
 			{
 				x[1] = polygons.front();
 			}
-			out_points->push_back(x[1]);
+
 			continue;
 		}
+		// save current node
 
 		if (edge_in < 0)
 		{
@@ -458,16 +472,14 @@ void polyline_intersect_grid(std::vector<coordinates_type> const & polygons,
 		// save edge/face/volume volume
 		(*volume)[cell_id + id_edge_shift[edge_out]] = (1 - s_out) * dx;
 		(*volume)[cell_id + id_face_shift[ZAXIS]] = face_area;
-		(*volume)[cell_id + (MeshIDs::_DA)] = face_area * dx;
-
-		// save current node
-		out_points->push_back(x_out);
+		(*volume)[cell_id + (MeshIDs::_DA >> 1)] = face_area * dx;
 
 		// move to next cell
 
 		x[0] = x_out;
 
 		cell_id += id_cell_shift[edge_out];
+//		CHECK_BIT(id_cell_shift[edge_out]);
 
 		edge_in = convert_out_in_edge_out[edge_out];
 
@@ -475,6 +487,8 @@ void polyline_intersect_grid(std::vector<coordinates_type> const & polygons,
 
 		x_in = x_out;
 	}
+
+	out_points->push_back(x[0]);
 }
 
 SP_APP(model)
@@ -484,7 +498,7 @@ SP_APP(model)
 
 	typedef typename MeshIDs::id_type id_type;
 
-	std::vector<coordinates_type> p0, p1, p2, p3, p4, p5, p6;
+	std::vector<coordinates_type> p0, p1, p2, p3, p4, p5, p6, p7;
 
 	nTuple<size_t, 3> dims = { 10, 10, 10 };
 
@@ -593,8 +607,13 @@ SP_APP(model)
 
 	for (auto s : boundary_face)
 	{
-		size_t d[3] = { (s) & MeshIDs::_DI, (s) & MeshIDs::_DJ, (s)
-				& MeshIDs::_DK };
+		size_t d[3] = {
+
+		(s) & (MeshIDs::_DI >> 1),
+
+		(s) & (MeshIDs::_DJ >> 1),
+
+		(s) & (MeshIDs::_DK >> 1) };
 
 		for (int i = 0; i < 3; ++i)
 		{
@@ -613,13 +632,19 @@ SP_APP(model)
 				return std::move(MeshIDs::id_to_coordinates(s));
 			});
 
-	coordinates_type shift0 = { 0, 0, 0 };
+	std::map<id_type, Real> volume0, volume1;
 
-	std::map<id_type, Real> volume;
+	polyline_intersect_grid(p0, 0UL, &volume0, &p4);
 
-	polyline_intersect_grid(p0, shift0, &volume, &p4);
+	std::transform(volume0.begin(), volume0.end(), std::back_inserter(p5),
+			[&](std::pair<id_type,Real> const &item )
+			{
+				return std::move(MeshIDs::id_to_coordinates(item.first));
+			});
 
-	std::transform(volume.begin(), volume.end(), std::back_inserter(p5),
+	polyline_intersect_grid(p0, ((MeshIDs::_DA) >> 1), &volume1, &p6);
+
+	std::transform(volume1.begin(), volume1.end(), std::back_inserter(p7),
 			[&](std::pair<id_type,Real> const &item )
 			{
 				return std::move(MeshIDs::id_to_coordinates(item.first));
@@ -633,6 +658,8 @@ SP_APP(model)
 	LOGGER << SAVE(p3) << std::endl;
 	LOGGER << SAVE(p4) << std::endl;
 	LOGGER << SAVE(p5) << std::endl;
+	LOGGER << SAVE(p6) << std::endl;
+	LOGGER << SAVE(p7) << std::endl;
 //
 //	find_boundary2D(p3, shift0, &p4);
 //

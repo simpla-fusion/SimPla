@@ -72,26 +72,36 @@ struct MeshIDs_
 
 	static constexpr size_t FLOATING_POINT_FACTOR = 1 << FLOATING_POINT_POS;
 
+	static constexpr size_t INDEX_ZERO = 1UL
+			<< (INDEX_DIGITS - FLOATING_POINT_POS - 1);
+
+	static constexpr size_t ID_ZERO = (INDEX_ZERO << (FLOATING_POINT_POS))
+			| (INDEX_ZERO << (FLOATING_POINT_POS + INDEX_DIGITS))
+			| (INDEX_ZERO << (FLOATING_POINT_POS + INDEX_DIGITS * 2));
+
+	static constexpr Real COORDINATE_ZERO = static_cast<Real>(INDEX_ZERO);
+
 	static constexpr Real COORDINATES_TO_INDEX_FACTOR = static_cast<Real>(1
 			<< FLOATING_POINT_POS);
+
 	static constexpr Real INDEX_TO_COORDINATES_FACTOR = 1.0
 			/ COORDINATES_TO_INDEX_FACTOR;
 
-	static constexpr size_t INDEX_MASK = (1UL << (INDEX_DIGITS)) - 1;
+	static constexpr size_t INDEX_MASK = (1UL << (INDEX_DIGITS + 1)) - 1;
 
 	static constexpr size_t D_INDEX = (1UL << (FLOATING_POINT_POS));
 
-	static constexpr size_t _DK = D_INDEX << (INDEX_DIGITS * 2 - 1);
+	static constexpr size_t _DK = D_INDEX << (INDEX_DIGITS * 2);
 
-	static constexpr size_t _DJ = D_INDEX << (INDEX_DIGITS - 1);
+	static constexpr size_t _DJ = D_INDEX << (INDEX_DIGITS);
 
-	static constexpr size_t _DI = D_INDEX >> 1;
+	static constexpr size_t _DI = D_INDEX;
 
 	static constexpr size_t _DA = _DI | _DJ | _DK;
 
 	static constexpr size_t CELL_ID_MASK_ = //
-			(((1UL << (INDEX_DIGITS - FLOATING_POINT_POS - 1)) - 1)
-					<< (FLOATING_POINT_POS - 1)) & INDEX_MASK;
+			(((1UL << (INDEX_DIGITS - FLOATING_POINT_POS)) - 1)
+					<< (FLOATING_POINT_POS)) & INDEX_MASK;
 
 	static constexpr size_t CELL_ID_MASK =
 
@@ -111,11 +121,6 @@ struct MeshIDs_
 
 	| (SUB_CELL_ID_MASK_);
 
-	static constexpr size_t INDEX_ZERO = 1UL
-			<< (INDEX_DIGITS - FLOATING_POINT_POS - 1);
-
-	static constexpr Real COORDINATE_ZERO = static_cast<Real>(INDEX_ZERO);
-
 	static constexpr size_t ID_MASK =
 
 	(((AXIS_FLAG & 1UL) == 0) ? (INDEX_MASK) : 0UL)
@@ -129,13 +134,13 @@ struct MeshIDs_
 	typedef nTuple<size_t, 3> index_tuple;
 
 	static constexpr size_t m_sub_node_id_[4][3] = { 0, 0, 0, //
-			_DI, _DJ, _DK, //
-			_DJ | _DK, //
-			_DK | _DI, //
-			_DI | _DJ, //
-			_DA, //
-			_DA, //
-			_DA };
+			_DI >> 1, _DJ >> 1, _DK >> 1, //
+			(_DJ | _DK) >> 1, //
+			(_DK | _DI) >> 1, //
+			(_DI | _DJ) >> 1, //
+			(_DA) >> 1, //
+			(_DA) >> 1, //
+			(_DA) >> 1 };
 
 	static constexpr coordinates_type m_sub_node_num_[4][3] = { //
 
@@ -954,7 +959,7 @@ template<size_t N, size_t A> constexpr size_t MeshIDs_<N, A>::_DI;
 template<size_t N, size_t A> constexpr size_t MeshIDs_<N, A>::_DA;
 template<size_t N, size_t A> constexpr size_t MeshIDs_<N, A>::CELL_ID_MASK_;
 template<size_t N, size_t A> constexpr size_t MeshIDs_<N, A>::CELL_ID_MASK;
-
+template<size_t N, size_t A> constexpr size_t MeshIDs_<N, A>::ID_ZERO;
 typedef MeshIDs_<3, 0> MeshIDs;
 }  // namespace simpla
 
