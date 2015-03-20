@@ -112,13 +112,18 @@ std::tuple<Real, Real> line_intersection2d(T0 const& P0, T1 const & P1,
  *    o p1
  */
 
-std::tuple<size_t, Real> line_intersect_polygon(coordinates_type x0,
-		coordinates_type x1, int num_of_vertex, coordinates_type const * q,
-		size_t ZAXIS = 2)
+std::tuple<size_t, Real> line_intersect_polygon(int in_edge_tag,
+		coordinates_type x0, coordinates_type x1, int num_of_vertex,
+		coordinates_type const * q, size_t ZAXIS = 2)
 {
 
 	for (int i = 0; i < num_of_vertex; ++i)
 	{
+		if (i == in_edge_tag)
+		{
+			continue;
+		}
+
 		Real s, t;
 
 		std::tie(s, t) = line_intersection2d(q[i], q[(i + 1) % num_of_vertex],
@@ -299,7 +304,7 @@ void polyline_intersect_grid(std::vector<coordinates_type> const & polygons,
 
 		out_points->push_back(x[0]);
 
-		std::tie(edge_out, s_out) = line_intersect_polygon(x[0], x[1],
+		std::tie(edge_out, s_out) = line_intersect_polygon(edge_in, x[0], x[1],
 				num_of_vertex, q, ZAXIS);
 
 		if (edge_out < 0)
@@ -331,7 +336,7 @@ void polyline_intersect_grid(std::vector<coordinates_type> const & polygons,
 
 		if (edge_in < 0)
 		{
-			std::tie(edge_in, s_in) = line_intersect_polygon(x[-1], x[0],
+			std::tie(edge_in, s_in) = line_intersect_polygon(-1, x[-1], x[0],
 					num_of_vertex, q, ZAXIS);
 
 			x_in = q[edge_in]
@@ -371,7 +376,6 @@ void polyline_intersect_grid(std::vector<coordinates_type> const & polygons,
 		(*volume)[cell_id + (MeshIDs::_DA >> 1)] = face_area * dx;
 
 		// move to next cell
-
 		x[0] = x_out;
 
 		cell_id += id_cell_shift[edge_out];
@@ -556,9 +560,7 @@ SP_APP(model)
 	LOGGER << SAVE(p2) << std::endl;
 	LOGGER << SAVE(p3) << std::endl;
 	LOGGER << SAVE(p4) << std::endl;
-	LOGGER << SAVE(p5) << std::endl;
-	LOGGER << SAVE(p6) << std::endl;
-	LOGGER << SAVE(p7) << std::endl;
+
 //
 //	find_boundary2D(p3, shift0, &p4);
 //

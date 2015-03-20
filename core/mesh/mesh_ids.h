@@ -230,22 +230,25 @@ struct MeshIDs_
 						{
 
 						static_cast<long>((s & INDEX_MASK) >> FLOAT_POS)
-								- static_cast<long>(INDEX_ZERO >> FLOAT_POS),
+								- static_cast<long>(INDEX_ZERO
+										<< (FLOATING_POINT_POS - FLOAT_POS)),
 
 						static_cast<long>(((s >> (INDEX_DIGITS)) & INDEX_MASK)
 								>> FLOAT_POS)
-								- static_cast<long>(INDEX_ZERO >> FLOAT_POS),
+								- static_cast<long>(INDEX_ZERO
+										<< (FLOATING_POINT_POS - FLOAT_POS)),
 
 						static_cast<long>(((s >> (INDEX_DIGITS * 2))
 								& INDEX_MASK) >> FLOAT_POS)
-								- static_cast<long>(INDEX_ZERO >> FLOAT_POS)
+								- static_cast<long>(INDEX_ZERO
+										<< (FLOATING_POINT_POS - FLOAT_POS))
 
 						}));
 	}
 
 	id_type dual(id_type const & s) const
 	{
-		//TODO
+		return s;
 	}
 
 	template<size_t I_FLOAT_POS = FLOATING_POINT_POS>
@@ -254,8 +257,8 @@ struct MeshIDs_
 
 	private:
 		index_tuple m_offset_;
-		nTuple<size_t, ndims + 1> m_dimensions_;
-		nTuple<size_t, ndims + 1> m_strides_;
+		nTuple<size_t, ndims> m_dimensions_;
+		nTuple<size_t, ndims> m_strides_;
 	public:
 		typedef id_hasher<I_FLOAT_POS> this_type;
 
@@ -275,13 +278,13 @@ struct MeshIDs_
 			deploy();
 		}
 
-		id_hasher(this_type const & other)
-				: m_dimensions_(other.m_dimensions_), m_offset_(other.m_offset_)
+		id_hasher(this_type const & other) :
+				m_dimensions_(other.m_dimensions_), m_offset_(other.m_offset_)
 		{
 			deploy();
 		}
-		id_hasher(this_type && other)
-				: m_dimensions_(other.m_dimensions_), m_offset_(other.m_offset_)
+		id_hasher(this_type && other) :
+				m_dimensions_(other.m_dimensions_), m_offset_(other.m_offset_)
 		{
 			deploy();
 		}
@@ -320,11 +323,13 @@ struct MeshIDs_
 				}
 			}
 		}
-		constexpr size_t operator()(id_type const & s) const
+		size_t operator()(id_type const & s) const
 		{
+			auto I = id_to_index<I_FLOAT_POS>(s);
+
+			CHECK(I);
 			return inner_product(
-					(id_to_index<I_FLOAT_POS>(s) + m_dimensions_ - m_offset_)
-							% m_dimensions_, m_strides_);
+					(I + m_dimensions_ - m_offset_) % m_dimensions_, m_strides_);
 		}
 
 		template<size_t IFORM>
