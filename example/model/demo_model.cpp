@@ -179,10 +179,10 @@ Vec3 normal_vector_of_surface(std::vector<coordinates_type> const & polygons)
 	return std::move(n);
 
 }
-
+template<typename TV>
 void polyline_intersect_grid(std::vector<coordinates_type> const & polygons,
-		id_type shift, std::map<id_type, Real> *volume,
-		std::vector<coordinates_type> *out_points, const int ZAXIS = 2)
+		id_type shift, TV *volume, std::vector<coordinates_type> *out_points,
+		const int ZAXIS = 2)
 {
 	const int XAXIS = (ZAXIS + 1) % 3;
 	const int YAXIS = (ZAXIS + 2) % 3;
@@ -528,26 +528,27 @@ SP_APP(model)
 				return std::move(MeshIDs::id_to_coordinates(s));
 			});
 
+	nTuple<size_t, 3> v_dims;
 
+	v_dims = dims * 2;
 
-	std::map<id_type, Real> volume0, volume1;
+	auto volume0 = MeshIDs::make_volume_container(v_dims);
+
+	auto volume1 = MeshIDs::make_volume_container(v_dims);
+
+	volume0.fill(0);
+
+	for (auto s : volume_in_side)
+	{
+		volume0[s] = 1;
+	}
 
 	polyline_intersect_grid(p0, 0UL, &volume0, &p4);
 
-	std::transform(volume0.begin(), volume0.end(), std::back_inserter(p5),
-			[&](std::pair<id_type,Real> const &item )
-			{
-				return std::move(MeshIDs::id_to_coordinates(item.first));
-			});
-
 	polyline_intersect_grid(p0, ((MeshIDs::_DA) >> 1), &volume1, &p6);
 
-	std::transform(volume1.begin(), volume1.end(), std::back_inserter(p7),
-			[&](std::pair<id_type,Real> const &item )
-			{
-				return std::move(MeshIDs::id_to_coordinates(item.first));
-			});
-
+	LOGGER << save("volume0", volume0.data().get(), 3, &v_dims[0]) << std::endl;
+	LOGGER << save("volume1", volume1.data().get(), 3, &v_dims[0]) << std::endl;
 	p0.push_back(p0.front());
 
 	LOGGER << SAVE(p0) << std::endl;

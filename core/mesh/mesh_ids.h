@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <limits>
 
+#include "../gtl/containers/sp_hash_container.h"
 #include "../gtl/ntuple.h"
 #include "../gtl/primitives.h"
 #include "../gtl/type_traits.h"
@@ -222,7 +223,7 @@ struct MeshIDs_
 	}
 
 	template<size_t FLOAT_POS = FLOATING_POINT_POS>
-	index_tuple id_to_index(id_type const & s)
+	static index_tuple id_to_index(id_type const & s)
 	{
 		return std::move(
 				index_tuple(
@@ -254,7 +255,7 @@ struct MeshIDs_
 	private:
 		index_tuple m_offset_;
 		nTuple<size_t, ndims + 1> m_dimensions_;
-		nTuple<size_t, ndims + 1> m_strides_
+		nTuple<size_t, ndims + 1> m_strides_;
 	public:
 		typedef id_hasher<I_FLOAT_POS> this_type;
 
@@ -336,16 +337,14 @@ struct MeshIDs_
 
 	};
 
-	typedef SpHashContainer<id_type, Real,
-			id_hasher<MeshIDs::FLOATING_POINT_POS - 1>> volume_container;
+	typedef SpHashContainer<id_type, Real, id_hasher<FLOATING_POINT_POS - 1>> volume_container;
 
 	template<typename ...Args>
-	volume_container make_volume_container(Args&& ...args) const
+	static volume_container make_volume_container(Args&& ...args)
 	{
-		id_hasher<MeshIDs::FLOATING_POINT_POS - 1> hasher(
-				std::forward<Args>(args)...);
+		id_hasher<FLOATING_POINT_POS - 1> hasher(std::forward<Args>(args)...);
 
-		return std::move(volume_container(hasher.max_hash(), std::move(hasher)));
+		return std::move(volume_container((hasher), hasher.max_hash()));
 	}
 
 	//**************************************************************************

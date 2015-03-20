@@ -30,19 +30,21 @@ struct SpHashContainer
 	{
 	}
 	SpHashContainer(hash_function const & fun, size_t max_hash = 0)
-			: m_data_(nullptr), m_max_hash_(max_hash), m_max_hash_(fun)
+			: m_data_(nullptr), m_max_hash_(max_hash), m_hash_(fun)
 	{
+		deploy();
 	}
 	SpHashContainer(this_type const & other)
 			: m_data_(other.m_data_), m_max_hash_(other.m_max_hash_), m_hash_(
 					other.m_hash_)
 	{
-
+		deploy();
 	}
 	SpHashContainer(this_type && other)
 			: m_data_(other.m_data_), m_max_hash_(other.m_max_hash_), m_hash_(
 					other.m_hash_)
 	{
+		deploy();
 	}
 	~SpHashContainer()
 	{
@@ -54,7 +56,10 @@ struct SpHashContainer
 		std::swap(m_max_hash_, other.m_max_hash_);
 		std::swap(m_hash_, other.m_hash_);
 	}
-
+	std::shared_ptr<value_type> data()
+	{
+		return m_data_;
+	}
 	void max_hash(size_t m) const
 	{
 		m_max_hash_ = m;
@@ -112,11 +117,11 @@ struct SpHashContainer
 
 	}
 
-	constexpr value_type & operator[](key_type const& s)
+	value_type & operator[](key_type const& s)
 	{
 		return m_data_.get()[m_hash_(s)];
 	}
-	constexpr value_type const& operator[](key_type const& s) const
+	value_type const& operator[](key_type const& s) const
 	{
 		return m_data_.get()[m_hash_(s)];
 	}
