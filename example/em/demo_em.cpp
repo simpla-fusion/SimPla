@@ -16,10 +16,10 @@
 #include "../../core/io/io.h"
 
 #include "../../core/field/field.h"
-#include "../../core/field/field_constraint.h"
+//#include "../../core/field/field_constraint.h"
 
 #include "../../core/mesh/mesh.h"
-#include "../../core/mesh/structured/cartesian_mesh.h"
+#include "../../core/mesh/structured/structured.h"
 
 using namespace simpla;
 
@@ -87,25 +87,25 @@ USE_CASE(em)
 //	VERBOSE_CMD(load(options["InitValue"]["B"], &B));
 //	VERBOSE_CMD(load(options["InitValue"]["E"], &E));
 //	VERBOSE_CMD(load(options["InitValue"]["J"], &J));
-
-	auto phi_bc = make_constraint<decltype(phi)>(phi.mesh(),
-			options["Constraint"]["phi"]);
-
-	auto E_src = make_constraint<decltype(E)>(E.mesh(),
-			options["Constraint"]["E"]);
-	auto J_src = make_constraint<decltype(J)>(J.mesh(),
-			options["Constraint"]["J"]);
-	auto B_src = make_constraint<decltype(B)>(B.mesh(),
-			options["Constraint"]["B"]);
+//
+//	auto phi_bc = make_constraint<decltype(phi)>(phi.mesh(),
+//			options["Constraint"]["phi"]);
+//
+//	auto E_src = make_constraint<decltype(E)>(E.mesh(),
+//			options["Constraint"]["E"]);
+//	auto J_src = make_constraint<decltype(J)>(J.mesh(),
+//			options["Constraint"]["J"]);
+//	auto B_src = make_constraint<decltype(B)>(B.mesh(),
+//			options["Constraint"]["B"]);
 
 	phi.clear();
 
 	phi = 1.0;
-	cd("/");
-	VERBOSE << save("phi", phi, SP_APPEND) << std::endl;
-	phi_bc(&phi);
-	VERBOSE << save("phi", phi, SP_APPEND) << std::endl;
-
+//	cd("/");
+//	VERBOSE << save("phi", phi, SP_APPEND) << std::endl;
+//	phi_bc(&phi);
+//	VERBOSE << save("phi", phi, SP_APPEND) << std::endl;
+//
 //
 //	LOGGER << "----------  Dump input ---------- " << std::endl;
 //
@@ -131,13 +131,13 @@ USE_CASE(em)
 //	{
 //		for (size_t s = 0; s < num_of_steps; ++s)
 //		{
-//			VERBOSE << "Step [" << s << "/" << num_of_steps << "]" << std::endl;
+//			VERBOSE << "Step [" <<					 s << "/" << num_of_steps << "]" << std::endl;
 //
-//			E_src(&E);
-////			J_src(&J);
-////			B_src(&B);
-//			E = curl(B) * dt - J;
-//			B = -curl(E) * dt;
+//	E_src(&E);
+//			J_src(&J);
+//			B_src(&B);
+	E = curl(B) * dt - J;
+	B = -curl(E) * dt;
 //		}
 //
 ////		VERBOSE << SAVE(E);

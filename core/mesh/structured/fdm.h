@@ -12,11 +12,11 @@
 #include <cstddef>
 #include <type_traits>
 
-#include "../../../gtl/expression_template.h"
-#include "../../../gtl/ntuple.h"
-#include "../../../gtl/primitives.h"
-#include "../../calculus.h"
-#include "../../mesh.h"
+#include "../../gtl/expression_template.h"
+#include "../../gtl/ntuple.h"
+#include "../../gtl/primitives.h"
+#include "../calculus.h"
+#include "../mesh.h"
 
 namespace simpla
 {
@@ -126,13 +126,13 @@ public:
 	}
 
 	template<typename T>
-	static constexpr inline typename field_traits<_Field<_impl::ExteriorDerivative< EDGE,T> >>::value_type
+	static inline typename field_traits<_Field<_impl::ExteriorDerivative< EDGE,T> >>::value_type
 	calculate(geometry_type const & geo,_Field<_impl::ExteriorDerivative<EDGE,T> > const & expr, id_type s)
 	{
 
-		constexpr id_type X = ids::delta_index(ids::dual(s));
-		constexpr id_type Y = ids::roate(X);
-		constexpr id_type Z = ids::inverse_roate(X);
+		id_type X = ids::delta_index(ids::dual(s));
+		id_type Y = ids::roate(X);
+		id_type Z = ids::inverse_roate(X);
 
 		return (
 				(
@@ -192,14 +192,14 @@ public:
 	}
 
 	template<typename T >
-	static constexpr inline typename field_traits<_Field< _impl::CodifferentialDerivative< FACE, T> > >::value_type
+	static inline typename field_traits<_Field< _impl::CodifferentialDerivative< FACE, T> > >::value_type
 	calculate(geometry_type const & geo,_Field<_impl::CodifferentialDerivative< FACE, T>> const & expr,
 			id_type s)
 	{
 
-		constexpr id_type X = ids::delta_index(s);
-		constexpr id_type Y = ids::roate(X);
-		constexpr id_type Z = ids::inverse_roate(X);
+		id_type X = ids::delta_index(s);
+		id_type Y = ids::roate(X);
+		id_type Z = ids::inverse_roate(X);
 
 		return
 
@@ -216,11 +216,11 @@ public:
 	}
 
 	template<typename T >
-	static constexpr inline typename field_traits<_Field< _impl::CodifferentialDerivative< VOLUME, T> > >::value_type
+	static inline typename field_traits<_Field< _impl::CodifferentialDerivative< VOLUME, T> > >::value_type
 	calculate(geometry_type const & geo,_Field<_impl::CodifferentialDerivative< VOLUME, T>> const & expr,
 			id_type s)
 	{
-		constexpr id_type D = ids::delta_index(ids::dual(s));
+		id_type D = ids::delta_index(ids::dual(s));
 		return
 
 		-(

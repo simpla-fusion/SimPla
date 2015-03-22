@@ -19,12 +19,12 @@
 #include "../structured/domain.h"
 #include "../structured/interpolator/interpolator.h"
 #include "../structured/topology/structured.h"
-#include "coordinates/cartesian.h"
+#include "coordinates/coordiantes_cartesian.h"
 
 
 namespace simpla
 {
-typedef Manifold<CartesianCoordinates<StructuredMesh>, FiniteDiffMethod,
+typedef Manifold<CartesianCoordinates<RectMesh>, FiniteDiffMethod,
 		InterpolatorLinear> CartesianMesh;
 
 //typedef Manifold<CylindricalCoordinates<StructuredMesh>, FiniteDiffMethod,

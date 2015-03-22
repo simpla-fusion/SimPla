@@ -5,18 +5,18 @@
  *      Author: salmon
  */
 
-#ifndef CORE_MESH_STRUCTURED_COORDINATES_CARTESIAN_H_
-#define CORE_MESH_STRUCTURED_COORDINATES_CARTESIAN_H_
+#ifndef CORE_MESH_STRUCTURED_COORDINATES_COORDIANTES_CARTESIAN_H_
+#define CORE_MESH_STRUCTURED_COORDINATES_COORDIANTES_CARTESIAN_H_
 
 #include <stddef.h>
 #include <string>
 #include <tuple>
 #include <type_traits>
-#include "../../../utilities/utilities.h"
-#include "../../../physics/constants.h"
-#include "../../../physics/physical_constants.h"
-#include "../../../gtl/enable_create_from_this.h"
-#include "../../mesh.h"
+#include "../../utilities/utilities.h"
+#include "../../physics/constants.h"
+#include "../../physics/physical_constants.h"
+#include "../../gtl/enable_create_from_this.h"
+#include "../mesh.h"
 
 namespace simpla
 {
@@ -28,7 +28,7 @@ namespace simpla
  */
 template<typename TTopology, size_t ZAXIS = CARTESIAN_ZAXIS>
 struct CartesianCoordinates: public TTopology, public enable_create_from_this<
-										CartesianCoordinates<TTopology, ZAXIS>>
+		CartesianCoordinates<TTopology, ZAXIS>>
 {
 
 public:
@@ -63,8 +63,8 @@ private:
 	coordinates_type m_from_topology_factor_;
 
 public:
-	CartesianCoordinates()
-			: topology_type(), is_valid_(false),
+	CartesianCoordinates() :
+			topology_type(), is_valid_(false),
 
 			m_xmin_( { 0, 0, 0 }),
 
@@ -79,9 +79,8 @@ public:
 
 	}
 
-	CartesianCoordinates(CartesianCoordinates const & other)
-			: topology_type(other), m_xmin_(other.m_xmin_), m_xmax_(
-					other.m_xmax_) //, m_dx_(other.m_dx_),
+	CartesianCoordinates(CartesianCoordinates const & other) :
+			topology_type(other), m_xmin_(other.m_xmin_), m_xmax_(other.m_xmax_) //, m_dx_(other.m_dx_),
 
 	{
 
@@ -118,12 +117,12 @@ public:
 	{
 		holder_type self_;
 
-		Hash(holder_type g)
-				: self_(g)
+		Hash(holder_type g) :
+				self_(g)
 		{
 		}
-		Hash(Hash const & other)
-				: self_(other.self_)
+		Hash(Hash const & other) :
+				self_(other.self_)
 		{
 		}
 		~Hash()
@@ -376,14 +375,14 @@ public:
 
 	}
 
-	template<typename TI>
-	inline auto index_to_coordinates(TI const&idx) const
-	DECL_RET_TYPE((coordinates_from_topology(
-							topology_type::index_to_coordinates(idx))))
-
-	inline auto coordinates_to_index(coordinates_type const & x) const
-	DECL_RET_TYPE((topology_type::coordinates_to_index(
-							coordinates_to_topology(x))))
+//	template<typename TI>
+//	inline auto index_to_coordinates(TI const&idx) const
+//	DECL_RET_TYPE((coordinates_from_topology(
+//							topology_type::index_to_coordinates(idx))))
+//
+//	inline auto coordinates_to_index(coordinates_type const & x) const
+//	DECL_RET_TYPE((topology_type::coordinates_to_index(
+//							coordinates_to_topology(x))))
 
 	inline id_type coordinates_to_id(coordinates_type const &x)const
 	{
@@ -603,24 +602,24 @@ public:
 
 	constexpr scalar_type cell_volume(id_type s) const
 	{
-		return volume_[1] * volume_[2] * volume_[4];
+		return topology_type::cell_volume(s)*volume_[1] * volume_[2] * volume_[4];
 	}
 	constexpr scalar_type volume(id_type s) const
 	{
-		return volume_[topology_type::node_id(s)];
+		return topology_type::volume(s)*volume_[topology_type::node_id(s)];
 	}
 	constexpr scalar_type inv_volume(id_type s) const
 	{
-		return inv_volume_[topology_type::node_id(s)];
+		return topology_type::inv_volume(s)*inv_volume_[topology_type::node_id(s)];
 	}
 
 	constexpr scalar_type dual_volume(id_type s) const
 	{
-		return dual_volume_[topology_type::node_id(s)];
+		return topology_type::dual_volume(s)*dual_volume_[topology_type::node_id(s)];
 	}
 	constexpr scalar_type inv_dual_volume(id_type s) const
 	{
-		return inv_dual_volume_[topology_type::node_id(s)];
+		return topology_type::inv_dual_volume(s)*inv_dual_volume_[topology_type::node_id(s)];
 	}
 
 	constexpr Real HodgeStarVolumeScale(id_type s) const
@@ -774,4 +773,4 @@ void CartesianCoordinates<TTopology, ZAXIS>::deploy()
 
 }  // namespace simpla
 
-#endif /* CORE_MESH_STRUCTURED_COORDINATES_CARTESIAN_H_ */
+#endif /* CORE_MESH_STRUCTURED_COORDINATES_COORDIANTES_CARTESIAN_H_ */

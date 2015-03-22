@@ -14,7 +14,7 @@
 
 using namespace simpla;
 
-typedef Manifold<CylindricalCoordinates<StructuredMesh, CARTESIAN_ZAXIS>,
+typedef Manifold<CylindricalCoordinates<RectMesh, CARTESIAN_ZAXIS>,
 		FiniteDiffMethod, InterpolatorLinear> manifold_type;
 
 typedef testing::Types<

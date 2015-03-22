@@ -5,8 +5,8 @@
  *      Author: salmon
  */
 
-#include "../../structured/structured.h"
-#include "../coordinates/cartesian.h"
+#include "../coordinates/coordiantes_cartesian.h"
+#include "../rect_mesh .h"
 
 #define GEOMETRY  CartesianCoordinates<StructuredMesh>
 

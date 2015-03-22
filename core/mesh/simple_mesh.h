@@ -13,7 +13,7 @@
 namespace simpla
 {
 
-typedef StructuredMesh SimpleMesh;
+typedef RectMesh SimpleMesh;
 
 //template<typename ...>class _Field;
 //template<typename ...>class Expression;

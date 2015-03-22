@@ -15,19 +15,19 @@
 #include "../../../core/mesh/mesh_common.h"
 #include "../../../core/mesh/structured/diff_scheme/fdm.h"
 #include "../../../core/mesh/structured/interpolator/interpolator.h"
-#include "../../../core/mesh/structured/coordinates/cartesian.h"
 #include "../../../core/mesh/structured/manifold.h"
 #include "../../../core/mesh/structured/topology/structured.h"
 #include "../../../core/parallel/mpi_comm.h"
 #include "../../../core/utilities/log.h"
 #include "../../core/field/field_sequence.h"
+#include "../../core/mesh/structured/coordinates/coordiantes_cartesian.h"
 
 using namespace simpla;
 
 USE_CASE(general_field_op)
 {
 
-	typedef CartesianCoordinates<StructuredMesh> mesh_type;
+	typedef CartesianCoordinates<RectMesh> mesh_type;
 //	typedef SimpleMesh mesh_type;
 
 	typedef typename mesh_type::coordinates_type coordinates_type;

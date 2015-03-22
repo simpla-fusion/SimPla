@@ -67,79 +67,30 @@ std::tuple<Real, Real> line_intersection2d(T0 const& P0, T1 const & P1,
 	return std::make_tuple(s, t);
 }
 
-/**
- *    Case 0 : vertex in cell
- *
- *
- *                 o p2
- *              s1/  edge of emergence edge_out
- *      q3-------/-------q2
- *       |      /        |
- *       |     /         |
- *       |    /          |s0
- *       |p1 o-----------+---o p0
- *       |               |  edge of incident edge_in
- *      q0---------------q1
- *
- *
- */
-
-/**
- *     Case 1 : line cut cell
- *
- *                 o p1
- *              s1/
- *      q3-------/-------q2
- *       |      /        |
- *       |     /         |
- *       |    /          |s0
- *       |   /           |
- *      q0--/------------q1
- *         /s0
- *        o
- *       p0
- *
- *              o p1
- *             /
- *            /s1
- *       q3--/-------q2
- *        | /        |
- *        |/         |
- *     s0 /          |
- *       /|          |
- *      / q0--------q1
- *     /
- *    o p1
- */
-
-std::tuple<size_t, Real> line_intersect_polygon(int in_edge_tag,
-		coordinates_type x0, coordinates_type x1, int num_of_vertex,
-		coordinates_type const * q, size_t ZAXIS = 2)
+std::tuple<size_t, Real, Real> line_intersect_polygon(coordinates_type x0,
+		coordinates_type x1, int num_of_vertex, coordinates_type const * q,
+		size_t ZAXIS = 2)
 {
+	int edge_id = -1;
+
+	Real s = -1;
+	Real t = std::numeric_limits<Real>::max();
 
 	for (int i = 0; i < num_of_vertex; ++i)
 	{
-		if (i == in_edge_tag)
-		{
-			continue;
-		}
-
-		Real s, t;
-
-		std::tie(s, t) = line_intersection2d(q[i], q[(i + 1) % num_of_vertex],
+		Real s_, t_;
+		std::tie(s_, t_) = line_intersection2d(q[i], q[(i + 1) % num_of_vertex],
 				x0, x1, ZAXIS);
 
-		if (s >= 0.0 && s <= 1.0 && t > EPSILON && t <= 1.0)
+		if (t_ > 0 && t_ < t && s_ >= 0 && s_ < 1)
 		{
-
-//			x0 = q[i] + s * (q[(i + 1) % num_of_vertex] - q[i]);
-
-			return std::make_tuple(i, s);
-			break;
+			t = t_;
+			s = s_;
+			edge_id = i;
 		}
 	}
 
-	return std::make_tuple(-1, 0);
+	return std::make_tuple(edge_id, s, t);
 }
 
 Vec3 normal_vector_of_surface(std::vector<coordinates_type> const & polygons)
@@ -186,7 +137,7 @@ Vec3 normal_vector_of_surface(std::vector<coordinates_type> const & polygons)
 }
 template<typename TV>
 void polyline_intersect_grid(std::vector<coordinates_type> const & polygons,
-		id_type shift, TV *volume, std::vector<coordinates_type> *out_points,
+		id_type shift, TV *volume, std::vector<coordinates_type> *new_path,
 		const int ZAXIS = 2)
 {
 	const int XAXIS = (ZAXIS + 1) % 3;
@@ -201,38 +152,48 @@ void polyline_intersect_grid(std::vector<coordinates_type> const & polygons,
 		RUNTIME_ERROR("illegal polygon!");
 	}
 
-	static const id_type id_face_shift[3] = {
+	//	static const id_type id_face_shift[3] = {
+	//
+	//	(MeshIDs::_DJ | MeshIDs::_DK),
+	//
+	//	(MeshIDs::_DK | MeshIDs::_DI),
+	//
+	//	(MeshIDs::_DJ | MeshIDs::_DI)
+	//
+	//	};
+	//
+	//	static const id_type id_edge_shift[4] = {
+	//
+	//	MeshIDs::_DI,
+	//
+	//	(MeshIDs::_DJ) | (MeshIDs::_DI << 1),
+	//
+	//	(MeshIDs::_DI) | (MeshIDs::_DJ << 1),
+	//
+	//	MeshIDs::_DJ
+	//
+	//	};
+	static const id_type id_face = (MeshIDs::_DI | MeshIDs::_DJ);
 
-	(MeshIDs::_DJ | MeshIDs::_DK) >> 1,
+	static const id_type id_cell_shift[9] = {
 
-	(MeshIDs::_DK | MeshIDs::_DI) >> 1,
+	0,
 
-	(MeshIDs::_DJ | MeshIDs::_DI) >> 1
+	MeshIDs::ID_ZERO + (MeshIDs::_DI << 1),
 
-	};
+	MeshIDs::ID_ZERO + (MeshIDs::_DI << 1) + (MeshIDs::_DJ << 1),
 
-	static const id_type id_edge_shift[4] = {
+	MeshIDs::ID_ZERO + (MeshIDs::_DJ << 1),
 
-	MeshIDs::_DI >> 1,
+	MeshIDs::ID_ZERO - (MeshIDs::_DI << 1) + (MeshIDs::_DJ << 1),
 
-	(MeshIDs::_DJ >> 1) | (MeshIDs::_DI),
+	MeshIDs::ID_ZERO - (MeshIDs::_DI << 1),
 
-	(MeshIDs::_DJ) | (MeshIDs::_DI >> 1),
+	MeshIDs::ID_ZERO - (MeshIDs::_DI << 1) - (MeshIDs::_DJ << 1),
 
-	MeshIDs::_DJ >> 1
+	MeshIDs::ID_ZERO - (MeshIDs::_DJ << 1),
 
-	};
-	static const id_type id_face = (MeshIDs::_DI | MeshIDs::_DJ) >> 1;
-
-	static const id_type id_cell_shift[4] = {
-
-	-(MeshIDs::_DJ),
-
-	(MeshIDs::_DI),
-
-	(MeshIDs::_DJ),
-
-	-(MeshIDs::_DI)
+	MeshIDs::ID_ZERO + (MeshIDs::_DI << 1) - (MeshIDs::_DJ << 1)
 
 	};
 
@@ -252,144 +213,198 @@ void polyline_intersect_grid(std::vector<coordinates_type> const & polygons,
 
 	static const id_type convert_out_in_edge_out[4] = { 2, 3, 0, 1 };
 
-	int edge_in = -1;
-	int edge_out = -1;
+	const int num_of_cell_vertics = 4;
+	coordinates_type q[num_of_cell_vertics];
 
-	Real s_in = 0.0;
-	Real s_out = 0;
+	coordinates_type x0, x1;
 
-	const int num_of_vertex = 4;
-	coordinates_type q[num_of_vertex];
+	x0 = polygons[0UL];
 
-	coordinates_type x_[3];
-	coordinates_type *x = x_ + 1;
+	x1 = *(++polygons.begin());
 
-	x[-1] = polygons.back();
-	x[0] = polygons.front();
-	x[1] = *(++polygons.begin());
-
-//	id_type cell_id = MeshIDs::coordinates_to_id(coordinates_type {
-//
-//	std::floor(x[0][0] + shift[0]),
-//
-//	std::floor(x[0][1] + shift[1]),
-//
-//	std::floor(x[0][2] + shift[2])
-//
-//	});
-	shift |= MeshIDs::ID_ZERO;
-	id_type cell_id = MeshIDs::coordinates_to_id(
-			x[0] - MeshIDs::id_to_coordinates(shift))
-			& (MeshIDs::CELL_ID_MASK | (MeshIDs::_DA >> 1));
-
-	coordinates_type x_in, x_out;
 	auto it = polygons.begin();
 
 	while (true)
 	{
+		new_path->push_back(x0);
+//
+//		id_type cell0 = (MeshIDs::coordinates_to_id(
+//				x0 - MeshIDs::id_to_coordinates(shift | MeshIDs::ID_ZERO))
+//				& (MeshIDs::CELL_ID_MASK)) | shift;
+//
+//
 
-//		CHECK_BIT(cell_id);
-//		CHECK_BIT(MeshIDs::_DA);
-//		CHECK_BIT(MeshIDs::ID_ZERO);
-//		CHECK_BIT(MeshIDs::CELL_ID_MASK);
-		q[0] = MeshIDs::id_to_coordinates(cell_id);
-		q[1] = q[0];
-		q[2] = q[0];
-		q[3] = q[0];
+//			MeshIDs::get_vertics<FACE>(ZAXIS, cell_hint, q);
 
-		q[1][XAXIS] += 1.0;
-		q[2][XAXIS] += 1.0;
-		q[2][YAXIS] += 1.0;
-		q[3][YAXIS] += 1.0;
+		coordinates_type q0 = { std::floor(x0[0]), std::floor(x0[1]),
+				std::floor(x0[2]) };
 
-		out_points->push_back(x[0]);
+		static const coordinates_type d[6][2] = {
 
-		std::tie(edge_out, s_out) = line_intersect_polygon(edge_in, x[0], x[1],
-				num_of_vertex, q, ZAXIS);
+		-1, 0, 0, -1, 1, 0,
 
-		if (edge_out < 0)
+		0, 0, 0, 0, 1, 0,
+
+		1, 0, 0, 1, 1, 0,
+
+		0, -1, 0, 1, -1, 0,
+
+		0, 0, 0, 1, 0, 0,
+
+		0, 1, 0, 1, 1, 0
+
+		};
+
+		Real t = std::numeric_limits<Real>::max();
+		for (int i = 0; i < 6; ++i)
 		{
+			Real t_;
+
+			std::tie(std::ignore, t_) = line_intersection2d(q0 + d[i][0],
+					q0 + d[i][1], x0, x1);
+
+			if (t_ > 0 && t_ < t)
+			{
+				t = t_;
+			}
+		}
+		if (t > 1)
+		{
+			x0 = x1;
+
 			if (it == polygons.end())
 			{
 				break;
 			}
 
-			// move to next vertex of polygon
-
-			x[-1] = x[0];
-			x[0] = x[1];
-
 			++it;
-
 			if (it != polygons.end())
 			{
-				x[1] = *it;
+				x1 = *it;
 			}
 			else
 			{
-				x[1] = polygons.front();
-			}
-
-			continue;
-		}
-		// save current node
-
-		if (edge_in < 0)
-		{
-			std::tie(edge_in, s_in) = line_intersect_polygon(-1, x[-1], x[0],
-					num_of_vertex, q, ZAXIS);
-
-			x_in = q[edge_in]
-					+ (q[(edge_in + 1) % num_of_vertex] - q[edge_in]) * s_in;
-
-			if (edge_in < 0)
-			{
-				RUNTIME_ERROR("illegal polygons!");
+				x1 = *polygons.begin();
 			}
 		}
-
-		x_out = q[edge_out]
-				+ (q[(edge_out + 1) % num_of_vertex] - q[edge_out]) * s_out;
-
-		Real face_area = -inner_product(n, cross(x[0] - x_in, x_out - x[0]))
-				* 0.5 * dA;
-
-		if (edge_out == edge_in)
+		else
 		{
+			x0 += t * (x1 - x0);
 		}
-		else if (edge_out == (edge_in + 1) % num_of_vertex)
-		{
-			face_area += (1 - (1 - s_in) * s_out * 0.5) * dA;
-		}
-		else if (edge_out == (edge_in + 2) % num_of_vertex)
-		{
-			face_area += (s_in + 1 - s_out) * 0.5 * 1 * dA;
-		}
-		else if (edge_out == (edge_in + 3) % num_of_vertex)
-		{
-			face_area += s_in * (1 - s_out) * 0.5 * dA;
-		}
-
-		// save edge/face/volume volume
-		(*volume)[cell_id + id_edge_shift[edge_out]] = (1 - s_out) * dx;
-		(*volume)[cell_id + id_face_shift[ZAXIS]] = face_area;
-		(*volume)[cell_id + (MeshIDs::_DA >> 1)] = face_area * dx;
-
-		// move to next cell
-		x[0] = x_out;
-
-		cell_id += id_cell_shift[edge_out];
-//		CHECK_BIT(id_cell_shift[edge_out]);
-
-		edge_in = convert_out_in_edge_out[edge_out];
-
-		s_in = 1 - s_out;
-
-		x_in = x_out;
 	}
-
-	out_points->push_back(x[0]);
 }
+//		Real face_area = 0;
+//
+//		size_t i = (it_prev + 1 + num_of_vertics) % num_of_vertics;
+//		size_t j = (it_prev + 2 + num_of_vertics) % num_of_vertics;
+//
+//		for (size_t i = it_prev; i != it_next;
+//				i = (i + 1 + num_of_vertics) % num_of_vertics)
+//		{
+//			size_t j = i + 1
+//			face_area += -inner_product(n,
+//					cross(poly_nodes[i] - x_in, x_out - poly_nodes[j])) * 0.5;
+//
+//		}
+//
+//		Real t_out = -1;
+//
+//		std::tie(edge_out, s_out, t_out) = line_intersect_polygon(x[0], x[1],
+//				num_of_cell_vertics, q, ZAXIS);
+//
+//		VERBOSE << (x[0]) << " " << (x[1]) << " " << (edge_out) << " "
+//				<< (s_out) << " " << (t_out) << std::endl;
+//		if (t_out >= 1 || s_out < 0 || s_out > 1)
+//		{
+//			if (it == polygons.end())
+//			{
+//				break;
+//			}
+//
+//			// move to next vertex of polygon
+//
+//			x[-1] = x[0];
+//			x[0] = x[1];
+//
+//			++it;
+//
+//			if (it != polygons.end())
+//			{
+//				x[1] = *it;
+//			}
+//			else
+//			{
+//				x[1] = polygons.front();
+//			}
+//
+//			continue;
+//		}
+//
+//		x_out = q[edge_out]
+//				+ (q[(edge_out + 1) % num_of_cell_vertex] - q[edge_out])
+//						* s_out;
+//
+//// choice next cell
+//
+//// snap to grid point
+//		if (std::abs(s_out) < EPSILON || std::abs(s_out - 1) < EPSILON)
+//		{
+//			s_out = std::floor(s_out + 0.5);
+//
+//			x[0] = q[edge_out]
+//					+ (q[(edge_out + 1) % num_of_cell_vertex] - q[edge_out])
+//							* s_out;
+//
+//			this_cell = MeshIDs::coordinates_to_id(x[0])
+//					+ ((x[1][0] > x[0][0]) ? MeshIDs::_DI : -MeshIDs::_DI)
+//					+ ((x[1][1] > x[0][1]) ? MeshIDs::_DJ : -MeshIDs::_DJ);
+//
+//			s_in = -1;
+//
+//			edge_in = -1;
+//
+//			x_in = x[0];
+//
+//			continue;
+//		}
+//		else
+//		{
+//			// move to next cell
+//			x[0] = x_out;
+//
+//			if (edge_out == edge_in)
+//			{
+//			}
+//			else if (edge_out == (edge_in + 1) % num_of_cell_vertex)
+//			{
+//				face_area += (1 - (1 - s_in) * s_out * 0.5) * dA;
+//			}
+//			else if (edge_out == (edge_in + 2) % num_of_cell_vertex)
+//			{
+//				face_area += (s_in + 1 - s_out) * 0.5 * 1 * dA;
+//			}
+//			else if (edge_out == (edge_in + 3) % num_of_cell_vertex)
+//			{
+//				face_area += s_in * (1 - s_out) * 0.5 * dA;
+//			}
+//
+//			face_area += -inner_product(n, cross(x[0] - x_in, x_out - x[0]))
+//					* 0.5;
+//
+//			// save edge/face/volume volume
+//			(*volume)[this_cell + id_edge_shift[edge_out]] = (1 - s_out) * dx;
+//			(*volume)[this_cell + id_face_shift[ZAXIS]] = face_area;
+//			(*volume)[this_cell + (MeshIDs::_DA)] = face_area * dx;
+//
+//			this_cell += id_cell_shift[edge_out];
+////		CHECK_BIT(id_cell_shift[edge_out]);
+//
+//			edge_in = convert_out_in_edge_out[edge_out];
+//
+//			s_in = 1 - s_out;
+//
+//			x_in = x_out;
+//		}
 
 SP_APP(model)
 {
@@ -509,11 +524,11 @@ SP_APP(model)
 	{
 		size_t d[3] = {
 
-		(s) & (MeshIDs::_DI >> 1),
+		(s) & (MeshIDs::_DI),
 
-		(s) & (MeshIDs::_DJ >> 1),
+		(s) & (MeshIDs::_DJ),
 
-		(s) & (MeshIDs::_DK >> 1) };
+		(s) & (MeshIDs::_DK) };
 
 		for (int i = 0; i < 3; ++i)
 		{
@@ -547,12 +562,13 @@ SP_APP(model)
 		volume0[s] = 1;
 	}
 
-	polyline_intersect_grid(p0, 0UL, &volume0, &p4);
+	polyline_intersect_grid(p0, MeshIDs::_DA, &volume0, &p4);
 
-	polyline_intersect_grid(p0, ((MeshIDs::_DA) >> 1), &volume1, &p6);
+//	polyline_intersect_grid(p0, ((MeshIDs::_DA)), &volume1, &p5);
 
-	LOGGER << save("volume0", volume0.data().get(), 3, &v_dims[0]) << std::endl;
-	LOGGER << save("volume1", volume1.data().get(), 3, &v_dims[0]) << std::endl;
+//	LOGGER << save("volume0", volume0.data().get(), 3, &v_dims[0]) << std::endl;
+//	LOGGER << save("volume1", volume1.data().get(), 3, &v_dims[0]) << std::endl;
+//
 	p0.push_back(p0.front());
 
 	LOGGER << SAVE(p0) << std::endl;
@@ -560,6 +576,7 @@ SP_APP(model)
 	LOGGER << SAVE(p2) << std::endl;
 	LOGGER << SAVE(p3) << std::endl;
 	LOGGER << SAVE(p4) << std::endl;
+	LOGGER << SAVE(p5) << std::endl;
 
 //
 //	find_boundary2D(p3, shift0, &p4);
@@ -583,7 +600,8 @@ SP_APP(model)
 //	LOGGER << save("p6", &p6[0], 2, tdims) << std::endl;
 }
 
-} //namespace simpla
+}
+//namespace simpla
 
 //
 //

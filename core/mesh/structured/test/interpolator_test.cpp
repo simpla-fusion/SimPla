@@ -11,7 +11,7 @@
 #include "../../field/field.h"
 #include "../../structured/domain.h"
 #include "../../structured/topology/structured.h"
-#include "../coordinates/cartesian.h"
+#include "../coordinates/coordiantes_cartesian.h"
 
 using namespace simpla;
 
@@ -22,7 +22,7 @@ template<typename TF, template<typename > class TInterpolator> struct TParam
 	typedef TInterpolator<manifold_type> interoplator_type;
 
 };
-typedef CartesianCoordinates<StructuredMesh> manifold_type;
+typedef CartesianCoordinates<RectMesh> manifold_type;
 
 typedef testing::Types<
 		TParam<Field<Domain<manifold_type, VERTEX>, double>, InterpolatorLinear>

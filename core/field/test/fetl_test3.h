@@ -21,7 +21,7 @@
 
 using namespace simpla;
 
-typedef Manifold<CartesianCoordinates<StructuredMesh, CARTESIAN_ZAXIS>,
+typedef Manifold<CartesianCoordinates<RectMesh, CARTESIAN_ZAXIS>,
 		FiniteDiffMehtod, InterpolatorLinear> TManifold;
 
 typedef nTuple<3, Real> coordinates_type;

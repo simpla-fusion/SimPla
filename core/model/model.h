@@ -199,7 +199,7 @@ public:
 ;
 template<size_t N, size_t A> constexpr size_t Model_<N, A>::null_material;
 
-typedef Model_<3, 4> Model;
+typedef Model_<3, 0> Model;
 
 //typename Model::size_t Model::get(id_type s) const
 //{

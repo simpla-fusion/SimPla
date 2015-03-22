@@ -16,14 +16,14 @@
 
 using namespace simpla;
 
-typedef Manifold<VERTEX, CartesianCoordinates<StructuredMesh, CARTESIAN_ZAXIS>,
+typedef Manifold<VERTEX, CartesianCoordinates<RectMesh, CARTESIAN_ZAXIS>,
 		FiniteDiffMethod, InterpolatorLinear> mesh_type;
 
 typedef std::unordered_map<typename mesh_type::id_type, double> container_type;
 
 typedef _Field<mesh_type, container_type> f_type;
 
-auto geo = CartesianCoordinates<StructuredMesh, CARTESIAN_ZAXIS>::create(
+auto geo = CartesianCoordinates<RectMesh, CARTESIAN_ZAXIS>::create(
 		nTuple<Real, 3>( { 0, 0, 0 }), nTuple<Real, 3>( { 1, 1, 1 }),
 		nTuple<size_t, 3>( { 5, 4, 6 }), nTuple<size_t, 3>( { 0, 0, 0 }));
 

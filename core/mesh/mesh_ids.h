@@ -64,7 +64,10 @@ enum ManifoldTypeID
 template<size_t NDIMS = 3, size_t AXIS_FLAG = 0>
 struct MeshIDs_
 {
-
+	typedef size_t id_type;
+	typedef long index_type;
+	typedef nTuple<Real, 3> coordinates_type;
+	typedef nTuple<index_type, 3> index_tuple;
 	static constexpr size_t ndims = NDIMS;
 
 	static constexpr size_t FULL_DIGITS = std::numeric_limits<size_t>::digits;
@@ -93,7 +96,7 @@ struct MeshIDs_
 
 	static constexpr size_t INDEX_MASK = (1UL << (INDEX_DIGITS + 1)) - 1;
 
-	static constexpr size_t D_INDEX = (1UL << (FLOATING_POINT_POS));
+	static constexpr size_t D_INDEX = (1UL << (FLOATING_POINT_POS - 1));
 
 	static constexpr size_t _DK = D_INDEX << (INDEX_DIGITS * 2);
 
@@ -133,18 +136,14 @@ struct MeshIDs_
 
 	| (((AXIS_FLAG & 4UL) == 0) ? (INDEX_MASK << (INDEX_DIGITS * 2)) : 0UL);
 
-	typedef size_t id_type;
-	typedef nTuple<Real, 3> coordinates_type;
-	typedef nTuple<long, 3> index_tuple;
-
 	static constexpr size_t m_sub_node_id_[4][3] = { 0, 0, 0, //
-			_DI >> 1, _DJ >> 1, _DK >> 1, //
-			(_DJ | _DK) >> 1, //
-			(_DK | _DI) >> 1, //
-			(_DI | _DJ) >> 1, //
-			(_DA) >> 1, //
-			(_DA) >> 1, //
-			(_DA) >> 1 };
+			_DI, _DJ, _DK, //
+			(_DJ | _DK), //
+			(_DK | _DI), //
+			(_DI | _DJ), //
+			(_DA), //
+			(_DA), //
+			(_DA) };
 
 	static constexpr coordinates_type m_sub_node_num_[4][3] = { //
 
@@ -245,16 +244,48 @@ struct MeshIDs_
 
 						}));
 	}
-
-	id_type dual(id_type const & s) const
+	//! @name id auxiliary functions
+	//! @{
+	static constexpr id_type dual(id_type s)
 	{
-		return s;
+		return (s & (~_DA)) | ((~(s & _DA)) & _DA);
+
 	}
 
+	static constexpr id_type delta_index(id_type s)
+	{
+		return (s & _DA);
+	}
+
+	static constexpr id_type roate(id_type const & s)
+	{
+		return ((s & (_DA)) >> INDEX_DIGITS) | ((s & _DI) << (INDEX_DIGITS * 2));
+	}
+
+	static constexpr id_type inverse_roate(id_type const & s)
+	{
+		return ((s & (_DA)) << INDEX_DIGITS) | ((s & _DK) >> (INDEX_DIGITS * 2));
+	}
+	static constexpr int m_node_id_[8] = { 0, // 000
+			0, // 001
+			1, // 010
+			2, // 011
+			2, // 100
+			1, // 101
+			0, // 110
+			0, // 111
+
+			};
+	static constexpr int node_id(id_type const & s)
+	{
+		return m_node_id_[(((s & _DI) >> (FLOATING_POINT_POS - 1))
+				| ((s & _DJ) >> (INDEX_DIGITS + FLOATING_POINT_POS - 2))
+				| ((s & _DK) >> (INDEX_DIGITS * 2 + FLOATING_POINT_POS - 3)))
+				& 7UL];
+	}
 	template<size_t I_FLOAT_POS = FLOATING_POINT_POS>
 	struct id_hasher
 	{
-
 	private:
 		index_tuple m_offset_;
 		nTuple<size_t, ndims> m_dimensions_;
@@ -262,6 +293,9 @@ struct MeshIDs_
 	public:
 		typedef id_hasher<I_FLOAT_POS> this_type;
 
+		id_hasher()
+		{
+		}
 		template<typename T0>
 		id_hasher(T0 const & d)
 		{
@@ -325,11 +359,9 @@ struct MeshIDs_
 		}
 		size_t operator()(id_type const & s) const
 		{
-			auto I = id_to_index<I_FLOAT_POS>(s);
-
-			CHECK(I);
 			return inner_product(
-					(I + m_dimensions_ - m_offset_) % m_dimensions_, m_strides_);
+					(id_to_index<I_FLOAT_POS>(s) + m_dimensions_ - m_offset_)
+							% m_dimensions_, m_strides_);
 		}
 
 		template<size_t IFORM>
@@ -352,7 +384,112 @@ struct MeshIDs_
 		return std::move(volume_container((hasher), hasher.max_hash()));
 	}
 
-	//**************************************************************************
+	template<size_t IFORM>
+	static constexpr int get_vertics(int n, id_type s, coordinates_type *q =
+			nullptr)
+	{
+		return get_vertics_(std::integral_constant<size_t, IFORM>(), n, s, q);
+	}
+	/**
+	 * \verbatim
+	 *                ^y
+	 *               /
+	 *        z     /
+	 *        ^
+	 *        |  q7--------------q6
+	 *        |  /|              /|
+	 *          / |             / |
+	 *         /  |            /  |
+	 *       q4---|----------q5   |
+	 *        |   |     x0    |   |
+	 *        |  q3-----------|--q2
+	 *        |  /            |  /
+	 *        | /             | /
+	 *        |/              |/
+	 *       q0--------------q1   ---> x
+	 *
+	 *   \endverbatim
+	 */
+
+	static int get_vertics_(std::integral_constant<size_t, VOLUME>, int n,
+			id_type s, coordinates_type *q = nullptr)
+	{
+
+		if (q != nullptr)
+		{
+			coordinates_type x0 = id_to_coordinates(s);
+
+			coordinates_type dx = id_to_coordinates(_DI | ID_ZERO);
+			coordinates_type dy = id_to_coordinates(_DJ | ID_ZERO);
+			coordinates_type dz = id_to_coordinates(_DK | ID_ZERO);
+
+			q[0] = x0 - dx - dy - dz;
+			q[1] = x0 + dx - dy - dz;
+			q[2] = x0 + dx + dy - dz;
+			q[3] = x0 - dx + dy - dz;
+
+			q[4] = x0 - dx - dy + dz;
+			q[5] = x0 + dx - dy + dz;
+			q[6] = x0 + dx + dy + dz;
+			q[7] = x0 - dx + dy + dz;
+		}
+
+		return 8;
+	}
+
+	static int get_vertics_(std::integral_constant<size_t, FACE>, int n,
+			id_type s, coordinates_type *q = nullptr)
+	{
+
+		if (q != nullptr)
+		{
+			coordinates_type x0 = id_to_coordinates(s);
+
+			coordinates_type d[3] = {
+
+			id_to_coordinates(_DI | ID_ZERO),
+
+			id_to_coordinates(_DJ | ID_ZERO),
+
+			id_to_coordinates(_DK | ID_ZERO) };
+
+			coordinates_type const & dx = d[(n + 1) % 3];
+			coordinates_type const & dy = d[(n + 2) % 3];
+			q[0] = x0 - dx - dy;
+			q[1] = x0 + dx - dy;
+			q[2] = x0 + dx + dy;
+			q[3] = x0 - dx + dy;
+		}
+
+		return 4;
+	}
+
+	static int get_vertics_(std::integral_constant<size_t, EDGE>, int n,
+			id_type s, coordinates_type *q = nullptr)
+	{
+
+		if (q != nullptr)
+		{
+			coordinates_type x0 = id_to_coordinates(s);
+
+			coordinates_type d[3] = {
+
+			id_to_coordinates(_DI | ID_ZERO),
+
+			id_to_coordinates(_DJ | ID_ZERO),
+
+			id_to_coordinates(_DK | ID_ZERO) };
+
+			coordinates_type const & dx = d[n];
+
+			q[0] = x0 - dx;
+			q[1] = x0 + dx;
+
+		}
+
+		return 4;
+	}
+//**************************************************************************
 	/**
 	 * @name Neighgour
 	 * @{
@@ -460,13 +597,6 @@ struct MeshIDs_
 //
 //	//! @}
 //
-//	//! @name id auxiliary functions
-//	//! @{
-//	static constexpr id_type dual(id_type r)
-//	{
-//		return (r & (~_DA)) | ((~(r & _DA)) & _DA);
-//
-//	}
 //	static constexpr id_type get_cell_id(id_type r)
 //	{
 //		return r & CELL_ID_MASK;
@@ -1094,6 +1224,7 @@ template<size_t N, size_t A> constexpr size_t MeshIDs_<N, A>::_DA;
 template<size_t N, size_t A> constexpr size_t MeshIDs_<N, A>::CELL_ID_MASK_;
 template<size_t N, size_t A> constexpr size_t MeshIDs_<N, A>::CELL_ID_MASK;
 template<size_t N, size_t A> constexpr size_t MeshIDs_<N, A>::ID_ZERO;
+template<size_t N, size_t A> constexpr int MeshIDs_<N, A>::m_node_id_[];
 typedef MeshIDs_<3, 0> MeshIDs;
 }  // namespace simpla
 

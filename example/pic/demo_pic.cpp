@@ -25,7 +25,7 @@
 #include "../../core/gtl/primitives.h"
 
 #include "../../core/mesh/mesh.h"
-#include "../../core/mesh/structured/coordinates/cartesian.h"
+#include "../../core/mesh/structured/coordinates/coordiantes_cartesian.h"
 #include "../../core/mesh/structured/topology/structured.h"
 
 #include "../../core/particle/particle.h"
@@ -61,7 +61,7 @@ USE_CASE(pic)
 
 	options["STRIDES"].as<size_t>(&strides);
 
-	typedef CartesianCoordinates<StructuredMesh> mesh_type;
+	typedef CartesianCoordinates<RectMesh> mesh_type;
 	typedef typename mesh_type::coordinates_type coordinates_type;
 	typedef typename mesh_type::index_tuple index_tuple;
 

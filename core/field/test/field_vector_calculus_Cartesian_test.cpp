@@ -18,7 +18,7 @@ using namespace simpla;
 //typedef Manifold<CartesianCoordinates<StructuredMesh, CARTESIAN_ZAXIS>,
 //		FiniteDiffMethod, InterpolatorLinear> m_type;
 
-typedef CartesianCoordinates<StructuredMesh, CARTESIAN_ZAXIS> g_type;
+typedef CartesianCoordinates<RectMesh, CARTESIAN_ZAXIS> g_type;
 typedef Real v_type;
 
 #include "field_diff_calculus_test.h"

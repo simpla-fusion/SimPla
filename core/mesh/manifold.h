@@ -216,27 +216,6 @@ public:
 
 };
 
-//template<size_t IFORM, typename TM, typename TV>
-//using Form=_Field<Manifold<IFORM,TM>,TV, _impl::is_sequence_container >;
-//
-//template<size_t IFORM, typename TV, typename TG>
-//_Field<Manifold<IFORM, TG>, TV, _impl::is_sequence_container> make_form(
-//		std::shared_ptr<TG> const &geo)
-//{
-//	typedef Manifold<IFORM, TG> manifold_type;
-//	return std::move(
-//			_Field<manifold_type, TV, _impl::is_sequence_container>(
-//					manifold_type(*geo)));
-//}
-//template<size_t IFORM, typename TV, typename TG>
-//_Field<Manifold<IFORM, TG>, TV, _impl::is_sequence_container> make_form(
-//		TG const & geo)
-//{
-//	typedef Manifold<IFORM, TG> manifold_type;
-//	return std::move(
-//			_Field<manifold_type, TV, _impl::is_sequence_container>(
-//					manifold_type(geo)));
-//}
 template<typename TM, size_t IFORM, typename TV>
 using Form=_Field<Manifold<IFORM,TM>,TV, _impl::is_sequence_container >;
 

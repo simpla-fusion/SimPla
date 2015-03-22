@@ -21,7 +21,7 @@ namespace simpla
 void RegisterEMContextCylindrical(
 		Factory<std::string, ContextBase, LuaObject> * factory)
 {
-	typedef Manifold<CylindricalCoordinates<StructuredMesh>> manifold_type;
+	typedef Manifold<CylindricalCoordinates<RectMesh>> manifold_type;
 
 	factory->Register(
 			ExplicitEMContext<manifold_type>::template CreateFactoryFun<

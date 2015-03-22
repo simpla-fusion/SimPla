@@ -1,12 +1,12 @@
 /**
- * @file  structured.h
+ * @file  rect_mesh.h
  *
  *  created on: 2014-2-21
  *      Author: salmon
  */
 
-#ifndef MESH_STRUCTURED_H_
-#define MESH_STRUCTURED_H_
+#ifndef MESH_RECT_MESH_H_
+#define MESH_RECT_MESH_H_
 
 #include <stddef.h>
 #include <algorithm>
@@ -18,15 +18,15 @@
 #include <type_traits>
 #include <utility>
 
-#include "../../../dataset/dataset.h"
-#include "../../../utilities/utilities.h"
-#include "../../../gtl/ntuple.h"
-#include "../../../gtl/primitives.h"
-#include "../../../gtl/containers/sp_hash_container.h"
+#include "../../dataset/dataset.h"
+#include "../../utilities/utilities.h"
+#include "../../gtl/ntuple.h"
+#include "../../gtl/primitives.h"
+#include "../../gtl/containers/sp_hash_container.h"
 
-#include "../../../parallel/mpi_comm.h"
-#include "../../../parallel/mpi_aux_functions.h"
-#include "../../mesh_ids.h"
+#include "../../parallel/mpi_comm.h"
+#include "../../parallel/mpi_aux_functions.h"
+#include "../mesh_ids.h"
 
 namespace simpla
 {
@@ -57,19 +57,20 @@ namespace simpla
  * \endverbatim
  *  - the unit cell width is 1;
  */
-template<size_t NDIMS = 3, size_t AXIS_FLAG>
-struct StructuredMesh_: public MeshIDs_<NDIMS, AXIS_FLAG>
+template<size_t NDIMS = 3, size_t AXIS_FLAG = 0>
+struct RectMesh_: public MeshIDs_<NDIMS, AXIS_FLAG>
 {
 
-	typedef StructuredMesh_ this_type;
+	typedef RectMesh_ this_type;
 
 	typedef MeshIDs_<NDIMS> ids;
 
 	using ids::ndims;
 	using typename ids::index_type;
 	using typename ids::id_type;
-	using typename ids::index_tuple;
 	using typename ids::coordinates_type;
+
+	typedef nTuple<size_t, ndims> index_tuple;
 
 	static constexpr size_t DEFAULT_GHOSTS_WIDTH = 3;
 	static constexpr size_t iform = VERTEX;
@@ -100,23 +101,22 @@ private:
 
 public:
 
-	//***************************************************************************************************
+//***************************************************************************************************
 
-	StructuredMesh_()
+	RectMesh_()
 	{
 	}
 
-	StructuredMesh_(nTuple<size_t, ndims> const &dims)
+	RectMesh_(nTuple<size_t, ndims> const &dims)
 	{
 		dimensions(&dims[0]);
 		m_index_ghost_width_ = 0;
 	}
-	virtual ~StructuredMesh_()
+	virtual ~RectMesh_()
 	{
 	}
 
-	StructuredMesh_(StructuredMesh_ const & other)
-			:
+	RectMesh_(RectMesh_ const & other) :
 //			m_xmin_(other.m_xmin_), m_xmax_(other.m_xmax_), m_dx_(other.m_dx_),
 
 			m_index_global_dimensions_(other.m_index_global_dimensions_),
@@ -126,8 +126,6 @@ public:
 			m_index_local_dimensions_(other.m_index_local_dimensions_),
 
 			m_index_local_offset_(other.m_index_local_offset_),
-
-			m_index_local_strides_(other.m_index_local_strides_),
 
 			m_index_count_(other.m_index_count_),
 
@@ -139,7 +137,7 @@ public:
 	{
 	}
 
-	void swap(StructuredMesh_ & other)
+	void swap(RectMesh_ & other)
 	{
 //		std::swap(m_xmin_, other.m_xmin_);
 //		std::swap(m_xmax_, other.m_xmax_);
@@ -149,7 +147,6 @@ public:
 		std::swap(m_index_global_offset_, other.m_index_global_offset_);
 		std::swap(m_index_local_dimensions_, other.m_index_local_dimensions_);
 		std::swap(m_index_local_offset_, other.m_index_local_offset_);
-		std::swap(m_index_local_strides_, other.m_index_local_strides_);
 
 		std::swap(m_index_count_, other.m_index_count_);
 		std::swap(m_index_ghost_width_, other.m_index_ghost_width_);
@@ -399,7 +396,22 @@ public:
 
 	Real const &dual_volume(id_type s) const
 	{
-		return m_volume_[MeshIDs::dual(s)];
+		return m_dual_volume_[s];
+	}
+
+	constexpr Real cell_volume(id_type s) const
+	{
+		return volume(s | MeshIDs::_DA);
+	}
+
+	constexpr Real inv_volume(id_type s) const
+	{
+		return 1.0 / volume(s);
+	}
+
+	constexpr Real inv_dual_volume(id_type s) const
+	{
+		return 1.0 / dual_volume(s);;
 	}
 
 	/**
@@ -421,10 +433,8 @@ public:
 		return m_hasher_.template hash<IFORM>(s);
 	}
 
-	auto const &hasher() const
-	{
-		return m_hasher_;
-	}
+	auto hasher() const
+	DECL_RET_TYPE(m_hasher_)
 
 	/**@}*/
 
@@ -450,13 +460,13 @@ public:
 }
 ;
 
-template<size_t N, size_t A> constexpr size_t StructuredMesh_<N, A>::DEFAULT_GHOSTS_WIDTH;
-template<size_t N, size_t A> constexpr size_t StructuredMesh_<N, A>::iform;
+template<size_t N, size_t A> constexpr size_t RectMesh_<N, A>::DEFAULT_GHOSTS_WIDTH;
+template<size_t N, size_t A> constexpr size_t RectMesh_<N, A>::iform;
 
-typedef StructuredMesh_<3, 0> StructuredMesh;
+typedef RectMesh_<3, 0> RectMesh;
 }
 // namespace simpla
 
 //}  // namespace std
 
-#endif /* MESH_STRUCTURED_H_ */
+#endif /* MESH_RECT_MESH_H_ */

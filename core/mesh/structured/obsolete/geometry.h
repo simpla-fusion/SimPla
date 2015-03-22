@@ -7,13 +7,12 @@
 
 #ifndef CORE_MESH_STRUCTURED_GEOMETRY_H_
 #define CORE_MESH_STRUCTURED_GEOMETRY_H_
-#include "coordinates/cartesian.h"
-//#include "coordinates/cylindrical.h"
+#include "coordinates/coordiantes_cartesian.h"
 #include "topology/structured.h"
 namespace simpla
 {
 
-typedef CartesianCoordinates<StructuredMesh> CartesianMesh;
+typedef CartesianCoordinates<RectMesh> CartesianMesh;
 //typedef CylindricalCoordinates<StructuredMesh> CylindricalGeometry;
 
 }// namespace simpla

@@ -11,14 +11,14 @@
 #include <stddef.h>
 #include <type_traits>
 
-#include "../../../gtl/type_traits.h"
-#include "../../../gtl/ntuple.h"
-#include "../../mesh.h"
+#include "../../gtl/type_traits.h"
+#include "../../gtl/ntuple.h"
+#include "../mesh.h"
 namespace simpla
 {
 
 template<typename ...> class field_traits;
-template<size_t> class StructuredMesh_;
+template<size_t...> class StructuredMesh_;
 /**
  * @ingroup diff_geo
  * @addtogroup interpolator Interpolator

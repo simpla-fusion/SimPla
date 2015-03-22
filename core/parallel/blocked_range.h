@@ -102,7 +102,7 @@ struct iterator;
 struct range
 {
 
-	typedef typename StructuredMesh::iterator iterator;
+	typedef typename RectMesh::iterator iterator;
 
 	index_tuple begin_, end_;
 	id_type shift_ = 0UL;
