@@ -15,24 +15,13 @@
 #include <string>
 
 #include "../../core/utilities/utilities.h"
-
 #include "../../core/io/io.h"
-
 #include "../../core/application/application.h"
 #include "../../core/application/use_case.h"
-
 #include "../../core/gtl/ntuple.h"
 #include "../../core/gtl/primitives.h"
-
 #include "../../core/mesh/mesh.h"
-#include "../../core/mesh/structured/coordinates/coordiantes_cartesian.h"
-#include "../../core/mesh/structured/topology/structured.h"
-
-#include "../../core/particle/particle.h"
-#include "../../core/particle/particle_engine.h"
-#include "../../core/particle/kinetic_particle.h"
-#include "../../core/particle/particle_generator.h"
-#include "../../core/particle/simple_particle_generator.h"
+#include "../../core/particle.h"
 
 using namespace simpla;
 
