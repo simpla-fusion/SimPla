@@ -207,7 +207,8 @@ struct MeshIDs_
 				| m_sub_node_id_[IFORM][n];
 	}
 
-	static constexpr id_type coordinates_to_id(coordinates_type const &x)
+	template<typename TX>
+	static constexpr id_type coordinates_to_id(TX const &x)
 	{
 		return
 
@@ -312,13 +313,13 @@ struct MeshIDs_
 			deploy();
 		}
 
-		id_hasher(this_type const & other) :
-				m_dimensions_(other.m_dimensions_), m_offset_(other.m_offset_)
+		id_hasher(this_type const & other)
+				: m_dimensions_(other.m_dimensions_), m_offset_(other.m_offset_)
 		{
 			deploy();
 		}
-		id_hasher(this_type && other) :
-				m_dimensions_(other.m_dimensions_), m_offset_(other.m_offset_)
+		id_hasher(this_type && other)
+				: m_dimensions_(other.m_dimensions_), m_offset_(other.m_offset_)
 		{
 			deploy();
 		}
