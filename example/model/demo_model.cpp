@@ -5,22 +5,29 @@
  * @author salmon
  */
 
-#include <iterator>
-#include <vector>
 #include <algorithm>
 #include <cmath>
+#include <iterator>
+#include <limits>
 #include <set>
+#include <string>
+#include <tuple>
+#include <vector>
+
+#include "../../core/application/application.h"
+#include "../../core/gtl/containers/sp_hash_container.h"
 #include "../../core/gtl/ntuple.h"
 #include "../../core/gtl/primitives.h"
-#include "../../core/numeric/geometric_algorithm.h"
-#include "../../core/utilities/utilities.h"
 #include "../../core/io/io.h"
-#include "../../core/application/application.h"
-#include "../../core/dataset/datatype.h"
 #include "../../core/mesh/mesh_ids.h"
+#include "../../core/model/geqdsk.h"
 #include "../../core/model/model.h"
+<<<<<<< HEAD
 #include "../../core/model/geqdsk.h"
 #include "../../core/numeric/point_in_polygon.h"
+=======
+#include "../../core/numeric/pointinpolygon.h"
+>>>>>>> ab4ae93ad647e9712d8bc3d916efb6ec96d751e2
 
 namespace simpla
 {
@@ -67,32 +74,6 @@ std::tuple<Real, Real> line_intersection2d(T0 const& P0, T1 const & P1,
 	return std::make_tuple(s, t);
 }
 
-std::tuple<size_t, Real, Real> line_intersect_polygon(coordinates_type x0,
-		coordinates_type x1, int num_of_vertex, coordinates_type const * q,
-		size_t ZAXIS = 2)
-{
-	int edge_id = -1;
-
-	Real s = -1;
-	Real t = std::numeric_limits<Real>::max();
-
-	for (int i = 0; i < num_of_vertex; ++i)
-	{
-		Real s_, t_;
-		std::tie(s_, t_) = line_intersection2d(q[i], q[(i + 1) % num_of_vertex],
-				x0, x1, ZAXIS);
-
-		if (t_ > 0 && t_ < t && s_ >= 0 && s_ < 1)
-		{
-			t = t_;
-			s = s_;
-			edge_id = i;
-		}
-	}
-
-	return std::make_tuple(edge_id, s, t);
-}
-
 Vec3 normal_vector_of_surface(std::vector<coordinates_type> const & polygons)
 {
 	bool on_same_plane = false;
@@ -135,6 +116,7 @@ Vec3 normal_vector_of_surface(std::vector<coordinates_type> const & polygons)
 	return std::move(n);
 
 }
+
 template<typename TV>
 void polyline_intersect_grid(std::vector<coordinates_type> const & polygons,
 		id_type shift, TV *volume, std::vector<coordinates_type> *new_path,
@@ -151,29 +133,6 @@ void polyline_intersect_grid(std::vector<coordinates_type> const & polygons,
 	{
 		RUNTIME_ERROR("illegal polygon!");
 	}
-
-	//	static const id_type id_face_shift[3] = {
-	//
-	//	(MeshIDs::_DJ | MeshIDs::_DK),
-	//
-	//	(MeshIDs::_DK | MeshIDs::_DI),
-	//
-	//	(MeshIDs::_DJ | MeshIDs::_DI)
-	//
-	//	};
-	//
-	//	static const id_type id_edge_shift[4] = {
-	//
-	//	MeshIDs::_DI,
-	//
-	//	(MeshIDs::_DJ) | (MeshIDs::_DI << 1),
-	//
-	//	(MeshIDs::_DI) | (MeshIDs::_DJ << 1),
-	//
-	//	MeshIDs::_DJ
-	//
-	//	};
-	static const id_type id_face = (MeshIDs::_DI | MeshIDs::_DJ);
 
 	static const id_type id_cell_shift[9] = {
 
@@ -197,22 +156,6 @@ void polyline_intersect_grid(std::vector<coordinates_type> const & polygons,
 
 	};
 
-	/**
-	 *
-	 *             0
-	 *             ^
-	 *       q3----|-----q2
-	 *        |    2     |
-	 *        |          |
-	 *      1<-3        1->3
-	 *        |    0     |
-	 *        q0---|----q1
-	 *             v
-	 *             2
-	 */
-
-	static const id_type convert_out_in_edge_out[4] = { 2, 3, 0, 1 };
-
 	const int num_of_cell_vertics = 4;
 	coordinates_type q[num_of_cell_vertics];
 
@@ -224,20 +167,19 @@ void polyline_intersect_grid(std::vector<coordinates_type> const & polygons,
 
 	auto it = polygons.begin();
 
+	id_type current_cell = MeshIDs::coordinates_to_id(x0);
+	id_type current_cell_volume = 0;
+
+	int in_edge = 0;
 	while (true)
 	{
-		new_path->push_back(x0);
-//
-//		id_type cell0 = (MeshIDs::coordinates_to_id(
-//				x0 - MeshIDs::id_to_coordinates(shift | MeshIDs::ID_ZERO))
-//				& (MeshIDs::CELL_ID_MASK)) | shift;
-//
-//
 
-//			MeshIDs::get_vertics<FACE>(ZAXIS, cell_hint, q);
+		new_path->push_back(x0);
 
 		coordinates_type q0 = { std::floor(x0[0]), std::floor(x0[1]),
 				std::floor(x0[2]) };
+
+		current_cell = MeshIDs::coordinates_to_id(q0);
 
 		static const coordinates_type d[6][2] = {
 
@@ -256,6 +198,8 @@ void polyline_intersect_grid(std::vector<coordinates_type> const & polygons,
 		};
 
 		Real t = std::numeric_limits<Real>::max();
+
+		int line_num = 0;
 		for (int i = 0; i < 6; ++i)
 		{
 			Real t_;
@@ -265,11 +209,15 @@ void polyline_intersect_grid(std::vector<coordinates_type> const & polygons,
 
 			if (t_ > 0 && t_ < t)
 			{
+				line_num = i;
 				t = t_;
 			}
 		}
 		if (t > 1)
 		{
+
+			current_cell_volume += cross(x1, x0);
+
 			x0 = x1;
 
 			if (it == polygons.end())
@@ -289,122 +237,13 @@ void polyline_intersect_grid(std::vector<coordinates_type> const & polygons,
 		}
 		else
 		{
+
+			(*volume)[MeshIDs::coordinates_to_id((x0 + x1) * 0.5)] += t
+					* cross(x0, x1);
 			x0 += t * (x1 - x0);
 		}
 	}
 }
-//		Real face_area = 0;
-//
-//		size_t i = (it_prev + 1 + num_of_vertics) % num_of_vertics;
-//		size_t j = (it_prev + 2 + num_of_vertics) % num_of_vertics;
-//
-//		for (size_t i = it_prev; i != it_next;
-//				i = (i + 1 + num_of_vertics) % num_of_vertics)
-//		{
-//			size_t j = i + 1
-//			face_area += -inner_product(n,
-//					cross(poly_nodes[i] - x_in, x_out - poly_nodes[j])) * 0.5;
-//
-//		}
-//
-//		Real t_out = -1;
-//
-//		std::tie(edge_out, s_out, t_out) = line_intersect_polygon(x[0], x[1],
-//				num_of_cell_vertics, q, ZAXIS);
-//
-//		VERBOSE << (x[0]) << " " << (x[1]) << " " << (edge_out) << " "
-//				<< (s_out) << " " << (t_out) << std::endl;
-//		if (t_out >= 1 || s_out < 0 || s_out > 1)
-//		{
-//			if (it == polygons.end())
-//			{
-//				break;
-//			}
-//
-//			// move to next vertex of polygon
-//
-//			x[-1] = x[0];
-//			x[0] = x[1];
-//
-//			++it;
-//
-//			if (it != polygons.end())
-//			{
-//				x[1] = *it;
-//			}
-//			else
-//			{
-//				x[1] = polygons.front();
-//			}
-//
-//			continue;
-//		}
-//
-//		x_out = q[edge_out]
-//				+ (q[(edge_out + 1) % num_of_cell_vertex] - q[edge_out])
-//						* s_out;
-//
-//// choice next cell
-//
-//// snap to grid point
-//		if (std::abs(s_out) < EPSILON || std::abs(s_out - 1) < EPSILON)
-//		{
-//			s_out = std::floor(s_out + 0.5);
-//
-//			x[0] = q[edge_out]
-//					+ (q[(edge_out + 1) % num_of_cell_vertex] - q[edge_out])
-//							* s_out;
-//
-//			this_cell = MeshIDs::coordinates_to_id(x[0])
-//					+ ((x[1][0] > x[0][0]) ? MeshIDs::_DI : -MeshIDs::_DI)
-//					+ ((x[1][1] > x[0][1]) ? MeshIDs::_DJ : -MeshIDs::_DJ);
-//
-//			s_in = -1;
-//
-//			edge_in = -1;
-//
-//			x_in = x[0];
-//
-//			continue;
-//		}
-//		else
-//		{
-//			// move to next cell
-//			x[0] = x_out;
-//
-//			if (edge_out == edge_in)
-//			{
-//			}
-//			else if (edge_out == (edge_in + 1) % num_of_cell_vertex)
-//			{
-//				face_area += (1 - (1 - s_in) * s_out * 0.5) * dA;
-//			}
-//			else if (edge_out == (edge_in + 2) % num_of_cell_vertex)
-//			{
-//				face_area += (s_in + 1 - s_out) * 0.5 * 1 * dA;
-//			}
-//			else if (edge_out == (edge_in + 3) % num_of_cell_vertex)
-//			{
-//				face_area += s_in * (1 - s_out) * 0.5 * dA;
-//			}
-//
-//			face_area += -inner_product(n, cross(x[0] - x_in, x_out - x[0]))
-//					* 0.5;
-//
-//			// save edge/face/volume volume
-//			(*volume)[this_cell + id_edge_shift[edge_out]] = (1 - s_out) * dx;
-//			(*volume)[this_cell + id_face_shift[ZAXIS]] = face_area;
-//			(*volume)[this_cell + (MeshIDs::_DA)] = face_area * dx;
-//
-//			this_cell += id_cell_shift[edge_out];
-////		CHECK_BIT(id_cell_shift[edge_out]);
-//
-//			edge_in = convert_out_in_edge_out[edge_out];
-//
-//			s_in = 1 - s_out;
-//
-//			x_in = x_out;
-//		}
 
 SP_APP(model)
 {
