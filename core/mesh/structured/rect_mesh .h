@@ -88,8 +88,8 @@ private:
 	index_tuple m_index_ghost_width_ = { 0, 0, 0 };
 	index_tuple m_index_grain_size_;
 
-	index_tuple m_index_min_ = { 1, 1, 1 };
-	index_tuple m_index_max_ = { 0, 0, 0 };
+	index_tuple m_index_min_ = { 0, 0, 0 };
+	index_tuple m_index_max_ = { 1, 1, 1 };
 
 //	coordinates_type m_xmin_, m_xmax_, m_dx_;
 
@@ -277,9 +277,17 @@ public:
 		return std::make_pair(xmin, xmax);
 	}
 
-	std::pair<index_tuple, index_tuple> range() const
+	template<size_t IFORM = 0>
+	typename ids::range<IFORM> range() const
 	{
-		return std::make_pair(m_index_min_, m_index_max_);
+		return typename ids::range<IFORM>(m_index_global_offset_,
+				m_index_count_);
+	}
+
+	template<size_t IFORM = 0>
+	typename ids::range<IFORM> global_range() const
+	{
+		return typename ids::range<IFORM>(m_index_global_dimensions_);
 	}
 
 	void deploy()

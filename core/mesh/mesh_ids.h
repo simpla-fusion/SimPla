@@ -13,6 +13,7 @@
 #include <limits>
 
 #include "../gtl/containers/sp_hash_container.h"
+#include "../gtl/iterator/sp_ntuple_iterator.h"
 #include "../gtl/ntuple.h"
 #include "../gtl/primitives.h"
 #include "../gtl/type_traits.h"
@@ -206,7 +207,11 @@ struct MeshIDs_
 				| ((k + INDEX_ZERO) << (FLOATING_POINT_POS + INDEX_DIGITS * 2))
 				| m_sub_node_id_[IFORM][n];
 	}
-
+	template<size_t IFORM = 0>
+	static constexpr id_type id(nTuple<size_t, 4> i)
+	{
+		return id(i[0], i[1], i[2], i[3]);
+	}
 	template<typename TX>
 	static constexpr id_type coordinates_to_id(TX const &x)
 	{
@@ -313,13 +318,13 @@ struct MeshIDs_
 			deploy();
 		}
 
-		id_hasher(this_type const & other)
-				: m_dimensions_(other.m_dimensions_), m_offset_(other.m_offset_)
+		id_hasher(this_type const & other) :
+				m_dimensions_(other.m_dimensions_), m_offset_(other.m_offset_)
 		{
 			deploy();
 		}
-		id_hasher(this_type && other)
-				: m_dimensions_(other.m_dimensions_), m_offset_(other.m_offset_)
+		id_hasher(this_type && other) :
+				m_dimensions_(other.m_dimensions_), m_offset_(other.m_offset_)
 		{
 			deploy();
 		}
@@ -490,6 +495,8 @@ struct MeshIDs_
 
 		return 4;
 	}
+	template<size_t IFORM> struct iterator;
+	template<size_t IFORM> struct range;
 //**************************************************************************
 	/**
 	 * @name Neighgour
@@ -1227,6 +1234,62 @@ template<size_t N, size_t A> constexpr size_t MeshIDs_<N, A>::CELL_ID_MASK;
 template<size_t N, size_t A> constexpr size_t MeshIDs_<N, A>::ID_ZERO;
 template<size_t N, size_t A> constexpr int MeshIDs_<N, A>::m_node_id_[];
 typedef MeshIDs_<3, 0> MeshIDs;
+
+template<size_t NDIMS, size_t AXIS_FLAG>
+template<size_t IFORM>
+struct MeshIDs_<NDIMS, AXIS_FLAG>::iterator: public sp_nTuple_iterator<
+		NDIMS + 1, size_t>
+{
+	typedef MeshIDs_<NDIMS, AXIS_FLAG> MeshIDs;
+	typedef sp_nTuple_iterator<NDIMS + 1, size_t> base_type;
+
+	iterator(index_tuple const & min, index_tuple const & max)
+	{
+		nTuple<size_t, NDIMS + 1> i_min, i_max;
+
+		for (int i = 0; i < NDIMS; ++i)
+		{
+			i_min[i] = min[i];
+			i_max[i] = max[i];
+		}
+		i_min[NDIMS] = 0;
+		i_max[NDIMS] = (IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3;
+
+		base_type(i_min, i_max).swap(*this);
+	}
+
+	id_type operator*() const
+	{
+		return MeshIDs::id<IFORM>(base_type::operator*());
+	}
+};
+template<size_t NDIMS, size_t AXIS_FLAG>
+template<size_t IFORM>
+struct MeshIDs_<NDIMS, AXIS_FLAG>::range
+{
+	typedef MeshIDs_<NDIMS, AXIS_FLAG>::iterator<IFORM> const_iterator;
+
+	const_iterator m_b_, m_e_;
+
+	range(index_tuple const & min, index_tuple const & max) :
+			m_b_(min, max), m_e_(max, max)
+	{
+		++m_e_;
+	}
+	range(index_tuple const & dims) :
+			m_b_(0, dims), m_e_(dims, dims)
+	{
+		++m_e_;
+	}
+	const_iterator begin() const
+	{
+		return m_b_;
+	}
+	const_iterator end() const
+	{
+		return m_e_;
+	}
+};
 }  // namespace simpla
 
 #endif /* CORE_MESH_MESH_IDS_H_ */

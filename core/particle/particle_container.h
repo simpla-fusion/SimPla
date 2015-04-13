@@ -193,9 +193,10 @@ public:
 		SpObject::properties.append(engine_type::properties);
 	}
 
-	size_t size() const
+	template<typename TRange>
+	size_t size(TRange const & r) const
 	{
-		return container_type::size_all(m_mesh_.local_range());
+		return container_type::size_all(r);
 	}
 
 	void sync()
@@ -329,7 +330,7 @@ public:
 
 	DataSet dataset() const
 	{
-		return std::move(dataset(m_mesh_.local_range()));
+		return std::move(dataset(m_mesh_.range()));
 	}
 
 //! @}
@@ -339,25 +340,40 @@ public:
 	{
 		wait();
 
-		for (auto const & s : m_mesh_.range())
+		for (auto const & bucket : *this)
 		{
-			for (auto &p : container_type::operator[](s))
+			for (auto &p : bucket.second)
 			{
 				fun(p);
 			}
 		}
 
 	}
+	template<typename TFun>
+	void for_each(TFun const& fun) const
+	{
+		ASSERT(is_ready());
+
+		for (auto const & bucket : *this)
+		{
+			for (auto &p : bucket.second)
+			{
+				fun(p);
+			}
+		}
+	}
 	template<typename TFun, typename ...Args>
 	void for_each(TFun const& fun, Args && ...args) const
 	{
 		ASSERT(is_ready());
 
-		container_type::foreach(m_mesh_.range(std::forward<Args>(args)...),
-				[&](value_type const & p)
-				{
-					fun(&p );
-				});
+		for (auto const & s : m_mesh_.range(std::forward<Args>(args)...))
+		{
+			for (auto &p : container_type::operator[](s))
+			{
+				fun(p);
+			}
+		}
 	}
 	/**
 	 *
@@ -375,12 +391,16 @@ public:
 	template<typename ...Args>
 	void next_timestep(Args && ...args)
 	{
+
 		wait();
 
-		container_type::foreach(m_mesh_.range(), [&](value_type & p)
+		for (auto const & bucket : *this)
 		{
-			engine_type::next_timestep(&p, std::forward<Args>(args)...);
-		});
+			for (auto &p : bucket.second)
+			{
+				engine_type::next_timestep(&p, std::forward<Args>(args)...);
+			}
+		}
 	}
 
 	/**
@@ -407,16 +427,20 @@ public:
 	Real next_n_timesteps(size_t num_of_steps, Real t0, Real dt,
 			Args && ...args)
 	{
+
 		wait();
 
-		container_type::foreach(m_mesh_.range(), [&](value_type & p)
+		for (auto const & bucket : *this)
 		{
-			for (int s = 0; s < num_of_steps; ++s)
+			for (auto &p : bucket.second)
 			{
-				engine_type::next_timestep(&p, t0 + dt * s, dt,
-						std::forward<Args>(args)...);
+				for (int s = 0; s < num_of_steps; ++s)
+				{
+					engine_type::next_timestep(&p, t0 + dt * s, dt,
+							std::forward<Args>(args)...);
+				}
 			}
-		});
+		}
 	}
 
 }

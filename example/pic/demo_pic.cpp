@@ -21,7 +21,7 @@
 #include "../../core/gtl/ntuple.h"
 #include "../../core/gtl/primitives.h"
 #include "../../core/mesh/mesh.h"
-#include "../../core/particle.h"
+#include "../../core/particle/particle.h"
 
 using namespace simpla;
 
@@ -102,16 +102,16 @@ USE_CASE(pic)
 
 	auto extents = mesh->local_extents();
 
-	auto range = mesh->local_range();
+//	auto range = mesh->local_range();
 
 	auto p_generator = simple_particle_generator(*ion, extents, 1.0);
 
 	std::mt19937 rnd_gen;
 
-	for (int i = 0, ie = pic * range.size(); i < ie; ++i)
-	{
-		ion->insert(p_generator(rnd_gen));
-	}
+//	for (int i = 0, ie = pic * range.size(); i < ie; ++i)
+//	{
+//		ion->insert(p_generator(rnd_gen));
+//	}
 
 	VERBOSE << save("H0", ion->dataset()) << std::endl;
 

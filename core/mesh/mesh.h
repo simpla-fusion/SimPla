@@ -7,8 +7,8 @@
 
 #ifndef CORE_MESH_MESH_H_
 #define CORE_MESH_MESH_H_
-#include "../../core/mesh/structured/coordinates/coordiantes_cartesian.h"
-#include "../../core/mesh/structured/topology/structured.h"
+#include "../../core/mesh/structured/coordiantes_cartesian.h"
+#include "../../core/mesh/structured/structured.h"
 namespace simpla
 {
 /**

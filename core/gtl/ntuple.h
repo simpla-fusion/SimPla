@@ -104,6 +104,16 @@ struct nTuple<TV, N, M...>
 		return data_[s];
 	}
 
+	this_type & operator++()
+	{
+		++data_[N - 1];
+		return *this;
+	}
+	this_type & operator--()
+	{
+		--data_[N - 1];
+		return *this;
+	}
 private:
 	template<size_t N1, size_t N2> struct min_not_zero
 	{

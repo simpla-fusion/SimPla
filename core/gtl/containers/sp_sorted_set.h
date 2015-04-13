@@ -47,7 +47,7 @@ public:
 
 private:
 
-	hasher m_hash_;
+	hasher m_hasher_;
 
 	base_container_type m_data_;
 
@@ -58,12 +58,12 @@ public:
 	{
 	}
 	sp_sorted_set(this_type const & other)
-			: m_hash_(other.m_hash_), m_data_(other.m_data_)
+			: m_hasher_(other.m_hasher_), m_data_(other.m_data_)
 	{
 	}
 
 	sp_sorted_set(this_type && other)
-			: m_hash_(other.m_hash_), m_data_(other.m_data_)
+			: m_hasher_(other.m_hasher_), m_data_(other.m_data_)
 	{
 	}
 
@@ -79,12 +79,12 @@ public:
 
 	hasher const & hash_function() const
 	{
-		return m_hash_;
+		return m_hasher_;
 	}
 
 	void hash_function(hasher const & h_fun)
 	{
-		m_hash_ = h_fun;
+		m_hasher_ = h_fun;
 	}
 
 	void swap(base_container_type & other)
@@ -95,7 +95,7 @@ public:
 	void swap(this_type & other)
 	{
 		m_data_.swap(other.m_data_);
-		std::swap(m_hash_, other.m_hash_);
+		std::swap(m_hasher_, other.m_hasher_);
 	}
 
 	bool empty() const
@@ -164,15 +164,15 @@ public:
 	template<typename TV>
 	key_type insert(TV const& v)
 	{
-		auto s = m_hash_(v);
-		m_data_[m_hash_(v)].push_front(v);
+		auto s = m_hasher_(v);
+		m_data_[m_hasher_(v)].push_front(v);
 		return s;
 	}
 
 	template<typename TV>
 	void push_front(TV && v)
 	{
-		m_data_[m_hash_(v)].push_front(std::forward<TV>(v));
+		m_data_[m_hasher_(v)].push_front(std::forward<TV>(v));
 	}
 
 	void insert(std::initializer_list<value_type> ilist)
@@ -284,7 +284,7 @@ public:
 			auto p = pt;
 			++pt;
 
-			auto o_key = m_hash_(*p);
+			auto o_key = m_hasher_(*p);
 
 			if (o_key != key)
 			{
@@ -396,36 +396,36 @@ public:
 		return std::move(res);
 	}
 
-	template<typename TRange>
-	std::list<std::reference_wrapper<bucket_type>> select(TRange const & xrange)
-	{
-		std::list<std::reference_wrapper<bucket_type>> res;
-		for (auto const & id : xrange)
-		{
-			auto it = m_data_.find(id);
-			if (it != m_data_.end())
-			{
-				res.push_back(std::ref(it->second));
-			}
-		}
-		return std::move(res);
-	}
-	template<typename TRange>
-	std::list<std::reference_wrapper<const bucket_type>> select(
-			TRange const & xrange) const
-	{
-		std::list<std::reference_wrapper<const bucket_type>> res;
-
-		for (auto const & id : xrange)
-		{
-			auto it = m_data_.find(id);
-			if (it != m_data_.end())
-			{
-				res.push_back(std::cref(it->second));
-			}
-		}
-		return std::move(res);
-	}
+//	template<typename TRange>
+//	std::list<std::reference_wrapper<bucket_type>> select(TRange const & xrange)
+//	{
+//		std::list<std::reference_wrapper<bucket_type>> res;
+//		for (auto const & id : xrange)
+//		{
+//			auto it = m_data_.find(id);
+//			if (it != m_data_.end())
+//			{
+//				res.push_back(std::ref(it->second));
+//			}
+//		}
+//		return std::move(res);
+//	}
+//	template<typename TRange>
+//	std::list<std::reference_wrapper<const bucket_type>> select(
+//			TRange const & xrange) const
+//	{
+//		std::list<std::reference_wrapper<const bucket_type>> res;
+//
+//		for (auto const & id : xrange)
+//		{
+//			auto it = m_data_.find(id);
+//			if (it != m_data_.end())
+//			{
+//				res.push_back(std::cref(it->second));
+//			}
+//		}
+//		return std::move(res);
+//	}
 
 }
 ;
