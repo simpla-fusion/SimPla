@@ -1,12 +1,12 @@
 /*
- * @file pointinpolygon.h
+ * @file point_in_polygon.h
  *
  *  created on: 2013-12-4
  *  @author salmon
  */
 
-#ifndef POINTINPOLYGEN_H_
-#define POINTINPOLYGEN_H_
+#ifndef NUMERIC_POINT_IN_POLYGON_H_
+#define NUMERIC_POINT_IN_POLYGON_H_
 
 #include <vector>
 
@@ -28,13 +28,13 @@ class PointInPolygon
 	std::vector<double> constant_;
 	std::vector<double> multiple_;
 public:
-	PointInPolygon()
-			: num_of_vertex_(0)
+	PointInPolygon() :
+			num_of_vertex_(0)
 	{
 	}
 	template<typename ...Args>
-	PointInPolygon(Args && ...args)
-			: num_of_vertex_(0)
+	PointInPolygon(Args && ...args) :
+			num_of_vertex_(0)
 	{
 		deploy(std::forward<Args>(args)...);
 	}
@@ -74,14 +74,14 @@ public:
 		}
 	}
 
-	PointInPolygon(PointInPolygon const& rhs)
-			: polygen_(rhs.polygen_), num_of_vertex_(rhs.num_of_vertex_), constant_(
+	PointInPolygon(PointInPolygon const& rhs) :
+			polygen_(rhs.polygen_), num_of_vertex_(rhs.num_of_vertex_), constant_(
 					rhs.constant_), multiple_(rhs.multiple_)
 	{
 
 	}
-	PointInPolygon(PointInPolygon && rhs)
-			: polygen_(rhs.polygen_), num_of_vertex_(rhs.num_of_vertex_), constant_(
+	PointInPolygon(PointInPolygon && rhs) :
+			polygen_(rhs.polygen_), num_of_vertex_(rhs.num_of_vertex_), constant_(
 					rhs.constant_), multiple_(rhs.multiple_)
 	{
 
@@ -136,4 +136,4 @@ public:
 }
 // namespace simpla
 
-#endif /* POINTINPOLYGEN_H_ */
+#endif /* NUMERIC_POINT_IN_POLYGON_H_ */

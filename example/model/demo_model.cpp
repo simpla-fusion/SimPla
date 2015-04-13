@@ -19,8 +19,8 @@
 #include "../../core/dataset/datatype.h"
 #include "../../core/mesh/mesh_ids.h"
 #include "../../core/model/model.h"
-#include "../../core/numeric/pointinpolygon.h"
 #include "../../core/model/geqdsk.h"
+#include "../../core/numeric/point_in_polygon.h"
 
 namespace simpla
 {

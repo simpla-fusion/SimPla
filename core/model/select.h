@@ -7,8 +7,9 @@
 
 #ifndef CORE_MODEL_SELECT_H_
 #define CORE_MODEL_SELECT_H_
-#include "../numeric/pointinpolygon.h"
 #include <algorithm>
+
+#include "../numeric/point_in_polygon.h"
 namespace simpla
 {
 template<typename TFun, typename TRes>

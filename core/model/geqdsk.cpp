@@ -20,7 +20,7 @@
 #include "../physics/constants.h"
 #include "../io/data_stream.h"
 #include "../numeric/find_root.h"
-#include "../numeric/pointinpolygon.h"
+#include "../numeric/point_in_polygon.h"
 
 namespace simpla
 {
