@@ -56,7 +56,7 @@ int main(int argc, char **argv)
 		MESSAGE << " Usage: " << argv[0]
 				<< " --case <id of use case>  <options> ..." << endl << endl;
 
-		MESSAGE << " Use cases:" << std::endl;
+		MESSAGE << " Use case list:" << std::endl;
 
 		for (auto const & item : applist)
 		{
@@ -81,6 +81,7 @@ int main(int argc, char **argv)
 	if (item != applist.end())
 	{
 		GLOBAL_COMM.barrier();
+
 		MESSAGE
 		<<std::endl
 		<<"===================================================="<<std::endl
@@ -94,6 +95,10 @@ int main(int argc, char **argv)
 		GLOBAL_COMM.barrier();
 	}
 
+	MESSAGE << "===================================================="
+			<< std::endl
+
+			<< "\t >>> Done <<< " << std::endl;
 	close_io();
 	close_parallel();
 	close_logger();
