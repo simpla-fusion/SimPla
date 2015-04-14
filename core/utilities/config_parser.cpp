@@ -29,8 +29,7 @@ void ConfigParser::init(int argc, char ** argv)
 		m_kv_map_["SHOW_HELP"] = "true";
 	}
 
-	std::string lua_file = argv[0];
-	lua_file += ".lua";
+	std::string lua_file("");
 
 	std::string lua_cmd = "";
 
@@ -72,15 +71,13 @@ void ConfigParser::init(int argc, char ** argv)
 
 			);
 
-	try
-	{
-		m_lua_object_.parse_file(lua_file);
+	m_lua_object_.parse_file(lua_file);
 
-	} catch (...)
-	{
-		WARNING << "Can not load configure file:[" << lua_file << "]"
-				<< std::endl;
-	}
+//	} catch (...)
+//	{
+//		WARNING << "Can not load configure file:[" << lua_file << "]"
+//				<< std::endl;
+//	}
 
 	m_lua_object_.parse_string(lua_cmd);
 

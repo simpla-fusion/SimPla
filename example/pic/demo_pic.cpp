@@ -25,7 +25,7 @@
 
 using namespace simpla;
 
-USE_CASE(pic )
+USE_CASE(pic," Particle in cell" )
 {
 
 	size_t num_of_steps = 1000;

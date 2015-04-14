@@ -81,7 +81,16 @@ int main(int argc, char **argv)
 	if (item != applist.end())
 	{
 		GLOBAL_COMM.barrier();
+		MESSAGE
+		<<std::endl
+		<<"===================================================="<<std::endl
+		<<"   Use Case ["<<item->first <<"]:  "<<std::endl
+		<<"\t"<<item->second->description()<<std::endl
+		<<"----------------------------------------------------"<<std::endl
+		;
+
 		item->second->body(options);
+
 		GLOBAL_COMM.barrier();
 	}
 

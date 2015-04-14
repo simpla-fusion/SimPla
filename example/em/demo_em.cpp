@@ -24,7 +24,7 @@
 
 using namespace simpla;
 
-USE_CASE(em)
+USE_CASE(em," Maxwell Eqs.")
 {
 
 	size_t num_of_steps = 1000;

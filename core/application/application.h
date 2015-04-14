@@ -49,10 +49,10 @@ std::string register_app(std::string const & name, Args && ...args)
 	SingletonHolder<SpAppList>::instance()[name] = std::dynamic_pointer_cast<
 			SpApp>(std::make_shared<T>(std::forward<Args>(args)...));
 
-	return "SpApp" + name;
+	return " ";
 }
 
-#define SP_APP(_app_name) \
+#define SP_APP(_app_name,_app_desc) \
 struct _app_name:public SpApp  \
 { \
 	static const std::string info; \
@@ -64,10 +64,9 @@ struct _app_name:public SpApp  \
 private:\
     void  body(ConfigParser & );\
 };\
-const std::string   _app_name::info =  register_app<_app_name>(( #_app_name)) ; \
+const std::string   _app_name::info =  register_app<_app_name>(( #_app_name))+_app_desc ; \
 void _app_name::body(ConfigParser & options)
 
-#define SP_APP_DESC(_app_name) SingletonHolder<SpAppList>::instance()[#_app_name]->info
 /** @} */
 
 }
