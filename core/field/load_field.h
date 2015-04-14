@@ -62,6 +62,7 @@ bool load(TDict const &dict, _Field<T...> *f)
 		for (auto s : range)
 		{
 			auto x = mesh.coordinates(s);
+			CHECK(x);
 
 			auto v = value(x).template as<field_value_type>();
 
