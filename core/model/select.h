@@ -43,8 +43,9 @@ void select_points_in_rectangle(TM const& mesh,
 		typename TM::coordinates_type const & v1, Args && ...args)
 {
 
-	filter([&](typename TM::coordinates_type const &x)
+	filter([&](typename TM::id_type const &s)
 	{
+		auto x=mesh.coordinates(s);
 		return (((v0[0] - x[0]) * (x[0] - v1[0])) >= 0)
 		&& (((v0[1] - x[1]) * (x[1] - v1[1])) >= 0)
 		&& (((v0[2] - x[2]) * (x[2] - v1[2])) >= 0);
@@ -61,8 +62,10 @@ void select_line_segment(TM const& mesh,
 	auto dx = mesh.dx();
 
 	Real dl = inner_product(dx, dx);
-	filter([=]( typename TM::coordinates_type const & x )->bool
-	{	Real l2 = inner_product(x1 - x0, x1 - x0);
+	filter([&](typename TM::id_type const &s)
+	{
+		auto x=mesh.coordinates(s);
+		Real l2 = inner_product(x1 - x0, x1 - x0);
 
 		Real t = inner_product(x - x0, x1 - x0) / l2;
 
@@ -95,7 +98,8 @@ void select_polylines(TM const & mesh,
 	std::transform(g_points.begin(), g_points.end(), std::back_inserter(points),
 			[&](coordinates_type const & x)
 			{
-				return mesh.coordinates_to_topology(x);
+				return x;
+				//mesh.coordinates_to_topology(x);
 			});
 
 	auto first = points.begin();
@@ -118,7 +122,7 @@ void select_polylines(TM const & mesh,
 
 		++first;
 
-		auto ib = intersect_points.rbegin();
+		auto ib = intersect_points.end();
 
 		for (int n = 0; n < 3; ++n)
 		{
@@ -143,7 +147,7 @@ void select_polylines(TM const & mesh,
 		++ib;
 
 		std::sort(ib, intersect_points.end(),
-				[&](coordinates_type const & xa,coordinates_type const & xb)
+				[&](coordinates_type const & xa, coordinates_type const & xb)
 				{
 					return dot(xb-xa,x1-x0)>0;
 				});
@@ -160,7 +164,7 @@ void select_by_config(TM const& mesh, TDict const & dict, Args && ...args)
 	{
 		filter([=]( typename TM::id_type const &s)->bool
 		{
-			return (dict(mesh.id_to_coordinates(s)).template as<bool>());
+			return (dict(mesh.coordinates(s)).template as<bool>());
 		}, std::forward<Args>(args)...);
 	}
 	else if (dict["Rectangle"])

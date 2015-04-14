@@ -202,7 +202,7 @@ public:
 			std::integral_constant<size_t, EDGE>, size_t s,
 			nTuple<TV, 3> const &v)
 	{
-		return v[topology_type::component_number(s)];
+		return v[topology_type::node_id(s)];
 	}
 
 	template<typename TV>
@@ -210,7 +210,7 @@ public:
 			std::integral_constant<size_t, FACE>, size_t s,
 			nTuple<TV, 3> const &v)
 	{
-		return v[topology_type::component_number(s)];
+		return v[topology_type::node_id(s)];
 	}
 
 	template<size_t IFORM, typename TV>

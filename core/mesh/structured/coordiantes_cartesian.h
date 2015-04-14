@@ -28,7 +28,7 @@ namespace simpla
  */
 template<typename TTopology, size_t ZAXIS = CARTESIAN_ZAXIS>
 struct CartesianCoordinates: public TTopology, public enable_create_from_this<
-		CartesianCoordinates<TTopology, ZAXIS>>
+										CartesianCoordinates<TTopology, ZAXIS>>
 {
 
 public:
@@ -63,8 +63,8 @@ private:
 	coordinates_type m_from_topology_factor_;
 
 public:
-	CartesianCoordinates() :
-			topology_type(), is_valid_(false),
+	CartesianCoordinates()
+			: topology_type(), is_valid_(false),
 
 			m_xmin_( { 0, 0, 0 }),
 
@@ -79,8 +79,9 @@ public:
 
 	}
 
-	CartesianCoordinates(CartesianCoordinates const & other) :
-			topology_type(other), m_xmin_(other.m_xmin_), m_xmax_(other.m_xmax_) //, m_dx_(other.m_dx_),
+	CartesianCoordinates(CartesianCoordinates const & other)
+			: topology_type(other), m_xmin_(other.m_xmin_), m_xmax_(
+					other.m_xmax_) //, m_dx_(other.m_dx_),
 
 	{
 
@@ -94,14 +95,9 @@ public:
 		topology_type::swap(other);
 	}
 
-	static std::string get_type_as_string_static()
+	static std::string get_type_as_string()
 	{
-		return "Cartesian";
-	}
-
-	std::string get_type_as_string() const
-	{
-		return get_type_as_string_static();
+		return "Cartesian Coordinates";
 	}
 
 	this_type & self()
@@ -117,12 +113,12 @@ public:
 	{
 		holder_type self_;
 
-		Hash(holder_type g) :
-				self_(g)
+		Hash(holder_type g)
+				: self_(g)
 		{
 		}
-		Hash(Hash const & other) :
-				self_(other.self_)
+		Hash(Hash const & other)
+				: self_(other.self_)
 		{
 		}
 		~Hash()
@@ -632,21 +628,14 @@ public:
 template<typename TTopology, size_t ZAXIS>
 void CartesianCoordinates<TTopology, ZAXIS>::deploy()
 {
-
-	topology_type::deploy();
-
-	if (!topology_type::is_valid())
-	{
-		ERROR("topology initialize failed!");
-	}
-
 	auto dims = topology_type::dimensions();
 
 	for (size_t i = 0; i < ndims; ++i)
 	{
-
 		if ((m_xmax_[i] - m_xmin_[i]) < EPSILON)
+		{
 			dims[i] = 1;
+		}
 	}
 
 	topology_type::dimensions(&dims[0]);
@@ -768,6 +757,8 @@ void CartesianCoordinates<TTopology, ZAXIS>::deploy()
 	updatedt();
 
 	is_valid_ = true;
+
+	VERBOSE << get_type_as_string() << " is deployed!" << std::endl;
 
 }
 

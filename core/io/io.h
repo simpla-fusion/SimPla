@@ -45,7 +45,8 @@ auto save(std::string const & name, T const & d, size_t flag = 0UL)
 DECL_RET_TYPE(save(name, make_dataset(d), flag))
 
 #define SAVE(_F_) simpla::save(__STRING(_F_),_F_  )
-#define APPEND(_F_) simpla::save(__STRING(_F_),_F_,SP_APPEND  )
+#define SAVE_APPEND(_F_) simpla::save(__STRING(_F_),_F_,SP_APPEND  )
+#define SAVE_RECORD(_F_) simpla::save(__STRING(_F_),_F_,SP_RECORD  )
 
 #ifndef NDEBUG
 #	define DEBUG_SAVE(_F_) simpla::save(__STRING(_F_),_F_ )

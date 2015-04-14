@@ -196,6 +196,7 @@ public:
 
 		return os;
 	}
+
 	static std::string get_type_as_string()
 	{
 		return "StructuredMesh";
@@ -279,25 +280,32 @@ public:
 	}
 
 	template<size_t IFORM = 0>
-	auto range() const
-			DECL_RET_TYPE((ids::template make_range<IFORM>(m_index_global_offset_, m_index_count_)))
+	typename ids::template range_type<IFORM> range() const
+	{
+		return ids::template make_range<IFORM>(m_index_global_offset_,
+				m_index_count_);
+
+	}
 
 	template<size_t IFORM, typename ...Args>
-	auto range(
-			Args && ...args) const
-					DECL_RET_TYPE(
-							(ids::template make_range<IFORM>(std::forward<Args>(args)...))
-					)
+	typename ids::template range_type<IFORM> range(Args && ...args) const
+	{
+		return (ids::template make_range<IFORM>(std::forward<Args>(args)...));
+	}
 
 	template<size_t IFORM = 0>
-	auto global_range() const
-			DECL_RET_TYPE((ids::template make_range<IFORM>(m_index_global_dimensions_ )))
+	typename ids::template range_type<IFORM> global_range() const
+	{
+		return ids::template make_range<IFORM>(m_index_global_dimensions_);
+	}
 
 	void deploy()
 	{
 
 		m_index_count_ = m_index_global_dimensions_;
+
 		m_index_global_offset_ = 0;
+
 		if (GLOBAL_COMM.num_of_process()>1)
 		{
 			GLOBAL_COMM.decompose(ndims, &m_index_global_offset_[0], &m_index_count_[0]);
@@ -310,6 +318,9 @@ public:
 		m_index_local_dimensions_ = m_index_count_ + m_index_ghost_width_ * 2;
 
 		is_valid_ = true;
+
+		typename ids::template id_hasher<0>(m_index_local_dimensions_,
+				m_index_global_offset_ - m_index_local_offset_).swap(m_hasher_);
 
 		VERBOSE << get_type_as_string() << " is deployed!" << std::endl;
 
@@ -430,7 +441,7 @@ public:
 	 *  @{
 	 */
 
-	MeshIDs::id_hasher<MeshIDs::FLOATING_POINT_POS> m_hasher_;
+	MeshIDs::id_hasher<0> m_hasher_;
 
 	template<size_t IFORM = iform>
 	constexpr size_t max_hash() const

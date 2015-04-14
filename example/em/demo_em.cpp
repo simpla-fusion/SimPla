@@ -17,6 +17,7 @@
 
 #include "../../core/field/field.h"
 //#include "../../core/field/field_constraint.h"
+#include "../../core/field/load_field.h"
 
 #include "../../core/mesh/mesh.h"
 #include "../../core/mesh/structured/structured.h"
@@ -41,9 +42,9 @@ USE_CASE(em)
 		return;
 	}
 
-	options["NUMBER_OF_STEPS"].as(&num_of_steps);
+	options["n"].as(&num_of_steps);
 
-	options["STRIDES"].as<size_t>(&strides);
+	options["s"].as<size_t>(&strides);
 
 	auto mesh = make_mesh<CartesianMesh>();
 
@@ -56,6 +57,9 @@ USE_CASE(em)
 	mesh->dt(options["dt"].as<Real>(1.0));
 
 	mesh->deploy();
+
+	CHECK(mesh->dimensions());
+	CHECK(mesh->max_hash());
 
 	LOGGER << std::endl
 
@@ -78,15 +82,9 @@ USE_CASE(em)
 	auto E = make_form<EDGE, Real>(mesh);
 	auto B = make_form<FACE, Real>(mesh);
 
-	J.clear();
-
-	E.clear();
-
-	B.clear();
-
-//	VERBOSE_CMD(load(options["InitValue"]["B"], &B));
-//	VERBOSE_CMD(load(options["InitValue"]["E"], &E));
-//	VERBOSE_CMD(load(options["InitValue"]["J"], &J));
+	VERBOSE_CMD(load(options["InitValue"]["B"], &B));
+	VERBOSE_CMD(load(options["InitValue"]["E"], &E));
+	VERBOSE_CMD(load(options["InitValue"]["J"], &J));
 //
 //	auto phi_bc = make_constraint<decltype(phi)>(phi.mesh(),
 //			options["Constraint"]["phi"]);
@@ -101,54 +99,52 @@ USE_CASE(em)
 	phi.clear();
 
 	phi = 1.0;
-//	cd("/");
-//	VERBOSE << save("phi", phi, SP_APPEND) << std::endl;
-//	phi_bc(&phi);
-//	VERBOSE << save("phi", phi, SP_APPEND) << std::endl;
-//
-//
-//	LOGGER << "----------  Dump input ---------- " << std::endl;
-//
-//	cd("/Input/");
-//
-////	VERBOSE << SAVE(E) << std::endl;
-////	VERBOSE << SAVE(B) << std::endl;
-////	VERBOSE << SAVE(J) << std::endl;
-//
-//	LOGGER << "----------  START ---------- " << std::endl;
-//
-//	cd("/Save/");
-//
-//	E = 0;
-//
+	cd("/");
+	VERBOSE << save("phi", phi, SP_APPEND) << std::endl;
+
+	LOGGER << "----------  Dump input ---------- " << std::endl;
+
+	cd("/Input/");
+
+	VERBOSE << SAVE(E) << std::endl;
+	VERBOSE << SAVE(B) << std::endl;
+	VERBOSE << SAVE(J) << std::endl;
+
+	LOGGER << "----------  START ---------- " << std::endl;
+
+	cd("/Save/");
+
+	E = 0;
+
 //	E_src(&E);
 
-////	if (options["JUST_A_TEST"])
-////	{
-////		LOGGER << " Just test configuration!" << std::endl;
-////	}
-////	else
-//	{
-//		for (size_t s = 0; s < num_of_steps; ++s)
-//		{
-//			VERBOSE << "Step [" <<					 s << "/" << num_of_steps << "]" << std::endl;
-//
-//	E_src(&E);
+	if (options["JUST_A_TEST"])
+	{
+		LOGGER << " Just test configuration!" << std::endl;
+	}
+	else
+	{
+		for (size_t s = 0; s < num_of_steps; ++s)
+		{
+			VERBOSE << "Step [" << s << "/" << num_of_steps << "]" << std::endl;
+
+//			E_src(&E);
 //			J_src(&J);
 //			B_src(&B);
-	E = curl(B) * dt - J;
-	B = -curl(E) * dt;
-//		}
-//
-////		VERBOSE << SAVE(E);
-////		VERBOSE << SAVE(B);
-//
-//	}
+			E = curl(B) * dt - J;
+			B = -curl(E) * dt;
 
-//	cd("/Output/");
-//	VERBOSE << SAVE(E) << std::endl;
-//	VERBOSE << SAVE(B) << std::endl;
-//	VERBOSE << SAVE(J) << std::endl;
+			VERBOSE << SAVE_RECORD(E) << std::endl;
+			VERBOSE << SAVE_RECORD(B) << std::endl;
+
+		}
+
+	}
+
+	cd("/Output/");
+	VERBOSE << SAVE(E) << std::endl;
+	VERBOSE << SAVE(B) << std::endl;
+	VERBOSE << SAVE(J) << std::endl;
 
 	LOGGER << "----------  DONE ---------- " << std::endl;
 

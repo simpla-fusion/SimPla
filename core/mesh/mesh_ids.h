@@ -289,15 +289,15 @@ struct MeshIDs_
 				| ((s & _DK) >> (INDEX_DIGITS * 2 + FLOATING_POINT_POS - 3)))
 				& 7UL];
 	}
-	template<size_t I_FLOAT_POS = FLOATING_POINT_POS>
+	template<size_t MESH_LEVEL = 0>
 	struct id_hasher
 	{
-	private:
+	public:
 		index_tuple m_offset_;
 		nTuple<size_t, ndims> m_dimensions_;
 		nTuple<size_t, ndims> m_strides_;
-	public:
-		typedef id_hasher<I_FLOAT_POS> this_type;
+
+		typedef id_hasher this_type;
 
 		id_hasher()
 		{
@@ -366,26 +366,28 @@ struct MeshIDs_
 		size_t operator()(id_type const & s) const
 		{
 			return inner_product(
-					(id_to_index<I_FLOAT_POS>(s) + m_dimensions_ - m_offset_)
-							% m_dimensions_, m_strides_);
+					(id_to_index<FLOATING_POINT_POS - MESH_LEVEL>(s)
+							+ m_dimensions_ - m_offset_) % m_dimensions_,
+					m_strides_);
 		}
 
 		template<size_t IFORM>
 		constexpr size_t hash(id_type const & s) const
 		{
 			return inner_product(
-					(id_to_index<I_FLOAT_POS>(s) + m_dimensions_ - m_offset_)
-							% m_dimensions_, m_strides_);
+					(id_to_index<FLOATING_POINT_POS - MESH_LEVEL>(s)
+							+ m_dimensions_ - m_offset_) % m_dimensions_,
+					m_strides_);
 		}
 
 	};
 
-	typedef SpHashContainer<id_type, Real, id_hasher<FLOATING_POINT_POS - 1>> volume_container;
+	typedef SpHashContainer<id_type, Real, id_hasher<1>> volume_container;
 
 	template<typename ...Args>
 	static volume_container make_volume_container(Args&& ...args)
 	{
-		id_hasher<FLOATING_POINT_POS - 1> hasher(std::forward<Args>(args)...);
+		id_hasher<1> hasher(std::forward<Args>(args)...);
 
 		return std::move(volume_container((hasher), hasher.max_hash()));
 	}

@@ -30,23 +30,31 @@ bool load(TDict const &dict, _Field<T...> *f)
 	if (!dict)
 		return false;
 
-	typedef typename field_traits<_Field<T...>>::field_value_type field_value_type;
+	typedef _Field<T...> field_type;
 
-	auto domain = select(f->domain(), dict["Select"]);
+	typedef typename field_type::field_value_type field_value_type;
 
-	typedef decltype(*domain.begin()) index_type;
+	auto const & mesh = f->mesh();
+
+	typedef typename field_type::mesh_type mesh_type;
+
+	typedef typename mesh_type::id_type id_type;
+
+	std::set<id_type> range;
+
+	select_by_config(mesh, dict["Select"], mesh.range(), &range);
 
 	if (dict.is_function())
 	{
 		// TODO Lua.funcition object should be  parallelism
 
-		for (auto s : domain)
+		for (auto s : range)
 		{
-			auto x = domain.coordinates(s);
+			auto x = mesh.coordinates(s);
 
 			auto v = dict(x).template as<field_value_type>();
 
-			(*f)[s] = domain.sample(s, v);
+			(*f)[s] = mesh.sample(v, s);
 		}
 
 	}
@@ -55,12 +63,11 @@ bool load(TDict const &dict, _Field<T...> *f)
 
 		auto v = dict.template as<field_value_type>();
 
-		parallel_foreach(domain, [&](index_type const &s)
+		for (auto s : range)
 		{
-			auto x = domain.coordinates(s);
 
-			(*f)[s] = domain.sample(s, v);
-		});
+			(*f)[s] = mesh.sample(v, s);
+		}
 
 	}
 	else if (dict.is_string())
