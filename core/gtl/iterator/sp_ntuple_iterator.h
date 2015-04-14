@@ -8,15 +8,14 @@
 #ifndef CORE_GTL_ITERATOR_SP_NTUPLE_ITERATOR_H_
 #define CORE_GTL_ITERATOR_SP_NTUPLE_ITERATOR_H_
 #include "../ntuple.h"
+#include "range.h"
 namespace simpla
 {
-template<typename IndexType, size_t ... DIMS>
-struct sp_nTuple_iterator;
 
-template<typename IndexType, size_t DIMS>
-struct sp_nTuple_iterator<IndexType, DIMS> : public std::iterator<
-		typename std::bidirectional_iterator_tag, nTuple<IndexType, DIMS>,
-		nTuple<IndexType, DIMS> >
+template<typename IndexType, size_t ... DIMS>
+struct sp_nTuple_iterator: public std::iterator<
+		typename std::bidirectional_iterator_tag, nTuple<IndexType, DIMS...>,
+		nTuple<IndexType, DIMS...> >
 {
 
 	typedef IndexType index_type;
@@ -44,13 +43,13 @@ public:
 		m_max_ = max;
 		m_self_ = s;
 	}
-	sp_nTuple_iterator(sp_nTuple_iterator const& other) :
-			m_min_(other.m_min_), m_max_(other.m_max_), m_self_(other.m_self_)
+	sp_nTuple_iterator(sp_nTuple_iterator const& other)
+			: m_min_(other.m_min_), m_max_(other.m_max_), m_self_(other.m_self_)
 	{
 
 	}
-	sp_nTuple_iterator(sp_nTuple_iterator && other) :
-			m_min_(other.m_min_), m_max_(other.m_max_), m_self_(other.m_self_)
+	sp_nTuple_iterator(sp_nTuple_iterator && other)
+			: m_min_(other.m_min_), m_max_(other.m_max_), m_self_(other.m_self_)
 	{
 
 	}
@@ -74,32 +73,32 @@ public:
 		return m_self_;
 	}
 
-	template<typename T> T sp_remquo(T const & min, T const &max, T* v)
-	{
-		int quo;
-		*v = std::remquo((*v - min), max - min, &quo) + min;
-		return *quo;
-	}
-	template<size_t I, typename T, size_t N>
-	T arithmetic_carry(nTuple<T, N> const &m_min_, nTuple<T, N> const &m_max_,
-			nTuple<T, N> const *m_self_)
-	{
-		(*m_self_)[I] += arithmetic_carry<I + 1>(m_min_, m_max_, m_self_);
-		return sp_remquo(m_min_[I], m_max_[I], &(*m_self_)[I]);
-
-	}
+//	template<typename T> T sp_remquo(T const & min, T const &max, T* v)
+//	{
+//		int quo;
+//		*v = std::remquo((*v - min), max - min, &quo) + min;
+//		return quo;
+//	}
+//	template<size_t I, typename T, size_t N>
+//	T arithmetic_carry(nTuple<T, N> const &m_min_, nTuple<T, N> const &m_max_,
+//			nTuple<T, N> const *m_self_)
+//	{
+//		(*m_self_)[I] += arithmetic_carry<I + 1>(m_min_, m_max_, m_self_);
+//		return sp_remquo(m_min_[I], m_max_[I], &(*m_self_)[I]);
+//
+//	}
 	sp_nTuple_iterator & operator++()
 	{
 
 		++m_self_;
-		arithmetic_carry(m_min_, m_max_, &m_self_);
+//		arithmetic_carry(m_min_, m_max_, &m_self_);
 		return *this;
 	}
 
 	sp_nTuple_iterator & operator--()
 	{
 		--m_self_;
-		arithmetic_borrow(m_min_, m_max_, &m_self_);
+//		arithmetic_borrow(m_min_, m_max_, &m_self_);
 
 //		int n = ndims - 1;
 //
@@ -140,8 +139,8 @@ public:
 };
 
 template<size_t NDIMS, typename IndexType>
-IndexType distance(sp_nTuple_iterator<NDIMS, IndexType> const & first,
-		sp_nTuple_iterator<NDIMS, IndexType> const & second)
+IndexType distance(sp_nTuple_iterator<IndexType, NDIMS> const & first,
+		sp_nTuple_iterator<IndexType, NDIMS> const & second)
 {
 	return NProduct(*second - *first);
 
@@ -166,19 +165,19 @@ public:
 	}
 
 	template<typename T1, typename T2>
-	sp_ndarray_range(T1 const & min, T2 const & max) :
-			base_range(iterator_type(min, max, min),
+	sp_ndarray_range(T1 const & min, T2 const & max)
+			: base_range(iterator_type(min, max, min),
 					(++iterator_type(min, max, max - 1)))
 	{
 		m_min_ = min;
 		m_max_ = max;
 	}
-	sp_ndarray_range(sp_ndarray_range const & other) :
-			base_range(other), m_max_(other.m_max_), m_min_(other.m_min_)
+	sp_ndarray_range(sp_ndarray_range const & other)
+			: base_range(other), m_max_(other.m_max_), m_min_(other.m_min_)
 	{
 	}
-	sp_ndarray_range(sp_ndarray_range & other, op_split) :
-			base_range(other, op_split()), m_max_(other.m_max_), m_min_(
+	sp_ndarray_range(sp_ndarray_range & other, op_split)
+			: base_range(other, op_split()), m_max_(other.m_max_), m_min_(
 					other.m_min_)
 	{
 	}

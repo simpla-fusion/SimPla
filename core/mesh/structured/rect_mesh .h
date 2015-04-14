@@ -116,7 +116,8 @@ public:
 	{
 	}
 
-	RectMesh_(RectMesh_ const & other) :
+	RectMesh_(RectMesh_ const & other)
+			:
 //			m_xmin_(other.m_xmin_), m_xmax_(other.m_xmax_), m_dx_(other.m_dx_),
 
 			m_index_global_dimensions_(other.m_index_global_dimensions_),
@@ -278,17 +279,19 @@ public:
 	}
 
 	template<size_t IFORM = 0>
-	typename ids::range<IFORM> range() const
-	{
-		return typename ids::range<IFORM>(m_index_global_offset_,
-				m_index_count_);
-	}
+	auto range() const
+			DECL_RET_TYPE((ids::template make_range<IFORM>(m_index_global_offset_, m_index_count_)))
+
+	template<size_t IFORM, typename ...Args>
+	auto range(
+			Args && ...args) const
+					DECL_RET_TYPE(
+							(ids::template make_range<IFORM>(std::forward<Args>(args)...))
+					)
 
 	template<size_t IFORM = 0>
-	typename ids::range<IFORM> global_range() const
-	{
-		return typename ids::range<IFORM>(m_index_global_dimensions_);
-	}
+	auto global_range() const
+			DECL_RET_TYPE((ids::template make_range<IFORM>(m_index_global_dimensions_ )))
 
 	void deploy()
 	{

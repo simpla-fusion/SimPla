@@ -97,10 +97,10 @@ struct particle_container_traits
 
 template<typename TM, typename Engine, typename TContainer>
 class Particle<TM, Engine, TContainer> //
-: public SpObject,
-		public Engine,
-		public TContainer,
-		public enable_create_from_this<Particle<TM, Engine, TContainer> >
+:	public SpObject,
+	public Engine,
+	public TContainer,
+	public enable_create_from_this<Particle<TM, Engine, TContainer> >
 {
 public:
 	typedef TM mesh_type;
@@ -117,19 +117,19 @@ private:
 	mesh_type m_mesh_;
 public:
 
-	Particle(mesh_type const & m) :
-			m_mesh_(m)
+	Particle(mesh_type const & m)
+			: m_mesh_(m)
 	{
 	}
 
-	Particle(this_type const& other) :
-			engine_type(other), container_type(other), m_mesh_(other.m_mesh_)
+	Particle(this_type const& other)
+			: engine_type(other), container_type(other), m_mesh_(other.m_mesh_)
 	{
 	}
 
 	template<typename ... Args>
-	Particle(this_type & other, Args && ...args) :
-			engine_type(other), container_type(other,
+	Particle(this_type & other, Args && ...args)
+			: engine_type(other), container_type(other,
 					std::forward<Args>(args)...), m_mesh_(other.m_mesh_)
 	{
 	}
@@ -216,7 +216,7 @@ public:
 
 			//   collect send data
 
-			auto send_range = m_mesh_.select_local(item.send_offset,
+			auto send_range = m_mesh_.template range<VERTEX>(item.send_offset,
 					item.send_offset + item.send_count);
 
 			send_recv_s.send_size = container_type::size_all(send_range);
@@ -242,7 +242,7 @@ public:
 			m_send_recv_buffer_.push_back(std::move(send_recv_s));
 
 			//  clear ghosts cell
-			auto recv_range = m_mesh_.select_local(item.recv_offset,
+			auto recv_range = m_mesh_.template range<VERTEX>(item.recv_offset,
 					item.recv_offset + item.recv_count);
 
 			container_type::erase(recv_range);
@@ -330,7 +330,7 @@ public:
 
 	DataSet dataset() const
 	{
-		return std::move(dataset(m_mesh_.range()));
+		return std::move(dataset(m_mesh_.template range<VERTEX>()));
 	}
 
 //! @}

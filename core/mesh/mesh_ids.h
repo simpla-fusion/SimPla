@@ -318,13 +318,13 @@ struct MeshIDs_
 			deploy();
 		}
 
-		id_hasher(this_type const & other) :
-				m_dimensions_(other.m_dimensions_), m_offset_(other.m_offset_)
+		id_hasher(this_type const & other)
+				: m_dimensions_(other.m_dimensions_), m_offset_(other.m_offset_)
 		{
 			deploy();
 		}
-		id_hasher(this_type && other) :
-				m_dimensions_(other.m_dimensions_), m_offset_(other.m_offset_)
+		id_hasher(this_type && other)
+				: m_dimensions_(other.m_dimensions_), m_offset_(other.m_offset_)
 		{
 			deploy();
 		}
@@ -495,8 +495,16 @@ struct MeshIDs_
 
 		return 4;
 	}
+
 	template<size_t IFORM> struct iterator;
-	template<size_t IFORM> struct range;
+
+	template<size_t IFORM> struct range_type;
+
+	template<size_t IFORM, typename ...Args>
+	static range_type<IFORM> make_range(Args && ...args)
+	{
+		return range_type<IFORM>(std::forward<Args>(args)...);
+	}
 //**************************************************************************
 	/**
 	 * @name Neighgour
@@ -1237,13 +1245,14 @@ typedef MeshIDs_<3, 0> MeshIDs;
 
 template<size_t NDIMS, size_t AXIS_FLAG>
 template<size_t IFORM>
-struct MeshIDs_<NDIMS, AXIS_FLAG>::iterator: public sp_nTuple_iterator<
-		NDIMS + 1, size_t>
+struct MeshIDs_<NDIMS, AXIS_FLAG>::iterator: public sp_nTuple_iterator<size_t,
+		NDIMS + 1>
 {
 	typedef MeshIDs_<NDIMS, AXIS_FLAG> MeshIDs;
-	typedef sp_nTuple_iterator<NDIMS + 1, size_t> base_type;
+	typedef sp_nTuple_iterator<size_t, NDIMS + 1> base_type;
 
-	iterator(index_tuple const & min, index_tuple const & max)
+	template<typename T0, typename T1>
+	iterator(T0 const & min, T1 const & max)
 	{
 		nTuple<size_t, NDIMS + 1> i_min, i_max;
 
@@ -1265,19 +1274,20 @@ struct MeshIDs_<NDIMS, AXIS_FLAG>::iterator: public sp_nTuple_iterator<
 };
 template<size_t NDIMS, size_t AXIS_FLAG>
 template<size_t IFORM>
-struct MeshIDs_<NDIMS, AXIS_FLAG>::range
+struct MeshIDs_<NDIMS, AXIS_FLAG>::range_type
 {
 	typedef MeshIDs_<NDIMS, AXIS_FLAG>::iterator<IFORM> const_iterator;
 
 	const_iterator m_b_, m_e_;
 
-	range(index_tuple const & min, index_tuple const & max) :
-			m_b_(min, max), m_e_(max, max)
+	template<typename T0, typename T1>
+	range_type(T0 const & min, T1 const & max)
+			: m_b_(min, max), m_e_(max, max)
 	{
 		++m_e_;
 	}
-	range(index_tuple const & dims) :
-			m_b_(0, dims), m_e_(dims, dims)
+	range_type(index_tuple const & dims)
+			: m_b_(0, dims), m_e_(dims, dims)
 	{
 		++m_e_;
 	}
