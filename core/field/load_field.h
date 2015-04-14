@@ -30,6 +30,15 @@ bool load(TDict const &dict, _Field<T...> *f)
 	if (!dict)
 		return false;
 
+	if (dict.is_string())
+	{
+		std::string url = dict.template as<std::string>();
+		//TODO Read field from data file
+		UNIMPLEMENTED << "Read field from data file or other URI";
+
+		return false;
+	}
+
 	typedef _Field<T...> field_type;
 
 	typedef typename field_type::field_value_type field_value_type;
@@ -42,9 +51,11 @@ bool load(TDict const &dict, _Field<T...> *f)
 
 	std::set<id_type> range;
 
-	select_by_config(mesh, dict["Select"], mesh.range(), &range);
+//	select_by_config(mesh, dict["Select"], mesh.range(), &range);
 
-	if (dict.is_function())
+	auto value = dict["Value"];
+
+	if (value.is_function())
 	{
 		// TODO Lua.funcition object should be  parallelism
 
@@ -52,16 +63,16 @@ bool load(TDict const &dict, _Field<T...> *f)
 		{
 			auto x = mesh.coordinates(s);
 
-			auto v = dict(x).template as<field_value_type>();
+			auto v = value(x).template as<field_value_type>();
 
 			(*f)[s] = mesh.sample(v, s);
 		}
 
 	}
-	else if (dict.is_number() | dict.is_table())
+	else if (value.is_number() | value.is_table())
 	{
 
-		auto v = dict.template as<field_value_type>();
+		auto v = value.template as<field_value_type>();
 
 		for (auto s : range)
 		{
@@ -69,14 +80,6 @@ bool load(TDict const &dict, _Field<T...> *f)
 			(*f)[s] = mesh.sample(v, s);
 		}
 
-	}
-	else if (dict.is_string())
-	{
-		std::string url = dict.template as<std::string>();
-		//TODO Read field from data file
-		UNIMPLEMENTED << "Read field from data file or other URI";
-
-		return false;
 	}
 
 	f->sync();

@@ -55,6 +55,18 @@ domain_center=    {
     ZAXIS=2,
     Points={{0.1,0.1,0},{0.2,0.2,0},{0.3,0.4,0}}} ,
 }
+InitValue=
+  {
+    B=
+    {
+      Domain={{0,0,0},{1,1,1}},
+     
+      Value=function(x)
+        print(x[1])
+        return {math.sin(x[0]/dimensions[0]),0,0}
+      end
+    }
+  }
 
 Constraint=  {
   E= {
