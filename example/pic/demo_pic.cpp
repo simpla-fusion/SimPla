@@ -25,7 +25,7 @@
 
 using namespace simpla;
 
-USE_CASE(pic)
+USE_CASE(pic )
 {
 
 	size_t num_of_steps = 1000;
@@ -181,4 +181,3 @@ USE_CASE(pic)
 	MESSAGE << "======== DONE! ========" << std::endl;
 
 }
-

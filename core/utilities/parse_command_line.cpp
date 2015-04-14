@@ -11,9 +11,14 @@ namespace simpla
 std::string trim(std::string const & s)
 {
 	std::string value = s;
+
 	size_t first = value.find_first_not_of(' ');
 	size_t last = value.find_last_not_of(' ');
-	value = value.substr(first, (last - first + 1));
+	if (last != first)
+	{
+		value = value.substr(first, (last - first + 1));
+	}
+
 	return std::move(value);
 }
 void parse_cmd_line(int argc, char **argv,

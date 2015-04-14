@@ -12,7 +12,7 @@
 #include "../parallel/parallel.h"
 #include "../sp_config.h"
 #include "../utilities/log.h"
-#include "../utilities/parse_command_line.h"
+#include "../utilities/config_parser.h"
 #include "application.h"
 #include "logo.h"
 
@@ -29,34 +29,40 @@ int main(int argc, char **argv)
 	init_parallel(argc, argv);
 	init_io(argc, argv);
 
+	ConfigParser options;
+	options.init(argc, argv);
+
 	bool no_logo = false;
 	bool show_help = false;
 
-	parse_cmd_line(argc, argv,
-
-	[&](std::string const & opt,std::string const & value)->int
+	if (options["V"] || options["version"])
 	{
-		if(opt=="V" || opt=="version")
-		{
-			MESSAGE<<"SIMPla "<< ShowVersion();
-			TheEnd(0);
-			return TERMINATE;
-		}
-		else if(opt=="h"||opt=="help")
-		{
-			show_help=true;
-		}
-		return CONTINUE;
+		MESSAGE << "SIMPla " << ShowVersion();
+		TheEnd(0);
+		return TERMINATE;
+	}
+	else if (options["h"] || options["help"])
+	{
+		show_help = true;
 	}
 
-	);
+	SpAppList & applist = SingletonHolder<SpAppList>::instance();
 	if (GLOBAL_COMM.process_num() == 0)
 
 	MESSAGE << ShowCopyRight() << endl;
 
-	if (show_help)
+	if (options["SHOW_HELP"])
 	{
-		MESSAGE << " Usage: " << argv[0] << "  <options> ..." << endl << endl;
+		MESSAGE << " Usage: " << argv[0]
+				<< " --case <id of use case>  <options> ..." << endl << endl;
+
+		MESSAGE << " Use cases:" << std::endl;
+
+		for (auto const & item : applist)
+		{
+			MESSAGE << "\t" << item.first << "\t:" << item.second->description()
+					<< std::endl;
+		}
 
 		MESSAGE << " Options:" << endl;
 
@@ -65,11 +71,19 @@ int main(int argc, char **argv)
 		SHOW_OPTIONS("-g,--generator", "Generates  demo configure file");
 	}
 
-	MESSAGE << "--------- START --------- " << endl;
-	GLOBAL_COMM.barrier();
-	run_all_apps(argc, argv);
-	GLOBAL_COMM.barrier();
-	MESSAGE << "--------- DONE --------- " << endl;
+	auto item = applist.begin();
+
+	if (options["case"])
+	{
+		item = applist.find(options["case"].template as<std::string>());
+	}
+
+	if (item != applist.end())
+	{
+		GLOBAL_COMM.barrier();
+		item->second->body(options);
+		GLOBAL_COMM.barrier();
+	}
 
 	close_io();
 	close_parallel();
