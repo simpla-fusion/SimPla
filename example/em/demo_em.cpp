@@ -16,9 +16,7 @@
 #include "../../core/io/io.h"
 
 #include "../../core/field/field.h"
-//#include "../../core/field/field_constraint.h"
-#include "../../core/field/load_field.h"
-
+#include "../../core/field/field_fieldconstraint.h"
 #include "../../core/mesh/mesh.h"
 #include "../../core/mesh/structured/structured.h"
 
@@ -82,9 +80,9 @@ USE_CASE(em," Maxwell Eqs.")
 	auto E = make_form<EDGE, Real>(mesh);
 	auto B = make_form<FACE, Real>(mesh);
 
-	VERBOSE_CMD(load(options["InitValue"]["B"], &B));
-	VERBOSE_CMD(load(options["InitValue"]["E"], &E));
-	VERBOSE_CMD(load(options["InitValue"]["J"], &J));
+	VERBOSE_CMD(apply_constraint(options["InitValue"]["B"], &B));
+	VERBOSE_CMD(apply_constraint(options["InitValue"]["E"], &E));
+	VERBOSE_CMD(apply_constraint(options["InitValue"]["J"], &J));
 //
 //	auto phi_bc = make_constraint<decltype(phi)>(phi.mesh(),
 //			options["Constraint"]["phi"]);

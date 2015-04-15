@@ -12,13 +12,13 @@
 #include "../numeric/point_in_polygon.h"
 namespace simpla
 {
-template<typename TFun, typename TRes>
-void filter(TFun const & pred, TRes *res)
+template<typename TPred, typename InOut>
+void filter(TPred const & pred, InOut *res)
 {
 	res->erase(std::remove_if(res->begin(), res->end(), pred), res->end());
 }
-template<typename TFun, typename TRange, typename TRes>
-void filter(TFun const & pred, TRange const & range, TRes *res)
+template<typename TPred, typename IN, typename OUT>
+void filter(TPred const & pred, IN const & range, OUT *res)
 {
 	std::copy_if(range.begin(), range.end(), std::inserter(*res, res->begin()),
 			pred);
@@ -26,7 +26,7 @@ void filter(TFun const & pred, TRange const & range, TRes *res)
 }
 
 template<typename TM, typename ... Args>
-void select_points_in_polylines(TM const & mesh,
+void select_ids_in_polylines(TM const & mesh,
 		std::vector<typename TM::coordinates_type>const & poly_lines, int ZAXIS,
 		Args && ... args)
 {
@@ -38,7 +38,7 @@ void select_points_in_polylines(TM const & mesh,
 }
 
 template<typename TM, typename ...Args>
-void select_points_in_rectangle(TM const& mesh,
+void select_ids_in_rectangle(TM const& mesh,
 		typename TM::coordinates_type const & v0,
 		typename TM::coordinates_type const & v1, Args && ...args)
 {
@@ -54,7 +54,7 @@ void select_points_in_rectangle(TM const& mesh,
 }
 
 template<typename TM, typename ...Args>
-void select_line_segment(TM const& mesh,
+void select_ids_by_line_segment(TM const& mesh,
 		typename TM::coordinates_type const & x0,
 		typename TM::coordinates_type const & x1, Args && ...args)
 {
@@ -85,7 +85,7 @@ void select_line_segment(TM const& mesh,
 }
 
 template<typename TM, typename ...Args>
-void select_polylines(TM const & mesh,
+void select_ids_in_polylines(TM const & mesh,
 		std::vector<typename TM::coordinates_type> const& g_points,
 		bool is_inner, Args && ...args)
 {
@@ -157,7 +157,7 @@ void select_polylines(TM const & mesh,
 
 }
 template<typename TM, typename TDict, typename ...Args>
-void select_by_config(TM const& mesh, TDict const & dict, Args && ...args)
+void select_ids_by_config(TM const& mesh, TDict const & dict, Args && ...args)
 {
 
 	if (dict.is_function())
@@ -173,7 +173,7 @@ void select_by_config(TM const& mesh, TDict const & dict, Args && ...args)
 
 		dict.as(&points);
 
-		select_points_in_rectangle(mesh, points[0], points[1],
+		select_ids_in_rectangle(mesh, points[0], points[1],
 				std::forward<Args>(args)...);
 
 	}
@@ -191,11 +191,12 @@ void select_by_config(TM const& mesh, TDict const & dict, Args && ...args)
 
 		if (obj["OnlyEdge"])
 		{
-			select_polylines(mesh, points, ZAXIS, std::forward<Args>(args)...);
+			select_ids_in_polylines(mesh, points, ZAXIS,
+					std::forward<Args>(args)...);
 		}
 		else
 		{
-			select_points_in_polylines(mesh, points, ZAXIS,
+			select_ids_in_polylines(mesh, points, ZAXIS,
 					std::forward<Args>(args)...);
 		}
 	}

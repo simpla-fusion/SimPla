@@ -13,24 +13,18 @@
 #include "../utilities/log.h"
 #include "../model/select.h"
 
-#include "field.h"
-
 namespace simpla
 {
 
-template<typename ... > class _Field;
-
-template<typename TDict, typename ...T>
-bool load(TDict const &dict, _Field<T...> *f)
+template<typename TDict, typename TF>
+bool assign_field_by_config(TDict const &dict, TF *f)
 {
-	if (!f->is_valid())
-	{
-		f->clear();
-	}
-	if (!dict)
-		return false;
 
-	if (dict.is_string())
+	if (!dict)
+	{
+		return false;
+	}
+	else if (dict.is_string())
 	{
 		std::string url = dict.template as<std::string>();
 		//TODO Read field from data file
@@ -38,54 +32,80 @@ bool load(TDict const &dict, _Field<T...> *f)
 
 		return false;
 	}
+	else if (!dict.is_table())
+	{
+		return false;
+	}
 
-	typedef _Field<T...> field_type;
-
-	typedef typename field_type::field_value_type field_value_type;
-
-	auto const & mesh = f->mesh();
+	if (!f->is_valid())
+	{
+		f->clear();
+	}
+	typedef TF field_type;
 
 	typedef typename field_type::mesh_type mesh_type;
 
+	typedef typename field_type::field_value_type field_value_type;
+
 	typedef typename mesh_type::id_type id_type;
 
-	std::set<id_type> range;
+	auto const & mesh = f->mesh();
 
-//	select_by_config(mesh, dict["Select"], mesh.range(), &range);
+	bool success = false;
 
-	auto value = dict["Value"];
-
-	if (value.is_function())
+	if (dict["Domain"])
 	{
-		// TODO Lua.funcition object should be  parallelism
+		std::set<id_type> range;
+		select_ids_by_config(mesh, dict["Domain"], mesh.range(), &range);
+		success = assign_field_by_config_impl_(mesh, range, dict["Value"], f);
+	}
+	else
+	{
+		success = assign_field_by_config_impl_(mesh, mesh.range(),
+				dict["Value"], f);
+	}
 
-		for (auto s : range)
+	if (success)
+	{
+		f->sync();
+	}
+
+	return success;
+}
+
+template<typename TMesh, typename TDomain, typename TDict, typename TF>
+bool assign_field_by_config_impl_(TMesh const & mesh, TDomain const & domain,
+		TDict const &dict, TF *f)
+{
+
+	typedef typename TF::field_value_type field_value_type;
+
+	if (dict.is_function())
+	{
+		for (auto const &s : domain)
 		{
-			auto x = mesh.coordinates(s);
-			CHECK(x);
+			(*f)[s] = mesh.sample(
+					dict(mesh.coordinates(s)).template as<field_value_type>(),
+					s);
+		}
+	}
+	else if (dict.is_table())
+	{
+		auto v = dict.template as<field_value_type>();
 
-			auto v = value(x).template as<field_value_type>();
-
+		for (auto const &s : domain)
+		{
 			(*f)[s] = mesh.sample(v, s);
 		}
 
 	}
-	else if (value.is_number() | value.is_table())
+	else
 	{
-
-		auto v = value.template as<field_value_type>();
-
-		for (auto s : range)
-		{
-
-			(*f)[s] = mesh.sample(v, s);
-		}
-
+		return false;
 	}
-
-	f->sync();
 
 	return true;
+
 }
 //template<int DIMS, typename TV, typename TDict, typename ...T>
 //bool load_field_wrap(nTuple<std::complex<TV>, DIMS>, TDict const &dict,

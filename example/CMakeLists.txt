@@ -1,3 +1,6 @@
+
+ADD_SUBDIRECTORY( misc)
+
 ADD_SUBDIRECTORY( general_field_op)
 ADD_SUBDIRECTORY( mhd)
 ADD_SUBDIRECTORY( em)

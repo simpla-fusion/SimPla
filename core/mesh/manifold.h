@@ -60,18 +60,18 @@ private:
 	std::vector<id_type> m_ids_;
 public:
 
-	Manifold() :
-			m_geometry_(nullptr)
+	Manifold()
+			: m_geometry_(nullptr)
 	{
 	}
 
-	Manifold(geometry_type const & geo) :
-			m_geometry_(geo.shared_from_this())
+	Manifold(geometry_type const & geo)
+			: m_geometry_(geo.shared_from_this())
 	{
 	}
 
-	Manifold(this_type const & other) :
-			m_geometry_(other.m_geometry_)
+	Manifold(this_type const & other)
+			: m_geometry_(other.m_geometry_)
 	{
 	}
 
@@ -99,8 +99,8 @@ public:
 	 * @{
 	 */
 	template<typename ...Others>
-	Manifold(this_type & other, Others && ...others) :
-			m_geometry_(other.m_geometry_)
+	Manifold(this_type & other, Others && ...others)
+			: m_geometry_(other.m_geometry_)
 	{
 	}
 

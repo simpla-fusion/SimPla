@@ -227,6 +227,44 @@ struct MeshIDs_
 		* COORDINATES_TO_INDEX_FACTOR) & INDEX_MASK) << (INDEX_DIGITS * 2));
 	}
 
+	template<typename TX>
+	static std::tuple<id_type, coordinates_type> coordinates_global_to_local(
+			TX const & x, id_type shift = 0UL)
+	{
+		nTuple<int, 3> idx;
+
+		coordinates_type y =
+
+		{
+
+		remquo(
+				(x[0] + COORDINATE_ZERO) * COORDINATES_TO_INDEX_FACTOR
+						- (shift | INDEX_DIGITS), 1.0, &idx[0]),
+
+		remquo(
+				(x[1] + COORDINATE_ZERO) * COORDINATES_TO_INDEX_FACTOR
+						- ((shift >> INDEX_DIGITS) | INDEX_DIGITS), 1.0,
+				&idx[1]),
+
+		remquo(
+				(x[2] + COORDINATE_ZERO) * COORDINATES_TO_INDEX_FACTOR
+						- ((shift >> (INDEX_DIGITS * 2)) | INDEX_DIGITS), 1.0,
+				&idx[2])
+
+		};
+
+		return std::tuple<id_type, coordinates_type>(
+
+		(idx[0] & INDEX_MASK)
+
+		| ((idx[1] & INDEX_MASK) << (INDEX_DIGITS))
+
+		| ((idx[2] & INDEX_MASK) << (INDEX_DIGITS * 2)) | shift
+
+		, y);
+
+	}
+
 	template<size_t FLOAT_POS = FLOATING_POINT_POS>
 	static index_tuple id_to_index(id_type const & s)
 	{
@@ -250,8 +288,8 @@ struct MeshIDs_
 
 						}));
 	}
-	//! @name id auxiliary functions
-	//! @{
+//! @name id auxiliary functions
+//! @{
 	static constexpr id_type dual(id_type s)
 	{
 		return (s & (~_DA)) | ((~(s & _DA)) & _DA);
