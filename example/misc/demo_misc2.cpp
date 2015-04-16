@@ -45,18 +45,28 @@ int main(int argc, char **argv)
 	}
 	std::cout << "Count = " << count << std::endl;
 
-	MeshIDs_<3>::range_type<VERTEX> r2(b, e);
+	MeshIDs_<3>::range_type<VERTEX> r0(b, e);
+	count = 0;
 
-	CHECK(*r2.begin());
+	for (auto v : r0)
+	{
+		std::cout << v << std::endl;
 
-//	count = 0;
-//
-//	for (auto v : r2)
-//	{
-//		std::cout << v << std::endl;
-//
-//		++count;
-//	}
-//	std::cout << "Count = " << count << std::endl;
+		++count;
+	}
+
+	std::cout << "Count = " << count << std::endl;
+
+	MeshIDs_<3>::range_type<FACE> r2(b, e);
+
+	count = 0;
+
+	for (auto v : r2)
+	{
+		std::cout << v << std::endl;
+
+		++count;
+	}
+	std::cout << "Count = " << count << std::endl;
 
 }
