@@ -47,6 +47,7 @@ int main(int argc, char **argv)
 	}
 
 	SpAppList & applist = SingletonHolder<SpAppList>::instance();
+
 	if (GLOBAL_COMM.process_num() == 0)
 
 	MESSAGE << ShowCopyRight() << endl;

@@ -44,20 +44,23 @@ public:
 	typedef typename geometry_type::id_type id_type;
 	typedef typename geometry_type::topology_type topology_type;
 	typedef typename geometry_type::index_tuple index_tuple;
+
 	typedef CalculusPolicy calculate_policy;
 	typedef InterpolatorPlolicy interpolatpr_policy;
+
 	typedef typename geometry_type::coordinates_type coordinates_type;
 	static constexpr size_t iform = IFORM;
 	static constexpr size_t ndims = geometry_type::ndims;
+
 	template<typename TV> using field_value_type=typename
 	std::conditional<iform==VERTEX || iform ==VOLUME,TV,nTuple<TV,3>>::type;
 
-	typedef std::vector<id_type> range_type;
-private:
+	typedef typename topology_type::template range_type<iform> range_type;
 
+private:
 	std::shared_ptr<const geometry_type> m_geometry_;
 
-	std::vector<id_type> m_ids_;
+	range_type m_domain_;
 public:
 
 	Manifold()
@@ -66,12 +69,13 @@ public:
 	}
 
 	Manifold(geometry_type const & geo)
-			: m_geometry_(geo.shared_from_this())
+			: m_geometry_(geo.shared_from_this()), m_domain_(
+					m_geometry_.range())
 	{
 	}
 
 	Manifold(this_type const & other)
-			: m_geometry_(other.m_geometry_)
+			: m_geometry_(other.m_geometry_), m_domain_(m_geometry_.range())
 	{
 	}
 
@@ -113,30 +117,16 @@ public:
 
 	void deploy()
 	{
-		ids(m_geometry_->template range<iform>());
+//		ids(m_geometry_->template range<iform>());
 	}
 
-	range_type const & range() const
+	range_type const & domain() const
 	{
-		return m_ids_;
+		return m_domain_;
 	}
-	range_type const & ids() const
+	void domain(range_type other)
 	{
-		return m_ids_;
-	}
-	range_type & ids()
-	{
-		return m_ids_;
-	}
-
-	template<typename TRange>
-	void ids(TRange const & range)
-	{
-		m_ids_.clear();
-		for (auto s : m_geometry_->template range<iform>())
-		{
-			m_ids_.push_back(s);
-		}
+		domain_intersection(m_domain_, other).swap(m_domain_);
 	}
 
 	DataSpace dataspace() const

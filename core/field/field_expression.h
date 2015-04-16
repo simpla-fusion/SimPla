@@ -22,6 +22,8 @@ class is_sequence_container;
 
 class is_associative_container;
 
+class is_function;
+
 }
 // namespace _impl
 

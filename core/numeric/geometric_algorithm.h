@@ -159,34 +159,48 @@ inline void reflect(TPlane const & p, Vec3 *x, Vec3 * v)
 //	}
 //	return std::make_tuple(s, t);
 //}
-//template<typename TS,  size_t  NDIMS>
-//bool Clipping(nTuple<TS,NDIMS> const & l_start, nTuple<TS,NDIMS> const &l_count, nTuple<TS,NDIMS> *pr_start,
-//        nTuple<TS,NDIMS> *pr_count)
-//{
-//	bool has_overlap = false;
-//
-//	nTuple<TS,NDIMS> & r_start = *pr_start;
-//	nTuple<TS,NDIMS> & r_count = *pr_count;
-//
-//	for (int i = 0; i < NDIMS; ++i)
-//	{
-//		if (r_start[i] + r_count[i] <= l_start[i] || r_start[i] >= l_start[i] + l_count[i])
-//			return false;
-//
-//		TS start = std::max(l_start[i], r_start[i]);
-//		TS end = std::min(l_start[i] + l_count[i], r_start[i] + r_count[i]);
-//
-//		if (end > start)
-//		{
-//			r_start[i] = start;
-//			r_count[i] = end - start;
-//
-//			has_overlap = true;
-//		}
-//	}
-//
-//	return has_overlap;
-//}
+template<typename TS, size_t NDIMS>
+bool rectangle_overlap(nTuple<TS, NDIMS> const & l_b,
+		nTuple<TS, NDIMS> const &l_e, nTuple<TS, NDIMS> *r_b,
+		nTuple<TS, NDIMS> *r_e)
+{
+	bool has_overlap = false;
+
+	nTuple<TS, NDIMS> & r_start = *r_b;
+	nTuple<TS, NDIMS> r_count = *r_e - *r_b;
+
+	nTuple<TS, NDIMS> l_count = *l_e - *l_b;
+
+	for (int i = 0; i < NDIMS; ++i)
+	{
+		if (r_start[i] + r_count[i] <= l_b[i]
+				|| r_start[i] >= l_b[i] + l_count[i])
+			return false;
+
+		TS start = std::max(l_b[i], r_start[i]);
+		TS end = std::min(l_b[i] + l_count[i], r_start[i] + r_count[i]);
+
+		if (end > start)
+		{
+			r_start[i] = start;
+			r_count[i] = end - start;
+
+			has_overlap = true;
+		}
+	}
+
+	if (!true)
+	{
+		*r_b = r_start;
+		*r_e = r_start;
+	}
+	else
+	{
+		*r_b = r_start;
+		*r_e = r_start + r_count;
+	}
+	return has_overlap;
+}
 //
 ///**
 // *  @ingroup numeric

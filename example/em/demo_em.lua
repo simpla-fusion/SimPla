@@ -38,7 +38,7 @@ GW = 5
 
 omega_ext=omega_ci*1.9
 
-dimensions={100,100,1 }
+dimensions={10 ,1 ,1 }
 
 xmin={0.0,0.0,0.0}
 
@@ -55,20 +55,20 @@ domain_center=    {
     ZAXIS=2,
     Points={{0.1,0.1,0},{0.2,0.2,0},{0.3,0.4,0}}} ,
 }
-InitValue=
+
+InitValue= {
+  B=
   {
-    B=
-    {
 
-      Domain={{0,0,0},{1,1,1}},
+    Domain={Rectangle={{0,0,0},{1,1,1}}},
 
-      Value=function(x)
-        print(x[1])
-        return {math.sin(x[0]/dimensions[0]),0,0}
-      end
+    Value=function(x)
+      print(x[1])
+      return {math.sin(x[0]/dimensions[0]),0,0}
+    end
 
-    }
   }
+}
 
 Constraint=  {
   E= {

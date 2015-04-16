@@ -104,16 +104,6 @@ public:
 		return clone_field_type<TU>(m_mesh_);
 	}
 
-	template<typename TRange>
-	this_type sub_field(TRange const & r) const
-	{
-		this_type other(*this);
-
-		other.m_mesh_.ids(r);
-
-		return std::move(other);
-	}
-
 	void clear()
 	{
 		wait();
@@ -162,27 +152,34 @@ public:
 		return *this;
 	}
 
-	template<typename TR>
-	inline this_type & operator =(TR const &that)
+	auto domain() const
+	DECL_RET_TYPE((m_mesh_.domain()))
+
+	template<typename ...Others>
+	inline this_type & operator =(_Field<TM, TV, Others...> const &other)
 	{
-		wait();
-
-		auto s_range = m_mesh_.range();
-
-		for (auto s : s_range)
-		{
-			this->operator[](s) = m_mesh_.calculate(that, s);
-		}
-
+		assign(m_mesh_.domain() & other.domain(), other);
 		return *this;
 	}
 
-	template<typename TFun> void pull_back(TFun const &fun)
+	template<typename TR>
+	inline this_type & operator =(TR const &other)
+	{
+		assign(m_mesh_.domain(), other);
+		return *this;
+	}
+private:
+	template<typename TD, typename TOther>
+	void assign(TD const & d, TOther const & other)
 	{
 		wait();
 
-		m_mesh_.pull_back(*this, fun);
+		for (auto s : d)
+		{
+			at(s) = other[s];
+		}
 	}
+public:
 
 	/** @} */
 
@@ -277,8 +274,49 @@ public:
 	auto at(Args && ... args) const
 	DECL_RET_TYPE((m_data_.get()[m_mesh_.hash(std::forward<Args>(args)...)]))
 
-	auto operator()(coordinates_type const &x) const
+	template<typename ...Others>
+	auto operator()(coordinates_type const &x, Others && ...) const
 	DECL_RET_TYPE((m_mesh_.gather(*this,x)))
+
+	template<typename TDomain, typename TFun>
+	void pull_back(TDomain const & domain, TFun const & fun)
+	{
+		wait();
+
+		Real t = m_mesh_.time();
+		for (auto s : domain)
+		{
+			this->at(s) = m_mesh_.sample(fun(m_mesh_.coordinates(s), t), s);
+		}
+	}
+
+	template<typename TFun> void pull_back(TFun const &fun)
+	{
+		pull_back(m_mesh_.range(), fun);
+	}
+
+	template<typename TDomain, typename TFun>
+	void pull_back(std::tuple<TDomain, TFun> const & fun)
+	{
+		pull_back(std::get<0>(fun), std::get<1>(fun));
+	}
+
+	template<typename TDomain, typename TFun>
+	void constraint(TDomain const & domain, TFun const & fun)
+	{
+		Real t = m_mesh_.time();
+		for (auto s : domain)
+		{
+			auto x = m_mesh_.coordinates(s);
+			this->at(s) = m_mesh_.sample(fun(x, t, (*this)(x)), s);
+		}
+	}
+
+	template<typename TDomain, typename TFun>
+	void constraint(std::tuple<TDomain, TFun> const & fun)
+	{
+		constraint(std::get<0>(fun), std::get<1>(fun));
+	}
 
 }
 ;

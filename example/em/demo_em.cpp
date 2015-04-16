@@ -16,7 +16,7 @@
 #include "../../core/io/io.h"
 
 #include "../../core/field/field.h"
-#include "../../core/field/field_fieldconstraint.h"
+#include "../../core/field/field_constraint.h"
 #include "../../core/mesh/mesh.h"
 #include "../../core/mesh/structured/structured.h"
 
@@ -56,9 +56,6 @@ USE_CASE(em," Maxwell Eqs.")
 
 	mesh->deploy();
 
-	CHECK(mesh->dimensions());
-	CHECK(mesh->max_hash());
-
 	LOGGER << std::endl
 
 	<< "[ Configuration ]" << std::endl
@@ -81,12 +78,9 @@ USE_CASE(em," Maxwell Eqs.")
 	auto B = make_form<FACE, Real>(mesh);
 
 	VERBOSE_CMD(apply_constraint(options["InitValue"]["B"], &B));
-	VERBOSE_CMD(apply_constraint(options["InitValue"]["E"], &E));
-	VERBOSE_CMD(apply_constraint(options["InitValue"]["J"], &J));
-//
-//	auto phi_bc = make_constraint<decltype(phi)>(phi.mesh(),
-//			options["Constraint"]["phi"]);
-//
+//	VERBOSE_CMD(apply_constraint(options["InitValue"]["E"], &E));
+//	VERBOSE_CMD(apply_constraint(options["InitValue"]["J"], &J));
+
 //	auto E_src = make_constraint<decltype(E)>(E.mesh(),
 //			options["Constraint"]["E"]);
 //	auto J_src = make_constraint<decltype(J)>(J.mesh(),
@@ -94,27 +88,13 @@ USE_CASE(em," Maxwell Eqs.")
 //	auto B_src = make_constraint<decltype(B)>(B.mesh(),
 //			options["Constraint"]["B"]);
 
-	phi.clear();
-
-	phi = 1.0;
-	cd("/");
-	VERBOSE << save("phi", phi, SP_APPEND) << std::endl;
-
 	LOGGER << "----------  Dump input ---------- " << std::endl;
 
 	cd("/Input/");
 
-	VERBOSE << SAVE(E) << std::endl;
 	VERBOSE << SAVE(B) << std::endl;
-	VERBOSE << SAVE(J) << std::endl;
-
-	LOGGER << "----------  START ---------- " << std::endl;
-
-	cd("/Save/");
-
-	E = 0;
-
-//	E_src(&E);
+//	VERBOSE << SAVE(E) << std::endl;
+//	VERBOSE << SAVE(J) << std::endl;
 
 	if (options["JUST_A_TEST"])
 	{
@@ -122,6 +102,9 @@ USE_CASE(em," Maxwell Eqs.")
 	}
 	else
 	{
+		LOGGER << "----------  START ---------- " << std::endl;
+
+		cd("/Save/");
 		for (size_t s = 0; s < num_of_steps; ++s)
 		{
 			VERBOSE << "Step [" << s << "/" << num_of_steps << "]" << std::endl;
@@ -136,13 +119,11 @@ USE_CASE(em," Maxwell Eqs.")
 			VERBOSE << SAVE_RECORD(B) << std::endl;
 
 		}
-
 	}
-
 	cd("/Output/");
-	VERBOSE << SAVE(E) << std::endl;
-	VERBOSE << SAVE(B) << std::endl;
-	VERBOSE << SAVE(J) << std::endl;
+//	VERBOSE << SAVE(E) << std::endl;
+//	VERBOSE << SAVE(B) << std::endl;
+//	VERBOSE << SAVE(J) << std::endl;
 
 	LOGGER << "----------  DONE ---------- " << std::endl;
 

@@ -13,6 +13,7 @@
 #include <type_traits>
 
 #include "../ntuple.h"
+#include "../../numeric/geometric_algorithm.h"
 #include "range.h"
 
 namespace simpla
@@ -82,6 +83,8 @@ struct sp_nTuple_range
 {
 public:
 
+	typedef IndexType value_type;
+
 	typedef sp_nTuple_range<IndexType, DIMS...> this_type;
 
 	typedef nTuple<IndexType, DIMS...> ntuple_type;
@@ -89,7 +92,7 @@ public:
 	struct iterator;
 	typedef iterator const_iterator;
 
-private:
+protected:
 
 	ntuple_type m_b_, m_e_;
 
@@ -172,6 +175,15 @@ public:
 	{
 		const_iterator res(m_b_, m_e_, m_e_ - 1, m_slow_first_);
 		++res;
+		return std::move(res);
+	}
+
+	this_type operator&(this_type const& other) const
+	{
+		this_type res(*this);
+
+		rectangle_overlap(other.m_b_, other.m_e_, &res.m_b_, &res.m_e_);
+
 		return std::move(res);
 	}
 };

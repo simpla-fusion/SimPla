@@ -224,6 +224,11 @@ public:
 		return L_ != nullptr;
 	}
 
+	bool is_global() const
+	{
+		return L_ != nullptr && self_ == -1;
+	}
+
 #define DEF_TYPE_CHECK(_FUN_NAME_,_LUA_FUN_)                              \
 	inline bool _FUN_NAME_() const                                        \
 	{   bool res=false;                                                   \
@@ -508,11 +513,10 @@ public:
 	}
 	inline LuaObject operator[](std::string const & s) const noexcept
 	{
-		if (!is_table())
+		if (!(is_table() || is_global()))
 			return LuaObject();
 
-		bool is_global = (self_ < 0);
-		if (is_global)
+		if (is_global())
 		{
 			lua_getglobal(L_.get(), s.c_str());
 		}
@@ -533,7 +537,7 @@ public:
 
 			int id = luaL_ref(L_.get(), GLOBAL_REF_IDX_);
 
-			if (!is_global)
+			if (!is_global())
 			{
 				lua_pop(L_.get(), 1);
 			}
@@ -547,7 +551,7 @@ public:
 	//! unsafe fast access, no boundary check, no path information
 	inline LuaObject operator[](int s) const noexcept
 	{
-		if (!is_table())
+		if (!(is_table() || is_global()))
 			return LuaObject();
 
 		if (self_ < 0 || L_ == nullptr)
@@ -567,7 +571,7 @@ public:
 	//! index operator with out_of_range exception
 	template<typename TIDX> inline LuaObject at(TIDX const & s) const
 	{
-		if (!is_table())
+		if (!(is_table() || is_global()))
 			return LuaObject();
 
 		LuaObject res = this->operator[](s);
@@ -585,7 +589,7 @@ public:
 	//! safe access, with boundary check, no path information
 	inline LuaObject at(int s) const
 	{
-		if (!is_table())
+		if (!(is_table() || is_global()))
 			return LuaObject();
 
 		if (self_ < 0 || L_ == nullptr)
@@ -614,8 +618,6 @@ public:
 
 	template<typename ...Args> LuaObject operator()(Args const &... args) const
 	{
-		if (!is_function())
-			return LuaObject();
 
 		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
 
@@ -623,17 +625,15 @@ public:
 
 		if (!lua_isfunction(L_.get(), idx))
 		{
-			LOGIC_ERROR(path_ + " is not  a function!");
+			return LuaObject(*this);
 		}
-//		else
-//		{
-//			VERBOSE << "execute Lua function" << std::endl;
-//		}
+		else
+		{
+			LUA_ERROR(lua_pcall(L_.get(), ToLua(L_, args...), 1, 0));
 
-		LUA_ERROR(lua_pcall(L_.get(), ToLua(L_, args...), 1, 0));
-
-		return LuaObject(L_, GLOBAL_REF_IDX_,
-				luaL_ref(L_.get(), GLOBAL_REF_IDX_), path_ + "[ret]");
+			return LuaObject(L_, GLOBAL_REF_IDX_,
+					luaL_ref(L_.get(), GLOBAL_REF_IDX_), path_ + "[ret]");
+		}
 
 	}
 
@@ -656,6 +656,12 @@ public:
 		typename array_to_ntuple_convert<T>::type res;
 		as(&res);
 		return std::move(res);
+	}
+
+	template<typename T>
+	operator T() const
+	{
+		return as<T>();
 	}
 
 	template<typename ... T> inline std::tuple<T...> as_tuple() const

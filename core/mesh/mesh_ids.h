@@ -274,17 +274,35 @@ struct MeshIDs_
 
 						static_cast<long>((s & INDEX_MASK)
 								>> (MAX_MESH_LEVEL - MESH_LEVEL))
-								- static_cast<long>(INDEX_ZERO << MESH_LEVEL),
+								- static_cast<index_type>(INDEX_ZERO
+										<< MESH_LEVEL),
 
 						static_cast<long>(((s >> (INDEX_DIGITS)) & INDEX_MASK)
 								>> (MAX_MESH_LEVEL - MESH_LEVEL))
-								- static_cast<long>(INDEX_ZERO << MESH_LEVEL),
+								- static_cast<index_type>(INDEX_ZERO
+										<< MESH_LEVEL),
 
 						static_cast<long>(((s >> (INDEX_DIGITS * 2))
 								& INDEX_MASK) >> (MAX_MESH_LEVEL - MESH_LEVEL))
-								- static_cast<long>(INDEX_ZERO << MESH_LEVEL)
+								- static_cast<index_type>(INDEX_ZERO
+										<< MESH_LEVEL)
 
 						}));
+	}
+	static nTuple<index_type, NDIMS + 1> unpack(id_type s)
+	{
+		return nTuple<index_type, NDIMS + 1>(
+
+				static_cast<index_type>((s & INDEX_MASK) >> (MAX_MESH_LEVEL))
+						- static_cast<long>(INDEX_ZERO),
+
+				static_cast<index_type>(((s >> (INDEX_DIGITS)) & INDEX_MASK)
+						>> (MAX_MESH_LEVEL)) - static_cast<long>(INDEX_ZERO),
+
+				static_cast<index_type>(((s >> (INDEX_DIGITS * 2)) & INDEX_MASK)
+						>> (MAX_MESH_LEVEL)) - static_cast<long>(INDEX_ZERO),
+
+				node_id(s));
 	}
 //! @name id auxiliary functions
 //! @{
@@ -1327,10 +1345,42 @@ struct MeshIDs_<NDIMS, INIFIT_AXIS>::range_type: public sp_nTuple_range<size_t,
 
 		id_type operator*() const
 		{
-			CHECK(base_iterator::operator*());
 			return MeshIDs::id<IFORM>(base_iterator::operator*());
 		}
 	};
+
+	bool is_element(id_type s) const
+	{
+		auto i = MeshIDs::unpack(s);
+		bool res = true;
+		for (int n = 0; n < ndims; ++n)
+		{
+			if (i[n] < base_type::m_b_[n] || i[n] >= base_type::m_b_[n])
+			{
+				res = false;
+				break;
+			}
+		}
+		return res;
+
+	}
+
+	this_type operator&(this_type const& other) const
+	{
+		return this_type(base_type::operator&(other));
+	}
+	std::set<id_type> operator&(std::set<id_type> const& other) const
+	{
+		std::set<id_type> res;
+		for (auto s : other)
+		{
+			if (is_element(s))
+			{
+				res.insert(s);
+			}
+		}
+		return std::move(res);
+	}
 };
 
 }
