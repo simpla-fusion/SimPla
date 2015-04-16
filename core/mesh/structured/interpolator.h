@@ -37,8 +37,9 @@ public:
 	typedef InterpolatorLinear<G> this_type;
 
 	typedef G geometry_type;
-	typedef typename G::coordinates_type coordinates_type;
-	typedef typename G::topology_type topology_type;
+	typedef typename geometry_type::ids ids;
+	typedef typename geometry_type::coordinates_type coordinates_type;
+	typedef typename geometry_type::topology_type topology_type;
 
 	InterpolatorLinear()
 	{
@@ -79,16 +80,16 @@ public:
 	static inline auto gather(geometry_type const & geo, TF const &f,
 			coordinates_type const & r)  //
 					ENABLE_IF_DECL_RET_TYPE((field_traits<TF >::iform==VERTEX),
-							( gather_impl_(f, geo.coordinates_global_to_local(r, 0UL) )))
+							( gather_impl_(f, geo.template coordinates_global_to_local<VERTEX>(r, 0 ) )))
 
 	template<typename TF>
 	static auto gather(geometry_type const & geo, TF const &f,
 			coordinates_type const & r)
 					ENABLE_IF_DECL_RET_TYPE((field_traits<TF >::iform==EDGE),
 							make_nTuple(
-									gather_impl_(f, geo.coordinates_global_to_local(r, (topology_type::_DI)) ),
-									gather_impl_(f, geo.coordinates_global_to_local(r, (topology_type::_DJ)) ),
-									gather_impl_(f, geo.coordinates_global_to_local(r, (topology_type::_DK)) )
+									gather_impl_(f, geo.template coordinates_global_to_local<EDGE>(r, 0) ),
+									gather_impl_(f, geo.template coordinates_global_to_local<EDGE>(r, 1) ),
+									gather_impl_(f, geo.template coordinates_global_to_local<EDGE>(r, 2) )
 							))
 
 	template<typename TF>
@@ -97,16 +98,16 @@ public:
 					ENABLE_IF_DECL_RET_TYPE(
 							(field_traits<TF >::iform==FACE),
 							make_nTuple(
-									gather_impl_(f, geo.coordinates_global_to_local(r,((topology_type::_DJ | topology_type::_DK))) ),
-									gather_impl_(f, geo.coordinates_global_to_local(r,((topology_type::_DK | topology_type::_DI))) ),
-									gather_impl_(f, geo.coordinates_global_to_local(r,((topology_type::_DI | topology_type::_DJ))) )
+									gather_impl_(f, geo.template coordinates_global_to_local<FACE>(r,0) ),
+									gather_impl_(f, geo.template coordinates_global_to_local<FACE>(r,1) ),
+									gather_impl_(f, geo.template coordinates_global_to_local<FACE>(r,2) )
 							) )
 
 	template<typename TF>
 	static auto gather(geometry_type const & geo, TF const &f,
 			coordinates_type const & x)
 					ENABLE_IF_DECL_RET_TYPE((field_traits<TF >::iform==VOLUME),
-							gather_impl_(f, geo.coordinates_global_to_local(x, (topology_type::_DA)) ))
+							gather_impl_(f, geo.template coordinates_global_to_local<VOLUME>(x ) ))
 
 private:
 	template<typename TF, typename IDX, typename TV>
@@ -137,7 +138,7 @@ public:
 			TW const &w) ->typename std::enable_if< (field_traits<TF >::iform==VERTEX)>::type
 	{
 
-		scatter_impl_(f, geo.coordinates_global_to_local(x, 0UL), u * w);
+		scatter_impl_(f, geo.coordinates_global_to_local<VERTEX>(x), u * w);
 	}
 
 	template<typename TF, typename TV, typename TW>
@@ -145,15 +146,9 @@ public:
 			coordinates_type const & x, TV const &u,
 			TW const & w) ->typename std::enable_if< (field_traits<TF >::iform==EDGE)>::type
 	{
-		scatter_impl_(f,
-				geo.coordinates_global_to_local(x, (topology_type::_DI)),
-				u[0] * w);
-		scatter_impl_(f,
-				geo.coordinates_global_to_local(x, (topology_type::_DJ)),
-				u[1] * w);
-		scatter_impl_(f,
-				geo.coordinates_global_to_local(x, (topology_type::_DK)),
-				u[2] * w);
+		scatter_impl_(f, geo.coordinates_global_to_local<EDGE>(x, 0), u[0] * w);
+		scatter_impl_(f, geo.coordinates_global_to_local<EDGE>(x, 1), u[1] * w);
+		scatter_impl_(f, geo.coordinates_global_to_local<EDGE>(x, 2), u[2] * w);
 
 	}
 
@@ -163,15 +158,9 @@ public:
 			TW const &w) ->typename std::enable_if< (field_traits<TF >::iform==FACE)>::type
 	{
 
-		scatter_impl_(f,
-				geo.coordinates_global_to_local(x,
-						((topology_type::_DJ | topology_type::_DK))), u[0] * w);
-		scatter_impl_(f,
-				geo.coordinates_global_to_local(x,
-						((topology_type::_DK | topology_type::_DI))), u[1] * w);
-		scatter_impl_(f,
-				geo.coordinates_global_to_local(x,
-						((topology_type::_DI | topology_type::_DJ))), u[2] * w);
+		scatter_impl_(f, geo.coordinates_global_to_local<FACE>(x, 0), u[0] * w);
+		scatter_impl_(f, geo.coordinates_global_to_local<FACE>(x, 1), u[1] * w);
+		scatter_impl_(f, geo.coordinates_global_to_local<FACE>(x, 2), u[2] * w);
 	}
 
 	template<typename TF, typename TV, typename TW>

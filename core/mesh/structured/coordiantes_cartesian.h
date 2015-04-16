@@ -33,6 +33,7 @@ struct CartesianCoordinates: public TTopology, public enable_create_from_this<
 
 public:
 	typedef TTopology topology_type;
+	typedef typename topology_type::ids ids;
 	typedef CartesianCoordinates<topology_type> this_type;
 	typedef std::shared_ptr<this_type> holder_type;
 	static constexpr size_t ndims = topology_type::ndims;
@@ -380,9 +381,10 @@ public:
 //	DECL_RET_TYPE((topology_type::coordinates_to_index(
 //							coordinates_to_topology(x))))
 
-	inline id_type coordinates_to_id(coordinates_type const &x)const
+	template<size_t IFORM=0>
+	inline id_type coordinates_to_id(coordinates_type const &x,int n=0)const
 	{
-		return topology_type::coordinates_to_id(coordinates_to_topology(x));
+		return topology_type::template coordinates_to_id<IFORM>(coordinates_to_topology(x),n);
 	}
 	/**
 	 * @bug: truncation error of coordinates transform larger than 1000
@@ -395,24 +397,25 @@ public:
 	{
 		return std::move(
 				coordinates_from_topology(
-						topology_type::coordinates_local_to_global(
+						ids::coordinates_local_to_global(
 								std::forward<Args >(args)...)));
 	}
 
+	template<size_t IFORM>
 	std::tuple<id_type, coordinates_type> coordinates_global_to_local(
-			coordinates_type x, id_type shift = 0UL) const
+			coordinates_type x,int n=0) const
 	{
 		return std::move(
-				topology_type::coordinates_global_to_local(
-						std::move(coordinates_to_topology(x)), shift));
+				ids::template coordinates_global_to_local<IFORM>(
+						std::move(coordinates_to_topology(x)), n));
 	}
-	std::tuple<id_type, coordinates_type> coordinates_global_to_local_NGP(
-			coordinates_type x, id_type shift = 0UL) const
-	{
-		return std::move(
-				topology_type::coordinates_global_to_local_NGP(
-						std::move(coordinates_to_topology(x)), shift));
-	}
+//	std::tuple<id_type, coordinates_type> coordinates_global_to_local_NGP(
+//			coordinates_type x, id_type shift = 0UL) const
+//	{
+//		return std::move(
+//				topology_type::coordinates_global_to_local_NGP(
+//						std::move(coordinates_to_topology(x)), shift));
+//	}
 
 	nTuple<Real, 3> MapToCartesian(coordinates_type const &y) const
 	{

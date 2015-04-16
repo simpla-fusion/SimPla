@@ -460,12 +460,6 @@ public:
 
 	/**@}*/
 
-
-	std::tuple<id_type,coordinates_type> coordinates_global_to_local(coordinates_type const & y)
-	{
-		id_type s= MeshIDs::coordinates_to_id()
-	}
-
 	template<typename TD>
 	auto gather(TD const & d,
 			coordinates_type const & x) const->decltype(d[std::declval<index_tuple>()])
