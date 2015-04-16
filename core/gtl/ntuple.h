@@ -409,6 +409,38 @@ nTuple<TInts, sizeof...(N)> seq2ntuple(integer_sequence<TInts, N...>)
 {
 	return std::move(nTuple<TInts, sizeof...(N)>( { N... }));
 }
+template<typename TV, size_t N, typename T1>
+nTuple<TV, N> append_ntuple(T1 const & v0, TV const & v1)
+{
+	nTuple<TV, N> res;
+	res = v0;
+	res[N - 1] = v1;
+	return std::move(res);
+}
+
+template<typename TV, size_t N, typename T2>
+nTuple<TV, N + 1> join_ntuple(nTuple<TV, N> const & left, T2 right)
+{
+	nTuple<TV, N + 1> res;
+	res = left;
+	res[N] = right;
+	return std::move(res);
+}
+
+template<typename T1, size_t N, typename T2, size_t M>
+nTuple<T1, N + M> join_ntuple(nTuple<T1, N> const & left, nTuple<T2, M> right)
+{
+	nTuple<T1, N + M> res;
+	for (int i = 0; i < N; ++i)
+	{
+		res[i] = left[i];
+	}
+	for (int i = 0; i < M; ++i)
+	{
+		res[i + N] = right[i];
+	}
+	return std::move(res);
+}
 
 template<typename T, size_t N> using Vector=nTuple<T,N>;
 
@@ -474,6 +506,12 @@ inline double mod(double const&v)
 template<typename TR, typename T, size_t ... N>
 auto dot(nTuple<T, N...> const & l, TR const& r)
 DECL_RET_TYPE ((inner_product(l, r) ))
+
+template<typename T> inline auto determinant(nTuple<T, 3> const & m)
+DECL_RET_TYPE(m[0]*m[1]*m[2])
+
+template<typename T> inline auto determinant(nTuple<T, 4> const & m)
+DECL_RET_TYPE(m[0]*m[1]*m[2]*m[3])
 
 template<typename T> inline auto determinant(
 		Matrix<T, 3, 3> const & m)

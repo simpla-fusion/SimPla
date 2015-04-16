@@ -20,3 +20,5 @@ ADD_SUBDIRECTORY( field )
 
 ADD_SUBDIRECTORY( particle)
 
+add_library(simpla_aux   )
+TARGET_LINK_LIBRARIES(simpla_aux  application physics utilities io parallel dataset )
