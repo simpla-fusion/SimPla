@@ -12,13 +12,13 @@ namespace simpla
 {
 template<typename ...>class _Field;
 
-template<typename TM, typename TV, typename TDomain, typename TFun> class _Field<
-		TM, TV, _impl::is_function, TDomain, TFun>
+template<typename TM, typename TV, typename TFun> class _Field<TM, TV,
+		_impl::is_function, TFun>
 {
 	typedef TM mesh_type;
 	typedef TV value_type;
 	typedef TFun function_type;
-	typedef TDomain domain_type;
+	typedef typename TM::id_set domain_type;
 
 	typedef _Field<mesh_type, value_type, _impl::is_function, domain_type,
 			function_type> this_type;
@@ -33,14 +33,14 @@ private:
 
 	mesh_type m_mesh_;
 public:
-	template<typename TD, typename TF> _Field(mesh_type const & mesh,
-			TD const& domain, TF const& fun)
-			: m_mesh_(mesh), m_domain_(domain), m_fun_(fun)
+	template<typename TF> _Field(mesh_type const & mesh,
+			domain_type const& domain, TF const& fun) :
+			m_mesh_(mesh), m_domain_(domain), m_fun_(fun)
 	{
 	}
 
-	_Field(this_type && other)
-			: m_mesh_(other.m_mesh_), m_domain_(other.m_domain_), m_fun_(
+	_Field(this_type && other) :
+			m_mesh_(other.m_mesh_), m_domain_(other.m_domain_), m_fun_(
 					other.m_fun_)
 	{
 	}

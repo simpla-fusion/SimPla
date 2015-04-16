@@ -91,6 +91,8 @@ USE_CASE(em," Maxwell Eqs.")
 
 	LOGGER << "----------  Dump input ---------- " << std::endl;
 
+	E = 0;
+
 	cd("/Input/");
 
 	VERBOSE << SAVE(B) << std::endl;

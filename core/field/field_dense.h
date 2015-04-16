@@ -169,15 +169,28 @@ public:
 		return *this;
 	}
 private:
-	template<typename TD, typename TOther>
-	void assign(TD const & d, TOther const & other)
+	template<typename TOther>
+	void assign(typename mesh_type::domain_type const & d, TOther const & other)
 	{
 		wait();
 
-		for (auto s : d)
+		if (d.is_continue())
 		{
-			at(s) = m_mesh_.calculate(other, s);
+			for (auto s : d.template range<mesh_type::iform>())
+			{
+				at(s) = m_mesh_.calculate(other, s);
+			}
 		}
+		else
+		{
+			CHECK("empty domain");
+
+			for (auto s : d)
+			{
+				at(s) = m_mesh_.calculate(other, s);
+			}
+		}
+
 	}
 public:
 

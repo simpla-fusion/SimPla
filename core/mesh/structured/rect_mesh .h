@@ -116,8 +116,7 @@ public:
 	{
 	}
 
-	RectMesh_(RectMesh_ const & other)
-			:
+	RectMesh_(RectMesh_ const & other) :
 //			m_xmin_(other.m_xmin_), m_xmax_(other.m_xmax_), m_dx_(other.m_dx_),
 
 			m_index_global_dimensions_(other.m_index_global_dimensions_),
@@ -279,24 +278,15 @@ public:
 		return std::make_pair(xmin, xmax);
 	}
 
-	template<size_t IFORM = 0>
-	typename ids::template range_type<IFORM> range() const
+	typename ids::domain_type domain() const
 	{
-		return ids::template make_range<IFORM>(m_index_global_offset_,
-				m_index_count_);
-
+		return typename ids::domain_type(m_index_global_offset_,
+				m_index_global_offset_ + m_index_count_);
 	}
 
-	template<size_t IFORM, typename ...Args>
-	typename ids::template range_type<IFORM> range(Args && ...args) const
+	typename ids::domain_type global_domain() const
 	{
-		return (ids::template make_range<IFORM>(std::forward<Args>(args)...));
-	}
-
-	template<size_t IFORM = 0>
-	typename ids::template range_type<IFORM> global_range() const
-	{
-		return ids::template make_range<IFORM>(m_index_global_dimensions_);
+		return typename ids::domain_type(0, m_index_global_dimensions_);
 	}
 
 	void deploy()

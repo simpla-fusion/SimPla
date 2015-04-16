@@ -66,7 +66,7 @@ template<size_t NDIMS = 3, size_t INIFIT_AXIS = 0>
 struct MeshIDs_
 {
 	typedef size_t id_type;
-	typedef long index_type;
+	typedef typename std::make_signed<id_type>::type index_type;
 	typedef nTuple<Real, 3> coordinates_type;
 	typedef nTuple<index_type, 3> index_tuple;
 	static constexpr size_t ndims = NDIMS;
@@ -192,6 +192,7 @@ struct MeshIDs_
 
 		;
 	}
+
 	template<size_t IFORM, typename TInt>
 	static constexpr id_type id(nTuple<TInt, 3> const &i, int n = 0)
 	{
@@ -551,13 +552,8 @@ struct MeshIDs_
 
 	template<size_t IFORM> struct range_type;
 
-	struct id_set;
+	struct domain_type;
 
-	template<size_t IFORM, typename ...Args>
-	static range_type<IFORM> make_range(Args && ...args)
-	{
-		return range_type<IFORM>(std::forward<Args>(args)...);
-	}
 //**************************************************************************
 	/**
 	 * @name Neighgour
@@ -1310,19 +1306,25 @@ struct MeshIDs_<NDIMS, INIFIT_AXIS>::range_type: public sp_nTuple_range<size_t,
 	struct iterator;
 	typedef iterator const_iterator;
 
-	typedef sp_nTuple_range<size_t, NDIMS + 1> base_type;
+	typedef sp_nTuple_range<size_t,
+			(IFORM == VERTEX || IFORM == VOLUME) ? NDIMS : NDIMS + 1> base_type;
 
-	typedef typename base_type::ntuple_type index_tuple;
 	range_type()
 	{
-
 	}
 	template<typename T0, typename T1>
-	range_type(T0 const & min, T1 const & max) :
-			base_type(append_ntuple<size_t, NDIMS + 1>(min, 0),
-					append_ntuple<size_t, NDIMS + 1>((max),
-							(IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3))
+	range_type(T0 const & min, T1 const & max)
 	{
+		typename base_type::ntuple_type b, e;
+		b = min;
+		e = max;
+		if (IFORM == EDGE || IFORM == FACE)
+		{
+			b[NDIMS] = 0;
+			e[NDIMS] = 3;
+		}
+
+		base_type(b, e).swap(*this);
 	}
 
 	range_type(range_type const & other) :
@@ -1399,17 +1401,50 @@ struct MeshIDs_<NDIMS, INIFIT_AXIS>::range_type: public sp_nTuple_range<size_t,
 };
 
 template<size_t NDIMS, size_t INIFIT_AXIS>
-struct MeshIDs_<NDIMS, INIFIT_AXIS>::id_set: public std::set<id_type>
+struct MeshIDs_<NDIMS, INIFIT_AXIS>::domain_type: public std::set<id_type>
 {
-	typedef std::set<id_type> base_type;
+	typedef domain_type this_type;
 
-	typedef id_set this_type;
+	nTuple<index_type, NDIMS> m_b_, m_e_;
 
-	sp_nTuple_range<size_t, NDIMS + 1> m_bound_box_;
+	domain_type()
+	{
+		m_b_ = 0;
+		m_e_ = 0;
+	}
+	template<typename T0, typename T1>
+	domain_type(T0 const & min, T1 const & max)
+	{
+		m_b_ = (min);
+		m_e_ = (max);
+		CHECK(m_b_);
+		CHECK(m_e_);
+	}
 
-	auto bound_box() const
-	DECL_RET_TYPE(m_bound_box_)
+	domain_type(domain_type const & other) :
+			m_b_(other.m_b_), m_e_(other.m_e_)
+	{
+	}
+	domain_type operator=(domain_type const & other)
+	{
+		domain_type(other).swap(*this);
+		return *this;
+	}
+	void swap(domain_type & other)
+	{
+		std::swap(m_b_, other.m_b_);
+		std::swap(m_e_, other.m_e_);
+	}
+	bool is_continue() const
+	{
+		return (std::set<id_type>::size() == 0) && (m_b_ != m_e_);
+	}
+	template<size_t IFORM>
+	range_type<IFORM> range() const
+	{
 
+		return range_type<IFORM>(m_b_, m_e_);
+	}
 };
 
 }
