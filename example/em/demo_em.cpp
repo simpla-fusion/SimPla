@@ -77,7 +77,8 @@ USE_CASE(em," Maxwell Eqs.")
 	auto E = make_form<EDGE, Real>(mesh);
 	auto B = make_form<FACE, Real>(mesh);
 
-	VERBOSE_CMD(apply_constraint(options["InitValue"]["B"], &B));
+//	VERBOSE_CMD(B = load_field < EDGE, Real > (mesh, options["InitValue"]["B"]))
+	;
 //	VERBOSE_CMD(apply_constraint(options["InitValue"]["E"], &E));
 //	VERBOSE_CMD(apply_constraint(options["InitValue"]["J"], &J));
 

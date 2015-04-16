@@ -25,7 +25,7 @@ template<typename TM, typename TV, typename TDomain, typename TFun> class _Field
 
 	typedef typename mesh_type::id_type id_type;
 	typedef typename mesh_type::coordinates_type coordinates_type;
-	typedef typename mesh_type::field_value_type<TV> field_value_type;
+	typedef typename mesh_type::template field_value_type<TV> field_value_type;
 
 private:
 	function_type m_fun_;

@@ -14,17 +14,14 @@
 namespace simpla
 {
 
-template<typename TM, typename TV, typename TDict>
-auto make_constraint(TM const & mesh, TDict const & dict)
-{
-	auto op = dict["Value"];
-
-	typedef typename TM::template field_value_type<TV> field_value_type;
-
-	return make_field_function<TM, TV>(
-			select_ids_by_configure(mesh, dict["Domain"]), dict["Value"]);
-
-}
+//template<typename TM, typename TV, typename TDict>
+//auto make_constraint(TM const & mesh, TDict const & dict)
+//{
+//
+//	return make_field_function<TM, TV>(
+//			select_ids_by_configure(mesh, dict["Domain"]), dict["Value"]);
+//
+//}
 
 }
 // namespace simpla

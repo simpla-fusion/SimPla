@@ -371,13 +371,13 @@ struct MeshIDs_
 			deploy();
 		}
 
-		id_hasher(this_type const & other)
-				: m_dimensions_(other.m_dimensions_), m_offset_(other.m_offset_)
+		id_hasher(this_type const & other) :
+				m_dimensions_(other.m_dimensions_), m_offset_(other.m_offset_)
 		{
 			deploy();
 		}
-		id_hasher(this_type && other)
-				: m_dimensions_(other.m_dimensions_), m_offset_(other.m_offset_)
+		id_hasher(this_type && other) :
+				m_dimensions_(other.m_dimensions_), m_offset_(other.m_offset_)
 		{
 			deploy();
 		}
@@ -550,6 +550,8 @@ struct MeshIDs_
 	}
 
 	template<size_t IFORM> struct range_type;
+
+	struct id_set;
 
 	template<size_t IFORM, typename ...Args>
 	static range_type<IFORM> make_range(Args && ...args)
@@ -1304,21 +1306,30 @@ template<size_t IFORM>
 struct MeshIDs_<NDIMS, INIFIT_AXIS>::range_type: public sp_nTuple_range<size_t,
 		NDIMS + 1>
 {
+	typedef range_type<IFORM> this_type;
 	struct iterator;
 	typedef iterator const_iterator;
 
 	typedef sp_nTuple_range<size_t, NDIMS + 1> base_type;
 
 	typedef typename base_type::ntuple_type index_tuple;
+	range_type()
+	{
 
+	}
 	template<typename T0, typename T1>
-	range_type(T0 const & min, T1 const & max)
-			: base_type(append_ntuple<size_t, NDIMS + 1>(min, 0),
+	range_type(T0 const & min, T1 const & max) :
+			base_type(append_ntuple<size_t, NDIMS + 1>(min, 0),
 					append_ntuple<size_t, NDIMS + 1>((max),
 							(IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3))
 	{
 	}
 
+	range_type(range_type const & other) :
+			base_type(other)
+	{
+
+	}
 	const_iterator begin() const
 	{
 		return std::move(const_iterator(base_type::begin()));
@@ -1328,15 +1339,19 @@ struct MeshIDs_<NDIMS, INIFIT_AXIS>::range_type: public sp_nTuple_range<size_t,
 		return std::move(const_iterator(base_type::end()));
 	}
 
+	bool is_empty() const
+	{
+		return base_type::is_empty();
+	}
+
 	struct iterator: public std::iterator<
-								typename base_type::iterator::iterator_category,
-								id_type, id_type>,
-						public base_type::iterator
+			typename base_type::iterator::iterator_category, id_type, id_type>,
+			public base_type::iterator
 	{
 		typedef typename base_type::iterator base_iterator;
 
-		iterator(base_iterator const & other)
-				: base_iterator(other)
+		iterator(base_iterator const & other) :
+				base_iterator(other)
 		{
 		}
 		~iterator()
@@ -1381,6 +1396,20 @@ struct MeshIDs_<NDIMS, INIFIT_AXIS>::range_type: public sp_nTuple_range<size_t,
 		}
 		return std::move(res);
 	}
+};
+
+template<size_t NDIMS, size_t INIFIT_AXIS>
+struct MeshIDs_<NDIMS, INIFIT_AXIS>::id_set: public std::set<id_type>
+{
+	typedef std::set<id_type> base_type;
+
+	typedef id_set this_type;
+
+	sp_nTuple_range<size_t, NDIMS + 1> m_bound_box_;
+
+	auto bound_box() const
+	DECL_RET_TYPE(m_bound_box_)
+
 };
 
 }

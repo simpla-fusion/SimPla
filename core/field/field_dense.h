@@ -61,16 +61,16 @@ private:
 
 public:
 
-	_Field(mesh_type const & d)
-			: m_mesh_(d), m_data_(nullptr)
+	_Field(mesh_type const & d) :
+			m_mesh_(d), m_data_(nullptr)
 	{
 	}
-	_Field(this_type const & other)
-			: m_mesh_(other.m_mesh_), m_data_(other.m_data_)
+	_Field(this_type const & other) :
+			m_mesh_(other.m_mesh_), m_data_(other.m_data_)
 	{
 	}
-	_Field(this_type && other)
-			: m_mesh_(other.m_mesh_), m_data_(other.m_data_)
+	_Field(this_type && other) :
+			m_mesh_(other.m_mesh_), m_data_(other.m_data_)
 	{
 	}
 	~_Field()
@@ -176,7 +176,7 @@ private:
 
 		for (auto s : d)
 		{
-			at(s) = other[s];
+			at(s) = m_mesh_.calculate(other, s);
 		}
 	}
 public:

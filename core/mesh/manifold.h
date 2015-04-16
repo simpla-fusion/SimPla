@@ -63,19 +63,20 @@ private:
 	range_type m_domain_;
 public:
 
-	Manifold()
-			: m_geometry_(nullptr)
+	Manifold() :
+			m_geometry_(nullptr)
 	{
 	}
 
-	Manifold(geometry_type const & geo)
-			: m_geometry_(geo.shared_from_this()), m_domain_(
-					m_geometry_.range())
+	Manifold(geometry_type const & geo) :
+			m_geometry_(geo.shared_from_this()), m_domain_(
+					m_geometry_->template range<iform>())
 	{
 	}
 
-	Manifold(this_type const & other)
-			: m_geometry_(other.m_geometry_), m_domain_(m_geometry_.range())
+	Manifold(this_type const & other) :
+			m_geometry_(other.m_geometry_), m_domain_(
+					m_geometry_->template range<iform>())
 	{
 	}
 
@@ -103,8 +104,8 @@ public:
 	 * @{
 	 */
 	template<typename ...Others>
-	Manifold(this_type & other, Others && ...others)
-			: m_geometry_(other.m_geometry_)
+	Manifold(this_type & other, Others && ...others) :
+			m_geometry_(other.m_geometry_)
 	{
 	}
 
@@ -117,7 +118,7 @@ public:
 
 	void deploy()
 	{
-//		ids(m_geometry_->template range<iform>());
+//		ids(m_geometry_->template domain<iform>());
 	}
 
 	range_type const & domain() const
@@ -173,7 +174,7 @@ public:
 	void calculate(
 			_Field<AssignmentExpression<TOP, TL, TR> > const & fexpr) const
 	{
-		for (auto s : range())
+		for (auto s : domain())
 		{
 			fexpr.op_(fexpr.lhs[s],
 					calculate_policy::calculate(*m_geometry_, fexpr.rhs, s));

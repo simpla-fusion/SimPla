@@ -193,19 +193,19 @@ void select_ids_by_config(TDict const & dict, TIN const & in, TOUT *out,
 	}
 	else if (dict["Index"])
 	{
-		typedef nTuple<size_t,
-				(TM::iform == VERTEX || TM::iform == VOLUME) ? 1 : 3> index_tuple;
-
-		auto ids = dict["Index"];
-
-		for (auto const& item : ids)
-		{
-			res->insert(mesh.id(item.as<index_tuple>()))
-		}
-		dict["Rectangle"].as(&points);
-
-		select_ids_in_rectangle(points[0], points[1],
-				std::forward<Args>(args)...);
+//		typedef nTuple<size_t,
+//				(TM::iform == VERTEX || TM::iform == VOLUME) ? 1 : 3> index_tuple;
+//
+//		auto ids = dict["Index"];
+//
+//		for (auto const& item : ids)
+//		{
+//			res->insert(mesh.id(item.as<index_tuple>()))
+//		}
+//		dict["Rectangle"].as(&points);
+//
+//		select_ids_in_rectangle(points[0], points[1],
+//				std::forward<Args>(args)...);
 
 	}
 //	else if (dict["Polyline"])

@@ -15,9 +15,8 @@
 
 namespace simpla
 {
-
-template<typename TDict, typename TF>
-bool assign_field_by_config(TDict const &dict, TF *f)
+template<typename TDict, typename TField>
+void load_field(TDict const & dict, TField *f)
 {
 
 	if (!dict)
@@ -41,29 +40,17 @@ bool assign_field_by_config(TDict const &dict, TF *f)
 	{
 		f->clear();
 	}
-	typedef TF field_type;
+	typedef TField field_type;
 
 	typedef typename field_type::mesh_type mesh_type;
 
-	typedef typename field_type::field_value_type field_value_type;
-
-	typedef typename mesh_type::id_type id_type;
+	typedef typename field_type::value_type value_type;
 
 	auto const & mesh = f->mesh();
 
 	bool success = false;
 
-	if (dict["Domain"])
-	{
-		std::set<id_type> range;
-		select_ids_by_config(mesh, dict["Domain"], mesh.range(), &range);
-		success = assign_field_by_config_impl_(mesh, range, dict["Value"], f);
-	}
-	else
-	{
-		success = assign_field_by_config_impl_(mesh, mesh.range(),
-				dict["Value"], f);
-	}
+	*f = make_field_function<value_type>(mesh, dict["Domain"], dict["Value"]);
 
 	if (success)
 	{
@@ -72,41 +59,41 @@ bool assign_field_by_config(TDict const &dict, TF *f)
 
 	return success;
 }
-
-template<typename TMesh, typename TDomain, typename TDict, typename TF>
-bool assign_field_by_config_impl_(TMesh const & mesh, TDomain const & domain,
-		TDict const &dict, TF *f)
-{
-
-	typedef typename TF::field_value_type field_value_type;
-
-	if (dict.is_function())
-	{
-		for (auto const &s : domain)
-		{
-			(*f)[s] = mesh.sample(
-					dict(mesh.coordinates(s)).template as<field_value_type>(),
-					s);
-		}
-	}
-	else if (dict.is_table())
-	{
-		auto v = dict.template as<field_value_type>();
-
-		for (auto const &s : domain)
-		{
-			(*f)[s] = mesh.sample(v, s);
-		}
-
-	}
-	else
-	{
-		return false;
-	}
-
-	return true;
-
-}
+//
+//template<typename TMesh, typename TDomain, typename TDict, typename TF>
+//bool assign_field_by_config_impl_(TMesh const & mesh, TDomain const & domain,
+//		TDict const &dict, TF *f)
+//{
+//
+//	typedef typename TF::field_value_type field_value_type;
+//
+//	if (dict.is_function())
+//	{
+//		for (auto const &s : domain)
+//		{
+//			(*f)[s] = mesh.sample(
+//					dict(mesh.coordinates(s)).template as<field_value_type>(),
+//					s);
+//		}
+//	}
+//	else if (dict.is_table())
+//	{
+//		auto v = dict.template as<field_value_type>();
+//
+//		for (auto const &s : domain)
+//		{
+//			(*f)[s] = mesh.sample(v, s);
+//		}
+//
+//	}
+//	else
+//	{
+//		return false;
+//	}
+//
+//	return true;
+//
+//}
 //template<int DIMS, typename TV, typename TDict, typename ...T>
 //bool load_field_wrap(nTuple<std::complex<TV>, DIMS>, TDict const &dict,
 //		_Field<T...> *f)
