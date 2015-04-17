@@ -320,7 +320,7 @@ public:
 		DataSpace(1, &total_count).swap(res.dataspace);
 
 		res.dataspace.select_hyperslab(&offset, nullptr, &count, nullptr) //
-		.convert_to_local();
+		.add_ghosts();
 
 		VERBOSE << "dump particles [" << count << "/" << total_count << "] "
 				<< std::endl;

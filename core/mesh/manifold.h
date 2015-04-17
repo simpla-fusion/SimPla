@@ -62,19 +62,19 @@ private:
 	domain_type m_domain_;
 public:
 
-	Manifold() :
-			m_geometry_(nullptr)
+	Manifold()
+			: m_geometry_(nullptr)
 	{
 	}
 
-	Manifold(geometry_type const & geo) :
-			m_geometry_(geo.shared_from_this()), m_domain_(
+	Manifold(geometry_type const & geo)
+			: m_geometry_(geo.shared_from_this()), m_domain_(
 					m_geometry_->domain())
 	{
 	}
 
-	Manifold(this_type const & other) :
-			m_geometry_(other.m_geometry_), m_domain_(m_geometry_->domain())
+	Manifold(this_type const & other)
+			: m_geometry_(other.m_geometry_), m_domain_(m_geometry_->domain())
 	{
 	}
 
@@ -89,6 +89,9 @@ public:
 		m_geometry_ = other.m_geometry_->shared_from_this();
 		return *this;
 	}
+public:
+	template<typename TV>
+	using field_value_type=typename std::conditional<iform==EDGE ||iform==FACE,nTuple<TV,3>,TV>::type;
 
 	template<size_t J> using clone_type= Manifold<J,TG, CalculusPolicy, InterpolatorPlolicy>;
 
@@ -102,8 +105,8 @@ public:
 	 * @{
 	 */
 	template<typename ...Others>
-	Manifold(this_type & other, Others && ...others) :
-			m_geometry_(other.m_geometry_)
+	Manifold(this_type & other, Others && ...others)
+			: m_geometry_(other.m_geometry_)
 	{
 	}
 
@@ -117,19 +120,6 @@ public:
 	void deploy()
 	{
 //		ids(m_geometry_->template domain<iform>());
-	}
-
-	domain_type & domain()
-	{
-		return m_domain_;
-	}
-	domain_type const& domain() const
-	{
-		return m_domain_;
-	}
-	void domain(domain_type other)
-	{
-		m_domain_ = other;
 	}
 
 	DataSpace dataspace() const

@@ -16,63 +16,46 @@ namespace simpla
 {
 struct DataSpace::pimpl_s
 {
-	typedef nTuple<size_t, MAX_NDIMS_OF_ARRAY> index_tuple;
 
-	size_t m_ndims_ = 3;
-	index_tuple m_dimensions_;
-	index_tuple m_count_;
-	index_tuple m_offset_;
-	index_tuple m_stride_;
-	index_tuple m_block_;
-	std::unique_ptr<DataSpace> m_global_space_;
+	typedef pimpl_s this_type;
+
+	pimpl_s()
+	{
+	}
+	pimpl_s(this_type const & other)
+			: m_file_shape_(other.m_file_shape_), m_memory_shape_(
+					other.m_memory_shape_)
+	{
+	}
+	void swap(this_type & other)
+	{
+		std::swap(m_file_shape_, other.m_file_shape_);
+		std::swap(m_memory_shape_, other.m_memory_shape_);
+	}
+	this_type & operator=(pimpl_s & other)
+	{
+		this_type(other).swap(other);
+		return *this;
+	}
+	~pimpl_s()
+	{
+	}
+private:
+	shape_s m_file_shape_;
+	shape_s m_memory_shape_;
+
 };
 
 //===================================================================
 
-DataSpace::DataSpace() :
-		pimpl_
-		{ nullptr }
+DataSpace::DataSpace()
+		: pimpl_ { nullptr }
 {
 }
 
-DataSpace::DataSpace(int ndims, size_t const * dims) :
-		pimpl_(new pimpl_s)
+DataSpace::DataSpace(const DataSpace& other)
+		: pimpl_(new pimpl_s(other.pimpl_s))
 {
-	pimpl_->m_ndims_ = ndims;
-	pimpl_->m_dimensions_ = dims;
-	pimpl_->m_count_ = dims;
-	pimpl_->m_offset_ = 0;
-	pimpl_->m_stride_ = 1;
-	pimpl_->m_block_ = 1;
-	pimpl_->m_global_space_ = std::unique_ptr<DataSpace>(nullptr);
-}
-DataSpace::DataSpace(const DataSpace& other) :
-		pimpl_(nullptr)
-{
-	if (other.pimpl_ != nullptr)
-	{
-		pimpl_ = std::unique_ptr<pimpl_s>
-		{ new pimpl_s };
-
-		pimpl_->m_ndims_ = other.pimpl_->m_ndims_;
-		pimpl_->m_dimensions_ = other.pimpl_->m_dimensions_;
-		pimpl_->m_count_ = other.pimpl_->m_count_;
-		pimpl_->m_offset_ = other.pimpl_->m_offset_;
-		pimpl_->m_stride_ = other.pimpl_->m_stride_;
-		pimpl_->m_block_ = other.pimpl_->m_block_;
-
-		if (other.pimpl_->m_global_space_ != nullptr)
-		{
-			pimpl_->m_global_space_ = std::unique_ptr<DataSpace>(
-					new DataSpace(*other.pimpl_->m_global_space_));
-		}
-		else
-		{
-			pimpl_->m_global_space_ = std::unique_ptr<DataSpace>
-			{ nullptr };
-		}
-	}
-
 }
 
 DataSpace::~DataSpace()
@@ -83,42 +66,36 @@ void DataSpace::swap(DataSpace &other)
 {
 	pimpl_.swap(other.pimpl_);
 }
-DataSpace DataSpace::create_simple(int ndims, const size_t * dims)
+
+DataSpace::DataSpace(int rank, const size_t * dims, const size_t * l_count,
+		const size_t * l_offset, const size_t * l_stride,
+		const size_t * l_block)
+		: pimpl_(new pimpl_s)
 {
-	return std::move(DataSpace(ndims, dims));
+	pimpl_->m_file_shape_.ndims = rank;
+	pimpl_->m_file_shape_.dimensions = dims;
+	pimpl_->m_file_shape_.count = dims;
+	pimpl_->m_file_shape_.offset = 0;
+	pimpl_->m_file_shape_.stride = 1;
+	pimpl_->m_file_shape_.block = 1;
+
+	pimpl_->m_file_shape_ = pimpl_->m_memory_shape_;
+
 }
 
 bool DataSpace::is_valid() const
 {
 	return pimpl_ != nullptr;
 }
-bool DataSpace::is_distributed() const
-{
-	return pimpl_->m_global_space_ != nullptr;
-}
 
-std::tuple<size_t, size_t const *, size_t const *, size_t const *,
-		size_t const *, size_t const *> DataSpace::shape() const
+DataSpace::shape_s DataSpace::memory_shape() const
 {
-	return std::make_tuple(pimpl_->m_ndims_, //
-			&pimpl_->m_dimensions_[0], //
-			&pimpl_->m_offset_[0], //
-			&pimpl_->m_stride_[0], //
-			&pimpl_->m_count_[0], //
-			&pimpl_->m_block_[0]);
+	return pimpl_->m_memory_shape_;
 }
-std::tuple<size_t, size_t const *, size_t const *, size_t const *,
-		size_t const *, size_t const *> DataSpace::global_shape() const
+DataSpace::shape_s DataSpace::file_shape() const
 {
-	if (pimpl_->m_global_space_ != nullptr)
-	{
-		return std::move(pimpl_->m_global_space_->shape());
-	}
-	else
-	{
-		return std::move(shape());
-	}
 
+	return pimpl_->m_file_shape_;
 }
 
 DataSpace & DataSpace::select_hyperslab(size_t const * offset,
@@ -131,48 +108,37 @@ DataSpace & DataSpace::select_hyperslab(size_t const * offset,
 
 	if (offset != nullptr)
 	{
-		pimpl_->m_offset_ += offset;
+		pimpl_->m_memory_shape_.offset += offset;
 	}
 	if (count != nullptr)
 	{
-		pimpl_->m_count_ = count;
+		pimpl_->m_memory_shape_.count = count;
 	}
 	if (stride != nullptr)
 	{
-		pimpl_->m_stride_ *= stride;
+		pimpl_->m_memory_shape_.stride *= stride;
 
 	}
 	if (block != nullptr)
 	{
-		pimpl_->m_block_ *= block;
-	}
-
-	if (pimpl_->m_global_space_ != nullptr)
-	{
-		pimpl_->m_global_space_->select_hyperslab(offset, stride, count, block);
+		pimpl_->m_memory_shape_.block *= block;
 	}
 
 	return *this;
 
 }
 
-DataSpace & DataSpace::convert_to_local(size_t const * gw)
+DataSpace & DataSpace::add_ghosts(size_t const * gw)
 {
-
-	if (pimpl_->m_global_space_ == nullptr)
-	{
-		pimpl_->m_global_space_ = std::unique_ptr<DataSpace>(
-				new DataSpace(*this));
-	}
-
-	pimpl_->m_dimensions_ = pimpl_->m_count_;
-	pimpl_->m_offset_ = 0;
-	pimpl_->m_stride_ = pimpl_->m_block_;
+	pimpl_->m_memory_shape_.dimensions = pimpl_->m_memory_shape_.count;
+	pimpl_->m_memory_shape_.offset = 0;
+	pimpl_->m_memory_shape_.stride = pimpl_->m_memory_shape_.block;
 
 	if (gw != nullptr)
 	{
-		pimpl_->m_offset_ = gw;
-		pimpl_->m_dimensions_ += pimpl_->m_offset_ * 2;
+		pimpl_->m_memory_shape_.offset = gw;
+		pimpl_->m_memory_shape_.dimensions += pimpl_->m_memory_shape_.offset
+				* 2;
 	}
 	return *this;
 }

@@ -13,6 +13,7 @@
 #include <cstdbool>
 
 #include "../dataset/datatype.h"
+#include "../dataset/dataspace.h"
 
 namespace simpla
 {
@@ -36,13 +37,8 @@ struct MPIDataType
 
 	~MPIDataType();
 
-//	static MPIDataType create(DataType const &);
-
 	static MPIDataType create(DataType const & data_type,
-			unsigned int ndims = 0, size_t const * dims = nullptr,
-			size_t const * count = nullptr, size_t const * offset = nullptr,
-			size_t const * stride = nullptr, size_t const * block = nullptr,
-			bool c_order_array = true);
+			DataSpace const & dataspace = DataSpace());
 
 	template<typename T, typename ...Others>
 	static MPIDataType create(Others && ... others)

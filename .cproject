@@ -5,10 +5,10 @@
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.toolchain.gnu.base.1043708958" moduleId="org.eclipse.cdt.core.settings" name="Default">
 				<externalSettings/>
 				<extensions>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
@@ -25,7 +25,7 @@
 							<tool id="cdt.managedbuild.tool.llvm.archiver.base.473509479" name="LLVM archiver" superClass="cdt.managedbuild.tool.llvm.archiver.base"/>
 							<tool id="cdt.managedbuild.tool.llvm.c.compiler.base.1290125719" name="LLVM Clang" superClass="cdt.managedbuild.tool.llvm.c.compiler.base">
 								<option id="cdt.managedbuild.tool.llvm.c.compiler.option.dialect.std.1382293612" name="Language standard" superClass="cdt.managedbuild.tool.llvm.c.compiler.option.dialect.std" useByScannerDiscovery="true" value="gnu.c.compiler.dialect.default" valueType="enumerated"/>
-								<option id="llvm.c_cpp.compiler.option.include.paths.1338760194" superClass="llvm.c_cpp.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
+								<option id="llvm.c_cpp.compiler.option.include.paths.1338760194" name="Include paths (-I)" superClass="llvm.c_cpp.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="/usr/lib/gcc/x86_64-redhat-linux/4.8.2/include"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.llvm.c.compiler.input.692072217" superClass="cdt.managedbuild.tool.llvm.c.compiler.input"/>
@@ -33,6 +33,7 @@
 							<tool id="cdt.managedbuild.tool.llvm.cpp.compiler.base.1634847619" name="LLVM Clang++" superClass="cdt.managedbuild.tool.llvm.cpp.compiler.base">
 								<option id="llvm.c_cpp.compiler.option.include.paths.68709411" name="Include paths (-I)" superClass="llvm.c_cpp.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="/usr/lib/gcc/x86_64-redhat-linux/4.8.2/include"/>
+									<listOptionValue builtIn="false" value="/usr/include/openmpi-x86_64/"/>
 								</option>
 								<option id="cdt.managedbuild.tool.llvm.cpp.compiler.option.dialect.std.1771456466" name="Language standard" superClass="cdt.managedbuild.tool.llvm.cpp.compiler.option.dialect.std" useByScannerDiscovery="true" value="gnu.cpp.compiler.dialect.c++11" valueType="enumerated"/>
 								<inputType id="cdt.managedbuild.tool.llvm.cpp.compiler.input.89518265" superClass="cdt.managedbuild.tool.llvm.cpp.compiler.input"/>

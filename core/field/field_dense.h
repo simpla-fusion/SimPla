@@ -46,6 +46,7 @@ struct _Field<TM, TV, _impl::is_sequence_container> : public SpObject
 
 	typedef typename mesh_type::id_type id_type;
 	typedef typename mesh_type::coordinates_type coordinates_type;
+	typedef typename mesh_type::domain_type domain_type;
 
 	typedef TV value_type;
 
@@ -56,21 +57,21 @@ struct _Field<TM, TV, _impl::is_sequence_container> : public SpObject
 private:
 
 	mesh_type m_mesh_;
-
+	domain_type m_domain_;
 	std::shared_ptr<TV> m_data_;
 
 public:
 
-	_Field(mesh_type const & d) :
-			m_mesh_(d), m_data_(nullptr)
+	_Field(mesh_type const & d)
+			: m_mesh_(d), m_data_(nullptr)
 	{
 	}
-	_Field(this_type const & other) :
-			m_mesh_(other.m_mesh_), m_data_(other.m_data_)
+	_Field(this_type const & other)
+			: m_mesh_(other.m_mesh_), m_data_(other.m_data_)
 	{
 	}
-	_Field(this_type && other) :
-			m_mesh_(other.m_mesh_), m_data_(other.m_data_)
+	_Field(this_type && other)
+			: m_mesh_(other.m_mesh_), m_data_(other.m_data_)
 	{
 	}
 	~_Field()
@@ -152,8 +153,10 @@ public:
 		return *this;
 	}
 
-	auto domain() const
-	DECL_RET_TYPE((m_mesh_.domain()))
+	domain_type const & domain() const
+	{
+		return m_domain_;
+	}
 
 	template<typename ...Others>
 	inline this_type & operator =(_Field<TM, TV, Others...> const &other)
@@ -174,22 +177,10 @@ private:
 	{
 		wait();
 
-		if (d.is_continue())
+		d.foreach([&](id_type const &s)
 		{
-			for (auto s : d.template range<mesh_type::iform>())
-			{
-				at(s) = m_mesh_.calculate(other, s);
-			}
-		}
-		else
-		{
-			CHECK("empty domain");
-
-			for (auto s : d)
-			{
-				at(s) = m_mesh_.calculate(other, s);
-			}
-		}
+			at(s) = m_mesh_.calculate(other, s);
+		});
 
 	}
 public:
@@ -234,7 +225,7 @@ public:
 
 		res.datatype = DataType::create<value_type>();
 
-		res.dataspace = m_mesh_.dataspace();
+		res.dataspace = m_mesh_.dataspace(domain());
 
 		res.properties = SpObject::properties;
 
@@ -246,7 +237,7 @@ public:
 	{
 		wait();
 
-		auto s_range = m_mesh_.range();
+		auto s_range = m_mesh_.domain();
 
 		for (auto s : s_range)
 		{
@@ -259,7 +250,7 @@ public:
 	{
 		ASSERT(is_ready());
 
-		auto s_range = m_mesh_.range();
+		auto s_range = m_mesh_.domain();
 
 		for (auto s : s_range)
 		{

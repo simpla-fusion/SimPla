@@ -46,17 +46,16 @@ struct DataStream::pimpl_s
 			std::string const & url);
 	std::tuple<std::string, hid_t> open_group(std::string const & path);
 	std::tuple<std::string, hid_t> open_file(std::string const & path,
-	bool is_append = false);
+			bool is_append = false);
 
 	std::string pwd() const;
 
-	hid_t create_h5_datatype(DataType const &, size_t flag = 0UL) const;
+	hid_t convert_datatype_sp_to_h5(DataType const &, size_t flag = 0UL) const;
+	hid_t convert_dataspace_sp_to_h5(DataSpace const &,
+			size_t flag = 0UL) const;
 
-	template<typename TS>
-	hid_t create_h5_dataspace(TS const &, size_t flag = 0UL) const;
-
-	DataType convert_h5_data_type_to_sp(hid_t) const;
-	DataSpace convert_h5_data_space_to_sp(hid_t) const;
+	DataType convert_datatype_h5_to_sp(hid_t) const;
+	DataSpace convert_dataspace_h5_to_sp(hid_t) const;
 
 	void set_attribute(hid_t loc_id, std::string const & name, Any const & v);
 	void set_attribute(hid_t loc_id, Properties const & v);
@@ -211,7 +210,7 @@ std::tuple<bool, std::string> DataStream::cd(std::string const &url,
 
 	if (obj_name != "")
 		is_existed = H5Lexists(pimpl_->base_group_id_, obj_name.c_str(),
-		H5P_DEFAULT) != 0;
+				H5P_DEFAULT) != 0;
 
 	return std::make_tuple(is_existed, obj_name);
 }
@@ -280,7 +279,7 @@ void DataStream::pimpl_s::set_attribute(hid_t loc_id, std::string const &name,
 		hid_t m_space = H5Screate(H5S_SCALAR);
 
 		hid_t a_id = H5Acreate(loc_id, name.c_str(), m_type, m_space,
-		H5P_DEFAULT, H5P_DEFAULT);
+				H5P_DEFAULT, H5P_DEFAULT);
 
 		H5Awrite(a_id, m_type, s_str.c_str());
 
@@ -290,12 +289,12 @@ void DataStream::pimpl_s::set_attribute(hid_t loc_id, std::string const &name,
 	}
 	else
 	{
-		hid_t m_type = create_h5_datatype(any_v.datatype());
+		hid_t m_type = convert_datatype_sp_to_h5(any_v.datatype());
 
 		hid_t m_space = H5Screate(H5S_SCALAR);
 
 		hid_t a_id = H5Acreate(loc_id, name.c_str(), m_type, m_space,
-		H5P_DEFAULT, H5P_DEFAULT);
+				H5P_DEFAULT, H5P_DEFAULT);
 
 		H5Awrite(a_id, m_type, any_v.data());
 
@@ -350,10 +349,10 @@ void DataStream::delete_attribute(std::string const &url)
 		std::tie(grp_name, g_id) = pimpl_->open_group(grp_name);
 
 		if (H5Aexists_by_name(g_id, obj_name.c_str(), attr_name.c_str(),
-		H5P_DEFAULT))
+				H5P_DEFAULT))
 		{
 			H5Adelete_by_name(g_id, obj_name.c_str(), attr_name.c_str(),
-			H5P_DEFAULT);
+					H5P_DEFAULT);
 		}
 		if (g_id != pimpl_->base_group_id_)
 			H5Gclose(g_id);
@@ -453,7 +452,7 @@ std::tuple<std::string, hid_t> DataStream::pimpl_s::open_file(
 
 	hid_t plist_id;
 
-	H5_ERROR(plist_id= H5Pcreate(H5P_FILE_ACCESS));
+	H5_ERROR(plist_id = H5Pcreate(H5P_FILE_ACCESS));
 
 	if (GLOBAL_COMM.is_valid())
 	{
@@ -463,7 +462,8 @@ std::tuple<std::string, hid_t> DataStream::pimpl_s::open_file(
 	hid_t f_id;
 
 	H5_ERROR(
-			f_id = H5Fcreate( filename.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, plist_id));
+			f_id = H5Fcreate(filename.c_str(), H5F_ACC_EXCL, H5P_DEFAULT,
+					plist_id));
 
 	H5_ERROR(H5Pclose(plist_id));
 
@@ -494,14 +494,15 @@ std::tuple<std::string, hid_t> DataStream::pimpl_s::open_group(
 	else
 	{
 		H5_ERROR(
-				g_id = H5Gcreate(base_file_id_, path.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT));
+				g_id = H5Gcreate(base_file_id_, path.c_str(), H5P_DEFAULT,
+						H5P_DEFAULT, H5P_DEFAULT));
 	}
 
 	return std::make_tuple(path, g_id);
 
 }
 
-hid_t DataStream::pimpl_s::create_h5_datatype(DataType const &d_type,
+hid_t DataStream::pimpl_s::convert_datatype_sp_to_h5(DataType const &d_type,
 		size_t is_compact_array) const
 {
 	hid_t res = H5T_NO_CLASS;
@@ -555,7 +556,7 @@ hid_t DataStream::pimpl_s::create_h5_datatype(DataType const &d_type,
 			}
 			hid_t res2 = res;
 
-			H5_ERROR(res2 = H5Tarray_create(res, d_type.rank(), dims ));
+			H5_ERROR(res2 = H5Tarray_create(res, d_type.rank(), dims));
 
 			if (H5Tcommitted(res) > 0)
 				H5_ERROR(H5Tclose(res));
@@ -569,8 +570,7 @@ hid_t DataStream::pimpl_s::create_h5_datatype(DataType const &d_type,
 
 		for (auto const & item : d_type.members())
 		{
-			hid_t t_member = create_h5_datatype(std::get<0>(item),
-			true);
+			hid_t t_member = convert_datatype_sp_to_h5(std::get<0>(item), true);
 			H5_ERROR(
 					H5Tinsert(res, std::get<1>(item).c_str(), std::get<2>(item),
 							t_member));
@@ -587,7 +587,7 @@ hid_t DataStream::pimpl_s::create_h5_datatype(DataType const &d_type,
 	return (res);
 }
 
-DataType DataStream::pimpl_s::convert_h5_data_type_to_sp(hid_t t_id) const
+DataType DataStream::pimpl_s::convert_datatype_h5_to_sp(hid_t t_id) const
 {
 
 	bool bad_cast_error = true;
@@ -609,7 +609,7 @@ DataType DataStream::pimpl_s::convert_h5_data_type_to_sp(hid_t t_id) const
 		for (int i = 0, num = H5Tget_nmembers(t_id); i < num; ++i)
 		{
 			dtype.push_back(
-					convert_h5_data_type_to_sp(H5Tget_member_type(t_id, i)),
+					convert_datatype_h5_to_sp(H5Tget_member_type(t_id, i)),
 					std::string(H5Tget_member_name(t_id, i)),
 					H5Tget_member_offset(t_id, i));
 		}
@@ -704,7 +704,7 @@ DataType DataStream::pimpl_s::convert_h5_data_type_to_sp(hid_t t_id) const
 		{
 			dims2[i] = dims[i];
 		}
-		H5_ERROR(H5Tget_array_dims(t_id,dims));
+		H5_ERROR(H5Tget_array_dims(t_id, dims));
 
 		dtype.extent(rank, dims2);
 	}
@@ -719,7 +719,7 @@ DataType DataStream::pimpl_s::convert_h5_data_type_to_sp(hid_t t_id) const
 
 }
 template<typename TS>
-hid_t DataStream::pimpl_s::create_h5_dataspace(TS const &d_shape,
+hid_t DataStream::pimpl_s::convert_dataspace_sp_to_h5(TS const &d_shape,
 		size_t flag) const
 {
 
@@ -760,7 +760,7 @@ hid_t DataStream::pimpl_s::create_h5_dataspace(TS const &d_shape,
 	return res;
 
 }
-DataSpace DataStream::pimpl_s::convert_h5_data_space_to_sp(hid_t) const
+DataSpace DataStream::pimpl_s::convert_dataspace_h5_to_sp(hid_t) const
 {
 	UNIMPLEMENTED;
 
@@ -783,12 +783,13 @@ std::string DataStream::write(std::string const & url, DataSet const &ds,
 
 	std::tie(is_existed, dsname) = this->cd(url, flag);
 
-	hid_t m_type = pimpl_->create_h5_datatype(ds.datatype);
+	hid_t m_type = pimpl_->convert_datatype_sp_to_h5(ds.datatype);
 
-	hid_t m_space = pimpl_->create_h5_dataspace(ds.dataspace.shape(), SP_NEW);
+	hid_t m_space = pimpl_->convert_dataspace_sp_to_h5(
+			ds.dataspace.memory_shape(), SP_NEW);
 
-	hid_t f_space = pimpl_->create_h5_dataspace(ds.dataspace.global_shape(),
-			flag);
+	hid_t f_space = pimpl_->convert_dataspace_sp_to_h5(
+			ds.dataspace.file_shape(), flag);
 
 	hid_t dset;
 
@@ -813,7 +814,8 @@ std::string DataStream::write(std::string const & url, DataSet const &ds,
 		}
 
 		H5_ERROR(
-				dset = H5Dcreate(pimpl_->base_group_id_, dsname.c_str(), m_type, f_space, H5P_DEFAULT, dcpl_id, H5P_DEFAULT));
+				dset = H5Dcreate(pimpl_->base_group_id_, dsname.c_str(), m_type,
+						f_space, H5P_DEFAULT, dcpl_id, H5P_DEFAULT));
 
 		if (dcpl_id != H5P_DEFAULT)
 		{
@@ -825,7 +827,8 @@ std::string DataStream::write(std::string const & url, DataSet const &ds,
 	{
 
 		H5_ERROR(
-				dset = H5Dopen(pimpl_->base_group_id_, dsname.c_str(), H5P_DEFAULT));
+				dset = H5Dopen(pimpl_->base_group_id_, dsname.c_str(),
+						H5P_DEFAULT));
 
 		pimpl_s::index_tuple current_dimensions;
 

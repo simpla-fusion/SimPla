@@ -14,6 +14,8 @@
 #include "../gtl/primitives.h"
 #include "../gtl/type_traits.h"
 
+#include "../../parallel/mpi_comm.h"
+#include "../../parallel/mpi_aux_functions.h"
 #include <stddef.h>
 #include <algorithm>
 #include <limits>
@@ -66,9 +68,18 @@ template<size_t NDIMS = 3, size_t INIFIT_AXIS = 0>
 struct MeshIDs_
 {
 	typedef size_t id_type;
-	typedef typename std::make_signed<id_type>::type index_type;
+
+//	typedef typename std::make_signed<id_type>::type index_type;
+	typedef long index_type;
+
 	typedef nTuple<Real, 3> coordinates_type;
+
 	typedef nTuple<index_type, 3> index_tuple;
+
+	template<size_t IFORM> struct range_type;
+
+	struct domain_type;
+
 	static constexpr size_t ndims = NDIMS;
 
 	static constexpr size_t FULL_DIGITS = std::numeric_limits<size_t>::digits;
@@ -174,8 +185,14 @@ struct MeshIDs_
 					VOLUME // 111
 			};
 
+	template<int IFORM, typename ...Args>
+	static id_type id(Args && ...args)
+	{
+		return pack<IFORM>(std::forward<Args>(args)...);
+	}
+
 	template<size_t IFORM, typename TInt>
-	static constexpr id_type id(TInt i, TInt j, TInt k, int n = 0)
+	static constexpr id_type pack(TInt i, TInt j, TInt k, int n = 0)
 	{
 		return
 
@@ -194,76 +211,31 @@ struct MeshIDs_
 	}
 
 	template<size_t IFORM, typename TInt>
-	static constexpr id_type id(nTuple<TInt, 3> const &i, int n = 0)
+	static constexpr id_type pack(nTuple<TInt, 3> const &i, int n = 0)
 	{
-		return id<IFORM>(i[0], i[1], i[2], n);
+		return pack<IFORM>(i[0], i[1], i[2], n);
 	}
 	template<size_t IFORM, typename TInt>
-	static constexpr id_type id(nTuple<TInt, 4> const &i)
+	static constexpr id_type pack(nTuple<TInt, 4> const &i)
 	{
-		return id<IFORM>(i[0], i[1], i[2], i[4]);
+		return pack<IFORM>(i[0], i[1], i[2], i[4]);
 	}
 
-	template<size_t IFORM, typename TX>
-	static constexpr id_type coordinates_to_id(TX const &x, int n = 0)
+	template<size_t IFORM>
+	static nTuple<index_type, NDIMS + 1> unpack(id_type s)
 	{
-		return
+		return nTuple<index_type, NDIMS + 1>(
 
-		(static_cast<size_t>((x[0] + COORD_ZERO
-				- m_sub_node_coordinates_shift_[IFORM][n][0])
-				* COORD_TO_INDEX_FACTOR) & INDEX_MASK)
+				static_cast<index_type>((s & INDEX_MASK) >> (MAX_MESH_LEVEL))
+						- static_cast<long>(INDEX_ZERO),
 
-				| ((static_cast<size_t>((x[1] + COORD_ZERO
-						- m_sub_node_coordinates_shift_[IFORM][n][1])  //
-				* COORD_TO_INDEX_FACTOR) & INDEX_MASK) << (INDEX_DIGITS))
+				static_cast<index_type>(((s >> (INDEX_DIGITS)) & INDEX_MASK)
+						>> (MAX_MESH_LEVEL)) - static_cast<long>(INDEX_ZERO),
 
-				| ((static_cast<size_t>((x[2] + COORD_ZERO
-						- m_sub_node_coordinates_shift_[IFORM][n][2])  //
-				* COORD_TO_INDEX_FACTOR) & INDEX_MASK) << (INDEX_DIGITS * 2))
+				static_cast<index_type>(((s >> (INDEX_DIGITS * 2)) & INDEX_MASK)
+						>> (MAX_MESH_LEVEL)) - static_cast<long>(INDEX_ZERO),
 
-				| m_sub_node_id_shift_[IFORM][n];
-	}
-
-	template<size_t IFORM, typename TX>
-	static std::tuple<id_type, coordinates_type> coordinates_global_to_local(
-			TX const & y, int n = 0)
-	{
-		nTuple<int, 3> idx;
-
-		coordinates_type x;
-
-		x = (y + COORD_ZERO - m_sub_node_coordinates_shift_[IFORM][n])
-				* COORD_TO_INDEX_FACTOR;
-
-		x[0] = std::remquo(x[0], COORD_TO_INDEX_FACTOR, &idx[0])
-				* INDEX_TO_COORD_FACTOR;
-		x[1] = std::remquo(x[1], COORD_TO_INDEX_FACTOR, &idx[1])
-				* INDEX_TO_COORD_FACTOR;
-		x[2] = std::remquo(x[2], COORD_TO_INDEX_FACTOR, &idx[2])
-				* INDEX_TO_COORD_FACTOR;
-
-		return std::make_tuple(id<IFORM>(idx, n), x);
-
-	}
-
-	static constexpr coordinates_type id_to_coordinates(id_type s)
-	{
-		return std::move(coordinates_type { //
-
-				std::fma(static_cast<Real>(s & INDEX_MASK),
-						INDEX_TO_COORD_FACTOR, -COORD_ZERO),
-
-				std::fma(static_cast<Real>((s >> INDEX_DIGITS) & INDEX_MASK),
-						INDEX_TO_COORD_FACTOR, -COORD_ZERO),
-
-						std::fma(
-								static_cast<Real>((s >> (INDEX_DIGITS * 2))
-										& INDEX_MASK), INDEX_TO_COORD_FACTOR,
-								-COORD_ZERO)
-
-				}
-
-				);
+				node_id(s));
 	}
 
 	template<size_t MESH_LEVEL = 0>
@@ -290,21 +262,65 @@ struct MeshIDs_
 
 						}));
 	}
-	static nTuple<index_type, NDIMS + 1> unpack(id_type s)
+
+	template<size_t IFORM, typename TX>
+	static constexpr id_type coordinates_to_id(TX const &x, int n = 0)
 	{
-		return nTuple<index_type, NDIMS + 1>(
+		return
 
-				static_cast<index_type>((s & INDEX_MASK) >> (MAX_MESH_LEVEL))
-						- static_cast<long>(INDEX_ZERO),
+		(static_cast<size_t>((x[0] - m_sub_node_coordinates_shift_[IFORM][n][0])
+				* COORD_TO_INDEX_FACTOR) & INDEX_MASK)
 
-				static_cast<index_type>(((s >> (INDEX_DIGITS)) & INDEX_MASK)
-						>> (MAX_MESH_LEVEL)) - static_cast<long>(INDEX_ZERO),
+				| ((static_cast<size_t>((x[1]
+						- m_sub_node_coordinates_shift_[IFORM][n][1]) //
+				* COORD_TO_INDEX_FACTOR) & INDEX_MASK) << (INDEX_DIGITS))
 
-				static_cast<index_type>(((s >> (INDEX_DIGITS * 2)) & INDEX_MASK)
-						>> (MAX_MESH_LEVEL)) - static_cast<long>(INDEX_ZERO),
+				| ((static_cast<size_t>((x[2]
+						- m_sub_node_coordinates_shift_[IFORM][n][2]) //
+				* COORD_TO_INDEX_FACTOR) & INDEX_MASK) << (INDEX_DIGITS * 2))
 
-				node_id(s));
+				| m_sub_node_id_shift_[IFORM][n];
 	}
+
+	template<size_t IFORM, typename TX>
+	static std::tuple<id_type, coordinates_type> coordinates_global_to_local(
+			TX const & y, int n = 0)
+	{
+		nTuple<int, 3> idx;
+
+		coordinates_type x;
+
+		x = (y - m_sub_node_coordinates_shift_[IFORM][n])
+				* COORD_TO_INDEX_FACTOR;
+
+		x[0] = std::remquo(x[0], COORD_TO_INDEX_FACTOR, &idx[0])
+				* INDEX_TO_COORD_FACTOR;
+		x[1] = std::remquo(x[1], COORD_TO_INDEX_FACTOR, &idx[1])
+				* INDEX_TO_COORD_FACTOR;
+		x[2] = std::remquo(x[2], COORD_TO_INDEX_FACTOR, &idx[2])
+				* INDEX_TO_COORD_FACTOR;
+
+		return std::make_tuple(id<IFORM>(idx, n), x);
+
+	}
+
+	static constexpr coordinates_type id_to_coordinates(id_type s)
+	{
+		return std::move(coordinates_type { //
+
+				static_cast<Real>(s & INDEX_MASK) * INDEX_TO_COORD_FACTOR,
+
+				static_cast<Real>((s >> INDEX_DIGITS) & INDEX_MASK)
+						* INDEX_TO_COORD_FACTOR,
+
+				static_cast<Real>((s >> (INDEX_DIGITS * 2)) & INDEX_MASK)
+						* INDEX_TO_COORD_FACTOR
+
+				}
+
+				);
+	}
+
 //! @name id auxiliary functions
 //! @{
 	static constexpr id_type dual(id_type s)
@@ -335,7 +351,6 @@ struct MeshIDs_
 			1, // 101
 			0, // 110
 			0, // 111
-
 			};
 	static constexpr int node_id(id_type const & s)
 	{
@@ -372,13 +387,13 @@ struct MeshIDs_
 			deploy();
 		}
 
-		id_hasher(this_type const & other) :
-				m_dimensions_(other.m_dimensions_), m_offset_(other.m_offset_)
+		id_hasher(this_type const & other)
+				: m_dimensions_(other.m_dimensions_), m_offset_(other.m_offset_)
 		{
 			deploy();
 		}
-		id_hasher(this_type && other) :
-				m_dimensions_(other.m_dimensions_), m_offset_(other.m_offset_)
+		id_hasher(this_type && other)
+				: m_dimensions_(other.m_dimensions_), m_offset_(other.m_offset_)
 		{
 			deploy();
 		}
@@ -549,10 +564,6 @@ struct MeshIDs_
 
 		return 4;
 	}
-
-	template<size_t IFORM> struct range_type;
-
-	struct domain_type;
 
 //**************************************************************************
 	/**
@@ -1300,7 +1311,7 @@ typedef MeshIDs_<3, 0> MeshIDs;
 template<size_t NDIMS, size_t INIFIT_AXIS>
 template<size_t IFORM>
 struct MeshIDs_<NDIMS, INIFIT_AXIS>::range_type: public sp_nTuple_range<size_t,
-		NDIMS + 1>
+		(IFORM == VERTEX || IFORM == VOLUME) ? NDIMS : NDIMS + 1>
 {
 	typedef range_type<IFORM> this_type;
 	struct iterator;
@@ -1327,8 +1338,8 @@ struct MeshIDs_<NDIMS, INIFIT_AXIS>::range_type: public sp_nTuple_range<size_t,
 		base_type(b, e).swap(*this);
 	}
 
-	range_type(range_type const & other) :
-			base_type(other)
+	range_type(range_type const & other)
+			: base_type(other)
 	{
 
 	}
@@ -1347,13 +1358,14 @@ struct MeshIDs_<NDIMS, INIFIT_AXIS>::range_type: public sp_nTuple_range<size_t,
 	}
 
 	struct iterator: public std::iterator<
-			typename base_type::iterator::iterator_category, id_type, id_type>,
-			public base_type::iterator
+								typename base_type::iterator::iterator_category,
+								id_type, id_type>,
+						public base_type::iterator
 	{
 		typedef typename base_type::iterator base_iterator;
 
-		iterator(base_iterator const & other) :
-				base_iterator(other)
+		iterator(base_iterator const & other)
+				: base_iterator(other)
 		{
 		}
 		~iterator()
@@ -1366,63 +1378,37 @@ struct MeshIDs_<NDIMS, INIFIT_AXIS>::range_type: public sp_nTuple_range<size_t,
 		}
 	};
 
-	bool is_element(id_type s) const
-	{
-		auto i = MeshIDs::unpack(s);
-		bool res = true;
-		for (int n = 0; n < ndims; ++n)
-		{
-			if (i[n] < base_type::m_b_[n] || i[n] >= base_type::m_b_[n])
-			{
-				res = false;
-				break;
-			}
-		}
-		return res;
-
-	}
-
-	this_type operator&(this_type const& other) const
-	{
-		return this_type(base_type::operator&(other));
-	}
-	std::set<id_type> operator&(std::set<id_type> const& other) const
-	{
-		std::set<id_type> res;
-		for (auto s : other)
-		{
-			if (is_element(s))
-			{
-				res.insert(s);
-			}
-		}
-		return std::move(res);
-	}
 };
-
 template<size_t NDIMS, size_t INIFIT_AXIS>
-struct MeshIDs_<NDIMS, INIFIT_AXIS>::domain_type: public std::set<id_type>
+struct MeshIDs_<NDIMS, INIFIT_AXIS>::domain_type
 {
 	typedef domain_type this_type;
 
-	nTuple<index_type, NDIMS> m_b_, m_e_;
+	index_tuple m_b_, m_e_;
+
+	std::set<id_type> m_id_set_;
 
 	domain_type()
 	{
 		m_b_ = 0;
 		m_e_ = 0;
 	}
+
 	template<typename T0, typename T1>
 	domain_type(T0 const & min, T1 const & max)
 	{
 		m_b_ = (min);
 		m_e_ = (max);
-		CHECK(m_b_);
-		CHECK(m_e_);
 	}
 
-	domain_type(domain_type const & other) :
-			m_b_(other.m_b_), m_e_(other.m_e_)
+	domain_type(id_type min, id_type max)
+			: m_b_(id_to_index<MAX_MESH_LEVEL>(min)), m_e_(
+					id_to_index<MAX_MESH_LEVEL>(max))
+	{
+	}
+
+	domain_type(domain_type const & other)
+			: m_b_(other.m_b_), m_e_(other.m_e_)
 	{
 	}
 	domain_type operator=(domain_type const & other)
@@ -1434,17 +1420,24 @@ struct MeshIDs_<NDIMS, INIFIT_AXIS>::domain_type: public std::set<id_type>
 	{
 		std::swap(m_b_, other.m_b_);
 		std::swap(m_e_, other.m_e_);
+		std::swap(m_id_set_, other.m_id_set_);
 	}
 	bool is_continue() const
 	{
 		return (std::set<id_type>::size() == 0) && (m_b_ != m_e_);
 	}
-	template<size_t IFORM>
+
+	template<size_t IFORM = VERTEX>
 	range_type<IFORM> range() const
 	{
-
 		return range_type<IFORM>(m_b_, m_e_);
 	}
+
+	std::set<id_type> & id_set() const
+	{
+		return m_id_set_;
+	}
+
 };
 
 }
