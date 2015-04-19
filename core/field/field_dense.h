@@ -165,7 +165,7 @@ public:
 	inline this_type & operator =(TR const &other)
 	{
 		wait();
-		m_domain_.for_each([&](id_type const &s)
+		m_domain_.template for_each<iform>([&](id_type const &s)
 		{
 			at(s) = m_mesh_.calculate(other, s);
 		});
@@ -177,7 +177,7 @@ private:
 	{
 		wait();
 
-		d.for_each([&](id_type const &s)
+		d.template for_each<iform>([&](id_type const &s)
 		{
 			at(s) = m_mesh_.calculate(other, s);
 		});
@@ -209,7 +209,7 @@ public:
 	{
 		if (m_data_ == nullptr)
 		{
-			m_data_ = sp_make_shared_array<value_type>(m_domain_.max_hash());
+			m_data_ = sp_make_shared_array<value_type>(m_domain_.template max_hash<iform>());
 		}
 
 		SpObject::prepare_sync(m_domain_.ghost_shape());

@@ -1336,7 +1336,7 @@ struct MeshIDs_<NDIMS, INIFIT_AXIS>::range_type: public sp_nTuple_range<size_t,
 	template<typename T0, typename T1>
 	range_type(T0 const &min, T1 const &max)
 	{
-		typename base_type::ntuple_type b, e;
+		typename base_type::value_type b, e;
 		b = min;
 		e = max;
 		if (IFORM == EDGE || IFORM == FACE)
