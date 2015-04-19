@@ -78,10 +78,9 @@ DataSpace::DataSpace(int ndims, long const * dims) :
 DataSpace::DataSpace(const DataSpace& other) :
 		pimpl_(nullptr)
 {
-	if (!other.pimpl_)
+	if (!!other.pimpl_)
 	{
 		pimpl_ = std::unique_ptr<pimpl_s> { new pimpl_s };
-
 		pimpl_->m_ndims_ = other.pimpl_->m_ndims_;
 
 		pimpl_->m_dimensions_ = other.pimpl_->m_dimensions_;
@@ -92,10 +91,14 @@ DataSpace::DataSpace(const DataSpace& other) :
 
 		pimpl_->m_local_dimensions_ = other.pimpl_->m_local_dimensions_;
 		pimpl_->m_local_offset_ = other.pimpl_->m_local_offset_;
-
 	}
 
 }
+
+//DataSpace::DataSpace(DataSpace&& other) :
+//		pimpl_(new pimpl_s(*other.pimpl_))
+//{
+//}
 
 DataSpace::~DataSpace()
 {
@@ -103,7 +106,7 @@ DataSpace::~DataSpace()
 
 void DataSpace::swap(DataSpace &other)
 {
-	pimpl_.swap(other.pimpl_);
+	std::swap(pimpl_, other.pimpl_);
 }
 DataSpace DataSpace::create_simple(int ndims, const long * dims)
 {

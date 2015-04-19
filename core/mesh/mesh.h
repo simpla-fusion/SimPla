@@ -53,12 +53,16 @@ namespace simpla
 
 template<typename ...> class Domain;
 
-template<typename TM, typename ... Args>
-std::shared_ptr<TM> make_mesh(Args && ...args)
+//template<typename TM, typename ... Args>
+//std::shared_ptr<TM> make_mesh(Args && ...args)
+//{
+//	return std::make_shared<TM>(std::forward<Args>(args)...);
+//}
+template<typename TM>
+std::shared_ptr<TM> make_mesh()
 {
-	return std::make_shared<TM>(std::forward<Args>(args)...);
+	return std::make_shared<TM>();
 }
-
 }  // namespace simpla
 
 #endif /* CORE_MESH_MESH_H_ */

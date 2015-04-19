@@ -54,7 +54,6 @@ void SpObject::prepare_sync(std::vector<mpi_ghosts_shape_s> const & ghost_shape)
 
 	std::tie(ndims, l_dims, std::ignore, std::ignore, std::ignore, std::ignore) =
 			ds.dataspace.shape();
-
 	make_send_recv_list(object_id(), ds.datatype, ndims, &l_dims[0],
 			ghost_shape, &m_send_recv_list_);
 }

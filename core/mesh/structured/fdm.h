@@ -22,7 +22,6 @@ namespace simpla
 {
 
 template<typename ... > class _Field;
-template<typename ...> class Domain;
 template<typename ...>class field_traits;
 
 /** @ingroup diff_scheme

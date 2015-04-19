@@ -33,7 +33,7 @@ template<size_t IFORM, //
 		typename CalculusPolicy = FiniteDiffMethod<TG>, // difference scheme
 		typename InterpolatorPlolicy = InterpolatorLinear<TG> // interpolation formula
 >
-class Manifold: public TG
+class Manifold
 {
 
 public:
@@ -55,7 +55,6 @@ public:
 
 private:
 	std::shared_ptr<const geometry_type> m_geometry_;
-	domain_type m_domain_;
 public:
 
 	Manifold() :
@@ -64,13 +63,12 @@ public:
 	}
 
 	Manifold(geometry_type const & geo) :
-			m_geometry_(geo.shared_from_this()), m_domain_(
-					m_geometry_->domain())
+			m_geometry_(geo.shared_from_this())
 	{
 	}
 
 	Manifold(this_type const & other) :
-			m_geometry_(other.m_geometry_), m_domain_(m_geometry_->domain())
+			m_geometry_(other.m_geometry_)
 	{
 	}
 
@@ -84,6 +82,11 @@ public:
 	{
 		m_geometry_ = other.m_geometry_->shared_from_this();
 		return *this;
+	}
+
+	domain_type domain() const
+	{
+		return std::move(m_geometry_->domain());
 	}
 public:
 	template<typename TV>
@@ -100,11 +103,6 @@ public:
 	/** @name Range Concept
 	 * @{
 	 */
-	template<typename ...Others>
-	Manifold(this_type & other, Others && ...others) :
-			m_geometry_(other.m_geometry_)
-	{
-	}
 
 	/**
 	 *   @name Geometry
@@ -115,33 +113,12 @@ public:
 
 	void deploy()
 	{
-//		ids(m_geometry_->template domain<iform>());
 	}
 
-	DataSpace dataspace() const
-	{
-		return std::move(m_geometry_->template dataspace<iform>());
-	}
-
-	auto ghost_shape() const
-	DECL_RET_TYPE(m_geometry_->template ghost_shape<iform>())
-
-	auto dx() const
-	DECL_RET_TYPE(m_geometry_->dx())
 	/**
 	 * @}
 	 */
 
-	template<typename ...Args>
-	size_t hash(Args && ...args) const
-	{
-		return m_geometry_->template hash<iform>(std::forward<Args>(args)...);
-	}
-
-	size_t max_hash() const
-	{
-		return m_geometry_->template max_hash<iform>();
-	}
 	template<typename ...Args>
 	id_type id(Args && ...args) const
 	{
@@ -162,11 +139,11 @@ public:
 	void calculate(
 			_Field<AssignmentExpression<TOP, TL, TR> > const & fexpr) const
 	{
-//		for (auto s : domain())
-//		{
-//			fexpr.op_(fexpr.lhs[s],
-//					calculate_policy::calculate(*m_geometry_, fexpr.rhs, s));
-//		}
+		for (auto s : domain())
+		{
+			fexpr.op_(fexpr.lhs[s],
+					calculate_policy::calculate(*m_geometry_, fexpr.rhs, s));
+		}
 	}
 
 	Real time() const

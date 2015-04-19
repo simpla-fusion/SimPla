@@ -78,25 +78,23 @@ void ntuple_cycle(T0 const & min, T1 const & max, nTuple<TV, NDIMS> * self)
 }
 }
 // namespace _impl
+
 template<typename IndexType, size_t ...DIMS>
 struct sp_nTuple_range
 {
 public:
 
-	typedef IndexType value_type;
-
 	typedef sp_nTuple_range<IndexType, DIMS...> this_type;
 
-	typedef nTuple<IndexType, DIMS...> ntuple_type;
-
+	typedef nTuple<IndexType, DIMS...> value_type;
 	struct iterator;
 	typedef iterator const_iterator;
 
 protected:
 
-	ntuple_type m_b_, m_e_;
+	value_type m_b_, m_e_;
 
-	ntuple_type m_grainsize_;
+	value_type m_grainsize_;
 
 	bool m_slow_first_ = true;
 
@@ -189,6 +187,189 @@ public:
 
 		return std::move(res);
 	}
+
+	size_t max_hash() const;
+
+	constexpr size_t hash(value_type const &s) const;
+
+};
+
+template<typename IndexType, size_t NDIMS>
+struct sp_nTuple_range<IndexType, NDIMS>
+{
+public:
+
+	typedef IndexType index_type;
+	static constexpr size_t ndims = NDIMS;
+	typedef sp_nTuple_range<index_type, ndims> this_type;
+
+	typedef nTuple<index_type, ndims> value_type;
+
+	struct iterator;
+	typedef iterator const_iterator;
+
+protected:
+
+	value_type m_b_, m_e_;
+
+	value_type m_grainsize_;
+
+	bool m_slow_first_ = true;
+
+	value_type m_dimensions_, m_strides_, m_offset_;
+	size_t m_max_hash_ = 0;
+
+public:
+	sp_nTuple_range()
+	{
+
+	}
+	template<typename T1, typename T2>
+	sp_nTuple_range(T1 const & min, T2 const & max, bool slow_first = true) :
+			m_slow_first_(slow_first)
+	{
+		m_b_ = min;
+		m_e_ = max;
+		m_grainsize_ = 1;
+
+		deploy();
+	}
+
+	template<typename T1, typename T2, typename T3>
+	sp_nTuple_range(T1 const & min, T2 const & max, T3 const & grain_size,
+			bool slow_first = true) :
+			m_slow_first_(slow_first)
+	{
+		m_b_ = min;
+		m_e_ = max;
+		m_grainsize_ = grain_size;
+		deploy();
+	}
+	sp_nTuple_range(this_type & other, op_split) :
+			m_grainsize_(other.m_grainsize_),
+
+			m_slow_first_(other.m_slow_first_),
+
+			m_dimensions_(other.m_dimensions_),
+
+			m_offset_(other.m_offset_),
+
+			m_strides_(other.m_strides_),
+
+			m_max_hash_(other.m_max_hash_)
+	{
+
+		// @FIXME only valid when sizeof...(DIMS)=1
+		m_b_ = (other.m_e_ - other.m_b_) / 2 + other.m_b_;
+		m_e_ = other.m_e_;
+		other.m_e_ = m_b_;
+	}
+
+	sp_nTuple_range(this_type const & other) :
+			m_e_(other.m_e_), m_b_(other.m_b_),
+
+			m_slow_first_(other.m_slow_first_),
+
+			m_grainsize_(other.m_grainsize_),
+
+			m_dimensions_(other.m_dimensions_),
+
+			m_offset_(other.m_offset_),
+
+			m_strides_(other.m_strides_),
+
+			m_max_hash_(other.m_max_hash_)
+	{
+	}
+
+	this_type & operator=(this_type const & other)
+	{
+		this_type(other).swap(*this);
+		return *this;
+	}
+	void swap(this_type & other)
+	{
+		std::swap(m_b_, other.m_b_);
+		std::swap(m_e_, other.m_e_);
+		std::swap(m_grainsize_, other.m_grainsize_);
+		std::swap(m_slow_first_, other.m_slow_first_);
+
+		std::swap(m_dimensions_, other.m_dimensions_);
+		std::swap(m_offset_, other.m_offset_);
+		std::swap(m_strides_, other.m_strides_);
+		std::swap(m_max_hash_, other.m_max_hash_);
+
+	}
+
+	size_t size() const
+	{
+		return NProduct(m_e_ - m_b_);
+	}
+	bool is_divisable() const
+	{
+		return false;
+	}
+	bool is_slow_first() const
+	{
+		return m_slow_first_;
+	}
+
+	void is_slow_first(bool slow_first)
+	{
+		m_slow_first_ = slow_first;
+	}
+	constexpr const_iterator begin() const
+	{
+		return (const_iterator(m_b_, m_e_, m_b_, m_slow_first_));
+	}
+
+	const_iterator end() const
+	{
+		const_iterator res(m_b_, m_e_, m_e_ - 1, m_slow_first_);
+		++res;
+		return std::move(res);
+	}
+
+	this_type operator&(this_type const& other) const
+	{
+		this_type res(*this);
+
+		rectangle_overlap(other.m_b_, other.m_e_, &res.m_b_, &res.m_e_);
+
+		return std::move(res);
+	}
+
+	void deploy()
+	{
+		for (int i = 0; i < ndims; ++i)
+		{
+			m_dimensions_[i] = m_e_[i] - m_b_[i];
+			m_offset_[i] = m_b_[i];
+		}
+
+		m_strides_[ndims - 1] = 1;
+
+		if (ndims > 1)
+		{
+			for (int i = ndims - 2; i >= 0; --i)
+			{
+				m_strides_[i] = (m_dimensions_[i + 1]) * m_strides_[i + 1];
+			}
+		}
+
+		m_max_hash_ = m_dimensions_[0] * m_strides_[0];
+	}
+
+	constexpr size_t max_hash() const
+	{
+		return m_max_hash_;
+	}
+
+	constexpr size_t hash(value_type const &s) const
+	{
+		return inner_product((s - m_offset_) % m_dimensions_, m_strides_);
+	}
+
 };
 template<typename TIndex, size_t ... DIMS, typename T2>
 sp_nTuple_range<TIndex, DIMS...> make_ntuple_range(
@@ -205,11 +386,9 @@ struct sp_nTuple_range<IndexType, DIMS...>::iterator: public std::iterator<
 public:
 
 	typedef iterator this_type;
-
 	typename std::make_signed<IndexType>::type m_sign_flag_ = 0;
-
 	bool m_slow_first_ = true;
-	ntuple_type m_min_, m_max_, m_self_;
+	value_type m_min_, m_max_, m_self_;
 public:
 
 	template<typename T1, typename T2, typename T3>
@@ -259,7 +438,7 @@ public:
 				|| (m_min_ != other.m_min_) || (m_max_ != other.m_max_);
 	}
 
-	ntuple_type const & operator *() const
+	value_type const & operator *() const
 	{
 		return m_self_;
 	}

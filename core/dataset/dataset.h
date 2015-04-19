@@ -44,12 +44,12 @@ namespace simpla
 struct DataSet
 {
 	std::shared_ptr<void> data;
-
-	typedef long index_type;
-
 	DataType datatype;
 	DataSpace dataspace;
 	Properties properties;
+
+	typedef long index_type;
+
 	DataSet()
 	{
 	}
@@ -58,6 +58,11 @@ struct DataSet
 					other.dataspace), properties(other.properties)
 	{
 	}
+//	DataSet(DataSet &&other) :
+//			data(other.data), datatype(other.datatype), dataspace(
+//					other.dataspace), properties(other.properties)
+//	{
+//	}
 	~DataSet()
 	{
 	}

@@ -18,19 +18,17 @@
 
 namespace simpla
 {
-template<typename, unsigned int> class Domain;
 template<typename ...> class _Field;
 
-template<typename TM, unsigned int IFORM, typename TContainer>
-class _Field<Domain<TM, IFORM>,
-		Cache<const Field<Domain<TM, IFORM>, TContainer> > >
+template<typename TM, typename TContainer>
+class _Field<TM, Cache<const Field<TM, TContainer> > >
 {
 
 public:
 
-	typedef _Field<TM, IFORM, TContainer> field_type;
+	typedef _Field<TM, TContainer> field_type;
 
-	typedef _Field<TM, IFORM, Cache<const _Field<TM, IFORM, TContainer> > > this_type;
+	typedef _Field<TM, Cache<const _Field<TM, TContainer> > > this_type;
 
 	typedef TM mesh_type;
 
@@ -38,7 +36,7 @@ public:
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
-	static const unsigned int IForm = IFORM;
+	static const unsigned int IForm = TM::iform;
 
 	typedef typename field_type::value_type value_type;
 
@@ -87,8 +85,8 @@ public:
 	{
 	}
 
-	_Field(field_type const & f, iterator const &s,
-			unsigned int affect_Range = 2) :
+	_Field(field_type const & f, iterator const &s, unsigned int affect_Range =
+			2) :
 			mesh(f.mesh), f_(f), cell_idx_(s), affect_Range_(affect_Range), num_of_points_(
 					0)
 	{
@@ -204,15 +202,15 @@ public:
 }
 ;
 
-template<typename TM, unsigned int IFORM, typename TContainer>
-class _Field<Domain<TM, IFORM>, Cache<_Field<TM, IFORM, TContainer> *> >
+template<typename TM, typename TContainer>
+class _Field<TM, Cache<_Field<TM, TContainer> *> >
 {
 
 public:
 
-	typedef _Field<TM, IFORM, TContainer> field_type;
+	typedef _Field<TM, TContainer> field_type;
 
-	typedef _Field<TM, IFORM, Cache<field_type> > this_type;
+	typedef _Field<TM, Cache<field_type> > this_type;
 
 	typedef TM mesh_type;
 
@@ -220,7 +218,7 @@ public:
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
-	static const unsigned int IForm = IFORM;
+	static const unsigned int IForm = TM::iform;
 
 	typedef typename field_type::value_type value_type;
 
@@ -372,16 +370,16 @@ public:
 
 };
 
-template<typename TM, unsigned int IFORM, typename TContainer>
-struct Cache<const _Field<TM, IFORM, TContainer> >
+template<typename TM, typename TContainer>
+struct Cache<const _Field<TM, TContainer> >
 {
 
-	typedef _Field<TM, IFORM, Cache<const _Field<TM, IFORM, TContainer> > > type;
+	typedef _Field<TM, Cache<const _Field<TM, TContainer> > > type;
 
-	typedef typename _Field<TM, IFORM, TContainer>::value_type value_type;
+	typedef typename _Field<TM, TContainer>::value_type value_type;
 
 	template<typename ... Args>
-	Cache(_Field<TM, IFORM, TContainer> const & f, Args && ... args) :
+	Cache(_Field<TM, TContainer> const & f, Args && ... args) :
 			f_(f, std::forward<Args >(args)...)
 	{
 		VERBOSE << "_Field read cache applied!";
@@ -400,17 +398,17 @@ private:
 	type f_;
 };
 
-template<typename TM, unsigned int IFORM, typename TContainer>
-struct Cache<_Field<TM, IFORM, TContainer>*>
+template<typename TM, typename TContainer>
+struct Cache<_Field<TM, TContainer>*>
 {
-	typedef Cache<_Field<TM, IFORM, TContainer>*> this_type;
+	typedef Cache<_Field<TM, TContainer>*> this_type;
 
-	typedef _Field<TM, IFORM, this_type> type;
+	typedef _Field<TM, this_type> type;
 
-	typedef typename _Field<TM, IFORM, TContainer>::value_type value_type;
+	typedef typename _Field<TM, TContainer>::value_type value_type;
 
 	template<typename ... Args>
-	Cache(_Field<TM, IFORM, TContainer>* f, Args && ... args) :
+	Cache(_Field<TM, TContainer>* f, Args && ... args) :
 			f_(f, std::forward<Args >(args)...)
 	{
 		VERBOSE << "_Field write cache applied!";
@@ -424,14 +422,14 @@ private:
 	type f_;
 };
 
-template<typename TM, unsigned int IFORM, typename TF>
-void RefreshCache(size_t s, _Field<TM, IFORM, Cache<TF>> & f)
+template<typename TM, typename TF>
+void RefreshCache(size_t s, _Field<TM, Cache<TF>> & f)
 {
 	f.RefreshCache(s);
 }
 
-template<typename TM, unsigned int IFORM, typename TF>
-void FlushCache(_Field<TM, IFORM, Cache<TF*>> & f)
+template<typename TM, typename TF>
+void FlushCache(_Field<TM, Cache<TF*>> & f)
 {
 	f.FlushCache();
 }

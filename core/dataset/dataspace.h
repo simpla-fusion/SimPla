@@ -38,7 +38,7 @@ public:
 
 	// Copy constructor: makes a copy of the original DataSpace object.
 	DataSpace(const DataSpace& other);
-
+//	DataSpace(DataSpace&& other);
 	// Destructor: properly terminates access to this dataspace.
 	~DataSpace();
 

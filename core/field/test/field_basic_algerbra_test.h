@@ -11,7 +11,6 @@
 #include <gtest/gtest.h>
 #include <random>
 
-#include "../../diff_geometry/domain.h"
 #include "../field.h"
 #include "../../utilities/utilities.h"
 using namespace simpla;
@@ -45,7 +44,7 @@ public:
 	value_type default_value;
 
 	auto make_field() const
-	DECL_RET_TYPE((simpla::=make_field<value_type>(domain)))
+	DECL_RET_TYPE((simpla::make_field<value_type>(domain)))
 
 	auto make_scalar_field() const
 	DECL_RET_TYPE(( simpla::make_field<double>(domain)))
@@ -160,10 +159,10 @@ TYPED_TEST_P(TestField, scalar_field){
 	b=rb;
 	c=rc;
 
-	f1.allocate();
-	f2.allocate();
-	f3.allocate();
-	f4.allocate();
+	f1.deploy();
+	f2.deploy();
+	f3.deploy();
+	f4.deploy();
 
 	size_t count=0;
 

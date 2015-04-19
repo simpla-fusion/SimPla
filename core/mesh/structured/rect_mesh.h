@@ -65,7 +65,7 @@ struct RectMesh: public Domain<MeshIDs_<NFLAGS...>>,
 
 	typedef MeshIDs_<NFLAGS...> topology_type;
 
-	typedef Domain<MeshIDs_<NFLAGS...>> domain_type;
+	typedef Domain<topology_type> domain_type;
 
 	using topology_type::ndims;
 
@@ -88,17 +88,9 @@ private:
 
 	coordinates_type m_dx_ /*= { 0, 0, 0 }*/;
 
-	coordinates_type m_inv_length_ /*= { 1.0, 1.0, 1.0 }*/;
+	coordinates_type m_to_topology_scale_;
 
-	coordinates_type m_length_ /*= { 1.0, 1.0, 1.0 }*/;
-
-	coordinates_type m_shift_/* = { 0, 0, 0 }*/;
-
-	coordinates_type m_to_topology_factor_;
-
-	coordinates_type m_from_topology_factor_;
-
-//	coordinates_type m_xmin_, m_xmax_, m_dx_;
+	coordinates_type m_from_topology_scale_;
 
 public:
 
@@ -113,13 +105,13 @@ public:
 	}
 
 	RectMesh(this_type const & other) :
-			topology_type(other)
+			domain_type(other)
 	{
 	}
 
 	void swap(this_type & other)
 	{
-		topology_type::swap(other);
+		domain_type::swap(other);
 	}
 	this_type & operator=(const this_type& other)
 	{
@@ -132,7 +124,7 @@ public:
 	{
 		os
 
-		<< " Type = \"" << get_type_as_string() << "\", "
+		<< " Type = \"" << get_type_as_string() << "\", " << std::endl
 
 		<< " Min = " << m_coords_min_ << " ," << std::endl
 
@@ -158,8 +150,6 @@ public:
 		return is_valid_;
 	}
 
-	void deploy();
-
 	template<typename T0, typename T1>
 	void extents(T0 const& pmin, T1 const& pmax)
 	{
@@ -175,84 +165,7 @@ public:
 		return m_dx_;
 	}
 
-	/**
-	 * @name  Coordinates map
-	 * @{
-	 **/
-	coordinates_type coordinates(id_type const & s) const
-	{
-		return std::move(
-				coordinates_from_topology(topology_type::id_to_coordinates(s)));
-	}
-
-	template<size_t IFORM = 0>
-	inline id_type coordinates_to_id(coordinates_type const &x, int n = 0) const
-	{
-		return topology_type::coordinates_to_id<IFORM>(
-				coordinates_to_topology(x), n);
-	}
-
-	coordinates_type coordinates_from_topology(coordinates_type const &y) const
-	{
-
-		return coordinates_type(
-				{
-
-				std::fma(y[0] - topology_type::COORD_ZERO,
-						m_from_topology_factor_[0], m_coord_orig_[0]),
-
-				std::fma(y[1] - topology_type::COORD_ZERO,
-						m_from_topology_factor_[1], m_coord_orig_[1]),
-
-				std::fma(y[2] - topology_type::COORD_ZERO,
-						m_from_topology_factor_[2], m_coord_orig_[2])
-
-				});
-
-	}
-	coordinates_type coordinates_to_topology(coordinates_type const &x) const
-	{
-		return coordinates_type(
-				{
-
-				std::fma(x[0] - m_coord_orig_[0], m_to_topology_factor_[0],
-						topology_type::COORD_ZERO),
-
-				std::fma(x[1] - m_coord_orig_[1], m_to_topology_factor_[1],
-						topology_type::COORD_ZERO),
-
-				std::fma(x[2] - m_coord_orig_[2], m_to_topology_factor_[2],
-						topology_type::COORD_ZERO)
-
-				});
-
-	}
-
-	/**
-	 * @bug: truncation error of coordinates transform larger than 1000
-	 *     epsilon (1e4 epsilon for cylindrical coordinates)
-	 * @param args
-	 * @return
-	 */
-	template<typename ... Args>
-	inline coordinates_type coordinates_local_to_global(Args && ... args) const
-	{
-		return std::move(
-				coordinates_from_topology(
-						topology_type::coordinates_local_to_global(
-								std::forward<Args >(args)...)));
-	}
-
-	template<size_t IFORM>
-	std::tuple<id_type, coordinates_type> coordinates_global_to_local(
-			coordinates_type x, int n = 0) const
-	{
-		return std::move(
-				topology_type::template coordinates_global_to_local<IFORM>(
-						std::move(coordinates_to_topology(x)), n));
-	}
-
-	/** @} */
+	void deploy();
 	/**
 	 * 	@name  Time
 	 *  @{
@@ -336,50 +249,152 @@ public:
 	}
 	/**@}*/
 
+	/**
+	 * @name  Coordinates map
+	 * @{
+	 **/
+	coordinates_type coordinates(id_type const & s) const
+	{
+		return std::move(
+				coordinates_from_topology(topology_type::id_to_coordinates(s)));
+	}
+
+	template<size_t IFORM = 0>
+	inline id_type coordinates_to_id(coordinates_type const &x, int n = 0) const
+	{
+		return topology_type::coordinates_to_id<IFORM>(
+				coordinates_to_topology(x), n);
+	}
+
+	coordinates_type coordinates_from_topology(coordinates_type const &y) const
+	{
+
+		return coordinates_type(
+				{
+
+				std::fma(y[0] - topology_type::COORD_ZERO,
+						m_from_topology_scale_[0], m_coord_orig_[0]),
+
+				std::fma(y[1] - topology_type::COORD_ZERO,
+						m_from_topology_scale_[1], m_coord_orig_[1]),
+
+				std::fma(y[2] - topology_type::COORD_ZERO,
+						m_from_topology_scale_[2], m_coord_orig_[2])
+
+				});
+
+	}
+	coordinates_type coordinates_to_topology(coordinates_type const &x) const
+	{
+		return coordinates_type(
+				{
+
+				std::fma(x[0] - m_coord_orig_[0], m_to_topology_scale_[0],
+						topology_type::COORD_ZERO),
+
+				std::fma(x[1] - m_coord_orig_[1], m_to_topology_scale_[1],
+						topology_type::COORD_ZERO),
+
+				std::fma(x[2] - m_coord_orig_[2], m_to_topology_scale_[2],
+						topology_type::COORD_ZERO)
+
+				});
+
+	}
+
+	/**
+	 * @bug: truncation error of coordinates transform larger than 1000
+	 *     epsilon (1e4 epsilon for cylindrical coordinates)
+	 * @param args
+	 * @return
+	 */
+	template<typename ... Args>
+	inline coordinates_type coordinates_local_to_global(Args && ... args) const
+	{
+		return std::move(
+				coordinates_from_topology(
+						topology_type::coordinates_local_to_global(
+								std::forward<Args >(args)...)));
+	}
+
+	template<size_t IFORM>
+	std::tuple<id_type, coordinates_type> coordinates_global_to_local(
+			coordinates_type x, int n = 0) const
+	{
+		return std::move(
+				topology_type::template coordinates_global_to_local<IFORM>(
+						std::move(coordinates_to_topology(x)), n));
+	}
+
+	/** @} */
+
 }
 ;
 
 template<typename TCoord, size_t ... N>
 void RectMesh<TCoord, N...>::deploy()
 {
-	auto dims = domain_type::dimensions();
-
-	is_valid_ = true;
+	index_tuple dims = domain_type::dimensions();
 
 	for (size_t i = 0; i < ndims; ++i)
 	{
-		if (m_dx_[i] > EPSILON
-				&& (m_coords_max_[i] - m_coords_min_[i]) > m_dx_[i])
+		if (dims[i] > 0 && (m_coords_max_[i] - m_coords_min_[i]) > EPSILON)
 		{
 
 			m_dx_[i] = (m_coords_max_[i] - m_coords_min_[i])
 					/ static_cast<Real>(dims[i]);
+
+			m_to_topology_scale_ = dims[i]
+					/ (m_coords_max_[i] - m_coords_min_[i]);
+
+			m_from_topology_scale_[i] = (m_coords_max_[i] - m_coords_min_[i])
+					/ dims[i];
 		}
+#ifdef  ENABLE_COMPLEX_COORDINATE_SYSTEM
+		else if ((m_coords_max_[i] - m_coords_min_[i]) > EPSILON)
+		{
+			dims[i] = 1;
+			m_dx_[i] = 0;
+			m_to_topology_scale_ = 1.0 / (m_coords_max_[i] - m_coords_min_[i]);
+			m_from_topology_scale_[i] = (m_coords_max_[i] - m_coords_min_[i])
+			/ 1.0;
+		}
+#endif
 		else
 		{
+			dims[i] = 1;
+
 			m_dx_[i] = 0;
 
 			m_coords_max_[i] = m_coords_min_[i];
 
+			m_to_topology_scale_[i] = 0;
+			m_from_topology_scale_[i] = 0;
 		}
+
 	}
+
+	m_coord_orig_ = (m_coords_max_ + m_coords_min_) * 0.5;
 
 	DEFINE_PHYSICAL_CONST
 
-	auto dx_ = dx();
-
 	Real safe_dt = m_CFL_
-			* std::sqrt(dx_[0] * dx_[0] + dx_[1] * dx_[1] + dx_[2] * dx_[2])
-			/ speed_of_light;
+			* std::sqrt(
+					m_dx_[0] * m_dx_[0] + m_dx_[1] * m_dx_[1]
+							+ m_dx_[2] * m_dx_[2]) / speed_of_light;
 
 	if (m_dt_ > safe_dt)
 	{
-		WARNING << ("  Courant–Friedrichs–Lewy (CFL) !");
+		WARNING << ("  Courant–Friedrichs–Lewy (CFL) !") << std::endl;
 	}
+
+	deploy_volume();
+
+	domain_type::dimensions(&dims[0]);
 
 	domain_type::deploy();
 
-	deploy_volume();
+	is_valid_ = true;
 
 	VERBOSE << get_type_as_string() << " is deployed!" << std::endl;
 
@@ -388,20 +403,12 @@ void RectMesh<TCoord, N...>::deploy()
 template<typename TCoord, size_t ... N>
 void RectMesh<TCoord, N...>::deploy_volume()
 {
-	auto dims = domain_type::dimensions();
 
 	for (size_t i = 0; i < ndims; ++i)
 	{
-		m_shift_[i] = m_coords_min_[i];
 
-		if (dims[i] <= 1)
+		if (m_dx_[i] <= EPSILON)
 		{
-
-			m_coords_max_[i] = m_coords_min_[i];
-
-			m_inv_length_[i] = 0.0;
-
-			m_length_[i] = 0.0;
 
 			m_volume_[1UL << (ndims - i - 1)] = 1.0;
 
@@ -411,28 +418,17 @@ void RectMesh<TCoord, N...>::deploy_volume()
 
 			m_inv_dual_volume_[7 - (1UL << (ndims - i - 1))] = 1.0;
 
-			m_to_topology_factor_[i] = 0;
-			m_from_topology_factor_[i] = 0;
 		}
 		else
 		{
-			m_inv_length_[i] = 1.0 / (m_coords_max_[i] - m_coords_min_[i]);
 
-			m_length_[i] = (m_coords_max_[i] - m_coords_min_[i]);
+			m_volume_[1UL << (ndims - i - 1)] = m_dx_[i];
 
-			m_volume_[1UL << (ndims - i - 1)] = m_length_[i];
+			m_dual_volume_[7 - (1UL << (ndims - i - 1))] = m_dx_[i];
 
-			m_dual_volume_[7 - (1UL << (ndims - i - 1))] = m_length_[i];
+			m_inv_volume_[1UL << (ndims - i - 1)] = 1.0 / m_dx_[i];
 
-			m_inv_volume_[1UL << (ndims - i - 1)] = m_inv_length_[i];
-
-			m_inv_dual_volume_[7 - (1UL << (ndims - i - 1))] = m_inv_length_[i];
-
-			m_to_topology_factor_ = dims[i]
-					/ (m_coords_max_[i] - m_coords_min_[i]);
-
-			m_from_topology_factor_[i] = (m_coords_max_[i] - m_coords_min_[i])
-					/ dims[i];
+			m_inv_dual_volume_[7 - (1UL << (ndims - i - 1))] = 1.0 / m_dx_[i];
 
 		}
 	}

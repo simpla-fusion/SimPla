@@ -1459,21 +1459,25 @@ struct Domain<MeshIDs_<NDIMS, INIFIT_AXIS> > : public MeshIDs_<NDIMS,
 
 			m_index_local_dimensions_(other.m_index_local_dimensions_),
 
-			m_index_local_offset_(other.m_index_local_offset_)
+			m_index_local_offset_(other.m_index_local_offset_),
+
+			m_id_set_(other.m_id_set_),
+
+			m_hasher_(other.m_hasher_)
 	{
 	}
 
 	void swap(this_type & other)
 	{
-
 		std::swap(m_index_dimensions_, other.m_index_dimensions_);
 		std::swap(m_index_offset_, other.m_index_offset_);
+		std::swap(m_index_count_, other.m_index_count_);
+
 		std::swap(m_index_local_dimensions_, other.m_index_local_dimensions_);
 		std::swap(m_index_local_offset_, other.m_index_local_offset_);
 
-		std::swap(m_index_count_, other.m_index_count_);
 		std::swap(m_id_set_, other.m_id_set_);
-
+		std::swap(m_hasher_, other.m_hasher_);
 	}
 
 	this_type operator=(this_type const &other)
@@ -1499,9 +1503,15 @@ struct Domain<MeshIDs_<NDIMS, INIFIT_AXIS> > : public MeshIDs_<NDIMS,
 	void deploy()
 	{
 		decompose();
+
+		typename base_type::template id_hasher<>(m_index_local_dimensions_,
+				m_index_offset_ - m_index_local_offset_).swap(m_hasher_);
 	}
 	void decompose(size_t const * gw = nullptr)
 	{
+
+		CHECK(m_index_dimensions_);
+
 		m_index_count_ = m_index_dimensions_;
 		m_index_offset_ = 0;
 
@@ -1577,10 +1587,10 @@ struct Domain<MeshIDs_<NDIMS, INIFIT_AXIS> > : public MeshIDs_<NDIMS,
 		if ((IFORM != VERTEX && IFORM != VOLUME))
 		{
 			f_ndims = ndims + 1;
-			f_dims[f_ndims - 1] = 3;
-			f_offset[f_ndims - 1] = 0;
-			f_count[f_ndims - 1] = 3;
-			f_ghost_width[f_ndims - 1] = 0;
+			f_dims[ndims] = 3;
+			f_offset[ndims] = 0;
+			f_count[ndims] = 3;
+			f_ghost_width[ndims] = 0;
 		}
 
 		DataSpace res(f_ndims, &(f_dims[0]));
@@ -1604,13 +1614,13 @@ struct Domain<MeshIDs_<NDIMS, INIFIT_AXIS> > : public MeshIDs_<NDIMS,
 		nTuple<size_t, ndims + 1> f_ghost_width;
 		int f_ndims = ndims;
 
-		f_dims = m_index_dimensions_;
+		f_dims = m_index_local_dimensions_;
 
-		f_offset = m_index_offset_;
+		f_offset = m_index_offset_ - m_index_local_offset_;
 
 		f_count = m_index_count_;
 
-		f_ghost_width = m_index_offset_ - m_index_local_offset_;
+		f_ghost_width = f_offset;
 
 		if ((IFORM != VERTEX && IFORM != VOLUME))
 		{
@@ -1648,12 +1658,13 @@ struct Domain<MeshIDs_<NDIMS, INIFIT_AXIS> > : public MeshIDs_<NDIMS,
 		return m_hasher_(std::forward<Args>(args)...);
 	}
 
-	template<typename TFun, size_t IFORM = VERTEX>
+	template<size_t IFORM, typename TFun>
 	void for_each(TFun const & fun) const
 	{
 		if (m_id_set_.size() == 0)
 		{
-			for (auto s : range<IFORM>())
+			auto r = range<IFORM>();
+			for (auto s : r)
 			{
 				fun(s);
 			}

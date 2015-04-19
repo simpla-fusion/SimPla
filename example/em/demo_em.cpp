@@ -19,7 +19,7 @@
 #include "../../core/field/field_constraint.h"
 #include "../../core/mesh/mesh.h"
 #include "../../core/mesh/structured/structured.h"
-
+#include <memory>
 using namespace simpla;
 
 USE_CASE(em," Maxwell Eqs.")
@@ -44,7 +44,7 @@ USE_CASE(em," Maxwell Eqs.")
 
 	options["s"].as<size_t>(&strides);
 
-	auto mesh = make_mesh<CartesianRectMesh>();
+	auto mesh = std::make_shared<CartesianRectMesh>();
 
 	mesh->dimensions(
 			options["dimensions"].as(nTuple<size_t, 3>( { 10, 10, 10 })));
@@ -91,42 +91,42 @@ USE_CASE(em," Maxwell Eqs.")
 
 	LOGGER << "----------  Dump input ---------- " << std::endl;
 
-	E = 0;
+	E = 1.234;
 
 	cd("/Input/");
 
-	VERBOSE << SAVE(B) << std::endl;
-//	VERBOSE << SAVE(E) << std::endl;
-//	VERBOSE << SAVE(J) << std::endl;
-
-	if (options["JUST_A_TEST"])
-	{
-		LOGGER << " Just test configuration!" << std::endl;
-	}
-	else
-	{
-		LOGGER << "----------  START ---------- " << std::endl;
-
-		cd("/Save/");
-		for (size_t s = 0; s < num_of_steps; ++s)
-		{
-			VERBOSE << "Step [" << s << "/" << num_of_steps << "]" << std::endl;
-
-//			E_src(&E);
-//			J_src(&J);
-//			B_src(&B);
-			E = curl(B) * dt - J;
-			B = -curl(E) * dt;
-
-			VERBOSE << SAVE_RECORD(E) << std::endl;
-			VERBOSE << SAVE_RECORD(B) << std::endl;
-
-		}
-	}
-	cd("/Output/");
-//	VERBOSE << SAVE(E) << std::endl;
-//	VERBOSE << SAVE(B) << std::endl;
-//	VERBOSE << SAVE(J) << std::endl;
+	VERBOSE << SAVE(E) << std::endl;
+////	VERBOSE << SAVE(E) << std::endl;
+////	VERBOSE << SAVE(J) << std::endl;
+//
+//	if (options["JUST_A_TEST"])
+//	{
+//		LOGGER << " Just test configuration!" << std::endl;
+//	}
+//	else
+//	{
+//		LOGGER << "----------  START ---------- " << std::endl;
+//
+//		cd("/Save/");
+//		for (size_t s = 0; s < num_of_steps; ++s)
+//		{
+//			VERBOSE << "Step [" << s << "/" << num_of_steps << "]" << std::endl;
+//
+////			E_src(&E);
+////			J_src(&J);
+////			B_src(&B);
+//			E = curl(B) * dt - J;
+//			B = -curl(E) * dt;
+//
+//			VERBOSE << SAVE_RECORD(E) << std::endl;
+//			VERBOSE << SAVE_RECORD(B) << std::endl;
+//
+//		}
+//	}
+//	cd("/Output/");
+////	VERBOSE << SAVE(E) << std::endl;
+////	VERBOSE << SAVE(B) << std::endl;
+////	VERBOSE << SAVE(J) << std::endl;
 
 	LOGGER << "----------  DONE ---------- " << std::endl;
 

@@ -24,8 +24,8 @@
 
 namespace simpla
 {
-typedef Manifold<CartesianCoordinates<RectMesh>, FiniteDiffMethod,
-		InterpolatorLinear> CartesianRectMesh;
+//typedef Manifold<CartesianCoordinates<RectMesh>, FiniteDiffMethod,
+//		InterpolatorLinear> CartesianRectMesh;
 
 //typedef Manifold<CylindricalCoordinates<StructuredMesh>, FiniteDiffMethod,
 //		InterpolatorLinear> CylindricalMesh;

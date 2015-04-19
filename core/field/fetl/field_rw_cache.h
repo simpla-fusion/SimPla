@@ -18,19 +18,17 @@
 
 namespace simpla
 {
-template<typename, unsigned int> class Domain;
 template<typename ...> class _Field;
 
-template<typename TM, unsigned int IFORM, typename TContainer>
-class _Field<Domain<TM, IFORM>,
-		Cache<const Field<Domain<TM, IFORM>, TContainer> > >
+template<typename TM, typename TContainer>
+class _Field<TM, Cache<const _Field<TM, TContainer> > >
 {
 
 public:
 
-	typedef _Field<TM, IFORM, TContainer> field_type;
+	typedef _Field<TM, TContainer> field_type;
 
-	typedef _Field<TM, IFORM, Cache<const _Field<TM, IFORM, TContainer> > > this_type;
+	typedef _Field<TM, Cache<const _Field<TM, TContainer> > > this_type;
 
 	typedef TM mesh_type;
 
@@ -38,7 +36,7 @@ public:
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
-	static const unsigned int IForm = IFORM;
+	static const unsigned int IForm = TM::iform;
 
 	typedef typename field_type::value_type value_type;
 
@@ -87,8 +85,8 @@ public:
 	{
 	}
 
-	_Field(field_type const & f, iterator const &s,
-			unsigned int affect_Range = 2) :
+	_Field(field_type const & f, iterator const &s, unsigned int affect_Range =
+			2) :
 			mesh(f.mesh), f_(f), cell_idx_(s), affect_Range_(affect_Range), num_of_points_(
 					0)
 	{
