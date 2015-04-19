@@ -7,11 +7,12 @@
 #ifndef CORE_FIELD_FIELD_H_
 #define CORE_FIELD_FIELD_H_
 
-#include "../gtl/type_traits.h"
+#include <stddef.h>
+#include <memory>
+
+#include "../mesh/domain.h"
 #include "field_expression.h"
 #include "field_dense.h"
-#include "field_sparse.h"
-
 namespace simpla
 {
 
@@ -111,21 +112,39 @@ namespace simpla
 /**
  * Field Class
  */
+template<typename, size_t> struct Domain;
 template<typename ... >struct _Field;
 
-template<typename TV, typename TM>
-_Field<TM, TV, _impl::is_sequence_container> make_field(TM const & mesh)
+//template<typename TV, typename TD>
+//_Field<TD, TV, _impl::is_sequence_container> make_field(TD const & mesh)
+//{
+//	return std::move(_Field<TD, TV, _impl::is_sequence_container>(mesh));
+//}
+//template<typename TV, typename TD>
+//_Field<TD, TV, _impl::is_sequence_container> make_field(
+//		std::shared_ptr<TD> mesh)
+//{
+//	return std::move(_Field<TD, TV, _impl::is_sequence_container>(*mesh));
+//}
+//template<typename TD, typename TV>
+//using Field=_Field<TD,TV, _impl::is_sequence_container >;
+
+//template<size_t IFORM, typename TV, typename TM>
+//_Field<Domain<TM, IFORM>, TV, _impl::is_sequence_container> make_form(
+//		TM const & mesh)
+//{
+//	return std::move(
+//			_Field<Domain<TM, IFORM>, TV, _impl::is_sequence_container>(
+//					Domain<TM, IFORM>(mesh)));
+//}
+template<size_t IFORM, typename TV, typename TM>
+_Field<Domain<TM, IFORM>, TV, _impl::is_sequence_container> make_form(
+		std::shared_ptr<TM> const & pmesh)
 {
-	return std::move(_Field<TM, TV, _impl::is_sequence_container>(mesh));
+	return std::move(
+			_Field<Domain<TM, IFORM>, TV, _impl::is_sequence_container>(
+					Domain<TM, IFORM>(*pmesh)));
 }
-template<typename TV, typename TM>
-_Field<TM, TV, _impl::is_sequence_container> make_field(
-		std::shared_ptr<TM> mesh)
-{
-	return std::move(_Field<TM, TV, _impl::is_sequence_container>(*mesh));
-}
-template<typename TM, typename TV>
-using Field=_Field<TM,TV, _impl::is_sequence_container >;
 
 /** @} */
 }

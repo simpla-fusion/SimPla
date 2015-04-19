@@ -21,9 +21,9 @@ namespace simpla
 typedef RectMesh<CartesianCoordinates<3>> CartesianRectMesh;
 //typedef CylindricalCoordinates<RectMesh> CylindricalMesh;
 
-template<size_t IFORM> using CartesianManifold=
-Manifold<IFORM,CartesianRectMesh,FiniteDiffMethod<CartesianRectMesh>,
-InterpolatorLinear<CartesianRectMesh>>;
+typedef Manifold<RectMesh<CartesianCoordinates<3>>,
+		FiniteDiffMethod<CartesianRectMesh>,
+		InterpolatorLinear<CartesianRectMesh>> CartesianManifold;
 
 //template<size_t IFORM> using CylindricalMeshManifold=
 //Manifold<IFORM,CartesianMesh,FiniteDiffMethod<CartesianMesh>,

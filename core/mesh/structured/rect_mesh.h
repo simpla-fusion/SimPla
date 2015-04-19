@@ -27,7 +27,7 @@
 
 namespace simpla
 {
-
+template<typename, size_t> struct Domain;
 /**
  * @ingroup topology
  *  @brief  structured mesh, n-dimensional array
@@ -55,17 +55,15 @@ namespace simpla
  *  - the unit cell width is 1;
  */
 template<typename TCoordSystem, size_t ... NFLAGS>
-struct RectMesh: public Domain<MeshIDs_<NFLAGS...>>,
+struct RectMesh: public MeshIDs_<NFLAGS...>,
 		public std::enable_shared_from_this<RectMesh<TCoordSystem, NFLAGS...>>
 {
 
 	typedef TCoordSystem coordinates_system;
 
-	typedef RectMesh<TCoordSystem, NFLAGS...> this_type;
+	typedef RectMesh<coordinates_system, NFLAGS...> this_type;
 
 	typedef MeshIDs_<NFLAGS...> topology_type;
-
-	typedef Domain<topology_type> domain_type;
 
 	using topology_type::ndims;
 
@@ -77,7 +75,6 @@ struct RectMesh: public Domain<MeshIDs_<NFLAGS...>>,
 
 	using typename topology_type::coordinates_type;
 
-private:
 	bool is_valid_ = false;
 
 	coordinates_type m_coord_orig_ /*= { 0, 0, 0 }*/;
@@ -92,6 +89,35 @@ private:
 
 	coordinates_type m_from_topology_scale_;
 
+	/**
+	 *
+	 *   a----------------------------b
+	 *   |                            |
+	 *   |     c--------------d       |
+	 *   |     |              |       |
+	 *   |     |  e*******f   |       |
+	 *   |     |  *       *   |       |
+	 *   |     |  *       *   |       |
+	 *   |     |  *       *   |       |
+	 *   |     |  *********   |       |
+	 *   |     ----------------       |
+	 *   ------------------------------
+	 *
+	 *   a=0
+	 *   b-a = dimension
+	 *   e-a = offset
+	 *   f-e = count
+	 *   d-c = local_dimension
+	 *   c-a = local_offset
+	 */
+	index_tuple m_index_dimensions_ = { 1, 1, 1 };
+
+	index_tuple m_index_offset_ = { 0, 0, 0 };
+	index_tuple m_index_count_ = { 1, 1, 1 };
+
+	index_tuple m_index_local_dimensions_ = { 0, 0, 0 };
+	index_tuple m_index_local_offset_ = { 0, 0, 0 };
+
 public:
 
 //***************************************************************************************************
@@ -105,13 +131,26 @@ public:
 	}
 
 	RectMesh(this_type const & other) :
-			domain_type(other)
+
+			m_index_offset_(other.m_index_offset_),
+
+			m_index_count_(other.m_index_count_),
+
+			m_index_local_dimensions_(other.m_index_local_dimensions_),
+
+			m_index_local_offset_(other.m_index_local_offset_)
 	{
 	}
 
 	void swap(this_type & other)
 	{
-		domain_type::swap(other);
+		std::swap(m_index_dimensions_, other.m_index_dimensions_);
+		std::swap(m_index_offset_, other.m_index_offset_);
+		std::swap(m_index_count_, other.m_index_count_);
+
+		std::swap(m_index_local_dimensions_, other.m_index_local_dimensions_);
+		std::swap(m_index_local_offset_, other.m_index_local_offset_);
+
 	}
 	this_type & operator=(const this_type& other)
 	{
@@ -134,8 +173,6 @@ public:
 
 		<< " dt  = " << m_dt_ << "," << std::endl;
 
-		domain_type::print(os);
-
 		return os;
 
 	}
@@ -148,6 +185,22 @@ public:
 	constexpr bool is_valid() const
 	{
 		return is_valid_;
+	}
+
+//	template<size_t IFORM>
+//	typename topology_type::template id_hasher<IFORM> hasher() const
+//	{
+//		return typename topology_type::template id_hasher<IFORM>(
+//				m_index_local_dimensions_,
+//				m_index_offset_ - m_index_local_offset_);
+//	}
+
+	template<size_t IFORM> struct Domain;
+
+	template<size_t IFORM>
+	Domain<IFORM> domain() const
+	{
+		return Domain<IFORM>(*this);
 	}
 
 	template<typename T0, typename T1>
@@ -163,6 +216,15 @@ public:
 	coordinates_type const & dx() const
 	{
 		return m_dx_;
+	}
+
+	template<typename TI> void dimensions(TI const & d)
+	{
+		m_index_dimensions_ = d;
+	}
+	index_tuple dimensions() const
+	{
+		return m_index_dimensions_;
 	}
 
 	void deploy();
@@ -183,7 +245,7 @@ public:
 		m_time_ += m_dt_;
 	}
 
-	// Time
+// Time
 
 	Real dt() const
 	{
@@ -212,8 +274,6 @@ public:
 	Real m_inv_volume_[9];
 	Real m_dual_volume_[9];
 	Real m_inv_dual_volume_[9];
-
-	void deploy_volume();
 
 	constexpr Real volume(id_type s) const
 	{
@@ -327,33 +387,38 @@ public:
 	}
 
 	/** @} */
+	template<size_t IFORM> DataSpace dataspace() const;
 
+	template<size_t IFORM> void ghost_shape(
+			std::vector<mpi_ghosts_shape_s> *res) const;
+
+	template<size_t IFORM> std::vector<mpi_ghosts_shape_s> ghost_shape() const;
 }
 ;
 
 template<typename TCoord, size_t ... N>
 void RectMesh<TCoord, N...>::deploy()
 {
-	index_tuple dims = domain_type::dimensions();
 
 	for (size_t i = 0; i < ndims; ++i)
 	{
-		if (dims[i] > 0 && (m_coords_max_[i] - m_coords_min_[i]) > EPSILON)
+		if (m_index_dimensions_[i] > 0
+				&& (m_coords_max_[i] - m_coords_min_[i]) > EPSILON)
 		{
 
 			m_dx_[i] = (m_coords_max_[i] - m_coords_min_[i])
-					/ static_cast<Real>(dims[i]);
+					/ static_cast<Real>(m_index_dimensions_[i]);
 
-			m_to_topology_scale_ = dims[i]
+			m_to_topology_scale_ = m_index_dimensions_[i]
 					/ (m_coords_max_[i] - m_coords_min_[i]);
 
 			m_from_topology_scale_[i] = (m_coords_max_[i] - m_coords_min_[i])
-					/ dims[i];
+					/ m_index_dimensions_[i];
 		}
 #ifdef  ENABLE_COMPLEX_COORDINATE_SYSTEM
 		else if ((m_coords_max_[i] - m_coords_min_[i]) > EPSILON)
 		{
-			dims[i] = 1;
+			m_index_dimensions_[i] = 1;
 			m_dx_[i] = 0;
 			m_to_topology_scale_ = 1.0 / (m_coords_max_[i] - m_coords_min_[i]);
 			m_from_topology_scale_[i] = (m_coords_max_[i] - m_coords_min_[i])
@@ -362,7 +427,7 @@ void RectMesh<TCoord, N...>::deploy()
 #endif
 		else
 		{
-			dims[i] = 1;
+			m_index_dimensions_[i] = 1;
 
 			m_dx_[i] = 0;
 
@@ -388,21 +453,37 @@ void RectMesh<TCoord, N...>::deploy()
 		WARNING << ("  Courant–Friedrichs–Lewy (CFL) !") << std::endl;
 	}
 
-	deploy_volume();
+	/**
+	 *  decompose mesh
+	 * */
 
-	domain_type::dimensions(&dims[0]);
+	m_index_count_ = m_index_dimensions_;
+	m_index_offset_ = 0;
 
-	domain_type::deploy();
+	if (GLOBAL_COMM.num_of_process() > 1)
+	{
+		GLOBAL_COMM.decompose(ndims, &m_index_count_[0],
+		&m_index_offset_[0]);
+	}
 
-	is_valid_ = true;
+	index_tuple ghost_width;
+//FIXME ghost_width is not init.
+//	if (gw != nullptr)
+//	{
+//		ghost_width = gw;
+//	}
+//	else
+//	{
+//		ghost_width = 0;
+//	}
 
-	VERBOSE << get_type_as_string() << " is deployed!" << std::endl;
+	m_index_local_dimensions_ = m_index_count_ + ghost_width * 2;
 
-}
+	m_index_local_offset_ = m_index_offset_ - ghost_width;
 
-template<typename TCoord, size_t ... N>
-void RectMesh<TCoord, N...>::deploy_volume()
-{
+	/**
+	 *  deploy volume
+	 **/
 
 	for (size_t i = 0; i < ndims; ++i)
 	{
@@ -498,10 +579,18 @@ void RectMesh<TCoord, N...>::deploy_volume()
 
 	m_inv_dual_volume_[0] /* 111 */= m_inv_dual_volume_[6]
 			* m_inv_dual_volume_[5] * m_inv_dual_volume_[3];
+
+	/**
+	 *
+	 */
+
+	is_valid_ = true;
+
+	VERBOSE << get_type_as_string() << " is deployed!" << std::endl;
+
 }
+
 }
 // namespace simpla
-
-//}  // namespace std
 
 #endif /* MESH_RECT_MESH_H_ */

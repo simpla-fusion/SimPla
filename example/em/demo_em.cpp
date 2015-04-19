@@ -44,7 +44,7 @@ USE_CASE(em," Maxwell Eqs.")
 
 	options["s"].as<size_t>(&strides);
 
-	auto mesh = std::make_shared<CartesianRectMesh>();
+	auto mesh = std::make_shared<CartesianManifold>();
 
 	mesh->dimensions(
 			options["dimensions"].as(nTuple<size_t, 3>( { 10, 10, 10 })));
@@ -90,6 +90,8 @@ USE_CASE(em," Maxwell Eqs.")
 //			options["Constraint"]["B"]);
 
 	LOGGER << "----------  Dump input ---------- " << std::endl;
+
+	E.clear();
 
 	E = 1.234;
 

@@ -28,8 +28,6 @@
 namespace simpla
 {
 
-template<typename ...> struct _Field;
-
 /**
  * @ingroup field
  * @{
@@ -38,42 +36,39 @@ template<typename ...> struct _Field;
 /**
  *  Simple Field
  */
-template<typename TM, typename TV>
-struct _Field<TM, TV, _impl::is_sequence_container> : public SpObject
+template<typename TM, size_t IFORM, typename TV>
+struct _Field<Domain<TM, IFORM>, TV, _impl::is_sequence_container> : public SpObject
 {
 
-	typedef TM mesh_type;
-	static constexpr size_t iform = mesh_type::iform;
+	typedef Domain<TM, IFORM> domain_type;
+	typedef typename domain_type::mesh_type mesh_type;
+	static constexpr size_t iform = domain_type::iform;
 	typedef typename mesh_type::id_type id_type;
 	typedef typename mesh_type::coordinates_type coordinates_type;
-	typedef typename mesh_type::domain_type domain_type;
 
 	typedef TV value_type;
 
 	typedef std::shared_ptr<value_type> container_type;
 
-	typedef _Field<mesh_type, value_type, _impl::is_sequence_container> this_type;
+	typedef _Field<domain_type, value_type, _impl::is_sequence_container> this_type;
 
 private:
 
-	mesh_type m_mesh_;
 	domain_type m_domain_;
 	std::shared_ptr<TV> m_data_;
 
 public:
 
-	_Field(mesh_type const & d) :
-			m_mesh_(d), m_domain_(m_mesh_.domain()), m_data_(nullptr)
+	_Field(domain_type const & d) :
+			m_domain_(d), m_data_(nullptr)
 	{
 	}
 	_Field(this_type const & other) :
-			m_mesh_(other.m_mesh_), m_domain_(m_mesh_.domain()), m_data_(
-					other.m_data_)
+			m_domain_(other.m_domain_), m_data_(other.m_data_)
 	{
 	}
 	_Field(this_type && other) :
-			m_mesh_(other.m_mesh_), m_domain_(m_mesh_.domain()), m_data_(
-					other.m_data_)
+			m_domain_(other.m_domain_), m_data_(other.m_data_)
 	{
 	}
 	~_Field()
@@ -81,17 +76,17 @@ public:
 	}
 	void swap(this_type & other)
 	{
-		std::swap(m_mesh_, other.m_mesh_);
 		std::swap(m_domain_, other.m_domain_);
 		std::swap(m_data_, other.m_data_);
 	}
 	std::string get_type_as_string() const
 	{
-		return "Field<" + m_mesh_.get_type_as_string() + ">";
+		return "Field<" + m_domain_.mesh().get_type_as_string() + ">";
 	}
-	mesh_type const & mesh() const
+
+	domain_type const & domain() const
 	{
-		return m_mesh_;
+		return m_domain_;
 	}
 
 	std::shared_ptr<value_type> data()
@@ -99,28 +94,21 @@ public:
 		return m_data_;
 	}
 
-	template<typename TU> using clone_field_type=
-	_Field<TM,TU, _impl::is_sequence_container >;
-
-	template<typename TU>
-	clone_field_type<TU> clone() const
-	{
-		return clone_field_type<TU>(m_mesh_);
-	}
-
 	void clear()
 	{
 		wait();
+		value_type t;
+		t = 0;
+		CHECK(m_domain_.max_hash());
+		std::fill(m_data_.get(), m_data_.get() + m_domain_.max_hash(), t);
 
-		*this = 0;
 	}
 	template<typename T>
 	void fill(T const &v)
 	{
 		wait();
 
-		std::fill(m_data_.get(),
-				m_data_.get() + m_domain_.template max_hash<iform>(), v);
+		std::fill(m_data_.get(), m_data_.get() + m_domain_.max_hash(), v);
 	}
 
 	/** @name range concept
@@ -155,7 +143,8 @@ public:
 	}
 
 	template<typename ...Others>
-	inline this_type & operator =(_Field<TM, TV, Others...> const &other)
+	inline this_type & operator =(
+			_Field<domain_type, value_type, Others...> const &other)
 	{
 		assign(m_domain_ & other.domain(), other);
 		return *this;
@@ -165,21 +154,23 @@ public:
 	inline this_type & operator =(TR const &other)
 	{
 		wait();
-		m_domain_.template for_each<iform>([&](id_type const &s)
+
+		m_domain_.for_each([&](id_type const &s)
 		{
-			at(s) = m_mesh_.calculate(other, s);
+			at(s) = m_domain_.mesh().calculate(other, s);
 		});
+
 		return *this;
 	}
 private:
-	template<typename TOther>
-	void assign(typename mesh_type::domain_type const & d, TOther const & other)
+	template<typename T, typename TOther>
+	void assign(T const & d, TOther const & other)
 	{
 		wait();
 
 		d.template for_each<iform>([&](id_type const &s)
 		{
-			at(s) = m_mesh_.calculate(other, s);
+			at(s) = m_domain_.mesh().calculate(other, s);
 		});
 
 	}
@@ -190,17 +181,17 @@ public:
 	/** @name access
 	 *  @{*/
 
-	typedef typename mesh_type::template field_value_type<value_type> field_value_type;
+	typedef typename domain_type::template field_value_type<value_type> field_value_type;
 
 	field_value_type gather(coordinates_type const& x) const
 	{
-		return std::move(m_mesh_.gather(*this, x));
+		return std::move(m_domain_.mesh().gather(*this, x));
 	}
 
 	template<typename ...Args>
 	void scatter(Args && ... args)
 	{
-		m_mesh_.scatter(*this, std::forward<Args>(args)...);
+		m_domain_.mesh().scatter(*this, std::forward<Args>(args)...);
 	}
 
 	/**@}*/
@@ -209,15 +200,12 @@ public:
 	{
 		if (m_data_ == nullptr)
 		{
-			m_data_ = sp_make_shared_array<value_type>(m_domain_.template max_hash<iform>());
+			m_data_ = sp_make_shared_array<value_type>(m_domain_.max_hash());
 		}
 
 		SpObject::prepare_sync(m_domain_.ghost_shape());
 	}
-	domain_type const & domain() const
-	{
-		return m_domain_;
-	}
+
 	DataSet dataset() const
 	{
 		//ASSERT(is_ready());
@@ -228,7 +216,7 @@ public:
 
 		res.datatype = DataType::create<value_type>();
 
-		res.dataspace = m_domain_.template dataspace<iform>();
+		res.dataspace = m_domain_.dataspace();
 
 		res.properties = SpObject::properties;
 
@@ -244,7 +232,7 @@ public:
 
 		for (auto s : s_range)
 		{
-			fun(m_data_.get()[m_domain_.hash<iform>(s)]);
+			fun(m_data_.get()[m_domain_.hash(s)]);
 		}
 
 	}
@@ -253,11 +241,9 @@ public:
 	{
 //		ASSERT(is_ready());
 
-		auto s_range = m_domain_.template range<iform>();
-
-		for (auto s : s_range)
+		for (auto s : m_domain_)
 		{
-			fun(m_data_.get()[m_domain_.hash<iform>(s)]);
+			fun(m_data_.get()[m_domain_.hash(s)]);
 		}
 	}
 
@@ -265,38 +251,37 @@ public:
 	template<typename IndexType>
 	value_type & operator[](IndexType const & s)
 	{
-		return m_data_.get()[m_domain_.hash<iform>(s)];
+		return m_data_.get()[m_domain_.hash(s)];
 	}
 	template<typename IndexType>
 	value_type const & operator[](IndexType const & s) const
 	{
-		return m_data_.get()[m_domain_.hash<iform>(s)];
+		return m_data_.get()[m_domain_.hash(s)];
 	}
 
 	template<typename ...Args>
-	auto at(
-			Args && ... args)
-					DECL_RET_TYPE((m_data_.get()
-									[m_domain_.template hash<iform>(std::forward<Args>(args)...)]))
+	auto at(Args && ... args)
+	DECL_RET_TYPE((m_data_.get()
+					[m_domain_.hash(std::forward<Args>(args)...)]))
 
 	template<typename ...Args>
-	auto at(
-			Args && ... args) const
-					DECL_RET_TYPE((m_data_.get()[m_domain_.template hash<iform>(std::forward<Args>(args)...)]))
+	auto at(Args && ... args) const
+	DECL_RET_TYPE((m_data_.get()[m_domain_.hash(std::forward<Args>(args)...)]))
 
 	template<typename ...Others>
 	auto operator()(coordinates_type const &x, Others && ...) const
-	DECL_RET_TYPE((this->m_mesh_.gather(*this,x)))
+	DECL_RET_TYPE((this->m_domain_.mesh().gather(*this,x)))
 
 	template<typename TDomain, typename TFun>
 	void pull_back(TDomain const & domain, TFun const & fun)
 	{
 		wait();
 
-		Real t = m_mesh_.time();
+		Real t = m_domain_.mesh().time();
 		for (auto s : domain)
 		{
-			this->at(s) = m_mesh_.sample(fun(m_mesh_.coordinates(s), t), s);
+			this->at(s) = m_domain_.mesh().sample(
+					fun(m_domain_.mesh().coordinates(s), t), s);
 		}
 	}
 
@@ -314,11 +299,12 @@ public:
 	template<typename TDomain, typename TFun>
 	void constraint(TDomain const & domain, TFun const & fun)
 	{
-		Real t = m_mesh_.time();
+		Real t = m_domain_.mesh().time();
 		for (auto s : domain)
 		{
-			auto x = m_mesh_.coordinates(s);
-			this->at(s) = m_mesh_.sample(fun(x, t, this->operator()(x)), s);
+			auto x = m_domain_.mesh().coordinates(s);
+			this->at(s) = m_domain_.mesh().sample(
+					fun(x, t, this->operator()(x)), s);
 		}
 	}
 
