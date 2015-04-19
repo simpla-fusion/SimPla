@@ -28,54 +28,51 @@ struct Domain
 
 	static constexpr size_t iform = IFORM;
 
-	typedef Domain<TM, iform> this_type;
+	typedef Domain<mesh_type, iform> this_type;
 
 	static constexpr size_t ndims = mesh_type::ndims;
 
 	typedef typename mesh_type::id_type id_type;
 	typedef typename mesh_type::index_type index_type;
 	typedef sp_nTuple_range<size_t,
-			ndims + ((iform == VERTEX || iform == VOLUME) ? 0 : 1)> base_range;
+			ndims + ((iform == VERTEX || iform == VOLUME) ? 0 : 1)> range_type;
 
 	template<typename TV>
 	using field_value_type=typename std::conditional<iform==EDGE
 	||iform==FACE,nTuple<TV,3>,TV>::type;
 
 private:
-	std::shared_ptr<mesh_type> m_mesh_;
-	base_range m_range_;
+	std::shared_ptr<const mesh_type> m_mesh_;
+	range_type m_range_;
 	std::set<id_type> m_id_set_;
 public:
-	template<typename ...Args>
-	Domain(mesh_type const m, Args && ...args) :
-			m_mesh_(m.shared_from_this()), m_range_(std::forward<Args>(args)...)
-	{
-		deploy();
-	}
 
-	Domain(mesh_type const m)
-//	:
-//			m_mesh_(m.shared_from_this()),
-//
-//			m_range_(m_mesh_->m_index_local_offset_,
-//					m_mesh_->m_index_local_offset_ + m_mesh_->m_index_count_)
+	Domain(mesh_type const &m) :
+			m_mesh_(m.shared_from_this())
 	{
 		deploy();
 	}
 
 	Domain(this_type const & other) :
-			m_mesh_(other.m_mesh_), m_range_(other.m_range_)
+			m_mesh_(other.m_mesh_), m_range_(other.m_range_),
+
+			m_hash_max_(other.m_hash_max_),
+
+			m_hash_offset_(other.m_hash_offset_),
+
+			m_hash_count_(other.m_hash_count_),
+
+			m_hash_strides_(other.m_hash_strides_)
+
 	{
+		deploy();
 	}
 
 	mesh_type const & mesh() const
 	{
 		return *m_mesh_;
 	}
-	void deploy()
-	{
 
-	}
 	this_type operator=(this_type const &other)
 	{
 		this_type(other).swap(*this);
@@ -83,8 +80,15 @@ public:
 	}
 	void swap(this_type &other)
 	{
-		base_range::swap(other);
+		std::swap(m_range_, other.m_range_);
 		std::swap(m_mesh_, other.m_mesh_);
+		std::swap(m_id_set_, other.m_id_set_);
+
+		std::swap(m_hash_max_, other.m_hash_max_);
+		std::swap(m_hash_offset_, other.m_hash_offset_);
+		std::swap(m_hash_count_, other.m_hash_count_);
+		std::swap(m_hash_strides_, other.m_hash_strides_);
+
 	}
 
 	template<typename TFun>
@@ -108,19 +112,39 @@ public:
 
 	struct iterator;
 	typedef iterator const_iterator;
-	size_t m_max_hash_ = 0;
-	typename base_range::value_type m_length_;
-	typename base_range::value_type m_strides_;
+	size_t m_hash_max_ = 0;
+	typename range_type::value_type m_hash_offset_;
+	typename range_type::value_type m_hash_count_;
+	typename range_type::value_type m_hash_strides_;
+
+	void deploy()
+	{
+		m_hash_count_ = m_mesh_->m_index_local_dimensions_;
+		m_hash_offset_ = m_mesh_->m_index_local_offset_;
+
+		m_hash_offset_[ndims] = 0;
+		m_hash_strides_[ndims] = (iform == EDGE || iform == FACE) ? 1 : 1;
+		m_hash_count_[ndims] = (iform == EDGE || iform == FACE) ? 3 : 1;
+
+		range_type(m_hash_offset_, m_hash_offset_ + m_hash_count_).swap(
+				m_range_);
+		for (int i = ndims - 1; i >= 0; --i)
+		{
+			m_hash_strides_[i] = m_hash_strides_[i + 1] * m_hash_count_[i + 1];
+		}
+		m_hash_max_ = m_hash_strides_[0] * m_hash_count_[0];
+	}
+
 	size_t max_hash() const
 	{
-		return m_max_hash_;
+		return m_hash_max_;
 	}
 
 	constexpr size_t hash(id_type const &s) const
 	{
 		return inner_product(
-				(mesh_type::template unpack<iform>(s) + m_length_) % m_length_,
-				m_strides_);
+				(mesh_type::template unpack<iform>(s) + m_hash_count_
+						- m_hash_offset_) % m_hash_count_, m_hash_strides_);
 	}
 
 	const_iterator begin() const
@@ -135,14 +159,14 @@ public:
 
 	bool is_empty() const
 	{
-		return base_range::is_empty();
+		return range_type::is_empty();
 	}
 
 	struct iterator: public std::iterator<
-			typename base_range::iterator::iterator_category, id_type, id_type>,
-			public base_range::iterator
+			typename range_type::iterator::iterator_category, id_type, id_type>,
+			public range_type::iterator
 	{
-		typedef typename base_range::iterator base_iterator;
+		typedef typename range_type::iterator base_iterator;
 
 		iterator(base_iterator const &other) :
 				base_iterator(other)

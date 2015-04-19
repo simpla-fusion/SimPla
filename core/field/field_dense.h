@@ -99,7 +99,7 @@ public:
 		wait();
 		value_type t;
 		t = 0;
-		CHECK(m_domain_.max_hash());
+
 		std::fill(m_data_.get(), m_data_.get() + m_domain_.max_hash(), t);
 
 	}
@@ -134,8 +134,10 @@ public:
 	inline this_type & operator =(this_type const &other)
 	{
 		wait();
+
 		m_domain_.for_each([&](id_type const &s)
 		{
+
 			at(s) =other.at(s);
 		});
 
@@ -154,7 +156,6 @@ public:
 	inline this_type & operator =(TR const &other)
 	{
 		wait();
-
 		m_domain_.for_each([&](id_type const &s)
 		{
 			at(s) = m_domain_.mesh().calculate(other, s);
@@ -228,9 +229,7 @@ public:
 	{
 		wait();
 
-		auto s_range = m_domain_.template range<iform>();
-
-		for (auto s : s_range)
+		for (auto s : m_domain_)
 		{
 			fun(m_data_.get()[m_domain_.hash(s)]);
 		}

@@ -214,7 +214,7 @@ struct MeshIDs_
 	template<size_t IFORM, typename TInt>
 	static constexpr id_type pack(nTuple<TInt, 4> const &i)
 	{
-		return pack<IFORM>(i[0], i[1], i[2], i[4]);
+		return pack<IFORM>(i[0], i[1], i[2], i[3]);
 	}
 
 	template<size_t IFORM>

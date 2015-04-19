@@ -26,7 +26,8 @@ template<typename TG, // Geometric space, mesh
 		typename CalculusPolicy = FiniteDiffMethod<TG>, // difference scheme
 		typename InterpolatorPlolicy = InterpolatorLinear<TG> // interpolation formula
 >
-class Manifold: public TG
+class Manifold: public TG, public std::enable_shared_from_this<
+		Manifold<TG, CalculusPolicy, InterpolatorPlolicy>>
 {
 public:
 	typedef Manifold<TG, CalculusPolicy, InterpolatorPlolicy> this_type;

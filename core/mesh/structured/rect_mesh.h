@@ -55,8 +55,7 @@ template<typename, size_t> struct Domain;
  *  - the unit cell width is 1;
  */
 template<typename TCoordSystem, size_t ... NFLAGS>
-struct RectMesh: public MeshIDs_<NFLAGS...>,
-		public std::enable_shared_from_this<RectMesh<TCoordSystem, NFLAGS...>>
+struct RectMesh: public MeshIDs_<NFLAGS...>
 {
 
 	typedef TCoordSystem coordinates_system;
