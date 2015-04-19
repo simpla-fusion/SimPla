@@ -27,10 +27,9 @@ struct Domain
 	typedef TM mesh_type;
 
 	static constexpr size_t iform = IFORM;
+	static constexpr size_t ndims = mesh_type::ndims;
 
 	typedef Domain<mesh_type, iform> this_type;
-
-	static constexpr size_t ndims = mesh_type::ndims;
 
 	typedef typename mesh_type::id_type id_type;
 	typedef typename mesh_type::index_type index_type;
@@ -98,6 +97,7 @@ public:
 		{
 			for (auto const & s : m_range_)
 			{
+
 				fun(mesh_type::template pack<iform>(s));
 			}
 		}

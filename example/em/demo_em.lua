@@ -38,7 +38,7 @@ GW = 5
 
 omega_ext=omega_ci*1.9
 
-dimensions={10 ,1 ,1 }
+dimensions={10 ,10 ,1 }
 
 xmin={0.0,0.0,0.0}
 

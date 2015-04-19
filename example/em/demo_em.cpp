@@ -65,13 +65,9 @@ USE_CASE(em," Maxwell Eqs.")
 
 			<< " Mesh =" << std::endl << "  {" << *mesh << "} " << std::endl
 
-			<< " TIME_STEPS = " << num_of_steps << std::endl
-
-			;
+			<< " TIME_STEPS = " << num_of_steps << std::endl;
 
 	// Load initialize value
-
-	auto phi = make_form<VERTEX, Real>(mesh);
 
 	auto J = make_form<EDGE, Real>(mesh);
 	auto E = make_form<EDGE, Real>(mesh);
@@ -92,14 +88,14 @@ USE_CASE(em," Maxwell Eqs.")
 	LOGGER << "----------  Dump input ---------- " << std::endl;
 
 	E.clear();
-
-	E = 1.234;
+	B.clear();
+	J.clear();
 
 	cd("/Input/");
 
 	VERBOSE << SAVE(E) << std::endl;
-////	VERBOSE << SAVE(E) << std::endl;
-////	VERBOSE << SAVE(J) << std::endl;
+	VERBOSE << SAVE(E) << std::endl;
+	VERBOSE << SAVE(J) << std::endl;
 //
 //	if (options["JUST_A_TEST"])
 //	{
@@ -107,28 +103,28 @@ USE_CASE(em," Maxwell Eqs.")
 //	}
 //	else
 //	{
-//		LOGGER << "----------  START ---------- " << std::endl;
-//
-//		cd("/Save/");
-//		for (size_t s = 0; s < num_of_steps; ++s)
-//		{
-//			VERBOSE << "Step [" << s << "/" << num_of_steps << "]" << std::endl;
-//
+	LOGGER << "----------  START ---------- " << std::endl;
+
+	cd("/Save/");
+	for (size_t s = 0; s < num_of_steps; ++s)
+	{
+		VERBOSE << "Step [" << s << "/" << num_of_steps << "]" << std::endl;
+
 ////			E_src(&E);
 ////			J_src(&J);
 ////			B_src(&B);
-//			E = curl(B) * dt - J;
-//			B = -curl(E) * dt;
-//
-//			VERBOSE << SAVE_RECORD(E) << std::endl;
-//			VERBOSE << SAVE_RECORD(B) << std::endl;
-//
-//		}
+		E = curl(B) * dt - J;
+		B = -curl(E) * dt;
+
+		VERBOSE << SAVE_RECORD(E) << std::endl;
+		VERBOSE << SAVE_RECORD(B) << std::endl;
+
+	}
 //	}
-//	cd("/Output/");
-////	VERBOSE << SAVE(E) << std::endl;
-////	VERBOSE << SAVE(B) << std::endl;
-////	VERBOSE << SAVE(J) << std::endl;
+	cd("/Output/");
+	VERBOSE << SAVE(E) << std::endl;
+	VERBOSE << SAVE(B) << std::endl;
+	VERBOSE << SAVE(J) << std::endl;
 
 	LOGGER << "----------  DONE ---------- " << std::endl;
 

@@ -48,7 +48,7 @@ template<typename ...> struct field_traits;
 template<typename T> struct field_traits<T>
 {
 
-	typedef std::nullptr_t mesh_type;
+	typedef std::nullptr_t domain_type;
 
 	typedef T value_type;
 
@@ -61,13 +61,13 @@ struct field_traits<_Field<T ...>>
 {
 	static constexpr bool is_field = true;
 
-	typedef typename _Field<T ...>::mesh_type mesh_type;
+	typedef typename _Field<T ...>::domain_type domain_type;
 
 	typedef typename _Field<T ...>::value_type value_type;
 
-	static constexpr size_t iform = _Field<T ...>::iform;
+	static constexpr size_t iform = domain_type::iform;
 
-	static constexpr size_t ndims = mesh_type::ndims;
+	static constexpr size_t ndims = domain_type::ndims;
 
 };
 
@@ -84,7 +84,7 @@ struct _Field<Expression<TOP, TL, std::nullptr_t>> : public Expression<TOP, TL,
 	typedef typename field_traits<TL>::value_type l_type;
 public:
 
-	typedef typename field_traits<TL>::mesh_type mesh_type;
+	typedef typename field_traits<TL>::domain_type domain_type;
 
 	typedef typename sp_result_of<TOP(l_type)>::type value_type;
 
@@ -104,7 +104,7 @@ public:
 
 	typedef typename sp_result_of<TOP(l_type, r_type)>::type value_type;
 
-	typedef typename field_traits<TL>::mesh_type mesh_type;
+	typedef typename field_traits<TL>::domain_type domain_type;
 
 	typedef _Field<Expression<TOP, TL, TR>> this_type;
 
@@ -116,7 +116,7 @@ struct _Field<BooleanExpression<TOP, TL, TR>> : public Expression<TOP, TL, TR>
 {
 	typedef bool value_type;
 
-	typedef typename field_traits<TL>::mesh_type mesh_type;
+	typedef typename field_traits<TL>::domain_type domain_type;
 
 	typedef _Field<BooleanExpression<TOP, TL, TR>> this_type;
 
@@ -137,7 +137,7 @@ struct _Field<AssignmentExpression<TOP, TL, TR>> : public AssignmentExpression<
 
 	typedef typename field_traits<TL>::value_type value_type;
 
-	typedef typename field_traits<TL>::mesh_type mesh_type;
+	typedef typename field_traits<TL>::domain_type domain_type;
 
 	typedef _Field<AssignmentExpression<TOP, TL, TR>> this_type;
 
