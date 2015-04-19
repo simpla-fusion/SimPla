@@ -34,6 +34,10 @@ public:
 
 	typedef CartesianCoordinates<NDIMS, ZAXIS> this_type;
 
+//	typedef MeshIDs_<NDIMS,ZAXIS> ids;
+//
+//	typedef typename ids::coordinates_type coordinates_type;
+//	typedef typename ids::id_type id_type;
 	typedef std::shared_ptr<this_type> holder_type;
 
 	static constexpr size_t ndims = NDIMS;
@@ -45,27 +49,6 @@ public:
 	typedef Real scalar_type;
 
 	typedef nTuple<Real, NDIMS> coordinates_type;
-
-private:
-	bool is_valid_ = false;
-
-	coordinates_type m_coord_orig_ /*= { 0, 0, 0 }*/;
-
-	coordinates_type m_dx_ /*= { 0, 0, 0 }*/;
-
-	coordinates_type m_xmin_ /*= { 0, 0, 0 }*/;
-
-	coordinates_type m_xmax_ /*= { 1, 1, 1 }*/;
-
-	coordinates_type m_inv_length_ /*= { 1.0, 1.0, 1.0 }*/;
-
-	coordinates_type m_length_ /*= { 1.0, 1.0, 1.0 }*/;
-
-	coordinates_type m_shift_/* = { 0, 0, 0 }*/;
-
-	coordinates_type m_to_topology_factor_;
-
-	coordinates_type m_from_topology_factor_;
 
 public:
 	CartesianCoordinates()
@@ -141,7 +124,7 @@ public:
 //		return std::move(res);
 //	}
 
-	nTuple<Real, 3> MapToCartesian(coordinates_type const &y) const
+	static nTuple<Real, 3> MapToCartesian(coordinates_type const &y)
 	{
 		nTuple<Real, 3> x;
 
@@ -152,7 +135,7 @@ public:
 		return std::move(x);
 	}
 
-	coordinates_type MapFromCartesian(nTuple<Real, 3> const &x) const
+	static coordinates_type MapFromCartesian(nTuple<Real, 3> const &x)
 	{
 
 		coordinates_type y;
@@ -165,8 +148,8 @@ public:
 	}
 
 	template<typename TV>
-	std::tuple<coordinates_type, TV> push_forward(
-			std::tuple<coordinates_type, TV> const & Z) const
+	static std::tuple<coordinates_type, TV> push_forward(
+			std::tuple<coordinates_type, TV> const & Z)
 	{
 		return std::move(
 				std::make_tuple(MapFromCartesian(std::get<0>(Z)),
@@ -174,14 +157,14 @@ public:
 	}
 
 	template<typename TV>
-	std::tuple<coordinates_type, TV> pull_back(
-			std::tuple<coordinates_type, TV> const & R) const
+	static std::tuple<coordinates_type, TV> pull_back(
+			std::tuple<coordinates_type, TV> const & R)
 	{
 		return std::move(
 				std::make_tuple(MapToCartesian(std::get<0>(R)), std::get<1>(R)));
 	}
 
-	coordinates_type Lie_trans(coordinates_type const & x,
+	static coordinates_type Lie_trans(coordinates_type const & x,
 			nTuple<Real, 3> const & v)
 	{
 		coordinates_type res;
@@ -190,7 +173,7 @@ public:
 		return std::move(res);
 	}
 
-	coordinates_type Lie_trans(
+	static coordinates_type Lie_trans(
 			std::tuple<coordinates_type, nTuple<Real, 3> > const &Z,
 			nTuple<Real, 3> const & v)
 	{
@@ -210,8 +193,8 @@ public:
 	 */
 
 	template<typename TV>
-	std::tuple<coordinates_type, nTuple<TV, ndims> > push_forward(
-			std::tuple<coordinates_type, nTuple<TV, ndims> > const & Z) const
+	static std::tuple<coordinates_type, nTuple<TV, ndims> > push_forward(
+			std::tuple<coordinates_type, nTuple<TV, ndims> > const & Z)
 	{
 		coordinates_type y = MapFromCartesian(std::get<0>(Z));
 
@@ -235,9 +218,9 @@ public:
 	 * @return  x,\f$v = v[XAixs] \partial_x +  v[YAixs] \partial_y + v[ZAixs] \partial_z\f$
 	 */
 	template<typename TV>
-	std::tuple<coordinates_type, nTuple<TV, ndims> > pull_back(
+	static std::tuple<coordinates_type, nTuple<TV, ndims> > pull_back(
 			std::tuple<coordinates_type, nTuple<TV, ndims> > const & R,
-			size_t CartesianZAxis = 2) const
+			size_t CartesianZAxis = 2)
 	{
 		auto x = MapToCartesian(std::get<0>(R));
 		auto const & u = std::get<1>(R);
@@ -249,6 +232,22 @@ public:
 		v[CARTESIAN_ZAXIS] = u[ZAxis];
 
 		return std::move(std::make_tuple(x, v));
+	}
+	static constexpr Real inv_volume_factor(...)
+	{
+		return 1.0;
+	}
+	static constexpr Real volume_factor(...)
+	{
+		return 1.0;
+	}
+	static constexpr Real inv_dual_volume_factor(...)
+	{
+		return 1.0;
+	}
+	static constexpr Real dual_volume_factor(...)
+	{
+		return 1.0;
 	}
 
 //	template<size_t IFORM, typename TR>
@@ -267,9 +266,9 @@ public:
 //	auto select() const
 //	DECL_RET_TYPE((this->topology_type:: template select<IFORM>()))
 
-	//***************************************************************************************************
-	// Volume
-	//***************************************************************************************************
+//***************************************************************************************************
+// Volume
+//***************************************************************************************************
 
 	/**
 	 *\verbatim
@@ -314,31 +313,32 @@ public:
 	{
 		return dx[0] * dx[1] * dx[2];
 	}
-	constexpr scalar_type volume(id_type s) const
-	{
-		return topology_type::volume(s) * volume_[topology_type::node_id(s)];
-	}
-	constexpr scalar_type inv_volume(id_type s) const
-	{
-		return topology_type::inv_volume(s)
-				* inv_volume_[topology_type::node_id(s)];
-	}
-
-	constexpr scalar_type dual_volume(id_type s) const
-	{
-		return topology_type::dual_volume(s)
-				* dual_volume_[topology_type::node_id(s)];
-	}
-	constexpr scalar_type inv_dual_volume(id_type s) const
-	{
-		return topology_type::inv_dual_volume(s)
-				* inv_dual_volume_[topology_type::node_id(s)];
-	}
-
-	constexpr Real HodgeStarVolumeScale(id_type s) const
+	constexpr scalar_type volume(coordinates_type const & x,
+			coordinates_type const & dx) const
 	{
 		return 1.0;
 	}
+//	constexpr scalar_type inv_volume(id_type s) const
+//	{
+//		return topology_type::inv_volume(s)
+//				* inv_volume_[topology_type::node_id(s)];
+//	}
+//
+//	constexpr scalar_type dual_volume(id_type s) const
+//	{
+//		return topology_type::dual_volume(s)
+//				* dual_volume_[topology_type::node_id(s)];
+//	}
+//	constexpr scalar_type inv_dual_volume(id_type s) const
+//	{
+//		return topology_type::inv_dual_volume(s)
+//				* inv_dual_volume_[topology_type::node_id(s)];
+//	}
+//
+//	constexpr Real HodgeStarVolumeScale(id_type s) const
+//	{
+//		return 1.0;
+//	}
 
 }
 ;

@@ -7,8 +7,8 @@ ENABLE_TESTING()
 
 include(${PROJECT_SOURCE_DIR}/CMake/utils.cmake)
  
-SET(CMAKE_VERBOSE_MAKEFILE ON)
-
+SET(CMAKE_VERBOSE_MAKEFILE OFF)
+ 
 SET(PREFIX ${CMAKE_CXX_COMPILER_ID}-${CMAKE_BUILD_TYPE})
 
 SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
@@ -21,7 +21,7 @@ SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake ${CMAKE_MODULE_PATH})
 MESSAGE(STATUS "Using C++ Compiler ${CMAKE_CXX_COMPILER_ID} ")
 
 if(${CMAKE_CXX_COMPILER_ID}  STREQUAL "Clang")
-  SET(CMAKE_CXX_FLAGS "-fPIC -std=c++11  -fcolor-diagnostics   -ftemplate-backtrace-limit=0   ")
+  SET(CMAKE_CXX_FLAGS "-fPIC -std=c++11     -ftemplate-backtrace-limit=0   ")
 
 #  SET(CMAKE_AR      "llvm-ar-3.5")
  # SET(CMAKE_LINKER  "llvm-ld-3.5")

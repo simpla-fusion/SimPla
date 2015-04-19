@@ -50,7 +50,7 @@ public:
 
 	bool is_valid() const
 	{
-		return !(!m_fun_) && m_domain_.size() > 0;
+		return (m_fun_!=nullptr) && m_domain_.size() > 0;
 	}
 
 	domain_type const & domain() const

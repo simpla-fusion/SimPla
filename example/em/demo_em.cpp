@@ -44,7 +44,7 @@ USE_CASE(em," Maxwell Eqs.")
 
 	options["s"].as<size_t>(&strides);
 
-	auto mesh = make_mesh<CartesianMesh>();
+	auto mesh = make_mesh<CartesianRectMesh>();
 
 	mesh->dimensions(
 			options["dimensions"].as(nTuple<size_t, 3>( { 10, 10, 10 })));

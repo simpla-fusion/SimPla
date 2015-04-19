@@ -32,3 +32,5 @@
 # Directory
 build*/
 third_part
+/Default/
+/Release/

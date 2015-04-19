@@ -227,6 +227,11 @@ inline std::string ShowBit(unsigned long s)
 
 #define UNIMPLEMENTED Logger(LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
 	          << "Sorry, this function is not implemented. Try again next year, good luck!"
+#define OBSOLETE  Logger(LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
+	          << "The function ["<< __PRETTY_FUNCTION__ << "] is obsolete. Please do not use  it any more."
+
+#define CHANGE_INTERFACE(_MSG_)  Logger(LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
+	          << "The function ["<< __PRETTY_FUNCTION__ << "] is obsolete. Please use ["<<_MSG_<<"] inside."
 
 #define UNIMPLEMENTED2(_MSG_) Logger(LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
 	          << "Sorry, I don't know how to '"<< _MSG_ <<"'. Try again next year, good luck!"

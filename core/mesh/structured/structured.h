@@ -10,7 +10,7 @@
 
 #include "../mesh.h"
 #include "../manifold.h"
-#include "rect_mesh .h"
+#include "rect_mesh.h"
 #include "coordiantes_cartesian.h"
 //#include "coordinates_cylindrical.h"
 #include "fdm.h"
@@ -18,12 +18,12 @@
 
 namespace simpla
 {
-typedef CartesianCoordinates<RectMesh> CartesianMesh;
+typedef RectMesh<CartesianCoordinates<3>> CartesianRectMesh;
 //typedef CylindricalCoordinates<RectMesh> CylindricalMesh;
 
 template<size_t IFORM> using CartesianManifold=
-Manifold<IFORM,CartesianMesh,FiniteDiffMethod<CartesianMesh>,
-InterpolatorLinear<CartesianMesh>>;
+Manifold<IFORM,CartesianRectMesh,FiniteDiffMethod<CartesianRectMesh>,
+InterpolatorLinear<CartesianRectMesh>>;
 
 //template<size_t IFORM> using CylindricalMeshManifold=
 //Manifold<IFORM,CartesianMesh,FiniteDiffMethod<CartesianMesh>,

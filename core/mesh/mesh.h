@@ -50,6 +50,9 @@ namespace simpla
  * @}
 
  */
+
+template<typename ...> class Domain;
+
 template<typename TM, typename ... Args>
 std::shared_ptr<TM> make_mesh(Args && ...args)
 {

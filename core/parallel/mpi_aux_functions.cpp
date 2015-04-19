@@ -257,19 +257,12 @@ void bcast_string(std::string * filename_)
 
 }
 
-void get_ghost_shape(DataSpace const & dataspace, size_t const * ghost_width,
+void get_ghost_shape(size_t ndims, size_t const * l_dims,
+		size_t const * l_offset, size_t const * l_stride,
+		size_t const * l_count, size_t const * l_block,
+		size_t const * ghost_width,
 		std::vector<mpi_ghosts_shape_s>* send_recv_list)
 {
-
-	size_t ndims;
-	size_t const * l_dims;
-	size_t const * l_offset;
-	size_t const * l_stride;
-	size_t const * l_count;
-	size_t const * l_block;
-
-	std::tie(ndims, l_dims, l_offset, l_stride, l_count, l_block) =
-			dataspace.memory_shape();
 	send_recv_list->clear();
 
 	nTuple<size_t, MAX_NDIMS_OF_ARRAY> send_count, send_offset;
@@ -324,8 +317,8 @@ void get_ghost_shape(DataSpace const & dataspace, size_t const * ghost_width,
 						|| coords_shift[2] != 0))
 		{
 
-			send_recv_list->emplace_back(mpi_ghosts_shape_s { coords_shift,
-					send_offset, send_count, recv_offset, recv_count });
+			send_recv_list->emplace_back(mpi_ghosts_shape_s
+			{ coords_shift, send_offset, send_count, recv_offset, recv_count });
 		}
 
 	}

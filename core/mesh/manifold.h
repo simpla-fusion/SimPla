@@ -33,7 +33,7 @@ template<size_t IFORM, //
 		typename CalculusPolicy = FiniteDiffMethod<TG>, // difference scheme
 		typename InterpolatorPlolicy = InterpolatorLinear<TG> // interpolation formula
 >
-class Manifold
+class Manifold: public TG
 {
 
 public:
@@ -44,6 +44,7 @@ public:
 	typedef typename geometry_type::id_type id_type;
 	typedef typename geometry_type::topology_type topology_type;
 	typedef typename geometry_type::index_tuple index_tuple;
+	typedef typename geometry_type::domain_type domain_type;
 
 	typedef CalculusPolicy calculate_policy;
 	typedef InterpolatorPlolicy interpolatpr_policy;
@@ -52,29 +53,24 @@ public:
 	static constexpr size_t iform = IFORM;
 	static constexpr size_t ndims = geometry_type::ndims;
 
-	template<typename TV> using field_value_type=typename
-	std::conditional<iform==VERTEX || iform ==VOLUME,TV,nTuple<TV,3>>::type;
-
-	typedef typename topology_type::domain_type domain_type;
-
 private:
 	std::shared_ptr<const geometry_type> m_geometry_;
 	domain_type m_domain_;
 public:
 
-	Manifold()
-			: m_geometry_(nullptr)
+	Manifold() :
+			m_geometry_(nullptr)
 	{
 	}
 
-	Manifold(geometry_type const & geo)
-			: m_geometry_(geo.shared_from_this()), m_domain_(
+	Manifold(geometry_type const & geo) :
+			m_geometry_(geo.shared_from_this()), m_domain_(
 					m_geometry_->domain())
 	{
 	}
 
-	Manifold(this_type const & other)
-			: m_geometry_(other.m_geometry_), m_domain_(m_geometry_->domain())
+	Manifold(this_type const & other) :
+			m_geometry_(other.m_geometry_), m_domain_(m_geometry_->domain())
 	{
 	}
 
@@ -105,8 +101,8 @@ public:
 	 * @{
 	 */
 	template<typename ...Others>
-	Manifold(this_type & other, Others && ...others)
-			: m_geometry_(other.m_geometry_)
+	Manifold(this_type & other, Others && ...others) :
+			m_geometry_(other.m_geometry_)
 	{
 	}
 
@@ -139,7 +135,7 @@ public:
 	template<typename ...Args>
 	size_t hash(Args && ...args) const
 	{
-		return m_geometry_->hash(std::forward<Args>(args)...);
+		return m_geometry_->template hash<iform>(std::forward<Args>(args)...);
 	}
 
 	size_t max_hash() const
@@ -166,11 +162,11 @@ public:
 	void calculate(
 			_Field<AssignmentExpression<TOP, TL, TR> > const & fexpr) const
 	{
-		for (auto s : domain())
-		{
-			fexpr.op_(fexpr.lhs[s],
-					calculate_policy::calculate(*m_geometry_, fexpr.rhs, s));
-		}
+//		for (auto s : domain())
+//		{
+//			fexpr.op_(fexpr.lhs[s],
+//					calculate_policy::calculate(*m_geometry_, fexpr.rhs, s));
+//		}
 	}
 
 	Real time() const

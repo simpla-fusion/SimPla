@@ -37,7 +37,6 @@ public:
 	typedef InterpolatorLinear<G> this_type;
 
 	typedef G geometry_type;
-	typedef typename geometry_type::ids ids;
 	typedef typename geometry_type::coordinates_type coordinates_type;
 	typedef typename geometry_type::topology_type topology_type;
 

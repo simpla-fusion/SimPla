@@ -165,7 +165,9 @@ struct mpi_ghosts_shape_s
 	nTuple<size_t, MAX_NDIMS_OF_ARRAY> recv_count;
 };
 
-void get_ghost_shape(DataSpace const &dataspace, size_t const * ghost_width,
+void get_ghost_shape(size_t ndims, size_t const * dims, size_t const * offset,
+		size_t const * stride, size_t const * count, size_t const * block,
+		size_t const * ghost_width,
 		std::vector<mpi_ghosts_shape_s>* send_recv_list);
 }  // namespace simpla
 #endif /* MPI_AUX_FUNCTIONS_H_ */

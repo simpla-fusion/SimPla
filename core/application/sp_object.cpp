@@ -53,7 +53,7 @@ void SpObject::prepare_sync(std::vector<mpi_ghosts_shape_s> const & ghost_shape)
 	nTuple<size_t, MAX_NDIMS_OF_ARRAY> l_dims;
 
 	std::tie(ndims, l_dims, std::ignore, std::ignore, std::ignore, std::ignore) =
-			ds.dataspace.memory_shape();
+			ds.dataspace.shape();
 
 	make_send_recv_list(object_id(), ds.datatype, ndims, &l_dims[0],
 			ghost_shape, &m_send_recv_list_);

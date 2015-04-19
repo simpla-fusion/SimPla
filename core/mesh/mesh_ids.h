@@ -13,13 +13,14 @@
 #include "../gtl/ntuple.h"
 #include "../gtl/primitives.h"
 #include "../gtl/type_traits.h"
-
-#include "../../parallel/mpi_comm.h"
-#include "../../parallel/mpi_aux_functions.h"
+//
+#include "../parallel/mpi_comm.h"
+#include "../parallel/mpi_aux_functions.h"
 #include <stddef.h>
 #include <algorithm>
 #include <limits>
 #include <cmath>
+
 namespace simpla
 {
 enum ManifoldTypeID
@@ -76,11 +77,10 @@ struct MeshIDs_
 
 	typedef nTuple<index_type, 3> index_tuple;
 
-	template<size_t IFORM> struct range_type;
+	template<size_t IFORM>
+	struct range_type;
 
-	struct domain_type;
-
-	static constexpr size_t ndims = NDIMS;
+	static constexpr int ndims = NDIMS;
 
 	static constexpr size_t FULL_DIGITS = std::numeric_limits<size_t>::digits;
 
@@ -186,7 +186,7 @@ struct MeshIDs_
 			};
 
 	template<int IFORM, typename ...Args>
-	static id_type id(Args && ...args)
+	static id_type id(Args &&...args)
 	{
 		return pack<IFORM>(std::forward<Args>(args)...);
 	}
@@ -196,7 +196,7 @@ struct MeshIDs_
 	{
 		return
 
-		m_sub_node_id_shift_[IFORM][n]
+		m_sub_node_id_shift_[IFORM][n % 3]
 
 		| (static_cast<size_t>(i + INDEX_ZERO) << MAX_MESH_LEVEL)
 
@@ -205,9 +205,7 @@ struct MeshIDs_
 
 				| (static_cast<size_t>(k + INDEX_ZERO)
 
-				<< (MAX_MESH_LEVEL + INDEX_DIGITS * 2))
-
-		;
+				<< (MAX_MESH_LEVEL + INDEX_DIGITS * 2));
 	}
 
 	template<size_t IFORM, typename TInt>
@@ -215,6 +213,7 @@ struct MeshIDs_
 	{
 		return pack<IFORM>(i[0], i[1], i[2], n);
 	}
+
 	template<size_t IFORM, typename TInt>
 	static constexpr id_type pack(nTuple<TInt, 4> const &i)
 	{
@@ -239,7 +238,7 @@ struct MeshIDs_
 	}
 
 	template<size_t MESH_LEVEL = 0>
-	static index_tuple id_to_index(id_type const & s)
+	static index_tuple id_to_index(id_type const &s)
 	{
 		return std::move(
 				index_tuple(
@@ -284,7 +283,7 @@ struct MeshIDs_
 
 	template<size_t IFORM, typename TX>
 	static std::tuple<id_type, coordinates_type> coordinates_global_to_local(
-			TX const & y, int n = 0)
+			TX const &y, int n = 0)
 	{
 		nTuple<int, 3> idx;
 
@@ -334,15 +333,16 @@ struct MeshIDs_
 		return (s & _DA);
 	}
 
-	static constexpr id_type roate(id_type const & s)
+	static constexpr id_type roate(id_type const &s)
 	{
 		return ((s & (_DA)) >> INDEX_DIGITS) | ((s & _DI) << (INDEX_DIGITS * 2));
 	}
 
-	static constexpr id_type inverse_roate(id_type const & s)
+	static constexpr id_type inverse_roate(id_type const &s)
 	{
 		return ((s & (_DA)) << INDEX_DIGITS) | ((s & _DK) >> (INDEX_DIGITS * 2));
 	}
+
 	static constexpr int m_node_id_[8] = { 0, // 000
 			0, // 001
 			1, // 010
@@ -352,12 +352,14 @@ struct MeshIDs_
 			0, // 110
 			0, // 111
 			};
-	static constexpr int node_id(id_type const & s)
+
+	static constexpr int node_id(id_type const &s)
 	{
 		return m_node_id_[(((s & _DI) >> (MAX_MESH_LEVEL - 1))
 				| ((s & _DJ) >> (INDEX_DIGITS + MAX_MESH_LEVEL - 2))
 				| ((s & _DK) >> (INDEX_DIGITS * 2 + MAX_MESH_LEVEL - 3))) & 7UL];
 	}
+
 	template<size_t MESH_LEVEL = 0>
 	struct id_hasher
 	{
@@ -371,8 +373,9 @@ struct MeshIDs_
 		id_hasher()
 		{
 		}
+
 		template<typename T0>
-		id_hasher(T0 const & d)
+		id_hasher(T0 const &d)
 		{
 			m_dimensions_ = d;
 			m_offset_ = 0;
@@ -380,34 +383,37 @@ struct MeshIDs_
 		}
 
 		template<typename T0, typename T1>
-		id_hasher(T0 const & d, T1 const & offset)
+		id_hasher(T0 const &d, T1 const &offset)
 		{
 			m_dimensions_ = d;
 			m_offset_ = offset;
 			deploy();
 		}
 
-		id_hasher(this_type const & other)
-				: m_dimensions_(other.m_dimensions_), m_offset_(other.m_offset_)
+		id_hasher(this_type const &other) :
+				m_dimensions_(other.m_dimensions_), m_offset_(other.m_offset_)
 		{
 			deploy();
 		}
-		id_hasher(this_type && other)
-				: m_dimensions_(other.m_dimensions_), m_offset_(other.m_offset_)
+
+		id_hasher(this_type &&other) :
+				m_dimensions_(other.m_dimensions_), m_offset_(other.m_offset_)
 		{
 			deploy();
 		}
+
 		~id_hasher()
 		{
 		}
 
-		void swap(this_type & other)
+		void swap(this_type &other)
 		{
 			std::swap(m_offset_, other.m_offset_);
 			std::swap(m_dimensions_, other.m_dimensions_);
 			std::swap(m_strides_, other.m_strides_);
 		}
-		this_type & operator=(this_type const & other)
+
+		this_type &operator=(this_type const &other)
 		{
 			this_type(other).swap(*this);
 			return *this;
@@ -432,7 +438,8 @@ struct MeshIDs_
 				}
 			}
 		}
-		size_t operator()(id_type const & s) const
+
+		size_t operator()(id_type const &s) const
 		{
 			return inner_product(
 					(id_to_index<MAX_MESH_LEVEL - MESH_LEVEL>(s) + m_dimensions_
@@ -440,7 +447,7 @@ struct MeshIDs_
 		}
 
 		template<size_t IFORM>
-		constexpr size_t hash(id_type const & s) const
+		constexpr size_t hash(id_type const &s) const
 		{
 			return inner_product(
 					(id_to_index<MAX_MESH_LEVEL - MESH_LEVEL>(s) + m_dimensions_
@@ -452,7 +459,7 @@ struct MeshIDs_
 	typedef SpHashContainer<id_type, Real, id_hasher<1>> volume_container;
 
 	template<typename ...Args>
-	static volume_container make_volume_container(Args&& ...args)
+	static volume_container make_volume_container(Args &&...args)
 	{
 		id_hasher<1> hasher(std::forward<Args>(args)...);
 
@@ -465,6 +472,7 @@ struct MeshIDs_
 	{
 		return get_vertics_(std::integral_constant<size_t, IFORM>(), n, s, q);
 	}
+
 	/**
 	 * \verbatim
 	 *                ^y
@@ -528,8 +536,8 @@ struct MeshIDs_
 
 			id_to_coordinates(_DK | INDEX_ZERO) };
 
-			coordinates_type const & dx = d[(n + 1) % 3];
-			coordinates_type const & dy = d[(n + 2) % 3];
+			coordinates_type const &dx = d[(n + 1) % 3];
+			coordinates_type const &dy = d[(n + 2) % 3];
 			q[0] = x0 - dx - dy;
 			q[1] = x0 + dx - dy;
 			q[2] = x0 + dx + dy;
@@ -555,7 +563,7 @@ struct MeshIDs_
 
 			id_to_coordinates(_DK | INDEX_ZERO) };
 
-			coordinates_type const & dx = d[n];
+			coordinates_type const &dx = d[n];
 
 			q[0] = x0 - dx;
 			q[1] = x0 + dx;
@@ -1279,8 +1287,8 @@ struct MeshIDs_
 //		return 2;
 //	}
 //	/**@}*/
-}
-;
+};
+
 /**
  * Solve problem: Undefined reference to static constexpr char[]
  * http://stackoverflow.com/questions/22172789/passing-a-static-constexpr-variable-by-universal-reference
@@ -1314,6 +1322,7 @@ struct MeshIDs_<NDIMS, INIFIT_AXIS>::range_type: public sp_nTuple_range<size_t,
 		(IFORM == VERTEX || IFORM == VOLUME) ? NDIMS : NDIMS + 1>
 {
 	typedef range_type<IFORM> this_type;
+
 	struct iterator;
 	typedef iterator const_iterator;
 
@@ -1323,8 +1332,9 @@ struct MeshIDs_<NDIMS, INIFIT_AXIS>::range_type: public sp_nTuple_range<size_t,
 	range_type()
 	{
 	}
+
 	template<typename T0, typename T1>
-	range_type(T0 const & min, T1 const & max)
+	range_type(T0 const &min, T1 const &max)
 	{
 		typename base_type::ntuple_type b, e;
 		b = min;
@@ -1338,15 +1348,17 @@ struct MeshIDs_<NDIMS, INIFIT_AXIS>::range_type: public sp_nTuple_range<size_t,
 		base_type(b, e).swap(*this);
 	}
 
-	range_type(range_type const & other)
-			: base_type(other)
+	range_type(range_type const &other) :
+			base_type(other)
 	{
 
 	}
+
 	const_iterator begin() const
 	{
 		return std::move(const_iterator(base_type::begin()));
 	}
+
 	const_iterator end() const
 	{
 		return std::move(const_iterator(base_type::end()));
@@ -1358,89 +1370,306 @@ struct MeshIDs_<NDIMS, INIFIT_AXIS>::range_type: public sp_nTuple_range<size_t,
 	}
 
 	struct iterator: public std::iterator<
-								typename base_type::iterator::iterator_category,
-								id_type, id_type>,
-						public base_type::iterator
+			typename base_type::iterator::iterator_category, id_type, id_type>,
+			public base_type::iterator
 	{
 		typedef typename base_type::iterator base_iterator;
 
-		iterator(base_iterator const & other)
-				: base_iterator(other)
+		iterator(base_iterator const &other) :
+				base_iterator(other)
 		{
 		}
+
 		~iterator()
 		{
 		}
 
 		id_type operator*() const
 		{
-			return MeshIDs::id<IFORM>(base_iterator::operator*());
+			return MeshIDs::id<IFORM>(base_iterator::operator *());
 		}
 	};
 
 };
-template<size_t NDIMS, size_t INIFIT_AXIS>
-struct MeshIDs_<NDIMS, INIFIT_AXIS>::domain_type
-{
-	typedef domain_type this_type;
+template<typename ...>class Domain;
 
-	index_tuple m_b_, m_e_;
+template<size_t NDIMS, size_t INIFIT_AXIS>
+struct Domain<MeshIDs_<NDIMS, INIFIT_AXIS> > : public MeshIDs_<NDIMS,
+		INIFIT_AXIS>
+{
+	typedef Domain<MeshIDs_<NDIMS, INIFIT_AXIS> > this_type;
+
+	typedef MeshIDs_<NDIMS, INIFIT_AXIS> base_type;
+	using base_type::ndims;
+	using typename base_type::index_type;
+	using typename base_type::index_tuple;
+	using typename base_type::id_type;
+	using typename base_type::coordinates_type;
+
+	/**
+	 *
+	 *   a----------------------------b
+	 *   |                            |
+	 *   |     c--------------d       |
+	 *   |     |              |       |
+	 *   |     |  e*******f   |       |
+	 *   |     |  *       *   |       |
+	 *   |     |  *       *   |       |
+	 *   |     |  *       *   |       |
+	 *   |     |  *********   |       |
+	 *   |     ----------------       |
+	 *   ------------------------------
+	 *
+	 *   a=0
+	 *   b-a = dimension
+	 *   e-a = offset
+	 *   f-e = count
+	 *   d-c = local_dimension
+	 *   c-a = local_offset
+	 */
+
+	index_tuple m_index_dimensions_ = { 1, 1, 1 };
+	index_tuple m_index_offset_ = { 0, 0, 0 };
+	index_tuple m_index_count_ = { 1, 1, 1 };
+
+	index_tuple m_index_local_dimensions_ = { 0, 0, 0 };
+	index_tuple m_index_local_offset_ = { 0, 0, 0 };
 
 	std::set<id_type> m_id_set_;
 
-	domain_type()
-	{
-		m_b_ = 0;
-		m_e_ = 0;
-	}
+	typename base_type::template id_hasher<> m_hasher_;
 
-	template<typename T0, typename T1>
-	domain_type(T0 const & min, T1 const & max)
-	{
-		m_b_ = (min);
-		m_e_ = (max);
-	}
-
-	domain_type(id_type min, id_type max)
-			: m_b_(id_to_index<MAX_MESH_LEVEL>(min)), m_e_(
-					id_to_index<MAX_MESH_LEVEL>(max))
+	Domain()
 	{
 	}
 
-	domain_type(domain_type const & other)
-			: m_b_(other.m_b_), m_e_(other.m_e_)
+	template<typename T0>
+	Domain(T0 const &d)
+	{
+		m_index_dimensions_ = d;
+		m_index_offset_ = 0;
+	}
+
+	Domain(this_type const & other) :
+			m_index_dimensions_(other.m_index_dimensions_),
+
+			m_index_offset_(other.m_index_offset_),
+
+			m_index_count_(other.m_index_count_),
+
+			m_index_local_dimensions_(other.m_index_local_dimensions_),
+
+			m_index_local_offset_(other.m_index_local_offset_)
 	{
 	}
-	domain_type operator=(domain_type const & other)
+
+	void swap(this_type & other)
 	{
-		domain_type(other).swap(*this);
+
+		std::swap(m_index_dimensions_, other.m_index_dimensions_);
+		std::swap(m_index_offset_, other.m_index_offset_);
+		std::swap(m_index_local_dimensions_, other.m_index_local_dimensions_);
+		std::swap(m_index_local_offset_, other.m_index_local_offset_);
+
+		std::swap(m_index_count_, other.m_index_count_);
+		std::swap(m_id_set_, other.m_id_set_);
+
+	}
+
+	this_type operator=(this_type const &other)
+	{
+		this_type(other).swap(*this);
 		return *this;
 	}
-	void swap(domain_type & other)
+
+	template<typename OS>
+	OS & print(OS &os) const
 	{
-		std::swap(m_b_, other.m_b_);
-		std::swap(m_e_, other.m_e_);
-		std::swap(m_id_set_, other.m_id_set_);
+		os << " Dimensions =  " << m_index_dimensions_;
+
+		return os;
+
 	}
+
+	this_type const & domain() const
+	{
+		return *this;
+	}
+
+	void deploy()
+	{
+		decompose();
+	}
+	void decompose(size_t const * gw = nullptr)
+	{
+		m_index_count_ = m_index_dimensions_;
+		m_index_offset_ = 0;
+
+		if (GLOBAL_COMM.num_of_process() > 1)
+		{
+			GLOBAL_COMM.decompose(ndims, &m_index_count_[0],
+			&m_index_offset_[0]);
+		}
+
+		index_tuple ghost_width;
+
+		if (gw != nullptr)
+		{
+			ghost_width = gw;
+		}
+		else
+		{
+			ghost_width = 0;
+		}
+
+		m_index_local_dimensions_ = m_index_count_ + ghost_width * 2;
+
+		m_index_local_offset_ = m_index_offset_ - ghost_width;
+	}
+
 	bool is_continue() const
 	{
-		return (std::set<id_type>::size() == 0) && (m_b_ != m_e_);
+		return (m_id_set_.size() == 0);
 	}
 
 	template<size_t IFORM = VERTEX>
-	range_type<IFORM> range() const
+	typename base_type::template range_type<IFORM> range() const
 	{
-		return range_type<IFORM>(m_b_, m_e_);
+		return typename base_type::template range_type<IFORM>(m_index_offset_,
+				m_index_offset_ + m_index_count_);
 	}
 
-	std::set<id_type> & id_set() const
+	std::set<id_type> &id_set() const
 	{
 		return m_id_set_;
 	}
+	template<typename TI> void dimensions(TI const & d)
+	{
+		m_index_dimensions_ = d;
+	}
+	index_tuple dimensions() const
+	{
+		return m_index_dimensions_;
+	}
+	/**
+	 * @name  Data Shape
+	 * @{
+	 **/
 
+	template<size_t IFORM = VERTEX>
+	DataSpace dataspace() const
+	{
+		nTuple<index_type, ndims + 1> f_dims;
+		nTuple<index_type, ndims + 1> f_offset;
+		nTuple<index_type, ndims + 1> f_count;
+		nTuple<index_type, ndims + 1> f_ghost_width;
+
+		int f_ndims = ndims;
+
+		f_dims = m_index_dimensions_;
+
+		f_offset = m_index_offset_;
+
+		f_count = m_index_count_;
+
+		f_ghost_width = m_index_offset_ - m_index_local_offset_;
+
+		if ((IFORM != VERTEX && IFORM != VOLUME))
+		{
+			f_ndims = ndims + 1;
+			f_dims[f_ndims - 1] = 3;
+			f_offset[f_ndims - 1] = 0;
+			f_count[f_ndims - 1] = 3;
+			f_ghost_width[f_ndims - 1] = 0;
+		}
+
+		DataSpace res(f_ndims, &(f_dims[0]));
+
+		res
+
+		.select_hyperslab(&f_offset[0], nullptr, &f_count[0], nullptr)
+
+		.convert_to_local(&f_ghost_width[0]);
+
+		return std::move(res);
+
+	}
+
+	template<size_t IFORM = VERTEX>
+	void ghost_shape(std::vector<mpi_ghosts_shape_s> *res) const
+	{
+		nTuple<size_t, ndims + 1> f_dims;
+		nTuple<size_t, ndims + 1> f_offset;
+		nTuple<size_t, ndims + 1> f_count;
+		nTuple<size_t, ndims + 1> f_ghost_width;
+		int f_ndims = ndims;
+
+		f_dims = m_index_dimensions_;
+
+		f_offset = m_index_offset_;
+
+		f_count = m_index_count_;
+
+		f_ghost_width = m_index_offset_ - m_index_local_offset_;
+
+		if ((IFORM != VERTEX && IFORM != VOLUME))
+		{
+			f_ndims = ndims + 1;
+			f_dims[ndims] = 3;
+			f_offset[ndims] = 0;
+			f_count[ndims] = 3;
+			f_ghost_width[ndims] = 0;
+		}
+
+		get_ghost_shape(f_ndims, &f_dims[0], &f_offset[0], nullptr, &f_count[0],
+				nullptr, &f_ghost_width[0], res);
+
+	}
+	template<size_t IFORM = VERTEX>
+	std::vector<mpi_ghosts_shape_s> ghost_shape() const
+	{
+		std::vector<mpi_ghosts_shape_s> res;
+		ghost_shape<IFORM>(&res);
+		return std::move(res);
+	}
+	/** @}*/
+
+	auto hasher() const
+	DECL_RET_TYPE(m_hasher_)
+
+	template<size_t IFORM>
+	size_t max_hash() const
+	{
+		return m_hasher_.max_hash();
+	}
+	template<size_t IFORM, typename ...Args>
+	size_t hash(Args && ...args) const
+	{
+		return m_hasher_(std::forward<Args>(args)...);
+	}
+
+	template<typename TFun, size_t IFORM = VERTEX>
+	void for_each(TFun const & fun) const
+	{
+		if (m_id_set_.size() == 0)
+		{
+			for (auto s : range<IFORM>())
+			{
+				fun(s);
+			}
+		}
+		else
+		{
+			for (auto s : m_id_set_)
+			{
+				fun(s);
+			}
+		}
+	}
 };
 
 }
 // namespace simpla
 
 #endif /* CORE_MESH_MESH_IDS_H_ */
+

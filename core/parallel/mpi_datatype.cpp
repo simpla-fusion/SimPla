@@ -27,8 +27,14 @@ MPIDataType::~MPIDataType()
 		MPI_Type_free(&m_type_);
 }
 
-MPIDataType MPIDataType::create(DataType const & data_type,
-		DataSpace const & dataspace)
+MPIDataType MPIDataType::create(DataType const & data_type, //
+		unsigned int ndims, //
+		size_t const * p_dims,        //
+		size_t const * p_offset,      //
+		size_t const * p_stride,      //
+		size_t const * p_count,       //
+		size_t const * p_block,       //
+		bool c_order_array)
 {
 
 	MPI_Datatype res_type;
@@ -123,22 +129,9 @@ MPIDataType MPIDataType::create(DataType const & data_type,
 		RUNTIME_ERROR("Cannot create MPI datatype:" + data_type.name());
 	}
 
-	unsigned int ndims;
-
-	if (data_type.is_array() || dataspace.is_valid())
+	if (data_type.is_array() ||(ndims > 0 && p_dims != nullptr))
 	{
-		size_t const * p_dims;
-		size_t const * p_offset;
-		size_t const * p_stride;
-		size_t const * p_count;
-		size_t const * p_block;
 
-		if (dataspace.is_valid())
-		{
-			std::tie(ndims, p_dims, p_offset, p_stride, p_count, p_block) =
-					dataspace.memory_shape();
-
-		}
 		unsigned int mdims = ndims + data_type.rank();
 
 		nTuple<int, MAX_NDIMS_OF_ARRAY> l_dims;

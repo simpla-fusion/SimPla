@@ -22,7 +22,7 @@ namespace simpla
 {
 
 template<typename ... > class _Field;
-template<typename, size_t> class Domain;
+template<typename ...> class Domain;
 template<typename ...>class field_traits;
 
 /** @ingroup diff_scheme
@@ -35,8 +35,8 @@ public:
 
 	typedef FiniteDiffMethod<G> this_type;
 	typedef G geometry_type;
-	typedef typename geometry_type::ids ids;
-	typedef typename geometry_type::id_type id_type;
+	typedef typename geometry_type::topology_type topology_type;
+	typedef typename topology_type::id_type id_type;
 	typedef Real scalar_type;
 	static constexpr size_t NUM_OF_COMPONENT_TYPE = G::ndims + 1;
 	static constexpr size_t ndims = G::ndims;
@@ -119,7 +119,7 @@ public:
 	static inline typename field_traits<_Field<_impl::ExteriorDerivative<VERTEX,T> >>::value_type
 	calculate(geometry_type const & geo,_Field<_impl::ExteriorDerivative<VERTEX,T> > const & f, id_type s)
 	{
-		constexpr id_type D = ids::delta_index(s);
+		constexpr id_type D = topology_type::delta_index(s);
 
 		return (calculate(geo,f.lhs, s + D) * geo.volume(s + D)
 				- calculate(geo,f.lhs, s - D) * geo.volume(s - D)) * geo.inv_volume(s);
@@ -130,9 +130,9 @@ public:
 	calculate(geometry_type const & geo,_Field<_impl::ExteriorDerivative<EDGE,T> > const & expr, id_type s)
 	{
 
-		id_type X = ids::delta_index(ids::dual(s));
-		id_type Y = ids::roate(X);
-		id_type Z = ids::inverse_roate(X);
+		id_type X = topology_type::delta_index(topology_type::dual(s));
+		id_type Y = topology_type::roate(X);
+		id_type Z = topology_type::inverse_roate(X);
 
 		return (
 				(
@@ -151,12 +151,12 @@ public:
 	calculate(geometry_type const & geo,_Field<_impl::ExteriorDerivative<FACE,T> > const & expr, id_type s)
 	{
 		return (
-				calculate(geo,expr.lhs, s + ids::_DI) * geo.volume(s + ids::_DI)
-				- calculate(geo,expr.lhs, s - ids::_DI) * geo.volume(s - ids::_DI)
-				+ calculate(geo,expr.lhs, s + ids::_DJ) * geo.volume(s + ids::_DJ)
-				- calculate(geo,expr.lhs, s - ids::_DJ) * geo.volume(s - ids::_DJ)
-				+ calculate(geo,expr.lhs, s + ids::_DK) * geo.volume(s + ids::_DK)
-				- calculate(geo,expr.lhs, s - ids::_DK) * geo.volume(s - ids::_DK)
+				calculate(geo,expr.lhs, s + topology_type::_DI) * geo.volume(s + topology_type::_DI)
+				- calculate(geo,expr.lhs, s - topology_type::_DI) * geo.volume(s - topology_type::_DI)
+				+ calculate(geo,expr.lhs, s + topology_type::_DJ) * geo.volume(s + topology_type::_DJ)
+				- calculate(geo,expr.lhs, s - topology_type::_DJ) * geo.volume(s - topology_type::_DJ)
+				+ calculate(geo,expr.lhs, s + topology_type::_DK) * geo.volume(s + topology_type::_DK)
+				- calculate(geo,expr.lhs, s - topology_type::_DK) * geo.volume(s - topology_type::_DK)
 
 		) * geo.inv_volume(s)
 
@@ -178,12 +178,12 @@ public:
 	{
 		return
 		-(
-				calculate(geo,expr.lhs, s + ids::_DI) * geo.dual_volume(s + ids::_DI)
-				- calculate(geo,expr.lhs, s - ids::_DI) * geo.dual_volume(s - ids::_DI)
-				+ calculate(geo,expr.lhs, s + ids::_DJ) * geo.dual_volume(s + ids::_DJ)
-				- calculate(geo,expr.lhs, s - ids::_DJ) * geo.dual_volume(s - ids::_DJ)
-				+ calculate(geo,expr.lhs, s + ids::_DK) * geo.dual_volume(s + ids::_DK)
-				- calculate(geo,expr.lhs, s - ids::_DK) * geo.dual_volume(s - ids::_DK)
+				calculate(geo,expr.lhs, s + topology_type::_DI) * geo.dual_volume(s + topology_type::_DI)
+				- calculate(geo,expr.lhs, s - topology_type::_DI) * geo.dual_volume(s - topology_type::_DI)
+				+ calculate(geo,expr.lhs, s + topology_type::_DJ) * geo.dual_volume(s + topology_type::_DJ)
+				- calculate(geo,expr.lhs, s - topology_type::_DJ) * geo.dual_volume(s - topology_type::_DJ)
+				+ calculate(geo,expr.lhs, s + topology_type::_DK) * geo.dual_volume(s + topology_type::_DK)
+				- calculate(geo,expr.lhs, s - topology_type::_DK) * geo.dual_volume(s - topology_type::_DK)
 
 		) * geo.inv_dual_volume(s)
 
@@ -197,9 +197,9 @@ public:
 			id_type s)
 	{
 
-		id_type X = ids::delta_index(s);
-		id_type Y = ids::roate(X);
-		id_type Z = ids::inverse_roate(X);
+		id_type X = topology_type::delta_index(s);
+		id_type Y = topology_type::roate(X);
+		id_type Z = topology_type::inverse_roate(X);
 
 		return
 
@@ -220,7 +220,7 @@ public:
 	calculate(geometry_type const & geo,_Field<_impl::CodifferentialDerivative< VOLUME, T>> const & expr,
 			id_type s)
 	{
-		id_type D = ids::delta_index(ids::dual(s));
+		id_type D = topology_type::delta_index(topology_type::dual(s));
 		return
 
 		-(
@@ -250,7 +250,7 @@ public:
 	calculate(geometry_type const & geo,_Field<_impl::Wedge<VERTEX,EDGE,TL,TR>> const & expr,
 			id_type s)
 	{
-		auto X = ids::delta_index(s);
+		auto X = topology_type::delta_index(s);
 
 		return (calculate(expr.lhs, s - X) + calculate(expr.lhs, s + X)) * 0.5
 		* calculate(expr.rhs, s);
@@ -261,9 +261,9 @@ public:
 	calculate(geometry_type const & geo,_Field<_impl::Wedge<VERTEX,FACE,TL,TR>> const & expr,
 			id_type s)
 	{
-		auto X = ids::delta_index(ids::dual(s));
-		auto Y = ids::roate(X);
-		auto Z = ids::inverse_roate(X);
+		auto X = topology_type::delta_index(topology_type::dual(s));
+		auto Y = topology_type::roate(X);
+		auto Z = topology_type::inverse_roate(X);
 
 		return (
 
@@ -318,7 +318,7 @@ public:
 		auto const & l =expr.lhs;
 		auto const & r =expr.rhs;
 
-		auto X = ids::delta_index(s);
+		auto X = topology_type::delta_index(s);
 		return calculate(geo,l, s) * (calculate(geo,r, s - X) + calculate(geo,r, s + X))
 		* 0.5;
 	}
@@ -331,8 +331,8 @@ public:
 		auto const & l =expr.lhs;
 		auto const & r =expr.rhs;
 
-		auto Y = ids::delta_index(ids::roate(ids::dual(s)));
-		auto Z = ids::delta_index(ids::inverse_roate(ids::dual(s)));
+		auto Y = topology_type::delta_index(topology_type::roate(topology_type::dual(s)));
+		auto Z = topology_type::delta_index(topology_type::inverse_roate(topology_type::dual(s)));
 
 		return ((calculate(geo,l, s - Y) + calculate(geo,l, s + Y))
 				* (calculate(geo,l, s - Z) + calculate(geo,l, s + Z)) * 0.25);
@@ -385,8 +385,8 @@ public:
 	{
 		auto const & l =expr.lhs;
 		auto const & r =expr.rhs;
-		auto Y = ids::delta_index(ids::roate(ids::dual(s)));
-		auto Z = ids::delta_index(ids::inverse_roate(ids::dual(s)));
+		auto Y = topology_type::delta_index(topology_type::roate(topology_type::dual(s)));
+		auto Z = topology_type::delta_index(topology_type::inverse_roate(topology_type::dual(s)));
 
 		return calculate(geo,l, s)
 		* (calculate(geo,r, (s - Y) - Z) + calculate(geo,r, (s - Y) + Z)
@@ -528,11 +528,11 @@ public:
 		auto const & f =expr.lhs;
 		auto const & v =expr.rhs;
 
-		size_t n = ids::component_number(s);
+		size_t n = topology_type::component_number(s);
 
-		auto X = ids::delta_index(s);
-		auto Y = ids::roate(X);
-		auto Z = ids::inverse_roate(X);
+		auto X = topology_type::delta_index(s);
+		auto Y = topology_type::roate(X);
+		auto Z = topology_type::inverse_roate(X);
 		return
 
 		(calculate(geo,f, s + Y) + calculate(geo,f, s - Y)) * 0.5 * v[(n + 2) % 3] -
@@ -547,8 +547,8 @@ public:
 	{
 		auto const & f =expr.lhs;
 		auto const & v =expr.rhs;
-		size_t n = ids::component_number(ids::dual(s));
-		size_t D = ids::delta_index(ids::dual(s));
+		size_t n = topology_type::component_number(topology_type::dual(s));
+		size_t D = topology_type::delta_index(topology_type::dual(s));
 
 		return (calculate(geo,f, s + D) - calculate(geo,f, s - D)) * 0.5 * v[n];
 	}
@@ -588,8 +588,8 @@ public:
 	map_to(geometry_type const & geo ,_Field<_impl::MapTo< VERTEX,EDGE, T>> const & expr,id_type s)
 	{
 		auto const & f= expr.lhs;
-		auto n = ids::component_number(s);
-		auto D = ids::delta_index(s);
+		auto n = topology_type::component_number(s);
+		auto D = topology_type::delta_index(s);
 
 		return ((calculate(geo,f, s - D)[n] + calculate(geo,f, s + D)[n]) * 0.5);
 	}
@@ -650,10 +650,10 @@ public:
 	{
 		auto const & f= expr.lhs;
 
-		auto n = ids::component_number(ids::dual(s));
-		auto X = ids::delta_index(ids::dual(s));
-		auto Y = ids::roate(X);
-		auto Z = ids::inverse_roate(X);
+		auto n = topology_type::component_number(topology_type::dual(s));
+		auto X = topology_type::delta_index(topology_type::dual(s));
+		auto Y = topology_type::roate(X);
+		auto Z = topology_type::inverse_roate(X);
 
 		return (
 
@@ -700,8 +700,8 @@ public:
 	{
 		auto const & f= expr.lhs;
 
-		auto n = ids::component_number(ids::dual(s));
-		auto D = ids::delta_index(ids::dual(s));
+		auto n = topology_type::component_number(topology_type::dual(s));
+		auto D = topology_type::delta_index(topology_type::dual(s));
 
 		return ((calculate(geo,f, s - D)[n] + calculate(geo,f, s + D)[n]) * 0.5);
 	}
@@ -763,10 +763,10 @@ public:
 	map_to(geometry_type const & geo,_Field<_impl::MapTo< VOLUME,EDGE,T>> const & expr,id_type s)
 	{
 		auto const & f= expr.lhs;
-		auto n = ids::component_number(ids::dual(s));
-		auto X = ids::delta_index(ids::dual(s));
-		auto Y = ids::roate(X);
-		auto Z = ids::inverse_roate(X);
+		auto n = topology_type::component_number(topology_type::dual(s));
+		auto X = topology_type::delta_index(topology_type::dual(s));
+		auto Y = topology_type::roate(X);
+		auto Z = topology_type::inverse_roate(X);
 		return (
 
 				(
@@ -793,12 +793,12 @@ public:
 	{
 		auto const & f =expr.lhs;
 
-		auto X = ids::delta_index(ids::dual(s));
-		auto Y = ids::roate(X);
-		auto Z = ids::inverse_roate(X);
+		auto X = topology_type::delta_index(topology_type::dual(s));
+		auto Y = topology_type::roate(X);
+		auto Z = topology_type::inverse_roate(X);
 
-		Y = (ids::component_number(Y) == N) ? Y : 0UL;
-		Z = (ids::component_number(Z) == N) ? Z : 0UL;
+		Y = (topology_type::component_number(Y) == N) ? Y : 0UL;
+		Z = (topology_type::component_number(Z) == N) ? Z : 0UL;
 
 		return (calculate(geo,f, s + Y) - calculate(geo,f, s - Y))
 		- (calculate(geo,f, s + Z) - calculate(geo,f, s - Z));
@@ -811,12 +811,12 @@ public:
 	{
 		auto const & f =expr.lhs;
 
-		auto X = ids::delta_index(s);
-		auto Y = ids::roate(X);
-		auto Z = ids::inverse_roate(X);
+		auto X = topology_type::delta_index(s);
+		auto Y = topology_type::roate(X);
+		auto Z = topology_type::inverse_roate(X);
 
-		Y = (ids::component_number(Y) == N) ? Y : 0UL;
-		Z = (ids::component_number(Z) == N) ? Z : 0UL;
+		Y = (topology_type::component_number(Y) == N) ? Y : 0UL;
+		Z = (topology_type::component_number(Z) == N) ? Z : 0UL;
 
 		return (
 

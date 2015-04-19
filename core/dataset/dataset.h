@@ -40,17 +40,21 @@ namespace simpla
  * of element data type (DataType), a description of memory layout of
  * data set (DataSpace),and a container of meta data (Properties).
  */
+
 struct DataSet
 {
 	std::shared_ptr<void> data;
+
+	typedef long index_type;
+
 	DataType datatype;
 	DataSpace dataspace;
 	Properties properties;
 	DataSet()
 	{
 	}
-	DataSet(DataSet const &other)
-			: data(other.data), datatype(other.datatype), dataspace(
+	DataSet(DataSet const &other) :
+			data(other.data), datatype(other.datatype), dataspace(
 					other.dataspace), properties(other.properties)
 	{
 	}
@@ -84,9 +88,9 @@ decltype(d->dataset())>::type
 	return std::move(d->dataset());
 }
 
-template<typename T>
-DataSet make_dataset(T * p, int rank, size_t const * dims,
-		Properties const & prop = Properties())
+template<typename T, typename TI>
+DataSet make_dataset(T * p, int rank, TI const * dims, Properties const & prop =
+		Properties())
 {
 
 	DataSet res;
@@ -102,8 +106,8 @@ DataSet make_dataset(T * p, int rank, size_t const * dims,
 	return std::move(res);
 }
 
-template<typename T>
-DataSet make_dataset(std::shared_ptr<T> p, int rank, size_t const * dims,
+template<typename T, typename TI>
+DataSet make_dataset(std::shared_ptr<T> p, int rank, TI const * dims,
 		Properties const & prop = Properties())
 {
 
@@ -121,7 +125,7 @@ DataSet make_dataset(std::vector<T> const & p)
 {
 
 	DataSet res;
-	size_t num = p.size();
+	long num = p.size();
 	res.datatype = make_datatype<T>();
 	res.dataspace = DataSpace::create_simple(1, &num);
 	res.data = std::shared_ptr<void>(

@@ -29,13 +29,12 @@ struct DataSet;
 class DataSpace
 {
 public:
+	Properties properties;
 
 	// Creates a null dataspace
 	DataSpace();
 
-	DataSpace(int rank, const size_t * dims, const size_t * count = nullptr,
-			const size_t * offset = nullptr, const size_t * stride = nullptr,
-			const size_t * block = nullptr);
+	DataSpace(int rank, long const * dims);
 
 	// Copy constructor: makes a copy of the original DataSpace object.
 	DataSpace(const DataSpace& other);
@@ -52,14 +51,21 @@ public:
 		return *this;
 	}
 
-	DataSpace & add_ghosts(size_t const * gw = nullptr);
+	static DataSpace create_simple(int rank, const long * dims);
 
-	DataSpace & select_hyperslab(size_t const *offset, size_t const * stride,
-			size_t const * count, size_t const * block = nullptr);
+	DataSpace & convert_to_local(long const * gw = nullptr);
+
+	DataSpace & select_hyperslab(long const *offset, long const * stride,
+			long const * count, long const * block = nullptr);
 
 	bool is_valid() const;
 
-	bool is_distributed() const;
+	bool is_distributed() const
+	{
+		OBSOLETE;
+		return true;
+	}
+	;
 
 	bool is_simple() const
 	{
@@ -68,28 +74,14 @@ public:
 		return is_valid() && (!is_distributed());
 	}
 
-	typedef nTuple<size_t, MAX_NDIMS_OF_ARRAY> index_tuple;
+	/**
+	 * @return <ndims,dimensions,start,count,stride,block>
+	 */
+	std::tuple<int, long const *, long const *, long const *, long const *,
+			long const *> shape() const;
 
-	struct shape_s
-	{
-		size_t ndims = 3;
-		index_tuple dimensions;
-		index_tuple count;
-		index_tuple offset;
-		index_tuple stride;
-		index_tuple block;
-
-		operator std::tuple<size_t, size_t const *, size_t const *, size_t const *,
-		size_t const *, size_t const *>()
-		{
-			return std::make_tuple(ndims, &dimensions[0], &count[0], &offset[0],
-					&stride[0], &block[0]);
-		}
-	};
-
-	shape_s memory_shape() const;
-
-	shape_s file_shape() const;
+	std::tuple<int, long const *, long const *, long const *, long const *,
+			long const *> global_shape() const;
 
 private:
 	struct pimpl_s;

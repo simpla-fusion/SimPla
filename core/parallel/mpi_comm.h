@@ -55,7 +55,6 @@ public:
 
 	int generate_object_id();
 
-
 //	void set_num_of_threads(int num);
 //
 //	unsigned int get_num_of_threads() const;
@@ -74,8 +73,20 @@ public:
 
 	nTuple<int, 3> get_coordinate(int rank) const;
 
-	void decompose(int ndims, size_t * offset, size_t * count) const;
-
+	void decompose(int ndims, size_t * count, size_t * offset) const;
+	template<typename TI>
+	void decompose(int ndims, TI * count, TI * offset) const
+	{
+		nTuple<size_t, MAX_NDIMS_OF_ARRAY> t_count, t_offset;
+		t_count = count;
+		t_offset = offset;
+		decompose(ndims, &t_count[0], &t_offset[0]);
+		for (int i = 0; i < ndims; ++i)
+		{
+			count[i] = t_count[i];
+			offset[i] = t_offset[i];
+		}
+	}
 private:
 	struct pimpl_s;
 	std::unique_ptr<pimpl_s> pimpl_;
@@ -93,7 +104,6 @@ private:
 		RUNTIME_ERROR(_error_msg);                                         \
 	}                                                                      \
 }
-
 
 }
 // namespace simpla

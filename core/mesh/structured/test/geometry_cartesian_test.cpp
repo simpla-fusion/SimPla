@@ -6,7 +6,7 @@
  */
 
 #include "../coordinates/coordiantes_cartesian.h"
-#include "../rect_mesh .h"
+#include "../rect_mesh.h"
 
 #define GEOMETRY  CartesianCoordinates<StructuredMesh>
 

@@ -57,21 +57,20 @@ struct _Field<TM, TV, _impl::is_sequence_container> : public SpObject
 private:
 
 	mesh_type m_mesh_;
-	domain_type m_domain_;
 	std::shared_ptr<TV> m_data_;
 
 public:
 
-	_Field(mesh_type const & d)
-			: m_mesh_(d), m_data_(nullptr)
+	_Field(mesh_type const & d) :
+			m_mesh_(d), m_data_(nullptr)
 	{
 	}
-	_Field(this_type const & other)
-			: m_mesh_(other.m_mesh_), m_data_(other.m_data_)
+	_Field(this_type const & other) :
+			m_mesh_(other.m_mesh_), m_data_(other.m_data_)
 	{
 	}
-	_Field(this_type && other)
-			: m_mesh_(other.m_mesh_), m_data_(other.m_data_)
+	_Field(this_type && other) :
+			m_mesh_(other.m_mesh_), m_data_(other.m_data_)
 	{
 	}
 	~_Field()
@@ -155,20 +154,20 @@ public:
 
 	domain_type const & domain() const
 	{
-		return m_domain_;
+		return m_mesh_.domain();
 	}
 
 	template<typename ...Others>
 	inline this_type & operator =(_Field<TM, TV, Others...> const &other)
 	{
-		assign(m_mesh_.domain() & other.domain(), other);
+		assign(domain() & other.domain(), other);
 		return *this;
 	}
 
 	template<typename TR>
 	inline this_type & operator =(TR const &other)
 	{
-		assign(m_mesh_.domain(), other);
+		assign(domain(), other);
 		return *this;
 	}
 private:
@@ -177,7 +176,7 @@ private:
 	{
 		wait();
 
-		d.foreach([&](id_type const &s)
+		d.template for_each<>([&](id_type const &s)
 		{
 			at(s) = m_mesh_.calculate(other, s);
 		});
@@ -217,7 +216,7 @@ public:
 
 	DataSet dataset() const
 	{
-		ASSERT(is_ready());
+		//ASSERT(is_ready());
 
 		DataSet res;
 
@@ -225,7 +224,7 @@ public:
 
 		res.datatype = DataType::create<value_type>();
 
-		res.dataspace = m_mesh_.dataspace(domain());
+		res.dataspace = m_mesh_.dataspace();
 
 		res.properties = SpObject::properties;
 
@@ -237,7 +236,7 @@ public:
 	{
 		wait();
 
-		auto s_range = m_mesh_.domain();
+		auto s_range = m_mesh_.range();
 
 		for (auto s : s_range)
 		{
@@ -248,7 +247,7 @@ public:
 	template<typename TFun>
 	void for_each(TFun const& fun) const
 	{
-		ASSERT(is_ready());
+//		ASSERT(is_ready());
 
 		auto s_range = m_mesh_.domain();
 
@@ -280,7 +279,7 @@ public:
 
 	template<typename ...Others>
 	auto operator()(coordinates_type const &x, Others && ...) const
-	DECL_RET_TYPE((m_mesh_.gather(*this,x)))
+	DECL_RET_TYPE((this->m_mesh_.gather(*this,x)))
 
 	template<typename TDomain, typename TFun>
 	void pull_back(TDomain const & domain, TFun const & fun)
@@ -312,7 +311,7 @@ public:
 		for (auto s : domain)
 		{
 			auto x = m_mesh_.coordinates(s);
-			this->at(s) = m_mesh_.sample(fun(x, t, (*this)(x)), s);
+			this->at(s) = m_mesh_.sample(fun(x, t, this->operator()(x)), s);
 		}
 	}
 
