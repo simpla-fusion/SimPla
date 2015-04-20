@@ -74,7 +74,11 @@ struct RectMesh: public MeshIDs_<NFLAGS...>
 
 	using typename topology_type::coordinates_type;
 
-	bool is_valid_ = false;
+	static constexpr size_t DEFAULT_GHOST_WIDTH = 2;
+
+	bool m_is_valid_ = false;
+
+	bool m_is_distributed_ = false;
 
 	coordinates_type m_coord_orig_ /*= { 0, 0, 0 }*/;
 
@@ -129,7 +133,8 @@ public:
 	{
 	}
 
-	RectMesh(this_type const & other) :
+	RectMesh(this_type const & other)
+			:
 
 			m_index_offset_(other.m_index_offset_),
 
@@ -164,13 +169,17 @@ public:
 
 		<< " Type = \"" << get_type_as_string() << "\", " << std::endl
 
-		<< " Min = " << m_coords_min_ << " ," << std::endl
+		<< " Min \t= " << m_coords_min_ << " ," << std::endl
 
-		<< " Max  = " << m_coords_max_ << "," << std::endl
+		<< " Max \t= " << m_coords_max_ << "," << std::endl
 
-		<< " dx  = " << m_dx_ << "," << std::endl
+		<< " dx  \t= " << m_dx_ << "," << std::endl
 
-		<< " dt  = " << m_dt_ << "," << std::endl;
+		<< " dt \t= " << m_dt_ << "," << std::endl
+
+		<< " Dimensionss \t= " << m_index_dimensions_ << "," << std::endl
+
+		;
 
 		return os;
 
@@ -183,7 +192,7 @@ public:
 
 	constexpr bool is_valid() const
 	{
-		return is_valid_;
+		return m_is_valid_;
 	}
 
 //	template<size_t IFORM>
@@ -226,7 +235,8 @@ public:
 		return m_index_dimensions_;
 	}
 
-	void deploy();
+	void deploy(size_t const *gw = nullptr);
+
 	/**
 	 * 	@name  Time
 	 *  @{
@@ -394,9 +404,11 @@ public:
 	template<size_t IFORM> std::vector<mpi_ghosts_shape_s> ghost_shape() const;
 }
 ;
+template<typename TCoordSystem, size_t ... NFLAGS>
+constexpr size_t RectMesh<TCoordSystem, NFLAGS...>::DEFAULT_GHOST_WIDTH;
 
 template<typename TCoord, size_t ... N>
-void RectMesh<TCoord, N...>::deploy()
+void RectMesh<TCoord, N...>::deploy(size_t const *gw)
 {
 
 	for (size_t i = 0; i < ndims; ++i)
@@ -455,30 +467,6 @@ void RectMesh<TCoord, N...>::deploy()
 	/**
 	 *  decompose mesh
 	 * */
-
-	m_index_count_ = m_index_dimensions_;
-	m_index_offset_ = 0;
-
-	if (GLOBAL_COMM.num_of_process() > 1)
-	{
-		GLOBAL_COMM.decompose(ndims, &m_index_count_[0],
-		&m_index_offset_[0]);
-	}
-
-	index_tuple ghost_width;
-//FIXME ghost_width is not init.
-//	if (gw != nullptr)
-//	{
-//		ghost_width = gw;
-//	}
-//	else
-//	{
-//		ghost_width = 0;
-//	}
-
-	m_index_local_dimensions_ = m_index_count_ + ghost_width * 2;
-
-	m_index_local_offset_ = m_index_offset_ - ghost_width;
 
 	/**
 	 *  deploy volume
@@ -580,10 +568,64 @@ void RectMesh<TCoord, N...>::deploy()
 			* m_inv_dual_volume_[5] * m_inv_dual_volume_[3];
 
 	/**
-	 *
+	 * Decompose
 	 */
 
-	is_valid_ = true;
+	m_index_count_ = m_index_dimensions_;
+
+	m_index_offset_ = 0;
+
+	if (GLOBAL_COMM.num_of_process() > 1)
+	{
+		GLOBAL_COMM.decompose(ndims, &m_index_count_[0],
+		&m_index_offset_[0]);
+
+		index_tuple ghost_width;
+
+		if (gw != nullptr)
+		{
+			ghost_width = gw;
+		}
+		else
+		{
+			ghost_width = DEFAULT_GHOST_WIDTH;
+		}
+
+		for (int i = 0; i < ndims; ++i)
+		{
+
+			if(m_index_count_[i]==m_index_dimensions_[i])
+			{
+				ghost_width[i] = 0;
+			}
+			else if(m_index_count_[i] <= ghost_width[i]*2)
+			{
+				ERROR("Dimension is to small to split!["
+				" Dimensions= "+value_to_string(m_index_dimensions_)
+				+ " , Local dimensions=" +value_to_string(m_index_count_)
+				+ " , Ghost width =" +value_to_string(ghost_width)
+				+"]");
+			}
+
+		}
+
+		m_index_local_dimensions_ = m_index_count_ + ghost_width * 2;
+
+		m_index_local_offset_ = m_index_offset_ - ghost_width;
+
+		m_is_distributed_ = true;
+
+	}
+	else
+	{
+		m_index_local_dimensions_ = m_index_count_;
+
+		m_index_local_offset_ = m_index_offset_;
+
+		m_is_distributed_ = false;
+	}
+
+	m_is_valid_ = true;
 
 	VERBOSE << get_type_as_string() << " is deployed!" << std::endl;
 

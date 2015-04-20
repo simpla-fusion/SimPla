@@ -50,13 +50,14 @@ struct DataStream::pimpl_s
 
 	std::string pwd() const;
 
-	hid_t create_h5_datatype(DataType const &, size_t flag = 0UL) const;
+	hid_t convert_datatype_sp_to_h5(DataType const &, size_t flag = 0UL) const;
 
-	template<typename TS>
-	hid_t create_h5_dataspace(TS const &, size_t flag = 0UL) const;
+	hid_t convert_dataspace_sp_to_h5(DataSpace::data_shape_s const &,
+			size_t flag = 0UL) const;
 
-	DataType convert_h5_data_type_to_sp(hid_t) const;
-	DataSpace convert_h5_data_space_to_sp(hid_t) const;
+	DataType convert_datatype_h5_to_sp(hid_t) const;
+
+	DataSpace convert_dataspace_h5_to_sp(hid_t) const;
 
 	void set_attribute(hid_t loc_id, std::string const & name, Any const & v);
 	void set_attribute(hid_t loc_id, Properties const & v);
@@ -290,7 +291,7 @@ void DataStream::pimpl_s::set_attribute(hid_t loc_id, std::string const &name,
 	}
 	else
 	{
-		hid_t m_type = create_h5_datatype(any_v.datatype());
+		hid_t m_type = convert_datatype_sp_to_h5(any_v.datatype());
 
 		hid_t m_space = H5Screate(H5S_SCALAR);
 
@@ -501,7 +502,7 @@ std::tuple<std::string, hid_t> DataStream::pimpl_s::open_group(
 
 }
 
-hid_t DataStream::pimpl_s::create_h5_datatype(DataType const &d_type,
+hid_t DataStream::pimpl_s::convert_datatype_sp_to_h5(DataType const &d_type,
 		size_t is_compact_array) const
 {
 	hid_t res = H5T_NO_CLASS;
@@ -569,7 +570,7 @@ hid_t DataStream::pimpl_s::create_h5_datatype(DataType const &d_type,
 
 		for (auto const & item : d_type.members())
 		{
-			hid_t t_member = create_h5_datatype(std::get<0>(item),
+			hid_t t_member = convert_datatype_sp_to_h5(std::get<0>(item),
 			true);
 			H5_ERROR(
 					H5Tinsert(res, std::get<1>(item).c_str(), std::get<2>(item),
@@ -587,7 +588,7 @@ hid_t DataStream::pimpl_s::create_h5_datatype(DataType const &d_type,
 	return (res);
 }
 
-DataType DataStream::pimpl_s::convert_h5_data_type_to_sp(hid_t t_id) const
+DataType DataStream::pimpl_s::convert_datatype_h5_to_sp(hid_t t_id) const
 {
 
 	bool bad_cast_error = true;
@@ -609,7 +610,7 @@ DataType DataStream::pimpl_s::convert_h5_data_type_to_sp(hid_t t_id) const
 		for (int i = 0, num = H5Tget_nmembers(t_id); i < num; ++i)
 		{
 			dtype.push_back(
-					convert_h5_data_type_to_sp(H5Tget_member_type(t_id, i)),
+					convert_datatype_h5_to_sp(H5Tget_member_type(t_id, i)),
 					std::string(H5Tget_member_name(t_id, i)),
 					H5Tget_member_offset(t_id, i));
 		}
@@ -718,20 +719,22 @@ DataType DataStream::pimpl_s::convert_h5_data_type_to_sp(hid_t t_id) const
 	return std::move(dtype);
 
 }
-template<typename TS>
-hid_t DataStream::pimpl_s::create_h5_dataspace(TS const &d_shape,
-		size_t flag) const
+hid_t DataStream::pimpl_s::convert_dataspace_sp_to_h5(
+		DataSpace::data_shape_s const &d_shape, size_t flag) const
 {
 
-	size_t ndims;
+	size_t ndims = d_shape.ndims;
 
 	index_tuple dims;
+	dims = d_shape.dimensions;
 	index_tuple offset;
+	offset = d_shape.offset;
 	index_tuple stride;
+	stride = d_shape.stride;
 	index_tuple count;
+	count = d_shape.count;
 	index_tuple block;
-
-	std::tie(ndims, dims, offset, stride, count, block) = d_shape;
+	block = d_shape.block;
 
 	if ((flag & SP_RECORD) != 0UL)
 	{
@@ -746,7 +749,11 @@ hid_t DataStream::pimpl_s::create_h5_dataspace(TS const &d_shape,
 	index_tuple max_dims;
 	max_dims = dims;
 
-	if ((flag & (SP_APPEND | SP_RECORD)) != 0UL)
+	if ((flag & SP_APPEND) != 0UL)
+	{
+		max_dims[0] = H5S_UNLIMITED;
+	}
+	else if ((flag & SP_RECORD) != 0UL)
 	{
 		max_dims[ndims - 1] = H5S_UNLIMITED;
 	}
@@ -760,7 +767,7 @@ hid_t DataStream::pimpl_s::create_h5_dataspace(TS const &d_shape,
 	return res;
 
 }
-DataSpace DataStream::pimpl_s::convert_h5_data_space_to_sp(hid_t) const
+DataSpace DataStream::pimpl_s::convert_dataspace_h5_to_sp(hid_t) const
 {
 	UNIMPLEMENTED;
 
@@ -783,12 +790,13 @@ std::string DataStream::write(std::string const & url, DataSet const &ds,
 
 	std::tie(is_existed, dsname) = this->cd(url, flag);
 
-	hid_t m_type = pimpl_->create_h5_datatype(ds.datatype);
+	hid_t m_type = pimpl_->convert_datatype_sp_to_h5(ds.datatype);
 
-	hid_t m_space = pimpl_->create_h5_dataspace(ds.dataspace.shape(), SP_NEW);
+	hid_t m_space = pimpl_->convert_dataspace_sp_to_h5(ds.dataspace.shape(),
+			SP_NEW);
 
-	hid_t f_space = pimpl_->create_h5_dataspace(ds.dataspace.global_shape(),
-			flag);
+	hid_t f_space = pimpl_->convert_dataspace_sp_to_h5(
+			ds.dataspace.global_shape(), flag);
 
 	hid_t dset;
 
@@ -842,47 +850,63 @@ std::string DataStream::write(std::string const & url, DataSet const &ds,
 		pimpl_s::index_tuple new_f_max_dimensions;
 		pimpl_s::index_tuple new_f_offset;
 		pimpl_s::index_tuple new_f_end;
+
 		int new_f_ndims = H5Sget_simple_extent_dims(f_space,
 				&new_f_dimensions[0], &new_f_max_dimensions[0]);
 
 		H5_ERROR(H5Sget_select_bounds(f_space, &new_f_offset[0], &new_f_end[0]));
 
-//		ASSERT(current_ndims == current_ndims);
-//		ASSERT(new_f_max_dimensions[new_f_ndims-1]==H5S_UNLIMITED);
+		nTuple<hssize_t, MAX_NDIMS_OF_ARRAY> new_f_offset2;
 
-		new_f_dimensions[new_f_ndims - 1] +=
-				current_dimensions[new_f_ndims - 1];
+		new_f_offset2 = 0;
 
-		new_f_offset[new_f_ndims - 1] += current_dimensions[new_f_ndims - 1];
+		if ((flag & SP_APPEND) != 0)
+		{
+
+			new_f_dimensions[0] += current_dimensions[0];
+
+			new_f_offset2 = 0;
+
+			new_f_offset2[0] += current_dimensions[0];
+
+		}
+		else if ((flag & SP_RECORD) != 0)
+		{
+			new_f_dimensions[new_f_ndims - 1] += current_dimensions[new_f_ndims
+					- 1];
+
+			new_f_offset2 = 0;
+
+			new_f_offset2[new_f_ndims - 1] =
+					current_dimensions[new_f_ndims - 1];
+
+		}
 
 		H5_ERROR(H5Dset_extent(dset, &new_f_dimensions[0]));
 
 		H5_ERROR(
 				H5Sset_extent_simple(f_space, new_f_ndims, &new_f_dimensions[0],
 						&new_f_max_dimensions[0]));
-
-		nTuple<hssize_t, MAX_NDIMS_OF_ARRAY> new_f_offset2;
-
-		new_f_offset2 = new_f_offset;
-
 		H5_ERROR(H5Soffset_simple(f_space, &new_f_offset2[0]));
 
 	}
 
 // create property list for collective DataSet write.
-#if !NO_MPI || USE_MPI
+//#if  USE_MPI
 	if (GLOBAL_COMM.is_valid())
 	{
+
 		hid_t plist_id = H5Pcreate(H5P_DATASET_XFER);
 		H5_ERROR(H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_INDEPENDENT));
 		H5_ERROR(H5Dwrite(dset, m_type, m_space, f_space, plist_id, ds.data.get()));
 		H5_ERROR(H5Pclose(plist_id));
+
 	}
 	else
-#endif
+//#endif
 	{
-		H5_ERROR( H5Dwrite(dset, m_type , m_space, f_space,
-				H5P_DEFAULT, ds.data.get()));
+		H5_ERROR(
+		H5Dwrite(dset, m_type , m_space, f_space, H5P_DEFAULT, ds.data.get()));
 	}
 
 	pimpl_->set_attribute(dset, ds.properties);

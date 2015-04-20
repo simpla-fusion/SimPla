@@ -59,7 +59,7 @@ public:
 //
 //	unsigned int get_num_of_threads() const;
 
-	nTuple<int, 3> const & topology() const;
+	nTuple<int, 3> topology() const;
 
 	void topology(int nx, int ny = 1, int nz = 1);
 

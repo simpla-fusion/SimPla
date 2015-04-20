@@ -28,7 +28,21 @@ struct DataSet;
  */
 class DataSpace
 {
+	typedef nTuple<long, MAX_NDIMS_OF_ARRAY> index_tuple;
+
 public:
+	struct data_shape_s
+	{
+		int ndims = 3;
+
+		index_tuple dimensions;
+		index_tuple offset;
+		index_tuple count;
+		index_tuple stride;
+		index_tuple block;
+
+	};
+
 	Properties properties;
 
 	// Creates a null dataspace
@@ -77,11 +91,9 @@ public:
 	/**
 	 * @return <ndims,dimensions,start,count,stride,block>
 	 */
-	std::tuple<int, long const *, long const *, long const *, long const *,
-			long const *> shape() const;
+	data_shape_s shape() const;
 
-	std::tuple<int, long const *, long const *, long const *, long const *,
-			long const *> global_shape() const;
+	data_shape_s global_shape() const;
 
 private:
 	struct pimpl_s;

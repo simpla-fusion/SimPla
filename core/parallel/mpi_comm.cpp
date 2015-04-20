@@ -119,8 +119,8 @@ int MPIComm::generate_object_id()
 	//TODO need assert (id < INT_MAX)
 	return pimpl_->generate_object_id();
 }
-void MPIComm::pimpl_s::decompose(int ndims, size_t * p_offset,
-		size_t *p_count) const
+void MPIComm::pimpl_s::decompose(int ndims, size_t * p_count,
+		size_t * p_offset) const
 {
 	nTuple<size_t, MAX_NDIMS_OF_ARRAY> offset, count;
 
@@ -139,7 +139,7 @@ void MPIComm::pimpl_s::decompose(int ndims, size_t * p_offset,
 		if (p_count[n] <= 0)
 		{
 			RUNTIME_ERROR(
-					"DataSpace decompose fail! Dimension  is smaller than process grid. "
+					"Mesh decompose fail! Dimension  is smaller than process grid. "
 							"[offset= " + value_to_string(offset) + ", count="
 							+ value_to_string(count) + " ,process grid="
 							+ value_to_string(m_topology_coord_));
@@ -188,13 +188,13 @@ int MPIComm::pimpl_s::get_neighbour(int disp_i, int disp_j, int disp_k) const
 	return inner_product(coord, m_topology_strides_);
 }
 
-MPIComm::MPIComm() :
-		pimpl_(nullptr)
+MPIComm::MPIComm()
+		: pimpl_(nullptr)
 {
 }
 
-MPIComm::MPIComm(int argc, char** argv) :
-		pimpl_(nullptr)
+MPIComm::MPIComm(int argc, char** argv)
+		: pimpl_(nullptr)
 {
 	init(argc, argv);
 }
@@ -229,21 +229,35 @@ void MPIComm::barrier()
 
 bool MPIComm::is_valid() const
 {
-	return pimpl_ != nullptr && pimpl_->m_comm_ != MPI_COMM_NULL;
+	return (!!pimpl_) && pimpl_->m_comm_ != MPI_COMM_NULL;
 }
 
 int MPIComm::process_num() const
 {
-	return pimpl_->m_process_num_;
+	if (!pimpl_)
+	{
+		return 0;
+	}
+	else
+	{
+		return pimpl_->m_process_num_;
+	}
 }
 
 int MPIComm::num_of_process() const
 {
-	return pimpl_->m_num_process_;
+	if (!pimpl_)
+	{
+		return 1;
+	}
+	else
+	{
+		return pimpl_->m_num_process_;
+	}
 }
 void MPIComm::init(int argc, char** argv)
 {
-	if (pimpl_ == nullptr)
+	if (!pimpl_)
 	{
 		pimpl_ = std::unique_ptr<pimpl_s>(new pimpl_s);
 	}
@@ -252,14 +266,24 @@ void MPIComm::init(int argc, char** argv)
 
 void MPIComm::topology(int nx, int ny, int nz)
 {
-	return pimpl_->topology(nx, ny, nz);
+	if (!!pimpl_)
+	{
+		pimpl_->topology(nx, ny, nz);
+	}
 }
 
 int MPIComm::get_neighbour(int disp_i, int disp_j, int disp_k) const
 {
-	return pimpl_->get_neighbour(disp_i, disp_j, disp_k);
+	if (!!pimpl_)
+	{
+		return 0;
+	}
+	else
+	{
+		return pimpl_->get_neighbour(disp_i, disp_j, disp_k);
+	}
 }
-nTuple<int, 3> const &MPIComm::topology() const
+nTuple<int, 3> MPIComm::topology() const
 {
 	return (pimpl_->m_topology_dims_);
 }

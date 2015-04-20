@@ -33,12 +33,12 @@ struct Domain
 
 	typedef typename mesh_type::id_type id_type;
 	typedef typename mesh_type::index_type index_type;
+
 	typedef sp_nTuple_range<size_t,
 			ndims + ((iform == VERTEX || iform == VOLUME) ? 0 : 1)> range_type;
 
 	template<typename TV>
-	using field_value_type=typename std::conditional<iform==EDGE
-	||iform==FACE,nTuple<TV,3>,TV>::type;
+	using field_value_type=typename std::conditional<(iform == VERTEX || iform == VOLUME),TV,nTuple<TV,3>>::type;
 
 private:
 	std::shared_ptr<const mesh_type> m_mesh_;
@@ -46,14 +46,14 @@ private:
 	std::set<id_type> m_id_set_;
 public:
 
-	Domain(mesh_type const &m) :
-			m_mesh_(m.shared_from_this())
+	Domain(mesh_type const &m)
+			: m_mesh_(m.shared_from_this())
 	{
 		deploy();
 	}
 
-	Domain(this_type const & other) :
-			m_mesh_(other.m_mesh_), m_range_(other.m_range_),
+	Domain(this_type const & other)
+			: m_mesh_(other.m_mesh_), m_range_(other.m_range_),
 
 			m_hash_max_(other.m_hash_max_),
 
@@ -122,13 +122,18 @@ public:
 		m_hash_count_ = m_mesh_->m_index_local_dimensions_;
 		m_hash_offset_ = m_mesh_->m_index_local_offset_;
 
-		m_hash_offset_[ndims] = 0;
-		m_hash_strides_[ndims] = (iform == EDGE || iform == FACE) ? 1 : 1;
-		m_hash_count_[ndims] = (iform == EDGE || iform == FACE) ? 3 : 1;
+		int ndims_of_range =
+				(iform == VERTEX || iform == VOLUME) ? ndims : ndims + 1;
+
+		m_hash_offset_[ndims_of_range - 1] = 0;
+		m_hash_strides_[ndims_of_range - 1] = 1;
+		m_hash_count_[ndims_of_range - 1] =
+				(iform == EDGE || iform == FACE) ? 3 : 1;
 
 		range_type(m_hash_offset_, m_hash_offset_ + m_hash_count_).swap(
 				m_range_);
-		for (int i = ndims - 1; i >= 0; --i)
+
+		for (int i = ndims_of_range - 2; i >= 0; --i)
 		{
 			m_hash_strides_[i] = m_hash_strides_[i + 1] * m_hash_count_[i + 1];
 		}
@@ -162,14 +167,15 @@ public:
 		return range_type::is_empty();
 	}
 
-	struct iterator: public std::iterator<
-			typename range_type::iterator::iterator_category, id_type, id_type>,
-			public range_type::iterator
+	struct iterator:	public std::iterator<
+								typename range_type::iterator::iterator_category,
+								id_type, id_type>,
+						public range_type::iterator
 	{
 		typedef typename range_type::iterator base_iterator;
 
-		iterator(base_iterator const &other) :
-				base_iterator(other)
+		iterator(base_iterator const &other)
+				: base_iterator(other)
 		{
 		}
 
@@ -205,14 +211,15 @@ public:
 		f_ghost_width = m_mesh_->m_index_offset_
 				- m_mesh_->m_index_local_offset_;
 
-		if ((IFORM != VERTEX && IFORM != VOLUME))
+		if ((IFORM == EDGE || IFORM == FACE))
 		{
 			f_ndims = ndims + 1;
 			f_dims[ndims] = 3;
 			f_offset[ndims] = 0;
 			f_count[ndims] = 3;
-			f_ghost_width[ndims] = 0;
 		}
+
+		f_ghost_width[ndims] = 0;
 
 		DataSpace res(f_ndims, &(f_dims[0]));
 
