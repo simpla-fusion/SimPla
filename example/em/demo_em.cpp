@@ -17,8 +17,11 @@
 
 #include "../../core/field/field.h"
 #include "../../core/field/field_constraint.h"
+#include "../../core/field/load_field.h"
 #include "../../core/mesh/mesh.h"
 #include "../../core/mesh/structured/structured.h"
+
+#include "../../core/model/select.h"
 #include <memory>
 using namespace simpla;
 
@@ -73,13 +76,19 @@ USE_CASE(em," Maxwell Eqs.")
 	auto E = make_form<EDGE, Real>(mesh);
 	auto B = make_form<FACE, Real>(mesh);
 
-//	VERBOSE_CMD(B = load_field < EDGE, Real > (mesh, options["InitValue"]["B"]))
-	;
-//	VERBOSE_CMD(apply_constraint(options["InitValue"]["E"], &E));
-//	VERBOSE_CMD(apply_constraint(options["InitValue"]["J"], &J));
+	VERBOSE_CMD(load_field(*mesh, options["InitValue"]["phi"], &phi));
+	VERBOSE_CMD(load_field(*mesh, options["InitValue"]["B"], &B));
+	VERBOSE_CMD(load_field(*mesh, options["InitValue"]["E"], &E));
+	VERBOSE_CMD(load_field(*mesh, options["InitValue"]["J"], &J));
 
-//	auto E_src = make_constraint<decltype(E)>(E.mesh(),
-//			options["Constraint"]["E"]);
+	auto E_src = make_field_function_by_config<EDGE, Real>(*mesh,
+			options["Constraint"]["E"]);
+
+	auto J_src = make_field_function_by_config<EDGE, Real>(*mesh,
+			options["Constraint"]["J"]);
+
+	auto B_src = make_field_function_by_config<FACE, Real>(*mesh,
+			options["Constraint"]["B"]);
 //	auto J_src = make_constraint<decltype(J)>(J.mesh(),
 //			options["Constraint"]["J"]);
 //	auto B_src = make_constraint<decltype(B)>(B.mesh(),
@@ -87,21 +96,12 @@ USE_CASE(em," Maxwell Eqs.")
 
 	LOGGER << "----------  Dump input ---------- " << std::endl;
 
-	phi.clear();
-	E.clear();
-	B.clear();
-	J.clear();
-
 	cd("/Input/");
-
-	phi = GLOBAL_COMM.process_num()+10;
-
-	E = GLOBAL_COMM.process_num();
 
 	VERBOSE << SAVE(phi) << std::endl;
 	VERBOSE << SAVE(E) << std::endl;
-//	VERBOSE << SAVE(B) << std::endl;
-//	VERBOSE << SAVE(J) << std::endl;
+	VERBOSE << SAVE(B) << std::endl;
+	VERBOSE << SAVE(J) << std::endl;
 //
 //	if (options["JUST_A_TEST"])
 //	{
@@ -112,17 +112,17 @@ USE_CASE(em," Maxwell Eqs.")
 //	LOGGER << "----------  START ---------- " << std::endl;
 //
 	cd("/Save/");
-	for (size_t s = 0; s < num_of_steps; ++s)
+	for (size_t step = 0; step < num_of_steps; ++step)
 	{
-//		VERBOSE << "Step [" << s << "/" << num_of_steps << "]" << std::endl;
-//
-//////			E_src(&E);
-//////			J_src(&J);
-//////			B_src(&B);
+		VERBOSE << "Step [" << step << "/" << num_of_steps << "]" << std::endl;
+
+		E += E_src;
+//		J += J_src;
+//		B += B_src;
 //		E = curl(B) * dt - J;
 //		B = -curl(E) * dt;
-//
-//		VERBOSE << SAVE_RECORD(E) << std::endl;
+////
+		VERBOSE << SAVE_RECORD(E) << std::endl;
 //		VERBOSE << SAVE_APPEND(B) << std::endl;
 //
 	}

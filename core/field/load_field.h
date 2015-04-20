@@ -12,11 +12,11 @@
 
 #include "../utilities/log.h"
 #include "../model/select.h"
-
+#include "field_function.h"
 namespace simpla
 {
-template<typename TDict, typename TField>
-void load_field(TDict const & dict, TField *f)
+template<typename TM, typename TDict, typename TField>
+bool load_field(TM const & mesh, TDict const & dict, TField *f)
 {
 
 	if (!dict)
@@ -31,33 +31,45 @@ void load_field(TDict const & dict, TField *f)
 
 		return false;
 	}
-	else if (!dict.is_table())
-	{
-		return false;
-	}
 
 	if (!f->is_valid())
 	{
 		f->clear();
 	}
-	typedef TField field_type;
 
-	typedef typename field_type::mesh_type mesh_type;
+	typedef TField field_type;
 
 	typedef typename field_type::value_type value_type;
 
-	auto const & mesh = f->mesh();
+	*f = make_field_function<value_type>(
+			select_domain_by_config(mesh, dict["Domain"],
+					mesh.template domain<field_type::iform>()), dict["Value"]);
 
-	bool success = false;
+	f->sync();
 
-	*f = make_field_function<value_type>(mesh, dict["Domain"], dict["Value"]);
+	return true;
+}
 
-	if (success)
+template<size_t IFORM, typename TV, typename TM, typename TDict>
+_Field<Domain<TM, IFORM>, TV, _impl::is_function, TDict> //
+make_field_function_by_config(TM const & mesh, TDict const & dict)
+{
+	typedef TV value_type;
+	typedef Domain<TM, IFORM> domain_type;
+
+	typedef _Field<domain_type, value_type, _impl::is_function, TDict> field_type;
+
+	if (!dict)
 	{
-		f->sync();
+		return field_type();
 	}
 
-	return success;
+	return field_type(
+			select_domain_by_config(mesh, dict["Domain"],
+					mesh.template domain<field_type::iform>()),
+
+			dict["Value"]);
+
 }
 //
 //template<typename TMesh, typename TDomain, typename TDict, typename TF>

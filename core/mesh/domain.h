@@ -24,6 +24,8 @@ namespace simpla
 template<typename TM, size_t IFORM>
 struct Domain
 {
+
+public:
 	typedef TM mesh_type;
 
 	static constexpr size_t iform = IFORM;
@@ -32,6 +34,7 @@ struct Domain
 	typedef Domain<mesh_type, iform> this_type;
 
 	typedef typename mesh_type::id_type id_type;
+	typedef typename mesh_type::coordinates_type coordinates_type;
 	typedef typename mesh_type::index_type index_type;
 
 	typedef sp_nTuple_range<size_t,
@@ -45,15 +48,18 @@ private:
 	range_type m_range_;
 	std::set<id_type> m_id_set_;
 public:
-
-	Domain(mesh_type const &m)
-			: m_mesh_(m.shared_from_this())
+	Domain() :
+			m_mesh_(nullptr)
+	{
+	}
+	Domain(mesh_type const &m) :
+			m_mesh_(m.shared_from_this())
 	{
 		deploy();
 	}
 
-	Domain(this_type const & other)
-			: m_mesh_(other.m_mesh_), m_range_(other.m_range_),
+	Domain(this_type const & other) :
+			m_mesh_(other.m_mesh_), m_range_(other.m_range_),
 
 			m_hash_max_(other.m_hash_max_),
 
@@ -66,7 +72,10 @@ public:
 	{
 		deploy();
 	}
-
+	bool is_valid() const
+	{
+		return !!m_mesh_;
+	}
 	mesh_type const & mesh() const
 	{
 		return *m_mesh_;
@@ -88,6 +97,11 @@ public:
 		std::swap(m_hash_count_, other.m_hash_count_);
 		std::swap(m_hash_strides_, other.m_hash_strides_);
 
+	}
+
+	std::set<id_type> & id_set()
+	{
+		return m_id_set_;
 	}
 
 	template<typename TFun>
@@ -143,7 +157,17 @@ public:
 		}
 		m_hash_max_ = m_hash_strides_[0] * m_hash_count_[0];
 	}
+	std::tuple<coordinates_type, coordinates_type> bound() const
+	{
+		return std::make_tuple(m_mesh_.coordinates(*m_range_.begin()),
+				m_mesh_.coordinates(*m_range_.end()));
+	}
 
+	std::tuple<coordinates_type, coordinates_type> idx_bound() const
+	{
+		return std::make_tuple(m_mesh_.id_to_index<iform>(*m_range_.begin()),
+				m_mesh_.id_to_index<iform>(*m_range_.end()));
+	}
 	size_t max_hash() const
 	{
 		return m_hash_max_;
@@ -171,15 +195,14 @@ public:
 		return range_type::is_empty();
 	}
 
-	struct iterator:	public std::iterator<
-								typename range_type::iterator::iterator_category,
-								id_type, id_type>,
-						public range_type::iterator
+	struct iterator: public std::iterator<
+			typename range_type::iterator::iterator_category, id_type, id_type>,
+			public range_type::iterator
 	{
 		typedef typename range_type::iterator base_iterator;
 
-		iterator(base_iterator const &other)
-				: base_iterator(other)
+		iterator(base_iterator const &other) :
+				base_iterator(other)
 		{
 		}
 
@@ -189,7 +212,7 @@ public:
 
 		id_type operator*() const
 		{
-			return mesh_type::pack<iform>(base_iterator::operator *());
+			return mesh_type::template pack<iform>(base_iterator::operator *());
 		}
 	};
 	/**

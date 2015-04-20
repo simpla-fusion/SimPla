@@ -15,7 +15,7 @@ namespace simpla
 //template<typename TPred, typename InOut>
 //void filter(TPred const & pred, InOut *res)
 //{
-//	res->erase(std::remove_if(res->begin(), res->end(), pred), res->end());
+//	res.erase(std::remove_if(res->begin(), res->end(), pred), res->end());
 //}
 template<typename TPred, typename IN, typename OUT>
 void filter(TPred const & pred, IN const & range, OUT *res)
@@ -164,74 +164,72 @@ void select_ids_on_polylines(TM const & mesh,
 	}
 
 }
-template<typename TDict, typename TIN, typename TOUT, typename TM,
-		typename ...Args>
-void select_ids_by_config(TDict const & dict, TIN const & in, TOUT *out,
-		TM const& mesh, Args && ...args)
+template<typename TM, typename TDomain, typename TDict>
+TDomain select_domain_by_config(TM const & mesh, TDict const & dict,
+		TDomain const & domain)
 {
+	TDomain res(domain);
+
+	typedef TDomain domain_type;
+	typedef typename domain_type::mesh_type mesh_type;
+
+	typedef typename mesh_type::coordinates_type coordinates_type;
+	typedef typename mesh_type::id_type id_type;
+	typedef typename mesh_type::index_tuple index_tuple;
 
 	if (dict.is_function())
 	{
-		for (auto s : in)
+		for (auto s : domain)
 		{
-			if (dict(mesh.coordinates(s)).template as<bool>())
+			if (dict(domain.mesh().coordinates(s)).template as<bool>())
 			{
-				out->insert(s);
+				res.id_set().insert(s);
 			}
 		}
+	}
+	else if (dict["Polylines"])
+	{
+		auto obj = dict["Polylines"];
 
+		int ZAXIS = 0;
+
+		std::vector<coordinates_type> points;
+
+		obj["Polylines"]["ZAXIS"].as(&ZAXIS);
+
+		obj["Polylines"]["Points"].as(&points);
+
+		if (obj["Polylines"]["OnlyEdge"])
+		{
+			select_ids_in_polylines(mesh, points, ZAXIS, domain, &res.id_set());
+		}
+		else
+		{
+			select_ids_on_polylines(mesh, points, ZAXIS, domain, &res.id_set());
+		}
 	}
 	else if (dict["Rectangle"])
 	{
-		std::vector<typename TM::coordinates_type> points;
+		std::vector<coordinates_type> points;
 
 		dict["Rectangle"].as(&points);
 
-		select_ids_in_rectangle(points[0], points[1],
-				std::forward<Args>(args)...);
+//		res.select(points[0], points[1]);
 
 	}
-	else if (dict["Index"])
+	else if (dict["Indics"])
 	{
-//		typedef nTuple<size_t,
-//				(TM::iform == VERTEX || TM::iform == VOLUME) ? 1 : 3> index_tuple;
-//
-//		auto ids = dict["Index"];
-//
-//		for (auto const& item : ids)
-//		{
-//			res->insert(mesh.id(item.as<index_tuple>()))
-//		}
-//		dict["Rectangle"].as(&points);
-//
-//		select_ids_in_rectangle(points[0], points[1],
-//				std::forward<Args>(args)...);
+		std::vector<index_tuple> points;
 
+		dict["Indics"].as(&points);
+
+		for (auto const & i : points)
+		{
+//			res.id_set().insert(domain.mesh().id(i));
+		}
 	}
-//	else if (dict["Polyline"])
-//	{
-//		auto obj = dict["Polyline"];
-//
-//		int ZAXIS = 0;
-//
-//		std::vector<typename TM::coordinates_type> points;
-//
-//		obj["Polyline"]["ZAXIS"].as(&ZAXIS);
-//
-//		obj["Polyline"]["Points"].as(&points);
-//
-//		if (obj["Polyline"]["OnlyEdge"])
-//		{
-//			select_ids_in_polylines(mesh, points, ZAXIS,
-//					std::forward<Args>(args)...);
-//		}
-//		else
-//		{
-//			select_ids_on_polylines(mesh, points, ZAXIS,
-//					std::forward<Args>(args)...);
-//		}
-//	}
 
+	return std::move(res);
 }
 }
 // namespace simpla

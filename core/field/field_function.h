@@ -12,36 +12,44 @@ namespace simpla
 {
 template<typename ...>class _Field;
 
-template<typename TM, typename TV, typename TFun> class _Field<TM, TV,
-		_impl::is_function, TFun>
+template<typename TDomain, typename TV, typename TFun>
+class _Field<TDomain, TV, _impl::is_function, TFun>
 {
-	typedef TM mesh_type;
+public:
+	typedef TDomain domain_type;
+	typedef typename domain_type::mesh_type mesh_type;
 	typedef TV value_type;
 	typedef TFun function_type;
-	typedef typename TM::id_set domain_type;
 
-	typedef _Field<mesh_type, value_type, _impl::is_function, domain_type,
-			function_type> this_type;
+	typedef _Field<domain_type, value_type, _impl::is_function, function_type> this_type;
 
 	typedef typename mesh_type::id_type id_type;
+
 	typedef typename mesh_type::coordinates_type coordinates_type;
-	typedef typename mesh_type::template field_value_type<TV> field_value_type;
+
+	typedef typename domain_type::template field_value_type<value_type> field_value_type;
+
+	static constexpr size_t iform = domain_type::iform;
+	static constexpr size_t ndims = domain_type::ndims;
 
 private:
 	function_type m_fun_;
 	domain_type m_domain_;
-
-	mesh_type m_mesh_;
 public:
-	template<typename TF> _Field(mesh_type const & mesh,
-			domain_type const& domain, TF const& fun) :
-			m_mesh_(mesh), m_domain_(domain), m_fun_(fun)
+	_Field()
 	{
 	}
-
+	template<typename TF>
+	_Field(domain_type const& domain, TF const& fun) :
+			m_domain_(domain), m_fun_(fun)
+	{
+	}
+	_Field(this_type const& other) :
+			m_domain_(other.m_domain_), m_fun_(other.m_fun_)
+	{
+	}
 	_Field(this_type && other) :
-			m_mesh_(other.m_mesh_), m_domain_(other.m_domain_), m_fun_(
-					other.m_fun_)
+			m_domain_(other.m_domain_), m_fun_(other.m_fun_)
 	{
 	}
 	~_Field()
@@ -50,12 +58,24 @@ public:
 
 	bool is_valid() const
 	{
-		return (m_fun_!=nullptr) && m_domain_.size() > 0;
+		return (!!m_fun_) && m_domain_.is_valid();
 	}
-
+	operator bool() const
+	{
+		return !!m_fun_;
+	}
 	domain_type const & domain() const
 	{
 		return m_domain_;
+	}
+
+	value_type operator[](id_type s) const
+	{
+		Real t = m_domain_.mesh().time();
+
+		return m_domain_.mesh().template sample<iform>(
+				static_cast<field_value_type>(m_fun_(
+						m_domain_.mesh().coordinates(s), t)), s);
 	}
 
 	field_value_type operator()(coordinates_type const& x, Real t) const
@@ -63,26 +83,21 @@ public:
 		return static_cast<field_value_type>(m_fun_(x, t));
 	}
 
-	template<typename ...Others> field_value_type operator()(
-			coordinates_type const& x, Real t, Others const&... others) const
+	template<typename ...Others>
+	field_value_type operator()(coordinates_type const& x, Real t,
+			Others const&... others) const
 	{
 		return static_cast<field_value_type>(m_fun_(x, t,
 				try_invoke(others,x, t)...));
 	}
 
-	value_type operator[](id_type s) const
-	{
-		Real t = m_mesh_.time();
-		return m_mesh_.sample(operator()(m_mesh_.coordinates(s), t), s);
-	}
-
 };
 
-template<typename TV, typename TM, typename TDomain, typename TFun> _Field<TM,
-		TV, _impl::is_function, TDomain, TFun> make_field_function(
-		TM const & mesh, TDomain && domain, TFun && fun)
+template<typename TV, typename TDomain, typename TFun>
+_Field<TDomain, TV, _impl::is_function, TFun> make_field_function(
+		TDomain const& domain, TFun const& fun)
 {
-	return _Field<TM, TV, _impl::is_function, TDomain, TFun>(mesh, domain, fun);
+	return std::move(_Field<TDomain, TV, _impl::is_function, TFun>(domain, fun));
 }
 
 }

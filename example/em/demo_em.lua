@@ -60,11 +60,22 @@ InitValue= {
   B=
   {
 
-    Domain={Rectangle={{0,0,0},{1,1,1}}},
+    Domain={Rectangle={{0.2,0.2,0},{0.6,0.6,1}}},
 
-    Value=function(x)
-      print(x[1])
-      return {math.sin(x[0]/dimensions[0]),0,0}
+    Value=function(x,t)
+
+      return  {math.sin(x[1]*2.0*math.pi)*math.sin(x[2]*2.0*math.pi),0,0}
+    end
+
+  },
+  phi=
+  {
+
+    Domain={Rectangle={{0.2,0.2,0},{0.6,0.6,1}}},
+
+    Value=function(x,t)
+
+      return   math.sin(x[1]*2.0*math.pi)*math.sin(x[2]*2.0*math.pi)
     end
 
   }
@@ -73,11 +84,12 @@ InitValue= {
 Constraint=  {
   E= {
 
-    Domain= domain_center ,
-    Value= function(t,x,v )
+    Domain={Rectangle={{0.2,0.2,0},{0.6,0.6,1}}},
+    Value= function(x,t  )
+      pirnt(x[1],x[2],x[3])
       local tau = t*omega_ext+ x[2]*TWOPI/(xmax[3]-xmin[3])
       local amp=  math.sin(tau) --*(1-math.exp(-tau*tau)
-      return { v[0]+100,v[1]+200,v[2]+amp+300}
+      return {  100, 200, amp+300}
     end
   },
 

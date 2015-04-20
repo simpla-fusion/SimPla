@@ -39,7 +39,7 @@ namespace simpla
 template<typename TM, size_t IFORM, typename TV>
 struct _Field<Domain<TM, IFORM>, TV, _impl::is_sequence_container> : public SpObject
 {
-
+public:
 	typedef Domain<TM, IFORM> domain_type;
 	typedef typename domain_type::mesh_type mesh_type;
 	static constexpr size_t iform = domain_type::iform;
@@ -83,7 +83,10 @@ public:
 	{
 		return "Field<" + m_domain_.mesh().get_type_as_string() + ">";
 	}
-
+	mesh_type const & mesh() const
+	{
+		return m_domain_.mesh();
+	}
 	domain_type const & domain() const
 	{
 		return m_domain_;
@@ -137,7 +140,6 @@ public:
 
 		m_domain_.for_each([&](id_type const &s)
 		{
-
 			at(s) =other.at(s);
 		});
 
@@ -148,7 +150,27 @@ public:
 	inline this_type & operator =(
 			_Field<domain_type, value_type, Others...> const &other)
 	{
-		assign(m_domain_ & other.domain(), other);
+		if (other.is_valid())
+		{
+			other.domain().for_each([&](id_type const &s)
+			{
+				at(s) = other[s];
+			});
+		}
+		return *this;
+	}
+	template<typename ...Others>
+	inline this_type & operator +=(
+			_Field<domain_type, value_type, Others...> const &other)
+	{
+		wait();
+		if (other.is_valid())
+		{
+			other.domain().for_each([&](id_type const &s)
+			{
+				at(s)+= other[s];
+			});
+		}
 		return *this;
 	}
 
@@ -156,11 +178,13 @@ public:
 	inline this_type & operator =(TR const &other)
 	{
 		wait();
-		m_domain_.for_each([&](id_type const &s)
+		if (other.domain().is_valid())
 		{
-			at(s) = m_domain_.mesh().calculate(other, s);
-		});
-
+			m_domain_.for_each([&](id_type const &s)
+			{
+				at(s) = m_domain_.mesh().calculate(other, s);
+			});
+		}
 		return *this;
 	}
 private:
@@ -169,7 +193,7 @@ private:
 	{
 		wait();
 
-		d.template for_each<iform>([&](id_type const &s)
+		d.for_each([&](id_type const &s)
 		{
 			at(s) = m_domain_.mesh().calculate(other, s);
 		});
