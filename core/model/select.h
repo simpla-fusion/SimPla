@@ -12,11 +12,11 @@
 #include "../numeric/point_in_polygon.h"
 namespace simpla
 {
-//template<typename TPred, typename InOut>
-//void filter(TPred const & pred, InOut *res)
-//{
-//	res.erase(std::remove_if(res->begin(), res->end(), pred), res->end());
-//}
+template<typename TPred, typename InOut>
+void filter(TPred const & pred, InOut *res)
+{
+	res->erase(std::remove_if(res->begin(), res->end(), pred), res->end());
+}
 template<typename TPred, typename IN, typename OUT>
 void filter(TPred const & pred, IN const & range, OUT *res)
 {
@@ -164,9 +164,8 @@ void select_ids_on_polylines(TM const & mesh,
 	}
 
 }
-template<typename TM, typename TDomain, typename TDict>
-TDomain select_domain_by_config(TM const & mesh, TDict const & dict,
-		TDomain const & domain)
+template<typename TDomain, typename TDict>
+TDomain filter_domain_by_config(TDomain const & domain, TDict const & dict)
 {
 	TDomain res(domain);
 
@@ -176,15 +175,24 @@ TDomain select_domain_by_config(TM const & mesh, TDict const & dict,
 	typedef typename mesh_type::coordinates_type coordinates_type;
 	typedef typename mesh_type::id_type id_type;
 	typedef typename mesh_type::index_tuple index_tuple;
+	static constexpr size_t iform = domain_type::iform;
+	mesh_type & mesh = domain.mesh();
+	auto & id_set = res.id_set();
 
 	if (dict.is_function())
 	{
-		for (auto s : domain)
+		auto pred = [&](id_type s)
 		{
-			if (dict(domain.mesh().coordinates(s)).template as<bool>())
-			{
-				res.id_set().insert(s);
-			}
+			return (dict(mesh.coordinates(s)).template as<bool>());
+		};
+
+		if (id_set.size() > 0)
+		{
+			filter(pred, &id_set);
+		}
+		else
+		{
+			filter(pred, domain.range(), &id_set);
 		}
 	}
 	else if (dict["Polylines"])
@@ -199,13 +207,18 @@ TDomain select_domain_by_config(TM const & mesh, TDict const & dict,
 
 		obj["Polylines"]["Points"].as(&points);
 
-		if (obj["Polylines"]["OnlyEdge"])
+		PointInPolygon checkPointsInPolygen(points, ZAXIS);
+
+		auto pred = [&]( id_type const &s)
+		{	return checkPointsInPolygen(mesh.coordinates(s));};
+
+		if (id_set.size() > 0)
 		{
-			select_ids_in_polylines(mesh, points, ZAXIS, domain, &res.id_set());
+			filter(pred, &id_set);
 		}
 		else
 		{
-			select_ids_on_polylines(mesh, points, ZAXIS, domain, &res.id_set());
+			filter(pred, domain.range(), &id_set);
 		}
 	}
 	else if (dict["Rectangle"])
@@ -214,7 +227,7 @@ TDomain select_domain_by_config(TM const & mesh, TDict const & dict,
 
 		dict["Rectangle"].as(&points);
 
-//		res.select(points[0], points[1]);
+		res.select(points[0], points[1]);
 
 	}
 	else if (dict["Indics"])
@@ -225,7 +238,7 @@ TDomain select_domain_by_config(TM const & mesh, TDict const & dict,
 
 		for (auto const & i : points)
 		{
-//			res.id_set().insert(domain.mesh().id(i));
+			id_set.insert(mesh.template pack<iform>(i));
 		}
 	}
 

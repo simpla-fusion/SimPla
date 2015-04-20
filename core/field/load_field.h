@@ -65,10 +65,8 @@ make_field_function_by_config(TM const & mesh, TDict const & dict)
 	}
 
 	return field_type(
-			select_domain_by_config(mesh, dict["Domain"],
-					mesh.template domain<field_type::iform>()),
-
-			dict["Value"]);
+			filter_domain_by_config(mesh.template domain<field_type::iform>()),
+			dict["Domain"], dict["Value"]);
 
 }
 //
