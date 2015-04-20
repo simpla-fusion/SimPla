@@ -203,14 +203,6 @@ public:
 //				m_index_offset_ - m_index_local_offset_);
 //	}
 
-	template<size_t IFORM> struct Domain;
-
-	template<size_t IFORM>
-	Domain<IFORM> domain() const
-	{
-		return Domain<IFORM>(*this);
-	}
-
 	template<typename T0, typename T1>
 	void extents(T0 const& pmin, T1 const& pmax)
 	{
@@ -463,10 +455,6 @@ void RectMesh<TCoord, N...>::deploy(size_t const *gw)
 	{
 		WARNING << ("  Courant–Friedrichs–Lewy (CFL) !") << std::endl;
 	}
-
-	/**
-	 *  decompose mesh
-	 * */
 
 	/**
 	 *  deploy volume

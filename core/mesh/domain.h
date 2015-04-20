@@ -97,7 +97,6 @@ public:
 		{
 			for (auto const & s : m_range_)
 			{
-
 				fun(mesh_type::template pack<iform>(s));
 			}
 		}
@@ -120,15 +119,20 @@ public:
 	void deploy()
 	{
 		m_hash_count_ = m_mesh_->m_index_local_dimensions_;
+
 		m_hash_offset_ = m_mesh_->m_index_local_offset_;
 
 		int ndims_of_range =
 				(iform == VERTEX || iform == VOLUME) ? ndims : ndims + 1;
 
+		if (!(iform == VERTEX || iform == VOLUME))
+		{
+
+			m_hash_count_[ndims_of_range - 1] =
+					(iform == EDGE || iform == FACE) ? 3 : 1;
+		}
 		m_hash_offset_[ndims_of_range - 1] = 0;
 		m_hash_strides_[ndims_of_range - 1] = 1;
-		m_hash_count_[ndims_of_range - 1] =
-				(iform == EDGE || iform == FACE) ? 3 : 1;
 
 		range_type(m_hash_offset_, m_hash_offset_ + m_hash_count_).swap(
 				m_range_);

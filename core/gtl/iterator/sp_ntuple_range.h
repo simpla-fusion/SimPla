@@ -92,7 +92,7 @@ public:
 	struct iterator;
 	typedef iterator const_iterator;
 
-protected:
+//protected:
 
 	ntuple_type m_b_, m_e_;
 
@@ -106,8 +106,8 @@ public:
 
 	}
 	template<typename T1, typename T2>
-	sp_nTuple_range(T1 const & min, T2 const & max, bool slow_first = true) :
-			m_slow_first_(slow_first)
+	sp_nTuple_range(T1 const & min, T2 const & max, bool slow_first = true)
+			: m_slow_first_(slow_first)
 	{
 		m_b_ = min;
 		m_e_ = max;
@@ -116,25 +116,28 @@ public:
 
 	template<typename T1, typename T2, typename T3>
 	sp_nTuple_range(T1 const & min, T2 const & max, T3 const & grain_size,
-			bool slow_first = true) :
-			m_slow_first_(slow_first)
+			bool slow_first = true)
+			: m_slow_first_(slow_first)
 	{
 		m_b_ = min;
 		m_e_ = max;
 		m_grainsize_ = grain_size;
-	}
-	sp_nTuple_range(this_type & other, op_split) :
-			m_grainsize_(other.m_grainsize_), m_slow_first_(other.m_slow_first_)
-	{
 
-		// @FIXME only valid when sizeof...(DIMS)=1
-		//		m_b_ = (other.m_e_ - other.m_b_) / 2 + other.m_b_;
-		//		m_e_ = other.m_e_;
-		//		other.m_e_ = m_b_;
+		CHECK(m_b_);
+		CHECK(m_e_);
 	}
+//	sp_nTuple_range(this_type & other, op_split) :
+//			m_grainsize_(other.m_grainsize_), m_slow_first_(other.m_slow_first_)
+//	{
+//
+//		// @FIXME only valid when sizeof...(DIMS)=1
+//		//		m_b_ = (other.m_e_ - other.m_b_) / 2 + other.m_b_;
+//		//		m_e_ = other.m_e_;
+//		//		other.m_e_ = m_b_;
+//	}
 
-	sp_nTuple_range(this_type const & other) :
-			m_e_(other.m_e_), m_b_(other.m_b_), m_slow_first_(
+	sp_nTuple_range(this_type const & other)
+			: m_e_(other.m_e_), m_b_(other.m_b_), m_slow_first_(
 					other.m_slow_first_), m_grainsize_(other.m_grainsize_)
 	{
 	}
@@ -181,14 +184,14 @@ public:
 		return std::move(res);
 	}
 
-	this_type operator&(this_type const& other) const
-	{
-		this_type res(*this);
-
-		rectangle_overlap(other.m_b_, other.m_e_, &res.m_b_, &res.m_e_);
-
-		return std::move(res);
-	}
+//	this_type operator&(this_type const& other) const
+//	{
+//		this_type res(*this);
+//
+//		rectangle_overlap(other.m_b_, other.m_e_, &res.m_b_, &res.m_e_);
+//
+//		return std::move(res);
+//	}
 };
 template<typename TIndex, size_t ... DIMS, typename T2>
 sp_nTuple_range<TIndex, DIMS...> make_ntuple_range(
@@ -220,14 +223,16 @@ public:
 		m_self_ = s;
 		m_slow_first_ = slow_first;
 	}
-	iterator(iterator const& other) :
-			m_min_(other.m_min_), m_max_(other.m_max_), m_self_(other.m_self_), m_sign_flag_(
-					other.m_sign_flag_), m_slow_first_(other.m_slow_first_)
+	iterator(iterator const& other)
+			: m_min_(other.m_min_), m_max_(other.m_max_), m_self_(
+					other.m_self_), m_sign_flag_(other.m_sign_flag_), m_slow_first_(
+					other.m_slow_first_)
 	{
 	}
-	iterator(iterator && other) :
-			m_min_(other.m_min_), m_max_(other.m_max_), m_self_(other.m_self_), m_sign_flag_(
-					other.m_sign_flag_), m_slow_first_(other.m_slow_first_)
+	iterator(iterator && other)
+			: m_min_(other.m_min_), m_max_(other.m_max_), m_self_(
+					other.m_self_), m_sign_flag_(other.m_sign_flag_), m_slow_first_(
+					other.m_slow_first_)
 	{
 	}
 	~iterator()

@@ -98,8 +98,8 @@ USE_CASE(em," Maxwell Eqs.")
 
 	E = GLOBAL_COMM.process_num();
 
-//	VERBOSE << SAVE(phi) << std::endl;
-//	VERBOSE << SAVE(E) << std::endl;
+	VERBOSE << SAVE(phi) << std::endl;
+	VERBOSE << SAVE(E) << std::endl;
 //	VERBOSE << SAVE(B) << std::endl;
 //	VERBOSE << SAVE(J) << std::endl;
 //
@@ -122,8 +122,8 @@ USE_CASE(em," Maxwell Eqs.")
 //		E = curl(B) * dt - J;
 //		B = -curl(E) * dt;
 //
-		VERBOSE << SAVE_RECORD(E) << std::endl;
-		VERBOSE << SAVE_APPEND(B) << std::endl;
+//		VERBOSE << SAVE_RECORD(E) << std::endl;
+//		VERBOSE << SAVE_APPEND(B) << std::endl;
 //
 	}
 ////	}
