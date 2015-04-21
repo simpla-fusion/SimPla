@@ -142,8 +142,7 @@ public:
 	{
 	}
 
-	RectMesh(this_type const & other)
-			:
+	RectMesh(this_type const & other) :
 
 			m_index_dimensions_(other.m_index_dimensions_),
 
@@ -378,24 +377,25 @@ public:
 
 		return coordinates_type( {
 
-		std::fma(y[0], m_from_topology_scale_[0], -m_coord_orig_[0]),
+		std::fma(y[0], m_from_topology_scale_[0], m_coord_orig_[0]),
 
-		std::fma(y[1], m_from_topology_scale_[1], -m_coord_orig_[1]),
+		std::fma(y[1], m_from_topology_scale_[1], m_coord_orig_[1]),
 
-		std::fma(y[2], m_from_topology_scale_[2], -m_coord_orig_[2])
+		std::fma(y[2], m_from_topology_scale_[2], m_coord_orig_[2])
 
 		});
 
 	}
 	coordinates_type coordinates_to_topology(coordinates_type const &x) const
 	{
+
 		return coordinates_type( {
 
-		std::fma(x[0], m_to_topology_scale_[0], -m_toplogy_coord_orig_[0]),
+		std::fma(x[0], m_to_topology_scale_[0], m_toplogy_coord_orig_[0]),
 
-		std::fma(x[1], m_to_topology_scale_[1], -m_toplogy_coord_orig_[1]),
+		std::fma(x[1], m_to_topology_scale_[1], m_toplogy_coord_orig_[1]),
 
-		std::fma(x[2], m_to_topology_scale_[2], -m_toplogy_coord_orig_[2])
+		std::fma(x[2], m_to_topology_scale_[2], m_toplogy_coord_orig_[2])
 
 		});
 
@@ -543,8 +543,8 @@ constexpr size_t RectMesh<TTopology, Polices...>::DEFAULT_GHOST_WIDTH;
 template<typename TTopology, typename ... Polices>
 void RectMesh<TTopology, Polices...>::deploy(size_t const *gw)
 {
-
-	for (size_t i = 0; i < ndims; ++i)
+	CHECK(m_index_dimensions_);
+	for (int i = 0; i < ndims; ++i)
 	{
 		if (m_index_dimensions_[i] > 0
 				&& (m_coords_max_[i] - m_coords_min_[i]) > EPSILON)
@@ -553,7 +553,7 @@ void RectMesh<TTopology, Polices...>::deploy(size_t const *gw)
 			m_dx_[i] = (m_coords_max_[i] - m_coords_min_[i])
 					/ static_cast<Real>(m_index_dimensions_[i]);
 
-			m_to_topology_scale_ = static_cast<Real>(m_index_dimensions_[i])
+			m_to_topology_scale_[i] = static_cast<Real>(m_index_dimensions_[i])
 					/ (m_coords_max_[i] - m_coords_min_[i]);
 
 			m_from_topology_scale_[i] = (m_coords_max_[i] - m_coords_min_[i])
@@ -583,10 +583,10 @@ void RectMesh<TTopology, Polices...>::deploy(size_t const *gw)
 
 	}
 
-	m_coord_orig_ = topology_type::COORD_ZERO * m_from_topology_scale_;
+	m_coord_orig_ = (m_coords_max_ + m_coords_min_) * 0.5;
 
 	m_toplogy_coord_orig_ = -(m_coords_max_ + m_coords_min_) * 0.5
-			* m_to_topology_scale_ - topology_type::COORD_ZERO;
+			* m_to_topology_scale_;
 
 	DEFINE_PHYSICAL_CONST
 

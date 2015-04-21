@@ -86,8 +86,7 @@ struct MeshIDs_
 
 	static constexpr size_t MAX_MESH_LEVEL = 4;
 
-	static constexpr size_t INDEX_ZERO = 1UL
-			<< (INDEX_DIGITS - MAX_MESH_LEVEL - 1);
+	static constexpr size_t INDEX_ZERO = 1UL << (INDEX_DIGITS - MAX_MESH_LEVEL);
 
 	static constexpr size_t ID_ZERO = (INDEX_ZERO << (MAX_MESH_LEVEL))
 			| (INDEX_ZERO << (MAX_MESH_LEVEL + INDEX_DIGITS))
@@ -96,11 +95,14 @@ struct MeshIDs_
 	static constexpr Real COORD_ZERO = static_cast<Real>(INDEX_ZERO);
 
 	static constexpr Real COORD_TO_INDEX_FACTOR = static_cast<Real>(1
-			<< MAX_MESH_LEVEL);
+			<< (MAX_MESH_LEVEL));
 
 	static constexpr Real INDEX_TO_COORD_FACTOR = 1.0 / COORD_TO_INDEX_FACTOR;
 
 	static constexpr size_t INDEX_MASK = (1UL << (INDEX_DIGITS + 1)) - 1;
+
+	static constexpr size_t HEAD_INDEX_MASK = ((1UL
+			<< (INDEX_DIGITS + 1 - MAX_MESH_LEVEL)) - 1) << (MAX_MESH_LEVEL);
 
 	static constexpr size_t _DI = (1UL << (MAX_MESH_LEVEL - 1));
 
@@ -263,16 +265,18 @@ struct MeshIDs_
 	{
 		return
 
-		(static_cast<size_t>((x[0] - m_sub_node_coordinates_shift_[IFORM][n][0])
-				* COORD_TO_INDEX_FACTOR) & INDEX_MASK)
+		(static_cast<size_t>((x[0] - m_sub_node_coordinates_shift_[IFORM][n][0]
+				+ COORD_ZERO) * COORD_TO_INDEX_FACTOR) & INDEX_MASK)
 
 				| ((static_cast<size_t>((x[1]
-						- m_sub_node_coordinates_shift_[IFORM][n][1]) //
-				* COORD_TO_INDEX_FACTOR) & INDEX_MASK) << (INDEX_DIGITS))
+						- m_sub_node_coordinates_shift_[IFORM][n][1]
+						+ COORD_ZERO) * COORD_TO_INDEX_FACTOR) & INDEX_MASK)
+						<< (INDEX_DIGITS))
 
 				| ((static_cast<size_t>((x[2]
-						- m_sub_node_coordinates_shift_[IFORM][n][2]) //
-				* COORD_TO_INDEX_FACTOR) & INDEX_MASK) << (INDEX_DIGITS * 2))
+						- m_sub_node_coordinates_shift_[IFORM][n][2]
+						+ COORD_ZERO) * COORD_TO_INDEX_FACTOR) & INDEX_MASK)
+						<< (INDEX_DIGITS * 2))
 
 				| m_sub_node_id_shift_[IFORM][n];
 	}
@@ -283,11 +287,11 @@ struct MeshIDs_
 		return
 		{
 
-			(static_cast<index_type>((x[0] - m_sub_node_coordinates_shift_[IFORM][n][0])))/static_cast<index_type>(1UL<<MAX_MESH_LEVEL),
+			(static_cast<index_type>((x[0] - m_sub_node_coordinates_shift_[IFORM][n][0])))*COORD_TO_INDEX_FACTOR,
 
-			(static_cast<index_type>((x[1] - m_sub_node_coordinates_shift_[IFORM][n][1])))/static_cast<index_type>(1UL<<MAX_MESH_LEVEL),
+			(static_cast<index_type>((x[1] - m_sub_node_coordinates_shift_[IFORM][n][1])))*COORD_TO_INDEX_FACTOR,
 
-			(static_cast<index_type>((x[2] - m_sub_node_coordinates_shift_[IFORM][n][2])))/static_cast<index_type>(1UL<<MAX_MESH_LEVEL)
+			(static_cast<index_type>((x[2] - m_sub_node_coordinates_shift_[IFORM][n][2])))*COORD_TO_INDEX_FACTOR
 
 		}
 		;
@@ -317,15 +321,19 @@ struct MeshIDs_
 
 	static constexpr coordinates_type id_to_coordinates(id_type s)
 	{
+		CHECK_BIT(INDEX_MASK);
+		CHECK_BIT(_DA);
+		CHECK_BIT(s);
 		return std::move(coordinates_type { //
 
-				static_cast<Real>(s & INDEX_MASK) * INDEX_TO_COORD_FACTOR,
+				static_cast<Real>((s & INDEX_MASK)) * INDEX_TO_COORD_FACTOR
+						- COORD_ZERO,
 
-				static_cast<Real>((s >> INDEX_DIGITS) & INDEX_MASK)
-						* INDEX_TO_COORD_FACTOR,
+				static_cast<Real>(((s >> INDEX_DIGITS)) & INDEX_MASK)
+						* INDEX_TO_COORD_FACTOR - COORD_ZERO,
 
-				static_cast<Real>((s >> (INDEX_DIGITS * 2)) & INDEX_MASK)
-						* INDEX_TO_COORD_FACTOR
+				static_cast<Real>(((s >> (INDEX_DIGITS * 2))) & INDEX_MASK)
+						* INDEX_TO_COORD_FACTOR - COORD_ZERO
 
 				}
 

@@ -19,6 +19,7 @@
 #include "../../core/field/field_constraint.h"
 #include "../../core/field/load_field.h"
 #include "../../core/mesh/mesh.h"
+#include "../../core/mesh/mesh_ids.h"
 #include "../../core/mesh/structured/structured.h"
 
 #include "../../core/model/select.h"
@@ -83,69 +84,66 @@ USE_CASE(em," Maxwell Eqs.")
 	auto s = mesh->template coordinates_to_id<VERTEX>(x);
 
 	CHECK(x);
-	CHECK(mesh->coordinates_to_index<VERTEX>(x));
-	CHECK(mesh->coordinates_to_topology(x));
 	CHECK(mesh->coordinates_from_topology(mesh->coordinates_to_topology(x)));
-	CHECK(mesh->unpack<VERTEX>(s));
-	CHECK(mesh->coordinates(s));
+	CHECK(MeshIDs::id_to_coordinates(MeshIDs::coordinates_to_id<0>(x)));
 
-	VERBOSE_CMD(load_field(options["InitValue"]["phi"], &phi));
-	VERBOSE_CMD(load_field(options["InitValue"]["B"], &B));
-	VERBOSE_CMD(load_field(options["InitValue"]["E"], &E));
-	VERBOSE_CMD(load_field(options["InitValue"]["J"], &J));
-
-	auto E_src = make_field_function_by_config<EDGE, Real>(*mesh,
-			options["Constraint"]["E"]);
-
-	auto J_src = make_field_function_by_config<EDGE, Real>(*mesh,
-			options["Constraint"]["J"]);
-
-	auto B_src = make_field_function_by_config<FACE, Real>(*mesh,
-			options["Constraint"]["B"]);
-//	auto J_src = make_constraint<decltype(J)>(J.mesh(),
+//	VERBOSE_CMD(load_field(options["InitValue"]["phi"], &phi));
+//	VERBOSE_CMD(load_field(options["InitValue"]["B"], &B));
+//	VERBOSE_CMD(load_field(options["InitValue"]["E"], &E));
+//	VERBOSE_CMD(load_field(options["InitValue"]["J"], &J));
+//
+//	auto E_src = make_field_function_by_config<EDGE, Real>(*mesh,
+//			options["Constraint"]["E"]);
+//
+//	auto J_src = make_field_function_by_config<EDGE, Real>(*mesh,
 //			options["Constraint"]["J"]);
-//	auto B_src = make_constraint<decltype(B)>(B.mesh(),
+//
+//	auto B_src = make_field_function_by_config<FACE, Real>(*mesh,
 //			options["Constraint"]["B"]);
-
-	LOGGER << "----------  Dump input ---------- " << std::endl;
-
-	cd("/Input/");
-
-	VERBOSE << SAVE(phi) << std::endl;
-//	VERBOSE << SAVE(E) << std::endl;
-//	VERBOSE << SAVE(B) << std::endl;
-//	VERBOSE << SAVE(J) << std::endl;
+////	auto J_src = make_constraint<decltype(J)>(J.mesh(),
+////			options["Constraint"]["J"]);
+////	auto B_src = make_constraint<decltype(B)>(B.mesh(),
+////			options["Constraint"]["B"]);
 //
-//	if (options["JUST_A_TEST"])
-//	{
-//		LOGGER << " Just test configuration!" << std::endl;
-//	}
-//	else
-//	{
-//	LOGGER << "----------  START ---------- " << std::endl;
+//	LOGGER << "----------  Dump input ---------- " << std::endl;
 //
-	cd("/Save/");
-	for (size_t step = 0; step < num_of_steps; ++step)
-	{
-		VERBOSE << "Step [" << step << "/" << num_of_steps << "]" << std::endl;
-
-		E += E_src;
-//		J += J_src;
-//		B += B_src;
-//		E = curl(B) * dt - J;
-//		B = -curl(E) * dt;
-
-//		VERBOSE << SAVE_RECORD(E) << std::endl;
-//		VERBOSE << SAVE_APPEND(B) << std::endl;
+//	cd("/Input/");
 //
-	}
+//	VERBOSE << SAVE(phi) << std::endl;
+////	VERBOSE << SAVE(E) << std::endl;
+////	VERBOSE << SAVE(B) << std::endl;
+////	VERBOSE << SAVE(J) << std::endl;
+////
+////	if (options["JUST_A_TEST"])
+////	{
+////		LOGGER << " Just test configuration!" << std::endl;
 ////	}
-//	cd("/Output/");
-//	VERBOSE << SAVE(E) << std::endl;
-//	VERBOSE << SAVE(B) << std::endl;
-//	VERBOSE << SAVE(J) << std::endl;
+////	else
+////	{
+////	LOGGER << "----------  START ---------- " << std::endl;
+////
+//	cd("/Save/");
+//	for (size_t step = 0; step < num_of_steps; ++step)
+//	{
+//		VERBOSE << "Step [" << step << "/" << num_of_steps << "]" << std::endl;
 //
-//	LOGGER << "----------  DONE ---------- " << std::endl;
+//		E += E_src;
+////		J += J_src;
+////		B += B_src;
+////		E = curl(B) * dt - J;
+////		B = -curl(E) * dt;
+//
+////		VERBOSE << SAVE_RECORD(E) << std::endl;
+////		VERBOSE << SAVE_APPEND(B) << std::endl;
+////
+//	}
+//////	}
+////	cd("/Output/");
+////	VERBOSE << SAVE(E) << std::endl;
+////	VERBOSE << SAVE(B) << std::endl;
+////	VERBOSE << SAVE(J) << std::endl;
+////
+////	LOGGER << "----------  DONE ---------- " << std::endl;
 
 }
 
