@@ -86,7 +86,7 @@ struct MeshIDs_
 
 	static constexpr size_t MAX_MESH_LEVEL = 4;
 
-	static constexpr long INDEX_ZERO = 1UL
+	static constexpr size_t INDEX_ZERO = 1UL
 			<< (INDEX_DIGITS - MAX_MESH_LEVEL - 1);
 
 	static constexpr size_t ID_ZERO = (INDEX_ZERO << (MAX_MESH_LEVEL))
@@ -275,6 +275,22 @@ struct MeshIDs_
 				* COORD_TO_INDEX_FACTOR) & INDEX_MASK) << (INDEX_DIGITS * 2))
 
 				| m_sub_node_id_shift_[IFORM][n];
+	}
+
+	template<size_t IFORM, typename TX>
+	static constexpr index_tuple coordinates_to_index(TX const &x, int n = 0)
+	{
+		return
+		{
+
+			(static_cast<index_type>((x[0] - m_sub_node_coordinates_shift_[IFORM][n][0])))/static_cast<index_type>(1UL<<MAX_MESH_LEVEL),
+
+			(static_cast<index_type>((x[1] - m_sub_node_coordinates_shift_[IFORM][n][1])))/static_cast<index_type>(1UL<<MAX_MESH_LEVEL),
+
+			(static_cast<index_type>((x[2] - m_sub_node_coordinates_shift_[IFORM][n][2])))/static_cast<index_type>(1UL<<MAX_MESH_LEVEL)
+
+		}
+		;
 	}
 
 	template<size_t IFORM, typename TX>
@@ -1187,7 +1203,8 @@ struct MeshIDs_
 //		return 2;
 //	}
 //	/**@}*/
-};
+}
+;
 
 /**
  * Solve problem: Undefined reference to static constexpr char[]
@@ -1203,7 +1220,7 @@ template<size_t N, size_t A> constexpr size_t MeshIDs_<N, A>::_DJ;
 template<size_t N, size_t A> constexpr size_t MeshIDs_<N, A>::_DI;
 template<size_t N, size_t A> constexpr size_t MeshIDs_<N, A>::_DA;
 template<size_t N, size_t A> constexpr size_t MeshIDs_<N, A>::CELL_ID_MASK;
-template<size_t N, size_t A> constexpr long MeshIDs_<N, A>::INDEX_ZERO;
+template<size_t N, size_t A> constexpr size_t MeshIDs_<N, A>::INDEX_ZERO;
 template<size_t N, size_t A> constexpr Real MeshIDs_<N, A>::COORD_ZERO;
 template<size_t N, size_t A> constexpr Real MeshIDs_<N, A>::COORD_TO_INDEX_FACTOR;
 template<size_t N, size_t A> constexpr Real MeshIDs_<N, A>::INDEX_TO_COORD_FACTOR;

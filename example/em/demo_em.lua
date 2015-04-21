@@ -31,9 +31,9 @@ rhoe = vTe/omega_ce    -- m
 NX = 10
 NY = 1
 NZ = 1
-LX = 1  --m --100000*rhoi --0.6
-LY = 1  --2.0*math.pi/k0
-LZ = 3  -- 2.0*math.pi/18
+LX = 10  --m --100000*rhoi --0.6
+LY = 10  --2.0*math.pi/k0
+LZ = 10  -- 2.0*math.pi/18
 GW = 5
 
 omega_ext=omega_ci*1.9
@@ -71,10 +71,10 @@ InitValue= {
   phi=
   {
 
-    Domain={Box={{0.2,0.2,0},{0.3,0.3,1}}},
+    Domain={IndexBox={{2,3,0},{6,7,1}}},
 
     Value=function(x,t)
-      print(x[1],x[2],x[3])
+    --  print(x[1],x[2],x[3])
       return   math.sin(x[1]*2.0*math.pi)*math.sin(x[2]*2.0*math.pi)
     end
 

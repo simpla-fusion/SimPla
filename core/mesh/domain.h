@@ -243,7 +243,6 @@ public:
 
 	void reset_bound_box(coordinates_type const & b, coordinates_type const & e)
 	{
-		CHECK(m_mesh_.coordinates_to_index(b));
 		reset_bound_box(m_mesh_.coordinates_to_index(b),
 				m_mesh_.coordinates_to_index(e));
 	}
@@ -305,6 +304,15 @@ public:
 					m_id_set_.insert(m_mesh_.template pack<iform>(idx));
 				}
 			}
+		}
+		else if (dict["IndexBox"])
+		{
+			std::vector<nTuple<long, ndims>> points;
+
+			dict["IndexBox"].as(&points);
+
+			reset_bound_box(points[0], points[1]);
+
 		}
 //		else
 //		{

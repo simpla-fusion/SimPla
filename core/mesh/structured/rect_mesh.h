@@ -89,6 +89,8 @@ private:
 
 	coordinates_type m_coord_orig_ /*= { 0, 0, 0 }*/;
 
+	coordinates_type m_toplogy_coord_orig_ /*= { 0, 0, 0 }*/;
+
 	coordinates_type m_coords_min_ = { 0, 0, 0 };
 
 	coordinates_type m_coords_max_ = { 1, 1, 1 };
@@ -363,45 +365,39 @@ public:
 		return topology_type::template coordinates_to_id<IFORM>(
 				coordinates_to_topology(x), n);
 	}
+
 	template<size_t IFORM = VERTEX>
 	inline index_tuple coordinates_to_index(coordinates_type const &x) const
 	{
-		return topology_type::template unpack<IFORM>(coordinates_to_id(x));
+		return topology_type::template coordinates_to_index<IFORM>(
+				coordinates_to_topology(x));
 	}
 
 	coordinates_type coordinates_from_topology(coordinates_type const &y) const
 	{
 
-		return coordinates_type(
-				{
+		return coordinates_type( {
 
-				std::fma(y[0] - topology_type::COORD_ZERO,
-						m_from_topology_scale_[0], m_coord_orig_[0]),
+		std::fma(y[0], m_from_topology_scale_[0], -m_coord_orig_[0]),
 
-				std::fma(y[1] - topology_type::COORD_ZERO,
-						m_from_topology_scale_[1], m_coord_orig_[1]),
+		std::fma(y[1], m_from_topology_scale_[1], -m_coord_orig_[1]),
 
-				std::fma(y[2] - topology_type::COORD_ZERO,
-						m_from_topology_scale_[2], m_coord_orig_[2])
+		std::fma(y[2], m_from_topology_scale_[2], -m_coord_orig_[2])
 
-				});
+		});
 
 	}
 	coordinates_type coordinates_to_topology(coordinates_type const &x) const
 	{
-		return coordinates_type(
-				{
+		return coordinates_type( {
 
-				std::fma(x[0] - m_coord_orig_[0], m_to_topology_scale_[0],
-						topology_type::COORD_ZERO),
+		std::fma(x[0], m_to_topology_scale_[0], -m_toplogy_coord_orig_[0]),
 
-				std::fma(x[1] - m_coord_orig_[1], m_to_topology_scale_[1],
-						topology_type::COORD_ZERO),
+		std::fma(x[1], m_to_topology_scale_[1], -m_toplogy_coord_orig_[1]),
 
-				std::fma(x[2] - m_coord_orig_[2], m_to_topology_scale_[2],
-						topology_type::COORD_ZERO)
+		std::fma(x[2], m_to_topology_scale_[2], -m_toplogy_coord_orig_[2])
 
-				});
+		});
 
 	}
 
@@ -557,11 +553,11 @@ void RectMesh<TTopology, Polices...>::deploy(size_t const *gw)
 			m_dx_[i] = (m_coords_max_[i] - m_coords_min_[i])
 					/ static_cast<Real>(m_index_dimensions_[i]);
 
-			m_to_topology_scale_ = m_index_dimensions_[i]
+			m_to_topology_scale_ = static_cast<Real>(m_index_dimensions_[i])
 					/ (m_coords_max_[i] - m_coords_min_[i]);
 
 			m_from_topology_scale_[i] = (m_coords_max_[i] - m_coords_min_[i])
-					/ m_index_dimensions_[i];
+					/ static_cast<Real>(m_index_dimensions_[i]);
 		}
 #ifdef  ENABLE_COMPLEX_COORDINATE_SYSTEM
 		else if ((m_coords_max_[i] - m_coords_min_[i]) > EPSILON)
@@ -587,7 +583,10 @@ void RectMesh<TTopology, Polices...>::deploy(size_t const *gw)
 
 	}
 
-	m_coord_orig_ = (m_coords_max_ + m_coords_min_) * 0.5;
+	m_coord_orig_ = topology_type::COORD_ZERO * m_from_topology_scale_;
+
+	m_toplogy_coord_orig_ = -(m_coords_max_ + m_coords_min_) * 0.5
+			* m_to_topology_scale_ - topology_type::COORD_ZERO;
 
 	DEFINE_PHYSICAL_CONST
 
