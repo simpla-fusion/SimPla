@@ -40,7 +40,7 @@ public:
 	typedef typename mesh_type::id_type id_type;
 	typedef typename mesh_type::coordinates_type coordinates_type;
 	typedef typename mesh_type::index_type index_type;
-
+	typedef typename mesh_type::index_type index_tuple;
 	typedef sp_nTuple_range<size_t,
 			ndims + ((iform == VERTEX || iform == VOLUME) ? 0 : 1)> range_type;
 
@@ -50,7 +50,7 @@ public:
 private:
 	mesh_type const &m_mesh_;
 	range_type m_box_;
-	std::shared_ptr<std::set<id_type>> m_id_set_;
+	std::set<id_type> m_id_set_;
 public:
 
 	Domain(mesh_type const &m)
@@ -58,18 +58,16 @@ public:
 	{
 		deploy();
 	}
+	template<typename T0, typename T1>
+	Domain(mesh_type const &m, T0 const & b, T1 const & e)
+			: m_mesh_(m)
+	{
+		deploy(b, e);
+	}
 
 	Domain(this_type const & other)
-			: m_mesh_(other.m_mesh_), m_box_(other.m_box_),
-
-			m_hash_max_(other.m_hash_max_),
-
-			m_hash_offset_(other.m_hash_offset_),
-
-			m_hash_count_(other.m_hash_count_),
-
-			m_hash_strides_(other.m_hash_strides_)
-
+			: m_mesh_(other.m_mesh_), m_box_(other.m_box_), m_id_set_(
+					other.m_id_set_)
 	{
 		deploy();
 	}
@@ -86,7 +84,7 @@ public:
 
 	bool is_simple() const
 	{
-		return !m_id_set_ || m_id_set_->size() == 0;
+		return m_id_set_.size() == 0;
 	}
 	bool is_empty() const
 	{
@@ -120,24 +118,40 @@ public:
 
 	void swap(this_type &other)
 	{
-		std::swap(m_box_, other.m_range_);
+		std::swap(m_box_, other.m_box_);
 		std::swap(m_mesh_, other.m_mesh_);
 		std::swap(m_id_set_, other.m_id_set_);
+	}
+	void deploy()
+	{
+		deploy(m_mesh_.m_index_local_offset_,
+				m_mesh_.m_index_local_offset_
+						+ m_mesh_.m_index_local_dimensions_);
+	}
+	template<typename T0, typename T1>
+	void deploy(T0 const & b, T1 const & e)
+	{
+		typename range_type::value_type ib, ie;
 
-		std::swap(m_hash_max_, other.m_hash_max_);
-		std::swap(m_hash_offset_, other.m_hash_offset_);
-		std::swap(m_hash_count_, other.m_hash_count_);
-		std::swap(m_hash_strides_, other.m_hash_strides_);
+		ib = b;
+		ie = e;
+		if (iform == FACE || iform == FACE)
+		{
+			ib[ndims] = 0;
+			ie[ndims] = 3;
+		}
+
+		range_type(ib, ie).swap(m_box_);
 
 	}
 
 	std::set<id_type> & id_set()
 	{
-		return *m_id_set_;
+		return m_id_set_;
 	}
 	std::set<id_type> const& id_set() const
 	{
-		return *m_id_set_;
+		return m_id_set_;
 	}
 
 	bool in_box(id_type s) const
@@ -154,6 +168,16 @@ public:
 		}
 	}
 
+	size_t max_hash() const
+	{
+		return mesh().template max_hash<iform>();
+	}
+	template<typename ...Args>
+	size_t hash(Args && ...args) const
+	{
+		return mesh().template hash<iform>(std::forward<Args>(args)...);
+	}
+
 	template<typename TFun>
 	void for_each(TFun const & fun) const
 	{
@@ -166,45 +190,11 @@ public:
 		}
 		else
 		{
-			for (auto const &s : *m_id_set_)
+			for (auto const &s : m_id_set_)
 			{
 				fun(s);
 			}
 		}
-	}
-
-	struct iterator;
-	typedef iterator const_iterator;
-	size_t m_hash_max_ = 0;
-	typename range_type::value_type m_hash_offset_;
-	typename range_type::value_type m_hash_count_;
-	typename range_type::value_type m_hash_strides_;
-
-	void deploy()
-	{
-		m_hash_count_ = m_mesh_.m_index_local_dimensions_;
-
-		m_hash_offset_ = m_mesh_.m_index_local_offset_;
-
-		int ndims_of_range =
-				(iform == VERTEX || iform == VOLUME) ? ndims : ndims + 1;
-
-		if (!(iform == VERTEX || iform == VOLUME))
-		{
-
-			m_hash_count_[ndims_of_range - 1] =
-					(iform == EDGE || iform == FACE) ? 3 : 1;
-		}
-		m_hash_offset_[ndims_of_range - 1] = 0;
-		m_hash_strides_[ndims_of_range - 1] = 1;
-
-		range_type(m_hash_offset_, m_hash_offset_ + m_hash_count_).swap(m_box_);
-
-		for (int i = ndims_of_range - 2; i >= 0; --i)
-		{
-			m_hash_strides_[i] = m_hash_strides_[i + 1] * m_hash_count_[i + 1];
-		}
-		m_hash_max_ = m_hash_strides_[0] * m_hash_count_[0];
 	}
 	std::tuple<coordinates_type, coordinates_type> bound() const
 	{
@@ -217,17 +207,8 @@ public:
 		return std::make_tuple(m_mesh_.id_to_index<iform>(*m_box_.begin()),
 				m_mesh_.id_to_index<iform>(*m_box_.end()));
 	}
-	size_t max_hash() const
-	{
-		return m_hash_max_;
-	}
-
-	constexpr size_t hash(id_type const &s) const
-	{
-		return inner_product(
-				(mesh_type::template unpack<iform>(s) + m_hash_count_
-						- m_hash_offset_) % m_hash_count_, m_hash_strides_);
-	}
+	struct iterator;
+	typedef iterator const_iterator;
 
 	const_iterator begin() const
 	{
@@ -267,38 +248,16 @@ public:
 
 	DataSpace dataspace() const
 	{
-		nTuple<index_type, ndims + 1> f_dims;
-		nTuple<index_type, ndims + 1> f_offset;
-		nTuple<index_type, ndims + 1> f_count;
-		nTuple<index_type, ndims + 1> f_ghost_width;
+		DataSpace res = m_mesh_.template dataspace<iform>();
 
-		int f_ndims = ndims;
-
-		f_dims = m_mesh_.m_index_dimensions_;
-
-		f_offset = m_mesh_.m_index_offset_;
-
-		f_count = m_mesh_.m_index_count_;
-
-		f_ghost_width = m_mesh_.m_index_offset_ - m_mesh_.m_index_local_offset_;
-
-		if ((IFORM == EDGE || IFORM == FACE))
+		if (is_simple())
 		{
-			f_ndims = ndims + 1;
-			f_dims[ndims] = 3;
-			f_offset[ndims] = 0;
-			f_count[ndims] = 3;
+			res.select_hyperslab(m_box_.m_b_, m_box_.m_e_);
 		}
-
-		f_ghost_width[ndims] = 0;
-
-		DataSpace res(f_ndims, &(f_dims[0]));
-
-		res
-
-		.select_hyperslab(&f_offset[0], nullptr, &f_count[0], nullptr)
-
-		.convert_to_local(&f_ghost_width[0]);
+		else
+		{
+			UNIMPLEMENTED;
+		}
 
 		return std::move(res);
 
@@ -306,40 +265,12 @@ public:
 
 	void ghost_shape(std::vector<mpi_ghosts_shape_s> *res) const
 	{
-		nTuple<size_t, ndims + 1> f_dims;
-		nTuple<size_t, ndims + 1> f_offset;
-		nTuple<size_t, ndims + 1> f_count;
-		nTuple<size_t, ndims + 1> f_ghost_width;
-
-		int f_ndims = ndims;
-
-		f_dims = m_mesh_.m_index_local_dimensions_;
-
-		f_count = m_mesh_.m_index_count_;
-
-		f_offset = m_mesh_.m_index_offset_ - m_mesh_.m_index_local_offset_;
-
-		f_ghost_width = f_offset;
-
-		if ((IFORM != VERTEX && IFORM != VOLUME))
-		{
-			f_ndims = ndims + 1;
-			f_dims[ndims] = 3;
-			f_offset[ndims] = 0;
-			f_count[ndims] = 3;
-			f_ghost_width[ndims] = 0;
-		}
-
-		get_ghost_shape(f_ndims, &f_dims[0], &f_offset[0], nullptr, &f_count[0],
-				nullptr, &f_ghost_width[0], res);
-
+		m_mesh_.template ghost_shape<iform>(res);
 	}
 
 	std::vector<mpi_ghosts_shape_s> ghost_shape() const
 	{
-		std::vector<mpi_ghosts_shape_s> res;
-		ghost_shape(&res);
-		return std::move(res);
+		return m_mesh_.template ghost_shape<iform>();
 	}
 	/** @}*/
 
@@ -357,41 +288,77 @@ public:
 	}
 	this_type operator &(this_type const & other) const
 	{
-		this_type res(*this);
+		this_type res(mesh());
+
+//		intersection(m_box_, other.m_box_).swap(res.m_box_);
+
+		if (!res.m_box_.empty())
+		{
+			if (!is_simple() && other.is_simple())
+			{
+				std::copy_if(m_id_set_.begin(), m_id_set_.end(),
+						std::inserter(res.m_id_set_, m_id_set_.begin()),
+						[&](id_type s)
+						{
+							return res.m_box_.in_bound(mesh().template unpack<iform>(s));
+						});
+			}
+			else if (is_simple() && !other.is_simple())
+			{
+				std::copy_if(other.m_id_set_.begin(), other.m_id_set_.end(),
+						std::inserter(res.m_id_set_, m_id_set_.begin()),
+						[&](id_type s)
+						{
+							return res.m_box_.in_bound(mesh().template unpack<iform>(s));
+						});
+			}
+			else if (!is_simple() && !other.is_simple())
+			{
+				std::set_intersection(
+
+				m_id_set_.begin(), m_id_set_.end(),
+
+				other.m_id_set_.begin(), other.m_id_set_.end(),
+
+				std::inserter(res.m_id_set_, res.m_id_set_.begin())
+
+				);
+			}
+		}
 		return std::move(res);
 	}
 
-	this_type const & operator |(null_domain) const
-	{
-		return *this;
-	}
-
-	full_domain operator |(full_domain) const
-	{
-		return full_domain();
-	}
-
-	this_type operator |(this_type const & other) const
-	{
-		this_type res(*this);
-		return std::move(res);
-	}
-
-	this_type const & operator ^(null_domain) const
-	{
-		return *this;
-	}
-
-	full_domain operator ^(full_domain) const
-	{
-		return full_domain();
-	}
-
-	this_type operator ^(this_type const & other) const
-	{
-		this_type res(*this);
-		return std::move(res);
-	}
+//	this_type const & operator |(null_domain) const
+//	{
+//		return *this;
+//	}
+//
+//	full_domain operator |(full_domain) const
+//	{
+//		return full_domain();
+//	}
+//
+//	this_type operator |(this_type const & other) const
+//	{
+//		this_type res(*this);
+//		return std::move(res);
+//	}
+//
+//	this_type const & operator ^(null_domain) const
+//	{
+//		return *this;
+//	}
+//
+//	full_domain operator ^(full_domain) const
+//	{
+//		return full_domain();
+//	}
+//
+//	this_type operator ^(this_type const & other) const
+//	{
+//		this_type res(*this);
+//		return std::move(res);
+//	}
 
 	/** @} */
 };

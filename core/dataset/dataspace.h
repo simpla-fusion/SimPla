@@ -28,7 +28,8 @@ struct DataSet;
  */
 class DataSpace
 {
-	typedef nTuple<long, MAX_NDIMS_OF_ARRAY> index_tuple;
+	typedef long index_type;
+	typedef nTuple<index_type, MAX_NDIMS_OF_ARRAY> index_tuple;
 
 public:
 	struct data_shape_s
@@ -48,7 +49,7 @@ public:
 	// Creates a null dataspace
 	DataSpace();
 
-	DataSpace(int rank, long const * dims);
+	DataSpace(int rank, index_type const * dims);
 
 	// Copy constructor: makes a copy of the original DataSpace object.
 	DataSpace(const DataSpace& other);
@@ -65,12 +66,23 @@ public:
 		return *this;
 	}
 
-	static DataSpace create_simple(int rank, const long * dims);
+	static DataSpace create_simple(int rank, const index_type * dims);
 
-	DataSpace & convert_to_local(long const * gw = nullptr);
+	DataSpace & convert_to_local(index_type const * gw = nullptr);
 
-	DataSpace & select_hyperslab(long const *offset, long const * stride,
-			long const * count, long const * block = nullptr);
+	DataSpace & select_hyperslab(index_type const *offset,
+			index_type const * stride, index_type const * count,
+			index_type const * block = nullptr);
+
+	template<typename T0, typename T1>
+	DataSpace & select_hyperslab(T0 const & b, T1 const & e)
+	{
+		index_tuple t_offset;
+		index_tuple t_count;
+		t_offset = b;
+		t_count = e - b;
+		return select_hyperslab(&t_offset[0], nullptr, &t_count[0], nullptr);
+	}
 
 	bool is_valid() const;
 

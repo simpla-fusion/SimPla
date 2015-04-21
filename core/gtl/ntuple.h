@@ -613,6 +613,47 @@ template<typename T>
 auto mod(T const &l)
 DECL_RET_TYPE ((abs(l)))
 
+namespace _impl
+{
+
+template<size_t...>struct value_in_range;
+
+template<size_t N, size_t ...DIMS>
+struct value_in_range<N, DIMS...>
+{
+	template<typename T0, typename T1, typename T2>
+	static bool eval(T0 const &b, T1 const &e, T2 const &x)
+	{
+
+		for (int i = 0; i < N; ++i)
+		{
+			if (!value_in_range<DIMS...>::eval(b[i], e[i], x[i]))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+};
+template<>
+struct value_in_range<>
+{
+	template<typename T0, typename T1, typename T2>
+	static bool eval(T0 const &b, T1 const &e, T2 const &x)
+	{
+		return x >= b && x < e;
+	}
+
+};
+}  // namespace _impl
+
+template<size_t ... DIMS, typename T0, typename T1, typename T2>
+bool value_in_range(T0 const &b, T1 const &e, T2 const &x)
+{
+	return _impl::value_in_range<DIMS...>::eval(b, e, x);
+}
+
 //template<typename T, size_t ...N>
 //auto mod(nTuple<T, N...> const & l)
 //DECL_RET_TYPE((std::sqrt(std::abs(inner_product(l,l)))))

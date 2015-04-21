@@ -143,13 +143,18 @@ public:
 	RectMesh(this_type const & other)
 			:
 
+			m_index_dimensions_(other.m_index_dimensions_),
+
 			m_index_offset_(other.m_index_offset_),
 
 			m_index_count_(other.m_index_count_),
 
 			m_index_local_dimensions_(other.m_index_local_dimensions_),
 
-			m_index_local_offset_(other.m_index_local_offset_)
+			m_index_local_offset_(other.m_index_local_offset_),
+
+			m_hash_strides_(other.m_hash_strides_)
+
 	{
 	}
 
@@ -162,6 +167,7 @@ public:
 		std::swap(m_index_local_dimensions_, other.m_index_local_dimensions_);
 		std::swap(m_index_local_offset_, other.m_index_local_offset_);
 
+		std::swap(m_hash_strides_, other.m_hash_strides_);
 	}
 	this_type & operator=(const this_type& other)
 	{
@@ -232,6 +238,12 @@ public:
 	Domain<this_type, IFORM> domain() const
 	{
 		return Domain<this_type, IFORM>(*this);
+	}
+
+	template<size_t IFORM, typename ...Args>
+	Domain<this_type, IFORM> domain(Args &&... args) const
+	{
+		return Domain<this_type, IFORM>(*this, std::forward<Args>(args)...);
 	}
 
 	template<size_t IFORM, typename ...Args>
@@ -413,12 +425,125 @@ public:
 	}
 
 	/** @} */
-	template<size_t IFORM> DataSpace dataspace() const;
 
-	template<size_t IFORM> void ghost_shape(
-			std::vector<mpi_ghosts_shape_s> *res) const;
+	/**@name hash
+	 *
+	 * @{
+	 *
+	 **/
+private:
+	size_t m_hash_max_ = 0;
 
-	template<size_t IFORM> std::vector<mpi_ghosts_shape_s> ghost_shape() const;
+	index_tuple m_hash_strides_;
+
+	void deploy_hash()
+	{
+		m_hash_strides_[ndims - 1] = 1;
+
+		for (int i = ndims - 2; i >= 0; --i)
+		{
+			m_hash_strides_[i] = m_hash_strides_[i + 1]
+					* m_index_local_dimensions_[i + 1];
+		}
+		m_hash_max_ = m_hash_strides_[0] * m_index_local_dimensions_[0];
+	}
+public:
+
+	template<size_t IFORM>
+	size_t max_hash() const
+	{
+		return m_hash_max_ * ((IFORM == EDGE || IFORM == FACE) ? 3 : 1);
+	}
+	template<size_t IFORM>
+	constexpr size_t hash(id_type const &s) const
+	{
+		return inner_product(
+				(m_index_local_dimensions_
+						+ topology_type::template unpack<IFORM>(s)
+						- m_index_local_offset_) % m_index_local_dimensions_,
+				m_hash_strides_) * ((IFORM == EDGE || IFORM == FACE) ? 3 : 1)
+				+ topology_type::node_id(s);
+	}
+
+	/** @} */
+
+	template<size_t IFORM>
+	DataSpace dataspace() const
+	{
+		nTuple<index_type, ndims + 1> f_dims;
+		nTuple<index_type, ndims + 1> f_offset;
+		nTuple<index_type, ndims + 1> f_count;
+		nTuple<index_type, ndims + 1> f_ghost_width;
+
+		int f_ndims = ndims;
+
+		f_dims = m_index_dimensions_;
+
+		f_offset = m_index_offset_;
+
+		f_count = m_index_count_;
+
+		f_ghost_width = m_index_offset_ - m_index_local_offset_;
+
+		if ((IFORM == EDGE || IFORM == FACE))
+		{
+			f_ndims = ndims + 1;
+			f_dims[ndims] = 3;
+			f_offset[ndims] = 0;
+			f_count[ndims] = 3;
+		}
+
+		f_ghost_width[ndims] = 0;
+
+		DataSpace res(f_ndims, &(f_dims[0]));
+
+		res
+
+		.select_hyperslab(&f_offset[0], nullptr, &f_count[0], nullptr)
+
+		.convert_to_local(&f_ghost_width[0]);
+
+		return std::move(res);
+
+	}
+	template<size_t IFORM>
+	void ghost_shape(std::vector<mpi_ghosts_shape_s> *res) const
+	{
+		nTuple<size_t, ndims + 1> f_dims;
+		nTuple<size_t, ndims + 1> f_offset;
+		nTuple<size_t, ndims + 1> f_count;
+		nTuple<size_t, ndims + 1> f_ghost_width;
+
+		int f_ndims = ndims;
+
+		f_dims = m_index_local_dimensions_;
+
+		f_count = m_index_count_;
+
+		f_offset = m_index_offset_ - m_index_local_offset_;
+
+		f_ghost_width = f_offset;
+
+		if ((IFORM != VERTEX && IFORM != VOLUME))
+		{
+			f_ndims = ndims + 1;
+			f_dims[ndims] = 3;
+			f_offset[ndims] = 0;
+			f_count[ndims] = 3;
+			f_ghost_width[ndims] = 0;
+		}
+
+		get_ghost_shape(f_ndims, &f_dims[0], &f_offset[0], nullptr, &f_count[0],
+				nullptr, &f_ghost_width[0], res);
+
+	}
+	template<size_t IFORM>
+	std::vector<mpi_ghosts_shape_s> ghost_shape() const
+	{
+		std::vector<mpi_ghosts_shape_s> res;
+		ghost_shape<IFORM>(&res);
+		return std::move(res);
+	}
 }
 ;
 
