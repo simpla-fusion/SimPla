@@ -32,7 +32,7 @@ NX = 10
 NY = 1
 NZ = 1
 LX = 10  --m --100000*rhoi --0.6
-LY = 10  --2.0*math.pi/k0
+LY = 15  --2.0*math.pi/k0
 LZ = 10  -- 2.0*math.pi/18
 GW = 5
 
@@ -71,8 +71,8 @@ InitValue= {
   phi=
   {
 
-    Domain={IndexBox={{2,3,0},{6,7,1}}},
-
+    -- Domain={IndexBox={{2,3,0},{6,7,1}}},
+     Domain={Box={{2.3,3,0},{6.4,7,1}}},  
     Value=function(x,t)
       print(x[1],x[2],x[3])
       return   math.sin(x[1]*2.0*math.pi)*math.sin(x[2]*2.0*math.pi)
@@ -86,7 +86,7 @@ Constraint=  {
 
     Domain={Rectangle={{0.2,0.2,0},{0.6,0.6,1}}},
     Value= function(x,t  )
-      print(x[1],x[2],x[3])
+  --    print(x[1],x[2],x[3])
       local tau = t*omega_ext+ x[2]*TWOPI/(xmax[3]-xmin[3])
       local amp=  math.sin(tau) --*(1-math.exp(-tau*tau)
       return {  100, 200, amp+300}

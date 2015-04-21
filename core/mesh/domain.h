@@ -54,23 +54,27 @@ private:
 	std::set<id_type> m_id_set_;
 public:
 
-	Domain(mesh_type const &m)
-			: m_mesh_(m)
+	Domain(mesh_type const &m) :
+			m_mesh_(m)
 	{
 		deploy();
 	}
 	template<typename T0, typename T1>
-	Domain(mesh_type const &m, T0 const & b, T1 const & e)
-			: m_mesh_(m)
+	Domain(mesh_type const &m, T0 const & b, T1 const & e) :
+			m_mesh_(m)
 	{
 		reset_bound_box(b, e);
 	}
 
-	Domain(this_type const & other)
-			: m_mesh_(other.m_mesh_), m_box_(other.m_box_), m_id_set_(
+	Domain(this_type const & other) :
+			m_mesh_(other.m_mesh_), m_box_(other.m_box_), m_id_set_(
 					other.m_id_set_)
 	{
-		deploy();
+	}
+	Domain(this_type && other) :
+			m_mesh_(other.m_mesh_), m_box_(other.m_box_), m_id_set_(
+					other.m_id_set_)
+	{
 	}
 
 	mesh_type const & mesh() const
@@ -230,7 +234,6 @@ public:
 
 		ib = b;
 		ie = e;
-
 		if (iform == EDGE || iform == FACE)
 		{
 			ib[ndims] = 0;
@@ -238,13 +241,12 @@ public:
 		}
 
 		range_type(ib, ie).swap(m_box_);
-
 	}
 
 	void reset_bound_box(coordinates_type const & b, coordinates_type const & e)
 	{
 		reset_bound_box(m_mesh_.coordinates_to_index(b),
-				m_mesh_.coordinates_to_index(e));
+				m_mesh_.coordinates_to_index(e) + 1);
 	}
 
 	template<typename TPred>
@@ -285,9 +287,6 @@ public:
 
 			dict["Box"].as(&p);
 
-			CHECK(p[0]);
-			CHECK(p[1]);
-
 			reset_bound_box(p[0], p[1]);
 
 		}
@@ -307,7 +306,8 @@ public:
 		}
 		else if (dict["IndexBox"])
 		{
-			std::vector<nTuple<long, ndims>> points;
+
+			std::vector<nTuple<index_type, ndims>> points;
 
 			dict["IndexBox"].as(&points);
 
@@ -344,15 +344,14 @@ public:
 		return std::move(const_iterator(m_box_.end()));
 	}
 
-	struct iterator:	public std::iterator<
-								typename range_type::iterator::iterator_category,
-								id_type, id_type>,
-						public range_type::iterator
+	struct iterator: public std::iterator<
+			typename range_type::iterator::iterator_category, id_type, id_type>,
+			public range_type::iterator
 	{
 		typedef typename range_type::iterator base_iterator;
 
-		iterator(base_iterator const &other)
-				: base_iterator(other)
+		iterator(base_iterator const &other) :
+				base_iterator(other)
 		{
 		}
 

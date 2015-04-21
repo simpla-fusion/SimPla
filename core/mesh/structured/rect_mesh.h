@@ -543,7 +543,7 @@ constexpr size_t RectMesh<TTopology, Polices...>::DEFAULT_GHOST_WIDTH;
 template<typename TTopology, typename ... Polices>
 void RectMesh<TTopology, Polices...>::deploy(size_t const *gw)
 {
-	CHECK(m_index_dimensions_);
+
 	for (int i = 0; i < ndims; ++i)
 	{
 		if (m_index_dimensions_[i] > 0
@@ -583,10 +583,9 @@ void RectMesh<TTopology, Polices...>::deploy(size_t const *gw)
 
 	}
 
-	m_coord_orig_ = (m_coords_max_ + m_coords_min_) * 0.5;
+	m_coord_orig_ = 0; //(m_coords_max_ + m_coords_min_) * 0.5;
 
-	m_toplogy_coord_orig_ = -(m_coords_max_ + m_coords_min_) * 0.5
-			* m_to_topology_scale_;
+	m_toplogy_coord_orig_ = -m_coord_orig_ * m_to_topology_scale_;
 
 	DEFINE_PHYSICAL_CONST
 

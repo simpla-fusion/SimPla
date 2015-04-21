@@ -79,19 +79,13 @@ USE_CASE(em," Maxwell Eqs.")
 
 	phi.clear();
 
-	nTuple<Real, 3> x = { 0.5, 0.5, 0.5 };
-
-	auto s = mesh->template coordinates_to_id<VERTEX>(x);
-
-	CHECK(x);
-	CHECK(mesh->coordinates_from_topology(mesh->coordinates_to_topology(x)));
-	CHECK(MeshIDs::id_to_coordinates(MeshIDs::coordinates_to_id<0>(x)));
-
-//	VERBOSE_CMD(load_field(options["InitValue"]["phi"], &phi));
+	VERBOSE_CMD(load_field(options["InitValue"]["phi"], &phi));
 //	VERBOSE_CMD(load_field(options["InitValue"]["B"], &B));
 //	VERBOSE_CMD(load_field(options["InitValue"]["E"], &E));
 //	VERBOSE_CMD(load_field(options["InitValue"]["J"], &J));
-//
+
+//	CHECK(MeshIDs::unpack<VERTEX>(MeshIDs::pack<VERTEX>(1, 2, 3)));
+
 //	auto E_src = make_field_function_by_config<EDGE, Real>(*mesh,
 //			options["Constraint"]["E"]);
 //
