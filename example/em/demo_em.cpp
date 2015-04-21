@@ -76,6 +76,8 @@ USE_CASE(em," Maxwell Eqs.")
 	auto E = make_form<EDGE, Real>(mesh);
 	auto B = make_form<FACE, Real>(mesh);
 
+	phi.clear();
+
 	VERBOSE_CMD(load_field(*mesh, options["InitValue"]["phi"], &phi));
 	VERBOSE_CMD(load_field(*mesh, options["InitValue"]["B"], &B));
 	VERBOSE_CMD(load_field(*mesh, options["InitValue"]["E"], &E));
@@ -98,10 +100,12 @@ USE_CASE(em," Maxwell Eqs.")
 
 	cd("/Input/");
 
+
+
 	VERBOSE << SAVE(phi) << std::endl;
-	VERBOSE << SAVE(E) << std::endl;
-	VERBOSE << SAVE(B) << std::endl;
-	VERBOSE << SAVE(J) << std::endl;
+//	VERBOSE << SAVE(E) << std::endl;
+//	VERBOSE << SAVE(B) << std::endl;
+//	VERBOSE << SAVE(J) << std::endl;
 //
 //	if (options["JUST_A_TEST"])
 //	{
@@ -121,8 +125,8 @@ USE_CASE(em," Maxwell Eqs.")
 //		B += B_src;
 //		E = curl(B) * dt - J;
 //		B = -curl(E) * dt;
-////
-		VERBOSE << SAVE_RECORD(E) << std::endl;
+
+//		VERBOSE << SAVE_RECORD(E) << std::endl;
 //		VERBOSE << SAVE_APPEND(B) << std::endl;
 //
 	}

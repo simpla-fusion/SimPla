@@ -156,40 +156,16 @@ public:
 	template<typename TOther, typename TOP>
 	void assign(TOther const & other, TOP const &op)
 	{
-		assign(m_domain_ & simpla::domain(other), other, op);
-	}
 
-	template<typename TOther, typename TOP>
-	void assign(domain_type const & d, TOther const & other, TOP const &op)
-	{
 		wait();
 
-		if (!d.is_null())
-		{
-			d.for_each([&](id_type const &s)
-			{
-				op(at(s), mesh().calculate(other, s));
-			});
-		}
-	}
-
-	template<typename TOther, typename TOP>
-	void assign(full_domain const &, TOther const & other, TOP const &op)
-	{
-		wait();
-
-		m_domain_.for_each([&](id_type const &s)
+		m_domain_.for_each(simpla::domain(other), [&](id_type const &s)
 		{
 			op(at(s), mesh().calculate(other, s));
 		});
 
 	}
 
-	template<typename TOther, typename TOP>
-	void assign(null_domain const &, TOther const & other, TOP const &op)
-	{
-		wait();
-	}
 public:
 
 	/** @} */
@@ -217,7 +193,7 @@ public:
 			m_data_ = sp_make_shared_array<value_type>(m_domain_.max_hash());
 		}
 
-		SpObject::prepare_sync(m_domain_.ghost_shape());
+		SpObject::prepare_sync(m_domain_.mesh().template ghost_shape<iform>());
 	}
 
 	DataSet dataset() const

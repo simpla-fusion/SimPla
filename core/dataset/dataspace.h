@@ -28,10 +28,10 @@ struct DataSet;
  */
 class DataSpace
 {
+public:
 	typedef long index_type;
 	typedef nTuple<index_type, MAX_NDIMS_OF_ARRAY> index_tuple;
 
-public:
 	struct data_shape_s
 	{
 		int ndims = 3;
@@ -73,16 +73,6 @@ public:
 	DataSpace & select_hyperslab(index_type const *offset,
 			index_type const * stride, index_type const * count,
 			index_type const * block = nullptr);
-
-	template<typename T0, typename T1>
-	DataSpace & select_hyperslab(T0 const & b, T1 const & e)
-	{
-		index_tuple t_offset;
-		index_tuple t_count;
-		t_offset = b;
-		t_count = e - b;
-		return select_hyperslab(&t_offset[0], nullptr, &t_count[0], nullptr);
-	}
 
 	bool is_valid() const;
 

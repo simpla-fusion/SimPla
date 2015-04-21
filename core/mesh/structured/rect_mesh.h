@@ -53,9 +53,9 @@ namespace simpla
  * \endverbatim
  *  - the unit cell width is 1;
  */
-template<typename ... >struct RectMesh;
+//template<typename ... >struct RectMesh;
 template<typename TTopology, typename ...Policies>
-struct RectMesh<TTopology, Policies...> : public TTopology, public Policies...
+struct RectMesh: public TTopology, public Policies...
 {
 	typedef TTopology topology_type;
 	typedef typename unpack_typelist<0, Policies...>::type coordinates_system;
@@ -436,17 +436,6 @@ private:
 
 	index_tuple m_hash_strides_;
 
-	void deploy_hash()
-	{
-		m_hash_strides_[ndims - 1] = 1;
-
-		for (int i = ndims - 2; i >= 0; --i)
-		{
-			m_hash_strides_[i] = m_hash_strides_[i + 1]
-					* m_index_local_dimensions_[i + 1];
-		}
-		m_hash_max_ = m_hash_strides_[0] * m_index_local_dimensions_[0];
-	}
 public:
 
 	template<size_t IFORM>
@@ -765,6 +754,19 @@ void RectMesh<TTopology, Polices...>::deploy(size_t const *gw)
 
 		m_is_distributed_ = false;
 	}
+
+	/**
+	 *  Hash
+	 */
+
+	m_hash_strides_[ndims - 1] = 1;
+
+	for (int i = ndims - 2; i >= 0; --i)
+	{
+		m_hash_strides_[i] = m_hash_strides_[i + 1]
+				* m_index_local_dimensions_[i + 1];
+	}
+	m_hash_max_ = m_hash_strides_[0] * m_index_local_dimensions_[0];
 
 	m_is_valid_ = true;
 

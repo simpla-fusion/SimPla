@@ -40,9 +40,9 @@ public:
 	typedef typename mesh_type::id_type id_type;
 	typedef typename mesh_type::coordinates_type coordinates_type;
 	typedef typename mesh_type::index_type index_type;
-	typedef typename mesh_type::index_type index_tuple;
+	typedef typename mesh_type::index_tuple index_tuple;
 	typedef sp_nTuple_range<size_t,
-			ndims + ((iform == VERTEX || iform == VOLUME) ? 0 : 1)> range_type;
+			((iform == VERTEX || iform == VOLUME) ? ndims : ndims + 1)> range_type;
 
 	template<typename TV>
 	using field_value_type=typename std::conditional<(iform == VERTEX || iform == VOLUME),TV,nTuple<TV,3>>::type;
@@ -135,7 +135,8 @@ public:
 
 		ib = b;
 		ie = e;
-		if (iform == FACE || iform == FACE)
+
+		if (iform == EDGE || iform == FACE)
 		{
 			ib[ndims] = 0;
 			ie[ndims] = 3;
@@ -181,32 +182,78 @@ public:
 	template<typename TFun>
 	void for_each(TFun const & fun) const
 	{
+		for_each(full_domain(), fun);
+	}
+	template<typename TFun>
+	void for_each(null_domain, TFun const & fun) const
+	{
+	}
+	template<typename TFun>
+	void for_each(full_domain, TFun const & fun) const
+	{
+
 		if (is_simple())
 		{
-			for (auto const & s : m_box_)
-			{
-				fun(mesh_type::template pack<iform>(s));
-			}
-		}
-		else
-		{
-			for (auto const &s : m_id_set_)
+			for (auto s : *this)
 			{
 				fun(s);
 			}
 		}
-	}
-	std::tuple<coordinates_type, coordinates_type> bound() const
-	{
-		return std::make_tuple(m_mesh_.coordinates(*m_box_.begin()),
-				m_mesh_.coordinates(*m_box_.end()));
+		else
+		{
+			for (auto s : m_id_set_)
+			{
+				fun(s);
+			}
+
+		}
 	}
 
-	std::tuple<coordinates_type, coordinates_type> idx_bound() const
+	template<typename TD, typename TFun>
+	void for_each(TD const& d, TFun const & fun) const
 	{
-		return std::make_tuple(m_mesh_.id_to_index<iform>(*m_box_.begin()),
-				m_mesh_.id_to_index<iform>(*m_box_.end()));
+
+		if (is_simple())
+		{
+			for (auto const & s : d)
+			{
+				if (in_bound(s))
+				{
+					fun(s);
+				}
+			}
+		}
+		else
+		{
+
+			for (auto const & s : d)
+			{
+				if (m_id_set_.find(s) != m_id_set_.end())
+				{
+					fun(s);
+				}
+			}
+
+		}
+
 	}
+
+	bool in_bound(id_type s) const
+	{
+		return m_box_.in_bound(m_mesh_.template unpack<iform>(s));
+	}
+
+//	std::tuple<coordinates_type, coordinates_type> bound() const
+//	{
+//		return std::make_tuple(m_mesh_.coordinates(*m_box_.begin()),
+//				m_mesh_.coordinates(*m_box_.end()));
+//	}
+//
+//	std::tuple<coordinates_type, coordinates_type> idx_bound() const
+//	{
+//		return std::make_tuple(m_mesh_.id_to_index<iform>(*m_box_.begin()),
+//				m_mesh_.id_to_index<iform>(*m_box_.end()));
+//	}
 	struct iterator;
 	typedef iterator const_iterator;
 
@@ -252,7 +299,13 @@ public:
 
 		if (is_simple())
 		{
-			res.select_hyperslab(m_box_.m_b_, m_box_.m_e_);
+
+			typename DataSpace::index_tuple offset, count;
+
+			offset = m_box_.m_b_;
+			count = m_box_.m_e_ - m_box_.m_b_;
+
+			res.select_hyperslab(&offset[0], nullptr, &count[0], nullptr);
 		}
 		else
 		{
@@ -263,71 +316,61 @@ public:
 
 	}
 
-	void ghost_shape(std::vector<mpi_ghosts_shape_s> *res) const
-	{
-		m_mesh_.template ghost_shape<iform>(res);
-	}
-
-	std::vector<mpi_ghosts_shape_s> ghost_shape() const
-	{
-		return m_mesh_.template ghost_shape<iform>();
-	}
 	/** @}*/
 
-	/** @name logical operations
-	 *  @{
-	 */
-
-	this_type const & operator &(full_domain) const
-	{
-		return *this;
-	}
-	null_domain operator &(null_domain) const
-	{
-		return null_domain();
-	}
-	this_type operator &(this_type const & other) const
-	{
-		this_type res(mesh());
-
-//		intersection(m_box_, other.m_box_).swap(res.m_box_);
-
-		if (!res.m_box_.empty())
-		{
-			if (!is_simple() && other.is_simple())
-			{
-				std::copy_if(m_id_set_.begin(), m_id_set_.end(),
-						std::inserter(res.m_id_set_, m_id_set_.begin()),
-						[&](id_type s)
-						{
-							return res.m_box_.in_bound(mesh().template unpack<iform>(s));
-						});
-			}
-			else if (is_simple() && !other.is_simple())
-			{
-				std::copy_if(other.m_id_set_.begin(), other.m_id_set_.end(),
-						std::inserter(res.m_id_set_, m_id_set_.begin()),
-						[&](id_type s)
-						{
-							return res.m_box_.in_bound(mesh().template unpack<iform>(s));
-						});
-			}
-			else if (!is_simple() && !other.is_simple())
-			{
-				std::set_intersection(
-
-				m_id_set_.begin(), m_id_set_.end(),
-
-				other.m_id_set_.begin(), other.m_id_set_.end(),
-
-				std::inserter(res.m_id_set_, res.m_id_set_.begin())
-
-				);
-			}
-		}
-		return std::move(res);
-	}
-
+//	/** @name logical operations
+//	 *  @{
+//	 */
+//
+//	this_type const & operator &(full_domain) const
+//	{
+//		return *this;
+//	}
+//	null_domain operator &(null_domain) const
+//	{
+//		return null_domain();
+//	}
+//	this_type operator &(this_type const & other) const
+//	{
+//		this_type res(mesh());
+//
+////		intersection(m_box_, other.m_box_).swap(res.m_box_);
+//
+//		if (!res.m_box_.empty())
+//		{
+//			if (!is_simple() && other.is_simple())
+//			{
+//				std::copy_if(m_id_set_.begin(), m_id_set_.end(),
+//						std::inserter(res.m_id_set_, m_id_set_.begin()),
+//						[&](id_type s)
+//						{
+//							return res.m_box_.in_bound(mesh().template unpack<iform>(s));
+//						});
+//			}
+//			else if (is_simple() && !other.is_simple())
+//			{
+//				std::copy_if(other.m_id_set_.begin(), other.m_id_set_.end(),
+//						std::inserter(res.m_id_set_, m_id_set_.begin()),
+//						[&](id_type s)
+//						{
+//							return res.m_box_.in_bound(mesh().template unpack<iform>(s));
+//						});
+//			}
+//			else if (!is_simple() && !other.is_simple())
+//			{
+//				std::set_intersection(
+//
+//				m_id_set_.begin(), m_id_set_.end(),
+//
+//				other.m_id_set_.begin(), other.m_id_set_.end(),
+//
+//				std::inserter(res.m_id_set_, res.m_id_set_.begin())
+//
+//				);
+//			}
+//		}
+//		return std::move(res);
+//	}
 //	this_type const & operator |(null_domain) const
 //	{
 //		return *this;
@@ -359,7 +402,6 @@ public:
 //		this_type res(*this);
 //		return std::move(res);
 //	}
-
 	/** @} */
 };
 

@@ -122,9 +122,6 @@ public:
 		m_b_ = min;
 		m_e_ = max;
 		m_grainsize_ = grain_size;
-
-		CHECK(m_b_);
-		CHECK(m_e_);
 	}
 //	sp_nTuple_range(this_type & other, op_split) :
 //			m_grainsize_(other.m_grainsize_), m_slow_first_(other.m_slow_first_)

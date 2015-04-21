@@ -53,7 +53,7 @@ DataSpace::DataSpace()
 {
 }
 
-DataSpace::DataSpace(int ndims, long const * dims)
+DataSpace::DataSpace(int ndims, index_type const * dims)
 		: pimpl_(new pimpl_s)
 {
 
@@ -101,7 +101,7 @@ void DataSpace::swap(DataSpace &other)
 {
 	std::swap(pimpl_, other.pimpl_);
 }
-DataSpace DataSpace::create_simple(int ndims, const long * dims)
+DataSpace DataSpace::create_simple(int ndims, const index_type * dims)
 {
 	return std::move(DataSpace(ndims, dims));
 }
@@ -127,8 +127,9 @@ DataSpace::data_shape_s DataSpace::global_shape() const
 	return pimpl_->m_d_shape_;
 }
 
-DataSpace & DataSpace::select_hyperslab(long const * offset,
-		long const * stride, long const * count, long const * block)
+DataSpace & DataSpace::select_hyperslab(index_type const * offset,
+		index_type const * stride, index_type const * count,
+		index_type const * block)
 {
 	if (!is_valid())
 	{
@@ -158,7 +159,7 @@ DataSpace & DataSpace::select_hyperslab(long const * offset,
 
 }
 
-DataSpace & DataSpace::convert_to_local(long const * gw)
+DataSpace & DataSpace::convert_to_local(index_type const * gw)
 {
 
 	pimpl_->m_memory_dimensions_ = pimpl_->m_d_shape_.count;
@@ -233,7 +234,7 @@ DataSpace & DataSpace::convert_to_local(long const * gw)
 //		return;
 //
 //	int n = 0;
-//	long L = 0;
+//	index_type L = 0;
 //	for (int i = 0; i < ndims; ++i)
 //	{
 //		if (global_count[i] > L)
@@ -300,7 +301,7 @@ DataSpace & DataSpace::convert_to_local(long const * gw)
 ////
 ////		sub_array_s remote;
 ////
-////		for (unsigned long s = 0, s_e = (1UL << (ndims_ * 2)); s < s_e; ++s)
+////		for (unsigned index_type s = 0, s_e = (1UL << (ndims_ * 2)); s < s_e; ++s)
 ////		{
 ////			remote = node;
 ////
