@@ -135,68 +135,60 @@ public:
 
 	inline this_type & operator =(this_type const &other)
 	{
+		assign(other, _impl::_assign());
+		return *this;
+	}
+
+	template<typename Other>
+	inline this_type & operator =(Other const &other)
+	{
+		assign(other, _impl::_assign());
+		return *this;
+	}
+
+	template<typename Other>
+	inline this_type & operator+=(Other const &other)
+	{
+		assign(other, _impl::plus_assign());
+		return *this;
+	}
+
+	template<typename TOther, typename TOP>
+	void assign(TOther const & other, TOP const &op)
+	{
+		assign(m_domain_ & simpla::domain(other), other, op);
+	}
+
+	template<typename TOther, typename TOP>
+	void assign(domain_type const & d, TOther const & other, TOP const &op)
+	{
+		wait();
+
+		if (!d.is_null())
+		{
+			d.for_each([&](id_type const &s)
+			{
+				op(at(s), mesh().calculate(other, s));
+			});
+		}
+	}
+
+	template<typename TOther, typename TOP>
+	void assign(full_domain const &, TOther const & other, TOP const &op)
+	{
 		wait();
 
 		m_domain_.for_each([&](id_type const &s)
 		{
-			at(s) =other.at(s);
+			op(at(s), mesh().calculate(other, s));
 		});
 
-		return *this;
 	}
 
-	template<typename ...Others>
-	inline this_type & operator =(
-			_Field<domain_type, value_type, Others...> const &other)
-	{
-		if (other.is_valid())
-		{
-			other.domain().for_each([&](id_type const &s)
-			{
-				at(s) = other[s];
-			});
-		}
-		return *this;
-	}
-	template<typename ...Others>
-	inline this_type & operator +=(
-			_Field<domain_type, value_type, Others...> const &other)
+	template<typename TOther, typename TOP>
+	void assign(null_domain const &, TOther const & other, TOP const &op)
 	{
 		wait();
-		if (other.is_valid())
-		{
-			other.domain().for_each([&](id_type const &s)
-			{
-				at(s)+= other[s];
-			});
-		}
-		return *this;
-	}
-
-	template<typename TR>
-	inline this_type & operator =(TR const &other)
-	{
-		wait();
-		if (other.domain().is_valid())
-		{
-			m_domain_.for_each([&](id_type const &s)
-			{
-				at(s) = m_domain_.mesh().calculate(other, s);
-			});
-		}
-		return *this;
-	}
-private:
-	template<typename T, typename TOther>
-	void assign(T const & d, TOther const & other)
-	{
-		wait();
-
-		d.for_each([&](id_type const &s)
-		{
-			at(s) = m_domain_.mesh().calculate(other, s);
-		});
-
 	}
 public:
 
@@ -254,8 +246,8 @@ public:
 		{
 			fun(m_data_.get()[m_domain_.hash(s)]);
 		}
-
 	}
+
 	template<typename TFun>
 	void for_each(TFun const& fun) const
 	{
@@ -294,49 +286,7 @@ public:
 	template<typename ...Args>
 	field_value_type operator()(Args && ...args) const
 	{
-		return this->m_domain_.mesh().gather(*this, std::forward<Args>(args)...);
-	}
-
-	template<typename TDomain, typename TFun>
-	void pull_back(TDomain const & domain, TFun const & fun)
-	{
-		wait();
-
-		Real t = m_domain_.mesh().time();
-		for (auto s : domain)
-		{
-			this->at(s) = m_domain_.mesh().sample(
-					fun(m_domain_.mesh().coordinates(s), t), s);
-		}
-	}
-
-	template<typename TFun> void pull_back(TFun const &fun)
-	{
-		pull_back(m_domain_.template range<iform>(), fun);
-	}
-
-	template<typename TDomain, typename TFun>
-	void pull_back(std::tuple<TDomain, TFun> const & fun)
-	{
-		pull_back(std::get<0>(fun), std::get<1>(fun));
-	}
-
-	template<typename TDomain, typename TFun>
-	void constraint(TDomain const & domain, TFun const & fun)
-	{
-		Real t = m_domain_.mesh().time();
-		for (auto s : domain)
-		{
-			auto x = m_domain_.mesh().coordinates(s);
-			this->at(s) = m_domain_.mesh().sample(
-					fun(x, t, this->operator()(x)), s);
-		}
-	}
-
-	template<typename TDomain, typename TFun>
-	void constraint(std::tuple<TDomain, TFun> const & fun)
-	{
-		constraint(std::get<0>(fun), std::get<1>(fun));
+		return m_domain_.mesh().gather(*this, std::forward<Args>(args)...);
 	}
 
 }

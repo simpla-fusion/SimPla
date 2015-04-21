@@ -21,6 +21,10 @@
 
 namespace simpla
 {
+
+typedef std::integral_constant<int, 0> null_domain;
+typedef std::integral_constant<int, 1> full_domain;
+
 template<typename TM, size_t IFORM>
 struct Domain
 {
@@ -45,8 +49,8 @@ public:
 
 private:
 	mesh_type const &m_mesh_;
-	range_type m_range_;
-	std::set<id_type> m_id_set_;
+	range_type m_box_;
+	std::shared_ptr<std::set<id_type>> m_id_set_;
 public:
 
 	Domain(mesh_type const &m)
@@ -56,7 +60,7 @@ public:
 	}
 
 	Domain(this_type const & other)
-			: m_mesh_(other.m_mesh_), m_range_(other.m_range_),
+			: m_mesh_(other.m_mesh_), m_box_(other.m_box_),
 
 			m_hash_max_(other.m_hash_max_),
 
@@ -69,18 +73,44 @@ public:
 	{
 		deploy();
 	}
-	bool is_valid() const
-	{
-		return m_mesh_.is_valid();
-	}
+
 	mesh_type const & mesh() const
 	{
 		return m_mesh_;
 	}
+
+	bool is_valid() const
+	{
+		return m_mesh_.is_valid();
+	}
+
+	bool is_simple() const
+	{
+		return !m_id_set_ || m_id_set_->size() == 0;
+	}
 	bool is_empty() const
 	{
-		return range_type::is_empty() && m_id_set_.size() == 0;
+		return is_simple();
 	}
+	/** @name set
+	 *  @{
+	 */
+
+	bool is_null() const
+	{
+		return is_empty();
+	}
+	bool is_full() const
+	{
+		return !is_empty();
+	}
+
+	operator bool() const
+	{
+		return !is_empty();
+	}
+
+	/** @} */
 
 	this_type operator=(this_type const &other)
 	{
@@ -90,7 +120,7 @@ public:
 
 	void swap(this_type &other)
 	{
-		std::swap(m_range_, other.m_range_);
+		std::swap(m_box_, other.m_range_);
 		std::swap(m_mesh_, other.m_mesh_);
 		std::swap(m_id_set_, other.m_id_set_);
 
@@ -103,22 +133,40 @@ public:
 
 	std::set<id_type> & id_set()
 	{
-		return m_id_set_;
+		return *m_id_set_;
+	}
+	std::set<id_type> const& id_set() const
+	{
+		return *m_id_set_;
+	}
+
+	bool in_box(id_type s) const
+	{
+		return m_box_.in_bound(mesh().id_to_index(s));
+	}
+
+	void update_bound_box()
+	{
+		if (!is_simple())
+		{
+			// TODO find bound of indices,
+			//    and remove indices which are out of mesh
+		}
 	}
 
 	template<typename TFun>
 	void for_each(TFun const & fun) const
 	{
-		if (m_id_set_.size() == 0)
+		if (is_simple())
 		{
-			for (auto const & s : m_range_)
+			for (auto const & s : m_box_)
 			{
 				fun(mesh_type::template pack<iform>(s));
 			}
 		}
 		else
 		{
-			for (auto s : m_id_set_)
+			for (auto const &s : *m_id_set_)
 			{
 				fun(s);
 			}
@@ -150,8 +198,7 @@ public:
 		m_hash_offset_[ndims_of_range - 1] = 0;
 		m_hash_strides_[ndims_of_range - 1] = 1;
 
-		range_type(m_hash_offset_, m_hash_offset_ + m_hash_count_).swap(
-				m_range_);
+		range_type(m_hash_offset_, m_hash_offset_ + m_hash_count_).swap(m_box_);
 
 		for (int i = ndims_of_range - 2; i >= 0; --i)
 		{
@@ -161,14 +208,14 @@ public:
 	}
 	std::tuple<coordinates_type, coordinates_type> bound() const
 	{
-		return std::make_tuple(m_mesh_.coordinates(*m_range_.begin()),
-				m_mesh_.coordinates(*m_range_.end()));
+		return std::make_tuple(m_mesh_.coordinates(*m_box_.begin()),
+				m_mesh_.coordinates(*m_box_.end()));
 	}
 
 	std::tuple<coordinates_type, coordinates_type> idx_bound() const
 	{
-		return std::make_tuple(m_mesh_.id_to_index<iform>(*m_range_.begin()),
-				m_mesh_.id_to_index<iform>(*m_range_.end()));
+		return std::make_tuple(m_mesh_.id_to_index<iform>(*m_box_.begin()),
+				m_mesh_.id_to_index<iform>(*m_box_.end()));
 	}
 	size_t max_hash() const
 	{
@@ -184,12 +231,12 @@ public:
 
 	const_iterator begin() const
 	{
-		return std::move(const_iterator(m_range_.begin()));
+		return std::move(const_iterator(m_box_.begin()));
 	}
 
 	const_iterator end() const
 	{
-		return std::move(const_iterator(m_range_.end()));
+		return std::move(const_iterator(m_box_.end()));
 	}
 
 	struct iterator:	public std::iterator<
@@ -295,7 +342,76 @@ public:
 		return std::move(res);
 	}
 	/** @}*/
+
+	/** @name logical operations
+	 *  @{
+	 */
+
+	this_type const & operator &(full_domain) const
+	{
+		return *this;
+	}
+	null_domain operator &(null_domain) const
+	{
+		return null_domain();
+	}
+	this_type operator &(this_type const & other) const
+	{
+		this_type res(*this);
+		return std::move(res);
+	}
+
+	this_type const & operator |(null_domain) const
+	{
+		return *this;
+	}
+
+	full_domain operator |(full_domain) const
+	{
+		return full_domain();
+	}
+
+	this_type operator |(this_type const & other) const
+	{
+		this_type res(*this);
+		return std::move(res);
+	}
+
+	this_type const & operator ^(null_domain) const
+	{
+		return *this;
+	}
+
+	full_domain operator ^(full_domain) const
+	{
+		return full_domain();
+	}
+
+	this_type operator ^(this_type const & other) const
+	{
+		this_type res(*this);
+		return std::move(res);
+	}
+
+	/** @} */
 };
+
+namespace _impl
+{
+
+HAS_MEMBER_FUNCTION(domain)
+
+}  // namespace _impl
+
+template<typename T>
+auto domain(T const & obj)
+ENABLE_IF_DECL_RET_TYPE(
+		_impl::has_member_function_domain<T>::value,obj.domain())
+
+template<typename T>
+auto domain(T const & obj)
+ENABLE_IF_DECL_RET_TYPE(
+		!_impl::has_member_function_domain<T>::value,full_domain())
 //template<typename ...>class Domain;
 //
 //template<size_t NDIMS, size_t INIFIT_AXIS>

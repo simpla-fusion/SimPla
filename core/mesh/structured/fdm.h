@@ -48,26 +48,26 @@ public:
 	//***************************************************************************************************
 
 	template<typename geometry_type, typename ...Others>
-	static Real policy_calculate(geometry_type const & geo, Real v, Others &&... s)
+	static Real calculate(geometry_type const & geo, Real v, Others &&... s)
 	{
 		return v;
 	}
 
 	template<typename geometry_type, typename ...Others>
-	static int policy_calculate(geometry_type const & geo, int v, Others &&... s)
+	static int calculate(geometry_type const & geo, int v, Others &&... s)
 	{
 		return v;
 	}
 
 	template<typename geometry_type, typename ...Others>
-	static std::complex<Real> policy_calculate(geometry_type const & geo,
+	static std::complex<Real> calculate(geometry_type const & geo,
 			std::complex<Real> v, Others &&... s)
 	{
 		return v;
 	}
 
 	template<typename geometry_type, typename T, size_t ...N, typename ...Others>
-	static nTuple<T, N...> const& policy_calculate(geometry_type const & geo,
+	static nTuple<T, N...> const& calculate(geometry_type const & geo,
 			nTuple<T, N...> const& v, Others &&... s)
 	{
 		return v;
@@ -75,7 +75,7 @@ public:
 
 	template<typename geometry_type, typename ...T, typename ...Others>
 	static inline typename nTuple_traits<nTuple<Expression<T...>>> ::primary_type
-	policy_calculate(geometry_type const & geo,nTuple<Expression<T...>> const & v, Others &&... s)
+	calculate(geometry_type const & geo,nTuple<Expression<T...>> const & v, Others &&... s)
 	{
 		typename nTuple_traits<nTuple<Expression<T...>>> ::primary_type res;
 		res=v;
@@ -84,24 +84,24 @@ public:
 
 	template<typename geometry_type,typename TM,typename TV, typename ... Others,typename ... Args>
 	static inline TV
-	policy_calculate(geometry_type const & geo,_Field<TM, TV, Others...> const &f, Args && ... s)
+	calculate(geometry_type const & geo,_Field<TM, TV, Others...> const &f, Args && ... s)
 	{
 		return get_value(f,std::forward<Args>(s)...);
 	}
 
 	template<typename geometry_type,typename TOP, typename TL, typename TR, typename ...Others>
 	static inline typename field_traits< _Field<Expression<TOP, TL, TR>>>::value_type
-	policy_calculate(geometry_type const & geo,_Field<Expression<TOP, TL, TR>> const &f, Others &&... s)
+	calculate(geometry_type const & geo,_Field<Expression<TOP, TL, TR>> const &f, Others &&... s)
 	{
-		return f.op_(policy_calculate( geo,f.lhs,std::forward<Others>(s)...),
-				policy_calculate(geo,f.rhs,std::forward<Others>(s)...));
+		return f.op_(calculate( geo,f.lhs,std::forward<Others>(s)...),
+				calculate(geo,f.rhs,std::forward<Others>(s)...));
 	}
 
 	template<typename geometry_type,typename TOP, typename TL, typename ...Others>
 	static inline typename field_traits< _Field<Expression<TOP, TL,std::nullptr_t>>>::value_type
-	policy_calculate(geometry_type const & geo,_Field<Expression<TOP, TL,std::nullptr_t>> const &f, Others &&... s)
+	calculate(geometry_type const & geo,_Field<Expression<TOP, TL,std::nullptr_t>> const &f, Others &&... s)
 	{
-		return f.op_(policy_calculate(geo,f.lhs,std::forward<Others>(s)...) );
+		return f.op_(calculate(geo,f.lhs,std::forward<Others>(s)...) );
 	}
 
 	//***************************************************************************************************
@@ -110,17 +110,17 @@ public:
 
 	template<typename geometry_type,typename T>
 	static inline typename field_traits<_Field<_impl::ExteriorDerivative<VERTEX,T> >>::value_type
-	policy_calculate(geometry_type const & geo,_Field<_impl::ExteriorDerivative<VERTEX,T> > const & f, typename geometry_type::id_type s)
+	calculate(geometry_type const & geo,_Field<_impl::ExteriorDerivative<VERTEX,T> > const & f, typename geometry_type::id_type s)
 	{
 		constexpr typename geometry_type::id_type D = geometry_type::delta_index(s);
 
-		return (policy_calculate(geo,f.lhs, s + D) * geo.volume(s + D)
-				- policy_calculate(geo,f.lhs, s - D) * geo.volume(s - D)) * geo.inv_volume(s);
+		return (calculate(geo,f.lhs, s + D) * geo.volume(s + D)
+				- calculate(geo,f.lhs, s - D) * geo.volume(s - D)) * geo.inv_volume(s);
 	}
 
 	template<typename geometry_type,typename T>
 	static inline typename field_traits<_Field<_impl::ExteriorDerivative< EDGE,T> >>::value_type
-	policy_calculate(geometry_type const & geo,_Field<_impl::ExteriorDerivative<EDGE,T> > const & expr, typename geometry_type::id_type s)
+	calculate(geometry_type const & geo,_Field<_impl::ExteriorDerivative<EDGE,T> > const & expr, typename geometry_type::id_type s)
 	{
 
 		typename geometry_type::id_type X = geometry_type::delta_index(geometry_type::dual(s));
@@ -129,10 +129,10 @@ public:
 
 		return (
 				(
-						policy_calculate(geo,expr.lhs, s + Y) * geo.volume(s + Y) //
-						- policy_calculate(geo,expr.lhs, s - Y) * geo.volume(s - Y) ) - (
-						policy_calculate(geo,expr.lhs, s + Z) * geo.volume(s + Z)//
-						- policy_calculate(geo,expr.lhs, s - Z) * geo.volume(s - Z)//
+						calculate(geo,expr.lhs, s + Y) * geo.volume(s + Y) //
+						- calculate(geo,expr.lhs, s - Y) * geo.volume(s - Y) ) - (
+						calculate(geo,expr.lhs, s + Z) * geo.volume(s + Z)//
+						- calculate(geo,expr.lhs, s - Z) * geo.volume(s - Z)//
 				)
 
 		) * geo.inv_volume(s);
@@ -141,42 +141,42 @@ public:
 
 	template<typename geometry_type,typename T>
 	static constexpr inline typename field_traits<_Field<_impl::ExteriorDerivative< FACE,T> >>::value_type
-	policy_calculate(geometry_type const & geo,_Field<_impl::ExteriorDerivative<FACE,T> > const & expr, typename geometry_type::id_type s)
+	calculate(geometry_type const & geo,_Field<_impl::ExteriorDerivative<FACE,T> > const & expr, typename geometry_type::id_type s)
 	{
 		return (
-				policy_calculate(geo,expr.lhs, s + geometry_type::_DI) * geo.volume(s + geometry_type::_DI)
-				- policy_calculate(geo,expr.lhs, s - geometry_type::_DI) * geo.volume(s - geometry_type::_DI)
-				+ policy_calculate(geo,expr.lhs, s + geometry_type::_DJ) * geo.volume(s + geometry_type::_DJ)
-				- policy_calculate(geo,expr.lhs, s - geometry_type::_DJ) * geo.volume(s - geometry_type::_DJ)
-				+ policy_calculate(geo,expr.lhs, s + geometry_type::_DK) * geo.volume(s + geometry_type::_DK)
-				- policy_calculate(geo,expr.lhs, s - geometry_type::_DK) * geo.volume(s - geometry_type::_DK)
+				calculate(geo,expr.lhs, s + geometry_type::_DI) * geo.volume(s + geometry_type::_DI)
+				- calculate(geo,expr.lhs, s - geometry_type::_DI) * geo.volume(s - geometry_type::_DI)
+				+ calculate(geo,expr.lhs, s + geometry_type::_DJ) * geo.volume(s + geometry_type::_DJ)
+				- calculate(geo,expr.lhs, s - geometry_type::_DJ) * geo.volume(s - geometry_type::_DJ)
+				+ calculate(geo,expr.lhs, s + geometry_type::_DK) * geo.volume(s + geometry_type::_DK)
+				- calculate(geo,expr.lhs, s - geometry_type::_DK) * geo.volume(s - geometry_type::_DK)
 
 		) * geo.inv_volume(s)
 
 		;
 	}
 //
-////	template<typename geometry_type,typename TM, size_t IL, typename TL> void policy_calculate(
+////	template<typename geometry_type,typename TM, size_t IL, typename TL> void calculate(
 ////			_impl::ExteriorDerivative, _Field<Domain<TM, IL>, TL> const & f,
 ////					typename geometry_type::id_type   s)  = delete;
 ////
-////	template<typename geometry_type,typename TM, size_t IL, typename TL> void policy_calculate(
+////	template<typename geometry_type,typename TM, size_t IL, typename TL> void calculate(
 ////			_impl::CodifferentialDerivative,
 ////			_Field<TL...> const & f, 		typename geometry_type::id_type   s)  = delete;
 
 	template<typename geometry_type,typename T >
 	static constexpr inline typename field_traits<_Field< _impl::CodifferentialDerivative< EDGE, T> > >::value_type
-	policy_calculate(geometry_type const & geo,_Field<_impl::CodifferentialDerivative< EDGE, T>> const & expr,
+	calculate(geometry_type const & geo,_Field<_impl::CodifferentialDerivative< EDGE, T>> const & expr,
 			typename geometry_type::id_type s)
 	{
 		return
 		-(
-				policy_calculate(geo,expr.lhs, s + geometry_type::_DI) * geo.dual_volume(s + geometry_type::_DI)
-				- policy_calculate(geo,expr.lhs, s - geometry_type::_DI) * geo.dual_volume(s - geometry_type::_DI)
-				+ policy_calculate(geo,expr.lhs, s + geometry_type::_DJ) * geo.dual_volume(s + geometry_type::_DJ)
-				- policy_calculate(geo,expr.lhs, s - geometry_type::_DJ) * geo.dual_volume(s - geometry_type::_DJ)
-				+ policy_calculate(geo,expr.lhs, s + geometry_type::_DK) * geo.dual_volume(s + geometry_type::_DK)
-				- policy_calculate(geo,expr.lhs, s - geometry_type::_DK) * geo.dual_volume(s - geometry_type::_DK)
+				calculate(geo,expr.lhs, s + geometry_type::_DI) * geo.dual_volume(s + geometry_type::_DI)
+				- calculate(geo,expr.lhs, s - geometry_type::_DI) * geo.dual_volume(s - geometry_type::_DI)
+				+ calculate(geo,expr.lhs, s + geometry_type::_DJ) * geo.dual_volume(s + geometry_type::_DJ)
+				- calculate(geo,expr.lhs, s - geometry_type::_DJ) * geo.dual_volume(s - geometry_type::_DJ)
+				+ calculate(geo,expr.lhs, s + geometry_type::_DK) * geo.dual_volume(s + geometry_type::_DK)
+				- calculate(geo,expr.lhs, s - geometry_type::_DK) * geo.dual_volume(s - geometry_type::_DK)
 
 		) * geo.inv_dual_volume(s)
 
@@ -186,7 +186,7 @@ public:
 
 	template<typename geometry_type,typename T >
 	static inline typename field_traits<_Field< _impl::CodifferentialDerivative< FACE, T> > >::value_type
-	policy_calculate(geometry_type const & geo,_Field<_impl::CodifferentialDerivative< FACE, T>> const & expr,
+	calculate(geometry_type const & geo,_Field<_impl::CodifferentialDerivative< FACE, T>> const & expr,
 			typename geometry_type::id_type s)
 	{
 
@@ -197,11 +197,11 @@ public:
 		return
 
 		-(
-				(policy_calculate(geo,expr.lhs, s + Y) * (geo.dual_volume(s + Y))
-						- policy_calculate(geo,expr.lhs, s - Y) * (geo.dual_volume(s - Y)))
+				(calculate(geo,expr.lhs, s + Y) * (geo.dual_volume(s + Y))
+						- calculate(geo,expr.lhs, s - Y) * (geo.dual_volume(s - Y)))
 
-				- (policy_calculate(geo,expr.lhs, s + Z) * (geo.dual_volume(s + Z))
-						- policy_calculate(geo,expr.lhs, s - Z) * (geo.dual_volume(s - Z)))
+				- (calculate(geo,expr.lhs, s + Z) * (geo.dual_volume(s + Z))
+						- calculate(geo,expr.lhs, s - Z) * (geo.dual_volume(s - Z)))
 
 		) * geo.inv_dual_volume(s)
 
@@ -210,7 +210,7 @@ public:
 
 	template<typename geometry_type,typename T >
 	static inline typename field_traits<_Field< _impl::CodifferentialDerivative< VOLUME, T> > >::value_type
-	policy_calculate(geometry_type const & geo,_Field<_impl::CodifferentialDerivative< VOLUME, T>> const & expr,
+	calculate(geometry_type const & geo,_Field<_impl::CodifferentialDerivative< VOLUME, T>> const & expr,
 			typename geometry_type::id_type s)
 	{
 		typename geometry_type::id_type D = geometry_type::delta_index(geometry_type::dual(s));
@@ -218,8 +218,8 @@ public:
 
 		-(
 
-				policy_calculate(geo,expr.lhs, s + D) * (geo.dual_volume(s + D)) //
-				- policy_calculate(geo,expr.lhs, s - D) * (geo.dual_volume(s - D))
+				calculate(geo,expr.lhs, s + D) * (geo.dual_volume(s + D)) //
+				- calculate(geo,expr.lhs, s - D) * (geo.dual_volume(s - D))
 
 		) * geo.inv_dual_volume(s)
 
@@ -235,23 +235,23 @@ public:
 	calculate(geometry_type const & geo,_Field<_impl::Wedge<VERTEX,VERTEX,TL,TR>> const & expr,
 			typename geometry_type::id_type s)
 	{
-		return (policy_calculate(expr.lhs, s) * policy_calculate(expr.rhs, s));
+		return (calculate(expr.lhs, s) * calculate(expr.rhs, s));
 	}
 
 	template<typename geometry_type,typename TL,typename TR>
 	static inline typename field_traits<_Field<_impl::Wedge<VERTEX,EDGE,TL,TR> > >::value_type
-	policy_calculate(geometry_type& geo,_Field<_impl::Wedge<VERTEX,EDGE,TL,TR>> const & expr,
+	calculate(geometry_type& geo,_Field<_impl::Wedge<VERTEX,EDGE,TL,TR>> const & expr,
 			typename geometry_type::id_type s)
 	{
 		auto X = geometry_type::delta_index(s);
 
-		return (policy_calculate(expr.lhs, s - X) + policy_calculate(expr.lhs, s + X)) * 0.5
-		* policy_calculate(expr.rhs, s);
+		return (calculate(expr.lhs, s - X) + calculate(expr.lhs, s + X)) * 0.5
+		* calculate(expr.rhs, s);
 	}
 
 	template<typename geometry_type,typename TL,typename TR>
 	static inline typename field_traits<_Field<_impl::Wedge<VERTEX,FACE,TL,TR> > >::value_type
-	policy_calculate(geometry_type const & geo,_Field<_impl::Wedge<VERTEX,FACE,TL,TR>> const & expr,
+	calculate(geometry_type const & geo,_Field<_impl::Wedge<VERTEX,FACE,TL,TR>> const & expr,
 			typename geometry_type::id_type s)
 	{
 		auto X = geometry_type::delta_index(geometry_type::dual(s));
@@ -260,17 +260,17 @@ public:
 
 		return (
 
-				policy_calculate(geo,expr.lhs, (s - Y) - Z) +
-				policy_calculate(geo,expr.lhs, (s - Y) + Z) +
-				policy_calculate(geo,expr.lhs, (s + Y) - Z) +
-				policy_calculate(geo,expr.lhs, (s + Y) + Z)
+				calculate(geo,expr.lhs, (s - Y) - Z) +
+				calculate(geo,expr.lhs, (s - Y) + Z) +
+				calculate(geo,expr.lhs, (s + Y) - Z) +
+				calculate(geo,expr.lhs, (s + Y) + Z)
 
-		) * 0.25 * policy_calculate(geo,expr.rhs, s);
+		) * 0.25 * calculate(geo,expr.rhs, s);
 	}
 
 	template<typename geometry_type,typename TL,typename TR>
 	static inline typename field_traits<_Field<_impl::Wedge<VERTEX,VOLUME,TL,TR> > >::value_type
-	policy_calculate(geometry_type const & geo,_Field<_impl::Wedge<VERTEX,VOLUME,TL,TR>> const & expr,
+	calculate(geometry_type const & geo,_Field<_impl::Wedge<VERTEX,VOLUME,TL,TR>> const & expr,
 			typename geometry_type::id_type s)
 	{
 
@@ -283,28 +283,28 @@ public:
 
 		return (
 
-				policy_calculate(geo,l, ((s - X) - Y) - Z) +
+				calculate(geo,l, ((s - X) - Y) - Z) +
 
-				policy_calculate(geo,l, ((s - X) - Y) + Z) +
+				calculate(geo,l, ((s - X) - Y) + Z) +
 
-				policy_calculate(geo,l, ((s - X) + Y) - Z) +
+				calculate(geo,l, ((s - X) + Y) - Z) +
 
-				policy_calculate(geo,l, ((s - X) + Y) + Z) +
+				calculate(geo,l, ((s - X) + Y) + Z) +
 
-				policy_calculate(geo,l, ((s + X) - Y) - Z) +
+				calculate(geo,l, ((s + X) - Y) - Z) +
 
-				policy_calculate(geo,l, ((s + X) - Y) + Z) +
+				calculate(geo,l, ((s + X) - Y) + Z) +
 
-				policy_calculate(geo,l, ((s + X) + Y) - Z) +
+				calculate(geo,l, ((s + X) + Y) - Z) +
 
-				policy_calculate(geo,l, ((s + X) + Y) + Z)
+				calculate(geo,l, ((s + X) + Y) + Z)
 
-		) * 0.125 * policy_calculate(geo,r, s);
+		) * 0.125 * calculate(geo,r, s);
 	}
 
 	template<typename geometry_type,typename TL,typename TR>
 	static inline typename field_traits<_Field<_impl::Wedge<EDGE,VERTEX,TL,TR> > >::value_type
-	policy_calculate(geometry_type const & geo,_Field<_impl::Wedge<EDGE,VERTEX,TL,TR>> const & expr,
+	calculate(geometry_type const & geo,_Field<_impl::Wedge<EDGE,VERTEX,TL,TR>> const & expr,
 			typename geometry_type::id_type s)
 	{
 
@@ -312,13 +312,13 @@ public:
 		auto const & r =expr.rhs;
 
 		auto X = geometry_type::delta_index(s);
-		return policy_calculate(geo,l, s) * (policy_calculate(geo,r, s - X) + policy_calculate(geo,r, s + X))
+		return calculate(geo,l, s) * (calculate(geo,r, s - X) + calculate(geo,r, s + X))
 		* 0.5;
 	}
 
 	template<typename geometry_type,typename TL,typename TR>
 	static inline typename field_traits<_Field<_impl::Wedge<EDGE,EDGE,TL,TR> > >::value_type
-	policy_calculate(geometry_type const & geo,_Field<_impl::Wedge<EDGE,EDGE,TL,TR>> const & expr,
+	calculate(geometry_type const & geo,_Field<_impl::Wedge<EDGE,EDGE,TL,TR>> const & expr,
 			typename geometry_type::id_type s)
 	{
 		auto const & l =expr.lhs;
@@ -327,13 +327,13 @@ public:
 		auto Y = geometry_type::delta_index(geometry_type::roate(geometry_type::dual(s)));
 		auto Z = geometry_type::delta_index(geometry_type::inverse_roate(geometry_type::dual(s)));
 
-		return ((policy_calculate(geo,l, s - Y) + policy_calculate(geo,l, s + Y))
-				* (policy_calculate(geo,l, s - Z) + policy_calculate(geo,l, s + Z)) * 0.25);
+		return ((calculate(geo,l, s - Y) + calculate(geo,l, s + Y))
+				* (calculate(geo,l, s - Z) + calculate(geo,l, s + Z)) * 0.25);
 	}
 
 	template<typename geometry_type,typename TL,typename TR>
 	static inline typename field_traits<_Field<_impl::Wedge<EDGE,FACE,TL,TR> > >::value_type
-	policy_calculate(geometry_type const & geo,_Field<_impl::Wedge<EDGE,FACE,TL,TR>> const & expr,
+	calculate(geometry_type const & geo,_Field<_impl::Wedge<EDGE,FACE,TL,TR>> const & expr,
 			typename geometry_type::id_type s)
 	{
 		auto const & l =expr.lhs;
@@ -346,34 +346,34 @@ public:
 
 		(
 
-				(policy_calculate(geo,l, (s - Y) - Z)
-						+ policy_calculate(geo,l, (s - Y) + Z)
-						+ policy_calculate(geo,l, (s + Y) - Z)
-						+ policy_calculate(geo,l, (s + Y) + Z))
-				* (policy_calculate(geo,r, s - X) + policy_calculate(geo,r, s + X))
+				(calculate(geo,l, (s - Y) - Z)
+						+ calculate(geo,l, (s - Y) + Z)
+						+ calculate(geo,l, (s + Y) - Z)
+						+ calculate(geo,l, (s + Y) + Z))
+				* (calculate(geo,r, s - X) + calculate(geo,r, s + X))
 				+
 
-				(policy_calculate(geo,l, (s - Z) - X)
-						+ policy_calculate(geo,l, (s - Z) + X)
-						+ policy_calculate(geo,l, (s + Z) - X)
-						+ policy_calculate(geo,l, (s + Z) + X))
-				* (policy_calculate(geo,r, s - Y)
-						+ policy_calculate(geo,r, s + Y))
+				(calculate(geo,l, (s - Z) - X)
+						+ calculate(geo,l, (s - Z) + X)
+						+ calculate(geo,l, (s + Z) - X)
+						+ calculate(geo,l, (s + Z) + X))
+				* (calculate(geo,r, s - Y)
+						+ calculate(geo,r, s + Y))
 				+
 
-				(policy_calculate(geo,l, (s - X) - Y)
-						+ policy_calculate(geo,l, (s - X) + Y)
-						+ policy_calculate(geo,l, (s + X) - Y)
-						+ policy_calculate(geo,l, (s + X) + Y))
-				* (policy_calculate(geo,r, s - Z)
-						+ policy_calculate(geo,r, s + Z))
+				(calculate(geo,l, (s - X) - Y)
+						+ calculate(geo,l, (s - X) + Y)
+						+ calculate(geo,l, (s + X) - Y)
+						+ calculate(geo,l, (s + X) + Y))
+				* (calculate(geo,r, s - Z)
+						+ calculate(geo,r, s + Z))
 
 		) * 0.125;
 	}
 
 	template<typename geometry_type,typename TL,typename TR>
 	static inline typename field_traits<_Field<_impl::Wedge<FACE,VERTEX,TL,TR> > >::value_type
-	policy_calculate(geometry_type const & geo,_Field<_impl::Wedge<FACE,VERTEX,TL,TR>> const & expr,
+	calculate(geometry_type const & geo,_Field<_impl::Wedge<FACE,VERTEX,TL,TR>> const & expr,
 			typename geometry_type::id_type s)
 	{
 		auto const & l =expr.lhs;
@@ -381,15 +381,15 @@ public:
 		auto Y = geometry_type::delta_index(geometry_type::roate(geometry_type::dual(s)));
 		auto Z = geometry_type::delta_index(geometry_type::inverse_roate(geometry_type::dual(s)));
 
-		return policy_calculate(geo,l, s)
-		* (policy_calculate(geo,r, (s - Y) - Z) + policy_calculate(geo,r, (s - Y) + Z)
-				+ policy_calculate(geo,r, (s + Y) - Z)
-				+ policy_calculate(geo,r, (s + Y) + Z)) * 0.25;
+		return calculate(geo,l, s)
+		* (calculate(geo,r, (s - Y) - Z) + calculate(geo,r, (s - Y) + Z)
+				+ calculate(geo,r, (s + Y) - Z)
+				+ calculate(geo,r, (s + Y) + Z)) * 0.25;
 	}
 
 	template<typename geometry_type,typename TL,typename TR>
 	static inline typename field_traits<_Field<_impl::Wedge<FACE,EDGE,TL,TR> > >::value_type
-	policy_calculate(geometry_type const & geo,_Field<_impl::Wedge<FACE,EDGE,TL,TR>> const & expr,
+	calculate(geometry_type const & geo,_Field<_impl::Wedge<FACE,EDGE,TL,TR>> const & expr,
 			typename geometry_type::id_type s)
 	{
 		auto const & l =expr.lhs;
@@ -402,32 +402,32 @@ public:
 
 		(
 
-				(policy_calculate(geo,r, (s - Y) - Z)
-						+ policy_calculate(geo,r, (s - Y) + Z)
-						+ policy_calculate(geo,r, (s + Y) - Z)
-						+ policy_calculate(geo,r, (s + Y) + Z))
-				* (policy_calculate(geo,l, s - X) + policy_calculate(geo,l, s + X))
+				(calculate(geo,r, (s - Y) - Z)
+						+ calculate(geo,r, (s - Y) + Z)
+						+ calculate(geo,r, (s + Y) - Z)
+						+ calculate(geo,r, (s + Y) + Z))
+				* (calculate(geo,l, s - X) + calculate(geo,l, s + X))
 
-				+ (policy_calculate(geo,r, (s - Z) - X)
-						+ policy_calculate(geo,r, (s - Z) + X)
-						+ policy_calculate(geo,r, (s + Z) - X)
-						+ policy_calculate(geo,r, (s + Z) + X))
-				* (policy_calculate(geo,l, s - Y)
-						+ policy_calculate(geo,l, s + Y))
+				+ (calculate(geo,r, (s - Z) - X)
+						+ calculate(geo,r, (s - Z) + X)
+						+ calculate(geo,r, (s + Z) - X)
+						+ calculate(geo,r, (s + Z) + X))
+				* (calculate(geo,l, s - Y)
+						+ calculate(geo,l, s + Y))
 
-				+ (policy_calculate(geo,r, (s - X) - Y)
-						+ policy_calculate(geo,r, (s - X) + Y)
-						+ policy_calculate(geo,r, (s + X) - Y)
-						+ policy_calculate(geo,r, (s + X) + Y))
-				* (policy_calculate(geo,l, s - Z)
-						+ policy_calculate(geo,l, s + Z))
+				+ (calculate(geo,r, (s - X) - Y)
+						+ calculate(geo,r, (s - X) + Y)
+						+ calculate(geo,r, (s + X) - Y)
+						+ calculate(geo,r, (s + X) + Y))
+				* (calculate(geo,l, s - Z)
+						+ calculate(geo,l, s + Z))
 
 		) * 0.125;
 	}
 
 	template<typename geometry_type,typename TL,typename TR>
 	static inline typename field_traits<_Field<_impl::Wedge<VOLUME,VERTEX,TL,TR> > >::value_type
-	policy_calculate(geometry_type const & geo,_Field<_impl::Wedge<VOLUME,VERTEX,TL,TR>> const & expr,
+	calculate(geometry_type const & geo,_Field<_impl::Wedge<VOLUME,VERTEX,TL,TR>> const & expr,
 			typename geometry_type::id_type s)
 	{
 		auto const & l =expr.lhs;
@@ -438,16 +438,16 @@ public:
 
 		return
 
-		policy_calculate(geo,l, s) * (
+		calculate(geo,l, s) * (
 
-				policy_calculate(geo,r, ((s - X) - Y) - Z) + //
-				policy_calculate(geo,r, ((s - X) - Y) + Z) +//
-				policy_calculate(geo,r, ((s - X) + Y) - Z) +//
-				policy_calculate(geo,r, ((s - X) + Y) + Z) +//
-				policy_calculate(geo,r, ((s + X) - Y) - Z) +//
-				policy_calculate(geo,r, ((s + X) - Y) + Z) +//
-				policy_calculate(geo,r, ((s + X) + Y) - Z) +//
-				policy_calculate(geo,r, ((s + X) + Y) + Z)//
+				calculate(geo,r, ((s - X) - Y) - Z) + //
+				calculate(geo,r, ((s - X) - Y) + Z) +//
+				calculate(geo,r, ((s - X) + Y) - Z) +//
+				calculate(geo,r, ((s - X) + Y) + Z) +//
+				calculate(geo,r, ((s + X) - Y) - Z) +//
+				calculate(geo,r, ((s + X) - Y) + Z) +//
+				calculate(geo,r, ((s + X) + Y) - Z) +//
+				calculate(geo,r, ((s + X) + Y) + Z)//
 
 		) * 0.125;
 	}
@@ -456,7 +456,7 @@ public:
 
 	template<typename geometry_type,typename T >
 	static inline typename field_traits<_Field< _impl::HodgeStar< VOLUME, T> > >::value_type
-	policy_calculate(geometry_type const & geo,_Field<_impl::HodgeStar< VOLUME, T>> const & expr,
+	calculate(geometry_type const & geo,_Field<_impl::HodgeStar< VOLUME, T>> const & expr,
 			typename geometry_type::id_type s)
 	{
 		auto const & f =expr.lhs;
@@ -468,35 +468,35 @@ public:
 //
 //		(
 //
-//		policy_calculate(geo,f,((s + X) - Y) - Z)*geo.inv_volume(((s + X) - Y) - Z) +
+//		calculate(geo,f,((s + X) - Y) - Z)*geo.inv_volume(((s + X) - Y) - Z) +
 //
-//		policy_calculate(geo,f,((s + X) - Y) + Z)*geo.inv_volume(((s + X) - Y) + Z) +
+//		calculate(geo,f,((s + X) - Y) + Z)*geo.inv_volume(((s + X) - Y) + Z) +
 //
-//		policy_calculate(geo,f,((s + X) + Y) - Z)*geo.inv_volume(((s + X) + Y) - Z) +
+//		calculate(geo,f,((s + X) + Y) - Z)*geo.inv_volume(((s + X) + Y) - Z) +
 //
-//		policy_calculate(geo,f,((s + X) + Y) + Z)*geo.inv_volume(((s + X) + Y) + Z) +
+//		calculate(geo,f,((s + X) + Y) + Z)*geo.inv_volume(((s + X) + Y) + Z) +
 //
-//		policy_calculate(geo,f,((s - X) - Y) - Z)*geo.inv_volume(((s - X) - Y) - Z) +
+//		calculate(geo,f,((s - X) - Y) - Z)*geo.inv_volume(((s - X) - Y) - Z) +
 //
-//		policy_calculate(geo,f,((s - X) - Y) + Z)*geo.inv_volume(((s - X) - Y) + Z) +
+//		calculate(geo,f,((s - X) - Y) + Z)*geo.inv_volume(((s - X) - Y) + Z) +
 //
-//		policy_calculate(geo,f,((s - X) + Y) - Z)*geo.inv_volume(((s - X) + Y) - Z) +
+//		calculate(geo,f,((s - X) + Y) - Z)*geo.inv_volume(((s - X) + Y) - Z) +
 //
-//		policy_calculate(geo,f,((s - X) + Y) + Z)*geo.inv_volume(((s - X) + Y) + Z)
+//		calculate(geo,f,((s - X) + Y) + Z)*geo.inv_volume(((s - X) + Y) + Z)
 //
 //		) * 0.125 * geo.volume(s);
 
-		return policy_calculate(geo,f, s) /** geo._impl::HodgeStarVolumeScale(s)*/;
+		return calculate(geo,f, s) /** geo._impl::HodgeStarVolumeScale(s)*/;
 	}
 
-//	template<typename geometry_type,typename TM, typename TL, typename TR> void policy_calculate(
+//	template<typename geometry_type,typename TM, typename TL, typename TR> void calculate(
 //			_impl::InteriorProduct, nTuple<TR, G::ndims> const & v,
 //			_Field<Domain<TM, VERTEX>, TL> const & f,
 //					typename geometry_type::id_type   s)  = delete;
 
 	template<typename geometry_type,typename TL,typename TR >
 	static inline typename field_traits<_Field< _impl::InteriorProduct<EDGE, VERTEX,TL,TR> > >::value_type
-	policy_calculate(geometry_type const & geo,_Field<_impl::InteriorProduct<EDGE, VERTEX, TL,TR>> const & expr,
+	calculate(geometry_type const & geo,_Field<_impl::InteriorProduct<EDGE, VERTEX, TL,TR>> const & expr,
 			typename geometry_type::id_type s)
 	{
 		auto const & f =expr.lhs;
@@ -508,14 +508,14 @@ public:
 
 		return
 
-		(policy_calculate(geo,f, s + X) - policy_calculate(geo,f, s - X)) * 0.5 * v[0] //
-		+ (policy_calculate(geo,f, s + Y) - policy_calculate(geo,f, s - Y)) * 0.5 * v[1]//
-		+ (policy_calculate(geo,f, s + Z) - policy_calculate(geo,f, s - Z)) * 0.5 * v[2];
+		(calculate(geo,f, s + X) - calculate(geo,f, s - X)) * 0.5 * v[0] //
+		+ (calculate(geo,f, s + Y) - calculate(geo,f, s - Y)) * 0.5 * v[1]//
+		+ (calculate(geo,f, s + Z) - calculate(geo,f, s - Z)) * 0.5 * v[2];
 	}
 
 	template<typename geometry_type,typename TL,typename TR >
 	static inline typename field_traits<_Field< _impl::InteriorProduct<FACE, VERTEX,TL,TR> > >::value_type
-	policy_calculate(geometry_type const & geo,_Field<_impl::InteriorProduct<FACE, VERTEX, TL,TR>> const & expr,
+	calculate(geometry_type const & geo,_Field<_impl::InteriorProduct<FACE, VERTEX, TL,TR>> const & expr,
 			typename geometry_type::id_type s)
 	{
 		auto const & f =expr.lhs;
@@ -528,14 +528,14 @@ public:
 		auto Z = geometry_type::inverse_roate(X);
 		return
 
-		(policy_calculate(geo,f, s + Y) + policy_calculate(geo,f, s - Y)) * 0.5 * v[(n + 2) % 3] -
+		(calculate(geo,f, s + Y) + calculate(geo,f, s - Y)) * 0.5 * v[(n + 2) % 3] -
 
-		(policy_calculate(geo,f, s + Z) + policy_calculate(geo,f, s - Z)) * 0.5 * v[(n + 1) % 3];
+		(calculate(geo,f, s + Z) + calculate(geo,f, s - Z)) * 0.5 * v[(n + 1) % 3];
 	}
 
 	template<typename geometry_type,typename TL,typename TR >
 	static inline typename field_traits<_Field< _impl::InteriorProduct<VOLUME, VERTEX,TL,TR> > >::value_type
-	policy_calculate(geometry_type const & geo,_Field<_impl::InteriorProduct<VOLUME, VERTEX, TL,TR>> const & expr,
+	calculate(geometry_type const & geo,_Field<_impl::InteriorProduct<VOLUME, VERTEX, TL,TR>> const & expr,
 			typename geometry_type::id_type s)
 	{
 		auto const & f =expr.lhs;
@@ -543,16 +543,16 @@ public:
 		size_t n = geometry_type::component_number(geometry_type::dual(s));
 		size_t D = geometry_type::delta_index(geometry_type::dual(s));
 
-		return (policy_calculate(geo,f, s + D) - policy_calculate(geo,f, s - D)) * 0.5 * v[n];
+		return (calculate(geo,f, s + D) - calculate(geo,f, s - D)) * 0.5 * v[n];
 	}
 
 //**************************************************************************************************
 // Non-standard operation
 
 	template<typename geometry_type, size_t IL, typename T > static inline typename field_traits<T>::value_type
-	policy_calculate(geometry_type const & geo,_Field<_impl::MapTo<IL, IL, T>> const & f, typename geometry_type::id_type s)
+	calculate(geometry_type const & geo,_Field<_impl::MapTo<IL, IL, T>> const & f, typename geometry_type::id_type s)
 	{
-		return policy_calculate(geo,f,s);
+		return calculate(geo,f,s);
 	}
 
 	template<typename geometry_type, typename T>
@@ -566,12 +566,12 @@ public:
 		auto Z = geo.DI(2, s);
 
 		return nTuple<
-		typename std::remove_reference<decltype(policy_calculate(geo,f,s))>::type, 3>(
+		typename std::remove_reference<decltype(calculate(geo,f,s))>::type, 3>(
 				{
 
-					(policy_calculate(geo,f, s - X) + policy_calculate(geo,f, s + X)) * 0.5, //
-					(policy_calculate(geo,f, s - Y) + policy_calculate(geo,f, s + Y)) * 0.5,//
-					(policy_calculate(geo,f, s - Z) + policy_calculate(geo,f, s + Z)) * 0.5
+					(calculate(geo,f, s - X) + calculate(geo,f, s + X)) * 0.5, //
+					(calculate(geo,f, s - Y) + calculate(geo,f, s + Y)) * 0.5,//
+					(calculate(geo,f, s - Z) + calculate(geo,f, s + Z)) * 0.5
 
 				});
 	}
@@ -584,7 +584,7 @@ public:
 		auto n = geometry_type::component_number(s);
 		auto D = geometry_type::delta_index(s);
 
-		return ((policy_calculate(geo,f, s - D)[n] + policy_calculate(geo,f, s + D)[n]) * 0.5);
+		return ((calculate(geo,f, s - D)[n] + calculate(geo,f, s + D)[n]) * 0.5);
 	}
 
 	template<typename geometry_type, typename T>
@@ -597,40 +597,40 @@ public:
 		auto Z = geo.DI(2, s);
 
 		return nTuple<
-		typename std::remove_reference<decltype(policy_calculate(geo,f,s))>::type, 3>(
+		typename std::remove_reference<decltype(calculate(geo,f,s))>::type, 3>(
 				{	(
 
-							policy_calculate(geo,f, (s - Y) - Z) +
+							calculate(geo,f, (s - Y) - Z) +
 
-							policy_calculate(geo,f, (s - Y) + Z) +
+							calculate(geo,f, (s - Y) + Z) +
 
-							policy_calculate(geo,f, (s + Y) - Z) +
+							calculate(geo,f, (s + Y) - Z) +
 
-							policy_calculate(geo,f, (s + Y) + Z)
-
-					) * 0.25,
-
-					(
-
-							policy_calculate(geo,f, (s - Z) - X) +
-
-							policy_calculate(geo,f, (s - Z) + X) +
-
-							policy_calculate(geo,f, (s + Z) - X) +
-
-							policy_calculate(geo,f, (s + Z) + X)
+							calculate(geo,f, (s + Y) + Z)
 
 					) * 0.25,
 
 					(
 
-							policy_calculate(geo,f, (s - X) - Y) +
+							calculate(geo,f, (s - Z) - X) +
 
-							policy_calculate(geo,f, (s - X) + Y) +
+							calculate(geo,f, (s - Z) + X) +
 
-							policy_calculate(geo,f, (s + X) - Y) +
+							calculate(geo,f, (s + Z) - X) +
 
-							policy_calculate(geo,f, (s + X) + Y)
+							calculate(geo,f, (s + Z) + X)
+
+					) * 0.25,
+
+					(
+
+							calculate(geo,f, (s - X) - Y) +
+
+							calculate(geo,f, (s - X) + Y) +
+
+							calculate(geo,f, (s + X) - Y) +
+
+							calculate(geo,f, (s + X) + Y)
 
 					) * 0.25
 
@@ -652,13 +652,13 @@ public:
 
 				(
 
-						policy_calculate(geo,f, (s - Y) - Z)[n] +
+						calculate(geo,f, (s - Y) - Z)[n] +
 
-						policy_calculate(geo,f, (s - Y) + Z)[n] +
+						calculate(geo,f, (s - Y) + Z)[n] +
 
-						policy_calculate(geo,f, (s + Y) - Z)[n] +
+						calculate(geo,f, (s + Y) - Z)[n] +
 
-						policy_calculate(geo,f, (s + Y) + Z)[n]
+						calculate(geo,f, (s + Y) + Z)[n]
 
 				) * 0.25
 
@@ -676,13 +676,13 @@ public:
 		auto Z = geo.DI(2, s);
 
 		return nTuple<
-		typename std::remove_reference<decltype(policy_calculate(geo,f,s))>::type,
+		typename std::remove_reference<decltype(calculate(geo,f,s))>::type,
 		3>(
 				{
 
-					(policy_calculate(geo,f, s - X) + policy_calculate(geo,f, s + X)) * 0.5, //
-					(policy_calculate(geo,f, s - Y) + policy_calculate(geo,f, s + Y)) * 0.5,//
-					(policy_calculate(geo,f, s - Z) + policy_calculate(geo,f, s + Z)) * 0.5
+					(calculate(geo,f, s - X) + calculate(geo,f, s + X)) * 0.5, //
+					(calculate(geo,f, s - Y) + calculate(geo,f, s + Y)) * 0.5,//
+					(calculate(geo,f, s - Z) + calculate(geo,f, s + Z)) * 0.5
 
 				});
 	}
@@ -696,7 +696,7 @@ public:
 		auto n = geometry_type::component_number(geometry_type::dual(s));
 		auto D = geometry_type::delta_index(geometry_type::dual(s));
 
-		return ((policy_calculate(geo,f, s - D)[n] + policy_calculate(geo,f, s + D)[n]) * 0.5);
+		return ((calculate(geo,f, s - D)[n] + calculate(geo,f, s + D)[n]) * 0.5);
 	}
 
 	template<typename geometry_type, typename T>
@@ -710,41 +710,41 @@ public:
 		auto Z = geo.DI(2, s);
 
 		return nTuple<
-		typename std::remove_reference<decltype(policy_calculate(geo,f,s))>::type,
+		typename std::remove_reference<decltype(calculate(geo,f,s))>::type,
 		3>(
 				{	(
 
-							policy_calculate(geo,f, (s - Y) - Z) +
+							calculate(geo,f, (s - Y) - Z) +
 
-							policy_calculate(geo,f, (s - Y) + Z) +
+							calculate(geo,f, (s - Y) + Z) +
 
-							policy_calculate(geo,f, (s + Y) - Z) +
+							calculate(geo,f, (s + Y) - Z) +
 
-							policy_calculate(geo,f, (s + Y) + Z)
-
-					) * 0.25,
-
-					(
-
-							policy_calculate(geo,f, (s - Z) - X) +
-
-							policy_calculate(geo,f, (s - Z) + X) +
-
-							policy_calculate(geo,f, (s + Z) - X) +
-
-							policy_calculate(geo,f, (s + Z) + X)
+							calculate(geo,f, (s + Y) + Z)
 
 					) * 0.25,
 
 					(
 
-							policy_calculate(geo,f, (s - X) - Y) +
+							calculate(geo,f, (s - Z) - X) +
 
-							policy_calculate(geo,f, (s - X) + Y) +
+							calculate(geo,f, (s - Z) + X) +
 
-							policy_calculate(geo,f, (s + X) - Y) +
+							calculate(geo,f, (s + Z) - X) +
 
-							policy_calculate(geo,f, (s + X) + Y)
+							calculate(geo,f, (s + Z) + X)
+
+					) * 0.25,
+
+					(
+
+							calculate(geo,f, (s - X) - Y) +
+
+							calculate(geo,f, (s - X) + Y) +
+
+							calculate(geo,f, (s + X) - Y) +
+
+							calculate(geo,f, (s + X) + Y)
 
 					) * 0.25,
 
@@ -764,13 +764,13 @@ public:
 
 				(
 
-						policy_calculate(geo,f, (s - Y) - Z)[n] +
+						calculate(geo,f, (s - Y) - Z)[n] +
 
-						policy_calculate(geo,f, (s - Y) + Z)[n] +
+						calculate(geo,f, (s - Y) + Z)[n] +
 
-						policy_calculate(geo,f, (s + Y) - Z)[n] +
+						calculate(geo,f, (s + Y) - Z)[n] +
 
-						policy_calculate(geo,f, (s + Y) + Z)[n]
+						calculate(geo,f, (s + Y) + Z)[n]
 
 				) * 0.25
 
@@ -781,7 +781,7 @@ public:
 
 	template<typename geometry_type,size_t N , typename T> static inline
 	typename field_traits<_Field< _impl::PartialExteriorDerivative< N,EDGE , T > > >::value_type
-	policy_calculate(geometry_type const & geo,_Field< _impl::PartialExteriorDerivative< N,EDGE , T >> const & expr,
+	calculate(geometry_type const & geo,_Field< _impl::PartialExteriorDerivative< N,EDGE , T >> const & expr,
 			typename geometry_type::id_type s)
 	{
 		auto const & f =expr.lhs;
@@ -793,13 +793,13 @@ public:
 		Y = (geometry_type::component_number(Y) == N) ? Y : 0UL;
 		Z = (geometry_type::component_number(Z) == N) ? Z : 0UL;
 
-		return (policy_calculate(geo,f, s + Y) - policy_calculate(geo,f, s - Y))
-		- (policy_calculate(geo,f, s + Z) - policy_calculate(geo,f, s - Z));
+		return (calculate(geo,f, s + Y) - calculate(geo,f, s - Y))
+		- (calculate(geo,f, s + Z) - calculate(geo,f, s - Z));
 	}
 
 	template<typename geometry_type,size_t N , typename T> static inline
 	typename field_traits<_Field< _impl::PartialCodifferentialDerivative< N,FACE , T >> >::value_type
-	policy_calculate(geometry_type const & geo,_Field< _impl::PartialCodifferentialDerivative< N,FACE , T >> const & expr,
+	calculate(geometry_type const & geo,_Field< _impl::PartialCodifferentialDerivative< N,FACE , T >> const & expr,
 			typename geometry_type::id_type s)
 	{
 		auto const & f =expr.lhs;
@@ -813,10 +813,10 @@ public:
 
 		return (
 
-				policy_calculate(geo,f, s + Y) * (geo.dual_volume(s + Y))      //
-				- policy_calculate(geo,f, s - Y) * (geo.dual_volume(s - Y))//
-				- policy_calculate(geo,f, s + Z) * (geo.dual_volume(s + Z))//
-				+ policy_calculate(geo,f, s - Z) * (geo.dual_volume(s - Z))//
+				calculate(geo,f, s + Y) * (geo.dual_volume(s + Y))      //
+				- calculate(geo,f, s - Y) * (geo.dual_volume(s - Y))//
+				- calculate(geo,f, s + Z) * (geo.dual_volume(s + Z))//
+				+ calculate(geo,f, s - Z) * (geo.dual_volume(s - Z))//
 
 		) * geo.inv_dual_volume(s);
 	}
