@@ -47,8 +47,7 @@ public:
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
 	typedef TV value_type;
-
-	typedef std::shared_ptr<value_type> container_type;
+	typedef typename domain_type::template field_value_type<value_type> field_value_type;
 
 	typedef _Field<domain_type, value_type, _impl::is_sequence_container> this_type;
 
@@ -59,16 +58,16 @@ private:
 
 public:
 
-	_Field(domain_type const & d) :
-			m_domain_(d), m_data_(nullptr)
+	_Field(domain_type const & d)
+			: m_domain_(d), m_data_(nullptr)
 	{
 	}
-	_Field(this_type const & other) :
-			m_domain_(other.m_domain_), m_data_(other.m_data_)
+	_Field(this_type const & other)
+			: m_domain_(other.m_domain_), m_data_(other.m_data_)
 	{
 	}
-	_Field(this_type && other) :
-			m_domain_(other.m_domain_), m_data_(other.m_data_)
+	_Field(this_type && other)
+			: m_domain_(other.m_domain_), m_data_(other.m_data_)
 	{
 	}
 	~_Field()
@@ -206,8 +205,6 @@ public:
 	/** @name access
 	 *  @{*/
 
-	typedef typename domain_type::template field_value_type<value_type> field_value_type;
-
 	field_value_type gather(coordinates_type const& x) const
 	{
 		return std::move(m_domain_.mesh().gather(*this, x));
@@ -283,17 +280,22 @@ public:
 	}
 
 	template<typename ...Args>
-	auto at(Args && ... args)
-	DECL_RET_TYPE((m_data_.get()
-					[m_domain_.hash(std::forward<Args>(args)...)]))
+	value_type & at(Args && ... args)
+	{
+		return (m_data_.get()[m_domain_.hash(std::forward<Args>(args)...)]);
+	}
 
 	template<typename ...Args>
-	auto at(Args && ... args) const
-	DECL_RET_TYPE((m_data_.get()[m_domain_.hash(std::forward<Args>(args)...)]))
+	value_type const & at(Args && ... args) const
+	{
+		return (m_data_.get()[m_domain_.hash(std::forward<Args>(args)...)]);
+	}
 
-	template<typename ...Others>
-	auto operator()(coordinates_type const &x, Others && ...) const
-	DECL_RET_TYPE((this->m_domain_.mesh().gather(*this,x)))
+	template<typename ...Args>
+	field_value_type operator()(Args && ...args) const
+	{
+		return this->m_domain_.mesh().gather(*this, std::forward<Args>(args)...);
+	}
 
 	template<typename TDomain, typename TFun>
 	void pull_back(TDomain const & domain, TFun const & fun)

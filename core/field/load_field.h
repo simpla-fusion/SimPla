@@ -42,8 +42,8 @@ bool load_field(TM const & mesh, TDict const & dict, TField *f)
 	typedef typename field_type::value_type value_type;
 
 	*f = make_field_function<value_type>(
-			select_domain_by_config(mesh, dict["Domain"],
-					mesh.template domain<field_type::iform>()), dict["Value"]);
+			filter_by_config(mesh.template domain<field_type::iform>(),
+					dict["Domain"]), dict["Value"]);
 
 	f->sync();
 
@@ -59,14 +59,9 @@ make_field_function_by_config(TM const & mesh, TDict const & dict)
 
 	typedef _Field<domain_type, value_type, _impl::is_function, TDict> field_type;
 
-	if (!dict)
-	{
-		return field_type();
-	}
-
 	return field_type(
-			filter_domain_by_config(mesh.template domain<field_type::iform>()),
-			dict["Domain"], dict["Value"]);
+			filter_by_config(mesh.template domain<field_type::iform>(),
+					dict["Domain"]), dict["Value"]);
 
 }
 //

@@ -443,6 +443,24 @@ public:
 /**
  * @} ingroup utilities
  */
+
+template<unsigned int, typename ...> struct unpack_typelist;
+
+template<typename T0, typename ...Others>
+struct unpack_typelist<0, T0, Others...>
+{
+	typedef T0 type;
+};
+template<unsigned int N>
+struct unpack_typelist<N>
+{
+	typedef void type;
+};
+template<unsigned int N, typename T0, typename ...Others>
+struct unpack_typelist<N, T0, Others...>
+{
+	typedef typename unpack_typelist<N - 1, Others...>::type type;
+};
 }
 // namespace simpla
 #endif /* SP_TYPE_TRAITS_H_ */

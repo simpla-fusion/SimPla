@@ -9,7 +9,7 @@
 #define CORE_MESH_STRUCTURED_STRUCTURED_H_
 
 #include "../mesh.h"
-#include "../manifold.h"
+#include "../mesh_ids.h"
 #include "rect_mesh.h"
 #include "coordiantes_cartesian.h"
 //#include "coordinates_cylindrical.h"
@@ -18,16 +18,10 @@
 
 namespace simpla
 {
-typedef RectMesh<CartesianCoordinates<3>> CartesianRectMesh;
-//typedef CylindricalCoordinates<RectMesh> CylindricalMesh;
 
-typedef Manifold<RectMesh<CartesianCoordinates<3>>,
-		FiniteDiffMethod<CartesianRectMesh>,
-		InterpolatorLinear<CartesianRectMesh>> CartesianManifold;
+typedef RectMesh<MeshIDs_<3>, CartesianCoordinates<3>, InterpolatorLinear,
+		FiniteDiffMethod> CartesianRectMesh;
 
-//template<size_t IFORM> using CylindricalMeshManifold=
-//Manifold<IFORM,CartesianMesh,FiniteDiffMethod<CartesianMesh>,
-//InterpolatorLinear<CartesianMesh>>;
 }
 // namespace simpla
 

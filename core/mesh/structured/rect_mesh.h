@@ -27,9 +27,8 @@
 
 namespace simpla
 {
-template<typename, size_t> struct Domain;
 /**
- * @ingroup topology
+ * @ingroup mesh
  *  @brief  structured mesh, n-dimensional array
  *
  *## Cell Shape
@@ -54,15 +53,16 @@ template<typename, size_t> struct Domain;
  * \endverbatim
  *  - the unit cell width is 1;
  */
-template<typename TCoordSystem, size_t ... NFLAGS>
-struct RectMesh: public MeshIDs_<NFLAGS...>
+template<typename ... >struct RectMesh;
+template<typename TTopology, typename ...Policies>
+struct RectMesh<TTopology, Policies...> : public TTopology, public Policies...
 {
+	typedef TTopology topology_type;
+	typedef typename unpack_typelist<0, Policies...>::type coordinates_system;
+	typedef typename unpack_typelist<1, Policies...>::type interpolatpr_policy;
+	typedef typename unpack_typelist<2, Policies...>::type calculate_policy;
 
-	typedef TCoordSystem coordinates_system;
-
-	typedef RectMesh<coordinates_system, NFLAGS...> this_type;
-
-	typedef MeshIDs_<NFLAGS...> topology_type;
+	typedef RectMesh<topology_type, Policies...> this_type;
 
 	using topology_type::ndims;
 
@@ -73,6 +73,13 @@ struct RectMesh: public MeshIDs_<NFLAGS...>
 	using typename topology_type::id_type;
 
 	using typename topology_type::coordinates_type;
+
+	friend class Domain<this_type, VERTEX> ;
+	friend class Domain<this_type, EDGE> ;
+	friend class Domain<this_type, FACE> ;
+	friend class Domain<this_type, VOLUME> ;
+
+private:
 
 	static constexpr size_t DEFAULT_GHOST_WIDTH = 2;
 
@@ -195,14 +202,6 @@ public:
 		return m_is_valid_;
 	}
 
-//	template<size_t IFORM>
-//	typename topology_type::template id_hasher<IFORM> hasher() const
-//	{
-//		return typename topology_type::template id_hasher<IFORM>(
-//				m_index_local_dimensions_,
-//				m_index_offset_ - m_index_local_offset_);
-//	}
-
 	template<typename T0, typename T1>
 	void extents(T0 const& pmin, T1 const& pmax)
 	{
@@ -228,6 +227,32 @@ public:
 	}
 
 	void deploy(size_t const *gw = nullptr);
+
+	template<size_t IFORM>
+	Domain<this_type, IFORM> domain() const
+	{
+		return Domain<this_type, IFORM>(*this);
+	}
+
+	template<size_t IFORM, typename ...Args>
+	auto sample(Args && ...args) const
+	DECL_RET_TYPE( interpolatpr_policy:: template sample<IFORM>(
+					*this ,std::forward<Args>(args)...))
+
+	template<typename ...Args>
+	auto calculate(Args && ...args) const
+	DECL_RET_TYPE((calculate_policy:: calculate(
+							*this,std::forward<Args>(args)...)))
+
+	template<typename ...Args>
+	auto gather(Args && ...args) const
+	DECL_RET_TYPE((interpolatpr_policy::gather(
+							*this,std::forward<Args>(args)...)))
+
+	template<typename ...Args>
+	auto scatter(Args && ...args) const
+	DECL_RET_TYPE((interpolatpr_policy:: scatter(
+							*this,std::forward<Args>(args)...)))
 
 	/**
 	 * 	@name  Time
@@ -396,11 +421,12 @@ public:
 	template<size_t IFORM> std::vector<mpi_ghosts_shape_s> ghost_shape() const;
 }
 ;
-template<typename TCoordSystem, size_t ... NFLAGS>
-constexpr size_t RectMesh<TCoordSystem, NFLAGS...>::DEFAULT_GHOST_WIDTH;
 
-template<typename TCoord, size_t ... N>
-void RectMesh<TCoord, N...>::deploy(size_t const *gw)
+template<typename TTopology, typename ... Polices>
+constexpr size_t RectMesh<TTopology, Polices...>::DEFAULT_GHOST_WIDTH;
+
+template<typename TTopology, typename ... Polices>
+void RectMesh<TTopology, Polices...>::deploy(size_t const *gw)
 {
 
 	for (size_t i = 0; i < ndims; ++i)
@@ -565,8 +591,7 @@ void RectMesh<TCoord, N...>::deploy(size_t const *gw)
 
 	if (GLOBAL_COMM.num_of_process() > 1)
 	{
-		GLOBAL_COMM.decompose(ndims, &m_index_count_[0],
-		&m_index_offset_[0]);
+		GLOBAL_COMM.decompose(ndims, &m_index_count_[0], &m_index_offset_[0]);
 
 		index_tuple ghost_width;
 
@@ -582,17 +607,20 @@ void RectMesh<TCoord, N...>::deploy(size_t const *gw)
 		for (int i = 0; i < ndims; ++i)
 		{
 
-			if(m_index_count_[i]==m_index_dimensions_[i])
+			if (m_index_count_[i] == m_index_dimensions_[i])
 			{
 				ghost_width[i] = 0;
 			}
-			else if(m_index_count_[i] <= ghost_width[i]*2)
+			else if (m_index_count_[i] <= ghost_width[i] * 2)
 			{
-				ERROR("Dimension is to small to split!["
-				" Dimensions= "+value_to_string(m_index_dimensions_)
-				+ " , Local dimensions=" +value_to_string(m_index_count_)
-				+ " , Ghost width =" +value_to_string(ghost_width)
-				+"]");
+				ERROR(
+				"Dimension is to small to split!["
+				" Dimensions= "
+				+ value_to_string(m_index_dimensions_)
+				+ " , Local dimensions="
+				+ value_to_string(m_index_count_)
+				+ " , Ghost width ="
+				+ value_to_string(ghost_width) + "]");
 			}
 
 		}

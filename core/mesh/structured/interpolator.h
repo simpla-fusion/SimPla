@@ -18,7 +18,6 @@ namespace simpla
 {
 
 template<typename ...> class field_traits;
-template<size_t...> class StructuredMesh_;
 /**
  * @ingroup diff_geo
  * @addtogroup interpolator Interpolator
@@ -29,16 +28,11 @@ template<size_t...> class StructuredMesh_;
  * @ingroup interpolator
  * @brief basic linear interpolator
  */
-template<typename G>
 class InterpolatorLinear
 {
 
 public:
-	typedef InterpolatorLinear<G> this_type;
-
-	typedef G geometry_type;
-	typedef typename geometry_type::coordinates_type coordinates_type;
-	typedef typename geometry_type::topology_type topology_type;
+	typedef InterpolatorLinear this_type;
 
 	InterpolatorLinear()
 	{
@@ -46,23 +40,21 @@ public:
 
 	InterpolatorLinear(this_type const & r) = default;
 
-protected:
-
 	~InterpolatorLinear() = default;
 
 private:
 
-	template<typename TD, typename TIDX>
+	template<typename geometry_type, typename TD, typename TIDX>
 	static auto gather_impl_(TD const & f,
 			TIDX const & idx) -> decltype(get_value(f, std::get<0>(idx) )* std::get<1>(idx)[0])
 	{
 
-		auto X = (topology_type::_DI) << 1;
-		auto Y = (topology_type::_DJ) << 1;
-		auto Z = (topology_type::_DK) << 1;
+		auto X = (geometry_type::_DI) << 1;
+		auto Y = (geometry_type::_DJ) << 1;
+		auto Z = (geometry_type::_DK) << 1;
 
-		typename G::coordinates_type r = std::get<1>(idx);
-		typename G::index_type s = std::get<0>(idx);
+		typename geometry_type::coordinates_type r = std::get<1>(idx);
+		typename geometry_type::index_type s = std::get<0>(idx);
 
 		return get_value(f, ((s + X) + Y) + Z) * (r[0]) * (r[1]) * (r[2]) //
 		+ get_value(f, (s + X) + Y) * (r[0]) * (r[1]) * (1.0 - r[2]) //
@@ -75,15 +67,15 @@ private:
 	}
 public:
 
-	template<typename TF>
+	template<typename geometry_type, typename TF, typename TX>
 	static inline auto gather(geometry_type const & geo, TF const &f,
-			coordinates_type const & r)  //
+			TX const & r)  //
 					ENABLE_IF_DECL_RET_TYPE((field_traits<TF >::iform==VERTEX),
 							( gather_impl_(f, geo.template coordinates_global_to_local<VERTEX>(r, 0 ) )))
 
-	template<typename TF>
+	template<typename geometry_type, typename TF>
 	static auto gather(geometry_type const & geo, TF const &f,
-			coordinates_type const & r)
+			typename geometry_type::coordinates_type const & r)
 					ENABLE_IF_DECL_RET_TYPE((field_traits<TF >::iform==EDGE),
 							make_nTuple(
 									gather_impl_(f, geo.template coordinates_global_to_local<EDGE>(r, 0) ),
@@ -91,9 +83,9 @@ public:
 									gather_impl_(f, geo.template coordinates_global_to_local<EDGE>(r, 2) )
 							))
 
-	template<typename TF>
+	template<typename geometry_type, typename TF>
 	static auto gather(geometry_type const & geo, TF const &f,
-			coordinates_type const & r)
+			typename geometry_type::coordinates_type const & r)
 					ENABLE_IF_DECL_RET_TYPE(
 							(field_traits<TF >::iform==FACE),
 							make_nTuple(
@@ -102,23 +94,23 @@ public:
 									gather_impl_(f, geo.template coordinates_global_to_local<FACE>(r,2) )
 							) )
 
-	template<typename TF>
+	template<typename geometry_type, typename TF>
 	static auto gather(geometry_type const & geo, TF const &f,
-			coordinates_type const & x)
+			typename geometry_type::coordinates_type const & x)
 					ENABLE_IF_DECL_RET_TYPE((field_traits<TF >::iform==VOLUME),
 							gather_impl_(f, geo.template coordinates_global_to_local<VOLUME>(x ) ))
 
 private:
-	template<typename TF, typename IDX, typename TV>
+	template<typename geometry_type, typename TF, typename IDX, typename TV>
 	static inline void scatter_impl_(TF &f, IDX const& idx, TV const & v)
 	{
 
-		auto X = (topology_type::_DI) << 1;
-		auto Y = (topology_type::_DJ) << 1;
-		auto Z = (topology_type::_DK) << 1;
+		auto X = (geometry_type::_DI) << 1;
+		auto Y = (geometry_type::_DJ) << 1;
+		auto Z = (geometry_type::_DK) << 1;
 
-		typename G::coordinates_type r = std::get<1>(idx);
-		typename G::index_type s = std::get<0>(idx);
+		typename geometry_type::coordinates_type r = std::get<1>(idx);
+		typename geometry_type::index_type s = std::get<0>(idx);
 
 		get_value(f, ((s + X) + Y) + Z) += v * (r[0]) * (r[1]) * (r[2]);
 		get_value(f, (s + X) + Y) += v * (r[0]) * (r[1]) * (1.0 - r[2]);
@@ -131,18 +123,18 @@ private:
 	}
 public:
 
-	template<typename TF, typename TV, typename TW>
+	template<typename geometry_type, typename TF, typename TV, typename TW>
 	static auto scatter(geometry_type const & geo, TF &f,
-			coordinates_type const & x, TV const &u,
+			typename geometry_type::coordinates_type const & x, TV const &u,
 			TW const &w) ->typename std::enable_if< (field_traits<TF >::iform==VERTEX)>::type
 	{
 
 		scatter_impl_(f, geo.coordinates_global_to_local<VERTEX>(x), u * w);
 	}
 
-	template<typename TF, typename TV, typename TW>
+	template<typename geometry_type, typename TF, typename TV, typename TW>
 	static auto scatter(geometry_type const & geo, TF &f,
-			coordinates_type const & x, TV const &u,
+			typename geometry_type::coordinates_type const & x, TV const &u,
 			TW const & w) ->typename std::enable_if< (field_traits<TF >::iform==EDGE)>::type
 	{
 		scatter_impl_(f, geo.coordinates_global_to_local<EDGE>(x, 0), u[0] * w);
@@ -151,9 +143,9 @@ public:
 
 	}
 
-	template<typename TF, typename TV, typename TW>
+	template<typename geometry_type, typename TF, typename TV, typename TW>
 	static auto scatter(geometry_type const & geo, TF &f,
-			coordinates_type const & x, TV const &u,
+			typename geometry_type::coordinates_type const & x, TV const &u,
 			TW const &w) ->typename std::enable_if< (field_traits<TF >::iform==FACE)>::type
 	{
 
@@ -162,53 +154,54 @@ public:
 		scatter_impl_(f, geo.coordinates_global_to_local<FACE>(x, 2), u[2] * w);
 	}
 
-	template<typename TF, typename TV, typename TW>
+	template<typename geometry_type, typename TF, typename TV, typename TW>
 	static auto scatter(geometry_type const & geo, TF &f,
-			coordinates_type const & x, TV const &u,
+			typename geometry_type::coordinates_type const & x, TV const &u,
 			TW const &w) ->typename std::enable_if< (field_traits<TF >::iform==VOLUME)>::type
 	{
-		scatter_impl_(f, geo.coordinates_global_to_local(x, topology_type::_DA),
+		scatter_impl_(f, geo.coordinates_global_to_local(x, geometry_type::_DA),
 				w);
 	}
-
-	template<typename TV>
+private:
+	template<typename geometry_type, typename TV>
 	static TV sample_(geometry_type const & geo,
 			std::integral_constant<size_t, VERTEX>, size_t s, TV const &v)
 	{
 		return v;
 	}
 
-	template<typename TV>
+	template<typename geometry_type, typename TV>
 	static TV sample_(geometry_type const & geo,
 			std::integral_constant<size_t, VOLUME>, size_t s, TV const &v)
 	{
 		return v;
 	}
 
-	template<typename TV>
+	template<typename geometry_type, typename TV>
 	static TV sample_(geometry_type const & geo,
 			std::integral_constant<size_t, EDGE>, size_t s,
 			nTuple<TV, 3> const &v)
 	{
-		return v[topology_type::node_id(s)];
+		return v[geometry_type::node_id(s)];
 	}
 
-	template<typename TV>
+	template<typename geometry_type, typename TV>
 	static TV sample_(geometry_type const & geo,
 			std::integral_constant<size_t, FACE>, size_t s,
 			nTuple<TV, 3> const &v)
 	{
-		return v[topology_type::node_id(s)];
+		return v[geometry_type::node_id(s)];
 	}
 
-	template<size_t IFORM, typename TV>
+	template<typename geometry_type, size_t IFORM, typename TV>
 	static TV sample_(geometry_type const & geo,
 			std::integral_constant<size_t, IFORM>, size_t s, TV const & v)
 	{
 		return v;
 	}
+public:
 
-	template<size_t IFORM, typename ...Args>
+	template<size_t IFORM, typename geometry_type, typename ...Args>
 	static auto sample(geometry_type const & geo, Args && ... args)
 	DECL_RET_TYPE((sample_(geo,std::integral_constant<size_t, IFORM>(),
 							std::forward<Args>(args)...)))

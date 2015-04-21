@@ -17,7 +17,7 @@ namespace simpla
 
 template<typename > class FiniteDiffMethod;
 template<typename > class InterpolatorLinear;
-
+template<typename, size_t> class Domain;
 /**
  *  \ingroup manifold
  *  \brief manifold
@@ -27,7 +27,7 @@ template<typename TG, // Geometric space, mesh
 		typename InterpolatorPlolicy = InterpolatorLinear<TG> // interpolation formula
 >
 class Manifold: public TG, public std::enable_shared_from_this<
-		Manifold<TG, CalculusPolicy, InterpolatorPlolicy>>
+						Manifold<TG, CalculusPolicy, InterpolatorPlolicy>>
 {
 public:
 	typedef Manifold<TG, CalculusPolicy, InterpolatorPlolicy> this_type;
@@ -48,8 +48,8 @@ public:
 	{
 	}
 
-	Manifold(this_type const & other) :
-			geometry_type(other)
+	Manifold(this_type const & other)
+			: geometry_type(other)
 	{
 	}
 
@@ -66,9 +66,10 @@ public:
 	}
 
 	template<size_t IFORM>
-	auto domain() const
-	DECL_RET_TYPE((Domain<this_type, IFORM>(*this)))
-
+	Domain<this_type, IFORM> domain() const
+	{
+		return Domain<this_type, IFORM>(*this);
+	}
 public:
 
 	template<typename ...Args>

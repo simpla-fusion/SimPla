@@ -44,22 +44,19 @@ public:
 	using field_value_type=typename std::conditional<(iform == VERTEX || iform == VOLUME),TV,nTuple<TV,3>>::type;
 
 private:
-	std::shared_ptr<const mesh_type> m_mesh_;
+	mesh_type const &m_mesh_;
 	range_type m_range_;
 	std::set<id_type> m_id_set_;
 public:
-	Domain() :
-			m_mesh_(nullptr)
-	{
-	}
-	Domain(mesh_type const &m) :
-			m_mesh_(m.shared_from_this())
+
+	Domain(mesh_type const &m)
+			: m_mesh_(m)
 	{
 		deploy();
 	}
 
-	Domain(this_type const & other) :
-			m_mesh_(other.m_mesh_), m_range_(other.m_range_),
+	Domain(this_type const & other)
+			: m_mesh_(other.m_mesh_), m_range_(other.m_range_),
 
 			m_hash_max_(other.m_hash_max_),
 
@@ -74,11 +71,15 @@ public:
 	}
 	bool is_valid() const
 	{
-		return !!m_mesh_;
+		return m_mesh_.is_valid();
 	}
 	mesh_type const & mesh() const
 	{
-		return *m_mesh_;
+		return m_mesh_;
+	}
+	bool is_empty() const
+	{
+		return range_type::is_empty() && m_id_set_.size() == 0;
 	}
 
 	this_type operator=(this_type const &other)
@@ -86,6 +87,7 @@ public:
 		this_type(other).swap(*this);
 		return *this;
 	}
+
 	void swap(this_type &other)
 	{
 		std::swap(m_range_, other.m_range_);
@@ -132,9 +134,9 @@ public:
 
 	void deploy()
 	{
-		m_hash_count_ = m_mesh_->m_index_local_dimensions_;
+		m_hash_count_ = m_mesh_.m_index_local_dimensions_;
 
-		m_hash_offset_ = m_mesh_->m_index_local_offset_;
+		m_hash_offset_ = m_mesh_.m_index_local_offset_;
 
 		int ndims_of_range =
 				(iform == VERTEX || iform == VOLUME) ? ndims : ndims + 1;
@@ -190,19 +192,15 @@ public:
 		return std::move(const_iterator(m_range_.end()));
 	}
 
-	bool is_empty() const
-	{
-		return range_type::is_empty();
-	}
-
-	struct iterator: public std::iterator<
-			typename range_type::iterator::iterator_category, id_type, id_type>,
-			public range_type::iterator
+	struct iterator:	public std::iterator<
+								typename range_type::iterator::iterator_category,
+								id_type, id_type>,
+						public range_type::iterator
 	{
 		typedef typename range_type::iterator base_iterator;
 
-		iterator(base_iterator const &other) :
-				base_iterator(other)
+		iterator(base_iterator const &other)
+				: base_iterator(other)
 		{
 		}
 
@@ -229,14 +227,13 @@ public:
 
 		int f_ndims = ndims;
 
-		f_dims = m_mesh_->m_index_dimensions_;
+		f_dims = m_mesh_.m_index_dimensions_;
 
-		f_offset = m_mesh_->m_index_offset_;
+		f_offset = m_mesh_.m_index_offset_;
 
-		f_count = m_mesh_->m_index_count_;
+		f_count = m_mesh_.m_index_count_;
 
-		f_ghost_width = m_mesh_->m_index_offset_
-				- m_mesh_->m_index_local_offset_;
+		f_ghost_width = m_mesh_.m_index_offset_ - m_mesh_.m_index_local_offset_;
 
 		if ((IFORM == EDGE || IFORM == FACE))
 		{
@@ -269,11 +266,11 @@ public:
 
 		int f_ndims = ndims;
 
-		f_dims = m_mesh_->m_index_local_dimensions_;
+		f_dims = m_mesh_.m_index_local_dimensions_;
 
-		f_count = m_mesh_->m_index_count_;
+		f_count = m_mesh_.m_index_count_;
 
-		f_offset = m_mesh_->m_index_offset_ - m_mesh_->m_index_local_offset_;
+		f_offset = m_mesh_.m_index_offset_ - m_mesh_.m_index_local_offset_;
 
 		f_ghost_width = f_offset;
 

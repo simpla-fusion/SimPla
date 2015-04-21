@@ -38,7 +38,6 @@ public:
 //
 //	typedef typename ids::coordinates_type coordinates_type;
 //	typedef typename ids::id_type id_type;
-	typedef std::shared_ptr<this_type> holder_type;
 
 	static constexpr size_t ndims = NDIMS;
 

@@ -40,16 +40,16 @@ public:
 	{
 	}
 	template<typename TF>
-	_Field(domain_type const& domain, TF const& fun) :
-			m_domain_(domain), m_fun_(fun)
+	_Field(domain_type const& domain, TF const& fun)
+			: m_domain_(domain), m_fun_(fun)
 	{
 	}
-	_Field(this_type const& other) :
-			m_domain_(other.m_domain_), m_fun_(other.m_fun_)
+	_Field(this_type const& other)
+			: m_domain_(other.m_domain_), m_fun_(other.m_fun_)
 	{
 	}
-	_Field(this_type && other) :
-			m_domain_(other.m_domain_), m_fun_(other.m_fun_)
+	_Field(this_type && other)
+			: m_domain_(other.m_domain_), m_fun_(other.m_fun_)
 	{
 	}
 	~_Field()
@@ -73,9 +73,9 @@ public:
 	{
 		Real t = m_domain_.mesh().time();
 
-		return m_domain_.mesh().template sample<iform>(
+		return m_domain_.mesh().template sample<iform>(s,
 				static_cast<field_value_type>(m_fun_(
-						m_domain_.mesh().coordinates(s), t)), s);
+						m_domain_.mesh().coordinates(s), t)));
 	}
 
 	field_value_type operator()(coordinates_type const& x, Real t) const

@@ -15,7 +15,7 @@ namespace simpla
 template<typename TPred, typename InOut>
 void filter(TPred const & pred, InOut *res)
 {
-	res->erase(std::remove_if(res->begin(), res->end(), pred), res->end());
+//	res->erase(std::remove_if(res->begin(), res->end(), pred), res->end());
 }
 template<typename TPred, typename IN, typename OUT>
 void filter(TPred const & pred, IN const & range, OUT *res)
@@ -165,7 +165,7 @@ void select_ids_on_polylines(TM const & mesh,
 
 }
 template<typename TDomain, typename TDict>
-TDomain filter_domain_by_config(TDomain const & domain, TDict const & dict)
+TDomain filter_by_config(TDomain const & domain, TDict const & dict)
 {
 	TDomain res(domain);
 
@@ -176,7 +176,7 @@ TDomain filter_domain_by_config(TDomain const & domain, TDict const & dict)
 	typedef typename mesh_type::id_type id_type;
 	typedef typename mesh_type::index_tuple index_tuple;
 	static constexpr size_t iform = domain_type::iform;
-	mesh_type & mesh = domain.mesh();
+	mesh_type const & mesh = domain.mesh();
 	auto & id_set = res.id_set();
 
 	if (dict.is_function())
@@ -192,7 +192,7 @@ TDomain filter_domain_by_config(TDomain const & domain, TDict const & dict)
 		}
 		else
 		{
-			filter(pred, domain.range(), &id_set);
+			filter(pred, domain, &id_set);
 		}
 	}
 	else if (dict["Polylines"])
@@ -218,23 +218,23 @@ TDomain filter_domain_by_config(TDomain const & domain, TDict const & dict)
 		}
 		else
 		{
-			filter(pred, domain.range(), &id_set);
+			filter(pred, domain, &id_set);
 		}
 	}
-	else if (dict["Rectangle"])
+	else if (dict["Box"])
 	{
 		std::vector<coordinates_type> points;
 
 		dict["Rectangle"].as(&points);
 
-		res.select(points[0], points[1]);
+//		res.select(points[0], points[1]);
 
 	}
-	else if (dict["Indics"])
+	else if (dict["Indices"])
 	{
 		std::vector<index_tuple> points;
 
-		dict["Indics"].as(&points);
+		dict["Indices"].as(&points);
 
 		for (auto const & i : points)
 		{
