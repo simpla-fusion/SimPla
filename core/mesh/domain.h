@@ -17,6 +17,7 @@
 
 #include "../gtl/iterator/sp_ntuple_range.h"
 #include "../gtl/ntuple.h"
+//#include "../model/select.h"
 #include "mesh_ids.h"
 
 namespace simpla
@@ -62,7 +63,7 @@ public:
 	Domain(mesh_type const &m, T0 const & b, T1 const & e)
 			: m_mesh_(m)
 	{
-		deploy(b, e);
+		reset_bound_box(b, e);
 	}
 
 	Domain(this_type const & other)
@@ -124,26 +125,9 @@ public:
 	}
 	void deploy()
 	{
-		deploy(m_mesh_.m_index_local_offset_,
+		reset_bound_box(m_mesh_.m_index_local_offset_,
 				m_mesh_.m_index_local_offset_
 						+ m_mesh_.m_index_local_dimensions_);
-	}
-	template<typename T0, typename T1>
-	void deploy(T0 const & b, T1 const & e)
-	{
-		typename range_type::value_type ib, ie;
-
-		ib = b;
-		ie = e;
-
-		if (iform == EDGE || iform == FACE)
-		{
-			ib[ndims] = 0;
-			ie[ndims] = 3;
-		}
-
-		range_type(ib, ie).swap(m_box_);
-
 	}
 
 	std::set<id_type> & id_set()
@@ -153,20 +137,6 @@ public:
 	std::set<id_type> const& id_set() const
 	{
 		return m_id_set_;
-	}
-
-	bool in_box(id_type s) const
-	{
-		return m_box_.in_bound(mesh().id_to_index(s));
-	}
-
-	void update_bound_box()
-	{
-		if (!is_simple())
-		{
-			// TODO find bound of indices,
-			//    and remove indices which are out of mesh
-		}
 	}
 
 	size_t max_hash() const
@@ -217,7 +187,7 @@ public:
 		{
 			for (auto const & s : d)
 			{
-				if (in_bound(s))
+				if (in_box(s))
 				{
 					fun(s);
 				}
@@ -238,11 +208,110 @@ public:
 
 	}
 
-	bool in_bound(id_type s) const
+	bool in_box(id_type s) const
 	{
 		return m_box_.in_bound(m_mesh_.template unpack<iform>(s));
 	}
 
+	void update_bound_box()
+	{
+		if (!is_simple())
+		{
+			// TODO find bound of indices,
+			//    and remove indices which are out of mesh
+		}
+	}
+
+	template<typename T0, typename T1>
+	void reset_bound_box(T0 const & b, T1 const & e)
+	{
+
+		typename range_type::value_type ib, ie;
+
+		ib = b;
+		ie = e;
+
+		if (iform == EDGE || iform == FACE)
+		{
+			ib[ndims] = 0;
+			ie[ndims] = 3;
+		}
+
+		range_type(ib, ie).swap(m_box_);
+
+	}
+
+	void reset_bound_box(coordinates_type const & b, coordinates_type const & e)
+	{
+		CHECK(m_mesh_.coordinates_to_index(b));
+		reset_bound_box(m_mesh_.coordinates_to_index(b),
+				m_mesh_.coordinates_to_index(e));
+	}
+
+	template<typename TPred>
+	void filter(TPred const& pred)
+	{
+		std::set<id_type> res;
+		if (is_simple())
+		{
+
+			std::copy_if(this->begin(), this->end(),
+					std::inserter(res, res.begin()), pred);
+
+		}
+		else
+		{
+			std::copy_if(m_id_set_.begin(), m_id_set_.end(),
+					std::inserter(res, res.begin()), pred);
+		}
+		res.swap(m_id_set_);
+		update_bound_box();
+	}
+
+	template<typename TDict>
+	void filter_by_config(TDict const & dict)
+	{
+
+		if (dict.is_function())
+		{
+			filter([&](id_type s)
+			{
+				return (dict(m_mesh_.coordinates(s)).template as<bool>());
+			});
+
+		}
+		else if (dict["Box"])
+		{
+			std::vector<coordinates_type> p;
+
+			dict["Box"].as(&p);
+
+			CHECK(p[0]);
+			CHECK(p[1]);
+
+			reset_bound_box(p[0], p[1]);
+
+		}
+		else if (dict["Indices"])
+		{
+			std::vector<nTuple<long, 4>> points;
+
+			dict["Indices"].as(&points);
+
+			for (auto const & idx : points)
+			{
+				if (m_box_.in_bound(idx))
+				{
+					m_id_set_.insert(m_mesh_.template pack<iform>(idx));
+				}
+			}
+		}
+//		else
+//		{
+//			filter(make_select_function_by_config<coordinates_type>(dict));
+//		}
+
+	}
 //	std::tuple<coordinates_type, coordinates_type> bound() const
 //	{
 //		return std::make_tuple(m_mesh_.coordinates(*m_box_.begin()),
@@ -421,6 +490,7 @@ template<typename T>
 auto domain(T const & obj)
 ENABLE_IF_DECL_RET_TYPE(
 		!_impl::has_member_function_domain<T>::value,full_domain())
+
 //template<typename ...>class Domain;
 //
 //template<size_t NDIMS, size_t INIFIT_AXIS>

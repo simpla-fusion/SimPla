@@ -15,8 +15,9 @@
 #include "field_function.h"
 namespace simpla
 {
-template<typename TM, typename TDict, typename TField>
-bool load_field(TM const & mesh, TDict const & dict, TField *f)
+
+template<typename TDict, typename TField>
+bool load_field(TDict const & dict, TField *f)
 {
 
 	if (!dict)
@@ -41,28 +42,17 @@ bool load_field(TM const & mesh, TDict const & dict, TField *f)
 
 	typedef typename field_type::value_type value_type;
 
-	*f = make_field_function<value_type>(
-			filter_by_config(mesh.template domain<field_type::iform>(),
-					dict["Domain"]), dict["Value"]);
+	typedef typename field_type::domain_type domain_type;
+
+	domain_type domain(f->domain());
+
+	domain.filter_by_config(dict["Domain"]);
+
+	*f = make_field_function<value_type>(domain, dict["Value"]);
 
 	f->sync();
 
 	return true;
-}
-
-template<size_t IFORM, typename TV, typename TM, typename TDict>
-_Field<Domain<TM, IFORM>, TV, _impl::is_function, TDict> //
-make_field_function_by_config(TM const & mesh, TDict const & dict)
-{
-	typedef TV value_type;
-	typedef Domain<TM, IFORM> domain_type;
-
-	typedef _Field<domain_type, value_type, _impl::is_function, TDict> field_type;
-
-	return field_type(
-			filter_by_config(mesh.template domain<field_type::iform>(),
-					dict["Domain"]), dict["Value"]);
-
 }
 //
 //template<typename TMesh, typename TDomain, typename TDict, typename TF>

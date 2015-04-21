@@ -152,16 +152,35 @@ public:
 		assign(other, _impl::plus_assign());
 		return *this;
 	}
-
+	template<typename Other>
+	inline this_type & operator-=(Other const &other)
+	{
+		assign(other, _impl::minus_assign());
+		return *this;
+	}
+	template<typename Other>
+	inline this_type & operator*=(Other const &other)
+	{
+		assign(other, _impl::multiplies_assign());
+		return *this;
+	}
+	template<typename Other>
+	inline this_type & operator/=(Other const &other)
+	{
+		assign(other, _impl::divides_assign());
+		return *this;
+	}
 	template<typename TOther, typename TOP>
 	void assign(TOther const & other, TOP const &op)
 	{
 
 		wait();
 
+		mesh_type const & m = mesh();
+
 		m_domain_.for_each(simpla::domain(other), [&](id_type const &s)
 		{
-			op(at(s), mesh().calculate(other, s));
+			op(at(s), m.calculate(other, s));
 		});
 
 	}

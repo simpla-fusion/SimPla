@@ -10,58 +10,56 @@
 #include <algorithm>
 
 #include "../numeric/point_in_polygon.h"
+
 namespace simpla
 {
-template<typename TPred, typename InOut>
-void filter(TPred const & pred, InOut *res)
+
+//template<typename TPred, typename InOut>
+//void filter(TPred const & pred, InOut *res)
+//{
+////	res->erase(std::remove_if(res->begin(), res->end(), pred), res->end());
+//}
+//template<typename TPred, typename IN, typename OUT>
+//void filter(TPred const & pred, IN const & range, OUT *res)
+//{
+//	for (auto s : range)
+//	{
+//		if (pred(s))
+//		{
+//			res->insert(s);
+//		}
+//	}
+////	std::copy_if(range.begin(), range.end(), std::inserter(*res, res->begin()),
+////			pred);
+//
+//}
+
+template<typename TCoord>
+void select_ids_in_rectangle(TCoord const & v0, TCoord const & v1)
 {
-//	res->erase(std::remove_if(res->begin(), res->end(), pred), res->end());
-}
-template<typename TPred, typename IN, typename OUT>
-void filter(TPred const & pred, IN const & range, OUT *res)
-{
-	for (auto s : range)
+
+	return [&](TCoord const &x)
 	{
-		if (pred(s))
-		{
-			res->insert(s);
-		}
-	}
-//	std::copy_if(range.begin(), range.end(), std::inserter(*res, res->begin()),
-//			pred);
-
-}
-
-template<typename TM, typename ...Args>
-void select_ids_in_rectangle(TM const& mesh,
-		typename TM::coordinates_type const & v0,
-		typename TM::coordinates_type const & v1, Args && ...args)
-{
-
-	filter([&](typename TM::id_type const &s)
-	{	CHECK(s);
-		auto x=mesh.coordinates(s);
-		CHECK(x);
 		return (((v0[0] - x[0]) * (x[0] - v1[0])) >= 0)
 		&& (((v0[1] - x[1]) * (x[1] - v1[1])) >= 0)
 		&& (((v0[2] - x[2]) * (x[2] - v1[2])) >= 0);
 
-	}, std::forward<Args>(args)...);
+	};
 
 }
 
-template<typename TM, typename ...Args>
-void select_ids_by_line_segment(TM const& mesh,
-		typename TM::coordinates_type const & x0,
-		typename TM::coordinates_type const & x1, Args && ...args)
+template<typename TCoord>
+void select_ids_by_line_segment(TCoord const & x0, TCoord const & x1,
+		TCoord const & dx)
 {
 
-	auto dx = mesh.dx();
-
 	Real dl = inner_product(dx, dx);
-	filter([&](typename TM::id_type const &s)
+
+	return
+
+	[&]( TCoord const & x)
 	{
-		auto x=mesh.coordinates(s);
+
 		Real l2 = inner_product(x1 - x0, x1 - x0);
 
 		Real t = inner_product(x - x0, x1 - x0) / l2;
@@ -77,38 +75,28 @@ void select_ids_by_line_segment(TM const& mesh,
 		{
 			return false;
 		}
-	}, std::forward<Args>(args) ...);
+	};
 
 }
-template<typename TM, typename ... Args>
-void select_ids_in_polylines(TM const & mesh,
-		std::vector<typename TM::coordinates_type>const & poly_lines, int ZAXIS,
-		Args && ... args)
+template<typename TCoord>
+std::function<bool(TCoord const &)> select_ids_in_polylines(
+		std::vector<TCoord>const & poly_lines, int ZAXIS, bool flag = true)
 {
 	PointInPolygon checkPointsInPolygen(poly_lines, ZAXIS);
 
-	filter([&](typename TM::id_type const &s)
-	{	return checkPointsInPolygen(mesh.coordinates(s));},
-			std::forward<Args>(args)...);
+	return [&](TCoord const &x)
+	{	return checkPointsInPolygen(x) == flag;};
 }
 
-template<typename TM, typename ...Args>
-void select_ids_on_polylines(TM const & mesh,
-		std::vector<typename TM::coordinates_type> const& g_points,
-		bool is_inner, Args && ...args)
+template<typename TCoord>
+void select_ids_on_polylines(std::vector<TCoord> const& g_points, int ZAXIS,
+		bool on_left = true)
 {
-	typedef typename TM::coordinates_type coordinates_type;
+	typedef TCoord coordinates_type;
 
 	std::vector<coordinates_type> points;
 
 	std::vector<coordinates_type> intersect_points;
-
-	std::transform(g_points.begin(), g_points.end(), std::back_inserter(points),
-			[&](coordinates_type const & x)
-			{
-				return x;
-				//mesh.coordinates_to_topology(x);
-			});
 
 	auto first = points.begin();
 
@@ -164,85 +152,40 @@ void select_ids_on_polylines(TM const & mesh,
 	}
 
 }
-template<typename TDomain, typename TDict>
-TDomain filter_by_config(TDomain const & domain, TDict const & dict)
+template<typename TCoord, typename TDict>
+std::function<bool(TCoord const &)> make_select_function_by_config(
+		TDict const & dict)
 {
-	TDomain res(domain);
+	typedef std::function<bool(TCoord const &)> function_type;
 
-	typedef TDomain domain_type;
-	typedef typename domain_type::mesh_type mesh_type;
-
-	typedef typename mesh_type::coordinates_type coordinates_type;
-	typedef typename mesh_type::id_type id_type;
-	typedef typename mesh_type::index_tuple index_tuple;
-	static constexpr size_t iform = domain_type::iform;
-	mesh_type const & mesh = domain.mesh();
-	auto & id_set = res.id_set();
-
-	if (dict.is_function())
+	if (dict["Polylines"])
 	{
-		auto pred = [&](id_type s)
-		{
-			return (dict(mesh.coordinates(s)).template as<bool>());
-		};
+		std::vector<TCoord> points;
 
-		if (id_set.size() > 0)
+		dict["Polylines"]["ZAXIS"].as(&points);
+
+		int ZAXIS = dict["PointInPolylines"]["ZAXIS"].template as<int>(2);
+
+		std::string place = dict["Polylines"]["Place"].template as<std::string>(
+				"InSide");
+		if (place == "InSide")
 		{
-			filter(pred, &id_set);
+			return select_ids_in_polylines(points, ZAXIS, true);
 		}
-		else
+		else if (place == "OutSide")
 		{
-			filter(pred, domain, &id_set);
+			return select_ids_in_polylines(points, ZAXIS, false);
 		}
-	}
-	else if (dict["Polylines"])
-	{
-		auto obj = dict["Polylines"];
-
-		int ZAXIS = 0;
-
-		std::vector<coordinates_type> points;
-
-		obj["Polylines"]["ZAXIS"].as(&ZAXIS);
-
-		obj["Polylines"]["Points"].as(&points);
-
-		PointInPolygon checkPointsInPolygen(points, ZAXIS);
-
-		auto pred = [&]( id_type const &s)
-		{	return checkPointsInPolygen(mesh.coordinates(s));};
-
-		if (id_set.size() > 0)
+		else if (place == "BoundaryLeft")
 		{
-			filter(pred, &id_set);
+			return select_ids_on_polylines(points, ZAXIS, true);
 		}
-		else
+		else if (place == "BoundaryRight")
 		{
-			filter(pred, domain, &id_set);
-		}
-	}
-	else if (dict["Box"])
-	{
-		std::vector<coordinates_type> points;
-
-		dict["Rectangle"].as(&points);
-
-//		res.select(points[0], points[1]);
-
-	}
-	else if (dict["Indices"])
-	{
-		std::vector<index_tuple> points;
-
-		dict["Indices"].as(&points);
-
-		for (auto const & i : points)
-		{
-			id_set.insert(mesh.template pack<iform>(i));
+			return select_ids_on_polylines(points, ZAXIS, false);
 		}
 	}
 
-	return std::move(res);
 }
 }
 // namespace simpla

@@ -78,10 +78,10 @@ USE_CASE(em," Maxwell Eqs.")
 
 	phi.clear();
 
-	VERBOSE_CMD(load_field(*mesh, options["InitValue"]["phi"], &phi));
-	VERBOSE_CMD(load_field(*mesh, options["InitValue"]["B"], &B));
-	VERBOSE_CMD(load_field(*mesh, options["InitValue"]["E"], &E));
-	VERBOSE_CMD(load_field(*mesh, options["InitValue"]["J"], &J));
+	VERBOSE_CMD(load_field(options["InitValue"]["phi"], &phi));
+	VERBOSE_CMD(load_field(options["InitValue"]["B"], &B));
+	VERBOSE_CMD(load_field(options["InitValue"]["E"], &E));
+	VERBOSE_CMD(load_field(options["InitValue"]["J"], &J));
 
 	auto E_src = make_field_function_by_config<EDGE, Real>(*mesh,
 			options["Constraint"]["E"]);
@@ -99,8 +99,6 @@ USE_CASE(em," Maxwell Eqs.")
 	LOGGER << "----------  Dump input ---------- " << std::endl;
 
 	cd("/Input/");
-
-
 
 	VERBOSE << SAVE(phi) << std::endl;
 //	VERBOSE << SAVE(E) << std::endl;

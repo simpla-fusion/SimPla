@@ -100,6 +100,24 @@ _Field<TDomain, TV, _impl::is_function, TFun> make_field_function(
 	return std::move(_Field<TDomain, TV, _impl::is_function, TFun>(domain, fun));
 }
 
+template<size_t IFORM, typename TV, typename TM, typename TDict>
+_Field<Domain<TM, IFORM>, TV, _impl::is_function, TDict> //
+make_field_function_by_config(TM const & mesh, TDict const & dict)
+{
+	typedef TV value_type;
+
+	typedef Domain<TM, IFORM> domain_type;
+
+	typedef _Field<domain_type, value_type, _impl::is_function, TDict> field_type;
+
+	domain_type domain = mesh.template domain<field_type::iform>();
+
+	domain.filter_by_config(dict["Domain"]);
+
+	return field_type(domain, dict["Value"]);
+
+}
+
 }
 // namespace simpla
 

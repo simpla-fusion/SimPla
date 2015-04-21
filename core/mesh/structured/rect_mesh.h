@@ -360,8 +360,13 @@ public:
 	template<size_t IFORM = 0>
 	inline id_type coordinates_to_id(coordinates_type const &x, int n = 0) const
 	{
-		return topology_type::coordinates_to_id<IFORM>(
+		return topology_type::template coordinates_to_id<IFORM>(
 				coordinates_to_topology(x), n);
+	}
+	template<size_t IFORM = VERTEX>
+	inline index_tuple coordinates_to_index(coordinates_type const &x) const
+	{
+		return topology_type::template unpack<IFORM>(coordinates_to_id(x));
 	}
 
 	coordinates_type coordinates_from_topology(coordinates_type const &y) const
