@@ -104,6 +104,9 @@ public:
 
 		std::fill(m_data_.get(), m_data_.get() + m_domain_.max_hash(), t);
 
+		sync();
+		wait();
+
 	}
 	template<typename T>
 	void fill(T const &v)
@@ -111,6 +114,10 @@ public:
 		wait();
 
 		std::fill(m_data_.get(), m_data_.get() + m_domain_.max_hash(), v);
+
+		sync();
+		wait();
+
 	}
 
 	/** @name range concept
@@ -196,7 +203,8 @@ public:
 		{
 			op(at(s), other[s]);
 		});
-
+		sync();
+		wait();
 	}
 
 public:
@@ -255,6 +263,7 @@ public:
 		{
 			fun(m_data_.get()[m_domain_.hash(s)]);
 		}
+
 	}
 
 	template<typename TFun>

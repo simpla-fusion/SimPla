@@ -51,7 +51,7 @@ bool load_field(TDict const & dict, TField *f)
 	*f = make_field_function<value_type>(domain, dict["Value"]);
 
 	f->sync();
-
+	f->wait();
 	return true;
 }
 //

@@ -32,7 +32,7 @@ NX = 10
 NY = 1
 NZ = 1
 LX = 10  --m --100000*rhoi --0.6
-LY = 15  --2.0*math.pi/k0
+LY = 10  --2.0*math.pi/k0
 LZ = 10  -- 2.0*math.pi/18
 GW = 5
 
@@ -44,7 +44,7 @@ xmin={0.0,0.0,0.0}
 
 xmax={LX,LY,LZ}
 
-dt= 0.5*LX/NX/c
+dt= 0.01*LX/NX/c
 
 --domain_center=function( x  )
 --   return (x[0]-0.5)*( x[0]-0.5 ) +( x[1]-0.5 )*( x[1]-0.5 ) < 0.01

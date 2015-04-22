@@ -48,8 +48,7 @@ void make_send_recv_list(int object_id, DataType const & datatype, int ndims,
 //		CHECK(item.recv_count);
 		res->emplace_back(
 
-				mpi_send_recv_s
-				{
+				mpi_send_recv_s {
 
 				dest,
 
@@ -190,6 +189,17 @@ void make_send_recv_list(int object_id, DataType const & datatype, int ndims,
 //	sync_update_continue(s_r_list, dset->data.get(), requests);
 //}
 
+void wait_all_request(std::vector<MPI_Request> *requests)
+{
+	if (requests != nullptr && requests->size() > 0)
+	{
+		MPI_ERROR(MPI_Waitall( requests->size(), //
+				const_cast<MPI_Request*>(&(*requests)[0]),//
+				MPI_STATUSES_IGNORE));
+		requests->clear();
+	}
+}
+
 void sync_update_continue(std::vector<mpi_send_recv_s> const & send_recv_list,
 		void * data, std::vector<MPI_Request> *requests)
 {
@@ -227,9 +237,8 @@ void sync_update_continue(std::vector<mpi_send_recv_s> const & send_recv_list,
 
 	if (!is_async)
 	{
+		wait_all_request(requests);
 
-		MPI_ERROR(
-				MPI_Waitall(requests->size(), &(*requests)[0], MPI_STATUSES_IGNORE));
 		delete requests;
 	}
 
@@ -300,7 +309,7 @@ void sync_update_varlength(
 
 	if (!is_async)
 	{
-		MPI_Waitall(requests->size(), &(*requests)[0], MPI_STATUSES_IGNORE);
+		wait_all_request(requests);
 		delete requests;
 	}
 

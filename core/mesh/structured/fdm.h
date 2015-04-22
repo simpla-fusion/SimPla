@@ -119,7 +119,7 @@ public:
 	}
 
 	template<typename geometry_type,typename T>
-	static inline typename field_traits<_Field<_impl::ExteriorDerivative< EDGE,T> >>::value_type
+	static inline typename field_traits<_Field<_impl::ExteriorDerivative<EDGE,T> >>::value_type
 	calculate(geometry_type const & geo,_Field<_impl::ExteriorDerivative<EDGE,T> > const & expr, typename geometry_type::id_type s)
 	{
 

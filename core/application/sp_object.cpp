@@ -65,8 +65,9 @@ void SpObject::sync()
 {
 	if (m_send_recv_list_.size() > 0)
 	{
-		sync_update_continue(m_send_recv_list_, dataset().data.get(),
-				&(m_mpi_requests_));
+		sync_update_continue(m_send_recv_list_, dataset().data.get()
+//				, &(m_mpi_requests_)
+				);
 	}
 }
 
@@ -78,15 +79,7 @@ void SpObject::wait()
 		deploy();
 	}
 
-	if (m_mpi_requests_.size() > 0)
-	{
-
-		MPI_ERROR(MPI_Waitall( m_mpi_requests_.size(), //
-				const_cast<MPI_Request*>(&m_mpi_requests_[0]),//
-				MPI_STATUSES_IGNORE));
-
-		m_mpi_requests_.clear();
-	}
+	wait_all_request(&m_mpi_requests_);
 }
 
 std::ostream &SpObject::print(std::ostream & os) const

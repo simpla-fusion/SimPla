@@ -123,6 +123,7 @@ USE_CASE(em," Maxwell Eqs.")
 		LOG_CMD(E += (curl(B) / mu0 - J) / epsilon0 * dt);
 		LOG_CMD(B += -curl(E) * dt);
 
+		VERBOSE << SAVE_RECORD(J) << endl;
 		VERBOSE << SAVE_RECORD(E) << endl;
 		VERBOSE << SAVE_RECORD(B) << endl;
 

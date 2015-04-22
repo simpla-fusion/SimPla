@@ -317,16 +317,19 @@ public:
 
 	constexpr Real volume(id_type s) const
 	{
+
 		return m_volume_[topology_type::node_id(s)]
-				* coordinates_system::volume_factor(coordinates(s),
-						topology_type::node_id(s));
+		 		* coordinates_system::volume_factor(coordinates(s),
+						topology_type::node_id(s))
+		;
 	}
 
 	constexpr Real dual_volume(id_type s) const
 	{
 		return m_dual_volume_[topology_type::node_id(s)]
 				* coordinates_system::dual_volume_factor(coordinates(s),
-						topology_type::node_id(s));;
+						topology_type::node_id(s))
+		;
 	}
 
 	constexpr Real cell_volume(id_type s) const
@@ -338,14 +341,16 @@ public:
 	{
 		return m_inv_volume_[topology_type::node_id(s)]
 				* coordinates_system::inv_volume_factor(coordinates(s),
-						topology_type::node_id(s));
+						topology_type::node_id(s))
+		;
 	}
 
 	constexpr Real inv_dual_volume(id_type s) const
 	{
 		return m_inv_dual_volume_[topology_type::node_id(s)]
 				* coordinates_system::inv_dual_volume_factor(coordinates(s),
-						topology_type::node_id(s));
+						topology_type::node_id(s))
+		;
 	}
 	/**@}*/
 
@@ -658,6 +663,8 @@ void RectMesh<TTopology, Polices...>::deploy(size_t const *gw)
 //	 *
 //	 *\endverbatim
 //	 */
+
+	m_volume_[0] = 1.0;
 //
 //	m_volume_[1] /* 001 */= m_dx_[0];
 //	m_volume_[2] /* 010 */= m_dx_[1];
@@ -704,6 +711,15 @@ void RectMesh<TTopology, Polices...>::deploy(size_t const *gw)
 	m_inv_dual_volume_[0] /* 111 */= m_inv_dual_volume_[6]
 			* m_inv_dual_volume_[5] * m_inv_dual_volume_[3];
 
+//	CHECK(m_volume_[0]);
+//	CHECK(m_volume_[1]);
+//	CHECK(m_volume_[2]);
+//	CHECK(m_volume_[4]);
+//
+//	CHECK(m_inv_volume_[0]);
+//	CHECK(m_inv_volume_[1]);
+//	CHECK(m_inv_volume_[2]);
+//	CHECK(m_inv_volume_[4]);
 	/**
 	 * Decompose
 	 */
