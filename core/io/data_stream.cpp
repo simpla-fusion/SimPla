@@ -130,7 +130,7 @@ std::string DataStream::init(int argc, char** argv)
 	VERBOSE << "DataSteream is initialized!" << pimpl_->current_filename_
 			<< std::endl;
 
-	return "\t -o,--prefix <STRING>   \t, output file path \n";
+	return "\t-o,\t--prefix <STRING>   \t, output file path \n";
 
 }
 

@@ -48,23 +48,38 @@ int main(int argc, char **argv)
 	else if (options["h"] || options["help"])
 	{
 
-		MESSAGE << " Usage: " << argv[0]
-				<< " --case <id of use case>  <options> ..." << endl << endl;
+		MESSAGE
 
-		MESSAGE << " Use case list:" << std::endl;
+		<< " Usage: " << argv[0] << "   <options> ..." << endl << endl;
+
+		MESSAGE
+
+		<< " Options:" << endl
+
+				<<
+
+				"\t -h,\t--help            \t, Print a usage message and exit.\n"
+						"\t -v,\t--version         \t, Print version informaion exit. \n"
+						"\t -g,\t--generator       \t, Generates a demo configure file \n"
+						"\t--case <id of use case> \t, Select case <id> \n "
+
+				<< help_message;
+
+		MESSAGE
+
+		<< " Use case list:" << endl
+
+		<< "             ID     | Description " << endl
+
+		<< "--------------------|-------------------------------------" << endl;
 
 		for (auto const & item : applist)
 		{
-			MESSAGE << "\t" << item.first << "\t:" << item.second->description()
-					<< std::endl;
+
+			MESSAGE << std::setw(19) << std::right << item.first << " |"
+					<< item.second->description() << endl;
 		}
 
-		MESSAGE << " Options:" << endl
-
-		<< "\t -h \t, Print help information \n"
-				"\t -v,--version \t, Print version \n"
-				"\t -g,--generator\t, Generates  demo configure file \n"
-		<< help_message;
 		TheEnd(0);
 		return TERMINATE;
 

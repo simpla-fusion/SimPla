@@ -68,8 +68,6 @@ std::string MPIComm::pimpl_s::init(int argc, char** argv)
 
 	set_topology(m_num_process_, 1, 1);
 
-	bool show_help = false;
-
 	parse_cmd_line(argc, argv,
 
 	[&](std::string const & opt,std::string const & value)->int
@@ -87,11 +85,6 @@ std::string MPIComm::pimpl_s::init(int argc, char** argv)
 
 			set_topology(d[0], d[1], d[2]);
 		}
-		else if( opt=="h" || opt=="help")
-		{
-			show_help=true;
-			return TERMINATE;
-		}
 
 		return CONTINUE;
 
@@ -101,8 +94,8 @@ std::string MPIComm::pimpl_s::init(int argc, char** argv)
 
 	VERBOSE << "MPI communicator is initialized!" << std::endl;
 
-	return "\t --number_of_threads <NUMBER>  \t, number of threads \n"
-			"\t --mpi_topology <NX NY NZ>     \t, set communicator's topology \n";
+	return "\t--number_of_threads <NUMBER>  \t, Number of threads \n"
+			"\t--mpi_topology <NX NY NZ>    \t, Set topology of mpi communicator. \n";
 
 }
 

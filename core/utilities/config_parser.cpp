@@ -20,8 +20,11 @@ ConfigParser::ConfigParser()
 ConfigParser::~ConfigParser()
 {
 }
-std::string ConfigParser::init(int argc, char ** argv)
+std::string ConfigParser::init(int pargc, char ** pargv)
 {
+	argc = pargc;
+	argv = pargv;
+
 	m_lua_object_.init();
 
 	std::string lua_file("");
@@ -75,9 +78,9 @@ std::string ConfigParser::init(int argc, char ** argv)
 				<< std::endl;
 	}
 
-	return "\t -i,--input <STRING> 	\t,  input configure file \n"
-			"\t --prologue <STRING>	\t,  execute Lua script before confingure file is load\n"
-			"\t -e,--epilogue <STRING> \t,  execute Lua script after confingure file is load\n";
+	return "\t-i,\t--input <STRING>       \t, Input configure file \n"
+			"\t-p,--prologue <STRING>     \t, Execute Lua script before confingure file is load\n"
+			"\t-e,\t--epilogue <STRING>   \t, Execute Lua script after confingure file is load\n";
 
 }
 }  // namespace simpla

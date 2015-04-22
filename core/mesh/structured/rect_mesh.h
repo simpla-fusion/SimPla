@@ -602,7 +602,7 @@ void RectMesh<TTopology, Polices...>::deploy(size_t const *gw)
 
 	if (m_dt_ > safe_dt)
 	{
-		WARNING << ("  Courant–Friedrichs–Lewy (CFL) !") << std::endl;
+		LOGGER << ("  Courant–Friedrichs–Lewy (CFL) !") << std::endl;
 	}
 
 	/**

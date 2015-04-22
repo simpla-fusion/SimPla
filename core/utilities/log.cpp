@@ -98,7 +98,7 @@ std::string LoggerStreams::init(int argc, char** argv)
 		{
 			this->open_file (value);
 		}
-		else if(opt=="v" || opt=="verbose")
+		else if(opt=="V" || opt=="verbose")
 		{
 			this->set_stdout_visable_level(string_to_value<int>(value));
 		}
@@ -120,7 +120,7 @@ std::string LoggerStreams::init(int argc, char** argv)
 
 	VERBOSE << "LoggerStream is initialized!" << std::endl;
 
-	return "\t -v,--verbose <NUM> \t,  Verbose mode\n";
+	return "\t-V,\t--verbose <NUM> \t, Verbose mode\n";
 
 }
 void LoggerStreams::close()
@@ -186,7 +186,6 @@ void LoggerStreams::put(int level, std::string const & msg)
 	// @bug  can not write SimPla log to file
 
 	fs << std::endl << prefix << msg << surfix;
-	;
 
 	if (level <= std_out_visable_level_)
 	{

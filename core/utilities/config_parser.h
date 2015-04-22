@@ -21,12 +21,14 @@ namespace simpla
  */
 struct ConfigParser
 {
+	int argc;
+	char ** argv;
 
 	ConfigParser();
 
 	~ConfigParser();
 
-	std::string init(int argc, char** argv);
+	std::string init(int argc, char ** argv);
 
 	struct DictObject: public LuaObject
 	{
