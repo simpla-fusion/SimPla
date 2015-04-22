@@ -73,71 +73,71 @@ USE_CASE(em," Maxwell Eqs.")
 
 	// Load initialize value
 	auto phi = make_form<VERTEX, Real>(mesh);
-	auto J = make_form<EDGE, Real>(mesh);
-	auto E = make_form<EDGE, Real>(mesh);
-	auto B = make_form<FACE, Real>(mesh);
+//	auto J = make_form<EDGE, Real>(mesh);
+//	auto E = make_form<EDGE, Real>(mesh);
+//	auto B = make_form<FACE, Real>(mesh);
 
-	phi.clear();
+	phi = GLOBAL_COMM.process_num();
 
-	VERBOSE_CMD(load_field(options["InitValue"]["phi"], &phi));
+//	VERBOSE_CMD(load_field(options["InitValue"]["phi"], &phi));
 //	VERBOSE_CMD(load_field(options["InitValue"]["B"], &B));
 //	VERBOSE_CMD(load_field(options["InitValue"]["E"], &E));
 //	VERBOSE_CMD(load_field(options["InitValue"]["J"], &J));
-
-//	CHECK(MeshIDs::unpack<VERTEX>(MeshIDs::pack<VERTEX>(1, 2, 3)));
-
-//	auto E_src = make_field_function_by_config<EDGE, Real>(*mesh,
-//			options["Constraint"]["E"]);
 //
 //	auto J_src = make_field_function_by_config<EDGE, Real>(*mesh,
 //			options["Constraint"]["J"]);
 //
 //	auto B_src = make_field_function_by_config<FACE, Real>(*mesh,
 //			options["Constraint"]["B"]);
+//
+//
+//	auto E_src = make_field_function_by_config<EDGE, Real>(*mesh,
+//			options["Constraint"]["E"]);
+
 ////	auto J_src = make_constraint<decltype(J)>(J.mesh(),
 ////			options["Constraint"]["J"]);
 ////	auto B_src = make_constraint<decltype(B)>(B.mesh(),
 ////			options["Constraint"]["B"]);
 //
-//	LOGGER << "----------  Dump input ---------- " << std::endl;
+	LOGGER << "----------  Dump input ---------- " << std::endl;
+
+	cd("/Input/");
+
+	VERBOSE << SAVE(phi) << std::endl;
+//	VERBOSE << SAVE(E) << std::endl;
+//	VERBOSE << SAVE(B) << std::endl;
+//	VERBOSE << SAVE(J) << std::endl;
 //
-//	cd("/Input/");
+//	if (options["JUST_A_TEST"])
+//	{
+//		LOGGER << " Just test configuration!" << std::endl;
+//	}
+//	else
+//	{
+//	LOGGER << "----------  START ---------- " << std::endl;
 //
-//	VERBOSE << SAVE(phi) << std::endl;
-////	VERBOSE << SAVE(E) << std::endl;
-////	VERBOSE << SAVE(B) << std::endl;
-////	VERBOSE << SAVE(J) << std::endl;
-////
-////	if (options["JUST_A_TEST"])
-////	{
-////		LOGGER << " Just test configuration!" << std::endl;
-////	}
-////	else
-////	{
-////	LOGGER << "----------  START ---------- " << std::endl;
-////
 //	cd("/Save/");
 //	for (size_t step = 0; step < num_of_steps; ++step)
 //	{
 //		VERBOSE << "Step [" << step << "/" << num_of_steps << "]" << std::endl;
 //
 //		E += E_src;
-////		J += J_src;
-////		B += B_src;
-////		E = curl(B) * dt - J;
-////		B = -curl(E) * dt;
+//		J += J_src;
+//		B += B_src;
+//		E = curl(B) * dt - J;
+//		B = -curl(E) * dt;
 //
-////		VERBOSE << SAVE_RECORD(E) << std::endl;
-////		VERBOSE << SAVE_APPEND(B) << std::endl;
-////
+//		VERBOSE << SAVE_RECORD(E) << std::endl;
+//		VERBOSE << SAVE_APPEND(B) << std::endl;
+//
 //	}
-//////	}
-////	cd("/Output/");
-////	VERBOSE << SAVE(E) << std::endl;
-////	VERBOSE << SAVE(B) << std::endl;
-////	VERBOSE << SAVE(J) << std::endl;
-////
-////	LOGGER << "----------  DONE ---------- " << std::endl;
+////	}
+//	cd("/Output/");
+//	VERBOSE << SAVE(E) << std::endl;
+//	VERBOSE << SAVE(B) << std::endl;
+//	VERBOSE << SAVE(J) << std::endl;
+//
+//	LOGGER << "----------  DONE ---------- " << std::endl;
 
 }
 

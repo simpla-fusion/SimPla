@@ -142,7 +142,8 @@ public:
 	{
 	}
 
-	RectMesh(this_type const & other) :
+	RectMesh(this_type const & other)
+			:
 
 			m_index_dimensions_(other.m_index_dimensions_),
 
@@ -465,6 +466,9 @@ public:
 		nTuple<index_type, ndims + 1> f_count;
 		nTuple<index_type, ndims + 1> f_ghost_width;
 
+		nTuple<index_type, ndims + 1> f_local_dims;
+		nTuple<index_type, ndims + 1> f_local_offset;
+
 		int f_ndims = ndims;
 
 		f_dims = m_index_dimensions_;
@@ -473,7 +477,9 @@ public:
 
 		f_count = m_index_count_;
 
-		f_ghost_width = m_index_offset_ - m_index_local_offset_;
+		f_local_dims = m_index_local_dimensions_;
+
+		f_local_offset = m_index_local_offset_;
 
 		if ((IFORM == EDGE || IFORM == FACE))
 		{
@@ -481,9 +487,9 @@ public:
 			f_dims[ndims] = 3;
 			f_offset[ndims] = 0;
 			f_count[ndims] = 3;
+			f_local_dims[ndims] = 3;
+			f_local_offset[ndims] = 0;
 		}
-
-		f_ghost_width[ndims] = 0;
 
 		DataSpace res(f_ndims, &(f_dims[0]));
 
@@ -491,7 +497,7 @@ public:
 
 		.select_hyperslab(&f_offset[0], nullptr, &f_count[0], nullptr)
 
-		.convert_to_local(&f_ghost_width[0]);
+		.set_local_shape(&f_local_dims[0], &f_local_offset[0]);
 
 		return std::move(res);
 

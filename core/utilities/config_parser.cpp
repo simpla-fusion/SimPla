@@ -20,18 +20,13 @@ ConfigParser::ConfigParser()
 ConfigParser::~ConfigParser()
 {
 }
-void ConfigParser::init(int argc, char ** argv)
+std::string ConfigParser::init(int argc, char ** argv)
 {
 	m_lua_object_.init();
 
-	if (argc <= 1)
-	{
-		m_kv_map_["SHOW_HELP"] = "true";
-	}
-
 	std::string lua_file("");
-
-	std::string lua_cmd = "";
+	std::string lua_prologue = "";
+	std::string lua_epilogue = "";
 
 	simpla::parse_cmd_line(argc, argv,
 			[&](std::string const & opt,std::string const & value)->int
@@ -40,46 +35,49 @@ void ConfigParser::init(int argc, char ** argv)
 				{
 					lua_file=value;
 				}
-				else if(opt=="e"|| opt=="execute")
+
+				else if(opt=="prologue" )
 				{
-					lua_cmd=value;
+					lua_epilogue=value;
 				}
-				else if (opt=="t"|| opt=="test")
+				else if(opt=="e"|| opt=="execute"|| opt=="epilogue")
 				{
-					m_kv_map_["JUST_A_TEST"] = "true";
-
-					return TERMINATE;
+					lua_epilogue=value;
 				}
-				else if (opt=="h"|| opt=="help")
+				else if(opt=="i"||opt=="input")
 				{
-					SHOW_OPTIONS("-t,--test","only test configure file");
-					SHOW_OPTIONS("-i,--input <STRING>","input configure file");
-					SHOW_OPTIONS("-e,--execute <STRING>","execute Lua script as configuration");
-
-					m_kv_map_["JUST_A_TEST"] = "true";
-					m_kv_map_["SHOW_HELP"] = "true";
-
-					return TERMINATE;
+					lua_file=value;
 				}
 				else
 				{
-					m_kv_map_[opt]=value;
+					if(value=="")
+					{	m_kv_map_[opt]="true";}
+					else
+					{
+						m_kv_map_[opt]=value;
+
+					}
+
 				}
 				return CONTINUE;
-
 			}
 
 			);
+	try
+	{
+		m_lua_object_.parse_string(lua_prologue);
+		m_lua_object_.parse_file(lua_file);
+		m_lua_object_.parse_string(lua_epilogue);
 
-	m_lua_object_.parse_file(lua_file);
+	} catch (...)
+	{
+		WARNING << "Can not load configure file:[" << lua_file << "]"
+				<< std::endl;
+	}
 
-//	} catch (...)
-//	{
-//		WARNING << "Can not load configure file:[" << lua_file << "]"
-//				<< std::endl;
-//	}
-
-	m_lua_object_.parse_string(lua_cmd);
+	return "\t -i,--input <STRING> 	\t,  input configure file \n"
+			"\t --prologue <STRING>	\t,  execute Lua script before confingure file is load\n"
+			"\t -e,--epilogue <STRING> \t,  execute Lua script after confingure file is load\n";
 
 }
 }  // namespace simpla

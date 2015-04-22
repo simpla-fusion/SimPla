@@ -32,7 +32,8 @@
 namespace simpla
 {
 
-void init_parallel(int argc, char ** argv);
+std::string init_parallel(int argc, char ** argv);
+
 void close_parallel();
 
 }  // namespace simpla

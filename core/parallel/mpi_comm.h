@@ -38,7 +38,7 @@ public:
 
 	~MPIComm();
 
-	void init(int argc = 0, char** argv = nullptr);
+	std::string init(int argc = 0, char** argv = nullptr);
 
 	void close();
 

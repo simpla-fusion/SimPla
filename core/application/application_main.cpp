@@ -25,15 +25,19 @@ int main(int argc, char **argv)
 {
 	using namespace simpla;
 
-	init_logger(argc, argv);
-	init_parallel(argc, argv);
-	init_io(argc, argv);
+	std::string help_message;
+
+	help_message += init_logger(argc, argv);
+	help_message += init_parallel(argc, argv);
+	help_message += init_io(argc, argv);
 
 	ConfigParser options;
-	options.init(argc, argv);
+	SpAppList & applist = SingletonHolder<SpAppList>::instance();
 
-	bool no_logo = false;
-	bool show_help = false;
+	help_message += options.init(argc, argv);
+
+	if (GLOBAL_COMM.process_num() == 0)
+	{	MESSAGE << ShowCopyRight() << endl;}
 
 	if (options["V"] || options["version"])
 	{
@@ -43,17 +47,7 @@ int main(int argc, char **argv)
 	}
 	else if (options["h"] || options["help"])
 	{
-		show_help = true;
-	}
 
-	SpAppList & applist = SingletonHolder<SpAppList>::instance();
-
-	if (GLOBAL_COMM.process_num() == 0)
-
-	MESSAGE << ShowCopyRight() << endl;
-
-	if (options["SHOW_HELP"])
-	{
 		MESSAGE << " Usage: " << argv[0]
 				<< " --case <id of use case>  <options> ..." << endl << endl;
 
@@ -65,11 +59,15 @@ int main(int argc, char **argv)
 					<< std::endl;
 		}
 
-		MESSAGE << " Options:" << endl;
+		MESSAGE << " Options:" << endl
 
-		SHOW_OPTIONS("-h", "Print help information");
-		SHOW_OPTIONS("-v,--version", "Print version");
-		SHOW_OPTIONS("-g,--generator", "Generates  demo configure file");
+		<< "\t -h \t, Print help information \n"
+				"\t -v,--version \t, Print version \n"
+				"\t -g,--generator\t, Generates  demo configure file \n"
+		<< help_message;
+		TheEnd(0);
+		return TERMINATE;
+
 	}
 
 	auto item = applist.begin();

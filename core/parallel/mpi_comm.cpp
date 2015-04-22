@@ -35,13 +35,13 @@ struct MPIComm::pimpl_s
 
 	MPI_Comm m_comm_;
 
-	void init(int argc, char** argv);
+	std::string init(int argc, char** argv);
 
 	int get_neighbour(int disp_i, int disp_j = 0, int disp_k = 0) const;
 
 	nTuple<int, m_ndims_> get_coordinate(int rank) const;
 
-	void topology(int nx, int ny, int nz);
+	void set_topology(int nx, int ny, int nz);
 
 	void decompose(int ndims, size_t *count, size_t * offset) const;
 
@@ -50,7 +50,7 @@ struct MPIComm::pimpl_s
 
 };
 
-void MPIComm::pimpl_s::init(int argc, char** argv)
+std::string MPIComm::pimpl_s::init(int argc, char** argv)
 {
 
 	m_comm_ = MPI_COMM_WORLD;
@@ -66,7 +66,7 @@ void MPIComm::pimpl_s::init(int argc, char** argv)
 
 	LOGGER.set_mpi_comm(m_process_num_, m_num_process_);
 
-	topology(m_num_process_, 1, 1);
+	set_topology(m_num_process_, 1, 1);
 
 	bool show_help = false;
 
@@ -74,6 +74,7 @@ void MPIComm::pimpl_s::init(int argc, char** argv)
 
 	[&](std::string const & opt,std::string const & value)->int
 	{
+
 		if( opt=="number_of_threads")
 		{
 //			string_to_value(value,&m_num_threads_);
@@ -84,7 +85,7 @@ void MPIComm::pimpl_s::init(int argc, char** argv)
 
 			string_to_value(value,&d);
 
-			topology(d[0], d[1], d[2]);
+			set_topology(d[0], d[1], d[2]);
 		}
 		else if( opt=="h" || opt=="help")
 		{
@@ -98,15 +99,11 @@ void MPIComm::pimpl_s::init(int argc, char** argv)
 
 	);
 
-	if (show_help)
-	{
-		SHOW_OPTIONS("--number_of_threads <NUMBER>", "number of threads");
-		SHOW_OPTIONS("--mpi_topology <NX NY NZ>",
-				" set communicator's topology");
-		return;
-	}
-
 	VERBOSE << "MPI communicator is initialized!" << std::endl;
+
+	return "\t --number_of_threads <NUMBER>  \t, number of threads \n"
+			"\t --mpi_topology <NX NY NZ>     \t, set communicator's topology \n";
+
 }
 
 int MPIComm::pimpl_s::generate_object_id()
@@ -147,7 +144,7 @@ void MPIComm::pimpl_s::decompose(int ndims, size_t * p_count,
 	}
 
 }
-void MPIComm::pimpl_s::topology(int nx, int ny, int nz)
+void MPIComm::pimpl_s::set_topology(int nx, int ny, int nz)
 {
 
 	if (nx * ny * nz != m_num_process_)
@@ -255,20 +252,20 @@ int MPIComm::num_of_process() const
 		return pimpl_->m_num_process_;
 	}
 }
-void MPIComm::init(int argc, char** argv)
+std::string MPIComm::init(int argc, char** argv)
 {
 	if (!pimpl_)
 	{
 		pimpl_ = std::unique_ptr<pimpl_s>(new pimpl_s);
 	}
-	pimpl_->init(argc, argv);
+	return pimpl_->init(argc, argv);
 }
 
 void MPIComm::topology(int nx, int ny, int nz)
 {
 	if (!!pimpl_)
 	{
-		pimpl_->topology(nx, ny, nz);
+		pimpl_->set_topology(nx, ny, nz);
 	}
 }
 

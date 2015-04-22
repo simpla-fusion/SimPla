@@ -41,8 +41,8 @@ struct DataSpace::pimpl_s
 
 	data_shape_s m_d_shape_;
 
-	index_tuple m_memory_dimensions_;
-	index_tuple m_memory_offset_;
+	index_tuple m_local_dimensions_;
+	index_tuple m_local_offset_;
 
 };
 
@@ -64,8 +64,8 @@ DataSpace::DataSpace(int ndims, index_type const * dims)
 	pimpl_->m_d_shape_.stride = 1;
 	pimpl_->m_d_shape_.block = 1;
 
-	pimpl_->m_memory_dimensions_ = dims;
-	pimpl_->m_memory_offset_ = 0;
+	pimpl_->m_local_dimensions_ = dims;
+	pimpl_->m_local_offset_ = 0;
 
 }
 DataSpace::DataSpace(const DataSpace& other)
@@ -82,8 +82,8 @@ DataSpace::DataSpace(const DataSpace& other)
 		pimpl_->m_d_shape_.stride = other.pimpl_->m_d_shape_.stride;
 		pimpl_->m_d_shape_.block = other.pimpl_->m_d_shape_.block;
 
-		pimpl_->m_memory_dimensions_ = other.pimpl_->m_memory_dimensions_;
-		pimpl_->m_memory_offset_ = other.pimpl_->m_memory_offset_;
+		pimpl_->m_local_dimensions_ = other.pimpl_->m_local_dimensions_;
+		pimpl_->m_local_offset_ = other.pimpl_->m_local_offset_;
 	}
 
 }
@@ -110,14 +110,18 @@ bool DataSpace::is_valid() const
 {
 	return !!(pimpl_);
 }
-
 DataSpace::data_shape_s DataSpace::shape() const
+{
+	return global_shape();
+}
+DataSpace::data_shape_s DataSpace::local_shape() const
 {
 
 	data_shape_s res = pimpl_->m_d_shape_;
 
-	res.dimensions = pimpl_->m_memory_dimensions_;
-	res.offset = pimpl_->m_memory_offset_;
+	res.dimensions = pimpl_->m_local_dimensions_;
+
+	res.offset = pimpl_->m_d_shape_.offset - pimpl_->m_local_offset_;
 
 	return std::move(res);
 }
@@ -139,7 +143,6 @@ DataSpace & DataSpace::select_hyperslab(index_type const * offset,
 	if (offset != nullptr)
 	{
 		pimpl_->m_d_shape_.offset += offset;
-		pimpl_->m_memory_offset_ += offset;
 	}
 	if (count != nullptr)
 	{
@@ -159,19 +162,29 @@ DataSpace & DataSpace::select_hyperslab(index_type const * offset,
 
 }
 
-DataSpace & DataSpace::convert_to_local(index_type const * gw)
+DataSpace & DataSpace::set_local_shape(index_type const *local_dimensions =
+		nullptr, index_type const *local_offset = nullptr)
 {
 
-	pimpl_->m_memory_dimensions_ = pimpl_->m_d_shape_.count;
-	pimpl_->m_memory_offset_ = 0;
-	pimpl_->m_d_shape_.stride = pimpl_->m_d_shape_.block;
-
-	if (gw != nullptr)
+	if (local_offset != nullptr)
 	{
-		pimpl_->m_memory_offset_ = gw;
-		pimpl_->m_memory_dimensions_ += pimpl_->m_memory_offset_ * 2;
+		pimpl_->m_local_offset_ = local_offset;
+
+	}
+	else
+	{
+		pimpl_->m_local_offset_ = pimpl_->m_d_shape_.offset;
+
 	}
 
+	if (local_dimensions != nullptr)
+	{
+		pimpl_->m_local_dimensions_ = local_dimensions;
+	}
+	else
+	{
+		pimpl_->m_local_dimensions_ = pimpl_->m_d_shape_.dimensions;
+	}
 	return *this;
 }
 

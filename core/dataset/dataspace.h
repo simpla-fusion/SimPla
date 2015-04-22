@@ -68,7 +68,8 @@ public:
 
 	static DataSpace create_simple(int rank, const index_type * dims);
 
-	DataSpace & convert_to_local(index_type const * gw = nullptr);
+	DataSpace & set_local_shape(index_type const * local_dimensions,
+			index_type const * local_offset);
 
 	DataSpace & select_hyperslab(index_type const *offset,
 			index_type const * stride, index_type const * count,
@@ -94,6 +95,8 @@ public:
 	 * @return <ndims,dimensions,start,count,stride,block>
 	 */
 	data_shape_s shape() const;
+
+	data_shape_s local_shape() const;
 
 	data_shape_s global_shape() const;
 

@@ -160,16 +160,15 @@ inline void reflect(TPlane const & p, Vec3 *x, Vec3 * v)
 //	return std::make_tuple(s, t);
 //}
 template<typename TS, size_t NDIMS>
-bool rectangle_overlap(nTuple<TS, NDIMS> const & l_b,
-		nTuple<TS, NDIMS> const &l_e, nTuple<TS, NDIMS> *r_b,
-		nTuple<TS, NDIMS> *r_e)
+bool intersection(nTuple<TS, NDIMS> const & l_b, nTuple<TS, NDIMS> const &l_e,
+		nTuple<TS, NDIMS> *r_b, nTuple<TS, NDIMS> *r_e)
 {
 	bool has_overlap = false;
 
 	nTuple<TS, NDIMS> & r_start = *r_b;
 	nTuple<TS, NDIMS> r_count = *r_e - *r_b;
 
-	nTuple<TS, NDIMS> l_count = *l_e - *l_b;
+	nTuple<TS, NDIMS> l_count = l_e - l_b;
 
 	for (int i = 0; i < NDIMS; ++i)
 	{

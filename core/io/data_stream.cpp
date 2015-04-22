@@ -97,7 +97,7 @@ std::string DataStream::pwd() const
 	return pimpl_->pwd();
 //		properties["File Name"].as<std::string>() + ":" + properties["Group Name"].as<std::string>();
 }
-void DataStream::init(int argc, char** argv)
+std::string DataStream::init(int argc, char** argv)
 {
 
 	if (pimpl_ == nullptr)
@@ -125,17 +125,12 @@ void DataStream::init(int argc, char** argv)
 
 	);
 
-	if (show_help)
-	{
-		SHOW_OPTIONS("-o,--prefix <STRING>", "output file path");
-	}
-	else
-	{
-		pimpl_->current_groupname_ = "/";
-	}
+	pimpl_->current_groupname_ = "/";
 
 	VERBOSE << "DataSteream is initialized!" << pimpl_->current_filename_
 			<< std::endl;
+
+	return "\t -o,--prefix <STRING>   \t, output file path \n";
 
 }
 
@@ -792,8 +787,8 @@ std::string DataStream::write(std::string const & url, DataSet const &ds,
 
 	hid_t m_type = pimpl_->convert_datatype_sp_to_h5(ds.datatype);
 
-	hid_t m_space = pimpl_->convert_dataspace_sp_to_h5(ds.dataspace.shape(),
-			SP_NEW);
+	hid_t m_space = pimpl_->convert_dataspace_sp_to_h5(
+			ds.dataspace.local_shape(), SP_NEW);
 
 	hid_t f_space = pimpl_->convert_dataspace_sp_to_h5(
 			ds.dataspace.global_shape(), flag);
@@ -820,8 +815,8 @@ std::string DataStream::write(std::string const & url, DataSet const &ds,
 			H5_ERROR(H5Pset_chunk(dcpl_id, f_ndims, &current_dims[0]));
 		}
 
-		H5_ERROR(
-				dset = H5Dcreate(pimpl_->base_group_id_, dsname.c_str(), m_type, f_space, H5P_DEFAULT, dcpl_id, H5P_DEFAULT));
+		H5_ERROR(dset = H5Dcreate(pimpl_->base_group_id_, dsname.c_str(), //
+				m_type, f_space, H5P_DEFAULT, dcpl_id, H5P_DEFAULT));
 
 		if (dcpl_id != H5P_DEFAULT)
 		{

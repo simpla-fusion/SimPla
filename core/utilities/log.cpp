@@ -32,18 +32,16 @@ struct LoggerStreams //: public SingletonHolder<LoggerStreams>
 
 	static constexpr unsigned int DEFAULT_LINE_WIDTH = 100;
 
-	LoggerStreams(int level = LOG_INFORM) :
-			std_out_visable_level_(level), line_width_(DEFAULT_LINE_WIDTH)
+	LoggerStreams(int level = LOG_INFORM)
+			: std_out_visable_level_(level), line_width_(DEFAULT_LINE_WIDTH)
 	{
 	}
 	~LoggerStreams()
 	{
-
 		close();
-
 	}
 
-	void init(int argc, char** argv);
+	std::string init(int argc, char** argv);
 	void close();
 
 	inline void open_file(std::string const & name)
@@ -89,10 +87,8 @@ private:
 
 };
 
-void LoggerStreams::init(int argc, char** argv)
+std::string LoggerStreams::init(int argc, char** argv)
 {
-
-	bool show_help = false;
 
 	parse_cmd_line(argc, argv,
 
@@ -114,21 +110,17 @@ void LoggerStreams::init(int argc, char** argv)
 		{
 			this->set_line_width(string_to_value<int>(value));
 		}
-		else if(opt=="h"|| opt=="help")
-		{
-			show_help = true;
-		}
+
 		return CONTINUE;
 	}
 
 	);
 
-	if (show_help)
-	{
-		SHOW_OPTIONS("-v,--verbose <NUM> ", "Verbose mode")
-	}
 	is_opened_ = true;
+
 	VERBOSE << "LoggerStream is initialized!" << std::endl;
+
+	return "\t -v,--verbose <NUM> \t,  Verbose mode\n";
 
 }
 void LoggerStreams::close()
@@ -222,24 +214,24 @@ void LoggerStreams::put(int level, std::string const & msg)
 
 }
 
-Logger::Logger() :
-		level_(0), current_line_char_count_(0), endl_(true)
+Logger::Logger()
+		: level_(0), current_line_char_count_(0), endl_(true)
 {
 }
 
-Logger::Logger(Logger const & r) :
-		level_(r.level_), current_line_char_count_(r.current_line_char_count_), endl_(
-				r.endl_)
+Logger::Logger(Logger const & r)
+		: level_(r.level_), current_line_char_count_(
+				r.current_line_char_count_), endl_(r.endl_)
 {
 }
 
-Logger::Logger(Logger && r) :
-		level_(r.level_), current_line_char_count_(r.current_line_char_count_), endl_(
-				r.endl_)
+Logger::Logger(Logger && r)
+		: level_(r.level_), current_line_char_count_(
+				r.current_line_char_count_), endl_(r.endl_)
 {
 }
-Logger::Logger(int lv) :
-		level_(lv), current_line_char_count_(0), endl_(true)
+Logger::Logger(int lv)
+		: level_(lv), current_line_char_count_(0), endl_(true)
 {
 	buffer_ << std::boolalpha;
 
@@ -251,7 +243,7 @@ Logger::~Logger()
 	SingletonHolder<LoggerStreams>::instance().put(level_, buffer_.str());
 }
 
-void Logger::init(int argc, char** argv)
+std::string Logger::init(int argc, char** argv)
 {
 	return SingletonHolder<LoggerStreams>::instance().init(argc, argv);
 }
@@ -306,9 +298,9 @@ void Logger::not_endl()
 	endl_ = false;
 }
 
-void init_logger(int argc, char**argv)
+std::string init_logger(int argc, char**argv)
 {
-	SingletonHolder<LoggerStreams>::instance().init(argc, argv);
+	return SingletonHolder<LoggerStreams>::instance().init(argc, argv);
 }
 void close_logger()
 {

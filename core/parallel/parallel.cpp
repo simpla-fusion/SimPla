@@ -11,9 +11,9 @@
 namespace simpla
 {
 
-void init_parallel(int argc, char ** argv)
+std::string init_parallel(int argc, char ** argv)
 {
-	SingletonHolder<simpla::MPIComm>::instance().init(argc, argv);
+	return SingletonHolder<simpla::MPIComm>::instance().init(argc, argv);
 }
 void close_parallel()
 {

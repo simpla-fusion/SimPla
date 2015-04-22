@@ -69,7 +69,7 @@ public:
 	Logger(Logger && r);
 	~Logger();
 
-	static void init(int argc, char** argv);
+	static std::string init(int argc, char** argv);
 	static void set_stdout_visable_level(int l);
 	static void set_mpi_comm(int rank = 0, int size = 1);
 
@@ -171,8 +171,10 @@ public:
 
 };
 
-void init_logger(int argc, char**argv);
+std::string init_logger(int argc, char**argv);
+
 void close_logger();
+
 /**
  * @name     manip for Logger
  * @{

@@ -17,7 +17,6 @@
 
 #include "../gtl/iterator/sp_ntuple_range.h"
 #include "../gtl/ntuple.h"
-//#include "../model/select.h"
 #include "mesh_ids.h"
 
 namespace simpla
@@ -42,7 +41,7 @@ public:
 	typedef typename mesh_type::coordinates_type coordinates_type;
 	typedef typename mesh_type::index_type index_type;
 	typedef typename mesh_type::index_tuple index_tuple;
-	typedef sp_nTuple_range<size_t,
+	typedef sp_nTuple_range<index_type,
 			((iform == VERTEX || iform == VOLUME) ? ndims : ndims + 1)> range_type;
 
 	template<typename TV>
@@ -54,25 +53,25 @@ private:
 	std::set<id_type> m_id_set_;
 public:
 
-	Domain(mesh_type const &m) :
-			m_mesh_(m)
+	Domain(mesh_type const &m)
+			: m_mesh_(m)
 	{
 		deploy();
 	}
 	template<typename T0, typename T1>
-	Domain(mesh_type const &m, T0 const & b, T1 const & e) :
-			m_mesh_(m)
+	Domain(mesh_type const &m, T0 const & b, T1 const & e)
+			: m_mesh_(m)
 	{
 		reset_bound_box(b, e);
 	}
 
-	Domain(this_type const & other) :
-			m_mesh_(other.m_mesh_), m_box_(other.m_box_), m_id_set_(
+	Domain(this_type const & other)
+			: m_mesh_(other.m_mesh_), m_box_(other.m_box_), m_id_set_(
 					other.m_id_set_)
 	{
 	}
-	Domain(this_type && other) :
-			m_mesh_(other.m_mesh_), m_box_(other.m_box_), m_id_set_(
+	Domain(this_type && other)
+			: m_mesh_(other.m_mesh_), m_box_(other.m_box_), m_id_set_(
 					other.m_id_set_)
 	{
 	}
@@ -129,9 +128,8 @@ public:
 	}
 	void deploy()
 	{
-		reset_bound_box(m_mesh_.m_index_local_offset_,
-				m_mesh_.m_index_local_offset_
-						+ m_mesh_.m_index_local_dimensions_);
+		reset_bound_box(m_mesh_.m_index_offset_,
+				m_mesh_.m_index_offset_ + m_mesh_.m_index_count_);
 	}
 
 	std::set<id_type> & id_set()
@@ -182,27 +180,37 @@ public:
 
 		}
 	}
-
-	template<typename TD, typename TFun>
-	void for_each(TD const& d, TFun const & fun) const
+	template<typename TFun>
+	void for_each(this_type const& other, TFun const & fun) const
 	{
 
-		if (is_simple())
+		if (is_simple() && other.is_simple())
 		{
-			for (auto const & s : d)
+			range_type r = m_box_ & other.m_box_;
+
+			for (auto const &idx : r)
+			{
+				fun(mesh_type::template pack<iform>(idx));
+			}
+		}
+		else if (is_simple())
+		{
+
+			for (auto const & s : other.id_set())
 			{
 				if (in_box(s))
 				{
 					fun(s);
 				}
 			}
+
 		}
 		else
 		{
 
-			for (auto const & s : d)
+			for (auto const & s : id_set())
 			{
-				if (m_id_set_.find(s) != m_id_set_.end())
+				if (other.in_box(s))
 				{
 					fun(s);
 				}
@@ -219,10 +227,17 @@ public:
 
 	void update_bound_box()
 	{
-		if (!is_simple())
+		if (m_id_set_.size() > 0)
 		{
-			// TODO find bound of indices,
-			//    and remove indices which are out of mesh
+			UNIMPLEMENTED2("TODO find bound of indices,"
+					"and remove ids which are out of bound");
+		}
+	}
+	void clear_ids()
+	{
+		if (m_id_set_.size() > 0)
+		{
+			UNIMPLEMENTED2("TODO: clear ids that out of bound.");
 		}
 	}
 
@@ -241,6 +256,8 @@ public:
 		}
 
 		range_type(ib, ie).swap(m_box_);
+
+		clear_ids();
 	}
 
 	void reset_bound_box(coordinates_type const & b, coordinates_type const & e)
@@ -268,6 +285,27 @@ public:
 		res.swap(m_id_set_);
 		update_bound_box();
 	}
+	template<typename TPred>
+	void filter_by_coordinates(TPred const& pred)
+	{
+		std::set<id_type> res;
+		if (is_simple())
+		{
+
+			std::copy_if(this->begin(), this->end(),
+					std::inserter(res, res.begin()), [&](id_type const& s)
+					{	return pred(m_mesh_.coordinates(s));});
+
+		}
+		else
+		{
+			std::copy_if(m_id_set_.begin(), m_id_set_.end(),
+					std::inserter(res, res.begin()), [&](id_type const& s)
+					{	return pred(m_mesh_.coordinates(s));});
+		}
+		res.swap(m_id_set_);
+		update_bound_box();
+	}
 
 	template<typename TDict>
 	void filter_by_config(TDict const & dict)
@@ -275,9 +313,9 @@ public:
 
 		if (dict.is_function())
 		{
-			filter([&](id_type s)
+			filter_by_coordinates([&](coordinates_type const & x )
 			{
-				return (dict(m_mesh_.coordinates(s)).template as<bool>());
+				return (static_cast<bool>(dict(x)));
 			});
 
 		}
@@ -288,6 +326,16 @@ public:
 			dict["Box"].as(&p);
 
 			reset_bound_box(p[0], p[1]);
+
+		}
+		else if (dict["IndexBox"])
+		{
+
+			std::vector<nTuple<index_type, ndims>> points;
+
+			dict["IndexBox"].as(&points);
+
+			reset_bound_box(points[0], points[1]);
 
 		}
 		else if (dict["Indices"])
@@ -304,33 +352,42 @@ public:
 				}
 			}
 		}
-		else if (dict["IndexBox"])
-		{
-
-			std::vector<nTuple<index_type, ndims>> points;
-
-			dict["IndexBox"].as(&points);
-
-			reset_bound_box(points[0], points[1]);
-
-		}
 //		else
 //		{
-//			filter(make_select_function_by_config<coordinates_type>(dict));
+//			auto pred = make_select_function_by_config<coordinates_type>(dict);
+//
+//			filter_by_coordinates([&](coordinates_type const &x)
+//			{
+//				return pred(x);
+//			});
 //		}
 
 	}
-//	std::tuple<coordinates_type, coordinates_type> bound() const
-//	{
-//		return std::make_tuple(m_mesh_.coordinates(*m_box_.begin()),
-//				m_mesh_.coordinates(*m_box_.end()));
-//	}
-//
-//	std::tuple<coordinates_type, coordinates_type> idx_bound() const
-//	{
-//		return std::make_tuple(m_mesh_.id_to_index<iform>(*m_box_.begin()),
-//				m_mesh_.id_to_index<iform>(*m_box_.end()));
-//	}
+	template<typename Tit>
+	void add(Tit const & b, Tit const&e)
+	{
+		std::transform(b, e, std::inserter(m_id_set_, m_id_set_.begin()),
+				[&](id_type const &s)
+				{
+					return in_bound(m_mesh_.coordinates(s));
+				});
+	}
+	template<typename Pred>
+	void remove(Pred const & pred)
+	{
+		filter([&](id_type const & s)
+		{
+			return !pred(s);
+		});
+	}
+	template<typename Pred>
+	void remove_by_coordinates(Pred const & pred)
+	{
+		filter([&](id_type const & s)
+		{
+			return !pred(m_mesh_.coordinates(s));
+		});
+	}
 	struct iterator;
 	typedef iterator const_iterator;
 
@@ -344,14 +401,15 @@ public:
 		return std::move(const_iterator(m_box_.end()));
 	}
 
-	struct iterator: public std::iterator<
-			typename range_type::iterator::iterator_category, id_type, id_type>,
-			public range_type::iterator
+	struct iterator:	public std::iterator<
+								typename range_type::iterator::iterator_category,
+								id_type, id_type>,
+						public range_type::iterator
 	{
 		typedef typename range_type::iterator base_iterator;
 
-		iterator(base_iterator const &other) :
-				base_iterator(other)
+		iterator(base_iterator const &other)
+				: base_iterator(other)
 		{
 		}
 
@@ -375,10 +433,12 @@ public:
 
 		if (is_simple())
 		{
-
 			typename DataSpace::index_tuple offset, count;
 
-			offset = m_box_.m_b_;
+			auto d_shape = res.shape();
+
+			offset = m_box_.m_b_ - d_shape.offset;
+
 			count = m_box_.m_e_ - m_box_.m_b_;
 
 			res.select_hyperslab(&offset[0], nullptr, &count[0], nullptr);
@@ -398,55 +458,45 @@ public:
 //	 *  @{
 //	 */
 //
-//	this_type const & operator &(full_domain) const
-//	{
-//		return *this;
-//	}
-//	null_domain operator &(null_domain) const
-//	{
-//		return null_domain();
-//	}
-//	this_type operator &(this_type const & other) const
-//	{
-//		this_type res(mesh());
-//
-////		intersection(m_box_, other.m_box_).swap(res.m_box_);
-//
-//		if (!res.m_box_.empty())
-//		{
-//			if (!is_simple() && other.is_simple())
-//			{
-//				std::copy_if(m_id_set_.begin(), m_id_set_.end(),
-//						std::inserter(res.m_id_set_, m_id_set_.begin()),
-//						[&](id_type s)
-//						{
-//							return res.m_box_.in_bound(mesh().template unpack<iform>(s));
-//						});
-//			}
-//			else if (is_simple() && !other.is_simple())
-//			{
-//				std::copy_if(other.m_id_set_.begin(), other.m_id_set_.end(),
-//						std::inserter(res.m_id_set_, m_id_set_.begin()),
-//						[&](id_type s)
-//						{
-//							return res.m_box_.in_bound(mesh().template unpack<iform>(s));
-//						});
-//			}
-//			else if (!is_simple() && !other.is_simple())
-//			{
-//				std::set_intersection(
-//
-//				m_id_set_.begin(), m_id_set_.end(),
-//
-//				other.m_id_set_.begin(), other.m_id_set_.end(),
-//
-//				std::inserter(res.m_id_set_, res.m_id_set_.begin())
-//
-//				);
-//			}
-//		}
-//		return std::move(res);
-//	}
+	this_type const & operator &(full_domain) const
+	{
+		return *this;
+	}
+	null_domain operator &(null_domain) const
+	{
+		return null_domain();
+	}
+	this_type operator &(this_type const & other) const
+	{
+		this_type res(m_mesh_);
+
+		if (is_simple() && other.is_simple())
+		{
+			res.m_box_ = res.m_box_ & other.m_box_;
+		}
+		else if (other.is_simple())
+		{
+			for (auto const &s : m_id_set_)
+			{
+				if (other.in_box(s))
+				{
+					res.m_id_set_.insert(s);
+				}
+			}
+		}
+		else if (is_simple())
+		{
+			for (auto const &s : other.id_set())
+			{
+				if (in_box(s))
+				{
+					res.m_id_set_.insert(s);
+				}
+			}
+		}
+
+		return std::move(res);
+	}
 //	this_type const & operator |(null_domain) const
 //	{
 //		return *this;

@@ -89,8 +89,8 @@ std::function<bool(TCoord const &)> select_ids_in_polylines(
 }
 
 template<typename TCoord>
-void select_ids_on_polylines(std::vector<TCoord> const& g_points, int ZAXIS,
-		bool on_left = true)
+std::function<bool(TCoord const &)> select_ids_on_polylines(
+		std::vector<TCoord> const& g_points, int ZAXIS, bool on_left = true)
 {
 	typedef TCoord coordinates_type;
 

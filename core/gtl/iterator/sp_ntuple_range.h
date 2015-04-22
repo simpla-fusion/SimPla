@@ -195,14 +195,14 @@ public:
 		return std::move(res);
 	}
 
-//	this_type operator&(this_type const& other) const
-//	{
-//		this_type res(*this);
-//
-//		rectangle_overlap(other.m_b_, other.m_e_, &res.m_b_, &res.m_e_);
-//
-//		return std::move(res);
-//	}
+	this_type operator&(this_type const& other) const
+	{
+		this_type res(*this);
+
+		intersection(other.m_b_, other.m_e_, &res.m_b_, &res.m_e_);
+
+		return std::move(res);
+	}
 };
 template<typename TIndex, size_t ... DIMS, typename T2>
 sp_nTuple_range<TIndex, DIMS...> make_ntuple_range(

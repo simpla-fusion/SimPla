@@ -52,7 +52,7 @@ void SpObject::prepare_sync(std::vector<mpi_ghosts_shape_s> const & ghost_shape)
 
 	nTuple<size_t, MAX_NDIMS_OF_ARRAY> l_dims;
 
-	auto d_shape = ds.dataspace.shape();
+	auto d_shape = ds.dataspace.local_shape();
 
 	ndims = d_shape.ndims;
 

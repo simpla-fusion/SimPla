@@ -24,7 +24,7 @@ struct DataSet;
  * @{
  */
 
-void init_io(int argc, char ** argv);
+std::string init_io(int argc, char ** argv);
 
 void close_io();
 

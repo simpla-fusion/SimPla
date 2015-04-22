@@ -47,7 +47,7 @@ public:
 
 	~DataStream();
 
-	void init(int argc = 0, char** argv = nullptr);
+	std::string init(int argc = 0, char** argv = nullptr);
 
 	/**
 	 *	  change the working path (file/group) of datastream ,

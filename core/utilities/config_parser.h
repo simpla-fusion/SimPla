@@ -26,7 +26,7 @@ struct ConfigParser
 
 	~ConfigParser();
 
-	void init(int argc, char** argv);
+	std::string init(int argc, char** argv);
 
 	struct DictObject: public LuaObject
 	{
