@@ -58,16 +58,16 @@ private:
 
 public:
 
-	_Field(domain_type const & d)
-			: m_domain_(d), m_data_(nullptr)
+	_Field(domain_type const & d) :
+			m_domain_(d), m_data_(nullptr)
 	{
 	}
-	_Field(this_type const & other)
-			: m_domain_(other.m_domain_), m_data_(other.m_data_)
+	_Field(this_type const & other) :
+			m_domain_(other.m_domain_), m_data_(other.m_data_)
 	{
 	}
-	_Field(this_type && other)
-			: m_domain_(other.m_domain_), m_data_(other.m_data_)
+	_Field(this_type && other) :
+			m_domain_(other.m_domain_), m_data_(other.m_data_)
 	{
 	}
 	~_Field()
@@ -105,7 +105,6 @@ public:
 		std::fill(m_data_.get(), m_data_.get() + m_domain_.max_hash(), t);
 
 		sync();
-		wait();
 
 	}
 	template<typename T>
@@ -116,7 +115,6 @@ public:
 		std::fill(m_data_.get(), m_data_.get() + m_domain_.max_hash(), v);
 
 		sync();
-		wait();
 
 	}
 
@@ -185,12 +183,11 @@ public:
 		wait();
 
 		mesh_type const & m = mesh();
-
 		m_domain_.for_each([&](id_type const &s)
 		{
 			op(at(s), m.calculate(other, s));
 		});
-
+		sync();
 	}
 
 	template<typename ...T, typename TOP>
@@ -204,7 +201,6 @@ public:
 			op(at(s), other[s]);
 		});
 		sync();
-		wait();
 	}
 
 public:
@@ -307,6 +303,11 @@ public:
 		return m_domain_.mesh().gather(*this, std::forward<Args>(args)...);
 	}
 
+	template<typename OS>
+	OS & print(OS & os) const
+	{
+		return dataset().print(os);
+	}
 }
 ;
 

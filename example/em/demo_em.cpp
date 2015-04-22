@@ -73,7 +73,44 @@ USE_CASE(em," Maxwell Eqs.")
 
 		<< " TIME_STEPS = " << num_of_steps << endl;
 	}
-	// Load initialize value
+
+	auto phi = make_form<VERTEX, Real>(mesh);
+	phi.clear();
+
+	//
+	int N = GLOBAL_COMM.process_num();
+	int count = 0;
+	phi.for_each([&](Real &v)
+	{
+		v=(N+1)*1000+count;
+		++count;
+	});
+//	phi = N;
+
+	GLOBAL_COMM.barrier();
+	if (GLOBAL_COMM.process_num()==0)
+	{
+		VERBOSE<<std::endl<<phi<<endl;
+	}
+	GLOBAL_COMM.barrier();
+	if (GLOBAL_COMM.process_num()==1)
+	{
+		VERBOSE<<std::endl<<phi<<endl;
+	}
+	GLOBAL_COMM.barrier();
+
+	phi.sync();
+	phi.wait();
+	if (GLOBAL_COMM.process_num()==0)
+	{
+		VERBOSE<<std::endl<<phi<<endl;
+	}
+	GLOBAL_COMM.barrier();
+	if (GLOBAL_COMM.process_num()==1)
+	{
+		VERBOSE<<std::endl<<phi<<endl;
+	}
+	GLOBAL_COMM.barrier();
 	auto J = make_form<EDGE, Real>(mesh);
 	auto E = make_form<EDGE, Real>(mesh);
 	auto B = make_form<FACE, Real>(mesh);
@@ -86,23 +123,26 @@ USE_CASE(em," Maxwell Eqs.")
 	VERBOSE_CMD(load_field(options["InitValue"]["E"], &E));
 	VERBOSE_CMD(load_field(options["InitValue"]["J"], &J));
 
-//	auto J_src = make_field_function_by_config<EDGE, Real>(*mesh,
-//			options["Constraint"]["J"]);
-//
-//	auto B_src = make_field_function_by_config<FACE, Real>(*mesh,
-//			options["Constraint"]["B"]);
-//
-//	auto E_src = make_field_function_by_config<EDGE, Real>(*mesh,
-//			options["Constraint"]["E"]);
+	auto J_src = make_field_function_by_config<EDGE, Real>(*mesh,
+			options["Constraint"]["J"]);
+
+	auto B_src = make_field_function_by_config<FACE, Real>(*mesh,
+			options["Constraint"]["B"]);
+
+	auto E_src = make_field_function_by_config<EDGE, Real>(*mesh,
+			options["Constraint"]["E"]);
 
 	LOGGER << "----------  Dump input ---------- " << endl;
 
-//	cd("/Input/");
-//
-//	VERBOSE << SAVE(phi) << endl;
-//	VERBOSE << SAVE(E) << endl;
-//	VERBOSE << SAVE(B) << endl;
-//	VERBOSE << SAVE(J) << endl;
+	E.wait();
+	B.wait();
+	J.wait();
+
+	cd("/Input/");
+
+	VERBOSE << SAVE(E) << endl;
+	VERBOSE << SAVE(B) << endl;
+	VERBOSE << SAVE(J) << endl;
 
 	LOGGER << "----------  START ---------- " << endl;
 
@@ -122,6 +162,9 @@ USE_CASE(em," Maxwell Eqs.")
 
 		LOG_CMD(E += (curl(B) / mu0 - J) / epsilon0 * dt);
 		LOG_CMD(B += -curl(E) * dt);
+
+		B.wait();
+		E.wait();
 
 		VERBOSE << SAVE_RECORD(J) << endl;
 		VERBOSE << SAVE_RECORD(E) << endl;

@@ -57,21 +57,22 @@ domain_center=    {
 }
 
 InitValue= {
-  E=
+  B=
   {
 
     Domain={Box={{0 ,0 ,0},{LX,LY,LZ}}},
 
     Value=function(x,t)
 
-      return  {math.sin(x[1]*2.0*math.pi/LX)*math.sin(x[2]*2.0*math.pi/LY),0,0}
+   --   return  {0,0,math.sin(x[1]*2.0*math.pi/LX)*math.sin(x[2]*2.0*math.pi/LY)}
+    return {0,0,x[1]*x[1]*x[2]*x[2]}
     end
 
   },
   phi=
   {
+    Domain={Box={{0 ,0 ,0},{LX,LY,LZ}}},
 
-    Domain={Box={{2.3,3,0},{6.4,7,1}}},
     Value=function(x,t)
       -- print(x[1],x[2],x[3])
       return   math.sin(x[1]*0.92*math.pi)*math.sin(x[2]*0.02*math.pi)

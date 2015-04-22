@@ -256,7 +256,7 @@ std::string MPIComm::init(int argc, char** argv)
 
 void MPIComm::topology(int nx, int ny, int nz)
 {
-	if (!!pimpl_)
+	if (pimpl_)
 	{
 		pimpl_->set_topology(nx, ny, nz);
 	}
@@ -264,7 +264,7 @@ void MPIComm::topology(int nx, int ny, int nz)
 
 int MPIComm::get_neighbour(int disp_i, int disp_j, int disp_k) const
 {
-	if (!!pimpl_)
+	if (!pimpl_)
 	{
 		return 0;
 	}

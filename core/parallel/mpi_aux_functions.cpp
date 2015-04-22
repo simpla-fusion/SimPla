@@ -276,6 +276,12 @@ void get_ghost_shape(size_t ndims, size_t const * l_dims,
 
 		for (int n = 0; n < ndims; ++n)
 		{
+			if (((tag >> (n * 2)) & 3UL) == 3)
+			{
+				tag_is_valid = false;
+				break;
+			}
+
 			coords_shift[n] = ((tag >> (n * 2)) & 3UL) - 1;
 
 			switch (coords_shift[n])
@@ -317,8 +323,8 @@ void get_ghost_shape(size_t ndims, size_t const * l_dims,
 						|| coords_shift[2] != 0))
 		{
 
-			send_recv_list->emplace_back(mpi_ghosts_shape_s
-			{ coords_shift, send_offset, send_count, recv_offset, recv_count });
+			send_recv_list->emplace_back(mpi_ghosts_shape_s { coords_shift,
+					send_offset, send_count, recv_offset, recv_count });
 		}
 
 	}

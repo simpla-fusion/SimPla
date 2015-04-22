@@ -96,7 +96,7 @@ MPIDataType MPIDataType::create(DataType const & data_type, //
 	{
 		res_type = MPI_INT;
 	}
-	else if (data_type.is_same<int>())
+	else if (data_type.is_same<long>())
 	{
 		res_type = MPI_LONG;
 	}

@@ -31,11 +31,12 @@ namespace simpla
  * @{
  */
 
-template<typename TV> inline TV const *
-printNdArray(std::ostream & os, TV const *v, size_t rank, size_t const* d,
+template<typename OS, typename TV, typename TI> inline TV const *
+printNdArray(OS & os, TV const *v, size_t rank, TI const* d,
 		std::string const & left_brace = "{", std::string const & sep = ",",
 		std::string const & right_brace = "}")
 {
+	constexpr int ELE_NUM_PER_LINE = 10;
 	if (rank == 1)
 	{
 		os << left_brace << *v;
@@ -43,7 +44,7 @@ printNdArray(std::ostream & os, TV const *v, size_t rank, size_t const* d,
 		for (int s = 1; s < d[0]; ++s)
 		{
 			os << sep << "\t";
-			if (s % 5 == 0 && s != 0)
+			if (s % ELE_NUM_PER_LINE == 0 && s != 0)
 				os << std::endl;
 			os << (*v);
 			++v;

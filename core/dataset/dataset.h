@@ -70,6 +70,8 @@ struct DataSet
 	{
 		return data != nullptr && datatype.is_valid() && dataspace.is_valid();
 	}
+
+	std::ostream & print(std::ostream & os) const;
 };
 
 namespace _impl
