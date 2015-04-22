@@ -217,6 +217,23 @@ struct MeshIDs_
 
 		;
 	}
+	template<size_t IFORM>
+	static nTuple<index_type, NDIMS + 1> unpack2(id_type s)
+	{
+		return nTuple<index_type, NDIMS + 1>(
+				{ static_cast<index_type>((s & INDEX_MASK) >> (MAX_MESH_LEVEL))
+						- INDEX_ZERO,
+
+				static_cast<index_type>(((s >> (INDEX_DIGITS)) & INDEX_MASK)
+						>> (MAX_MESH_LEVEL)) - INDEX_ZERO,
+
+				static_cast<index_type>(((s >> (INDEX_DIGITS * 2)) & INDEX_MASK)
+						>> (MAX_MESH_LEVEL)) - INDEX_ZERO,
+
+				node_id(s) })
+
+		;
+	}
 
 	template<size_t MESH_LEVEL = 0>
 	static index_tuple id_to_index(id_type const &s)

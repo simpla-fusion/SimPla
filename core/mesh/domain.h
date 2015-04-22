@@ -183,7 +183,6 @@ public:
 	template<typename TFun>
 	void for_each(this_type const& other, TFun const & fun) const
 	{
-
 		if (is_simple() && other.is_simple())
 		{
 			range_type r = m_box_ & other.m_box_;
@@ -195,7 +194,6 @@ public:
 		}
 		else if (is_simple())
 		{
-
 			for (auto const & s : other.id_set())
 			{
 				if (in_box(s))
@@ -205,7 +203,7 @@ public:
 			}
 
 		}
-		else
+		else if (other.is_simple())
 		{
 
 			for (auto const & s : id_set())
@@ -217,12 +215,22 @@ public:
 			}
 
 		}
+		else
+		{
+			for (auto const & s : other.id_set())
+			{
+				if (m_id_set_.find(s) != m_id_set_.end())
+				{
+					fun(s);
+				}
+			}
+		}
 
 	}
 
 	bool in_box(id_type s) const
 	{
-		return m_box_.in_bound(m_mesh_.template unpack<iform>(s));
+		return m_box_.in_bound(m_mesh_.template unpack2<iform>(s));
 	}
 
 	void update_bound_box()
@@ -231,6 +239,10 @@ public:
 		{
 			UNIMPLEMENTED2("TODO find bound of indices,"
 					"and remove ids which are out of bound");
+		}
+		else
+		{
+			m_box_.m_b_ = m_box_.m_e_;
 		}
 	}
 	void clear_ids()
@@ -340,7 +352,10 @@ public:
 		}
 		else if (dict["Indices"])
 		{
-			std::vector<nTuple<long, 4>> points;
+			std::vector<
+					nTuple<long,
+							(iform == VERTEX || iform == VOLUME) ?
+									ndims : (ndims + 1)>> points;
 
 			dict["Indices"].as(&points);
 
@@ -351,6 +366,7 @@ public:
 					m_id_set_.insert(m_mesh_.template pack<iform>(idx));
 				}
 			}
+//			update_bound_box();
 		}
 //		else
 //		{
@@ -493,6 +509,7 @@ public:
 					res.m_id_set_.insert(s);
 				}
 			}
+			res.update_bound_box();
 		}
 
 		return std::move(res);

@@ -179,9 +179,22 @@ public:
 
 		mesh_type const & m = mesh();
 
-		m_domain_.for_each(simpla::domain(other), [&](id_type const &s)
+		m_domain_.for_each([&](id_type const &s)
 		{
 			op(at(s), m.calculate(other, s));
+		});
+
+	}
+
+	template<typename ...T, typename TOP>
+	void assign(_Field<domain_type, T...> const & other, TOP const &op)
+	{
+
+		wait();
+
+		m_domain_.for_each(other.domain(), [&](id_type const &s)
+		{
+			op(at(s), other[s]);
 		});
 
 	}

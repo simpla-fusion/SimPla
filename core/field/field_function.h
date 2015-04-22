@@ -110,6 +110,8 @@ make_field_function_by_config(TM const & mesh, TDict const & dict)
 
 	typedef _Field<domain_type, value_type, _impl::is_function, TDict> field_type;
 
+	// TODO create null filed
+
 	domain_type domain = mesh.template domain<field_type::iform>();
 
 	domain.filter_by_config(dict["Domain"]);

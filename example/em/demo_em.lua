@@ -36,7 +36,7 @@ LY = 15  --2.0*math.pi/k0
 LZ = 10  -- 2.0*math.pi/18
 GW = 5
 
-omega_ext=omega_ci*1.9
+omega_ext= 0.1*math.pi --omega_ci*1.9
 
 dimensions={10 ,10 ,1 }
 
@@ -44,7 +44,7 @@ xmin={0.0,0.0,0.0}
 
 xmax={LX,LY,LZ}
 
-dt=1.0 --0.5*LX/NX/c
+dt= 0.5*LX/NX/c
 
 --domain_center=function( x  )
 --   return (x[0]-0.5)*( x[0]-0.5 ) +( x[1]-0.5 )*( x[1]-0.5 ) < 0.01
@@ -57,14 +57,14 @@ domain_center=    {
 }
 
 InitValue= {
-  B=
+  E=
   {
 
-    Domain={Box={{0 ,0 ,0},{1,1,1}}},
+    Domain={Box={{0 ,0 ,0},{LX,LY,LZ}}},
 
     Value=function(x,t)
 
-      return  {math.sin(x[1]*2.0*math.pi)*math.sin(x[2]*2.0*math.pi),0,0}
+      return  {math.sin(x[1]*2.0*math.pi/LX)*math.sin(x[2]*2.0*math.pi/LY),0,0}
     end
 
   },
@@ -81,14 +81,15 @@ InitValue= {
 }
 
 Constraint=  {
-  E= {
+  J= {
 
-    Domain={Box={{0.2,0.2,0},{0.6,0.6,1}}},
-    Value= function(x,t  )
-      --    print(x[1],x[2],x[3])
-      local tau = t*omega_ext+ x[2]*TWOPI/(xmax[3]-xmin[3])
+    Domain={Indices={{5,5,0,0} }},
+    Value= function(x , t  )
+      -- print(x[1],x[2],x[3])
+      local tau = t*omega_ext -- + x[2]*TWOPI/(xmax[3]-xmin[3])
       local amp=  math.sin(tau) --*(1-math.exp(-tau*tau)
-      return {  100, 200, amp+300}
+      -- print(t)
+      return {amp, 200, amp+300}
     end
   },
 
