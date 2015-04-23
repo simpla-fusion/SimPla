@@ -60,9 +60,10 @@ int main(int argc, char **argv)
 
 				"\t -h,\t--help            \t, Print a usage message and exit.\n"
 						"\t -v,\t--version         \t, Print version informaion exit. \n"
-						"\t -g,\t--generator       \t, Generates a demo configure file \n"
-						"\t--case <id of use case> \t, Select case <id> \n "
-
+//						"\t -g,\t--generator       \t, Generates a demo configure file \n"
+						"\n"
+						"\t--case <STRING>         \t, Select a case <STRING> to excute \n "
+						"\t--case_help <STRING>    \t, Print a usag message of case <STRING> \n "
 				<< help_message;
 
 		MESSAGE
@@ -70,8 +71,8 @@ int main(int argc, char **argv)
 		<< " Use case list:" << endl
 
 		<< "             ID     | Description " << endl
-
-		<< "--------------------|-------------------------------------" << endl;
+				<< "--------------------|-------------------------------------"
+				<< endl;
 
 		for (auto const & item : applist)
 		{
@@ -81,38 +82,38 @@ int main(int argc, char **argv)
 		}
 
 		TheEnd(0);
-		return TERMINATE;
 
 	}
-
-	auto item = applist.begin();
-
-	if (options["case"])
 	{
-		item = applist.find(options["case"].template as<std::string>());
+		auto item = applist.begin();
+
+		if (options["case"])
+		{
+			item = applist.find(options["case"].template as<std::string>());
+		}
+
+		if (item != applist.end())
+		{
+			GLOBAL_COMM.barrier();
+
+			MESSAGE
+			<<std::endl
+			<<"===================================================="<<std::endl
+			<<"   Use Case ["<<item->first <<"]:  "<<std::endl
+			<<"\t"<<item->second->description()<<std::endl
+			<<"----------------------------------------------------"<<std::endl
+			;
+
+			item->second->body(options);
+
+			GLOBAL_COMM.barrier();
+		}
+
+		MESSAGE << "===================================================="
+				<< std::endl
+
+				<< "\t >>> Done <<< " << std::endl;
 	}
-
-	if (item != applist.end())
-	{
-		GLOBAL_COMM.barrier();
-
-		MESSAGE
-		<<std::endl
-		<<"===================================================="<<std::endl
-		<<"   Use Case ["<<item->first <<"]:  "<<std::endl
-		<<"\t"<<item->second->description()<<std::endl
-		<<"----------------------------------------------------"<<std::endl
-		;
-
-		item->second->body(options);
-
-		GLOBAL_COMM.barrier();
-	}
-
-	MESSAGE << "===================================================="
-			<< std::endl
-
-			<< "\t >>> Done <<< " << std::endl;
 	close_io();
 	close_parallel();
 	close_logger();

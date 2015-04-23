@@ -55,7 +55,10 @@ namespace simpla
  */
 //template<typename ... >struct RectMesh;
 template<typename TTopology, typename ...Policies>
-struct RectMesh: public TTopology, public Policies...
+struct RectMesh:	public TTopology,
+					public Policies...,
+					std::enable_shared_from_this<
+							RectMesh<TTopology, Policies...>>
 {
 	typedef TTopology topology_type;
 	typedef typename unpack_typelist<0, Policies...>::type coordinates_system;
@@ -63,6 +66,8 @@ struct RectMesh: public TTopology, public Policies...
 	typedef typename unpack_typelist<2, Policies...>::type calculate_policy;
 
 	typedef RectMesh<topology_type, Policies...> this_type;
+
+	typedef Real scalar_type;
 
 	using topology_type::ndims;
 
@@ -79,6 +84,32 @@ struct RectMesh: public TTopology, public Policies...
 	friend class Domain<this_type, FACE> ;
 	friend class Domain<this_type, VOLUME> ;
 
+	template<size_t IFORM, typename TV> using field=
+	_Field<Domain<this_type,IFORM>,TV,_impl::is_sequence_container>;
+
+	template<size_t IFORM, typename TV>
+	_Field<Domain<this_type, IFORM>, TV, _impl::is_sequence_container> make_form() const
+	{
+		return std::move(make_field<IFORM, TV>());
+	}
+	template<size_t IFORM, typename TV>
+	_Field<Domain<this_type, IFORM>, TV, _impl::is_sequence_container> make_field() const
+	{
+		return _Field<Domain<this_type, IFORM>, TV, _impl::is_sequence_container>(
+				domain<IFORM>());
+	}
+
+	template<size_t IFORM>
+	Domain<this_type, IFORM> domain() const
+	{
+		return Domain<this_type, IFORM>(*this);
+	}
+
+	template<size_t IFORM, typename ...Args>
+	Domain<this_type, IFORM> domain(Args &&... args) const
+	{
+		return Domain<this_type, IFORM>(*this, std::forward<Args>(args)...);
+	}
 private:
 
 	static constexpr size_t DEFAULT_GHOST_WIDTH = 2;
@@ -236,18 +267,6 @@ public:
 
 	void deploy(size_t const *gw = nullptr);
 
-	template<size_t IFORM>
-	Domain<this_type, IFORM> domain() const
-	{
-		return Domain<this_type, IFORM>(*this);
-	}
-
-	template<size_t IFORM, typename ...Args>
-	Domain<this_type, IFORM> domain(Args &&... args) const
-	{
-		return Domain<this_type, IFORM>(*this, std::forward<Args>(args)...);
-	}
-
 	template<size_t IFORM, typename ...Args>
 	auto sample(Args && ...args) const
 	DECL_RET_TYPE( interpolatpr_policy:: template sample<IFORM>(
@@ -319,17 +338,15 @@ public:
 	{
 
 		return m_volume_[topology_type::node_id(s)]
-		 		* coordinates_system::volume_factor(coordinates(s),
-						topology_type::node_id(s))
-		;
+				* coordinates_system::volume_factor(coordinates(s),
+						topology_type::node_id(s));
 	}
 
 	constexpr Real dual_volume(id_type s) const
 	{
 		return m_dual_volume_[topology_type::node_id(s)]
 				* coordinates_system::dual_volume_factor(coordinates(s),
-						topology_type::node_id(s))
-		;
+						topology_type::node_id(s));
 	}
 
 	constexpr Real cell_volume(id_type s) const
@@ -341,16 +358,14 @@ public:
 	{
 		return m_inv_volume_[topology_type::node_id(s)]
 				* coordinates_system::inv_volume_factor(coordinates(s),
-						topology_type::node_id(s))
-		;
+						topology_type::node_id(s));
 	}
 
 	constexpr Real inv_dual_volume(id_type s) const
 	{
 		return m_inv_dual_volume_[topology_type::node_id(s)]
 				* coordinates_system::inv_dual_volume_factor(coordinates(s),
-						topology_type::node_id(s))
-		;
+						topology_type::node_id(s));
 	}
 	/**@}*/
 

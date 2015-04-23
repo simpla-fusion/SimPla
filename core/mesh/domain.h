@@ -21,9 +21,21 @@
 
 namespace simpla
 {
+template<typename ...> struct _Field;
 
+template<typename TM, size_t IFORM> struct Domain;
 typedef std::integral_constant<int, 0> null_domain;
 typedef std::integral_constant<int, 1> full_domain;
+
+template<typename T> struct domain_traits
+{
+	typedef full_domain type;
+};
+template<size_t IFORM, typename TM, typename ...Others>
+struct domain_traits<_Field<Domain<TM, IFORM>, Others...>>
+{
+	typedef Domain<TM, IFORM> type;
+};
 
 template<typename TM, size_t IFORM>
 struct Domain
@@ -53,25 +65,25 @@ private:
 	std::set<id_type> m_id_set_;
 public:
 
-	Domain(mesh_type const &m) :
-			m_mesh_(m)
+	Domain(mesh_type const &m)
+			: m_mesh_(m)
 	{
 		deploy();
 	}
 	template<typename T0, typename T1>
-	Domain(mesh_type const &m, T0 const & b, T1 const & e) :
-			m_mesh_(m)
+	Domain(mesh_type const &m, T0 const & b, T1 const & e)
+			: m_mesh_(m)
 	{
 		reset_bound_box(b, e);
 	}
 
-	Domain(this_type const & other) :
-			m_mesh_(other.m_mesh_), m_box_(other.m_box_), m_id_set_(
+	Domain(this_type const & other)
+			: m_mesh_(other.m_mesh_), m_box_(other.m_box_), m_id_set_(
 					other.m_id_set_)
 	{
 	}
-	Domain(this_type && other) :
-			m_mesh_(other.m_mesh_), m_box_(other.m_box_), m_id_set_(
+	Domain(this_type && other)
+			: m_mesh_(other.m_mesh_), m_box_(other.m_box_), m_id_set_(
 					other.m_id_set_)
 	{
 	}
@@ -85,33 +97,35 @@ public:
 	{
 		return m_mesh_.is_valid();
 	}
-
-	bool is_simple() const
+	bool is_simply() const
 	{
 		return m_id_set_.size() == 0;
 	}
 	bool is_empty() const
 	{
-		return is_simple();
+		return is_null();
 	}
 	/** @name set
 	 *  @{
 	 */
-
 	bool is_null() const
 	{
-		return is_empty();
+		return is_simply() && m_box_.is_null();
 	}
 	bool is_full() const
 	{
-		return !is_empty();
+		return is_simply() && !is_null();
 	}
 
 	operator bool() const
 	{
-		return !is_empty();
+		return !is_null();
 	}
 
+	void clear()
+	{
+		m_box_.clear();
+	}
 	/** @} */
 
 	this_type operator=(this_type const &other)
@@ -154,7 +168,7 @@ public:
 	template<typename TFun>
 	void for_each(TFun const & fun) const
 	{
-		if (is_simple())
+		if (is_simply())
 		{
 
 			for (auto const &x : m_box_)
@@ -179,7 +193,7 @@ public:
 	void for_each(full_domain, TFun const & fun) const
 	{
 
-		if (is_simple())
+		if (is_simply())
 		{
 			for (auto const &x : m_box_)
 			{
@@ -198,7 +212,11 @@ public:
 	template<typename TFun>
 	void for_each(this_type const& other, TFun const & fun) const
 	{
-		if (is_simple() && other.is_simple())
+		if (is_null())
+		{
+			return;
+		}
+		else if (is_simply() && other.is_simply())
 		{
 			range_type r = m_box_ & other.m_box_;
 
@@ -207,7 +225,7 @@ public:
 				fun(mesh_type::template pack<iform>(idx));
 			}
 		}
-		else if (is_simple())
+		else if (is_simply())
 		{
 			for (auto const & s : other.id_set())
 			{
@@ -218,7 +236,7 @@ public:
 			}
 
 		}
-		else if (other.is_simple())
+		else if (other.is_simply())
 		{
 
 			for (auto const & s : id_set())
@@ -297,7 +315,7 @@ public:
 	void filter(TPred const& pred)
 	{
 		std::set<id_type> res;
-		if (is_simple())
+		if (is_simply())
 		{
 
 			std::copy_if(this->begin(), this->end(),
@@ -316,7 +334,7 @@ public:
 	void filter_by_coordinates(TPred const& pred)
 	{
 		std::set<id_type> res;
-		if (is_simple())
+		if (is_simply())
 		{
 
 			std::copy_if(this->begin(), this->end(),
@@ -337,34 +355,11 @@ public:
 	template<typename TDict>
 	void filter_by_config(TDict const & dict)
 	{
-
-		if (dict.is_function())
+		if (!dict)
 		{
-			filter_by_coordinates([&](coordinates_type const & x )
-			{
-				return (static_cast<bool>(dict(x)));
-			});
-
+			return;
 		}
-		else if (dict["Box"])
-		{
-			std::vector<coordinates_type> p;
 
-			dict["Box"].as(&p);
-
-			reset_bound_box(p[0], p[1]);
-
-		}
-		else if (dict["IndexBox"])
-		{
-
-			std::vector<nTuple<index_type, ndims>> points;
-
-			dict["IndexBox"].as(&points);
-
-			reset_bound_box(points[0], points[1]);
-
-		}
 		else if (dict["Indices"])
 		{
 			std::vector<
@@ -381,17 +376,46 @@ public:
 					m_id_set_.insert(m_mesh_.template pack<iform>(idx));
 				}
 			}
-//			update_bound_box();
 		}
-//		else
-//		{
-//			auto pred = make_select_function_by_config<coordinates_type>(dict);
-//
-//			filter_by_coordinates([&](coordinates_type const &x)
-//			{
-//				return pred(x);
-//			});
-//		}
+		else if (dict["SelectCell"])
+		{
+
+		}
+		else if (dict["SelectBoundary"])
+		{
+
+		}
+		else
+		{
+			if (dict.is_function())
+			{
+				filter_by_coordinates([&](coordinates_type const & x )
+				{
+					return (static_cast<bool>(dict(x)));
+				});
+
+			}
+			else if (dict["Box"])
+			{
+				std::vector<coordinates_type> p;
+
+				dict["Box"].as(&p);
+
+				reset_bound_box(p[0], p[1]);
+
+			}
+			else if (dict["IndexBox"])
+			{
+
+				std::vector<nTuple<index_type, ndims>> points;
+
+				dict["IndexBox"].as(&points);
+
+				reset_bound_box(points[0], points[1]);
+
+			}
+
+		}
 
 	}
 	template<typename Tit>
@@ -432,14 +456,15 @@ public:
 		return std::move(const_iterator(m_box_.end()));
 	}
 
-	struct iterator: public std::iterator<
-			typename range_type::iterator::iterator_category, id_type, id_type>,
-			public range_type::iterator
+	struct iterator:	public std::iterator<
+								typename range_type::iterator::iterator_category,
+								id_type, id_type>,
+						public range_type::iterator
 	{
 		typedef typename range_type::iterator base_iterator;
 
-		iterator(base_iterator const &other) :
-				base_iterator(other)
+		iterator(base_iterator const &other)
+				: base_iterator(other)
 		{
 		}
 
@@ -461,7 +486,7 @@ public:
 	{
 		DataSpace res = m_mesh_.template dataspace<iform>();
 
-		if (is_simple())
+		if (is_simply())
 		{
 			typename DataSpace::index_tuple offset, count;
 
@@ -500,11 +525,11 @@ public:
 	{
 		this_type res(m_mesh_);
 
-		if (is_simple() && other.is_simple())
+		if (is_simply() && other.is_simply())
 		{
 			res.m_box_ = res.m_box_ & other.m_box_;
 		}
-		else if (other.is_simple())
+		else if (other.is_simply())
 		{
 			for (auto const &s : m_id_set_)
 			{
@@ -514,7 +539,7 @@ public:
 				}
 			}
 		}
-		else if (is_simple())
+		else if (is_simply())
 		{
 			for (auto const &s : other.id_set())
 			{

@@ -12,9 +12,9 @@
 
 #include "../../core/gtl/primitives.h"
 #include "../../core/mesh/mesh.h"
-#include "../../core/mesh/calculus.h"
 #include "../../core/physics/physical_constants.h"
 #include "../../core/utilities/utilities.h"
+#include "../../core/field/field.h"
 
 namespace simpla
 {
@@ -41,7 +41,7 @@ public:
 	typedef typename mesh_type::scalar_type scalar_type;
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
-	mesh_type const & mesh;
+	std::shared_ptr<const mesh_type> m_mesh_;
 
 private:
 	typename mesh_type:: template field<EDGE, scalar_type> X10, X11, X12;
@@ -65,7 +65,7 @@ public:
 	}
 
 	template<typename TDict, typename ...Others>
-	void load(TDict const &dict, Others const & ...);
+	void init(TDict const &dict, Others const & ...);
 
 	void extents(coordinates_type xmin, coordinates_type xmax);
 
@@ -85,20 +85,20 @@ public:
 
 template<typename TM>
 template<typename ... Args>
-PML<TM>::PML(mesh_type const & pmesh, Args && ...args)
-		: mesh(pmesh),
+PML<TM>::PML(mesh_type const & mesh, Args && ...args)
+		: m_mesh_(mesh.shared_from_this()),
 
-		a0(pmesh), a1(pmesh), a2(pmesh),
+		a0(*m_mesh_), a1(*m_mesh_), a2(*m_mesh_),
 
-		s0(pmesh), s1(pmesh), s2(pmesh),
+		s0(*m_mesh_), s1(*m_mesh_), s2(*m_mesh_),
 
-		X10(pmesh), X11(pmesh), X12(pmesh),
+		X10(*m_mesh_), X11(*m_mesh_), X12(*m_mesh_),
 
-		X20(pmesh), X21(pmesh), X22(pmesh),
+		X20(*m_mesh_), X21(*m_mesh_), X22(*m_mesh_),
 
 		is_loaded_(false)
 {
-	load(std::forward<Args >(args)...);
+	init(std::forward<Args >(args)...);
 }
 
 template<typename TM>
@@ -108,7 +108,7 @@ PML<TM>::~PML()
 
 template<typename TM>
 template<typename TDict, typename ...Others>
-void PML<TM>::load(TDict const &dict, Others const & ...)
+void PML<TM>::init(TDict const &dict, Others const & ...)
 {
 	extents(dict["Min"].template as<coordinates_type>(),
 			dict["Max"].template as<coordinates_type>());
@@ -120,7 +120,6 @@ void PML<TM>::extents(coordinates_type xmin, coordinates_type xmax)
 	LOGGER << "create PML solver [" << xmin << " , " << xmax << " ]";
 
 	DEFINE_PHYSICAL_CONST
-	;
 
 	Real dB = 100, expN = 2;
 
@@ -137,12 +136,12 @@ void PML<TM>::extents(coordinates_type xmin, coordinates_type xmax)
 	X21.fill(0.0);
 	X22.fill(0.0);
 
-	auto ymin = mesh.get_extents().first;
-	auto ymax = mesh.get_extents().second;
+	coordinates_type ymin, ymax;
+	std::tie(ymin, ymax) = m_mesh_->extents();
 
-	for (auto s : mesh.select(VERTEX))
+	for (auto s : m_mesh_->template domain<VERTEX>())
 	{
-		coordinates_type x = mesh.get_coordinates(s);
+		coordinates_type x = m_mesh_->coordinates(s);
 
 #define DEF(_N_)                                                                    \
 		if (x[_N_] < xmin[_N_])                                                         \
@@ -171,29 +170,16 @@ void PML<TM>::extents(coordinates_type xmin, coordinates_type xmax)
 }
 
 template<typename TM>
-void PML<TM>::save(std::string const & path, bool is_verbose) const
-{
-	UNIMPLEMENTED;
-}
-
-template<typename OS, typename TM>
-OS &operator<<(OS & os, PML<TM> const& self)
-{
-	self.print(os);
-	return os;
-}
-
-template<typename TM>
 void PML<TM>::next_timestepE(Real dt,
 		typename mesh_type:: template field<EDGE, scalar_type> const&E1,
 		typename mesh_type:: template field<FACE, scalar_type> const&B1,
 		typename mesh_type:: template field<EDGE, scalar_type> *dE)
 {
-	LOGGER << "PML push E";
+	VERBOSE << "PML push E" << endl;
 
 	DEFINE_PHYSICAL_CONST
 
-	auto dX1 = mesh.template make_field<EDGE, scalar_type>();
+	auto dX1 = m_mesh_->template make_form<EDGE, scalar_type>();
 
 	dX1 = (-2.0 * dt * s0 * X10 + curl_pdx(B1) / (mu0 * epsilon0) * dt)
 			/ (a0 + s0 * dt);
@@ -209,21 +195,19 @@ void PML<TM>::next_timestepE(Real dt,
 			/ (a2 + s2 * dt);
 	X12 += dX1;
 	*dE += dX1;
-
-	LOGGER << DONE;
 }
 
 template<typename TM>
 void PML<TM>::next_timestepB(Real dt,
-		typename mesh_type:: template field<EDGE, scalar_type> const &E1,
+		typename mesh_type:: template field<EDGE, scalar_type> const&E1,
 		typename mesh_type:: template field<FACE, scalar_type> const&B1,
 		typename mesh_type:: template field<FACE, scalar_type> *dB)
 {
-	LOGGER << "PML Push B";
+	VERBOSE << "PML Push B" << endl;
 
 	DEFINE_PHYSICAL_CONST
 
-	auto dX2 = mesh.template make_field<FACE, scalar_type>();
+	auto dX2 = m_mesh_->template make_form<FACE, scalar_type>();
 
 	dX2 = (-2.0 * dt * s0 * X20 + curl_pdx(E1) * dt) / (a0 + s0 * dt);
 	X20 += dX2;
@@ -236,7 +220,7 @@ void PML<TM>::next_timestepB(Real dt,
 	dX2 = (-2.0 * dt * s2 * X22 + curl_pdz(E1) * dt) / (a2 + s2 * dt);
 	X22 += dX2;
 	*dB -= dX2;
-	LOGGER << DONE;
+
 }
 
 } //namespace simpla

@@ -115,6 +115,13 @@ struct ConfigParser
 		{
 			*v = as<T>(*v);
 		}
+
+		template<typename T>
+		operator T() const
+		{
+			return this->template as<T>();
+		}
+
 	private:
 		std::string m_value_;
 	};

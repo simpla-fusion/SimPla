@@ -521,7 +521,7 @@ public:
 		auto const & f =expr.lhs;
 		auto const & v =expr.rhs;
 
-		size_t n = geometry_type::component_number(s);
+		size_t n = geometry_type::node_id(s);
 
 		auto X = geometry_type::delta_index(s);
 		auto Y = geometry_type::roate(X);
@@ -540,7 +540,7 @@ public:
 	{
 		auto const & f =expr.lhs;
 		auto const & v =expr.rhs;
-		size_t n = geometry_type::component_number(geometry_type::dual(s));
+		size_t n = geometry_type::node_id(geometry_type::dual(s));
 		size_t D = geometry_type::delta_index(geometry_type::dual(s));
 
 		return (calculate(geo,f, s + D) - calculate(geo,f, s - D)) * 0.5 * v[n];
@@ -581,7 +581,7 @@ public:
 	map_to(geometry_type const & geo ,_Field<_impl::MapTo< VERTEX,EDGE, T>> const & expr, typename geometry_type::id_type s)
 	{
 		auto const & f= expr.lhs;
-		auto n = geometry_type::component_number(s);
+		auto n = geometry_type::node_id(s);
 		auto D = geometry_type::delta_index(s);
 
 		return ((calculate(geo,f, s - D)[n] + calculate(geo,f, s + D)[n]) * 0.5);
@@ -643,7 +643,7 @@ public:
 	{
 		auto const & f= expr.lhs;
 
-		auto n = geometry_type::component_number(geometry_type::dual(s));
+		auto n = geometry_type::node_id(geometry_type::dual(s));
 		auto X = geometry_type::delta_index(geometry_type::dual(s));
 		auto Y = geometry_type::roate(X);
 		auto Z = geometry_type::inverse_roate(X);
@@ -693,7 +693,7 @@ public:
 	{
 		auto const & f= expr.lhs;
 
-		auto n = geometry_type::component_number(geometry_type::dual(s));
+		auto n = geometry_type::node_id(geometry_type::dual(s));
 		auto D = geometry_type::delta_index(geometry_type::dual(s));
 
 		return ((calculate(geo,f, s - D)[n] + calculate(geo,f, s + D)[n]) * 0.5);
@@ -756,7 +756,7 @@ public:
 	map_to(geometry_type const & geo,_Field<_impl::MapTo< VOLUME,EDGE,T>> const & expr, typename geometry_type::id_type s)
 	{
 		auto const & f= expr.lhs;
-		auto n = geometry_type::component_number(geometry_type::dual(s));
+		auto n = geometry_type::node_id(geometry_type::dual(s));
 		auto X = geometry_type::delta_index(geometry_type::dual(s));
 		auto Y = geometry_type::roate(X);
 		auto Z = geometry_type::inverse_roate(X);
@@ -790,8 +790,8 @@ public:
 		auto Y = geometry_type::roate(X);
 		auto Z = geometry_type::inverse_roate(X);
 
-		Y = (geometry_type::component_number(Y) == N) ? Y : 0UL;
-		Z = (geometry_type::component_number(Z) == N) ? Z : 0UL;
+		Y = (geometry_type::node_id(Y) == N) ? Y : 0UL;
+		Z = (geometry_type::node_id(Z) == N) ? Z : 0UL;
 
 		return (calculate(geo,f, s + Y) - calculate(geo,f, s - Y))
 		- (calculate(geo,f, s + Z) - calculate(geo,f, s - Z));
@@ -808,8 +808,8 @@ public:
 		auto Y = geometry_type::roate(X);
 		auto Z = geometry_type::inverse_roate(X);
 
-		Y = (geometry_type::component_number(Y) == N) ? Y : 0UL;
-		Z = (geometry_type::component_number(Z) == N) ? Z : 0UL;
+		Y = (geometry_type::node_id(Y) == N) ? Y : 0UL;
+		Z = (geometry_type::node_id(Z) == N) ? Z : 0UL;
 
 		return (
 

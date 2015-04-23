@@ -82,17 +82,17 @@ InitValue= {
 }
 
 Constraint=  {
-  J= {
-
-    Domain={Indices={{5,5,0,0} }},
-    Value= function(x , t  )
-      -- print(x[1],x[2],x[3])
-      local tau = t*omega_ext -- + x[2]*TWOPI/(xmax[3]-xmin[3])
-      local amp=  math.sin(tau) --*(1-math.exp(-tau*tau)
-      -- print(t)
-      return {amp, 200, amp+300}
-    end
-  },
+--  J= {
+--
+--    Domain={Indices={{5,5,0,0} }},
+--    Value= function(x , t  )
+----       print(x[1],x[2],x[3])
+--      local tau = t*omega_ext -- + x[2]*TWOPI/(xmax[3]-xmin[3])
+--      local amp=  math.sin(tau) --*(1-math.exp(-tau*tau)
+--      -- print(t)
+--      return {amp, 200, amp+300}
+--    end
+--  },
 
   phi= {
 

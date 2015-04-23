@@ -143,6 +143,16 @@ public:
 	{
 		return m_b_ == m_e_;
 	}
+	bool is_null() const
+	{
+		return empty();
+	}
+
+	void clear()
+	{
+		m_e_ = 0;
+		m_b_ = m_e_;
+	}
 	template<typename T>
 	bool in_bound(T const &x) const
 	{

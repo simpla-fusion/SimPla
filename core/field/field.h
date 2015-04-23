@@ -10,9 +10,11 @@
 #include <stddef.h>
 #include <memory>
 
-#include "../mesh/domain.h"
+
 #include "field_expression.h"
 #include "field_dense.h"
+#include "field_function.h"
+#include "load_field.h"
 namespace simpla
 {
 
@@ -146,6 +148,14 @@ _Field<Domain<TM, IFORM>, TV, _impl::is_sequence_container> make_form(
 					Domain<TM, IFORM>(*pmesh)));
 }
 
+template<size_t IFORM, typename TV, typename TM>
+_Field<Domain<TM, IFORM>, TV, _impl::is_sequence_container> make_form(
+		TM const & mesh)
+{
+	return std::move(
+			_Field<Domain<TM, IFORM>, TV, _impl::is_sequence_container>(
+					Domain<TM, IFORM>(mesh)));
+}
 /** @} */
 }
 // namespace simpla

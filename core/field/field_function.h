@@ -39,6 +39,10 @@ public:
 	_Field()
 	{
 	}
+	_Field(domain_type const& domain)
+			: m_domain_(domain)
+	{
+	}
 	template<typename TF>
 	_Field(domain_type const& domain, TF const& fun)
 			: m_domain_(domain), m_fun_(fun)
@@ -114,9 +118,19 @@ make_field_function_by_config(TM const & mesh, TDict const & dict)
 
 	domain_type domain = mesh.template domain<field_type::iform>();
 
-	domain.filter_by_config(dict["Domain"]);
+	if (dict["Domain"])
+	{
 
-	return field_type(domain, dict["Value"]);
+		domain.filter_by_config(dict["Domain"]);
+
+		return field_type(domain, dict["Value"]);
+	}
+	else
+	{
+		domain.clear();
+		return field_type(domain);
+
+	}
 
 }
 

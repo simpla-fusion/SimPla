@@ -28,6 +28,8 @@
 namespace simpla
 {
 
+template<typename, size_t> struct Domain;
+
 /**
  * @ingroup field
  * @{
@@ -58,16 +60,16 @@ private:
 
 public:
 
-	_Field(domain_type const & d) :
-			m_domain_(d), m_data_(nullptr)
+	_Field(domain_type const & d)
+			: m_domain_(d), m_data_(nullptr)
 	{
 	}
-	_Field(this_type const & other) :
-			m_domain_(other.m_domain_), m_data_(other.m_data_)
+	_Field(this_type const & other)
+			: m_domain_(other.m_domain_), m_data_(other.m_data_)
 	{
 	}
-	_Field(this_type && other) :
-			m_domain_(other.m_domain_), m_data_(other.m_data_)
+	_Field(this_type && other)
+			: m_domain_(other.m_domain_), m_data_(other.m_data_)
 	{
 	}
 	~_Field()
@@ -196,11 +198,16 @@ public:
 
 		wait();
 
-		m_domain_.for_each(other.domain(), [&](id_type const &s)
+		if (!other.domain().is_null())
 		{
-			op(at(s), other[s]);
-		});
-		sync();
+
+			m_domain_.for_each(other.domain(), [&](id_type const &s)
+			{
+				op(at(s), other[s]);
+			});
+			sync();
+		}
+
 	}
 
 public:
@@ -310,6 +317,20 @@ public:
 	}
 }
 ;
+template<typename TM, size_t IFORM, typename ...Others>
+struct field_traits<_Field<Domain<TM, IFORM>, Others...>>
+{
+	static constexpr bool is_field = true;
+
+	typedef Domain<TM, IFORM> domain_type;
+
+	typedef typename _Field<Domain<TM, IFORM>, Others...>::value_type value_type;
+
+	static constexpr size_t iform = domain_type::iform;
+
+	static constexpr size_t ndims = domain_type::ndims;
+
+};
 
 /**@} */
 

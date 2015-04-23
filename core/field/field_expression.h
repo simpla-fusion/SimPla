@@ -15,6 +15,7 @@ namespace simpla
  *  @{
  */
 template<typename ... >struct _Field;
+template<typename, size_t> struct Domain;
 
 namespace _impl
 {
@@ -24,6 +25,16 @@ class is_associative_container;
 
 class is_function;
 
+template<typename T>
+struct is_domain
+{
+	static constexpr bool value = false;
+};
+template<typename TM, size_t IFORM>
+struct is_domain<Domain<TM, IFORM>>
+{
+	static constexpr bool value = true;
+};
 }
 // namespace _impl
 
@@ -48,11 +59,15 @@ template<typename ...> struct field_traits;
 template<typename T> struct field_traits<T>
 {
 
-	typedef std::nullptr_t domain_type;
+	typedef std::integral_constant<size_t, 1> domain_type;
 
 	typedef T value_type;
 
 	static constexpr bool is_field = false;
+
+	static constexpr size_t iform = 0;
+
+	static constexpr size_t ndims = 3;
 
 };
 
@@ -100,11 +115,14 @@ struct _Field<Expression<TOP, TL, TR>> : public Expression<TOP, TL, TR>
 	typedef typename field_traits<TL>::value_type l_type;
 	typedef typename field_traits<TR>::value_type r_type;
 
+	typedef typename field_traits<TL>::domain_type l_domain_type;
+	typedef typename field_traits<TR>::domain_type r_domain_type;
 public:
 
 	typedef typename sp_result_of<TOP(l_type, r_type)>::type value_type;
 
-	typedef typename field_traits<TL>::domain_type domain_type;
+	typedef typename std::conditional<_impl::is_domain<l_domain_type>::value,
+			l_domain_type, r_domain_type>::type domain_type;
 
 	typedef _Field<Expression<TOP, TL, TR>> this_type;
 

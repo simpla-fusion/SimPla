@@ -45,7 +45,7 @@ enum
 	LOG_INFORM = 0,           //!< LOG_INFORM
 	LOG_LOG = 1,              //!< LOG_LOG
 
-	LOG_VERBOSE = 11,         //!< LOG_VERBOSE
+	LOG_VERBOSE = 10,         //!< LOG_VERBOSE
 	LOG_DEBUG = -20           //!< LOG_DEBUG
 };
 

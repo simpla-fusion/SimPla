@@ -79,7 +79,7 @@ std::string ConfigParser::init(int pargc, char ** pargv)
 	}
 
 	return "\t-i,\t--input <STRING>       \t, Input configure file \n"
-			"\t-p,--prologue <STRING>     \t, Execute Lua script before confingure file is load\n"
+			"\t-p,\t--prologue <STRING>   \t, Execute Lua script before confingure file is load\n"
 			"\t-e,\t--epilogue <STRING>   \t, Execute Lua script after confingure file is load\n";
 
 }

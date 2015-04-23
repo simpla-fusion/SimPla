@@ -120,7 +120,8 @@ std::string LoggerStreams::init(int argc, char** argv)
 
 	VERBOSE << "LoggerStream is initialized!" << std::endl;
 
-	return "\t-V,\t--verbose <NUM> \t, Verbose mode\n";
+	return "\t-V,\t--verbose <NUM> \t, Verbose mode.  Print debugging messages, \n"
+            "\t\t\t\t\t   <-10 means quiet, >10 means print as much as it can. default=0 \n";
 
 }
 void LoggerStreams::close()

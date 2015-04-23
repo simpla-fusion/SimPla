@@ -67,9 +67,9 @@ void SpObject::sync()
 	{
 		sync_update_continue(m_send_recv_list_, dataset().data.get()
 #ifndef DISABLE_ASYNC_UPDATE
-				,&(m_mpi_requests_)
+				, &(m_mpi_requests_)
 #endif
-		);
+				);
 	}
 }
 
