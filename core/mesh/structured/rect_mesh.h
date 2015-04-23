@@ -55,10 +55,9 @@ namespace simpla
  */
 //template<typename ... >struct RectMesh;
 template<typename TTopology, typename ...Policies>
-struct RectMesh:	public TTopology,
-					public Policies...,
-					std::enable_shared_from_this<
-							RectMesh<TTopology, Policies...>>
+struct RectMesh: public TTopology,
+		public Policies...,
+		std::enable_shared_from_this<RectMesh<TTopology, Policies...>>
 {
 	typedef TTopology topology_type;
 	typedef typename unpack_typelist<0, Policies...>::type coordinates_system;
@@ -173,8 +172,7 @@ public:
 	{
 	}
 
-	RectMesh(this_type const & other)
-			:
+	RectMesh(this_type const & other) :
 
 			m_index_dimensions_(other.m_index_dimensions_),
 
@@ -617,35 +615,6 @@ void RectMesh<TTopology, Polices...>::deploy(size_t const *gw)
 	 *  deploy volume
 	 **/
 
-	for (size_t i = 0; i < ndims; ++i)
-	{
-
-		if (m_dx_[i] <= EPSILON)
-		{
-
-			m_volume_[1UL << (ndims - i - 1)] = 1.0;
-
-			m_dual_volume_[7 - (1UL << (ndims - i - 1))] = 1.0;
-
-			m_inv_volume_[1UL << (ndims - i - 1)] = 1.0;
-
-			m_inv_dual_volume_[7 - (1UL << (ndims - i - 1))] = 1.0;
-
-		}
-		else
-		{
-
-			m_volume_[1UL << (ndims - i - 1)] = m_dx_[i];
-
-			m_dual_volume_[7 - (1UL << (ndims - i - 1))] = m_dx_[i];
-
-			m_inv_volume_[1UL << (ndims - i - 1)] = 1.0 / m_dx_[i];
-
-			m_inv_dual_volume_[7 - (1UL << (ndims - i - 1))] = 1.0 / m_dx_[i];
-
-		}
-	}
-
 //	/**
 //	 *\verbatim
 //	 *                ^y
@@ -666,12 +635,11 @@ void RectMesh<TTopology, Polices...>::deploy(size_t const *gw)
 //	 *
 //	 *\endverbatim
 //	 */
-
 	m_volume_[0] = 1.0;
-//
-//	m_volume_[1] /* 001 */= m_dx_[0];
-//	m_volume_[2] /* 010 */= m_dx_[1];
-//	m_volume_[4] /* 100 */= m_dx_[2];
+
+	m_volume_[1/* 001*/] = (m_dx_[0] <= EPSILON) ? 1 : m_dx_[0];
+	m_volume_[2/* 010*/] = (m_dx_[1] <= EPSILON) ? 1 : m_dx_[1];
+	m_volume_[4/* 100*/] = (m_dx_[2] <= EPSILON) ? 1 : m_dx_[2];
 
 	m_volume_[3] /* 011 */= m_volume_[1] * m_volume_[2];
 	m_volume_[5] /* 101 */= m_volume_[4] * m_volume_[1];
@@ -679,9 +647,11 @@ void RectMesh<TTopology, Polices...>::deploy(size_t const *gw)
 
 	m_volume_[7] /* 111 */= m_volume_[1] * m_volume_[2] * m_volume_[4];
 
-//	m_dual_volume_[6] /* 001 */= m_dx_[0];
-//	m_dual_volume_[5] /* 010 */= m_dx_[1];
-//	m_dual_volume_[3] /* 100 */= m_dx_[2];
+	m_dual_volume_[7] = 1.0;
+
+	m_dual_volume_[6] = (m_dx_[0] <= EPSILON) ? 1 : m_dx_[0];
+	m_dual_volume_[5] = (m_dx_[1] <= EPSILON) ? 1 : m_dx_[1];
+	m_dual_volume_[3] = (m_dx_[2] <= EPSILON) ? 1 : m_dx_[2];
 
 	m_dual_volume_[4] /* 011 */= m_dual_volume_[6] * m_dual_volume_[5];
 	m_dual_volume_[2] /* 101 */= m_dual_volume_[3] * m_dual_volume_[6];
@@ -690,9 +660,11 @@ void RectMesh<TTopology, Polices...>::deploy(size_t const *gw)
 	m_dual_volume_[0] /* 111 */= m_dual_volume_[6] * m_dual_volume_[5]
 			* m_dual_volume_[3];
 
-//	m_inv_volume_[1] /* 001 */= m_inv_dx_[0];
-//	m_inv_volume_[2] /* 010 */= m_inv_dx_[1];
-//	m_inv_volume_[4] /* 100 */= m_inv_dx_[2];
+	m_inv_volume_[7] = 1.0;
+
+	m_inv_volume_[1/* 001 */] = (m_dx_[0] <= EPSILON) ? 1 : 1.0 / m_dx_[0];
+	m_inv_volume_[2/* 010 */] = (m_dx_[1] <= EPSILON) ? 1 : 1.0 / m_dx_[1];
+	m_inv_volume_[4/* 100 */] = (m_dx_[2] <= EPSILON) ? 1 : 1.0 / m_dx_[2];
 
 	m_inv_volume_[3] /* 011 */= m_inv_volume_[1] * m_inv_volume_[2];
 	m_inv_volume_[5] /* 101 */= m_inv_volume_[4] * m_inv_volume_[1];
@@ -700,9 +672,11 @@ void RectMesh<TTopology, Polices...>::deploy(size_t const *gw)
 	m_inv_volume_[7] /* 111 */= m_inv_volume_[1] * m_inv_volume_[2]
 			* m_inv_volume_[4];
 
-//	m_inv_dual_volume_[6] /* 001 */= m_inv_dx_[0];
-//	m_inv_dual_volume_[5] /* 010 */= m_inv_dx_[1];
-//	m_inv_dual_volume_[3] /* 100 */= m_inv_dx_[2];
+	m_inv_dual_volume_[7] = 1.0;
+
+	m_inv_dual_volume_[6/* 110 */] = (m_dx_[0] <= EPSILON) ? 1 : 1.0 / m_dx_[0];
+	m_inv_dual_volume_[5/* 101 */] = (m_dx_[1] <= EPSILON) ? 1 : 1.0 / m_dx_[1];
+	m_inv_dual_volume_[3/* 001 */] = (m_dx_[2] <= EPSILON) ? 1 : 1.0 / m_dx_[2];
 
 	m_inv_dual_volume_[4] /* 011 */= m_inv_dual_volume_[6]
 			* m_inv_dual_volume_[5];
@@ -714,15 +688,18 @@ void RectMesh<TTopology, Polices...>::deploy(size_t const *gw)
 	m_inv_dual_volume_[0] /* 111 */= m_inv_dual_volume_[6]
 			* m_inv_dual_volume_[5] * m_inv_dual_volume_[3];
 
-//	CHECK(m_volume_[0]);
-//	CHECK(m_volume_[1]);
-//	CHECK(m_volume_[2]);
-//	CHECK(m_volume_[4]);
-//
-//	CHECK(m_inv_volume_[0]);
-//	CHECK(m_inv_volume_[1]);
-//	CHECK(m_inv_volume_[2]);
-//	CHECK(m_inv_volume_[4]);
+//	SHOW(m_dx_[0]);
+//	SHOW(m_dx_[1]);
+//	SHOW(m_dx_[2]);
+//	SHOW(m_inv_volume_[0]);
+//	SHOW(m_inv_volume_[1]);
+//	SHOW(m_inv_volume_[2]);
+//	SHOW(m_inv_volume_[3]);
+//	SHOW(m_inv_volume_[4]);
+//	SHOW(m_inv_volume_[5]);
+//	SHOW(m_inv_volume_[6]);
+//	SHOW(m_inv_volume_[7]);
+
 	/**
 	 * Decompose
 	 */

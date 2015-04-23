@@ -354,14 +354,40 @@ struct MeshIDs_
 
 	static constexpr id_type rotate(id_type const &s)
 	{
-		return ((s & (_DA)) >> INDEX_DIGITS) | ((s & _DI) << (INDEX_DIGITS * 2));
-
+		return ((s & (_DA)) << INDEX_DIGITS) | ((s & _DK) >> (INDEX_DIGITS * 2));
 	}
 
 	static constexpr id_type inverse_rotate(id_type const &s)
 	{
-		return ((s & (_DA)) << INDEX_DIGITS) | ((s & _DK) >> (INDEX_DIGITS * 2));
+		return ((s & (_DA)) >> INDEX_DIGITS) | ((s & _DI) << (INDEX_DIGITS * 2));
+	}
 
+	/**
+	 *\verbatim
+	 *                ^y
+	 *               /
+	 *        z     /
+	 *        ^    /
+	 *        |  110-------------111
+	 *        |  /|              /|
+	 *        | / |             / |
+	 *        |/  |            /  |
+	 *       100--|----------101  |
+	 *        | m |           |   |
+	 *        |  010----------|--011
+	 *        |  /            |  /
+	 *        | /             | /
+	 *        |/              |/
+	 *       000-------------001---> x
+	 *
+	 *\endverbatim
+	 */
+
+	static constexpr int node_id(id_type const &s)
+	{
+		return (((s & _DI) >> (MAX_MESH_LEVEL - 1))
+				| ((s & _DJ) >> (INDEX_DIGITS + MAX_MESH_LEVEL - 2))
+				| ((s & _DK) >> (INDEX_DIGITS * 2 + MAX_MESH_LEVEL - 3))) & 7UL;
 	}
 
 	static constexpr int m_node_id_to_index_[8] = { 0, // 000
@@ -374,12 +400,6 @@ struct MeshIDs_
 			0, // 111
 			};
 
-	static constexpr int node_id(id_type const &s)
-	{
-		return (((s & _DI) >> (MAX_MESH_LEVEL - 1))
-				| ((s & _DJ) >> (INDEX_DIGITS + MAX_MESH_LEVEL - 2))
-				| ((s & _DK) >> (INDEX_DIGITS * 2 + MAX_MESH_LEVEL - 3))) & 7UL;
-	}
 	static constexpr int sub_index(id_type const &s)
 	{
 		return m_node_id_to_index_[node_id(s)];
