@@ -182,7 +182,7 @@ private:
 			std::integral_constant<size_t, EDGE>, size_t s,
 			nTuple<TV, 3> const &v)
 	{
-		return v[geometry_type::node_id(s)];
+		return v[geometry_type::sub_index(s)];
 	}
 
 	template<typename geometry_type, typename TV>
@@ -190,7 +190,7 @@ private:
 			std::integral_constant<size_t, FACE>, size_t s,
 			nTuple<TV, 3> const &v)
 	{
-		return v[geometry_type::node_id(s)];
+		return v[geometry_type::sub_index(s)];
 	}
 
 	template<typename geometry_type, size_t IFORM, typename TV>

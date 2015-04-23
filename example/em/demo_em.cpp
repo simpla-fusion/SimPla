@@ -14,7 +14,7 @@
 
 #include "../../core/utilities/utilities.h"
 #include "../../core/io/io.h"
-
+#include "../../core/physics/physical_constants.h"
 #include "../../core/field/field.h"
 
 #include "../../core/mesh/mesh.h"
@@ -68,8 +68,6 @@ USE_CASE(em," Maxwell Eqs.")
 
 	mesh->deploy();
 
-	SHOW(GLOBAL_COMM.get_coordinate(GLOBAL_COMM.process_num()));
-
 	if (GLOBAL_COMM.process_num()==0)
 	{
 
@@ -97,14 +95,15 @@ USE_CASE(em," Maxwell Eqs.")
 	auto J = mesh->template make_form<EDGE, Real>();
 	auto E = mesh->template make_form<EDGE, Real>();
 	auto B = mesh->template make_form<FACE, Real>();
-
+	auto dB = mesh->template make_form<EDGE, Real>();
+	auto dE = mesh->template make_form<FACE, Real>();
 	J.clear();
 	E.clear();
 	B.clear();
 
-	VERBOSE_CMD(load_field(options["InitValue"]["B"], &B));
 	VERBOSE_CMD(load_field(options["InitValue"]["E"], &E));
-	VERBOSE_CMD(load_field(options["InitValue"]["J"], &J));
+//	VERBOSE_CMD(load_field(options["InitValue"]["J"], &J));
+	VERBOSE_CMD(load_field(options["InitValue"]["B"], &B));
 
 	auto J_src = make_field_function_by_config<EDGE, Real>(*mesh,
 			options["Constraint"]["J"]);
@@ -127,11 +126,19 @@ USE_CASE(em," Maxwell Eqs.")
 	VERBOSE << SAVE(B) << endl;
 	VERBOSE << SAVE(J) << endl;
 
-	LOGGER << "----------  START ---------- " << endl;
-
 	DEFINE_PHYSICAL_CONST
-
 	Real dt = mesh->dt();
+	auto dx = mesh->dx();
+	Real safe_dt = 0.5
+			* std::sqrt(dx[0] * dx[0] + dx[1] * dx[1] + dx[2] * dx[2])
+			/ speed_of_light;
+
+	if (dt > safe_dt)
+	{
+		WARNING << ("  Courant–Friedrichs–Lewy (CFL) !") << std::endl;
+	}
+
+	LOGGER << "----------  START ---------- " << endl;
 
 	cd("/Save/");
 
@@ -139,30 +146,31 @@ USE_CASE(em," Maxwell Eqs.")
 	{
 		VERBOSE << "Step [" << step << "/" << num_of_steps << "]" << endl;
 
-		J = J_src;
-		J.wait();
-//			J += J_src;
-//			B += B_src;
+		E = E_src;
+//		J = J_src;
+//		B = B_src;
 
-		if (!pml_solver)
-		{
-			LOG_CMD(E += (curl(B) / mu0 - J) / epsilon0 * dt);
-			LOG_CMD(B += -curl(E) * dt);
-		}
-		else
-		{
-			pml_solver->next_timestepE(mesh->dt(), E, B, &E);
-			LOG_CMD(E -= J / epsilon0 * dt);
-			pml_solver->next_timestepB(mesh->dt(), E, B, &B);
-		}
+//		if (!pml_solver)
+//		{
+		dE = curl(B) * (dt / speed_of_light2);
+		LOG_CMD(E += curl(B) * (dt / speed_of_light2)/*- J * (dt / epsilon0)*/);
 
-		B.wait();
-		E.wait();
+		dB = curl(E) * dt;
+		LOG_CMD(B -= curl(E) * dt);
+
+//		}
+//		else
+//		{
+//			pml_solver->next_timestepE(mesh->dt(), E, B, &E);
+//			LOG_CMD(E -= J / epsilon0 * dt);
+//			pml_solver->next_timestepB(mesh->dt(), E, B, &B);
+//		}
 
 		VERBOSE << SAVE_RECORD(J) << endl;
 		VERBOSE << SAVE_RECORD(E) << endl;
 		VERBOSE << SAVE_RECORD(B) << endl;
-
+		VERBOSE << SAVE_RECORD(dE) << endl;
+		VERBOSE << SAVE_RECORD(dB) << endl;
 		mesh->next_timestep();
 
 	}

@@ -339,14 +339,14 @@ public:
 
 		return m_volume_[topology_type::node_id(s)]
 				* coordinates_system::volume_factor(coordinates(s),
-						topology_type::node_id(s));
+						topology_type::sub_index(s));
 	}
 
 	constexpr Real dual_volume(id_type s) const
 	{
 		return m_dual_volume_[topology_type::node_id(s)]
 				* coordinates_system::dual_volume_factor(coordinates(s),
-						topology_type::node_id(s));
+						topology_type::sub_index(s));
 	}
 
 	constexpr Real cell_volume(id_type s) const
@@ -358,14 +358,14 @@ public:
 	{
 		return m_inv_volume_[topology_type::node_id(s)]
 				* coordinates_system::inv_volume_factor(coordinates(s),
-						topology_type::node_id(s));
+						topology_type::sub_index(s));
 	}
 
 	constexpr Real inv_dual_volume(id_type s) const
 	{
 		return m_inv_dual_volume_[topology_type::node_id(s)]
 				* coordinates_system::inv_dual_volume_factor(coordinates(s),
-						topology_type::node_id(s));
+						topology_type::sub_index(s));
 	}
 	/**@}*/
 
@@ -473,7 +473,7 @@ public:
 						+ topology_type::template unpack<IFORM>(s)
 						- m_index_local_offset_) % m_index_local_dimensions_,
 				m_hash_strides_) * ((IFORM == EDGE || IFORM == FACE) ? 3 : 1)
-				+ topology_type::node_id(s);
+				+ topology_type::sub_index(s);
 	}
 
 	/** @} */
@@ -612,18 +612,6 @@ void RectMesh<TTopology, Polices...>::deploy(size_t const *gw)
 	m_coord_orig_ = 0; //(m_coords_max_ + m_coords_min_) * 0.5;
 
 	m_toplogy_coord_orig_ = -m_coord_orig_ * m_to_topology_scale_;
-
-	DEFINE_PHYSICAL_CONST
-
-	Real safe_dt = m_CFL_
-			* std::sqrt(
-					m_dx_[0] * m_dx_[0] + m_dx_[1] * m_dx_[1]
-							+ m_dx_[2] * m_dx_[2]) / speed_of_light;
-
-	if (m_dt_ > safe_dt)
-	{
-		LOGGER << ("  Courant–Friedrichs–Lewy (CFL) !") << std::endl;
-	}
 
 	/**
 	 *  deploy volume

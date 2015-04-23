@@ -95,8 +95,8 @@ TEST_P(TestGeometry, Coordinates)
 
 		auto s = std::get<0>(idx);
 		EXPECT_EQ(iform, geometry.IForm(s));
-		EXPECT_EQ(geometry.node_id(geometry.get_first_node_shift(iform)),
-				geometry.node_id(s));
+		EXPECT_EQ(geometry.ele_suffix(geometry.get_first_node_shift(iform)),
+				geometry.ele_suffix(s));
 		EXPECT_EQ(
 				geometry.component_number(geometry.get_first_node_shift(iform)),
 				geometry.component_number(s));

@@ -66,7 +66,7 @@ void SpObject::sync()
 	if (m_send_recv_list_.size() > 0)
 	{
 		sync_update_continue(m_send_recv_list_, dataset().data.get()
-#ifndef DISABLE_ASYNC_UPDATE
+#ifdef ENABLE_ASYNC_UPDATE
 				, &(m_mpi_requests_)
 #endif
 				);

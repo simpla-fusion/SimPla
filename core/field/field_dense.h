@@ -189,6 +189,7 @@ public:
 		{
 			op(at(s), m.calculate(other, s));
 		});
+
 		sync();
 	}
 
@@ -200,14 +201,12 @@ public:
 
 		if (!other.domain().is_null())
 		{
-
 			m_domain_.for_each(other.domain(), [&](id_type const &s)
 			{
 				op(at(s), other[s]);
 			});
-			sync();
 		}
-
+		sync();
 	}
 
 public:

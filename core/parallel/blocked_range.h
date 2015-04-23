@@ -305,25 +305,25 @@ public:
 	void next()
 	{
 		CHECK(shift_);
-		auto n = node_id(shift_);
+		auto n = ele_suffix(shift_);
 
 		if (n == 0 || n == 1 || n == 6 || n == 7)
 		{
 			NextCell();
 		}
 
-		shift_ = roate(shift_);
+		shift_ = rotate(shift_);
 	}
 	void prev()
 	{
-		auto n = node_id(shift_);
+		auto n = ele_suffix(shift_);
 
 		if (n == 0 || n == 4 || n == 3 || n == 7)
 		{
 			PreviousCell();
 		}
 
-		shift_ = inverse_roate(shift_);
+		shift_ = inverse_rotate(shift_);
 	}
 };
 

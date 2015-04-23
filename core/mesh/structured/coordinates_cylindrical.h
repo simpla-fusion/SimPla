@@ -565,7 +565,7 @@ public:
 
 	constexpr scalar_type volume(index_type s) const
 	{
-		size_t n = topology_type::node_id(s);
+		size_t n = topology_type::ele_suffix(s);
 		return volume_[n]
 				* (((n & (1UL << (ndims - PhiAxis - 1))) > 0) ?
 						coordinates(s)[RAxis] : 1.0);
@@ -573,7 +573,7 @@ public:
 
 	constexpr scalar_type inv_volume(index_type s) const
 	{
-		size_t n = topology_type::node_id(s);
+		size_t n = topology_type::ele_suffix(s);
 		return inv_volume_[n]
 				/ (((n & (1UL << (ndims - PhiAxis - 1))) > 0) ?
 						coordinates(s)[RAxis] : 1.0);
@@ -581,14 +581,14 @@ public:
 
 	constexpr scalar_type dual_volume(index_type s) const
 	{
-		size_t n = topology_type::node_id(topology_type::dual(s));
+		size_t n = topology_type::ele_suffix(topology_type::dual(s));
 		return volume_[n]
 				* (((n & (1UL << (ndims - PhiAxis - 1))) > 0) ?
 						coordinates(s)[RAxis] : 1.0);
 	}
 	constexpr scalar_type inv_dual_volume(index_type s) const
 	{
-		size_t n = topology_type::node_id(topology_type::dual(s));
+		size_t n = topology_type::ele_suffix(topology_type::dual(s));
 		return inv_volume_[n]
 				/ (((n & (1UL << (ndims - PhiAxis - 1))) > 0) ?
 						coordinates(s)[RAxis] : 1.0);

@@ -330,7 +330,7 @@ struct OcForest
 
 		((d[2] )%local_outer_count_[2]) * hash_stride_[2];
 
-		switch (node_id(s))
+		switch (ele_suffix(s))
 		{
 			case 1:
 			case 6:
@@ -486,8 +486,8 @@ struct OcForest
 
 			case FACE:
 			{
-				auto di = delta_index(roate(dual(s)));
-				auto dj = delta_index(inverse_roate(dual(s)));
+				auto di = delta_index(rotate(dual(s)));
+				auto dj = delta_index(inverse_rotate(dual(s)));
 
 				v[0] = s - di - dj;
 				v[1] = s - di - dj;
@@ -555,8 +555,8 @@ struct OcForest
 		 *
 		 */
 
-		auto di = delta_index(roate(dual(s)));
-		auto dj = delta_index(inverse_roate(dual(s)));
+		auto di = delta_index(rotate(dual(s)));
+		auto dj = delta_index(inverse_rotate(dual(s)));
 
 		v[0] = s - di - dj;
 		v[1] = s - di - dj;
@@ -667,8 +667,8 @@ struct OcForest
 		 *
 		 *
 		 */
-		auto d1 = delta_index(roate(dual(s)));
-		auto d2 = delta_index(inverse_roate(dual(s)));
+		auto d1 = delta_index(rotate(dual(s)));
+		auto d2 = delta_index(inverse_rotate(dual(s)));
 		v[0] = s - d1;
 		v[1] = s + d1;
 		v[2] = s - d2;
@@ -818,8 +818,8 @@ struct OcForest
 		 *
 		 */
 
-		auto d1 = delta_index(roate((s)));
-		auto d2 = delta_index(inverse_roate((s)));
+		auto d1 = delta_index(rotate((s)));
+		auto d2 = delta_index(inverse_rotate((s)));
 
 		v[0] = s - d1;
 		v[1] = s + d1;
@@ -961,8 +961,8 @@ struct OcForest
 		 *
 		 */
 
-		auto d1 = delta_index(roate((s)));
-		auto d2 = delta_index(inverse_roate((s)));
+		auto d1 = delta_index(rotate((s)));
+		auto d2 = delta_index(inverse_rotate((s)));
 
 		v[0] = s - d1 - d2;
 		v[1] = s + d1 - d2;
@@ -1019,7 +1019,7 @@ struct OcForest
 
 		return r&(~(mask|(mask<<INDEX_DIGITS)|(mask<<(INDEX_DIGITS*2))));
 	}
-	static   unsigned int   node_id(index_type r)
+	static   unsigned int   ele_suffix(index_type r)
 	{
 		auto s = (r & (_DA >> (HeightOfTree(r) + 1))) >> (D_FP_POS - HeightOfTree(r) - 1);
 
@@ -1030,7 +1030,7 @@ struct OcForest
 	{
 		return r >> (INDEX_DIGITS * 3);
 	}
-	static index_type roate(index_type r)
+	static index_type rotate(index_type r)
 	{
 
 		index_type res;
@@ -1052,7 +1052,7 @@ struct OcForest
 	 * @param s
 	 * @return
 	 */
-	static index_type inverse_roate(index_type s)
+	static index_type inverse_rotate(index_type s)
 	{
 		index_type res;
 
@@ -1092,7 +1092,7 @@ struct OcForest
 	static index_type component_number(index_type s)
 	{
 		index_type res = 0;
-		switch (node_id(s))
+		switch (ele_suffix(s))
 		{
 			case 1:
 			case 6:
@@ -1113,7 +1113,7 @@ struct OcForest
 	static index_type IForm(index_type r)
 	{
 		index_type res = 0;
-		switch (node_id(r))
+		switch (ele_suffix(r))
 		{
 			case 0:
 			res = VERTEX;
@@ -1254,14 +1254,14 @@ struct OcForest
 
 		iterator & operator ++()
 		{
-			auto n = node_id(self_);
+			auto n = ele_suffix(self_);
 
 			if (n == 0 || n == 4 || n == 3 || n == 7)
 			{
 				NextCell();
 			}
 
-			self_ = roate(self_);
+			self_ = rotate(self_);
 
 			return *this;
 		}
@@ -1275,14 +1275,14 @@ struct OcForest
 		iterator & operator --()
 		{
 
-			auto n = node_id(self_);
+			auto n = ele_suffix(self_);
 
 			if (n == 0 || n == 1 || n == 6 || n == 7)
 			{
 				PreviousCell();
 			}
 
-			self_ = inverse_roate(self_);
+			self_ = inverse_rotate(self_);
 
 			return *this;
 		}
@@ -1644,7 +1644,7 @@ struct OcForest
 //			1, 1.0 / 8, 1.0 / 64, 1.0 / 512// 111
 //
 //		};
-//		return volume_[node_id(s)][HeightOfTree(s)];
+//		return volume_[ele_suffix(s)][HeightOfTree(s)];
 
 		return 1.0;
 	}
@@ -1671,7 +1671,7 @@ struct OcForest
 //			1, 8, 64, 512// 111
 //
 //		};
-//		return inv_volume_[node_id(s)][HeightOfTree(s)];
+//		return inv_volume_[ele_suffix(s)][HeightOfTree(s)];
 		return 1.0;
 	}
 
@@ -1698,7 +1698,7 @@ struct OcForest
 //
 //		};
 //
-//		return volume_[node_id(s)][HeightOfTree(s)];
+//		return volume_[ele_suffix(s)][HeightOfTree(s)];
 //	}
 //
 //	static Real inv_volume(index_type s)
@@ -1724,7 +1724,7 @@ struct OcForest
 //
 //		};
 //
-//		return inv_volume_[node_id(s)][HeightOfTree(s)];
+//		return inv_volume_[ele_suffix(s)][HeightOfTree(s)];
 //	}
 
 	static Real inv_dual_volume(index_type s)

@@ -119,13 +119,13 @@ public:
 	}
 
 	template<typename geometry_type,typename T>
-	static inline typename field_traits<_Field<_impl::ExteriorDerivative<EDGE,T> >>::value_type
+	static inline typename field_traits<_Field<_impl::ExteriorDerivative< EDGE,T> >>::value_type
 	calculate(geometry_type const & geo,_Field<_impl::ExteriorDerivative<EDGE,T> > const & expr, typename geometry_type::id_type s)
 	{
 
 		typename geometry_type::id_type X = geometry_type::delta_index(geometry_type::dual(s));
-		typename geometry_type::id_type Y = geometry_type::roate(X);
-		typename geometry_type::id_type Z = geometry_type::inverse_roate(X);
+		typename geometry_type::id_type Y = geometry_type::rotate(X);
+		typename geometry_type::id_type Z = geometry_type::inverse_rotate(X);
 
 		return (
 				(
@@ -191,8 +191,8 @@ public:
 	{
 
 		typename geometry_type::id_type X = geometry_type::delta_index(s);
-		typename geometry_type::id_type Y = geometry_type::roate(X);
-		typename geometry_type::id_type Z = geometry_type::inverse_roate(X);
+		typename geometry_type::id_type Y = geometry_type::rotate(X);
+		typename geometry_type::id_type Z = geometry_type::inverse_rotate(X);
 
 		return
 
@@ -255,8 +255,8 @@ public:
 			typename geometry_type::id_type s)
 	{
 		auto X = geometry_type::delta_index(geometry_type::dual(s));
-		auto Y = geometry_type::roate(X);
-		auto Z = geometry_type::inverse_roate(X);
+		auto Y = geometry_type::rotate(X);
+		auto Z = geometry_type::inverse_rotate(X);
 
 		return (
 
@@ -324,8 +324,8 @@ public:
 		auto const & l =expr.lhs;
 		auto const & r =expr.rhs;
 
-		auto Y = geometry_type::delta_index(geometry_type::roate(geometry_type::dual(s)));
-		auto Z = geometry_type::delta_index(geometry_type::inverse_roate(geometry_type::dual(s)));
+		auto Y = geometry_type::delta_index(geometry_type::rotate(geometry_type::dual(s)));
+		auto Z = geometry_type::delta_index(geometry_type::inverse_rotate(geometry_type::dual(s)));
 
 		return ((calculate(geo,l, s - Y) + calculate(geo,l, s + Y))
 				* (calculate(geo,l, s - Z) + calculate(geo,l, s + Z)) * 0.25);
@@ -378,8 +378,8 @@ public:
 	{
 		auto const & l =expr.lhs;
 		auto const & r =expr.rhs;
-		auto Y = geometry_type::delta_index(geometry_type::roate(geometry_type::dual(s)));
-		auto Z = geometry_type::delta_index(geometry_type::inverse_roate(geometry_type::dual(s)));
+		auto Y = geometry_type::delta_index(geometry_type::rotate(geometry_type::dual(s)));
+		auto Z = geometry_type::delta_index(geometry_type::inverse_rotate(geometry_type::dual(s)));
 
 		return calculate(geo,l, s)
 		* (calculate(geo,r, (s - Y) - Z) + calculate(geo,r, (s - Y) + Z)
@@ -521,11 +521,11 @@ public:
 		auto const & f =expr.lhs;
 		auto const & v =expr.rhs;
 
-		size_t n = geometry_type::node_id(s);
+		size_t n = geometry_type::component_number(s);
 
 		auto X = geometry_type::delta_index(s);
-		auto Y = geometry_type::roate(X);
-		auto Z = geometry_type::inverse_roate(X);
+		auto Y = geometry_type::rotate(X);
+		auto Z = geometry_type::inverse_rotate(X);
 		return
 
 		(calculate(geo,f, s + Y) + calculate(geo,f, s - Y)) * 0.5 * v[(n + 2) % 3] -
@@ -540,7 +540,7 @@ public:
 	{
 		auto const & f =expr.lhs;
 		auto const & v =expr.rhs;
-		size_t n = geometry_type::node_id(geometry_type::dual(s));
+		size_t n = geometry_type::component_number(geometry_type::dual(s));
 		size_t D = geometry_type::delta_index(geometry_type::dual(s));
 
 		return (calculate(geo,f, s + D) - calculate(geo,f, s - D)) * 0.5 * v[n];
@@ -581,7 +581,7 @@ public:
 	map_to(geometry_type const & geo ,_Field<_impl::MapTo< VERTEX,EDGE, T>> const & expr, typename geometry_type::id_type s)
 	{
 		auto const & f= expr.lhs;
-		auto n = geometry_type::node_id(s);
+		auto n = geometry_type::component_number(s);
 		auto D = geometry_type::delta_index(s);
 
 		return ((calculate(geo,f, s - D)[n] + calculate(geo,f, s + D)[n]) * 0.5);
@@ -643,10 +643,10 @@ public:
 	{
 		auto const & f= expr.lhs;
 
-		auto n = geometry_type::node_id(geometry_type::dual(s));
+		auto n = geometry_type::component_number(geometry_type::dual(s));
 		auto X = geometry_type::delta_index(geometry_type::dual(s));
-		auto Y = geometry_type::roate(X);
-		auto Z = geometry_type::inverse_roate(X);
+		auto Y = geometry_type::rotate(X);
+		auto Z = geometry_type::inverse_rotate(X);
 
 		return (
 
@@ -693,7 +693,7 @@ public:
 	{
 		auto const & f= expr.lhs;
 
-		auto n = geometry_type::node_id(geometry_type::dual(s));
+		auto n = geometry_type::component_number(geometry_type::dual(s));
 		auto D = geometry_type::delta_index(geometry_type::dual(s));
 
 		return ((calculate(geo,f, s - D)[n] + calculate(geo,f, s + D)[n]) * 0.5);
@@ -756,10 +756,10 @@ public:
 	map_to(geometry_type const & geo,_Field<_impl::MapTo< VOLUME,EDGE,T>> const & expr, typename geometry_type::id_type s)
 	{
 		auto const & f= expr.lhs;
-		auto n = geometry_type::node_id(geometry_type::dual(s));
+		auto n = geometry_type::component_number(geometry_type::dual(s));
 		auto X = geometry_type::delta_index(geometry_type::dual(s));
-		auto Y = geometry_type::roate(X);
-		auto Z = geometry_type::inverse_roate(X);
+		auto Y = geometry_type::rotate(X);
+		auto Z = geometry_type::inverse_rotate(X);
 		return (
 
 				(
@@ -787,11 +787,11 @@ public:
 		auto const & f =expr.lhs;
 
 		auto X = geometry_type::delta_index(geometry_type::dual(s));
-		auto Y = geometry_type::roate(X);
-		auto Z = geometry_type::inverse_roate(X);
+		auto Y = geometry_type::rotate(X);
+		auto Z = geometry_type::inverse_rotate(X);
 
-		Y = (geometry_type::node_id(Y) == N) ? Y : 0UL;
-		Z = (geometry_type::node_id(Z) == N) ? Z : 0UL;
+		Y = (geometry_type::component_number(Y) == N) ? Y : 0UL;
+		Z = (geometry_type::component_number(Z) == N) ? Z : 0UL;
 
 		return (calculate(geo,f, s + Y) - calculate(geo,f, s - Y))
 		- (calculate(geo,f, s + Z) - calculate(geo,f, s - Z));
@@ -805,11 +805,11 @@ public:
 		auto const & f =expr.lhs;
 
 		auto X = geometry_type::delta_index(s);
-		auto Y = geometry_type::roate(X);
-		auto Z = geometry_type::inverse_roate(X);
+		auto Y = geometry_type::rotate(X);
+		auto Z = geometry_type::inverse_rotate(X);
 
-		Y = (geometry_type::node_id(Y) == N) ? Y : 0UL;
-		Z = (geometry_type::node_id(Z) == N) ? Z : 0UL;
+		Y = (geometry_type::component_number(Y) == N) ? Y : 0UL;
+		Z = (geometry_type::component_number(Z) == N) ? Z : 0UL;
 
 		return (
 

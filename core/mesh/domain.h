@@ -376,6 +376,11 @@ public:
 					m_id_set_.insert(m_mesh_.template pack<iform>(idx));
 				}
 			}
+			if (m_id_set_.size() == 0)
+			{
+				clear();
+			}
+
 		}
 		else if (dict["SelectCell"])
 		{

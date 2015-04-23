@@ -28,23 +28,25 @@ omega_ce = qe * Btor/me -- e/m_p B0 rad/s
 vTe= math.sqrt(k_B*Te*2/me)
 rhoe = vTe/omega_ce    -- m
 
-NX = 10
-NY = 1
+NX = 20 
+NY = 20 
 NZ = 1
-LX = 10  --m --100000*rhoi --0.6
-LY = 10  --2.0*math.pi/k0
-LZ = 10  -- 2.0*math.pi/18
+LX = 1000   --m --100000*rhoi --0.6
+LY = 1000   --2.0*math.pi/k0
+LZ = 1   -- 2.0*math.pi/18
 GW = 5
 
-omega_ext= 0.1*math.pi --omega_ci*1.9
 
-dimensions={10 ,10 ,1 }
+dimensions={NX ,NY ,NZ }
 
 xmin={0.0,0.0,0.0}
 
 xmax={LX,LY,LZ}
 
-dt= 0.01*LX/NX/c
+dt= 0.04*LX/NX/c
+
+omega_ext= 0.01*math.pi/dt --omega_ci*1.9
+
 
 --domain_center=function( x  )
 --   return (x[0]-0.5)*( x[0]-0.5 ) +( x[1]-0.5 )*( x[1]-0.5 ) < 0.01
@@ -57,48 +59,48 @@ domain_center=    {
 }
 
 InitValue= {
-  B=
-  {
-
-    Domain={Box={{0 ,0 ,0},{LX,LY,LZ}}},
-
-    Value=function(x,t)
-
-      return  {0,0,math.sin(x[1]*2.0*math.pi/LX)*math.sin(x[2]*2.0*math.pi/LY)}
-
-    end
-
-  },
-  phi=
-  {
-    Domain={Box={{0 ,0 ,0},{LX,LY,LZ}}},
-
-    Value=function(x,t)
-      -- print(x[1],x[2],x[3])
-      return   math.sin(x[1]*0.92*math.pi)*math.sin(x[2]*0.02*math.pi)
-    end
-
+--    B=
+--    {
+--  
+----      Domain={Box={{0 ,0 ,0},{LX,LY,LZ}}},
+--  
+--      Value=function(x,t)
+--  
+--        return  {0,0,math.sin(x[1]*2.0*math.pi/LX)*math.sin(x[2]*2.0*math.pi/LY)}
+--  
+--      end
+--  
+--    },
+  --  phi=
+  --  {
+  --    Domain={Box={{0 ,0 ,0},{LX,LY,LZ}}},
+  --
+  --    Value=function(x,t)
+  --      -- print(x[1],x[2],x[3])
+  --      return   math.sin(x[1]*0.92*math.pi)*math.sin(x[2]*0.02*math.pi)
+  --    end
+  --
+  --  }
   }
-}
 
 Constraint=  {
---  J= {
---
---    Domain={Indices={{5,5,0,0} }},
---    Value= function(x , t  )
-----       print(x[1],x[2],x[3])
---      local tau = t*omega_ext -- + x[2]*TWOPI/(xmax[3]-xmin[3])
---      local amp=  math.sin(tau) --*(1-math.exp(-tau*tau)
---      -- print(t)
---      return {amp, 200, amp+300}
---    end
---  },
+  E= {
 
-  phi= {
+    Domain={Indices={{5 ,5 ,0,2} }},
+    Value= function(x , t  )
 
-    Domain= domain_center ,
-    Value= function(t,x,v )
-      return 1.2345
+      local tau = t*omega_ext -- + x[2]*TWOPI/(xmax[3]-xmin[3])
+      local amp=  math.sin(tau) --*(1-math.exp(-tau*tau)
+      print(amp)
+      return {0, 0, amp+300}
     end
-  }
+  },
+
+--  phi= {
+--
+--    Domain= domain_center ,
+--    Value= function(t,x,v )
+--      return 1.2345
+--    end
+--  }
 }

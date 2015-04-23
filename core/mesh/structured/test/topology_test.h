@@ -22,79 +22,79 @@ TEST(TestTopologyStatic, id_type)
 	for (int depth = 0; depth < (t::FLOATING_POINT_POS); ++depth)
 	{
 		for (int noid = 0; noid < 8; ++noid)
-			ASSERT_EQ(noid, t::node_id(t::get_shift(noid, depth)));
+			ASSERT_EQ(noid, t::ele_suffix(t::get_shift(noid, depth)));
 	}
 
 	auto s = t::get_first_node_shift(VERTEX);
-	EXPECT_EQ(0, t::node_id(s));
-	EXPECT_EQ(0, t::node_id(t::roate(s)));
-	EXPECT_EQ(0, t::node_id(t::inverse_roate(s)));
-	EXPECT_EQ(0, t::component_number(t::roate(s)));
-	EXPECT_EQ(0, t::component_number(t::inverse_roate(s)));
-	EXPECT_EQ(VERTEX, t::node_id(s));
-	EXPECT_EQ(VERTEX, t::IForm(t::roate(s)));
-	EXPECT_EQ(VERTEX, t::IForm(t::inverse_roate(s)));
+	EXPECT_EQ(0, t::ele_suffix(s));
+	EXPECT_EQ(0, t::ele_suffix(t::rotate(s)));
+	EXPECT_EQ(0, t::ele_suffix(t::inverse_rotate(s)));
+	EXPECT_EQ(0, t::component_number(t::rotate(s)));
+	EXPECT_EQ(0, t::component_number(t::inverse_rotate(s)));
+	EXPECT_EQ(VERTEX, t::ele_suffix(s));
+	EXPECT_EQ(VERTEX, t::IForm(t::rotate(s)));
+	EXPECT_EQ(VERTEX, t::IForm(t::inverse_rotate(s)));
 
 	s = t::get_first_node_shift(VOLUME);
-	EXPECT_EQ(7, t::node_id(s));
-	EXPECT_EQ(7, t::node_id(t::roate(s)));
-	EXPECT_EQ(7, t::node_id(t::inverse_roate(s)));
-	EXPECT_EQ(0, t::component_number(t::roate(s)));
-	EXPECT_EQ(0, t::component_number(t::inverse_roate(s)));
+	EXPECT_EQ(7, t::ele_suffix(s));
+	EXPECT_EQ(7, t::ele_suffix(t::rotate(s)));
+	EXPECT_EQ(7, t::ele_suffix(t::inverse_rotate(s)));
+	EXPECT_EQ(0, t::component_number(t::rotate(s)));
+	EXPECT_EQ(0, t::component_number(t::inverse_rotate(s)));
 
 	EXPECT_EQ(VOLUME, t::IForm(s));
-	EXPECT_EQ(VOLUME, t::IForm(t::roate(s)));
-	EXPECT_EQ(VOLUME, t::IForm(t::inverse_roate(s)));
+	EXPECT_EQ(VOLUME, t::IForm(t::rotate(s)));
+	EXPECT_EQ(VOLUME, t::IForm(t::inverse_rotate(s)));
 
 	s = t::get_first_node_shift(EDGE);
-	EXPECT_EQ(1, t::node_id(s));
-	EXPECT_EQ(2, t::node_id(t::roate(s)));
-	EXPECT_EQ(4, t::node_id(t::roate(t::roate(s))));
-	EXPECT_EQ(4, t::node_id(t::inverse_roate(s)));
-	EXPECT_EQ(2, t::node_id(t::inverse_roate(t::inverse_roate(s))));
+	EXPECT_EQ(1, t::ele_suffix(s));
+	EXPECT_EQ(2, t::ele_suffix(t::rotate(s)));
+	EXPECT_EQ(4, t::ele_suffix(t::rotate(t::rotate(s))));
+	EXPECT_EQ(4, t::ele_suffix(t::inverse_rotate(s)));
+	EXPECT_EQ(2, t::ele_suffix(t::inverse_rotate(t::inverse_rotate(s))));
 
 	EXPECT_EQ(0, t::component_number(s));
-	EXPECT_EQ(1, t::component_number(t::roate(s)));
-	EXPECT_EQ(2, t::component_number(t::roate(t::roate(s))));
-	EXPECT_EQ(2, t::component_number(t::inverse_roate(s)));
-	EXPECT_EQ(1, t::component_number(t::inverse_roate(t::inverse_roate(s))));
+	EXPECT_EQ(1, t::component_number(t::rotate(s)));
+	EXPECT_EQ(2, t::component_number(t::rotate(t::rotate(s))));
+	EXPECT_EQ(2, t::component_number(t::inverse_rotate(s)));
+	EXPECT_EQ(1, t::component_number(t::inverse_rotate(t::inverse_rotate(s))));
 
 	EXPECT_EQ(EDGE, t::IForm(s));
-	EXPECT_EQ(EDGE, t::IForm(t::roate(s)));
-	EXPECT_EQ(EDGE, t::IForm(t::roate(t::roate(s))));
-	EXPECT_EQ(EDGE, t::IForm(t::inverse_roate(s)));
-	EXPECT_EQ(EDGE, t::IForm(t::inverse_roate(t::inverse_roate(s))));
+	EXPECT_EQ(EDGE, t::IForm(t::rotate(s)));
+	EXPECT_EQ(EDGE, t::IForm(t::rotate(t::rotate(s))));
+	EXPECT_EQ(EDGE, t::IForm(t::inverse_rotate(s)));
+	EXPECT_EQ(EDGE, t::IForm(t::inverse_rotate(t::inverse_rotate(s))));
 
-	EXPECT_EQ(6, t::node_id(t::dual(s)));
-	EXPECT_EQ(5, t::node_id(t::dual(t::roate(s))));
-	EXPECT_EQ(3, t::node_id(t::dual(t::inverse_roate(s))));
+	EXPECT_EQ(6, t::ele_suffix(t::dual(s)));
+	EXPECT_EQ(5, t::ele_suffix(t::dual(t::rotate(s))));
+	EXPECT_EQ(3, t::ele_suffix(t::dual(t::inverse_rotate(s))));
 
 	EXPECT_EQ(t::DI(0, s), t::delta_index(s));
-	EXPECT_EQ(t::DI(1, s), t::delta_index(t::roate(s)));
-	EXPECT_EQ(t::DI(2, s), t::delta_index(t::inverse_roate(s)));
+	EXPECT_EQ(t::DI(1, s), t::delta_index(t::rotate(s)));
+	EXPECT_EQ(t::DI(2, s), t::delta_index(t::inverse_rotate(s)));
 
 	s = t::get_first_node_shift(FACE);
-	EXPECT_EQ(6, t::node_id(s));
-	EXPECT_EQ(5, t::node_id(t::roate(s)));
-	EXPECT_EQ(3, t::node_id(t::roate(t::roate(s))));
-	EXPECT_EQ(3, t::node_id(t::inverse_roate(s)));
-	EXPECT_EQ(5, t::node_id(t::inverse_roate(t::inverse_roate(s))));
+	EXPECT_EQ(6, t::ele_suffix(s));
+	EXPECT_EQ(5, t::ele_suffix(t::rotate(s)));
+	EXPECT_EQ(3, t::ele_suffix(t::rotate(t::rotate(s))));
+	EXPECT_EQ(3, t::ele_suffix(t::inverse_rotate(s)));
+	EXPECT_EQ(5, t::ele_suffix(t::inverse_rotate(t::inverse_rotate(s))));
 
 	EXPECT_EQ(0, t::component_number(s));
-	EXPECT_EQ(1, t::component_number(t::roate(s)));
-	EXPECT_EQ(2, t::component_number(t::roate(t::roate(s))));
-	EXPECT_EQ(2, t::component_number(t::inverse_roate(s)));
-	EXPECT_EQ(1, t::component_number(t::inverse_roate(t::inverse_roate(s))));
+	EXPECT_EQ(1, t::component_number(t::rotate(s)));
+	EXPECT_EQ(2, t::component_number(t::rotate(t::rotate(s))));
+	EXPECT_EQ(2, t::component_number(t::inverse_rotate(s)));
+	EXPECT_EQ(1, t::component_number(t::inverse_rotate(t::inverse_rotate(s))));
 
 	EXPECT_EQ(FACE, t::IForm(s));
-	EXPECT_EQ(FACE, t::IForm(t::roate(s)));
-	EXPECT_EQ(FACE, t::IForm(t::roate(t::roate(s))));
-	EXPECT_EQ(FACE, t::IForm(t::inverse_roate(s)));
-	EXPECT_EQ(FACE, t::IForm(t::inverse_roate(t::inverse_roate(s))));
+	EXPECT_EQ(FACE, t::IForm(t::rotate(s)));
+	EXPECT_EQ(FACE, t::IForm(t::rotate(t::rotate(s))));
+	EXPECT_EQ(FACE, t::IForm(t::inverse_rotate(s)));
+	EXPECT_EQ(FACE, t::IForm(t::inverse_rotate(t::inverse_rotate(s))));
 
-	EXPECT_EQ(1, t::node_id(t::dual(s)));
-	EXPECT_EQ(2, t::node_id(t::dual(t::roate(s))));
-	EXPECT_EQ(4, t::node_id(t::dual(t::inverse_roate(s))));
+	EXPECT_EQ(1, t::ele_suffix(t::dual(s)));
+	EXPECT_EQ(2, t::ele_suffix(t::dual(t::rotate(s))));
+	EXPECT_EQ(4, t::ele_suffix(t::dual(t::inverse_rotate(s))));
 
 }
 TEST(TestTopologyStatic, coordinates)
@@ -214,8 +214,8 @@ TEST_P(TestTopology, foreach)
 {
 	topology.dimensions(&dims[0]);
 
-	EXPECT_EQ(t::node_id(t::get_first_node_shift(VERTEX)),
-			t::node_id(*begin(topology.template select<VERTEX>())));
+	EXPECT_EQ(t::ele_suffix(t::get_first_node_shift(VERTEX)),
+			t::ele_suffix(*begin(topology.template select<VERTEX>())));
 
 	size_t expect_count = 1;
 
@@ -242,8 +242,8 @@ TEST_P(TestTopology, foreach)
 
 //#define BODY(iform)                                                                \
 //{                                                                                  \
-//	EXPECT_EQ(t::node_id(t::get_first_node_shift(iform)),              \
-//			t::node_id(*begin(t::template select<iform>())));          \
+//	EXPECT_EQ(t::ele_suffix(t::get_first_node_shift(iform)),              \
+//			t::ele_suffix(*begin(t::template select<iform>())));          \
 //                                                                                   \
 //	size_t expect_count = 1;                                                       \
 //                                                                                   \
@@ -297,9 +297,9 @@ TEST_P(TestTopology, foreach)
 ////
 ////			ASSERT_GT(
 ////					t::get_local_memory_size(
-////							t::IForm(t::roate(s))),
-////					domain.hash(t::roate(s)));
-////			ASSERT_LE(0, domain.hash(t::inverse_roate(s)));
+////							t::IForm(t::rotate(s))),
+////					domain.hash(t::rotate(s)));
+////			ASSERT_LE(0, domain.hash(t::inverse_rotate(s)));
 ////
 ////			auto DX = t::DI(0, s);
 ////			auto DY = t::DI(1, s);

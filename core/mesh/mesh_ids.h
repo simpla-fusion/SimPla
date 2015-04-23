@@ -125,7 +125,7 @@ struct MeshIDs_
 //
 //	| (((INIFIT_AXIS & 4UL) == 0) ? (INDEX_MASK << (INDEX_DIGITS * 2)) : 0UL);
 
-	static constexpr size_t m_sub_node_num_[4][3] = { //
+	static constexpr size_t m_index_to_node_id_[4][3] = { //
 
 			{ 0, 0, 0 }, /*VERTEX*/
 			{ 1, 2, 4 }, /*EDGE*/
@@ -134,7 +134,7 @@ struct MeshIDs_
 
 			};
 
-	static constexpr size_t m_sub_node_id_shift_[4][3] = {
+	static constexpr size_t m_index_to_id_shift_[4][3] = {
 
 	{ 0, 0, 0 },
 
@@ -146,7 +146,7 @@ struct MeshIDs_
 
 	};
 
-	static constexpr coordinates_type m_sub_node_coordinates_shift_[4][3] = {
+	static constexpr coordinates_type m_index_to_coordinates_shift_[4][3] = {
 
 	{ { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, /*VERTEX*/
 	{ { 0.5, 0, 0 }, { 0, 0.5, 0 }, { 0, 0, 0.5 } }, /*EDGE*/
@@ -155,7 +155,7 @@ struct MeshIDs_
 
 	};
 
-	static constexpr id_type m_shift_to_iform_[] = { //
+	static constexpr id_type m_node_id_to_iform_[] = { //
 
 			VERTEX, // 000
 					EDGE, // 001
@@ -178,7 +178,7 @@ struct MeshIDs_
 	{
 		return
 
-		m_sub_node_id_shift_[IFORM][n % 3]
+		m_index_to_id_shift_[IFORM][n % 3]
 
 		| (static_cast<size_t>(i + INDEX_ZERO) << MAX_MESH_LEVEL)
 
@@ -230,7 +230,7 @@ struct MeshIDs_
 				static_cast<index_type>(((s >> (INDEX_DIGITS * 2)) & INDEX_MASK)
 						>> (MAX_MESH_LEVEL)) - INDEX_ZERO,
 
-				node_id(s) })
+				sub_index(s) })
 
 		;
 	}
@@ -264,21 +264,21 @@ struct MeshIDs_
 	static constexpr id_type coordinates_to_id(TX const &x, int n = 0)
 	{
 
-		return m_sub_node_id_shift_[IFORM][n]
+		return m_index_to_id_shift_[IFORM][n]
 
 				| (static_cast<size_t>(std::floor(
-						(x[0] - m_sub_node_coordinates_shift_[IFORM][n][0]
+						(x[0] - m_index_to_coordinates_shift_[IFORM][n][0]
 								+ COORD_ZERO) * COORD_TO_INDEX_FACTOR) + 0.5)
 						& INDEX_MASK)
 
 				| ((static_cast<size_t>(std::floor(
-						(x[1] - m_sub_node_coordinates_shift_[IFORM][n][1]
+						(x[1] - m_index_to_coordinates_shift_[IFORM][n][1]
 								+ COORD_ZERO) * COORD_TO_INDEX_FACTOR) + 0.5)
 						& INDEX_MASK) << (INDEX_DIGITS))
 
 				| ((static_cast<size_t>(std::floor(
 
-						(x[2] - m_sub_node_coordinates_shift_[IFORM][n][2]
+						(x[2] - m_index_to_coordinates_shift_[IFORM][n][2]
 								+ COORD_ZERO) * COORD_TO_INDEX_FACTOR) + 0.5)
 						& INDEX_MASK) << (INDEX_DIGITS * 2))
 
@@ -308,11 +308,11 @@ struct MeshIDs_
 		return
 		{
 
-			(static_cast<index_type>(std::floor(x[0] - m_sub_node_coordinates_shift_[IFORM][n][0])/**COORD_TO_INDEX_FACTOR*/)),
+			(static_cast<index_type>(std::floor(x[0] - m_index_to_coordinates_shift_[IFORM][n][0])/**COORD_TO_INDEX_FACTOR*/)),
 
-			(static_cast<index_type>(std::floor(x[1] - m_sub_node_coordinates_shift_[IFORM][n][1])/**COORD_TO_INDEX_FACTOR*/)),
+			(static_cast<index_type>(std::floor(x[1] - m_index_to_coordinates_shift_[IFORM][n][1])/**COORD_TO_INDEX_FACTOR*/)),
 
-			(static_cast<index_type>(std::floor(x[2] - m_sub_node_coordinates_shift_[IFORM][n][2])/**COORD_TO_INDEX_FACTOR*/))
+			(static_cast<index_type>(std::floor(x[2] - m_index_to_coordinates_shift_[IFORM][n][2])/**COORD_TO_INDEX_FACTOR*/))
 
 		};
 	}
@@ -325,7 +325,7 @@ struct MeshIDs_
 
 		coordinates_type x;
 
-		x = (y - m_sub_node_coordinates_shift_[IFORM][n])
+		x = (y - m_index_to_coordinates_shift_[IFORM][n])
 				* COORD_TO_INDEX_FACTOR;
 
 		x[0] = std::remquo(x[0], COORD_TO_INDEX_FACTOR, &idx[0])
@@ -352,17 +352,19 @@ struct MeshIDs_
 		return (s & _DA);
 	}
 
-	static constexpr id_type roate(id_type const &s)
+	static constexpr id_type rotate(id_type const &s)
 	{
 		return ((s & (_DA)) >> INDEX_DIGITS) | ((s & _DI) << (INDEX_DIGITS * 2));
+
 	}
 
-	static constexpr id_type inverse_roate(id_type const &s)
+	static constexpr id_type inverse_rotate(id_type const &s)
 	{
 		return ((s & (_DA)) << INDEX_DIGITS) | ((s & _DK) >> (INDEX_DIGITS * 2));
+
 	}
 
-	static constexpr int m_node_id_[8] = { 0, // 000
+	static constexpr int m_node_id_to_index_[8] = { 0, // 000
 			0, // 001
 			1, // 010
 			2, // 011
@@ -374,20 +376,14 @@ struct MeshIDs_
 
 	static constexpr int node_id(id_type const &s)
 	{
-		return m_node_id_[(((s & _DI) >> (MAX_MESH_LEVEL - 1))
+		return (((s & _DI) >> (MAX_MESH_LEVEL - 1))
 				| ((s & _DJ) >> (INDEX_DIGITS + MAX_MESH_LEVEL - 2))
-				| ((s & _DK) >> (INDEX_DIGITS * 2 + MAX_MESH_LEVEL - 3))) & 7UL];
+				| ((s & _DK) >> (INDEX_DIGITS * 2 + MAX_MESH_LEVEL - 3))) & 7UL;
 	}
-
-//	typedef SpHashContainer<id_type, Real, id_hasher<1>> volume_container;
-//
-//	template<typename ...Args>
-//	static volume_container make_volume_container(Args &&...args)
-//	{
-//		id_hasher<1> hasher(std::forward<Args>(args)...);
-//
-//		return std::move(volume_container((hasher), hasher.max_hash()));
-//	}
+	static constexpr int sub_index(id_type const &s)
+	{
+		return m_node_id_to_index_[node_id(s)];
+	}
 
 	template<size_t IFORM> static constexpr int get_vertics(int n, id_type s,
 			coordinates_type *q = nullptr)
@@ -608,7 +604,7 @@ struct MeshIDs_
 //		return r & CELL_ID_MASK;
 //	}
 //
-//	static constexpr id_type node_id(id_type s)
+//	static constexpr id_type ele_suffix(id_type s)
 //	{
 //
 //		return (((s >> (INDEX_DIGITS * 2 + FLOATING_POINT_POS - 1)) & 1UL) << 2)
@@ -656,13 +652,13 @@ struct MeshIDs_
 //
 //	static constexpr id_type component_number(id_type s)
 //	{
-//		return m_component_number_[node_id(s)];
+//		return m_component_number_[ele_suffix(s)];
 //	}
 //
 //
 //	static constexpr id_type IForm(id_type r)
 //	{
-//		return m_iform_[node_id(r)];
+//		return m_iform_[ele_suffix(r)];
 //	}
 //	//! @}
 //	/**
@@ -741,8 +737,8 @@ struct MeshIDs_
 //		 *
 //		 */
 //
-//		auto di = delta_index(roate(dual(s)));
-//		auto dj = delta_index(inverse_roate(dual(s)));
+//		auto di = delta_index(rotate(dual(s)));
+//		auto dj = delta_index(inverse_rotate(dual(s)));
 //
 //		v[0] = s - di - dj;
 //		v[1] = s - di - dj;
@@ -860,8 +856,8 @@ struct MeshIDs_
 //		 *
 //		 *\endverbatim
 //		 */
-//		auto d1 = delta_index(roate(dual(s)));
-//		auto d2 = delta_index(inverse_roate(dual(s)));
+//		auto d1 = delta_index(rotate(dual(s)));
+//		auto d2 = delta_index(inverse_rotate(dual(s)));
 //		v[0] = s - d1;
 //		v[1] = s + d1;
 //		v[2] = s - d2;
@@ -1017,8 +1013,8 @@ struct MeshIDs_
 //		 *\endverbatim
 //		 */
 //
-//		auto d1 = delta_index(roate((s)));
-//		auto d2 = delta_index(inverse_roate((s)));
+//		auto d1 = delta_index(rotate((s)));
+//		auto d2 = delta_index(inverse_rotate((s)));
 //
 //		v[0] = s - d1;
 //		v[1] = s + d1;
@@ -1166,8 +1162,8 @@ struct MeshIDs_
 //		 *\endverbatim
 //		 */
 //
-//		auto d1 = delta_index(roate((s)));
-//		auto d2 = delta_index(inverse_roate((s)));
+//		auto d1 = delta_index(rotate((s)));
+//		auto d2 = delta_index(inverse_rotate((s)));
 //
 //		v[0] = s - d1 - d2;
 //		v[1] = s + d1 - d2;
@@ -1229,11 +1225,11 @@ template<size_t N, size_t A> constexpr Real MeshIDs_<N, A>::COORD_ZERO;
 template<size_t N, size_t A> constexpr Real MeshIDs_<N, A>::COORD_TO_INDEX_FACTOR;
 template<size_t N, size_t A> constexpr Real MeshIDs_<N, A>::INDEX_TO_COORD_FACTOR;
 
-template<size_t N, size_t A> constexpr int MeshIDs_<N, A>::m_node_id_[];
-template<size_t N, size_t A> constexpr size_t MeshIDs_<N, A>::m_sub_node_id_shift_[4][3];
-template<size_t N, size_t A> constexpr size_t MeshIDs_<N, A>::m_sub_node_num_[4][3];
+template<size_t N, size_t A> constexpr int MeshIDs_<N, A>::m_node_id_to_index_[];
+template<size_t N, size_t A> constexpr size_t MeshIDs_<N, A>::m_index_to_id_shift_[4][3];
+template<size_t N, size_t A> constexpr size_t MeshIDs_<N, A>::m_index_to_node_id_[4][3];
 template<size_t N, size_t A> constexpr typename MeshIDs_<N,A>::coordinates_type
-MeshIDs_<N,A>::m_sub_node_coordinates_shift_[4][3];
+MeshIDs_<N,A>::m_index_to_coordinates_shift_[4][3];
 
 typedef MeshIDs_<3, 0> MeshIDs;
 

@@ -90,8 +90,8 @@ public:
 			index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
 	{
 		auto X = topology_type::delta_index(topology_type::dual(s));
-		auto Y = topology_type::roate(X);
-		auto Z = topology_type::inverse_roate(X);
+		auto Y = topology_type::rotate(X);
+		auto Z = topology_type::inverse_rotate(X);
 
 		return (
 
@@ -192,8 +192,8 @@ public:
 			index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
 	{
 		auto X = topology_type::delta_index(s);
-		auto Y = topology_type::roate(X);
-		auto Z = topology_type::inverse_roate(X);
+		auto Y = topology_type::rotate(X);
+		auto Z = topology_type::inverse_rotate(X);
 
 		return
 
@@ -267,8 +267,8 @@ public:
 			index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
 	{
 		auto X = topology_type::delta_index(topology_type::dual(s));
-		auto Y = topology_type::roate(X);
-		auto Z = topology_type::inverse_roate(X);
+		auto Y = topology_type::rotate(X);
+		auto Z = topology_type::inverse_rotate(X);
 
 		return (
 
@@ -332,9 +332,9 @@ public:
 			index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
 	{
 		auto Y = topology_type::delta_index(
-				topology_type::roate(topology_type::dual(s)));
+				topology_type::rotate(topology_type::dual(s)));
 		auto Z = topology_type::delta_index(
-				topology_type::inverse_roate(topology_type::dual(s)));
+				topology_type::inverse_rotate(topology_type::dual(s)));
 
 		return ((get_value(l, s - Y) + get_value(l, s + Y))
 				* (get_value(l, s - Z) + get_value(l, s + Z)) * 0.25);
@@ -378,9 +378,9 @@ public:
 			index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
 	{
 		auto Y = topology_type::delta_index(
-				topology_type::roate(topology_type::dual(s)));
+				topology_type::rotate(topology_type::dual(s)));
 		auto Z = topology_type::delta_index(
-				topology_type::inverse_roate(topology_type::dual(s)));
+				topology_type::inverse_rotate(topology_type::dual(s)));
 
 		return get_value(l, s)
 				* (get_value(r, (s - Y) - Z) + get_value(r, (s - Y) + Z)
@@ -508,8 +508,8 @@ public:
 		unsigned int n = topology_type::component_number(s);
 
 		auto X = topology_type::delta_index(s);
-		auto Y = topology_type::roate(X);
-		auto Z = topology_type::inverse_roate(X);
+		auto Y = topology_type::rotate(X);
+		auto Z = topology_type::inverse_rotate(X);
 		return
 
 		(get_value(f, s + Y) + get_value(f, s - Y)) * 0.5 * v[(n + 2) % 3] -
@@ -542,8 +542,8 @@ public:
 	{
 
 		auto X = topology_type::delta_index(topology_type::dual(s));
-		auto Y = topology_type::roate(X);
-		auto Z = topology_type::inverse_roate(X);
+		auto Y = topology_type::rotate(X);
+		auto Z = topology_type::inverse_rotate(X);
 
 		Y = (topology_type::component_number(Y) == N) ? Y : 0UL;
 		Z = (topology_type::component_number(Z) == N) ? Z : 0UL;
@@ -560,8 +560,8 @@ public:
 	{
 
 		auto X = topology_type::delta_index(s);
-		auto Y = topology_type::roate(X);
-		auto Z = topology_type::inverse_roate(X);
+		auto Y = topology_type::rotate(X);
+		auto Z = topology_type::inverse_rotate(X);
 
 		Y = (topology_type::component_number(Y) == N) ? Y : 0UL;
 		Z = (topology_type::component_number(Z) == N) ? Z : 0UL;
@@ -677,8 +677,8 @@ public:
 
 		auto n = topology_type::component_number(topology_type::dual(s));
 		auto X = topology_type::delta_index(topology_type::dual(s));
-		auto Y = topology_type::roate(X);
-		auto Z = topology_type::inverse_roate(X);
+		auto Y = topology_type::rotate(X);
+		auto Z = topology_type::inverse_rotate(X);
 
 		return (
 
@@ -793,8 +793,8 @@ public:
 
 		auto n = topology_type::component_number(topology_type::dual(s));
 		auto X = topology_type::delta_index(topology_type::dual(s));
-		auto Y = topology_type::roate(X);
-		auto Z = topology_type::inverse_roate(X);
+		auto Y = topology_type::rotate(X);
+		auto Z = topology_type::inverse_rotate(X);
 		return (
 
 		(

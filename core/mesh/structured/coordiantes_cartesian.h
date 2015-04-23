@@ -320,18 +320,18 @@ public:
 //	constexpr scalar_type inv_volume(id_type s) const
 //	{
 //		return topology_type::inv_volume(s)
-//				* inv_volume_[topology_type::node_id(s)];
+//				* inv_volume_[topology_type::ele_suffix(s)];
 //	}
 //
 //	constexpr scalar_type dual_volume(id_type s) const
 //	{
 //		return topology_type::dual_volume(s)
-//				* dual_volume_[topology_type::node_id(s)];
+//				* dual_volume_[topology_type::ele_suffix(s)];
 //	}
 //	constexpr scalar_type inv_dual_volume(id_type s) const
 //	{
 //		return topology_type::inv_dual_volume(s)
-//				* inv_dual_volume_[topology_type::node_id(s)];
+//				* inv_dual_volume_[topology_type::ele_suffix(s)];
 //	}
 //
 //	constexpr Real HodgeStarVolumeScale(id_type s) const

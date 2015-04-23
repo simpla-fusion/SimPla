@@ -86,6 +86,8 @@ DataStream::~DataStream()
 	{
 		close();
 	}
+	VERBOSE << "DataSteream is closed" << endl;
+
 }
 
 bool DataStream::is_valid() const
@@ -169,6 +171,7 @@ std::tuple<bool, std::string> DataStream::cd(std::string const &url,
 	{
 		std::tie(pimpl_->current_filename_, pimpl_->base_file_id_) =
 				pimpl_->open_file(file_name, flag);
+
 	}
 
 	if (pimpl_->current_groupname_ != grp_name)
@@ -229,9 +232,11 @@ void DataStream::close()
 			pimpl_->base_file_id_ = -1;
 		}
 
+		INFORM << "File [" << pimpl_->current_filename_ << "] is closed!"
+				<< endl;
+
 		std::unique_ptr<pimpl_s>(nullptr).swap(pimpl_);
 	}
-	VERBOSE << "DataSteream is closed" << std::endl;
 }
 
 void DataStream::set_attribute(std::string const &url, Any const & any_v)
@@ -462,6 +467,8 @@ std::tuple<std::string, hid_t> DataStream::pimpl_s::open_file(
 			f_id = H5Fcreate( filename.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, plist_id));
 
 	H5_ERROR(H5Pclose(plist_id));
+
+	INFORM << "File [" << filename << "] is opened!" << endl;
 
 	return std::make_tuple(filename, f_id);
 
