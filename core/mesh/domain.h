@@ -65,25 +65,25 @@ private:
 	std::set<id_type> m_id_set_;
 public:
 
-	Domain(mesh_type const &m)
-			: m_mesh_(m)
+	Domain(mesh_type const &m) :
+			m_mesh_(m)
 	{
 		deploy();
 	}
 	template<typename T0, typename T1>
-	Domain(mesh_type const &m, T0 const & b, T1 const & e)
-			: m_mesh_(m)
+	Domain(mesh_type const &m, T0 const & b, T1 const & e) :
+			m_mesh_(m)
 	{
 		reset_bound_box(b, e);
 	}
 
-	Domain(this_type const & other)
-			: m_mesh_(other.m_mesh_), m_box_(other.m_box_), m_id_set_(
+	Domain(this_type const & other) :
+			m_mesh_(other.m_mesh_), m_box_(other.m_box_), m_id_set_(
 					other.m_id_set_)
 	{
 	}
-	Domain(this_type && other)
-			: m_mesh_(other.m_mesh_), m_box_(other.m_box_), m_id_set_(
+	Domain(this_type && other) :
+			m_mesh_(other.m_mesh_), m_box_(other.m_box_), m_id_set_(
 					other.m_id_set_)
 	{
 	}
@@ -125,6 +125,18 @@ public:
 	void clear()
 	{
 		m_box_.clear();
+	}
+
+	size_t size() const
+	{
+		if (is_simply())
+		{
+			return m_box_.size();
+		}
+		else
+		{
+			return m_id_set_.size();
+		}
 	}
 	/** @} */
 
@@ -461,15 +473,14 @@ public:
 		return std::move(const_iterator(m_box_.end()));
 	}
 
-	struct iterator:	public std::iterator<
-								typename range_type::iterator::iterator_category,
-								id_type, id_type>,
-						public range_type::iterator
+	struct iterator: public std::iterator<
+			typename range_type::iterator::iterator_category, id_type, id_type>,
+			public range_type::iterator
 	{
 		typedef typename range_type::iterator base_iterator;
 
-		iterator(base_iterator const &other)
-				: base_iterator(other)
+		iterator(base_iterator const &other) :
+				base_iterator(other)
 		{
 		}
 

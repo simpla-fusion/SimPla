@@ -21,28 +21,110 @@ typedef CartesianRectMesh mesh_type;
 
 typedef nTuple<Real, 3> coordinates_type;
 
-class TestFieldCase: public testing::TestWithParam<
-		std::tuple<coordinates_type, coordinates_type, coordinates_type,
-				coordinates_type> >
-{
+//class FETLTest: public testing::TestWithParam<
+//		std::tuple<coordinates_type, coordinates_type, nTuple<size_t, 3>,
+//				coordinates_type> >
+//{
+//
+//protected:
+//	void SetUp()
+//	{
+//		LOGGER.set_stdout_visable_level(LOG_INFORM);
+//		auto param = GetParam();
+//
+//		xmin = std::get<0>(param);
+//
+//		xmax = std::get<1>(param);
+//
+//		dims = std::get<2>(param);
+//
+//		K_real = std::get<3>(param);
+//
+//		SetDefaultValue(&one);
+//
+//		for (int i = 0; i < NDIMS; ++i)
+//		{
+//			if (dims[i] <= 1 || (xmax[i] <= xmin[i]))
+//			{
+//				dims[i] = 1;
+//				K_real[i] = 0.0;
+//				xmax[i] = xmin[i];
+//			}
+//		}
+//
+//		mesh->dimensions(dims);
+//
+//		mesh->extents(xmin, xmax);
+//
+//		mesh->deploy();
+//
+//	}
+//public:
+//
+//	typedef Real value_type;
+//	typedef Real scalar_type;
+//	typedef typename mesh_type::coordinates_type coordinates_type;
+//	typedef typename mesh_type::index_tuple index_tuple;
+//
+//	mesh_type mesh;
+//
+//	static constexpr unsigned int NDIMS = mesh_type::ndims;
+//
+//	coordinates_type xmin;
+//
+//	coordinates_type xmax;
+//
+//	index_tuple dims;
+//
+//	coordinates_type K_real; // @NOTE must   k = n TWOPI, period condition
+//
+//	nTuple<scalar_type, 3> K_imag;
+//
+//	value_type one;
+//
+//	Real error;
+//
+//	template<typename T>
+//	void SetDefaultValue(T* v)
+//	{
+//		*v = 1;
+//	}
+//	template<typename T>
+//	void SetDefaultValue(std::complex<T>* v)
+//	{
+//		T r;
+//		SetDefaultValue(&r);
+//		*v = std::complex<T>();
+//	}
+//
+//	template<unsigned int N, typename T>
+//	void SetDefaultValue(nTuple<T, N>* v)
+//	{
+//		for (int i = 0; i < N; ++i)
+//		{
+//			(*v)[i] = i;
+//		}
+//	}
+//
+//	virtual ~FETLTest()
+//	{
+//
+//	}
+//
+//};
 
+class FETLTest: public testing::TestWithParam<
+		std::tuple<nTuple<Real, 3>, nTuple<Real, 3>, nTuple<size_t, 3>,
+				nTuple<Real, 3>> >
+{
 protected:
 	void SetUp()
 	{
-		LOGGER.set_stdout_visable_level(LOG_INFORM);
-		auto param = GetParam();
-
-		xmin = std::get<0>(param);
-
-		xmax = std::get<1>(param);
-
-		dims = std::get<2>(param);
-
-		K_real = std::get<3>(param);
-
+		LOGGER.set_stdout_visable_level(LOG_VERBOSE);
+		std::tie(xmin, xmax, dims, K_real) = GetParam();
+		K_imag = 0;
 		SetDefaultValue(&one);
-
-		for (int i = 0; i < NDIMS; ++i)
+		for (int i = 0; i < ndims; ++i)
 		{
 			if (dims[i] <= 1 || (xmax[i] <= xmin[i]))
 			{
@@ -52,36 +134,32 @@ protected:
 			}
 		}
 
-		mesh.dimensions(dims);
-		mesh.extents(xmin, xmax);
-
-		mesh.deploy();
-
+		mesh = std::make_shared<mesh_type>();
+		mesh->dimensions(&dims[0]);
+		mesh->extents(xmin, xmax);
+		mesh->deploy();
+		Vec3 dx = mesh->dx();
+		error = 2.0 * std::pow(inner_product(K_real, dx), 2.0);
+	}
+	void TearDown()
+	{
+		std::shared_ptr<mesh_type>(nullptr).swap(mesh);
 	}
 public:
-
 	typedef Real value_type;
 	typedef typename mesh_type::scalar_type scalar_type;
 	typedef typename mesh_type::coordinates_type coordinates_type;
-	typedef typename mesh_type::index_tuple index_tuple;
 
-	mesh_type mesh;
-
-	static constexpr unsigned int NDIMS = mesh_type::ndims;
-
-	coordinates_type xmin;
-
-	coordinates_type xmax;
-
-	index_tuple dims;
-
-	coordinates_type K_real; // @NOTE must   k = n TWOPI, period condition
-
+	static constexpr size_t ndims = mesh_type::ndims;
+	nTuple<Real, 3> xmin;
+	nTuple<Real, 3> xmax;
+	nTuple<size_t, 3> dims;
+	nTuple<Real, 3> K_real; // @NOTE must   k = n TWOPI, period condition
 	nTuple<scalar_type, 3> K_imag;
-
 	value_type one;
-
 	Real error;
+
+	std::shared_ptr<mesh_type> mesh;
 
 	template<typename T>
 	void SetDefaultValue(T* v)
@@ -93,10 +171,9 @@ public:
 	{
 		T r;
 		SetDefaultValue(&r);
-		*v = std::complex<T>();
+		*v = std::complex<T>(r, 0);
 	}
-
-	template<unsigned int N, typename T>
+	template<size_t N, typename T>
 	void SetDefaultValue(nTuple<T, N>* v)
 	{
 		for (int i = 0; i < N; ++i)
@@ -104,27 +181,24 @@ public:
 			(*v)[i] = i;
 		}
 	}
-
-	virtual ~TestFETL()
+	virtual ~FETLTest()
 	{
-
 	}
-
 };
-TEST_P(TestFieldCase, grad0)
+TEST_P(FETLTest, grad0)
 {
 
-	auto f0 = make_form<VERTEX, value_type>(mesh);
-	auto f1 = make_form<EDGE, value_type>(mesh);
-	auto f1b = make_form<EDGE, value_type>(mesh);
+	auto f0 = make_form<VERTEX, value_type>(*mesh);
+	auto f1 = make_form<EDGE, value_type>(*mesh);
+	auto f1b = make_form<EDGE, value_type>(*mesh);
 
 	f0.clear();
 	f1.clear();
 	f1b.clear();
 
-	for (auto s : mesh.domain<VERTEX>())
+	for (auto s : mesh->domain<VERTEX>())
 	{
-		f0[s] = std::sin(inner_product(K_real, mesh.coordinates(s)));
+		f0[s] = std::sin(inner_product(K_real, mesh->coordinates(s)));
 	};
 	f0.sync();
 
@@ -138,21 +212,21 @@ TEST_P(TestFieldCase, grad0)
 
 	Real mean = 0;
 
-	for (auto s : mesh.domain<EDGE>())
+	for (auto s : mesh->domain<EDGE>())
 	{
-		size_t n = mesh.sub_index(s);
+		size_t n = mesh->sub_index(s);
 
-		auto x = mesh.coordinates(s);
+		auto x = mesh->coordinates(s);
 
 		value_type expect;
 
 		expect = K_real[n] * std::cos(inner_product(K_real, x))
 				+ K_imag[n] * std::sin(inner_product(K_real, x));
 
-		if (mesh.get_type_as_string() == "Cylindrical"
+		if (mesh->get_type_as_string() == "Cylindrical"
 				&& n == (mesh_type::ZAxis + 1) % 3)
 		{
-			auto r = mesh.coordinates(s);
+			auto r = mesh->coordinates(s);
 			expect /= r[(mesh_type::ZAxis + 2) % 3];
 		}
 
@@ -170,13 +244,13 @@ TEST_P(TestFieldCase, grad0)
 //		if (mod(expect) > EPSILON)
 //		{
 //			EXPECT_LE(mod(2.0 * (f1[s] - expect) / (f1[s] + expect)), error) << " expect = " << expect
-//			        << " actual = " << f1[s] << " x= " << mesh.coordinates(s) << " K= " << K_real << " mesh.K="
-//			        << mesh.k_imag;
+//			        << " actual = " << f1[s] << " x= " << mesh->coordinates(s) << " K= " << K_real << " mesh->K="
+//			        << mesh->k_imag;
 //		}
 //		else
 //		{
 //			EXPECT_LE(mod(f1[s]), error) << " expect = " << expect << " actual = " << f1[s] << " x= "
-//			        << mesh.coordinates(s);
+//			        << mesh->coordinates(s);
 //
 //		}
 
@@ -187,8 +261,8 @@ TEST_P(TestFieldCase, grad0)
 
 	}
 //
-//	variance /=mesh.template get_num_of_elements<EDGE>();
-//	average /=mesh.template get_num_of_elements<EDGE>();
+//	variance /=mesh->template get_num_of_elements<EDGE>();
+//	average /=mesh->template get_num_of_elements<EDGE>();
 	EXPECT_LE(std::sqrt(variance), error);
 	EXPECT_LE(mod(average), error);
 
@@ -199,22 +273,22 @@ TEST_P(TestFieldCase, grad0)
 
 }
 
-TEST_P(TestFieldCase, grad3)
+TEST_P(FETLTest, grad3)
 {
-	if (!mesh.is_valid())
+	if (!mesh->is_valid())
 		return;
 
-	auto f2 = make_field < value_type > (*create_mesh < FACE > (*geometry));
-	auto f2b = make_field < value_type > (*create_mesh < FACE > (*geometry));
-	auto f3 = make_field < value_type > (*create_mesh < VOLUME > (*geometry));
+	auto f2 = mesh->make_form<FACE, value_type>();
+	auto f2b = mesh->make_form<FACE, value_type>();
+	auto f3 = mesh->make_form<VOLUME, value_type>();
 
 	f3.clear();
 	f2.clear();
 	f2b.clear();
 
-	for (auto s : mesh.domain<VOLUME>())
+	for (auto s : mesh->domain<VOLUME>())
 	{
-		f3[s] = std::sin(inner_product(K_real, mesh.coordinates(s)));
+		f3[s] = std::sin(inner_product(K_real, mesh->coordinates(s)));
 	};
 	f3.sync();
 	LOG_CMD(f2 = grad(f3));
@@ -226,21 +300,21 @@ TEST_P(TestFieldCase, grad3)
 	Real variance = 0;
 	value_type average = one * 0.0;
 
-	for (auto s : domain2)
+	for (auto s : mesh->domain<FACE>())
 	{
 
-		size_t n = mesh.sub_index(s);
+		size_t n = mesh->sub_index(s);
 
-		auto x = mesh.coordinates(s);
+		auto x = mesh->coordinates(s);
 
 		value_type expect;
 		expect = K_real[n] * std::cos(inner_product(K_real, x))
 				+ K_imag[n] * std::sin(inner_product(K_real, x));
 
-		if (mesh.get_type_as_string() == "Cylindrical"
+		if (mesh->get_type_as_string() == "Cylindrical"
 				&& n == (mesh_type::ZAxis + 1) % 3)
 		{
-			auto r = mesh.coordinates(s);
+			auto r = mesh->coordinates(s);
 			expect /= r[(mesh_type::ZAxis + 2) % 3];
 		}
 
@@ -253,19 +327,19 @@ TEST_P(TestFieldCase, grad3)
 //		if (mod(expect) > EPSILON)
 //		{
 //			EXPECT_LE(mod(2.0 * (f2[s] - expect) / (f2[s] + expect)), error) << " expect = " << expect
-//			        << " actual = " << f2[s] << " x= " << mesh.coordinates(s) << " K= " << K_real;
+//			        << " actual = " << f2[s] << " x= " << mesh->coordinates(s) << " K= " << K_real;
 //		}
 //		else
 //		{
 //			EXPECT_LE(mod(f2[s]), error) << " expect = " << expect << " actual = " << f2[s] << " x= "
-//			        << mesh.coordinates(s);
+//			        << mesh->coordinates(s);
 //
 //		}
 
 	}
 
-	variance /= f2.size();
-	average /= f2.size();
+	variance /= f2.domain().size();
+	average /= f2.domain().size();
 	EXPECT_LE(std::sqrt(variance), error) << dims;
 	EXPECT_LE(mod(average), error);
 //
@@ -276,23 +350,21 @@ TEST_P(TestFieldCase, grad3)
 
 }
 
-TEST_P(TestFieldCase, diverge1)
+TEST_P(FETLTest, diverge1)
 {
-	if (!mesh.is_valid())
+	if (!mesh->is_valid())
 		return;
 
-	auto domain0 = create_mesh<VERTEX>();
-	auto domain1 = create_mesh<EDGE>();
-	auto f1 = make_field < value_type > (domain1);
-	auto f0 = make_field < value_type > (domain0);
-	auto f0b = make_field < value_type > (domain0);
+	auto f1 = mesh->make_form<EDGE, value_type>();
+	auto f0 = mesh->make_form<VERTEX, value_type>();
+	auto f0b = mesh->make_form<VERTEX, value_type>();
 	f0.clear();
 	f0b.clear();
 	f1.clear();
 
-	for (auto s : mesh.domain<EDGE>())
+	for (auto s : mesh->domain<EDGE>())
 	{
-		f1[s] = std::sin(inner_product(K_real, mesh.coordinates(s)));
+		f1[s] = std::sin(inner_product(K_real, mesh->coordinates(s)));
 	};
 	f1.sync();
 	LOG_CMD(f0 = diverge(f1));
@@ -305,17 +377,17 @@ TEST_P(TestFieldCase, diverge1)
 	value_type average;
 	average *= 0;
 
-	for (auto s : domain0)
+	for (auto s : mesh->domain<VERTEX>())
 	{
 
-		auto x = mesh.coordinates(s);
+		auto x = mesh->coordinates(s);
 
 		Real cos_v = std::cos(inner_product(K_real, x));
 		Real sin_v = std::sin(inner_product(K_real, x));
 
 		value_type expect;
 
-		if (mesh.get_type_as_string() == "Cylindrical")
+		if (mesh->get_type_as_string() == "Cylindrical")
 		{
 
 			expect =
@@ -353,47 +425,45 @@ TEST_P(TestFieldCase, diverge1)
 //		if (mod(expect) > EPSILON)
 //		{
 //			EXPECT_LE(mod(2.0 * (f0[s] - expect) / (f0[s] + expect)), error) << " expect = " << expect
-//			        << " actual = " << f0[s] << " x= " << mesh.coordinates(s) << " K= " << K_real << " K_i= "
+//			        << " actual = " << f0[s] << " x= " << mesh->coordinates(s) << " K= " << K_real << " K_i= "
 //			        << K_imag;
 //		}
 //		else
 //		{
 //			EXPECT_LE(mod(f0[s]), error) << " expect = " << expect << " actual = " << f0[s] << " x= "
-//			        << mesh.coordinates(s);
+//			        << mesh->coordinates(s);
 //
 //		}
 	}
 
-	variance /= f0.size();
-	average /= f0.size();
+	variance /= f0.domain().size();
+	average /= f0.domain().size();
 
 	CHECK(average);
 
 	EXPECT_LE(std::sqrt(variance), error) << dims;
 	EXPECT_LE(mod(average), error) << " K= " << K_real << " K_i= " << K_imag
 
-//			<< " mesh.Ki=" << mesh.k_imag
+//			<< " mesh->Ki=" << mesh->k_imag
 
 			;
 
 }
 
-TEST_P(TestFieldCase, diverge2)
+TEST_P(FETLTest, diverge2)
 {
-	if (!mesh.is_valid())
+	if (!mesh->is_valid())
 		return;
 
-	auto domain3 = create_mesh<VOLUME>();
-	auto domain2 = create_mesh<FACE>();
-	auto f2 = make_field < value_type > (domain2);
-	auto f3 = make_field < value_type > (domain3);
+	auto f2 = mesh->make_form<FACE, value_type>();
+	auto f3 = mesh->make_form<VOLUME, value_type>();
 
 	f3.clear();
 	f2.clear();
 
-	for (auto s : domain2)
+	for (auto s : mesh->domain<FACE>())
 	{
-		f2[s] = std::sin(inner_product(K_real, mesh.coordinates(s)));
+		f2[s] = std::sin(inner_product(K_real, mesh->coordinates(s)));
 	};
 	f2.sync();
 
@@ -403,16 +473,16 @@ TEST_P(TestFieldCase, diverge2)
 	value_type average;
 	average *= 0.0;
 
-	for (auto s : mesh.domain<VOLUME>())
+	for (auto s : mesh->domain<VOLUME>())
 	{
-		auto x = mesh.coordinates(s);
+		auto x = mesh->coordinates(s);
 
 		Real cos_v = std::cos(inner_product(K_real, x));
 		Real sin_v = std::sin(inner_product(K_real, x));
 
 		value_type expect;
 
-		if (mesh.get_type_as_string() == "Cylindrical")
+		if (mesh->get_type_as_string() == "Cylindrical")
 		{
 
 			expect =
@@ -433,7 +503,7 @@ TEST_P(TestFieldCase, diverge2)
 							K_imag[(mesh_type::ZAxis + 3) % 3] //  k_z
 					) * sin_v;
 
-			expect += std::sin(inner_product(K_real, mesh.coordinates(s)))
+			expect += std::sin(inner_product(K_real, mesh->coordinates(s)))
 					/ x[(mesh_type::ZAxis + 2) % 3]; //A_r
 		}
 		else
@@ -451,25 +521,23 @@ TEST_P(TestFieldCase, diverge2)
 
 	}
 
-	variance /= f3.size();
-	average /= f3.size();
+	variance /= f3.domain().size();
+	average /= f3.domain().size();
 
 	ASSERT_LE(std::sqrt(variance), error);
 	ASSERT_LE(mod(average), error);
 
 }
 
-TEST_P(TestFieldCase, curl1)
+TEST_P(FETLTest, curl1)
 {
-	if (!mesh.is_valid())
+	if (!mesh->is_valid())
 		return;
 
-	auto domain1 = create_mesh<EDGE>();
-	auto domain2 = create_mesh<FACE>();
-	auto f1 = make_field < value_type > (domain1);
-	auto f1b = make_field < value_type > (domain1);
-	auto f2 = make_field < value_type > (domain2);
-	auto f2b = make_field < value_type > (domain2);
+	auto f1 = mesh->make_form<EDGE, value_type>();
+	auto f1b = mesh->make_form<EDGE, value_type>();
+	auto f2 = mesh->make_form<FACE, value_type>();
+	auto f2b = mesh->make_form<FACE, value_type>();
 
 	f1.clear();
 	f1b.clear();
@@ -481,25 +549,25 @@ TEST_P(TestFieldCase, curl1)
 	value_type average;
 	average *= 0.0;
 
-	for (auto s : mesh.domain<EDGE>())
+	for (auto s : mesh->domain<EDGE>())
 	{
-		f1[s] = std::sin(inner_product(K_real, mesh.coordinates(s)));
+		f1[s] = std::sin(inner_product(K_real, mesh->coordinates(s)));
 	};
 	f1.sync();
 	LOG_CMD(f2 = curl(f1));
 
-	for (auto s : domain2)
+	for (auto s : mesh->domain<FACE>())
 	{
-		auto n = mesh.sub_index(s);
+		auto n = mesh->sub_index(s);
 
-		auto x = mesh.coordinates(s);
+		auto x = mesh->coordinates(s);
 
 		Real cos_v = std::cos(inner_product(K_real, x));
 		Real sin_v = std::sin(inner_product(K_real, x));
 
 		value_type expect;
 
-		if (mesh.get_type_as_string() == "Cylindrical")
+		if (mesh->get_type_as_string() == "Cylindrical")
 		{
 			switch (n)
 			{
@@ -526,7 +594,7 @@ TEST_P(TestFieldCase, curl1)
 						+ (K_imag[(mesh_type::ZAxis + 1) % 3]
 								- K_imag[(mesh_type::ZAxis + 2) % 3]) * sin_v;
 
-				expect -= std::sin(inner_product(K_real, mesh.coordinates(s)))
+				expect -= std::sin(inner_product(K_real, mesh->coordinates(s)))
 						/ x[(mesh_type::ZAxis + 2) % 3]; //A_r
 				break;
 
@@ -548,35 +616,33 @@ TEST_P(TestFieldCase, curl1)
 //		if (mod(expect) > epsilon)
 //		{
 //			EXPECT_LE(mod(2.0 * (vf2[s] - expect) / (vf2[s] + expect)), error) << " expect = " << expect
-//			        << " actual = " << vf2[s] << " x= " << mesh.coordinates(s);
+//			        << " actual = " << vf2[s] << " x= " << mesh->coordinates(s);
 //		}
 //		else
 //		{
 //			EXPECT_LE(mod(vf2[s]), error) << " expect = " << expect << " actual = " << vf2[s] << " x= "
-//			        << mesh.coordinates(s);
+//			        << mesh->coordinates(s);
 //		}
 
 	}
 
-	variance /= f2.size();
-	average /= f2.size();
+	variance /= f2.domain().size();
+	average /= f2.domain().size();
 
 	ASSERT_LE(std::sqrt(variance), error);
 	ASSERT_LE(mod(average), error);
 
 }
 
-TEST_P(TestFieldCase, curl2)
+TEST_P(FETLTest, curl2)
 {
-	if (!mesh.is_valid())
+	if (!mesh->is_valid())
 		return;
 
-	auto domain1 = create_mesh<EDGE>();
-	auto domain2 = create_mesh<FACE>();
-	auto f1 = make_field < value_type > (domain1);
-	auto vf1b = make_field < value_type > (domain1);
-	auto f2 = make_field < value_type > (domain2);
-	auto vf2b = make_field < value_type > (domain2);
+	auto f1 = mesh->make_form<EDGE, value_type>();
+	auto vf1b = mesh->make_form<EDGE, value_type>();
+	auto f2 = mesh->make_form<FACE, value_type>();
+	auto vf2b = mesh->make_form<FACE, value_type>();
 
 	f1.clear();
 	vf1b.clear();
@@ -588,9 +654,9 @@ TEST_P(TestFieldCase, curl2)
 	value_type average;
 	average *= 0.0;
 
-	for (auto s : domain2)
+	for (auto s : mesh->domain<FACE>())
 	{
-		f2[s] = std::sin(inner_product(K_real, mesh.coordinates(s)));
+		f2[s] = std::sin(inner_product(K_real, mesh->coordinates(s)));
 	};
 	f2.sync();
 	LOG_CMD(f1 = curl(f2));
@@ -599,19 +665,19 @@ TEST_P(TestFieldCase, curl2)
 
 	vf1b.clear();
 
-	for (auto s : mesh.domain<EDGE>())
+	for (auto s : mesh->domain<EDGE>())
 	{
 
-		auto n = mesh.sub_index(s);
+		auto n = mesh->sub_index(s);
 
-		auto x = mesh.coordinates(s);
+		auto x = mesh->coordinates(s);
 
 		Real cos_v = std::cos(inner_product(K_real, x));
 		Real sin_v = std::sin(inner_product(K_real, x));
 
 		value_type expect;
 
-		if (mesh.get_type_as_string() == "Cylindrical")
+		if (mesh->get_type_as_string() == "Cylindrical")
 		{
 			switch (n)
 			{
@@ -638,7 +704,7 @@ TEST_P(TestFieldCase, curl2)
 						+ (K_imag[(mesh_type::ZAxis + 1) % 3]
 								- K_imag[(mesh_type::ZAxis + 2) % 3]) * sin_v;
 
-				expect -= std::sin(inner_product(K_real, mesh.coordinates(s)))
+				expect -= std::sin(inner_product(K_real, mesh->coordinates(s)))
 						/ x[(mesh_type::ZAxis + 2) % 3]; //A_r
 				break;
 
@@ -659,11 +725,11 @@ TEST_P(TestFieldCase, curl2)
 
 //		if (mod(expect) > epsilon)
 //		{
-//			ASSERT_LE(mod(2.0 * (vf1[s] - expect) / (vf1[s] + expect)), error)<< " expect = "<<expect<<" actual = "<<vf1[s]<< " x= "<<mesh.coordinates(s);
+//			ASSERT_LE(mod(2.0 * (vf1[s] - expect) / (vf1[s] + expect)), error)<< " expect = "<<expect<<" actual = "<<vf1[s]<< " x= "<<mesh->coordinates(s);
 //		}
 //		else
 //		{
-//			ASSERT_LE(mod(vf1[s]), error)<< " expect = "<<expect<<" actual = "<<vf1[s]<< " x= "<<mesh.coordinates(s);
+//			ASSERT_LE(mod(vf1[s]), error)<< " expect = "<<expect<<" actual = "<<vf1[s]<< " x= "<<mesh->coordinates(s);
 //
 //		}
 
@@ -673,33 +739,30 @@ TEST_P(TestFieldCase, curl2)
 //	LOGGER << SAVE(vf2);
 //	LOGGER << SAVE(vf1);
 //	LOGGER << SAVE(vf1b);
-	variance /= f1.size();
-	average /= f1.size();
+	variance /= f1.domain().size();
+	average /= f1.domain().size();
 
 	ASSERT_LE(std::sqrt(variance), error);
 	ASSERT_LE(mod(average), error);
 
 }
 
-TEST_P(TestFieldCase, identity_curl_grad_f0_eq_0)
+TEST_P(FETLTest, identity_curl_grad_f0_eq_0)
 {
-	if (!mesh.is_valid())
+	if (!mesh->is_valid())
 		return;
-	auto domain0 = create_mesh<VERTEX>();
-	auto domain1 = create_mesh<EDGE>();
-	auto domain2 = create_mesh<FACE>();
-	auto domain3 = create_mesh<VOLUME>();
-	auto f0 = make_field < value_type > (domain0);
-	auto f1 = make_field < value_type > (domain1);
-	auto f2a = make_field < value_type > (domain2);
-	auto f2b = make_field < value_type > (domain2);
+
+	auto f0 = mesh->make_form<VERTEX, value_type>();
+	auto f1 = mesh->make_form<EDGE, value_type>();
+	auto f2a = mesh->make_form<FACE, value_type>();
+	auto f2b = mesh->make_form<FACE, value_type>();
 
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
 	Real m = 0.0;
 	f0.clear();
-	for (auto s : domain0)
+	for (auto s : mesh->domain<VERTEX>())
 	{
 
 		auto a = uniform_dist(gen);
@@ -717,7 +780,7 @@ TEST_P(TestFieldCase, identity_curl_grad_f0_eq_0)
 	size_t count = 0;
 	Real variance_a = 0;
 	Real variance_b = 0;
-	for (auto s : domain2)
+	for (auto s : mesh->domain<FACE>())
 	{
 
 		variance_a += mod(f2a[s]);
@@ -732,18 +795,15 @@ TEST_P(TestFieldCase, identity_curl_grad_f0_eq_0)
 
 }
 
-TEST_P(TestFieldCase, identity_curl_grad_f3_eq_0)
+TEST_P(FETLTest, identity_curl_grad_f3_eq_0)
 {
-	if (!mesh.is_valid())
+	if (!mesh->is_valid())
 		return;
-	auto domain0 = create_mesh<VERTEX>();
-	auto domain1 = create_mesh<EDGE>();
-	auto domain2 = create_mesh<FACE>();
-	auto domain3 = create_mesh<VOLUME>();
-	auto f3 = make_field < value_type > (domain3);
-	auto f1a = make_field < value_type > (domain1);
-	auto f1b = make_field < value_type > (domain1);
-	auto f2 = make_field < value_type > (domain2);
+
+	auto f3 = mesh->make_form<VOLUME, value_type>();
+	auto f1a = mesh->make_form<EDGE, value_type>();
+	auto f1b = mesh->make_form<EDGE, value_type>();
+	auto f2 = mesh->make_form<FACE, value_type>();
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
@@ -751,7 +811,7 @@ TEST_P(TestFieldCase, identity_curl_grad_f3_eq_0)
 
 	f3.clear();
 
-	for (auto s : mesh.domain<VOLUME>())
+	for (auto s : mesh->domain<VOLUME>())
 	{
 		auto a = uniform_dist(gen);
 		f3[s] = a * one;
@@ -767,7 +827,7 @@ TEST_P(TestFieldCase, identity_curl_grad_f3_eq_0)
 	size_t count = 0;
 	Real variance_a = 0;
 	Real variance_b = 0;
-	for (auto s : mesh.domain<EDGE>())
+	for (auto s : mesh->domain<EDGE>())
 	{
 
 //		ASSERT_EQ((f1a[s]), (f1b[s]));
@@ -782,18 +842,15 @@ TEST_P(TestFieldCase, identity_curl_grad_f3_eq_0)
 	ASSERT_LE(std::sqrt(variance_a), error);
 }
 
-TEST_P(TestFieldCase, identity_div_curl_f1_eq0)
+TEST_P(FETLTest, identity_div_curl_f1_eq0)
 {
-	if (!mesh.is_valid())
+	if (!mesh->is_valid())
 		return;
-	auto domain0 = create_mesh<VERTEX>();
-	auto domain1 = create_mesh<EDGE>();
-	auto domain2 = create_mesh<FACE>();
-	auto domain3 = create_mesh<VOLUME>();
-	auto f1 = make_field < value_type > (domain1);
-	auto f2 = make_field < value_type > (domain2);
-	auto f0a = make_field < value_type > (domain0);
-	auto f0b = make_field < value_type > (domain0);
+
+	auto f1 = mesh->make_form<EDGE, value_type>();
+	auto f2 = mesh->make_form<FACE, value_type>();
+	auto f0a = mesh->make_form<VERTEX, value_type>();
+	auto f0b = mesh->make_form<VERTEX, value_type>();
 
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
@@ -802,7 +859,7 @@ TEST_P(TestFieldCase, identity_div_curl_f1_eq0)
 
 	Real m = 0.0;
 
-	for (auto s : domain2)
+	for (auto s : mesh->domain<FACE>())
 	{
 		auto a = uniform_dist(gen);
 
@@ -823,7 +880,7 @@ TEST_P(TestFieldCase, identity_div_curl_f1_eq0)
 	size_t count = 0;
 	Real variance_a = 0;
 	Real variance_b = 0;
-	for (auto s : domain0)
+	for (auto s : mesh->domain<VERTEX>())
 	{
 		variance_b += mod(f0b[s] * f0b[s]);
 		variance_a += mod(f0a[s] * f0a[s]);
@@ -836,17 +893,13 @@ TEST_P(TestFieldCase, identity_div_curl_f1_eq0)
 
 }
 
-TEST_P(TestFieldCase, identity_div_curl_f2_eq0)
+TEST_P(FETLTest, identity_div_curl_f2_eq0)
 {
 
-	auto domain0 = create_mesh<VERTEX>();
-	auto domain1 = create_mesh<EDGE>();
-	auto domain2 = create_mesh<FACE>();
-	auto domain3 = create_mesh<VOLUME>();
-	auto f1 = make_field < value_type > (domain1);
-	auto f2 = make_field < value_type > (domain2);
-	auto f3a = make_field < value_type > (domain3);
-	auto f3b = make_field < value_type > (domain3);
+	auto f1 = mesh->make_form<EDGE, value_type>();
+	auto f2 = mesh->make_form<FACE, value_type>();
+	auto f3a = mesh->make_form<VOLUME, value_type>();
+	auto f3b = mesh->make_form<VOLUME, value_type>();
 
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
@@ -855,7 +908,7 @@ TEST_P(TestFieldCase, identity_div_curl_f2_eq0)
 
 	Real m = 0.0;
 
-	for (auto s : mesh.domain<EDGE>())
+	for (auto s : mesh->domain<EDGE>())
 	{
 		auto a = uniform_dist(gen);
 		f1[s] = one * a;
@@ -875,7 +928,7 @@ TEST_P(TestFieldCase, identity_div_curl_f2_eq0)
 
 	Real variance_a = 0;
 	Real variance_b = 0;
-	for (auto s : mesh.domain<VOLUME>())
+	for (auto s : mesh->domain<VOLUME>())
 	{
 
 //		ASSERT_DOUBLE_EQ(mod(f3a[s]), mod(f3b[s]));
@@ -891,7 +944,7 @@ TEST_P(TestFieldCase, identity_div_curl_f2_eq0)
 
 }
 //
-//INSTANTIATE_TEST_CASE_P(FETLTEST, TestFieldCase,
+//INSTANTIATE_TEST_CASE_P(FETLTEST, FETLTest,
 //
 //testing::Combine(testing::Values(
 //

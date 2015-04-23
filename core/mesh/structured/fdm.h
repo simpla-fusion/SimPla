@@ -112,7 +112,7 @@ public:
 	static inline typename field_traits<_Field<_impl::ExteriorDerivative<VERTEX,T> >>::value_type
 	calculate(geometry_type const & geo,_Field<_impl::ExteriorDerivative<VERTEX,T> > const & f, typename geometry_type::id_type s)
 	{
-		constexpr typename geometry_type::id_type D = geometry_type::delta_index(s);
+		typename geometry_type::id_type D = geometry_type::delta_index(s);
 
 		return (calculate(geo,f.lhs, s + D) * geo.volume(s + D)
 				- calculate(geo,f.lhs, s - D) * geo.volume(s - D)) * geo.inv_volume(s);
