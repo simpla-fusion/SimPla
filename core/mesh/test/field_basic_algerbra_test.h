@@ -11,8 +11,10 @@
 #include <gtest/gtest.h>
 #include <random>
 
-#include "../field.h"
 #include "../../utilities/utilities.h"
+#include "../../field/field.h"
+#include "../../io/io.h"
+
 using namespace simpla;
 
 template<typename TField>
@@ -23,8 +25,10 @@ protected:
 	{
 		LOGGER.set_stdout_visable_level(10);
 
-		domain_type(mesh).swap(domain);
-
+		mesh = std::make_shared<mesh_type>();
+//		mesh->dimensions(&dims[0]);
+//		mesh->extents(xmin, xmax);
+		mesh->deploy();
 	}
 public:
 
@@ -35,13 +39,29 @@ public:
 
 	typedef typename field_type::value_type value_type;
 
+	typedef typename mesh_type::scalar_type scalar_type;
+
 	static constexpr size_t iform = field_traits<TField>::iform;
 
-	static std::shared_ptr<const mesh_type> mesh;
-
-	domain_type domain;
+	static std::shared_ptr<mesh_type> mesh;
 
 	value_type default_value;
+
+	TField make_field() const
+	{
+		return TField(*mesh);
+	}
+	TField make_scalar_field() const
+	{
+		return mesh->template make_form<iform, scalar_type>();
+	}
+	auto make_vector_field() const
+	DECL_RET_TYPE((mesh->template make_form<iform, nTuple<value_type, 3>>()))
+
+	domain_type domain() const
+	{
+		return mesh->template domain<iform>();
+	}
 
 };
 
@@ -61,7 +81,7 @@ TYPED_TEST_P(TestField, assign){
 
 	f1 = va;
 
-	for(auto s : TestFixture::domain)
+	for(auto s : TestFixture::domain())
 	{
 		EXPECT_LE(mod( va- f1[s]),EPSILON);
 	}
@@ -82,14 +102,14 @@ TYPED_TEST_P(TestField, index){
 
 	va=2.0;
 
-	for(auto s : TestFixture::domain)
+	for(auto s : TestFixture::domain())
 	{
-		f1[s]=va* TestFixture::domain.hash(s);
+		f1[s]=va* TestFixture::domain().hash(s);
 	}
 
-	for(auto s : TestFixture::domain)
+	for(auto s : TestFixture::domain())
 	{
-		EXPECT_LE(mod( va* TestFixture::domain.hash(s)- f1[s]),EPSILON);
+		EXPECT_LE(mod( va* TestFixture::domain().hash(s)- f1[s]),EPSILON);
 	}
 }
 }
@@ -117,7 +137,7 @@ TYPED_TEST_P(TestField, constant_real){
 
 	LOG_CMD(f3 = -f1 *a +f2*c - f1/b -f1/**/);
 
-	for(auto s : TestFixture::domain)
+	for(auto s : TestFixture::domain())
 	{
 		value_type res;
 		res= -f1[s] *a + f2[s] *c -f1[s]/b-f1[s];
@@ -192,11 +212,11 @@ TYPED_TEST_P(TestField, scalar_field){
 	 * */
 	count =0;
 
-	for(auto s :TestFixture::domain )
+	for(auto s :TestFixture::domain() )
 	{
 		value_type res= - f1[s]*ra +f2[s]* rb -f3[s]/ rc -f1[s];
 
-		EXPECT_LE( mod(res-f4[s]) ,EPSILON )<< "s= "<<(TestFixture::domain.hash(s));
+		EXPECT_LE( mod(res-f4[s]) ,EPSILON )<< "s= "<<(TestFixture::domain().hash(s));
 	}
 
 	EXPECT_EQ(0,count)<< "number of error points =" << count;

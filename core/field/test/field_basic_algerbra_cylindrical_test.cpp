@@ -58,8 +58,8 @@ typedef testing::Types<
 //DECLARE_STATIC_MANIFOLD(double, VOLUME)
 
 template<typename TF>
-std::shared_ptr<typename TestField<TF>::manifold_type> TestField<TF>::manifold = //
-		std::make_shared<manifold_type>( //
+std::shared_ptr<typename TestField<TF>::manifold_type> TestField<TF>::mesh = //
+		std::make_shared<mesh_type>( //
 				nTuple<Real, 3>( { 0.0, 0.0, 0.0 }), //
 				nTuple<Real, 3>( { 1.0, 2.0, 1.0 }), //
 				nTuple<size_t, 3>( { 40, 12, 10 }) //

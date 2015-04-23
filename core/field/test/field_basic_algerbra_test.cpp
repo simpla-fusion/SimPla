@@ -24,7 +24,7 @@ typedef testing::Types< //
 
 > TypeParamList;
 template<typename TF> std::shared_ptr<typename TestField<TF>::manifold_type> //
-TestField<TF>::manifold = std::make_shared<SimpleMesh>(10, 20);
+TestField<TF>::mesh = std::make_shared<SimpleMesh>(10, 20);
 
 INSTANTIATE_TYPED_TEST_CASE_P(FIELD, TestField, TypeParamList);
 
