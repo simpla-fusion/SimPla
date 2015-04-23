@@ -64,8 +64,8 @@ InitValue= {
 
     Value=function(x,t)
 
-   --   return  {0,0,math.sin(x[1]*2.0*math.pi/LX)*math.sin(x[2]*2.0*math.pi/LY)}
-    return {0,0,x[1]*x[1]*x[2]*x[2]}
+      return  {0,0,math.sin(x[1]*2.0*math.pi/LX)*math.sin(x[2]*2.0*math.pi/LY)}
+
     end
 
   },

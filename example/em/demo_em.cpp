@@ -59,6 +59,8 @@ USE_CASE(em," Maxwell Eqs.")
 
 	mesh->deploy();
 
+	SHOW(GLOBAL_COMM.get_coordinate(GLOBAL_COMM.process_num()));
+
 	if (GLOBAL_COMM.process_num()==0)
 	{
 
@@ -74,43 +76,49 @@ USE_CASE(em," Maxwell Eqs.")
 		<< " TIME_STEPS = " << num_of_steps << endl;
 	}
 
-	auto phi = make_form<VERTEX, Real>(mesh);
-	phi.clear();
+//	auto phi = make_form<VERTEX, Real>(mesh);
+//
+//	phi.clear();
+//
+//	int N = GLOBAL_COMM.process_num();
+//
+//	int count = 0;
+//
+//	phi.for_each([&](Real &v)
+//	{
+//		v=(N+1)*100 +count;
+//		++count;
+//	});
+//
+////	phi = N;
+//
+//	GLOBAL_COMM.barrier();
+//	if (GLOBAL_COMM.process_num()==0)
+//	{
+//		VERBOSE<<std::endl<<phi<<endl;
+//	}
+//	GLOBAL_COMM.barrier();
+//	if (GLOBAL_COMM.process_num()==1)
+//	{
+//		VERBOSE<<std::endl<<phi<<endl;
+//	}
+//	GLOBAL_COMM.barrier();
+//
+//	phi.sync();
+//	phi.wait();
+//	if (GLOBAL_COMM.process_num()==0)
+//	{
+//		VERBOSE<<std::endl<<phi<<endl;
+//	}
+//	GLOBAL_COMM.barrier();
+//	if (GLOBAL_COMM.process_num()==1)
+//	{
+//		VERBOSE<<std::endl<<phi<<endl;
+//	}
+//	GLOBAL_COMM.barrier();
+//
+//	VERBOSE << SAVE(phi) << endl;
 
-	//
-	int N = GLOBAL_COMM.process_num();
-	int count = 0;
-	phi.for_each([&](Real &v)
-	{
-		v=(N+1)*1000+count;
-		++count;
-	});
-//	phi = N;
-
-	GLOBAL_COMM.barrier();
-	if (GLOBAL_COMM.process_num()==0)
-	{
-		VERBOSE<<std::endl<<phi<<endl;
-	}
-	GLOBAL_COMM.barrier();
-	if (GLOBAL_COMM.process_num()==1)
-	{
-		VERBOSE<<std::endl<<phi<<endl;
-	}
-	GLOBAL_COMM.barrier();
-
-	phi.sync();
-	phi.wait();
-	if (GLOBAL_COMM.process_num()==0)
-	{
-		VERBOSE<<std::endl<<phi<<endl;
-	}
-	GLOBAL_COMM.barrier();
-	if (GLOBAL_COMM.process_num()==1)
-	{
-		VERBOSE<<std::endl<<phi<<endl;
-	}
-	GLOBAL_COMM.barrier();
 	auto J = make_form<EDGE, Real>(mesh);
 	auto E = make_form<EDGE, Real>(mesh);
 	auto B = make_form<FACE, Real>(mesh);
@@ -174,10 +182,10 @@ USE_CASE(em," Maxwell Eqs.")
 
 	}
 
-//	cd("/Output/");
-//	VERBOSE << SAVE(E) << endl;
-//	VERBOSE << SAVE(B) << endl;
-//	VERBOSE << SAVE(J) << endl;
+	cd("/Output/");
+	VERBOSE << SAVE(E) << endl;
+	VERBOSE << SAVE(B) << endl;
+	VERBOSE << SAVE(J) << endl;
 
 	LOGGER << "----------  DONE ---------- " << endl;
 

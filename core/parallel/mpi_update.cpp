@@ -12,19 +12,131 @@
 
 namespace simpla
 {
-std::tuple<int, int, int> get_mpi_tag(int obj_id, int const * coord)
+/**
+ * @param pos in {0,count} out {begin,shape}
+ */
+std::tuple<int, int> sync_global_location(int count)
 {
+	int begin = 0;
 
-	int send_tag = obj_id * 100 + ((coord[0] + 1) & 3UL)
-			| (((coord[1] + 1) & 3UL) << 2UL) | (((coord[2] + 1) & 3UL) << 4UL);
-	int recv_tag = obj_id * 100 + ((-coord[0] + 1) & 3UL)
-			| (((-coord[1] + 1) & 3UL) << 2UL)
-			| (((-coord[2] + 1) & 3UL) << 4UL);
-	int dest = SingletonHolder<simpla::MPIComm>::instance().get_neighbour(
-			coord);
+	if ( GLOBAL_COMM.is_valid() && GLOBAL_COMM.num_of_process() > 1)
+	{
 
-	return std::make_tuple(dest, send_tag, recv_tag);
+		auto comm = GLOBAL_COMM.comm();
+
+		int num_of_process = GLOBAL_COMM.num_of_process();
+		int porcess_number = GLOBAL_COMM.process_num( );
+
+		MPIDataType m_type =MPIDataType::create<int>();
+
+		std::vector<int> buffer;
+
+		if (porcess_number == 0)
+		buffer.resize(num_of_process);
+
+		MPI_Gather(&count, 1, m_type.type(), &buffer[0], 1, m_type.type(), 0, comm);
+
+		MPI_Barrier(comm);
+
+		if (porcess_number == 0)
+		{
+			for (int i = 1; i < num_of_process; ++i)
+			{
+				buffer[i] += buffer[i - 1];
+			}
+			buffer[0] = count;
+			count = buffer[num_of_process - 1];
+
+			for (int i = num_of_process - 1; i > 0; --i)
+			{
+				buffer[i] = buffer[i - 1];
+			}
+			buffer[0] = 0;
+		}
+		MPI_Barrier(comm);
+		MPI_Scatter(&buffer[0], 1, m_type.type(), &begin, 1, m_type.type(), 0, comm);
+		MPI_Bcast(&count, 1, m_type.type(), 0, comm);
+	}
+
+	return std::make_tuple(begin, count);
+
 }
+void get_ghost_shape(size_t ndims, size_t const * l_dims,
+		size_t const * l_offset, size_t const * l_stride,
+		size_t const * l_count, size_t const * l_block,
+		size_t const * ghost_width,
+		std::vector<mpi_ghosts_shape_s>* send_recv_list)
+{
+	send_recv_list->clear();
+
+	nTuple<size_t, MAX_NDIMS_OF_ARRAY> send_count, send_offset;
+	nTuple<size_t, MAX_NDIMS_OF_ARRAY> recv_count, recv_offset;
+
+	for (unsigned int tag = 0, tag_e = (1UL << (ndims * 2)); tag < tag_e; ++tag)
+	{
+		nTuple<int, 3> coords_shift;
+
+		bool tag_is_valid = true;
+
+		for (int n = 0; n < ndims; ++n)
+		{
+			if (((tag >> (n * 2)) & 3UL) == 3UL)
+			{
+				tag_is_valid = false;
+				break;
+			}
+
+			coords_shift[n] = ((tag >> (n * 2)) & 3UL) - 1;
+
+			switch (coords_shift[n])
+			{
+			case 0:
+				send_count[n] = l_count[n];
+				send_offset[n] = l_offset[n];
+				recv_count[n] = l_count[n];
+				recv_offset[n] = l_offset[n];
+				break;
+			case -1: //left
+
+				send_count[n] = ghost_width[n];
+				send_offset[n] = l_offset[n];
+
+				recv_count[n] = ghost_width[n];
+				recv_offset[n] = l_offset[n] - ghost_width[n];
+
+				break;
+			case 1: //right
+				send_count[n] = ghost_width[n];
+				send_offset[n] = l_offset[n] + l_count[n] - ghost_width[n];
+
+				recv_count[n] = ghost_width[n];
+				recv_offset[n] = l_offset[n] + l_count[n];
+				break;
+			default:
+				tag_is_valid = false;
+				break;
+			}
+
+			if (send_count[n] == 0 || recv_count[n] == 0)
+			{
+				tag_is_valid = false;
+				break;
+			}
+
+		}
+
+		if (tag_is_valid
+				&& (coords_shift[0] != 0 || coords_shift[1] != 0
+						|| coords_shift[2] != 0))
+		{
+
+			send_recv_list->emplace_back(mpi_ghosts_shape_s { coords_shift,
+					send_offset, send_count, recv_offset, recv_count });
+		}
+	}
+
+}
+
 void make_send_recv_list(int object_id, DataType const & datatype, int ndims,
 		size_t const * l_dims,
 		std::vector<mpi_ghosts_shape_s> const & ghost_shape,
@@ -37,15 +149,9 @@ void make_send_recv_list(int object_id, DataType const & datatype, int ndims,
 	{
 		int dest, send_tag, recv_tag;
 
-		std::tie(dest, send_tag, recv_tag) = get_mpi_tag(object_id,
+		std::tie(dest, send_tag, recv_tag) = GLOBAL_COMM.make_send_recv_tag(object_id,
 				&item.coord_shift[0]);
-//		CHECK(dest);
-//		CHECK(send_tag);
-//		CHECK(recv_tag);
-//		CHECK(item.send_offset);
-//		CHECK(item.send_count);
-//		CHECK(item.recv_offset);
-//		CHECK(item.recv_count);
+
 		res->emplace_back(
 
 				mpi_send_recv_s {
@@ -233,6 +339,7 @@ void sync_update_continue(std::vector<mpi_send_recv_s> const & send_recv_list,
 
 			requests->push_back(std::move(req));
 		}
+
 	}
 
 	if (!is_async)
