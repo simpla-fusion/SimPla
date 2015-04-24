@@ -71,16 +71,16 @@ public:
 	static inline auto gather(geometry_type const & geo, TF const &f,
 			TX const & r)  //
 					ENABLE_IF_DECL_RET_TYPE((field_traits<TF >::iform==VERTEX),
-							( gather_impl_(f, geo.template coordinates_global_to_local<VERTEX>(r, 0 ) )))
+							( gather_impl_<geometry_type>(f, geo.template coordinates_global_to_local<VERTEX>(r, 0 ) )))
 
 	template<typename geometry_type, typename TF>
 	static auto gather(geometry_type const & geo, TF const &f,
 			typename geometry_type::coordinates_type const & r)
 					ENABLE_IF_DECL_RET_TYPE((field_traits<TF >::iform==EDGE),
 							make_nTuple(
-									gather_impl_(f, geo.template coordinates_global_to_local<EDGE>(r, 0) ),
-									gather_impl_(f, geo.template coordinates_global_to_local<EDGE>(r, 1) ),
-									gather_impl_(f, geo.template coordinates_global_to_local<EDGE>(r, 2) )
+									gather_impl_<geometry_type>(f, geo.template coordinates_global_to_local<EDGE>(r, 0) ),
+									gather_impl_<geometry_type>(f, geo.template coordinates_global_to_local<EDGE>(r, 1) ),
+									gather_impl_<geometry_type>(f, geo.template coordinates_global_to_local<EDGE>(r, 2) )
 							))
 
 	template<typename geometry_type, typename TF>
@@ -89,16 +89,16 @@ public:
 					ENABLE_IF_DECL_RET_TYPE(
 							(field_traits<TF >::iform==FACE),
 							make_nTuple(
-									gather_impl_(f, geo.template coordinates_global_to_local<FACE>(r,0) ),
-									gather_impl_(f, geo.template coordinates_global_to_local<FACE>(r,1) ),
-									gather_impl_(f, geo.template coordinates_global_to_local<FACE>(r,2) )
+									gather_impl_<geometry_type>(f, geo.template coordinates_global_to_local<FACE>(r,0) ),
+									gather_impl_<geometry_type>(f, geo.template coordinates_global_to_local<FACE>(r,1) ),
+									gather_impl_<geometry_type>(f, geo.template coordinates_global_to_local<FACE>(r,2) )
 							) )
 
 	template<typename geometry_type, typename TF>
 	static auto gather(geometry_type const & geo, TF const &f,
 			typename geometry_type::coordinates_type const & x)
 					ENABLE_IF_DECL_RET_TYPE((field_traits<TF >::iform==VOLUME),
-							gather_impl_(f, geo.template coordinates_global_to_local<VOLUME>(x ) ))
+							gather_impl_<geometry_type>(f, geo.template coordinates_global_to_local<VOLUME>(x ) ))
 
 private:
 	template<typename geometry_type, typename TF, typename IDX, typename TV>

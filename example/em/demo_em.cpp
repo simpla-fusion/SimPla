@@ -131,25 +131,23 @@ USE_CASE(em," Maxwell Eqs.")
 	{
 		VERBOSE << "Step [" << step << "/" << num_of_steps << "]" << endl;
 
-		J += J_src;
+		J.self_assign(J_src);
+		B.self_assign(B_src);
+		E.self_assign(E_src);
 
-		B = B_src;
-		E = E_src;
-
-		if (!pml_solver)
+//		if (!pml_solver)
 		{
 
-			LOG_CMD(
-					E += curl(B) * (dt*speed_of_light2 )/*- J * (dt / epsilon0)*/);
+			LOG_CMD(E += curl(B) * (dt * speed_of_light2) - J * (dt / epsilon0));
 			LOG_CMD(B -= curl(E) * dt);
 
 		}
-		else
-		{
-			pml_solver->next_timestepE(mesh->dt(), E, B, &E);
-			LOG_CMD(E -= J / epsilon0 * dt);
-			pml_solver->next_timestepB(mesh->dt(), E, B, &B);
-		}
+//		else
+//		{
+//			pml_solver->next_timestepE(mesh->dt(), E, B, &E);
+//			LOG_CMD(E -= J / epsilon0 * dt);
+//			pml_solver->next_timestepB(mesh->dt(), E, B, &B);
+//		}
 
 		VERBOSE << SAVE_RECORD(J) << endl;
 		VERBOSE << SAVE_RECORD(E) << endl;

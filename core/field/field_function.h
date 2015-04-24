@@ -12,6 +12,39 @@ namespace simpla
 {
 template<typename ...>class _Field;
 
+template<typename _T, typename ... _Args>
+struct is_callable
+{
+private:
+	typedef std::true_type yes;
+	typedef std::false_type no;
+
+	template<typename _U>
+	static auto test(int) ->
+	decltype(std::declval<_U>() (std::declval<_Args>() ...));
+
+	template<typename > static no test(...);
+
+public:
+
+	static constexpr bool value =
+			(!std::is_same<decltype(test<_T>()), no>::value);
+
+};
+
+template<typename TFun, typename ... Args>
+auto try_invoke(TFun const & fun, Args &&...args)->
+typename std::result_of<TFun( Args &&...)>::type
+{
+	return (fun(std::forward<Args>(args)...));
+}
+
+//template<typename TFun, typename ... Args>
+//auto try_invoke(TFun const & fun, Args &&...args)->
+//typename std::enable_if<!is_callable<TFun,Args&&...>::value,TFun>::type
+//{
+//	return fun;
+//}
 template<typename TDomain, typename TV, typename TFun>
 class _Field<TDomain, TV, _impl::is_function, TFun>
 {
@@ -89,10 +122,34 @@ public:
 
 	template<typename ...Others>
 	field_value_type operator()(coordinates_type const& x, Real t,
-			Others const&... others) const
+			Others &&... others) const
 	{
 		return static_cast<field_value_type>(m_fun_(x, t,
-				try_invoke(others,x, t)...));
+				std::forward<Others>(others )...));
+	}
+
+	/**
+	 *
+	 * @param args
+	 * @return (x,t) -> m_fun_(x,t,args(x,t))
+	 */
+	template<typename ...Args>
+	_Field<domain_type, value_type, _impl::is_function,
+			std::function<field_value_type(coordinates_type const&, Real)>> op_on(
+			Args const& ...args) const
+	{
+		typedef std::function<field_value_type(coordinates_type const&, Real)> res_function_type;
+		typedef _Field<domain_type, value_type, _impl::is_function,
+				res_function_type> res_type;
+
+		res_function_type fun = [ &](coordinates_type const& x, Real t)
+		{
+			return static_cast<field_value_type>(m_fun_(x, t,
+							static_cast<field_value_type>( (args)( x ))...));
+		};
+
+		return res_type(m_domain_, fun);
+
 	}
 
 };

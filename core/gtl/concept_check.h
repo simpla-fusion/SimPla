@@ -316,40 +316,6 @@ public:
 
 };
 
-template<typename _T, typename ... _Args>
-struct is_callable
-{
-private:
-	typedef std::true_type yes;
-	typedef std::false_type no;
-
-	template<typename _U>
-	static auto test(int) ->
-	decltype(std::declval<_U>() (std::declval<_Args>() ...));
-
-	template<typename > static no test(...);
-
-public:
-
-	static constexpr bool value =
-			(!std::is_same<decltype(test<_T>()), no>::value);
-
-};
-
-template<typename TFun, typename ... Args>
-auto try_invoke(TFun const & fun, Args &&...args)->
-typename std::enable_if<is_callable<TFun,Args...>::value,
-typename std::result_of<TFun( Args...)>::type>::type
-{
-	return (fun(std::forward<Args>(args)...));
-}
-
-template<typename TFun, typename ... Args>
-auto try_invoke(TFun const & fun, Args &&...args)->
-typename std::enable_if<!is_callable<TFun,Args...>::value,TFun>::type
-{
-	return fun;
-}
 /**
  * @}
  */

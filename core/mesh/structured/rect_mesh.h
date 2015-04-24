@@ -22,7 +22,7 @@
 #include "../../gtl/ntuple.h"
 #include "../../gtl/primitives.h"
 #include "../../gtl/containers/sp_hash_container.h"
-
+#include "interpolator.h"
 #include "../mesh_ids.h"
 
 namespace simpla

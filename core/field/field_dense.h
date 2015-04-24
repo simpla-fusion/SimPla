@@ -209,21 +209,23 @@ public:
 		sync();
 	}
 
-	template<typename T, typename ...Others, typename TOP>
-	void assign(
-			_Field<domain_type, T, _impl::is_function, Others...> const & other,
-			TOP const &op)
+	template<typename TFun>
+	void self_assign(TFun const & other)
 	{
 
 		wait();
 
 		if (!other.domain().is_null())
 		{
-			other.domain().for_each( [&](id_type const &s)
-			{
-				op(at(s), other[s]);
-			});
+			m_domain_.for_each(other.domain(),
+					[&](id_type const &s)
+					{
+						auto x=m_domain_.mesh().coordinates(s);
+						auto t=m_domain_.mesh().time();
+						at(s)+=m_domain_.mesh().template sample<iform>(s,other(x,t,gather(x)));
+					});
 		}
+
 		sync();
 	}
 
