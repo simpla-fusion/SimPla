@@ -55,9 +55,10 @@ namespace simpla
  */
 //template<typename ... >struct RectMesh;
 template<typename TTopology, typename ...Policies>
-struct RectMesh: public TTopology,
-		public Policies...,
-		std::enable_shared_from_this<RectMesh<TTopology, Policies...>>
+struct RectMesh:	public TTopology,
+					public Policies...,
+					std::enable_shared_from_this<
+							RectMesh<TTopology, Policies...>>
 {
 	typedef TTopology topology_type;
 	typedef typename unpack_typelist<0, Policies...>::type coordinates_system;
@@ -172,7 +173,8 @@ public:
 	{
 	}
 
-	RectMesh(this_type const & other) :
+	RectMesh(this_type const & other)
+			:
 
 			m_index_dimensions_(other.m_index_dimensions_),
 
@@ -209,6 +211,13 @@ public:
 	template<typename OS>
 	OS & print(OS &os) const
 	{
+		DEFINE_PHYSICAL_CONST
+
+		Real safe_dt = 0.5
+				* std::sqrt(
+						(m_dx_[0] * m_dx_[0] + m_dx_[1] * m_dx_[1]
+								+ m_dx_[2] * m_dx_[2])) / speed_of_light;
+
 		os
 
 		<< " Type = \"" << get_type_as_string() << "\", " << std::endl
@@ -217,13 +226,17 @@ public:
 
 		<< " Max \t= " << m_coords_max_ << "," << std::endl
 
-		<< " dx  \t= " << m_dx_ << "," << std::endl
+		<< " dx  \t= " << m_dx_ << ", " << std::endl
 
 		<< " dt \t= " << m_dt_ << "," << std::endl
 
-		<< " Dimensionss \t= " << m_index_dimensions_ << "," << std::endl
+		<< "-- [ Courant–Friedrichs–Lewy (CFL)  Suggested value: " << safe_dt
+				<< "]" << std::endl
 
-		;
+				<< " Dimensionss \t= " << m_index_dimensions_ << ","
+				<< std::endl
+
+				;
 
 		return os;
 
@@ -474,6 +487,24 @@ public:
 				+ topology_type::sub_index(s);
 	}
 
+	template<size_t IFORM>
+	constexpr size_t hash(index_type i, index_type j, index_type k,
+			int n = 0) const
+	{
+		return ((
+
+		(m_index_local_dimensions_[0] + i - m_index_local_offset_[0])
+				% m_index_local_dimensions_[0]) * m_hash_strides_[0]
+
+				+ ((m_index_local_dimensions_[1] + i - m_index_local_offset_[1])
+						% m_index_local_dimensions_[1]) * m_hash_strides_[1]
+
+				+ ((m_index_local_dimensions_[2] + i - m_index_local_offset_[2])
+						% m_index_local_dimensions_[2]) * m_hash_strides_[2])
+
+		* ((IFORM == EDGE || IFORM == FACE) ? 3 : 1) + n;
+	}
+
 	/** @} */
 
 	template<size_t IFORM>
@@ -602,6 +633,7 @@ void RectMesh<TTopology, Polices...>::deploy(size_t const *gw)
 			m_coords_max_[i] = m_coords_min_[i];
 
 			m_to_topology_scale_[i] = 0;
+
 			m_from_topology_scale_[i] = 0;
 		}
 

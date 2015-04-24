@@ -209,6 +209,24 @@ public:
 		sync();
 	}
 
+	template<typename T, typename ...Others, typename TOP>
+	void assign(
+			_Field<domain_type, T, _impl::is_function, Others...> const & other,
+			TOP const &op)
+	{
+
+		wait();
+
+		if (!other.domain().is_null())
+		{
+			other.domain().for_each( [&](id_type const &s)
+			{
+				op(at(s), other[s]);
+			});
+		}
+		sync();
+	}
+
 public:
 
 	/** @} */

@@ -19,36 +19,33 @@ namespace simpla
 template<typename TDict, typename TField>
 bool load_field(TDict const & dict, TField *f)
 {
-
-	if (!dict)
-	{
-		return false;
-	}
-	else if (dict.is_string())
-	{
-		std::string url = dict.template as<std::string>();
-		//TODO Read field from data file
-		UNIMPLEMENTED << "Read field from data file or other URI";
-
-		return false;
-	}
-
 	if (!f->is_valid())
 	{
 		f->clear();
 	}
 
-	typedef TField field_type;
+	if (dict.is_string())
+	{
+		std::string url = dict.template as<std::string>();
+		//TODO Read field from data file
+		UNIMPLEMENTED << "Read field from data file or other URI";
+	}
+	else if (dict)
+	{
 
-	typedef typename field_type::value_type value_type;
+		typedef TField field_type;
 
-	typedef typename field_type::domain_type domain_type;
+		typedef typename field_type::value_type value_type;
 
-	domain_type domain(f->domain());
+		typedef typename field_type::domain_type domain_type;
 
-	domain.filter_by_config(dict["Domain"]);
+		domain_type domain(f->domain());
 
-	*f = make_field_function<value_type>(domain, dict["Value"]);
+		domain.filter_by_config(dict["Domain"]);
+
+		*f = make_field_function<value_type>(domain, dict["Value"]);
+
+	}
 
 	f->sync();
 	f->wait();

@@ -31,6 +31,7 @@ template<typename T> struct domain_traits
 {
 	typedef full_domain type;
 };
+
 template<size_t IFORM, typename TM, typename ...Others>
 struct domain_traits<_Field<Domain<TM, IFORM>, Others...>>
 {
@@ -65,25 +66,25 @@ private:
 	std::set<id_type> m_id_set_;
 public:
 
-	Domain(mesh_type const &m) :
-			m_mesh_(m)
+	Domain(mesh_type const &m)
+			: m_mesh_(m)
 	{
 		deploy();
 	}
 	template<typename T0, typename T1>
-	Domain(mesh_type const &m, T0 const & b, T1 const & e) :
-			m_mesh_(m)
+	Domain(mesh_type const &m, T0 const & b, T1 const & e)
+			: m_mesh_(m)
 	{
 		reset_bound_box(b, e);
 	}
 
-	Domain(this_type const & other) :
-			m_mesh_(other.m_mesh_), m_box_(other.m_box_), m_id_set_(
+	Domain(this_type const & other)
+			: m_mesh_(other.m_mesh_), m_box_(other.m_box_), m_id_set_(
 					other.m_id_set_)
 	{
 	}
-	Domain(this_type && other) :
-			m_mesh_(other.m_mesh_), m_box_(other.m_box_), m_id_set_(
+	Domain(this_type && other)
+			: m_mesh_(other.m_mesh_), m_box_(other.m_box_), m_id_set_(
 					other.m_id_set_)
 	{
 	}
@@ -365,76 +366,8 @@ public:
 	}
 
 	template<typename TDict>
-	void filter_by_config(TDict const & dict)
-	{
-		if (!dict)
-		{
-			return;
-		}
+	void filter_by_config(TDict const & dict);
 
-		else if (dict["Indices"])
-		{
-			std::vector<
-					nTuple<long,
-							(iform == VERTEX || iform == VOLUME) ?
-									ndims : (ndims + 1)>> points;
-
-			dict["Indices"].as(&points);
-
-			for (auto const & idx : points)
-			{
-				if (m_box_.in_bound(idx))
-				{
-					m_id_set_.insert(m_mesh_.template pack<iform>(idx));
-				}
-			}
-			if (m_id_set_.size() == 0)
-			{
-				clear();
-			}
-
-		}
-		else if (dict["SelectCell"])
-		{
-
-		}
-		else if (dict["SelectBoundary"])
-		{
-
-		}
-		else
-		{
-			if (dict.is_function())
-			{
-				filter_by_coordinates([&](coordinates_type const & x )
-				{
-					return (static_cast<bool>(dict(x)));
-				});
-
-			}
-			else if (dict["Box"])
-			{
-				std::vector<coordinates_type> p;
-
-				dict["Box"].as(&p);
-
-				reset_bound_box(p[0], p[1]);
-
-			}
-			else if (dict["IndexBox"])
-			{
-
-				std::vector<nTuple<index_type, ndims>> points;
-
-				dict["IndexBox"].as(&points);
-
-				reset_bound_box(points[0], points[1]);
-
-			}
-
-		}
-
-	}
 	template<typename Tit>
 	void add(Tit const & b, Tit const&e)
 	{
@@ -473,14 +406,15 @@ public:
 		return std::move(const_iterator(m_box_.end()));
 	}
 
-	struct iterator: public std::iterator<
-			typename range_type::iterator::iterator_category, id_type, id_type>,
-			public range_type::iterator
+	struct iterator:	public std::iterator<
+								typename range_type::iterator::iterator_category,
+								id_type, id_type>,
+						public range_type::iterator
 	{
 		typedef typename range_type::iterator base_iterator;
 
-		iterator(base_iterator const &other) :
-				base_iterator(other)
+		iterator(base_iterator const &other)
+				: base_iterator(other)
 		{
 		}
 
@@ -529,46 +463,46 @@ public:
 //	 *  @{
 //	 */
 //
-	this_type const & operator &(full_domain) const
-	{
-		return *this;
-	}
-	null_domain operator &(null_domain) const
-	{
-		return null_domain();
-	}
-	this_type operator &(this_type const & other) const
-	{
-		this_type res(m_mesh_);
-
-		if (is_simply() && other.is_simply())
-		{
-			res.m_box_ = res.m_box_ & other.m_box_;
-		}
-		else if (other.is_simply())
-		{
-			for (auto const &s : m_id_set_)
-			{
-				if (other.in_box(s))
-				{
-					res.m_id_set_.insert(s);
-				}
-			}
-		}
-		else if (is_simply())
-		{
-			for (auto const &s : other.id_set())
-			{
-				if (in_box(s))
-				{
-					res.m_id_set_.insert(s);
-				}
-			}
-			res.update_bound_box();
-		}
-
-		return std::move(res);
-	}
+//	this_type const & operator &(full_domain) const
+//	{
+//		return *this;
+//	}
+//	null_domain operator &(null_domain) const
+//	{
+//		return null_domain();
+//	}
+//	this_type operator &(this_type const & other) const
+//	{
+//		this_type res(m_mesh_);
+//
+//		if (is_simply() && other.is_simply())
+//		{
+//			res.m_box_ = res.m_box_ & other.m_box_;
+//		}
+//		else if (other.is_simply())
+//		{
+//			for (auto const &s : m_id_set_)
+//			{
+//				if (other.in_box(s))
+//				{
+//					res.m_id_set_.insert(s);
+//				}
+//			}
+//		}
+//		else if (is_simply())
+//		{
+//			for (auto const &s : other.id_set())
+//			{
+//				if (in_box(s))
+//				{
+//					res.m_id_set_.insert(s);
+//				}
+//			}
+//			res.update_bound_box();
+//		}
+//
+//		return std::move(res);
+//	}
 //	this_type const & operator |(null_domain) const
 //	{
 //		return *this;
@@ -602,6 +536,88 @@ public:
 //	}
 	/** @} */
 };
+template<typename TDict, typename TD>
+void select_cell(TDict const & dict, TD * d)
+{
+
+}
+template<typename TDict, typename TD>
+void select_boundary(TDict const & dict, TD * d)
+{
+
+}
+
+template<typename TM, size_t IFORM>
+template<typename TDict>
+void Domain<TM, IFORM>::filter_by_config(TDict const & dict)
+{
+	if (!dict)
+	{
+		return;
+	}
+	else if (dict["Box"])
+	{
+		std::vector<coordinates_type> p;
+
+		dict["Box"].as(&p);
+
+		reset_bound_box(p[0], p[1]);
+
+	}
+	else if (dict["IndexBox"])
+	{
+
+		std::vector<nTuple<index_type, ndims>> points;
+
+		dict["IndexBox"].as(&points);
+
+		reset_bound_box(points[0], points[1]);
+
+	}
+
+	if (dict["Indices"])
+	{
+		std::vector<
+				nTuple<long,
+						(iform == VERTEX || iform == VOLUME) ?
+								ndims : (ndims + 1)>> points;
+
+		dict["Indices"].as(&points);
+
+		for (auto const & idx : points)
+		{
+			if (m_box_.in_bound(idx))
+			{
+				m_id_set_.insert(m_mesh_.template pack<iform>(idx));
+			}
+		}
+		if (m_id_set_.size() == 0)
+		{
+			clear();
+		}
+
+	}
+	else if (dict["SelectCell"])
+	{
+		select_cell(dict, this);
+	}
+	else if (dict["SelectBoundary"])
+	{
+		select_boundary(dict, this);
+	}
+	else
+	{
+		if (dict.is_function())
+		{
+			filter_by_coordinates([&](coordinates_type const & x )
+			{
+				return (static_cast<bool>(dict(x)));
+			});
+
+		}
+	}
+
+}
 
 namespace _impl
 {
