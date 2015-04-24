@@ -18,7 +18,7 @@
 #include "../gtl/iterator/sp_ntuple_range.h"
 #include "../gtl/ntuple.h"
 #include "mesh_ids.h"
-//#include "../model/select.h"
+#include "../model/select.h"
 
 namespace simpla
 {
@@ -601,7 +601,7 @@ void Domain<TM, IFORM>::filter_by_config(TDict const & dict)
 	}
 	else if (dict["SelectBoundary"])
 	{
-//		select_boundary(dict, this);
+		select_boundary(dict, this);
 	}
 	else
 	{

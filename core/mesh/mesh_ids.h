@@ -390,25 +390,21 @@ struct MeshIDs_
 				| ((s & _DK) >> (INDEX_DIGITS * 2 + MAX_MESH_LEVEL - 3))) & 7UL;
 	}
 
-	static constexpr int m_node_id_to_index_[8] = { 0, // 000
-			0, // 001
-			1, // 010
-			2, // 011
-			2, // 100
-			1, // 101
-			0, // 110
-			0, // 111
+	static constexpr int m_node_id_to_index_[8] = { //
+
+			0, // 000
+					0, // 001
+					1, // 010
+					2, // 011
+					2, // 100
+					1, // 101
+					0, // 110
+					0, // 111
 			};
 
 	static constexpr int sub_index(id_type const &s)
 	{
 		return m_node_id_to_index_[node_id(s)];
-	}
-
-	template<size_t IFORM> static constexpr int get_vertics(int n, id_type s,
-			coordinates_type *q = nullptr)
-	{
-		return get_vertics_(std::integral_constant<size_t, IFORM>(), n, s, q);
 	}
 
 	/**
@@ -431,85 +427,164 @@ struct MeshIDs_
 	 *
 	 *   \endverbatim
 	 */
+	static constexpr int MAX_NUM_OF_VERTICS = 8;
 
-	static int get_vertics_(std::integral_constant<size_t, VOLUME>, int n,
-			id_type s, coordinates_type *q = nullptr)
+	static constexpr index_type _HI = _DI >> 1;
+	static constexpr index_type _HJ = _DJ >> 1;
+	static constexpr index_type _HK = _DK >> 1;
+	static constexpr index_type _LI = -_HI;
+	static constexpr index_type _LJ = -_HJ;
+	static constexpr index_type _LK = -_HK;
+
+	static constexpr int m_vertics_num_[4/* to iform*/][8/* node id*/] =
+
+	{ // VERTEX
+			{
+			/* 000*/1,
+			/* 001*/2,
+			/* 010*/2,
+			/* 011*/4,
+			/* 100*/2,
+			/* 101*/4,
+			/* 110*/4,
+			/* 111*/8
+			}
+
+			};
+
+	static constexpr index_type m_vertics_matrix_[4/* to*/][8/* from*/][MAX_NUM_OF_VERTICS/*id shift*/] =
+			{
+			//To VERTEX
+					{
+
+					/* 000*/{ 0 },
+					/* 001*/{ _LI, _HI },
+					/* 010*/{ _LJ, _HJ },
+					/* 011*/{ _LI | _LJ, _HI | _LJ, _HI | _HJ, _LI | _HJ },
+					/* 100*/{ _LK, _HK },
+					/* 101*/{ _LK | _LI, _HK | _LI, _HK | _HI, _LK | _HI },
+					/* 110*/{ _LJ | _LK, _HJ | _LK, _HJ | _HK, _LJ | _HK },
+					/* 111*/{ _LI | _LJ | _LK //
+							, _HI | _LJ | _LK //
+							, _HI | _HJ | _LK //
+							, _LI | _HJ | _LK //
+
+							, _LI | _LJ | _HK //
+							, _HI | _LJ | _HK //
+							, _HI | _HJ | _HK //
+							, _LI | _HJ | _HK } }
+
+			};
+
+	static int get_vertics(id_type s, id_type * res = nullptr)
 	{
-
-		if (q != nullptr)
+		int id = node_id(s);
+		if (res != nullptr)
 		{
-			coordinates_type x0 = id_to_coordinates(s);
-
-			coordinates_type dx = id_to_coordinates(_DI | INDEX_ZERO);
-			coordinates_type dy = id_to_coordinates(_DJ | INDEX_ZERO);
-			coordinates_type dz = id_to_coordinates(_DK | INDEX_ZERO);
-
-			q[0] = x0 - dx - dy - dz;
-			q[1] = x0 + dx - dy - dz;
-			q[2] = x0 + dx + dy - dz;
-			q[3] = x0 - dx + dy - dz;
-
-			q[4] = x0 - dx - dy + dz;
-			q[5] = x0 + dx - dy + dz;
-			q[6] = x0 + dx + dy + dz;
-			q[7] = x0 - dx + dy + dz;
+			for (int i = 0; i < m_vertics_num_[VERTEX][id]; ++i)
+			{
+				res[i] = s + m_vertics_matrix_[VERTEX][id][i];
+			}
 		}
-
-		return 8;
+		return m_vertics_num_[id];
 	}
 
-	static int get_vertics_(std::integral_constant<size_t, FACE>, int n,
-			id_type s, coordinates_type *q = nullptr)
+	static int get_vertics(id_type s, coordinates_type * res = nullptr)
 	{
-
-		if (q != nullptr)
+		int id = node_id(s);
+		if (res != nullptr)
 		{
-			coordinates_type x0 = id_to_coordinates(s);
-
-			coordinates_type d[3] = {
-
-			id_to_coordinates(_DI | INDEX_ZERO),
-
-			id_to_coordinates(_DJ | INDEX_ZERO),
-
-			id_to_coordinates(_DK | INDEX_ZERO) };
-
-			coordinates_type const &dx = d[(n + 1) % 3];
-			coordinates_type const &dy = d[(n + 2) % 3];
-			q[0] = x0 - dx - dy;
-			q[1] = x0 + dx - dy;
-			q[2] = x0 + dx + dy;
-			q[3] = x0 - dx + dy;
+			for (int i = 0; i < m_vertics_num_[id]; ++i)
+			{
+				res[i] = id_to_coordinates(s + m_vertics_matrix_[id][i]);
+			}
 		}
-
-		return 4;
+		return m_vertics_num_[id];
 	}
 
-	static int get_vertics_(std::integral_constant<size_t, EDGE>, int n,
-			id_type s, coordinates_type *q = nullptr)
-	{
-
-		if (q != nullptr)
-		{
-			coordinates_type x0 = id_to_coordinates(s);
-
-			coordinates_type d[3] = {
-
-			id_to_coordinates(_DI | INDEX_ZERO),
-
-			id_to_coordinates(_DJ | INDEX_ZERO),
-
-			id_to_coordinates(_DK | INDEX_ZERO) };
-
-			coordinates_type const &dx = d[n];
-
-			q[0] = x0 - dx;
-			q[1] = x0 + dx;
-
-		}
-
-		return 4;
-	}
+//	template<size_t IFORM> static constexpr int get_vertics(int n, id_type s,
+//			coordinates_type *q = nullptr)
+//	{
+//		return get_vertics_(std::integral_constant<size_t, IFORM>(), n, s, q);
+//	}
+//	static int get_vertics_(std::integral_constant<size_t, VOLUME>, int n,
+//			id_type s, coordinates_type *q = nullptr)
+//	{
+//
+//		if (q != nullptr)
+//		{
+//			coordinates_type x0 = id_to_coordinates(s);
+//
+//			coordinates_type dx = id_to_coordinates(_DI | INDEX_ZERO);
+//			coordinates_type dy = id_to_coordinates(_DJ | INDEX_ZERO);
+//			coordinates_type dz = id_to_coordinates(_DK | INDEX_ZERO);
+//
+//			q[0] = x0 - dx - dy - dz;
+//			q[1] = x0 + dx - dy - dz;
+//			q[2] = x0 + dx + dy - dz;
+//			q[3] = x0 - dx + dy - dz;
+//
+//			q[4] = x0 - dx - dy + dz;
+//			q[5] = x0 + dx - dy + dz;
+//			q[6] = x0 + dx + dy + dz;
+//			q[7] = x0 - dx + dy + dz;
+//		}
+//
+//		return 8;
+//	}
+//
+//	static int get_vertics_(std::integral_constant<size_t, FACE>, int n,
+//			id_type s, coordinates_type *q = nullptr)
+//	{
+//
+//		if (q != nullptr)
+//		{
+//			coordinates_type x0 = id_to_coordinates(s);
+//
+//			coordinates_type d[3] = {
+//
+//			id_to_coordinates(_DI | INDEX_ZERO),
+//
+//			id_to_coordinates(_DJ | INDEX_ZERO),
+//
+//			id_to_coordinates(_DK | INDEX_ZERO) };
+//
+//			coordinates_type const &dx = d[(n + 1) % 3];
+//			coordinates_type const &dy = d[(n + 2) % 3];
+//			q[0] = x0 - dx - dy;
+//			q[1] = x0 + dx - dy;
+//			q[2] = x0 + dx + dy;
+//			q[3] = x0 - dx + dy;
+//		}
+//
+//		return 4;
+//	}
+//
+//	static int get_vertics_(std::integral_constant<size_t, EDGE>, int n,
+//			id_type s, coordinates_type *q = nullptr)
+//	{
+//
+//		if (q != nullptr)
+//		{
+//			coordinates_type x0 = id_to_coordinates(s);
+//
+//			coordinates_type d[3] = {
+//
+//			id_to_coordinates(_DI | INDEX_ZERO),
+//
+//			id_to_coordinates(_DJ | INDEX_ZERO),
+//
+//			id_to_coordinates(_DK | INDEX_ZERO) };
+//
+//			coordinates_type const &dx = d[n];
+//
+//			q[0] = x0 - dx;
+//			q[1] = x0 + dx;
+//
+//		}
+//
+//		return 4;
+//	}
 
 //**************************************************************************
 	/**

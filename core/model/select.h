@@ -1,5 +1,5 @@
-/*
- * select.h
+/**
+ * @file select.h
  *
  *  Created on: 2014年12月2日
  *      Author: salmon
@@ -11,6 +11,7 @@
 
 #include "../numeric/point_in_polygon.h"
 #include "../numeric/geometric_algorithm.h"
+#include "../mesh/mesh_ids.h"
 namespace simpla
 {
 
@@ -215,67 +216,64 @@ std::function<bool(TCoord const &)> make_select_function_by_config(
  * @param dict
  * @param domain
  */
-//template<typename TDict, typename TM, size_t IFORM>
-//void select_boundary(TDict const &dict, Domain<TM, IFORM> *domain)
-//{
-//	NEED_OPTIMIZATION;
-//	typedef TM mesh_type;
-//	typedef typename mesh_type::id_type id_type;
-//	typedef typename mesh_type::coordinates_type coordinates_type;
-//
-//	mesh_type const & mesh = domain->mesh();
-//
-//	static constexpr size_t ndims = mesh_type::ndims;
-//	static constexpr size_t iform = mesh_type::iform;
-//
-//	auto volume_domain = domain->clone<VOLUME>();
-//
-//	if (dict["Polylines"])
-//	{
-//
-//		std::vector<coordinates_type> points;
-//
-//		dict["Polylines"]["ZAXIS"].as(&points);
-//
-//		for (auto & v : points)
-//		{
-//			v = mesh.coordinates_to_topology(v);
-//		}
-//
-//		coordinates_type p0, p1;
-//
-//		static constexpr Real min_radius = std::sqrt(
-//
-//		0.5 * 0.5
-//
-//		+ ((ndims > 1) ? 0.5 * 0.5 : 0)
-//
-//		+ ((ndims > 2) ? 0.5 * 0.5 : 0));
-//
-//		for (auto s : volume_domain)
-//		{
-//			coordinates_type x = mesh_type::topology_type::coordinates(s);
-//
-//			Real dist = 0, s = 0;
-//			std::tie(dist, s, p0, p1) = nearest_point_on_polylines(
-//					points.begin(), points.end(), x);
-//
-//			if (dist > min_radius)
-//			{
-//				continue;
-//			}
-//			else if (iform == VERTEX)
-//			{
-//
-//			}
-//		}
-//
-//		int ZAXIS = dict["PointInPolylines"]["ZAXIS"].template as<int>(2);
-//
-//		PointInPolygon checkPointsInPolygen(points, ZAXIS);
-//
-//	}
-//}
+template<typename TDict, typename TM, size_t IFORM>
+void select_boundary(TDict const &dict, Domain<TM, IFORM> *domain)
+{
+	NEED_OPTIMIZATION;
+	typedef TM mesh_type;
+	typedef typename mesh_type::id_type id_type;
+	typedef typename mesh_type::coordinates_type coordinates_type;
+
+	mesh_type const & mesh = domain->mesh();
+
+	static constexpr size_t ndims = mesh_type::ndims;
+	static constexpr size_t iform = IFORM;
+
+	auto volume_domain = domain->template clone<VOLUME>();
+
+	if (dict["Polylines"])
+	{
+
+		std::vector<coordinates_type> points;
+
+		dict["Polylines"]["ZAXIS"].as(&points);
+
+		for (auto & v : points)
+		{
+			v = mesh.coordinates_to_topology(v);
+		}
+
+		coordinates_type p0, p1;
+
+		Real min_radius = std::sqrt(
+
+		0.5 * 0.5
+
+		+ ((ndims > 1) ? 0.5 * 0.5 : 0)
+
+		+ ((ndims > 2) ? 0.5 * 0.5 : 0));
+
+		for (auto s : volume_domain)
+		{
+			coordinates_type x = mesh_type::topology_type::id_to_coordinates(s);
+
+			Real dist = 0, ss = 0;
+			std::tie(dist, ss, p0, p1) = nearest_point_on_polylines(
+					points.begin(), points.end(), x);
+
+			if (dist > min_radius)
+			{
+				continue;
+			}
+
+		}
+
+		int ZAXIS = dict["PointInPolylines"]["ZAXIS"].template as<int>(2);
+
+		PointInPolygon checkPointsInPolygen(points, ZAXIS);
+
+	}
+}
 
 }
 // namespace simpla
