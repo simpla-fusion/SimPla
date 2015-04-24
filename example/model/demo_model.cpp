@@ -22,12 +22,9 @@
 #include "../../core/mesh/mesh_ids.h"
 #include "../../core/model/geqdsk.h"
 #include "../../core/model/model.h"
-<<<<<<< HEAD
+
 #include "../../core/model/geqdsk.h"
 #include "../../core/numeric/point_in_polygon.h"
-=======
-#include "../../core/numeric/pointinpolygon.h"
->>>>>>> ab4ae93ad647e9712d8bc3d916efb6ec96d751e2
 
 namespace simpla
 {

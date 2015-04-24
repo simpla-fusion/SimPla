@@ -227,6 +227,9 @@ inline std::string ShowBit(unsigned long s)
 
 #define INFORM Logger(LOG_INFORM)
 
+#define NEED_OPTIMIZATION Logger(LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
+        << "This function should be optimized!"
+
 #define UNIMPLEMENTED Logger(LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
 	          << "Sorry, this function is not implemented. Try again next year, good luck!"
 #define OBSOLETE  Logger(LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \

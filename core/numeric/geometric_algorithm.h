@@ -30,6 +30,88 @@ std::tuple<Real, Vec3> distance_point_to_plane(T0 const & x0, T1 const & p0,
 	return std::forward_as_tuple(inner_product(p0 - x0, n), std::move(n));
 
 }
+template<typename T0, typename T1, typename T2>
+Real nearest_point_on_line_segment(T0 const & p0, T1 const & p1, T2 const & x)
+{
+	return inner_product(x - p0, p1 - p0) / inner_product(p1 - p0, p1 - p0);
+}
+/**
+ *
+ *
+ *     x  o
+ *       /|
+ *      / | d
+ *     o--a---------------o
+ *  p0   s                      p1
+ *
+ *
+ * @return <x,p0,p1>
+ *
+ *
+ */
+template<typename TI, typename TX>
+std::tuple<Real, Real, TX, TX> nearest_point_on_polylines(TI const & ib,
+		TI const & ie, TX const & x)
+{
+	typedef TX Vec3;
+
+	Real min_dist = std::numeric_limits<Real>::max();
+
+	Real res_s = 0;
+
+	Vec3 res_p0, res_p1;
+
+	TI it = ib;
+
+	Vec3 p0, p1;
+
+	Real dist;
+
+	p1 = *it;
+
+	while (it != ie)
+	{
+		p0 = p1;
+
+		++it;
+
+		if (it == ie)
+		{
+			p1 += *ib;
+		}
+		else
+		{
+			p1 += *it;
+		};
+
+		auto s = nearest_point_on_line_segment(p0, p1, x);
+
+		if (s < 0)
+		{
+			s = 0;
+		}
+		else if (s > 1)
+		{
+			s = 1;
+
+		}
+
+		Vec3 d = x - ((1 - s) * p0 + s * p1);
+
+		Real dist = inner_product(d, d);
+
+		if (min_dist > dist)
+		{
+			res_p0 = p0;
+			res_p1 = p1;
+			res_s = s;
+		}
+	}
+
+	return std::forward_as_tuple(min_dist, res_s, p0, p1);
+
+}
+
 template<typename T0, typename T1, typename T2, typename T3>
 Vec3 distance_between_lines(T0 const& P0, T1 const & P1, T2 const & Q0,
 		T3 const & Q1)

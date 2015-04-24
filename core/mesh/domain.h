@@ -18,6 +18,7 @@
 #include "../gtl/iterator/sp_ntuple_range.h"
 #include "../gtl/ntuple.h"
 #include "mesh_ids.h"
+//#include "../model/select.h"
 
 namespace simpla
 {
@@ -87,6 +88,13 @@ public:
 			: m_mesh_(other.m_mesh_), m_box_(other.m_box_), m_id_set_(
 					other.m_id_set_)
 	{
+	}
+	template<size_t IF>
+	Domain<mesh_type, IF> clone() const
+	{
+		Domain<mesh_type, IF> res(m_mesh_);
+		res.reset_bound_box(m_box_.m_b_, m_box_.m_e_);
+		return std::move(res);
 	}
 
 	mesh_type const & mesh() const
@@ -536,16 +544,6 @@ public:
 //	}
 	/** @} */
 };
-template<typename TDict, typename TD>
-void select_cell(TDict const & dict, TD * d)
-{
-
-}
-template<typename TDict, typename TD>
-void select_boundary(TDict const & dict, TD * d)
-{
-
-}
 
 template<typename TM, size_t IFORM>
 template<typename TDict>
@@ -599,11 +597,11 @@ void Domain<TM, IFORM>::filter_by_config(TDict const & dict)
 	}
 	else if (dict["SelectCell"])
 	{
-		select_cell(dict, this);
+//		select_cell(dict, this);
 	}
 	else if (dict["SelectBoundary"])
 	{
-		select_boundary(dict, this);
+//		select_boundary(dict, this);
 	}
 	else
 	{
