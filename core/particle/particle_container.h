@@ -97,10 +97,10 @@ struct particle_container_traits
 
 template<typename TM, typename Engine, typename TContainer>
 class Particle<TM, Engine, TContainer> //
-:	public SpObject,
-	public Engine,
-	public TContainer,
-	public enable_create_from_this<Particle<TM, Engine, TContainer> >
+: public SpObject,
+		public Engine,
+		public TContainer,
+		public enable_create_from_this<Particle<TM, Engine, TContainer> >
 {
 public:
 	typedef TM mesh_type;
@@ -113,24 +113,34 @@ public:
 
 	typedef typename container_type::value_type value_type;
 
+	typedef typename mesh_type::index_type index_type;
+	typedef typename mesh_type::id_type id_type;
+	typedef typename mesh_type::coordinates_type coordinates_type;
+
+	static constexpr size_t iform = VOLUME;
+
+	typedef Domain<mesh_type, iform> domain_type;
+
 private:
-	mesh_type m_mesh_;
+
+	domain_type m_domain_;
 public:
 
-	Particle(mesh_type const & m)
-			: m_mesh_(m)
+	Particle(mesh_type const & m) :
+			m_domain_(m)
 	{
 	}
 
-	Particle(this_type const& other)
-			: engine_type(other), container_type(other), m_mesh_(other.m_mesh_)
+	Particle(this_type const& other) :
+			engine_type(other), container_type(other), m_domain_(
+					other.m_domain_)
 	{
 	}
 
 	template<typename ... Args>
-	Particle(this_type & other, Args && ...args)
-			: engine_type(other), container_type(other,
-					std::forward<Args>(args)...), m_mesh_(other.m_mesh_)
+	Particle(this_type & other, Args && ...args) :
+			engine_type(other), container_type(other,
+					std::forward<Args>(args)...), m_domain_(other.m_domain_)
 	{
 	}
 
@@ -159,7 +169,7 @@ public:
 	}
 	mesh_type const & mesh() const
 	{
-		return m_mesh_;
+		return m_domain_.mesh();
 	}
 	template<typename TDict, typename ...Others>
 	void load(TDict const & dict, Others && ...others)
@@ -202,7 +212,7 @@ public:
 	void sync()
 	{
 
-		auto ghost_list = m_mesh_.ghost_shape();
+		auto ghost_list = m_domain_.mesh().template ghost_shape<iform>();
 
 		for (auto const & item : ghost_list)
 		{
@@ -211,12 +221,16 @@ public:
 			send_recv_s.datatype = MPIDataType::create<value_type>();
 
 			std::tie(send_recv_s.dest, send_recv_s.send_tag,
-					send_recv_s.recv_tag) = get_mpi_tag(SpObject::object_id(),
+					send_recv_s.recv_tag) = GLOBAL_COMM.make_send_recv_tag(SpObject::object_id(),
 					&item.coord_shift[0]);
 
 			//   collect send data
 
-			auto send_range = m_mesh_.template range<VERTEX>(item.send_offset,
+//			auto send_range = m_domain_.mesh().template range<VERTEX>(
+//					item.send_offset, item.send_offset + item.send_count);
+
+			auto send_range = m_domain_;
+			send_range.reset_bound_box(item.send_offset,
 					item.send_offset + item.send_count);
 
 			send_recv_s.send_size = container_type::size_all(send_range);
@@ -242,9 +256,10 @@ public:
 			m_send_recv_buffer_.push_back(std::move(send_recv_s));
 
 			//  clear ghosts cell
-			auto recv_range = m_mesh_.template range<VERTEX>(item.recv_offset,
-					item.recv_offset + item.recv_count);
 
+			auto recv_range = m_domain_;
+			send_range.reset_bound_box(item.recv_offset,
+					item.recv_offset + item.recv_count);
 			container_type::erase(recv_range);
 
 		}
@@ -269,8 +284,8 @@ public:
 		m_send_recv_buffer_.clear();
 	}
 
-	template<typename TRange>
-	DataSet dataset(TRange const & p_range) const
+	template<typename TDomain>
+	DataSet dataset(TDomain const & pdomain) const
 	{
 		ASSERT(is_ready());
 
@@ -279,16 +294,16 @@ public:
 		res.datatype = DataType::create<value_type>();
 		res.properties = SpObject::properties;
 
-		size_t count = 0;
+		index_type count = 0;
 
-		for (auto const & key : p_range)
+		pdomain.for_each([&](id_type const &s)
 		{
-			auto it = container_type::find(key);
+			auto it = container_type::find(s);
 			if (it != container_type::end())
 			{
 				count += std::distance(it->second.begin(), it->second.end());
 			}
-		}
+		});
 
 		res.data = sp_alloc_memory(count * sizeof(value_type));
 
@@ -296,9 +311,9 @@ public:
 
 		//TODO need parallel optimize
 
-		for (auto const & key : p_range)
+		pdomain.for_each([&](id_type const &s)
 		{
-			auto it = container_type::find(key);
+			auto it = container_type::find(s);
 
 			if (it != container_type::end())
 			{
@@ -308,19 +323,18 @@ public:
 					++p;
 				}
 			}
-		}
+		});
 
 		ASSERT(std::distance(data.get(), p) == count);
 
-		size_t offset = 0;
-		size_t total_count = count;
+		index_type offset = 0;
+		index_type total_count = count;
 
 		std::tie(offset, total_count) = sync_global_location(count);
 
 		DataSpace(1, &total_count).swap(res.dataspace);
 
-		res.dataspace.select_hyperslab(&offset, nullptr, &count, nullptr) //
-		.add_ghosts();
+		res.dataspace.select_hyperslab(&offset, nullptr, &count, nullptr);
 
 		VERBOSE << "dump particles [" << count << "/" << total_count << "] "
 				<< std::endl;
@@ -330,7 +344,7 @@ public:
 
 	DataSet dataset() const
 	{
-		return std::move(dataset(m_mesh_.template range<VERTEX>()));
+		return std::move(dataset(m_domain_.mesh().template domain<VERTEX>()));
 	}
 
 //! @}
@@ -367,13 +381,13 @@ public:
 	{
 		ASSERT(is_ready());
 
-		for (auto const & s : m_mesh_.range(std::forward<Args>(args)...))
+		m_domain_.for_each([&](id_type s)
 		{
 			for (auto &p : container_type::operator[](s))
 			{
 				fun(p);
 			}
-		}
+		});
 	}
 	/**
 	 *

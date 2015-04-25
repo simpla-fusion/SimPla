@@ -24,69 +24,69 @@
 #include "../../core/particle/particle.h"
 
 using namespace simpla;
+typedef CartesianRectMesh mesh_type;
 
 USE_CASE(pic," Particle in cell" )
 {
 
 	size_t num_of_steps = 1000;
 	size_t strides = 10;
-	Real dt = 0.001;
 
-	if (options["SHOW_HELP"])
+	if (options["case_help"])
 	{
-		SHOW_OPTIONS("-n,--number_of_steps <NUMBER_OF_STEPS>",
-				"number of steps = <NUMBER_OF_STEPS> ,default="
-						+ value_to_string(num_of_steps));
-		SHOW_OPTIONS("-s,--strides <STRIDES>",
-				" dump record per <STRIDES> steps, default="
-						+ value_to_string(strides));
-		SHOW_OPTIONS("-dt  <DT>",
-				" value of time step,default =" + value_to_string(dt));
+
+		MESSAGE
+
+		<< " Options:" << endl
+
+				<<
+
+				"\t -n,\t--number_of_steps <NUMBER>  \t, Number of steps = <NUMBER> ,default="
+						+ value_to_string(num_of_steps)
+						+ "\n"
+								"\t -s,\t--strides <NUMBER>            \t, Dump record per <NUMBER> steps, default="
+						+ value_to_string(strides) + "\n";
 
 		return;
 	}
 
-	options["NUMBER_OF_STEPS"].as(&num_of_steps);
+	options["n"].as(&num_of_steps);
 
-	options["STRIDES"].as<size_t>(&strides);
+	options["s"].as<size_t>(&strides);
 
-	typedef CartesianCoordinates<RectMesh> mesh_type;
-	typedef typename mesh_type::coordinates_type coordinates_type;
-	typedef typename mesh_type::index_tuple index_tuple;
+	auto mesh = std::make_shared<mesh_type>();
+
+	mesh->dimensions(options["dimensions"].as(nTuple<size_t, 3>(
+	{ 10, 10, 10 })));
+
+	mesh->extents(options["xmin"].as(nTuple<Real, 3>(
+	{ 0, 0, 0 })), options["xmax"].as(nTuple<Real, 3>(
+	{ 1, 1, 1 })));
+
+	mesh->dt(options["dt"].as<Real>(1.0));
+
+	mesh->deploy();
+
+	if (GLOBAL_COMM.process_num()==0)
+	{
+
+		MESSAGE << endl
+
+		<< "[ Configuration ]" << endl
+
+		<< " Description=\"" << options["Description"].as<std::string>("") << "\""
+		<< endl
+
+		<< " Mesh =" << endl << "  {" << *mesh << "} " << endl
+
+		<< " TIME_STEPS = " << num_of_steps << endl;
+	}
 
 	typedef PICDemo engine_type;
 
 	size_t pic = 10;
-	index_tuple dims = { 10, 10, 10 };
-	index_tuple ghost_width = { 0, 0, 0 };
-	coordinates_type xmin = { 0, 0, 0 };
-	coordinates_type xmax = { 1, 1, 1 };
-
-	options["dims"].as(&dims);
-
-	options["gw"].as(&ghost_width);
 
 	options["pic"].as(&pic);
-
-	auto mesh = make_mesh<mesh_type>();
-
-	mesh->dimensions(dims);
-	mesh->extents(xmin, xmax);
-	mesh->ghost_width(ghost_width);
-	mesh->dt(dt);
-	mesh->deploy();
-
-	MESSAGE << std::endl;
-
-	MESSAGE << "======== Configuration ========" << std::endl;
-	MESSAGE << " Description:"
-			<< options["Description"].template as<std::string>("") << std::endl;
-
-	MESSAGE << " Options:" << std::endl;
-
-	RIGHT_COLUMN(" mesh" ) << " = {" << *mesh << "}," << std::endl;
-
-	RIGHT_COLUMN(" time_step" ) << " = " << num_of_steps << std::endl;
 
 	MESSAGE << "======== Initialize ========" << std::endl;
 
@@ -100,9 +100,7 @@ USE_CASE(pic," Particle in cell" )
 
 	ion->deploy();
 
-	auto extents = mesh->local_extents();
-
-//	auto range = mesh->local_range();
+	auto extents = mesh->extents();
 
 	auto p_generator = simple_particle_generator(*ion, extents, 1.0);
 

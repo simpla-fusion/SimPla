@@ -237,7 +237,7 @@ void select_vetrices_near_to_polylines(TDomain const& domain, TI const & ib,
 
 		auto v_tuple=distance_from_point_to_polylines( x,ib, ie);
 
-		if(std::get<0>(v_tuple) <=snap_radius )
+		if(std::get<0>(v_tuple) <=snap_radius*2 )
 		{
 			(*res)[s] = v_tuple;
 		}
@@ -318,18 +318,20 @@ void select_boundary_by_polylines(Domain<TM, IFORM> *domain, TI const & ib,
 
 	PointInPolygon point_in_polygon(ib, ie, ZAxis);
 
-	if (iform == VERTEX)
-	{
-		for (auto const & item : vmap)
-		{
-			if (point_in_polygon(mesh.coordinates(item.first))
-					== (flag == 0 || flag == 2))
-			{
-				domain->id_set().insert(item.first);
-			}
-		}
-	}
-	else if (iform == VOLUME)
+//	if (iform == VERTEX)
+//	{
+//		for (auto const & item : vmap)
+//		{
+//			if (point_in_polygon(mesh.coordinates(item.first))
+//					== (flag == 0 || flag == 2))
+//			{
+//				domain->id_set().insert(item.first);
+//			}
+//		}
+//	}
+//	else
+
+	if (iform == VOLUME)
 	{
 		if (domain->is_simply())
 		{
