@@ -95,11 +95,13 @@ struct MeshIDs_
 
 	static constexpr size_t _DA = _DI | _DJ | _DK;
 
-	static constexpr size_t CLEAR_CARRAY_FLAG = ~(_DA
-			<< (INDEX_DIGITS - MAX_MESH_LEVEL));
-
-	static constexpr index_type INDEX_ZERO = static_cast<index_type>(1UL
-			<< (INDEX_DIGITS - MAX_MESH_LEVEL - 1));
+	static constexpr index_type INDEX_ZERO = (1L
+			<< (INDEX_DIGITS - MAX_MESH_LEVEL - 2));
+	static constexpr size_t ID_ZERO = (((1UL) << (INDEX_DIGITS - 2))
+			| (1UL << (INDEX_DIGITS * 2 - 2)) | (1UL << (INDEX_DIGITS * 3 - 2)));
+	static constexpr size_t CARRAY_FLAG = (((1UL) << (INDEX_DIGITS - 1))
+			| (1UL << (INDEX_DIGITS * 2 - 1)) | (1UL << (INDEX_DIGITS * 3 - 1)));
+	static constexpr size_t CLEAR_CARRAY_FLAG = ~CARRAY_FLAG;
 
 	static constexpr Real COORD_ZERO = static_cast<Real>(INDEX_ZERO);
 
@@ -450,10 +452,11 @@ struct MeshIDs_
 	 */
 	static constexpr int MAX_NUM_OF_CELL = 12;
 
-	static constexpr index_type _HI = _DI >> 1;
+	static constexpr index_type _HI = (1L << (MAX_MESH_LEVEL - 1));
 	static constexpr index_type _HJ = _HI << INDEX_DIGITS;
 	static constexpr index_type _HK = _HI << (INDEX_DIGITS * 2);
-	static constexpr index_type _LI = ((-_DI) >> 1 & INDEX_MASK);
+	static constexpr index_type _LI =
+			(((-_DI) & INDEX_MASK) & CLEAR_CARRAY_FLAG);
 	static constexpr index_type _LJ = _LI << INDEX_DIGITS;
 	static constexpr index_type _LK = _LI << (INDEX_DIGITS * 2);
 
@@ -540,7 +543,7 @@ struct MeshIDs_
 			//To EDGE
 			{
 			/* 000*/
-			{ _LI, _HI, _LJ, _HJ, _LK, -_HK },
+			{ _HI, _LI, _HJ, _LJ, _HK, _LK },
 			/* 001*/
 			{ 0 },
 			/* 010*/
@@ -637,17 +640,19 @@ struct MeshIDs_
 	{
 		int id = node_id(s);
 
-		CHECK_BIT(s);
 		if (res != nullptr)
 		{
+//			VERBOSE << " s= \t" << (unpack<IFORM>(s)) << " " << node_id(s)
+//					<< std::endl;
+
 			for (int i = 0; i < m_vertics_num_[IFORM][id]; ++i)
 			{
-				res[i] = (s + m_vertics_matrix_[IFORM][id][i])
-						& CLEAR_CARRAY_FLAG;
-				CHECK_BIT(CLEAR_CARRAY_FLAG);
-				CHECK_BIT(~CLEAR_CARRAY_FLAG);
-				CHECK_BIT(m_vertics_matrix_[IFORM][id][i]);
-				CHECK_BIT((res[i]));
+				res[i] = ((s + m_vertics_matrix_[IFORM][id][i])
+						& CLEAR_CARRAY_FLAG);
+				;
+//				VERBOSE << " res[i]= \t" << unpack<IFORM>(res[i]) << " "
+//						<< node_id(res[i]) << std::endl;
+
 			}
 		}
 		return m_vertics_num_[IFORM][id];

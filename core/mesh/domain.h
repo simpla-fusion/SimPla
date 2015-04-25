@@ -63,7 +63,7 @@ public:
 	template<typename TV>
 	using field_value_type=typename std::conditional<(iform == VERTEX || iform == VOLUME),TV,nTuple<TV,3>>::type;
 
-private:
+
 	mesh_type const &m_mesh_;
 	range_type m_box_;
 	std::set<id_type> m_id_set_;
@@ -199,9 +199,9 @@ public:
 		else if (is_simply())
 		{
 
-			for (auto const &x : m_box_)
+			for (auto const &idx : m_box_)
 			{
-				fun(m_mesh_.template pack<iform>(x));
+				fun(m_mesh_.template pack<iform>(idx));
 			}
 		}
 		else
@@ -618,7 +618,7 @@ void Domain<TM, IFORM>::filter_by_config(TDict const & dict)
 	}
 	else if (dict["SelectBoundary"])
 	{
-		select_boundary(dict, this);
+//		select_boundary(dict, this);
 	}
 	else
 	{

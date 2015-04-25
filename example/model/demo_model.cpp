@@ -87,12 +87,12 @@ USE_CASE(model,"Model")
 			&vertices_close_to_polylines);
 
 	select_boundary_by_polylines(&(domain0), vertices_close_to_polylines, ZAXIS,
-			7);
+			1);
 
 	select_boundary_by_polylines(&(domain1), vertices_close_to_polylines, ZAXIS,
-			6);
+			3);
 //	select_boundary_by_polylines(&(domain2), vertices_close_to_polylines, ZAXIS,
-//			4);
+//			1);
 //	select_boundary_by_polylines(&(domain3), vertices_close_to_polylines, ZAXIS,
 //			1);
 

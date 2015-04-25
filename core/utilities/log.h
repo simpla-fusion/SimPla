@@ -280,7 +280,7 @@ inline std::string ShowBit(unsigned long s)
 //#ifndef NDEBUG
 #define CHECK(_MSG_)    Logger(LOG_DEBUG) <<" "<< (__FILE__) <<": line "<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
 	<<"\n\t"<< __STRING(_MSG_)<<"="<< ( _MSG_)<<std::endl
-#define SHOW(_MSG_)    Logger(LOG_VERBOSE) << __STRING(_MSG_)<<"\t= "<< ( _MSG_)<< std::endl
+#define SHOW(_MSG_)    Logger(LOG_VERBOSE) << __STRING(_MSG_)<<"\t= "<< ( _MSG_) <<std::endl;
 //#else
 //#	define CHECK(_MSG_)
 //#endif

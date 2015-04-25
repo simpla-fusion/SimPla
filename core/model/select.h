@@ -298,23 +298,27 @@ void select_boundary_by_polylines(Domain<TM, IFORM> *domain,
 	}
 	else
 	{
+		domain->m_id_set_.clear();
+
 		for (auto const & item : vertices_close_to_polylines)
 		{
+
 			id_type cell[topology::MAX_NUM_OF_CELL];
 
 			int num_of_cell = topology::template get_adjoints<iform>(item.first,
 					cell);
+
 			for (int i = 0; i < num_of_cell; ++i)
 			{
-				CHECK(mesh.node_id(cell[i]));
-				domain->id_set().insert(cell[i]);
+				domain->m_id_set_.insert(cell[i]);
 			}
 		}
 
 		std::set<id_type> res;
 
-		for (auto s : domain->id_set())
+		for (auto const &s : domain->m_id_set_)
 		{
+			SHOW(topology::node_id(s));
 
 			id_type vertices[topology::MAX_NUM_OF_CELL];
 
@@ -340,9 +344,10 @@ void select_boundary_by_polylines(Domain<TM, IFORM> *domain,
 
 					size_t flag = (d > 0) ? 4 : ((d < 0) ? 1 : 2);
 
-					if ((flag & side_flag) != 0)
+					if ((flag & side_flag) == 0)
 					{
-						domain->id_set().insert(it->first);
+						success = false;
+						break;
 					}
 				}
 			}
