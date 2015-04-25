@@ -95,6 +95,9 @@ struct MeshIDs_
 
 	static constexpr size_t _DA = _DI | _DJ | _DK;
 
+	static constexpr size_t CLEAR_CARRAY_FLAG = ~(_DA
+			<< (INDEX_DIGITS - MAX_MESH_LEVEL));
+
 	static constexpr index_type INDEX_ZERO = static_cast<index_type>(1UL
 			<< (INDEX_DIGITS - MAX_MESH_LEVEL - 1));
 
@@ -125,7 +128,8 @@ struct MeshIDs_
 //
 //	| (((INIFIT_AXIS & 4UL) == 0) ? (INDEX_MASK << (INDEX_DIGITS * 2)) : 0UL);
 
-	static constexpr size_t m_index_to_node_id_[4][3] = { //
+	static constexpr size_t m_index_to_node_id_[4][3] =
+	{ //
 
 			{ 0, 0, 0 }, /*VERTEX*/
 			{ 1, 2, 4 }, /*EDGE*/
@@ -134,7 +138,8 @@ struct MeshIDs_
 
 			};
 
-	static constexpr size_t m_index_to_id_shift_[4][3] = {
+	static constexpr size_t m_index_to_id_shift_[4][3] =
+	{
 
 	{ 0, 0, 0 },
 
@@ -146,16 +151,30 @@ struct MeshIDs_
 
 	};
 
-	static constexpr coordinates_type m_index_to_coordinates_shift_[4][3] = {
+	static constexpr coordinates_type m_index_to_coordinates_shift_[4][3] =
+	{
 
-	{ { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, /*VERTEX*/
-	{ { 0.5, 0, 0 }, { 0, 0.5, 0 }, { 0, 0, 0.5 } }, /*EDGE*/
-	{ { 0, 0.5, 0.5 }, { 0.5, 0, 0.5 }, { 0.5, 0.5, 0 } }, /*FACE*/
-	{ { 0, 0.5, 0.5 }, { 0.5, 0.5, 0.5 }, { 0.5, 0.5, 0.5 } } /*VOLUME*/
+	{
+	{ 0, 0, 0 },
+	{ 0, 0, 0 },
+	{ 0, 0, 0 } }, /*VERTEX*/
+	{
+	{ 0.5, 0, 0 },
+	{ 0, 0.5, 0 },
+	{ 0, 0, 0.5 } }, /*EDGE*/
+	{
+	{ 0, 0.5, 0.5 },
+	{ 0.5, 0, 0.5 },
+	{ 0.5, 0.5, 0 } }, /*FACE*/
+	{
+	{ 0, 0.5, 0.5 },
+	{ 0.5, 0.5, 0.5 },
+	{ 0.5, 0.5, 0.5 } } /*VOLUME*/
 
 	};
 
-	static constexpr id_type m_node_id_to_iform_[] = { //
+	static constexpr id_type m_node_id_to_iform_[] =
+	{ //
 
 			VERTEX, // 000
 					EDGE, // 001
@@ -287,7 +306,8 @@ struct MeshIDs_
 	static constexpr coordinates_type id_to_coordinates(id_type s)
 	{
 
-		return std::move(coordinates_type { //
+		return std::move(coordinates_type
+		{ //
 
 				static_cast<Real>((s & INDEX_MASK)) * INDEX_TO_COORD_FACTOR
 						- COORD_ZERO,
@@ -390,7 +410,8 @@ struct MeshIDs_
 				| ((s & _DK) >> (INDEX_DIGITS * 2 + MAX_MESH_LEVEL - 3))) & 7UL;
 	}
 
-	static constexpr int m_node_id_to_index_[8] = { //
+	static constexpr int m_node_id_to_index_[8] =
+	{ //
 
 			0, // 000
 					0, // 001
@@ -427,14 +448,14 @@ struct MeshIDs_
 	 *
 	 *   \endverbatim
 	 */
-	static constexpr int MAX_NUM_OF_VERTICS = 8;
+	static constexpr int MAX_NUM_OF_CELL = 12;
 
 	static constexpr index_type _HI = _DI >> 1;
-	static constexpr index_type _HJ = _DJ >> 1;
-	static constexpr index_type _HK = _DK >> 1;
-	static constexpr index_type _LI = -_HI;
-	static constexpr index_type _LJ = -_HJ;
-	static constexpr index_type _LK = -_HK;
+	static constexpr index_type _HJ = _HI << INDEX_DIGITS;
+	static constexpr index_type _HK = _HI << (INDEX_DIGITS * 2);
+	static constexpr index_type _LI = ((-_DI) >> 1 & INDEX_MASK);
+	static constexpr index_type _LJ = _LI << INDEX_DIGITS;
+	static constexpr index_type _LK = _LI << (INDEX_DIGITS * 2);
 
 	static constexpr int m_vertics_num_[4/* to iform*/][8/* node id*/] =
 
@@ -447,59 +468,202 @@ struct MeshIDs_
 			/* 100*/2,
 			/* 101*/4,
 			/* 110*/4,
-			/* 111*/8
-			}
+			/* 111*/8 },
 
-			};
-
-	static constexpr index_type m_vertics_matrix_[4/* to*/][8/* from*/][MAX_NUM_OF_VERTICS/*id shift*/] =
-			{
-			//To VERTEX
+			// EDGE
 					{
+					/* 000*/6,
+					/* 001*/1,
+					/* 010*/1,
+					/* 011*/4,
+					/* 100*/1,
+					/* 101*/4,
+					/* 110*/4,
+					/* 111*/12 },
 
-					/* 000*/{ 0 },
-					/* 001*/{ _LI, _HI },
-					/* 010*/{ _LJ, _HJ },
-					/* 011*/{ _LI | _LJ, _HI | _LJ, _HI | _HJ, _LI | _HJ },
-					/* 100*/{ _LK, _HK },
-					/* 101*/{ _LK | _LI, _HK | _LI, _HK | _HI, _LK | _HI },
-					/* 110*/{ _LJ | _LK, _HJ | _LK, _HJ | _HK, _LJ | _HK },
-					/* 111*/{ _LI | _LJ | _LK //
-							, _HI | _LJ | _LK //
-							, _HI | _HJ | _LK //
-							, _LI | _HJ | _LK //
+					// FACE
+					{
+					/* 000*/12,
+					/* 001*/4,
+					/* 010*/4,
+					/* 011*/1,
+					/* 100*/4,
+					/* 101*/1,
+					/* 110*/1,
+					/* 111*/6 },
 
-							, _LI | _LJ | _HK //
-							, _HI | _LJ | _HK //
-							, _HI | _HJ | _HK //
-							, _LI | _HJ | _HK } }
+					// VOLUME
+					{
+					/* 000*/8,
+					/* 001*/4,
+					/* 010*/4,
+					/* 011*/2,
+					/* 100*/4,
+					/* 101*/2,
+					/* 110*/2,
+					/* 111*/1 }
 
 			};
 
-	static int get_vertics(id_type s, id_type * res = nullptr)
+	static constexpr index_type m_vertics_matrix_[4/* to iform*/][8/* node id*/][MAX_NUM_OF_CELL/*id shift*/] =
 	{
-		int id = node_id(s);
-		if (res != nullptr)
-		{
-			for (int i = 0; i < m_vertics_num_[VERTEX][id]; ++i)
+	//To VERTEX
 			{
-				res[i] = s + m_vertics_matrix_[VERTEX][id][i];
-			}
-		}
-		return m_vertics_num_[id];
-	}
 
-	static int get_vertics(id_type s, coordinates_type * res = nullptr)
+			/* 000*/
+			{ 0 },
+			/* 001*/
+			{ _LI, _HI },
+			/* 010*/
+			{ _LJ, _HJ },
+			/* 011*/
+			{ _LI | _LJ, _HI | _LJ, _HI | _HJ, _LI | _HJ },
+			/* 100*/
+			{ _LK, _HK },
+			/* 101*/
+			{ _LK | _LI, _HK | _LI, _HK | _HI, _LK | _HI },
+			/* 110*/
+			{ _LJ | _LK, _HJ | _LK, _HJ | _HK, _LJ | _HK },
+			/* 111*/
+			{ _LI | _LJ | _LK, //
+			_HI | _LJ | _LK, //
+			_HI | _HJ | _LK, //
+			_LI | _HJ | _LK, //
+
+			_LI | _LJ | _HK, //
+			_HI | _LJ | _HK, //
+			_HI | _HJ | _HK, //
+			_LI | _HJ | _HK }
+
+			},
+
+			//To EDGE
+			{
+			/* 000*/
+			{ _LI, _HI, _LJ, _HJ, _LK, -_HK },
+			/* 001*/
+			{ 0 },
+			/* 010*/
+			{ 0 },
+			/* 011*/
+			{ _LJ, _HI, _HJ, _LI },
+			/* 100*/
+			{ 0 },
+			/* 101*/
+			{ _LI, _HK, _HI, _LK },
+			/* 110*/
+			{ _LK, _HJ, _HK, _LJ },
+			/* 111*/
+			{ _LK | _LJ,  //-> 001
+			_LK | _HI, //   012
+			_LK | _HJ, //   021
+			_LK | _LI, //   010
+
+			_LI | _LJ, //
+			_LI | _HJ, //
+			_HI | _LJ, //
+			_HI | _HI, //
+
+			_HK | _LJ, //
+			_HK | _HI, //
+			_HK | _HJ, //
+			_HK | _LI  //
+			} },
+
+			//To FACE
+			{
+			/* 000*/
+			{ _LK | _LJ,  //
+			_LK | _HI, //
+			_LK | _HJ, //
+			_LK | _LI, //
+
+			_LI | _LJ, //
+			_LI | _HJ, //
+			_HI | _LJ, //
+			_HI | _HI, //
+
+			_HK | _LJ, //
+			_HK | _HI, //
+			_HK | _HJ, //
+			_HK | _LI  //
+			},
+			/* 001*/
+			{ _LJ, _HK, _HJ, _LK },
+			/* 010*/
+			{ _LK, _HI, _HK, _LI },
+			/* 011*/
+			{ 0 },
+			/* 100*/
+			{ _LI, _HJ, _HI, _LJ },
+			/* 101*/
+			{ 0 },
+			/* 110*/
+			{ 0 },
+			/* 111*/
+			{ _LI, _LJ, _LK, _HI, _HJ, _HK } },
+			// TO VOLUME
+			{
+			/* 000*/
+			{ _LI | _LJ | _LK,  //
+			_LI | _HJ | _LK, //
+			_LI | _LJ | _HK, //
+			_LI | _HJ | _HK, //
+
+			_HI | _LJ | _LK, //
+			_HI | _HJ | _LK, //
+			_HI | _LJ | _HK, //
+			_HI | _HJ | _HK //
+
+			},
+			/* 001*/
+			{ _LJ | _LK, _LJ | _HK, _HJ | _LK, _HJ | _HK },
+			/* 010*/
+			{ _LK | _LI, _LK | _HI, _HK | _LI, _HK | _HI },
+			/* 011*/
+			{ _LK, _HK },
+			/* 100*/
+			{ _LI | _LJ, _LI | _HJ, _HI | _LJ, _HI | _HJ },
+			/* 101*/
+			{ _LJ, _HJ },
+			/* 110*/
+			{ _LI, _HI },
+			/* 111*/
+			{ 0 } }
+
+	};
+	template<size_t IFORM>
+	static int get_adjoints(id_type s, id_type * res = nullptr)
+	{
+		int id = node_id(s);
+
+		CHECK_BIT(s);
+		if (res != nullptr)
+		{
+			for (int i = 0; i < m_vertics_num_[IFORM][id]; ++i)
+			{
+				res[i] = (s + m_vertics_matrix_[IFORM][id][i])
+						& CLEAR_CARRAY_FLAG;
+				CHECK_BIT(CLEAR_CARRAY_FLAG);
+				CHECK_BIT(~CLEAR_CARRAY_FLAG);
+				CHECK_BIT(m_vertics_matrix_[IFORM][id][i]);
+				CHECK_BIT((res[i]));
+			}
+		}
+		return m_vertics_num_[IFORM][id];
+	}
+	template<size_t IFORM>
+	static int get_adjoints(id_type s, coordinates_type * res = nullptr)
 	{
 		int id = node_id(s);
 		if (res != nullptr)
 		{
-			for (int i = 0; i < m_vertics_num_[id]; ++i)
+			for (int i = 0; i < m_vertics_num_[IFORM][id]; ++i)
 			{
-				res[i] = id_to_coordinates(s + m_vertics_matrix_[id][i]);
+				res[i] = id_to_coordinates(s + m_vertics_matrix_[IFORM][id][i]);
 			}
 		}
-		return m_vertics_num_[id];
+		return m_vertics_num_[IFORM][id];
 	}
 
 //	template<size_t IFORM> static constexpr int get_vertics(int n, id_type s,
@@ -1300,7 +1464,8 @@ struct MeshIDs_
 //		return 2;
 //	}
 //	/**@}*/
-};
+}
+;
 
 /**
  * Solve problem: Undefined reference to static constexpr char[]
@@ -1325,6 +1490,11 @@ template<size_t N, size_t A> constexpr size_t MeshIDs_<N, A>::m_index_to_id_shif
 template<size_t N, size_t A> constexpr size_t MeshIDs_<N, A>::m_index_to_node_id_[4][3];
 template<size_t N, size_t A> constexpr typename MeshIDs_<N,A>::coordinates_type
 MeshIDs_<N,A>::m_index_to_coordinates_shift_[4][3];
+
+template<size_t N, size_t A> constexpr int MeshIDs_<N, A>::m_vertics_num_[4][8];
+
+template<size_t N, size_t A> constexpr typename MeshIDs_<N, A>::index_type
+MeshIDs_<N, A>::m_vertics_matrix_[4/* to iform*/][8/* node id*/][MAX_NUM_OF_CELL/*id shift*/];
 
 typedef MeshIDs_<3, 0> MeshIDs;
 

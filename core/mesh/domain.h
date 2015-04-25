@@ -24,11 +24,13 @@ namespace simpla
 {
 template<typename ...> struct _Field;
 
-template<typename TM, size_t IFORM> struct Domain;
+template<typename TM, size_t IFORM>
+struct Domain;
 typedef std::integral_constant<int, 0> null_domain;
 typedef std::integral_constant<int, 1> full_domain;
 
-template<typename T> struct domain_traits
+template<typename T>
+struct domain_traits
 {
 	typedef full_domain type;
 };
@@ -67,25 +69,25 @@ private:
 	std::set<id_type> m_id_set_;
 public:
 
-	Domain(mesh_type const &m)
-			: m_mesh_(m)
+	Domain(mesh_type const &m) :
+			m_mesh_(m)
 	{
 		deploy();
 	}
 	template<typename T0, typename T1>
-	Domain(mesh_type const &m, T0 const & b, T1 const & e)
-			: m_mesh_(m)
+	Domain(mesh_type const &m, T0 const & b, T1 const & e) :
+			m_mesh_(m)
 	{
 		reset_bound_box(b, e);
 	}
 
-	Domain(this_type const & other)
-			: m_mesh_(other.m_mesh_), m_box_(other.m_box_), m_id_set_(
+	Domain(this_type const & other) :
+			m_mesh_(other.m_mesh_), m_box_(other.m_box_), m_id_set_(
 					other.m_id_set_)
 	{
 	}
-	Domain(this_type && other)
-			: m_mesh_(other.m_mesh_), m_box_(other.m_box_), m_id_set_(
+	Domain(this_type && other) :
+			m_mesh_(other.m_mesh_), m_box_(other.m_box_), m_id_set_(
 					other.m_id_set_)
 	{
 	}
@@ -97,7 +99,8 @@ public:
 		return std::move(res);
 	}
 
-	mesh_type const & mesh() const
+	mesh_type const &
+	mesh() const
 	{
 		return m_mesh_;
 	}
@@ -110,7 +113,7 @@ public:
 	{
 		return m_id_set_.size() == 0;
 	}
-	bool is_empty() const
+	bool empty() const
 	{
 		return is_null();
 	}
@@ -189,7 +192,11 @@ public:
 	template<typename TFun>
 	void for_each(TFun const & fun) const
 	{
-		if (is_simply())
+		if (empty())
+		{
+			return;
+		}
+		else if (is_simply())
 		{
 
 			for (auto const &x : m_box_)
@@ -205,6 +212,16 @@ public:
 			}
 
 		}
+	}
+
+	template<typename TFun>
+	void for_each_coordinates(TFun const & fun) const
+	{
+		for_each([&](id_type s)
+		{
+			fun(m_mesh_.coordinates(s));
+		});
+
 	}
 	template<typename TFun>
 	void for_each(null_domain, TFun const & fun) const
@@ -349,7 +366,7 @@ public:
 					std::inserter(res, res.begin()), pred);
 		}
 		res.swap(m_id_set_);
-		update_bound_box();
+//		update_bound_box();
 	}
 	template<typename TPred>
 	void filter_by_coordinates(TPred const& pred)
@@ -374,7 +391,8 @@ public:
 	}
 
 	template<typename TDict>
-	void filter_by_config(TDict const & dict);
+	void
+	filter_by_config(TDict const & dict);
 
 	template<typename Tit>
 	void add(Tit const & b, Tit const&e)
@@ -414,15 +432,14 @@ public:
 		return std::move(const_iterator(m_box_.end()));
 	}
 
-	struct iterator:	public std::iterator<
-								typename range_type::iterator::iterator_category,
-								id_type, id_type>,
-						public range_type::iterator
+	struct iterator: public std::iterator<
+			typename range_type::iterator::iterator_category, id_type, id_type>,
+			public range_type::iterator
 	{
 		typedef typename range_type::iterator base_iterator;
 
-		iterator(base_iterator const &other)
-				: base_iterator(other)
+		iterator(base_iterator const &other) :
+				base_iterator(other)
 		{
 		}
 

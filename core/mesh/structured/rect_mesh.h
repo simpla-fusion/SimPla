@@ -21,10 +21,10 @@
 #include "../../utilities/utilities.h"
 #include "../../gtl/ntuple.h"
 #include "../../gtl/primitives.h"
-#include "../../gtl/containers/sp_hash_container.h"
 #include "interpolator.h"
 #include "../mesh_ids.h"
-
+#include "../../field/field_expression.h"
+#include "../../parallel/mpi_update.h"
 namespace simpla
 {
 /**
@@ -55,10 +55,9 @@ namespace simpla
  */
 //template<typename ... >struct RectMesh;
 template<typename TTopology, typename ...Policies>
-struct RectMesh:	public TTopology,
-					public Policies...,
-					std::enable_shared_from_this<
-							RectMesh<TTopology, Policies...>>
+struct RectMesh: public TTopology,
+		public Policies...,
+		std::enable_shared_from_this<RectMesh<TTopology, Policies...>>
 {
 	typedef TTopology topology_type;
 	typedef typename unpack_typelist<0, Policies...>::type coordinates_system;
@@ -122,9 +121,11 @@ private:
 
 	coordinates_type m_toplogy_coord_orig_ /*= { 0, 0, 0 }*/;
 
-	coordinates_type m_coords_min_ = { 0, 0, 0 };
+	coordinates_type m_coords_min_ =
+	{ 0, 0, 0 };
 
-	coordinates_type m_coords_max_ = { 1, 1, 1 };
+	coordinates_type m_coords_max_ =
+	{ 1, 1, 1 };
 
 	coordinates_type m_dx_ /*= { 0, 0, 0 }*/;
 
@@ -153,13 +154,18 @@ private:
 	 *   d-c = local_dimension
 	 *   c-a = local_offset
 	 */
-	index_tuple m_index_dimensions_ = { 1, 1, 1 };
+	index_tuple m_index_dimensions_ =
+	{ 1, 1, 1 };
 
-	index_tuple m_index_offset_ = { 0, 0, 0 };
-	index_tuple m_index_count_ = { 1, 1, 1 };
+	index_tuple m_index_offset_ =
+	{ 0, 0, 0 };
+	index_tuple m_index_count_ =
+	{ 1, 1, 1 };
 
-	index_tuple m_index_local_dimensions_ = { 0, 0, 0 };
-	index_tuple m_index_local_offset_ = { 0, 0, 0 };
+	index_tuple m_index_local_dimensions_ =
+	{ 0, 0, 0 };
+	index_tuple m_index_local_offset_ =
+	{ 0, 0, 0 };
 
 public:
 
@@ -173,8 +179,7 @@ public:
 	{
 	}
 
-	RectMesh(this_type const & other)
-			:
+	RectMesh(this_type const & other) :
 
 			m_index_dimensions_(other.m_index_dimensions_),
 
@@ -407,7 +412,8 @@ public:
 	coordinates_type coordinates_from_topology(coordinates_type const &y) const
 	{
 
-		return coordinates_type( {
+		return coordinates_type(
+		{
 
 		std::fma(y[0], m_from_topology_scale_[0], m_coord_orig_[0]),
 
@@ -421,7 +427,8 @@ public:
 	coordinates_type coordinates_to_topology(coordinates_type const &x) const
 	{
 
-		return coordinates_type( {
+		return coordinates_type(
+		{
 
 		std::fma(x[0], m_to_topology_scale_[0], m_toplogy_coord_orig_[0]),
 

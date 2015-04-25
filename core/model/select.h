@@ -12,6 +12,7 @@
 #include "../numeric/point_in_polygon.h"
 #include "../numeric/geometric_algorithm.h"
 #include "../mesh/mesh_ids.h"
+#include "../gtl/ntuple.h"
 namespace simpla
 {
 
@@ -190,6 +191,179 @@ std::function<bool(TCoord const &)> make_select_function_by_config(
 	}
 
 }
+
+/**
+ *
+ *
+ *     x  o
+ *       /|
+ *      / | D
+ *     o--a---------------o
+ *  p0   s                      p1
+ *
+ *
+ *  std::tie(ss,p0,p1,d)=std::tuple<Real, TI, TI, Vec3>
+ *
+ *  (ss ==0 ) ->  a==p0
+ *   0<ss<1   ->  a \in (p0,p1)
+ *  (ss ==1 ) ->  a==p1
+ *
+ *  d= cross(x-p0,p1-p0)/sqrt(|p1-p0|)
+ *
+ *  |d| = 0  -> x on line (p1,p0)
+ *
+ *  dot(d,normal_vector) >0  -> x on the right of (p1,p0)
+ *
+ */
+template<typename TDomain, typename TI, typename ID>
+void select_points_near_to_polylines(TDomain const& domain, TI const & ib,
+		TI const &ie, Vec3 const & dx,
+		std::map<ID, std::tuple<Real, TI, TI, Vec3>> * res)
+{
+	typedef typename TDomain::mesh_type mesh_type;
+	typedef typename mesh_type::id_type id_type;
+	typedef typename mesh_type::coordinates_type coordinates_type;
+	typedef typename mesh_type::topology_type topology;
+
+	mesh_type const & mesh = domain.mesh();
+
+	domain.for_each([&](id_type const& s )
+	{
+		auto x= mesh.coordinates(s);
+
+		TI p0,p1;
+
+		Real ss;
+
+		std::tie(ss,p0,p1) =distance_point_to_polylines(ib, ie,x);
+
+		Vec3 d;
+
+		d=x-((*p0)*(1.0-ss) + ss*(*p1));
+
+		if((std::abs(d[0])<=dx[0]) &&
+
+				( std::abs(d[1]) <=dx[1]) &&
+
+				( std::abs(d[2]) <=dx[2]) )
+		{
+			Vec3 p10;
+
+			p10=(*p1)-(*p0);
+
+			d = cross(d,p10)/std::sqrt(inner_product(p10,p10));
+
+			(*res)[s] = std::make_tuple(ss,p0,p1,d);
+		}
+
+	});
+}
+
+template<typename TM, size_t IFORM, typename TVertrices>
+void select_boundary_by_polylines(Domain<TM, IFORM> *domain,
+		TVertrices const & vertices_close_to_polylines, int ZAXIS = 2,
+		size_t side_flag = 1 /* 001 <0 , 010 ==0, 100 >0*/)
+{
+	NEED_OPTIMIZATION;
+	typedef TM mesh_type;
+	typedef typename mesh_type::id_type id_type;
+	typedef typename mesh_type::coordinates_type coordinates_type;
+
+	typedef typename mesh_type::topology_type topology;
+
+	mesh_type const & mesh = domain->mesh();
+
+	static constexpr size_t ndims = mesh_type::ndims;
+	static constexpr size_t iform = IFORM;
+
+	Vec3 normal_vector =
+	{ 0, 0, 0 };
+
+	normal_vector[ZAXIS] = 1;
+
+	if (iform == VERTEX)
+	{
+		for (auto const & item : vertices_close_to_polylines)
+		{
+			auto d = inner_product(std::get<3>(item.second), normal_vector);
+
+			size_t flag = (d > 0) ? 4 : ((d < 0) ? 1 : 2);
+
+			if ((flag & side_flag) != 0)
+			{
+				domain->id_set().insert(item.first);
+			}
+		}
+
+	}
+	else
+	{
+		for (auto const & item : vertices_close_to_polylines)
+		{
+			id_type cell[topology::MAX_NUM_OF_CELL];
+
+			int num_of_cell = topology::template get_adjoints<iform>(item.first,
+					cell);
+			for (int i = 0; i < num_of_cell; ++i)
+			{
+				CHECK(mesh.node_id(cell[i]));
+				domain->id_set().insert(cell[i]);
+			}
+		}
+
+		std::set<id_type> res;
+
+		for (auto s : domain->id_set())
+		{
+
+			id_type vertices[topology::MAX_NUM_OF_CELL];
+
+			int num_of_vertices = topology::template get_adjoints<VERTEX>(s,
+					vertices);
+
+			bool success = true;
+
+			for (int i = 0; i < num_of_vertices; ++i)
+			{
+
+				auto it = vertices_close_to_polylines.find(vertices[i]);
+
+				if (it == vertices_close_to_polylines.end())
+				{
+					success = false;
+					break;
+				}
+				else
+				{
+					auto d = inner_product(std::get<3>(it->second),
+							normal_vector);
+
+					size_t flag = (d > 0) ? 4 : ((d < 0) ? 1 : 2);
+
+					if ((flag & side_flag) != 0)
+					{
+						domain->id_set().insert(it->first);
+					}
+				}
+			}
+
+			if (success)
+			{
+				res.insert(s);
+			}
+
+		}
+
+		res.swap(domain->id_set());
+
+		if (domain->id_set().size() == 0)
+		{
+			domain->clear();
+		}
+		CHECK(domain->id_set().size());
+	}
+
+}
 /**
  *           o Q
  *          /
@@ -219,59 +393,9 @@ std::function<bool(TCoord const &)> make_select_function_by_config(
 template<typename TDict, typename TM, size_t IFORM>
 void select_boundary(TDict const &dict, Domain<TM, IFORM> *domain)
 {
-	NEED_OPTIMIZATION;
-	typedef TM mesh_type;
-	typedef typename mesh_type::id_type id_type;
-	typedef typename mesh_type::coordinates_type coordinates_type;
-
-	mesh_type const & mesh = domain->mesh();
-
-	static constexpr size_t ndims = mesh_type::ndims;
-	static constexpr size_t iform = IFORM;
-
-	auto volume_domain = domain->template clone<VOLUME>();
-
 	if (dict["Polylines"])
 	{
-
-		std::vector<coordinates_type> points;
-
-		dict["Polylines"]["ZAXIS"].as(&points);
-
-		for (auto & v : points)
-		{
-			v = mesh.coordinates_to_topology(v);
-		}
-
-		coordinates_type p0, p1;
-
-		Real min_radius = std::sqrt(
-
-		0.5 * 0.5
-
-		+ ((ndims > 1) ? 0.5 * 0.5 : 0)
-
-		+ ((ndims > 2) ? 0.5 * 0.5 : 0));
-
-		for (auto s : volume_domain)
-		{
-			coordinates_type x = mesh_type::topology_type::id_to_coordinates(s);
-
-			Real dist = 0, ss = 0;
-			std::tie(dist, ss, p0, p1) = nearest_point_on_polylines(
-					points.begin(), points.end(), x);
-
-			if (dist > min_radius)
-			{
-				continue;
-			}
-
-		}
-
-		int ZAXIS = dict["PointInPolylines"]["ZAXIS"].template as<int>(2);
-
-		PointInPolygon checkPointsInPolygen(points, ZAXIS);
-
+		select_boundary_on_polylines(dict, domain);
 	}
 }
 

@@ -60,16 +60,16 @@ private:
 
 public:
 
-	_Field(domain_type const & d)
-			: m_domain_(d), m_data_(nullptr)
+	_Field(domain_type const & d) :
+			m_domain_(d), m_data_(nullptr)
 	{
 	}
-	_Field(this_type const & other)
-			: m_domain_(other.m_domain_), m_data_(other.m_data_)
+	_Field(this_type const & other) :
+			m_domain_(other.m_domain_), m_data_(other.m_data_)
 	{
 	}
-	_Field(this_type && other)
-			: m_domain_(other.m_domain_), m_data_(other.m_data_)
+	_Field(this_type && other) :
+			m_domain_(other.m_domain_), m_data_(other.m_data_)
 	{
 	}
 	~_Field()
@@ -92,7 +92,10 @@ public:
 	{
 		return m_domain_;
 	}
-
+	domain_type & domain()
+	{
+		return m_domain_;
+	}
 	std::shared_ptr<value_type> data()
 	{
 		return m_data_;
