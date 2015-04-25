@@ -41,7 +41,7 @@ bool load_field(TDict const & dict, TField *f)
 
 		domain_type domain(f->domain());
 
-		domain.filter_by_config(dict["Domain"]);
+		filter_domain_by_config(dict["Domain"], &domain);
 
 		*f = make_field_function<value_type>(domain, dict["Value"]);
 

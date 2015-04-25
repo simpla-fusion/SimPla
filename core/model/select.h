@@ -404,6 +404,87 @@ void select_boundary(TDict const &dict, Domain<TM, IFORM> *domain)
 	}
 }
 
+template<typename TDict, typename TDomain>
+void filter_domain_by_config(TDict const & dict, TDomain * domain)
+{
+	typedef TDomain domain_type;
+
+	typedef typename domain_type::mesh_type mesh_type;
+	typedef typename mesh_type::id_type id_type;
+	typedef typename mesh_type::index_type index_type;
+	typedef typename mesh_type::coordinates_type coordinates_type;
+
+	static constexpr int iform = domain_type::iform;
+
+	static constexpr int ndims = domain_type::ndims;
+	if (!dict)
+	{
+		return;
+	}
+	else if (dict["Box"])
+	{
+		std::vector<coordinates_type> p;
+
+		dict["Box"].as(&p);
+
+		domain->reset_bound_box(p[0], p[1]);
+
+	}
+	else if (dict["IndexBox"])
+	{
+
+		std::vector<nTuple<index_type, ndims>> points;
+
+		dict["IndexBox"].as(&points);
+
+		domain->reset_bound_box(points[0], points[1]);
+
+	}
+
+	if (dict["Indices"])
+	{
+		std::vector<
+				nTuple<long,
+						(iform == VERTEX || iform == VOLUME) ?
+								ndims : (ndims + 1)>> points;
+
+		dict["Indices"].as(&points);
+
+		for (auto const & idx : points)
+		{
+			if (domain->m_box_.in_bound(idx))
+			{
+				domain->m_id_set_.insert(
+						domain->m_mesh_.template pack<iform>(idx));
+			}
+		}
+		if (domain->m_id_set_.size() == 0)
+		{
+			domain->clear();
+		}
+
+	}
+	else if (dict["SelectCell"])
+	{
+//		select_cell(dict, this);
+	}
+	else if (dict["SelectBoundary"])
+	{
+//		select_boundary(dict, this);
+	}
+	else
+	{
+		if (dict.is_function())
+		{
+			domain->filter_by_coordinates([&](coordinates_type const & x )
+			{
+				return (static_cast<bool>(dict(x)));
+			});
+
+		}
+	}
+
+}
 }
 // namespace simpla
 

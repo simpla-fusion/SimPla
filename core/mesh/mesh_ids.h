@@ -642,17 +642,11 @@ struct MeshIDs_
 
 		if (res != nullptr)
 		{
-//			VERBOSE << " s= \t" << (unpack<IFORM>(s)) << " " << node_id(s)
-//					<< std::endl;
-
 			for (int i = 0; i < m_vertics_num_[IFORM][id]; ++i)
 			{
 				res[i] = ((s + m_vertics_matrix_[IFORM][id][i])
 						& CLEAR_CARRAY_FLAG);
 				;
-//				VERBOSE << " res[i]= \t" << unpack<IFORM>(res[i]) << " "
-//						<< node_id(res[i]) << std::endl;
-
 			}
 		}
 		return m_vertics_num_[IFORM][id];

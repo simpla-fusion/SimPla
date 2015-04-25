@@ -18,7 +18,6 @@
 #include "../gtl/iterator/sp_ntuple_range.h"
 #include "../gtl/ntuple.h"
 #include "mesh_ids.h"
-#include "../model/select.h"
 
 namespace simpla
 {
@@ -62,7 +61,6 @@ public:
 
 	template<typename TV>
 	using field_value_type=typename std::conditional<(iform == VERTEX || iform == VOLUME),TV,nTuple<TV,3>>::type;
-
 
 	mesh_type const &m_mesh_;
 	range_type m_box_;
@@ -390,10 +388,6 @@ public:
 		update_bound_box();
 	}
 
-	template<typename TDict>
-	void
-	filter_by_config(TDict const & dict);
-
 	template<typename Tit>
 	void add(Tit const & b, Tit const&e)
 	{
@@ -561,78 +555,6 @@ public:
 //	}
 	/** @} */
 };
-
-template<typename TM, size_t IFORM>
-template<typename TDict>
-void Domain<TM, IFORM>::filter_by_config(TDict const & dict)
-{
-	if (!dict)
-	{
-		return;
-	}
-	else if (dict["Box"])
-	{
-		std::vector<coordinates_type> p;
-
-		dict["Box"].as(&p);
-
-		reset_bound_box(p[0], p[1]);
-
-	}
-	else if (dict["IndexBox"])
-	{
-
-		std::vector<nTuple<index_type, ndims>> points;
-
-		dict["IndexBox"].as(&points);
-
-		reset_bound_box(points[0], points[1]);
-
-	}
-
-	if (dict["Indices"])
-	{
-		std::vector<
-				nTuple<long,
-						(iform == VERTEX || iform == VOLUME) ?
-								ndims : (ndims + 1)>> points;
-
-		dict["Indices"].as(&points);
-
-		for (auto const & idx : points)
-		{
-			if (m_box_.in_bound(idx))
-			{
-				m_id_set_.insert(m_mesh_.template pack<iform>(idx));
-			}
-		}
-		if (m_id_set_.size() == 0)
-		{
-			clear();
-		}
-
-	}
-	else if (dict["SelectCell"])
-	{
-//		select_cell(dict, this);
-	}
-	else if (dict["SelectBoundary"])
-	{
-//		select_boundary(dict, this);
-	}
-	else
-	{
-		if (dict.is_function())
-		{
-			filter_by_coordinates([&](coordinates_type const & x )
-			{
-				return (static_cast<bool>(dict(x)));
-			});
-
-		}
-	}
-
-}
 
 namespace _impl
 {

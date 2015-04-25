@@ -8,6 +8,7 @@
 #ifndef CORE_FIELD_FIELD_FUNCTION_H_
 #define CORE_FIELD_FIELD_FUNCTION_H_
 #include "../gtl/type_traits.h"
+#include "../model/select.h"
 namespace simpla
 {
 template<typename ...>class _Field;
@@ -72,21 +73,21 @@ public:
 	_Field()
 	{
 	}
-	_Field(domain_type const& domain)
-			: m_domain_(domain)
+	_Field(domain_type const& domain) :
+			m_domain_(domain)
 	{
 	}
 	template<typename TF>
-	_Field(domain_type const& domain, TF const& fun)
-			: m_domain_(domain), m_fun_(fun)
+	_Field(domain_type const& domain, TF const& fun) :
+			m_domain_(domain), m_fun_(fun)
 	{
 	}
-	_Field(this_type const& other)
-			: m_domain_(other.m_domain_), m_fun_(other.m_fun_)
+	_Field(this_type const& other) :
+			m_domain_(other.m_domain_), m_fun_(other.m_fun_)
 	{
 	}
-	_Field(this_type && other)
-			: m_domain_(other.m_domain_), m_fun_(other.m_fun_)
+	_Field(this_type && other) :
+			m_domain_(other.m_domain_), m_fun_(other.m_fun_)
 	{
 	}
 	~_Field()
@@ -178,7 +179,7 @@ make_field_function_by_config(TM const & mesh, TDict const & dict)
 	if (dict["Domain"])
 	{
 
-		domain.filter_by_config(dict["Domain"]);
+		filter_domain_by_config(dict["Domain"], &domain);
 
 		return field_type(domain, dict["Value"]);
 	}
