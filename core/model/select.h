@@ -214,11 +214,11 @@ std::function<bool(TCoord const &)> make_select_function_by_config(
  *
  *  dot(d,normal_vector) >0  -> x on the right of (p1,p0)
  *
+ *  VMAP= std::map<id_type,tuple<dist,ss,p0,p1> >
  */
-template<typename TDomain, typename TI, typename ID>
-void select_points_near_to_polylines(TDomain const& domain, TI const & ib,
-		TI const &ie, Vec3 const & dx,
-		std::map<ID, std::tuple<Real, TI, TI, Vec3>> * res)
+template<typename TDomain, typename TI, typename VMAP>
+void select_vetrices_near_to_polylines(TDomain const& domain, TI const & ib,
+		TI const &ie, Real snap_radius, VMAP * res)
 {
 	typedef typename TDomain::mesh_type mesh_type;
 	typedef typename mesh_type::id_type id_type;
@@ -233,142 +233,172 @@ void select_points_near_to_polylines(TDomain const& domain, TI const & ib,
 
 		TI p0,p1;
 
-		Real ss;
+		Real dist,ss;
 
-		std::tie(ss,p0,p1) =distance_point_to_polylines(ib, ie,x);
+		auto v_tuple=distance_from_point_to_polylines( x,ib, ie);
 
-		Vec3 d;
-
-		d=x-((*p0)*(1.0-ss) + ss*(*p1));
-
-		if((std::abs(d[0])<=dx[0]) &&
-
-				( std::abs(d[1]) <=dx[1]) &&
-
-				( std::abs(d[2]) <=dx[2]) )
+		if(std::get<0>(v_tuple) <=snap_radius )
 		{
-			Vec3 p10;
-
-			p10=(*p1)-(*p0);
-
-			d = cross(d,p10)/std::sqrt(inner_product(p10,p10));
-
-			(*res)[s] = std::make_tuple(ss,p0,p1,d);
+			(*res)[s] = v_tuple;
 		}
 
 	});
 }
-
-template<typename TM, size_t IFORM, typename TVertrices>
-void select_boundary_by_polylines(Domain<TM, IFORM> *domain,
-		TVertrices const & vertices_close_to_polylines, int ZAXIS = 2,
-		size_t side_flag = 1 /* 001 <0 , 010 ==0, 100 >0*/)
+template<typename TDomain, typename PIP>
+void select_cell_cross_polylines(PIP const & point_in_polygon, TDomain * domain,
+		int flag = 0 /* 0 in side,1 out side,2 intersection */)
 {
-	NEED_OPTIMIZATION;
-	typedef TM mesh_type;
+	typedef typename TDomain::mesh_type mesh_type;
 	typedef typename mesh_type::id_type id_type;
 	typedef typename mesh_type::coordinates_type coordinates_type;
-
 	typedef typename mesh_type::topology_type topology;
 
 	mesh_type const & mesh = domain->mesh();
 
+	domain->filter([&](id_type const& s )
+	{
+		id_type vertices[topology::MAX_NUM_OF_CELL];
+
+		int num_of_vertices = topology::template get_adjoints<VERTEX>(s,
+				vertices);
+
+		int count_in = 0;
+		int count_out = 0;
+		for (int i = 0; i < num_of_vertices; ++i)
+		{
+
+			if (point_in_polygon(mesh.coordinates(vertices[i])))
+			{
+				++count_in;
+			}
+			else
+			{
+				++count_out;
+			}
+
+		}
+
+		if(flag==0)
+		{
+			return count_out == 0;
+		}
+		else if(flag==1)
+		{
+			return count_in == 0;
+		}
+		else
+		{
+			return (count_in * count_out != 0);
+		}
+
+	});
+}
+template<typename TM, size_t IFORM, typename TI>
+void select_boundary_by_polylines(Domain<TM, IFORM> *domain, TI const & ib,
+		TI const &ie, int ZAxis = 2,
+		int flag = 0 /* 0 in side,1 out side,2 intersection */)
+{
+	// FIXME This implement is O(N^2), NEED OPTIMIZATION;
+
+	typedef TM mesh_type;
+	typedef typename mesh_type::id_type id_type;
+	typedef typename mesh_type::coordinates_type coordinates_type;
+	typedef typename mesh_type::topology_type topology;
+
+	mesh_type const & mesh = domain->mesh();
 	static constexpr size_t ndims = mesh_type::ndims;
 	static constexpr size_t iform = IFORM;
 
-	Vec3 normal_vector =
-	{ 0, 0, 0 };
+	std::map<id_type, std::tuple<Real, Real, TI, TI>> vmap;
 
-	normal_vector[ZAXIS] = 1;
+	Real snap_radius = std::sqrt(inner_product(mesh.dx(), mesh.dx()));
+
+	select_vetrices_near_to_polylines(mesh.template domain<VERTEX>(), ib, ie,
+			snap_radius, &vmap);
+
+	PointInPolygon point_in_polygon(ib, ie, ZAxis);
 
 	if (iform == VERTEX)
 	{
-		for (auto const & item : vertices_close_to_polylines)
+		for (auto const & item : vmap)
 		{
-			auto d = inner_product(std::get<3>(item.second), normal_vector);
-
-			size_t flag = (d > 0) ? 4 : ((d < 0) ? 1 : 2);
-
-			if ((flag & side_flag) != 0)
+			if (point_in_polygon(mesh.coordinates(item.first))
+					== (flag == 0 || flag == 2))
 			{
 				domain->id_set().insert(item.first);
 			}
 		}
+	}
+	else if (iform == VOLUME)
+	{
+		if (domain->is_simply())
+		{
+			for (auto const & item : vmap)
+			{
+
+				id_type cell[topology::MAX_NUM_OF_CELL];
+
+				int num_of_cell = topology::template get_adjoints<VOLUME>(
+						item.first, cell);
+
+				for (int i = 0; i < num_of_cell; ++i)
+				{
+					domain->id_set().insert(cell[i]);
+				}
+			}
+		}
+
+		select_cell_cross_polylines(point_in_polygon, domain, flag);
 
 	}
 	else
 	{
-		domain->m_id_set_.clear();
 
-		for (auto const & item : vertices_close_to_polylines)
+		auto v_domain = mesh.template domain<VOLUME>();
+
+		if (v_domain.is_simply())
 		{
-
-			id_type cell[topology::MAX_NUM_OF_CELL];
-
-			int num_of_cell = topology::template get_adjoints<iform>(item.first,
-					cell);
-
-			for (int i = 0; i < num_of_cell; ++i)
-			{
-				domain->m_id_set_.insert(cell[i]);
-			}
-		}
-
-		std::set<id_type> res;
-
-		for (auto const &s : domain->m_id_set_)
-		{
-			SHOW(topology::node_id(s));
-
-			id_type vertices[topology::MAX_NUM_OF_CELL];
-
-			int num_of_vertices = topology::template get_adjoints<VERTEX>(s,
-					vertices);
-
-			bool success = true;
-
-			for (int i = 0; i < num_of_vertices; ++i)
+			for (auto const & item : vmap)
 			{
 
-				auto it = vertices_close_to_polylines.find(vertices[i]);
+				id_type cell[topology::MAX_NUM_OF_CELL];
 
-				if (it == vertices_close_to_polylines.end())
+				int num_of_cell = topology::template get_adjoints<VOLUME>(
+						item.first, cell);
+
+				for (int i = 0; i < num_of_cell; ++i)
 				{
-					success = false;
-					break;
-				}
-				else
-				{
-					auto d = inner_product(std::get<3>(it->second),
-							normal_vector);
-
-					size_t flag = (d > 0) ? 4 : ((d < 0) ? 1 : 2);
-
-					if ((flag & side_flag) == 0)
-					{
-						success = false;
-						break;
-					}
+					v_domain.id_set().insert(cell[i]);
 				}
 			}
-
-			if (success)
-			{
-				res.insert(s);
-			}
-
 		}
 
-		res.swap(domain->id_set());
+		select_cell_cross_polylines(point_in_polygon, &v_domain, 2);
 
-		if (domain->id_set().size() == 0)
+		if (domain->is_simply())
 		{
-			domain->clear();
+			v_domain.for_each([&](id_type s)
+			{
+				id_type cell[topology::MAX_NUM_OF_CELL];
+				int num_of_cell = topology::template get_adjoints<iform>(
+						s, cell);
+
+				for (int i = 0; i < num_of_cell; ++i)
+				{
+					domain->id_set().insert(cell[i]);
+				}
+			});
 		}
-		CHECK(domain->id_set().size());
+		select_cell_cross_polylines(point_in_polygon, domain, flag);
+
+	}
+	if (domain->id_set().size() == 0)
+	{
+		domain->clear();
 	}
 
 }
+
 /**
  *           o Q
  *          /

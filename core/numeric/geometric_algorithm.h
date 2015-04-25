@@ -50,8 +50,8 @@ Real distance_point_to_line_segment(T0 const & p0, T1 const & p1, T2 const & x)
  *
  */
 template<typename TI, typename TX>
-std::tuple<Real, TI, TI> distance_point_to_polylines(TI const & ib,
-		TI const & ie, TX const & x)
+std::tuple<Real, Real, TI, TI> distance_from_point_to_polylines(TX const & x,
+		TI const & ib, TI const & ie)
 {
 	typedef TX Vec3;
 
@@ -84,7 +84,14 @@ std::tuple<Real, TI, TI> distance_point_to_polylines(TI const & ib,
 			p1 = it;
 		};
 
-		auto s = distance_point_to_line_segment(*p0, *p1, x);
+		Vec3 u, v, d;
+
+		u = x - *p0;
+		v = *p1 - *p0;
+
+		Real v2 = inner_product(v, v);
+
+		auto s = inner_product(u, v) / v2;
 
 		if (s < 0)
 		{
@@ -93,10 +100,9 @@ std::tuple<Real, TI, TI> distance_point_to_polylines(TI const & ib,
 		else if (s > 1)
 		{
 			s = 1;
-
 		}
 
-		Vec3 d = x - ((1 - s) * (*p0) + s * (*p1));
+		d = u - v * s;
 
 		Real dist2 = inner_product(d, d);
 
@@ -109,7 +115,7 @@ std::tuple<Real, TI, TI> distance_point_to_polylines(TI const & ib,
 		}
 	}
 
-	return std::forward_as_tuple(res_s, res_p0, res_p1);
+	return std::forward_as_tuple(std::sqrt(min_dist2), res_s, res_p0, res_p1);
 
 }
 

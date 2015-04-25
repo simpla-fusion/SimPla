@@ -42,13 +42,18 @@ public:
 	void deploy(std::vector<nTuple<double, N> > const &polygen,
 			size_t ZAxis = 2)
 	{
+		deploy(polygen.begin(), polygen.end(), ZAxis);
+	}
 
-		for (auto const & v : polygen)
+	template<typename TI>
+	void deploy(TI const & ib, TI const &ie, int ZAxis = 2)
+	{
+		for (auto it = ib; it != ie; ++it)
 		{
-			polygen_.emplace_back(
-					nTuple<double, 2>(
-							{ v[(ZAxis + 1) % 3], v[(ZAxis + 2) % 3] }));
+			polygen_.emplace_back(nTuple<double, 2>(
+			{ (*it)[(ZAxis + 1) % 3], (*it)[(ZAxis + 2) % 3] }));
 		}
+
 		num_of_vertex_ = polygen_.size();
 		constant_.resize(num_of_vertex_);
 		multiple_.resize(num_of_vertex_);
