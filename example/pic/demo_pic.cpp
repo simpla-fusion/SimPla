@@ -108,15 +108,22 @@ USE_CASE(pic," Particle in cell" )
 
 	std::mt19937 rnd_gen;
 
-	for (int i = 0, ie = pic * domain.size(); i < ie; ++i)
+	for (int i = 0, ie = 1000; i < ie; ++i)
 	{
 		ion->insert(p_generator(rnd_gen));
 	}
 
+	for (auto const & item : *ion)
+	{
+		SHOW(mesh->template unpack<VOLUME>(item.first));
+		SHOW(mesh->node_id(item.first));
+
+	}
+
 //	VERBOSE << save("H0", ion->dataset()) << std::endl;
 //
-	ion->rehash();
-	ion->wait();
+//	ion->sync();
+//	ion->wait();
 	VERBOSE << save("H1", ion->dataset()) << std::endl;
 //
 //	ion->sync();

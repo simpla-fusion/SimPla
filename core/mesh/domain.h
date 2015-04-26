@@ -347,6 +347,13 @@ public:
 				m_mesh_.coordinates_to_index(e) + 1);
 	}
 
+	template<typename T0, typename T1>
+	this_type select(T0 const & b, T1 const & e) const
+	{
+		this_type res(*this);
+		res.reset_bound_box(b, e);
+		return std::move(res);
+	}
 	template<typename TPred>
 	void filter(TPred const& pred)
 	{

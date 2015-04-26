@@ -19,7 +19,18 @@ namespace simpla
  */
 
 std::tuple<int, int> sync_global_location(int count);
+template<typename Integral>
+std::tuple<Integral, Integral> sync_global_location(Integral count)
+{
+	int n = static_cast<int>(count);
+	int begin, total;
+	std::tie(begin, total) = sync_global_location(n);
+	Integral rbegin = static_cast<Integral>(begin);
+	Integral rtotal = static_cast<Integral>(total);
 
+	return std::make_tuple(rbegin, rtotal);
+
+}
 class DataSet;
 class DataSpace;
 

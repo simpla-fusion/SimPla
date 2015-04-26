@@ -21,20 +21,6 @@
 namespace simpla
 {
 
-
-
-template<typename Integral>
-std::tuple<Integral, Integral> sync_global_location(Integral count)
-{
-	int n = static_cast<int>(count);
-	int begin, total;
-	std::tie(begin, total) = sync_global_location(n);
-	Integral rbegin = static_cast<Integral>(begin);
-	Integral rtotal = static_cast<Integral>(total);
-
-	return std::make_tuple(rbegin, rtotal);
-
-}
 void reduce(void const* send_data, void * recv_data, size_t count,
 		DataType const & data_type, std::string const & op_c);
 
@@ -150,7 +136,6 @@ std::tuple<std::shared_ptr<ByteType>, int> update_ghost_unorder(
 				>> const & info);
 
 void bcast_string(std::string * filename_);
-
 
 }  // namespace simpla
 #endif /* MPI_AUX_FUNCTIONS_H_ */

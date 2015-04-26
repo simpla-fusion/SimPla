@@ -36,13 +36,13 @@ struct MPIComm::pimpl_s
 
 constexpr int MPIComm::NDIMS;
 
-MPIComm::MPIComm()
-		: pimpl_(nullptr)
+MPIComm::MPIComm() :
+		pimpl_(nullptr)
 {
 }
 
-MPIComm::MPIComm(int argc, char** argv)
-		: pimpl_(nullptr)
+MPIComm::MPIComm(int argc, char** argv) :
+		pimpl_(nullptr)
 {
 	init(argc, argv);
 }
@@ -80,7 +80,8 @@ std::string MPIComm::init(int argc, char** argv)
 
 	LOGGER.set_mpi_comm(pimpl_->m_process_num_, pimpl_->m_num_process_);
 
-	topology(nTuple<int, 3>( { pimpl_->m_num_process_, 1, 1 }));
+	topology(nTuple<int, 3>(
+	{ pimpl_->m_num_process_, 1, 1 }));
 
 	parse_cmd_line(argc, argv,
 
@@ -192,15 +193,16 @@ void MPIComm::decompose(int ndims, size_t * p_count, size_t * p_offset) const
 }
 nTuple<int, 3> MPIComm::get_coordinate() const
 {
-	return (!pimpl_) ?
-			nTuple<int, 3>( { 0, 0, 0 }) :
-			get_coordinate(pimpl_->m_process_num_);
+	return (!pimpl_) ? nTuple<int, 3>(
+	{ 0, 0, 0 }) :
+						get_coordinate(pimpl_->m_process_num_);
 }
 nTuple<int, 3> MPIComm::get_coordinate(int rank) const
 {
 	if (!pimpl_)
 	{
-		return nTuple<int, 3>( { 0, 0, 0 });
+		return nTuple<int, 3>(
+		{ 0, 0, 0 });
 	}
 
 	nTuple<int, 3> coord;
@@ -268,7 +270,9 @@ void MPIComm::topology(nTuple<int, 3> const & d)
 nTuple<int, 3> MPIComm::topology() const
 {
 
-	return (!pimpl_) ? nTuple<int, 3>( { 0, 0, 0 }) : (pimpl_->m_topology_dims_);
+	return (!pimpl_) ? nTuple<int, 3>(
+	{ 0, 0, 0 }) :
+						(pimpl_->m_topology_dims_);
 }
 
 int MPIComm::get_rank() const

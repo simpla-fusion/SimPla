@@ -17,11 +17,12 @@ namespace simpla
  */
 std::tuple<int, int> sync_global_location(int count)
 {
+
 	int begin = 0;
 
 	if ( GLOBAL_COMM.is_valid() && GLOBAL_COMM.num_of_process() > 1)
 	{
-
+		CHECK(GLOBAL_COMM.num_of_process());
 		auto comm = GLOBAL_COMM.comm();
 
 		int num_of_process = GLOBAL_COMM.num_of_process();
@@ -56,6 +57,8 @@ std::tuple<int, int> sync_global_location(int count)
 		MPI_Barrier(comm);
 		MPI_Scatter(&buffer[0], 1, m_type.type(), &begin, 1, m_type.type(), 0, comm);
 		MPI_Bcast(&count, 1, m_type.type(), 0, comm);
+		MPI_Barrier(comm);
+
 	}
 
 	return std::make_tuple(begin, count);
@@ -130,8 +133,8 @@ void get_ghost_shape(size_t ndims, size_t const * l_dims,
 						|| coords_shift[2] != 0))
 		{
 
-			send_recv_list->emplace_back(mpi_ghosts_shape_s { coords_shift,
-					send_offset, send_count, recv_offset, recv_count });
+			send_recv_list->emplace_back(mpi_ghosts_shape_s
+			{ coords_shift, send_offset, send_count, recv_offset, recv_count });
 		}
 	}
 
@@ -154,7 +157,8 @@ void make_send_recv_list(int object_id, DataType const & datatype, int ndims,
 
 		res->emplace_back(
 
-				mpi_send_recv_s {
+				mpi_send_recv_s
+				{
 
 				dest,
 

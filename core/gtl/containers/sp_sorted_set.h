@@ -45,7 +45,7 @@ public:
 
 	typedef std::map<key_type, bucket_type> base_container_type;
 
-private:
+//private:
 
 	hasher m_hasher_;
 

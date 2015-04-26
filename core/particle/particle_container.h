@@ -121,7 +121,7 @@ public:
 
 	typedef Domain<mesh_type, iform> domain_type;
 
-private:
+//private:
 
 	domain_type m_domain_;
 public:
@@ -238,10 +238,10 @@ public:
 //			auto send_range = m_domain_.mesh().template range<VERTEX>(
 //					item.send_offset, item.send_offset + item.send_count);
 
-			auto send_range = m_domain_;
-			send_range.reset_bound_box(item.send_offset,
+			auto send_range = m_domain_.select(item.send_offset,
 					item.send_offset + item.send_count);
 
+			CHECK(size(send_range));
 			send_recv_s.send_size = container_type::size_all(send_range);
 
 			send_recv_s.send_data = sp_alloc_memory(
@@ -266,9 +266,10 @@ public:
 
 			//  clear ghosts cell
 
-			auto recv_range = m_domain_;
-			send_range.reset_bound_box(item.recv_offset,
+			auto recv_range = m_domain_.select(item.recv_offset,
 					item.recv_offset + item.recv_count);
+
+			CHECK(size(recv_range));
 			container_type::erase(recv_range);
 
 		}
@@ -295,7 +296,6 @@ public:
 	template<typename TDomain>
 	DataSet dataset(TDomain const & pdomain) const
 	{
-		CHECK(is_ready());
 
 		DataSet res;
 
