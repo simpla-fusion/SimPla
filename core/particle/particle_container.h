@@ -148,6 +148,11 @@ public:
 	{
 	}
 
+	domain_type const &domain() const
+	{
+		return m_domain_;
+	}
+
 	using SpObject::properties;
 
 	this_type & self()
@@ -209,6 +214,10 @@ public:
 		return container_type::size_all(r);
 	}
 
+	size_t size() const
+	{
+		return container_type::size_all(m_domain_);
+	}
 	void sync()
 	{
 
@@ -266,7 +275,6 @@ public:
 
 		sync_update_varlength(&m_send_recv_buffer_,
 				&(SpObject::m_mpi_requests_));
-
 	}
 
 	void wait()
@@ -287,7 +295,7 @@ public:
 	template<typename TDomain>
 	DataSet dataset(TDomain const & pdomain) const
 	{
-		ASSERT(is_ready());
+		CHECK(is_ready());
 
 		DataSet res;
 
@@ -344,7 +352,7 @@ public:
 
 	DataSet dataset() const
 	{
-		return std::move(dataset(m_domain_.mesh().template domain<VERTEX>()));
+		return std::move(dataset(m_domain_));
 	}
 
 //! @}

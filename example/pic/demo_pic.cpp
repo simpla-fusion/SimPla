@@ -56,11 +56,11 @@ USE_CASE(pic," Particle in cell" )
 
 	auto mesh = std::make_shared<mesh_type>();
 
-	mesh->dimensions(options["dimensions"].as(nTuple<size_t, 3>(
+	mesh->dimensions(options["dimensions"].template as(nTuple<size_t, 3>(
 	{ 10, 10, 10 })));
 
-	mesh->extents(options["xmin"].as(nTuple<Real, 3>(
-	{ 0, 0, 0 })), options["xmax"].as(nTuple<Real, 3>(
+	mesh->extents(options["xmin"].template as(nTuple<Real, 3>(
+	{ 0, 0, 0 })), options["xmax"].template as(nTuple<Real, 3>(
 	{ 1, 1, 1 })));
 
 	mesh->dt(options["dt"].as<Real>(1.0));
@@ -102,29 +102,29 @@ USE_CASE(pic," Particle in cell" )
 
 	auto extents = mesh->extents();
 
+	auto domain = mesh->template domain<VOLUME>();
+
 	auto p_generator = simple_particle_generator(*ion, extents, 1.0);
 
 	std::mt19937 rnd_gen;
 
-//	for (int i = 0, ie = pic * range.size(); i < ie; ++i)
-//	{
-//		ion->insert(p_generator(rnd_gen));
-//	}
+	for (int i = 0, ie = pic * domain.size(); i < ie; ++i)
+	{
+		ion->insert(p_generator(rnd_gen));
+	}
 
-	VERBOSE << save("H0", ion->dataset()) << std::endl;
-
+//	VERBOSE << save("H0", ion->dataset()) << std::endl;
+//
 	ion->rehash();
-
-	VERBOSE << save("H1", ion->dataset()) << std::endl;
-
-	ion->sync();
-
 	ion->wait();
-
-	ion->rehash();
-
-	VERBOSE << save("H2", ion->dataset()) << std::endl;
-
+	VERBOSE << save("H1", ion->dataset()) << std::endl;
+//
+//	ion->sync();
+//	ion->wait();
+//	ion->rehash();
+//
+//	VERBOSE << save("H2", ion->dataset()) << std::endl;
+//
 // Load initialize value
 //	auto J = make_form<EDGE, Real>(mesh);
 //	auto E = make_form<EDGE, Real>(mesh);

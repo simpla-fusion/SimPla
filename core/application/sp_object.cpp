@@ -31,7 +31,11 @@ bool SpObject::is_ready() const
 {
 	//FIXME this is not multi-threads safe
 
-	if (is_valid() && m_mpi_requests_.size() > 0)
+	if (is_valid())
+	{
+		return false;
+	}
+	else if (m_mpi_requests_.size() > 0)
 	{
 		int flag = 0;
 		MPI_ERROR(MPI_Testall(m_mpi_requests_.size(), //
@@ -41,7 +45,7 @@ bool SpObject::is_ready() const
 		return flag != 0;
 	}
 
-	return false;
+	return true;
 
 }
 void SpObject::prepare_sync(std::vector<mpi_ghosts_shape_s> const & ghost_shape)
