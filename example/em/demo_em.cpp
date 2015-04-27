@@ -58,13 +58,7 @@ USE_CASE(em," Maxwell Eqs.")
 
 	auto mesh = std::make_shared<mesh_type>();
 
-	mesh->dimensions(
-			options["dimensions"].as(nTuple<size_t, 3>( { 10, 10, 10 })));
-
-	mesh->extents(options["xmin"].as(nTuple<Real, 3>( { 0, 0, 0 })),
-			options["xmax"].as(nTuple<Real, 3>( { 1, 1, 1 })));
-
-	mesh->dt(options["dt"].as<Real>(1.0));
+	mesh->configure(options["Mesh"]);
 
 	mesh->deploy();
 

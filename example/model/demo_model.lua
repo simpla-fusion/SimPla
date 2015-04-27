@@ -7,23 +7,27 @@ LY = 10   --2.0*math.pi/k0
 LZ = 0   -- 2.0*math.pi/18
 GW = 5
 
-dimensions={NX ,NY ,NZ }
+Mesh=
+  {
+    Dimensions={NX ,NY ,NZ },
 
-xmin={0.0,0.0,0.0}
-
-xmax={LX,LY,LZ}
+    xmin={0.0,0.0,0.0},
 
 
-
-Domain={
-  Dimensions={10 ,10 ,1},
-
-  Polylines={
-    { 0.1 , 1 ,0 },
-    { 0.2 , 9.2 ,0 },
-    { 8  , 7 ,0 },
-    { 8  , 4 ,0 },
-    { 4  , 2.2 ,0 }
+    xmax={LX,LY,LZ}
   }
 
-}
+
+Domain=
+  {
+    Dimensions={10 ,10 ,1},
+
+    Polylines={
+      { 0.1 , 1 ,0 },
+      { 0.2 , 9.2 ,0 },
+      { 8  , 7 ,0 },
+      { 8  , 4 ,0 },
+      { 4  , 2.2 ,0 }
+    }
+
+  }

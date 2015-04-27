@@ -56,12 +56,11 @@ USE_CASE(pic," Particle in cell" )
 
 	auto mesh = std::make_shared<mesh_type>();
 
-	mesh->dimensions(options["dimensions"].template as(nTuple<size_t, 3>(
-	{ 10, 10, 10 })));
+	mesh->dimensions(options["dimensions"].template as(nTuple<size_t, 3>( { 10,
+			10, 10 })));
 
-	mesh->extents(options["xmin"].template as(nTuple<Real, 3>(
-	{ 0, 0, 0 })), options["xmax"].template as(nTuple<Real, 3>(
-	{ 1, 1, 1 })));
+	mesh->extents(options["xmin"].template as(nTuple<Real, 3>( { 0, 0, 0 })),
+			options["xmax"].template as(nTuple<Real, 3>( { 1, 1, 1 })));
 
 	mesh->dt(options["dt"].as<Real>(1.0));
 
@@ -90,7 +89,8 @@ USE_CASE(pic," Particle in cell" )
 
 	MESSAGE << "======== Initialize ========" << std::endl;
 
-	auto ion = make_kinetic_particle<engine_type>(*mesh);
+	auto ion = make_kinetic_particle<engine_type>(
+			mesh->template domain<VOLUME>());
 
 	ion->mass(1.0);
 
@@ -102,22 +102,13 @@ USE_CASE(pic," Particle in cell" )
 
 	auto extents = mesh->extents();
 
-	auto domain = mesh->template domain<VOLUME>();
-
 	auto p_generator = simple_particle_generator(*ion, extents, 1.0);
 
 	std::mt19937 rnd_gen;
 
-	for (int i = 0, ie = 1000; i < ie; ++i)
+	for (size_t i = 0, ie = pic * ion->domain().size(); i < ie; ++i)
 	{
 		ion->insert(p_generator(rnd_gen));
-	}
-
-	for (auto const & item : *ion)
-	{
-		SHOW(mesh->template unpack<VOLUME>(item.first));
-		SHOW(mesh->node_id(item.first));
-
 	}
 
 //	VERBOSE << save("H0", ion->dataset()) << std::endl;

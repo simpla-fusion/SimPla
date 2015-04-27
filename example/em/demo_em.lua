@@ -36,15 +36,16 @@ LY = 1.0   --2.0*math.pi/k0
 LZ = 0   -- 2.0*math.pi/18
 GW = 5
 
+Mesh=
+  {
+    dimensions={NX ,NY ,NZ },
 
-dimensions={NX ,NY ,NZ }
+    xmin={0.0,0.0,0.0},
 
-xmin={0.0,0.0,0.0}
+    xmax={LX,LY,LZ},
 
-xmax={LX,LY,LZ}
-
-dt=  0.5*(LX/NX)/c
-
+    dt=  0.5*(LX/NX)/c
+  }
 omega_ext= 0.1*math.pi/dt --omega_ci*1.9
 
 
@@ -89,7 +90,7 @@ Constraint=  {
     Value= function(x , t ,v )
       local tau = t*omega_ext -- + x[2]*TWOPI/(xmax[3]-xmin[3])
       local amp=  math.sin(tau) *(1-math.exp(-tau*tau))
- 
+
       return {0, 0, amp+v[3]}
     end
   },

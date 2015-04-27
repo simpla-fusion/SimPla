@@ -95,51 +95,54 @@ struct particle_container_traits
 
 }  // namespace _impl
 
-template<typename TM, typename Engine, typename TContainer>
-class Particle<TM, Engine, TContainer> //
-: public SpObject,
-		public Engine,
-		public TContainer,
-		public enable_create_from_this<Particle<TM, Engine, TContainer> >
+template<typename TDomain, typename Engine, typename TContainer>
+class Particle<TDomain, Engine, TContainer> //
+:	public SpObject,
+	public Engine,
+	public TContainer,
+	public enable_create_from_this<Particle<TDomain, Engine, TContainer> >
 {
 public:
-	typedef TM mesh_type;
+	typedef TDomain domain_type;
 
 	typedef Engine engine_type;
 
 	typedef TContainer container_type;
 
-	typedef Particle<mesh_type, engine_type, container_type> this_type;
+	typedef Particle<domain_type, engine_type, container_type> this_type;
+
+	typedef typename domain_type::mesh_type mesh_type;
 
 	typedef typename container_type::value_type value_type;
 
 	typedef typename mesh_type::index_type index_type;
+
 	typedef typename mesh_type::id_type id_type;
+
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
-	static constexpr size_t iform = VOLUME;
-
-	typedef Domain<mesh_type, iform> domain_type;
+	static constexpr size_t iform = domain_type::iform;
 
 //private:
 
 	domain_type m_domain_;
 public:
+	using SpObject::properties;
 
-	Particle(mesh_type const & m) :
-			m_domain_(m)
+	Particle(domain_type const &d)
+			: m_domain_(d)
 	{
 	}
 
-	Particle(this_type const& other) :
-			engine_type(other), container_type(other), m_domain_(
+	Particle(this_type const& other)
+			: engine_type(other), container_type(other), m_domain_(
 					other.m_domain_)
 	{
 	}
 
 	template<typename ... Args>
-	Particle(this_type & other, Args && ...args) :
-			engine_type(other), container_type(other,
+	Particle(this_type & other, Args && ...args)
+			: engine_type(other), container_type(other,
 					std::forward<Args>(args)...), m_domain_(other.m_domain_)
 	{
 	}
@@ -147,13 +150,6 @@ public:
 	~Particle()
 	{
 	}
-
-	domain_type const &domain() const
-	{
-		return m_domain_;
-	}
-
-	using SpObject::properties;
 
 	this_type & self()
 	{
@@ -168,32 +164,43 @@ public:
 	{
 		return engine_type::get_type_as_string();
 	}
+
 	std::string get_type_as_string() const
 	{
 		return get_type_as_string_static();
 	}
+
 	mesh_type const & mesh() const
 	{
 		return m_domain_.mesh();
 	}
+
+	domain_type const &domain() const
+	{
+		return m_domain_;
+	}
+
 	template<typename TDict, typename ...Others>
 	void load(TDict const & dict, Others && ...others)
 	{
 		engine_type::load(dict, std::forward<Others>(others)...);
 
-		if (dict["DataSrc"])
+		if (dict["url"])
 		{
-			UNIMPLEMENTED2("load particle from [DataSrc]");
+			UNIMPLEMENTED2(
+					"load particle from [url:" + value_to_string(dict["url"])
+							+ "]");
 		}
 	}
+
 	bool empty() const
 	{
-		return TContainer::empty();
+		return container_type::empty();
 	}
 
 	bool is_divisible() const
 	{
-		return TContainer::is_divisible();
+		return container_type::is_divisible();
 	}
 
 	bool is_valid() const
@@ -241,7 +248,6 @@ public:
 			auto send_range = m_domain_.select(item.send_offset,
 					item.send_offset + item.send_count);
 
-			CHECK(size(send_range));
 			send_recv_s.send_size = container_type::size_all(send_range);
 
 			send_recv_s.send_data = sp_alloc_memory(
@@ -269,7 +275,6 @@ public:
 			auto recv_range = m_domain_.select(item.recv_offset,
 					item.recv_offset + item.recv_count);
 
-			CHECK(size(recv_range));
 			container_type::erase(recv_range);
 
 		}
@@ -290,11 +295,11 @@ public:
 
 			container_type::insert(data, data + item.recv_size);
 		}
+
 		m_send_recv_buffer_.clear();
 	}
 
-	template<typename TDomain>
-	DataSet dataset(TDomain const & pdomain) const
+	DataSet dataset(domain_type const & pdomain) const
 	{
 
 		DataSet res;
@@ -306,10 +311,12 @@ public:
 
 		pdomain.for_each([&](id_type const &s)
 		{
+
 			auto it = container_type::find(s);
+
 			if (it != container_type::end())
 			{
-				count += std::distance(it->second.begin(), it->second.end());
+				count += it->second.size(); // std::distance(it->second.begin(), it->second.end());
 			}
 		});
 

@@ -87,6 +87,20 @@ struct MeshIDs_
 
 	static constexpr size_t MAX_MESH_LEVEL = 4;
 
+	static constexpr size_t SUB_INDEX_MASK = ((1UL << MAX_MESH_LEVEL) - 1)
+			| (((1UL << MAX_MESH_LEVEL) - 1) << INDEX_DIGITS)
+			| (((1UL << MAX_MESH_LEVEL) - 1) << (INDEX_DIGITS * 2));
+
+	static constexpr size_t SUB_ID_MASK = SUB_INDEX_MASK
+			| (SUB_INDEX_MASK << INDEX_DIGITS)
+			| (SUB_INDEX_MASK << (INDEX_DIGITS * 2));
+
+	static constexpr size_t PRIMARY_INDEX_MASK = INDEX_MASK & (~SUB_INDEX_MASK);
+
+	static constexpr size_t PRIMARY_ID_MASK = PRIMARY_INDEX_MASK
+			| (PRIMARY_INDEX_MASK << INDEX_DIGITS)
+			| (PRIMARY_INDEX_MASK << (INDEX_DIGITS * 2));
+
 	static constexpr size_t _DI = (1UL << (MAX_MESH_LEVEL - 1));
 
 	static constexpr size_t _DJ = _DI << (INDEX_DIGITS);
@@ -130,8 +144,7 @@ struct MeshIDs_
 //
 //	| (((INIFIT_AXIS & 4UL) == 0) ? (INDEX_MASK << (INDEX_DIGITS * 2)) : 0UL);
 
-	static constexpr size_t m_index_to_node_id_[4][3] =
-	{ //
+	static constexpr size_t m_index_to_node_id_[4][3] = { //
 
 			{ 0, 0, 0 }, /*VERTEX*/
 			{ 1, 2, 4 }, /*EDGE*/
@@ -140,8 +153,7 @@ struct MeshIDs_
 
 			};
 
-	static constexpr size_t m_index_to_id_shift_[4][3] =
-	{
+	static constexpr size_t m_index_to_id_shift_[4][3] = {
 
 	{ 0, 0, 0 },
 
@@ -153,30 +165,16 @@ struct MeshIDs_
 
 	};
 
-	static constexpr coordinates_type m_index_to_coordinates_shift_[4][3] =
-	{
+	static constexpr coordinates_type m_index_to_coordinates_shift_[4][3] = {
 
-	{
-	{ 0, 0, 0 },
-	{ 0, 0, 0 },
-	{ 0, 0, 0 } }, /*VERTEX*/
-	{
-	{ 0.5, 0, 0 },
-	{ 0, 0.5, 0 },
-	{ 0, 0, 0.5 } }, /*EDGE*/
-	{
-	{ 0, 0.5, 0.5 },
-	{ 0.5, 0, 0.5 },
-	{ 0.5, 0.5, 0 } }, /*FACE*/
-	{
-	{ 0, 0.5, 0.5 },
-	{ 0.5, 0.5, 0.5 },
-	{ 0.5, 0.5, 0.5 } } /*VOLUME*/
+	{ { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, /*VERTEX*/
+	{ { 0.5, 0, 0 }, { 0, 0.5, 0 }, { 0, 0, 0.5 } }, /*EDGE*/
+	{ { 0, 0.5, 0.5 }, { 0.5, 0, 0.5 }, { 0.5, 0.5, 0 } }, /*FACE*/
+	{ { 0, 0.5, 0.5 }, { 0.5, 0.5, 0.5 }, { 0.5, 0.5, 0.5 } } /*VOLUME*/
 
 	};
 
-	static constexpr id_type m_node_id_to_iform_[] =
-	{ //
+	static constexpr id_type m_node_id_to_iform_[] = { //
 
 			VERTEX, // 000
 					EDGE, // 001
@@ -290,26 +288,25 @@ struct MeshIDs_
 				| (static_cast<size_t>(std::floor(
 						(x[0] - m_index_to_coordinates_shift_[IFORM][n][0]
 								+ COORD_ZERO) * COORD_TO_INDEX_FACTOR) + 0.5)
-						& INDEX_MASK)
+						& PRIMARY_INDEX_MASK)
 
 				| ((static_cast<size_t>(std::floor(
 						(x[1] - m_index_to_coordinates_shift_[IFORM][n][1]
 								+ COORD_ZERO) * COORD_TO_INDEX_FACTOR) + 0.5)
-						& INDEX_MASK) << (INDEX_DIGITS))
+						& PRIMARY_INDEX_MASK) << (INDEX_DIGITS))
 
 				| ((static_cast<size_t>(std::floor(
 
 						(x[2] - m_index_to_coordinates_shift_[IFORM][n][2]
 								+ COORD_ZERO) * COORD_TO_INDEX_FACTOR) + 0.5)
-						& INDEX_MASK) << (INDEX_DIGITS * 2))
+						& PRIMARY_INDEX_MASK) << (INDEX_DIGITS * 2))
 
 		;
 	}
 	static constexpr coordinates_type id_to_coordinates(id_type s)
 	{
 
-		return std::move(coordinates_type
-		{ //
+		return std::move(coordinates_type { //
 
 				static_cast<Real>((s & INDEX_MASK)) * INDEX_TO_COORD_FACTOR
 						- COORD_ZERO,
@@ -412,8 +409,7 @@ struct MeshIDs_
 				| ((s & _DK) >> (INDEX_DIGITS * 2 + MAX_MESH_LEVEL - 3))) & 7UL;
 	}
 
-	static constexpr int m_node_id_to_index_[8] =
-	{ //
+	static constexpr int m_node_id_to_index_[8] = { //
 
 			0, // 000
 					0, // 001
@@ -509,132 +505,132 @@ struct MeshIDs_
 			};
 
 	static constexpr index_type m_vertics_matrix_[4/* to iform*/][8/* node id*/][MAX_NUM_OF_CELL/*id shift*/] =
-	{
-	//To VERTEX
 			{
+			//To VERTEX
+					{
 
-			/* 000*/
-			{ 0 },
-			/* 001*/
-			{ _LI, _HI },
-			/* 010*/
-			{ _LJ, _HJ },
-			/* 011*/
-			{ _LI | _LJ, _HI | _LJ, _HI | _HJ, _LI | _HJ },
-			/* 100*/
-			{ _LK, _HK },
-			/* 101*/
-			{ _LK | _LI, _HK | _LI, _HK | _HI, _LK | _HI },
-			/* 110*/
-			{ _LJ | _LK, _HJ | _LK, _HJ | _HK, _LJ | _HK },
-			/* 111*/
-			{ _LI | _LJ | _LK, //
-			_HI | _LJ | _LK, //
-			_HI | _HJ | _LK, //
-			_LI | _HJ | _LK, //
+					/* 000*/
+					{ 0 },
+					/* 001*/
+					{ _LI, _HI },
+					/* 010*/
+					{ _LJ, _HJ },
+					/* 011*/
+					{ _LI | _LJ, _HI | _LJ, _HI | _HJ, _LI | _HJ },
+					/* 100*/
+					{ _LK, _HK },
+					/* 101*/
+					{ _LK | _LI, _HK | _LI, _HK | _HI, _LK | _HI },
+					/* 110*/
+					{ _LJ | _LK, _HJ | _LK, _HJ | _HK, _LJ | _HK },
+					/* 111*/
+					{ _LI | _LJ | _LK, //
+					_HI | _LJ | _LK, //
+					_HI | _HJ | _LK, //
+					_LI | _HJ | _LK, //
 
-			_LI | _LJ | _HK, //
-			_HI | _LJ | _HK, //
-			_HI | _HJ | _HK, //
-			_LI | _HJ | _HK }
+					_LI | _LJ | _HK, //
+					_HI | _LJ | _HK, //
+					_HI | _HJ | _HK, //
+					_LI | _HJ | _HK }
 
-			},
+					},
 
-			//To EDGE
-			{
-			/* 000*/
-			{ _HI, _LI, _HJ, _LJ, _HK, _LK },
-			/* 001*/
-			{ 0 },
-			/* 010*/
-			{ 0 },
-			/* 011*/
-			{ _LJ, _HI, _HJ, _LI },
-			/* 100*/
-			{ 0 },
-			/* 101*/
-			{ _LI, _HK, _HI, _LK },
-			/* 110*/
-			{ _LK, _HJ, _HK, _LJ },
-			/* 111*/
-			{ _LK | _LJ,  //-> 001
-			_LK | _HI, //   012
-			_LK | _HJ, //   021
-			_LK | _LI, //   010
+					//To EDGE
+					{
+					/* 000*/
+					{ _HI, _LI, _HJ, _LJ, _HK, _LK },
+					/* 001*/
+					{ 0 },
+					/* 010*/
+					{ 0 },
+					/* 011*/
+					{ _LJ, _HI, _HJ, _LI },
+					/* 100*/
+					{ 0 },
+					/* 101*/
+					{ _LI, _HK, _HI, _LK },
+					/* 110*/
+					{ _LK, _HJ, _HK, _LJ },
+					/* 111*/
+					{ _LK | _LJ,  //-> 001
+					_LK | _HI, //   012
+					_LK | _HJ, //   021
+					_LK | _LI, //   010
 
-			_LI | _LJ, //
-			_LI | _HJ, //
-			_HI | _LJ, //
-			_HI | _HI, //
+					_LI | _LJ, //
+					_LI | _HJ, //
+					_HI | _LJ, //
+					_HI | _HI, //
 
-			_HK | _LJ, //
-			_HK | _HI, //
-			_HK | _HJ, //
-			_HK | _LI  //
-			} },
+					_HK | _LJ, //
+					_HK | _HI, //
+					_HK | _HJ, //
+					_HK | _LI  //
+					} },
 
-			//To FACE
-			{
-			/* 000*/
-			{ _LK | _LJ,  //
-			_LK | _HI, //
-			_LK | _HJ, //
-			_LK | _LI, //
+					//To FACE
+					{
+					/* 000*/
+					{ _LK | _LJ,  //
+					_LK | _HI, //
+					_LK | _HJ, //
+					_LK | _LI, //
 
-			_LI | _LJ, //
-			_LI | _HJ, //
-			_HI | _LJ, //
-			_HI | _HI, //
+					_LI | _LJ, //
+					_LI | _HJ, //
+					_HI | _LJ, //
+					_HI | _HI, //
 
-			_HK | _LJ, //
-			_HK | _HI, //
-			_HK | _HJ, //
-			_HK | _LI  //
-			},
-			/* 001*/
-			{ _LJ, _HK, _HJ, _LK },
-			/* 010*/
-			{ _LK, _HI, _HK, _LI },
-			/* 011*/
-			{ 0 },
-			/* 100*/
-			{ _LI, _HJ, _HI, _LJ },
-			/* 101*/
-			{ 0 },
-			/* 110*/
-			{ 0 },
-			/* 111*/
-			{ _LI, _LJ, _LK, _HI, _HJ, _HK } },
-			// TO VOLUME
-			{
-			/* 000*/
-			{ _LI | _LJ | _LK,  //
-			_LI | _HJ | _LK, //
-			_LI | _LJ | _HK, //
-			_LI | _HJ | _HK, //
+					_HK | _LJ, //
+					_HK | _HI, //
+					_HK | _HJ, //
+					_HK | _LI  //
+					},
+					/* 001*/
+					{ _LJ, _HK, _HJ, _LK },
+					/* 010*/
+					{ _LK, _HI, _HK, _LI },
+					/* 011*/
+					{ 0 },
+					/* 100*/
+					{ _LI, _HJ, _HI, _LJ },
+					/* 101*/
+					{ 0 },
+					/* 110*/
+					{ 0 },
+					/* 111*/
+					{ _LI, _LJ, _LK, _HI, _HJ, _HK } },
+					// TO VOLUME
+					{
+					/* 000*/
+					{ _LI | _LJ | _LK,  //
+					_LI | _HJ | _LK, //
+					_LI | _LJ | _HK, //
+					_LI | _HJ | _HK, //
 
-			_HI | _LJ | _LK, //
-			_HI | _HJ | _LK, //
-			_HI | _LJ | _HK, //
-			_HI | _HJ | _HK //
+					_HI | _LJ | _LK, //
+					_HI | _HJ | _LK, //
+					_HI | _LJ | _HK, //
+					_HI | _HJ | _HK //
 
-			},
-			/* 001*/
-			{ _LJ | _LK, _LJ | _HK, _HJ | _LK, _HJ | _HK },
-			/* 010*/
-			{ _LK | _LI, _LK | _HI, _HK | _LI, _HK | _HI },
-			/* 011*/
-			{ _LK, _HK },
-			/* 100*/
-			{ _LI | _LJ, _LI | _HJ, _HI | _LJ, _HI | _HJ },
-			/* 101*/
-			{ _LJ, _HJ },
-			/* 110*/
-			{ _LI, _HI },
-			/* 111*/
-			{ 0 } }
+					},
+					/* 001*/
+					{ _LJ | _LK, _LJ | _HK, _HJ | _LK, _HJ | _HK },
+					/* 010*/
+					{ _LK | _LI, _LK | _HI, _HK | _LI, _HK | _HI },
+					/* 011*/
+					{ _LK, _HK },
+					/* 100*/
+					{ _LI | _LJ, _LI | _HJ, _HI | _LJ, _HI | _HJ },
+					/* 101*/
+					{ _LJ, _HJ },
+					/* 110*/
+					{ _LI, _HI },
+					/* 111*/
+					{ 0 } }
 
-	};
+			};
 	template<size_t IFORM>
 	static int get_adjoints(id_type s, id_type * res = nullptr)
 	{
