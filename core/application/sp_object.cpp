@@ -79,15 +79,13 @@ void SpObject::sync()
 
 void SpObject::wait()
 {
-//	//FIXME this is not multi-thread safe
-//	if (!is_valid())
-//	{
-//		deploy();
-//	}
-	if (m_mpi_requests_.size() > 0)
+	//FIXME this is not multi-thread safe
+	if (!is_valid())
 	{
-		wait_all_request(&m_mpi_requests_);
+		deploy();
 	}
+
+	wait_all_request(&m_mpi_requests_);
 }
 
 std::ostream &SpObject::print(std::ostream & os) const

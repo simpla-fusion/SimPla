@@ -13,11 +13,11 @@
 namespace simpla
 {
 
-template<typename EngineType,typename TCoordPair>
+template<typename EngineType>
 ParticleGenerator<EngineType, rectangle_distribution<3>,
 		multi_normal_distribution<3>> simple_particle_generator(
 		EngineType const& engine,
-		TCoordPair const & extents, Real T)
+		std::pair<nTuple<Real, 3>, nTuple<Real, 3> > const & extents, Real T)
 {
 	return std::move(
 			ParticleGenerator<EngineType, rectangle_distribution<3>,

@@ -41,7 +41,7 @@ public:
 
 	typedef sp_sorted_set<value_type, hasher, allocator_type> this_type;
 
-	typedef std::list<T, allocator_type> bucket_type;
+	typedef std::forward_list<T, allocator_type> bucket_type;
 
 	typedef std::map<key_type, bucket_type> base_container_type;
 
@@ -57,13 +57,13 @@ public:
 	sp_sorted_set()
 	{
 	}
-	sp_sorted_set(this_type const & other)
-			: m_hasher_(other.m_hasher_), m_data_(other.m_data_)
+	sp_sorted_set(this_type const & other) :
+			m_hasher_(other.m_hasher_), m_data_(other.m_data_)
 	{
 	}
 
-	sp_sorted_set(this_type && other)
-			: m_hasher_(other.m_hasher_), m_data_(other.m_data_)
+	sp_sorted_set(this_type && other) :
+			m_hasher_(other.m_hasher_), m_data_(other.m_data_)
 	{
 	}
 

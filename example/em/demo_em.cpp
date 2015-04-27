@@ -58,7 +58,7 @@ USE_CASE(em," Maxwell Eqs.")
 
 	auto mesh = std::make_shared<mesh_type>();
 
-	mesh->configure(options["Mesh"]);
+	mesh->load(options["Mesh"]);
 
 	mesh->deploy();
 

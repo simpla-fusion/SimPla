@@ -28,22 +28,32 @@ omega_ce = qe * Btor/me -- e/m_p B0 rad/s
 vTe= math.sqrt(k_B*Te*2/me)
 rhoe = vTe/omega_ce    -- m
 
-NX = 10
-NY = 10
-NZ = 1
-LX = 2  --m --100000*rhoi --0.6
-LY = 3  --2.0*math.pi/k0
-LZ = 4  -- 2.0*math.pi/18
+NX = 10 
+NY = 20
+NZ = 30
+LX = 1  --m --100000*rhoi --0.6
+LY = 2  --2.0*math.pi/k0
+LZ = 3  -- 2.0*math.pi/18
 GW = 5
 
 omega_ext=omega_ci*1.9
 
 Mesh=
+{
+
+  Topology=
   {
+    Type="3DCoRectMesh",
     Dimensions={NX,NY,NZ}, -- number of grid, now only first dimension is valid
 
-    Box={{-LX/2.0+1.14234,-LY/2.0,-LZ/2.0}, {LX/2.0,LY/2.0,LZ/2.0}},
+  },
+  Geometry=
+  {
+    Type="Origin_DxDyDz",
+    Min={0.0,0.0,0.0},
+    Max={LX,LY,LZ},
     -- dt= 2.0*math.pi/omega_ci/1000.0
     dt=0.5*LX/NX/c  -- time step
+  },
 
-  }
+}

@@ -207,21 +207,17 @@ public:
 		this_type(other).swap(*this);
 		return *this;
 	}
-
 	template<typename TDict>
-	void load(TDict const&dict)
+	void load(TDict const & dict)
 	{
-
-		dimensions(dict["Dimensions"].template as(nTuple<size_t, 3>( { 10, 10,
-				10 })));
+		dimensions(dict["Dimensions"].as(index_tuple( { 10, 10, 10 })));
 
 		extents(
 				dict["Box"].template as<
-						std::tuple<coordinates_type, coordinates_type>>());
+						std::tuple<coordinates_type, coordinates_type> >());
 
 		dt(dict["dt"].template as<Real>(1.0));
 	}
-
 	template<typename OS>
 	OS & print(OS &os) const
 	{
@@ -234,18 +230,18 @@ public:
 
 		os
 
-		<< std::endl
+		<< " Type = \"" << get_type_as_string() << "\", " << std::endl
 
-		<< " Type \t= \"" << get_type_as_string() << "\", " << std::endl
+		<< " Min \t= " << m_coords_min_ << " ," << std::endl
 
-		<< " Box \t= {" << m_coords_min_ << " ," << m_coords_max_ << "}"
-				<< std::endl
+		<< " Max \t= " << m_coords_max_ << "," << std::endl
 
-				<< " dx  \t= " << m_dx_ << ", " << std::endl
+		<< " dx  \t= " << m_dx_ << ", " << std::endl
 
-				<< " dt \t= " << m_dt_ << ","
-				<< "-- [ Courant–Friedrichs–Lewy (CFL)  Suggested value: "
-				<< safe_dt << "]" << std::endl
+		<< " dt \t= " << m_dt_ << "," << std::endl
+
+		<< "-- [ Courant–Friedrichs–Lewy (CFL)  Suggested value: " << safe_dt
+				<< "]" << std::endl
 
 				<< " Dimensionss \t= " << m_index_dimensions_ << ","
 				<< std::endl
@@ -266,17 +262,6 @@ public:
 		return m_is_valid_;
 	}
 
-	coordinates_type const & dx() const
-	{
-		return m_dx_;
-	}
-
-	template<typename TC>
-	void extents(TC const& p_extents)
-	{
-		extents(std::get<0>(p_extents), std::get<1>(p_extents));
-	}
-
 	template<typename T0, typename T1>
 	void extents(T0 const& pmin, T1 const& pmax)
 	{
@@ -284,37 +269,28 @@ public:
 		m_coords_max_ = pmax;
 	}
 
-	std::tuple<coordinates_type, coordinates_type> local_extents() const
+	template<typename T0>
+	void extents(T0 const& box)
 	{
-		coordinates_type xmin, xmax;
-		xmin = m_coords_min_ + m_index_offset_ * m_dx_;
-		xmax = m_coords_min_ + (m_index_offset_ + m_index_count_) * m_dx_;
-
-		return std::make_tuple(xmin, xmax);
+		extents(std::get<0>(box), std::get<1>(box));
 	}
 
-	auto global_extents() const
+	inline auto extents() const
 	DECL_RET_TYPE (std::make_pair(m_coords_min_, m_coords_max_))
 
-	auto extents() const
-	DECL_RET_TYPE (local_extents())
+	coordinates_type const & dx() const
+	{
+		return m_dx_;
+	}
 
 	template<typename TI> void dimensions(TI const & d)
 	{
 		m_index_dimensions_ = d;
 	}
-	index_tuple global_dimensions() const
+	index_tuple dimensions() const
 	{
 		return m_index_dimensions_;
 	}
-
-	index_tuple local_dimensions() const
-	{
-		return m_index_local_dimensions_;
-	}
-
-	inline auto dimensions() const
-	DECL_RET_TYPE (local_dimensions())
 
 	void deploy(size_t const *gw = nullptr);
 
@@ -424,13 +400,10 @@ public:
 	 * @name  Coordinates map
 	 * @{
 	 **/
-	template<typename ...Args>
-	coordinates_type coordinates(Args && ...args) const
+	coordinates_type coordinates(id_type const & s) const
 	{
 		return std::move(
-				coordinates_from_topology(
-						topology_type::coordinates(
-								std::forward<Args>(args)...)));
+				coordinates_from_topology(topology_type::id_to_coordinates(s)));
 	}
 
 	template<size_t IFORM = 0>
@@ -785,8 +758,7 @@ void RectMesh<TTopology, Polices...>::deploy(size_t const *gw)
 
 	if (GLOBAL_COMM.num_of_process() > 1)
 	{
-		GLOBAL_COMM.decompose(ndims, &m_index_count_[0],
-		&m_index_offset_[0]);
+		GLOBAL_COMM.decompose(ndims, &m_index_count_[0], &m_index_offset_[0]);
 
 		index_tuple ghost_width;
 

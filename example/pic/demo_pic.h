@@ -39,8 +39,8 @@ private:
 	Real m_cmr_, m_q_kT_;
 public:
 
-	PICDemo()
-			: m_mass(1.0), m_charge(1.0), m_temperature(1.0)
+	PICDemo() :
+			m_mass(1.0), m_charge(1.0), m_temperature(1.0)
 	{
 		update();
 	}
@@ -89,14 +89,16 @@ public:
 		p0->x += p0->v * dt * 0.5;
 
 	}
+
 	static inline Point_s push_forward(coordinates_type const & x,
-			Vec3 const &v, Real f = 1.0, Real w = 0)
+			Vec3 const &v, Real f = 1.0)
 	{
-		return std::move(Point_s( { x, v, f, w }));
+		return std::move(Point_s(
+		{ x }));
 	}
 
 	static inline auto pull_back(Point_s const & p)
-	DECL_RET_TYPE((std::make_tuple(p.x ,p.v,p.f*p.w)))
+	DECL_RET_TYPE((std::make_tuple(p.x )))
 };
 
 }  // namespace simpla

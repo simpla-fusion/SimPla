@@ -40,13 +40,11 @@ Mesh=
   {
     dimensions={NX ,NY ,NZ },
 
-    xmin={0.0,0.0,0.0},
-
-    xmax={LX,LY,LZ},
+    Box={{0.0,0.0,0.0},{LX,LY,LZ}},
 
     dt=  0.5*(LX/NX)/c
   }
-omega_ext= 0.1*math.pi/dt --omega_ci*1.9
+omega_ext= 0.1*math.pi/Mesh.dt --omega_ci*1.9
 
 
 --domain_center=function( x  )

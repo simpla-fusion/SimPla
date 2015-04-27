@@ -15,23 +15,17 @@ namespace simpla
 {
 namespace _impl
 {
-template<typename TDomain, typename TPoint_s>
+template<typename TM, typename TPoint_s>
 struct particle_hasher
 {
-	typedef TDomain domain_type;
-	typedef typename TDomain::mesh_type mesh_type;
+	typedef TM mesh_type;
 
-	static constexpr size_t iform = domain_type::iform;
 	typedef TPoint_s value_type;
 
 	mesh_type const * m_mesh_;
 
 	particle_hasher()
 			: m_mesh_(nullptr)
-	{
-	}
-	particle_hasher(TDomain const & d)
-			: m_mesh_(&(d.mesh()))
 	{
 	}
 	particle_hasher(mesh_type const & m)
@@ -43,7 +37,7 @@ struct particle_hasher
 	}
 
 	constexpr auto operator()(value_type const & p) const
-	DECL_RET_TYPE((m_mesh_->template coordinates_to_id<iform>(p.x)))
+	DECL_RET_TYPE((m_mesh_->coordinates_to_id(p.x)))
 
 //	template<typename ...Args>
 //	constexpr auto operator()(Args &&... args) const
@@ -63,21 +57,21 @@ struct particle_hasher
  *  -  KineticParticle is an unordered container;
  */
 
-template<typename Engine, typename TDomain, typename ...Others>
+template<typename Engine, typename TM, typename ...Others>
 std::shared_ptr<
-		Particle<TDomain, Engine,
+		Particle<TM, Engine,
 				sp_sorted_set<typename Engine::Point_s,
-						_impl::particle_hasher<TDomain, typename Engine::Point_s> > > > make_kinetic_particle(
-		TDomain const & domain, Others && ...others)
+						_impl::particle_hasher<TM, typename Engine::Point_s> > > > make_kinetic_particle(
+		TM const & mesh, Others && ...others)
 {
-	typedef Particle<TDomain, Engine,
+	typedef Particle<TM, Engine,
 			sp_sorted_set<typename Engine::Point_s,
-					_impl::particle_hasher<TDomain, typename Engine::Point_s> > > particle_type;
-	auto res = std::make_shared<particle_type>(domain,
+					_impl::particle_hasher<TM, typename Engine::Point_s> > > particle_type;
+	auto res = std::make_shared<particle_type>(mesh,
 			std::forward<Others>(others)...);
 
 	res->hash_function(
-			_impl::particle_hasher<TDomain, typename Engine::Point_s>(domain));
+			_impl::particle_hasher<TM, typename Engine::Point_s>(mesh));
 
 	return res;
 }
