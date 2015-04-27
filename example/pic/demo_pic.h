@@ -39,8 +39,8 @@ private:
 	Real m_cmr_, m_q_kT_;
 public:
 
-	PICDemo() :
-			m_mass(1.0), m_charge(1.0), m_temperature(1.0)
+	PICDemo()
+			: m_mass(1.0), m_charge(1.0), m_temperature(1.0)
 	{
 		update();
 	}
@@ -61,8 +61,9 @@ public:
 		return "PICDemo";
 	}
 
-	template<typename TE, typename TB>
-	void next_timestep(Point_s * p0, Real dt, TE const &fE, TB const & fB) const
+	template<typename TE, typename TB, typename TJ>
+	void next_timestep(Point_s * p0, Real dt, TE const &fE, TB const & fB,
+			TJ * J) const
 	{
 		p0->x += p0->v * dt * 0.5;
 
@@ -88,13 +89,14 @@ public:
 
 		p0->x += p0->v * dt * 0.5;
 
+		J->scatter(p0->x, p0->v * p0->f);
+
 	}
 
 	static inline Point_s push_forward(coordinates_type const & x,
 			Vec3 const &v, Real f = 1.0)
 	{
-		return std::move(Point_s(
-		{ x }));
+		return std::move(Point_s( { x }));
 	}
 
 	static inline auto pull_back(Point_s const & p)

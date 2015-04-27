@@ -378,7 +378,7 @@ public:
 
 	constexpr Real cell_volume(id_type s) const
 	{
-		return volume(s | MeshIDs::_DA);
+		return volume(s | topology_type::_DA);
 	}
 
 	constexpr Real inv_volume(id_type s) const

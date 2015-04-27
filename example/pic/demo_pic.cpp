@@ -161,9 +161,9 @@ USE_CASE(pic," Particle in cell" )
 ////		E_src(&E);
 ////		B_src(&B);
 ////
-////		J.clear();
-////		ion->next_timestep(dt, E, B, &J);
-////		J_src(&J);
+		J.clear();
+		ion->next_timestep(dt, E, B, &J);
+		J_src(&J);
 ////
 ////		E += curl(B) * dt - J;
 ////		B += -curl(E) * dt;
