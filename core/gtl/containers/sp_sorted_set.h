@@ -296,6 +296,31 @@ public:
 
 		return count;
 	}
+	size_t rehash(key_type& s, base_container_type & other)
+	{
+
+		auto it = m_data_.find(s);
+		if (it != m_data_.end())
+		{
+			return rehash(*it, other);
+		}
+		return 0;
+	}
+	template<typename TRange>
+	void rehash(TRange const & r)
+	{
+		base_container_type other;
+
+		for (auto const & s : r)
+		{
+			rehash(s, other);
+		}
+
+		splice(other.begin(), other.end());
+
+		VERBOSE << " Rehash/Resort particles" << endl;
+
+	}
 
 	void rehash()
 	{

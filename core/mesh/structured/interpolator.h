@@ -17,7 +17,9 @@
 namespace simpla
 {
 
-template<typename ...> class field_traits;
+template<typename ...> class _Field;
+template<typename, size_t> class Domain;
+
 /**
  * @ingroup diff_geo
  * @addtogroup interpolator Interpolator
@@ -112,6 +114,7 @@ private:
 		typename geometry_type::coordinates_type r = std::get<1>(idx);
 		typename geometry_type::index_type s = std::get<0>(idx);
 
+
 		get_value(f, ((s + X) + Y) + Z) += v * (r[0]) * (r[1]) * (r[2]);
 		get_value(f, (s + X) + Y) += v * (r[0]) * (r[1]) * (1.0 - r[2]);
 		get_value(f, (s + X) + Z) += v * (r[0]) * (1.0 - r[1]) * (r[2]);
@@ -123,21 +126,24 @@ private:
 	}
 public:
 
-	template<typename geometry_type, typename TF, typename TV, typename TW>
-	static auto scatter(geometry_type const & geo, TF &f,
+	template<typename geometry_type, typename ...TF, typename TV, typename TW>
+	static void scatter(geometry_type const & geo,
+			_Field<Domain<geometry_type, VERTEX>, TF...> &f,
 			typename geometry_type::coordinates_type const & x, TV const &u,
-			TW const &w) ->typename std::enable_if< (field_traits<TF >::iform==VERTEX)>::type
+			TW const &w)
 	{
 
 		scatter_impl_<geometry_type>(f,
 				geo.template coordinates_global_to_local<VERTEX>(x), u * w);
 	}
 
-	template<typename geometry_type, typename TF, typename TV, typename TW>
-	static auto scatter(geometry_type const & geo, TF &f,
+	template<typename geometry_type, typename ...TF, typename TV, typename TW>
+	static void scatter(geometry_type const & geo,
+			_Field<Domain<geometry_type, EDGE>, TF...> &f,
 			typename geometry_type::coordinates_type const & x, TV const &u,
-			TW const & w) ->typename std::enable_if< (field_traits<TF >::iform==EDGE)>::type
+			TW const & w)
 	{
+
 		scatter_impl_<geometry_type>(f,
 				geo.template coordinates_global_to_local<EDGE>(x, 0), u[0] * w);
 		scatter_impl_<geometry_type>(f,
@@ -147,10 +153,11 @@ public:
 
 	}
 
-	template<typename geometry_type, typename TF, typename TV, typename TW>
-	static auto scatter(geometry_type const & geo, TF &f,
+	template<typename geometry_type, typename ...TF, typename TV, typename TW>
+	static void scatter(geometry_type const & geo,
+			_Field<Domain<geometry_type, FACE>, TF...>&f,
 			typename geometry_type::coordinates_type const & x, TV const &u,
-			TW const &w) ->typename std::enable_if< (field_traits<TF >::iform==FACE)>::type
+			TW const &w)
 	{
 
 		scatter_impl_<geometry_type>(f,
@@ -161,10 +168,11 @@ public:
 				geo.template coordinates_global_to_local<FACE>(x, 2), u[2] * w);
 	}
 
-	template<typename geometry_type, typename TF, typename TV, typename TW>
-	static auto scatter(geometry_type const & geo, TF &f,
+	template<typename geometry_type, typename ...TF, typename TV, typename TW>
+	static void scatter(geometry_type const & geo,
+			_Field<Domain<geometry_type, VOLUME>, TF...>&f,
 			typename geometry_type::coordinates_type const & x, TV const &u,
-			TW const &w) ->typename std::enable_if< (field_traits<TF >::iform==VOLUME)>::type
+			TW const &w)
 	{
 		scatter_impl_<geometry_type>(f,
 				geo.template coordinates_global_to_local<VOLUME>(x,

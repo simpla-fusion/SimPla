@@ -55,10 +55,9 @@ namespace simpla
  */
 //template<typename ... >struct RectMesh;
 template<typename TTopology, typename ...Policies>
-struct RectMesh:	public TTopology,
-					public Policies...,
-					std::enable_shared_from_this<
-							RectMesh<TTopology, Policies...>>
+struct RectMesh: public TTopology,
+		public Policies...,
+		std::enable_shared_from_this<RectMesh<TTopology, Policies...>>
 {
 	typedef TTopology topology_type;
 	typedef typename unpack_typelist<0, Policies...>::type coordinates_system;
@@ -122,9 +121,11 @@ private:
 
 	coordinates_type m_toplogy_coord_orig_ /*= { 0, 0, 0 }*/;
 
-	coordinates_type m_coords_min_ = { 0, 0, 0 };
+	coordinates_type m_coords_min_ =
+	{ 0, 0, 0 };
 
-	coordinates_type m_coords_max_ = { 1, 1, 1 };
+	coordinates_type m_coords_max_ =
+	{ 1, 1, 1 };
 
 	coordinates_type m_dx_ /*= { 0, 0, 0 }*/;
 
@@ -153,13 +154,18 @@ private:
 	 *   d-c = local_dimension
 	 *   c-a = local_offset
 	 */
-	index_tuple m_index_dimensions_ = { 1, 1, 1 };
+	index_tuple m_index_dimensions_ =
+	{ 1, 1, 1 };
 
-	index_tuple m_index_offset_ = { 0, 0, 0 };
-	index_tuple m_index_count_ = { 1, 1, 1 };
+	index_tuple m_index_offset_ =
+	{ 0, 0, 0 };
+	index_tuple m_index_count_ =
+	{ 1, 1, 1 };
 
-	index_tuple m_index_local_dimensions_ = { 0, 0, 0 };
-	index_tuple m_index_local_offset_ = { 0, 0, 0 };
+	index_tuple m_index_local_dimensions_ =
+	{ 0, 0, 0 };
+	index_tuple m_index_local_offset_ =
+	{ 0, 0, 0 };
 
 public:
 
@@ -173,8 +179,7 @@ public:
 	{
 	}
 
-	RectMesh(this_type const & other)
-			:
+	RectMesh(this_type const & other) :
 
 			m_index_dimensions_(other.m_index_dimensions_),
 
@@ -210,7 +215,8 @@ public:
 	template<typename TDict>
 	void load(TDict const & dict)
 	{
-		dimensions(dict["Dimensions"].as(index_tuple( { 10, 10, 10 })));
+		dimensions(dict["Dimensions"].as(index_tuple(
+		{ 10, 10, 10 })));
 
 		extents(
 				dict["Box"].template as<
@@ -423,7 +429,8 @@ public:
 	coordinates_type coordinates_from_topology(coordinates_type const &y) const
 	{
 
-		return coordinates_type( {
+		return coordinates_type(
+		{
 
 		std::fma(y[0], m_from_topology_scale_[0], m_coord_orig_[0]),
 
@@ -437,7 +444,8 @@ public:
 	coordinates_type coordinates_to_topology(coordinates_type const &x) const
 	{
 
-		return coordinates_type( {
+		return coordinates_type(
+		{
 
 		std::fma(x[0], m_to_topology_scale_[0], m_toplogy_coord_orig_[0]),
 
@@ -468,9 +476,10 @@ public:
 	std::tuple<id_type, coordinates_type> coordinates_global_to_local(
 			coordinates_type x, int n = 0) const
 	{
+
 		return std::move(
 				topology_type::template coordinates_global_to_local<IFORM>(
-						std::move(coordinates_to_topology(x)), n));
+						coordinates_to_topology(x), n));
 	}
 
 	/** @} */
@@ -657,7 +666,7 @@ void RectMesh<TTopology, Polices...>::deploy(size_t const *gw)
 
 	}
 
-	m_coord_orig_ = 0; //(m_coords_max_ + m_coords_min_) * 0.5;
+	m_coord_orig_ = (m_coords_max_ + m_coords_min_) * 0.5;
 
 	m_toplogy_coord_orig_ = -m_coord_orig_ * m_to_topology_scale_;
 

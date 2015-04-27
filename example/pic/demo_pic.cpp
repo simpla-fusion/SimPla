@@ -52,13 +52,7 @@ USE_CASE(pic," Particle in cell" )
 
 	auto mesh = std::make_shared<mesh_type>();
 
-	mesh->dimensions(options["dimensions"].template as(nTuple<size_t, 3>( { 10,
-			10, 10 })));
-
-	mesh->extents(options["xmin"].template as(nTuple<Real, 3>( { 0, 0, 0 })),
-			options["xmax"].template as(nTuple<Real, 3>( { 1, 1, 1 })));
-
-	mesh->dt(options["dt"].as<Real>(1.0));
+	mesh->load(options["Mesh"]);
 
 	mesh->deploy();
 
