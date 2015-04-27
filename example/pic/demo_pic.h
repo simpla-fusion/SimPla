@@ -8,9 +8,17 @@
 #ifndef EXAMPLE_USE_CASE_PIC_DEMO_PIC_H_
 #define EXAMPLE_USE_CASE_PIC_DEMO_PIC_H_
 
+#include <algorithm>
+#include <string>
+#include <tuple>
+
+#include "../../core/dataset/datatype.h"
 #include "../../core/gtl/ntuple.h"
-#include "../../core/utilities/utilities.h"
+#include "../../core/gtl/primitives.h"
+#include "../../core/gtl/type_traits.h"
 #include "../../core/particle/particle_engine.h"
+#include "../../core/physics/physical_constants.h"
+
 using namespace simpla;
 
 namespace simpla
@@ -63,7 +71,7 @@ public:
 
 	template<typename TE, typename TB, typename TJ>
 	void next_timestep(Point_s * p0, Real dt, TE const &fE, TB const & fB,
-			TJ * J) const
+			TJ * J)
 	{
 		p0->x += p0->v * dt * 0.5;
 
@@ -78,10 +86,10 @@ public:
 
 		v_ = p0->v + cross(p0->v, t);
 
-		v_ = cross(v_, t) / (dot(t, t) + 1.0);
+		v_ = cross(v_, t) / (inner_product(t, t) + 1.0);
 
 		p0->v += v_;
-		auto a = (-dot(E, p0->v) * m_q_kT_ * dt);
+		auto a = (-inner_product(E, p0->v) * m_q_kT_ * dt);
 		p0->w = (-a + (1 + 0.5 * a) * p0->w) / (1 - 0.5 * a);
 
 		p0->v += v_;
@@ -89,7 +97,7 @@ public:
 
 		p0->x += p0->v * dt * 0.5;
 
-		J->scatter(p0->x, p0->v * p0->f);
+		J->scatter(p0->x, p0->v, p0->f);
 
 	}
 

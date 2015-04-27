@@ -7,20 +7,16 @@
 
 #include "demo_pic.h"
 
-#include <stddef.h>
-#include <algorithm>
-#include <iostream>
-#include <memory>
-#include <random>
-#include <string>
+#include "../../core/application/application.h"
+#include "../../core/application/use_case.h"
 
 #include "../../core/utilities/utilities.h"
 #include "../../core/io/io.h"
-#include "../../core/application/application.h"
-#include "../../core/application/use_case.h"
-#include "../../core/gtl/ntuple.h"
-#include "../../core/gtl/primitives.h"
+#include "../../core/physics/physical_constants.h"
+#include "../../core/field/field.h"
+
 #include "../../core/mesh/mesh.h"
+
 #include "../../core/particle/particle.h"
 
 using namespace simpla;
@@ -56,12 +52,11 @@ USE_CASE(pic," Particle in cell" )
 
 	auto mesh = std::make_shared<mesh_type>();
 
-	mesh->dimensions(options["dimensions"].template as(nTuple<size_t, 3>(
-	{ 10, 10, 10 })));
+	mesh->dimensions(options["dimensions"].template as(nTuple<size_t, 3>( { 10,
+			10, 10 })));
 
-	mesh->extents(options["xmin"].template as(nTuple<Real, 3>(
-	{ 0, 0, 0 })), options["xmax"].template as(nTuple<Real, 3>(
-	{ 1, 1, 1 })));
+	mesh->extents(options["xmin"].template as(nTuple<Real, 3>( { 0, 0, 0 })),
+			options["xmax"].template as(nTuple<Real, 3>( { 1, 1, 1 })));
 
 	mesh->dt(options["dt"].as<Real>(1.0));
 
@@ -82,15 +77,32 @@ USE_CASE(pic," Particle in cell" )
 		<< " TIME_STEPS = " << num_of_steps << endl;
 	}
 
+	MESSAGE << "======== Initialize ========" << std::endl;
+
+	auto J = mesh->template make_form<EDGE, Real>();
+	auto E = mesh->template make_form<EDGE, Real>();
+	auto B = mesh->template make_form<FACE, Real>();
+
+	VERBOSE_CMD(load_field(options["InitValue"]["E"], &E));
+	VERBOSE_CMD(load_field(options["InitValue"]["B"], &B));
+
+	auto J_src = make_field_function_by_config<EDGE, Real>(*mesh,
+			options["Constraint"]["J"]);
+
+	auto B_src = make_field_function_by_config<FACE, Real>(*mesh,
+			options["Constraint"]["B"]);
+
+	auto E_src = make_field_function_by_config<EDGE, Real>(*mesh,
+			options["Constraint"]["E"]);
+
 	typedef PICDemo engine_type;
 
 	size_t pic = 10;
 
 	options["pic"].as(&pic);
 
-	MESSAGE << "======== Initialize ========" << std::endl;
-
-	auto ion = make_kinetic_particle<engine_type>(*mesh);
+	auto ion = make_kinetic_particle<engine_type>(
+			mesh->template domain<VOLUME>());
 
 	ion->mass(1.0);
 
@@ -102,8 +114,6 @@ USE_CASE(pic," Particle in cell" )
 
 	auto extents = mesh->extents();
 
-	auto domain = mesh->template domain<VOLUME>();
-
 	auto p_generator = simple_particle_generator(*ion, extents, 1.0);
 
 	std::mt19937 rnd_gen;
@@ -113,76 +123,54 @@ USE_CASE(pic," Particle in cell" )
 		ion->insert(p_generator(rnd_gen));
 	}
 
-	for (auto const & item : *ion)
+	LOGGER << "----------  Dump input ---------- " << endl;
+
+	cd("/Input/");
+
+	VERBOSE << save("H1", ion->dataset()) << std::endl;
+
+	VERBOSE << SAVE(E) << endl;
+	VERBOSE << SAVE(B) << endl;
+
+	DEFINE_PHYSICAL_CONST
+	Real dt = mesh->dt();
+	auto dx = mesh->dx();
+
+	Real omega = 0.01 * PI / dt;
+
+	LOGGER << "----------  START ---------- " << endl;
+
+	cd("/Save/");
+
+	for (size_t step = 0; step < num_of_steps; ++step)
 	{
-		SHOW(mesh->template unpack<VOLUME>(item.first));
-		SHOW(mesh->node_id(item.first));
+		VERBOSE << "Step [" << step << "/" << num_of_steps << "]" << endl;
+
+		J.clear();
+
+		LOG_CMD(ion->next_timestep(dt, E, B, &J));
+
+		J.self_assign(J_src);
+		B.self_assign(B_src);
+
+		LOG_CMD(E += curl(B) * (dt * speed_of_light2) - J * (dt / epsilon0));
+		LOG_CMD(B -= curl(E) * dt);
+
+		E.self_assign(E_src);
+
+		VERBOSE << SAVE_RECORD(J) << endl;
+		VERBOSE << SAVE_RECORD(E) << endl;
+		VERBOSE << SAVE_RECORD(B) << endl;
+
+		mesh->next_timestep();
 
 	}
-
-//	VERBOSE << save("H0", ion->dataset()) << std::endl;
-//
-//	ion->sync();
-//	ion->wait();
-	VERBOSE << save("H1", ion->dataset()) << std::endl;
-//
-//	ion->sync();
-//	ion->wait();
-//	ion->rehash();
-//
-//	VERBOSE << save("H2", ion->dataset()) << std::endl;
-//
-// Load initialize value
-//	auto J = make_form<EDGE, Real>(mesh);
-//	auto E = make_form<EDGE, Real>(mesh);
-//	auto B = make_form<FACE, Real>(mesh);
-//
-//	auto E_src = make_constraint<EDGE, Real>(mesh, options["Constraint"]["E"]);
-//	auto J_src = make_constraint<EDGE, Real>(mesh, options["Constraint"]["J"]);
-//	auto B_src = make_constraint<FACE, Real>(mesh, options["Constraint"]["B"]);
-//
-//	VERBOSE_CMD(load(options["InitValue"]["B"], &B));
-//	VERBOSE_CMD(load(options["InitValue"]["E"], &E));
-//	VERBOSE_CMD(load(options["InitValue"]["J"], &J));
-
-	MESSAGE << "======== START! ========" << std::endl;
-
-//	cd("/Input/");
-//
-////	VERBOSE << SAVE(E);
-////	VERBOSE << SAVE(B);
-////	VERBOSE << SAVE(J);
-//
-//	cd("/Save/");
-//
-//	for (size_t s = 0; s < num_of_steps; ++s)
-//	{
-//
-////		E_src(&E);
-////		B_src(&B);
-////
-		J.clear();
-		ion->next_timestep(dt, E, B, &J);
-		J_src(&J);
-////
-////		E += curl(B) * dt - J;
-////		B += -curl(E) * dt;
-////
-////		if (s % strides == 0)
-////		{
-////			VERBOSE << save("H", *ion, SP_APPEND);
-////			VERBOSE << save("E", E, SP_APPEND);
-////			VERBOSE << save("B", B, SP_APPEND);
-////
-////		}
-//	}
-//	cd("/Output/");
-//	VERBOSE << SAVE(E) << std::endl;
-//	VERBOSE << SAVE(B) << std::endl;
-//	VERBOSE << SAVE(J) << std::endl;
-
-//	VERBOSE << save("H", ion->dataset()) << std::endl;
-
 	MESSAGE << "======== DONE! ========" << std::endl;
 
+	cd("/Output/");
+
+	VERBOSE << save("H", ion->dataset()) << std::endl;
+	VERBOSE << SAVE(E) << endl;
+	VERBOSE << SAVE(B) << endl;
+	VERBOSE << SAVE(J) << endl;
 }

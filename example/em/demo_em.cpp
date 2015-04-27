@@ -19,8 +19,6 @@
 
 #include "../../core/mesh/mesh.h"
 
-#include "../../core/model/select.h"
-
 #include "../../applications/field_solver/pml.h"
 
 #include <memory>

@@ -129,7 +129,8 @@ public:
 			TW const &w) ->typename std::enable_if< (field_traits<TF >::iform==VERTEX)>::type
 	{
 
-		scatter_impl_(f, geo.coordinates_global_to_local<VERTEX>(x), u * w);
+		scatter_impl_<geometry_type>(f,
+				geo.template coordinates_global_to_local<VERTEX>(x), u * w);
 	}
 
 	template<typename geometry_type, typename TF, typename TV, typename TW>
@@ -137,9 +138,12 @@ public:
 			typename geometry_type::coordinates_type const & x, TV const &u,
 			TW const & w) ->typename std::enable_if< (field_traits<TF >::iform==EDGE)>::type
 	{
-		scatter_impl_(f, geo.coordinates_global_to_local<EDGE>(x, 0), u[0] * w);
-		scatter_impl_(f, geo.coordinates_global_to_local<EDGE>(x, 1), u[1] * w);
-		scatter_impl_(f, geo.coordinates_global_to_local<EDGE>(x, 2), u[2] * w);
+		scatter_impl_<geometry_type>(f,
+				geo.template coordinates_global_to_local<EDGE>(x, 0), u[0] * w);
+		scatter_impl_<geometry_type>(f,
+				geo.template coordinates_global_to_local<EDGE>(x, 1), u[1] * w);
+		scatter_impl_<geometry_type>(f,
+				geo.template coordinates_global_to_local<EDGE>(x, 2), u[2] * w);
 
 	}
 
@@ -149,9 +153,12 @@ public:
 			TW const &w) ->typename std::enable_if< (field_traits<TF >::iform==FACE)>::type
 	{
 
-		scatter_impl_(f, geo.coordinates_global_to_local<FACE>(x, 0), u[0] * w);
-		scatter_impl_(f, geo.coordinates_global_to_local<FACE>(x, 1), u[1] * w);
-		scatter_impl_(f, geo.coordinates_global_to_local<FACE>(x, 2), u[2] * w);
+		scatter_impl_<geometry_type>(f,
+				geo.template coordinates_global_to_local<FACE>(x, 0), u[0] * w);
+		scatter_impl_<geometry_type>(f,
+				geo.template coordinates_global_to_local<FACE>(x, 1), u[1] * w);
+		scatter_impl_<geometry_type>(f,
+				geo.template coordinates_global_to_local<FACE>(x, 2), u[2] * w);
 	}
 
 	template<typename geometry_type, typename TF, typename TV, typename TW>
@@ -159,8 +166,9 @@ public:
 			typename geometry_type::coordinates_type const & x, TV const &u,
 			TW const &w) ->typename std::enable_if< (field_traits<TF >::iform==VOLUME)>::type
 	{
-		scatter_impl_(f, geo.coordinates_global_to_local(x, geometry_type::_DA),
-				w);
+		scatter_impl_<geometry_type>(f,
+				geo.template coordinates_global_to_local<VOLUME>(x,
+						geometry_type::_DA), w);
 	}
 private:
 	template<typename geometry_type, typename TV>

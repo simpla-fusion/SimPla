@@ -95,21 +95,24 @@ struct particle_container_traits
 
 }  // namespace _impl
 
-template<typename TM, typename Engine, typename TContainer>
-class Particle<TM, Engine, TContainer> //
-: public SpObject,
-		public Engine,
-		public TContainer,
-		public enable_create_from_this<Particle<TM, Engine, TContainer> >
+template<typename TDomain, typename Engine, typename TContainer>
+class Particle<TDomain, Engine, TContainer> //
+:	public SpObject,
+	public Engine,
+	public TContainer,
+	public enable_create_from_this<Particle<TDomain, Engine, TContainer> >
 {
 public:
-	typedef TM mesh_type;
+
+	typedef TDomain domain_type;
+
+	typedef typename domain_type::mesh_type mesh_type;
 
 	typedef Engine engine_type;
 
 	typedef TContainer container_type;
 
-	typedef Particle<mesh_type, engine_type, container_type> this_type;
+	typedef Particle<domain_type, engine_type, container_type> this_type;
 
 	typedef typename container_type::value_type value_type;
 
@@ -117,40 +120,33 @@ public:
 	typedef typename mesh_type::id_type id_type;
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
-	static constexpr size_t iform = VOLUME;
-
-	typedef Domain<mesh_type, iform> domain_type;
+	static constexpr size_t iform = domain_type::iform;
 
 //private:
 
 	domain_type m_domain_;
 public:
 
-	Particle(mesh_type const & m) :
-			m_domain_(m)
+	Particle(domain_type const & d)
+			: m_domain_(d)
 	{
 	}
 
-	Particle(this_type const& other) :
-			engine_type(other), container_type(other), m_domain_(
+	Particle(this_type const& other)
+			: engine_type(other), container_type(other), m_domain_(
 					other.m_domain_)
 	{
 	}
 
 	template<typename ... Args>
-	Particle(this_type & other, Args && ...args) :
-			engine_type(other), container_type(other,
+	Particle(this_type & other, Args && ...args)
+			: engine_type(other), container_type(other,
 					std::forward<Args>(args)...), m_domain_(other.m_domain_)
 	{
 	}
 
 	~Particle()
 	{
-	}
-
-	domain_type const &domain() const
-	{
-		return m_domain_;
 	}
 
 	using SpObject::properties;
@@ -176,6 +172,12 @@ public:
 	{
 		return m_domain_.mesh();
 	}
+
+	domain_type const & domain() const
+	{
+		return m_domain_.mesh();
+	}
+
 	template<typename TDict, typename ...Others>
 	void load(TDict const & dict, Others && ...others)
 	{
@@ -293,8 +295,8 @@ public:
 		m_send_recv_buffer_.clear();
 	}
 
-	template<typename TDomain>
-	DataSet dataset(TDomain const & pdomain) const
+	template<typename TD>
+	DataSet dataset(TD const & pdomain) const
 	{
 
 		DataSet res;
@@ -416,7 +418,7 @@ public:
 
 		wait();
 
-		for (auto const & bucket : *this)
+		for (auto & bucket : *this)
 		{
 			for (auto &p : bucket.second)
 			{
@@ -452,7 +454,7 @@ public:
 
 		wait();
 
-		for (auto const & bucket : *this)
+		for (auto & bucket : *this)
 		{
 			for (auto &p : bucket.second)
 			{
