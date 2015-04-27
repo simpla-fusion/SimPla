@@ -497,7 +497,7 @@ public:
 	{
 		return inner_product(
 				(m_index_local_dimensions_
-						+ topology_type::template unpack<IFORM>(s)
+						+ topology_type::template unpack_index<IFORM>(s)
 						- m_index_local_offset_) % m_index_local_dimensions_,
 				m_hash_strides_) * ((IFORM == EDGE || IFORM == FACE) ? 3 : 1)
 				+ topology_type::sub_index(s);

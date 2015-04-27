@@ -68,58 +68,62 @@ enum ManifoldTypeID
 template<size_t NDIMS = 3, size_t IMESH_LEVEL = 4, size_t INIFIT_AXIS = 0>
 struct MeshIDs_
 {
+	/// @name level independent
+	/// @{
+
 	typedef size_t id_type;
 
-//	typedef typename std::make_signed<id_type>::type index_type;
-	typedef long index_type;
+	typedef nTuple<id_type, 3> id_tuple;
 
-	typedef nTuple<Real, 3> coordinates_type;
+	typedef long index_type;
 
 	typedef nTuple<index_type, 3> index_tuple;
 
-	static constexpr int ndims = NDIMS;
+	typedef nTuple<Real, 3> coordinates_type;
 
-	static constexpr int MESH_LEVEL = IMESH_LEVEL;
+	static constexpr int ndims = NDIMS;
 
 	static constexpr size_t FULL_DIGITS = std::numeric_limits<size_t>::digits;
 
-	static constexpr size_t INDEX_DIGITS = (FULL_DIGITS) / 3;
+	static constexpr size_t ID_DIGITS = (FULL_DIGITS) / 3;
 
-	static constexpr size_t INDEX_MASK = (1UL << (INDEX_DIGITS)) - 1;
+	static constexpr size_t ID_MASK = (1UL << (ID_DIGITS)) - 1;
 
-	static constexpr size_t SUB_INDEX_MASK = ((1UL << MESH_LEVEL) - 1)
-			| (((1UL << MESH_LEVEL) - 1) << INDEX_DIGITS)
-			| (((1UL << MESH_LEVEL) - 1) << (INDEX_DIGITS * 2));
-
-	static constexpr size_t SUB_ID_MASK = SUB_INDEX_MASK
-			| (SUB_INDEX_MASK << INDEX_DIGITS)
-			| (SUB_INDEX_MASK << (INDEX_DIGITS * 2));
-
-	static constexpr size_t PRIMARY_INDEX_MASK = INDEX_MASK & (~SUB_INDEX_MASK);
-
-	static constexpr size_t PRIMARY_ID_MASK = PRIMARY_INDEX_MASK
-			| (PRIMARY_INDEX_MASK << INDEX_DIGITS)
-			| (PRIMARY_INDEX_MASK << (INDEX_DIGITS * 2));
-
-	static constexpr size_t _DI = (1UL << (MESH_LEVEL - 1));
-
-	static constexpr size_t _DJ = 1UL << (INDEX_DIGITS + MESH_LEVEL - 1);
-
-	static constexpr size_t _DK = 1UL << (INDEX_DIGITS * 2 + MESH_LEVEL - 1);
-
-	static constexpr size_t _DA = _DI | _DJ | _DK;
-
-	static constexpr index_type INDEX_ZERO = (1L << (INDEX_DIGITS - 2));
-
-	static constexpr size_t ID_ZERO = (((1UL) << (INDEX_DIGITS - 2))
-			| (1UL << (INDEX_DIGITS * 2 - 2)) | (1UL << (INDEX_DIGITS * 3 - 2)));
-
-	static constexpr size_t CARRAY_FLAG = (((1UL) << (INDEX_DIGITS - 1))
-			| (1UL << (INDEX_DIGITS * 2 - 1)) | (1UL << (INDEX_DIGITS * 3 - 1)));
+	static constexpr size_t CARRAY_FLAG = (((1UL) << (ID_DIGITS - 1))
+			| (1UL << (ID_DIGITS * 2 - 1)) | (1UL << (ID_DIGITS * 3 - 1)));
 
 	static constexpr size_t CLEAR_CARRAY_FLAG = ~CARRAY_FLAG;
 
-	static constexpr Real COORD_ZERO = static_cast<Real>(INDEX_ZERO);
+	static constexpr size_t ID_ZERO = (1L << (ID_DIGITS - 2));
+
+	static constexpr Real COORD_ZERO = static_cast<Real>(ID_ZERO);
+
+	/// @}
+	/// @name level dependent
+	/// @{
+
+	static constexpr int MESH_LEVEL = IMESH_LEVEL;
+
+	static constexpr size_t SUB_ID_MASK = ((1UL << MESH_LEVEL) - 1);
+
+	static constexpr size_t PRIMARY_ID_MASK = ID_MASK & (~SUB_ID_MASK);
+
+	static constexpr size_t _D = (1UL << (MESH_LEVEL - 1));
+
+	static constexpr Real _R = static_cast<Real>(_D);
+
+	static constexpr size_t _DI = _D;
+
+	static constexpr size_t _DJ = 1UL << (ID_DIGITS + MESH_LEVEL - 1);
+
+	static constexpr size_t _DK = 1UL << (ID_DIGITS * 2 + MESH_LEVEL - 1);
+
+	static constexpr size_t _DA = _DI | _DJ | _DK;
+
+	static constexpr index_type INDEX_ZERO = static_cast<index_type>(1L
+			<< (ID_DIGITS - MESH_LEVEL - 2));
+
+	/// @}
 
 //	static constexpr size_t CELL_ID_MASK_ = //
 //			(((1UL << (ID_DIGITS - MAX_NUM_OF_MESH_LEVEL)) - 1)
@@ -165,9 +169,9 @@ struct MeshIDs_
 	static constexpr coordinates_type m_index_to_coordinates_shift_[4][3] = {
 
 	{ { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } }, /*VERTEX*/
-	{ { 0.5, 0, 0 }, { 0, 0.5, 0 }, { 0, 0, 0.5 } }, /*EDGE*/
-	{ { 0, 0.5, 0.5 }, { 0.5, 0, 0.5 }, { 0.5, 0.5, 0 } }, /*FACE*/
-	{ { 0, 0.5, 0.5 }, { 0.5, 0.5, 0.5 }, { 0.5, 0.5, 0.5 } } /*VOLUME*/
+	{ { _R, 0, 0 }, { 0, _R, 0 }, { 0, 0, _R } }, /*EDGE*/
+	{ { 0, _R, _R }, { _R, 0, _R }, { _R, _R, 0 } }, /*FACE*/
+	{ { 0, _R, _R }, { _R, _R, _R }, { _R, _R, _R } } /*VOLUME*/
 
 	};
 
@@ -184,75 +188,130 @@ struct MeshIDs_
 			};
 
 	template<size_t IFORM>
-	static constexpr id_type pack(index_type i, index_type j, index_type k,
-			int n = 0)
+	static constexpr id_type pack(id_type i, id_type j, id_type k, int n = 0)
 	{
 		return
 
-		(m_index_to_id_shift_[IFORM][n % 3] << MESH_LEVEL)
+		(m_index_to_id_shift_[IFORM][n % 3])
 
-		| (static_cast<size_t>(i + INDEX_ZERO))
+		| (i)
 
-		| (static_cast<size_t>(j + INDEX_ZERO) << (INDEX_DIGITS))
+		| (j << (ID_DIGITS))
 
-		| (static_cast<size_t>(k + INDEX_ZERO) << (INDEX_DIGITS * 2));
+		| (k << (ID_DIGITS * 2));
 	}
 
 	template<size_t IFORM>
-	static constexpr id_type pack(index_tuple const &i, int n = 0)
+	static constexpr id_type pack(id_tuple const &i, int n = 0)
 	{
 		return pack<IFORM>(i[0], i[1], i[2], n);
 	}
 	template<size_t IFORM>
-	static constexpr id_type pack(nTuple<index_type, 4> const &i)
+	static constexpr id_type pack(nTuple<id_type, 4> const &i)
 	{
 		return pack<IFORM>(i[0], i[1], i[2], i[3]);
 	}
 
 	template<size_t IFORM>
-	static constexpr index_tuple unpack(id_type s)
+	static constexpr id_tuple unpack(id_type s)
 	{
-		return nTuple<index_type, NDIMS>(
-				{ (static_cast<index_type>((s & INDEX_MASK) >> MESH_LEVEL)
-						- (INDEX_ZERO >> MESH_LEVEL)),
+		return id_tuple( {
 
-				(static_cast<index_type>(((s >> (INDEX_DIGITS)) & INDEX_MASK)
-						>> MESH_LEVEL) - (INDEX_ZERO >> MESH_LEVEL)),
+		((s & ID_MASK)),
 
-						(static_cast<index_type>(((s >> (INDEX_DIGITS * 2))
-								& INDEX_MASK) >> MESH_LEVEL)
-								- (INDEX_ZERO >> MESH_LEVEL)), })
+		((((s >> (ID_DIGITS)) & ID_MASK))),
+
+		((((s >> (ID_DIGITS * 2)) & ID_MASK)))
+
+		})
 
 		;
 	}
 
-	template<size_t IFORM = VERTEX>
-	static constexpr index_tuple coordinates_to_index(coordinates_type const &x,
-			int n = 0)
+	template<size_t IFORM>
+	static constexpr id_type pack_index(index_type i, index_type j,
+			index_type k, int n = 0)
+	{
+		return pack<IFORM>(
+
+		static_cast<id_type>(i + INDEX_ZERO) << MESH_LEVEL,
+
+		static_cast<id_type>(j + INDEX_ZERO) << MESH_LEVEL,
+
+		static_cast<id_type>(k + INDEX_ZERO) << MESH_LEVEL,
+
+		n);
+	}
+	template<size_t IFORM>
+	static constexpr id_type pack_index(index_tuple const & idx, int n = 0)
+	{
+		return pack_index<IFORM>(idx[0], idx[1], idx[2], n);
+	}
+
+	template<size_t IFORM>
+	static constexpr id_type pack_index(nTuple<index_type, 4> const & idx)
+	{
+		return pack_index<IFORM>(idx[0], idx[1], idx[2], idx[3]);
+	}
+
+	template<size_t IFORM>
+	static constexpr index_tuple unpack_index(id_type s)
 	{
 		return index_tuple(
 				{
 
-						static_cast<index_type>((static_cast<size_t>(std::floor(
-								std::fma(
-										m_index_to_coordinates_shift_[IFORM][n][0],
-										static_cast<Real>(1UL << (MESH_LEVEL)),
-										x[0] + COORD_ZERO))) & INDEX_MASK)
-								>> MESH_LEVEL),
+				static_cast<index_type>((s & ID_MASK) >> MESH_LEVEL)
+						- INDEX_ZERO,
 
-						static_cast<index_type>((static_cast<size_t>(std::floor(
-								std::fma(
-										m_index_to_coordinates_shift_[IFORM][n][1],
-										static_cast<Real>(1UL << (MESH_LEVEL)),
-										x[1] + COORD_ZERO))) & INDEX_MASK)
-								>> MESH_LEVEL),
+				static_cast<index_type>((((s >> (ID_DIGITS)) & ID_MASK))
+						>> MESH_LEVEL) - INDEX_ZERO,
 
-						static_cast<index_type>((static_cast<size_t>(std::floor(
-								std::fma(
-										m_index_to_coordinates_shift_[IFORM][n][2],
-										static_cast<Real>(1UL << (MESH_LEVEL)),
-										x[2] + COORD_ZERO))) & INDEX_MASK)
-								>> MESH_LEVEL)
+				static_cast<index_type>((((s >> (ID_DIGITS * 2)) & ID_MASK))
+						>> MESH_LEVEL) - INDEX_ZERO
+
+				});
+	}
+	template<size_t IFORM>
+	static constexpr index_tuple unpack_index4(id_type s)
+	{
+		return index_tuple(
+				{
+
+				static_cast<index_type>((s & ID_MASK) >> MESH_LEVEL)
+						- INDEX_ZERO,
+
+				static_cast<index_type>((((s >> (ID_DIGITS)) & ID_MASK))
+						>> MESH_LEVEL) - INDEX_ZERO,
+
+				static_cast<index_type>((((s >> (ID_DIGITS * 2)) & ID_MASK))
+						>> MESH_LEVEL) - INDEX_ZERO,
+
+				sub_index(s)
+
+				});
+	}
+
+	template<size_t IFORM = VERTEX>
+	static constexpr id_tuple coordinates_to_id_tuple(coordinates_type const &x,
+			int n = 0)
+	{
+		return id_tuple(
+				{
+
+				static_cast<id_type>(std::floor(
+						x[0] + COORD_ZERO
+								- m_index_to_coordinates_shift_[IFORM][n][0]))
+						& PRIMARY_ID_MASK,
+
+				static_cast<id_type>(std::floor(
+						x[1] + COORD_ZERO
+								- m_index_to_coordinates_shift_[IFORM][n][1]))
+						& PRIMARY_ID_MASK,
+
+				static_cast<id_type>(std::floor(
+						x[2] + COORD_ZERO
+								- m_index_to_coordinates_shift_[IFORM][n][2]))
+						& PRIMARY_ID_MASK
 
 				})
 
@@ -260,27 +319,21 @@ struct MeshIDs_
 	}
 
 	template<size_t IFORM = VERTEX>
-	static constexpr coordinates_type index_to_coordinates(
-			index_tuple const &idx, int n = 0)
+	static constexpr coordinates_type id_to_coordinates(id_tuple const &idx,
+			int n = 0)
 	{
 
 		return coordinates_type(
 				{
 
-				std::fma(m_index_to_coordinates_shift_[IFORM][n][0],
-						static_cast<Real>(1UL << (MESH_LEVEL)),
-						static_cast<Real>(((idx[0] << MESH_LEVEL) - INDEX_ZERO)
-								& INDEX_MASK)),
+				static_cast<Real>(idx[0])
+						+ m_index_to_coordinates_shift_[IFORM][n][0] - ID_ZERO,
 
-				std::fma(m_index_to_coordinates_shift_[IFORM][n][1],
-						static_cast<Real>(1UL << (MESH_LEVEL)),
-						static_cast<Real>(((idx[1] << MESH_LEVEL) - INDEX_ZERO)
-								& INDEX_MASK)),
+				static_cast<Real>(idx[1])
+						+ m_index_to_coordinates_shift_[IFORM][n][1] - ID_ZERO,
 
-				std::fma(m_index_to_coordinates_shift_[IFORM][n][2],
-						static_cast<Real>(1UL << (MESH_LEVEL)),
-						static_cast<Real>(((idx[2] << MESH_LEVEL) - INDEX_ZERO)
-								& INDEX_MASK))
+				static_cast<Real>(idx[2])
+						+ m_index_to_coordinates_shift_[IFORM][n][2] - ID_ZERO
 
 				});
 	}
@@ -289,47 +342,13 @@ struct MeshIDs_
 	static constexpr id_type coordinates_to_id(coordinates_type const &x,
 			int n = 0)
 	{
-
-		return pack<IFORM>(coordinates_to_index<IFORM>(x, n), n);
-
-//		m_index_to_id_shift_[IFORM][n]
-//
-//				| (static_cast<size_t>(std::floor(
-//						(x[0] - m_index_to_coordinates_shift_[IFORM][n][0]
-//								+ COORD_ZERO) * COORD_TO_INDEX_FACTOR) + 0.5)
-//						& PRIMARY_INDEX_MASK)
-//
-//				| ((static_cast<size_t>(std::floor(
-//						(x[1] - m_index_to_coordinates_shift_[IFORM][n][1]
-//								+ COORD_ZERO) * COORD_TO_INDEX_FACTOR) + 0.5)
-//						& PRIMARY_INDEX_MASK) << (INDEX_DIGITS))
-//
-//				| ((static_cast<size_t>(std::floor(
-//
-//						(x[2] - m_index_to_coordinates_shift_[IFORM][n][2]
-//								+ COORD_ZERO) * COORD_TO_INDEX_FACTOR) + 0.5)
-//						& PRIMARY_INDEX_MASK) << (INDEX_DIGITS * 2))
-
-		;
+		return pack<IFORM>(coordinates_to_id_tuple<IFORM>(x, n), n);
 	}
+
 	template<size_t IFORM = VERTEX>
 	static constexpr coordinates_type id_to_coordinates(id_type s)
 	{
-		return index_to_coordinates<IFORM>(unpack<IFORM>(s), sub_index(s));
-//		return std::move(coordinates_type { //
-//
-//				static_cast<Real>((s & INDEX_MASK)) * INDEX_TO_COORD_FACTOR
-//						- COORD_ZERO,
-//
-//				static_cast<Real>(((s >> INDEX_DIGITS)) & INDEX_MASK)
-//						* INDEX_TO_COORD_FACTOR - COORD_ZERO,
-//
-//				static_cast<Real>(((s >> (INDEX_DIGITS * 2))) & INDEX_MASK)
-//						* INDEX_TO_COORD_FACTOR - COORD_ZERO
-//
-//				}
-//
-//				);
+		return id_to_coordinates<IFORM>(unpack<IFORM>(s), sub_index(s));
 	}
 	template<size_t IFORM = VERTEX>
 	static constexpr coordinates_type coordinates(id_type s)
@@ -337,11 +356,18 @@ struct MeshIDs_
 		return std::move(id_to_coordinates<IFORM>(s));
 	}
 
-	template<size_t IFORM, typename TX> static std::tuple<id_type,
-			coordinates_type> coordinates_global_to_local(TX const &y,
-			int n = 0)
+	template<size_t IFORM = VERTEX>
+	static constexpr index_tuple coordinates_to_index(
+			coordinates_type const & x, int n = 0)
 	{
-		index_tuple idx;
+		return unpack_index<IFORM>(coordinates_to_id<IFORM>(x, n));
+	}
+
+	template<size_t IFORM, typename TX>
+	static std::tuple<id_type, coordinates_type> coordinates_global_to_local(
+			TX const &y, int n = 0)
+	{
+		id_tuple idx;
 
 		coordinates_type x;
 
@@ -370,12 +396,12 @@ struct MeshIDs_
 
 	static constexpr id_type rotate(id_type const &s)
 	{
-		return ((s & (_DA)) << INDEX_DIGITS) | ((s & _DK) >> (INDEX_DIGITS * 2));
+		return ((s & (_DA)) << ID_DIGITS) | ((s & _DK) >> (ID_DIGITS * 2));
 	}
 
 	static constexpr id_type inverse_rotate(id_type const &s)
 	{
-		return ((s & (_DA)) >> INDEX_DIGITS) | ((s & _DI) << (INDEX_DIGITS * 2));
+		return ((s & (_DA)) >> ID_DIGITS) | ((s & _DI) << (ID_DIGITS * 2));
 	}
 
 	/**
@@ -401,8 +427,8 @@ struct MeshIDs_
 	static constexpr int node_id(id_type const &s)
 	{
 		return ((s >> (MESH_LEVEL - 1)) & 1UL)
-				| ((s >> (INDEX_DIGITS + MESH_LEVEL - 2)) & 2UL)
-				| ((s >> (INDEX_DIGITS * 2 + MESH_LEVEL - 3)) & 4UL);
+				| ((s >> (ID_DIGITS + MESH_LEVEL - 2)) & 2UL)
+				| ((s >> (ID_DIGITS * 2 + MESH_LEVEL - 3)) & 4UL);
 	}
 
 	static constexpr int m_node_id_to_index_[8] = { //
@@ -444,13 +470,12 @@ struct MeshIDs_
 	 */
 	static constexpr int MAX_NUM_OF_CELL = 12;
 
-	static constexpr index_type _HI = (1L << (MESH_LEVEL - 1));
-	static constexpr index_type _HJ = _HI << INDEX_DIGITS;
-	static constexpr index_type _HK = _HI << (INDEX_DIGITS * 2);
-	static constexpr index_type _LI =
-			(((-_DI) & INDEX_MASK) & CLEAR_CARRAY_FLAG);
-	static constexpr index_type _LJ = _LI << INDEX_DIGITS;
-	static constexpr index_type _LK = _LI << (INDEX_DIGITS * 2);
+	static constexpr size_t _HI = _D;
+	static constexpr size_t _HJ = _HI << ID_DIGITS;
+	static constexpr size_t _HK = _HI << (ID_DIGITS * 2);
+	static constexpr size_t _LI = (((-_D) & ID_MASK) & CLEAR_CARRAY_FLAG);
+	static constexpr size_t _LJ = _LI << ID_DIGITS;
+	static constexpr size_t _LK = _LI << (ID_DIGITS * 2);
 
 	static constexpr int m_vertics_num_[4/* to iform*/][8/* node id*/] =
 
@@ -500,7 +525,7 @@ struct MeshIDs_
 
 			};
 
-	static constexpr index_type m_vertics_matrix_[4/* to iform*/][8/* node id*/][MAX_NUM_OF_CELL/*id shift*/] =
+	static constexpr size_t m_vertics_matrix_[4/* to iform*/][8/* node id*/][MAX_NUM_OF_CELL/*id shift*/] =
 			{
 			//To VERTEX
 					{
@@ -1464,22 +1489,26 @@ struct MeshIDs_
  */
 
 template<size_t N, size_t M, size_t A> constexpr size_t MeshIDs_<N, M, A>::FULL_DIGITS;
-template<size_t N, size_t M, size_t A> constexpr size_t MeshIDs_<N, M, A>::INDEX_DIGITS;
-template<size_t N, size_t M, size_t A> constexpr size_t MeshIDs_<N, M, A>::INDEX_MASK;
+template<size_t N, size_t M, size_t A> constexpr size_t MeshIDs_<N, M, A>::ID_DIGITS;
+template<size_t N, size_t M, size_t A> constexpr size_t MeshIDs_<N, M, A>::ID_MASK;
 template<size_t N, size_t M, size_t A> constexpr size_t MeshIDs_<N, M, A>::_DK;
 template<size_t N, size_t M, size_t A> constexpr size_t MeshIDs_<N, M, A>::_DJ;
 template<size_t N, size_t M, size_t A> constexpr size_t MeshIDs_<N, M, A>::_DI;
 template<size_t N, size_t M, size_t A> constexpr size_t MeshIDs_<N, M, A>::_DA;
-template<size_t N, size_t M, size_t A> constexpr typename MeshIDs_<N,M,A>::index_type MeshIDs_<N, M,A>::INDEX_ZERO;
-template<size_t N, size_t M, size_t A> constexpr Real MeshIDs_<N, M, A>::COORD_ZERO;
+
 template<size_t N, size_t M, size_t A> constexpr int MeshIDs_<N, M, A>::m_node_id_to_index_[];
 template<size_t N, size_t M, size_t A> constexpr size_t MeshIDs_<N, M, A>::m_index_to_id_shift_[4][3];
 template<size_t N, size_t M, size_t A> constexpr size_t MeshIDs_<N, M, A>::m_index_to_node_id_[4][3];
 template<size_t N, size_t M, size_t A> constexpr typename MeshIDs_<N,M,A>::coordinates_type MeshIDs_<N,M,A>::m_index_to_coordinates_shift_[4][3];
 template<size_t N, size_t M, size_t A> constexpr int MeshIDs_<N, M, A>::m_vertics_num_[4][8];
-template<size_t N, size_t M, size_t A> constexpr typename MeshIDs_<N, M,A>::index_type MeshIDs_<N,M, A>::m_vertics_matrix_[4/* to iform*/][8/* node id*/][MAX_NUM_OF_CELL/*id shift*/];
+template<size_t N, size_t M, size_t A> constexpr size_t MeshIDs_<N, M, A>::m_vertics_matrix_[4/* to iform*/][8/* node id*/][MAX_NUM_OF_CELL/*id shift*/];
 
-typedef MeshIDs_<3, 0> MeshIDs;
+template<size_t N, size_t M, size_t A> constexpr typename MeshIDs_<N,M,A>::id_type MeshIDs_<N, M, A>::ID_ZERO;
+template<size_t N, size_t M, size_t A> constexpr typename MeshIDs_<N,M,A>::index_type MeshIDs_<N, M, A>::INDEX_ZERO;
+
+template<size_t N, size_t M, size_t A> constexpr Real MeshIDs_<N, M, A>::COORD_ZERO;
+
+typedef MeshIDs_<3, 4> MeshIDs;
 
 }
 // namespace simpla

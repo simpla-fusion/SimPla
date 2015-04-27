@@ -199,7 +199,7 @@ public:
 
 			for (auto const &idx : m_box_)
 			{
-				fun(m_mesh_.template pack<iform>(idx));
+				fun(m_mesh_.template pack_index<iform>(idx));
 			}
 		}
 		else
@@ -233,7 +233,7 @@ public:
 		{
 			for (auto const &x : m_box_)
 			{
-				fun(m_mesh_.template pack<iform>(x));
+				fun(m_mesh_.template pack_index<iform>(x));
 			}
 		}
 		else
@@ -258,7 +258,7 @@ public:
 
 			for (auto const &idx : r)
 			{
-				fun(mesh_type::template pack<iform>(idx));
+				fun(mesh_type::template pack_index<iform>(idx));
 			}
 		}
 		else if (is_simply())
@@ -299,7 +299,7 @@ public:
 
 	bool in_box(id_type s) const
 	{
-		return m_box_.in_bound(m_mesh_.template unpack<iform>(s));
+		return m_box_.in_bound(m_mesh_.template unpack_index<iform>(s));
 	}
 
 	void update_bound_box()
@@ -451,7 +451,7 @@ public:
 
 		id_type operator*() const
 		{
-			return mesh_type::template pack<iform>(base_iterator::operator *());
+			return mesh_type::template pack_index<iform>(base_iterator::operator *());
 		}
 	};
 	/**

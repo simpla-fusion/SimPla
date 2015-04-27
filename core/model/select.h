@@ -487,7 +487,7 @@ void filter_domain_by_config(TDict const & dict, TDomain * domain)
 			if (domain->m_box_.in_bound(idx))
 			{
 				domain->m_id_set_.insert(
-						domain->m_mesh_.template pack<iform>(idx));
+						domain->m_mesh_.template pack_index<iform>(idx));
 			}
 		}
 		if (domain->m_id_set_.size() == 0)
