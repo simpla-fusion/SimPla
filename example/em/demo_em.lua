@@ -38,7 +38,7 @@ GW = 5
 
 Mesh=
   {
-    dimensions={NX ,NY ,NZ },
+    Dimensions={NX ,NY ,NZ },
 
     Box={{0.0,0.0,0.0},{LX,LY,LZ}},
 
@@ -58,18 +58,16 @@ domain_center=    {
 }
 
 InitValue= {
-  --    B=
-  --    {
+  --  B=
+  --  {
+  --    --      Domain={Box={{0 ,0 ,0},{LX,LY,LZ}}},
+  --    Value=function(x,t)
+  --      print(x[1],x[2],x[3])
+  --      return  {0,0,math.sin(x[1]*2.0*math.pi/LX)*math.sin(x[2]*2.0*math.pi/LY)}
   --
-  ----      Domain={Box={{0 ,0 ,0},{LX,LY,LZ}}},
+  --    end
   --
-  --      Value=function(x,t)
-  --
-  --        return  {0,0,math.sin(x[1]*2.0*math.pi/LX)*math.sin(x[2]*2.0*math.pi/LY)}
-  --
-  --      end
-  --
-  --    },
+  --  },
   --  phi=
   --  {
   --    Domain={Box={{0 ,0 ,0},{LX,LY,LZ}}},

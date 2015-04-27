@@ -625,10 +625,12 @@ void RectMesh<TTopology, Polices...>::deploy(size_t const *gw)
 					/ static_cast<Real>(m_index_dimensions_[i]);
 
 			m_to_topology_scale_[i] = static_cast<Real>(m_index_dimensions_[i])
-					/ (m_coords_max_[i] - m_coords_min_[i]);
+					/ (m_coords_max_[i] - m_coords_min_[i])
+					* topology_type::COORDINATES_MESH_FACTOR;
 
 			m_from_topology_scale_[i] = (m_coords_max_[i] - m_coords_min_[i])
-					/ static_cast<Real>(m_index_dimensions_[i]);
+					/ static_cast<Real>(m_index_dimensions_[i])
+					/ topology_type::COORDINATES_MESH_FACTOR;
 		}
 #ifdef  ENABLE_COMPLEX_COORDINATE_SYSTEM
 		else if ((m_coords_max_[i] - m_coords_min_[i]) > EPSILON)

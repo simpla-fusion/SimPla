@@ -297,9 +297,15 @@ public:
 
 	}
 
+	template<typename TI>
+	bool in_box(TI const & idx) const
+	{
+		return m_box_.in_bound(idx);
+	}
+
 	bool in_box(id_type s) const
 	{
-		return m_box_.in_bound(m_mesh_.template unpack_index<iform>(s));
+		return m_box_.in_bound(m_mesh_.template unpack_index4<iform>(s));
 	}
 
 	void update_bound_box()
@@ -451,7 +457,8 @@ public:
 
 		id_type operator*() const
 		{
-			return mesh_type::template pack_index<iform>(base_iterator::operator *());
+			return mesh_type::template pack_index<iform>(
+					base_iterator::operator *());
 		}
 	};
 	/**

@@ -123,6 +123,9 @@ struct MeshIDs_
 	static constexpr index_type INDEX_ZERO = static_cast<index_type>(1L
 			<< (ID_DIGITS - MESH_LEVEL - 2));
 
+	static constexpr Real COORDINATES_MESH_FACTOR = static_cast<Real>(1UL
+			<< (MESH_LEVEL));
+
 	/// @}
 
 //	static constexpr size_t CELL_ID_MASK_ = //
@@ -272,9 +275,9 @@ struct MeshIDs_
 				});
 	}
 	template<size_t IFORM>
-	static constexpr index_tuple unpack_index4(id_type s)
+	static constexpr nTuple<index_type,4> unpack_index4(id_type s)
 	{
-		return index_tuple(
+		return nTuple<index_type,4>(
 				{
 
 				static_cast<index_type>((s & ID_MASK) >> MESH_LEVEL)

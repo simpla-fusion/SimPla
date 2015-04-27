@@ -484,13 +484,18 @@ void filter_domain_by_config(TDict const & dict, TDomain * domain)
 
 		for (auto const & idx : points)
 		{
-			if (domain->m_box_.in_bound(idx))
+
+			auto s = domain->m_mesh_.template pack_index<iform>(idx);
+
+			if (domain->in_box(idx))
 			{
-				domain->m_id_set_.insert(
+				domain->id_set().insert(
 						domain->m_mesh_.template pack_index<iform>(idx));
 			}
+
 		}
-		if (domain->m_id_set_.size() == 0)
+
+		if (domain->id_set().size() == 0)
 		{
 			domain->clear();
 		}
