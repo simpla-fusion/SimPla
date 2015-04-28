@@ -543,7 +543,7 @@ void ExplicitEMContext<TM>::InitPECboundary()
 			VERBOSE << "Apply PEC to E1";
 			for (auto s : conduct_wall_E_)
 			{
-				get_value(this->E1, s) = 0;
+				try_index(this->E1, s) = 0;
 
 			};
 		};
@@ -567,7 +567,7 @@ void ExplicitEMContext<TM>::InitPECboundary()
 			VERBOSE << "Apply PEC to B1 ";
 			for (auto s : conduct_wall_B_)
 			{
-				get_value(this->B1, s) = 0;
+				try_index(this->B1, s) = 0;
 
 			};
 		};

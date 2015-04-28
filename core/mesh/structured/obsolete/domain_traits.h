@@ -75,7 +75,7 @@ constexpr Zero operator &(Zero, Zero)
 
 //template<typename TD, typename TOP, typename TI, typename ...Args>
 //auto calculate(TD const & d, TOP const & op, TI const & s, Args && ... args)
-//DECL_RET_TYPE((op(get_value(std::forward<Args>(args),s)...)))
+//DECL_RET_TYPE((op(try_index(std::forward<Args>(args),s)...)))
 //
 //template<typename TD, typename ...Args>
 //void calculate(TD const & d, _impl::Scatter const & op, Args && ... args)

@@ -125,23 +125,25 @@ public:
 //private:
 
 	domain_type m_domain_;
+	mesh_type const & m_mesh_;
 public:
 
 	Particle(domain_type const & d)
-			: m_domain_(d)
+			: m_domain_(d), m_mesh_(d.mesh())
 	{
 	}
 
 	Particle(this_type const& other)
 			: engine_type(other), container_type(other), m_domain_(
-					other.m_domain_)
+					other.m_domain_), m_mesh_(other.m_mesh_)
 	{
 	}
 
 	template<typename ... Args>
 	Particle(this_type & other, Args && ...args)
 			: engine_type(other), container_type(other,
-					std::forward<Args>(args)...), m_domain_(other.m_domain_)
+					std::forward<Args>(args)...), m_domain_(other.m_domain_), m_mesh_(
+					other.m_mesh_)
 	{
 	}
 
@@ -170,12 +172,12 @@ public:
 	}
 	mesh_type const & mesh() const
 	{
-		return m_domain_.mesh();
+		return m_mesh_;
 	}
 
 	domain_type const & domain() const
 	{
-		return m_domain_.mesh();
+		return m_domain_;
 	}
 
 	template<typename TDict, typename ...Others>
@@ -187,6 +189,13 @@ public:
 		{
 			UNIMPLEMENTED2("load particle from [DataSrc]");
 		}
+	}
+	template<typename OS>
+	OS & print(OS & os) const
+	{
+		engine_type::print(os);
+		os << " num= " << size() << ",";
+		return os;
 	}
 	bool empty() const
 	{

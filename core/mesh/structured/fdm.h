@@ -86,7 +86,7 @@ public:
 	static inline TV
 	calculate(geometry_type const & geo,_Field<TM, TV, Others...> const &f, Args && ... s)
 	{
-		return get_value(f,std::forward<Args>(s)...);
+		return try_index(f,std::forward<Args>(s)...);
 	}
 
 	template<typename geometry_type,typename TOP, typename TL, typename TR, typename ...Others>

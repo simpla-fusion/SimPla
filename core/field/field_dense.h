@@ -339,6 +339,18 @@ public:
 	}
 }
 ;
+template<typename TM, size_t IFORM, typename ...Others, typename TI>
+typename _Field<Domain<TM, IFORM>, Others...>::value_type & try_index(
+		_Field<Domain<TM, IFORM>, Others...> & f, TI const &s)
+{
+	return f[s];
+}
+template<typename TM, size_t IFORM, typename ...Others, typename TI>
+typename _Field<Domain<TM, IFORM>, Others...>::value_type const& try_index(
+		_Field<Domain<TM, IFORM>, Others...> const& f, TI const &s)
+{
+	return f[s];
+}
 template<typename TM, size_t IFORM, typename ...Others>
 struct field_traits<_Field<Domain<TM, IFORM>, Others...>>
 {

@@ -1,4 +1,4 @@
-Description="For Cold Plasma Dispersion" -- description or other text things.
+Description="  Plasma PIC" -- description or other text things.
 
 -- SI Unit System
 c = 299792458  -- m/s
@@ -28,13 +28,15 @@ omega_ce = qe * Btor/me -- e/m_p B0 rad/s
 vTe= math.sqrt(k_B*Te*2/me)
 rhoe = vTe/omega_ce    -- m
 
-NX = 10
-NY = 20
-NZ = 30
+NX = 100
+NY = 1 
+NZ = 1 
 LX = 1  --m --100000*rhoi --0.6
 LY = 2  --2.0*math.pi/k0
 LZ = 3  -- 2.0*math.pi/18
 GW = 5
+
+PIC=200
 
 omega_ext=omega_ci*1.9
 
@@ -45,4 +47,18 @@ Mesh=
     Box={ {0.0, 0.0 , 0.0} , {LX,LY,LZ} },
 
     dt=0.5*LX/NX/c  -- time step
+  }
+
+
+Particle=
+  {
+    H={
+      mass=1.0,charge=2.0,T=3.0,pic=PIC,
+
+      Distribution=function(x,v)
+--              print(x[1],x[2],x[3])
+        return (1.0-math.cos(x[1]/LX*math.pi*2.0))/2/PIC
+      end
+
+    }
   }

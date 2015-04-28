@@ -56,23 +56,28 @@ USE_CASE(pic," Particle in cell" )
 
 	mesh->deploy();
 
-	if (GLOBAL_COMM.process_num()==0)
-	{
+	typename mesh_type::coordinates_type zero = { 0.5, 0, 0 };
 
-		MESSAGE << endl
+	auto ss = mesh->template coordinates_to_id<VERTEX>(zero);
+	SHOW(mesh->template coordinates_to_id<VERTEX>(zero));
+	SHOW(mesh->template coordinates_to_index<VERTEX>(zero));
+	SHOW(mesh->template coordinates_to_id_tuple<VERTEX>(zero));
+	SHOW(mesh->template unpack_index<VERTEX>(ss));
+	SHOW(mesh->template unpack_index<VERTEX>(ss + (mesh_type::_DI << 1)));
 
-		<< "[ Configuration ]" << endl
+	CHECK_BIT(mesh->_D);
+	CHECK_BIT(mesh->ID_MASK);
+	CHECK_BIT(mesh->ID_ZERO);
+	CHECK_BIT(mesh->INDEX_ZERO);
+	CHECK_BIT(mesh->CARRAY_FLAG);
+	CHECK_BIT(mesh->SUB_ID_MASK);
+	CHECK_BIT(mesh->PRIMARY_ID_MASK);
 
-		<< " Description=\"" << options["Description"].as<std::string>("") << "\""
-		<< endl
-
-		<< " Mesh =" << endl << "  {" << *mesh << "} " << endl
-
-		<< " TIME_STEPS = " << num_of_steps << endl;
-	}
+	auto s = mesh->coordinates_to_id_tuple(zero);
 
 	MESSAGE << "======== Initialize ========" << std::endl;
 
+	auto rho = mesh->template make_form<VERTEX, Real>();
 	auto J = mesh->template make_form<EDGE, Real>();
 	auto E = mesh->template make_form<EDGE, Real>();
 	auto B = mesh->template make_form<FACE, Real>();
@@ -91,80 +96,107 @@ USE_CASE(pic," Particle in cell" )
 
 	typedef PICDemo engine_type;
 
-	size_t pic = 10;
-
-	options["pic"].as(&pic);
-
 	auto ion = make_kinetic_particle<engine_type>(
-			mesh->template domain<VOLUME>());
+			mesh->template domain<VERTEX>());
 
-	ion->mass(1.0);
+	size_t pic = options["Particle"]["H"]["pic"].template as<size_t>(10);
 
-	ion->charge(2.0);
+	ion->mass(options["Particle"]["H"]["mass"].template as<Real>(1.0));
 
-	ion->temperature(3.0);
+	ion->charge(options["Particle"]["H"]["charge"].template as<Real>(1.0));
+
+	ion->temperature(options["Particle"]["H"]["T"].template as<Real>(1.0));
 
 	ion->deploy();
 
-	auto extents = mesh->extents();
-
-	auto p_generator = simple_particle_generator(*ion, extents, 1.0);
+	auto p_generator = simple_particle_generator(*ion, mesh->extents(),
+			ion->temperature(), options["Particle"]["H"]["Distribution"]);
 
 	std::mt19937 rnd_gen;
 
-	for (int i = 0, ie = 1000; i < ie; ++i)
+	for (int i = 0, ie = pic * ion->domain().size(); i < ie; ++i)
 	{
 		ion->insert(p_generator(rnd_gen));
 	}
 
-	LOGGER << "----------  Dump input ---------- " << endl;
-
 	cd("/Input/");
+
+	rho.clear();
+	VERBOSE << SAVE(rho) << std::endl;
+
+	ion->for_each([&](typename engine_type::Point_s const & p)
+	{
+		rho.scatter(p.x,1.0,p.f);
+	});
+
+	VERBOSE << SAVE(rho) << std::endl;
 
 	VERBOSE << save("H1", ion->dataset()) << std::endl;
 
-	VERBOSE << SAVE(E) << endl;
-	VERBOSE << SAVE(B) << endl;
+	LOGGER << "----------  Show ConfigurationF ---------- " << endl;
 
-	DEFINE_PHYSICAL_CONST
-	Real dt = mesh->dt();
-	auto dx = mesh->dx();
-
-	Real omega = 0.01 * PI / dt;
-
-	LOGGER << "----------  START ---------- " << endl;
-
-	cd("/Save/");
-
-	for (size_t step = 0; step < num_of_steps; ++step)
+	if (GLOBAL_COMM.process_num()==0)
 	{
-		VERBOSE << "Step [" << step << "/" << num_of_steps << "]" << endl;
 
-		J.clear();
+		MESSAGE << endl
 
-		LOG_CMD(ion->next_timestep(dt, E, B, &J));
+		<< "[ Configuration ]" << endl
 
-		J.self_assign(J_src);
-		B.self_assign(B_src);
+		<< " Description=\"" << options["Description"].as<std::string>("") << "\""
+		<< endl
 
-		LOG_CMD(E += curl(B) * (dt * speed_of_light2) - J * (dt / epsilon0));
-		LOG_CMD(B -= curl(E) * dt);
+		<< " Mesh = " << endl << "  {" << *mesh << "} " << endl
 
-		E.self_assign(E_src);
+		<< " Particle ="<<endl<<
 
-		VERBOSE << SAVE_RECORD(J) << endl;
-		VERBOSE << SAVE_RECORD(E) << endl;
-		VERBOSE << SAVE_RECORD(B) << endl;
+		" H = {"<<*ion<<"}"<<endl
 
-		mesh->next_timestep();
-
+		<< " TIME_STEPS = " << num_of_steps << endl;
 	}
-	MESSAGE << "======== DONE! ========" << std::endl;
 
-	cd("/Output/");
-
-	VERBOSE << save("H", ion->dataset()) << std::endl;
-	VERBOSE << SAVE(E) << endl;
-	VERBOSE << SAVE(B) << endl;
-	VERBOSE << SAVE(J) << endl;
+//	LOGGER << "----------  Dump input ---------- " << endl;
+//	VERBOSE << SAVE(E) << endl;
+//	VERBOSE << SAVE(B) << endl;
+//
+//	DEFINE_PHYSICAL_CONST
+//	Real dt = mesh->dt();
+//	auto dx = mesh->dx();
+//
+//	Real omega = 0.01 * PI / dt;
+//
+//	LOGGER << "----------  START ---------- " << endl;
+//
+//	cd("/Save/");
+//
+//	for (size_t step = 0; step < num_of_steps; ++step)
+//	{
+//		VERBOSE << "Step [" << step << "/" << num_of_steps << "]" << endl;
+//
+//		J.clear();
+//
+//		LOG_CMD(ion->next_timestep(dt, E, B, &J));
+//
+//		J.self_assign(J_src);
+//		B.self_assign(B_src);
+//
+//		LOG_CMD(E += curl(B) * (dt * speed_of_light2) - J * (dt / epsilon0));
+//		LOG_CMD(B -= curl(E) * dt);
+//
+//		E.self_assign(E_src);
+//
+//		VERBOSE << SAVE_RECORD(J) << endl;
+//		VERBOSE << SAVE_RECORD(E) << endl;
+//		VERBOSE << SAVE_RECORD(B) << endl;
+//
+//		mesh->next_timestep();
+//
+//	}
+//	MESSAGE << "======== DONE! ========" << std::endl;
+//
+//	cd("/Output/");
+//
+//	VERBOSE << save("H", ion->dataset()) << std::endl;
+//	VERBOSE << SAVE(E) << endl;
+//	VERBOSE << SAVE(B) << endl;
+//	VERBOSE << SAVE(J) << endl;
 }

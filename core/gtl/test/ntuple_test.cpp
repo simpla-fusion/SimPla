@@ -42,17 +42,17 @@ protected:
 
 		[&](size_t const idx[dimensions::size()])
 		{
-			get_value_r(aA,idx) = idx[0] * 2;
-			get_value_r(aB,idx) = 5 - idx[0];
-			get_value_r(aC,idx) = idx[0] * 5 + 1;
-			get_value_r(aD,idx) = 0;
-			get_value_r(vA,idx) = get_value_r(aA,idx);
-			get_value_r(vB,idx) = get_value_r(aB,idx);
-			get_value_r(vC,idx) = get_value_r(aC,idx);
-			get_value_r(vD,idx) = 0;
+			try_index_r(aA,idx) = idx[0] * 2;
+			try_index_r(aB,idx) = 5 - idx[0];
+			try_index_r(aC,idx) = idx[0] * 5 + 1;
+			try_index_r(aD,idx) = 0;
+			try_index_r(vA,idx) = try_index_r(aA,idx);
+			try_index_r(vB,idx) = try_index_r(aB,idx);
+			try_index_r(vC,idx) = try_index_r(aC,idx);
+			try_index_r(vD,idx) = 0;
 
-			get_value_r(res,idx) = -(get_value_r(aA,idx) + a) /
-			(get_value_r(aB,idx) * b - c) - get_value_r(aC,idx);
+			try_index_r(res,idx) = -(try_index_r(aA,idx) + a) /
+			(try_index_r(aB,idx) * b - c) - try_index_r(aC,idx);
 
 		});
 
@@ -103,8 +103,8 @@ TYPED_TEST(TestNtuple, swap){
 	seq_for_each(typename TestFixture::dimensions(),
 			[&](size_t const idx[TestFixture::dimensions::size()])
 			{
-				EXPECT_DOUBLE_EQ(0, std::abs(get_value_r(TestFixture::aA,idx)- get_value_r(TestFixture:: vB,idx)));
-				EXPECT_DOUBLE_EQ(0, std::abs(get_value_r(TestFixture::aB,idx)- get_value_r(TestFixture:: vA,idx)));
+				EXPECT_DOUBLE_EQ(0, std::abs(try_index_r(TestFixture::aA,idx)- try_index_r(TestFixture:: vB,idx)));
+				EXPECT_DOUBLE_EQ(0, std::abs(try_index_r(TestFixture::aB,idx)- try_index_r(TestFixture:: vA,idx)));
 			});
 
 }
@@ -117,7 +117,7 @@ TYPED_TEST(TestNtuple, assign_Scalar){
 	seq_for_each(typename TestFixture::dimensions(),
 			[&](size_t const idx[TestFixture::dimensions::size()])
 			{
-				EXPECT_DOUBLE_EQ(0, abs(TestFixture::a- get_value_r(TestFixture:: vA,idx)));
+				EXPECT_DOUBLE_EQ(0, abs(TestFixture::a- try_index_r(TestFixture:: vA,idx)));
 			}
 	);
 
@@ -130,7 +130,7 @@ TYPED_TEST(TestNtuple, assign_Array){
 	seq_for_each(typename TestFixture::dimensions(),
 			[&](size_t const idx[TestFixture::dimensions::size()])
 			{
-				EXPECT_DOUBLE_EQ(0, abs(get_value_r(TestFixture::aA,idx)- get_value_r(TestFixture:: vA,idx)));
+				EXPECT_DOUBLE_EQ(0, abs(try_index_r(TestFixture::aA,idx)- try_index_r(TestFixture:: vA,idx)));
 			}
 	);
 
@@ -142,9 +142,9 @@ TYPED_TEST(TestNtuple, self_assign){
 	seq_for_each(typename TestFixture::dimensions(),
 			[&](size_t const idx[TestFixture::dimensions::size()])
 			{
-				EXPECT_DOUBLE_EQ(0,abs( get_value_r(TestFixture::vB,idx)
-								- (get_value_r(TestFixture::aB,idx)+
-										get_value_r(TestFixture::aA,idx))));
+				EXPECT_DOUBLE_EQ(0,abs( try_index_r(TestFixture::vB,idx)
+								- (try_index_r(TestFixture::aB,idx)+
+										try_index_r(TestFixture::aA,idx))));
 
 			}
 	);
@@ -159,10 +159,10 @@ TYPED_TEST(TestNtuple, arithmetic){
 	seq_for_each(typename TestFixture::dimensions(),
 			[&](size_t const idx[TestFixture::dimensions::size()])
 			{
-				auto &ta=get_value_r(TestFixture::vA,idx);
-				auto &tb=get_value_r(TestFixture::vB,idx);
-				auto &tc=get_value_r(TestFixture::vC,idx);
-				auto &td=get_value_r(TestFixture::vD,idx);
+				auto &ta=try_index_r(TestFixture::vA,idx);
+				auto &tb=try_index_r(TestFixture::vB,idx);
+				auto &tc=try_index_r(TestFixture::vC,idx);
+				auto &td=try_index_r(TestFixture::vD,idx);
 
 				EXPECT_DOUBLE_EQ(0, abs(EQUATION(ta,tb,tc ) - td));
 			}
@@ -199,7 +199,7 @@ TYPED_TEST(TestNtuple, reduce){
 	seq_for_each(typename TestFixture::dimensions(),
 			[&](size_t const idx[TestFixture::dimensions::size()])
 			{
-				expect+=get_value_r(TestFixture::vA,idx);
+				expect+=try_index_r(TestFixture::vA,idx);
 			}
 	);
 	auto value=seq_reduce(typename TestFixture::dimensions(),_impl::plus(), TestFixture::vA);
@@ -241,7 +241,7 @@ TYPED_TEST(TestNtuple, inner_product){
 	seq_for_each(typename TestFixture::dimensions(),
 			[&](size_t const idx[TestFixture::dimensions::size()])
 			{
-				res += get_value_r(TestFixture::aA,idx) * get_value_r(TestFixture::aB,idx);
+				res += try_index_r(TestFixture::aA,idx) * try_index_r(TestFixture::aB,idx);
 			}
 	);
 

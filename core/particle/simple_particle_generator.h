@@ -13,17 +13,18 @@
 namespace simpla
 {
 
-template<typename EngineType>
+template<typename EngineType, typename TFun>
 ParticleGenerator<EngineType, rectangle_distribution<3>,
-		multi_normal_distribution<3>> simple_particle_generator(
+		multi_normal_distribution<3>, TFun> simple_particle_generator(
 		EngineType const& engine,
-		std::pair<nTuple<Real, 3>, nTuple<Real, 3> > const & extents, Real T)
+		std::pair<nTuple<Real, 3>, nTuple<Real, 3> > const & extents, Real T,
+		TFun const & fun)
 {
 	return std::move(
 			ParticleGenerator<EngineType, rectangle_distribution<3>,
-					multi_normal_distribution<3>>(engine,
+					multi_normal_distribution<3>,TFun>(engine,
 					rectangle_distribution<3>(extents),
-					multi_normal_distribution<3>(T)));
+					multi_normal_distribution<3>(T), fun));
 }
 }  // namespace simpla
 

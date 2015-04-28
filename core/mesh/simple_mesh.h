@@ -326,11 +326,11 @@ typedef RectMesh SimpleMesh;
 //	template<typename TOP, typename ... Args>
 //	constexpr auto calculate_(TOP op, Args &&...args,
 //			index_tuple const &s) const
-//			DECL_RET_TYPE (op(get_value(std::forward<Args>(args), s)...))
+//			DECL_RET_TYPE (op(try_index(std::forward<Args>(args), s)...))
 //
 ////	template<typename TOP, typename TL, typename TR>
 ////	inline auto calculate_(TOP op, TL & l, TR &r, id_type const &s) const
-////	DECL_RET_TYPE( op(get_value( (l),s),get_value(r,s) ) )
+////	DECL_RET_TYPE( op(try_index( (l),s),try_index(r,s) ) )
 //
 //public:
 //
@@ -364,7 +364,7 @@ typedef RectMesh SimpleMesh;
 //
 //	template<typename T>
 //	auto calculate(T const & v, index_tuple const &s) const
-//	DECL_RET_TYPE ((get_value(v, s)))
+//	DECL_RET_TYPE ((try_index(v, s)))
 //
 //	coordinates_type coordinates(index_tuple const & s) const
 //	{

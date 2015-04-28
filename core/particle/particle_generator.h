@@ -7,11 +7,12 @@
 
 #ifndef CORE_PARTICLE_PARTICLE_GENERATOR_H_
 #define CORE_PARTICLE_PARTICLE_GENERATOR_H_
-
+#include "../gtl/type_traits.h"
 namespace simpla
 {
 
-template<typename Engine, typename XRandomEngine, typename VRandomEngine>
+template<typename Engine, typename XRandomEngine, typename VRandomEngine,
+		typename DistFunction = Real>
 struct ParticleGenerator
 {
 
@@ -19,8 +20,9 @@ struct ParticleGenerator
 
 	typedef XRandomEngine x_dist_engine;
 	typedef VRandomEngine v_dist_engine;
-
-	typedef ParticleGenerator<engine_type, x_dist_engine, v_dist_engine> this_type;
+	typedef DistFunction distribute_function;
+	typedef ParticleGenerator<engine_type, x_dist_engine, v_dist_engine,
+			distribute_function> this_type;
 
 	typedef this_type generator_type;
 
@@ -32,11 +34,15 @@ struct ParticleGenerator
 
 	v_dist_engine m_v_dist_;
 
+	distribute_function m_dist_function_;
+
 	engine_type const & m_engine_;
 
 	ParticleGenerator(engine_type const & engine, x_dist_engine const& x_dist,
-			v_dist_engine const& v_dist)
-			: m_engine_(engine), m_x_dist_(x_dist), m_v_dist_(v_dist)
+			v_dist_engine const& v_dist,
+			distribute_function const & dist_function = distribute_function())
+			: m_engine_(engine), m_x_dist_(x_dist), m_v_dist_(v_dist), m_dist_function_(
+					dist_function)
 	{
 	}
 	~ParticleGenerator()
@@ -46,9 +52,33 @@ struct ParticleGenerator
 	template<typename TRNDGen>
 	value_type operator()(TRNDGen & rnd_gen)
 	{
-		return m_engine_.push_forward(m_x_dist_(rnd_gen), m_v_dist_(rnd_gen));
+		return std::move(
+				gen_(rnd_gen,
+						std::integral_constant<bool,
+								is_callable<distribute_function, vector_type,
+										vector_type>::value>()));
 	}
+private:
 
+	template<typename TRNDGen>
+	value_type gen_(TRNDGen & rnd_gen, std::integral_constant<bool, true>)
+
+	{
+		auto x = m_x_dist_(rnd_gen);
+		auto v = m_v_dist_(rnd_gen);
+		return std::move(
+				m_engine_.push_forward(x, v,
+						static_cast<Real>(m_dist_function_(x, v))));
+	}
+	template<typename TRNDGen>
+	value_type gen_(TRNDGen & rnd_gen, std::integral_constant<bool, false>)
+	{
+		return std::move(
+				m_engine_.push_forward(m_x_dist_(rnd_gen), m_v_dist_(rnd_gen),
+						m_dist_function_));
+
+	}
+public:
 	template<typename TRNDGen>
 	struct input_iterator: public std::iterator<std::input_iterator_tag,
 			value_type>
@@ -128,6 +158,15 @@ ParticleGenerator<EngineType, XGen, VGen> make_particle_generator(
 		EngineType const & eng, XGen const& xgen, VGen const& vgen)
 {
 	return std::move(ParticleGenerator<EngineType, XGen, VGen>(eng, xgen, vgen));
+}
+
+template<typename EngineType, typename XGen, typename VGen, typename DistFun>
+ParticleGenerator<EngineType, XGen, VGen, DistFun> make_particle_generator(
+		EngineType const & eng, XGen const& xgen, VGen const& vgen,
+		DistFun const & distfun)
+{
+	return std::move(
+			ParticleGenerator<EngineType, XGen, VGen>(eng, xgen, vgen, distfun));
 }
 
 }  // namespace simpla

@@ -86,7 +86,7 @@ struct Expression<TOP, TL, TR>
 
 	template<typename IndexType>
 	inline auto operator[](IndexType const &s) const
-	DECL_RET_TYPE ((op_(get_value(lhs, s), get_value(rhs, s))))
+	DECL_RET_TYPE ((op_(try_index(lhs, s), try_index(rhs, s))))
 //			DECL_RET_TYPE ((op_( lhs, rhs, s )))
 
 };
@@ -121,7 +121,7 @@ struct Expression<TOP, TL, std::nullptr_t>
 
 	template<typename IndexType>
 	inline auto operator[](IndexType const &s) const
-	DECL_RET_TYPE ((op_(get_value(lhs, s))))
+	DECL_RET_TYPE ((op_(try_index(lhs, s))))
 //			DECL_RET_TYPE ((op_( lhs, s) ))
 
 };
@@ -181,7 +181,7 @@ struct AssignmentExpression<TOP, TL, TR>
 
 	template<typename IndexType>
 	inline auto operator[](IndexType const &s) const
-	DECL_RET_TYPE ((op_(get_value(lhs, s), get_value(rhs, s))))
+	DECL_RET_TYPE ((op_(try_index(lhs, s), try_index(rhs, s))))
 //			DECL_RET_TYPE ((op_( lhs, rhs, s )))
 
 };
@@ -216,7 +216,7 @@ struct _swap
 	template<typename TL, typename TR, typename TI>
 	void operator()(TL & l, TR & r, TI const &s) const
 	{
-		std::swap(get_value(l, s), get_value(r, s));
+		std::swap(try_index(l, s), try_index(r, s));
 	}
 };
 
@@ -228,8 +228,8 @@ struct _NAME_                                                                   
 	{  return l _OP_ r;   }                                                                       \
 	template<typename TL, typename TR,typename TI>                                                         \
 	constexpr auto operator()(TL const& l, TR const & r,TI const & s) const         \
-	->decltype(get_value(l,s) _OP_ get_value( r,s) )                 \
-	{  return get_value(l,s) _OP_ get_value( r,s);   }                                    \
+	->decltype(try_index(l,s) _OP_ try_index( r,s) )                 \
+	{  return try_index(l,s) _OP_ try_index( r,s);   }                                    \
 };
 
 #define DEF_UOP(_NAME_,_OP_)                         														\
@@ -239,8 +239,8 @@ struct _NAME_                                                                   
 	constexpr auto operator()(TL const & l ) const->decltype(_OP_ l )                 \
 	{  return  _OP_ l;   }                                                   \
 	template<typename TL,typename TI >                                                         \
-	constexpr auto operator()(TL const & l, TI const & s) const->decltype(_OP_ get_value( l ,s)) \
-	{  return  _OP_  get_value( l ,s);   } \
+	constexpr auto operator()(TL const & l, TI const & s) const->decltype(_OP_ try_index( l ,s)) \
+	{  return  _OP_  try_index( l ,s);   } \
 };
 
 DEF_BOP(plus, +)
@@ -289,7 +289,7 @@ struct _NAME_                                                                   
 	{ l _OP_ r ; }           \
 	template<typename TL, typename TR,typename TI>                                                         \
 	  void operator()(TL  & l, TR const & r,TI const & s)const           \
-	{    get_value(l,s) _OP_ get_value( r,s)   ;    }    \
+	{    try_index(l,s) _OP_ try_index( r,s)   ;    }    \
 };
 
 //DEF_ASSIGN_OP(_assign, =)
@@ -311,7 +311,7 @@ struct _assign
 	template<typename TL, typename TR, typename TI>
 	void operator()(TL & l, TR const & r, TI const & s)const
 	{
-		get_value(l, s) = get_value(r, s);
+		try_index(l, s) = try_index(r, s);
 	}
 };
 struct equal_to
@@ -343,8 +343,8 @@ struct _##_NAME_                                                                
 	{  return std::_NAME_(l,  r);   }                                                                       \
 	template<typename TL, typename TR,typename TI>                                                         \
 	constexpr auto operator()(TL const& l, TR const & r,TI const & s) const         \
-	->decltype(std::_NAME_(get_value(l,s) , get_value( r,s) ))                 \
-	{  return std::_NAME_(get_value(l,s) , get_value( r,s) );   }                                    \
+	->decltype(std::_NAME_(try_index(l,s) , try_index( r,s) ))                 \
+	{  return std::_NAME_(try_index(l,s) , try_index( r,s) );   }                                    \
 };
 
 DEF_STD_BINARY_FUNCTION(atan2)
@@ -360,8 +360,8 @@ struct _##_NAME_                                                                
 	{  return std::_NAME_(l );   }                                                                       \
 	template<typename TL ,typename TI>                                                         \
 	constexpr auto operator()(TL const& l, TI const & s) const         \
-	->decltype(std::_NAME_(get_value(l,s)   ))                 \
-	{  return std::_NAME_(get_value(l,s)  );   }                                    \
+	->decltype(std::_NAME_(try_index(l,s)   ))                 \
+	{  return std::_NAME_(try_index(l,s)  );   }                                    \
 };
 DEF_UNARY_FUNCTION(fabs)
 DEF_UNARY_FUNCTION(abs)

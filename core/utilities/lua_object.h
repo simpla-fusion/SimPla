@@ -111,19 +111,19 @@ public:
 
 	typedef LuaObject this_type;
 
-	LuaObject() :
-			L_(nullptr), self_(0), GLOBAL_REF_IDX_(0)
+	LuaObject()
+			: L_(nullptr), self_(0), GLOBAL_REF_IDX_(0)
 
 	{
 	}
 
 	LuaObject(std::shared_ptr<lua_State> l, unsigned int G, unsigned int s,
-			std::string const & path = "") :
-			L_(l), GLOBAL_REF_IDX_(G), self_(s), path_(path)
+			std::string const & path = "")
+			: L_(l), GLOBAL_REF_IDX_(G), self_(s), path_(path)
 	{
 	}
-	LuaObject(LuaObject const & r) :
-			L_(r.L_), GLOBAL_REF_IDX_(r.GLOBAL_REF_IDX_), path_(r.path_)
+	LuaObject(LuaObject const & r)
+			: L_(r.L_), GLOBAL_REF_IDX_(r.GLOBAL_REF_IDX_), path_(r.path_)
 	{
 		if (L_ != nullptr)
 		{
@@ -132,8 +132,8 @@ public:
 		}
 	}
 
-	LuaObject(LuaObject && r) :
-			L_(r.L_), GLOBAL_REF_IDX_(r.GLOBAL_REF_IDX_), self_(r.self_), path_(
+	LuaObject(LuaObject && r)
+			: L_(r.L_), GLOBAL_REF_IDX_(r.GLOBAL_REF_IDX_), self_(r.self_), path_(
 					r.path_)
 	{
 		r.self_ = 0;
@@ -351,14 +351,14 @@ public:
 			lua_pop(L_.get(), 1);
 		}
 	public:
-		iterator() :
-				L_(nullptr), GLOBAL_IDX_(0), parent_(LUA_NOREF), key_(
+		iterator()
+				: L_(nullptr), GLOBAL_IDX_(0), parent_(LUA_NOREF), key_(
 				LUA_NOREF), value_(LUA_NOREF)
 		{
 
 		}
-		iterator(iterator const& r) :
-				L_(r.L_), GLOBAL_IDX_(r.GLOBAL_IDX_)
+		iterator(iterator const& r)
+				: L_(r.L_), GLOBAL_IDX_(r.GLOBAL_IDX_)
 		{
 			if (L_ == nullptr)
 			{
@@ -378,8 +378,8 @@ public:
 			value_ = luaL_ref(L_.get(), GLOBAL_IDX_);
 
 		}
-		iterator(iterator && r) :
-				L_(r.L_), GLOBAL_IDX_(r.GLOBAL_IDX_), parent_(r.parent_), key_(
+		iterator(iterator && r)
+				: L_(r.L_), GLOBAL_IDX_(r.GLOBAL_IDX_), parent_(r.parent_), key_(
 						r.key_), value_(r.value_)
 		{
 			r.parent_ = LUA_NOREF;
@@ -387,8 +387,8 @@ public:
 			r.value_ = LUA_NOREF;
 		}
 		iterator(std::shared_ptr<lua_State> L, unsigned int G, unsigned int p,
-				std::string path) :
-				L_(L), GLOBAL_IDX_(G), parent_(p), key_(LUA_NOREF), value_(
+				std::string path)
+				: L_(L), GLOBAL_IDX_(G), parent_(p), key_(LUA_NOREF), value_(
 				LUA_NOREF), path_(path + "[iterator]")
 		{
 			if (L_ == nullptr)
@@ -1278,6 +1278,20 @@ inline std::ostream & operator<<(std::ostream & os, LuaObject const & obj)
 	return os;
 }
 /** @} lua_engine*/
+
+template<typename, typename ... > struct is_callable;
+template<typename, typename > struct is_indexable;
+
+template<typename ...Args>
+struct is_callable<LuaObject, Args ...>
+{
+	static constexpr bool value = true;
+};
+template<typename Other>
+struct is_indexable<LuaObject, Other>
+{
+	static constexpr bool value = true;
+};
 } // namespace simpla
 
 #endif  // CORE_UTILITIES_LUA_OBJECT_H_

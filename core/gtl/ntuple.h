@@ -592,11 +592,11 @@ DECL_RET_TYPE((seq_reduce(
 
 template<typename T1, size_t ... N1, typename T2, size_t ... N2>
 inline auto cross(nTuple<T1, N1...> const &l, nTuple<T2, N2...> const &r)
--> nTuple<decltype(get_value(l, 0) * get_value(r, 0)), 3>
+-> nTuple<decltype(try_index(l, 0) * try_index(r, 0)), 3>
 {
-	nTuple<decltype(get_value(l, 0) * get_value(r, 0)), 3> res = { l[1] * r[2]
-			- l[2] * r[1], l[2] * get_value(r, 0) - get_value(l, 0) * r[2],
-			get_value(l, 0) * r[1] - l[1] * get_value(r, 0) };
+	nTuple<decltype(try_index(l, 0) * try_index(r, 0)), 3> res = { l[1] * r[2]
+			- l[2] * r[1], l[2] * try_index(r, 0) - try_index(l, 0) * r[2],
+			try_index(l, 0) * r[1] - l[1] * try_index(r, 0) };
 	return std::move(res);
 }
 

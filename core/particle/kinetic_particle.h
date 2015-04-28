@@ -20,6 +20,7 @@ struct particle_hasher
 {
 	typedef TDomain domain_type;
 	typedef typename domain_type::mesh_type mesh_type;
+	typedef typename mesh_type::id_type id_type;
 
 	typedef TPoint_s value_type;
 
@@ -40,8 +41,10 @@ struct particle_hasher
 	{
 	}
 
-	constexpr auto operator()(value_type const & p) const
-	DECL_RET_TYPE((m_mesh_->template coordinates_to_id<iform>(p.x)))
+	constexpr id_type operator()(value_type const & p) const
+	{
+		return m_mesh_->template coordinates_to_id<iform>(p.x);
+	}
 
 //	template<typename ...Args>
 //	constexpr auto operator()(Args &&... args) const

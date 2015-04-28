@@ -84,25 +84,25 @@ struct is_shared_ptr<const std::shared_ptr<T>>
 };
 
 template<typename T, typename TI>
-auto get_value(T & v, TI const& s)
+auto try_index(T & v, TI const& s)
 ENABLE_IF_DECL_RET_TYPE(
 		! (is_indexable<T,TI>::value || is_shared_ptr<T >::value ) , (v))
 
 template<typename T, typename TI>
-auto get_value(T & v, TI const & s)
+auto try_index(T & v, TI const & s)
 ENABLE_IF_DECL_RET_TYPE((is_indexable<T,TI>::value ), (v[s]))
 
 template<typename T, typename TI>
-auto get_value(T & v, TI const& s)
+auto try_index(T & v, TI const& s)
 ENABLE_IF_DECL_RET_TYPE(( is_shared_ptr<T >::value ) , v.get()[s])
 
 template<typename T, typename TI>
-T & get_value(std::map<T, TI> & v, TI const& s)
+T & try_index(std::map<T, TI> & v, TI const& s)
 {
 	return v[s];
 }
 template<typename T, typename TI>
-T const & get_value(std::map<T, TI> const& v, TI const& s)
+T const & try_index(std::map<T, TI> const& v, TI const& s)
 {
 	return v[s];
 }
@@ -110,16 +110,16 @@ namespace _impl
 {
 
 template<size_t N>
-struct recursive_get_value_aux
+struct recursive_try_index_aux
 {
 	template<typename T, typename TI>
 	static auto eval(T & v, TI const *s)
 	DECL_RET_TYPE(
-			( recursive_get_value_aux<N-1>::eval(v[s[0]], s+1))
+			( recursive_try_index_aux<N-1>::eval(v[s[0]], s+1))
 	)
 };
 template<>
-struct recursive_get_value_aux<0>
+struct recursive_try_index_aux<0>
 {
 	template<typename T, typename TI>
 	static auto eval(T & v, TI const *s)
@@ -138,43 +138,43 @@ template<typename _Tp, _Tp ... _Idx> struct integer_sequence;
 template<typename, size_t...> struct nTuple;
 
 template<typename T, typename TI>
-auto get_value_r(T & v, TI const *s)
+auto try_index_r(T & v, TI const *s)
 ENABLE_IF_DECL_RET_TYPE((is_indexable<T,TI>::value),
-		( _impl::recursive_get_value_aux<rank<T>::value>::eval(v,s)))
+		( _impl::recursive_try_index_aux<rank<T>::value>::eval(v,s)))
 
 template<typename T, typename TI>
-auto get_value_r(T & v, TI const * s)
+auto try_index_r(T & v, TI const * s)
 ENABLE_IF_DECL_RET_TYPE((!is_indexable<T,TI>::value), (v))
 
 template<typename T, typename TI, size_t N>
-auto get_value_r(T & v, nTuple<TI, N> const &s)
+auto try_index_r(T & v, nTuple<TI, N> const &s)
 ENABLE_IF_DECL_RET_TYPE((is_indexable<T,TI>::value),
-		( _impl::recursive_get_value_aux<N>::eval(v,s)))
+		( _impl::recursive_try_index_aux<N>::eval(v,s)))
 
 template<typename T, typename TI, size_t N>
-auto get_value_r(T & v, nTuple<TI, N> const &s)
+auto try_index_r(T & v, nTuple<TI, N> const &s)
 ENABLE_IF_DECL_RET_TYPE((!is_indexable<T,TI>::value), (v))
 
 template<typename T, typename TI, TI M, TI ...N>
-auto get_value(T & v, integer_sequence<TI, M, N...>)
+auto try_index(T & v, integer_sequence<TI, M, N...>)
 ENABLE_IF_DECL_RET_TYPE((is_indexable<T,TI>::value),
-		get_value(v[M],integer_sequence<TI, N...>()))
+		try_index(v[M],integer_sequence<TI, N...>()))
 
 template<typename T, typename TI, TI M, TI ...N>
-auto get_value(T & v, integer_sequence<TI, M, N...>)
+auto try_index(T & v, integer_sequence<TI, M, N...>)
 ENABLE_IF_DECL_RET_TYPE((!is_indexable<T,TI>::value), v)
 
 //template<typename T, typename TI, TI ...N>
-//auto get_value(T & v, integer_sequence<TI, N...>)
+//auto try_index(T & v, integer_sequence<TI, N...>)
 //ENABLE_IF_DECL_RET_TYPE((!is_indexable<T,TI>::value), (v))
 
 //template<typename T, typename ...Args>
-//auto get_value(std::shared_ptr<T> & v, Args &&... args)
-//DECL_RET_TYPE( get_value(v.get(),std::forward<Args>(args)...))
+//auto try_index(std::shared_ptr<T> & v, Args &&... args)
+//DECL_RET_TYPE( try_index(v.get(),std::forward<Args>(args)...))
 //
 //template<typename T, typename ...Args>
-//auto get_value(std::shared_ptr<T> const & v, Args &&... args)
-//DECL_RET_TYPE( get_value(v.get(),std::forward<Args>(args)...))
+//auto try_index(std::shared_ptr<T> const & v, Args &&... args)
+//DECL_RET_TYPE( try_index(v.get(),std::forward<Args>(args)...))
 
 /// \note  http://stackoverflow.com/questions/3913503/metaprogram-for-bit-counting
 template<unsigned int N> struct CountBits
@@ -367,11 +367,11 @@ struct GetValue
 {
 	template<typename TL, typename TI>
 	constexpr auto operator()(TL const & v, TI const s) const
-	DECL_RET_TYPE((get_value(v,s)))
+	DECL_RET_TYPE((try_index(v,s)))
 
 	template<typename TL, typename TI>
 	constexpr auto operator()(TL & v, TI const s) const
-	DECL_RET_TYPE((get_value(v,s)))
+	DECL_RET_TYPE((try_index(v,s)))
 };
 
 } //namespace _impl

@@ -48,7 +48,7 @@ private:
 
 	template<typename geometry_type, typename TD, typename TIDX>
 	static auto gather_impl_(TD const & f,
-			TIDX const & idx) -> decltype(get_value(f, std::get<0>(idx) )* std::get<1>(idx)[0])
+			TIDX const & idx) -> decltype(try_index(f, std::get<0>(idx) )* std::get<1>(idx)[0])
 	{
 
 		auto X = (geometry_type::_DI) << 1;
@@ -58,14 +58,14 @@ private:
 		typename geometry_type::coordinates_type r = std::get<1>(idx);
 		typename geometry_type::index_type s = std::get<0>(idx);
 
-		return get_value(f, ((s + X) + Y) + Z) * (r[0]) * (r[1]) * (r[2]) //
-		+ get_value(f, (s + X) + Y) * (r[0]) * (r[1]) * (1.0 - r[2]) //
-		+ get_value(f, (s + X) + Z) * (r[0]) * (1.0 - r[1]) * (r[2]) //
-		+ get_value(f, (s + X)) * (r[0]) * (1.0 - r[1]) * (1.0 - r[2]) //
-		+ get_value(f, (s + Y) + Z) * (1.0 - r[0]) * (r[1]) * (r[2]) //
-		+ get_value(f, (s + Y)) * (1.0 - r[0]) * (r[1]) * (1.0 - r[2]) //
-		+ get_value(f, s + Z) * (1.0 - r[0]) * (1.0 - r[1]) * (r[2]) //
-		+ get_value(f, s) * (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
+		return try_index(f, ((s + X) + Y) + Z) * (r[0]) * (r[1]) * (r[2]) //
+		+ try_index(f, (s + X) + Y) * (r[0]) * (r[1]) * (1.0 - r[2]) //
+		+ try_index(f, (s + X) + Z) * (r[0]) * (1.0 - r[1]) * (r[2]) //
+		+ try_index(f, (s + X)) * (r[0]) * (1.0 - r[1]) * (1.0 - r[2]) //
+		+ try_index(f, (s + Y) + Z) * (1.0 - r[0]) * (r[1]) * (r[2]) //
+		+ try_index(f, (s + Y)) * (1.0 - r[0]) * (r[1]) * (1.0 - r[2]) //
+		+ try_index(f, s + Z) * (1.0 - r[0]) * (1.0 - r[1]) * (r[2]) //
+		+ try_index(f, s) * (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
 	}
 public:
 
@@ -114,15 +114,15 @@ private:
 		typename geometry_type::coordinates_type r = std::get<1>(idx);
 		typename geometry_type::index_type s = std::get<0>(idx);
 
+		try_index(f, ((s + X) + Y) + Z) += v * (r[0]) * (r[1]) * (r[2]);
+		try_index(f, (s + X) + Y) += v * (r[0]) * (r[1]) * (1.0 - r[2]);
+		try_index(f, (s + X) + Z) += v * (r[0]) * (1.0 - r[1]) * (r[2]);
+		try_index(f, s + X) += v * (r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
+		try_index(f, (s + Y) + Z) += v * (1.0 - r[0]) * (r[1]) * (r[2]);
+		try_index(f, s + Y) += v * (1.0 - r[0]) * (r[1]) * (1.0 - r[2]);
+		try_index(f, s + Z) += v * (1.0 - r[0]) * (1.0 - r[1]) * (r[2]);
+		try_index(f, s) += v * (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
 
-		get_value(f, ((s + X) + Y) + Z) += v * (r[0]) * (r[1]) * (r[2]);
-		get_value(f, (s + X) + Y) += v * (r[0]) * (r[1]) * (1.0 - r[2]);
-		get_value(f, (s + X) + Z) += v * (r[0]) * (1.0 - r[1]) * (r[2]);
-		get_value(f, s + X) += v * (r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
-		get_value(f, (s + Y) + Z) += v * (1.0 - r[0]) * (r[1]) * (r[2]);
-		get_value(f, s + Y) += v * (1.0 - r[0]) * (r[1]) * (1.0 - r[2]);
-		get_value(f, s + Z) += v * (1.0 - r[0]) * (1.0 - r[1]) * (r[2]);
-		get_value(f, s) += v * (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
 	}
 public:
 
@@ -175,8 +175,7 @@ public:
 			TW const &w)
 	{
 		scatter_impl_<geometry_type>(f,
-				geo.template coordinates_global_to_local<VOLUME>(x,
-						geometry_type::_DA), w);
+				geo.template coordinates_global_to_local<VOLUME>(x), w);
 	}
 private:
 	template<typename geometry_type, typename TV>

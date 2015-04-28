@@ -133,7 +133,7 @@ struct _seq_for<M>
 	template<typename TOP, typename ...Args>
 	static inline void eval(TOP const & op, Args && ... args)
 	{
-		op(get_value(std::forward<Args>(args), M - 1)...);
+		op(try_index(std::forward<Args>(args), M - 1)...);
 		_seq_for<M - 1>::eval(op, std::forward<Args>(args)...);
 	}
 
@@ -237,7 +237,7 @@ struct _seq_reduce<>
 	template<typename Reduction, size_t ...L, typename Args>
 	static inline auto eval(Reduction const &, integer_sequence<size_t, L...>,
 			Args const& args)
-					DECL_RET_TYPE( (get_value( (args),integer_sequence<size_t, (L-1)...>()) ))
+					DECL_RET_TYPE( (try_index( (args),integer_sequence<size_t, (L-1)...>()) ))
 
 };
 template<size_t ... N, typename TOP, typename ...Args>
@@ -293,7 +293,7 @@ TOS& seq_print(integer_sequence<TInts, N...>, TOS & os, TA const &d)
 	while (1)
 	{
 
-		os << get_value(d, idx) << ", ";
+		os << try_index(d, idx) << ", ";
 
 		++idx[ndims - 1];
 

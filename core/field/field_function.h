@@ -13,39 +13,6 @@ namespace simpla
 {
 template<typename ...>class _Field;
 
-template<typename _T, typename ... _Args>
-struct is_callable
-{
-private:
-	typedef std::true_type yes;
-	typedef std::false_type no;
-
-	template<typename _U>
-	static auto test(int) ->
-	decltype(std::declval<_U>() (std::declval<_Args>() ...));
-
-	template<typename > static no test(...);
-
-public:
-
-	static constexpr bool value =
-			(!std::is_same<decltype(test<_T>()), no>::value);
-
-};
-
-template<typename TFun, typename ... Args>
-auto try_invoke(TFun const & fun, Args &&...args)->
-typename std::result_of<TFun( Args &&...)>::type
-{
-	return (fun(std::forward<Args>(args)...));
-}
-
-//template<typename TFun, typename ... Args>
-//auto try_invoke(TFun const & fun, Args &&...args)->
-//typename std::enable_if<!is_callable<TFun,Args&&...>::value,TFun>::type
-//{
-//	return fun;
-//}
 template<typename TDomain, typename TV, typename TFun>
 class _Field<TDomain, TV, _impl::is_function, TFun>
 {
@@ -73,21 +40,21 @@ public:
 	_Field()
 	{
 	}
-	_Field(domain_type const& domain) :
-			m_domain_(domain)
+	_Field(domain_type const& domain)
+			: m_domain_(domain)
 	{
 	}
 	template<typename TF>
-	_Field(domain_type const& domain, TF const& fun) :
-			m_domain_(domain), m_fun_(fun)
+	_Field(domain_type const& domain, TF const& fun)
+			: m_domain_(domain), m_fun_(fun)
 	{
 	}
-	_Field(this_type const& other) :
-			m_domain_(other.m_domain_), m_fun_(other.m_fun_)
+	_Field(this_type const& other)
+			: m_domain_(other.m_domain_), m_fun_(other.m_fun_)
 	{
 	}
-	_Field(this_type && other) :
-			m_domain_(other.m_domain_), m_fun_(other.m_fun_)
+	_Field(this_type && other)
+			: m_domain_(other.m_domain_), m_fun_(other.m_fun_)
 	{
 	}
 	~_Field()
