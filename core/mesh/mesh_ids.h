@@ -98,6 +98,8 @@ struct MeshIDs_
 
 	static constexpr Real COORD_ZERO = static_cast<Real>(ID_ZERO);
 
+	static constexpr size_t FULL_ID_ZERO = ID_ZERO | (ID_ZERO << ID_DIGITS)
+			| (ID_ZERO << (ID_DIGITS * 2));
 	/// @}
 	/// @name level dependent
 	/// @{
@@ -189,6 +191,34 @@ struct MeshIDs_
 					FACE, // 110
 					VOLUME // 111
 			};
+
+	template<typename T>
+	static constexpr id_type pack2(T const & idx)
+	{
+		return
+
+		(idx[0] << MESH_LEVEL)
+
+		| (idx[1] << (ID_DIGITS + MESH_LEVEL))
+
+		| (idx[2] << (ID_DIGITS * 2 + MESH_LEVEL));
+
+	}
+
+	static constexpr id_tuple unpack2(id_type s)
+	{
+		return id_tuple( {
+
+		((s & ID_MASK) >> MESH_LEVEL),
+
+		((((s >> (ID_DIGITS)) & ID_MASK)) >> MESH_LEVEL),
+
+		((((s >> (ID_DIGITS * 2)) & ID_MASK)) >> MESH_LEVEL)
+
+		})
+
+		;
+	}
 
 	template<size_t IFORM>
 	static constexpr id_type pack(id_type i, id_type j, id_type k, int n = 0)
@@ -1504,6 +1534,8 @@ template<size_t N, size_t M, size_t A> constexpr int MeshIDs_<N, M, A>::m_vertic
 template<size_t N, size_t M, size_t A> constexpr size_t MeshIDs_<N, M, A>::m_vertics_matrix_[4/* to iform*/][8/* node id*/][MAX_NUM_OF_CELL/*id shift*/];
 
 template<size_t N, size_t M, size_t A> constexpr typename MeshIDs_<N,M,A>::id_type MeshIDs_<N, M, A>::ID_ZERO;
+template<size_t N, size_t M, size_t A> constexpr typename MeshIDs_<N,M,A>::id_type MeshIDs_<N, M, A>::FULL_ID_ZERO;
+
 template<size_t N, size_t M, size_t A> constexpr typename MeshIDs_<N,M,A>::index_type MeshIDs_<N, M, A>::INDEX_ZERO;
 
 template<size_t N, size_t M, size_t A> constexpr Real MeshIDs_<N, M, A>::COORD_ZERO;

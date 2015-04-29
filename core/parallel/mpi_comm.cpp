@@ -36,13 +36,13 @@ struct MPIComm::pimpl_s
 
 constexpr int MPIComm::NDIMS;
 
-MPIComm::MPIComm() :
-		pimpl_(nullptr)
+MPIComm::MPIComm()
+		: pimpl_(nullptr)
 {
 }
 
-MPIComm::MPIComm(int argc, char** argv) :
-		pimpl_(nullptr)
+MPIComm::MPIComm(int argc, char** argv)
+		: pimpl_(nullptr)
 {
 	init(argc, argv);
 }
@@ -80,8 +80,7 @@ std::string MPIComm::init(int argc, char** argv)
 
 	LOGGER.set_mpi_comm(pimpl_->m_process_num_, pimpl_->m_num_process_);
 
-	topology(nTuple<int, 3>(
-	{ pimpl_->m_num_process_, 1, 1 }));
+	topology(nTuple<int, 3>( { pimpl_->m_num_process_, 1, 1 }));
 
 	parse_cmd_line(argc, argv,
 
@@ -163,29 +162,34 @@ std::tuple<int, int, int> MPIComm::make_send_recv_tag(int prefix,
 	}
 	return std::make_tuple(dest_id, send_tag, recv_tag);
 }
-void MPIComm::decompose(int ndims, size_t * p_count, size_t * p_offset) const
+void MPIComm::decompose(int ndims, size_t * p_begin, size_t * p_end) const
 {
-	nTuple<size_t, MAX_NDIMS_OF_ARRAY> offset, count;
+	nTuple<size_t, MAX_NDIMS_OF_ARRAY> begin, end, count;
 
-	offset = p_offset;
-	count = p_count;
+	begin = p_begin;
+	end = p_end;
+	count = p_end - p_begin;
 	for (int n = 0; n < NDIMS; ++n)
 	{
 
-		p_offset[n] = offset[n]
-				+ count[n] * pimpl_->m_topology_coord_[n]
+		p_begin[n] = begin[n]
+				+ (end[n] - begin[n]) * pimpl_->m_topology_coord_[n]
 						/ pimpl_->m_topology_dims_[n];
 
-		p_count[n] = offset[n]
-				+ count[n] * (pimpl_->m_topology_coord_[n] + 1)
-						/ pimpl_->m_topology_dims_[n] - p_offset[n];
+		p_end[n] = end[n]
+				+ (end[n] - begin[n]) * (pimpl_->m_topology_coord_[n] + 1)
+						/ pimpl_->m_topology_dims_[n];
 
-		if (p_count[n] <= 0)
+//		p_count[n] = offset[n]
+//				+ count[n] * (pimpl_->m_topology_coord_[n] + 1)
+//						/ pimpl_->m_topology_dims_[n] - p_offset[n];
+
+		if (p_begin[n] == p_end[n])
 		{
 			RUNTIME_ERROR(
 					"Mesh decompose fail! Dimension  is smaller than process grid. "
-							"[offset= " + value_to_string(offset) + ", count="
-							+ value_to_string(count) + " ,process grid="
+							"[begin= " + value_to_string(begin) + ", end="
+							+ value_to_string(end) + " ,process grid="
 							+ value_to_string(pimpl_->m_topology_coord_));
 		}
 	}
@@ -193,16 +197,15 @@ void MPIComm::decompose(int ndims, size_t * p_count, size_t * p_offset) const
 }
 nTuple<int, 3> MPIComm::get_coordinate() const
 {
-	return (!pimpl_) ? nTuple<int, 3>(
-	{ 0, 0, 0 }) :
-						get_coordinate(pimpl_->m_process_num_);
+	return (!pimpl_) ?
+			nTuple<int, 3>( { 0, 0, 0 }) :
+			get_coordinate(pimpl_->m_process_num_);
 }
 nTuple<int, 3> MPIComm::get_coordinate(int rank) const
 {
 	if (!pimpl_)
 	{
-		return nTuple<int, 3>(
-		{ 0, 0, 0 });
+		return nTuple<int, 3>( { 0, 0, 0 });
 	}
 
 	nTuple<int, 3> coord;
@@ -270,9 +273,7 @@ void MPIComm::topology(nTuple<int, 3> const & d)
 nTuple<int, 3> MPIComm::topology() const
 {
 
-	return (!pimpl_) ? nTuple<int, 3>(
-	{ 0, 0, 0 }) :
-						(pimpl_->m_topology_dims_);
+	return (!pimpl_) ? nTuple<int, 3>( { 0, 0, 0 }) : (pimpl_->m_topology_dims_);
 }
 
 int MPIComm::get_rank() const

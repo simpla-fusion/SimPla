@@ -232,6 +232,26 @@ public:
 		sync();
 	}
 
+	template<typename ...T>
+	void assign(
+			_Field<domain_type, value_type, _impl::is_function, T...> const & other)
+	{
+
+		wait();
+
+		if (!other.domain().is_null())
+		{
+			other.domain().for_each(
+					[&](id_type const &s)
+					{
+						auto x=m_domain_.mesh().coordinates(s);
+						auto t=m_domain_.mesh().time();
+						at(s) =m_domain_.mesh().template sample<iform>(s,other(x,t,gather(x)));
+					});
+		}
+
+		sync();
+	}
 public:
 
 	/** @} */

@@ -31,9 +31,9 @@ rhoe = vTe/omega_ce    -- m
 NX = 100
 NY = 100
 NZ = 1
-LX = 1.0   --m --100000*rhoi --0.6
-LY = 1.0   --2.0*math.pi/k0
-LZ = 0   -- 2.0*math.pi/18
+LX = 10   --m --100000*rhoi --0.6
+LY = 10   --2.0*math.pi/k0
+LZ = 1.0   -- 2.0*math.pi/18
 GW = 5
 
 Mesh=
@@ -60,12 +60,12 @@ domain_center=    {
 InitValue= {
   --  B=
   --  {
-  --    --      Domain={Box={{0 ,0 ,0},{LX,LY,LZ}}},
-  --    Value=function(x,t)
-  --      print(x[1],x[2],x[3])
-  --      return  {0,0,math.sin(x[1]*2.0*math.pi/LX)*math.sin(x[2]*2.0*math.pi/LY)}
-  --
-  --    end
+--            Domain={Box={{0 ,0 ,0},{LX,LY,LZ}}},
+--      Value=function(x,t)
+--        print(x[1],x[2],x[3])
+--        return  {0,0,math.sin(x[1]*2.0*math.pi/LX)*math.sin(x[2]*2.0*math.pi/LY)}
+--  
+--      end
   --
   --  },
   --  phi=
@@ -80,21 +80,22 @@ InitValue= {
   --  }
   }
 
+PEC= {
+  Domain={
+
+    Box={ {0 ,0,0 }, {NX/2  ,NY/2 ,0 }} ,    OnBoundary=true
+  }
+}
+
 Constraint=  {
   J= {
     Domain={Indices={{NX/2  ,NY/2 ,0,2} }},
     Value= function(x , t ,v )
       local tau = t*omega_ext -- + x[2]*TWOPI/(xmax[3]-xmin[3])
       local amp=  math.sin(tau) *(1-math.exp(-tau*tau))
-      return {0, 0, amp+v[3]}
+      return {0, 0, amp }
     end
   },
 
---  phi= {
---
---    Domain= domain_center ,
---    Value= function(t,x,v )
---      return 1.2345
---    end
---  }
+
 }

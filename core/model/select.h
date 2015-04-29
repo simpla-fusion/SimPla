@@ -172,11 +172,8 @@ std::function<bool(TCoord const &)> make_select_function_by_config(
 
 		std::string place = dict["Polylines"]["Place"].template as<std::string>(
 				"InSide");
-		if (place == "InSide")
-		{
-			return select_ids_in_polylines(points, ZAXIS, true);
-		}
-		else if (place == "OutSide")
+
+		if (place == "OutSide")
 		{
 			return select_ids_in_polylines(points, ZAXIS, false);
 		}
@@ -188,6 +185,11 @@ std::function<bool(TCoord const &)> make_select_function_by_config(
 		{
 			return select_ids_on_polylines(points, ZAXIS, false);
 		}
+		else
+		{
+			return select_ids_in_polylines(points, ZAXIS, true);
+		}
+
 	}
 
 }
@@ -505,9 +507,9 @@ void filter_domain_by_config(TDict const & dict, TDomain * domain)
 	{
 //		select_cell(dict, this);
 	}
-	else if (dict["SelectBoundary"])
+	else if (dict["OnBoundary"])
 	{
-//		select_boundary(dict, this);
+
 	}
 	else
 	{

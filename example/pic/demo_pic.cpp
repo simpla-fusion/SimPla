@@ -56,25 +56,6 @@ USE_CASE(pic," Particle in cell" )
 
 	mesh->deploy();
 
-	typename mesh_type::coordinates_type zero = { 0.5, 0, 0 };
-
-	auto ss = mesh->template coordinates_to_id<VERTEX>(zero);
-	SHOW(mesh->template coordinates_to_id<VERTEX>(zero));
-	SHOW(mesh->template coordinates_to_index<VERTEX>(zero));
-	SHOW(mesh->template coordinates_to_id_tuple<VERTEX>(zero));
-	SHOW(mesh->template unpack_index<VERTEX>(ss));
-	SHOW(mesh->template unpack_index<VERTEX>(ss + (mesh_type::_DI << 1)));
-
-	CHECK_BIT(mesh->_D);
-	CHECK_BIT(mesh->ID_MASK);
-	CHECK_BIT(mesh->ID_ZERO);
-	CHECK_BIT(mesh->INDEX_ZERO);
-	CHECK_BIT(mesh->CARRAY_FLAG);
-	CHECK_BIT(mesh->SUB_ID_MASK);
-	CHECK_BIT(mesh->PRIMARY_ID_MASK);
-
-	auto s = mesh->coordinates_to_id_tuple(zero);
-
 	MESSAGE << "======== Initialize ========" << std::endl;
 
 	auto rho = mesh->template make_form<VERTEX, Real>();
@@ -154,49 +135,49 @@ USE_CASE(pic," Particle in cell" )
 		<< " TIME_STEPS = " << num_of_steps << endl;
 	}
 
-//	LOGGER << "----------  Dump input ---------- " << endl;
-//	VERBOSE << SAVE(E) << endl;
-//	VERBOSE << SAVE(B) << endl;
-//
-//	DEFINE_PHYSICAL_CONST
-//	Real dt = mesh->dt();
-//	auto dx = mesh->dx();
-//
-//	Real omega = 0.01 * PI / dt;
-//
-//	LOGGER << "----------  START ---------- " << endl;
-//
-//	cd("/Save/");
-//
-//	for (size_t step = 0; step < num_of_steps; ++step)
-//	{
-//		VERBOSE << "Step [" << step << "/" << num_of_steps << "]" << endl;
-//
-//		J.clear();
-//
-//		LOG_CMD(ion->next_timestep(dt, E, B, &J));
-//
-//		J.self_assign(J_src);
-//		B.self_assign(B_src);
-//
-//		LOG_CMD(E += curl(B) * (dt * speed_of_light2) - J * (dt / epsilon0));
-//		LOG_CMD(B -= curl(E) * dt);
-//
-//		E.self_assign(E_src);
-//
-//		VERBOSE << SAVE_RECORD(J) << endl;
-//		VERBOSE << SAVE_RECORD(E) << endl;
-//		VERBOSE << SAVE_RECORD(B) << endl;
-//
-//		mesh->next_timestep();
-//
-//	}
-//	MESSAGE << "======== DONE! ========" << std::endl;
-//
-//	cd("/Output/");
-//
-//	VERBOSE << save("H", ion->dataset()) << std::endl;
-//	VERBOSE << SAVE(E) << endl;
-//	VERBOSE << SAVE(B) << endl;
-//	VERBOSE << SAVE(J) << endl;
+	LOGGER << "----------  Dump input ---------- " << endl;
+	VERBOSE << SAVE(E) << endl;
+	VERBOSE << SAVE(B) << endl;
+
+	DEFINE_PHYSICAL_CONST
+	Real dt = mesh->dt();
+	auto dx = mesh->dx();
+
+	Real omega = 0.01 * PI / dt;
+
+	LOGGER << "----------  START ---------- " << endl;
+
+	cd("/Save/");
+
+	for (size_t step = 0; step < num_of_steps; ++step)
+	{
+		VERBOSE << "Step [" << step << "/" << num_of_steps << "]" << endl;
+
+		J.clear();
+
+		LOG_CMD(ion->next_timestep(dt, E, B, &J));
+
+		J.self_assign(J_src);
+		B.self_assign(B_src);
+
+		LOG_CMD(E += curl(B) * (dt * speed_of_light2) - J * (dt / epsilon0));
+		LOG_CMD(B -= curl(E) * dt);
+
+		E.self_assign(E_src);
+
+		VERBOSE << SAVE_RECORD(J) << endl;
+		VERBOSE << SAVE_RECORD(E) << endl;
+		VERBOSE << SAVE_RECORD(B) << endl;
+
+		mesh->next_timestep();
+
+	}
+	MESSAGE << "======== DONE! ========" << std::endl;
+
+	cd("/Output/");
+
+	VERBOSE << save("H", ion->dataset()) << std::endl;
+	VERBOSE << SAVE(E) << endl;
+	VERBOSE << SAVE(B) << endl;
+	VERBOSE << SAVE(J) << endl;
 }

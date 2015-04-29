@@ -21,10 +21,11 @@
 #include "../../utilities/utilities.h"
 #include "../../gtl/ntuple.h"
 #include "../../gtl/primitives.h"
-#include "interpolator.h"
-#include "../mesh_ids.h"
 #include "../../field/field_expression.h"
 #include "../../parallel/mpi_update.h"
+#include "../mesh_ids.h"
+#include "interpolator.h"
+
 namespace simpla
 {
 /**
@@ -76,6 +77,8 @@ struct RectMesh:	public TTopology,
 	using typename topology_type::index_tuple;
 
 	using typename topology_type::id_type;
+
+	using typename topology_type::id_tuple;
 
 	using typename topology_type::coordinates_type;
 
@@ -134,32 +137,53 @@ private:
 
 	/**
 	 *
-	 *   a----------------------------b
+	 *   -----------------------------5
 	 *   |                            |
-	 *   |     c--------------d       |
+	 *   |     ---------------4       |
 	 *   |     |              |       |
-	 *   |     |  e*******f   |       |
+	 *   |     |  ********3   |       |
 	 *   |     |  *       *   |       |
 	 *   |     |  *       *   |       |
 	 *   |     |  *       *   |       |
-	 *   |     |  *********   |       |
-	 *   |     ----------------       |
-	 *   ------------------------------
+	 *   |     |  2********   |       |
+	 *   |     1---------------       |
+	 *   0-----------------------------
 	 *
-	 *   a=0
-	 *   b-a = dimension
-	 *   e-a = offset
-	 *   f-e = count
-	 *   d-c = local_dimension
-	 *   c-a = local_offset
+	 *	5-0 = dimensions
+	 *	4-1 = e-d = ghosts
+	 *	2-1 = counts
+	 *
+	 *	0 = id_begin
+	 *	5 = id_end
+	 *
+	 *	1 = id_local_outer_begin
+	 *	4 = id_local_outer_end
+	 *
+	 *	2 = id_local_inner_begin
+	 *	3 = id_local_inner_end
+	 *
+	 *
 	 */
-	index_tuple m_index_dimensions_ = { 1, 1, 1 };
+//	id_type m_index_count_;
+//
+//	id_type m_index_dimensions_;
+//
+//	id_type m_index_offset_;
+//
+//	id_type m_index_local_dimensions_;
+//
+//	id_type m_index_local_offset_;
+	id_type m_id_begin_;
 
-	index_tuple m_index_offset_ = { 0, 0, 0 };
-	index_tuple m_index_count_ = { 1, 1, 1 };
+	id_type m_id_end_;
 
-	index_tuple m_index_local_dimensions_ = { 0, 0, 0 };
-	index_tuple m_index_local_offset_ = { 0, 0, 0 };
+	id_type m_id_local_begin_;
+
+	id_type m_id_local_end_;
+
+	id_type m_id_local_outer_begin_;
+
+	id_type m_id_local_outer_end_;
 
 public:
 
@@ -176,15 +200,17 @@ public:
 	RectMesh(this_type const & other)
 			:
 
-			m_index_dimensions_(other.m_index_dimensions_),
+			m_id_begin_(other.m_id_begin_),
 
-			m_index_offset_(other.m_index_offset_),
+			m_id_end_(other.m_id_end_),
 
-			m_index_count_(other.m_index_count_),
+			m_id_local_begin_(other.m_id_local_begin_),
 
-			m_index_local_dimensions_(other.m_index_local_dimensions_),
+			m_id_local_end_(other.m_id_local_end_),
 
-			m_index_local_offset_(other.m_index_local_offset_),
+			m_id_local_outer_begin_(other.m_id_local_outer_begin_),
+
+			m_id_local_outer_end_(other.m_id_local_outer_end_),
 
 			m_hash_strides_(other.m_hash_strides_)
 
@@ -243,7 +269,8 @@ public:
 		<< "-- [ Courant–Friedrichs–Lewy (CFL)  Suggested value: " << safe_dt
 				<< "]" << std::endl
 
-				<< " Dimensionss \t= " << m_index_dimensions_ << ","
+				<< " Dimensionss \t= "
+				<< topology_type::unpack2(m_index_dimensions_) << ","
 				<< std::endl
 
 				;
@@ -285,11 +312,13 @@ public:
 
 	template<typename TI> void dimensions(TI const & d)
 	{
-		m_index_dimensions_ = d;
+		m_id_begin_ = topology_type::FULL_ID_ZERO - topology_type::pack2(d / 2);
+		m_id_end_ = topology_type::FULL_ID_ZERO + topology_type::pack2(d);
+
 	}
-	index_tuple dimensions() const
+	id_tuple dimensions() const
 	{
-		return m_index_dimensions_;
+		return topology_type::unpack2(m_id_end_ - m_id_begin_);
 	}
 
 	void deploy(size_t const *gw = nullptr);
@@ -484,6 +513,7 @@ public:
 private:
 	size_t m_hash_max_ = 0;
 
+	index_tuple m_hash_dimensions_;
 	index_tuple m_hash_strides_;
 
 public:
@@ -497,11 +527,14 @@ public:
 	constexpr size_t hash(id_type const &s) const
 	{
 		return inner_product(
-				(m_index_local_dimensions_
-						+ topology_type::template unpack_index<IFORM>(s)
-						- m_index_local_offset_) % m_index_local_dimensions_,
-				m_hash_strides_) * ((IFORM == EDGE || IFORM == FACE) ? 3 : 1)
-				+ topology_type::sub_index(s);
+				topology_type::unpack2(
+						(m_id_end_ + s - m_id_local_outer_begin_ - m_id_begin_))
+						% topology_type::unpack2(m_id_end_ - m_id_begin_),
+				m_hash_strides_)
+
+		* ((IFORM == EDGE || IFORM == FACE) ? 3 : 1)
+
+		+ topology_type::sub_index(s);
 
 	}
 
@@ -509,18 +542,7 @@ public:
 	constexpr size_t hash(index_type i, index_type j, index_type k,
 			int n = 0) const
 	{
-		return ((
-
-		(m_index_local_dimensions_[0] + i - m_index_local_offset_[0])
-				% m_index_local_dimensions_[0]) * m_hash_strides_[0]
-
-				+ ((m_index_local_dimensions_[1] + i - m_index_local_offset_[1])
-						% m_index_local_dimensions_[1]) * m_hash_strides_[1]
-
-				+ ((m_index_local_dimensions_[2] + i - m_index_local_offset_[2])
-						% m_index_local_dimensions_[2]) * m_hash_strides_[2])
-
-		* ((IFORM == EDGE || IFORM == FACE) ? 3 : 1) + n;
+		return hash(topology_type::template pack_index<IFORM>(i, j, k, n));
 	}
 
 	/** @} */
@@ -538,15 +560,16 @@ public:
 
 		int f_ndims = ndims;
 
-		f_dims = m_index_dimensions_;
+		f_dims = topology_type::unpack2(m_id_end_ - m_id_begin_);
 
-		f_offset = m_index_offset_;
+		f_offset = topology_type::unpack2(m_id_begin_);
 
-		f_count = m_index_count_;
+		f_count = topology_type::unpack2(m_id_local_end_ - m_id_local_begin_);
 
-		f_local_dims = m_index_local_dimensions_;
+		f_local_dims = topology_type::unpack2(
+				m_id_local_outer_end_ - m_id_local_outer_begin_);
 
-		f_local_offset = m_index_local_offset_;
+		f_local_offset = topology_type::unpack2(m_id_local_begin_);
 
 		if ((IFORM == EDGE || IFORM == FACE))
 		{
@@ -557,6 +580,21 @@ public:
 			f_local_dims[ndims] = 3;
 			f_local_offset[ndims] = 0;
 		}
+		else
+		{
+			f_ndims = ndims + 1;
+			f_dims[ndims] = 1;
+			f_offset[ndims] = 0;
+			f_count[ndims] = 1;
+			f_local_dims[ndims] = 1;
+			f_local_offset[ndims] = 0;
+		}
+
+		SHOW(f_dims);
+		SHOW(f_offset);
+		SHOW(f_count);
+		SHOW(f_local_dims);
+		SHOW(f_local_offset);
 
 		DataSpace res(f_ndims, &(f_dims[0]));
 
@@ -579,11 +617,11 @@ public:
 
 		int f_ndims = ndims;
 
-		f_dims = m_index_local_dimensions_;
+		f_dims = topology_type::unpack2(m_id_end_ - m_id_begin_);
 
-		f_count = m_index_count_;
+		f_offset = topology_type::unpack2(m_id_begin_);
 
-		f_offset = m_index_offset_ - m_index_local_offset_;
+		f_count = topology_type::unpack2(m_id_local_end_ - m_id_local_begin_);
 
 		f_ghost_width = f_offset;
 
@@ -595,6 +633,18 @@ public:
 			f_count[ndims] = 3;
 			f_ghost_width[ndims] = 0;
 		}
+		else
+		{
+			f_ndims = ndims + 1;
+			f_dims[ndims] = 1;
+			f_offset[ndims] = 0;
+			f_count[ndims] = 1;
+
+		}
+
+		SHOW(f_dims);
+		SHOW(f_offset);
+		SHOW(f_count);
 
 		get_ghost_shape(f_ndims, &f_dims[0], &f_offset[0], nullptr, &f_count[0],
 				nullptr, &f_ghost_width[0], res);
@@ -616,22 +666,22 @@ constexpr size_t RectMesh<TTopology, Polices...>::DEFAULT_GHOST_WIDTH;
 template<typename TTopology, typename ... Polices>
 void RectMesh<TTopology, Polices...>::deploy(size_t const *gw)
 {
+	nTuple<id_type, ndims> dims = topology_type::unpack2(m_index_dimensions_);
 
 	for (int i = 0; i < ndims; ++i)
 	{
-		if (m_index_dimensions_[i] > 1
-				&& (m_coords_max_[i] - m_coords_min_[i]) > EPSILON)
+		if (dims[i] > 1 && (m_coords_max_[i] - m_coords_min_[i]) > EPSILON)
 		{
 
 			m_dx_[i] = (m_coords_max_[i] - m_coords_min_[i])
-					/ static_cast<Real>(m_index_dimensions_[i]);
+					/ static_cast<Real>(dims[i]);
 
-			m_to_topology_scale_[i] = static_cast<Real>(m_index_dimensions_[i])
+			m_to_topology_scale_[i] = static_cast<Real>(dims[i])
 					/ (m_coords_max_[i] - m_coords_min_[i])
 					* topology_type::COORDINATES_MESH_FACTOR;
 
 			m_from_topology_scale_[i] = (m_coords_max_[i] - m_coords_min_[i])
-					/ static_cast<Real>(m_index_dimensions_[i])
+					/ static_cast<Real>(dims[i])
 					/ topology_type::COORDINATES_MESH_FACTOR;
 
 		}
@@ -647,7 +697,7 @@ void RectMesh<TTopology, Polices...>::deploy(size_t const *gw)
 #endif
 		else
 		{
-			m_index_dimensions_[i] = 1;
+			dims[i] = 1;
 
 			m_dx_[i] = 0;
 
@@ -659,6 +709,9 @@ void RectMesh<TTopology, Polices...>::deploy(size_t const *gw)
 		}
 
 	}
+
+	m_index_dimensions_ = topology_type::pack2(dims);
+
 	m_coord_orig_ = m_coords_min_;
 
 	m_toplogy_coord_orig_ = -m_coord_orig_ * m_to_topology_scale_;
@@ -740,29 +793,22 @@ void RectMesh<TTopology, Polices...>::deploy(size_t const *gw)
 	m_inv_dual_volume_[0] /* 111 */= m_inv_dual_volume_[6]
 			* m_inv_dual_volume_[5] * m_inv_dual_volume_[3];
 
-//	SHOW(m_dx_[0]);
-//	SHOW(m_dx_[1]);
-//	SHOW(m_dx_[2]);
-//	SHOW(m_inv_volume_[0]);
-//	SHOW(m_inv_volume_[1]);
-//	SHOW(m_inv_volume_[2]);
-//	SHOW(m_inv_volume_[3]);
-//	SHOW(m_inv_volume_[4]);
-//	SHOW(m_inv_volume_[5]);
-//	SHOW(m_inv_volume_[6]);
-//	SHOW(m_inv_volume_[7]);
-
 	/**
 	 * Decompose
 	 */
 
-	m_index_count_ = m_index_dimensions_;
+	m_id_local_outer_begin_ = m_id_begin_;
+	m_id_local_outer_end_ = m_id_end_;
+	m_id_local_begin_ = m_id_begin_;
+	m_id_local_end_ = m_id_end_;
 
-	m_index_offset_ = 0;
+	auto begin = topology_type::unpack2(m_id_begin_);
+
+	auto end = topology_type::unpack2(m_id_end_);
 
 	if (GLOBAL_COMM.num_of_process() > 1)
 	{
-		GLOBAL_COMM.decompose(ndims, &m_index_count_[0], &m_index_offset_[0]);
+		GLOBAL_COMM.decompose(ndims, &begin[0], &end[0] );
 
 		index_tuple ghost_width;
 
@@ -778,11 +824,11 @@ void RectMesh<TTopology, Polices...>::deploy(size_t const *gw)
 		for (int i = 0; i < ndims; ++i)
 		{
 
-			if (m_index_count_[i] == m_index_dimensions_[i])
+			if ( begin[i]==end[i])
 			{
 				ghost_width[i] = 0;
 			}
-			else if (m_index_count_[i] <= ghost_width[i] * 2)
+			else if (end[i] <= begin[i]+ ghost_width[i] * 2)
 			{
 				ERROR(
 				"Dimension is to small to split!["
@@ -796,15 +842,21 @@ void RectMesh<TTopology, Polices...>::deploy(size_t const *gw)
 
 		}
 
-		m_index_local_dimensions_ = m_index_count_ + ghost_width * 2;
+		m_index_count_=topology_type::pack2(count);
 
-		m_index_local_offset_ = m_index_offset_ - ghost_width;
+		m_index_offset_=topology_type::pack2(offset)+topology_type::FULL_ID_ZERO;
+
+		m_index_local_dimensions_ = m_index_count_ + (topology_type::pack2(ghost_width * 2));
+
+		m_index_local_offset_ = m_index_offset_ - (topology_type::pack2(ghost_width ));
 
 		m_is_distributed_ = true;
 
 	}
 	else
 	{
+		m_index_offset_+=topology_type::FULL_ID_ZERO;
+
 		m_index_local_dimensions_ = m_index_count_;
 
 		m_index_local_offset_ = m_index_offset_;
@@ -812,18 +864,25 @@ void RectMesh<TTopology, Polices...>::deploy(size_t const *gw)
 		m_is_distributed_ = false;
 	}
 
+	SHOW(topology_type::unpack2(m_index_count_));
+	SHOW(topology_type::unpack2(m_index_offset_));
+	SHOW(topology_type::unpack2(m_index_local_dimensions_));
+	SHOW(topology_type::unpack2(m_index_local_offset_));
+	SHOW(topology_type::unpack2(m_index_dimensions_));
+
 	/**
 	 *  Hash
 	 */
+
+	auto local_dims = topology_type::unpack2(m_index_local_dimensions_);
 
 	m_hash_strides_[ndims - 1] = 1;
 
 	for (int i = ndims - 2; i >= 0; --i)
 	{
-		m_hash_strides_[i] = m_hash_strides_[i + 1]
-				* m_index_local_dimensions_[i + 1];
+		m_hash_strides_[i] = m_hash_strides_[i + 1] * dims[i + 1];
 	}
-	m_hash_max_ = m_hash_strides_[0] * m_index_local_dimensions_[0];
+	m_hash_max_ = m_hash_strides_[0] * local_dims[0];
 
 	m_is_valid_ = true;
 

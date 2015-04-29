@@ -60,6 +60,34 @@ USE_CASE(em," Maxwell Eqs.")
 
 	mesh->deploy();
 
+//	typename mesh_type::coordinates_type zero = { 0.5, 0, 0 };
+//
+//	auto ss = mesh->template coordinates_to_id<VERTEX>(zero);
+//	SHOW(mesh->template coordinates_to_id<VERTEX>(zero));
+//	SHOW(mesh->template coordinates_to_index<VERTEX>(zero));
+//	SHOW(mesh->template coordinates_to_id_tuple<VERTEX>(zero));
+//	SHOW(mesh->template unpack_index<VERTEX>(ss));
+//	SHOW(mesh->node_id(ss));
+//	SHOW(mesh->node_id(ss + (mesh_type::_DI)));
+//	SHOW(mesh->node_id(ss + (mesh_type::_DI << 1)));
+//
+//	CHECK_BIT(mesh->_D);
+//	CHECK_BIT(mesh->ID_MASK);
+//	CHECK_BIT(mesh->ID_ZERO);
+//	CHECK_BIT(mesh->CARRAY_FLAG);
+//	CHECK_BIT(mesh->SUB_ID_MASK);
+//	CHECK_BIT(mesh->PRIMARY_ID_MASK);
+//
+//	nTuple<long, 3> idx = { 1, 2, 3 };
+//	ss = (mesh->template pack_index<VERTEX>(idx));
+//
+//	CHECK_BIT(ss);
+//	CHECK_BIT(mesh->INDEX_ZERO);
+//	SHOW(idx);
+//	SHOW(mesh->template unpack_index<VERTEX>(ss));
+//
+//	auto s = mesh->coordinates_to_id_tuple(zero);
+
 	if (GLOBAL_COMM.process_num()==0)
 	{
 
@@ -75,14 +103,14 @@ USE_CASE(em," Maxwell Eqs.")
 		<< " TIME_STEPS = " << num_of_steps << endl;
 	}
 
-	std::shared_ptr<PML<mesh_type>> pml_solver;
-
-	if (options["FieldSolver"]["PML"])
-	{
-		pml_solver = std::make_shared<PML<mesh_type>>(*mesh,
-				options["FieldSolver"]["PML"]);
-
-	}
+//	std::shared_ptr<PML<mesh_type>> pml_solver;
+//
+//	if (options["FieldSolver"]["PML"])
+//	{
+//		pml_solver = std::make_shared<PML<mesh_type>>(*mesh,
+//				options["FieldSolver"]["PML"]);
+//
+//	}
 
 	auto J = mesh->template make_form<EDGE, Real>();
 	auto E = mesh->template make_form<EDGE, Real>();
@@ -95,11 +123,22 @@ USE_CASE(em," Maxwell Eqs.")
 	auto J_src = make_field_function_by_config<EDGE, Real>(*mesh,
 			options["Constraint"]["J"]);
 
-	auto B_src = make_field_function_by_config<FACE, Real>(*mesh,
-			options["Constraint"]["B"]);
-
 	auto E_src = make_field_function_by_config<EDGE, Real>(*mesh,
 			options["Constraint"]["E"]);
+
+//	auto E_Boundary = E;
+//	auto B_Boundary = B;
+//
+//	if (options["PEC"])
+//	{
+//		filter_domain_by_config(options["PEC"]["Domain"], &B_Boundary.domain());
+//		filter_domain_by_config(options["PEC"]["Domain"], &E_Boundary.domain());
+//	}
+//	else
+//	{
+//		E_Boundary.clear();
+//		B_Boundary.clear();
+//	}
 
 	LOGGER << "----------  Dump input ---------- " << endl;
 
@@ -124,13 +163,14 @@ USE_CASE(em," Maxwell Eqs.")
 		VERBOSE << "Step [" << step << "/" << num_of_steps << "]" << endl;
 
 		J.self_assign(J_src);
-		B.self_assign(B_src);
 		E.self_assign(E_src);
 
 //		if (!pml_solver)
 		{
 
 			LOG_CMD(E += curl(B) * (dt * speed_of_light2) - J * (dt / epsilon0));
+//			E_Boundary = 0;
+//			B_Boundary = 0;
 			LOG_CMD(B -= curl(E) * dt);
 
 		}
