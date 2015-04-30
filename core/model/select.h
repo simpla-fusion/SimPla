@@ -461,7 +461,7 @@ void filter_domain_by_config(TDict const & dict, TDomain * domain)
 
 		dict["Box"].as(&p);
 
-		domain->reset_bound_box(p[0], p[1]);
+		domain->reset_box(p[0], p[1]);
 
 	}
 	else if (dict["IndexBox"])
@@ -471,7 +471,7 @@ void filter_domain_by_config(TDict const & dict, TDomain * domain)
 
 		dict["IndexBox"].as(&points);
 
-		domain->reset_bound_box(points[0], points[1]);
+		domain->reset_box(points[0], points[1]);
 
 	}
 

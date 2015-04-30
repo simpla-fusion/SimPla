@@ -142,6 +142,7 @@ DataSpace & DataSpace::select_hyperslab(index_type const * offset,
 
 	if (offset != nullptr)
 	{
+
 		pimpl_->m_d_shape_.offset += offset;
 	}
 	if (count != nullptr)

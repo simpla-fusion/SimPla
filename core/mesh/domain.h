@@ -76,7 +76,7 @@ public:
 	Domain(mesh_type const &m, T0 const & b, T1 const & e)
 			: m_mesh_(m)
 	{
-		reset_bound_box(b, e);
+		reset_box(b, e);
 	}
 
 	Domain(this_type const & other)
@@ -164,8 +164,7 @@ public:
 	}
 	void deploy()
 	{
-		reset_bound_box(m_mesh_.m_index_offset_,
-				m_mesh_.m_index_offset_ + m_mesh_.m_index_count_);
+		reset_box(m_mesh_.box());
 	}
 
 	std::set<id_type> & id_set()
@@ -329,7 +328,7 @@ public:
 	}
 
 	template<typename T0, typename T1>
-	void reset_bound_box(T0 const & b, T1 const & e)
+	void reset_box(T0 const & b, T1 const & e)
 	{
 
 		typename range_type::value_type ib, ie;
@@ -347,10 +346,15 @@ public:
 		clear_ids();
 	}
 
-	void reset_bound_box(coordinates_type const & b, coordinates_type const & e)
+	void reset_box(coordinates_type const & b, coordinates_type const & e)
 	{
-		reset_bound_box(m_mesh_.coordinates_to_index(b),
+		reset_box(m_mesh_.coordinates_to_index(b),
 				m_mesh_.coordinates_to_index(e) + 1);
+	}
+	template<typename TI>
+	void reset_box(std::tuple<TI, TI> const & p_box)
+	{
+		reset_box(std::get<0>(p_box), std::get<1>(p_box));
 	}
 
 	template<typename T0, typename T1>
@@ -474,9 +478,11 @@ public:
 		{
 			typename DataSpace::index_tuple offset, count;
 
-			auto d_shape = res.shape();
+			std::tie(offset, std::ignore) = m_mesh_.box();
 
-			offset = m_box_.m_b_ - d_shape.offset;
+			offset[ndims] = 0;
+
+			offset = m_box_.m_b_ - offset;
 
 			count = m_box_.m_e_ - m_box_.m_b_;
 

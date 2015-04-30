@@ -176,7 +176,7 @@ void MPIComm::decompose(int ndims, size_t * p_begin, size_t * p_end) const
 				+ (end[n] - begin[n]) * pimpl_->m_topology_coord_[n]
 						/ pimpl_->m_topology_dims_[n];
 
-		p_end[n] = end[n]
+		p_end[n] = begin[n]
 				+ (end[n] - begin[n]) * (pimpl_->m_topology_coord_[n] + 1)
 						/ pimpl_->m_topology_dims_[n];
 

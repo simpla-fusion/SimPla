@@ -129,7 +129,7 @@ MPIDataType MPIDataType::create(DataType const & data_type, //
 		RUNTIME_ERROR("Cannot create MPI datatype:" + data_type.name());
 	}
 
-	if (data_type.is_array() ||(ndims > 0 && p_dims != nullptr))
+	if (data_type.is_array() || (ndims > 0 && p_dims != nullptr))
 	{
 
 		unsigned int mdims = ndims + data_type.rank();
