@@ -304,7 +304,7 @@ public:
 
 	bool in_box(id_type s) const
 	{
-		return m_box_.in_box(m_mesh_.template unpack_index4<iform>(s));
+		return m_box_.in_box(m_mesh_.unpack4(s));
 	}
 
 	void update_bound_box()
