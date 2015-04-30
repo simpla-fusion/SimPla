@@ -299,12 +299,12 @@ public:
 	template<typename TI>
 	bool in_box(TI const & idx) const
 	{
-		return m_box_.in_bound(idx);
+		return m_box_.in_box(idx);
 	}
 
 	bool in_box(id_type s) const
 	{
-		return m_box_.in_bound(m_mesh_.template unpack_index4<iform>(s));
+		return m_box_.in_box(m_mesh_.template unpack_index4<iform>(s));
 	}
 
 	void update_bound_box()
