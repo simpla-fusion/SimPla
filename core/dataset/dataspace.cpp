@@ -48,13 +48,14 @@ struct DataSpace::pimpl_s
 
 //===================================================================
 
-DataSpace::DataSpace()
-		: pimpl_ { nullptr }
+DataSpace::DataSpace() :
+		pimpl_
+		{ nullptr }
 {
 }
 
-DataSpace::DataSpace(int ndims, index_type const * dims)
-		: pimpl_(new pimpl_s)
+DataSpace::DataSpace(int ndims, index_type const * dims) :
+		pimpl_(new pimpl_s)
 {
 
 	pimpl_->m_d_shape_.ndims = ndims;
@@ -68,12 +69,13 @@ DataSpace::DataSpace(int ndims, index_type const * dims)
 	pimpl_->m_local_offset_ = 0;
 
 }
-DataSpace::DataSpace(const DataSpace& other)
-		: pimpl_(nullptr)
+DataSpace::DataSpace(const DataSpace& other) :
+		pimpl_(nullptr)
 {
 	if (!!other.pimpl_)
 	{
-		pimpl_ = std::unique_ptr<pimpl_s> { new pimpl_s };
+		pimpl_ = std::unique_ptr<pimpl_s>
+		{ new pimpl_s };
 		pimpl_->m_d_shape_.ndims = other.pimpl_->m_d_shape_.ndims;
 
 		pimpl_->m_d_shape_.dimensions = other.pimpl_->m_d_shape_.dimensions;
@@ -186,6 +188,7 @@ DataSpace & DataSpace::set_local_shape(index_type const *local_dimensions =
 	{
 		pimpl_->m_local_dimensions_ = pimpl_->m_d_shape_.dimensions;
 	}
+
 	return *this;
 }
 

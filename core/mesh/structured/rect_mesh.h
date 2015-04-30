@@ -56,10 +56,9 @@ namespace simpla
  */
 //template<typename ... >struct RectMesh;
 template<typename TTopology, typename ...Policies>
-struct RectMesh:	public TTopology,
-					public Policies...,
-					std::enable_shared_from_this<
-							RectMesh<TTopology, Policies...>>
+struct RectMesh: public TTopology,
+		public Policies...,
+		std::enable_shared_from_this<RectMesh<TTopology, Policies...>>
 {
 	typedef TTopology topology_type;
 	typedef typename unpack_typelist<0, Policies...>::type coordinates_system;
@@ -125,9 +124,11 @@ private:
 
 	coordinates_type m_toplogy_coord_orig_ /*= { 0, 0, 0 }*/;
 
-	coordinates_type m_coords_min_ = { 0, 0, 0 };
+	coordinates_type m_coords_min_ =
+	{ 0, 0, 0 };
 
-	coordinates_type m_coords_max_ = { 1, 1, 1 };
+	coordinates_type m_coords_max_ =
+	{ 1, 1, 1 };
 
 	coordinates_type m_dx_ /*= { 0, 0, 0 }*/;
 
@@ -197,8 +198,7 @@ public:
 	{
 	}
 
-	RectMesh(this_type const & other)
-			:
+	RectMesh(this_type const & other) :
 
 			m_id_begin_(other.m_id_begin_),
 
@@ -237,7 +237,8 @@ public:
 	template<typename TDict>
 	void load(TDict const & dict)
 	{
-		dimensions(dict["Dimensions"].as(index_tuple( { 10, 10, 10 })));
+		dimensions(dict["Dimensions"].as(index_tuple(
+		{ 10, 10, 10 })));
 
 		extents(
 				dict["Box"].template as<
@@ -284,6 +285,11 @@ public:
 	{
 		return std::make_tuple(topology_type::unpack2(m_id_begin_),
 				topology_type::unpack2(m_id_end_));
+	}
+	std::tuple<id_tuple, id_tuple> local_box() const
+	{
+		return std::make_tuple(topology_type::unpack2(m_id_local_begin_),
+				topology_type::unpack2(m_id_local_end_));
 	}
 	std::tuple<id_type, id_type> id_box() const
 	{
@@ -465,7 +471,8 @@ public:
 	coordinates_type coordinates_from_topology(coordinates_type const &y) const
 	{
 
-		return coordinates_type( {
+		return coordinates_type(
+		{
 
 		std::fma(y[0], m_from_topology_scale_[0], m_coord_orig_[0]),
 
@@ -479,7 +486,8 @@ public:
 	coordinates_type coordinates_to_topology(coordinates_type const &x) const
 	{
 
-		return coordinates_type( {
+		return coordinates_type(
+		{
 
 		std::fma(x[0], m_to_topology_scale_[0], m_toplogy_coord_orig_[0]),
 
@@ -599,12 +607,6 @@ public:
 			m_offset[ndims] = 0;
 		}
 
-		CHECK(f_dims);
-		CHECK(f_offset);
-		CHECK(f_count);
-		CHECK(m_offset);
-		CHECK(m_dims);
-
 		DataSpace res(f_ndims, &(f_dims[0]));
 
 		res
@@ -648,10 +650,11 @@ public:
 		else
 		{
 			f_ndims = ndims;
-			f_ndims = ndims + 1;
+
 			f_local_dims[ndims] = 1;
 			f_local_offset[ndims] = 0;
 			f_local_count[ndims] = 1;
+			f_ghost_width[ndims] = 0;
 
 		}
 
