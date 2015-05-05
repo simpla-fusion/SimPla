@@ -59,7 +59,7 @@ enum ManifoldTypeID
  *  |00000000000|11111111111111|11111111111| <=_MASK
  *  \endverbatim
  */
-template<size_t NDIMS = 3, size_t IMESH_LEVEL = 4, size_t INIFIT_AXIS = 0>
+template<size_t NDIMS = 3, size_t IMESH_LEVEL = 4>
 struct MeshIDs_
 {
 	/// @name level independent
@@ -1556,26 +1556,26 @@ struct MeshIDs_
  * http://stackoverflow.com/questions/22172789/passing-a-static-constexpr-variable-by-universal-reference
  */
 
-template<size_t N, size_t M, size_t A> constexpr size_t MeshIDs_<N, M, A>::FULL_DIGITS;
-template<size_t N, size_t M, size_t A> constexpr size_t MeshIDs_<N, M, A>::ID_DIGITS;
-template<size_t N, size_t M, size_t A> constexpr size_t MeshIDs_<N, M, A>::ID_MASK;
-template<size_t N, size_t M, size_t A> constexpr size_t MeshIDs_<N, M, A>::_DK;
-template<size_t N, size_t M, size_t A> constexpr size_t MeshIDs_<N, M, A>::_DJ;
-template<size_t N, size_t M, size_t A> constexpr size_t MeshIDs_<N, M, A>::_DI;
-template<size_t N, size_t M, size_t A> constexpr size_t MeshIDs_<N, M, A>::_DA;
-template<size_t N, size_t M, size_t A> constexpr size_t MeshIDs_<N, M, A>::m_id_to_index_[];
-template<size_t N, size_t M, size_t A> constexpr size_t MeshIDs_<N, M, A>::m_id_to_shift_[];
-template<size_t N, size_t M, size_t A> constexpr size_t MeshIDs_<N, M, A>::m_sub_index_to_id_[4][3];
-template<size_t N, size_t M, size_t A> constexpr typename MeshIDs_<N,M,A>::coordinates_type MeshIDs_<N,M,A>::m_id_to_coordinates_shift_[ ];
-template<size_t N, size_t M, size_t A> constexpr int MeshIDs_<N, M, A>::m_vertics_num_[4][8];
-template<size_t N, size_t M, size_t A> constexpr size_t MeshIDs_<N, M, A>::m_vertics_matrix_[4/* to iform*/][8/* node id*/][MAX_NUM_OF_CELL/*id shift*/];
+template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::FULL_DIGITS;
+template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::ID_DIGITS;
+template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::ID_MASK;
+template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::_DK;
+template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::_DJ;
+template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::_DI;
+template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::_DA;
+template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::m_id_to_index_[];
+template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::m_id_to_shift_[];
+template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::m_sub_index_to_id_[4][3];
+template<size_t N, size_t M> constexpr typename MeshIDs_<N,M >::coordinates_type MeshIDs_<N,M >::m_id_to_coordinates_shift_[ ];
+template<size_t N, size_t M> constexpr int MeshIDs_<N, M>::m_vertics_num_[4][8];
+template<size_t N, size_t M> constexpr size_t MeshIDs_<N, M>::m_vertics_matrix_[4/* to iform*/][8/* node id*/][MAX_NUM_OF_CELL/*id shift*/];
 
-template<size_t N, size_t M, size_t A> constexpr typename MeshIDs_<N,M,A>::id_type MeshIDs_<N, M, A>::ID_ZERO;
-template<size_t N, size_t M, size_t A> constexpr typename MeshIDs_<N,M,A>::id_type MeshIDs_<N, M, A>::FULL_ID_ZERO;
+template<size_t N, size_t M> constexpr typename MeshIDs_<N,M >::id_type MeshIDs_<N, M >::ID_ZERO;
+template<size_t N, size_t M> constexpr typename MeshIDs_<N,M >::id_type MeshIDs_<N, M >::FULL_ID_ZERO;
 
-template<size_t N, size_t M, size_t A> constexpr typename MeshIDs_<N,M,A>::index_type MeshIDs_<N, M, A>::INDEX_ZERO;
+template<size_t N, size_t M> constexpr typename MeshIDs_<N,M >::index_type MeshIDs_<N, M >::INDEX_ZERO;
 
-template<size_t N, size_t M, size_t A> constexpr Real MeshIDs_<N, M, A>::COORD_ZERO;
+template<size_t N, size_t M> constexpr Real MeshIDs_<N, M>::COORD_ZERO;
 
 typedef MeshIDs_<3, 4> MeshIDs;
 
