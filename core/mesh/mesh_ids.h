@@ -65,7 +65,7 @@ struct MeshIDs_
 	/// @name level independent
 	/// @{
 
-	typedef size_t id_type;
+	typedef std::int64_t id_type;
 
 	typedef nTuple<id_type, 3> id_tuple;
 
@@ -77,22 +77,22 @@ struct MeshIDs_
 
 	static constexpr int ndims = NDIMS;
 
-	static constexpr size_t FULL_DIGITS = std::numeric_limits<size_t>::digits;
+	static constexpr id_type FULL_DIGITS = std::numeric_limits<id_type>::digits;
 
-	static constexpr size_t ID_DIGITS = (FULL_DIGITS) / 3;
+	static constexpr id_type ID_DIGITS = (FULL_DIGITS) / 3;
 
-	static constexpr size_t ID_MASK = (1UL << (ID_DIGITS)) - 1;
+	static constexpr id_type ID_MASK = (1UL << (ID_DIGITS)) - 1;
 
-	static constexpr size_t CARRAY_FLAG = (((1UL) << (ID_DIGITS - 1))
+	static constexpr id_type CARRAY_FLAG = (((1UL) << (ID_DIGITS - 1))
 			| (1UL << (ID_DIGITS * 2 - 1)) | (1UL << (ID_DIGITS * 3 - 1)));
 
-	static constexpr size_t CLEAR_CARRAY_FLAG = ~CARRAY_FLAG;
+	static constexpr id_type CLEAR_CARRAY_FLAG = ~CARRAY_FLAG;
 
-	static constexpr size_t ID_ZERO = (1L << (ID_DIGITS - 2));
+	static constexpr id_type ID_ZERO = (1L << (ID_DIGITS - 2));
 
 	static constexpr Real COORD_ZERO = static_cast<Real>(ID_ZERO);
 
-	static constexpr size_t FULL_ID_ZERO = ID_ZERO | (ID_ZERO << ID_DIGITS)
+	static constexpr id_type FULL_ID_ZERO = ID_ZERO | (ID_ZERO << ID_DIGITS)
 			| (ID_ZERO << (ID_DIGITS * 2));
 	/// @}
 	/// @name level dependent
@@ -100,21 +100,21 @@ struct MeshIDs_
 
 	static constexpr int MESH_LEVEL = IMESH_LEVEL;
 
-	static constexpr size_t SUB_ID_MASK = ((1UL << MESH_LEVEL) - 1);
+	static constexpr id_type SUB_ID_MASK = ((1UL << MESH_LEVEL) - 1);
 
-	static constexpr size_t PRIMARY_ID_MASK = ID_MASK & (~SUB_ID_MASK);
+	static constexpr id_type PRIMARY_ID_MASK = ID_MASK & (~SUB_ID_MASK);
 
-	static constexpr size_t _D = (1UL << (MESH_LEVEL - 1));
+	static constexpr id_type _D = (1UL << (MESH_LEVEL - 1));
 
 	static constexpr Real _R = static_cast<Real>(_D);
 
-	static constexpr size_t _DI = _D;
+	static constexpr id_type _DI = _D;
 
-	static constexpr size_t _DJ = 1UL << (ID_DIGITS + MESH_LEVEL - 1);
+	static constexpr id_type _DJ = 1UL << (ID_DIGITS + MESH_LEVEL - 1);
 
-	static constexpr size_t _DK = 1UL << (ID_DIGITS * 2 + MESH_LEVEL - 1);
+	static constexpr id_type _DK = 1UL << (ID_DIGITS * 2 + MESH_LEVEL - 1);
 
-	static constexpr size_t _DA = _DI | _DJ | _DK;
+	static constexpr id_type _DA = _DI | _DJ | _DK;
 
 	static constexpr index_type INDEX_ZERO = static_cast<index_type>(ID_ZERO
 			>> MESH_LEVEL);
@@ -124,11 +124,11 @@ struct MeshIDs_
 
 	/// @}
 
-//	static constexpr size_t CELL_ID_MASK_ = //
+//	static constexpr id_type CELL_ID_MASK_ = //
 //			(((1UL << (ID_DIGITS - MAX_NUM_OF_MESH_LEVEL)) - 1)
 //					<< (MAX_NUM_OF_MESH_LEVEL)) & ID_MASK;
 //
-//	static constexpr size_t CELL_ID_MASK =
+//	static constexpr id_type CELL_ID_MASK =
 //
 //	(CELL_ID_MASK_ << (ID_DIGITS * 2))
 //
@@ -136,7 +136,7 @@ struct MeshIDs_
 //
 //	| (CELL_ID_MASK_);
 
-//	static constexpr size_t CELL_ID_MASK =
+//	static constexpr id_type CELL_ID_MASK =
 //
 //	(((INIFIT_AXIS & 1UL) == 0) ? (INDEX_MASK) : 0UL)
 //
@@ -144,7 +144,7 @@ struct MeshIDs_
 //
 //	| (((INIFIT_AXIS & 4UL) == 0) ? (INDEX_MASK << (INDEX_DIGITS * 2)) : 0UL);
 
-	static constexpr size_t m_sub_index_to_id_[4][3] =
+	static constexpr id_type m_sub_index_to_id_[4][3] =
 	{ //
 
 			{ 0, 0, 0 }, /*VERTEX*/
@@ -154,7 +154,7 @@ struct MeshIDs_
 
 			};
 
-	static constexpr size_t m_id_to_sub_index_[8] =
+	static constexpr id_type m_id_to_sub_index_[8] =
 	{ //
 
 			0, // 000
@@ -386,10 +386,7 @@ struct MeshIDs_
 
 		static_cast<id_type>(std::floor(x[2] + COORD_ZERO)) & PRIMARY_ID_MASK
 
-		})
-
-		;
-
+		});
 	}
 
 	template<size_t IFORM = VERTEX>
@@ -538,12 +535,12 @@ struct MeshIDs_
 	 */
 	static constexpr int MAX_NUM_OF_CELL = 12;
 
-	static constexpr size_t _HI = _D;
-	static constexpr size_t _HJ = _HI << ID_DIGITS;
-	static constexpr size_t _HK = _HI << (ID_DIGITS * 2);
-	static constexpr size_t _LI = (((-_D) & ID_MASK) & CLEAR_CARRAY_FLAG);
-	static constexpr size_t _LJ = _LI << ID_DIGITS;
-	static constexpr size_t _LK = _LI << (ID_DIGITS * 2);
+	static constexpr id_type _HI = _D;
+	static constexpr id_type _HJ = _HI << ID_DIGITS;
+	static constexpr id_type _HK = _HI << (ID_DIGITS * 2);
+	static constexpr id_type _LI = (((-_D) & ID_MASK) & CLEAR_CARRAY_FLAG);
+	static constexpr id_type _LJ = _LI << ID_DIGITS;
+	static constexpr id_type _LK = _LI << (ID_DIGITS * 2);
 
 	static constexpr int m_vertics_num_[4/* to iform*/][8/* node id*/] =
 
@@ -593,7 +590,7 @@ struct MeshIDs_
 
 			};
 
-	static constexpr size_t m_vertics_matrix_[4/* to iform*/][8/* node id*/][MAX_NUM_OF_CELL/*id shift*/] =
+	static constexpr id_type m_vertics_matrix_[4/* to iform*/][8/* node id*/][MAX_NUM_OF_CELL/*id shift*/] =
 	{
 	//To VERTEX
 			{
