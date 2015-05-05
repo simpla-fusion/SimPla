@@ -328,7 +328,7 @@ public:
 
 	template<typename TI> void dimensions(TI const & d)
 	{
-		id_tuple dims;
+		nTuple<id_type, 3> dims;
 		dims = d;
 		m_id_begin_ = topology_type::FULL_ID_ZERO
 				- topology_type::pack2(dims / 2);

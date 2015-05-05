@@ -69,6 +69,32 @@ struct MeshIDs_
 
 	typedef nTuple<id_type, 3> id_tuple;
 
+	struct id_s
+	{
+		long i :20;
+		long j :20;
+		long k :20;
+		int n :4;
+
+		operator id_type() const
+		{
+			return *reinterpret_cast<id_type const *>(this);
+		}
+		template<typename T>
+		operator nTuple<T,3>() const
+		{
+			return nTuple<T, 3>(
+			{
+
+			static_cast<T>(i),
+
+			static_cast<T>(j),
+
+			static_cast<T>(k)
+
+			});
+		}
+	};
 	typedef long index_type;
 
 	typedef nTuple<index_type, 3> index_tuple;
@@ -495,7 +521,7 @@ struct MeshIDs_
 				| ((s >> (ID_DIGITS * 2 + MESH_LEVEL - 3)) & 4UL);
 	}
 
-	static constexpr size_t m_id_to_index_[8] =
+	static constexpr id_type m_id_to_index_[8] =
 	{ //
 
 			0, // 000
@@ -508,7 +534,7 @@ struct MeshIDs_
 					0, // 111
 			};
 
-	static constexpr size_t sub_index(id_type const &s)
+	static constexpr id_type sub_index(id_type const &s)
 	{
 		return m_id_to_index_[node_id(s)];
 	}
@@ -1565,7 +1591,7 @@ template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs
 template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::m_sub_index_to_id_[4][3];
 template<size_t N, size_t M> constexpr typename MeshIDs_<N,M >::coordinates_type MeshIDs_<N,M >::m_id_to_coordinates_shift_[ ];
 template<size_t N, size_t M> constexpr int MeshIDs_<N, M>::m_vertics_num_[4][8];
-template<size_t N, size_t M> constexpr size_t MeshIDs_<N, M>::m_vertics_matrix_[4/* to iform*/][8/* node id*/][MAX_NUM_OF_CELL/*id shift*/];
+template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M>::m_vertics_matrix_[4/* to iform*/][8/* node id*/][MAX_NUM_OF_CELL/*id shift*/];
 
 template<size_t N, size_t M> constexpr typename MeshIDs_<N,M >::id_type MeshIDs_<N, M >::ID_ZERO;
 template<size_t N, size_t M> constexpr typename MeshIDs_<N,M >::id_type MeshIDs_<N, M >::FULL_ID_ZERO;

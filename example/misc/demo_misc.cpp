@@ -5,15 +5,35 @@
  * @author salmon
  */
 
-#include "../../core/application/application.h"
-#include "../../core/application/use_case.h"
 #include "../../core/utilities/utilities.h"
 #include "../../core/io/io.h"
 
 using namespace simpla;
 
-USE_CASE(misc," Misc. utilities ")
+struct id_tuple
 {
-	CHECK(options["Foo"](1.0,3,4,5,6).as<double>());
-	CHECK(options["Foo"](2.0).as<double>());
+	unsigned long i :20;
+	unsigned long j :20;
+	unsigned long k :20;
+	int n :4;
+
+	template<typename T>
+	operator T() const
+	{
+		return *reinterpret_cast<std::int64_t const *>(this);
+	}
+};
+int main(int argc, char **argv)
+{
+	SHOW(sizeof(long));
+	SHOW(sizeof(std::int32_t));
+	SHOW(sizeof(std::int64_t));
+
+	SHOW(sizeof(id_tuple));
+	id_tuple t =
+	{ 1, 0xF2, 0xEFFFFL, 4 };
+
+	std::cout << std::hex << static_cast<std::int64_t>(t) << std::endl;
+
 }
+
