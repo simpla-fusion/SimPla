@@ -119,6 +119,20 @@ struct nTuple<TV, N, M...>
 		return *this;
 	}
 
+	template<typename U> operator U() const
+	{
+		return *reinterpret_cast<U const*>(data_);
+	}
+
+	template<typename U, size_t ...L> operator nTuple<U,L...>() const
+	{
+		nTuple<U, L...> res;
+
+		res = *this;
+
+		return std::move(res);
+	}
+
 private:
 	template<size_t N1, size_t N2>
 	struct min_not_zero
@@ -276,9 +290,10 @@ struct nTuple<Expression<T...>> : public Expression<T...>
 
 	typedef typename nTuple_traits<this_type>::primary_type primary_type;
 
-	operator primary_type() const
+	template<typename U>
+	operator U() const
 	{
-		primary_type res;
+		U res;
 		res = *this;
 		return std::move(res);
 	}
