@@ -118,21 +118,13 @@ struct nTuple<TV, N, M...>
 		--data_[N - 1];
 		return *this;
 	}
-
-	template<typename U> operator U() const
+	template<typename U, size_t ...I>
+	operator nTuple<U,I...>() const
 	{
-		return *reinterpret_cast<U const*>(data_);
-	}
-
-	template<typename U, size_t ...L> operator nTuple<U,L...>() const
-	{
-		nTuple<U, L...> res;
-
+		nTuple<U, I...> res;
 		res = *this;
-
 		return std::move(res);
 	}
-
 private:
 	template<size_t N1, size_t N2>
 	struct min_not_zero
@@ -290,10 +282,10 @@ struct nTuple<Expression<T...>> : public Expression<T...>
 
 	typedef typename nTuple_traits<this_type>::primary_type primary_type;
 
-	template<typename U>
-	operator U() const
+	template<typename U, size_t ...N>
+	operator nTuple<U,N...>() const
 	{
-		U res;
+		nTuple<U, N...> res;
 		res = *this;
 		return std::move(res);
 	}
@@ -436,7 +428,8 @@ struct sp_pod_traits<nTuple<T, N...> >
 template<typename TInts, TInts ...N>
 nTuple<TInts, sizeof...(N)> seq2ntuple(integer_sequence<TInts, N...>)
 {
-	return std::move(nTuple<TInts, sizeof...(N)>( { N... }));
+	return std::move(nTuple<TInts, sizeof...(N)>(
+	{ N... }));
 }
 
 template<typename TV, size_t N, typename T1>
@@ -609,9 +602,10 @@ template<typename T1, size_t ... N1, typename T2, size_t ... N2>
 inline auto cross(nTuple<T1, N1...> const &l, nTuple<T2, N2...> const &r)
 -> nTuple<decltype(try_index(l, 0) * try_index(r, 0)), 3>
 {
-	nTuple<decltype(try_index(l, 0) * try_index(r, 0)), 3> res = { l[1] * r[2]
-			- l[2] * r[1], l[2] * try_index(r, 0) - try_index(l, 0) * r[2],
-			try_index(l, 0) * r[1] - l[1] * try_index(r, 0) };
+	nTuple<decltype(try_index(l, 0) * try_index(r, 0)), 3> res =
+	{ l[1] * r[2] - l[2] * r[1], l[2] * try_index(r, 0)
+			- try_index(l, 0) * r[2], try_index(l, 0) * r[1]
+			- l[1] * try_index(r, 0) };
 	return std::move(res);
 }
 

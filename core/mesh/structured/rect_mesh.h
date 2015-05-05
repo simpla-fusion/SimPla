@@ -56,10 +56,9 @@ namespace simpla
  */
 //template<typename ... >struct RectMesh;
 template<typename TTopology, typename ...Policies>
-struct RectMesh:	public TTopology,
-					public Policies...,
-					std::enable_shared_from_this<
-							RectMesh<TTopology, Policies...>>
+struct RectMesh: public TTopology,
+		public Policies...,
+		std::enable_shared_from_this<RectMesh<TTopology, Policies...>>
 {
 	typedef TTopology topology_type;
 	typedef typename unpack_typelist<0, Policies...>::type coordinates_system;
@@ -81,8 +80,6 @@ struct RectMesh:	public TTopology,
 	using typename topology_type::id_tuple;
 
 	using typename topology_type::coordinates_type;
-
-	using typename topology_type::range_type;
 
 //	friend class Domain<this_type, VERTEX> ;
 //	friend class Domain<this_type, EDGE> ;
@@ -127,9 +124,11 @@ private:
 
 	coordinates_type m_toplogy_coord_orig_ /*= { 0, 0, 0 }*/;
 
-	coordinates_type m_coords_min_ = { 0, 0, 0 };
+	coordinates_type m_coords_min_ =
+	{ 0, 0, 0 };
 
-	coordinates_type m_coords_max_ = { 1, 1, 1 };
+	coordinates_type m_coords_max_ =
+	{ 1, 1, 1 };
 
 	coordinates_type m_dx_ /*= { 0, 0, 0 }*/;
 
@@ -187,7 +186,6 @@ private:
 
 	index_tuple m_memory_dimensions_;
 
-	index_tuple m_memory_strides_;
 public:
 
 //***************************************************************************************************
@@ -200,8 +198,7 @@ public:
 	{
 	}
 
-	RectMesh(this_type const & other)
-			:
+	RectMesh(this_type const & other) :
 
 			m_id_begin_(other.m_id_begin_),
 
@@ -215,7 +212,7 @@ public:
 
 			m_id_memory_begin_(other.m_id_memory_begin_),
 
-			m_memory_strides_(other.m_memory_strides_)
+			m_hash_strides_(other.m_hash_strides_)
 
 	{
 	}
@@ -229,7 +226,7 @@ public:
 		std::swap(m_id_local_end_, other.m_id_local_end_);
 		std::swap(m_memory_dimensions_, other.m_memory_dimensions_);
 		std::swap(m_id_memory_begin_, other.m_id_memory_begin_);
-		std::swap(m_memory_strides_, other.m_memory_strides_);
+		std::swap(m_hash_strides_, other.m_hash_strides_);
 
 	}
 	this_type & operator=(const this_type& other)
@@ -240,7 +237,8 @@ public:
 	template<typename TDict>
 	void load(TDict const & dict)
 	{
-		dimensions(dict["Dimensions"].as(index_tuple( { 10, 10, 10 })));
+		dimensions(dict["Dimensions"].as(index_tuple(
+		{ 10, 10, 10 })));
 
 		extents(
 				dict["Box"].template as<
@@ -274,7 +272,7 @@ public:
 				<< "]" << std::endl
 
 				<< " Dimensions\t= "
-				<< topology_type::unpack_diff(m_id_end_ - m_id_begin_) << ","
+				<< topology_type::unpack2(m_id_end_ - m_id_begin_) << ","
 				<< std::endl
 
 				;
@@ -283,40 +281,20 @@ public:
 
 	}
 
-	template<size_t IFORM>
-	range_type global_range() const
+	std::tuple<id_tuple, id_tuple> box() const
 	{
-		return topology_type::template range<IFORM>(m_id_begin_, m_id_end_);
+		return std::make_tuple(topology_type::unpack2(m_id_begin_),
+				topology_type::unpack2(m_id_end_));
 	}
-
-	template<size_t IFORM>
-	range_type local_range() const
+	std::tuple<id_tuple, id_tuple> local_box() const
 	{
-		return topology_type::template range<IFORM>(m_id_local_begin_,
-				m_id_local_end_);
+		return std::make_tuple(topology_type::unpack2(m_id_local_begin_),
+				topology_type::unpack2(m_id_local_end_));
 	}
-
-	template<size_t IFORM>
-	range_type range() const
+	std::tuple<id_type, id_type> id_box() const
 	{
-		return std::move(local_range<IFORM>());
+		return std::make_tuple(m_id_begin_, m_id_end_);
 	}
-
-	std::tuple<coordinates_type, coordinates_type> global_box() const
-	{
-		return std::make_tuple(coordinates(m_id_begin_), coordinates(m_id_end_));
-	}
-
-	std::tuple<coordinates_type, coordinates_type> local_box() const
-	{
-		return std::make_tuple(coordinates(m_id_local_begin_),
-				coordinates(m_id_local_end_));
-	}
-	std::tuple<coordinates_type, coordinates_type> box() const
-	{
-		return std::move(local_box());
-	}
-
 	static std::string get_type_as_string()
 	{
 		return "RectMesh<" + coordinates_system::get_type_as_string() + ">";
@@ -350,12 +328,15 @@ public:
 
 	template<typename TI> void dimensions(TI const & d)
 	{
-		m_id_begin_ = topology_type::code(index_tuple( { 0, 0, 0 }));
-		m_id_end_ = topology_type::code(d);
+		id_tuple dims;
+		dims = d;
+		m_id_begin_ = topology_type::FULL_ID_ZERO
+				- topology_type::pack2(dims / 2);
+		m_id_end_ = m_id_begin_ + topology_type::pack2(dims);
 	}
 	id_tuple dimensions() const
 	{
-		return topology_type::unpack_diff(m_id_end_ - m_id_begin_);
+		return topology_type::unpack2(m_id_end_ - m_id_begin_);
 	}
 
 	void deploy(size_t const *gw = nullptr);
@@ -467,11 +448,31 @@ public:
 	 * @name  Coordinates map
 	 * @{
 	 **/
+	coordinates_type coordinates(id_type const & s) const
+	{
+		return std::move(
+				coordinates_from_topology(topology_type::id_to_coordinates(s)));
+	}
+
+	template<size_t IFORM = 0>
+	inline id_type coordinates_to_id(coordinates_type const &x, int n = 0) const
+	{
+		return topology_type::template coordinates_to_id<IFORM>(
+				coordinates_to_topology(x), n);
+	}
+
+	template<size_t IFORM = VERTEX>
+	inline index_tuple coordinates_to_index(coordinates_type const &x) const
+	{
+		return topology_type::template coordinates_to_index<IFORM>(
+				coordinates_to_topology(x));
+	}
 
 	coordinates_type coordinates_from_topology(coordinates_type const &y) const
 	{
 
-		return coordinates_type( {
+		return coordinates_type(
+		{
 
 		std::fma(y[0], m_from_topology_scale_[0], m_coord_orig_[0]),
 
@@ -485,7 +486,8 @@ public:
 	coordinates_type coordinates_to_topology(coordinates_type const &x) const
 	{
 
-		return coordinates_type( {
+		return coordinates_type(
+		{
 
 		std::fma(x[0], m_to_topology_scale_[0], m_toplogy_coord_orig_[0]),
 
@@ -495,17 +497,6 @@ public:
 
 		});
 
-	}
-
-	coordinates_type coordinates(id_type const & s) const
-	{
-		return std::move(
-				coordinates_from_topology(topology_type::coordinates(s)));
-	}
-
-	inline id_type id(coordinates_type const &x) const
-	{
-		return topology_type::id(coordinates_to_topology(x));
 	}
 
 	/**
@@ -539,20 +530,37 @@ public:
 	 * @{
 	 *
 	 **/
+private:
+	size_t m_max_hash_ = 0;
+
+	index_tuple m_hash_strides_;
 
 public:
 
 	template<size_t IFORM>
 	size_t max_hash() const
 	{
-		return m_memory_strides_[0] * m_memory_dimensions_[0]
-				* ((IFORM == EDGE || IFORM == FACE) ? 3 : 1);
+		return m_max_hash_ * ((IFORM == EDGE || IFORM == FACE) ? 3 : 1);
 	}
-
+	template<size_t IFORM>
 	constexpr size_t hash(id_type const &s) const
 	{
-		return topology_type::hash(s - m_id_memory_begin_, m_memory_dimensions_,
-				m_memory_strides_);
+		return inner_product(
+				(topology_type::unpack2(s - m_id_memory_begin_)
+						+ m_memory_dimensions_) % m_memory_dimensions_,
+				m_hash_strides_)
+
+		* ((IFORM == EDGE || IFORM == FACE) ? 3 : 1)
+
+		+ topology_type::sub_index(s);
+
+	}
+
+	template<size_t IFORM>
+	constexpr size_t hash(index_type i, index_type j, index_type k,
+			int n = 0) const
+	{
+		return hash(topology_type::template pack_index<IFORM>(i, j, k, n));
 	}
 
 	/** @} */
@@ -570,16 +578,15 @@ public:
 
 		int f_ndims = ndims;
 
-		f_dims = topology_type::unpack_diff(m_id_end_ - m_id_begin_);
+		f_dims = topology_type::unpack2(m_id_end_ - m_id_begin_);
 
-		f_offset = topology_type::unpack_diff(m_id_local_begin_ - m_id_begin_);
+		f_offset = topology_type::unpack2(m_id_local_begin_ - m_id_begin_);
 
-		f_count = topology_type::unpack_diff(
-				m_id_local_end_ - m_id_local_begin_);
+		f_count = topology_type::unpack2(m_id_local_end_ - m_id_local_begin_);
 
 		m_dims = m_memory_dimensions_;
 
-		m_offset = topology_type::unpack_diff(m_id_local_begin_ - m_id_begin_);
+		m_offset = topology_type::unpack2(m_id_local_begin_ - m_id_begin_);
 
 		if ((IFORM == EDGE || IFORM == FACE))
 		{
@@ -621,15 +628,15 @@ public:
 
 		int f_ndims = ndims;
 
-		f_local_dims = m_memory_dimensions_; //topology_type::unpack_diff(m_id_end_ - m_id_begin_);
+		f_local_dims = m_memory_dimensions_; //topology_type::unpack2(m_id_end_ - m_id_begin_);
 
-		f_local_offset = topology_type::unpack_diff(
+		f_local_offset = topology_type::unpack2(
 				m_id_local_begin_ - m_id_memory_begin_);
 
-		f_local_count = topology_type::unpack_diff(
+		f_local_count = topology_type::unpack2(
 				m_id_local_end_ - m_id_local_begin_);
 
-		f_ghost_width = topology_type::unpack_diff(
+		f_ghost_width = topology_type::unpack2(
 				m_id_local_begin_ - m_id_memory_begin_);
 
 		if ((IFORM == EDGE || IFORM == FACE))
@@ -671,7 +678,8 @@ constexpr size_t RectMesh<TTopology, Polices...>::DEFAULT_GHOST_WIDTH;
 template<typename TTopology, typename ... Polices>
 void RectMesh<TTopology, Polices...>::deploy(size_t const *gw)
 {
-	auto dims = topology_type::unpack_diff(m_id_end_ - m_id_begin_);
+	nTuple<id_type, ndims> dims = topology_type::unpack2(
+			m_id_end_ - m_id_begin_);
 
 	for (int i = 0; i < ndims; ++i)
 	{
@@ -715,7 +723,7 @@ void RectMesh<TTopology, Polices...>::deploy(size_t const *gw)
 
 	}
 
-	m_id_end_ = m_id_begin_ + topology_type::pack_diff(dims);
+	m_id_end_ = m_id_begin_ + topology_type::pack2(dims);
 
 	m_coord_orig_ = m_coords_min_;
 
@@ -804,9 +812,9 @@ void RectMesh<TTopology, Polices...>::deploy(size_t const *gw)
 
 	if (GLOBAL_COMM.num_of_process() > 1)
 	{
-		auto begin = topology_type::unpack_diff(m_id_begin_);
+		auto begin = topology_type::unpack2(m_id_begin_);
 
-		auto end = topology_type::unpack_diff(m_id_end_);
+		auto end = topology_type::unpack2(m_id_end_);
 
 		GLOBAL_COMM.decompose(ndims, &begin[0], &end[0] );
 
@@ -833,20 +841,20 @@ void RectMesh<TTopology, Polices...>::deploy(size_t const *gw)
 				ERROR(
 				"Dimension is to small to split!["
 				" Dimensions= "
-				+ value_to_string(topology_type::unpack_diff(m_id_end_-m_id_begin_))
+				+ value_to_string(topology_type::unpack2(m_id_end_-m_id_begin_))
 				+ " , Local dimensions="
-				+ value_to_string(topology_type::unpack_diff(m_id_local_end_-m_id_local_begin_))
+				+ value_to_string(topology_type::unpack2(m_id_local_end_-m_id_local_begin_))
 				+ " , Ghost width ="
 				+ value_to_string(ghost_width) + "]");
 			}
 
 		}
 
-		m_id_local_begin_=topology_type::pack_diff(begin);
+		m_id_local_begin_=topology_type::pack2(begin);
 
-		m_id_local_end_=topology_type::pack_diff(end);
+		m_id_local_end_=topology_type::pack2(end);
 
-		m_id_memory_begin_ = m_id_local_begin_ - (topology_type::pack_diff(ghost_width ));
+		m_id_memory_begin_ = m_id_local_begin_ - (topology_type::pack2(ghost_width ));
 
 		m_memory_dimensions_ = end - begin + ghost_width*2;
 
@@ -861,7 +869,7 @@ void RectMesh<TTopology, Polices...>::deploy(size_t const *gw)
 
 		m_id_memory_begin_ = m_id_local_begin_;
 
-		m_memory_dimensions_ = topology_type::unpack_diff(m_id_end_-m_id_begin_);
+		m_memory_dimensions_ = topology_type::unpack2(m_id_end_-m_id_begin_);
 
 		m_is_distributed_ = false;
 	}
@@ -870,13 +878,15 @@ void RectMesh<TTopology, Polices...>::deploy(size_t const *gw)
 	 *  Hash
 	 */
 
-	m_memory_strides_[ndims - 1] = 1;
+	m_hash_strides_[ndims - 1] = 1;
 
 	for (int i = ndims - 2; i >= 0; --i)
 	{
-		m_memory_strides_[i] = m_memory_strides_[i + 1]
+		m_hash_strides_[i] = m_hash_strides_[i + 1]
 				* m_memory_dimensions_[i + 1];
 	}
+
+	m_max_hash_ = m_hash_strides_[0] * m_memory_dimensions_[0];
 
 	m_is_valid_ = true;
 
