@@ -4,36 +4,35 @@
  * @date 2015年4月15日
  * @author salmon
  */
-
+#include "../../core/mesh/mesh_ids.h"
 #include "../../core/utilities/utilities.h"
-#include "../../core/io/io.h"
 
 using namespace simpla;
 
-struct id_tuple
-{
-	unsigned long i :20;
-	unsigned long j :20;
-	unsigned long k :20;
-	int n :4;
-
-	template<typename T>
-	operator T() const
-	{
-		return *reinterpret_cast<std::int64_t const *>(this);
-	}
-};
 int main(int argc, char **argv)
 {
-	SHOW(sizeof(long));
+	SHOW(sizeof(unsigned long));
 	SHOW(sizeof(std::int32_t));
 	SHOW(sizeof(std::int64_t));
+	SHOW(sizeof(MeshIDs::id_s));
 
-	SHOW(sizeof(id_tuple));
-	id_tuple t =
-	{ 1, 0xF2, 0xEFFFFL, 4 };
+	MeshIDs::id_s t = { 1, 0xF2, 2, 4 };
 
-	std::cout << std::hex << static_cast<std::int64_t>(t) << std::endl;
+	SHOW(std::is_pod<MeshIDs::id_s>::value);
 
+	SHOW_HEX(static_cast<std::uint64_t>(t));
+
+	SHOW(t.i);
+	SHOW(t.j);
+	SHOW(t.k);
+	SHOW(t.h);
+	SHOW((static_cast<nTuple<long, 4> >(t)));
+
+//
+//	std::cout << std::hex << MeshIDs::_DI << std::endl;
+//
+//	std::cout << std::hex << MeshIDs::_DJ << std::endl;
+//
+//	std::cout << std::hex << MeshIDs::_DK << std::endl;
 }
 

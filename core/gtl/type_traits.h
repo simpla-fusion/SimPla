@@ -461,6 +461,20 @@ struct unpack_typelist<N, T0, Others...>
 {
 	typedef typename unpack_typelist<N - 1, Others...>::type type;
 };
+
+template<typename T, typename U>
+T & raw_cast(U& s)
+{
+	return *reinterpret_cast<T*>(&s);
+}
+
+template<typename T, typename U>
+T assign_cast(U const & s)
+{
+	T res;
+	res = s;
+	return std::move(res);
+}
 }
 // namespace simpla
 #endif /* SP_TYPE_TRAITS_H_ */

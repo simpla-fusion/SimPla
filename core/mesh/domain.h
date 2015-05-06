@@ -41,7 +41,7 @@ struct domain_traits<_Field<Domain<TM, IFORM>, Others...>>
 };
 
 template<typename TM, size_t IFORM>
-struct Domain
+struct Domain: public TM::range_type
 {
 
 public:
@@ -56,49 +56,34 @@ public:
 	typedef typename mesh_type::coordinates_type coordinates_type;
 	typedef typename mesh_type::index_type index_type;
 	typedef typename mesh_type::index_tuple index_tuple;
-	typedef sp_nTuple_range<index_type,
-			((iform == VERTEX || iform == VOLUME) ? ndims : ndims + 1)> range_type;
+
+	typedef typename mesh_type::range_type range_type;
 
 	template<typename TV>
 	using field_value_type=typename std::conditional<(iform == VERTEX || iform == VOLUME),TV,nTuple<TV,3>>::type;
 
 	mesh_type const &m_mesh_;
-	range_type m_box_;
 	std::set<id_type> m_id_set_;
 public:
 
-	Domain(mesh_type const &m) :
-			m_mesh_(m)
+	Domain(mesh_type const &m)
+			: range_type(m.template range<iform>()), m_mesh_(m)
 	{
-		deploy();
-	}
-	template<typename T0, typename T1>
-	Domain(mesh_type const &m, T0 const & b, T1 const & e) :
-			m_mesh_(m)
-	{
-		reset_box(b, e);
+		/*range_type(m.box<iform>()), */
 	}
 
-	Domain(this_type const & other) :
-			m_mesh_(other.m_mesh_), m_box_(other.m_box_), m_id_set_(
+	Domain(this_type const & other)
+			: range_type(other), m_mesh_(other.m_mesh_), m_id_set_(
 					other.m_id_set_)
 	{
 	}
-	Domain(this_type && other) :
-			m_mesh_(other.m_mesh_), m_box_(other.m_box_), m_id_set_(
+	Domain(this_type && other)
+			: range_type(other), m_mesh_(other.m_mesh_), m_id_set_(
 					other.m_id_set_)
 	{
 	}
-	template<size_t IF>
-	Domain<mesh_type, IF> clone() const
-	{
-		Domain<mesh_type, IF> res(m_mesh_);
-		res.reset_bound_box(m_box_.m_b_, m_box_.m_e_);
-		return std::move(res);
-	}
 
-	mesh_type const &
-	mesh() const
+	mesh_type const & mesh() const
 	{
 		return m_mesh_;
 	}
@@ -120,7 +105,7 @@ public:
 	 */
 	bool is_null() const
 	{
-		return is_simply() && m_box_.is_null();
+		return is_simply() && range_type::empty();
 	}
 	bool is_full() const
 	{
@@ -134,14 +119,14 @@ public:
 
 	void clear()
 	{
-		m_box_.clear();
+		range_type::clear();
 	}
 
 	size_t size() const
 	{
 		if (is_simply())
 		{
-			return m_box_.size();
+			return range_type::size();
 		}
 		else
 		{
@@ -158,13 +143,13 @@ public:
 
 	void swap(this_type &other)
 	{
-		std::swap(m_box_, other.m_box_);
+		range_type::swap(other);
 		std::swap(m_mesh_, other.m_mesh_);
 		std::swap(m_id_set_, other.m_id_set_);
 	}
 	void deploy()
 	{
-		reset_box(m_mesh_.local_box());
+		reset(m_mesh_.local_box());
 	}
 
 	std::set<id_type> & id_set()
@@ -196,9 +181,9 @@ public:
 		else if (is_simply())
 		{
 
-			for (auto const &idx : m_box_)
+			for (auto const &idx : *this)
 			{
-				fun(m_mesh_.template pack_index<iform>(idx));
+				fun(m_mesh_.pack_index(idx));
 			}
 		}
 		else
@@ -230,9 +215,9 @@ public:
 
 		if (is_simply())
 		{
-			for (auto const &x : m_box_)
+			for (auto const &x : *this)
 			{
-				fun(m_mesh_.template pack_index<iform>(x));
+				fun(m_mesh_.pack_index(x));
 			}
 		}
 		else
@@ -253,11 +238,11 @@ public:
 		}
 		else if (is_simply() && other.is_simply())
 		{
-			range_type r = m_box_ & other.m_box_;
+			range_type r = *this & other;
 
 			for (auto const &idx : r)
 			{
-				fun(mesh_type::template pack_index<iform>(idx));
+				fun(mesh_type::pack_index(idx));
 			}
 		}
 		else if (is_simply())
@@ -299,12 +284,12 @@ public:
 	template<typename TI>
 	bool in_box(TI const & idx) const
 	{
-		return m_box_.in_box(idx);
+		return range_type::in_box(idx);
 	}
 
-	bool in_box(id_type s) const
+	bool in_box(coordinates_type const & x) const
 	{
-		return m_box_.in_box(m_mesh_.unpack4(s));
+		return range_type::in_box(mesh_type::coordinates_to_topology(x));
 	}
 
 	void update_bound_box()
@@ -316,7 +301,7 @@ public:
 		}
 		else
 		{
-			m_box_.m_b_ = m_box_.m_e_;
+			m_mesh_.template range<iform>().swap(*this);
 		}
 	}
 	void clear_ids()
@@ -327,43 +312,23 @@ public:
 		}
 	}
 
-	template<typename T0, typename T1>
-	void reset_box(T0 const & b, T1 const & e)
+	void reset(coordinates_type const & b, coordinates_type const & e)
 	{
-
-		typename range_type::value_type ib, ie;
-
-		ib = b;
-		ie = e;
-		if (iform == EDGE || iform == FACE)
-		{
-			ib[ndims] = 0;
-			ie[ndims] = 3;
-		}
-
-		range_type(ib, ie).swap(m_box_);
-
-		clear_ids();
-	}
-
-	void reset_box(coordinates_type const & b, coordinates_type const & e)
-	{
-		reset_box(m_mesh_.coordinates_to_index(b),
-				m_mesh_.coordinates_to_index(e) + 1);
-	}
-	template<typename TI>
-	void reset_box(std::tuple<TI, TI> const & p_box)
-	{
-		reset_box(std::get<0>(p_box), std::get<1>(p_box));
+		range_type::reset(mesh_type::coordinates_to_topology(b),
+				mesh_type::coordinates_to_topology(e));
 	}
 
 	template<typename T0, typename T1>
 	this_type select(T0 const & b, T1 const & e) const
 	{
+		// FIXME this is incorrect
 		this_type res(*this);
-		res.reset_bound_box(b, e);
+
+		res.reset_box(b, e);
+
 		return std::move(res);
 	}
+
 	template<typename TPred>
 	void filter(TPred const& pred)
 	{
@@ -418,39 +383,40 @@ public:
 	void remove(Pred const & pred)
 	{
 		filter([&](id_type const & s)
-		{
-			return !pred(s);
-		});
+				{
+					return !pred(s);
+				});
 	}
 	template<typename Pred>
 	void remove_by_coordinates(Pred const & pred)
 	{
 		filter([&](id_type const & s)
-		{
-			return !pred(m_mesh_.coordinates(s));
-		});
+				{
+					return !pred(m_mesh_.coordinates(s));
+				});
 	}
 	struct iterator;
 	typedef iterator const_iterator;
 
 	const_iterator begin() const
 	{
-		return std::move(const_iterator(m_box_.begin()));
+		return std::move(const_iterator(range_type::begin()));
 	}
 
 	const_iterator end() const
 	{
-		return std::move(const_iterator(m_box_.end()));
+		return std::move(const_iterator(range_type::end()));
 	}
 
 	struct iterator: public std::iterator<
-			typename range_type::iterator::iterator_category, id_type, id_type>,
-			public range_type::iterator
+	typename range_type::iterator::iterator_category,
+	id_type, id_type>,
+public range_type::iterator
 	{
 		typedef typename range_type::iterator base_iterator;
 
-		iterator(base_iterator const &other) :
-				base_iterator(other)
+		iterator(base_iterator const &other)
+		: base_iterator(other)
 		{
 		}
 
@@ -460,8 +426,7 @@ public:
 
 		id_type operator*() const
 		{
-			return mesh_type::template pack_index<iform>(
-					base_iterator::operator *());
+			return mesh_type::pack_index(base_iterator::operator *());
 		}
 	};
 	/**
@@ -475,18 +440,19 @@ public:
 
 		if (is_simply())
 		{
-			typename DataSpace::index_tuple offset, count;
-
-			std::tie(offset, std::ignore) = m_mesh_.box();
-			auto g_shape = res.global_shape();
-
-			offset[ndims] = 0;
-
-			offset = m_box_.m_b_ - offset - g_shape.offset;
-
-			count = m_box_.m_e_ - m_box_.m_b_;
-
-			res.select_hyperslab(&offset[0], nullptr, &count[0], nullptr);
+			UNIMPLEMENTED;
+//			typename DataSpace::index_tuple offset, count;
+//
+//			std::tie(offset, std::ignore) = m_mesh_.box();
+//			auto g_shape = res.global_shape();
+//
+//			offset[ndims] = 0;
+//
+//			offset = range_type ::m_b_ - offset - g_shape.offset;
+//
+//			count = range_type ::m_e_ - range_type ::m_b_;
+//
+//			res.select_hyperslab(&offset[0], nullptr, &count[0], nullptr);
 		}
 		else
 		{

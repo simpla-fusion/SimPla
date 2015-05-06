@@ -65,36 +65,10 @@ struct MeshIDs_
 	/// @name level independent
 	/// @{
 
-	typedef std::int64_t id_type;
+	typedef std::uint64_t id_type;
 
 	typedef nTuple<id_type, 3> id_tuple;
 
-	struct id_s
-	{
-		long i :20;
-		long j :20;
-		long k :20;
-		int n :4;
-
-		operator id_type() const
-		{
-			return *reinterpret_cast<id_type const *>(this);
-		}
-		template<typename T>
-		operator nTuple<T,3>() const
-		{
-			return nTuple<T, 3>(
-			{
-
-			static_cast<T>(i),
-
-			static_cast<T>(j),
-
-			static_cast<T>(k)
-
-			});
-		}
-	};
 	typedef long index_type;
 
 	typedef nTuple<index_type, 3> index_tuple;
@@ -105,21 +79,78 @@ struct MeshIDs_
 
 	static constexpr id_type FULL_DIGITS = std::numeric_limits<id_type>::digits;
 
-	static constexpr id_type ID_DIGITS = (FULL_DIGITS) / 3;
+	static constexpr id_type ID_DIGITS = 20;
 
-	static constexpr id_type ID_MASK = (1UL << (ID_DIGITS)) - 1;
+	static constexpr id_type HEAD_DIGITS = (FULL_DIGITS - ID_DIGITS * 3);
 
-	static constexpr id_type CARRAY_FLAG = (((1UL) << (ID_DIGITS - 1))
-			| (1UL << (ID_DIGITS * 2 - 1)) | (1UL << (ID_DIGITS * 3 - 1)));
+	static constexpr id_type ID_MASK = (1UL << ID_DIGITS) - 1;
 
-	static constexpr id_type CLEAR_CARRAY_FLAG = ~CARRAY_FLAG;
+	static constexpr id_type OVERFLOW_FLAG = (1UL) << (ID_DIGITS - 1);
 
-	static constexpr id_type ID_ZERO = (1L << (ID_DIGITS - 2));
+	struct id_s
+	{
+		id_type i :20;
+		id_type j :20;
+		id_type k :20;
+		int h :4;
 
-	static constexpr Real COORD_ZERO = static_cast<Real>(ID_ZERO);
+		template<typename T, size_t ... I>
+		id_s &operator=(nTuple<T, I...> const& x)
+		{
+			i = static_cast<id_type>(x[0]);
+			j = static_cast<id_type>(x[1]);
+			k = static_cast<id_type>(x[2]);
+			return (*this);
+		}
+		template<typename T>
+		id_s &operator=(nTuple<T, 4> const& x)
+		{
+			i = static_cast<id_type>(x[0]);
+			j = static_cast<id_type>(x[1]);
+			k = static_cast<id_type>(x[2]);
+			h = static_cast<id_type>(x[3]);
+			return (*this);
+		}
 
-	static constexpr id_type FULL_ID_ZERO = ID_ZERO | (ID_ZERO << ID_DIGITS)
-			| (ID_ZERO << (ID_DIGITS * 2));
+		id_s &operator=(id_type s)
+		{
+			*reinterpret_cast<id_type *>(this) = s;
+
+			return (*this);
+		}
+		operator id_type() const
+		{
+			return *reinterpret_cast<id_type const *>(this);
+		}
+		template<typename T>
+		operator nTuple<T,3>() const
+		{
+			return nTuple<T, 3>( {
+
+			static_cast<T>(i),
+
+			static_cast<T>(j),
+
+			static_cast<T>(k)
+
+			});
+		}
+		template<typename T>
+		operator nTuple<T,4>() const
+		{
+			return nTuple<T, 4>( {
+
+			static_cast<T>(i),
+
+			static_cast<T>(j),
+
+			static_cast<T>(k),
+
+			static_cast<T>(h),
+
+			});
+		}
+	};
 	/// @}
 	/// @name level dependent
 	/// @{
@@ -130,20 +161,32 @@ struct MeshIDs_
 
 	static constexpr id_type PRIMARY_ID_MASK = ID_MASK & (~SUB_ID_MASK);
 
-	static constexpr id_type _D = (1UL << (MESH_LEVEL - 1));
+	static constexpr id_type _D = 1UL << (MESH_LEVEL - 1);
 
 	static constexpr Real _R = static_cast<Real>(_D);
 
+#ifdef BIG_ENDIAN
+
 	static constexpr id_type _DI = _D;
 
-	static constexpr id_type _DJ = 1UL << (ID_DIGITS + MESH_LEVEL - 1);
+	static constexpr id_type _DJ = _D << (ID_DIGITS);
 
-	static constexpr id_type _DK = 1UL << (ID_DIGITS * 2 + MESH_LEVEL - 1);
+	static constexpr id_type _DK = _D << (ID_DIGITS * 2);
 
-	static constexpr id_type _DA = _DI | _DJ | _DK;
+	static constexpr id_type ID_ZERO = OVERFLOW_FLAG
+			| (OVERFLOW_FLAG << ID_DIGITS) | (OVERFLOW_FLAG << (ID_DIGITS * 2));
 
-	static constexpr index_type INDEX_ZERO = static_cast<index_type>(ID_ZERO
-			>> MESH_LEVEL);
+#else
+	static constexpr id_type _DK = _D << (HEAD_DIGITS);
+
+	static constexpr id_type _DJ = _D << (ID_DIGITS + HEAD_DIGITS);
+
+	static constexpr id_type _DI = _D << (ID_DIGITS * 2 + HEAD_DIGITS);
+
+	static constexpr id_type ID_ZERO = (OVERFLOW_FLAG<<HEAD_DIGITS)
+	| (OVERFLOW_FLAG << (ID_DIGITS+HEAD_DIGITS)) | (OVERFLOW_FLAG << (ID_DIGITS * 2+HEAD_DIGITS));
+#endif
+	static constexpr id_type _DA = _D | _DJ | _DK;
 
 	static constexpr Real COORDINATES_MESH_FACTOR = static_cast<Real>(1UL
 			<< MESH_LEVEL);
@@ -170,8 +213,7 @@ struct MeshIDs_
 //
 //	| (((INIFIT_AXIS & 4UL) == 0) ? (INDEX_MASK << (INDEX_DIGITS * 2)) : 0UL);
 
-	static constexpr id_type m_sub_index_to_id_[4][3] =
-	{ //
+	static constexpr id_type m_sub_index_to_id_[4][3] = { //
 
 			{ 0, 0, 0 }, /*VERTEX*/
 			{ 1, 2, 4 }, /*EDGE*/
@@ -180,8 +222,7 @@ struct MeshIDs_
 
 			};
 
-	static constexpr id_type m_id_to_sub_index_[8] =
-	{ //
+	static constexpr id_type m_id_to_sub_index_[8] = { //
 
 			0, // 000
 					0, // 001
@@ -193,8 +234,7 @@ struct MeshIDs_
 					0, // 111
 			};
 
-	static constexpr id_type m_id_to_shift_[] =
-	{
+	static constexpr id_type m_id_to_shift_[] = {
 
 	0,   					// 000
 			_DI,   			// 001
@@ -207,8 +247,7 @@ struct MeshIDs_
 
 			};
 
-	static constexpr coordinates_type m_id_to_coordinates_shift_[] =
-	{
+	static constexpr coordinates_type m_id_to_coordinates_shift_[] = {
 
 	{ 0, 0, 0 },            // 000
 			{ _R, 0, 0 },           // 001
@@ -221,8 +260,7 @@ struct MeshIDs_
 
 			};
 
-	static constexpr id_type m_id_to_num_of_ele_in_cell_[] =
-	{
+	static constexpr id_type m_id_to_num_of_ele_in_cell_[] = {
 
 	1,   		// 000
 			3,	// 001
@@ -234,8 +272,7 @@ struct MeshIDs_
 			1 	// 111
 			};
 
-	static constexpr id_type m_id_to_iform_[] =
-	{ //
+	static constexpr id_type m_id_to_iform_[] = { //
 
 			VERTEX, // 000
 					EDGE, // 001
@@ -248,226 +285,70 @@ struct MeshIDs_
 			};
 
 	template<typename T>
-	static constexpr id_type pack2(T const & idx)
+	static constexpr id_type pack(T const & idx)
 	{
-		return
-
-		(idx[0] << MESH_LEVEL)
-
-		| (idx[1] << (ID_DIGITS + MESH_LEVEL))
-
-		| (idx[2] << (ID_DIGITS * 2 + MESH_LEVEL));
-
+		return static_cast<id_type>(assign_cast<id_s>(idx));
 	}
 
-	static constexpr id_tuple unpack2(id_type s)
-	{
-		return id_tuple(
-		{
-
-		((s & ID_MASK) >> MESH_LEVEL),
-
-		((((s >> (ID_DIGITS)) & ID_MASK)) >> MESH_LEVEL),
-
-		((((s >> (ID_DIGITS * 2)) & ID_MASK)) >> MESH_LEVEL)
-
-		})
-
-		;
-	}
-	static constexpr nTuple<id_type, 4> unpack4(id_type s)
-	{
-		return nTuple<id_type, 4>(
-		{
-
-		((s & ID_MASK) >> MESH_LEVEL),
-
-		((((s >> (ID_DIGITS)) & ID_MASK)) >> MESH_LEVEL),
-
-		((((s >> (ID_DIGITS * 2)) & ID_MASK)) >> MESH_LEVEL),
-
-		sub_index(s)
-
-		})
-
-		;
-	}
-	template<size_t IFORM>
-	static constexpr id_type pack(id_type i, id_type j, id_type k, int n = 0)
-	{
-		return
-
-		(m_id_to_shift_[m_sub_index_to_id_[IFORM][n % 3]])
-
-		| (i)
-
-		| (j << (ID_DIGITS))
-
-		| (k << (ID_DIGITS * 2));
-	}
-
-	template<size_t IFORM>
-	static constexpr id_type pack(id_tuple const &i, int n = 0)
-	{
-		return pack<IFORM>(i[0], i[1], i[2], n);
-	}
-	template<size_t IFORM>
-	static constexpr id_type pack(nTuple<id_type, 4> const &i)
-	{
-		return pack<IFORM>(i[0], i[1], i[2], i[3]);
-	}
-
-	template<size_t IFORM>
 	static constexpr id_tuple unpack(id_type s)
 	{
-		return id_tuple(
-		{
-
-		((s & ID_MASK)),
-
-		((((s >> (ID_DIGITS)) & ID_MASK))),
-
-		((((s >> (ID_DIGITS * 2)) & ID_MASK)))
-
-		})
-
-		;
+		return static_cast<id_tuple>(raw_cast<id_s>(s));
 	}
 
-	template<size_t IFORM>
-	static constexpr id_type pack_index(index_type i, index_type j,
-			index_type k, int n = 0)
+	template<typename T>
+	static constexpr id_type pack_index(T const & idx)
 	{
-		return pack<IFORM>(
-
-		static_cast<id_type>(i + INDEX_ZERO) << MESH_LEVEL, //
-		static_cast<id_type>(j + INDEX_ZERO) << MESH_LEVEL, //
-		static_cast<id_type>(k + INDEX_ZERO) << MESH_LEVEL, //
-
-		n);
+		return pack(idx) << MESH_LEVEL;
 	}
-	template<size_t IFORM>
-	static constexpr id_type pack_index(index_tuple const & idx, int n = 0)
+
+	static constexpr id_tuple unpack_index(id_type s)
 	{
-		return pack_index<IFORM>(idx[0], idx[1], idx[2], n);
+		return unpack(s) >> MESH_LEVEL;
 	}
-
-	template<size_t IFORM>
-	static constexpr id_type pack_index(nTuple<index_type, 4> const & idx)
+	static constexpr id_type const &id(id_type const &s)
 	{
-		return pack_index<IFORM>(idx[0], idx[1], idx[2], idx[3]);
+		return s;
 	}
 
-	template<size_t IFORM>
-	static constexpr index_tuple unpack_index(id_tuple s)
+	template<typename T>
+	static constexpr id_type id(T const &x)
 	{
-		return index_tuple(
-		{
-
-		static_cast<index_type>(s[0] >> MESH_LEVEL) - INDEX_ZERO, //
-		static_cast<index_type>(s[1] >> MESH_LEVEL) - INDEX_ZERO, //
-		static_cast<index_type>(s[2] >> MESH_LEVEL) - INDEX_ZERO, //
-
-				});
+		return pack(x + OVERFLOW_FLAG);
 	}
-
-	template<size_t IFORM>
-	static constexpr index_tuple unpack_index(id_type s)
+	static constexpr id_type id(coordinates_type const &x)
 	{
-		return unpack_index<IFORM>(unpack<IFORM>(s));
+		return pack(x + OVERFLOW_FLAG);
 	}
-
-	template<size_t IFORM>
-	static constexpr nTuple<index_type, 4> unpack_index4(id_tuple s, int n)
+	static constexpr id_type id(index_tuple const &d, int n_id = 0)
 	{
-
-		return nTuple<index_type, 4>(
-		{
-
-		static_cast<index_type>(s[0] >> MESH_LEVEL) - INDEX_ZERO, //
-		static_cast<index_type>(s[1] >> MESH_LEVEL) - INDEX_ZERO, //
-		static_cast<index_type>(s[2] >> MESH_LEVEL) - INDEX_ZERO, //
-
-		n
-
-		});
+		return pack((d + (OVERFLOW_FLAG >> (MESH_LEVEL)) << MESH_LEVEL))
+				| m_id_to_shift_[n_id];
 	}
 
-	template<size_t IFORM>
-	static constexpr nTuple<index_type, 4> unpack_index4(id_type s)
-	{
-		return unpack_index4<IFORM>(unpack<IFORM>(s), sub_index(s));
-	}
-
-	template<size_t IFORM = VERTEX>
-	static id_tuple coordinates_to_id_tuple(coordinates_type const &x,
-			int n = 0)
-	{
-		return id_tuple(
-		{
-
-		static_cast<id_type>(std::floor(x[0] + COORD_ZERO)) & PRIMARY_ID_MASK,
-
-		static_cast<id_type>(std::floor(x[1] + COORD_ZERO)) & PRIMARY_ID_MASK,
-
-		static_cast<id_type>(std::floor(x[2] + COORD_ZERO)) & PRIMARY_ID_MASK
-
-		});
-	}
-
-	template<size_t IFORM = VERTEX>
-	static constexpr coordinates_type id_to_coordinates(id_tuple const &idx,
-			int n = 0)
-	{
-
-		return coordinates_type(
-		{
-
-		static_cast<Real>(idx[0]) - ID_ZERO,
-
-		static_cast<Real>(idx[1]) - ID_ZERO,
-
-		static_cast<Real>(idx[2]) - ID_ZERO
-
-		});
-	}
-
-	template<size_t IFORM = VERTEX>
-	static constexpr id_type coordinates_to_id(coordinates_type const &x,
-			int n = 0)
-	{
-		return pack<IFORM>(coordinates_to_id_tuple<IFORM>(x, n), n);
-	}
-
-	template<size_t IFORM = VERTEX>
-	static constexpr coordinates_type id_to_coordinates(id_type s)
-	{
-		return id_to_coordinates<IFORM>(unpack<IFORM>(s), sub_index(s));
-	}
-	template<size_t IFORM = VERTEX>
 	static constexpr coordinates_type coordinates(id_type s)
 	{
-		return std::move(id_to_coordinates<IFORM>(s));
+		return static_cast<coordinates_type>(raw_cast<id_s>(s)) - OVERFLOW_FLAG;
 	}
 
-	template<size_t IFORM = VERTEX>
-	static constexpr index_tuple coordinates_to_index(
-			coordinates_type const & x, int n = 0)
+	static constexpr index_tuple index(id_type const &s)
 	{
-		return unpack_index<IFORM>(coordinates_to_id_tuple<IFORM>(x, n));
+		return (unpack(s) >> MESH_LEVEL) - (OVERFLOW_FLAG >> MESH_LEVEL);
 	}
-
+	static constexpr index_tuple index(coordinates_type const &x)
+	{
+		return index(id(x));
+	}
 	template<size_t IFORM, typename TX>
 	static std::tuple<id_type, coordinates_type> coordinates_global_to_local(
 			TX const &x, int n = 0)
 	{
-		id_tuple idx = coordinates_to_id_tuple(x, n);
+		id_tuple idx = index(x);
 
 		coordinates_type r;
 
-		r = (x + COORD_ZERO - idx) / (_R * 2.0);
+		r = (x - idx) / (_R * 2.0);
 
-		return std::make_tuple(pack<IFORM>(idx, n), r);
+		return std::make_tuple(pack(idx), r);
 
 	}
 
@@ -521,8 +402,7 @@ struct MeshIDs_
 				| ((s >> (ID_DIGITS * 2 + MESH_LEVEL - 3)) & 4UL);
 	}
 
-	static constexpr id_type m_id_to_index_[8] =
-	{ //
+	static constexpr id_type m_id_to_index_[8] = { //
 
 			0, // 000
 					0, // 001
@@ -564,7 +444,7 @@ struct MeshIDs_
 	static constexpr id_type _HI = _D;
 	static constexpr id_type _HJ = _HI << ID_DIGITS;
 	static constexpr id_type _HK = _HI << (ID_DIGITS * 2);
-	static constexpr id_type _LI = (((-_D) & ID_MASK) & CLEAR_CARRAY_FLAG);
+	static constexpr id_type _LI = (((-_D) & ID_MASK));
 	static constexpr id_type _LJ = _LI << ID_DIGITS;
 	static constexpr id_type _LK = _LI << (ID_DIGITS * 2);
 
@@ -617,132 +497,132 @@ struct MeshIDs_
 			};
 
 	static constexpr id_type m_vertics_matrix_[4/* to iform*/][8/* node id*/][MAX_NUM_OF_CELL/*id shift*/] =
-	{
-	//To VERTEX
 			{
+			//To VERTEX
+					{
 
-			/* 000*/
-			{ 0 },
-			/* 001*/
-			{ _LI, _HI },
-			/* 010*/
-			{ _LJ, _HJ },
-			/* 011*/
-			{ _LI | _LJ, _HI | _LJ, _HI | _HJ, _LI | _HJ },
-			/* 100*/
-			{ _LK, _HK },
-			/* 101*/
-			{ _LK | _LI, _HK | _LI, _HK | _HI, _LK | _HI },
-			/* 110*/
-			{ _LJ | _LK, _HJ | _LK, _HJ | _HK, _LJ | _HK },
-			/* 111*/
-			{ _LI | _LJ | _LK, //
-			_HI | _LJ | _LK, //
-			_HI | _HJ | _LK, //
-			_LI | _HJ | _LK, //
+					/* 000*/
+					{ 0 },
+					/* 001*/
+					{ _LI, _HI },
+					/* 010*/
+					{ _LJ, _HJ },
+					/* 011*/
+					{ _LI | _LJ, _HI | _LJ, _HI | _HJ, _LI | _HJ },
+					/* 100*/
+					{ _LK, _HK },
+					/* 101*/
+					{ _LK | _LI, _HK | _LI, _HK | _HI, _LK | _HI },
+					/* 110*/
+					{ _LJ | _LK, _HJ | _LK, _HJ | _HK, _LJ | _HK },
+					/* 111*/
+					{ _LI | _LJ | _LK, //
+					_HI | _LJ | _LK, //
+					_HI | _HJ | _LK, //
+					_LI | _HJ | _LK, //
 
-			_LI | _LJ | _HK, //
-			_HI | _LJ | _HK, //
-			_HI | _HJ | _HK, //
-			_LI | _HJ | _HK }
+					_LI | _LJ | _HK, //
+					_HI | _LJ | _HK, //
+					_HI | _HJ | _HK, //
+					_LI | _HJ | _HK }
 
-			},
+					},
 
-			//To EDGE
-			{
-			/* 000*/
-			{ _HI, _LI, _HJ, _LJ, _HK, _LK },
-			/* 001*/
-			{ 0 },
-			/* 010*/
-			{ 0 },
-			/* 011*/
-			{ _LJ, _HI, _HJ, _LI },
-			/* 100*/
-			{ 0 },
-			/* 101*/
-			{ _LI, _HK, _HI, _LK },
-			/* 110*/
-			{ _LK, _HJ, _HK, _LJ },
-			/* 111*/
-			{ _LK | _LJ,  //-> 001
-			_LK | _HI, //   012
-			_LK | _HJ, //   021
-			_LK | _LI, //   010
+					//To EDGE
+					{
+					/* 000*/
+					{ _HI, _LI, _HJ, _LJ, _HK, _LK },
+					/* 001*/
+					{ 0 },
+					/* 010*/
+					{ 0 },
+					/* 011*/
+					{ _LJ, _HI, _HJ, _LI },
+					/* 100*/
+					{ 0 },
+					/* 101*/
+					{ _LI, _HK, _HI, _LK },
+					/* 110*/
+					{ _LK, _HJ, _HK, _LJ },
+					/* 111*/
+					{ _LK | _LJ,  //-> 001
+					_LK | _HI, //   012
+					_LK | _HJ, //   021
+					_LK | _LI, //   010
 
-			_LI | _LJ, //
-			_LI | _HJ, //
-			_HI | _LJ, //
-			_HI | _HI, //
+					_LI | _LJ, //
+					_LI | _HJ, //
+					_HI | _LJ, //
+					_HI | _HI, //
 
-			_HK | _LJ, //
-			_HK | _HI, //
-			_HK | _HJ, //
-			_HK | _LI  //
-			} },
+					_HK | _LJ, //
+					_HK | _HI, //
+					_HK | _HJ, //
+					_HK | _LI  //
+					} },
 
-			//To FACE
-			{
-			/* 000*/
-			{ _LK | _LJ,  //
-			_LK | _HI, //
-			_LK | _HJ, //
-			_LK | _LI, //
+					//To FACE
+					{
+					/* 000*/
+					{ _LK | _LJ,  //
+					_LK | _HI, //
+					_LK | _HJ, //
+					_LK | _LI, //
 
-			_LI | _LJ, //
-			_LI | _HJ, //
-			_HI | _LJ, //
-			_HI | _HI, //
+					_LI | _LJ, //
+					_LI | _HJ, //
+					_HI | _LJ, //
+					_HI | _HI, //
 
-			_HK | _LJ, //
-			_HK | _HI, //
-			_HK | _HJ, //
-			_HK | _LI  //
-			},
-			/* 001*/
-			{ _LJ, _HK, _HJ, _LK },
-			/* 010*/
-			{ _LK, _HI, _HK, _LI },
-			/* 011*/
-			{ 0 },
-			/* 100*/
-			{ _LI, _HJ, _HI, _LJ },
-			/* 101*/
-			{ 0 },
-			/* 110*/
-			{ 0 },
-			/* 111*/
-			{ _LI, _LJ, _LK, _HI, _HJ, _HK } },
-			// TO VOLUME
-			{
-			/* 000*/
-			{ _LI | _LJ | _LK,  //
-			_LI | _HJ | _LK, //
-			_LI | _LJ | _HK, //
-			_LI | _HJ | _HK, //
+					_HK | _LJ, //
+					_HK | _HI, //
+					_HK | _HJ, //
+					_HK | _LI  //
+					},
+					/* 001*/
+					{ _LJ, _HK, _HJ, _LK },
+					/* 010*/
+					{ _LK, _HI, _HK, _LI },
+					/* 011*/
+					{ 0 },
+					/* 100*/
+					{ _LI, _HJ, _HI, _LJ },
+					/* 101*/
+					{ 0 },
+					/* 110*/
+					{ 0 },
+					/* 111*/
+					{ _LI, _LJ, _LK, _HI, _HJ, _HK } },
+					// TO VOLUME
+					{
+					/* 000*/
+					{ _LI | _LJ | _LK,  //
+					_LI | _HJ | _LK, //
+					_LI | _LJ | _HK, //
+					_LI | _HJ | _HK, //
 
-			_HI | _LJ | _LK, //
-			_HI | _HJ | _LK, //
-			_HI | _LJ | _HK, //
-			_HI | _HJ | _HK //
+					_HI | _LJ | _LK, //
+					_HI | _HJ | _LK, //
+					_HI | _LJ | _HK, //
+					_HI | _HJ | _HK //
 
-			},
-			/* 001*/
-			{ _LJ | _LK, _LJ | _HK, _HJ | _LK, _HJ | _HK },
-			/* 010*/
-			{ _LK | _LI, _LK | _HI, _HK | _LI, _HK | _HI },
-			/* 011*/
-			{ _LK, _HK },
-			/* 100*/
-			{ _LI | _LJ, _LI | _HJ, _HI | _LJ, _HI | _HJ },
-			/* 101*/
-			{ _LJ, _HJ },
-			/* 110*/
-			{ _LI, _HI },
-			/* 111*/
-			{ 0 } }
+					},
+					/* 001*/
+					{ _LJ | _LK, _LJ | _HK, _HJ | _LK, _HJ | _HK },
+					/* 010*/
+					{ _LK | _LI, _LK | _HI, _HK | _LI, _HK | _HI },
+					/* 011*/
+					{ _LK, _HK },
+					/* 100*/
+					{ _LI | _LJ, _LI | _HJ, _HI | _LJ, _HI | _HJ },
+					/* 101*/
+					{ _LJ, _HJ },
+					/* 110*/
+					{ _LI, _HI },
+					/* 111*/
+					{ 0 } }
 
-	};
+			};
 	template<size_t IFORM>
 	static int get_adjoints(id_type s, id_type * res = nullptr)
 	{
@@ -752,9 +632,7 @@ struct MeshIDs_
 		{
 			for (int i = 0; i < m_vertics_num_[IFORM][id]; ++i)
 			{
-				res[i] = ((s + m_vertics_matrix_[IFORM][id][i])
-						& CLEAR_CARRAY_FLAG);
-				;
+				res[i] = ((s + m_vertics_matrix_[IFORM][id][i]));
 			}
 		}
 		return m_vertics_num_[IFORM][id];
@@ -767,810 +645,208 @@ struct MeshIDs_
 		{
 			for (int i = 0; i < m_vertics_num_[IFORM][id]; ++i)
 			{
-				res[i] = id_to_coordinates(s + m_vertics_matrix_[IFORM][id][i]);
+				res[i] = coordinates(s + m_vertics_matrix_[IFORM][id][i]);
 			}
 		}
 		return m_vertics_num_[IFORM][id];
 	}
 
-//	template<size_t IFORM> static constexpr int get_vertics(int n, id_type s,
-//			coordinates_type *q = nullptr)
-//	{
-//		return get_vertics_(std::integral_constant<size_t, IFORM>(), n, s, q);
-//	}
-//	static int get_vertics_(std::integral_constant<size_t, VOLUME>, int n,
-//			id_type s, coordinates_type *q = nullptr)
-//	{
-//
-//		if (q != nullptr)
-//		{
-//			coordinates_type x0 = id_to_coordinates(s);
-//
-//			coordinates_type dx = id_to_coordinates(_DI | INDEX_ZERO);
-//			coordinates_type dy = id_to_coordinates(_DJ | INDEX_ZERO);
-//			coordinates_type dz = id_to_coordinates(_DK | INDEX_ZERO);
-//
-//			q[0] = x0 - dx - dy - dz;
-//			q[1] = x0 + dx - dy - dz;
-//			q[2] = x0 + dx + dy - dz;
-//			q[3] = x0 - dx + dy - dz;
-//
-//			q[4] = x0 - dx - dy + dz;
-//			q[5] = x0 + dx - dy + dz;
-//			q[6] = x0 + dx + dy + dz;
-//			q[7] = x0 - dx + dy + dz;
-//		}
-//
-//		return 8;
-//	}
-//
-//	static int get_vertics_(std::integral_constant<size_t, FACE>, int n,
-//			id_type s, coordinates_type *q = nullptr)
-//	{
-//
-//		if (q != nullptr)
-//		{
-//			coordinates_type x0 = id_to_coordinates(s);
-//
-//			coordinates_type d[3] = {
-//
-//			id_to_coordinates(_DI | INDEX_ZERO),
-//
-//			id_to_coordinates(_DJ | INDEX_ZERO),
-//
-//			id_to_coordinates(_DK | INDEX_ZERO) };
-//
-//			coordinates_type const &dx = d[(n + 1) % 3];
-//			coordinates_type const &dy = d[(n + 2) % 3];
-//			q[0] = x0 - dx - dy;
-//			q[1] = x0 + dx - dy;
-//			q[2] = x0 + dx + dy;
-//			q[3] = x0 - dx + dy;
-//		}
-//
-//		return 4;
-//	}
-//
-//	static int get_vertics_(std::integral_constant<size_t, EDGE>, int n,
-//			id_type s, coordinates_type *q = nullptr)
-//	{
-//
-//		if (q != nullptr)
-//		{
-//			coordinates_type x0 = id_to_coordinates(s);
-//
-//			coordinates_type d[3] = {
-//
-//			id_to_coordinates(_DI | INDEX_ZERO),
-//
-//			id_to_coordinates(_DJ | INDEX_ZERO),
-//
-//			id_to_coordinates(_DK | INDEX_ZERO) };
-//
-//			coordinates_type const &dx = d[n];
-//
-//			q[0] = x0 - dx;
-//			q[1] = x0 + dx;
-//
-//		}
-//
-//		return 4;
-//	}
+	struct range_type
+	{
 
-//**************************************************************************
-	/**
-	 * @name Neighgour
-	 * @{
-	 */
-//	template<size_t IFORM>
-//	static size_t get_vertices(id_type s, id_type *v)
-//	{
-//		size_t res = 0;
-//		switch (IForm(s))
-//		{
-//		case VERTEX:
-//			res = get_vertices(std::integral_constant<size_t, VERTEX>(), s, v);
-//			break;
-//		case EDGE:
-//			res = get_vertices(std::integral_constant<size_t, EDGE>(), s, v);
-//			break;
-//		case FACE:
-//			res = get_vertices(std::integral_constant<size_t, FACE>(), s, v);
-//			break;
-//		case VOLUME:
-//			res = get_vertices(std::integral_constant<size_t, VOLUME>(), s, v);
-//			break;
-//		}
-//		return res;
-//	}
-//
-//	template<size_t IFORM>
-//	static size_t get_vertices(std::integral_constant<size_t, IFORM>, id_type s,
-//			id_type *v)
-//	{
-//		return get_adjacent_cells(std::integral_constant<size_t, IFORM>(),
-//				std::integral_constant<size_t, VERTEX>(), s, v);
-//	}
-	/** @} */
-//
-//	static constexpr coordinates_type coordinates_local_to_global(id_type s,
-//			coordinates_type const &r)
-//	{
-//		return static_cast<coordinates_type>(id_to_coordinates(s) + r);
-//	}
-//
-//	template<typename TZ>
-//	static constexpr coordinates_type coordinates_local_to_global(TZ const &z)
-//	{
-//		return std::move(
-//				coordinates_local_to_global(std::get<0>(z), std::get<1>(z)));
-//	}
-//
-//	/**
-//	 *
-//	 * @param x coordinates \f$ x \in \left[0,MX\right)\f$
-//	 * @param shift
-//	 * @return s,r  s is the largest grid point not greater than x.
-//	 *       and  \f$ r \in \left[0,1.0\right) \f$ is the normalize  distance between x and s
-//	 */
-//
-//	template<size_t IFORM = 0, size_t N = 0>
-//	static id_type coordinates_global_to_local(coordinates_type * x)
-//	{
-//		index_tuple I;
-//
-//		*x += m_shift_[IFORM][N];
-//
-//		x[0] = std::modf(x[0], &I[0]);
-//
-//		id_type s = (coordinates_to_id(*x) & CELL_ID_MASK);
-//
-//		coordinates_type r;
-//
-//		r = x - id_to_coordinates(s);
-//
-//		return std::move(s);
-//	}
-//
-//	/**
-//	 *
-//	 * @param x  coordinates \f$ x \in \left[0,1\right)\f$
-//	 * @param shift
-//	 * @return s,r   s is thte conmpact index of nearest grid point
-//	 *    and  \f$ r \in \left[-0.5,0.5\right) \f$   is the normalize  distance between x and s
-//	 */
-//	static id_type coordinates_global_to_local_NGP(coordinates_type * x)
-//	{
-//		auto & x = std::get<1>(z);
-//		id_type shift = std::get<0>(z);
-//
-//		index_tuple I = id_to_index(shift >> (FLOATING_POINT_POS - 1));
-//
-//		coordinates_type r;
-//
-//		r[0] = x[0] - 0.5 * static_cast<Real>(I[0]);
-//		r[1] = x[1] - 0.5 * static_cast<Real>(I[1]);
-//		r[2] = x[2] - 0.5 * static_cast<Real>(I[2]);
-//
-//		I[0] = static_cast<index_type>(std::floor(r[0] + 0.5));
-//		I[1] = static_cast<index_type>(std::floor(r[1] + 0.5));
-//		I[2] = static_cast<index_type>(std::floor(r[2] + 0.5));
-//
-//		r -= I;
-//
-//		id_type s = (index_to_id(I)) | shift;
-//
-//		return std::move(std::make_tuple(s, r));
-//	}
-//
-//	//! @}
-//
-//	static constexpr id_type get_cell_id(id_type r)
-//	{
-//		return r & CELL_ID_MASK;
-//	}
-//
-//	static constexpr id_type ele_suffix(id_type s)
-//	{
-//
-//		return (((s >> (INDEX_DIGITS * 2 + FLOATING_POINT_POS - 1)) & 1UL) << 2)
-//				| (((s >> (INDEX_DIGITS + FLOATING_POINT_POS - 1)) & 1UL) << 1)
-//				| ((s >> (FLOATING_POINT_POS - 1)) & 1UL);
-//
-//	}
-//
-//	/**
-//	 *  rotate vector direction  mask
-//	 *  (1/2,0,0) => (0,0,1/2) or   (1/2,1/2,0) => (1/2,0,1/2)
-//	 * @param s
-//	 * @return
-//	 */
-//
-//	static constexpr id_type delta_index(id_type r)
-//	{
-//		return (r & _DA);
-//	}
-//
-//	static constexpr id_type DI(size_t i, id_type r)
-//	{
-//		return (1UL << (INDEX_DIGITS * i + FLOATING_POINT_POS - 1));
-//
-//	}
-//	static constexpr id_type delta_index(size_t i, id_type r)
-//	{
-//		return DI(i, r) & r;
-//	}
-//
-//	/**
-//	 * Get component number or vector direction
-//	 * @param s
-//	 * @return
-//	 */
-//
-//	static constexpr id_type m_component_number_[] = { 0,  // 000
-//			0, // 001
-//			1, // 010
-//			2, // 011
-//			2, // 100
-//			1, // 101
-//			0, // 110
-//			0 };
-//
-//	static constexpr id_type component_number(id_type s)
-//	{
-//		return m_component_number_[ele_suffix(s)];
-//	}
-//
-//
-//	static constexpr id_type IForm(id_type r)
-//	{
-//		return m_iform_[ele_suffix(r)];
-//	}
-//	//! @}
-//	/**
-//	 * @name Neighgour
-//	 * @{
-//	 */
-//
-//	static size_t get_vertices(id_type s, id_type *v)
-//	{
-//		size_t res = 0;
-//		switch (IForm(s))
-//		{
-//		case VERTEX:
-//			res = get_vertices(std::integral_constant<size_t, VERTEX>(), s, v);
-//			break;
-//		case EDGE:
-//			res = get_vertices(std::integral_constant<size_t, EDGE>(), s, v);
-//			break;
-//		case FACE:
-//			res = get_vertices(std::integral_constant<size_t, FACE>(), s, v);
-//			break;
-//		case VOLUME:
-//			res = get_vertices(std::integral_constant<size_t, VOLUME>(), s, v);
-//			break;
-//		}
-//		return res;
-//	}
-//
-//	template<size_t IFORM>
-//	static size_t get_vertices(std::integral_constant<size_t, IFORM>, id_type s,
-//			id_type *v)
-//	{
-//		return get_adjacent_cells(std::integral_constant<size_t, IFORM>(),
-//				std::integral_constant<size_t, VERTEX>(), s, v);
-//	}
-//
-//	template<size_t I>
-//	static inline size_t get_adjacent_cells(std::integral_constant<size_t, I>,
-//			std::integral_constant<size_t, I>, id_type s, id_type *v)
-//	{
-//		v[0] = s;
-//		return 1;
-//	}
-//
-//	static inline size_t get_adjacent_cells(
-//			std::integral_constant<size_t, EDGE>,
-//			std::integral_constant<size_t, VERTEX>, id_type s, id_type *v)
-//	{
-//		v[0] = s + delta_index(s);
-//		v[1] = s - delta_index(s);
-//		return 2;
-//	}
-//
-//	static inline size_t get_adjacent_cells(
-//			std::integral_constant<size_t, FACE>,
-//			std::integral_constant<size_t, VERTEX>, id_type s, id_type *v)
-//	{
-//		/**
-//		 * \verbatim
-//		 *                ^y
-//		 *               /
-//		 *        z     /
-//		 *        ^
-//		 *        |   2---------------*
-//		 *        |  /|              /|
-//		 *          / |             / |
-//		 *         /  |            /  |
-//		 *        3---|-----------*   |
-//		 *        | m |           |   |
-//		 *        |   1-----------|---*
-//		 *        |  /            |  /
-//		 *        | /             | /
-//		 *        |/              |/
-//		 *        0---------------*---> x
-//		 * \endverbatim
-//		 *
-//		 */
-//
-//		auto di = delta_index(rotate(dual(s)));
-//		auto dj = delta_index(inverse_rotate(dual(s)));
-//
-//		v[0] = s - di - dj;
-//		v[1] = s - di - dj;
-//		v[2] = s + di + dj;
-//		v[3] = s + di + dj;
-//
-//		return 4;
-//	}
-//
-//	static inline size_t get_adjacent_cells(
-//			std::integral_constant<size_t, VOLUME>,
-//			std::integral_constant<size_t, VERTEX>, id_type s, id_type *v)
-//	{
-//		/**
-//		 * \verbatim
-//		 *                ^y
-//		 *               /
-//		 *        z     /
-//		 *        ^
-//		 *        |   6---------------7
-//		 *        |  /|              /|
-//		 *          / |             / |
-//		 *         /  |            /  |
-//		 *        4---|-----------5   |
-//		 *        |   |           |   |
-//		 *        |   2-----------|---3
-//		 *        |  /            |  /
-//		 *        | /             | /
-//		 *        |/              |/
-//		 *        0---------------1   ---> x
-//		 *
-//		 *   \endverbatim
-//		 */
-//		auto di = DI(0, s);
-//		auto dj = DI(1, s);
-//		auto dk = DI(2, s);
-//
-//		v[0] = ((s - di) - dj) - dk;
-//		v[1] = ((s - di) - dj) + dk;
-//		v[2] = ((s - di) + dj) - dk;
-//		v[3] = ((s - di) + dj) + dk;
-//
-//		v[4] = ((s + di) - dj) - dk;
-//		v[5] = ((s + di) - dj) + dk;
-//		v[6] = ((s + di) + dj) - dk;
-//		v[7] = ((s + di) + dj) + dk;
-//
-//		return 8;
-//	}
-//
-//	static inline size_t get_adjacent_cells(
-//			std::integral_constant<size_t, VERTEX>,
-//			std::integral_constant<size_t, EDGE>, id_type s, id_type *v)
-//	{
-//		/**
-//		 * \verbatim
-//		 *
-//		 *                ^y
-//		 *               /
-//		 *        z     /
-//		 *        ^
-//		 *        |   6---------------7
-//		 *        |  /|              /|
-//		 *          2 |             / |
-//		 *         /  1            /  |
-//		 *        4---|-----------5   |
-//		 *        |   |           |   |
-//		 *        |   2-----------|---3
-//		 *        3  /            |  /
-//		 *        | 0             | /
-//		 *        |/              |/
-//		 *        0------E0-------1   ---> x
-//		 *
-//		 * \endverbatim
-//		 */
-//
-//		auto di = DI(0, s);
-//		auto dj = DI(1, s);
-//		auto dk = DI(2, s);
-//
-//		v[0] = s + di;
-//		v[1] = s - di;
-//
-//		v[2] = s + dj;
-//		v[3] = s - dj;
-//
-//		v[4] = s + dk;
-//		v[5] = s - dk;
-//
-//		return 6;
-//	}
-//
-//	static inline size_t get_adjacent_cells(
-//			std::integral_constant<size_t, FACE>,
-//			std::integral_constant<size_t, EDGE>, id_type s, id_type *v)
-//	{
-//
-//		/**
-//		 *\verbatim
-//		 *                ^y
-//		 *               /
-//		 *        z     /
-//		 *        ^
-//		 *        |   6---------------7
-//		 *        |  /|              /|
-//		 *          2 |             / |
-//		 *         /  1            /  |
-//		 *        4---|-----------5   |
-//		 *        |   |           |   |
-//		 *        |   2-----------|---3
-//		 *        3  /            |  /
-//		 *        | 0             | /
-//		 *        |/              |/
-//		 *        0---------------1   ---> x
-//		 *
-//		 *\endverbatim
-//		 */
-//		auto d1 = delta_index(rotate(dual(s)));
-//		auto d2 = delta_index(inverse_rotate(dual(s)));
-//		v[0] = s - d1;
-//		v[1] = s + d1;
-//		v[2] = s - d2;
-//		v[3] = s + d2;
-//
-//		return 4;
-//	}
-//
-//	static inline size_t get_adjacent_cells(
-//			std::integral_constant<size_t, VOLUME>,
-//			std::integral_constant<size_t, EDGE>, id_type s, id_type *v)
-//	{
-//
-//		/**
-//		 *\verbatim
-//		 *                ^y
-//		 *               /
-//		 *        z     /
-//		 *        ^
-//		 *        |   6------10-------7
-//		 *        |  /|              /|
-//		 *         11 |             9 |
-//		 *         /  7            /  6
-//		 *        4---|---8-------5   |
-//		 *        |   |           |   |
-//		 *        |   2-------2---|---3
-//		 *        4  /            5  /
-//		 *        | 3             | 1
-//		 *        |/              |/
-//		 *        0-------0-------1   ---> x
-//		 *
-//		 *\endverbatim
-//		 */
-//		auto di = DI(0, s);
-//		auto dj = DI(1, s);
-//		auto dk = DI(2, s);
-//
-//		v[0] = (s + di) + dj;
-//		v[1] = (s + di) - dj;
-//		v[2] = (s - di) + dj;
-//		v[3] = (s - di) - dj;
-//
-//		v[4] = (s + dk) + dj;
-//		v[5] = (s + dk) - dj;
-//		v[6] = (s - dk) + dj;
-//		v[7] = (s - dk) - dj;
-//
-//		v[8] = (s + di) + dk;
-//		v[9] = (s + di) - dk;
-//		v[10] = (s - di) + dk;
-//		v[11] = (s - di) - dk;
-//
-//		return 12;
-//	}
-//
-//	static inline size_t get_adjacent_cells(
-//			std::integral_constant<size_t, VERTEX>,
-//			std::integral_constant<size_t, FACE>, id_type s, id_type *v)
-//	{
-//		/**
-//		 *\verbatim
-//		 *                ^y
-//		 *               /
-//		 *        z     /
-//		 *        ^
-//		 *        |   6---------------7
-//		 *        |  /|              /|
-//		 *        | / |             / |
-//		 *        |/  |            /  |
-//		 *        4---|-----------5   |
-//		 *        |   |           |   |
-//		 *        | 0 2-----------|---3
-//		 *        |  /            |  /
-//		 *   11   | /      8      | /
-//		 *      3 |/              |/
-//		 * -------0---------------1   ---> x
-//		 *       /| 1
-//		 *10    / |     9
-//		 *     /  |
-//		 *      2 |
-//		 *
-//		 *
-//		 *
-//		 *              |
-//		 *          7   |   4
-//		 *              |
-//		 *      --------*---------
-//		 *              |
-//		 *          6   |   5
-//		 *              |
-//		 *
-//		 *\endverbatim
-//		 */
-//		auto di = DI(0, s);
-//		auto dj = DI(1, s);
-//		auto dk = DI(2, s);
-//
-//		v[0] = (s + di) + dj;
-//		v[1] = (s + di) - dj;
-//		v[2] = (s - di) + dj;
-//		v[3] = (s - di) - dj;
-//
-//		v[4] = (s + dk) + dj;
-//		v[5] = (s + dk) - dj;
-//		v[6] = (s - dk) + dj;
-//		v[7] = (s - dk) - dj;
-//
-//		v[8] = (s + di) + dk;
-//		v[9] = (s + di) - dk;
-//		v[10] = (s - di) + dk;
-//		v[11] = (s - di) - dk;
-//
-//		return 12;
-//	}
-//
-//	static inline size_t get_adjacent_cells(
-//			std::integral_constant<size_t, EDGE>,
-//			std::integral_constant<size_t, FACE>, id_type s, id_type *v)
-//	{
-//
-//		/**
-//		 *\verbatim
-//		 *                ^y
-//		 *               /
-//		 *        z     /
-//		 *        ^
-//		 *        |   6---------------7
-//		 *        |  /|              /|
-//		 *        | / |             / |
-//		 *        |/  |            /  |
-//		 *        4---|-----------5   |
-//		 *        |   |           |   |
-//		 *        |   2-----------|---3
-//		 *        |  /  0         |  /
-//		 *        | /      1      | /
-//		 *        |/              |/
-//		 * -------0---------------1   ---> x
-//		 *       /|
-//		 *      / |   3
-//		 *     /  |       2
-//		 *        |
-//		 *
-//		 *
-//		 *
-//		 *              |
-//		 *          7   |   4
-//		 *              |
-//		 *      --------*---------
-//		 *              |
-//		 *          6   |   5
-//		 *              |
-//		 *
-//		 *\endverbatim
-//		 */
-//
-//		auto d1 = delta_index(rotate((s)));
-//		auto d2 = delta_index(inverse_rotate((s)));
-//
-//		v[0] = s - d1;
-//		v[1] = s + d1;
-//		v[2] = s - d2;
-//		v[3] = s + d2;
-//
-//		return 4;
-//	}
-//
-//	static inline size_t get_adjacent_cells(
-//			std::integral_constant<size_t, VOLUME>,
-//			std::integral_constant<size_t, FACE>, id_type s, id_type *v)
-//	{
-//
-//		/**
-//		 *\verbatim
-//		 *                ^y
-//		 *               /
-//		 *        z     /
-//		 *        ^    /
-//		 *        |   6---------------7
-//		 *        |  /|              /|
-//		 *        | / |    5        / |
-//		 *        |/  |     1      /  |
-//		 *        4---|-----------5   |
-//		 *        | 0 |           | 2 |
-//		 *        |   2-----------|---3
-//		 *        |  /    3       |  /
-//		 *        | /       4     | /
-//		 *        |/              |/
-//		 * -------0---------------1   ---> x
-//		 *       /|
-//		 *\endverbatim
-//		 */
-//
-//		auto di = DI(0, s);
-//		auto dj = DI(1, s);
-//		auto dk = DI(2, s);
-//
-//		v[0] = s - di;
-//		v[1] = s + di;
-//
-//		v[2] = s - di;
-//		v[3] = s + dj;
-//
-//		v[4] = s - dk;
-//		v[5] = s + dk;
-//
-//		return 6;
-//	}
-//
-//	static inline size_t get_adjacent_cells(
-//			std::integral_constant<size_t, VERTEX>,
-//			std::integral_constant<size_t, VOLUME>, id_type s, id_type *v)
-//	{
-//		/**
-//		 *\verbatim
-//		 *                ^y
-//		 *               /
-//		 *        z     /
-//		 *        ^
-//		 *        |   6---------------7
-//		 *        |  /|              /|
-//		 *        | / |             / |
-//		 *        |/  |            /  |
-//		 *        4---|-----------5   |
-//		 *   3    |   |    0      |   |
-//		 *        |   2-----------|---3
-//		 *        |  /            |  /
-//		 *        | /             | /
-//		 *        |/              |/
-//		 * -------0---------------1   ---> x
-//		 *  3    /|       1
-//		 *      / |
-//		 *     /  |
-//		 *        |
-//		 *
-//		 *
-//		 *
-//		 *              |
-//		 *          7   |   4
-//		 *              |
-//		 *      --------*---------
-//		 *              |
-//		 *          6   |   5
-//		 *              |
-//		 *
-//		 *\endverbatim
-//		 */
-//
-//		auto di = DI(0, s);
-//		auto dj = DI(1, s);
-//		auto dk = DI(2, s);
-//
-//		v[0] = ((s - di) - dj) - dk;
-//		v[1] = ((s - di) - dj) + dk;
-//		v[2] = ((s - di) + dj) - dk;
-//		v[3] = ((s - di) + dj) + dk;
-//
-//		v[4] = ((s + di) - dj) - dk;
-//		v[5] = ((s + di) - dj) + dk;
-//		v[6] = ((s + di) + dj) - dk;
-//		v[7] = ((s + di) + dj) + dk;
-//
-//		return 8;
-//	}
-//
-//	static inline size_t get_adjacent_cells(
-//			std::integral_constant<size_t, EDGE>,
-//			std::integral_constant<size_t, VOLUME>, id_type s, id_type *v)
-//	{
-//
-//		/**
-//		 *\verbatim
-//		 *                ^y
-//		 *               /
-//		 *        z     /
-//		 *        ^
-//		 *        |   6---------------7
-//		 *        |  /|              /|
-//		 *        | / |             / |
-//		 *        |/  |            /  |
-//		 *        4---|-----------5   |
-//		 *        |   |           |   |
-//		 *        |   2-----------|---3
-//		 *        |  /  0         |  /
-//		 *        | /      1      | /
-//		 *        |/              |/
-//		 * -------0---------------1   ---> x
-//		 *       /|
-//		 *      / |   3
-//		 *     /  |       2
-//		 *        |
-//		 *
-//		 *
-//		 *
-//		 *              |
-//		 *          7   |   4
-//		 *              |
-//		 *      --------*---------
-//		 *              |
-//		 *          6   |   5
-//		 *              |
-//		 *
-//		 *\endverbatim
-//		 */
-//
-//		auto d1 = delta_index(rotate((s)));
-//		auto d2 = delta_index(inverse_rotate((s)));
-//
-//		v[0] = s - d1 - d2;
-//		v[1] = s + d1 - d2;
-//		v[2] = s - d1 + d2;
-//		v[3] = s + d1 + d2;
-//		return 4;
-//	}
-//
-//	static inline size_t get_adjacent_cells(
-//			std::integral_constant<size_t, FACE>,
-//			std::integral_constant<size_t, VOLUME>, id_type s, id_type *v)
-//	{
-//
-//		/**
-//		 *\verbatim
-//		 *                ^y
-//		 *               /
-//		 *        z     /
-//		 *        ^    /
-//		 *        |   6---------------7
-//		 *        |  /|              /|
-//		 *        | / |             / |
-//		 *        |/  |            /  |
-//		 *        4---|-----------5   |
-//		 *        | 0 |           |   |
-//		 *        |   2-----------|---3
-//		 *        |  /            |  /
-//		 *        | /             | /
-//		 *        |/              |/
-//		 * -------0---------------1   ---> x
-//		 *       /|
-//		 *\endverbatim
-//		 */
-//
-//		auto d = delta_index(dual(s));
-//		v[0] = s + d;
-//		v[1] = s - d;
-//
-//		return 2;
-//	}
-//	/**@}*/
+	private:
+
+		id_type m_min_, m_max_;
+	public:
+
+		typedef id_type value_type;
+
+		typedef size_t difference_type;
+
+		struct iterator;
+
+		typedef iterator const_iterator;
+
+		typedef range_type this_type;
+
+		range_type(id_type const & min, id_type const & max,
+				id_type const& self)
+				: m_min_(min), m_max_(max)
+		{
+
+		}
+		range_type(id_type const & min, id_type const & max)
+				: m_min_(min), m_max_(max)
+		{
+
+		}
+		range_type(this_type const & other)
+				: m_min_(other.m_min_), m_max_(other.m_max_)
+		{
+
+		}
+		~range_type()
+		{
+
+		}
+		this_type &operator=(this_type const & other)
+		{
+			this_type(other).swap(*this);
+			return *this;
+		}
+		this_type operator&(this_type const & other) const
+		{
+			return *this;
+		}
+		void swap(this_type & other)
+		{
+			std::swap(m_min_, other.m_min_);
+			std::swap(m_max_, other.m_max_);
+		}
+
+		const_iterator begin() const
+		{
+			return const_iterator(m_min_, m_max_);
+		}
+
+		const_iterator end() const
+		{
+			return const_iterator(m_min_, m_max_);
+		}
+
+		template<typename T>
+		bool in_box(T const & s) const
+		{
+			return in_box(id(s));
+		}
+		bool in_box(id_type s) const
+		{
+			return true;
+		}
+		bool empty() const
+		{
+			return m_min_ == m_max_;
+		}
+		void clear()
+		{
+			m_min_ = m_max_;
+		}
+		std::tuple<value_type, value_type> box() const
+		{
+			return std::make_tuple(unpack(m_min_), unpack(m_max_));
+		}
+
+		difference_type size() const
+		{
+			return NProduct(index(m_max_ - m_min_))
+					* m_id_to_num_of_ele_in_cell_[node_id(m_min_)];
+		}
+
+		template<typename ...Args>
+		void reset_box(Args && ...args)
+		{
+			this_type(id(args)...).swap(*this);
+		}
+
+		struct iterator: public std::iterator<
+				typename std::bidirectional_iterator_tag, id_type,
+				difference_type>
+		{
+		private:
+			id_type m_min_, m_max_, m_self_;
+		public:
+			iterator(id_type const & min, id_type const & max,
+					id_type const& self)
+					: m_min_(min), m_max_(max), m_self_(self)
+			{
+
+			}
+			iterator(id_type const & min, id_type const & max)
+					: m_min_(min), m_max_(max), m_self_(min)
+			{
+
+			}
+			~iterator()
+			{
+
+			}
+			typedef iterator this_type;
+			bool operator==(this_type const & other) const
+			{
+				return m_self_ == other.m_self_ && (m_min_ == other.m_min_)
+						&& (m_max_ == other.m_max_);
+			}
+			bool operator!=(this_type const & other) const
+			{
+				return m_self_ != other.m_self_ || (m_min_ != other.m_min_)
+						|| (m_max_ != other.m_max_);
+			}
+
+			value_type const & operator *() const
+			{
+				return m_self_;
+			}
+			void next()
+			{
+//				m_self_ += rotate_axe(((m_self_ - m_max_) & FULL_OVERFLOW_FLAG))
+//						<< MESH_LEVEL;
+//				m_self_ += rotate_axe(((m_self_ - m_max_) & FULL_OVERFLOW_FLAG))
+//						<< MESH_LEVEL;
+			}
+			void prev()
+			{
+			}
+			this_type & operator++()
+			{
+
+				next();
+				return *this;
+			}
+
+			this_type & operator--()
+			{
+				prev();
+
+				return *this;
+			}
+
+			this_type operator++(int)
+			{
+				this_type res(*this);
+				++(*this);
+				return std::move(res);
+			}
+			this_type operator--(int)
+			{
+				this_type res(*this);
+				--(*this);
+				return std::move(res);
+			}
+
+			difference_type operator-(this_type const & other) const
+			{
+				return NProduct(unpack_index(m_self_ - other.m_self_))
+//						* ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3)
+				;
+			}
+
+		};
+
+	};
+
+	template<size_t IFORM>
+	static constexpr range_type make_range(id_type b, id_type e)
+	{
+		return range_type(b | m_id_to_shift_[m_sub_index_to_id_[IFORM][0]],
+				e | m_id_to_shift_[m_sub_index_to_id_[IFORM][0]]);
+	}
+
+	template<size_t IFORM, typename T0, typename T1>
+	static constexpr range_type make_range(T0 const & b, T1 const & e)
+	{
+		return range_type(id(b) | m_id_to_shift_[m_sub_index_to_id_[IFORM][0]],
+				id(e) | m_id_to_shift_[m_sub_index_to_id_[IFORM][0]]);
+	}
 }
 ;
 
@@ -1579,6 +855,11 @@ struct MeshIDs_
  * http://stackoverflow.com/questions/22172789/passing-a-static-constexpr-variable-by-universal-reference
  */
 
+template<size_t N, size_t M> constexpr int MeshIDs_<N, M>::ndims;
+template<size_t N, size_t M> constexpr int MeshIDs_<N, M>::MESH_LEVEL;
+
+template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::OVERFLOW_FLAG;
+template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::ID_ZERO;
 template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::FULL_DIGITS;
 template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::ID_DIGITS;
 template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::ID_MASK;
@@ -1592,13 +873,6 @@ template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs
 template<size_t N, size_t M> constexpr typename MeshIDs_<N,M >::coordinates_type MeshIDs_<N,M >::m_id_to_coordinates_shift_[ ];
 template<size_t N, size_t M> constexpr int MeshIDs_<N, M>::m_vertics_num_[4][8];
 template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M>::m_vertics_matrix_[4/* to iform*/][8/* node id*/][MAX_NUM_OF_CELL/*id shift*/];
-
-template<size_t N, size_t M> constexpr typename MeshIDs_<N,M >::id_type MeshIDs_<N, M >::ID_ZERO;
-template<size_t N, size_t M> constexpr typename MeshIDs_<N,M >::id_type MeshIDs_<N, M >::FULL_ID_ZERO;
-
-template<size_t N, size_t M> constexpr typename MeshIDs_<N,M >::index_type MeshIDs_<N, M >::INDEX_ZERO;
-
-template<size_t N, size_t M> constexpr Real MeshIDs_<N, M>::COORD_ZERO;
 
 typedef MeshIDs_<3, 4> MeshIDs;
 
