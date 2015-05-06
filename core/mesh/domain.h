@@ -66,19 +66,19 @@ public:
 	std::set<id_type> m_id_set_;
 public:
 
-	Domain(mesh_type const &m)
-			: range_type(m.template range<iform>()), m_mesh_(m)
+	Domain(mesh_type const &m) :
+			range_type(m.template range<iform>()), m_mesh_(m)
 	{
 		/*range_type(m.box<iform>()), */
 	}
 
-	Domain(this_type const & other)
-			: range_type(other), m_mesh_(other.m_mesh_), m_id_set_(
+	Domain(this_type const & other) :
+			range_type(other), m_mesh_(other.m_mesh_), m_id_set_(
 					other.m_id_set_)
 	{
 	}
-	Domain(this_type && other)
-			: range_type(other), m_mesh_(other.m_mesh_), m_id_set_(
+	Domain(this_type && other) :
+			range_type(other), m_mesh_(other.m_mesh_), m_id_set_(
 					other.m_id_set_)
 	{
 	}
@@ -440,19 +440,16 @@ public range_type::iterator
 
 		if (is_simply())
 		{
-			UNIMPLEMENTED;
-//			typename DataSpace::index_tuple offset, count;
-//
-//			std::tie(offset, std::ignore) = m_mesh_.box();
-//			auto g_shape = res.global_shape();
-//
-//			offset[ndims] = 0;
-//
-//			offset = range_type ::m_b_ - offset - g_shape.offset;
-//
-//			count = range_type ::m_e_ - range_type ::m_b_;
-//
-//			res.select_hyperslab(&offset[0], nullptr, &count[0], nullptr);
+			typename DataSpace::index_tuple b,e,l_b;
+			typename DataSpace::index_tuple offset, count;
+
+			std::tie(b,e)=range_type::box();
+			std::tie(l_b,std::ignore)=m_mesh_.local_box();
+
+			offset = b- l_b;
+			offset[ndims] =0;
+			count = e - b;
+			res.select_hyperslab(&offset[0], nullptr, &count[0], nullptr);
 		}
 		else
 		{

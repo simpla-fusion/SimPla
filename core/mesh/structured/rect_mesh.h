@@ -56,10 +56,9 @@ namespace simpla
  */
 //template<typename ... >struct RectMesh;
 template<typename TTopology, typename ...Policies>
-struct RectMesh:	public TTopology,
-					public Policies...,
-					std::enable_shared_from_this<
-							RectMesh<TTopology, Policies...>>
+struct RectMesh: public TTopology,
+		public Policies...,
+		std::enable_shared_from_this<RectMesh<TTopology, Policies...>>
 {
 	typedef TTopology topology_type;
 	typedef typename unpack_typelist<0, Policies...>::type coordinates_system;
@@ -127,9 +126,11 @@ private:
 
 	coordinates_type m_toplogy_coord_orig_ /*= { 0, 0, 0 }*/;
 
-	coordinates_type m_coords_min_ = { 0, 0, 0 };
+	coordinates_type m_coords_min_ =
+	{ 0, 0, 0 };
 
-	coordinates_type m_coords_max_ = { 1, 1, 1 };
+	coordinates_type m_coords_max_ =
+	{ 1, 1, 1 };
 
 	coordinates_type m_dx_ /*= { 0, 0, 0 }*/;
 
@@ -199,8 +200,7 @@ public:
 	{
 	}
 
-	RectMesh(this_type const & other)
-			:
+	RectMesh(this_type const & other) :
 
 			m_id_begin_(other.m_id_begin_),
 
@@ -239,7 +239,8 @@ public:
 	template<typename TDict>
 	void load(TDict const & dict)
 	{
-		dimensions(dict["Dimensions"].as(index_tuple( { 10, 10, 10 })));
+		dimensions(dict["Dimensions"].as(index_tuple(
+		{ 10, 10, 10 })));
 
 		extents(
 				dict["Box"].template as<
@@ -282,13 +283,13 @@ public:
 
 	std::tuple<id_tuple, id_tuple> box() const
 	{
-		return std::make_tuple(topology_type::index(m_id_begin_),
-				topology_type::index(m_id_end_));
+		return std::make_tuple(topology_type::unpack_index(m_id_begin_),
+				topology_type::unpack_index(m_id_end_));
 	}
 	std::tuple<id_tuple, id_tuple> local_box() const
 	{
-		return std::make_tuple(topology_type::index(m_id_local_begin_),
-				topology_type::index(m_id_local_end_));
+		return std::make_tuple(topology_type::unpack_index(m_id_local_begin_),
+				topology_type::unpack_index(m_id_local_end_));
 	}
 	std::tuple<id_type, id_type> id_box() const
 	{
@@ -469,7 +470,8 @@ public:
 	coordinates_type coordinates_from_topology(coordinates_type const &y) const
 	{
 
-		return coordinates_type( {
+		return coordinates_type(
+		{
 
 		std::fma(y[0], m_from_topology_scale_[0], m_coord_orig_[0]),
 
@@ -483,7 +485,8 @@ public:
 	coordinates_type coordinates_to_topology(coordinates_type const &x) const
 	{
 
-		return coordinates_type( {
+		return coordinates_type(
+		{
 
 		std::fma(x[0], m_to_topology_scale_[0], m_toplogy_coord_orig_[0]),
 
@@ -573,7 +576,8 @@ public:
 
 		f_offset = topology_type::unpack_index(m_id_local_begin_ - m_id_begin_);
 
-		f_count = topology_type::unpack_index(m_id_local_end_ - m_id_local_begin_);
+		f_count = topology_type::unpack_index(
+				m_id_local_end_ - m_id_local_begin_);
 
 		m_dims = m_memory_dimensions_;
 
@@ -801,11 +805,11 @@ template<typename TTopology, typename ... Polices> void RectMesh<TTopology,
 
 	if (GLOBAL_COMM.num_of_process() > 1)
 	{
-		auto begin = topology_type::unpack_index(m_id_begin_);
+		auto idx_b = topology_type::unpack_index(m_id_begin_);
 
-		auto end = topology_type::unpack_index(m_id_end_);
+		auto idx_e = topology_type::unpack_index(m_id_end_);
 
-		GLOBAL_COMM.decompose(ndims, &begin[0], &end[0] );
+		GLOBAL_COMM.decompose(ndims, &idx_b[0], &idx_e[0] );
 
 		index_tuple ghost_width;
 
@@ -821,11 +825,11 @@ template<typename TTopology, typename ... Polices> void RectMesh<TTopology,
 		for (int i = 0; i < ndims; ++i)
 		{
 
-			if ( begin[i]+1==end[i])
+			if ( idx_b[i]+1==idx_e[i])
 			{
 				ghost_width[i] = 0;
 			}
-			else if (end[i] <= begin[i]+ ghost_width[i] * 2)
+			else if (idx_e[i] <= idx_b[i]+ ghost_width[i] * 2)
 			{
 				ERROR(
 				"Dimension is to small to split!["
@@ -839,13 +843,13 @@ template<typename TTopology, typename ... Polices> void RectMesh<TTopology,
 
 		}
 
-		m_id_local_begin_=topology_type::pack_index(begin);
+		m_id_local_begin_=topology_type::pack_index(idx_b);
 
-		m_id_local_end_=topology_type::pack_index(end);
+		m_id_local_end_=topology_type::pack_index(idx_e);
 
 		m_id_memory_begin_ = m_id_local_begin_ - (topology_type::pack_index(ghost_width ));
 
-		m_memory_dimensions_ = end - begin + ghost_width*2;
+		m_memory_dimensions_ = idx_e - idx_b + ghost_width*2;
 
 		m_is_distributed_ = true;
 

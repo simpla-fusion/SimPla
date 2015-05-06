@@ -93,7 +93,7 @@ Constraint=  {
     Value= function(x , t ,v )
       local tau = t*omega_ext -- + x[2]*TWOPI/(xmax[3]-xmin[3])
       local amp=  math.sin(tau) *(1-math.exp(-tau*tau))
-      print(x[1])
+    --  print(x[1])
       return {0, 0, amp }
     end
   },
