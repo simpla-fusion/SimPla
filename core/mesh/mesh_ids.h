@@ -806,15 +806,52 @@ struct MeshIDs_
 			{
 				return m_self_;
 			}
+		private:
+
+#define carray(  flag,  min,  max,   self)          \
+			{                                                                \
+				std::div_t div;                                              \
+                                                                             \
+				div = std::div(self + flag + max - min * 2, max - min);      \
+                                                                             \
+				self = static_cast<id_type>(div.rem) + static_cast<id_type>(min);      \
+                                                                             \
+				flag= div.quot - 1;                                         \
+		}
+
+		public:
 			void next()
 			{
-//				m_self_ += rotate_axe(((m_self_ - m_max_) & FULL_OVERFLOW_FLAG))
-//						<< MESH_LEVEL;
-//				m_self_ += rotate_axe(((m_self_ - m_max_) & FULL_OVERFLOW_FLAG))
-//						<< MESH_LEVEL;
+				m_self_ = rotate(m_self_);
+				if (sub_index(m_self_) == 0)
+				{
+					id_s const & min = raw_cast<id_s>(m_min_);
+					id_s const & max = raw_cast<id_s>(m_max_);
+					id_s & self = raw_cast<id_s>(m_self_);
+
+					int flag = 1;
+					carray(flag, min.i, max.i, self.i);
+					carray(flag, min.j, max.j, self.j);
+					carray(flag, min.k, max.k, self.k);
+					CHECK(flag);
+				}
+
 			}
 			void prev()
 			{
+				m_self_ = inverse_rotate(m_self_);
+				if (sub_index(m_self_) == 0)
+				{
+					id_s const & min = raw_cast<id_s>(m_min_);
+					id_s const & max = raw_cast<id_s>(m_max_);
+					id_s & self = raw_cast<id_s>(m_self_);
+
+					int flag = -1;
+					carray(flag, min.i, max.i, &self.i);
+					carray(flag, min.j, max.j, &self.j);
+					carray(flag, min.k, max.k, &self.k);
+
+				}
 			}
 			this_type & operator++()
 			{
@@ -841,13 +878,6 @@ struct MeshIDs_
 				this_type res(*this);
 				--(*this);
 				return std::move(res);
-			}
-
-			difference_type operator-(this_type const & other) const
-			{
-				return NProduct(unpack_index(m_self_ - other.m_self_))
-//						* ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3)
-				;
 			}
 
 		};
