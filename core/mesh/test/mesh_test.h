@@ -23,14 +23,14 @@ typedef CartesianRectMesh mesh_type;
 typedef typename mesh_type::coordinates_type coordinates_type;
 
 class MeshTest: public testing::TestWithParam<
-		std::tuple<nTuple<Real, 3>, nTuple<Real, 3>, nTuple<size_t, 3>,
+		std::tuple<size_t, nTuple<Real, 3>, nTuple<Real, 3>, nTuple<size_t, 3>,
 				nTuple<Real, 3>> >
 {
 protected:
 	void SetUp()
 	{
 		LOGGER.set_stdout_visable_level(LOG_VERBOSE);
-		std::tie(xmin, xmax, dims, K_real) = GetParam();
+		std::tie(nid, xmin, xmax, dims, K_real) = GetParam();
 		K_imag = 0;
 
 		for (int i = 0; i < ndims; ++i)
@@ -56,6 +56,7 @@ public:
 	typedef Real value_type;
 	typedef typename mesh_type::scalar_type scalar_type;
 	typedef typename mesh_type::coordinates_type coordinates_type;
+	typedef typename mesh_type::topology_type topology_type;
 
 	static constexpr size_t ndims = mesh_type::ndims;
 	nTuple<Real, 3> xmin;
@@ -65,7 +66,7 @@ public:
 	nTuple<scalar_type, 3> K_imag;
 	value_type one;
 	Real error;
-
+	size_t nid;
 	mesh_type mesh;
 
 	virtual ~MeshTest()
@@ -74,26 +75,60 @@ public:
 };
 TEST_P(MeshTest, foreach_hash)
 {
-	std::set<mesh_type::id_type> nids = { 0, 1, 6, 7 };
 
-	for (auto nid : nids)
+	size_t count = 0;
+
+	size_t max_num = NProduct(dims)
+			* ((nid == 0 /*VERTEX*/|| nid == 7 /* VOLUME*/) ? 1 : 3);
+
+	for (auto s : mesh.range(nid))
+	{
+		auto x = mesh.coordinates(s);
+
+		EXPECT_GE(inner_product(x-xmin,xmax-x),0) << x << xmin << xmax; // point in box
+
+		EXPECT_EQ(mesh.hash(s), count);
+		++count;
+	}
+	EXPECT_EQ(count, max_num);
+
+}
+TEST_P(MeshTest, id)
+{
+
+	for (auto s : mesh.range(nid))
+	{
+		EXPECT_EQ(topology_type::pack(topology_type::unpack(s)), s);
+	}
+
+}
+
+TEST_P(MeshTest, coordinates)
+{
+
+	size_t max_num = NProduct(dims)
+			* ((nid == 0 /*VERTEX*/|| nid == 7 /* VOLUME*/) ? 1 : 3);
+
+	for (auto s : mesh.range(nid))
 	{
 
-		size_t count = 0;
+		EXPECT_EQ(topology_type::pack(topology_type::coordinates(s)), s);
 
-		size_t max_num = NProduct(dims)
-				* ((nid == 0 /*VERTEX*/|| nid == 7 /* VOLUME*/) ? 1 : 3);
+		EXPECT_EQ(
+				mesh.coordinates_from_topology(
+						mesh.coordinates_to_topology(mesh.coordinates(s))),
+				mesh.coordinates(s));
 
-		for (auto s : mesh.range(nid))
-		{
-			auto x = mesh.coordinates(s);
+		auto x = mesh.coordinates_global_to_local(mesh.coordinates(s), nid);
 
-			EXPECT_GE(inner_product(x-xmin,xmax-x),0) << x << xmin << xmax; // point in box
+		SHOW(mesh.unpack_index(std::get<0>(x)));
+		SHOW(std::get<1>(x));
 
-			EXPECT_EQ(mesh.hash(s), count);
-			++count;
-		}
-		EXPECT_EQ(count, max_num);
+//		EXPECT_EQ( mesh.pack( mesh.coordinates_to_topology(mesh.coordinates(s)) ),s)
+//				<< mesh.coordinates(s) << " "
+//				<< mesh.coordinates_to_topology(mesh.coordinates(s)) << " "
+//				<< std::hex << mesh.unpack(s);
+
 	}
 
 }

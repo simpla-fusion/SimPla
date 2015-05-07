@@ -753,17 +753,15 @@ struct MeshIDs_
 		}
 
 		template<typename T>
-		bool in_box(T const & s) const
+		constexpr bool in_box(T const & x) const
 		{
-			return in_box(pack(s));
+			return inner_product(x - unpack(m_min_), unpack(m_max_) - x) >= 0;
 		}
-		bool in_box(id_type s) const
+		constexpr bool in_box(id_type s) const
 		{
-			UNIMPLEMENTED;
-
-			return true;
+			return in_box(unpack(s));
 		}
-		bool empty() const
+		constexpr bool empty() const
 		{
 			return m_min_ == m_max_;
 		}
@@ -772,9 +770,9 @@ struct MeshIDs_
 			m_min_ = m_max_;
 		}
 
-		difference_type size() const
+		constexpr difference_type size() const
 		{
-			return NProduct(index(m_max_ - m_min_))
+			return NProduct(unpack_index(m_max_ - m_min_))
 					* m_id_to_num_of_ele_in_cell_[node_id(m_min_)];
 		}
 

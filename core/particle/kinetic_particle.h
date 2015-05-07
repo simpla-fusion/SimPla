@@ -26,6 +26,7 @@ struct particle_hasher
 
 	static constexpr size_t ndims = domain_type::ndims;
 	static constexpr size_t iform = domain_type::iform;
+	static constexpr size_t cell_id = (iform == VOLUME) ? 7 : 0;
 
 	mesh_type const * m_mesh_;
 
@@ -43,7 +44,7 @@ struct particle_hasher
 
 	constexpr id_type operator()(value_type const & p) const
 	{
-		return m_mesh_->template coordinates_to_id<iform>(p.x);
+		return std::get<0>(m_mesh_->coordinates_global_to_local(p.x, cell_id));
 	}
 
 //	template<typename ...Args>
@@ -51,6 +52,12 @@ struct particle_hasher
 //	DECL_RET_TYPE((m_mesh_->hash(std::forward<Args>(args)...)))
 }
 ;
+template<typename TDomain, typename TPoint_s> constexpr size_t particle_hasher<
+		TDomain, TPoint_s>::iform;
+template<typename TDomain, typename TPoint_s> constexpr size_t particle_hasher<
+		TDomain, TPoint_s>::ndims;
+template<typename TDomain, typename TPoint_s> constexpr size_t particle_hasher<
+		TDomain, TPoint_s>::cell_id;
 
 }  // namespace _impl
 

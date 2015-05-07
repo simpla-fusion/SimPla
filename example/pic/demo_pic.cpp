@@ -63,6 +63,10 @@ USE_CASE(pic," Particle in cell" )
 	auto E = mesh->template make_form<EDGE, Real>();
 	auto B = mesh->template make_form<FACE, Real>();
 
+	E.clear();
+	B.clear();
+	J.clear();
+
 	VERBOSE_CMD(load_field(options["InitValue"]["E"], &E));
 	VERBOSE_CMD(load_field(options["InitValue"]["B"], &B));
 
@@ -95,9 +99,9 @@ USE_CASE(pic," Particle in cell" )
 
 	std::mt19937 rnd_gen;
 
-	for (int i = 0, ie = pic * ion->domain().size(); i < ie; ++i)
+	for (size_t i = 0, ie = pic * ion->domain().size(); i < ie; ++i)
 	{
-		ion->insert(p_generator(rnd_gen));
+		mesh->unpack_index(ion->insert(p_generator(rnd_gen)));
 	}
 
 	cd("/Input/");

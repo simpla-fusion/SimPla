@@ -620,6 +620,12 @@ public:
 	LuaObject operator()(Args &&... args) const
 	{
 
+		if (IsNull())
+		{
+			WARNING << "Try to call a null LuaObject." << std::endl;
+			return LuaObject();
+		}
+
 		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
 
 		int idx = lua_gettop(L_.get());

@@ -29,8 +29,8 @@ vTe= math.sqrt(k_B*Te*2/me)
 rhoe = vTe/omega_ce    -- m
 
 NX = 100
-NY = 1 
-NZ = 1 
+NY = 1
+NZ = 1
 LX = 1  --m --100000*rhoi --0.6
 LY = 2  --2.0*math.pi/k0
 LZ = 3  -- 2.0*math.pi/18
@@ -55,8 +55,8 @@ Particle=
     H={
       mass=1.0,charge=2.0,T=3.0,pic=PIC,
 
-      Distribution=function(x,v)
---              print(x[1],x[2],x[3])
+      Distribution=
+      function(x,v)
         return (1.0-math.cos(x[1]/LX*math.pi*2.0))/2/PIC
       end
 

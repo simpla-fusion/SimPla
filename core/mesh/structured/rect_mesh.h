@@ -123,9 +123,9 @@ private:
 
 	bool m_is_distributed_ = false;
 
-	coordinates_type m_coord_orig_ /*= { 0, 0, 0 }*/;
+	coordinates_type m_from_topology_orig_ /*= { 0, 0, 0 }*/;
 
-	coordinates_type m_toplogy_coord_orig_ /*= { 0, 0, 0 }*/;
+	coordinates_type m_to_toplogy_orig_ /*= { 0, 0, 0 }*/;
 
 	coordinates_type m_coords_min_ = { 0, 0, 0 };
 
@@ -452,11 +452,11 @@ public:
 
 		return coordinates_type( {
 
-		std::fma(y[0], m_from_topology_scale_[0], m_coord_orig_[0]),
+		std::fma(y[0], m_from_topology_scale_[0], m_from_topology_orig_[0]),
 
-		std::fma(y[1], m_from_topology_scale_[1], m_coord_orig_[1]),
+		std::fma(y[1], m_from_topology_scale_[1], m_from_topology_orig_[1]),
 
-		std::fma(y[2], m_from_topology_scale_[2], m_coord_orig_[2])
+		std::fma(y[2], m_from_topology_scale_[2], m_from_topology_orig_[2])
 
 		});
 
@@ -466,11 +466,11 @@ public:
 
 		return coordinates_type( {
 
-		std::fma(x[0], m_to_topology_scale_[0], m_toplogy_coord_orig_[0]),
+		std::fma(x[0], m_to_topology_scale_[0], m_to_toplogy_orig_[0]),
 
-		std::fma(x[1], m_to_topology_scale_[1], m_toplogy_coord_orig_[1]),
+		std::fma(x[1], m_to_topology_scale_[1], m_to_toplogy_orig_[1]),
 
-		std::fma(x[2], m_to_topology_scale_[2], m_toplogy_coord_orig_[2])
+		std::fma(x[2], m_to_topology_scale_[2], m_to_toplogy_orig_[2])
 
 		});
 
@@ -653,6 +653,12 @@ template<typename TTopology, typename ... Polices> void RectMesh<TTopology,
 					/ static_cast<Real>(dims[i])
 					/ topology_type::COORDINATES_MESH_FACTOR;
 
+			m_to_toplogy_orig_[i] = -m_coords_min_[i] * m_to_topology_scale_[i]
+					+ topology_type::INDEX_ZERO;
+
+			m_from_topology_orig_[i] = m_coords_min_[i]
+					- m_from_topology_scale_[i] * topology_type::INDEX_ZERO;
+
 		}
 //#ifdef  ENABLE_COMPLEX_COORDINATE_SYSTEM
 //		else if ((m_coords_max_[i] - m_coords_min_[i]) > EPSILON)
@@ -675,17 +681,23 @@ template<typename TTopology, typename ... Polices> void RectMesh<TTopology,
 			m_to_topology_scale_[i] = 0;
 
 			m_from_topology_scale_[i] = 0;
+
+			m_to_toplogy_orig_[i] = -m_coords_min_[i] * m_to_topology_scale_[i]
+					+ topology_type::INDEX_ZERO;
+
+			m_from_topology_orig_[i] = -m_from_topology_scale_[i]
+					* topology_type::INDEX_ZERO + m_coords_min_[i];
 		}
 
 	}
 
 	m_id_max_ = m_id_min_ + topology_type::pack_index(dims);
 
-	m_coord_orig_ = m_coords_min_
-			- m_from_topology_scale_ * topology_type::INDEX_ZERO;
-
-	m_toplogy_coord_orig_ = -m_coord_orig_ * m_to_topology_scale_
-			+ topology_type::INDEX_ZERO;
+//	m_coord_orig_ = m_coords_min_
+//			- m_from_topology_scale_ * topology_type::INDEX_ZERO;
+//
+//	m_toplogy_coord_orig_ = -m_coord_orig_ * m_to_topology_scale_
+//			+ topology_type::INDEX_ZERO;
 
 	/**
 	 *  deploy volume

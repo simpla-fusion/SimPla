@@ -329,7 +329,7 @@ public:
 		// FIXME this is incorrect
 		this_type res(*this);
 
-		res.reset_box(b, e);
+		res.reset(b, e);
 
 		return std::move(res);
 	}
