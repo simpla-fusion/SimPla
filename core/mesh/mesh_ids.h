@@ -900,7 +900,7 @@ struct MeshIDs_
 	static constexpr size_t hash(id_type s, id_type b, id_type e)
 	{
 
-		return hash_(raw_cast<id_s>(s - b), raw_cast<id_s>(e - b))
+		return hash_(raw_cast<id_s>(s - b + e - b), raw_cast<id_s>(e - b))
 				* num_of_ele_in_cell(s) + sub_index(s);
 	}
 
@@ -908,10 +908,12 @@ struct MeshIDs_
 	{
 		//C-ORDER SLOW FIRST
 
-		return (s.k >> MESH_LEVEL)
-				+ ((s.j >> MESH_LEVEL)
-						+ (s.i >> MESH_LEVEL) * (d.j >> MESH_LEVEL))
-						* (d.k >> MESH_LEVEL);;
+		return ((s.k % d.k) >> MESH_LEVEL)
+
+		+ (((s.j % d.j) >> MESH_LEVEL) + (((s.i % d.i) >> MESH_LEVEL))
+
+		* (d.j >> MESH_LEVEL)) * (d.k >> MESH_LEVEL);;
+
 	}
 	template<size_t IFORM>
 	static constexpr size_t max_hash(id_type b, id_type e)
