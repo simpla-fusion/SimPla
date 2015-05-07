@@ -5,7 +5,6 @@
  * @author salmon
  */
 
-#include "../../core/gtl/iterator/sp_ntuple_range.h"
 #include "../../core/gtl/ntuple.h"
 #include "../../core/utilities/utilities.h"
 #include "../../core/mesh/mesh_ids.h"
@@ -16,57 +15,27 @@ using namespace simpla;
 
 int main(int argc, char **argv)
 {
-	nTuple<size_t, 3> b = { 0, 0, 0 };
-	nTuple<size_t, 3> e = { 2, 3, 4 };
-
-	auto range = make_ntuple_range(b, e);
-
-	size_t count = 0;
-
-	range.is_slow_first(true);
-
-	for (auto v : range)
+	MeshIDs::id_type node_ids[] = { 0, 1, 6 };
+	for (auto n_id : node_ids)
 	{
-		std::cout << v << std::endl;
+		MeshIDs::id_type b = MeshIDs::pack_index(
+				(nTuple<size_t, 3> { 0, 0, 0 }), n_id);
 
-		++count;
+		MeshIDs::id_type e = MeshIDs::pack_index(
+				(nTuple<size_t, 3> { 6, 1, 1 }), n_id);
+
+		MeshIDs::range_type r1(b, e);
+
+		size_t count = 0;
+		for (auto s : r1)
+		{
+			SHOW_HEX((MeshIDs::template type_cast<nTuple<size_t, 4> >(s)));
+			SHOW(MeshIDs::hash(s, b, e));
+			SHOW(MeshIDs::sub_index(s));
+			++count;
+		}
+
+		SHOW("=====================");
 	}
-	std::cout << "Count = " << count << std::endl;
-
-	range.is_slow_first(false);
-
-	count = 0;
-
-	for (auto v : range)
-	{
-		std::cout << v << std::endl;
-
-		++count;
-	}
-	std::cout << "Count = " << count << std::endl;
-
-	MeshIDs_<3>::range_type<VERTEX> r0(b, e);
-	count = 0;
-
-	for (auto v : r0)
-	{
-		std::cout << v << std::endl;
-
-		++count;
-	}
-
-	std::cout << "Count = " << count << std::endl;
-
-	MeshIDs_<3>::range_type<FACE> r2(b, e);
-
-	count = 0;
-
-	for (auto v : r2)
-	{
-		std::cout << v << std::endl;
-
-		++count;
-	}
-	std::cout << "Count = " << count << std::endl;
 
 }

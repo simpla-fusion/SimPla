@@ -85,6 +85,8 @@ struct MeshIDs_
 
 	static constexpr id_type ID_MASK = (1UL << ID_DIGITS) - 1;
 
+	static constexpr id_type NO_HAED = (1UL << (ID_DIGITS * 3)) - 1;
+
 	static constexpr id_type OVERFLOW_FLAG = (1UL) << (ID_DIGITS - 1);
 
 	struct id_s
@@ -149,7 +151,7 @@ struct MeshIDs_
 
 			static_cast<T>(k),
 
-			m_id_to_index_[node_id(raw_cast<id_type>(*this))],
+			m_id_to_index_[node_id(raw_cast<id_type const>(*this))],
 
 			});
 		}
@@ -198,7 +200,7 @@ struct MeshIDs_
 			| (PRIMARY_ID_MASK_ << (ID_DIGITS * 2)))<< (HEAD_DIGITS);
 
 #endif
-	static constexpr id_type _DA = _D | _DJ | _DK;
+	static constexpr id_type _DA = _DI | _DJ | _DK;
 
 	static constexpr Real COORDINATES_MESH_FACTOR = static_cast<Real>(1UL
 			<< MESH_LEVEL);
@@ -293,15 +295,21 @@ struct MeshIDs_
 	}
 
 	template<typename T>
-	static constexpr id_type pack_index(T const & idx)
+	static constexpr id_type pack_index(T const & idx, int n_id = 0)
 	{
-		return pack(idx) << MESH_LEVEL;
+		return (pack(idx) << MESH_LEVEL) | m_id_to_shift_[n_id];
 	}
 
 	static constexpr id_tuple unpack_index(id_type s)
 	{
 		return unpack(s) >> MESH_LEVEL;
 	}
+	template<typename T>
+	static constexpr T type_cast(id_type s)
+	{
+		return static_cast<T>(raw_cast<id_s const>(s));
+	}
+
 	static constexpr id_type const &id(id_type const &s)
 	{
 		return s;
@@ -359,12 +367,16 @@ struct MeshIDs_
 
 	static constexpr id_type rotate(id_type const &s)
 	{
-		return ((s & (_DA)) << ID_DIGITS) | ((s & _DK) >> (ID_DIGITS * 2));
+		return ((s & (~_DA))
+				| (((s & (_DA)) << ID_DIGITS) | ((s & _DK) >> (ID_DIGITS * 2))))
+				& NO_HAED;
 	}
 
 	static constexpr id_type inverse_rotate(id_type const &s)
 	{
-		return ((s & (_DA)) >> ID_DIGITS) | ((s & _DI) << (ID_DIGITS * 2));
+		return ((s & (~_DA))
+				| (((s & (_DA)) >> ID_DIGITS) | ((s & _DI) << (ID_DIGITS * 2))))
+				& NO_HAED;
 	}
 
 	/**
@@ -661,12 +673,13 @@ struct MeshIDs_
 
 		typedef range_type this_type;
 
-		range_type(id_type const & min, id_type const & max,
-				id_type const& self)
-				: m_min_(min), m_max_(max)
+		template<typename T0, typename T1>
+		range_type(T0 const & min, T1 const & max)
+				: m_min_(pack_index(min)), m_max_(pack_index(max))
 		{
 
 		}
+
 		range_type(id_type const & min, id_type const & max)
 				: m_min_(min), m_max_(max)
 		{
@@ -698,12 +711,28 @@ struct MeshIDs_
 
 		const_iterator begin() const
 		{
-			return const_iterator(m_min_, m_max_);
+			return const_iterator(m_min_, m_max_, m_min_);
 		}
 
 		const_iterator end() const
 		{
-			return const_iterator(m_min_, m_max_);
+			return ++const_iterator(m_min_, m_max_,
+					inverse_rotate(m_max_ - (_DA << 1)));
+		}
+
+		const_iterator rbegin() const
+		{
+			return const_iterator(m_min_, m_max_,
+					inverse_rotate(m_max_ - (_DA << 1)));
+		}
+
+		const_iterator rend() const
+		{
+			const_iterator res(m_min_, m_max_,
+					inverse_rotate(m_min_ - (_DA << 1)));
+
+			++res;
+			return std::move(res);
 		}
 
 		std::tuple<nTuple<index_type, ndims + 1>, nTuple<index_type, ndims + 1>> box() const
@@ -790,12 +819,8 @@ struct MeshIDs_
 
 #define carray(  flag,  min,  max,   self)          \
 			{                                                                \
-				std::div_t div;                                              \
-                                                                             \
-				div = std::div(self + flag + max - min * 2, max - min);      \
-                                                                             \
-				self = static_cast<id_type>(div.rem) + static_cast<id_type>(min);      \
-                                                                             \
+				std::div_t  div = std::div(self + flag*(_D<<1) + max - min * 2, max - min);      \
+				self = div.rem + min;      \
 				flag= div.quot - 1;                                         \
 		}
 
@@ -808,11 +833,12 @@ struct MeshIDs_
 					id_s const & min = raw_cast<id_s>(m_min_);
 					id_s const & max = raw_cast<id_s>(m_max_);
 					id_s & self = raw_cast<id_s>(m_self_);
-
 					int flag = 1;
-					carray(flag, min.i, max.i, self.i);
-					carray(flag, min.j, max.j, self.j);
+
 					carray(flag, min.k, max.k, self.k);
+					carray(flag, min.j, max.j, self.j);
+					self.i += flag * (_D << 1);
+//					carray(flag, min.i, max.i, self.i);
 				}
 
 			}
@@ -826,9 +852,10 @@ struct MeshIDs_
 					id_s & self = raw_cast<id_s>(m_self_);
 
 					int flag = -1;
-					carray(flag, min.i, max.i, &self.i);
-					carray(flag, min.j, max.j, &self.j);
 					carray(flag, min.k, max.k, &self.k);
+					carray(flag, min.j, max.j, &self.j);
+//					carray(flag, min.i, max.i, &self.i);
+					self.i += flag * (_D << 1);
 
 				}
 			}
@@ -888,9 +915,11 @@ struct MeshIDs_
 			id_s const & e)
 	{
 		//C-ORDER SLOW FIRST
-		return s.k + (s.j + s.i * (e.j - b.j)) * (e.i - b.i);
-//		//FORTRAN-ORDER FAST FIRST
-//		return s.i + (s.j + s.k * (e.j - b.j)) * (e.k - b.k);
+
+		return (s.k >> MESH_LEVEL)
+				+ ((s.j >> MESH_LEVEL)
+						+ (s.i >> MESH_LEVEL) * ((e.j - b.j) >> MESH_LEVEL))
+						* ((e.k - b.k) >> MESH_LEVEL);;
 	}
 	template<size_t IFORM>
 	static constexpr size_t max_hash(id_type b, id_type e)
