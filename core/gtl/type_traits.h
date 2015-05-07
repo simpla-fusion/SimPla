@@ -467,6 +467,11 @@ T & raw_cast(U& s)
 {
 	return *reinterpret_cast<T*>(&s);
 }
+template<typename T, typename U>
+T raw_cast(U&& s)
+{
+	return *reinterpret_cast<T*>(&s);
+}
 
 template<typename T, typename U>
 T assign_cast(U const & s)

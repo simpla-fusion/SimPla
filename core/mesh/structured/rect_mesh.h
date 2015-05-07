@@ -287,10 +287,13 @@ public:
 		return std::make_tuple(topology_type::unpack_index(m_id_local_min_),
 				topology_type::unpack_index(m_id_local_max_));
 	}
-	std::tuple<id_type, id_type> id_box() const
+
+	template<size_t IFORM> range_type range() const
 	{
-		return std::make_tuple(m_id_min_, m_id_max_);
+		return topology_type::template make_range<IFORM>(m_id_local_min_,
+				m_id_local_max_);
 	}
+
 	static std::string get_type_as_string()
 	{
 		return "RectMesh<" + coordinates_system::get_type_as_string() + ">";
@@ -332,12 +335,6 @@ public:
 	index_tuple dimensions() const
 	{
 		return topology_type::unpack_index(m_id_max_ - m_id_min_);
-	}
-
-	template<size_t IFORM> range_type range() const
-	{
-		return topology_type::template make_range<IFORM>(m_id_local_min_,
-				m_id_local_max_);
 	}
 
 	void deploy(size_t const *gw = nullptr);
@@ -517,7 +514,7 @@ public:
 		return topology_type::template max_hash<IFORM>(m_id_memory_min_,
 				m_id_memory_max_);
 	}
-	constexpr size_t hash(id_type const &s) const
+	constexpr size_t hash(id_type s) const
 	{
 		return topology_type::hash(s, m_id_memory_min_, m_id_memory_max_);
 	}

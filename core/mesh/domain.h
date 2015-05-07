@@ -59,6 +59,10 @@ public:
 
 	typedef typename mesh_type::range_type range_type;
 
+	typedef typename range_type::iterator const_iterator;
+	using range_type::begin;
+	using range_type::end;
+
 	template<typename TV>
 	using field_value_type=typename std::conditional<(iform == VERTEX || iform == VOLUME),TV,nTuple<TV,3>>::type;
 
@@ -149,7 +153,7 @@ public:
 	}
 	void deploy()
 	{
-		reset(m_mesh_.local_box());
+		range_type(m_mesh_.template range<iform>()).swap(*this);
 	}
 
 	std::set<id_type> & id_set()
@@ -161,12 +165,12 @@ public:
 		return m_id_set_;
 	}
 
-	size_t max_hash() const
+	constexpr size_t max_hash() const
 	{
 		return mesh().template max_hash<iform>();
 	}
 
-	size_t hash(id_type s) const
+	constexpr size_t hash(id_type s) const
 	{
 		return m_mesh_.hash(s);
 	}
@@ -181,9 +185,9 @@ public:
 		else if (is_simply())
 		{
 
-			for (auto const &idx : *this)
+			for (auto const &s : *this)
 			{
-				fun(m_mesh_.pack_index(idx));
+				fun(s);
 			}
 		}
 		else
@@ -215,9 +219,9 @@ public:
 
 		if (is_simply())
 		{
-			for (auto const &x : *this)
+			for (auto s : *this)
 			{
-				fun(m_mesh_.pack_index(x));
+				fun(s);
 			}
 		}
 		else
@@ -240,9 +244,9 @@ public:
 		{
 			range_type r = *this & other;
 
-			for (auto const &idx : r)
+			for (auto s : r)
 			{
-				fun(mesh_type::pack_index(idx));
+				fun(s);
 			}
 		}
 		else if (is_simply())
@@ -395,40 +399,7 @@ public:
 					return !pred(m_mesh_.coordinates(s));
 				});
 	}
-	struct iterator;
-	typedef iterator const_iterator;
 
-	const_iterator begin() const
-	{
-		return std::move(const_iterator(range_type::begin()));
-	}
-
-	const_iterator end() const
-	{
-		return std::move(const_iterator(range_type::end()));
-	}
-
-	struct iterator: public std::iterator<
-	typename range_type::iterator::iterator_category,
-	id_type, id_type>,
-public range_type::iterator
-	{
-		typedef typename range_type::iterator base_iterator;
-
-		iterator(base_iterator const &other)
-		: base_iterator(other)
-		{
-		}
-
-		~iterator()
-		{
-		}
-
-		id_type operator*() const
-		{
-			return mesh_type::pack_index(base_iterator::operator *());
-		}
-	};
 	/**
 	 * @name  Data Shape
 	 * @{

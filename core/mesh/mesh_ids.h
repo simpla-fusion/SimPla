@@ -170,7 +170,7 @@ struct MeshIDs_
 
 	static constexpr Real _R = static_cast<Real>(_D);
 
-#ifdef BIG_ENDIAN
+//#ifdef BIG_ENDIAN
 
 	static constexpr id_type _DI = _D;
 
@@ -185,21 +185,21 @@ struct MeshIDs_
 			| (PRIMARY_ID_MASK_ << ID_DIGITS)
 			| (PRIMARY_ID_MASK_ << (ID_DIGITS * 2));
 
-#else
-	static constexpr id_type _DK = _D << (HEAD_DIGITS);
-
-	static constexpr id_type _DJ = _D << (ID_DIGITS + HEAD_DIGITS);
-
-	static constexpr id_type _DI = _D << (ID_DIGITS * 2 + HEAD_DIGITS);
-
-	static constexpr id_type ID_ZERO = (OVERFLOW_FLAG<<HEAD_DIGITS)
-	| (OVERFLOW_FLAG << (ID_DIGITS+HEAD_DIGITS)) | (OVERFLOW_FLAG << (ID_DIGITS * 2+HEAD_DIGITS));
-
-	static constexpr id_type PRIMARY_ID_MASK = (PRIMARY_ID_MASK_
-			| (PRIMARY_ID_MASK_ << ID_DIGITS)
-			| (PRIMARY_ID_MASK_ << (ID_DIGITS * 2)))<< (HEAD_DIGITS);
-
-#endif
+//#else
+//	static constexpr id_type _DK = _D << (HEAD_DIGITS);
+//
+//	static constexpr id_type _DJ = _D << (ID_DIGITS + HEAD_DIGITS);
+//
+//	static constexpr id_type _DI = _D << (ID_DIGITS * 2 + HEAD_DIGITS);
+//
+//	static constexpr id_type ID_ZERO = (OVERFLOW_FLAG<<HEAD_DIGITS)
+//	| (OVERFLOW_FLAG << (ID_DIGITS+HEAD_DIGITS)) | (OVERFLOW_FLAG << (ID_DIGITS * 2+HEAD_DIGITS));
+//
+//	static constexpr id_type PRIMARY_ID_MASK = (PRIMARY_ID_MASK_
+//			| (PRIMARY_ID_MASK_ << ID_DIGITS)
+//			| (PRIMARY_ID_MASK_ << (ID_DIGITS * 2)))<< (HEAD_DIGITS);
+//
+//#endif
 	static constexpr id_type _DA = _DI | _DJ | _DK;
 
 	static constexpr Real COORDINATES_MESH_FACTOR = static_cast<Real>(1UL
@@ -907,19 +907,18 @@ struct MeshIDs_
 	static constexpr size_t hash(id_type s, id_type b, id_type e)
 	{
 
-		return hash_(raw_cast<id_s>(s), raw_cast<id_s>(b), raw_cast<id_s>(e))
+		return hash_(raw_cast<id_s>(s - b), raw_cast<id_s>(e - b))
 				* num_of_ele_in_cell(s) + sub_index(s);
 	}
 
-	static constexpr size_t hash_(id_s const & s, id_s const & b,
-			id_s const & e)
+	static constexpr size_t hash_(id_s const & s, id_s const & d)
 	{
 		//C-ORDER SLOW FIRST
 
 		return (s.k >> MESH_LEVEL)
 				+ ((s.j >> MESH_LEVEL)
-						+ (s.i >> MESH_LEVEL) * ((e.j - b.j) >> MESH_LEVEL))
-						* ((e.k - b.k) >> MESH_LEVEL);;
+						+ (s.i >> MESH_LEVEL) * (d.j >> MESH_LEVEL))
+						* (d.k >> MESH_LEVEL);;
 	}
 	template<size_t IFORM>
 	static constexpr size_t max_hash(id_type b, id_type e)

@@ -107,12 +107,12 @@ TEST_P(FETLTest, grad0)
 
 	for (auto s : mesh->domain<VERTEX>())
 	{
+
 		f0[s] = std::sin(inner_product(K_real, mesh->coordinates(s)));
 	};
 	f0.sync();
 
 	LOG_CMD(f1 = grad(f0));
-//	LOG_CMD(f1 = exterior_derivative(f0));
 
 	Real m = 0.0;
 	Real variance = 0;
@@ -195,15 +195,16 @@ TEST_P(FETLTest, grad3)
 	f2.clear();
 	f2b.clear();
 
-	for (auto s : mesh->domain<VOLUME>())
+	for (auto s : mesh->template domain<VOLUME>())
 	{
 		f3[s] = std::sin(inner_product(K_real, mesh->coordinates(s)));
 	};
+
 	f3.sync();
+
 	LOG_CMD(f2 = grad(f3));
 
-//	f2 = codifferential_derivative(f3);
-//	f2 = -f2;
+	CHECK("...");
 
 	Real m = 0.0;
 	Real variance = 0;
