@@ -66,19 +66,19 @@ public:
 	std::set<id_type> m_id_set_;
 public:
 
-	Domain(mesh_type const &m) :
-			range_type(m.template range<iform>()), m_mesh_(m)
+	Domain(mesh_type const &m)
+			: range_type(m.template range<iform>()), m_mesh_(m)
 	{
 		/*range_type(m.box<iform>()), */
 	}
 
-	Domain(this_type const & other) :
-			range_type(other), m_mesh_(other.m_mesh_), m_id_set_(
+	Domain(this_type const & other)
+			: range_type(other), m_mesh_(other.m_mesh_), m_id_set_(
 					other.m_id_set_)
 	{
 	}
-	Domain(this_type && other) :
-			range_type(other), m_mesh_(other.m_mesh_), m_id_set_(
+	Domain(this_type && other)
+			: range_type(other), m_mesh_(other.m_mesh_), m_id_set_(
 					other.m_id_set_)
 	{
 	}
@@ -165,10 +165,10 @@ public:
 	{
 		return mesh().template max_hash<iform>();
 	}
-	template<typename ...Args>
-	size_t hash(Args && ...args) const
+
+	size_t hash(id_type s) const
 	{
-		return mesh().template hash<iform>(std::forward<Args>(args)...);
+		return m_mesh_.hash(s);
 	}
 
 	template<typename TFun>
@@ -314,8 +314,8 @@ public:
 
 	void reset(coordinates_type const & b, coordinates_type const & e)
 	{
-		range_type::reset(mesh_type::coordinates_to_topology(b),
-				mesh_type::coordinates_to_topology(e));
+		range_type::reset(m_mesh_.coordinates_to_topology(b),
+				m_mesh_.coordinates_to_topology(e));
 	}
 
 	template<typename T0, typename T1>

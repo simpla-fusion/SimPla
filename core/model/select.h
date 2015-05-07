@@ -461,7 +461,7 @@ void filter_domain_by_config(TDict const & dict, TDomain * domain)
 
 		dict["Box"].as(&p);
 
-		domain->reset_box(p[0], p[1]);
+		domain->reset(p[0], p[1]);
 
 	}
 	else if (dict["IndexBox"])
@@ -471,7 +471,7 @@ void filter_domain_by_config(TDict const & dict, TDomain * domain)
 
 		dict["IndexBox"].as(&points);
 
-		domain->reset_box(points[0], points[1]);
+		domain->reset(points[0], points[1]);
 
 	}
 
@@ -491,8 +491,7 @@ void filter_domain_by_config(TDict const & dict, TDomain * domain)
 
 			if (domain->in_box(idx))
 			{
-				domain->id_set().insert(
-						domain->m_mesh_.pack_index(idx));
+				domain->id_set().insert(domain->m_mesh_.pack_index(idx));
 			}
 
 		}

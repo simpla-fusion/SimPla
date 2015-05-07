@@ -73,16 +73,16 @@ public:
 	static inline auto gather(geometry_type const & geo, TF const &f,
 			TX const & r)  //
 					ENABLE_IF_DECL_RET_TYPE((field_traits<TF >::iform==VERTEX),
-							( gather_impl_<geometry_type>(f, geo.template coordinates_global_to_local<VERTEX>(r, 0 ) )))
+							( gather_impl_<geometry_type>(f, geo. coordinates_global_to_local (r, 0 ) )))
 
 	template<typename geometry_type, typename TF>
 	static auto gather(geometry_type const & geo, TF const &f,
 			typename geometry_type::coordinates_type const & r)
 					ENABLE_IF_DECL_RET_TYPE((field_traits<TF >::iform==EDGE),
 							make_nTuple(
-									gather_impl_<geometry_type>(f, geo.template coordinates_global_to_local<EDGE>(r, 0) ),
-									gather_impl_<geometry_type>(f, geo.template coordinates_global_to_local<EDGE>(r, 1) ),
-									gather_impl_<geometry_type>(f, geo.template coordinates_global_to_local<EDGE>(r, 2) )
+									gather_impl_<geometry_type>(f, geo.coordinates_global_to_local(r, 1) ),
+									gather_impl_<geometry_type>(f, geo.coordinates_global_to_local(r, 2) ),
+									gather_impl_<geometry_type>(f, geo.coordinates_global_to_local(r, 4) )
 							))
 
 	template<typename geometry_type, typename TF>
@@ -91,16 +91,16 @@ public:
 					ENABLE_IF_DECL_RET_TYPE(
 							(field_traits<TF >::iform==FACE),
 							make_nTuple(
-									gather_impl_<geometry_type>(f, geo.template coordinates_global_to_local<FACE>(r,0) ),
-									gather_impl_<geometry_type>(f, geo.template coordinates_global_to_local<FACE>(r,1) ),
-									gather_impl_<geometry_type>(f, geo.template coordinates_global_to_local<FACE>(r,2) )
+									gather_impl_<geometry_type>(f, geo.coordinates_global_to_local(r,6) ),
+									gather_impl_<geometry_type>(f, geo.coordinates_global_to_local(r,5) ),
+									gather_impl_<geometry_type>(f, geo.coordinates_global_to_local(r,3) )
 							) )
 
 	template<typename geometry_type, typename TF>
 	static auto gather(geometry_type const & geo, TF const &f,
 			typename geometry_type::coordinates_type const & x)
 					ENABLE_IF_DECL_RET_TYPE((field_traits<TF >::iform==VOLUME),
-							gather_impl_<geometry_type>(f, geo.template coordinates_global_to_local<VOLUME>(x ) ))
+							gather_impl_<geometry_type>(f, geo. coordinates_global_to_local (x ,7) ))
 
 private:
 	template<typename geometry_type, typename TF, typename IDX, typename TV>
@@ -133,8 +133,8 @@ public:
 			TW const &w)
 	{
 
-		scatter_impl_<geometry_type>(f,
-				geo.template coordinates_global_to_local<VERTEX>(x), u * w);
+		scatter_impl_<geometry_type>(f, geo.coordinates_global_to_local(x, 0),
+				u * w);
 	}
 
 	template<typename geometry_type, typename ...TF, typename TV, typename TW>
@@ -144,12 +144,12 @@ public:
 			TW const & w)
 	{
 
-		scatter_impl_<geometry_type>(f,
-				geo.template coordinates_global_to_local<EDGE>(x, 0), u[0] * w);
-		scatter_impl_<geometry_type>(f,
-				geo.template coordinates_global_to_local<EDGE>(x, 1), u[1] * w);
-		scatter_impl_<geometry_type>(f,
-				geo.template coordinates_global_to_local<EDGE>(x, 2), u[2] * w);
+		scatter_impl_<geometry_type>(f, geo.coordinates_global_to_local(x, 1),
+				u[0] * w);
+		scatter_impl_<geometry_type>(f, geo.coordinates_global_to_local(x, 2),
+				u[1] * w);
+		scatter_impl_<geometry_type>(f, geo.coordinates_global_to_local(x, 4),
+				u[2] * w);
 
 	}
 
@@ -160,12 +160,12 @@ public:
 			TW const &w)
 	{
 
-		scatter_impl_<geometry_type>(f,
-				geo.template coordinates_global_to_local<FACE>(x, 0), u[0] * w);
-		scatter_impl_<geometry_type>(f,
-				geo.template coordinates_global_to_local<FACE>(x, 1), u[1] * w);
-		scatter_impl_<geometry_type>(f,
-				geo.template coordinates_global_to_local<FACE>(x, 2), u[2] * w);
+		scatter_impl_<geometry_type>(f, geo.coordinates_global_to_local(x, 6),
+				u[0] * w);
+		scatter_impl_<geometry_type>(f, geo.coordinates_global_to_local(x, 5),
+				u[1] * w);
+		scatter_impl_<geometry_type>(f, geo.coordinates_global_to_local(x, 3),
+				u[2] * w);
 	}
 
 	template<typename geometry_type, typename ...TF, typename TV, typename TW>
@@ -174,8 +174,8 @@ public:
 			typename geometry_type::coordinates_type const & x, TV const &u,
 			TW const &w)
 	{
-		scatter_impl_<geometry_type>(f,
-				geo.template coordinates_global_to_local<VOLUME>(x), w);
+		scatter_impl_<geometry_type>(f, geo.coordinates_global_to_local(x, 7),
+				w);
 	}
 private:
 	template<typename geometry_type, typename TV>
