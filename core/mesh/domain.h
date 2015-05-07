@@ -305,7 +305,8 @@ public:
 		}
 		else
 		{
-			m_mesh_.template range<iform>().swap(*this);
+			m_mesh_.range(m_mesh_.template sub_index_to_id<iform>()).swap(
+					*this);
 		}
 	}
 	void clear_ids()
@@ -387,17 +388,17 @@ public:
 	void remove(Pred const & pred)
 	{
 		filter([&](id_type const & s)
-				{
-					return !pred(s);
-				});
+		{
+			return !pred(s);
+		});
 	}
 	template<typename Pred>
 	void remove_by_coordinates(Pred const & pred)
 	{
 		filter([&](id_type const & s)
-				{
-					return !pred(m_mesh_.coordinates(s));
-				});
+		{
+			return !pred(m_mesh_.coordinates(s));
+		});
 	}
 
 	/**
@@ -411,14 +412,14 @@ public:
 
 		if (is_simply())
 		{
-			typename DataSpace::index_tuple b,e,l_b;
+			typename DataSpace::index_tuple b, e, l_b;
 			typename DataSpace::index_tuple offset, count;
 
-			std::tie(b,e)=range_type::box();
-			std::tie(l_b,std::ignore)=m_mesh_.local_box();
+			std::tie(b, e) = range_type::box();
+			std::tie(l_b, std::ignore) = m_mesh_.local_box();
 
-			offset = b- l_b;
-			offset[ndims] =0;
+			offset = b - l_b;
+			offset[ndims] = 0;
 			count = e - b;
 			res.select_hyperslab(&offset[0], nullptr, &count[0], nullptr);
 		}
