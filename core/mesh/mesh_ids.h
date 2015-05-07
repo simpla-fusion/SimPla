@@ -88,6 +88,9 @@ struct MeshIDs_
 	static constexpr id_type NO_HAED = (1UL << (ID_DIGITS * 3)) - 1;
 
 	static constexpr id_type OVERFLOW_FLAG = (1UL) << (ID_DIGITS - 1);
+	static constexpr id_type INDEX_ZERO = OVERFLOW_FLAG;
+	static constexpr id_type ID_ZERO = INDEX_ZERO | (INDEX_ZERO << ID_DIGITS)
+			| (INDEX_ZERO << (ID_DIGITS * 2));
 
 	struct id_s
 	{
@@ -164,8 +167,6 @@ struct MeshIDs_
 
 	static constexpr id_type SUB_ID_MASK = ((1UL << MESH_LEVEL) - 1);
 
-	static constexpr id_type PRIMARY_ID_MASK_ = ID_MASK & (~SUB_ID_MASK);
-
 	static constexpr id_type _D = 1UL << (MESH_LEVEL - 1);
 
 	static constexpr Real _R = static_cast<Real>(_D);
@@ -178,8 +179,7 @@ struct MeshIDs_
 
 	static constexpr id_type _DK = _D << (ID_DIGITS * 2);
 
-	static constexpr id_type ID_ZERO = OVERFLOW_FLAG
-			| (OVERFLOW_FLAG << ID_DIGITS) | (OVERFLOW_FLAG << (ID_DIGITS * 2));
+	static constexpr id_type PRIMARY_ID_MASK_ = ID_MASK & (~SUB_ID_MASK);
 
 	static constexpr id_type PRIMARY_ID_MASK = PRIMARY_ID_MASK_
 			| (PRIMARY_ID_MASK_ << ID_DIGITS)
@@ -939,6 +939,8 @@ template<size_t N, size_t M> constexpr int MeshIDs_<N, M>::MESH_LEVEL;
 
 template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::OVERFLOW_FLAG;
 template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::ID_ZERO;
+template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::INDEX_ZERO;
+
 template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::FULL_DIGITS;
 template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::ID_DIGITS;
 template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::ID_MASK;

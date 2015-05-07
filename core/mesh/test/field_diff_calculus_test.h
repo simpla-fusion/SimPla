@@ -107,7 +107,6 @@ TEST_P(FETLTest, grad0)
 
 	for (auto s : mesh->domain<VERTEX>())
 	{
-
 		f0[s] = std::sin(inner_product(K_real, mesh->coordinates(s)));
 	};
 	f0.sync();

@@ -682,9 +682,11 @@ template<typename TTopology, typename ... Polices> void RectMesh<TTopology,
 
 	m_id_max_ = m_id_min_ + topology_type::pack_index(dims);
 
-	m_coord_orig_ = m_coords_min_;
+	m_coord_orig_ = m_coords_min_
+			- m_from_topology_scale_ * topology_type::INDEX_ZERO;
 
-	m_toplogy_coord_orig_ = -m_coord_orig_ * m_to_topology_scale_;
+	m_toplogy_coord_orig_ = -m_coord_orig_ * m_to_topology_scale_
+			+ topology_type::INDEX_ZERO;
 
 	/**
 	 *  deploy volume
