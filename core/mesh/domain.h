@@ -71,9 +71,9 @@ public:
 public:
 
 	Domain(mesh_type const &m)
-			: range_type(m.template range<iform>()), m_mesh_(m)
+			: range_type(m.range(mesh_type::template sub_index_to_id<iform>())), m_mesh_(
+					m)
 	{
-		/*range_type(m.box<iform>()), */
 	}
 
 	Domain(this_type const & other)

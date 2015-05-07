@@ -72,15 +72,28 @@ public:
 	{
 	}
 };
-TEST_P(MeshTest, foreach)
+TEST_P(MeshTest, foreach_hash)
 {
+	std::set<mesh_type::id_type> nids = { 0, 1, 6, 7 };
 
-	CHECK(mesh.extents());
-
-	for (auto s : mesh.domain<EDGE>())
+	for (auto nid : nids)
 	{
-		SHOW(mesh.coordinates(s));
-		SHOW(mesh.topology_type::coordinates(s));
+
+		size_t count = 0;
+
+		size_t max_num = NProduct(dims)
+				* ((nid == 0 /*VERTEX*/|| nid == 7 /* VOLUME*/) ? 1 : 3);
+
+		for (auto s : mesh.range(nid))
+		{
+			auto x = mesh.coordinates(s);
+
+			EXPECT_GE(inner_product(x-xmin,xmax-x),0) << x << xmin << xmax; // point in box
+
+			EXPECT_EQ(mesh.hash(s), count);
+			++count;
+		}
+		EXPECT_EQ(count, max_num);
 	}
 
 }

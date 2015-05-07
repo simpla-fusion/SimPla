@@ -288,10 +288,9 @@ public:
 				topology_type::unpack_index(m_id_local_max_));
 	}
 
-	template<size_t IFORM> range_type range() const
+	range_type range(int nid = 0) const
 	{
-		return topology_type::template make_range<IFORM>(m_id_local_min_,
-				m_id_local_max_);
+		return range_type(m_id_local_min_, m_id_local_max_, nid);
 	}
 
 	static std::string get_type_as_string()

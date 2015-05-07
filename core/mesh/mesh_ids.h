@@ -278,9 +278,14 @@ struct MeshIDs_
 					VOLUME // 111
 			};
 	template<size_t IFORM>
-	static constexpr id_type sub_id(int n = 0)
+	static constexpr id_type sub_index_to_id(int n = 0)
 	{
 		return m_sub_index_to_id_[IFORM][n];
+	}
+
+	static constexpr int iform(id_type s)
+	{
+		return m_id_to_iform_[node_id(s)];
 	}
 
 	template<typename T>
@@ -674,14 +679,16 @@ struct MeshIDs_
 		typedef range_type this_type;
 
 		template<typename T0, typename T1>
-		range_type(T0 const & min, T1 const & max)
-				: m_min_(pack_index(min)), m_max_(pack_index(max))
+		range_type(T0 const & min, T1 const & max, int n_id = 0)
+				: m_min_(pack_index(min) | m_id_to_shift_[n_id]), m_max_(
+						pack_index(max) | m_id_to_shift_[n_id])
 		{
 
 		}
 
-		range_type(id_type const & min, id_type const & max)
-				: m_min_(min), m_max_(max)
+		range_type(id_type const & min, id_type const & max, int n_id = 0)
+				: m_min_(min | m_id_to_shift_[n_id]), m_max_(
+						max | m_id_to_shift_[n_id])
 		{
 
 		}
@@ -890,20 +897,6 @@ struct MeshIDs_
 
 	};
 
-	template<size_t IFORM>
-	static constexpr range_type make_range(id_type b, id_type e)
-	{
-		return range_type(b | m_id_to_shift_[m_sub_index_to_id_[IFORM][0]],
-				e | m_id_to_shift_[m_sub_index_to_id_[IFORM][0]]);
-	}
-
-	template<size_t IFORM, typename T0, typename T1>
-	static constexpr range_type make_range(T0 const & b, T1 const & e)
-	{
-		return range_type(id(b) | m_id_to_shift_[m_sub_index_to_id_[IFORM][0]],
-				id(e) | m_id_to_shift_[m_sub_index_to_id_[IFORM][0]]);
-	}
-
 	static constexpr size_t hash(id_type s, id_type b, id_type e)
 	{
 
@@ -924,7 +917,7 @@ struct MeshIDs_
 	static constexpr size_t max_hash(id_type b, id_type e)
 	{
 		return NProduct(unpack_index(e - b))
-				* m_id_to_num_of_ele_in_cell_[sub_id<IFORM>(0)];
+				* m_id_to_num_of_ele_in_cell_[sub_index_to_id<IFORM>(0)];
 	}
 }
 ;
@@ -950,6 +943,7 @@ template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs
 template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::_DA;
 template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::m_id_to_index_[];
 template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::m_id_to_shift_[];
+template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::m_id_to_iform_[];
 template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::m_sub_index_to_id_[4][3];
 template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::m_id_to_num_of_ele_in_cell_[];
 template<size_t N, size_t M> constexpr typename MeshIDs_<N,M >::coordinates_type MeshIDs_<N,M >::m_id_to_coordinates_shift_[ ];
