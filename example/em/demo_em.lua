@@ -82,7 +82,6 @@ InitValue= {
 
 PEC= {
   Domain={
-
     Box={ {0 ,0,0 }, {NX/2  ,NY/2 ,0 }} ,    OnBoundary=true
   }
 }

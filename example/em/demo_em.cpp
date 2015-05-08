@@ -60,34 +60,6 @@ USE_CASE(em," Maxwell Eqs.")
 
 	mesh->deploy();
 
-//	typename mesh_type::coordinates_type zero = { 0.5, 0, 0 };
-//
-//	auto ss = mesh->template coordinates_to_id<VERTEX>(zero);
-//	SHOW(mesh->template coordinates_to_id<VERTEX>(zero));
-//	SHOW(mesh->template coordinates_to_index<VERTEX>(zero));
-//	SHOW(mesh->template coordinates_to_id_tuple<VERTEX>(zero));
-//	SHOW(mesh->template unpack_index<VERTEX>(ss));
-//	SHOW(mesh->node_id(ss));
-//	SHOW(mesh->node_id(ss + (mesh_type::_DI)));
-//	SHOW(mesh->node_id(ss + (mesh_type::_DI << 1)));
-//
-//	CHECK_BIT(mesh->_D);
-//	CHECK_BIT(mesh->ID_MASK);
-//	CHECK_BIT(mesh->ID_ZERO);
-//	CHECK_BIT(mesh->CARRAY_FLAG);
-//	CHECK_BIT(mesh->SUB_ID_MASK);
-//	CHECK_BIT(mesh->PRIMARY_ID_MASK);
-//
-//	nTuple<long, 3> idx = { 1, 2, 3 };
-//	ss = (mesh->template pack_index<VERTEX>(idx));
-//
-//	CHECK_BIT(ss);
-//	CHECK_BIT(mesh->INDEX_ZERO);
-//	SHOW(idx);
-//	SHOW(mesh->template unpack_index<VERTEX>(ss));
-//
-//	auto s = mesh->coordinates_to_id_tuple(zero);
-
 	if (GLOBAL_COMM.process_num()==0)
 	{
 
@@ -126,19 +98,19 @@ USE_CASE(em," Maxwell Eqs.")
 	auto E_src = make_field_function_by_config<EDGE, Real>(*mesh,
 			options["Constraint"]["E"]);
 
-//	auto E_Boundary = E;
-//	auto B_Boundary = B;
-//
-//	if (options["PEC"])
-//	{
-//		filter_domain_by_config(options["PEC"]["Domain"], &B_Boundary.domain());
-//		filter_domain_by_config(options["PEC"]["Domain"], &E_Boundary.domain());
-//	}
-//	else
-//	{
-//		E_Boundary.clear();
-//		B_Boundary.clear();
-//	}
+	auto E_Boundary(E);
+	auto B_Boundary(B);
+
+	if (options["PEC"])
+	{
+		filter_domain_by_config(options["PEC"]["Domain"], &B_Boundary.domain());
+		filter_domain_by_config(options["PEC"]["Domain"], &E_Boundary.domain());
+	}
+	else
+	{
+		E_Boundary.clear();
+		B_Boundary.clear();
+	}
 
 	LOGGER << "----------  Dump input ---------- " << endl;
 
@@ -169,9 +141,9 @@ USE_CASE(em," Maxwell Eqs.")
 		{
 
 			LOG_CMD(E += curl(B) * (dt * speed_of_light2) - J * (dt / epsilon0));
-//			E_Boundary = 0;
-//			B_Boundary = 0;
+			E_Boundary = 0;
 			LOG_CMD(B -= curl(E) * dt);
+			B_Boundary = 0;
 
 		}
 //		else

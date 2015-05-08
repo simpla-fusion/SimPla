@@ -17,7 +17,7 @@
 
 #include "../gtl/primitives.h"
 #include "../gtl/type_traits.h"
-#include "../utilities/log.h"
+#include "../utilities/utilities.h"
 #include "../mesh/mesh_ids.h"
 namespace simpla
 {
@@ -31,27 +31,28 @@ namespace simpla
  *  @ingroup Model
  *   @brief Model
  */
-template<size_t NDIMS = 3, size_t AXIS_FLAG = 4>
-class Model_: public MeshIDs_<NDIMS, AXIS_FLAG>
+template<size_t NDIMS = 3>
+class Model_: public MeshIDs_<NDIMS, 0>
 {
 
 public:
 
-	using typename MeshIDs_<NDIMS, AXIS_FLAG>::id_type;
+	typedef MeshIDs_<NDIMS, AXIS_FLAG> mesh_ids;
 
-	using MeshIDs_<NDIMS, AXIS_FLAG>::ID_MASK;
-	using MeshIDs_<NDIMS, AXIS_FLAG>::_DA;
+	using typename mesh_ids::id_type;
 
-	static constexpr size_t MAX_NUM_OF_MEIDA_TYPE = std::numeric_limits<
-			unsigned long>::digits;
+	typedef std::uint64_t tag_type;
+
+	static constexpr size_t MAX_NUM_OF_MEIDA_TYPE =
+			std::numeric_limits<tag_type>::digits;
 
 	static constexpr size_t ndims = 3;
 
-	static constexpr size_t null_material = 0UL;
+	static constexpr tag_type null_material = 0UL;
 
-	std::map<id_type, size_t> m_data_;
+	std::map<id_type, tag_type> m_data_;
 
-	std::map<std::string, size_t> registered_material_;
+	std::map<std::string, tag_type> registered_material_;
 
 	size_t max_material_;
 public:
@@ -130,7 +131,7 @@ public:
 		return std::move(res);
 	}
 
-	size_t get(id_type s) const
+	tag_type at(id_type s) const
 	{
 		auto it = m_data_.find(s & ID_MASK);
 
@@ -145,7 +146,7 @@ public:
 
 	}
 
-	size_t operator[](id_type s) const
+	tag_type operator[](id_type s) const
 	{
 		return get(s);
 	}
@@ -160,7 +161,7 @@ public:
 	{
 		for (auto s : r)
 		{
-			m_data_.erase(s & ID_MASK);
+			m_data_.erase(s);
 		}
 	}
 
@@ -169,7 +170,7 @@ public:
 	{
 		for (auto s : r)
 		{
-			m_data_[s & ID_MASK] |= tag;
+			m_data_[s] |= tag;
 		}
 	}
 	template<typename TR>
@@ -177,7 +178,7 @@ public:
 	{
 		for (auto s : r)
 		{
-			m_data_[s & ID_MASK] &= ~tag;
+			m_data_[s] &= ~tag;
 		}
 	}
 
@@ -190,16 +191,16 @@ public:
 	 */
 	bool check_boundary_surface(id_type const & s, size_t in)
 	{
-		id_type d = (~s) & (_DA) & ID_MASK;
+		id_type d = (~s) & (_DA) &ID_MASK;
 
 		return ((in & get(s - d)) == 0UL) ^ ((in & get(s + d)) == 0UL);
 	}
 
 }
 ;
-template<size_t N, size_t A> constexpr size_t Model_<N, A>::null_material;
+template<size_t N> constexpr size_t Model_<N>::null_material;
 
-typedef Model_<3, 0> Model;
+typedef Model_<3> Model;
 
 //typename Model::size_t Model::get(id_type s) const
 //{

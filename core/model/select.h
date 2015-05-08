@@ -491,8 +491,6 @@ void filter_domain_by_config(TDict const & dict, TDomain * domain)
 
 			if (domain->in_box(s))
 			{
-				SHOW(domain->hash(s));
-				SHOW(domain->max_hash());
 				domain->id_set().insert(s);
 			}
 
@@ -503,10 +501,6 @@ void filter_domain_by_config(TDict const & dict, TDomain * domain)
 			domain->clear();
 		}
 
-	}
-	else if (dict["SelectCell"])
-	{
-//		select_cell(dict, this);
 	}
 	else if (dict["OnBoundary"])
 	{

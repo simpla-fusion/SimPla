@@ -97,7 +97,7 @@ struct MeshIDs_
 		id_type i :20;
 		id_type j :20;
 		id_type k :20;
-		int dummy :4;
+		id_type l :4; //mesh_level
 
 		template<typename T>
 		id_s &operator=(T const& x)

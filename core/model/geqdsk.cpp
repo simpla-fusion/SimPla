@@ -79,15 +79,15 @@ void GEqdsk::load(std::string const &fname)
 
 	inter2d_type(m_dims_, m_rzmin_, m_rzmax_, PhiAxis).swap(psirz_);
 
-#define INPUT_VALUE(_NAME_)                                                            \
-	for (int s = 0; s < nw; ++s)                                              \
-	{                                                                                  \
-		double y;                                                                  \
-		inFileStream_ >> std::setw(16) >> y;                                           \
-		m_profile_[ _NAME_ ].data().emplace(                                                         \
-	      static_cast<double>(s)                                              \
-	          /static_cast<double>(nw-1), y );                               \
-	}                                                                                  \
+#define INPUT_VALUE(_NAME_)                                               \
+	for (int s = 0; s < nw; ++s)                                          \
+	{                                                                     \
+		double y;                                                         \
+		inFileStream_ >> std::setw(16) >> y;                              \
+		m_profile_[ _NAME_ ].data().emplace(                              \
+	      static_cast<double>(s)                                          \
+	          /static_cast<double>(nw-1), y );                            \
+	}                                                                     \
 
 	INPUT_VALUE("fpol");
 	INPUT_VALUE("pres");
