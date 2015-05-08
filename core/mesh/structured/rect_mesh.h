@@ -277,12 +277,12 @@ public:
 
 	}
 
-	std::tuple<id_tuple, id_tuple> box() const
+	std::tuple<id_tuple, id_tuple> index_box() const
 	{
 		return std::make_tuple(topology_type::unpack_index(m_id_min_),
 				topology_type::unpack_index(m_id_max_));
 	}
-	std::tuple<id_tuple, id_tuple> local_box() const
+	std::tuple<id_tuple, id_tuple> local_index_box() const
 	{
 		return std::make_tuple(topology_type::unpack_index(m_id_local_min_),
 				topology_type::unpack_index(m_id_local_max_));
@@ -316,8 +316,12 @@ public:
 		extents(std::get<0>(box), std::get<1>(box));
 	}
 
-	inline auto extents() const
+	constexpr auto extents() const
 	DECL_RET_TYPE (std::make_pair(m_coords_min_, m_coords_max_))
+
+	constexpr auto local_extents() const
+	DECL_RET_TYPE (std::make_pair(this->coordinates(m_id_local_min_),
+					this->coordinates(m_id_local_max_)))
 
 	coordinates_type const & dx() const
 	{
@@ -518,6 +522,22 @@ public:
 		return topology_type::hash(s, m_id_memory_min_, m_id_memory_max_);
 	}
 
+	template<size_t IFORM>
+	constexpr id_type pack_relative_index(index_type i, index_type j, index_type k,
+			index_type n = 0) const
+	{
+		return topology_type::pack_index(nTuple<index_type, 3>( { i, j, k }),
+				topology_type:: template sub_index_to_id<IFORM>(n)) + m_id_min_;
+	}
+
+	nTuple<index_type, ndims + 1> unpack_relative_index(id_type s) const
+	{
+		nTuple<index_type, ndims + 1> res;
+		res = topology_type::unpack_index(s - m_id_min_);
+		res[ndims] = topology_type::sub_index(s);
+		return std::move(res);
+	}
+
 	/** @} */
 
 	template<size_t IFORM> DataSpace dataspace() const
@@ -585,8 +605,8 @@ public:
 
 		int f_ndims = ndims;
 
-		f_local_dims = topology_type::unpack_index(
-				m_id_memory_max_ - m_id_memory_min_);
+//		f_local_dims = topology_type::unpack_index(
+//				m_id_memory_max_ - m_id_memory_min_);
 
 		f_local_offset = topology_type::unpack_index(
 				m_id_local_min_ - m_id_memory_min_);
@@ -600,7 +620,7 @@ public:
 		if ((IFORM == EDGE || IFORM == FACE))
 		{
 			f_ndims = ndims + 1;
-			f_local_dims[ndims] = 3;
+//			f_local_dims[ndims] = 3;
 			f_local_offset[ndims] = 0;
 			f_local_count[ndims] = 3;
 			f_ghost_width[ndims] = 0;
@@ -609,15 +629,15 @@ public:
 		{
 			f_ndims = ndims;
 
-			f_local_dims[ndims] = 1;
+//			f_local_dims[ndims] = 1;
 			f_local_offset[ndims] = 0;
 			f_local_count[ndims] = 1;
 			f_ghost_width[ndims] = 0;
 
 		}
 
-		get_ghost_shape(f_ndims, &f_local_dims[0], &f_local_offset[0], nullptr,
-				&f_local_count[0], nullptr, &f_ghost_width[0], res);
+		get_ghost_shape(f_ndims, &f_local_offset[0], nullptr, &f_local_count[0],
+				nullptr, &f_ghost_width[0], res);
 
 	}
 	template<size_t IFORM> std::vector<mpi_ghosts_shape_s> ghost_shape() const

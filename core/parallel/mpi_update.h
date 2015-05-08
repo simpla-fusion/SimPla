@@ -22,13 +22,11 @@ std::tuple<int, int> sync_global_location(int count);
 template<typename Integral>
 std::tuple<Integral, Integral> sync_global_location(Integral count)
 {
-	int n = static_cast<int>(count);
-	int begin, total;
-	std::tie(begin, total) = sync_global_location(n);
-	Integral rbegin = static_cast<Integral>(begin);
-	Integral rtotal = static_cast<Integral>(total);
 
-	return std::make_tuple(rbegin, rtotal);
+	auto res = sync_global_location(static_cast<int>(count));
+
+	return std::make_tuple(static_cast<Integral>(std::get<0>(res)),
+			static_cast<Integral>(std::get<1>(res)));
 
 }
 class DataSet;
@@ -53,9 +51,8 @@ struct mpi_ghosts_shape_s
 	nTuple<size_t, MAX_NDIMS_OF_ARRAY> recv_count;
 };
 
-void get_ghost_shape(size_t ndims, size_t const * dims, size_t const * offset,
-		size_t const * stride, size_t const * count, size_t const * block,
-		size_t const * ghost_width,
+void get_ghost_shape(size_t ndims, size_t const * offset, size_t const * stride,
+		size_t const * count, size_t const * block, size_t const * ghost_width,
 		std::vector<mpi_ghosts_shape_s>* send_recv_list);
 
 void make_send_recv_list(int object_id, DataType const & datatype, int ndims,

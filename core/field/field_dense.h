@@ -323,13 +323,13 @@ public:
 	}
 
 public:
-	template<typename IndexType>
-	value_type & operator[](IndexType const & s)
+
+	value_type & operator[](id_type const & s)
 	{
 		return m_data_.get()[m_domain_.hash(s)];
 	}
-	template<typename IndexType>
-	value_type const & operator[](IndexType const & s) const
+
+	value_type const & operator[](id_type const & s) const
 	{
 		return m_data_.get()[m_domain_.hash(s)];
 	}

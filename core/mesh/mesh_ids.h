@@ -108,18 +108,6 @@ struct MeshIDs_
 			return (*this);
 		}
 
-		template<typename T>
-		id_s &operator=(nTuple<T, 4> const& x)
-		{
-			i = static_cast<id_type>(x[0]);
-			j = static_cast<id_type>(x[1]);
-			k = static_cast<id_type>(x[2]);
-
-			*reinterpret_cast<id_type *>(this) |= m_id_to_shift_[x[3]];
-
-			return (*this);
-		}
-
 		id_s &operator=(id_type s)
 		{
 			*reinterpret_cast<id_type *>(this) = s;
@@ -143,21 +131,7 @@ struct MeshIDs_
 
 			});
 		}
-		template<typename T>
-		operator nTuple<T,4>() const
-		{
-			return nTuple<T, 4>( {
 
-			static_cast<T>(i),
-
-			static_cast<T>(j),
-
-			static_cast<T>(k),
-
-			m_id_to_index_[node_id(raw_cast<id_type const>(*this))],
-
-			});
-		}
 	};
 	/// @}
 	/// @name level dependent
@@ -305,9 +279,9 @@ struct MeshIDs_
 		return (pack(idx) << MESH_LEVEL) | m_id_to_shift_[n_id];
 	}
 
-	static constexpr id_tuple unpack_index(id_type s)
+	static constexpr index_tuple unpack_index(id_type s)
 	{
-		return unpack(s) >> MESH_LEVEL;
+		return static_cast<index_tuple>(raw_cast<id_s>(s)) >> MESH_LEVEL;
 	}
 	template<typename T>
 	static constexpr T type_cast(id_type s)
@@ -315,19 +289,9 @@ struct MeshIDs_
 		return static_cast<T>(raw_cast<id_s const>(s));
 	}
 
-	static constexpr id_type const &id(id_type const &s)
-	{
-		return s;
-	}
-
 	static constexpr coordinates_type coordinates(id_type s)
 	{
 		return static_cast<coordinates_type>(raw_cast<id_s>(s));
-	}
-
-	static constexpr index_tuple index(id_type const &s)
-	{
-		return (unpack(s) >> MESH_LEVEL);
 	}
 
 	static constexpr int num_of_ele_in_cell(id_type s)
@@ -663,7 +627,7 @@ struct MeshIDs_
 	struct range_type
 	{
 
-	private:
+//	private:
 
 		id_type m_min_, m_max_;
 	public:
@@ -742,24 +706,21 @@ struct MeshIDs_
 			return std::move(res);
 		}
 
-		std::tuple<nTuple<index_type, ndims + 1>, nTuple<index_type, ndims + 1>> box() const
-		{
-			nTuple<index_type, ndims + 1> b, e;
-			b = unpack_index(m_min_);
-			e = unpack_index(m_max_);
-			b[ndims] = 0;
-			e[ndims] = m_id_to_num_of_ele_in_cell_[node_id(m_min_)];
-			return std::make_tuple(b, e);
-		}
+		auto box() const
+		DECL_RET_TYPE(std::forward_as_tuple(m_min_, m_max_))
 
 		template<typename T>
-		constexpr bool in_box(T const & x) const
+		bool in_box(T const & x) const
 		{
-			return inner_product(x - unpack(m_min_), unpack(m_max_) - x) >= 0;
+			auto b = unpack_index(m_min_);
+			auto e = unpack_index(m_max_);
+			return (b[1] <= x[1]) && (b[2] <= x[2]) && (b[0] <= x[0])  //
+					&& (e[1] >  x[1]) && (e[2] >  x[2]) && (e[0] >  x[0]);
+
 		}
 		constexpr bool in_box(id_type s) const
 		{
-			return in_box(unpack(s));
+			return in_box(unpack_index(s));
 		}
 		constexpr bool empty() const
 		{

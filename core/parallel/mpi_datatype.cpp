@@ -100,6 +100,10 @@ MPIDataType MPIDataType::create(DataType const & data_type, //
 	{
 		res_type = MPI_LONG;
 	}
+	else if (data_type.is_same<unsigned int>())
+	{
+		res_type = MPI_UNSIGNED;
+	}
 	else if (data_type.is_same<unsigned long>())
 	{
 		res_type = MPI_UNSIGNED_LONG;

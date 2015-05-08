@@ -57,13 +57,13 @@ public:
 	sp_sorted_set()
 	{
 	}
-	sp_sorted_set(this_type const & other) :
-			m_hasher_(other.m_hasher_), m_data_(other.m_data_)
+	sp_sorted_set(this_type const & other)
+			: m_hasher_(other.m_hasher_), m_data_(other.m_data_)
 	{
 	}
 
-	sp_sorted_set(this_type && other) :
-			m_hasher_(other.m_hasher_), m_data_(other.m_data_)
+	sp_sorted_set(this_type && other)
+			: m_hasher_(other.m_hasher_), m_data_(other.m_data_)
 	{
 	}
 

@@ -59,19 +59,19 @@ int main(int argc, char **argv)
 				<<
 
 				"\t -h,\t--help            \t, Print a usage message and exit.\n"
-						"\t -v,\t--version         \t, Print version informaion exit. \n"
+						"\t -v,\t--version         \t, Print version information exit. \n"
 //						"\t -g,\t--generator       \t, Generates a demo configure file \n"
 						"\n"
-						"\t--case <STRING>         \t, Select a case <STRING> to excute \n "
-						"\t--case_help <STRING>    \t, Print a usag message of case <STRING> \n "
+						"\t--case <CASE ID>         \t, Select a case <CASE ID> to execute \n "
+						"\t--case_help <CASE ID>    \t, Print a usag message of case <CASE ID> \n "
 				<< help_message;
 
 		MESSAGE
 
 		<< " Use case list:" << endl
 
-		<< "             ID     | Description " << endl
-				<< "--------------------|-------------------------------------"
+		<< "        CASE ID     | Description " << endl
+		<< "--------------------|-------------------------------------"
 				<< endl;
 
 		for (auto const & item : applist)

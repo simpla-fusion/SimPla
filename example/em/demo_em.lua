@@ -58,27 +58,27 @@ domain_center=    {
 }
 
 InitValue= {
-  B=
-  {
-    Domain={Box={{0 ,0 ,0},{LX,LY,LZ}}},
-    Value=function(x,t)
-      print(x[1],x[2],x[3])
-      return  {0,0,math.sin(x[1]*2.0*math.pi/LX)*math.sin(x[2]*2.0*math.pi/LY)}
-
-    end
-
-  },
---  phi=
---  {
---    Domain={Box={{0 ,0 ,0},{LX,LY,LZ}}},
---
---    Value=function(x,t)
---      -- print(x[1],x[2],x[3])
---      return   math.sin(x[1]*0.92*math.pi)*math.sin(x[2]*0.02*math.pi)
---    end
---
---  }
-}
+  --  B=
+  --  {
+  --    Domain={Box={{0 ,0 ,0},{LX,LY,LZ}}},
+  --    Value=function(x,t)
+  --      print(x[1],x[2],x[3])
+  --      return  {0,0,math.sin(x[1]*2.0*math.pi/LX)*math.sin(x[2]*2.0*math.pi/LY)}
+  --
+  --    end
+  --
+  --  },
+  --  phi=
+  --  {
+  --    Domain={Box={{0 ,0 ,0},{LX,LY,LZ}}},
+  --
+  --    Value=function(x,t)
+  --      -- print(x[1],x[2],x[3])
+  --      return   math.sin(x[1]*0.92*math.pi)*math.sin(x[2]*0.02*math.pi)
+  --    end
+  --
+  --  }
+  }
 
 PEC= {
   Domain={
@@ -88,15 +88,15 @@ PEC= {
 }
 
 Constraint=  {
-  --  J= {
-  --    Domain={Indices={{NX/2  ,NY/2 ,0,2} }},
-  --    Value= function(x , t ,v )
-  --      local tau = t*omega_ext -- + x[2]*TWOPI/(xmax[3]-xmin[3])
-  --      local amp=  math.sin(tau) *(1-math.exp(-tau*tau))
-  --    --  print(x[1])
-  --      return {0, 0, amp }
-  --    end
-  --  },
+  J= {
+    Domain={Indices={{NX/4  ,NY/4 ,0,2} }},
+    Value= function(x , t ,v )
+      local tau = t*omega_ext -- + x[2]*TWOPI/(xmax[3]-xmin[3])
+      local amp=  math.sin(tau) *(1-math.exp(-tau*tau))
+      print(x[1])
+      return {0, 0, amp }
+    end
+  },
 
 
-  }
+}

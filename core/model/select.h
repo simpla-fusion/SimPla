@@ -487,11 +487,13 @@ void filter_domain_by_config(TDict const & dict, TDomain * domain)
 		for (auto const & idx : points)
 		{
 
-			auto s = domain->m_mesh_.pack_index(idx);
+			auto s = domain->pack_relative_index(idx);
 
-			if (domain->in_box(idx))
+			if (domain->in_box(s))
 			{
-				domain->id_set().insert(domain->m_mesh_.pack_index(idx));
+				SHOW(domain->hash(s));
+				SHOW(domain->max_hash());
+				domain->id_set().insert(s);
 			}
 
 		}

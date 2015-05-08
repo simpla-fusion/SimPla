@@ -122,8 +122,7 @@ public:
 
 	static constexpr size_t iform = domain_type::iform;
 
-//private:
-
+private:
 	domain_type m_domain_;
 	mesh_type const & m_mesh_;
 public:
@@ -134,16 +133,21 @@ public:
 	}
 
 	Particle(this_type const& other)
-			: engine_type(other), container_type(other), m_domain_(
-					other.m_domain_), m_mesh_(other.m_mesh_)
+			: engine_type(other),
+
+			container_type(other),
+
+			m_domain_(other.m_domain_), m_mesh_(other.m_mesh_)
 	{
 	}
 
 	template<typename ... Args>
 	Particle(this_type & other, Args && ...args)
-			: engine_type(other), container_type(other,
-					std::forward<Args>(args)...), m_domain_(other.m_domain_), m_mesh_(
-					other.m_mesh_)
+			: engine_type(other),
+
+			container_type(other, std::forward<Args>(args)...),
+
+			m_domain_(other.m_domain_), m_mesh_(other.m_mesh_)
 	{
 	}
 
@@ -246,13 +250,13 @@ public:
 
 			//   collect send data
 
-//			auto send_range = m_domain_.mesh().template range<VERTEX>(
-//					item.send_offset, item.send_offset + item.send_count);
+			domain_type send_range(m_domain_);
 
-			auto send_range = m_domain_.select(item.send_offset,
+			send_range.select(item.send_offset,
 					item.send_offset + item.send_count);
 
-			CHECK(size(send_range));
+			CHECK(send_range.size());
+
 			send_recv_s.send_size = container_type::size_all(send_range);
 
 			send_recv_s.send_data = sp_alloc_memory(
@@ -276,11 +280,10 @@ public:
 			m_send_recv_buffer_.push_back(std::move(send_recv_s));
 
 			//  clear ghosts cell
-
-			auto recv_range = m_domain_.select(item.recv_offset,
+			domain_type recv_range(m_domain_);
+			recv_range.select(item.recv_offset,
 					item.recv_offset + item.recv_count);
 
-			CHECK(size(recv_range));
 			container_type::erase(recv_range);
 
 		}
@@ -304,8 +307,7 @@ public:
 		m_send_recv_buffer_.clear();
 	}
 
-	template<typename TD>
-	DataSet dataset(TD const & pdomain) const
+	DataSet dataset() const
 	{
 
 		DataSet res;
@@ -315,7 +317,7 @@ public:
 
 		index_type count = 0;
 
-		pdomain.for_each([&](id_type const &s)
+		m_domain_.for_each([&](id_type const &s)
 		{
 			auto it = container_type::find(s);
 			if (it != container_type::end())
@@ -330,7 +332,7 @@ public:
 
 		//TODO need parallel optimize
 
-		pdomain.for_each([&](id_type const &s)
+		m_domain_.for_each([&](id_type const &s)
 		{
 			auto it = container_type::find(s);
 
@@ -355,15 +357,12 @@ public:
 
 		res.dataspace.select_hyperslab(&offset, nullptr, &count, nullptr);
 
+		res.dataspace.set_local_shape(&count, &offset);
+
 		VERBOSE << "dump particles [" << count << "/" << total_count << "] "
 				<< std::endl;
 
 		return std::move(res);
-	}
-
-	DataSet dataset() const
-	{
-		return std::move(dataset(m_domain_));
 	}
 
 //! @}

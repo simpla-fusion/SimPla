@@ -22,7 +22,6 @@ std::tuple<int, int> sync_global_location(int count)
 
 	if ( GLOBAL_COMM.is_valid() && GLOBAL_COMM.num_of_process() > 1)
 	{
-		CHECK(GLOBAL_COMM.num_of_process());
 		auto comm = GLOBAL_COMM.comm();
 
 		int num_of_process = GLOBAL_COMM.num_of_process();
@@ -34,6 +33,7 @@ std::tuple<int, int> sync_global_location(int count)
 
 		if (porcess_number == 0)
 		buffer.resize(num_of_process);
+		MPI_Barrier(comm);
 
 		MPI_Gather(&count, 1, m_type.type(), &buffer[0], 1, m_type.type(), 0, comm);
 
@@ -56,6 +56,7 @@ std::tuple<int, int> sync_global_location(int count)
 		}
 		MPI_Barrier(comm);
 		MPI_Scatter(&buffer[0], 1, m_type.type(), &begin, 1, m_type.type(), 0, comm);
+		MPI_Barrier(comm);
 		MPI_Bcast(&count, 1, m_type.type(), 0, comm);
 		MPI_Barrier(comm);
 
@@ -64,9 +65,8 @@ std::tuple<int, int> sync_global_location(int count)
 	return std::make_tuple(begin, count);
 
 }
-void get_ghost_shape(size_t ndims, size_t const * l_dims,
-		size_t const * l_offset, size_t const * l_stride,
-		size_t const * l_count, size_t const * l_block,
+void get_ghost_shape(size_t ndims, size_t const * l_offset,
+		size_t const * l_stride, size_t const * l_count, size_t const * l_block,
 		size_t const * ghost_width,
 		std::vector<mpi_ghosts_shape_s>* send_recv_list)
 {
@@ -133,8 +133,8 @@ void get_ghost_shape(size_t ndims, size_t const * l_dims,
 						|| coords_shift[2] != 0))
 		{
 
-			send_recv_list->emplace_back(mpi_ghosts_shape_s
-			{ coords_shift, send_offset, send_count, recv_offset, recv_count });
+			send_recv_list->emplace_back(mpi_ghosts_shape_s { coords_shift,
+					send_offset, send_count, recv_offset, recv_count });
 		}
 	}
 
@@ -157,8 +157,7 @@ void make_send_recv_list(int object_id, DataType const & datatype, int ndims,
 
 		res->emplace_back(
 
-				mpi_send_recv_s
-				{
+				mpi_send_recv_s {
 
 				dest,
 
@@ -378,7 +377,6 @@ void sync_update_varlength(
 				MPI_Isend(it->send_data.get(), it->send_size,
 						it->datatype.type(), it->dest, it->send_tag, mpi_comm,
 						&req));
-		CHECK(it->send_size);
 		requests->push_back(std::move(req));
 
 	}
@@ -405,7 +403,6 @@ void sync_update_varlength(
 		it->recv_data = sp_alloc_memory(recv_num * it->datatype.size());
 
 		it->recv_size = recv_num;
-		CHECK(it->recv_size);
 		{
 			MPI_Request req;
 			MPI_ERROR(

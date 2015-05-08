@@ -67,8 +67,8 @@ struct DataStream::pimpl_s
 
 };
 
-DataStream::DataStream() :
-		pimpl_(new pimpl_s)
+DataStream::DataStream()
+		: pimpl_(new pimpl_s)
 {
 
 	pimpl_->base_file_id_ = -1;
@@ -232,7 +232,7 @@ void DataStream::close()
 			pimpl_->base_file_id_ = -1;
 		}
 
-		INFORM << "File [" << pimpl_->current_filename_ << "] is closed!"
+		VERBOSE << "File [" << pimpl_->current_filename_ << "] is closed!"
 				<< endl;
 
 		std::unique_ptr<pimpl_s>(nullptr).swap(pimpl_);
@@ -765,11 +765,6 @@ hid_t DataStream::pimpl_s::convert_dataspace_sp_to_h5(
 	H5_ERROR(
 			H5Sselect_hyperslab(res, H5S_SELECT_SET, &offset[0], &stride[0],
 					&count[0], &block[0]));
-
-//	CHECK(ndims);
-//	SHOW(dims);
-//	SHOW(offset);
-//	SHOW(count);
 
 	return res;
 

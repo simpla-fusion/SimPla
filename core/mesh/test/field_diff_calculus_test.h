@@ -203,8 +203,6 @@ TEST_P(FETLTest, grad3)
 
 	LOG_CMD(f2 = grad(f3));
 
-	CHECK("...");
-
 	Real m = 0.0;
 	Real variance = 0;
 	value_type average = one * 0.0;
