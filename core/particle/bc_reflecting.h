@@ -14,72 +14,49 @@
 #include "../gtl/ntuple.h"
 #include "../utilities/primitives.h"
 #include "../utilities/log.h"
-#include "particle_boundary.h"
+#include "../numeric/geometric_algorithm.h"
 
 namespace simpla
 {
-template<typename TM>
-class ReflectingBoundary: public ParticleBoundary<TM>
+
+template<typename TParticle, typename TM>
+void reflect(Surface<TM> const & surface, TParticle *particle)
 {
-
-public:
-	typedef ReflectingBoundary<TP> this_type;
-	typedef ParticleBoundary<TP> base_type;
-
-	template<typename TDict>
-	ReflectingBoundary(mesh_type const & mesh, TDict const & dict)
-			: base_type(mesh, dict)
+	auto const & mesh = surface.mesh();
+	/// FIXME need parallel optimize
+	for (auto const &item : surface)
 	{
-	}
+		auto it = particle->find(item.first);
 
-	~ReflectingBoundary()
-	{
-	}
-
-	template<typename TDict>
-	static std::shared_ptr<this_type> create(mesh_type const & mesh, TDict const & dict)
-	{
-		std::shared_ptr<this_type> res(nullptr);
-
-		if (dict["Type"].template as<std::string>("Unknown") == get_type_as_string())
+		if (it != particle->end())
 		{
-			res = std::shared_ptr<this_type>(new this_type(mesh, dict));
-		}
+			Real dist = std::get<0>(item->second);
 
-		return res;
-	}
+			Vec3 const & normal = std::get<1>(item->second);
 
-	static std::string get_type_as_string()
-	{
-		return "Reflecting";
-	}
-	std::string get_type_as_string() const
-	{
-		return get_type_as_string();
-	}
-	void Visit(void * pp) const
-	{
-		LOGGER << "Apply boundary constraint [" << get_type_as_string() << "] to particles [" << TP::get_type_as_string()
-		        << "]";
+			coordinates_type x0 = mesh.coordinates(it->first) + dist * normal;
 
-		particle_type & p = *reinterpret_cast<particle_type*>(pp);
-
-		for (auto const &s : surface_)
-		{
-			coordinates_type x;
-			nTuple<3, Real> v;
-			for (auto & point : p[s.first])
+			/// @NOTE should be vectorized
+			for (auto & p : (*particle)[item.first])
 			{
-				p.pull_back(pounsigned int , &x, &v);
-				Relection(s.second, &x, &v);
-				p.push_forward(x, v, &point);
+				coordinates_type x;
+				Vec3 v;
+				Real f;
+
+				std::tie(x, v, f) = particle->pull_back(p);
+
+				// if point is out of surface
+				if (inner_product(x - x0, normal) > 0)
+				{
+					x = x0 + simpla::reflect(x - x0, normal);
+					v = simpla::reflect(v, normal);
+				}
+				p = particle->push_forward(x, v, f);
 			}
-
-			p.Resort(s.first);
 		}
-
 	}
-};
-}  // namespace simpla
+}
+}
+// namespace simpla
 
 #endif /* BC_REFLECTING_H_ */

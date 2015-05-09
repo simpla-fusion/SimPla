@@ -18,8 +18,8 @@ namespace simpla
 {
 
 template<typename T0, typename T1, typename T2, typename T3>
-std::tuple<Real, Vec3> distance_point_to_plane(T0 const & x0, T1 const & p0,
-		T2 const & p1, T3 const & p2)
+std::tuple<Real, Vec3> distance_from_point_to_plane(T0 const & x0,
+		T1 const & p0, T2 const & p1, T3 const & p2)
 {
 	Vec3 n;
 
@@ -31,10 +31,112 @@ std::tuple<Real, Vec3> distance_point_to_plane(T0 const & x0, T1 const & p0,
 
 }
 template<typename T0, typename T1, typename T2>
-Real distance_point_to_line_segment(T0 const & p0, T1 const & p1, T2 const & x)
+Real distance_from_point_to_line_segment(T0 const & p0, T1 const & p1,
+		T2 const & x)
 {
 	return inner_product(x - p0, p1 - p0) / inner_product(p1 - p0, p1 - p0);
 }
+
+/**
+ *
+ * @param P0 [P0,P1) line segment one
+ * @param P1
+ * @param Q0 [Q0,Q1) line segment two
+ * @param Q1
+ * @param flag 0: line to line
+ *             1: line segment to line segment
+ * @return <dist,s,t>
+ *         nearest point P= P0*(1-s)+ P1*s ,and Q= Q0*(1-t)+t*Q1,
+ *         dist= |P,Q|
+ */
+template<typename T0, typename T1, typename T2, typename T3>
+std::tuple<Real, Real, Real> distance_from_line_to_line(T0 const& P0,
+		T1 const & P1, T2 const & Q0, T3 const & Q1, int flag = 0)
+{
+	Real s = 0.0;
+	Real t = 0.0;
+	Real dist = 0.0;
+
+	auto u = P1 - P0;
+	auto v = Q1 - Q0;
+	auto w0 = P0 - Q0;
+
+	// @ref http://geomalgorithms.com/a07-_distance.html
+	Real a = inner_product(u, u);
+	Real b = inner_product(u, v);
+	Real c = inner_product(v, v);
+	Real d = inner_product(u, w0);
+	Real e = inner_product(v, w0);
+
+	if (std::abs(a * c - b * b) < EPSILON)
+	{
+		//two lines are parallel
+		s = 0;
+		t = 0;
+		dist = d / b;
+	}
+	else
+	{
+		s = (b * e - c * d) / (a * c - b * b);
+
+		t = (a * e - b * d) / (a * c - b * b);
+
+		auto w = w0
+				+ ((b * e - c * d) * u - (a * e - b * d) * v) / (a * c - b * b);
+
+		dist = inner_product(w, w);
+
+	}
+
+	return std::make_tuple(dist, s, t);
+}
+
+/**
+ *
+ * @param P0
+ * @param Q0
+ * @param Q1
+ * @param Q2
+ * @param flag  0 means point to plane
+ *              1 means point to triangle
+ *              2 means point to rectangle
+ * @return <dist,u,v >
+ *          nearest point on plane  Q=Q0+u*(Q1-Q0)+v*(Q2-Q0)
+ *          dist = |P0 Q|. |(Q1-Q0) x (Q2-Q0)|
+ *
+ *
+ */
+template<typename T0, typename T1, typename T2, typename T3>
+std::tuple<Real, Real, Real> distance_from_point_to_plane(T0 const& P0,
+		T1 const & Q0, T2 const & Q1, T3 const& Q2, int flag = 0)
+{
+
+}
+
+/**
+ *
+ * @param P0
+ * @param P1
+ * @param Q0
+ * @param Q1
+ * @param Q2
+ * @param flag  0 means line to plane
+ *              1 means line segment to triangle
+ *              2 means line segment to rectangle
+ *
+ * @return <dist,s,u,v>
+ *          nearest point on plane  Q=Q0+u*(Q1-Q0)+v*(Q2-Q0)
+ *          nearest point on line segment P= (1-s)*P0+s*P1
+ *          dist = |P  Q|. |(Q1-Q0) x (Q2-Q0)|
+ *
+ */
+template<typename T0, typename T1, typename T2, typename T3, typename T4>
+std::tuple<Real, Real, Real, Real> distance_from_line_to_plane(T0 const& P0,
+		T1 const& P1, T2 const & Q0, T3 const & Q1, T4 const& Q2)
+{
+
+}
+
 /**
  *
  *
@@ -45,13 +147,16 @@ Real distance_point_to_line_segment(T0 const & p0, T1 const & p1, T2 const & x)
  *  p0   s                      p1
  *
  *
- * @return <x,p0,p1>
  *
- *
+ * @param x coordinates of point
+ * @param ib begin iterator of polygon
+ * @param ie end iterator of polygon
+ * @return   <d,s,p0,p1>
  */
 template<typename TI, typename TX>
 std::tuple<Real, Real, TI, TI> distance_from_point_to_polylines(TX const & x,
-		TI const & ib, TI const & ie)
+		TI const & ib, TI const & ie, Vec3 normal_vec = Vec3(
+		{ 0, 0, 1 }))
 {
 	typedef TX Vec3;
 
@@ -119,50 +224,6 @@ std::tuple<Real, Real, TI, TI> distance_from_point_to_polylines(TX const & x,
 
 }
 
-template<typename T0, typename T1, typename T2, typename T3>
-Vec3 distance_line_to_line(T0 const& P0, T1 const & P1, T2 const & Q0,
-		T3 const & Q1)
-{
-	Real s = 0.0;
-	Real t = 0.0;
-	Real dist = 0.0;
-
-	auto u = P1 - P0;
-	auto v = Q1 - Q0;
-	auto w0 = P0 - Q0;
-
-	// @ref http://geomalgorithms.com/a07-_distance.html
-	Real a = inner_product(u, u);
-	Real b = inner_product(u, v);
-	Real c = inner_product(v, v);
-	Real d = inner_product(u, w0);
-	Real e = inner_product(v, w0);
-
-	if (std::abs(a * c - b * b) < EPSILON)
-	{
-		//two lines are parallel
-		s = 0;
-		t = 0;
-		dist = d / b;
-	}
-	else
-	{
-		s = (b * e - c * d) / (a * c - b * b);
-
-		t = (a * e - b * d) / (a * c - b * b);
-
-		auto w = w0
-				+ ((b * e - c * d) * u - (a * e - b * d) * v) / (a * c - b * b);
-
-		dist = inner_product(w, w);
-
-	}
-
-	Vec3 res =
-	{ s, t, dist };
-	return std::move(res);
-}
-
 template<typename T0, typename T1, typename T2>
 Real intersection_line_to_polygons(T0 const & p0, T1 const & p1,
 		T2 const & polygen)
@@ -193,32 +254,60 @@ Real intersection_line_to_polygons(T0 const & p0, T1 const & p1,
  *
  *
  *     x' o
- *       /
+ *    v+ /
  *      /
  *     o------------------o
  *  p0  \                      p1
- *       \
+ *    v- \
  *        o
  *        x
  *
  *
  */
-template<typename TPlane>
-inline void reflect(TPlane const & p, Vec3 *x, Vec3 * v)
+/**
+ *  reflect a vector `v` if `inner_prodcut(v,normal)>0`
+ * @param v
+ * @param normal
+ * @param reflect_if_out
+ * @return
+ */
+template<typename T0, typename T1>
+constexpr Vec3 reflect(T0 const & v, T1 const & normal)
 {
-	Vec3 u;
+	return v
+			- (2 * inner_product(v, normal) / inner_product(normal, normal))
+					* normal;
 
-	u = cross(p[1] - p[0], p[2] - p[0]);
+}
 
-	Real a = dot(u, *x - p[0]);
+/**
+ *
+ * @param v
+ * @param p0
+ * @param p1
+ * @param p2
+ * @return
+ */
+template<typename T0, typename T1, typename T2, typename T3>
+inline Vec3 reflect_vector_by_plane(T0 const & v, T1 const & p0, T2 const & p1,
+		T3 const & p2)
+{
+	return reflect(v, cross(p1 - p0, p2 - p0));
+}
 
-	if (a < 0)
-	{
-		Real b = 1.0 / inner_product(u, u);
-		*x -= 2 * a * u * b;
-		*v -= 2 * inner_product(u, *v) * u * b;
-	}
-
+/**
+ * reflect a point `x0` if `x0` at the out side of plane `(p0p1p2)`
+ * @param x0
+ * @param p0
+ * @param p1
+ * @param p2
+ * @return
+ */
+template<typename T0, typename T1, typename T2, typename T3>
+inline Vec3 reflect_point_by_plane(T0 const & x0, T1 const & p0, T2 const & p1,
+		T3 const & p2)
+{
+	return p0 + reflect(x0 - p0, cross(p1 - p0, p2 - p0));
 }
 //template<typename TC>
 //std::tuple<Real, Real> intersection_line_and_triangle(TC const& l0,

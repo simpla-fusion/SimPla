@@ -51,19 +51,21 @@ public:
 
 	base_container_type m_data_;
 
+	std::set<key_type> m_modified_;
+
 public:
 
 	// Constructor
 	sp_sorted_set()
 	{
 	}
-	sp_sorted_set(this_type const & other)
-			: m_hasher_(other.m_hasher_), m_data_(other.m_data_)
+	sp_sorted_set(this_type const & other) :
+			m_hasher_(other.m_hasher_), m_data_(other.m_data_)
 	{
 	}
 
-	sp_sorted_set(this_type && other)
-			: m_hasher_(other.m_hasher_), m_data_(other.m_data_)
+	sp_sorted_set(this_type && other) :
+			m_hasher_(other.m_hasher_), m_data_(other.m_data_)
 	{
 	}
 
@@ -108,11 +110,13 @@ public:
 	}
 	bucket_type & operator[](key_type const & key)
 	{
+		m_modified_.insert(key);
 		return m_data_[key];
 	}
 
 	bucket_type & at(key_type const & key)
 	{
+		m_modified_.insert(key);
 		return m_data_.at(key);
 	}
 
@@ -126,6 +130,7 @@ public:
 
 	local_iterator begin(key_type const & id)
 	{
+		m_modified_.insert(id);
 		return std::move(m_data_[id].begin());
 	}
 
@@ -157,7 +162,7 @@ public:
 	template<typename TV>
 	void insert(key_type const & key, TV && v)
 	{
-		m_data_[key].insert_after(m_data_[key].before_begin(),
+		(*this)[key].insert_after(m_data_[key].before_begin(),
 				std::forward<TV>(v));
 	}
 
@@ -165,14 +170,16 @@ public:
 	key_type insert(TV const& v)
 	{
 		auto s = m_hasher_(v);
-		m_data_[m_hasher_(v)].push_front(v);
+
+		(*this)[s].push_front(v);
+
 		return s;
 	}
 
 	template<typename TV>
 	void push_front(TV && v)
 	{
-		m_data_[m_hasher_(v)].push_front(std::forward<TV>(v));
+		(*this)[m_hasher_(v)].push_front(std::forward<TV>(v));
 	}
 
 	void insert(std::initializer_list<value_type> ilist)
@@ -191,19 +198,19 @@ public:
 
 	void insert(key_type const & key, std::initializer_list<value_type> ilist)
 	{
-		m_data_[key].insert_after(m_data_[key].before_begin(), ilist);
+		(*this)[key].insert_after(m_data_[key].before_begin(), ilist);
 	}
 
 	template<typename InputIter>
 	void insert(key_type const & key, InputIter first, InputIter last)
 	{
-		m_data_[key].insert_after(m_data_[key].before_begin(), first, last);
+		(*this)[key].insert_after(m_data_[key].before_begin(), first, last);
 	}
 
 	template<typename ...Others>
 	void assign(key_type const & key, Others && ...others)
 	{
-		m_data_[key].assign(std::forward<Others>(others)...);
+		(*this)[key].assign(std::forward<Others>(others)...);
 	}
 
 	template<typename IputIterator>
@@ -221,7 +228,8 @@ public:
 			auto it = other.m_data_.find(key);
 			if (it != other.m_data_.end())
 			{
-				auto & dest = m_data_[key];
+				auto & dest = (*this)[it->first];
+
 				dest.splice_after(dest.before_begin(), it->seond);
 			}
 		}
@@ -236,7 +244,8 @@ public:
 	{
 		for (auto it = first; it != last; ++it)
 		{
-			auto & dest = m_data_[it->first];
+			auto & dest = (*this)[it->first];
+
 			dest.splice_after(dest.before_begin(), it->second);
 		}
 	}
@@ -244,16 +253,18 @@ public:
 	void erase(key_type const & key)
 	{
 		m_data_.erase(key);
+		m_modified_.erase(key);
 
 	}
 	void erase_all()
 	{
 		m_data_.clear();
-
+		m_modified_.clear();
 	}
 	void clear()
 	{
-		m_data_.clear();
+		erase_all();
+
 	}
 	template<typename TRange>
 	void erase(TRange const & range)
@@ -271,12 +282,16 @@ public:
 	 * @param other
 	 * @return number of moved elements
 	 */
-
-	size_t rehash(typename base_container_type::value_type & item,
+private:
+	size_t rehash_one(typename base_container_type::iterator & it,
 			base_container_type & other)
 	{
-		auto const & key = item.first;
-		auto & bucket = item.second;
+		if (it == m_data_.end())
+		{
+			return 0;
+		}
+		auto const & key = it.first;
+		auto & bucket = it.second;
 		auto pt = bucket.begin();
 		size_t count = 0;
 		while (pt != bucket.end())
@@ -293,19 +308,11 @@ public:
 				++count;
 			}
 		}
+		m_modified_.erase(key);
 
 		return count;
 	}
-	size_t rehash(key_type& s, base_container_type & other)
-	{
-
-		auto it = m_data_.find(s);
-		if (it != m_data_.end())
-		{
-			return rehash(*it, other);
-		}
-		return 0;
-	}
+public:
 	template<typename TRange>
 	void rehash(TRange const & r)
 	{
@@ -313,7 +320,8 @@ public:
 
 		for (auto const & s : r)
 		{
-			rehash(s, other);
+			if (m_modified_.find(s) != m_modified_.end())
+				rehash_one(m_data_.find(s), other);
 		}
 
 		splice(other.begin(), other.end());
@@ -326,9 +334,9 @@ public:
 	{
 		base_container_type other;
 
-		for (auto & item : m_data_)
+		for (auto s : m_modified_)
 		{
-			rehash(item, other);
+			rehash_one(m_data_.find(s), other);
 		}
 
 		splice(other.begin(), other.end());
