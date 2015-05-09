@@ -16,7 +16,12 @@
 
 namespace simpla
 {
-
+template<typename T0, typename T1, typename T2>
+bool in_box(T0 const& x0, T1 const& xmin, T2 const & xmax)
+{
+	return (x0[0] >= xmin[0]) && (x0[1] >= xmin[1]) && (x0[2] >= xmin[2])
+			&& (x0[0] < xmax[0]) && (x0[1] < xmax[1]) && (x0[2] < xmax[2]);
+}
 template<typename T0, typename T1, typename T2, typename T3>
 std::tuple<Real, Vec3> distance_from_point_to_plane(T0 const & x0,
 		T1 const & p0, T2 const & p1, T3 const & p2)

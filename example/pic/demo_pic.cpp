@@ -162,6 +162,7 @@ USE_CASE(pic," Particle in cell" )
 		J.clear();
 
 		LOG_CMD(ion->next_timestep(dt, E, B, &J));
+		LOG_CMD(ion->rehash());
 
 		J.self_assign(J_src);
 		B.self_assign(B_src);

@@ -97,10 +97,10 @@ struct particle_container_traits
 
 template<typename TDomain, typename Engine, typename TContainer>
 class Particle<TDomain, Engine, TContainer> //
-:	public SpObject,
-	public Engine,
-	public TContainer,
-	public enable_create_from_this<Particle<TDomain, Engine, TContainer> >
+: public SpObject,
+		public Engine,
+		public TContainer,
+		public enable_create_from_this<Particle<TDomain, Engine, TContainer> >
 {
 public:
 
@@ -127,13 +127,13 @@ private:
 	mesh_type const & m_mesh_;
 public:
 
-	Particle(domain_type const & d)
-			: m_domain_(d), m_mesh_(d.mesh())
+	Particle(domain_type const & d) :
+			m_domain_(d), m_mesh_(d.mesh())
 	{
 	}
 
-	Particle(this_type const& other)
-			: engine_type(other),
+	Particle(this_type const& other) :
+			engine_type(other),
 
 			container_type(other),
 
@@ -142,8 +142,8 @@ public:
 	}
 
 	template<typename ... Args>
-	Particle(this_type & other, Args && ...args)
-			: engine_type(other),
+	Particle(this_type & other, Args && ...args) :
+			engine_type(other),
 
 			container_type(other, std::forward<Args>(args)...),
 
@@ -426,9 +426,9 @@ public:
 
 		wait();
 
-		for (auto & bucket : *this)
+		for (auto & item : *this)
 		{
-			for (auto &p : bucket.second)
+			for (auto &p : (*this)[item.first])
 			{
 				engine_type::next_timestep(&p, std::forward<Args>(args)...);
 			}
@@ -462,9 +462,9 @@ public:
 
 		wait();
 
-		for (auto & bucket : *this)
+		for (auto & item : *this)
 		{
-			for (auto &p : bucket.second)
+			for (auto &p : (*this)[item.first])
 			{
 				for (int s = 0; s < num_of_steps; ++s)
 				{
@@ -473,6 +473,41 @@ public:
 				}
 			}
 		}
+	}
+
+	void rehash()
+	{
+		container_type::rehash();
+		coordinates_type xmin, xmax;
+		std::tie(xmin, xmax) = m_domain_.mesh().extents();
+		coordinates_type d;
+		d = xmax - xmin;
+
+		for (auto & item : *this)
+		{
+			coordinates_type x0;
+			x0 = m_domain_.mesh().coordinates(item.first);
+
+			if (!in_box(x0, xmin, xmax))
+			{
+				for (auto &p : (*this)[item.first])
+				{
+					coordinates_type x;
+					Vec3 v;
+					Real f;
+					std::tie(x, v, f) = engine_type::pull_back(p);
+
+					x[0] += std::fmod(x[0] - xmin[0] + d[0], d[0]);
+					x[1] += std::fmod(x[1] - xmin[1] + d[1], d[1]);
+					x[2] += std::fmod(x[2] - xmin[2] + d[2], d[2]);
+
+					engine_type::push_forward(x, v, f, &p);
+				}
+			}
+
+		}
+		container_type::rehash();
+
 	}
 
 }
