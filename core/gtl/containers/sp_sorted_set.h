@@ -336,6 +336,65 @@ public:
 		rehash(m_modified_);
 	}
 
+	template<typename TFun>
+	void for_each(TFun const& fun)
+	{
+
+		for (auto const & bucket : *this)
+		{
+			for (auto &p : bucket.second)
+			{
+				fun(p);
+			}
+		}
+
+	}
+
+	template<typename TFun>
+	void erase_if(TFun const & fun, key_type hint = 0)
+	{
+		if (hint == 0)
+		{
+			for (auto const & item : *this)
+			{
+				erase_if(fun, item.first);
+			}
+		}
+		else
+		{
+			auto & bucket = (*this)[hint];
+
+			bucket.erase(std::remove_if(bucket.begin(), bucket.end(), fun),
+					bucket.end());
+		}
+
+	}
+
+	template<typename TFun>
+	void modify(TFun const & fun, key_type hint = 0)
+	{
+		if (hint == 0)
+		{
+			for (auto const & item : *this)
+			{
+				modify(fun, item.first);
+			}
+		}
+		else
+		{
+			if (this->find(hint) != this->end())
+			{
+				auto & bucket = (*this)[hint];
+
+				for (auto & p : bucket)
+				{
+					fun(&p);
+				}
+			}
+		}
+
+	}
+
 	size_t size(key_type const & key) const
 	{
 		size_t count = 0;
