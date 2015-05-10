@@ -114,7 +114,7 @@ public:
 
 	typedef Particle<domain_type, engine_type, container_type> this_type;
 
-	typedef typename container_type::value_type value_type;
+	typedef typename engine_type::Point_s value_type;
 
 	typedef typename mesh_type::index_type index_type;
 	typedef typename mesh_type::id_type id_type;
@@ -254,8 +254,6 @@ public:
 
 			send_range.select(item.send_offset,
 					item.send_offset + item.send_count);
-
-			CHECK(send_range.size());
 
 			send_recv_s.send_size = container_type::size_all(send_range);
 
@@ -406,6 +404,57 @@ public:
 				fun(p);
 			}
 		});
+	}
+
+	template<typename TFun>
+	void remove(TFun const & fun, id_type hint = 0)
+	{
+		if (hint == 0)
+		{
+			for (auto const & item : *this)
+			{
+				remove(fun, item.first);
+			}
+		}
+		else
+		{
+			auto & bucket = (*this)[hint];
+
+			bucket.erase(
+					std::remove_if(bucket.begin(), bucket.end(),
+							[&]( Point_s const& p)
+							{
+								return fun(p );
+							}
+
+							), bucket.end());
+		}
+
+	}
+
+	template<typename TFun>
+	void modify(TFun const & fun, id_type hint = 0)
+	{
+		if (hint == 0)
+		{
+			for (auto const & item : *this)
+			{
+				modify(fun, item.first);
+			}
+		}
+		else
+		{
+			if (this->find(hint) != this->end())
+			{
+				auto & bucket = (*this)[hint];
+
+				for (auto & p : bucket)
+				{
+					fun(&p);
+				}
+			}
+		}
+
 	}
 	/**
 	 *

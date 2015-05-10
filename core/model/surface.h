@@ -55,14 +55,22 @@ public:
 	auto box() const
 	DECL_RET_TYPE((m_range_.box()))
 
+	std::tuple<Real, Vec3> distance(coordinates_type const & x) const
+	{
+		Real dist;
+		Vec3 normal;
+
+		return std::make_tuple(dist, normal);
+	}
+
 	template<typename TRange, typename TFun>
-	void add(TRange const & r, TFun const & distance)
+	void add(TRange const & r, TFun const & dist)
 	{
 		for (auto s : r)
 		{
 			auto x0 = m_mesh_.coordinates(s);
 
-			auto res = distance(x0);
+			auto res = dist(x0);
 
 			id_type s1 = std::get<0>(
 					m_mesh_.coordinates_global_to_local(

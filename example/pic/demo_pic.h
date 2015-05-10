@@ -104,8 +104,7 @@ public:
 	static inline Point_s push_forward(coordinates_type const & x,
 			Vec3 const &v, Real f = 1.0)
 	{
-		return std::move(Point_s(
-		{ x, v, f }));
+		return std::move(Point_s({ x, v, f }));
 	}
 	static inline void push_forward(coordinates_type const & x, Vec3 const &v,
 			Real f, Point_s * p)
