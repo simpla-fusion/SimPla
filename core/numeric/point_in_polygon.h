@@ -28,13 +28,13 @@ class PointInPolygon
 	std::vector<double> constant_;
 	std::vector<double> multiple_;
 public:
-	PointInPolygon() :
-			num_of_vertex_(0)
+	PointInPolygon()
+			: num_of_vertex_(0)
 	{
 	}
 	template<typename ...Args>
-	PointInPolygon(Args && ...args) :
-			num_of_vertex_(0)
+	PointInPolygon(Args && ...args)
+			: num_of_vertex_(0)
 	{
 		deploy(std::forward<Args>(args)...);
 	}
@@ -50,8 +50,8 @@ public:
 	{
 		for (auto it = ib; it != ie; ++it)
 		{
-			polygen_.emplace_back(nTuple<double, 2>(
-			{ (*it)[(ZAxis + 1) % 3], (*it)[(ZAxis + 2) % 3] }));
+			polygen_.emplace_back(nTuple<double, 2>( { (*it)[(ZAxis + 1) % 3],
+					(*it)[(ZAxis + 2) % 3] }));
 		}
 
 		num_of_vertex_ = polygen_.size();
@@ -79,14 +79,14 @@ public:
 		}
 	}
 
-	PointInPolygon(PointInPolygon const& rhs) :
-			polygen_(rhs.polygen_), num_of_vertex_(rhs.num_of_vertex_), constant_(
+	PointInPolygon(PointInPolygon const& rhs)
+			: polygen_(rhs.polygen_), num_of_vertex_(rhs.num_of_vertex_), constant_(
 					rhs.constant_), multiple_(rhs.multiple_)
 	{
 
 	}
-	PointInPolygon(PointInPolygon && rhs) :
-			polygen_(rhs.polygen_), num_of_vertex_(rhs.num_of_vertex_), constant_(
+	PointInPolygon(PointInPolygon && rhs)
+			: polygen_(rhs.polygen_), num_of_vertex_(rhs.num_of_vertex_), constant_(
 					rhs.constant_), multiple_(rhs.multiple_)
 	{
 
@@ -99,12 +99,12 @@ public:
 	}
 
 	template<size_t N>
-	inline bool IsInside(nTuple<double, N> x, size_t ZAxis = 2) const
+	inline bool is_inside(nTuple<double, N> x, size_t ZAxis = 2) const
 	{
-		return IsInside(x[(ZAxis + 1) % 3], x[(ZAxis + 2) % 3]);
+		return is_inside(x[(ZAxis + 1) % 3], x[(ZAxis + 2) % 3]);
 	}
 
-	inline bool IsInside(double x, double y) const
+	inline bool is_inside(double x, double y) const
 	{
 
 		bool oddNodes = false;
@@ -131,7 +131,7 @@ public:
 		std::function<double(nTuple<double, N> const &)> fun =
 				[this,ZAxis](nTuple<double, N> const & x)->bool
 				{
-					return this->IsInside(x,ZAxis)?1:0;
+					return this->is_inside(x,ZAxis)?1:0;
 				};
 
 		return std::move(find_root(x0, x1, fun, error));

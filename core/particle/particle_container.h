@@ -97,10 +97,10 @@ struct particle_container_traits
 
 template<typename TDomain, typename Engine, typename TContainer>
 class Particle<TDomain, Engine, TContainer> //
-: public SpObject,
-		public Engine,
-		public TContainer,
-		public enable_create_from_this<Particle<TDomain, Engine, TContainer> >
+:	public SpObject,
+	public Engine,
+	public TContainer,
+	public enable_create_from_this<Particle<TDomain, Engine, TContainer> >
 {
 public:
 
@@ -127,13 +127,13 @@ private:
 	mesh_type const & m_mesh_;
 public:
 
-	Particle(domain_type const & d) :
-			m_domain_(d), m_mesh_(d.mesh())
+	Particle(domain_type const & d)
+			: m_domain_(d), m_mesh_(d.mesh())
 	{
 	}
 
-	Particle(this_type const& other) :
-			engine_type(other),
+	Particle(this_type const& other)
+			: engine_type(other),
 
 			container_type(other),
 
@@ -142,8 +142,8 @@ public:
 	}
 
 	template<typename ... Args>
-	Particle(this_type & other, Args && ...args) :
-			engine_type(other),
+	Particle(this_type & other, Args && ...args)
+			: engine_type(other),
 
 			container_type(other, std::forward<Args>(args)...),
 
@@ -365,7 +365,6 @@ public:
 
 //! @}
 
-
 	/**
 	 *
 	 * @param args arguments
@@ -466,6 +465,8 @@ public:
 
 		}
 		container_type::rehash();
+		sync();
+		wait();
 
 	}
 

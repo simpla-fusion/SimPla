@@ -444,40 +444,73 @@ public:
 	/**
 	 * @name  Coordinates map
 	 * @{
+	 *
+	 *        Topology Manifold       Geometry Manifold
+	 *                        map
+	 *              M      ---------->      G
+	 *              x                       y
 	 **/
 	coordinates_type coordinates(id_type const & s) const
 	{
-		return std::move(
-				coordinates_from_topology(topology_type::coordinates(s)));
+		return std::move(map(topology_type::coordinates(s)));
 	}
 
-	coordinates_type coordinates_from_topology(coordinates_type const &y) const
+	coordinates_type map(coordinates_type const &x) const
 	{
 
 		return coordinates_type( {
 
-		std::fma(y[0], m_from_topology_scale_[0], m_from_topology_orig_[0]),
+		std::fma(x[0], m_from_topology_scale_[0], m_from_topology_orig_[0]),
 
-		std::fma(y[1], m_from_topology_scale_[1], m_from_topology_orig_[1]),
+		std::fma(x[1], m_from_topology_scale_[1], m_from_topology_orig_[1]),
 
-		std::fma(y[2], m_from_topology_scale_[2], m_from_topology_orig_[2])
+		std::fma(x[2], m_from_topology_scale_[2], m_from_topology_orig_[2])
 
 		});
 
 	}
-	coordinates_type coordinates_to_topology(coordinates_type const &x) const
+	coordinates_type inv_map(coordinates_type const &y) const
 	{
 
 		return coordinates_type( {
 
-		std::fma(x[0], m_to_topology_scale_[0], m_to_toplogy_orig_[0]),
+		std::fma(y[0], m_to_topology_scale_[0], m_to_toplogy_orig_[0]),
 
-		std::fma(x[1], m_to_topology_scale_[1], m_to_toplogy_orig_[1]),
+		std::fma(y[1], m_to_topology_scale_[1], m_to_toplogy_orig_[1]),
 
-		std::fma(x[2], m_to_topology_scale_[2], m_to_toplogy_orig_[2])
+		std::fma(y[2], m_to_topology_scale_[2], m_to_toplogy_orig_[2])
 
 		});
+	}
 
+	template<typename TFun>
+	auto pull_back(coordinates_type const & x, Fun const & fun) const
+	DECL_RET_TYPE((fun(map(x))))
+
+	template<typename TFun>
+	auto push_forward(coordinates_type const & y, Fun const & fun) const
+	DECL_RET_TYPE((fun(inv_map(y))))
+
+	Vec3 pull_back(coordinates_type const & y, Vec3 const & u) const
+	{
+		return inv_map(y + u) - inv_map(y);
+	}
+
+	Vec3 push_forward(coordinates_type const & x, Vec3 const & v) const
+	{
+		return map(x + v) - map(x);
+	}
+
+	template<typename TX>
+	coordinates_type coordinates_to_topology(TX const &y) const
+	{
+		return inv_map(y);
+	}
+
+	template<typename TX>
+	coordinates_type coordinates_from_topology(TX const &x) const
+	{
+		return map(x);
 	}
 
 	/**
@@ -489,9 +522,7 @@ public:
 	coordinates_type coordinates_local_to_global(
 			std::tuple<id_type, coordinates_type> const &t) const
 	{
-		return std::move(
-				coordinates_from_topology(
-						topology_type::coordinates_local_to_global(t)));
+		return std::move(map(topology_type::coordinates_local_to_global(t)));
 	}
 
 	std::tuple<id_type, coordinates_type> coordinates_global_to_local(
@@ -523,8 +554,8 @@ public:
 	}
 
 	template<size_t IFORM>
-	constexpr id_type pack_relative_index(index_type i, index_type j, index_type k,
-			index_type n = 0) const
+	constexpr id_type pack_relative_index(index_type i, index_type j,
+			index_type k, index_type n = 0) const
 	{
 		return topology_type::pack_index(nTuple<index_type, 3>( { i, j, k }),
 				topology_type:: template sub_index_to_id<IFORM>(n)) + m_id_min_;

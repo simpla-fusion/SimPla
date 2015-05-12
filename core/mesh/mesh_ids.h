@@ -180,6 +180,11 @@ struct MeshIDs_
 			<< MESH_LEVEL);
 
 	/// @}
+	static constexpr Vec3 dx() const
+	{
+		return Vec3( { COORDINATES_MESH_FACTOR, COORDINATES_MESH_FACTOR,
+				COORDINATES_MESH_FACTOR });
+	}
 
 	static constexpr id_type m_sub_index_to_id_[4][3] = { //
 
@@ -715,7 +720,7 @@ struct MeshIDs_
 			auto b = unpack_index(m_min_);
 			auto e = unpack_index(m_max_);
 			return (b[1] <= x[1]) && (b[2] <= x[2]) && (b[0] <= x[0])  //
-					&& (e[1] >  x[1]) && (e[2] >  x[2]) && (e[0] >  x[0]);
+					&& (e[1] > x[1]) && (e[2] > x[2]) && (e[0] > x[0]);
 
 		}
 		constexpr bool in_box(id_type s) const

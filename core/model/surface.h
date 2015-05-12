@@ -1,5 +1,5 @@
 /*
- * surface.h
+ * @file surface.h
  *
  *  created on: 2014-4-21
  *      Author: salmon
@@ -21,10 +21,6 @@ namespace simpla
  *  @ingroup Model
  */
 
-/**
- *  \brief surface
- *
- */
 template<typename TM>
 class Surface: public std::map<typename TM::id_type, std::tuple<Real, Vec3>>
 {
@@ -44,16 +40,24 @@ public:
 	mesh_type const & m_mesh_;
 	range_type m_range_;
 	id_type m_nid_;
-	Surface(mesh_type const & m) :
-			m_mesh_(m), m_radius_(std::sqrt(inner_product(m.dx(), m.dx())))
+
+	Surface(mesh_type const & m)
+			: m_mesh_(m), m_radius_(std::sqrt(inner_product(m.dx(), m.dx())))
 	{
 	}
+
 	~Surface()
 	{
 	}
 
 	auto box() const
 	DECL_RET_TYPE((m_range_.box()))
+
+	template<typename ...Args>
+	auto box(Args &&...args) const
+	{
+		m_range_.reset(std::forward<Args>(args));
+	}
 
 	std::tuple<Real, Vec3> distance(coordinates_type const & x) const
 	{
@@ -63,32 +67,13 @@ public:
 		return std::make_tuple(dist, normal);
 	}
 
-	template<typename TRange, typename TFun>
-	void add(TRange const & r, TFun const & dist)
+	void fix_to_bound()
 	{
-		for (auto s : r)
-		{
-			auto x0 = m_mesh_.coordinates(s);
-
-			auto res = dist(x0);
-
-			id_type s1 = std::get<0>(
-					m_mesh_.coordinates_global_to_local(
-							x0 + std::get<0>(*it) * std::get<1>(*it), m_nid_));
-			//if intersection point in the cell s
-			if (s1 == s)
-			{
-				this->emplace(std::forward_as_tuple(s, std::move(res)));
-			}
-
-		}
-
 		m_mesh_.find_bound(*this,
 				[&](typename base_type::value_type const& item)
 				{
 					return item.first;
 				}).swap(m_range_);
-
 	}
 
 	template<typename TFun>
@@ -104,7 +89,38 @@ public:
 		UNIMPLEMENTED;
 		return false;
 	}
+
+	template<typename TDict>
+	void load_surface(TDict const & dict);
 };
+template<typename TM>
+template<typename TDict>
+void Surface<TM>::load_surface(TDict const & dict)
+{
+
+	if (dict["Box"])
+	{
+		std::vector<coordinates_type> points;
+
+		dict["Box"].as(&points);
+
+		m_range_.reset(m_mesh_.coordinates_to_topology(points[0]),
+				m_mesh_.coordinates_to_topology(points[1]));
+
+	}
+
+	if (dict["Polygon"].is_function())
+	{
+		std::vector<coordinates_type> points
+
+		dict["Polygon"].as(&points);
+		for (id_type s : m_range_)
+		{
+
+		}
+
+	}
+}
 
 }
 // namespace simpla

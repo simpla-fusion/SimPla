@@ -36,10 +36,27 @@ std::tuple<Real, Vec3> distance_from_point_to_plane(T0 const & x0,
 
 }
 template<typename T0, typename T1, typename T2>
-Real distance_from_point_to_line_segment(T0 const & p0, T1 const & p1,
-		T2 const & x)
+Real nearest_point_to_line_segment(T2 const & x, T0 const & p0, T1 const & p1)
 {
-	return inner_product(x - p0, p1 - p0) / inner_product(p1 - p0, p1 - p0);
+	Vec3 u, v;
+
+	u = x - *p0;
+	v = *p1 - *p0;
+
+	Real v2 = inner_product(v, v);
+
+	auto s = inner_product(u, v) / v2;
+
+	if (s < 0)
+	{
+		s = 0;
+	}
+	else if (s > 1)
+	{
+		s = 1;
+	}
+
+	return s;
 }
 
 /**
@@ -50,13 +67,13 @@ Real distance_from_point_to_line_segment(T0 const & p0, T1 const & p1,
  * @param Q1
  * @param flag 0: line to line
  *             1: line segment to line segment
- * @return <dist,s,t>
+ * @return < s,t>
  *         nearest point P= P0*(1-s)+ P1*s ,and Q= Q0*(1-t)+t*Q1,
  *         dist= |P,Q|
  */
 template<typename T0, typename T1, typename T2, typename T3>
-std::tuple<Real, Real, Real> distance_from_line_to_line(T0 const& P0,
-		T1 const & P1, T2 const & Q0, T3 const & Q1, int flag = 0)
+std::tuple<Real, Real> nearest_point_line_to_line(T0 const& P0, T1 const & P1,
+		T2 const & Q0, T3 const & Q1, int flag = 0)
 {
 	Real s = 0.0;
 	Real t = 0.0;
@@ -77,8 +94,8 @@ std::tuple<Real, Real, Real> distance_from_line_to_line(T0 const& P0,
 	{
 		//two lines are parallel
 		s = 0;
-		t = 0;
-		dist = d / b;
+
+		t = nearest_point_to_line_segment(P0, Q0, Q1);
 	}
 	else
 	{
@@ -86,14 +103,13 @@ std::tuple<Real, Real, Real> distance_from_line_to_line(T0 const& P0,
 
 		t = (a * e - b * d) / (a * c - b * b);
 
-		auto w = w0
-				+ ((b * e - c * d) * u - (a * e - b * d) * v) / (a * c - b * b);
-
-		dist = inner_product(w, w);
+//		auto w = w0
+//				+ ((b * e - c * d) * u - (a * e - b * d) * v) / (a * c - b * b);
+//		dist = inner_product(w, w);
 
 	}
 
-	return std::make_tuple(dist, s, t);
+	return std::make_tuple(s, t);
 }
 
 /**
@@ -160,18 +176,16 @@ std::tuple<Real, Real, Real, Real> distance_from_line_to_plane(T0 const& P0,
  */
 template<typename TI, typename TX>
 std::tuple<Real, Real, TI, TI> distance_from_point_to_polylines(TX const & x,
-		TI const & ib, TI const & ie, Vec3 normal_vec = Vec3(
-		{ 0, 0, 1 }))
+		TI const & ib, TI const & ie, Vec3 normal_vec = Vec3( { 0, 0, 1 }))
 {
-	typedef TX Vec3;
+
+	auto it = make_cycle_iterator(ib, ie);
 
 	Real min_dist2 = std::numeric_limits<Real>::max();
 
 	Real res_s = 0;
 
 	TI res_p0, res_p1;
-
-	TI it = ib;
 
 	TI p0, p1;
 
@@ -184,15 +198,6 @@ std::tuple<Real, Real, TI, TI> distance_from_point_to_polylines(TX const & x,
 		p0 = p1;
 
 		++it;
-
-		if (it == ie)
-		{
-			p1 = ib;
-		}
-		else
-		{
-			p1 = it;
-		};
 
 		Vec3 u, v, d;
 
@@ -254,6 +259,21 @@ Real intersection_line_to_polygons(T0 const & p0, T1 const & p1,
 		q1 -= inner_product(q1, n) * n;
 	}
 }
+
+namespace mesh_intersection
+{
+enum
+{
+	HALF_OPEN, CLOSED
+};
+
+template<typename T0, typename T1, typename T2>
+Real to_polygons(T0 const & p0, T1 const & p1, T2 const & polygen,
+		std::vector<coordinates_type> *res)
+{
+
+}
+}  // namespace box_intersection
 
 /**
  *

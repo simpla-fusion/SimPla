@@ -63,6 +63,7 @@ typedef long Integral;
 typedef std::complex<Real> Complex;
 
 typedef nTuple<Real, 3> Vec3;
+typedef nTuple<Real, 3> Covec3;
 
 typedef nTuple<Integral, 3> IVec3;
 
