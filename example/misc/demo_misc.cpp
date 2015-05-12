@@ -9,30 +9,33 @@
 
 using namespace simpla;
 
+
+
 int main(int argc, char **argv)
 {
-	SHOW(sizeof(unsigned long));
-	SHOW(sizeof(std::int32_t));
-	SHOW(sizeof(std::int64_t));
-	SHOW(sizeof(MeshIDs::id_s));
+	typename MeshIDs::id_type a = 0; //MeshIDs::_DA << 2UL;
+	typename MeshIDs::id_type b = MeshIDs::_DA;
 
-	MeshIDs::id_s t = { 1, 0xF2, 2, 4 };
+	std::cout
+			<< MeshIDs::unpack_index(MeshIDs::diff(a, b))[0]
+					- static_cast<long>(MeshIDs::INDEX_ZERO >> 3UL)
+			<< std::endl;
 
-	SHOW(std::is_pod<MeshIDs::id_s>::value);
+	std::cout
+			<< MeshIDs::unpack_index(MeshIDs::diff(b, a))[0]
+					- static_cast<long>(MeshIDs::INDEX_ZERO >> 3UL)
+			<< std::endl;
+	std::cout
+			<< static_cast<MeshIDs::index_type>(MeshIDs::unpack_index(
+					MeshIDs::diff(a, b))[0]) << std::endl;
+	CHECK_BIT(MeshIDs::OVERFLOW_FLAG);
+	CHECK_BIT(MeshIDs::INDEX_ZERO);
+	CHECK_BIT(MeshIDs::diff(a, b));
 
-	SHOW_HEX(static_cast<std::uint64_t>(t));
+	CHECK_BIT(raw_cast<unsigned long>(-1L));
+	CHECK_BIT((-1L));
 
-	SHOW(t.i);
-	SHOW(t.j);
-	SHOW(t.k);
-	SHOW(t.h);
-	SHOW((static_cast<nTuple<long, 4> >(t)));
 
-//
-//	std::cout << std::hex << MeshIDs::_DI << std::endl;
-//
-//	std::cout << std::hex << MeshIDs::_DJ << std::endl;
-//
-//	std::cout << std::hex << MeshIDs::_DK << std::endl;
+
 }
 
