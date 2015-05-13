@@ -363,8 +363,9 @@ struct _##_NAME_                                                                
 	->decltype(std::_NAME_(try_index(l,s)   ))                 \
 	{  return std::_NAME_(try_index(l,s)  );   }                                    \
 };
-DEF_UNARY_FUNCTION(fabs)
-DEF_UNARY_FUNCTION(abs)
+
+//DEF_UNARY_FUNCTION(fabs)
+//DEF_UNARY_FUNCTION(abs)
 DEF_UNARY_FUNCTION(cos)
 DEF_UNARY_FUNCTION(acos)
 DEF_UNARY_FUNCTION(cosh)
@@ -501,7 +502,6 @@ _SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(<, _CONCEPT_, less)           \
 _SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(>, _CONCEPT_, greater)        \
 _SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(<=, _CONCEPT_, less_equal)    \
 _SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(>=, _CONCEPT_, greater_equal) \
-_SP_DEFINE_EXPR_UNARY_FUNCTION(abs, _CONCEPT_)                        \
 _SP_DEFINE_EXPR_ASSIGNMENT_OPERATOR(+=,_CONCEPT_, plus_assign)        \
 _SP_DEFINE_EXPR_ASSIGNMENT_OPERATOR(-=,_CONCEPT_, minus_assign)       \
 _SP_DEFINE_EXPR_ASSIGNMENT_OPERATOR(*=,_CONCEPT_, multiplies_assign)  \
@@ -549,7 +549,6 @@ _SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_BOOLEAN_OPERATOR(<, less)                  
 _SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_BOOLEAN_OPERATOR(>, greater)                                   \
 _SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_BOOLEAN_OPERATOR(<=, less_equal)                               \
 _SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_BOOLEAN_OPERATOR(>=, greater_equal)                            \
-_SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_FUNCTION(abs)                                           \
 
 
 //#undef _SP_DEFINE_EXPR_BINARY_OPERATOR

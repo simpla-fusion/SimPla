@@ -79,7 +79,7 @@ struct MeshIDs_
 
 	static constexpr id_type FULL_DIGITS = std::numeric_limits<id_type>::digits;
 
-	static constexpr id_type ID_DIGITS = 20;
+	static constexpr id_type ID_DIGITS = 21;
 
 	static constexpr id_type HEAD_DIGITS = (FULL_DIGITS - ID_DIGITS * 3);
 
@@ -88,52 +88,16 @@ struct MeshIDs_
 	static constexpr id_type NO_HAED = (1UL << (ID_DIGITS * 3)) - 1;
 
 	static constexpr id_type OVERFLOW_FLAG = (1UL) << (ID_DIGITS - 1);
-	static constexpr id_type INDEX_ZERO = OVERFLOW_FLAG;
+
+	static constexpr id_type INDEX_ZERO = (1UL) << (ID_DIGITS - 2);
+
 	static constexpr id_type ID_ZERO = INDEX_ZERO | (INDEX_ZERO << ID_DIGITS)
 			| (INDEX_ZERO << (ID_DIGITS * 2));
 
-	struct id_s
-	{
-		id_type i :20;
-		id_type j :20;
-		id_type k :20;
-		id_type l :4; //mesh_level
+	static constexpr Real EPSILON = 1.0 / static_cast<Real>(INDEX_ZERO);
 
-		template<typename T>
-		id_s &operator=(T const& x)
-		{
-			i = static_cast<id_type>(x[0]);
-			j = static_cast<id_type>(x[1]);
-			k = static_cast<id_type>(x[2]);
-			return (*this);
-		}
-
-		id_s &operator=(id_type s)
-		{
-			*reinterpret_cast<id_type *>(this) = s;
-
-			return (*this);
-		}
-		operator id_type() const
-		{
-			return *reinterpret_cast<id_type const *>(this);
-		}
-		template<typename T>
-		operator nTuple<T,3>() const
-		{
-			return nTuple<T, 3>( {
-
-			static_cast<T>(i),
-
-			static_cast<T>(j),
-
-			static_cast<T>(k)
-
-			});
-		}
-
-	};
 	/// @}
+
 	/// @name level dependent
 	/// @{
 
@@ -144,8 +108,6 @@ struct MeshIDs_
 	static constexpr id_type _D = 1UL << (MESH_LEVEL - 1);
 
 	static constexpr Real _R = static_cast<Real>(_D);
-
-//#ifdef BIG_ENDIAN
 
 	static constexpr id_type _DI = _D;
 
@@ -159,28 +121,13 @@ struct MeshIDs_
 			| (PRIMARY_ID_MASK_ << ID_DIGITS)
 			| (PRIMARY_ID_MASK_ << (ID_DIGITS * 2));
 
-//#else
-//	static constexpr id_type _DK = _D << (HEAD_DIGITS);
-//
-//	static constexpr id_type _DJ = _D << (ID_DIGITS + HEAD_DIGITS);
-//
-//	static constexpr id_type _DI = _D << (ID_DIGITS * 2 + HEAD_DIGITS);
-//
-//	static constexpr id_type ID_ZERO = (OVERFLOW_FLAG<<HEAD_DIGITS)
-//	| (OVERFLOW_FLAG << (ID_DIGITS+HEAD_DIGITS)) | (OVERFLOW_FLAG << (ID_DIGITS * 2+HEAD_DIGITS));
-//
-//	static constexpr id_type PRIMARY_ID_MASK = (PRIMARY_ID_MASK_
-//			| (PRIMARY_ID_MASK_ << ID_DIGITS)
-//			| (PRIMARY_ID_MASK_ << (ID_DIGITS * 2)))<< (HEAD_DIGITS);
-//
-//#endif
 	static constexpr id_type _DA = _DI | _DJ | _DK;
 
 	static constexpr Real COORDINATES_MESH_FACTOR = static_cast<Real>(1UL
 			<< MESH_LEVEL);
 
 	/// @}
-	static constexpr Vec3 dx() const
+	static constexpr Vec3 dx()
 	{
 		return Vec3( { COORDINATES_MESH_FACTOR, COORDINATES_MESH_FACTOR,
 				COORDINATES_MESH_FACTOR });
@@ -267,15 +214,47 @@ struct MeshIDs_
 		return m_id_to_iform_[node_id(s)];
 	}
 
+	static constexpr id_type diff(id_type a, id_type b)
+	{
+		return ((a | OVERFLOW_FLAG) - b) & (~OVERFLOW_FLAG);
+	}
+
+#define UNPACK_ID(_S_,_I_)    (static_cast<id_type>(_S_) >> (ID_DIGITS*(_I_ )) & ID_MASK)
+#define UNPACK_INDEX(_S_,_I_)   static_cast<index_type>((_S_>> (ID_DIGITS*(_I_ )) & ID_MASK)>>MESH_LEVEL)
+
 	template<typename T>
 	static constexpr id_type pack(T const & idx)
 	{
-		return static_cast<id_type>(assign_cast<id_s>(idx));
+		return (static_cast<id_type>(idx[0]) & ID_MASK)
+				| ((static_cast<id_type>(idx[1]) & ID_MASK) << ID_DIGITS)
+				| ((static_cast<id_type>(idx[2]) & ID_MASK) << (ID_DIGITS * 2));
 	}
 
 	static constexpr id_tuple unpack(id_type s)
 	{
-		return static_cast<id_tuple>(raw_cast<id_s>(s));
+		return id_tuple( {
+
+		UNPACK_ID(s, 0),
+
+		UNPACK_ID(s, 1),
+
+		UNPACK_ID(s, 2)
+
+		});;
+	}
+
+	static constexpr index_tuple unpack_index(id_type s)
+	{
+		return index_tuple( {
+
+		UNPACK_INDEX(s, 0),
+
+		UNPACK_INDEX(s, 1),
+
+		UNPACK_INDEX(s, 2)
+
+		});
+
 	}
 
 	template<typename T>
@@ -284,19 +263,15 @@ struct MeshIDs_
 		return (pack(idx) << MESH_LEVEL) | m_id_to_shift_[n_id];
 	}
 
-	static constexpr index_tuple unpack_index(id_type s)
-	{
-		return static_cast<index_tuple>(raw_cast<id_s>(s)) >> MESH_LEVEL;
-	}
 	template<typename T>
 	static constexpr T type_cast(id_type s)
 	{
-		return static_cast<T>(raw_cast<id_s const>(s));
+		return static_cast<T>(unpack(s));
 	}
 
 	static constexpr coordinates_type coordinates(id_type s)
 	{
-		return static_cast<coordinates_type>(raw_cast<id_s>(s));
+		return static_cast<coordinates_type>(unpack(s));
 	}
 
 	static constexpr int num_of_ele_in_cell(id_type s)
@@ -696,20 +671,20 @@ struct MeshIDs_
 					inverse_rotate(m_max_ - (_DA << 1)));
 		}
 
-		const_iterator rbegin() const
-		{
-			return const_iterator(m_min_, m_max_,
-					inverse_rotate(m_max_ - (_DA << 1)));
-		}
-
-		const_iterator rend() const
-		{
-			const_iterator res(m_min_, m_max_,
-					inverse_rotate(m_min_ - (_DA << 1)));
-
-			++res;
-			return std::move(res);
-		}
+//		const_iterator rbegin() const
+//		{
+//			return const_iterator(m_min_, m_max_,
+//					inverse_rotate(m_max_ - (_DA << 1)));
+//		}
+//
+//		const_iterator rend() const
+//		{
+//			const_iterator res(m_min_, m_max_,
+//					inverse_rotate(m_min_ - (_DA << 1)));
+//
+//			++res;
+//			return std::move(res);
+//		}
 
 		auto box() const
 		DECL_RET_TYPE(std::forward_as_tuple(m_min_, m_max_))
@@ -759,27 +734,32 @@ struct MeshIDs_
 					id_type const& self)
 					: m_min_(min), m_max_(max), m_self_(self)
 			{
-
 			}
 			iterator(id_type const & min, id_type const & max)
 					: m_min_(min), m_max_(max), m_self_(min)
 			{
-
 			}
+
+			iterator(iterator const & other)
+					: m_min_(other.m_min_), m_max_(other.m_max_), m_self_(
+							other.m_self_)
+			{
+			}
+
 			~iterator()
 			{
 
 			}
+
 			typedef iterator this_type;
+
 			bool operator==(this_type const & other) const
 			{
-				return m_self_ == other.m_self_ && (m_min_ == other.m_min_)
-						&& (m_max_ == other.m_max_);
+				return m_self_ == other.m_self_;
 			}
 			bool operator!=(this_type const & other) const
 			{
-				return m_self_ != other.m_self_ || (m_min_ != other.m_min_)
-						|| (m_max_ != other.m_max_);
+				return m_self_ != other.m_self_;
 			}
 
 			value_type const & operator *() const
@@ -788,12 +768,35 @@ struct MeshIDs_
 			}
 		private:
 
-#define carray(  flag,  min,  max,   self)          \
-			{                                                                \
-				std::div_t  div = std::div(self + flag*(_D<<1) + max - min * 2, max - min);      \
-				self = div.rem + min;      \
-				flag= div.quot - 1;                                         \
-		}
+			index_type carray_(id_type * self, id_type min, id_type max,
+					index_type flag = 0)
+			{
+
+				auto div = std::div(
+						static_cast<long>(*self + flag * (_D << 1) + max
+								- min * 2), static_cast<long>(max - min));
+
+				*self = static_cast<id_type>(div.rem + min);
+
+				return div.quot - 1L;
+			}
+
+			index_type carray(id_type * self, id_type xmin, id_type xmax,
+					index_type flag = 0)
+			{
+				id_tuple idx, min, max;
+
+				idx = unpack(*self);
+				min = unpack(xmin);
+				max = unpack(xmax);
+
+				flag = carray_(&idx[0], min[0], max[0], flag);
+				flag = carray_(&idx[1], min[1], max[1], flag);
+				flag = carray_(&idx[2], min[2], max[2], flag);
+
+				*self = pack(idx) | (std::abs(flag) << (FULL_DIGITS - 1));
+				return flag;
+			}
 
 		public:
 			void next()
@@ -801,15 +804,7 @@ struct MeshIDs_
 				m_self_ = rotate(m_self_);
 				if (sub_index(m_self_) == 0)
 				{
-					id_s const & min = raw_cast<id_s>(m_min_);
-					id_s const & max = raw_cast<id_s>(m_max_);
-					id_s & self = raw_cast<id_s>(m_self_);
-					int flag = 1;
-
-					carray(flag, min.k, max.k, self.k);
-					carray(flag, min.j, max.j, self.j);
-					self.i += flag * (_D << 1);
-//					carray(flag, min.i, max.i, self.i);
+					carray(&m_self_, m_min_, m_max_, 1);
 				}
 
 			}
@@ -818,21 +813,11 @@ struct MeshIDs_
 				m_self_ = inverse_rotate(m_self_);
 				if (sub_index(m_self_) == 0)
 				{
-					id_s const & min = raw_cast<id_s>(m_min_);
-					id_s const & max = raw_cast<id_s>(m_max_);
-					id_s & self = raw_cast<id_s>(m_self_);
-
-					int flag = -1;
-					carray(flag, min.k, max.k, &self.k);
-					carray(flag, min.j, max.j, &self.j);
-//					carray(flag, min.i, max.i, &self.i);
-					self.i += flag * (_D << 1);
-
+					carray(&m_self_, m_min_, m_max_, -1);
 				}
 			}
 			this_type & operator++()
 			{
-
 				next();
 				return *this;
 			}
@@ -863,27 +848,30 @@ struct MeshIDs_
 
 	static constexpr size_t hash(id_type s, id_type b, id_type e)
 	{
-
-		return hash_(raw_cast<id_s>(s - b + e - b), raw_cast<id_s>(e - b))
-				* num_of_ele_in_cell(s) + sub_index(s);
+		return hash_((s - b + (e - b)), (e - b)) * num_of_ele_in_cell(s)
+				+ sub_index(s);
 	}
 
-	static constexpr size_t hash_(id_s const & s, id_s const & d)
+	static constexpr size_t hash_(id_type const & s, id_type const & d)
 	{
 		//C-ORDER SLOW FIRST
 
-		return ((s.k % d.k) >> MESH_LEVEL)
+		return
 
-		+ (((s.j % d.j) >> MESH_LEVEL) + (((s.i % d.i) >> MESH_LEVEL))
+		(UNPACK_INDEX(s,0)% UNPACK_INDEX(d, 0))+
+		(
+		(UNPACK_INDEX(s,1) % UNPACK_INDEX(d, 1)) +
+		(UNPACK_INDEX(s,2) % UNPACK_INDEX(d, 2)) * UNPACK_INDEX(d, 1)
+		)
 
-		* (d.j >> MESH_LEVEL)) * (d.k >> MESH_LEVEL);;
+		* UNPACK_INDEX(d, 0);
 
 	}
 	template<size_t IFORM>
 	static constexpr size_t max_hash(id_type b, id_type e)
 	{
 		return NProduct(unpack_index(e - b))
-				* m_id_to_num_of_ele_in_cell_[sub_index_to_id<IFORM>(0)];
+		* m_id_to_num_of_ele_in_cell_[sub_index_to_id<IFORM>(0)];
 	}
 }
 ;
@@ -899,6 +887,8 @@ template<size_t N, size_t M> constexpr int MeshIDs_<N, M>::MESH_LEVEL;
 template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::OVERFLOW_FLAG;
 template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::ID_ZERO;
 template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::INDEX_ZERO;
+
+template<size_t N, size_t M> constexpr Real MeshIDs_<N, M>::EPSILON;
 
 template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::FULL_DIGITS;
 template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::ID_DIGITS;

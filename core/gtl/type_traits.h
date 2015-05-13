@@ -177,19 +177,19 @@ ENABLE_IF_DECL_RET_TYPE((!is_indexable<T,TI>::value), v)
 //DECL_RET_TYPE( try_index(v.get(),std::forward<Args>(args)...))
 
 /// \note  http://stackoverflow.com/questions/3913503/metaprogram-for-bit-counting
-template<unsigned int N> struct CountBits
+template<unsigned long N> struct CountBits
 {
-	static const unsigned int n = CountBits<N / 2>::n + 1;
+	static const unsigned long n = CountBits<N / 2>::n + 1;
 };
 
 template<> struct CountBits<0>
 {
-	static const unsigned int n = 0;
+	static const unsigned long n = 0;
 };
 
-inline unsigned int count_bits(unsigned long s)
+inline unsigned long count_bits(unsigned long s)
 {
-	unsigned int n = 0;
+	unsigned long n = 0;
 	while (s != 0)
 	{
 		++n;

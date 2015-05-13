@@ -260,20 +260,20 @@ Real intersection_line_to_polygons(T0 const & p0, T1 const & p1,
 	}
 }
 
-namespace mesh_intersection
-{
-enum
-{
-	HALF_OPEN, CLOSED
-};
-
-template<typename T0, typename T1, typename T2>
-Real to_polygons(T0 const & p0, T1 const & p1, T2 const & polygen,
-		std::vector<coordinates_type> *res)
-{
-
-}
-}  // namespace box_intersection
+//namespace mesh_intersection
+//{
+//enum
+//{
+//	HALF_OPEN, CLOSED
+//};
+//
+//template<typename T0, typename T1, typename T2>
+//Real to_polygons(T0 const & p0, T1 const & p1, T2 const & polygen,
+//		std::vector<coordinates_type> *res)
+//{
+//
+//}
+//}  // namespace box_intersection
 
 /**
  *

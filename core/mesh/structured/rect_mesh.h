@@ -277,6 +277,11 @@ public:
 
 	}
 
+	coordinates_type epsilon() const
+	{
+		return topology_type::EPSILON * m_from_topology_scale_;
+	}
+
 	std::tuple<id_tuple, id_tuple> index_box() const
 	{
 		return std::make_tuple(topology_type::unpack_index(m_id_min_),
@@ -484,11 +489,11 @@ public:
 	}
 
 	template<typename TFun>
-	auto pull_back(coordinates_type const & x, Fun const & fun) const
+	auto pull_back(coordinates_type const & x, TFun const & fun) const
 	DECL_RET_TYPE((fun(map(x))))
 
 	template<typename TFun>
-	auto push_forward(coordinates_type const & y, Fun const & fun) const
+	auto push_forward(coordinates_type const & y, TFun const & fun) const
 	DECL_RET_TYPE((fun(inv_map(y))))
 
 	Vec3 pull_back(coordinates_type const & y, Vec3 const & u) const
