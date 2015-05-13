@@ -23,22 +23,20 @@ typedef CartesianRectMesh mesh_type;
 typedef typename mesh_type::coordinates_type coordinates_type;
 
 class MeshTest: public testing::TestWithParam<
-		std::tuple<size_t, nTuple<Real, 3>, nTuple<Real, 3>, nTuple<size_t, 3>,
-				nTuple<Real, 3>> >
+		std::tuple<size_t, nTuple<Real, 3>, nTuple<Real, 3>, nTuple<size_t, 3> > >
 {
 protected:
 	void SetUp()
 	{
 		LOGGER.set_stdout_visable_level(LOG_VERBOSE);
-		std::tie(nid, xmin, xmax, dims, K_real) = GetParam();
-		K_imag = 0;
+
+		std::tie(nid, xmin, xmax, dims) = GetParam();
 
 		for (int i = 0; i < ndims; ++i)
 		{
 			if (dims[i] <= 1 || (xmax[i] <= xmin[i]))
 			{
 				dims[i] = 1;
-				K_real[i] = 0.0;
 				xmax[i] = xmin[i];
 			}
 		}
@@ -62,8 +60,6 @@ public:
 	nTuple<Real, 3> xmin;
 	nTuple<Real, 3> xmax;
 	nTuple<size_t, 3> dims;
-	nTuple<Real, 3> K_real; // @NOTE must   k = n TWOPI, period condition
-	nTuple<scalar_type, 3> K_imag;
 	value_type one;
 	Real error;
 	size_t nid;
@@ -80,6 +76,8 @@ TEST_P(MeshTest, foreach_hash)
 
 	size_t max_num = NProduct(dims)
 			* ((nid == 0 /*VERTEX*/|| nid == 7 /* VOLUME*/) ? 1 : 3);
+
+	auto it = mesh.range(nid).begin();
 
 	for (auto s : mesh.range(nid))
 	{
@@ -114,15 +112,14 @@ TEST_P(MeshTest, coordinates)
 
 		EXPECT_EQ(topology_type::pack(topology_type::coordinates(s)), s);
 
-		EXPECT_EQ(
-				mesh.coordinates_from_topology(
-						mesh.coordinates_to_topology(mesh.coordinates(s))),
-				mesh.coordinates(s));
+		EXPECT_LE(
+				abs(
+						mesh.coordinates_from_topology(
+								mesh.coordinates_to_topology(
+										mesh.coordinates(s)))
+								- mesh.coordinates(s)), abs(mesh.epsilon()));
 
 		auto x = mesh.coordinates_global_to_local(mesh.coordinates(s), nid);
-
-		SHOW(mesh.unpack_index(std::get<0>(x)));
-		SHOW(std::get<1>(x));
 
 //		EXPECT_EQ( mesh.pack( mesh.coordinates_to_topology(mesh.coordinates(s)) ),s)
 //				<< mesh.coordinates(s) << " "

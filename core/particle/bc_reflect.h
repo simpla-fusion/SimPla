@@ -19,10 +19,10 @@
 namespace simpla
 {
 
-template<typename TParticle, typename TM>
-void bc_reflect(Surface<TM> const & surface, TParticle *particle)
+template<typename TParticle, typename TSurface>
+void bc_reflect(TSurface const & surface, TParticle *particle)
 {
-	auto const & mesh = surface.mesh();
+	auto const & mesh = particle->mesh();
 	/// FIXME need parallel optimize
 	for (auto const &item : surface)
 	{
@@ -30,7 +30,8 @@ void bc_reflect(Surface<TM> const & surface, TParticle *particle)
 
 		Vec3 const & normal = std::get<1>(item->second);
 
-		coordinates_type x0 = mesh.coordinates(item->first) + dist * normal;
+		coordinates_type x0;
+		x0 = mesh.coordinates(item->first) + dist * normal;
 
 		particle->modify([&](typename TParticle::value_type * p)
 		{

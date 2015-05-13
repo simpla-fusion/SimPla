@@ -502,7 +502,7 @@ void filter_domain_by_config(TDict const & dict, TDomain * domain)
 		}
 
 	}
-	else if (dict["OnBoundary"])
+	else if (dict["Surface"])
 	{
 
 	}

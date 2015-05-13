@@ -37,10 +37,11 @@ USE_CASE(pic," Particle in cell" )
 
 				<<
 
-				"\t -n,\t--number_of_steps <NUMBER>  \t, Number of steps = <NUMBER> ,default="
-						+ value_to_string(num_of_steps)
-						+ "\n"
-								"\t -s,\t--strides <NUMBER>            \t, Dump record per <NUMBER> steps, default="
+				"\t -n,\t--number_of_steps <NUMBER>  \t, "
+						"Number of steps = <NUMBER> ,default="
+						+ value_to_string(num_of_steps) + "\n"
+								"\t -s,\t--strides <NUMBER>          "
+								"  \t, Dump record per <NUMBER> steps, default="
 						+ value_to_string(strides) + "\n";
 
 		return;
@@ -108,19 +109,9 @@ USE_CASE(pic," Particle in cell" )
 	ion->wait();
 	cd("/Input/");
 
-	rho.clear();
-	VERBOSE << SAVE(rho) << std::endl;
-
-	ion->for_each([&](typename engine_type::Point_s const & p)
-	{
-		rho.scatter(p.x,1.0,p.f);
-	});
-
-	VERBOSE << SAVE(rho) << std::endl;
-
 	VERBOSE << save("H1", ion->dataset()) << std::endl;
 
-	LOGGER << "----------  Show ConfigurationF ---------- " << endl;
+	LOGGER << "----------  Show Configuration  ---------- " << endl;
 
 	if (GLOBAL_COMM.process_num()==0)
 	{

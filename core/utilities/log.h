@@ -274,7 +274,7 @@ inline std::string ShowBit(unsigned long s)
 #  define ASSERT(_COND_)
 #else
 #include <cassert>
-#  define ASSERT(_COND_)   std::assert(_COND_);
+#  define ASSERT(_COND_)   std::assert((_COND_));
 #endif
 
 //#ifndef NDEBUG

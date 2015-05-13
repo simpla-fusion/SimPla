@@ -428,8 +428,7 @@ struct sp_pod_traits<nTuple<T, N...> >
 template<typename TInts, TInts ...N>
 nTuple<TInts, sizeof...(N)> seq2ntuple(integer_sequence<TInts, N...>)
 {
-	return std::move(nTuple<TInts, sizeof...(N)>(
-	{ N... }));
+	return std::move(nTuple<TInts, sizeof...(N)>( { N... }));
 }
 
 template<typename TV, size_t N, typename T1>
@@ -502,6 +501,10 @@ template<typename T, size_t ... N>
 auto normal(
 		nTuple<T, N...> const &l)
 				DECL_RET_TYPE((std::sqrt((_seq_reduce<N...>::eval(_impl::plus(), l * l)))))
+
+template<typename TExpr, size_t ...N>
+auto abs(nTuple<TExpr, N...> const &v)
+DECL_RET_TYPE(std::sqrt(inner_product(v,v)))
 
 template<typename TR, typename ...T>
 auto inner_product(nTuple<Expression<T...>> const &l,
@@ -602,10 +605,9 @@ template<typename T1, size_t ... N1, typename T2, size_t ... N2>
 inline auto cross(nTuple<T1, N1...> const &l, nTuple<T2, N2...> const &r)
 -> nTuple<decltype(try_index(l, 0) * try_index(r, 0)), 3>
 {
-	nTuple<decltype(try_index(l, 0) * try_index(r, 0)), 3> res =
-	{ l[1] * r[2] - l[2] * r[1], l[2] * try_index(r, 0)
-			- try_index(l, 0) * r[2], try_index(l, 0) * r[1]
-			- l[1] * try_index(r, 0) };
+	nTuple<decltype(try_index(l, 0) * try_index(r, 0)), 3> res = { l[1] * r[2]
+			- l[2] * r[1], l[2] * try_index(r, 0) - try_index(l, 0) * r[2],
+			try_index(l, 0) * r[1] - l[1] * try_index(r, 0) };
 	return std::move(res);
 }
 
