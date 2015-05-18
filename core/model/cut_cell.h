@@ -51,8 +51,56 @@ bool intersection_cell(std::int64_t const & min, std::int64_t const & max,
 	return false;
 }
 template<typename TM, typename TI>
-size_t cut_cell(TM const & mesh, typename TM::id_type node_id, TI const &i0,
-		std::multimap<typename TM::id_type, TI>* res, int ZAXIS = 0)
+size_t triangle_cut_cell(TM const & mesh, typename TM::id_type node_id,
+		TI const &i0, std::multimap<typename TM::id_type, TI>* res)
+{
+	typedef TM mesh_type;
+	typedef typename mesh_type::coordinates_type coordinates_type;
+	typedef typename mesh_type::id_type id_type;
+
+	TI it = i0;
+	coordinates_type x0 = *it;
+	++it;
+	coordinates_type x1 = *it;
+	++it;
+	coordinates_type x2 = *it;
+
+	coordinates_type xmin, xmax;
+
+	id_type s0 = std::get<0>(mesh.coordinates_global_to_local(x0, node_id));
+
+	id_type s1 = std::get<0>(mesh.coordinates_global_to_local(x1, node_id));
+
+	id_type s2 = std::get<0>(mesh.coordinates_global_to_local(x2, node_id));
+
+	for (auto s : mesh.box(bound(bound(x0, x1), x2), node_id))
+	{
+		id_type code0 = mesh.out_code(s, s0);
+		id_type code1 = mesh.out_code(s, s1);
+		id_type code2 = mesh.out_code(s, s2);
+
+		if ((code0 & code1 & code2) != 0)
+		{
+			continue;
+		}
+		else if (((code0 | code1 | code2) == 0))
+		{
+			res->insert(std::make_pair(s, i0));
+		}
+		else
+		{
+
+			intersection(mesh.coordinates(s - mesh_type::_DA),
+					mesh.coordinates(s + mesh_type::_DA), x0, x1, x2);
+		}
+
+	}
+
+}
+
+template<typename TM, typename TI>
+size_t line_segment_cut_cell(TM const & mesh, typename TM::id_type node_id,
+		TI const &i0, std::multimap<typename TM::id_type, TI>* res)
 {
 	typedef TM mesh_type;
 	typedef typename mesh_type::coordinates_type coordinates_type;
@@ -63,61 +111,33 @@ size_t cut_cell(TM const & mesh, typename TM::id_type node_id, TI const &i0,
 	++it;
 	coordinates_type x1 = *it;
 
-	coordinates_type x2;
+	id_type s0 = std::get<0>(mesh.coordinates_global_to_local(x0, node_id));
 
-	coordinates_type xmin, xmax;
+	id_type s1 = std::get<0>(mesh.coordinates_global_to_local(x1, node_id));
 
-	std::tie(xmin, xmax) = bound(bound(x0, x1), x2);
-
-	id_type s0 = std::get<0>(mesh.coordinates_global_to_local(xmin))
-			- (mesh_type::_DA << 1UL);
-
-	id_type s1 = std::get<0>(mesh.coordinates_global_to_local(xmax))
-			+ (mesh_type::_DA << 1UL);
-
-	typename mesh_type::range_type r(s0, s1);
-
-	if ()
+	for (auto s : mesh.box(bound(x0, x1), node_id))
 	{
+		id_type code0 = mesh.out_code(s, s0);
+		id_type code1 = mesh.out_code(s, s1);
 
-	}
-	auto r =;
-	for (auto s : r)
-	{
-		if (intersection(mesh.coordinates(s - mesh_type::_DA),
-				mesh.coordinates(s + mesh_type::_DA), x0, x1, x2))
+		if ((code0 & code1) != 0)
 		{
+			continue;
+		}
+		else if ((code0 | code1) == 0)
+		{
+			res->insert(std::make_pair(s, i0));
+		}
+		else
+		{
+			intersection(mesh.coordinates(s - mesh_type::_DA),
+					mesh.coordinates(s + mesh_type::_DA), x0, x1);
 			res->insert(std::make_pair(s, i0));
 		}
 	}
 
-	//8
 }
 
-template<typename TM, typename TI>
-size_t triangle_cut_cel(TM const & mesh, TI const & i0,
-		std::multimap<typename TM::id_type, TI>* res)
-{
-	TI it = i0;
-	coordinates_type x0 = *it;
-	++it;
-	coordinates_type x1 = *it;
-	++it;
-	coordinates_type x2 = *it;
-
-	auto r = mesh.box(bound(bound(x0, x1), x2));
-	for (auto s : r)
-	{
-		for (auto s : mesh.box(x0, x1))
-		{
-			if (intersection(mesh.coordinates(s - mesh_type::_DA),
-					mesh.coordinates(s + mesh_type::_DA), x0, x1, x2))
-			{
-				res->insert(std::make_pair(s, i0));
-			}
-		}
-	}
-}
 }
 // namespace simpla
 
