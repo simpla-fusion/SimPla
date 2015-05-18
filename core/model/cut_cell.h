@@ -15,40 +15,110 @@
 namespace simpla
 {
 
-template<typename TPolygon, typename TM>
-size_t cut_cell(TPolygon const & polygon,
-		std::map<typename TM::id_type, std::list<typename TM::coordinates_type>>* res)
+/**
+ *
+ *  TI **ib== TM::coordinates
+ *
+ * @param polygon
+ * @param res
+ * @return
+ */
+
+template<typename TM, typename TSplicesIter>
+size_t cut_cell(TM const & mesh, TSplicesIter const & ib,
+		TSplicesIter const & ie,
+		std::map<typename TM::id_type,
+				typename std::iterator_traits<TSplicesIter>::value_type>* res)
 {
-	typedef TM mesh_type;
 
-	auto it = make_cycle_iterator(polygon.begin(), polygon.end());
-
-	auto ie = polygon.end();
-
-	typename mesh_type::id_type s0 = 0;
-
-	typename mesh_type::coordinates_type x0;
-
-	x0 = *(it--);
-
-	for (; it != ie; ++it)
+	for (auto it = ib; it != ie; ++it)
 	{
-
-		auto s1 = std::get<0>(mesh_type::coordinate_global_to_local(*it));
-
-		if (s0 == s1)
-		{
-			(*res)[s1].push_back(*it);
-
-			x0 = *it;
-
-			continue;
-		}
-
-
-
+		line_segment_cut_cel(it, res);
 	}
 }
-}  // namespace simpla
+
+template<typename T0, typename T1, typename T2, typename T3, typename T4>
+bool intersection_cell(T0 const & min, T1 const & max, T2 const & x0,
+		T3 const & x1, T4 const & x3)
+{
+	return true;
+}
+
+bool intersection_cell(std::int64_t const & min, std::int64_t const & max,
+		std::int64_t const & x0, std::int64_t const & x1,
+		std::int64_t const & x3)
+{
+	return false;
+}
+template<typename TM, typename TI>
+size_t cut_cell(TM const & mesh, typename TM::id_type node_id, TI const &i0,
+		std::multimap<typename TM::id_type, TI>* res, int ZAXIS = 0)
+{
+	typedef TM mesh_type;
+	typedef typename mesh_type::coordinates_type coordinates_type;
+	typedef typename mesh_type::id_type id_type;
+
+	TI it = i0;
+	coordinates_type x0 = *it;
+	++it;
+	coordinates_type x1 = *it;
+
+	coordinates_type x2;
+
+	coordinates_type xmin, xmax;
+
+	std::tie(xmin, xmax) = bound(bound(x0, x1), x2);
+
+	id_type s0 = std::get<0>(mesh.coordinates_global_to_local(xmin))
+			- (mesh_type::_DA << 1UL);
+
+	id_type s1 = std::get<0>(mesh.coordinates_global_to_local(xmax))
+			+ (mesh_type::_DA << 1UL);
+
+	typename mesh_type::range_type r(s0, s1);
+
+	if ()
+	{
+
+	}
+	auto r =;
+	for (auto s : r)
+	{
+		if (intersection(mesh.coordinates(s - mesh_type::_DA),
+				mesh.coordinates(s + mesh_type::_DA), x0, x1, x2))
+		{
+			res->insert(std::make_pair(s, i0));
+		}
+	}
+
+	//8
+}
+
+template<typename TM, typename TI>
+size_t triangle_cut_cel(TM const & mesh, TI const & i0,
+		std::multimap<typename TM::id_type, TI>* res)
+{
+	TI it = i0;
+	coordinates_type x0 = *it;
+	++it;
+	coordinates_type x1 = *it;
+	++it;
+	coordinates_type x2 = *it;
+
+	auto r = mesh.box(bound(bound(x0, x1), x2));
+	for (auto s : r)
+	{
+		for (auto s : mesh.box(x0, x1))
+		{
+			if (intersection(mesh.coordinates(s - mesh_type::_DA),
+					mesh.coordinates(s + mesh_type::_DA), x0, x1, x2))
+			{
+				res->insert(std::make_pair(s, i0));
+			}
+		}
+	}
+}
+}
+// namespace simpla
 
 #endif /* CORE_MODEL_CUT_CELL_H_ */

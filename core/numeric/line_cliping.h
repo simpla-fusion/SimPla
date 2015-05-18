@@ -32,9 +32,10 @@ class polygon_clip
 	/* Two lookup tables for finding turning point.
 	 Tcc is used to compute a correct offset.
 	 Cra gives an index into the clipRegion array for turning point coordinates. */
-	size_t Tcc[15] = { 0, -3, -6, 1, 3, 0, 1, 0, 6, 1, 0, 0, 1, 0, 0, 0 };
-	size_t Cra[15] = { -1, -1, -1, 3, -1, -1, 2, -1, -1, 1, -1, -1, 0, -1, -1,
-			-1 };
+	size_t Tcc[15] =
+	{ 0, -3, -6, 1, 3, 0, 1, 0, 6, 1, 0, 0, 1, 0, 0, 0 };
+	size_t Cra[15] =
+	{ -1, -1, -1, 3, -1, -1, 2, -1, -1, 1, -1, -1, 0, -1, -1, -1 };
 
 	struct pnt2d
 	{
