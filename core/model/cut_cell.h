@@ -205,47 +205,15 @@ namespace simpla
 //}
 template<typename TM, typename TX>
 int line_segment_cut_cell(TM const & mesh, typename TM::id_type node_id,
-		TX const &x0, TX const & x1, std::set<typename TM::id_type>* res,
-		Real epsilon = 0.01)
+		TX const &y0, TX const & y1, std::set<typename TM::id_type>* res)
 {
 	typedef TM mesh_type;
-
-	for (int i = 0; i < 3; ++i)
-	{
-		if (mesh.dx()[i] < EPSILON)
-		{
-			continue;
-		}
-
-		auto face_id = ((node_id) & (~(1UL << i)))
-				| ((((node_id) & (1UL << i)) == 0) << i);
-		CHECK_BIT(face_id);
-		Real q0 = mesh.coordinates(
-				std::get<0>(mesh.coordinates_global_to_local(x0, face_id)))[i];
-
-		Real q1 = mesh.coordinates(
-				std::get<0>(mesh.coordinates_global_to_local(x1, face_id)))[i];
-
-		int n = std::abs(q1 - q0) / mesh.dx()[i];
-
-		for (int i = 0; i < n; ++i)
-		{
-			Real q = q0 + i * (q1 - q0) / n;
-
-			Real t = (q - x0[i]) / (x1[i] - x0[i]);
-
-			if (t >= 0 && t < 1)
-			{
-				auto s = std::get<0>(
-						mesh.coordinates_global_to_local(x0 + t * (x1 - x0),
-								face_id));
-
-				res->insert(s + (mesh_type::_D << (mesh_type::ID_DIGITS * i)));
-				res->insert(s - (mesh_type::_D << (mesh_type::ID_DIGITS * i)));
-			}
-		}
-
-	}
+	typedef typename mesh_type::topology_type topology_type;
+	typedef typename mesh_type::coordinates_type coordinates_type;
+	typedef typename mesh_type::id_type id_type;
+	coordinates_type x0 = mesh.inv_map(y0);
+	coordinates_type x1 = mesh.inv_map(y1);
+	topology_type::cut_cell(node_id, x0, x1, res);
 	return res->size();
 }
 //template<typename TM, typename TX>
