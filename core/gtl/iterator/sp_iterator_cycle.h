@@ -16,13 +16,18 @@ struct CycleIterator: public TBaseIterator
 {
 	typedef TBaseIterator base_iterator;
 	typedef CycleIterator<base_iterator> this_type;
-
 private:
 	base_iterator m_begin_, m_end_;
 public:
 
 	CycleIterator(base_iterator const & b, base_iterator const &e)
 			: base_iterator(b), m_begin_(b), m_end_(e)
+	{
+	}
+
+	CycleIterator(base_iterator const &self, base_iterator const & b,
+			base_iterator const &e)
+			: base_iterator(self), m_begin_(b), m_end_(e)
 	{
 	}
 	CycleIterator(this_type const & other)
@@ -45,6 +50,7 @@ public:
 		std::swap(m_begin_, other.m_begin_);
 		std::swap(m_end_, other.m_end_);
 	}
+
 	this_type & operator=(this_type & other)
 	{
 		this_type(other).swap(*this);
@@ -67,6 +73,14 @@ public:
 
 		return *this;
 	}
+
+	this_type operator++(int) const
+	{
+		this_type res(*this);
+		++res;
+		return std::move(res);
+
+	}
 	this_type & operator--()
 	{
 
@@ -79,6 +93,13 @@ public:
 
 		return *this;
 	}
+	this_type operator--(int) const
+	{
+		this_type res(*this);
+		--res;
+		return std::move(res);
+
+	}
 };
 
 template<typename TIterator>
@@ -87,7 +108,12 @@ CycleIterator<TIterator> make_cycle_iterator(TIterator const & b,
 {
 	return CycleIterator<TIterator>(b, e);
 }
-
+template<typename TIterator>
+CycleIterator<TIterator> make_cycle_iterator(TIterator const & self,
+		TIterator const & b, TIterator const &e)
+{
+	return CycleIterator<TIterator>(self, b, e);
+}
 }  // namespace simpla
 
 #endif /* CORE_GTL_ITERATOR_SP_ITERATOR_CYCLE_H_ */
