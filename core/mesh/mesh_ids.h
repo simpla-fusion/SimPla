@@ -946,63 +946,49 @@ template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs
 typedef MeshIDs_<3, 4> MeshIDs;
 
 template<size_t N, size_t M>
-void MeshIDs_<N, M>::cut_cell(coordinates_type const & x0,
-		coordinates_type const & x1, std::set<id_type>*res, id_type node_id,
+void MeshIDs_<N, M>::cut_cell(coordinates_type const & px0,
+		coordinates_type const & px1, std::set<id_type>*res, id_type node_id,
 		int ZAXIS)
 {
 
-	for (int i = 0; i < 3; ++i)
+	coordinates_type x0 = px0 - m_id_to_coordinates_shift_[node_id];
+
+	coordinates_type x1 = px1 - m_id_to_coordinates_shift_[node_id];
+
+	id_type face_node[3] = { 6, 5, 3 };
+
+	for (int axe = 0; axe < 3; ++axe)
 	{
 
-		id_type ds = (_D << (ID_DIGITS * i));
+		Real min = std::floor((std::min(x0[axe], x1[axe])) / (_R * 2)) * (_R * 2);
+		Real max = std::floor((std::max(x0[axe], x1[axe])) / (_R * 2)) * (_R * 2);
 
-		id_type face_shift = (m_id_to_shift_[node_id] + ds)
-				& (~PRIMARY_ID_MASK);
-
-		coordinates_type face_coord_shift = unpack(face_shift);
-
-		Real min = std::floor(
-				(std::min(x0[i], x1[i]) - face_coord_shift[i]) / (_R * 2))
-				* (_R * 2) - face_coord_shift[i];
-		Real max = std::floor(
-				(std::max(x0[i], x1[i]) + face_coord_shift[i]) / (_R * 2))
-				* (_R * 2) + face_coord_shift[i];
-
-		if (std::abs(x1[i] - x0[i]) < EPSILON)
+		if (std::abs(x1[axe] - x0[axe]) < EPSILON)
 		{
-			if (std::abs(x1[i] - min) > EPSILON)
-			{
-				continue;
-			}
-			else
-			{
-
-			}
+			continue;
 		}
 		else
 		{
 			for (Real x = min; x <= max; x += (_R * 2))
 			{
 
-				Real t = (x - x0[i]) / (x1[i] - x0[i]);
+				Real t = (x - x0[axe]) / (x1[axe] - x0[axe]);
 
 				if (t < 0 || t > 1)
 				{
 					continue;
 				}
+				coordinates_type y;
 
-				id_type s = (pack(x0 + t * (x1 - x0) - face_coord_shift + _R)
-						& PRIMARY_ID_MASK) | face_shift;
-//			coordinates_type y = { 0, 0, 0 };
-//			CHECK(x);
-//			CHECK(t);
-//			y = x0 + t * (x1 - x0);
-//			CHECK(y);
-//			y = y - face_coord_shift + _R;
-//			CHECK(y);
+				y = x0 + t * (x1 - x0);
 
-				res->insert(s + ds);
-				res->insert(s - ds);
+				id_type s = (pack(y) & PRIMARY_ID_MASK)
+						| m_id_to_shift_[face_node[axe]];
+
+				res->insert(s + m_id_to_shift_[node_id]);
+
+//				res->insert(s + ds);
+//				res->insert(s - ds);
 
 			}
 
