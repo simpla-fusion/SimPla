@@ -14,7 +14,7 @@ Mesh={
     Box={{0.0,0.0,0.0},{LX,LY,LZ}}
 }
 
-
+NodeId=1
 
 Polylines={
   { 0.0 , 1 ,0 },

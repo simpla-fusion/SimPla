@@ -253,7 +253,9 @@ USE_CASE(model,"Cut Cell")
 
 	std::vector<coordinates_type> p0, p1, p2, p3, p4, p5, p6, p7;
 
+	size_t node_id = 0;
 	options["Polylines"].as(&p0);
+	options["NodeId"].as(&node_id);
 
 	if (p0.empty())
 	{
@@ -262,7 +264,7 @@ USE_CASE(model,"Cut Cell")
 
 	std::multimap<id_type, decltype(p0.begin())> b_cell;
 
-	CHECK(polygen_cut_cell(*mesh, 7, p0.begin(), p0.end(), &b_cell));
+	CHECK(polygen_cut_cell(*mesh, p0.begin(), p0.end(), &b_cell, node_id));
 
 	for (auto const & item : b_cell)
 	{
