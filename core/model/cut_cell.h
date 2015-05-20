@@ -15,15 +15,122 @@
 namespace simpla
 {
 
-///**
-// *
-// *  TI **ib== TM::coordinates
-// *
-// * @param polygon
-// * @param res
-// * @return
-// */
+/**
+ *
+ *  TI **ib== TM::coordinates
+ *
+ * @param polygon
+ * @param res
+ * @return
+ */
+
+
+template<typename TM, typename TX>
+int line_segment_cut_cell(TM const & mesh, TX const &y0, TX const & y1,
+		std::set<typename TM::id_type>* res, typename TM::id_type node_id)
+{
+	typedef TM mesh_type;
+	typedef typename mesh_type::topology_type topology_type;
+	typedef typename mesh_type::coordinates_type coordinates_type;
+	typedef typename mesh_type::id_type id_type;
+	coordinates_type x0 = mesh.inv_map(y0);
+	coordinates_type x1 = mesh.inv_map(y1);
+	topology_type::cut_cell(x0, x1, res, node_id);
+	return res->size();
+}
+
+
+template<typename TM, typename T0, typename T1>
+int polygen_cut_cell(TM const & mesh, T0 const &b, T1 const & e,
+		std::multimap<typename TM::id_type, T0>* res,
+		typename TM::id_type node_id = 0)
+{
+	typedef TM mesh_type;
+	typedef typename mesh_type::coordinates_type coordinates_type;
+	typedef typename mesh_type::id_type id_type;
+
+	int count = 0;
+
+	for (auto i0 = b; i0 != e; ++i0)
+	{
+		auto i1 = i0;
+		++i1;
+		if (i1 == e)
+		{
+			i1 = b;
+		}
+		std::set<id_type> ids;
+		count += line_segment_cut_cell(mesh, *i0, *i1, &ids, node_id);
+		for (auto id : ids)
+		{
+			res->insert(std::make_pair(id, i0));
+		}
+
+	}
+	return count;
+}
+
+//template<typename TM, typename TX>
+//int line_segment_cut_cell(TM const & mesh, typename TM::id_type node_id,
+//		TX const &x0, TX const & x1, typename TM::id_type s0,
+//		typename TM::id_type s1, std::set<typename TM::id_type>* res,
+//		Real epsilon = 0.01)
+//{
+//	int count = 0;
+//	if ((mesh.diff_index(s0, s1) != 0)
+//			&& ((inner_product(x1 - x0, x1 - x0))
+//					> epsilon * inner_product(mesh.dx(), mesh.dx())))
+//	{
+//		typename TM::coordinates_type xc;
 //
+//		xc = (x1 + x0) * 0.5;
+//
+//		auto sc = std::get<0>(mesh.coordinates_global_to_local(xc, node_id));
+//
+//		res->insert(sc);
+//
+//		++count;
+//
+//		count += line_segment_cut_cell(mesh, node_id, x0, xc, s0, sc, res,
+//				epsilon);
+//
+//		count += line_segment_cut_cell(mesh, node_id, xc, x1, sc, s1, res,
+//				epsilon);
+//
+//	}
+//
+//	return count;
+//}
+//template<typename TM, typename TX>
+//void triangle_cut_cell(TM const & mesh, typename TM::id_type node_id,
+//		TX const &x0, TX const & x1, TX const & x2,
+//		std::set<typename TM::id_type>* res)
+//{
+//	typedef TM mesh_type;
+//	typedef typename mesh_type::coordinates_type coordinates_type;
+//	typedef typename mesh_type::id_type id_type;
+//
+//	coordinates_type dims0;
+//	dims0 = (x1 - x0) / mesh.dx();
+//	coordinates_type dims1;
+//	dims1 = (x2 - x0) / mesh.dx();
+//
+//	auto n0 = std::max(std::max(dims0[0], dims0[1]), dims0[2]);
+//	auto n1 = std::max(std::max(dims1[0], dims1[1]), dims1[2]);
+//	coordinates_type dx0 = (x1 - x0) / n0;
+//	coordinates_type dx1 = (x2 - x0) / n1;
+//
+//	for (size_t i = 0; i <= n0; ++i)
+//		for (size_t j = 0; j <= n1; ++j)
+//		{
+//			res->insert(
+//					std::get<0>(
+//							mesh.coordinates_global_to_local(
+//									x0 + dx0 * i + dx1 * j, node_id)));
+//		}
+//
+//}
+
 //template<typename TM, typename TSplicesIter>
 //size_t cut_cell(TM const & mesh, TSplicesIter const & ib,
 //		TSplicesIter const & ie,
@@ -125,7 +232,6 @@ namespace simpla
 //	}
 //
 //}
-
 //template<typename TM, typename TI>
 //size_t line_segment_cut_cell(TM const & mesh, typename TM::id_type node_id,
 //		TI const &i0, std::multimap<typename TM::id_type, TI>* res)
@@ -203,109 +309,6 @@ namespace simpla
 //		}
 //	}
 //}
-template<typename TM, typename TX>
-int line_segment_cut_cell(TM const & mesh, TX const &y0, TX const & y1,
-		std::set<typename TM::id_type>* res, typename TM::id_type node_id)
-{
-	typedef TM mesh_type;
-	typedef typename mesh_type::topology_type topology_type;
-	typedef typename mesh_type::coordinates_type coordinates_type;
-	typedef typename mesh_type::id_type id_type;
-	coordinates_type x0 = mesh.inv_map(y0);
-	coordinates_type x1 = mesh.inv_map(y1);
-	topology_type::cut_cell(x0, x1, res, node_id);
-	return res->size();
-}
-//template<typename TM, typename TX>
-//int line_segment_cut_cell(TM const & mesh, typename TM::id_type node_id,
-//		TX const &x0, TX const & x1, typename TM::id_type s0,
-//		typename TM::id_type s1, std::set<typename TM::id_type>* res,
-//		Real epsilon = 0.01)
-//{
-//	int count = 0;
-//	if ((mesh.diff_index(s0, s1) != 0)
-//			&& ((inner_product(x1 - x0, x1 - x0))
-//					> epsilon * inner_product(mesh.dx(), mesh.dx())))
-//	{
-//		typename TM::coordinates_type xc;
-//
-//		xc = (x1 + x0) * 0.5;
-//
-//		auto sc = std::get<0>(mesh.coordinates_global_to_local(xc, node_id));
-//
-//		res->insert(sc);
-//
-//		++count;
-//
-//		count += line_segment_cut_cell(mesh, node_id, x0, xc, s0, sc, res,
-//				epsilon);
-//
-//		count += line_segment_cut_cell(mesh, node_id, xc, x1, sc, s1, res,
-//				epsilon);
-//
-//	}
-//
-//	return count;
-//}
-//template<typename TM, typename TX>
-//void triangle_cut_cell(TM const & mesh, typename TM::id_type node_id,
-//		TX const &x0, TX const & x1, TX const & x2,
-//		std::set<typename TM::id_type>* res)
-//{
-//	typedef TM mesh_type;
-//	typedef typename mesh_type::coordinates_type coordinates_type;
-//	typedef typename mesh_type::id_type id_type;
-//
-//	coordinates_type dims0;
-//	dims0 = (x1 - x0) / mesh.dx();
-//	coordinates_type dims1;
-//	dims1 = (x2 - x0) / mesh.dx();
-//
-//	auto n0 = std::max(std::max(dims0[0], dims0[1]), dims0[2]);
-//	auto n1 = std::max(std::max(dims1[0], dims1[1]), dims1[2]);
-//	coordinates_type dx0 = (x1 - x0) / n0;
-//	coordinates_type dx1 = (x2 - x0) / n1;
-//
-//	for (size_t i = 0; i <= n0; ++i)
-//		for (size_t j = 0; j <= n1; ++j)
-//		{
-//			res->insert(
-//					std::get<0>(
-//							mesh.coordinates_global_to_local(
-//									x0 + dx0 * i + dx1 * j, node_id)));
-//		}
-//
-//}
-
-template<typename TM, typename T0, typename T1>
-int polygen_cut_cell(TM const & mesh, T0 const &b, T1 const & e,
-		std::multimap<typename TM::id_type, T0>* res,
-		typename TM::id_type node_id = 0)
-{
-	typedef TM mesh_type;
-	typedef typename mesh_type::coordinates_type coordinates_type;
-	typedef typename mesh_type::id_type id_type;
-
-	int count = 0;
-
-	for (auto i0 = b; i0 != e; ++i0)
-	{
-		auto i1 = i0;
-		++i1;
-		if (i1 == e)
-		{
-			i1 = b;
-		}
-		std::set<id_type> ids;
-		count += line_segment_cut_cell(mesh, *i0, *i1, &ids, node_id);
-		for (auto id : ids)
-		{
-			res->insert(std::make_pair(id, i0));
-		}
-
-	}
-	return count;
-}
 }
 // namespace simpla
 
