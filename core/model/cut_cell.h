@@ -15,37 +15,12 @@
 namespace simpla
 {
 
-/**
- *
- *  TI **ib== TM::coordinates
- *
- * @param polygon
- * @param res
- * @return
- */
-
-
-template<typename TM, typename TX>
-int line_segment_cut_cell(TM const & mesh, TX const &y0, TX const & y1,
-		std::set<typename TM::id_type>* res, typename TM::id_type node_id)
+template<typename TM, typename T0, typename T1, typename ...Args>
+void polygen_cut_cell(TM const & mesh, T0 const &b, T1 const & e,
+		Args && ...args)
 {
 	typedef TM mesh_type;
 	typedef typename mesh_type::topology_type topology_type;
-	typedef typename mesh_type::coordinates_type coordinates_type;
-	typedef typename mesh_type::id_type id_type;
-	coordinates_type x0 = mesh.inv_map(y0);
-	coordinates_type x1 = mesh.inv_map(y1);
-	topology_type::cut_cell(x0, x1, res, node_id);
-	return res->size();
-}
-
-
-template<typename TM, typename T0, typename T1>
-int polygen_cut_cell(TM const & mesh, T0 const &b, T1 const & e,
-		std::multimap<typename TM::id_type, T0>* res,
-		typename TM::id_type node_id = 0)
-{
-	typedef TM mesh_type;
 	typedef typename mesh_type::coordinates_type coordinates_type;
 	typedef typename mesh_type::id_type id_type;
 
@@ -59,15 +34,15 @@ int polygen_cut_cell(TM const & mesh, T0 const &b, T1 const & e,
 		{
 			i1 = b;
 		}
-		std::set<id_type> ids;
-		count += line_segment_cut_cell(mesh, *i0, *i1, &ids, node_id);
-		for (auto id : ids)
-		{
-			res->insert(std::make_pair(id, i0));
-		}
+		coordinates_type x0 = mesh.inv_map(*i0);
+
+		coordinates_type x1 = mesh.inv_map(*i1);
+
+		std::multimap<id_type,Real> t_list;
+
+		topology_type::cut_cell(x0, x1, std::forward<Args>(args)...);
 
 	}
-	return count;
 }
 
 //template<typename TM, typename TX>

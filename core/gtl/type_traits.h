@@ -32,7 +32,7 @@ struct do_nothing
 {
 	template<typename ...Args>
 	void operator()(Args &&...) const
-	{
+			{
 	}
 };
 template<typename T>
@@ -422,7 +422,7 @@ template<typename _Signature>
 class sp_result_of
 {
 	typedef typename std::result_of<_Signature>::type _type;
-public:
+	public:
 	typedef typename sp_pod_traits<_type>::type type;
 
 };
@@ -479,6 +479,41 @@ T assign_cast(U const & s)
 	T res;
 	res = s;
 	return std::move(res);
+}
+
+template<typename T>
+T const & min(T const & first, T const & second)
+{
+	return std::min(first, second);
+}
+
+template<typename T>
+T const & min(T const & first)
+{
+	return first;
+}
+template<typename T, typename ...Others>
+T const & min(T const & first, Others &&... others)
+{
+	return min(first, min(std::forward<Others>(others)...));
+}
+
+template<typename T>
+T const & max(T const & first, T const & second)
+{
+	return std::max(first, second);
+}
+
+template<typename T>
+T const & max(T const & first)
+{
+	return first;
+}
+
+template<typename T, typename ...Others>
+T const & max(T const & first, Others &&...others)
+{
+	return max(first, max(std::forward<Others>(others)...));
 }
 }
 // namespace simpla

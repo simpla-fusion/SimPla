@@ -262,9 +262,9 @@ USE_CASE(model,"Cut Cell")
 		return;
 	}
 
-	std::multimap<id_type, decltype(p0.begin())> b_cell;
+	std::multimap<id_type, Real> b_cell;
 
-	CHECK(polygen_cut_cell(*mesh, p0.begin(), p0.end(), &b_cell, node_id));
+	polygen_cut_cell(*mesh, p0.begin(), p0.end(), &b_cell, node_id);
 
 	for (auto const & item : b_cell)
 	{
@@ -272,28 +272,29 @@ USE_CASE(model,"Cut Cell")
 
 		p1.push_back(x0);
 
-		coordinates_type q0, q1;
+		p2.push_back(mesh->pull_back(x0, item.second));
 
-		auto it = item.second;
+		//		coordinates_type q0, q1;
+		//
+		//		auto it = item.second;
+		//
+		//		q0 = *(it);
+		//		++it;
+		//		if (it == p0.end())
+		//		{
+		//			it = p0.begin();
+		//		}
+		//		q1 = *(it);
+		//
+		//		Vec3 normal;
+		//
+		//		normal = (x0 - q0)
+		//				- (q1 - q0)
+		//						* (inner_product(x0 - q0, q1 - q0)
+		//								/ inner_product(q1 - q0, q1 - q0));
 
-		q0 = *(it);
-		++it;
-		if (it == p0.end())
-		{
-			it = p0.begin();
-		}
-		q1 = *(it);
-
-		Vec3 normal;
-
-		normal = (x0 - q0)
-				- (q1 - q0)
-						* (inner_product(x0 - q0, q1 - q0)
-								/ inner_product(q1 - q0, q1 - q0));
-
-		p2.push_back(normal);
 	}
-	CHECK(p1.size());
+
 	p0.push_back(p0.front());
 
 	LOGGER << SAVE(p0) << std::endl;

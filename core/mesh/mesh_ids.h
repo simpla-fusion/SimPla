@@ -11,7 +11,7 @@
 #include <stddef.h>
 #include <limits>
 #include <tuple>
-
+#include <map>
 #include "../gtl/ntuple.h"
 #include "../gtl/primitives.h"
 
@@ -136,12 +136,12 @@ struct MeshIDs_
 	static constexpr Vec3 dx()
 	{
 		return Vec3(
-		{ COORDINATES_MESH_FACTOR, COORDINATES_MESH_FACTOR,
-				COORDINATES_MESH_FACTOR });
+				{ COORDINATES_MESH_FACTOR, COORDINATES_MESH_FACTOR,
+						COORDINATES_MESH_FACTOR });
 	}
 
 	static constexpr id_type m_sub_index_to_id_[4][3] =
-	{ //
+			{ //
 
 			{ 0, 0, 0 }, /*VERTEX*/
 			{ 1, 2, 4 }, /*EDGE*/
@@ -151,22 +151,22 @@ struct MeshIDs_
 			};
 
 	static constexpr id_type m_id_to_sub_index_[8] =
-	{ //
+			{ //
 
 			0, // 000
-					0, // 001
-					1, // 010
-					2, // 011
-					2, // 100
-					1, // 101
-					0, // 110
-					0, // 111
+			0, // 001
+			1, // 010
+			2, // 011
+			2, // 100
+			1, // 101
+			0, // 110
+			0, // 111
 			};
 
 	static constexpr id_type m_id_to_shift_[] =
-	{
+			{
 
-	0,   					// 000
+			0,   					// 000
 			_DI,   					// 001
 			_DJ,   					// 010
 			(_DI | _DJ),   					// 011
@@ -178,9 +178,9 @@ struct MeshIDs_
 			};
 
 	static constexpr coordinates_type m_id_to_coordinates_shift_[] =
-	{
+			{
 
-	{ 0, 0, 0 },            // 000
+			{ 0, 0, 0 },            // 000
 			{ _R, 0, 0 },           // 001
 			{ 0, _R, 0 },           // 010
 			{ 0, 0, _R },           // 011
@@ -192,9 +192,9 @@ struct MeshIDs_
 			};
 
 	static constexpr id_type m_id_to_num_of_ele_in_cell_[] =
-	{
+			{
 
-	1,   		// 000
+			1,   		// 000
 			3,   		// 001
 			3,   		// 010
 			3,   		// 011
@@ -205,16 +205,16 @@ struct MeshIDs_
 			};
 
 	static constexpr id_type m_id_to_iform_[] =
-	{ //
+			{ //
 
 			VERTEX, // 000
-					EDGE, // 001
-					EDGE, // 010
-					FACE, // 011
-					EDGE, // 100
-					FACE, // 101
-					FACE, // 110
-					VOLUME // 111
+			EDGE, // 001
+			EDGE, // 010
+			FACE, // 011
+			EDGE, // 100
+			FACE, // 101
+			FACE, // 110
+			VOLUME // 111
 			};
 	template<size_t IFORM>
 	static constexpr id_type sub_index_to_id(int n = 0)
@@ -250,29 +250,29 @@ struct MeshIDs_
 	static constexpr id_tuple unpack(id_type s)
 	{
 		return id_tuple(
-		{
+				{
 
-		UNPACK_ID(s, 0),
+				UNPACK_ID(s, 0),
 
-		UNPACK_ID(s, 1),
+				UNPACK_ID(s, 1),
 
-		UNPACK_ID(s, 2)
+				UNPACK_ID(s, 2)
 
-		});;
+				});;
 	}
 
 	static constexpr index_tuple unpack_index(id_type s)
 	{
 		return index_tuple(
-		{
+				{
 
-		UNPACK_INDEX(s, 0),
+				UNPACK_INDEX(s, 0),
 
-		UNPACK_INDEX(s, 1),
+				UNPACK_INDEX(s, 1),
 
-		UNPACK_INDEX(s, 2)
+				UNPACK_INDEX(s, 2)
 
-		});
+				});
 
 	}
 
@@ -375,16 +375,16 @@ struct MeshIDs_
 	}
 
 	static constexpr id_type m_id_to_index_[8] =
-	{ //
+			{ //
 
 			0, // 000
-					0, // 001
-					1, // 010
-					2, // 011
-					2, // 100
-					1, // 101
-					0, // 110
-					0, // 111
+			0, // 001
+			1, // 010
+			2, // 011
+			2, // 100
+			1, // 101
+			0, // 110
+			0, // 111
 			};
 
 	static constexpr id_type sub_index(id_type const &s)
@@ -425,17 +425,17 @@ struct MeshIDs_
 
 	{ // VERTEX
 			{
-			/* 000*/1,
-			/* 001*/2,
-			/* 010*/2,
-			/* 011*/4,
-			/* 100*/2,
-			/* 101*/4,
-			/* 110*/4,
-			/* 111*/8 },
+					/* 000*/1,
+					/* 001*/2,
+					/* 010*/2,
+					/* 011*/4,
+					/* 100*/2,
+					/* 101*/4,
+					/* 110*/4,
+					/* 111*/8 },
 
 			// EDGE
-					{
+			{
 					/* 000*/6,
 					/* 001*/1,
 					/* 010*/1,
@@ -445,8 +445,8 @@ struct MeshIDs_
 					/* 110*/4,
 					/* 111*/12 },
 
-					// FACE
-					{
+			// FACE
+			{
 					/* 000*/12,
 					/* 001*/4,
 					/* 010*/4,
@@ -456,8 +456,8 @@ struct MeshIDs_
 					/* 110*/1,
 					/* 111*/6 },
 
-					// VOLUME
-					{
+			// VOLUME
+			{
 					/* 000*/8,
 					/* 001*/4,
 					/* 010*/4,
@@ -470,132 +470,132 @@ struct MeshIDs_
 			};
 
 	static constexpr id_type m_vertics_matrix_[4/* to iform*/][8/* node id*/][MAX_NUM_OF_CELL/*id shift*/] =
-	{
-	//To VERTEX
 			{
+					//To VERTEX
+					{
 
-			/* 000*/
-			{ 0 },
-			/* 001*/
-			{ _LI, _HI },
-			/* 010*/
-			{ _LJ, _HJ },
-			/* 011*/
-			{ _LI | _LJ, _HI | _LJ, _HI | _HJ, _LI | _HJ },
-			/* 100*/
-			{ _LK, _HK },
-			/* 101*/
-			{ _LK | _LI, _HK | _LI, _HK | _HI, _LK | _HI },
-			/* 110*/
-			{ _LJ | _LK, _HJ | _LK, _HJ | _HK, _LJ | _HK },
-			/* 111*/
-			{ _LI | _LJ | _LK, //
-			_HI | _LJ | _LK, //
-			_HI | _HJ | _LK, //
-			_LI | _HJ | _LK, //
+					/* 000*/
+					{ 0 },
+							/* 001*/
+							{ _LI, _HI },
+							/* 010*/
+							{ _LJ, _HJ },
+							/* 011*/
+							{ _LI | _LJ, _HI | _LJ, _HI | _HJ, _LI | _HJ },
+							/* 100*/
+							{ _LK, _HK },
+							/* 101*/
+							{ _LK | _LI, _HK | _LI, _HK | _HI, _LK | _HI },
+							/* 110*/
+							{ _LJ | _LK, _HJ | _LK, _HJ | _HK, _LJ | _HK },
+							/* 111*/
+							{ _LI | _LJ | _LK, //
+							_HI | _LJ | _LK, //
+							_HI | _HJ | _LK, //
+							_LI | _HJ | _LK, //
 
-			_LI | _LJ | _HK, //
-			_HI | _LJ | _HK, //
-			_HI | _HJ | _HK, //
-			_LI | _HJ | _HK }
+							_LI | _LJ | _HK, //
+							_HI | _LJ | _HK, //
+							_HI | _HJ | _HK, //
+							_LI | _HJ | _HK }
 
-			},
+					},
 
-			//To EDGE
-			{
-			/* 000*/
-			{ _HI, _LI, _HJ, _LJ, _HK, _LK },
-			/* 001*/
-			{ 0 },
-			/* 010*/
-			{ 0 },
-			/* 011*/
-			{ _LJ, _HI, _HJ, _LI },
-			/* 100*/
-			{ 0 },
-			/* 101*/
-			{ _LI, _HK, _HI, _LK },
-			/* 110*/
-			{ _LK, _HJ, _HK, _LJ },
-			/* 111*/
-			{ _LK | _LJ,  //-> 001
-			_LK | _HI,  //   012
-			_LK | _HJ,  //   021
-			_LK | _LI,  //   010
+					//To EDGE
+					{
+							/* 000*/
+							{ _HI, _LI, _HJ, _LJ, _HK, _LK },
+							/* 001*/
+							{ 0 },
+							/* 010*/
+							{ 0 },
+							/* 011*/
+							{ _LJ, _HI, _HJ, _LI },
+							/* 100*/
+							{ 0 },
+							/* 101*/
+							{ _LI, _HK, _HI, _LK },
+							/* 110*/
+							{ _LK, _HJ, _HK, _LJ },
+							/* 111*/
+							{ _LK | _LJ,  //-> 001
+							_LK | _HI,  //   012
+							_LK | _HJ,  //   021
+							_LK | _LI,  //   010
 
-			_LI | _LJ,  //
-			_LI | _HJ,  //
-			_HI | _LJ,  //
-			_HI | _HI,  //
+							_LI | _LJ,  //
+							_LI | _HJ,  //
+							_HI | _LJ,  //
+							_HI | _HI,  //
 
-			_HK | _LJ,  //
-			_HK | _HI,  //
-			_HK | _HJ,  //
-			_HK | _LI  //
-			} },
+							_HK | _LJ,  //
+							_HK | _HI,  //
+							_HK | _HJ,  //
+							_HK | _LI  //
+							} },
 
-			//To FACE
-			{
-			/* 000*/
-			{ _LK | _LJ,  //
-			_LK | _HI,  //
-			_LK | _HJ,  //
-			_LK | _LI,  //
+					//To FACE
+					{
+							/* 000*/
+							{ _LK | _LJ,  //
+							_LK | _HI,  //
+							_LK | _HJ,  //
+							_LK | _LI,  //
 
-			_LI | _LJ,  //
-			_LI | _HJ,  //
-			_HI | _LJ,  //
-			_HI | _HI,  //
+							_LI | _LJ,  //
+							_LI | _HJ,  //
+							_HI | _LJ,  //
+							_HI | _HI,  //
 
-			_HK | _LJ,  //
-			_HK | _HI,  //
-			_HK | _HJ,  //
-			_HK | _LI  //
-			},
-			/* 001*/
-			{ _LJ, _HK, _HJ, _LK },
-			/* 010*/
-			{ _LK, _HI, _HK, _LI },
-			/* 011*/
-			{ 0 },
-			/* 100*/
-			{ _LI, _HJ, _HI, _LJ },
-			/* 101*/
-			{ 0 },
-			/* 110*/
-			{ 0 },
-			/* 111*/
-			{ _LI, _LJ, _LK, _HI, _HJ, _HK } },
-			// TO VOLUME
-			{
-			/* 000*/
-			{ _LI | _LJ | _LK,  //
-			_LI | _HJ | _LK,  //
-			_LI | _LJ | _HK,  //
-			_LI | _HJ | _HK,  //
+							_HK | _LJ,  //
+							_HK | _HI,  //
+							_HK | _HJ,  //
+							_HK | _LI  //
+							},
+							/* 001*/
+							{ _LJ, _HK, _HJ, _LK },
+							/* 010*/
+							{ _LK, _HI, _HK, _LI },
+							/* 011*/
+							{ 0 },
+							/* 100*/
+							{ _LI, _HJ, _HI, _LJ },
+							/* 101*/
+							{ 0 },
+							/* 110*/
+							{ 0 },
+							/* 111*/
+							{ _LI, _LJ, _LK, _HI, _HJ, _HK } },
+					// TO VOLUME
+					{
+							/* 000*/
+							{ _LI | _LJ | _LK,  //
+							_LI | _HJ | _LK,  //
+							_LI | _LJ | _HK,  //
+							_LI | _HJ | _HK,  //
 
-			_HI | _LJ | _LK,  //
-			_HI | _HJ | _LK,  //
-			_HI | _LJ | _HK,  //
-			_HI | _HJ | _HK  //
+							_HI | _LJ | _LK,  //
+							_HI | _HJ | _LK,  //
+							_HI | _LJ | _HK,  //
+							_HI | _HJ | _HK  //
 
-			},
-			/* 001*/
-			{ _LJ | _LK, _LJ | _HK, _HJ | _LK, _HJ | _HK },
-			/* 010*/
-			{ _LK | _LI, _LK | _HI, _HK | _LI, _HK | _HI },
-			/* 011*/
-			{ _LK, _HK },
-			/* 100*/
-			{ _LI | _LJ, _LI | _HJ, _HI | _LJ, _HI | _HJ },
-			/* 101*/
-			{ _LJ, _HJ },
-			/* 110*/
-			{ _LI, _HI },
-			/* 111*/
-			{ 0 } }
+							},
+							/* 001*/
+							{ _LJ | _LK, _LJ | _HK, _HJ | _LK, _HJ | _HK },
+							/* 010*/
+							{ _LK | _LI, _LK | _HI, _HK | _LI, _HK | _HI },
+							/* 011*/
+							{ _LK, _HK },
+							/* 100*/
+							{ _LI | _LJ, _LI | _HJ, _HI | _LJ, _HI | _HJ },
+							/* 101*/
+							{ _LJ, _HJ },
+							/* 110*/
+							{ _LI, _HI },
+							/* 111*/
+							{ 0 } }
 
-	};
+			};
 	template<size_t IFORM>
 	static int get_adjoints(id_type s, id_type * res = nullptr)
 	{
@@ -630,7 +630,7 @@ struct MeshIDs_
 //	private:
 
 		id_type m_min_, m_max_;
-	public:
+		public:
 
 		typedef id_type value_type;
 
@@ -671,7 +671,7 @@ struct MeshIDs_
 			return *this;
 		}
 		this_type operator&(this_type const & other) const
-		{
+				{
 			return *this;
 		}
 		void swap(this_type & other)
@@ -711,7 +711,7 @@ struct MeshIDs_
 
 		template<typename T>
 		bool in_box(T const & x) const
-		{
+				{
 			auto b = unpack_index(m_min_);
 			auto e = unpack_index(m_max_);
 			return (b[1] <= x[1]) && (b[2] <= x[2]) && (b[0] <= x[0])  //
@@ -719,7 +719,7 @@ struct MeshIDs_
 
 		}
 		constexpr bool in_box(id_type s) const
-		{
+				{
 			return in_box(unpack_index(s));
 		}
 		constexpr bool empty() const
@@ -749,7 +749,7 @@ struct MeshIDs_
 		{
 		private:
 			id_type m_min_, m_max_, m_self_;
-		public:
+			public:
 			iterator(id_type const & min, id_type const & max,
 					id_type const& self) :
 					m_min_(min), m_max_(max), m_self_(self)
@@ -774,11 +774,11 @@ struct MeshIDs_
 			typedef iterator this_type;
 
 			bool operator==(this_type const & other) const
-			{
+					{
 				return m_self_ == other.m_self_;
 			}
 			bool operator!=(this_type const & other) const
-			{
+					{
 				return m_self_ != other.m_self_;
 			}
 
@@ -916,8 +916,34 @@ struct MeshIDs_
 		;
 	}
 
+	/**
+	 *
+	 *
+	 *
+	 *  line intersection face
+	 * @param x0
+	 * @param x1
+	 * @param res
+	 * @param node_id id of cell
+	 */
+	template<typename TRes>
 	static void cut_cell(coordinates_type const & x0,coordinates_type const & x1,
-	std::set<id_type>*res,id_type node_id=7, int ZAXIS = 2);
+	TRes *res,id_type node_id=7 );
+
+	/**
+	 *
+	 */
+	/**
+	 * triangle intersection edge
+	 * @param x0
+	 * @param x1
+	 * @param x2
+	 * @param res
+	 * @param node_id id of cell
+	 */
+	template<typename TRes>
+	static void cut_cell(coordinates_type const & x0,coordinates_type const & x1,
+	coordinates_type const & x2,TRes*res,id_type node_id=7 );
 
 }
 ;
@@ -956,56 +982,137 @@ template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs
 typedef MeshIDs_<3, 4> MeshIDs;
 
 template<size_t N, size_t M>
+template<typename TRes>
 void MeshIDs_<N, M>::cut_cell(coordinates_type const & px0,
-		coordinates_type const & px1, std::set<id_type>*res, id_type node_id,
-		int ZAXIS)
+		coordinates_type const & px1, TRes*res,
+		id_type node_id)
 {
 
 	coordinates_type x0 = px0 - m_id_to_coordinates_shift_[node_id];
 
 	coordinates_type x1 = px1 - m_id_to_coordinates_shift_[node_id];
 
-	id_type face_node[3] =
-	{ 6, 5, 3 };
+	id_type face_id[3] = { 6, 5, 3 };
 
 	for (int axe = 0; axe < 3; ++axe)
 	{
 
-		Real min = std::floor((std::min(x0[axe], x1[axe])) / (_R * 2))
-				* (_R * 2);
-		Real max = std::floor((std::max(x0[axe], x1[axe])) / (_R * 2))
-				* (_R * 2);
-
-		if (std::abs(x1[axe] - x0[axe]) < EPSILON)
+		Real L1 = x1[axe] - x0[axe];
+		if (std::abs(L1) < EPSILON)
 		{
 			continue;
 		}
-		else
+
+		Real xmin = min(x0[axe], x1[axe]);
+		Real xmax = max(x0[axe], x1[axe]);
+
+		if ((xmax - xmin) < EPSILON)
 		{
-			for (Real x = min; x <= max; x += (_R * 2))
+			continue;
+		}
+
+		coordinates_type L = x1 - x0;
+
+		xmin = std::floor(xmin / (_R * 2)) * (_R * 2);
+		xmax = std::floor(xmax / (_R * 2) + 1) * (_R * 2);
+
+		for (Real x = xmin; x <= xmax; x += (_R * 2))
+		{
+
+			Real t = (x - x0[axe]) / L[axe];
+
+			if (t < 0 || t > 1)
+			{
+				continue;
+			}
+			coordinates_type y;
+
+			y = x0 + t * L;
+
+			id_type s = (pack(y) & PRIMARY_ID_MASK)
+					| m_id_to_shift_[face_id[axe]];
+
+			res->insert(std::make_pair(s + m_id_to_shift_[node_id], t));
+		}
+
+	};
+}
+
+template<size_t N, size_t M> template<typename TRes>
+void MeshIDs_<N, M>::cut_cell(coordinates_type const & px0,
+		coordinates_type const & px1, coordinates_type const & px2,
+		TRes*res, id_type node_id)
+{
+
+	coordinates_type x0 = px0 - m_id_to_coordinates_shift_[node_id];
+
+	coordinates_type x1 = px1 - m_id_to_coordinates_shift_[node_id];
+
+	coordinates_type x2 = px2 - m_id_to_coordinates_shift_[node_id];
+
+	id_type edge_id[3] = { 1, 2, 4 };
+
+	for (int axe = 0; axe < 3; ++axe)
+	{
+		int xaxe = axe;
+		int yaxe = (xaxe) % 3;
+
+		Real xmin = min(x0[xaxe], x1[xaxe], x2[xaxe]);
+		Real xmax = max(x0[xaxe], x1[xaxe], x2[xaxe]);
+
+		Real ymin = min(x0[yaxe], x1[yaxe], x2[yaxe]);
+		Real ymax = max(x0[yaxe], x1[yaxe], x2[yaxe]);
+
+		if ((xmax - xmin) < EPSILON || (ymax - ymin) < EPSILON)
+		{
+			continue;
+		}
+
+		xmin = std::floor(xmin / (_R * 2)) * (_R * 2);
+		xmax = std::floor(xmax / (_R * 2) + 1) * (_R * 2);
+
+		ymin = std::floor(ymin / (_R * 2)) * (_R * 2);
+		ymax = std::floor(ymax / (_R * 2) + 1) * (_R * 2);
+
+		// FIXME here should be two/three dimensions traversal
+
+		for (Real x = xmin; x <= xmax; x += (_R * 2))
+			for (Real y = xmin; y <= ymax; x += (_R * 2))
 			{
 
-				Real t = (x - x0[axe]) / (x1[axe] - x0[axe]);
+				Real u, v;
 
-				if (t < 0 || t > 1)
+				// FIXME line intersection triangle
+				UNIMPLEMENTED;
+//				Real Lx = x - x0[xaxe];
+//				Real Ly = y - x0[yaxe];
+//
+//				if (std::abs(Lx) < EPSILON || std::abs(Lx) < EPSILON)
+//				{
+//					continue;
+//				}
+//
+//				Real u = Lx / (x1[axe] - x0[axe]);
+//
+//				Real L2 = x2[axe] - x0[axe];
+//				Real v = (std::abs(L2) > EPSILON) ? (L0 / L2) : 0;
+
+				if (u < 0 || u > 1 || v < 0 || u > 1)
 				{
 					continue;
 				}
 				coordinates_type y;
 
-				y = x0 + t * (x1 - x0);
+				y = x0 + u * (x1 - x0) + v * (x2 - x0);
 
 				id_type s = (pack(y) & PRIMARY_ID_MASK)
-						| m_id_to_shift_[face_node[axe]];
-
-//				res->insert(s + m_id_to_shift_[node_id]);
-				id_type ds = _D << (ID_DIGITS * axe);
-				res->insert(s + ds + m_id_to_shift_[node_id]);
-				res->insert(s - ds + m_id_to_shift_[node_id]);
+						| m_id_to_shift_[edge_id[axe]];
+				y -= coordinates(s);
+				res->insert(
+						std::make_pair(s + m_id_to_shift_[node_id],
+								std::make_tuple(u, v)));
 
 			}
-
-		}
 
 	};
 }
