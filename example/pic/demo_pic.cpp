@@ -26,7 +26,7 @@ USE_CASE(pic," Particle in cell" )
 {
 
 	size_t num_of_steps = 1000;
-	size_t strides = 10;
+	size_t check_point = 10;
 
 	if (options["case_help"])
 	{
@@ -35,21 +35,21 @@ USE_CASE(pic," Particle in cell" )
 
 		<< " Options:" << endl
 
-				<<
+		<<
 
-				"\t -n,\t--number_of_steps <NUMBER>  \t, "
-						"Number of steps = <NUMBER> ,default="
-						+ value_to_string(num_of_steps) + "\n"
-								"\t -s,\t--strides <NUMBER>          "
-								"  \t, Dump record per <NUMBER> steps, default="
-						+ value_to_string(strides) + "\n";
+		"\t -n,\t--number_of_steps <NUMBER>  \t, "
+				"Number of steps = <NUMBER> ,default="
+				+ value_to_string(num_of_steps) + "\n"
+						"\t -s,\t--check_point <NUMBER>          "
+						"  \t, default="
+				+ value_to_string(check_point) + "\n";
 
 		return;
 	}
 
 	options["n"].as(&num_of_steps);
 
-	options["s"].as<size_t>(&strides);
+	options["check_point"].as<size_t>(&check_point);
 
 	auto mesh = std::make_shared<mesh_type>();
 
@@ -137,7 +137,7 @@ USE_CASE(pic," Particle in cell" )
 	VERBOSE << SAVE(B) << endl;
 
 	DEFINE_PHYSICAL_CONST
-	Real dt = mesh->dt();
+		Real dt = mesh->dt();
 	auto dx = mesh->dx();
 
 	Real omega = 0.01 * PI / dt;

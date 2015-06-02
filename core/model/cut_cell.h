@@ -12,6 +12,7 @@
 #include <list>
 #include <map>
 #include "../utilities/utilities.h"
+#include "../mesh/mesh_ids.h"
 namespace simpla
 {
 
@@ -38,7 +39,7 @@ void polygen_cut_cell(TM const & mesh, T0 const &b, T1 const & e,
 
 		coordinates_type x1 = mesh.inv_map(*i1);
 
-		std::multimap<id_type,Real> t_list;
+		std::multimap<id_type, Real> t_list;
 
 		topology_type::cut_cell(x0, x1, std::forward<Args>(args)...);
 

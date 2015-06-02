@@ -12,27 +12,39 @@ namespace simpla
 {
 
 template<typename ...> class ImplicitFunction;
-
-template<typename ...Args>
-class ImplicitFunction<Args...>
+template<typename TFun>
+ImplicitFunction<TFun> make_implicit_function(TFun const & fun)
 {
-	typedef std::function<Real(Args const & ...)> function_type;
+	return ImplicitFunction<TFun>(fun);
+}
 
+/**
+ *  Implicit function of Geometry object
+ *
+ *  ImplicitFunction<TF>(x,y,z) return distance from (x,y,z)to object
+ *
+ *  negative mean inside,positive means outside
+ *
+ */
+template<typename TF>
+class ImplicitFunction<TF>
+{
+	typedef TF function_type;
 	function_type m_fun_;
 
-	ImplicitFunction(function_type const &fun)
-			: m_fun_(fun)
+	ImplicitFunction(function_type const &fun) :
+			m_fun_(fun)
 	{
-
 	}
 
 	~ImplicitFunction()
 	{
 	}
 
+	template<typename ...Args>
 	Real operator()(Args && ...args) const
 	{
-		return m_fun_(std::forward<Args>(args)...);
+		return static_cast<Real>(m_fun_(std::forward<Args>(args)...));
 	}
 };
 
@@ -200,8 +212,7 @@ public:
 template<typename ... T1, typename ...T2>
 ImplicitFunction<
 		Expression<_impl::minus, ImplicitFunction<T1...>,
-				ImplicitFunction<T2...>>>\
- operator -(
+				ImplicitFunction<T2...>>> operator-(
 		ImplicitFunction<T1...> const & l, ImplicitFunction<T2...> const &r)
 {
 	return (ImplicitFunction<
