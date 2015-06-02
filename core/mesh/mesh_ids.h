@@ -869,10 +869,10 @@ struct MeshIDs_
 		return
 
 		(UNPACK_INDEX(s,0)% UNPACK_INDEX(d, 0))+
-		(
-		(UNPACK_INDEX(s,1) % UNPACK_INDEX(d, 1)) +
-		(UNPACK_INDEX(s,2) % UNPACK_INDEX(d, 2)) * UNPACK_INDEX(d, 1)
-		)
+
+		( (UNPACK_INDEX(s,1) % UNPACK_INDEX(d, 1)) +
+
+		(UNPACK_INDEX(s,2) % UNPACK_INDEX(d, 2)) * UNPACK_INDEX(d, 1) )
 
 		* UNPACK_INDEX(d, 0);
 
@@ -967,7 +967,8 @@ template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs
 template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::m_id_to_num_of_ele_in_cell_[];
 template<size_t N, size_t M> constexpr typename MeshIDs_<N,M >::coordinates_type MeshIDs_<N,M >::m_id_to_coordinates_shift_[ ];
 template<size_t N, size_t M> constexpr int MeshIDs_<N, M>::m_vertics_num_[4][8];
-template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M>::m_vertics_matrix_[4/* to iform*/][8/* node id*/][MAX_NUM_OF_CELL/*id shift*/];
+template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type
+MeshIDs_<N, M>::m_vertics_matrix_[4/* to iform*/][8/* node id*/][MAX_NUM_OF_CELL/*id shift*/];
 
 typedef MeshIDs_<3, 4> MeshIDs;
 
