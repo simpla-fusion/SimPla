@@ -23,6 +23,7 @@
 #include "../../gtl/primitives.h"
 #include "../../field/field_expression.h"
 #include "../../parallel/mpi_update.h"
+
 #include "../mesh_ids.h"
 #include "interpolator.h"
 
@@ -298,6 +299,13 @@ public:
 		return range_type(m_id_local_min_, m_id_local_max_, nid);
 	}
 
+	range_type range(coordinate_type const & min, coordinate_type const & max,
+			int nid = 0) const
+	{
+		return range_type(std::get<0>(coordinates_global_to_local(min, nid)),
+				std::get<1>(coordinates_global_to_local(min, nid)), nid);
+	}
+
 	static std::string get_type_as_string()
 	{
 		return "RectMesh<" + coordinate_system::get_type_as_string() + ">";
@@ -325,8 +333,8 @@ public:
 	DECL_RET_TYPE (std::make_pair(m_coords_min_, m_coords_max_))
 
 	constexpr auto local_extents() const
-	DECL_RET_TYPE (std::make_pair(this->coordinates(m_id_local_min_),
-					this->coordinates(m_id_local_max_)))
+	DECL_RET_TYPE (std::make_pair(this->coordinate(m_id_local_min_),
+					this->coordinate(m_id_local_max_)))
 
 	coordinate_type const & dx() const
 	{
@@ -415,14 +423,14 @@ public:
 	{
 
 		return m_volume_[topology_type::node_id(s)]
-				* coordinate_system::volume_factor(coordinates(s),
+				* coordinate_system::volume_factor(coordinate(s),
 						topology_type::sub_index(s));
 	}
 
 	constexpr Real dual_volume(id_type s) const
 	{
 		return m_dual_volume_[topology_type::node_id(s)]
-				* coordinate_system::dual_volume_factor(coordinates(s),
+				* coordinate_system::dual_volume_factor(coordinate(s),
 						topology_type::sub_index(s));
 	}
 
@@ -434,16 +442,42 @@ public:
 	constexpr Real inv_volume(id_type s) const
 	{
 		return m_inv_volume_[topology_type::node_id(s)]
-				* coordinate_system::inv_volume_factor(coordinates(s),
+				* coordinate_system::inv_volume_factor(coordinate(s),
 						topology_type::sub_index(s));
 	}
 
 	constexpr Real inv_dual_volume(id_type s) const
 	{
 		return m_inv_dual_volume_[topology_type::node_id(s)]
-				* coordinate_system::inv_dual_volume_factor(coordinates(s),
+				* coordinate_system::inv_dual_volume_factor(coordinate(s),
 						topology_type::sub_index(s));
 	}
+
+	template<size_t ID>
+	constexpr std::tuple<coordinate_type, coordinate_type> primary_line(
+			id_type s) const
+	{
+		auto p_box = topology_type::template primary_line<ID>(s);
+		return std::make_tuple(coordinate(std::get<0>(p_box)),
+				coordinate(std::get<1>(p_box)));
+	}
+	template<size_t ID>
+	constexpr std::tuple<coordinate_type, coordinate_type> pixel(
+			id_type s) const
+	{
+		auto p_box = topology_type::template pixel<ID>(s);
+		return std::make_tuple(coordinate(std::get<0>(p_box)),
+				coordinate(std::get<1>(p_box)));
+	}
+
+	constexpr std::tuple<coordinate_type, coordinate_type> voxel(
+			id_type s) const
+	{
+		auto p_box = topology_type::voxel(s);
+		return std::make_tuple(coordinate(std::get<0>(p_box)),
+				coordinate(std::get<1>(p_box)));
+	}
+
 	/**@}*/
 
 	/**
@@ -455,9 +489,9 @@ public:
 	 *              M      ---------->      G
 	 *              x                       y
 	 **/
-	coordinate_type coordinates(id_type const & s) const
+	coordinate_type coordinate(id_type const & s) const
 	{
-		return std::move(map(topology_type::coordinates(s)));
+		return std::move(map(topology_type::coordinate(s)));
 	}
 
 	coordinate_type map(coordinate_type const &x) const

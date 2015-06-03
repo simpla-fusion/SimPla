@@ -28,33 +28,32 @@
 //
 //typedef CartesianRectMesh mesh_type;
 #include <iostream>
-#include <boost/geometry.hpp>
-#include <boost/geometry/geometries/polygon.hpp>
-#include <boost/geometry/core/cs.hpp>
 
-
-#include "../../core/geometry/boost_gemetry_adapted.h"
+#include "../../core/geometry/geometry.h"
 #include "../../core/utilities/utilities.h"
-BOOST_GEOMETRY_REGISTER_SIMPLA_NTUPLE_CS(cs::cartesian)
 
 using namespace simpla;
-
+using namespace simpla::geometry;
 int main(int argc, char **argv)
 {
-	typedef nTuple<Real, 2> point_type;
-	boost::geometry::model::polygon<point_type> poly;
-	poly.outer().push_back(point_type( { 1.0, 2.0 }));
-	poly.outer().push_back(point_type( { 6.0, 4.0 }));
-	poly.outer().push_back(point_type( { 5.0, 1.0 }));
-	poly.outer().push_back(point_type( { 1.0, 2.0 }));
+	typedef Point2 point_type;
+
+	Polygon<point_type> poly;
+
+	append(poly, point_type { 1.0, 2.0 });
+	append(poly, point_type { 6.0, 4.0 });
+	append(poly, point_type { 5.0, 1.0 });
+	append(poly, point_type { 1.0, 2.0 });
 
 	point_type x0 = { 1.5, 1.5 };
 
-	std::cout << "Area: " << boost::geometry::area(poly) << std::endl;
+	std::cout << "Area: " << area(poly) << std::endl;
 
-	std::cout << "Contains" << x0 << std::boolalpha
+	std::cout << "Contains" << (x0) << std::endl;
 
-	<< boost::geometry::within(x0, poly) << std::endl;
+	std::cout << "Within " << std::boolalpha << within(x0, poly) << std::endl;
+
+	std::cout << dsv(poly) << std::endl;
 }
 
 //

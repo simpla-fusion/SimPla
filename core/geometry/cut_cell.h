@@ -13,39 +13,35 @@
 #include <map>
 #include "../utilities/utilities.h"
 #include "../mesh/mesh_ids.h"
-#include <boost/geometry.hpp>
 
 namespace simpla
 {
 
-template<typename TM, typename T0, typename T1, typename ...Args>
-void polygen_cut_cell(TM const & mesh, T0 const &b, T1 const & e,
-		Args && ...args)
+template<typename TM, typename PolygonIterator>
+void pixel_intersects_polygon(TM const & mesh, int node_id,
+		PolygonIterator const & begin, PolygonIterator const & end,
+		std::multimap<typename TM::id_type, PolygonIterator> *res)
 {
-	typedef TM mesh_type;
-	typedef typename mesh_type::topology_type topology_type;
-	typedef typename mesh_type::coordinate_type coordinate_type;
-	typedef typename mesh_type::id_type id_type;
-
-	int count = 0;
-
-	for (auto i0 = b; i0 != e; ++i0)
+	for (auto it = begin; it != end; ++it)
 	{
-		auto i1 = i0;
-		++i1;
-		if (i1 == e)
+		geometry::model::template Box<Real> box;
+
+		envelope(*it, box);
+
+		for (auto s : mesh.range(box))
 		{
-			i1 = b;
+			auto b = mesh.pixel(s);
+
+			geometry::model::template Box<Real> p_box(std::get<0>(b),
+					std::get<1>(b));
+
+			if (intersects(p_box, *it))
+			{
+				res->insert(std::make_pair(s, it));
+			}
 		}
-		coordinate_type x0 = mesh.inv_map(*i0);
-
-		coordinate_type x1 = mesh.inv_map(*i1);
-
-		std::multimap<id_type, Real> t_list;
-
-		topology_type::cut_cell(x0, x1, std::forward<Args>(args)...);
-
 	}
+
 }
 
 //template<typename TM, typename TX>

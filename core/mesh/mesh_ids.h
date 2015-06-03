@@ -229,7 +229,7 @@ struct MeshIDs_
 		return diff(a, b) & (PRIMARY_ID_MASK);
 	}
 
-#define UNPACK_ID(_S_,_I_)    (static_cast<id_type>(_S_) >> (ID_DIGITS*(_I_ )) & ID_MASK)
+#define UNPACK_ID(_S_,_I_)    ((static_cast<id_type>(_S_)&(~OVERFLOW_FLAG) ) >> (ID_DIGITS*(_I_ )) & ID_MASK)
 #define UNPACK_INDEX(_S_,_I_)   static_cast<index_type>((_S_>> (ID_DIGITS*(_I_ )) & ID_MASK)>>MESH_LEVEL)
 
 	template<typename T>
@@ -279,7 +279,7 @@ struct MeshIDs_
 		return static_cast<T>(unpack(s));
 	}
 
-	static constexpr coordinate_type coordinates(id_type s)
+	static constexpr coordinate_type coordinate(id_type s)
 	{
 		return static_cast<coordinate_type>(unpack(s));
 	}
@@ -299,7 +299,7 @@ struct MeshIDs_
 
 		coordinate_type r;
 
-		r = (x - coordinates(s)) / (_R * 2.0);
+		r = (x - coordinate(s)) / (_R * 2.0);
 
 		return std::make_tuple(s, r);
 
@@ -308,7 +308,7 @@ struct MeshIDs_
 	static constexpr coordinate_type coordinates_local_to_global(
 			std::tuple<id_type, coordinate_type> const &t)
 	{
-		return coordinates(std::get<0>(t)) + std::get<1>(t);
+		return coordinate(std::get<0>(t)) + std::get<1>(t);
 	}
 
 //! @name id auxiliary functions
@@ -608,7 +608,7 @@ struct MeshIDs_
 		{
 			for (int i = 0; i < m_vertics_num_[IFORM][id]; ++i)
 			{
-				res[i] = coordinates(s + m_vertics_matrix_[IFORM][id][i]);
+				res[i] = coordinate(s + m_vertics_matrix_[IFORM][id][i]);
 			}
 		}
 		return m_vertics_num_[IFORM][id];
@@ -712,6 +712,65 @@ struct MeshIDs_
 		{
 			return in_box(unpack_index(s));
 		}
+		/**
+		 *  The pixel is a primary two-dimensional cell. The pixel is
+		 *  topologically equivalent to the rectangle with additional
+		 *  geometric constraints. --VTK4th p.128
+		 *
+		 *  Direction = 0,1,2   the direction of normal vector of pixel
+		 * @param s is the center of pixel
+		 * @return two corner (min,max) of rectangle
+		 */
+
+		template<size_t Direction>
+		constexpr std::tuple<id_type, id_type> primary_line(id_type s) const
+		{
+			return std::make_tuple(
+
+			(s | OVERFLOW_FLAG) - (_D << (ID_DIGITS * Direction))),
+
+			s + (_D << (ID_DIGITS * Direction)
+
+			);
+		}
+		/**
+		 *  The pixel is a primary two-dimensional cell. The pixel is
+		 *  topologically equivalent to the rectangle with additional
+		 *  geometric constraints. --VTK4th p.128
+		 *
+		 *  NormalVector = 0,1,2   the direction of normal vector of pixel
+		 * @param s is the center of pixel
+		 * @return two corner (min,max) of rectangle
+		 */
+
+		template<size_t NormalVector>
+		constexpr std::tuple<id_type, id_type> pixel(id_type s) const
+		{
+			return std::make_tuple(
+
+			s | OVERFLOW_FLAG
+
+			- (_DA & (~(_D << (ID_DIGITS * NormalVector)))),
+
+			s +
+
+			(_DA & (~(_D << (ID_DIGITS * NormalVector))))
+
+			);
+		}
+
+		/**
+		 *  The voxel is a primary three-dimensional cell. The voxel is
+		 *  topologically equivalent to the hexahedron with additional
+		 *  geometric constraints. --VTK4th p.128
+		 * @param s is the center of voxel
+		 * @return two corner (min,max) of hexahedron
+		 */
+		constexpr std::tuple<id_type, id_type> voxel(id_type s) const
+		{
+			return std::make_tuple((s | OVERFLOW_FLAG - _DA), (s + _DA));
+		}
+
 		constexpr bool empty() const
 		{
 			return m_min_ == m_max_;

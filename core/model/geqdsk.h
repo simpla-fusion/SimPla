@@ -21,7 +21,7 @@
 #include "../gtl/primitives.h"
 #include "../gtl/type_traits.h"
 #include "../numeric/interpolation.h"
-
+#include "../geometry/geometry.h"
 namespace simpla
 {
 
@@ -41,7 +41,7 @@ class GEqdsk
 
 public:
 
-	typedef nTuple<Real, 3> coordinate_type;
+	typedef Point3 coordinate_type;
 
 	typedef Interpolation<LinearInterpolation, Real, Real> inter_type;
 
@@ -84,8 +84,8 @@ private:
 
 //	inter_type qpsi_;//!< q values on uniform flux grid from axis to boundary
 
-	std::vector<coordinate_type> m_rzbbb_; //!< R,Z of boundary points in meter
-	std::vector<coordinate_type> m_rzlim_; //!< R,Z of surrounding limiter contour in meter
+	Polygon<coordinate_type> m_rzbbb_; //!< R,Z of boundary points in meter
+	Polygon<coordinate_type> m_rzlim_; //!< R,Z of surrounding limiter contour in meter
 
 	std::map<std::string, inter_type> m_profile_;
 

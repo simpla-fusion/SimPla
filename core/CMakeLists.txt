@@ -14,6 +14,8 @@ ADD_SUBDIRECTORY( physics)
 
 ADD_SUBDIRECTORY( mesh  )
 
+ADD_SUBDIRECTORY( geometry )
+
 ADD_SUBDIRECTORY( model )
 
 ADD_SUBDIRECTORY( field )

@@ -8,16 +8,8 @@
 #ifndef CORE_GEOMETRY_BOOST_GEMETRY_ADAPTED_H_
 #define CORE_GEOMETRY_BOOST_GEMETRY_ADAPTED_H_
 
-#include <cstddef>
-
-#include <boost/tuple/tuple.hpp>
-
-#include <boost/geometry/core/coordinate_dimension.hpp>
-#include <boost/geometry/core/coordinate_type.hpp>
-#include <boost/geometry/core/point_type.hpp>
-#include <boost/geometry/core/tags.hpp>
-
-#include "../gtl/ntuple.h"
+#include <boost/geometry.hpp>
+#include <boost/geometry/geometries/geometries.hpp>
 
 namespace boost
 {
@@ -55,24 +47,69 @@ struct access<simpla::nTuple<T1, N>, Dimension>
 
 	static inline void set(simpla::nTuple<T1, N>& point, T1 const& value)
 	{
-		point[Dimension]= value;
+		point[Dimension] = value;
 	}
 };
-
+template<typename T1, size_t N>
+struct coordinate_system<simpla::nTuple<T1, N> >
+{
+	typedef cs::cartesian type;
+};
 } // namespace traits
 #endif // DOXYGEN_NO_TRAITS_SPECIALIZATIONS
+}  // namespace geometry
+}  // namespace boost
 
-}
-} // namespace boost::geometry
+//namespace cs
+//{
+//template<typename DegreeOrRadian>
+//struct cylindrical
+//{
+//	typedef DegreeOrRadian units;
+//};
+//
+//}  // namespace cs
 
-// Convenience registration macro to bind boost::tuple to a CS
-#define BOOST_GEOMETRY_REGISTER_SIMPLA_NTUPLE_CS(CoordinateSystem) \
-    namespace boost { namespace geometry { namespace traits { \
-    template <typename T1, size_t N> \
-    struct coordinate_system<simpla::nTuple<T1, N> > \
-    { \
-        typedef CoordinateSystem type; \
-    }; \
-    }}}
+//BOOST_GEOMETRY_REGISTER_POINT_2D(simpla::geometry::SphericalPoint2, double,
+//		cs::spherical<radian>, r, theta)
+//
+//BOOST_GEOMETRY_REGISTER_POINT_3D(simpla::geometry::SphericalPoint3, double,
+//		cs::cartesian, r, theta, phi)
+//
+//BOOST_GEOMETRY_REGISTER_POINT_2D(simpla::geometry::CylindricalPoint2, double,
+//		cs::cylindrical<radian>, r, theta)
+//
+//BOOST_GEOMETRY_REGISTER_POINT_3D(simpla::geometry::CylindricalPoint3, double,
+//		cs::cylindrical<radian>, r, theta, z)
 
-#endif /* CORE_GEOMETRY_BOOST_GEMETRY_ADAPTED_H_ */
+namespace simpla
+{
+namespace geometry
+{
+
+namespace model
+{
+
+template<typename TPoint> using Polygon= boost::geometry::model::polygon<TPoint>;
+template<typename TPoint> using Box= boost::geometry::model::box<TPoint>;
+template<typename TPoint> using LineSegment= boost::geometry::model::segment<TPoint>;
+
+}  // namespace model
+
+using boost::geometry::append;
+using boost::geometry::intersection;
+using boost::geometry::intersects;
+using boost::geometry::within;
+using boost::geometry::disjoint;
+using boost::geometry::dsv;
+using boost::geometry::envelope;
+
+using boost::geometry::distance;
+using boost::geometry::area;
+using boost::geometry::length;
+using boost::geometry::perimeter;
+
+} // namespace geometry
+}  // namespace simpla
+
+#endif // CORE_GEOMETRY_BOOST_GEMETRY_ADAPTED_H_
