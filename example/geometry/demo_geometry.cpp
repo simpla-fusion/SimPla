@@ -36,9 +36,9 @@ using namespace simpla;
 using namespace simpla::geometry;
 int main(int argc, char **argv)
 {
-	typedef Point2 point_type;
+	typedef model::Point2 point_type;
 
-	Polygon<point_type> poly;
+	model::Polygon<point_type> poly;
 
 	append(poly, point_type { 1.0, 2.0 });
 	append(poly, point_type { 6.0, 4.0 });

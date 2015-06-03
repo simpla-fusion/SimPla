@@ -631,23 +631,26 @@ struct MeshIDs_
 		typedef iterator const_iterator;
 
 		typedef range_type this_type;
-
+		range_type() :
+				m_min_(0), m_max_(0)
+		{
+		}
 		template<typename T0, typename T1>
-		range_type(T0 const & min, T1 const & max, int n_id = 0)
-				: m_min_(pack_index(min) | m_id_to_shift_[n_id]), m_max_(
+		range_type(T0 const & min, T1 const & max, int n_id = 0) :
+				m_min_(pack_index(min) | m_id_to_shift_[n_id]), m_max_(
 						pack_index(max) | m_id_to_shift_[n_id])
 		{
 
 		}
 
-		range_type(id_type const & min, id_type const & max, int n_id = 0)
-				: m_min_(min | m_id_to_shift_[n_id]), m_max_(
+		range_type(id_type const & min, id_type const & max, int n_id = 0) :
+				m_min_(min | m_id_to_shift_[n_id]), m_max_(
 						max | m_id_to_shift_[n_id])
 		{
 
 		}
-		range_type(this_type const & other)
-				: m_min_(other.m_min_), m_max_(other.m_max_)
+		range_type(this_type const & other) :
+				m_min_(other.m_min_), m_max_(other.m_max_)
 		{
 
 		}
@@ -800,17 +803,17 @@ struct MeshIDs_
 			id_type m_min_, m_max_, m_self_;
 		public:
 			iterator(id_type const & min, id_type const & max,
-					id_type const& self)
-					: m_min_(min), m_max_(max), m_self_(self)
+					id_type const& self) :
+					m_min_(min), m_max_(max), m_self_(self)
 			{
 			}
-			iterator(id_type const & min, id_type const & max)
-					: m_min_(min), m_max_(max), m_self_(min)
+			iterator(id_type const & min, id_type const & max) :
+					m_min_(min), m_max_(max), m_self_(min)
 			{
 			}
 
-			iterator(iterator const & other)
-					: m_min_(other.m_min_), m_max_(other.m_max_), m_self_(
+			iterator(iterator const & other) :
+					m_min_(other.m_min_), m_max_(other.m_max_), m_self_(
 							other.m_self_)
 			{
 			}

@@ -23,7 +23,7 @@
 #include "../../gtl/primitives.h"
 #include "../../field/field_expression.h"
 #include "../../parallel/mpi_update.h"
-
+#include "../../geometry/geometry.h"
 #include "../mesh_ids.h"
 #include "interpolator.h"
 
@@ -57,10 +57,9 @@ namespace simpla
  */
 //template<typename ... >struct RectMesh;
 template<typename TTopology, typename ...Policies>
-struct RectMesh:	public TTopology,
-					public Policies...,
-					std::enable_shared_from_this<
-							RectMesh<TTopology, Policies...>>
+struct RectMesh: public TTopology,
+		public Policies...,
+		std::enable_shared_from_this<RectMesh<TTopology, Policies...>>
 {
 	typedef TTopology topology_type;
 	typedef typename unpack_typelist<0, Policies...>::type coordinate_system;
@@ -200,8 +199,7 @@ public:
 	{
 	}
 
-	RectMesh(this_type const & other)
-			:
+	RectMesh(this_type const & other) :
 
 			m_id_min_(other.m_id_min_),
 
@@ -296,14 +294,32 @@ public:
 
 	range_type range(int nid = 0) const
 	{
+
 		return range_type(m_id_local_min_, m_id_local_max_, nid);
 	}
 
 	range_type range(coordinate_type const & min, coordinate_type const & max,
 			int nid = 0) const
 	{
-		return range_type(std::get<0>(coordinates_global_to_local(min, nid)),
-				std::get<1>(coordinates_global_to_local(min, nid)), nid);
+		geometry::model::Box<coordinate_type> b;
+		bool success = geometry::intersection(
+				geometry::model::make_box(coordinate(m_id_local_min_),
+						coordinate(m_id_local_min_)),
+				geometry::model::make_box(min, max), b);
+		if (success)
+		{
+			return range_type(
+					std::get<0>(
+							coordinates_global_to_local(std::get<0>(b), nid)),
+					std::get<1>(
+							coordinates_global_to_local(std::get<1>(b), nid)),
+					nid);
+		}
+		else
+		{
+			return range_type();
+		}
+
 	}
 
 	static std::string get_type_as_string()
