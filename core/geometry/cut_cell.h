@@ -5,14 +5,16 @@
  * @author salmon
  */
 
-#ifndef CORE_MODEL_CUT_CELL_H_
-#define CORE_MODEL_CUT_CELL_H_
+#ifndef CORE_GEOMETRY_CUT_CELL_H_
+#define CORE_GEOMETRY_CUT_CELL_H_
 
 #include <stddef.h>
 #include <list>
 #include <map>
 #include "../utilities/utilities.h"
 #include "../mesh/mesh_ids.h"
+#include <boost/geometry.hpp>
+
 namespace simpla
 {
 
@@ -22,7 +24,7 @@ void polygen_cut_cell(TM const & mesh, T0 const &b, T1 const & e,
 {
 	typedef TM mesh_type;
 	typedef typename mesh_type::topology_type topology_type;
-	typedef typename mesh_type::coordinates_type coordinates_type;
+	typedef typename mesh_type::coordinate_type coordinate_type;
 	typedef typename mesh_type::id_type id_type;
 
 	int count = 0;
@@ -35,9 +37,9 @@ void polygen_cut_cell(TM const & mesh, T0 const &b, T1 const & e,
 		{
 			i1 = b;
 		}
-		coordinates_type x0 = mesh.inv_map(*i0);
+		coordinate_type x0 = mesh.inv_map(*i0);
 
-		coordinates_type x1 = mesh.inv_map(*i1);
+		coordinate_type x1 = mesh.inv_map(*i1);
 
 		std::multimap<id_type, Real> t_list;
 
@@ -57,7 +59,7 @@ void polygen_cut_cell(TM const & mesh, T0 const &b, T1 const & e,
 //			&& ((inner_product(x1 - x0, x1 - x0))
 //					> epsilon * inner_product(mesh.dx(), mesh.dx())))
 //	{
-//		typename TM::coordinates_type xc;
+//		typename TM::coordinate_type xc;
 //
 //		xc = (x1 + x0) * 0.5;
 //
@@ -83,18 +85,18 @@ void polygen_cut_cell(TM const & mesh, T0 const &b, T1 const & e,
 //		std::set<typename TM::id_type>* res)
 //{
 //	typedef TM mesh_type;
-//	typedef typename mesh_type::coordinates_type coordinates_type;
+//	typedef typename mesh_type::coordinate_type coordinate_type;
 //	typedef typename mesh_type::id_type id_type;
 //
-//	coordinates_type dims0;
+//	coordinate_type dims0;
 //	dims0 = (x1 - x0) / mesh.dx();
-//	coordinates_type dims1;
+//	coordinate_type dims1;
 //	dims1 = (x2 - x0) / mesh.dx();
 //
 //	auto n0 = std::max(std::max(dims0[0], dims0[1]), dims0[2]);
 //	auto n1 = std::max(std::max(dims1[0], dims1[1]), dims1[2]);
-//	coordinates_type dx0 = (x1 - x0) / n0;
-//	coordinates_type dx1 = (x2 - x0) / n1;
+//	coordinate_type dx0 = (x1 - x0) / n0;
+//	coordinate_type dx1 = (x2 - x0) / n1;
 //
 //	for (size_t i = 0; i <= n0; ++i)
 //		for (size_t j = 0; j <= n1; ++j)
@@ -144,17 +146,17 @@ void polygen_cut_cell(TM const & mesh, T0 const &b, T1 const & e,
 //		TI const &i0, std::multimap<typename TM::id_type, TI>* res)
 //{
 //	typedef TM mesh_type;
-//	typedef typename mesh_type::coordinates_type coordinates_type;
+//	typedef typename mesh_type::coordinate_type coordinate_type;
 //	typedef typename mesh_type::id_type id_type;
 //
 //	TI it = i0;
-//	coordinates_type x0 = *it;
+//	coordinate_type x0 = *it;
 //	++it;
-//	coordinates_type x1 = *it;
+//	coordinate_type x1 = *it;
 //	++it;
-//	coordinates_type x2 = *it;
+//	coordinate_type x2 = *it;
 //
-//	coordinates_type xmin, xmax;
+//	coordinate_type xmin, xmax;
 //
 //	id_type s0 = std::get<0>(mesh.coordinates_global_to_local(x0, node_id));
 //
@@ -193,7 +195,7 @@ void polygen_cut_cell(TM const & mesh, T0 const &b, T1 const & e,
 //							+ (mesh_type::_DA << (mesh_type::ID_DIGITS * IZ))
 //									* ((i % 2 == 0) ? 1 : -1);
 //
-//					coordinates_type xa = mesh.coordinates(face_id
+//					coordinate_type xa = mesh.coordinates(face_id
 //
 //					- (mesh_type::_DA << (mesh_type::ID_DIGITS * IX))
 //
@@ -213,13 +215,13 @@ void polygen_cut_cell(TM const & mesh, T0 const &b, T1 const & e,
 //		TI const &i0, std::multimap<typename TM::id_type, TI>* res)
 //{
 //	typedef TM mesh_type;
-//	typedef typename mesh_type::coordinates_type coordinates_type;
+//	typedef typename mesh_type::coordinate_type coordinate_type;
 //	typedef typename mesh_type::id_type id_type;
 //
 //	TI it = i0;
-//	coordinates_type x0 = *it;
+//	coordinate_type x0 = *it;
 //	++it;
-//	coordinates_type x1 = *it;
+//	coordinate_type x1 = *it;
 //
 //	id_type s0 = std::get<0>(mesh.coordinates_global_to_local(x0, node_id));
 //
@@ -252,7 +254,7 @@ void polygen_cut_cell(TM const & mesh, T0 const &b, T1 const & e,
 //		TX const &x0, TX const & x1, std::set<typename TM::id_type>* res)
 //{
 //	typedef TM mesh_type;
-//	typedef typename mesh_type::coordinates_type coordinates_type;
+//	typedef typename mesh_type::coordinate_type coordinate_type;
 //	typedef typename mesh_type::id_type id_type;
 //
 //	int m = 0;
@@ -288,5 +290,5 @@ void polygen_cut_cell(TM const & mesh, T0 const &b, T1 const & e,
 }
 // namespace simpla
 
-#endif /* CORE_MODEL_CUT_CELL_H_ */
+#endif /* CORE_GEOMETRY_CUT_CELL_H_ */
 

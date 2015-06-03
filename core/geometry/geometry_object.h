@@ -5,8 +5,8 @@
  *      Author: salmon
  */
 
-#ifndef CORE_MODEL_GEOMETRY_OBJECT_H_
-#define CORE_MODEL_GEOMETRY_OBJECT_H_
+#ifndef CORE_GEOMETRY_GEOMETRY_OBJECT_H_
+#define CORE_GEOMETRY_GEOMETRY_OBJECT_H_
 
 namespace simpla
 {
@@ -14,10 +14,22 @@ namespace geometry_object
 {
 struct Sphere
 {
-	nTuple<Real, 3> x0;
+	Real x, y, z;
 	Real r;
 };
-struct Ring;
+
+struct Cylinder
+{
+	Real x0, y0, z0;
+	Real x1, y1, z1;
+	Real r;
+};
+struct Ring
+{
+	Real x0, y0, z0;
+	Real x1, y1, z1;
+	Real r;
+};
 struct Cylinder;
 struct Tetrahedron;
 struct Pyramid;
@@ -30,9 +42,8 @@ struct ImplicitFunction<Sphere>
 {
 	Sphere m_object_;
 
-	ImplicitFunction(nTuple<Real, 3> const & x0, Real radius) :
-			m_object_(
-			{ x0, radius })
+	ImplicitFunction(nTuple<Real, 3> const & x0, Real radius)
+			: m_object_( { x0, radius })
 	{
 
 	}
@@ -47,7 +58,13 @@ struct ImplicitFunction<Sphere>
 	}
 }
 
+template<typename ...Args>
+ImplicitFunction<Sphere> sphere(Args && ...args)
+{
+	return ImplicitFunction<Sphere>(std::forward<Args> (args)...);
 }
-}  // namespace simpla
 
-#endif /* CORE_MODEL_GEOMETRY_OBJECT_H_ */
+}
+// namespace simpla
+
+#endif /* CORE_GEOMETRY_GEOMETRY_OBJECT_H_ */

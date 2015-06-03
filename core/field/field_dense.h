@@ -46,7 +46,7 @@ public:
 	typedef typename domain_type::mesh_type mesh_type;
 	static constexpr size_t iform = domain_type::iform;
 	typedef typename mesh_type::id_type id_type;
-	typedef typename mesh_type::coordinates_type coordinates_type;
+	typedef typename mesh_type::coordinate_type coordinate_type;
 
 	typedef TV value_type;
 	typedef typename domain_type::template field_value_type<value_type> field_value_type;
@@ -259,7 +259,7 @@ public:
 	/** @name access
 	 *  @{*/
 
-	field_value_type gather(coordinates_type const& x) const
+	field_value_type gather(coordinate_type const& x) const
 	{
 		return std::move(m_domain_.mesh().gather(*this, x));
 	}

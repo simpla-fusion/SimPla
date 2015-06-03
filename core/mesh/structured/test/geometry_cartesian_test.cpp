@@ -8,7 +8,7 @@
 #include "../coordinates/coordiantes_cartesian.h"
 #include "../rect_mesh.h"
 
-#define GEOMETRY  CartesianCoordinates<StructuredMesh>
+#define GEOMETRY  CartesianCoordinate<StructuredMesh>
 
 #include "../../structured/test/geometry_test.h"
 

@@ -37,7 +37,7 @@ public:
 	typedef TV value_type;
 
 	typedef typename mesh_type::scalar_type scalar_type;
-	typedef typename mesh_type::coordinates_type coordinates_type;
+	typedef typename mesh_type::coordinate_type coordinate_type;
 
 	mesh_type mesh;
 

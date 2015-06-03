@@ -5,7 +5,7 @@
  *      Author: salmon
  */
 
-#include "geqdsk.h"
+#include "../geometry/geqdsk.h"
 
 #include <fstream>
 #include <iomanip>
@@ -316,7 +316,7 @@ std::ostream & GEqdsk::print(std::ostream & os)
 	return os;
 }
 
-bool GEqdsk::flux_surface(double psi_j, size_t M, coordinates_type*res,
+bool GEqdsk::flux_surface(double psi_j, size_t M, coordinate_type*res,
 		size_t ToPhiAxis, double resolution)
 {
 	bool success = true;
@@ -377,8 +377,8 @@ bool GEqdsk::flux_surface(double psi_j, size_t M, coordinates_type*res,
 }
 
 bool GEqdsk::map_to_flux_coordiantes(
-		std::vector<coordinates_type> const&surface,
-		std::vector<coordinates_type> *res,
+		std::vector<coordinate_type> const&surface,
+		std::vector<coordinate_type> *res,
 		std::function<double(double, double)> const & h, size_t PhiAxis)
 {
 	bool success = false;

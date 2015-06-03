@@ -33,7 +33,7 @@ struct _Field<TM, TV, _impl::is_associative_container> : public SpObject
 
 	typedef typename mesh_type::id_type id_type;
 
-	typedef typename mesh_type::coordinates_type coordinates_type;
+	typedef typename mesh_type::coordinate_type coordinate_type;
 
 	typedef std::map<id_type, value_type> container_type;
 
@@ -118,7 +118,7 @@ public:
 
 	typedef typename mesh_type::template field_value_type<value_type> field_value_type;
 
-	field_value_type gather(coordinates_type const& x) const
+	field_value_type gather(coordinate_type const& x) const
 	{
 		return std::move(m_mesh_.gather(*m_data_, x));
 	}

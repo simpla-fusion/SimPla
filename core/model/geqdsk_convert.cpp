@@ -7,7 +7,8 @@
 
 #include <memory>
 #include <string>
-#include "geqdsk.h"
+
+#include "../geometry/geqdsk.h"
 using namespace simpla;
 int main(int argc, char ** argv)
 {

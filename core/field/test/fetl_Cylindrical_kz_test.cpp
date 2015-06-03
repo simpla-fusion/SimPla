@@ -16,7 +16,7 @@
 
 using namespace simpla;
 
-#define TMESH   Manifold<CylindricalCoordinates<StructuredMesh, CARTESIAN_ZAXIS>, FiniteDiffMehtod, InterpolatorLinear>
+#define TMESH   Manifold<CylindricalCoordinate<StructuredMesh, CARTESIAN_ZAXIS>, FiniteDiffMehtod, InterpolatorLinear>
 
 #include   "field_diff_calculus_test.h"
 

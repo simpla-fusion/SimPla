@@ -757,6 +757,12 @@ DEFINE_EXPRESSOPM_TEMPLATE_BASIC_ALGEBRA2(nTuple)
 
 namespace std
 {
+
+template<size_t M, typename T, size_t N>
+T const & get(simpla::nTuple<T, N> const & v)
+{
+	return v[M];
+}
 /**
  * C++11 <type_traits>
  * @ref http://en.cppreference.com/w/cpp/types/rank

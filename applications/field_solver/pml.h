@@ -39,7 +39,7 @@ public:
 
 	typedef TM mesh_type;
 	typedef typename mesh_type::scalar_type scalar_type;
-	typedef typename mesh_type::coordinates_type coordinates_type;
+	typedef typename mesh_type::coordinate_type coordinate_type;
 
 	std::shared_ptr<const mesh_type> m_mesh_;
 
@@ -67,7 +67,7 @@ public:
 	template<typename TDict, typename ...Others>
 	void init(TDict const &dict, Others const & ...);
 
-	void extents(coordinates_type xmin, coordinates_type xmax);
+	void extents(coordinate_type xmin, coordinate_type xmax);
 
 	void save(std::string const & path, bool is_verbose) const;
 
@@ -110,12 +110,12 @@ template<typename TM>
 template<typename TDict, typename ...Others>
 void PML<TM>::init(TDict const &dict, Others const & ...)
 {
-	extents(dict["Min"].template as<coordinates_type>(),
-			dict["Max"].template as<coordinates_type>());
+	extents(dict["Min"].template as<coordinate_type>(),
+			dict["Max"].template as<coordinate_type>());
 }
 
 template<typename TM>
-void PML<TM>::extents(coordinates_type xmin, coordinates_type xmax)
+void PML<TM>::extents(coordinate_type xmin, coordinate_type xmax)
 {
 	LOGGER << "create PML solver [" << xmin << " , " << xmax << " ]";
 
@@ -136,12 +136,12 @@ void PML<TM>::extents(coordinates_type xmin, coordinates_type xmax)
 	X21.fill(0.0);
 	X22.fill(0.0);
 
-	coordinates_type ymin, ymax;
+	coordinate_type ymin, ymax;
 	std::tie(ymin, ymax) = m_mesh_->extents();
 
 	for (auto s : m_mesh_->template domain<VERTEX>())
 	{
-		coordinates_type x = m_mesh_->coordinates(s);
+		coordinate_type x = m_mesh_->coordinates(s);
 
 #define DEF(_N_)                                                                    \
 		if (x[_N_] < xmin[_N_])                                                         \

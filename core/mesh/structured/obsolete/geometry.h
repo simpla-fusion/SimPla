@@ -12,8 +12,8 @@
 namespace simpla
 {
 
-//typedef CartesianCoordinates<RectMesh> CartesianRectMesh;
-//typedef CylindricalCoordinates<StructuredMesh> CylindricalGeometry;
+//typedef CartesianCoordinate<RectMesh> CartesianRectMesh;
+//typedef CylindricalCoordinate<StructuredMesh> CylindricalGeometry;
 
 }// namespace simpla
 

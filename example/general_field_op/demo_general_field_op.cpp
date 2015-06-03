@@ -27,19 +27,19 @@ using namespace simpla;
 USE_CASE(general_field_op)
 {
 
-	typedef CartesianCoordinates<RectMesh> mesh_type;
+	typedef CartesianCoordinate<RectMesh> mesh_type;
 //	typedef SimpleMesh mesh_type;
 
-	typedef typename mesh_type::coordinates_type coordinates_type;
+	typedef typename mesh_type::coordinate_type coordinate_type;
 	typedef typename mesh_type::index_tuple index_tuple;
 
 	index_tuple dims =
 	{ 16, 16, 16 };
 	index_tuple ghost_width =
 	{ 2, 2, 0 };
-	coordinates_type xmin =
+	coordinate_type xmin =
 	{ 0, 0, 0 };
-	coordinates_type xmax =
+	coordinate_type xmax =
 	{ 1, 1, 1 };
 	auto mesh = make_mesh<mesh_type>();
 	mesh->dimensions(dims);

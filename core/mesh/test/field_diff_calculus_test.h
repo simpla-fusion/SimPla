@@ -20,7 +20,7 @@ using namespace simpla;
 
 typedef CartesianRectMesh mesh_type;
 
-typedef nTuple<Real, 3> coordinates_type;
+typedef nTuple<Real, 3> coordinate_type;
 
 class FETLTest: public testing::TestWithParam<
 		std::tuple<nTuple<Real, 3>, nTuple<Real, 3>, nTuple<size_t, 3>,
@@ -57,7 +57,7 @@ protected:
 public:
 	typedef Real value_type;
 	typedef typename mesh_type::scalar_type scalar_type;
-	typedef typename mesh_type::coordinates_type coordinates_type;
+	typedef typename mesh_type::coordinate_type coordinate_type;
 
 	static constexpr size_t ndims = mesh_type::ndims;
 	nTuple<Real, 3> xmin;

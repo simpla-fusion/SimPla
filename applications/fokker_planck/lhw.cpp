@@ -34,14 +34,14 @@ struct PICDeltaF
 {
 
 public:
-	typedef nTuple<3, Real> coordinates_type;
+	typedef nTuple<3, Real> coordinate_type;
 	typedef std::complex<Real> scalar_type;
 
 	typedef PICDeltaF this_type;
 
 	struct Point_s
 	{
-		coordinates_type x;
+		coordinate_type x;
 		Vec3 v;
 		Real f;
 		scalar_type w;
@@ -128,7 +128,7 @@ int main(int argc, char **argv)
 	LOGGER.init(argc, argv);
 	GLOBAL_DATA_STREAM.init(argc, argv);
 
-	typedef typename PICDeltaF::coordinates_type coordinates_type;
+	typedef typename PICDeltaF::coordinate_type coordinate_type;
 
 	PICDeltaF engine;
 
@@ -222,13 +222,13 @@ int main(int argc, char **argv)
 
 	TheStart();
 
-	auto B = [](coordinates_type const &)
+	auto B = [](coordinate_type const &)
 	{
 		return Vec3(
 				{	0,0,1.0});
 	};
 
-	auto E = [k1,k2](coordinates_type const & x)
+	auto E = [k1,k2](coordinate_type const & x)
 	{
 		return Vec3(
 				{	0,std::sin(k1*x[1]),std::sin(k2*x[2])});

@@ -36,7 +36,7 @@ void bc_cycle(Surface<TM> const & surface,
 
 		Vec3 const & normal = std::get<1>(item->second);
 
-		typename TM::coordinates_type x0 = mesh.coordinates(item->first)
+		typename TM::coordinate_type x0 = mesh.coordinates(item->first)
 				+ dist * normal;
 
 		Vec3 d;
@@ -46,7 +46,7 @@ void bc_cycle(Surface<TM> const & surface,
 
 		particle->modify([&](typename TParticle::value_type * p)
 		{
-			typename TM::ccoordinates_type x;
+			typename TM::ccoordinate_type x;
 			Vec3 v;
 			Real f;
 

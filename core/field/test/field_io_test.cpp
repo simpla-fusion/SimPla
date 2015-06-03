@@ -42,7 +42,7 @@ int main(int argc, char **argv)
 
 	nTuple<size_t, 3> dims = { 40, 50, 1 };
 
-//	typedef Manifold<CartesianCoordinates<StructuredMesh> > mesh_type;
+//	typedef Manifold<CartesianCoordinate<StructuredMesh> > mesh_type;
 
 	SimpleMesh<> domain;
 //

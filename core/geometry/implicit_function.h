@@ -5,8 +5,8 @@
  * @author salmon
  */
 
-#ifndef CORE_MODEL_IMPLICIT_FUNCTION_H_
-#define CORE_MODEL_IMPLICIT_FUNCTION_H_
+#ifndef CORE_GEOMETRY_IMPLICIT_FUNCTION_H_
+#define CORE_GEOMETRY_IMPLICIT_FUNCTION_H_
 #include "../gtl/expression_template.h"
 namespace simpla
 {
@@ -223,4 +223,4 @@ ImplicitFunction<
 }
 // namespace simpla
 
-#endif /* CORE_MODEL_IMPLICIT_FUNCTION_H_ */
+#endif /* CORE_GEOMETRY_IMPLICIT_FUNCTION_H_ */

@@ -22,7 +22,7 @@ template<typename TF, template<typename > class TInterpolator> struct TParam
 	typedef TInterpolator<manifold_type> interoplator_type;
 
 };
-typedef CartesianCoordinates<RectMesh> manifold_type;
+typedef CartesianCoordinate<RectMesh> manifold_type;
 
 typedef testing::Types<
 		TParam<Field<Domain<manifold_type, VERTEX>, double>, InterpolatorLinear>

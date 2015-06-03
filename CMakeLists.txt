@@ -5,6 +5,8 @@ PROJECT(SimPla  CXX C)
 INCLUDE(CTest)
 ENABLE_TESTING()
 
+INCLUDE(ExternalProject)
+
 include(${PROJECT_SOURCE_DIR}/CMake/utils.cmake)
  
 SET(CMAKE_VERBOSE_MAKEFILE OFF)
@@ -56,23 +58,59 @@ IF(HDF5_FOUND)
   ENDIF(HDF5_IS_PARALLEL)
 ENDIF(HDF5_FOUND)
  
- 
-#IF(GTEST_ROOT)
-enable_testing()
-#INCLUDE(${GTEST_ROOT})
-INCLUDE_DIRECTORIES(${GTEST_ROOT}/include)
-#ENDIF()
+SET(Boost_USE_STATIC_LIBS        ON) # only find static libs
+SET(Boost_USE_MULTITHREADED      ON)
+SET(Boost_USE_STATIC_RUNTIME    OFF)
+find_package(Boost )
+
+if(Boost_FOUND)
+   include_directories(${Boost_INCLUDE_DIRS})
+else()
+  set(boost_cmds
+    CONFIGURE_COMMAND ./bootstrap.sh --prefix=<INSTALL_DIR>
+    BUILD_COMMAND ./b2 address-model=${am} ${boost_with_args}
+    INSTALL_COMMAND ./b2 address-model=${am} ${boost_with_args}
+      install
+  )
+   ExternalProject_Add(boost
+     PREFIX  ${PROJECT_BINARY_DIR}/external_project 
+     URL http://sourceforge.net/projects/boost/files/boost/1.58.0/boost_1_58_0.tar.bz2/download
+     DOWNLOAD_DIR  ${CMAKE_SOURCE_DIR}/external_project/src/
+     SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/boost
+     BUILD_IN_SOURCE 1
+     INSTALL_COMMAND "" )
+   ExternalProject_Get_Property(boost install_dir)
+   set(BOOST_ROOT "${install_dir}" CACHE INTERNAL "")
+   find_package(Boost 1.58.0 )
+endif()
+
+
+IF(GTEST_ROOT)
+  INCLUDE(${GTEST_ROOT})
+  INCLUDE_DIRECTORIES(${GTEST_ROOT}/include)
+ELSE()
+ ExternalProject_Add(googletest
+     PREFIX  ${PROJECT_BINARY_DIR}/external_project 
+     #    URL   http://googletest.googlecode.com/files/gtest-1.7.0.zip
+    URL file://${CMAKE_SOURCE_DIR}/external_project/src/gtest-1.7.0.zip
+     SOURCE_DIR ${PROJECT_BINARY_DIR}/external_project/googletest
+     INSTALL_COMMAND "" )
+ ExternalProject_Get_Property(googletest SOURCE_DIR)
+ ExternalProject_Get_Property(googletest BINARY_DIR)
+ INCLUDE_DIRECTORIES(${SOURCE_DIR}/include )
+ LINK_DIRECTORIES(${BINARY_DIR})
+ENDIF()
 
 
 #FIND_PACKAGE(CUDA 7.0)
 
 
-SET(TBB_ARCH_PLATFORM intel64)
-FIND_PACKAGE(TBB )
-IF(TBB_FOUND)
-	ADD_DEFINITIONS(-DUSE_TBB )
-	INCLUDE_DIRECTORIES(  ${TBB_INCLUDE_DIR} )
-ENDIF( )
+#SET(TBB_ARCH_PLATFORM intel64)
+#FIND_PACKAGE(TBB )
+#IF(TBB_FOUND)
+#	ADD_DEFINITIONS(-DUSE_TBB )
+#	INCLUDE_DIRECTORIES(  ${TBB_INCLUDE_DIR} )
+#ENDIF( )
 
 execute_process(COMMAND  git describe --all  --dirty --long
             OUTPUT_VARIABLE PROJECT_IDENTIFY      
@@ -84,17 +122,7 @@ MESSAGE(STATUS "Identify: ${PROJECT_IDENTIFY}")
 
 ADD_DEFINITIONS(-DIDENTIFY=\"${PROJECT_IDENTIFY}\" )
 
-INCLUDE(ExternalProject)
-ExternalProject_Add(googletest
-     PREFIX  ${PROJECT_BINARY_DIR}/external_project 
-     #    URL   http://googletest.googlecode.com/files/gtest-1.7.0.zip
-    URL file://${CMAKE_SOURCE_DIR}/external_project/src/gtest-1.7.0.zip
-     SOURCE_DIR ${PROJECT_BINARY_DIR}/external_project/googletest
-     INSTALL_COMMAND "" )
- ExternalProject_Get_Property(googletest SOURCE_DIR)
- ExternalProject_Get_Property(googletest BINARY_DIR)
- INCLUDE_DIRECTORIES(${SOURCE_DIR}/include )
- LINK_DIRECTORIES(${BINARY_DIR})
+
 
 add_subdirectory(core )
 add_subdirectory(applications )

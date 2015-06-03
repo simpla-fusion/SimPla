@@ -10,7 +10,7 @@
 using namespace simpla;
 
 
-typedef Manifold<CylindricalCoordinates<RectMesh, CARTESIAN_ZAXIS>,
+typedef Manifold<CylindricalCoordinate<RectMesh, CARTESIAN_ZAXIS>,
 		FiniteDiffMethod, InterpolatorLinear> m_type;
 typedef Real v_type;
 

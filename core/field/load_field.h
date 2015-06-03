@@ -143,7 +143,7 @@ bool load_field(TDict const & dict, TField *f)
 //
 //		Assign(
 //
-//		[dict](coordinates_type x)->field_value_type
+//		[dict](coordinate_type x)->field_value_type
 //		{
 //			return dict(x[0],x[1],x[2]).template as<field_value_type>();
 //		}
@@ -155,7 +155,7 @@ bool load_field(TDict const & dict, TField *f)
 //	{
 //		field_value_type v = dict.template as<field_value_type>();
 //
-//		Assign([v](coordinates_type )->field_value_type
+//		Assign([v](coordinate_type )->field_value_type
 //		{
 //			return v;
 //		});
@@ -165,7 +165,7 @@ bool load_field(TDict const & dict, TField *f)
 //	{
 //		field_value_type v = dict.template as<field_value_type>();
 //
-//		Assign([v](coordinates_type )->field_value_type
+//		Assign([v](coordinate_type )->field_value_type
 //		{
 //			return v;
 //		});

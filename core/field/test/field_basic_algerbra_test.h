@@ -220,8 +220,8 @@ REGISTER_TYPED_TEST_CASE_P(TestField, index, assign, constant_real,
 //class Container;
 //
 //class TestFIELD: public testing::TestWithParam<
-//		std::tuple<typename domain_traits<Domain>::coordinates_type,
-//				typename Domain::coordinates_type,
+//		std::tuple<typename domain_traits<Domain>::coordinate_type,
+//				typename Domain::coordinate_type,
 //				nTuple<Domain::NDIMS, size_t>, nTuple<Domain::NDIMS, Real> > >
 //{
 //
@@ -263,7 +263,7 @@ REGISTER_TYPED_TEST_CASE_P(TestField, index, assign, constant_real,
 //	typedef Real value_type;
 //	typedef domain_type::scalar_type scalar_type;
 //	typedef domain_type::iterator iterator;
-//	typedef domain_type::coordinates_type coordinates_type;
+//	typedef domain_type::coordinate_type coordinate_type;
 //
 //	domain_type mesh;
 //

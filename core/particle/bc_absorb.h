@@ -29,7 +29,7 @@ void bc_absorb(Surface<TM> const & surface, TParticle *particle)
 
 		Vec3 const & normal = std::get<1>(item.second);
 
-		typename TM::coordinates_type x0 = mesh.coordinates(item.first)
+		typename TM::coordinate_type x0 = mesh.coordinates(item.first)
 				+ dist * normal;
 
 		particle->remove(

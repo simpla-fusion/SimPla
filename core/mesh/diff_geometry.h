@@ -103,8 +103,8 @@ namespace simpla
  *
  *    Pseudo-Signature  	   | Semantics
  *  ---------------------------|-------------
- *  `gather(field_type const &f, coordinates_type x  )` 	    | gather data from `f` at coordinates `x`.
- *  `scatter(field_type &f, coordinates_type x ,value_type v)` 	| scatter `v` to field  `f` at coordinates `x`.
+ *  `gather(field_type const &f, coordinate_type x  )` 	    | gather data from `f` at coordinates `x`.
+ *  `scatter(field_type &f, coordinate_type x ,value_type v)` 	| scatter `v` to field  `f` at coordinates `x`.
  *
  * ## Calculus  policy
  *  Define calculus operation of  fields on the manifold, such  as algebra or differential calculus.

@@ -26,7 +26,7 @@
 //typedef TM Mesh;                                                                                       \
 //typedef typename Mesh::iterator iterator ;                                                         \
 //typedef typename Mesh::scalar_type scalar_type;                                                        \
-//typedef typename Mesh::coordinates_type coordinates_type;                                              \
+//typedef typename Mesh::coordinate_type coordinate_type;                                              \
 //template<unsigned int IFORM> using Form = Field<Mesh,IFORM,scalar_type >;              \
 //template<unsigned int IFORM> using VectorForm = Field<Mesh,IFORM,nTuple<3,scalar_type> >;    \
 //template<unsigned int IFORM> using TensorForm = Field<Mesh,IFORM,nTuple<3,nTuple<3,scalar_type> > >;    \

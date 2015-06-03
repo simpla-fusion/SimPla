@@ -23,8 +23,8 @@ namespace simpla
  *  \brief  cylindrical coordinates \f$ \left(R Z \phi \right) \f$
  */
 template<typename TTopology, size_t IPhiAxis = 2>
-class CylindricalCoordinates: public TTopology, public enable_create_from_this<
-										CylindricalCoordinates<TTopology,
+class CylindricalCoordinate: public TTopology, public enable_create_from_this<
+										CylindricalCoordinate<TTopology,
 												IPhiAxis>>
 {
 private:
@@ -36,13 +36,13 @@ public:
 	static constexpr size_t RAxis = (PhiAxis + 1) % 3;
 	static constexpr size_t ZAxis = (PhiAxis + 2) % 3;
 
-	typedef CylindricalCoordinates<topology_type, PhiAxis> this_type;
+	typedef CylindricalCoordinate<topology_type, PhiAxis> this_type;
 
 	static constexpr size_t ndims = topology_type::ndims;
 
 	typedef Real scalar_type;
 
-	typedef typename topology_type::coordinates_type coordinates_type;
+	typedef typename topology_type::coordinate_type coordinate_type;
 	typedef typename topology_type::id_type id_type;
 	typedef typename topology_type::index_type index_type;
 	typedef typename topology_type::iterator iterator;
@@ -50,29 +50,29 @@ public:
 	typedef nTuple<Real, ndims> vector_type;
 	typedef nTuple<Real, ndims> covector_type;
 
-	CylindricalCoordinates(this_type const & rhs) = delete;
+	CylindricalCoordinate(this_type const & rhs) = delete;
 
-	CylindricalCoordinates() :
+	CylindricalCoordinate() :
 			topology_type()
 	{
-		xmin_ = coordinates_type( { 1, 0, 0 });
+		xmin_ = coordinate_type( { 1, 0, 0 });
 
-		xmax_ = coordinates_type( { 2, 1, TWOPI });
+		xmax_ = coordinate_type( { 2, 1, TWOPI });
 
-		inv_length_ = coordinates_type( { 1.0, 1.0, 1.0 / TWOPI });
+		inv_length_ = coordinate_type( { 1.0, 1.0, 1.0 / TWOPI });
 
-		length_ = coordinates_type( { 2, 1, TWOPI });
+		length_ = coordinate_type( { 2, 1, TWOPI });
 
-		shift_ = coordinates_type( { 0, 0, 0 });
+		shift_ = coordinate_type( { 0, 0, 0 });
 	}
 	template<typename ... Args>
-	CylindricalCoordinates(Args && ... args) :
+	CylindricalCoordinate(Args && ... args) :
 			topology_type(std::forward<Args>(args)...)
 	{
 		load(std::forward<Args>(args)...);
 	}
 
-	~CylindricalCoordinates()
+	~CylindricalCoordinate()
 	{
 	}
 	static std::string get_type_as_string_static()
@@ -118,15 +118,15 @@ public:
 		return dt_;
 	}
 
-	coordinates_type xmin_ /* = { 1, 0, 0 }*/;
+	coordinate_type xmin_ /* = { 1, 0, 0 }*/;
 
-	coordinates_type xmax_ /*= { 2, 1, TWOPI }*/;
+	coordinate_type xmax_ /*= { 2, 1, TWOPI }*/;
 
-	coordinates_type inv_length_/* = { 1.0, 1.0, 1.0 / TWOPI }*/;
+	coordinate_type inv_length_/* = { 1.0, 1.0, 1.0 / TWOPI }*/;
 
-	coordinates_type length_/* = { 2, 1, TWOPI }*/;
+	coordinate_type length_/* = { 2, 1, TWOPI }*/;
 
-	coordinates_type shift_/* = { 0, 0, 0 }*/;
+	coordinate_type shift_/* = { 0, 0, 0 }*/;
 
 	template<typename TDict>
 	bool load(TDict const & dict)
@@ -227,21 +227,21 @@ public:
 
 	}
 
-	void extents(coordinates_type const & pmin, coordinates_type const & pmax)
+	void extents(coordinate_type const & pmin, coordinate_type const & pmax)
 	{
 
 		xmin_ = pmin;
 		xmax_ = pmax;
 	}
-	inline std::pair<coordinates_type, coordinates_type> extents() const
+	inline std::pair<coordinate_type, coordinate_type> extents() const
 	{
 		return std::move(std::make_pair(xmin_, xmax_));
 	}
 
-	inline coordinates_type dx(index_type s = 0UL) const
+	inline coordinate_type dx(index_type s = 0UL) const
 	{
 
-		coordinates_type res;
+		coordinate_type res;
 
 		auto d = topology_type::dx();
 
@@ -256,16 +256,16 @@ public:
 	//!@{
 
 	template<typename ... Args>
-	inline coordinates_type coordinates(Args && ... args) const
+	inline coordinate_type coordinates(Args && ... args) const
 	{
-		return CoordinatesFromTopology(
+		return CoordinateFromTopology(
 				topology_type::coordinates(std::forward<Args >(args)...));
 	}
 
-	coordinates_type CoordinatesFromTopology(coordinates_type const &x) const
+	coordinate_type CoordinateFromTopology(coordinate_type const &x) const
 	{
 
-		return coordinates_type( {
+		return coordinate_type( {
 
 		x[0] * length_[0] + shift_[0],
 
@@ -276,9 +276,9 @@ public:
 		});
 
 	}
-	coordinates_type CoordinatesToTopology(coordinates_type const &x) const
+	coordinate_type CoordinateToTopology(coordinate_type const &x) const
 	{
-		return coordinates_type( {
+		return coordinate_type( {
 
 		(x[0] - shift_[0]) * inv_length_[0],
 
@@ -290,36 +290,36 @@ public:
 
 	}
 	template<typename ... Args>
-	inline coordinates_type coordinates_local_to_global(Args && ... args) const
+	inline coordinate_type coordinates_local_to_global(Args && ... args) const
 	{
-		return CoordinatesFromTopology(
+		return CoordinateFromTopology(
 				topology_type::coordinates_local_to_global(
 						std::forward<Args >(args)...));
 	}
 
-	std::tuple<index_type, coordinates_type> coordinates_global_to_local(
-			coordinates_type x,
+	std::tuple<index_type, coordinate_type> coordinates_global_to_local(
+			coordinate_type x,
 			typename topology_type::index_type shift = 0UL) const
 	{
 		return std::move(
 				topology_type::coordinates_global_to_local(
-						std::move(CoordinatesToTopology(x)), shift));
+						std::move(CoordinateToTopology(x)), shift));
 	}
-	std::tuple<index_type, coordinates_type> coordinates_global_to_local_NGP(
-			coordinates_type x, index_type shift = 0UL) const
+	std::tuple<index_type, coordinate_type> coordinates_global_to_local_NGP(
+			coordinate_type x, index_type shift = 0UL) const
 	{
 		return std::move(
 				topology_type::coordinates_global_to_local_NGP(
-						std::move(CoordinatesToTopology(x)), shift));
+						std::move(CoordinateToTopology(x)), shift));
 	}
 	//!@}
 	//! @name Coordiantes convert Cylindrical <-> Cartesian
 	//! \f$\left(r,z,\phi\right)\Longleftrightarrow\left(x,y,z\right)\f$
 	//! @{
 
-	static constexpr coordinates_type MapToCartesian(coordinates_type const &y)
+	static constexpr coordinate_type MapToCartesian(coordinate_type const &y)
 	{
-		coordinates_type x;
+		coordinate_type x;
 
 		/**
 		 *  @note
@@ -333,7 +333,7 @@ public:
 		 *
 		 */
 
-		return std::move(coordinates_type( {
+		return std::move(coordinate_type( {
 
 		y[RAxis] * std::cos(y[PhiAxis]),
 
@@ -342,9 +342,9 @@ public:
 		y[ZAxis] }));
 	}
 
-	static inline coordinates_type MapFromCartesian(coordinates_type const &x)
+	static inline coordinate_type MapFromCartesian(coordinate_type const &x)
 	{
-		coordinates_type y;
+		coordinate_type y;
 		/**
 		 *  @note
 		 *  coordinates transforam
@@ -365,8 +365,8 @@ public:
 	}
 
 	template<typename TV>
-	std::tuple<coordinates_type, TV> push_forward(
-			std::tuple<coordinates_type, TV> const & Z) const
+	std::tuple<coordinate_type, TV> push_forward(
+			std::tuple<coordinate_type, TV> const & Z) const
 	{
 		return std::move(
 				std::make_tuple(MapFromCartesian(std::get<0>(Z)),
@@ -374,8 +374,8 @@ public:
 	}
 
 	template<typename TV>
-	std::tuple<coordinates_type, TV> pull_back(
-			std::tuple<coordinates_type, TV> const & R) const
+	std::tuple<coordinate_type, TV> pull_back(
+			std::tuple<coordinate_type, TV> const & R) const
 	{
 		return std::move(
 				std::make_tuple(MapToCartesian(std::get<0>(R)), std::get<1>(R)));
@@ -405,10 +405,10 @@ public:
 	 *
 	 */
 	template<typename TV>
-	std::tuple<coordinates_type, nTuple<TV, ndims> > push_forward(
-			std::tuple<coordinates_type, nTuple<TV, ndims> > const & Z) const
+	std::tuple<coordinate_type, nTuple<TV, ndims> > push_forward(
+			std::tuple<coordinate_type, nTuple<TV, ndims> > const & Z) const
 	{
-		coordinates_type r = MapFromCartesian(std::get<0>(Z));
+		coordinate_type r = MapFromCartesian(std::get<0>(Z));
 
 		auto const & v = std::get<1>(Z);
 
@@ -436,8 +436,8 @@ public:
 	 *
 	 */
 	template<typename TV>
-	std::tuple<coordinates_type, nTuple<TV, ndims> > pull_back(
-			std::tuple<coordinates_type, nTuple<TV, ndims> > const & R) const
+	std::tuple<coordinate_type, nTuple<TV, ndims> > pull_back(
+			std::tuple<coordinate_type, nTuple<TV, ndims> > const & R) const
 	{
 		auto const & r = std::get<0>(R);
 		auto const & u = std::get<1>(R);
@@ -454,9 +454,9 @@ public:
 	}
 //! @}
 
-//	auto select(size_t iform, coordinates_type const & xmin,
-//			coordinates_type const & xmax) const
-//					DECL_RET_TYPE((this->topology_type::select(this->topology_type::select(iform), this->CoordinatesToTopology(xmin),this->CoordinatesToTopology(xmax))))
+//	auto select(size_t iform, coordinate_type const & xmin,
+//			coordinate_type const & xmax) const
+//					DECL_RET_TYPE((this->topology_type::select(this->topology_type::select(iform), this->CoordinateToTopology(xmin),this->CoordinateToTopology(xmax))))
 //
 //	template<typename ...Args>
 //	auto select(size_t iform,
@@ -598,7 +598,7 @@ public:
 ;
 
 template<typename TTopology, size_t IPhiAxis>
-bool CylindricalCoordinates<TTopology, IPhiAxis>::update()
+bool CylindricalCoordinate<TTopology, IPhiAxis>::update()
 {
 
 	if (!topology_type::update())
@@ -726,13 +726,13 @@ bool CylindricalCoordinates<TTopology, IPhiAxis>::update()
 
 }
 template<typename TTopology, size_t IPhiAxis>
-constexpr size_t CylindricalCoordinates<TTopology, IPhiAxis>::PhiAxis;
+constexpr size_t CylindricalCoordinate<TTopology, IPhiAxis>::PhiAxis;
 
 template<typename TTopology, size_t IPhiAxis>
-constexpr size_t CylindricalCoordinates<TTopology, IPhiAxis>::RAxis;
+constexpr size_t CylindricalCoordinate<TTopology, IPhiAxis>::RAxis;
 
 template<typename TTopology, size_t IPhiAxis>
-constexpr size_t CylindricalCoordinates<TTopology, IPhiAxis>::ZAxis;
+constexpr size_t CylindricalCoordinate<TTopology, IPhiAxis>::ZAxis;
 }
 // namespace simpla
 

@@ -26,13 +26,13 @@ public:
 	typedef TM mesh_type;
 	typedef TS scalar_type;
 
-	typedef typename mesh_type::coordinates_type coordinates_type;
+	typedef typename mesh_type::coordinate_type coordinate_type;
 
 	typedef nTuple<8, Real> storage_value_type;
 
 	struct Point_s
 	{
-		coordinates_type x;
+		coordinate_type x;
 		Vec3 v;
 		Real f;
 		scalar_type w;
@@ -168,7 +168,7 @@ public:
 		mesh.Scatter(p.x, v, J);
 	}
 
-	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v, Real f)
+	static inline Point_s make_point(coordinate_type const & x, Vec3 const &v, Real f)
 	{
 		return std::move(Point_s( { x, v, f, 0 }));
 	}

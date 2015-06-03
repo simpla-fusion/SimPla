@@ -41,7 +41,7 @@ class GEqdsk
 
 public:
 
-	typedef nTuple<Real, 3> coordinates_type;
+	typedef nTuple<Real, 3> coordinate_type;
 
 	typedef Interpolation<LinearInterpolation, Real, Real> inter_type;
 
@@ -53,8 +53,8 @@ private:
 	static constexpr size_t ZAxis = (PhiAxis + 2) % 3;
 
 	nTuple<size_t, 3> m_dims_ = { 1, 1, 1 };
-	coordinates_type m_rzmin_;
-	coordinates_type m_rzmax_;
+	coordinate_type m_rzmin_;
+	coordinate_type m_rzmax_;
 
 	bool is_valid_ = false;
 	std::string m_desc_;
@@ -72,8 +72,8 @@ private:
 	Real m_bcenter_ = 0.5; //!< Vacuum toroidal magnetic field in Tesla at RCENTR
 	Real m_current_ = 1.0; //!< Plasma current in Ampere
 
-//	coordinates_type rzmin_;
-//	coordinates_type rzmax_;
+//	coordinate_type rzmin_;
+//	coordinate_type rzmax_;
 
 //	inter_type fpol_; //!< Poloidal current function in m-T $F=RB_T$ on flux grid
 //	inter_type pres_;//!< Plasma pressure in $nt/m^2$ on uniform flux grid
@@ -84,8 +84,8 @@ private:
 
 //	inter_type qpsi_;//!< q values on uniform flux grid from axis to boundary
 
-	std::vector<coordinates_type> m_rzbbb_; //!< R,Z of boundary points in meter
-	std::vector<coordinates_type> m_rzlim_; //!< R,Z of surrounding limiter contour in meter
+	std::vector<coordinate_type> m_rzbbb_; //!< R,Z of boundary points in meter
+	std::vector<coordinate_type> m_rzlim_; //!< R,Z of surrounding limiter contour in meter
 
 	std::map<std::string, inter_type> m_profile_;
 
@@ -117,7 +117,7 @@ public:
 	void load_profile(std::string const &fname);
 
 	inline Real profile(std::string const & name,
-			coordinates_type const & x) const
+			coordinate_type const & x) const
 	{
 		return profile(name, psi(x[RAxis], x[ZAxis]));
 	}
@@ -140,7 +140,7 @@ public:
 	{
 		return m_dims_;
 	}
-	std::pair<coordinates_type, coordinates_type> extents() const
+	std::pair<coordinate_type, coordinate_type> extents() const
 	{
 		return std::make_pair(m_rzmin_, m_rzmax_);
 	}
@@ -151,11 +151,11 @@ public:
 
 	std::ostream & print(std::ostream & os);
 
-	inline std::vector<coordinates_type> const & boundary() const
+	inline std::vector<coordinate_type> const & boundary() const
 	{
 		return m_rzbbb_;
 	}
-	inline std::vector<coordinates_type> const & limiter() const
+	inline std::vector<coordinate_type> const & limiter() const
 	{
 		return m_rzlim_;
 	}
@@ -165,7 +165,7 @@ public:
 		return psirz_.calculate(R, Z);
 	}
 
-	inline Real psi(coordinates_type const&x) const
+	inline Real psi(coordinate_type const&x) const
 	{
 		return psirz_.calculate(x[RAxis], x[ZAxis]);
 	}
@@ -189,7 +189,7 @@ public:
 
 	}
 
-	inline auto B(coordinates_type const&x) const
+	inline auto B(coordinate_type const&x) const
 	DECL_RET_TYPE(B(x[RAxis], x[ZAxis] ))
 	;
 
@@ -198,7 +198,7 @@ public:
 		return R * profile("pprim", R, Z) + profile("ffprim", R, Z) / R;
 	}
 
-	inline auto JT(coordinates_type const&x) const
+	inline auto JT(coordinate_type const&x) const
 	DECL_RET_TYPE(JT(x[RAxis], x[ZAxis]))
 	;
 
@@ -208,10 +208,10 @@ public:
 				|| (m_profile_.find(name) != m_profile_.end());
 	}
 
-	coordinates_type map_cylindrical_to_flux(
-			coordinates_type const & psi_theta_phi, size_t VecZAxis = 2) const;
+	coordinate_type map_cylindrical_to_flux(
+			coordinate_type const & psi_theta_phi, size_t VecZAxis = 2) const;
 
-	coordinates_type map_flux_from_cylindrical(coordinates_type const & x,
+	coordinate_type map_flux_from_cylindrical(coordinate_type const & x,
 			size_t VecZAxis = 2) const;
 	/**
 	 *  caculate the contour at \f$\Psi_{j}\in\left[0,1\right]\f$
@@ -226,7 +226,7 @@ public:
 	 *
 	 * \todo need improve!!  only valid for internal flux surface \f$\psi \le 1.0\f$; need x-point support
 	 */
-	bool flux_surface(Real psi_j, size_t M, coordinates_type*res,
+	bool flux_surface(Real psi_j, size_t M, coordinate_type*res,
 			size_t ToPhiAxis = 2, Real resoluton = 0.001);
 
 	/**
@@ -246,8 +246,8 @@ public:
 	 *   1  | constant volume
 	 *
 	 */
-	bool map_to_flux_coordiantes(std::vector<coordinates_type> const&surface,
-			std::vector<coordinates_type> *res,
+	bool map_to_flux_coordiantes(std::vector<coordinate_type> const&surface,
+			std::vector<coordinate_type> *res,
 			std::function<Real(Real, Real)> const & h, size_t PhiAxis = 2);
 
 }
@@ -259,7 +259,7 @@ public:
 //	if (name == "B")
 //	{
 //
-//		f->pull_back(*this, [this](coordinates_type const & x)
+//		f->pull_back(*this, [this](coordinate_type const & x)
 //		{	return this->B(x);});
 //
 //	}
@@ -278,20 +278,20 @@ public:
 //	if (name == "psi")
 //	{
 //
-//		f->pull_back(*this, [this](coordinates_type const & x)
+//		f->pull_back(*this, [this](coordinate_type const & x)
 //		{	return this->psi(x);});
 //
 //	}
 //	else if (name == "JT")
 //	{
 //
-//		f->pull_back(*this, [this](coordinates_type const & x)
+//		f->pull_back(*this, [this](coordinate_type const & x)
 //		{	return this->JT(x);});
 //	}
 //	else if (check_profile(name))
 //	{
 //
-//		f->pull_back(*this, [this,name](coordinates_type const & x)
+//		f->pull_back(*this, [this,name](coordinate_type const & x)
 //		{	return this->profile(name,x);});
 //
 //	}

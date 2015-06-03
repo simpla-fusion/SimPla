@@ -99,7 +99,7 @@ void sync(Particle<Args...> *pool)
 	auto cell_buffer = pool->create_child();
 	for (int i = 0; i < num_of_neighbour; ++i)
 	{
-		typename mesh_type::coordinates_type xmin, xmax, extents;
+		typename mesh_type::coordinate_type xmin, xmax, extents;
 
 		std::tie(xmin, xmax) = pool->mesh().get_extents();
 

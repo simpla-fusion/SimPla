@@ -26,7 +26,7 @@ using namespace simpla;
 #include "../../diff_geometry/geometry/cartesian.h"
 #include "../../applications/particle_solver/pic_engine_fullf.h"
 
-typedef Manifold<CartesianCoordinates<RectMesh> > TManifold;
+typedef Manifold<CartesianCoordinate<RectMesh> > TManifold;
 
 typedef TManifold mesh_type;
 
@@ -67,12 +67,12 @@ int main(int argc, char **argv)
 //
 //	int pic = 500;
 //
-//	auto n = [](typename mesh_type::coordinates_type const & x )
+//	auto n = [](typename mesh_type::coordinate_type const & x )
 //	{
 //		return 2.0; //std::sin(x[0]*TWOPI);
 //	    };
 //
-//	auto T = [](typename mesh_type::coordinates_type const & x )
+//	auto T = [](typename mesh_type::coordinate_type const & x )
 //	{
 //		return 1.0;
 //	};

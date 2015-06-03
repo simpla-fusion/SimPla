@@ -61,7 +61,7 @@ public:
 
 	auto operator[](id_type const &s) const DECL_RET_TYPE(m_mesh_.sample(s, m_value_))
 
-	value_type operator()(coordinates_type const & x) const
+	value_type operator()(coordinate_type const & x) const
 	{
 		return m_value_;
 	}

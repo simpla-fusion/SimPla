@@ -35,7 +35,7 @@ public:
 
 	typedef typename geo.topology_type topology_type;
 
-	typedef typename geo.coordinates_type coordinates_type;
+	typedef typename geo.coordinate_type coordinate_type;
 
 	typedef typename geo.index_type index_type;
 

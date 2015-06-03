@@ -19,7 +19,7 @@
 namespace simpla
 {
 
-typedef RectMesh<MeshIDs_<3>, CartesianCoordinates<3>, InterpolatorLinear,
+typedef RectMesh<MeshIDs_<3>, CartesianCoordinate<3>, InterpolatorLinear,
 		FiniteDiffMethod> CartesianRectMesh;
 
 }

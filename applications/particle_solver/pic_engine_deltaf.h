@@ -32,12 +32,12 @@ template<>
 struct ParticleEngine<PolicyPICDeltaF>
 {
 	typedef ParticleEngine<PolicyPICDeltaF> this_type;
-	typedef Vec3 coordinates_type;
+	typedef Vec3 coordinate_type;
 	typedef Vec3 vector_type;
 	typedef Real scalar_type;
 
 	SP_DEFINE_POINT_STRUCT(Point_s,
-			coordinates_type ,x,
+			coordinate_type ,x,
 			Vec3, v,
 			Real, f,
 			scalar_type, w)
@@ -107,7 +107,7 @@ public:
 
 	}
 
-	static inline Point_s push_forward(coordinates_type const & x, Vec3 const &v, scalar_type f)
+	static inline Point_s push_forward(coordinate_type const & x, Vec3 const &v, scalar_type f)
 	{
 		return std::move(Point_s( { x, v, f }));
 	}

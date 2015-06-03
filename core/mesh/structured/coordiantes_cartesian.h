@@ -27,16 +27,16 @@ namespace simpla
  *
  */
 template<size_t NDIMS, size_t ZAXIS = CARTESIAN_ZAXIS>
-struct CartesianCoordinates
+struct CartesianCoordinate
 {
 
 public:
 
-	typedef CartesianCoordinates<NDIMS, ZAXIS> this_type;
+	typedef CartesianCoordinate<NDIMS, ZAXIS> this_type;
 
 //	typedef MeshIDs_<NDIMS,ZAXIS> ids;
 //
-//	typedef typename ids::coordinates_type coordinates_type;
+//	typedef typename ids::coordinate_type coordinate_type;
 //	typedef typename ids::id_type id_type;
 
 	static constexpr size_t ndims = NDIMS;
@@ -47,20 +47,20 @@ public:
 
 	typedef Real scalar_type;
 
-	typedef nTuple<Real, NDIMS> coordinates_type;
+	typedef nTuple<Real, NDIMS> coordinate_type;
 
 public:
-	CartesianCoordinates()
+	CartesianCoordinate()
 	{
 	}
 
-	~CartesianCoordinates()
+	~CartesianCoordinate()
 	{
 	}
 
 	static std::string get_type_as_string()
 	{
-		return "Cartesian Coordinates";
+		return "Cartesian Coordinate";
 	}
 
 	//***************************************************************************************************
@@ -109,9 +109,9 @@ public:
 //		return true;
 //	}
 
-//	inline coordinates_type dx(id_type s = 0UL) const
+//	inline coordinate_type dx(id_type s = 0UL) const
 //	{
-//		coordinates_type res;
+//		coordinate_type res;
 //
 //		auto d = topology_type::dimensions();
 //
@@ -123,7 +123,7 @@ public:
 //		return std::move(res);
 //	}
 
-	static nTuple<Real, 3> MapToCartesian(coordinates_type const &y)
+	static nTuple<Real, 3> MapToCartesian(coordinate_type const &y)
 	{
 		nTuple<Real, 3> x;
 
@@ -134,10 +134,10 @@ public:
 		return std::move(x);
 	}
 
-	static coordinates_type MapFromCartesian(nTuple<Real, 3> const &x)
+	static coordinate_type MapFromCartesian(nTuple<Real, 3> const &x)
 	{
 
-		coordinates_type y;
+		coordinate_type y;
 
 		y[XAxis] = x[CARTESIAN_XAXIS];
 		y[YAxis] = x[CARTESIAN_YAXIS];
@@ -147,8 +147,8 @@ public:
 	}
 
 	template<typename TV>
-	static std::tuple<coordinates_type, TV> push_forward(
-			std::tuple<coordinates_type, TV> const & Z)
+	static std::tuple<coordinate_type, TV> push_forward(
+			std::tuple<coordinate_type, TV> const & Z)
 	{
 		return std::move(
 				std::make_tuple(MapFromCartesian(std::get<0>(Z)),
@@ -156,27 +156,27 @@ public:
 	}
 
 	template<typename TV>
-	static std::tuple<coordinates_type, TV> pull_back(
-			std::tuple<coordinates_type, TV> const & R)
+	static std::tuple<coordinate_type, TV> pull_back(
+			std::tuple<coordinate_type, TV> const & R)
 	{
 		return std::move(
 				std::make_tuple(MapToCartesian(std::get<0>(R)), std::get<1>(R)));
 	}
 
-	static coordinates_type Lie_trans(coordinates_type const & x,
+	static coordinate_type Lie_trans(coordinate_type const & x,
 			nTuple<Real, 3> const & v)
 	{
-		coordinates_type res;
+		coordinate_type res;
 		res = x + v;
 
 		return std::move(res);
 	}
 
-	static coordinates_type Lie_trans(
-			std::tuple<coordinates_type, nTuple<Real, 3> > const &Z,
+	static coordinate_type Lie_trans(
+			std::tuple<coordinate_type, nTuple<Real, 3> > const &Z,
 			nTuple<Real, 3> const & v)
 	{
-		coordinates_type res;
+		coordinate_type res;
 		res = std::get<0>(Z) + v;
 
 		return std::move(res);
@@ -192,10 +192,10 @@ public:
 	 */
 
 	template<typename TV>
-	static std::tuple<coordinates_type, nTuple<TV, ndims> > push_forward(
-			std::tuple<coordinates_type, nTuple<TV, ndims> > const & Z)
+	static std::tuple<coordinate_type, nTuple<TV, ndims> > push_forward(
+			std::tuple<coordinate_type, nTuple<TV, ndims> > const & Z)
 	{
-		coordinates_type y = MapFromCartesian(std::get<0>(Z));
+		coordinate_type y = MapFromCartesian(std::get<0>(Z));
 
 		auto const & v = std::get<1>(Z);
 
@@ -217,8 +217,8 @@ public:
 	 * @return  x,\f$v = v[XAixs] \partial_x +  v[YAixs] \partial_y + v[ZAixs] \partial_z\f$
 	 */
 	template<typename TV>
-	static std::tuple<coordinates_type, nTuple<TV, ndims> > pull_back(
-			std::tuple<coordinates_type, nTuple<TV, ndims> > const & R,
+	static std::tuple<coordinate_type, nTuple<TV, ndims> > pull_back(
+			std::tuple<coordinate_type, nTuple<TV, ndims> > const & R,
 			size_t CartesianZAxis = 2)
 	{
 		auto x = MapToCartesian(std::get<0>(R));
@@ -250,8 +250,8 @@ public:
 	}
 
 //	template<size_t IFORM, typename TR>
-//	auto select(TR range, coordinates_type const & xmin,
-//			coordinates_type const & xmax) const
+//	auto select(TR range, coordinate_type const & xmin,
+//			coordinate_type const & xmax) const
 //			DECL_RET_TYPE((topology_type::template select<IFORM>(range,
 //									this->coordinates_to_topology(xmin),
 //									this->coordinates_to_topology(xmax))))
@@ -307,13 +307,13 @@ public:
 
 public:
 
-	constexpr scalar_type cell_volume(coordinates_type const & x,
-			coordinates_type const & dx) const
+	constexpr scalar_type cell_volume(coordinate_type const & x,
+			coordinate_type const & dx) const
 	{
 		return dx[0] * dx[1] * dx[2];
 	}
-	constexpr scalar_type volume(coordinates_type const & x,
-			coordinates_type const & dx) const
+	constexpr scalar_type volume(coordinate_type const & x,
+			coordinate_type const & dx) const
 	{
 		return 1.0;
 	}

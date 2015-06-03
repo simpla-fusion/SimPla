@@ -33,12 +33,12 @@ namespace simpla
  *  `G::G( const G& ) 		`| Copy constructor.
  *  `G::~G() 				`| Destructor.
  *  `G::update()			`| update internal stat of coordinates system
- *  `G::coordinates_type	`| Data type of coordinates, i.e. nTuple<3,Real>
+ *  `G::coordinate_type	`| Data type of coordinates, i.e. nTuple<3,Real>
  *  `G::topology_type		`| Base topology type
- *  `tuple<coordinates_type,TV> G::pull_back(tuple<coordinates_type,TV> const &) `| pull back a function/value/tensor on _this_ coordinates to Cartesian coordinates system
- *  `tuple<coordinates_type,TV> G::push_forward(tuple<coordinates_type,TV> const &) `| push forward vector Cartesian coordinates to _this_ coordinates system
- *  `coordinates_type  G::mapto(coordinates const &) `| map _Cartesian_ coordinates to _this_  coordinates system
- *  `coordinates_type  G::inv_mapto(coordinates const &) `| map _this_ coordinates to _Cartesian_  coordinates system
+ *  `tuple<coordinate_type,TV> G::pull_back(tuple<coordinate_type,TV> const &) `| pull back a function/value/tensor on _this_ coordinates to Cartesian coordinates system
+ *  `tuple<coordinate_type,TV> G::push_forward(tuple<coordinate_type,TV> const &) `| push forward vector Cartesian coordinates to _this_ coordinates system
+ *  `coordinate_type  G::mapto(coordinates const &) `| map _Cartesian_ coordinates to _this_  coordinates system
+ *  `coordinate_type  G::inv_mapto(coordinates const &) `| map _this_ coordinates to _Cartesian_  coordinates system
  *  `Domain domain()const	`| get domain
  *  `Real G::time()const	`| get time
  *  `void G::time(Real)		`| set time

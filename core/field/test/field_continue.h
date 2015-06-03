@@ -33,7 +33,7 @@ public:
 	typedef TM mesh_type;
 
 	typedef typename mesh_type::id_type id_type;
-	typedef typename mesh_type::coordinates_type coordinates_type;
+	typedef typename mesh_type::coordinate_type coordinate_type;
 
 	typedef TContainer container_type;
 	typedef typename container_type::value_type value_type;
@@ -139,7 +139,7 @@ public:
 
 	typedef typename mesh_type::template field_value_type<value_type> field_value_type;
 
-	field_value_type gather(coordinates_type const& x) const
+	field_value_type gather(coordinate_type const& x) const
 	{
 		return std::move(mesh_.gather(*this, x));
 	}

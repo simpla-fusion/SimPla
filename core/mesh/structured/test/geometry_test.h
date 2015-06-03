@@ -18,14 +18,14 @@ using namespace simpla;
 #include "../../structured/topology/structured.h"
 #include "cartesian.h"
 
-typedef CartesianCoordinates<RectMesh> TGeometry;
+typedef CartesianCoordinate<RectMesh> TGeometry;
 #else
 typedef GEOMETRY TGeometry;
 #endif
 
 class TestGeometry: public testing::TestWithParam<
-		std::tuple<typename TGeometry::coordinates_type,
-				typename TGeometry::coordinates_type,
+		std::tuple<typename TGeometry::coordinate_type,
+				typename TGeometry::coordinate_type,
 				nTuple<size_t, TGeometry::ndims> > >
 {
 protected:
@@ -52,14 +52,14 @@ public:
 	typedef TGeometry geometry_type;
 	typedef typename geometry_type::id_type id_type;
 	typedef typename geometry_type::scalar_type scalar_type;
-	typedef typename geometry_type::coordinates_type coordinates_type;
+	typedef typename geometry_type::coordinate_type coordinate_type;
 
 	static constexpr size_t ndims = geometry_type::ndims;
 
 	geometry_type geometry;
 
 	std::vector<size_t> iform_list = { /*VERTEX,*/EDGE /*, FACE, VOLUME*/};
-	coordinates_type xmin, xmax;
+	coordinate_type xmin, xmax;
 	nTuple<id_type, geometry_type::ndims> dims;
 
 	Real epsilon = EPSILON * 10;
@@ -78,10 +78,10 @@ public:
 
 };
 
-TEST_P(TestGeometry, Coordinates)
+TEST_P(TestGeometry, Coordinate)
 {
 	auto extents = geometry.extents();
-	coordinates_type x = 0.21235 * (std::get<1>(extents) - std::get<0>(extents))
+	coordinate_type x = 0.21235 * (std::get<1>(extents) - std::get<0>(extents))
 			+ std::get<0>(extents);
 
 	for (auto iform : iform_list)
@@ -123,18 +123,18 @@ TEST_P(TestGeometry, Coordinates)
 }
 //
 //
-//TEST_P(TestGeometry,Coordinates_transform)
+//TEST_P(TestGeometry,Coordinate_transform)
 //{
 //
 //	if (!is_valid())
 //		return;
 //	nTuple<Real, 3> v = { 1.0, 2.0, 3.0 };
 //	auto extents = geometry.extents();
-//	coordinates_type x = 0.21235 * (std::get<1>(extents) - std::get<0>(extents))
+//	coordinate_type x = 0.21235 * (std::get<1>(extents) - std::get<0>(extents))
 //			+ std::get<0>(extents);
 //	auto z = std::make_tuple(x, v);
 //
-//	coordinates_type y = geometry.InvMapTo(geometry.MapTo(x));
+//	coordinate_type y = geometry.InvMapTo(geometry.MapTo(x));
 //	EXPECT_DOUBLE_EQ(x[0], y[0]);
 //	EXPECT_DOUBLE_EQ(x[1], y[1]);
 //	EXPECT_DOUBLE_EQ(x[2], y[2]);
@@ -169,7 +169,7 @@ TEST_P(TestGeometry, Coordinates)
 //	if (!is_valid())
 //		return;
 //	auto extents = geometry.extents();
-//	coordinates_type x = 0.21235 * (std::get<1>(extents) - std::get<0>(extents)) + std::get<0>(extents);
+//	coordinate_type x = 0.21235 * (std::get<1>(extents) - std::get<0>(extents)) + std::get<0>(extents);
 //
 //	for (auto iform : iform_list)
 //	{
@@ -210,7 +210,7 @@ TEST_P(TestGeometry, Coordinates)
 //	}
 //
 ////	auto extents = geometry.extents();
-////	coordinates_type x = 0.21235 * (std::get<1>(extents) - std::get<0>(extents))
+////	coordinate_type x = 0.21235 * (std::get<1>(extents) - std::get<0>(extents))
 ////			+ std::get<0>(extents);
 ////	auto idx = geometry.coordinates_global_to_local(x,
 ////			geometry.get_first_node_shift(VERTEX));

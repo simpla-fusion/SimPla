@@ -37,7 +37,7 @@ static constexpr char key_words[] = "Cylindrical Geometry, Uniform Grid, single 
 int main(int argc, char **argv)
 {
 
-	typedef FvMesh<CylindricalCoordinates<SurturedMesh>, true> mesh_type;
+	typedef FvMesh<CylindricalCoordinate<SurturedMesh>, true> mesh_type;
 
 	typedef Model<mesh_type> model_type;
 
@@ -157,13 +157,13 @@ int main(int argc, char **argv)
 
 		geqdsk.load(gfile);
 
-		typename mesh_type::coordinates_type src_min;
-		typename mesh_type::coordinates_type src_max;
+		typename mesh_type::coordinate_type src_min;
+		typename mesh_type::coordinate_type src_max;
 
 		std::tie(src_min, src_max) = geqdsk.get_extents();
 
-		typename mesh_type::coordinates_type min;
-		typename mesh_type::coordinates_type max;
+		typename mesh_type::coordinate_type min;
+		typename mesh_type::coordinate_type max;
 
 		std::tie(min, max) = model.get_extents();
 

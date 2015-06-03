@@ -25,16 +25,16 @@ using namespace simpla;
 //Field<Domain<TM,VERTEX> >
 //>;
 //
-//typedef ParamList<Manifold<CartesianCoordinates<StructuredMesh>, false>,
+//typedef ParamList<Manifold<CartesianCoordinate<StructuredMesh>, false>,
 //		DenseContainer> ParamList0d;
-//typedef ParamList<Manifold<CartesianCoordinates<StructuredMesh>, false>,
+//typedef ParamList<Manifold<CartesianCoordinate<StructuredMesh>, false>,
 //		SparseContainer> ParamList0s;
 //
-//typedef ParamList<Manifold<CartesianCoordinates<StructuredMesh>, true>,
+//typedef ParamList<Manifold<CartesianCoordinate<StructuredMesh>, true>,
 //		DenseContainer> ParamList1;
-//typedef ParamList<Manifold<CylindricalCoordinates<StructuredMesh>, false>,
+//typedef ParamList<Manifold<CylindricalCoordinate<StructuredMesh>, false>,
 //		DenseContainer> ParamList2;
-//typedef ParamList<Manifold<CylindricalCoordinates<StructuredMesh>, true>,
+//typedef ParamList<Manifold<CylindricalCoordinate<StructuredMesh>, true>,
 //		DenseContainer> ParamList3;
 //
 //INSTANTIATE_TYPED_TEST_CASE_P(Cartesian_d, TestField, ParamList0d);

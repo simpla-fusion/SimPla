@@ -1,32 +1,61 @@
 /**
- * @file demo_model.cpp
+ * @file demo_geometry.cpp
  *
  * @date 2015年3月16日
  * @author salmon
  */
 
-#include <stddef.h>
-#include <algorithm>
+//#include <stddef.h>
+//#include <algorithm>
+//#include <iostream>
+//#include <iterator>
+//#include <set>
+//#include <string>
+//#include <tuple>
+//#include <vector>
+//
+//#include "../../core/application/application.h"
+//#include "../../core/application/use_case.h"
+//#include "../../core/utilities/utilities.h"
+//#include "../../core/io/io.h"
+//#include "../../core/physics/physical_constants.h"
+//
+//#include "../../core/mesh/mesh.h"
+//
+//#include "../../core/model/cut_cell.h"
+//#include <memory>
+//using namespace simpla;
+//
+//typedef CartesianRectMesh mesh_type;
 #include <iostream>
-#include <iterator>
-#include <set>
-#include <string>
-#include <tuple>
-#include <vector>
+#include <boost/geometry.hpp>
+#include <boost/geometry/geometries/polygon.hpp>
+#include <boost/geometry/core/cs.hpp>
 
-#include "../../core/application/application.h"
-#include "../../core/application/use_case.h"
+
+#include "../../core/geometry/boost_gemetry_adapted.h"
 #include "../../core/utilities/utilities.h"
-#include "../../core/io/io.h"
-#include "../../core/physics/physical_constants.h"
+BOOST_GEOMETRY_REGISTER_SIMPLA_NTUPLE_CS(cs::cartesian)
 
-#include "../../core/mesh/mesh.h"
-
-#include "../../core/model/cut_cell.h"
-#include <memory>
 using namespace simpla;
 
-typedef CartesianRectMesh mesh_type;
+int main(int argc, char **argv)
+{
+	typedef nTuple<Real, 2> point_type;
+	boost::geometry::model::polygon<point_type> poly;
+	poly.outer().push_back(point_type( { 1.0, 2.0 }));
+	poly.outer().push_back(point_type( { 6.0, 4.0 }));
+	poly.outer().push_back(point_type( { 5.0, 1.0 }));
+	poly.outer().push_back(point_type( { 1.0, 2.0 }));
+
+	point_type x0 = { 1.5, 1.5 };
+
+	std::cout << "Area: " << boost::geometry::area(poly) << std::endl;
+
+	std::cout << "Contains" << x0 << std::boolalpha
+
+	<< boost::geometry::within(x0, poly) << std::endl;
+}
 
 //
 //template<typename T0, typename T1, typename T2, typename T3>
@@ -67,7 +96,7 @@ typedef CartesianRectMesh mesh_type;
 //	return std::make_tuple(s, t);
 //}
 //
-//Vec3 normal_vector_of_surface(std::vector<coordinates_type> const & polygons)
+//Vec3 normal_vector_of_surface(std::vector<coordinate_type> const & polygons)
 //{
 //	bool on_same_plane = false;
 //	Vec3 n;
@@ -111,8 +140,8 @@ typedef CartesianRectMesh mesh_type;
 //}
 //
 //template<typename TV>
-//void polyline_intersect_grid(std::vector<coordinates_type> const & polygons,
-//		id_type shift, TV *volume, std::vector<coordinates_type> *new_path,
+//void polyline_intersect_grid(std::vector<coordinate_type> const & polygons,
+//		id_type shift, TV *volume, std::vector<coordinate_type> *new_path,
 //		const int ZAXIS = 2)
 //{
 //	const int XAXIS = (ZAXIS + 1) % 3;
@@ -120,7 +149,7 @@ typedef CartesianRectMesh mesh_type;
 //	const Real dx = 1.0; // length of edge
 //	const Real dA = 1.0; // area of cell
 //
-//	const coordinates_type n = normal_vector_of_surface(polygons);
+//	const coordinate_type n = normal_vector_of_surface(polygons);
 //
 //	if (inner_product(n, n) < EPSILON)
 //	{
@@ -150,9 +179,9 @@ typedef CartesianRectMesh mesh_type;
 //	};
 //
 //	const int num_of_cell_vertics = 4;
-//	coordinates_type q[num_of_cell_vertics];
+//	coordinate_type q[num_of_cell_vertics];
 //
-//	coordinates_type x0, x1;
+//	coordinate_type x0, x1;
 //
 //	x0 = polygons[0UL];
 //
@@ -169,12 +198,12 @@ typedef CartesianRectMesh mesh_type;
 //
 //		new_path->push_back(x0);
 //
-//		coordinates_type q0 = { std::floor(x0[0]), std::floor(x0[1]),
+//		coordinate_type q0 = { std::floor(x0[0]), std::floor(x0[1]),
 //				std::floor(x0[2]) };
 //
 //		current_cell = MeshIDs::coordinates_to_id(q0);
 //
-//		static const coordinates_type d[6][2] = {
+//		static const coordinate_type d[6][2] = {
 //
 //		-1, 0, 0, -1, 1, 0,
 //
@@ -237,74 +266,74 @@ typedef CartesianRectMesh mesh_type;
 //		}
 //	}
 //}
-
-USE_CASE(model,"Cut Cell")
-{
-
-	typedef typename mesh_type::coordinates_type coordinates_type;
-
-	typedef typename mesh_type::id_type id_type;
-
-	auto mesh = std::make_shared<mesh_type>();
-
-	mesh->load(options["Mesh"]);
-
-	mesh->deploy();
-
-	std::vector<coordinates_type> p0, p1, p2, p3, p4, p5, p6, p7;
-
-	size_t node_id = 0;
-	options["Polylines"].as(&p0);
-	options["NodeId"].as(&node_id);
-
-	if (p0.empty())
-	{
-		return;
-	}
-
-	std::multimap<id_type, Real> b_cell;
-
-	polygen_cut_cell(*mesh, p0.begin(), p0.end(), &b_cell, node_id);
-
-	for (auto const & item : b_cell)
-	{
-		coordinates_type x0 = mesh->coordinates(item.first);
-
-		p1.push_back(x0);
-
-		p2.push_back(mesh->pull_back(x0, item.second));
-
-		//		coordinates_type q0, q1;
-		//
-		//		auto it = item.second;
-		//
-		//		q0 = *(it);
-		//		++it;
-		//		if (it == p0.end())
-		//		{
-		//			it = p0.begin();
-		//		}
-		//		q1 = *(it);
-		//
-		//		Vec3 normal;
-		//
-		//		normal = (x0 - q0)
-		//				- (q1 - q0)
-		//						* (inner_product(x0 - q0, q1 - q0)
-		//								/ inner_product(q1 - q0, q1 - q0));
-
-	}
-
-	p0.push_back(p0.front());
-
-	LOGGER << SAVE(p0) << std::endl;
-	LOGGER << SAVE(p1) << std::endl;
-	LOGGER << SAVE(p2) << std::endl;
-
+//
+//USE_CASE(model,"Cut Cell")
+//{
+//
+//	typedef typename mesh_type::coordinate_type coordinate_type;
+//
+//	typedef typename mesh_type::id_type id_type;
+//
+//	auto mesh = std::make_shared<mesh_type>();
+//
+//	mesh->load(options["Mesh"]);
+//
+//	mesh->deploy();
+//
+//	std::vector<coordinate_type> p0, p1, p2, p3, p4, p5, p6, p7;
+//
+//	size_t node_id = 0;
+//	options["Polylines"].as(&p0);
+//	options["NodeId"].as(&node_id);
+//
+//	if (p0.empty())
+//	{
+//		return;
+//	}
+//
+//	std::multimap<id_type, Real> b_cell;
+//
+//	polygen_cut_cell(*mesh, p0.begin(), p0.end(), &b_cell, node_id);
+//
+//	for (auto const & item : b_cell)
+//	{
+//		coordinate_type x0 = mesh->coordinates(item.first);
+//
+//		p1.push_back(x0);
+//
+//		p2.push_back(mesh->pull_back(x0, item.second));
+//
+//		//		coordinate_type q0, q1;
+//		//
+//		//		auto it = item.second;
+//		//
+//		//		q0 = *(it);
+//		//		++it;
+//		//		if (it == p0.end())
+//		//		{
+//		//			it = p0.begin();
+//		//		}
+//		//		q1 = *(it);
+//		//
+//		//		Vec3 normal;
+//		//
+//		//		normal = (x0 - q0)
+//		//				- (q1 - q0)
+//		//						* (inner_product(x0 - q0, q1 - q0)
+//		//								/ inner_product(q1 - q0, q1 - q0));
+//
+//	}
+//
+//	p0.push_back(p0.front());
+//
+//	LOGGER << SAVE(p0) << std::endl;
+//	LOGGER << SAVE(p1) << std::endl;
+//	LOGGER << SAVE(p2) << std::endl;
+//
 //
 //	find_boundary2D(p3, shift0, &p4);
 //
-//	coordinates_type shift1 = { 0.5, 0.5, 0.5 };
+//	coordinate_type shift1 = { 0.5, 0.5, 0.5 };
 //
 //	get_intersctions(p0, shift1, &p5);
 //
@@ -321,8 +350,8 @@ USE_CASE(model,"Cut Cell")
 //
 //	dims[0] = p6.size() / 2;
 //	LOGGER << save("p6", &p6[0], 2, tdims) << std::endl;
-}
-
+//}
+//
 //
 //
 //template<typename T0, typename T1, typename T2, typename T3>
@@ -360,7 +389,7 @@ USE_CASE(model,"Cut Cell")
 //
 //	return std::make_tuple(is_parallel, s, t, inner_product(w0, w0));
 //}
-//int boundary_tag(coordinates_type const & x)
+//int boundary_tag(coordinate_type const & x)
 //{
 //	int res = 0;
 //	if (x[0] != std::floor(x[0]))
@@ -377,8 +406,7 @@ USE_CASE(model,"Cut Cell")
 //	}
 //	return res;
 //}
-
-//void divid_to_boundary(std::vector<coordinates_type> const& points,
+//void divid_to_boundary(std::vector<coordinate_type> const& points,
 //		std::vector<boundary_s> * res, int ZAXIS = 2)
 //{
 //
@@ -386,7 +414,7 @@ USE_CASE(model,"Cut Cell")
 //	auto i1 = points.begin();
 //	auto i2 = ++points.begin();
 //
-//	coordinates_type x0, x1, x2;
+//	coordinate_type x0, x1, x2;
 //	x0 = *i0;
 //	x1 = *i1;
 //	x2 = *i2;
@@ -397,7 +425,7 @@ USE_CASE(model,"Cut Cell")
 //
 //	while (i1 != points.end())
 //	{
-//		coordinates_type xp, xm;
+//		coordinate_type xp, xm;
 //
 //		xm[0] = std::floor(xp[0]);
 //		xm[1] = std::floor(xp[1]);
@@ -413,7 +441,7 @@ USE_CASE(model,"Cut Cell")
 ////		auto tag0 = boundary_tag(x0);
 ////		auto tag1 = boundary_tag(x1);
 ////
-////		coordinates_type xp = x0;
+////		coordinate_type xp = x0;
 ////
 ////		if (tag0 == tag1)
 ////		{
@@ -587,8 +615,8 @@ USE_CASE(model,"Cut Cell")
 //	}
 //}
 //template<typename TPoints>
-//void get_intersctions(TPoints const & points, coordinates_type const & shift,
-//		std::vector<coordinates_type> *res)
+//void get_intersctions(TPoints const & points, coordinate_type const & shift,
+//		std::vector<coordinate_type> *res)
 //{
 //
 //	auto first = points.begin();
@@ -641,39 +669,39 @@ USE_CASE(model,"Cut Cell")
 //		size_t ie = res->size();
 //
 //		std::sort(&(*res)[ib], &(*res)[ie],
-//				[&](coordinates_type const & xa,coordinates_type const & xb)->bool
+//				[&](coordinate_type const & xa,coordinate_type const & xb)->bool
 //				{
 //					return inner_product(xb-xa,x1-x0)>0;
 //				});
 //
 //	}
 //}
-//typedef coordinates_type Vec3;
+//typedef coordinate_type Vec3;
 //
 //template<typename TPoints>
-//void find_boundary2D(TPoints const & points, coordinates_type const & shift,
-//		std::vector<coordinates_type> *res, int ZAXIS = 2)
+//void find_boundary2D(TPoints const & points, coordinate_type const & shift,
+//		std::vector<coordinate_type> *res, int ZAXIS = 2)
 //{
 //
 //	auto i0 = points.begin();
 //
 //	while (i0 != points.end())
 //	{
-//		coordinates_type p0 = *i0;
+//		coordinate_type p0 = *i0;
 //		auto i1 = ++i0;
 //
 //		if (i1 == points.end())
 //		{
 //			i1 = points.begin();
 //		}
-//		coordinates_type p1 = *i1;
+//		coordinate_type p1 = *i1;
 //
-//		coordinates_type p2;
+//		coordinate_type p2;
 //		p2 = p1;
 //
 //		p2[ZAXIS] += 1.0;
 //
-//		coordinates_type x0 = //
+//		coordinate_type x0 = //
 //				{ //
 //				std::floor(std::min(p0[0], p1[0]) - shift[0]) + shift[0], //
 //				std::floor(std::min(p0[1], p1[1]) - shift[1]) + shift[1], //
@@ -683,7 +711,7 @@ USE_CASE(model,"Cut Cell")
 ////		id_type s = MeshDummy::coordinates_to_id(x0);
 //
 //		res->push_back(x0);
-//		coordinates_type n;
+//		coordinate_type n;
 //		std::tie(std::ignore, n) = distance_point_to_plane(x0, p0, p1, p2);
 //		res->push_back(n);
 //

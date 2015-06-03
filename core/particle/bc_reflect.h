@@ -30,12 +30,12 @@ void bc_reflect(TSurface const & surface, TParticle *particle)
 
 		Vec3 const & normal = std::get<1>(item->second);
 
-		coordinates_type x0;
+		coordinate_type x0;
 		x0 = mesh.coordinates(item->first) + dist * normal;
 
 		particle->modify([&](typename TParticle::value_type * p)
 		{
-			coordinates_type x;
+			coordinate_type x;
 			Vec3 v;
 			Real f;
 

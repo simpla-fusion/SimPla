@@ -31,7 +31,7 @@ public:
 
 	typedef typename mesh_type::range_type range_type;
 
-	typedef typename mesh_type::coordinates_type coordinates_type;
+	typedef typename mesh_type::coordinate_type coordinate_type;
 
 	typedef Surface<mesh_type> this_type;
 
@@ -59,7 +59,7 @@ public:
 		m_range_.reset(std::forward<Args>(args));
 	}
 
-	std::tuple<Real, Vec3> distance(coordinates_type const & x) const
+	std::tuple<Real, Vec3> distance(coordinate_type const & x) const
 	{
 		Real dist;
 		Vec3 normal;
@@ -100,7 +100,7 @@ void Surface<TM>::load_surface(TDict const & dict)
 
 	if (dict["Box"])
 	{
-		std::vector<coordinates_type> points;
+		std::vector<coordinate_type> points;
 
 		dict["Box"].as(&points);
 
@@ -111,7 +111,7 @@ void Surface<TM>::load_surface(TDict const & dict)
 
 	if (dict["Polygon"].is_function())
 	{
-		std::vector<coordinates_type> points
+		std::vector<coordinate_type> points
 
 		dict["Polygon"].as(&points);
 		for (id_type s : m_range_)

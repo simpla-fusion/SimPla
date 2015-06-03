@@ -25,13 +25,13 @@
 
 // Field
 #include "../../core/field/load_field.h"
+#include "../../core/geometry/geqdsk.h"
+#include "../../core/geometry/model.h"
 
 // Particle
 //#include "../../core/particle/particle.h"
 
 // Model
-#include "../../core/model/model.h"
-#include "../../core/model/geqdsk.h"
 #include "../../core/numeric/geometric_algorithm.h"
 //#include "../../experimental/particle_factory.h"
 
@@ -283,9 +283,9 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 		geqdsk.save("/Geqdsk/");
 
-		typename mesh_type::coordinates_type src_min;
-		typename mesh_type::coordinates_type src_max;
-		typename mesh_type::coordinates_type min1, min2, max1, max2;
+		typename mesh_type::coordinate_type src_min;
+		typename mesh_type::coordinate_type src_max;
+		typename mesh_type::coordinate_type min1, min2, max1, max2;
 
 		std::tie(src_min, src_max) = geqdsk.extents();
 

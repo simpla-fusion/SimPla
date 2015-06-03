@@ -62,7 +62,7 @@ struct RectMesh:	public TTopology,
 							RectMesh<TTopology, Policies...>>
 {
 	typedef TTopology topology_type;
-	typedef typename unpack_typelist<0, Policies...>::type coordinates_system;
+	typedef typename unpack_typelist<0, Policies...>::type coordinate_system;
 	typedef typename unpack_typelist<1, Policies...>::type interpolatpr_policy;
 	typedef typename unpack_typelist<2, Policies...>::type calculate_policy;
 
@@ -80,7 +80,7 @@ struct RectMesh:	public TTopology,
 
 	using typename topology_type::id_tuple;
 
-	using typename topology_type::coordinates_type;
+	using typename topology_type::coordinate_type;
 
 	using typename topology_type::range_type;
 
@@ -123,19 +123,19 @@ private:
 
 	bool m_is_distributed_ = false;
 
-	coordinates_type m_from_topology_orig_ /*= { 0, 0, 0 }*/;
+	coordinate_type m_from_topology_orig_ /*= { 0, 0, 0 }*/;
 
-	coordinates_type m_to_toplogy_orig_ /*= { 0, 0, 0 }*/;
+	coordinate_type m_to_toplogy_orig_ /*= { 0, 0, 0 }*/;
 
-	coordinates_type m_coords_min_ = { 0, 0, 0 };
+	coordinate_type m_coords_min_ = { 0, 0, 0 };
 
-	coordinates_type m_coords_max_ = { 1, 1, 1 };
+	coordinate_type m_coords_max_ = { 1, 1, 1 };
 
-	coordinates_type m_dx_ /*= { 0, 0, 0 }*/;
+	coordinate_type m_dx_ /*= { 0, 0, 0 }*/;
 
-	coordinates_type m_to_topology_scale_;
+	coordinate_type m_to_topology_scale_;
 
-	coordinates_type m_from_topology_scale_;
+	coordinate_type m_from_topology_scale_;
 
 	/**
 	 *
@@ -240,7 +240,7 @@ public:
 
 		extents(
 				dict["Box"].template as<
-						std::tuple<coordinates_type, coordinates_type> >());
+						std::tuple<coordinate_type, coordinate_type> >());
 
 		dt(dict["dt"].template as<Real>(1.0));
 	}
@@ -277,7 +277,7 @@ public:
 
 	}
 
-	coordinates_type epsilon() const
+	coordinate_type epsilon() const
 	{
 		return topology_type::EPSILON * m_from_topology_scale_;
 	}
@@ -300,7 +300,7 @@ public:
 
 	static std::string get_type_as_string()
 	{
-		return "RectMesh<" + coordinates_system::get_type_as_string() + ">";
+		return "RectMesh<" + coordinate_system::get_type_as_string() + ">";
 	}
 
 	constexpr bool is_valid() const
@@ -328,7 +328,7 @@ public:
 	DECL_RET_TYPE (std::make_pair(this->coordinates(m_id_local_min_),
 					this->coordinates(m_id_local_max_)))
 
-	coordinates_type const & dx() const
+	coordinate_type const & dx() const
 	{
 		return m_dx_;
 	}
@@ -415,14 +415,14 @@ public:
 	{
 
 		return m_volume_[topology_type::node_id(s)]
-				* coordinates_system::volume_factor(coordinates(s),
+				* coordinate_system::volume_factor(coordinates(s),
 						topology_type::sub_index(s));
 	}
 
 	constexpr Real dual_volume(id_type s) const
 	{
 		return m_dual_volume_[topology_type::node_id(s)]
-				* coordinates_system::dual_volume_factor(coordinates(s),
+				* coordinate_system::dual_volume_factor(coordinates(s),
 						topology_type::sub_index(s));
 	}
 
@@ -434,20 +434,20 @@ public:
 	constexpr Real inv_volume(id_type s) const
 	{
 		return m_inv_volume_[topology_type::node_id(s)]
-				* coordinates_system::inv_volume_factor(coordinates(s),
+				* coordinate_system::inv_volume_factor(coordinates(s),
 						topology_type::sub_index(s));
 	}
 
 	constexpr Real inv_dual_volume(id_type s) const
 	{
 		return m_inv_dual_volume_[topology_type::node_id(s)]
-				* coordinates_system::inv_dual_volume_factor(coordinates(s),
+				* coordinate_system::inv_dual_volume_factor(coordinates(s),
 						topology_type::sub_index(s));
 	}
 	/**@}*/
 
 	/**
-	 * @name  Coordinates map
+	 * @name  Coordinate map
 	 * @{
 	 *
 	 *        Topology Manifold       Geometry Manifold
@@ -455,15 +455,15 @@ public:
 	 *              M      ---------->      G
 	 *              x                       y
 	 **/
-	coordinates_type coordinates(id_type const & s) const
+	coordinate_type coordinates(id_type const & s) const
 	{
 		return std::move(map(topology_type::coordinates(s)));
 	}
 
-	coordinates_type map(coordinates_type const &x) const
+	coordinate_type map(coordinate_type const &x) const
 	{
 
-		return coordinates_type( {
+		return coordinate_type( {
 
 		std::fma(x[0], m_from_topology_scale_[0], m_from_topology_orig_[0]),
 
@@ -474,10 +474,10 @@ public:
 		});
 
 	}
-	coordinates_type inv_map(coordinates_type const &y) const
+	coordinate_type inv_map(coordinate_type const &y) const
 	{
 
-		return coordinates_type( {
+		return coordinate_type( {
 
 		std::fma(y[0], m_to_topology_scale_[0], m_to_toplogy_orig_[0]),
 
@@ -489,31 +489,31 @@ public:
 	}
 
 	template<typename TFun>
-	auto pull_back(coordinates_type const & x, TFun const & fun) const
+	auto pull_back(coordinate_type const & x, TFun const & fun) const
 	DECL_RET_TYPE((fun(map(x))))
 
 	template<typename TFun>
-	auto push_forward(coordinates_type const & y, TFun const & fun) const
+	auto push_forward(coordinate_type const & y, TFun const & fun) const
 	DECL_RET_TYPE((fun(inv_map(y))))
 
-	Vec3 pull_back(coordinates_type const & y, Vec3 const & u) const
+	Vec3 pull_back(coordinate_type const & y, Vec3 const & u) const
 	{
 		return inv_map(y + u) - inv_map(y);
 	}
 
-	Vec3 push_forward(coordinates_type const & x, Vec3 const & v) const
+	Vec3 push_forward(coordinate_type const & x, Vec3 const & v) const
 	{
 		return map(x + v) - map(x);
 	}
 
 	template<typename TX>
-	coordinates_type coordinates_to_topology(TX const &y) const
+	coordinate_type coordinates_to_topology(TX const &y) const
 	{
 		return inv_map(y);
 	}
 
 	template<typename TX>
-	coordinates_type coordinates_from_topology(TX const &x) const
+	coordinate_type coordinates_from_topology(TX const &x) const
 	{
 		return map(x);
 	}
@@ -524,14 +524,14 @@ public:
 	 * @param args
 	 * @return
 	 */
-	coordinates_type coordinates_local_to_global(
-			std::tuple<id_type, coordinates_type> const &t) const
+	coordinate_type coordinates_local_to_global(
+			std::tuple<id_type, coordinate_type> const &t) const
 	{
 		return std::move(map(topology_type::coordinates_local_to_global(t)));
 	}
 
-	std::tuple<id_type, coordinates_type> coordinates_global_to_local(
-			coordinates_type x, int n_id = 0) const
+	std::tuple<id_type, coordinate_type> coordinates_global_to_local(
+			coordinate_type x, int n_id = 0) const
 	{
 		return std::move(
 				topology_type::coordinates_global_to_local(

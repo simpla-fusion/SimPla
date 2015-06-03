@@ -32,7 +32,7 @@ typedef RectMesh SimpleMesh;
 //
 //	typedef nTuple<size_t, ndims> index_tuple;
 //
-//	typedef nTuple<Real, ndims> coordinates_type;
+//	typedef nTuple<Real, ndims> coordinate_type;
 //
 //	typedef this_type geometry_type;
 //
@@ -42,7 +42,7 @@ typedef RectMesh SimpleMesh;
 //
 //private:
 //
-//	coordinates_type m_xmin_, m_xmax_, m_dx_;
+//	coordinate_type m_xmin_, m_xmax_, m_dx_;
 //	Real m_dt_ = 1.0;
 //	index_tuple m_global_dimensions_;
 //	index_tuple m_global_offset_;
@@ -185,7 +185,7 @@ typedef RectMesh SimpleMesh;
 //		m_xmax_ = xmax;
 //	}
 //
-//	std::pair<coordinates_type, coordinates_type> extents() const
+//	std::pair<coordinate_type, coordinate_type> extents() const
 //	{
 //		return std::make_pair(m_xmin_, m_xmax_);
 //	}
@@ -271,27 +271,27 @@ typedef RectMesh SimpleMesh;
 //	{
 //		return m_dataspace_;
 //	}
-//	index_tuple coordinates_to_index(coordinates_type const &x) const
+//	index_tuple coordinates_to_index(coordinate_type const &x) const
 //	{
 //		index_tuple res;
 //		res = (x - m_xmin_) / m_dx_;
 //		return std::move(res);
 //	}
-//	coordinates_type index_to_coordinates(index_tuple const &i) const
+//	coordinate_type index_to_coordinates(index_tuple const &i) const
 //	{
-//		coordinates_type res;
+//		coordinate_type res;
 //		res = i * m_dx_ + m_xmin_;
 //		return std::move(res);
 //	}
-//	index_tuple coordinates_to_id(coordinates_type const &x) const
+//	index_tuple coordinates_to_id(coordinate_type const &x) const
 //	{
 //		index_tuple res;
 //		res = (x - m_xmin_) / m_dx_;
 //		return std::move(res);
 //	}
-//	coordinates_type id_to_coordinates(index_tuple const &i) const
+//	coordinate_type id_to_coordinates(index_tuple const &i) const
 //	{
-//		coordinates_type res;
+//		coordinate_type res;
 //		res = i * m_dx_ + m_xmin_;
 //		return std::move(res);
 //	}
@@ -366,9 +366,9 @@ typedef RectMesh SimpleMesh;
 //	auto calculate(T const & v, index_tuple const &s) const
 //	DECL_RET_TYPE ((try_index(v, s)))
 //
-//	coordinates_type coordinates(index_tuple const & s) const
+//	coordinate_type coordinates(index_tuple const & s) const
 //	{
-//		coordinates_type res;
+//		coordinate_type res;
 ////		res = (s - m_imin_) * m_dx_ + m_xmin_;
 //		return res;
 //	}
@@ -380,7 +380,7 @@ typedef RectMesh SimpleMesh;
 //
 //	template<typename TD>
 //	auto gather(TD const & d,
-//			coordinates_type const & x) const->decltype(d[std::declval<index_tuple>()])
+//			coordinate_type const & x) const->decltype(d[std::declval<index_tuple>()])
 //	{
 //		index_tuple r;
 //		r = ((x - m_xmin_) / m_dx_ + 0.5);
@@ -389,7 +389,7 @@ typedef RectMesh SimpleMesh;
 //	}
 //
 //	template<typename TD, typename TV>
-//	void scatter(TD & d, coordinates_type const &x, TV const & v) const
+//	void scatter(TD & d, coordinate_type const &x, TV const & v) const
 //	{
 //		index_tuple r;
 //		r = ((x - m_xmin_) / m_dx_ + 0.5);

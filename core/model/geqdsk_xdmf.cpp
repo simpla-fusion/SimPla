@@ -5,8 +5,6 @@
  *      Author: salmon
  */
 
-#include "geqdsk.h"
-
 #include <XdmfArray.h>
 #include <XdmfAttribute.h>
 #include <XdmfDataDesc.h>
@@ -21,6 +19,7 @@
 #include <XdmfRoot.h>
 #include <XdmfTopology.h>
 
+#include "../geometry/geqdsk.h"
 #include "../io/xdmf_io.h"
 
 class XdmfArray;
@@ -38,7 +37,7 @@ void Write(GEqdsk const & geqdsk,std::string const &fname)
 	XdmfDomain domain;
 
 	auto dims_ = get_dimensions();
-	coordinates_type rzmin_, rzmax_;
+	coordinate_type rzmin_, rzmax_;
 
 	std::tie(rzmin_, rzmax_) = get_extents();
 
