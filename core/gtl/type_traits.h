@@ -534,6 +534,33 @@ T const & max(T const & first, Others &&...others)
 {
 	return max(first, max(std::forward<Others>(others)...));
 }
-}
-// namespace simpla
+
+namespace tratis
+{
+
+template<typename > struct key_type;
+template<typename > struct value_type;
+
+template<typename K, typename V> struct key_type<std::map<K, V>>
+{
+	typedef K type;
+};
+
+template<typename K, typename V> struct value_type<std::map<K, V>>
+{
+	typedef V type;
+};
+
+template<typename V> struct key_type<std::vector<V>>
+{
+	typedef size_t type;
+};
+
+template<typename V> struct value_type<std::vector<V>>
+{
+	typedef V type;
+};
+
+}  // namespace tratis
+} // namespace simpla
 #endif /* SP_TYPE_TRAITS_H_ */

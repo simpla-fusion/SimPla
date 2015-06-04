@@ -8,7 +8,7 @@
 #ifndef CORE_GEOMETRY_CHAINS_H_
 #define CORE_GEOMETRY_CHAINS_H_
 #include "primitive.h"
-
+#include "../gtl/type_traits.h"
 namespace simpla
 {
 namespace geometry
@@ -78,7 +78,43 @@ struct is_structed<Chains<PrimitiveType, Others...>>
 };
 }  // namespace traits
 
+template<size_t Dimension, typename ...Others, typename TMesh>
+struct Chains<Primitive<Dimension, Others...>, TMesh> : public std::vector<
+		nTuple<typename TMesh::id_type,
+				traits::template number_of_vertices<
+						Primitive<Dimension, Others...> >::value>>
 
+{
+	typedef Primitive<Dimension, Others...> primitive_type;
+
+	static constexpr size_t number_of_vertices =
+			traits::template number_of_vertices<primitive_type>::value;
+
+	typedef typename TMesh::id_type point_id_type;
+
+	typedef typename TMesh::coordinates_type point_type;
+
+	typedef std::vector<nTuple<point_id_type, number_of_vertices>> base_type;
+
+	std::shared_ptr<TMesh> m_mesh_;
+
+	primitive_type operator[](
+			typename simpla::traits::key_type<base_type>::type const & n) const
+	{
+		primitive_type res;
+		for (int i = 0; i < number_of_vertices; ++i)
+		{
+			res[i] = m_mesh_.coordinates(m_indics_[n][i]);
+		}
+		return std::move(res);
+	}
+	using base_type::emplace_back;
+	using base_type::push_back;
+	using base_type::clear;
+	using base_type::size;
+	using base_type::begin;
+	using base_type::end;
+};
 
 }  // namespace geometry
 }  // namespace simpla
