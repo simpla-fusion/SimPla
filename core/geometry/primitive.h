@@ -7,7 +7,7 @@
 
 #ifndef CORE_GEOMETRY_PRIMITIVE_H_
 #define CORE_GEOMETRY_PRIMITIVE_H_
-#include "../gtl/type_traits.h"SfS
+#include "../gtl/type_traits.h"
 #include "coordinate_system.h"
 /**
  *  @ref OpenGIS® Implementation Standard for Geographic information
@@ -46,6 +46,21 @@ template<typename > struct coordinate_system;
 template<typename > struct dimension;
 template<typename > struct vertex_type;
 template<typename > struct number_of_vertices;
+
+template<typename > struct is_chains;
+template<typename > struct is_primitive;
+
+template<size_t Dimension, typename ...Others>
+struct is_primitive<Primitive<Dimension, Others...>>
+{
+	static constexpr bool value = true;
+};
+
+template<size_t Dimension, typename ...Others>
+struct is_chains<Primitive<Dimension, Others...>>
+{
+	static constexpr bool value = false;
+};
 
 template<size_t Dimension, typename CoordinateSystem, typename Tag>
 struct coordinate_system<Primitive<Dimension, CoordinateSystem, Tag>>
@@ -108,11 +123,6 @@ struct number_of_vertices<Primitive<Dimension, CoordinateSystem, Tag>>
 template<typename CoordinateSystem, typename Tag>
 struct Primitive<0, CoordinateSystem, Tag>
 {
-	Point<CoordinateSystem> m_data_;
-};
-template<typename CoordinateSystem>
-struct Point
-{
 	typedef typename simpla::geometry::coordinate_system::traits::coordinate_type<
 			CoordinateSystem>::type value_type;
 
@@ -122,6 +132,9 @@ struct Point
 
 	DEF_NTUPLE_OBJECT(CoordinateSystem,value_type,ndims);
 };
+template<typename CoordinateSystem>
+using Point= Primitive<0, CoordinateSystem, tags::simplex>;
+
 /**
  * @brief Vector In geometry, Vector represents the first derivative of 'curve',
  * call element $v\in T_P M$ 'vectors' at point $P\in M$; $T_P M$ is the 'tagent space'
@@ -138,7 +151,7 @@ struct Vector
 			simpla::geometry::coordinate_system::traits::dimension<
 					CoordinateSystem>::value;
 
-	DEF_NTUPLE_OBJECT(CoordinateSystem,value_type,ndims);
+	DEF_NTUPLE_OBJECT(CoordinateSystem, value_type, ndims);
 
 };
 
@@ -149,14 +162,13 @@ struct Vector
 template<typename CoordinateSystem>
 struct CoVector
 {
-	typedef typename simpla::geometry::coordinate_system::traits::coordinate_type<
-			CoordinateSystem>::type value_type;
+typedef typename simpla::geometry::coordinate_system::traits::coordinate_type<
+		CoordinateSystem>::type value_type;
 
-	static const size_t ndims =
-			simpla::geometry::coordinate_system::traits::dimension<
-					CoordinateSystem>::value;
+static const size_t ndims =
+		simpla::geometry::coordinate_system::traits::dimension<CoordinateSystem>::value;
 
-	DEF_NTUPLE_OBJECT(CoordinateSystem,value_type,ndims);
+DEF_NTUPLE_OBJECT(CoordinateSystem,value_type,ndims);
 };
 
 /**
@@ -178,13 +190,13 @@ struct Tensor
 	inline auto operator [](size_t n) const
 	DECL_RET_TYPE (m_data_[n])
 
-	template<size_t N>
+	template<size_t M>
 	inline auto get()
-	DECL_RET_TYPE (m_data_[N])
+	DECL_RET_TYPE (m_data_[M])
 
-	template<size_t N>
+	template<size_t M>
 	inline auto get() const
-	DECL_RET_TYPE (m_data_[N])
+	DECL_RET_TYPE (m_data_[M])
 };
 
 template<size_t Dimension, typename CoordinateSystem, typename Tag>
@@ -203,7 +215,7 @@ struct Primitive<Dimension, CoordinateSystem, Tag>
 //using Point = Primitive< 0,CoordinateSystem, tags::simplex>;
 
 template<typename CoordinateSystem, typename Tag>
-using LineSegment = Primitive< 1,CoordinateSystem, tags::simplex >;
+using Line = Primitive< 1,CoordinateSystem, tags::simplex >;
 
 template<typename CoordinateSystem, typename Tag>
 using Triangle = Primitive< 2,CoordinateSystem, tags::simplex >;

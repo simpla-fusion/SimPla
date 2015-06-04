@@ -75,10 +75,13 @@ struct typename_as_string<Cartesian<N>>
 {
 	static constexpr char value[] = "Cartesian";
 };
+template<>
 struct typename_as_string<Spherical>
 {
 	static constexpr char value[] = "Spherical";
 };
+
+template<>
 struct typename_as_string<Cylindical>
 {
 	static constexpr char value[] = "Cylindical";

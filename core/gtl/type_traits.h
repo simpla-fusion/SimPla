@@ -14,6 +14,7 @@
 #include <utility>
 #include <complex>
 #include <map>
+#include <vector>
 #include "concept_check.h"
 namespace simpla
 {
@@ -535,28 +536,32 @@ T const & max(T const & first, Others &&...others)
 	return max(first, max(std::forward<Others>(others)...));
 }
 
-namespace tratis
+namespace traits
 {
 
 template<typename > struct key_type;
 template<typename > struct value_type;
 
-template<typename K, typename V> struct key_type<std::map<K, V>>
+template<typename K, typename V, typename ...Others> struct key_type<
+		std::map<K, V, Others...>>
 {
 	typedef K type;
 };
 
-template<typename K, typename V> struct value_type<std::map<K, V>>
+template<typename K, typename V, typename ...Others> struct value_type<
+		std::map<K, V, Others...>>
 {
 	typedef V type;
 };
 
-template<typename V> struct key_type<std::vector<V>>
+template<typename V, typename ...Others> struct key_type<
+		std::vector<V, Others...>>
 {
 	typedef size_t type;
 };
 
-template<typename V> struct value_type<std::vector<V>>
+template<typename V, typename ...Others> struct value_type<
+		std::vector<V, Others...>>
 {
 	typedef V type;
 };

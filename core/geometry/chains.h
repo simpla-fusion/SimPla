@@ -36,8 +36,8 @@ using PointSet=Chains<Primitive<0, CoordinateSystem,tags::simplex>,Others...>;
  *  image of a line” clause. A topological theorem states that a
  *  continuous image of a connected set is connected.
  */
-template<typename ...Others, typename ...Others2>
-using Curve=Chains<Primitive<1, Others...>,Others2...>;
+template<typename CS, typename TAG, typename ...Others>
+using Curve=Chains<Primitive<1, CS,TAG>, Others ...>;
 
 /**
  * @brief Surface
@@ -47,17 +47,33 @@ using Curve=Chains<Primitive<1, Others...>,Others2...>;
  *  that delineate the limits of the surface.
  *
  */
-template<typename ...Others, typename ...Others2>
-using Surface=Chains<Primitive<2, Others...>,Others2...>;
+template<typename CS, typename TAG, typename ...Others>
+using Surface=Chains<Primitive<2, CS,TAG>, Others ...>;
 
 /**
  * @brief Solids
  */
-template<typename ...Others, typename ...Others2>
-using Solids=Chains<Primitive<3, Others...>,Others2...>;
+template<typename CS, typename TAG, typename ...Others>
+using Solids=Chains<Primitive<3, CS,TAG>, Others ...>;
 
 namespace traits
 {
+
+template<typename > struct is_chains;
+template<typename > struct is_primitive;
+
+template<typename ...Others>
+struct is_primitive<Chains<Others...>>
+{
+	static constexpr bool value = false;
+};
+
+template<typename ...Others>
+struct is_chains<Chains<Others...>>
+{
+	static constexpr bool value = true;
+};
+
 template<typename PrimitiveType, typename ...Others>
 struct coordinate_system<Chains<PrimitiveType, Others...>>
 {
@@ -104,7 +120,7 @@ struct Chains<Primitive<Dimension, Others...>, TMesh> : public std::vector<
 		primitive_type res;
 		for (int i = 0; i < number_of_vertices; ++i)
 		{
-			res[i] = m_mesh_.coordinates(m_indics_[n][i]);
+			res[i] = m_mesh_.coordinates(base_type::operator[](n)[i]);
 		}
 		return std::move(res);
 	}

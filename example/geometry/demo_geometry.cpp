@@ -36,9 +36,9 @@ using namespace simpla;
 using namespace simpla::geometry;
 int main(int argc, char **argv)
 {
-	typedef model::Point<Real, 2, coordinate_system::Cartesian> point_type;
+	typedef Point<coordinate_system::Cartesian<2>> point_type;
 
-	model::Polygon<point_type> poly;
+	Polygon<point_type> poly;
 
 	append(poly, point_type { 1.0, 2.0 });
 	append(poly, point_type { 6.0, 4.0 });
