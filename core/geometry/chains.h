@@ -94,14 +94,16 @@ struct is_structed<Chains<PrimitiveType, Others...>>
 };
 }  // namespace traits
 
-template<size_t Dimension, typename ...Others, typename TMesh>
-struct Chains<Primitive<Dimension, Others...>, TMesh> : public std::vector<
-		nTuple<typename TMesh::id_type,
-				traits::template number_of_vertices<
-						Primitive<Dimension, Others...> >::value>>
+template<typename TPrimitive, typename TMesh, typename TContainer>
+struct Chains<TPrimitive, TMesh, TContainer> : public TContainer
+//public std::vector<
+//		nTuple<typename TMesh::id_type,
+//				traits::template number_of_vertices<
+//						Primitive<Dimension, Others...> >::value>>
 
 {
-	typedef Primitive<Dimension, Others...> primitive_type;
+	typedef TPrimitive primitive_type;
+	typedef TContainer container_type;
 
 	static constexpr size_t number_of_vertices =
 			traits::template number_of_vertices<primitive_type>::value;
@@ -110,26 +112,24 @@ struct Chains<Primitive<Dimension, Others...>, TMesh> : public std::vector<
 
 	typedef typename TMesh::coordinates_type point_type;
 
-	typedef std::vector<nTuple<point_id_type, number_of_vertices>> base_type;
-
 	std::shared_ptr<TMesh> m_mesh_;
 
 	primitive_type operator[](
-			typename simpla::traits::key_type<base_type>::type const & n) const
+			typename simpla::traits::key_type<container_type>::type const & n) const
 	{
 		primitive_type res;
 		for (int i = 0; i < number_of_vertices; ++i)
 		{
-			res[i] = m_mesh_.coordinates(base_type::operator[](n)[i]);
+			res[i] = m_mesh_.coordinates(container_type::operator[](n)[i]);
 		}
 		return std::move(res);
 	}
-	using base_type::emplace_back;
-	using base_type::push_back;
-	using base_type::clear;
-	using base_type::size;
-	using base_type::begin;
-	using base_type::end;
+	using container_type::emplace_back;
+	using container_type::push_back;
+	using container_type::clear;
+	using container_type::size;
+	using container_type::begin;
+	using container_type::end;
 };
 
 }  // namespace geometry

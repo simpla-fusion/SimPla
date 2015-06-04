@@ -36,24 +36,29 @@ using namespace simpla;
 using namespace simpla::geometry;
 int main(int argc, char **argv)
 {
-	typedef Point<coordinate_system::Cartesian<2>> point_type;
+	typedef typename coordinate_system::Cartesian<2> cs;
 
-	Polygon<point_type> poly;
+	Polygon<cs> poly;
 
-	append(poly, point_type { 1.0, 2.0 });
-	append(poly, point_type { 6.0, 4.0 });
-	append(poly, point_type { 5.0, 1.0 });
-	append(poly, point_type { 1.0, 2.0 });
+	append(poly, Point<cs> { 1.0, 2.0 });
+	append(poly, Point<cs> { 6.0, 4.0 });
+	append(poly, Point<cs> { 5.0, 1.0 });
+	append(poly, Point<cs> { 1.0, 2.0 });
 
-	point_type x0 = { 1.5, 1.5 };
+	Point<cs> x0 = { 1.5, 1.5 };
 
 	std::cout << "Area: " << area(poly) << std::endl;
 
-//	std::cout << "Contains" << (x0) << std::endl;
-
+	std::cout << "Contains " << (x0) << std::endl;
 	std::cout << "Within " << std::boolalpha << within(x0, poly) << std::endl;
 
 	std::cout << dsv(poly) << std::endl;
+
+	Line<cs> line( { 1.0, 2.0, 6.0, 4.0 });
+	std::cout << "Line " << line << std::endl;
+	Box<cs> box( { 1.0, 2.0, 6.0, 4.0 });
+	std::cout << "Box " << box << std::endl;
+
 }
 
 //

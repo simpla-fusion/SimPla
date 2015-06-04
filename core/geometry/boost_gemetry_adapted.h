@@ -17,12 +17,7 @@ namespace simpla
 {
 namespace geometry
 {
-
-template<typename TPoint> using Polygon= boost::geometry::model::polygon<TPoint>;
-
-template<typename TPoint> using Box= boost::geometry::model::box<TPoint>;
-
-template<typename TPoint> using LineSegment= boost::geometry::model::segment<TPoint>;
+template<typename CS> using Polygon= boost::geometry::model::polygon< Point<CS> >;
 
 using boost::geometry::append;
 using boost::geometry::intersection;
@@ -46,66 +41,152 @@ namespace geometry
 #ifndef DOXYGEN_NO_TRAITS_SPECIALIZATIONS
 namespace traits
 {
-
+namespace sg = simpla::geometry;
+namespace sgcs = simpla::geometry::coordinate_system;
 template<typename CS, typename TAG>
-struct tag<simpla::geometry::Primitive<0, CS, TAG> >
+struct tag<sg::Primitive<0, CS, TAG> >
 {
 	typedef point_tag type;
 };
 
 template<size_t N, typename CS, typename TAG>
-struct coordinate_type<simpla::geometry::Primitive<N, CS, TAG> >
+struct coordinate_type<sg::Primitive<N, CS, TAG> >
 {
-	typedef typename simpla::geometry::coordinate_system::traits::coordinate_type<
-			CS>::type type;
+	typedef typename sgcs::traits::coordinate_type<CS>::type type;
 
 };
 
 template<size_t N, typename CS, typename TAG>
-struct dimension<simpla::geometry::Primitive<N, CS, TAG>> : boost::mpl::int_<
-		simpla::geometry::coordinate_system::traits::dimension<CS>::value>
+struct dimension<sg::Primitive<N, CS, TAG>> : boost::mpl::int_<
+		sgcs::traits::dimension<CS>::value>
 {
 };
 template<typename CS, typename TAG, std::size_t Dimension>
-struct access<simpla::geometry::Primitive<0, CS, TAG>, Dimension>
+struct access<sg::Primitive<0, CS, TAG>, Dimension>
 {
-	typedef typename coordinate_type<simpla::geometry::Primitive<0, CS, TAG>>::type value_type;
+	typedef typename coordinate_type<sg::Primitive<0, CS, TAG>>::type value_type;
 
-	static inline value_type const &get(
-			simpla::geometry::Primitive<0, CS, TAG>const& point)
+	static inline value_type const &get(sg::Primitive<0, CS, TAG>const& point)
 	{
 		return std::get<Dimension>(point);
 	}
 
-	static inline void set(simpla::geometry::Primitive<0, CS, TAG>& point,
+	static inline void set(sg::Primitive<0, CS, TAG>& point,
 			value_type const& value)
 	{
 		std::get<Dimension>(point) = value;
 	}
 };
 template<size_t M, size_t N, typename TAG>
-struct coordinate_system<
-		simpla::geometry::Primitive<N,
-				simpla::geometry::coordinate_system::Cartesian<M>, TAG> >
+struct coordinate_system<sg::Primitive<N, sgcs::Cartesian<M>, TAG> >
 {
 	typedef cs::cartesian type;
 };
 
 template<size_t N, typename TAG>
-struct coordinate_system<
-		simpla::geometry::Primitive<N,
-				simpla::geometry::coordinate_system::Spherical, TAG> >
+struct coordinate_system<sg::Primitive<N, sgcs::Spherical, TAG> >
 
 {
 	typedef cs::spherical<radian> type;
 };
 
 template<size_t N, typename TAG>
-struct coordinate_system<
-		simpla::geometry::Primitive<N,
-				simpla::geometry::coordinate_system::Polar, TAG> >
+struct coordinate_system<sg::Primitive<N, sgcs::Polar, TAG> >
 {
 	typedef cs::spherical<radian> type;
+};
+
+//*******************************************************************
+// Line Segment
+
+template<typename CS>
+struct tag<sg::Primitive<1, CS, sg::tags::simplex> >
+{
+	typedef segment_tag type;
+};
+template<typename CS>
+struct point_type<sg::Primitive<1, CS, sg::tags::simplex> >
+{
+	typedef typename sg::traits::point_type<CS>::type type;
+};
+template<typename CS, std::size_t Dimension>
+struct indexed_access<sg::Primitive<1, CS, sg::tags::simplex>, 0, Dimension>
+{
+	typedef sg::Primitive<1, CS, sg::tags::simplex> segment_type;
+	typedef typename sgcs::traits::coordinate_type<CS>::type coordinate_type;
+
+	static inline coordinate_type get(segment_type const& s)
+	{
+		return geometry::get<Dimension>(std::get<0>(s));
+	}
+
+	static inline void set(segment_type& s, coordinate_type const& value)
+	{
+		geometry::set<Dimension>(std::get<0>(s), value);
+	}
+};
+
+template<typename CS, std::size_t Dimension>
+struct indexed_access<sg::Primitive<1, CS, sg::tags::simplex>, 1, Dimension>
+{
+	typedef sg::Primitive<1, CS, sg::tags::simplex> segment_type;
+	typedef typename sgcs::traits::coordinate_type<CS>::type coordinate_type;
+
+	static inline coordinate_type get(segment_type const& s)
+	{
+		return geometry::get<Dimension>(std::get<1>(s));
+	}
+
+	static inline void set(segment_type& s, coordinate_type const& value)
+	{
+		geometry::set<Dimension>(std::get<1>(s), value);
+	}
+};
+//*******************************************************************
+// Box
+
+template<typename CS>
+struct tag<sg::Box<CS> >
+{
+	typedef box_tag type;
+};
+
+template<typename CS>
+struct point_type<sg::Box<CS> >
+{
+	typedef typename sg::traits::point_type<sg::Box<CS>>::type type;
+};
+
+template<typename CS, std::size_t Dimension>
+struct indexed_access<sg::Box<CS>, min_corner, Dimension>
+{
+	typedef typename geometry::coordinate_type<CS>::type coordinate_type;
+
+	static inline coordinate_type get(sg::Box<CS> const& b)
+	{
+		return geometry::get<Dimension>(std::get<0>(b));
+	}
+
+	static inline void set(sg::Box<CS>& b, coordinate_type const& value)
+	{
+		geometry::set<Dimension>(std::get<0>(b), value);
+	}
+};
+
+template<typename CS, std::size_t Dimension>
+struct indexed_access<sg::Box<CS>, max_corner, Dimension>
+{
+	typedef typename geometry::coordinate_type<CS>::type coordinate_type;
+
+	static inline coordinate_type get(sg::Box<CS> const& b)
+	{
+		return geometry::get<Dimension>(std::get<1>(b));
+	}
+
+	static inline void set(sg::Box<CS>& b, coordinate_type const& value)
+	{
+		geometry::set<Dimension>(std::get<1>(b), value);
+	}
 };
 } // namespace traits
 #endif // DOXYGEN_NO_TRAITS_SPECIALIZATIONS

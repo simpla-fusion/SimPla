@@ -37,6 +37,7 @@ namespace tags
 {
 struct simplex;
 struct cube;
+struct box;
 
 }  // namespace tags
 
@@ -44,7 +45,7 @@ namespace traits
 {
 template<typename > struct coordinate_system;
 template<typename > struct dimension;
-template<typename > struct vertex_type;
+template<typename > struct point_type;
 template<typename > struct number_of_vertices;
 
 template<typename > struct is_chains;
@@ -74,14 +75,19 @@ struct dimension<Primitive<Dimension, CoordinateSystem, Tag>>
 	static constexpr size_t value = Dimension;
 };
 template<size_t Dimension, typename CoordinateSystem, typename Tag>
-struct vertex_type<Primitive<Dimension, CoordinateSystem, Tag>>
+struct point_type<Primitive<Dimension, CoordinateSystem, Tag>>
 {
-	typedef Primitive<0, CoordinateSystem, tags::simplex> type;
+	typedef Primitive<0, CoordinateSystem, Tag> type;
 };
-template<typename ...Others>
-struct number_of_vertices<Primitive<0, Others...>>
+template<typename CoordinateSystem, typename Tag>
+struct number_of_vertices<Primitive<0, CoordinateSystem, Tag>>
 {
 	static constexpr size_t value = 1;
+};
+template<typename CoordinateSystem, size_t Dimension>
+struct number_of_vertices<Primitive<Dimension, CoordinateSystem, tags::box>>
+{
+	static constexpr size_t value = 2;
 };
 
 template<size_t Dimension, typename CoordinateSystem, typename Tag>
@@ -110,6 +116,8 @@ struct number_of_vertices<Primitive<Dimension, CoordinateSystem, Tag>>
 #define DEF_NTUPLE_OBJECT(_COORD_SYS_,_T_,_NUM_)                                      \
  nTuple<_T_, _NUM_> m_data_;                                                          \
  inline operator nTuple<_T_, _NUM_>(){ return m_data_; }                              \
+ nTuple<_T_, _NUM_> const & ntuple()const{return m_data_;}                            \
+ nTuple<_T_, _NUM_>   & ntuple() {return m_data_;}                                    \
  inline _T_ & operator [](size_t n){ return m_data_[n]; }                             \
  inline _T_ const & operator [](size_t n) const{ return m_data_[n]; }                 \
  template<size_t N> inline _T_ & get(){return m_data_[N]; }                           \
@@ -162,13 +170,14 @@ struct Vector
 template<typename CoordinateSystem>
 struct CoVector
 {
-typedef typename simpla::geometry::coordinate_system::traits::coordinate_type<
-		CoordinateSystem>::type value_type;
+	typedef typename simpla::geometry::coordinate_system::traits::coordinate_type<
+			CoordinateSystem>::type value_type;
 
-static const size_t ndims =
-		simpla::geometry::coordinate_system::traits::dimension<CoordinateSystem>::value;
+	static const size_t ndims =
+			simpla::geometry::coordinate_system::traits::dimension<
+					CoordinateSystem>::value;
 
-DEF_NTUPLE_OBJECT(CoordinateSystem,value_type,ndims);
+	DEF_NTUPLE_OBJECT(CoordinateSystem,value_type,ndims);
 };
 
 /**
@@ -199,34 +208,50 @@ struct Tensor
 	DECL_RET_TYPE (m_data_[M])
 };
 
+template<typename CoordinateSystem>
+struct Primitive<3, CoordinateSystem, tags::box>
+{
+	typedef Primitive<3, CoordinateSystem, tags::box> this_type;
+	typedef Primitive<0, CoordinateSystem, tags::simplex> point_type;DEF_NTUPLE_OBJECT(CoordinateSystem,point_type,2);
+};
+template<typename CoordinateSystem>
+using Box = Primitive< 3,CoordinateSystem, tags::box >;
+
 template<size_t Dimension, typename CoordinateSystem, typename Tag>
 struct Primitive<Dimension, CoordinateSystem, Tag>
 {
 	typedef Primitive<Dimension, CoordinateSystem, Tag> this_type;
-	typedef typename traits::vertex_type<this_type>::type vertex_type;
+	typedef typename traits::point_type<this_type>::type vertex_type;
 	static constexpr size_t num_of_vertices = traits::number_of_vertices<
 			this_type>::value;
 
 	DEF_NTUPLE_OBJECT(CoordinateSystem,vertex_type,num_of_vertices);
 };
+
+template<typename OS, size_t Dimension, typename CoordinateSystem, typename Tag>
+OS &operator<<(OS & os, Primitive<Dimension, CoordinateSystem, Tag> const & geo)
+{
+	os << geo.ntuple();
+	return os;
+}
 #undef DEF_NTUPLE_OBJECT
 
 //template<typename CoordinateSystem>
 //using Point = Primitive< 0,CoordinateSystem, tags::simplex>;
 
-template<typename CoordinateSystem, typename Tag>
+template<typename CoordinateSystem>
 using Line = Primitive< 1,CoordinateSystem, tags::simplex >;
 
-template<typename CoordinateSystem, typename Tag>
+template<typename CoordinateSystem>
 using Triangle = Primitive< 2,CoordinateSystem, tags::simplex >;
 
-template<typename CoordinateSystem, typename Tag>
+template<typename CoordinateSystem>
 using Tetrahedron = Primitive< 2,CoordinateSystem, tags::simplex >;
 
-template<typename CoordinateSystem, typename Tag>
+template<typename CoordinateSystem>
 using Rectangle = Primitive< 2,CoordinateSystem, tags::cube >;
 
-template<typename CoordinateSystem, typename Tag>
+template<typename CoordinateSystem>
 using Cube = Primitive< 3,CoordinateSystem, tags::cube >;
 
 //************************************************************************
