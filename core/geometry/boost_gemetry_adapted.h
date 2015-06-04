@@ -38,7 +38,6 @@ namespace boost
 {
 namespace geometry
 {
-#ifndef DOXYGEN_NO_TRAITS_SPECIALIZATIONS
 namespace traits
 {
 namespace sg = simpla::geometry;
@@ -145,51 +144,54 @@ struct indexed_access<sg::Primitive<1, CS, sg::tags::simplex>, 1, Dimension>
 //*******************************************************************
 // Box
 
-template<typename CS>
-struct tag<sg::Box<CS> >
+template<size_t N, typename CS>
+struct tag<sg::Primitive<N, CS, sg::tags::box>>
 {
 	typedef box_tag type;
 };
 
-template<typename CS>
-struct point_type<sg::Box<CS> >
+template<size_t N, typename CS>
+struct point_type<sg::Primitive<N, CS, sg::tags::box>>
 {
-	typedef typename sg::traits::point_type<sg::Box<CS>>::type type;
+	typedef typename sg::traits::point_type<sg::Primitive<N, CS, sg::tags::box>>::type type;
 };
 
-template<typename CS, std::size_t Dimension>
-struct indexed_access<sg::Box<CS>, min_corner, Dimension>
+template<size_t N, typename CS, std::size_t Dimension>
+struct indexed_access<sg::Primitive<N, CS, sg::tags::box>, min_corner, Dimension>
 {
 	typedef typename geometry::coordinate_type<CS>::type coordinate_type;
 
-	static inline coordinate_type get(sg::Box<CS> const& b)
+	static inline coordinate_type get(
+			sg::Primitive<N, CS, sg::tags::box> const& b)
 	{
 		return geometry::get<Dimension>(std::get<0>(b));
 	}
 
-	static inline void set(sg::Box<CS>& b, coordinate_type const& value)
+	static inline void set(sg::Primitive<N, CS, sg::tags::box>& b,
+			coordinate_type const& value)
 	{
 		geometry::set<Dimension>(std::get<0>(b), value);
 	}
 };
 
-template<typename CS, std::size_t Dimension>
-struct indexed_access<sg::Box<CS>, max_corner, Dimension>
+template<size_t N, typename CS, std::size_t Dimension>
+struct indexed_access<sg::Primitive<N, CS, sg::tags::box>, max_corner, Dimension>
 {
 	typedef typename geometry::coordinate_type<CS>::type coordinate_type;
 
-	static inline coordinate_type get(sg::Box<CS> const& b)
+	static inline coordinate_type get(
+			sg::Primitive<N, CS, sg::tags::box> const& b)
 	{
 		return geometry::get<Dimension>(std::get<1>(b));
 	}
 
-	static inline void set(sg::Box<CS>& b, coordinate_type const& value)
+	static inline void set(sg::Primitive<N, CS, sg::tags::box>& b,
+			coordinate_type const& value)
 	{
 		geometry::set<Dimension>(std::get<1>(b), value);
 	}
 };
 } // namespace traits
-#endif // DOXYGEN_NO_TRAITS_SPECIALIZATIONS
-}
-}
+} // namespace geometry
+} // namespace boost
 #endif // CORE_GEOMETRY_BOOST_GEMETRY_ADAPTED_H_
