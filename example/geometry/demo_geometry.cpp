@@ -36,7 +36,7 @@ using namespace simpla;
 using namespace simpla::geometry;
 int main(int argc, char **argv)
 {
-	typedef model::Point2 point_type;
+	typedef model::Point<Real, 2, coordinate_system::Cartesian> point_type;
 
 	model::Polygon<point_type> poly;
 
@@ -49,7 +49,7 @@ int main(int argc, char **argv)
 
 	std::cout << "Area: " << area(poly) << std::endl;
 
-	std::cout << "Contains" << (x0) << std::endl;
+//	std::cout << "Contains" << (x0) << std::endl;
 
 	std::cout << "Within " << std::boolalpha << within(x0, poly) << std::endl;
 
@@ -95,7 +95,7 @@ int main(int argc, char **argv)
 //	return std::make_tuple(s, t);
 //}
 //
-//Vec3 normal_vector_of_surface(std::vector<coordinate_type> const & polygons)
+//Vec3 normal_vector_of_surface(std::vector<coordinate_tuple> const & polygons)
 //{
 //	bool on_same_plane = false;
 //	Vec3 n;
@@ -139,8 +139,8 @@ int main(int argc, char **argv)
 //}
 //
 //template<typename TV>
-//void polyline_intersect_grid(std::vector<coordinate_type> const & polygons,
-//		id_type shift, TV *volume, std::vector<coordinate_type> *new_path,
+//void polyline_intersect_grid(std::vector<coordinate_tuple> const & polygons,
+//		id_type shift, TV *volume, std::vector<coordinate_tuple> *new_path,
 //		const int ZAXIS = 2)
 //{
 //	const int XAXIS = (ZAXIS + 1) % 3;
@@ -148,7 +148,7 @@ int main(int argc, char **argv)
 //	const Real dx = 1.0; // length of edge
 //	const Real dA = 1.0; // area of cell
 //
-//	const coordinate_type n = normal_vector_of_surface(polygons);
+//	const coordinate_tuple n = normal_vector_of_surface(polygons);
 //
 //	if (inner_product(n, n) < EPSILON)
 //	{
@@ -178,9 +178,9 @@ int main(int argc, char **argv)
 //	};
 //
 //	const int num_of_cell_vertics = 4;
-//	coordinate_type q[num_of_cell_vertics];
+//	coordinate_tuple q[num_of_cell_vertics];
 //
-//	coordinate_type x0, x1;
+//	coordinate_tuple x0, x1;
 //
 //	x0 = polygons[0UL];
 //
@@ -197,12 +197,12 @@ int main(int argc, char **argv)
 //
 //		new_path->push_back(x0);
 //
-//		coordinate_type q0 = { std::floor(x0[0]), std::floor(x0[1]),
+//		coordinate_tuple q0 = { std::floor(x0[0]), std::floor(x0[1]),
 //				std::floor(x0[2]) };
 //
 //		current_cell = MeshIDs::coordinates_to_id(q0);
 //
-//		static const coordinate_type d[6][2] = {
+//		static const coordinate_tuple d[6][2] = {
 //
 //		-1, 0, 0, -1, 1, 0,
 //
@@ -269,7 +269,7 @@ int main(int argc, char **argv)
 //USE_CASE(model,"Cut Cell")
 //{
 //
-//	typedef typename mesh_type::coordinate_type coordinate_type;
+//	typedef typename mesh_type::coordinate_tuple coordinate_tuple;
 //
 //	typedef typename mesh_type::id_type id_type;
 //
@@ -279,7 +279,7 @@ int main(int argc, char **argv)
 //
 //	mesh->deploy();
 //
-//	std::vector<coordinate_type> p0, p1, p2, p3, p4, p5, p6, p7;
+//	std::vector<coordinate_tuple> p0, p1, p2, p3, p4, p5, p6, p7;
 //
 //	size_t node_id = 0;
 //	options["Polylines"].as(&p0);
@@ -296,13 +296,13 @@ int main(int argc, char **argv)
 //
 //	for (auto const & item : b_cell)
 //	{
-//		coordinate_type x0 = mesh->coordinates(item.first);
+//		coordinate_tuple x0 = mesh->coordinates(item.first);
 //
 //		p1.push_back(x0);
 //
 //		p2.push_back(mesh->pull_back(x0, item.second));
 //
-//		//		coordinate_type q0, q1;
+//		//		coordinate_tuple q0, q1;
 //		//
 //		//		auto it = item.second;
 //		//
@@ -332,7 +332,7 @@ int main(int argc, char **argv)
 //
 //	find_boundary2D(p3, shift0, &p4);
 //
-//	coordinate_type shift1 = { 0.5, 0.5, 0.5 };
+//	coordinate_tuple shift1 = { 0.5, 0.5, 0.5 };
 //
 //	get_intersctions(p0, shift1, &p5);
 //
@@ -388,7 +388,7 @@ int main(int argc, char **argv)
 //
 //	return std::make_tuple(is_parallel, s, t, inner_product(w0, w0));
 //}
-//int boundary_tag(coordinate_type const & x)
+//int boundary_tag(coordinate_tuple const & x)
 //{
 //	int res = 0;
 //	if (x[0] != std::floor(x[0]))
@@ -405,7 +405,7 @@ int main(int argc, char **argv)
 //	}
 //	return res;
 //}
-//void divid_to_boundary(std::vector<coordinate_type> const& points,
+//void divid_to_boundary(std::vector<coordinate_tuple> const& points,
 //		std::vector<boundary_s> * res, int ZAXIS = 2)
 //{
 //
@@ -413,7 +413,7 @@ int main(int argc, char **argv)
 //	auto i1 = points.begin();
 //	auto i2 = ++points.begin();
 //
-//	coordinate_type x0, x1, x2;
+//	coordinate_tuple x0, x1, x2;
 //	x0 = *i0;
 //	x1 = *i1;
 //	x2 = *i2;
@@ -424,7 +424,7 @@ int main(int argc, char **argv)
 //
 //	while (i1 != points.end())
 //	{
-//		coordinate_type xp, xm;
+//		coordinate_tuple xp, xm;
 //
 //		xm[0] = std::floor(xp[0]);
 //		xm[1] = std::floor(xp[1]);
@@ -440,7 +440,7 @@ int main(int argc, char **argv)
 ////		auto tag0 = boundary_tag(x0);
 ////		auto tag1 = boundary_tag(x1);
 ////
-////		coordinate_type xp = x0;
+////		coordinate_tuple xp = x0;
 ////
 ////		if (tag0 == tag1)
 ////		{
@@ -614,8 +614,8 @@ int main(int argc, char **argv)
 //	}
 //}
 //template<typename TPoints>
-//void get_intersctions(TPoints const & points, coordinate_type const & shift,
-//		std::vector<coordinate_type> *res)
+//void get_intersctions(TPoints const & points, coordinate_tuple const & shift,
+//		std::vector<coordinate_tuple> *res)
 //{
 //
 //	auto first = points.begin();
@@ -668,39 +668,39 @@ int main(int argc, char **argv)
 //		size_t ie = res->size();
 //
 //		std::sort(&(*res)[ib], &(*res)[ie],
-//				[&](coordinate_type const & xa,coordinate_type const & xb)->bool
+//				[&](coordinate_tuple const & xa,coordinate_tuple const & xb)->bool
 //				{
 //					return inner_product(xb-xa,x1-x0)>0;
 //				});
 //
 //	}
 //}
-//typedef coordinate_type Vec3;
+//typedef coordinate_tuple Vec3;
 //
 //template<typename TPoints>
-//void find_boundary2D(TPoints const & points, coordinate_type const & shift,
-//		std::vector<coordinate_type> *res, int ZAXIS = 2)
+//void find_boundary2D(TPoints const & points, coordinate_tuple const & shift,
+//		std::vector<coordinate_tuple> *res, int ZAXIS = 2)
 //{
 //
 //	auto i0 = points.begin();
 //
 //	while (i0 != points.end())
 //	{
-//		coordinate_type p0 = *i0;
+//		coordinate_tuple p0 = *i0;
 //		auto i1 = ++i0;
 //
 //		if (i1 == points.end())
 //		{
 //			i1 = points.begin();
 //		}
-//		coordinate_type p1 = *i1;
+//		coordinate_tuple p1 = *i1;
 //
-//		coordinate_type p2;
+//		coordinate_tuple p2;
 //		p2 = p1;
 //
 //		p2[ZAXIS] += 1.0;
 //
-//		coordinate_type x0 = //
+//		coordinate_tuple x0 = //
 //				{ //
 //				std::floor(std::min(p0[0], p1[0]) - shift[0]) + shift[0], //
 //				std::floor(std::min(p0[1], p1[1]) - shift[1]) + shift[1], //
@@ -710,7 +710,7 @@ int main(int argc, char **argv)
 ////		id_type s = MeshDummy::coordinates_to_id(x0);
 //
 //		res->push_back(x0);
-//		coordinate_type n;
+//		coordinate_tuple n;
 //		std::tie(std::ignore, n) = distance_point_to_plane(x0, p0, p1, p2);
 //		res->push_back(n);
 //

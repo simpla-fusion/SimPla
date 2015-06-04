@@ -45,7 +45,7 @@ public:
 
 	typedef typename mesh_type::iterator iterator;
 
-	typedef typename mesh_type::coordinate_type coordinate_type;
+	typedef typename mesh_type::coordinate_tuple coordinate_tuple;
 
 	typedef typename mesh_type:: template field<VERTEX, scalar_type> rho_type;
 

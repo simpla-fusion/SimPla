@@ -25,7 +25,7 @@ public:
 
 	static const  unsigned int  NDIMS = mesh_type::NDIMS;
 
-	typedef typename mesh_type::coordinate_type coordinate_type;
+	typedef typename mesh_type::coordinate_tuple coordinate_tuple;
 
 	typedef typename mesh_type::index_type index_type;
 
@@ -205,13 +205,13 @@ public:
 		return (*this);
 	}
 
-	inline field_value_type operator()(coordinate_type const &x) const
+	inline field_value_type operator()(coordinate_tuple const &x) const
 	{
 		return mesh.Gather(std::integral_constant<unsigned int ,IForm>(),*this,x);
 	}
 
 	template<typename TZ>
-	inline void add(coordinate_type const &x,TZ const & z)
+	inline void add(coordinate_tuple const &x,TZ const & z)
 	{
 		return mesh.Scatter(std::integral_constant<unsigned int ,IForm>(),this,z);
 	}

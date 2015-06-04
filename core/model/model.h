@@ -267,7 +267,7 @@ typedef Model_<3> Model;
 //		{
 //			return std::move(
 //					SelectByNGP(range,
-//							dict["Points"].template as<coordinate_type>()));
+//							dict["Points"].template as<coordinate_tuple>()));
 //
 //		}
 //		else if (type == "Boundary")
@@ -287,7 +287,7 @@ typedef Model_<3> Model;
 //		}
 //		else if (type == "Range" && dict["Points"].is_table())
 //		{
-//			std::vector < coordinate_type > points;
+//			std::vector < coordinate_tuple > points;
 //
 //			dict["Points"].as(&points);
 //

@@ -26,7 +26,7 @@ public:
 
 	typedef typename mesh_type::id_type id_type;
 
-	typedef typename mesh_type::coordinate_type coordinate_type;
+	typedef typename mesh_type::coordinate_tuple coordinate_tuple;
 
 	typedef typename domain_type::template field_value_type<value_type> field_value_type;
 
@@ -83,13 +83,13 @@ public:
 						m_domain_.mesh().coordinates(s), t)));
 	}
 
-	field_value_type operator()(coordinate_type const& x, Real t) const
+	field_value_type operator()(coordinate_tuple const& x, Real t) const
 	{
 		return static_cast<field_value_type>(m_fun_(x, t));
 	}
 
 	template<typename ...Others>
-	field_value_type operator()(coordinate_type const& x, Real t,
+	field_value_type operator()(coordinate_tuple const& x, Real t,
 			Others &&... others) const
 	{
 		return static_cast<field_value_type>(m_fun_(x, t,
@@ -103,14 +103,14 @@ public:
 	 */
 	template<typename ...Args>
 	_Field<domain_type, value_type, _impl::is_function,
-			std::function<field_value_type(coordinate_type const&, Real)>> op_on(
+			std::function<field_value_type(coordinate_tuple const&, Real)>> op_on(
 			Args const& ...args) const
 	{
-		typedef std::function<field_value_type(coordinate_type const&, Real)> res_function_type;
+		typedef std::function<field_value_type(coordinate_tuple const&, Real)> res_function_type;
 		typedef _Field<domain_type, value_type, _impl::is_function,
 				res_function_type> res_type;
 
-		res_function_type fun = [ &](coordinate_type const& x, Real t)
+		res_function_type fun = [ &](coordinate_tuple const& x, Real t)
 		{
 			return static_cast<field_value_type>(m_fun_(x, t,
 							static_cast<field_value_type>( (args)( x ))...));

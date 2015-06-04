@@ -40,7 +40,7 @@ public:
 	typedef TInterpolator interpolator_type;
 	typedef PICEngineImplicit<mesh_type, interpolator_type> this_type;
 
-	typedef typename mesh_type::coordinate_type coordinate_type;
+	typedef typename mesh_type::coordinate_tuple coordinate_tuple;
 	typedef Vec3 vector_type;
 	typedef typename mesh_type::scalar_type scalar_type;
 
@@ -58,16 +58,16 @@ public:
 
 	struct Point_s
 	{
-		coordinate_type x;
+		coordinate_tuple x;
 		Vec3 v;
 		Real f;
 
-		typedef std::tuple<coordinate_type, Vec3, Real> compact_type;
+		typedef std::tuple<coordinate_tuple, Vec3, Real> compact_type;
 		static DataType create_datadesc()
 		{
 			auto d_type = DataType::create<Point_s>();
 
-			d_type.push_back<coordinate_type>("x", offsetof(Point_s, x));
+			d_type.push_back<coordinate_tuple>("x", offsetof(Point_s, x));
 			d_type.push_back<vector_type>("v", offsetof(Point_s, v));
 			d_type.push_back<scalar_type>("f", offsetof(Point_s, f));
 
@@ -175,7 +175,7 @@ public:
 		interpolator_type::scatter_cartesian(n, std::make_tuple(p.x, 1.0), p.f * q);
 	}
 
-	static inline Point_s make_point(coordinate_type const & x, Vec3 const &v, Real f)
+	static inline Point_s make_point(coordinate_tuple const & x, Vec3 const &v, Real f)
 	{
 		return std::move(Point_s( { x, v, f }));
 	}

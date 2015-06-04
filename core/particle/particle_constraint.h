@@ -30,7 +30,7 @@ public:
 	typedef ParticleConstraint<mesh_type, engine_type, policy_type> this_type;
 
 private:
-	typedef typename mesh_type::coordinate_type coordinate_type;
+	typedef typename mesh_type::coordinate_tuple coordinate_tuple;
 	typedef typename mesh_type::scalar_type scalar_type;
 
 	typedef typename mesh_type::index_type index_type;
@@ -41,7 +41,7 @@ private:
 
 	std::map<index_type, normal_polar_vec_type> surface_;
 
-	typedef std::tuple<coordinate_type, Vec3, scalar_type> c_particle_type;
+	typedef std::tuple<coordinate_tuple, Vec3, scalar_type> c_particle_type;
 
 	std::function<void(c_particle_type, Vec3 const &)> op_;
 

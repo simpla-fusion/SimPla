@@ -12,14 +12,14 @@ namespace simpla
 {
 
 template<typename TM>
-struct PolyGon: public std::list<coordinate_type>
+struct PolyGon: public std::list<coordinate_tuple>
 {
 	typedef TM mesh_type;
-	typedef typename mesh_type::coordinate_type coordinate_type;
+	typedef typename mesh_type::coordinate_tuple coordinate_tuple;
 	typedef typename mesh_type::id_type id_type;
 	typedef typename mesh_type::topology_type topology_type;
 
-	typedef std::list<coordinate_type> container_type;
+	typedef std::list<coordinate_tuple> container_type;
 
 	using typename container_type::iterator;
 
@@ -67,7 +67,7 @@ public:
 	 * @param x
 	 * @return distance from line segment to polygon
 	 */
-	bool cut(id_type s, std::list<coordinate_type>*);
+	bool cut(id_type s, std::list<coordinate_tuple>*);
 
 	template<typename T0, typename T1>
 	bool in_box(T0 const & x_min, T1 const & x_max);
@@ -111,7 +111,7 @@ template<typename TM>
 template<typename T>
 bool PolyGon<TM>::check_inside(T const & coord) const
 {
-	coordinate_type x0;
+	coordinate_tuple x0;
 	x0 = m_mesh_.coordinates_to_topology(coord);
 
 	auto const &y = x0[(ZAXIS + 2) % 3];
@@ -144,7 +144,7 @@ template<typename TX>
 std::tuple<Real, typename PolyGon<TM>::iterator> PolyGon<TM>::nearest_point(
 		TX const & coord) const
 {
-	coordinate_type x;
+	coordinate_tuple x;
 	x = m_mesh_.coordinates_to_topology(coord);
 
 	Real min_dist2 = std::numeric_limits<Real>::max();
@@ -160,7 +160,7 @@ std::tuple<Real, typename PolyGon<TM>::iterator> PolyGon<TM>::nearest_point(
 
 	iterator res_it;
 
-	coordinate_type p0, p1;
+	coordinate_tuple p0, p1;
 
 	p1 = *it;
 
@@ -187,9 +187,9 @@ std::tuple<Real, typename PolyGon<TM>::iterator> PolyGon<TM>::nearest_point(
 
 }
 template<typename TM>
-bool PolyGon<TM>::cut(id_type s, std::list<coordinate_type>* res)
+bool PolyGon<TM>::cut(id_type s, std::list<coordinate_tuple>* res)
 {
-	coordinate_type x0, x_min, x_max;
+	coordinate_tuple x0, x_min, x_max;
 	x0 = topology_type::coordinates(s);
 	x_min = topology_type::coordinates(s - topology_type::_DA);
 	x_max = topology_type::coordinates(s + topology_type::_DA);
@@ -203,7 +203,7 @@ bool PolyGon<TM>::cut(id_type s, std::list<coordinate_type>* res)
 
 	iterator res_it;
 
-	coordinate_type p0, p1;
+	coordinate_tuple p0, p1;
 
 	p1 = *it;
 
@@ -215,7 +215,7 @@ bool PolyGon<TM>::cut(id_type s, std::list<coordinate_type>* res)
 
 		Real s = nearest_point_to_line_segment(x0, p0, p1);
 
-		coordinate_type p = (p0 * (1 - s) + p1);
+		coordinate_tuple p = (p0 * (1 - s) + p1);
 
 		Real dist = inner_product(x0 - p, x0 - p);
 

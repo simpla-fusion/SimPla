@@ -73,7 +73,7 @@ struct MeshIDs_
 
 	typedef nTuple<index_type, 3> index_tuple;
 
-	typedef nTuple<Real, 3> coordinate_type;
+	typedef nTuple<Real, 3> coordinate_tuple;
 
 	static constexpr int ndims = NDIMS;
 
@@ -173,7 +173,7 @@ struct MeshIDs_
 
 			};
 
-	static constexpr coordinate_type m_id_to_coordinates_shift_[] = {
+	static constexpr coordinate_tuple m_id_to_coordinates_shift_[] = {
 
 	{ 0, 0, 0 },            // 000
 			{ _R, 0, 0 },           // 001
@@ -279,9 +279,9 @@ struct MeshIDs_
 		return static_cast<T>(unpack(s));
 	}
 
-	static constexpr coordinate_type coordinate(id_type s)
+	static constexpr coordinate_tuple coordinate(id_type s)
 	{
-		return static_cast<coordinate_type>(unpack(s));
+		return static_cast<coordinate_tuple>(unpack(s));
 	}
 
 	static constexpr int num_of_ele_in_cell(id_type s)
@@ -290,14 +290,14 @@ struct MeshIDs_
 	}
 
 	template<typename TX>
-	static std::tuple<id_type, coordinate_type> coordinates_global_to_local(
+	static std::tuple<id_type, coordinate_tuple> coordinates_global_to_local(
 			TX const &x, int n_id = 0)
 	{
 
 		id_type s = (pack(x - m_id_to_coordinates_shift_[n_id] + _R)
 				& PRIMARY_ID_MASK) | m_id_to_shift_[n_id];
 
-		coordinate_type r;
+		coordinate_tuple r;
 
 		r = (x - coordinate(s)) / (_R * 2.0);
 
@@ -305,8 +305,8 @@ struct MeshIDs_
 
 	}
 
-	static constexpr coordinate_type coordinates_local_to_global(
-			std::tuple<id_type, coordinate_type> const &t)
+	static constexpr coordinate_tuple coordinates_local_to_global(
+			std::tuple<id_type, coordinate_tuple> const &t)
 	{
 		return coordinate(std::get<0>(t)) + std::get<1>(t);
 	}
@@ -601,7 +601,7 @@ struct MeshIDs_
 		return m_vertics_num_[IFORM][id];
 	}
 	template<size_t IFORM>
-	static int get_adjoints(id_type s, coordinate_type * res = nullptr)
+	static int get_adjoints(id_type s, coordinate_tuple * res = nullptr)
 	{
 		int id = node_id(s);
 		if (res != nullptr)
@@ -979,7 +979,7 @@ struct MeshIDs_
 //	 * @param node_id id of cell
 //	 */
 //	template<typename TRes>
-//	static void cut_cell(coordinate_type const & x0,coordinate_type const & x1,
+//	static void cut_cell(coordinate_tuple const & x0,coordinate_tuple const & x1,
 //	TRes *res,id_type node_id=7 );
 //
 //	/**
@@ -994,8 +994,8 @@ struct MeshIDs_
 //	 * @param node_id id of cell
 //	 */
 //	template<typename TRes>
-//	static void cut_cell(coordinate_type const & x0,coordinate_type const & x1,
-//	coordinate_type const & x2,TRes*res,id_type node_id=7 );
+//	static void cut_cell(coordinate_tuple const & x0,coordinate_tuple const & x1,
+//	coordinate_tuple const & x2,TRes*res,id_type node_id=7 );
 
 }
 ;
@@ -1027,7 +1027,7 @@ template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs
 template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::m_id_to_iform_[];
 template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::m_sub_index_to_id_[4][3];
 template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::m_id_to_num_of_ele_in_cell_[];
-template<size_t N, size_t M> constexpr typename MeshIDs_<N,M >::coordinate_type MeshIDs_<N,M >::m_id_to_coordinates_shift_[ ];
+template<size_t N, size_t M> constexpr typename MeshIDs_<N,M >::coordinate_tuple MeshIDs_<N,M >::m_id_to_coordinates_shift_[ ];
 template<size_t N, size_t M> constexpr int MeshIDs_<N, M>::m_vertics_num_[4][8];
 template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type
 MeshIDs_<N, M>::m_vertics_matrix_[4/* to iform*/][8/* node id*/][MAX_NUM_OF_CELL/*id shift*/];
@@ -1036,13 +1036,13 @@ typedef MeshIDs_<3, 4> MeshIDs;
 //
 //template<size_t N, size_t M>
 //template<typename TRes>
-//void MeshIDs_<N, M>::cut_cell(coordinate_type const & pV0,
-//		coordinate_type const & pV1, TRes*res, id_type node_id)
+//void MeshIDs_<N, M>::cut_cell(coordinate_tuple const & pV0,
+//		coordinate_tuple const & pV1, TRes*res, id_type node_id)
 //{
 //
-//	coordinate_type V0 = pV0 - m_id_to_coordinates_shift_[node_id];
+//	coordinate_tuple V0 = pV0 - m_id_to_coordinates_shift_[node_id];
 //
-//	coordinate_type V1 = pV1 - m_id_to_coordinates_shift_[node_id];
+//	coordinate_tuple V1 = pV1 - m_id_to_coordinates_shift_[node_id];
 //
 //	Vec3 u = V1 - V0;
 //
@@ -1079,7 +1079,7 @@ typedef MeshIDs_<3, 4> MeshIDs;
 //			{
 //				continue;
 //			}
-//			coordinate_type y;
+//			coordinate_tuple y;
 //
 //			y = V0 + t * u;
 //
@@ -1093,14 +1093,14 @@ typedef MeshIDs_<3, 4> MeshIDs;
 //}
 //
 //template<size_t N, size_t M> template<typename TRes>
-//void MeshIDs_<N, M>::cut_cell(coordinate_type const & pV0,
-//		coordinate_type const & pV1, coordinate_type const & pV2, TRes*res,
+//void MeshIDs_<N, M>::cut_cell(coordinate_tuple const & pV0,
+//		coordinate_tuple const & pV1, coordinate_tuple const & pV2, TRes*res,
 //		id_type node_id)
 //{
 //
-//	coordinate_type V0 = pV0 - m_id_to_coordinates_shift_[node_id];
-//	coordinate_type V1 = pV1 - m_id_to_coordinates_shift_[node_id];
-//	coordinate_type V2 = pV2 - m_id_to_coordinates_shift_[node_id];
+//	coordinate_tuple V0 = pV0 - m_id_to_coordinates_shift_[node_id];
+//	coordinate_tuple V1 = pV1 - m_id_to_coordinates_shift_[node_id];
+//	coordinate_tuple V2 = pV2 - m_id_to_coordinates_shift_[node_id];
 //
 //	id_type edge_id[3] = { 1, 2, 4 };
 //
@@ -1144,7 +1144,7 @@ typedef MeshIDs_<3, 4> MeshIDs;
 //			for (Real y = yb; y < ye; y += (_R * 2))
 //			{
 /////     Theorem:http://geomalgorithms.com/a06-_intersect-2.html
-/////				coordinate_type P0, P1;
+/////				coordinate_tuple P0, P1;
 /////				P0[xaxe] = x;
 /////				P0[yaxe] = y;
 /////				P0[zaxe] = 0;

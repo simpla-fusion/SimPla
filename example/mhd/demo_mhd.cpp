@@ -157,13 +157,13 @@ int main(int argc, char **argv)
 
 		geqdsk.load(gfile);
 
-		typename mesh_type::coordinate_type src_min;
-		typename mesh_type::coordinate_type src_max;
+		typename mesh_type::coordinate_tuple src_min;
+		typename mesh_type::coordinate_tuple src_max;
 
 		std::tie(src_min, src_max) = geqdsk.get_extents();
 
-		typename mesh_type::coordinate_type min;
-		typename mesh_type::coordinate_type max;
+		typename mesh_type::coordinate_tuple min;
+		typename mesh_type::coordinate_tuple max;
 
 		std::tie(min, max) = model.get_extents();
 

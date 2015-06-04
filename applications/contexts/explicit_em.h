@@ -283,9 +283,9 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 		geqdsk.save("/Geqdsk/");
 
-		typename mesh_type::coordinate_type src_min;
-		typename mesh_type::coordinate_type src_max;
-		typename mesh_type::coordinate_type min1, min2, max1, max2;
+		typename mesh_type::coordinate_tuple src_min;
+		typename mesh_type::coordinate_tuple src_max;
+		typename mesh_type::coordinate_tuple min1, min2, max1, max2;
 
 		std::tie(src_min, src_max) = geqdsk.extents();
 

@@ -24,7 +24,7 @@ using namespace simpla;
 typedef Manifold<CartesianCoordinate<RectMesh, CARTESIAN_ZAXIS>,
 		FiniteDiffMehtod, InterpolatorLinear> TManifold;
 
-typedef nTuple<3, Real> coordinate_type;
+typedef nTuple<3, Real> coordinate_tuple;
 
 class TestFETL: public testing::TestWithParam<
 		std::tuple<coordiantes_type, coordiantes_type,
@@ -69,7 +69,7 @@ public:
 	typedef Real value_type;
 	typedef typename manifold_type::scalar_type scalar_type;
 	typedef typename manifold_type::iterator iterator;
-	typedef typename manifold_type::coordinate_type coordinate_type;
+	typedef typename manifold_type::coordinate_tuple coordinate_tuple;
 
 	manifold_type manifold;
 

@@ -34,7 +34,7 @@ public:
 
 	typedef typename mesh_type::iterator iterator;
 
-	typedef typename mesh_type::coordinate_type coordinate_type;
+	typedef typename mesh_type::coordinate_tuple coordinate_tuple;
 
 	static const unsigned int IForm = TM::iform;
 
@@ -171,9 +171,9 @@ public:
 	{
 		return f_.get(s);
 	}
-	inline field_value_type operator()(coordinate_type const &x) const
+	inline field_value_type operator()(coordinate_tuple const &x) const
 	{
-//		coordinate_type pcoords;
+//		coordinate_tuple pcoords;
 //
 //		iterator idx = mesh.SearchCell(cell_idx_, x, &(pcoords[0]));
 //
@@ -194,7 +194,7 @@ public:
 
 	}
 
-	inline field_value_type const & mean(coordinate_type const &) const
+	inline field_value_type const & mean(coordinate_tuple const &) const
 	{
 		return mean_;
 	}
@@ -216,7 +216,7 @@ public:
 
 	typedef typename mesh_type::iterator iterator;
 
-	typedef typename mesh_type::coordinate_type coordinate_type;
+	typedef typename mesh_type::coordinate_tuple coordinate_tuple;
 
 	static const unsigned int IForm = TM::iform;
 
@@ -349,9 +349,9 @@ public:
 	}
 
 	template<typename TV>
-	inline void Collect(TV const &v, coordinate_type const &x)
+	inline void Collect(TV const &v, coordinate_tuple const &x)
 	{
-//		coordinate_type pcoords;
+//		coordinate_tuple pcoords;
 //
 //		iterator idx = mesh.SearchCell(cell_idx_, x, &pcoords[0]);
 //

@@ -30,16 +30,16 @@ USE_CASE(general_field_op)
 	typedef CartesianCoordinate<RectMesh> mesh_type;
 //	typedef SimpleMesh mesh_type;
 
-	typedef typename mesh_type::coordinate_type coordinate_type;
+	typedef typename mesh_type::coordinate_tuple coordinate_tuple;
 	typedef typename mesh_type::index_tuple index_tuple;
 
 	index_tuple dims =
 	{ 16, 16, 16 };
 	index_tuple ghost_width =
 	{ 2, 2, 0 };
-	coordinate_type xmin =
+	coordinate_tuple xmin =
 	{ 0, 0, 0 };
-	coordinate_type xmax =
+	coordinate_tuple xmax =
 	{ 1, 1, 1 };
 	auto mesh = make_mesh<mesh_type>();
 	mesh->dimensions(dims);

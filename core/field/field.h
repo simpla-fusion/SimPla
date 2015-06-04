@@ -31,7 +31,7 @@ namespace simpla
  *  - @ref field  is function, \f$ y=f(x)\f$ , on the
  *     @ref configuration_space, where \f$x\in D\f$ is
  *       coordinates defined in @ref domain \f$D\f$, and  \f$ y \f$
- *       is a scalar/vector/tensor.     f(coordinate_type x) =>  field value(scalar/vector/tensor) at the coordinates x
+ *       is a scalar/vector/tensor.     f(coordinate_tuple x) =>  field value(scalar/vector/tensor) at the coordinates x
  *
  *  - @ref field is an associate container, i.e.'unordered_map<id_type,value_type>'
  *     f[id_type i] => value at the discrete point/edge/face/volume i
@@ -41,7 +41,7 @@ namespace simpla
  * ## Member types
  *  Member type	 				    | Semantics
  *  --------------------------------|--------------
- *  coordinate_type				| Datatype of coordinates
+ *  coordinate_tuple				| Datatype of coordinates
  *  index_type						| Datatype of of grid points index
  *  value_type 					    | Datatype of value
  *  domain_type					    | Domain

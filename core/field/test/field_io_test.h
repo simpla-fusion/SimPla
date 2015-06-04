@@ -27,7 +27,7 @@ public:
 	typedef typename TParam::mesh_type mesh_type;
 	typedef typename TParam::value_type value_type;
 	typedef typename mesh_type::iterator iterator;
-	typedef typename mesh_type::coordinate_type coordinate_type;
+	typedef typename mesh_type::coordinate_tuple coordinate_tuple;
 
 	mesh_type mesh;
 

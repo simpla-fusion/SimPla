@@ -42,7 +42,7 @@ public:
 
 	typedef Real scalar_type;
 
-	typedef typename topology_type::coordinate_type coordinate_type;
+	typedef typename topology_type::coordinate_tuple coordinate_tuple;
 	typedef typename topology_type::id_type id_type;
 	typedef typename topology_type::index_type index_type;
 	typedef typename topology_type::iterator iterator;
@@ -55,15 +55,15 @@ public:
 	CylindricalCoordinate() :
 			topology_type()
 	{
-		xmin_ = coordinate_type( { 1, 0, 0 });
+		xmin_ = coordinate_tuple( { 1, 0, 0 });
 
-		xmax_ = coordinate_type( { 2, 1, TWOPI });
+		xmax_ = coordinate_tuple( { 2, 1, TWOPI });
 
-		inv_length_ = coordinate_type( { 1.0, 1.0, 1.0 / TWOPI });
+		inv_length_ = coordinate_tuple( { 1.0, 1.0, 1.0 / TWOPI });
 
-		length_ = coordinate_type( { 2, 1, TWOPI });
+		length_ = coordinate_tuple( { 2, 1, TWOPI });
 
-		shift_ = coordinate_type( { 0, 0, 0 });
+		shift_ = coordinate_tuple( { 0, 0, 0 });
 	}
 	template<typename ... Args>
 	CylindricalCoordinate(Args && ... args) :
@@ -118,15 +118,15 @@ public:
 		return dt_;
 	}
 
-	coordinate_type xmin_ /* = { 1, 0, 0 }*/;
+	coordinate_tuple xmin_ /* = { 1, 0, 0 }*/;
 
-	coordinate_type xmax_ /*= { 2, 1, TWOPI }*/;
+	coordinate_tuple xmax_ /*= { 2, 1, TWOPI }*/;
 
-	coordinate_type inv_length_/* = { 1.0, 1.0, 1.0 / TWOPI }*/;
+	coordinate_tuple inv_length_/* = { 1.0, 1.0, 1.0 / TWOPI }*/;
 
-	coordinate_type length_/* = { 2, 1, TWOPI }*/;
+	coordinate_tuple length_/* = { 2, 1, TWOPI }*/;
 
-	coordinate_type shift_/* = { 0, 0, 0 }*/;
+	coordinate_tuple shift_/* = { 0, 0, 0 }*/;
 
 	template<typename TDict>
 	bool load(TDict const & dict)
@@ -227,21 +227,21 @@ public:
 
 	}
 
-	void extents(coordinate_type const & pmin, coordinate_type const & pmax)
+	void extents(coordinate_tuple const & pmin, coordinate_tuple const & pmax)
 	{
 
 		xmin_ = pmin;
 		xmax_ = pmax;
 	}
-	inline std::pair<coordinate_type, coordinate_type> extents() const
+	inline std::pair<coordinate_tuple, coordinate_tuple> extents() const
 	{
 		return std::move(std::make_pair(xmin_, xmax_));
 	}
 
-	inline coordinate_type dx(index_type s = 0UL) const
+	inline coordinate_tuple dx(index_type s = 0UL) const
 	{
 
-		coordinate_type res;
+		coordinate_tuple res;
 
 		auto d = topology_type::dx();
 
@@ -256,16 +256,16 @@ public:
 	//!@{
 
 	template<typename ... Args>
-	inline coordinate_type coordinates(Args && ... args) const
+	inline coordinate_tuple coordinates(Args && ... args) const
 	{
 		return CoordinateFromTopology(
 				topology_type::coordinates(std::forward<Args >(args)...));
 	}
 
-	coordinate_type CoordinateFromTopology(coordinate_type const &x) const
+	coordinate_tuple CoordinateFromTopology(coordinate_tuple const &x) const
 	{
 
-		return coordinate_type( {
+		return coordinate_tuple( {
 
 		x[0] * length_[0] + shift_[0],
 
@@ -276,9 +276,9 @@ public:
 		});
 
 	}
-	coordinate_type CoordinateToTopology(coordinate_type const &x) const
+	coordinate_tuple CoordinateToTopology(coordinate_tuple const &x) const
 	{
-		return coordinate_type( {
+		return coordinate_tuple( {
 
 		(x[0] - shift_[0]) * inv_length_[0],
 
@@ -290,23 +290,23 @@ public:
 
 	}
 	template<typename ... Args>
-	inline coordinate_type coordinates_local_to_global(Args && ... args) const
+	inline coordinate_tuple coordinates_local_to_global(Args && ... args) const
 	{
 		return CoordinateFromTopology(
 				topology_type::coordinates_local_to_global(
 						std::forward<Args >(args)...));
 	}
 
-	std::tuple<index_type, coordinate_type> coordinates_global_to_local(
-			coordinate_type x,
+	std::tuple<index_type, coordinate_tuple> coordinates_global_to_local(
+			coordinate_tuple x,
 			typename topology_type::index_type shift = 0UL) const
 	{
 		return std::move(
 				topology_type::coordinates_global_to_local(
 						std::move(CoordinateToTopology(x)), shift));
 	}
-	std::tuple<index_type, coordinate_type> coordinates_global_to_local_NGP(
-			coordinate_type x, index_type shift = 0UL) const
+	std::tuple<index_type, coordinate_tuple> coordinates_global_to_local_NGP(
+			coordinate_tuple x, index_type shift = 0UL) const
 	{
 		return std::move(
 				topology_type::coordinates_global_to_local_NGP(
@@ -317,9 +317,9 @@ public:
 	//! \f$\left(r,z,\phi\right)\Longleftrightarrow\left(x,y,z\right)\f$
 	//! @{
 
-	static constexpr coordinate_type MapToCartesian(coordinate_type const &y)
+	static constexpr coordinate_tuple MapToCartesian(coordinate_tuple const &y)
 	{
-		coordinate_type x;
+		coordinate_tuple x;
 
 		/**
 		 *  @note
@@ -333,7 +333,7 @@ public:
 		 *
 		 */
 
-		return std::move(coordinate_type( {
+		return std::move(coordinate_tuple( {
 
 		y[RAxis] * std::cos(y[PhiAxis]),
 
@@ -342,9 +342,9 @@ public:
 		y[ZAxis] }));
 	}
 
-	static inline coordinate_type MapFromCartesian(coordinate_type const &x)
+	static inline coordinate_tuple MapFromCartesian(coordinate_tuple const &x)
 	{
-		coordinate_type y;
+		coordinate_tuple y;
 		/**
 		 *  @note
 		 *  coordinates transforam
@@ -365,8 +365,8 @@ public:
 	}
 
 	template<typename TV>
-	std::tuple<coordinate_type, TV> push_forward(
-			std::tuple<coordinate_type, TV> const & Z) const
+	std::tuple<coordinate_tuple, TV> push_forward(
+			std::tuple<coordinate_tuple, TV> const & Z) const
 	{
 		return std::move(
 				std::make_tuple(MapFromCartesian(std::get<0>(Z)),
@@ -374,8 +374,8 @@ public:
 	}
 
 	template<typename TV>
-	std::tuple<coordinate_type, TV> pull_back(
-			std::tuple<coordinate_type, TV> const & R) const
+	std::tuple<coordinate_tuple, TV> pull_back(
+			std::tuple<coordinate_tuple, TV> const & R) const
 	{
 		return std::move(
 				std::make_tuple(MapToCartesian(std::get<0>(R)), std::get<1>(R)));
@@ -405,10 +405,10 @@ public:
 	 *
 	 */
 	template<typename TV>
-	std::tuple<coordinate_type, nTuple<TV, ndims> > push_forward(
-			std::tuple<coordinate_type, nTuple<TV, ndims> > const & Z) const
+	std::tuple<coordinate_tuple, nTuple<TV, ndims> > push_forward(
+			std::tuple<coordinate_tuple, nTuple<TV, ndims> > const & Z) const
 	{
-		coordinate_type r = MapFromCartesian(std::get<0>(Z));
+		coordinate_tuple r = MapFromCartesian(std::get<0>(Z));
 
 		auto const & v = std::get<1>(Z);
 
@@ -436,8 +436,8 @@ public:
 	 *
 	 */
 	template<typename TV>
-	std::tuple<coordinate_type, nTuple<TV, ndims> > pull_back(
-			std::tuple<coordinate_type, nTuple<TV, ndims> > const & R) const
+	std::tuple<coordinate_tuple, nTuple<TV, ndims> > pull_back(
+			std::tuple<coordinate_tuple, nTuple<TV, ndims> > const & R) const
 	{
 		auto const & r = std::get<0>(R);
 		auto const & u = std::get<1>(R);
@@ -454,8 +454,8 @@ public:
 	}
 //! @}
 
-//	auto select(size_t iform, coordinate_type const & xmin,
-//			coordinate_type const & xmax) const
+//	auto select(size_t iform, coordinate_tuple const & xmin,
+//			coordinate_tuple const & xmax) const
 //					DECL_RET_TYPE((this->topology_type::select(this->topology_type::select(iform), this->CoordinateToTopology(xmin),this->CoordinateToTopology(xmax))))
 //
 //	template<typename ...Args>

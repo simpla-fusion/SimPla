@@ -24,18 +24,11 @@ void pixel_intersects_polygon(TM const & mesh, int node_id,
 {
 	for (auto it = begin; it != end; ++it)
 	{
-		geometry::model::template Box<Real> box;
 
-		envelope(*it, box);
-
-		for (auto s : mesh.range(box))
+		for (auto s : mesh.range(return_envelope(*it)))
 		{
-			auto b = mesh.pixel(s);
 
-			geometry::model::template Box<Real> p_box(std::get<0>(b),
-					std::get<1>(b));
-
-			if (intersects(p_box, *it))
+			if (intersects(mesh.pixel(s), *it))
 			{
 				res->insert(std::make_pair(s, it));
 			}
@@ -55,7 +48,7 @@ void pixel_intersects_polygon(TM const & mesh, int node_id,
 //			&& ((inner_product(x1 - x0, x1 - x0))
 //					> epsilon * inner_product(mesh.dx(), mesh.dx())))
 //	{
-//		typename TM::coordinate_type xc;
+//		typename TM::coordinate_tuple xc;
 //
 //		xc = (x1 + x0) * 0.5;
 //
@@ -81,18 +74,18 @@ void pixel_intersects_polygon(TM const & mesh, int node_id,
 //		std::set<typename TM::id_type>* res)
 //{
 //	typedef TM mesh_type;
-//	typedef typename mesh_type::coordinate_type coordinate_type;
+//	typedef typename mesh_type::coordinate_tuple coordinate_tuple;
 //	typedef typename mesh_type::id_type id_type;
 //
-//	coordinate_type dims0;
+//	coordinate_tuple dims0;
 //	dims0 = (x1 - x0) / mesh.dx();
-//	coordinate_type dims1;
+//	coordinate_tuple dims1;
 //	dims1 = (x2 - x0) / mesh.dx();
 //
 //	auto n0 = std::max(std::max(dims0[0], dims0[1]), dims0[2]);
 //	auto n1 = std::max(std::max(dims1[0], dims1[1]), dims1[2]);
-//	coordinate_type dx0 = (x1 - x0) / n0;
-//	coordinate_type dx1 = (x2 - x0) / n1;
+//	coordinate_tuple dx0 = (x1 - x0) / n0;
+//	coordinate_tuple dx1 = (x2 - x0) / n1;
 //
 //	for (size_t i = 0; i <= n0; ++i)
 //		for (size_t j = 0; j <= n1; ++j)
@@ -142,17 +135,17 @@ void pixel_intersects_polygon(TM const & mesh, int node_id,
 //		TI const &i0, std::multimap<typename TM::id_type, TI>* res)
 //{
 //	typedef TM mesh_type;
-//	typedef typename mesh_type::coordinate_type coordinate_type;
+//	typedef typename mesh_type::coordinate_tuple coordinate_tuple;
 //	typedef typename mesh_type::id_type id_type;
 //
 //	TI it = i0;
-//	coordinate_type x0 = *it;
+//	coordinate_tuple x0 = *it;
 //	++it;
-//	coordinate_type x1 = *it;
+//	coordinate_tuple x1 = *it;
 //	++it;
-//	coordinate_type x2 = *it;
+//	coordinate_tuple x2 = *it;
 //
-//	coordinate_type xmin, xmax;
+//	coordinate_tuple xmin, xmax;
 //
 //	id_type s0 = std::get<0>(mesh.coordinates_global_to_local(x0, node_id));
 //
@@ -191,7 +184,7 @@ void pixel_intersects_polygon(TM const & mesh, int node_id,
 //							+ (mesh_type::_DA << (mesh_type::ID_DIGITS * IZ))
 //									* ((i % 2 == 0) ? 1 : -1);
 //
-//					coordinate_type xa = mesh.coordinates(face_id
+//					coordinate_tuple xa = mesh.coordinates(face_id
 //
 //					- (mesh_type::_DA << (mesh_type::ID_DIGITS * IX))
 //
@@ -211,13 +204,13 @@ void pixel_intersects_polygon(TM const & mesh, int node_id,
 //		TI const &i0, std::multimap<typename TM::id_type, TI>* res)
 //{
 //	typedef TM mesh_type;
-//	typedef typename mesh_type::coordinate_type coordinate_type;
+//	typedef typename mesh_type::coordinate_tuple coordinate_tuple;
 //	typedef typename mesh_type::id_type id_type;
 //
 //	TI it = i0;
-//	coordinate_type x0 = *it;
+//	coordinate_tuple x0 = *it;
 //	++it;
-//	coordinate_type x1 = *it;
+//	coordinate_tuple x1 = *it;
 //
 //	id_type s0 = std::get<0>(mesh.coordinates_global_to_local(x0, node_id));
 //
@@ -250,7 +243,7 @@ void pixel_intersects_polygon(TM const & mesh, int node_id,
 //		TX const &x0, TX const & x1, std::set<typename TM::id_type>* res)
 //{
 //	typedef TM mesh_type;
-//	typedef typename mesh_type::coordinate_type coordinate_type;
+//	typedef typename mesh_type::coordinate_tuple coordinate_tuple;
 //	typedef typename mesh_type::id_type id_type;
 //
 //	int m = 0;

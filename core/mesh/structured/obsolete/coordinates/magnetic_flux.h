@@ -32,7 +32,7 @@ struct MagneticFluxGeometry
 	static constexpr  unsigned int  NDIMS = topology_type::NDIMS;
 
 	typedef typename topology_type::index_type index_type;
-	typedef typename topology_type::coordinate_type coordinate_type;
+	typedef typename topology_type::coordinate_tuple coordinate_tuple;
 	typedef typename topology_type::iterator iterator;
 
 	typedef nTuple<NDIMS, Real> vector_type;
@@ -79,17 +79,17 @@ struct MagneticFluxGeometry
 		return os;
 	}
 
-	coordinate_type xmin_ = { 0, 0, 0 };
+	coordinate_tuple xmin_ = { 0, 0, 0 };
 
-	coordinate_type xmax_ = { 1, 1, 1 };
+	coordinate_tuple xmax_ = { 1, 1, 1 };
 
-	coordinate_type inv_L = { 1.0, 1.0, 1.0 };
+	coordinate_tuple inv_L = { 1.0, 1.0, 1.0 };
 
-	coordinate_type scale_ = { 1.0, 1.0, 1.0 };
+	coordinate_tuple scale_ = { 1.0, 1.0, 1.0 };
 
-	coordinate_type inv_scale_ = { 1.0, 1.0, 1.0 };
+	coordinate_tuple inv_scale_ = { 1.0, 1.0, 1.0 };
 
-	coordinate_type shift_ = { 0, 0, 0 };
+	coordinate_tuple shift_ = { 0, 0, 0 };
 
 	static constexpr nTuple<NDIMS, Real> normal_[NDIMS] = {
 
@@ -127,9 +127,9 @@ struct MagneticFluxGeometry
 
 	nTuple<NDIMS, Real> dx_;
 
-	DenseContainer<index_type, coordinate_type> mesh_points_;
+	DenseContainer<index_type, coordinate_tuple> mesh_points_;
 
-	DenseContainer<index_type, coordinate_type> volumes_[4];
+	DenseContainer<index_type, coordinate_tuple> volumes_[4];
 
 	nTuple<NDIMS, Real> const & get_dx() const
 	{
@@ -181,7 +181,7 @@ struct MagneticFluxGeometry
 
 	}
 
-	inline std::pair<coordinate_type, coordinate_type> get_extents() const
+	inline std::pair<coordinate_tuple, coordinate_tuple> get_extents() const
 	{
 		return std::move(std::make_pair(xmin_, xmax_));
 	}
@@ -208,10 +208,10 @@ struct MagneticFluxGeometry
 		return 1.0 / volume(s);
 	}
 
-	coordinate_type coordinates_local_to_global(coordinate_type const &x) const
+	coordinate_tuple coordinates_local_to_global(coordinate_tuple const &x) const
 	{
 
-		return coordinate_type( {
+		return coordinate_tuple( {
 
 		x[0] * inv_scale_[0] + shift_[0],
 
@@ -221,9 +221,9 @@ struct MagneticFluxGeometry
 
 		});
 	}
-	coordinate_type coordinates_global_to_local(coordinate_type const &x) const
+	coordinate_tuple coordinates_global_to_local(coordinate_tuple const &x) const
 	{
-		return coordinate_type( {
+		return coordinate_tuple( {
 
 		(x[0] - shift_[0]) * scale_[0],
 

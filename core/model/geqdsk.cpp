@@ -120,7 +120,7 @@ void GEqdsk::load(std::string const &fname)
 
 	for (size_t s = 0; s < nbbbs; ++s)
 	{
-		coordinate_type x;
+		coordinate_tuple x;
 		x[RAxis] = rzbbb[s][0];
 		x[ZAxis] = rzbbb[s][1];
 		x[PhiAxis] = 0;
@@ -130,7 +130,7 @@ void GEqdsk::load(std::string const &fname)
 
 	for (size_t s = 0; s < limitr; ++s)
 	{
-		coordinate_type x;
+		coordinate_tuple x;
 		x[RAxis] = rzlim[s][0];
 		x[ZAxis] = rzlim[s][1];
 		x[PhiAxis] = 0;
@@ -322,7 +322,7 @@ std::ostream & GEqdsk::print(std::ostream & os)
 	return os;
 }
 
-bool GEqdsk::flux_surface(double psi_j, size_t M, coordinate_type*res,
+bool GEqdsk::flux_surface(double psi_j, size_t M, coordinate_tuple*res,
 		size_t ToPhiAxis, double resolution)
 {
 	bool success = true;
@@ -382,8 +382,8 @@ bool GEqdsk::flux_surface(double psi_j, size_t M, coordinate_type*res,
 
 }
 
-bool GEqdsk::map_to_flux_coordiantes(std::vector<coordinate_type> const&surface,
-		std::vector<coordinate_type> *res,
+bool GEqdsk::map_to_flux_coordiantes(std::vector<coordinate_tuple> const&surface,
+		std::vector<coordinate_tuple> *res,
 		std::function<double(double, double)> const & h, size_t PhiAxis)
 {
 	bool success = false;

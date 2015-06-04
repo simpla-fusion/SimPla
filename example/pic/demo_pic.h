@@ -27,12 +27,12 @@ namespace simpla
 struct PICDemo
 {
 	typedef PICDemo this_type;
-	typedef Vec3 coordinate_type;
+	typedef Vec3 coordinate_tuple;
 	typedef Vec3 vector_type;
 	typedef Real scalar_type;
 
 	SP_DEFINE_STRUCT(Point_s,
-			coordinate_type ,x,
+			coordinate_tuple ,x,
 			Vec3, v,
 			Real, f,
 			Real, w)
@@ -101,12 +101,12 @@ public:
 
 	}
 
-	static inline Point_s push_forward(coordinate_type const & x,
+	static inline Point_s push_forward(coordinate_tuple const & x,
 			Vec3 const &v, Real f = 1.0)
 	{
 		return std::move(Point_s({ x, v, f }));
 	}
-	static inline void push_forward(coordinate_type const & x, Vec3 const &v,
+	static inline void push_forward(coordinate_tuple const & x, Vec3 const &v,
 			Real f, Point_s * p)
 	{
 		p->x = x;

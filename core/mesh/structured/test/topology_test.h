@@ -113,13 +113,13 @@ TEST(TestTopologyStatic, coordinates)
 //	auto half_dx = topology.dx() / 2;
 //
 //	EXPECT_EQ(xmin, t::id_to_coordinates(*begin(range0)));
-//	EXPECT_EQ(xmin + coordinate_type( { half_dx[0], 0, 0 }),
+//	EXPECT_EQ(xmin + coordinate_tuple( { half_dx[0], 0, 0 }),
 //			t::id_to_coordinates(*begin(range1)));
-//	EXPECT_EQ(xmin + coordinate_type( { 0, half_dx[1], half_dx[2] }),
+//	EXPECT_EQ(xmin + coordinate_tuple( { 0, half_dx[1], half_dx[2] }),
 //			t::id_to_coordinates(*begin(range2)));
 //	EXPECT_EQ(xmin + half_dx, t::id_to_coordinates(*begin(range3)));
 	typedef TopologyType t;
-	typename t::coordinate_type x =
+	typename t::coordinate_tuple x =
 	{ 0.21235, 1.2343, 0.1 };
 
 	EXPECT_EQ(x,
@@ -169,7 +169,7 @@ public:
 	typedef typename topology_type::index_type index_type;
 	typedef typename topology_type::index_tuple index_tuple;
 
-	typedef typename topology_type::coordinate_type coordinate_type;
+	typedef typename topology_type::coordinate_tuple coordinate_tuple;
 
 	size_t NDIMS = topology_type::ndims;
 
@@ -181,7 +181,7 @@ public:
 
 //TEST_P(TestTopology, ttest)
 //{
-//	coordinate_type x0 = { 0, 0, 0 }, x1 = { 1, 1, 1 };
+//	coordinate_tuple x0 = { 0, 0, 0 }, x1 = { 1, 1, 1 };
 //
 //	CHECK(mesh.coordinates_to_index(x0));
 //	CHECK(mesh.coordinates_to_index(x1));
@@ -413,7 +413,7 @@ TEST_P(TestTopology, foreach)
 ////	}
 //
 ////	auto extents = t::extents();
-////	coordinate_type x = 0.21235 * (std::get<1>(extents) - std::get<0>(extents))
+////	coordinate_tuple x = 0.21235 * (std::get<1>(extents) - std::get<0>(extents))
 ////			+ std::get<0>(extents);
 ////	auto idx = t::coordinates_global_to_local(x,
 ////			t::get_first_node_shift(VERTEX));

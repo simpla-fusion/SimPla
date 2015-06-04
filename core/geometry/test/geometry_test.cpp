@@ -48,11 +48,11 @@ protected:
 		}
 
 		points.emplace_back(
-				coordinate_type(
+				coordinate_tuple(
 						{ 0.2 * xmax[0], 0.2 * xmax[1], 0.2 * xmin[2] }));
 
 		points.emplace_back(
-				coordinate_type(
+				coordinate_tuple(
 						{ 0.8 * xmax[0], 0.8 * xmax[1], 0.8 * xmax[2] }));
 
 		LOGGER.set_MESSAGE_visable_level(12);
@@ -63,7 +63,7 @@ public:
 	typedef Manifold<CartesianCoordinate<RectMesh>, FiniteDiffMethod,
 			InterpolatorLinear> manifold_type;
 	typedef Real value_type;
-	typedef typename manifold_type::coordinate_type coordinate_type;
+	typedef typename manifold_type::coordinate_tuple coordinate_tuple;
 	typedef Model<manifold_type> model_type;
 
 	static constexpr size_t iform = TInt::value;
@@ -79,7 +79,7 @@ public:
 
 	nTuple<Real, ndims> dh;
 
-	std::vector<coordinate_type> points;
+	std::vector<coordinate_tuple> points;
 
 };
 TYPED_TEST_CASE_P(TestModel);
@@ -90,7 +90,7 @@ TYPED_TEST_P(TestModel,SelectByNGP){
 
 	typedef typename TestFixture::manifold_type manifold_type;
 
-	typename TestFixture::coordinate_type min,max,x;
+	typename TestFixture::coordinate_tuple min,max,x;
 
 	std::tie(min,max)=model.extents();
 
@@ -137,7 +137,7 @@ TYPED_TEST_P(TestModel,SelectByRectangle ){
 
 	auto & model= TestFixture::model;
 
-	typename TestFixture::coordinate_type v0, v1, v2, v3;
+	typename TestFixture::coordinate_tuple v0, v1, v2, v3;
 
 	for (int i = 0; i < TestFixture::ndims; ++i)
 	{
@@ -218,7 +218,7 @@ TYPED_TEST_P(TestModel,SelectByPolylines ){
 
 	f.clear();
 	f=0;
-	typename TestFixture::coordinate_type v0, v1, v2, v3;
+	typename TestFixture::coordinate_tuple v0, v1, v2, v3;
 	for (int i = 0; i < TestFixture::ndims; ++i)
 	{
 		v0[i] = TestFixture::points[0][i] + TestFixture::dh[i];
@@ -269,7 +269,7 @@ TYPED_TEST_P(TestModel,SelectByMaterial ){
 	}
 //	LOGGER << SAVE(f);
 
-	typename TestFixture::coordinate_type v0, v1, v2, v3;
+	typename TestFixture::coordinate_tuple v0, v1, v2, v3;
 	for (int i = 0; i < TestFixture::ndims; ++i)
 	{
 		v0[i] = TestFixture::points[0][i] + TestFixture::dh[i];
@@ -297,7 +297,7 @@ TYPED_TEST_P(TestModel,SelectByMaterial ){
 
 	auto extent = model. extents();
 
-	TestFixture::points.emplace_back(typename TestFixture::coordinate_type(
+	TestFixture::points.emplace_back(typename TestFixture::coordinate_tuple(
 					{	0.3 * extent.second[0], 0.6 * extent.second[1], 0.2 * extent.first[2]}));
 
 	model.Erase( model.SelectByPolylines(vertex_domain, TestFixture::points));

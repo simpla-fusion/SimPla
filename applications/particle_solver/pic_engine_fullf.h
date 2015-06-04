@@ -30,23 +30,23 @@ class PICEngineFullF
 public:
 
 	typedef PICEngineFullF this_type;
-	typedef Vec3 coordinate_type;
+	typedef Vec3 coordinate_tuple;
 	typedef Vec3 vector_type;
 	typedef Real scalar_type;
 
 	struct Point_s
 	{
-		coordinate_type x;
+		coordinate_tuple x;
 		vector_type v;
 		scalar_type f;
 
-		typedef std::tuple<coordinate_type, vector_type, scalar_type> compact_type;
+		typedef std::tuple<coordinate_tuple, vector_type, scalar_type> compact_type;
 
 		static DataType create_datadesc()
 		{
 			auto d_type = DataType::create<Point_s>();
 
-			d_type.push_back<coordinate_type>("x", offsetof(Point_s, x));
+			d_type.push_back<coordinate_tuple>("x", offsetof(Point_s, x));
 			d_type.push_back<vector_type>("v", offsetof(Point_s, v));
 			d_type.push_back<scalar_type>("f", offsetof(Point_s, f));
 
@@ -129,12 +129,12 @@ public:
 		rho->scatter_cartesian(std::make_tuple(p.x, 1.0), p.f * q_);
 	}
 
-	static inline Point_s push_forward(coordinate_type const & x, vector_type const &v, scalar_type f)
+	static inline Point_s push_forward(coordinate_tuple const & x, vector_type const &v, scalar_type f)
 	{
 		return std::move(Point_s( { x, v, f }));
 	}
 
-	static inline std::tuple<coordinate_type, vector_type, scalar_type> pull_back(Point_s const & p)
+	static inline std::tuple<coordinate_tuple, vector_type, scalar_type> pull_back(Point_s const & p)
 	{
 		return ((std::make_tuple(p.x, p.v, p.f)));
 	}

@@ -43,9 +43,9 @@ struct OcForest
 
 	typedef range range_type;
 
-	typedef nTuple<NDIMS, Real> coordinate_type;
+	typedef nTuple<NDIMS, Real> coordinate_tuple;
 
-	typedef std::map<iterator, nTuple<3, coordinate_type>> surface_type;
+	typedef std::map<iterator, nTuple<3, coordinate_tuple>> surface_type;
 
 	//!< signed long is 63bit, unsigned long is 64 bit, add a sign bit
 	static constexpr   unsigned int   FULL_DIGITS = std::numeric_limits<index_type>::digits;
@@ -1480,7 +1480,7 @@ struct OcForest
 		return select(iform,domain.first,domain.second);
 	}
 
-	range select(  unsigned int   iform, coordinate_type xmin, coordinate_type xmax)const
+	range select(  unsigned int   iform, coordinate_tuple xmin, coordinate_tuple xmax)const
 	{
 		auto start=coordinates_to_index(&xmin,get_first_node_shift(iform))>>D_FP_POS;
 		auto count=(coordinates_to_index(&xmax,get_first_node_shift(iform))>>D_FP_POS)- start+1;
@@ -1529,12 +1529,12 @@ struct OcForest
 
 	//***************************************************************************************************
 	// Coordinate
-	inline coordinate_type get_coordinates(index_type s) const
+	inline coordinate_tuple get_coordinates(index_type s) const
 	{
 
 		auto d = decompact(s) - (global_start_<<D_FP_POS);
 
-		return coordinate_type(
+		return coordinate_tuple(
 		{
 			static_cast<Real>(d[0] )*R_DX[0]*R_INV_FP_POS ,
 			static_cast<Real>(d[1] )*R_DX[1]*R_INV_FP_POS ,
@@ -1543,11 +1543,11 @@ struct OcForest
 		});
 	}
 
-	coordinate_type coordinates_local_to_global(index_type s, coordinate_type r) const
+	coordinate_tuple coordinates_local_to_global(index_type s, coordinate_tuple r) const
 	{
 		auto d = decompact(s)-(global_start_<<D_FP_POS);
 		Real scale=static_cast<Real>(1UL << (D_FP_POS - HeightOfTree(s)));
-		coordinate_type res;
+		coordinate_tuple res;
 
 		for(int i=0;i<NDIMS;++i)
 		{
@@ -1556,13 +1556,13 @@ struct OcForest
 		return std::move(res);
 	}
 
-	inline index_type CoordinateGlobalToLocaldual(coordinate_type *px, index_type shift = 0UL) const
+	inline index_type CoordinateGlobalToLocaldual(coordinate_tuple *px, index_type shift = 0UL) const
 	{
 
 		return (coordinates_global_to_local(px, dual(shift)));
 	}
 
-	inline nTuple<NDIMS,index_type> coordinates_to_index(coordinate_type *px, index_type shift = 0UL)const
+	inline nTuple<NDIMS,index_type> coordinates_to_index(coordinate_tuple *px, index_type shift = 0UL)const
 	{
 		auto & x = *px;
 
@@ -1608,7 +1608,7 @@ struct OcForest
 		return std::move(idx);
 	}
 
-	inline index_type coordinates_global_to_local(coordinate_type *px, index_type shift = 0UL) const
+	inline index_type coordinates_global_to_local(coordinate_tuple *px, index_type shift = 0UL) const
 	{
 		auto idx= (coordinates_to_index(px, shift));
 

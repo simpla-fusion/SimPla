@@ -36,7 +36,7 @@ public:
 	typedef typename geometry_type::id_type id_type;
 	typedef typename geometry_type::topology_type topology_type;
 	typedef typename geometry_type::index_tuple index_tuple;
-	typedef typename geometry_type::coordinate_type coordinate_type;
+	typedef typename geometry_type::coordinate_tuple coordinate_tuple;
 	static constexpr size_t ndims = geometry_type::ndims;
 
 	typedef CalculusPolicy calculate_policy;

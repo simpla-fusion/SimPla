@@ -45,7 +45,7 @@ namespace simpla
  *
  *  Member type	 				    | Semantics
  *  --------------------------------|--------------
- *  coordinate_type				| datatype of coordinates
+ *  coordinate_tuple				| datatype of coordinates
  *  id_type						    | datatype of grid point's index
  *
  *

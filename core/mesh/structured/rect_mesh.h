@@ -57,9 +57,10 @@ namespace simpla
  */
 //template<typename ... >struct RectMesh;
 template<typename TTopology, typename ...Policies>
-struct RectMesh: public TTopology,
-		public Policies...,
-		std::enable_shared_from_this<RectMesh<TTopology, Policies...>>
+struct RectMesh:	public TTopology,
+					public Policies...,
+					std::enable_shared_from_this<
+							RectMesh<TTopology, Policies...>>
 {
 	typedef TTopology topology_type;
 	typedef typename unpack_typelist<0, Policies...>::type coordinate_system;
@@ -80,9 +81,12 @@ struct RectMesh: public TTopology,
 
 	using typename topology_type::id_tuple;
 
-	using typename topology_type::coordinate_type;
+	using typename topology_type::coordinate_tuple;
 
 	using typename topology_type::range_type;
+
+	typedef geometry::model::Point<Real, ndims, coordinate_system> point_type;
+	typedef geometry::model::Vector<Real, ndims, coordinate_system> vector_type;
 
 //	friend class Domain<this_type, VERTEX> ;
 //	friend class Domain<this_type, EDGE> ;
@@ -123,19 +127,19 @@ private:
 
 	bool m_is_distributed_ = false;
 
-	coordinate_type m_from_topology_orig_ /*= { 0, 0, 0 }*/;
+	coordinate_tuple m_from_topology_orig_ /*= { 0, 0, 0 }*/;
 
-	coordinate_type m_to_toplogy_orig_ /*= { 0, 0, 0 }*/;
+	coordinate_tuple m_to_toplogy_orig_ /*= { 0, 0, 0 }*/;
 
-	coordinate_type m_coords_min_ = { 0, 0, 0 };
+	point_type m_coords_min_ = { 0, 0, 0 };
 
-	coordinate_type m_coords_max_ = { 1, 1, 1 };
+	point_type m_coords_max_ = { 1, 1, 1 };
 
-	coordinate_type m_dx_ /*= { 0, 0, 0 }*/;
+	vector_type m_dx_ /*= { 0, 0, 0 }*/;
 
-	coordinate_type m_to_topology_scale_;
+	coordinate_tuple m_to_topology_scale_;
 
-	coordinate_type m_from_topology_scale_;
+	coordinate_tuple m_from_topology_scale_;
 
 	/**
 	 *
@@ -199,7 +203,8 @@ public:
 	{
 	}
 
-	RectMesh(this_type const & other) :
+	RectMesh(this_type const & other)
+			:
 
 			m_id_min_(other.m_id_min_),
 
@@ -239,7 +244,7 @@ public:
 
 		extents(
 				dict["Box"].template as<
-						std::tuple<coordinate_type, coordinate_type> >());
+						std::tuple<point_type, point_type> >());
 
 		dt(dict["dt"].template as<Real>(1.0));
 	}
@@ -276,7 +281,7 @@ public:
 
 	}
 
-	coordinate_type epsilon() const
+	point_type epsilon() const
 	{
 		return topology_type::EPSILON * m_from_topology_scale_;
 	}
@@ -298,10 +303,10 @@ public:
 		return range_type(m_id_local_min_, m_id_local_max_, nid);
 	}
 
-	range_type range(coordinate_type const & min, coordinate_type const & max,
+	range_type range(point_type const & min, point_type const & max,
 			int nid = 0) const
 	{
-		geometry::model::Box<coordinate_type> b;
+		geometry::model::Box<point_type> b;
 		bool success = geometry::intersection(
 				geometry::model::make_box(coordinate(m_id_local_min_),
 						coordinate(m_id_local_min_)),
@@ -352,7 +357,7 @@ public:
 	DECL_RET_TYPE (std::make_pair(this->coordinate(m_id_local_min_),
 					this->coordinate(m_id_local_max_)))
 
-	coordinate_type const & dx() const
+	vector_type const & dx() const
 	{
 		return m_dx_;
 	}
@@ -470,24 +475,21 @@ public:
 	}
 
 	template<size_t ID>
-	constexpr std::tuple<coordinate_type, coordinate_type> primary_line(
-			id_type s) const
+	constexpr std::tuple<point_type, point_type> primary_line(id_type s) const
 	{
 		auto p_box = topology_type::template primary_line<ID>(s);
 		return std::make_tuple(coordinate(std::get<0>(p_box)),
 				coordinate(std::get<1>(p_box)));
 	}
 	template<size_t ID>
-	constexpr std::tuple<coordinate_type, coordinate_type> pixel(
-			id_type s) const
+	constexpr std::tuple<point_type, point_type> pixel(id_type s) const
 	{
 		auto p_box = topology_type::template pixel<ID>(s);
 		return std::make_tuple(coordinate(std::get<0>(p_box)),
 				coordinate(std::get<1>(p_box)));
 	}
 
-	constexpr std::tuple<coordinate_type, coordinate_type> voxel(
-			id_type s) const
+	constexpr std::tuple<point_type, point_type> voxel(id_type s) const
 	{
 		auto p_box = topology_type::voxel(s);
 		return std::make_tuple(coordinate(std::get<0>(p_box)),
@@ -505,15 +507,15 @@ public:
 	 *              M      ---------->      G
 	 *              x                       y
 	 **/
-	coordinate_type coordinate(id_type const & s) const
+	point_type coordinate(id_type const & s) const
 	{
 		return std::move(map(topology_type::coordinate(s)));
 	}
 
-	coordinate_type map(coordinate_type const &x) const
+	point_type map(point_type const &x) const
 	{
 
-		return coordinate_type( {
+		return point_type( {
 
 		std::fma(x[0], m_from_topology_scale_[0], m_from_topology_orig_[0]),
 
@@ -524,10 +526,10 @@ public:
 		});
 
 	}
-	coordinate_type inv_map(coordinate_type const &y) const
+	coordinate_tuple inv_map(point_type const &y) const
 	{
 
-		return coordinate_type( {
+		return coordinate_tuple( {
 
 		std::fma(y[0], m_to_topology_scale_[0], m_to_toplogy_orig_[0]),
 
@@ -539,31 +541,31 @@ public:
 	}
 
 	template<typename TFun>
-	auto pull_back(coordinate_type const & x, TFun const & fun) const
+	auto pull_back(point_type const & x, TFun const & fun) const
 	DECL_RET_TYPE((fun(map(x))))
 
 	template<typename TFun>
-	auto push_forward(coordinate_type const & y, TFun const & fun) const
+	auto push_forward(point_type const & y, TFun const & fun) const
 	DECL_RET_TYPE((fun(inv_map(y))))
 
-	Vec3 pull_back(coordinate_type const & y, Vec3 const & u) const
+	Vec3 pull_back(point_type const & y, vector_type const & u) const
 	{
 		return inv_map(y + u) - inv_map(y);
 	}
 
-	Vec3 push_forward(coordinate_type const & x, Vec3 const & v) const
+	Vec3 push_forward(point_type const & x, Vec3 const & v) const
 	{
 		return map(x + v) - map(x);
 	}
 
 	template<typename TX>
-	coordinate_type coordinates_to_topology(TX const &y) const
+	coordinate_tuple coordinates_to_topology(TX const &y) const
 	{
 		return inv_map(y);
 	}
 
 	template<typename TX>
-	coordinate_type coordinates_from_topology(TX const &x) const
+	point_type coordinates_from_topology(TX const &x) const
 	{
 		return map(x);
 	}
@@ -574,14 +576,14 @@ public:
 	 * @param args
 	 * @return
 	 */
-	coordinate_type coordinates_local_to_global(
-			std::tuple<id_type, coordinate_type> const &t) const
+	point_type coordinates_local_to_global(
+			std::tuple<id_type, coordinate_tuple> const &t) const
 	{
 		return std::move(map(topology_type::coordinates_local_to_global(t)));
 	}
 
-	std::tuple<id_type, coordinate_type> coordinates_global_to_local(
-			coordinate_type x, int n_id = 0) const
+	std::tuple<id_type, coordinate_tuple> coordinates_global_to_local(
+			point_type x, int n_id = 0) const
 	{
 		return std::move(
 				topology_type::coordinates_global_to_local(

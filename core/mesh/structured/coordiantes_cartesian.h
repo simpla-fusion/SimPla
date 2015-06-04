@@ -36,7 +36,7 @@ public:
 
 //	typedef MeshIDs_<NDIMS,ZAXIS> ids;
 //
-//	typedef typename ids::coordinate_type coordinate_type;
+//	typedef typename ids::coordinate_tuple coordinate_tuple;
 //	typedef typename ids::id_type id_type;
 
 	static constexpr size_t ndims = NDIMS;
@@ -47,7 +47,7 @@ public:
 
 	typedef Real scalar_type;
 
-	typedef nTuple<Real, NDIMS> coordinate_type;
+	typedef nTuple<Real, NDIMS> coordinate_tuple;
 
 public:
 	CartesianCoordinate()
@@ -109,9 +109,9 @@ public:
 //		return true;
 //	}
 
-//	inline coordinate_type dx(id_type s = 0UL) const
+//	inline coordinate_tuple dx(id_type s = 0UL) const
 //	{
-//		coordinate_type res;
+//		coordinate_tuple res;
 //
 //		auto d = topology_type::dimensions();
 //
@@ -123,7 +123,7 @@ public:
 //		return std::move(res);
 //	}
 
-	static nTuple<Real, 3> MapToCartesian(coordinate_type const &y)
+	static nTuple<Real, 3> MapToCartesian(coordinate_tuple const &y)
 	{
 		nTuple<Real, 3> x;
 
@@ -134,10 +134,10 @@ public:
 		return std::move(x);
 	}
 
-	static coordinate_type MapFromCartesian(nTuple<Real, 3> const &x)
+	static coordinate_tuple MapFromCartesian(nTuple<Real, 3> const &x)
 	{
 
-		coordinate_type y;
+		coordinate_tuple y;
 
 		y[XAxis] = x[CARTESIAN_XAXIS];
 		y[YAxis] = x[CARTESIAN_YAXIS];
@@ -147,8 +147,8 @@ public:
 	}
 
 	template<typename TV>
-	static std::tuple<coordinate_type, TV> push_forward(
-			std::tuple<coordinate_type, TV> const & Z)
+	static std::tuple<coordinate_tuple, TV> push_forward(
+			std::tuple<coordinate_tuple, TV> const & Z)
 	{
 		return std::move(
 				std::make_tuple(MapFromCartesian(std::get<0>(Z)),
@@ -156,27 +156,27 @@ public:
 	}
 
 	template<typename TV>
-	static std::tuple<coordinate_type, TV> pull_back(
-			std::tuple<coordinate_type, TV> const & R)
+	static std::tuple<coordinate_tuple, TV> pull_back(
+			std::tuple<coordinate_tuple, TV> const & R)
 	{
 		return std::move(
 				std::make_tuple(MapToCartesian(std::get<0>(R)), std::get<1>(R)));
 	}
 
-	static coordinate_type Lie_trans(coordinate_type const & x,
+	static coordinate_tuple Lie_trans(coordinate_tuple const & x,
 			nTuple<Real, 3> const & v)
 	{
-		coordinate_type res;
+		coordinate_tuple res;
 		res = x + v;
 
 		return std::move(res);
 	}
 
-	static coordinate_type Lie_trans(
-			std::tuple<coordinate_type, nTuple<Real, 3> > const &Z,
+	static coordinate_tuple Lie_trans(
+			std::tuple<coordinate_tuple, nTuple<Real, 3> > const &Z,
 			nTuple<Real, 3> const & v)
 	{
-		coordinate_type res;
+		coordinate_tuple res;
 		res = std::get<0>(Z) + v;
 
 		return std::move(res);
@@ -192,10 +192,10 @@ public:
 	 */
 
 	template<typename TV>
-	static std::tuple<coordinate_type, nTuple<TV, ndims> > push_forward(
-			std::tuple<coordinate_type, nTuple<TV, ndims> > const & Z)
+	static std::tuple<coordinate_tuple, nTuple<TV, ndims> > push_forward(
+			std::tuple<coordinate_tuple, nTuple<TV, ndims> > const & Z)
 	{
-		coordinate_type y = MapFromCartesian(std::get<0>(Z));
+		coordinate_tuple y = MapFromCartesian(std::get<0>(Z));
 
 		auto const & v = std::get<1>(Z);
 
@@ -217,8 +217,8 @@ public:
 	 * @return  x,\f$v = v[XAixs] \partial_x +  v[YAixs] \partial_y + v[ZAixs] \partial_z\f$
 	 */
 	template<typename TV>
-	static std::tuple<coordinate_type, nTuple<TV, ndims> > pull_back(
-			std::tuple<coordinate_type, nTuple<TV, ndims> > const & R,
+	static std::tuple<coordinate_tuple, nTuple<TV, ndims> > pull_back(
+			std::tuple<coordinate_tuple, nTuple<TV, ndims> > const & R,
 			size_t CartesianZAxis = 2)
 	{
 		auto x = MapToCartesian(std::get<0>(R));
@@ -250,8 +250,8 @@ public:
 	}
 
 //	template<size_t IFORM, typename TR>
-//	auto select(TR range, coordinate_type const & xmin,
-//			coordinate_type const & xmax) const
+//	auto select(TR range, coordinate_tuple const & xmin,
+//			coordinate_tuple const & xmax) const
 //			DECL_RET_TYPE((topology_type::template select<IFORM>(range,
 //									this->coordinates_to_topology(xmin),
 //									this->coordinates_to_topology(xmax))))
@@ -307,13 +307,13 @@ public:
 
 public:
 
-	constexpr scalar_type cell_volume(coordinate_type const & x,
-			coordinate_type const & dx) const
+	constexpr scalar_type cell_volume(coordinate_tuple const & x,
+			coordinate_tuple const & dx) const
 	{
 		return dx[0] * dx[1] * dx[2];
 	}
-	constexpr scalar_type volume(coordinate_type const & x,
-			coordinate_type const & dx) const
+	constexpr scalar_type volume(coordinate_tuple const & x,
+			coordinate_tuple const & dx) const
 	{
 		return 1.0;
 	}

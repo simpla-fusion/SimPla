@@ -32,7 +32,7 @@ struct do_nothing
 {
 	template<typename ...Args>
 	void operator()(Args &&...) const
-			{
+	{
 	}
 };
 template<typename T>
@@ -422,7 +422,7 @@ template<typename _Signature>
 class sp_result_of
 {
 	typedef typename std::result_of<_Signature>::type _type;
-	public:
+public:
 	typedef typename sp_pod_traits<_type>::type type;
 
 };
@@ -460,6 +460,25 @@ template<unsigned int N, typename T0, typename ...Others>
 struct unpack_typelist<N, T0, Others...>
 {
 	typedef typename unpack_typelist<N - 1, Others...>::type type;
+};
+
+template<typename, typename ...> struct find_type_in_list;
+
+template<typename T>
+struct find_type_in_list<T>
+{
+	static constexpr bool value = false;
+};
+template<typename T, typename U>
+struct find_type_in_list<T, U>
+{
+	static constexpr bool value = std::is_same<T, U>::value;
+};
+template<typename T, typename U, typename ...Others>
+struct find_type_in_list<T, U, Others...>
+{
+	static constexpr bool value = find_type_in_list<T, U>::value
+			|| find_type_in_list<T, Others...>::value;
 };
 
 template<typename T, typename U>

@@ -38,7 +38,7 @@ protected:
 public:
 	typedef SimpleMesh mesh_type;
 	typedef SimpleParticleEngine engine_type;
-	typedef typename mesh_type::coordinate_type coordinate_type;
+	typedef typename mesh_type::coordinate_tuple coordinate_tuple;
 
 	typedef KineticParticle<mesh_type, engine_type> particle_type;
 
@@ -114,7 +114,7 @@ TEST_F(TestKineticParticle,insert)
 //
 ////	for (auto s : mesh->range())
 ////	{
-////		coordinate_type x = mesh->id_to_coordinates(s);
+////		coordinate_tuple x = mesh->id_to_coordinates(s);
 ////
 ////		Real expect = q * n(x[0], x[1], x[2]).template as<Real>();
 ////

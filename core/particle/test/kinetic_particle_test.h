@@ -96,7 +96,7 @@ TEST_P(TestKineticParticle, scatter_n)
 
 	for (auto s : mesh.range())
 	{
-		coordinate_type x = mesh.id_to_coordinates(s);
+		coordinate_tuple x = mesh.id_to_coordinates(s);
 
 		Real expect = q * n(x[0], x[1], x[2]).template as<Real>();
 
@@ -135,7 +135,7 @@ TEST_P(TestKineticParticle, scatter_n)
 //
 //	typedef iterator iterator;
 //
-//	typedef coordinate_type coordinate_type;
+//	typedef coordinate_tuple coordinate_tuple;
 //
 //	typedef scalar_type scalar_type;
 //

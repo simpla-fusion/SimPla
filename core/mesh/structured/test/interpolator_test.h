@@ -23,8 +23,8 @@ protected:
 	void SetUp()
 	{
 		LOGGER.set_stdout_visable_level(10);
-		xmin = coordinate_type( { 12, 0, 0 });
-		xmax = coordinate_type( { 14, 1, 1 });
+		xmin = coordinate_tuple( { 12, 0, 0 });
+		xmax = coordinate_tuple( { 14, 1, 1 });
 
 		dims = nTuple<index_type, NDIMS>( { 50, 30, 20 });
 
@@ -48,7 +48,7 @@ public:
 	typedef typename mainfold_type::index_type index_type;
 	typedef typename mainfold_type::range_type range_type;
 	typedef typename mainfold_type::iterator iterator;
-	typedef typename mainfold_type::coordinate_type coordinate_type;
+	typedef typename mainfold_type::coordinate_tuple coordinate_tuple;
 	typedef typename mainfold_type::scalar_type scalar_type;
 
 	static constexpr unsigned int NDIMS = mainfold_type::NDIMS;
@@ -57,9 +57,9 @@ public:
 
 	mainfold_type manifold;
 
-	coordinate_type xmin/* = { 12, 0, 0 }*/;
+	coordinate_tuple xmin/* = { 12, 0, 0 }*/;
 
-	coordinate_type xmax/* = { 14, 1, 1 }*/;
+	coordinate_tuple xmax/* = { 14, 1, 1 }*/;
 
 	nTuple<index_type, NDIMS> dims/* = { 50, 30, 20 }*/;
 
@@ -75,7 +75,7 @@ TYPED_TEST_P(TestInterpolator,scatter){
 	static constexpr unsigned int NDIMS = TestFixture::NDIMS;
 	typedef typename TestFixture::mesh_type mesh_type;
 	typedef typename TestFixture::index_type index_type;
-	typedef typename TestFixture::coordinate_type coordinate_type;
+	typedef typename TestFixture::coordinate_tuple coordinate_tuple;
 	typedef typename TestFixture::scalar_type scalar_type;
 	typedef typename TestFixture::interpolator_type interpolator_type;
 
@@ -90,7 +90,7 @@ TYPED_TEST_P(TestInterpolator,scatter){
 
 	auto extents= mesh.get_extents();
 
-	coordinate_type x = mesh.InvMapTo(std::get<0>(extents)+
+	coordinate_tuple x = mesh.InvMapTo(std::get<0>(extents)+
 			0.1234567*(std::get<1>(extents)-std::get<0>(extents)));
 
 	interpolator_type::scatter(&f,std::make_tuple(x,a),w);
@@ -124,7 +124,7 @@ TYPED_TEST_P(TestInterpolator,gather){
 	static constexpr unsigned int NDIMS = TestFixture::NDIMS;
 	typedef typename TestFixture::mesh_type mesh_type;
 	typedef typename TestFixture::index_type index_type;
-	typedef typename TestFixture::coordinate_type coordinate_type;
+	typedef typename TestFixture::coordinate_tuple coordinate_tuple;
 	typedef typename TestFixture::scalar_type scalar_type;
 	typedef typename TestFixture::interpolator_type interpolator_type;
 
@@ -144,7 +144,7 @@ TYPED_TEST_P(TestInterpolator,gather){
 	{
 		f[s]= (dot(K,mesh.get_coordinates(s)-xmin));
 	}
-	coordinate_type x = (xmin+0.34567*(xmax-xmin));
+	coordinate_tuple x = (xmin+0.34567*(xmax-xmin));
 
 	Real expect= (dot(K,x-xmin));
 

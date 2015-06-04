@@ -37,7 +37,7 @@ void Write(GEqdsk const & geqdsk,std::string const &fname)
 	XdmfDomain domain;
 
 	auto dims_ = get_dimensions();
-	coordinate_type rzmin_, rzmax_;
+	coordinate_tuple rzmin_, rzmax_;
 
 	std::tie(rzmin_, rzmax_) = get_extents();
 

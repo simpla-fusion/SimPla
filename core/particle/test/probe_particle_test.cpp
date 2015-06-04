@@ -67,12 +67,12 @@ int main(int argc, char **argv)
 //
 //	int pic = 500;
 //
-//	auto n = [](typename mesh_type::coordinate_type const & x )
+//	auto n = [](typename mesh_type::coordinate_tuple const & x )
 //	{
 //		return 2.0; //std::sin(x[0]*TWOPI);
 //	    };
 //
-//	auto T = [](typename mesh_type::coordinate_type const & x )
+//	auto T = [](typename mesh_type::coordinate_tuple const & x )
 //	{
 //		return 1.0;
 //	};

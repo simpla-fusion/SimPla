@@ -47,47 +47,47 @@ std::shared_ptr<TP> load_particle(TDict const &dict, TModel const & model,
 
 	typedef typename TP::mesh_type mesh_type;
 
-	typedef typename mesh_type::coordinate_type coordinate_type;
+	typedef typename mesh_type::coordinate_tuple coordinate_tuple;
 
 	std::shared_ptr<TP> res(new TP(dict, model));
 
-	std::function<Real(coordinate_type const&)> ns;
+	std::function<Real(coordinate_tuple const&)> ns;
 
-	std::function<Real(coordinate_type const&)> Ts;
+	std::function<Real(coordinate_tuple const&)> Ts;
 
 	if (!T0.empty())
 	{
-		Ts = [&T0](coordinate_type x)->Real
+		Ts = [&T0](coordinate_tuple x)->Real
 		{	return T0(x);};
 	}
 	else if (dict["Temperature"].is_number())
 	{
 		Real T = dict["Temperature"].template as<Real>();
-		Ts = [T](coordinate_type x)->Real
+		Ts = [T](coordinate_tuple x)->Real
 		{	return T;};
 	}
 	else if (dict["Temperature"].is_function())
 	{
 		Ts = dict["Temperature"].template as<
-				std::function<Real(coordinate_type const&)>>();
+				std::function<Real(coordinate_tuple const&)>>();
 	}
 
 	if (!ne0.empty())
 	{
 		Real ratio = dict["Ratio"].template as<Real>(1.0);
-		ns = [&ne0,ratio](coordinate_type x)->Real
+		ns = [&ne0,ratio](coordinate_tuple x)->Real
 		{	return ne0(x)*ratio;};
 	}
 	else if (dict["Density"].is_number())
 	{
 		Real n0 = dict["Density"].template as<Real>();
-		ns = [n0](coordinate_type x)->Real
+		ns = [n0](coordinate_tuple x)->Real
 		{	return n0;};
 	}
 	else if (dict["Density"].is_function())
 	{
 		ns = dict["Density"].template as<
-				std::function<Real(coordinate_type const&)>>();
+				std::function<Real(coordinate_tuple const&)>>();
 	}
 
 	size_t pic = dict["PIC"].template as<size_t>(100);
@@ -150,7 +150,7 @@ void init_particle(TR const &domain, size_t pic, TN const & ns, TT const & Ts,
 
 	typedef TR domain_type;
 
-	typedef typename domain_type::coordinate_type coordinate_type;
+	typedef typename domain_type::coordinate_tuple coordinate_tuple;
 
 	static constexpr size_t ndims = domain_type::ndims;
 

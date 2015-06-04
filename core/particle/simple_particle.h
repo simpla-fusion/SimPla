@@ -16,11 +16,11 @@ namespace simpla
 struct SimpleParticleEngine
 {
 	typedef double scalar_type;
-	typedef nTuple<scalar_type, 3> coordinate_type;
+	typedef nTuple<scalar_type, 3> coordinate_tuple;
 	typedef nTuple<scalar_type, 3> vector_type;
 
 	SP_DEFINE_POINT_STRUCT(Point_s,
-			coordinate_type,x,
+			coordinate_tuple,x,
 			vector_type, v,
 			scalar_type, f )
 
@@ -85,7 +85,7 @@ public:
 
 	}
 
-	Point_s push_forward(coordinate_type const & x, vector_type const &v,
+	Point_s push_forward(coordinate_tuple const & x, vector_type const &v,
 			Real f = 1.0) const
 	{
 		return Point_s( { x, v, f });

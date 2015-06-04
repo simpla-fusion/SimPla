@@ -21,7 +21,7 @@ namespace simpla
 struct ProbeDemo
 {
 	typedef ProbeDemo this_type;
-	typedef Vec3 coordinate_type;
+	typedef Vec3 coordinate_tuple;
 	typedef Vec3 vector_type;
 	typedef Real scalar_type;
 

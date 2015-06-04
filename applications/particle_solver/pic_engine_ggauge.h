@@ -41,7 +41,7 @@ public:
 	typedef Interpolator interpolator_type;
 
 	typedef typename mesh_type::scalar_type scalar_type;
-	typedef typename mesh_type::coordinate_type coordinate_type;
+	typedef typename mesh_type::coordinate_tuple coordinate_tuple;
 
 	typedef typename mesh_type:: template field<VERTEX, scalar_type> rho_type;
 
@@ -55,12 +55,12 @@ public:
 
 	struct Point_s
 	{
-		coordinate_type x;
+		coordinate_tuple x;
 		Vec3 v;
 		Real f;
 		nTuple<NMATE, scalar_type> w;
 
-		typedef std::tuple<coordinate_type, Vec3, Real, nTuple<NMATE, scalar_type>> compact_type;
+		typedef std::tuple<coordinate_tuple, Vec3, Real, nTuple<NMATE, scalar_type>> compact_type;
 
 		static compact_type compact(Point_s const& p)
 		{
@@ -279,7 +279,7 @@ public:
 	inline void push_forward(nTuple<3, Real> const&x, nTuple<3, Real> const& v, Point_s * p) const
 	{
 	}
-	static inline Point_s make_point(coordinate_type const & x, Vec3 const &v, Real f)
+	static inline Point_s make_point(coordinate_tuple const & x, Vec3 const &v, Real f)
 	{
 		Point_s res;
 		res.x = x;
