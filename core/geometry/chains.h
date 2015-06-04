@@ -13,89 +13,23 @@ namespace simpla
 {
 namespace geometry
 {
-template<size_t Dimension, typename ...> struct Primitive;
-template<typename ...> struct Chains;
 
 namespace tags
 {
 struct is_structed;
+struct is_closured;
+struct is_clockwise;
+struct is_unordered;
 }  // namespace tags
 
-template<typename CoordinateSystem, typename ... Others>
-using PointSet=Chains<Primitive<0, CoordinateSystem,tags::simplex>,Others...>;
-
-/**
- * @brief Curve
- *  topological 1-dimensional geometric primitive (4.15), representing
- *   the continuous image of a line
- *  @note The boundary of a curve is the set of points at either end of the curve.
- * If the curve is a cycle, the two ends are identical, and the curve
- *  (if topologically closed) is considered to not have a boundary.
- *  The first point is called the start point, and the last is the end
- *  point. Connectivity of the curve is guaranteed by the “continuous
- *  image of a line” clause. A topological theorem states that a
- *  continuous image of a connected set is connected.
- */
-template<typename CS, typename TAG, typename ...Others>
-using Curve=Chains<Primitive<1, CS,TAG>, Others ...>;
-
-/**
- * @brief Surface
- * topological 2-dimensional  geometric primitive (4.15),
- * locally representing a continuous image of a region of a plane
- * @note The boundary of a surface is the set of oriented, closed curves
- *  that delineate the limits of the surface.
- *
- */
-template<typename CS, typename TAG, typename ...Others>
-using Surface=Chains<Primitive<2, CS,TAG>, Others ...>;
-
-/**
- * @brief Solids
- */
-template<typename CS, typename TAG, typename ...Others>
-using Solids=Chains<Primitive<3, CS,TAG>, Others ...>;
-
-namespace traits
+namespace model
 {
 
-template<typename > struct is_chains;
-template<typename > struct is_primitive;
+template<typename ...> struct Chains;
 
-template<typename ...Others>
-struct is_primitive<Chains<Others...>>
-{
-	static constexpr bool value = false;
-};
-
-template<typename ...Others>
-struct is_chains<Chains<Others...>>
-{
-	static constexpr bool value = true;
-};
-
-template<typename PrimitiveType, typename ...Others>
-struct coordinate_system<Chains<PrimitiveType, Others...>>
-{
-	typedef typename coordinate_system<PrimitiveType>::type type;
-};
-template<typename PrimitiveType, typename ...Others>
-struct dimension<Chains<PrimitiveType, Others...>>
-{
-	static constexpr size_t value = dimension<PrimitiveType>::value;
-};
-
-template<typename > struct is_structed;
-template<typename PrimitiveType, typename ...Others>
-struct is_structed<Chains<PrimitiveType, Others...>>
-{
-	static constexpr bool value =
-			find_type_in_list<tags::is_structed, Others...>::value;
-};
-}  // namespace traits
-
-template<typename TPrimitive, typename TMesh, typename TContainer>
-struct Chains<TPrimitive, TMesh, TContainer> : public TContainer
+template<typename TPrimitive, typename TMesh, typename TContainer,
+		typename ...Polycies>
+struct Chains<TPrimitive, TMesh, TContainer, Polycies...> : public TContainer
 //public std::vector<
 //		nTuple<typename TMesh::id_type,
 //				traits::template number_of_vertices<
@@ -131,6 +65,67 @@ struct Chains<TPrimitive, TMesh, TContainer> : public TContainer
 	using container_type::begin;
 	using container_type::end;
 };
+
+
+
+}  // namespace model
+namespace traits
+{
+
+template<typename > struct is_chains;
+template<typename > struct is_primitive;
+template<typename > struct is_structed;
+template<typename > struct closure;
+template<typename > struct point_order;
+
+template<typename ...Others>
+struct is_primitive<model::Chains<Others...>>
+{
+	static constexpr bool value = false;
+};
+
+template<typename ...Others>
+struct is_chains<model::Chains<Others...>>
+{
+	static constexpr bool value = true;
+};
+
+template<typename PrimitiveType, typename ...Others>
+struct coordinate_system<model::Chains<PrimitiveType, Others...>>
+{
+	typedef typename coordinate_system<PrimitiveType>::type type;
+};
+template<typename PrimitiveType, typename ...Others>
+struct dimension<model::Chains<PrimitiveType, Others...>>
+{
+	static constexpr size_t value = dimension<PrimitiveType>::value;
+};
+
+template<typename PrimitiveType, typename ...Others>
+struct is_structed<model::Chains<PrimitiveType, Others...>>
+{
+	static constexpr bool value =
+			find_type_in_list<tags::is_structed, Others...>::value;
+};
+template<typename PrimitiveType, typename ...Others>
+struct point_order<model::Chains<PrimitiveType, Others...>>
+{
+	static constexpr int value =
+			find_type_in_list<tags::is_clockwise, Others...>::value ?
+					1 :
+					(find_type_in_list<tags::is_unordered, Others...>::value ?
+							0 : -1);
+};
+template<typename PrimitiveType, typename ...Others>
+struct closure<model::Chains<PrimitiveType, Others...>>
+{
+	static constexpr int value =
+			find_type_in_list<tags::is_closured, Others...>::value ?
+					1 :
+					(find_type_in_list<tags::is_unordered, Others...>::value ?
+							0 : -1);
+};
+}  // namespace traits
 
 }  // namespace geometry
 }  // namespace simpla

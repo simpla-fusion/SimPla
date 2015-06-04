@@ -20,6 +20,28 @@ namespace simpla
 namespace geometry
 {
 
+namespace tags
+{
+struct simplex;
+struct cube;
+struct box;
+
+}  // namespace tags
+
+namespace traits
+{
+
+template<typename > struct coordinate_system;
+template<typename > struct dimension;
+template<typename > struct point_type;
+template<typename > struct number_of_vertices;
+
+template<typename > struct is_chains;
+template<typename > struct is_primitive;
+
+}  // namespace traits
+namespace model
+{
 /**
  *  @brief Manifold or geometric primitive , geometric primitive
  *  representing a single, connected, homogeneous element of space
@@ -32,86 +54,6 @@ namespace geometry
  * Element<3> is tetrahedron (simplex<3>) , cube , etc...
  */
 template<size_t Dimension, typename ...> struct Primitive;
-
-namespace tags
-{
-struct simplex;
-struct cube;
-struct box;
-
-}  // namespace tags
-
-namespace traits
-{
-template<typename > struct coordinate_system;
-template<typename > struct dimension;
-template<typename > struct point_type;
-template<typename > struct number_of_vertices;
-
-template<typename > struct is_chains;
-template<typename > struct is_primitive;
-
-template<size_t Dimension, typename ...Others>
-struct is_primitive<Primitive<Dimension, Others...>>
-{
-	static constexpr bool value = true;
-};
-
-template<size_t Dimension, typename ...Others>
-struct is_chains<Primitive<Dimension, Others...>>
-{
-	static constexpr bool value = false;
-};
-
-template<size_t Dimension, typename CoordinateSystem, typename Tag>
-struct coordinate_system<Primitive<Dimension, CoordinateSystem, Tag>>
-{
-	typedef CoordinateSystem type;
-};
-
-template<size_t Dimension, typename CoordinateSystem, typename Tag>
-struct dimension<Primitive<Dimension, CoordinateSystem, Tag>>
-{
-	static constexpr size_t value = Dimension;
-};
-template<size_t Dimension, typename CoordinateSystem, typename Tag>
-struct point_type<Primitive<Dimension, CoordinateSystem, Tag>>
-{
-	typedef Primitive<0, CoordinateSystem, Tag> type;
-};
-template<typename CoordinateSystem, typename Tag>
-struct number_of_vertices<Primitive<0, CoordinateSystem, Tag>>
-{
-	static constexpr size_t value = 1;
-};
-template<typename CoordinateSystem, size_t Dimension>
-struct number_of_vertices<Primitive<Dimension, CoordinateSystem, tags::box>>
-{
-	static constexpr size_t value = 2;
-};
-
-template<size_t Dimension, typename CoordinateSystem, typename Tag>
-struct number_of_vertices<Primitive<Dimension, CoordinateSystem, Tag>>
-{
-
-	static constexpr size_t value =
-			std::is_same<tags::simplex, Tag>::value ?
-					(Dimension + 1)
-
-					:
-					(std::is_same<tags::cube, Tag>::value ?
-							(2
-									* number_of_vertices<
-											Primitive<Dimension - 1,
-													CoordinateSystem, Tag>>::value)
-
-							:
-							(0)
-
-					);
-};
-
-} // namespace traits
 
 #define DEF_NTUPLE_OBJECT(_COORD_SYS_,_T_,_NUM_)                                      \
  nTuple<_T_, _NUM_> m_data_;                                                          \
@@ -235,42 +177,85 @@ OS &operator<<(OS & os, Primitive<Dimension, CoordinateSystem, Tag> const & geo)
 	return os;
 }
 #undef DEF_NTUPLE_OBJECT
+}  // namespace model
 
-//template<typename CoordinateSystem>
-//using Point = Primitive< 0,CoordinateSystem, tags::simplex>;
+namespace traits
+{
 
-template<typename CoordinateSystem>
-using Line = Primitive< 1,CoordinateSystem, tags::simplex >;
+template<size_t Dimension, typename ...Others>
+struct is_primitive<model::Primitive<Dimension, Others...>>
+{
+	static constexpr bool value = true;
+};
 
-template<typename CoordinateSystem>
-using Triangle = Primitive< 2,CoordinateSystem, tags::simplex >;
+template<size_t Dimension, typename ...Others>
+struct is_chains<model::Primitive<Dimension, Others...>>
+{
+	static constexpr bool value = false;
+};
 
-template<typename CoordinateSystem>
-using Tetrahedron = Primitive< 2,CoordinateSystem, tags::simplex >;
+template<size_t Dimension, typename CoordinateSystem, typename Tag>
+struct coordinate_system<model::Primitive<Dimension, CoordinateSystem, Tag>>
+{
+	typedef CoordinateSystem type;
+};
 
-template<typename CoordinateSystem>
-using Rectangle = Primitive< 2,CoordinateSystem, tags::cube >;
+template<size_t Dimension, typename CoordinateSystem, typename Tag>
+struct dimension<model::Primitive<Dimension, CoordinateSystem, Tag>>
+{
+	static constexpr size_t value = Dimension;
+};
+template<size_t Dimension, typename CoordinateSystem, typename Tag>
+struct point_type<model::Primitive<Dimension, CoordinateSystem, Tag>>
+{
+	typedef model::Primitive<0, CoordinateSystem, Tag> type;
+};
+template<typename CoordinateSystem, typename Tag>
+struct number_of_vertices<model::Primitive<0, CoordinateSystem, Tag>>
+{
+	static constexpr size_t value = 1;
+};
+template<typename CoordinateSystem, size_t Dimension>
+struct number_of_vertices<
+		model::Primitive<Dimension, CoordinateSystem, tags::box>>
+{
+	static constexpr size_t value = 2;
+};
 
-template<typename CoordinateSystem>
-using Cube = Primitive< 3,CoordinateSystem, tags::cube >;
+template<size_t Dimension, typename CoordinateSystem, typename Tag>
+struct number_of_vertices<model::Primitive<Dimension, CoordinateSystem, Tag>>
+{
 
-//************************************************************************
-//************************************************************************
-//************************************************************************
-//************************************************************************
+	static constexpr size_t value =
+			std::is_same<tags::simplex, Tag>::value ?
+					(Dimension + 1)
 
-}// namespace geometry
-}  // namespace simpla
+					:
+					(std::is_same<tags::cube, Tag>::value ?
+							(2
+									* number_of_vertices<
+											model::Primitive<Dimension - 1,
+													CoordinateSystem, Tag>>::value)
+
+							:
+							(0)
+
+					);
+};
+
+} // namespace traits
+} // namespace geometry
+} // namespace simpla
 
 namespace std
 {
 
 template<size_t N, size_t Dimension, typename ... Others>
-auto get(simpla::geometry::Primitive<Dimension, Others...> & obj)
+auto get(simpla::geometry::model::Primitive<Dimension, Others...> & obj)
 DECL_RET_TYPE((obj[N]))
 
 template<size_t N, size_t Dimension, typename ...Others>
-auto get(simpla::geometry::Primitive<Dimension, Others...> const & obj)
+auto get(simpla::geometry::model::Primitive<Dimension, Others...> const & obj)
 DECL_RET_TYPE((obj[N]))
 
 }  // namespace std

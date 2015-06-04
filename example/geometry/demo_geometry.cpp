@@ -38,14 +38,14 @@ int main(int argc, char **argv)
 {
 	typedef typename coordinate_system::Cartesian<2> cs;
 
-	Polygon<cs> poly;
+	model::Polygon<1UL, cs> poly;
 
-	append(poly, Point<cs> { 1.0, 2.0 });
-	append(poly, Point<cs> { 6.0, 4.0 });
-	append(poly, Point<cs> { 5.0, 1.0 });
-	append(poly, Point<cs> { 1.0, 2.0 });
+	append(poly, model::Point<cs> { 1.0, 2.0 });
+	append(poly, model::Point<cs> { 6.0, 4.0 });
+	append(poly, model::Point<cs> { 5.0, 1.0 });
+	append(poly, model::Point<cs> { 1.0, 2.0 });
 
-	Point<cs> x0 = { 1.5, 1.5 };
+	model::Point<cs> x0 = { 1.5, 1.5 };
 
 	std::cout << "Area: " << area(poly) << std::endl;
 
@@ -54,9 +54,9 @@ int main(int argc, char **argv)
 
 	std::cout << dsv(poly) << std::endl;
 
-	Line<cs> line( { 1.0, 2.0, 6.0, 4.0 });
+	model::Line<cs> line( { 1.0, 2.0, 6.0, 4.0 });
 	std::cout << "Line " << line << std::endl;
-	Box<cs> box( { 1.0, 2.0, 6.0, 4.0 });
+	model::Box<cs> box( { 1.0, 2.0, 6.0, 4.0 });
 	std::cout << "Box " << box << std::endl;
 
 }
