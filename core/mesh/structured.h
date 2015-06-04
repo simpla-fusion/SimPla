@@ -1,4 +1,14 @@
-/**
+/*
+ * @file cartesian_mesh.h
+ *
+ *  Created on: 2015年3月10日
+ *      Author: salmon
+ */
+
+#ifndef CORE_MESH_STRUCTURED_STRUCTURED_H_
+#define CORE_MESH_STRUCTURED_STRUCTURED_H_
+
+ /**
  * @file  rect_mesh.h
  *
  *  created on: 2014-2-21
@@ -23,6 +33,7 @@
 #include "../../gtl/primitives.h"
 #include "../../field/field_expression.h"
 #include "../../parallel/mpi_update.h"
+#include "../../geometry/geometry.h"
 #include "../mesh_ids.h"
 #include "interpolator.h"
 
@@ -55,22 +66,26 @@ namespace simpla
  *  - the unit cell width is 1;
  */
 //template<typename ... >struct RectMesh;
-template<typename TTopology, typename ...Policies>
-struct RectMesh:	public TTopology,
-					public Policies...,
-					std::enable_shared_from_this<
-							RectMesh<TTopology, Policies...>>
+template<typename CoordinateSystem, typename ...Policies>
+struct RectMesh: public MeshIDs_<
+		geometry::coordinate_system::traits::dimension<CoordinateSystem>::value>,
+		public Policies...,
+		std::enable_shared_from_this<RectMesh<CoordinateSystem, Policies...>>
 {
-	typedef TTopology topology_type;
-	typedef typename unpack_typelist<0, Policies...>::type coordinates_system;
-	typedef typename unpack_typelist<1, Policies...>::type interpolatpr_policy;
-	typedef typename unpack_typelist<2, Policies...>::type calculate_policy;
 
-	typedef RectMesh<topology_type, Policies...> this_type;
+	static constexpr size_t ndims =
+			geometry::coordinate_system::traits::dimension<CoordinateSystem>::value;
+
+	typedef MeshIDs_<ndims> topology_type;
+
+	typedef CoordinateSystem cs_type;
+
+	typedef typename unpack_typelist<0, Policies...>::type interpolatpr_policy;
+	typedef typename unpack_typelist<1, Policies...>::type calculate_policy;
+
+	typedef RectMesh<cs_type, Policies...> this_type;
 
 	typedef Real scalar_type;
-
-	using topology_type::ndims;
 
 	using typename topology_type::index_type;
 
@@ -80,9 +95,12 @@ struct RectMesh:	public TTopology,
 
 	using typename topology_type::id_tuple;
 
-	using typename topology_type::coordinates_type;
+	using typename topology_type::topology_point_type;
 
 	using typename topology_type::range_type;
+
+	typedef geometry::Point<cs_type> point_type;
+	typedef geometry::Vector<cs_type> vector_type;
 
 //	friend class Domain<this_type, VERTEX> ;
 //	friend class Domain<this_type, EDGE> ;
@@ -123,19 +141,19 @@ private:
 
 	bool m_is_distributed_ = false;
 
-	coordinates_type m_from_topology_orig_ /*= { 0, 0, 0 }*/;
+	topology_point_type m_from_topology_orig_ /*= { 0, 0, 0 }*/;
 
-	coordinates_type m_to_toplogy_orig_ /*= { 0, 0, 0 }*/;
+	topology_point_type m_to_toplogy_orig_ /*= { 0, 0, 0 }*/;
 
-	coordinates_type m_coords_min_ = { 0, 0, 0 };
+	point_type m_coords_min_ = { 0, 0, 0 };
 
-	coordinates_type m_coords_max_ = { 1, 1, 1 };
+	point_type m_coords_max_ = { 1, 1, 1 };
 
-	coordinates_type m_dx_ /*= { 0, 0, 0 }*/;
+	vector_type m_dx_ /*= { 0, 0, 0 }*/;
 
-	coordinates_type m_to_topology_scale_;
+	topology_point_type m_to_topology_scale_;
 
-	coordinates_type m_from_topology_scale_;
+	topology_point_type m_from_topology_scale_;
 
 	/**
 	 *
@@ -199,8 +217,7 @@ public:
 	{
 	}
 
-	RectMesh(this_type const & other)
-			:
+	RectMesh(this_type const & other) :
 
 			m_id_min_(other.m_id_min_),
 
@@ -238,9 +255,7 @@ public:
 	{
 		dimensions(dict["Dimensions"].as(index_tuple( { 10, 10, 10 })));
 
-		extents(
-				dict["Box"].template as<
-						std::tuple<coordinates_type, coordinates_type> >());
+		extents(dict["Box"].template as<std::tuple<point_type, point_type> >());
 
 		dt(dict["dt"].template as<Real>(1.0));
 	}
@@ -277,7 +292,7 @@ public:
 
 	}
 
-	coordinates_type epsilon() const
+	point_type epsilon() const
 	{
 		return topology_type::EPSILON * m_from_topology_scale_;
 	}
@@ -295,12 +310,39 @@ public:
 
 	range_type range(int nid = 0) const
 	{
+
 		return range_type(m_id_local_min_, m_id_local_max_, nid);
+	}
+
+	range_type range(point_type const & min, point_type const & max,
+			int nid = 0) const
+	{
+//		geometry::model::Box<point_type> b;
+//		bool success = geometry::intersection(
+//				geometry::make_box(point(m_id_local_min_),
+//						point(m_id_local_min_)), geometry::make_box(min, max),
+//				b);
+//		if (success)
+//		{
+//			return range_type(
+//					std::get<0>(
+//							coordinates_global_to_local(std::get<0>(b), nid)),
+//					std::get<1>(
+//							coordinates_global_to_local(std::get<1>(b), nid)),
+//					nid);
+//		}
+//		else
+//		{
+//			return range_type();
+//		}
+
 	}
 
 	static std::string get_type_as_string()
 	{
-		return "RectMesh<" + coordinates_system::get_type_as_string() + ">";
+		return "RectMesh<"
+				+ geometry::coordinate_system::traits::typename_as_string<
+						cs_type>::value + ">";
 	}
 
 	constexpr bool is_valid() const
@@ -325,10 +367,10 @@ public:
 	DECL_RET_TYPE (std::make_pair(m_coords_min_, m_coords_max_))
 
 	constexpr auto local_extents() const
-	DECL_RET_TYPE (std::make_pair(this->coordinates(m_id_local_min_),
-					this->coordinates(m_id_local_max_)))
+	DECL_RET_TYPE (std::make_pair(this->point(m_id_local_min_),
+					this->point(m_id_local_max_)))
 
-	coordinates_type const & dx() const
+	vector_type const & dx() const
 	{
 		return m_dx_;
 	}
@@ -415,15 +457,17 @@ public:
 	{
 
 		return m_volume_[topology_type::node_id(s)]
-				* coordinates_system::volume_factor(coordinates(s),
-						topology_type::sub_index(s));
+//				* coordinate_system::volume_factor(coordinate(s),
+//						topology_type::sub_index(s))
+		;
 	}
 
 	constexpr Real dual_volume(id_type s) const
 	{
 		return m_dual_volume_[topology_type::node_id(s)]
-				* coordinates_system::dual_volume_factor(coordinates(s),
-						topology_type::sub_index(s));
+//				* coordinate_system::dual_volume_factor(coordinate(s),
+//						topology_type::sub_index(s))
+		;
 	}
 
 	constexpr Real cell_volume(id_type s) const
@@ -434,20 +478,46 @@ public:
 	constexpr Real inv_volume(id_type s) const
 	{
 		return m_inv_volume_[topology_type::node_id(s)]
-				* coordinates_system::inv_volume_factor(coordinates(s),
-						topology_type::sub_index(s));
+
+//				* coordinate_system::inv_volume_factor(coordinate(s),
+//						topology_type::sub_index(s))
+		;
 	}
 
 	constexpr Real inv_dual_volume(id_type s) const
 	{
 		return m_inv_dual_volume_[topology_type::node_id(s)]
-				* coordinates_system::inv_dual_volume_factor(coordinates(s),
-						topology_type::sub_index(s));
+//				* coordinate_system::inv_dual_volume_factor(coordinate(s),
+//						topology_type::sub_index(s))
+		;
 	}
+
+	template<size_t ID>
+	constexpr std::tuple<point_type, point_type> primary_line(id_type s) const
+	{
+		auto p_box = topology_type::template primary_line<ID>(s);
+		return std::make_tuple(point(std::get<0>(p_box)),
+				point(std::get<1>(p_box)));
+	}
+	template<size_t ID>
+	constexpr std::tuple<point_type, point_type> pixel(id_type s) const
+	{
+		auto p_box = topology_type::template pixel<ID>(s);
+		return std::make_tuple(point(std::get<0>(p_box)),
+				point(std::get<1>(p_box)));
+	}
+
+	constexpr std::tuple<point_type, point_type> voxel(id_type s) const
+	{
+		auto p_box = topology_type::voxel(s);
+		return std::make_tuple(point(std::get<0>(p_box)),
+				point(std::get<1>(p_box)));
+	}
+
 	/**@}*/
 
 	/**
-	 * @name  Coordinates map
+	 * @name  Coordinate map
 	 * @{
 	 *
 	 *        Topology Manifold       Geometry Manifold
@@ -455,15 +525,15 @@ public:
 	 *              M      ---------->      G
 	 *              x                       y
 	 **/
-	coordinates_type coordinates(id_type const & s) const
+	point_type point(id_type const & s) const
 	{
-		return std::move(map(topology_type::coordinates(s)));
+		return std::move(map(topology_type::point(s)));
 	}
 
-	coordinates_type map(coordinates_type const &x) const
+	point_type map(topology_point_type const &x) const
 	{
 
-		return coordinates_type( {
+		return point_type( {
 
 		std::fma(x[0], m_from_topology_scale_[0], m_from_topology_orig_[0]),
 
@@ -474,46 +544,50 @@ public:
 		});
 
 	}
-	coordinates_type inv_map(coordinates_type const &y) const
+	topology_point_type inv_map(point_type const &y) const
 	{
 
-		return coordinates_type( {
+		return topology_point_type(
+				{
 
-		std::fma(y[0], m_to_topology_scale_[0], m_to_toplogy_orig_[0]),
+				std::fma(std::get<0>(y), m_to_topology_scale_[0],
+						m_to_toplogy_orig_[0]),
 
-		std::fma(y[1], m_to_topology_scale_[1], m_to_toplogy_orig_[1]),
+				std::fma(std::get<1>(y), m_to_topology_scale_[1],
+						m_to_toplogy_orig_[1]),
 
-		std::fma(y[2], m_to_topology_scale_[2], m_to_toplogy_orig_[2])
+				std::fma(std::get<2>(y), m_to_topology_scale_[2],
+						m_to_toplogy_orig_[2])
 
-		});
+				});
 	}
 
 	template<typename TFun>
-	auto pull_back(coordinates_type const & x, TFun const & fun) const
+	auto pull_back(point_type const & x, TFun const & fun) const
 	DECL_RET_TYPE((fun(map(x))))
 
 	template<typename TFun>
-	auto push_forward(coordinates_type const & y, TFun const & fun) const
+	auto push_forward(point_type const & y, TFun const & fun) const
 	DECL_RET_TYPE((fun(inv_map(y))))
 
-	Vec3 pull_back(coordinates_type const & y, Vec3 const & u) const
+	Vec3 pull_back(point_type const & y, vector_type const & u) const
 	{
 		return inv_map(y + u) - inv_map(y);
 	}
 
-	Vec3 push_forward(coordinates_type const & x, Vec3 const & v) const
+	Vec3 push_forward(point_type const & x, Vec3 const & v) const
 	{
 		return map(x + v) - map(x);
 	}
 
 	template<typename TX>
-	coordinates_type coordinates_to_topology(TX const &y) const
+	topology_point_type coordinates_to_topology(TX const &y) const
 	{
 		return inv_map(y);
 	}
 
 	template<typename TX>
-	coordinates_type coordinates_from_topology(TX const &x) const
+	point_type coordinates_from_topology(TX const &x) const
 	{
 		return map(x);
 	}
@@ -524,14 +598,14 @@ public:
 	 * @param args
 	 * @return
 	 */
-	coordinates_type coordinates_local_to_global(
-			std::tuple<id_type, coordinates_type> const &t) const
+	point_type coordinates_local_to_global(
+			std::tuple<id_type, topology_point_type> const &t) const
 	{
 		return std::move(map(topology_type::coordinates_local_to_global(t)));
 	}
 
-	std::tuple<id_type, coordinates_type> coordinates_global_to_local(
-			coordinates_type x, int n_id = 0) const
+	std::tuple<id_type, topology_point_type> coordinates_global_to_local(
+			point_type x, int n_id = 0) const
 	{
 		return std::move(
 				topology_type::coordinates_global_to_local(
@@ -842,7 +916,7 @@ template<typename TTopology, typename ... Polices> void RectMesh<TTopology,
 
 		auto idx_e = topology_type::unpack_index(m_id_max_);
 
-		GLOBAL_COMM.decompose(ndims, &idx_b[0], &idx_e[0] );
+		GLOBAL_COMM.decompose(ndims, &idx_b[0], &idx_e[0]);
 
 		index_tuple ghost_width;
 
@@ -858,18 +932,23 @@ template<typename TTopology, typename ... Polices> void RectMesh<TTopology,
 		for (int i = 0; i < ndims; ++i)
 		{
 
-			if ( idx_b[i]+1==idx_e[i])
+			if (idx_b[i] + 1 == idx_e[i])
 			{
 				ghost_width[i] = 0;
 			}
-			else if (idx_e[i] <= idx_b[i]+ ghost_width[i] * 2)
+			else if (idx_e[i] <= idx_b[i] + ghost_width[i] * 2)
 			{
 				ERROR(
 				"Dimension is to small to split!["
 				" Dimensions= "
-				+ value_to_string(topology_type::unpack_index(m_id_max_-m_id_min_))
+				+ value_to_string(
+						topology_type::unpack_index(
+								m_id_max_ - m_id_min_))
 				+ " , Local dimensions="
-				+ value_to_string(topology_type::unpack_index(m_id_local_max_-m_id_local_min_))
+				+ value_to_string(
+						topology_type::unpack_index(
+								m_id_local_max_
+								- m_id_local_min_))
 				+ " , Ghost width ="
 				+ value_to_string(ghost_width) + "]");
 			}
@@ -880,18 +959,20 @@ template<typename TTopology, typename ... Polices> void RectMesh<TTopology,
 
 		m_id_local_max_ = topology_type::pack_index(idx_e);
 
-		m_id_memory_min_ = m_id_local_min_ - topology_type::pack_index(ghost_width );
+		m_id_memory_min_ = m_id_local_min_
+		- topology_type::pack_index(ghost_width);
 
-		m_id_memory_max_ = m_id_local_max_ + topology_type::pack_index( ghost_width );
+		m_id_memory_max_ = m_id_local_max_
+		+ topology_type::pack_index(ghost_width);
 
 		m_is_distributed_ = true;
 
 	}
 	else
 	{
-		m_id_local_min_=m_id_min_;
+		m_id_local_min_ = m_id_min_;
 
-		m_id_local_max_=m_id_max_;
+		m_id_local_max_ = m_id_max_;
 
 		m_id_memory_min_ = m_id_local_min_;
 
@@ -910,3 +991,6 @@ template<typename TTopology, typename ... Polices> void RectMesh<TTopology,
 // namespace simpla
 
 #endif /* MESH_RECT_MESH_H_ */
+
+
+#endif /* CORE_MESH_STRUCTURED_STRUCTURED_H_ */

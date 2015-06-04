@@ -37,7 +37,7 @@ namespace traits
 template<typename > struct dimension;
 template<typename > struct coordinate_type;
 template<typename > struct is_homogeneous;
-
+template<typename > struct typename_as_string;
 template<typename CS>
 struct dimension
 {
@@ -70,6 +70,19 @@ struct is_homogeneous
 	static constexpr bool value = true;
 };
 
+template<size_t N>
+struct typename_as_string<Cartesian<N>>
+{
+	static constexpr char value[] = "Cartesian";
+};
+struct typename_as_string<Spherical>
+{
+	static constexpr char value[] = "Spherical";
+};
+struct typename_as_string<Cylindical>
+{
+	static constexpr char value[] = "Cylindical";
+};
 }  // namespace traits
 
 struct Toroidal

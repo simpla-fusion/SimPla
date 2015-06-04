@@ -11,7 +11,7 @@
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/geometries.hpp>
 
-#include "manifold.h"
+#include "primitive.h"
 
 namespace simpla
 {

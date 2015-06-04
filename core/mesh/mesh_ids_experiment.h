@@ -11,7 +11,7 @@
 #include <stddef.h>
 #include <limits>
 #include <tuple>
-
+#include <map>
 #include "../gtl/ntuple.h"
 #include "../gtl/primitives.h"
 
@@ -73,7 +73,7 @@ struct MeshIDs_
 
 	typedef nTuple<index_type, 3> index_tuple;
 
-	typedef nTuple<Real, 3> coordinates_type;
+	typedef nTuple<Real, 3> coordinate_tuple;
 
 	static constexpr int ndims = NDIMS;
 
@@ -108,6 +108,9 @@ struct MeshIDs_
 
 	static constexpr id_type SUB_ID_MASK = ((1UL << MESH_LEVEL) - 1);
 
+	static constexpr id_type FULL_SUB_ID_MASK = SUB_ID_MASK
+			| (SUB_ID_MASK << ID_DIGITS) | (SUB_ID_MASK << (ID_DIGITS * 2));
+
 	static constexpr id_type _D = 1UL << (MESH_LEVEL - 1);
 
 	static constexpr Real _R = static_cast<Real>(_D);
@@ -132,13 +135,11 @@ struct MeshIDs_
 	/// @}
 	static constexpr Vec3 dx()
 	{
-		return Vec3(
-		{ COORDINATES_MESH_FACTOR, COORDINATES_MESH_FACTOR,
+		return Vec3( { COORDINATES_MESH_FACTOR, COORDINATES_MESH_FACTOR,
 				COORDINATES_MESH_FACTOR });
 	}
 
-	static constexpr id_type m_sub_index_to_id_[4][3] =
-	{ //
+	static constexpr id_type m_sub_index_to_id_[4][3] = { //
 
 			{ 0, 0, 0 }, /*VERTEX*/
 			{ 1, 2, 4 }, /*EDGE*/
@@ -147,8 +148,7 @@ struct MeshIDs_
 
 			};
 
-	static constexpr id_type m_id_to_sub_index_[8] =
-	{ //
+	static constexpr id_type m_id_to_sub_index_[8] = { //
 
 			0, // 000
 					0, // 001
@@ -160,8 +160,7 @@ struct MeshIDs_
 					0, // 111
 			};
 
-	static constexpr id_type m_id_to_shift_[] =
-	{
+	static constexpr id_type m_id_to_shift_[] = {
 
 	0,   					// 000
 			_DI,   					// 001
@@ -174,8 +173,7 @@ struct MeshIDs_
 
 			};
 
-	static constexpr coordinates_type m_id_to_coordinates_shift_[] =
-	{
+	static constexpr coordinate_tuple m_id_to_coordinates_shift_[] = {
 
 	{ 0, 0, 0 },            // 000
 			{ _R, 0, 0 },           // 001
@@ -188,8 +186,7 @@ struct MeshIDs_
 
 			};
 
-	static constexpr id_type m_id_to_num_of_ele_in_cell_[] =
-	{
+	static constexpr id_type m_id_to_num_of_ele_in_cell_[] = {
 
 	1,   		// 000
 			3,   		// 001
@@ -201,8 +198,7 @@ struct MeshIDs_
 			1   		// 111
 			};
 
-	static constexpr id_type m_id_to_iform_[] =
-	{ //
+	static constexpr id_type m_id_to_iform_[] = { //
 
 			VERTEX, // 000
 					EDGE, // 001
@@ -228,8 +224,12 @@ struct MeshIDs_
 	{
 		return ((a | OVERFLOW_FLAG) - b) & (~OVERFLOW_FLAG);
 	}
+	static constexpr id_type diff_index(id_type a, id_type b)
+	{
+		return diff(a, b) & (PRIMARY_ID_MASK);
+	}
 
-#define UNPACK_ID(_S_,_I_)    (static_cast<id_type>(_S_) >> (ID_DIGITS*(_I_ )) & ID_MASK)
+#define UNPACK_ID(_S_,_I_)    ((static_cast<id_type>(_S_)&(~OVERFLOW_FLAG) ) >> (ID_DIGITS*(_I_ )) & ID_MASK)
 #define UNPACK_INDEX(_S_,_I_)   static_cast<index_type>((_S_>> (ID_DIGITS*(_I_ )) & ID_MASK)>>MESH_LEVEL)
 
 	template<typename T>
@@ -242,8 +242,7 @@ struct MeshIDs_
 
 	static constexpr id_tuple unpack(id_type s)
 	{
-		return id_tuple(
-		{
+		return id_tuple( {
 
 		UNPACK_ID(s, 0),
 
@@ -256,8 +255,7 @@ struct MeshIDs_
 
 	static constexpr index_tuple unpack_index(id_type s)
 	{
-		return index_tuple(
-		{
+		return index_tuple( {
 
 		UNPACK_INDEX(s, 0),
 
@@ -281,9 +279,9 @@ struct MeshIDs_
 		return static_cast<T>(unpack(s));
 	}
 
-	static constexpr coordinates_type coordinates(id_type s)
+	static constexpr coordinate_tuple coordinate(id_type s)
 	{
-		return static_cast<coordinates_type>(unpack(s));
+		return static_cast<coordinate_tuple>(unpack(s));
 	}
 
 	static constexpr int num_of_ele_in_cell(id_type s)
@@ -292,25 +290,25 @@ struct MeshIDs_
 	}
 
 	template<typename TX>
-	static std::tuple<id_type, coordinates_type> coordinates_global_to_local(
+	static std::tuple<id_type, coordinate_tuple> coordinates_global_to_local(
 			TX const &x, int n_id = 0)
 	{
 
-		id_type s = (pack(x - m_id_to_coordinates_shift_[n_id])
+		id_type s = (pack(x - m_id_to_coordinates_shift_[n_id] + _R)
 				& PRIMARY_ID_MASK) | m_id_to_shift_[n_id];
 
-		coordinates_type r;
+		coordinate_tuple r;
 
-		r = (x - coordinates(s)) / (_R * 2.0);
+		r = (x - coordinate(s)) / (_R * 2.0);
 
 		return std::make_tuple(s, r);
 
 	}
 
-	static constexpr coordinates_type coordinates_local_to_global(
-			std::tuple<id_type, coordinates_type> const &t)
+	static constexpr coordinate_tuple coordinates_local_to_global(
+			std::tuple<id_type, coordinate_tuple> const &t)
 	{
-		return coordinates(std::get<0>(t)) + std::get<1>(t);
+		return coordinate(std::get<0>(t)) + std::get<1>(t);
 	}
 
 //! @name id auxiliary functions
@@ -367,8 +365,7 @@ struct MeshIDs_
 				| ((s >> (ID_DIGITS * 2 + MESH_LEVEL - 3)) & 4UL);
 	}
 
-	static constexpr id_type m_id_to_index_[8] =
-	{ //
+	static constexpr id_type m_id_to_index_[8] = { //
 
 			0, // 000
 					0, // 001
@@ -463,132 +460,132 @@ struct MeshIDs_
 			};
 
 	static constexpr id_type m_vertics_matrix_[4/* to iform*/][8/* node id*/][MAX_NUM_OF_CELL/*id shift*/] =
-	{
-	//To VERTEX
 			{
+			//To VERTEX
+					{
 
-			/* 000*/
-			{ 0 },
-			/* 001*/
-			{ _LI, _HI },
-			/* 010*/
-			{ _LJ, _HJ },
-			/* 011*/
-			{ _LI | _LJ, _HI | _LJ, _HI | _HJ, _LI | _HJ },
-			/* 100*/
-			{ _LK, _HK },
-			/* 101*/
-			{ _LK | _LI, _HK | _LI, _HK | _HI, _LK | _HI },
-			/* 110*/
-			{ _LJ | _LK, _HJ | _LK, _HJ | _HK, _LJ | _HK },
-			/* 111*/
-			{ _LI | _LJ | _LK, //
-			_HI | _LJ | _LK, //
-			_HI | _HJ | _LK, //
-			_LI | _HJ | _LK, //
+					/* 000*/
+					{ 0 },
+					/* 001*/
+					{ _LI, _HI },
+					/* 010*/
+					{ _LJ, _HJ },
+					/* 011*/
+					{ _LI | _LJ, _HI | _LJ, _HI | _HJ, _LI | _HJ },
+					/* 100*/
+					{ _LK, _HK },
+					/* 101*/
+					{ _LK | _LI, _HK | _LI, _HK | _HI, _LK | _HI },
+					/* 110*/
+					{ _LJ | _LK, _HJ | _LK, _HJ | _HK, _LJ | _HK },
+					/* 111*/
+					{ _LI | _LJ | _LK, //
+					_HI | _LJ | _LK, //
+					_HI | _HJ | _LK, //
+					_LI | _HJ | _LK, //
 
-			_LI | _LJ | _HK, //
-			_HI | _LJ | _HK, //
-			_HI | _HJ | _HK, //
-			_LI | _HJ | _HK }
+					_LI | _LJ | _HK, //
+					_HI | _LJ | _HK, //
+					_HI | _HJ | _HK, //
+					_LI | _HJ | _HK }
 
-			},
+					},
 
-			//To EDGE
-			{
-			/* 000*/
-			{ _HI, _LI, _HJ, _LJ, _HK, _LK },
-			/* 001*/
-			{ 0 },
-			/* 010*/
-			{ 0 },
-			/* 011*/
-			{ _LJ, _HI, _HJ, _LI },
-			/* 100*/
-			{ 0 },
-			/* 101*/
-			{ _LI, _HK, _HI, _LK },
-			/* 110*/
-			{ _LK, _HJ, _HK, _LJ },
-			/* 111*/
-			{ _LK | _LJ,  //-> 001
-			_LK | _HI,  //   012
-			_LK | _HJ,  //   021
-			_LK | _LI,  //   010
+					//To EDGE
+					{
+					/* 000*/
+					{ _HI, _LI, _HJ, _LJ, _HK, _LK },
+					/* 001*/
+					{ 0 },
+					/* 010*/
+					{ 0 },
+					/* 011*/
+					{ _LJ, _HI, _HJ, _LI },
+					/* 100*/
+					{ 0 },
+					/* 101*/
+					{ _LI, _HK, _HI, _LK },
+					/* 110*/
+					{ _LK, _HJ, _HK, _LJ },
+					/* 111*/
+					{ _LK | _LJ,  //-> 001
+					_LK | _HI,  //   012
+					_LK | _HJ,  //   021
+					_LK | _LI,  //   010
 
-			_LI | _LJ,  //
-			_LI | _HJ,  //
-			_HI | _LJ,  //
-			_HI | _HI,  //
+					_LI | _LJ,  //
+					_LI | _HJ,  //
+					_HI | _LJ,  //
+					_HI | _HI,  //
 
-			_HK | _LJ,  //
-			_HK | _HI,  //
-			_HK | _HJ,  //
-			_HK | _LI  //
-			} },
+					_HK | _LJ,  //
+					_HK | _HI,  //
+					_HK | _HJ,  //
+					_HK | _LI  //
+					} },
 
-			//To FACE
-			{
-			/* 000*/
-			{ _LK | _LJ,  //
-			_LK | _HI,  //
-			_LK | _HJ,  //
-			_LK | _LI,  //
+					//To FACE
+					{
+					/* 000*/
+					{ _LK | _LJ,  //
+					_LK | _HI,  //
+					_LK | _HJ,  //
+					_LK | _LI,  //
 
-			_LI | _LJ,  //
-			_LI | _HJ,  //
-			_HI | _LJ,  //
-			_HI | _HI,  //
+					_LI | _LJ,  //
+					_LI | _HJ,  //
+					_HI | _LJ,  //
+					_HI | _HI,  //
 
-			_HK | _LJ,  //
-			_HK | _HI,  //
-			_HK | _HJ,  //
-			_HK | _LI  //
-			},
-			/* 001*/
-			{ _LJ, _HK, _HJ, _LK },
-			/* 010*/
-			{ _LK, _HI, _HK, _LI },
-			/* 011*/
-			{ 0 },
-			/* 100*/
-			{ _LI, _HJ, _HI, _LJ },
-			/* 101*/
-			{ 0 },
-			/* 110*/
-			{ 0 },
-			/* 111*/
-			{ _LI, _LJ, _LK, _HI, _HJ, _HK } },
-			// TO VOLUME
-			{
-			/* 000*/
-			{ _LI | _LJ | _LK,  //
-			_LI | _HJ | _LK,  //
-			_LI | _LJ | _HK,  //
-			_LI | _HJ | _HK,  //
+					_HK | _LJ,  //
+					_HK | _HI,  //
+					_HK | _HJ,  //
+					_HK | _LI  //
+					},
+					/* 001*/
+					{ _LJ, _HK, _HJ, _LK },
+					/* 010*/
+					{ _LK, _HI, _HK, _LI },
+					/* 011*/
+					{ 0 },
+					/* 100*/
+					{ _LI, _HJ, _HI, _LJ },
+					/* 101*/
+					{ 0 },
+					/* 110*/
+					{ 0 },
+					/* 111*/
+					{ _LI, _LJ, _LK, _HI, _HJ, _HK } },
+					// TO VOLUME
+					{
+					/* 000*/
+					{ _LI | _LJ | _LK,  //
+					_LI | _HJ | _LK,  //
+					_LI | _LJ | _HK,  //
+					_LI | _HJ | _HK,  //
 
-			_HI | _LJ | _LK,  //
-			_HI | _HJ | _LK,  //
-			_HI | _LJ | _HK,  //
-			_HI | _HJ | _HK  //
+					_HI | _LJ | _LK,  //
+					_HI | _HJ | _LK,  //
+					_HI | _LJ | _HK,  //
+					_HI | _HJ | _HK  //
 
-			},
-			/* 001*/
-			{ _LJ | _LK, _LJ | _HK, _HJ | _LK, _HJ | _HK },
-			/* 010*/
-			{ _LK | _LI, _LK | _HI, _HK | _LI, _HK | _HI },
-			/* 011*/
-			{ _LK, _HK },
-			/* 100*/
-			{ _LI | _LJ, _LI | _HJ, _HI | _LJ, _HI | _HJ },
-			/* 101*/
-			{ _LJ, _HJ },
-			/* 110*/
-			{ _LI, _HI },
-			/* 111*/
-			{ 0 } }
+					},
+					/* 001*/
+					{ _LJ | _LK, _LJ | _HK, _HJ | _LK, _HJ | _HK },
+					/* 010*/
+					{ _LK | _LI, _LK | _HI, _HK | _LI, _HK | _HI },
+					/* 011*/
+					{ _LK, _HK },
+					/* 100*/
+					{ _LI | _LJ, _LI | _HJ, _HI | _LJ, _HI | _HJ },
+					/* 101*/
+					{ _LJ, _HJ },
+					/* 110*/
+					{ _LI, _HI },
+					/* 111*/
+					{ 0 } }
 
-	};
+			};
 	template<size_t IFORM>
 	static int get_adjoints(id_type s, id_type * res = nullptr)
 	{
@@ -604,14 +601,14 @@ struct MeshIDs_
 		return m_vertics_num_[IFORM][id];
 	}
 	template<size_t IFORM>
-	static int get_adjoints(id_type s, coordinates_type * res = nullptr)
+	static int get_adjoints(id_type s, coordinate_tuple * res = nullptr)
 	{
 		int id = node_id(s);
 		if (res != nullptr)
 		{
 			for (int i = 0; i < m_vertics_num_[IFORM][id]; ++i)
 			{
-				res[i] = coordinates(s + m_vertics_matrix_[IFORM][id][i]);
+				res[i] = coordinate(s + m_vertics_matrix_[IFORM][id][i]);
 			}
 		}
 		return m_vertics_num_[IFORM][id];
@@ -634,7 +631,10 @@ struct MeshIDs_
 		typedef iterator const_iterator;
 
 		typedef range_type this_type;
-
+		range_type() :
+				m_min_(0), m_max_(0)
+		{
+		}
 		template<typename T0, typename T1>
 		range_type(T0 const & min, T1 const & max, int n_id = 0) :
 				m_min_(pack_index(min) | m_id_to_shift_[n_id]), m_max_(
@@ -715,6 +715,65 @@ struct MeshIDs_
 		{
 			return in_box(unpack_index(s));
 		}
+		/**
+		 *  The pixel is a primary two-dimensional cell. The pixel is
+		 *  topologically equivalent to the rectangle with additional
+		 *  geometric constraints. --VTK4th p.128
+		 *
+		 *  Direction = 0,1,2   the direction of normal vector of pixel
+		 * @param s is the center of pixel
+		 * @return two corner (min,max) of rectangle
+		 */
+
+		template<size_t Direction>
+		constexpr std::tuple<id_type, id_type> primary_line(id_type s) const
+		{
+			return std::make_tuple(
+
+			(s | OVERFLOW_FLAG) - (_D << (ID_DIGITS * Direction))),
+
+			s + (_D << (ID_DIGITS * Direction)
+
+			);
+		}
+		/**
+		 *  The pixel is a primary two-dimensional cell. The pixel is
+		 *  topologically equivalent to the rectangle with additional
+		 *  geometric constraints. --VTK4th p.128
+		 *
+		 *  NormalVector = 0,1,2   the direction of normal vector of pixel
+		 * @param s is the center of pixel
+		 * @return two corner (min,max) of rectangle
+		 */
+
+		template<size_t NormalVector>
+		constexpr std::tuple<id_type, id_type> pixel(id_type s) const
+		{
+			return std::make_tuple(
+
+			s | OVERFLOW_FLAG
+
+			- (_DA & (~(_D << (ID_DIGITS * NormalVector)))),
+
+			s +
+
+			(_DA & (~(_D << (ID_DIGITS * NormalVector))))
+
+			);
+		}
+
+		/**
+		 *  The voxel is a primary three-dimensional cell. The voxel is
+		 *  topologically equivalent to the hexahedron with additional
+		 *  geometric constraints. --VTK4th p.128
+		 * @param s is the center of voxel
+		 * @return two corner (min,max) of hexahedron
+		 */
+		constexpr std::tuple<id_type, id_type> voxel(id_type s) const
+		{
+			return std::make_tuple((s | OVERFLOW_FLAG - _DA), (s + _DA));
+		}
+
 		constexpr bool empty() const
 		{
 			return m_min_ == m_max_;
@@ -872,10 +931,10 @@ struct MeshIDs_
 		return
 
 		(UNPACK_INDEX(s,0)% UNPACK_INDEX(d, 0))+
-		(
-		(UNPACK_INDEX(s,1) % UNPACK_INDEX(d, 1)) +
-		(UNPACK_INDEX(s,2) % UNPACK_INDEX(d, 2)) * UNPACK_INDEX(d, 1)
-		)
+
+		( (UNPACK_INDEX(s,1) % UNPACK_INDEX(d, 1)) +
+
+		(UNPACK_INDEX(s,2) % UNPACK_INDEX(d, 2)) * UNPACK_INDEX(d, 1) )
 
 		* UNPACK_INDEX(d, 0);
 
@@ -887,24 +946,56 @@ struct MeshIDs_
 		* m_id_to_num_of_ele_in_cell_[sub_index_to_id<IFORM>(0)];
 	}
 
-	/**
-	 *   for cut-cell
-	 * @param s0
-	 * @param s1
-	 * @return
-	 */
-	static constexpr id_type out_code(id_type c,id_type s )
-	{
-		return out_code_(((c | FULL_OVERFLOW_FLAG)-s)&PRIMARY_ID_MASK);
-	}
-	static constexpr id_type out_code_(id_type c )
-	{
-		return (c&FULL_OVERFLOW_FLAG)
-		|(static_cast<id_type>((c & (OVERFLOW_FLAG-1UL))!=0UL)<<MESH_LEVEL)
-		|(static_cast<id_type>((c & ((OVERFLOW_FLAG-1UL)<<ID_DIGITS))!=0UL)<<(MESH_LEVEL+ID_DIGITS))
-		|(static_cast<id_type>((c & ((OVERFLOW_FLAG-1UL)<<(ID_DIGITS*2)))!=0UL)<<(MESH_LEVEL+ID_DIGITS*2))
-		;
-	}
+//	/**
+//	 *   for cut-cell
+//	 * @param s0
+//	 * @param s1
+//	 * @return
+//	 */
+//	static constexpr id_type out_code(id_type c,id_type s )
+//	{
+//		return out_code_(((c | FULL_OVERFLOW_FLAG)-s)&PRIMARY_ID_MASK);
+//	}
+//	static constexpr id_type out_code_(id_type c )
+//	{
+//		return
+//		((c>>(ID_DIGITS-1))&1UL)
+//		|((c>>(ID_DIGITS-3))&(4UL))
+//		|((c>>(ID_DIGITS*2-5))&16UL)
+//		|(static_cast<id_type>((c & (OVERFLOW_FLAG-1UL))!=0UL) )
+//		|(static_cast<id_type>((c & ((OVERFLOW_FLAG-1UL)<<ID_DIGITS))!=0UL)<<(2UL))
+//		|(static_cast<id_type>((c & ((OVERFLOW_FLAG-1UL)<<(ID_DIGITS*2)))!=0UL)<<(4UL))
+//		;
+//	}
+//
+//	/**
+//	 *
+//	 *
+//	 *
+//	 *  line intersection face
+//	 * @param x0
+//	 * @param x1
+//	 * @param res
+//	 * @param node_id id of cell
+//	 */
+//	template<typename TRes>
+//	static void cut_cell(coordinate_tuple const & x0,coordinate_tuple const & x1,
+//	TRes *res,id_type node_id=7 );
+//
+//	/**
+//	 *
+//	 */
+//	/**
+//	 * triangle intersection edge
+//	 * @param x0
+//	 * @param x1
+//	 * @param x2
+//	 * @param res
+//	 * @param node_id id of cell
+//	 */
+//	template<typename TRes>
+//	static void cut_cell(coordinate_tuple const & x0,coordinate_tuple const & x1,
+//	coordinate_tuple const & x2,TRes*res,id_type node_id=7 );
 
 }
 ;
@@ -923,6 +1014,7 @@ template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs
 
 template<size_t N, size_t M> constexpr Real MeshIDs_<N, M>::EPSILON;
 
+template<size_t N, size_t M> constexpr Real MeshIDs_<N, M>::_R;
 template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::FULL_DIGITS;
 template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::ID_DIGITS;
 template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::ID_MASK;
@@ -935,12 +1027,165 @@ template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs
 template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::m_id_to_iform_[];
 template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::m_sub_index_to_id_[4][3];
 template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::m_id_to_num_of_ele_in_cell_[];
-template<size_t N, size_t M> constexpr typename MeshIDs_<N,M >::coordinates_type MeshIDs_<N,M >::m_id_to_coordinates_shift_[ ];
+template<size_t N, size_t M> constexpr typename MeshIDs_<N,M >::coordinate_tuple MeshIDs_<N,M >::m_id_to_coordinates_shift_[ ];
 template<size_t N, size_t M> constexpr int MeshIDs_<N, M>::m_vertics_num_[4][8];
-template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M>::m_vertics_matrix_[4/* to iform*/][8/* node id*/][MAX_NUM_OF_CELL/*id shift*/];
+template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type
+MeshIDs_<N, M>::m_vertics_matrix_[4/* to iform*/][8/* node id*/][MAX_NUM_OF_CELL/*id shift*/];
 
 typedef MeshIDs_<3, 4> MeshIDs;
-
+//
+//template<size_t N, size_t M>
+//template<typename TRes>
+//void MeshIDs_<N, M>::cut_cell(coordinate_tuple const & pV0,
+//		coordinate_tuple const & pV1, TRes*res, id_type node_id)
+//{
+//
+//	coordinate_tuple V0 = pV0 - m_id_to_coordinates_shift_[node_id];
+//
+//	coordinate_tuple V1 = pV1 - m_id_to_coordinates_shift_[node_id];
+//
+//	Vec3 u = V1 - V0;
+//
+//	Real vmin = {  //
+//			min(V0[0], V1[0]), //
+//			min(V0[1], V1[1]), //
+//			min(V0[2], V1[2]) };
+//	Real vmax = {  //
+//			max(V0[0], V1[0]), //
+//			max(V0[1], V1[1]), //
+//			max(V0[2], V1[2]) };
+//
+//	id_type face_id[3] = { 6, 5, 3 };
+//
+//	for (int zaxe = 0; zaxe < 3; ++zaxe)
+//	{
+//		int xaxe = (zaxe + 1) % 3;
+//		int yaxe = (zaxe + 2) % 3;
+//
+//		if ((vmax[xaxe] - vmin[xaxe]) < EPSILON)
+//		{
+//			continue;
+//		}
+//
+//		Real xb = std::floor(vmin[xaxe] / (_R * 2)) * (_R * 2);
+//		Real xe = std::floor(vmax[xaxe] / (_R * 2) + 1.0) * (_R * 2);
+//
+//		for (Real x = xb; x < xe; x += (_R * 2))
+//		{
+//
+//			Real t = (x - V0[zaxe]) / u[zaxe];
+//
+//			if (t < 0 || t > 1)
+//			{
+//				continue;
+//			}
+//			coordinate_tuple y;
+//
+//			y = V0 + t * u;
+//
+//			id_type s = (pack(y) & PRIMARY_ID_MASK)
+//					| m_id_to_shift_[face_id[zaxe]];
+//
+//			res->insert(std::make_pair(s + m_id_to_shift_[node_id], t));
+//		}
+//
+//	};
+//}
+//
+//template<size_t N, size_t M> template<typename TRes>
+//void MeshIDs_<N, M>::cut_cell(coordinate_tuple const & pV0,
+//		coordinate_tuple const & pV1, coordinate_tuple const & pV2, TRes*res,
+//		id_type node_id)
+//{
+//
+//	coordinate_tuple V0 = pV0 - m_id_to_coordinates_shift_[node_id];
+//	coordinate_tuple V1 = pV1 - m_id_to_coordinates_shift_[node_id];
+//	coordinate_tuple V2 = pV2 - m_id_to_coordinates_shift_[node_id];
+//
+//	id_type edge_id[3] = { 1, 2, 4 };
+//
+//	Vec3 u = V1 - V0;
+//	Vec3 v = V2 - V0;
+//
+//	Vec3 n = cross(u, v);
+//
+//	Real vv = inner_product(v, v);
+//	Real uu = inner_product(u, u);
+//	Real uv = inner_product(u, v);
+//	Real uvuv = uv * uv - uu * vv;
+//
+//	Real vmin = {  //
+//			min(V0[0], V1[0], V2[0]), //
+//			min(V0[1], V1[1], V2[1]), //
+//			min(V0[2], V1[2], V2[2]) };
+//	Real vmax = {  //
+//			max(V0[0], V1[0], V2[0]), //
+//			max(V0[1], V1[1], V2[1]), //
+//			max(V0[2], V1[2], V2[2]) };
+//
+//	for (int zaxe = 0; zaxe < 3; ++zaxe)
+//	{
+//		int xaxe = (zaxe + 1) % 3;
+//		int yaxe = (zaxe + 2) % 3;
+//
+//		if ((vmax[xaxe] - vmin[xaxe]) < EPSILON
+//				|| (vmax[yaxe] - vmin[yaxe]) < EPSILON)
+//		{
+//			continue;
+//		}
+//
+//		Real xb = std::floor(vmin[xaxe] / (_R * 2)) * (_R * 2);
+//		Real xe = std::floor(vmax[xaxe] / (_R * 2) + 1.0) * (_R * 2);
+//
+//		Real yb = std::floor(vmin[yaxe] / (_R * 2)) * (_R * 2);
+//		Real ye = std::floor(vmax[yaxe] / (_R * 2) + 1.0) * (_R * 2);
+//
+//		for (Real x = xb; x < xe; x += (_R * 2))
+//			for (Real y = yb; y < ye; y += (_R * 2))
+//			{
+/////     Theorem:http://geomalgorithms.com/a06-_intersect-2.html
+/////				coordinate_tuple P0, P1;
+/////				P0[xaxe] = x;
+/////				P0[yaxe] = y;
+/////				P0[zaxe] = 0;
+/////				P1[xaxe] = x;
+/////				P1[yaxe] = y;
+/////				P1[zaxe] = 1;
+/////
+/////				Real r = inner_product(n, V0 - P0) / inner_product(n, P1 - P0);
+/////
+/////				Vec3 w = P0 - V0 +  (P1 - P0)*inner_product(n, V0 - P0) / inner_product(n, P1 - P0);
+//
+//				Vec3 w;
+//
+//				w[xaxe] = x - V0[xaxe];
+//				w[yaxe] = y - V0[yaxe];
+//				w[zaxe] = 0 - V0[zaxe]
+//						- (n[xaxe] * (x - V0[xaxe]) + n[yaxe] * (y - V0[yaxe])
+//								+ n[yaxe] * (0 - V0[zaxe])) / n[zaxe];
+//
+//				Real s = (inner_product(w, v) * uv - inner_product(w, u) * vv)
+//						/ uvuv;
+//
+//				Real t = (inner_product(w, u) * uv - inner_product(w, v) * uu)
+//						/ uvuv;
+//
+//				if (s < 0 || t < 0 || s + t > 1)
+//				{
+//					continue;
+//				}
+//
+//				id_type p = ((pack(V0 + s * u + t * v) & PRIMARY_ID_MASK)
+//						| m_id_to_shift_[edge_id[zaxe]]);
+//
+//				res->insert(
+//						std::make_pair(p + m_id_to_shift_[node_id],
+//								std::make_tuple(u, v)));
+//
+//			}
+//
+//	};
+//}
 }
 // namespace simpla
 

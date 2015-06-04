@@ -5,7 +5,7 @@
  *      Author: salmon
  */
 
-#include "../geometry/geqdsk.h"
+#include "geqdsk.h"
 
 #include <fstream>
 #include <iomanip>
@@ -115,27 +115,21 @@ void GEqdsk::load(std::string const &fname)
 	inFileStream_ >> std::setw(16) >> rzbbb;
 	inFileStream_ >> std::setw(16) >> rzlim;
 
-//	m_rzbbb_.resize(nbbbs);
-//	m_rzlim_.resize(limitr);
+	m_rzbbb_.resize(nbbbs);
+	m_rzlim_.resize(limitr);
 
 	for (size_t s = 0; s < nbbbs; ++s)
 	{
-		coordinate_tuple x;
-		x[RAxis] = rzbbb[s][0];
-		x[ZAxis] = rzbbb[s][1];
-		x[PhiAxis] = 0;
-		append(m_rzbbb_, x);
-
+		m_rzbbb_[s][RAxis] = rzbbb[s][0];
+		m_rzbbb_[s][ZAxis] = rzbbb[s][1];
+		m_rzbbb_[s][PhiAxis] = 0;
 	}
 
 	for (size_t s = 0; s < limitr; ++s)
 	{
-		coordinate_tuple x;
-		x[RAxis] = rzlim[s][0];
-		x[ZAxis] = rzlim[s][1];
-		x[PhiAxis] = 0;
-		append(m_rzlim_, x);
-
+		m_rzlim_[s][RAxis] = rzlim[s][0];
+		m_rzlim_[s][ZAxis] = rzlim[s][1];
+		m_rzlim_[s][PhiAxis] = 0;
 	}
 	load_profile(fname + "_profiles.txt");
 
@@ -322,7 +316,7 @@ std::ostream & GEqdsk::print(std::ostream & os)
 	return os;
 }
 
-bool GEqdsk::flux_surface(double psi_j, size_t M, coordinate_tuple*res,
+bool GEqdsk::flux_surface(double psi_j, size_t M, coordinates_type*res,
 		size_t ToPhiAxis, double resolution)
 {
 	bool success = true;
@@ -382,8 +376,9 @@ bool GEqdsk::flux_surface(double psi_j, size_t M, coordinate_tuple*res,
 
 }
 
-bool GEqdsk::map_to_flux_coordiantes(std::vector<coordinate_tuple> const&surface,
-		std::vector<coordinate_tuple> *res,
+bool GEqdsk::map_to_flux_coordiantes(
+		std::vector<coordinates_type> const&surface,
+		std::vector<coordinates_type> *res,
 		std::function<double(double, double)> const & h, size_t PhiAxis)
 {
 	bool success = false;
