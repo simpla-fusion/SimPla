@@ -17,7 +17,7 @@ namespace geometry
 namespace tags
 {
 struct is_structed;
-struct is_closured;
+struct is_closed;
 struct is_clockwise;
 struct is_unordered;
 }  // namespace tags
@@ -27,46 +27,85 @@ namespace model
 
 template<typename ...> struct Chains;
 
-template<typename TPrimitive, typename TMesh, typename TContainer,
-		typename ...Polycies>
-struct Chains<TPrimitive, TMesh, TContainer, Polycies...> : public TContainer
-//public std::vector<
-//		nTuple<typename TMesh::id_type,
-//				traits::template number_of_vertices<
-//						Primitive<Dimension, Others...> >::value>>
-
+template<typename TPrimitive, typename ... Policies>
+struct Chains<TPrimitive, Policies...>
 {
 	typedef TPrimitive primitive_type;
-	typedef TContainer container_type;
 
-	static constexpr size_t number_of_vertices =
-			traits::template number_of_vertices<primitive_type>::value;
+	typedef typename traits::coordinate_system<primitive_type>::type coordinate_system;
 
-	typedef typename TMesh::id_type point_id_type;
+	typedef typename traits::tag<primitive_type>::type tag_type;
 
-	typedef typename TMesh::coordinates_type point_type;
+	typedef typename traits::point_type<coordinate_system>::type point_type;
 
-	std::shared_ptr<TMesh> m_mesh_;
+	static constexpr size_t max_number_of_points = traits::number_of_points<
+			primitive_type>::value;
 
-	primitive_type operator[](
-			typename simpla::traits::key_type<container_type>::type const & n) const
+	static constexpr size_t dimension = traits::dimension<primitive_type>::value;
+
+	typedef Chains<Primitive<dimension - 1, coordinate_system, tag_type>,
+			Policies...> boundary_type;
+
+	typedef size_t id_type;
+
+	typedef nTuple<id_type, max_number_of_points> indices_tuple;
+
+	typedef std::map<id_type, indices_tuple> data_type;
+
+	data_type & data()
 	{
-		primitive_type res;
-		for (int i = 0; i < number_of_vertices; ++i)
-		{
-			res[i] = m_mesh_.coordinates(container_type::operator[](n)[i]);
-		}
-		return std::move(res);
+		return m_data_;
 	}
-	using container_type::emplace_back;
-	using container_type::push_back;
-	using container_type::clear;
-	using container_type::size;
-	using container_type::begin;
-	using container_type::end;
+	data_type const& data() const
+	{
+		return m_data_;
+	}
+	boundary_type boundary() const;
+
+private:
+	data_type m_data_;
+
 };
 
-
+template<typename CS, typename ... Policies>
+struct Chains<Primitive<1, CS, tags::simplex>, Policies...> : public std::vector<
+		Point<CS>>
+{
+//	typedef Primitive<1, CS, tags::simplex> primitive_type;
+//
+//	typedef typename traits::coordinate_system<primitive_type>::type coordinate_system;
+//
+//	typedef typename traits::tag<primitive_type>::type tag_type;
+//
+//	typedef typename traits::point_type<coordinate_system>::type point_type;
+//
+//	static constexpr size_t max_number_of_points = traits::number_of_points<
+//			primitive_type>::value;
+//
+//	static constexpr size_t dimension = traits::dimension<primitive_type>::value;
+//
+//	typedef Chains<Primitive<dimension - 1, coordinate_system, tag_type>,
+//			Policies...> boundary_type;
+//
+//	typedef size_t id_type;
+//
+//	typedef nTuple<id_type, max_number_of_points> indices_tuple;
+//
+//	typedef std::map<id_type, indices_tuple> data_type;
+//
+//	data_type & data()
+//	{
+//		return m_data_;
+//	}
+//	data_type const& data() const
+//	{
+//		return m_data_;
+//	}
+//	boundary_type boundary() const;
+//
+//private:
+//	data_type m_data_;
+};
 
 }  // namespace model
 namespace traits
@@ -120,10 +159,7 @@ template<typename PrimitiveType, typename ...Others>
 struct closure<model::Chains<PrimitiveType, Others...>>
 {
 	static constexpr int value =
-			find_type_in_list<tags::is_closured, Others...>::value ?
-					1 :
-					(find_type_in_list<tags::is_unordered, Others...>::value ?
-							0 : -1);
+			find_type_in_list<tags::is_closed, Others...>::value ? 1 : 0;
 };
 }  // namespace traits
 

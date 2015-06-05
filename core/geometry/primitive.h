@@ -33,9 +33,11 @@ namespace traits
 
 template<typename > struct coordinate_system;
 template<typename > struct dimension;
+template<typename > struct tag;
+
 template<typename > struct point_type;
 template<typename > struct value_type;
-template<typename > struct number_of_vertices;
+template<typename > struct number_of_points;
 
 template<typename > struct is_chains;
 template<typename > struct is_primitive;
@@ -74,12 +76,10 @@ template<size_t Dimension, typename ...> struct Primitive;
 template<typename CoordinateSystem, typename Tag>
 struct Primitive<0, CoordinateSystem, Tag>
 {
-	typedef typename simpla::geometry::coordinate_system::traits::coordinate_type<
-			CoordinateSystem>::type value_type;
+	typedef typename simpla::geometry::traits::coordinate_type<CoordinateSystem>::type value_type;
 
-	static const size_t ndims =
-			simpla::geometry::coordinate_system::traits::dimension<
-					CoordinateSystem>::value;
+	static const size_t ndims = simpla::geometry::traits::dimension<
+			CoordinateSystem>::value;
 
 	DEF_NTUPLE_OBJECT(CoordinateSystem,value_type,ndims);
 };
@@ -95,12 +95,10 @@ using Point= Primitive<0, CoordinateSystem, tags::simplex>;
 template<typename CoordinateSystem>
 struct Vector
 {
-	typedef typename simpla::geometry::coordinate_system::traits::coordinate_type<
-			CoordinateSystem>::type value_type;
+	typedef typename simpla::geometry::traits::coordinate_type<CoordinateSystem>::type value_type;
 
-	static const size_t ndims =
-			simpla::geometry::coordinate_system::traits::dimension<
-					CoordinateSystem>::value;
+	static const size_t ndims = simpla::geometry::traits::dimension<
+			CoordinateSystem>::value;
 
 	DEF_NTUPLE_OBJECT(CoordinateSystem, value_type, ndims);
 
@@ -113,12 +111,10 @@ struct Vector
 template<typename CoordinateSystem>
 struct CoVector
 {
-	typedef typename simpla::geometry::coordinate_system::traits::coordinate_type<
-			CoordinateSystem>::type value_type;
+	typedef typename simpla::geometry::traits::coordinate_type<CoordinateSystem>::type value_type;
 
-	static const size_t ndims =
-			simpla::geometry::coordinate_system::traits::dimension<
-					CoordinateSystem>::value;
+	static const size_t ndims = simpla::geometry::traits::dimension<
+			CoordinateSystem>::value;
 
 	DEF_NTUPLE_OBJECT(CoordinateSystem,value_type,ndims);
 };
@@ -151,22 +147,22 @@ struct Tensor
 	DECL_RET_TYPE (m_data_[M])
 };
 
-template<typename CoordinateSystem>
-struct Primitive<3, CoordinateSystem, tags::box>
-{
-	typedef Primitive<3, CoordinateSystem, tags::box> this_type;
-	typedef Primitive<0, CoordinateSystem, tags::simplex> point_type;DEF_NTUPLE_OBJECT(CoordinateSystem,point_type,2);
-};
-template<typename CoordinateSystem>
-using Box = Primitive< 3,CoordinateSystem, tags::box >;
+//template<typename CoordinateSystem>
+//struct Primitive<3, CoordinateSystem, tags::box>
+//{
+//	typedef Primitive<3, CoordinateSystem, tags::box> this_type;
+//	typedef Primitive<0, CoordinateSystem, tags::simplex> point_type;DEF_NTUPLE_OBJECT(CoordinateSystem,point_type,2);
+//};
+//template<typename CoordinateSystem>
+//using Box = Primitive< 3,CoordinateSystem, tags::box >;
 
 template<size_t Dimension, typename CoordinateSystem, typename Tag>
 struct Primitive<Dimension, CoordinateSystem, Tag>
 {
 	typedef Primitive<Dimension, CoordinateSystem, Tag> this_type;
 	typedef typename traits::point_type<this_type>::type vertex_type;
-	static constexpr size_t num_of_vertices = traits::number_of_vertices<
-			this_type>::value;
+	static constexpr size_t num_of_vertices =
+			traits::number_of_points<this_type>::value;
 
 	DEF_NTUPLE_OBJECT(CoordinateSystem,vertex_type,num_of_vertices);
 };
@@ -177,8 +173,21 @@ OS &operator<<(OS & os, Primitive<Dimension, CoordinateSystem, Tag> const & geo)
 	os << geo.ntuple();
 	return os;
 }
+
+template<typename CS>
+struct Box
+{
+	DEF_NTUPLE_OBJECT(CoordinateSystem, Point<CS> , 2);
+};
+template<typename OS, typename CoordinateSystem>
+OS &operator<<(OS & os, Box<CoordinateSystem> const & geo)
+{
+	os << geo.ntuple();
+	return os;
+}
 #undef DEF_NTUPLE_OBJECT
-}  // namespace model
+}
+// namespace model
 
 namespace traits
 {
@@ -200,12 +209,23 @@ struct coordinate_system<model::Primitive<Dimension, CoordinateSystem, Tag>>
 {
 	typedef CoordinateSystem type;
 };
-
+template<typename CoordinateSystem>
+struct coordinate_system<model::Box<CoordinateSystem>>
+{
+	typedef CoordinateSystem type;
+};
 template<size_t Dimension, typename CoordinateSystem, typename Tag>
 struct dimension<model::Primitive<Dimension, CoordinateSystem, Tag>>
 {
 	static constexpr size_t value = Dimension;
 };
+
+template<size_t Dimension, typename CoordinateSystem, typename Tag>
+struct tag<model::Primitive<Dimension, CoordinateSystem, Tag>>
+{
+	typedef Tag type;
+};
+
 template<size_t Dimension, typename CoordinateSystem, typename Tag>
 struct point_type<model::Primitive<Dimension, CoordinateSystem, Tag>>
 {
@@ -220,19 +240,18 @@ struct value_type<model::Primitive<Dimension, CoordinateSystem, Tag>>
 	typedef decltype(std::declval<geo>()[0]) type;
 };
 template<typename CoordinateSystem, typename Tag>
-struct number_of_vertices<model::Primitive<0, CoordinateSystem, Tag>>
+struct number_of_points<model::Primitive<0, CoordinateSystem, Tag>>
 {
 	static constexpr size_t value = 1;
 };
 template<typename CoordinateSystem, size_t Dimension>
-struct number_of_vertices<
-		model::Primitive<Dimension, CoordinateSystem, tags::box>>
+struct number_of_points<model::Primitive<Dimension, CoordinateSystem, tags::box>>
 {
 	static constexpr size_t value = 2;
 };
 
 template<size_t Dimension, typename CoordinateSystem, typename Tag>
-struct number_of_vertices<model::Primitive<Dimension, CoordinateSystem, Tag>>
+struct number_of_points<model::Primitive<Dimension, CoordinateSystem, Tag>>
 {
 
 	static constexpr size_t value =
@@ -242,7 +261,7 @@ struct number_of_vertices<model::Primitive<Dimension, CoordinateSystem, Tag>>
 					:
 					(std::is_same<tags::cube, Tag>::value ?
 							(2
-									* number_of_vertices<
+									* number_of_points<
 											model::Primitive<Dimension - 1,
 													CoordinateSystem, Tag>>::value)
 

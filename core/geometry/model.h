@@ -21,13 +21,12 @@ namespace model
 
 template<typename CoordinateSystem>
 using Point= Primitive<0, CoordinateSystem, tags::simplex>;
-template<typename CoordinateSystem>
-using Box = Primitive< 3,CoordinateSystem, tags::box >;
+
 //template<typename CoordinateSystem>
 //using Point = Primitive< 0,CoordinateSystem, tags::simplex>;
 
 template<typename CoordinateSystem>
-using Line = Primitive< 1,CoordinateSystem, tags::simplex >;
+using LineSegment = Primitive< 1,CoordinateSystem, tags::simplex >;
 
 template<typename CoordinateSystem>
 using Triangle = Primitive< 2,CoordinateSystem, tags::simplex >;
@@ -39,10 +38,16 @@ template<typename CoordinateSystem>
 using Rectangle = Primitive< 2,CoordinateSystem, tags::cube >;
 
 template<typename CoordinateSystem>
-using Cube = Primitive< 3,CoordinateSystem, tags::cube >;
+using Hexahedron = Primitive< 3,CoordinateSystem, tags::cube >;
 /**
- * @brief Curve
- *  topological 1-dimensional geometric primitive (4.15), representing
+ * @brief Polyline a 'polygonal chain' is a connected series of 'line segments'.
+ *  More formally, a 'polygonal chain' $P$ is a curve specified by a
+ *  sequence of points $\scriptstyle(A_1, A_2, \dots, A_n)$ called its
+ *  'vertices'. The curve itself consists of the 'line segments' connecting
+ *  the consecutive vertices. A 'polygonal chain' may also be called a
+ *  'polygonal curve', 'polygonal path', 'polyline',or 'piecewise linear curve'.
+ *
+ * Curve topological 1-dimensional geometric primitive (4.15), representing
  *   the continuous image of a line
  *  @note The boundary of a curve is the set of points at either end of the curve.
  * If the curve is a cycle, the two ends are identical, and the curve
@@ -52,8 +57,57 @@ using Cube = Primitive< 3,CoordinateSystem, tags::cube >;
  *  image of a line” clause. A topological theorem states that a
  *  continuous image of a connected set is connected.
  */
-template<typename CS, typename TAG, typename ...Others>
-using Curve=Chains<Primitive<1, CS,TAG>, Others ...>;
+template<typename CS, typename ...Others>
+using Polyline=Chains<Primitive<1,CS,tags::simplex>,Others...>;
+
+/**
+ *   @brief Polygon In geometry, a polygon  is traditionally a plane
+ *   figure that is bounded by a closed 'polyline'. These segments
+ *    are called its edges or sides, and the points where two edges meet are the polygon's vertices (singular: vertex) or corners.
+ */
+template<typename CS>
+struct Polygon
+{
+	typedef Point<CS> point_type;
+
+	typedef Polyline<CS, tags::is_closed> ring_type;
+
+	typedef std::vector<ring_type> inner_container_type;
+
+	inline ring_type const& outer() const
+	{
+		return m_outer_;
+	}
+
+	inline ring_type& outer()
+	{
+		return m_outer_;
+	}
+	inline inner_container_type const& inners() const
+	{
+		return m_inners_;
+	}
+	inline inner_container_type & inners()
+	{
+		return m_inners_;
+	}
+
+	/// Utility method, clears outer and inner rings
+	inline void clear()
+	{
+		m_outer_.clear();
+		m_inners_.clear();
+	}
+private:
+	ring_type m_outer_;
+	inner_container_type m_inners_;
+};
+template<typename OS, typename CS>
+OS & operator<<(OS & os, Polygon<CS> const & poly)
+{
+	os << poly.outer();
+	return os;
+}
 
 /**
  * @brief Surface
@@ -64,7 +118,16 @@ using Curve=Chains<Primitive<1, CS,TAG>, Others ...>;
  *
  */
 template<typename CS, typename TAG, typename ...Others>
-using Surface=Chains<Primitive<2, CS,TAG>, Others ...>;
+struct Surface
+{
+	typedef typename traits::point_type<CS>::type point_type;
+	typedef Primitive<2, CS, TAG> primitive_type;
+
+	static constexpr size_t max_num_of_points = traits::number_of_points<
+			primitive_type>::value;
+	typedef Polyline<CS, tags::is_closed> ring_type;
+
+};
 
 /**
  * @brief Solids
@@ -72,50 +135,18 @@ using Surface=Chains<Primitive<2, CS,TAG>, Others ...>;
 template<typename CS, typename TAG, typename ...Others>
 using Solids=Chains<Primitive<3, CS,TAG>, Others ...>;
 
-template<size_t N, typename CS, typename TAG, typename ...Others>
-class expPolygon
+}
+// namespace model
+
+namespace traits
 {
 
-public:
-
-	// Member types
-	typedef Primitive<0, CS, TAG> point_type;
-	typedef Chains<Primitive<N, CS, TAG>, Others ...> ring_type;
-	typedef std::list<ring_type> inner_container_type;
-
-	inline ring_type const& outer() const
-	{
-		return m_outer;
-	}
-	inline inner_container_type const& inners() const
-	{
-		return m_inners;
-	}
-
-	inline ring_type& outer()
-	{
-		return m_outer;
-	}
-	inline inner_container_type & inners()
-	{
-		return m_inners;
-	}
-
-	/// Utility method, clears outer and inner rings
-	inline void clear()
-	{
-		m_outer.clear();
-		m_inners.clear();
-	}
-
-private:
-
-	ring_type m_outer;
-	inner_container_type m_inners;
+template<typename CS>
+struct coordinate_system<model::Polygon<CS> >
+{
+	typedef CS type;
 };
-
-}  // namespace model
-
+}  // namespace traits
 }  // namespace geometry
 
 }  // namespace simpla

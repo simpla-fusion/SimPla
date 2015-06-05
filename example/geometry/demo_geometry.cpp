@@ -36,29 +36,36 @@ using namespace simpla;
 using namespace simpla::geometry;
 int main(int argc, char **argv)
 {
-	typedef typename coordinate_system::Cartesian<2> cs;
+	typedef typename coordinate_system::Cartesian<3> cs;
 
 	model::Polygon<cs> poly;
 
-	append(poly, model::Point<cs> { 1.0, 2.0 });
-	append(poly, model::Point<cs> { 6.0, 4.0 });
-	append(poly, model::Point<cs> { 5.0, 1.0 });
-	append(poly, model::Point<cs> { 1.0, 2.0 });
+	append(poly, model::Point<cs> { 1.0, 2.0, 0.0 });
+	append(poly, model::Point<cs> { 6.0, 4.0, 0.0 });
+	append(poly, model::Point<cs> { 5.0, 1.0, 0.0 });
+	append(poly, model::Point<cs> { 1.0, 2.0, 0.0 });
 
-	model::Point<cs> x0 = { 1.5, 1.5 };
+	model::Point<cs> x0 = { 1.5, 1.5, 0.0 };
 
 	std::cout << "Area: " << area(poly) << std::endl;
 
 	std::cout << "Contains " << (x0) << std::endl;
 	std::cout << "Within " << std::boolalpha << within(x0, poly) << std::endl;
 
-	std::cout << dsv(poly) << std::endl;
+	std::cout << poly << std::endl;
 
-	model::Line<cs> line( { 1.0, 2.0, 6.0, 4.0 });
+	model::LineSegment<cs> line( { 1.0, 2.0, 6.0, 4.0, 6.0, 4.0 });
 	std::cout << "Line " << line << std::endl;
-	model::Box<cs> box( { 1.0, 2.0, 6.0, 4.0 });
+	model::Box<cs> box( { 1.0, 2.0, 6.0, 4.0, 6.0, 4.0 });
 	std::cout << "Box " << box << std::endl;
 
+	std::list<model::Polygon<cs>> res;
+	intersection(box, poly, res);
+
+//	for (auto const & item : res)
+//	{
+//		std::cout << "Res Polygon" << item << std::endl;
+//	}
 }
 
 //

@@ -14,30 +14,132 @@
 #include "primitive.h"
 #include "chains.h"
 #include "model.h"
-
+#include "coordinate_system.h"
 namespace simpla
 {
 namespace geometry
 {
-namespace model
-{
+namespace bg = boost::geometry;
 
-template<typename CS>
-using Polygon = boost::geometry::model::polygon<Primitive<0,CS, tags::simplex>>;
-
-}  // namespace model
 using boost::geometry::append;
-using boost::geometry::intersection;
-using boost::geometry::intersects;
+
 using boost::geometry::within;
 using boost::geometry::disjoint;
-using boost::geometry::dsv;
 
 using boost::geometry::distance;
-using boost::geometry::area;
 using boost::geometry::length;
 using boost::geometry::perimeter;
 
+template<typename TGeo, typename ...Others> typename std::enable_if<
+		traits::dimension<typename traits::coordinate_system<TGeo>::type>::value
+				== 2, bool>::type intersection(TGeo const & geo,
+		Others &&...others)
+{
+	boost::geometry::intersection(geo, std::forward<Others>(others)...);
+}
+
+template<typename TGeo, typename ...Others> typename std::enable_if<
+		traits::dimension<typename traits::coordinate_system<TGeo>::type>::value
+				!= 2, bool>::type intersection(TGeo const & geo,
+		Others &&...others)
+{
+	return false;
+}
+
+template<typename TGeo, typename ...Others> typename std::enable_if<
+		traits::dimension<typename traits::coordinate_system<TGeo>::type>::value
+				== 2, bool>::type intersects(TGeo const & geo,
+		Others &&...others)
+{
+	boost::geometry::intersection(geo, std::forward<Others>(others)...);
+}
+
+template<typename TGeo, typename ...Others> typename std::enable_if<
+		traits::dimension<typename traits::coordinate_system<TGeo>::type>::value
+				!= 2, bool>::type intersects(TGeo const & geo,
+		Others &&...others)
+{
+	return false;
+}
+
+namespace detail
+{
+
+template<typename CS>
+model::Point<CS> cross_product(const model::Point<CS>& p1,
+		const model::Point<CS>& p2)
+{
+	double x = bg::get<0>(p1);
+	double y = bg::get<1>(p1);
+	double z = bg::get<2>(p1);
+	double u = bg::get<0>(p2);
+	double v = bg::get<1>(p2);
+	double w = bg::get<2>(p2);
+	return model::Point<CS>( { y * w - z * v, z * u - x * w, x * v - y * u });
+}
+template<typename CS>
+model::Point<CS> cross_product(const bg::model::segment<model::Point<CS>>& p1,
+		const bg::model::segment<model::Point<CS>>& p2)
+{
+	model::Point<CS> v1(p1.second);
+	model::Point<CS> v2(p2.second);
+	bg::subtract_point(v1, p1.first);
+	bg::subtract_point(v2, p2.first);
+
+	return cross_product(v1, v2);
+}
+
+template<typename CS>
+auto area(model::Polyline<CS, tags::is_closed> const & polygon)
+->decltype(std::declval<typename traits::coordinate_type<CS>::type>()*
+		std::declval<typename traits::coordinate_type<CS>::type>())
+{
+	if (polygon.size() < 3)
+		return 0;
+	bg::model::segment<model::Point<CS>> v1(polygon[1], polygon[0]);
+	bg::model::segment<model::Point<CS>> v2(polygon[2], polygon[0]);
+	// Compute the cross product for the first pair of points, to handle
+	// shapes that are not convex.
+	model::Point<CS> n1 = cross_product(v1, v2);
+	double normSquared = bg::dot_product(n1, n1);
+	if (normSquared > 0)
+	{
+		bg::multiply_value(n1, 1.0 / std::sqrt(normSquared));
+	}
+	// sum signed areas of triangles
+	double result = 0.0;
+	for (size_t i = 1; i < polygon.size(); ++i)
+	{
+		bg::model::segment<model::Point<CS> > v1(polygon[0], polygon[i - 1]);
+		bg::model::segment<model::Point<CS> > v2(polygon[0], polygon[i]);
+
+		result += bg::dot_product(cross_product(v1, v2), n1);
+	}
+	result *= 0.5;
+	return (result);
+}
+}  // namespace detail
+
+template<typename CS> auto area(
+		model::Polygon<CS> const & geo)->typename std::enable_if<
+		traits::dimension<CS>::value == 2, Real>::type
+{
+	boost::geometry::area(geo);
+}
+
+template<typename CS> auto area(
+		model::Polygon<CS> const & geo)->typename std::enable_if<
+		traits::dimension<CS>::value != 2, Real>::type
+{
+	Real res = detail::area(geo.outer());
+	for (auto const & r : geo.inners())
+	{
+		res -= detail::area(r);
+	}
+
+	return res;
+
+}
 }  // namespace geometry
 }  // namespace simpla
 
@@ -60,13 +162,13 @@ struct tag<sgm::Primitive<0, CS, TAG> >
 template<size_t N, typename CS, typename TAG>
 struct coordinate_type<sgm::Primitive<N, CS, TAG> >
 {
-	typedef typename sgcs::traits::coordinate_type<CS>::type type;
+	typedef typename sg::traits::coordinate_type<CS>::type type;
 
 };
 
 template<size_t N, typename CS, typename TAG>
 struct dimension<sgm::Primitive<N, CS, TAG>> : boost::mpl::int_<
-		sgcs::traits::dimension<CS>::value>
+		sg::traits::dimension<CS>::value>
 {
 };
 template<size_t N, typename CS, typename TAG, std::size_t M>
@@ -146,7 +248,7 @@ struct point_type<sgm::Primitive<1, CS, sg::tags::simplex> >
 //struct indexed_access<sgm::Primitive<1, CS, sg::tags::simplex>, 0, Dimension>
 //{
 //	typedef sgm::Primitive<1, CS, sg::tags::simplex> segment_type;
-//	typedef typename sgcs::traits::coordinate_type<CS>::type coordinate_type;
+//	typedef typename sg::traits::coordinate_type<CS>::type coordinate_type;
 //
 //	static inline coordinate_type get(segment_type const& s)
 //	{
@@ -163,7 +265,7 @@ struct point_type<sgm::Primitive<1, CS, sg::tags::simplex> >
 //struct indexed_access<sgm::Primitive<1, CS, sg::tags::simplex>, 1, Dimension>
 //{
 //	typedef sgm::Primitive<1, CS, sg::tags::simplex> segment_type;
-//	typedef typename sgcs::traits::coordinate_type<CS>::type coordinate_type;
+//	typedef typename sg::traits::coordinate_type<CS>::type coordinate_type;
 //
 //	static inline coordinate_type get(segment_type const& s)
 //	{
@@ -175,119 +277,99 @@ struct point_type<sgm::Primitive<1, CS, sg::tags::simplex> >
 //		geometry::set<Dimension>(std::get<1>(s), value);
 //	}
 //};
+
 //*******************************************************************
 // Box
 
-template<size_t N, typename CS>
-struct tag<sgm::Primitive<N, CS, sg::tags::box>>
+template<typename CS>
+struct tag<sgm::Box<CS>>
 {
 	typedef box_tag type;
 };
 
-template<size_t N, typename CS>
-struct point_type<sgm::Primitive<N, CS, sg::tags::box>>
+template<typename CS>
+struct point_type<sgm::Box<CS>>
 {
-	typedef typename sg::traits::point_type<sgm::Primitive<N, CS, sg::tags::box>>::type type;
+	typedef sgm::Point<CS> type;
 };
 
-template<size_t N, typename CS, std::size_t Dimension>
-struct indexed_access<sgm::Primitive<N, CS, sg::tags::box>, min_corner,
-		Dimension>
+template<typename CS, size_t I, size_t Dimension>
+struct indexed_access<sgm::Box<CS>, I, Dimension>
 {
-	typedef typename geometry::coordinate_type<CS>::type coordinate_type;
 
-	static inline coordinate_type get(
-			sgm::Primitive<N, CS, sg::tags::box> const& b)
+	static inline auto get(sgm::Box<CS> const& b)
+	DECL_RET_TYPE(geometry::get<Dimension>(b[I]))
+
+	template<typename T>
+	static inline void set(sgm::Box<CS>& b, T const& value)
 	{
-		return geometry::get<Dimension>(std::get<0>(b));
-	}
-
-	static inline void set(sgm::Primitive<N, CS, sg::tags::box>& b,
-			coordinate_type const& value)
-	{
-		geometry::set<Dimension>(std::get<0>(b), value);
-	}
-};
-
-template<size_t N, typename CS, std::size_t Dimension>
-struct indexed_access<sgm::Primitive<N, CS, sg::tags::box>, max_corner,
-		Dimension>
-{
-	typedef typename geometry::coordinate_type<CS>::type coordinate_type;
-
-	static inline coordinate_type get(
-			sgm::Primitive<N, CS, sg::tags::box> const& b)
-	{
-		return geometry::get<Dimension>(std::get<1>(b));
-	}
-
-	static inline void set(sgm::Primitive<N, CS, sg::tags::box>& b,
-			coordinate_type const& value)
-	{
-		geometry::set<Dimension>(std::get<1>(b), value);
+		geometry::set<Dimension>(b[I], value);
 	}
 };
 //********************************************************************
 // ring
 
-template<size_t N, typename CS, typename TAG, typename ...Others>
-struct tag<sgm::Chains<sgm::Primitive<N, CS, TAG>, Others ...> >
+template<typename CS, typename ...Others>
+struct tag<sgm::Polyline<CS, Others ...> >
 {
 	typedef ring_tag type;
 };
 
-template<size_t N, typename CS, typename TAG, typename ...Others>
-struct point_order<sgm::Chains<sgm::Primitive<N, CS, TAG>, Others ...> >
+template<typename CS, typename ...Others>
+struct point_order<sgm::Polyline<CS, Others ...> >
 {
-	static const order_selector value = simpla::geometry::traits::point_order<
-			sgm::Chains<sgm::Primitive<N, CS, TAG>, Others ...>>::value;
-	;
+	static const order_selector value =
+			boost::geometry::order_selector::clockwise;
 };
 
-template<size_t N, typename CS, typename TAG, typename ...Others>
-struct closure<sgm::Chains<sgm::Primitive<N, CS, TAG>, Others ...> >
+template<typename CS, typename ...Others>
+struct closure<sgm::Polyline<CS, Others ...> >
 {
-	static const closure_selector value = sg::traits::closure<
-			sgm::Chains<sgm::Primitive<N, CS, TAG>, Others ...>>::value;
+	static constexpr closure_selector value =
+			(simpla::find_type_in_list<simpla::geometry::tags::is_clockwise,
+					Others...>::value) ?
+					(boost::geometry::closure_selector::closed) :
+					(boost::geometry::closure_selector::open);
+	;
 };
 
 //********************************************************************
 // Polygon
 
-template<size_t N, typename CS, typename TAG, typename ...Others>
-struct tag<sgm::expPolygon<N, CS, TAG, Others ...> >
+template<typename CS>
+struct tag<sgm::Polygon<CS> >
 {
 	typedef polygon_tag type;
 };
 
-template<size_t N, typename CS, typename TAG, typename ...Others>
-struct ring_const_type<sgm::expPolygon<N, CS, TAG, Others ...>>
+template<typename CS>
+struct ring_const_type<sgm::Polygon<CS>>
 {
-	typedef typename sgm::expPolygon<N, CS, TAG, Others ...>::ring_type const& type;
+	typedef typename sgm::Polygon<CS>::ring_type const& type;
 };
 
-template<size_t N, typename CS, typename TAG, typename ...Others>
-struct ring_mutable_type<sgm::expPolygon<N, CS, TAG, Others ...>>
+template<typename CS>
+struct ring_mutable_type<sgm::Polygon<CS>>
 {
-	typedef typename sgm::expPolygon<N, CS, TAG, Others ...>::ring_type& type;
+	typedef typename sgm::Polygon<CS>::ring_type& type;
 };
 
-template<size_t N, typename CS, typename TAG, typename ...Others>
-struct interior_const_type<sgm::expPolygon<N, CS, TAG, Others ...>>
+template<typename CS>
+struct interior_const_type<sgm::Polygon<CS>>
 {
-	typedef typename sgm::expPolygon<N, CS, TAG, Others ...>::inner_container_type const& type;
+	typedef typename sgm::Polygon<CS>::inner_container_type const& type;
 };
 
-template<size_t N, typename CS, typename TAG, typename ...Others>
-struct interior_mutable_type<sgm::expPolygon<N, CS, TAG, Others ...>>
+template<typename CS>
+struct interior_mutable_type<sgm::Polygon<CS>>
 {
-	typedef typename sgm::expPolygon<N, CS, TAG, Others ...>::inner_container_type& type;
+	typedef typename sgm::Polygon<CS>::inner_container_type& type;
 };
 
-template<size_t N, typename CS, typename TAG, typename ...Others>
-struct exterior_ring<sgm::expPolygon<N, CS, TAG, Others ...>>
+template<typename CS>
+struct exterior_ring<sgm::Polygon<CS>>
 {
-	typedef sgm::expPolygon<N, CS, TAG, Others ...> polygon_type;
+	typedef sgm::Polygon<CS> polygon_type;
 
 	static inline typename polygon_type::ring_type& get(polygon_type& p)
 	{
@@ -301,10 +383,10 @@ struct exterior_ring<sgm::expPolygon<N, CS, TAG, Others ...>>
 	}
 };
 
-template<size_t N, typename CS, typename TAG, typename ...Others>
-struct interior_rings<sgm::expPolygon<N, CS, TAG, Others ...>>
+template<typename CS>
+struct interior_rings<sgm::Polygon<CS>>
 {
-	typedef sgm::expPolygon<N, CS, TAG, Others ...> polygon_type;
+	typedef sgm::Polygon<CS> polygon_type;
 
 	static inline typename polygon_type::inner_container_type& get(
 			polygon_type& p)

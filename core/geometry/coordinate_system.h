@@ -12,6 +12,17 @@ namespace simpla
 {
 namespace geometry
 {
+
+namespace traits
+{
+
+template<typename > struct dimension;
+template<typename > struct coordinate_type;
+template<typename > struct is_homogeneous;
+template<typename > struct typename_as_string;
+
+}  // namespace traits
+
 namespace coordinate_system
 {
 
@@ -31,13 +42,19 @@ struct Cylindical
 {
 };
 
+struct Toroidal
+{
+};
+
+struct MagneticFLux
+{
+};
+
+} //namespace coordinate_system
+
 namespace traits
 {
 
-template<typename > struct dimension;
-template<typename > struct coordinate_type;
-template<typename > struct is_homogeneous;
-template<typename > struct typename_as_string;
 template<typename CS>
 struct dimension
 {
@@ -45,12 +62,12 @@ struct dimension
 };
 
 template<>
-struct dimension<Polar>
+struct dimension<coordinate_system::Polar>
 {
 	static constexpr size_t value = 2;
 };
 template<size_t N>
-struct dimension<Cartesian<N>>
+struct dimension<coordinate_system::Cartesian<N>>
 {
 	static constexpr size_t value = N;
 };
@@ -69,47 +86,37 @@ struct is_homogeneous
 {
 	static constexpr bool value = true;
 };
+template<>
+struct is_homogeneous<coordinate_system::Toroidal>
+{
+	static constexpr bool value = false;
+};
 
+template<>
+struct is_homogeneous<coordinate_system::MagneticFLux>
+{
+	static constexpr bool value = false;
+};
 template<size_t N>
-struct typename_as_string<Cartesian<N>>
+struct typename_as_string<coordinate_system::Cartesian<N>>
 {
 	static constexpr char value[] = "Cartesian";
 };
 template<>
-struct typename_as_string<Spherical>
+struct typename_as_string<coordinate_system::Spherical>
 {
 	static constexpr char value[] = "Spherical";
 };
 
 template<>
-struct typename_as_string<Cylindical>
+struct typename_as_string<coordinate_system::Cylindical>
 {
 	static constexpr char value[] = "Cylindical";
 };
+
 }  // namespace traits
 
-struct Toroidal
-{
-};
-
-template<>
-struct traits::is_homogeneous<Toroidal>
-{
-	static constexpr bool value = false;
-};
-
-struct MagneticFLux
-{
-};
-
-template<>
-struct traits::is_homogeneous<MagneticFLux>
-{
-	static constexpr bool value = false;
-};
-
-}
-}
-}   // namespace simpla::geometry::coordinate_system
+}   // namespace geometry
+}   // namespace simpla
 
 #endif /* CORE_GEOMETRY_COORDINATE_SYSTEM_H_ */
