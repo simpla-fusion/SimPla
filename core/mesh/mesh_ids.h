@@ -76,7 +76,7 @@ struct MeshIDs_
 	typedef nTuple<Real, 3> coordinates_type;
 
 	typedef Real coordinate_type;
-
+=
 	typedef nTuple<Real, 3> point_type;
 
 	static constexpr int ndims = NDIMS;
@@ -280,7 +280,10 @@ struct MeshIDs_
 	{
 		return static_cast<coordinates_type>(unpack(s));
 	}
-
+	static constexpr point_type point(id_type s)
+	{
+		return static_cast<point_type>(unpack(s));
+	}
 	static constexpr int num_of_ele_in_cell(id_type s)
 	{
 		return m_id_to_num_of_ele_in_cell_[node_id(s)];
@@ -630,21 +633,21 @@ struct MeshIDs_
 		typedef range_type this_type;
 
 		template<typename T0, typename T1>
-		range_type(T0 const & min, T1 const & max, int n_id = 0)
-				: m_min_(pack_index(min) | m_id_to_shift_[n_id]), m_max_(
+		range_type(T0 const & min, T1 const & max, int n_id = 0) :
+				m_min_(pack_index(min) | m_id_to_shift_[n_id]), m_max_(
 						pack_index(max) | m_id_to_shift_[n_id])
 		{
 
 		}
 
-		range_type(id_type const & min, id_type const & max, int n_id = 0)
-				: m_min_(min | m_id_to_shift_[n_id]), m_max_(
+		range_type(id_type const & min, id_type const & max, int n_id = 0) :
+				m_min_(min | m_id_to_shift_[n_id]), m_max_(
 						max | m_id_to_shift_[n_id])
 		{
 
 		}
-		range_type(this_type const & other)
-				: m_min_(other.m_min_), m_max_(other.m_max_)
+		range_type(this_type const & other) :
+				m_min_(other.m_min_), m_max_(other.m_max_)
 		{
 
 		}
@@ -738,17 +741,17 @@ struct MeshIDs_
 			id_type m_min_, m_max_, m_self_;
 		public:
 			iterator(id_type const & min, id_type const & max,
-					id_type const& self)
-					: m_min_(min), m_max_(max), m_self_(self)
+					id_type const& self) :
+					m_min_(min), m_max_(max), m_self_(self)
 			{
 			}
-			iterator(id_type const & min, id_type const & max)
-					: m_min_(min), m_max_(max), m_self_(min)
+			iterator(id_type const & min, id_type const & max) :
+					m_min_(min), m_max_(max), m_self_(min)
 			{
 			}
 
-			iterator(iterator const & other)
-					: m_min_(other.m_min_), m_max_(other.m_max_), m_self_(
+			iterator(iterator const & other) :
+					m_min_(other.m_min_), m_max_(other.m_max_), m_self_(
 							other.m_self_)
 			{
 			}

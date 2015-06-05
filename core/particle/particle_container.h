@@ -118,7 +118,8 @@ public:
 
 	typedef typename mesh_type::index_type index_type;
 	typedef typename mesh_type::id_type id_type;
-	typedef typename mesh_type::coordinate_tuple coordinate_tuple;
+	typedef typename mesh_type::point_type point_type;
+	typedef typename mesh_type::vector_type vector_type;
 
 	static constexpr size_t iform = domain_type::iform;
 
@@ -436,21 +437,21 @@ public:
 	void rehash()
 	{
 		container_type::rehash();
-		coordinate_tuple xmin, xmax;
+		point_type xmin, xmax;
 		std::tie(xmin, xmax) = m_domain_.mesh().extents();
-		coordinate_tuple d;
+		point_type d;
 		d = xmax - xmin;
 
 		for (auto & item : *this)
 		{
-			coordinate_tuple x0;
+			point_type x0;
 			x0 = m_domain_.mesh().coordinates(item.first);
 
 			if (!in_box(x0, xmin, xmax))
 			{
 				for (auto &p : (*this)[item.first])
 				{
-					coordinate_tuple x;
+					point_type x;
 					Vec3 v;
 					Real f;
 					std::tie(x, v, f) = engine_type::pull_back(p);

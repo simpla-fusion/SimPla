@@ -20,7 +20,7 @@
 #include "../../core/particle/particle.h"
 
 using namespace simpla;
-typedef CartesianRectMesh mesh_type;
+typedef CartesianRectMesh<3> mesh_type;
 
 USE_CASE(pic," Particle in cell" )
 {

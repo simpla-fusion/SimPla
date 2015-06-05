@@ -66,8 +66,7 @@ std::shared_ptr<TM> make_mesh()
 	return std::make_shared<TM>();
 }
 template<size_t NDIMS>
-using CartesianRectMesh=
-StructuredMesh<geometry::coordinate_system::Cartesian<NDIMS>,
+using CartesianRectMesh=StructuredMesh<geometry::coordinate_system::Cartesian<NDIMS>,
 InterpolatorLinear, FiniteDiffMethod>;
 
 }  // namespace simpla
