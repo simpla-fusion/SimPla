@@ -7,10 +7,12 @@
 
 #ifndef CORE_MESH_MESH_H_
 #define CORE_MESH_MESH_H_
+#include "structured.h"
+#include "structured/fdm.h"
+#include "structured/interpolator.h"
 #include "domain.h"
-#include "mesh_ids.h"
-#include "structured/structured.h"
-#include "calculus.h"
+
+#include "../geometry/coordinate_system.h"
 namespace simpla
 {
 /**
@@ -63,6 +65,11 @@ std::shared_ptr<TM> make_mesh()
 {
 	return std::make_shared<TM>();
 }
+template<size_t NDIMS>
+using CartesianRectMesh=
+StructuredMesh<geometry::coordinate_system::Cartesian<NDIMS>,
+InterpolatorLinear, FiniteDiffMethod>;
+
 }  // namespace simpla
 
 #endif /* CORE_MESH_MESH_H_ */

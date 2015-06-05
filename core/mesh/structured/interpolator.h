@@ -13,7 +13,6 @@
 
 #include "../../gtl/type_traits.h"
 #include "../../gtl/ntuple.h"
-#include "../mesh.h"
 namespace simpla
 {
 
@@ -55,7 +54,7 @@ private:
 		auto Y = (geometry_type::_DJ) << 1;
 		auto Z = (geometry_type::_DK) << 1;
 
-		typename geometry_type::coordinate_tuple r = std::get<1>(idx);
+		typename geometry_type::point_type r = std::get<1>(idx);
 		typename geometry_type::index_type s = std::get<0>(idx);
 
 		return try_index(f, ((s + X) + Y) + Z) * (r[0]) * (r[1]) * (r[2]) //
@@ -72,12 +71,12 @@ public:
 	template<typename geometry_type, typename TF, typename TX>
 	static inline auto gather(geometry_type const & geo, TF const &f,
 			TX const & r)  //
-					ENABLE_IF_DECL_RET_TYPE((field_traits<TF >::iform==VERTEX),
+					ENABLE_IF_DECL_RET_TYPE((field_traits<TF>::iform==VERTEX),
 							( gather_impl_<geometry_type>(f, geo. coordinates_global_to_local (r, 0 ) )))
 
 	template<typename geometry_type, typename TF>
 	static auto gather(geometry_type const & geo, TF const &f,
-			typename geometry_type::coordinate_tuple const & r)
+			typename geometry_type::point_type const & r)
 					ENABLE_IF_DECL_RET_TYPE((field_traits<TF >::iform==EDGE),
 							make_nTuple(
 									gather_impl_<geometry_type>(f, geo.coordinates_global_to_local(r, 1) ),
@@ -87,7 +86,7 @@ public:
 
 	template<typename geometry_type, typename TF>
 	static auto gather(geometry_type const & geo, TF const &f,
-			typename geometry_type::coordinate_tuple const & r)
+			typename geometry_type::point_type const & r)
 					ENABLE_IF_DECL_RET_TYPE(
 							(field_traits<TF >::iform==FACE),
 							make_nTuple(
@@ -98,7 +97,7 @@ public:
 
 	template<typename geometry_type, typename TF>
 	static auto gather(geometry_type const & geo, TF const &f,
-			typename geometry_type::coordinate_tuple const & x)
+			typename geometry_type::point_type const & x)
 					ENABLE_IF_DECL_RET_TYPE((field_traits<TF >::iform==VOLUME),
 							gather_impl_<geometry_type>(f, geo. coordinates_global_to_local (x ,7) ))
 
@@ -111,7 +110,7 @@ private:
 		auto Y = (geometry_type::_DJ) << 1;
 		auto Z = (geometry_type::_DK) << 1;
 
-		typename geometry_type::coordinate_tuple r = std::get<1>(idx);
+		typename geometry_type::point_type r = std::get<1>(idx);
 		typename geometry_type::index_type s = std::get<0>(idx);
 
 		try_index(f, ((s + X) + Y) + Z) += v * (r[0]) * (r[1]) * (r[2]);
@@ -129,7 +128,7 @@ public:
 	template<typename geometry_type, typename ...TF, typename TV, typename TW>
 	static void scatter(geometry_type const & geo,
 			_Field<Domain<geometry_type, VERTEX>, TF...> &f,
-			typename geometry_type::coordinate_tuple const & x, TV const &u,
+			typename geometry_type::point_type const & x, TV const &u,
 			TW const &w)
 	{
 
@@ -140,7 +139,7 @@ public:
 	template<typename geometry_type, typename ...TF, typename TV, typename TW>
 	static void scatter(geometry_type const & geo,
 			_Field<Domain<geometry_type, EDGE>, TF...> &f,
-			typename geometry_type::coordinate_tuple const & x, TV const &u,
+			typename geometry_type::point_type const & x, TV const &u,
 			TW const & w)
 	{
 
@@ -156,7 +155,7 @@ public:
 	template<typename geometry_type, typename ...TF, typename TV, typename TW>
 	static void scatter(geometry_type const & geo,
 			_Field<Domain<geometry_type, FACE>, TF...>&f,
-			typename geometry_type::coordinate_tuple const & x, TV const &u,
+			typename geometry_type::point_type const & x, TV const &u,
 			TW const &w)
 	{
 
@@ -171,7 +170,7 @@ public:
 	template<typename geometry_type, typename ...TF, typename TV, typename TW>
 	static void scatter(geometry_type const & geo,
 			_Field<Domain<geometry_type, VOLUME>, TF...>&f,
-			typename geometry_type::coordinate_tuple const & x, TV const &u,
+			typename geometry_type::point_type const & x, TV const &u,
 			TW const &w)
 	{
 		scatter_impl_<geometry_type>(f, geo.coordinates_global_to_local(x, 7),

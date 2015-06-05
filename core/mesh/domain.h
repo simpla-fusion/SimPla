@@ -53,7 +53,7 @@ public:
 	typedef Domain<mesh_type, iform> this_type;
 
 	typedef typename mesh_type::id_type id_type;
-	typedef typename mesh_type::coordinate_tuple coordinate_tuple;
+	typedef typename mesh_type::point_type point_type;
 	typedef typename mesh_type::index_type index_type;
 	typedef typename mesh_type::index_tuple index_tuple;
 
@@ -321,7 +321,7 @@ public:
 		return range_type::in_box(idx);
 	}
 
-	bool in_box(coordinate_tuple const & x) const
+	bool in_box(point_type const & x) const
 	{
 		return range_type::in_box(mesh_type::coordinates_to_topology(x));
 	}
@@ -347,7 +347,7 @@ public:
 		}
 	}
 
-	void reset(coordinate_tuple const & b, coordinate_tuple const & e)
+	void reset(point_type const & b, point_type const & e)
 	{
 		range_type::reset(m_mesh_.coordinates_to_topology(b),
 				m_mesh_.coordinates_to_topology(e));
@@ -425,7 +425,7 @@ public:
 		});
 	}
 
-	void remove(std::function<bool(coordinate_tuple const &)> const & pred)
+	void remove(std::function<bool(point_type const &)> const & pred)
 	{
 		filter([&](id_type const & s)
 		{

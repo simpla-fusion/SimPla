@@ -14,17 +14,17 @@
 
 #include "../../core/utilities/utilities.h"
 #include "../../core/io/io.h"
+#include "../../core/physics/constants.h"
 #include "../../core/physics/physical_constants.h"
-#include "../../core/field/field.h"
 
 #include "../../core/mesh/mesh.h"
-
+#include "../../core/mesh/domain.h"
+#include "../../core/field/field.h"
 #include "../../applications/field_solver/pml.h"
-
 #include <memory>
 using namespace simpla;
 
-typedef CartesianRectMesh mesh_type;
+typedef CartesianRectMesh<3> mesh_type;
 
 USE_CASE(em," Maxwell Eqs.")
 {

@@ -60,9 +60,9 @@ template<size_t Dimension, typename ...> struct Primitive;
 
 #define DEF_NTUPLE_OBJECT(_COORD_SYS_,_T_,_NUM_)                                      \
  nTuple<_T_, _NUM_> m_data_;                                                          \
- inline operator nTuple<_T_, _NUM_>(){ return m_data_; }                              \
- nTuple<_T_, _NUM_> const & ntuple()const{return m_data_;}                            \
- nTuple<_T_, _NUM_>   & ntuple() {return m_data_;}                                    \
+ inline operator nTuple<_T_, _NUM_>()const{ return m_data_; }                              \
+ nTuple<_T_, _NUM_> const & as_ntuple()const{return m_data_;}                            \
+ nTuple<_T_, _NUM_>   & as_ntuple() {return m_data_;}                                    \
  inline _T_ & operator [](size_t n){ return m_data_[n]; }                             \
  inline _T_ const & operator [](size_t n) const{ return m_data_[n]; }                 \
  template<size_t N> inline _T_ & get(){return m_data_[N]; }                           \
@@ -103,7 +103,12 @@ struct Vector
 	DEF_NTUPLE_OBJECT(CoordinateSystem, value_type, ndims);
 
 };
-
+template<typename OS, typename CoordinateSystem>
+OS &operator<<(OS & os, Vector<CoordinateSystem> const & geo)
+{
+	os << geo.as_ntuple();
+	return os;
+}
 /**
  * @brief CoVector is a linear map from  'vector space'
  *
@@ -118,7 +123,12 @@ struct CoVector
 
 	DEF_NTUPLE_OBJECT(CoordinateSystem,value_type,ndims);
 };
-
+template<typename OS, typename CoordinateSystem>
+OS &operator<<(OS & os, CoVector<CoordinateSystem> const & geo)
+{
+	os << geo.as_ntuple();
+	return os;
+}
 /**
  * THIS is INCOMPLETE!!!
  */
@@ -170,7 +180,7 @@ struct Primitive<Dimension, CoordinateSystem, Tag>
 template<typename OS, size_t Dimension, typename CoordinateSystem, typename Tag>
 OS &operator<<(OS & os, Primitive<Dimension, CoordinateSystem, Tag> const & geo)
 {
-	os << geo.ntuple();
+	os << geo.as_ntuple();
 	return os;
 }
 
@@ -182,7 +192,7 @@ struct Box
 template<typename OS, typename CoordinateSystem>
 OS &operator<<(OS & os, Box<CoordinateSystem> const & geo)
 {
-	os << geo.ntuple();
+	os << geo.as_ntuple();
 	return os;
 }
 #undef DEF_NTUPLE_OBJECT

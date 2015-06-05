@@ -96,11 +96,11 @@ template<typename TCoord>
 std::function<bool(TCoord const &)> select_ids_on_polylines(
 		std::vector<TCoord> const& g_points, int ZAXIS, bool on_left = true)
 {
-	typedef TCoord coordinate_tuple;
+	typedef TCoord point_type;
 
-	std::vector<coordinate_tuple> points;
+	std::vector<point_type> points;
 
-	std::vector<coordinate_tuple> intersect_points;
+	std::vector<point_type> intersect_points;
 
 	auto first = points.begin();
 
@@ -147,7 +147,7 @@ std::function<bool(TCoord const &)> select_ids_on_polylines(
 		++ib;
 
 		std::sort(ib, intersect_points.end(),
-				[&](coordinate_tuple const & xa, coordinate_tuple const & xb)
+				[&](point_type const & xa, point_type const & xb)
 				{
 					return dot(xb-xa,x1-x0)>0;
 				});
@@ -224,7 +224,7 @@ void select_vetrices_near_to_polylines(TDomain const& domain, TI const & ib,
 {
 	typedef typename TDomain::mesh_type mesh_type;
 	typedef typename mesh_type::id_type id_type;
-	typedef typename mesh_type::coordinate_tuple coordinate_tuple;
+	typedef typename mesh_type::point_type point_type;
 	typedef typename mesh_type::topology_type topology;
 
 	mesh_type const & mesh = domain.mesh();
@@ -252,7 +252,7 @@ void select_cell_cross_polylines(PIP const & point_in_polygon, TDomain * domain,
 {
 	typedef typename TDomain::mesh_type mesh_type;
 	typedef typename mesh_type::id_type id_type;
-	typedef typename mesh_type::coordinate_tuple coordinate_tuple;
+	typedef typename mesh_type::point_type point_type;
 	typedef typename mesh_type::topology_type topology;
 
 	mesh_type const & mesh = domain->mesh();
@@ -304,7 +304,7 @@ void select_boundary_by_polylines(Domain<TM, IFORM> *domain, TI const & ib,
 
 	typedef TM mesh_type;
 	typedef typename mesh_type::id_type id_type;
-	typedef typename mesh_type::coordinate_tuple coordinate_tuple;
+	typedef typename mesh_type::point_type point_type;
 	typedef typename mesh_type::topology_type topology;
 
 	mesh_type const & mesh = domain->mesh();
@@ -446,7 +446,7 @@ void filter_domain_by_config(TDict const & dict, TDomain * domain)
 	typedef typename domain_type::mesh_type mesh_type;
 	typedef typename mesh_type::id_type id_type;
 	typedef typename mesh_type::index_type index_type;
-	typedef typename mesh_type::coordinate_tuple coordinate_tuple;
+	typedef typename mesh_type::point_type point_type;
 
 	static constexpr int iform = domain_type::iform;
 
@@ -457,7 +457,7 @@ void filter_domain_by_config(TDict const & dict, TDomain * domain)
 	}
 	else if (dict["Box"])
 	{
-		std::vector<coordinate_tuple> p;
+		std::vector<point_type> p;
 
 		dict["Box"].as(&p);
 
@@ -510,7 +510,7 @@ void filter_domain_by_config(TDict const & dict, TDomain * domain)
 	{
 		if (dict.is_function())
 		{
-			domain->filter_by_coordinates([&](coordinate_tuple const & x )
+			domain->filter_by_coordinates([&](point_type const & x )
 			{
 				return (static_cast<bool>(dict(x)));
 			});

@@ -1,22 +1,12 @@
 /*
- * @file cartesian_mesh.h
+ * @file structured.h
  *
  *  Created on: 2015年3月10日
  *      Author: salmon
  */
 
-#ifndef CORE_MESH_STRUCTURED_STRUCTURED_H_
-#define CORE_MESH_STRUCTURED_STRUCTURED_H_
-
- /**
- * @file  rect_mesh.h
- *
- *  created on: 2014-2-21
- *      Author: salmon
- */
-
-#ifndef MESH_RECT_MESH_H_
-#define MESH_RECT_MESH_H_
+#ifndef CORE_MESH_STRUCTURED_H_
+#define CORE_MESH_STRUCTURED_H_
 
 #include <stddef.h>
 #include <algorithm>
@@ -28,14 +18,14 @@
 #include <type_traits>
 #include <utility>
 
-#include "../../utilities/utilities.h"
-#include "../../gtl/ntuple.h"
-#include "../../gtl/primitives.h"
-#include "../../field/field_expression.h"
-#include "../../parallel/mpi_update.h"
-#include "../../geometry/geometry.h"
-#include "../mesh_ids.h"
-#include "interpolator.h"
+#include "../utilities/utilities.h"
+#include "../gtl/ntuple.h"
+#include "../gtl/primitives.h"
+#include "../field/field_expression.h"
+#include "../parallel/mpi_update.h"
+#include "../geometry/geometry.h"
+#include "domain.h"
+#include "mesh_ids.h"
 
 namespace simpla
 {
@@ -65,25 +55,23 @@ namespace simpla
  * \endverbatim
  *  - the unit cell width is 1;
  */
-//template<typename ... >struct RectMesh;
 template<typename CoordinateSystem, typename ...Policies>
-struct RectMesh: public MeshIDs_<
-		geometry::coordinate_system::traits::dimension<CoordinateSystem>::value>,
-		public Policies...,
-		std::enable_shared_from_this<RectMesh<CoordinateSystem, Policies...>>
+struct StructuredMesh:	public MeshIDs_<
+								geometry::traits::dimension<CoordinateSystem>::value>,
+						public Policies...,
+						public std::enable_shared_from_this<
+								StructuredMesh<CoordinateSystem, Policies...> >
 {
+	typedef CoordinateSystem cs_type;
 
-	static constexpr size_t ndims =
-			geometry::coordinate_system::traits::dimension<CoordinateSystem>::value;
+	static constexpr size_t ndims = geometry::traits::dimension<cs_type>::value;
 
 	typedef MeshIDs_<ndims> topology_type;
-
-	typedef CoordinateSystem cs_type;
 
 	typedef typename unpack_typelist<0, Policies...>::type interpolatpr_policy;
 	typedef typename unpack_typelist<1, Policies...>::type calculate_policy;
 
-	typedef RectMesh<cs_type, Policies...> this_type;
+	typedef StructuredMesh<cs_type, Policies...> this_type;
 
 	typedef Real scalar_type;
 
@@ -95,17 +83,16 @@ struct RectMesh: public MeshIDs_<
 
 	using typename topology_type::id_tuple;
 
-	using typename topology_type::topology_point_type;
-
 	using typename topology_type::range_type;
 
-	typedef geometry::Point<cs_type> point_type;
-	typedef geometry::Vector<cs_type> vector_type;
+	typedef nTuple<Real, ndims> topology_point_type;
+	typedef nTuple<Real, ndims> point_type;
 
-//	friend class Domain<this_type, VERTEX> ;
-//	friend class Domain<this_type, EDGE> ;
-//	friend class Domain<this_type, FACE> ;
-//	friend class Domain<this_type, VOLUME> ;
+//	typedef geometry::model::Point<geometry::coordinate_system::Cartesian<ndims>> topology_point_type;
+//
+//	typedef geometry::model::Point<cs_type> point_type;
+
+	typedef geometry::model::Vector<cs_type> vector_type;
 
 	template<size_t IFORM, typename TV> using field=
 	_Field<Domain<this_type,IFORM>,TV,_impl::is_sequence_container>;
@@ -209,15 +196,16 @@ public:
 
 //***************************************************************************************************
 
-	RectMesh()
+	StructuredMesh()
 	{
 	}
 
-	~RectMesh()
+	~StructuredMesh()
 	{
 	}
 
-	RectMesh(this_type const & other) :
+	StructuredMesh(this_type const & other)
+			:
 
 			m_id_min_(other.m_id_min_),
 
@@ -255,7 +243,9 @@ public:
 	{
 		dimensions(dict["Dimensions"].as(index_tuple( { 10, 10, 10 })));
 
-		extents(dict["Box"].template as<std::tuple<point_type, point_type> >());
+//		extents(
+//				dict["Box"].template as<
+//						std::tuple<coordinate_tuple, coordinate_tuple> >());
 
 		dt(dict["dt"].template as<Real>(1.0));
 	}
@@ -340,9 +330,9 @@ public:
 
 	static std::string get_type_as_string()
 	{
-		return "RectMesh<"
-				+ geometry::coordinate_system::traits::typename_as_string<
-						cs_type>::value + ">";
+		return "StructuredMesh<"
+//				+ geometry::traits::typename_as_string<cs_type>::value +
+				">";
 	}
 
 	constexpr bool is_valid() const
@@ -353,8 +343,8 @@ public:
 	template<typename T0, typename T1>
 	void extents(T0 const& pmin, T1 const& pmax)
 	{
-		m_coords_min_ = pmin;
-		m_coords_max_ = pmax;
+		m_coords_min_.as_ntuple() = pmin;
+		m_coords_max_.as_ntuple() = pmax;
 	}
 
 	template<typename T0>
@@ -363,12 +353,15 @@ public:
 		extents(std::get<0>(box), std::get<1>(box));
 	}
 
-	constexpr auto extents() const
-	DECL_RET_TYPE (std::make_pair(m_coords_min_, m_coords_max_))
+	constexpr std::pair<point_type, point_type> extents() const
+	{
+		return (std::make_pair(m_coords_min_, m_coords_max_));
+	}
 
-	constexpr auto local_extents() const
-	DECL_RET_TYPE (std::make_pair(this->point(m_id_local_min_),
-					this->point(m_id_local_max_)))
+	constexpr std::pair<point_type, point_type> local_extents() const
+	{
+		return (std::make_pair(point(m_id_local_min_), point(m_id_local_max_)));
+	}
 
 	vector_type const & dx() const
 	{
@@ -492,27 +485,27 @@ public:
 		;
 	}
 
-	template<size_t ID>
-	constexpr std::tuple<point_type, point_type> primary_line(id_type s) const
-	{
-		auto p_box = topology_type::template primary_line<ID>(s);
-		return std::make_tuple(point(std::get<0>(p_box)),
-				point(std::get<1>(p_box)));
-	}
-	template<size_t ID>
-	constexpr std::tuple<point_type, point_type> pixel(id_type s) const
-	{
-		auto p_box = topology_type::template pixel<ID>(s);
-		return std::make_tuple(point(std::get<0>(p_box)),
-				point(std::get<1>(p_box)));
-	}
-
-	constexpr std::tuple<point_type, point_type> voxel(id_type s) const
-	{
-		auto p_box = topology_type::voxel(s);
-		return std::make_tuple(point(std::get<0>(p_box)),
-				point(std::get<1>(p_box)));
-	}
+//	template<size_t ID>
+//	constexpr std::tuple<point_type, point_type> primary_line(id_type s) const
+//	{
+//		auto p_box = topology_type::template primary_line<ID>(s);
+//		return std::make_tuple(point(std::get<0>(p_box)),
+//				point(std::get<1>(p_box)));
+//	}
+//	template<size_t ID>
+//	constexpr std::tuple<point_type, point_type> pixel(id_type s) const
+//	{
+//		auto p_box = topology_type::template pixel<ID>(s);
+//		return std::make_tuple(point(std::get<0>(p_box)),
+//				point(std::get<1>(p_box)));
+//	}
+//
+//	constexpr std::tuple<point_type, point_type> voxel(id_type s) const
+//	{
+//		auto p_box = topology_type::voxel(s);
+//		return std::make_tuple(point(std::get<0>(p_box)),
+//				point(std::get<1>(p_box)));
+//	}
 
 	/**@}*/
 
@@ -575,9 +568,9 @@ public:
 		return inv_map(y + u) - inv_map(y);
 	}
 
-	Vec3 push_forward(point_type const & x, Vec3 const & v) const
+	Vec3 push_forward(point_type const & x, vector_type const & v) const
 	{
-		return map(x + v) - map(x);
+		return map(x.as_ntuple() + v) - map(x);
 	}
 
 	template<typename TX>
@@ -758,11 +751,11 @@ public:
 	}
 };
 
-template<typename TTopology, typename ... Polices> constexpr size_t RectMesh<
+template<typename TTopology, typename ... Polices> constexpr size_t StructuredMesh<
 		TTopology, Polices...>::DEFAULT_GHOST_WIDTH;
 
-template<typename TTopology, typename ... Polices> void RectMesh<TTopology,
-		Polices...>::deploy(size_t const *gw)
+template<typename TTopology, typename ... Polices> void StructuredMesh<
+		TTopology, Polices...>::deploy(size_t const *gw)
 {
 	nTuple<id_type, ndims> dims = topology_type::unpack_index(
 			m_id_max_ - m_id_min_);
@@ -990,7 +983,4 @@ template<typename TTopology, typename ... Polices> void RectMesh<TTopology,
 }
 // namespace simpla
 
-#endif /* MESH_RECT_MESH_H_ */
-
-
-#endif /* CORE_MESH_STRUCTURED_STRUCTURED_H_ */
+#endif /* CORE_MESH_STRUCTURED_H_ */
