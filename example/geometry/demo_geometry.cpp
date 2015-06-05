@@ -38,7 +38,7 @@ int main(int argc, char **argv)
 {
 	typedef typename coordinate_system::Cartesian<2> cs;
 
-	model::Polygon<1UL, cs> poly;
+	model::Polygon<cs> poly;
 
 	append(poly, model::Point<cs> { 1.0, 2.0 });
 	append(poly, model::Point<cs> { 6.0, 4.0 });

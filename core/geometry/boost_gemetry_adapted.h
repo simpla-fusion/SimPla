@@ -22,8 +22,8 @@ namespace geometry
 namespace model
 {
 
-template<size_t N, typename CS, typename TAG = tags::simplex>
-using Polygon=boost::geometry::model::polygon<Primitive<N,CS,TAG>>;
+template<typename CS>
+using Polygon = boost::geometry::model::polygon<Primitive<0,CS, tags::simplex>>;
 
 }  // namespace model
 using boost::geometry::append;
@@ -69,22 +69,47 @@ struct dimension<sgm::Primitive<N, CS, TAG>> : boost::mpl::int_<
 		sgcs::traits::dimension<CS>::value>
 {
 };
-template<typename CS, typename TAG, std::size_t Dimension>
-struct access<sgm::Primitive<0, CS, TAG>, Dimension>
+template<size_t N, typename CS, typename TAG, std::size_t M>
+struct access<sgm::Primitive<N, CS, TAG>, M>
 {
-	typedef typename coordinate_type<sgm::Primitive<0, CS, TAG>>::type value_type;
 
-	static inline value_type const &get(sgm::Primitive<0, CS, TAG>const& point)
+	typedef sgm::Primitive<N, CS, TAG> Geo;
+
+	typedef typename std::remove_reference<
+			decltype((std::get<M>( (std::declval<Geo>()))))>::type value_type;
+
+	static inline value_type const &get(sgm::Primitive<N, CS, TAG>const& point)
 	{
-		return std::get<Dimension>(point);
+		return std::get<M>(point);
 	}
 
-	static inline void set(sgm::Primitive<0, CS, TAG>& point,
-			value_type const& value)
+	template<typename T>
+	static inline void set(sgm::Primitive<N, CS, TAG>& point, T const& value)
 	{
-		std::get<Dimension>(point) = value;
+		std::get<M>(point) = static_cast<value_type>(value);
 	}
 };
+
+template<size_t N, typename CS, typename TAG, size_t Index, size_t M>
+struct indexed_access<sgm::Primitive<N, CS, TAG>, Index, M>
+{
+	typedef sgm::Primitive<N, CS, TAG> Geo;
+
+	typedef typename std::remove_reference<
+			decltype((std::get<M>(std::get<Index>(std::declval<Geo>()))))>::type value_type;
+
+	static inline value_type const & get(sgm::Primitive<N, CS, TAG> const& b)
+	{
+		return std::get<M>(std::get<Index>(b));
+	}
+
+	template<typename T>
+	static inline void set(sgm::Primitive<N, CS, TAG>& b, T const& value)
+	{
+		std::get<M>(std::get<Index>(b)) = static_cast<value_type>(value);
+	}
+};
+
 template<size_t M, size_t N, typename TAG>
 struct coordinate_system<sgm::Primitive<N, sgcs::Cartesian<M>, TAG> >
 {
@@ -107,8 +132,8 @@ struct coordinate_system<sgm::Primitive<N, sgcs::Polar, TAG> >
 //*******************************************************************
 // Line Segment
 
-template<typename CS>
-struct tag<sgm::Primitive<1, CS, sg::tags::simplex> >
+template<typename CS, typename TAG>
+struct tag<sgm::Primitive<1, CS, TAG> >
 {
 	typedef segment_tag type;
 };
@@ -117,39 +142,39 @@ struct point_type<sgm::Primitive<1, CS, sg::tags::simplex> >
 {
 	typedef typename sgm::Primitive<0, CS, sg::tags::simplex> type;
 };
-template<typename CS, std::size_t Dimension>
-struct indexed_access<sgm::Primitive<1, CS, sg::tags::simplex>, 0, Dimension>
-{
-	typedef sgm::Primitive<1, CS, sg::tags::simplex> segment_type;
-	typedef typename sgcs::traits::coordinate_type<CS>::type coordinate_type;
-
-	static inline coordinate_type get(segment_type const& s)
-	{
-		return geometry::get<Dimension>(std::get<0>(s));
-	}
-
-	static inline void set(segment_type& s, coordinate_type const& value)
-	{
-		geometry::set<Dimension>(std::get<0>(s), value);
-	}
-};
-
-template<typename CS, std::size_t Dimension>
-struct indexed_access<sgm::Primitive<1, CS, sg::tags::simplex>, 1, Dimension>
-{
-	typedef sgm::Primitive<1, CS, sg::tags::simplex> segment_type;
-	typedef typename sgcs::traits::coordinate_type<CS>::type coordinate_type;
-
-	static inline coordinate_type get(segment_type const& s)
-	{
-		return geometry::get<Dimension>(std::get<1>(s));
-	}
-
-	static inline void set(segment_type& s, coordinate_type const& value)
-	{
-		geometry::set<Dimension>(std::get<1>(s), value);
-	}
-};
+//template<typename CS, std::size_t Dimension>
+//struct indexed_access<sgm::Primitive<1, CS, sg::tags::simplex>, 0, Dimension>
+//{
+//	typedef sgm::Primitive<1, CS, sg::tags::simplex> segment_type;
+//	typedef typename sgcs::traits::coordinate_type<CS>::type coordinate_type;
+//
+//	static inline coordinate_type get(segment_type const& s)
+//	{
+//		return geometry::get<Dimension>(std::get<0>(s));
+//	}
+//
+//	static inline void set(segment_type& s, coordinate_type const& value)
+//	{
+//		geometry::set<Dimension>(std::get<0>(s), value);
+//	}
+//};
+//
+//template<typename CS, std::size_t Dimension>
+//struct indexed_access<sgm::Primitive<1, CS, sg::tags::simplex>, 1, Dimension>
+//{
+//	typedef sgm::Primitive<1, CS, sg::tags::simplex> segment_type;
+//	typedef typename sgcs::traits::coordinate_type<CS>::type coordinate_type;
+//
+//	static inline coordinate_type get(segment_type const& s)
+//	{
+//		return geometry::get<Dimension>(std::get<1>(s));
+//	}
+//
+//	static inline void set(segment_type& s, coordinate_type const& value)
+//	{
+//		geometry::set<Dimension>(std::get<1>(s), value);
+//	}
+//};
 //*******************************************************************
 // Box
 

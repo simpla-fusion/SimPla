@@ -34,6 +34,7 @@ namespace traits
 template<typename > struct coordinate_system;
 template<typename > struct dimension;
 template<typename > struct point_type;
+template<typename > struct value_type;
 template<typename > struct number_of_vertices;
 
 template<typename > struct is_chains;
@@ -210,6 +211,14 @@ struct point_type<model::Primitive<Dimension, CoordinateSystem, Tag>>
 {
 	typedef model::Primitive<0, CoordinateSystem, Tag> type;
 };
+
+template<size_t Dimension, typename CoordinateSystem, typename Tag>
+struct value_type<model::Primitive<Dimension, CoordinateSystem, Tag>>
+{
+	typedef model::Primitive<Dimension, CoordinateSystem, Tag> geo;
+
+	typedef decltype(std::declval<geo>()[0]) type;
+};
 template<typename CoordinateSystem, typename Tag>
 struct number_of_vertices<model::Primitive<0, CoordinateSystem, Tag>>
 {
@@ -250,12 +259,12 @@ struct number_of_vertices<model::Primitive<Dimension, CoordinateSystem, Tag>>
 namespace std
 {
 
-template<size_t N, size_t Dimension, typename ... Others>
-auto get(simpla::geometry::model::Primitive<Dimension, Others...> & obj)
+template<size_t N, size_t M, typename ... Others>
+auto get(simpla::geometry::model::Primitive<M, Others...> & obj)
 DECL_RET_TYPE((obj[N]))
 
-template<size_t N, size_t Dimension, typename ...Others>
-auto get(simpla::geometry::model::Primitive<Dimension, Others...> const & obj)
+template<size_t N, size_t M, typename ...Others>
+auto get(simpla::geometry::model::Primitive<M, Others...> const & obj)
 DECL_RET_TYPE((obj[N]))
 
 }  // namespace std
