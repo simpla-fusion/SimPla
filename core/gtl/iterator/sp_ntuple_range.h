@@ -13,7 +13,7 @@
 #include <type_traits>
 
 #include "../ntuple.h"
-#include "../../numeric/geometric_algorithm.h"
+#include "../../geometry/geometric_algorithm.h"
 #include "range.h"
 
 namespace simpla
