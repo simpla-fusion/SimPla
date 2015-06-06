@@ -749,29 +749,28 @@ public:
 
 	template<typename DistanceFunction, typename Res>
 	void select(DistanceFunction const & dist, point_type const & x_min,
-			point_type const & x_max, int node_tag, Res *res, int tag)
+			point_type const & x_max, ManifoldTypeID iform_tag, Res *res,
+			int tag)
 	{
 
 		id_type s = std::get<0>(
-				coordinates_global_to_local((x_max + x_min) * 0.5, node_tag));
-		CHECK_BIT(s);
-		CHECK(point(s));
+				coordinates_global_to_local((x_min),
+						topology_type::TAG_VERTEX));
 
-		CHECK(topology_type::node_id(s));
 		Vec3 L;
 		L = inv_map(x_max) - inv_map(x_min);
 
 		size_t level = static_cast<size_t>(std::log(max(L[0], L[1], L[2]))
-				/ std::log(2.0)) - 1;
+				/ std::log(2.0)) + 2;
 
-		topology_type::select(
+		topology_type::select2(
 
 		[&](id_type t)
 		{
 			return static_cast<Real>( dist(map(topology_type::point(t))));
 		},
 
-		s, node_tag, level, res, tag);
+		s, iform_tag, level, res, tag);
 	}
 
 };
