@@ -85,6 +85,8 @@ struct Primitive<0, CoordinateSystem, Tag>
 };
 template<typename CoordinateSystem>
 using Point= Primitive<0, CoordinateSystem, tags::simplex>;
+template<typename CoordinateSystem>
+using LineSegment= Primitive<1, CoordinateSystem, tags::simplex>;
 
 /**
  * @brief Vector In geometry, Vector represents the first derivative of 'curve',
@@ -129,6 +131,35 @@ OS &operator<<(OS & os, CoVector<CoordinateSystem> const & geo)
 	os << geo.as_ntuple();
 	return os;
 }
+template<typename CS>
+LineSegment<CS> operator -(Point<CS> const & x1, Point<CS> const & x0)
+{
+	return LineSegment<CS>(x0, x1);
+}
+template<typename CS>
+Point<CS> operator +(Point<CS> const & x0, Vector<CS> const & v)
+{
+	return Point<CS>(x0.as_ntuple() - v.as_ntuple());
+}
+
+template<typename CS>
+Vector<CS> operator *(Vector<CS> const & x1, Real a)
+{
+	Vector<CS> res;
+	res.as_ntuple() = (x1.as_ntuple() * a);
+	return std::move(res);
+}
+template<typename CS, typename T2>
+Vector<CS> cross(Vector<CS> const & x1, T2 const& v)
+{
+	Vector<CS> res;
+	res.as_ntuple() = cross(x1.as_ntuple(), v);
+	return std::move(res);
+}
+template<typename CS>
+auto cross(Vector<CS> const & v0, Vector<CS> const & v1)
+DECL_RET_TYPE(inner_product(v0.as_ntuple(),v1.as_ntuple()))
+
 /**
  * THIS is INCOMPLETE!!!
  */

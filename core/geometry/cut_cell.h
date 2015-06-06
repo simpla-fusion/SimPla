@@ -36,7 +36,235 @@ void pixel_intersects_polygon(TM const & mesh, int node_id,
 	}
 
 }
+template<typename DistFunction>
+size_t intersection(Vec3 const & min, Vec3 const & max,
+		DistFunction const & dist_fun)
+{
 
+}
+template<size_t LEVEL, typename TMesh, typename DistFunction, typename TRes>
+size_t divide_box(TMesh const & mesh, DistFunction const & dist_fun, TRes )
+{
+	typedef typename TMesh mesh_type;
+	typedef typename mesh_type::id_type id_type;
+
+	id_type s = std::get<0>(mesh.coordinate_global_to_local((max + min) * 0.5));
+
+	auto out_code = mesh.out_code(s, dist_fun);
+
+	static const size_t ALL_OUT = 0xAAAA;
+
+	static const size_t ALL_IN = 0x5555;
+	if (out_code == ALL_OUT || out_code == ALL_IN) // all out or  all in
+	{
+	}
+	else
+	{
+
+	}
+
+}
+
+///**
+// *   for cut-cell
+// * @param s0
+// * @param s1
+// * @return
+// */
+//static constexpr id_type out_code(id_type c, id_type s)
+//{
+//	return out_code_(((c | FULL_OVERFLOW_FLAG) - s) & PRIMARY_ID_MASK);
+//}
+//static constexpr id_type out_code_(id_type c)
+//{
+//	return ((c >> (ID_DIGITS - 1)) & 1UL) | ((c >> (ID_DIGITS - 3)) & (4UL))
+//			| ((c >> (ID_DIGITS * 2 - 5)) & 16UL)
+//			| (static_cast<id_type>((c & (OVERFLOW_FLAG - 1UL)) != 0UL))
+//			| (static_cast<id_type>((c & ((OVERFLOW_FLAG - 1UL) << ID_DIGITS))
+//					!= 0UL) << (2UL))
+//			| (static_cast<id_type>((c
+//					& ((OVERFLOW_FLAG - 1UL) << (ID_DIGITS * 2))) != 0UL)
+//					<< (4UL));
+//}
+//
+///**
+// *
+// *
+// *
+// *  line intersection face
+// * @param x0
+// * @param x1
+// * @param res
+// * @param node_id id of cell
+// */
+//template<typename TRes>
+//static void cut_cell(coordinates_type const & x0, coordinates_type const & x1,
+//		TRes *res, id_type node_id = 7);
+//
+///**
+// *
+// */
+///**
+// * triangle intersection edge
+// * @param x0
+// * @param x1
+// * @param x2
+// * @param res
+// * @param node_id id of cell
+// */
+//template<typename TX, typename TRes>
+//static void cut_cell(TX const & x0, TX const & x1, TX const & x2, TRes*res,
+//		id_type node_id = 7);
+//
+//template<size_t N, size_t M>
+//template<typename TRes>
+//void MeshIDs_<N, M>::cut_cell(coordinates_type const & pV0,
+//		coordinates_type const & pV1, TRes*res, id_type node_id)
+//{
+//
+//	coordinates_type V0 = pV0 - m_id_to_coordinates_shift_[node_id];
+//
+//	coordinates_type V1 = pV1 - m_id_to_coordinates_shift_[node_id];
+//
+//	Vec3 u = V1 - V0;
+//
+//	Real vmin = {  //
+//			min(V0[0], V1[0]), //
+//			min(V0[1], V1[1]), //
+//			min(V0[2], V1[2]) };
+//	Real vmax = {  //
+//			max(V0[0], V1[0]), //
+//			max(V0[1], V1[1]), //
+//			max(V0[2], V1[2]) };
+//
+//	id_type face_id[3] = { 6, 5, 3 };
+//
+//	for (int zaxe = 0; zaxe < 3; ++zaxe)
+//	{
+//		int xaxe = (zaxe + 1) % 3;
+//		int yaxe = (zaxe + 2) % 3;
+//
+//		if ((vmax[xaxe] - vmin[xaxe]) < EPSILON)
+//		{
+//			continue;
+//		}
+//
+//		Real xb = std::floor(vmin[xaxe] / (_R * 2)) * (_R * 2);
+//		Real xe = std::floor(vmax[xaxe] / (_R * 2) + 1.0) * (_R * 2);
+//
+//		for (Real x = xb; x < xe; x += (_R * 2))
+//		{
+//
+//			Real t = (x - V0[zaxe]) / u[zaxe];
+//
+//			if (t < 0 || t > 1)
+//			{
+//				continue;
+//			}
+//			coordinates_type y;
+//
+//			y = V0 + t * u;
+//
+//			id_type s = (pack(y) & PRIMARY_ID_MASK)
+//					| m_id_to_shift_[face_id[zaxe]];
+//
+//			res->insert(std::make_pair(s + m_id_to_shift_[node_id], t));
+//		}
+//
+//	};
+//}
+//
+//template<typename TMesh,typename TGeo, typename TRes>
+//void cut_cell(TGeo const & geo, TRes*res  )
+//{
+//
+//	coordinates_type V0 = pV0 - m_id_to_coordinates_shift_[node_id];
+//	coordinates_type V1 = pV1 - m_id_to_coordinates_shift_[node_id];
+//	coordinates_type V2 = pV2 - m_id_to_coordinates_shift_[node_id];
+//
+//	id_type edge_id[3] = { 1, 2, 4 };
+//
+//	Vec3 u = V1 - V0;
+//	Vec3 v = V2 - V0;
+//
+//	Vec3 n = cross(u, v);
+//
+//	Real vv = inner_product(v, v);
+//	Real uu = inner_product(u, u);
+//	Real uv = inner_product(u, v);
+//	Real uvuv = uv * uv - uu * vv;
+//
+//	Real vmin = {  //
+//			min(V0[0], V1[0], V2[0]), //
+//			min(V0[1], V1[1], V2[1]), //
+//			min(V0[2], V1[2], V2[2]) };
+//	Real vmax = {  //
+//			max(V0[0], V1[0], V2[0]), //
+//			max(V0[1], V1[1], V2[1]), //
+//			max(V0[2], V1[2], V2[2]) };
+//
+//	for (int zaxe = 0; zaxe < 3; ++zaxe)
+//	{
+//		int xaxe = (zaxe + 1) % 3;
+//		int yaxe = (zaxe + 2) % 3;
+//
+//		if ((vmax[xaxe] - vmin[xaxe]) < EPSILON
+//				|| (vmax[yaxe] - vmin[yaxe]) < EPSILON)
+//		{
+//			continue;
+//		}
+//
+//		Real xb = std::floor(vmin[xaxe] / (_R * 2)) * (_R * 2);
+//		Real xe = std::floor(vmax[xaxe] / (_R * 2) + 1.0) * (_R * 2);
+//
+//		Real yb = std::floor(vmin[yaxe] / (_R * 2)) * (_R * 2);
+//		Real ye = std::floor(vmax[yaxe] / (_R * 2) + 1.0) * (_R * 2);
+//
+//		for (Real x = xb; x < xe; x += (_R * 2))
+//			for (Real y = yb; y < ye; y += (_R * 2))
+//			{
+//				///     Theorem:http://geomalgorithms.com/a06-_intersect-2.html
+//				///				coordinates_type P0, P1;
+//				///				P0[xaxe] = x;
+//				///				P0[yaxe] = y;
+//				///				P0[zaxe] = 0;
+//				///				P1[xaxe] = x;
+//				///				P1[yaxe] = y;
+//				///				P1[zaxe] = 1;
+//				///
+//				///				Real r = inner_product(n, V0 - P0) / inner_product(n, P1 - P0);
+//				///
+//				///				Vec3 w = P0 - V0 +  (P1 - P0)*inner_product(n, V0 - P0) / inner_product(n, P1 - P0);
+//
+//				Vec3 w;
+//
+//				w[xaxe] = x - V0[xaxe];
+//				w[yaxe] = y - V0[yaxe];
+//				w[zaxe] = 0 - V0[zaxe]
+//						- (n[xaxe] * (x - V0[xaxe]) + n[yaxe] * (y - V0[yaxe])
+//								+ n[yaxe] * (0 - V0[zaxe])) / n[zaxe];
+//
+//				Real s = (inner_product(w, v) * uv - inner_product(w, u) * vv)
+//						/ uvuv;
+//
+//				Real t = (inner_product(w, u) * uv - inner_product(w, v) * uu)
+//						/ uvuv;
+//
+//				if (s < 0 || t < 0 || s + t > 1)
+//				{
+//					continue;
+//				}
+//
+//				id_type p = ((pack(V0 + s * u + t * v) & PRIMARY_ID_MASK)
+//						| m_id_to_shift_[edge_id[zaxe]]);
+//
+//				res->insert(
+//						std::make_pair(p + m_id_to_shift_[node_id],
+//								std::make_tuple(u, v)));
+//
+//			}
+//
+//	};
 //template<typename TM, typename TX>
 //int line_segment_cut_cell(TM const & mesh, typename TM::id_type node_id,
 //		TX const &x0, TX const & x1, typename TM::id_type s0,

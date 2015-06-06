@@ -20,7 +20,9 @@
 #include "../../core/particle/particle.h"
 
 using namespace simpla;
-typedef CartesianRectMesh<3> mesh_type;
+
+typedef StructuredMesh<geometry::coordinate_system::Cartesian<3>,
+		InterpolatorLinear, FiniteDiffMethod> mesh_type;
 
 USE_CASE(pic," Particle in cell" )
 {
@@ -35,14 +37,14 @@ USE_CASE(pic," Particle in cell" )
 
 		<< " Options:" << endl
 
-		<<
+				<<
 
-		"\t -n,\t--number_of_steps <NUMBER>  \t, "
-				"Number of steps = <NUMBER> ,default="
-				+ value_to_string(num_of_steps) + "\n"
-						"\t -s,\t--check_point <NUMBER>          "
-						"  \t, default="
-				+ value_to_string(check_point) + "\n";
+				"\t -n,\t--number_of_steps <NUMBER>  \t, "
+						"Number of steps = <NUMBER> ,default="
+						+ value_to_string(num_of_steps) + "\n"
+								"\t -s,\t--check_point <NUMBER>          "
+								"  \t, default=" + value_to_string(check_point)
+						+ "\n";
 
 		return;
 	}
@@ -137,7 +139,7 @@ USE_CASE(pic," Particle in cell" )
 	VERBOSE << SAVE(B) << endl;
 
 	DEFINE_PHYSICAL_CONST
-		Real dt = mesh->dt();
+	Real dt = mesh->dt();
 	auto dx = mesh->dx();
 
 	Real omega = 0.01 * PI / dt;

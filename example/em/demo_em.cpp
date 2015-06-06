@@ -24,7 +24,8 @@
 #include <memory>
 using namespace simpla;
 
-typedef CartesianRectMesh<3> mesh_type;
+typedef StructuredMesh<geometry::coordinate_system::Cartesian<3>,
+		InterpolatorLinear, FiniteDiffMethod> mesh_type;
 
 USE_CASE(em," Maxwell Eqs.")
 {
