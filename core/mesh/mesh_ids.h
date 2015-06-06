@@ -276,7 +276,7 @@ struct MeshIDs_
 
 	static constexpr point_type point(id_type s)
 	{
-		return static_cast<point_type>(unpack(s));
+		return static_cast<point_type>(unpack(s & (~FULL_OVERFLOW_FLAG)));
 	}
 
 	static constexpr int num_of_ele_in_cell(id_type s)
@@ -415,7 +415,7 @@ struct MeshIDs_
 	static constexpr id_type _HI = _D;
 	static constexpr id_type _HJ = _HI << ID_DIGITS;
 	static constexpr id_type _HK = _HI << (ID_DIGITS * 2);
-	static constexpr id_type _LI = (((-_D) & ID_MASK));
+	static constexpr id_type _LI = (-_D) & (ID_MASK >> 1);
 	static constexpr id_type _LJ = _LI << ID_DIGITS;
 	static constexpr id_type _LK = _LI << (ID_DIGITS * 2);
 
@@ -910,64 +910,85 @@ struct MeshIDs_
 
 	enum
 	{
-		tag_in_side=0,tag_out_side=1,tag_boundary=2,
-		tag_approximate_model =4
-
+		tag_inside=1,tag_outside=2,tag_boundary=4,
+		tag_approximate_model =8
 	};
 
-	template< typename DistanceFunction,typename ...Others>
-	void filter(DistanceFunction const & dist,point_type const & x_min,point_type const & x_max,
-	int node_tag, Others &&... others)
+	template<typename TID>
+	static TID bit_shift_id(TID s,size_t n)
 	{
-		filter(dist,
-		std::get<0>( coordinates_global_to_local((x_max+x_min)*0.5,node_tag)),
-		max(x_max-x_min),std::forward<Others>(others)...);
+		id_type m=(1UL<< (ID_DIGITS-n-1))-1;
+		return ((s&(m|(m<<ID_DIGITS)|(m<<(ID_DIGITS*2))))<<n)&(~FULL_OVERFLOW_FLAG);
 	}
 
-	template< typename DistanceFunction,typename TRes>
-	void filter(DistanceFunction const & dist,id_type s,int node_tag,int level, int tag ,TRes * res)
+	static constexpr id_type id_add(id_type s,id_type d)
 	{
-		if(res==nullptr)return;
+		return ((s&(~FULL_OVERFLOW_FLAG) )+ d)&(~FULL_OVERFLOW_FLAG);
+	}
+
+	template< typename DistanceFunction,typename ...Others>
+	static size_t intersects(DistanceFunction const & dist,id_type s,int node_tag,int level)
+	{
+		size_t count=0;
+
+		for (int i = 0,ie=m_adjoint_num_[VERTEX][node_tag]; i < ie; ++i)
+		{
+
+			id_type q=bit_shift_id(m_adjoint_matrix_[VERTEX][node_tag][i], level-MESH_RESOLUTION );
+
+			if(dist( id_add( s ,q) )>0)
+			{
+				++count;
+			}
+		}
+
+		return count;
+	}
+
+	template<typename DistanceFunction, typename TRes>
+	static void select(DistanceFunction const & dist, id_type s, int node_tag,
+	int level, TRes * res, int tag = tag_inside)
+	{
+		if (res == nullptr)
+		return;
 
 		int vertices_num = m_adjoint_num_[VERTEX][node_tag];
 
 		size_t count=0;
 
-		for (int i = 0; i < vertices_num; ++i)
+		for (int i = 0,ie=vertices_num; i < ie; ++i)
 		{
-			id_type sub_cell=s+(m_adjoint_matrix_[VERTEX][node_tag][i]>> MESH_RESOLUTION)<<level);
+			id_type q = bit_shift_id(m_adjoint_matrix_[VERTEX][node_tag][i], level-MESH_RESOLUTION );
 
-			if(dist(sub_cell) >0)
+			if(dist( id_add( s ,q) )>0)
 			{
 				++count;
 			}
-
 		}
 
-		bool selected=
-		((tag&tag_in_side )!=0 && count==0) ||
-		((tag&tag_out_side )!=0 && count==vertices_num) ||
-		((tag&tag_boundary )!=0 && count>0 && count <vertices_num)
-		;
+		bool selected = ((tag & tag_inside) != 0 && count == 0)
+		|| ((tag & tag_outside) != 0 && count == vertices_num)
+		|| ((tag & tag_boundary) != 0 && count > 0 && count < vertices_num);
 
-		if(level> MESH_RESOLUTION)
+		if (level > MESH_RESOLUTION)
 		{
-			if( (tag& tag_approximate_model ) !=0 && !selected)
+			if ((tag & tag_approximate_model) != 0 && !selected)
 			{
-				continue;
+				return;
 			}
 
-			for (int i = 0,i_e=m_adjoint_num_[VERTEX][TAG_VOLUME]; i < i_e; ++i)
+			for (int i = 0, i_e = m_adjoint_num_[VERTEX][TAG_VOLUME]; i < i_e; ++i)
 			{
+				id_type q = bit_shift_id(m_adjoint_matrix_[VERTEX][TAG_VOLUME][i],
+				(level - MESH_RESOLUTION ));
 
-				filter( dist,s+((m_adjoint_matrix_[VERTEX][TAG_VOLUME][i]>> MESH_RESOLUTION)<<level),
-				node_tag, level-1,tag,res);
+				select(dist, id_add(s,q) , node_tag, level - 1, res, tag);
 			}
 
 		}
-		else if(selected )
+		else if(selected)
 		{
-			insert(*res,s);
+			res->insert(s);
 		}
 
 	}

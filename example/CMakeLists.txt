@@ -7,6 +7,7 @@ ADD_SUBDIRECTORY( em)
 ADD_SUBDIRECTORY( probe_particle)
 ADD_SUBDIRECTORY( pic)
 ADD_SUBDIRECTORY( geometry)
+ADD_SUBDIRECTORY( model)
 
 
 ADD_EXECUTABLE(demo pic/demo_pic.cpp  em/demo_em.cpp )

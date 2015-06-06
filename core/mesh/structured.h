@@ -56,11 +56,11 @@ namespace simpla
  *  - the unit cell width is 1;
  */
 template<typename CoordinateSystem, typename ...Policies>
-struct StructuredMesh:	public MeshIDs_<
-								geometry::traits::dimension<CoordinateSystem>::value>,
-						public Policies...,
-						public std::enable_shared_from_this<
-								StructuredMesh<CoordinateSystem, Policies...> >
+struct StructuredMesh: public MeshIDs_<
+		geometry::traits::dimension<CoordinateSystem>::value>,
+		public Policies...,
+		public std::enable_shared_from_this<
+				StructuredMesh<CoordinateSystem, Policies...> >
 {
 	typedef CoordinateSystem cs_type;
 
@@ -204,8 +204,7 @@ public:
 	{
 	}
 
-	StructuredMesh(this_type const & other)
-			:
+	StructuredMesh(this_type const & other) :
 
 			m_id_min_(other.m_id_min_),
 
@@ -243,9 +242,7 @@ public:
 	{
 		dimensions(dict["Dimensions"].as(index_tuple( { 10, 10, 10 })));
 
-//		extents(
-//				dict["Box"].template as<
-//						std::tuple<coordinate_tuple, coordinate_tuple> >());
+		extents(dict["Box"].template as<std::tuple<point_type, point_type> >());
 
 		dt(dict["dt"].template as<Real>(1.0));
 	}
@@ -343,8 +340,8 @@ public:
 	template<typename T0, typename T1>
 	void extents(T0 const& pmin, T1 const& pmax)
 	{
-		m_coords_min_.as_ntuple() = pmin;
-		m_coords_max_.as_ntuple() = pmax;
+		m_coords_min_ = pmin;
+		m_coords_max_ = pmax;
 	}
 
 	template<typename T0>
@@ -570,7 +567,7 @@ public:
 
 	Vec3 push_forward(point_type const & x, vector_type const & v) const
 	{
-		return map(x.as_ntuple() + v) - map(x);
+		return map(x + v) - map(x);
 	}
 
 	template<typename TX>
@@ -749,6 +746,34 @@ public:
 		ghost_shape<IFORM>(&res);
 		return std::move(res);
 	}
+
+	template<typename DistanceFunction, typename Res>
+	void select(DistanceFunction const & dist, point_type const & x_min,
+			point_type const & x_max, int node_tag, Res *res, int tag)
+	{
+
+		id_type s = std::get<0>(
+				coordinates_global_to_local((x_max + x_min) * 0.5, node_tag));
+		CHECK_BIT(s);
+		CHECK(point(s));
+
+		CHECK(topology_type::node_id(s));
+		Vec3 L;
+		L = inv_map(x_max) - inv_map(x_min);
+
+		size_t level = static_cast<size_t>(std::log(max(L[0], L[1], L[2]))
+				/ std::log(2.0)) - 1;
+
+		topology_type::select(
+
+		[&](id_type t)
+		{
+			return static_cast<Real>( dist(map(topology_type::point(t))));
+		},
+
+		s, node_tag, level, res, tag);
+	}
+
 };
 
 template<typename TTopology, typename ... Polices> constexpr size_t StructuredMesh<
