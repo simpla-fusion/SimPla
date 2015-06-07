@@ -763,10 +763,12 @@ public:
 		size_t level = static_cast<size_t>(std::log(max(L[0], L[1], L[2]))
 				/ std::log(2.0)) + 1;
 
-		topology_type::select_voxel(
+		size_t count = 0;
+		topology_type::template select<5>(
 
 		[&](id_type t)
 		{
+			++count;
 			return static_cast<Real>( dist(map(topology_type::point(t))));
 		},
 
@@ -775,9 +777,13 @@ public:
 			res->insert(t);
 		},
 
-		s, level, topology_type::MESH_RESOLUTION, tag
+		iform_tag,
+
+		s, level, tag
 
 		);
+
+		CHECK(count);
 	}
 
 };

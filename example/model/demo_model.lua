@@ -14,15 +14,15 @@ Mesh={
     Box={{0.0,0.0,0.0},{LX,LY,LZ}}
 }
 Object=function(v)
-   res=( (v[1]-5)* (v[1]-5)+ (v[2]-5)* (v[2]-5))-9.1
+   res=( (v[1]-5.0)* (v[1]-5.0)+ (v[2]-5.0)* (v[2]-5.0))-9.1
  
-   print(v[1],v[2 ],v[3])
+--   print(v[1],v[2 ],v[3])
   
   return res
  end
 SelectTag = 4
 
-SelectIForm=3
+SelectIForm=1
 
 Polylines={
   { 0.0 , 1 ,0 },
