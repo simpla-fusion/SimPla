@@ -1075,12 +1075,15 @@ struct MeshIDs_
 
 	/**
 	 *
-	 * @param dist
-	 * @param op
-	 * @param iform				VERTEX,EDGE,FACE,VOLUME
-	 * @param s
-	 * @param level
-	 * @param tag
+	 * @param dist  distance function, which is used to model geometric object
+	 *   'Real dist(id_type s)' return the nearest orient distance between point(s) and object
+	 *       > 0 outside , <0 inside , ==0 on the boundary
+	 *
+	 * @param op        op(id_type s) , evaluate when point s is selected.
+	 * @param iform		type of cell, i.e. VERTEX,EDGE,FACE,VOLUME
+	 * @param s         id of start point
+	 * @param level     grid level of search region
+	 * @param tag       define the rule to select
 	 *     1 inside				, valid for VERTEX,EDGE,FACE,VOLUME
 	 *     2 outside			, valid for VERTEX,EDGE,FACE,VOLUME
 	 *     4 boundary - undetermined
@@ -1088,13 +1091,22 @@ struct MeshIDs_
 	 *     6 outside boundary  	, valid for VERTEX,EDGE,FACE
 	 *     7 cross boundary    	, valid for         EDGE,FACE,VOLUME
 	 *     >7 Undetermined
-	 * @param depth
+	 * @param depth,  if voxel s is not selected then --depth
+	 * @param SEARCH_DEPTH max depth of searching, which is used to reject
+	 *      trivial  invalid voxel. When SEARCH_DEPTH is small, it is
+	 *      possible to miss object smaller then voxel.
+	 *        suggested value SEARCH_DEPTH=MESH_RESOLUTION
 	 */
 
 	template<size_t SEARCH_DEPTH, typename DistanceFunction, typename OpFunction >
 	static void select(DistanceFunction const & dist, OpFunction const & op,int iform, id_type s,
 	int level, int tag,int depth=SEARCH_DEPTH )
 	{
+
+		if(depth==0)
+		{
+			return;
+		}
 
 		static constexpr id_type _d = 1UL;
 
@@ -1119,10 +1131,6 @@ struct MeshIDs_
 			_dK| _dJ| _dI
 		};
 
-		if(depth==0)
-		{
-			return;
-		}
 		size_t node_flag=0UL;
 
 		for (int i = 0; i < 8; ++i)
