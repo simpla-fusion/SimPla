@@ -908,11 +908,6 @@ struct MeshIDs_
 		);
 	}
 
-	enum
-	{
-		tag_inside=1,tag_outside=2,tag_boundary=4
-	};
-
 	template<typename TID>
 	static TID bit_shift_id(TID s,size_t n)
 	{
@@ -1023,81 +1018,107 @@ struct MeshIDs_
 //
 //	}
 
-	static constexpr id_type _d = 1UL;
-
-	static constexpr id_type _dI = _d;
-
-	static constexpr id_type _dJ = _d << (ID_DIGITS);
-
-	static constexpr id_type _dK = _d << (ID_DIGITS * 2);
-
-	static constexpr id_type _dA =_dK| _dI|_dJ;
-
-	static constexpr id_type m_sibling_node_[8]=
+//
+//	template<size_t SEARCH_DEPTH, typename DistanceFunction, typename OpFunction >
+//	static void select_voxel(DistanceFunction const & dist, OpFunction const & op, id_type s,
+//	int level, int tag,int depth=SEARCH_DEPTH )
+//	{
+//
+//
+//		if(depth==0)
+//		{
+//			return;
+//		}
+//		size_t node_flag=0UL;
+//
+//		for (int i = 0; i < 8; ++i)
+//		{
+//			if( dist(s+ (m_sibling_node_[i]<<level))>0)
+//			{
+//				node_flag |=1UL<<i;
+//			}
+//		}
+//
+//		bool selected = ((tag & tag_inside) != 0 && node_flag == 0)
+//		|| ((tag & tag_outside) != 0 && node_flag == 0xFF)
+//		|| ((tag & tag_boundary) != 0 && node_flag != 0 && node_flag != 0xFF);
+//
+//		if (level > MESH_RESOLUTION )
+//		{
+//			if (selected)
+//			{
+//				depth=SEARCH_DEPTH;
+//			}
+//			else
+//			{
+//				-- depth;
+//			}
+//
+//			for (int i = 0; i < 8; ++i)
+//			{
+//				select_voxel<SEARCH_DEPTH>(dist,op , s+ (m_sibling_node_[i]<< (level-1) ), level - 1 , tag,depth);
+//			}
+//		}
+//		else
+//		{
+//			if (selected)
+//			{  // get the center of voxel
+//				op(s+ (_dA<< (level-1) ));
+//			}
+//		}
+//
+//	}
+	enum
 	{
-		0,
-		_dI,
-		_dJ,
-		_dI|_dJ,
-
-		_dK ,
-		_dK| _dI,
-		_dK| _dJ,
-		_dK| _dJ| _dI
+		tag_inside=1,tag_outside=2,tag_boundary=4
 	};
 
-	template<size_t SEARCH_DEPTH, typename DistanceFunction, typename OpFunction >
-	static void select_voxel(DistanceFunction const & dist, OpFunction const & op, id_type s,
-	int level, int tag,int depth=SEARCH_DEPTH )
-	{
-		if(depth==0)
-		{
-			return;
-		}
-		size_t node_flag=0UL;
-
-		for (int i = 0; i < 8; ++i)
-		{
-			if( dist(s+ (m_sibling_node_[i]<<level))>0)
-			{
-				node_flag |=1UL<<i;
-			}
-		}
-
-		bool selected = ((tag & tag_inside) != 0 && node_flag == 0)
-		|| ((tag & tag_outside) != 0 && node_flag == 0xFF)
-		|| ((tag & tag_boundary) != 0 && node_flag != 0 && node_flag != 0xFF);
-
-		if (level > MESH_RESOLUTION )
-		{
-			if (selected)
-			{
-				depth=SEARCH_DEPTH;
-			}
-			else
-			{
-				-- depth;
-			}
-
-			for (int i = 0; i < 8; ++i)
-			{
-				select_voxel<SEARCH_DEPTH>(dist,op , s+ (m_sibling_node_[i]<< (level-1) ), level - 1 , tag,depth);
-			}
-		}
-		else
-		{
-			if (selected)
-			{  // get the center of voxel
-				op(s+ (_dA<< (level-1) ));
-			}
-		}
-
-	}
+	/**
+	 *
+	 * @param dist
+	 * @param op
+	 * @param iform				VERTEX,EDGE,FACE,VOLUME
+	 * @param s
+	 * @param level
+	 * @param tag
+	 *     1 inside				, valid for VERTEX,EDGE,FACE,VOLUME
+	 *     2 outside			, valid for VERTEX,EDGE,FACE,VOLUME
+	 *     4 boundary - undetermined
+	 *     5 inside boundary   	, valid for VERTEX,EDGE,FACE
+	 *     6 outside boundary  	, valid for VERTEX,EDGE,FACE
+	 *     7 cross boundary    	, valid for         EDGE,FACE,VOLUME
+	 *     >7 Undetermined
+	 * @param depth
+	 */
 
 	template<size_t SEARCH_DEPTH, typename DistanceFunction, typename OpFunction >
 	static void select(DistanceFunction const & dist, OpFunction const & op,int iform, id_type s,
 	int level, int tag,int depth=SEARCH_DEPTH )
 	{
+
+		static constexpr id_type _d = 1UL;
+
+		static constexpr id_type _dI = _d;
+
+		static constexpr id_type _dJ = _d << (ID_DIGITS);
+
+		static constexpr id_type _dK = _d << (ID_DIGITS * 2);
+
+		static constexpr id_type _dA =_dK| _dI|_dJ;
+
+		static constexpr id_type m_sibling_node_[8]=
+		{
+			0,
+			_dI,
+			_dJ,
+			_dI|_dJ,
+
+			_dK ,
+			_dK| _dI,
+			_dK| _dJ,
+			_dK| _dJ| _dI
+		};
+
 		if(depth==0)
 		{
 			return;
@@ -1112,9 +1133,10 @@ struct MeshIDs_
 			}
 		}
 
-		bool selected = ((tag & tag_inside) != 0 && node_flag == 0)
-		|| ((tag & tag_outside) != 0 && node_flag == 0xFF)
-		|| ((tag & tag_boundary) != 0 && node_flag != 0 && node_flag != 0xFF);
+		bool selected =
+		(node_flag == 0x00 && (tag == tag_inside) )||
+		(node_flag == 0xFF && (tag == tag_outside) )||
+		((node_flag != 0 && node_flag != 0xFF) && ((tag & tag_boundary ) == tag_boundary));
 
 		if (level > MESH_RESOLUTION )
 		{
@@ -1188,6 +1210,7 @@ struct MeshIDs_
 					_dI<<1,
 					_dJ<<1,
 					(_dI|_dJ)<<1,
+
 					(_dK << 1) ,
 					(_dK|_dI)<<1,
 					(_dK|_dJ)<<1,
@@ -1228,10 +1251,13 @@ struct MeshIDs_
 			for (int i = 0; i < flag_num[iform]; ++i)
 			{
 
-				if( ( node_flag & flag[iform][i]) == flag[iform][i] )
-				{	CHECK_BIT(node_flag);
-					CHECK_BIT(flag[iform][i]);
-					CHECK_BIT((shift[iform][i]<< (level-1) ));
+				if(
+
+				( ((tag & (~tag_boundary))==tag_outside) && ( ( node_flag & flag[iform][i]) == flag[iform][i]) )||
+				( ((tag & (~tag_boundary))==tag_inside) && ( ( (~node_flag) & flag[iform][i]) == flag[iform][i]) )||
+				( ((tag & (~tag_boundary))==(tag_inside|tag_outside)) && ( ( node_flag & flag[iform][i]) != 0 ) && ( ( node_flag & flag[iform][i]) != flag[iform][i]) )
+				)
+				{
 					op(s + (shift[iform][i]<< (level-1) ) );
 				}
 			}
@@ -1308,7 +1334,6 @@ template<size_t N, size_t M> constexpr typename MeshIDs_<N,M >::point_type MeshI
 
 template<size_t N, size_t M> constexpr int MeshIDs_<N, M>::m_adjoint_num_[4][8];
 template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M>::m_adjoint_matrix_[4/* to iform*/][8/* node id*/][MAX_NUM_OF_CELL/*id shift*/];
-template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::m_sibling_node_[];
 
 typedef MeshIDs_<3, 4> MeshIDs;
 
