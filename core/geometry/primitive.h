@@ -22,9 +22,29 @@ namespace geometry
 
 namespace tags
 {
+///  dimension 0,1,2,3...
 struct simplex;
+
 struct cube;
+// dimension 0,1,2,3...
 struct box;
+// dimension 0,1,2,3...,defined by two point
+// 0D
+struct point;
+// 1D
+struct line;
+struct spline;
+struct spline;
+
+struct triangele;
+struct rectangle;
+struct circle;
+// 3D
+struct sphere;
+struct torus;
+struct cone;
+struct cylinder;
+struct pyramid;
 
 }  // namespace tags
 
@@ -35,7 +55,25 @@ template<typename > struct coordinate_system;
 template<typename > struct dimension;
 template<typename > struct tag;
 
+template<typename > struct peak;
+template<typename > struct ridge;
+template<typename > struct facet;
+
 template<typename > struct point_type;
+template<typename > struct vector_type;
+template<typename > struct length_type;
+template<typename CS> struct area_type
+{
+	typedef typename length_type<CS>::type l_type;
+	typedef decltype(std::declval<l_type>()*std::declval<l_type>()) type;
+};
+template<typename CS> struct volume_type
+{
+	typedef typename length_type<CS>::type l_type;
+	typedef typename area_type<CS>::type a_type;
+	typedef decltype(std::declval<a_type>()*std::declval<l_type>()) type;
+};
+
 template<typename > struct value_type;
 template<typename > struct number_of_points;
 
@@ -51,12 +89,12 @@ namespace model
  */
 /**
  * @brief Element topological n-dimensional 'geometric primitive' ,
- * Element<0> is point (simplex<0>)
- * Element<1> is a segment of straight line (simplex<1>) or curve, has to end-point
- * Element<2> is triangle (simplex<2>) , rectangle, etc...
- * Element<3> is tetrahedron (simplex<3>) , cube , etc...
+ * Primitive<0> is point (simplex<0>)
+ * Primitive<1> is a segment of straight line (simplex<1>) or curve, has to end-point
+ * Primitive<2> is triangle (simplex<2>) , rectangle, etc...
+ * Primitive<3> is tetrahedron (simplex<3>) , cube , etc...
  */
-template<size_t Dimension, typename ...> struct Primitive;
+template<int Dimension, typename ...> struct Primitive;
 
 #define DEF_NTUPLE_OBJECT(_COORD_SYS_,_T_,_NUM_)                                      \
  nTuple<_T_, _NUM_> m_data_;                                                          \
@@ -73,8 +111,8 @@ template<size_t Dimension, typename ...> struct Primitive;
  *   representing a position
  * @note The boundary of a point is the empty set. [ISO 19107]
  */
-template<typename CoordinateSystem, typename Tag>
-struct Primitive<0, CoordinateSystem, Tag>
+template<typename CoordinateSystem>
+struct Primitive<0, CoordinateSystem>
 {
 	typedef typename simpla::geometry::traits::coordinate_type<CoordinateSystem>::type value_type;
 
@@ -84,9 +122,9 @@ struct Primitive<0, CoordinateSystem, Tag>
 	DEF_NTUPLE_OBJECT(CoordinateSystem,value_type,ndims);
 };
 template<typename CoordinateSystem>
-using Point= Primitive<0, CoordinateSystem, tags::simplex>;
+using Point= Primitive<0, CoordinateSystem >;
 template<typename CoordinateSystem>
-using LineSegment= Primitive<1, CoordinateSystem, tags::simplex>;
+using LineSegment= Primitive<1, CoordinateSystem >;
 
 /**
  * @brief Vector In geometry, Vector represents the first derivative of 'curve',
@@ -139,7 +177,7 @@ LineSegment<CS> operator -(Point<CS> const & x1, Point<CS> const & x0)
 template<typename CS>
 Point<CS> operator +(Point<CS> const & x0, Vector<CS> const & v)
 {
-	return Point<CS>(x0.as_ntuple() - v.as_ntuple());
+	return Point<CS>(x0.as_ntuple() + v.as_ntuple());
 }
 
 template<typename CS>
@@ -188,24 +226,15 @@ struct Tensor
 	DECL_RET_TYPE (m_data_[M])
 };
 
-//template<typename CoordinateSystem>
-//struct Primitive<3, CoordinateSystem, tags::box>
-//{
-//	typedef Primitive<3, CoordinateSystem, tags::box> this_type;
-//	typedef Primitive<0, CoordinateSystem, tags::simplex> point_type;DEF_NTUPLE_OBJECT(CoordinateSystem,point_type,2);
-//};
-//template<typename CoordinateSystem>
-//using Box = Primitive< 3,CoordinateSystem, tags::box >;
-
 template<size_t Dimension, typename CoordinateSystem, typename Tag>
 struct Primitive<Dimension, CoordinateSystem, Tag>
 {
 	typedef Primitive<Dimension, CoordinateSystem, Tag> this_type;
 	typedef typename traits::point_type<this_type>::type vertex_type;
-	static constexpr size_t num_of_vertices =
-			traits::number_of_points<this_type>::value;
+	static constexpr size_t number_of_points = traits::number_of_points<
+			this_type>::value;
 
-	DEF_NTUPLE_OBJECT(CoordinateSystem,vertex_type,num_of_vertices);
+	DEF_NTUPLE_OBJECT(CoordinateSystem,vertex_type,number_of_points);
 };
 
 template<typename OS, size_t Dimension, typename CoordinateSystem, typename Tag>
@@ -215,17 +244,6 @@ OS &operator<<(OS & os, Primitive<Dimension, CoordinateSystem, Tag> const & geo)
 	return os;
 }
 
-template<typename CS>
-struct Box
-{
-	DEF_NTUPLE_OBJECT(CoordinateSystem, Point<CS> , 2);
-};
-template<typename OS, typename CoordinateSystem>
-OS &operator<<(OS & os, Box<CoordinateSystem> const & geo)
-{
-	os << geo.as_ntuple();
-	return os;
-}
 #undef DEF_NTUPLE_OBJECT
 }
 // namespace model
@@ -250,11 +268,7 @@ struct coordinate_system<model::Primitive<Dimension, CoordinateSystem, Tag>>
 {
 	typedef CoordinateSystem type;
 };
-template<typename CoordinateSystem>
-struct coordinate_system<model::Box<CoordinateSystem>>
-{
-	typedef CoordinateSystem type;
-};
+
 template<size_t Dimension, typename CoordinateSystem, typename Tag>
 struct dimension<model::Primitive<Dimension, CoordinateSystem, Tag>>
 {
@@ -280,36 +294,35 @@ struct value_type<model::Primitive<Dimension, CoordinateSystem, Tag>>
 
 	typedef decltype(std::declval<geo>()[0]) type;
 };
-template<typename CoordinateSystem, typename Tag>
-struct number_of_points<model::Primitive<0, CoordinateSystem, Tag>>
+template<typename CoordinateSystem>
+struct number_of_points<model::Primitive<0, CoordinateSystem>>
 {
 	static constexpr size_t value = 1;
 };
-template<typename CoordinateSystem, size_t Dimension>
-struct number_of_points<model::Primitive<Dimension, CoordinateSystem, tags::box>>
+template<typename CoordinateSystem>
+struct number_of_points<model::Primitive<1, CoordinateSystem>>
 {
 	static constexpr size_t value = 2;
 };
 
-template<size_t Dimension, typename CoordinateSystem, typename Tag>
-struct number_of_points<model::Primitive<Dimension, CoordinateSystem, Tag>>
+template<size_t Dimension, typename ...Others>
+struct peak<model::Primitive<Dimension, Others...>>
 {
+	typedef typename facet<
+			typename ridge<model::Primitive<Dimension, Others...> >::type>::type type;
+};
 
-	static constexpr size_t value =
-			std::is_same<tags::simplex, Tag>::value ?
-					(Dimension + 1)
+template<size_t Dimension, typename ...Others>
+struct ridge<model::Primitive<Dimension, Others...>>
+{
+	typedef typename facet<
+			typename facet<model::Primitive<Dimension, Others...> >::type>::type type;
+};
 
-					:
-					(std::is_same<tags::cube, Tag>::value ?
-							(2
-									* number_of_points<
-											model::Primitive<Dimension - 1,
-													CoordinateSystem, Tag>>::value)
-
-							:
-							(0)
-
-					);
+template<size_t Dimension, typename ...Others>
+struct facet<model::Primitive<Dimension, Others...>>
+{
+	typedef model::Primitive<Dimension - 1, Others...> type;
 };
 
 } // namespace traits

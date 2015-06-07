@@ -910,8 +910,7 @@ struct MeshIDs_
 
 	enum
 	{
-		tag_inside=1,tag_outside=2,tag_boundary=4,
-		tag_approximate_model =8
+		tag_inside=1,tag_outside=2,tag_boundary=4
 	};
 
 	template<typename TID>
@@ -930,124 +929,133 @@ struct MeshIDs_
 		return ((s&(~FULL_OVERFLOW_FLAG) )- d)&(~FULL_OVERFLOW_FLAG);
 	}
 
-	template<typename DistanceFunction, typename TRes>
-	static void select(DistanceFunction const & dist, id_type s, ManifoldTypeID p_iform,
-	int level, TRes * res, int tag = tag_inside)
-	{
-
-		switch(p_iform)
-		{
-			case VERTEX:
-			{
-				select_(dist,id_minus((s & PRIMARY_ID_MASK) | m_id_to_shift_[TAG_VERTEX],_DA),TAG_VERTEX,level,res,tag);
-				break;
-			}
-			case EDGE:
-			{
-				select_(dist,id_minus((s & PRIMARY_ID_MASK) | m_id_to_shift_[TAG_EDGE0],_DA),TAG_EDGE0,level,res,tag);
-				select_(dist,id_minus((s & PRIMARY_ID_MASK) | m_id_to_shift_[TAG_EDGE1],_DA),TAG_EDGE0,level,res,tag);
-				select_(dist,id_minus((s & PRIMARY_ID_MASK) | m_id_to_shift_[TAG_EDGE2],_DA),TAG_EDGE0,level,res,tag);
-				break;
-			}
-			case FACE:
-			{
-				select_(dist,id_minus((s & PRIMARY_ID_MASK) | m_id_to_shift_[TAG_FACE0],_DA),TAG_FACE0,level,res,tag);
-				select_(dist,id_minus((s & PRIMARY_ID_MASK) | m_id_to_shift_[TAG_FACE1],_DA),TAG_FACE1,level,res,tag);
-				select_(dist,id_minus((s & PRIMARY_ID_MASK) | m_id_to_shift_[TAG_FACE2],_DA),TAG_FACE2,level,res,tag);
-				break;
-			}
-			case VOLUME:
-			{
-				select_(dist,id_minus((s & PRIMARY_ID_MASK) | m_id_to_shift_[TAG_VOLUME],_DA),TAG_VOLUME,level,res,tag);
-				break;
-			}
-
-		}
-
-	}
-	template< typename DistanceFunction,typename ...Others>
-	static size_t intersects(DistanceFunction const & dist,id_type s,int node_tag,int level)
-	{
-		size_t count=0;
-
-		for (int i = 0,ie=m_adjoint_num_[VERTEX][node_tag]; i < ie; ++i)
-		{
-
-			id_type q=bit_shift_id(m_adjoint_matrix_[VERTEX][node_tag][i], level-MESH_RESOLUTION );
-
-			if(dist( id_add( s ,q) )>0)
-			{
-				++count;
-			}
-		}
-
-		return count;
-	}
-	template<typename DistanceFunction, typename TRes>
-	static void select_(DistanceFunction const & dist, id_type s, int node_tag,
-	int level, TRes * res, int tag = tag_inside)
-	{
-		if (res == nullptr)
-		return;
-
-		if (level >= MESH_RESOLUTION )
-		{
-//			if ((tag & tag_approximate_model) != 0 && !selected)
+//	template<typename DistanceFunction, typename TRes>
+//	static void select(DistanceFunction const & dist, id_type s, ManifoldTypeID p_iform,
+//	int level, TRes * res, int tag = tag_inside)
+//	{
+//
+//		switch(p_iform)
+//		{
+//			case VERTEX:
 //			{
-//				return;
+//				select_(dist,id_minus((s & PRIMARY_ID_MASK) | m_id_to_shift_[TAG_VERTEX],_DA),TAG_VERTEX,level,res,tag);
+//				break;
 //			}
+//			case EDGE:
+//			{
+//				select_(dist,id_minus((s & PRIMARY_ID_MASK) | m_id_to_shift_[TAG_EDGE0],_DA),TAG_EDGE0,level,res,tag);
+//				select_(dist,id_minus((s & PRIMARY_ID_MASK) | m_id_to_shift_[TAG_EDGE1],_DA),TAG_EDGE0,level,res,tag);
+//				select_(dist,id_minus((s & PRIMARY_ID_MASK) | m_id_to_shift_[TAG_EDGE2],_DA),TAG_EDGE0,level,res,tag);
+//				break;
+//			}
+//			case FACE:
+//			{
+//				select_(dist,id_minus((s & PRIMARY_ID_MASK) | m_id_to_shift_[TAG_FACE0],_DA),TAG_FACE0,level,res,tag);
+//				select_(dist,id_minus((s & PRIMARY_ID_MASK) | m_id_to_shift_[TAG_FACE1],_DA),TAG_FACE1,level,res,tag);
+//				select_(dist,id_minus((s & PRIMARY_ID_MASK) | m_id_to_shift_[TAG_FACE2],_DA),TAG_FACE2,level,res,tag);
+//				break;
+//			}
+//			case VOLUME:
+//			{
+//				select_(dist,id_minus((s & PRIMARY_ID_MASK) | m_id_to_shift_[TAG_VOLUME],_DA),TAG_VOLUME,level,res,tag);
+//				break;
+//			}
+//
+//		}
+//
+//	}
+//	template< typename DistanceFunction,typename ...Others>
+//	static size_t intersects(DistanceFunction const & dist,id_type s,int node_tag,int level)
+//	{
+//		size_t count=0;
+//
+//		for (int i = 0,ie=m_adjoint_num_[VERTEX][node_tag]; i < ie; ++i)
+//		{
+//
+//			id_type q=bit_shift_id(m_adjoint_matrix_[VERTEX][node_tag][i], level-MESH_RESOLUTION );
+//
+//			if(dist( id_add( s ,q) )>0)
+//			{
+//				++count;
+//			}
+//		}
+//
+//		return count;
+//	}
+//	template<typename DistanceFunction, typename TRes>
+//	static void select_(DistanceFunction const & dist, id_type s, int node_tag,
+//	int level, TRes * res, int tag = tag_inside)
+//	{
+//		if (res == nullptr)
+//		return;
+//
+//		if (level >= MESH_RESOLUTION )
+//		{
+////			if ((tag & tag_approximate_model) != 0 && !selected)
+////			{
+////				return;
+////			}
+//
+//			for (int i = 0, i_e = m_adjoint_num_[VERTEX][TAG_VOLUME]; i < i_e; ++i)
+//			{
+//				id_type q = bit_shift_id(m_adjoint_matrix_[VERTEX][TAG_VOLUME][i],
+//				(level - MESH_RESOLUTION ));
+//
+//				select_(dist, id_add(s,q) , node_tag, level - 1, res, tag);
+//			}
+//
+//		}
+//		else
+//		{
+//			size_t count=intersects(dist,s,node_tag,level);
+//
+//			size_t vertices_num= m_adjoint_num_[VERTEX][node_tag];
+//
+//			bool selected = ((tag & tag_inside) != 0 && count == 0)
+//			|| ((tag & tag_outside) != 0 && count == vertices_num)
+//			|| ((tag & tag_boundary) != 0 && count > 0 && count < vertices_num);
+//
+//			if(selected)
+//			{
+//				res->insert(s);
+//			}
+//		}
+//
+//	}
 
-			for (int i = 0, i_e = m_adjoint_num_[VERTEX][TAG_VOLUME]; i < i_e; ++i)
-			{
-				id_type q = bit_shift_id(m_adjoint_matrix_[VERTEX][TAG_VOLUME][i],
-				(level - MESH_RESOLUTION ));
+	static constexpr id_type _d = 1UL << (MESH_RESOLUTION - 1);
 
-				select_(dist, id_add(s,q) , node_tag, level - 1, res, tag);
-			}
+	static constexpr id_type _dI = _d;
 
-		}
-		else
-		{
-			size_t count=intersects(dist,s,node_tag,level);
+	static constexpr id_type _dJ = _d << (ID_DIGITS);
 
-			size_t vertices_num= m_adjoint_num_[VERTEX][node_tag];
+	static constexpr id_type _dK = _d << (ID_DIGITS * 2);
 
-			bool selected = ((tag & tag_inside) != 0 && count == 0)
-			|| ((tag & tag_outside) != 0 && count == vertices_num)
-			|| ((tag & tag_boundary) != 0 && count > 0 && count < vertices_num);
+	static constexpr id_type _dA =_dK| _dI|_dJ;
 
-			if(selected)
-			{
-				res->insert(s);
-			}
-		}
-
-	}
-
-	static constexpr id_type m_slibing_node_[8]=
+	static constexpr id_type m_sibling_node_[8]=
 	{
 		0,
-		_DI,
-		_DJ,
-		_DI|_DJ,
+		_dI,
+		_dJ,
+		_dI|_dJ,
 
-		_DK ,
-		_DK| _DI,
-		_DK| _DJ,
-		_DK| _DI|_DJ,
+		_dK ,
+		_dK| _dI,
+		_dK| _dJ,
+		_dK| _dI|_dJ
 	};
 
-	template<typename DistanceFunction, typename TRes>
-	static void select2_(DistanceFunction const & dist, id_type s,
-	int level, TRes * res, int tag = tag_inside)
+	template<typename DistanceFunction, typename OpFunction>
+	static void select_voxel(DistanceFunction const & dist, OpFunction const & op, id_type s,
+	int level, int resolution, int tag )
 	{
-		if (res == nullptr)
-		return;
+
 		size_t node_flag=0UL;
 
 		for (int i = 0; i < 8; ++i)
 		{
-			if( dist(s+ (m_slibing_node_[i]<<(level-MESH_RESOLUTION )))>0)
+			if( dist(s+ (m_sibling_node_[i]<<(level +1)))>0)
 			{
 				node_flag |=1UL<<i;
 			}
@@ -1057,63 +1065,63 @@ struct MeshIDs_
 		|| ((tag & tag_outside) != 0 && node_flag == 0xFF)
 		|| ((tag & tag_boundary) != 0 && node_flag != 0 && node_flag != 0xFF);
 
-		if (level > MESH_RESOLUTION+1)
+		if (level > resolution )
 		{
-			if ((tag & tag_approximate_model) != 0 && !selected)
-			{
-				return;
-			}
+//			if (!selected)
+//			{
+//
+//			}
 
 			for (int i = 0; i < 8; ++i)
 			{
-				select2_(dist, s+ (m_slibing_node_[i]<<(level-MESH_RESOLUTION-1)), level - 1, res, tag);
+				select_voxel(dist,op , s+ (m_sibling_node_[i]<< level ), level - 1,resolution, tag);
 			}
 		}
 		else
 		{
 			if (selected)
-			{
-				res->insert(s+_DA );
+			{  // get the center of voxel
+				op(s+ (_dA<< level ));
 			}
 		}
 
 	}
-	template<typename DistanceFunction, typename TRes>
-	static void select2(DistanceFunction const & dist, id_type s, ManifoldTypeID p_iform,
-	int level, TRes * res, int tag = tag_inside)
-	{
-		s &= PRIMARY_ID_MASK;
-
-		switch(p_iform)
-		{
-			case VERTEX:
-			{
-				select2_(dist,id_minus(s| m_id_to_shift_[TAG_VERTEX],_DA) ,level,res,tag);
-				break;
-			}
-			case EDGE:
-			{
-				select2_(dist,id_minus(s| m_id_to_shift_[TAG_EDGE0],_DA) ,level,res,tag);
-				select2_(dist,id_minus(s| m_id_to_shift_[TAG_EDGE1],_DA) ,level,res,tag);
-				select2_(dist,id_minus(s| m_id_to_shift_[TAG_EDGE2],_DA) ,level,res,tag);
-				break;
-			}
-			case FACE:
-			{
-				select2_(dist,id_minus(s| m_id_to_shift_[TAG_FACE0],_DA) ,level,res,tag);
-				select2_(dist,id_minus(s| m_id_to_shift_[TAG_FACE1],_DA) ,level,res,tag);
-				select2_(dist,id_minus(s| m_id_to_shift_[TAG_FACE2],_DA) ,level,res,tag);
-				break;
-			}
-			case VOLUME:
-			{
-				select2_(dist,id_minus(s| m_id_to_shift_[TAG_VOLUME],_DA) ,level,res,tag);
-				break;
-			}
-
-		}
-
-	}
+//	template<typename DistanceFunction, typename TRes>
+//	static void select(DistanceFunction const & dist, id_type s, ManifoldTypeID p_iform,
+//	int level, TRes * res, int tag = tag_inside)
+//	{
+//		s &= PRIMARY_ID_MASK;
+//
+//		switch(p_iform)
+//		{
+//			case VERTEX:
+//			{
+//				select_voxel(dist,id_minus(s| m_id_to_shift_[TAG_VERTEX],_DA) ,level,res,tag,op);
+//				break;
+//			}
+//			case EDGE:
+//			{
+//				select_voxel(dist,id_minus(s| m_id_to_shift_[TAG_EDGE0],_DA) ,level,res,tag);
+//				select_voxel(dist,id_minus(s| m_id_to_shift_[TAG_EDGE1],_DA) ,level,res,tag);
+//				select_voxel(dist,id_minus(s| m_id_to_shift_[TAG_EDGE2],_DA) ,level,res,tag);
+//				break;
+//			}
+//			case FACE:
+//			{
+//				select_voxel(dist,id_minus(s| m_id_to_shift_[TAG_FACE0],_DA) ,level,res,tag);
+//				select_voxel(dist,id_minus(s| m_id_to_shift_[TAG_FACE1],_DA) ,level,res,tag);
+//				select_voxel(dist,id_minus(s| m_id_to_shift_[TAG_FACE2],_DA) ,level,res,tag);
+//				break;
+//			}
+//			case VOLUME:
+//			{
+//				select_voxel(dist,id_minus(s| m_id_to_shift_[TAG_VOLUME],_DA) ,level,res,tag);
+//				break;
+//			}
+//
+//		}
+//
+//	}
 }
 ;
 
@@ -1147,7 +1155,7 @@ template<size_t N, size_t M> constexpr typename MeshIDs_<N,M >::point_type MeshI
 
 template<size_t N, size_t M> constexpr int MeshIDs_<N, M>::m_adjoint_num_[4][8];
 template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M>::m_adjoint_matrix_[4/* to iform*/][8/* node id*/][MAX_NUM_OF_CELL/*id shift*/];
-template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::m_slibing_node_[];
+template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::m_sibling_node_[];
 
 typedef MeshIDs_<3, 4> MeshIDs;
 

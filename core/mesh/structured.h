@@ -23,7 +23,7 @@
 #include "../gtl/primitives.h"
 #include "../field/field_expression.h"
 #include "../parallel/mpi_update.h"
-#include "../geometry/geometry.h"
+#include "../geometry/primitive.h"
 #include "domain.h"
 #include "mesh_ids.h"
 
@@ -750,7 +750,7 @@ public:
 	template<typename DistanceFunction, typename Res>
 	void select(DistanceFunction const & dist, point_type const & x_min,
 			point_type const & x_max, ManifoldTypeID iform_tag, Res *res,
-			int tag)
+			int tag, int resolution = 1)
 	{
 
 		id_type s = std::get<0>(
@@ -761,16 +761,23 @@ public:
 		L = inv_map(x_max) - inv_map(x_min);
 
 		size_t level = static_cast<size_t>(std::log(max(L[0], L[1], L[2]))
-				/ std::log(2.0)) + 2;
+				/ std::log(2.0)) + 1;
 
-		topology_type::select2(
+		topology_type::select_voxel(
 
 		[&](id_type t)
 		{
 			return static_cast<Real>( dist(map(topology_type::point(t))));
 		},
 
-		s, iform_tag, level, res, tag);
+		[&](id_type t)
+		{
+			res->insert(t);
+		},
+
+		s, level, topology_type::MESH_RESOLUTION, tag
+
+		);
 	}
 
 };

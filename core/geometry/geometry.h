@@ -14,7 +14,7 @@
 #include "coordinate_system.h"
 #include "primitive.h"
 #include "chains.h"
-#include "model.h"
+//#include "model.h"
 #ifdef USE_BOOST
 #	error "Custom geometry library is not implemented!"
 #else

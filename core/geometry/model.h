@@ -20,13 +20,13 @@ namespace model
 {
 
 template<typename CoordinateSystem>
-using Point= Primitive<0, CoordinateSystem, tags::simplex>;
+using Point= Primitive<0, CoordinateSystem >;
 
 //template<typename CoordinateSystem>
 //using Point = Primitive< 0,CoordinateSystem, tags::simplex>;
 
 template<typename CoordinateSystem>
-using LineSegment = Primitive< 1,CoordinateSystem, tags::simplex >;
+using LineSegment = Primitive< 1,CoordinateSystem >;
 
 template<typename CoordinateSystem>
 using Triangle = Primitive< 2,CoordinateSystem, tags::simplex >;
@@ -135,6 +135,154 @@ struct Surface
 template<typename CS, typename TAG, typename ...Others>
 using Solids=Chains<Primitive<3, CS,TAG>, Others ...>;
 
+template<typename CoordinateSystem>
+using LineSegment = Primitive< 1,CoordinateSystem, tags::simplex >;
+template<typename CoordinateSystem>
+using Sphere = Primitive< 3,CoordinateSystem, tags::sphere >;
+template<typename CS>
+struct Primitive<3, CS, tags::sphere>
+{
+	typedef typename traits::length_type<CS>::type length_type;
+	typedef typename traits::point_type<CS>::type point_type;
+	typedef typename traits::vector_type<CS>::type vector_type;
+
+	point_type m_x0_;
+	length_type m_radius_;
+
+	length_type distance(point_type const & x) const
+	{
+		return std::sqrt(inner_product(x - m_x0_, x - m_x0_)) - m_radius_;
+	}
+	length_type operator()(point_type const & x) const
+	{
+		return distance(x);
+	}
+};
+
+template<typename CS>
+struct Primitive<3, CS, tags::circle>
+{
+	typedef typename traits::length_type<CS>::type length_type;
+	typedef typename traits::point_type<CS>::type point_type;
+	typedef typename traits::vector_type<CS>::type vector_type;
+
+	point_type m_x0_;
+	vector_type m_Z_;
+	length_type m_R_;
+
+	length_type distance(point_type const & x) const
+	{
+		vector_type Z, XY;
+
+		Z = m_Z_ * (inner_product(x - m_x0_, m_Z_) / inner_product(m_Z_, m_Z_));
+
+		XY = x - m_x0_ - Z;
+
+		return inner_product(Z, Z)
+				+ std::pow(std::sqrt(inner_product(XY, XY)) - m_R_, 2.0);
+	}
+	length_type operator()(point_type const & x) const
+	{
+		return distance(x);
+	}
+};
+template<typename CS, typename TPoint>
+typename traits::length_type<CS>::type distance(TPoint const & p,
+		Primitive<3, CS, tags::circle> const & c)
+{
+	return c.disance(p);
+}
+template<typename CS>
+struct Primitive<3, CS, tags::torus>
+{
+	typedef typename traits::length_type<CS>::type length_type;
+	typedef typename traits::point_type<CS>::type point_type;
+	typedef typename traits::vector_type<CS>::type vector_type;
+
+	Primitive<3, CS, tags::circle> m_circle_;
+	length_type m_a_;
+
+	length_type distance(point_type const & x) const
+	{
+		/**
+		 * d_{torus}\left(p,R,a\right)=\sqrt{\left(\sqrt{p_{x}^{2}+p_{y}^{2}}-R\right)^{2}+p_{z}^{2}}-a
+		 */
+		return geometry::distance(x, m_circle_) - m_a_;
+	}
+	length_type operator()(point_type const & x) const
+	{
+		return distance(x);
+	}
+};
+template<typename CS>
+struct Primitive<3, CS, tags::cone>
+{
+	typedef typename traits::length_type<CS>::type length_type;
+	typedef typename traits::point_type<CS>::type point_type;
+	typedef typename traits::vector_type<CS>::type vector_type;
+
+	Primitive<3, CS, tags::circle> m_circle_;
+	length_type m_a_;
+
+	length_type distance(point_type const & x) const
+	{
+		/**
+		 * $\theta	=	\arctan\left(\frac{r}{h}\right)$
+		 * $ d_{cone}\left(p,r,h\right)	= \max\left(\sqrt{p_{x}^{2}+p_{y}^{2}}\cos\theta-\left|p_{y}\right|\sin\theta,p_{y}-h,-p_{y}\right) $
+		 */
+		return geometry::distance(x, m_circle_) - m_a_;
+	}
+	length_type operator()(point_type const & x) const
+	{
+		return distance(x);
+	}
+};
+
+template<typename CS>
+struct Primitive<3, CS, tags::box>
+{
+	typedef typename traits::length_type<CS>::type length_type;
+	typedef typename traits::point_type<CS>::type point_type;
+	typedef typename traits::vector_type<CS>::type vector_type;
+
+	Primitive<3, CS, tags::circle> m_circle_;
+	length_type m_a_;
+
+	length_type distance(point_type const & x) const
+	{
+		/**
+		 * $ d_{box}=\max\left(\left|p_{x}\right|-\frac{s_{x}}{2},\left|p_{y}\right|-\frac{s_{y}}{2},\left|p_{z}\right|-\frac{s_{z}}{2}\right)$
+		 */
+		return geometry::distance(x, m_circle_) - m_a_;
+	}
+	length_type operator()(point_type const & x) const
+	{
+		return distance(x);
+	}
+};
+
+template<typename CS>
+struct Primitive<3, CS, tags::cylinder>
+{
+	typedef typename traits::length_type<CS>::type length_type;
+	typedef typename traits::point_type<CS>::type point_type;
+	typedef typename traits::vector_type<CS>::type vector_type;
+
+	Primitive<3, CS, tags::circle> m_circle_;
+	length_type m_a_;
+
+	length_type distance(point_type const & x) const
+	{
+		/**
+		 * $ d_{cylinder}\left(p,r,h\right)=\max\left(\sqrt{p_{x}^{2}+p_{z}^{2}}-r,\left|p_{y}\right|-\frac{h}{2}\right)$
+		 */
+		return geometry::distance(x, m_circle_) - m_a_;
+	}
+	length_type operator()(point_type const & x) const
+	{
+		return distance(x);
+	}
+};
 }
 // namespace model
 
@@ -147,6 +295,7 @@ struct coordinate_system<model::Polygon<CS> >
 	typedef CS type;
 };
 }  // namespace traits
+
 }  // namespace geometry
 
 }  // namespace simpla
