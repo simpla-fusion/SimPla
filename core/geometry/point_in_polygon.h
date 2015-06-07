@@ -28,13 +28,13 @@ class PointInPolygon
 	std::vector<double> constant_;
 	std::vector<double> multiple_;
 public:
-	PointInPolygon()
-			: num_of_vertex_(0)
+	PointInPolygon() :
+			num_of_vertex_(0)
 	{
 	}
 	template<typename ...Args>
-	PointInPolygon(Args && ...args)
-			: num_of_vertex_(0)
+	PointInPolygon(Args && ...args) :
+			num_of_vertex_(0)
 	{
 		deploy(std::forward<Args>(args)...);
 	}
@@ -79,23 +79,23 @@ public:
 		}
 	}
 
-	PointInPolygon(PointInPolygon const& rhs)
-			: polygen_(rhs.polygen_), num_of_vertex_(rhs.num_of_vertex_), constant_(
+	PointInPolygon(PointInPolygon const& rhs) :
+			polygen_(rhs.polygen_), num_of_vertex_(rhs.num_of_vertex_), constant_(
 					rhs.constant_), multiple_(rhs.multiple_)
 	{
 
 	}
-	PointInPolygon(PointInPolygon && rhs)
-			: polygen_(rhs.polygen_), num_of_vertex_(rhs.num_of_vertex_), constant_(
+	PointInPolygon(PointInPolygon && rhs) :
+			polygen_(rhs.polygen_), num_of_vertex_(rhs.num_of_vertex_), constant_(
 					rhs.constant_), multiple_(rhs.multiple_)
 	{
 
 	}
 
 	template<typename ...Args>
-	inline bool operator()(Args &&... args) const
+	inline Real operator()(Args &&... args) const
 	{
-		return IsInside(std::forward<Args>(args)...);
+		return is_inside(std::forward<Args>(args)...) ? -1 : 1;
 	}
 
 	template<size_t N>

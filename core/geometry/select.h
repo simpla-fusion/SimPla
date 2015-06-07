@@ -502,20 +502,57 @@ void filter_domain_by_config(TDict const & dict, TDomain * domain)
 		}
 
 	}
-	else if (dict["Surface"])
+	else if (dict["Object"])
 	{
-
-	}
-	else
-	{
-		if (dict.is_function())
+		int tag = mesh_type::tag_inside;
+		if (dict["IsSurface"])
 		{
-			domain->filter_by_coordinates([&](point_type const & x )
-			{
-				return (static_cast<bool>(dict(x)));
-			});
+			tag = mesh_type::tag_boundary | mesh_type::tag_outside;
+		}
+
+		if (dict["Object"].is_function())
+		{
+
+			domain->mesh().select(
+
+			dict["Object"],
+
+			std::get<0>(domain->box()), std::get<1>(domain->box()),
+
+			domain->iform,
+
+			&(domain->id_set()),
+
+			tag
+
+			);
 
 		}
+		else if (dict["Polygons"])
+		{
+			std::vector<typename mesh_type::point_type> points;
+
+			dict["Polygons"].as(&points);
+
+			PointInPolygon pip(points, dict["ZAXIS"].template as<int>(2));
+
+			domain->mesh().select(
+
+			pip,
+
+			std::get<0>(domain->box()), std::get<1>(domain->box()),
+
+			domain->iform,
+
+			&(domain->id_set()),
+
+			tag
+
+			);
+
+		}
+
+		CHECK(domain->id_set().size());
 	}
 
 }

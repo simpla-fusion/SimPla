@@ -80,7 +80,7 @@ public:
 
 		return m_domain_.mesh().template sample<iform>(s,
 				static_cast<field_value_type>(m_fun_(
-						m_domain_.mesh().coordinates(s), t)));
+						m_domain_.mesh().point(s), t)));
 	}
 
 	field_value_type operator()(point_type const& x, Real t) const

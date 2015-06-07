@@ -223,7 +223,7 @@ public:
 			m_domain_.for_each(other.domain(),
 					[&](id_type const &s)
 					{
-						auto x=m_domain_.mesh().coordinates(s);
+						auto x=m_domain_.mesh().point(s);
 						auto t=m_domain_.mesh().time();
 						at(s)+=m_domain_.mesh().template sample<iform>(s,other(x,t,gather(x)));
 					});
@@ -244,7 +244,7 @@ public:
 			other.domain().for_each(
 					[&](id_type const &s)
 					{
-						auto x=m_domain_.mesh().coordinates(s);
+						auto x=m_domain_.mesh().point(s);
 						auto t=m_domain_.mesh().time();
 						at(s) =m_domain_.mesh().template sample<iform>(s,other(x,t,gather(x)));
 					});

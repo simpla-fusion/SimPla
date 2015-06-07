@@ -70,19 +70,19 @@ public:
 	std::set<id_type> m_id_set_;
 public:
 
-	Domain(mesh_type const &m)
-			: range_type(m.range(mesh_type::template sub_index_to_id<iform>())), m_mesh_(
+	Domain(mesh_type const &m) :
+			range_type(m.range(mesh_type::template sub_index_to_id<iform>())), m_mesh_(
 					m)
 	{
 	}
 
-	Domain(this_type const & other)
-			: range_type(other), m_mesh_(other.m_mesh_), m_id_set_(
+	Domain(this_type const & other) :
+			range_type(other), m_mesh_(other.m_mesh_), m_id_set_(
 					other.m_id_set_)
 	{
 	}
-	Domain(this_type && other)
-			: range_type(other), m_mesh_(other.m_mesh_), m_id_set_(
+	Domain(this_type && other) :
+			range_type(other), m_mesh_(other.m_mesh_), m_id_set_(
 					other.m_id_set_)
 	{
 	}
@@ -231,7 +231,7 @@ public:
 	{
 		for_each([&](id_type s)
 		{
-			fun(m_mesh_.coordinates(s));
+			fun(m_mesh_.point(s));
 		});
 
 	}
@@ -326,6 +326,13 @@ public:
 		return range_type::in_box(mesh_type::coordinates_to_topology(x));
 	}
 
+	std::tuple<point_type, point_type> box() const
+	{
+		auto ext = range_type::box();
+
+		return std::make_tuple(m_mesh_.point(std::get<0>(ext)),
+				m_mesh_.point(std::get<1>(ext)));
+	}
 	void update_bound_box()
 	{
 		if (m_id_set_.size() > 0)
@@ -394,14 +401,14 @@ public:
 
 			std::copy_if(this->begin(), this->end(),
 					std::inserter(res, res.begin()), [&](id_type const& s)
-					{	return pred(m_mesh_.coordinates(s));});
+					{	return pred(m_mesh_.point(s));});
 
 		}
 		else
 		{
 			std::copy_if(m_id_set_.begin(), m_id_set_.end(),
 					std::inserter(res, res.begin()), [&](id_type const& s)
-					{	return pred(m_mesh_.coordinates(s));});
+					{	return pred(m_mesh_.point(s));});
 		}
 		res.swap(m_id_set_);
 		update_bound_box();
@@ -413,7 +420,7 @@ public:
 		std::transform(b, e, std::inserter(m_id_set_, m_id_set_.begin()),
 				[&](id_type const &s)
 				{
-					return in_box(m_mesh_.coordinates(s));
+					return in_box(m_mesh_.point(s));
 				});
 	}
 	template<typename Pred>
@@ -429,7 +436,7 @@ public:
 	{
 		filter([&](id_type const & s)
 		{
-			return !pred(m_mesh_.coordinates(s));
+			return !pred(m_mesh_.point(s));
 		});
 	}
 

@@ -1,6 +1,6 @@
 
-NX = 10
-NY = 10 
+NX = 128
+NY = 128 
 NZ = 1
 LX = 10   --m --100000*rhoi --0.6
 LY = 10   --2.0*math.pi/k0
@@ -14,13 +14,13 @@ Mesh={
     Box={{0.0,0.0,0.0},{LX,LY,LZ}}
 }
 Object=function(v)
-   res=( (v[1]-5.0)* (v[1]-5.0)+ (v[2]-5.0)* (v[2]-5.0))-9.1
+   res=( (v[1]-5.0)* (v[1]-5.0)+ (v[2]-5.0)* (v[2]-5.0))-10
  
 --   print(v[1],v[2 ],v[3])
   
   return res
  end
-SelectTag = 7
+SelectTag = 6
 
 SelectIForm=1
 

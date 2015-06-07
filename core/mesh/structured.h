@@ -749,8 +749,8 @@ public:
 
 	template<typename DistanceFunction, typename Res>
 	void select(DistanceFunction const & dist, point_type const & x_min,
-			point_type const & x_max, ManifoldTypeID iform_tag, Res *res,
-			int tag, int resolution = 1)
+			point_type const & x_max, int iform_tag, Res *res, int tag,
+			int resolution = 1) const
 	{
 
 		id_type s = std::get<0>(
@@ -764,7 +764,7 @@ public:
 				/ std::log(2.0)) + 1;
 
 		size_t count = 0;
-		topology_type::template select<5>(
+		topology_type::template select<4>(
 
 		[&](id_type t)
 		{
@@ -783,7 +783,6 @@ public:
 
 		);
 
-		CHECK(count);
 	}
 
 };
