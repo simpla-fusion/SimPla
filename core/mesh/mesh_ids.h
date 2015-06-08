@@ -954,13 +954,12 @@ struct MeshIDs_
 	 *        suggested value SEARCH_DEPTH=MESH_RESOLUTION
 	 */
 
-	template<size_t SEARCH_DEPTH, typename DistanceFunction, typename OpFunction >
-	static void select(DistanceFunction const & dist, OpFunction const & op,int iform, id_type s,
-	int level, int tag,int depth=SEARCH_DEPTH )
+	template< typename DistanceFunction, typename OpFunction >
+	static void select(DistanceFunction const & dist, OpFunction const & op,
+	int select_tag,int iform, id_type s, int level,int node_flag=0x50000 )
 	{
-		// FIXME need optimize
 
-		if(depth==0)
+		if((node_flag&(~0xFFFF))==0)
 		{
 			return;
 		}
@@ -988,35 +987,39 @@ struct MeshIDs_
 			_dK| _dJ| _dI
 		};
 
-		size_t node_flag=0UL;
-
 		for (int i = 0; i < 8; ++i)
 		{
-			if( dist(s+ (m_sibling_node_[i]<<level))>0)
+			if((node_flag&(1UL<<(i+8)) )==0)
 			{
-				node_flag |=1UL<<i;
+				if( dist(s+ (m_sibling_node_[i]<<level))>0)
+				{
+					node_flag |=1UL<<i;
+				}
+				node_flag |=(1UL<<(i+8));
 			}
 		}
 
 		bool selected =
-		(node_flag == 0x00 && (tag == tag_inside) )||
-		(node_flag == 0xFF && (tag == tag_outside) )||
-		((node_flag != 0 && node_flag != 0xFF) && ((tag & tag_boundary ) == tag_boundary));
+		((node_flag & 0xFF) == 0x00 && (select_tag == tag_inside) )||
+		((node_flag & 0xFF) == 0xFF && (select_tag == tag_outside) )||
+		(((node_flag & 0xFF) != 0 && (node_flag & 0xFF) != 0xFF) && ((select_tag & tag_boundary ) == tag_boundary));
 
 		if (level > MESH_RESOLUTION )
 		{
-			if (selected)
+			if(selected)
 			{
-				depth=SEARCH_DEPTH;
+				node_flag= (node_flag&0xFFFF)+0x50000;
 			}
 			else
 			{
-				-- depth;
+				node_flag-=0x10000;
 			}
-
 			for (int i = 0; i < 8; ++i)
 			{
-				select<SEARCH_DEPTH>(dist,op , iform,s+ (m_sibling_node_[i]<< (level-1) ), level - 1 , tag,depth);
+				select (dist,op ,select_tag, iform,
+				s+ (m_sibling_node_[i]<< (level-1) ), level - 1 ,
+				(node_flag&(0xFF0000|(1UL<<i)))|(1UL<<(i+8))
+				);
 			}
 		}
 		else if (selected)
@@ -1118,9 +1121,16 @@ struct MeshIDs_
 
 				if(
 
-				( ((tag & (~tag_boundary))==tag_outside) && ( ( node_flag & flag[iform][i]) == flag[iform][i]) )||
-				( ((tag & (~tag_boundary))==tag_inside) && ( ( (~node_flag) & flag[iform][i]) == flag[iform][i]) )||
-				( ((tag & (~tag_boundary))==(tag_inside|tag_outside)) && ( ( node_flag & flag[iform][i]) != 0 ) && ( ( node_flag & flag[iform][i]) != flag[iform][i]) )
+				( ((select_tag & (~tag_boundary))==tag_outside)
+						&& ( ( node_flag & flag[iform][i]) == flag[iform][i]) )||
+
+				( ((select_tag & (~tag_boundary))==tag_inside)
+						&& ( ( (~node_flag) & flag[iform][i]) == flag[iform][i]) )||
+
+				( ((select_tag & (~tag_boundary))==(tag_inside|tag_outside))
+						&& ( ( node_flag & flag[iform][i]) != 0 ) &&
+						( ( node_flag & flag[iform][i]) != flag[iform][i]) )
+
 				)
 				{
 					op(s + (shift[iform][i]<< (level-1) ) );

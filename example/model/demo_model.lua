@@ -1,6 +1,6 @@
 
-NX = 128
-NY = 128 
+NX = 16
+NY = 16 
 NZ = 1
 LX = 10   --m --100000*rhoi --0.6
 LY = 10   --2.0*math.pi/k0
@@ -14,11 +14,13 @@ Mesh={
     Box={{0.0,0.0,0.0},{LX,LY,LZ}}
 }
 Object=function(v)
-   res=( (v[1]-5.0)* (v[1]-5.0)+ (v[2]-5.0)* (v[2]-5.0))-10
- 
+   --res=( (v[1]-5.0)* (v[1]-5.0)+ (v[2]-5.0)* (v[2]-5.0))-10
+  -- d1=( (v[1]-LX/2)* (v[1]- LX/2)+ (v[2]-LY/2)* (v[2]-LY/2))-LY*LY*0.04
+   d2=math.max( math.abs(v[1]-LX*0.6)-2 , math.abs(v[2]-LY*0.6)-2)
+-- 
 --   print(v[1],v[2 ],v[3])
-  
-  return res
+   return d2
+  --return math.min(d1,d2)
  end
 SelectTag = 6
 

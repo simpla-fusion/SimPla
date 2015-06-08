@@ -748,9 +748,8 @@ public:
 	}
 
 	template<typename DistanceFunction, typename Res>
-	void select(DistanceFunction const & dist, point_type const & x_min,
-			point_type const & x_max, int iform_tag, Res *res, int tag,
-			int resolution = 1) const
+	void select(DistanceFunction const & dist, int select_tag, int iform_tag,
+			point_type const & x_min, point_type const & x_max, Res *res) const
 	{
 
 		id_type s = std::get<0>(
@@ -764,7 +763,8 @@ public:
 				/ std::log(2.0)) + 1;
 
 		size_t count = 0;
-		topology_type::template select<4>(
+
+		topology_type::select(
 
 		[&](id_type t)
 		{
@@ -777,9 +777,11 @@ public:
 			res->insert(t);
 		},
 
+		select_tag,
+
 		iform_tag,
 
-		s, level, tag
+		s, level
 
 		);
 

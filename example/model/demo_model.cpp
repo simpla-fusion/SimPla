@@ -47,13 +47,13 @@ USE_CASE(model,"Model")
 
 	options["Object"],
 
-	std::get<0>(extents), std::get<1>(extents),
+	options["SelectTag"].as<int>(0),
 
 	static_cast<ManifoldTypeID>(options["SelectIForm"].as<int>(0)),
 
-	&res,
+	std::get<0>(extents), std::get<1>(extents),
 
-	options["SelectTag"].as<int>(0)
+	&res
 
 	);
 

@@ -28,8 +28,8 @@ omega_ce = qe * Btor/me -- e/m_p B0 rad/s
 vTe= math.sqrt(k_B*Te*2/me)
 rhoe = vTe/omega_ce    -- m
 
-NX = 128 
-NY = 128 
+NX = 64 
+NY = 64 
 NZ = 1
 LX = 10   --m --100000*rhoi --0.6
 LY = 10   --2.0*math.pi/k0
@@ -84,9 +84,10 @@ PEC= {
   Domain={
     Box={ {0 ,0,0 }, {LX   ,LY  ,0 }} ,    IsSurface=true,
     Object=function(v)
-      d2=( (v[1]-LX/2)* (v[1]- LX/2)+ (v[2]-LY/2)* (v[2]-LY/2))-LY*LY*0.04
+      d1=( (v[1]-LX/2)* (v[1]- LX/2)+ (v[2]-LY/2)* (v[2]-LY/2))-LY*LY*0.04
+      d2=math.max( math.abs(v[1]-LX*0.6)-2 , math.abs(v[2]-LY*0.6)-2)
 --   print(v[1],v[2 ],v[3])
-      return d2
+      return math.min(d1,d2)
     end
   }
 }
