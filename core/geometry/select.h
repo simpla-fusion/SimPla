@@ -13,6 +13,9 @@
 #include "geometric_algorithm.h"
 #include "../mesh/mesh_ids.h"
 #include "../gtl/ntuple.h"
+
+#include "../gtl/function_cache.h"
+
 namespace simpla
 {
 
@@ -513,7 +516,9 @@ void filter_domain_by_config(TDict const & dict, TDomain * domain)
 		if (dict["Object"].is_function())
 		{
 
-			domain->mesh().select(dict["Object"],
+			domain->mesh().select(
+
+			make_function_cache<Real, id_type>(dict["Object"]),
 
 			select_tag, domain->iform,
 
@@ -530,7 +535,11 @@ void filter_domain_by_config(TDict const & dict, TDomain * domain)
 
 			PointInPolygon pip(points, dict["ZAXIS"].template as<int>(2));
 
-			domain->mesh().select(pip, select_tag, domain->iform,
+			domain->mesh().select(
+
+			make_function_cache<Real, id_type>(pip),
+
+			select_tag, domain->iform,
 
 			std::get<0>(domain->box()), std::get<1>(domain->box()),
 

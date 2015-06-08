@@ -15,7 +15,6 @@
 #include "../../core/io/io.h"
 #include "../../core/mesh/mesh.h"
 #include "../../core/utilities/utilities.h"
-
 namespace simpla
 {
 typedef StructuredMesh<geometry::coordinate_system::Cartesian<3>,

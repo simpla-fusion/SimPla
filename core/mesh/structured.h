@@ -24,6 +24,8 @@
 #include "../field/field_expression.h"
 #include "../parallel/mpi_update.h"
 #include "../geometry/primitive.h"
+#include "../gtl/function_cache.h"
+
 #include "domain.h"
 #include "mesh_ids.h"
 
@@ -770,7 +772,9 @@ public:
 		{
 			++count;
 			return static_cast<Real>( dist(map(topology_type::point(t))));
-		},
+		}
+
+		,
 
 		[&](id_type t)
 		{
@@ -784,6 +788,8 @@ public:
 		s, level
 
 		);
+
+		CHECK(count);
 
 	}
 

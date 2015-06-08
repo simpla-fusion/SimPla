@@ -28,8 +28,8 @@ omega_ce = qe * Btor/me -- e/m_p B0 rad/s
 vTe= math.sqrt(k_B*Te*2/me)
 rhoe = vTe/omega_ce    -- m
 
-NX = 64 
-NY = 64 
+NX = 128 
+NY = 128
 NZ = 1
 LX = 10   --m --100000*rhoi --0.6
 LY = 10   --2.0*math.pi/k0

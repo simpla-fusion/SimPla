@@ -445,7 +445,7 @@ public:
 		for (auto & item : *this)
 		{
 			point_type x0;
-			x0 = m_domain_.mesh().coordinates(item.first);
+			x0 = m_domain_.mesh().point(item.first);
 
 			if (!in_box(x0, xmin, xmax))
 			{

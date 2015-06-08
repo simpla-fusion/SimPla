@@ -955,10 +955,11 @@ struct MeshIDs_
 	 */
 
 	template< typename DistanceFunction, typename OpFunction >
-	static void select(DistanceFunction const & dist, OpFunction const & op,
-	int select_tag,int iform, id_type s, int level,int node_flag=0x50000 )
+	static void select(DistanceFunction const& dist, OpFunction const & op,
+	int select_tag,int iform, id_type s, int level,int node_flag=0x50000,
+	std::shared_ptr<std::map<id_type,Real>> dist_cache=nullptr )
 	{
-
+		// FIXME NEED parallel optimize
 		if((node_flag&(~0xFFFF))==0)
 		{
 			return;
@@ -987,11 +988,32 @@ struct MeshIDs_
 			_dK| _dJ| _dI
 		};
 
+		if(dist_cache==nullptr)
+		{
+			dist_cache=std::shared_ptr<std::map<id_type, Real>>(new std::map<id_type, Real>);
+		}
+
 		for (int i = 0; i < 8; ++i)
 		{
 			if((node_flag&(1UL<<(i+8)) )==0)
 			{
-				if( dist(s+ (m_sibling_node_[i]<<level))>0)
+				id_type id=s+ (m_sibling_node_[i]<<level);
+
+				Real distance=0;
+
+				auto it = dist_cache->find(id);
+
+				if(it!=dist_cache->end())
+				{
+					distance=it->second;
+				}
+				else
+				{
+					distance=dist(id);
+					(*dist_cache)[id]=distance;
+				}
+
+				if(distance>0)
 				{
 					node_flag |=1UL<<i;
 				}
@@ -1002,7 +1024,8 @@ struct MeshIDs_
 		bool selected =
 		((node_flag & 0xFF) == 0x00 && (select_tag == tag_inside) )||
 		((node_flag & 0xFF) == 0xFF && (select_tag == tag_outside) )||
-		(((node_flag & 0xFF) != 0 && (node_flag & 0xFF) != 0xFF) && ((select_tag & tag_boundary ) == tag_boundary));
+		(((node_flag & 0xFF) != 0 && (node_flag & 0xFF) != 0xFF)
+		&& ((select_tag & tag_boundary ) == tag_boundary));
 
 		if (level > MESH_RESOLUTION )
 		{
@@ -1018,17 +1041,17 @@ struct MeshIDs_
 			{
 				select (dist,op ,select_tag, iform,
 				s+ (m_sibling_node_[i]<< (level-1) ), level - 1 ,
-				(node_flag&(0xFF0000|(1UL<<i)))|(1UL<<(i+8))
-				);
+				(node_flag&(0xFF0000|(1UL<<i)))|(1UL<<(i+8)),
+				dist_cache);
 			}
 		}
-		else if (selected)
+		else
 		{
-			static constexpr id_type flag_num[4]=
+			static constexpr id_type sub_cell_num[4]=
 			{
 				8, 12,6,1
 			};
-			static constexpr id_type flag[4][12]=
+			static constexpr id_type sub_cell_flag[4][12]=
 			{
 				{
 					0x01,
@@ -1072,7 +1095,7 @@ struct MeshIDs_
 
 			};
 
-			static constexpr id_type shift[4][12]=
+			static constexpr id_type sub_cell_shift[4][12]=
 			{
 				{	0,
 					_dI<<1,
@@ -1114,29 +1137,29 @@ struct MeshIDs_
 				{	_dI|_dJ|_dK}
 
 			};
-
-			// get the center of voxel
-			for (int i = 0; i < flag_num[iform]; ++i)
+			if (selected)
 			{
-
-				if(
-
-				( ((select_tag & (~tag_boundary))==tag_outside)
-						&& ( ( node_flag & flag[iform][i]) == flag[iform][i]) )||
-
-				( ((select_tag & (~tag_boundary))==tag_inside)
-						&& ( ( (~node_flag) & flag[iform][i]) == flag[iform][i]) )||
-
-				( ((select_tag & (~tag_boundary))==(tag_inside|tag_outside))
-						&& ( ( node_flag & flag[iform][i]) != 0 ) &&
-						( ( node_flag & flag[iform][i]) != flag[iform][i]) )
-
-				)
+				// get the center of voxel
+				for (int i = 0; i < sub_cell_num[iform]; ++i)
 				{
-					op(s + (shift[iform][i]<< (level-1) ) );
+					if(
+
+					( ((select_tag & (~tag_boundary))==tag_outside)
+							&& ( ( node_flag & sub_cell_flag[iform][i]) == sub_cell_flag[iform][i]) )||
+
+					( ((select_tag & (~tag_boundary))==tag_inside)
+							&& ( ( (~node_flag) & sub_cell_flag[iform][i]) == sub_cell_flag[iform][i]) )||
+
+					( ((select_tag & (~tag_boundary))==(tag_inside|tag_outside))
+							&& ( ( node_flag & sub_cell_flag[iform][i]) != 0 ) &&
+							( ( node_flag & sub_cell_flag[iform][i]) != sub_cell_flag[iform][i]) )
+
+					)
+					{
+						op(s + (sub_cell_shift[iform][i]<< (level-1) ) );
+					}
 				}
 			}
-
 		}
 
 	}
@@ -1173,7 +1196,8 @@ template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs
 template<size_t N, size_t M> constexpr typename MeshIDs_<N,M >::point_type MeshIDs_<N,M >::m_id_to_coordinates_shift_[ ];
 
 template<size_t N, size_t M> constexpr int MeshIDs_<N, M>::m_adjoint_num_[4][8];
-template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M>::m_adjoint_matrix_[4/* to iform*/][8/* node id*/][MAX_NUM_OF_CELL/*id shift*/];
+template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type
+MeshIDs_<N, M>::m_adjoint_matrix_[4/* to iform*/][8/* node id*/][MAX_NUM_OF_CELL/*id shift*/];
 
 typedef MeshIDs_<3, 4> MeshIDs;
 
