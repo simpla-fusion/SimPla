@@ -315,6 +315,34 @@ TOS& seq_print(integer_sequence<TInts, N...>, TOS & os, TA const &d)
 }
 
 /** @}*/
+
+namespace traits
+{
+template<typename T> struct dimensions;
+template<typename T> struct rank;
+template<typename T> struct element_type;
+
+template<typename T, T ... I>
+struct element_type<integer_sequence<T, I...>>
+{
+	typedef T type;
+};
+
+template<typename T, T ... I>
+struct rank<integer_sequence<T, I...>>
+{
+	static constexpr size_t value = sizeof...(I);
+};
+
+template<typename T, T ... I>
+struct dimensions<integer_sequence<T, I...>>
+{
+	static constexpr T value[] = { I... };
+};
+template<typename T, T ... I>
+constexpr T dimensions<integer_sequence<T, I...>>::value[];
+
+}  // namespace traits
 }
 // namespace simpla
 #endif /* CORE_GTL_INTEGER_SEQUENCE_H_ */

@@ -22,7 +22,7 @@ Object=function(v)
  end
 SelectTag = 6
 
-SelectIForm=1
+SelectIForm=2
 
 Polylines={
   { 0.0 , 1 ,0 },

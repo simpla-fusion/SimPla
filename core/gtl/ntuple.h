@@ -229,16 +229,18 @@ struct make_pod_array<TV, integer_sequence<TI, N...>>
 	typedef typename nTuple<TV, N...>::pod_type type;
 };
 
-template<typename ...>
-struct nTuple_create_trait;
+namespace traits
+{
+template<typename ...> struct create_nTuple;
+
 template<typename TV, typename TI, TI ... N>
-struct nTuple_create_trait<TV, integer_sequence<TI, N...>>
+struct create_nTuple<TV, integer_sequence<TI, N...>>
 {
 	typedef nTuple<TV, N...> type;
 };
 
 template<typename TV, typename TI>
-struct nTuple_create_trait<TV, integer_sequence<TI>>
+struct create_nTuple<TV, integer_sequence<TI>>
 {
 	typedef TV type;
 };
@@ -249,23 +251,23 @@ struct nTuple_create_trait<TV, integer_sequence<TI>>
  *  typename array_to_ntuple_convert<double[3][4]>::type = nTuple<double,3,4>
  */
 template<typename T>
-struct array_to_ntuple_convert
+struct ntuple_convert
 {
 	typedef integer_sequence<size_t> extents_t;
 
 	typedef T type;
 };
 template<typename T, size_t N>
-struct array_to_ntuple_convert<T[N]>
+struct ntuple_convert<T[N]>
 {
 
-	typedef typename cat_integer_sequence<
-			typename array_to_ntuple_convert<T>::extents_t,
+	typedef typename cat_integer_sequence<typename ntuple_convert<T>::extents_t,
 			integer_sequence<size_t, N>>::type extents_t;
 
-	typedef typename nTuple_create_trait<
-			typename std::remove_all_extents<T>::type, extents_t>::type type;
+	typedef typename create_nTuple<typename std::remove_all_extents<T>::type,
+			extents_t>::type type;
 };
+}  // namespace traits
 
 template<typename ...>
 class Expression;
@@ -359,7 +361,7 @@ struct nTuple_traits<nTuple<TV, N, M...> >
 
 	typedef typename make_pod_array<value_type, dimensions>::type pod_type;
 
-	typedef typename nTuple_create_trait<value_type, dimensions>::type primary_type;
+	typedef typename traits::create_nTuple<value_type, dimensions>::type primary_type;
 
 };
 
@@ -376,7 +378,7 @@ public:
 
 	typedef typename make_pod_array<value_type, dimensions>::type pod_type;
 
-	typedef typename nTuple_create_trait<value_type, dimensions>::type primary_type;
+	typedef typename traits::create_nTuple<value_type, dimensions>::type primary_type;
 
 };
 template<typename TOP, typename TL, typename TR>
@@ -394,7 +396,7 @@ typedef decltype(std::declval<TOP>()(std::declval<value_type_l>(),
 
 typedef typename make_pod_array<value_type, dimensions>::type pod_type;
 
-typedef typename nTuple_create_trait<value_type, dimensions>::type primary_type;
+typedef typename traits::create_nTuple<value_type, dimensions>::type primary_type;
 
 };
 

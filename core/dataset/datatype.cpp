@@ -24,20 +24,20 @@ struct DataType::pimpl_s
 	std::vector<std::tuple<DataType, std::string, int>> m_members_;
 
 };
-DataType::DataType()
-		: pimpl_(new pimpl_s)
+DataType::DataType() :
+		pimpl_(new pimpl_s)
 {
 }
-DataType::pimpl_s::pimpl_s()
-		: m_t_index_(std::type_index(typeid(void)))
+DataType::pimpl_s::pimpl_s() :
+		m_t_index_(std::type_index(typeid(void)))
 {
 }
 DataType::pimpl_s::~pimpl_s()
 {
 }
 DataType::DataType(std::type_index t_index, size_t ele_size_in_byte,
-		unsigned int ndims, size_t const* dims, std::string name)
-		: pimpl_(new pimpl_s)
+		unsigned int ndims, size_t const* dims, std::string name) :
+		pimpl_(new pimpl_s)
 {
 	pimpl_->m_t_index_ = (t_index);
 	pimpl_->m_ele_size_in_byte_ = (ele_size_in_byte);
@@ -81,8 +81,8 @@ DataType::DataType(std::type_index t_index, size_t ele_size_in_byte,
 	}
 }
 
-DataType::DataType(const DataType & other)
-		: pimpl_(new pimpl_s)
+DataType::DataType(const DataType & other) :
+		pimpl_(new pimpl_s)
 {
 	pimpl_->m_ele_size_in_byte_ = (other.pimpl_->m_ele_size_in_byte_);
 	pimpl_->m_t_index_ = (other.pimpl_->m_t_index_);
@@ -159,6 +159,10 @@ size_t DataType::extent(size_t n) const
 {
 	return pimpl_->m_extents_[n];
 }
+std::vector<size_t> const & DataType::extents() const
+{
+	return pimpl_->m_extents_;
+}
 void DataType::extent(size_t *d) const
 {
 	std::copy(pimpl_->m_extents_.begin(), pimpl_->m_extents_.end(), d);
@@ -214,22 +218,24 @@ void DataType::push_back(DataType && d_type, std::string const & name, int pos)
 	pimpl_->m_members_.push_back(std::forward_as_tuple(d_type, name, pos));
 
 }
-std::ostream & DataType::print(std::ostream & os) const
+namespace traits
+{
+std::ostream & print(std::ostream & os, DataType const &self)
 {
 
-	if (is_compound())
+	if (self.is_compound())
 	{
 		os << "DATATYPE" << std::endl <<
 
-		"struct " << pimpl_->m_name_ << std::endl
+		"struct " << self.name() << std::endl
 
 		<< "{" << std::endl;
 
-		auto it = pimpl_->m_members_.begin();
-		auto ie = pimpl_->m_members_.end();
+		auto it = self.members().begin();
+		auto ie = self.members().end();
 
 		os << "\t";
-		std::get<0>(*it).print(os);
+		print(os, std::get<0>(*it));
 		os << "\t" << std::get<1>(*it);
 
 		++it;
@@ -237,15 +243,16 @@ std::ostream & DataType::print(std::ostream & os) const
 		for (; it != ie; ++it)
 		{
 			os << "," << std::endl << "\t";
-			std::get<0>(*it).print(os);
+
+			print(os, std::get<0>(*it));
 			os << "\t" << std::get<1>(*it);
 		}
 		os << std::endl << "};" << std::endl;
 	}
 	else
 	{
-		os << pimpl_->m_name_;
-		for (auto const & d : pimpl_->m_extents_)
+		os << self.name();
+		for (auto const & d : self.extents())
 		{
 			os << "[" << d << "]";
 		}
@@ -253,5 +260,6 @@ std::ostream & DataType::print(std::ostream & os) const
 
 	return os;
 }
+} //namespace traits
 
 }  // namespace simpla

@@ -4,38 +4,21 @@
  * @date 2015年4月15日
  * @author salmon
  */
-#include "../../core/mesh/mesh_ids.h"
-#include "../../core/utilities/utilities.h"
+#include <iostream>
 
-using namespace simpla;
+template<typename T> struct U
+{
+	static constexpr size_t value = 0;
+};
 
-
-
+template<typename T, size_t N> struct U<T[N]>
+{
+	static constexpr size_t value = N;
+};
 int main(int argc, char **argv)
 {
-	typename MeshIDs::id_type a = 0; //MeshIDs::_DA << 2UL;
-	typename MeshIDs::id_type b = MeshIDs::_DA;
+	int a[4][5];
 
-	std::cout
-			<< MeshIDs::unpack_index(MeshIDs::diff(a, b))[0]
-					- static_cast<long>(MeshIDs::INDEX_ZERO >> 3UL)
-			<< std::endl;
-
-	std::cout
-			<< MeshIDs::unpack_index(MeshIDs::diff(b, a))[0]
-					- static_cast<long>(MeshIDs::INDEX_ZERO >> 3UL)
-			<< std::endl;
-	std::cout
-			<< static_cast<MeshIDs::index_type>(MeshIDs::unpack_index(
-					MeshIDs::diff(a, b))[0]) << std::endl;
-	CHECK_BIT(MeshIDs::OVERFLOW_FLAG);
-	CHECK_BIT(MeshIDs::INDEX_ZERO);
-	CHECK_BIT(MeshIDs::diff(a, b));
-
-	CHECK_BIT(raw_cast<unsigned long>(-1L));
-	CHECK_BIT((-1L));
-
-
-
+	std::cout<<decltype(a[0])
 }
 

@@ -32,8 +32,8 @@ namespace simpla
 struct Any
 {
 	template<typename U>
-	Any(U && value)
-			: ptr_(
+	Any(U && value) :
+			ptr_(
 					new Derived<typename std::decay<U>::type>(
 							std::forward<U>(value)))
 	{
@@ -41,16 +41,16 @@ struct Any
 	Any(void)
 	{
 	}
-	Any(Any& that)
-			: ptr_(that.clone())
+	Any(Any& that) :
+			ptr_(that.clone())
 	{
 	}
-	Any(Any const& that)
-			: ptr_(that.clone())
+	Any(Any const& that) :
+			ptr_(that.clone())
 	{
 	}
-	Any(Any && that)
-			: ptr_(std::move(that.ptr_))
+	Any(Any && that) :
+			ptr_(std::move(that.ptr_))
 	{
 	}
 	void swap(Any & other)
@@ -176,8 +176,8 @@ private:
 	struct Derived: Base
 	{
 		template<typename U>
-		Derived(U && value)
-				: m_value(std::forward<U>(value))
+		Derived(U && value) :
+				m_value(std::forward<U>(value))
 		{
 		}
 		BasePtr clone() const
@@ -208,12 +208,12 @@ private:
 		}
 
 		T m_value;
-#ifdef simpla
-		DataType datatype( ) const
+
+		DataType datatype() const
 		{
-			return make_datatype<T>();
+			return traits::datatype<T>::create();
 		}
-#endif
+
 	};
 	BasePtr clone() const
 	{

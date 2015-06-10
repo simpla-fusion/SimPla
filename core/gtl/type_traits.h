@@ -63,11 +63,62 @@ struct replace_template_type<1,TV,TT<T0,T1,Others...> >
 /**
  * @}
  */
+
 #define DECL_RET_TYPE(_EXPR_) ->decltype((_EXPR_)){return (_EXPR_);}
 
 #define ENABLE_IF_DECL_RET_TYPE(_COND_,_EXPR_) \
         ->typename std::enable_if<_COND_,decltype((_EXPR_))>::type {return (_EXPR_);}
 
+namespace traits
+{
+template<typename T>
+struct rank
+{
+	static constexpr size_t value = std::rank<T>::value;
+};
+
+template<typename T> struct dimensions
+{
+	static constexpr size_t value[] = { 1 };
+};
+
+template<typename T> constexpr size_t dimensions<T>::value[];
+
+template<typename T> struct key_type
+{
+	typedef void type;
+};
+
+template<typename T> struct element_type
+{
+	typedef T type;
+};
+
+template<typename K, typename V, typename ...Others> struct key_type<
+		std::map<K, V, Others...>>
+{
+	typedef K type;
+};
+
+template<typename K, typename V, typename ...Others> struct element_type<
+		std::map<K, V, Others...>>
+{
+	typedef V type;
+};
+
+template<typename V, typename ...Others> struct key_type<
+		std::vector<V, Others...>>
+{
+	typedef size_t type;
+};
+
+template<typename V, typename ...Others> struct element_type<
+		std::vector<V, Others...>>
+{
+	typedef V type;
+};
+
+}  // namespace tratis
 template<typename _T>
 struct is_shared_ptr
 {
@@ -126,22 +177,16 @@ struct recursive_try_index_aux<0>
 	static auto eval(T & v, TI const *s)
 	DECL_RET_TYPE( ( v ) )
 };
-}
-
-template<typename T>
-struct rank
-{
-	static constexpr size_t value = std::rank<T>::value;
-};
-// namespace _impl
+} // namespace _impl
 
 template<typename _Tp, _Tp ... _Idx> struct integer_sequence;
 template<typename, size_t...> struct nTuple;
 
 template<typename T, typename TI>
-auto try_index_r(T & v, TI const *s)
-ENABLE_IF_DECL_RET_TYPE((is_indexable<T,TI>::value),
-		( _impl::recursive_try_index_aux<rank<T>::value>::eval(v,s)))
+auto try_index_r(T & v,
+		TI const *s)
+				ENABLE_IF_DECL_RET_TYPE((is_indexable<T,TI>::value),
+						( _impl::recursive_try_index_aux<traits::rank<T>::value>::eval(v,s)))
 
 template<typename T, typename TI>
 auto try_index_r(T & v, TI const * s)
@@ -536,53 +581,5 @@ T const & max(T const & first, Others &&...others)
 	return max(first, max(std::forward<Others>(others)...));
 }
 
-namespace traits
-{
-template<typename T> struct rank
-{
-	static constexpr size_t value = 1;
-};
-template<typename T> struct dimensions
-{
-	static constexpr size_t value[] = { 1 };
-};
-
-template<typename T> constexpr size_t dimensions<T>::value[];
-
-template<typename T> struct key_type
-{
-	typedef void type;
-};
-
-template<typename T> struct value_type
-{
-	typedef T type;
-};
-
-template<typename K, typename V, typename ...Others> struct key_type<
-		std::map<K, V, Others...>>
-{
-	typedef K type;
-};
-
-template<typename K, typename V, typename ...Others> struct value_type<
-		std::map<K, V, Others...>>
-{
-	typedef V type;
-};
-
-template<typename V, typename ...Others> struct key_type<
-		std::vector<V, Others...>>
-{
-	typedef size_t type;
-};
-
-template<typename V, typename ...Others> struct value_type<
-		std::vector<V, Others...>>
-{
-	typedef V type;
-};
-
-}  // namespace tratis
 } // namespace simpla
 #endif /* SP_TYPE_TRAITS_H_ */
