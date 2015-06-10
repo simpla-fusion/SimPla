@@ -37,6 +37,8 @@ struct PICDemo
 			Real, f,
 			Real, w)
 
+
+
 	SP_DEFINE_PROPERTIES(
 			Real, mass,
 			Real, charge,

@@ -64,6 +64,25 @@ struct type_cast<TSrc, TSrc>
 };
 }  // namespace traits
 
+template<typename T, typename U>
+T & raw_cast(U& s)
+{
+	return *reinterpret_cast<T*>(&s);
+}
+template<typename T, typename U>
+T raw_cast(U&& s)
+{
+	return *reinterpret_cast<T*>(&s);
+}
+
+template<typename T, typename U>
+T assign_cast(U const & s)
+{
+	T res;
+	res = s;
+	return std::move(res);
+}
+
 template<typename TDest, typename TSrc>
 TDest type_cast(TSrc const & v)
 {

@@ -13,7 +13,7 @@
 #include <memory>
 #include <type_traits>
 
-#include "../gtl/concept_check.h"
+#include "../gtl/check_concept.h"
 #include "../gtl/properties.h"
 #include "../gtl/type_traits.h"
 #include "../utilities/memory_pool.h"

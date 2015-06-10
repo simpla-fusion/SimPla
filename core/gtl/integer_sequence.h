@@ -32,7 +32,11 @@ public:
 		return size_;
 	}
 
+	static constexpr size_t value[] = { _Idx... };
+
 };
+namespace _impl
+{
 
 template<size_t N, size_t ...S>
 struct _make_index_sequence: _make_index_sequence<N - 1, N - 1, S...>
@@ -44,38 +48,18 @@ struct _make_index_sequence<0, S...>
 {
 	typedef integer_sequence<size_t, S...> type;
 };
+}  // namespace _impl
 
 template<size_t ... Ints>
 using index_sequence = integer_sequence< size_t, Ints...>;
 
 template<size_t N>
-using make_index_sequence =typename _make_index_sequence< N>::type;
+using make_index_sequence =typename _impl::_make_index_sequence< N>::type;
 
 template<class ... T>
 using index_sequence_for = make_index_sequence<sizeof...(T)>;
 
 template<size_t ... N> using index_sequence = integer_sequence<size_t , N...>;
-
-template<size_t N, typename ...> struct seq_get;
-
-template<size_t N, typename Tp, Tp M, Tp ...I>
-struct seq_get<N, integer_sequence<Tp, M, I ...> >
-{
-	static constexpr Tp value =
-			seq_get<N - 1, integer_sequence<Tp, I ...> >::value;
-};
-
-template<typename Tp, Tp M, Tp ...I>
-struct seq_get<0, integer_sequence<Tp, M, I ...> >
-{
-	static constexpr Tp value = M;
-};
-
-template<typename Tp>
-struct seq_get<0, integer_sequence<Tp> >
-{
-	static constexpr Tp value = 0;
-};
 
 template<typename ...> class cat_integer_sequence;
 
@@ -122,6 +106,8 @@ struct longer_integer_sequence<integer_sequence<T, N1...>,
 					Others...>::type>::type type;
 
 };
+namespace _impl
+{
 
 //TODO need implement max_integer_sequence, min_integer_sequence
 template<size_t...> struct _seq_for;
@@ -240,10 +226,13 @@ struct _seq_reduce<>
 					DECL_RET_TYPE( (try_index( (args),integer_sequence<size_t, (L-1)...>()) ))
 
 };
+
+}  // namespace _impl
+
 template<size_t ... N, typename TOP, typename ...Args>
 auto seq_reduce(integer_sequence<size_t, N...>, TOP const & op,
 		Args && ... args)
-		DECL_RET_TYPE( (_seq_reduce<N...>::eval(op,
+		DECL_RET_TYPE( (_impl::_seq_reduce<N...>::eval(op,
 								std::forward<Args>(args) ...)))
 
 template<typename TInts, TInts ...N, typename TOP>
@@ -318,6 +307,35 @@ TOS& seq_print(integer_sequence<TInts, N...>, TOS & os, TA const &d)
 
 namespace traits
 {
+template<typename TI, TI...> struct sp_max;
+template<typename TI, TI...> struct sp_min;
+
+template<typename TI, TI L>
+struct sp_max<TI, L>
+{
+	static constexpr TI value = L;
+};
+template<typename TI, TI L, TI ... R>
+struct sp_max<TI, L, R...>
+{
+	static constexpr TI value =
+			L > sp_max<TI, R...>::value ? L : sp_max<TI, R...>::value;
+};
+
+template<typename TI, TI L>
+struct sp_min<TI, L>
+{
+	static constexpr TI value = L;
+
+};
+template<typename TI, TI L, TI ... R>
+struct sp_min<TI, L, R...>
+{
+	static constexpr TI value =
+			L < sp_max<TI, R...>::value ? L : sp_max<TI, R...>::value;
+
+};
+
 template<typename T> struct dimensions;
 template<typename T> struct rank;
 template<typename T> struct element_type;
@@ -331,16 +349,34 @@ struct element_type<integer_sequence<T, I...>>
 template<typename T, T ... I>
 struct rank<integer_sequence<T, I...>>
 {
-	static constexpr size_t value = sizeof...(I);
+	static constexpr size_t value = 1;
 };
 
 template<typename T, T ... I>
 struct dimensions<integer_sequence<T, I...>>
 {
-	static constexpr T value[] = { I... };
+	static constexpr T value[] = { sizeof...(I) };
 };
-template<typename T, T ... I>
-constexpr T dimensions<integer_sequence<T, I...>>::value[];
+
+template<size_t N, typename ...> struct get;
+
+template<size_t N, typename Tp, Tp M, Tp ...I>
+struct get<N, integer_sequence<Tp, M, I ...> >
+{
+	static constexpr Tp value = get<N - 1, integer_sequence<Tp, I ...> >::value;
+};
+
+template<typename Tp, Tp M, Tp ...I>
+struct get<0, integer_sequence<Tp, M, I ...> >
+{
+	static constexpr Tp value = M;
+};
+
+template<typename Tp>
+struct get<0, integer_sequence<Tp> >
+{
+	static constexpr Tp value = 0;
+};
 
 }  // namespace traits
 }

@@ -36,7 +36,7 @@ protected:
 		c = 4;
 		d = 7;
 
-		DIMENSIONS = seq2ntuple(dimensions());
+		DIMENSIONS = traits::dimensions<type>::value;
 
 		seq_for_each(dimensions(),
 
@@ -65,15 +65,15 @@ public:
 
 	typedef T type;
 
-	typedef typename nTuple_traits<type>::dimensions dimensions;
+	typedef typename traits::dimensions<type>::type dimensions;
 
-	nTuple<std::size_t, dimensions::size()> DIMENSIONS;
+	nTuple<std::size_t, traits::rank<type>::value> DIMENSIONS;
 
 	typedef typename type::value_type value_type;
 
 	type vA, vB, vC, vD;
 
-	typename nTuple_traits<T>::pod_type aA, aB, aC, aD, res;
+	typename traits::pod_type<T>::type aA, aB, aC, aD, res;
 
 	value_type a, b, c, d;
 
@@ -89,7 +89,7 @@ nTuple<double, 3>
 
 //, nTuple<int, 3, 4, 5, 6>
 
-, nTuple<std::complex<double>, 3, 4, 5, 6>
+		, nTuple<std::complex<double>, 3, 4, 5, 6>
 
 > ntuple_type_lists;
 
