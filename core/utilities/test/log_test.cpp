@@ -9,28 +9,28 @@
 using namespace simpla;
 int main(int argc, char **argv)
 {
-	Logger::init(argc, argv);
+	logger::Logger::init(argc, argv);
 
 	int a;
 
 	LOG_CMD(a = 5);
 
-	Logger::set_MESSAGE_visable_level(10);
+//	log::Logger::set_message_visable_level(10);
 
-	auto logger = LOGGER;
+	auto L = LOGGER;
 
-	logger << "Hello world " << flush
+	L << "Hello world " << std::endl
+
+	<< logger::flush
 
 	<< __STRING(a=5) << "lalalalal";
 
 	a = 6;
 
-	logger << DONE
+	L << DONE<< a << std::endl;
 
-	<< a << std::endl;
-
-	INFORM << "What?";
-	INFORM << "Why?";
-	INFORM << "Who?";
-	INFORM << "WHen?";
+	INFORM<< "What?"<< std::endl;
+	INFORM<< "Why?"<< std::endl;
+	INFORM<< "Who?"<< std::endl;
+	INFORM<< "WHen?"<< std::endl;
 }

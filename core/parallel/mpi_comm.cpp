@@ -13,7 +13,6 @@
 #include <memory>
 #include <string>
 
-#include "../gtl/ntuple.h"
 #include "../utilities/utilities.h"
 
 namespace simpla
@@ -95,7 +94,7 @@ std::string MPIComm::init(int argc, char** argv)
 
 			if( opt=="mpi_topology")
 			{
-				topology( string_to_value<nTuple<int, 3>>(value ) );
+				topology( type_cast<nTuple<int, 3>>(value ) );
 			}
 
 			return CONTINUE;
@@ -104,7 +103,7 @@ std::string MPIComm::init(int argc, char** argv)
 
 		);
 
-	VERBOSE << "MPI communicator is initialized!" << std::endl;
+	VERBOSE<< "MPI communicator is initialized!" << std::endl;
 
 	return
 	//"\t--number_of_threads <NUMBER>  \t, Number of threads \n"
@@ -188,9 +187,10 @@ void MPIComm::decompose(int ndims, size_t * p_begin, size_t * p_end) const
 		{
 			RUNTIME_ERROR(
 					"Mesh decompose fail! Dimension  is smaller than process grid. "
-							"[begin= " + value_to_string(begin) + ", end="
-							+ value_to_string(end) + " ,process grid="
-							+ value_to_string(pimpl_->m_topology_coord_));
+							"[begin= " + type_cast<std::string>(begin)
+							+ ", end=" + type_cast<std::string>(end)
+							+ " ,process grid="
+							+ type_cast<std::string>(pimpl_->m_topology_coord_));
 		}
 	}
 
@@ -246,7 +246,7 @@ void MPIComm::close()
 
 		pimpl_->m_comm_ = MPI_COMM_NULL;
 
-		VERBOSE << "MPI Communicator is closed!" << std::endl;
+		VERBOSE<< "MPI Communicator is closed!" << std::endl;
 	}
 
 }

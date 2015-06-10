@@ -8,9 +8,8 @@
 #ifndef PRETTY_STREAM_H_
 #define PRETTY_STREAM_H_
 
+#include <stddef.h>
 #include <complex>
-
-#include <iterator>
 #include <list>
 #include <map>
 #include <set>
@@ -19,8 +18,6 @@
 #include <utility>
 #include <vector>
 
-#include "../gtl/ntuple.h"
-#include "../gtl/type_traits.h"
 
 namespace simpla
 {
@@ -69,58 +66,6 @@ printNdArray(OS & os, TV const *v, size_t rank, TI const* d,
 	}
 }
 
-//template<typename T, size_t N> std::ostream &
-//operator<<(std::ostream& os, const nTuple<T, N> & tv)
-//{
-//	os << "{" << tv[0];
-//	for (int i = 1; i < N; ++i)
-//	{
-//		os << "," << tv[i];
-//	}
-//	os << "}";
-//	return (os);
-//}
-template<typename T, size_t M>
-std::ostream &operator<<(std::ostream & os, nTuple<T, M> const & v)
-{
-	os << "{" << v[0];
-	for (int i = 1; i < M; ++i)
-	{
-		os << " , " << v[i];
-	}
-	os << "}";
-
-	return os;
-}
-
-template<typename T, size_t M, size_t M2, size_t ...N>
-std::ostream &operator<<(std::ostream & os, nTuple<T, M, M2, N...> const & v)
-{
-	os << "{" << v[0];
-	for (int i = 1; i < M; ++i)
-	{
-		os << " , " << v[i] << std::endl;
-	}
-	os << "}" << std::endl;
-
-	return os;
-}
-template<typename T, size_t N> std::istream &
-operator>>(std::istream& is, nTuple<T, N> & tv)
-{
-	for (int i = 0; i < N && is; ++i)
-	{
-		is >> tv[i];
-	}
-
-	return (is);
-}
-template<typename T, size_t N>
-void operator>>(std::string const& is, nTuple<T, N> & v)
-{
-	std::istringstream ss(is);
-	ss >> v;
-}
 
 template<typename TX, typename TY, typename ...Others> std::istream&
 get_(std::istream& is, size_t num, std::map<TX, TY, Others...> & a)

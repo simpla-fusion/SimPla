@@ -9,15 +9,15 @@
 #define DATA_TYPE_H_
 
 #include <stddef.h>
+#include <cstdbool>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <tuple>
 #include <type_traits>
 #include <typeindex>
 #include <vector>
 
-#include "../gtl/concept_check.h"
-#include "../gtl/ntuple.h"
 #include "../gtl/type_traits.h"
 
 namespace simpla
@@ -40,8 +40,8 @@ struct DataType
 	DataType();
 
 	DataType(std::type_index t_index, size_t ele_size_in_byte,
-			unsigned int ndims = 0, size_t* dims = nullptr, std::string name =
-					"");
+			unsigned int ndims = 0, size_t const* dims = nullptr,
+			std::string name = "");
 	DataType(const DataType & other);
 	~DataType();
 
@@ -67,10 +67,8 @@ struct DataType
 	void extent(size_t *d) const;
 	void extent(size_t rank, size_t const*d);
 
-	bool is_compound() const;
-	bool is_array() const;
-	bool is_opaque() const;
-	bool is_same(std::type_index const & other) const;
+	bool is_compound() const;bool is_array() const;bool is_opaque() const;bool is_same(
+			std::type_index const & other) const;
 	template<typename T>
 	bool is_same() const
 	{
@@ -88,47 +86,53 @@ struct DataType
 	{
 
 		typedef typename std::remove_cv<T>::type type;
-//		static_assert( nTuple_traits<type>::ndims< MAX_NDIMS_OF_ARRAY,
-//				"the NDIMS of nTuple is bigger than MAX_NDIMS_OF_ARRAY");
 
-		typedef typename nTuple_traits<type>::value_type value_type;
+		typedef typename traits::value_type<type>::type value_type;
 
 		size_t ele_size_in_byte = sizeof(value_type) / sizeof(char);
 
-		auto ndims = nTuple_traits<type>::dimensions::size();
-
-		auto dimensions = seq2ntuple(
-				typename nTuple_traits<type>::dimensions());
-
 		return std::move(
-				DataType(std::type_index(typeid(value_type)), ele_size_in_byte,
-						ndims, &dimensions[0], name));
+
+		DataType(std::type_index(typeid(value_type)),
+
+		ele_size_in_byte,
+
+		traits::rank<type>::value,
+
+		&traits::dimensions<type>::value[0],
+
+		name)
+
+		);
 	}
 
 private:
 	struct pimpl_s;
 	std::unique_ptr<pimpl_s> pimpl_;
 
-	HAS_STATIC_MEMBER_FUNCTION(datatype);
+	HAS_STATIC_MEMBER_FUNCTION (datatype);
 
-	template <typename T>
+	template<typename T>
 	static DataType create_(std::false_type, std::string const & name = "")
 	{
 		return std::move(create_opaque_type<T>(name));
 	}
 
 	template<typename T>
-	static DataType create_(std::true_type,std::string const & name = "")
+	static DataType create_(std::true_type, std::string const & name = "")
 	{
 		return std::move(T::datatype());
 	}
 
 public:
 	template<typename T>
-	static DataType create( std::string const & name = "")
+	static DataType create(std::string const & name = "")
 	{
-		return std::move(create_<T>(std::integral_constant<bool,
-						has_static_member_function_datatype<T>::value>(),name));
+		return std::move(
+				create_<T>(
+						std::integral_constant<bool,
+						has_static_member_function_datatype<T>::value>(),
+						name));
 	}
 
 }
@@ -143,7 +147,7 @@ public:
  */
 template<typename T>
 auto make_datatype(std::string const & name = "")
-DECL_RET_TYPE( DataType::create<T>(name))
+DECL_RET_TYPE (DataType::create<T>(name))
 /**@}  */
 
 /*
@@ -182,7 +186,6 @@ DECL_RET_TYPE( DataType::create<T>(name))
 #define SP_DEFINE_STRUCT_MEMBER_CHOOSE_HELPER1(count) SP_DEFINE_STRUCT_MEMBER_HELPER##count
 #define SP_DEFINE_STRUCT_MEMBER_CHOOSE_HELPER(count) SP_DEFINE_STRUCT_MEMBER_CHOOSE_HELPER1(count)
 #define SP_DEFINE_STRUCT_MEMBER(...) SP_DEFINE_STRUCT_MEMBER_CHOOSE_HELPER(COUNT_MACRO_ARGS(__VA_ARGS__)) (__VA_ARGS__)
-
 
 //#define SP_PARTICLE_GET_NAME_HELPER2(_T0_,_N0_) _N0_
 //#define SP_PARTICLE_GET_NAME_HELPER4(_T0_,_N0_,_T1_,_N1_) SP_PARTICLE_GET_NAME_HELPER2(_T0_,_N0_) , \

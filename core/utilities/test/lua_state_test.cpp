@@ -5,24 +5,23 @@
  *      Author: salmon
  */
 
-#include "../ntuple.h"
-#include "../pretty_stream.h"
-#include "../primitives.h"
 #include <iostream>
-#include <map>
+#include <string>
+#include <utility>
 
 #include "../lua_object.h"
+
 using namespace simpla;
 int main(int argc, char** argv)
 {
-	LuaObject pt;
+	lua::Object pt;
 	pt.init();
 
 	pt.parse_string(
 			"c=100 \n t1={a=5,b=6.0,c=\"text\",e={a=5,b=6.0}} \n t2={e=4,f=true} \n t3={1,3,4,5}\n"
 					"tt={6,6,7,3,e=12, d=13,h=2} \n"
-					"function f(x,y,z) \n"
-					"    return (x-y)*z  \n"
+					"function f(x,y) \n"
+					"    return (x-y)   \n"
 					"end \n"
 					"tuple={123,456}"
 					"ntuple={1,2,3}"
@@ -60,19 +59,19 @@ int main(int argc, char** argv)
 			<< std::endl;
 
 	std::cout << "f(3,2.5) \t=" << pt["f"](3.0, 2.5).as<double>() << std::endl;
-
+//
 	std::cout << "f(3,2.5) \t=" << pt["f"](2.0, 2.5).as<double>() << std::endl;
 
-	for (int i = 0; i < 10; ++i)
-	{
+//	for (int i = 0; i < 10; ++i)
+//	{
+//
+//		std::cout << "t3 \t=" << pt.get_child("t3").as<nTuple<double, 3>>()
+//				<< std::endl;
+//	}
 
-		std::cout << "t3 \t=" << pt.get_child("t3").as<nTuple<double, 3>>()
-				<< std::endl;
-	}
+	lua::Object * t1 = new lua::Object(pt["t1"]);
 
-	LuaObject * t1 = new LuaObject(pt["t1"]);
-
-	LuaObject * e = new LuaObject(t1->get_child("e"));
+	lua::Object * e = new lua::Object(t1->get_child("e"));
 
 	delete t1;
 
@@ -108,7 +107,7 @@ int main(int argc, char** argv)
 	std::cout << "============================" << std::endl;
 	//	pt.get_child("tt").ForEach(
 //
-//	[&](LuaObject const& key,LuaObject const&value)
+//	[&](lua::Object const& key,lua::Object const&value)
 //	{
 //		std::cout << key.as<std::string>()
 //		<<" = "<< value.as<int>() << std::endl;
@@ -138,26 +137,25 @@ int main(int argc, char** argv)
 				<< std::endl;
 	}
 
-	auto fobj = pt["f"];
-
-	std::cout << "(1.23340 - 2.4560 )*2= "
-			<< pt["f"](std::make_tuple(1.23340, 2.4560, 2)).as<double>()
-			<< std::endl;
+//	auto fobj = pt["f"];
 //
-	double a, b;
-	std::tie(a, b) = pt["tuple"].as_tuple<double, double>();
-	std::cout << " a= " << a << "  b= " << b << std::endl;
+//	std::cout << "(1.23340 - 2.4560 )*2= "
+//			<< pt["f"](std::make_tuple(1.23340, 2.4560, 2)).as<double>()
+//			<< std::endl;
+//
+//	double a, b;
+//	std::tie(a, b) = pt["tuple"].as_tuple<double, double>();
+//	std::cout << " a= " << a << "  b= " << b << std::endl;
+//
+//	nTuple<double, 3> c = { 4, 5, 6 };
+//	std::cout << c << std::endl;
+//
+//	c = pt["ntuple"].as<nTuple<double, 3>>();
+//
+//	std::cout << c << std::endl;
 
-	nTuple<Real, 3> c =
-	{ 4, 5, 6 };
-	std::cout << c << std::endl;
-
-	c = pt["ntuple"].as<nTuple<double, 3>>();
-
-	std::cout << c << std::endl;
-
-	std::vector<Real> d;
-	pt["ntuple"].as(&d);
-	std::cout << d << std::endl;
+//	std::vector<double> d;
+//	pt["ntuple"].as(&d);
+//	std::cout << d << std::endl;
 }
 

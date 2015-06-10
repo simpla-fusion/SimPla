@@ -13,9 +13,12 @@
 #include "parse_command_line.h"
 #include "misc_utilities.h"
 #include "lua_object.h"
+#include "lua_object_ext.h"
+
 #include "../gtl/primitives.h"
 #include "../gtl/type_traits.h"
 #include "../gtl/ntuple.h"
+#include "../gtl/ntuple_ext.h"
 #include "../gtl/properties.h"
 
 #include "../physics/physical_constants.h"

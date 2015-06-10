@@ -8,11 +8,15 @@
 #ifndef CORE_UTILITIES_CONFIG_PARSER_H_
 #define CORE_UTILITIES_CONFIG_PARSER_H_
 
+#include <algorithm>
+#include <cstdbool>
 #include <map>
 #include <string>
+#include <utility>
 
+#include "../gtl/type_cast.h"
 #include "lua_object.h"
-#include "misc_utilities.h"
+
 namespace simpla
 {
 
@@ -30,30 +34,30 @@ struct ConfigParser
 
 	std::string init(int argc, char ** argv);
 
-	struct DictObject: public LuaObject
+	struct DictObject: public lua::Object
 	{
 		DictObject()
-				: LuaObject(), m_value_("")
+				: lua::Object(), m_value_("")
 		{
 
 		}
 		DictObject(DictObject const & other)
-				: LuaObject(other), m_value_(other.m_value_)
+				: lua::Object(other), m_value_(other.m_value_)
 		{
 
 		}
 		DictObject(DictObject && other)
-				: LuaObject(other), m_value_(other.m_value_)
+				: lua::Object(other), m_value_(other.m_value_)
 		{
 
 		}
-		DictObject(LuaObject const & lua_obj)
-				: LuaObject(lua_obj), m_value_("")
+		DictObject(lua::Object const & lua_obj)
+				: lua::Object(lua_obj), m_value_("")
 		{
 
 		}
 		DictObject(std::string const & value)
-				: /*LuaObject(),*/
+				: /*lua::Object(),*/
 				m_value_(value)
 		{
 		}
@@ -62,7 +66,7 @@ struct ConfigParser
 		}
 		void swap(DictObject & other)
 		{
-			LuaObject::swap(other);
+			lua::Object::swap(other);
 			std::swap(m_value_, other.m_value_);
 		}
 
@@ -74,7 +78,7 @@ struct ConfigParser
 
 		operator bool() const
 		{
-			return m_value_ != "" || LuaObject::operator bool();
+			return m_value_ != "" || lua::Object::operator bool();
 		}
 
 		template<typename T>
@@ -82,11 +86,11 @@ struct ConfigParser
 		{
 			if (m_value_ != "")
 			{
-				return std::move(string_to_value<T>(m_value_));
+				return std::move(type_cast<std::string>(m_value_));
 			}
-			else if (!LuaObject::IsNull())
+			else if (!lua::Object::is_null())
 			{
-				return std::move(LuaObject::template as<T>());
+				return std::move(lua::Object::template as<T>());
 			}
 			else
 			{
@@ -98,11 +102,11 @@ struct ConfigParser
 		{
 			if (m_value_ != "")
 			{
-				return std::move(string_to_value<T>(m_value_));
+				return std::move(type_cast<T>(m_value_));
 			}
-			else if (!LuaObject::IsNull())
+			else if (!lua::Object::is_null())
 			{
-				return std::move(LuaObject::template as<T>(default_value));
+				return std::move(lua::Object::template as<T>(default_value));
 			}
 			else
 			{
@@ -134,7 +138,7 @@ struct ConfigParser
 		{
 			return std::move(DictObject(it->second));
 		}
-		else if (!m_lua_object_.IsNull())
+		else if (!m_lua_object_.is_null())
 		{
 			return std::move(DictObject(m_lua_object_[key]));
 		}
@@ -146,7 +150,7 @@ struct ConfigParser
 
 private:
 
-	LuaObject m_lua_object_;
+	lua::Object m_lua_object_;
 	std::map<std::string, std::string> m_kv_map_;
 }
 ;

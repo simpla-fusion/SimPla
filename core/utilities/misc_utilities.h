@@ -8,14 +8,15 @@
 #ifndef UTILITIES_H_
 #define UTILITIES_H_
 
+#include <stddef.h>
+#include <cstdbool>
+#include <cstdio>
 #include <functional>
 #include <iomanip>
 #include <sstream>
 #include <string>
-#include <utility>
 
-#include "../gtl/ntuple.h"
-#include "pretty_stream.h"
+#include "../gtl/type_traits.h"
 
 /**
  *  @ingroup    utilities
@@ -23,42 +24,42 @@
 namespace simpla
 {
 
-template<typename T>
-inline T string_to_value(std::string const & str)
-{
-	T v;
-	std::istringstream os(str);
-	os >> v;
-	return std::move(v);
-}
-
-template<typename T>
-inline void string_to_value(std::string const & str, T * v)
-{
-	std::istringstream os(str);
-	os >> *v;
-}
-
-template<typename T>
-inline std::string value_to_string(T const & v)
-{
-	std::ostringstream os;
-	os << v;
-	return os.str();
-}
-template<unsigned int N, typename T>
-inline std::string value_to_string(nTuple<T, N> const & v,
-		std::string const & sep = " ")
-{
-
-	std::ostringstream os;
-	for (int i = 0; i < N - 1; ++i)
-	{
-		os << v[i] << sep;
-	}
-	os << v[N - 1];
-	return (os.str());
-}
+//template<typename T>
+//inline T string_to_value(std::string const & str)
+//{
+//	T v;
+//	std::istringstream os(str);
+//	os >> v;
+//	return std::move(v);
+//}
+//
+//template<typename T>
+//inline void string_to_value(std::string const & str, T * v)
+//{
+//	std::istringstream os(str);
+//	os >> *v;
+//}
+//
+//template<typename T>
+//inline std::string value_to_string(T const & v)
+//{
+//	std::ostringstream os;
+//	os << v;
+//	return os.str();
+//}
+//template<unsigned int N, typename T>
+//inline std::string value_to_string(nTuple<T, N> const & v,
+//		std::string const & sep = " ")
+//{
+//
+//	std::ostringstream os;
+//	for (int i = 0; i < N - 1; ++i)
+//	{
+//		os << v[i] << sep;
+//	}
+//	os << v[N - 1];
+//	return (os.str());
+//}
 
 inline std::string AutoIncrease(std::function<bool(std::string)> const & fun,
 		size_t count = 0, unsigned int width = 4)

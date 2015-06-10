@@ -8,14 +8,13 @@
 #ifndef CORE_DATASET_DATASPACE_H_
 #define CORE_DATASET_DATASPACE_H_
 
-#include <stddef.h>
+#include <cstdbool>
 #include <memory>
-#include <tuple>
-#include <vector>
 
 #include "../gtl/ntuple.h"
 #include "../gtl/primitives.h"
 #include "../gtl/properties.h"
+#include "../utilities/log.h"
 
 namespace simpla
 {

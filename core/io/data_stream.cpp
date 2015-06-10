@@ -27,7 +27,7 @@ extern "C"
 #include "../utilities/utilities.h"
 #include "../utilities/memory_pool.h"
 
-#define H5_ERROR( _FUN_ ) if((_FUN_)<0){Logger(LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n HDF5 Error:";H5Eprint(H5E_DEFAULT, stderr);LOGGER<<std::endl;}
+#define H5_ERROR( _FUN_ ) if((_FUN_)<0){logger::Logger(logger::LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n HDF5 Error:";H5Eprint(H5E_DEFAULT, stderr);LOGGER<<std::endl;}
 
 namespace simpla
 {
@@ -86,7 +86,7 @@ DataStream::~DataStream()
 	{
 		close();
 	}
-	VERBOSE << "DataSteream is closed" << endl;
+	VERBOSE << "DataSteream is closed" <<std::endl;
 
 }
 
@@ -233,7 +233,7 @@ void DataStream::close()
 		}
 
 		VERBOSE << "File [" << pimpl_->current_filename_ << "] is closed!"
-				<< endl;
+				<<std::endl;
 
 		std::unique_ptr<pimpl_s>(nullptr).swap(pimpl_);
 	}
@@ -468,7 +468,7 @@ std::tuple<std::string, hid_t> DataStream::pimpl_s::open_file(
 
 	H5_ERROR(H5Pclose(plist_id));
 
-	INFORM << "File [" << filename << "] is opened!" << endl;
+	INFORM << "File [" << filename << "] is opened!" <<std::endl;
 
 	return std::make_tuple(filename, f_id);
 
@@ -713,7 +713,7 @@ DataType DataStream::pimpl_s::convert_datatype_h5_to_sp(hid_t t_id) const
 	}
 	if (bad_cast_error)
 	{
-		Logger(LOG_ERROR) << "H5 datatype convert to sp.DataType failed!"
+		logger::Logger(logger::LOG_ERROR) << "H5 datatype convert to sp.DataType failed!"
 				<< std::endl;
 		throw std::bad_cast();
 	}

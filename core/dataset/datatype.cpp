@@ -7,6 +7,9 @@
 
 #include "datatype.h"
 
+#include <algorithm>
+#include <iterator>
+
 namespace simpla
 {
 struct DataType::pimpl_s
@@ -21,20 +24,20 @@ struct DataType::pimpl_s
 	std::vector<std::tuple<DataType, std::string, int>> m_members_;
 
 };
-DataType::DataType() :
-		pimpl_(new pimpl_s)
+DataType::DataType()
+		: pimpl_(new pimpl_s)
 {
 }
-DataType::pimpl_s::pimpl_s() :
-		m_t_index_(std::type_index(typeid(void)))
+DataType::pimpl_s::pimpl_s()
+		: m_t_index_(std::type_index(typeid(void)))
 {
 }
 DataType::pimpl_s::~pimpl_s()
 {
 }
 DataType::DataType(std::type_index t_index, size_t ele_size_in_byte,
-		unsigned int ndims, size_t* dims, std::string name) :
-		pimpl_(new pimpl_s)
+		unsigned int ndims, size_t const* dims, std::string name)
+		: pimpl_(new pimpl_s)
 {
 	pimpl_->m_t_index_ = (t_index);
 	pimpl_->m_ele_size_in_byte_ = (ele_size_in_byte);
@@ -78,8 +81,8 @@ DataType::DataType(std::type_index t_index, size_t ele_size_in_byte,
 	}
 }
 
-DataType::DataType(const DataType & other) :
-		pimpl_(new pimpl_s)
+DataType::DataType(const DataType & other)
+		: pimpl_(new pimpl_s)
 {
 	pimpl_->m_ele_size_in_byte_ = (other.pimpl_->m_ele_size_in_byte_);
 	pimpl_->m_t_index_ = (other.pimpl_->m_t_index_);

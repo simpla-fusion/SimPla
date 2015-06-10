@@ -538,9 +538,26 @@ T const & max(T const & first, Others &&...others)
 
 namespace traits
 {
+template<typename T> struct rank
+{
+	static constexpr size_t value = 1;
+};
+template<typename T> struct dimensions
+{
+	static constexpr size_t value[] = { 1 };
+};
 
-template<typename > struct key_type;
-template<typename > struct value_type;
+template<typename T> constexpr size_t dimensions<T>::value[];
+
+template<typename T> struct key_type
+{
+	typedef void type;
+};
+
+template<typename T> struct value_type
+{
+	typedef T type;
+};
 
 template<typename K, typename V, typename ...Others> struct key_type<
 		std::map<K, V, Others...>>

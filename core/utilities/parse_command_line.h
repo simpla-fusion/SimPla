@@ -8,8 +8,10 @@
 #ifndef PARSE_COMMAND_LINE_H_
 #define PARSE_COMMAND_LINE_H_
 
+#include <cstdbool>
 #include <functional>
 #include <string>
+#include <tuple>
 
 namespace simpla
 {
@@ -86,8 +88,6 @@ void parse_cmd_line(int argc, char **argv,
  */
 std::tuple<bool, std::string> find_option_from_cmd_line(int argc, char ** argv,
 		std::string const & key);
-
-#define SHOW_OPTIONS(_OPT_,_DESC_) MESSAGE <<"  "<<std::setw(25) <<std::left << _OPT_ << _DESC_<<std::endl;
 
 /**@}*/
 }  // namespace simpla

@@ -121,6 +121,7 @@ execute_process(COMMAND  git describe --all  --dirty --long
 MESSAGE(STATUS "Identify: ${PROJECT_IDENTIFY}")
 
 ADD_DEFINITIONS(-DIDENTIFY=\"${PROJECT_IDENTIFY}\" )
+ADD_DEFINITIONS(-Dsimpla=simpla )
 
 
 

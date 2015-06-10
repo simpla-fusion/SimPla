@@ -8,20 +8,23 @@
 #include "log.h"
 
 #include <chrono>
+#include <cstdlib>
 #include <ctime>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 
 #include "../gtl/design_pattern/singleton_holder.h"
-#include "misc_utilities.h"
 #include "parse_command_line.h"
 
 namespace simpla
 {
+namespace logger
+{
+
 /**
  *  @ingroup Logging
- *  \brief Logging stream, shuold be used  as a singleton
+ *  \brief Logging stream, should be used  as a singleton
  */
 struct LoggerStreams //: public SingletonHolder<LoggerStreams>
 {
@@ -100,7 +103,7 @@ std::string LoggerStreams::init(int argc, char** argv)
 		}
 		else if(opt=="V" || opt=="verbose")
 		{
-			this->set_stdout_visable_level(string_to_value<int>(value));
+			this->set_stdout_visable_level(std::atoi(value.c_str()));
 		}
 		else if( opt=="quiet")
 		{
@@ -108,7 +111,7 @@ std::string LoggerStreams::init(int argc, char** argv)
 		}
 		else if( opt=="log_width")
 		{
-			this->set_line_width(string_to_value<int>(value));
+			this->set_line_width(std::atoi(value.c_str()));
 		}
 
 		return CONTINUE;
@@ -118,10 +121,10 @@ std::string LoggerStreams::init(int argc, char** argv)
 
 	is_opened_ = true;
 
-	VERBOSE << "LoggerStream is initialized!" << std::endl;
+	VERBOSE<< "LoggerStream is initialized!" << std::endl;
 
 	return "\t-V,\t--verbose <NUM> \t, Verbose mode.  Print debugging messages, \n"
-            "\t\t\t\t\t   <-10 means quiet, >10 means print as much as it can. default=0 \n";
+			"\t\t\t\t\t   <-10 means quiet, >10 means print as much as it can. default=0 \n";
 
 }
 void LoggerStreams::close()
@@ -129,12 +132,12 @@ void LoggerStreams::close()
 
 	if (is_opened_)
 	{
-		VERBOSE << "LoggerStream is closed!" << std::endl;
+		VERBOSE<< "LoggerStream is closed!" << std::endl;
 		if (std_out_visable_level_ >= LOG_INFORM && mpi_rank_ == 0)
-			std::cout << std::endl;
+		std::cout << std::endl;
 
 		if (fs.is_open())
-			fs.close();
+		fs.close();
 
 		is_opened_ = false;
 	}
@@ -147,7 +150,9 @@ void LoggerStreams::put(int level, std::string const & msg)
 			|| ((level == LOG_INFORM || level == LOG_MESSAGE) && mpi_rank_ > 0))
 		return;
 
-	std::string prefix(""), surfix("");
+	std::ostringstream prefix;
+
+	std::string surfix("");
 
 	switch (level)
 	{
@@ -155,38 +160,30 @@ void LoggerStreams::put(int level, std::string const & msg)
 	case LOG_OUT_RANGE_ERROR:
 	case LOG_LOGIC_ERROR:
 	case LOG_ERROR:
-		prefix = "[E]";
+		prefix << "[E]";
 		break;
 	case LOG_WARNING:
-		prefix = "[W]"; //red
+		prefix << "[W]"; //red
 		break;
 	case LOG_LOG:
-		prefix = "[L]";
+		prefix << "[L]";
 		break;
 	case LOG_VERBOSE:
-		prefix = "[V]";
+		prefix << "[V]";
 		break;
 	case LOG_INFORM:
-		prefix = "[I]";
+		prefix << "[I]";
 		break;
 	case LOG_DEBUG:
-		prefix = "[D]";
+		prefix << "[D]";
 		break;
 	}
 	if (mpi_size_ > 1)
 	{
-		prefix += "[" + value_to_string(mpi_rank_) + "/"
-				+ value_to_string(mpi_size_) + "]";
+		prefix << "[" << mpi_rank_ << "/" << mpi_size_ << "]";
 	}
 
-	prefix += "[" + time_stamp() + "]";
-
-	if (!fs.good())
-		open_file("simpla.log");
-
-	// @bug  can not write SimPla log to file
-
-	fs << std::endl << prefix << msg << surfix;
+	prefix << "[" << time_stamp() << "]";
 
 	if (level <= std_out_visable_level_)
 	{
@@ -196,21 +193,26 @@ void LoggerStreams::put(int level, std::string const & msg)
 		case LOG_OUT_RANGE_ERROR:
 		case LOG_LOGIC_ERROR:
 		case LOG_ERROR:
-			std::cerr << "\e[1;31m" << prefix << "\e[1;37m" << msg << "\e[0m"
-					<< surfix;
+			std::cerr << "\e[1;31m" << prefix.str() << "\e[1;37m" << msg
+					<< "\e[0m" << surfix;
 			break;
 		case LOG_WARNING:
-			std::cerr << "\e[1;32m" << prefix << "\e[1;37m" << msg << "\e[0m"
-					<< surfix;
+			std::cerr << "\e[1;32m" << prefix.str() << "\e[1;37m" << msg
+					<< "\e[0m" << surfix;
 			break;
 		case LOG_MESSAGE:
 			std::cout << msg;
 			break;
 		default:
-			std::cout << prefix << msg << surfix;
+			std::cout << prefix.str() << msg << surfix;
 		}
 
 	}
+
+	if (!fs.good())
+		open_file("simpla.log");
+
+	fs << std::endl << prefix.str() << msg << surfix;
 
 }
 
@@ -306,6 +308,8 @@ void close_logger()
 {
 	SingletonHolder<LoggerStreams>::instance().close();
 }
+
+}  // namespace logger
 }
 // namespace simpla
 

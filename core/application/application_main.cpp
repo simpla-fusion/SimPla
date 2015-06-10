@@ -27,7 +27,7 @@ int main(int argc, char **argv)
 
 	std::string help_message;
 
-	help_message += init_logger(argc, argv);
+	help_message += logger::init_logger(argc, argv);
 	help_message += init_parallel(argc, argv);
 	help_message += init_io(argc, argv);
 
@@ -37,11 +37,11 @@ int main(int argc, char **argv)
 	help_message += options.init(argc, argv);
 
 	if (GLOBAL_COMM.process_num() == 0)
-	{	MESSAGE << ShowCopyRight() << endl;}
+	{	MESSAGE << ShowCopyRight() << std::endl;}
 
 	if (options["V"] || options["version"])
 	{
-		MESSAGE << "SIMPla " << ShowVersion();
+		MESSAGE<< "SIMPla " << ShowVersion();
 		TheEnd(0);
 		return TERMINATE;
 	}
@@ -50,35 +50,35 @@ int main(int argc, char **argv)
 
 		MESSAGE
 
-		<< " Usage: " << argv[0] << "   <options> ..." << endl << endl;
+		<< " Usage: " << argv[0] << "   <options> ..." << std::endl << std::endl;
 
 		MESSAGE
 
-		<< " Options:" << endl
+		<< " Options:" <<std:: endl
 
-				<<
+		<<
 
-				"\t -h,\t--help            \t, Print a usage message and exit.\n"
-						"\t -v,\t--version         \t, Print version information exit. \n"
+		"\t -h,\t--help            \t, Print a usage message and exit.\n"
+		"\t -v,\t--version         \t, Print version information exit. \n"
 //						"\t -g,\t--generator       \t, Generates a demo configure file \n"
-						"\n"
-						"\t--case <CASE ID>         \t, Select a case <CASE ID> to execute \n "
-						"\t--case_help <CASE ID>    \t, Print a usag message of case <CASE ID> \n "
-				<< help_message;
+		"\n"
+		"\t--case <CASE ID>         \t, Select a case <CASE ID> to execute \n "
+		"\t--case_help <CASE ID>    \t, Print a usag message of case <CASE ID> \n "
+		<< help_message;
 
 		MESSAGE
 
-		<< " Use case list:" << endl
+		<< " Use case list:" << std::endl
 
-		<< "        CASE ID     | Description " << endl
+		<< "        CASE ID     | Description " << std::endl
 		<< "--------------------|-------------------------------------"
-				<< endl;
+		<<std:: endl;
 
 		for (auto const & item : applist)
 		{
 
 			MESSAGE << std::setw(19) << std::right << item.first << " |"
-					<< item.second->description() << endl;
+			<< item.second->description() <<std:: endl;
 		}
 
 		TheEnd(0);
@@ -109,14 +109,14 @@ int main(int argc, char **argv)
 			GLOBAL_COMM.barrier();
 		}
 
-		MESSAGE << "===================================================="
-				<< std::endl
+		MESSAGE<< "===================================================="
+		<< std::endl
 
-				<< "\t >>> Done <<< " << std::endl;
+		<< "\t >>> Done <<< " << std::endl;
 	}
 	close_io();
 	close_parallel();
-	close_logger();
+	logger::close_logger();
 
 	return 0;
 

@@ -978,16 +978,16 @@ template<typename TTopology, typename ... Polices> void StructuredMesh<
 				ERROR(
 				"Dimension is to small to split!["
 				" Dimensions= "
-				+ value_to_string(
+				+ type_cast<std::string>(
 						topology_type::unpack_index(
 								m_id_max_ - m_id_min_))
 				+ " , Local dimensions="
-				+ value_to_string(
+				+ type_cast<std::string>(
 						topology_type::unpack_index(
 								m_id_local_max_
 								- m_id_local_min_))
 				+ " , Ghost width ="
-				+ value_to_string(ghost_width) + "]");
+				+ type_cast<std::string>(ghost_width) + "]");
 			}
 
 		}
