@@ -96,13 +96,6 @@ struct Any
 		}
 		return is_found;
 	}
-#ifdef simpla
-
-	DataType datatype() const
-	{
-		return ptr_->datatype();
-	}
-#endif
 
 	template<class U>
 	U & as() const
@@ -147,6 +140,11 @@ struct Any
 	{
 		return ptr_->print(os);
 	}
+	DataType datatype() const
+	{
+		return ptr_->datatype();
+	}
+
 private:
 	struct Base;
 	typedef std::unique_ptr<Base> BasePtr;
@@ -168,9 +166,9 @@ private:
 		{
 			return is_same(std::type_index(typeid(T)));
 		}
-#ifdef simpla
+
 		virtual DataType datatype() const=0;
-#endif
+
 	};
 	template<typename T>
 	struct Derived: Base

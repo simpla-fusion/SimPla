@@ -7,9 +7,12 @@
 
 #ifndef PROPERTIES_H_
 #define PROPERTIES_H_
+
+#include <cstdbool>
 #include <map>
 #include <string>
-#include "ntuple.h"
+#include <utility>
+
 #include "any.h"
 
 namespace simpla
@@ -37,8 +40,8 @@ public:
 	{
 	}
 	template<typename T>
-	Properties(T const &v)
-			: value_type(v)
+	Properties(T const &v) :
+			value_type(v)
 	{
 	}
 	~Properties()
@@ -109,32 +112,10 @@ public:
 		}
 	}
 
-//	template<typename T>
-//	auto as()
-//			DECL_RET_TYPE((value_type::template as<typename array_to_ntuple_convert<T>::type>()))
-//
-//	template<typename T>
-//	auto as() const
-//			DECL_RET_TYPE((value_type::template as<typename array_to_ntuple_convert<T>::type>()))
-//
-//	template<typename T>
-//	typename array_to_ntuple_convert<T>::type as(T const & default_v) const
-//	{
-//		typename array_to_ntuple_convert<T>::type res = default_v;
-//		if (!value_type::empty())
-//		{
-//			res = value_type::template as<
-//					typename array_to_ntuple_convert<T>::type>();
-//		}
-//
-//		return std::move(res);
-//	}
-
 	template<typename T>
-	typename array_to_ntuple_convert<T>::type get(std::string const & key,
-			T const & default_v) const
+	T get(std::string const & key, T const & default_v) const
 	{
-		typename array_to_ntuple_convert<T>::type res = default_v;
+		T res = default_v;
 
 		auto it = map_type::find(key);
 
@@ -213,24 +194,6 @@ public:
 		return get(key);
 	}
 
-	template<typename OS>
-	OS &print(OS & os) const
-	{
-		for (auto const& item : *this)
-		{
-
-			os << item.first << " =  ";
-			item.second.Any::print(os);
-			os << " , ";
-			if (item.second.size() > 0)
-			{
-				item.second.print(os);
-			}
-
-		}
-		return os;
-	}
-
 	this_type & append(this_type const & other)
 	{
 		for (auto const & item : other)
@@ -242,6 +205,27 @@ public:
 
 };
 
+namespace traits
+{
+template<typename OS>
+OS &print(OS & os, Properties const & prop)
+{
+	for (auto const& item : prop)
+	{
+
+		os << item.first << " =  ";
+		item.second.Any::print(os);
+		os << " , ";
+		if (item.second.size() > 0)
+		{
+			item.second.print(os);
+		}
+
+	}
+	return os;
+}
+
+}  // namespace traits
 /** @} */
 }  // namespace simpla
 

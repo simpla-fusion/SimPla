@@ -60,16 +60,16 @@ private:
 
 public:
 
-	_Field(domain_type const & d)
-			: m_domain_(d), m_data_(nullptr)
+	_Field(domain_type const & d) :
+			m_domain_(d), m_data_(nullptr)
 	{
 	}
-	_Field(this_type const & other)
-			: m_domain_(other.m_domain_), m_data_(other.m_data_)
+	_Field(this_type const & other) :
+			m_domain_(other.m_domain_), m_data_(other.m_data_)
 	{
 	}
-	_Field(this_type && other)
-			: m_domain_(other.m_domain_), m_data_(other.m_data_)
+	_Field(this_type && other) :
+			m_domain_(other.m_domain_), m_data_(other.m_data_)
 	{
 	}
 	~_Field()
@@ -290,7 +290,7 @@ public:
 
 		res.data = m_data_;
 
-		res.datatype = DataType::create<value_type>();
+		res.datatype = traits::datatype<value_type>::create();
 
 		res.dataspace = m_domain_.dataspace();
 

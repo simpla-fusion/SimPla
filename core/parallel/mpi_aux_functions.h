@@ -31,7 +31,7 @@ template<typename T>
 void reduce(T * send_data, T * recv_data, size_t count,
 		std::string const & op_c = "Sum")
 {
-	reduce(send_data, recv_data, count, DataType::template create<T>(), op_c);
+	reduce(send_data, recv_data, count, traits::datatype<T>::create(), op_c);
 
 }
 
@@ -39,7 +39,7 @@ template<typename T>
 void allreduce(T * send_data, T * recv_data, size_t count,
 		std::string const & op_c = "Sum")
 {
-	allreduce(send_data, recv_data, count, DataType::create<T>(), op_c);
+	allreduce(send_data, recv_data, count, traits::datatype<T>::create, op_c);
 }
 
 template<typename T>

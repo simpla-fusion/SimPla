@@ -37,17 +37,15 @@ USE_CASE(em," Maxwell Eqs.")
 	if (options["case_help"])
 	{
 
-		MESSAGE
+		MESSAGE<< " Options:" << std::endl
 
-		<< " Options:" << endl
+		<<
 
-				<<
-
-				"\t -n,\t--number_of_steps <NUMBER>  \t, Number of steps = <NUMBER> ,default="
-						+ value_to_string(num_of_steps)
-						+ "\n"
-								"\t -s,\t--strides <NUMBER>            \t, Dump record per <NUMBER> steps, default="
-						+ value_to_string(strides) + "\n";
+		"\t -n,\t--number_of_steps <NUMBER>  \t, Number of steps = <NUMBER> ,default="
+		+ type_cast <std::string>(num_of_steps)
+		+ "\n"
+		"\t -s,\t--strides <NUMBER>            \t, Dump record per <NUMBER> steps, default="
+		+ type_cast <std::string>(strides) + "\n";
 
 		return;
 	}
@@ -65,16 +63,16 @@ USE_CASE(em," Maxwell Eqs.")
 	if (GLOBAL_COMM.process_num()==0)
 	{
 
-		MESSAGE << endl
+		MESSAGE << std::endl
 
-		<< "[ Configuration ]" << endl
+		<< "[ Configuration ]" << std::endl
 
 		<< " Description=\"" << options["Description"].as<std::string>("") << "\""
-		<< endl
+		<< std::endl
 
-		<< " Mesh =" << endl << "  {" << *mesh << "} " << endl
+//		<< " Mesh = \n {" << *mesh << "} " << std::endl
 
-		<< " TIME_STEPS = " << num_of_steps << endl;
+		<< " TIME_STEPS = " << num_of_steps << std::endl;
 	}
 
 //	std::shared_ptr<PML<mesh_type>> pml_solver;
@@ -114,13 +112,13 @@ USE_CASE(em," Maxwell Eqs.")
 		B_Boundary.clear();
 	}
 
-	LOGGER << "----------  Dump input ---------- " << endl;
+	LOGGER<< "----------  Dump input ---------- " << std::endl;
 
 	cd("/Input/");
 
-	VERBOSE << SAVE(E) << endl;
-	VERBOSE << SAVE(B) << endl;
-	VERBOSE << SAVE(J) << endl;
+	VERBOSE<< SAVE(E) << std::endl;
+	VERBOSE<< SAVE(B) << std::endl;
+	VERBOSE<< SAVE(J) << std::endl;
 
 	DEFINE_PHYSICAL_CONST
 	Real dt = mesh->dt();
@@ -128,13 +126,13 @@ USE_CASE(em," Maxwell Eqs.")
 
 	Real omega = 0.01 * PI / dt;
 
-	LOGGER << "----------  START ---------- " << endl;
+	LOGGER<< "----------  START ---------- " << std::endl;
 
 	cd("/Save/");
 
 	for (size_t step = 0; step < num_of_steps; ++step)
 	{
-		VERBOSE << "Step [" << step << "/" << num_of_steps << "]" << endl;
+		VERBOSE<< "Step [" << step << "/" << num_of_steps << "]" << std::endl;
 
 		J.self_assign(J_src);
 		E.self_assign(E_src);
@@ -155,20 +153,20 @@ USE_CASE(em," Maxwell Eqs.")
 //			pml_solver->next_timestepB(mesh->dt(), E, B, &B);
 //		}
 
-		VERBOSE << SAVE_RECORD(J) << endl;
-		VERBOSE << SAVE_RECORD(E) << endl;
-		VERBOSE << SAVE_RECORD(B) << endl;
+		VERBOSE << SAVE_RECORD(J) << std::endl;
+		VERBOSE << SAVE_RECORD(E) << std::endl;
+		VERBOSE << SAVE_RECORD(B) << std::endl;
 
 		mesh->next_timestep();
 
 	}
 
 	cd("/Output/");
-	VERBOSE << SAVE(E) << endl;
-	VERBOSE << SAVE(B) << endl;
-	VERBOSE << SAVE(J) << endl;
+	VERBOSE<< SAVE(E) << std::endl;
+	VERBOSE<< SAVE(B) << std::endl;
+	VERBOSE<< SAVE(J) << std::endl;
 
-	LOGGER << "----------  DONE ---------- " << endl;
+	LOGGER<< "----------  DONE ---------- " << std::endl;
 
 }
 

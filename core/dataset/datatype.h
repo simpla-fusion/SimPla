@@ -94,6 +94,9 @@ private:
 
 namespace traits
 {
+template<typename T> struct rank;
+template<typename T> struct dimensions;
+template<typename T> struct element_type;
 
 std::ostream & print(std::ostream & os, DataType const &self);
 
@@ -102,36 +105,33 @@ struct datatype
 {
 	static DataType create(std::string const & name = "")
 	{
-		return DataType(std::type_index(typeid(T)), sizeof(T) / sizeof(char), 0,
-				nullptr, name);
+
+		typedef typename std::remove_cv<T>::type obj_type;
+
+		typedef typename element_type<obj_type>::type value_type;
+
+		size_t ele_size_in_byte = sizeof(value_type) / sizeof(char);
+
+		return std::move(
+
+		DataType(std::type_index(typeid(value_type)),
+
+		ele_size_in_byte,
+
+		rank<obj_type>::value,
+
+		&dimensions<obj_type>::value[0],
+
+		name)
+
+		);
+
 	}
 
 };
 //template<typename T>
 //DataType create_opaque_datatype(std::string const & name = "")
-//{
-//
-//	typedef typename std::remove_cv<T>::type obj_type;
-//
-//	typedef typename element_type<obj_type>::type value_type;
-//
-//	size_t ele_size_in_byte = sizeof(value_type) / sizeof(char);
-//
-//	return std::move(
-//
-//	DataType(std::type_index(typeid(value_type)),
-//
-//	ele_size_in_byte,
-//
-//	rank<obj_type>::value,
-//
-//	&dimensions<obj_type>::value[0],
-//
-//	name)
-//
-//	);
-//
-//}
+
 }// namespace traits
 
 }

@@ -314,7 +314,7 @@ inline std::string ShowBit(unsigned long s)
 
 #define LOG_CMD(_CMD_) {auto __logger=logger::Logger(logger::LOG_LOG);__logger<<__STRING(_CMD_);_CMD_;__logger<<DONE;}
 
-#define VERBOSE_CMD(_CMD_) {auto __logger=logger::Logger(logger::LOG_VERBOSE);__logger<<__STRING(_CMD_);try{_CMD_;__logger<<DONE;}catch(...){__logger<<FAILED;} }
+#define VERBOSE_CMD(_CMD_) {auto __logger=logger::Logger(logger::LOG_VERBOSE);__logger<<__STRING(_CMD_);try{_CMD_;__logger<< DONE;}catch(...){__logger<<logger::failed;} }
 
 #define LOG_CMD1(_LEVEL_,_MSG_,_CMD_) {auto __logger=logger::Logger(_LEVEL_);__logger<<_MSG_;_CMD_;__logger<<DONE;}
 

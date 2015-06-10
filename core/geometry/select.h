@@ -14,8 +14,6 @@
 #include "../mesh/mesh_ids.h"
 #include "../gtl/ntuple.h"
 
-#include "../gtl/function_cache.h"
-
 namespace simpla
 {
 
@@ -518,7 +516,7 @@ void filter_domain_by_config(TDict const & dict, TDomain * domain)
 
 			domain->mesh().select(
 
-			make_function_cache<Real, id_type>(dict["Object"]),
+			dict["Object"],
 
 			select_tag, domain->iform,
 
@@ -537,7 +535,7 @@ void filter_domain_by_config(TDict const & dict, TDomain * domain)
 
 			domain->mesh().select(
 
-			make_function_cache<Real, id_type>(pip),
+			pip,
 
 			select_tag, domain->iform,
 

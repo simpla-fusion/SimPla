@@ -47,7 +47,7 @@ struct MPIDataType
 	template<typename T, typename ...Others>
 	static MPIDataType create(Others && ... others)
 	{
-		return create(DataType::create<T>(), std::forward<Others>(others)...);
+		return create(traits::datatype<T>::create(), std::forward<Others>(others)...);
 	}
 
 	MPI_Datatype const & type(...) const

@@ -85,8 +85,8 @@ public:
 
 template<typename TM>
 template<typename ... Args>
-PML<TM>::PML(mesh_type const & mesh, Args && ...args)
-		: m_mesh_(mesh.shared_from_this()),
+PML<TM>::PML(mesh_type const & mesh, Args && ...args) :
+		m_mesh_(mesh.shared_from_this()),
 
 		a0(*m_mesh_), a1(*m_mesh_), a2(*m_mesh_),
 
@@ -117,7 +117,7 @@ void PML<TM>::init(TDict const &dict, Others const & ...)
 template<typename TM>
 void PML<TM>::extents(coordinate_tuple xmin, coordinate_tuple xmax)
 {
-	LOGGER << "create PML solver [" << xmin << " , " << xmax << " ]";
+	LOGGER<< "create PML solver [" << xmin << " , " << xmax << " ]";
 
 	DEFINE_PHYSICAL_CONST
 
@@ -175,24 +175,24 @@ void PML<TM>::next_timestepE(Real dt,
 		typename mesh_type:: template field<FACE, scalar_type> const&B1,
 		typename mesh_type:: template field<EDGE, scalar_type> *dE)
 {
-	VERBOSE << "PML push E" << endl;
+	VERBOSE<< "PML push E" << std::endl;
 
 	DEFINE_PHYSICAL_CONST
 
 	auto dX1 = m_mesh_->template make_form<EDGE, scalar_type>();
 
 	dX1 = (-2.0 * dt * s0 * X10 + curl_pdx(B1) / (mu0 * epsilon0) * dt)
-			/ (a0 + s0 * dt);
+	/ (a0 + s0 * dt);
 	X10 += dX1;
 	*dE += dX1;
 
 	dX1 = (-2.0 * dt * s1 * X11 + curl_pdy(B1) / (mu0 * epsilon0) * dt)
-			/ (a1 + s1 * dt);
+	/ (a1 + s1 * dt);
 	X11 += dX1;
 	*dE += dX1;
 
 	dX1 = (-2.0 * dt * s2 * X12 + curl_pdz(B1) / (mu0 * epsilon0) * dt)
-			/ (a2 + s2 * dt);
+	/ (a2 + s2 * dt);
 	X12 += dX1;
 	*dE += dX1;
 }
@@ -203,7 +203,7 @@ void PML<TM>::next_timestepB(Real dt,
 		typename mesh_type:: template field<FACE, scalar_type> const&B1,
 		typename mesh_type:: template field<FACE, scalar_type> *dB)
 {
-	VERBOSE << "PML Push B" << endl;
+	VERBOSE<<"PML Push B" << std::endl;
 
 	DEFINE_PHYSICAL_CONST
 
@@ -223,4 +223,5 @@ void PML<TM>::next_timestepB(Real dt,
 
 }
 
-} //namespace simpla
+}
+ //namespace simpla
