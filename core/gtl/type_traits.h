@@ -28,173 +28,28 @@ template<typename T, size_t> struct extent;
 }  // namespace traits
 template<typename, size_t...> struct nTuple;
 
+// C++14
 template<typename _Tp, _Tp ... _I> struct integer_sequence;
 
-template<typename T, size_t N>
-struct nTuple<T, N>
-{
-
-	typedef T value_type;
-
-	typedef T sub_type;
-
-	typedef integer_sequence<size_t, N> dimensions;
-
-	typedef value_type pod_type[N];
-
-	static constexpr size_t dims = N;
-
-	typedef nTuple<value_type, N> this_type;
-
-	sub_type m_data_[dims];
-
-	sub_type &operator[](size_t s)
-	{
-		return m_data_[s];
-	}
-
-	sub_type const &operator[](size_t s) const
-	{
-		return m_data_[s];
-	}
-
-	this_type &operator++()
-	{
-		++m_data_[N - 1];
-		return *this;
-	}
-
-	this_type &operator--()
-	{
-		--m_data_[N - 1];
-		return *this;
-	}
-	template<typename U, size_t ...I>
-	operator nTuple<U,I...>() const
-	{
-		nTuple<U, I...> res;
-		res = *this;
-		return std::move(res);
-	}
-
-private:
-	template<size_t I, typename TOp, typename ...Args>
-	void foreach(std::integral_constant<size_t, I>, TOp const &op,
-			Args && ...args)
-	{
-		op(std::forward<Args>(args)...);
-
-		foreach(std::integral_constant<size_t, I - 1>(), op,
-				std::forward<Args>(args)...);
-	}
-	template<size_t I, typename TOp, typename ...Args>
-	void foreach(std::integral_constant<size_t, 0>, TOp const &op,
-			Args && ...args)
-	{
-	}
-public:
-
-	template<typename TR>
-	inline this_type &
-	operator=(TR const &rhs)
-	{
-
-		//  assign different 'dimensions' ntuple
-//		_seq_for<
-//				min_not_zero<dims,
-//						seq_get<0, typename nTuple_traits<TR>::dimensions>::value>::value
-//
-//		>::eval(_impl::_assign(), m_data_, rhs);
-
-		foreach(std::integral_constant<size_t, dims>(), _impl::_assign(),
-				m_data_, rhs);
-		return (*this);
-	}
-
-	template<typename TR>
-	inline this_type &
-	operator=(TR const *rhs)
-	{
-		foreach(std::integral_constant<size_t, dims>(), _impl::_assign(),
-				m_data_, rhs);
-		return (*this);
-	}
-
-//	template<typename TR>
-//	inline bool operator ==(TR const &rhs)
-//	{
-//		return _seq_reduce<
-//				min_not_zero<dims,
-//						seq_get<0, typename nTuple_traits<TR>::dimensions>::value>::value>::eval(
-//				_impl::logical_and(), _impl::equal_to(), data_, rhs);;
-//	}
-//
-	template<typename TR>
-	inline this_type &operator+=(TR const &rhs)
-	{
-		foreach(std::integral_constant<size_t, dims>(), _impl::plus_assign(),
-				m_data_, rhs);
-		return (*this);
-	}
-
-	template<typename TR>
-	inline this_type &operator-=(TR const &rhs)
-	{
-		foreach(std::integral_constant<size_t, dims>(), _impl::minus_assign(),
-				m_data_, rhs);
-		return (*this);
-	}
-
-	template<typename TR>
-	inline this_type &operator*=(TR const &rhs)
-	{
-		foreach(std::integral_constant<size_t, dims>(),
-				_impl::multiplies_assign(), m_data_, rhs);
-		return (*this);
-	}
-
-	template<typename TR>
-	inline this_type &operator/=(TR const &rhs)
-	{
-		foreach(std::integral_constant<size_t, dims>(), _impl::divides_assign(),
-				m_data_, rhs);
-		return (*this);
-	}
-
-//	template<size_t NR, typename TR>
-//	void operator*(nTuple<NR, TR> const & rhs) = delete;
-//
-//	template<size_t NR, typename TR>
-//	void operator/(nTuple<NR, TR> const & rhs) = delete;
-
-};
 template<typename _Tp, _Tp ... _I>
 struct integer_sequence
 {
 
 	typedef integer_sequence<_Tp, _I...> type;
 
-	typedef nTuple<_Tp, traits::extent<type, 0>::value> value_type;
+	typedef _Tp value_type;
 
-	static constexpr value_type value = { _I... };
+	static constexpr value_type value[] = { _I... };
 
 	static constexpr size_t size()
 	{
 		return traits::rank<type>::value;
 	}
-	constexpr operator value_type() const
-	{
-		return value;
-	}
 
-	constexpr value_type operator()() const
-	{
-		return value;
-	}
 };
 
 template<typename _Tp, _Tp ... _I> constexpr typename
-integer_sequence<_Tp, _I...>::value_type integer_sequence<_Tp, _I...>::value;
+integer_sequence<_Tp, _I...>::value_type integer_sequence<_Tp, _I...>::value[];
 
 template<typename _Tp, _Tp _I>
 struct integer_sequence<_Tp, _I> : public std::integral_constant<_Tp, _I>
