@@ -48,9 +48,8 @@ namespace traits
 {
 
 template<typename T>
-struct rank
+struct rank: public std::integral_constant<size_t, std::rank<T>::value>
 {
-	static constexpr size_t value = std::rank<T>::value;
 };
 
 template<typename T> struct dimensions

@@ -61,8 +61,97 @@ namespace simpla
 /// n-dimensional primary type
 template<typename, size_t...>
 struct nTuple;
+
 template<typename >
 struct nTuple_traits;
+
+namespace traits
+{
+template<size_t M, typename T, size_t N>
+T const & get(simpla::nTuple<T, N> const & v)
+{
+	return v[M];
+}
+/**
+ * C++11 <type_traits>
+ * @ref http://en.cppreference.com/w/cpp/types/rank
+ */
+template<typename T, size_t ...N>
+struct rank<nTuple<T, N...>> : public std::integral_constant<size_t,
+		sizeof...(N)>
+{
+};
+
+template<typename T, size_t ...N>
+struct dimensions<nTuple<T, N...>>
+{
+	static constexpr size_t value[] = { N... };
+	typedef typename nTuple_traits<nTuple<T, N...>>::dimensions type;
+};
+
+template<typename T, size_t ...N>
+constexpr size_t dimensions<nTuple<T, N...>>::value[];
+
+template<typename T, size_t ...N>
+struct value_type<nTuple<T, N...> >
+{
+	typedef typename nTuple_traits<nTuple<T, N...>>::value_type type;
+};
+
+template<typename T, size_t ...N>
+struct key_type<nTuple<T, N...>>
+{
+	typedef size_t type;
+};
+template<typename T>
+struct primary_type
+{
+	typedef T type;
+};
+
+template<typename T, size_t ...N>
+struct primary_type<nTuple<T, N...>>
+{
+	typedef typename nTuple_traits<nTuple<T, N...>>::primary_type type;
+};
+
+template<typename T>
+struct pod_type
+{
+	typedef T type;
+};
+
+template<typename T, size_t ...N>
+struct pod_type<nTuple<T, N...>>
+{
+	typedef typename nTuple_traits<nTuple<T, N...>>::pod_type type;
+};
+
+template<typename >
+struct is_ntuple
+{
+	static constexpr bool value = false;
+};
+
+template<typename T, size_t ...N>
+struct is_ntuple<nTuple<T, N...>>
+{
+	static constexpr bool value = true;
+};
+
+template<typename T, size_t M, size_t ...N>
+struct reference<nTuple<T, M, N...>>
+{
+	typedef nTuple<T, M, N...> const &type;
+};
+
+template<typename ...T>
+struct reference<nTuple<Expression<T...> >>
+{
+	typedef nTuple<Expression<T...> > type;
+};
+
+}  // namespace traits
 
 template<typename TV>
 struct nTuple<TV>
@@ -280,7 +369,7 @@ struct nTuple<Expression<T...>> : public Expression<T...>
 
 	using Expression<T...>::Expression;
 
-	typedef typename nTuple_traits<this_type>::primary_type primary_type;
+	typedef typename traits::primary_type<this_type>::type primary_type;
 
 	template<typename U, size_t ...N>
 	operator nTuple<U,N...>() const
@@ -307,23 +396,6 @@ struct nTuple<BooleanExpression<TOP, T...>> : public Expression<TOP, T...>
 
 };
 
-namespace traits
-{
-
-template<typename T, size_t M, size_t ...N>
-struct reference<nTuple<T, M, N...>>
-{
-	typedef nTuple<T, M, N...> const &type;
-};
-
-template<typename ...T>
-struct reference<nTuple<Expression<T...> >>
-{
-	typedef nTuple<Expression<T...> > type;
-};
-
-}  // namespace traits
-
 template<typename TV>
 struct nTuple_traits
 {
@@ -337,24 +409,12 @@ struct nTuple_traits
 
 };
 
-template<typename >
-struct is_ntuple
-{
-	static constexpr bool value = false;
-};
-
-template<typename T, size_t ...N>
-struct is_ntuple<nTuple<T, N...>>
-{
-	static constexpr bool value = true;
-};
-
 template<typename TV, size_t N, size_t ...M>
 struct nTuple_traits<nTuple<TV, N, M...> >
 {
 	static constexpr size_t ndims = 1 + sizeof...(M);
 
-	typedef typename nTuple_traits<TV>::value_type value_type;
+	typedef typename traits::value_type<TV>::type value_type;
 
 	typedef typename cat_integer_sequence<integer_sequence<size_t, N, M...>,
 			typename nTuple_traits<TV>::dimensions>::type dimensions;
@@ -370,7 +430,7 @@ struct nTuple_traits<nTuple<Expression<TOP, TL, std::nullptr_t> > >
 {
 private:
 	typedef typename nTuple_traits<TL>::dimensions d_seq_l;
-	typedef typename nTuple_traits<TL>::value_type value_type_l;
+	typedef typename traits::value_type<TL>::type value_type_l;
 public:
 	typedef d_seq_l dimensions;
 
@@ -382,50 +442,45 @@ public:
 
 };
 template<typename TOP, typename TL, typename TR>
-struct nTuple_traits<nTuple<Expression<TOP, TL, TR>>> {
+struct nTuple_traits<nTuple<Expression<TOP, TL, TR> > >
+{
 private:
-typedef typename nTuple_traits<TL>::dimensions d_seq_l;
-typedef typename nTuple_traits<TR>::dimensions d_seq_r;
-typedef typename nTuple_traits<TL>::value_type value_type_l;
-typedef typename nTuple_traits<TR>::value_type value_type_r;
+	typedef typename nTuple_traits<TL>::dimensions d_seq_l;
+	typedef typename nTuple_traits<TR>::dimensions d_seq_r;
+	typedef typename traits::value_type<TL>::type value_type_l;
+	typedef typename traits::value_type<TR>::type value_type_r;
 public:
-typedef typename longer_integer_sequence<d_seq_l, d_seq_r>::type dimensions;
+	typedef typename longer_integer_sequence<d_seq_l, d_seq_r>::type dimensions;
 
-typedef decltype(std::declval<TOP>()(std::declval<value_type_l>(),
-				std::declval<value_type_r>())) value_type;
+	typedef decltype(std::declval<TOP>()(std::declval<value_type_l>(),
+					std::declval<value_type_r>())) value_type;
 
-typedef typename make_pod_array<value_type, dimensions>::type pod_type;
+	typedef typename make_pod_array<value_type, dimensions>::type pod_type;
 
-typedef typename nTuple_create_trait<value_type, dimensions>::type primary_type;
+	typedef typename nTuple_create_trait<value_type, dimensions>::type primary_type;
 
 };
 
 template<typename TOP, typename ...T>
-struct nTuple_traits<nTuple<BooleanExpression<TOP, T...>>> {
+struct nTuple_traits<nTuple<BooleanExpression<TOP, T...> > >
+{
 
-typedef typename nTuple_traits<nTuple<Expression<TOP, T...>>>::dimensions dimensions;
+	typedef typename nTuple_traits<nTuple<Expression<TOP, T...> > >::dimensions dimensions;
 
-typedef bool value_type;
+	typedef bool value_type;
 
-typedef bool pod_type;
+	typedef bool pod_type;
 
-typedef bool primary_type;
+	typedef bool primary_type;
 
 };
 
 template<typename T, size_t ...N>
 struct sp_pod_traits<nTuple<T, N...> >
 {
-	typedef typename nTuple_traits<nTuple<T, N...>>::primary_type type;
+	typedef typename traits::primary_type<nTuple<T, N...>>::type type;
 
 };
-
-//template<typename T, size_t ...N>
-//struct rank<nTuple<T, N...>>
-//{
-//	static constexpr size_t value =
-//			nTuple_traits<nTuple<T, N...>>::dimensions::size();
-//};
 
 template<typename TInts, TInts ...N>
 nTuple<TInts, sizeof...(N)> seq2ntuple(integer_sequence<TInts, N...>)
@@ -754,24 +809,8 @@ DEFINE_EXPRESSOPM_TEMPLATE_BASIC_ALGEBRA2(nTuple)
 
 /** @}*/
 
-namespace traits
-{
-
-template<size_t M, typename T, size_t N>
-T const & get(simpla::nTuple<T, N> const & v)
-{
-	return v[M];
-}
-/**
- * C++11 <type_traits>
- * @ref http://en.cppreference.com/w/cpp/types/rank
- */
-template<typename T, size_t ...N>
-struct rank<simpla::nTuple<T, N...>> : public std::integral_constant<
-		std::size_t, sizeof...(N)>
-{
-};
-
+//namespace traits
+//{
 ///**
 // * C++11 <type_traits>
 // * @ref http://en.cppreference.com/w/cpp/types/extent
@@ -798,7 +837,6 @@ struct rank<simpla::nTuple<T, N...>> : public std::integral_constant<
 //{
 //	typedef T type;
 //};
-
 //template<typename T, size_t I>
 //class std::less<simpla::nTuple<T, I> >
 //{
@@ -814,9 +852,7 @@ struct rank<simpla::nTuple<T, N...>> : public std::integral_constant<
 //		return false;
 //	}
 //};
-
-}// namespace traits
-
+//}// namespace traits
 }
 //namespace simpla
 
