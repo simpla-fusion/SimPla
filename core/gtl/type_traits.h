@@ -23,6 +23,7 @@ namespace traits
 
 template<typename T> struct dimensions;
 template<typename T> struct rank;
+template<typename T, size_t> struct extent;
 
 }  // namespace traits
 template<typename, size_t...> struct nTuple;
@@ -76,6 +77,21 @@ struct nTuple<T, N>
 		return std::move(res);
 	}
 
+private:
+	template<size_t I, typename TOp, typename ...Args>
+	void foreach(std::integral_constant<size_t, I>, TOp const &op,
+			Args && ...args)
+	{
+		op(std::forward<Args>(args)...);
+
+		foreach(std::integral_constant<size_t, I - 1>(), op,
+				std::forward<Args>(args)...);
+	}
+	template<size_t I, typename TOp, typename ...Args>
+	void foreach(std::integral_constant<size_t, 0>, TOp const &op,
+			Args && ...args)
+	{
+	}
 public:
 
 	template<typename TR>
@@ -89,6 +105,9 @@ public:
 //						seq_get<0, typename nTuple_traits<TR>::dimensions>::value>::value
 //
 //		>::eval(_impl::_assign(), m_data_, rhs);
+
+		foreach(std::integral_constant<size_t, dims>(), _impl::_assign(),
+				m_data_, rhs);
 		return (*this);
 	}
 
@@ -96,8 +115,8 @@ public:
 	inline this_type &
 	operator=(TR const *rhs)
 	{
-//		_seq_for<dims>::eval(_impl::_assign(), m_data_, rhs);
-
+		foreach(std::integral_constant<size_t, dims>(), _impl::_assign(),
+				m_data_, rhs);
 		return (*this);
 	}
 
@@ -113,40 +132,32 @@ public:
 	template<typename TR>
 	inline this_type &operator+=(TR const &rhs)
 	{
-//		_seq_for<
-//				min_not_zero<dims,
-//						seq_get<0, typename nTuple_traits<TR>::dimensions>::value>::value>::eval(
-//				_impl::plus_assign(), m_data_, rhs);
+		foreach(std::integral_constant<size_t, dims>(), _impl::plus_assign(),
+				m_data_, rhs);
 		return (*this);
 	}
 
 	template<typename TR>
 	inline this_type &operator-=(TR const &rhs)
 	{
-//		_seq_for<
-//				min_not_zero<dims,
-//						seq_get<0, typename nTuple_traits<TR>::dimensions>::value>::value>::eval(
-//				_impl::minus_assign(), m_data_, rhs);
+		foreach(std::integral_constant<size_t, dims>(), _impl::minus_assign(),
+				m_data_, rhs);
 		return (*this);
 	}
 
 	template<typename TR>
 	inline this_type &operator*=(TR const &rhs)
 	{
-//		_seq_for<
-//				min_not_zero<dims,
-//						seq_get<0, typename nTuple_traits<TR>::dimensions>::value>::value>::eval(
-//				_impl::multiplies_assign(), m_data_, rhs);
+		foreach(std::integral_constant<size_t, dims>(),
+				_impl::multiplies_assign(), m_data_, rhs);
 		return (*this);
 	}
 
 	template<typename TR>
 	inline this_type &operator/=(TR const &rhs)
 	{
-//		_seq_for<
-//				min_not_zero<dims,
-//						seq_get<0, typename nTuple_traits<TR>::dimensions>::value>::value>::eval(
-//				_impl::divides_assign(), m_data_, rhs);
+		foreach(std::integral_constant<size_t, dims>(), _impl::divides_assign(),
+				m_data_, rhs);
 		return (*this);
 	}
 
@@ -163,7 +174,7 @@ struct integer_sequence
 
 	typedef integer_sequence<_Tp, _I...> type;
 
-	typedef nTuple<_Tp, traits::rank<type>::value> value_type;
+	typedef nTuple<_Tp, traits::extent<type, 0>::value> value_type;
 
 	static constexpr value_type value = { _I... };
 
@@ -224,9 +235,19 @@ struct rank: public std::integral_constant<size_t, std::rank<T>::value>
 };
 template<typename _Tp, _Tp ... _I>
 struct rank<integer_sequence<_Tp, _I...>> : public std::integral_constant<
+		size_t, 1>
+{
+};
+template<typename _Tp, size_t N = 0>
+struct extent: public std::extent<_Tp, N>
+{
+};
+template<typename _Tp, _Tp ... _I>
+struct extent<integer_sequence<_Tp, _I...>, 0> : public std::integral_constant<
 		size_t, sizeof...(_I)>
 {
 };
+
 template<typename T> struct dimensions
 {
 	static constexpr size_t value[] = { 1 };
