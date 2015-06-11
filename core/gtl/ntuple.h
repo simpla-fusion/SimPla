@@ -307,20 +307,22 @@ struct nTuple<BooleanExpression<TOP, T...>> : public Expression<TOP, T...>
 
 };
 
-template<typename >
-struct reference_traits;
+namespace traits
+{
 
 template<typename T, size_t M, size_t ...N>
-struct reference_traits<nTuple<T, M, N...>>
+struct reference<nTuple<T, M, N...>>
 {
 	typedef nTuple<T, M, N...> const &type;
 };
 
 template<typename ...T>
-struct reference_traits<nTuple<Expression<T...> >>
+struct reference<nTuple<Expression<T...> >>
 {
 	typedef nTuple<Expression<T...> > type;
 };
+
+}  // namespace traits
 
 template<typename TV>
 struct nTuple_traits

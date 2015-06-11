@@ -39,8 +39,10 @@ struct is_expresson<F<Expression<T...>>>
 	static constexpr bool value=true;
 };
 
+namespace traits
+{
 template<typename T>
-struct reference_traits
+struct reference
 {
 	typedef typename std::remove_reference<T>::type v_type;
 
@@ -53,30 +55,31 @@ struct reference_traits
 	typedef typename std::conditional<pass_value, T, T const &>::type type;
 
 };
+}  // namespace traits
 
 template<typename TOP, typename TL, typename TR>
 struct Expression<TOP, TL, TR>
 {
 	typedef Expression<TOP, TL, TR> this_type;
-	typename reference_traits<TL>::type lhs;
-	typename reference_traits<TR>::type rhs;
+	typename traits::reference<TL>::type lhs;
+	typename traits::reference<TR>::type rhs;
 	TOP op_;
 
-	Expression(this_type const & that)
-			: lhs(that.lhs), rhs(that.rhs), op_(that.op_)
+	Expression(this_type const & that) :
+			lhs(that.lhs), rhs(that.rhs), op_(that.op_)
 	{
 	}
-	Expression(this_type && that)
-			: lhs(that.lhs), rhs(that.rhs), op_(that.op_)
+	Expression(this_type && that) :
+			lhs(that.lhs), rhs(that.rhs), op_(that.op_)
 	{
 	}
 
-	constexpr Expression(TL const& l, TR const& r)
-			: lhs(l), rhs(r), op_()
+	constexpr Expression(TL const& l, TR const& r) :
+			lhs(l), rhs(r), op_()
 	{
 	}
-	Expression(TOP op, TL const& l, TR const& r)
-			: lhs(l), rhs(r), op_(op)
+	Expression(TOP op, TL const& l, TR const& r) :
+			lhs(l), rhs(r), op_(op)
 	{
 	}
 
@@ -97,21 +100,21 @@ struct Expression<TOP, TL, std::nullptr_t>
 {
 	typedef Expression<TOP, TL, std::nullptr_t> this_type;
 
-	typename reference_traits<TL>::type lhs;
+	typename traits::reference<TL>::type lhs;
 
 	TOP op_;
 
-	Expression(this_type const & that)
-			: lhs(that.lhs), op_(that.op_)
+	Expression(this_type const & that) :
+			lhs(that.lhs), op_(that.op_)
 	{
 	}
-	Expression(this_type && that)
-			: lhs(that.lhs), op_(that.op_)
+	Expression(this_type && that) :
+			lhs(that.lhs), op_(that.op_)
 	{
 	}
 
-	Expression(TL const& l)
-			: lhs(l), op_()
+	Expression(TL const& l) :
+			lhs(l), op_()
 	{
 	}
 
@@ -154,24 +157,24 @@ struct AssignmentExpression<TOP, TL, TR>
 {
 	typedef AssignmentExpression<TOP, TL, TR> this_type;
 	TL & lhs;
-	typename reference_traits<TR>::type rhs;
+	typename traits::reference<TR>::type rhs;
 	TOP op_;
 
-	AssignmentExpression(this_type const & that)
-			: lhs(that.lhs), rhs(that.rhs), op_(that.op_)
+	AssignmentExpression(this_type const & that) :
+			lhs(that.lhs), rhs(that.rhs), op_(that.op_)
 	{
 	}
-	AssignmentExpression(this_type && that)
-			: lhs(that.lhs), rhs(that.rhs), op_(that.op_)
+	AssignmentExpression(this_type && that) :
+			lhs(that.lhs), rhs(that.rhs), op_(that.op_)
 	{
 	}
 
-	AssignmentExpression(TL & l, TR const& r)
-			: lhs(l), rhs(r), op_()
+	AssignmentExpression(TL & l, TR const& r) :
+			lhs(l), rhs(r), op_()
 	{
 	}
-	AssignmentExpression(TOP op, TL & l, TR const& r)
-			: lhs(l), rhs(r), op_(op)
+	AssignmentExpression(TOP op, TL & l, TR const& r) :
+			lhs(l), rhs(r), op_(op)
 	{
 	}
 
@@ -309,7 +312,7 @@ struct _assign
 		l = r;
 	}
 	template<typename TL, typename TR, typename TI>
-	void operator()(TL & l, TR const & r, TI const & s)const
+	void operator()(TL & l, TR const & r, TI const & s) const
 	{
 		try_index(l, s) = try_index(r, s);
 	}
