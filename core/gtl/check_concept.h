@@ -8,6 +8,7 @@
 #ifndef CORE_GPTL_CONCEPT_CHECK_H_
 #define CORE_GPTL_CONCEPT_CHECK_H_
 
+#include <memory>
 #include <type_traits>
 
 namespace simpla

@@ -8,36 +8,169 @@
 #ifndef SP_TYPE_TRAITS_H_
 #define SP_TYPE_TRAITS_H_
 
-#include <type_traits>
-#include <memory>
-#include <tuple>
-#include <utility>
-#include <complex>
+#include <stddef.h>
+#include <iostream>
 #include <map>
-#include <vector>
+#include <type_traits>
+
 #include "check_concept.h"
+
 namespace simpla
 {
+
+namespace traits
+{
+
+template<typename T> struct dimensions;
+template<typename T> struct rank;
+
+}  // namespace traits
 template<typename, size_t...> struct nTuple;
 
-template<typename _Tp, _Tp ... _Idx>
-struct integral_sequence
-{
-private:
-	static constexpr size_t size_ = (sizeof...(_Idx));
-public:
+template<typename _Tp, _Tp ... _I> struct integer_sequence;
 
-	static constexpr size_t size() noexcept
+template<typename T, size_t N>
+struct nTuple<T, N>
+{
+
+	typedef T value_type;
+
+	typedef T sub_type;
+
+	typedef integer_sequence<size_t, N> dimensions;
+
+	typedef value_type pod_type[N];
+
+	static constexpr size_t dims = N;
+
+	typedef nTuple<value_type, N> this_type;
+
+	sub_type m_data_[dims];
+
+	sub_type &operator[](size_t s)
 	{
-		return size_;
+		return m_data_[s];
 	}
 
-	typedef nTuple<_Tp, size_> value_type;
+	sub_type const &operator[](size_t s) const
+	{
+		return m_data_[s];
+	}
 
-	static constexpr value_type value = { _Idx... };
+	this_type &operator++()
+	{
+		++m_data_[N - 1];
+		return *this;
+	}
 
-	typedef integral_sequence<_Tp, _Idx...> type;
+	this_type &operator--()
+	{
+		--m_data_[N - 1];
+		return *this;
+	}
+	template<typename U, size_t ...I>
+	operator nTuple<U,I...>() const
+	{
+		nTuple<U, I...> res;
+		res = *this;
+		return std::move(res);
+	}
 
+public:
+
+	template<typename TR>
+	inline this_type &
+	operator=(TR const &rhs)
+	{
+
+		//  assign different 'dimensions' ntuple
+//		_seq_for<
+//				min_not_zero<dims,
+//						seq_get<0, typename nTuple_traits<TR>::dimensions>::value>::value
+//
+//		>::eval(_impl::_assign(), m_data_, rhs);
+		return (*this);
+	}
+
+	template<typename TR>
+	inline this_type &
+	operator=(TR const *rhs)
+	{
+//		_seq_for<dims>::eval(_impl::_assign(), m_data_, rhs);
+
+		return (*this);
+	}
+
+//	template<typename TR>
+//	inline bool operator ==(TR const &rhs)
+//	{
+//		return _seq_reduce<
+//				min_not_zero<dims,
+//						seq_get<0, typename nTuple_traits<TR>::dimensions>::value>::value>::eval(
+//				_impl::logical_and(), _impl::equal_to(), data_, rhs);;
+//	}
+//
+	template<typename TR>
+	inline this_type &operator+=(TR const &rhs)
+	{
+//		_seq_for<
+//				min_not_zero<dims,
+//						seq_get<0, typename nTuple_traits<TR>::dimensions>::value>::value>::eval(
+//				_impl::plus_assign(), m_data_, rhs);
+		return (*this);
+	}
+
+	template<typename TR>
+	inline this_type &operator-=(TR const &rhs)
+	{
+//		_seq_for<
+//				min_not_zero<dims,
+//						seq_get<0, typename nTuple_traits<TR>::dimensions>::value>::value>::eval(
+//				_impl::minus_assign(), m_data_, rhs);
+		return (*this);
+	}
+
+	template<typename TR>
+	inline this_type &operator*=(TR const &rhs)
+	{
+//		_seq_for<
+//				min_not_zero<dims,
+//						seq_get<0, typename nTuple_traits<TR>::dimensions>::value>::value>::eval(
+//				_impl::multiplies_assign(), m_data_, rhs);
+		return (*this);
+	}
+
+	template<typename TR>
+	inline this_type &operator/=(TR const &rhs)
+	{
+//		_seq_for<
+//				min_not_zero<dims,
+//						seq_get<0, typename nTuple_traits<TR>::dimensions>::value>::value>::eval(
+//				_impl::divides_assign(), m_data_, rhs);
+		return (*this);
+	}
+
+//	template<size_t NR, typename TR>
+//	void operator*(nTuple<NR, TR> const & rhs) = delete;
+//
+//	template<size_t NR, typename TR>
+//	void operator/(nTuple<NR, TR> const & rhs) = delete;
+
+};
+template<typename _Tp, _Tp ... _I>
+struct integer_sequence
+{
+
+	typedef integer_sequence<_Tp, _I...> type;
+
+	typedef nTuple<_Tp, traits::rank<type>::value> value_type;
+
+	static constexpr value_type value = { _I... };
+
+	static constexpr size_t size()
+	{
+		return traits::rank<type>::value;
+	}
 	constexpr operator value_type() const
 	{
 		return value;
@@ -49,11 +182,20 @@ public:
 	}
 };
 
+template<typename _Tp, _Tp ... _I> constexpr typename
+integer_sequence<_Tp, _I...>::value_type integer_sequence<_Tp, _I...>::value;
+
+template<typename _Tp, _Tp _I>
+struct integer_sequence<_Tp, _I> : public std::integral_constant<_Tp, _I>
+{
+};
+
 /**
  * @ingroup utilities
  * @addtogroup type_traits Type traits
  * @{
  **/
+template<typename _Tp, _Tp ... _I> struct integer_sequence;
 
 typedef std::nullptr_t NullType;
 
@@ -80,11 +222,15 @@ template<typename T>
 struct rank: public std::integral_constant<size_t, std::rank<T>::value>
 {
 };
-
+template<typename _Tp, _Tp ... _I>
+struct rank<integer_sequence<_Tp, _I...>> : public std::integral_constant<
+		size_t, sizeof...(_I)>
+{
+};
 template<typename T> struct dimensions
 {
 	static constexpr size_t value[] = { 1 };
-	typedef integral_sequence<size_t, 1> type;
+	typedef integer_sequence<size_t, 1> type;
 };
 
 template<typename T> constexpr size_t dimensions<T>::value[];
@@ -97,30 +243,6 @@ template<typename T> struct key_type
 template<typename T> struct value_type
 {
 	typedef T type;
-};
-
-template<typename K, typename V, typename ...Others> struct key_type<
-		std::map<K, V, Others...>>
-{
-	typedef K type;
-};
-
-template<typename K, typename V, typename ...Others> struct value_type<
-		std::map<K, V, Others...>>
-{
-	typedef V type;
-};
-
-template<typename V, typename ...Others> struct key_type<
-		std::vector<V, Others...>>
-{
-	typedef size_t type;
-};
-
-template<typename V, typename ...Others> struct value_type<
-		std::vector<V, Others...>>
-{
-	typedef V type;
 };
 
 }  // namespace traits
@@ -215,16 +337,16 @@ auto try_index_r(T & v, nTuple<TI, N> const &s)
 ENABLE_IF_DECL_RET_TYPE((!traits::is_indexable<T,TI>::value), (v))
 
 template<typename T, typename TI, TI M, TI ...N>
-auto try_index(T & v, integral_sequence<TI, M, N...>)
+auto try_index(T & v, integer_sequence<TI, M, N...>)
 ENABLE_IF_DECL_RET_TYPE((traits::is_indexable<T,TI>::value),
-		try_index(v[M],integral_sequence<TI, N...>()))
+		try_index(v[M],integer_sequence<TI, N...>()))
 
 template<typename T, typename TI, TI M, TI ...N>
-auto try_index(T & v, integral_sequence<TI, M, N...>)
+auto try_index(T & v, integer_sequence<TI, M, N...>)
 ENABLE_IF_DECL_RET_TYPE((!traits::is_indexable<T,TI>::value), v)
 
 //template<typename T, typename TI, TI ...N>
-//auto try_index(T & v, integral_sequence<TI, N...>)
+//auto try_index(T & v, integer_sequence<TI, N...>)
 //ENABLE_IF_DECL_RET_TYPE((!traits::is_indexable<T,TI>::value), (v))
 
 //template<typename T, typename ...Args>

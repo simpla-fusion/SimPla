@@ -19,20 +19,20 @@ namespace simpla
  * @ingroup gtl
  * @{
  **/
-template<typename _Tp, _Tp ... _Idx>
-struct integer_sequence
-{
-private:
-	static constexpr size_t size_ = (sizeof...(_Idx));
-public:
-	typedef _Tp value_type;
-
-	static constexpr size_t size() noexcept
-	{
-		return size_;
-	}
-
-};
+//template<typename _Tp, _Tp ... _Idx>
+//struct integer_sequence
+//{
+//private:
+//	static constexpr size_t size_ = (sizeof...(_Idx));
+//public:
+//	typedef _Tp value_type;
+//
+//	static constexpr size_t size() noexcept
+//	{
+//		return size_;
+//	}
+//
+//};
 
 template<size_t N, size_t ...S>
 struct _make_index_sequence: _make_index_sequence<N - 1, N - 1, S...>
