@@ -18,8 +18,37 @@
 #include "check_concept.h"
 namespace simpla
 {
-template<typename _Tp, _Tp ... _Idx> struct integer_sequence;
 template<typename, size_t...> struct nTuple;
+
+template<typename _Tp, _Tp ... _Idx>
+struct integral_sequence
+{
+private:
+	static constexpr size_t size_ = (sizeof...(_Idx));
+public:
+
+	static constexpr size_t size() noexcept
+	{
+		return size_;
+	}
+
+	typedef nTuple<_Tp, size_> value_type;
+
+	static constexpr value_type value = { _Idx... };
+
+	typedef integral_sequence<_Tp, _Idx...> type;
+
+	constexpr operator value_type() const
+	{
+		return value;
+	}
+
+	constexpr value_type operator()() const
+	{
+		return value;
+	}
+};
+
 /**
  * @ingroup utilities
  * @addtogroup type_traits Type traits
@@ -55,7 +84,7 @@ struct rank: public std::integral_constant<size_t, std::rank<T>::value>
 template<typename T> struct dimensions
 {
 	static constexpr size_t value[] = { 1 };
-	typedef integer_sequence<size_t, 1> type;
+	typedef integral_sequence<size_t, 1> type;
 };
 
 template<typename T> constexpr size_t dimensions<T>::value[];
@@ -186,16 +215,16 @@ auto try_index_r(T & v, nTuple<TI, N> const &s)
 ENABLE_IF_DECL_RET_TYPE((!traits::is_indexable<T,TI>::value), (v))
 
 template<typename T, typename TI, TI M, TI ...N>
-auto try_index(T & v, integer_sequence<TI, M, N...>)
+auto try_index(T & v, integral_sequence<TI, M, N...>)
 ENABLE_IF_DECL_RET_TYPE((traits::is_indexable<T,TI>::value),
-		try_index(v[M],integer_sequence<TI, N...>()))
+		try_index(v[M],integral_sequence<TI, N...>()))
 
 template<typename T, typename TI, TI M, TI ...N>
-auto try_index(T & v, integer_sequence<TI, M, N...>)
+auto try_index(T & v, integral_sequence<TI, M, N...>)
 ENABLE_IF_DECL_RET_TYPE((!traits::is_indexable<T,TI>::value), v)
 
 //template<typename T, typename TI, TI ...N>
-//auto try_index(T & v, integer_sequence<TI, N...>)
+//auto try_index(T & v, integral_sequence<TI, N...>)
 //ENABLE_IF_DECL_RET_TYPE((!traits::is_indexable<T,TI>::value), (v))
 
 //template<typename T, typename ...Args>

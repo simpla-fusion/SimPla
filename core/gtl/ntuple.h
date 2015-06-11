@@ -15,7 +15,7 @@
 #include <type_traits>
 
 #include "expression_template.h"
-#include "integer_sequence.h"
+#include "integral_sequence.h"
 #include "type_traits.h"
 
 namespace simpla
@@ -160,12 +160,113 @@ struct nTuple<TV>
 
 	typedef void sub_type;
 
-	typedef integer_sequence<size_t> dimensions;
+	typedef integral_sequence<size_t> dimensions;
 
 	typedef value_type pod_type;
 
 };
+template<typename TV, size_t N>
+struct nTuple<TV, N>
+{
+	typedef TV value_type;
 
+	typedef TV sub_type;
+
+	typedef integral_sequence<size_t, N> dimensions;
+
+	typedef value_type pod_type[N];
+
+	static constexpr size_t dims = N;
+
+	typedef nTuple<value_type, N> this_type;
+
+	value_type m_data_[dims];
+
+	sub_type &operator[](size_t s)
+	{
+		return m_data_[s];
+	}
+
+	sub_type const &operator[](size_t s) const
+	{
+		return m_data_[s];
+	}
+
+	this_type &operator++()
+	{
+		++m_data_[N - 1];
+		return *this;
+	}
+
+	this_type &operator--()
+	{
+		--m_data_[N - 1];
+		return *this;
+	}
+	template<typename U, size_t ...I>
+	operator nTuple<U,I...>() const
+	{
+		nTuple<U, I...> res;
+		res = *this;
+		return std::move(res);
+	}
+
+public:
+
+	template<typename TR>
+	inline this_type &
+	operator=(TR const &rhs)
+	{
+
+		//  assign different 'dimensions' ntuple
+		_seq_for<dims>::eval(_impl::_assign(), m_data_, rhs);
+		return (*this);
+	}
+
+	template<typename TR>
+	inline this_type &
+	operator=(TR const *rhs)
+	{
+		_seq_for<dims>::eval(_impl::_assign(), m_data_, rhs);
+
+		return (*this);
+	}
+
+	template<typename TR>
+	inline this_type &operator+=(TR const &rhs)
+	{
+		_seq_for<dims>::eval(_impl::plus_assign(), m_data_, rhs);
+		return (*this);
+	}
+
+	template<typename TR>
+	inline this_type &operator-=(TR const &rhs)
+	{
+		_seq_for<dims>::eval(_impl::minus_assign(), m_data_, rhs);
+		return (*this);
+	}
+
+	template<typename TR>
+	inline this_type &operator*=(TR const &rhs)
+	{
+		_seq_for<dims>::eval(_impl::multiplies_assign(), m_data_, rhs);
+		return (*this);
+	}
+
+	template<typename TR>
+	inline this_type &operator/=(TR const &rhs)
+	{
+		_seq_for<dims>::eval(_impl::divides_assign(), m_data_, rhs);
+		return (*this);
+	}
+
+//	template<size_t NR, typename TR>
+//	void operator*(nTuple<NR, TR> const & rhs) = delete;
+//
+//	template<size_t NR, typename TR>
+//	void operator/(nTuple<NR, TR> const & rhs) = delete;
+
+};
 template<typename TV, size_t N, size_t ...M>
 struct nTuple<TV, N, M...>
 {
@@ -175,7 +276,7 @@ struct nTuple<TV, N, M...>
 	typedef typename std::conditional<(sizeof...(M) == 0), value_type,
 			nTuple<value_type, M...>>::type sub_type;
 
-	typedef integer_sequence<size_t, N, M...> dimensions;
+	typedef integral_sequence<size_t, N, M...> dimensions;
 
 	typedef typename std::conditional<(sizeof...(M) == 0), value_type,
 			typename nTuple<value_type, M...>::pod_type>::type pod_type[N];
@@ -313,7 +414,7 @@ template<typename ...>
 struct make_pod_array;
 
 template<typename TV, typename TI, TI ... N>
-struct make_pod_array<TV, integer_sequence<TI, N...>>
+struct make_pod_array<TV, integral_sequence<TI, N...>>
 {
 	typedef typename nTuple<TV, N...>::pod_type type;
 };
@@ -321,13 +422,13 @@ struct make_pod_array<TV, integer_sequence<TI, N...>>
 template<typename ...>
 struct nTuple_create_trait;
 template<typename TV, typename TI, TI ... N>
-struct nTuple_create_trait<TV, integer_sequence<TI, N...>>
+struct nTuple_create_trait<TV, integral_sequence<TI, N...>>
 {
 	typedef nTuple<TV, N...> type;
 };
 
 template<typename TV, typename TI>
-struct nTuple_create_trait<TV, integer_sequence<TI>>
+struct nTuple_create_trait<TV, integral_sequence<TI>>
 {
 	typedef TV type;
 };
@@ -340,7 +441,7 @@ struct nTuple_create_trait<TV, integer_sequence<TI>>
 template<typename T>
 struct array_to_ntuple_convert
 {
-	typedef integer_sequence<size_t> extents_t;
+	typedef integral_sequence<size_t> extents_t;
 
 	typedef T type;
 };
@@ -348,9 +449,9 @@ template<typename T, size_t N>
 struct array_to_ntuple_convert<T[N]>
 {
 
-	typedef typename cat_integer_sequence<
+	typedef typename cat_integral_sequence<
 			typename array_to_ntuple_convert<T>::extents_t,
-			integer_sequence<size_t, N>>::type extents_t;
+			integral_sequence<size_t, N>>::type extents_t;
 
 	typedef typename nTuple_create_trait<
 			typename std::remove_all_extents<T>::type, extents_t>::type type;
@@ -399,7 +500,7 @@ struct nTuple<BooleanExpression<TOP, T...>> : public Expression<TOP, T...>
 template<typename TV>
 struct nTuple_traits
 {
-	typedef integer_sequence<size_t> dimensions;
+	typedef integral_sequence<size_t> dimensions;
 
 	static constexpr size_t ndims = 0;
 	static constexpr size_t first_dims = 0;
@@ -416,7 +517,7 @@ struct nTuple_traits<nTuple<TV, N, M...> >
 
 	typedef typename traits::value_type<TV>::type value_type;
 
-	typedef typename cat_integer_sequence<integer_sequence<size_t, N, M...>,
+	typedef typename cat_integral_sequence<integral_sequence<size_t, N, M...>,
 			typename nTuple_traits<TV>::dimensions>::type dimensions;
 
 	typedef typename make_pod_array<value_type, dimensions>::type pod_type;
@@ -450,7 +551,7 @@ private:
 	typedef typename traits::value_type<TL>::type value_type_l;
 	typedef typename traits::value_type<TR>::type value_type_r;
 public:
-	typedef typename longer_integer_sequence<d_seq_l, d_seq_r>::type dimensions;
+	typedef typename longer_integral_sequence<d_seq_l, d_seq_r>::type dimensions;
 
 	typedef decltype(std::declval<TOP>()(std::declval<value_type_l>(),
 					std::declval<value_type_r>())) value_type;
@@ -483,7 +584,7 @@ struct sp_pod_traits<nTuple<T, N...> >
 };
 
 template<typename TInts, TInts ...N>
-nTuple<TInts, sizeof...(N)> seq2ntuple(integer_sequence<TInts, N...>)
+nTuple<TInts, sizeof...(N)> seq2ntuple(integral_sequence<TInts, N...>)
 {
 	return std::move(nTuple<TInts, sizeof...(N)>( { N... }));
 }
