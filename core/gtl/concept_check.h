@@ -1,5 +1,5 @@
 /**
- * @file check_concept.h
+ * @file concept_check.h
  *
  *  Created on: 2015年1月12日
  *      Author: salmon
@@ -8,14 +8,8 @@
 #ifndef CORE_GPTL_CONCEPT_CHECK_H_
 #define CORE_GPTL_CONCEPT_CHECK_H_
 
-#include <type_traits>
-
 namespace simpla
 {
-
-namespace traits
-{
-
 /**
  * @ingroup gtl
  *  @addtogroup concept_check Concept Checking
@@ -359,47 +353,6 @@ typename std::enable_if<!is_callable<TFun,Args&&...>::value,TFun>::type
 {
 	return fun;
 }
-
-template<typename _T>
-struct is_iterator
-{
-private:
-	typedef std::true_type yes;
-	typedef std::false_type no;
-
-	template<typename _U>
-	static auto test(int) ->
-	decltype(std::declval<_U>().operator *() );
-
-	template<typename > static no test(...);
-
-public:
-
-	static constexpr bool value =
-			!std::is_same<decltype(test<_T>(0)), no>::value;
-};
-template<typename _T>
-struct is_shared_ptr
-{
-	static constexpr bool value = false;
-};
-template<typename T>
-struct is_shared_ptr<std::shared_ptr<T>>
-{
-	static constexpr bool value = true;
-};
-template<typename T>
-struct is_shared_ptr<const std::shared_ptr<T>>
-{
-	static constexpr bool value = true;
-};
-template<typename, typename ... > struct is_callable;
-template<typename, typename > struct is_indexable;
-
-
-
-}  // namespace traits
-
 }
 // namespace simpla
 
