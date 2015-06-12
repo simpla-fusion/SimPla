@@ -194,6 +194,7 @@ public:
 		m_domain_.for_each([&](id_type const &s)
 		{
 			op(at(s), m.calculate( other, s));
+
 		});
 
 		sync();

@@ -93,23 +93,33 @@ public:
 
 	template<typename geometry_type, typename TOP, typename TL, typename TR,
 			typename ...Others>
-	static inline typename traits::value_type<_Field<Expression<TOP, TL, TR>> >::type calculate(
+	static inline traits::primary_type_t<
+			traits::value_type_t<_Field<Expression<TOP, TL, TR>> >>calculate(
 			geometry_type const & geo, _Field<Expression<TOP, TL, TR>> const &f,
 			Others &&... s)
 	{
-		return f.op_(calculate(geo, f.lhs, std::forward<Others>(s)...),
-				calculate(geo, f.rhs, std::forward<Others>(s)...));
+		traits::primary_type_t<
+		traits::value_type_t<_Field<Expression<TOP, TL, TR>> >> res;
+
+		res= (f.op_(calculate(geo, f.lhs, std::forward<Others>(s)...),
+						calculate(geo, f.rhs, std::forward<Others>(s)...)));
+
+		return std::move(res);
 	}
 
 	template<typename geometry_type, typename TOP, typename TL,
-			typename ...Others>
-	static inline traits::value_type_t<
-			_Field<Expression<TOP, TL, std::nullptr_t>> > calculate(
+	typename ...Others>
+	static inline traits::primary_type_t<traits::value_type_t<
+	_Field<Expression<TOP, TL, std::nullptr_t>> > > calculate(
 			geometry_type const & geo,
 			_Field<Expression<TOP, TL, std::nullptr_t>> const &f,
 			Others &&... s)
 	{
-		return f.op_(calculate(geo, f.lhs, std::forward<Others>(s)...));
+		traits::primary_type_t<traits::value_type_t<
+		_Field<Expression<TOP, TL, std::nullptr_t>> > > res;
+		res = f.op_(calculate(geo, f.lhs, std::forward<Others>(s)...));
+
+		return std::move(res);
 	}
 
 	//***************************************************************************************************
@@ -118,7 +128,7 @@ public:
 
 	template<typename geometry_type, typename T>
 	static inline traits::value_type_t<
-			_Field<_impl::ExteriorDerivative<VERTEX, T>>> calculate(
+	_Field<_impl::ExteriorDerivative<VERTEX, T>>> calculate(
 			geometry_type const & geo,
 			_Field<_impl::ExteriorDerivative<VERTEX, T> > const & f,
 			typename geometry_type::id_type s)
