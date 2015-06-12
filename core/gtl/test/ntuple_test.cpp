@@ -61,7 +61,7 @@ public:
 
 	typedef T type;
 
-	typedef typename nTuple_traits<type>::extents extents;
+	typedef typename traits::extents<type>::type extents;
 
 	nTuple<std::size_t, traits::extent<extents>::value> DIMENSIONS;
 

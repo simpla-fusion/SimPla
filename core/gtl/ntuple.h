@@ -64,14 +64,29 @@ template<typename, size_t...>struct nTuple;
 
 template<typename ...>class Expression;
 
-template<typename > struct nTuple_traits;
-
 namespace traits
 {
 template<typename > struct primary_type;
 template<typename > struct pod_type;
+template<typename >
+struct is_ntuple
+{
+	static constexpr bool value = false;
+};
 
-}  // namespace trauts
+template<typename T, size_t ...N>
+struct is_ntuple<nTuple<T, N...>>
+{
+	static constexpr bool value = true;
+};
+
+template<typename T, size_t M, size_t ...N>
+struct reference<nTuple<T, M, N...>>
+{
+	typedef nTuple<T, M, N...> const &type;
+};
+
+}  // namespace traits
 
 template<typename TV>
 struct nTuple<TV>
@@ -165,15 +180,6 @@ public:
 		return (*this);
 	}
 
-//	template<typename TR>
-//	inline bool operator ==(TR const &rhs)
-//	{
-//		return _seq_reduce<
-//				min_not_zero<dims,
-//						_impl::seq_get<0, typename  traits::extents<TR>::type>::value>::value>::eval(
-//				_impl::logical_and(), _impl::equal_to(), data_, rhs);;
-//	}
-//
 	template<typename TR>
 	inline this_type &operator+=(TR const &rhs)
 	{
@@ -214,12 +220,6 @@ public:
 		return (*this);
 	}
 
-//	template<size_t NR, typename TR>
-//	void operator*(nTuple<NR, TR> const & rhs) = delete;
-//
-//	template<size_t NR, typename TR>
-//	void operator/(nTuple<NR, TR> const & rhs) = delete;
-
 };
 
 template<typename T1, typename ...T>
@@ -253,39 +253,12 @@ struct make_primary_nTuple<TV, integer_sequence<TI>>
 };
 }  // namespace _impl
 
-/**
- * @brief Convert fixed size build-in array to nTuple
- *
- * Example:
- *  typename array_to_ntuple_convert<double[3][4]>::type = nTuple<double,3,4>
- */
-template<typename T>
-struct array_to_ntuple_convert
-{
-	typedef integer_sequence<size_t> extents_t;
-
-	typedef T type;
-};
-template<typename T, size_t N>
-struct array_to_ntuple_convert<T[N]>
-{
-
-	typedef typename _impl::seq_concat<
-			typename array_to_ntuple_convert<T>::extents_t,
-			integer_sequence<size_t, N>>::type extents_t;
-
-	typedef typename _impl::make_primary_nTuple<
-			typename std::remove_all_extents<T>::type, extents_t>::type type;
-};
-
 template<typename ... T>
 struct nTuple<Expression<T...>> : public Expression<T...>
 {
 	typedef nTuple<Expression<T...>> this_type;
 
 	using Expression<T...>::Expression;
-
-	typedef typename traits::primary_type<this_type>::type primary_type;
 
 	template<typename U, size_t ...N>
 	operator nTuple<U,N...>() const
@@ -306,7 +279,7 @@ struct nTuple<BooleanExpression<TOP, T...>> : public Expression<TOP, T...>
 
 	operator bool() const
 	{
-		return seq_reduce(typename  traits::extents<this_type>::type(),
+		return seq_reduce(typename traits::extents<this_type>::type(),
 				typename _impl::op_traits<TOP>::reduction_op(), *this);
 	}
 
@@ -328,12 +301,6 @@ DECL_RET_TYPE(v[M])
  */
 
 template<typename T, size_t ...N>
-struct extents<nTuple<T, N...>> : public nTuple_traits<nTuple<T, N...>>::extents::type
-{
-	typedef typename nTuple_traits<nTuple<T, N...>>::extents::type type;
-};
-
-template<typename T, size_t ...N>
 struct rank<nTuple<T, N...>> : public std::integral_constant<size_t,
 		extents<nTuple<T, N...>>::type::size()>
 {
@@ -343,12 +310,6 @@ template<typename T, size_t ...N, size_t M>
 struct extent<nTuple<T, N...>, M> : public std::integral_constant<size_t,
 		simpla::_impl::seq_get<M, typename extents<nTuple<T, N...> >::type>::value>
 {
-};
-
-template<typename T, size_t ...N>
-struct value_type<nTuple<T, N...> >
-{
-	typedef typename nTuple_traits<nTuple<T, N...>>::value_type type;
 };
 
 template<typename T, size_t ...N>
@@ -409,150 +370,67 @@ struct pod_type<nTuple<T, N...>>
 
 	type;
 
-//	typedef typename nTuple_traits<nTuple<T, N...>>::primary_type type;
 };
 
-template<typename >
-struct is_ntuple
+template<typename TV, size_t ...M>
+struct extents<nTuple<TV, M...> > : public simpla::_impl::seq_concat<
+		integer_sequence<size_t, M...>, typename traits::extents<TV>::type>::type
 {
-	static constexpr bool value = false;
 };
 
-template<typename T, size_t ...N>
-struct is_ntuple<nTuple<T, N...>>
+template<typename TOP, typename TL>
+struct extents<nTuple<Expression<TOP, TL, std::nullptr_t> > > : public traits::extents<
+		TL>::type
 {
-	static constexpr bool value = true;
+};
+template<typename TOP, typename TL, typename TR>
+struct extents<nTuple<Expression<TOP, TL, TR> > > : public simpla::_impl::longer_integer_sequence<
+		typename traits::extents<TL>::type, typename traits::extents<TR>::type>::type
+{
 };
 
-template<typename T, size_t M, size_t ...N>
-struct reference<nTuple<T, M, N...>>
+template<typename TOP, typename ...T>
+struct extents<nTuple<BooleanExpression<TOP, T...> > > : public traits::extents<
+		nTuple<Expression<TOP, T...> > >::type
 {
-	typedef nTuple<T, M, N...> const &type;
-};
-
-}  // namespace traits
-
-template<typename TV>
-struct nTuple_traits
-{
-	typedef integer_sequence<size_t> extents;
-
-	static constexpr size_t ndims = 0;
-	static constexpr size_t first_dims = 0;
-
-//	typedef TV pod_type;
-	typedef TV value_type;
-//	typedef TV primary_type;
 
 };
 
 template<typename TV, size_t N, size_t ...M>
-struct nTuple_traits<nTuple<TV, N, M...> >
+struct value_type<nTuple<TV, N, M...> >
 {
-	static constexpr size_t ndims = 1 + sizeof...(M);
-
-	typedef typename traits::value_type<TV>::type value_type;
-
-	typedef typename _impl::seq_concat<integer_sequence<size_t, N, M...>,
-			typename traits::extents<TV>::type>::type extents;
-
-//	typedef typename _impl::make_pod_array<value_type, extents>::type pod_type;
-//
-//	typedef typename _impl::make_primary_nTuple<value_type, extents>::type primary_type;
-
+	typedef typename traits::value_type<TV>::type type;
 };
 
 template<typename TOP, typename TL>
-struct nTuple_traits<nTuple<Expression<TOP, TL, std::nullptr_t> > >
+struct value_type<nTuple<Expression<TOP, TL, std::nullptr_t> > >
 {
 private:
-	typedef typename traits::extents<TL>::type d_seq_l;
 	typedef typename traits::value_type<TL>::type value_type_l;
 public:
-	typedef d_seq_l extents;
 
-	typedef decltype(std::declval<TOP>()(std::declval<value_type_l>())) value_type;
-
-//	typedef typename _impl::make_pod_array<value_type, extents>::type pod_type;
-//
-//	typedef typename _impl::make_primary_nTuple<value_type, extents>::type primary_type;
+	typedef decltype(std::declval<TOP>()(std::declval<value_type_l>())) type;
 
 };
 template<typename TOP, typename TL, typename TR>
-struct nTuple_traits<nTuple<Expression<TOP, TL, TR> > >
+struct value_type<nTuple<Expression<TOP, TL, TR> > >
 {
 private:
-	typedef typename traits::extents<TL>::type d_seq_l;
-	typedef typename traits::extents<TR>::type d_seq_r;
 	typedef typename traits::value_type<TL>::type value_type_l;
 	typedef typename traits::value_type<TR>::type value_type_r;
 public:
-	typedef typename _impl::longer_integer_sequence<d_seq_l, d_seq_r>::type extents;
 
 	typedef decltype(std::declval<TOP>()(std::declval<value_type_l>(),
-					std::declval<value_type_r>())) value_type;
-
-//	typedef typename _impl::make_pod_array<value_type, extents>::type pod_type;
-//
-//	typedef typename _impl::make_primary_nTuple<value_type, extents>::type primary_type;
+					std::declval<value_type_r>())) type;
 
 };
 
 template<typename TOP, typename ...T>
-struct nTuple_traits<nTuple<BooleanExpression<TOP, T...> > >
+struct value_type<nTuple<BooleanExpression<TOP, T...> > >
 {
-
-	typedef typename traits::extents<nTuple<Expression<TOP, T...> > >::type extents;
-
-	typedef bool value_type;
-
-//	typedef bool pod_type;
-//
-//	typedef bool primary_type;
-
+	typedef bool type;
 };
-//
-//namespace traits
-//{
-//
-//template<typename T>
-//struct extents<nTuple<T>> : public integer_sequence<size_t>
-//{
-//	typedef integer_sequence<size_t> type;
-//};
-//
-//template<typename TV, size_t N, size_t ...M>
-//struct extents<nTuple<TV, N, M...> > : public simpla::_impl::seq_concat<
-//		integer_sequence<size_t, N, M...>, typename extents<TV>::type>::type
-//{
-//
-//	typedef typename simpla::_impl::seq_concat<
-//			integer_sequence<size_t, N, M...>, typename extents<TV>::type>::type type;
-//
-//};
-//
-//template<typename TOP, typename TL>
-//struct extents<nTuple<Expression<TOP, TL, std::nullptr_t> > > : public extents<
-//		TL>::type
-//{
-//	typedef typename extents<TL>::type type;
-//};
-//template<typename TOP, typename TL, typename TR>
-//struct extents<nTuple<Expression<TOP, TL, TR> > > : public simpla::_impl::longer_integer_sequence<
-//		typename extents<TL>::type, typename extents<TR>::type>::type
-//{
-//	typedef typename simpla::_impl::longer_integer_sequence<
-//			typename extents<TL>::type, typename extents<TR>::type>::type type;
-//};
-//
-//template<typename TOP, typename ...T>
-//struct extents<nTuple<BooleanExpression<TOP, T...> > > : public extents<
-//		nTuple<Expression<TOP, T...> > >::type
-//{
-//	typedef typename extents<nTuple<Expression<TOP, T...> > >::type type;
-//};
-//
-//}  // namespace traits
+}  // namespace traits
 
 template<typename TInts, TInts ...N>
 nTuple<TInts, sizeof...(N)> seq2ntuple(integer_sequence<TInts, N...>)
