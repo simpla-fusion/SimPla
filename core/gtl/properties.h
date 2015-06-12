@@ -131,10 +131,10 @@ public:
 //	}
 
 	template<typename T>
-	typename array_to_ntuple_convert<T>::type get(std::string const & key,
+	traits::ntuple_cast_t<T> get(std::string const & key,
 			T const & default_v) const
 	{
-		typename array_to_ntuple_convert<T>::type res = default_v;
+		typename traits::ntuple_cast_t<T> res = default_v;
 
 		auto it = map_type::find(key);
 

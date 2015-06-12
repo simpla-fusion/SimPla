@@ -18,18 +18,18 @@
 
 namespace simpla
 {
-//typedef std::nullptr_t NullType;
-//
-//struct EmptyType
-//{
-//};
-//struct do_nothing
-//{
-//	template<typename ...Args>
-//	void operator()(Args &&...) const
-//	{
-//	}
-//};
+typedef std::nullptr_t NullType;
+
+struct EmptyType
+{
+};
+struct do_nothing
+{
+	template<typename ...Args>
+	void operator()(Args &&...) const
+	{
+	}
+};
 //template<typename T>
 //struct remove_all
 //{
@@ -147,6 +147,7 @@ template<typename T> struct reference
 {
 	typedef T type;
 };
+template<typename T> using reference_t=typename reference<T>::type;
 
 /**
  *  alt. of std::rank
@@ -182,8 +183,13 @@ struct extent: public std::integral_constant<size_t, std::extent<T, N>::value>
 template<typename T>
 struct extents: public integer_sequence<size_t>
 {
-	typedef integer_sequence<size_t> type;
+};
+template<typename T> using extents_t=typename extents<T>::type;
 
+template<typename T, size_t N>
+struct extents<T[N]> : public simpla::_impl::seq_concat<
+		integer_sequence<size_t, N>, typename extents<T>::type>::type
+{
 };
 
 template<int N, typename T0>
@@ -194,19 +200,13 @@ template<typename T> struct key_type
 {
 	typedef size_t type;
 };
+template<typename T> using key_type_t=typename key_type<T>::type;
 
 template<typename T> struct value_type
 {
 	typedef T type;
 };
-
-template<typename T, size_t N>
-struct extents<T[N]> : public simpla::_impl::seq_concat<
-		integer_sequence<size_t, N>, typename extents<T>::type>::type
-{
-	typedef typename simpla::_impl::seq_concat<integer_sequence<size_t, N>,
-			typename extents<T>::type>::type type;
-};
+template<typename T> using value_type_t=typename value_type<T>::type;
 
 } // namespace traits
 //
@@ -444,6 +444,8 @@ struct unpack_int_seq<N, _Tp> : public std::integral_constant<_Tp, 0>
 };
 
 template<unsigned int, typename ...> struct unpack_type_seq;
+template<unsigned int N, typename ...T>
+using unpack_type_seq_t=typename unpack_type_seq<N,T...>::type;
 
 template<typename T0, typename ...Others>
 struct unpack_type_seq<0, T0, Others...>
@@ -462,6 +464,8 @@ struct unpack_type_seq<N, T0, Others...>
 };
 
 template<typename, typename ...> struct find_type_in_list;
+template<typename T, typename ...Others>
+using find_type_in_list_t=typename find_type_in_list<T,Others...>::type;
 
 template<typename T>
 struct find_type_in_list<T>
@@ -479,7 +483,33 @@ struct find_type_in_list<T, U, Others...>
 	static constexpr bool value = find_type_in_list<T, U>::value
 			|| find_type_in_list<T, Others...>::value;
 };
-}  // namespace traits
 
-} // namespace simpla
+template<typename T>
+struct pod_type
+{
+	typedef T type;
+};
+template<typename T> using pod_type_t = typename pod_type<T>::type;
+
+template<typename T>
+struct primary_type
+{
+	typedef T type;
+};
+template<typename T> using primary_type_t=typename primary_type<T>::type;
+
+template<typename _Signature>
+class result_of
+{
+	typedef typename std::result_of<_Signature>::type _type;
+public:
+	typedef pod_type_t<_type> type;
+
+};
+template<typename _Signature> using result_of_t = typename result_of<_Signature>::type;
+
+}
+// namespace traits
+
+}// namespace simpla
 #endif /* SP_TYPE_TRAITS_H_ */
