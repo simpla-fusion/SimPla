@@ -69,6 +69,16 @@ template<size_t NDIMS>
 using CartesianRectMesh=StructuredMesh<geometry::coordinate_system::Cartesian<NDIMS>,
 InterpolatorLinear, FiniteDiffMethod>;
 
+namespace traits
+{
+
+template<typename TM>
+struct ZAxis: public std::integral_constant<size_t, 2>
+{
+};
+
+}  // namespace traits
+
 }  // namespace simpla
 
 #endif /* CORE_MESH_MESH_H_ */
