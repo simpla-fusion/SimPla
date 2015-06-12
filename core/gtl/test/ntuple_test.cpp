@@ -36,11 +36,11 @@ protected:
 		c = 4;
 		d = 7;
 
-		DIMENSIONS = seq2ntuple(dimensions());
+		DIMENSIONS = extents::value;
 
-		seq_for_each(dimensions(),
+		_impl::seq_for_each(extents(),
 
-		[&](size_t const idx[traits::extent<dimensions>::value])
+		[&](size_t const idx[traits::extent<extents>::value])
 		{
 			try_index_r(aA,idx) = idx[0] * 2;
 			try_index_r(aB,idx) = 5 - idx[0];
@@ -65,9 +65,9 @@ public:
 
 	typedef T type;
 
-	typedef typename nTuple_traits<type>::dimensions dimensions;
+	typedef typename nTuple_traits<type>::extents extents;
 
-	nTuple<std::size_t, traits::extent<dimensions>::value> DIMENSIONS;
+	nTuple<std::size_t, traits::extent<extents>::value> DIMENSIONS;
 
 	typedef typename type::value_type value_type;
 
@@ -100,8 +100,8 @@ TYPED_TEST(TestNtuple, swap){
 
 	swap(TestFixture::vA, TestFixture::vB);
 
-	seq_for_each(typename TestFixture::dimensions(),
-			[&](size_t const idx[traits::extent<typename TestFixture::dimensions,0>::value])
+	_impl::seq_for_each(typename TestFixture::extents(),
+			[&](size_t const idx[traits::extent<typename TestFixture::extents,0>::value])
 			{
 				EXPECT_DOUBLE_EQ(0, std::abs(try_index_r(TestFixture::aA,idx)- try_index_r(TestFixture:: vB,idx)));
 				EXPECT_DOUBLE_EQ(0, std::abs(try_index_r(TestFixture::aB,idx)- try_index_r(TestFixture:: vA,idx)));
@@ -114,8 +114,8 @@ TYPED_TEST(TestNtuple, assign_Scalar){
 
 	TestFixture::vA = TestFixture::a;
 
-	seq_for_each(typename TestFixture::dimensions(),
-			[&](size_t const idx[traits::extent<typename TestFixture::dimensions,0>::value])
+	_impl::seq_for_each(typename TestFixture::extents(),
+			[&](size_t const idx[traits::extent<typename TestFixture::extents,0>::value])
 			{
 				EXPECT_DOUBLE_EQ(0, abs(TestFixture::a- try_index_r(TestFixture:: vA,idx)));
 			}
@@ -127,8 +127,8 @@ TYPED_TEST(TestNtuple, assign_Array){
 {
 	TestFixture::vA = TestFixture::aA;
 
-	seq_for_each(typename TestFixture::dimensions(),
-			[&](size_t const idx[traits::extent<typename TestFixture::dimensions,0>::value])
+	_impl::seq_for_each(typename TestFixture::extents(),
+			[&](size_t const idx[traits::extent<typename TestFixture::extents,0>::value])
 			{
 				EXPECT_DOUBLE_EQ(0, abs(try_index_r(TestFixture::aA,idx)- try_index_r(TestFixture:: vA,idx)));
 			}
@@ -139,8 +139,8 @@ TYPED_TEST(TestNtuple, self_assign){
 {
 	TestFixture::vB +=TestFixture::vA;
 
-	seq_for_each(typename TestFixture::dimensions(),
-			[&](size_t const idx[traits::extent<typename TestFixture::dimensions,0>::value])
+	_impl::seq_for_each(typename TestFixture::extents(),
+			[&](size_t const idx[traits::extent<typename TestFixture::extents,0>::value])
 			{
 				EXPECT_DOUBLE_EQ(0,abs( try_index_r(TestFixture::vB,idx)
 								- (try_index_r(TestFixture::aB,idx)+
@@ -156,8 +156,8 @@ TYPED_TEST(TestNtuple, arithmetic){
 {
 	TestFixture::vD = EQUATION(TestFixture::vA, TestFixture::vB, TestFixture::vC);
 
-	seq_for_each(typename TestFixture::dimensions(),
-			[&](size_t const idx[traits::extent<typename TestFixture::dimensions,0>::value])
+	_impl::seq_for_each(typename TestFixture::extents(),
+			[&](size_t const idx[traits::extent<typename TestFixture::extents,0>::value])
 			{
 				auto &ta=try_index_r(TestFixture::vA,idx);
 				auto &tb=try_index_r(TestFixture::vB,idx);
@@ -196,13 +196,13 @@ TYPED_TEST(TestNtuple, reduce){
 {
 	typename TestFixture::value_type expect=0;
 
-	seq_for_each(typename TestFixture::dimensions(),
-			[&](size_t const idx[traits::extent<typename TestFixture::dimensions,0>::value])
+	_impl::seq_for_each(typename TestFixture::extents(),
+			[&](size_t const idx[traits::extent<typename TestFixture::extents,0>::value])
 			{
 				expect+=try_index_r(TestFixture::vA,idx);
 			}
 	);
-	auto value=seq_reduce(typename TestFixture::dimensions(),_impl::plus(), TestFixture::vA);
+	auto value=seq_reduce(typename TestFixture::extents(),_impl::plus(), TestFixture::vA);
 
 	EXPECT_DOUBLE_EQ(0,abs(expect -value));
 
@@ -238,8 +238,8 @@ TYPED_TEST(TestNtuple, inner_product){
 
 	res=0;
 
-	seq_for_each(typename TestFixture::dimensions(),
-			[&](size_t const idx[traits::extent<typename TestFixture::dimensions,0>::value])
+	_impl::seq_for_each(typename TestFixture::extents(),
+			[&](size_t const idx[traits::extent<typename TestFixture::extents,0>::value])
 			{
 				res += try_index_r(TestFixture::aA,idx) * try_index_r(TestFixture::aB,idx);
 			}

@@ -38,11 +38,16 @@ struct is_domain<Domain<TM, IFORM>>
 }
 // namespace _impl
 
+namespace traits
+{
+
 template<typename TM, typename TV, typename ...Others>
-struct reference_traits<_Field<TM, TV, Others...> >
+struct reference<_Field<TM, TV, Others...> >
 {
 	typedef _Field<TM, TV, Others...> const & type;
 };
+
+}  // namespace traits
 
 template<typename > struct is_field
 {

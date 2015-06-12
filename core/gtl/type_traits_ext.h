@@ -1,47 +1,37 @@
 /**
  * @file type_traits_ext.h
  *
- *  Created on: 2015年6月11日
- *      Author: salmon
+ * @date 2015年6月12日
+ * @author salmon
  */
 
 #ifndef CORE_GTL_TYPE_TRAITS_EXT_H_
 #define CORE_GTL_TYPE_TRAITS_EXT_H_
+#include "check_concept.h"
 
 namespace simpla
 {
-
-namespace traits
+/// \note  http://stackoverflow.com/questions/3913503/metaprogram-for-bit-counting
+template<unsigned long N> struct CountBits
 {
-
-template<typename T>
-struct remove_all
-{
-	typedef typename std::remove_reference<typename std::remove_const<T>::type>::type type;
+	static const unsigned long n = CountBits<N / 2>::n + 1;
 };
 
-/**
- * @name Replace Type
- * @{
- */
-
-template<size_t, typename ...> struct replace_template_type;
-
-template<typename TV, typename T0, typename ...Others, template<typename ...> class TT>
-struct replace_template_type<0,TV,TT<T0, Others...> >
+template<> struct CountBits<0>
 {
-	typedef TT< TV,Others...> type;
+	static const unsigned long n = 0;
 };
 
-template<typename TV, template<typename ...> class TT, typename T0,typename T1,typename ...Others>
-struct replace_template_type<1,TV,TT<T0,T1,Others...> >
+inline unsigned long count_bits(unsigned long s)
 {
-	typedef TT<T0,TV,Others...> type;
-};
-/**
- * @}
- */
-
+	unsigned long n = 0;
+	while (s != 0)
+	{
+		++n;
+		s = s >> 1;
+	}
+	return n;
+}
 
 template<typename T> inline T* PointerTo(T & v)
 {
@@ -53,8 +43,12 @@ template<typename T> inline T* PointerTo(T * v)
 	return v;
 }
 
-template<int...> class int_tuple_t;
+template<typename TV, typename TR> inline TV TypeCast(TR const& obj)
+{
+	return std::move(static_cast<TV>(obj));
+}
 
+template<int...> class int_tuple_t;
 //namespace _impl
 //{
 ////******************************************************************************************************
@@ -93,77 +87,138 @@ template<int...> class int_tuple_t;
 //// Third-part code end
 ////******************************************************************************************************
 //
-
-//
-//HAS_MEMBER_FUNCTION(begin)
-//HAS_MEMBER_FUNCTION(end)
-//
-//template<typename T>
-//auto begin(T& l)
-//ENABLE_IF_DECL_RET_TYPE((has_member_function_begin<T>::value),( l.begin()))
-//
-//template<typename T>
-//auto begin(T& l)
-//ENABLE_IF_DECL_RET_TYPE((!has_member_function_begin<T>::value),(std::get<0>(l)))
-//
-//template<typename T>
-//auto begin(T const& l)
-//ENABLE_IF_DECL_RET_TYPE((has_member_function_begin<T>::value),( l.begin()))
-//
-//template<typename T>
-//auto begin(T const& l)
-//ENABLE_IF_DECL_RET_TYPE((!has_member_function_begin<T>::value),(std::get<0>(l)))
-//
-//template<typename T>
-//auto end(T& l)
-//ENABLE_IF_DECL_RET_TYPE((has_member_function_end<T>::value),( l.end()))
-//
-//template<typename T>
-//auto end(T& l)
-//ENABLE_IF_DECL_RET_TYPE((!has_member_function_end<T>::value),(std::get<1>(l)))
-//
-//template<typename T>
-//auto end(T const& l)
-//ENABLE_IF_DECL_RET_TYPE((has_member_function_end<T>::value),( l.end()))
-//
-//template<typename T>
-//auto end(T const& l)
-//ENABLE_IF_DECL_RET_TYPE((!has_member_function_end<T>::value),(std::get<1>(l)))
-//
-//HAS_MEMBER_FUNCTION(rbegin)
-//HAS_MEMBER_FUNCTION(rend)
-//
-//template<typename T>
-//auto rbegin(T& l)
-//ENABLE_IF_DECL_RET_TYPE((has_member_function_begin<T>::value),( l.rbegin()))
-//
-//template<typename T>
-//auto rbegin(T& l)
-//ENABLE_IF_DECL_RET_TYPE(
-//		(!has_member_function_begin<T>::value),(--std::get<1>(l)))
-//
-//template<typename T>
-//auto rend(T& l)
-//ENABLE_IF_DECL_RET_TYPE((has_member_function_end<T>::value),( l.rend()))
-//
-//template<typename T>
-//auto rend(T& l)
-//ENABLE_IF_DECL_RET_TYPE((!has_member_function_end<T>::value),(--std::get<0>(l)))
-//
-//template<typename TI>
-//auto distance(TI const & b, TI const & e)
-//DECL_RET_TYPE((e-b))
-
 //}// namespace _impl
 
+HAS_MEMBER_FUNCTION(swap)
+
+template<typename T> typename std::enable_if<has_member_function_swap<T>::value,
+		void>::type sp_swap(T& l, T& r)
+{
+	l.swap(r);
+}
+
+template<typename T> typename std::enable_if<
+		!has_member_function_swap<T>::value, void>::type sp_swap(T& l, T& r)
+{
+	std::swap(l, r);
+}
 
 template<typename TI>
 auto ref(TI & it)
-ENABLE_IF_DECL_RET_TYPE(check::is_iterator<TI>::value,(*it))
+ENABLE_IF_DECL_RET_TYPE(is_iterator<TI>::value,(*it))
 template<typename TI>
 auto ref(TI & it)
-ENABLE_IF_DECL_RET_TYPE(!check::is_iterator<TI>::value,(it))
-}  // namespace traits
+ENABLE_IF_DECL_RET_TYPE(!is_iterator<TI>::value,(it))
+
+template<typename > struct result_of;
+
+template<typename F, typename ...Args> struct result_of<F(Args...)>
+{
+	typedef typename std::result_of<F(Args...)>::type type;
+};
+
+namespace _impl
+{
+
+struct GetValue
+{
+	template<typename TL, typename TI>
+	constexpr auto operator()(TL const & v, TI const s) const
+	DECL_RET_TYPE ((try_index(v, s)))
+
+template	<typename TL, typename TI>
+	constexpr auto operator()(TL & v, TI const s) const
+	DECL_RET_TYPE((try_index(v,s)))
+};
+
+}
+ //namespace _impl
+template<typename ...> struct index_of;
+
+template<typename TC, typename TI>
+struct index_of<TC, TI>
+{
+	typedef typename result_of<_impl::GetValue(TC, TI)>::type type;
+};
+
+HAS_MEMBER_FUNCTION(print)
+template<typename TV>
+auto sp_print(std::ostream & os,
+		TV const & v)
+		->typename std::enable_if<has_member_function_print<TV const,std::ostream &>::value,std::ostream &>::type
+{
+	return v.print(os);
+}
+
+template<typename TV>
+auto sp_print(std::ostream & os,
+		TV const & v)
+		->typename std::enable_if<!has_member_function_print<TV const,std::ostream &>::value,std::ostream &>::type
+{
+	os << v;
+	return os;
+}
+
+template<typename TI, TI L, TI R>
+struct sp_max
+{
+	static constexpr TI value = L > R ? L : R;
+};
+
+template<typename TI, TI L, TI R>
+struct sp_min
+{
+	static constexpr TI value = L < R ? L : R;
+};
+template<typename T>
+struct sp_pod_traits
+{
+	typedef T type;
+
+};
+template<typename _Signature>
+class sp_result_of
+{
+	typedef typename std::result_of<_Signature>::type _type;
+public:
+	typedef typename sp_pod_traits<_type>::type type;
+
+};
+
+template<typename T>
+T const & min(T const & first, T const & second)
+{
+	return std::min(first, second);
+}
+
+template<typename T>
+T const & min(T const & first)
+{
+	return first;
+}
+template<typename T, typename ...Others>
+T const & min(T const & first, Others &&... others)
+{
+	return min(first, min(std::forward<Others>(others)...));
+}
+
+template<typename T>
+T const & max(T const & first, T const & second)
+{
+	return std::max(first, second);
+}
+
+template<typename T>
+T const & max(T const & first)
+{
+	return first;
+}
+
+template<typename T, typename ...Others>
+T const & max(T const & first, Others &&...others)
+{
+	return max(first, max(std::forward<Others>(others)...));
+}
 
 }  // namespace simpla
 

@@ -5,20 +5,17 @@
  * @author salmon
  */
 #include <iostream>
+#include "../../core/gtl/type_traits.h"
 
-template<typename T> struct U
-{
-	static constexpr size_t value = 0;
-};
+using namespace simpla;
 
-template<typename T, size_t N> struct U<T[N]>
+void foo(int a, const std::string& b, float c)
 {
-	static constexpr size_t value = N;
-};
-int main(int argc, char **argv)
-{
-	int a[4][5];
-
-	std::cout<<decltype(a[0])
+	std::cout << a << " , " << b << " , " << c << '\n';
 }
 
+int main()
+{
+	auto args = std::make_tuple(2, "Hello", 3.5);
+	invoke(foo, args);
+}

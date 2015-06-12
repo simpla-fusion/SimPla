@@ -96,7 +96,7 @@ namespace traits
 {
 template<typename T> struct rank;
 template<typename T> struct dimensions;
-template<typename T> struct element_type;
+template<typename T> struct value_type;
 
 std::ostream & print(std::ostream & os, DataType const &self);
 
@@ -108,13 +108,13 @@ struct datatype
 
 		typedef typename std::remove_cv<T>::type obj_type;
 
-		typedef typename element_type<obj_type>::type value_type;
+		typedef typename traits::value_type<obj_type>::type element_type;
 
-		size_t ele_size_in_byte = sizeof(value_type) / sizeof(char);
+		size_t ele_size_in_byte = sizeof(element_type) / sizeof(char);
 
 		return std::move(
 
-		DataType(std::type_index(typeid(value_type)),
+		DataType(std::type_index(typeid(element_type)),
 
 		ele_size_in_byte,
 

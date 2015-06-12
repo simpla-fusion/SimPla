@@ -58,11 +58,11 @@ namespace simpla
  *  - the unit cell width is 1;
  */
 template<typename CoordinateSystem, typename ...Policies>
-struct StructuredMesh: public MeshIDs_<
-		geometry::traits::dimension<CoordinateSystem>::value>,
-		public Policies...,
-		public std::enable_shared_from_this<
-				StructuredMesh<CoordinateSystem, Policies...> >
+struct StructuredMesh:	public MeshIDs_<
+								geometry::traits::dimension<CoordinateSystem>::value>,
+						public Policies...,
+						public std::enable_shared_from_this<
+								StructuredMesh<CoordinateSystem, Policies...> >
 {
 	typedef CoordinateSystem cs_type;
 
@@ -206,7 +206,8 @@ public:
 	{
 	}
 
-	StructuredMesh(this_type const & other) :
+	StructuredMesh(this_type const & other)
+			:
 
 			m_id_min_(other.m_id_min_),
 
@@ -314,10 +315,10 @@ public:
 //		if (success)
 //		{
 //			return range_type(
-//					std::get<0>(
-//							coordinates_global_to_local(std::get<0>(b), nid)),
-//					std::get<1>(
-//							coordinates_global_to_local(std::get<1>(b), nid)),
+//					traits::get<0>(
+//							coordinates_global_to_local(traits::get<0>(b), nid)),
+//					traits::get<1>(
+//							coordinates_global_to_local(traits::get<1>(b), nid)),
 //					nid);
 //		}
 //		else
@@ -349,7 +350,7 @@ public:
 	template<typename T0>
 	void extents(T0 const& box)
 	{
-		extents(std::get<0>(box), std::get<1>(box));
+		extents(traits::get<0>(box), traits::get<1>(box));
 	}
 
 	constexpr std::pair<point_type, point_type> extents() const
@@ -488,22 +489,22 @@ public:
 //	constexpr std::tuple<point_type, point_type> primary_line(id_type s) const
 //	{
 //		auto p_box = topology_type::template primary_line<ID>(s);
-//		return std::make_tuple(point(std::get<0>(p_box)),
-//				point(std::get<1>(p_box)));
+//		return std::make_tuple(point(traits::get<0>(p_box)),
+//				point(traits::get<1>(p_box)));
 //	}
 //	template<size_t ID>
 //	constexpr std::tuple<point_type, point_type> pixel(id_type s) const
 //	{
 //		auto p_box = topology_type::template pixel<ID>(s);
-//		return std::make_tuple(point(std::get<0>(p_box)),
-//				point(std::get<1>(p_box)));
+//		return std::make_tuple(point(traits::get<0>(p_box)),
+//				point(traits::get<1>(p_box)));
 //	}
 //
 //	constexpr std::tuple<point_type, point_type> voxel(id_type s) const
 //	{
 //		auto p_box = topology_type::voxel(s);
-//		return std::make_tuple(point(std::get<0>(p_box)),
-//				point(std::get<1>(p_box)));
+//		return std::make_tuple(point(traits::get<0>(p_box)),
+//				point(traits::get<1>(p_box)));
 //	}
 
 	/**@}*/
@@ -542,13 +543,13 @@ public:
 		return topology_point_type(
 				{
 
-				std::fma(std::get<0>(y), m_to_topology_scale_[0],
+				std::fma(traits::get<0>(y), m_to_topology_scale_[0],
 						m_to_toplogy_orig_[0]),
 
-				std::fma(std::get<1>(y), m_to_topology_scale_[1],
+				std::fma(traits::get<1>(y), m_to_topology_scale_[1],
 						m_to_toplogy_orig_[1]),
 
-				std::fma(std::get<2>(y), m_to_topology_scale_[2],
+				std::fma(traits::get<2>(y), m_to_topology_scale_[2],
 						m_to_toplogy_orig_[2])
 
 				});
@@ -754,7 +755,7 @@ public:
 			point_type const & x_min, point_type const & x_max, Res *res) const
 	{
 
-		id_type s = std::get<0>(
+		id_type s = traits::get<0>(
 				coordinates_global_to_local((x_min),
 						topology_type::TAG_VERTEX));
 
@@ -1020,7 +1021,7 @@ template<typename TTopology, typename ... Polices> void StructuredMesh<
 
 	m_is_valid_ = true;
 
-	VERBOSE << get_type_as_string() << " is deployed!" << std::endl;
+	VERBOSE<<get_type_as_string() << " is deployed!" << std::endl;
 
 }
 
