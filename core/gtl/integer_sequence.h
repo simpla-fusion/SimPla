@@ -36,8 +36,6 @@ namespace _impl
 //	}
 //
 //};
-template<size_t ... N> using index_sequence = integer_sequence<size_t , N...>;
-
 template<size_t N, typename ...> struct seq_get;
 
 template<size_t N, typename Tp, Tp M, Tp ...I>

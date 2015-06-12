@@ -24,38 +24,9 @@ namespace simpla
  *  @{
  */
 template<typename ...>class Expression;
+
 template<typename ...> struct BooleanExpression;
 template<typename ...> struct AssignmentExpression;
-
-template<typename T>
-struct is_expresson
-{
-	static constexpr bool value = false;
-};
-
-template<typename ...T, template<typename ... > class F>
-struct is_expresson<F<Expression<T...>>>
-{
-	static constexpr bool value=true;
-};
-
-namespace traits
-{
-template<typename T>
-struct reference
-{
-	typedef typename std::remove_reference<T>::type v_type;
-
-	static constexpr bool pass_value = std::is_pointer<T>::value
-
-	|| std::is_scalar<T>::value
-
-	|| is_expresson<T>::value;
-
-	typedef typename std::conditional<pass_value, T, T const &>::type type;
-
-};
-}  // namespace traits
 
 template<typename TOP, typename TL, typename TR>
 struct Expression<TOP, TL, TR>
@@ -65,21 +36,21 @@ struct Expression<TOP, TL, TR>
 	typename traits::reference<TR>::type rhs;
 	TOP op_;
 
-	Expression(this_type const & that) :
-			lhs(that.lhs), rhs(that.rhs), op_(that.op_)
+	Expression(this_type const & that)
+			: lhs(that.lhs), rhs(that.rhs), op_(that.op_)
 	{
 	}
-	Expression(this_type && that) :
-			lhs(that.lhs), rhs(that.rhs), op_(that.op_)
+	Expression(this_type && that)
+			: lhs(that.lhs), rhs(that.rhs), op_(that.op_)
 	{
 	}
 
-	constexpr Expression(TL const& l, TR const& r) :
-			lhs(l), rhs(r), op_()
+	constexpr Expression(TL const& l, TR const& r)
+			: lhs(l), rhs(r), op_()
 	{
 	}
-	Expression(TOP op, TL const& l, TR const& r) :
-			lhs(l), rhs(r), op_(op)
+	Expression(TOP op, TL const& l, TR const& r)
+			: lhs(l), rhs(r), op_(op)
 	{
 	}
 
@@ -104,17 +75,17 @@ struct Expression<TOP, TL, std::nullptr_t>
 
 	TOP op_;
 
-	Expression(this_type const & that) :
-			lhs(that.lhs), op_(that.op_)
+	Expression(this_type const & that)
+			: lhs(that.lhs), op_(that.op_)
 	{
 	}
-	Expression(this_type && that) :
-			lhs(that.lhs), op_(that.op_)
+	Expression(this_type && that)
+			: lhs(that.lhs), op_(that.op_)
 	{
 	}
 
-	Expression(TL const& l) :
-			lhs(l), op_()
+	Expression(TL const& l)
+			: lhs(l), op_()
 	{
 	}
 
@@ -160,21 +131,21 @@ struct AssignmentExpression<TOP, TL, TR>
 	typename traits::reference<TR>::type rhs;
 	TOP op_;
 
-	AssignmentExpression(this_type const & that) :
-			lhs(that.lhs), rhs(that.rhs), op_(that.op_)
+	AssignmentExpression(this_type const & that)
+			: lhs(that.lhs), rhs(that.rhs), op_(that.op_)
 	{
 	}
-	AssignmentExpression(this_type && that) :
-			lhs(that.lhs), rhs(that.rhs), op_(that.op_)
+	AssignmentExpression(this_type && that)
+			: lhs(that.lhs), rhs(that.rhs), op_(that.op_)
 	{
 	}
 
-	AssignmentExpression(TL & l, TR const& r) :
-			lhs(l), rhs(r), op_()
+	AssignmentExpression(TL & l, TR const& r)
+			: lhs(l), rhs(r), op_()
 	{
 	}
-	AssignmentExpression(TOP op, TL & l, TR const& r) :
-			lhs(l), rhs(r), op_(op)
+	AssignmentExpression(TOP op, TL & l, TR const& r)
+			: lhs(l), rhs(r), op_(op)
 	{
 	}
 
@@ -189,6 +160,27 @@ struct AssignmentExpression<TOP, TL, TR>
 
 };
 
+namespace traits
+{
+
+template<typename T>
+struct is_expresson
+{
+	static constexpr bool value = false;
+};
+template<typename ...T, template<typename ...> class F>
+struct is_expresson< F <Expression<T... > > >
+{
+	static constexpr bool value=true;
+};
+
+template<typename ...T>
+struct is_expresson<Expression<T...> >
+{
+	static constexpr bool value = true;
+};
+}
+// namespace traits
 namespace _impl
 {
 struct binary_right

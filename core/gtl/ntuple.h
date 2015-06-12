@@ -68,11 +68,14 @@ template<typename > struct nTuple_traits;
 
 namespace traits
 {
-template<size_t M, typename T, size_t N>
-T const & get(nTuple<T, N> const & v)
-{
-	return v[M];
-}
+template<size_t M, typename T, size_t ...N>
+auto get(nTuple<T, N...> const & v)
+DECL_RET_TYPE(v[M])
+
+template<size_t M, typename T, size_t ...N>
+auto get(nTuple<T, N...> & v)
+DECL_RET_TYPE(v[M])
+
 /**
  * C++11 <type_traits>
  * @ref http://en.cppreference.com/w/cpp/types/rank
@@ -83,15 +86,24 @@ struct rank<nTuple<T, N...>> : public std::integral_constant<size_t,
 {
 };
 
-template<typename T, size_t ...N>
-struct extents<nTuple<T, N...>>
+template<typename T, size_t ...N, size_t M>
+struct extent<nTuple<T, N...>, M> : public std::integral_constant<size_t,
+		unpack_int_seq<M, size_t, N...>::value>
 {
-	static constexpr size_t value[] = { N... };
-	typedef typename nTuple_traits<nTuple<T, N...>>::extents type;
 };
 
-template<typename T, size_t ...N>
-constexpr size_t extents<nTuple<T, N...>>::value[];
+template<typename T>
+struct extents<nTuple<T>> : public integer_sequence<size_t>
+{
+	typedef integer_sequence<size_t> type;
+};
+template<typename T, size_t N0, size_t ...N>
+struct extents<nTuple<T, N0, N...>> : public simpla::_impl::seq_concat<
+		integer_sequence<size_t, N0>, typename extents<nTuple<T, N...>>::type>::type
+{
+	typedef typename simpla::_impl::seq_concat<integer_sequence<size_t, N0>,
+			typename extents<nTuple<T, N...>>::type>::type type;
+};
 
 template<typename T, size_t ...N>
 struct value_type<nTuple<T, N...> >

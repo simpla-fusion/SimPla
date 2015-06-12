@@ -95,7 +95,7 @@ private:
 namespace traits
 {
 template<typename T> struct rank;
-template<typename T> struct dimensions;
+template<typename T> struct extents;
 template<typename T> struct value_type;
 
 std::ostream & print(std::ostream & os, DataType const &self);
@@ -120,7 +120,7 @@ struct datatype
 
 		rank<obj_type>::value,
 
-		&dimensions<obj_type>::value[0],
+		&extents<obj_type>::value[0],
 
 		name)
 

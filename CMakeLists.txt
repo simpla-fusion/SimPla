@@ -9,7 +9,7 @@ INCLUDE(ExternalProject)
 
 include(${PROJECT_SOURCE_DIR}/CMake/utils.cmake)
  
-SET(CMAKE_VERBOSE_MAKEFILE OFF)
+SET(CMAKE_VERBOSE_MAKEFILE ON)
  
 SET(PREFIX ${CMAKE_CXX_COMPILER_ID}-${CMAKE_BUILD_TYPE})
 
@@ -23,7 +23,7 @@ SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake ${CMAKE_MODULE_PATH})
 MESSAGE(STATUS "Using C++ Compiler ${CMAKE_CXX_COMPILER_ID} ")
 
 if(${CMAKE_CXX_COMPILER_ID}  STREQUAL "Clang")
-  SET(CMAKE_CXX_FLAGS "-fPIC -std=c++11    -fcolor-diagnostics   -ftemplate-backtrace-limit=0   ")
+  SET(CMAKE_CXX_FLAGS "-fPIC -std=c++11  -O3  -fcolor-diagnostics   -ftemplate-backtrace-limit=0   ")
 
 #  SET(CMAKE_AR      "llvm-ar-3.5")
  # SET(CMAKE_LINKER  "llvm-ld-3.5")
@@ -34,7 +34,7 @@ if(${CMAKE_CXX_COMPILER_ID}  STREQUAL "Clang")
   #SET(CMAKE_CXX_FLAGS  ${CMAKE_CXX_FLAGS} "-stdlib=libc++")
 
 elseif(${CMAKE_CXX_COMPILER_ID}  STREQUAL "Intel")
-  SET(CMAKE_CXX_FLAGS "-fPIC -std=c++11  -fopenmp  ")
+  SET(CMAKE_CXX_FLAGS "-fPIC -std=c++11  -fopenmp -O3 ")
 else()
   SET(CMAKE_CXX_FLAGS "-fPIC -std=c++11  -fopenmp -ftemplate-backtrace-limit=0 ")
 endif ()

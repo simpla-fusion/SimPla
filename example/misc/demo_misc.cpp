@@ -6,6 +6,7 @@
  */
 #include <iostream>
 #include "../../core/gtl/type_traits.h"
+#include "../../core/gtl/ntuple.h"
 
 using namespace simpla;
 
@@ -16,6 +17,11 @@ void foo(int a, const std::string& b, float c)
 
 int main()
 {
-	auto args = std::make_tuple(2, "Hello", 3.5);
-	invoke(foo, args);
+	std::cout << std::boolalpha
+			<<
+
+			std::is_same<typename traits::extents<nTuple<int, 3, 4> >::type,
+					typename traits::extents<int[3][4]>::type>::value
+
+			<< std::endl;
 }

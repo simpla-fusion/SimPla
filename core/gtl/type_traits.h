@@ -143,7 +143,10 @@ auto invoke(Func&& func,
 //
 namespace traits
 {
-template<typename T> struct reference;
+template<typename T> struct reference
+{
+	typedef T type;
+};
 
 /**
  *  alt. of std::rank
@@ -153,7 +156,7 @@ template<typename T> struct reference;
  *  For any other type, value is 0.
  */
 template<typename T>
-struct rank: public std::rank<T>
+struct rank: public std::integral_constant<size_t, std::rank<T>::value>
 {
 
 };
@@ -167,7 +170,7 @@ struct rank: public std::rank<T>
  * of unknown bound along its first dimension and N is 0, value is 0.
  */
 template<typename T, size_t N = 0>
-struct extent: public std::extent<T, N>
+struct extent: public std::integral_constant<size_t, std::extent<T, N>::value>
 {
 };
 
@@ -179,27 +182,8 @@ struct extent: public std::extent<T, N>
 template<typename T>
 struct extents: public integer_sequence<size_t>
 {
+	typedef integer_sequence<size_t> type;
 
-};
-template<typename _Tp, _Tp ... _I>
-struct rank<integer_sequence<_Tp, _I...>> : public std::integral_constant<
-		size_t, 1>
-{
-};
-template<typename _Tp, _Tp ... _I>
-struct extent<integer_sequence<_Tp, _I...>, 0> : public std::integral_constant<
-		size_t, sizeof...(_I)>
-{
-};
-template<typename _Tp, _Tp ... _I>
-struct extents<integer_sequence<_Tp, _I...> > : public integer_sequence<size_t,
-		sizeof...(_I)>
-{
-};
-template<typename T, size_t N>
-struct extents<T[N]> : public simpla::_impl::seq_concat<
-		integer_sequence<size_t, N>, extents<T> >::type
-{
 };
 
 template<int N, typename T0>
@@ -214,6 +198,14 @@ template<typename T> struct key_type
 template<typename T> struct value_type
 {
 	typedef T type;
+};
+
+template<typename T, size_t N>
+struct extents<T[N]> : public simpla::_impl::seq_concat<
+		integer_sequence<size_t, N>, typename extents<T>::type>::type
+{
+	typedef typename simpla::_impl::seq_concat<integer_sequence<size_t, N>,
+			typename extents<T>::type>::type type;
 };
 
 } // namespace traits
@@ -407,42 +399,87 @@ ENABLE_IF_DECL_RET_TYPE((!traits::is_indexable<T,TI>::value), v)
 // * @} ingroup utilities
 // */
 //
-//template<unsigned int, typename ...> struct unpack_typelist;
-//
-//template<typename T0, typename ...Others>
-//struct unpack_typelist<0, T0, Others...>
-//{
-//	typedef T0 type;
-//};
-//template<unsigned int N>
-//struct unpack_typelist<N>
-//{
-//	typedef void type;
-//};
-//template<unsigned int N, typename T0, typename ...Others>
-//struct unpack_typelist<N, T0, Others...>
-//{
-//	typedef typename unpack_typelist<N - 1, Others...>::type type;
-//};
-//
-//template<typename, typename ...> struct find_type_in_list;
-//
-//template<typename T>
-//struct find_type_in_list<T>
-//{
-//	static constexpr bool value = false;
-//};
-//template<typename T, typename U>
-//struct find_type_in_list<T, U>
-//{
-//	static constexpr bool value = std::is_same<T, U>::value;
-//};
-//template<typename T, typename U, typename ...Others>
-//struct find_type_in_list<T, U, Others...>
-//{
-//	static constexpr bool value = find_type_in_list<T, U>::value
-//			|| find_type_in_list<T, Others...>::value;
-//};
+namespace traits
+{
+namespace _impl
+{
 
-}// namespace simpla
+template<size_t N>
+struct unpack_args_helper
+{
+	template<typename ... Args>
+	auto eval(Args && ...args)
+	DECL_RET_TYPE(unpack_args_helper<N-1>(std::forward<Args>(args)...))
+};
+template<>
+struct unpack_args_helper<0>
+{
+	template<typename First, typename ... Args>
+	auto eval(First && first, Args && ...args)
+	DECL_RET_TYPE( std::forward<First>(first) )
+
+};
+}  // namespace _impl
+
+template<size_t N, typename ... Args>
+auto unpack_args(Args && ...args)
+DECL_RET_TYPE ((_impl::unpack_args_helper<N>(std::forward<Args> (args)...)))
+
+template<size_t N, typename _TP, _TP ...I> struct unpack_int_seq;
+
+template<typename _Tp, _Tp I0, _Tp ...I>
+struct unpack_int_seq<0, _Tp, I0, I...> : public std::integral_constant<_Tp, I0>
+{
+
+};
+template<size_t N, typename _Tp, _Tp I0, _Tp ...I>
+struct unpack_int_seq<N, _Tp, I0, I...> : public std::integral_constant<_Tp,
+		unpack_int_seq<N - 1, _Tp, I...>::value>
+{
+};
+
+template<size_t N, typename _Tp>
+struct unpack_int_seq<N, _Tp> : public std::integral_constant<_Tp, 0>
+{
+};
+
+template<unsigned int, typename ...> struct unpack_type_seq;
+
+template<typename T0, typename ...Others>
+struct unpack_type_seq<0, T0, Others...>
+{
+	typedef T0 type;
+};
+template<unsigned int N>
+struct unpack_type_seq<N>
+{
+	typedef void type;
+};
+template<unsigned int N, typename T0, typename ...Others>
+struct unpack_type_seq<N, T0, Others...>
+{
+	typedef typename unpack_type_seq<N - 1, Others...>::type type;
+};
+
+template<typename, typename ...> struct find_type_in_list;
+
+template<typename T>
+struct find_type_in_list<T>
+{
+	static constexpr bool value = false;
+};
+template<typename T, typename U>
+struct find_type_in_list<T, U>
+{
+	static constexpr bool value = std::is_same<T, U>::value;
+};
+template<typename T, typename U, typename ...Others>
+struct find_type_in_list<T, U, Others...>
+{
+	static constexpr bool value = find_type_in_list<T, U>::value
+			|| find_type_in_list<T, Others...>::value;
+};
+}  // namespace traits
+
+} // namespace simpla
 #endif /* SP_TYPE_TRAITS_H_ */
