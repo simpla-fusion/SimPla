@@ -150,7 +150,7 @@ public:
 		//  assign different 'extents' ntuple
 		_impl::_seq_for<
 				min_not_zero<dims,
-						_impl::seq_get<0, typename nTuple_traits<TR>::extents>::value>::value
+						_impl::seq_get<0, typename traits::extents<TR>::type>::value>::value
 
 		>::eval(_impl::_assign(), data_, rhs);
 		return (*this);
@@ -170,7 +170,7 @@ public:
 //	{
 //		return _seq_reduce<
 //				min_not_zero<dims,
-//						_impl::seq_get<0, typename nTuple_traits<TR>::extents>::value>::value>::eval(
+//						_impl::seq_get<0, typename  traits::extents<TR>::type>::value>::value>::eval(
 //				_impl::logical_and(), _impl::equal_to(), data_, rhs);;
 //	}
 //
@@ -179,7 +179,7 @@ public:
 	{
 		_impl::_seq_for<
 				min_not_zero<dims,
-						_impl::seq_get<0, typename nTuple_traits<TR>::extents>::value>::value>::eval(
+						_impl::seq_get<0, typename traits::extents<TR>::type>::value>::value>::eval(
 				_impl::plus_assign(), data_, rhs);
 		return (*this);
 	}
@@ -189,7 +189,7 @@ public:
 	{
 		_impl::_seq_for<
 				min_not_zero<dims,
-						_impl::seq_get<0, typename nTuple_traits<TR>::extents>::value>::value>::eval(
+						_impl::seq_get<0, typename traits::extents<TR>::type>::value>::value>::eval(
 				_impl::minus_assign(), data_, rhs);
 		return (*this);
 	}
@@ -199,7 +199,7 @@ public:
 	{
 		_impl::_seq_for<
 				min_not_zero<dims,
-						_impl::seq_get<0, typename nTuple_traits<TR>::extents>::value>::value>::eval(
+						_impl::seq_get<0, typename traits::extents<TR>::type>::value>::value>::eval(
 				_impl::multiplies_assign(), data_, rhs);
 		return (*this);
 	}
@@ -209,7 +209,7 @@ public:
 	{
 		_impl::_seq_for<
 				min_not_zero<dims,
-						_impl::seq_get<0, typename nTuple_traits<TR>::extents>::value>::value>::eval(
+						_impl::seq_get<0, typename traits::extents<TR>::type>::value>::value>::eval(
 				_impl::divides_assign(), data_, rhs);
 		return (*this);
 	}
@@ -306,7 +306,7 @@ struct nTuple<BooleanExpression<TOP, T...>> : public Expression<TOP, T...>
 
 	operator bool() const
 	{
-		return seq_reduce(typename nTuple_traits<this_type>::extents(),
+		return seq_reduce(typename  traits::extents<this_type>::type(),
 				typename _impl::op_traits<TOP>::reduction_op(), *this);
 	}
 
