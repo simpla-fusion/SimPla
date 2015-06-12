@@ -42,13 +42,16 @@ template<typename TM, size_t IFORM, typename TV>
 struct _Field<Domain<TM, IFORM>, TV, tags::sequence_container> : public SpObject
 {
 public:
+
+	typedef TV value_type;
+
 	typedef Domain<TM, IFORM> domain_type;
+
 	typedef typename domain_type::mesh_type mesh_type;
 	static constexpr size_t iform = domain_type::iform;
 	typedef typename mesh_type::id_type id_type;
 	typedef typename mesh_type::point_type point_type;
 
-	typedef TV value_type;
 	typedef typename domain_type::template field_value_type<value_type> field_value_type;
 
 	typedef _Field<domain_type, value_type, tags::sequence_container> this_type;
@@ -60,16 +63,16 @@ private:
 
 public:
 
-	_Field(domain_type const & d)
-			: m_domain_(d), m_data_(nullptr)
+	_Field(domain_type const & d) :
+			m_domain_(d), m_data_(nullptr)
 	{
 	}
-	_Field(this_type const & other)
-			: m_domain_(other.m_domain_), m_data_(other.m_data_)
+	_Field(this_type const & other) :
+			m_domain_(other.m_domain_), m_data_(other.m_data_)
 	{
 	}
-	_Field(this_type && other)
-			: m_domain_(other.m_domain_), m_data_(other.m_data_)
+	_Field(this_type && other) :
+			m_domain_(other.m_domain_), m_data_(other.m_data_)
 	{
 	}
 	~_Field()
@@ -190,7 +193,7 @@ public:
 		mesh_type const & m = mesh();
 		m_domain_.for_each([&](id_type const &s)
 		{
-			op(at(s), m.calculate(other, s));
+			op(at(s), m.calculate( other, s));
 		});
 
 		sync();
@@ -371,6 +374,10 @@ typename _Field<Domain<TM, IFORM>, Others...>::value_type const& try_index(
 {
 	return f[s];
 }
+namespace traits
+{
+namespace _impl
+{
 template<typename TM, size_t IFORM, typename ...Others>
 struct field_traits<_Field<Domain<TM, IFORM>, Others...>>
 {
@@ -385,7 +392,8 @@ struct field_traits<_Field<Domain<TM, IFORM>, Others...>>
 	static constexpr size_t ndims = domain_type::ndims;
 
 };
-
+}  // namespace _impl
+}  // namespace traits
 /**@} */
 
 }

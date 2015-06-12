@@ -85,7 +85,11 @@ struct reference<nTuple<T, M, N...>>
 {
 	typedef nTuple<T, M, N...> const &type;
 };
-
+template<typename T>
+struct reference<nTuple<T>>
+{
+	typedef nTuple<T> type;
+};
 }  // namespace traits
 
 template<typename TV>

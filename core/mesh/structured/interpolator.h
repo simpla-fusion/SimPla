@@ -71,13 +71,13 @@ public:
 	template<typename geometry_type, typename TF, typename TX>
 	static inline auto gather(geometry_type const & geo, TF const &f,
 			TX const & r)  //
-					ENABLE_IF_DECL_RET_TYPE((field_traits<TF>::iform==VERTEX),
+					ENABLE_IF_DECL_RET_TYPE(( traits::iform<TF>::value==VERTEX),
 							( gather_impl_<geometry_type>(f, geo. coordinates_global_to_local (r, 0 ) )))
 
 	template<typename geometry_type, typename TF>
 	static auto gather(geometry_type const & geo, TF const &f,
 			typename geometry_type::point_type const & r)
-					ENABLE_IF_DECL_RET_TYPE((field_traits<TF >::iform==EDGE),
+					ENABLE_IF_DECL_RET_TYPE(( traits::iform<TF>::value==EDGE),
 							make_nTuple(
 									gather_impl_<geometry_type>(f, geo.coordinates_global_to_local(r, 1) ),
 									gather_impl_<geometry_type>(f, geo.coordinates_global_to_local(r, 2) ),
@@ -88,7 +88,7 @@ public:
 	static auto gather(geometry_type const & geo, TF const &f,
 			typename geometry_type::point_type const & r)
 					ENABLE_IF_DECL_RET_TYPE(
-							(field_traits<TF >::iform==FACE),
+							( traits::iform<TF>::value==FACE),
 							make_nTuple(
 									gather_impl_<geometry_type>(f, geo.coordinates_global_to_local(r,6) ),
 									gather_impl_<geometry_type>(f, geo.coordinates_global_to_local(r,5) ),
@@ -98,7 +98,7 @@ public:
 	template<typename geometry_type, typename TF>
 	static auto gather(geometry_type const & geo, TF const &f,
 			typename geometry_type::point_type const & x)
-					ENABLE_IF_DECL_RET_TYPE((field_traits<TF >::iform==VOLUME),
+					ENABLE_IF_DECL_RET_TYPE(( traits::iform<TF>::value==VOLUME),
 							gather_impl_<geometry_type>(f, geo. coordinates_global_to_local (x ,7) ))
 
 private:

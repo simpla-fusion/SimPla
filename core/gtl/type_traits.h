@@ -443,11 +443,9 @@ struct primary_type
 template<typename T> using primary_type_t=typename primary_type<T>::type;
 
 template<typename _Signature>
-class result_of
+struct result_of
 {
-	typedef typename std::result_of<_Signature>::type _type;
-public:
-	typedef pod_type_t<_type> type;
+	typedef typename std::result_of<_Signature>::type type;
 
 };
 template<typename _Signature> using result_of_t = typename result_of<_Signature>::type;
