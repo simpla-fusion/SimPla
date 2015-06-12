@@ -69,7 +69,7 @@ public:
 
 	type vA, vB, vC, vD;
 
-	typename nTuple_traits<T>::pod_type aA, aB, aC, aD, res;
+	typename traits::pod_type<T>::type aA, aB, aC, aD, res;
 
 	value_type a, b, c, d;
 
