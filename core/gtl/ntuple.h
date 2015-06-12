@@ -110,14 +110,14 @@ private:
 
 	typedef nTuple<value_type, N, M...> this_type;
 
+	static constexpr size_t m_extent = N;
+
+public:
+
 	typedef typename std::conditional<(sizeof...(M) == 0), value_type,
 			nTuple<value_type, M...>>::type sub_type;
 
-	static constexpr size_t dims = _impl::seq_get<0,
-			traits::extents_t<this_type> >::value;
-
-public:
-	sub_type data_[dims];
+	sub_type data_[m_extent];
 
 	sub_type &operator[](size_t s)
 	{
@@ -162,7 +162,7 @@ public:
 
 		//  assign different 'extents' ntuple
 		_impl::_seq_for<
-				min_not_zero<dims,
+				min_not_zero<m_extent,
 						_impl::seq_get<0, traits::extents_t<TR>>::value>::value
 
 		>::eval(_impl::_assign(), data_, rhs);
@@ -173,7 +173,7 @@ public:
 	inline this_type &
 	operator=(TR const *rhs)
 	{
-		_impl::_seq_for<dims>::eval(_impl::_assign(), data_, rhs);
+		_impl::_seq_for<m_extent>::eval(_impl::_assign(), data_, rhs);
 
 		return (*this);
 	}
@@ -182,7 +182,7 @@ public:
 	inline this_type &operator+=(TR const &rhs)
 	{
 		_impl::_seq_for<
-				min_not_zero<dims,
+				min_not_zero<m_extent,
 						_impl::seq_get<0, traits::extents_t<TR>>::value>::value>::eval(
 				_impl::plus_assign(), data_, rhs);
 		return (*this);
@@ -192,7 +192,7 @@ public:
 	inline this_type &operator-=(TR const &rhs)
 	{
 		_impl::_seq_for<
-				min_not_zero<dims,
+				min_not_zero<m_extent,
 						_impl::seq_get<0, traits::extents_t<TR>>::value>::value>::eval(
 				_impl::minus_assign(), data_, rhs);
 		return (*this);
@@ -202,7 +202,7 @@ public:
 	inline this_type &operator*=(TR const &rhs)
 	{
 		_impl::_seq_for<
-				min_not_zero<dims,
+				min_not_zero<m_extent,
 						_impl::seq_get<0, traits::extents_t<TR>>::value>::value>::eval(
 				_impl::multiplies_assign(), data_, rhs);
 		return (*this);
@@ -212,7 +212,7 @@ public:
 	inline this_type &operator/=(TR const &rhs)
 	{
 		_impl::_seq_for<
-				min_not_zero<dims,
+				min_not_zero<m_extent,
 						_impl::seq_get<0, traits::extents_t<TR>>::value>::value>::eval(
 				_impl::divides_assign(), data_, rhs);
 		return (*this);
@@ -255,12 +255,16 @@ struct nTuple<BooleanExpression<TOP, T...>> : public Expression<TOP, T...>
 namespace traits
 {
 template<size_t M, typename T, size_t ...N>
-auto get(nTuple<T, N...> const & v)
-DECL_RET_TYPE(v[M])
+constexpr typename nTuple<T, N...>::sub_type const & get(nTuple<T, N...> const & v)
+{
+	return v[M];
+}
 
 template<size_t M, typename T, size_t ...N>
-auto get(nTuple<T, N...> & v)
-DECL_RET_TYPE(v[M])
+constexpr typename nTuple<T, N...>::sub_type & get(nTuple<T, N...> & v)
+{
+	return v[M];
+}
 
 /**
  * C++11 <type_traits>

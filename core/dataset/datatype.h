@@ -8,12 +8,16 @@
 #ifndef DATA_TYPE_H_
 #define DATA_TYPE_H_
 
+#include <stddef.h>
 #include <iostream>
 #include <memory>
 #include <string>
 #include <tuple>
+#include <type_traits>
 #include <typeindex>
 #include <vector>
+
+#include "../gtl/type_traits.h"
 
 namespace simpla
 {
@@ -120,7 +124,7 @@ struct datatype
 
 		rank<obj_type>::value,
 
-		&extents<obj_type>::value[0],
+		&extents_t<obj_type>::value[0],
 
 		name)
 

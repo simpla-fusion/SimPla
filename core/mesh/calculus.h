@@ -7,11 +7,17 @@
 
 #ifndef CALCULUS_H_
 #define CALCULUS_H_
+
+#include <cstdbool>
+#include <cstddef>
 #include <type_traits>
 
-#include "../utilities/utilities.h"
 #include "../gtl/expression_template.h"
-#include "mesh.h"
+#include "../gtl/macro.h"
+#include "../gtl/mpl.h"
+#include "../gtl/type_traits.h"
+#include "mesh_ids.h"
+
 namespace simpla
 {
 
@@ -100,7 +106,7 @@ template<size_t IL, size_t IR, typename TL, typename TR>
 struct field_traits<_Field<_impl::InteriorProduct<IL, IR, TL, TR> > >
 {
 private:
-	static constexpr size_t NDIMS = sp_max<size_t, field_traits<TL>::ndims,
+	static constexpr size_t NDIMS = mpl::max<size_t, field_traits<TL>::ndims,
 			field_traits<TL>::ndims>::value;
 //	static constexpr size_t IL = field_traits<TL>::iform;
 //	static constexpr size_t IR = field_traits<TR>::iform;
@@ -109,10 +115,10 @@ private:
 	typedef typename field_traits<TR>::value_type r_type;
 
 public:
-	static const size_t ndims = sp_max<size_t, IL, IR>::value > 0 ? NDIMS : 0;
-	static const size_t iform = sp_max<size_t, IL, IR>::value - 1;
+	static const size_t ndims = mpl::max<size_t, IL, IR>::value > 0 ? NDIMS : 0;
+	static const size_t iform = mpl::max<size_t, IL, IR>::value - 1;
 
-	typedef typename sp_result_of<_impl::multiplies(l_type, r_type)>::type value_type;
+	typedef traits::result_of_t<_impl::multiplies(l_type, r_type)> value_type;
 	typedef typename field_traits<TL>::domain_type domain_type;
 
 	typedef typename std::conditional<iform == EDGE || iform == FACE,
@@ -123,7 +129,7 @@ template<size_t IL, size_t IR, typename TL, typename TR>
 struct field_traits<_Field<_impl::Wedge<IL, IR, TL, TR> > >
 {
 private:
-	static constexpr size_t NDIMS = sp_max<size_t, field_traits<TL>::ndims,
+	static constexpr size_t NDIMS = mpl::max<size_t, field_traits<TL>::ndims,
 			field_traits<TL>::ndims>::value;
 //	static constexpr size_t IL = field_traits<TL>::iform;
 //	static constexpr size_t IR = field_traits<TR>::iform;
@@ -134,7 +140,7 @@ public:
 	static const size_t ndims = IL + IR <= NDIMS ? NDIMS : 0;
 	static const size_t iform = IL + IR;
 
-	typedef typename sp_result_of<_impl::multiplies(l_type, r_type)>::type value_type;
+	typedef traits::result_of_t<_impl::multiplies(l_type, r_type)> value_type;
 	typedef typename field_traits<TL>::domain_type domain_type;
 
 	typedef typename std::conditional<iform == EDGE || iform == FACE,

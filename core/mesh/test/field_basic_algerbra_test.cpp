@@ -9,10 +9,9 @@
 #include <gtest/gtest.h>
 
 #include "field_basic_algerbra_test.h"
-#include "../structured/structured.h"
-
+#include "../mesh.h"
 using namespace simpla;
-typedef CartesianRectMesh mesh_type;
+typedef CartesianRectMesh<3> mesh_type;
 typedef testing::Types< //
 
 		typename mesh_type::template field<VERTEX, double>, //

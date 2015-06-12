@@ -21,6 +21,9 @@
 #include "../utilities/utilities.h"
 #include "../gtl/ntuple.h"
 #include "../gtl/primitives.h"
+#include "../gtl/mpl.h"
+#include "../gtl/type_traits.h"
+
 #include "../field/field_expression.h"
 #include "../parallel/mpi_update.h"
 #include "../geometry/primitive.h"
@@ -70,8 +73,8 @@ struct StructuredMesh:	public MeshIDs_<
 
 	typedef MeshIDs_<ndims> topology_type;
 
-	typedef typename unpack_typelist<0, Policies...>::type interpolatpr_policy;
-	typedef typename unpack_typelist<1, Policies...>::type calculate_policy;
+	typedef mpl::unpack_type_seq_t<0, Policies...> interpolatpr_policy;
+	typedef mpl::unpack_type_seq_t<1, Policies...> calculate_policy;
 
 	typedef StructuredMesh<cs_type, Policies...> this_type;
 
@@ -762,8 +765,8 @@ public:
 		Vec3 L;
 		L = inv_map(x_max) - inv_map(x_min);
 
-		size_t level = static_cast<size_t>(std::log(max(L[0], L[1], L[2]))
-				/ std::log(2.0)) + 1;
+		size_t level = static_cast<size_t>(std::log(
+				traits::max(L[0], L[1], L[2])) / std::log(2.0)) + 1;
 
 		size_t count = 0;
 

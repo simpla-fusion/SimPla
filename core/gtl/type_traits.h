@@ -161,7 +161,6 @@ struct rank: public std::integral_constant<size_t, std::rank<T>::value>
 {
 
 };
-
 /**
  * alt. of std::extent
  *  @quto http://en.cppreference.com/w/cpp/types/extent
@@ -193,7 +192,11 @@ struct extents<T[N]> : public simpla::_impl::seq_concat<
 };
 
 template<int N, typename T0>
-auto get(T0 & v)
+constexpr auto get(T0 & v)
+DECL_RET_TYPE (std::get<N>(v))
+
+template<int N, typename T0>
+constexpr auto get(T0 const & v)
 DECL_RET_TYPE (std::get<N>(v))
 
 template<typename T> struct key_type
@@ -425,65 +428,6 @@ template<size_t N, typename ... Args>
 auto unpack_args(Args && ...args)
 DECL_RET_TYPE ((_impl::unpack_args_helper<N>(std::forward<Args> (args)...)))
 
-template<size_t N, typename _TP, _TP ...I> struct unpack_int_seq;
-
-template<typename _Tp, _Tp I0, _Tp ...I>
-struct unpack_int_seq<0, _Tp, I0, I...> : public std::integral_constant<_Tp, I0>
-{
-
-};
-template<size_t N, typename _Tp, _Tp I0, _Tp ...I>
-struct unpack_int_seq<N, _Tp, I0, I...> : public std::integral_constant<_Tp,
-		unpack_int_seq<N - 1, _Tp, I...>::value>
-{
-};
-
-template<size_t N, typename _Tp>
-struct unpack_int_seq<N, _Tp> : public std::integral_constant<_Tp, 0>
-{
-};
-
-template<unsigned int, typename ...> struct unpack_type_seq;
-template<unsigned int N, typename ...T>
-using unpack_type_seq_t=typename unpack_type_seq<N,T...>::type;
-
-template<typename T0, typename ...Others>
-struct unpack_type_seq<0, T0, Others...>
-{
-	typedef T0 type;
-};
-template<unsigned int N>
-struct unpack_type_seq<N>
-{
-	typedef void type;
-};
-template<unsigned int N, typename T0, typename ...Others>
-struct unpack_type_seq<N, T0, Others...>
-{
-	typedef typename unpack_type_seq<N - 1, Others...>::type type;
-};
-
-template<typename, typename ...> struct find_type_in_list;
-template<typename T, typename ...Others>
-using find_type_in_list_t=typename find_type_in_list<T,Others...>::type;
-
-template<typename T>
-struct find_type_in_list<T>
-{
-	static constexpr bool value = false;
-};
-template<typename T, typename U>
-struct find_type_in_list<T, U>
-{
-	static constexpr bool value = std::is_same<T, U>::value;
-};
-template<typename T, typename U, typename ...Others>
-struct find_type_in_list<T, U, Others...>
-{
-	static constexpr bool value = find_type_in_list<T, U>::value
-			|| find_type_in_list<T, Others...>::value;
-};
-
 template<typename T>
 struct pod_type
 {
@@ -507,6 +451,28 @@ public:
 
 };
 template<typename _Signature> using result_of_t = typename result_of<_Signature>::type;
+
+template<typename T0>
+T0 const& max(T0 const& first)
+{
+	return first;
+}
+template<typename T0, typename ...Others>
+T0 const& max(T0 const& first, Others const& ...others)
+{
+	return std::max(first, max(others...));
+}
+
+template<typename T0>
+T0 const& min(T0 const& first)
+{
+	return first;
+}
+template<typename T0, typename ...Others>
+T0 const& min(T0 const& first, Others const& ...others)
+{
+	return std::min(first, min(others...));
+}
 
 }
 // namespace traits

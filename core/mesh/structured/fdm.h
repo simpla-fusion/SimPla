@@ -74,23 +74,26 @@ public:
 	}
 
 	template<typename geometry_type, typename ...T, typename ...Others>
-	static inline typename nTuple_traits<nTuple<Expression<T...>>> ::primary_type
-	calculate(geometry_type const & geo,nTuple<Expression<T...>> const & v, Others &&... s)
+	static inline traits::primary_type_t<nTuple<Expression<T...> > > calculate(
+			geometry_type const & geo, nTuple<Expression<T...>> const & v,
+			Others &&... s)
 	{
-		typename nTuple_traits<nTuple<Expression<T...>>> ::primary_type res;
-		res=v;
+		typename traits::primary_type_t<nTuple<Expression<T...> > > res;
+		res = v;
 		return std::move(res);
 	}
 
-	template<typename geometry_type,typename TM,typename TV, typename ... Others,typename ... Args>
-	static inline TV
-	calculate(geometry_type const & geo,_Field<TM, TV, Others...> const &f, Args && ... s)
+	template<typename geometry_type, typename TM, typename TV,
+			typename ... Others, typename ... Args>
+	static inline TV calculate(geometry_type const & geo,
+			_Field<TM, TV, Others...> const &f, Args && ... s)
 	{
-		return try_index(f,std::forward<Args>(s)...);
+		return try_index(f, std::forward<Args>(s)...);
 	}
 
-	template<typename geometry_type,typename TOP, typename TL, typename TR, typename ...Others>
-	static inline typename field_traits< _Field<Expression<TOP, TL, TR>>>::value_type
+	template<typename geometry_type, typename TOP, typename TL, typename TR,
+			typename ...Others>
+	static inline typename field_traits<_Field<Expression<TOP, TL, TR>>> ::value_type
 	calculate(geometry_type const & geo,_Field<Expression<TOP, TL, TR>> const &f, Others &&... s)
 	{
 		return f.op_(calculate( geo,f.lhs,std::forward<Others>(s)...),

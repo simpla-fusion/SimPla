@@ -62,9 +62,9 @@ struct RectMesh:	public TTopology,
 							RectMesh<TTopology, Policies...>>
 {
 	typedef TTopology topology_type;
-	typedef typename unpack_typelist<0, Policies...>::type coordinates_system;
-	typedef typename unpack_typelist<1, Policies...>::type interpolatpr_policy;
-	typedef typename unpack_typelist<2, Policies...>::type calculate_policy;
+	typedef mpl::unpack_type_seq_t<0, Policies...> coordinates_system;
+	typedef mpl::unpack_type_seq_t<1, Policies...> interpolatpr_policy;
+	typedef mpl::unpack_type_seq_t<2, Policies...> calculate_policy;
 
 	typedef RectMesh<topology_type, Policies...> this_type;
 

@@ -106,7 +106,7 @@ public:
 
 	typedef typename field_traits<TL>::domain_type domain_type;
 
-	typedef typename sp_result_of<TOP(l_type)>::type value_type;
+	typedef traits::result_of_t<TOP(l_type)> value_type;
 
 	typedef _Field<Expression<TOP, TL, std::nullptr_t>> this_type;
 
@@ -124,7 +124,7 @@ struct _Field<Expression<TOP, TL, TR>> : public Expression<TOP, TL, TR>
 	typedef typename field_traits<TR>::domain_type r_domain_type;
 public:
 
-	typedef typename sp_result_of<TOP(l_type, r_type)>::type value_type;
+	typedef traits::result_of_t<TOP(l_type, r_type)> value_type;
 
 	typedef typename std::conditional<_impl::is_domain<l_domain_type>::value,
 			l_domain_type, r_domain_type>::type domain_type;
