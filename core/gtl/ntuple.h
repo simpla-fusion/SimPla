@@ -80,29 +80,23 @@ DECL_RET_TYPE(v[M])
  * C++11 <type_traits>
  * @ref http://en.cppreference.com/w/cpp/types/rank
  */
+
+template<typename T, size_t ...N>
+struct extents<nTuple<T, N...>> : public nTuple_traits<nTuple<T, N...>>::extents::type
+{
+	typedef typename nTuple_traits<nTuple<T, N...>>::extents::type type;
+};
+
 template<typename T, size_t ...N>
 struct rank<nTuple<T, N...>> : public std::integral_constant<size_t,
-		sizeof...(N)>
+		extents<nTuple<T, N...>>::type::size()>
 {
 };
 
 template<typename T, size_t ...N, size_t M>
 struct extent<nTuple<T, N...>, M> : public std::integral_constant<size_t,
-		unpack_int_seq<M, size_t, N...>::value>
+		simpla::_impl::seq_get<M, typename extents<nTuple<T, N...> >::type>::value>
 {
-};
-
-template<typename T>
-struct extents<nTuple<T>> : public integer_sequence<size_t>
-{
-	typedef integer_sequence<size_t> type;
-};
-template<typename T, size_t N0, size_t ...N>
-struct extents<nTuple<T, N0, N...>> : public simpla::_impl::seq_concat<
-		integer_sequence<size_t, N0>, typename extents<nTuple<T, N...>>::type>::type
-{
-	typedef typename simpla::_impl::seq_concat<integer_sequence<size_t, N0>,
-			typename extents<nTuple<T, N...>>::type>::type type;
 };
 
 template<typename T, size_t ...N>
@@ -427,7 +421,7 @@ struct nTuple_traits<nTuple<TV, N, M...> >
 	typedef typename traits::value_type<TV>::type value_type;
 
 	typedef typename _impl::seq_concat<integer_sequence<size_t, N, M...>,
-			typename nTuple_traits<TV>::extents>::type extents;
+			typename traits::extents<TV>::type>::type extents;
 
 	typedef typename _impl::make_pod_array<value_type, extents>::type pod_type;
 
@@ -439,7 +433,7 @@ template<typename TOP, typename TL>
 struct nTuple_traits<nTuple<Expression<TOP, TL, std::nullptr_t> > >
 {
 private:
-	typedef typename nTuple_traits<TL>::extents d_seq_l;
+	typedef typename traits::extents<TL>::type d_seq_l;
 	typedef typename traits::value_type<TL>::type value_type_l;
 public:
 	typedef d_seq_l extents;
@@ -455,8 +449,8 @@ template<typename TOP, typename TL, typename TR>
 struct nTuple_traits<nTuple<Expression<TOP, TL, TR> > >
 {
 private:
-	typedef typename nTuple_traits<TL>::extents d_seq_l;
-	typedef typename nTuple_traits<TR>::extents d_seq_r;
+	typedef typename traits::extents<TL>::type d_seq_l;
+	typedef typename traits::extents<TR>::type d_seq_r;
 	typedef typename traits::value_type<TL>::type value_type_l;
 	typedef typename traits::value_type<TR>::type value_type_r;
 public:
@@ -475,7 +469,7 @@ template<typename TOP, typename ...T>
 struct nTuple_traits<nTuple<BooleanExpression<TOP, T...> > >
 {
 
-	typedef typename nTuple_traits<nTuple<Expression<TOP, T...> > >::extents extents;
+	typedef typename traits::extents<nTuple<Expression<TOP, T...> > >::type extents;
 
 	typedef bool value_type;
 
@@ -484,6 +478,48 @@ struct nTuple_traits<nTuple<BooleanExpression<TOP, T...> > >
 	typedef bool primary_type;
 
 };
+//
+//namespace traits
+//{
+//
+//template<typename T>
+//struct extents<nTuple<T>> : public integer_sequence<size_t>
+//{
+//	typedef integer_sequence<size_t> type;
+//};
+//
+//template<typename TV, size_t N, size_t ...M>
+//struct extents<nTuple<TV, N, M...> > : public simpla::_impl::seq_concat<
+//		integer_sequence<size_t, N, M...>, typename extents<TV>::type>::type
+//{
+//
+//	typedef typename simpla::_impl::seq_concat<
+//			integer_sequence<size_t, N, M...>, typename extents<TV>::type>::type type;
+//
+//};
+//
+//template<typename TOP, typename TL>
+//struct extents<nTuple<Expression<TOP, TL, std::nullptr_t> > > : public extents<
+//		TL>::type
+//{
+//	typedef typename extents<TL>::type type;
+//};
+//template<typename TOP, typename TL, typename TR>
+//struct extents<nTuple<Expression<TOP, TL, TR> > > : public simpla::_impl::longer_integer_sequence<
+//		typename extents<TL>::type, typename extents<TR>::type>::type
+//{
+//	typedef typename simpla::_impl::longer_integer_sequence<
+//			typename extents<TL>::type, typename extents<TR>::type>::type type;
+//};
+//
+//template<typename TOP, typename ...T>
+//struct extents<nTuple<BooleanExpression<TOP, T...> > > : public extents<
+//		nTuple<Expression<TOP, T...> > >::type
+//{
+//	typedef typename extents<nTuple<Expression<TOP, T...> > >::type type;
+//};
+//
+//}  // namespace traits
 
 template<typename TInts, TInts ...N>
 nTuple<TInts, sizeof...(N)> seq2ntuple(integer_sequence<TInts, N...>)
@@ -538,7 +574,7 @@ void swap(nTuple<T, N, M...> &l, nTuple<T, N, M...> &r)
 
 template<typename T, size_t N, size_t ... M>
 void swap(nTuple<T, N, M...> &l,
-		typename nTuple_traits<nTuple<T, N, M...>>::pod_type &r)
+		typename traits::pod_type<nTuple<T, N, M...>>::type &r)
 {
 	_impl::_seq_for<N>::eval(_impl::_swap(), (l), (r));
 }
@@ -569,7 +605,7 @@ DECL_RET_TYPE(std::sqrt(inner_product(v,v)))
 template<typename TR, typename ...T>
 auto inner_product(nTuple<Expression<T...>> const &l,
 		TR const &r)
-				DECL_RET_TYPE ((seq_reduce(typename nTuple_traits<nTuple<Expression<T...>>>::extents(),
+				DECL_RET_TYPE ((seq_reduce(typename traits::extents<nTuple<Expression<T...>>>::type(),
 										_impl::plus(), l * r))
 				)
 
@@ -651,14 +687,14 @@ template<typename T, size_t ...N>
 inline
 auto NProduct(nTuple<T, N...> const &v)
 DECL_RET_TYPE((seq_reduce(
-						typename nTuple_traits<nTuple<T, N...>>::extents(),
+						typename traits::extents<nTuple<T, N...>>::type(),
 						_impl::multiplies(), v)))
 
 template<typename T, size_t ...N>
 inline
 auto NSum(nTuple<T, N...> const &v)
 DECL_RET_TYPE((seq_reduce(
-						typename nTuple_traits<nTuple<T, N...>>::extents(),
+						typename traits::extents<nTuple<T, N...>>::type(),
 						_impl::plus(), v)))
 
 template<typename T1, size_t ... N1, typename T2, size_t ... N2>
