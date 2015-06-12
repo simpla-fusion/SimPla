@@ -11,14 +11,10 @@
 #include <type_traits>
 #include <typeinfo>
 #include <utility>
-//#include "expression_template.h"
 #include "../type_traits.h"
 #include "../ntuple.h"
 #include "../primitives.h"
 
-//#include "../sp_integer_sequence.h"
-//#include "log.h"
-#include "../../utilities/pretty_stream.h"
 using namespace simpla;
 
 #define EQUATION(_A,_B,_C)  ( -(_A  +TestFixture::a )/(   _B *TestFixture::b -TestFixture::c  )- _C)
@@ -85,11 +81,11 @@ nTuple<double, 3>
 
 , nTuple<double, 3, 3>
 
-//, nTuple<double, 3, 4, 5>
+, nTuple<double, 3, 4, 5>
 
-//, nTuple<int, 3, 4, 5, 6>
+, nTuple<int, 3, 4, 5, 6>
 
-		, nTuple<std::complex<double>, 3, 4, 5, 6>
+, nTuple<std::complex<double>, 3, 4, 5, 6>
 
 > ntuple_type_lists;
 

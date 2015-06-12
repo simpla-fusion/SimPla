@@ -18,24 +18,6 @@ template<typename _Tp, _Tp ... _I> struct integer_sequence;
 namespace _impl
 {
 
-/**
- * @ingroup gtl
- * @{
- **/
-//template<typename _Tp, _Tp ... _Idx>
-//struct integer_sequence
-//{
-//private:
-//	static constexpr size_t size_ = (sizeof...(_Idx));
-//public:
-//	typedef _Tp value_type;
-//
-//	static constexpr size_t size() noexcept
-//	{
-//		return size_;
-//	}
-//
-//};
 template<size_t N, typename ...> struct seq_get;
 
 template<size_t N, typename Tp, Tp M, Tp ...I>
@@ -266,7 +248,6 @@ TOS& seq_print(integer_sequence<TInts, N...>, TOS & os, TA const &d)
 	return os;
 }
 
-/** @}*/
 }  // namespace _impl
 
 }  // namespace simpla
