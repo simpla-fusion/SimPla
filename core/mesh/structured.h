@@ -100,17 +100,17 @@ struct StructuredMesh:	public MeshIDs_<
 	typedef geometry::model::Vector<cs_type> vector_type;
 
 	template<size_t IFORM, typename TV> using field=
-	_Field<Domain<this_type,IFORM>,TV,_impl::is_sequence_container>;
+	_Field<Domain<this_type,IFORM>,TV,tags::sequence_container>;
 
 	template<size_t IFORM, typename TV>
-	_Field<Domain<this_type, IFORM>, TV, _impl::is_sequence_container> make_form() const
+	_Field<Domain<this_type, IFORM>, TV, tags::sequence_container> make_form() const
 	{
 		return std::move(make_field<IFORM, TV>());
 	}
 	template<size_t IFORM, typename TV>
-	_Field<Domain<this_type, IFORM>, TV, _impl::is_sequence_container> make_field() const
+	_Field<Domain<this_type, IFORM>, TV, tags::sequence_container> make_field() const
 	{
-		return _Field<Domain<this_type, IFORM>, TV, _impl::is_sequence_container>(
+		return _Field<Domain<this_type, IFORM>, TV, tags::sequence_container>(
 				domain<IFORM>());
 	}
 

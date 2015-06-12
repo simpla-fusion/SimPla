@@ -22,7 +22,7 @@
 #include "../gtl/properties.h"
 #include "../gtl/type_traits.h"
 #include "../parallel/mpi_update.h"
-
+#include "field_traits.h"
 #include "field_expression.h"
 
 namespace simpla
@@ -39,7 +39,7 @@ template<typename, size_t> struct Domain;
  *  Simple Field
  */
 template<typename TM, size_t IFORM, typename TV>
-struct _Field<Domain<TM, IFORM>, TV, _impl::is_sequence_container> : public SpObject
+struct _Field<Domain<TM, IFORM>, TV, tags::sequence_container> : public SpObject
 {
 public:
 	typedef Domain<TM, IFORM> domain_type;
@@ -51,7 +51,7 @@ public:
 	typedef TV value_type;
 	typedef typename domain_type::template field_value_type<value_type> field_value_type;
 
-	typedef _Field<domain_type, value_type, _impl::is_sequence_container> this_type;
+	typedef _Field<domain_type, value_type, tags::sequence_container> this_type;
 
 private:
 
@@ -60,16 +60,16 @@ private:
 
 public:
 
-	_Field(domain_type const & d) :
-			m_domain_(d), m_data_(nullptr)
+	_Field(domain_type const & d)
+			: m_domain_(d), m_data_(nullptr)
 	{
 	}
-	_Field(this_type const & other) :
-			m_domain_(other.m_domain_), m_data_(other.m_data_)
+	_Field(this_type const & other)
+			: m_domain_(other.m_domain_), m_data_(other.m_data_)
 	{
 	}
-	_Field(this_type && other) :
-			m_domain_(other.m_domain_), m_data_(other.m_data_)
+	_Field(this_type && other)
+			: m_domain_(other.m_domain_), m_data_(other.m_data_)
 	{
 	}
 	~_Field()
@@ -234,7 +234,7 @@ public:
 
 	template<typename ...T>
 	void assign(
-			_Field<domain_type, value_type, _impl::is_function, T...> const & other)
+			_Field<domain_type, value_type, tags::function, T...> const & other)
 	{
 
 		wait();

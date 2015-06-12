@@ -10,11 +10,11 @@
 #include <stddef.h>
 #include <memory>
 
-
 #include "field_expression.h"
 #include "field_dense.h"
 #include "field_function.h"
 #include "load_field.h"
+#include "field_traits.h"
 namespace simpla
 {
 
@@ -118,42 +118,42 @@ template<typename, size_t> struct Domain;
 template<typename ... >struct _Field;
 
 //template<typename TV, typename TD>
-//_Field<TD, TV, _impl::is_sequence_container> make_field(TD const & mesh)
+//_Field<TD, TV, tags::sequence_container> make_field(TD const & mesh)
 //{
-//	return std::move(_Field<TD, TV, _impl::is_sequence_container>(mesh));
+//	return std::move(_Field<TD, TV, tags::sequence_container>(mesh));
 //}
 //template<typename TV, typename TD>
-//_Field<TD, TV, _impl::is_sequence_container> make_field(
+//_Field<TD, TV, tags::sequence_container> make_field(
 //		std::shared_ptr<TD> mesh)
 //{
-//	return std::move(_Field<TD, TV, _impl::is_sequence_container>(*mesh));
+//	return std::move(_Field<TD, TV, tags::sequence_container>(*mesh));
 //}
 //template<typename TD, typename TV>
-//using Field=_Field<TD,TV, _impl::is_sequence_container >;
+//using Field=_Field<TD,TV, tags::sequence_container >;
 
 //template<size_t IFORM, typename TV, typename TM>
-//_Field<Domain<TM, IFORM>, TV, _impl::is_sequence_container> make_form(
+//_Field<Domain<TM, IFORM>, TV, tags::sequence_container> make_form(
 //		TM const & mesh)
 //{
 //	return std::move(
-//			_Field<Domain<TM, IFORM>, TV, _impl::is_sequence_container>(
+//			_Field<Domain<TM, IFORM>, TV, tags::sequence_container>(
 //					Domain<TM, IFORM>(mesh)));
 //}
 template<size_t IFORM, typename TV, typename TM>
-_Field<Domain<TM, IFORM>, TV, _impl::is_sequence_container> make_form(
+_Field<Domain<TM, IFORM>, TV, tags::sequence_container> make_form(
 		std::shared_ptr<TM> const & pmesh)
 {
 	return std::move(
-			_Field<Domain<TM, IFORM>, TV, _impl::is_sequence_container>(
+			_Field<Domain<TM, IFORM>, TV, tags::sequence_container>(
 					Domain<TM, IFORM>(*pmesh)));
 }
 
 template<size_t IFORM, typename TV, typename TM>
-_Field<Domain<TM, IFORM>, TV, _impl::is_sequence_container> make_form(
+_Field<Domain<TM, IFORM>, TV, tags::sequence_container> make_form(
 		TM const & mesh)
 {
 	return std::move(
-			_Field<Domain<TM, IFORM>, TV, _impl::is_sequence_container>(
+			_Field<Domain<TM, IFORM>, TV, tags::sequence_container>(
 					Domain<TM, IFORM>(mesh)));
 }
 /** @} */

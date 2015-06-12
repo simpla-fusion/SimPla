@@ -7,14 +7,20 @@
 
 #ifndef CORE_FIELD_FIELD_FUNCTION_H_
 #define CORE_FIELD_FIELD_FUNCTION_H_
-#include "../geometry/select.h"
-#include "../gtl/type_traits.h"
+
+#include <stddef.h>
+#include <cstdbool>
+#include <functional>
+
+#include "../gtl/primitives.h"
+#include "../mesh/domain.h"
+
 namespace simpla
 {
 template<typename ...>class _Field;
 
 template<typename TDomain, typename TV, typename TFun>
-class _Field<TDomain, TV, _impl::is_function, TFun>
+class _Field<TDomain, TV, tags::function, TFun>
 {
 public:
 	typedef TDomain domain_type;
@@ -22,7 +28,7 @@ public:
 	typedef TV value_type;
 	typedef TFun function_type;
 
-	typedef _Field<domain_type, value_type, _impl::is_function, function_type> this_type;
+	typedef _Field<domain_type, value_type, tags::function, function_type> this_type;
 
 	typedef typename mesh_type::id_type id_type;
 
@@ -79,8 +85,8 @@ public:
 		Real t = m_domain_.mesh().time();
 
 		return m_domain_.mesh().template sample<iform>(s,
-				static_cast<field_value_type>(m_fun_(
-						m_domain_.mesh().point(s), t)));
+				static_cast<field_value_type>(m_fun_(m_domain_.mesh().point(s),
+						t)));
 	}
 
 	field_value_type operator()(point_type const& x, Real t) const
@@ -102,12 +108,12 @@ public:
 	 * @return (x,t) -> m_fun_(x,t,args(x,t))
 	 */
 	template<typename ...Args>
-	_Field<domain_type, value_type, _impl::is_function,
+	_Field<domain_type, value_type, tags::function,
 			std::function<field_value_type(point_type const&, Real)>> op_on(
 			Args const& ...args) const
 	{
 		typedef std::function<field_value_type(point_type const&, Real)> res_function_type;
-		typedef _Field<domain_type, value_type, _impl::is_function,
+		typedef _Field<domain_type, value_type, tags::function,
 				res_function_type> res_type;
 
 		res_function_type fun = [ &](point_type const& x, Real t)
@@ -123,21 +129,21 @@ public:
 };
 
 template<typename TV, typename TDomain, typename TFun>
-_Field<TDomain, TV, _impl::is_function, TFun> make_field_function(
+_Field<TDomain, TV, tags::function, TFun> make_field_function(
 		TDomain const& domain, TFun const& fun)
 {
-	return std::move(_Field<TDomain, TV, _impl::is_function, TFun>(domain, fun));
+	return std::move(_Field<TDomain, TV, tags::function, TFun>(domain, fun));
 }
 
 template<size_t IFORM, typename TV, typename TM, typename TDict>
-_Field<Domain<TM, IFORM>, TV, _impl::is_function, TDict> //
+_Field<Domain<TM, IFORM>, TV, tags::function, TDict> //
 make_field_function_by_config(TM const & mesh, TDict const & dict)
 {
 	typedef TV value_type;
 
 	typedef Domain<TM, IFORM> domain_type;
 
-	typedef _Field<domain_type, value_type, _impl::is_function, TDict> field_type;
+	typedef _Field<domain_type, value_type, tags::function, TDict> field_type;
 
 	// TODO create null filed
 

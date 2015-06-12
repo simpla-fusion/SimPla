@@ -9,6 +9,7 @@
 #define CORE_FIELD_FIELD_EXPRESSION_H_
 #include "../gtl/expression_template.h"
 #include "../utilities/log.h"
+#include "field_traits.h"
 namespace simpla
 {
 /** @addtogroup field
@@ -16,80 +17,6 @@ namespace simpla
  */
 template<typename ... >struct _Field;
 template<typename, size_t> struct Domain;
-
-namespace _impl
-{
-class is_sequence_container;
-
-class is_associative_container;
-
-class is_function;
-
-template<typename T>
-struct is_domain
-{
-	static constexpr bool value = false;
-};
-template<typename TM, size_t IFORM>
-struct is_domain<Domain<TM, IFORM>>
-{
-	static constexpr bool value = true;
-};
-}
-// namespace _impl
-
-namespace traits
-{
-
-template<typename TM, typename TV, typename ...Others>
-struct reference<_Field<TM, TV, Others...> >
-{
-	typedef _Field<TM, TV, Others...> const & type;
-};
-
-}  // namespace traits
-
-template<typename > struct is_field
-{
-	static constexpr bool value = false;
-};
-
-template<typename ...T> struct is_field<_Field<T...>>
-{
-	static constexpr bool value = true;
-};
-
-template<typename ...> struct field_traits;
-
-template<typename T> struct field_traits<T>
-{
-
-	typedef std::integral_constant<size_t, 1> domain_type;
-
-	typedef T value_type;
-
-	static constexpr bool is_field = false;
-
-	static constexpr size_t iform = 0;
-
-	static constexpr size_t ndims = 3;
-
-};
-
-template<typename ...T>
-struct field_traits<_Field<T ...>>
-{
-	static constexpr bool is_field = true;
-
-	typedef typename _Field<T ...>::domain_type domain_type;
-
-	typedef typename _Field<T ...>::value_type value_type;
-
-	static constexpr size_t iform = domain_type::iform;
-
-	static constexpr size_t ndims = domain_type::ndims;
-
-};
 
 /// @name  Field Expression
 /// @{
@@ -101,10 +28,10 @@ template<typename TOP, typename TL>
 struct _Field<Expression<TOP, TL, std::nullptr_t>> : public Expression<TOP, TL,
 		std::nullptr_t>
 {
-	typedef typename field_traits<TL>::value_type l_type;
+	typedef traits::value_type_t<TL> l_type;
 public:
 
-	typedef typename field_traits<TL>::domain_type domain_type;
+	typedef traits::domain_t<TL> domain_type;
 
 	typedef traits::result_of_t<TOP(l_type)> value_type;
 
@@ -117,16 +44,16 @@ template<typename TOP, typename TL, typename TR>
 struct _Field<Expression<TOP, TL, TR>> : public Expression<TOP, TL, TR>
 {
 
-	typedef typename field_traits<TL>::value_type l_type;
-	typedef typename field_traits<TR>::value_type r_type;
+	typedef traits::value_type_t<TL> l_type;
+	typedef traits::value_type_t<TR> r_type;
 
-	typedef typename field_traits<TL>::domain_type l_domain_type;
-	typedef typename field_traits<TR>::domain_type r_domain_type;
+	typedef traits::domain_t<TL> l_domain_type;
+	typedef traits::domain_t<TR> r_domain_type;
 public:
 
 	typedef traits::result_of_t<TOP(l_type, r_type)> value_type;
 
-	typedef typename std::conditional<_impl::is_domain<l_domain_type>::value,
+	typedef typename std::conditional<traits::is_domain<l_domain_type>::value,
 			l_domain_type, r_domain_type>::type domain_type;
 
 	typedef _Field<Expression<TOP, TL, TR>> this_type;
@@ -139,7 +66,7 @@ struct _Field<BooleanExpression<TOP, TL, TR>> : public Expression<TOP, TL, TR>
 {
 	typedef bool value_type;
 
-	typedef typename field_traits<TL>::domain_type domain_type;
+	typedef traits::domain_t<TL> domain_type;
 
 	typedef _Field<BooleanExpression<TOP, TL, TR>> this_type;
 
@@ -158,9 +85,9 @@ struct _Field<AssignmentExpression<TOP, TL, TR>> : public AssignmentExpression<
 {
 	typedef AssignmentExpression<TOP, TL, TR> expression_type;
 
-	typedef typename field_traits<TL>::value_type value_type;
+	typedef traits::value_type_t<TL> value_type;
 
-	typedef typename field_traits<TL>::domain_type domain_type;
+	typedef traits::domain_t<TL> domain_type;
 
 	typedef _Field<AssignmentExpression<TOP, TL, TR>> this_type;
 
