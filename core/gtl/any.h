@@ -17,10 +17,8 @@
 #include <typeindex>
 #include <typeinfo>
 
-#ifdef simpla
 #include "../dataset/datatype.h"
 #include "../utilities/log.h"
-#endif
 
 namespace simpla
 {

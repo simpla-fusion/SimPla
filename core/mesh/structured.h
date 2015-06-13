@@ -19,10 +19,10 @@
 #include <utility>
 
 #include "../utilities/utilities.h"
+#include "../gtl/type_traits.h"
 #include "../gtl/ntuple.h"
 #include "../gtl/primitives.h"
 #include "../gtl/mpl.h"
-#include "../gtl/type_traits.h"
 
 #include "../field/field_expression.h"
 #include "../parallel/mpi_update.h"
@@ -61,11 +61,11 @@ namespace simpla
  *  - the unit cell width is 1;
  */
 template<typename CoordinateSystem, typename ...Policies>
-struct StructuredMesh:	public MeshIDs_<
-								geometry::traits::dimension<CoordinateSystem>::value>,
-						public Policies...,
-						public std::enable_shared_from_this<
-								StructuredMesh<CoordinateSystem, Policies...> >
+struct StructuredMesh: public MeshIDs_<
+		geometry::traits::dimension<CoordinateSystem>::value>,
+		public Policies...,
+		public std::enable_shared_from_this<
+				StructuredMesh<CoordinateSystem, Policies...> >
 {
 	typedef CoordinateSystem cs_type;
 
@@ -91,13 +91,10 @@ struct StructuredMesh:	public MeshIDs_<
 	using typename topology_type::range_type;
 
 	typedef nTuple<Real, ndims> topology_point_type;
-	typedef nTuple<Real, ndims> point_type;
 
-//	typedef geometry::model::Point<geometry::coordinate_system::Cartesian<ndims>> topology_point_type;
-//
-//	typedef geometry::model::Point<cs_type> point_type;
+	typedef geometry::traits::point_type_t<cs_type> point_type;
 
-	typedef geometry::model::Vector<cs_type> vector_type;
+	typedef geometry::traits::vector_type_t<cs_type> vector_type;
 
 	template<size_t IFORM, typename TV> using field=
 	_Field<Domain<this_type,IFORM>,TV,tags::sequence_container>;
@@ -209,8 +206,7 @@ public:
 	{
 	}
 
-	StructuredMesh(this_type const & other)
-			:
+	StructuredMesh(this_type const & other) :
 
 			m_id_min_(other.m_id_min_),
 
@@ -529,15 +525,19 @@ public:
 	point_type map(topology_point_type const &x) const
 	{
 
-		return point_type( {
+		return point_type(
+				{
 
-		std::fma(x[0], m_from_topology_scale_[0], m_from_topology_orig_[0]),
+				std::fma(traits::get<0>(x), m_from_topology_scale_[0],
+						m_from_topology_orig_[0]),
 
-		std::fma(x[1], m_from_topology_scale_[1], m_from_topology_orig_[1]),
+				std::fma(traits::get<1>(x), m_from_topology_scale_[1],
+						m_from_topology_orig_[1]),
 
-		std::fma(x[2], m_from_topology_scale_[2], m_from_topology_orig_[2])
+				std::fma(traits::get<2>(x), m_from_topology_scale_[2],
+						m_from_topology_orig_[2])
 
-		});
+				});
 
 	}
 	topology_point_type inv_map(point_type const &y) const

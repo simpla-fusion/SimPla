@@ -191,14 +191,6 @@ struct extents<T[N]> : public simpla::_impl::seq_concat<
 {
 };
 
-template<int N, typename T0>
-constexpr auto get(T0 & v)
-DECL_RET_TYPE (std::get<N>(v))
-
-template<int N, typename T0>
-constexpr auto get(T0 const & v)
-DECL_RET_TYPE (std::get<N>(v))
-
 template<typename T> struct key_type
 {
 	typedef size_t type;
@@ -471,7 +463,149 @@ T0 const& min(T0 const& first, Others const& ...others)
 {
 	return std::min(first, min(others...));
 }
+template<size_t N, typename T> struct access;
 
+template<size_t N, typename ...T>
+struct access<N, std::tuple<T...>>
+{
+	static constexpr auto get(std::tuple<T...>& v)
+	DECL_RET_TYPE(std::get<N>(v))
+
+	static constexpr auto get(std::tuple<T...> const& v)
+	DECL_RET_TYPE(std::get<N>(v))
+
+	template<typename U>
+	static void set(std::tuple<T...>& v, U const &u)
+	{
+		std::get<N>(v) = u;
+	}
+};
+template<size_t N, typename T0, typename T1>
+struct access<N, std::pair<T0, T1>>
+{
+	static constexpr auto get(std::pair<T0, T1>& v)
+	DECL_RET_TYPE(std::get<N>(v))
+
+	static constexpr auto get(std::pair<T0, T1> const& v)
+	DECL_RET_TYPE(std::get<N>(v))
+
+	template<typename U>
+	static void set(std::pair<T0, T1>& v, U const &u)
+	{
+		std::get<N>(v) = u;
+	}
+};
+namespace _impl
+{
+
+template<size_t ...N> struct access_helper;
+
+template<size_t N0, size_t ...N>
+struct access_helper<N0, N...>
+{
+
+	template<typename T>
+	static constexpr auto get(T const& v)
+	DECL_RET_TYPE((access_helper< N... >::get(
+							access_helper<N0>::get( (v)))))
+
+	template<typename T>
+	static constexpr auto get(T & v)
+	DECL_RET_TYPE((access_helper< N... >::get(
+							access_helper<N0>::get( (v)))))
+	template<typename T, typename U>
+	static void set(T & v, U const &u)
+	{
+		access_helper<N0, N...>::get(v) = u;
+	}
+
+};
+
+template<size_t N>
+struct access_helper<N>
+{
+	template<typename T>
+	static constexpr auto get(T& v)
+	DECL_RET_TYPE((traits::access<N, T>::get(v)))
+
+	template<typename T>
+	static constexpr auto get(T const& v)
+	DECL_RET_TYPE((traits::access<N, T>::get(v)))
+
+	template<typename T, typename U>
+	static void set(T& v, U const &u)
+	{
+		return traits::access<N, T>::get(v, u);
+	}
+
+};
+
+template<>
+struct access_helper<>
+{
+	template<typename T>
+	static constexpr T& get(T& v)
+	{
+		return v;
+	}
+	template<typename T>
+	static constexpr T const& get(T const& v)
+	{
+		return v;
+	}
+	template<typename T, typename U>
+	static void set(T& v, U const &u)
+	{
+		v = u;
+	}
+
+};
+}  // namespace _impl
+
+//template<typename T, size_t N>
+//struct access<T, N>
+//{
+//
+//	static constexpr T& get(T& v)
+//	{
+//		return std::get<N>(v);
+//	}
+////	static constexpr T const& get(T const& v)
+////	{
+////		return std::get<N>(v);
+////	}
+//	template<typename U>
+//	static void set(T& v, U const &u)
+//	{
+//		get(v) = u;
+//	}
+//
+//};
+//template<typename T, size_t N>
+//struct access<T[], N>
+//{
+//
+//	static constexpr T& get(T v[])
+//	{
+//		return (v[N]);
+//	}
+//	static constexpr T const& get(T const v[])
+//	{
+//		return (v[N]);
+//	}
+//	template<typename U>
+//	static void set(T& v, U const &u)
+//	{
+//		get(v) = u;
+//	}
+//
+//};
+template<size_t ...N, typename T>
+auto get(T & v)
+DECL_RET_TYPE(( _impl::access_helper< N...>::get(v)))
+template<size_t ...N, typename T>
+auto get(T const& v)
+DECL_RET_TYPE(( _impl::access_helper< N...>::get(v)))
 }
 // namespace traits
 

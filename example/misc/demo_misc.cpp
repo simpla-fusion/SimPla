@@ -10,18 +10,9 @@
 
 using namespace simpla;
 
-void foo(int a, const std::string& b, float c)
-{
-	std::cout << a << " , " << b << " , " << c << '\n';
-}
-
 int main()
 {
-	std::cout << std::boolalpha
-			<<
-
-			std::is_same<typename traits::extents<nTuple<int, 3, 4> >::type,
-					typename traits::extents<int[3][4]>::type>::value
-
-			<< std::endl;
+	nTuple<double, 3> foo = { 1, 2, 3 };
+	std::cout << traits::get<0>(foo) << " " << traits::get<1>(foo) << " "
+			<< traits::get<2>(foo) << " " << std::endl;
 }

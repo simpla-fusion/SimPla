@@ -326,7 +326,7 @@ template<typename CS, typename ...Others>
 struct closure<sgm::Polyline<CS, Others ...> >
 {
 	static constexpr closure_selector value =
-			(simpla::find_type_in_list<simpla::geometry::tags::is_clockwise,
+			(simpla::mpl::find_type_in_list<simpla::geometry::tags::is_clockwise,
 					Others...>::value) ?
 					(boost::geometry::closure_selector::closed) :
 					(boost::geometry::closure_selector::open);

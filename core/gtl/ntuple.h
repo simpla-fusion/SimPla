@@ -258,18 +258,29 @@ struct nTuple<BooleanExpression<TOP, T...>> : public Expression<TOP, T...>
 
 namespace traits
 {
-template<size_t M, typename T, size_t ...N>
-constexpr typename nTuple<T, N...>::sub_type const & get(nTuple<T, N...> const & v)
+template<typename T, size_t ...M, size_t N>
+struct access<N, nTuple<T, M...> >
 {
-	return v[M];
-}
 
-template<size_t M, typename T, size_t ...N>
-constexpr typename nTuple<T, N...>::sub_type & get(nTuple<T, N...> & v)
-{
-	return v[M];
-}
+	static constexpr auto get(nTuple<T, M...>& v)
+	DECL_RET_TYPE(v[N])
 
+	static constexpr auto get(nTuple<T, M...> const& v)
+	DECL_RET_TYPE(v[N])
+
+	template<typename U>
+	static void set(nTuple<T, M...>& v, U const &u)
+	{
+		get(v) = u;
+	}
+
+};
+//template<size_t M, typename T, size_t ...N>
+//auto get(nTuple<T, N...> const& v)
+//DECL_RET_TYPE((v[M]))
+//template<size_t M, typename T, size_t ...N>
+//auto get(nTuple<T, N...> & v)
+//DECL_RET_TYPE((v[M]))
 /**
  * C++11 <type_traits>
  * @ref http://en.cppreference.com/w/cpp/types/rank

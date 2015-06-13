@@ -69,11 +69,18 @@ template<size_t NDIMS>
 using CartesianRectMesh=StructuredMesh<geometry::coordinate_system::Cartesian<NDIMS>,
 InterpolatorLinear, FiniteDiffMethod>;
 
+template<size_t ZAXIS>
+using CylindricalRectMesh=StructuredMesh< geometry::coordinate_system::Cylindrical<ZAXIS> ,
+InterpolatorLinear, FiniteDiffMethod>;
 namespace traits
 {
+template<typename > struct ZAxis: public std::integral_constant<size_t, 2>
+{
+	;
+};
 
-template<typename TM>
-struct ZAxis: public std::integral_constant<size_t, 2>
+template<typename TM, typename ...Others>
+struct ZAxis<StructuredMesh<TM, Others...>> : public geometry::traits::ZAxis<TM>::type
 {
 };
 
