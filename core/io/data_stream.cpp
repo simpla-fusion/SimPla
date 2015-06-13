@@ -59,10 +59,10 @@ struct DataStream::pimpl_s
 
 	DataSpace convert_dataspace_h5_to_sp(hid_t) const;
 
-	void set_attribute(hid_t loc_id, std::string const & name, Any const & v);
+	void set_attribute(hid_t loc_id, std::string const & name, any const & v);
 	void set_attribute(hid_t loc_id, Properties const & v);
 
-	Any get_attribute(hid_t loc_id, std::string const & name) const;
+	any get_attribute(hid_t loc_id, std::string const & name) const;
 	Properties get_attribute(hid_t loc_id, int idx = -1) const;
 
 };
@@ -239,7 +239,7 @@ void DataStream::close()
 	}
 }
 
-void DataStream::set_attribute(std::string const &url, Any const & any_v)
+void DataStream::set_attribute(std::string const &url, any const & any_v)
 {
 
 	delete_attribute(url);
@@ -265,7 +265,7 @@ void DataStream::set_attribute(std::string const &url, Any const & any_v)
 
 }
 void DataStream::pimpl_s::set_attribute(hid_t loc_id, std::string const &name,
-		Any const & any_v)
+		any const & any_v)
 {
 
 	if (any_v.is_same<std::string>())
@@ -317,12 +317,12 @@ void DataStream::pimpl_s::set_attribute(hid_t loc_id, Properties const & prop)
 	}
 
 }
-Any DataStream::pimpl_s::get_attribute(hid_t loc_id,
+any DataStream::pimpl_s::get_attribute(hid_t loc_id,
 		std::string const &name) const
 {
 
 	UNIMPLEMENTED;
-	return std::move(Any());
+	return std::move(any());
 }
 
 Properties DataStream::pimpl_s::get_attribute(hid_t loc_id, int idx) const
@@ -333,10 +333,10 @@ Properties DataStream::pimpl_s::get_attribute(hid_t loc_id, int idx) const
 	return std::move(res);
 }
 
-Any DataStream::get_attribute(std::string const &url) const
+any DataStream::get_attribute(std::string const &url) const
 {
 	UNIMPLEMENTED;
-	return std::move(Any());
+	return std::move(any());
 }
 void DataStream::delete_attribute(std::string const &url)
 {

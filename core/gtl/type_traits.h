@@ -477,9 +477,26 @@ struct access<N, std::tuple<T...>>
 	template<typename U>
 	static void set(std::tuple<T...>& v, U const &u)
 	{
-		std::get<N>(v) = u;
+		get(v) = u;
 	}
 };
+
+template<size_t N, typename T>
+struct access<N, T*>
+{
+	static constexpr auto get(T* v)
+	DECL_RET_TYPE(v[N])
+
+	static constexpr auto get(T const* v)
+	DECL_RET_TYPE(v[N])
+
+	template<typename U>
+	static void set(T* v, U const &u)
+	{
+		get(v) = u;
+	}
+};
+
 template<size_t N, typename T0, typename T1>
 struct access<N, std::pair<T0, T1>>
 {
@@ -492,7 +509,7 @@ struct access<N, std::pair<T0, T1>>
 	template<typename U>
 	static void set(std::pair<T0, T1>& v, U const &u)
 	{
-		std::get<N>(v) = u;
+		get(v) = u;
 	}
 };
 namespace _impl
@@ -562,44 +579,6 @@ struct access_helper<>
 };
 }  // namespace _impl
 
-//template<typename T, size_t N>
-//struct access<T, N>
-//{
-//
-//	static constexpr T& get(T& v)
-//	{
-//		return std::get<N>(v);
-//	}
-////	static constexpr T const& get(T const& v)
-////	{
-////		return std::get<N>(v);
-////	}
-//	template<typename U>
-//	static void set(T& v, U const &u)
-//	{
-//		get(v) = u;
-//	}
-//
-//};
-//template<typename T, size_t N>
-//struct access<T[], N>
-//{
-//
-//	static constexpr T& get(T v[])
-//	{
-//		return (v[N]);
-//	}
-//	static constexpr T const& get(T const v[])
-//	{
-//		return (v[N]);
-//	}
-//	template<typename U>
-//	static void set(T& v, U const &u)
-//	{
-//		get(v) = u;
-//	}
-//
-//};
 template<size_t ...N, typename T>
 auto get(T & v)
 DECL_RET_TYPE(( _impl::access_helper< N...>::get(v)))

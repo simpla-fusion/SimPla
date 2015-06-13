@@ -7,11 +7,15 @@
 
 #ifndef CORE_GTL_OPTIONAL_H_
 #define CORE_GTL_OPTIONAL_H_
+#include <boost/optional.hpp>
 
 namespace simpla
 {
+#ifndef NO_BOOST
 
-/** @ingroup gtl*/
+template<typename T> using optional=boost::optional<T>;
+
+#else
 template<typename T> class optional
 {
 	bool cond_;
@@ -22,12 +26,12 @@ public:
 
 	T value;
 	optional() :
-			cond_(false)
+	cond_(false)
 	{
 
 	}
 	optional(bool cond, value_type v) :
-			value(v), cond_(cond)
+	value(v), cond_(cond)
 	{
 	}
 	~optional()
@@ -74,6 +78,8 @@ public:
 	}
 
 };
-}  // namespace simpla
+#endif
+}
+ // namespace simpla
 
 #endif /* CORE_GTL_OPTIONAL_H_ */

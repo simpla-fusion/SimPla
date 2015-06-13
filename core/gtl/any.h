@@ -26,32 +26,35 @@ namespace simpla
 /**
  *  @ingroup gtl
  *   base on http://www.cnblogs.com/qicosmos/p/3420095.html
+ *   alt. <boost/any.hpp>
+ *
+ *   This an implement of 'any' with data type description/serialization information
  */
-struct Any
+struct any
 {
 	template<typename U>
-	Any(U && value) :
+	any(U && value) :
 			ptr_(
 					new Derived<typename std::decay<U>::type>(
 							std::forward<U>(value)))
 	{
 	}
-	Any(void)
+	any(void)
 	{
 	}
-	Any(Any& that) :
+	any(any& that) :
 			ptr_(that.clone())
 	{
 	}
-	Any(Any const& that) :
+	any(any const& that) :
 			ptr_(that.clone())
 	{
 	}
-	Any(Any && that) :
+	any(any && that) :
 			ptr_(std::move(that.ptr_))
 	{
 	}
-	void swap(Any & other)
+	void swap(any & other)
 	{
 		std::swap(ptr_, other.ptr_);
 	}
@@ -101,25 +104,29 @@ struct Any
 
 		if (!is_same<U>())
 		{
-#ifdef simpla
-			LOGGER << "Can not cast " << typeid(U).name() << " to "
+			LOGGER<<"Can not cast " << typeid(U).name() << " to "
 			<< ptr_->type_name() << runtime_error_endl;
-#endif
 			throw std::bad_cast();
 		}
 		return dynamic_cast<Derived<U> *>(ptr_.get())->m_value;
 	}
 
-	Any& operator=(const Any& a)
+	template<class U>
+	operator U() const
+	{
+		return as<U>();
+	}
+
+	any& operator=(const any& a)
 	{
 		if (ptr_ == a.ptr_)
-			return *this;
+		return *this;
 		ptr_ = a.clone();
 
 		return *this;
 	}
 	template<typename T>
-	Any& operator=(T const & v)
+	any& operator=(T const & v)
 	{
 
 		if (is_same<T>())
@@ -128,7 +135,7 @@ struct Any
 		}
 		else
 		{
-			Any(v).swap(*this);
+			any(v).swap(*this);
 		}
 		return *this;
 	}
@@ -173,7 +180,7 @@ private:
 	{
 		template<typename U>
 		Derived(U && value) :
-				m_value(std::forward<U>(value))
+		m_value(std::forward<U>(value))
 		{
 		}
 		BasePtr clone() const
@@ -214,13 +221,24 @@ private:
 	BasePtr clone() const
 	{
 		if (ptr_ != nullptr)
-			return ptr_->clone();
+		return ptr_->clone();
 		return nullptr;
 	}
 
 	BasePtr ptr_;
 };
+namespace traits
+{
 
-} // namespace simpla
+template<typename OS>
+OS &print(OS & os, any const &self)
+{
+	self.print(os);
+	return os;
+}
+
+}  // namespace traits
+}
+// namespace simpla
 
 #endif /* ANY_H_ */

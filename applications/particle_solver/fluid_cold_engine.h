@@ -106,18 +106,18 @@ public:
 
 		return os;
 	}
-	void set_property_(std::string const & name, Any const&v)
+	void set_property_(std::string const & name, any const&v)
 	{
 		properties[name] = v;
 	}
-	Any const & get_property_(std::string const &name) const
+	any const & get_property_(std::string const &name) const
 	{
-		return properties[name].template as<Any>();
+		return properties[name].template as<any>();
 	}
 
 	template<typename T> void set_property(std::string const & name, T const&v)
 	{
-		set_property_(name, Any(v));
+		set_property_(name, any(v));
 	}
 
 	template<typename T> T get_property(std::string const & name) const

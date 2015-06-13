@@ -102,22 +102,22 @@ public:
 	 * @param url  <file name>:/<group path>/<obj name>.<attribute>
 	 * @param v
 	 */
-	void set_attribute(std::string const &url, Any const & v);
+	void set_attribute(std::string const &url, any const & v);
 
 	void set_attribute(std::string const &url, char const str[])
 	{
-		set_attribute(url, Any(std::string(str)));
+		set_attribute(url, any(std::string(str)));
 	}
 
 	template<typename T>
 	void set_attribute(std::string const & url, T const&v)
 	{
-		set_attribute(url, Any(v));
+		set_attribute(url, any(v));
 	}
 
 	void set_attribute(std::string const &url, Properties const &);
 
-	Any get_attribute(std::string const &url) const;
+	any get_attribute(std::string const &url) const;
 
 	Properties get_all_attribute(std::string const &url) const;
 

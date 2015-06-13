@@ -21,7 +21,7 @@ namespace simpla
  *  @brief Properties Tree
  *  @todo using shared_ptr storage data
  */
-class Properties: public Any, public std::map<std::string, Properties>
+class Properties: public any, public std::map<std::string, Properties>
 {
 
 private:
@@ -37,8 +37,8 @@ public:
 	{
 	}
 	template<typename T>
-	Properties(T const &v)
-			: value_type(v)
+	Properties(T const &v) :
+			value_type(v)
 	{
 	}
 	~Properties()
@@ -47,7 +47,7 @@ public:
 
 	this_type & operator =(this_type const & other)
 	{
-		Any(dynamic_cast<Any const &>(other)).swap(*this);
+		any(dynamic_cast<any const &>(other)).swap(*this);
 		map_type(dynamic_cast<map_type const &>(other)).swap(*this);
 
 //		map_type(other).swap(*this);
@@ -57,13 +57,13 @@ public:
 	this_type & operator=(T const &v)
 	{
 
-		Any(v).swap(*this);
+		any(v).swap(*this);
 		return *this;
 	}
 
 	inline bool empty() const // STL style
 	{
-		return Any::empty() && map_type::empty();
+		return any::empty() && map_type::empty();
 	}
 	inline bool IsNull() const
 	{
@@ -131,10 +131,9 @@ public:
 //	}
 
 	template<typename T>
-	traits::ntuple_cast_t<T> get(std::string const & key,
-			T const & default_v) const
+	T get(std::string const & key, T const & default_v) const
 	{
-		typename traits::ntuple_cast_t<T> res = default_v;
+		T res = default_v;
 
 		auto it = map_type::find(key);
 
@@ -213,24 +212,6 @@ public:
 		return get(key);
 	}
 
-	template<typename OS>
-	OS &print(OS & os) const
-	{
-		for (auto const& item : *this)
-		{
-
-			os << item.first << " =  ";
-			item.second.Any::print(os);
-			os << " , ";
-			if (item.second.size() > 0)
-			{
-				item.second.print(os);
-			}
-
-		}
-		return os;
-	}
-
 	this_type & append(this_type const & other)
 	{
 		for (auto const & item : other)
@@ -241,7 +222,27 @@ public:
 	}
 
 };
+namespace traits
+{
 
+template<typename OS>
+OS &print(OS & os, Properties const &self)
+{
+	print(os, dynamic_cast<any const&>(self));
+	for (auto const& item : self)
+	{
+		os << item.first << " =  ";
+		print(os, item.second);
+		os << " , ";
+		if (item.second.size() > 0)
+		{
+			print(os, item.second);
+		}
+	}
+	return os;
+}
+
+}  // namespace traits
 /** @} */
 }  // namespace simpla
 

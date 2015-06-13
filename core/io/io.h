@@ -58,14 +58,14 @@ void delete_attribute(std::string const &url);
 
 void set_dataset_attribute(std::string const &url, std::string const & str);
 
-void set_dataset_attribute(std::string const &url, Any const & prop);
+void set_dataset_attribute(std::string const &url, any const & prop);
 
-Any get_dataset_attribute(std::string const &url);
+any get_dataset_attribute(std::string const &url);
 
 template<typename T>
 void set_dataset_attribute(std::string const & url, T const&v)
 {
-	set_dataset_attribute(url, Any(v));
+	set_dataset_attribute(url, any(v));
 }
 template<typename T>
 T get_dataset_attribute(std::string const & url)
