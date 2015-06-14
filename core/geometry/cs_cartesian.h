@@ -128,19 +128,19 @@ public:
 			delta_t delta, Others && ...)
 	{
 
-		return (((node_id & (1UL << CartesianXAxis)) != 0) ?
-				dl<CartesianXAxis>(x0, delta) * st::get<CartesianXAxis>(delta) :
-				1.0)
+		return (((node_id >> CartesianXAxis) & 1UL)
+				* (dl<CartesianXAxis>(x0, delta)
+						* st::get<CartesianXAxis>(delta) - 1) + 1.0)
 
-				* (((node_id & (1UL << CartesianYAxis)) != 0) ?
-						dl<CartesianYAxis>(x0, delta)
-								* st::get<CartesianYAxis>(delta) :
-						1.0)
+				* (((node_id >> CartesianYAxis) & 1UL)
+						* (dl<CartesianYAxis>(x0, delta)
+								* st::get<CartesianYAxis>(delta) - 1) + 1.0)
 
-				* (((node_id & (1UL << CartesianZAxis)) != 0) ?
-						dl<CartesianZAxis>(x0, delta)
-								* st::get<CartesianZAxis>(delta) :
-						1.0);
+				* (((node_id >> CartesianZAxis) & 1UL)
+						* (dl<CartesianZAxis>(x0, delta)
+								* st::get<CartesianZAxis>(delta) - 1) + 1.0)
+
+		;
 	}
 
 	template<typename ...Others>

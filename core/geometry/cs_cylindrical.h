@@ -277,20 +277,20 @@ public:
 			delta_t delta, Others && ...)
 	{
 
-		return (((node_id & (1UL << CylindricalRAxis)) != 0) ?
-				dl<CylindricalRAxis>(x0, delta)
-						* st::get<CylindricalZAxis>(delta) :
-				1.0)
+		return (((node_id >> CylindricalRAxis) & 1UL)
+				* (dl<CylindricalRAxis>(x0, delta)
+						* st::get<CylindricalRAxis>(delta) - 1) + 1.0)
 
-				* (((node_id & (1UL << CylindricalZAxis)) != 0) ?
-						dl<CylindricalZAxis>(x0, delta)
-								* st::get<CylindricalZAxis>(delta) :
-						1.0)
+				* (((node_id >> CylindricalZAxis) & 1UL)
+						* (dl<CylindricalZAxis>(x0, delta)
+								* st::get<CylindricalZAxis>(delta) - 1) + 1.0)
 
-				* (((node_id & (1UL << CylindricalPhiAxis)) != 0) ?
-						dl<CylindricalPhiAxis>(x0, delta)
-								* st::get<CylindricalPhiAxis>(delta) :
-						1.0);
+				* (((node_id >> CylindricalPhiAxis) & 1UL)
+						* (dl<CylindricalPhiAxis>(x0, delta)
+								* st::get<CylindricalPhiAxis>(delta) - 1) + 1.0)
+
+		;
+
 	}
 
 	template<typename ...Others>
