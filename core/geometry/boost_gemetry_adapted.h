@@ -178,17 +178,17 @@ struct access<sgm::Primitive<N, CS, TAG>, M>
 	typedef sgm::Primitive<N, CS, TAG> Geo;
 
 	typedef typename std::remove_reference<
-			decltype((std::get<M>( (std::declval<Geo>()))))>::type value_type;
+			decltype((simpla::traits::get<M>( (std::declval<Geo>()))))>::type value_type;
 
 	static inline value_type const &get(sgm::Primitive<N, CS, TAG>const& point)
 	{
-		return std::get<M>(point);
+		return simpla::traits::get<M>(point);
 	}
 
 	template<typename T>
 	static inline void set(sgm::Primitive<N, CS, TAG>& point, T const& value)
 	{
-		std::get<M>(point) = static_cast<value_type>(value);
+		simpla::traits::get<M>(point) = static_cast<value_type>(value);
 	}
 };
 
@@ -198,17 +198,17 @@ struct indexed_access<sgm::Primitive<N, CS, TAG>, Index, M>
 	typedef sgm::Primitive<N, CS, TAG> Geo;
 
 	typedef typename std::remove_reference<
-			decltype((std::get<M>(std::get<Index>(std::declval<Geo>()))))>::type value_type;
+			decltype((simpla::traits::get<M,Index>( (std::declval<Geo>()))))>::type value_type;
 
 	static inline value_type const & get(sgm::Primitive<N, CS, TAG> const& b)
 	{
-		return std::get<M>(std::get<Index>(b));
+		return simpla::traits::get<M>(simpla::traits::get<Index>(b));
 	}
 
 	template<typename T>
 	static inline void set(sgm::Primitive<N, CS, TAG>& b, T const& value)
 	{
-		std::get<M>(std::get<Index>(b)) = static_cast<value_type>(value);
+		simpla::traits::get<M, Index>(b) = static_cast<value_type>(value);
 	}
 };
 
@@ -252,12 +252,12 @@ struct point_type<sgm::Primitive<1, CS, sg::tags::simplex> >
 //
 //	static inline coordinate_type get(segment_type const& s)
 //	{
-//		return geometry::get<Dimension>(std::get<0>(s));
+//		return geometry::get<Dimension>(simpla::traits::get<0>(s));
 //	}
 //
 //	static inline void set(segment_type& s, coordinate_type const& value)
 //	{
-//		geometry::set<Dimension>(std::get<0>(s), value);
+//		geometry::set<Dimension>(simpla::traits::get<0>(s), value);
 //	}
 //};
 //
@@ -269,12 +269,12 @@ struct point_type<sgm::Primitive<1, CS, sg::tags::simplex> >
 //
 //	static inline coordinate_type get(segment_type const& s)
 //	{
-//		return geometry::get<Dimension>(std::get<1>(s));
+//		return geometry::get<Dimension>(simpla::traits::get<1>(s));
 //	}
 //
 //	static inline void set(segment_type& s, coordinate_type const& value)
 //	{
-//		geometry::set<Dimension>(std::get<1>(s), value);
+//		geometry::set<Dimension>(simpla::traits::get<1>(s), value);
 //	}
 //};
 
@@ -326,8 +326,8 @@ template<typename CS, typename ...Others>
 struct closure<sgm::Polyline<CS, Others ...> >
 {
 	static constexpr closure_selector value =
-			(simpla::mpl::find_type_in_list<simpla::geometry::tags::is_clockwise,
-					Others...>::value) ?
+			(simpla::mpl::find_type_in_list<
+					simpla::geometry::tags::is_clockwise, Others...>::value) ?
 					(boost::geometry::closure_selector::closed) :
 					(boost::geometry::closure_selector::open);
 	;

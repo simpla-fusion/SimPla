@@ -7,12 +7,15 @@
 #include <iostream>
 #include "../../core/gtl/type_traits.h"
 #include "../../core/gtl/ntuple.h"
+#include "../../core/gtl/ntuple_ext.h"
 
 using namespace simpla;
 
 int main()
 {
-	nTuple<double, 3> foo = { 1, 2, 3 };
-	std::cout << traits::get<0>(foo) << " " << traits::get<1>(foo) << " "
-			<< traits::get<2>(foo) << " " << std::endl;
+	nTuple<double, 3, 2> foo = { 1, 2, 3, 4, 5, 6 };
+	std::cout << traits::get<0, 1>(foo) << " " << traits::get<1, 2>(foo) << " "
+			<< traits::get<1, 1>(foo) << " " << std::endl;
+
+	std::cout << foo << std::endl;
 }

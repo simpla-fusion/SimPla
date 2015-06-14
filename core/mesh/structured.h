@@ -26,7 +26,7 @@
 
 #include "../field/field_expression.h"
 #include "../parallel/mpi_update.h"
-#include "../geometry/primitive.h"
+#include "../geometry/coordinate_system.h"
 #include "../gtl/function_cache.h"
 
 #include "domain.h"
@@ -69,6 +69,8 @@ struct StructuredMesh: public MeshIDs_<
 {
 	typedef CoordinateSystem cs_type;
 
+	geometry::mertic<cs_type> m_metric_;
+
 	static constexpr size_t ndims = geometry::traits::dimension<cs_type>::value;
 
 	typedef MeshIDs_<ndims> topology_type;
@@ -92,9 +94,9 @@ struct StructuredMesh: public MeshIDs_<
 
 	typedef nTuple<Real, ndims> topology_point_type;
 
-	typedef geometry::traits::point_type_t<cs_type> point_type;
+	typedef geometry::traits::point_t<cs_type> point_type;
 
-	typedef geometry::traits::vector_type_t<cs_type> vector_type;
+	typedef geometry::traits::vector_t<cs_type> vector_type;
 
 	template<size_t IFORM, typename TV> using field=
 	_Field<Domain<this_type,IFORM>,TV,tags::sequence_container>;
@@ -138,7 +140,9 @@ private:
 
 	point_type m_coords_max_ = { 1, 1, 1 };
 
-	vector_type m_dx_ /*= { 0, 0, 0 }*/;
+	vector_type m_dx_; //!< width of cell, but m_dx_[i]=0 when m_dims_[i]==1
+
+	vector_type m_delta_; //!< equiv. m_dx_, but m_delta_[i]=1 when m_dims_[i]==1
 
 	topology_point_type m_to_topology_scale_;
 
@@ -445,66 +449,34 @@ public:
 	Real m_dual_volume_[9];
 	Real m_inv_dual_volume_[9];
 
-	constexpr Real volume(id_type s) const
+	Real volume_(id_type s) const
 	{
-
-		return m_volume_[topology_type::node_id(s)]
-//				* coordinate_system::volume_factor(coordinate(s),
-//						topology_type::sub_index(s))
-		;
+		return m_metric_.dual_volume(topology_type::node_id(s), point(s),
+				m_delta_);
 	}
 
-	constexpr Real dual_volume(id_type s) const
+	Real dual_volume_(id_type s) const
 	{
-		return m_dual_volume_[topology_type::node_id(s)]
-//				* coordinate_system::dual_volume_factor(coordinate(s),
-//						topology_type::sub_index(s))
-		;
+		return m_metric_.dual_volume(topology_type::node_id(s), point(s),
+				m_delta_);
 	}
-
-	constexpr Real cell_volume(id_type s) const
+	Real volume(id_type s) const
 	{
-		return volume(s | topology_type::_DA);
+		return m_volume_[topology_type::node_id(s)] * volume_(s);
 	}
-
-	constexpr Real inv_volume(id_type s) const
+	Real dual_volume(id_type s) const
 	{
-		return m_inv_volume_[topology_type::node_id(s)]
 
-//				* coordinate_system::inv_volume_factor(coordinate(s),
-//						topology_type::sub_index(s))
-		;
+		return m_dual_volume_[topology_type::node_id(s)] * dual_volume_(s);
 	}
-
-	constexpr Real inv_dual_volume(id_type s) const
+	Real inv_volume(id_type s) const
 	{
-		return m_inv_dual_volume_[topology_type::node_id(s)]
-//				* coordinate_system::inv_dual_volume_factor(coordinate(s),
-//						topology_type::sub_index(s))
-		;
+		return m_inv_volume_[topology_type::node_id(s)] / volume_(s);
 	}
-
-//	template<size_t ID>
-//	constexpr std::tuple<point_type, point_type> primary_line(id_type s) const
-//	{
-//		auto p_box = topology_type::template primary_line<ID>(s);
-//		return std::make_tuple(point(traits::get<0>(p_box)),
-//				point(traits::get<1>(p_box)));
-//	}
-//	template<size_t ID>
-//	constexpr std::tuple<point_type, point_type> pixel(id_type s) const
-//	{
-//		auto p_box = topology_type::template pixel<ID>(s);
-//		return std::make_tuple(point(traits::get<0>(p_box)),
-//				point(traits::get<1>(p_box)));
-//	}
-//
-//	constexpr std::tuple<point_type, point_type> voxel(id_type s) const
-//	{
-//		auto p_box = topology_type::voxel(s);
-//		return std::make_tuple(point(traits::get<0>(p_box)),
-//				point(traits::get<1>(p_box)));
-//	}
+	Real inv_dual_volume(id_type s) const
+	{
+		return m_inv_dual_volume_[topology_type::node_id(s)] / dual_volume_(s);
+	}
 
 	/**@}*/
 
@@ -816,6 +788,8 @@ template<typename TTopology, typename ... Polices> void StructuredMesh<
 			m_dx_[i] = (m_coords_max_[i] - m_coords_min_[i])
 					/ static_cast<Real>(dims[i]);
 
+			m_delta_[i] = m_dx_[i]; // this is the correct one
+
 			m_to_topology_scale_[i] = static_cast<Real>(dims[i])
 					/ (m_coords_max_[i] - m_coords_min_[i])
 					* topology_type::COORDINATES_MESH_FACTOR;
@@ -847,6 +821,8 @@ template<typename TTopology, typename ... Polices> void StructuredMesh<
 
 			m_dx_[i] = 0;
 
+			m_delta_[i] = 1.0;
+
 			m_coords_max_[i] = m_coords_min_[i];
 
 			m_to_topology_scale_[i] = 0;
@@ -864,36 +840,30 @@ template<typename TTopology, typename ... Polices> void StructuredMesh<
 
 	m_id_max_ = m_id_min_ + topology_type::pack_index(dims);
 
-//	m_coord_orig_ = m_coords_min_
-//			- m_from_topology_scale_ * topology_type::INDEX_ZERO;
-//
-//	m_toplogy_coord_orig_ = -m_coord_orig_ * m_to_topology_scale_
-//			+ topology_type::INDEX_ZERO;
-
 	/**
 	 *  deploy volume
 	 **/
 
-//	/**
-//	 *\verbatim
-//	 *                ^y
-//	 *               /
-//	 *        z     /
-//	 *        ^    /
-//	 *        |  110-------------111
-//	 *        |  /|              /|
-//	 *        | / |             / |
-//	 *        |/  |            /  |
-//	 *       100--|----------101  |
-//	 *        | m |           |   |
-//	 *        |  010----------|--011
-//	 *        |  /            |  /
-//	 *        | /             | /
-//	 *        |/              |/
-//	 *       000-------------001---> x
-//	 *
-//	 *\endverbatim
-//	 */
+	/**
+	 *\verbatim
+	 *                ^y
+	 *               /
+	 *        z     /
+	 *        ^    /
+	 *        |  110-------------111
+	 *        |  /|              /|
+	 *        | / |             / |
+	 *        |/  |            /  |
+	 *       100--|----------101  |
+	 *        | m |           |   |
+	 *        |  010----------|--011
+	 *        |  /            |  /
+	 *        | /             | /
+	 *        |/              |/
+	 *       000-------------001---> x
+	 *
+	 *\endverbatim
+	 */
 	m_volume_[0] = 1.0;
 
 	m_volume_[1/* 001*/] = (m_dx_[0] <= EPSILON) ? 1 : m_dx_[0];
@@ -946,7 +916,6 @@ template<typename TTopology, typename ... Polices> void StructuredMesh<
 
 	m_inv_dual_volume_[0] /* 111 */= m_inv_dual_volume_[6]
 			* m_inv_dual_volume_[5] * m_inv_dual_volume_[3];
-
 	/**
 	 * Decompose
 	 */

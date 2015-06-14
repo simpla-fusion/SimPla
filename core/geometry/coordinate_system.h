@@ -12,6 +12,8 @@ namespace simpla
 {
 namespace geometry
 {
+template<typename, typename > struct map;
+template<typename > struct mertic;
 
 namespace traits
 {
@@ -30,7 +32,7 @@ struct Polar
 {
 };
 
-template<size_t N>
+template<size_t N, size_t ZAXIS = 2>
 struct Cartesian
 {
 };
@@ -55,13 +57,22 @@ struct MagneticFLux
 
 namespace traits
 {
+
+template<typename CS>
+struct scalar_type
+{
+	typedef Real type;
+};
+template<typename CS>
+using scalar_t =typename scalar_type<CS>::type;
+
 template<typename CS>
 struct point_type
 {
 	typedef nTuple<Real, dimension<CS>::value> type;
 };
 template<typename CS>
-using point_type_t=typename point_type<CS>::type;
+using point_t=typename point_type<CS>::type;
 
 template<typename CS>
 struct vector_type
@@ -69,7 +80,15 @@ struct vector_type
 	typedef nTuple<Real, dimension<CS>::value> type;
 };
 template<typename CS>
-using vector_type_t=typename vector_type<CS>::type;
+using vector_t=typename vector_type<CS>::type;
+
+template<typename CS>
+struct covector_type
+{
+	typedef nTuple<Real, dimension<CS>::value> type;
+};
+template<typename CS>
+using covector_t=typename vector_type<CS>::type;
 
 template<typename CS>
 struct dimension
@@ -135,6 +154,12 @@ struct ZAxis: public std::integral_constant<size_t, 2>
 };
 template<size_t ZAXIS>
 struct ZAxis<geometry::coordinate_system::Cylindrical<ZAXIS>> : public std::integral_constant<
+		size_t, ZAXIS>
+{
+};
+
+template<size_t NDIMS, size_t ZAXIS>
+struct ZAxis<geometry::coordinate_system::Cartesian<NDIMS, ZAXIS>> : public std::integral_constant<
 		size_t, ZAXIS>
 {
 };

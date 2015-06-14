@@ -59,8 +59,8 @@ int main(int argc, char **argv)
 	model::Box<cs> box( { 1.0, 2.0, 6.0, 4.0, 6.0, 4.0 });
 	std::cout << "Box " << box << std::endl;
 
-	std::list<model::Polygon<cs>> res;
-	intersection(box, poly, res);
+//	std::list<model::Polygon<cs>> res;
+//	intersection(box, poly, res);
 
 //	for (auto const & item : res)
 //	{

@@ -25,8 +25,8 @@ using Point= Primitive<0, CoordinateSystem >;
 //template<typename CoordinateSystem>
 //using Point = Primitive< 0,CoordinateSystem, tags::simplex>;
 
-template<typename CoordinateSystem>
-using LineSegment = Primitive< 1,CoordinateSystem >;
+//template<typename CoordinateSystem>
+//using LineSegment = Primitive< 1,CoordinateSystem >;
 
 template<typename CoordinateSystem>
 using Triangle = Primitive< 2,CoordinateSystem, tags::simplex >;
@@ -135,8 +135,8 @@ struct Surface
 template<typename CS, typename TAG, typename ...Others>
 using Solids=Chains<Primitive<3, CS,TAG>, Others ...>;
 
-template<typename CoordinateSystem>
-using LineSegment = Primitive< 1,CoordinateSystem, tags::simplex >;
+//template<typename CoordinateSystem>
+//using LineSegment = Primitive< 1,CoordinateSystem, tags::simplex >;
 template<typename CoordinateSystem>
 using Sphere = Primitive< 3,CoordinateSystem, tags::sphere >;
 template<typename CS>

@@ -7,8 +7,17 @@
 
 #ifndef CORE_GEOMETRY_CHAINS_H_
 #define CORE_GEOMETRY_CHAINS_H_
+
+#include <stddef.h>
+#include <cstdbool>
+#include <map>
+#include <vector>
+
+#include "../gtl/mpl.h"
+#include "../gtl/ntuple.h"
+#include "coordinate_system.h"
 #include "primitive.h"
-#include "../gtl/type_traits.h"
+
 namespace simpla
 {
 namespace geometry
@@ -143,23 +152,23 @@ struct dimension<model::Chains<PrimitiveType, Others...>>
 template<typename PrimitiveType, typename ...Others>
 struct is_structed<model::Chains<PrimitiveType, Others...>>
 {
-	static constexpr bool value =
-			find_type_in_list<tags::is_structed, Others...>::value;
+	static constexpr bool value = mpl::find_type_in_list<tags::is_structed,
+			Others...>::value;
 };
 template<typename PrimitiveType, typename ...Others>
 struct point_order<model::Chains<PrimitiveType, Others...>>
 {
 	static constexpr int value =
-			find_type_in_list<tags::is_clockwise, Others...>::value ?
+			mpl::find_type_in_list<tags::is_clockwise, Others...>::value ?
 					1 :
-					(find_type_in_list<tags::is_unordered, Others...>::value ?
+					(mpl::find_type_in_list<tags::is_unordered, Others...>::value ?
 							0 : -1);
 };
 template<typename PrimitiveType, typename ...Others>
 struct closure<model::Chains<PrimitiveType, Others...>>
 {
 	static constexpr int value =
-			find_type_in_list<tags::is_closed, Others...>::value ? 1 : 0;
+			mpl::find_type_in_list<tags::is_closed, Others...>::value ? 1 : 0;
 };
 }  // namespace traits
 
