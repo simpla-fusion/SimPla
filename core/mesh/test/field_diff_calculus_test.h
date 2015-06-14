@@ -29,9 +29,14 @@
 
 using namespace simpla;
 
+#ifndef DEFAULT_MESH
 typedef CartesianRectMesh<3> mesh_type;
+static constexpr bool is_cylindrical = false;
+#else
+typedef DEFAULT_MESH mesh_type;
+static constexpr bool is_cylindrical = true;
 
-typedef nTuple<Real, 3> coordinate_tuple;
+#endif
 
 class FETLTest: public testing::TestWithParam<
 		std::tuple<nTuple<Real, 3>, nTuple<Real, 3>, nTuple<size_t, 3>,
@@ -142,12 +147,11 @@ TEST_P(FETLTest, grad0)
 		expect = K_real[n] * std::cos(inner_product(K_real, x))
 				+ K_imag[n] * std::sin(inner_product(K_real, x));
 
-//		if (mesh->get_type_as_string() == "Cylindrical"
-//				&& n == (traits::ZAxis<mesh_type>::value + 1) % 3)
-//		{
-//			auto r = mesh->point(s);
-//			expect /= r[(traits::ZAxis<mesh_type>::value + 2) % 3];
-//		}
+		if (is_cylindrical && n == (traits::ZAxis<mesh_type>::value + 1) % 3)
+		{
+			auto r = mesh->point(s);
+			expect /= r[(traits::ZAxis<mesh_type>::value + 2) % 3];
+		}
 
 		f1b[s] = expect;
 
@@ -229,8 +233,7 @@ TEST_P(FETLTest, grad3)
 		expect = K_real[n] * std::cos(inner_product(K_real, x))
 				+ K_imag[n] * std::sin(inner_product(K_real, x));
 
-		if (mesh->get_type_as_string() == "Cylindrical"
-				&& n == (traits::ZAxis<mesh_type>::value + 1) % 3)
+		if (is_cylindrical && n == (traits::ZAxis<mesh_type>::value + 1) % 3)
 		{
 			auto r = mesh->point(s);
 			expect /= r[(traits::ZAxis<mesh_type>::value + 2) % 3];
@@ -305,7 +308,7 @@ TEST_P(FETLTest, diverge1)
 
 		value_type expect;
 
-		if (mesh->get_type_as_string() == "Cylindrical")
+		if (is_cylindrical)
 		{
 
 			expect =
@@ -400,7 +403,7 @@ TEST_P(FETLTest, diverge2)
 
 		value_type expect;
 
-		if (mesh->get_type_as_string() == "Cylindrical")
+		if (is_cylindrical)
 		{
 
 			expect =
@@ -485,7 +488,7 @@ TEST_P(FETLTest, curl1)
 
 		value_type expect;
 
-		if (mesh->get_type_as_string() == "Cylindrical")
+		if (is_cylindrical)
 		{
 			switch (n)
 			{
@@ -604,7 +607,7 @@ TEST_P(FETLTest, curl2)
 
 		value_type expect;
 
-		if (mesh->get_type_as_string() == "Cylindrical")
+		if (is_cylindrical)
 		{
 			switch (n)
 			{

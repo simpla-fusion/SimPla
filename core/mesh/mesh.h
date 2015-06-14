@@ -14,7 +14,7 @@
 
 #include "../geometry/coordinate_system.h"
 #include "../geometry/cs_cartesian.h"
-//#include "../geometry/cs_cylindrical.h"
+#include "../geometry/cs_cylindrical.h"
 namespace simpla
 {
 /**
@@ -71,8 +71,7 @@ template<size_t NDIMS>
 using CartesianRectMesh=StructuredMesh<geometry::coordinate_system::Cartesian<NDIMS>,
 InterpolatorLinear, FiniteDiffMethod>;
 
-template<size_t ZAXIS>
-using CylindricalRectMesh=StructuredMesh< geometry::coordinate_system::Cylindrical<ZAXIS> ,
+using CylindricalRectMesh=StructuredMesh< geometry::coordinate_system::Cylindrical<2> ,
 InterpolatorLinear, FiniteDiffMethod>;
 namespace traits
 {

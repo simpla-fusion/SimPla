@@ -40,7 +40,7 @@ struct Cartesian
 struct Spherical
 {
 };
-template<size_t ZAxis = 2>
+template<size_t IPhiAxis = 2>
 struct Cylindrical
 {
 };
@@ -143,8 +143,8 @@ struct typename_as_string<geometry::coordinate_system::Spherical>
 	static constexpr char value[] = "Spherical";
 };
 
-template<size_t ZAXIS>
-struct typename_as_string<geometry::coordinate_system::Cylindrical<ZAXIS>>
+template<size_t PhiAXIS>
+struct typename_as_string<geometry::coordinate_system::Cylindrical<PhiAXIS>>
 {
 	static constexpr char value[] = "Cylindrical";
 };
@@ -152,9 +152,9 @@ template<typename TM>
 struct ZAxis: public std::integral_constant<size_t, 2>
 {
 };
-template<size_t ZAXIS>
-struct ZAxis<geometry::coordinate_system::Cylindrical<ZAXIS>> : public std::integral_constant<
-		size_t, ZAXIS>
+template<size_t PhiAXIS>
+struct ZAxis<geometry::coordinate_system::Cylindrical<PhiAXIS>> : public std::integral_constant<
+		size_t, (PhiAXIS + 2) % 3>
 {
 };
 
