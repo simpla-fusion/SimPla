@@ -25,34 +25,42 @@
 #include <memory>
 using namespace simpla;
 
-typedef StructuredMesh<geometry::coordinate_system::Cartesian<3>,
+
+#ifdef CYLINDRICAL_COORDINATE_SYTEM
+	#include "../../core/geometry/cs_cylindrical.h"
+	#define COORDINATE_SYSTEM Cylindrical<2>
+#else
+	#include "../../core/geometry/cs_cartesian.h"
+	#define COORDINATE_SYSTEM Cartesian<3>
+#endif
+
+typedef StructuredMesh<geometry::coordinate_system:: COORDINATE_SYSTEM ,
 		InterpolatorLinear, FiniteDiffMethod> mesh_type;
 
 USE_CASE(em," Maxwell Eqs.")
 {
 
 	size_t num_of_steps = 1000;
-	size_t strides = 10;
+	size_t check_point = 10;
 
 	if (options["case_help"])
 	{
 
 		MESSAGE<< " Options:" << std::endl
-
 		<<
 
 		"\t -n,\t--number_of_steps <NUMBER>  \t, Number of steps = <NUMBER> ,default="
 		+ type_cast <std::string>(num_of_steps)
 		+ "\n"
 		"\t -s,\t--strides <NUMBER>            \t, Dump record per <NUMBER> steps, default="
-		+ type_cast <std::string>(strides) + "\n";
+		+ type_cast <std::string>(check_point) + "\n";
 
 		return;
 	}
 
-	options["n"].as(&num_of_steps);
+	num_of_steps = options["n"].as<size_t>(num_of_steps);
 
-	options["s"].as<size_t>(&strides);
+	check_point = options["check_point"].as<size_t>(check_point);
 
 	auto mesh = std::make_shared<mesh_type>();
 
@@ -60,20 +68,17 @@ USE_CASE(em," Maxwell Eqs.")
 
 	mesh->deploy();
 
-	if (GLOBAL_COMM.process_num()==0)
-	{
+	MESSAGE<< std::endl
 
-		MESSAGE << std::endl
+	<< "[ Configuration ]" << std::endl
 
-		<< "[ Configuration ]" << std::endl
+	<< " Description=\"" << options["Description"].as<std::string>("") << "\""
 
-		<< " Description=\"" << options["Description"].as<std::string>("") << "\""
-		<< std::endl
+	<< std::endl
 
 //		<< " Mesh = \n {" << *mesh << "} " << std::endl
 
-		<< " TIME_STEPS = " << num_of_steps << std::endl;
-	}
+	<< " TIME_STEPS = " << num_of_steps << std::endl;
 
 //	std::shared_ptr<PML<mesh_type>> pml_solver;
 //
@@ -88,23 +93,28 @@ USE_CASE(em," Maxwell Eqs.")
 	auto E = mesh->template make_form<EDGE, Real>();
 	auto B = mesh->template make_form<FACE, Real>();
 
-	VERBOSE_CMD(load_field(options["InitValue"]["E"], &E));
-	VERBOSE_CMD(load_field(options["InitValue"]["J"], &J));
-	VERBOSE_CMD(load_field(options["InitValue"]["B"], &B));
+	E = make_function_by_config<Real>(options["InitValue"]["E"],
+			mesh->domain<EDGE>());
 
-	auto J_src = make_field_function_by_config<EDGE, Real>(*mesh,
-			options["Constraint"]["J"]);
+	B = make_function_by_config<Real>(options["InitValue"]["B"],
+			mesh->domain<FACE>());
 
-	auto E_src = make_field_function_by_config<EDGE, Real>(*mesh,
-			options["Constraint"]["E"]);
+	J = make_function_by_config<Real>(options["InitValue"]["J"],
+			mesh->domain<EDGE>());
 
-	auto E_Boundary(E);
-	auto B_Boundary(B);
+	auto J_src = make_function_by_config<Real>(options["Constraint"]["J"],
+			mesh->domain<EDGE>());
+
+	auto E_src = make_function_by_config<Real>(options["Constraint"]["E"],
+			mesh->domain<EDGE>());
+
+	auto E_Boundary = (E);
+	auto B_Boundary = (B);
 
 	if (options["PEC"])
 	{
-		filter_domain_by_config(options["PEC"]["Domain"], &B_Boundary.domain());
-		filter_domain_by_config(options["PEC"]["Domain"], &E_Boundary.domain());
+		filter_by_config(options["PEC"]["Domain"], &B_Boundary.domain());
+		filter_by_config(options["PEC"]["Domain"], &E_Boundary.domain());
 	}
 	else
 	{

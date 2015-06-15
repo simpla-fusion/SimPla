@@ -46,21 +46,21 @@ public:
 	_Field()
 	{
 	}
-	_Field(domain_type const& domain)
-			: m_domain_(domain)
+	_Field(domain_type const& domain) :
+			m_domain_(domain)
 	{
 	}
 	template<typename TF>
-	_Field(domain_type const& domain, TF const& fun)
-			: m_domain_(domain), m_fun_(fun)
+	_Field(domain_type const& domain, TF const& fun) :
+			m_domain_(domain), m_fun_(fun)
 	{
 	}
-	_Field(this_type const& other)
-			: m_domain_(other.m_domain_), m_fun_(other.m_fun_)
+	_Field(this_type const& other) :
+			m_domain_(other.m_domain_), m_fun_(other.m_fun_)
 	{
 	}
-	_Field(this_type && other)
-			: m_domain_(other.m_domain_), m_fun_(other.m_fun_)
+	_Field(this_type && other) :
+			m_domain_(other.m_domain_), m_fun_(other.m_fun_)
 	{
 	}
 	~_Field()
@@ -135,24 +135,22 @@ _Field<TDomain, TV, tags::function, TFun> make_field_function(
 	return std::move(_Field<TDomain, TV, tags::function, TFun>(domain, fun));
 }
 
-template<size_t IFORM, typename TV, typename TM, typename TDict>
-_Field<Domain<TM, IFORM>, TV, tags::function, TDict> //
-make_field_function_by_config(TM const & mesh, TDict const & dict)
+template<typename TV, typename TD, typename TDict>
+_Field<TD, TV, tags::function, TDict> //
+make_function_by_config(TDict const & dict, TD domain)
 {
 	typedef TV value_type;
 
-	typedef Domain<TM, IFORM> domain_type;
+	typedef TD domain_type;
 
 	typedef _Field<domain_type, value_type, tags::function, TDict> field_type;
 
 	// TODO create null filed
 
-	domain_type domain = mesh.template domain<field_type::iform>();
-
 	if (dict["Domain"])
 	{
 
-		filter_domain_by_config(dict["Domain"], &domain);
+		filter_by_config(dict["Domain"], &domain);
 
 		return field_type(domain, dict["Value"]);
 	}

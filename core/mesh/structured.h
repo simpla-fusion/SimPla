@@ -333,9 +333,7 @@ public:
 
 	static std::string get_type_as_string()
 	{
-		return "StructuredMesh<"
-//				+ geometry::traits::typename_as_string<cs_type>::value +
-				">";
+		return "StructuredMesh<" + traits::description<cs_type>::name() + ">";
 	}
 
 	constexpr bool is_valid() const

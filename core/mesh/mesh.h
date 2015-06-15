@@ -10,11 +10,6 @@
 #include "structured.h"
 #include "structured/fdm.h"
 #include "structured/interpolator.h"
-#include "domain.h"
-
-#include "../geometry/coordinate_system.h"
-#include "../geometry/cs_cartesian.h"
-#include "../geometry/cs_cylindrical.h"
 namespace simpla
 {
 /**
@@ -67,12 +62,7 @@ std::shared_ptr<TM> make_mesh()
 {
 	return std::make_shared<TM>();
 }
-template<size_t NDIMS>
-using CartesianRectMesh=StructuredMesh<geometry::coordinate_system::Cartesian<NDIMS>,
-InterpolatorLinear, FiniteDiffMethod>;
 
-using CylindricalRectMesh=StructuredMesh< geometry::coordinate_system::Cylindrical<2> ,
-InterpolatorLinear, FiniteDiffMethod>;
 namespace traits
 {
 template<typename > struct ZAxis: public std::integral_constant<size_t, 2>

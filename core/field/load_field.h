@@ -28,7 +28,7 @@ bool load_field(TDict const & dict, TField *f)
 	{
 		std::string url = dict.template as<std::string>();
 		//TODO Read field from data file
-		UNIMPLEMENTED << "Read field from data file or other URI";
+		UNIMPLEMENTED<< "Read field from data file or other URI";
 	}
 	else if (dict)
 	{
@@ -41,9 +41,9 @@ bool load_field(TDict const & dict, TField *f)
 
 		domain_type domain(f->domain());
 
-		filter_domain_by_config(dict["Domain"], &domain);
+		filter_by_config(dict["Domain"], &domain);
 
-		*f = make_field_function<value_type>(domain, dict["Value"]);
+		*f = make_function_by_config<value_type>( dict["Value"],domain);
 
 	}
 

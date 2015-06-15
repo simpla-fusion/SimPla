@@ -143,6 +143,13 @@ auto invoke(Func&& func,
 //
 namespace traits
 {
+template<typename T> struct description
+{
+	static std::string name()
+	{
+		return "unknown";
+	}
+};
 template<typename T> struct reference
 {
 	typedef T type;

@@ -440,7 +440,7 @@ void select_boundary(TDict const &dict, Domain<TM, IFORM> *domain)
 }
 
 template<typename TDict, typename TDomain>
-void filter_domain_by_config(TDict const & dict, TDomain * domain)
+void filter_by_config(TDict const & dict, TDomain * domain)
 {
 	typedef TDomain domain_type;
 

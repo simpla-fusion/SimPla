@@ -8,6 +8,7 @@
 #ifndef CORE_GEOMETRY_CS_CARTESIAN_H_
 #define CORE_GEOMETRY_CS_CARTESIAN_H_
 #include "../gtl/macro.h"
+#include "../gtl/type_cast.h"
 #include "coordinate_system.h"
 namespace simpla
 {
@@ -150,7 +151,21 @@ public:
 }
 ;
 }  // namespace geometry
+namespace traits
+{
 
+template<size_t NDIMS, size_t ICARTESIAN_ZAXIS>
+struct description<
+		geometry::coordinate_system::Cartesian<NDIMS, ICARTESIAN_ZAXIS> >
+{
+	static std::string name()
+	{
+		return "Cartesian<" + simpla::type_cast<std::string>(NDIMS) + ","
+				+ simpla::type_cast<std::string>(ICARTESIAN_ZAXIS) + ">";
+	}
+};
+
+}  // namespace traits
 }  // namespace simpla
 
 #endif /* CORE_GEOMETRY_CS_CARTESIAN_H_ */

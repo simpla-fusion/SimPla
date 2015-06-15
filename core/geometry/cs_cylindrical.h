@@ -341,7 +341,19 @@ public:
 };
 
 }  // namespace geometry
+namespace traits
+{
 
+template<size_t IPhiAxis>
+struct description<geometry::coordinate_system::template Cylindrical<IPhiAxis> >
+{
+	static   std::string name()
+	{
+		return "Cylindrical<" + simpla::type_cast<std::string>(IPhiAxis) + ">";
+	}
+};
+
+}  // namespace traits
 }  // namespace simpla
 
 #endif /* CORE_GEOMETRY_CS_CYLINDRICAL_H_ */
