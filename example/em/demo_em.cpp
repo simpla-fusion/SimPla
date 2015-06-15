@@ -25,17 +25,16 @@
 #include <memory>
 using namespace simpla;
 
-
 #ifdef CYLINDRICAL_COORDINATE_SYTEM
-	#include "../../core/geometry/cs_cylindrical.h"
-	#define COORDINATE_SYSTEM Cylindrical<2>
+#include "../../core/geometry/cs_cylindrical.h"
+#define COORDINATE_SYSTEM Cylindrical<2>
 #else
-	#include "../../core/geometry/cs_cartesian.h"
-	#define COORDINATE_SYSTEM Cartesian<3>
+#include "../../core/geometry/cs_cartesian.h"
+#define COORDINATE_SYSTEM Cartesian<3>
 #endif
 
-typedef StructuredMesh<geometry::coordinate_system:: COORDINATE_SYSTEM ,
-		InterpolatorLinear, FiniteDiffMethod> mesh_type;
+typedef StructuredMesh<geometry::coordinate_system:: COORDINATE_SYSTEM,
+InterpolatorLinear, FiniteDiffMethod> mesh_type;
 
 USE_CASE(em," Maxwell Eqs.")
 {
@@ -76,7 +75,7 @@ USE_CASE(em," Maxwell Eqs.")
 
 	<< std::endl
 
-//		<< " Mesh = \n {" << *mesh << "} " << std::endl
+	<< " Mesh = \n {" << *mesh << "} " << std::endl
 
 	<< " TIME_STEPS = " << num_of_steps << std::endl;
 

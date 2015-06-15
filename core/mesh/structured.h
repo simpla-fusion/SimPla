@@ -995,6 +995,13 @@ template<typename TTopology, typename ... Polices> void StructuredMesh<
 
 }
 
+template<typename TTopology, typename ... Polices>
+std::ostream & operator<<(std::ostream & os,
+		StructuredMesh<TTopology, Polices...> const &d)
+{
+	return d.print(os);
+}
+
 }
 // namespace simpla
 
