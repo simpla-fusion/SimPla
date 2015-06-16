@@ -58,8 +58,6 @@ struct domain_type
 	typedef full_domain type;
 };
 
-template<typename ...T> using domain_t= typename domain_type<T...>::type;
-
 template<typename > struct mesh_type;
 
 template<typename TM, typename ...Others>

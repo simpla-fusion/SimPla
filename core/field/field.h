@@ -162,10 +162,10 @@ _Field<Domain<TM, Others...>, TV, tags::sequence_container> make_form(
 
 namespace traits
 {
-template<typename ... T>
-struct domain_type<_Field<T...> >
+template<typename ... T, typename ...Others>
+struct domain_type<_Field<Domain<T...>, Others...> >
 {
-	typedef typename _impl::field_traits<_Field<T...>>::domain_type type;
+	typedef Domain<T...> type;
 };
 
 }  // namespace traits

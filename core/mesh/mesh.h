@@ -96,11 +96,11 @@ template<typename CS, typename ...Others>
 struct ZAxis<Mesh<CS, Others...>> : public geometry::traits::ZAxis<CS>::type
 {
 };
-template<typename > struct mesh_type
+template<typename >
+struct mesh_type
 {
 	typedef std::nullptr_t type;
 };
-template<typename T> using mesh_t= typename mesh_type<T>::type;
 
 }  // namespace traits
 

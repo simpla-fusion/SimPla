@@ -118,16 +118,25 @@ struct value_type<_Field<T ...>>
 	typedef typename _impl::field_traits<_Field<T ...> >::value_type type;
 };
 
+template<typename T> struct domain_type;
+
+template<typename ...T> using domain_t= typename domain_type<T...>::type;
+
+template<typename > struct mesh_type;
+
+template<typename ...T> using mesh_t= typename mesh_type<T...>::type;
+
 template<typename > struct iform;
+
 template<typename ...T>
 struct iform<_Field<T...>> : public std::integral_constant<size_t,
-		_impl::field_traits<_Field<T...> >::iform>
+iform < typename domain_type<_Field<T...>::type >::value>
 {
 };
 
 template<typename ...T>
 struct rank<_Field<T...>> : public std::integral_constant<size_t,
-		_impl::field_traits<_Field<T...> >::ndims>
+rank <typename domain_type<_Field<T...>::type >::value>
 {
 };
 
@@ -138,8 +147,7 @@ struct field_value_type
 {
 	typedef typename std::conditional<
 			(iform<T>::value == VERTEX || iform<T>::value == VOLUME),
-			typename value_type<T>::type,
-			nTuple<typename value_type<T>::type, 3> >::type type;
+			value_type_t<T>, nTuple<value_type_t<T>, 3> >::type type;
 };
 
 template<typename T> using field_value_t = typename field_value_type<T>::type;

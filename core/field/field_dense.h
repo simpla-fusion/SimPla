@@ -39,21 +39,21 @@ template<typename ...> struct Domain;
 /**
  *  Simple Field
  */
-template<typename TM, size_t IFORM, typename TV, typename ... DomainPolicies,
-		typename ...Policies>
-struct _Field<
-		Domain<TM, std::integral_constant<size_t, IFORM>, DomainPolicies...>,
-		TV, Policies...> : public SpObject
+template<typename ... TM, typename TV, typename ...Policies>
+struct _Field<Domain<TM ...>, TV, Policies...> : public SpObject
 {
 public:
 
 	typedef TV value_type;
-	typedef TM mesh_type;
-	static constexpr size_t iform = IFORM;
 
-	typedef Domain<TM, std::integral_constant<size_t, IFORM>, DomainPolicies...> domain_type;
+	typedef Domain<TM ...> domain_type;
+
+	static constexpr size_t iform = traits::iform<domain_type>::value;
+
+	typedef traits::mesh_t<domain_type> mesh_type;
 
 	typedef typename mesh_type::id_type id_type;
+
 	typedef typename mesh_type::point_type point_type;
 
 	typedef _Field<domain_type, value_type, Policies...> this_type;
@@ -406,6 +406,11 @@ OS print(OS & os, _Field<Domain<TM ...>, Others...> const & f)
 	return f.dataset().print(os);
 }
 
+template<typename ... TM, typename TV, typename ...Policies>
+struct value_type<_Field<Domain<TM ...>, TV, Policies...>>
+{
+	typedef TV type;
+};
 }
 // namespace traits
 
