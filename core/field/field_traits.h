@@ -9,15 +9,19 @@
 #define CORE_FIELD_FIELD_TRAITS_H_
 
 #include <stddef.h>
+#include <cstdbool>
+#include <memory>
 #include <type_traits>
 
 #include "../gtl/integer_sequence.h"
 #include "../gtl/type_traits.h"
+#include "../mesh/domain.h"
+#include "../mesh/mesh_ids.h"
 
 namespace simpla
 {
 
-template<typename, size_t> struct Domain;
+template<typename ...> struct Domain;
 template<typename ... >struct _Field;
 
 namespace tags
@@ -33,22 +37,26 @@ class function;
 namespace traits
 {
 
+template<typename TM, size_t IFORM, typename ValueType, typename ...Policies>
+struct field_type
+{
+	typedef _Field<
+			Domain<TM, std::integral_constant<size_t, IFORM>, Policies...>,
+			ValueType, tags::sequence_container> type;
+};
+
+template<typename TM, size_t IFORM, typename ValueType, typename ...Policies>
+using field_t= typename field_type<TM,IFORM,ValueType,Policies...>::type;
+
 template<typename > struct is_field: public std::integral_constant<bool, false>
 {
 };
 
 template<typename ...T> struct is_field<_Field<T...>> : public std::integral_constant<
-		bool, true>
+bool, true>
 {
 };
-template<typename T>
-struct is_domain: public std::integral_constant<bool, false>
-{
-};
-template<typename TM, size_t IFORM>
-struct is_domain<Domain<TM, IFORM>> : public std::integral_constant<bool, true>
-{
-};
+
 template<typename TM, typename TV, typename ...Others>
 struct reference<_Field<TM, TV, Others...> >
 {
@@ -103,22 +111,14 @@ struct field_traits<_Field<T ...>>
 };
 
 }  // namespace _impl
-template<typename ...T> struct domain;
-template<typename ...T> using domain_t= typename domain<T...>::type;
-
-template<typename T>
-struct domain<T>
-{
-	typedef typename _impl::field_traits<T>::domain_type type;
-};
 
 template<typename ... T>
 struct value_type<_Field<T ...>>
 {
 	typedef typename _impl::field_traits<_Field<T ...> >::value_type type;
 };
-template<typename ...T> struct iform;
 
+template<typename > struct iform;
 template<typename ...T>
 struct iform<_Field<T...>> : public std::integral_constant<size_t,
 		_impl::field_traits<_Field<T...> >::iform>
@@ -130,6 +130,48 @@ struct rank<_Field<T...>> : public std::integral_constant<size_t,
 		_impl::field_traits<_Field<T...> >::ndims>
 {
 };
+
+template<typename > struct field_value_type;
+
+template<typename T>
+struct field_value_type
+{
+	typedef typename std::conditional<
+			(iform<T>::value == VERTEX || iform<T>::value == VOLUME),
+			typename value_type<T>::type,
+			nTuple<typename value_type<T>::type, 3> >::type type;
+};
+
+template<typename T> using field_value_t = typename field_value_type<T>::type;
+
+namespace _impl
+{
+template<typename T>
+struct container_tag
+{
+	typedef traits::value_type_t<T> type;
+};
+template<typename T> using container_tag_t=typename container_tag<T>::type;
+}  // namespace _impl
+template<typename TV, typename TAG> struct container_type_helper;
+
+template<typename TV>
+struct container_type_helper<TV, tags::sequence_container>
+{
+	typedef std::shared_ptr<TV> type;
+};
+
+template<typename > struct container_type;
+
+template<typename T> struct container_type
+{
+
+	typedef typename container_type_helper<traits::value_type_t<T>,
+			_impl::container_tag_t<T> >::type type;
+};
+
+template<typename T> using container_t=typename container_type<T>::type;
+
 }  // namespace traits
 }  // namespace simpla
 

@@ -8,12 +8,21 @@
 #ifndef FIELD_BASIC_ALGEBRA_TEST_H_
 #define FIELD_BASIC_ALGEBRA_TEST_H_
 
-#include <gtest/gtest.h>
+#include <stddef.h>
+#include <memory>
 #include <random>
 
-#include "../../utilities/utilities.h"
+#include <gtest/gtest.h>
+
+#include "../../gtl/macro.h"
+#include "../../gtl/primitives.h"
+#include "../../gtl/type_traits.h"
+#include "../../utilities/log.h"
+#include "../domain.h"
+#include "../mesh.h"
 #include "../../field/field.h"
-#include "../../io/io.h"
+#include "../structured/interpolator.h"
+#include "../structured/fdm.h"
 
 using namespace simpla;
 
@@ -38,11 +47,11 @@ public:
 
 	typedef TField field_type;
 
-	typedef typename field_type::domain_type domain_type;
+	typedef traits::domain_t<field_type> domain_type;
 
-	typedef typename field_type::mesh_type mesh_type;
+	typedef traits::mesh_t<field_type> mesh_type;
 
-	typedef typename field_type::value_type value_type;
+	typedef traits::value_type_t<field_type> value_type;
 
 	typedef typename mesh_type::scalar_type scalar_type;
 

@@ -72,6 +72,25 @@ public:
 template<typename _Tp, _Tp ... _I> constexpr typename
 integer_sequence<_Tp, _I...>::value_type integer_sequence<_Tp, _I...>::value[];
 
+template<typename _Tp>
+struct integer_sequence<_Tp>
+{
+
+public:
+	typedef integer_sequence<_Tp> type;
+
+	typedef _Tp value_type;
+
+	static constexpr value_type value[] = { };
+
+	static constexpr size_t size()
+	{
+		return 0;
+	}
+
+};
+
+
 template<size_t ... Ints>
 using index_sequence = integer_sequence<std::size_t, Ints...>;
 
@@ -143,7 +162,7 @@ auto invoke(Func&& func,
 //
 namespace traits
 {
-template<typename T> struct description
+template<typename T> struct type_id
 {
 	static std::string name()
 	{

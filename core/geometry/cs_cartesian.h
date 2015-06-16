@@ -155,7 +155,7 @@ namespace traits
 {
 
 template<size_t NDIMS, size_t ICARTESIAN_ZAXIS>
-struct description<
+struct type_id<
 		geometry::coordinate_system::Cartesian<NDIMS, ICARTESIAN_ZAXIS> >
 {
 	static std::string name()

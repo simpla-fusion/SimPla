@@ -56,7 +56,7 @@ namespace simpla
  */
 //template<typename ... >struct RectMesh;
 template<typename TTopology, typename ...Policies>
-struct RectMesh:	public TTopology,
+struct RectMesh:	public MeshIDs_<traits::rank<CoordinateSystem>::value>,
 					public Policies...,
 					std::enable_shared_from_this<
 							RectMesh<TTopology, Policies...>>
@@ -902,7 +902,7 @@ template<typename TTopology, typename ... Polices> void RectMesh<TTopology,
 
 	m_is_valid_ = true;
 
-	VERBOSE << get_type_as_string() << " is deployed!" << std::endl;
+	VERBOSE<<get_type_as_string() << " is deployed!" << std::endl;
 
 }
 

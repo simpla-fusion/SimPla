@@ -17,7 +17,7 @@ namespace simpla
 {
 
 template<typename ...> class _Field;
-template<typename, size_t> class Domain;
+template<typename ...> class Domain;
 
 /**
  * @ingroup diff_geo
@@ -29,33 +29,33 @@ template<typename, size_t> class Domain;
  * @ingroup interpolator
  * @brief basic linear interpolator
  */
-class InterpolatorLinear
+namespace policy
+{
+template<typename TM, typename TAGS> struct interpolator;
+
+template<typename TM>
+struct interpolator<TM, tags::linear>
 {
 
 public:
-	typedef InterpolatorLinear this_type;
 
-	InterpolatorLinear()
-	{
-	}
+	typedef TM mesh_type;
 
-	InterpolatorLinear(this_type const & r) = default;
-
-	~InterpolatorLinear() = default;
+	typedef interpolator<mesh_type, tags::linear> this_type;
 
 private:
 
-	template<typename geometry_type, typename TD, typename TIDX>
+	template<typename TD, typename TIDX>
 	static auto gather_impl_(TD const & f,
 			TIDX const & idx) -> decltype(try_index(f, std::get<0>(idx) )* std::get<1>(idx)[0])
 	{
 
-		auto X = (geometry_type::_DI) << 1;
-		auto Y = (geometry_type::_DJ) << 1;
-		auto Z = (geometry_type::_DK) << 1;
+		auto X = (mesh_type::_DI) << 1;
+		auto Y = (mesh_type::_DJ) << 1;
+		auto Z = (mesh_type::_DK) << 1;
 
-		typename geometry_type::point_type r = std::get<1>(idx);
-		typename geometry_type::index_type s = std::get<0>(idx);
+		typename mesh_type::point_type r = std::get<1>(idx);
+		typename mesh_type::index_type s = std::get<0>(idx);
 
 		return try_index(f, ((s + X) + Y) + Z) * (r[0]) * (r[1]) * (r[2]) //
 		+ try_index(f, (s + X) + Y) * (r[0]) * (r[1]) * (1.0 - r[2]) //
@@ -68,50 +68,50 @@ private:
 	}
 public:
 
-	template<typename geometry_type, typename TF, typename TX>
-	static inline auto gather(geometry_type const & geo, TF const &f,
+	template<typename TF, typename TX>
+	static inline auto gather(mesh_type const & geo, TF const &f,
 			TX const & r)  //
 					ENABLE_IF_DECL_RET_TYPE(( traits::iform<TF>::value==VERTEX),
-							( gather_impl_<geometry_type>(f, geo. coordinates_global_to_local (r, 0 ) )))
+							( gather_impl_<mesh_type>(f, geo. coordinates_global_to_local (r, 0 ) )))
 
-	template<typename geometry_type, typename TF>
-	static auto gather(geometry_type const & geo, TF const &f,
-			typename geometry_type::point_type const & r)
+	template<typename TF>
+	static auto gather(mesh_type const & geo, TF const &f,
+			typename mesh_type::point_type const & r)
 					ENABLE_IF_DECL_RET_TYPE(( traits::iform<TF>::value==EDGE),
 							make_nTuple(
-									gather_impl_<geometry_type>(f, geo.coordinates_global_to_local(r, 1) ),
-									gather_impl_<geometry_type>(f, geo.coordinates_global_to_local(r, 2) ),
-									gather_impl_<geometry_type>(f, geo.coordinates_global_to_local(r, 4) )
+									gather_impl_<mesh_type>(f, geo.coordinates_global_to_local(r, 1) ),
+									gather_impl_<mesh_type>(f, geo.coordinates_global_to_local(r, 2) ),
+									gather_impl_<mesh_type>(f, geo.coordinates_global_to_local(r, 4) )
 							))
 
-	template<typename geometry_type, typename TF>
-	static auto gather(geometry_type const & geo, TF const &f,
-			typename geometry_type::point_type const & r)
+	template<typename TF>
+	static auto gather(mesh_type const & geo, TF const &f,
+			typename mesh_type::point_type const & r)
 					ENABLE_IF_DECL_RET_TYPE(
 							( traits::iform<TF>::value==FACE),
 							make_nTuple(
-									gather_impl_<geometry_type>(f, geo.coordinates_global_to_local(r,6) ),
-									gather_impl_<geometry_type>(f, geo.coordinates_global_to_local(r,5) ),
-									gather_impl_<geometry_type>(f, geo.coordinates_global_to_local(r,3) )
+									gather_impl_<mesh_type>(f, geo.coordinates_global_to_local(r,6) ),
+									gather_impl_<mesh_type>(f, geo.coordinates_global_to_local(r,5) ),
+									gather_impl_<mesh_type>(f, geo.coordinates_global_to_local(r,3) )
 							) )
 
-	template<typename geometry_type, typename TF>
-	static auto gather(geometry_type const & geo, TF const &f,
-			typename geometry_type::point_type const & x)
+	template<typename TF>
+	static auto gather(mesh_type const & geo, TF const &f,
+			typename mesh_type::point_type const & x)
 					ENABLE_IF_DECL_RET_TYPE(( traits::iform<TF>::value==VOLUME),
-							gather_impl_<geometry_type>(f, geo. coordinates_global_to_local (x ,7) ))
+							gather_impl_<mesh_type>(f, geo. coordinates_global_to_local (x ,7) ))
 
 private:
-	template<typename geometry_type, typename TF, typename IDX, typename TV>
+	template<typename TF, typename IDX, typename TV>
 	static inline void scatter_impl_(TF &f, IDX const& idx, TV const & v)
 	{
 
-		auto X = (geometry_type::_DI) << 1;
-		auto Y = (geometry_type::_DJ) << 1;
-		auto Z = (geometry_type::_DK) << 1;
+		auto X = (mesh_type::_DI) << 1;
+		auto Y = (mesh_type::_DJ) << 1;
+		auto Z = (mesh_type::_DK) << 1;
 
-		typename geometry_type::point_type r = std::get<1>(idx);
-		typename geometry_type::index_type s = std::get<0>(idx);
+		typename mesh_type::point_type r = std::get<1>(idx);
+		typename mesh_type::index_type s = std::get<0>(idx);
 
 		try_index(f, ((s + X) + Y) + Z) += v * (r[0]) * (r[1]) * (r[2]);
 		try_index(f, (s + X) + Y) += v * (r[0]) * (r[1]) * (1.0 - r[2]);
@@ -125,102 +125,106 @@ private:
 	}
 public:
 
-	template<typename geometry_type, typename ...TF, typename TV, typename TW>
-	static void scatter(geometry_type const & geo,
-			_Field<Domain<geometry_type, VERTEX>, TF...> &f,
-			typename geometry_type::point_type const & x, TV const &u,
-			TW const &w)
+	template<typename ...Others, typename ...TF, typename TV, typename TW>
+	static void scatter(mesh_type const & geo,
+			_Field<
+					Domain<mesh_type, std::integral_constant<size_t, VERTEX>,
+							Others...>, TF...> &f,
+			typename mesh_type::point_type const & x, TV const &u, TW const &w)
 	{
 
-		scatter_impl_<geometry_type>(f, geo.coordinates_global_to_local(x, 0),
+		scatter_impl_<mesh_type>(f, geo.coordinates_global_to_local(x, 0),
 				u * w);
 	}
 
-	template<typename geometry_type, typename ...TF, typename TV, typename TW>
-	static void scatter(geometry_type const & geo,
-			_Field<Domain<geometry_type, EDGE>, TF...> &f,
-			typename geometry_type::point_type const & x, TV const &u,
-			TW const & w)
+	template<typename ...Others, typename ...TF, typename TV, typename TW>
+	static void scatter(mesh_type const & geo,
+			_Field<
+					Domain<mesh_type, std::integral_constant<size_t, EDGE>,
+							Others...>, TF...> &f,
+			typename mesh_type::point_type const & x, TV const &u, TW const & w)
 	{
 
-		scatter_impl_<geometry_type>(f, geo.coordinates_global_to_local(x, 1),
+		scatter_impl_<mesh_type>(f, geo.coordinates_global_to_local(x, 1),
 				u[0] * w);
-		scatter_impl_<geometry_type>(f, geo.coordinates_global_to_local(x, 2),
+		scatter_impl_<mesh_type>(f, geo.coordinates_global_to_local(x, 2),
 				u[1] * w);
-		scatter_impl_<geometry_type>(f, geo.coordinates_global_to_local(x, 4),
+		scatter_impl_<mesh_type>(f, geo.coordinates_global_to_local(x, 4),
 				u[2] * w);
 
 	}
 
-	template<typename geometry_type, typename ...TF, typename TV, typename TW>
-	static void scatter(geometry_type const & geo,
-			_Field<Domain<geometry_type, FACE>, TF...>&f,
-			typename geometry_type::point_type const & x, TV const &u,
-			TW const &w)
+	template<typename ...Others, typename ...TF, typename TV, typename TW>
+	static void scatter(mesh_type const & geo,
+			_Field<
+					Domain<mesh_type, std::integral_constant<size_t, FACE>,
+							Others...>, TF...>&f,
+			typename mesh_type::point_type const & x, TV const &u, TW const &w)
 	{
 
-		scatter_impl_<geometry_type>(f, geo.coordinates_global_to_local(x, 6),
+		scatter_impl_<mesh_type>(f, geo.coordinates_global_to_local(x, 6),
 				u[0] * w);
-		scatter_impl_<geometry_type>(f, geo.coordinates_global_to_local(x, 5),
+		scatter_impl_<mesh_type>(f, geo.coordinates_global_to_local(x, 5),
 				u[1] * w);
-		scatter_impl_<geometry_type>(f, geo.coordinates_global_to_local(x, 3),
+		scatter_impl_<mesh_type>(f, geo.coordinates_global_to_local(x, 3),
 				u[2] * w);
 	}
 
-	template<typename geometry_type, typename ...TF, typename TV, typename TW>
-	static void scatter(geometry_type const & geo,
-			_Field<Domain<geometry_type, VOLUME>, TF...>&f,
-			typename geometry_type::point_type const & x, TV const &u,
-			TW const &w)
+	template<typename ...Others, typename ...TF, typename TV, typename TW>
+	static void scatter(mesh_type const & geo,
+			_Field<
+					Domain<mesh_type, std::integral_constant<size_t, VOLUME>,
+							Others...>, TF...>&f,
+			typename mesh_type::point_type const & x, TV const &u, TW const &w)
 	{
-		scatter_impl_<geometry_type>(f, geo.coordinates_global_to_local(x, 7),
-				w);
+		scatter_impl_<mesh_type>(f, geo.coordinates_global_to_local(x, 7), w);
 	}
 private:
-	template<typename geometry_type, typename TV>
-	static TV sample_(geometry_type const & geo,
+	template<typename TV>
+	static TV sample_(mesh_type const & geo,
 			std::integral_constant<size_t, VERTEX>, size_t s, TV const &v)
 	{
 		return v;
 	}
 
-	template<typename geometry_type, typename TV>
-	static TV sample_(geometry_type const & geo,
+	template<typename TV>
+	static TV sample_(mesh_type const & geo,
 			std::integral_constant<size_t, VOLUME>, size_t s, TV const &v)
 	{
 		return v;
 	}
 
-	template<typename geometry_type, typename TV>
-	static TV sample_(geometry_type const & geo,
+	template<typename TV>
+	static TV sample_(mesh_type const & geo,
 			std::integral_constant<size_t, EDGE>, size_t s,
 			nTuple<TV, 3> const &v)
 	{
-		return v[geometry_type::sub_index(s)];
+		return v[mesh_type::sub_index(s)];
 	}
 
-	template<typename geometry_type, typename TV>
-	static TV sample_(geometry_type const & geo,
+	template<typename TV>
+	static TV sample_(mesh_type const & geo,
 			std::integral_constant<size_t, FACE>, size_t s,
 			nTuple<TV, 3> const &v)
 	{
-		return v[geometry_type::sub_index(s)];
+		return v[mesh_type::sub_index(s)];
 	}
 
-	template<typename geometry_type, size_t IFORM, typename TV>
-	static TV sample_(geometry_type const & geo,
+	template<size_t IFORM, typename TV>
+	static TV sample_(mesh_type const & geo,
 			std::integral_constant<size_t, IFORM>, size_t s, TV const & v)
 	{
 		return v;
 	}
 public:
 
-	template<size_t IFORM, typename geometry_type, typename ...Args>
-	static auto sample(geometry_type const & geo, Args && ... args)
+	template<size_t IFORM, typename ...Args>
+	static auto sample(mesh_type const & geo, Args && ... args)
 	DECL_RET_TYPE((sample_(geo,std::integral_constant<size_t, IFORM>(),
 							std::forward<Args>(args)...)))
 }
 ;
+}  //namespace policy
 
 }
 // namespace simpla

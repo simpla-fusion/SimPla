@@ -8,27 +8,28 @@
 #ifndef CORE_FIELD_FIELD_DENSE_H_
 #define CORE_FIELD_FIELD_DENSE_H_
 
+#include <stddef.h>
 #include <algorithm>
 #include <cstdbool>
 #include <memory>
 #include <string>
-#include <tuple>
-#include <vector>
+#include <type_traits>
 
 #include "../application/sp_object.h"
 #include "../dataset/dataset.h"
-#include "../gtl/ntuple.h"
-#include "../gtl/primitives.h"
+#include "../dataset/datatype.h"
+#include "../gtl/expression_template.h"
 #include "../gtl/properties.h"
 #include "../gtl/type_traits.h"
-#include "../parallel/mpi_update.h"
+#include "../mesh/mesh.h"
+#include "../mesh/domain.h"
+
 #include "field_traits.h"
-#include "field_expression.h"
 
 namespace simpla
 {
 
-template<typename, size_t> struct Domain;
+template<typename ...> struct Domain;
 
 /**
  * @ingroup field
@@ -38,41 +39,42 @@ template<typename, size_t> struct Domain;
 /**
  *  Simple Field
  */
-template<typename TM, size_t IFORM, typename TV>
-struct _Field<Domain<TM, IFORM>, TV, tags::sequence_container> : public SpObject
+template<typename TM, size_t IFORM, typename TV, typename ... DomainPolicies,
+		typename ...Policies>
+struct _Field<
+		Domain<TM, std::integral_constant<size_t, IFORM>, DomainPolicies...>,
+		TV, Policies...> : public SpObject
 {
 public:
 
 	typedef TV value_type;
+	typedef TM mesh_type;
+	static constexpr size_t iform = IFORM;
 
-	typedef Domain<TM, IFORM> domain_type;
+	typedef Domain<TM, std::integral_constant<size_t, IFORM>, DomainPolicies...> domain_type;
 
-	typedef typename domain_type::mesh_type mesh_type;
-	static constexpr size_t iform = domain_type::iform;
 	typedef typename mesh_type::id_type id_type;
 	typedef typename mesh_type::point_type point_type;
 
-	typedef typename domain_type::template field_value_type<value_type> field_value_type;
-
-	typedef _Field<domain_type, value_type, tags::sequence_container> this_type;
+	typedef _Field<domain_type, value_type, Policies...> this_type;
 
 private:
 
 	domain_type m_domain_;
-	std::shared_ptr<TV> m_data_;
+	traits::container_t<this_type> m_data_;
 
 public:
 
-	_Field(domain_type const & d) :
-			m_domain_(d), m_data_(nullptr)
+	_Field(domain_type const & d)
+			: m_domain_(d), m_data_(nullptr)
 	{
 	}
-	_Field(this_type const & other) :
-			m_domain_(other.m_domain_), m_data_(other.m_data_)
+	_Field(this_type const & other)
+			: m_domain_(other.m_domain_), m_data_(other.m_data_)
 	{
 	}
-	_Field(this_type && other) :
-			m_domain_(other.m_domain_), m_data_(other.m_data_)
+	_Field(this_type && other)
+			: m_domain_(other.m_domain_), m_data_(other.m_data_)
 	{
 	}
 	~_Field()
@@ -83,14 +85,7 @@ public:
 		std::swap(m_domain_, other.m_domain_);
 		std::swap(m_data_, other.m_data_);
 	}
-	std::string get_type_as_string() const
-	{
-		return "Field<" + m_domain_.mesh().get_type_as_string() + ">";
-	}
-	mesh_type const & mesh() const
-	{
-		return m_domain_.mesh();
-	}
+
 	domain_type const & domain() const
 	{
 		return m_domain_;
@@ -100,6 +95,10 @@ public:
 		return m_domain_;
 	}
 	std::shared_ptr<value_type> data()
+	{
+		return m_data_;
+	}
+	std::shared_ptr<const value_type> data() const
 	{
 		return m_data_;
 	}
@@ -190,10 +189,9 @@ public:
 
 		wait();
 
-		mesh_type const & m = mesh();
 		m_domain_.for_each([&](id_type const &s)
 		{
-			op(at(s), m.calculate( other, s));
+			op(at(s), m_domain_.calculate( other, s));
 
 		});
 
@@ -227,9 +225,8 @@ public:
 			m_domain_.for_each(other.domain(),
 					[&](id_type const &s)
 					{
-						auto x=m_domain_.mesh().point(s);
-						auto t=m_domain_.mesh().time();
-						at(s)+=m_domain_.mesh().template sample<iform>(s,other(x,t,gather(x)));
+						auto x=m_domain_.point(s);
+						at(s)+= m_domain_.sample (s,other(x,m_domain_.time(),gather(x)));
 					});
 		}
 
@@ -248,33 +245,15 @@ public:
 			other.domain().for_each(
 					[&](id_type const &s)
 					{
-						auto x=m_domain_.mesh().point(s);
-						auto t=m_domain_.mesh().time();
-						at(s) =m_domain_.mesh().template sample<iform>(s,other(x,t,gather(x)));
+						auto x=m_domain_.point(s);
+						at(s) =m_domain_.sample(s,other(x,m_domain_.time(),gather(x)));
 					});
 		}
 
 		sync();
 	}
-public:
 
 	/** @} */
-
-	/** @name access
-	 *  @{*/
-
-	field_value_type gather(point_type const& x) const
-	{
-		return std::move(m_domain_.mesh().gather(*this, x));
-	}
-
-	template<typename ...Args>
-	void scatter(Args && ... args)
-	{
-		m_domain_.mesh().scatter(*this, std::forward<Args>(args)...);
-	}
-
-	/**@}*/
 
 	void deploy()
 	{
@@ -283,7 +262,7 @@ public:
 			m_data_ = sp_make_shared_array<value_type>(m_domain_.max_hash());
 		}
 
-		SpObject::prepare_sync(m_domain_.mesh().template ghost_shape<iform>());
+		SpObject::prepare_sync(m_domain_.ghost_shape());
 	}
 
 	DataSet dataset() const
@@ -327,7 +306,10 @@ public:
 	}
 
 public:
-
+	/**
+	 *  @name as_array
+	 *  @{
+	 */
 	value_type & operator[](id_type const & s)
 	{
 		return m_data_.get()[m_domain_.hash(s)];
@@ -349,29 +331,42 @@ public:
 	{
 		return (m_data_.get()[m_domain_.hash(std::forward<Args>(args)...)]);
 	}
+	/**
+	 * @}
+	 */
+
+	/** @name as_function
+	 *  @{*/
+	traits::field_value_t<this_type> gather(point_type const& x) const
+	{
+		return std::move(m_domain_.gather(*this, x));
+	}
 
 	template<typename ...Args>
-	field_value_type operator()(Args && ...args) const
+	void scatter(Args && ... args)
 	{
-		return m_domain_.mesh().gather(*this, std::forward<Args>(args)...);
+		m_domain_.scatter(*this, std::forward<Args>(args)...);
 	}
 
-	template<typename OS>
-	OS & print(OS & os) const
+	template<typename ...Args>
+	traits::field_value_t<this_type> operator()(Args && ...args) const
 	{
-		return dataset().print(os);
+		return m_domain_.gather(*this, std::forward<Args>(args)...);
 	}
+
+	/**@}*/
+
 }
 ;
-template<typename TM, size_t IFORM, typename ...Others, typename TI>
-typename _Field<Domain<TM, IFORM>, Others...>::value_type & try_index(
-		_Field<Domain<TM, IFORM>, Others...> & f, TI const &s)
+template<typename ... TM, typename ...Others, typename TI>
+typename _Field<Domain<TM...>, Others...>::value_type & try_index(
+		_Field<Domain<TM...>, Others...> & f, TI const &s)
 {
 	return f[s];
 }
-template<typename TM, size_t IFORM, typename ...Others, typename TI>
-typename _Field<Domain<TM, IFORM>, Others...>::value_type const& try_index(
-		_Field<Domain<TM, IFORM>, Others...> const& f, TI const &s)
+template<typename ...TM, typename ...Others, typename TI>
+typename _Field<Domain<TM ...>, Others...>::value_type const& try_index(
+		_Field<Domain<TM ...>, Others...> const& f, TI const &s)
 {
 	return f[s];
 }
@@ -379,25 +374,41 @@ namespace traits
 {
 namespace _impl
 {
-template<typename TM, size_t IFORM, typename ...Others>
-struct field_traits<_Field<Domain<TM, IFORM>, Others...>>
+template<typename ... TM, typename ...Others>
+struct field_traits<_Field<Domain<TM ...>, Others...>>
 {
 	static constexpr bool is_field = true;
 
-	typedef Domain<TM, IFORM> domain_type;
+	typedef Domain<TM ...> domain_type;
 
-	typedef typename _Field<Domain<TM, IFORM>, Others...>::value_type value_type;
+	typedef typename _Field<Domain<TM ...>, Others...>::value_type value_type;
 
-	static constexpr size_t iform = domain_type::iform;
+	static constexpr size_t iform = traits::iform<domain_type>::value;
 
-	static constexpr size_t ndims = domain_type::ndims;
+	static constexpr size_t ndims =
+			traits::rank<traits::mesh_t<domain_type>>::value;
 
 };
 }  // namespace _impl
-}  // namespace traits
-/**@} */
+
+template<typename ... TM, typename ...Others>
+struct type_id<_Field<Domain<TM ...>, Others...>>
+{
+	static const std::string name()
+	{
+		return _Field<Domain<TM ...>, Others...>::get_type_as_string();
+	}
+};
+
+template<typename OS, typename ... TM, typename ...Others>
+OS print(OS & os, _Field<Domain<TM ...>, Others...> const & f)
+{
+	return f.dataset().print(os);
+}
 
 }
-// namespace simpla
+// namespace traits
+
+}// namespace simpla
 
 #endif /* CORE_FIELD_FIELD_DENSE_H_ */

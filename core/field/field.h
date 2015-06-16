@@ -114,7 +114,7 @@ namespace simpla
 /**
  * Field Class
  */
-template<typename, size_t> struct Domain;
+template<typename ...> struct Domain;
 template<typename ... >struct _Field;
 
 //template<typename TV, typename TD>
@@ -139,24 +139,37 @@ template<typename ... >struct _Field;
 //			_Field<Domain<TM, IFORM>, TV, tags::sequence_container>(
 //					Domain<TM, IFORM>(mesh)));
 //}
-template<size_t IFORM, typename TV, typename TM>
-_Field<Domain<TM, IFORM>, TV, tags::sequence_container> make_form(
-		std::shared_ptr<TM> const & pmesh)
+template<size_t IFORM, typename TV, typename ... Others, typename TM>
+_Field<Domain<TM, std::integral_constant<size_t, IFORM>, Others...>, TV,
+		tags::sequence_container> make_form(std::shared_ptr<TM> const & pmesh)
 {
 	return std::move(
-			_Field<Domain<TM, IFORM>, TV, tags::sequence_container>(
-					Domain<TM, IFORM>(*pmesh)));
+			_Field<Domain<TM, std::integral_constant<size_t, IFORM>, Others...>,
+					TV, tags::sequence_container>(
+					Domain<TM, std::integral_constant<size_t, IFORM>, Others...>(
+							*pmesh)));
 }
 
-template<size_t IFORM, typename TV, typename TM>
-_Field<Domain<TM, IFORM>, TV, tags::sequence_container> make_form(
+template<typename TV, typename TM, typename ... Others>
+_Field<Domain<TM, Others...>, TV, tags::sequence_container> make_form(
 		TM const & mesh)
 {
 	return std::move(
-			_Field<Domain<TM, IFORM>, TV, tags::sequence_container>(
-					Domain<TM, IFORM>(mesh)));
+			_Field<Domain<TM, Others...>, TV, tags::sequence_container>(
+					Domain<TM, Others...>(mesh)));
 }
 /** @} */
+
+namespace traits
+{
+template<typename ... T>
+struct domain_type<_Field<T...> >
+{
+	typedef typename _impl::field_traits<_Field<T...>>::domain_type type;
+};
+
+}  // namespace traits
+
 }
 // namespace simpla
 

@@ -10,30 +10,37 @@
 
 #include <stddef.h>
 #include <algorithm>
-#include <functional>
-#include <iterator>
-#include <limits>
+#include <cmath>
+#include <cstdbool>
+#include <memory>
 #include <string>
 #include <tuple>
-#include <type_traits>
 #include <utility>
+#include <vector>
 
-#include "../utilities/utilities.h"
-#include "../gtl/type_traits.h"
-#include "../gtl/ntuple.h"
-#include "../gtl/primitives.h"
-#include "../gtl/mpl.h"
-
-#include "../field/field_expression.h"
-#include "../parallel/mpi_update.h"
+#include "../dataset/dataspace.h"
 #include "../geometry/coordinate_system.h"
-#include "../gtl/function_cache.h"
-
-#include "domain.h"
+#include "../gtl/macro.h"
+#include "../gtl/primitives.h"
+#include "../gtl/type_traits.h"
+#include "../parallel/mpi_comm.h"
+#include "../parallel/mpi_update.h"
+#include "../physics/physical_constants.h"
+#include "../utilities/log.h"
+#include "mesh.h"
 #include "mesh_ids.h"
+#include "policy.h"
 
 namespace simpla
 {
+namespace tags
+{
+struct structured;
+
+}  // namespace tags
+
+template<typename ... > struct Mesh;
+
 /**
  * @ingroup mesh
  *  @brief  structured mesh, n-dimensional array
@@ -60,12 +67,12 @@ namespace simpla
  * \endverbatim
  *  - the unit cell width is 1;
  */
-template<typename CoordinateSystem, typename ...Policies>
-struct StructuredMesh: public MeshIDs_<
-		geometry::traits::dimension<CoordinateSystem>::value>,
-		public Policies...,
-		public std::enable_shared_from_this<
-				StructuredMesh<CoordinateSystem, Policies...> >
+template<typename CoordinateSystem>
+struct Mesh<CoordinateSystem, simpla::tags::structured>
+
+:	public MeshIDs_<geometry::traits::dimension<CoordinateSystem>::value>,
+	public std::enable_shared_from_this<
+			Mesh<CoordinateSystem, simpla::tags::structured> >
 {
 	typedef CoordinateSystem cs_type;
 
@@ -75,10 +82,7 @@ struct StructuredMesh: public MeshIDs_<
 
 	typedef MeshIDs_<ndims> topology_type;
 
-	typedef mpl::unpack_type_seq_t<0, Policies...> interpolatpr_policy;
-	typedef mpl::unpack_type_seq_t<1, Policies...> calculate_policy;
-
-	typedef StructuredMesh<cs_type, Policies...> this_type;
+	typedef Mesh<cs_type, tags::structured> this_type;
 
 	typedef Real scalar_type;
 
@@ -98,32 +102,6 @@ struct StructuredMesh: public MeshIDs_<
 
 	typedef geometry::traits::vector_t<cs_type> vector_type;
 
-	template<size_t IFORM, typename TV> using field=
-	_Field<Domain<this_type,IFORM>,TV,tags::sequence_container>;
-
-	template<size_t IFORM, typename TV>
-	_Field<Domain<this_type, IFORM>, TV, tags::sequence_container> make_form() const
-	{
-		return std::move(make_field<IFORM, TV>());
-	}
-	template<size_t IFORM, typename TV>
-	_Field<Domain<this_type, IFORM>, TV, tags::sequence_container> make_field() const
-	{
-		return _Field<Domain<this_type, IFORM>, TV, tags::sequence_container>(
-				domain<IFORM>());
-	}
-
-	template<size_t IFORM>
-	Domain<this_type, IFORM> domain() const
-	{
-		return Domain<this_type, IFORM>(*this);
-	}
-
-	template<size_t IFORM, typename ...Args>
-	Domain<this_type, IFORM> domain(Args &&... args) const
-	{
-		return Domain<this_type, IFORM>(*this, std::forward<Args>(args)...);
-	}
 private:
 
 	static constexpr size_t DEFAULT_GHOST_WIDTH = 2;
@@ -202,15 +180,16 @@ public:
 
 //***************************************************************************************************
 
-	StructuredMesh()
+	Mesh()
 	{
 	}
 
-	~StructuredMesh()
+	~Mesh()
 	{
 	}
 
-	StructuredMesh(this_type const & other) :
+	Mesh(this_type const & other)
+			:
 
 			m_id_min_(other.m_id_min_),
 
@@ -333,7 +312,7 @@ public:
 
 	static std::string get_type_as_string()
 	{
-		return "StructuredMesh<" + traits::description<cs_type>::name() + ">";
+		return "Mesh<" + traits::type_id<cs_type>::name() + ">";
 	}
 
 	constexpr bool is_valid() const
@@ -382,23 +361,6 @@ public:
 	}
 
 	void deploy(size_t const *gw = nullptr);
-
-	template<size_t IFORM, typename ...Args> auto sample(
-			Args && ...args) const
-					DECL_RET_TYPE( interpolatpr_policy:: template sample<IFORM>( *this ,std::forward<Args>(args)...))
-
-	template<typename ...Args> auto calculate(
-			Args && ...args) const
-					DECL_RET_TYPE((calculate_policy:: calculate( *this,std::forward<Args>(args)...)))
-
-	template<typename ...Args> auto gather(
-			Args && ...args) const
-					DECL_RET_TYPE((interpolatpr_policy::gather( *this,std::forward<Args>(args)...)))
-
-	template<typename ...Args> void scatter(Args && ...args) const
-	{
-		interpolatpr_policy::scatter(*this, std::forward<Args>(args)...);
-	}
 
 	/**
 	 * 	@name  Time
@@ -769,11 +731,11 @@ public:
 
 };
 
-template<typename TTopology, typename ... Polices> constexpr size_t StructuredMesh<
-		TTopology, Polices...>::DEFAULT_GHOST_WIDTH;
+template<typename CoordinateSystem> constexpr size_t Mesh<CoordinateSystem,
+		tags::structured>::DEFAULT_GHOST_WIDTH;
 
-template<typename TTopology, typename ... Polices> void StructuredMesh<
-		TTopology, Polices...>::deploy(size_t const *gw)
+template<typename CoordinateSystem>
+void Mesh<CoordinateSystem, tags::structured>::deploy(size_t const *gw)
 {
 	nTuple<id_type, ndims> dims = topology_type::unpack_index(
 			m_id_max_ - m_id_min_);
@@ -948,17 +910,15 @@ template<typename TTopology, typename ... Polices> void StructuredMesh<
 			{
 				ERROR(
 				"Dimension is to small to split!["
-				" Dimensions= "
-				+ type_cast<std::string>(
-						topology_type::unpack_index(
+				" Dimensions= " + type_cast < std::string
+				> (topology_type::unpack_index(
 								m_id_max_ - m_id_min_))
-				+ " , Local dimensions="
-				+ type_cast<std::string>(
-						topology_type::unpack_index(
-								m_id_local_max_
-								- m_id_local_min_))
-				+ " , Ghost width ="
-				+ type_cast<std::string>(ghost_width) + "]");
+				+ " , Local dimensions=" + type_cast
+				< std::string
+				> (topology_type::unpack_index(
+								m_id_local_max_ - m_id_local_min_))
+				+ " , Ghost width =" + type_cast
+				< std::string > (ghost_width) + "]");
 			}
 
 		}
@@ -993,13 +953,6 @@ template<typename TTopology, typename ... Polices> void StructuredMesh<
 
 	VERBOSE<<get_type_as_string() << " is deployed!" << std::endl;
 
-}
-
-template<typename TTopology, typename ... Polices>
-std::ostream & operator<<(std::ostream & os,
-		StructuredMesh<TTopology, Polices...> const &d)
-{
-	return d.print(os);
 }
 
 }

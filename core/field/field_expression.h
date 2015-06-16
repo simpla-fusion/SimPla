@@ -16,7 +16,7 @@ namespace simpla
  *  @{
  */
 template<typename ... >struct _Field;
-template<typename, size_t> struct Domain;
+template<typename ...> struct Domain;
 
 /// @name  Field Expression
 /// @{

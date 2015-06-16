@@ -9,7 +9,10 @@
 #define CORE_GTL_INTEGER_SEQUENCE_H_
 
 #include <stddef.h>
-#include <tuple>
+#include <type_traits>
+
+#include "macro.h"
+#include "type_traits.h"
 
 namespace simpla
 {

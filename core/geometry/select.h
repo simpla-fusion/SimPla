@@ -17,7 +17,7 @@
 namespace simpla
 {
 
-template<typename, size_t> struct Domain;
+template<typename ...> struct Domain;
 
 //template<typename TPred, typename InOut>
 //void filter(TPred const & pred, InOut *res)
@@ -296,21 +296,21 @@ void select_cell_cross_polylines(PIP const & point_in_polygon, TDomain * domain,
 
 	});
 }
-template<typename TM, size_t IFORM, typename TI>
-void select_boundary_by_polylines(Domain<TM, IFORM> *domain, TI const & ib,
+template<typename ... TM, typename TI>
+void select_boundary_by_polylines(Domain<TM...> *domain, TI const & ib,
 		TI const &ie, int ZAxis = 2,
 		int flag = 0 /* 0 in side,1 out side,2 intersection */)
 {
 	// FIXME This implement is O(N^2), NEED OPTIMIZATION;
 
-	typedef TM mesh_type;
+	typedef traits::mesh_t<Domain<TM...>> mesh_type;
 	typedef typename mesh_type::id_type id_type;
 	typedef typename mesh_type::point_type point_type;
 	typedef typename mesh_type::topology_type topology;
 
 	mesh_type const & mesh = domain->mesh();
-	static constexpr size_t ndims = mesh_type::ndims;
-	static constexpr size_t iform = IFORM;
+	static constexpr size_t ndims = traits::rank<Domain<TM...>>::value;
+	static constexpr size_t iform = traits::iform<Domain<TM...>>::value;
 
 	std::map<id_type, std::tuple<Real, Real, TI, TI>> vmap;
 
@@ -430,8 +430,8 @@ void select_boundary_by_polylines(Domain<TM, IFORM> *domain, TI const & ib,
  * @param dict
  * @param domain
  */
-template<typename TDict, typename TM, size_t IFORM>
-void select_boundary(TDict const &dict, Domain<TM, IFORM> *domain)
+template<typename TDict, typename ... TM>
+void select_boundary(TDict const &dict, Domain<TM...> *domain)
 {
 	if (dict["Polylines"])
 	{

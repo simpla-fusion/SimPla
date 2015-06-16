@@ -7,9 +7,15 @@
 
 #ifndef CORE_MESH_MESH_H_
 #define CORE_MESH_MESH_H_
-#include "structured.h"
-#include "structured/fdm.h"
-#include "structured/interpolator.h"
+
+#include <cstddef>
+#include <iostream>
+#include <memory>
+#include <type_traits>
+
+#include "../geometry/coordinate_system.h"
+#include "../gtl/type_traits.h"
+
 namespace simpla
 {
 /**
@@ -44,7 +50,7 @@ namespace simpla
  *
  *  Member type	 				    | Semantics
  *  --------------------------------|--------------
- *  coordinate_tuple				| datatype of coordinates
+ *  point_type						| datatype of configuration space point (coordinates i.e. (x,y,z)
  *  id_type						    | datatype of grid point's index
  *
  *
@@ -52,6 +58,13 @@ namespace simpla
 
  */
 
+template<typename ...> struct Mesh;
+
+template<typename ... T>
+std::ostream & operator<<(std::ostream & os, Mesh<T...> const &d)
+{
+	return d.print(os);
+}
 //template<typename TM, typename ... Args>
 //std::shared_ptr<TM> make_mesh(Args && ...args)
 //{
@@ -65,15 +78,29 @@ std::shared_ptr<TM> make_mesh()
 
 namespace traits
 {
-template<typename > struct ZAxis: public std::integral_constant<size_t, 2>
+
+template<typename CS, typename TAG>
+struct type_id<Mesh<CS, TAG> >
+{
+
+	;
+};
+
+template<typename >
+struct ZAxis: public std::integral_constant<size_t, 2>
 {
 	;
 };
 
-template<typename TM, typename ...Others>
-struct ZAxis<StructuredMesh<TM, Others...>> : public geometry::traits::ZAxis<TM>::type
+template<typename CS, typename ...Others>
+struct ZAxis<Mesh<CS, Others...>> : public geometry::traits::ZAxis<CS>::type
 {
 };
+template<typename > struct mesh_type
+{
+	typedef std::nullptr_t type;
+};
+template<typename T> using mesh_t= typename mesh_type<T>::type;
 
 }  // namespace traits
 

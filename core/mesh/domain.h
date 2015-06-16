@@ -9,39 +9,79 @@
 #define CORE_MESH_DOMAIN_H_
 
 #include <stddef.h>
+#include <algorithm>
 #include <cstdbool>
-#include <iterator>
-#include <memory>
+#include <functional>
 #include <set>
+#include <tuple>
 #include <type_traits>
 
-#include "../gtl/iterator/sp_ntuple_range.h"
+#include "../dataset/dataspace.h"
+#include "../gtl/macro.h"
+#include "../gtl/mpl.h"
 #include "../gtl/ntuple.h"
+#include "../utilities/log.h"
 #include "mesh_ids.h"
+#include "policy.h"
 
 namespace simpla
 {
+
 template<typename ...> struct _Field;
 
-template<typename TM, size_t IFORM>
-struct Domain;
+template<typename ...> struct Domain;
+
+template<size_t IFORM, typename ...Policies, typename TM>
+Domain<TM, std::integral_constant<size_t, IFORM>, Policies...> make_domain(
+		TM const & mesh)
+{
+	return Domain<TM, std::integral_constant<size_t, IFORM>, Policies...>(mesh);
+}
+
 typedef std::integral_constant<int, 0> null_domain;
 typedef std::integral_constant<int, 1> full_domain;
 
+namespace traits
+{
 template<typename T>
-struct domain_traits
+struct is_domain: public std::integral_constant<bool, false>
+{
+};
+template<typename ...T>
+struct is_domain<Domain<T...>> : public std::integral_constant<bool, true>
+{
+};
+
+template<typename T>
+struct domain_type
 {
 	typedef full_domain type;
 };
 
-template<size_t IFORM, typename TM, typename ...Others>
-struct domain_traits<_Field<Domain<TM, IFORM>, Others...>>
+template<typename ...T> using domain_t= typename domain_type<T...>::type;
+
+template<typename > struct mesh_type;
+
+template<typename TM, typename ...Others>
+struct mesh_type<Domain<TM, Others...> >
 {
-	typedef Domain<TM, IFORM> type;
+	typedef TM type;
 };
 
-template<typename TM, size_t IFORM>
-struct Domain: public TM::range_type
+template<typename > struct iform;
+template<typename TM, size_t IFORM, typename ...Others>
+struct iform<Domain<TM, std::integral_constant<size_t, IFORM>, Others...> >
+{
+	static constexpr size_t value = IFORM;
+};
+
+template<typename TM, size_t IFORM, typename ...Others>
+constexpr size_t iform<
+		Domain<TM, std::integral_constant<size_t, IFORM>, Others...> >::value;
+
+}  // namespace traits
+template<typename TM, size_t IFORM, typename ... Policies>
+struct Domain<TM, std::integral_constant<size_t, IFORM>, Policies...> : public TM::range_type
 {
 
 public:
@@ -50,7 +90,7 @@ public:
 	static constexpr size_t iform = IFORM;
 	static constexpr size_t ndims = mesh_type::ndims;
 
-	typedef Domain<mesh_type, iform> this_type;
+	typedef Domain<mesh_type, std::integral_constant<size_t, iform>, Policies...> this_type;
 
 	typedef typename mesh_type::id_type id_type;
 	typedef typename mesh_type::point_type point_type;
@@ -60,29 +100,27 @@ public:
 	typedef typename mesh_type::range_type range_type;
 
 	typedef typename range_type::iterator const_iterator;
+
 	using range_type::begin;
 	using range_type::end;
-
-	template<typename TV>
-	using field_value_type=typename std::conditional<(iform == VERTEX || iform == VOLUME),TV,nTuple<TV,3>>::type;
 
 	mesh_type const &m_mesh_;
 	std::set<id_type> m_id_set_;
 public:
 
-	Domain(mesh_type const &m) :
-			range_type(m.range(mesh_type::template sub_index_to_id<iform>())), m_mesh_(
+	Domain(mesh_type const &m)
+			: range_type(m.range(mesh_type::template sub_index_to_id<iform>())), m_mesh_(
 					m)
 	{
 	}
 
-	Domain(this_type const & other) :
-			range_type(other), m_mesh_(other.m_mesh_), m_id_set_(
+	Domain(this_type const & other)
+			: range_type(other), m_mesh_(other.m_mesh_), m_id_set_(
 					other.m_id_set_)
 	{
 	}
-	Domain(this_type && other) :
-			range_type(other), m_mesh_(other.m_mesh_), m_id_set_(
+	Domain(this_type && other)
+			: range_type(other), m_mesh_(other.m_mesh_), m_id_set_(
 					other.m_id_set_)
 	{
 	}
@@ -167,7 +205,7 @@ public:
 
 	constexpr size_t max_hash() const
 	{
-		return mesh().template max_hash<iform>();
+		return m_mesh_.template max_hash<iform>();
 	}
 
 	constexpr size_t hash(id_type s) const
@@ -180,6 +218,9 @@ public:
 	{
 		return m_mesh_.hash(m_mesh_.template pack_index<iform>(i, j, k, n));
 	}
+
+	auto ghost_shape() const
+	DECL_RET_TYPE((m_mesh_.template ghost_shape<iform>()))
 
 	constexpr id_type pack_relative_index(index_type i, index_type j,
 			index_type k, index_type n = 0) const
@@ -478,25 +519,58 @@ public:
 
 	/** @}*/
 
+	typedef typename std::conditional<(sizeof...(Policies) >0),
+	mpl::unpack_type_seq_t<0, Policies...>,tags::linear>::type
+	policy_interpolator_tag;
+
+	typedef policy::interpolator<mesh_type,policy_interpolator_tag>policy_interpolator;
+
+	typedef typename std::conditional<(sizeof...(Policies) >1),
+	mpl::unpack_type_seq_t<1, Policies...>,tags::finite_difference>::type
+	policy_calculate_tag;
+
+	typedef policy::calculate<mesh_type,policy_calculate_tag> policy_calculate;
+
+	template< typename ...Args>
+	auto sample(
+	Args && ...args) const
+	DECL_RET_TYPE( policy_interpolator::template sample<iform>( m_mesh_ ,std::forward<Args>(args)...))
+
+
+	template<typename ...Args>
+	auto gather(
+			Args && ...args) const
+					DECL_RET_TYPE((policy_interpolator::gather( m_mesh_,std::forward<Args>(args)...)))
+
+	template<typename ...Args>
+	void scatter(Args && ...args) const
+	{
+		policy_interpolator::scatter(m_mesh_, std::forward<Args>(args)...);
+	}
+
+	template<typename ...Args>
+	auto calculate(Args && ...args) const
+	DECL_RET_TYPE((policy_calculate::eval( m_mesh_,std::forward<Args>(args)...)))
+
 };
 
-namespace _impl
-{
+//namespace _impl
+//{
+//
+//HAS_MEMBER_FUNCTION(domain)
+//
+//}  // namespace _impl
+//
+//template<typename T>
+//auto domain(T const & obj)
+//ENABLE_IF_DECL_RET_TYPE(
+//		_impl::has_member_function_domain<T>::value,obj.domain())
+//
+//template<typename T>
+//auto domain(T const & obj)
+//ENABLE_IF_DECL_RET_TYPE(
+//		!_impl::has_member_function_domain<T>::value,full_domain())
 
-HAS_MEMBER_FUNCTION(domain)
-
-}  // namespace _impl
-
-template<typename T>
-auto domain(T const & obj)
-ENABLE_IF_DECL_RET_TYPE(
-		_impl::has_member_function_domain<T>::value,obj.domain())
-
-template<typename T>
-auto domain(T const & obj)
-ENABLE_IF_DECL_RET_TYPE(
-		!_impl::has_member_function_domain<T>::value,full_domain())
-
-}  // namespace simpla
+} // namespace simpla
 
 #endif /* CORE_MESH_DOMAIN_H_ */
