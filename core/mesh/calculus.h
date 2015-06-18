@@ -50,36 +50,30 @@ template<typename ... > class Expression;
  */
 namespace tags
 {
-template<size_t IL, typename T> struct HodgeStar
-{
-};
-template<size_t IL, size_t IR, typename TL, typename TR> struct InteriorProduct
-{
-};
-template<size_t IL, size_t IR, typename TL, typename TR> struct Wedge
-{
-};
+struct HodgeStar;
+struct InteriorProduct;
+struct Wedge;
 } //namespace _impl
 
-template<size_t IL, typename T>
-struct _Field<tags::HodgeStar<IL, T>> : public Expression<
-		tags::HodgeStar<IL, T>, T, std::nullptr_t>
+template<typename T>
+struct _Field<Expression<tags::HodgeStar, T> > : public Expression<
+		tags::HodgeStar, T, std::nullptr_t>
 {
-	using Expression<tags::HodgeStar<IL, T>, T, std::nullptr_t>::Expression;
+	using Expression<tags::HodgeStar, T, std::nullptr_t>::Expression;
 };
 
-template<size_t IL, size_t IR, typename TL, typename TR>
-struct _Field<tags::InteriorProduct<IL, IR, TL, TR>> : public Expression<
-		tags::InteriorProduct<IL, IR, TL, TR>, TL, TR>
+template<typename TL, typename TR>
+struct _Field<Expression<tags::InteriorProduct, TL, TR> > : public Expression<
+		tags::InteriorProduct, TL, TR>
 {
-	using Expression<tags::InteriorProduct<IL, IR, TL, TR>, TL, TR>::Expression;
+	using Expression<tags::InteriorProduct, TL, TR>::Expression;
 };
 
-template<size_t IL, size_t IR, typename TL, typename TR>
-struct _Field<tags::Wedge<IL, IR, TL, TR>> : public Expression<
-		tags::Wedge<IL, IR, TL, TR>, TL, TR>
+template<typename TL, typename TR>
+struct _Field<Expression<tags::Wedge, TL, TR> > : public Expression<tags::Wedge,
+		TL, TR>
 {
-	using Expression<tags::Wedge<IL, IR, TL, TR>, TL, TR>::Expression;
+	using Expression<tags::Wedge, TL, TR>::Expression;
 };
 namespace traits
 {
@@ -89,8 +83,8 @@ namespace _impl
 
 template<typename ...> struct field_traits;
 
-template<size_t IL, typename T>
-struct field_traits<_Field<simpla::tags::HodgeStar<IL, T> > >
+template<typename T>
+struct field_traits<_Field<Expression<simpla::tags::HodgeStar, T> > >
 {
 private:
 	static constexpr size_t NDIMS = traits::rank<T>::value;
@@ -107,8 +101,8 @@ public:
 			nTuple<value_type, 3>, value_type>::type field_value_type;
 };
 
-template<size_t IL, size_t IR, typename TL, typename TR>
-struct field_traits<_Field<simpla::tags::InteriorProduct<IL, IR, TL, TR> > >
+template<typename TL, typename TR>
+struct field_traits<_Field<Expression<simpla::tags::InteriorProduct, TL, TR> > >
 {
 private:
 	static constexpr size_t NDIMS = mpl::max<size_t, traits::rank<TL>::value,
@@ -130,8 +124,8 @@ public:
 			nTuple<value_type, 3>, value_type>::type field_value_type;
 };
 
-template<size_t IL, size_t IR, typename TL, typename TR>
-struct field_traits<_Field<simpla::tags::Wedge<IL, IR, TL, TR> > >
+template<typename TL, typename TR>
+struct field_traits<_Field<Expression<simpla::tags::Wedge, TL, TR> > >
 {
 private:
 	static constexpr size_t NDIMS = mpl::max<size_t, traits::rank<TL>::value,
@@ -156,20 +150,15 @@ public:
 }  // namespace traits
 template<typename T>
 inline auto hodge_star(T const & f)
-DECL_RET_TYPE(( _Field<tags::HodgeStar<
-				traits::iform<T>::value , T >>(f)))
+DECL_RET_TYPE(( _Field<Expression<tags::HodgeStar , T >>(f)))
 
 template<typename TL, typename TR>
 inline auto wedge(TL const & l, TR const & r)
-DECL_RET_TYPE((_Field< tags::Wedge<
-				traits::iform<TL>::value, traits::iform<TR>::value
-				, TL, TR> > (l, r)))
+DECL_RET_TYPE((_Field<Expression< tags::Wedge , TL, TR> > (l, r)))
 
 template<typename TL, typename TR>
 inline auto interior_product(TL const & l, TR const & r)
-DECL_RET_TYPE((_Field< tags::InteriorProduct<
-				traits::iform<TL>::value, traits::iform<TR>::value
-				, TL, TR>> (l, r)))
+DECL_RET_TYPE((_Field<Expression< tags::InteriorProduct , TL, TR>> (l, r)))
 
 template<typename ...T>
 inline auto operator*(_Field<T...> const & f)
@@ -257,12 +246,7 @@ template<typename ... T, typename TL> inline auto cross(_Field<T...> const & f,
  */
 namespace tags
 {
-
-template<size_t IL, size_t IR, typename T>
-struct MapTo
-{
-};
-
+struct MapTo;
 }  // namespace _impl
 
 namespace traits
@@ -270,8 +254,11 @@ namespace traits
 namespace _impl
 {
 
-template<size_t IL, size_t IR, typename T>
-struct field_traits<_Field<simpla::tags::MapTo<IL, IR, T> > >
+template<size_t IR, typename T>
+struct field_traits<
+		_Field<
+				Expression<simpla::tags::MapTo,
+						std::integral_constant<size_t, IR>, T> > >
 {
 	static constexpr size_t NDIMS = traits::rank<T>::value;
 public:
@@ -282,13 +269,18 @@ public:
 	typedef traits::domain_t<T> domain_type;
 };
 
-}  // namespace _impl
-}  // namespace traits
+}
+// namespace _impl
+}// namespace traits
 
 template<size_t IR, typename T>
-inline _Field<tags::MapTo<traits::iform<T>::value, IR, T>> map_to(T const & f)
+inline _Field<Expression<tags::MapTo, std::integral_constant<size_t, IR>, T> > map_to(
+		T const & f)
 {
-	return std::move((_Field<tags::MapTo<traits::iform<T>::value, IR, T>>(f)));
+	return std::move(
+			(_Field<
+					Expression<tags::MapTo, std::integral_constant<size_t, IR>,
+							T> >(f)));
 }
 
 /** @} */
@@ -312,26 +304,22 @@ inline _Field<tags::MapTo<traits::iform<T>::value, IR, T>> map_to(T const & f)
 namespace tags
 {
 
-template<size_t IL, typename T> struct ExteriorDerivative
-{
-};
-template<size_t IL, typename T> struct CodifferentialDerivative
-{
-};
+struct ExteriorDerivative;
+struct CodifferentialDerivative;
 
 }  // namespace _impl
 template<size_t IL, typename T>
-struct _Field<tags::ExteriorDerivative<IL, T>> : public Expression<
-		tags::ExteriorDerivative<IL, T>, T, std::nullptr_t>
+struct _Field<Expression<tags::ExteriorDerivative, T> > : public Expression<
+		tags::ExteriorDerivative, T, std::nullptr_t>
 {
-	using Expression<tags::ExteriorDerivative<IL, T>, T, std::nullptr_t>::Expression;
+	using Expression<tags::ExteriorDerivative, T, std::nullptr_t>::Expression;
 };
 
 template<size_t IL, typename T>
-struct _Field<tags::CodifferentialDerivative<IL, T>> : public Expression<
-		tags::CodifferentialDerivative<IL, T>, T, std::nullptr_t>
+struct _Field<Expression<tags::CodifferentialDerivative, T> > : public Expression<
+		tags::CodifferentialDerivative, T, std::nullptr_t>
 {
-	using Expression<tags::CodifferentialDerivative<IL, T>, T, std::nullptr_t>::Expression;
+	using Expression<tags::CodifferentialDerivative, T, std::nullptr_t>::Expression;
 };
 namespace traits
 {
@@ -340,7 +328,7 @@ namespace _impl
 {
 
 template<size_t IL, typename T>
-struct field_traits<_Field<simpla::tags::ExteriorDerivative<IL, T> > >
+struct field_traits<_Field<Expression<simpla::tags::ExteriorDerivative, T> > >
 {
 private:
 	static constexpr size_t NDIMS = traits::rank<T>::value;
@@ -359,7 +347,8 @@ public:
 
 };
 template<size_t IL, typename T>
-struct field_traits<_Field<simpla::tags::CodifferentialDerivative<IL, T> > >
+struct field_traits<
+		_Field<Expression<simpla::tags::CodifferentialDerivative, T> > >
 {
 private:
 	static constexpr size_t NDIMS = traits::rank<T>::value;
@@ -379,13 +368,11 @@ public:
 }  // namespace traits
 template<typename T>
 inline auto exterior_derivative(T const & f)
-DECL_RET_TYPE(( _Field<tags::ExteriorDerivative<
-				traits::iform<T>::value , T >>(f)))
+DECL_RET_TYPE(( _Field<Expression<tags::ExteriorDerivative, T > >(f)))
 
 template<typename T>
 inline auto codifferential_derivative(T const & f)
-DECL_RET_TYPE((_Field< tags::CodifferentialDerivative<
-				traits::iform<T>::value , T >>(f)))
+DECL_RET_TYPE((_Field<Expression< tags::CodifferentialDerivative, T >>(f)))
 
 template<typename ... T>
 inline auto d(_Field<T...> const & f)
@@ -453,7 +440,7 @@ template<size_t IL, size_t IR, typename T> struct PartialCodifferentialDerivativ
 } //namespace _impl
 
 template<size_t IL, size_t IR, typename T>
-struct _Field<tags::PartialExteriorDerivative<IL, IR, T>> : public Expression<
+struct _Field<Expression<tags::PartialExteriorDerivative<IL, IR, T> > > : public Expression<
 		tags::PartialExteriorDerivative<IL, IR, T>, T, std::nullptr_t>
 {
 	using Expression<tags::PartialExteriorDerivative<IL, IR, T>, T,
@@ -461,7 +448,7 @@ struct _Field<tags::PartialExteriorDerivative<IL, IR, T>> : public Expression<
 };
 
 template<size_t IL, size_t IR, typename T>
-struct _Field<tags::PartialCodifferentialDerivative<IL, IR, T>> : public Expression<
+struct _Field<Expression<tags::PartialCodifferentialDerivative<IL, IR, T> > > : public Expression<
 		tags::PartialCodifferentialDerivative<IL, IR, T>, T, std::nullptr_t>
 {
 	using Expression<tags::PartialCodifferentialDerivative<IL, IR, T>, T,
@@ -475,7 +462,8 @@ namespace _impl
 {
 
 template<size_t IL, size_t IR, typename T>
-struct field_traits<_Field<simpla::tags::PartialExteriorDerivative<IL, IR, T> > >
+struct field_traits<
+		_Field<Expression<simpla::tags::PartialExteriorDerivative<IL, IR, T> > > >
 {
 private:
 	static constexpr size_t NDIMS = traits::rank<T>::value;
@@ -492,7 +480,9 @@ public:
 };
 template<size_t IL, size_t IR, typename T>
 struct field_traits<
-		_Field<simpla::tags::PartialCodifferentialDerivative<IL, IR, T> > >
+		_Field<
+				Expression<
+						simpla::tags::PartialCodifferentialDerivative<IL, IR, T> > > >
 {
 private:
 	static constexpr size_t NDIMS = traits::rank<T>::value;
@@ -509,13 +499,13 @@ public:
 }  // namespace traits
 template<size_t IL, typename T>
 inline auto p_exterior_derivative(T const & f)
-DECL_RET_TYPE(( _Field<tags::PartialExteriorDerivative<IL,
-				traits::iform<T > ::value , T >>(f)))
+DECL_RET_TYPE(( _Field<Expression<tags::PartialExteriorDerivative<IL,
+				traits::iform<T > , T > > >(f)))
 ;
 template<size_t IL, typename T>
 inline auto p_codifferential_derivative(T const & f)
-DECL_RET_TYPE((_Field< tags::PartialCodifferentialDerivative<
-				IL,traits::iform<T>::value , T >>(f)))
+DECL_RET_TYPE((_Field<Expression< tags::PartialCodifferentialDerivative<
+				IL,traits::iform<T> , T > > >(f)))
 ;
 template<typename T> inline auto curl_pdx(T const & f)
 ENABLE_IF_DECL_RET_TYPE(traits::iform<T>::value==EDGE,
