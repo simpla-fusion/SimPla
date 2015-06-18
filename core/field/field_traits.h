@@ -104,9 +104,9 @@ struct field_traits<_Field<T ...>>
 
 	typedef typename _Field<T ...>::value_type value_type;
 
-	static constexpr size_t iform = traits::iform<domain_type>::value;
+	static constexpr size_t iform = domain_type::iform;
 
-	static constexpr size_t ndims = traits::rank<domain_type>::value;
+	static constexpr size_t ndims = domain_type::ndims;
 
 };
 
@@ -126,22 +126,17 @@ template<typename > struct mesh_type;
 
 template<typename ...T> using mesh_t= typename mesh_type<T...>::type;
 
-template<typename T>
-struct iform: public std::integral_constant<size_t, 0>
-{
-};
+template<typename > struct iform;
 
 template<typename ...T>
 struct iform<_Field<T...>> : public std::integral_constant<size_t,
-		iform<typename domain_type<_Field<T...> >::type>::value>
+		iform<typename domain_type<_Field<T...>>::type>::value>
 {
 };
 
 template<typename ...T>
-struct rank<_Field<T...> >
-
-: public std::integral_constant<size_t,
-		rank<typename domain_type<_Field<T...>>::type>::value>
+struct rank<_Field<T...>> : public std::integral_constant<size_t,
+		rank<typename domain_type<_Field<T...> >::type>::value>
 {
 };
 
@@ -160,13 +155,11 @@ template<typename T> using field_value_t = typename field_value_type<T>::type;
 template<typename T>
 struct container_tag
 {
-	typedef std::nullptr_t type;
+	typedef tags::sequence_container type;
 };
 
 namespace _impl
 {
-
-template<typename T> using container_tag_t=typename container_tag<T>::type;
 
 template<typename TV, typename TAG> struct container_type_helper;
 
@@ -176,13 +169,13 @@ struct container_type_helper<TV, tags::sequence_container>
 	typedef std::shared_ptr<TV> type;
 };
 }  // namespace _impl
-
 template<typename > struct container_type;
 
 template<typename T> struct container_type
 {
+
 	typedef typename _impl::container_type_helper<traits::value_type_t<T>,
-			_impl::container_tag_t<T> >::type type;
+			typename container_tag<T>::type>::type type;
 };
 
 template<typename T> using container_t=typename container_type<T>::type;

@@ -136,13 +136,13 @@ struct domain_type<_Field<Domain<T...>, Others...> >
 {
 	typedef Domain<T...> type;
 };
-
 template<typename > struct mesh_type;
 template<typename ... T, typename ...Others>
 struct mesh_type<_Field<Domain<T...>, Others...> >
 {
-	typedef typename mesh_type<Domain<T...> >::type type;
+	typedef typename mesh_type<Domain<T...>>::type type;
 };
+
 }  // namespace traits
 
 }

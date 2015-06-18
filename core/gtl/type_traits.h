@@ -69,8 +69,8 @@ public:
 
 };
 
-template<typename _Tp, _Tp ... _I>
-constexpr _Tp integer_sequence<_Tp, _I...>::value[];
+template<typename _Tp, _Tp ... _I> constexpr typename
+integer_sequence<_Tp, _I...>::value_type integer_sequence<_Tp, _I...>::value[];
 
 template<typename _Tp>
 struct integer_sequence<_Tp>
@@ -89,8 +89,7 @@ public:
 	}
 
 };
-template<typename _Tp>
-constexpr _Tp integer_sequence<_Tp>::value[];
+
 
 template<size_t ... Ints>
 using index_sequence = integer_sequence<std::size_t, Ints...>;

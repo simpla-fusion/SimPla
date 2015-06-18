@@ -530,15 +530,15 @@ public:
 	typedef policy::calculate<mesh_type,policy_calculate_tag> policy_calculate;
 
 	template< typename ...Args>
-	auto sample(Args && ...args) const
-	DECL_RET_TYPE( policy_interpolator::template sample<iform>(
-			m_mesh_ ,std::forward<Args>(args)...))
+	auto sample(
+	Args && ...args) const
+	DECL_RET_TYPE( policy_interpolator::template sample<iform>( m_mesh_ ,std::forward<Args>(args)...))
 
 
 	template<typename ...Args>
-	auto gather(Args && ...args) const
-	DECL_RET_TYPE((policy_interpolator::gather(
-							m_mesh_,std::forward<Args>(args)...)))
+	auto gather(
+			Args && ...args) const
+					DECL_RET_TYPE((policy_interpolator::gather( m_mesh_,std::forward<Args>(args)...)))
 
 	template<typename ...Args>
 	void scatter(Args && ...args) const
@@ -551,6 +551,24 @@ public:
 	DECL_RET_TYPE((policy_calculate::eval( m_mesh_,std::forward<Args>(args)...)))
 
 };
+
+//namespace _impl
+//{
+//
+//HAS_MEMBER_FUNCTION(domain)
+//
+//}  // namespace _impl
+//
+//template<typename T>
+//auto domain(T const & obj)
+//ENABLE_IF_DECL_RET_TYPE(
+//		_impl::has_member_function_domain<T>::value,obj.domain())
+//
+//template<typename T>
+//auto domain(T const & obj)
+//ENABLE_IF_DECL_RET_TYPE(
+//		!_impl::has_member_function_domain<T>::value,full_domain())
+
 } // namespace simpla
 
 #endif /* CORE_MESH_DOMAIN_H_ */

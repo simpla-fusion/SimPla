@@ -155,7 +155,15 @@ private:
 	 *
 	 *
 	 */
-
+//	id_type m_index_count_;
+//
+//	id_type m_index_dimensions_;
+//
+//	id_type m_index_offset_;
+//
+//	id_type m_index_local_dimensions_;
+//
+//	id_type m_index_local_offset_;
 	id_type m_id_min_;
 
 	id_type m_id_max_;
@@ -245,7 +253,12 @@ public:
 
 		<< " dt \t= " << m_dt_ << "," << std::endl
 
-		<< " Dimensions\t= " << dimensions() << "," << std::endl;
+		<< "-- [ Courant–Friedrichs–Lewy (CFL)  Suggested value: " << safe_dt
+				<< "]" << std::endl
+
+				<< " Dimensions\t= " << dimensions() << "," << std::endl
+
+				;
 
 		return os;
 
@@ -695,14 +708,22 @@ public:
 		{
 			++count;
 			return static_cast<Real>( dist(map(topology_type::point(t))));
-		},
+		}
+
+		,
 
 		[&](id_type t)
 		{
 			res->insert(t);
 		},
 
-		select_tag, iform_tag, s, level);
+		select_tag,
+
+		iform_tag,
+
+		s, level
+
+		);
 
 		CHECK(count);
 
@@ -744,6 +765,16 @@ void Mesh<CoordinateSystem, tags::structured>::deploy(size_t const *gw)
 					- m_from_topology_scale_[i] * topology_type::INDEX_ZERO;
 
 		}
+//#ifdef  ENABLE_COMPLEX_COORDINATE_SYSTEM
+//		else if ((m_coords_max_[i] - m_coords_min_[i]) > EPSILON)
+//		{
+//			m_index_dimensions_[i] = 1;
+//			m_dx_[i] = 0;
+//			m_to_topology_scale_ = 1.0 / (m_coords_max_[i] - m_coords_min_[i]);
+//			m_from_topology_scale_[i] = (m_coords_max_[i] - m_coords_min_[i])
+//			/ 1.0;
+//		}
+//#endif
 		else
 		{
 			dims[i] = 1;
