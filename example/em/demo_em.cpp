@@ -33,8 +33,7 @@ using namespace simpla;
 #define COORDINATE_SYSTEM Cartesian<3>
 #endif
 
-typedef StructuredMesh<geometry::coordinate_system:: COORDINATE_SYSTEM,
-InterpolatorLinear, FiniteDiffMethod> mesh_type;
+typedef Mesh<COORDINATE_SYSTEM, simpla::tags::structured> mesh_type;
 
 USE_CASE(em," Maxwell Eqs.")
 {
