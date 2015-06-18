@@ -66,14 +66,14 @@ public:
 		return TField(*mesh);
 	}
 	auto make_scalar_field() const
-	DECL_RET_TYPE((mesh->template make_form<iform, scalar_type>()))
+	DECL_RET_TYPE((make_form<iform, scalar_type>(*mesh)))
 
 	auto make_vector_field() const
-	DECL_RET_TYPE((mesh->template make_form<iform, nTuple<value_type, 3>>()))
+	DECL_RET_TYPE((make_form<iform, nTuple<value_type, 3>>(*mesh)))
 
 	domain_type domain() const
 	{
-		return mesh->template domain<iform>();
+		return make_domain<iform>(*mesh);
 	}
 
 };

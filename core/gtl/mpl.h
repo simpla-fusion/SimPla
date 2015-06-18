@@ -64,13 +64,21 @@ template<typename T, typename U>
 struct find_type_in_list<T, U>
 {
 	static constexpr bool value = std::is_same<T, U>::value;
+
+	typedef typename std::conditional<value, T, void>::type type;
 };
 template<typename T, typename U, typename ...Others>
 struct find_type_in_list<T, U, Others...>
 {
 	static constexpr bool value = find_type_in_list<T, U>::value
 			|| find_type_in_list<T, Others...>::value;
+
+	typedef typename std::conditional<value, T, void>::type type;
+
 };
+
+template<typename T, typename ...Others>
+using find_type_in_list_t=typename find_type_in_list<T, Others...>::type;
 
 template<typename _Tp, _Tp ... Others> struct max;
 template<typename _Tp, _Tp first, _Tp second>

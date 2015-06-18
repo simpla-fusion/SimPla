@@ -80,6 +80,12 @@ public:
 	~_Field()
 	{
 	}
+
+	std::string get_type_as_string() const
+	{
+		return "Field<" + traits::type_id<domain_type>::name() + ">";
+	}
+
 	void swap(this_type & other)
 	{
 		std::swap(m_domain_, other.m_domain_);
@@ -410,6 +416,12 @@ template<typename ... TM, typename TV, typename ...Policies>
 struct value_type<_Field<Domain<TM ...>, TV, Policies...>>
 {
 	typedef TV type;
+};
+
+template<typename ... TM, typename TV, typename ...Policies>
+struct container_tag<_Field<Domain<TM ...>, TV, Policies...> >
+{
+	typedef mpl::find_type_in_list_t<tags::sequence_container, Policies...> type;
 };
 }
 // namespace traits

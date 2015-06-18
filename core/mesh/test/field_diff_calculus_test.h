@@ -13,32 +13,34 @@
 #include <complex>
 #include <memory>
 #include <random>
-#include <string>
+#include <tuple>
 
 #include <gtest/gtest.h>
 
-#include "../../field/field.h"
-#include "../../field/field_dense.h"
 #include "../../gtl/ntuple.h"
 #include "../../gtl/primitives.h"
 #include "../../io/io.h"
 #include "../../utilities/log.h"
-#include "../calculus.h"
-#include "../domain.h"
-#include "../mesh.h"
+
+#include "../mesh_ids.h"
+#include "../structured.h"
+#include "../../field/field.h"
+#include "../../field/field_dense.h"
+
+#include "../structured/interpolator.h"
+#include "../structured/fdm.h"
 
 using namespace simpla;
 
 #ifdef CYLINDRICAL_COORDINATE_SYTEM
 #	include "../../geometry/cs_cylindrical.h"
-#	define COORDINATE_SYSTEM Cylindrical<2>
+#	define COORDINATE_SYSTEM simpla::geometry::coordinate_system::Cylindrical<2>
 #else
 #	include "../../geometry/cs_cartesian.h"
-#	define COORDINATE_SYSTEM Cartesian<3>
+#	define COORDINATE_SYSTEM simpla::geometry::coordinate_system::Cartesian<3,2>
 #endif
 
-typedef StructuredMesh<geometry::coordinate_system:: COORDINATE_SYSTEM,
-InterpolatorLinear, FiniteDiffMethod> mesh_type;
+typedef Mesh<COORDINATE_SYSTEM, tags::structured> mesh_type;
 
 class FETLTest: public testing::TestWithParam<
 		std::tuple<nTuple<Real, 3>, nTuple<Real, 3>, nTuple<size_t, 3>,
@@ -123,7 +125,7 @@ TEST_P(FETLTest, grad0)
 	f1.clear();
 	f1b.clear();
 
-	for (auto s : mesh->domain<VERTEX>())
+	for (auto s : make_domain<VERTEX>(*mesh))
 	{
 		f0[s] = std::sin(inner_product(K_real, mesh->point(s)));
 	};
@@ -138,7 +140,7 @@ TEST_P(FETLTest, grad0)
 
 	Real mean = 0;
 
-	for (auto s : mesh->domain<EDGE>())
+	for (auto s : make_domain<EDGE>(*mesh))
 	{
 		size_t n = mesh->sub_index(s);
 
@@ -204,15 +206,15 @@ TEST_P(FETLTest, grad3)
 	if (!mesh->is_valid())
 		return;
 
-	auto f2 = mesh->make_form<FACE, value_type>();
-	auto f2b = mesh->make_form<FACE, value_type>();
-	auto f3 = mesh->make_form<VOLUME, value_type>();
+	auto f2 = make_form<FACE, value_type>(*mesh);
+	auto f2b = make_form<FACE, value_type>(*mesh);
+	auto f3 = make_form<VOLUME, value_type>(*mesh);
 
 	f3.clear();
 	f2.clear();
 	f2b.clear();
 
-	for (auto s : mesh->template domain<VOLUME>())
+	for (auto s : make_domain<VOLUME>(*mesh))
 	{
 		f3[s] = std::sin(inner_product(K_real, mesh->point(s)));
 	};
@@ -225,7 +227,7 @@ TEST_P(FETLTest, grad3)
 	Real variance = 0;
 	value_type average = one * 0.0;
 
-	for (auto s : mesh->domain<FACE>())
+	for (auto s : make_domain<FACE>(*mesh))
 	{
 
 		size_t n = mesh->sub_index(s);
@@ -279,14 +281,14 @@ TEST_P(FETLTest, diverge1)
 	if (!mesh->is_valid())
 		return;
 
-	auto f1 = mesh->make_form<EDGE, value_type>();
-	auto f0 = mesh->make_form<VERTEX, value_type>();
-	auto f0b = mesh->make_form<VERTEX, value_type>();
+	auto f1 = make_form<EDGE, value_type>(*mesh);
+	auto f0 = make_form<VERTEX, value_type>(*mesh);
+	auto f0b = make_form<VERTEX, value_type>(*mesh);
 	f0.clear();
 	f0b.clear();
 	f1.clear();
 
-	for (auto s : mesh->domain<EDGE>())
+	for (auto s : make_domain<EDGE>(*mesh))
 	{
 		f1[s] = std::sin(inner_product(K_real, mesh->point(s)));
 	};
@@ -301,7 +303,7 @@ TEST_P(FETLTest, diverge1)
 	value_type average;
 	average *= 0;
 
-	for (auto s : mesh->domain<VERTEX>())
+	for (auto s : make_domain<VERTEX>(*mesh))
 	{
 
 		auto x = mesh->point(s);
@@ -375,13 +377,13 @@ TEST_P(FETLTest, diverge2)
 	if (!mesh->is_valid())
 		return;
 
-	auto f2 = mesh->make_form<FACE, value_type>();
-	auto f3 = mesh->make_form<VOLUME, value_type>();
+	auto f2 = make_form<FACE, value_type>(*mesh);
+	auto f3 = make_form<VOLUME, value_type>(*mesh);
 
 	f3.clear();
 	f2.clear();
 
-	for (auto s : mesh->domain<FACE>())
+	for (auto s : make_domain<FACE>(*mesh))
 	{
 		f2[s] = std::sin(inner_product(K_real, mesh->point(s)));
 	};
@@ -393,7 +395,7 @@ TEST_P(FETLTest, diverge2)
 	value_type average;
 	average *= 0.0;
 
-	for (auto s : mesh->domain<VOLUME>())
+	for (auto s : make_domain<VOLUME>(*mesh))
 	{
 		auto x = mesh->point(s);
 
@@ -450,10 +452,10 @@ TEST_P(FETLTest, curl1)
 	if (!mesh->is_valid())
 		return;
 
-	auto f1 = mesh->make_form<EDGE, value_type>();
-	auto f1b = mesh->make_form<EDGE, value_type>();
-	auto f2 = mesh->make_form<FACE, value_type>();
-	auto f2b = mesh->make_form<FACE, value_type>();
+	auto f1 = make_form<EDGE, value_type>(*mesh);
+	auto f1b = make_form<EDGE, value_type>(*mesh);
+	auto f2 = make_form<FACE, value_type>(*mesh);
+	auto f2b = make_form<FACE, value_type>(*mesh);
 
 	f1.clear();
 	f1b.clear();
@@ -465,14 +467,14 @@ TEST_P(FETLTest, curl1)
 	value_type average;
 	average *= 0.0;
 
-	for (auto s : mesh->domain<EDGE>())
+	for (auto s : make_domain<EDGE>(*mesh))
 	{
 		f1[s] = std::sin(inner_product(K_real, mesh->point(s)));
 	};
 	f1.sync();
 	LOG_CMD(f2 = curl(f1));
 
-	for (auto s : mesh->domain<FACE>())
+	for (auto s : make_domain<FACE>(*mesh))
 	{
 		auto n = mesh->sub_index(s);
 
@@ -556,10 +558,10 @@ TEST_P(FETLTest, curl2)
 	if (!mesh->is_valid())
 		return;
 
-	auto f1 = mesh->make_form<EDGE, value_type>();
-	auto vf1b = mesh->make_form<EDGE, value_type>();
-	auto f2 = mesh->make_form<FACE, value_type>();
-	auto vf2b = mesh->make_form<FACE, value_type>();
+	auto f1 = make_form<EDGE, value_type>(*mesh);
+	auto vf1b = make_form<EDGE, value_type>(*mesh);
+	auto f2 = make_form<FACE, value_type>(*mesh);
+	auto vf2b = make_form<FACE, value_type>(*mesh);
 
 	f1.clear();
 	vf1b.clear();
@@ -571,7 +573,7 @@ TEST_P(FETLTest, curl2)
 	value_type average;
 	average *= 0.0;
 
-	for (auto s : mesh->domain<FACE>())
+	for (auto s : make_domain<FACE>(*mesh))
 	{
 		f2[s] = std::sin(inner_product(K_real, mesh->point(s)));
 	};
@@ -582,7 +584,7 @@ TEST_P(FETLTest, curl2)
 
 	vf1b.clear();
 
-	for (auto s : mesh->domain<EDGE>())
+	for (auto s : make_domain<EDGE>(*mesh))
 	{
 
 		auto n = mesh->sub_index(s);
@@ -671,17 +673,17 @@ TEST_P(FETLTest, identity_curl_grad_f0_eq_0)
 	if (!mesh->is_valid())
 		return;
 
-	auto f0 = mesh->make_form<VERTEX, value_type>();
-	auto f1 = mesh->make_form<EDGE, value_type>();
-	auto f2a = mesh->make_form<FACE, value_type>();
-	auto f2b = mesh->make_form<FACE, value_type>();
+	auto f0 = make_form<VERTEX, value_type>(*mesh);
+	auto f1 = make_form<EDGE, value_type>(*mesh);
+	auto f2a = make_form<FACE, value_type>(*mesh);
+	auto f2b = make_form<FACE, value_type>(*mesh);
 
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
 	Real m = 0.0;
 	f0.clear();
-	for (auto s : mesh->domain<VERTEX>())
+	for (auto s : make_domain<VERTEX>(*mesh))
 	{
 
 		auto a = uniform_dist(gen);
@@ -699,7 +701,7 @@ TEST_P(FETLTest, identity_curl_grad_f0_eq_0)
 	size_t count = 0;
 	Real variance_a = 0;
 	Real variance_b = 0;
-	for (auto s : mesh->domain<FACE>())
+	for (auto s : make_domain<FACE>(*mesh))
 	{
 
 		variance_a += mod(f2a[s]);
@@ -719,10 +721,10 @@ TEST_P(FETLTest, identity_curl_grad_f3_eq_0)
 	if (!mesh->is_valid())
 		return;
 
-	auto f3 = mesh->make_form<VOLUME, value_type>();
-	auto f1a = mesh->make_form<EDGE, value_type>();
-	auto f1b = mesh->make_form<EDGE, value_type>();
-	auto f2 = mesh->make_form<FACE, value_type>();
+	auto f3 = make_form<VOLUME, value_type>(*mesh);
+	auto f1a = make_form<EDGE, value_type>(*mesh);
+	auto f1b = make_form<EDGE, value_type>(*mesh);
+	auto f2 = make_form<FACE, value_type>(*mesh);
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
@@ -730,7 +732,7 @@ TEST_P(FETLTest, identity_curl_grad_f3_eq_0)
 
 	f3.clear();
 
-	for (auto s : mesh->domain<VOLUME>())
+	for (auto s : make_domain<VOLUME>(*mesh))
 	{
 		auto a = uniform_dist(gen);
 		f3[s] = a * one;
@@ -746,7 +748,7 @@ TEST_P(FETLTest, identity_curl_grad_f3_eq_0)
 	size_t count = 0;
 	Real variance_a = 0;
 	Real variance_b = 0;
-	for (auto s : mesh->domain<EDGE>())
+	for (auto s : make_domain<EDGE>(*mesh))
 	{
 
 //		ASSERT_EQ((f1a[s]), (f1b[s]));
@@ -766,10 +768,10 @@ TEST_P(FETLTest, identity_div_curl_f1_eq0)
 	if (!mesh->is_valid())
 		return;
 
-	auto f1 = mesh->make_form<EDGE, value_type>();
-	auto f2 = mesh->make_form<FACE, value_type>();
-	auto f0a = mesh->make_form<VERTEX, value_type>();
-	auto f0b = mesh->make_form<VERTEX, value_type>();
+	auto f1 = make_form<EDGE, value_type>(*mesh);
+	auto f2 = make_form<FACE, value_type>(*mesh);
+	auto f0a = make_form<VERTEX, value_type>(*mesh);
+	auto f0b = make_form<VERTEX, value_type>(*mesh);
 
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
@@ -778,7 +780,7 @@ TEST_P(FETLTest, identity_div_curl_f1_eq0)
 
 	Real m = 0.0;
 
-	for (auto s : mesh->domain<FACE>())
+	for (auto s : make_domain<FACE>(*mesh))
 	{
 		auto a = uniform_dist(gen);
 
@@ -799,7 +801,7 @@ TEST_P(FETLTest, identity_div_curl_f1_eq0)
 	size_t count = 0;
 	Real variance_a = 0;
 	Real variance_b = 0;
-	for (auto s : mesh->domain<VERTEX>())
+	for (auto s : make_domain<VERTEX>(*mesh))
 	{
 		variance_b += mod(f0b[s] * f0b[s]);
 		variance_a += mod(f0a[s] * f0a[s]);
@@ -815,10 +817,10 @@ TEST_P(FETLTest, identity_div_curl_f1_eq0)
 TEST_P(FETLTest, identity_div_curl_f2_eq0)
 {
 
-	auto f1 = mesh->make_form<EDGE, value_type>();
-	auto f2 = mesh->make_form<FACE, value_type>();
-	auto f3a = mesh->make_form<VOLUME, value_type>();
-	auto f3b = mesh->make_form<VOLUME, value_type>();
+	auto f1 = make_form<EDGE, value_type>(*mesh);
+	auto f2 = make_form<FACE, value_type>(*mesh);
+	auto f3a = make_form<VOLUME, value_type>(*mesh);
+	auto f3b = make_form<VOLUME, value_type>(*mesh);
 
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
@@ -827,7 +829,7 @@ TEST_P(FETLTest, identity_div_curl_f2_eq0)
 
 	Real m = 0.0;
 
-	for (auto s : mesh->domain<EDGE>())
+	for (auto s : make_domain<EDGE>(*mesh))
 	{
 		auto a = uniform_dist(gen);
 		f1[s] = one * a;
@@ -847,7 +849,7 @@ TEST_P(FETLTest, identity_div_curl_f2_eq0)
 
 	Real variance_a = 0;
 	Real variance_b = 0;
-	for (auto s : mesh->domain<VOLUME>())
+	for (auto s : make_domain<VOLUME>(*mesh))
 	{
 
 //		ASSERT_DOUBLE_EQ(mod(f3a[s]), mod(f3b[s]));
