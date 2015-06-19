@@ -48,7 +48,7 @@ public:
 
 	typedef Domain<TM ...> domain_type;
 
-	static constexpr size_t iform = traits::iform<domain_type>::value;
+	static constexpr int iform = traits::iform<domain_type>::value;
 
 	typedef traits::mesh_t<domain_type> mesh_type;
 
@@ -376,24 +376,6 @@ typename _Field<Domain<TM ...>, Others...>::value_type const& try_index(
 }
 namespace traits
 {
-namespace _impl
-{
-template<typename ... TM, typename ...Others>
-struct field_traits<_Field<Domain<TM ...>, Others...>>
-{
-	static constexpr bool is_field = true;
-
-	typedef Domain<TM ...> domain_type;
-
-	typedef typename _Field<Domain<TM ...>, Others...>::value_type value_type;
-
-	static constexpr size_t iform = traits::iform<domain_type>::value;
-
-	static constexpr size_t ndims =
-			traits::rank<traits::mesh_t<domain_type>>::value;
-
-};
-}  // namespace _impl
 
 template<typename ... TM, typename ...Others>
 struct type_id<_Field<Domain<TM ...>, Others...>>

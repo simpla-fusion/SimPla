@@ -16,7 +16,9 @@
 #include "../gtl/macro.h"
 #include "../gtl/mpl.h"
 #include "../gtl/type_traits.h"
-#include "mesh_ids.h"
+#include "../mesh/domain.h"
+#include "../mesh/mesh_ids.h"
+#include "field_traits.h"
 
 namespace simpla
 {
@@ -75,83 +77,94 @@ struct reference<_Field<Expression<T...> > >
 	typedef _Field<Expression<T...> > type;
 };
 
-// namespace _impl
-template<typename TAG, typename T0>
-struct domain_type<_Field<Expression<TAG, T0> > >
-{
-	typedef typename domain_type<T0>::type type;
-};
-namespace _impl
+template<typename T>
+struct domain_type<_Field<Expression<tags::HodgeStar, T> > >
 {
 
-template<typename ...> struct field_traits;
+	typedef mpl::replace_tuple_t<1,
+			std::integral_constant<int,
+					traits::rank<T>::value - traits::iform<T>::value>,
+			domain_t<T> > type;
+
+};
+
+template<typename T0, typename T1>
+struct domain_type<_Field<Expression<tags::InteriorProduct, T0, T1> > >
+{
+	typedef mpl::replace_tuple_t<1,
+			std::integral_constant<int, traits::iform<T1>::value - 1>,
+			domain_t<T1> > type;
+};
 
 template<typename T>
-struct field_traits<_Field<Expression<simpla::tags::HodgeStar, T> > >
+struct domain_type<_Field<Expression<tags::ExteriorDerivative, T> > >
 {
-private:
-	static constexpr size_t NDIMS = traits::rank<T>::value;
-//	static constexpr size_t IL = traits::iform<T>::value;
-public:
-
-	static const size_t ndims = NDIMS > -IL ? NDIMS : 0;
-	static const size_t iform = NDIMS - IL;
-
-	typedef traits::value_type_t<T> value_type;
-	typedef traits::domain_t<T> domain_type;
-
-	typedef typename std::conditional<iform == EDGE || iform == FACE,
-			nTuple<value_type, 3>, value_type>::type field_value_type;
+	typedef mpl::replace_tuple_t<1,
+			std::integral_constant<int, traits::iform<T>::value - 1>,
+			domain_t<T> > type;
 };
 
-template<typename TL, typename TR>
-struct field_traits<_Field<Expression<simpla::tags::InteriorProduct, TL, TR> > >
+template<typename T>
+struct domain_type<_Field<Expression<tags::CodifferentialDerivative, T> > >
 {
-private:
-	static constexpr size_t NDIMS = mpl::max<size_t, traits::rank<TL>::value,
-			traits::rank<TR>::value>::value;
-//	static constexpr size_t IL = traits::iform<TL>::value;
-//	static constexpr size_t IR = traits::iform<TR>::value;
-//
-	typedef traits::value_type_t<TL> l_type;
-	typedef traits::value_type_t<TR> r_type;
-
-public:
-	static const size_t ndims = mpl::max<size_t, IL, IR>::value > 0 ? NDIMS : 0;
-	static const size_t iform = mpl::max<size_t, IL, IR>::value - 1;
-
-	typedef traits::result_of_t<simpla::_impl::multiplies(l_type, r_type)> value_type;
-	typedef traits::domain_t<TL> domain_type;
-
-	typedef typename std::conditional<iform == EDGE || iform == FACE,
-			nTuple<value_type, 3>, value_type>::type field_value_type;
+	typedef mpl::replace_tuple_t<1,
+			std::integral_constant<int, traits::iform<T>::value + 1>,
+			domain_t<T> > type;
 };
 
-template<typename TL, typename TR>
-struct field_traits<_Field<Expression<simpla::tags::Wedge, TL, TR> > >
+template<typename T0, typename T1>
+struct domain_type<_Field<Expression<tags::Wedge, T0, T1> > >
 {
-private:
-	static constexpr size_t NDIMS = mpl::max<size_t, traits::rank<TL>::value,
-			traits::rank<TR>::value>::value;
-//	static constexpr size_t IL = traits::iform<TL>::value;
-//	static constexpr size_t IR = traits::iform<TR>::value;
-
-	typedef traits::value_type_t<TL> l_type;
-	typedef traits::value_type_t<TR> r_type;
-public:
-	static const size_t ndims = IL + IR <= NDIMS ? NDIMS : 0;
-	static const size_t iform = IL + IR;
-
-	typedef traits::result_of_t<simpla::_impl::multiplies(l_type, r_type)> value_type;
-	typedef traits::domain_t<TL> domain_type;
-
-	typedef typename std::conditional<iform == EDGE || iform == FACE,
-			nTuple<value_type, 3>, value_type>::type field_value_type;
+	typedef mpl::replace_tuple_t<1,
+			std::integral_constant<int, iform<T0>::value + iform<T1>::value>,
+			typename std::conditional<
+					std::is_same<!std::nullptr_t, domain_t<T0>>::value,
+					domain_t<T0>, domain_t<T1> >::type> type;
 };
 
-}
-// namespace _impl
-}// namespace traits
+template<size_t I, typename T1>
+struct domain_type<
+		_Field<Expression<tags::MapTo, std::integral_constant<int, I>, T1> > >
+{
+	typedef mpl::replace_tuple_t<1, std::integral_constant<int, I>, domain_t<T1>> type;
+};
+
+template<typename T>
+struct value_type<_Field<Expression<tags::ExteriorDerivative, T> > >
+{
+	typedef result_of_t<
+			simpla::_impl::multiplies(scalar_type<mesh_t<T>>, value_type_t<T>)> type;
+};
+
+template<typename T>
+struct value_type<_Field<Expression<tags::CodifferentialDerivative, T> > >
+{
+	typedef result_of_t<
+			simpla::_impl::multiplies(scalar_type<mesh_t<T>>, value_type_t<T>)> type;
+};
+
+template<typename T0, typename T1>
+struct value_type<_Field<Expression<tags::Wedge, T0, T1> > >
+{
+
+	typedef result_of_t<
+			simpla::_impl::multiplies(value_type_t<T0>, value_type_t<T1>)> type;
+};
+
+template<typename T0, typename T1>
+struct value_type<_Field<Expression<tags::InteriorProduct, T0, T1> > >
+{
+
+	typedef result_of_t<
+			simpla::_impl::multiplies(value_type_t<T0>, value_type_t<T1>)> type;
+};
+
+template<typename T0, typename T1>
+struct value_type<_Field<Expression<tags::MapTo, T0, T1> > >
+{
+	typedef value_type_t<T1> type;
+};
+}  // namespace traits
 template<typename T>
 inline auto hodge_star(T const & f)
 DECL_RET_TYPE(( _Field<Expression<tags::HodgeStar , T > >(f)))
@@ -249,37 +262,13 @@ template<typename ... T, typename TL> inline auto cross(_Field<T...> const & f,
  *  \f}
  */
 
-namespace traits
-{
-namespace _impl
-{
-
 template<size_t I, typename T>
-struct field_traits<
-		_Field<
-				Expression<simpla::tags::MapTo,
-						std::integral_constant<size_t, I>, T> > >
-{
-	static constexpr size_t NDIMS = traits::rank<T>::value;
-public:
-	static const size_t ndims = NDIMS;
-	static const size_t iform = IR;
-
-	typedef traits::value_type_t<T> value_type;
-	typedef traits::domain_t<T> domain_type;
-};
-
-}
-// namespace _impl
-}// namespace traits
-
-template<size_t I, typename T>
-inline _Field<Expression<tags::MapTo, std::integral_constant<size_t, I>, T> > map_to(
+inline _Field<Expression<tags::MapTo, std::integral_constant<int, I>, T> > map_to(
 		T const & f)
 {
 	return std::move(
-			(_Field<Expression<tags::MapTo, std::integral_constant<size_t, T> > >(
-					f)));
+			(_Field<Expression<tags::MapTo, std::integral_constant<int, I>, T> >(
+					std::integral_constant<int, I>(), f)));
 }
 
 /** @} */
@@ -301,51 +290,6 @@ inline _Field<Expression<tags::MapTo, std::integral_constant<size_t, I>, T> > ma
  *
  */
 
-namespace traits
-{
-
-namespace _impl
-{
-
-template<typename T>
-struct field_traits<_Field<Expression<simpla::tags::ExteriorDerivative, T> > >
-{
-private:
-	static constexpr size_t NDIMS = traits::rank<T>::value;
-//	static constexpr size_t IL = traits::iform<T>::value;
-
-public:
-	static constexpr size_t ndims = IL < NDIMS ? NDIMS : 0;
-	static constexpr size_t iform = IL + 1;
-	static constexpr bool is_field = traits::is_field<T>::value;
-
-	typedef traits::value_type_t<T> value_type;
-	typedef traits::domain_t<T> domain_type;
-
-	typedef typename std::conditional<iform == EDGE || iform == FACE,
-			nTuple<value_type, 3>, value_type>::type field_value_type;
-
-};
-template<typename T>
-struct field_traits<_Field<simpla::tags::CodifferentialDerivative, T> >
-{
-private:
-	static constexpr size_t NDIMS = traits::rank<T>::value;
-//	static constexpr size_t IL = traits::iform<T>::value;
-public:
-	static const size_t ndims = IL > 0 ? NDIMS : 0;
-	static const size_t iform = IL - 1;
-	typedef traits::value_type_t<T> value_type;
-	typedef traits::domain_t<T> domain_type;
-
-	typedef typename std::conditional<iform == EDGE || iform == FACE,
-			nTuple<value_type, 3>, value_type>::type field_value_type;
-};
-
-}
-// namespace _impl
-
-}// namespace traits
 template<typename T>
 inline auto exterior_derivative(T const & f)
 DECL_RET_TYPE(( _Field< Expression<tags::ExteriorDerivative , T > >(f)))
@@ -408,59 +352,17 @@ ENABLE_IF_DECL_RET_TYPE((traits::iform<_Field<T...>>::value==FACE),
 		((codifferential_derivative(-f))) )
 ;
 
-namespace traits
-{
-
-namespace _impl
-{
-
-template<size_t I, typename T>
-struct field_traits<
-		_Field<
-				Expression<simpla::tags::ExteriorDerivative,
-						std::integral_constant<size_t, I>, T> > >
-{
-private:
-	static constexpr size_t NDIMS = traits::rank<T>::value;
-//	static constexpr size_t IL = traits::iform<T>::value;
-
-public:
-	static constexpr size_t ndims = IR < NDIMS ? NDIMS : 0;
-	static constexpr size_t iform = IR + 1;
-	static constexpr bool is_field = traits::is_field<T>::value;
-
-	typedef traits::value_type_t<T> value_type;
-	typedef traits::domain_t<T> domain_type;
-
-};
-template<size_t I, typename T>
-struct field_traits<
-		_Field<
-				Expression<simpla::tags::CodifferentialDerivative,
-						std::integral_constant<size_t, I>, T> > >
-{
-private:
-	static constexpr size_t NDIMS = traits::rank<T>::value;
-//	static constexpr size_t IL = traits::iform<T>::value;
-public:
-	static const size_t ndims = IR > 0 ? NDIMS : 0;
-	static const size_t iform = IR - 1;
-	typedef traits::value_type_t<T> value_type;
-	typedef traits::domain_t<T> domain_type;
-
-};
-}  // namespace _impl
-
-}  // namespace traits
-template<size_t I, typename T>
+template<int I, typename T>
 inline auto p_exterior_derivative(T const & f)
 DECL_RET_TYPE(( _Field<Expression< tags:: ExteriorDerivative,
-				std::integral_constant<size_t, I>, T > >(f)))
+				std::integral_constant<int, I>, T > >(
+						std::integral_constant<int, I>(),f)))
 ;
-template<size_t I, typename T>
+template<int I, typename T>
 inline auto p_codifferential_derivative(T const & f)
 DECL_RET_TYPE((_Field< Expression<tags:: CodifferentialDerivative ,
-				std::integral_constant<size_t, I>, T > >(f)))
+				std::integral_constant<int, I>, T > >(
+						std::integral_constant<int, I>(),f)))
 ;
 template<typename T> inline auto curl_pdx(T const & f)
 ENABLE_IF_DECL_RET_TYPE(traits::iform<T>::value==EDGE,

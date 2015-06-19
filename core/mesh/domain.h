@@ -23,6 +23,8 @@
 #include "../utilities/log.h"
 #include "mesh_ids.h"
 #include "policy.h"
+#include "mesh_traits.h"
+#include "../field/field.h"
 
 namespace simpla
 {
@@ -31,34 +33,15 @@ template<typename ...> struct _Field;
 
 template<typename ...> struct Domain;
 
-template<size_t IFORM, typename ...Policies, typename TM>
-Domain<TM, std::integral_constant<size_t, IFORM>, Policies...> make_domain(
+template<int IFORM, typename ...Policies, typename TM>
+Domain<TM, std::integral_constant<int, IFORM>, Policies...> make_domain(
 		TM const & mesh)
 {
-	return Domain<TM, std::integral_constant<size_t, IFORM>, Policies...>(mesh);
+	return Domain<TM, std::integral_constant<int, IFORM>, Policies...>(mesh);
 }
-
-typedef std::integral_constant<int, 0> null_domain;
-typedef std::integral_constant<int, 1> full_domain;
 
 namespace traits
 {
-template<typename T>
-struct is_domain: public std::integral_constant<bool, false>
-{
-};
-template<typename ...T>
-struct is_domain<Domain<T...>> : public std::integral_constant<bool, true>
-{
-};
-
-template<typename T>
-struct domain_type
-{
-	typedef full_domain type;
-};
-
-template<typename > struct mesh_type;
 
 template<typename TM, typename ...Others>
 struct mesh_type<Domain<TM, Others...> >
@@ -67,28 +50,28 @@ struct mesh_type<Domain<TM, Others...> >
 };
 
 template<typename > struct iform;
-template<typename TM, size_t IFORM, typename ...Others>
-struct iform<Domain<TM, std::integral_constant<size_t, IFORM>, Others...> >
+template<typename TM, int IFORM, typename ...Others>
+struct iform<Domain<TM, std::integral_constant<int, IFORM>, Others...> >
 {
-	static constexpr size_t value = IFORM;
+	static constexpr int value = IFORM;
 };
 
-template<typename TM, size_t IFORM, typename ...Others>
-constexpr size_t iform<
-		Domain<TM, std::integral_constant<size_t, IFORM>, Others...> >::value;
+template<typename TM, int IFORM, typename ...Others>
+constexpr int iform<Domain<TM, std::integral_constant<int, IFORM>, Others...> >::value;
 
-}  // namespace traits
-template<typename TM, size_t IFORM, typename ... Policies>
-struct Domain<TM, std::integral_constant<size_t, IFORM>, Policies...> : public TM::range_type
+}
+// namespace traits
+template<typename TM, int IFORM, typename ... Policies>
+struct Domain<TM, std::integral_constant<int, IFORM>, Policies...> : public TM::range_type
 {
 
 public:
 	typedef TM mesh_type;
 
-	static constexpr size_t iform = IFORM;
-	static constexpr size_t ndims = mesh_type::ndims;
+	static constexpr int iform = IFORM;
+	static constexpr int ndims = mesh_type::ndims;
 
-	typedef Domain<mesh_type, std::integral_constant<size_t, iform>, Policies...> this_type;
+	typedef Domain<mesh_type, std::integral_constant<int, iform>, Policies...> this_type;
 
 	typedef typename mesh_type::id_type id_type;
 	typedef typename mesh_type::point_type point_type;
@@ -274,30 +257,30 @@ public:
 		});
 
 	}
-	template<typename TFun>
-	void for_each(null_domain, TFun const & fun) const
-	{
-	}
-	template<typename TFun>
-	void for_each(full_domain, TFun const & fun) const
-	{
-
-		if (is_simply())
-		{
-			for (auto s : *this)
-			{
-				fun(s);
-			}
-		}
-		else
-		{
-			for (auto s : m_id_set_)
-			{
-				fun(s);
-			}
-
-		}
-	}
+//	template<typename TFun>
+//	void for_each(null_domain, TFun const & fun) const
+//	{
+//	}
+//	template<typename TFun>
+//	void for_each(full_domain, TFun const & fun) const
+//	{
+//
+//		if (is_simply())
+//		{
+//			for (auto s : *this)
+//			{
+//				fun(s);
+//			}
+//		}
+//		else
+//		{
+//			for (auto s : m_id_set_)
+//			{
+//				fun(s);
+//			}
+//
+//		}
+//	}
 	template<typename TFun>
 	void for_each(this_type const& other, TFun const & fun) const
 	{

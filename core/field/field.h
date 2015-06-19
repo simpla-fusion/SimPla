@@ -117,14 +117,14 @@ namespace simpla
 template<typename ...> struct Domain;
 template<typename ... >struct _Field;
 
-template<size_t IFORM, typename TV, typename ... Others, typename TM>
-_Field<Domain<TM, std::integral_constant<size_t, IFORM>, Others...>, TV,
+template<int IFORM, typename TV, typename ... Others, typename TM>
+_Field<Domain<TM, std::integral_constant<int, IFORM>, Others...>, TV,
 		tags::sequence_container> make_form(TM const & mesh)
 {
 	return std::move(
-			_Field<Domain<TM, std::integral_constant<size_t, IFORM>, Others...>,
+			_Field<Domain<TM, std::integral_constant<int, IFORM>, Others...>,
 					TV, tags::sequence_container>(
-					Domain<TM, std::integral_constant<size_t, IFORM>, Others...>(
+					Domain<TM, std::integral_constant<int, IFORM>, Others...>(
 							mesh)));
 }
 /** @} */

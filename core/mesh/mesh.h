@@ -13,9 +13,8 @@
 #include <memory>
 #include <type_traits>
 
-#include "../geometry/coordinate_system.h"
 #include "../gtl/type_traits.h"
-
+#include "mesh_traits.h"
 namespace simpla
 {
 /**
@@ -85,23 +84,11 @@ struct type_id<Mesh<CS, TAG> >
 
 	;
 };
-
-template<typename >
-struct ZAxis: public std::integral_constant<size_t, 2>
+template<typename CS, typename ... T>
+struct coordinate_system_type<Mesh<CS, T...>>
 {
-	;
+	typedef CS type;
 };
-
-template<typename CS, typename ...Others>
-struct ZAxis<Mesh<CS, Others...>> : public geometry::traits::ZAxis<CS>::type
-{
-};
-template<typename >
-struct mesh_type
-{
-	typedef std::nullptr_t type;
-};
-
 }  // namespace traits
 
 }  // namespace simpla

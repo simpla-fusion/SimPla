@@ -41,6 +41,8 @@ public:
 
 	typedef TM mesh_type;
 
+	typedef typename mesh_type::id_type id_type;
+
 	typedef interpolator<mesh_type, tags::linear> this_type;
 
 private:
@@ -128,7 +130,7 @@ public:
 	template<typename ...Others, typename ...TF, typename TV, typename TW>
 	static void scatter(mesh_type const & geo,
 			_Field<
-					Domain<mesh_type, std::integral_constant<size_t, VERTEX>,
+					Domain<mesh_type, std::integral_constant<int, VERTEX>,
 							Others...>, TF...> &f,
 			typename mesh_type::point_type const & x, TV const &u, TW const &w)
 	{
@@ -140,7 +142,7 @@ public:
 	template<typename ...Others, typename ...TF, typename TV, typename TW>
 	static void scatter(mesh_type const & geo,
 			_Field<
-					Domain<mesh_type, std::integral_constant<size_t, EDGE>,
+					Domain<mesh_type, std::integral_constant<int, EDGE>,
 							Others...>, TF...> &f,
 			typename mesh_type::point_type const & x, TV const &u, TW const & w)
 	{
@@ -157,7 +159,7 @@ public:
 	template<typename ...Others, typename ...TF, typename TV, typename TW>
 	static void scatter(mesh_type const & geo,
 			_Field<
-					Domain<mesh_type, std::integral_constant<size_t, FACE>,
+					Domain<mesh_type, std::integral_constant<int, FACE>,
 							Others...>, TF...>&f,
 			typename mesh_type::point_type const & x, TV const &u, TW const &w)
 	{
@@ -173,7 +175,7 @@ public:
 	template<typename ...Others, typename ...TF, typename TV, typename TW>
 	static void scatter(mesh_type const & geo,
 			_Field<
-					Domain<mesh_type, std::integral_constant<size_t, VOLUME>,
+					Domain<mesh_type, std::integral_constant<int, VOLUME>,
 							Others...>, TF...>&f,
 			typename mesh_type::point_type const & x, TV const &u, TW const &w)
 	{
@@ -182,45 +184,43 @@ public:
 private:
 	template<typename TV>
 	static TV sample_(mesh_type const & geo,
-			std::integral_constant<size_t, VERTEX>, size_t s, TV const &v)
+			std::integral_constant<int, VERTEX>, id_type s, TV const &v)
 	{
 		return v;
 	}
 
 	template<typename TV>
 	static TV sample_(mesh_type const & geo,
-			std::integral_constant<size_t, VOLUME>, size_t s, TV const &v)
+			std::integral_constant<int, VOLUME>, id_type s, TV const &v)
 	{
 		return v;
 	}
 
 	template<typename TV>
-	static TV sample_(mesh_type const & geo,
-			std::integral_constant<size_t, EDGE>, size_t s,
-			nTuple<TV, 3> const &v)
+	static TV sample_(mesh_type const & geo, std::integral_constant<int, EDGE>,
+			id_type s, nTuple<TV, 3> const &v)
 	{
 		return v[mesh_type::sub_index(s)];
 	}
 
 	template<typename TV>
-	static TV sample_(mesh_type const & geo,
-			std::integral_constant<size_t, FACE>, size_t s,
-			nTuple<TV, 3> const &v)
+	static TV sample_(mesh_type const & geo, std::integral_constant<int, FACE>,
+			id_type s, nTuple<TV, 3> const &v)
 	{
 		return v[mesh_type::sub_index(s)];
 	}
 
-	template<size_t IFORM, typename TV>
-	static TV sample_(mesh_type const & geo,
-			std::integral_constant<size_t, IFORM>, size_t s, TV const & v)
+	template<int IFORM, typename TV>
+	static TV sample_(mesh_type const & geo, std::integral_constant<int, IFORM>,
+			id_type s, TV const & v)
 	{
 		return v;
 	}
 public:
 
-	template<size_t IFORM, typename ...Args>
+	template<int IFORM, typename ...Args>
 	static auto sample(mesh_type const & geo, Args && ... args)
-	DECL_RET_TYPE((sample_(geo,std::integral_constant<size_t, IFORM>(),
+	DECL_RET_TYPE((sample_(geo,std::integral_constant<int, IFORM>(),
 							std::forward<Args>(args)...)))
 }
 ;

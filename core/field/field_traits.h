@@ -37,15 +37,15 @@ class function;
 namespace traits
 {
 
-template<typename TM, size_t IFORM, typename ValueType, typename ...Policies>
+template<typename TM, int IFORM, typename ValueType, typename ...Policies>
 struct field_type
 {
 	typedef _Field<
-			Domain<TM, std::integral_constant<size_t, IFORM>, Policies...>,
+			Domain<TM, std::integral_constant<int, IFORM>, Policies...>,
 			ValueType, tags::sequence_container> type;
 };
 
-template<typename TM, size_t IFORM, typename ValueType, typename ...Policies>
+template<typename TM, int IFORM, typename ValueType, typename ...Policies>
 using field_t= typename field_type<TM,IFORM,ValueType,Policies...>::type;
 
 template<typename > struct is_field: public std::integral_constant<bool, false>
@@ -63,8 +63,8 @@ struct reference<_Field<TM, TV, Others...> >
 	typedef _Field<TM, TV, Others...> const & type;
 };
 
-template<typename ...T, size_t M>
-struct extent<_Field<T ...>, M> : public std::integral_constant<size_t,
+template<typename ...T, int M>
+struct extent<_Field<T ...>, M> : public std::integral_constant<int,
 		simpla::_impl::seq_get<M, extents_t<_Field<T ...> >>::value>
 {
 };
@@ -75,64 +75,11 @@ struct key_type<_Field<T ...> >
 	typedef size_t type;
 };
 
-namespace _impl
-{
-
-template<typename ...> struct field_traits;
-
-template<typename T> struct field_traits<T>
-{
-
-	typedef std::integral_constant<size_t, 1> domain_type;
-
-	typedef T value_type;
-
-	static constexpr bool is_field = false;
-
-	static constexpr size_t iform = 0;
-
-	static constexpr size_t ndims = 3;
-
-};
-
-template<typename ...T>
-struct field_traits<_Field<T ...>>
-{
-	static constexpr bool is_field = true;
-
-	typedef typename _Field<T ...>::domain_type domain_type;
-
-	typedef typename _Field<T ...>::value_type value_type;
-
-	static constexpr size_t iform = domain_type::iform;
-
-	static constexpr size_t ndims = domain_type::ndims;
-
-};
-
-}  // namespace _impl
-
-template<typename ... T>
-struct value_type<_Field<T ...>>
-{
-	typedef typename _impl::field_traits<_Field<T ...> >::value_type type;
-};
-
-template<typename T> struct domain_type;
-
-template<typename ...T> using domain_t= typename domain_type<T...>::type;
-
-template<typename > struct mesh_type;
-
-template<typename ...T> using mesh_t= typename mesh_type<T...>::type;
-
 template<typename ...T>
 struct mesh_type<_Field<T...> >
 {
-	typedef domain_t<_Field<T...> > type;
+	typedef mesh_t<domain_t<_Field<T...> > > type;
 };
-
-template<typename > struct iform;
 
 template<typename ...T>
 struct iform<_Field<T...> > : public iform<domain_t<_Field<T...> > >
