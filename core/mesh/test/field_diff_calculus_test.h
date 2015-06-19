@@ -32,13 +32,13 @@ using namespace simpla;
 
 #ifdef CYLINDRICAL_COORDINATE_SYTEM
 #	include "../../geometry/cs_cylindrical.h"
-#	define COORDINATE_SYSTEM Cylindrical<2>
+typedef Mesh<geometry::coordinate_system::Cylindrical<2>, tags::structured> mesh_type;
+
 #else
 #	include "../../geometry/cs_cartesian.h"
-#	define COORDINATE_SYSTEM Cartesian<3>
-#endif
+typedef Mesh<geometry::coordinate_system::Cartesian<3>, tags::structured> mesh_type;
 
-typedef Mesh<geometry::coordinate_system:: COORDINATE_SYSTEM,tags::structured> mesh_type;
+#endif
 
 class FETLTest: public testing::TestWithParam<
 		std::tuple<nTuple<Real, 3>, nTuple<Real, 3>, nTuple<size_t, 3>,
