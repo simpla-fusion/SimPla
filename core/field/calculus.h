@@ -89,13 +89,13 @@ struct iform<_Field<Expression<tags::InteriorProduct, T0, T1> > > : public std::
 
 template<typename T>
 struct iform<_Field<Expression<tags::ExteriorDerivative, T> > > : public std::integral_constant<
-		int, traits::iform<T>::value - 1>
+		int, traits::iform<T>::value + 1>
 {
 };
 
 template<typename T>
 struct iform<_Field<Expression<tags::CodifferentialDerivative, T> > > : public std::integral_constant<
-		int, traits::iform<T>::value + 1>
+		int, traits::iform<T>::value - 1>
 {
 };
 
@@ -341,41 +341,36 @@ DECL_RET_TYPE( (codifferential_derivative(f)) )
  *
  *
  */
-template<typename T>
-inline auto grad(T const & f, std::integral_constant<int, VERTEX>)
-DECL_RET_TYPE(exterior_derivative(f))
-
-template<typename T>
-inline auto grad(T const & f, std::integral_constant<int, VOLUME>)
-DECL_RET_TYPE(codifferential_derivative(f))
-
-template<typename T>
-inline auto grad(T const & f)
-DECL_RET_TYPE(grad(f, typename traits::iform<T>::type()))
-
-template<typename T>
-inline auto diverge(T const & f, std::integral_constant<int, FACE>)
-DECL_RET_TYPE(exterior_derivative(f))
-
-template<typename T>
-inline auto diverge(T const & f, std::integral_constant<int, EDGE>)
-DECL_RET_TYPE(codifferential_derivative(-f))
-
-template<typename T>
-inline auto diverge(T const & f)
-DECL_RET_TYPE(diverge(f,typename traits::iform<T>::type()))
-
-template<typename T>
-inline auto curl(T const & f, std::integral_constant<int, EDGE>)
-DECL_RET_TYPE(exterior_derivative(f))
-
-template<typename T>
-inline auto curl(T const & f, std::integral_constant<int, FACE>)
-DECL_RET_TYPE(codifferential_derivative(-f))
-
-template<typename T>
-inline auto curl(T const & f)
-DECL_RET_TYPE(curl(f,typename traits::iform<T>::type()))
+template<typename ... T>
+inline auto grad(_Field<T...> const & f)
+ENABLE_IF_DECL_RET_TYPE((traits::iform<_Field<T...>>::value==VERTEX),
+		(exterior_derivative(f)))
+;
+template<typename ... T>
+inline auto grad(_Field<T...> const & f)
+ENABLE_IF_DECL_RET_TYPE((traits::iform<_Field<T...>>::value==VOLUME),
+		((codifferential_derivative(-f))) )
+;
+template<typename ...T>
+inline auto diverge(_Field<T...> const & f)
+ENABLE_IF_DECL_RET_TYPE((traits::iform<_Field<T...>>::value==FACE),
+		(exterior_derivative(f)))
+;
+template<typename ...T>
+inline auto diverge(_Field<T...> const & f)
+ENABLE_IF_DECL_RET_TYPE((traits::iform<_Field<T...>>::value==EDGE),
+		(codifferential_derivative(-f)))
+;
+template<typename ... T>
+inline auto curl(_Field<T...> const & f)
+ENABLE_IF_DECL_RET_TYPE((traits::iform<_Field<T...>>::value==EDGE),
+		(exterior_derivative(f)))
+;
+template<typename ... T>
+inline auto curl(_Field<T...> const & f)
+ENABLE_IF_DECL_RET_TYPE((traits::iform<_Field<T...>>::value==FACE),
+		((codifferential_derivative(-f))) )
+;
 
 template<int I, typename T>
 inline auto p_exterior_derivative(T const & f)

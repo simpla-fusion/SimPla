@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.5)
+cmake_minimum_required(VERSION 2.8)
 
 PROJECT(SimPla  CXX C)
 
@@ -85,10 +85,10 @@ else()
 endif()
 
 
-IF(GTEST_ROOT)
-  INCLUDE(${GTEST_ROOT})
-  INCLUDE_DIRECTORIES(${GTEST_ROOT}/include)
-ELSE()
+#IF(GTEST_ROOT)
+#  INCLUDE(${GTEST_ROOT})
+#  INCLUDE_DIRECTORIES(${GTEST_ROOT}/include)
+#ELSE()
  ExternalProject_Add(googletest
      PREFIX  ${PROJECT_BINARY_DIR}/external_project 
      #    URL   http://googletest.googlecode.com/files/gtest-1.7.0.zip
@@ -99,7 +99,7 @@ ELSE()
  ExternalProject_Get_Property(googletest BINARY_DIR)
  INCLUDE_DIRECTORIES(${SOURCE_DIR}/include )
  LINK_DIRECTORIES(${BINARY_DIR})
-ENDIF()
+#ENDIF()
 
 
 #FIND_PACKAGE(CUDA 7.0)
