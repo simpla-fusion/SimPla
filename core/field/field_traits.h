@@ -40,8 +40,7 @@ namespace traits
 template<typename TM, int IFORM, typename ValueType, typename ...Policies>
 struct field_type
 {
-	typedef _Field<
-			Domain<TM, std::integral_constant<int, IFORM>, Policies...>,
+	typedef _Field<Domain<TM, std::integral_constant<int, IFORM>, Policies...>,
 			ValueType, tags::sequence_container> type;
 };
 
@@ -82,12 +81,12 @@ struct mesh_type<_Field<T...> >
 };
 
 template<typename ...T>
-struct iform<_Field<T...> > : public iform<domain_t<_Field<T...> > >
+struct iform<_Field<T...> > : public iform<domain_t<_Field<T...> > >::type
 {
 };
 
 template<typename ...T>
-struct rank<_Field<T...>> : public rank<domain_t<_Field<T...> > >
+struct rank<_Field<T...>> : public rank<domain_t<_Field<T...> > >::type
 {
 };
 

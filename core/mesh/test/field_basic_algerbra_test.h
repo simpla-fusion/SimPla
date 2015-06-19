@@ -10,18 +10,12 @@
 
 #include <stddef.h>
 #include <memory>
-#include <random>
 
 #include <gtest/gtest.h>
 #include "../../gtl/macro.h"
-#include "../../gtl/primitives.h"
 #include "../../gtl/type_traits.h"
 #include "../../utilities/log.h"
 #include "../mesh_traits.h"
-#include "../domain.h"
-#include "../mesh.h"
-#include "../structured/fdm.h"
-#include "../structured/interpolator.h"
 
 using namespace simpla;
 
@@ -147,7 +141,7 @@ TYPED_TEST_P(TestField, constant_real){
 	f1=va;
 	f2=vb;
 
-	LOG_CMD(f3 = -f1 *a + f2*c - f1/b -f1 );
+	LOG_CMD(f3 =- f1 *a + f2*c - f1/b -f1 );
 
 	for(auto s : TestFixture::domain())
 	{
@@ -237,6 +231,7 @@ TYPED_TEST_P(TestField, scalar_field){
 
 REGISTER_TYPED_TEST_CASE_P(TestField, index, assign, constant_real,
 		scalar_field);
+
 //#include <gtest/gtest.h>
 //
 //#include "field.h"

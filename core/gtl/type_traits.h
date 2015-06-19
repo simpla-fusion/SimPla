@@ -89,7 +89,8 @@ public:
 	}
 
 };
-
+template<typename _Tp>
+constexpr _Tp integer_sequence<_Tp>::value[];
 
 template<size_t ... Ints>
 using index_sequence = integer_sequence<std::size_t, Ints...>;

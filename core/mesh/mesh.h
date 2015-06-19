@@ -8,13 +8,13 @@
 #ifndef CORE_MESH_MESH_H_
 #define CORE_MESH_MESH_H_
 
-#include <cstddef>
 #include <iostream>
 #include <memory>
-#include <type_traits>
 
+#include "../geometry/coordinate_system.h"
 #include "../gtl/type_traits.h"
 #include "mesh_traits.h"
+
 namespace simpla
 {
 /**
@@ -81,13 +81,23 @@ namespace traits
 template<typename CS, typename TAG>
 struct type_id<Mesh<CS, TAG> >
 {
-
-	;
 };
 template<typename CS, typename ... T>
 struct coordinate_system_type<Mesh<CS, T...>>
 {
 	typedef CS type;
+};
+
+template<typename ...T>
+struct rank<Mesh<T...> > : public rank<
+		typename coordinate_system_type<Mesh<T...> >::type>::type
+{
+};
+
+template<typename ...Others>
+struct ZAxis<Mesh<Others...> > : public geometry::traits::ZAxis<
+		coordinate_system_type<typename Mesh<Others...>::type> >
+{
 };
 }  // namespace traits
 

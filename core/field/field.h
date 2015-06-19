@@ -15,6 +15,7 @@
 #include "field_function.h"
 #include "load_field.h"
 #include "field_traits.h"
+#include "calculus.h"
 namespace simpla
 {
 

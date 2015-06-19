@@ -8,6 +8,13 @@
 #ifndef CORE_GEOMETRY_COORDINATE_SYSTEM_H_
 #define CORE_GEOMETRY_COORDINATE_SYSTEM_H_
 
+#include <stddef.h>
+#include <cstdbool>
+#include <type_traits>
+
+#include "../gtl/primitives.h"
+#include "../gtl/type_traits.h"
+
 namespace simpla
 {
 namespace geometry

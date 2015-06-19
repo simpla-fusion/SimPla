@@ -148,16 +148,6 @@ struct split_tuple<I, T0, T...>
 	typedef cat_tuple_t<T0, typename split_tuple<I - 1, T...>::previous> previous;
 	typedef typename split_tuple<I - 1, T...>::following following;
 };
-template<size_t I, typename U, typename T> struct replace_tuple;
-template<size_t I, typename U, typename T> using replace_tuple_t=
-typename replace_tuple<I,U,T>::type;
-
-template<size_t I, typename U, typename ...T>
-struct replace_tuple<I, U, std::tuple<T...> >
-{
-	typedef cat_tuple_t<typename split_tuple<I, T...>::previous, U,
-			typename split_tuple<I + 1, T...>::following> type;
-};
 
 template<template<typename ...> class H,typename ...P>
 struct assamble_tuple
@@ -173,9 +163,34 @@ struct assamble_tuple<H,std::tuple<P...>>
 template<template<typename ...> class H,typename ...P>
 using assamble_tuple_t=typename assamble_tuple<H,P...>::type;
 
-}
- // namespace mpl
+template<size_t I, typename U, typename T> struct replace_tuple;
 
-		}// namespace simpla
+template<size_t I, typename U>
+struct replace_tuple<I, U, std::nullptr_t>
+{
+	typedef U type;
+};
+
+template<size_t I, typename U, typename ...T>
+struct replace_tuple<I, U, std::tuple<T...> >
+{
+	typedef cat_tuple_t<typename split_tuple<I, T...>::previous, U,
+			typename split_tuple<I + 1, T...>::following> type;
+};
+
+template<size_t I, typename U, typename ...T, template<typename ... > class H>
+struct replace_tuple<I, U,H<T...> >
+{
+	typedef assamble_tuple_t<H,cat_tuple_t<typename split_tuple<I, T...>::previous, U,
+	typename split_tuple<I + 1, T...>::following> > type;
+};
+
+template<size_t I, typename U, typename T> using replace_tuple_t=
+typename replace_tuple<I,U,T>::type;
+
+}
+// namespace mpl
+
+}// namespace simpla
 
 #endif /* CORE_GTL_MPL_H_ */

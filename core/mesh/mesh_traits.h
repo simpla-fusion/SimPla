@@ -83,22 +83,6 @@ struct ZAxis: public std::integral_constant<int, 2>
 	;
 };
 
-template<typename ...Others>
-struct ZAxis<Mesh<Others...>> : public geometry::traits::ZAxis<
-		coordinate_system_t<Mesh<Others...> > >
-{
-};
-
-template<typename ...T>
-struct rank<Domain<T...> > : public rank<mesh_t<Domain<T...> > >
-{
-};
-
-template<typename ...T>
-struct rank<Mesh<T...> > : public rank<coordinate_system_t<Mesh<T...> > >
-{
-};
-
 template<typename ...T>
 struct iform_list: public integer_sequence<int, iform<T>::value...>
 {

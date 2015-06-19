@@ -25,7 +25,7 @@
 #include "policy.h"
 #include "mesh_traits.h"
 #include "../field/field.h"
-
+#include "structured/fdm.h"
 namespace simpla
 {
 
@@ -51,14 +51,15 @@ struct mesh_type<Domain<TM, Others...> >
 
 template<typename > struct iform;
 template<typename TM, int IFORM, typename ...Others>
-struct iform<Domain<TM, std::integral_constant<int, IFORM>, Others...> >
+struct iform<Domain<TM, std::integral_constant<int, IFORM>, Others...> > : public std::integral_constant<
+		int, IFORM>
 {
-	static constexpr int value = IFORM;
 };
 
-template<typename TM, int IFORM, typename ...Others>
-constexpr int iform<Domain<TM, std::integral_constant<int, IFORM>, Others...> >::value;
-
+template<typename ...T>
+struct rank<Domain<T...> > : public rank<typename mesh_type<Domain<T...> >::type>::type
+{
+};
 }
 // namespace traits
 template<typename TM, int IFORM, typename ... Policies>
@@ -531,7 +532,8 @@ public:
 
 	template<typename ...Args>
 	auto calculate(Args && ...args) const
-	DECL_RET_TYPE((policy_calculate::eval( m_mesh_,std::forward<Args>(args)...)))
+	DECL_RET_TYPE((policy::template calculate<mesh_type, tags::finite_difference>::eval( m_mesh_,
+			std::forward<Args>(args)...)))
 
 };
 

@@ -5,15 +5,25 @@
  *      Author: salmon
  */
 
-#include "field_basic_algerbra_test.h"
-
 #include <gtest/gtest.h>
 
+#include "../../gtl/type_traits.h"
+#include "../../gtl/primitives.h"
+
+#include "../../field/field.h"
 #include "../../field/field_traits.h"
+#include "../../field/field_expression.h"
+#include "../../field/field_dense.h"
+
 #include "../../geometry/coordinate_system.h"
 #include "../../geometry/cs_cartesian.h"
 
+#include "../mesh_ids.h"
 #include "../structured.h"
+#include "../structured/interpolator.h"
+#include "../structured/fdm.h"
+
+#include "field_basic_algerbra_test.h"
 
 using namespace simpla;
 
