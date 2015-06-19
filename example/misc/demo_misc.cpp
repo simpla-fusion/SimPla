@@ -5,17 +5,37 @@
  * @author salmon
  */
 #include <iostream>
-#include "../../core/gtl/type_traits.h"
-#include "../../core/gtl/ntuple.h"
-#include "../../core/gtl/ntuple_ext.h"
+#include <typeinfo>
+#include <tuple>
+#include "../../core/gtl/mpl.h"
 
 using namespace simpla;
+template<typename ...> struct Foo
+{
 
+};
 int main()
 {
-	nTuple<double, 3, 2> foo = { 1, 2, 3, 4, 5, 6 };
-	std::cout << traits::get<0, 1>(foo) << " " << traits::get<1, 2>(foo) << " "
-			<< traits::get<1, 1>(foo) << " " << std::endl;
+	typedef std::tuple<int, double, bool> t1;
+	typedef std::tuple<int, bool, bool> t2;
 
-	std::cout << foo << std::endl;
+	std::cout << std::boolalpha << std::endl
+
+	<< std::is_same<mpl::replace_tuple_t<1, bool, t1>, t2>::value << std::endl
+
+	<< " : " << typeid(t1).name() << std::endl
+
+	<< " : " << typeid(mpl::replace_tuple_t<0, bool, t1>).name() << std::endl
+
+	<< " : " << typeid(mpl::replace_tuple_t<1, bool, t1>).name() << std::endl
+
+	<< " : " << typeid(mpl::replace_tuple_t<2, bool, t1>).name() << std::endl
+
+	<< " : " << typeid(t2).name() << std::endl
+
+	<< " : " << typeid(mpl::assamble_tuple_t<Foo, int, double>).name()
+			<< std::endl
+
+			<< " : " << typeid(mpl::assamble_tuple_t<Foo, t1>).name()
+			<< std::endl;
 }

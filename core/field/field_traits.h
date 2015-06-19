@@ -126,17 +126,21 @@ template<typename > struct mesh_type;
 
 template<typename ...T> using mesh_t= typename mesh_type<T...>::type;
 
+template<typename ...T>
+struct mesh_type<_Field<T...> >
+{
+	typedef domain_t<_Field<T...> > type;
+};
+
 template<typename > struct iform;
 
 template<typename ...T>
-struct iform<_Field<T...>> : public std::integral_constant<size_t,
-		iform<typename domain_type<_Field<T...>>::type>::value>
+struct iform<_Field<T...> > : public iform<domain_t<_Field<T...> > >
 {
 };
 
 template<typename ...T>
-struct rank<_Field<T...>> : public std::integral_constant<size_t,
-		rank<typename domain_type<_Field<T...> >::type>::value>
+struct rank<_Field<T...>> : public rank<domain_t<_Field<T...> > >
 {
 };
 
@@ -151,6 +155,10 @@ struct field_value_type
 };
 
 template<typename T> using field_value_t = typename field_value_type<T>::type;
+
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 
 template<typename T>
 struct container_tag

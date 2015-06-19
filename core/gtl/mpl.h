@@ -96,9 +96,86 @@ struct min<_Tp, first, Others...> : std::integral_constant<_Tp,
 {
 };
 
-}
-// namespace mpl
+template<typename ...T> struct cat_tuple;
+template<typename ...T> using cat_tuple_t=typename cat_tuple<T...>::type;
 
-}// namespace simpla
+template<typename T0>
+struct cat_tuple<T0>
+{
+	typedef std::tuple<T0> type;
+};
+template<typename ... T>
+struct cat_tuple<std::tuple<T...>>
+{
+	typedef std::tuple<T...> type;
+};
+template<>
+struct cat_tuple<>
+{
+	typedef std::tuple<> type;
+};
+
+template<typename T0, typename ...T>
+struct cat_tuple<T0, T...>
+{
+	typedef cat_tuple_t<cat_tuple_t<T0>, cat_tuple_t<T...>> type;
+};
+
+template<typename ...T0, typename ...T1>
+struct cat_tuple<std::tuple<T0...>, std::tuple<T1...>>
+{
+	typedef std::tuple<T0..., T1...> type;
+};
+template<size_t I, typename ...T>
+struct split_tuple;
+template<size_t I, typename ...T> using split_tuple_t=typename split_tuple<I,T...>::type;
+
+template<size_t I>
+struct split_tuple<I>
+{
+	typedef std::tuple<> previous;
+	typedef std::tuple<> following;
+};
+template<typename T0, typename ...T>
+struct split_tuple<0, T0, T...>
+{
+	typedef std::tuple<> previous;
+	typedef std::tuple<T0, T...> following;
+};
+template<size_t I, typename T0, typename ...T>
+struct split_tuple<I, T0, T...>
+{
+	typedef cat_tuple_t<T0, typename split_tuple<I - 1, T...>::previous> previous;
+	typedef typename split_tuple<I - 1, T...>::following following;
+};
+template<size_t I, typename U, typename T> struct replace_tuple;
+template<size_t I, typename U, typename T> using replace_tuple_t=
+typename replace_tuple<I,U,T>::type;
+
+template<size_t I, typename U, typename ...T>
+struct replace_tuple<I, U, std::tuple<T...> >
+{
+	typedef cat_tuple_t<typename split_tuple<I, T...>::previous, U,
+			typename split_tuple<I + 1, T...>::following> type;
+};
+
+template<template<typename ...> class H,typename ...P>
+struct assamble_tuple
+{
+	typedef H<P...> type;
+};
+
+template<template<typename ...> class H,typename ...P>
+struct assamble_tuple<H,std::tuple<P...>>
+{
+	typedef typename assamble_tuple<H,P...>::type type;
+};
+template<template<typename ...> class H,typename ...P>
+using assamble_tuple_t=typename assamble_tuple<H,P...>::type;
+
+}
+ // namespace mpl
+
+		}// namespace simpla
 
 #endif /* CORE_GTL_MPL_H_ */

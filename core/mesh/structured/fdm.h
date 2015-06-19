@@ -30,6 +30,15 @@ namespace tags
 
 struct finite_difference;
 
+struct HodgeStar;
+struct InteriorProduct;
+struct Wedge;
+
+struct ExteriorDerivative;
+struct CodifferentialDerivative;
+
+struct MapTo;
+
 }  // namespace tags
 
 namespace policy
