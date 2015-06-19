@@ -384,8 +384,7 @@ struct extents<nTuple<TV, M...> > : public simpla::_impl::seq_concat<
 };
 
 template<typename TOP, typename TL>
-struct extents<nTuple<Expression<TOP, TL, std::nullptr_t> > > : public traits::extents_t<
-		TL>
+struct extents<nTuple<Expression<TOP, TL> > > : public traits::extents_t<TL>
 {
 };
 template<typename TOP, typename TL, typename TR>
@@ -408,7 +407,7 @@ struct value_type<nTuple<TV, N, M...> >
 };
 
 template<typename TOP, typename TL>
-struct value_type<nTuple<Expression<TOP, TL, std::nullptr_t> > >
+struct value_type<nTuple<Expression<TOP, TL> > >
 {
 private:
 	typedef traits::value_type_t<TL> value_type_l;
@@ -711,9 +710,9 @@ bool value_in_range(T0 const &b, T1 const &e, T2 const &x)
 
 #define _SP_DEFINE_nTuple_EXPR_UNARY_OPERATOR(_OP_, _NAME_)                           \
         template<typename T,size_t ...N> \
-        constexpr nTuple<Expression<_impl::_NAME_,nTuple<T,N...> , std::nullptr_t>> \
+        constexpr nTuple<Expression<_impl::_NAME_,nTuple<T,N...> >> \
         operator _OP_(nTuple<T,N...> const &l)  \
-        {return (nTuple<Expression<_impl::_NAME_,nTuple<T,N...> , std::nullptr_t>>(l)) ;}    \
+        {return (nTuple<Expression<_impl::_NAME_,nTuple<T,N...> >>(l)) ;}    \
 
 
 #define _SP_DEFINE_nTuple_EXPR_BINARY_BOOLEAN_OPERATOR(_OP_, _NAME_)                                                  \
@@ -735,9 +734,9 @@ bool value_in_range(T0 const &b, T1 const &e, T2 const &x)
 
 #define _SP_DEFINE_nTuple_EXPR_UNARY_BOOLEAN_OPERATOR(_OP_, _NAME_)                           \
         template<typename T,size_t ...N> \
-        constexpr nTuple<BooleanExpression<_impl::_NAME_,nTuple<T,N...> , std::nullptr_t>> \
+        constexpr nTuple<BooleanExpression<_impl::_NAME_,nTuple<T,N...> >> \
         operator _OP_(nTuple<T,N...> const &l)  \
-        {return (nTuple<BooleanExpression<_impl::_NAME_,nTuple<T,N...> , std::nullptr_t>>(l)) ;}    \
+        {return (nTuple<BooleanExpression<_impl::_NAME_,nTuple<T,N...> >>(l)) ;}    \
 
 
 #define _SP_DEFINE_nTuple_EXPR_BINARY_FUNCTION(_NAME_)                                                  \
@@ -759,9 +758,9 @@ bool value_in_range(T0 const &b, T1 const &e, T2 const &x)
 
 #define _SP_DEFINE_nTuple_EXPR_UNARY_FUNCTION(_NAME_)                           \
         template<typename T,size_t ...N> \
-        constexpr nTuple<Expression<_impl::_##_NAME_,nTuple<T,N...>, std::nullptr_t>> \
+        constexpr nTuple<Expression<_impl::_##_NAME_,nTuple<T,N...>>> \
         _NAME_(nTuple<T,N ...> const &r)  \
-        {return (nTuple<Expression<_impl::_##_NAME_,nTuple<T,N...>, std::nullptr_t>>(r));}     \
+        {return (nTuple<Expression<_impl::_##_NAME_,nTuple<T,N...>>>(r));}     \
 
 
 DEFINE_EXPRESSOPM_TEMPLATE_BASIC_ALGEBRA2(nTuple)

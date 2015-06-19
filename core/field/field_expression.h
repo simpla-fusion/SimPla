@@ -25,8 +25,7 @@ template<typename ...>class Expression;
 template<typename ...>class BooleanExpression;
 
 template<typename TOP, typename TL>
-struct _Field<Expression<TOP, TL, std::nullptr_t>> : public Expression<TOP, TL,
-		std::nullptr_t>
+struct _Field<Expression<TOP, TL>> : public Expression<TOP, TL>
 {
 	typedef traits::value_type_t<TL> l_type;
 public:
@@ -35,9 +34,9 @@ public:
 
 	typedef traits::result_of_t<TOP(l_type)> value_type;
 
-	typedef _Field<Expression<TOP, TL, std::nullptr_t>> this_type;
+	typedef _Field<Expression<TOP, TL>> this_type;
 
-	using Expression<TOP, TL, std::nullptr_t>::Expression;
+	using Expression<TOP, TL>::Expression;
 };
 
 template<typename TOP, typename TL, typename TR>
