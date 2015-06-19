@@ -51,12 +51,18 @@ template<typename T> struct mesh_type
 };
 template<typename ...T> using mesh_t= typename mesh_type<T...>::type;
 
+template<typename ...> struct id_type
+{
+	typedef size_t type;
+};
+template<typename ...T> using id_type_t= typename id_type<T...>::type;
+
 template<typename T>
 struct scalar_type
 {
 	typedef Real type;
 };
-template<typename ...T> using scalar_t= typename scalar_type<T...>::type;
+template<typename ...T> using scalar_type_t= typename scalar_type<T...>::type;
 
 template<typename > struct iform;
 

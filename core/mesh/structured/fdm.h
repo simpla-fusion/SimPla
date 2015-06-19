@@ -53,9 +53,12 @@ struct calculate<MeshType, tags::finite_difference>
 public:
 
 	typedef MeshType mesh_type;
+
 	typedef calculate<mesh_type, tags::finite_difference> this_type;
-	typedef Real scalar_type;
-	typedef typename mesh_type::id_type id_type;
+
+	typedef traits::scalar_type_t<mesh_type> scalar_type;
+
+	typedef traits::id_type_t<mesh_type> id_type;
 	///***************************************************************************************************
 	/// @name general_algebra General algebra
 	/// @{
