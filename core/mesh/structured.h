@@ -71,9 +71,9 @@ template<typename ... > struct Mesh;
 template<typename CoordinateSystem>
 struct Mesh<CoordinateSystem, simpla::tags::structured>
 
-:	public MeshIDs_<geometry::traits::dimension<CoordinateSystem>::value>,
-	public std::enable_shared_from_this<
-			Mesh<CoordinateSystem, simpla::tags::structured> >
+: public MeshIDs_<geometry::traits::dimension<CoordinateSystem>::value>,
+		public std::enable_shared_from_this<
+				Mesh<CoordinateSystem, simpla::tags::structured> >
 {
 	typedef CoordinateSystem cs_type;
 
@@ -189,8 +189,7 @@ public:
 	{
 	}
 
-	Mesh(this_type const & other)
-			:
+	Mesh(this_type const & other) :
 
 			m_id_min_(other.m_id_min_),
 
@@ -412,14 +411,18 @@ public:
 
 	Real volume_(id_type s) const
 	{
-		return m_metric_.dual_volume(topology_type::node_id(s), point(s),
-				m_delta_);
+		// FIXME !!
+		return 1.0;
+//		return m_metric_.dual_volume(topology_type::node_id(s), point(s),
+//				m_delta_);
 	}
 
 	Real dual_volume_(id_type s) const
 	{
-		return m_metric_.dual_volume(topology_type::node_id(s), point(s),
-				m_delta_);
+		// FIXME !!
+		return 1.0;
+//		return m_metric_.dual_volume(topology_type::node_id(s), point(s),
+//				m_delta_);
 	}
 	Real volume(id_type s) const
 	{
@@ -427,7 +430,6 @@ public:
 	}
 	Real dual_volume(id_type s) const
 	{
-
 		return m_dual_volume_[topology_type::node_id(s)] * dual_volume_(s);
 	}
 	Real inv_volume(id_type s) const

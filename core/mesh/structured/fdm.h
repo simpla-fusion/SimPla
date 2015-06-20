@@ -325,7 +325,7 @@ public:
 
 	template<typename TL, typename TR>
 	static inline traits::value_type_t<_Field<Expression<tags::Wedge, TL, TR> > > eval(
-			mesh_type& geo,
+			mesh_type const& geo,
 			_Field<Expression<tags::Wedge, TL, TR>> const & expr, id_type s,
 			integer_sequence<int, VERTEX, EDGE>)
 	{
