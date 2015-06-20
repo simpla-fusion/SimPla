@@ -49,11 +49,11 @@ struct container_traits
 		return lhs == rhs;
 	}
 
-	static value_type & try_index(holder_type & data, key_type s)
+	static value_type & index(holder_type & data, key_type s)
 	{
 		return (*data)[s];
 	}
-	static value_type const & try_index(holder_type const & data, key_type s)
+	static value_type const & index(holder_type const & data, key_type s)
 	{
 		return (*data)[s];
 	}
@@ -86,11 +86,11 @@ template<typename TV> struct container_traits<std::shared_ptr<TV>>
 		return lhs == rhs;
 	}
 
-	static value_type & try_index(holder_type & data, size_t s)
+	static value_type & index(holder_type & data, size_t s)
 	{
 		return data.get()[s];
 	}
-	static value_type const & try_index(holder_type const & data, size_t s)
+	static value_type const & index(holder_type const & data, size_t s)
 	{
 		return data.get()[s];
 	}

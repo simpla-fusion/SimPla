@@ -293,12 +293,12 @@ int main(int argc, char **argv)
 			{
 				for(auto s:limiter_face)
 				{
-					try_index(B,s)=0.0;
+					(B,s)=0.0;
 				}
 
 				for(auto s:limiter_edge)
 				{
-					try_index(J,s)=0.0;
+					(J,s)=0.0;
 				}
 			}
 

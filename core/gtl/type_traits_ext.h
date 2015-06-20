@@ -8,7 +8,7 @@
 #ifndef CORE_GTL_TYPE_TRAITS_EXT_H_
 #define CORE_GTL_TYPE_TRAITS_EXT_H_
 #include "check_concept.h"
-
+#include "macro.h"
 namespace simpla
 {
 /// \note  http://stackoverflow.com/questions/3913503/metaprogram-for-bit-counting
@@ -124,11 +124,11 @@ struct GetValue
 {
 	template<typename TL, typename TI>
 	constexpr auto operator()(TL const & v, TI const s) const
-	DECL_RET_TYPE ((try_index(v, s)))
+	DECL_RET_TYPE ((traits::index(v, s)))
 
 template	<typename TL, typename TI>
 	constexpr auto operator()(TL & v, TI const s) const
-	DECL_RET_TYPE((try_index(v,s)))
+	DECL_RET_TYPE((traits::index(v,s)))
 };
 
 }

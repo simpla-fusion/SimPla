@@ -58,7 +58,7 @@ struct _Field<Expression<TOP, Args...> >
 //private:
 //	template<typename ID, typename Tup, size_t ... index>
 //	auto _invoke_helper(ID s, index_sequence<index...>)
-//	DECL_RET_TYPE(m_op_(try_index(std::get<index>(args),s)...))
+//	DECL_RET_TYPE(m_op_(traits::index(std::get<index>(args),s)...))
 //
 //public:
 //	template<typename ID>

@@ -404,6 +404,11 @@ ENABLE_IF_DECL_RET_TYPE((!traits::is_indexable<T,TI>::value), (v))
 //
 namespace traits
 {
+
+template<typename T, typename TI>
+auto index(T & v, TI const& s)
+DECL_RET_TYPE(simpla::try_index(v,s))
+
 namespace _impl
 {
 

@@ -174,7 +174,7 @@ private:
 	{
 		if (batch.size() == 0)
 			return;
-		VERBOSE << "Apply constraints";
+		VERBOSE<< "Apply constraints";
 		for (auto const & command : batch)
 		{
 			command();
@@ -244,16 +244,16 @@ std::string ExplicitEMContext<TM>::save(std::string const & path) const
 
 	auto abs_path = (cd(path));
 
-	VERBOSE << SAVE(E1);
-	VERBOSE << SAVE(B1);
-	VERBOSE << SAVE(J1);
-	VERBOSE << SAVE(Jext);
-	VERBOSE << SAVE(dE);
-	VERBOSE << SAVE(dB);
+	VERBOSE<< SAVE(E1);
+	VERBOSE<< SAVE(B1);
+	VERBOSE<< SAVE(J1);
+	VERBOSE<< SAVE(Jext);
+	VERBOSE<< SAVE(dE);
+	VERBOSE<< SAVE(dB);
 
 	for (auto const & p : particles_)
 	{
-		VERBOSE << p.second->save(abs_path + p.first + "/");
+		VERBOSE<< p.second->save(abs_path + p.first + "/");
 	}
 
 	return path;
@@ -263,11 +263,11 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 {
 	DEFINE_PHYSICAL_CONST
 
-	LOGGER << "Load ExplicitEMContext ";
+	LOGGER<< "Load ExplicitEMContext ";
 
 	description = dict["Description"].template as<std::string>();
 
-	LOGGER << description;
+	LOGGER<< description;
 
 	field<Real, VERTEX> ne0(model);
 	field<Real, VERTEX> Te0(model);
@@ -376,13 +376,13 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 	cd("/Input/");
 
-	VERBOSE << SAVE(ne0);
-	VERBOSE << SAVE(Te0);
-	VERBOSE << SAVE(Ti0);
-	VERBOSE << SAVE(B0);
-	VERBOSE << SAVE(E0);
+	VERBOSE<< SAVE(ne0);
+	VERBOSE<< SAVE(Te0);
+	VERBOSE<< SAVE(Ti0);
+	VERBOSE<< SAVE(B0);
+	VERBOSE<< SAVE(E0);
 
-	LOGGER << "Load Particles";
+	LOGGER<< "Load Particles";
 
 	auto particle_factory = RegisterAllParticles<mesh_type, TDict,
 			Model<mesh_type> const &, decltype(ne0), decltype(Te0)>();
@@ -418,7 +418,7 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 	}
 
-	LOGGER << "Load Constraints";
+	LOGGER<< "Load Constraints";
 
 //	for (auto const & item : dict["Constraints"])
 //	{
@@ -543,7 +543,7 @@ void ExplicitEMContext<TM>::InitPECboundary()
 			VERBOSE << "Apply PEC to E1";
 			for (auto s : conduct_wall_E_)
 			{
-				try_index(this->E1, s) = 0;
+				traits::index(this->E1, s) = 0;
 
 			};
 		};
@@ -567,7 +567,7 @@ void ExplicitEMContext<TM>::InitPECboundary()
 			VERBOSE << "Apply PEC to B1 ";
 			for (auto s : conduct_wall_B_)
 			{
-				try_index(this->B1, s) = 0;
+				traits::index(this->B1, s) = 0;
 
 			};
 		};
@@ -588,7 +588,7 @@ void ExplicitEMContext<TM>::next_timestep()
 
 	INFORM
 
-	<< "[" << model->get_clock() << "]"
+<<	"[" << model->get_clock() << "]"
 
 	<< "Simulation Time = " << (model->get_time() / CONSTANTS["s"]) << "[s]";
 

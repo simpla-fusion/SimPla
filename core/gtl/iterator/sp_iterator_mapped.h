@@ -98,11 +98,11 @@ public:
 	}
 	reference operator*()
 	{
-		return try_index( data_,*k_it_);
+		return traits::index( data_,*k_it_);
 	}
 	pointer operator->()
 	{
-		return &try_index( data_,*k_it_);
+		return &traits::index( data_,*k_it_);
 	}
 
 	const_reference operator*() const
@@ -116,19 +116,19 @@ public:
 	}
 	reference get(std::false_type)
 	{
-		return try_index( data_,*k_it_);
+		return traits::index( data_,*k_it_);
 	}
 	reference get(std::true_type)
 	{
-		return try_index( data_,*k_it_);
+		return traits::index( data_,*k_it_);
 	}
 	const_reference get(std::false_type) const
 	{
-		return try_index( data_,*k_it_);
+		return traits::index( data_,*k_it_);
 	}
 	const_reference get(std::true_type) const
 	{
-		return try_index( data_,*k_it_);
+		return traits::index( data_,*k_it_);
 	}
 };
 

@@ -103,7 +103,7 @@ public:
 	static constexpr TV eval(mesh_type const & geo,
 			_Field<TM, TV, Others...> const &f, id_type s)
 	{
-		return try_index(f, s);
+		return traits::index(f, s);
 	}
 
 	template<typename TOP, typename ... T>

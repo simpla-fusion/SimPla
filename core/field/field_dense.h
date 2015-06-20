@@ -65,16 +65,16 @@ private:
 
 public:
 
-	_Field(domain_type const & d)
-			: m_domain_(d), m_data_(nullptr)
+	_Field(domain_type const & d) :
+			m_domain_(d), m_data_(nullptr)
 	{
 	}
-	_Field(this_type const & other)
-			: m_domain_(other.m_domain_), m_data_(other.m_data_)
+	_Field(this_type const & other) :
+			m_domain_(other.m_domain_), m_data_(other.m_data_)
 	{
 	}
-	_Field(this_type && other)
-			: m_domain_(other.m_domain_), m_data_(other.m_data_)
+	_Field(this_type && other) :
+			m_domain_(other.m_domain_), m_data_(other.m_data_)
 	{
 	}
 	~_Field()
@@ -362,18 +362,7 @@ public:
 
 }
 ;
-template<typename ... TM, typename ...Others, typename TI>
-typename _Field<Domain<TM...>, Others...>::value_type & try_index(
-		_Field<Domain<TM...>, Others...> & f, TI const &s)
-{
-	return f[s];
-}
-template<typename ...TM, typename ...Others, typename TI>
-typename _Field<Domain<TM ...>, Others...>::value_type const& try_index(
-		_Field<Domain<TM ...>, Others...> const& f, TI const &s)
-{
-	return f[s];
-}
+
 namespace traits
 {
 

@@ -40,7 +40,7 @@ int main(int argc, char **argv)
 //	std::cout << seq_reduce(integer_sequence<size_t, 2, 3>(), _impl::plus(), a)
 //			<< std::endl;
 
-//	std::cout << _impl::try_index_traits(a.data_, 1, 2) << std::endl;
+//	std::cout << _impl::traits::index_traits(a.data_, 1, 2) << std::endl;
 //
 	std::cout << a << std::endl;
 
@@ -68,18 +68,18 @@ int main(int argc, char **argv)
 //			<< std::endl;
 ////	std::cout << typeid(decltype(d)).name() << std::endl;
 ////
-//	std::cout << try_index2(d, id) << std::endl;
-////	std::cout << try_index2(a, id) << std::endl;
+//	std::cout << traits::index2(d, id) << std::endl;
+////	std::cout << traits::index2(a, id) << std::endl;
 //
-////	std::cout << typeid(decltype( try_index2(a.data_, id) )).name()
+////	std::cout << typeid(decltype( traits::index2(a.data_, id) )).name()
 ////			<< std::endl;
 //
 ////	std::cout << typeid(decltype(c.data_)).name() << std::endl;
 //
 ////	seq_for_each(i_seq(), [&](size_t const idx[2])
 ////	{
-////		std::cout<<try_index(d,idx)<<std::endl;
-//////			std::cout<<try_index(c,idx)<<std::endl;
+////		std::cout<<traits::index(d,idx)<<std::endl;
+//////			std::cout<<traits::index(c,idx)<<std::endl;
 ////
 ////		});
 

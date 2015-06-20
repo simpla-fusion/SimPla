@@ -49,7 +49,7 @@ private:
 
 	template<typename TD, typename TIDX>
 	static auto gather_impl_(TD const & f,
-			TIDX const & idx) -> decltype(try_index(f, std::get<0>(idx) )* std::get<1>(idx)[0])
+			TIDX const & idx) -> decltype(traits::index(f, std::get<0>(idx) )* std::get<1>(idx)[0])
 	{
 
 		auto X = (mesh_type::_DI) << 1;
@@ -59,14 +59,14 @@ private:
 		typename mesh_type::point_type r = std::get<1>(idx);
 		typename mesh_type::index_type s = std::get<0>(idx);
 
-		return try_index(f, ((s + X) + Y) + Z) * (r[0]) * (r[1]) * (r[2]) //
-		+ try_index(f, (s + X) + Y) * (r[0]) * (r[1]) * (1.0 - r[2]) //
-		+ try_index(f, (s + X) + Z) * (r[0]) * (1.0 - r[1]) * (r[2]) //
-		+ try_index(f, (s + X)) * (r[0]) * (1.0 - r[1]) * (1.0 - r[2]) //
-		+ try_index(f, (s + Y) + Z) * (1.0 - r[0]) * (r[1]) * (r[2]) //
-		+ try_index(f, (s + Y)) * (1.0 - r[0]) * (r[1]) * (1.0 - r[2]) //
-		+ try_index(f, s + Z) * (1.0 - r[0]) * (1.0 - r[1]) * (r[2]) //
-		+ try_index(f, s) * (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
+		return traits::index(f, ((s + X) + Y) + Z) * (r[0]) * (r[1]) * (r[2]) //
+		+ traits::index(f, (s + X) + Y) * (r[0]) * (r[1]) * (1.0 - r[2]) //
+		+ traits::index(f, (s + X) + Z) * (r[0]) * (1.0 - r[1]) * (r[2]) //
+		+ traits::index(f, (s + X)) * (r[0]) * (1.0 - r[1]) * (1.0 - r[2]) //
+		+ traits::index(f, (s + Y) + Z) * (1.0 - r[0]) * (r[1]) * (r[2]) //
+		+ traits::index(f, (s + Y)) * (1.0 - r[0]) * (r[1]) * (1.0 - r[2]) //
+		+ traits::index(f, s + Z) * (1.0 - r[0]) * (1.0 - r[1]) * (r[2]) //
+		+ traits::index(f, s) * (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
 	}
 public:
 
@@ -115,14 +115,14 @@ private:
 		typename mesh_type::point_type r = std::get<1>(idx);
 		typename mesh_type::index_type s = std::get<0>(idx);
 
-		try_index(f, ((s + X) + Y) + Z) += v * (r[0]) * (r[1]) * (r[2]);
-		try_index(f, (s + X) + Y) += v * (r[0]) * (r[1]) * (1.0 - r[2]);
-		try_index(f, (s + X) + Z) += v * (r[0]) * (1.0 - r[1]) * (r[2]);
-		try_index(f, s + X) += v * (r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
-		try_index(f, (s + Y) + Z) += v * (1.0 - r[0]) * (r[1]) * (r[2]);
-		try_index(f, s + Y) += v * (1.0 - r[0]) * (r[1]) * (1.0 - r[2]);
-		try_index(f, s + Z) += v * (1.0 - r[0]) * (1.0 - r[1]) * (r[2]);
-		try_index(f, s) += v * (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
+		traits::index(f, ((s + X) + Y) + Z) += v * (r[0]) * (r[1]) * (r[2]);
+		traits::index(f, (s + X) + Y) += v * (r[0]) * (r[1]) * (1.0 - r[2]);
+		traits::index(f, (s + X) + Z) += v * (r[0]) * (1.0 - r[1]) * (r[2]);
+		traits::index(f, s + X) += v * (r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
+		traits::index(f, (s + Y) + Z) += v * (1.0 - r[0]) * (r[1]) * (r[2]);
+		traits::index(f, s + Y) += v * (1.0 - r[0]) * (r[1]) * (1.0 - r[2]);
+		traits::index(f, s + Z) += v * (1.0 - r[0]) * (1.0 - r[1]) * (r[2]);
+		traits::index(f, s) += v * (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
 
 	}
 public:
