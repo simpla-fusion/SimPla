@@ -231,42 +231,22 @@ template<typename T> struct value_type
 template<typename T> using value_type_t=typename value_type<T>::type;
 
 } // namespace traits
-//
-///**
-// * @name Replace Type
-// * @{
-// */
-//
-//template<size_t, typename ...> struct replace_template_type;
-//
-//template<typename TV, typename T0, typename ...Others, template<typename ...> class TT>
-//struct replace_template_type<0,TV,TT<T0, Others...> >
-//{
-//	typedef TT< TV,Others...> type;
-//};
-//
-//template<typename TV, template<typename ...> class TT, typename T0,typename T1,typename ...Others>
-//struct replace_template_type<1,TV,TT<T0,T1,Others...> >
-//{
-//	typedef TT<T0,TV,Others...> type;
-//};
-///**
-// * @}
-// */
-//
+
 template<typename T, typename TI>
-auto try_index(T & v,
-		TI const& s)
-				ENABLE_IF_DECL_RET_TYPE(
-						! (traits::is_indexable<T,TI>::value || traits::is_shared_ptr<T >::value ) , (v))
+auto try_index(T & v, TI const& s)
+ENABLE_IF_DECL_RET_TYPE((!traits::is_indexable<T,TI>::value ) , (v))
 
 template<typename T, typename TI>
 auto try_index(T & v, TI const & s)
 ENABLE_IF_DECL_RET_TYPE((traits::is_indexable<T,TI>::value ), (v[s]))
 
 template<typename T, typename TI>
-auto try_index(T & v, TI const& s)
-ENABLE_IF_DECL_RET_TYPE(( traits::is_shared_ptr<T >::value ) , v.get()[s])
+auto try_index(std::shared_ptr<T> & v, TI const& s)
+DECL_RET_TYPE( v.get()[s])
+
+template<typename T, typename TI>
+auto try_index(std::shared_ptr<T> const& v, TI const& s)
+DECL_RET_TYPE( v.get()[s])
 
 template<typename T, typename TI>
 T & try_index(std::map<T, TI> & v, TI const& s)
@@ -278,6 +258,16 @@ T const & try_index(std::map<T, TI> const& v, TI const& s)
 {
 	return v[s];
 }
+
+template<typename T, typename TI, TI M, TI ...N>
+auto try_index(T & v, integer_sequence<TI, M, N...>)
+ENABLE_IF_DECL_RET_TYPE((traits::is_indexable<T,TI>::value),
+		try_index(v[M],integer_sequence<TI, N...>()))
+
+template<typename T, typename TI, TI M, TI ...N>
+auto try_index(T & v, integer_sequence<TI, M, N...>)
+ENABLE_IF_DECL_RET_TYPE((!traits::is_indexable<T,TI>::value), v)
+
 namespace _impl
 {
 
@@ -317,15 +307,6 @@ ENABLE_IF_DECL_RET_TYPE((traits::is_indexable<T,TI>::value),
 template<typename T, typename TI, size_t N>
 auto try_index_r(T & v, nTuple<TI, N> const &s)
 ENABLE_IF_DECL_RET_TYPE((!traits::is_indexable<T,TI>::value), (v))
-
-template<typename T, typename TI, TI M, TI ...N>
-auto try_index(T & v, integer_sequence<TI, M, N...>)
-ENABLE_IF_DECL_RET_TYPE((traits::is_indexable<T,TI>::value),
-		try_index(v[M],integer_sequence<TI, N...>()))
-
-template<typename T, typename TI, TI M, TI ...N>
-auto try_index(T & v, integer_sequence<TI, M, N...>)
-ENABLE_IF_DECL_RET_TYPE((!traits::is_indexable<T,TI>::value), v)
 
 ////template<typename T, typename TI, TI ...N>
 ////auto try_index(T & v, integer_sequence<TI, N...>)
