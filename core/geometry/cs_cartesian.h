@@ -126,20 +126,21 @@ public:
 	static constexpr Real volume(size_t node_id, point_t const & x0,
 			delta_t delta, Others && ...)
 	{
-
-		return (((node_id >> CartesianXAxis) & 1UL)
-				* (dl<CartesianXAxis>(x0, delta)
-						* st::get<CartesianXAxis>(delta) - 1) + 1.0)
-
-				* (((node_id >> CartesianYAxis) & 1UL)
-						* (dl<CartesianYAxis>(x0, delta)
-								* st::get<CartesianYAxis>(delta) - 1) + 1.0)
-
-				* (((node_id >> CartesianZAxis) & 1UL)
-						* (dl<CartesianZAxis>(x0, delta)
-								* st::get<CartesianZAxis>(delta) - 1) + 1.0)
-
-		;
+		return 1.0;
+		// FIXME !!!
+//		return (((node_id >> CartesianXAxis) & 1UL)
+//				* (dl<CartesianXAxis>(x0, delta)
+//						* st::get<CartesianXAxis>(delta) - 1) + 1.0)
+//
+//				* (((node_id >> CartesianYAxis) & 1UL)
+//						* (dl<CartesianYAxis>(x0, delta)
+//								* st::get<CartesianYAxis>(delta) - 1) + 1.0)
+//
+//				* (((node_id >> CartesianZAxis) & 1UL)
+//						* (dl<CartesianZAxis>(x0, delta)
+//								* st::get<CartesianZAxis>(delta) - 1) + 1.0)
+//
+//		;
 	}
 
 	template<typename ...Others>
@@ -155,8 +156,7 @@ namespace traits
 {
 
 template<size_t NDIMS, size_t ICARTESIAN_ZAXIS>
-struct type_id<
-		geometry::coordinate_system::Cartesian<NDIMS, ICARTESIAN_ZAXIS> >
+struct type_id<geometry::coordinate_system::Cartesian<NDIMS, ICARTESIAN_ZAXIS> >
 {
 	static std::string name()
 	{

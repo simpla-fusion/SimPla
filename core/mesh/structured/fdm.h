@@ -65,24 +65,24 @@ public:
 	/// @{
 	///***************************************************************************************************
 
-	static Real eval(mesh_type const & geo, Real v, id_type s)
+	static constexpr Real eval(mesh_type const & geo, Real v, id_type s)
 	{
 		return v;
 	}
 
-	static int eval(mesh_type const & geo, int v, id_type s)
+	static constexpr int eval(mesh_type const & geo, int v, id_type s)
 	{
 		return v;
 	}
 
-	static std::complex<Real> eval(mesh_type const & geo, std::complex<Real> v,
-			id_type s)
+	static constexpr std::complex<Real> eval(mesh_type const & geo,
+			std::complex<Real> v, id_type s)
 	{
 		return v;
 	}
 
 	template<typename T, size_t ...N>
-	static nTuple<T, N...> const& eval(mesh_type const & geo,
+	static constexpr nTuple<T, N...> const& eval(mesh_type const & geo,
 			nTuple<T, N...> const& v, id_type s)
 	{
 
@@ -100,14 +100,14 @@ public:
 	}
 
 	template<typename TM, typename TV, typename ... Others, typename ... Args>
-	static inline TV eval(mesh_type const & geo,
+	static constexpr TV eval(mesh_type const & geo,
 			_Field<TM, TV, Others...> const &f, id_type s)
 	{
 		return try_index(f, s);
 	}
 
 	template<typename TOP, typename ... T>
-	static traits::primary_type_t<
+	static constexpr traits::primary_type_t<
 			traits::value_type_t<_Field<Expression<TOP, T...> > > > eval(
 			mesh_type const & geo, _Field<Expression<TOP, T...> > const &expr,
 			id_type const &s)
@@ -131,37 +131,15 @@ private:
 public:
 
 	template<typename TOP, typename ... T>
-	static traits::primary_type_t<
+	static constexpr traits::primary_type_t<
 			traits::value_type_t<_Field<Expression<TOP, T...> > > > eval(
 			mesh_type const & geo, _Field<Expression<TOP, T...> > const &expr,
 			id_type const & s, traits::iform_list_t<T...>)
 	{
 		return _invoke_helper(geo, expr, s, typename make_index_sequence<sizeof...(T)>::type ()) ;
-			}
+	}
 
-//	template<typename TOP, typename TL>
-//	static traits::value_type_t<_Field<Expression<TOP, TL> > > eval(
-//			mesh_type const & geo, _Field<Expression<TOP, TL>> const &f,
-//			id_type const & s, traits::iform_list_t<TL>)
-//	{
-//		traits::value_type_t<_Field<Expression<TOP, TL> > > res;
-//		res = f.m_op_(eval(geo, std::get<0>(f.args), s));
-//		return std::move(res);
-//	}
-//
-//	template<typename TOP, typename TL, typename TR>
-//	static traits::value_type_t<_Field<Expression<TOP, TL, TR> > > eval(
-//			mesh_type const & geo, _Field<Expression<TOP, TL, TR> > const &f,
-//			id_type const &s, traits::iform_list_t<TL, TR>)
-//	{
-//
-//		traits::value_type_t<_Field<Expression<TOP, TL, TR> > > res;
-//
-//		res = (f.m_op_(eval(geo, std::get<0>(f.args), s),
-//				eval(geo, std::get<1>(f.args), s)));
-//
-//		return std::move(res);
-//	}
+
 
 	//***************************************************************************************************
 	// Exterior algebra

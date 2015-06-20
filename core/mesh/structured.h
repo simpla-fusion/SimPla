@@ -411,18 +411,15 @@ public:
 
 	Real volume_(id_type s) const
 	{
-		// FIXME !!
-		return 1.0;
-//		return m_metric_.dual_volume(topology_type::node_id(s), point(s),
-//				m_delta_);
+		return m_metric_.dual_volume(topology_type::node_id(s), point(s),
+				m_delta_);
 	}
 
 	Real dual_volume_(id_type s) const
 	{
-		// FIXME !!
-		return 1.0;
-//		return m_metric_.dual_volume(topology_type::node_id(s), point(s),
-//				m_delta_);
+
+		return m_metric_.dual_volume(topology_type::node_id(s), point(s),
+				m_delta_);
 	}
 	Real volume(id_type s) const
 	{
