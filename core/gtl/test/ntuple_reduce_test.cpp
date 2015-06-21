@@ -78,39 +78,41 @@ typedef testing::Types<
 
 nTuple<double, 3>
 
-//, nTuple<double, 3, 3>
-//
-//, nTuple<double, 3, 4, 5>
-//
-//, nTuple<int, 3, 4, 5, 6>
-//
-//, nTuple<std::complex<double>, 3, 4, 5, 6>
+, nTuple<double, 3, 3>
+
+, nTuple<double, 3, 4, 5>
+
+, nTuple<int, 3, 4, 5, 6>
+
+, nTuple<std::complex<double>, 3, 4, 5, 6>
 
 > ntuple_type_lists;
 
 TYPED_TEST_CASE(TestNtupleReduce, ntuple_type_lists);
 
-TYPED_TEST(TestNtupleReduce, equation ){
-{
-	TestFixture::vB=TestFixture::vA+1000;
-
-	EXPECT_TRUE( TestFixture::vA==TestFixture::vA);
-	EXPECT_TRUE( TestFixture::vA!=TestFixture::vB);
-//	EXPECT_TRUE( TestFixture::vA<=TestFixture::vA);
-//	EXPECT_TRUE( TestFixture::vA<=TestFixture::vB);
-//	EXPECT_TRUE( TestFixture::vA<TestFixture::vB);
-//	EXPECT_TRUE( TestFixture::vA>=TestFixture::vA);
-//	EXPECT_TRUE( TestFixture::vB>TestFixture::vA);
-
-	EXPECT_FALSE( TestFixture::vA!=TestFixture::vA);
-	EXPECT_FALSE( TestFixture::vA==TestFixture::vB);
-//	EXPECT_FALSE( TestFixture::vA>=TestFixture::vB);
-//	EXPECT_FALSE( TestFixture::vB<=TestFixture::vA);
-//	EXPECT_FALSE( TestFixture::vA>TestFixture::vB);
-// 	EXPECT_FALSE( TestFixture::vB<TestFixture::vA);
-
-}
-}
+//TYPED_TEST(TestNtupleReduce, equation ){
+//{
+//	TestFixture::vB=TestFixture::vA+1000;
+//
+//	EXPECT_TRUE( TestFixture::vA==TestFixture::vA);
+//	EXPECT_FALSE( TestFixture::vA!=TestFixture::vA);
+//
+//	EXPECT_TRUE( TestFixture::vA!=TestFixture::vB);
+//	EXPECT_FALSE( TestFixture::vA==TestFixture::vB);
+//
+////	EXPECT_TRUE( TestFixture::vA<=TestFixture::vA);
+////	EXPECT_TRUE( TestFixture::vA<=TestFixture::vB);
+////	EXPECT_TRUE( TestFixture::vA<TestFixture::vB);
+////	EXPECT_TRUE( TestFixture::vA>=TestFixture::vA);
+////	EXPECT_TRUE( TestFixture::vB>TestFixture::vA);
+//
+////	EXPECT_FALSE( TestFixture::vA>=TestFixture::vB);
+////	EXPECT_FALSE( TestFixture::vB<=TestFixture::vA);
+////	EXPECT_FALSE( TestFixture::vA>TestFixture::vB);
+//// 	EXPECT_FALSE( TestFixture::vB<TestFixture::vA);
+//
+//}
+//}
 TYPED_TEST(TestNtupleReduce , reduce){
 {
 	typename TestFixture::value_type expect=0;

@@ -14,7 +14,7 @@
 #include "../type_traits.h"
 #include "../ntuple.h"
 #include "../primitives.h"
-
+#include "../mpl.h"
 using namespace simpla;
 
 #define EQUATION(_A,_B,_C)  ( -(_A  +TestFixture::a )/(   _B *TestFixture::b -TestFixture::c  )- _C)
@@ -34,7 +34,7 @@ protected:
 
 		DIMENSIONS = extents::value;
 
-		_impl::seq_for_each(extents(),
+		mpl::seq_for_each(extents(),
 
 		[&](size_t const idx[traits::extent<extents>::value])
 		{
@@ -96,7 +96,7 @@ TYPED_TEST(TestNtuple, swap){
 
 	swap(TestFixture::vA, TestFixture::vB);
 
-	_impl::seq_for_each(typename TestFixture::extents(),
+	mpl::seq_for_each(typename TestFixture::extents(),
 			[&](size_t const idx[traits::extent<typename TestFixture::extents,0>::value])
 			{
 				EXPECT_DOUBLE_EQ(0, std::abs(try_index_r(TestFixture::aA,idx)- try_index_r(TestFixture:: vB,idx)));
@@ -110,7 +110,7 @@ TYPED_TEST(TestNtuple, assign_Scalar){
 
 	TestFixture::vA = TestFixture::a;
 
-	_impl::seq_for_each(typename TestFixture::extents(),
+	mpl::seq_for_each(typename TestFixture::extents(),
 			[&](size_t const idx[traits::extent<typename TestFixture::extents,0>::value])
 			{
 				EXPECT_DOUBLE_EQ(0, abs(TestFixture::a- try_index_r(TestFixture:: vA,idx)));
@@ -123,7 +123,7 @@ TYPED_TEST(TestNtuple, assign_Array){
 {
 	TestFixture::vA = TestFixture::aA;
 
-	_impl::seq_for_each(typename TestFixture::extents(),
+	mpl::seq_for_each(typename TestFixture::extents(),
 			[&](size_t const idx[traits::extent<typename TestFixture::extents,0>::value])
 			{
 				EXPECT_DOUBLE_EQ(0, abs(try_index_r(TestFixture::aA,idx)- try_index_r(TestFixture:: vA,idx)));
@@ -131,36 +131,18 @@ TYPED_TEST(TestNtuple, assign_Array){
 	);
 
 }}
+
 TYPED_TEST(TestNtuple, self_assign){
 {
 	TestFixture::vB +=TestFixture::vA;
 
-	_impl::seq_for_each(typename TestFixture::extents(),
+	mpl::seq_for_each(typename TestFixture::extents(),
 			[&](size_t const idx[traits::extent<typename TestFixture::extents,0>::value])
 			{
 				EXPECT_DOUBLE_EQ(0,abs( try_index_r(TestFixture::vB,idx)
 								- (try_index_r(TestFixture::aB,idx)+
 										try_index_r(TestFixture::aA,idx))));
 
-			}
-	);
-
-}
-}
-
-TYPED_TEST(TestNtuple, arithmetic){
-{
-	TestFixture::vD = EQUATION(TestFixture::vA, TestFixture::vB, TestFixture::vC);
-
-	_impl::seq_for_each(typename TestFixture::extents(),
-			[&](size_t const idx[traits::extent<typename TestFixture::extents,0>::value])
-			{
-				auto &ta=try_index_r(TestFixture::vA,idx);
-				auto &tb=try_index_r(TestFixture::vB,idx);
-				auto &tc=try_index_r(TestFixture::vC,idx);
-				auto &td=try_index_r(TestFixture::vD,idx);
-
-				EXPECT_DOUBLE_EQ(0, abs(EQUATION(ta,tb,tc ) - td));
 			}
 	);
 
@@ -188,3 +170,22 @@ TYPED_TEST(TestNtuple, cross){
 	EXPECT_DOUBLE_EQ(0,abs(vD[0])+abs(vD[1])+abs(vD[2]) );
 }}
 
+
+TYPED_TEST(TestNtuple, arithmetic){
+{
+	TestFixture::vD = EQUATION(TestFixture::vA, TestFixture::vB, TestFixture::vC);
+
+	mpl::seq_for_each(typename TestFixture::extents(),
+			[&](size_t const idx[traits::extent<typename TestFixture::extents,0>::value])
+			{
+				auto &ta=try_index_r(TestFixture::vA,idx);
+				auto &tb=try_index_r(TestFixture::vB,idx);
+				auto &tc=try_index_r(TestFixture::vC,idx);
+				auto &td=try_index_r(TestFixture::vD,idx);
+
+				EXPECT_DOUBLE_EQ(0, abs(EQUATION(ta,tb,tc ) - td));
+			}
+	);
+
+}
+}

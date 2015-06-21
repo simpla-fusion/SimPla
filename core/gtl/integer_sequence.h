@@ -18,7 +18,7 @@ namespace simpla
 {
 template<typename _Tp, _Tp ... _I> struct integer_sequence;
 
-namespace _impl
+namespace mpl
 {
 
 template<size_t N, typename ...> struct seq_get;
@@ -252,8 +252,61 @@ TOS& seq_print(integer_sequence<TInts, N...>, TOS & os, TA const &d)
 	}
 	return os;
 }
+template<typename ...> struct seq_max;
 
-}  // namespace _impl
+template<typename U, typename ...T>
+struct seq_max<U, T...>
+{
+	typedef typename seq_max<U, seq_max<T...> >::type type;
+};
+template<>
+struct seq_max<>
+{
+	typedef void type;
+};
+template<typename U>
+struct seq_max<U>
+{
+	typedef U type;
+};
+template<typename U>
+struct seq_max<U, void>
+{
+	typedef U type;
+};
+template<typename _Tp, _Tp ...N, _Tp ...M>
+struct seq_max<integer_sequence<_Tp, N...>, integer_sequence<_Tp, M...>>
+{
+	typedef integer_sequence<_Tp, N...> type;
+};
+template<typename U, typename T>
+struct seq_max<U, T>
+{
+	typedef typename seq_max<U, seq_max<T> >::type type;
+};
+template<typename ...> struct seq_min;
+template<>
+struct seq_min<>
+{
+	typedef void type;
+};
+template<typename U>
+struct seq_min<U>
+{
+	typedef U type;
+};
+template<typename U>
+struct seq_min<U, void>
+{
+	typedef U type;
+};
+template<typename U, typename ...T>
+struct seq_min<U, T...>
+{
+	typedef typename seq_min<U, seq_min<T...> >::type type;
+};
+}
+// namespace _impl
 
-}  // namespace simpla
+}// namespace simpla
 #endif /* CORE_GTL_INTEGER_SEQUENCE_H_ */

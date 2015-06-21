@@ -14,6 +14,8 @@ namespace simpla
 namespace mpl
 {
 template<size_t N, typename _TP, _TP ...I> struct unpack_int_seq;
+template<size_t N, typename _TP, _TP ...I>
+using unpack_int_seq_t=typename unpack_int_seq<N,_TP,I...>::type;
 
 template<typename _Tp, _Tp I0, _Tp ...I>
 struct unpack_int_seq<0, _Tp, I0, I...> : public std::integral_constant<_Tp, I0>
