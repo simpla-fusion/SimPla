@@ -495,6 +495,8 @@ _SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_FUNCTION(log10)                             
 _SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_FUNCTION(sqrt)                                          \
 _SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_FUNCTION(real)                                          \
 _SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_FUNCTION(imag)                                          \
+
+#define  DEFINE_EXPRESSOPM_TEMPLATE_BOOLEAN_ALGEBRA2(_CONCEPT_)                                              \
 _SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_BOOLEAN_OPERATOR(!,  logical_not)                              \
 _SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_BOOLEAN_OPERATOR(&&, logical_and)                              \
 _SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_BOOLEAN_OPERATOR(||, logical_or)                               \

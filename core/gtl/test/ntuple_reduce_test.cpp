@@ -12,8 +12,9 @@
 #include <typeinfo>
 #include <utility>
 #include "../type_traits.h"
-#include "../ntuple.h"
 #include "../primitives.h"
+#include "../ntuple.h"
+#include "../ntuple_boolean_expr.h"
 
 using namespace simpla;
 
@@ -89,27 +90,27 @@ nTuple<double, 3>
 
 TYPED_TEST_CASE(TestNtupleReduce, ntuple_type_lists);
 
-//TYPED_TEST(TestNtupleReduce, equation ){
-//{
-//	TestFixture::vB=TestFixture::vA+1000;
-//
-//	EXPECT_TRUE( TestFixture::vA==TestFixture::vA);
-//	EXPECT_TRUE( TestFixture::vA!=TestFixture::vB);
-////	EXPECT_TRUE( TestFixture::vA<=TestFixture::vA);
-////	EXPECT_TRUE( TestFixture::vA<=TestFixture::vB);
-////	EXPECT_TRUE( TestFixture::vA<TestFixture::vB);
-////	EXPECT_TRUE( TestFixture::vA>=TestFixture::vA);
-////	EXPECT_TRUE( TestFixture::vB>TestFixture::vA);
-//
-//	EXPECT_FALSE( TestFixture::vA!=TestFixture::vA);
-//	EXPECT_FALSE( TestFixture::vA==TestFixture::vB);
-////	EXPECT_FALSE( TestFixture::vA>=TestFixture::vB);
-////	EXPECT_FALSE( TestFixture::vB<=TestFixture::vA);
-////	EXPECT_FALSE( TestFixture::vA>TestFixture::vB);
-//// 	EXPECT_FALSE( TestFixture::vB<TestFixture::vA);
-//
-//}
-//}
+TYPED_TEST(TestNtupleReduce, equation ){
+{
+	TestFixture::vB=TestFixture::vA+1000;
+
+	EXPECT_TRUE( TestFixture::vA==TestFixture::vA);
+	EXPECT_TRUE( TestFixture::vA!=TestFixture::vB);
+//	EXPECT_TRUE( TestFixture::vA<=TestFixture::vA);
+//	EXPECT_TRUE( TestFixture::vA<=TestFixture::vB);
+//	EXPECT_TRUE( TestFixture::vA<TestFixture::vB);
+//	EXPECT_TRUE( TestFixture::vA>=TestFixture::vA);
+//	EXPECT_TRUE( TestFixture::vB>TestFixture::vA);
+
+	EXPECT_FALSE( TestFixture::vA!=TestFixture::vA);
+	EXPECT_FALSE( TestFixture::vA==TestFixture::vB);
+//	EXPECT_FALSE( TestFixture::vA>=TestFixture::vB);
+//	EXPECT_FALSE( TestFixture::vB<=TestFixture::vA);
+//	EXPECT_FALSE( TestFixture::vA>TestFixture::vB);
+// 	EXPECT_FALSE( TestFixture::vB<TestFixture::vA);
+
+}
+}
 TYPED_TEST(TestNtupleReduce , reduce){
 {
 	typename TestFixture::value_type expect=0;

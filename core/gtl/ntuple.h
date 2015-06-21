@@ -259,24 +259,6 @@ public:
 
 };
 
-template<typename TOP, typename ... T>
-struct nTuple<BooleanExpression<TOP, T...>> : public Expression<TOP, T...>
-{
-	typedef nTuple<BooleanExpression<TOP, T...>> this_type;
-
-	using Expression<T...>::m_op_;
-	using Expression<T...>::args;
-	using Expression<T...>::Expression;
-
-	operator bool() const
-	{
-		return false;
-//		return seq_reduce(traits::extents_t<this_type>(),
-//				typename _impl::op_traits<TOP>::reduction_op(), *this);
-	}
-
-};
-
 namespace traits
 {
 template<typename T, size_t ...M, size_t N>
@@ -373,19 +355,7 @@ struct primary_type<nTuple<T, N...>>
 
 };
 
-template<typename TOP, typename ...T>
-struct primary_type<nTuple<BooleanExpression<TOP, T...> > >
-{
-	typedef bool type;
-};
-
 template<typename T> using ntuple_cast_t=typename primary_type<T>::type;
-
-template<typename TOP, typename ...T>
-struct pod_type<nTuple<BooleanExpression<TOP, T...> > >
-{
-	typedef bool type;
-};
 
 template<typename T, size_t ...N>
 struct pod_type<nTuple<T, N...>>
@@ -414,47 +384,18 @@ struct extents<nTuple<Expression<TOP, TL, TR> > > : public simpla::_impl::longer
 {
 };
 
-template<typename TOP, typename ...T>
-struct extents<nTuple<BooleanExpression<TOP, T...> > > : public traits::extents_t<
-		nTuple<Expression<TOP, T...> > >
-{
-
-};
-
 template<typename TV, size_t N, size_t ...M>
 struct value_type<nTuple<TV, N, M...> >
 {
 	typedef traits::value_type_t<TV> type;
 };
 
-template<typename TOP, typename TL>
-struct value_type<nTuple<Expression<TOP, TL> > >
+template<typename TOP, typename ... T>
+struct value_type<nTuple<Expression<TOP, T...> > >
 {
-private:
-	typedef traits::value_type_t<TL> value_type_l;
-public:
-
-	typedef decltype(std::declval<TOP>()(std::declval<value_type_l>())) type;
-
-};
-template<typename TOP, typename TL, typename TR>
-struct value_type<nTuple<Expression<TOP, TL, TR> > >
-{
-private:
-	typedef traits::value_type_t<TL> value_type_l;
-	typedef traits::value_type_t<TR> value_type_r;
-public:
-
-	typedef decltype(std::declval<TOP>()(std::declval<value_type_l>(),
-					std::declval<value_type_r>())) type;
-
+	typedef traits::result_of_t<TOP(traits::value_type_t<T>...)> type;
 };
 
-template<typename TOP, typename ...T>
-struct value_type<nTuple<BooleanExpression<TOP, T...> > >
-{
-	typedef bool type;
-};
 }  // namespace traits
 template<typename T1, typename ...T>
 nTuple<T1, 1 + sizeof...(T)> make_nTuple(T1 &&a1, T &&... a)
@@ -735,30 +676,6 @@ bool value_in_range(T0 const &b, T1 const &e, T2 const &x)
         constexpr nTuple<Expression<_impl::_NAME_,nTuple<T,N...> >> \
         operator _OP_(nTuple<T,N...> const &l)  \
         {return (nTuple<Expression<_impl::_NAME_,nTuple<T,N...> >>(l)) ;}    \
-
-
-#define _SP_DEFINE_nTuple_EXPR_BINARY_BOOLEAN_OPERATOR(_OP_, _NAME_)                                                  \
-    template<typename T1,size_t ...N1,typename  T2> \
-    constexpr nTuple<BooleanExpression<_impl::_NAME_,nTuple<T1,N1...>,T2>> \
-    operator _OP_(nTuple<T1, N1...> const & l,T2 const&r)  \
-    {return (nTuple<BooleanExpression<_impl::_NAME_,nTuple<T1,N1...>,T2>>(l,r));}                    \
-    \
-    template< typename T1,typename T2 ,size_t ...N2> \
-    constexpr nTuple<BooleanExpression< _impl::_NAME_,T1,nTuple< T2,N2...>>> \
-    operator _OP_(T1 const & l, nTuple< T2,N2...>const &r)                    \
-    {return (nTuple<BooleanExpression< _impl::_NAME_,T1,nTuple< T2,N2...>>>(l,r))  ;}                \
-    \
-    template< typename T1,size_t ... N1,typename T2 ,size_t ...N2>  \
-    constexpr nTuple<BooleanExpression< _impl::_NAME_,nTuple< T1,N1...>,nTuple< T2,N2...>>>\
-    operator _OP_(nTuple< T1,N1...> const & l,nTuple< T2,N2...>  const &r)                    \
-    {return (nTuple<BooleanExpression< _impl::_NAME_,nTuple< T1,N1...>,nTuple< T2,N2...>>>(l,r));}                    \
-
-
-#define _SP_DEFINE_nTuple_EXPR_UNARY_BOOLEAN_OPERATOR(_OP_, _NAME_)                           \
-        template<typename T,size_t ...N> \
-        constexpr nTuple<BooleanExpression<_impl::_NAME_,nTuple<T,N...> >> \
-        operator _OP_(nTuple<T,N...> const &l)  \
-        {return (nTuple<BooleanExpression<_impl::_NAME_,nTuple<T,N...> >>(l)) ;}    \
 
 
 #define _SP_DEFINE_nTuple_EXPR_BINARY_FUNCTION(_NAME_)                                                  \
