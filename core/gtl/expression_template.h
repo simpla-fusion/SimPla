@@ -28,29 +28,30 @@ template<typename ...>class Expression;
 template<typename ...> struct BooleanExpression;
 template<typename ...> struct AssignmentExpression;
 
-template<typename TOP, typename TL, typename TR>
-struct Expression<TOP, TL, TR>
+template<typename TOP, typename ...Args>
+struct Expression<TOP, Args...>
 {
-	typedef Expression<TOP, TL, TR> this_type;
-	typename traits::reference<TL>::type lhs;
-	typename traits::reference<TR>::type rhs;
-	TOP op_;
+	typedef Expression<TOP, Args...> this_type;
 
-	Expression(this_type const & that)
-			: lhs(that.lhs), rhs(that.rhs), op_(that.op_)
+	typename std::tuple<traits::reference_t<Args> ...> args;
+
+	TOP m_op_;
+
+	Expression(this_type const & that) :
+			args(that.args), m_op_(that.m_op_)
 	{
 	}
-	Expression(this_type && that)
-			: lhs(that.lhs), rhs(that.rhs), op_(that.op_)
+	Expression(this_type && that) :
+			args(that.args), m_op_(that.m_op_)
+	{
+	}
+	Expression(Args const&... pargs) :
+			args(pargs ...), m_op_()
 	{
 	}
 
-	constexpr Expression(TL const& l, TR const& r)
-			: lhs(l), rhs(r), op_()
-	{
-	}
-	Expression(TOP op, TL const& l, TR const& r)
-			: lhs(l), rhs(r), op_(op)
+	Expression(TOP op, Args &&... pargs) :
+			args(pargs ...), m_op_(op)
 	{
 	}
 
@@ -58,48 +59,8 @@ struct Expression<TOP, TL, TR>
 	{
 	}
 
-	template<typename IndexType>
-	inline auto operator[](IndexType const &s) const
-	DECL_RET_TYPE ((op_(traits::index(lhs, s), traits::index(rhs, s))))
-//			DECL_RET_TYPE ((op_( lhs, rhs, s )))
-
-};
-
-///   \brief  Unary operation
-template<typename TOP, typename TL>
-struct Expression<TOP, TL>
-{
-	typedef Expression<TOP, TL> this_type;
-
-	typename traits::reference<TL>::type lhs;
-
-	TOP op_;
-
-	Expression(this_type const & that)
-			: lhs(that.lhs), op_(that.op_)
-	{
-	}
-	Expression(this_type && that)
-			: lhs(that.lhs), op_(that.op_)
-	{
-	}
-
-	Expression(TL const& l)
-			: lhs(l), op_()
-	{
-	}
-
-	~Expression()
-	{
-	}
-
-	template<typename IndexType>
-	inline auto operator[](IndexType const &s) const
-	DECL_RET_TYPE ((op_(traits::index(lhs, s))))
-//			DECL_RET_TYPE ((op_( lhs, s) ))
-
-};
-
+}
+;
 template<typename TOP, typename TL, typename TR>
 class BooleanExpression<TOP, TL, TR> : public Expression<TOP, TL, TR>
 {
@@ -130,21 +91,21 @@ struct AssignmentExpression<TOP, TL, TR>
 	typename traits::reference<TR>::type rhs;
 	TOP op_;
 
-	AssignmentExpression(this_type const & that)
-			: lhs(that.lhs), rhs(that.rhs), op_(that.op_)
+	AssignmentExpression(this_type const & that) :
+			lhs(that.lhs), rhs(that.rhs), op_(that.op_)
 	{
 	}
-	AssignmentExpression(this_type && that)
-			: lhs(that.lhs), rhs(that.rhs), op_(that.op_)
+	AssignmentExpression(this_type && that) :
+			lhs(that.lhs), rhs(that.rhs), op_(that.op_)
 	{
 	}
 
-	AssignmentExpression(TL & l, TR const& r)
-			: lhs(l), rhs(r), op_()
+	AssignmentExpression(TL & l, TR const& r) :
+			lhs(l), rhs(r), op_()
 	{
 	}
-	AssignmentExpression(TOP op, TL & l, TR const& r)
-			: lhs(l), rhs(r), op_(op)
+	AssignmentExpression(TOP op, TL & l, TR const& r) :
+			lhs(l), rhs(r), op_(op)
 	{
 	}
 

@@ -229,6 +229,8 @@ struct nTuple<Expression<T...>> : public Expression<T...>
 {
 	typedef nTuple<Expression<T...>> this_type;
 
+	using Expression<T...>::m_op_;
+	using Expression<T...>::args;
 	using Expression<T...>::Expression;
 
 	template<typename U, size_t ...N>
@@ -238,6 +240,22 @@ struct nTuple<Expression<T...>> : public Expression<T...>
 		res = *this;
 		return std::move(res);
 	}
+private:
+	template<typename ID, size_t ... index>
+	auto _invoke_helper(ID s, index_sequence<index...>) const
+	DECL_RET_TYPE(m_op_(traits::index(std::get<index>(args),s)...))
+
+public:
+	template<typename ID>
+	auto at(
+			ID const &s) const
+					DECL_RET_TYPE((
+									_invoke_helper( s ,
+											typename make_index_sequence<sizeof...(T)-1>::type () )))
+
+	template<typename ID>
+	inline auto operator[](ID const &s) const
+	DECL_RET_TYPE ( at(s))
 
 };
 

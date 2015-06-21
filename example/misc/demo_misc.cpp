@@ -13,7 +13,12 @@
 using namespace simpla;
 int main()
 {
-	nTuple<std::complex<double>, 3> a, b;
+	nTuple<std::complex<double>, 3, 4, 5, 6, 7> a, b, c;
 
-	a = b + 2;
+//	std::cout << typeid(decltype( a.at(0 ) )).name() << std::endl;
+//	std::cout << typeid(decltype( a.at(0, 1 ) )).name() << std::endl;
+//	std::cout << typeid(decltype( a.at(0, 1, 2) )).name() << std::endl;
+//	std::cout << typeid(decltype( a.at(0, 1, 2, 3) )).name() << std::endl;
+
+	a = b + b;
 }

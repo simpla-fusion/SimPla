@@ -25,60 +25,22 @@ template<typename ...> struct Domain;
 template<typename ...>class Expression;
 template<typename ...>class BooleanExpression;
 
-template<typename TOP, typename ...Args>
-struct _Field<Expression<TOP, Args...> >
+template<typename ...T>
+struct _Field<Expression<T...> > : public Expression<T...>
 {
-	typedef _Field<Expression<TOP, Args...> > this_type;
-
-	typename std::tuple<traits::reference_t<Args> ...> args;
-
-	TOP m_op_;
-
-	_Field(this_type const & that) :
-			args(that.args), m_op_(that.m_op_)
-	{
-	}
-	_Field(this_type && that) :
-			args(that.args), m_op_(that.m_op_)
-	{
-	}
-	_Field(Args const&... pargs) :
-			args(pargs ...), m_op_()
-	{
-	}
-
-	_Field(TOP op, Args &&... pargs) :
-			args(pargs ...), m_op_(op)
-	{
-	}
-
-	~_Field()
-	{
-	}
-//private:
-//	template<typename ID, typename Tup, size_t ... index>
-//	auto _invoke_helper(ID s, index_sequence<index...>)
-//	DECL_RET_TYPE(m_op_(traits::index(std::get<index>(args),s)...))
-//
-//public:
-//	template<typename ID>
-//	auto at(
-//			ID const &s)
-//					DECL_RET_TYPE((
-//									_invoke_helper( s ,
-//											typename make_index_sequence<sizeof...(Args)>::type () )))
-//
-//	template<typename ID>
-//	inline auto operator[](ID const &s) const
-//	DECL_RET_TYPE ( at(s))
-
+	typedef _Field<Expression<T...> > this_type;
+	using Expression<T...>::args;
+	using Expression<T...>::m_op_;
+	using Expression<T...>::Expression;
 }
 ;
 
 template<typename ...T>
-struct _Field<BooleanExpression<T...> > : public _Field<Expression<T...>>
+struct _Field<BooleanExpression<T...> > : Expression<T...>
 {
-	using _Field<Expression<T...> >::_Field;
+	using Expression<T...>::args;
+	using Expression<T...>::m_op_;
+	using Expression<T...>::Expression;
 };
 namespace traits
 {
