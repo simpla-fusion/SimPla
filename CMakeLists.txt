@@ -23,7 +23,7 @@ SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake ${CMAKE_MODULE_PATH})
 MESSAGE(STATUS "Using C++ Compiler ${CMAKE_CXX_COMPILER_ID} ")
 
 if(${CMAKE_CXX_COMPILER_ID}  STREQUAL "Clang")
-  SET(CMAKE_CXX_FLAGS "-fPIC -std=c++11    -fcolor-diagnostics   -ftemplate-backtrace-limit=0   ")
+  SET(CMAKE_CXX_FLAGS "-fPIC -std=c++11 -O3    -fcolor-diagnostics   -ftemplate-backtrace-limit=0   ")
 
 #  SET(CMAKE_AR      "llvm-ar-3.5")
  # SET(CMAKE_LINKER  "llvm-ld-3.5")

@@ -264,12 +264,15 @@ struct nTuple<BooleanExpression<TOP, T...>> : public Expression<TOP, T...>
 {
 	typedef nTuple<BooleanExpression<TOP, T...>> this_type;
 
-	using Expression<TOP, T...>::Expression;
+	using Expression<T...>::m_op_;
+	using Expression<T...>::args;
+	using Expression<T...>::Expression;
 
 	operator bool() const
 	{
-		return seq_reduce(traits::extents_t<this_type>(),
-				typename _impl::op_traits<TOP>::reduction_op(), *this);
+		return false;
+//		return seq_reduce(traits::extents_t<this_type>(),
+//				typename _impl::op_traits<TOP>::reduction_op(), *this);
 	}
 
 };
