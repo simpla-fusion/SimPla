@@ -151,25 +151,14 @@ public:
 		res = *this;
 		return std::move(res);
 	}
-private:
-	template<size_t N1, size_t N2>
-	struct min_not_zero
-	{
-		static constexpr size_t value = ((N2 < N1) && N2 != 0) ? N2 : N1;
-	};
+
 public:
 
 	template<typename TR>
 	inline this_type &
 	operator=(TR const &rhs)
 	{
-
-		//  assign different 'extents' ntuple
-		mpl::_seq_for<
-				min_not_zero<m_extent,
-						mpl::seq_get<0, traits::extents_t<TR>>::value>::value
-
-		>::eval(_impl::_assign(), data_, rhs);
+		assign(_impl::_assign(), rhs);
 		return (*this);
 	}
 
@@ -177,51 +166,50 @@ public:
 	inline this_type &
 	operator=(TR const *rhs)
 	{
-		mpl::_seq_for<m_extent>::eval(_impl::_assign(), data_, rhs);
-
+		assign(_impl::_assign(), rhs);
 		return (*this);
 	}
 
 	template<typename TR>
 	inline this_type &operator+=(TR const &rhs)
 	{
-		mpl::_seq_for<
-				min_not_zero<m_extent,
-						mpl::seq_get<0, traits::extents_t<TR>>::value>::value>::eval(
-				_impl::plus_assign(), data_, rhs);
+		assign(_impl::plus_assign(), rhs);
 		return (*this);
 	}
 
 	template<typename TR>
 	inline this_type &operator-=(TR const &rhs)
 	{
-		mpl::_seq_for<
-				min_not_zero<m_extent,
-						mpl::seq_get<0, traits::extents_t<TR>>::value>::value>::eval(
-				_impl::minus_assign(), data_, rhs);
+		assign(_impl::minus_assign(), rhs);
 		return (*this);
 	}
 
 	template<typename TR>
 	inline this_type &operator*=(TR const &rhs)
 	{
-		mpl::_seq_for<
-				min_not_zero<m_extent,
-						mpl::seq_get<0, traits::extents_t<TR>>::value>::value>::eval(
-				_impl::multiplies_assign(), data_, rhs);
+		assign(_impl::multiplies_assign(), rhs);
 		return (*this);
 	}
 
 	template<typename TR>
 	inline this_type &operator/=(TR const &rhs)
 	{
-		mpl::_seq_for<
-				min_not_zero<m_extent,
-						mpl::seq_get<0, traits::extents_t<TR>>::value>::value>::eval(
-				_impl::divides_assign(), data_, rhs);
+
+		assign(_impl::divides_assign(), rhs);
 		return (*this);
 	}
+private:
 
+	template<typename Op, typename TR>
+	void assign(Op const & op, TR const & rhs)
+	{
+
+		static constexpr size_t I =
+				mpl::seq_get<0, traits::extents_t<TR>>::value;
+
+		mpl::_seq_for<((I < N) && I != 0) ? I : N>::eval(op, data_, rhs);
+
+	}
 };
 
 template<typename ... T>
@@ -480,32 +468,32 @@ auto normal(
 		nTuple<T, N...> const &l)
 				DECL_RET_TYPE((std::sqrt((mpl::_seq_reduce<N...>::eval(_impl::plus(), l * l)))))
 
-template<typename TExpr, size_t ...N>
-auto abs(nTuple<TExpr, N...> const &v)
-DECL_RET_TYPE(std::sqrt(inner_product(v,v)))
-
 template<typename TR, typename ...T>
-auto inner_product(nTuple<Expression<T...>> const &l, TR const &r)
-DECL_RET_TYPE ((seq_reduce( traits::extents_t<nTuple<Expression<T...>>>(),
+auto inner_product(nTuple<Expression<T...> > const &l, TR const &r)
+DECL_RET_TYPE ((seq_reduce( traits::extents_t<nTuple<Expression<T...> > >(),
 						_impl::plus(), l * r))
 )
 
-template<typename T, size_t M, size_t ... N>
-double mod(nTuple<T, M, N...> const &l)
-{
-	return std::sqrt(inner_product(l, l));
-}
-
-template<typename ...T>
-double mod(nTuple<Expression<T...>> l)
-{
-	return std::sqrt(std::abs(inner_product(l, l)));
-}
-
-inline double mod(double const &v)
-{
-	return std::abs(v);
-}
+//template<typename TExpr, size_t ...N>
+//auto abs(nTuple<TExpr, N...> const &v)
+//DECL_RET_TYPE(std::sqrt(inner_product(v,v)))
+//
+//template<typename T, size_t ... N>
+//double mod(nTuple<T, N...> const &l)
+//{
+//	return std::sqrt(inner_product(l, l));
+//}
+//
+//template<typename ...T>
+//double mod(nTuple<Expression<T...>> l)
+//{
+//	return std::sqrt(std::abs(inner_product(l, l)));
+//}
+//
+//inline double mod(double const &v)
+//{
+//	return std::abs(v);
+//}
 
 template<typename TR, typename T, size_t ... N>
 auto dot(nTuple<T, N...> const &l, TR const &r)
@@ -564,9 +552,17 @@ template<typename T, size_t ...N>
 auto sp_abs(nTuple<T, N...> const &m)
 DECL_RET_TYPE((std::sqrt(std::abs(inner_product(m, m)))))
 
+template<typename ... T>
+auto sp_abs(nTuple<Expression<T...> > const &m)
+DECL_RET_TYPE((std::sqrt(std::abs(inner_product(m, m)))))
+
+template<typename T> auto mod(T const &v) DECL_RET_TYPE((sp_abs(v)))
+
 template<typename T, size_t ...N>
-inline
-auto NProduct(nTuple<T, N...> const &v)
+auto abs(nTuple<T, N...> const &v) DECL_RET_TYPE((sp_abs(v)))
+
+template<typename T, size_t ...N>
+inline auto NProduct(nTuple<T, N...> const &v)
 DECL_RET_TYPE((seq_reduce(
 						traits::extents_t<nTuple<T, N...>>(),
 						_impl::multiplies(), v)))
@@ -597,10 +593,6 @@ inline nTuple<double, 3> cross(nTuple<double, 3> const &l,
 					{ l[1] * r[2] - l[2] * r[1], l[2] * r[0] - l[0] * r[2], l[0]
 							* r[1] - l[1] * r[0] }));
 }
-
-template<typename T>
-auto mod(T const &l)
-DECL_RET_TYPE ((abs(l)))
 
 namespace _impl
 {

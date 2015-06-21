@@ -33,21 +33,21 @@ protected:
 
 		DIMENSIONS = extents::value;
 
-		_impl::seq_for_each(extents(),
+		mpl::seq_for_each(extents(),
 
 		[&](size_t const idx[traits::extent<extents>::value])
 		{
-			try_index_r(aA,idx) = idx[0] * 2;
-			try_index_r(aB,idx) = 5 - idx[0];
-			try_index_r(aC,idx) = idx[0] * 5 + 1;
-			try_index_r(aD,idx) = 0;
-			try_index_r(vA,idx) = try_index_r(aA,idx);
-			try_index_r(vB,idx) = try_index_r(aB,idx);
-			try_index_r(vC,idx) = try_index_r(aC,idx);
-			try_index_r(vD,idx) = 0;
+			traits::index(aA,idx) = idx[0] * 2;
+			traits::index(aB,idx) = 5 - idx[0];
+			traits::index(aC,idx) = idx[0] * 5 + 1;
+			traits::index(aD,idx) = 0;
+			traits::index(vA,idx) = traits::index(aA,idx);
+			traits::index(vB,idx) = traits::index(aB,idx);
+			traits::index(vC,idx) = traits::index(aC,idx);
+			traits::index(vD,idx) = 0;
 
-			try_index_r(res,idx) = -(try_index_r(aA,idx) + a) /
-			(try_index_r(aB,idx) * b - c) - try_index_r(aC,idx);
+			traits::index(res,idx) = -(traits::index(aA,idx) + a) /
+			(traits::index(aB,idx) * b - c) - traits::index(aC,idx);
 
 		});
 
@@ -79,12 +79,12 @@ typedef testing::Types<
 nTuple<double, 3>
 
 , nTuple<double, 3, 3>
-
-, nTuple<double, 3, 4, 5>
-
-, nTuple<int, 3, 4, 5, 6>
-
-, nTuple<std::complex<double>, 3, 4, 5, 6>
+//
+//, nTuple<double, 3, 4, 5>
+//
+//, nTuple<int, 3, 4, 5, 6>
+//
+//, nTuple<std::complex<double>, 3, 4, 5, 6>
 
 > ntuple_type_lists;
 
@@ -117,13 +117,13 @@ TYPED_TEST(TestNtupleReduce , reduce){
 {
 	typename TestFixture::value_type expect=0;
 
-	_impl::seq_for_each(typename TestFixture::extents(),
+	mpl::seq_for_each(typename TestFixture::extents(),
 			[&](size_t const idx[traits::extent<typename TestFixture::extents,0>::value])
 			{
-				expect+=try_index_r(TestFixture::vA,idx);
+				expect+=traits::index(TestFixture::vA,idx);
 			}
 	);
-	auto value=seq_reduce(typename TestFixture::extents(),_impl::plus(), TestFixture::vA);
+	auto value=mpl::seq_reduce(typename TestFixture::extents(),_impl::plus(), TestFixture::vA);
 
 	EXPECT_DOUBLE_EQ(0,abs(expect -value));
 
@@ -135,10 +135,10 @@ TYPED_TEST(TestNtupleReduce, inner_product){
 
 	res=0;
 
-	_impl::seq_for_each(typename TestFixture::extents(),
+	mpl::seq_for_each(typename TestFixture::extents(),
 			[&](size_t const idx[traits::extent<typename TestFixture::extents,0>::value])
 			{
-				res += try_index_r(TestFixture::aA,idx) * try_index_r(TestFixture::aB,idx);
+				res += traits::index(TestFixture::aA,idx) * traits::index(TestFixture::aB,idx);
 			}
 	);
 

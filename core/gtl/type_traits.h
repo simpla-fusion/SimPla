@@ -230,181 +230,6 @@ template<typename T> struct value_type
 };
 template<typename T> using value_type_t=typename value_type<T>::type;
 
-} // namespace traits
-
-//template<typename T, typename TI>
-//auto try_index(T & v, TI const& s)
-//ENABLE_IF_DECL_RET_TYPE((!traits::is_indexable<T,TI>::value ) , (v))
-//
-//template<typename T, typename TI>
-//auto try_index(T & v, TI const & s)
-//ENABLE_IF_DECL_RET_TYPE((traits::is_indexable<T,TI>::value ), (v[s]))
-//
-//template<typename T, typename TI>
-//auto try_index(std::shared_ptr<T> & v, TI const& s)
-//DECL_RET_TYPE( v.get()[s])
-//
-//template<typename T, typename TI>
-//auto try_index(std::shared_ptr<T> const& v, TI const& s)
-//DECL_RET_TYPE( v.get()[s])
-//
-//template<typename T, typename TI>
-//T & try_index(std::map<T, TI> & v, TI const& s)
-//{
-//	return v[s];
-//}
-//template<typename T, typename TI>
-//T const & try_index(std::map<T, TI> const& v, TI const& s)
-//{
-//	return v[s];
-//}
-//
-//template<typename T, typename TI, TI M, TI ...N>
-//auto try_index(T & v, integer_sequence<TI, M, N...>)
-//ENABLE_IF_DECL_RET_TYPE((traits::is_indexable<T,TI>::value),
-//		try_index(v[M],integer_sequence<TI, N...>()))
-//
-//template<typename T, typename TI, TI M, TI ...N>
-//auto try_index(T & v, integer_sequence<TI, M, N...>)
-//ENABLE_IF_DECL_RET_TYPE((!traits::is_indexable<T,TI>::value), v)
-
-namespace _impl
-{
-
-template<size_t N>
-struct recursive_try_index_aux
-{
-	template<typename T, typename TI>
-	static auto eval(T & v, TI const *s)
-	DECL_RET_TYPE(
-			( recursive_try_index_aux<N-1>::eval(v[s[0]], s+1))
-	)
-};
-template<>
-struct recursive_try_index_aux<0>
-{
-	template<typename T, typename TI>
-	static auto eval(T & v, TI const *s)
-	DECL_RET_TYPE( ( v ) )
-};
-} // namespace _impl
-
-template<typename T, typename TI>
-auto try_index_r(T & v,
-		TI const *s)
-				ENABLE_IF_DECL_RET_TYPE((traits::is_indexable<T,TI>::value),
-						( _impl::recursive_try_index_aux<traits::rank<T>::value>::eval(v,s)))
-
-template<typename T, typename TI>
-auto try_index_r(T & v, TI const * s)
-ENABLE_IF_DECL_RET_TYPE((!traits::is_indexable<T,TI>::value), (v))
-
-template<typename T, typename TI, size_t N>
-auto try_index_r(T & v, nTuple<TI, N> const &s)
-ENABLE_IF_DECL_RET_TYPE((traits::is_indexable<T,TI>::value),
-		( _impl::recursive_try_index_aux<N>::eval(v,s)))
-
-template<typename T, typename TI, size_t N>
-auto try_index_r(T & v, nTuple<TI, N> const &s)
-ENABLE_IF_DECL_RET_TYPE((!traits::is_indexable<T,TI>::value), (v))
-
-////template<typename T, typename TI, TI ...N>
-////auto try_index(T & v, integer_sequence<TI, N...>)
-////ENABLE_IF_DECL_RET_TYPE((!traits::is_indexable<T,TI>::value), (v))
-//
-////template<typename T, typename ...Args>
-////auto try_index(std::shared_ptr<T> & v, Args &&... args)
-////DECL_RET_TYPE( try_index(v.get(),std::forward<Args>(args)...))
-////
-////template<typename T, typename ...Args>
-////auto try_index(std::shared_ptr<T> const & v, Args &&... args)
-////DECL_RET_TYPE( try_index(v.get(),std::forward<Args>(args)...))
-//
-//HAS_MEMBER_FUNCTION(begin)
-//HAS_MEMBER_FUNCTION(end)
-//
-//template<typename T>
-//auto begin(T& l)
-//ENABLE_IF_DECL_RET_TYPE((has_member_function_begin<T>::value),( l.begin()))
-//
-//template<typename T>
-//auto begin(T& l)
-//ENABLE_IF_DECL_RET_TYPE((!has_member_function_begin<T>::value),(std::get<0>(l)))
-//
-//template<typename T>
-//auto begin(T const& l)
-//ENABLE_IF_DECL_RET_TYPE((has_member_function_begin<T>::value),( l.begin()))
-//
-//template<typename T>
-//auto begin(T const& l)
-//ENABLE_IF_DECL_RET_TYPE((!has_member_function_begin<T>::value),(std::get<0>(l)))
-//
-//template<typename T>
-//auto end(T& l)
-//ENABLE_IF_DECL_RET_TYPE((has_member_function_end<T>::value),( l.end()))
-//
-//template<typename T>
-//auto end(T& l)
-//ENABLE_IF_DECL_RET_TYPE((!has_member_function_end<T>::value),(std::get<1>(l)))
-//
-//template<typename T>
-//auto end(T const& l)
-//ENABLE_IF_DECL_RET_TYPE((has_member_function_end<T>::value),( l.end()))
-//
-//template<typename T>
-//auto end(T const& l)
-//ENABLE_IF_DECL_RET_TYPE((!has_member_function_end<T>::value),(std::get<1>(l)))
-//
-//HAS_MEMBER_FUNCTION(rbegin)
-//HAS_MEMBER_FUNCTION(rend)
-//
-//template<typename T>
-//auto rbegin(T& l)
-//ENABLE_IF_DECL_RET_TYPE((has_member_function_begin<T>::value),( l.rbegin()))
-//
-//template<typename T>
-//auto rbegin(T& l)
-//ENABLE_IF_DECL_RET_TYPE(
-//		(!has_member_function_begin<T>::value),(--std::get<1>(l)))
-//
-//template<typename T>
-//auto rend(T& l)
-//ENABLE_IF_DECL_RET_TYPE((has_member_function_end<T>::value),( l.rend()))
-//
-//template<typename T>
-//auto rend(T& l)
-//ENABLE_IF_DECL_RET_TYPE((!has_member_function_end<T>::value),(--std::get<0>(l)))
-//
-//template<typename TI>
-//auto distance(TI const & b, TI const & e)
-//DECL_RET_TYPE((e-b))
-//
-//template<typename _T>
-//struct is_iterator
-//{
-//private:
-//	typedef std::true_type yes;
-//	typedef std::false_type no;
-//
-//	template<typename _U>
-//	static auto test(int) ->
-//	decltype(std::declval<_U>().operator *() );
-//
-//	template<typename > static no test(...);
-//
-//public:
-//
-//	static constexpr bool value =
-//			!std::is_same<decltype(test<_T>(0)), no>::value;
-//};
-//
-///**
-// * @} ingroup utilities
-// */
-//
-namespace traits
-{
-
 template<typename T, typename TI>
 auto index(T & v, TI const& s)
 ENABLE_IF_DECL_RET_TYPE((!is_indexable<T,TI>::value ) , (v))
@@ -430,6 +255,38 @@ template<typename T, typename TI, TI M, TI ...N>
 auto index(T & v, integer_sequence<TI, M, N...>)
 ENABLE_IF_DECL_RET_TYPE((is_indexable<T,TI>::value),
 		index(v[M],integer_sequence<TI, N...>()))
+
+namespace _impl
+{
+
+template<size_t N>
+struct recursive_try_index_aux
+{
+	template<typename T, typename TI>
+	static auto eval(T & v, TI const *s)
+	DECL_RET_TYPE(
+			( recursive_try_index_aux<N-1>::eval(v[s[0]], s+1))
+	)
+};
+template<>
+struct recursive_try_index_aux<0>
+{
+	template<typename T, typename TI>
+	static auto eval(T & v, TI const *s)
+	DECL_RET_TYPE( ( v ) )
+};
+} // namespace _impl
+
+template<typename T, typename TI>
+auto index(T & v,
+		TI const *s)
+				ENABLE_IF_DECL_RET_TYPE(( is_indexable<T,TI>::value),
+						( _impl::recursive_try_index_aux<traits::rank<T>::value>::eval(v,s)))
+
+template<typename T, typename TI, size_t N>
+auto index(T & v, nTuple<TI, N> const &s)
+ENABLE_IF_DECL_RET_TYPE(( is_indexable<T,TI>::value),
+		( _impl::recursive_try_index_aux<N>::eval(v,s)))
 
 namespace _impl
 {
@@ -622,6 +479,137 @@ auto get(T const& v)
 DECL_RET_TYPE(( _impl::access_helper< N...>::get(v)))
 }
 // namespace traits
+
+//template<typename T, typename TI>
+//auto try_index(T & v, TI const& s)
+//ENABLE_IF_DECL_RET_TYPE((!traits::is_indexable<T,TI>::value ) , (v))
+//
+//template<typename T, typename TI>
+//auto try_index(T & v, TI const & s)
+//ENABLE_IF_DECL_RET_TYPE((traits::is_indexable<T,TI>::value ), (v[s]))
+//
+//template<typename T, typename TI>
+//auto try_index(std::shared_ptr<T> & v, TI const& s)
+//DECL_RET_TYPE( v.get()[s])
+//
+//template<typename T, typename TI>
+//auto try_index(std::shared_ptr<T> const& v, TI const& s)
+//DECL_RET_TYPE( v.get()[s])
+//
+//template<typename T, typename TI>
+//T & try_index(std::map<T, TI> & v, TI const& s)
+//{
+//	return v[s];
+//}
+//template<typename T, typename TI>
+//T const & try_index(std::map<T, TI> const& v, TI const& s)
+//{
+//	return v[s];
+//}
+//
+//template<typename T, typename TI, TI M, TI ...N>
+//auto try_index(T & v, integer_sequence<TI, M, N...>)
+//ENABLE_IF_DECL_RET_TYPE((traits::is_indexable<T,TI>::value),
+//		try_index(v[M],integer_sequence<TI, N...>()))
+//
+//template<typename T, typename TI, TI M, TI ...N>
+//auto try_index(T & v, integer_sequence<TI, M, N...>)
+//ENABLE_IF_DECL_RET_TYPE((!traits::is_indexable<T,TI>::value), v)
+
+////template<typename T, typename TI, TI ...N>
+////auto try_index(T & v, integer_sequence<TI, N...>)
+////ENABLE_IF_DECL_RET_TYPE((!traits::is_indexable<T,TI>::value), (v))
+//
+////template<typename T, typename ...Args>
+////auto try_index(std::shared_ptr<T> & v, Args &&... args)
+////DECL_RET_TYPE( try_index(v.get(),std::forward<Args>(args)...))
+////
+////template<typename T, typename ...Args>
+////auto try_index(std::shared_ptr<T> const & v, Args &&... args)
+////DECL_RET_TYPE( try_index(v.get(),std::forward<Args>(args)...))
+//
+//HAS_MEMBER_FUNCTION(begin)
+//HAS_MEMBER_FUNCTION(end)
+//
+//template<typename T>
+//auto begin(T& l)
+//ENABLE_IF_DECL_RET_TYPE((has_member_function_begin<T>::value),( l.begin()))
+//
+//template<typename T>
+//auto begin(T& l)
+//ENABLE_IF_DECL_RET_TYPE((!has_member_function_begin<T>::value),(std::get<0>(l)))
+//
+//template<typename T>
+//auto begin(T const& l)
+//ENABLE_IF_DECL_RET_TYPE((has_member_function_begin<T>::value),( l.begin()))
+//
+//template<typename T>
+//auto begin(T const& l)
+//ENABLE_IF_DECL_RET_TYPE((!has_member_function_begin<T>::value),(std::get<0>(l)))
+//
+//template<typename T>
+//auto end(T& l)
+//ENABLE_IF_DECL_RET_TYPE((has_member_function_end<T>::value),( l.end()))
+//
+//template<typename T>
+//auto end(T& l)
+//ENABLE_IF_DECL_RET_TYPE((!has_member_function_end<T>::value),(std::get<1>(l)))
+//
+//template<typename T>
+//auto end(T const& l)
+//ENABLE_IF_DECL_RET_TYPE((has_member_function_end<T>::value),( l.end()))
+//
+//template<typename T>
+//auto end(T const& l)
+//ENABLE_IF_DECL_RET_TYPE((!has_member_function_end<T>::value),(std::get<1>(l)))
+//
+//HAS_MEMBER_FUNCTION(rbegin)
+//HAS_MEMBER_FUNCTION(rend)
+//
+//template<typename T>
+//auto rbegin(T& l)
+//ENABLE_IF_DECL_RET_TYPE((has_member_function_begin<T>::value),( l.rbegin()))
+//
+//template<typename T>
+//auto rbegin(T& l)
+//ENABLE_IF_DECL_RET_TYPE(
+//		(!has_member_function_begin<T>::value),(--std::get<1>(l)))
+//
+//template<typename T>
+//auto rend(T& l)
+//ENABLE_IF_DECL_RET_TYPE((has_member_function_end<T>::value),( l.rend()))
+//
+//template<typename T>
+//auto rend(T& l)
+//ENABLE_IF_DECL_RET_TYPE((!has_member_function_end<T>::value),(--std::get<0>(l)))
+//
+//template<typename TI>
+//auto distance(TI const & b, TI const & e)
+//DECL_RET_TYPE((e-b))
+//
+//template<typename _T>
+//struct is_iterator
+//{
+//private:
+//	typedef std::true_type yes;
+//	typedef std::false_type no;
+//
+//	template<typename _U>
+//	static auto test(int) ->
+//	decltype(std::declval<_U>().operator *() );
+//
+//	template<typename > static no test(...);
+//
+//public:
+//
+//	static constexpr bool value =
+//			!std::is_same<decltype(test<_T>(0)), no>::value;
+//};
+//
+///**
+// * @} ingroup utilities
+// */
+//
 
 }// namespace simpla
 #endif /* SP_TYPE_TRAITS_H_ */
