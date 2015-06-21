@@ -12,6 +12,7 @@
 #include <map>
 #include <tuple>
 #include <type_traits>
+#include <complex>
 
 #include "check_concept.h"
 #include "macro.h"
@@ -230,95 +231,6 @@ template<typename T> struct value_type
 };
 template<typename T> using value_type_t=typename value_type<T>::type;
 
-} // namespace traits
-
-template<typename T, typename TI>
-auto try_index(T & v, TI const& s)
-ENABLE_IF_DECL_RET_TYPE((!traits::is_indexable<T,TI>::value ) , (v))
-
-template<typename T, typename TI>
-auto try_index(T & v, TI const & s)
-ENABLE_IF_DECL_RET_TYPE((traits::is_indexable<T,TI>::value ), (v[s]))
-
-template<typename T, typename TI>
-auto try_index(std::shared_ptr<T> & v, TI const& s)
-DECL_RET_TYPE( v.get()[s])
-
-template<typename T, typename TI>
-auto try_index(std::shared_ptr<T> const& v, TI const& s)
-DECL_RET_TYPE( v.get()[s])
-
-template<typename T, typename TI>
-T & try_index(std::map<T, TI> & v, TI const& s)
-{
-	return v[s];
-}
-template<typename T, typename TI>
-T const & try_index(std::map<T, TI> const& v, TI const& s)
-{
-	return v[s];
-}
-
-template<typename T, typename TI, TI M, TI ...N>
-auto try_index(T & v, integer_sequence<TI, M, N...>)
-ENABLE_IF_DECL_RET_TYPE((traits::is_indexable<T,TI>::value),
-		try_index(v[M],integer_sequence<TI, N...>()))
-
-template<typename T, typename TI, TI M, TI ...N>
-auto try_index(T & v, integer_sequence<TI, M, N...>)
-ENABLE_IF_DECL_RET_TYPE((!traits::is_indexable<T,TI>::value), v)
-
-namespace _impl
-{
-
-template<size_t N>
-struct recursive_try_index_aux
-{
-	template<typename T, typename TI>
-	static auto eval(T & v, TI const *s)
-	DECL_RET_TYPE(
-			( recursive_try_index_aux<N-1>::eval(v[s[0]], s+1))
-	)
-};
-template<>
-struct recursive_try_index_aux<0>
-{
-	template<typename T, typename TI>
-	static auto eval(T & v, TI const *s)
-	DECL_RET_TYPE( ( v ) )
-};
-} // namespace _impl
-
-template<typename T, typename TI>
-auto try_index_r(T & v,
-		TI const *s)
-				ENABLE_IF_DECL_RET_TYPE((traits::is_indexable<T,TI>::value),
-						( _impl::recursive_try_index_aux<traits::rank<T>::value>::eval(v,s)))
-
-template<typename T, typename TI>
-auto try_index_r(T & v, TI const * s)
-ENABLE_IF_DECL_RET_TYPE((!traits::is_indexable<T,TI>::value), (v))
-
-template<typename T, typename TI, size_t N>
-auto try_index_r(T & v, nTuple<TI, N> const &s)
-ENABLE_IF_DECL_RET_TYPE((traits::is_indexable<T,TI>::value),
-		( _impl::recursive_try_index_aux<N>::eval(v,s)))
-
-template<typename T, typename TI, size_t N>
-auto try_index_r(T & v, nTuple<TI, N> const &s)
-ENABLE_IF_DECL_RET_TYPE((!traits::is_indexable<T,TI>::value), (v))
-
-////template<typename T, typename TI, TI ...N>
-////auto try_index(T & v, integer_sequence<TI, N...>)
-////ENABLE_IF_DECL_RET_TYPE((!traits::is_indexable<T,TI>::value), (v))
-//
-////template<typename T, typename ...Args>
-////auto try_index(std::shared_ptr<T> & v, Args &&... args)
-////DECL_RET_TYPE( try_index(v.get(),std::forward<Args>(args)...))
-////
-////template<typename T, typename ...Args>
-////auto try_index(std::shared_ptr<T> const & v, Args &&... args)
-////DECL_RET_TYPE( try_index(v.get(),std::forward<Args>(args)...))
 //
 //HAS_MEMBER_FUNCTION(begin)
 //HAS_MEMBER_FUNCTION(end)
@@ -402,12 +314,41 @@ ENABLE_IF_DECL_RET_TYPE((!traits::is_indexable<T,TI>::value), (v))
 // * @} ingroup utilities
 // */
 //
-namespace traits
-{
 
 template<typename T, typename TI>
 auto index(T & v, TI const& s)
-DECL_RET_TYPE(simpla::try_index(v,s))
+ENABLE_IF_DECL_RET_TYPE((!is_indexable<T,TI>::value ) , (v))
+
+template<typename T, typename TI>
+auto index(T & v, TI const & s)
+ENABLE_IF_DECL_RET_TYPE((is_indexable<T,TI>::value ), (v[s]))
+
+template<typename T, typename TI>
+std::complex<T>& index(std::complex<T> & v, TI const& s)
+{
+	return v;
+}
+template<typename T, typename TI>
+std::complex<T>const& index(std::complex<T> const& v, TI const& s)
+{
+	return v;
+}
+template<typename T, typename TI>
+auto index(std::shared_ptr<T> & v, TI const& s)
+DECL_RET_TYPE( v.get()[s])
+
+template<typename T, typename TI>
+auto index(std::shared_ptr<T> const& v, TI const& s)
+DECL_RET_TYPE( v.get()[s])
+
+template<typename T, typename TI, TI M, TI ...N>
+auto index(T & v, integer_sequence<TI, M, N...>)
+ENABLE_IF_DECL_RET_TYPE((is_indexable<T,TI>::value),
+		index(v[M],integer_sequence<TI, N...>()))
+
+template<typename T, typename TI, typename ...Others>
+auto index(T & v, TI const& s, Others && ...others)
+DECL_RET_TYPE((index(index(v,s), std::forward<Others>(others)...)))
 
 namespace _impl
 {
