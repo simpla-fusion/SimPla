@@ -19,6 +19,7 @@
 #include "type_traits.h"
 #include "integer_sequence.h"
 #include "expression_template.h"
+#include "mpl.h"
 namespace simpla
 {
 
@@ -204,10 +205,15 @@ private:
 	void assign(Op const & op, TR const & rhs)
 	{
 
-		static constexpr size_t I =
-				mpl::seq_get<0, traits::extents_t<TR>>::value;
+//		static constexpr size_t I =
+//				mpl::seq_get<0, traits::extents_t<TR>>::value;
+//
+//		mpl::_seq_for<((I < N) && I != 0) ? I : N>::eval(op, data_, rhs);
 
-		mpl::_seq_for<((I < N) && I != 0) ? I : N>::eval(op, data_, rhs);
+		for (int s = 0; s < N; ++s)
+		{
+			op(data_[s], traits::index(rhs, s));
+		}
 
 	}
 };
@@ -282,13 +288,10 @@ struct rank<nTuple<T, N...>> : public std::integral_constant<size_t,
 		extents_t<nTuple<T, N...>>::size()>
 {
 };
-
-template<typename T, size_t ...N, size_t M>
-struct extent<nTuple<T, N...>, M> : public std::integral_constant<size_t,
-		simpla::mpl::seq_get<M, extents_t<nTuple<T, N...> >>::value>
+template<typename TV, size_t ...M, size_t N>
+struct extent<nTuple<TV, M...>, N> : public mpl::unpack_int_seq<N, size_t, M...>::type
 {
 };
-
 template<typename T, size_t ...N>
 struct key_type<nTuple<T, N...>>
 {
@@ -449,56 +452,6 @@ void swap(nTuple<T, N, M...> &l, traits::pod_type_t<nTuple<T, N, M...>> &r)
 	mpl::_seq_for<N>::eval(_impl::_swap(), (l), (r));
 }
 
-template<typename TR, typename T, size_t ... N>
-void assign(nTuple<T, N...> &l, TR const &r)
-{
-	mpl::_seq_for<N...>::eval(_impl::_assign(), l, r);
-}
-
-template<typename TR, typename T, size_t ... N>
-auto inner_product(nTuple<T, N...> const &l, TR const &r)
-DECL_RET_TYPE ((mpl::_seq_reduce<N...>::eval(_impl::plus(), l * r)))
-
-template<typename TR, typename T, size_t ... N>
-auto dot(nTuple<T, N...> const &l, TR const &r)
-DECL_RET_TYPE ((mpl::_seq_reduce<N...>::eval(_impl::plus(), l * r)))
-
-template<typename T, size_t ... N>
-auto normal(
-		nTuple<T, N...> const &l)
-				DECL_RET_TYPE((std::sqrt((mpl::_seq_reduce<N...>::eval(_impl::plus(), l * l)))))
-
-template<typename TR, typename ...T>
-auto inner_product(nTuple<Expression<T...> > const &l, TR const &r)
-DECL_RET_TYPE ((seq_reduce( traits::extents_t<nTuple<Expression<T...> > >(),
-						_impl::plus(), l * r))
-)
-
-//template<typename TExpr, size_t ...N>
-//auto abs(nTuple<TExpr, N...> const &v)
-//DECL_RET_TYPE(std::sqrt(inner_product(v,v)))
-//
-//template<typename T, size_t ... N>
-//double mod(nTuple<T, N...> const &l)
-//{
-//	return std::sqrt(inner_product(l, l));
-//}
-//
-//template<typename ...T>
-//double mod(nTuple<Expression<T...>> l)
-//{
-//	return std::sqrt(std::abs(inner_product(l, l)));
-//}
-//
-//inline double mod(double const &v)
-//{
-//	return std::abs(v);
-//}
-
-template<typename TR, typename T, size_t ... N>
-auto dot(nTuple<T, N...> const &l, TR const &r)
-DECL_RET_TYPE ((inner_product(l, r)))
-
 template<typename T>
 inline auto determinant(nTuple<T, 3> const &m)
 DECL_RET_TYPE(m[0] * m[1] * m[2])
@@ -543,36 +496,6 @@ inline auto determinant(
 				- m[0][0] * m[1][2] * m[2][1] * m[3][3] - m[0][1] * m[1][0] * m[2][2]//
 				* m[3][3] + m[0][0] * m[1][1] * m[2][2] * m[3][3]//
 		))
-
-template<typename T>
-auto sp_abs(T const &v)
-DECL_RET_TYPE((std::abs(v)))
-
-template<typename T, size_t ...N>
-auto sp_abs(nTuple<T, N...> const &m)
-DECL_RET_TYPE((std::sqrt(std::abs(inner_product(m, m)))))
-
-template<typename ... T>
-auto sp_abs(nTuple<Expression<T...> > const &m)
-DECL_RET_TYPE((std::sqrt(std::abs(inner_product(m, m)))))
-
-template<typename T> auto mod(T const &v) DECL_RET_TYPE((sp_abs(v)))
-
-template<typename T, size_t ...N>
-auto abs(nTuple<T, N...> const &v) DECL_RET_TYPE((sp_abs(v)))
-
-template<typename T, size_t ...N>
-inline auto NProduct(nTuple<T, N...> const &v)
-DECL_RET_TYPE((seq_reduce(
-						traits::extents_t<nTuple<T, N...>>(),
-						_impl::multiplies(), v)))
-
-template<typename T, size_t ...N>
-inline
-auto NSum(nTuple<T, N...> const &v)
-DECL_RET_TYPE((seq_reduce(
-						traits::extents_t<nTuple<T, N...>>(),
-						_impl::plus(), v)))
 
 template<typename T1, size_t ... N1, typename T2, size_t ... N2>
 inline auto cross(nTuple<T1, N1...> const &l, nTuple<T2, N2...> const &r)

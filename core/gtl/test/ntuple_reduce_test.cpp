@@ -14,8 +14,8 @@
 #include "../type_traits.h"
 #include "../primitives.h"
 #include "../ntuple.h"
-#include "../ntuple_boolean_expr.h"
-
+#include "../ntuple_ext1.h"
+#include "../../utilities/log.h"
 using namespace simpla;
 
 template<typename T>
@@ -78,7 +78,7 @@ typedef testing::Types<
 
 nTuple<double, 3>
 
-, nTuple<double, 3, 3>
+//, nTuple<double, 3, 3>
 //
 //, nTuple<double, 3, 4, 5>
 //
@@ -90,40 +90,44 @@ nTuple<double, 3>
 
 TYPED_TEST_CASE(TestNtupleReduce, ntuple_type_lists);
 
-//TYPED_TEST(TestNtupleReduce, equation ){
-//{
-//	TestFixture::vB=TestFixture::vA+1000;
-//
-//	EXPECT_TRUE( TestFixture::vA==TestFixture::vA);
-//	EXPECT_FALSE( TestFixture::vA!=TestFixture::vA);
-//
-//	EXPECT_TRUE( TestFixture::vA!=TestFixture::vB);
-//	EXPECT_FALSE( TestFixture::vA==TestFixture::vB);
-//
-////	EXPECT_TRUE( TestFixture::vA<=TestFixture::vA);
-////	EXPECT_TRUE( TestFixture::vA<=TestFixture::vB);
-////	EXPECT_TRUE( TestFixture::vA<TestFixture::vB);
-////	EXPECT_TRUE( TestFixture::vA>=TestFixture::vA);
-////	EXPECT_TRUE( TestFixture::vB>TestFixture::vA);
-//
-////	EXPECT_FALSE( TestFixture::vA>=TestFixture::vB);
-////	EXPECT_FALSE( TestFixture::vB<=TestFixture::vA);
-////	EXPECT_FALSE( TestFixture::vA>TestFixture::vB);
-//// 	EXPECT_FALSE( TestFixture::vB<TestFixture::vA);
-//
-//}
-//}
+TYPED_TEST(TestNtupleReduce, equation ){
+{
+	TestFixture::vB=TestFixture::vA+1000;
+
+	EXPECT_TRUE( TestFixture::vA==TestFixture::vA);
+	EXPECT_FALSE( TestFixture::vA!=TestFixture::vA);
+
+	EXPECT_TRUE( TestFixture::vA!=TestFixture::vB);
+	EXPECT_FALSE( TestFixture::vA==TestFixture::vB);
+
+//	EXPECT_TRUE( TestFixture::vA<=TestFixture::vA);
+//	EXPECT_TRUE( TestFixture::vA<=TestFixture::vB);
+//	EXPECT_TRUE( TestFixture::vA<TestFixture::vB);
+//	EXPECT_TRUE( TestFixture::vA>=TestFixture::vA);
+//	EXPECT_TRUE( TestFixture::vB>TestFixture::vA);
+
+//	EXPECT_FALSE( TestFixture::vA>=TestFixture::vB);
+//	EXPECT_FALSE( TestFixture::vB<=TestFixture::vA);
+//	EXPECT_FALSE( TestFixture::vA>TestFixture::vB);
+// 	EXPECT_FALSE( TestFixture::vB<TestFixture::vA);
+
+}
+}
 TYPED_TEST(TestNtupleReduce , reduce){
 {
 	typename TestFixture::value_type expect=0;
 
-	mpl::seq_for_each(typename TestFixture::extents(),
-			[&](size_t const idx[traits::extent<typename TestFixture::extents,0>::value])
+	for_each(
+			[&](typename TestFixture::value_type const & a)
 			{
-				expect+=traits::index(TestFixture::vA,idx);
-			}
+				expect+=a;
+			},
+			typename TestFixture::extents(),
+			TestFixture::vA
 	);
-	auto value=mpl::seq_reduce(typename TestFixture::extents(),_impl::plus(), TestFixture::vA);
+	auto value= reduce( _impl::plus(), TestFixture::vA);
+
+	EXPECT_LT(0,abs(expect ));
 
 	EXPECT_DOUBLE_EQ(0,abs(expect -value));
 
@@ -135,12 +139,18 @@ TYPED_TEST(TestNtupleReduce, inner_product){
 
 	res=0;
 
-	mpl::seq_for_each(typename TestFixture::extents(),
-			[&](size_t const idx[traits::extent<typename TestFixture::extents,0>::value])
+	for_each(
+			[&](typename TestFixture::value_type const & a,
+					typename TestFixture::value_type const & b)
 			{
-				res += traits::index(TestFixture::aA,idx) * traits::index(TestFixture::aB,idx);
-			}
+				res += a * b;
+			},
+			typename TestFixture::extents(),
+			TestFixture::vA,
+			TestFixture::vB
 	);
+
+	EXPECT_LT(0,abs(res ));
 
 	EXPECT_DOUBLE_EQ(0,abs(res- inner_product( TestFixture::vA, TestFixture::vB)));
 }}

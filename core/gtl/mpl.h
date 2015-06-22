@@ -75,6 +75,12 @@ struct find_type_in_list<T, U, Others...>
 };
 
 template<typename _Tp, _Tp ... Others> struct max;
+
+template<typename _Tp, _Tp first>
+struct max<_Tp, first> : std::integral_constant<_Tp, first>
+{
+};
+
 template<typename _Tp, _Tp first, _Tp second>
 struct max<_Tp, first, second> : std::integral_constant<_Tp,
 		(first > second) ? first : second>
@@ -87,6 +93,11 @@ struct max<_Tp, first, Others...> : std::integral_constant<_Tp,
 };
 
 template<typename _Tp, _Tp ... Others> struct min;
+
+template<typename _Tp, _Tp first>
+struct min<_Tp, first> : std::integral_constant<_Tp, first>
+{
+};
 template<typename _Tp, _Tp first, _Tp second>
 struct min<_Tp, first, second> : std::integral_constant<_Tp,
 		(first > second) ? first : second>
@@ -95,6 +106,22 @@ struct min<_Tp, first, second> : std::integral_constant<_Tp,
 template<typename _Tp, _Tp first, _Tp ... Others>
 struct min<_Tp, first, Others...> : std::integral_constant<_Tp,
 		min<_Tp, first, min<_Tp, Others...>::value>::value>
+{
+};
+template<bool... >struct logical_or;
+template<bool first>
+struct logical_or<first> : public std::integral_constant<bool, first>::type
+{
+};
+template<bool first, bool second>
+struct logical_or<first, second> : public std::integral_constant<bool,
+		first || second>::type
+{
+
+};
+template<bool first, bool ... args>
+struct logical_or<first, args...> : public std::integral_constant<bool,
+		logical_or<first, logical_or<args...>::value>::value>::type
 {
 };
 
