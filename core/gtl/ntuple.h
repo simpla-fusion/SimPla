@@ -10,16 +10,15 @@
 #ifndef CORE_GTL_NTUPLE_H_
 #define CORE_GTL_NTUPLE_H_
 
-#include <algorithm>
-#include <cmath>
 #include <cstddef>
 #include <type_traits>
 
-#include "macro.h"
-#include "type_traits.h"
-#include "integer_sequence.h"
 #include "expression_template.h"
+#include "macro.h"
 #include "mpl.h"
+#include "integer_sequence.h"
+#include "type_traits.h"
+
 namespace simpla
 {
 
@@ -205,11 +204,6 @@ private:
 	void assign(Op const & op, TR const & rhs)
 	{
 
-//		static constexpr size_t I =
-//				mpl::seq_get<0, traits::extents_t<TR>>::value;
-//
-//		mpl::_seq_for<((I < N) && I != 0) ? I : N>::eval(op, data_, rhs);
-
 		for (int s = 0; s < N; ++s)
 		{
 			op(data_[s], traits::index(rhs, s));
@@ -360,18 +354,52 @@ struct pod_type<nTuple<T, N...>>
 };
 
 template<typename TV, size_t ...M>
-struct extents<nTuple<TV, M...> > : public simpla::_impl::seq_concat<
+struct extents<nTuple<TV, M...> > : public simpla::traits::seq_concat<
 		integer_sequence<size_t, M...>, traits::extents_t<TV>>
 {
 };
-
-template<typename TOP, typename TL>
-struct extents<nTuple<Expression<TOP, TL> > > : public traits::extents_t<TL>
+namespace _impl
 {
+template<typename ...> struct extents_helper;
+template<typename TOP, typename First, typename ...Others>
+struct extents_helper<TOP, First, Others...>
+{
+	typedef typename extents_helper<TOP, First,
+			typename extents_helper<TOP, Others...>::type>::type type;
 };
-template<typename TOP, typename TL, typename TR>
-struct extents<nTuple<Expression<TOP, TL, TR> > > : public simpla::mpl::longer_integer_sequence<
-		traits::extents_t<TL>, traits::extents_t<TR>>
+template<typename TOP, typename _Tp, _Tp ...N>
+struct extents_helper<TOP, integer_sequence<_Tp, N...>, integer_sequence<_Tp> >
+{
+	typedef integer_sequence<_Tp, N...> type;
+};
+
+template<typename TOP, typename _Tp, _Tp ...N>
+struct extents_helper<TOP, integer_sequence<_Tp>, integer_sequence<_Tp, N...> >
+{
+	typedef integer_sequence<_Tp, N...> type;
+};
+
+template<typename TOP, typename _Tp>
+struct extents_helper<TOP, integer_sequence<_Tp>, integer_sequence<_Tp> >
+{
+	typedef integer_sequence<_Tp> type;
+};
+template<typename TOP, typename _Tp, _Tp ...N, _Tp ...M>
+struct extents_helper<TOP, integer_sequence<_Tp, N...>,
+		integer_sequence<_Tp, M...> >
+{
+	static_assert(std::is_same< integer_sequence<_Tp, N...>,
+			integer_sequence<_Tp, M...> >::value ,"extent mismatch!");
+
+	typedef integer_sequence<_Tp, N...> type;
+};
+
+}
+// namespace _impl
+
+template<typename TOP, typename ... T>
+struct extents<nTuple<Expression<TOP, T...> > > : public simpla::mpl::longer_integer_sequence<
+		traits::extents_t<T>...>::type
 {
 };
 
@@ -443,13 +471,22 @@ template<typename T, size_t ... N> using Tensor=nTuple<T, N...>;
 template<typename T, size_t N, size_t ... M>
 void swap(nTuple<T, N, M...> &l, nTuple<T, N, M...> &r)
 {
-	mpl::_seq_for<N>::eval(_impl::_swap(), (l), (r));
+	for (size_t s = 0; s < N; ++s)
+	{
+		simpla::swap(traits::index(l, s), traits::index(r, s));
+	}
+//	mpl::_seq_for<N>::eval(_impl::_swap(), (l), (r));
 }
 
 template<typename T, size_t N, size_t ... M>
 void swap(nTuple<T, N, M...> &l, traits::pod_type_t<nTuple<T, N, M...>> &r)
 {
-	mpl::_seq_for<N>::eval(_impl::_swap(), (l), (r));
+
+	for (size_t s = 0; s < N; ++s)
+	{
+		simpla::swap(traits::index(l, s), traits::index(r, s));
+	}
+//	mpl::_seq_for<N>::eval(_impl::_swap(), (l), (r));
 }
 
 template<typename T>

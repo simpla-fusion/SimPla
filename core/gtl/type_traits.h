@@ -30,11 +30,13 @@ struct do_nothing
 	{
 	}
 };
-//template<typename T>
-//struct remove_all
-//{
-//	typedef typename std::remove_reference<typename std::remove_const<T>::type>::type type;
-//};
+
+template<typename T>
+void swap(T &l, T& r)
+{
+	std::swap(l, r);
+}
+
 template<typename _Tp, _Tp ... _I> struct integer_sequence;
 template<typename, size_t...>struct nTuple;
 //////////////////////////////////////////////////////////////////////
@@ -95,7 +97,7 @@ constexpr _Tp integer_sequence<_Tp>::value[];
 template<size_t ... Ints>
 using index_sequence = integer_sequence<std::size_t, Ints...>;
 
-namespace _impl
+namespace traits
 {
 
 /**
@@ -119,7 +121,9 @@ struct seq_concat<integer_sequence<_Tp, _M...>, integer_sequence<_Tp, _N...> >
 {
 	typedef integer_sequence<_Tp, _M..., _N...> type;
 };
-
+} // namespace traits
+namespace _impl
+{
 template<typename Func, typename Tup, size_t ... index>
 auto invoke_helper(Func&& func, Tup&& tup, index_sequence<index...>)
 DECL_RET_TYPE(func(std::get<index>(std::forward<Tup>(tup))...))
@@ -127,7 +131,7 @@ DECL_RET_TYPE(func(std::get<index>(std::forward<Tup>(tup))...))
 template<typename TP, size_t N>
 struct gen_seq
 {
-	typedef typename seq_concat<typename gen_seq<TP, N - 1>::type,
+	typedef typename traits::seq_concat<typename gen_seq<TP, N - 1>::type,
 			integer_sequence<TP, N - 1> >::type type;
 };
 
@@ -213,7 +217,7 @@ struct extents: public integer_sequence<size_t>
 template<typename T> using extents_t=typename extents<T>::type;
 
 template<typename T, size_t N>
-struct extents<T[N]> : public simpla::_impl::seq_concat<
+struct extents<T[N]> : public simpla::traits::seq_concat<
 		integer_sequence<size_t, N>, typename extents<T>::type>::type
 {
 };

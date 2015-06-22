@@ -9,9 +9,9 @@
 #define CORE_GTL_INTEGER_SEQUENCE_H_
 
 #include <stddef.h>
-#include <type_traits>
 
 #include "macro.h"
+#include "mpl.h"
 #include "type_traits.h"
 
 namespace simpla
@@ -21,26 +21,26 @@ template<typename _Tp, _Tp ... _I> struct integer_sequence;
 namespace mpl
 {
 
-template<size_t N, typename ...> struct seq_get;
-
-template<size_t N, typename Tp, Tp M, Tp ...I>
-struct seq_get<N, integer_sequence<Tp, M, I ...> >
-{
-	static constexpr Tp value =
-			seq_get<N - 1, integer_sequence<Tp, I ...> >::value;
-};
-
-template<typename Tp, Tp M, Tp ...I>
-struct seq_get<0, integer_sequence<Tp, M, I ...> >
-{
-	static constexpr Tp value = M;
-};
-
-template<typename Tp>
-struct seq_get<0, integer_sequence<Tp> >
-{
-	static constexpr Tp value = 0;
-};
+//template<size_t N, typename ...> struct seq_get;
+//
+//template<size_t N, typename Tp, Tp M, Tp ...I>
+//struct seq_get<N, integer_sequence<Tp, M, I ...> >
+//{
+//	static constexpr Tp value =
+//			seq_get<N - 1, integer_sequence<Tp, I ...> >::value;
+//};
+//
+//template<typename Tp, Tp M, Tp ...I>
+//struct seq_get<0, integer_sequence<Tp, M, I ...> >
+//{
+//	static constexpr Tp value = M;
+//};
+//
+//template<typename Tp>
+//struct seq_get<0, integer_sequence<Tp> >
+//{
+//	static constexpr Tp value = 0;
+//};
 
 template<typename ...> class longer_integer_sequence;
 
@@ -49,23 +49,24 @@ struct longer_integer_sequence<integer_sequence<T, N ...> >
 {
 	typedef integer_sequence<T, N ...> type;
 };
-template<typename T, T ... N>
-struct longer_integer_sequence<integer_sequence<T, N ...>, integer_sequence<T>>
+template<typename T, T ... N, T ...M>
+struct longer_integer_sequence<integer_sequence<T, N ...>,
+		integer_sequence<T, M...>>
 {
-	typedef integer_sequence<T, N ...> type;
+	typedef integer_sequence<T, mpl::max<T,N,M>::value ...> type;
 };
 
-template<typename T, T ... N1, T ... N2, typename ...Others>
-struct longer_integer_sequence<integer_sequence<T, N1...>,
-		integer_sequence<T, N2...>, Others ...>
-{
-	typedef typename std::conditional<(sizeof...(N1) > sizeof...(N2)),
-			typename longer_integer_sequence<integer_sequence<T, N1...>,
-					Others...>::type,
-			typename longer_integer_sequence<integer_sequence<T, N2...>,
-					Others...>::type>::type type;
-
-};
+//template<typename T, T ... N1, T ... N2, typename ...Others>
+//struct longer_integer_sequence<integer_sequence<T, N1...>,
+//		integer_sequence<T, N2...>, Others ...>
+//{
+//	typedef typename std::conditional<(sizeof...(N1) > sizeof...(N2)),
+//			typename longer_integer_sequence<integer_sequence<T, N1...>,
+//					Others...>::type,
+//			typename longer_integer_sequence<integer_sequence<T, N2...>,
+//					Others...>::type>::type type;
+//
+//};
 
 //TODO need implement max_integer_sequence, min_integer_sequence
 template<size_t...> struct _seq_for;
