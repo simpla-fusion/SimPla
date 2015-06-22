@@ -14,7 +14,6 @@
 #include "../type_traits.h"
 #include "../primitives.h"
 #include "../ntuple.h"
-#include "../ntuple_ext1.h"
 #include "../../utilities/log.h"
 using namespace simpla;
 
@@ -78,13 +77,13 @@ typedef testing::Types<
 
 nTuple<double, 3>
 
-//, nTuple<double, 3, 3>
-//
-//, nTuple<double, 3, 4, 5>
-//
-//, nTuple<int, 3, 4, 5, 6>
-//
-//, nTuple<std::complex<double>, 3, 4, 5, 6>
+, nTuple<double, 3, 3>
+
+, nTuple<double, 3, 4, 5>
+
+, nTuple<int, 3, 4, 5, 6>
+
+, nTuple<std::complex<double>, 3, 4, 5, 6>
 
 > ntuple_type_lists;
 
@@ -95,21 +94,10 @@ TYPED_TEST(TestNtupleReduce, equation ){
 	TestFixture::vB=TestFixture::vA+1000;
 
 	EXPECT_TRUE( TestFixture::vA==TestFixture::vA);
-	EXPECT_FALSE( TestFixture::vA!=TestFixture::vA);
-
-	EXPECT_TRUE( TestFixture::vA!=TestFixture::vB);
 	EXPECT_FALSE( TestFixture::vA==TestFixture::vB);
 
-//	EXPECT_TRUE( TestFixture::vA<=TestFixture::vA);
-//	EXPECT_TRUE( TestFixture::vA<=TestFixture::vB);
-//	EXPECT_TRUE( TestFixture::vA<TestFixture::vB);
-//	EXPECT_TRUE( TestFixture::vA>=TestFixture::vA);
-//	EXPECT_TRUE( TestFixture::vB>TestFixture::vA);
-
-//	EXPECT_FALSE( TestFixture::vA>=TestFixture::vB);
-//	EXPECT_FALSE( TestFixture::vB<=TestFixture::vA);
-//	EXPECT_FALSE( TestFixture::vA>TestFixture::vB);
-// 	EXPECT_FALSE( TestFixture::vB<TestFixture::vA);
+	EXPECT_TRUE( TestFixture::vA!=TestFixture::vB);
+	EXPECT_FALSE( TestFixture::vA!=TestFixture::vA);
 
 }
 }

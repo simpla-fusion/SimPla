@@ -283,11 +283,11 @@ struct equal_to
 };
 template<typename TOP> struct op_traits
 {
-	typedef logical_and reduction_op;
+	typedef logical_and type;
 };
 template<> struct op_traits<not_equal_to>
 {
-	typedef logical_or reduction_op;
+	typedef logical_or type;
 };
 
 #define DEF_STD_BINARY_FUNCTION(_NAME_ )                                                               \

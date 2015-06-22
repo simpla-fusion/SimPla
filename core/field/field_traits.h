@@ -64,7 +64,7 @@ struct reference<_Field<TM, TV, Others...> >
 
 template<typename ...T, int M>
 struct extent<_Field<T ...>, M> : public std::integral_constant<int,
-		simpla::_impl::seq_get<M, extents_t<_Field<T ...> >>::value>
+		simpla::mpl::seq_get<M, extents_t<_Field<T ...> >>::value>
 {
 };
 

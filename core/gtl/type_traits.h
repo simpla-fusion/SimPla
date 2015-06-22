@@ -470,6 +470,9 @@ struct access_helper<>
 
 };
 }  // namespace _impl
+template<size_t N, typename ...T>
+auto get(std::tuple<T...> & v)
+DECL_RET_TYPE(std::get<N>(v))
 
 template<size_t ...N, typename T>
 auto get(T & v)
