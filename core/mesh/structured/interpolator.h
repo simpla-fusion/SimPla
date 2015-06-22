@@ -74,16 +74,16 @@ public:
 	static inline auto gather(mesh_type const & geo, TF const &f,
 			TX const & r)  //
 					ENABLE_IF_DECL_RET_TYPE(( traits::iform<TF>::value==VERTEX),
-							( gather_impl_<mesh_type>(f, geo. coordinates_global_to_local (r, 0 ) )))
+							( gather_impl_ (f, geo. coordinates_global_to_local (r, 0 ) )))
 
 	template<typename TF>
 	static auto gather(mesh_type const & geo, TF const &f,
 			typename mesh_type::point_type const & r)
 					ENABLE_IF_DECL_RET_TYPE(( traits::iform<TF>::value==EDGE),
 							make_nTuple(
-									gather_impl_<mesh_type>(f, geo.coordinates_global_to_local(r, 1) ),
-									gather_impl_<mesh_type>(f, geo.coordinates_global_to_local(r, 2) ),
-									gather_impl_<mesh_type>(f, geo.coordinates_global_to_local(r, 4) )
+									gather_impl_ (f, geo.coordinates_global_to_local(r, 1) ),
+									gather_impl_ (f, geo.coordinates_global_to_local(r, 2) ),
+									gather_impl_ (f, geo.coordinates_global_to_local(r, 4) )
 							))
 
 	template<typename TF>
@@ -92,16 +92,16 @@ public:
 					ENABLE_IF_DECL_RET_TYPE(
 							( traits::iform<TF>::value==FACE),
 							make_nTuple(
-									gather_impl_<mesh_type>(f, geo.coordinates_global_to_local(r,6) ),
-									gather_impl_<mesh_type>(f, geo.coordinates_global_to_local(r,5) ),
-									gather_impl_<mesh_type>(f, geo.coordinates_global_to_local(r,3) )
+									gather_impl_ (f, geo.coordinates_global_to_local(r,6) ),
+									gather_impl_ (f, geo.coordinates_global_to_local(r,5) ),
+									gather_impl_ (f, geo.coordinates_global_to_local(r,3) )
 							) )
 
 	template<typename TF>
 	static auto gather(mesh_type const & geo, TF const &f,
 			typename mesh_type::point_type const & x)
-					ENABLE_IF_DECL_RET_TYPE(( traits::iform<TF>::value==VOLUME),
-							gather_impl_<mesh_type>(f, geo. coordinates_global_to_local (x ,7) ))
+			ENABLE_IF_DECL_RET_TYPE(( traits::iform<TF>::value==VOLUME),
+					gather_impl_ (f, geo. coordinates_global_to_local (x ,7) ))
 
 private:
 	template<typename TF, typename IDX, typename TV>
@@ -135,8 +135,7 @@ public:
 			typename mesh_type::point_type const & x, TV const &u, TW const &w)
 	{
 
-		scatter_impl_<mesh_type>(f, geo.coordinates_global_to_local(x, 0),
-				u * w);
+		scatter_impl_(f, geo.coordinates_global_to_local(x, 0), u * w);
 	}
 
 	template<typename ...Others, typename ...TF, typename TV, typename TW>
@@ -147,12 +146,9 @@ public:
 			typename mesh_type::point_type const & x, TV const &u, TW const & w)
 	{
 
-		scatter_impl_<mesh_type>(f, geo.coordinates_global_to_local(x, 1),
-				u[0] * w);
-		scatter_impl_<mesh_type>(f, geo.coordinates_global_to_local(x, 2),
-				u[1] * w);
-		scatter_impl_<mesh_type>(f, geo.coordinates_global_to_local(x, 4),
-				u[2] * w);
+		scatter_impl_(f, geo.coordinates_global_to_local(x, 1), u[0] * w);
+		scatter_impl_(f, geo.coordinates_global_to_local(x, 2), u[1] * w);
+		scatter_impl_(f, geo.coordinates_global_to_local(x, 4), u[2] * w);
 
 	}
 
@@ -164,12 +160,9 @@ public:
 			typename mesh_type::point_type const & x, TV const &u, TW const &w)
 	{
 
-		scatter_impl_<mesh_type>(f, geo.coordinates_global_to_local(x, 6),
-				u[0] * w);
-		scatter_impl_<mesh_type>(f, geo.coordinates_global_to_local(x, 5),
-				u[1] * w);
-		scatter_impl_<mesh_type>(f, geo.coordinates_global_to_local(x, 3),
-				u[2] * w);
+		scatter_impl_(f, geo.coordinates_global_to_local(x, 6), u[0] * w);
+		scatter_impl_(f, geo.coordinates_global_to_local(x, 5), u[1] * w);
+		scatter_impl_(f, geo.coordinates_global_to_local(x, 3), u[2] * w);
 	}
 
 	template<typename ...Others, typename ...TF, typename TV, typename TW>
@@ -179,7 +172,7 @@ public:
 							Others...>, TF...>&f,
 			typename mesh_type::point_type const & x, TV const &u, TW const &w)
 	{
-		scatter_impl_<mesh_type>(f, geo.coordinates_global_to_local(x, 7), w);
+		scatter_impl_(f, geo.coordinates_global_to_local(x, 7), w);
 	}
 private:
 	template<typename TV>

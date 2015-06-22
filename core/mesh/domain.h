@@ -90,19 +90,19 @@ public:
 	std::set<id_type> m_id_set_;
 public:
 
-	Domain(mesh_type const &m)
-			: range_type(m.range(mesh_type::template sub_index_to_id<iform>())), m_mesh_(
+	Domain(mesh_type const &m) :
+			range_type(m.range(mesh_type::template sub_index_to_id<iform>())), m_mesh_(
 					m)
 	{
 	}
 
-	Domain(this_type const & other)
-			: range_type(other), m_mesh_(other.m_mesh_), m_id_set_(
+	Domain(this_type const & other) :
+			range_type(other), m_mesh_(other.m_mesh_), m_id_set_(
 					other.m_id_set_)
 	{
 	}
-	Domain(this_type && other)
-			: range_type(other), m_mesh_(other.m_mesh_), m_id_set_(
+	Domain(this_type && other) :
+			range_type(other), m_mesh_(other.m_mesh_), m_id_set_(
 					other.m_id_set_)
 	{
 	}
@@ -519,11 +519,17 @@ public:
 	DECL_RET_TYPE( policy_interpolator::template sample<iform>( m_mesh_ ,std::forward<Args>(args)...))
 
 
-	template<typename ...Args>
-	auto gather(
-			Args && ...args) const
-					DECL_RET_TYPE((policy_interpolator::gather( m_mesh_,std::forward<Args>(args)...)))
+//	template<typename ...Args>
+//	auto gather(
+//			Args && ...args) const
+//					DECL_RET_TYPE((policy_interpolator::gather( m_mesh_,std::forward<Args>(args)...)))
 
+	template<typename TF,typename ...Args>
+	traits::field_value_t<TF>
+	gather(TF const & field, Args && ...args) const
+	{
+		return  policy_interpolator::gather( m_mesh_,field,std::forward<Args>(args)...) ;
+	}
 	template<typename ...Args>
 	void scatter(Args && ...args) const
 	{
@@ -535,6 +541,12 @@ public:
 	DECL_RET_TYPE((policy::template calculate<mesh_type, tags::finite_difference>::eval( m_mesh_,
 			std::forward<Args>(args)...)))
 
+	template<typename ...Args>
+	constexpr auto point(Args&& ...args)const
+	DECL_RET_TYPE(m_mesh_.point(std::forward<Args>(args)...))
+
+	constexpr	auto time( )const
+	DECL_RET_TYPE(m_mesh_.time( ))
 };
 
 //namespace _impl

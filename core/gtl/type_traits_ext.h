@@ -105,10 +105,10 @@ template<typename T> typename std::enable_if<
 
 template<typename TI>
 auto ref(TI & it)
-ENABLE_IF_DECL_RET_TYPE(is_iterator<TI>::value,(*it))
+ENABLE_IF_DECL_RET_TYPE(traits::is_iterator<TI>::value,(*it))
 template<typename TI>
 auto ref(TI & it)
-ENABLE_IF_DECL_RET_TYPE(!is_iterator<TI>::value,(it))
+ENABLE_IF_DECL_RET_TYPE(!traits::is_iterator<TI>::value,(it))
 
 template<typename > struct result_of;
 
@@ -126,13 +126,13 @@ struct GetValue
 	constexpr auto operator()(TL const & v, TI const s) const
 	DECL_RET_TYPE ((traits::index(v, s)))
 
-template	<typename TL, typename TI>
+	template<typename TL, typename TI>
 	constexpr auto operator()(TL & v, TI const s) const
 	DECL_RET_TYPE((traits::index(v,s)))
 };
 
 }
- //namespace _impl
+//namespace _impl
 template<typename ...> struct index_of;
 
 template<typename TC, typename TI>

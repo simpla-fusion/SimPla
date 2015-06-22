@@ -7,10 +7,17 @@
 
 #ifndef CORE_FIELD_FIELD_EXPRESSION_H_
 #define CORE_FIELD_FIELD_EXPRESSION_H_
+
+#include <stddef.h>
+#include <cstdbool>
+#include <type_traits>
+
 #include "../gtl/expression_template.h"
 #include "../gtl/type_traits.h"
-#include "../utilities/log.h"
+#include "../mesh/mesh_traits.h"
+#include "calculus.h"
 #include "field_traits.h"
+
 namespace simpla
 {
 /** @addtogroup field
@@ -77,8 +84,8 @@ template<typename T0> struct first_field<T0>
 };
 template<typename T0, typename ...T> struct first_field<T0, T...>
 {
-	typedef typename std::conditional<is_field<T0>::value,
-			typename is_field<T...>::type, first_domain_t<T0> >::type type;
+	typedef typename std::conditional<is_field<T0>::value, T0,
+			first_field_t<T...> >::type type;
 };
 
 }  // namespace _impl

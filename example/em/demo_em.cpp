@@ -7,22 +7,26 @@
 
 #include <stddef.h>
 #include <iostream>
+#include <memory>
 #include <string>
 
 #include "../../core/application/application.h"
 #include "../../core/application/use_case.h"
-
-#include "../../core/utilities/utilities.h"
+#include "../../core/geometry/coordinate_system.h"
+#include "../../core/gtl/primitives.h"
+#include "../../core/gtl/type_cast.h"
 #include "../../core/io/io.h"
+#include "../../core/mesh/mesh.h"
+#include "../../core/mesh/structured.h"
+#include "../../core/mesh/structured/interpolator.h"
+#include "../../core/mesh/structured/fdm.h"
+
 #include "../../core/physics/constants.h"
 #include "../../core/physics/physical_constants.h"
-
-#include "../../core/mesh/mesh.h"
-#include "../../core/mesh/domain.h"
+#include "../../core/utilities/config_parser.h"
+#include "../../core/utilities/log.h"
 #include "../../core/field/field.h"
-#include "../../applications/field_solver/pml.h"
 
-#include <memory>
 using namespace simpla;
 
 #ifdef CYLINDRICAL_COORDINATE_SYTEM
@@ -30,10 +34,11 @@ using namespace simpla;
 #define COORDINATE_SYSTEM Cylindrical<2>
 #else
 #include "../../core/geometry/cs_cartesian.h"
-#define COORDINATE_SYSTEM Cartesian<3>
+#define COORDINATE_SYSTEM Cartesian<3,2>
 #endif
 
-typedef Mesh<COORDINATE_SYSTEM, simpla::tags::structured> mesh_type;
+typedef Mesh<simpla::geometry::coordinate_system::COORDINATE_SYSTEM,
+simpla::tags::structured> mesh_type;
 
 USE_CASE(em," Maxwell Eqs.")
 {
@@ -87,24 +92,24 @@ USE_CASE(em," Maxwell Eqs.")
 //
 //	}
 
-	auto J = mesh->template make_form<EDGE, Real>();
-	auto E = mesh->template make_form<EDGE, Real>();
-	auto B = mesh->template make_form<FACE, Real>();
+	auto J = make_form<EDGE, Real>(*mesh);
+	auto E = make_form<EDGE, Real>(*mesh);
+	auto B = make_form<FACE, Real>(*mesh);
 
 	E = make_function_by_config<Real>(options["InitValue"]["E"],
-			mesh->domain<EDGE>());
+			make_domain<EDGE>(*mesh));
 
 	B = make_function_by_config<Real>(options["InitValue"]["B"],
-			mesh->domain<FACE>());
+			make_domain<FACE>(*mesh));
 
 	J = make_function_by_config<Real>(options["InitValue"]["J"],
-			mesh->domain<EDGE>());
+			make_domain<EDGE>(*mesh));
 
 	auto J_src = make_function_by_config<Real>(options["Constraint"]["J"],
-			mesh->domain<EDGE>());
+			make_domain<EDGE>(*mesh));
 
 	auto E_src = make_function_by_config<Real>(options["Constraint"]["E"],
-			mesh->domain<EDGE>());
+			make_domain<EDGE>(*mesh));
 
 	auto E_Boundary = (E);
 	auto B_Boundary = (B);

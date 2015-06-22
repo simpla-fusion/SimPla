@@ -13,28 +13,31 @@
 #include <functional>
 
 #include "../gtl/primitives.h"
-#include "../mesh/domain.h"
+#include "field_traits.h"
 
 namespace simpla
 {
 template<typename ...>class _Field;
+template<typename ...>class Domain;
 
-template<typename TDomain, typename TV, typename TFun>
-class _Field<TDomain, TV, tags::function, TFun>
+template<typename ...TDomain, typename TV, typename TFun>
+class _Field<Domain<TDomain...>, TV, tags::function, TFun>
 {
 public:
-	typedef TDomain domain_type;
-	typedef typename domain_type::mesh_type mesh_type;
+	typedef Domain<TDomain...> domain_type;
+
 	typedef TV value_type;
 	typedef TFun function_type;
 
 	typedef _Field<domain_type, value_type, tags::function, function_type> this_type;
 
+	typedef typename domain_type::mesh_type mesh_type;
+
 	typedef typename mesh_type::id_type id_type;
 
 	typedef typename mesh_type::point_type point_type;
 
-	typedef typename domain_type::template field_value_type<value_type> field_value_type;
+	typedef traits::field_value_t<this_type> field_value_type;
 
 	static constexpr size_t iform = domain_type::iform;
 	static constexpr size_t ndims = domain_type::ndims;
@@ -82,11 +85,10 @@ public:
 
 	value_type operator[](id_type s) const
 	{
-		Real t = m_domain_.mesh().time();
+		Real t = domain().time();
 
-		return m_domain_.mesh().template sample<iform>(s,
-				static_cast<field_value_type>(m_fun_(m_domain_.mesh().point(s),
-						t)));
+		return domain().sample(s,
+				static_cast<field_value_type>(m_fun_(domain().point(s), t)));
 	}
 
 	field_value_type operator()(point_type const& x, Real t) const
