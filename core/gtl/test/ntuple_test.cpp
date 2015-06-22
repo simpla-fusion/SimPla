@@ -15,6 +15,8 @@
 #include "../ntuple.h"
 #include "../primitives.h"
 #include "../mpl.h"
+#include "../integer_sequence.h"
+
 using namespace simpla;
 
 #define EQUATION(_A,_B,_C)  ( -(_A  +TestFixture::a )/(   _B *TestFixture::b -TestFixture::c  )- _C)
@@ -32,7 +34,7 @@ protected:
 		c = 4;
 		d = 7;
 
-		DIMENSIONS = extents::value;
+		DIMENSIONS = traits::seq_value<extents>::value;
 
 		mpl::seq_for_each(extents(),
 
@@ -94,7 +96,7 @@ TYPED_TEST_CASE(TestNtuple, ntuple_type_lists);
 TYPED_TEST(TestNtuple, swap){
 {
 
-	swap(TestFixture::vA, TestFixture::vB);
+	std::swap(TestFixture::vA, TestFixture::vB);
 
 	mpl::seq_for_each(typename TestFixture::extents(),
 			[&](size_t const idx[traits::extent<typename TestFixture::extents,0>::value])

@@ -124,7 +124,7 @@ struct datatype
 
 		rank<obj_type>::value,
 
-		&extents_t<obj_type>::value[0],
+		&traits::seq_value<extents_t<obj_type> >::value[0],
 
 		name)
 

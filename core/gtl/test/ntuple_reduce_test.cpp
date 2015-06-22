@@ -14,6 +14,7 @@
 #include "../type_traits.h"
 #include "../primitives.h"
 #include "../ntuple.h"
+#include "../integer_sequence.h"
 #include "../../utilities/log.h"
 using namespace simpla;
 
@@ -30,7 +31,7 @@ protected:
 		c = 4;
 		d = 7;
 
-		DIMENSIONS = extents::value;
+		DIMENSIONS = traits::seq_value<extents>::value;
 
 		mpl::seq_for_each(extents(),
 

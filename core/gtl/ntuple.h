@@ -16,7 +16,6 @@
 #include "expression_template.h"
 #include "macro.h"
 #include "mpl.h"
-#include "integer_sequence.h"
 #include "type_traits.h"
 
 namespace simpla
@@ -361,6 +360,13 @@ struct extents<nTuple<TV, M...> > : public simpla::traits::seq_concat<
 namespace _impl
 {
 template<typename ...> struct extents_helper;
+
+template<typename TOP>
+struct extents_helper<TOP>
+{
+	typedef integer_sequence<size_t>  type;
+};
+
 template<typename TOP, typename First, typename ...Others>
 struct extents_helper<TOP, First, Others...>
 {
@@ -398,8 +404,8 @@ struct extents_helper<TOP, integer_sequence<_Tp, N...>,
 // namespace _impl
 
 template<typename TOP, typename ... T>
-struct extents<nTuple<Expression<TOP, T...> > > : public simpla::mpl::longer_integer_sequence<
-		traits::extents_t<T>...>::type
+struct extents<nTuple<Expression<TOP, T...> > > : public _impl::extents_helper<
+		TOP, traits::extents_t<T>...>::type
 {
 };
 
@@ -467,27 +473,6 @@ template<typename T, size_t N> using Vector=nTuple<T, N>;
 template<typename T, size_t M, size_t N> using Matrix=nTuple<T, M, N>;
 
 template<typename T, size_t ... N> using Tensor=nTuple<T, N...>;
-
-template<typename T, size_t N, size_t ... M>
-void swap(nTuple<T, N, M...> &l, nTuple<T, N, M...> &r)
-{
-	for (size_t s = 0; s < N; ++s)
-	{
-		simpla::swap(traits::index(l, s), traits::index(r, s));
-	}
-//	mpl::_seq_for<N>::eval(_impl::_swap(), (l), (r));
-}
-
-template<typename T, size_t N, size_t ... M>
-void swap(nTuple<T, N, M...> &l, traits::pod_type_t<nTuple<T, N, M...>> &r)
-{
-
-	for (size_t s = 0; s < N; ++s)
-	{
-		simpla::swap(traits::index(l, s), traits::index(r, s));
-	}
-//	mpl::_seq_for<N>::eval(_impl::_swap(), (l), (r));
-}
 
 template<typename T>
 inline auto determinant(nTuple<T, 3> const &m)
@@ -843,5 +828,30 @@ DEFINE_EXPRESSOPM_TEMPLATE_BOOLEAN_ALGEBRA2(nTuple)
 
 }
 //namespace simpla
+
+namespace std
+{
+
+template<typename T, size_t N, size_t ... M>
+void swap(simpla::nTuple<T, N, M...> &l, simpla::nTuple<T, N, M...> &r)
+{
+	for (size_t s = 0; s < N; ++s)
+	{
+		swap(simpla::traits::index(l, s), simpla::traits::index(r, s));
+	}
+}
+
+template<typename T, size_t N, size_t ... M>
+void swap(simpla::nTuple<T, N, M...> &l,
+		simpla::traits::pod_type_t<simpla::nTuple<T, N, M...>> &r)
+{
+
+	for (size_t s = 0; s < N; ++s)
+	{
+		swap(simpla::traits::index(l, s), simpla::traits::index(r, s));
+	}
+}
+
+}  // namespace std
 
 #endif  // CORE_GTL_NTUPLE_H_

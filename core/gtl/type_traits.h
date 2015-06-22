@@ -31,14 +31,11 @@ struct do_nothing
 	}
 };
 
-template<typename T>
-void swap(T &l, T& r)
-{
-	std::swap(l, r);
-}
-
 template<typename _Tp, _Tp ... _I> struct integer_sequence;
 template<typename, size_t...>struct nTuple;
+template<size_t ... Ints>
+using index_sequence = integer_sequence<std::size_t, Ints...>;
+
 //////////////////////////////////////////////////////////////////////
 /// integer_sequence
 //////////////////////////////////////////////////////////////////////
@@ -60,19 +57,12 @@ private:
 public:
 	typedef integer_sequence<_Tp, _I...> type;
 
-	typedef _Tp value_type;
-
-	static constexpr value_type value[] = { _I... };
-
 	static constexpr size_t size()
 	{
 		return m_size_;
 	}
 
 };
-
-template<typename _Tp, _Tp ... _I> constexpr typename
-integer_sequence<_Tp, _I...>::value_type integer_sequence<_Tp, _I...>::value[];
 
 template<typename _Tp>
 struct integer_sequence<_Tp>
@@ -81,24 +71,46 @@ struct integer_sequence<_Tp>
 public:
 	typedef integer_sequence<_Tp> type;
 
-	typedef _Tp value_type;
-
-	static constexpr value_type value[] = { };
-
 	static constexpr size_t size()
 	{
 		return 0;
 	}
 
 };
-template<typename _Tp>
-constexpr _Tp integer_sequence<_Tp>::value[];
-
-template<size_t ... Ints>
-using index_sequence = integer_sequence<std::size_t, Ints...>;
 
 namespace traits
 {
+template<typename T>
+void swap(T &l, T& r)
+{
+	std::swap(l, r);
+}
+template<typename > struct seq_value;
+
+template<typename _Tp, _Tp ...N>
+struct seq_value<integer_sequence<_Tp, N...> >
+{
+	static constexpr _Tp value[] = { N... };
+};
+
+template<typename _Tp, _Tp ...N>
+constexpr _Tp seq_value<integer_sequence<_Tp, N...> >::value[];
+
+template<typename T> struct value_type;
+
+template<typename _Tp, _Tp ...N>
+struct value_type<integer_sequence<_Tp, N...> >
+{
+	typedef _Tp type;
+};
+
+template<typename T, size_t N> struct extent;
+
+template<typename _Tp, _Tp ...N>
+struct extent<integer_sequence<_Tp, N...>, 0>
+{
+	static constexpr size_t value = sizeof...(N);
+};
 
 /**
  *  cat two tuple/integer_sequence
