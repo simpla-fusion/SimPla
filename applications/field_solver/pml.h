@@ -179,7 +179,7 @@ void PML<TM>::next_timestepE(Real dt,
 
 	DEFINE_PHYSICAL_CONST
 
-	auto dX1 = m_mesh_->template make_form<EDGE, scalar_type>();
+	auto dX1 = make_form<EDGE, scalar_type>(*m_mesh_);
 
 	dX1 = (-2.0 * dt * s0 * X10 + curl_pdx(B1) / (mu0 * epsilon0) * dt)
 	/ (a0 + s0 * dt);
@@ -207,7 +207,7 @@ void PML<TM>::next_timestepB(Real dt,
 
 	DEFINE_PHYSICAL_CONST
 
-	auto dX2 = m_mesh_->template make_form<FACE, scalar_type>();
+	auto dX2 = make_form<FACE, scalar_type>(*m_mesh_);;
 
 	dX2 = (-2.0 * dt * s0 * X20 + curl_pdx(E1) * dt) / (a0 + s0 * dt);
 	X20 += dX2;

@@ -15,8 +15,6 @@
 
 #include "../gtl/integer_sequence.h"
 #include "../gtl/type_traits.h"
-
-#include "../mesh/domain.h"
 #include "../mesh/mesh_ids.h"
 
 namespace simpla

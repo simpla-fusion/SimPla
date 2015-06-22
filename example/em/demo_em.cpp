@@ -17,6 +17,8 @@
 #include "../../core/gtl/type_cast.h"
 #include "../../core/io/io.h"
 #include "../../core/mesh/mesh.h"
+#include "../../core/mesh/domain.h"
+
 #include "../../core/mesh/structured.h"
 #include "../../core/mesh/structured/interpolator.h"
 #include "../../core/mesh/structured/fdm.h"
@@ -30,15 +32,14 @@
 using namespace simpla;
 
 #ifdef CYLINDRICAL_COORDINATE_SYTEM
-#include "../../core/geometry/cs_cylindrical.h"
-#define COORDINATE_SYSTEM Cylindrical<2>
+#  include "../../core/geometry/cs_cylindrical.h"
+#  define COORDINATE_SYSTEM Cylindrical<2>
 #else
-#include "../../core/geometry/cs_cartesian.h"
-#define COORDINATE_SYSTEM Cartesian<3,2>
+#  include "../../core/geometry/cs_cartesian.h"
+#  define COORDINATE_SYSTEM simpla::geometry::coordinate_system::Cartesian<3, 2>
 #endif
 
-typedef Mesh<simpla::geometry::coordinate_system::COORDINATE_SYSTEM,
-simpla::tags::structured> mesh_type;
+typedef Mesh<COORDINATE_SYSTEM, simpla::tags::structured> mesh_type;
 
 USE_CASE(em," Maxwell Eqs.")
 {

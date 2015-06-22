@@ -21,11 +21,11 @@
 #include "../gtl/mpl.h"
 #include "../gtl/ntuple.h"
 #include "../utilities/log.h"
+
+#include "../field/field.h"
 #include "mesh_ids.h"
 #include "policy.h"
 #include "mesh_traits.h"
-#include "../field/field.h"
-#include "structured/fdm.h"
 namespace simpla
 {
 

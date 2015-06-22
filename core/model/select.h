@@ -16,27 +16,7 @@
 namespace simpla
 {
 
-template<typename, size_t> struct Domain;
-
-//template<typename TPred, typename InOut>
-//void filter(TPred const & pred, InOut *res)
-//{
-////	res->erase(std::remove_if(res->begin(), res->end(), pred), res->end());
-//}
-//template<typename TPred, typename IN, typename OUT>
-//void filter(TPred const & pred, IN const & range, OUT *res)
-//{
-//	for (auto s : range)
-//	{
-//		if (pred(s))
-//		{
-//			res->insert(s);
-//		}
-//	}
-////	std::copy_if(range.begin(), range.end(), std::inserter(*res, res->begin()),
-////			pred);
-//
-//}
+template<typename ...> struct Domain;
 
 template<typename TCoord>
 void select_ids_in_rectangle(TCoord const & v0, TCoord const & v1)

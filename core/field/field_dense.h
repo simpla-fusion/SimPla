@@ -8,12 +8,10 @@
 #ifndef CORE_FIELD_FIELD_DENSE_H_
 #define CORE_FIELD_FIELD_DENSE_H_
 
-#include <stddef.h>
 #include <algorithm>
 #include <cstdbool>
 #include <memory>
 #include <string>
-#include <type_traits>
 
 #include "../application/sp_object.h"
 #include "../dataset/dataset.h"
@@ -21,9 +19,7 @@
 #include "../gtl/expression_template.h"
 #include "../gtl/properties.h"
 #include "../gtl/type_traits.h"
-#include "../mesh/mesh.h"
-#include "../mesh/domain.h"
-
+#include "../mesh/mesh_traits.h"
 #include "field_traits.h"
 
 namespace simpla
