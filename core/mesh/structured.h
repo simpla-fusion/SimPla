@@ -69,11 +69,9 @@ template<typename ... > struct Mesh;
  *  - the unit cell width is 1;
  */
 template<typename CoordinateSystem>
-struct Mesh<CoordinateSystem, simpla::tags::structured>
-
-:	public MeshIDs_<geometry::traits::dimension<CoordinateSystem>::value>,
-	public std::enable_shared_from_this<
-			Mesh<CoordinateSystem, simpla::tags::structured> >
+struct Mesh<CoordinateSystem, simpla::tags::structured> : public MeshIDs_<4>,
+		public std::enable_shared_from_this<
+				Mesh<CoordinateSystem, simpla::tags::structured> >
 {
 	typedef CoordinateSystem cs_type;
 
@@ -82,7 +80,7 @@ struct Mesh<CoordinateSystem, simpla::tags::structured>
 	static constexpr size_t ndims = geometry::traits::dimension<cs_type>::value;
 	static constexpr size_t ZAXIS = geometry::traits::ZAxis<cs_type>::value;
 
-	typedef MeshIDs_<ndims> topology_type;
+	typedef MeshIDs_<4> topology_type;
 	using typename topology_type::index_type;
 	using typename topology_type::index_tuple;
 	using typename topology_type::range_type;
@@ -187,8 +185,7 @@ public:
 	{
 	}
 
-	Mesh(this_type const & other)
-			:
+	Mesh(this_type const & other) :
 
 			m_id_min_(other.m_id_min_),
 
@@ -909,15 +906,16 @@ void Mesh<CoordinateSystem, tags::structured>::deploy(size_t const *gw)
 			{
 				ERROR(
 				"Dimension is to small to split!["
-				" Dimensions= " + type_cast < std::string
-				> (topology_type::unpack_index(
-								m_id_max_ - m_id_min_))
-				+ " , Local dimensions=" + type_cast
-				< std::string
-				> (topology_type::unpack_index(
-								m_id_local_max_ - m_id_local_min_))
-				+ " , Ghost width =" + type_cast
-				< std::string > (ghost_width) + "]");
+//				" Dimensions= " + type_cast < std::string
+//				> (topology_type::unpack_index(
+//								m_id_max_ - m_id_min_))
+//				+ " , Local dimensions=" + type_cast
+//				< std::string
+//				> (topology_type::unpack_index(
+//								m_id_local_max_ - m_id_local_min_))
+//				+ " , Ghost width =" + type_cast
+//				< std::string > (ghost_width) +
+						"]");
 			}
 
 		}

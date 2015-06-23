@@ -29,22 +29,22 @@ enum ManifoldTypeID
 	VOLUME = 3
 };
 
-template<size_t NDIMS = 3, size_t IMESH_RESOLUTION = 4> struct MeshIDs_;
+template<size_t TAGS> struct MeshIDs_;
 
 namespace traits
 {
 template<typename > struct id_type;
-template<size_t NDIMS, size_t IMESH_RESOLUTION>
-struct id_type<MeshIDs_<NDIMS, IMESH_RESOLUTION>>
+template<size_t TAGS>
+struct id_type<MeshIDs_<TAGS>>
 {
-	typedef typename MeshIDs_<NDIMS, IMESH_RESOLUTION>::id_type type;
+	typedef typename MeshIDs_<TAGS>::id_type type;
 };
 
 template<typename > struct point_type;
-template<size_t NDIMS, size_t IMESH_RESOLUTION>
-struct point_type<MeshIDs_<NDIMS, IMESH_RESOLUTION>>
+template<size_t TAGS>
+struct point_type<MeshIDs_<TAGS>>
 {
-	typedef typename MeshIDs_<NDIMS, IMESH_RESOLUTION>::point_type type;
+	typedef typename MeshIDs_<TAGS>::point_type type;
 };
 
 }  // namespace traits
@@ -79,15 +79,16 @@ struct point_type<MeshIDs_<NDIMS, IMESH_RESOLUTION>>
  *  |00000000000|11111111111111|11111111111| <=_MASK
  *  \endverbatim
  */
-template<size_t NDIMS, size_t IMESH_RESOLUTION>
+template<size_t TAGS>
 struct MeshIDs_
 {
 	/// @name level independent
 	/// @{
 
-	static constexpr int ndims = NDIMS;
+	static constexpr int ndims = 3;
+	static constexpr int MESH_RESOLUTION = (TAGS & 0xF);
 
-	typedef MeshIDs_<ndims, IMESH_RESOLUTION> this_type;
+	typedef MeshIDs_<TAGS> this_type;
 
 	typedef std::uint64_t id_type;
 
@@ -127,8 +128,6 @@ struct MeshIDs_
 
 	/// @name level dependent
 	/// @{
-
-	static constexpr int MESH_RESOLUTION = IMESH_RESOLUTION;
 
 	static constexpr id_type SUB_ID_MASK = ((1UL << MESH_RESOLUTION) - 1);
 
@@ -654,21 +653,21 @@ struct MeshIDs_
 		typedef range_type this_type;
 
 		template<typename T0, typename T1>
-		range_type(T0 const & min, T1 const & max, int n_id = 0)
-				: m_min_(pack_index(min) | m_id_to_shift_[n_id]), m_max_(
+		range_type(T0 const & min, T1 const & max, int n_id = 0) :
+				m_min_(pack_index(min) | m_id_to_shift_[n_id]), m_max_(
 						pack_index(max) | m_id_to_shift_[n_id])
 		{
 
 		}
 
-		range_type(id_type const & min, id_type const & max, int n_id = 0)
-				: m_min_(min | m_id_to_shift_[n_id]), m_max_(
+		range_type(id_type const & min, id_type const & max, int n_id = 0) :
+				m_min_(min | m_id_to_shift_[n_id]), m_max_(
 						max | m_id_to_shift_[n_id])
 		{
 
 		}
-		range_type(this_type const & other)
-				: m_min_(other.m_min_), m_max_(other.m_max_)
+		range_type(this_type const & other) :
+				m_min_(other.m_min_), m_max_(other.m_max_)
 		{
 
 		}
@@ -762,17 +761,17 @@ struct MeshIDs_
 			id_type m_min_, m_max_, m_self_;
 		public:
 			iterator(id_type const & min, id_type const & max,
-					id_type const& self)
-					: m_min_(min), m_max_(max), m_self_(self)
+					id_type const& self) :
+					m_min_(min), m_max_(max), m_self_(self)
 			{
 			}
-			iterator(id_type const & min, id_type const & max)
-					: m_min_(min), m_max_(max), m_self_(min)
+			iterator(id_type const & min, id_type const & max) :
+					m_min_(min), m_max_(max), m_self_(min)
 			{
 			}
 
-			iterator(iterator const & other)
-					: m_min_(other.m_min_), m_max_(other.m_max_), m_self_(
+			iterator(iterator const & other) :
+					m_min_(other.m_min_), m_max_(other.m_max_), m_self_(
 							other.m_self_)
 			{
 			}
@@ -1194,34 +1193,34 @@ struct MeshIDs_
  * http://stackoverflow.com/questions/22172789/passing-a-static-constexpr-variable-by-universal-reference
  */
 
-template<size_t N, size_t M> constexpr int MeshIDs_<N, M>::ndims;
-template<size_t N, size_t M> constexpr int MeshIDs_<N, M>::MESH_RESOLUTION;
+template<size_t TAGS> constexpr int MeshIDs_<TAGS>::ndims;
+template<size_t TAGS> constexpr int MeshIDs_<TAGS>::MESH_RESOLUTION;
 
-template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::OVERFLOW_FLAG;
-template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::ID_ZERO;
-template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::INDEX_ZERO;
+template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::id_type MeshIDs_<TAGS>::OVERFLOW_FLAG;
+template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::id_type MeshIDs_<TAGS>::ID_ZERO;
+template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::id_type MeshIDs_<TAGS>::INDEX_ZERO;
 
-template<size_t N, size_t M> constexpr Real MeshIDs_<N, M>::EPSILON;
+template<size_t TAGS> constexpr Real MeshIDs_<TAGS>::EPSILON;
 
-template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::FULL_DIGITS;
-template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::ID_DIGITS;
-template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::ID_MASK;
-template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::_DK;
-template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::_DJ;
-template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::_DI;
-template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::_DA;
-template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::m_id_to_index_[];
-template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::m_id_to_shift_[];
-template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::m_id_to_iform_[];
-template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::m_sub_index_to_id_[4][3];
-template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type MeshIDs_<N, M >::m_id_to_num_of_ele_in_cell_[];
-template<size_t N, size_t M> constexpr typename MeshIDs_<N,M >::point_type MeshIDs_<N,M >::m_id_to_coordinates_shift_[ ];
+template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::id_type MeshIDs_<TAGS>::FULL_DIGITS;
+template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::id_type MeshIDs_<TAGS>::ID_DIGITS;
+template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::id_type MeshIDs_<TAGS>::ID_MASK;
+template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::id_type MeshIDs_<TAGS>::_DK;
+template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::id_type MeshIDs_<TAGS>::_DJ;
+template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::id_type MeshIDs_<TAGS>::_DI;
+template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::id_type MeshIDs_<TAGS>::_DA;
+template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::id_type MeshIDs_<TAGS>::m_id_to_index_[];
+template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::id_type MeshIDs_<TAGS>::m_id_to_shift_[];
+template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::id_type MeshIDs_<TAGS>::m_id_to_iform_[];
+template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::id_type MeshIDs_<TAGS>::m_sub_index_to_id_[4][3];
+template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::id_type MeshIDs_<TAGS>::m_id_to_num_of_ele_in_cell_[];
+template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::point_type MeshIDs_<TAGS>::m_id_to_coordinates_shift_[ ];
 
-template<size_t N, size_t M> constexpr int MeshIDs_<N, M>::m_adjoint_num_[4][8];
-template<size_t N, size_t M> constexpr typename MeshIDs_<N, M >::id_type
-MeshIDs_<N, M>::m_adjoint_matrix_[4/* to iform*/][8/* node id*/][MAX_NUM_OF_CELL/*id shift*/];
+template<size_t TAGS> constexpr int MeshIDs_<TAGS>::m_adjoint_num_[4][8];
+template<size_t TAGS> constexpr typename MeshIDs_<TAGS >::id_type
+MeshIDs_<TAGS>::m_adjoint_matrix_[4/* to iform*/][8/* node id*/][MAX_NUM_OF_CELL/*id shift*/];
 
-typedef MeshIDs_<3, 4> MeshIDs;
+typedef MeshIDs_<4> MeshIDs;
 
 }
 // namespace simpla
