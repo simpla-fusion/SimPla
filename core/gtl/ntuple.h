@@ -10,6 +10,7 @@
 #ifndef CORE_GTL_NTUPLE_H_
 #define CORE_GTL_NTUPLE_H_
 
+#include <cstdbool>
 #include <cstddef>
 #include <type_traits>
 

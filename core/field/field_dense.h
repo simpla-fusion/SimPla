@@ -16,9 +16,9 @@
 #include "../application/sp_object.h"
 #include "../dataset/dataset.h"
 #include "../dataset/datatype.h"
-#include "../gtl/expression_template.h"
 #include "../gtl/properties.h"
 #include "../gtl/type_traits.h"
+#include "../mesh/domain.h"
 #include "../mesh/mesh_traits.h"
 #include "field_traits.h"
 
@@ -46,7 +46,7 @@ public:
 
 	static constexpr int iform = traits::iform<domain_type>::value;
 
-	typedef traits::mesh_t<domain_type> mesh_type;
+	typedef traits::mesh_type_t<domain_type> mesh_type;
 
 	typedef typename mesh_type::id_type id_type;
 
@@ -61,16 +61,16 @@ private:
 
 public:
 
-	_Field(domain_type const & d) :
-			m_domain_(d), m_data_(nullptr)
+	_Field(domain_type const & d)
+			: m_domain_(d), m_data_(nullptr)
 	{
 	}
-	_Field(this_type const & other) :
-			m_domain_(other.m_domain_), m_data_(other.m_data_)
+	_Field(this_type const & other)
+			: m_domain_(other.m_domain_), m_data_(other.m_data_)
 	{
 	}
-	_Field(this_type && other) :
-			m_domain_(other.m_domain_), m_data_(other.m_data_)
+	_Field(this_type && other)
+			: m_domain_(other.m_domain_), m_data_(other.m_data_)
 	{
 	}
 	~_Field()
@@ -382,6 +382,13 @@ struct value_type<_Field<Domain<TM ...>, TV, Policies...>>
 {
 	typedef TV type;
 };
+
+template<typename ... TM, typename TV, typename ...Policies>
+struct domain_type<_Field<Domain<TM ...>, TV, Policies...>>
+{
+	typedef Domain<TM ...> type;
+};
+
 }
 // namespace traits
 

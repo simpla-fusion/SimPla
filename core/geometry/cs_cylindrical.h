@@ -345,9 +345,9 @@ namespace traits
 {
 
 template<size_t IPhiAxis>
-struct description<geometry::coordinate_system::template Cylindrical<IPhiAxis> >
+struct type_id<geometry::coordinate_system::template Cylindrical<IPhiAxis> >
 {
-	static   std::string name()
+	static std::string name()
 	{
 		return "Cylindrical<" + simpla::type_cast<std::string>(IPhiAxis) + ">";
 	}

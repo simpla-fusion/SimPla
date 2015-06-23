@@ -23,45 +23,17 @@
 #include "../utilities/log.h"
 
 #include "../field/field.h"
+#include "../field/field_traits.h"
+
 #include "mesh_ids.h"
+#include "domain_traits.h"
 #include "policy.h"
-#include "mesh_traits.h"
 namespace simpla
 {
 
 template<typename ...> struct _Field;
-
 template<typename ...> struct Domain;
 
-template<int IFORM, typename ...Policies, typename TM>
-Domain<TM, std::integral_constant<int, IFORM>, Policies...> make_domain(
-		TM const & mesh)
-{
-	return Domain<TM, std::integral_constant<int, IFORM>, Policies...>(mesh);
-}
-
-namespace traits
-{
-
-template<typename TM, typename ...Others>
-struct mesh_type<Domain<TM, Others...> >
-{
-	typedef TM type;
-};
-
-template<typename > struct iform;
-template<typename TM, int IFORM, typename ...Others>
-struct iform<Domain<TM, std::integral_constant<int, IFORM>, Others...> > : public std::integral_constant<
-		int, IFORM>
-{
-};
-
-template<typename ...T>
-struct rank<Domain<T...> > : public rank<typename mesh_type<Domain<T...> >::type>::type
-{
-};
-}
-// namespace traits
 template<typename TM, int IFORM, typename ... Policies>
 struct Domain<TM, std::integral_constant<int, IFORM>, Policies...> : public TM::range_type
 {
@@ -90,19 +62,19 @@ public:
 	std::set<id_type> m_id_set_;
 public:
 
-	Domain(mesh_type const &m) :
-			range_type(m.range(mesh_type::template sub_index_to_id<iform>())), m_mesh_(
+	Domain(mesh_type const &m)
+			: range_type(m.range(mesh_type::template sub_index_to_id<iform>())), m_mesh_(
 					m)
 	{
 	}
 
-	Domain(this_type const & other) :
-			range_type(other), m_mesh_(other.m_mesh_), m_id_set_(
+	Domain(this_type const & other)
+			: range_type(other), m_mesh_(other.m_mesh_), m_id_set_(
 					other.m_id_set_)
 	{
 	}
-	Domain(this_type && other) :
-			range_type(other), m_mesh_(other.m_mesh_), m_id_set_(
+	Domain(this_type && other)
+			: range_type(other), m_mesh_(other.m_mesh_), m_id_set_(
 					other.m_id_set_)
 	{
 	}
@@ -258,30 +230,7 @@ public:
 		});
 
 	}
-//	template<typename TFun>
-//	void for_each(null_domain, TFun const & fun) const
-//	{
-//	}
-//	template<typename TFun>
-//	void for_each(full_domain, TFun const & fun) const
-//	{
-//
-//		if (is_simply())
-//		{
-//			for (auto s : *this)
-//			{
-//				fun(s);
-//			}
-//		}
-//		else
-//		{
-//			for (auto s : m_id_set_)
-//			{
-//				fun(s);
-//			}
-//
-//		}
-//	}
+
 	template<typename TFun>
 	void for_each(this_type const& other, TFun const & fun) const
 	{
@@ -514,15 +463,11 @@ public:
 	typedef policy::calculate<mesh_type,policy_calculate_tag> policy_calculate;
 
 	template< typename ...Args>
-	auto sample(
-	Args && ...args) const
-	DECL_RET_TYPE( policy_interpolator::template sample<iform>( m_mesh_ ,std::forward<Args>(args)...))
+	auto sample(Args && ...args) const
+	DECL_RET_TYPE( policy_interpolator::template
+			sample<iform>( m_mesh_ ,std::forward<Args>(args)...))
 
 
-//	template<typename ...Args>
-//	auto gather(
-//			Args && ...args) const
-//					DECL_RET_TYPE((policy_interpolator::gather( m_mesh_,std::forward<Args>(args)...)))
 
 	template<typename TF,typename ...Args>
 	traits::field_value_t<TF>
@@ -538,8 +483,7 @@ public:
 
 	template<typename ...Args>
 	auto calculate(Args && ...args) const
-	DECL_RET_TYPE((policy::template calculate<mesh_type, tags::finite_difference>::eval( m_mesh_,
-			std::forward<Args>(args)...)))
+	DECL_RET_TYPE((policy_calculate::eval( m_mesh_,std::forward<Args>(args)...)))
 
 	template<typename ...Args>
 	constexpr auto point(Args&& ...args)const
@@ -549,22 +493,6 @@ public:
 	DECL_RET_TYPE(m_mesh_.time( ))
 };
 
-//namespace _impl
-//{
-//
-//HAS_MEMBER_FUNCTION(domain)
-//
-//}  // namespace _impl
-//
-//template<typename T>
-//auto domain(T const & obj)
-//ENABLE_IF_DECL_RET_TYPE(
-//		_impl::has_member_function_domain<T>::value,obj.domain())
-//
-//template<typename T>
-//auto domain(T const & obj)
-//ENABLE_IF_DECL_RET_TYPE(
-//		!_impl::has_member_function_domain<T>::value,full_domain())
 
 } // namespace simpla
 

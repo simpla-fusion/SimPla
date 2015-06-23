@@ -22,7 +22,7 @@
 #include "../../gtl/primitives.h"
 #include "../../io/io.h"
 #include "../../utilities/log.h"
-#include "../domain.h"
+#include "../domain_traits.h"
 #include "../mesh.h"
 #include "../structured.h"
 #include "../structured/fdm.h"

@@ -303,7 +303,7 @@ void select_boundary_by_polylines(Domain<TM...> *domain, TI const & ib,
 {
 	// FIXME This implement is O(N^2), NEED OPTIMIZATION;
 
-	typedef traits::mesh_t<Domain<TM...>> mesh_type;
+	typedef traits::mesh_type_t<Domain<TM...>> mesh_type;
 	typedef typename mesh_type::id_type id_type;
 	typedef typename mesh_type::point_type point_type;
 	typedef typename mesh_type::topology_type topology;

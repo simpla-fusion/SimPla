@@ -10,11 +10,13 @@
 
 #include <stddef.h>
 #include <memory>
-
+#include <random>
 #include <gtest/gtest.h>
 #include "../../gtl/macro.h"
+#include "../../gtl/primitives.h"
 #include "../../gtl/type_traits.h"
 #include "../../utilities/log.h"
+#include "../domain_traits.h"
 #include "../mesh_traits.h"
 
 using namespace simpla;
@@ -42,7 +44,7 @@ public:
 
 	typedef traits::domain_t<field_type> domain_type;
 
-	typedef traits::mesh_t<field_type> mesh_type;
+	typedef traits::mesh_type_t<field_type> mesh_type;
 
 	typedef traits::value_type_t<field_type> value_type;
 

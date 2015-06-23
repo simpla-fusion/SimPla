@@ -16,6 +16,8 @@
 #include "../gtl/integer_sequence.h"
 #include "../gtl/type_traits.h"
 #include "../mesh/mesh_ids.h"
+#include "../mesh/domain_traits.h"
+#include "../mesh/mesh_traits.h"
 
 namespace simpla
 {
@@ -76,7 +78,7 @@ struct key_type<_Field<T ...> >
 template<typename ...T>
 struct mesh_type<_Field<T...> >
 {
-	typedef mesh_t<domain_t<_Field<T...> > > type;
+	typedef mesh_type_t<domain_t<_Field<T...> > > type;
 };
 
 template<typename ...T>

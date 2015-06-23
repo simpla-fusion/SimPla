@@ -28,7 +28,7 @@
 #include "../parallel/mpi_update.h"
 #include "../physics/physical_constants.h"
 #include "../utilities/log.h"
-#include "mesh.h"
+#include "mesh_traits.h"
 #include "mesh_ids.h"
 #include "policy.h"
 
@@ -71,9 +71,9 @@ template<typename ... > struct Mesh;
 template<typename CoordinateSystem>
 struct Mesh<CoordinateSystem, simpla::tags::structured>
 
-: public MeshIDs_<geometry::traits::dimension<CoordinateSystem>::value>,
-		public std::enable_shared_from_this<
-				Mesh<CoordinateSystem, simpla::tags::structured> >
+:	public MeshIDs_<geometry::traits::dimension<CoordinateSystem>::value>,
+	public std::enable_shared_from_this<
+			Mesh<CoordinateSystem, simpla::tags::structured> >
 {
 	typedef CoordinateSystem cs_type;
 
@@ -189,7 +189,8 @@ public:
 	{
 	}
 
-	Mesh(this_type const & other) :
+	Mesh(this_type const & other)
+			:
 
 			m_id_min_(other.m_id_min_),
 

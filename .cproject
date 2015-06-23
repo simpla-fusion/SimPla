@@ -5,12 +5,12 @@
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.toolchain.gnu.base.1286490335" moduleId="org.eclipse.cdt.core.settings" name="Default">
 				<externalSettings/>
 				<extensions>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
@@ -27,6 +27,9 @@
 							</tool>
 							<tool id="cdt.managedbuild.tool.llvm.cpp.compiler.base.1594693273" name="LLVM Clang++" superClass="cdt.managedbuild.tool.llvm.cpp.compiler.base">
 								<option id="cdt.managedbuild.tool.llvm.cpp.compiler.option.dialect.std.912229280" name="Language standard" superClass="cdt.managedbuild.tool.llvm.cpp.compiler.option.dialect.std" value="gnu.cpp.compiler.dialect.c++11" valueType="enumerated"/>
+								<option id="llvm.c_cpp.compiler.option.include.paths.1006792087" superClass="llvm.c_cpp.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="/usr/lib/gcc/x86_64-redhat-linux/4.8.2/include"/>
+								</option>
 								<inputType id="cdt.managedbuild.tool.llvm.cpp.compiler.input.1639178107" superClass="cdt.managedbuild.tool.llvm.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.llvm.c.linker.base.881750470" name="LLVM Clang C linker" superClass="cdt.managedbuild.tool.llvm.c.linker.base"/>
@@ -37,6 +40,7 @@
 								<option id="llvm.c.link.option.paths.1419255345" name="Library search path (-L)" superClass="llvm.c.link.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="/usr/lib/gcc/x86_64-linux-gnu/4.8/"/>
 									<listOptionValue builtIn="false" value="/usr/lib/gcc/x86_64-linux-gnu/4.9/"/>
+									<listOptionValue builtIn="false" value="/usr/lib/gcc/x86_64-redhat-linux/4.8.2/32/"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.llvm.c.linker.input.1075483228" superClass="cdt.managedbuild.tool.llvm.c.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
@@ -49,9 +53,177 @@
 			</storageModule>
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 		</cconfiguration>
+		<cconfiguration id="cdt.managedbuild.toolchain.gnu.base.1734270525">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.toolchain.gnu.base.1734270525" moduleId="org.eclipse.cdt.core.settings" name="Default">
+				<externalSettings/>
+				<extensions>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
+					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+				</extensions>
+			</storageModule>
+			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+				<configuration buildProperties="" description="" id="cdt.managedbuild.toolchain.gnu.base.1734270525" name="Default" parent="org.eclipse.cdt.build.core.emptycfg">
+					<folderInfo id="cdt.managedbuild.toolchain.gnu.base.1734270525.51327509" name="/" resourcePath="">
+						<toolChain id="cdt.managedbuild.toolchain.llvm.clang.linux.base.906050598" name="LLVM with Clang (Linux)" superClass="cdt.managedbuild.toolchain.llvm.clang.linux.base">
+							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.target.llvm.platform.base.1874282562" isAbstract="true" name="Debug Platform" osList="linux,hpux,aix,qnx" superClass="cdt.managedbuild.target.llvm.platform.base"/>
+							<builder buildPath="${workspace_loc:/SimPla}/Default" id="cdt.managedbuild.builder.xlupc.exe.debug.235026078" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="cdt.managedbuild.builder.xlupc.exe.debug"/>
+							<tool id="cdt.managedbuild.tool.llvm.assembler.base.1469394599" name="LLVM assembler" superClass="cdt.managedbuild.tool.llvm.assembler.base"/>
+							<tool id="cdt.managedbuild.tool.llvm.archiver.base.656804808" name="LLVM archiver" superClass="cdt.managedbuild.tool.llvm.archiver.base"/>
+							<tool id="cdt.managedbuild.tool.llvm.c.compiler.base.2019197954" name="LLVM Clang" superClass="cdt.managedbuild.tool.llvm.c.compiler.base">
+								<inputType id="cdt.managedbuild.tool.llvm.c.compiler.input.452465451" superClass="cdt.managedbuild.tool.llvm.c.compiler.input"/>
+							</tool>
+							<tool id="cdt.managedbuild.tool.llvm.cpp.compiler.base.295407614" name="LLVM Clang++" superClass="cdt.managedbuild.tool.llvm.cpp.compiler.base">
+								<option id="llvm.c_cpp.compiler.option.include.paths.560727838" superClass="llvm.c_cpp.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="/usr/lib/gcc/x86_64-redhat-linux/4.8.2/include"/>
+								</option>
+								<inputType id="cdt.managedbuild.tool.llvm.cpp.compiler.input.394875888" superClass="cdt.managedbuild.tool.llvm.cpp.compiler.input"/>
+							</tool>
+							<tool id="cdt.managedbuild.tool.llvm.c.linker.base.1001319046" name="LLVM Clang C linker" superClass="cdt.managedbuild.tool.llvm.c.linker.base"/>
+							<tool id="cdt.managedbuild.tool.llvm.cpp.linker.base.1870815707" name="LLVM Clang C++ linker" superClass="cdt.managedbuild.tool.llvm.cpp.linker.base">
+								<option id="llvm.c.link.option.libs.1735486564" name="Libraries (-l)" superClass="llvm.c.link.option.libs" valueType="libs">
+									<listOptionValue builtIn="false" value="stdc++"/>
+								</option>
+								<option id="llvm.c.link.option.paths.243743575" name="Library search path (-L)" superClass="llvm.c.link.option.paths" valueType="libPaths">
+									<listOptionValue builtIn="false" value="/usr/lib/gcc/x86_64-linux-gnu/4.9/"/>
+									<listOptionValue builtIn="false" value="/usr/lib/gcc/x86_64-redhat-linux/4.8.2/32/"/>
+								</option>
+								<inputType id="cdt.managedbuild.tool.llvm.c.linker.input.1411458088" superClass="cdt.managedbuild.tool.llvm.c.linker.input">
+									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
+									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
+								</inputType>
+							</tool>
+						</toolChain>
+					</folderInfo>
+					<sourceEntries>
+						<entry excluding="build_release" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+					</sourceEntries>
+				</configuration>
+			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+		</cconfiguration>
+		<cconfiguration id="cdt.managedbuild.toolchain.llvm.clang.linux.base.1559616044">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.toolchain.llvm.clang.linux.base.1559616044" moduleId="org.eclipse.cdt.core.settings" name="Default">
+				<externalSettings/>
+				<extensions>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
+					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+				</extensions>
+			</storageModule>
+			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+				<configuration artifactName="${ProjName}" buildProperties="" description="" id="cdt.managedbuild.toolchain.llvm.clang.linux.base.1559616044" name="Default" parent="org.eclipse.cdt.build.core.emptycfg">
+					<folderInfo id="cdt.managedbuild.toolchain.llvm.clang.linux.base.1559616044.297214209" name="/" resourcePath="">
+						<toolChain id="cdt.managedbuild.toolchain.llvm.clang.linux.base.254727694" name="LLVM with Clang (Linux)" superClass="cdt.managedbuild.toolchain.llvm.clang.linux.base">
+							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.target.llvm.platform.base.588751813" isAbstract="true" name="Debug Platform" osList="linux,hpux,aix,qnx" superClass="cdt.managedbuild.target.llvm.platform.base"/>
+							<builder buildPath="${workspace_loc:/SimPla}/build_release" id="cdt.managedbuild.toolchain.llvm.clang.linux.base.1559616044.1891408299" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="optimal" superClass="org.eclipse.cdt.build.core.settings.default.builder"/>
+							<tool id="cdt.managedbuild.tool.llvm.assembler.base.139678327" name="LLVM assembler" superClass="cdt.managedbuild.tool.llvm.assembler.base"/>
+							<tool id="cdt.managedbuild.tool.llvm.archiver.base.2113137505" name="LLVM archiver" superClass="cdt.managedbuild.tool.llvm.archiver.base"/>
+							<tool id="cdt.managedbuild.tool.llvm.c.compiler.base.866543625" name="LLVM Clang" superClass="cdt.managedbuild.tool.llvm.c.compiler.base">
+								<inputType id="cdt.managedbuild.tool.llvm.c.compiler.input.1153120934" superClass="cdt.managedbuild.tool.llvm.c.compiler.input"/>
+							</tool>
+							<tool id="cdt.managedbuild.tool.llvm.cpp.compiler.base.788056297" name="LLVM Clang++" superClass="cdt.managedbuild.tool.llvm.cpp.compiler.base">
+								<option id="llvm.c_cpp.compiler.option.include.paths.1968865813" name="Include paths (-I)" superClass="llvm.c_cpp.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="/usr/lib/openmpi/include/"/>
+									<listOptionValue builtIn="false" value="/usr/lib/gcc/x86_64-redhat-linux/4.8.2/include"/>
+									<listOptionValue builtIn="false" value="/usr/include/lua5.2/"/>
+								</option>
+								<inputType id="cdt.managedbuild.tool.llvm.cpp.compiler.input.1938865385" superClass="cdt.managedbuild.tool.llvm.cpp.compiler.input"/>
+							</tool>
+							<tool id="cdt.managedbuild.tool.llvm.c.linker.base.553730784" name="LLVM Clang C linker" superClass="cdt.managedbuild.tool.llvm.c.linker.base"/>
+							<tool id="cdt.managedbuild.tool.llvm.cpp.linker.base.1091364254" name="LLVM Clang C++ linker" superClass="cdt.managedbuild.tool.llvm.cpp.linker.base">
+								<option id="llvm.c.link.option.libs.1901783448" name="Libraries (-l)" superClass="llvm.c.link.option.libs" valueType="libs">
+									<listOptionValue builtIn="false" value="stdc++"/>
+								</option>
+								<option id="llvm.c.link.option.paths.280095751" name="Library search path (-L)" superClass="llvm.c.link.option.paths" valueType="libPaths">
+									<listOptionValue builtIn="false" value="/usr/lib/gcc/x86_64-linux-gnu/4.9/"/>
+									<listOptionValue builtIn="false" value="/usr/local/arm/2.95.3/lib/gcc-lib/arm-linux/2.95.3/"/>
+									<listOptionValue builtIn="false" value="/usr/lib/gcc/x86_64-redhat-linux/4.8.2/32/"/>
+								</option>
+								<inputType id="cdt.managedbuild.tool.llvm.c.linker.input.832304098" superClass="cdt.managedbuild.tool.llvm.c.linker.input">
+									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
+									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
+								</inputType>
+							</tool>
+						</toolChain>
+					</folderInfo>
+				</configuration>
+			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+		</cconfiguration>
+		<cconfiguration id="cdt.managedbuild.toolchain.gnu.base.1043708958">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.toolchain.gnu.base.1043708958" moduleId="org.eclipse.cdt.core.settings" name="Default">
+				<externalSettings/>
+				<extensions>
+					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
+					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+				</extensions>
+			</storageModule>
+			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+				<configuration artifactName="${ProjName}" buildProperties="" description="" id="cdt.managedbuild.toolchain.gnu.base.1043708958" name="Default" parent="org.eclipse.cdt.build.core.emptycfg">
+					<folderInfo id="cdt.managedbuild.toolchain.gnu.base.1043708958.1866757018" name="/" resourcePath="">
+						<toolChain id="cdt.managedbuild.toolchain.llvm.clang.linux.base.829471813" name="LLVM with Clang (Linux)" superClass="cdt.managedbuild.toolchain.llvm.clang.linux.base">
+							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.target.llvm.platform.base.1482173445" isAbstract="true" name="Debug Platform" osList="linux,hpux,aix,qnx" superClass="cdt.managedbuild.target.llvm.platform.base"/>
+							<builder buildPath="${workspace_loc:/SimPla}/Default" id="org.eclipse.cdt.build.core.internal.builder.913088435" keepEnvironmentInBuildfile="false" name="CDT Internal Builder" superClass="org.eclipse.cdt.build.core.internal.builder">
+								<outputEntries>
+									<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="outputPath" name="Default"/>
+								</outputEntries>
+							</builder>
+							<tool id="cdt.managedbuild.tool.llvm.assembler.base.960530468" name="LLVM assembler" superClass="cdt.managedbuild.tool.llvm.assembler.base"/>
+							<tool id="cdt.managedbuild.tool.llvm.archiver.base.473509479" name="LLVM archiver" superClass="cdt.managedbuild.tool.llvm.archiver.base"/>
+							<tool id="cdt.managedbuild.tool.llvm.c.compiler.base.1290125719" name="LLVM Clang" superClass="cdt.managedbuild.tool.llvm.c.compiler.base">
+								<option id="cdt.managedbuild.tool.llvm.c.compiler.option.dialect.std.1382293612" name="Language standard" superClass="cdt.managedbuild.tool.llvm.c.compiler.option.dialect.std" useByScannerDiscovery="true" value="gnu.c.compiler.dialect.default" valueType="enumerated"/>
+								<option id="llvm.c_cpp.compiler.option.include.paths.1338760194" name="Include paths (-I)" superClass="llvm.c_cpp.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
+									<listOptionValue builtIn="false" value="/usr/lib/gcc/x86_64-redhat-linux/4.8.2/include"/>
+								</option>
+								<inputType id="cdt.managedbuild.tool.llvm.c.compiler.input.692072217" superClass="cdt.managedbuild.tool.llvm.c.compiler.input"/>
+							</tool>
+							<tool id="cdt.managedbuild.tool.llvm.cpp.compiler.base.1634847619" name="LLVM Clang++" superClass="cdt.managedbuild.tool.llvm.cpp.compiler.base">
+								<option id="llvm.c_cpp.compiler.option.include.paths.68709411" name="Include paths (-I)" superClass="llvm.c_cpp.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
+									<listOptionValue builtIn="false" value="/usr/lib/gcc/x86_64-redhat-linux/4.8.2/include"/>
+									<listOptionValue builtIn="false" value="/usr/include/openmpi-x86_64/"/>
+								</option>
+								<option id="cdt.managedbuild.tool.llvm.cpp.compiler.option.dialect.std.1771456466" name="Language standard" superClass="cdt.managedbuild.tool.llvm.cpp.compiler.option.dialect.std" useByScannerDiscovery="true" value="gnu.cpp.compiler.dialect.c++11" valueType="enumerated"/>
+								<inputType id="cdt.managedbuild.tool.llvm.cpp.compiler.input.89518265" superClass="cdt.managedbuild.tool.llvm.cpp.compiler.input"/>
+							</tool>
+							<tool id="cdt.managedbuild.tool.llvm.c.linker.base.353041653" name="LLVM Clang C linker" superClass="cdt.managedbuild.tool.llvm.c.linker.base"/>
+							<tool id="cdt.managedbuild.tool.llvm.cpp.linker.base.934230321" name="LLVM Clang C++ linker" superClass="cdt.managedbuild.tool.llvm.cpp.linker.base">
+								<option id="llvm.c.link.option.libs.303937451" name="Libraries (-l)" superClass="llvm.c.link.option.libs" valueType="libs">
+									<listOptionValue builtIn="false" value="stdc++"/>
+								</option>
+								<option id="llvm.c.link.option.paths.1163717598" name="Library search path (-L)" superClass="llvm.c.link.option.paths" valueType="libPaths">
+									<listOptionValue builtIn="false" value="/opt/cuda/7.0/lib"/>
+									<listOptionValue builtIn="false" value="/opt/llvm/clang+llvm-3.5.0-x86_64-fedora20//lib"/>
+									<listOptionValue builtIn="false" value="/opt/cmake/3.1.0/lib"/>
+									<listOptionValue builtIn="false" value="/usr/lib/gcc/x86_64-redhat-linux/4.8.2/32/"/>
+									<listOptionValue builtIn="false" value="/usr/lib/gcc/x86_64-linux-gnu/4.9/"/>
+									<listOptionValue builtIn="false" value="/usr/local/arm/2.95.3/lib/gcc-lib/arm-linux/2.95.3/"/>
+								</option>
+								<inputType id="cdt.managedbuild.tool.llvm.c.linker.input.207257270" superClass="cdt.managedbuild.tool.llvm.c.linker.input">
+									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
+									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
+								</inputType>
+							</tool>
+						</toolChain>
+					</folderInfo>
+					<sourceEntries>
+						<entry excluding="demo_misc2.cpp" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+					</sourceEntries>
+				</configuration>
+			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+		</cconfiguration>
 	</storageModule>
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-		<project id="SimPla.null.1679854972" name="SimPla"/>
+		<project id="SimPla.null.328492410" name="SimPla"/>
 	</storageModule>
 	<storageModule moduleId="scannerConfiguration">
 		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
