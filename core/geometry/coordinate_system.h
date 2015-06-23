@@ -71,7 +71,7 @@ struct scalar_type
 	typedef Real type;
 };
 template<typename CS>
-using scalar_t =typename scalar_type<CS>::type;
+using scalar_type_t =typename scalar_type<CS>::type;
 
 template<typename CS>
 struct point_type
@@ -80,7 +80,8 @@ struct point_type
 };
 template<typename CS>
 using point_t=typename point_type<CS>::type;
-
+template<typename CS>
+using point_type_t=typename point_type<CS>::type;
 template<typename CS>
 struct vector_type
 {
@@ -88,7 +89,8 @@ struct vector_type
 };
 template<typename CS>
 using vector_t=typename vector_type<CS>::type;
-
+template<typename CS>
+using vector_type_t=typename vector_type<CS>::type;
 template<typename CS>
 struct covector_type
 {
@@ -96,6 +98,8 @@ struct covector_type
 };
 template<typename CS>
 using covector_t=typename vector_type<CS>::type;
+template<typename CS>
+using covector_type_t=typename vector_type<CS>::type;
 
 template<typename CS>
 struct dimension

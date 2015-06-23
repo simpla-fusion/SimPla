@@ -14,6 +14,7 @@
 
 #include "../gtl/ntuple.h"
 #include "../gtl/primitives.h"
+#include "mesh_traits.h"
 
 namespace simpla
 {
@@ -28,6 +29,25 @@ enum ManifoldTypeID
 	VOLUME = 3
 };
 
+template<size_t NDIMS = 3, size_t IMESH_RESOLUTION = 4> struct MeshIDs_;
+
+namespace traits
+{
+template<typename > struct id_type;
+template<size_t NDIMS, size_t IMESH_RESOLUTION>
+struct id_type<MeshIDs_<NDIMS, IMESH_RESOLUTION>>
+{
+	typedef typename MeshIDs_<NDIMS, IMESH_RESOLUTION>::id_type type;
+};
+
+template<typename > struct point_type;
+template<size_t NDIMS, size_t IMESH_RESOLUTION>
+struct point_type<MeshIDs_<NDIMS, IMESH_RESOLUTION>>
+{
+	typedef typename MeshIDs_<NDIMS, IMESH_RESOLUTION>::point_type type;
+};
+
+}  // namespace traits
 //  \verbatim
 //
 //   |----------------|----------------|---------------|--------------|------------|
@@ -59,25 +79,27 @@ enum ManifoldTypeID
  *  |00000000000|11111111111111|11111111111| <=_MASK
  *  \endverbatim
  */
-template<size_t NDIMS = 3, size_t IMESH_RESOLUTION = 4>
+template<size_t NDIMS, size_t IMESH_RESOLUTION>
 struct MeshIDs_
 {
 	/// @name level independent
 	/// @{
 
+	static constexpr int ndims = NDIMS;
+
+	typedef MeshIDs_<ndims, IMESH_RESOLUTION> this_type;
+
 	typedef std::uint64_t id_type;
 
-	typedef nTuple<id_type, 3> id_tuple;
+	typedef nTuple<id_type, ndims> id_tuple;
+
+	typedef nTuple<Real, ndims> point_type;
 
 	typedef long index_type;
 
-	typedef nTuple<index_type, 3> index_tuple;
+	typedef nTuple<index_type, ndims> index_tuple;
 
 //	typedef Real coordinate_type;
-
-	typedef nTuple<Real, 3> point_type;
-
-	static constexpr int ndims = NDIMS;
 
 	static constexpr id_type FULL_DIGITS = std::numeric_limits<id_type>::digits;
 
@@ -632,21 +654,21 @@ struct MeshIDs_
 		typedef range_type this_type;
 
 		template<typename T0, typename T1>
-		range_type(T0 const & min, T1 const & max, int n_id = 0) :
-				m_min_(pack_index(min) | m_id_to_shift_[n_id]), m_max_(
+		range_type(T0 const & min, T1 const & max, int n_id = 0)
+				: m_min_(pack_index(min) | m_id_to_shift_[n_id]), m_max_(
 						pack_index(max) | m_id_to_shift_[n_id])
 		{
 
 		}
 
-		range_type(id_type const & min, id_type const & max, int n_id = 0) :
-				m_min_(min | m_id_to_shift_[n_id]), m_max_(
+		range_type(id_type const & min, id_type const & max, int n_id = 0)
+				: m_min_(min | m_id_to_shift_[n_id]), m_max_(
 						max | m_id_to_shift_[n_id])
 		{
 
 		}
-		range_type(this_type const & other) :
-				m_min_(other.m_min_), m_max_(other.m_max_)
+		range_type(this_type const & other)
+				: m_min_(other.m_min_), m_max_(other.m_max_)
 		{
 
 		}
@@ -740,17 +762,17 @@ struct MeshIDs_
 			id_type m_min_, m_max_, m_self_;
 		public:
 			iterator(id_type const & min, id_type const & max,
-					id_type const& self) :
-					m_min_(min), m_max_(max), m_self_(self)
+					id_type const& self)
+					: m_min_(min), m_max_(max), m_self_(self)
 			{
 			}
-			iterator(id_type const & min, id_type const & max) :
-					m_min_(min), m_max_(max), m_self_(min)
+			iterator(id_type const & min, id_type const & max)
+					: m_min_(min), m_max_(max), m_self_(min)
 			{
 			}
 
-			iterator(iterator const & other) :
-					m_min_(other.m_min_), m_max_(other.m_max_), m_self_(
+			iterator(iterator const & other)
+					: m_min_(other.m_min_), m_max_(other.m_max_), m_self_(
 							other.m_self_)
 			{
 			}

@@ -77,33 +77,31 @@ struct Mesh<CoordinateSystem, simpla::tags::structured>
 {
 	typedef CoordinateSystem cs_type;
 
-	geometry::mertic<cs_type> m_metric_;
-
-	static constexpr size_t ndims = geometry::traits::dimension<cs_type>::value;
-
-	typedef MeshIDs_<ndims> topology_type;
-
 	typedef Mesh<cs_type, tags::structured> this_type;
 
-	typedef Real scalar_type;
+	static constexpr size_t ndims = geometry::traits::dimension<cs_type>::value;
+	static constexpr size_t ZAXIS = geometry::traits::ZAxis<cs_type>::value;
 
+	typedef MeshIDs_<ndims> topology_type;
 	using typename topology_type::index_type;
-
 	using typename topology_type::index_tuple;
-
-	using typename topology_type::id_type;
-
-	using typename topology_type::id_tuple;
-
 	using typename topology_type::range_type;
 
-	typedef nTuple<Real, ndims> topology_point_type;
+	typedef traits::point_type_t<topology_type> topology_point_type;
 
-	typedef geometry::traits::point_t<cs_type> point_type;
+	typedef traits::id_type_t<topology_type> id_type;
 
-	typedef geometry::traits::vector_t<cs_type> vector_type;
+	typedef geometry::traits::scalar_type_t<cs_type> scalar_type;
+
+	typedef geometry::traits::point_type_t<cs_type> point_type;
+
+	typedef geometry::traits::vector_type_t<cs_type> vector_type;
+
+	typedef nTuple<id_type, ndims> id_tuple;
 
 private:
+
+	geometry::mertic<cs_type> m_metric_;
 
 	static constexpr size_t DEFAULT_GHOST_WIDTH = 2;
 

@@ -16,7 +16,6 @@
 #include <string>
 #include <type_traits>
 
-#include "../geometry/coordinate_system.h"
 #include "../gtl/type_traits.h"
 
 namespace simpla
@@ -81,6 +80,7 @@ template<typename > struct type_id;
 template<typename > struct is_mesh;
 template<typename > struct mesh_type;
 template<typename T> using mesh_type_t= typename mesh_type<T>::type;
+
 template<typename > struct id_type;
 template<typename T> using id_type_t= typename id_type<T>::type;
 
@@ -133,7 +133,7 @@ struct id_type
 template<typename ...T>
 struct id_type<Mesh<T...> >
 {
-	typedef int64_t type;
+	typedef std::uint64_t type;
 };
 
 template<typename T>
@@ -150,32 +150,29 @@ struct coordinate_system_type<Mesh<CS, T...>>
 template<typename ...T>
 struct scalar_type<Mesh<T...> >
 {
-	typedef typename geometry::traits::scalar_type<
-			typename coordinate_system_type<Mesh<T...> >::type>::type type;
+	typedef typename Mesh<T...>::scalar_type type;
 };
 template<typename ...T>
 struct point_type<Mesh<T...> >
 {
-	typedef typename geometry::traits::point_type<
-			typename coordinate_system_type<Mesh<T...> >::type>::type type;
+	typedef typename Mesh<T...>::point_type type;
 };
 
 template<typename ...T>
 struct vector_type<Mesh<T...> >
 {
-	typedef typename geometry::traits::vector_type<
-			typename coordinate_system_type<Mesh<T...> >::type>::type type;
+	typedef typename Mesh<T...>::vector_type type;
 };
 
 template<typename ...T>
-struct rank<Mesh<T...> > : public geometry::traits::dimension<
-		typename coordinate_system_type<Mesh<T...> >::type>::type
+struct rank<Mesh<T...> > : public std::integral_constant<size_t,
+		Mesh<T...>::ndims>
 {
 };
 
 template<typename ...T>
-struct ZAxis<Mesh<T...> > : public geometry::traits::ZAxis<
-		coordinate_system_type<typename Mesh<T...>::type> >::type
+struct ZAxis<Mesh<T...> > : public std::integral_constant<size_t,
+		Mesh<T...>::ZAXIS>
 {
 };
 
