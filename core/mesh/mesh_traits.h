@@ -22,6 +22,11 @@ namespace simpla
 {
 
 template<typename ...> struct Mesh;
+
+namespace tags
+{
+
+}  // namespace tags
 /**
  *  @ingroup diff_geo
  *  @addtogroup  topology Topology

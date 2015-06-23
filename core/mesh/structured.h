@@ -31,6 +31,7 @@
 #include "mesh_traits.h"
 #include "mesh_ids.h"
 #include "policy.h"
+#include "structured/model.h"
 
 namespace simpla
 {
@@ -680,55 +681,7 @@ public:
 		ghost_shape<IFORM>(&res);
 		return std::move(res);
 	}
-
-	template<typename DistanceFunction, typename Res>
-	void select(DistanceFunction const & dist, int select_tag, int iform_tag,
-			point_type const & x_min, point_type const & x_max, Res *res) const
-	{
-
-		id_type s = traits::get<0>(
-				coordinates_global_to_local((x_min),
-						topology_type::TAG_VERTEX));
-
-		Vec3 L;
-		L = inv_map(x_max) - inv_map(x_min);
-
-		size_t level = static_cast<size_t>(std::log(
-				traits::max(L[0], L[1], L[2])) / std::log(2.0)) + 1;
-
-		size_t count = 0;
-
-		topology_type::select(
-
-		[&](id_type t)
-		{
-			++count;
-			return static_cast<Real>( dist(map(topology_type::point(t))));
-		}
-
-		,
-
-		[&](id_type t)
-		{
-			res->insert(t);
-		},
-
-		select_tag,
-
-		iform_tag,
-
-		s, level
-
-		);
-
-		CHECK(count);
-
-	}
-
 };
-
-template<typename CoordinateSystem> constexpr size_t Mesh<CoordinateSystem,
-		tags::structured>::DEFAULT_GHOST_WIDTH;
 
 template<typename CoordinateSystem>
 void Mesh<CoordinateSystem, tags::structured>::deploy(size_t const *gw)
@@ -915,7 +868,7 @@ void Mesh<CoordinateSystem, tags::structured>::deploy(size_t const *gw)
 //								m_id_local_max_ - m_id_local_min_))
 //				+ " , Ghost width =" + type_cast
 //				< std::string > (ghost_width) +
-						"]");
+				"]");
 			}
 
 		}
