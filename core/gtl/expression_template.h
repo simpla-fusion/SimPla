@@ -12,7 +12,7 @@
 #include <limits>
 #include <type_traits>
 #include <complex>
-
+#include <tuple>
 #include "type_traits.h"
 
 namespace simpla

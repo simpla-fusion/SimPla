@@ -1,8 +1,8 @@
 /**
- * \file particle_constraint.h
+ * @file particle_constraint.h
  *
- * \date    2014年9月2日  上午10:39:25 
- * \author salmon
+ * @date    2014年9月2日  上午10:39:25
+ * @author salmon
  */
 
 #ifndef PARTICLE_CONSTRAINT_H_
@@ -11,7 +11,11 @@
 #include <cstddef>
 #include <vector>
 #include <map>
+#include <tuple>
 #include "../gtl/primitives.h"
+#include "../../../../../../usr/include/c++/4.8/map"
+#include "../../../../../../usr/include/c++/4.8/tuple"
+
 
 namespace simpla
 {
@@ -68,7 +72,7 @@ public:
 	bool operator()(Poiont_s *p) const
 	{
 		c_particle_type tp = engine_type::pull_back(*p);
-		auto git = std::get<0>(mesh.coordiantes_global_to_local(std::get<0>(tp)));
+		auto git = traits::get<0>(mesh.coordiantes_global_to_local(std::get<0>(tp)));
 		op_(&tp, surface_[git]);
 		*p = engine_type::push_forward(tp);
 		return true;
