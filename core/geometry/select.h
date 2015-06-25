@@ -39,50 +39,50 @@ template<typename ...> struct Domain;
 //
 //}
 
-template<typename TCoord>
-void select_ids_in_rectangle(TCoord const & v0, TCoord const & v1)
-{
+//template<typename TCoord>
+//void select_ids_in_rectangle(TCoord const & v0, TCoord const & v1)
+//{
+//
+//	return [&](TCoord const &x)
+//	{
+//		return (((v0[0] - x[0]) * (x[0] - v1[0])) >= 0)
+//		&& (((v0[1] - x[1]) * (x[1] - v1[1])) >= 0)
+//		&& (((v0[2] - x[2]) * (x[2] - v1[2])) >= 0);
+//
+//	};
+//
+//}
 
-	return [&](TCoord const &x)
-	{
-		return (((v0[0] - x[0]) * (x[0] - v1[0])) >= 0)
-		&& (((v0[1] - x[1]) * (x[1] - v1[1])) >= 0)
-		&& (((v0[2] - x[2]) * (x[2] - v1[2])) >= 0);
-
-	};
-
-}
-
-template<typename TCoord>
-void select_ids_by_line_segment(TCoord const & x0, TCoord const & x1,
-		TCoord const & dx)
-{
-
-	Real dl = inner_product(dx, dx);
-
-	return
-
-	[&]( TCoord const & x)
-	{
-
-		Real l2 = inner_product(x1 - x0, x1 - x0);
-
-		Real t = inner_product(x - x0, x1 - x0) / l2;
-
-		if (0 <= t && t <= 1)
-		{
-			nTuple<Real, 3> d;
-
-			d = x - x0 - (t * (x1 - x0) + x0);
-			return (inner_product(d, d) <= dl);
-		}
-		else
-		{
-			return false;
-		}
-	};
-
-}
+//template<typename TCoord>
+//void select_ids_by_line_segment(TCoord const & x0, TCoord const & x1,
+//		TCoord const & dx)
+//{
+//
+//	Real dl = inner_product(dx, dx);
+//
+//	return
+//
+//	[&]( TCoord const & x)
+//	{
+//
+//		Real l2 = inner_product(x1 - x0, x1 - x0);
+//
+//		Real t = inner_product(x - x0, x1 - x0) / l2;
+//
+//		if (0 <= t && t <= 1)
+//		{
+//			nTuple<Real, 3> d;
+//
+//			d = x - x0 - (t * (x1 - x0) + x0);
+//			return (inner_product(d, d) <= dl);
+//		}
+//		else
+//		{
+//			return false;
+//		}
+//	};
+//
+//}
 template<typename TCoord>
 std::function<bool(TCoord const &)> select_ids_in_polylines(
 		std::vector<TCoord>const & poly_lines, int ZAXIS, bool flag = true)

@@ -10,6 +10,8 @@
 
 #include <cstddef>
 #include <vector>
+#include <map>
+#include "../gtl/primitives.h"
 
 namespace simpla
 {
