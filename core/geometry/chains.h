@@ -18,67 +18,65 @@
 #include "coordinate_system.h"
 #include "primitive.h"
 
-namespace simpla
-{
-namespace geometry
-{
+namespace simpla {
+namespace geometry {
 
-namespace tags
-{
+namespace tags {
 struct is_structed;
 struct is_closed;
 struct is_clockwise;
 struct is_unordered;
 }  // namespace tags
 
-namespace model
-{
+namespace model {
 
 template<typename ...> struct Chains;
 
 template<typename TPrimitive, typename ... Policies>
 struct Chains<TPrimitive, Policies...>
 {
-	typedef TPrimitive primitive_type;
+    typedef TPrimitive primitive_type;
 
-	typedef typename traits::coordinate_system<primitive_type>::type coordinate_system;
+    typedef typename traits::coordinate_system<primitive_type>::type coordinate_system;
 
-	typedef typename traits::tag<primitive_type>::type tag_type;
+    typedef typename traits::tag<primitive_type>::type tag_type;
 
-	typedef typename traits::point_type<coordinate_system>::type point_type;
+    typedef typename traits::point_type<coordinate_system>::type point_type;
 
-	static constexpr size_t max_number_of_points = traits::number_of_points<
-			primitive_type>::value;
+    static constexpr size_t max_number_of_points = traits::number_of_points<
+            primitive_type>::value;
 
-	static constexpr size_t dimension = traits::dimension<primitive_type>::value;
+    static constexpr size_t dimension = traits::dimension<primitive_type>::value;
 
-	typedef Chains<Primitive<dimension - 1, coordinate_system, tag_type>,
-			Policies...> boundary_type;
+    typedef Chains<Primitive<dimension - 1, coordinate_system, tag_type>,
+            Policies...> boundary_type;
 
-	typedef size_t id_type;
+    typedef size_t id_type;
 
-	typedef nTuple<id_type, max_number_of_points> indices_tuple;
+    typedef nTuple<id_type, max_number_of_points> indices_tuple;
 
-	typedef std::map<id_type, indices_tuple> data_type;
+    typedef std::map<id_type, indices_tuple> data_type;
 
-	data_type & data()
-	{
-		return m_data_;
-	}
-	data_type const& data() const
-	{
-		return m_data_;
-	}
-	boundary_type boundary() const;
+    data_type &data()
+    {
+        return m_data_;
+    }
+
+    data_type const &data() const
+    {
+        return m_data_;
+    }
+
+    boundary_type boundary() const;
 
 private:
-	data_type m_data_;
+    data_type m_data_;
 
 };
 
 template<typename CS, typename ... Policies>
 struct Chains<Primitive<1, CS, tags::simplex>, Policies...> : public std::vector<
-		Point<CS>>
+        Point<CS>>
 {
 //	typedef Primitive<1, CS, tags::simplex> primitive_type;
 //
@@ -117,58 +115,57 @@ struct Chains<Primitive<1, CS, tags::simplex>, Policies...> : public std::vector
 };
 
 }  // namespace model
-namespace traits
-{
+namespace traits {
 
-template<typename > struct is_chains;
-template<typename > struct is_primitive;
-template<typename > struct is_structed;
-template<typename > struct closure;
-template<typename > struct point_order;
+template<typename> struct is_chains;
+template<typename> struct is_primitive;
+template<typename> struct is_structed;
+template<typename> struct closure;
+template<typename> struct point_order;
 
 template<typename ...Others>
 struct is_primitive<model::Chains<Others...>>
 {
-	static constexpr bool value = false;
+    static constexpr bool value = false;
 };
 
 template<typename ...Others>
 struct is_chains<model::Chains<Others...>>
 {
-	static constexpr bool value = true;
+    static constexpr bool value = true;
 };
 
 template<typename PrimitiveType, typename ...Others>
 struct coordinate_system<model::Chains<PrimitiveType, Others...>>
 {
-	typedef typename coordinate_system<PrimitiveType>::type type;
+    typedef typename coordinate_system<PrimitiveType>::type type;
 };
 template<typename PrimitiveType, typename ...Others>
 struct dimension<model::Chains<PrimitiveType, Others...>>
 {
-	static constexpr size_t value = dimension<PrimitiveType>::value;
+    static constexpr size_t value = dimension<PrimitiveType>::value;
 };
 
 template<typename PrimitiveType, typename ...Others>
 struct is_structed<model::Chains<PrimitiveType, Others...>>
 {
-	static constexpr bool value = mpl::find_type_in_list<tags::is_structed,
-			Others...>::value;
+    static constexpr bool value = mpl::find_type_in_list<tags::is_structed,
+            Others...>::value;
 };
 template<typename PrimitiveType, typename ...Others>
 struct point_order<model::Chains<PrimitiveType, Others...>>
 {
-	static constexpr int value =
-			mpl::find_type_in_list<tags::is_clockwise, Others...>::value ?
-					1 :
-					(mpl::find_type_in_list<tags::is_unordered, Others...>::value ?
-							0 : -1);
+    static constexpr int value =
+            mpl::find_type_in_list<tags::is_clockwise, Others...>::value ?
+            1 :
+            (mpl::find_type_in_list<tags::is_unordered, Others...>::value ?
+             0 : -1);
 };
 template<typename PrimitiveType, typename ...Others>
 struct closure<model::Chains<PrimitiveType, Others...>>
 {
-	static constexpr int value =
-			mpl::find_type_in_list<tags::is_closed, Others...>::value ? 1 : 0;
+    static constexpr int value =
+            mpl::find_type_in_list<tags::is_closed, Others...>::value ? 1 : 0;
 };
 }  // namespace traits
 
