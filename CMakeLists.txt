@@ -125,8 +125,7 @@ ADD_DEFINITIONS(-DIDENTIFY=\"${PROJECT_IDENTIFY}\" )
 
 # workaround for CLion 1.0.x
 FILE (GLOB_RECURSE clion_all_headers ${CMAKE_SOURCE_DIR}/*.h)
-ADD_CUSTOM_TARGET(dummy_name SOURCES ${clion_all_headers})
-
+add_executable(all_clion  ${clion_all_headers} dummy.h dummy.cpp core/mesh/ids.h)
 
 add_subdirectory(core )
 add_subdirectory(applications )

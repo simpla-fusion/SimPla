@@ -9,8 +9,8 @@
 #define CORE_MODEL_SELECT_H_
 #include <algorithm>
 
-#include "../numeric/point_in_polygon.h"
-#include "../numeric/geometric_algorithm.h"
+#include "../geometry/point_in_polygon.h"
+#include "../geometry/geometric_algorithm.h"
 #include "../mesh/mesh_ids.h"
 #include "../gtl/ntuple.h"
 namespace simpla
