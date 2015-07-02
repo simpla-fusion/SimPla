@@ -69,18 +69,17 @@ struct structured;
 
 template<size_t TAGS, typename DistanceFunction, typename OpFunction>
 void select(MeshIDs_<TAGS>, DistanceFunction const &dist, OpFunction const &op,
-		int select_tag, int iform, typename MeshIDs_<TAGS>::id_type s,
-		int level, int node_flag = 0x50000,
-		std::shared_ptr<std::map<typename MeshIDs_<TAGS>::id_type, Real>> dist_cache =
-		nullptr)
+            int select_tag, int iform, typename MeshIDs_<TAGS>::id_type s,
+            int level, int node_flag = 0x50000,
+            std::shared_ptr<std::map<typename MeshIDs_<TAGS>::id_type, Real>> dist_cache =
+            nullptr)
 {
 	typedef typename MeshIDs_<TAGS>::id_type id_type;
 
 	static constexpr size_t MESH_RESOLUTION = (TAGS & 0xF) % 3;
 
 // FIXME NEED parallel optimize
-	if ((node_flag & (~0xFFFF)) == 0)
-	{
+	if ((node_flag & (~0xFFFF)) == 0) {
 		return;
 	}
 
@@ -98,34 +97,28 @@ void select(MeshIDs_<TAGS>, DistanceFunction const &dist, OpFunction const &op,
 
 	                                               DK, DK | DI, DK | DJ, DK | DJ | DI};
 
-	if (dist_cache == nullptr)
-	{
+	if (dist_cache == nullptr) {
 		dist_cache = std::shared_ptr<std::map<id_type, Real>>(
 				new std::map<id_type, Real>);
 	}
 
-	for (int i = 0; i < 8; ++i)
-	{
-		if ((node_flag & (1UL << (i + 8))) == 0)
-		{
+	for (int i = 0; i < 8; ++i) {
+		if ((node_flag & (1UL << (i + 8))) == 0) {
 			id_type id = s + (m_sibling_node_[i] << level);
 
 			Real distance = 0;
 
 			auto it = dist_cache->find(id);
 
-			if (it != dist_cache->end())
-			{
+			if (it != dist_cache->end()) {
 				distance = it->second;
 			}
-			else
-			{
+			else {
 				distance = dist(id);
 				(*dist_cache)[id] = distance;
 			}
 
-			if (distance > 0)
-			{
+			if (distance > 0) {
 				node_flag |= 1UL << i;
 			}
 			node_flag |= (1UL << (i + 8));
@@ -134,33 +127,28 @@ void select(MeshIDs_<TAGS>, DistanceFunction const &dist, OpFunction const &op,
 
 	bool selected =
 			((node_flag & 0xFF) == 0x00 && (select_tag == tags::tag_inside))
-					|| ((node_flag & 0xFF) == 0xFF
-					&& (select_tag == tags::tag_outside))
-					|| ((((node_flag & 0xFF) != 0)
-					&& ((node_flag & 0xFF) != 0xFF))
-					&& ((select_tag & tags::tag_boundary)
-					== tags::tag_boundary));
+			|| ((node_flag & 0xFF) == 0xFF
+			    && (select_tag == tags::tag_outside))
+			|| ((((node_flag & 0xFF) != 0)
+			     && ((node_flag & 0xFF) != 0xFF))
+			    && ((select_tag & tags::tag_boundary)
+			        == tags::tag_boundary));
 
-	if (level > MESH_RESOLUTION)
-	{
-		if (selected)
-		{
+	if (level > MESH_RESOLUTION) {
+		if (selected) {
 			node_flag = (node_flag & 0xFFFF) + 0x50000;
 		}
-		else
-		{
+		else {
 			node_flag -= 0x10000;
 		}
-		for (int i = 0; i < 8; ++i)
-		{
+		for (int i = 0; i < 8; ++i) {
 			select(dist, op, select_tag, iform,
-					static_cast<int>(  s + (m_sibling_node_[i] << (level - 1))), level - 1,
-					static_cast<int>(node_flag & (0xFF0000 | (1UL << i))) | (1UL << (i + 8)),
-					dist_cache);
+			       s + (m_sibling_node_[i] << (level - 1)), level - 1,
+			       (node_flag & (0xFF0000 | (1UL << i))) | (1UL << (i + 8)),
+			       dist_cache);
 		}
 	}
-	else
-	{
+	else {
 
 
 		static constexpr id_type sub_cell_num[4] = {8, 12, 6, 1};
@@ -242,32 +230,29 @@ void select(MeshIDs_<TAGS>, DistanceFunction const &dist, OpFunction const &op,
 				}
 
 		};
-		if (selected)
-		{
+		if (selected) {
 			// get the center of voxel
-			for (int i = 0; i < sub_cell_num[iform]; ++i)
-			{
+			for (int i = 0; i < sub_cell_num[iform]; ++i) {
 				if (
 
 						(((select_tag & (~tags::tag_boundary)) == tags::tag_outside)
-								&& ((node_flag & sub_cell_flag[iform][i])
-								== sub_cell_flag[iform][i]))
-								||
+						 && ((node_flag & sub_cell_flag[iform][i])
+						     == sub_cell_flag[iform][i]))
+						||
 
-								(((select_tag & (~tags::tag_boundary))
-										== tags::tag_inside)
-										&& (((~node_flag) & sub_cell_flag[iform][i])
-										== sub_cell_flag[iform][i]))
-										||
+						(((select_tag & (~tags::tag_boundary))
+						  == tags::tag_inside)
+						 && (((~node_flag) & sub_cell_flag[iform][i])
+						     == sub_cell_flag[iform][i]))
+						||
 
-								(((select_tag & (~tags::tag_boundary))
-										== (tags::tag_inside | tags::tag_outside))
-										&& ((node_flag & sub_cell_flag[iform][i]) != 0)
-										&& ((node_flag & sub_cell_flag[iform][i])
-										!= sub_cell_flag[iform][i]))
+						(((select_tag & (~tags::tag_boundary))
+						  == (tags::tag_inside | tags::tag_outside))
+						 && ((node_flag & sub_cell_flag[iform][i]) != 0)
+						 && ((node_flag & sub_cell_flag[iform][i])
+						     != sub_cell_flag[iform][i]))
 
-						)
-				{
+						) {
 					op(s + (sub_cell_shift[iform][i] << (level - 1)));
 				}
 			}

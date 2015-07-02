@@ -20,7 +20,7 @@ namespace simpla
 namespace geometry
 {
 template<typename, typename > struct map;
-template<typename > struct metric;
+template<typename > struct mertic;
 
 namespace traits
 {
