@@ -23,15 +23,11 @@
 #include "../utilities/log.h"
 #include "mesh_traits.h"
 #include "mesh_ids.h"
-#include "topology.h"
 #include "policy.h"
+#include "structured/topology.h"
 #include "structured/select.h"
 
 namespace simpla {
-namespace tags {
-struct structured;
-
-}  // namespace tags
 
 template<typename ...> struct Mesh;
 
@@ -62,18 +58,18 @@ template<typename ...> struct Mesh;
  *  - the unit cell width is 1;
  */
 template<typename CoordinateSystem>
-struct Mesh<CoordinateSystem, simpla::tags::structured> : public topology<tags::structured>,
-                                                          public std::enable_shared_from_this<
-                                                                  Mesh<CoordinateSystem, simpla::tags::structured> >
+struct Mesh<CoordinateSystem, tags::structured> : public Topology<tags::structured>,
+                                                  public std::enable_shared_from_this<
+                                                          Mesh<CoordinateSystem, simpla::tags::structured> >
 {
     typedef CoordinateSystem cs_type;
+    typedef Topology<tags::structured> topology_type;
 
     typedef Mesh<cs_type, tags::structured> this_type;
 
     static constexpr size_t ndims = geometry::traits::dimension<cs_type>::value;
     static constexpr size_t ZAXIS = geometry::traits::ZAxis<cs_type>::value;
 
-    typedef topology<tags::structured> topology_type;
     using typename topology_type::index_type;
     using typename topology_type::index_tuple;
     using typename topology_type::range_type;
@@ -88,16 +84,12 @@ struct Mesh<CoordinateSystem, simpla::tags::structured> : public topology<tags::
 
     typedef geometry::traits::vector_type_t<cs_type> vector_type;
 
-    typedef nTuple<id_type, ndims> id_tuple;
 
 private:
 
     geometry::mertic<cs_type> m_metric_;
 
-    enum { DEFAULT_GHOST_WIDTH = 2 };
-
     bool m_is_valid_ = false;
-
 
     topology_point_type m_from_topology_orig_ /*= { 0, 0, 0 }*/;
 
@@ -115,55 +107,6 @@ private:
 
     topology_point_type m_from_topology_scale_;
 
-    /**
-     *
-     *   -----------------------------5
-     *   |                            |
-     *   |     ---------------4       |
-     *   |     |              |       |
-     *   |     |  ********3   |       |
-     *   |     |  *       *   |       |
-     *   |     |  *       *   |       |
-     *   |     |  *       *   |       |
-     *   |     |  2********   |       |
-     *   |     1---------------       |
-     *   0-----------------------------
-     *
-     *	5-0 = dimensions
-     *	4-1 = e-d = ghosts
-     *	2-1 = counts
-     *
-     *	0 = id_begin
-     *	5 = id_end
-     *
-     *	1 = id_local_outer_begin
-     *	4 = id_local_outer_end
-     *
-     *	2 = id_local_inner_begin
-     *	3 = id_local_inner_end
-     *
-     *
-     */
-//	id_type m_index_count_;
-//
-//	id_type m_index_dimensions_;
-//
-//	id_type m_index_offset_;
-//
-//	id_type m_index_local_dimensions_;
-//
-//	id_type m_index_local_offset_;
-    id_type m_id_min_;
-
-    id_type m_id_max_;
-
-    id_type m_id_local_min_;
-
-    id_type m_id_local_max_;
-
-    id_type m_id_memory_min_;
-
-    id_type m_id_memory_max_;
 
 public:
 
@@ -178,30 +121,12 @@ public:
     }
 
     Mesh(this_type const &other) : topology_type(other)
-
-//			m_id_min_(other.m_id_min_),
-//
-//			m_id_max_(other.m_id_max_),
-//
-//			m_id_local_min_(other.m_id_local_min_),
-//
-//			m_id_local_max_(other.m_id_local_max_),
-//
-//			m_id_memory_max_(other.m_id_memory_max_),
-//
-//			m_id_memory_min_(other.m_id_memory_min_)
     {
     }
 
     void swap(this_type &other)
     {
         topology_type::swap(other);
-//		std::swap(m_id_min_, other.m_id_min_);
-//		std::swap(m_id_max_, other.m_id_max_);
-//		std::swap(m_id_local_min_, other.m_id_local_min_);
-//		std::swap(m_id_local_max_, other.m_id_local_max_);
-//		std::swap(m_id_memory_max_, other.m_id_memory_max_);
-//		std::swap(m_id_memory_min_, other.m_id_memory_min_);
 
     }
 
@@ -214,7 +139,7 @@ public:
     template<typename TDict>
     void load(TDict const &dict)
     {
-        dimensions(dict["Dimensions"].as(index_tuple({10, 10, 10})));
+        topology_type::dimensions(dict["Dimensions"].as(index_tuple({10, 10, 10})));
 
         extents(dict["Box"].template as<std::tuple<point_type, point_type> >());
 
@@ -257,47 +182,6 @@ public:
         return topology_type::EPSILON * m_from_topology_scale_;
     }
 
-//	std::tuple<id_tuple, id_tuple> index_box() const
-//	{
-//		return std::make_tuple(topology_type::unpack_index(m_id_min_),
-//				topology_type::unpack_index(m_id_max_));
-//	}
-//
-//	std::tuple<id_tuple, id_tuple> local_index_box() const
-//	{
-//		return std::make_tuple(topology_type::unpack_index(m_id_local_min_),
-//				topology_type::unpack_index(m_id_local_max_));
-//	}
-
-//	range_type range(int nid = 0) const
-//	{
-//
-//		return range_type(m_id_local_min_, m_id_local_max_, nid);
-//	}
-//
-//	range_type range(point_type const &min, point_type const &max,
-//			int nid = 0) const
-//	{
-////		geometry::model::Box<point_type> b;
-////		bool success = geometry::intersection(
-////				geometry::make_box(point(m_id_local_min_),
-////						point(m_id_local_min_)), geometry::make_box(min, max),
-////				b);
-////		if (success)
-////		{
-////			return range_type(
-////					traits::get<0>(
-////							coordinates_global_to_local(traits::get<0>(b), nid)),
-////					traits::get<1>(
-////							coordinates_global_to_local(traits::get<1>(b), nid)),
-////					nid);
-////		}
-////		else
-////		{
-////			return range_type();
-////		}
-//
-//	}
 
     static std::string get_type_as_string()
     {
@@ -352,7 +236,7 @@ private:
     Real m_CFL_ = 0.5;
 
 public:
-    void next_timestep()
+    void next_time_step()
     {
         m_time_ += m_dt_;
     }
@@ -593,6 +477,8 @@ void Mesh<CoordinateSystem, tags::structured>::deploy(size_t const *gw)
 
     }
 
+    topology_type::dimensions(dims);
+    topology_type::deploy(gw);
 
     /**
      *  deploy volume
@@ -671,8 +557,6 @@ void Mesh<CoordinateSystem, tags::structured>::deploy(size_t const *gw)
     m_inv_dual_volume_[0] /* 111 */= m_inv_dual_volume_[6]
                                      * m_inv_dual_volume_[5] * m_inv_dual_volume_[3];
 
-    topology_type::dimensions(dims);
-    topology_type::deploy(gw);
 
     m_is_valid_ = true;
 

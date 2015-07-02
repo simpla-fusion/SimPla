@@ -515,7 +515,7 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 //
 //		auto solver = std::shared_ptr<ImplicitPushE<mesh_type>>(new);
 //		Implicit_PushE = [solver] ( TE const & pE, TB const & pB, TParticles const&p, TE*dE)
-//		{	solver->next_timestep( pE,pB,p,dE);};
+//		{	solver->next_time_step( pE,pB,p,dE);};
 //	}
 
 }
@@ -599,7 +599,7 @@ void ExplicitEMContext<TM>::next_timestep()
 	LOG_CMD(dE = (curl(B1) / mu0 - J1) / epsilon0 * dt);
 
 //   particle 1/2 -> 1  . To n[1/2], J[1/2]
-//	implicit_push_E.next_timestep(&dE);
+//	implicit_push_E.next_time_step(&dE);
 
 	LOG_CMD(E1 += dE);	// E(t=0 -> 1)
 

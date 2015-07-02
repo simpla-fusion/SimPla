@@ -115,7 +115,7 @@ template<typename ... > class Expression;
  *  `M( const M& )` 		| Copy constructor.
  *  `~M()` 				    | Destructor.
  *  `geometry_type`		    | Geometry type of manifold, which describes coordinates and metric
- *  `topology_type`		    | Topology structure of manifold,   topology of grid points
+ *  `topology_type`		    | Topology structure of manifold,   Topology of grid points
  *  `coordiantes_type` 	    | data type of coordinates, i.e. nTuple<3,Real>
  *  `index_type`			| data type of the index of grid points, i.e. unsigned long
  *  `Domain  domain()`	    | Root domain of manifold

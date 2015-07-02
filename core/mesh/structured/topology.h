@@ -5,15 +5,15 @@
 #ifndef SIMPLA_TOPOLOGY_H
 #define SIMPLA_TOPOLOGY_H
 
-#include "mesh_ids.h"
-#include "../gtl/macro.h"
-#include "../gtl/primitives.h"
-#include "../gtl/ntuple.h"
+#include "../mesh_ids.h"
+#include "../../gtl/macro.h"
+#include "../../gtl/primitives.h"
+#include "../../gtl/ntuple.h"
 
-#include "../gtl/type_traits.h"
-#include "../parallel/mpi_comm.h"
-#include "../parallel/mpi_update.h"
-#include "../dataset/dataspace.h"
+#include "../../gtl/type_traits.h"
+#include "../../parallel/mpi_comm.h"
+#include "../../parallel/mpi_update.h"
+#include "../../dataset/dataspace.h"
 
 namespace simpla {
 
@@ -21,22 +21,26 @@ namespace tags {
 struct structured;
 }
 
-template<typename ...> struct topology;
+template<typename ...> struct Topology;
 
 template<>
-struct topology<tags::structured> : public MeshIDs_<4>
+struct Topology<tags::structured> : public MeshIDs_<4>
 {
     enum { DEFAULT_GHOST_WIDTH = 2 };
 
 public:
 
     static constexpr size_t ndims = 3;
+
     typedef MeshIDs_<4> m;
 
-    typedef topology<tags::structured> this_type;
 
-    typedef typename MeshIDs_<>::id_type id_type;
-    typedef typename MeshIDs_<>::id_tuple id_tuple;
+    typedef Topology<tags::structured> this_type;
+
+    typedef typename m::id_type id_type;
+
+    typedef typename m::id_tuple id_tuple;
+
 
     typedef id_type value_type;
 
@@ -45,12 +49,6 @@ public:
 
     typedef typename m::index_type index_type;
 
-    struct iterator;
-
-    typedef iterator const_iterator;
-//private:
-
-    id_type m_min_, m_max_;
 
     bool m_is_distributed_ = false;
 
@@ -100,35 +98,13 @@ public:
 
 public:
 
-    topology()
+    Topology()
     {
 
     }
 
-    template<typename T0, typename T1>
-    topology(T0 const &min, T1 const &max, int n_id = 0) :
 
-            m_min_(m::pack_index(min) | m::m_id_to_shift_[n_id]),
-
-            m_max_(m::pack_index(max) | m::m_id_to_shift_[n_id])
-    {
-
-    }
-
-    topology(id_type const &min,
-             id_type const &max,
-             int n_id = 0
-    ) :
-            m_min_(min | m::m_id_to_shift_[n_id]),
-            m_max_(max | m::m_id_to_shift_[n_id])
-    {
-
-    }
-
-    topology(this_type const &other) :
-            m_min_(other.m_min_),
-
-            m_max_(other.m_max_),
+    Topology(this_type const &other) :
 
             m_id_min_(other.m_id_min_),
 
@@ -145,7 +121,7 @@ public:
 
     }
 
-    ~topology()
+    ~Topology()
     {
 
     }
@@ -163,8 +139,7 @@ public:
 
     void swap(this_type &other)
     {
-        std::swap(m_min_, other.m_min_);
-        std::swap(m_max_, other.m_max_);
+
         std::swap(m_id_min_, other.m_id_min_);
         std::swap(m_id_max_, other.m_id_max_);
         std::swap(m_id_local_min_, other.m_id_local_min_);
@@ -319,13 +294,13 @@ public:
 
 
     auto box() const
-    DECL_RET_TYPE(std::forward_as_tuple(m_min_, m_max_))
+    DECL_RET_TYPE(std::forward_as_tuple(m_id_local_min_, m_id_local_max_))
 
     template<typename T>
     bool in_box(T const &x) const
     {
-        auto b = m::unpack_index(m_min_);
-        auto e = m::unpack_index(m_max_);
+        auto b = m::unpack_index(m_id_local_min_);
+        auto e = m::unpack_index(m_id_local_max_);
         return (b[1] <= x[1]) && (b[2] <= x[2]) && (b[0] <= x[0])  //
                && (e[1] > x[1]) && (e[2] > x[2]) && (e[0] > x[0]);
 
@@ -336,21 +311,6 @@ public:
         return in_box(m::unpack_index(s));
     }
 
-    bool empty() const
-    {
-        return m_min_ == m_max_;
-    }
-
-    void clear()
-    {
-        m_min_ = m_max_;
-    }
-
-    difference_type size() const
-    {
-        return NProduct(m::unpack_index(m_max_ - m_min_))
-               * m::m_id_to_num_of_ele_in_cell_[m::node_id(m_min_)];
-    }
 
     template<typename ...Args>
     void reset(Args &&...args)
@@ -360,7 +320,6 @@ public:
 
     range_type range(int nid = 0) const
     {
-
         return range_type(m_id_local_min_, m_id_local_max_, nid);
     }
 
@@ -500,7 +459,7 @@ public:
 
 namespace traits {
 template<typename TAG>
-struct point_type<topology<TAG> >
+struct point_type<Topology<TAG> >
 {
     typedef nTuple<Real, 3> type;
 };

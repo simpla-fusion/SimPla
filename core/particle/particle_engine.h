@@ -88,7 +88,7 @@ namespace simpla
  }
 
  template<typename Point_p, typename TE, typename TB>
- void next_timestep(Point_p p, Real dt, TE const &fE, TB const & fB) const
+ void next_time_step(Point_p p, Real dt, TE const &fE, TB const & fB) const
  {
  p->x+=p->v*dt;
  ....

@@ -15,7 +15,7 @@
 using namespace simpla;
 
 #ifndef GEOMETRY
-#include "../../structured/topology/structured.h"
+#include "../../structured/Topology/structured.h"
 #include "cartesian.h"
 
 typedef CartesianCoordinate<RectMesh> TGeometry;

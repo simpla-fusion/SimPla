@@ -239,9 +239,9 @@ void select_cell_cross_polylines(PIP const & point_in_polygon, TDomain * domain,
 
 	domain->filter([&](id_type const& s )
 	{
-		id_type vertices[topology::MAX_NUM_OF_CELL];
+		id_type vertices[Topology::MAX_NUM_OF_CELL];
 
-		int num_of_vertices = topology::template get_adjoints<VERTEX>(s,
+		int num_of_vertices = Topology::template get_adjoints<VERTEX>(s,
 				vertices);
 
 		int count_in = 0;
@@ -320,9 +320,9 @@ void select_boundary_by_polylines(Domain<TM, IFORM> *domain, TI const & ib,
 			for (auto const & item : vmap)
 			{
 
-				id_type cell[topology::MAX_NUM_OF_CELL];
+				id_type cell[Topology::MAX_NUM_OF_CELL];
 
-				int num_of_cell = topology::template get_adjoints<VOLUME>(
+				int num_of_cell = Topology::template get_adjoints<VOLUME>(
 						item.first, cell);
 
 				for (int i = 0; i < num_of_cell; ++i)
@@ -345,9 +345,9 @@ void select_boundary_by_polylines(Domain<TM, IFORM> *domain, TI const & ib,
 			for (auto const & item : vmap)
 			{
 
-				id_type cell[topology::MAX_NUM_OF_CELL];
+				id_type cell[Topology::MAX_NUM_OF_CELL];
 
-				int num_of_cell = topology::template get_adjoints<VOLUME>(
+				int num_of_cell = Topology::template get_adjoints<VOLUME>(
 						item.first, cell);
 
 				for (int i = 0; i < num_of_cell; ++i)
@@ -363,8 +363,8 @@ void select_boundary_by_polylines(Domain<TM, IFORM> *domain, TI const & ib,
 		{
 			v_domain.for_each([&](id_type s)
 			{
-				id_type cell[topology::MAX_NUM_OF_CELL];
-				int num_of_cell = topology::template get_adjoints<iform>(
+				id_type cell[Topology::MAX_NUM_OF_CELL];
+				int num_of_cell = Topology::template get_adjoints<iform>(
 						s, cell);
 
 				for (int i = 0; i < num_of_cell; ++i)

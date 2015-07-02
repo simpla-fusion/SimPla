@@ -62,7 +62,7 @@
  *   Pseudo-Signature           | Semantics
  * ---------------------------- |----------
  * ` print(std::ostream & os) ` | print decription of object
- * ` update() `                 | update internal data storage and prepare for execute 'next_timestep'
+ * ` update() `                 | update internal data storage and prepare for execute 'next_time_step'
  * ` sync()  `                  | sync. internal data with other processes and threads
  *
  *
@@ -374,7 +374,7 @@ public:
 	 @code
 	 for( Point_s & point: all particle)
 	 {
-	 engine_type::next_timestep(& point,std::forward<Args>(args)... );
+	 engine_type::next_time_step(& point,std::forward<Args>(args)... );
 	 }
 	 @endcode
 	 *
@@ -408,7 +408,7 @@ public:
 	 {
 	 for( Point_s & point: all particle)
 	 {
-	 engine_type::next_timestep(& point,t0+s*dt,dt,std::forward<Args>(args)... );
+	 engine_type::next_time_step(& point,t0+s*dt,dt,std::forward<Args>(args)... );
 	 }
 	 }
 	 return t0+num_of_steps*dt;
