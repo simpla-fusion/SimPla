@@ -5,7 +5,7 @@ SIMPla {#mainpage}
 Its long term goal is to provide complete model of fusion device.
 “SimPla” is abbreviation of four words,  __Simulation__, __Integration__, __Multi-physics__ and __Plasma__.
 
- \note SIMPla is a  [GAPS](http://202.127.204.14/trac/gaps) project.
+ \note SIMPla is a  [GAPS](http://wiki.gaps.org.cn) project.
 
 # Document {#detailed}
 
