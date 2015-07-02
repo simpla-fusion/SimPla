@@ -2,8 +2,8 @@
 // Created by salmon on 7/1/15.
 //
 
-#ifndef SIMPLA_BONDARY_H
-#define SIMPLA_BONDARY_H
+#ifndef SIMPLA_BOUNDARY_H
+#define SIMPLA_BOUNDARY_H
 
 #include "mesh_traits.h"
 #include "../gtl/macro.h"

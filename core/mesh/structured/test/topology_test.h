@@ -99,18 +99,18 @@ TEST(TestTopologyStatic, id_type)
 }
 TEST(TestTopologyStatic, coordinates)
 {
-//	topology.dimensions(&dims[0]);
+//	Topology.dimensions(&dims[0]);
 //
-//	auto extents = topology.extents();
+//	auto extents = Topology.extents();
 //	auto xmin = std::get<0>(extents);
 //	auto xmax = std::get<1>(extents);
 //
-//	auto range0 = topology.template select<VERTEX>();
-//	auto range1 = topology.template select<EDGE>();
-//	auto range2 = topology.template select<FACE>();
-//	auto range3 = topology.template select<VOLUME>();
+//	auto range0 = Topology.template select<VERTEX>();
+//	auto range1 = Topology.template select<EDGE>();
+//	auto range2 = Topology.template select<FACE>();
+//	auto range3 = Topology.template select<VOLUME>();
 //
-//	auto half_dx = topology.dx() / 2;
+//	auto half_dx = Topology.dx() / 2;
 //
 //	EXPECT_EQ(xmin, t::id_to_coordinates(*begin(range0)));
 //	EXPECT_EQ(xmin + coordinate_tuple( { half_dx[0], 0, 0 }),

@@ -39,7 +39,7 @@ namespace simpla
  *
  *
  *  ## Requirement:
- *    engine_type::next_timestep(Point_s * p, others...);
+ *    engine_type::next_time_step(Point_s * p, others...);
  *
  *  - if  engine_type::memory_length  is not defined
  *     p point the "Particle" at current time step
@@ -110,7 +110,7 @@ public:
 	 @code
 	 for( Point_s & point: all particle)
 	 {
-	 engine_type::next_timestep(& point,std::forward<Args>(args)... );
+	 engine_type::next_time_step(& point,std::forward<Args>(args)... );
 	 }
 	 @endcode
 	 *
@@ -132,7 +132,7 @@ public:
 	 {
 	 for( Point_s & point: all particle)
 	 {
-	 engine_type::next_timestep(& point,t0+s*dt,dt,std::forward<Args>(args)... );
+	 engine_type::next_time_step(& point,t0+s*dt,dt,std::forward<Args>(args)... );
 	 }
 	 }
 	 return t0+num_of_steps*dt;

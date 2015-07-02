@@ -198,7 +198,7 @@ void make_send_recv_list(int object_id, DataType const & datatype, int ndims,
 //	std::tie(std::ignore, l_dims, l_offset, std::ignore, l_count, std::ignore) =
 //			dataspace.shape();
 //
-//	auto mpi_topology = mpi_comm.topology();
+//	auto mpi_topology = mpi_comm.Topology();
 //
 //	for (int n = 0; n < ndims; ++n)
 //	{

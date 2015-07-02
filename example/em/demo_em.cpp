@@ -176,7 +176,7 @@ USE_CASE(em," Maxwell Eqs.")
 		VERBOSE << SAVE_RECORD(E) << std::endl;
 		VERBOSE << SAVE_RECORD(B) << std::endl;
 
-		mesh->next_timestep();
+		mesh->next_time_step();
 
 	}
 

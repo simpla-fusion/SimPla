@@ -107,7 +107,7 @@ std::string MPIComm::init(int argc, char** argv)
 
 	return
 	//"\t--number_of_threads <NUMBER>  \t, Number of threads \n"
-	"\t--mpi_topology <NX NY NZ>    \t, Set topology of mpi communicator. \n";
+	"\t--mpi_topology <NX NY NZ>    \t, Set Topology of mpi communicator. \n";
 
 }
 
@@ -258,7 +258,7 @@ void MPIComm::topology(nTuple<int, 3> const & d)
 
 	if (d[0] * d[1] * d[2] != pimpl_->m_num_process_)
 	{
-		RUNTIME_ERROR("MPI topology is invalid!");
+		RUNTIME_ERROR("MPI Topology is invalid!");
 	}
 
 	pimpl_->m_topology_dims_ = d;
