@@ -41,7 +41,7 @@ struct structured;
 
 }  // namespace tags
 
-template<typename ... > struct Mesh;
+template<typename ...> struct Mesh;
 
 /**
  * @ingroup mesh
@@ -70,9 +70,8 @@ template<typename ... > struct Mesh;
  *  - the unit cell width is 1;
  */
 template<typename CoordinateSystem>
-struct Mesh<CoordinateSystem, simpla::tags::structured> : public MeshIDs_<4>,
-		public std::enable_shared_from_this<
-				Mesh<CoordinateSystem, simpla::tags::structured> >
+struct Mesh<CoordinateSystem, tags::structured> : public MeshIDs_<>,
+		public std::enable_shared_from_this<Mesh<CoordinateSystem, tags::structured> >
 {
 	typedef CoordinateSystem cs_type;
 
@@ -81,7 +80,7 @@ struct Mesh<CoordinateSystem, simpla::tags::structured> : public MeshIDs_<4>,
 	static constexpr size_t ndims = geometry::traits::dimension<cs_type>::value;
 	static constexpr size_t ZAXIS = geometry::traits::ZAxis<cs_type>::value;
 
-	typedef MeshIDs_<4> topology_type;
+	typedef MeshIDs_<> topology_type;
 	using typename topology_type::index_type;
 	using typename topology_type::index_tuple;
 	using typename topology_type::range_type;
@@ -100,9 +99,9 @@ struct Mesh<CoordinateSystem, simpla::tags::structured> : public MeshIDs_<4>,
 
 private:
 
-	geometry::mertic<cs_type> m_metric_;
+	geometry::metric<cs_type> m_metric_;
 
-	enum{DEFAULT_GHOST_WIDTH = 2};
+	enum { DEFAULT_GHOST_WIDTH = 2 };
 
 	bool m_is_valid_ = false;
 
@@ -112,9 +111,9 @@ private:
 
 	topology_point_type m_to_topology_orig_ /*= { 0, 0, 0 }*/;
 
-	point_type m_coords_min_ = { 0, 0, 0 };
+	point_type m_coords_min_ = {0, 0, 0};
 
-	point_type m_coords_max_ = { 1, 1, 1 };
+	point_type m_coords_max_ = {1, 1, 1};
 
 	vector_type m_dx_; //!< width of cell, but m_dx_[i]=0 when m_dims_[i]==1
 
@@ -124,55 +123,8 @@ private:
 
 	topology_point_type m_from_topology_scale_;
 
-	/**
-	 *
-	 *   -----------------------------5
-	 *   |                            |
-	 *   |     ---------------4       |
-	 *   |     |              |       |
-	 *   |     |  ********3   |       |
-	 *   |     |  *       *   |       |
-	 *   |     |  *       *   |       |
-	 *   |     |  *       *   |       |
-	 *   |     |  2********   |       |
-	 *   |     1---------------       |
-	 *   0-----------------------------
-	 *
-	 *	5-0 = dimensions
-	 *	4-1 = e-d = ghosts
-	 *	2-1 = counts
-	 *
-	 *	0 = id_begin
-	 *	5 = id_end
-	 *
-	 *	1 = id_local_outer_begin
-	 *	4 = id_local_outer_end
-	 *
-	 *	2 = id_local_inner_begin
-	 *	3 = id_local_inner_end
-	 *
-	 *
-	 */
-//	id_type m_index_count_;
-//
-//	id_type m_index_dimensions_;
-//
-//	id_type m_index_offset_;
-//
-//	id_type m_index_local_dimensions_;
-//
-//	id_type m_index_local_offset_;
-	id_type m_id_min_;
+	range_type m_range_;
 
-	id_type m_id_max_;
-
-	id_type m_id_local_min_;
-
-	id_type m_id_local_max_;
-
-	id_type m_id_memory_min_;
-
-	id_type m_id_memory_max_;
 
 public:
 
@@ -186,76 +138,56 @@ public:
 	{
 	}
 
-	Mesh(this_type const & other) :
-
-			m_id_min_(other.m_id_min_),
-
-			m_id_max_(other.m_id_max_),
-
-			m_id_local_min_(other.m_id_local_min_),
-
-			m_id_local_max_(other.m_id_local_max_),
-
-			m_id_memory_max_(other.m_id_memory_max_),
-
-			m_id_memory_min_(other.m_id_memory_min_)
-
+	Mesh(this_type const &other)
 	{
 	}
 
-	void swap(this_type & other)
+	void swap(this_type &other)
 	{
-
-		std::swap(m_id_min_, other.m_id_min_);
-		std::swap(m_id_max_, other.m_id_max_);
-		std::swap(m_id_local_min_, other.m_id_local_min_);
-		std::swap(m_id_local_max_, other.m_id_local_max_);
-		std::swap(m_id_memory_max_, other.m_id_memory_max_);
-		std::swap(m_id_memory_min_, other.m_id_memory_min_);
-
 	}
-	this_type & operator=(const this_type& other)
+
+	this_type &operator=(const this_type &other)
 	{
 		this_type(other).swap(*this);
 		return *this;
 	}
+
 	template<typename TDict>
-	void load(TDict const & dict)
+	void load(TDict const &dict)
 	{
-		dimensions(dict["Dimensions"].as(index_tuple( { 10, 10, 10 })));
+		dimensions(dict["Dimensions"].as(index_tuple({10, 10, 10})));
 
 		extents(dict["Box"].template as<std::tuple<point_type, point_type> >());
 
 		dt(dict["dt"].template as<Real>(1.0));
 	}
+
 	template<typename OS>
-	OS & print(OS &os) const
+	OS &print(OS &os) const
 	{
 		DEFINE_PHYSICAL_CONST
 
 		Real safe_dt = 0.5
 				* std::sqrt(
-						(m_dx_[0] * m_dx_[0] + m_dx_[1] * m_dx_[1]
-								+ m_dx_[2] * m_dx_[2])) / speed_of_light;
+				(m_dx_[0] * m_dx_[0] + m_dx_[1] * m_dx_[1]
+						+ m_dx_[2] * m_dx_[2])) / speed_of_light;
 
 		os
 
-		<< " Type = \"" << get_type_as_string() << "\", " << std::endl
+				<< " Type = \"" << get_type_as_string() << "\", " << std::endl
 
-		<< " Min \t= " << m_coords_min_ << " ," << std::endl
+				<< " Min \t= " << m_coords_min_ << " ," << std::endl
 
-		<< " Max \t= " << m_coords_max_ << "," << std::endl
+				<< " Max \t= " << m_coords_max_ << "," << std::endl
 
-		<< " dx  \t= " << m_dx_ << ", " << std::endl
+				<< " dx  \t= " << m_dx_ << ", " << std::endl
 
-		<< " dt \t= " << m_dt_ << "," << std::endl
+				<< " dt \t= " << m_dt_ << "," << std::endl
 
-		<< "-- [ Courant–Friedrichs–Lewy (CFL)  Suggested value: " << safe_dt
+				<< "-- [ Courant–Friedrichs–Lewy (CFL)  Suggested value: " << safe_dt
 				<< "]" << std::endl
 
-				<< " Dimensions\t= " << dimensions() << "," << std::endl
-
-				;
+				<< " Dimensions\t= " << dimensions() << "," << std::endl;
 
 		return os;
 
@@ -266,46 +198,36 @@ public:
 		return topology_type::EPSILON * m_from_topology_scale_;
 	}
 
-	std::tuple<id_tuple, id_tuple> index_box() const
-	{
-		return std::make_tuple(topology_type::unpack_index(m_id_min_),
-				topology_type::unpack_index(m_id_max_));
-	}
-	std::tuple<id_tuple, id_tuple> local_index_box() const
-	{
-		return std::make_tuple(topology_type::unpack_index(m_id_local_min_),
-				topology_type::unpack_index(m_id_local_max_));
-	}
 
 	range_type range(int nid = 0) const
 	{
 
-		return range_type(m_id_local_min_, m_id_local_max_, nid);
+		return range_type(m_range_.m_id_local_min_, m_range_.m_id_local_max_, nid);
 	}
-
-	range_type range(point_type const & min, point_type const & max,
-			int nid = 0) const
-	{
-//		geometry::model::Box<point_type> b;
-//		bool success = geometry::intersection(
-//				geometry::make_box(point(m_id_local_min_),
-//						point(m_id_local_min_)), geometry::make_box(min, max),
-//				b);
-//		if (success)
-//		{
-//			return range_type(
-//					traits::get<0>(
-//							coordinates_global_to_local(traits::get<0>(b), nid)),
-//					traits::get<1>(
-//							coordinates_global_to_local(traits::get<1>(b), nid)),
-//					nid);
-//		}
-//		else
-//		{
-//			return range_type();
-//		}
-
-	}
+//
+//	range_type range(point_type const &min, point_type const &max,
+//			int nid = 0) const
+//	{
+////		geometry::model::Box<point_type> b;
+////		bool success = geometry::intersection(
+////				geometry::make_box(point(m_id_local_min_),
+////						point(m_id_local_min_)), geometry::make_box(min, max),
+////				b);
+////		if (success)
+////		{
+////			return range_type(
+////					traits::get<0>(
+////							coordinates_global_to_local(traits::get<0>(b), nid)),
+////					traits::get<1>(
+////							coordinates_global_to_local(traits::get<1>(b), nid)),
+////					nid);
+////		}
+////		else
+////		{
+////			return range_type();
+////		}
+//
+//	}
 
 	static std::string get_type_as_string()
 	{
@@ -318,14 +240,14 @@ public:
 	}
 
 	template<typename T0, typename T1>
-	void extents(T0 const& pmin, T1 const& pmax)
+	void extents(T0 const &pmin, T1 const &pmax)
 	{
 		m_coords_min_ = pmin;
 		m_coords_max_ = pmax;
 	}
 
 	template<typename T0>
-	void extents(T0 const& box)
+	void extents(T0 const &box)
 	{
 		extents(traits::get<0>(box), traits::get<1>(box));
 	}
@@ -337,25 +259,30 @@ public:
 
 	constexpr std::pair<point_type, point_type> local_extents() const
 	{
-		return (std::make_pair(point(m_id_local_min_), point(m_id_local_max_)));
+		return (std::make_pair(point(m_range_.m_id_local_min_), point(m_range_.m_id_local_max_)));
 	}
 
-	vector_type const & dx() const
+	vector_type const &dx() const
 	{
 		return m_dx_;
 	}
 
-	template<typename TI> void dimensions(TI const & d)
+	template<typename TI> void dimensions(TI const &d)
 	{
 
-		m_id_min_ = topology_type::ID_ZERO;
-		m_id_max_ = m_id_min_ + topology_type::pack_index(d);
+		m_range_.m_id_min_ = topology_type::ID_ZERO;
+		m_range_.m_id_max_ = m_range_.m_id_min_ + topology_type::pack_index(d);
 
 	}
+
 	index_tuple dimensions() const
 	{
-		return topology_type::unpack_index(m_id_max_ - m_id_min_);
+		return topology_type::unpack_index(m_range_.m_id_max_ - m_range_.m_id_min_);
 	}
+
+
+	auto local_index_box() const
+	DECL_RET_TYPE(m_range_.local_index_box())
 
 	void deploy(size_t const *gw = nullptr);
 
@@ -382,6 +309,7 @@ public:
 	{
 		return m_dt_;
 	}
+
 	void dt(Real pdt)
 	{
 		m_dt_ = pdt;
@@ -391,6 +319,7 @@ public:
 	{
 		m_time_ = p_time;
 	}
+
 	Real time() const
 	{
 		return m_time_;
@@ -418,18 +347,22 @@ public:
 		return m_metric_.dual_volume(topology_type::node_id(s), point(s),
 				m_delta_);
 	}
+
 	Real volume(id_type s) const
 	{
 		return m_volume_[topology_type::node_id(s)] * volume_(s);
 	}
+
 	Real dual_volume(id_type s) const
 	{
 		return m_dual_volume_[topology_type::node_id(s)] * dual_volume_(s);
 	}
+
 	Real inv_volume(id_type s) const
 	{
 		return m_inv_volume_[topology_type::node_id(s)] / volume_(s);
 	}
+
 	Real inv_dual_volume(id_type s) const
 	{
 		return m_inv_dual_volume_[topology_type::node_id(s)] / dual_volume_(s);
@@ -446,7 +379,7 @@ public:
 	 *              M      ---------->      G
 	 *              x                       y
 	 **/
-	point_type point(id_type const & s) const
+	point_type point(id_type const &s) const
 	{
 		return std::move(map(topology_type::point(s)));
 	}
@@ -457,50 +390,51 @@ public:
 		return point_type(
 				{
 
-				std::fma(traits::get<0>(x), m_from_topology_scale_[0],
-						m_from_topology_orig_[0]),
+						std::fma(traits::get<0>(x), m_from_topology_scale_[0],
+								m_from_topology_orig_[0]),
 
-				std::fma(traits::get<1>(x), m_from_topology_scale_[1],
-						m_from_topology_orig_[1]),
+						std::fma(traits::get<1>(x), m_from_topology_scale_[1],
+								m_from_topology_orig_[1]),
 
-				std::fma(traits::get<2>(x), m_from_topology_scale_[2],
-						m_from_topology_orig_[2])
+						std::fma(traits::get<2>(x), m_from_topology_scale_[2],
+								m_from_topology_orig_[2])
 
 				});
 
 	}
+
 	topology_point_type inv_map(point_type const &y) const
 	{
 
 		return topology_point_type(
 				{
 
-				std::fma(traits::get<0>(y), m_to_topology_scale_[0],
-						m_to_topology_orig_[0]),
+						std::fma(traits::get<0>(y), m_to_topology_scale_[0],
+								m_to_topology_orig_[0]),
 
-				std::fma(traits::get<1>(y), m_to_topology_scale_[1],
-						m_to_topology_orig_[1]),
+						std::fma(traits::get<1>(y), m_to_topology_scale_[1],
+								m_to_topology_orig_[1]),
 
-				std::fma(traits::get<2>(y), m_to_topology_scale_[2],
-						m_to_topology_orig_[2])
+						std::fma(traits::get<2>(y), m_to_topology_scale_[2],
+								m_to_topology_orig_[2])
 
 				});
 	}
 
 	template<typename TFun>
-	auto pull_back(point_type const & x, TFun const & fun) const
+	auto pull_back(point_type const &x, TFun const &fun) const
 	DECL_RET_TYPE((fun(map(x))))
 
 	template<typename TFun>
-	auto push_forward(point_type const & y, TFun const & fun) const
+	auto push_forward(point_type const &y, TFun const &fun) const
 	DECL_RET_TYPE((fun(inv_map(y))))
 
-	Vec3 pull_back(point_type const & y, vector_type const & u) const
+	Vec3 pull_back(point_type const &y, vector_type const &u) const
 	{
 		return inv_map(y + u) - inv_map(y);
 	}
 
-	Vec3 push_forward(point_type const & x, vector_type const & v) const
+	Vec3 push_forward(point_type const &x, vector_type const &v) const
 	{
 		return map(x + v) - map(x);
 	}
@@ -549,26 +483,27 @@ public:
 
 	template<size_t IFORM> size_t max_hash() const
 	{
-		return topology_type::template max_hash<IFORM>(m_id_memory_min_,
-				m_id_memory_max_);
+		return topology_type::template max_hash<IFORM>(m_range_.m_id_memory_min_,
+				m_range_.m_id_memory_max_);
 	}
+
 	constexpr size_t hash(id_type s) const
 	{
-		return topology_type::hash(s, m_id_memory_min_, m_id_memory_max_);
+		return topology_type::hash(s, m_range_.m_id_memory_min_, m_range_.m_id_memory_max_);
 	}
 
 	template<size_t IFORM>
 	constexpr id_type pack_relative_index(index_type i, index_type j,
 			index_type k, index_type n = 0) const
 	{
-		return topology_type::pack_index(nTuple<index_type, 3>( { i, j, k }),
-				topology_type:: template sub_index_to_id<IFORM>(n)) + m_id_min_;
+		return topology_type::pack_index(nTuple<index_type, 3>({i, j, k}),
+				topology_type::template sub_index_to_id<IFORM>(n)) + m_range_.m_id_min_;
 	}
 
 	nTuple<index_type, ndims + 1> unpack_relative_index(id_type s) const
 	{
 		nTuple<index_type, ndims + 1> res;
-		res = topology_type::unpack_index(s - m_id_min_);
+		res = topology_type::unpack_index(s - m_range_.m_id_min_);
 		res[ndims] = topology_type::sub_index(s);
 		return std::move(res);
 	}
@@ -587,18 +522,17 @@ public:
 
 		int f_ndims = ndims;
 
-		f_dims = topology_type::unpack_index(m_id_max_ - m_id_min_);
+		f_dims = topology_type::unpack_index(m_range_.m_id_max_ - m_range_.m_id_min_);
 
-		f_offset = topology_type::unpack_index(m_id_local_min_ - m_id_min_);
+		f_offset = topology_type::unpack_index(m_range_.m_id_local_min_ - m_range_.m_id_min_);
 
 		f_count = topology_type::unpack_index(
-				m_id_local_max_ - m_id_local_min_);
+				m_range_.m_id_local_max_ - m_range_.m_id_local_min_);
 
 		m_dims = topology_type::unpack_index(
-				m_id_memory_max_ - m_id_memory_min_);
-		;
+				m_range_.m_id_memory_max_ - m_range_.m_id_memory_min_);;
 
-		m_offset = topology_type::unpack_index(m_id_local_min_ - m_id_min_);
+		m_offset = topology_type::unpack_index(m_range_.m_id_local_min_ - m_range_.m_id_min_);
 
 		if ((IFORM == EDGE || IFORM == FACE))
 		{
@@ -623,13 +557,14 @@ public:
 
 		res
 
-		.select_hyperslab(&f_offset[0], nullptr, &f_count[0], nullptr)
+				.select_hyperslab(&f_offset[0], nullptr, &f_count[0], nullptr)
 
-		.set_local_shape(&m_dims[0], &m_offset[0]);
+				.set_local_shape(&m_dims[0], &m_offset[0]);
 
 		return std::move(res);
 
 	}
+
 	template<size_t IFORM> void ghost_shape(
 			std::vector<mpi_ghosts_shape_s> *res) const
 	{
@@ -644,13 +579,13 @@ public:
 //				m_id_memory_max_ - m_id_memory_min_);
 
 		f_local_offset = topology_type::unpack_index(
-				m_id_local_min_ - m_id_memory_min_);
+				m_range_.m_id_local_min_ - m_range_.m_id_memory_min_);
 
 		f_local_count = topology_type::unpack_index(
-				m_id_local_max_ - m_id_local_min_);
+				m_range_.m_id_local_max_ - m_range_.m_id_local_min_);
 
 		f_ghost_width = topology_type::unpack_index(
-				m_id_local_min_ - m_id_memory_min_);
+				m_range_.m_id_local_min_ - m_range_.m_id_memory_min_);
 
 		if ((IFORM == EDGE || IFORM == FACE))
 		{
@@ -675,6 +610,7 @@ public:
 				nullptr, &f_ghost_width[0], res);
 
 	}
+
 	template<size_t IFORM> std::vector<mpi_ghosts_shape_s> ghost_shape() const
 	{
 		std::vector<mpi_ghosts_shape_s> res;
@@ -687,7 +623,7 @@ template<typename CoordinateSystem>
 void Mesh<CoordinateSystem, tags::structured>::deploy(size_t const *gw)
 {
 	nTuple<id_type, ndims> dims = topology_type::unpack_index(
-			m_id_max_ - m_id_min_);
+			m_range_.m_id_max_ - m_range_.m_id_min_);
 
 	for (int i = 0; i < ndims; ++i)
 	{
@@ -747,7 +683,7 @@ void Mesh<CoordinateSystem, tags::structured>::deploy(size_t const *gw)
 
 	}
 
-	m_id_max_ = m_id_min_ + topology_type::pack_index(dims);
+	m_range_.m_id_max_ = m_range_.m_id_min_ + topology_type::pack_index(dims);
 
 	/**
 	 *  deploy volume
@@ -831,9 +767,9 @@ void Mesh<CoordinateSystem, tags::structured>::deploy(size_t const *gw)
 
 	if (GLOBAL_COMM.num_of_process() > 1)
 	{
-		auto idx_b = topology_type::unpack_index(m_id_min_);
+		auto idx_b = topology_type::unpack_index(m_range_.m_id_min_);
 
-		auto idx_e = topology_type::unpack_index(m_id_max_);
+		auto idx_e = topology_type::unpack_index(m_range_.m_id_max_);
 
 		GLOBAL_COMM.decompose(ndims, &idx_b[0], &idx_e[0]);
 
@@ -858,7 +794,7 @@ void Mesh<CoordinateSystem, tags::structured>::deploy(size_t const *gw)
 			else if (idx_e[i] <= idx_b[i] + ghost_width[i] * 2)
 			{
 				ERROR(
-				"Dimension is to small to split!["
+						"Dimension is to small to split!["
 //				" Dimensions= " + type_cast < std::string
 //				> (topology_type::unpack_index(
 //								m_id_max_ - m_id_min_))
@@ -868,40 +804,40 @@ void Mesh<CoordinateSystem, tags::structured>::deploy(size_t const *gw)
 //								m_id_local_max_ - m_id_local_min_))
 //				+ " , Ghost width =" + type_cast
 //				< std::string > (ghost_width) +
-				"]");
+								"]");
 			}
 
 		}
 
-		m_id_local_min_ = topology_type::pack_index(idx_b);
+		m_range_.m_id_local_min_ = topology_type::pack_index(idx_b);
 
-		m_id_local_max_ = topology_type::pack_index(idx_e);
+		m_range_.m_id_local_max_ = topology_type::pack_index(idx_e);
 
-		m_id_memory_min_ = m_id_local_min_
-		- topology_type::pack_index(ghost_width);
+		m_range_.m_id_memory_min_ = m_range_.m_id_local_min_
+				- topology_type::pack_index(ghost_width);
 
-		m_id_memory_max_ = m_id_local_max_
-		+ topology_type::pack_index(ghost_width);
+		m_range_.m_id_memory_max_ = m_range_.m_id_local_max_
+				+ topology_type::pack_index(ghost_width);
 
 		m_is_distributed_ = true;
 
 	}
 	else
 	{
-		m_id_local_min_ = m_id_min_;
+		m_range_.m_id_local_min_ = m_range_.m_id_min_;
 
-		m_id_local_max_ = m_id_max_;
+		m_range_.m_id_local_max_ = m_range_.m_id_max_;
 
-		m_id_memory_min_ = m_id_local_min_;
+		m_range_.m_id_memory_min_ = m_range_.m_id_local_min_;
 
-		m_id_memory_max_ = m_id_local_max_;
+		m_range_.m_id_memory_max_ = m_range_.m_id_local_max_;
 
 		m_is_distributed_ = false;
 	}
 
 	m_is_valid_ = true;
 
-	VERBOSE<<get_type_as_string() << " is deployed!" << std::endl;
+	VERBOSE << get_type_as_string() << " is deployed!" << std::endl;
 
 }
 

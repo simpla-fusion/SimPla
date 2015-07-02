@@ -21,7 +21,7 @@ namespace gt = geometry::traits;
 
 template<typename, typename > struct map;
 
-template<typename > struct mertic;
+template<typename > struct metric;
 
 template<size_t ZAXIS0, size_t ZAXIS1>
 struct map<coordinate_system::Cartesian<3, ZAXIS0>,
@@ -103,7 +103,7 @@ struct map<coordinate_system::Cartesian<3, ZAXIS0>,
 
 };
 template<size_t ICARTESIAN_ZAXIS>
-struct mertic<coordinate_system::Cartesian<3, ICARTESIAN_ZAXIS> >
+struct metric<coordinate_system::Cartesian<3, ICARTESIAN_ZAXIS> >
 {
 
 	static constexpr size_t CartesianZAxis = (ICARTESIAN_ZAXIS) % 3;

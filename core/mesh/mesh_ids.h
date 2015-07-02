@@ -30,24 +30,8 @@ enum ManifoldTypeID
 };
 
 template<size_t TAGS> struct MeshIDs_;
+template<typename ...> struct range;
 
-namespace traits
-{
-template<typename> struct id_type;
-template<size_t TAGS>
-struct id_type<MeshIDs_<TAGS>>
-{
-	typedef typename MeshIDs_<TAGS>::id_type type;
-};
-
-template<typename> struct point_type;
-template<size_t TAGS>
-struct point_type<MeshIDs_<TAGS>>
-{
-	typedef typename MeshIDs_<TAGS>::point_type type;
-};
-
-}  // namespace traits
 //  \verbatim
 //
 //   |----------------|----------------|---------------|--------------|------------|
@@ -91,6 +75,8 @@ struct MeshIDs_
 	typedef MeshIDs_<TAGS> this_type;
 
 	typedef std::uint64_t id_type;
+
+	typedef simpla::range<this_type> range_type;
 
 	typedef nTuple<id_type, ndims> id_tuple;
 
@@ -153,11 +139,11 @@ struct MeshIDs_
 			<< MESH_RESOLUTION);
 
 	/// @}
-	static constexpr Vec3 dx()
-	{
-		return Vec3({COORDINATES_MESH_FACTOR, COORDINATES_MESH_FACTOR,
-		             COORDINATES_MESH_FACTOR});
-	}
+//	static constexpr Vec3 dx()
+//	{
+//		return Vec3({COORDINATES_MESH_FACTOR, COORDINATES_MESH_FACTOR,
+//		             COORDINATES_MESH_FACTOR});
+//	}
 
 	static constexpr id_type m_sub_index_to_id_[4][3] = { //
 
@@ -637,261 +623,6 @@ struct MeshIDs_
 		return get_adjoints(s, IFORM, NODE_ID, res);
 	}
 
-	struct range_type
-	{
-
-	private:
-
-		id_type m_min_, m_max_;
-	public:
-
-		typedef id_type value_type;
-
-		typedef size_t difference_type;
-
-		struct iterator;
-
-		typedef iterator const_iterator;
-
-		typedef range_type this_type;
-
-		template<typename T0, typename T1>
-		range_type(T0 const &min, T1 const &max, int n_id = 0) :
-				m_min_(pack_index(min) | m_id_to_shift_[n_id]), m_max_(
-				pack_index(max) | m_id_to_shift_[n_id])
-		{
-
-		}
-
-		range_type(id_type const &min, id_type const &max, int n_id = 0) :
-				m_min_(min | m_id_to_shift_[n_id]), m_max_(
-				max | m_id_to_shift_[n_id])
-		{
-
-		}
-
-		range_type(this_type const &other) :
-				m_min_(other.m_min_), m_max_(other.m_max_)
-		{
-
-		}
-
-		~range_type()
-		{
-
-		}
-
-		this_type &operator=(this_type const &other)
-		{
-			this_type(other).swap(*this);
-			return *this;
-		}
-
-		this_type operator&(this_type const &other) const
-		{
-			return *this;
-		}
-
-		void swap(this_type &other)
-		{
-			std::swap(m_min_, other.m_min_);
-			std::swap(m_max_, other.m_max_);
-		}
-
-		const_iterator begin() const
-		{
-			return const_iterator(m_min_, m_max_, m_min_);
-		}
-
-		const_iterator end() const
-		{
-			return ++const_iterator(m_min_, m_max_,
-					inverse_rotate(m_max_ - (_DA << 1)));
-		}
-
-//		const_iterator rbegin() const
-//		{
-//			return const_iterator(m_min_, m_max_,
-//					inverse_rotate(m_max_ - (_DA << 1)));
-//		}
-//
-//		const_iterator rend() const
-//		{
-//			const_iterator res(m_min_, m_max_,
-//					inverse_rotate(m_min_ - (_DA << 1)));
-//
-//			++res;
-//			return std::move(res);
-//		}
-
-		auto box() const
-		DECL_RET_TYPE(std::forward_as_tuple(m_min_, m_max_))
-
-		template<typename T>
-		bool in_box(T const &x) const
-		{
-			auto b = unpack_index(m_min_);
-			auto e = unpack_index(m_max_);
-			return (b[1] <= x[1]) && (b[2] <= x[2]) && (b[0] <= x[0])  //
-					&& (e[1] > x[1]) && (e[2] > x[2]) && (e[0] > x[0]);
-
-		}
-
-		constexpr bool in_box(id_type s) const
-		{
-			return in_box(unpack_index(s));
-		}
-
-		constexpr bool empty() const
-		{
-			return m_min_ == m_max_;
-		}
-
-		void clear()
-		{
-			m_min_ = m_max_;
-		}
-
-		constexpr difference_type size() const
-		{
-			return NProduct(unpack_index(m_max_ - m_min_))
-					* m_id_to_num_of_ele_in_cell_[node_id(m_min_)];
-		}
-
-		template<typename ...Args>
-		void reset(Args &&...args)
-		{
-			this_type(pack(args)...).swap(*this);
-		}
-
-		struct iterator : public std::iterator<
-				typename std::bidirectional_iterator_tag, id_type,
-				difference_type>
-		{
-		private:
-			id_type m_min_, m_max_, m_self_;
-		public:
-			iterator(id_type const &min, id_type const &max,
-					id_type const &self) :
-					m_min_(min), m_max_(max), m_self_(self)
-			{
-			}
-
-			iterator(id_type const &min, id_type const &max) :
-					m_min_(min), m_max_(max), m_self_(min)
-			{
-			}
-
-			iterator(iterator const &other) :
-					m_min_(other.m_min_), m_max_(other.m_max_), m_self_(
-					other.m_self_)
-			{
-			}
-
-			~iterator()
-			{
-
-			}
-
-			typedef iterator this_type;
-
-			bool operator==(this_type const &other) const
-			{
-				return m_self_ == other.m_self_;
-			}
-
-			bool operator!=(this_type const &other) const
-			{
-				return m_self_ != other.m_self_;
-			}
-
-			value_type const &operator*() const
-			{
-				return m_self_;
-			}
-
-		private:
-
-			index_type carray_(id_type *self, id_type min, id_type max,
-					index_type flag = 0)
-			{
-
-				auto div = std::div(
-						static_cast<long>(*self + flag * (_D << 1) + max
-								- min * 2), static_cast<long>(max - min));
-
-				*self = static_cast<id_type>(div.rem + min);
-
-				return div.quot - 1L;
-			}
-
-			index_type carray(id_type *self, id_type xmin, id_type xmax,
-					index_type flag = 0)
-			{
-				id_tuple idx, min, max;
-
-				idx = unpack(*self);
-				min = unpack(xmin);
-				max = unpack(xmax);
-
-				flag = carray_(&idx[0], min[0], max[0], flag);
-				flag = carray_(&idx[1], min[1], max[1], flag);
-				flag = carray_(&idx[2], min[2], max[2], flag);
-
-				*self = pack(idx) | (std::abs(flag) << (FULL_DIGITS - 1));
-				return flag;
-			}
-
-		public:
-			void next()
-			{
-				m_self_ = rotate(m_self_);
-				if (sub_index(m_self_) == 0)
-				{
-					carray(&m_self_, m_min_, m_max_, 1);
-				}
-
-			}
-
-			void prev()
-			{
-				m_self_ = inverse_rotate(m_self_);
-				if (sub_index(m_self_) == 0)
-				{
-					carray(&m_self_, m_min_, m_max_, -1);
-				}
-			}
-
-			this_type &operator++()
-			{
-				next();
-				return *this;
-			}
-
-			this_type &operator--()
-			{
-				prev();
-
-				return *this;
-			}
-
-			this_type operator++(int)
-			{
-				this_type res(*this);
-				++(*this);
-				return std::move(res);
-			}
-
-			this_type operator--(int)
-			{
-				this_type res(*this);
-				--(*this);
-				return std::move(res);
-			}
-
-		};
-
-	};
 
 	static constexpr size_t hash(id_type s, id_type b, id_type e)
 	{
@@ -905,21 +636,21 @@ struct MeshIDs_
 
 		return
 
-				(UNPACK_INDEX(s, 0) % UNPACK_INDEX(d, 0)) +
+				static_cast<size_t>((UNPACK_INDEX(s, 0) % UNPACK_INDEX(d, 0)) +
 						(
 								(UNPACK_INDEX(s, 1) % UNPACK_INDEX(d, 1)) +
 										(UNPACK_INDEX(s, 2) % UNPACK_INDEX(d, 2)) * UNPACK_INDEX(d, 1)
 						)
 
-								* UNPACK_INDEX(d, 0);
+								* UNPACK_INDEX(d, 0));
 
 	}
 
 	template<size_t IFORM>
 	static constexpr size_t max_hash(id_type b, id_type e)
 	{
-		return NProduct(unpack_index(e - b))
-				* m_id_to_num_of_ele_in_cell_[sub_index_to_id<IFORM>(0)];
+		return static_cast<size_t>(NProduct(unpack_index(e - b))
+				* m_id_to_num_of_ele_in_cell_[sub_index_to_id<IFORM>(0)]);
 	}
 
 	template<size_t AXE>
@@ -1006,7 +737,391 @@ template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::id_type
 
 template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::point_type MeshIDs_<TAGS>::m_id_to_coordinates_shift_[];
 
+
+namespace traits
+{
+template<typename> struct id_type;
+template<size_t TAGS>
+struct id_type<MeshIDs_<TAGS>>
+{
+	typedef typename MeshIDs_<TAGS>::id_type type;
+};
+
+template<typename> struct point_type;
+template<size_t TAGS>
+struct point_type<MeshIDs_<TAGS>>
+{
+	typedef typename MeshIDs_<TAGS>::point_type type;
+};
+
+}  // namespace traits
+
 typedef MeshIDs_<> MeshIDs;
+
+
+template<size_t TAGS>
+struct range<MeshIDs_<TAGS> >
+{
+
+
+public:
+
+	typedef MeshIDs_<TAGS> mesh_type;
+	typedef MeshIDs_<TAGS> m;
+
+	typedef range<mesh_type> this_type;
+
+	typedef typename mesh_type::id_type id_type;
+	typedef typename mesh_type::id_tuple id_tuple;
+
+	typedef id_type value_type;
+
+	typedef size_t difference_type;
+
+
+	typedef typename m::index_type index_type;
+
+	struct iterator;
+
+	typedef iterator const_iterator;
+//private:
+
+	id_type m_min_, m_max_;
+
+
+	/**
+	 *
+	 *   -----------------------------5
+	 *   |                            |
+	 *   |     ---------------4       |
+	 *   |     |              |       |
+	 *   |     |  ********3   |       |
+	 *   |     |  *       *   |       |
+	 *   |     |  *       *   |       |
+	 *   |     |  *       *   |       |
+	 *   |     |  2********   |       |
+	 *   |     1---------------       |
+	 *   0-----------------------------
+	 *
+	 *	5-0 = dimensions
+	 *	4-1 = e-d = ghosts
+	 *	2-1 = counts
+	 *
+	 *	0 = id_begin
+	 *	5 = id_end
+	 *
+	 *	1 = id_local_outer_begin
+	 *	4 = id_local_outer_end
+	 *
+	 *	2 = id_local_inner_begin
+	 *	3 = id_local_inner_end
+	 *
+	 *
+	 */
+
+	id_type m_id_min_;
+
+	id_type m_id_max_;
+
+	id_type m_id_local_min_;
+
+	id_type m_id_local_max_;
+
+	id_type m_id_memory_min_;
+
+	id_type m_id_memory_max_;
+
+
+public:
+
+	range()
+	{
+
+	}
+
+	template<typename T0, typename T1>
+	range(T0 const &min, T1 const &max,
+			int n_id = 0
+	) :
+			m_min_(m::pack_index(min) | m::m_id_to_shift_[n_id]),
+
+			m_max_(m::pack_index(max) | m::m_id_to_shift_[n_id])
+	{
+
+	}
+
+	range(id_type const &min, id_type const &max, int n_id = 0
+	) :
+			m_min_(min | m::m_id_to_shift_[n_id]),
+			m_max_(max | m::m_id_to_shift_[n_id])
+	{
+
+	}
+
+	range(this_type const &other) :
+			m_min_(other.m_min_),
+			m_max_(other.m_max_),
+
+			m_id_min_(other.m_id_min_),
+
+			m_id_max_(other.m_id_max_),
+
+			m_id_local_min_(other.m_id_local_min_),
+
+			m_id_local_max_(other.m_id_local_max_),
+
+			m_id_memory_max_(other.m_id_memory_max_),
+
+			m_id_memory_min_(other.m_id_memory_min_)
+	{
+
+	}
+
+	~range()
+	{
+
+	}
+
+	this_type &operator=(this_type const &other)
+	{
+		this_type(other).swap(*this);
+		return *this;
+	}
+
+	this_type operator&(this_type const &other) const
+	{
+		return *this;
+	}
+
+	void swap(this_type &other)
+	{
+		std::swap(m_min_, other.m_min_);
+		std::swap(m_max_, other.m_max_);
+		std::swap(m_id_min_, other.m_id_min_);
+		std::swap(m_id_max_, other.m_id_max_);
+		std::swap(m_id_local_min_, other.m_id_local_min_);
+		std::swap(m_id_local_max_, other.m_id_local_max_);
+		std::swap(m_id_memory_max_, other.m_id_memory_max_);
+		std::swap(m_id_memory_min_, other.m_id_memory_min_);
+	}
+
+	std::tuple<id_tuple, id_tuple> index_box() const
+	{
+		return std::make_tuple(m::unpack_index(m_id_min_),
+				m::unpack_index(m_id_max_));
+	}
+
+	std::tuple<id_tuple, id_tuple> local_index_box() const
+	{
+		return std::make_tuple(m::unpack_index(m_id_local_min_),
+				m::unpack_index(m_id_local_max_));
+	}
+
+	template<typename OS>
+	OS &print(OS &os) const
+	{
+
+
+//		os << " Dimensions\t= " << dimensions() << "," << std::endl;
+
+		return os;
+
+	}
+
+	const_iterator begin() const
+	{
+		return const_iterator(m_min_, m_max_, m_min_);
+	}
+
+	const_iterator end() const
+	{
+		return ++const_iterator(m_min_, m_max_,
+				m::inverse_rotate(m_max_ - (m::_DA << 1)));
+	}
+
+//		const_iterator rbegin() const
+//		{
+//			return const_iterator(m_min_, m_max_,
+//					inverse_rotate(m_max_ - (_DA << 1)));
+//		}
+//
+//		const_iterator rend() const
+//		{
+//			const_iterator res(m_min_, m_max_,
+//					inverse_rotate(m_min_ - (_DA << 1)));
+//
+//			++res;
+//			return std::move(res);
+//		}
+
+	auto box() const
+	DECL_RET_TYPE(std::forward_as_tuple(m_min_, m_max_))
+
+	template<typename T>
+	bool in_box(T const &x) const
+	{
+		auto b = m::unpack_index(m_min_);
+		auto e = m::unpack_index(m_max_);
+		return (b[1] <= x[1]) && (b[2] <= x[2]) && (b[0] <= x[0])  //
+				&& (e[1] > x[1]) && (e[2] > x[2]) && (e[0] > x[0]);
+
+	}
+
+	constexpr bool in_box(id_type s) const
+	{
+		return in_box(m::unpack_index(s));
+	}
+
+	constexpr bool empty() const
+	{
+		return m_min_ == m_max_;
+	}
+
+	void clear()
+	{
+		m_min_ = m_max_;
+	}
+
+	constexpr difference_type size() const
+	{
+		return NProduct(m::unpack_index(m_max_ - m_min_))
+				* m::m_id_to_num_of_ele_in_cell_[m::node_id(m_min_)];
+	}
+
+	template<typename ...Args>
+	void reset(Args &&...args)
+	{
+		this_type(m::pack(args)...).swap(*this);
+	}
+
+	struct iterator : public std::iterator<
+			typename std::bidirectional_iterator_tag, id_type,
+			difference_type>
+	{
+	private:
+		id_type m_min_, m_max_, m_self_;
+	public:
+		iterator(id_type const &min, id_type const &max,
+				id_type const &self) :
+				m_min_(min), m_max_(max), m_self_(self)
+		{
+		}
+
+		iterator(id_type const &min, id_type const &max) :
+				m_min_(min), m_max_(max), m_self_(min)
+		{
+		}
+
+		iterator(iterator const &other) :
+				m_min_(other.m_min_), m_max_(other.m_max_), m_self_(
+				other.m_self_)
+		{
+		}
+
+		~iterator()
+		{
+
+		}
+
+		typedef iterator this_type;
+
+		bool operator==(this_type const &other) const
+		{
+			return m_self_ == other.m_self_;
+		}
+
+		bool operator!=(this_type const &other) const
+		{
+			return m_self_ != other.m_self_;
+		}
+
+		value_type const &operator*() const
+		{
+			return m_self_;
+		}
+
+	private:
+
+		index_type carray_(id_type *self, id_type min, id_type max,
+				index_type flag = 0)
+		{
+
+			auto div = std::div(
+					static_cast<long>(*self + flag * (m::_D << 1) + max
+							- min * 2), static_cast<long>(max - min));
+
+			*self = static_cast<id_type>(div.rem + min);
+
+			return div.quot - 1L;
+		}
+
+		index_type carray(id_type *self, id_type xmin, id_type xmax,
+				index_type flag = 0)
+		{
+			typename m::id_tuple idx, min, max;
+
+			idx = m::unpack(*self);
+			min = m::unpack(xmin);
+			max = m::unpack(xmax);
+
+			flag = carray_(&idx[0], min[0], max[0], flag);
+			flag = carray_(&idx[1], min[1], max[1], flag);
+			flag = carray_(&idx[2], min[2], max[2], flag);
+
+			*self = m::pack(idx) | (std::abs(flag) << (m::FULL_DIGITS - 1));
+			return flag;
+		}
+
+	public:
+		void next()
+		{
+			m_self_ = m::rotate(m_self_);
+			if (m::sub_index(m_self_) == 0)
+			{
+				carray(&m_self_, m_min_, m_max_, 1);
+			}
+
+		}
+
+		void prev()
+		{
+			m_self_ = m::inverse_rotate(m_self_);
+			if (m::sub_index(m_self_) == 0)
+			{
+				carray(&m_self_, m_min_, m_max_, -1);
+			}
+		}
+
+		this_type &operator++()
+		{
+			next();
+			return *this;
+		}
+
+		this_type &operator--()
+		{
+			prev();
+
+			return *this;
+		}
+
+		this_type operator++(int)
+		{
+			this_type res(*this);
+			++(*this);
+			return std::move(res);
+		}
+
+		this_type operator--(int)
+		{
+			this_type res(*this);
+			--(*this);
+			return std::move(res);
+		}
+
+	};
+
+};
 
 }
 // namespace simpla

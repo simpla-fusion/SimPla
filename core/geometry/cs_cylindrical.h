@@ -265,10 +265,10 @@ constexpr size_t map<coordinate_system::Cartesian<3, ICARTESIAN_ZAXIS>,
 template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
 constexpr size_t map<coordinate_system::Cartesian<3, ICARTESIAN_ZAXIS>,
 		coordinate_system::Cylindrical<IPhiAxis> >::CartesianZAxis;
-template<typename > struct mertic;
+template<typename > struct metric;
 
 template<size_t IPhiAxis>
-struct mertic<coordinate_system::template Cylindrical<IPhiAxis> >
+struct metric<coordinate_system::template Cylindrical<IPhiAxis> >
 {
 
 	typedef gt::point_t<coordinate_system::Cylindrical<IPhiAxis> > point_t;
