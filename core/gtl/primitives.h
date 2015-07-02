@@ -55,7 +55,7 @@ enum ArrayOrder
 	FORTRAN_ORDER //  FAST_FIRST
 };
 typedef int8_t ByteType; // int8_t
-
+typedef std::uint64_t id_type;
 typedef double Real;
 
 typedef long Integral;
