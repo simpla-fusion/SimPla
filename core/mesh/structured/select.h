@@ -18,29 +18,29 @@ namespace tags
 {
 struct structured;
 }  // namespace tags
-
-template<typename CoordinateSystem, typename DistanceFunction, typename TBox,
-		typename ...Aags>
-void select(Mesh<CoordinateSystem, tags::structured> const &mesh,
-            DistanceFunction const &dist, TBox const &t_box, Aags &&...args)
-{
-	typedef typename Mesh<CoordinateSystem, tags::structured>::id_type id_type;
-	typedef typename Mesh<CoordinateSystem, tags::structured>::topology_type topology_type;
-
-	select(dynamic_cast<topology_type const &>(mesh),
-
-	       [&](id_type t)
-	       {
-	           return static_cast<Real>(dist(mesh.point(t)));
-	       },
-
-	       mesh.inv_map(traits::get<0>(t_box)), mesh.inv_map(traits::get<1>(t_box)),
-
-	       std::forward<Args>(args)...
-
-	);
-
-}
+//
+//template<typename CoordinateSystem, typename DistanceFunction, typename TBox,
+//		typename ...Args>
+//void select(Mesh<CoordinateSystem, tags::structured> const &mesh,
+//            DistanceFunction const &dist, TBox const &t_box, Args &&...args)
+//{
+//	typedef typename Mesh<CoordinateSystem, tags::structured>::id_type id_type;
+//	typedef typename Mesh<CoordinateSystem, tags::structured>::topology_type topology_type;
+//
+//	select(dynamic_cast<topology_type const &>(mesh),
+//
+//	       [&](id_type t)
+//	       {
+//	           return static_cast<Real>(dist(mesh.point(t)));
+//	       },
+//
+//	       mesh.inv_map(traits::get<0>(t_box)), mesh.inv_map(traits::get<1>(t_box)),
+//
+//	       std::forward<Args>(args)...
+//
+//	);
+//
+//}
 
 /**
  *

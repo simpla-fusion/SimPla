@@ -31,7 +31,7 @@
 #include "mesh_traits.h"
 #include "mesh_ids.h"
 #include "policy.h"
-#include "structured/model.h"
+#include "structured/select.h"
 
 namespace simpla
 {
@@ -102,7 +102,7 @@ private:
 
 	geometry::mertic<cs_type> m_metric_;
 
-	static constexpr size_t DEFAULT_GHOST_WIDTH = 2;
+	enum{DEFAULT_GHOST_WIDTH = 2};
 
 	bool m_is_valid_ = false;
 
@@ -110,7 +110,7 @@ private:
 
 	topology_point_type m_from_topology_orig_ /*= { 0, 0, 0 }*/;
 
-	topology_point_type m_to_toplogy_orig_ /*= { 0, 0, 0 }*/;
+	topology_point_type m_to_topology_orig_ /*= { 0, 0, 0 }*/;
 
 	point_type m_coords_min_ = { 0, 0, 0 };
 
@@ -476,13 +476,13 @@ public:
 				{
 
 				std::fma(traits::get<0>(y), m_to_topology_scale_[0],
-						m_to_toplogy_orig_[0]),
+						m_to_topology_orig_[0]),
 
 				std::fma(traits::get<1>(y), m_to_topology_scale_[1],
-						m_to_toplogy_orig_[1]),
+						m_to_topology_orig_[1]),
 
 				std::fma(traits::get<2>(y), m_to_topology_scale_[2],
-						m_to_toplogy_orig_[2])
+						m_to_topology_orig_[2])
 
 				});
 	}
@@ -707,7 +707,7 @@ void Mesh<CoordinateSystem, tags::structured>::deploy(size_t const *gw)
 					/ static_cast<Real>(dims[i])
 					/ topology_type::COORDINATES_MESH_FACTOR;
 
-			m_to_toplogy_orig_[i] = -m_coords_min_[i] * m_to_topology_scale_[i]
+			m_to_topology_orig_[i] = -m_coords_min_[i] * m_to_topology_scale_[i]
 					+ topology_type::INDEX_ZERO;
 
 			m_from_topology_orig_[i] = m_coords_min_[i]
@@ -738,7 +738,7 @@ void Mesh<CoordinateSystem, tags::structured>::deploy(size_t const *gw)
 
 			m_from_topology_scale_[i] = 0;
 
-			m_to_toplogy_orig_[i] = -m_coords_min_[i] * m_to_topology_scale_[i]
+			m_to_topology_orig_[i] = -m_coords_min_[i] * m_to_topology_scale_[i]
 					+ topology_type::INDEX_ZERO;
 
 			m_from_topology_orig_[i] = -m_from_topology_scale_[i]
