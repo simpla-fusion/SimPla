@@ -35,7 +35,10 @@ using namespace simpla;
 #  include "../../core/geometry/cs_cylindrical.h"
 #  define COORDINATE_SYSTEM Cylindrical<2>
 #else
-#  include "../../core/geometry/cs_cartesian.h"
+# include "../../core/geometry/cs_cartesian.h"
+# include "../../core/field/field_dense.h"
+#include "../../core/field/field_constant.h"
+
 #  define COORDINATE_SYSTEM simpla::geometry::coordinate_system::Cartesian<3, 2>
 #endif
 
@@ -94,7 +97,9 @@ USE_CASE(em," Maxwell Eqs.")
 //	}
 
 	auto J = make_form<EDGE, Real>(*mesh);
+
 	auto E = make_form<EDGE, Real>(*mesh);
+
 	auto B = make_form<FACE, Real>(*mesh);
 
 	E = make_function_by_config<Real>(options["InitValue"]["E"],
