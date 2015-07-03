@@ -65,10 +65,10 @@ std::tuple<int, int> sync_global_location(int count)
 	return std::make_tuple(begin, count);
 
 }
-void get_ghost_shape(size_t ndims, size_t const * l_offset,
-		size_t const * l_stride, size_t const * l_count, size_t const * l_block,
-		size_t const * ghost_width,
-		std::vector<mpi_ghosts_shape_s>* send_recv_list)
+void get_ghost_shape(int ndims, size_t const *l_offset,
+		size_t const *l_stride, size_t const *l_count, size_t const *l_block,
+		size_t const *ghost_width,
+		std::vector<mpi_ghosts_shape_s> *send_recv_list)
 {
 	send_recv_list->clear();
 

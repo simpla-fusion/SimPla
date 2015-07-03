@@ -64,7 +64,7 @@ struct structured;
  * @param SEARCH_DEPTH max depth of searching, which is used to reject
  *      trivial  invalid voxel. When SEARCH_DEPTH is small, it is
  *      possible to miss object smaller then voxel.
- *        suggested value SEARCH_DEPTH=MESH_RESOLUTION
+ *        suggested value SEARCH_DEPTH=DEFAULT_MESH_RESOLUTION
  */
 
 template<size_t TAGS, typename DistanceFunction, typename OpFunction>
