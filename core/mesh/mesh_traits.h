@@ -22,6 +22,16 @@ namespace simpla
 {
 
 
+enum ManifoldTypeID
+{
+	VERTEX = 0,
+
+	EDGE = 1,
+
+	FACE = 2,
+
+	VOLUME = 3
+};
 
 
 /**
