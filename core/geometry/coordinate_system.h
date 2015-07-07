@@ -47,7 +47,7 @@ struct Cartesian
 struct Spherical
 {
 };
-template<size_t IPhiAxis = 2>
+template<int IPhiAxis = 2>
 struct Cylindrical
 {
 };
@@ -104,18 +104,18 @@ using covector_type_t=typename vector_type<CS>::type;
 template<typename CS>
 struct dimension
 {
-	static constexpr size_t value = 3;
+	static constexpr int value = 3;
 };
 
 template<>
 struct dimension<geometry::coordinate_system::Polar>
 {
-	static constexpr size_t value = 2;
+	static constexpr int value = 2;
 };
-template<size_t N>
+template<int N>
 struct dimension<geometry::coordinate_system::Cartesian<N>>
 {
-	static constexpr size_t value = N;
+	static constexpr int value = N;
 };
 
 template<typename CS>
@@ -143,7 +143,7 @@ struct is_homogeneous<geometry::coordinate_system::MagneticFLux>
 {
 	static constexpr bool value = false;
 };
-template<size_t N>
+template<int N>
 struct typename_as_string<geometry::coordinate_system::Cartesian<N>>
 {
 	static constexpr char value[] = "Cartesian";
@@ -154,24 +154,24 @@ struct typename_as_string<geometry::coordinate_system::Spherical>
 	static constexpr char value[] = "Spherical";
 };
 
-template<size_t PhiAXIS>
+template<int PhiAXIS>
 struct typename_as_string<geometry::coordinate_system::Cylindrical<PhiAXIS>>
 {
 	static constexpr char value[] = "Cylindrical";
 };
 template<typename TM>
-struct ZAxis: public std::integral_constant<size_t, 2>
+struct ZAxis: public std::integral_constant<int, 2>
 {
 };
-template<size_t PhiAXIS>
+template<int PhiAXIS>
 struct ZAxis<geometry::coordinate_system::Cylindrical<PhiAXIS>> : public std::integral_constant<
-		size_t, (PhiAXIS + 2) % 3>
+		int, (PhiAXIS + 2) % 3>
 {
 };
 
-template<size_t NDIMS, size_t ZAXIS>
+template<int NDIMS, int ZAXIS>
 struct ZAxis<geometry::coordinate_system::Cartesian<NDIMS, ZAXIS>> : public std::integral_constant<
-		size_t, ZAXIS>
+		int, ZAXIS>
 {
 };
 }  // namespace traits
