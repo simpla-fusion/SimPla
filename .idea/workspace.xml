@@ -13,6 +13,7 @@
       <config projectName="SimPla" targetName="NightlyMemCheck" />
       <config projectName="SimPla" targetName="NightlyConfigure" />
       <config projectName="SimPla" targetName="demo_mhd" />
+      <config projectName="SimPla" targetName="doc" />
       <config projectName="SimPla" targetName="field_basic_algerbra_test" />
       <config projectName="SimPla" targetName="NightlyCoverage" />
       <config projectName="SimPla" targetName="demo_general_field_op" />
@@ -31,7 +32,7 @@
       <config projectName="SimPla" targetName="context" />
       <config projectName="SimPla" targetName="googletest" />
       <config projectName="SimPla" targetName="ExperimentalCoverage" />
-      <config projectName="SimPla" targetName="physics" />
+      <config projectName="SimPla" targetName="application" />
       <config projectName="SimPla" targetName="Experimental" />
       <config projectName="SimPla" targetName="ContinuousUpdate" />
       <config projectName="SimPla" targetName="interpolator_test" />
@@ -46,19 +47,18 @@
       <config projectName="SimPla" targetName="properties_test" />
       <config projectName="SimPla" targetName="demo_misc3" />
       <config projectName="SimPla" targetName="lhw" />
-      <config projectName="SimPla" targetName="ContinuousMemCheck" />
+      <config projectName="SimPla" targetName="ExperimentalTest" />
       <config projectName="SimPla" targetName="geqdsk" />
       <config projectName="SimPla" targetName="field_diff_calculus_cylindrical_test" />
       <config projectName="SimPla" targetName="NightlyTest" />
       <config projectName="SimPla" targetName="ExperimentalStart" />
-      <config projectName="SimPla" targetName="application" />
+      <config projectName="SimPla" targetName="demo_misc" />
       <config projectName="SimPla" targetName="multi_thread_test" />
       <config projectName="SimPla" targetName="ContinuousBuild" />
       <config projectName="SimPla" targetName="ExperimentalBuild" />
-      <config projectName="SimPla" targetName="demo_misc" />
       <config projectName="SimPla" targetName="NightlyUpdate" />
       <config projectName="SimPla" targetName="simpla_aux" />
-      <config projectName="SimPla" targetName="doc" />
+      <config projectName="SimPla" targetName="physics" />
       <config projectName="SimPla" targetName="demo_misc2" />
       <config projectName="SimPla" targetName="NightlySubmit" />
       <config projectName="SimPla" targetName="log_test" />
@@ -66,10 +66,10 @@
       <config projectName="SimPla" targetName="demo_model" />
       <config projectName="SimPla" targetName="ExperimentalConfigure" />
       <config projectName="SimPla" targetName="NightlyMemoryCheck" />
+      <config projectName="SimPla" targetName="ContinuousMemCheck" />
       <config projectName="SimPla" targetName="ExperimentalSubmit" />
       <config projectName="SimPla" targetName="all_clion" />
       <config projectName="SimPla" targetName="ContinuousStart" />
-      <config projectName="SimPla" targetName="ExperimentalTest" />
       <config projectName="SimPla" targetName="ContinuousCoverage" />
       <config projectName="SimPla" targetName="memory_pool_test" />
       <config projectName="SimPla" targetName="demo_geometry" />
@@ -82,16 +82,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="93dd54e0-e964-42df-a9fa-df20e4476d54" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/.name" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/codeStyleSettings.xml" afterPath="" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/mesh/block/block.h" afterPath="$PROJECT_DIR$/core/mesh/block/block.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/geometry/coordinate_system.h" afterPath="$PROJECT_DIR$/core/geometry/coordinate_system.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/mesh/block/mesh_amr.h" afterPath="$PROJECT_DIR$/core/mesh/block/mesh_amr.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/mesh/block/mesh_id.h" afterPath="$PROJECT_DIR$/core/mesh/block/mesh_id.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/mesh/mesh_ids.h" afterPath="$PROJECT_DIR$/core/mesh/mesh_ids.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/dictionaries/salmon.xml" afterPath="$PROJECT_DIR$/.idea/dictionaries/salmon.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/mesh/structured.h" afterPath="$PROJECT_DIR$/core/mesh/structured.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="SimPla.iws" />
@@ -116,13 +110,14 @@
       <file leaf-file-name="mesh_amr.h" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/core/mesh/block/mesh_amr.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.083076924">
-              <caret line="3" column="0" selection-start-line="3" selection-start-column="0" selection-end-line="3" selection-end-column="0" />
+            <state vertical-scroll-proportion="0.76187104">
+              <caret line="131" column="51" selection-start-line="131" selection-start-column="51" selection-end-line="131" selection-end-column="51" />
               <folding>
-                <element signature="e#92#107#0" expanded="true" />
-                <element signature="e#246#257#0" expanded="true" />
-                <element signature="e#330#354#0" expanded="true" />
-                <element signature="e#728#741#0" expanded="true" />
+                <element signature="e#92#106#0" expanded="true" />
+                <element signature="e#385#399#0" expanded="true" />
+                <element signature="e#1790#1814#0" expanded="true" />
+                <element signature="e#1993#2017#0" expanded="true" />
+                <element signature="e#2068#2092#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -137,22 +132,27 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/core/geometry/coordinate_system.h" />
-        <option value="$PROJECT_DIR$/core/mesh/block/mesh_amr.h" />
         <option value="$PROJECT_DIR$/core/mesh/mesh_ids.h" />
-        <option value="$PROJECT_DIR$/core/mesh/block/block.h" />
-        <option value="$PROJECT_DIR$/core/mesh/block/mesh_id.h" />
         <option value="$PROJECT_DIR$/core/mesh/structured.h" />
+        <option value="$PROJECT_DIR$/core/mesh/block/mesh_id.h" />
+        <option value="$PROJECT_DIR$/core/mesh/block/block.h" />
+        <option value="$PROJECT_DIR$/core/mesh/block/block_id.h" />
+        <option value="$PROJECT_DIR$/core/mesh/block/mesh_amr.h" />
       </list>
     </option>
+  </component>
+  <component name="JsBuildToolGruntFileManager" detection-done="true" />
+  <component name="JsGulpfileManager">
+    <detection-done>true</detection-done>
   </component>
   <component name="NamedScopeManager">
     <order />
   </component>
   <component name="ProjectFrameBounds">
     <option name="x" value="-2" />
-    <option name="y" value="-23" />
-    <option name="width" value="1924" />
-    <option name="height" value="1107" />
+    <option name="y" value="1057" />
+    <option name="width" value="2564" />
+    <option name="height" value="1467" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="false">
     <OptionsSetting value="true" id="Add" />
@@ -161,7 +161,7 @@
     <OptionsSetting value="true" id="Update" />
     <OptionsSetting value="true" id="Status" />
     <OptionsSetting value="true" id="Edit" />
-    <ConfirmationsSetting value="0" id="Add" />
+    <ConfirmationsSetting value="1" id="Add" />
     <ConfirmationsSetting value="0" id="Remove" />
   </component>
   <component name="ProjectView">
@@ -227,6 +227,28 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SimPla" />
+              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$1$1" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SimPla" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="core" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="mesh" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="block" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
         </subPane>
       </pane>
     </panes>
@@ -244,6 +266,9 @@
   <component name="RunManager" selected="Application.field_diff_calculus_cartesian_test">
     <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="SimPla" TARGET_NAME="all_clion" CONFIG_NAME="Debug">
       <envs />
+      <method />
+    </configuration>
+    <configuration default="true" type="js.build_tools.gulp" factoryName="Gulp.js">
       <method />
     </configuration>
     <configuration default="false" name="Build All" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" CONFIG_NAME="Debug" EXPLICIT_BUILD_TARGET_NAME="all">
@@ -623,27 +648,27 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-2" y="-23" width="1924" height="1107" extended-state="6" />
-    <editor active="false" />
+    <frame x="-2" y="1057" width="2564" height="1467" extended-state="4" />
+    <editor active="true" />
     <layout>
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.23046875" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32970297" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
       <window_info id="CMake" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3992095" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32970297" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.23056443" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="LuaJ" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32905138" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32916668" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32970297" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3992095" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32905138" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
@@ -663,14 +688,24 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/core/mesh/block/mesh_amr.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="3" column="0" selection-start-line="3" selection-start-column="0" selection-end-line="3" selection-end-column="0" />
+          <folding>
+            <element signature="e#92#106#0" expanded="true" />
+            <element signature="e#385#399#0" expanded="true" />
+            <element signature="e#1790#1814#0" expanded="true" />
+            <element signature="e#1993#2017#0" expanded="true" />
+            <element signature="e#2068#2092#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/core/mesh/time_integrator/time_integrator.h">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="12" column="1" selection-start-line="12" selection-start-column="1" selection-end-line="12" selection-end-column="1" />
-          <folding>
-            <element signature="e#132#146#0" expanded="true" />
-            <element signature="e#179#212#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -693,9 +728,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="7" column="9" selection-start-line="7" selection-start-column="9" selection-end-line="7" selection-end-column="9" />
-          <folding>
-            <element signature="e#98#131#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -705,38 +737,6 @@
           <caret line="19" column="0" selection-start-line="19" selection-start-column="0" selection-end-line="19" selection-end-column="0" />
           <folding>
             <element signature="e#131#150#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/mesh/block/mesh_id.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="163" column="42" selection-start-line="163" selection-start-column="42" selection-end-line="163" selection-end-column="42" />
-          <folding>
-            <element signature="e#26873#26887#0" expanded="true" />
-            <element signature="e#26931#26945#0" expanded="true" />
-            <element signature="e#26999#27013#0" expanded="true" />
-            <element signature="e#27061#27075#0" expanded="true" />
-            <element signature="e#27127#27141#0" expanded="true" />
-            <element signature="e#27220#27234#0" expanded="true" />
-            <element signature="e#27307#27321#0" expanded="true" />
-            <element signature="e#27397#27411#0" expanded="true" />
-            <element signature="e#27486#27500#0" expanded="true" />
-            <element signature="e#27573#27587#0" expanded="true" />
-            <element signature="e#27656#27670#0" expanded="true" />
-            <element signature="e#27739#27753#0" expanded="true" />
-            <element signature="e#27822#27836#0" expanded="true" />
-            <element signature="e#27907#27921#0" expanded="true" />
-            <element signature="e#27977#27991#0" expanded="true" />
-            <element signature="e#28047#28061#0" expanded="true" />
-            <element signature="e#28129#28143#0" expanded="true" />
-            <element signature="e#28216#28230#0" expanded="true" />
-            <element signature="e#28291#28305#0" expanded="true" />
-            <element signature="e#28387#28401#0" expanded="true" />
-            <element signature="e#28487#28501#0" expanded="true" />
-            <element signature="e#28593#28607#0" expanded="true" />
-            <element signature="e#28759#28773#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -778,16 +778,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/core/mesh/block/block.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="193" column="0" selection-start-line="193" selection-start-column="0" selection-end-line="193" selection-end-column="0" />
-          <folding>
-            <element signature="e#110#130#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/core/mesh/block/block_layout.h">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -796,15 +786,276 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/core/mesh/block/mesh_id.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="1.733843">
+          <caret line="925" column="0" selection-start-line="925" selection-start-column="0" selection-end-line="926" selection-end-column="0" />
+          <folding>
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1436318837423" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="&lt;int NDIMS,int LEVEL&gt;" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="false" signature="-1:-1" placeholder="&lt;size_t IFORM&gt;" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="false" signature="-1:-1" placeholder="&lt;TX&gt;" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="false" signature="-1:-1" placeholder="&lt;size_t IFORM,size_t NODE_ID&gt;" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="false" signature="-1:-1" placeholder="&lt;size_t IFORM&gt;" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="false" signature="-1:-1" placeholder="&lt;size_t AXE&gt;" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="false" signature="-1:-1" placeholder="&lt;size_t AXE&gt;" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="false" signature="-1:-1" placeholder="&lt;TID&gt;" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="&lt;int N,int L&gt;" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="&lt;int N,int L&gt;" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="&lt;int N,int L&gt;" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="&lt;int N,int L&gt;" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="&lt;int N,int L&gt;" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="&lt;int N,int L&gt;" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="&lt;int N,int L&gt;" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="&lt;int N,int L&gt;" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="&lt;int N,int L&gt;" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="&lt;int N,int L&gt;" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="&lt;int N,int L&gt;" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="&lt;int N,int L&gt;" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="&lt;int N,int L&gt;" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="&lt;int N,int L&gt;" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="&lt;int N,int L&gt;" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="&lt;int N,int L&gt;" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="&lt;int N,int L&gt;" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="&lt;int N,int L&gt;" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="&lt;int N,int L&gt;" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="&lt;int N,int L&gt;" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="&lt;int N,int L&gt;" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="&lt;int N,int L&gt;" />
+            <marker date="1436318837423" expanded="true" signature="-1:-1" placeholder="&lt;int N,int L&gt;" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/mesh/block/block.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.14454482">
+          <caret line="20" column="0" selection-start-line="20" selection-start-column="0" selection-end-line="20" selection-end-column="0" />
+          <folding>
+            <marker date="1436319639995" expanded="true" signature="-1:-1" placeholder="//..." />
+            <marker date="1436319639995" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1436319639995" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436319639995" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1436319639995" expanded="false" signature="-1:-1" placeholder="&lt;int NDIMS,size_t LEVEL&gt;" />
+            <marker date="1436319639995" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436319639995" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1436319639995" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436319639995" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436319639995" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436319639995" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436319639995" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436319639995" expanded="false" signature="-1:-1" placeholder="&lt;TI&gt;" />
+            <marker date="1436319639995" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436319639995" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436319639995" expanded="false" signature="-1:-1" placeholder="&lt;size_t IFORM&gt;" />
+            <marker date="1436319639995" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436319639995" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436319639995" expanded="false" signature="-1:-1" placeholder="&lt;size_t IFORM&gt;" />
+            <marker date="1436319639995" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436319639995" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436319639995" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436319639995" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436319639995" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436319639995" expanded="false" signature="-1:-1" placeholder="&lt;size_t IFORM&gt;" />
+            <marker date="1436319639995" expanded="true" signature="-1:-1" placeholder="{...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/mesh/block/block_id.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.22237664">
+          <caret line="20" column="31" selection-start-line="20" selection-start-column="31" selection-end-line="20" selection-end-column="31" />
+          <folding>
+            <marker date="1436319891576" expanded="true" signature="-1:-1" placeholder="//..." />
+            <marker date="1436319891576" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436319891576" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436319891576" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436319891576" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436319891576" expanded="true" signature="-1:-1" placeholder="{...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/include/c++/4.8/bits/stl_map.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.33287004">
+          <caret line="539" column="4" selection-start-line="539" selection-start-column="4" selection-end-line="539" selection-end-column="4" />
+          <folding>
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="//..." />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/.../" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_Key,_Tp,_Compare=std::less&lt;_Key&gt;,_Alloc=std::allocator&lt;std::pair&lt;const _Key,_Tp&gt;&gt;&gt;" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_InputIterator&gt;" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_InputIterator&gt;" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;..._Args&gt;" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;..._Args&gt;" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_Pair,=std::enable_if&lt;std::is_constructible&lt;value_type,_Pair&amp;&amp;&gt;::value&gt;::type&gt;" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_Pair,=std::enable_if&lt;std::is_constructible&lt;value_type,_Pair&amp;&amp;&gt;::value&gt;::type&gt;" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_InputIterator&gt;" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_K1,_T1,_C1,_A1&gt;" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_K1,_T1,_C1,_A1&gt;" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_Key,_Tp,_Compare,_Alloc&gt;" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_Key,_Tp,_Compare,_Alloc&gt;" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_Key,_Tp,_Compare,_Alloc&gt;" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_Key,_Tp,_Compare,_Alloc&gt;" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_Key,_Tp,_Compare,_Alloc&gt;" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_Key,_Tp,_Compare,_Alloc&gt;" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_Key,_Tp,_Compare,_Alloc&gt;" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/core/mesh/block/mesh_amr.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.083076924">
-          <caret line="3" column="0" selection-start-line="3" selection-start-column="0" selection-end-line="3" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.76187104">
+          <caret line="131" column="51" selection-start-line="131" selection-start-column="51" selection-end-line="131" selection-end-column="51" />
           <folding>
-            <element signature="e#92#107#0" expanded="true" />
-            <element signature="e#246#257#0" expanded="true" />
-            <element signature="e#330#354#0" expanded="true" />
-            <element signature="e#728#741#0" expanded="true" />
+            <element signature="e#92#106#0" expanded="true" />
+            <element signature="e#385#399#0" expanded="true" />
+            <element signature="e#1790#1814#0" expanded="true" />
+            <element signature="e#1993#2017#0" expanded="true" />
+            <element signature="e#2068#2092#0" expanded="true" />
           </folding>
         </state>
       </provider>
