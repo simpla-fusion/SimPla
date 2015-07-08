@@ -4,33 +4,34 @@
 
 #ifndef SIMPLA_BLOCK_ID_H
 #define SIMPLA_BLOCK_ID_H
-namespace simpla
-{
+namespace simpla {
 
 struct BlockID
 {
-	typedef std::uint64_t value_type;
+    typedef std::uint64_t value_type;
 private:
-	value_type m_id_;
+    value_type m_id_;
 public:
+    enum { LOCAL, REMOTE, GLOBAL };
 
-	BlockID(value_type const &v) : m_id_(v)
-	{
-	}
+    BlockID(value_type const &v) : m_id_(v)
+    {
+    }
 
-	operator value_type() const
-	{
-		return m_id_;
-	}
+    operator value_type() const
+    {
+        return m_id_;
+    }
 
-	value_type id() const { return m_id_; }
+    value_type id() const
+    { return m_id_; }
 
 
-	int level() const;
+    int level() const;
 
-	int rank() const;
+    int rank() const;
 
-	int local_id() const;
+    int local_id() const;
 
 };
 
