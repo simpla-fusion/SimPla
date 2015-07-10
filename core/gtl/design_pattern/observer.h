@@ -6,23 +6,20 @@
 #define SIMPLA_GTL_DESIGN_PATTERN_OBSERVER_H
 
 #include <memory>
-#include <map>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
+#include <set>
 
 namespace simpla
 {
 
-struct Observable;
+template<typename SIGNATURE> struct Observable;
+template<typename SIGNATURE> struct Observer;
 
-struct Observer
+template<typename ...Args>
+struct Observer<void(Args...)>
 {
-	typedef boost::uuids::uuid id_type;
 
-	const id_type id;
 
-	Observer() :
-			id(boost::uuids::random_generator()())
+	Observer()
 	{
 	}
 
@@ -30,39 +27,34 @@ struct Observer
 	{
 		if (m_subject_ != nullptr)
 		{
-			m_subject_->remove_observer(*this);
+			m_subject_->disconnect(this);
 		}
 	};
 
-	void set_subject(Observable &subject)
+	void connect(Observable &subject)
 	{
 		m_subject_ = subject.shared_from_this();
 	}
 
-	void unset_subject()
+	void disconnect()
 	{
-		m_subject_ = nullptr;
+		std::shared_ptr<Observable>(nullptr).swap(m_subject_);
 	}
 
-	template<typename ...Args>
-	void notify(Args &&...args)
-	{
 
-	}
-
-	virtual void notify() = 0;
+	virtual void notify(Args ...) = 0;
 
 private:
 	std::shared_ptr<Observable> m_subject_;
 
 };
 
-
-struct Observable : public std::enable_shared_from_this<Observable>
+template<typename Signature>
+struct Observable<Signature> : public std::enable_shared_from_this<Observable<Signature>>
 {
-	typedef typename Observer::id_type id_type;
+	typedef Observer<Signature> observer_type;
 
-	std::map<id_type, std::shared_ptr<Observer>> m_observers_;
+	std::set<std::shared_ptr<observer_type>> m_observers_;
 
 
 	Observable()
@@ -78,50 +70,45 @@ struct Observable : public std::enable_shared_from_this<Observable>
 	{
 		for (auto &item:m_observers_)
 		{
-			item.second->notify(std::forward<Args>(args)...);
+			item->notify(std::forward<Args>(args)...);
 		}
 	}
 
 
-	void add_observer(std::shared_ptr<Observer> observer)
+	void connect(std::shared_ptr<observer_type> observer)
 	{
-
-		auto res = m_observers_.emplace(std::make_pair(observer->id, observer));
-
-		if (res.second)
-		{
-			res.first->second->set_subject(*this);
-		}
-
+		observer->connect(*this);
+		m_observers_.insert(observer);
 	};
 
 	template<typename T, typename ...Args>
-	typename std::enable_if<std::is_polymorphic<Observer>::value,
+	typename std::enable_if<std::is_polymorphic<observer_type>::value,
 			std::shared_ptr<T>>::type create_observer(Args &&...args)
 	{
 		auto res = std::make_shared<T>(std::forward<Args>(args)...);
 
-		add_observer(std::dynamic_pointer_cast<Observable>(res));
+		connect(std::dynamic_pointer_cast<observer_type>(res));
 
 		return res;
 
 	};
 
 
-	void remove_observer(Observer &observer)
+	void disconnect(observer_type *observer)
 	{
-		auto it = m_observers_.find(observer.id);
+		auto it = m_observers_.find(observer);
 
 		if (it != m_observers_.end())
 		{
-			it->second->unset_subject();
+			(**it).disconnect();
+
 			m_observers_.erase(it);
 		}
 	}
 
-	void remove_observer(std::shared_ptr<Observer> observer)
+	void remove_observer(std::shared_ptr<observer_type> &observer)
 	{
-		remove_observer(*observer);
+		disconnect(observer.get());
 	}
 
 
