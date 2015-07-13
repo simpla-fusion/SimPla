@@ -11,7 +11,7 @@
 
 #include "../mesh_traits.h"
 #include "../../geometry/coordinate_system.h"
-#include "../../gtl/design_pattern/signal_slot.h"
+#include "../../gtl/design_pattern/signal.h"
 
 #include "block.h"
 #include "block_id.h"
@@ -77,17 +77,20 @@ public:
 
 	}
 
-	typedef signal<void(id_type)> update_signal_type;
-	signal<void(id_type)> update_mesh;
+	Signal<void(id_type)> finer;
+	Signal<void(id_type)> coarse;
+	Signal<void(id_type)> update;
+	Signal<void(id_type)> sync;
 
 	template<typename T, typename ...Args>
 	std::shared_ptr<T> create(Args &&...args)
 	{
 		auto res = std::make_shared<T>(*this, std::forward<Args>(args)...);
 
-		update_mesh.connect(typename update_signal_type::slot_type(&T::update_mesh, res.get(), _1).track(res));
-
-//		Observable::regist(std::dynamic_pointer_cast<Observer>(res));
+		finer.connect(res, &T::finer);
+		coarse.connect(res, &T::coarse);
+		update.connect(res, &T::update);
+		update.connect(sync, &T::sync);
 
 		return res;
 	}
