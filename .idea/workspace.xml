@@ -1,78 +1,81 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="BookmarkManager">
+    <bookmark url="file://$PROJECT_DIR$/core/gtl/design_pattern/signal.h" line="75" />
+  </component>
   <component name="CMakeRunConfigurationManager" shouldGenerate="true" assignedExecutableTargets="true" buildAllGenerated="true">
     <generated>
       <config projectName="SimPla" targetName="NightlyStart" />
       <config projectName="SimPla" targetName="Nightly" />
       <config projectName="SimPla" targetName="kinetic_particle_test" />
-      <config projectName="SimPla" targetName="geqdsk_convert" />
+      <config projectName="SimPla" targetName="Continuous" />
       <config projectName="SimPla" targetName="NightlyBuild" />
       <config projectName="SimPla" targetName="demo_em_cylindrical" />
+      <config projectName="SimPla" targetName="probe_particle_test" />
       <config projectName="SimPla" targetName="parallel" />
       <config projectName="SimPla" targetName="NightlyMemCheck" />
       <config projectName="SimPla" targetName="NightlyConfigure" />
-      <config projectName="SimPla" targetName="doc" />
+      <config projectName="SimPla" targetName="demo_mhd" />
       <config projectName="SimPla" targetName="field_basic_algerbra_test" />
       <config projectName="SimPla" targetName="NightlyCoverage" />
       <config projectName="SimPla" targetName="demo_general_field_op" />
-      <config projectName="SimPla" targetName="probe_particle_test" />
-      <config projectName="SimPla" targetName="demo_misc2" />
+      <config projectName="SimPla" targetName="demo_em" />
+      <config projectName="SimPla" targetName="topology_structured_test" />
       <config projectName="SimPla" targetName="mesh_test" />
       <config projectName="SimPla" targetName="ExperimentalMemCheck" />
       <config projectName="SimPla" targetName="geometry_cylindrical_test" />
+      <config projectName="SimPla" targetName="io" />
       <config projectName="SimPla" targetName="lua_state_test" />
       <config projectName="SimPla" targetName="utilities" />
       <config projectName="SimPla" targetName="field_diff_calculus_cartesian_test" />
-      <config projectName="SimPla" targetName="NightlyMemoryCheck" />
       <config projectName="SimPla" targetName="dataset" />
       <config projectName="SimPla" targetName="ntuple_test" />
       <config projectName="SimPla" targetName="context" />
       <config projectName="SimPla" targetName="googletest" />
       <config projectName="SimPla" targetName="ExperimentalCoverage" />
+      <config projectName="SimPla" targetName="physics" />
       <config projectName="SimPla" targetName="Experimental" />
       <config projectName="SimPla" targetName="ContinuousUpdate" />
       <config projectName="SimPla" targetName="interpolator_test" />
-      <config projectName="SimPla" targetName="ContinuousConfigure" />
+      <config projectName="SimPla" targetName="demo_geometry" />
       <config projectName="SimPla" targetName="demo_pic" />
-      <config projectName="SimPla" targetName="topology_structured_test" />
+      <config projectName="SimPla" targetName="ContinuousSubmit" />
       <config projectName="SimPla" targetName="geometry_cartesian_test" />
-      <config projectName="SimPla" targetName="io" />
+      <config projectName="SimPla" targetName="demo_probe_particle" />
       <config projectName="SimPla" targetName="ContinuousTest" />
-      <config projectName="SimPla" targetName="demo_em" />
+      <config projectName="SimPla" targetName="simpla" />
       <config projectName="SimPla" targetName="demo" />
       <config projectName="SimPla" targetName="properties_test" />
       <config projectName="SimPla" targetName="demo_misc3" />
       <config projectName="SimPla" targetName="memory_pool_test" />
-      <config projectName="SimPla" targetName="ExperimentalTest" />
+      <config projectName="SimPla" targetName="ContinuousMemCheck" />
       <config projectName="SimPla" targetName="geqdsk" />
+      <config projectName="SimPla" targetName="ContinuousConfigure" />
       <config projectName="SimPla" targetName="field_diff_calculus_cylindrical_test" />
-      <config projectName="SimPla" targetName="NightlyTest" />
+      <config projectName="SimPla" targetName="ContinuousStart" />
       <config projectName="SimPla" targetName="ExperimentalStart" />
-      <config projectName="SimPla" targetName="ExperimentalConfigure" />
+      <config projectName="SimPla" targetName="application" />
       <config projectName="SimPla" targetName="multi_thread_test" />
-      <config projectName="SimPla" targetName="simpla" />
-      <config projectName="SimPla" targetName="Continuous" />
+      <config projectName="SimPla" targetName="ContinuousBuild" />
+      <config projectName="SimPla" targetName="ExperimentalBuild" />
       <config projectName="SimPla" targetName="demo_misc" />
       <config projectName="SimPla" targetName="NightlyUpdate" />
       <config projectName="SimPla" targetName="simpla_aux" />
-      <config projectName="SimPla" targetName="physics" />
-      <config projectName="SimPla" targetName="demo_mhd" />
+      <config projectName="SimPla" targetName="doc" />
+      <config projectName="SimPla" targetName="demo_misc2" />
       <config projectName="SimPla" targetName="NightlySubmit" />
       <config projectName="SimPla" targetName="log_test" />
       <config projectName="SimPla" targetName="ExperimentalUpdate" />
       <config projectName="SimPla" targetName="demo_model" />
-      <config projectName="SimPla" targetName="application" />
-      <config projectName="SimPla" targetName="ContinuousBuild" />
-      <config projectName="SimPla" targetName="ContinuousMemCheck" />
+      <config projectName="SimPla" targetName="ExperimentalConfigure" />
+      <config projectName="SimPla" targetName="NightlyMemoryCheck" />
       <config projectName="SimPla" targetName="ExperimentalSubmit" />
       <config projectName="SimPla" targetName="all_clion" />
-      <config projectName="SimPla" targetName="ContinuousStart" />
-      <config projectName="SimPla" targetName="demo_probe_particle" />
+      <config projectName="SimPla" targetName="ExperimentalTest" />
       <config projectName="SimPla" targetName="ContinuousCoverage" />
       <config projectName="SimPla" targetName="lhw" />
-      <config projectName="SimPla" targetName="ExperimentalBuild" />
-      <config projectName="SimPla" targetName="ContinuousSubmit" />
-      <config projectName="SimPla" targetName="demo_geometry" />
+      <config projectName="SimPla" targetName="geqdsk_convert" />
+      <config projectName="SimPla" targetName="NightlyTest" />
     </generated>
   </component>
   <component name="CMakeSettings" AUTO_RELOAD="false" GENERATION_PASS_SYSTEM_ENVIRONMENT="true">
@@ -82,8 +85,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="93dd54e0-e964-42df-a9fa-df20e4476d54" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/mesh/block/mesh_amr.h" afterPath="$PROJECT_DIR$/core/mesh/block/mesh_amr.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/gtl/design_pattern/observer.h" afterPath="$PROJECT_DIR$/core/gtl/design_pattern/observer.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/core/base/s_object.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/core/gtl/design_pattern/signal.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/example/misc/demo_misc.cpp" afterPath="$PROJECT_DIR$/example/misc/demo_misc.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/dictionaries/salmon.xml" afterPath="$PROJECT_DIR$/.idea/dictionaries/salmon.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="SimPla.iws" />
@@ -105,11 +110,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="mesh_amr.h" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/core/mesh/block/mesh_amr.h">
+      <file leaf-file-name="demo_misc.cpp" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/example/misc/demo_misc.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.62334955">
-              <caret line="87" column="27" selection-start-line="87" selection-start-column="27" selection-end-line="87" selection-end-column="27" />
+            <state vertical-scroll-proportion="0.82901555">
+              <caret line="54" column="10" selection-start-line="54" selection-start-column="10" selection-end-line="54" selection-end-column="10" />
               <folding />
             </state>
           </provider>
@@ -130,11 +135,12 @@
         <option value="$PROJECT_DIR$/core/mesh/block/block.h" />
         <option value="$PROJECT_DIR$/core/mesh/block/block_connection.h" />
         <option value="$PROJECT_DIR$/core/mesh/block/block_id.h" />
-        <option value="$PROJECT_DIR$/core/gtl/design_pattern/signal.h" />
         <option value="$PROJECT_DIR$/core/gtl/design_pattern/observer.h" />
-        <option value="$PROJECT_DIR$/core/base/s_object.h" />
-        <option value="$PROJECT_DIR$/core/gtl/design_pattern/signal_slot.h" />
         <option value="$PROJECT_DIR$/core/mesh/block/mesh_amr.h" />
+        <option value="$PROJECT_DIR$/core/gtl/design_pattern/signal_slot.h" />
+        <option value="$PROJECT_DIR$/core/base/s_object.h" />
+        <option value="$PROJECT_DIR$/core/gtl/design_pattern/signal.h" />
+        <option value="$PROJECT_DIR$/example/misc/demo_misc.cpp" />
       </list>
     </option>
   </component>
@@ -145,6 +151,7 @@
   <component name="NamedScopeManager">
     <order />
   </component>
+  <component name="OCFindUsagesOptions" text="true" ivars="false" properties="true" derivedClasses="false" />
   <component name="ProjectFrameBounds">
     <option name="x" value="-2" />
     <option name="y" value="1057" />
@@ -202,6 +209,38 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
+              <option name="myItemId" value="example" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SimPla" />
+              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$1$1" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SimPla" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="example" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="misc" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SimPla" />
+              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$1$1" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SimPla" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
               <option name="myItemId" value="core" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
@@ -220,7 +259,7 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="mesh" />
+              <option name="myItemId" value="gtl" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -238,11 +277,29 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="mesh" />
+              <option name="myItemId" value="gtl" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="block" />
+              <option name="myItemId" value="design_pattern" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SimPla" />
+              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$1$1" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SimPla" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="core" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="base" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -260,7 +317,7 @@
       <recent name="$PROJECT_DIR$/core/mesh/block" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.field_diff_calculus_cartesian_test">
+  <component name="RunManager" selected="Application.demo_misc">
     <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="SimPla" TARGET_NAME="all_clion" CONFIG_NAME="Debug">
       <envs />
       <method />
@@ -654,25 +711,25 @@
     <frame x="-2" y="1057" width="2564" height="1467" extended-state="4" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.15546875" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.15546875" sideWeight="0.49166667" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32916668" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="CMake" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="LuaJ" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32916668" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.15546875" sideWeight="0.5083333" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32970297" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3992095" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32916668" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32905138" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
   <component name="Vcs.Log.UiProperties">
@@ -688,21 +745,63 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="8" />
+      <option name="time" value="22" />
     </breakpoint-manager>
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/core/gtl/design_pattern/signal.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="137" column="67" selection-start-line="137" selection-start-column="67" selection-end-line="137" selection-end-column="67" />
+          <folding>
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="//..." />
+            <marker date="1436772545028" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436772545028" expanded="false" signature="-1:-1" placeholder="&lt;...&gt;" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1436772545028" expanded="false" signature="-1:-1" placeholder="&lt;TResult,...Args&gt;" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436772545028" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436772545028" expanded="false" signature="-1:-1" placeholder="&lt;TFun&gt;" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436772545028" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436772545028" expanded="false" signature="-1:-1" placeholder="&lt;TObject&gt;" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436772545028" expanded="false" signature="-1:-1" placeholder="&lt;...T&gt;" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/mesh/block/mesh_amr.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="87" column="27" selection-start-line="87" selection-start-column="27" selection-end-line="87" selection-end-column="27" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/core/gtl/design_pattern/signal_slot.h">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="56" column="53" selection-start-line="56" selection-start-column="53" selection-end-line="56" selection-end-column="53" />
-          <folding>
-            <marker date="1436510338864" expanded="true" signature="-1:-1" placeholder="//..." />
-            <marker date="1436510338864" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1436510338864" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436510338864" expanded="false" signature="-1:-1" placeholder="&lt;...T&gt;" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -710,12 +809,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="106" column="38" selection-start-line="106" selection-start-column="38" selection-end-line="106" selection-end-column="38" />
-          <folding>
-            <marker date="1436510338864" expanded="true" signature="-1:-1" placeholder="//..." />
-            <marker date="1436510338864" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1436510338864" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436510338864" expanded="false" signature="-1:-1" placeholder="&lt;...T&gt;" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -855,13 +949,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file:///usr/include/c++/4.8/bits/shared_ptr.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.3330971">
-          <caret line="92" column="10" selection-start-line="92" selection-start-column="10" selection-end-line="92" selection-end-column="10" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file:///usr/include/boost/uuid/random_generator.hpp">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.8776928">
@@ -869,29 +956,560 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/core/gtl/design_pattern/observer.h">
+    <entry file="file:///usr/include/boost/signals2/variadic_signal.hpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.22237664">
-          <caret line="51" column="0" selection-start-line="51" selection-start-column="0" selection-end-line="114" selection-end-column="2" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/include/boost/signals2/signal.hpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/include/boost/signals2/connection.hpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.33287004">
+          <caret line="149" column="10" selection-start-line="149" selection-start-column="10" selection-end-line="149" selection-end-column="10" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/include/boost/bind/placeholders.hpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.4113968">
+          <caret line="54" column="14" selection-start-line="54" selection-start-column="14" selection-end-line="54" selection-end-column="14" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/mesh/block/mesh_amr.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.4781098">
+          <caret line="145" column="5" selection-start-line="145" selection-start-column="5" selection-end-line="145" selection-end-column="5" />
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/core/base/s_object.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.12230716">
-          <caret line="11" column="4" selection-start-line="11" selection-start-column="4" selection-end-line="11" selection-end-column="4" />
+        <state vertical-scroll-proportion="0.17790133">
+          <caret line="16" column="0" selection-start-line="16" selection-start-column="0" selection-end-line="37" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/gtl/design_pattern/singleton_holder.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/gtl/design_pattern/signal_slot.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.11118832">
+          <caret line="11" column="0" selection-start-line="11" selection-start-column="0" selection-end-line="90" selection-end-column="20" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/gtl/design_pattern/factory.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/gtl/design_pattern/observer.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.22237664">
+          <caret line="51" column="0" selection-start-line="51" selection-start-column="0" selection-end-line="114" selection-end-column="2" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/include/boost/signals2/detail/signal_template.hpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.33287004">
+          <caret line="590" column="69" selection-start-line="590" selection-start-column="69" selection-end-line="590" selection-end-column="69" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/include/c++/4.8/bits/stl_list.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.33287004">
+          <caret line="1024" column="8" selection-start-line="1024" selection-start-column="8" selection-end-line="1024" selection-end-column="8" />
           <folding>
-            <marker date="1436509852502" expanded="true" signature="-1:-1" placeholder="//..." />
-            <marker date="1436509852502" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436509852502" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="//..." />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/.../" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;..._Args&gt;" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_Val&gt;" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_Val&gt;" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Alloc&gt;" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Alloc=std::allocator&lt;_Tp&gt;&gt;" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;..._Args&gt;" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_InputIterator,=std::_RequireInputIter&lt;_InputIterator&gt;&gt;" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_InputIterator,=std::_RequireInputIter&lt;_InputIterator&gt;&gt;" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;..._Args&gt;" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;..._Args&gt;" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;..._Args&gt;" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_InputIterator,=std::_RequireInputIter&lt;_InputIterator&gt;&gt;" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_Predicate&gt;" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_BinaryPredicate&gt;" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_StrictWeakOrdering&gt;" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_StrictWeakOrdering&gt;" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_StrictWeakOrdering&gt;" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_Integer&gt;" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_InputIterator&gt;" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_Integer&gt;" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_InputIterator&gt;" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;..._Args&gt;" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Alloc&gt;" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Alloc&gt;" />
+            <marker date="1431627103000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Alloc&gt;" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Alloc&gt;" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Alloc&gt;" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Alloc&gt;" />
+            <marker date="1431627103000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Alloc&gt;" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/include/c++/4.8/bits/shared_ptr_base.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.33287004">
+          <caret line="1176" column="4" selection-start-line="1176" selection-start-column="4" selection-end-line="1176" selection-end-column="4" />
+          <folding>
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="//..." />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Lock_policy _Lp=__default_lock_policy&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Lock_policy _Lp=__default_lock_policy&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Lock_policy _Lp=__default_lock_policy&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Lock_policy _Lp=__default_lock_policy&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Lock_policy _Lp=__default_lock_policy&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Lock_policy _Lp=__default_lock_policy&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Ptr,_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Ptr,_Deleter,_Alloc,_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Alloc,_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;..._Args&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Ptr&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Ptr,_Deleter&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Ptr,_Deleter,_Alloc&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Alloc,..._Args&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Del&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Lock_policy _Lp,_Tp1,_Tp2&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1,_Tp2&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1,_Deleter&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1,_Deleter,_Alloc&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Deleter&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Deleter,_Alloc&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1,=std::enable_if&lt;std::is_convertible&lt;_Tp1*,_Tp*&gt;::value&gt;::type&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1,=std::enable_if&lt;std::is_convertible&lt;_Tp1*,_Tp*&gt;::value&gt;::type&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1,_Del&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1,_Del&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1,_Deleter&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1,_Deleter,_Alloc&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Alloc,..._Args&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1,_Lock_policy _Lp1,_Alloc,..._Args&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1,_Lock_policy _Lp1&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1,_Lock_policy _Lp1&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Del,_Tp1,_Lock_policy _Lp1&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1,_Tp2,_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1,_Tp2,_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1,_Tp2,_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1,_Tp2,_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1,_Tp2,_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1,_Tp2,_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Sp&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Tp1,_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Tp1,_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Tp1,_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1,=std::enable_if&lt;std::is_convertible&lt;_Tp1*,_Tp*&gt;::value&gt;::type&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1,=std::enable_if&lt;std::is_convertible&lt;_Tp1*,_Tp*&gt;::value&gt;::type&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1,_Lock_policy _Lp1&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1,_Lock_policy _Lp1&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Tp1&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Lock_policy _Lp,_Alloc,..._Args&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Lock_policy _Lp,..._Args&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/include/c++/4.8/bits/shared_ptr.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.519171">
+          <caret line="609" column="4" selection-start-line="609" selection-start-column="4" selection-end-line="609" selection-end-column="4" />
+          <folding>
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="//..." />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Ch,_Tr,_Tp,_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Del,_Tp,_Lock_policy _Lp&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1,_Deleter&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Deleter&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1,_Deleter,_Alloc&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Deleter,_Alloc&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1,=std::enable_if&lt;std::is_convertible&lt;_Tp1*,_Tp*&gt;::value&gt;::type&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1,=std::enable_if&lt;std::is_convertible&lt;_Tp1*,_Tp*&gt;::value&gt;::type&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1,_Del&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1,_Del&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Alloc,..._Args&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1,_Alloc,..._Args&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1,_Tp2&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1,_Tp2&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1,_Tp2&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1,_Tp2&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1,_Tp2&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1,_Tp2&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Tp1&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Tp1&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Tp1&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1,=std::enable_if&lt;std::is_convertible&lt;_Tp1*,_Tp*&gt;::value&gt;::type&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1,=std::enable_if&lt;std::is_convertible&lt;_Tp1*,_Tp*&gt;::value&gt;::type&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1&gt;" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Alloc,..._Args&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,..._Args&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627102000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627102000" expanded="true" signature="-1:-1" placeholder="{...}" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file:///usr/include/c++/4.8/functional">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.3326425">
+          <caret line="1654" column="4" selection-start-line="1654" selection-start-column="4" selection-end-line="1654" selection-end-column="4" />
           <folding>
             <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="//..." />
             <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="/.../" />
@@ -1243,7 +1861,7 @@
             <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
             <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Func,..._BoundArgs&gt;" />
             <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Func,..._BoundArgs&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;_Func,..._BoundArgs&gt;" />
             <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
             <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Result,_Func,..._BoundArgs&gt;" />
             <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
@@ -1384,296 +2002,612 @@
         </state>
       </provider>
     </entry>
-    <entry file="file:///usr/include/boost/signals2/variadic_signal.hpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="/.../" />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="//..." />
-            <marker date="1403323484000" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323484000" expanded="false" signature="-1:-1" placeholder="&lt;Signature&gt;" />
-            <marker date="1403323484000" expanded="false" signature="-1:-1" placeholder="&lt;R,...Args&gt;" />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///usr/include/boost/signals2/signal.hpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="//..." />
-            <marker date="1403323484000" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1403323484000" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323484000" expanded="false" signature="-1:-1" placeholder="&lt;Signature,Combiner,Group,GroupCompare,SlotFunction,ExtendedSlotFunction,Mutex&gt;" />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///usr/include/boost/signals2/connection.hpp">
+    <entry file="file:///usr/include/c++/4.8/type_traits">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.33287004">
-          <caret line="149" column="10" selection-start-line="149" selection-start-column="10" selection-end-line="149" selection-end-column="10" />
+          <caret line="1277" column="11" selection-start-line="1277" selection-start-column="11" selection-end-line="1277" selection-end-column="11" />
           <folding>
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="/.../" />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="//..." />
-            <marker date="1403323484000" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323484000" expanded="false" signature="-1:-1" placeholder="&lt;GroupKey,SlotType,Mutex&gt;" />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323484000" expanded="false" signature="-1:-1" placeholder="&lt;OutputIterator&gt;" />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323484000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="//..." />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Tp __v&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Tp __v&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;bool,,&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;...&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_B1&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_B1,_B2&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_B1,_B2,_B3,..._Bn&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;...&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_B1&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_B1,_B2&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_B1,_B2,_B3,..._Bn&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Pp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,std::size_t _Size&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Cp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Cp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Res,..._ArgTypes&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Res,..._ArgTypes&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Res,..._ArgTypes&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Res,..._ArgTypes&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Res,..._ArgTypes&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Res,..._ArgTypes&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Res,..._ArgTypes&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Res,..._ArgTypes&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Cp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,bool=is_integral&lt;_Tp&gt;::value,bool=is_floating_point&lt;_Tp&gt;::value&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;,unsigned=0&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,=decltype(declval&lt;_Tp&amp;&gt;().~_Tp())&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,bool=__or_&lt;is_void&lt;_Tp&gt;,__is_array_unknown_bounds&lt;_Tp&gt;,is_function&lt;_Tp&gt;&gt;::value,bool=__or_&lt;is_reference&lt;_Tp&gt;,is_scalar&lt;_Tp&gt;&gt;::value&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,bool=__or_&lt;is_void&lt;_Tp&gt;,__is_array_unknown_bounds&lt;_Tp&gt;,is_function&lt;_Tp&gt;&gt;::value,bool=__or_&lt;is_reference&lt;_Tp&gt;,is_scalar&lt;_Tp&gt;&gt;::value&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,=decltype(_Tp())&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,bool=is_array&lt;_Tp&gt;::value&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_From,_To,=decltype(static_cast&lt;_To&gt;(declval&lt;_From&gt;()))&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;,&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_From,_To&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_From,_To&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_From,_To&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Arg,=decltype(::new _Tp(declval&lt;_Arg&gt;()))&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;,&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Arg&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Arg&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;,&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;,&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_From,_To,bool=__not_&lt;__or_&lt;is_void&lt;_From&gt;,is_function&lt;_From&gt;&gt;&gt;::value&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_From,_To&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_From,_To&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_From,_To,bool=__and_&lt;is_lvalue_reference&lt;_From&gt;,is_rvalue_reference&lt;_To&gt;&gt;::value&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_From,_To&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_From,_To&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Arg&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Arg&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Arg&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,..._Args,=decltype(_Tp(declval&lt;_Args&gt;()...))&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;,...&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,..._Args&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,..._Args&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,..._Args&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Arg&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,..._Args&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,bool=is_void&lt;_Tp&gt;::value&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,bool=is_void&lt;_Tp&gt;::value&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,bool=is_array&lt;_Tp&gt;::value&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,..._Args&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Arg&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,..._Args&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,bool=is_void&lt;_Tp&gt;::value&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,bool=is_void&lt;_Tp&gt;::value&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Up&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp1,_Up1&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;,&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Up&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,bool=is_void&lt;_Tp&gt;::value&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,bool=is_void&lt;_Tp&gt;::value&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Up&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Up&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,bool=is_void&lt;_Tp&gt;::value&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,bool=is_void&lt;_Tp&gt;::value&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,std::size_t _Size&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;,unsigned _Uint&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,unsigned _Uint,std::size_t _Size&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,unsigned _Uint&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;,&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Base,_Derived&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_From,_To,bool=__or_&lt;is_void&lt;_From&gt;,is_function&lt;_To&gt;,is_array&lt;_To&gt;&gt;::value&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_From,_To&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_To1&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_From1,_To1&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;,&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_From,_To&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,bool=__and_&lt;__not_&lt;is_reference&lt;_Tp&gt;&gt;,__not_&lt;is_void&lt;_Tp&gt;&gt;&gt;::value,bool=is_rvalue_reference&lt;_Tp&gt;::value&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,bool=__and_&lt;__not_&lt;is_reference&lt;_Tp&gt;&gt;,__not_&lt;is_void&lt;_Tp&gt;&gt;&gt;::value&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Unqualified,bool _IsConst,bool _IsVol&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Unqualified&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Unqualified&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Unqualified&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Unqualified&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Qualified,_Unqualified,bool _IsConst=is_const&lt;_Qualified&gt;::value,bool _IsVol=is_volatile&lt;_Qualified&gt;::value&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,bool _IsInt=is_integral&lt;_Tp&gt;::value,bool _IsEnum=is_enum&lt;_Tp&gt;::value&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,bool _IsInt=is_integral&lt;_Tp&gt;::value,bool _IsEnum=is_enum&lt;_Tp&gt;::value&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,std::size_t _Size&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,std::size_t _Size&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Up&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;std::size_t _Len&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;std::size_t _Len,std::size_t _Align=__alignof__(__aligned_storage_msa&lt;_Len&gt;::__type)&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Up,bool _IsArray=is_array&lt;_Up&gt;::value,bool _IsFunction=is_function&lt;_Up&gt;::value&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Up&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Up&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Up&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;bool,_Tp=void&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;..._Cond&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;bool _Cond,_Iftrue,_Iffalse&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Iftrue,_Iffalse&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;..._Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Up&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;,&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Up&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_CTp,..._Args&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;..._Args&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Up&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp,_Up,..._Vp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Tp&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Signature&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Fp,_Tp1,..._Args&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;...&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_MemPtr,_Arg,..._Args&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Fp,_Tp1,..._Args&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;...&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_MemPtr,_Arg,..._Args&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Fp,_Tp1&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;,&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_MemPtr,_Arg&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Fp,_Tp1&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;,&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_MemPtr,_Arg&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_MemPtr,_Arg&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Res,_Class,_Arg&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_MemPtr,_Arg,..._Args&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Res,_Class,_Arg,..._Args&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;bool,bool,_Functor,..._ArgTypes&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_MemPtr,_Arg&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_MemPtr,_Arg,..._Args&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Fn,..._Args&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;...&gt;" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Functor,..._ArgTypes&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1431627104000" expanded="false" signature="-1:-1" placeholder="&lt;_Functor,..._ArgTypes&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1431627104000" expanded="true" signature="-1:-1" placeholder="/**...*/" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/core/gtl/design_pattern/signal.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.97776234">
-          <caret line="387" column="21" selection-start-line="371" selection-start-column="1" selection-end-line="387" selection-end-column="21" />
+        <state vertical-scroll-proportion="-0.30984455">
+          <caret line="133" column="56" selection-start-line="133" selection-start-column="56" selection-end-line="133" selection-end-column="56" />
           <folding>
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="//..." />
-            <marker date="1436492221737" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="false" signature="-1:-1" placeholder="&lt;,&gt;" />
-            <marker date="1436492221737" expanded="false" signature="-1:-1" placeholder="&lt;,&gt;" />
-            <marker date="1436492221737" expanded="false" signature="-1:-1" placeholder="&lt;Result&gt;" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="false" signature="-1:-1" placeholder="&lt;Result&gt;" />
-            <marker date="1436492221737" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="false" signature="-1:-1" placeholder="&lt;Collector,R,...Args&gt;" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="false" signature="-1:-1" placeholder="&lt;Collector,...Args&gt;" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="false" signature="-1:-1" placeholder="&lt;Collector,R,...Args&gt;" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1436492221737" expanded="false" signature="-1:-1" placeholder="&lt;SignalSignature,Collector=Lib::CollectorDefault&lt;std::function&lt;SignalSignature&gt;::result_type&gt;&gt;" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="false" signature="-1:-1" placeholder="&lt;Instance,Class,R,...Args&gt;" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="false" signature="-1:-1" placeholder="&lt;Class,R,...Args&gt;" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="false" signature="-1:-1" placeholder="&lt;Result&gt;" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="false" signature="-1:-1" placeholder="&lt;Result&gt;" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="false" signature="-1:-1" placeholder="&lt;Result&gt;" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436492221737" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="//..." />
+            <marker date="1436772545028" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436772545028" expanded="false" signature="-1:-1" placeholder="&lt;...&gt;" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1436772545028" expanded="false" signature="-1:-1" placeholder="&lt;TResult,...Args&gt;" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436772545028" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436772545028" expanded="false" signature="-1:-1" placeholder="&lt;TFun&gt;" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436772545028" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436772545028" expanded="false" signature="-1:-1" placeholder="&lt;TObject&gt;" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436772545028" expanded="false" signature="-1:-1" placeholder="&lt;...T&gt;" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1436772545028" expanded="true" signature="-1:-1" placeholder="{...}" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file:///usr/include/boost/bind/placeholders.hpp">
+    <entry file="file://$PROJECT_DIR$/example/misc/demo_misc.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.4113968">
-          <caret line="54" column="14" selection-start-line="54" selection-start-column="14" selection-end-line="54" selection-end-column="14" />
-          <folding>
-            <marker date="1403323483000" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1403323483000" expanded="true" signature="-1:-1" placeholder="//..." />
-            <marker date="1403323483000" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1403323483000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323483000" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1403323483000" expanded="false" signature="-1:-1" placeholder="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///usr/include/boost/signals2/detail/signal_template.hpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.3330971">
-          <caret line="593" column="23" selection-start-line="593" selection-start-column="23" selection-end-line="593" selection-end-column="23" />
-          <folding>
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="/.../" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="//..." />
-            <marker date="1403323485000" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="false" signature="-1:-1" placeholder="&lt;R&gt;" />
-            <marker date="1403323485000" expanded="false" signature="-1:-1" placeholder="&lt;ExtendedSlotFunction BOOST_SIGNALS2_PP_COMMA_IF(BOOST_SIGNALS2_NUM_ARGS" />
-            <marker date="1403323485000" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1403323485000" expanded="false" signature="-1:-1" placeholder="&lt;ExtendedSlotFunction&gt;" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="false" signature="-1:-1" placeholder="&lt;BOOST_SIGNALS2_ARGS_TEMPLATE_DECL(BOOST_SIGNALS2_NUM_ARGS" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="false" signature="-1:-1" placeholder="&lt;BOOST_SIGNALS2_ARGS_TEMPLATE_DECL(BOOST_SIGNALS2_NUM_ARGS" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="false" signature="-1:-1" placeholder="&lt;BOOST_SIGNALS2_SIGNAL_TEMPLATE_DECL(BOOST_SIGNALS2_NUM_ARGS" />
-            <marker date="1403323485000" expanded="false" signature="-1:-1" placeholder="&lt;BOOST_SIGNALS2_SIGNAL_TEMPLATE_SPECIALIZATION_DECL(BOOST_SIGNALS2_NUM_ARGS" />
-            <marker date="1403323485000" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="/.../" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="/.../" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="/.../" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="/.../" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="false" signature="-1:-1" placeholder="&lt;BOOST_SIGNALS2_SIGNAL_TEMPLATE_DECL(BOOST_SIGNALS2_NUM_ARGS" />
-            <marker date="1403323485000" expanded="false" signature="-1:-1" placeholder="&lt;BOOST_SIGNALS2_SIGNAL_TEMPLATE_DEFAULTED_DECL(BOOST_SIGNALS2_NUM_ARGS" />
-            <marker date="1403323485000" expanded="false" signature="-1:-1" placeholder="&lt;BOOST_SIGNALS2_SIGNAL_TEMPLATE_SPECIALIZATION_DECL(BOOST_SIGNALS2_NUM_ARGS" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1403323485000" expanded="false" signature="-1:-1" placeholder="&lt;unsigned n&gt;" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="false" signature="-1:-1" placeholder="&lt;BOOST_SIGNALS2_SIGNAL_TEMPLATE_DECL(BOOST_SIGNALS2_NUM_ARGS" />
-            <marker date="1403323485000" expanded="false" signature="-1:-1" placeholder="&lt;BOOST_SIGNALS2_SIGNAL_TEMPLATE_SPECIALIZATION_DECL(BOOST_SIGNALS2_NUM_ARGS" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1403323485000" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
-            <marker date="1403323485000" expanded="false" signature="-1:-1" placeholder="&lt;int arity,Signature&gt;" />
-            <marker date="1403323485000" expanded="false" signature="-1:-1" placeholder="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/gtl/design_pattern/signal_slot.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.133426">
-          <caret line="13" column="56" selection-start-line="13" selection-start-column="56" selection-end-line="13" selection-end-column="56" />
-          <folding>
-            <marker date="1436510338864" expanded="true" signature="-1:-1" placeholder="//..." />
-            <marker date="1436510338864" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1436510338864" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1436510338864" expanded="false" signature="-1:-1" placeholder="&lt;...T&gt;" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/mesh/block/mesh_amr.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.62334955">
-          <caret line="87" column="27" selection-start-line="87" selection-start-column="27" selection-end-line="87" selection-end-column="27" />
+        <state vertical-scroll-proportion="0.82901555">
+          <caret line="54" column="10" selection-start-line="54" selection-start-column="10" selection-end-line="54" selection-end-column="10" />
           <folding />
         </state>
       </provider>

@@ -8,17 +8,52 @@
 #include <typeinfo>
 #include <tuple>
 #include <complex>
-#include "../../core/gtl/mpl.h"
-#include "../../core/gtl/ntuple.h"
+#include "../../core/gtl/design_pattern/signal.h"
+
 using namespace simpla;
+
+struct U
+{
+	void foo(int a)
+	{
+		std::cout << "This is U! a= [" << a << "]" << std::endl;
+	}
+
+};
+
+struct W
+{
+	void foo(int a)
+	{
+		std::cout << "This is W! a= [" << a << "]" << std::endl;
+	}
+
+};
+
 int main()
 {
-	nTuple<std::complex<double>, 3, 4, 5, 6, 7> a, b, c;
 
-//	std::cout << typeid(decltype( a.at(0 ) )).name() << std::endl;
-//	std::cout << typeid(decltype( a.at(0, 1 ) )).name() << std::endl;
-//	std::cout << typeid(decltype( a.at(0, 1, 2) )).name() << std::endl;
-//	std::cout << typeid(decltype( a.at(0, 1, 2, 3) )).name() << std::endl;
+	Signal<void(int)> sig;
 
-	a = b + b;
+	auto u = std::make_shared<U>();
+	auto w = std::make_shared<W>();
+
+	sig.connect(u, &U::foo);
+
+	auto it_u = sig.connect(w, &W::foo);
+
+	sig.connect([](int i)
+	{
+	    std::cout << "This is lambda! a= [" << i << "]" << std::endl;
+
+	});
+
+	sig(10);
+
+	sig.disconnect(it_u);
+
+	std::cout<<"======================"<<std::endl;
+
+	sig(12);
+
 }
