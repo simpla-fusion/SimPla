@@ -73,9 +73,17 @@ public:
     ~Mesh()
     {
 
+<<<<<<< HEAD
     }
+=======
+	Signal<void(id_type)> finer;
+	Signal<void(id_type)> coarse;
+	Signal<void(id_type)> update;
+	Signal<void(id_type)> sync;
+>>>>>>> ba2d991a415cad15e2e1816d2f40de9e5eb46fbc
 
 
+<<<<<<< HEAD
     signal<void(id_type)> mesh_finer;
     signal<void(id_type)> mesh_coarser;
     signal<void(id_type, index_tuple)> mesh_shift;
@@ -84,6 +92,12 @@ public:
     std::shared_ptr<T> create(Args &&...args)
     {
         auto res = std::make_shared<T>(*this, std::forward<Args>(args)...);
+=======
+		finer.connect(res, &T::finer);
+		coarse.connect(res, &T::coarse);
+		update.connect(res, &T::update);
+		update.connect(sync, &T::sync);
+>>>>>>> ba2d991a415cad15e2e1816d2f40de9e5eb46fbc
 
         connect(mesh_finer, &T::mesh_finer, res);
         return res;
