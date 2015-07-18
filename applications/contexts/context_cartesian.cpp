@@ -1,8 +1,8 @@
-/*
- * explicit_em.cpp
+/**
+ * @file explicit_em.cpp
  *
- * \date  2013-12-29
- * \author  salmon
+ * @date  2013-12-29
+ * @author  salmon
  */
 
 #include <utility>

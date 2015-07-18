@@ -1,7 +1,7 @@
 /*
  * sp_iterator_sequence.h
  *
- *  Created on: 2014年11月27日
+ *  Created on: 2014-11-27
  *      Author: salmon
  */
 

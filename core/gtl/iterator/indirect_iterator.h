@@ -1,7 +1,7 @@
 /**
  * @file indirect_iterator.h
  *
- * @date 2015年2月10日
+ * @date 2015-2-10
  * @author salmon
  */
 

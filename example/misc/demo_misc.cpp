@@ -1,7 +1,7 @@
 /**
  * @file demo_misc.cpp
  *
- * @date 2015年4月15日
+ * @date 2015-4-15
  * @author salmon
  */
 #include <iostream>

@@ -1,5 +1,5 @@
-/*
- * load_field.h
+/**
+ * @file load_field.h
  *
  *  created on: 2013-12-9
  *      Author: salmon
@@ -10,7 +10,7 @@
 
 #include <string>
 
-#include "../utilities/log.h"
+#include "../gtl/utilities/log.h"
 #include "../geometry/select.h"
 #include "field_function.h"
 namespace simpla

@@ -1,5 +1,5 @@
-/*
- * ksp_cg.h
+/**
+ *  @file ksp_cg.h
  *
  *  created on: 2012-3-30
  *      Author: salmon
@@ -8,7 +8,7 @@
 #ifndef KSP_CG_H_
 #define KSP_CG_H_
 #include "fetl/fetl.h"
-#include "utilities/log.h"
+#include "../gtl/utilities/log.h"
 #include <iostream>
 
 namespace simpla

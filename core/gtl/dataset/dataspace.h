@@ -1,7 +1,7 @@
 /**
  * @file dataspace.h
  *
- *  Created on: 2014年11月10日
+ *  Created on: 2014-11-10
  *  @author: salmon
  */
 
@@ -11,9 +11,9 @@
 #include <cstdbool>
 #include <memory>
 
-#include "../gtl/ntuple.h"
-#include "../gtl/primitives.h"
-#include "../gtl/properties.h"
+#include "../ntuple.h"
+#include "../primitives.h"
+#include "../properties.h"
 #include "../utilities/log.h"
 
 namespace simpla

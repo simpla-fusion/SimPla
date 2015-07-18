@@ -1,7 +1,7 @@
 /**
  * @file design_pattern.h
  *
- *  Created on: 2014年12月30日
+ *  Created on: 2014-12-30
  *      Author: salmon
  */
 

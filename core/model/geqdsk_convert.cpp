@@ -1,5 +1,5 @@
-/*
- * geqdsk_convert.cpp
+/**
+ * @file geqdsk_convert.cpp
  *
  *  created on: 2013-12-3
  *      Author: salmon

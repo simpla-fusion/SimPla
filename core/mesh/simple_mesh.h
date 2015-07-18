@@ -1,14 +1,14 @@
 /**
  * @file  simple_mesh.h
  *
- *  Created on: 2014年11月5日
+ *  Created on: 2014-11-5
  *      Author: salmon
  */
 
 #ifndef CORE_DIFF_GEOMETRY_SIMPLE_MESH_H_
 #define CORE_DIFF_GEOMETRY_SIMPLE_MESH_H_
 
-#include "structured/topology/structured.h"
+#include "structured/structured.h"
 
 namespace simpla
 {

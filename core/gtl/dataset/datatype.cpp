@@ -1,7 +1,7 @@
 /**
  * @file datatype.cpp
  *
- *  Created on: 2014年12月18日
+ *  Created on: 2014-12-18
  *      Author: salmon
  */
 

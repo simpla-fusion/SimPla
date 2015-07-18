@@ -1,5 +1,5 @@
-/*
- * simplex_distribution.h
+/**
+ *  @file simplex_distribution.h
  *
  *  created on: 2013-10-23
  *      Author: salmon
@@ -7,7 +7,7 @@
 
 #ifndef SIMPLEX_DISTRIBUTION_H_
 #define SIMPLEX_DISTRIBUTION_H_
-#include "gtl/ntuple.h"
+#include "../gtl/ntuple.h"
 #include <vector>
 #include <random>
 #include <numeric>

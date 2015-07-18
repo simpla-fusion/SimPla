@@ -1,7 +1,7 @@
 /**
  * @file function_cache.h
  *
- *  Created on: 2015年6月8日
+ *  Created on: 2015-6-8
  *      Author: salmon
  */
 

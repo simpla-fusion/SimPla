@@ -1,5 +1,5 @@
-/*
- * geometry_algorithm.h
+/**
+ * @file geometric_algorithm.h
  *
  *  created on: 2014-4-21
  *      Author: salmon

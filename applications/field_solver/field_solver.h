@@ -1,8 +1,8 @@
 /**
  * \file field_solver.h
  *
- * \date 2014-7-7
- * \author salmon
+ * @date 2014-7-7
+ * @author salmon
  */
 
 #ifndef FIELD_SOLVER_H_

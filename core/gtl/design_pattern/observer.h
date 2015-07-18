@@ -1,6 +1,6 @@
-//
-// Created by salmon on 7/8/15.
-//
+/**
+ *  @file observer.h
+ */
 
 #ifndef SIMPLA_GTL_DESIGN_PATTERN_OBSERVER_H
 #define SIMPLA_GTL_DESIGN_PATTERN_OBSERVER_H

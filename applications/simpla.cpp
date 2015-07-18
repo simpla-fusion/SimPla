@@ -1,8 +1,8 @@
 /*
  * simpla.cpp
  *
- * \date  2013-11-13
- *      \author  salmon
+ * @date  2013-11-13
+ *      @author  salmon
  */
 
 #include <functional>

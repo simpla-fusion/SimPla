@@ -1,8 +1,8 @@
 /*
  * pic_engine_ggauge.h
  *
- * \date  2013-10-23
- *      \author  salmon
+ * @date  2013-10-23
+ *      @author  salmon
  */
 
 #ifndef PIC_ENGINE_GGAUGE_H_

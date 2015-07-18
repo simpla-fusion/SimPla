@@ -1,7 +1,7 @@
 /**
  * @file demo_model.cpp
  *
- * @date 2015年3月16日
+ * @date 2015-3-16
  * @author salmon
  */
 

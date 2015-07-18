@@ -1,7 +1,7 @@
 /*
  * ntuple_test2.cpp
  *
- *  Created on: 2014年10月23日
+ *  Created on: 2014-10-23
  *      Author: salmon
  */
 

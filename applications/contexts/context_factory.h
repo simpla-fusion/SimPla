@@ -1,8 +1,8 @@
 /*
  * \file explicit_em.h
  *
- * \date  2013-12-12
- *      \author  salmon
+ * @date  2013-12-12
+ *      @author  salmon
  */
 
 #ifndef EXPLICIT_EM_H_

@@ -1,7 +1,7 @@
 /**
  * @file particle_generator.h
  *
- * @date 2015年2月12日
+ * @date 2015-2-12
  * @author salmon
  */
 

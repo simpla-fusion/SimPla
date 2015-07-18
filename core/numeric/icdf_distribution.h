@@ -1,5 +1,5 @@
-/*
- * icdf_distribution.h
+/**
+ *  @file icdf_distribution.h
  *
  *  created on: 2013-10-23
  *      Author: salmon

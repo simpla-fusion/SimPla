@@ -1,7 +1,7 @@
 /*
  * demo_trace.cpp
  *
- *  Created on: 2014年11月21日
+ *  Created on: 2014-11-21
  *      Author: salmon
  */
 

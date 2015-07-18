@@ -1,7 +1,7 @@
 /**
  * @file mesh.h
  *
- * @date 2015年2月9日
+ * @date 2015-2-9
  * @author salmon
  */
 
@@ -14,8 +14,7 @@
 #include "domain.h"
 
 #include "structured.h"
-#include "structured/interpolator.h"
-#include "structured/fdm.h"
+
 
 #include "../geometry/coordinate_system.h"
 #include "../geometry/cs_cartesian.h"

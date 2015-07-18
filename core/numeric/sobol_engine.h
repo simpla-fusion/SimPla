@@ -1,5 +1,5 @@
-/*
- * sobol_engine.h
+/**
+ *  @file sobol_engine.h
  *
  *  created on: 2013-10-22
  *      Author: salmon
@@ -7,8 +7,8 @@
 
 #ifndef SOBOL_ENGINE_H_
 #define SOBOL_ENGINE_H_
-#include "gtl/ntuple.h"
-#include "utilities/log.h"
+#include "../gtl/ntuple.h"
+#include "../gtl/utilities/log.h"
 namespace simpla
 {
 

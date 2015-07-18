@@ -1,7 +1,7 @@
-/*
- * model.h
+/**
+ * @file model.h
  *
- *  Created on: 2015年6月5日
+ *  Created on: 2015-6-5
  *      Author: salmon
  */
 

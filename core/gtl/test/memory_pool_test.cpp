@@ -1,7 +1,7 @@
 /*
  * memory_pool_test.cpp
  *
- *  Created on: 2014年11月14日
+ *  Created on: 2014-11-14
  *      Author: salmon
  */
 

@@ -1,7 +1,7 @@
 /**
  * @file dataset.h
  *
- *  Created on: 2014年11月10日
+ *  Created on: 2014-11-10
  *      Author: salmon
  */
 
@@ -13,9 +13,9 @@
 #include <memory>
 #include <type_traits>
 
-#include "../gtl/check_concept.h"
-#include "../gtl/properties.h"
-#include "../gtl/type_traits.h"
+#include "../check_concept.h"
+#include "../properties.h"
+#include "../type_traits.h"
 #include "../utilities/memory_pool.h"
 #include "dataspace.h"
 #include "datatype.h"

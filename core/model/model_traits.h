@@ -1,7 +1,7 @@
-/*
- * model_traits.h
+/**
+ *  @file model_traits.h
  *
- *  Created on: 2015年6月24日
+ *  Created on: 2015-6-24
  *      Author: salmon
  */
 

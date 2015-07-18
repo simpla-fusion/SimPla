@@ -1,7 +1,7 @@
-//
-// Created by salmon on 7/1/15.
-//
-
+/**
+ *  @file boundary.h
+ *  Created by salmon on 7/1/15.
+ */
 #ifndef SIMPLA_BOUNDARY_H
 #define SIMPLA_BOUNDARY_H
 

@@ -1,8 +1,8 @@
 /*
  * register_particle.h
  *
- * \date  2014-6-13
- *      \author  salmon
+ * @date  2014-6-13
+ *      @author  salmon
  */
 
 #ifndef REGISTER_PARTICLE_H_

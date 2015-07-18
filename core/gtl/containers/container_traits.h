@@ -1,5 +1,5 @@
-/*
- * container_traits.h
+/**
+ * @file container_traits.h
  *
  *  Created on: Oct 13, 2014
  *      Author: salmon
@@ -11,7 +11,7 @@
 #include <memory>
 #include <string.h>
 
-#include "../../utilities/memory_pool.h"
+#include "../utilities/memory_pool.h"
 #include "../type_traits.h"
 namespace simpla
 {

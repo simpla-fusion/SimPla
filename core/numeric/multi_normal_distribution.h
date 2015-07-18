@@ -1,5 +1,5 @@
-/*
- * multi_normal_distribution.h
+/**
+ *  @file multi_normal_distribution.h
  *
  *  created on: 2013-10-22
  *      Author: salmon

@@ -1,8 +1,8 @@
 /**
  * @file  optional.h
  *
- * \date  2014-4-1
- *      \author  salmon
+ * @date  2014-4-1
+ *      @author  salmon
  */
 
 #ifndef CORE_GTL_OPTIONAL_H_

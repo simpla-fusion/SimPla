@@ -1,5 +1,5 @@
-/*
- * integration.h
+/**
+ *  @file integration.h
  *
  *  created on: 2013-12-2
  *      Author: salmon

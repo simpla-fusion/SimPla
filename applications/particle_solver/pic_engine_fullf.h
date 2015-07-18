@@ -1,8 +1,8 @@
 /*
  * pic_engine_fullf.h
  *
- * \date  2013-11-6
- *      \author  salmon
+ * @date  2013-11-6
+ *      @author  salmon
  */
 
 #ifndef PIC_ENGINE_FULLF_H_

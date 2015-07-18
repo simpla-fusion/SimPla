@@ -1,5 +1,5 @@
-/*
- * interpolation.h
+/**
+ *  @file interpolation.h
  *
  *  created on: 2013-12-2
  *      Author: salmon
@@ -7,7 +7,7 @@
 
 #ifndef INTERPOLATION_H_
 #define INTERPOLATION_H_
-#include "../utilities/log.h"
+#include "../gtl/utilities/log.h"
 #include "../gtl/ntuple.h"
 #include <vector>
 #include <cmath>

@@ -1,7 +1,7 @@
-/*
- * application.cpp
+/**
+ * @file application.cpp
  *
- *  Created on: 2015年1月7日
+ *  Created on: 2015-1-7
  *      Author: salmon
  */
 #include "application.h"

@@ -1,7 +1,7 @@
 /**
  * @file integer_sequence.h
  *
- *  Created on: 2014年9月26日
+ *  Created on: 2014-9-26
  *      Author: salmon
  */
 

@@ -1,8 +1,8 @@
 /**
  * @file range.h
  *
- * \date    2014年8月27日  上午9:49:48 
- * \author salmon
+ * @date    2014-8-27  AM9:49:48
+ * @author salmon
  */
 
 #ifndef SP_RANGE_H_

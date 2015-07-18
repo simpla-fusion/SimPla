@@ -1,8 +1,8 @@
 /**
- * \file container_pool.h
+ * @file container_pool.h
  *
- * \date    2014年8月26日  下午4:30:23 
- * \author salmon
+ * @date    2014-8-26  下午4:30:23
+ * @author salmon
  */
 
 #ifndef CONTAINER_POOL_H_

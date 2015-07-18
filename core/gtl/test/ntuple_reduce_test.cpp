@@ -1,7 +1,7 @@
 /**
  * @file ntuple_reduce_test.cpp
  *
- *  Created on: 2015年6月21日
+ *  Created on: 2015-6-21
  *      Author: salmon
  */
 

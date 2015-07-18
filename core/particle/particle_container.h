@@ -1,7 +1,7 @@
 /**
  * @file particle_container.h
  *
- *  Created on: 2015年3月26日
+ *  Created on: 2015-3-26
  *      Author: salmon
  */
 

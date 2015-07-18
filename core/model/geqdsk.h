@@ -1,5 +1,5 @@
-/*
- * read_geqdsk.h
+/**
+ *  @file geqdsk.h
  *
  *  created on: 2013-11-29
  *      Author: salmon

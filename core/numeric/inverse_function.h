@@ -1,5 +1,5 @@
-/*
- * inverse_function.h
+/**
+ *  @file inverse_function.h
  *
  *  created on: 2013-12-2
  *      Author: salmon

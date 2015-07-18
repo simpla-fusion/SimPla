@@ -2,8 +2,8 @@
  * $Id$
  * Maxwell/PML.h
  *
- * \date  2010-12-7
- *      \author  salmon
+ * @date  2010-12-7
+ *      @author  salmon
  */
 
 #include <cmath>

@@ -1,7 +1,7 @@
 /**
  * @file implicit_function.h
  *
- * @date 2015年6月2日
+ * @date 2015-6-2
  * @author salmon
  */
 

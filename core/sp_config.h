@@ -1,8 +1,8 @@
 /**
  * sp_config.h
  *
- *    \date 2011-12-24
- *    \author  salmon
+ *    @date 2011-12-24
+ *    @author  salmon
  */
 
 #ifndef SIMPLA_DEFS_H_

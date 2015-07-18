@@ -1,7 +1,7 @@
 /*
  * @file field_simple_mesh_shared_ptr_test.cpp
  *
- *  Created on: 2015年1月29日
+ *  Created on: 2015-1-29
  *      Author: salmon
  */
 #include <gtest/gtest.h>

@@ -1,7 +1,7 @@
 /**
  * @file sp_iterator_cycle.h
  *
- * @date 2015年5月12日
+ * @date 2015-5-12
  * @author salmon
  */
 

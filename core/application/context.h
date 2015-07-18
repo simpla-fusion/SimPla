@@ -1,8 +1,8 @@
 /**
- * \file context.h
+ * @file context.h
  *
- * \date    2014年9月18日  上午9:33:53 
- * \author salmon
+ * @date    2014-9-18  AM9:33:53
+ * @author salmon
  */
 
 #ifndef CORE_APPLICATION_CONTEXT_H_

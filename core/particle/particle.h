@@ -1,5 +1,5 @@
-/*
- = * @file particle.h
+/**
+ * @file particle.h
  *
  *  created on: 2012-11-1
  *      Author: salmon
@@ -14,8 +14,7 @@
 #include "../../core/particle/particle_generator.h"
 #include "../../core/particle/simple_particle_generator.h"
 
-namespace simpla
-{
+namespace simpla {
 
 }  // namespace simpla
 

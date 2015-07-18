@@ -1,6 +1,6 @@
-//
-// Created by salmon on 7/7/15.
-//
+/**
+ * @file  schedule.h
+ */
 
 #ifndef SIMPLA_SCHEDULE_H
 #define SIMPLA_SCHEDULE_H

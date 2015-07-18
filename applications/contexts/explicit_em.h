@@ -1,8 +1,8 @@
 /*
  * explicit_em_impl.h
  *
- * \date  2013-12-29
- *      \author  salmon
+ * @date  2013-12-29
+ *      @author  salmon
  */
 
 #ifndef EXPLICIT_EM_IMPL_H_

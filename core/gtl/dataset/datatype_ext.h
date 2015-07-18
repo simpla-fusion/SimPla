@@ -1,7 +1,7 @@
 /**
  * @file datatype_ext.h
  *
- *  Created on: 2015年6月10日
+ *  Created on: 2015-6-10
  *      Author: salmon
  */
 

@@ -1,7 +1,7 @@
 /**
  * @file concept_check.h
  *
- *  Created on: 2015年1月12日
+ *  Created on: 2015-1-12
  *      Author: salmon
  */
 

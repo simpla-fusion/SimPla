@@ -1,5 +1,5 @@
-/*
- * normal_distribution_icdf.h
+/**
+ *  @file normal_distribution_icdf.h
  *
  *  created on: 2013-10-23
  *      Author: salmon

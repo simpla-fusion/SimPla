@@ -1,7 +1,7 @@
 /**
  * @file mesh_traits.h
  *
- * @date 2015年6月19日
+ * @date 2015-6-19
  * @author salmon
  */
 

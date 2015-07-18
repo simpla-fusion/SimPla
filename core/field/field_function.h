@@ -1,7 +1,7 @@
-/*
+/**
  * @file field_function.h
  *
- *  Created on: 2015年3月10日
+ *  Created on: 2015-3-10
  *      Author: salmon
  */
 

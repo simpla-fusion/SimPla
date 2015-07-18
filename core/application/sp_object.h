@@ -1,7 +1,7 @@
 /**
  * @file sp_object.h
  *
- *  Created on: @date 2014年11月18日
+ *  Created on: @date 2014-11-18
  *   @author: salmon
  */
 
@@ -9,9 +9,9 @@
 #define CORE_APPLICATION_SP_OBJECT_H_
 
 #include <iostream>
-#include "../parallel/mpi_comm.h"
-#include "../parallel/mpi_aux_functions.h"
-#include "../parallel/mpi_update.h"
+#include "../gtl/parallel/mpi_comm.h"
+#include "../gtl/parallel/mpi_aux_functions.h"
+#include "../gtl/parallel/mpi_update.h"
 namespace simpla
 {
 class DataSet;

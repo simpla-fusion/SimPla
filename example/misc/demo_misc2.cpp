@@ -1,7 +1,7 @@
 /**
  * @file demo_misc2.cpp
  *
- * @date 2015年4月16日
+ * @date 2015-4-16
  * @author salmon
  */
 

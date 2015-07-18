@@ -1,8 +1,8 @@
 /**
- * \file parser_configure.h
+ * @file parser_configure.h
  *
- * \date    2014年9月18日  上午8:20:15 
- * \author salmon
+ * @date    2014-9-18  AM8:20:15
+ * @author salmon
  */
 
 #ifndef PARSER_CONFIGURE_H_

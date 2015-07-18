@@ -1,7 +1,7 @@
-/*
- * use_case.cpp
+/**
+ * @file use_case.cpp
  *
- *  Created on: 2014年11月21日
+ *  Created on: 2014-11-21
  *      Author: salmon
  */
 
@@ -15,7 +15,7 @@
 #include <tuple>
 #include <utility>
 
-#include "../utilities/utilities.h"
+#include "../gtl/utilities/utilities.h"
 
 namespace simpla
 {

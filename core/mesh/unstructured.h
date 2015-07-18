@@ -1,22 +1,20 @@
 /**
  * @file unstructured.h
  *
- * @date 2015年6月16日
+ * @date 2015-6-16
  * @author salmon
  */
 
 #ifndef CORE_MESH_UNSTRUCTURED_H_
 #define CORE_MESH_UNSTRUCTURED_H_
 
-namespace simpla
-{
-namespace tags
-{
+namespace simpla {
+namespace tags {
 template<typename PrimaryShape> struct unstructured;
 }
 // namespace tags
 
-template<typename ... > struct Mesh;
+template<typename ...> struct Mesh;
 
 /**
  * @ingroup mesh

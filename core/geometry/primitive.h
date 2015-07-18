@@ -1,7 +1,7 @@
 /**
  * @file primitive.h
  *
- * @date 2015年6月4日
+ * @date 2015-6-4
  * @author salmon
  */
 

@@ -1,7 +1,7 @@
 /**
  * @file field_continue.h
  *
- * @date 2015年1月30日
+ * @date 2015-1-30
  * @author  salmon
  */
 

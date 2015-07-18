@@ -1,7 +1,7 @@
 /*
  * iterator_cycle.h
  *
- *  Created on: 2014年11月19日
+ *  Created on: 2014-11-19
  *      Author: salmon
  */
 

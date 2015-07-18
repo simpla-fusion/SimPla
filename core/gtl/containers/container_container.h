@@ -1,5 +1,5 @@
-/*
- * container_container.h
+/**
+ * @file container_container.h
  *
  *  created on: 2014-7-1
  *      Author: salmon

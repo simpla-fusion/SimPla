@@ -1,8 +1,8 @@
 /*
  * implicitPushE.h
  *
- * \date  2014-4-16
- *      \author  salmon
+ * @date  2014-4-16
+ *      @author  salmon
  */
 
 #ifndef IMPLICITPUSHE_H_

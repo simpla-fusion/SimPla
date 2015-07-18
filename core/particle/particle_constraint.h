@@ -1,7 +1,7 @@
 /**
  * @file particle_constraint.h
  *
- * @date    2014年9月2日  上午10:39:25
+ * @date    2014-9-2  AM10:39:25
  * @author salmon
  */
 

@@ -1,52 +1,43 @@
-//
-// Created by salmon on 7/3/15.
-//
+/**
+ *  @file mesh_layout.h
+ *   Created by salmon on 7/3/15.
+ */
 
 #ifndef SIMPLA_MESH_LAYOUT_H
 #define SIMPLA_MESH_LAYOUT_H
 
-#include "../parallel/mpi_comm.h"
-#include "../parallel/mpi_update.h"
-#include "../dataset/dataspace.h"
+#include "../gtl/parallel/mpi_comm.h"
+#include "../gtl/parallel/mpi_update.h"
+#include "../gtl/dataset/dataspace.h"
 
 #include "mesh_ids.h"
 
 #include <vector>
+#include <list>
+#include <map>
 #include <vector>
 #include <memory>
 
 namespace simpla {
-template<typename ...> struct MeshLayout;
 template<typename ...> struct MeshConnection;
 
-template<typename M0, typename M1>
-struct MeshConnection
-{
-    std::weak_ptr<M0> m_first_;
-    std::weak_ptr<M1> m_second_;
-
-};
 
 template<typename TM>
-struct MeshLayout<TM>
+struct MeshLayout
 {
+
+    typedef TM mesh_type;
+
     static constexpr int ndims = traits::dimension<TM>::value;
 
-    typedef MeshIDs_<ndims> MeshIDs;
+    typedef traits::id_type_t<TM> mesh_id_type;
 
-    typedef typename MeshIDs::id_type id_type;
+    std::vector<std::shared_ptr<mesh_type>> m_sub_mesh_;
 
-
-    static constexpr size_t DEFAULT_GHOST_WIDTH;
-
-
-    id_type m_id_zero_;
-
-    id_type m_id_max_;
+    std::vector<std::list<size_t> > m_adjacency_list_;
 
 
     void sync();
-
 
     void deploy(size_t const *gw = nullptr)
     {

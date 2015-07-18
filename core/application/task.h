@@ -1,7 +1,7 @@
 /**
  * @file  task.h
  *
- *  Created on: 2015年1月4日
+ *  Created on: 2015-1-4
  *      Author: salmon
  */
 

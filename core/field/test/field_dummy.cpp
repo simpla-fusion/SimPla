@@ -1,7 +1,7 @@
 /*
  * field_dummy.cpp
  *
- *  Created on: 2015年1月27日
+ *  Created on: 2015-1-27
  *      Author: salmon
  */
 

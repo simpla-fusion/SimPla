@@ -1,8 +1,8 @@
 /**
- * find_root.h
+ *  @file find_root.h
  *
- * \date 2014-7-6
- * \author salmon
+ * @date 2014-7-6
+ * @author salmon
  */
 
 #ifndef FIND_ROOT_H_

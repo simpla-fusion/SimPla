@@ -1,8 +1,8 @@
 /**
  * @file any.h
  *
- * \date    2014年7月13日  上午7:18:19 
- * \author salmon
+ * @date    2014-7-13  AM7:18:19
+ * @author salmon
  */
 
 #ifndef ANY_H_
@@ -17,8 +17,8 @@
 #include <typeindex>
 #include <typeinfo>
 
-#include "../dataset/datatype.h"
-#include "../utilities/log.h"
+#include "dataset/datatype.h"
+#include "utilities/log.h"
 
 namespace simpla
 {

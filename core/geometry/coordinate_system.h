@@ -1,7 +1,7 @@
 /**
  * @file coordinate_system.h
  *
- * @date 2015年6月3日
+ * @date 2015-6-3
  * @author salmon
  */
 

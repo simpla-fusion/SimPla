@@ -1,8 +1,8 @@
 /*
  * pic_engine_deltaf.h
  *
- * \date  2013-12-10
- *      \author  salmon
+ * @date  2013-12-10
+ *      @author  salmon
  */
 
 #ifndef PIC_ENGINE_DELTAF_H_

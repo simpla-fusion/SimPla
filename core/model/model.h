@@ -17,10 +17,10 @@
 
 #include "../gtl/primitives.h"
 #include "../gtl/type_traits.h"
-#include "utilities.h"
+#include "../gtl/utilities/utilities.h"
 #include "../mesh/mesh_ids.h"
-namespace simpla
-{
+
+namespace simpla {
 
 /**
  *  @defgroup  Model Model
@@ -32,172 +32,174 @@ namespace simpla
  *   @brief Model
  */
 template<size_t NDIMS = 3>
-class Model_: public MeshIDs_<NDIMS, 0>
+class Model_ : public MeshIDs_<NDIMS, 0>
 {
 
 public:
 
-	typedef MeshIDs_<NDIMS, AXIS_FLAG> mesh_ids;
+    typedef MeshIDs_<NDIMS, AXIS_FLAG> mesh_ids;
 
-	using typename mesh_ids::id_type;
+    using typename mesh_ids::id_type;
 
-	typedef std::uint64_t tag_type;
+    typedef std::uint64_t tag_type;
 
-	static constexpr size_t MAX_NUM_OF_MEIDA_TYPE =
-			std::numeric_limits<tag_type>::digits;
+    static constexpr size_t MAX_NUM_OF_MEIDA_TYPE =
+            std::numeric_limits<tag_type>::digits;
 
-	static constexpr size_t ndims = 3;
+    static constexpr size_t ndims = 3;
 
-	static constexpr tag_type null_material = 0UL;
+    static constexpr tag_type null_material = 0UL;
 
-	std::map<id_type, tag_type> m_data_;
+    std::map<id_type, tag_type> m_data_;
 
-	std::map<std::string, tag_type> registered_material_;
+    std::map<std::string, tag_type> registered_material_;
 
-	size_t max_material_;
+    size_t max_material_;
 public:
 
-	enum
-	{
-		NONE = 0,
-		VACUUM = 1UL << 1,
-		PLASMA = 1UL << 2,
-		CORE = 1UL << 3,
-		BOUNDARY = 1UL << 4,
-		LIMITER = 1UL << 5,
-		// @NOTE: add materials for different physical area or media
-		CUSTOM = 1UL << 20
-	};
+    enum
+    {
+        NONE = 0,
+        VACUUM = 1UL << 1,
+        PLASMA = 1UL << 2,
+        CORE = 1UL << 3,
+        BOUNDARY = 1UL << 4,
+        LIMITER = 1UL << 5,
+        // @NOTE: add materials for different physical area or media
+                CUSTOM = 1UL << 20
+    };
 
-	Model_()
-			: max_material_(CUSTOM << 1)
-	{
-		registered_material_.emplace("NONE", null_material);
+    Model_()
+            : max_material_(CUSTOM << 1)
+    {
+        registered_material_.emplace("NONE", null_material);
 
-		registered_material_.emplace("Vacuum", (VACUUM));
-		registered_material_.emplace("Plasma", (PLASMA));
-		registered_material_.emplace("Core", (CORE));
-		registered_material_.emplace("Boundary", (BOUNDARY));
-		registered_material_.emplace("Limiter", (LIMITER));
+        registered_material_.emplace("Vacuum", (VACUUM));
+        registered_material_.emplace("Plasma", (PLASMA));
+        registered_material_.emplace("Core", (CORE));
+        registered_material_.emplace("Boundary", (BOUNDARY));
+        registered_material_.emplace("Limiter", (LIMITER));
 
-	}
-	~Model_()
-	{
-	}
+    }
 
-	bool empty() const
-	{
-		return m_data_.empty();
-	}
+    ~Model_()
+    {
+    }
 
-	size_t register_material(std::string const & name)
-	{
-		size_t res;
-		if (registered_material_.find(name) != registered_material_.end())
-		{
-			res = registered_material_[name];
-		}
-		else if (max_material_ < MAX_NUM_OF_MEIDA_TYPE)
-		{
-			max_material_ = max_material_ << 1;
+    bool empty() const
+    {
+        return m_data_.empty();
+    }
 
-			res = (max_material_);
+    size_t register_material(std::string const &name)
+    {
+        size_t res;
+        if (registered_material_.find(name) != registered_material_.end())
+        {
+            res = registered_material_[name];
+        }
+        else if (max_material_ < MAX_NUM_OF_MEIDA_TYPE)
+        {
+            max_material_ = max_material_ << 1;
 
-		}
-		else
-		{
-			RUNTIME_ERROR("Too much media Type");
-		}
-		return res;
-	}
+            res = (max_material_);
 
-	size_t get_material(std::string const &name) const
-	{
+        }
+        else
+        {
+            RUNTIME_ERROR("Too much media Type");
+        }
+        return res;
+    }
 
-		if (name == "" || name == "NONE")
-		{
-			return null_material;
-		}
-		size_t res;
+    size_t get_material(std::string const &name) const
+    {
 
-		try
-		{
-			res = registered_material_.at(name);
+        if (name == "" || name == "NONE")
+        {
+            return null_material;
+        }
+        size_t res;
 
-		} catch (...)
-		{
-			RUNTIME_ERROR("Unknown material name : " + name);
-		}
-		return std::move(res);
-	}
+        try
+        {
+            res = registered_material_.at(name);
 
-	tag_type at(id_type s) const
-	{
-		auto it = m_data_.find(s & ID_MASK);
+        } catch (...)
+        {
+            RUNTIME_ERROR("Unknown material name : " + name);
+        }
+        return std::move(res);
+    }
 
-		if (it != m_data_.end())
-		{
-			return it->second;
-		}
-		else
-		{
-			return null_material;
-		}
+    tag_type at(id_type s) const
+    {
+        auto it = m_data_.find(s & ID_MASK);
 
-	}
+        if (it != m_data_.end())
+        {
+            return it->second;
+        }
+        else
+        {
+            return null_material;
+        }
 
-	tag_type operator[](id_type s) const
-	{
-		return get(s);
-	}
+    }
 
-	void clear()
-	{
-		m_data_.clear();
-	}
+    tag_type operator[](id_type s) const
+    {
+        return get(s);
+    }
 
-	template<typename TR>
-	void erase(TR const & r)
-	{
-		for (auto s : r)
-		{
-			m_data_.erase(s);
-		}
-	}
+    void clear()
+    {
+        m_data_.clear();
+    }
 
-	template<typename TR>
-	void set(TR const & r, size_t const& tag)
-	{
-		for (auto s : r)
-		{
-			m_data_[s] |= tag;
-		}
-	}
-	template<typename TR>
-	void unset(TR const & r, size_t const& tag)
-	{
-		for (auto s : r)
-		{
-			m_data_[s] &= ~tag;
-		}
-	}
+    template<typename TR>
+    void erase(TR const &r)
+    {
+        for (auto s : r)
+        {
+            m_data_.erase(s);
+        }
+    }
 
-	/**
-	 *
-	 * @param s is a FACE or EDGE
-	 * @param in
-	 * @param out
-	 * @return
-	 */
-	bool check_boundary_surface(id_type const & s, size_t in)
-	{
-		id_type d = (~s) & (_DA) &ID_MASK;
+    template<typename TR>
+    void set(TR const &r, size_t const &tag)
+    {
+        for (auto s : r)
+        {
+            m_data_[s] |= tag;
+        }
+    }
 
-		return ((in & get(s - d)) == 0UL) ^ ((in & get(s + d)) == 0UL);
-	}
+    template<typename TR>
+    void unset(TR const &r, size_t const &tag)
+    {
+        for (auto s : r)
+        {
+            m_data_[s] &= ~tag;
+        }
+    }
 
-}
-;
+    /**
+     *
+     * @param s is a FACE or EDGE
+     * @param in
+     * @param out
+     * @return
+     */
+    bool check_boundary_surface(id_type const &s, size_t in)
+    {
+        id_type d = (~s) & (_DA) & ID_MASK;
+
+        return ((in & get(s - d)) == 0UL) ^ ((in & get(s + d)) == 0UL);
+    }
+
+};
+
 template<size_t N> constexpr size_t Model_<N>::null_material;
 
 typedef Model_<3> Model;

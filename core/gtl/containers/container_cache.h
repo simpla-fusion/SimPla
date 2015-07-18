@@ -1,5 +1,5 @@
-/*
- * container_cache.h
+/**
+ * @file container_cache.h
  *
  *  created on: 2014-7-1
  *      Author: salmon
@@ -8,7 +8,7 @@
 #ifndef CONTAINER_CACHE_H_
 #define CONTAINER_CACHE_H_
 
-#include "../utilities/type_traits.h"
+#include "../type_traits.h"
 namespace simpla
 {
 

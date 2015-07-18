@@ -1,5 +1,5 @@
-/*
- * geqdsk_xdmf.cpp
+/**
+ *  @file  geqdsk_xdmf.cpp
  *
  *  created on: 2014-4-21
  *      Author: salmon
@@ -21,7 +21,7 @@
 #include <XdmfRoot.h>
 #include <XdmfTopology.h>
 
-#include "../io/xdmf_io.h"
+#include "io"
 
 class XdmfArray;
 namespace simpla

@@ -1,7 +1,7 @@
 /**
  * @file boost_gemetry_adapted.h
  *
- * @date 2015年6月3日
+ * @date 2015-6-3
  * @author salmon
  */
 

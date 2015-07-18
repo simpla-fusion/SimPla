@@ -1,7 +1,7 @@
 /**
  * @file config_parser.cpp
  *
- *  Created on: 2014年11月24日
+ *  Created on: 2014-11-24
  *      Author: salmon
  */
 

@@ -1,15 +1,15 @@
 /**
  * @file dataspace.cpp
  *
- *  Created on: 2014年11月13日
+ *  Created on: 2014-11-13
  *      @author: salmon
  */
 
 #include <algorithm>
 #include <utility>
 
-#include "../gtl/ntuple.h"
-#include "utilities.h"
+#include "../ntuple.h"
+#include "../utilities/utilities.h"
 #include "dataspace.h"
 
 namespace simpla

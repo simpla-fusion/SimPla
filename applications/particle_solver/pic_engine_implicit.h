@@ -1,8 +1,8 @@
 /*
  * pic_engine_implicit.h
  *
- * \date  2014-4-10
- *      \author  salmon
+ * @date  2014-4-10
+ *      @author  salmon
  */
 
 #ifndef PIC_ENGINE_IMPLICIT_H_

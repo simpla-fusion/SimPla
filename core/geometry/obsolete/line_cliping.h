@@ -1,7 +1,7 @@
 /**
  * @file line_cliping.h
  *
- * @date 2015年5月13日
+ * @date 2015-5-13
  * @author salmon
  */
 

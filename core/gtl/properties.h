@@ -1,8 +1,8 @@
 /**
  * @file   properties.h
  *
- * \date    2014年7月13日  上午7:27:37 
- * \author salmon
+ * @date    2014-7-13  AM7:27:37
+ * @author salmon
  */
 
 #ifndef PROPERTIES_H_

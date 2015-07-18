@@ -1,6 +1,7 @@
-//
-// Created by salmon on 7/18/15.
-//
+/**
+ *  @file  mesh_connection.h
+ *  Created by salmon on 7/18/15.
+ */
 
 #ifndef SIMPLA_MESH_CONNECTION_H
 #define SIMPLA_MESH_CONNECTION_H

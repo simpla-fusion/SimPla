@@ -1,7 +1,7 @@
-/*
- * chains.h
+/**
+ * @file chains.h
  *
- *  Created on: 2015年6月4日
+ *  Created on: 2015-6-4
  *      Author: salmon
  */
 

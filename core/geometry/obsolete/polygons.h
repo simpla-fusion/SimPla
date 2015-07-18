@@ -1,7 +1,7 @@
 /*
  * polygons.h
  *
- *  Created on: 2015年3月29日
+ *  Created on: 2015-3-29
  *      Author: salmon
  */
 

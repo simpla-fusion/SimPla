@@ -1,7 +1,7 @@
 /**
  * @file sp_ndarray.h
  *
- * @date 2015年3月20日
+ * @date 2015-3-20
  * @author salmon
  */
 

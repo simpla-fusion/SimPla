@@ -1,7 +1,7 @@
 /**
  * @file demo_general_field_op.cpp
  *
- * @date 2015年3月4日
+ * @date 2015-3-4
  * @author salmon
  */
 

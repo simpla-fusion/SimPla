@@ -1,14 +1,14 @@
 /**
  * @file  kinetic_particle.h
  *
- * \date    2014年9月1日  下午2:25:26 
- * \author salmon
+ * @date    2014-9-1  下午2:25:26
+ * @author salmon
  */
 
 #ifndef CORE_PARTICLE_KINETIC_PARTICLE_H_
 #define CORE_PARTICLE_KINETIC_PARTICLE_H_
 #include <memory>
-#include "utilities.h"
+#include "../gtl/utilities/utilities.h"
 #include "../gtl/containers/sp_sorted_set.h"
 #include "particle.h"
 namespace simpla

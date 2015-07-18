@@ -1,7 +1,7 @@
 /*
  * @file demo_em.cpp
  *
- *  Created on: 2014年11月28日
+ *  Created on: 2014-11-28
  *      Author: salmon
  */
 

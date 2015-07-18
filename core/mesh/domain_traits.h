@@ -1,7 +1,7 @@
 /**
  * @file domain_traits.h
  *
- * @date 2015年6月23日
+ * @date 2015-6-23
  * @author salmon
  */
 

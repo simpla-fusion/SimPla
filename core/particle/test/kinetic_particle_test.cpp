@@ -1,7 +1,7 @@
 /**
  * @file kinetic_particle_test.cpp
  *
- * @date 2015年2月11日
+ * @date 2015-2-11
  * @author salmon
  */
 

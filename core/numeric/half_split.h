@@ -1,7 +1,7 @@
-/*
- * half_split.h
+/**
+ *  @file half_split.h
  *
- *  Created on: 2014年12月10日
+ *  Created on: 2014-12-10
  *      Author: salmon
  */
 

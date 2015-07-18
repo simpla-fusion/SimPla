@@ -1,7 +1,8 @@
-//
-// Created by salmon on 7/7/15.
-//
-
+/**
+ * @file mesh_amr.h
+ *
+ * Created by salmon on 7/7/15.
+ */
 #ifndef SIMPLA_MESH_AMR_H
 #define SIMPLA_MESH_AMR_H
 
@@ -13,8 +14,8 @@
 #include "../../geometry/coordinate_system.h"
 #include "../../gtl/design_pattern/signal.h"
 
-#include "block.h"
-#include "block_id.h"
+#include "mesh_block.h"
+#include "mesh_block_id.h"
 
 namespace simpla {
 namespace tags {

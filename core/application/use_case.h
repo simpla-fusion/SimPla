@@ -1,7 +1,7 @@
-/*
- * use_case.h
+/**
+ * @file use_case.h
  *
- *  Created on: 2014年11月21日
+ *  Created on: 2014-11-21
  *      Author: salmon
  */
 
@@ -15,7 +15,7 @@
 #include <string>
 #include <tuple>
 
-#include "utilities.h"
+#include "../gtl/utilities/utilities.h"
 
 #include "../gtl/design_pattern/singleton_holder.h"
 #include "application.h"

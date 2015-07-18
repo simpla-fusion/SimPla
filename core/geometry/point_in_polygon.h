@@ -1,4 +1,4 @@
-/*
+/**
  * @file point_in_polygon.h
  *
  *  created on: 2013-12-4

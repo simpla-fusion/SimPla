@@ -1,7 +1,7 @@
 /**
  * @file geo_object.h
  *
- *  Created on: 2015年6月7日
+ *  Created on: 2015-6-7
  *      Author: salmon
  */
 

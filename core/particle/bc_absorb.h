@@ -1,4 +1,4 @@
-/*
+/**
  * @file bc_absorb.h
  *
  *  created on: 2014-4-24
@@ -12,8 +12,8 @@
 #include <string>
 
 #include "../gtl/ntuple.h"
-#include "../utilities/primitives.h"
-#include "../model/surface.h".h"
+#include "../gtl/primitives.h"
+#include "../model/surface.h"
 
 namespace simpla
 {

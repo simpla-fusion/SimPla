@@ -1,7 +1,7 @@
 /**
  * @file ntuple_ext.h
  *
- * @date 2015年6月10日
+ * @date 2015-6-10
  * @author salmon
  */
 

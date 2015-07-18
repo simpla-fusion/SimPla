@@ -1,8 +1,8 @@
 /**
  * @file iterator.h
  *
- * \date 2014-7-4
- * \author salmon
+ * @date 2014-7-4
+ * @author salmon
  */
 
 #ifndef SP_ITERATOR_H_

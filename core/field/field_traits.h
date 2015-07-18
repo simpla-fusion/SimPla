@@ -1,7 +1,7 @@
 /**
  * @file field_traits.h
  *
- * @date 2015年6月12日
+ * @date 2015-6-12
  * @author salmon
  */
 

@@ -1,13 +1,13 @@
-/*
- * sp_object.cpp
+/**
+ * @file sp_object.cpp
  *
- *  Created on: 2015年3月6日
+ *  Created on: 2015-3-6
  *      Author: salmon
  */
 #include "sp_object.h"
-#include "../parallel/mpi_comm.h"
-#include "../parallel/mpi_aux_functions.h"
-#include "../parallel/mpi_update.h"
+#include "../gtl/parallel/mpi_comm.h"
+#include "../gtl/parallel/mpi_aux_functions.h"
+#include "../gtl/parallel/mpi_update.h"
 namespace simpla
 {
 //! Default constructor

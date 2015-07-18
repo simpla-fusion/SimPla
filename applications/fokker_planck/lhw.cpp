@@ -1,8 +1,8 @@
 /**
  * \file lhw.cpp
  *
- * \date    2014年7月30日  上午7:20:34 
- * \author salmon
+ * @date    2014-7-30  AM7:20:34
+ * @author salmon
  */
 
 #include <random>

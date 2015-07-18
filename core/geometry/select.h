@@ -1,7 +1,7 @@
 /**
  * @file select.h
  *
- *  Created on: 2014年12月2日
+ *  Created on: 2014-12-2
  *      Author: salmon
  */
 

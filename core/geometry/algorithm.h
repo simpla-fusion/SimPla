@@ -1,7 +1,7 @@
 /**
  * @file algorithm.h
  *
- * @date 2015年6月5日
+ * @date 2015-6-5
  * @author salmon
  */
 

@@ -1,7 +1,7 @@
 /**
  * @file simple_particle.h
  *
- * @date 2015年2月13日
+ * @date 2015-2-13
  * @author salmon
  */
 

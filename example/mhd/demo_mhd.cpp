@@ -1,8 +1,8 @@
 /**
  *  \file  demo_mhd.cpp
  *
- *  \date  2014-7-7
- *  \author salmon
+ *  @date  2014-7-7
+ *  @author salmon
  */
 
 #include <iostream>

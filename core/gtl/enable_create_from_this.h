@@ -1,7 +1,7 @@
-/*
+/**
  * @file enable_create_from_this.h
  *
- *  Created on: 2015年1月15日
+ *  Created on: 2015-1-15
  *      Author: salmon
  */
 

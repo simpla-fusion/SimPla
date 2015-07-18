@@ -1,5 +1,5 @@
-/*
- * rectangle_distribution.h
+/**
+ *  @file rectangle_distribution.h
  *
  *  created on: 2013-10-24
  *      Author: salmon

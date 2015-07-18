@@ -1,5 +1,5 @@
-/*
- * read_geqdsk.cpp
+/**
+ *  @file  geqdsk.cpp
  *
  *  created on: 2013-11-29
  *      Author: salmon
@@ -14,16 +14,15 @@
 #include <memory>
 #include <utility>
 
-#include "../utilities/log.h"
-#include "../utilities/pretty_stream.h"
+#include "../gtl/utilities/log.h"
+#include "../gtl/utilities/pretty_stream.h"
 #include "../gtl/ntuple.h"
 #include "../physics/constants.h"
-#include "../io/data_stream.h"
+#include "../gtl/io/data_stream.h"
 #include "../numeric/find_root.h"
 #include "../numeric/point_in_polygon.h"
 
-namespace simpla
-{
+namespace simpla {
 constexpr size_t GEqdsk::PhiAxis;
 constexpr size_t GEqdsk::RAxis;
 constexpr size_t GEqdsk::ZAxis;
@@ -31,163 +30,164 @@ constexpr size_t GEqdsk::ZAxis;
 void GEqdsk::load(std::string const &fname)
 {
 
-	std::ifstream inFileStream_(fname);
+    std::ifstream inFileStream_(fname);
 
-	if (!inFileStream_.is_open())
-	{
-		RUNTIME_ERROR("File " + fname + " is not opend!");
-		return;
-	}
+    if (!inFileStream_.is_open())
+    {
+        RUNTIME_ERROR("File " + fname + " is not opend!");
+        return;
+    }
 
-	LOGGER << "Load GFile : [" << fname << "]" << std::endl;
+    LOGGER << "Load GFile : [" << fname << "]" << std::endl;
 
-	int nw; //Number of horizontal R grid points
-	int nh; //Number of vertical Z grid points
-	double simag; // Poloidal flux at magnetic axis in Weber / rad
-	double sibry; // Poloidal flux at the plasma boundary in Weber / rad
-	int idum;
-	double xdum;
+    int nw; //Number of horizontal R grid points
+    int nh; //Number of vertical Z grid points
+    double simag; // Poloidal flux at magnetic axis in Weber / rad
+    double sibry; // Poloidal flux at the plasma boundary in Weber / rad
+    int idum;
+    double xdum;
 
-	char str_buff[50];
+    char str_buff[50];
 
-	inFileStream_.get(str_buff, 48);
+    inFileStream_.get(str_buff, 48);
 
-	m_desc_ = std::string(str_buff);
+    m_desc_ = std::string(str_buff);
 
-	inFileStream_ >> std::setw(4) >> idum >> nw >> nh;
+    inFileStream_ >> std::setw(4) >> idum >> nw >> nh;
 
-	inFileStream_ >> std::setw(16)
+    inFileStream_ >> std::setw(16)
 
-	>> m_rdim_ >> m_zdim_ >> m_rcenter_ >> m_rleft_ >> m_zmid_
+    >> m_rdim_ >> m_zdim_ >> m_rcenter_ >> m_rleft_ >> m_zmid_
 
-	>> m_rmaxis_ >> zmaxis >> simag >> sibry >> m_bcenter_
+    >> m_rmaxis_ >> zmaxis >> simag >> sibry >> m_bcenter_
 
-	>> m_current_ >> simag >> xdum >> m_rmaxis_ >> xdum
+    >> m_current_ >> simag >> xdum >> m_rmaxis_ >> xdum
 
-	>> zmaxis >> xdum >> sibry >> xdum >> xdum;
+    >> zmaxis >> xdum >> sibry >> xdum >> xdum;
 
-	m_rzmin_[RAxis] = m_rleft_;
-	m_rzmax_[RAxis] = m_rleft_ + m_rdim_;
-	m_rzmin_[ZAxis] = m_zmid_ - m_zdim_ / 2;
-	m_rzmax_[ZAxis] = m_zmid_ + m_zdim_ / 2;
-	m_rzmin_[PhiAxis] = 0;
-	m_rzmax_[PhiAxis] = 0;
+    m_rzmin_[RAxis] = m_rleft_;
+    m_rzmax_[RAxis] = m_rleft_ + m_rdim_;
+    m_rzmin_[ZAxis] = m_zmid_ - m_zdim_ / 2;
+    m_rzmax_[ZAxis] = m_zmid_ + m_zdim_ / 2;
+    m_rzmin_[PhiAxis] = 0;
+    m_rzmax_[PhiAxis] = 0;
 
-	m_dims_[RAxis] = nw;
-	m_dims_[ZAxis] = nh;
-	m_dims_[PhiAxis] = 1;
+    m_dims_[RAxis] = nw;
+    m_dims_[ZAxis] = nh;
+    m_dims_[PhiAxis] = 1;
 
-	inter2d_type(m_dims_, m_rzmin_, m_rzmax_, PhiAxis).swap(psirz_);
+    inter2d_type(m_dims_, m_rzmin_, m_rzmax_, PhiAxis).swap(psirz_);
 
 #define INPUT_VALUE(_NAME_)                                               \
-	for (int s = 0; s < nw; ++s)                                          \
-	{                                                                     \
-		double y;                                                         \
-		inFileStream_ >> std::setw(16) >> y;                              \
-		m_profile_[ _NAME_ ].data().emplace(                              \
-	      static_cast<double>(s)                                          \
-	          /static_cast<double>(nw-1), y );                            \
-	}                                                                     \
+    for (int s = 0; s < nw; ++s)                                          \
+    {                                                                     \
+        double y;                                                         \
+        inFileStream_ >> std::setw(16) >> y;                              \
+        m_profile_[ _NAME_ ].data().emplace(                              \
+          static_cast<double>(s)                                          \
+              /static_cast<double>(nw-1), y );                            \
+    }                                                                     \
 
-	INPUT_VALUE("fpol");
-	INPUT_VALUE("pres");
-	INPUT_VALUE("ffprim");
-	INPUT_VALUE("pprim");
+    INPUT_VALUE("fpol");
+    INPUT_VALUE("pres");
+    INPUT_VALUE("ffprim");
+    INPUT_VALUE("pprim");
 
-	for (int j = 0; j < nh; ++j)
-		for (int i = 0; i < nw; ++i)
-		{
-			double v;
-			inFileStream_ >> std::setw(16) >> v;
-			psirz_[i + j * nw] = (v - simag) / (sibry - simag); // Normalize Poloidal flux
-		}
+    for (int j = 0; j < nh; ++j)
+        for (int i = 0; i < nw; ++i)
+        {
+            double v;
+            inFileStream_ >> std::setw(16) >> v;
+            psirz_[i + j * nw] = (v - simag) / (sibry - simag); // Normalize Poloidal flux
+        }
 
-	INPUT_VALUE("qpsi");
+    INPUT_VALUE("qpsi");
 
 #undef INPUT_VALUE
 
-	size_t nbbbs, limitr;
-	inFileStream_ >> std::setw(5) >> nbbbs >> limitr;
+    size_t nbbbs, limitr;
+    inFileStream_ >> std::setw(5) >> nbbbs >> limitr;
 
-	std::vector<nTuple<double, 2>> rzbbb(nbbbs);
-	std::vector<nTuple<double, 2>> rzlim(limitr);
+    std::vector<nTuple<double, 2>> rzbbb(nbbbs);
+    std::vector<nTuple<double, 2>> rzlim(limitr);
 
-	inFileStream_ >> std::setw(16) >> rzbbb;
-	inFileStream_ >> std::setw(16) >> rzlim;
+    inFileStream_ >> std::setw(16) >> rzbbb;
+    inFileStream_ >> std::setw(16) >> rzlim;
 
-	m_rzbbb_.resize(nbbbs);
-	m_rzlim_.resize(limitr);
+    m_rzbbb_.resize(nbbbs);
+    m_rzlim_.resize(limitr);
 
-	for (size_t s = 0; s < nbbbs; ++s)
-	{
-		m_rzbbb_[s][RAxis] = rzbbb[s][0];
-		m_rzbbb_[s][ZAxis] = rzbbb[s][1];
-		m_rzbbb_[s][PhiAxis] = 0;
-	}
+    for (size_t s = 0; s < nbbbs; ++s)
+    {
+        m_rzbbb_[s][RAxis] = rzbbb[s][0];
+        m_rzbbb_[s][ZAxis] = rzbbb[s][1];
+        m_rzbbb_[s][PhiAxis] = 0;
+    }
 
-	for (size_t s = 0; s < limitr; ++s)
-	{
-		m_rzlim_[s][RAxis] = rzlim[s][0];
-		m_rzlim_[s][ZAxis] = rzlim[s][1];
-		m_rzlim_[s][PhiAxis] = 0;
-	}
-	load_profile(fname + "_profiles.txt");
+    for (size_t s = 0; s < limitr; ++s)
+    {
+        m_rzlim_[s][RAxis] = rzlim[s][0];
+        m_rzlim_[s][ZAxis] = rzlim[s][1];
+        m_rzlim_[s][PhiAxis] = 0;
+    }
+    load_profile(fname + "_profiles.txt");
 
 }
+
 void GEqdsk::load_profile(std::string const &fname)
 {
-	LOGGER << "Load GFile Profiles: [" << fname << "]" << std::endl;
+    LOGGER << "Load GFile Profiles: [" << fname << "]" << std::endl;
 
-	std::ifstream inFileStream_(fname);
+    std::ifstream inFileStream_(fname);
 
-	if (!inFileStream_.is_open())
-	{
-		RUNTIME_ERROR("File " + fname + " is not opend!");
-	}
+    if (!inFileStream_.is_open())
+    {
+        RUNTIME_ERROR("File " + fname + " is not opend!");
+    }
 
-	std::string line;
+    std::string line;
 
-	std::getline(inFileStream_, line);
+    std::getline(inFileStream_, line);
 
-	std::vector<std::string> names;
-	{
-		std::stringstream lineStream(line);
+    std::vector<std::string> names;
+    {
+        std::stringstream lineStream(line);
 
-		while (lineStream)
-		{
-			std::string t;
-			lineStream >> t;
-			if (t != "")
-				names.push_back(t);
-		};
-	}
+        while (lineStream)
+        {
+            std::string t;
+            lineStream >> t;
+            if (t != "")
+                names.push_back(t);
+        };
+    }
 
-	while (inFileStream_)
-	{
-		auto it = names.begin();
-		auto ie = names.end();
-		double psi;
-		inFileStream_ >> psi; 		/// \note assume first row is psi
-		*it = psi;
+    while (inFileStream_)
+    {
+        auto it = names.begin();
+        auto ie = names.end();
+        double psi;
+        inFileStream_ >> psi;        /// \note assume first row is psi
+        *it = psi;
 
-		for (++it; it != ie; ++it)
-		{
-			double value;
-			inFileStream_ >> value;
-			m_profile_[*it].data().emplace(psi, value);
+        for (++it; it != ie; ++it)
+        {
+            double value;
+            inFileStream_ >> value;
+            m_profile_[*it].data().emplace(psi, value);
 
-		}
-	}
-	std::string profile_list = "psi,B";
+        }
+    }
+    std::string profile_list = "psi,B";
 
-	for (auto const & item : m_profile_)
-	{
-		profile_list += " , " + item.first;
-	}
+    for (auto const &item : m_profile_)
+    {
+        profile_list += " , " + item.first;
+    }
 
-	LOGGER << "GFile is ready! Profile={" << profile_list << "}" << std::endl;
+    LOGGER << "GFile is ready! Profile={" << profile_list << "}" << std::endl;
 
-	is_valid_ = true;
+    is_valid_ = true;
 }
 
 //std::string GEqdsk::save(std::string const & path) const
@@ -215,9 +215,9 @@ void GEqdsk::load_profile(std::string const &fname)
 //	}
 //	return path;
 //}
-std::ostream & GEqdsk::print(std::ostream & os)
+std::ostream &GEqdsk::print(std::ostream &os)
 {
-	std::cout << "--" << m_desc_ << std::endl;
+    std::cout << "--" << m_desc_ << std::endl;
 
 //	std::cout << "nw" << "\t= " << nw
 //			<< "\t--  Number of horizontal R grid  points" << std::endl;
@@ -233,9 +233,9 @@ std::ostream & GEqdsk::print(std::ostream & os)
 //			<< "\t-- Vertical dimension in meter of computational box                   "
 //			<< std::endl;
 
-	std::cout << "rcentr" << "\t= " << m_rcenter_
-			<< "\t--                                                                    "
-			<< std::endl;
+    std::cout << "rcentr" << "\t= " << m_rcenter_
+    << "\t--                                                                    "
+    << std::endl;
 
 //	std::cout << "rleft" << "\t= " << rleft
 //			<< "\t-- Minimum R in meter of rectangular computational box                "
@@ -245,13 +245,13 @@ std::ostream & GEqdsk::print(std::ostream & os)
 //			<< "\t-- Z of center of computational box in meter                          "
 //			<< std::endl;
 
-	std::cout << "rmaxis" << "\t= " << m_rmaxis_
-			<< "\t-- R of magnetic axis in meter                                        "
-			<< std::endl;
+    std::cout << "rmaxis" << "\t= " << m_rmaxis_
+    << "\t-- R of magnetic axis in meter                                        "
+    << std::endl;
 
-	std::cout << "rmaxis" << "\t= " << zmaxis
-			<< "\t-- Z of magnetic axis in meter                                        "
-			<< std::endl;
+    std::cout << "rmaxis" << "\t= " << zmaxis
+    << "\t-- Z of magnetic axis in meter                                        "
+    << std::endl;
 
 //	std::cout << "simag" << "\t= " << simag
 //			<< "\t-- poloidal flus ax magnetic axis in Weber / rad                      "
@@ -261,17 +261,17 @@ std::ostream & GEqdsk::print(std::ostream & os)
 //			<< "\t-- Poloidal flux at the plasma boundary in Weber / rad                "
 //			<< std::endl;
 
-	std::cout << "rcentr" << "\t= " << m_rcenter_
-			<< "\t-- R in meter of  vacuum toroidal magnetic field BCENTR               "
-			<< std::endl;
+    std::cout << "rcentr" << "\t= " << m_rcenter_
+    << "\t-- R in meter of  vacuum toroidal magnetic field BCENTR               "
+    << std::endl;
 
-	std::cout << "bcentr" << "\t= " << m_bcenter_
-			<< "\t-- Vacuum toroidal magnetic field in Tesla at RCENTR                  "
-			<< std::endl;
+    std::cout << "bcentr" << "\t= " << m_bcenter_
+    << "\t-- Vacuum toroidal magnetic field in Tesla at RCENTR                  "
+    << std::endl;
 
-	std::cout << "current" << "\t= " << m_current_
-			<< "\t-- Plasma current in Ampere                                          "
-			<< std::endl;
+    std::cout << "current" << "\t= " << m_current_
+    << "\t-- Plasma current in Ampere                                          "
+    << std::endl;
 
 //	std::cout << "fpol" << "\t= "
 //			<< "\t-- Poloidal current function in m-T<< $F=RB_T$ on flux grid           "
@@ -313,79 +313,79 @@ std::ostream & GEqdsk::print(std::ostream & os)
 //			<< "\t-- R of surrounding limiter contour in meter                          "
 //			<< std::endl << rzlim_ << std::endl;
 
-	return os;
+    return os;
 }
 
-bool GEqdsk::flux_surface(double psi_j, size_t M, coordinates_type*res,
-		size_t ToPhiAxis, double resolution)
+bool GEqdsk::flux_surface(double psi_j, size_t M, coordinates_type *res,
+                          size_t ToPhiAxis, double resolution)
 {
-	bool success = true;
+    bool success = true;
 
-	PointInPolygon boundary(m_rzbbb_, PhiAxis);
+    PointInPolygon boundary(m_rzbbb_, PhiAxis);
 
-	nTuple<double, 3> center;
+    nTuple<double, 3> center;
 
-	center[PhiAxis] = 0;
-	center[RAxis] = m_rcenter_;
-	center[ZAxis] = m_zmid_;
+    center[PhiAxis] = 0;
+    center[RAxis] = m_rcenter_;
+    center[ZAxis] = m_zmid_;
 
-	nTuple<double, 3> drz;
+    nTuple<double, 3> drz;
 
-	drz[PhiAxis] = 0;
+    drz[PhiAxis] = 0;
 
-	std::function<double(nTuple<double, 3> const &)> fun =
-			[this ](nTuple<double,3> const & x)->double
-			{
-				return this->psi(x);
-			};
+    std::function<double(nTuple<double, 3> const &)> fun =
+            [this](nTuple<double, 3> const &x) -> double
+                {
+                return this->psi(x);
+                };
 
-	for (int i = 0; i < M; ++i)
-	{
-		double theta = static_cast<double>(i) * TWOPI / static_cast<double>(M);
+    for (int i = 0; i < M; ++i)
+    {
+        double theta = static_cast<double>(i) * TWOPI / static_cast<double>(M);
 
-		drz[RAxis] = std::cos(theta);
-		drz[ZAxis] = std::sin(theta);
+        drz[RAxis] = std::cos(theta);
+        drz[ZAxis] = std::sin(theta);
 
-		nTuple<double, 3> rmax;
-		nTuple<double, 3> t;
+        nTuple<double, 3> rmax;
+        nTuple<double, 3> t;
 
-		t = center
-				+ drz * std::sqrt(m_rdim_ * m_rdim_ + m_zdim_ * m_zdim_) * 0.5;
+        t = center
+            + drz * std::sqrt(m_rdim_ * m_rdim_ + m_zdim_ * m_zdim_) * 0.5;
 
-		std::tie(success, rmax) = boundary.Intersection(center, t);
+        std::tie(success, rmax) = boundary.Intersection(center, t);
 
-		if (!success)
-		{
-			RUNTIME_ERROR(
-					"Illegal Geqdsk configuration: RZ-center is out of the boundary (rzbbb)!  ");
-		}
+        if (!success)
+        {
+            RUNTIME_ERROR(
+                    "Illegal Geqdsk configuration: RZ-center is out of the boundary (rzbbb)!  ");
+        }
 
-		nTuple<double, 3> t2 = center + (rmax - center) * 0.1;
-		std::tie(success, res[i]) = find_root(t2, rmax, fun, psi_j, resolution);
+        nTuple<double, 3> t2 = center + (rmax - center) * 0.1;
+        std::tie(success, res[i]) = find_root(t2, rmax, fun, psi_j, resolution);
 
-		if (!success)
-		{
-			WARNING << "Construct flux surface failed!" << "at theta = "
-					<< theta << " psi = " << psi_j;
-			break;
-		}
+        if (!success)
+        {
+            WARNING << "Construct flux surface failed!" << "at theta = "
+            << theta << " psi = " << psi_j;
+            break;
+        }
 
-	}
+    }
 
-	return success;
+    return success;
 
 }
 
 bool GEqdsk::map_to_flux_coordiantes(
-		std::vector<coordinates_type> const&surface,
-		std::vector<coordinates_type> *res,
-		std::function<double(double, double)> const & h, size_t PhiAxis)
+        std::vector<coordinates_type> const &surface,
+        std::vector<coordinates_type> *res,
+        std::function<double(double, double)> const &h, size_t PhiAxis)
 {
-	bool success = false;
+    bool success = false;
 
-	UNIMPLEMENTED;
+    UNIMPLEMENTED;
 
-	return success;
+    return success;
 
 }
 

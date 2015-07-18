@@ -1,7 +1,7 @@
 /*
  * probe_particle_test.cpp
  *
- *  Created on: 2014年10月29日
+ *  Created on: 2014-10-29
  *      Author: salmon
  */
 

@@ -1,5 +1,5 @@
-/*
- * conatiner_dense.h
+/**
+ * @file conatiner_dense.h
  *
  *  created on: 2014-6-30
  *      Author: salmon
@@ -11,7 +11,7 @@
 #include <mutex>
 #include <cstring>
 #include "../utilities/log.h"
-#include "../design_pattern/memory_pool.h"
+#include "../utilities/memory_pool.h"
 #include "../utilities/misc_utilities.h"
 namespace simpla
 {

@@ -1,5 +1,5 @@
-/*
- * cholesky.h
+/**
+ *  @file  cholesky.h
  *
  *  created on: 2013-10-22
  *      Author: salmon

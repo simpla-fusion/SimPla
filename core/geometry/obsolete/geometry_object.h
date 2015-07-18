@@ -1,7 +1,7 @@
 /**
  * @file geometry_object.h
  *
- *  Created on: 2015年6月2日
+ *  Created on: 2015-6-2
  *      Author: salmon
  */
 
