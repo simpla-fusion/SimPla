@@ -9,7 +9,7 @@
 #include <utility>
 
 #include "../gtl/ntuple.h"
-#include "../utilities/utilities.h"
+#include "utilities.h"
 #include "dataspace.h"
 
 namespace simpla

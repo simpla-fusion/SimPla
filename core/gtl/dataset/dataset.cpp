@@ -6,7 +6,7 @@
  */
 
 #include "dataset.h"
-#include "../utilities/utilities.h"
+#include "utilities.h"
 #include <ostream>
 namespace simpla
 {

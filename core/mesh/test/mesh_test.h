@@ -11,7 +11,7 @@
 #include <gtest/gtest.h>
 #include <tuple>
 
-#include "../../utilities/utilities.h"
+#include "utilities.h"
 #include "../../field/field.h"
 #include "../structured/structured.h"
 #include "../../io/io.h"

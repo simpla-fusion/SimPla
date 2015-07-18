@@ -12,7 +12,7 @@
 #include <random>
 
 #include "../field.h"
-#include "../../utilities/utilities.h"
+#include "utilities.h"
 using namespace simpla;
 
 template<typename TField>

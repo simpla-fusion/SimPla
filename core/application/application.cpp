@@ -13,7 +13,7 @@
 #include <tuple>
 #include <utility>
 
-#include "../utilities/utilities.h"
+#include "utilities.h"
 #include "../parallel/mpi_comm.h"
 namespace simpla
 {

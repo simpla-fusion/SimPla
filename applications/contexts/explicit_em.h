@@ -18,7 +18,7 @@
 // Misc
 #include "../../core/application/context_base.h"
 #include "../../core/diff_geometry/fetl.h"
-#include "../../core/utilities/utilities.h"
+#include "utilities.h"
 
 // Data IO
 #include "../../core/io/io.h"

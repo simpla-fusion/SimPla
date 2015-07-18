@@ -10,7 +10,7 @@
 
 #include <gtest/gtest.h>
 #include "../../../parallel/parallel.h"
-#include "../../../utilities/utilities.h"
+#include "utilities.h"
 
 using namespace simpla;
 

@@ -17,7 +17,7 @@
 #include "../core/utilities/log.h"
 #include "../core/utilities/lua_state.h"
 #include "../core/utilities/parse_command_line.h"
-#include "../core/utilities/utilities.h"
+#include "utilities.h"
 #include "contexts/context_factory.h"
 
 using namespace simpla;

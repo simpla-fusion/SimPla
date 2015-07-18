@@ -9,7 +9,7 @@
 #define PARTICLE_ENGINE_H_
 #include <stddef.h>
 #include "../physics/physical_constants.h"
-#include "../utilities/utilities.h"
+#include "utilities.h"
 #include "../gtl/type_traits.h"
 #include "../dataset/datatype.h"
 namespace simpla

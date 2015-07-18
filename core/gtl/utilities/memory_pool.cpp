@@ -13,7 +13,7 @@
 #include <new>
 #include <tuple>
 
-#include "../gtl/design_pattern/singleton_holder.h"
+#include "design_pattern/singleton_holder.h"
 #include "log.h"
 namespace simpla
 {

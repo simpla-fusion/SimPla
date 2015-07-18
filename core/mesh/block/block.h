@@ -5,45 +5,53 @@
 #ifndef SIMPLA_MESH_BLOCK_BLOCK_H_
 #define SIMPLA_MESH_BLOCK_BLOCK_H_
 
+class nTuple;
+
 #include "mesh_id.h"
 #include "../../gtl/macro.h"
 #include "../../gtl/primitives.h"
 #include "../../gtl/ntuple.h"
 
 #include "../../gtl/type_traits.h"
+#include "../../geometry/coordinate_system.h"
+#include "block_id.h"
+#include "../../gtl/design_pattern/signal.h"
 
 #include <vector>
 
-namespace simpla
-{
+namespace simpla {
 
+template<typename...> struct MeshLayout;
 
+namespace tags {
+template<int LEVEL> struct multi_block : public std::integral_constant<int, LEVEL> { };
+}
+
+template<typename CS, int LEVEL> using BlockMesh= Mesh<CS, tags::multi_block<LEVEL>>;
 
 
 /**
  *  @brief Block represents a 'NDIMS'-dimensional 'LEVEL'th-level AMR mesh ;
  */
-
-template<int NDIMS, size_t LEVEL>
-struct Block
+template<typename CS, int LEVEL>
+struct Mesh<CS, tags::multi_block<LEVEL>>
 {
 
 
 public:
 
-	static constexpr int ndims = NDIMS;
+    static constexpr int ndims = geometry::traits::dimension<CS>::value;
 
-	typedef MeshID<NDIMS, LEVEL> m;
+    typedef MeshID<ndims, LEVEL> m;
 
-	typedef Block<NDIMS, LEVEL> this_type;
 
-	typedef typename m::id_type id_type;
+    typedef typename m::id_type id_type;
 
-	typedef typename m::id_tuple id_tuple;
+    typedef typename m::id_tuple id_tuple;
 
-	typedef typename m::index_type index_type;
-	typedef typename m::index_tuple index_tuple;
-	typedef typename m::range_type range_type;
+    typedef typename m::index_type index_type;
+    typedef typename m::index_tuple index_tuple;
+    typedef typename m::range_type range_type;
 
 /**
  *
@@ -75,135 +83,190 @@ public:
  *
  */
 
-	id_type m_id_local_min_;
+    id_type m_id_min_;
+    id_type m_id_max_;
 
-	id_type m_id_local_max_;
+    point_type m_coord_min_, m_coord_max_;
 
-	id_type m_id_memory_min_;
+public:
 
-	id_type m_id_memory_max_;
+    typedef Mesh<CS, tags::multi_block<LEVEL> > this_type;
+
+    typedef Mesh<CS, tags::multi_block<LEVEL - 1> > finer_mesh;
+
+    typedef Mesh<CS, tags::multi_block<LEVEL + 1> > coarser_mesh;
+
+
+    typedef geometry::traits::point_type_t<CS> point_type;
+
+
+    Mesh(point_type const &x_min, point_type const &x_max, index_tuple const &d) :
+            m_coord_min_(x_min), m_coord_max_(x_max)
+    {
+
+    }
+
+    ~Mesh()
+    {
+
+    }
+
+    void swap(this_type &other)
+    {
+        std::swap(m_id_min_, other.m_id_min_);
+        std::swap(m_id_max_, other.m_id_max_);
+
+    }
+
+
+    typename m::index_tuple dimensions() const
+    {
+        return m::unpack_index(m_id_max_ - m_id_min_);
+    }
+
+    size_t ghost_width() const
+    {
+
+    };
+
+    template<size_t IFORM>
+    size_t max_hash() const
+    {
+        return m::template max_hash<IFORM>(m_id_min_, m_id_max_);
+    }
+
+    size_t hash(id_type s) const
+    {
+        return m::hash(s, m_id_min_, m_id_max_);
+    }
+
+
+    std::tuple<index_tuple, index_tuple> index_box() const
+    {
+        return std::make_tuple(m::unpack_index(m_id_min_),
+                               m::unpack_index(m_id_max_));
+    }
+
+
+    auto box() const
+    DECL_RET_TYPE(std::forward_as_tuple(m_coord_min_, m_coord_max_))
+
+//    bool in_box(index_tuple const &x) const
+//    {
+//        auto b = m::unpack_index(m_id_min_);
+//        auto e = m::unpack_index(m_id_max_);
+//        return (b[1] <= x[1]) && (b[2] <= x[2]) && (b[0] <= x[0])  //
+//               && (e[1] > x[1]) && (e[2] > x[2]) && (e[0] > x[0]);
+//
+//    }
+//
+//    bool in_box(id_type s) const
+//    {
+//        return in_box(m::unpack_index(s));
+//    }
+
+    template<typename ...Args>
+    range_type valid_range(Args &&...args) const
+    {
+        return m::range_type(m_id_min_, m_id_max_, std::forward<Args>(args)...);
+    }
 
 
 public:
 
-	Block()
-	{
 
-	}
+    MeshLayout<finer_mesh> m_sub_mesh_;
 
 
-	Block(Block const &other) :
-
-			m_id_local_min_(other.m_id_local_min_),
-
-			m_id_local_max_(other.m_id_local_max_),
-
-			m_id_memory_max_(other.m_id_memory_max_),
-
-			m_id_memory_min_(other.m_id_memory_min_)
-	{
-
-	}
-
-	~Block()
-	{
-
-	}
-
-	Block &operator=(Block const &other)
-	{
-		Block(other).swap(*this);
-		return *this;
-	}
-
-//	this_type operator&(this_type const &other) const
-//	{
-//		return *this;
-//	}
-
-	void swap(this_type &other)
-	{
-		std::swap(m_id_local_min_, other.m_id_local_min_);
-		std::swap(m_id_local_max_, other.m_id_local_max_);
-		std::swap(m_id_memory_max_, other.m_id_memory_max_);
-		std::swap(m_id_memory_min_, other.m_id_memory_min_);
-	}
-
-	template<typename TI>
-	void dimensions(TI const &d)
-	{
-
-		m_id_local_min_ = m::ID_ZERO;
-		m_id_local_max_ = m_id_local_min_ + m::pack_index(d);
-
-	}
-
-	typename m::index_tuple dimensions() const
-	{
-		return m::unpack_index(m_id_local_max_ - m_id_local_min_);
-	}
-
-	template<size_t IFORM>
-	size_t max_hash() const
-	{
-		return m::template max_hash<IFORM>(m_id_memory_min_,
-				m_id_memory_max_);
-	}
-
-	size_t hash(id_type s) const
-	{
-		return m::hash(s, m_id_memory_min_, m_id_memory_max_);
-	}
-
-	template<size_t IFORM>
-	id_type pack_relative_index(index_type i, index_type j,
-			index_type k, index_type n = 0) const
-	{
-		return m::pack_index(nTuple<index_type, 3>({i, j, k}),
-				m::template sub_index_to_id<IFORM>(n)) + m_id_local_min_;
-	}
-
-	nTuple<index_type, ndims + 1> unpack_relative_index(id_type s) const
-	{
-		nTuple<index_type, ndims + 1> res;
-		res = m::unpack_index(s - m_id_local_min_);
-		res[ndims] = m::sub_index(s);
-		return std::move(res);
-	}
+    Signal<void(id_type)> signal_finer;
+    Signal<void(id_type)> signal_coarse;
+    Signal<void(id_type)> signal_update;
+    Signal<void(id_type)> signal_sync;
 
 
-	std::tuple<index_tuple, index_tuple> index_box() const
-	{
-		return std::make_tuple(m::unpack_index(m_id_local_min_),
-				m::unpack_index(m_id_local_max_));
-	}
+    template<typename T, typename ...Args>
+    std::shared_ptr<T> create(Args &&...args)
+    {
+        auto res = std::make_shared<T>(*this, std::forward<Args>(args)...);
+        signal_finer.connect(res, &T::finer);
+        signal_coarse.connect(res, &T::coarse);
+        signal_update.connect(res, &T::update);
+        signal_update.connect(sync, &T::sync);
+
+        return res;
+    }
+
+    BlockID add_finer_mesh(index_tuple const &imin, index_tuple const &imax);
+
+    void remove_finer_mesh(BlockID const &);
+
+    void remove_finer_mesh();
+
+    void re_mesh_finer(BlockID const &);
+
+    void sync();
+
+    std::tuple<point_type, point_type> box() const
+    { return std::make_tuple(m_coord_min_, m_coord_max_); }
 
 
-//	auto box() const
-//	DECL_RET_TYPE(std::forward_as_tuple(m_id_local_min_, m_id_local_max_))
+};
 
-	bool in_box(index_tuple const &x) const
-	{
-		auto b = m::unpack_index(m_id_local_min_);
-		auto e = m::unpack_index(m_id_local_max_);
-		return (b[1] <= x[1]) && (b[2] <= x[2]) && (b[0] <= x[0])  //
-				&& (e[1] > x[1]) && (e[2] > x[2]) && (e[0] > x[0]);
+template<typename CS>
+using finest_mesh = Mesh<CS, tags::multi_block<0> >;
 
-	}
 
-	bool in_box(id_type s) const
-	{
-		return in_box(m::unpack_index(s));
-	}
+template<typename CS, int LEVEL>
+Mesh<CS, tags::multi_block<LEVEL>>::Mesh(point_type const &x_min, point_type const &x_max, index_tuple const &d) :
+        m_coord_min_(x_min), m_coord_max_(x_max)
+{
 
-	template<size_t IFORM>
-	range_type range() const
-	{
-		return m::range_type(m_id_local_min_, m_id_local_max_);
-	}
+}
 
-}; //struct Block
+template<typename CS, int LEVEL>
+Mesh<CS, tags::multi_block<LEVEL>>::~Mesh()
+{
 
+}
+
+template<typename CS, int LEVEL>
+BlockID  Mesh<CS, tags::multi_block<LEVEL>>::add_finer_mesh(index_tuple const &i_min, index_tuple const &i_max)
+{
+
+    /**
+     * TODO:
+     *  1. check overlap
+     *  2.
+     */
+    point_type x_min, x_max;
+
+    auto res = m_finer_mesh_list_.emplace(BlockID(LEVEL), finer_mesh(x_min, x_max, i_max - i_min));
+
+
+    return res.first->first;
+}
+
+template<typename CS, int LEVEL>
+void Mesh<CS, tags::multi_block<LEVEL>>::remove_finer_mesh(BlockID const &id)
+{
+    if (m_finer_mesh_list_.find(id) != m_finer_mesh_list_.end())
+    {
+        m_finer_mesh_list_[id].remove_finer_mesh();
+        m_finer_mesh_list_.erase(id);
+
+        signal_finer(id);
+    }
+}
+
+
+template<typename CS, int LEVEL>
+void Mesh<CS, tags::multi_block<LEVEL>>::sync()
+{
+    for (auto &item:m_finer_mesh_list_)
+    {
+        signal_sync(item.first);
+    }
+}
 
 
 }// namespace simpla

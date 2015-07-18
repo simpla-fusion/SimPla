@@ -24,7 +24,7 @@ extern "C"
 #   include "../parallel/mpi_aux_functions.h"
 #endif
 
-#include "../utilities/utilities.h"
+#include "utilities.h"
 #include "../utilities/memory_pool.h"
 
 #define H5_ERROR( _FUN_ ) if((_FUN_)<0){logger::Logger(logger::LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n HDF5 Error:";H5Eprint(H5E_DEFAULT, stderr);LOGGER<<std::endl;}

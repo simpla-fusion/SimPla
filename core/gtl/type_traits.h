@@ -42,7 +42,7 @@ using index_sequence = integer_sequence<std::size_t, Ints...>;
 
 /**
  *  alt. of std::integer_sequence ( C++14)
- *  @quto http://en.cppreference.com/w/cpp/utility/integer_sequence
+ *  @quto http://en.cppreference.com/w/cpp/utilities/integer_sequence
  *  The class template  integer_sequence represents a
  *  compile-time sequence of integers. When used as an argument
  *   to a function template, the parameter pack Ints can be deduced

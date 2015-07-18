@@ -17,7 +17,7 @@
 
 #include "../gtl/primitives.h"
 #include "../gtl/type_traits.h"
-#include "../utilities/utilities.h"
+#include "utilities.h"
 #include "../mesh/mesh_ids.h"
 namespace simpla
 {

@@ -11,8 +11,7 @@
 #include <stddef.h>
 #include <list>
 #include <map>
-#include "../utilities/utilities.h"
-#include "../mesh/mesh_ids.h"
+#include "utilities.h"
 
 namespace simpla
 {

@@ -10,7 +10,7 @@
 #include "../../core/application/application.h"
 #include "../../core/application/use_case.h"
 
-#include "../../core/utilities/utilities.h"
+#include "utilities.h"
 #include "../../core/io/io.h"
 #include "../../core/physics/physical_constants.h"
 #include "../../core/field/field.h"

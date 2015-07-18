@@ -5,7 +5,7 @@
  * @author salmon
  */
 
-#include "../../core/utilities/utilities.h"
+#include "utilities.h"
 using namespace simpla;
 
 int main(int argc, char **argv)

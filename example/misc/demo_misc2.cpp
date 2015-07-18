@@ -6,7 +6,7 @@
  */
 
 #include "../../core/gtl/ntuple.h"
-#include "../../core/utilities/utilities.h"
+#include "utilities.h"
 #include "../../core/mesh/mesh_ids.h"
 
 #include <iostream>
