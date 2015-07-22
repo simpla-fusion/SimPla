@@ -18,7 +18,9 @@
 
 namespace simpla
 {
-
+#ifndef DEFAULT_MESH_LEVEL
+#   define DEFAULT_MESH_LEVEL 4
+#endif
 //  \verbatim
 //
 //   |----------------|----------------|---------------|--------------|------------|
@@ -50,7 +52,7 @@ namespace simpla
  *  |00000000000|11111111111111|11111111111| <=_MASK
  *  \endverbatim
  */
-template<int NDIMS, int LEVEL>
+template<int NDIMS, int LEVEL = DEFAULT_MESH_LEVEL>
 struct MeshID
 {
 	/// @name level independent

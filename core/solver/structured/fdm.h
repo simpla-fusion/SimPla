@@ -23,7 +23,7 @@
 namespace simpla
 {
 
-template<typename ... > class _Field;
+template<typename ...> class _Field;
 
 /** @ingroup diff_scheme
  *  @brief   FdMesh
@@ -44,7 +44,7 @@ struct MapTo;
 
 }  // namespace tags
 
-namespace policy
+namespace solver
 {
 template<typename TM, typename TAGS> struct calculate;
 
@@ -65,25 +65,25 @@ public:
 	/// @{
 	///***************************************************************************************************
 
-	static constexpr Real eval(mesh_type const & geo, Real v, id_type s)
+	static constexpr Real eval(mesh_type const &geo, Real v, id_type s)
 	{
 		return v;
 	}
 
-	static constexpr int eval(mesh_type const & geo, int v, id_type s)
+	static constexpr int eval(mesh_type const &geo, int v, id_type s)
 	{
 		return v;
 	}
 
-	static constexpr std::complex<Real> eval(mesh_type const & geo,
+	static constexpr std::complex<Real> eval(mesh_type const &geo,
 			std::complex<Real> v, id_type s)
 	{
 		return v;
 	}
 
 	template<typename T, size_t ...N>
-	static constexpr nTuple<T, N...> const& eval(mesh_type const & geo,
-			nTuple<T, N...> const& v, id_type s)
+	static constexpr nTuple<T, N...> const &eval(mesh_type const &geo,
+			nTuple<T, N...> const &v, id_type s)
 	{
 
 		return v;
@@ -91,7 +91,7 @@ public:
 
 	template<typename ...T>
 	static inline traits::primary_type_t<nTuple<Expression<T...> > > eval(
-			mesh_type const & geo, nTuple<Expression<T...>> const & v,
+			mesh_type const &geo, nTuple<Expression<T...>> const &v,
 			id_type s)
 	{
 		traits::primary_type_t<nTuple<Expression<T...> > > res;
@@ -100,7 +100,7 @@ public:
 	}
 
 	template<typename TM, typename TV, typename ... Others, typename ... Args>
-	static constexpr TV eval(mesh_type const & geo,
+	static constexpr TV eval(mesh_type const &geo,
 			_Field<TM, TV, Others...> const &f, id_type s)
 	{
 		return traits::index(f, s);
@@ -109,21 +109,21 @@ public:
 	template<typename TOP, typename ... T>
 	static constexpr traits::primary_type_t<
 			traits::value_type_t<_Field<Expression<TOP, T...> > > > eval(
-			mesh_type const & geo, _Field<Expression<TOP, T...> > const &expr,
+			mesh_type const &geo, _Field<Expression<TOP, T...> > const &expr,
 			id_type const &s)
 	{
-		return eval(geo, expr, s, traits::iform_list_t<T...>());
+		return eval(geo, expr, s, traits::iform_list_t < T... > ());
 	}
 
 private:
 
 	template<typename Expr, size_t ... index>
 	static traits::primary_type_t<traits::value_type_t<Expr>> _invoke_helper(
-			mesh_type const & geo, Expr const & expr, id_type s,
+			mesh_type const &geo, Expr const &expr, id_type s,
 			index_sequence<index...>)
 	{
 		traits::primary_type_t<traits::value_type_t<Expr>> res = (expr.m_op_(
-				eval(geo, std::get<index>(expr.args),s)...));
+				eval(geo, std::get<index>(expr.args), s)...));
 
 		return std::move(res);
 	}
@@ -133,10 +133,10 @@ public:
 	template<typename TOP, typename ... T>
 	static constexpr traits::primary_type_t<
 			traits::value_type_t<_Field<Expression<TOP, T...> > > > eval(
-			mesh_type const & geo, _Field<Expression<TOP, T...> > const &expr,
-			id_type const & s, traits::iform_list_t<T...>)
+			mesh_type const &geo, _Field<Expression<TOP, T...> > const &expr,
+			id_type const &s, traits::iform_list_t<T...>)
 	{
-		return _invoke_helper(geo, expr, s, typename make_index_sequence<sizeof...(T)>::type ()) ;
+		return _invoke_helper(geo, expr, s, typename make_index_sequence<sizeof...(T)>::type());
 	}
 
 
@@ -148,7 +148,7 @@ public:
 	template<typename T>
 	static inline traits::value_type_t<
 			_Field<Expression<tags::ExteriorDerivative, T> > > eval(
-			mesh_type const & geo,
+			mesh_type const &geo,
 			_Field<Expression<tags::ExteriorDerivative, T> > const &f,
 			id_type s, integer_sequence<int, VERTEX>)
 	{
@@ -161,8 +161,8 @@ public:
 	template<typename T>
 	static inline traits::value_type_t<
 			_Field<Expression<tags::ExteriorDerivative, T> > > eval(
-			mesh_type const & geo,
-			_Field<Expression<tags::ExteriorDerivative, T> > const & expr,
+			mesh_type const &geo,
+			_Field<Expression<tags::ExteriorDerivative, T> > const &expr,
 			id_type s, integer_sequence<int, EDGE>)
 	{
 
@@ -171,10 +171,10 @@ public:
 		id_type Z = mesh_type::inverse_rotate(X);
 
 		return ((eval(geo, std::get<0>(expr.args), s + Y) * geo.volume(s + Y) //
-		- eval(geo, std::get<0>(expr.args), s - Y) * geo.volume(s - Y))
+				- eval(geo, std::get<0>(expr.args), s - Y) * geo.volume(s - Y))
 				- (eval(geo, std::get<0>(expr.args), s + Z) * geo.volume(s + Z) //
 				- eval(geo, std::get<0>(expr.args), s - Z) * geo.volume(s - Z) //
-				)
+		)
 
 		) * geo.inv_volume(s);
 
@@ -183,26 +183,24 @@ public:
 	template<typename T>
 	static constexpr inline traits::value_type_t<
 			_Field<Expression<tags::ExteriorDerivative, T> > > eval(
-			mesh_type const & geo,
-			_Field<Expression<tags::ExteriorDerivative, T> > const & expr,
+			mesh_type const &geo,
+			_Field<Expression<tags::ExteriorDerivative, T> > const &expr,
 			id_type s, integer_sequence<int, FACE>)
 	{
 		return (eval(geo, std::get<0>(expr.args), s + mesh_type::_DI)
 				* geo.volume(s + mesh_type::_DI)
 				- eval(geo, std::get<0>(expr.args), s - mesh_type::_DI)
-						* geo.volume(s - mesh_type::_DI)
+				* geo.volume(s - mesh_type::_DI)
 				+ eval(geo, std::get<0>(expr.args), s + mesh_type::_DJ)
-						* geo.volume(s + mesh_type::_DJ)
+				* geo.volume(s + mesh_type::_DJ)
 				- eval(geo, std::get<0>(expr.args), s - mesh_type::_DJ)
-						* geo.volume(s - mesh_type::_DJ)
+				* geo.volume(s - mesh_type::_DJ)
 				+ eval(geo, std::get<0>(expr.args), s + mesh_type::_DK)
-						* geo.volume(s + mesh_type::_DK)
+				* geo.volume(s + mesh_type::_DK)
 				- eval(geo, std::get<0>(expr.args), s - mesh_type::_DK)
-						* geo.volume(s - mesh_type::_DK)
+				* geo.volume(s - mesh_type::_DK)
 
-		) * geo.inv_volume(s)
-
-		;
+		) * geo.inv_volume(s);
 	}
 //
 ////	template<typename geometry_type,typename TM, int IL, typename TL> void eval(
@@ -216,34 +214,32 @@ public:
 	template<typename T>
 	static constexpr inline traits::value_type_t<
 			_Field<Expression<tags::CodifferentialDerivative, T> > > eval(
-			mesh_type const & geo,
-			_Field<Expression<tags::CodifferentialDerivative, T>> const & expr,
+			mesh_type const &geo,
+			_Field<Expression<tags::CodifferentialDerivative, T>> const &expr,
 			id_type s, integer_sequence<int, EDGE>)
 	{
 		return -(eval(geo, std::get<0>(expr.args), s + mesh_type::_DI)
 				* geo.dual_volume(s + mesh_type::_DI)
 				- eval(geo, std::get<0>(expr.args), s - mesh_type::_DI)
-						* geo.dual_volume(s - mesh_type::_DI)
+				* geo.dual_volume(s - mesh_type::_DI)
 				+ eval(geo, std::get<0>(expr.args), s + mesh_type::_DJ)
-						* geo.dual_volume(s + mesh_type::_DJ)
+				* geo.dual_volume(s + mesh_type::_DJ)
 				- eval(geo, std::get<0>(expr.args), s - mesh_type::_DJ)
-						* geo.dual_volume(s - mesh_type::_DJ)
+				* geo.dual_volume(s - mesh_type::_DJ)
 				+ eval(geo, std::get<0>(expr.args), s + mesh_type::_DK)
-						* geo.dual_volume(s + mesh_type::_DK)
+				* geo.dual_volume(s + mesh_type::_DK)
 				- eval(geo, std::get<0>(expr.args), s - mesh_type::_DK)
-						* geo.dual_volume(s - mesh_type::_DK)
+				* geo.dual_volume(s - mesh_type::_DK)
 
-		) * geo.inv_dual_volume(s)
-
-		;
+		) * geo.inv_dual_volume(s);
 
 	}
 
 	template<typename T>
 	static inline traits::value_type_t<
 			_Field<Expression<tags::CodifferentialDerivative, T> > > eval(
-			mesh_type const & geo,
-			_Field<Expression<tags::CodifferentialDerivative, T>> const & expr,
+			mesh_type const &geo,
+			_Field<Expression<tags::CodifferentialDerivative, T>> const &expr,
 			id_type s, integer_sequence<int, FACE>)
 	{
 
@@ -253,38 +249,34 @@ public:
 
 		return
 
-		-((eval(geo, std::get<0>(expr.args), s + Y) * (geo.dual_volume(s + Y))
-				- eval(geo, std::get<0>(expr.args), s - Y)
+				-((eval(geo, std::get<0>(expr.args), s + Y) * (geo.dual_volume(s + Y))
+						- eval(geo, std::get<0>(expr.args), s - Y)
 						* (geo.dual_volume(s - Y)))
 
-				- (eval(geo, std::get<0>(expr.args), s + Z)
+						- (eval(geo, std::get<0>(expr.args), s + Z)
 						* (geo.dual_volume(s + Z))
 						- eval(geo, std::get<0>(expr.args), s - Z)
-								* (geo.dual_volume(s - Z)))
+						* (geo.dual_volume(s - Z)))
 
-		) * geo.inv_dual_volume(s)
-
-		;
+				) * geo.inv_dual_volume(s);
 	}
 
 	template<typename T>
 	static inline traits::value_type_t<
 			_Field<Expression<tags::CodifferentialDerivative, T> > > eval(
-			mesh_type const & geo,
-			_Field<Expression<tags::CodifferentialDerivative, T> > const & expr,
+			mesh_type const &geo,
+			_Field<Expression<tags::CodifferentialDerivative, T> > const &expr,
 			id_type s, integer_sequence<int, VOLUME>)
 	{
 		id_type D = mesh_type::delta_index(mesh_type::dual(s));
 		return
 
-		-(
+				-(
 
-		eval(geo, std::get<0>(expr.args), s + D) * (geo.dual_volume(s + D)) //
-		- eval(geo, std::get<0>(expr.args), s - D) * (geo.dual_volume(s - D))
+						eval(geo, std::get<0>(expr.args), s + D) * (geo.dual_volume(s + D)) //
+								- eval(geo, std::get<0>(expr.args), s - D) * (geo.dual_volume(s - D))
 
-		) * geo.inv_dual_volume(s)
-
-		;
+				) * geo.inv_dual_volume(s);
 	}
 
 ////***************************************************************************************************
@@ -293,8 +285,8 @@ public:
 
 	template<typename TL, typename TR>
 	static inline traits::value_type_t<_Field<Expression<tags::Wedge, TL, TR> > > eval(
-			mesh_type const & geo,
-			_Field<Expression<tags::Wedge, TL, TR>> const & expr, id_type s,
+			mesh_type const &geo,
+			_Field<Expression<tags::Wedge, TL, TR>> const &expr, id_type s,
 			integer_sequence<int, VERTEX, VERTEX>)
 	{
 		return (eval(geo, std::get<0>(expr.args), s)
@@ -303,8 +295,8 @@ public:
 
 	template<typename TL, typename TR>
 	static inline traits::value_type_t<_Field<Expression<tags::Wedge, TL, TR> > > eval(
-			mesh_type const& geo,
-			_Field<Expression<tags::Wedge, TL, TR>> const & expr, id_type s,
+			mesh_type const &geo,
+			_Field<Expression<tags::Wedge, TL, TR>> const &expr, id_type s,
 			integer_sequence<int, VERTEX, EDGE>)
 	{
 		auto X = mesh_type::delta_index(s);
@@ -316,8 +308,8 @@ public:
 
 	template<typename TL, typename TR>
 	static inline traits::value_type_t<_Field<Expression<tags::Wedge, TL, TR> > > eval(
-			mesh_type const & geo,
-			_Field<Expression<tags::Wedge, TL, TR>> const & expr, id_type s,
+			mesh_type const &geo,
+			_Field<Expression<tags::Wedge, TL, TR>> const &expr, id_type s,
 			integer_sequence<int, VERTEX, FACE>)
 	{
 		auto X = mesh_type::delta_index(mesh_type::dual(s));
@@ -326,23 +318,23 @@ public:
 
 		return (
 
-		eval(geo, std::get<0>(expr.args), (s - Y) - Z)
-				+ eval(geo, std::get<0>(expr.args), (s - Y) + Z)
-				+ eval(geo, std::get<0>(expr.args), (s + Y) - Z)
-				+ eval(geo, std::get<0>(expr.args), (s + Y) + Z)
+				eval(geo, std::get<0>(expr.args), (s - Y) - Z)
+						+ eval(geo, std::get<0>(expr.args), (s - Y) + Z)
+						+ eval(geo, std::get<0>(expr.args), (s + Y) - Z)
+						+ eval(geo, std::get<0>(expr.args), (s + Y) + Z)
 
 		) * 0.25 * eval(geo, std::get<1>(expr.args), s);
 	}
 
 	template<typename TL, typename TR>
 	static inline traits::value_type_t<_Field<Expression<tags::Wedge, TL, TR> > > eval(
-			mesh_type const & geo,
-			_Field<Expression<tags::Wedge, TL, TR>> const & expr, id_type s,
+			mesh_type const &geo,
+			_Field<Expression<tags::Wedge, TL, TR>> const &expr, id_type s,
 			integer_sequence<int, VERTEX, VOLUME>)
 	{
 
-		auto const & l = std::get<0>(expr.args);
-		auto const & r = std::get<1>(expr.args);
+		auto const &l = std::get<0>(expr.args);
+		auto const &r = std::get<1>(expr.args);
 
 		auto X = geo.DI(0, s);
 		auto Y = geo.DI(1, s);
@@ -350,34 +342,34 @@ public:
 
 		return (
 
-		eval(geo, l, ((s - X) - Y) - Z) +
+				eval(geo, l, ((s - X) - Y) - Z) +
 
-		eval(geo, l, ((s - X) - Y) + Z) +
+						eval(geo, l, ((s - X) - Y) + Z) +
 
-		eval(geo, l, ((s - X) + Y) - Z) +
+						eval(geo, l, ((s - X) + Y) - Z) +
 
-		eval(geo, l, ((s - X) + Y) + Z) +
+						eval(geo, l, ((s - X) + Y) + Z) +
 
-		eval(geo, l, ((s + X) - Y) - Z) +
+						eval(geo, l, ((s + X) - Y) - Z) +
 
-		eval(geo, l, ((s + X) - Y) + Z) +
+						eval(geo, l, ((s + X) - Y) + Z) +
 
-		eval(geo, l, ((s + X) + Y) - Z) +
+						eval(geo, l, ((s + X) + Y) - Z) +
 
-		eval(geo, l, ((s + X) + Y) + Z)
+						eval(geo, l, ((s + X) + Y) + Z)
 
 		) * 0.125 * eval(geo, r, s);
 	}
 
 	template<typename TL, typename TR>
 	static inline traits::value_type_t<_Field<Expression<tags::Wedge, TL, TR> > > eval(
-			mesh_type const & geo,
-			_Field<Expression<tags::Wedge, TL, TR>> const & expr, id_type s,
+			mesh_type const &geo,
+			_Field<Expression<tags::Wedge, TL, TR>> const &expr, id_type s,
 			integer_sequence<int, EDGE, VERTEX>)
 	{
 
-		auto const & l = std::get<0>(expr.args);
-		auto const & r = std::get<1>(expr.args);
+		auto const &l = std::get<0>(expr.args);
+		auto const &r = std::get<1>(expr.args);
 
 		auto X = mesh_type::delta_index(s);
 		return eval(geo, l, s) * (eval(geo, r, s - X) + eval(geo, r, s + X))
@@ -386,12 +378,12 @@ public:
 
 	template<typename TL, typename TR>
 	static inline traits::value_type_t<_Field<Expression<tags::Wedge, TL, TR> > > eval(
-			mesh_type const & geo,
-			_Field<Expression<tags::Wedge, TL, TR>> const & expr, id_type s,
+			mesh_type const &geo,
+			_Field<Expression<tags::Wedge, TL, TR>> const &expr, id_type s,
 			integer_sequence<int, EDGE, EDGE>)
 	{
-		auto const & l = std::get<0>(expr.args);
-		auto const & r = std::get<1>(expr.args);
+		auto const &l = std::get<0>(expr.args);
+		auto const &r = std::get<1>(expr.args);
 
 		auto Y = mesh_type::delta_index(mesh_type::rotate(mesh_type::dual(s)));
 		auto Z = mesh_type::delta_index(
@@ -403,112 +395,112 @@ public:
 
 	template<typename TL, typename TR>
 	static inline traits::value_type_t<_Field<Expression<tags::Wedge, TL, TR> > > eval(
-			mesh_type const & geo,
-			_Field<Expression<tags::Wedge, TL, TR>> const & expr, id_type s,
+			mesh_type const &geo,
+			_Field<Expression<tags::Wedge, TL, TR>> const &expr, id_type s,
 			integer_sequence<int, EDGE, FACE>)
 	{
-		auto const & l = std::get<0>(expr.args);
-		auto const & r = std::get<1>(expr.args);
+		auto const &l = std::get<0>(expr.args);
+		auto const &r = std::get<1>(expr.args);
 		auto X = geo.DI(0, s);
 		auto Y = geo.DI(1, s);
 		auto Z = geo.DI(2, s);
 
 		return
 
-		(
+				(
 
-		(eval(geo, l, (s - Y) - Z) + eval(geo, l, (s - Y) + Z)
-				+ eval(geo, l, (s + Y) - Z) + eval(geo, l, (s + Y) + Z))
-				* (eval(geo, r, s - X) + eval(geo, r, s + X))
-				+
+						(eval(geo, l, (s - Y) - Z) + eval(geo, l, (s - Y) + Z)
+								+ eval(geo, l, (s + Y) - Z) + eval(geo, l, (s + Y) + Z))
+								* (eval(geo, r, s - X) + eval(geo, r, s + X))
+								+
 
-				(eval(geo, l, (s - Z) - X) + eval(geo, l, (s - Z) + X)
-						+ eval(geo, l, (s + Z) - X) + eval(geo, l, (s + Z) + X))
-						* (eval(geo, r, s - Y) + eval(geo, r, s + Y))
-				+
+								(eval(geo, l, (s - Z) - X) + eval(geo, l, (s - Z) + X)
+										+ eval(geo, l, (s + Z) - X) + eval(geo, l, (s + Z) + X))
+										* (eval(geo, r, s - Y) + eval(geo, r, s + Y))
+										+
 
-				(eval(geo, l, (s - X) - Y) + eval(geo, l, (s - X) + Y)
-						+ eval(geo, l, (s + X) - Y) + eval(geo, l, (s + X) + Y))
-						* (eval(geo, r, s - Z) + eval(geo, r, s + Z))
+								(eval(geo, l, (s - X) - Y) + eval(geo, l, (s - X) + Y)
+										+ eval(geo, l, (s + X) - Y) + eval(geo, l, (s + X) + Y))
+										* (eval(geo, r, s - Z) + eval(geo, r, s + Z))
 
-		) * 0.125;
+				) * 0.125;
 	}
 
 	template<typename TL, typename TR>
 	static inline traits::value_type_t<_Field<Expression<tags::Wedge, TL, TR> > > eval(
-			mesh_type const & geo,
-			_Field<Expression<tags::Wedge, TL, TR> > const & expr, id_type s,
+			mesh_type const &geo,
+			_Field<Expression<tags::Wedge, TL, TR> > const &expr, id_type s,
 			integer_sequence<int, FACE, VERTEX>)
 	{
-		auto const & l = std::get<0>(expr.args);
-		auto const & r = std::get<1>(expr.args);
+		auto const &l = std::get<0>(expr.args);
+		auto const &r = std::get<1>(expr.args);
 		auto Y = mesh_type::delta_index(mesh_type::rotate(mesh_type::dual(s)));
 		auto Z = mesh_type::delta_index(
 				mesh_type::inverse_rotate(mesh_type::dual(s)));
 
 		return eval(geo, l, s)
 				* (eval(geo, r, (s - Y) - Z) + eval(geo, r, (s - Y) + Z)
-						+ eval(geo, r, (s + Y) - Z) + eval(geo, r, (s + Y) + Z))
+				+ eval(geo, r, (s + Y) - Z) + eval(geo, r, (s + Y) + Z))
 				* 0.25;
 	}
 
 	template<typename TL, typename TR>
 	static inline traits::value_type_t<_Field<Expression<tags::Wedge, TL, TR> > > eval(
-			mesh_type const & geo,
-			_Field<Expression<tags::Wedge, TL, TR> > const & expr, id_type s,
+			mesh_type const &geo,
+			_Field<Expression<tags::Wedge, TL, TR> > const &expr, id_type s,
 			integer_sequence<int, FACE, EDGE>)
 	{
-		auto const & l = std::get<0>(expr.args);
-		auto const & r = std::get<1>(expr.args);
+		auto const &l = std::get<0>(expr.args);
+		auto const &r = std::get<1>(expr.args);
 		auto X = geo.DI(0, s);
 		auto Y = geo.DI(1, s);
 		auto Z = geo.DI(2, s);
 
 		return
 
-		(
+				(
 
-		(eval(geo, r, (s - Y) - Z) + eval(geo, r, (s - Y) + Z)
-				+ eval(geo, r, (s + Y) - Z) + eval(geo, r, (s + Y) + Z))
-				* (eval(geo, l, s - X) + eval(geo, l, s + X))
+						(eval(geo, r, (s - Y) - Z) + eval(geo, r, (s - Y) + Z)
+								+ eval(geo, r, (s + Y) - Z) + eval(geo, r, (s + Y) + Z))
+								* (eval(geo, l, s - X) + eval(geo, l, s + X))
 
-				+ (eval(geo, r, (s - Z) - X) + eval(geo, r, (s - Z) + X)
-						+ eval(geo, r, (s + Z) - X) + eval(geo, r, (s + Z) + X))
-						* (eval(geo, l, s - Y) + eval(geo, l, s + Y))
+								+ (eval(geo, r, (s - Z) - X) + eval(geo, r, (s - Z) + X)
+								+ eval(geo, r, (s + Z) - X) + eval(geo, r, (s + Z) + X))
+								* (eval(geo, l, s - Y) + eval(geo, l, s + Y))
 
-				+ (eval(geo, r, (s - X) - Y) + eval(geo, r, (s - X) + Y)
-						+ eval(geo, r, (s + X) - Y) + eval(geo, r, (s + X) + Y))
-						* (eval(geo, l, s - Z) + eval(geo, l, s + Z))
+								+ (eval(geo, r, (s - X) - Y) + eval(geo, r, (s - X) + Y)
+								+ eval(geo, r, (s + X) - Y) + eval(geo, r, (s + X) + Y))
+								* (eval(geo, l, s - Z) + eval(geo, l, s + Z))
 
-		) * 0.125;
+				) * 0.125;
 	}
 
 	template<typename TL, typename TR>
 	static inline traits::value_type_t<_Field<Expression<tags::Wedge, TL, TR> > > eval(
-			mesh_type const & geo,
-			_Field<Expression<tags::Wedge, TL, TR>> const & expr, id_type s,
+			mesh_type const &geo,
+			_Field<Expression<tags::Wedge, TL, TR>> const &expr, id_type s,
 			integer_sequence<int, VOLUME, VERTEX>)
 	{
-		auto const & l = std::get<0>(expr.args);
-		auto const & r = std::get<1>(expr.args);
+		auto const &l = std::get<0>(expr.args);
+		auto const &r = std::get<1>(expr.args);
 		auto X = geo.DI(0, s);
 		auto Y = geo.DI(1, s);
 		auto Z = geo.DI(2, s);
 
 		return
 
-		eval(geo, l, s) * (
+				eval(geo, l, s) * (
 
-		eval(geo, r, ((s - X) - Y) - Z) + //
-				eval(geo, r, ((s - X) - Y) + Z) + //
-				eval(geo, r, ((s - X) + Y) - Z) + //
-				eval(geo, r, ((s - X) + Y) + Z) + //
-				eval(geo, r, ((s + X) - Y) - Z) + //
-				eval(geo, r, ((s + X) - Y) + Z) + //
-				eval(geo, r, ((s + X) + Y) - Z) + //
-				eval(geo, r, ((s + X) + Y) + Z) //
+						eval(geo, r, ((s - X) - Y) - Z) + //
+								eval(geo, r, ((s - X) - Y) + Z) + //
+								eval(geo, r, ((s - X) + Y) - Z) + //
+								eval(geo, r, ((s - X) + Y) + Z) + //
+								eval(geo, r, ((s + X) - Y) - Z) + //
+								eval(geo, r, ((s + X) - Y) + Z) + //
+								eval(geo, r, ((s + X) + Y) - Z) + //
+								eval(geo, r, ((s + X) + Y) + Z) //
 
-		) * 0.125;
+				) * 0.125;
 	}
 //
 //////***************************************************************************************************
@@ -912,9 +904,7 @@ public:
 //	}
 
 };
-}
-// namespace policy
-				}
-// namespace simpla
+}// namespace solver
+}// namespace simpla
 
 #endif /* FDM_H_ */
