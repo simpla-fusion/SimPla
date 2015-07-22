@@ -50,8 +50,7 @@ private:
 
 private:
 
-	/// identify of the block
-	size_t m_tag_;
+
 	id_type m_min_, m_max_;
 
 public:
@@ -79,20 +78,10 @@ public:
 	{
 		std::swap(m_min_, other.m_min_);
 		std::swap(m_max_, other.m_max_);
-		std::swap(m_tag_, other.m_tag_);
 
 	}
 
 public:
-	size_t tag() const
-	{
-		return m_tag_;
-	}
-
-	void tag(size_t tag)
-	{
-		m_tag_ = tag;
-	}
 
 	/**
 	 *   return index box [min,max)

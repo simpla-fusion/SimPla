@@ -17,6 +17,8 @@ namespace simpla
 {
 namespace mesh
 {
+struct BaseConnection;
+
 template<typename ...> struct Connection;
 template<typename ...> struct Layout;
 
@@ -25,7 +27,7 @@ template<typename ...> struct Layout;
  */
 
 template<int NDIMS, int LEVEL>
-struct BlockGraph<Block<NDIMS, LEVEL> >
+struct Layout<Block<NDIMS, LEVEL> >
 {
 
 	enum { DEFAULT_GHOST_WIDTH = 2 };
@@ -50,15 +52,41 @@ struct BlockGraph<Block<NDIMS, LEVEL> >
 
 	typedef size_t block_id;
 
+	struct connection_in
+	{
+		block_type buffer;
+	};
+	struct connection_out
+	{
+		block_type buffer;
+	};
+
+
+	/// identify of the block
+	size_t m_tag_;
+
+	size_t tag() const
+	{
+		return m_tag_;
+	}
+
+	void tag(size_t tag)
+	{
+		m_tag_ = tag;
+	}
+
 	block_type m_self_;
+
+	block_type m_memory_shape_;
 
 	std::shared_ptr<block_layout_type> m_next_sibling_;
 
+	std::shared_ptr<finer_block_layout_type> m_children_;
 
-	finer_block_layout_type m_children_;
+	std::shared_ptr<const coarse_block_type> m_parent_;
 
-	std::shared_ptr<coarse_block_type> const &m_parent_;
-
+	std::list<connection_in> m_connections_in_;
+	std::list<connection_out> m_connections_out_;
 
 	block_id add(index_tuple const &dimension)
 	{
