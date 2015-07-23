@@ -17,30 +17,26 @@ namespace simpla
 {
 namespace mesh
 {
-struct BaseConnection;
 
-template<typename ...> struct Connection;
-template<typename ...> struct Layout;
+
+template<int NDIMS> struct BlockConnection;
 
 /**
  *   Layout<Block> represents a set of Blocks in the same index space
  */
 
-template<int NDIMS, int LEVEL>
-struct Layout<Block<NDIMS, LEVEL> >
+template<int NDIMS = 3>
+struct BlockLayout
 {
-
-	enum { DEFAULT_GHOST_WIDTH = 2 };
-
 	static constexpr int ndims = NDIMS;
 
 
-	typedef Block<NDIMS, LEVEL> block_type;
-	typedef Block<NDIMS, LEVEL - 1> finer_block_type;
-	typedef Block<NDIMS, LEVEL + 1> coarse_block_type;
+	typedef Block<NDIMS> block_type;
 
-	typedef Layout<block_type> block_layout_type;
-	typedef Layout<finer_block_type> finer_block_layout_type;
+	typedef BlockLayout<NDIMS> layout_type;
+
+
+	typedef BlockConnection<NDIMS> connection_type;
 
 	typedef typename block_type::id_type id_type;
 
@@ -50,43 +46,71 @@ struct Layout<Block<NDIMS, LEVEL> >
 
 	typedef typename block_type::index_tuple index_tuple;
 
-	typedef size_t block_id;
+	typedef size_t id_tag_type;
 
-	struct connection_in
+
+	int m_level_ = 4;
+
+
+	int m_proc_rank_ = 0;
+
+
+	int level() const
 	{
-		block_type buffer;
-	};
-	struct connection_out
-	{
-		block_type buffer;
-	};
-
-
-	/// identify of the block
-	size_t m_tag_;
-
-	size_t tag() const
-	{
-		return m_tag_;
+		return m_level_;
 	}
 
-	void tag(size_t tag)
+	int proc_rank() const
 	{
-		m_tag_ = tag;
+		return m_proc_rank_;
 	}
 
-	block_type m_self_;
 
-	block_type m_memory_shape_;
+	std::map<id_tag_type, layout_type> m_finer_layout_;
 
-	std::shared_ptr<block_layout_type> m_next_sibling_;
+	/**
+	 *
+	 *   -----------------------------5
+	 *   |                            |
+	 *   |     ---------------4       |
+	 *   |     |       B      |       |
+	 *   |     |  ********3---|       |
+	 *   |     |  *     * *   |       |
+	 *   |     |  *   A *a* b |       |
+	 *   |     |  *     * *   |       |
+	 *   |     |  2********---|       |
+	 *   |     1---------------       |
+	 *   0-----------------------------
+	 *
+	 *  A is inner box;
+	 *  B is outer box;
+	 *  B - A is ghost region
+	 *
+	 *  a is send box
+	 *  b is recv box
+	 *
+	 *	5-0 = dimensions
+	 *	4-1 = e-d = ghosts
+	 *	2-1 = counts
+	 *
+	  *
+	 *
+	 */
+	block_type m_inner_box_;
 
-	std::shared_ptr<finer_block_layout_type> m_children_;
+	block_type m_outer_box_;
 
-	std::shared_ptr<const coarse_block_type> m_parent_;
 
-	std::list<connection_in> m_connections_in_;
-	std::list<connection_out> m_connections_out_;
+	const block_type &inner_box() const
+	{
+		return m_inner_box_;
+	}
+
+	const block_type &outer_box() const
+	{
+		return m_outer_box_;
+	}
+
 
 	block_id add(index_tuple const &dimension)
 	{
