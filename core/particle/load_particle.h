@@ -12,8 +12,6 @@
 #include <string>
 #include <functional>
 
-#include "../field/field.h"
-#include "../field/load_field.h"
 
 #include "../numeric/multi_normal_distribution.h"
 #include "../numeric/rectangle_distribution.h"
@@ -21,10 +19,8 @@
 #include "../physics/physical_constants.h"
 
 
-#include "../gtl/utilities/log.h"
-#include "../gtl/utilities/utilities.h"
-#include "../gtl/parallel/mpi_aux_functions.h"
-#include "particle_base.h"
+#include "../gtl/utilities.h"
+#include "../parallel/mpi_aux_functions.h"
 
 namespace simpla {
 
@@ -164,7 +160,7 @@ void init_particle(TR const &domain, size_t pic, TN const &ns, TT const &Ts,
 
     rnd_gen.discard(number);
 
-    nTuple<Real, 3> x, v;
+    nTuple <Real, 3> x, v;
 
     Real inv_sample_density = 1.0 / pic;
 

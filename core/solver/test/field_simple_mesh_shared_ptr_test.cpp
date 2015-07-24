@@ -7,8 +7,7 @@
 #include <gtest/gtest.h>
 
 #include "../../gtl/ntuple.h"
-#include "../../mesh/simple_mesh.h"
-#include "../field_shared_ptr.h"
+ #include "../field_shared_ptr.h"
 #include "../field.h"
 #include "field_basic_test.h"
 

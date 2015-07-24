@@ -8,8 +8,8 @@
 #ifndef CORE_DESIGN_PATTERN_DESIGN_PATTERN_H_
 #define CORE_DESIGN_PATTERN_DESIGN_PATTERN_H_
 
-namespace simpla
-{
+namespace simpla {
+namespace gtl {
 
 /**
  * @ingroup gtl
@@ -17,6 +17,7 @@ namespace simpla
  *   @brief  This module collects implementation of  design patterns.
  */
 
-}  // namespace simpla
+}
+}//  namespace simpla::gtl
 
 #endif /* CORE_DESIGN_PATTERN_DESIGN_PATTERN_H_ */

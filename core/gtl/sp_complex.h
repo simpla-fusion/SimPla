@@ -57,7 +57,8 @@ template<typename T> inline constexpr T imag(T const &)
 
 namespace simpla
 {
-
+namespace gtl
+{
 template<typename > struct is_complex
 {
 	static constexpr bool value = false;
@@ -74,6 +75,6 @@ struct is_arithmetic_scalar<std::complex<T>>
 {
 	static constexpr bool value = true;
 };
-}  // namespace simpla
+}  }//  namespace simpla::gtl
 
 #endif /* COMPLEX_OPS_H_ */

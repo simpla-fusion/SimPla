@@ -15,13 +15,12 @@
 #include "lua_object.h"
 #include "lua_object_ext.h"
 
-#include "../primitives.h"
-#include "../type_traits.h"
-#include "../ntuple.h"
-#include "../ntuple_ext.h"
-#include "../properties.h"
+#include "primitives.h"
+#include "type_traits.h"
+#include "ntuple.h"
+#include "ntuple_ext.h"
+#include "properties.h"
 
-#include "../../physics/physical_constants.h"
 
 /**
  *  @addtogroup utilities Utilities
@@ -30,9 +29,11 @@
  *  @}
  */
 
-namespace simpla
-{
+namespace simpla {
+namespace gtl {
 
-}  // namespace simpla
+
+}
+}//  namespace simpla::gtl
 
 #endif /* CORE_UTILITIES_MISC_UTILITIES_H_ */

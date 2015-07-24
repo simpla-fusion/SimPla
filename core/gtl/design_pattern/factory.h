@@ -10,8 +10,9 @@
 
 #include <map>
 
-namespace simpla
-{
+namespace simpla {
+namespace gtl {
+
 
 /**
  *  @ingroup design_pattern
@@ -22,65 +23,74 @@ namespace simpla
 template<typename TId, typename TProduct, typename ...Args>
 struct Factory
 {
-	typedef TId identifier_type;
+    typedef TId identifier_type;
 
-	typedef typename std::conditional<std::is_fundamental<TProduct>::value,
-			TProduct, std::shared_ptr<TProduct>>::type product_type;
-	typedef std::function<product_type(Args ...)> create_fun_callback;
+    typedef typename std::conditional<std::is_fundamental<TProduct>::value,
+            TProduct, std::shared_ptr < TProduct>>::
+    type product_type;
+    typedef std::function<product_type(Args ...)> create_fun_callback;
 
-	typedef std::map<identifier_type, create_fun_callback> CallbackMap;
+    typedef std::map<identifier_type, create_fun_callback> CallbackMap;
 
-	typedef typename CallbackMap::iterator iterator;
+    typedef typename CallbackMap::iterator iterator;
 
 private:
-	CallbackMap callbacks_;
+    CallbackMap callbacks_;
 public:
 
-	Factory()
-	{
-	}
+    Factory()
+    {
+    }
 
-	~Factory()
-	{
-	}
-	template<typename OS>
-	OS & print(OS & os) const
-	{
-		for (auto const& item : callbacks_)
-		{
-			os << "\t" << item.first << std::endl;
-		}
-		return os;
-	}
-	size_t size() const
-	{
-		return callbacks_.size();
-	}
+    ~Factory()
+    {
+    }
 
-	product_type create(identifier_type const &id, Args ... args) const
-	{
-		auto it = callbacks_.find(id);
+    template<typename OS>
+    OS &print(OS &os) const
+    {
+        for (auto const &item : callbacks_)
+        {
+            os << "\t" << item.first << std::endl;
+        }
+        return os;
+    }
 
-		if (it == callbacks_.end())
-		{
-			RUNTIME_ERROR("Can not find id " + value_to_string(id));
-		}
-		return (it->second)(std::forward<Args>(args)...);
-	}
+    size_t size() const
+    {
+        return callbacks_.size();
+    }
 
-	template<typename ... Others>
-	auto Register(Others && ... args) DECL_RET_TYPE((callbacks_.insert(std::forward<Others>(args)...)))
+    product_type create(identifier_type const &id, Args ... args) const
+    {
+        auto it = callbacks_.find(id);
 
-	int Unregister(identifier_type const & id)
-	{
-		return callbacks_.erase(id);
-	}
+        if (it == callbacks_.end())
+        {
+            RUNTIME_ERROR("Can not find id " + value_to_string(id));
+        }
+        return (it->second)(std::forward<Args>(args)...);
+    }
 
-}
-;
+    template<typename ... Others>
+    auto Register(Others &&... args)
+
+    DECL_RET_TYPE((callbacks_
+    .
+
+    insert(std::forward<Others>(args)
+
+    ...)))
+
+    int Unregister(identifier_type const &id)
+    {
+        return callbacks_.erase(id);
+    }
+
+};
 
 /** @} */
 }
-// namespace simpla
+}//  namespace simpla::gtl
 
 #endif /* FACTORY_H_ */

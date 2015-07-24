@@ -8,17 +8,11 @@
 #ifndef FIELD_BASIC_ALGEBRA_TEST_H_
 #define FIELD_BASIC_ALGEBRA_TEST_H_
 
-#include <stddef.h>
-#include <memory>
-#include <random>
 #include <gtest/gtest.h>
-#include "../../gtl/macro.h"
-#include "../../gtl/primitives.h"
-#include "../../gtl/type_traits.h"
-#include "../../utilities/log.h"
-#include "../domain_traits.h"
-#include "../mesh_traits.h"
+#include <random>
 
+#include "../field.h"
+#include "utilities.h"
 using namespace simpla;
 
 template<typename TField>
@@ -29,47 +23,25 @@ protected:
 	{
 		LOGGER.set_stdout_visable_level(10);
 
-		mesh = std::make_shared<mesh_type>();
+		domain_type(mesh).swap(domain);
 
-		size_t dims[3]=
-		{	10,1,1};
-
-		mesh->dimensions(&dims[0]);
-//		mesh->extents(xmin, xmax);
-		mesh->deploy();
 	}
 public:
 
 	typedef TField field_type;
 
-	typedef traits::domain_t<field_type> domain_type;
+	typedef typename field_type::domain_type domain_type;
+	typedef typename field_type::mesh_type mesh_type;
 
-	typedef traits::mesh_type_t<field_type> mesh_type;
+	typedef typename field_type::value_type value_type;
 
-	typedef traits::value_type_t<field_type> value_type;
+	static constexpr size_t iform = field_traits<TField>::iform;
 
-	typedef typename mesh_type::scalar_type scalar_type;
+	static std::shared_ptr<const mesh_type> mesh;
 
-	static constexpr size_t iform = traits::iform<TField>::value;
-
-	static std::shared_ptr<mesh_type> mesh;
+	domain_type domain;
 
 	value_type default_value;
-
-	TField make_field() const
-	{
-		return TField(*mesh);
-	}
-	auto make_scalar_field() const
-	DECL_RET_TYPE(( make_form<iform, scalar_type>(*mesh)))
-
-	auto make_vector_field() const
-	DECL_RET_TYPE(( make_form<iform, nTuple<value_type, 3>>(*mesh)))
-
-	domain_type domain() const
-	{
-		return make_domain<iform>(*mesh);
-	}
 
 };
 
@@ -89,7 +61,7 @@ TYPED_TEST_P(TestField, assign){
 
 	f1 = va;
 
-	for(auto s : TestFixture::domain())
+	for(auto s : TestFixture::domain)
 	{
 		EXPECT_LE(mod( va- f1[s]),EPSILON);
 	}
@@ -110,14 +82,14 @@ TYPED_TEST_P(TestField, index){
 
 	va=2.0;
 
-	for(auto s : TestFixture::domain())
+	for(auto s : TestFixture::domain)
 	{
-		f1[s]=va* TestFixture::domain().hash(s);
+		f1[s]=va* TestFixture::domain.hash(s);
 	}
 
-	for(auto s : TestFixture::domain())
+	for(auto s : TestFixture::domain)
 	{
-		EXPECT_LE(mod( va* TestFixture::domain().hash(s)- f1[s]),EPSILON);
+		EXPECT_LE(mod( va* TestFixture::domain.hash(s)- f1[s]),EPSILON);
 	}
 }
 }
@@ -143,14 +115,14 @@ TYPED_TEST_P(TestField, constant_real){
 	f1=va;
 	f2=vb;
 
-	LOG_CMD(f3 =- f1 *a + f2*c - f1/b -f1 );
+	LOG_CMD(f3 = -f1 *a +f2*c - f1/b -f1/**/);
 
-	for(auto s : TestFixture::domain())
+	for(auto s : TestFixture::domain)
 	{
 		value_type res;
 		res= -f1[s] *a + f2[s] *c -f1[s]/b-f1[s];
 
-		EXPECT_LE(mod( res- f3[s]),EPSILON)<<res<< " "<<f1[s] <<" "<<f2[s]<< " "<<f3[s];;
+		EXPECT_LE(mod( res- f3[s]),EPSILON)<<res<< " "<<f1[s];
 	}
 }
 }
@@ -220,11 +192,11 @@ TYPED_TEST_P(TestField, scalar_field){
 	 * */
 	count =0;
 
-	for(auto s :TestFixture::domain() )
+	for(auto s :TestFixture::domain )
 	{
 		value_type res= - f1[s]*ra +f2[s]* rb -f3[s]/ rc -f1[s];
 
-		EXPECT_LE( mod(res-f4[s]) ,EPSILON )<< "s= "<<(TestFixture::domain().hash(s));
+		EXPECT_LE( mod(res-f4[s]) ,EPSILON )<< "s= "<<(TestFixture::domain.hash(s));
 	}
 
 	EXPECT_EQ(0,count)<< "number of error points =" << count;
@@ -233,7 +205,6 @@ TYPED_TEST_P(TestField, scalar_field){
 
 REGISTER_TYPED_TEST_CASE_P(TestField, index, assign, constant_real,
 		scalar_field);
-
 //#include <gtest/gtest.h>
 //
 //#include "field.h"

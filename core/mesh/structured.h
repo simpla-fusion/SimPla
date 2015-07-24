@@ -19,13 +19,11 @@
 #include <vector>
 
 #include "../geometry/coordinate_system.h"
-#include "../physics/physical_constants.h"
-#include "../utilities/log.h"
+#include "../gtl/log.h"
 #include "mesh_traits.h"
 #include "mesh_ids.h"
 #include "policy.h"
-#include "structured/topology.h"
-#include "structured/select.h"
+
 
 namespace simpla {
 
@@ -422,7 +420,7 @@ public:
 template<typename CoordinateSystem>
 void Mesh<CoordinateSystem, tags::structured>::deploy(size_t const *gw)
 {
-    nTuple<id_type, ndims> dims = topology_type::dimensions();
+    nTuple <id_type, ndims> dims = topology_type::dimensions();
 
     for (int i = 0; i < ndims; ++i)
     {

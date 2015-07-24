@@ -17,6 +17,7 @@
 #include "macro.h"
 
 namespace simpla {
+namespace gtl {
 typedef std::nullptr_t NullType;
 
 struct EmptyType
@@ -642,5 +643,6 @@ DECL_RET_TYPE((_impl::access_helper<N...>::get(v)))
 // */
 //
 
-}// namespace simpla
+}
+}//  namespace simpla::gtl
 #endif /* SP_TYPE_TRAITS_H_ */

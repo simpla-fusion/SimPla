@@ -13,7 +13,8 @@
 #include "../utilities/log.h"
 #include "../utilities/sp_complex.h"
 
-namespace simpla {
+namespace simpla {namespace gtl
+{
 /**
  * @ingroup container
  *
@@ -181,6 +182,6 @@ public:
 
 };
 
-}  // namespace simpla
+}  }//  namespace simpla::gtl
 
 #endif /* CONTAINER_SPARSE_H_ */

@@ -12,10 +12,11 @@
 #include <stddef.h>
 #include <memory>
 
-#include "../gtl/design_pattern/singleton_holder.h"
+#include "../design_pattern/singleton_holder.h"
 
 namespace simpla
 {
+namespace gtl {
 
 /** @ingroup utilities
  * @addtogroup memory_pool Memory Pool
@@ -108,6 +109,6 @@ std::shared_ptr<void> sp_alloc_memory(size_t s);
 /** @} */
 
 }
-// namespace simpla
+}//  namespace simpla::gtl
 
 #endif  // CORE_UTILITIES_MEMORY_POOL_H_

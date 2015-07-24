@@ -9,11 +9,12 @@
 #include <utility>
 
 #include "../ntuple.h"
-#include "../utilities/utilities.h"
+#include "utilities.h"
 #include "dataspace.h"
 
 namespace simpla
-{
+{namespace gtl {
+
 struct DataSpace::pimpl_s
 {
 
@@ -419,4 +420,4 @@ DataSpace & DataSpace::set_local_shape(index_type const *local_dimensions =
 //}
 
 }
-// namespace simpla
+}//  namespace simpla::gtl

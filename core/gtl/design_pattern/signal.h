@@ -13,7 +13,7 @@
 //
 //template<typename ...T> using signal= boost::signals2::signal<T...>;
 //
-//}// namespace simpla
+//}}//  namespace simpla::gtl
 
 
 #include <list>
@@ -24,6 +24,7 @@
 
 namespace simpla {
 
+namespace gtl {
 
 template<typename ...> struct Signal;
 
@@ -209,7 +210,8 @@ struct Signal<TResult(Args...)>::Slot
 
 };
 
-}// namespace simpla
+}
+}//  namespace simpla::gtl
 
 
 >>>>>>> ba2d991a415cad15e2e1816d2f40de9e5eb46fbc

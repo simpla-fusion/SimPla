@@ -18,11 +18,12 @@
 #include <tbb/tbb.h>
 #endif
 
-#include "../gtl/type_traits.h"
-#include "../gtl/complex.h"
-#include "../gtl/ntuple.h"
-namespace simpla
-{
+#include "type_traits.h"
+#include "complex.h"
+#include "ntuple.h"
+
+namespace simpla {
+namespace gtl {
 /**
  *  @ingroup gtl
  * @{
@@ -51,8 +52,8 @@ namespace simpla
 //
 enum ArrayOrder
 {
-	C_ORDER, // SLOW FIRST
-	FORTRAN_ORDER //  FAST_FIRST
+    C_ORDER, // SLOW FIRST
+    FORTRAN_ORDER //  FAST_FIRST
 };
 typedef int8_t ByteType; // int8_t
 typedef std::uint64_t id_type;
@@ -80,41 +81,42 @@ static constexpr unsigned int CARTESIAN_XAXIS = 0;
 static constexpr unsigned int CARTESIAN_YAXIS = 1;
 static constexpr unsigned int CARTESIAN_ZAXIS = 2;
 
-template<typename > struct has_PlaceHolder
+template<typename> struct has_PlaceHolder
 {
-	static constexpr bool value = false;
+    static constexpr bool value = false;
 };
 
-template<typename > struct is_real
+template<typename> struct is_real
 {
-	static constexpr bool value = false;
+    static constexpr bool value = false;
 };
 
 template<> struct is_real<Real>
 {
-	static constexpr bool value = true;
+    static constexpr bool value = true;
 };
 
 template<typename TL>
 struct is_arithmetic_scalar
 {
-	static constexpr bool value = (std::is_arithmetic<TL>::value
-			|| has_PlaceHolder<TL>::value);
+    static constexpr bool value = (std::is_arithmetic<TL>::value
+                                   || has_PlaceHolder<TL>::value);
 };
 
 template<typename T>
 struct is_primitive
 {
-	static constexpr bool value = is_arithmetic_scalar<T>::value;
+    static constexpr bool value = is_arithmetic_scalar<T>::value;
 };
 
 template<typename T>
 struct is_expression
 {
-	static constexpr bool value = false;
+    static constexpr bool value = false;
 };
 
-template<typename T1> auto abs(T1 const & m)
+template<typename T1>
+auto abs(T1 const &m)
 DECL_RET_TYPE ((std::fabs(m)))
 
 /**
@@ -122,5 +124,5 @@ DECL_RET_TYPE ((std::fabs(m)))
  */
 
 }
-// namespace simpla
+}//  namespace simpla::gtl
 #endif /* PRIMITIVES_H_ */
