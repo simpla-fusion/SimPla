@@ -14,7 +14,7 @@
 #include <string>
 
 #include "../gtl/design_pattern/singleton_holder.h"
-#include "../utilities/config_parser.h"
+#include "../gtl/utilities/config_parser.h"
 
 namespace simpla
 {

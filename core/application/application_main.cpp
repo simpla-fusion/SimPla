@@ -8,8 +8,8 @@
 #include <iostream>
 #include <string>
 
-#include "../gtl/io/io.h"
-#include "../gtl/parallel/parallel.h"
+#include "../io/io.h"
+#include "../parallel/parallel.h"
 #include "../sp_config.h"
 #include "../gtl/utilities/log.h"
 #include "../gtl/utilities/config_parser.h"

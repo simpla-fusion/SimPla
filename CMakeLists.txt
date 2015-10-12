@@ -17,7 +17,8 @@ SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake ${CMAKE_MODULE_PATH})
 
-SET(CMAKE_CXX_COMPILER "/usr/bin/clang++-3.6")
+SET(CMAKE_CXX_COMPILER "icpc")
+#SET(CMAKE_CXX_COMPILER "/usr/bin/clang++-3.6")
 #SET(CMAKE_CXX_FLAGS_RELEASE "  -DNDEBUG -O3  ")
  
 MESSAGE(STATUS "Using C++ Compiler ${CMAKE_CXX_COMPILER_ID} ")
@@ -36,7 +37,7 @@ if(${CMAKE_CXX_COMPILER_ID}  STREQUAL "Clang")
 elseif(${CMAKE_CXX_COMPILER_ID}  STREQUAL "Intel")
   SET(CMAKE_CXX_FLAGS "-fPIC -std=c++11  -fopenmp -O3 ")
 else()
-  SET(CMAKE_CXX_FLAGS "-fPIC -std=c++11  -fopenmp -ftemplate-backtrace-limit=0 ")
+  SET(CMAKE_CXX_FLAGS "-fPIC -std=c++11  -fopenmp  ")
 endif ()
 
  
@@ -90,9 +91,9 @@ endif()
 #  INCLUDE_DIRECTORIES(${GTEST_ROOT}/include)
 #ELSE()
  ExternalProject_Add(googletest
-     PREFIX  ${PROJECT_BINARY_DIR}/external_project 
-     #    URL   http://googletest.googlecode.com/files/gtest-1.7.0.zip
-    URL file://${CMAKE_SOURCE_DIR}/external_project/src/gtest-1.7.0.zip
+     PREFIX  ${PROJECT_BINARY_DIR}/external_project
+ #  URL   http://googletest.googlecode.com/files/gtest-1.7.0.zip
+     URL file://${CMAKE_SOURCE_DIR}/external_project/src/gtest-1.7.0.zip
      SOURCE_DIR ${PROJECT_BINARY_DIR}/external_project/googletest
      INSTALL_COMMAND "" )
  ExternalProject_Get_Property(googletest SOURCE_DIR)

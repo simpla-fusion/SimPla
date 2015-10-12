@@ -104,10 +104,10 @@ DataSet make_dataset(T * p, int rank, TI const * dims, Properties const & prop =
 
 	res.datatype = traits::datatype<T>::create();
 	res.dataspace = DataSpace::create_simple(rank, dims);
-	res.data = std::shared_ptr<void>(
-			const_cast<void*>(reinterpret_cast<typename std::conditional<
-					std::is_const<T>::value, void const *, void *>::type>(p)),
-			do_nothing());
+//	res.data = std::shared_ptr<void>(
+//			const_cast<void*>(reinterpret_cast<typename std::conditional<
+//					std::is_const<T>::value, void const *, void *>::type>(p)),
+//			do_nothing());
 	res.properties = prop;
 
 	return std::move(res);
@@ -135,9 +135,9 @@ DataSet make_dataset(std::vector<T> const & p)
 	long num = p.size();
 	res.datatype = traits::datatype<T>::create();
 	res.dataspace = DataSpace::create_simple(1, &num);
-	res.data = std::shared_ptr<void>(
-			const_cast<void*>(reinterpret_cast<void const *>(&p[0])),
-			do_nothing());
+//	res.data = std::shared_ptr<void>(
+//			const_cast<void*>(reinterpret_cast<void const *>(&p[0])),
+//			do_nothing());
 
 	return std::move(res);
 }

@@ -6,8 +6,8 @@
 #ifndef SIMPLA_MESH_LAYOUT_H
 #define SIMPLA_MESH_LAYOUT_H
 
-#include "../gtl/parallel/mpi_comm.h"
-#include "../gtl/parallel/mpi_update.h"
+#include "../parallel/mpi_comm.h"
+#include "../parallel/mpi_update.h"
 #include "../gtl/dataset/dataspace.h"
 
 #include "mesh_ids.h"

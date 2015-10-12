@@ -16,7 +16,7 @@
 #include <sstream>
 #include <string>
 
-#include "../gtl/type_traits.h"
+#include "../type_traits.h"
 
 /**
  *  @ingroup    utilities

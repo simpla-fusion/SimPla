@@ -14,7 +14,7 @@
 #include <iomanip>
 #include <iostream>
 
-#include "../gtl/design_pattern/singleton_holder.h"
+#include "../design_pattern/singleton_holder.h"
 #include "parse_command_line.h"
 
 namespace simpla

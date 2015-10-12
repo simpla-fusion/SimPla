@@ -9,9 +9,9 @@
 #define CORE_APPLICATION_SP_OBJECT_H_
 
 #include <iostream>
-#include "../gtl/parallel/mpi_comm.h"
-#include "../gtl/parallel/mpi_aux_functions.h"
-#include "../gtl/parallel/mpi_update.h"
+#include "../parallel/mpi_comm.h"
+#include "../parallel/mpi_aux_functions.h"
+#include "../parallel/mpi_update.h"
 namespace simpla
 {
 class DataSet;

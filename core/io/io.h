@@ -11,9 +11,9 @@
 #include <stddef.h>
 #include <string>
 
-#include "../utilities/utilities.h"
-#include "../dataset/dataset.h"
-#include "../dataset/datatype.h"
+#include "../gtl/utilities/utilities.h"
+#include "../gtl/dataset/dataset.h"
+#include "../gtl/dataset/datatype.h"
 #include "data_stream.h"
 
 namespace simpla {

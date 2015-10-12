@@ -5,7 +5,7 @@
  * @author salmon
  */
 
-#include "../design_pattern/singleton_holder.h"
+#include "../gtl/design_pattern/singleton_holder.h"
 #include "mpi_comm.h"
 
 namespace simpla

@@ -25,8 +25,8 @@
 
 #include "../../core/physics/constants.h"
 #include "../../core/physics/physical_constants.h"
-#include "../../core/utilities/config_parser.h"
-#include "../../core/utilities/log.h"
+#include "../../core/gtl/utilities/config_parser.h"
+#include "../../core/gtl/utilities/log.h"
 #include "../../core/field/field.h"
 
 using namespace simpla;

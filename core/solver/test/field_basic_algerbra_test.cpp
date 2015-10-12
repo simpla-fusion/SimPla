@@ -19,7 +19,7 @@
 #include "../../geometry/cs_cartesian.h"
 
 
-#include "../structured.h"
+#include "../../mesh/structured.h"
 #include "../structured/interpolator.h"
 #include "../structured/fdm.h"
 

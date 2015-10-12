@@ -11,7 +11,7 @@
 #include <iomanip>
 #include <string>
 
-#include "../utilities/log.h"
+#include "../gtl/utilities/log.h"
 
 namespace simpla
 {

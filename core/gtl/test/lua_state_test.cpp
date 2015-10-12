@@ -9,7 +9,7 @@
 #include <string>
 #include <utility>
 
-#include "../lua_object.h"
+#include "../utilities/lua_object.h"
 
 using namespace simpla;
 int main(int argc, char** argv)

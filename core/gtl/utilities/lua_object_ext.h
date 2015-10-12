@@ -19,7 +19,7 @@
 #include <utility>
 #include <vector>
 
-#include "../gtl/ntuple.h"
+#include "../ntuple.h"
 #include "lua_object.h"
 
 namespace simpla

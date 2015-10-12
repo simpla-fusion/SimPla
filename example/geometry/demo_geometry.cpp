@@ -30,7 +30,7 @@
 #include <iostream>
 
 #include "../../core/geometry/geometry.h"
-#include "utilities.h"
+#include "../../core/gtl/utilities/utilities.h"
 
 using namespace simpla;
 using namespace simpla::geometry;

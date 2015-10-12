@@ -9,7 +9,7 @@
 #include <typeindex>
 #include "mpi_comm.h"
 #include "mpi_datatype.h"
-#include "../utilities/utilities.h"
+#include "../gtl/utilities/utilities.h"
 namespace simpla
 {
 

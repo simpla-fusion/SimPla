@@ -15,9 +15,9 @@
 #include <tuple>
 #include <vector>
 
-#include "../primitives.h"
-#include "../utilities/log.h"
-#include "../utilities/memory_pool.h"
+#include "../gtl/primitives.h"
+#include "../gtl/utilities/log.h"
+#include "../gtl/utilities/memory_pool.h"
 
 extern "C"
 {

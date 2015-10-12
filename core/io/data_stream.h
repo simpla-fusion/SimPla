@@ -14,8 +14,8 @@
 #include <string>
 #include <tuple>
 
-#include "../any.h"
-#include "../properties.h"
+#include "../gtl/any.h"
+#include "../gtl/properties.h"
 
 namespace simpla
 {

@@ -10,8 +10,8 @@
 #include <string>
 #include <tuple>
 
-#include "../dataset/dataset.h"
-#include "../design_pattern/singleton_holder.h"
+#include "../gtl/dataset/dataset.h"
+#include "../gtl/design_pattern/singleton_holder.h"
 #include "data_stream.h"
 
 namespace simpla

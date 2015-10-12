@@ -5,7 +5,7 @@
  *      Author: salmon
  */
 
-#include "../log.h"
+#include "../utilities/log.h"
 using namespace simpla;
 int main(int argc, char **argv)
 {

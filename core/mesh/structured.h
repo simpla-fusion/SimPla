@@ -20,7 +20,7 @@
 
 #include "../geometry/coordinate_system.h"
 #include "../physics/physical_constants.h"
-#include "../utilities/log.h"
+#include "../gtl/utilities/log.h"
 #include "mesh_traits.h"
 #include "mesh_ids.h"
 #include "policy.h"
