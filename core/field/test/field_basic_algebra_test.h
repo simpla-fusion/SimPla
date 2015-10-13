@@ -1,5 +1,5 @@
 /*
- * field_basic_algerbra_test.h
+ * field_basic_algebra_test.h
  *
  *  created on: 2014-2-20
  *      Author: salmon
@@ -20,8 +20,7 @@
 #include "../../gtl/utilities/log.h"
 #include "../../mesh/domain_traits.h"
 #include "../../mesh/mesh_traits.h"
-#include "../../field/field_dense.h"
-#include "../../field/field_traits.h"
+
 
 using namespace simpla;
 
@@ -48,31 +47,29 @@ public:
 
 	typedef traits::domain_t<field_type> domain_type;
 
-	typedef traits::mesh_type_t<field_type> mesh_type;
+	typedef typename domain_type::mesh_type mesh_type;
 
 	typedef traits::value_type_t<field_type> value_type;
 
 	typedef typename mesh_type::scalar_type scalar_type;
 
-	static constexpr int iform = traits::iform<TField>::value;
+	static constexpr size_t iform = domain_type::iform;
 
 	static std::shared_ptr<mesh_type> mesh;
 
 	value_type default_value;
 
 
-	auto domain() const
-	DECL_RET_TYPE((traits::make_domain<iform>(*mesh)))
-
-	auto make_field() const
-	DECL_RET_TYPE((traits::make_field<iform, value_type>(*mesh)))
-
 	auto make_scalar_field() const
-	DECL_RET_TYPE((traits::make_field<iform, scalar_type>(*mesh)))
+	DECL_RET_TYPE((make_field<scalar_type>(make_domain<iform>(*mesh))))
 
 	auto make_vector_field() const
-	DECL_RET_TYPE((traits::make_field<iform, nTuple<value_type, 3>>(*mesh)))
+	DECL_RET_TYPE((make_field<iform, nTuple<value_type, 3>>(make_domain<iform>(*mesh))))
 
+	domain_type domain() const
+	{
+		return make_domain<iform>(*mesh);
+	}
 
 };
 
@@ -154,7 +151,12 @@ TYPED_TEST_P(TestField, constant_real
 
 		LOG_CMD(f3 = -f1 * a + f2 * c - f1 / b - f1);
 
-		for (auto s : TestFixture::domain())
+		for (
+			auto s :
+
+				TestFixture::domain()
+
+				)
 		{
 			value_type res;
 			res = -f1[s] * a + f2[s] * c - f1[s] / b - f1[s];
@@ -193,10 +195,21 @@ TYPED_TEST_P(TestField, scalar_field
 		b = rb;
 		c = rc;
 
-		f1.deploy();
-		f2.deploy();
-		f3.deploy();
-		f4.deploy();
+		f1.
+
+				deploy();
+
+		f2.
+
+				deploy();
+
+		f3.
+
+				deploy();
+
+		f4.
+
+				deploy();
 
 		size_t count = 0;
 
@@ -244,7 +257,9 @@ TYPED_TEST_P(TestField, scalar_field
 	}
 }
 
-REGISTER_TYPED_TEST_CASE_P(TestField, index, assign, constant_real, scalar_field);
+REGISTER_TYPED_TEST_CASE_P(TestField, index, assign, constant_real,
+		scalar_field
+);
 
 //#include <gtest/gtest.h>
 //

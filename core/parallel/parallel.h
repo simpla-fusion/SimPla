@@ -56,10 +56,10 @@ void parallel_for(TRange const &range, Function const &fun)
 {
 	parallel_do(range, [=](TRange const &o_range)
 	{
-	    for (auto const &i:o_range)
-	    {
-		    fun(i);
-	    }
+		for (auto const &i:o_range)
+		{
+			fun(i);
+		}
 	});
 }
 
@@ -68,10 +68,10 @@ void parallel_reduce(TRange const &range, Function const &fun, Reduction const &
 {
 	parallel_do(range, [&](TRange const &o_range)
 	{
-	    for (auto const &i:o_range)
-	    {
-		    fun(i);
-	    }
+		for (auto const &i:o_range)
+		{
+			fun(i);
+		}
 	});
 }
 

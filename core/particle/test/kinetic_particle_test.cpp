@@ -8,7 +8,7 @@
 #include <gtest/gtest.h>
 #include "../kinetic_particle.h"
 #include "../simple_particle.h"
-#include "../../mesh/simple_mesh.h"
+#include "rect_mesh.h"
 #include "../../field/field.h"
 
 #include "../../utilities/memory_pool.h"

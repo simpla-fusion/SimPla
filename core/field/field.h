@@ -17,6 +17,7 @@
 #include "load_field.h"
 
 #include "calculus.h"
+
 namespace simpla
 {
 
@@ -117,18 +118,9 @@ namespace simpla
  * Field Class
  */
 template<typename ...> struct Domain;
-template<typename ... >struct _Field;
+template<typename ...> struct _Field;
 
-template<int IFORM, typename TV, typename ... Others, typename TM>
-_Field<Domain<TM, std::integral_constant<int, IFORM>, Others...>, TV,
-		tags::sequence_container> make_form(TM const & mesh)
-{
-	return std::move(
-			_Field<Domain<TM, std::integral_constant<int, IFORM>, Others...>,
-					TV, tags::sequence_container>(
-					Domain<TM, std::integral_constant<int, IFORM>, Others...>(
-							mesh)));
-}
+
 /** @} */
 
 namespace traits
@@ -138,11 +130,11 @@ struct domain_type<_Field<Domain<T...>, Others...> >
 {
 	typedef Domain<T...> type;
 };
-template<typename > struct mesh_type;
+template<typename> struct mesh_type;
 template<typename ... T, typename ...Others>
 struct mesh_type<_Field<Domain<T...>, Others...> >
 {
-	typedef typename mesh_type<Domain<T...>>::type type;
+	typedef mesh_type_t<Domain<T...>> type;
 };
 
 }  // namespace traits

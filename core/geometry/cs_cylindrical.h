@@ -20,33 +20,33 @@ namespace geometry
 
 namespace st = simpla::traits;
 namespace gt = simpla::geometry::traits;
+using namespace coordinate_system;
 
 template<typename, typename> struct map;
 
 template<size_t IPhiAxis, size_t I_CARTESIAN_ZAXIS>
-struct map<coordinate_system::Cylindrical < IPhiAxis>,
-coordinate_system::Cartesian<3, I_CARTESIAN_ZAXIS> >
+struct map<Cylindrical < IPhiAxis>, Cartesian<3, I_CARTESIAN_ZAXIS> >
 {
 
-typedef gt::point_t<coordinate_system::Cylindrical < IPhiAxis> >
+typedef gt::point_t<Cylindrical < IPhiAxis> >
 point_t0;
-typedef gt::vector_t<coordinate_system::Cylindrical < IPhiAxis> >
+typedef gt::vector_t<Cylindrical < IPhiAxis> >
 vector_t0;
-typedef gt::covector_t<coordinate_system::Cylindrical < IPhiAxis> >
+typedef gt::covector_t<Cylindrical < IPhiAxis> >
 covector_t0;
 
 static constexpr size_t CylindricalPhiAxis = (IPhiAxis) % 3;
 static constexpr size_t CylindricalRAxis = (CylindricalPhiAxis + 1) % 3;
 static constexpr size_t CylindricalZAxis = (CylindricalPhiAxis + 2) % 3;
 
-typedef gt::point_t<coordinate_system::Cartesian < 3, CARTESIAN_XAXIS> >
+typedef gt::point_t<Cartesian < 3, CARTESIAN_XAXIS> >
 point_t1;
-typedef gt::vector_t<coordinate_system::Cartesian < 3, CARTESIAN_XAXIS> >
+typedef gt::vector_t<Cartesian < 3, CARTESIAN_XAXIS> >
 vector_t1;
-typedef gt::covector_t<coordinate_system::Cartesian < 3, CARTESIAN_XAXIS> >
+typedef gt::covector_t<Cartesian < 3, CARTESIAN_XAXIS> >
 covector_t1;
 
-static constexpr size_t CartesianZAxis = (ICARTESIAN_ZAXIS) % 3;
+static constexpr size_t CartesianZAxis = (I_CARTESIAN_ZAXIS) % 3;
 static constexpr size_t CartesianYAxis = (CartesianZAxis + 2) % 3;
 static constexpr size_t CartesianXAxis = (CartesianZAxis + 1) % 3;
 
@@ -128,46 +128,46 @@ vector_t1 push_forward(point_t0 const &x0, vector_t0 const &v0)
 };
 
 template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
-constexpr size_t map<coordinate_system::Cylindrical < IPhiAxis>,
-		coordinate_system::Cartesian<3, ICARTESIAN_ZAXIS>
+constexpr size_t map<Cylindrical < IPhiAxis>,
+		Cartesian<3, ICARTESIAN_ZAXIS>
 >::CylindricalRAxis;
 template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
-constexpr size_t map<coordinate_system::Cylindrical < IPhiAxis>,
-		coordinate_system::Cartesian<3, ICARTESIAN_ZAXIS>
+constexpr size_t map<Cylindrical < IPhiAxis>,
+		Cartesian<3, ICARTESIAN_ZAXIS>
 >::CylindricalZAxis;
 template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
-constexpr size_t map<coordinate_system::Cylindrical < IPhiAxis>,
-		coordinate_system::Cartesian<3, ICARTESIAN_ZAXIS>
+constexpr size_t map<Cylindrical < IPhiAxis>,
+		Cartesian<3, ICARTESIAN_ZAXIS>
 >::CylindricalPhiAxis;
 template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
-constexpr size_t map<coordinate_system::Cylindrical < IPhiAxis>,
-		coordinate_system::Cartesian<3, ICARTESIAN_ZAXIS>
+constexpr size_t map<Cylindrical < IPhiAxis>,
+		Cartesian<3, ICARTESIAN_ZAXIS>
 >::CartesianXAxis;
 template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
-constexpr size_t map<coordinate_system::Cylindrical < IPhiAxis>,
-		coordinate_system::Cartesian<3, ICARTESIAN_ZAXIS>
+constexpr size_t map<Cylindrical < IPhiAxis>,
+		Cartesian<3, ICARTESIAN_ZAXIS>
 >::CartesianYAxis;
 template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
-constexpr size_t map<coordinate_system::Cylindrical < IPhiAxis>,
-		coordinate_system::Cartesian<3, ICARTESIAN_ZAXIS>
+constexpr size_t map<Cylindrical < IPhiAxis>,
+		Cartesian<3, ICARTESIAN_ZAXIS>
 >::CartesianZAxis;
 
 template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
-struct map<coordinate_system::Cartesian < 3, ICARTESIAN_ZAXIS>,
-coordinate_system::Cylindrical <IPhiAxis> >
+struct map<Cartesian<3, ICARTESIAN_ZAXIS>,
+		Cylindrical < IPhiAxis> >
 {
 
-typedef gt::point_t <coordinate_system::Cylindrical<IPhiAxis>> point_t1;
-typedef gt::vector_t <coordinate_system::Cylindrical<IPhiAxis>> vector_t1;
-typedef gt::covector_t <coordinate_system::Cylindrical<IPhiAxis>> covector_t1;
+typedef gt::point_t <Cylindrical<IPhiAxis>> point_t1;
+typedef gt::vector_t <Cylindrical<IPhiAxis>> vector_t1;
+typedef gt::covector_t <Cylindrical<IPhiAxis>> covector_t1;
 
 static constexpr size_t CylindricalPhiAxis = (IPhiAxis) % 3;
 static constexpr size_t CylindricalRAxis = (CylindricalPhiAxis + 1) % 3;
 static constexpr size_t CylindricalZAxis = (CylindricalPhiAxis + 2) % 3;
 
-typedef gt::point_t <coordinate_system::Cartesian<3, CARTESIAN_XAXIS>> point_t0;
-typedef gt::vector_t <coordinate_system::Cartesian<3, CARTESIAN_XAXIS>> vector_t0;
-typedef gt::covector_t <coordinate_system::Cartesian<3, CARTESIAN_XAXIS>> covector_t0;
+typedef gt::point_t <Cartesian<3, CARTESIAN_XAXIS>> point_t0;
+typedef gt::vector_t <Cartesian<3, CARTESIAN_XAXIS>> vector_t0;
+typedef gt::covector_t <Cartesian<3, CARTESIAN_XAXIS>> covector_t0;
 
 static constexpr size_t CartesianZAxis = (ICARTESIAN_ZAXIS) % 3;
 static constexpr size_t CartesianYAxis = (CartesianZAxis + 2) % 3;
@@ -264,105 +264,107 @@ vector_t1 push_forward(point_t0 const &x0, vector_t0 const &v0)
 
 };
 template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
-constexpr size_t map<coordinate_system::Cartesian < 3, ICARTESIAN_ZAXIS>,
-		coordinate_system::Cylindrical<IPhiAxis>
+constexpr size_t map<Cartesian<3, ICARTESIAN_ZAXIS>,
+		Cylindrical < IPhiAxis>
 >::CylindricalRAxis;
 
 template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
-constexpr size_t map<coordinate_system::Cartesian < 3, ICARTESIAN_ZAXIS>,
-		coordinate_system::Cylindrical<IPhiAxis>
+constexpr size_t map<Cartesian<3, ICARTESIAN_ZAXIS>,
+		Cylindrical < IPhiAxis>
 >::CylindricalZAxis;
 
 template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
-constexpr size_t map<coordinate_system::Cartesian < 3, ICARTESIAN_ZAXIS>,
-		coordinate_system::Cylindrical<IPhiAxis>
+constexpr size_t map<Cartesian<3, ICARTESIAN_ZAXIS>,
+		Cylindrical < IPhiAxis>
 >::CylindricalPhiAxis;
 
 template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
-constexpr size_t map<coordinate_system::Cartesian < 3, ICARTESIAN_ZAXIS>,
-		coordinate_system::Cylindrical<IPhiAxis>
+constexpr size_t map<Cartesian<3, ICARTESIAN_ZAXIS>,
+		Cylindrical < IPhiAxis>
 >::CartesianXAxis;
 
 template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
-constexpr size_t map<coordinate_system::Cartesian < 3, ICARTESIAN_ZAXIS>,
-		coordinate_system::Cylindrical<IPhiAxis>
+constexpr size_t map<Cartesian<3, ICARTESIAN_ZAXIS>,
+		Cylindrical < IPhiAxis>
 >::CartesianYAxis;
 
 template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
-constexpr size_t map<coordinate_system::Cartesian < 3, ICARTESIAN_ZAXIS>,
-		coordinate_system::Cylindrical<IPhiAxis>
+constexpr size_t map<Cartesian<3, ICARTESIAN_ZAXIS>,
+		Cylindrical < IPhiAxis>
 >::CartesianZAxis;
 template<typename> struct mertic;
 
 template<size_t IPhiAxis>
-struct mertic<coordinate_system::template Cylindrical<IPhiAxis> >
+struct mertic<Cylindrical < IPhiAxis> >
 {
 
-    typedef gt::point_t <coordinate_system::Cylindrical<IPhiAxis>> point_t;
-    typedef gt::vector_t <coordinate_system::Cylindrical<IPhiAxis>> vector_t;
-    typedef gt::covector_t <coordinate_system::Cylindrical<IPhiAxis>> covector_t;
+typedef gt::point_t <Cylindrical<IPhiAxis>> point_t;
+typedef gt::vector_t <Cylindrical<IPhiAxis>> vector_t;
+typedef gt::covector_t <Cylindrical<IPhiAxis>> covector_t;
 
-    typedef nTuple<Real, 3> delta_t;
+typedef nTuple<Real, 3> delta_t;
 
-    static constexpr size_t CylindricalPhiAxis = (IPhiAxis) % 3;
-    static constexpr size_t CylindricalRAxis = (CylindricalPhiAxis + 1) % 3;
-    static constexpr size_t CylindricalZAxis = (CylindricalPhiAxis + 2) % 3;
+static constexpr size_t CylindricalPhiAxis = (IPhiAxis) % 3;
+static constexpr size_t CylindricalRAxis = (CylindricalPhiAxis + 1) % 3;
+static constexpr size_t CylindricalZAxis = (CylindricalPhiAxis + 2) % 3;
 
 private:
-    static constexpr Real dl_(integer_sequence <size_t, CylindricalRAxis>,
-		    point_t const &x0, delta_t const &delta)
-    {
-	    return st::get<CylindricalRAxis>(delta);
-    }
 
-    static constexpr Real dl_(integer_sequence <size_t, CylindricalZAxis>,
-		    point_t const &x0, delta_t const &delta)
-    {
-	    return st::get<CylindricalZAxis>(delta);
-    }
+static constexpr Real dl_(integer_sequence <size_t, CylindricalRAxis>,
+		point_t const &x0, delta_t const &delta)
+{
+	return st::get<CylindricalRAxis>(delta);
+}
 
-    static constexpr Real dl_(integer_sequence <size_t, CylindricalPhiAxis>,
-		    point_t const &x0, delta_t const &delta)
-    {
+static constexpr Real dl_(integer_sequence <size_t, CylindricalZAxis>,
+		point_t const &x0, delta_t const &delta)
+{
+	return st::get<CylindricalZAxis>(delta);
+}
 
-	    return st::get<CylindricalRAxis>(x0)
-			    * st::get<CylindricalPhiAxis>(delta);
+static constexpr Real dl_(integer_sequence <size_t, CylindricalPhiAxis>,
+		point_t const &x0, delta_t const &delta)
+{
 
-    }
+	return st::get<CylindricalRAxis>(x0)
+			* st::get<CylindricalPhiAxis>(delta);
+
+}
 
 public:
-    template<size_t DI>
-    static constexpr Real dl(point_t const &x0, delta_t const &delta)
-    {
 
-	    return dl_(integer_sequence<size_t, DI>(), x0, delta);
-    }
+template<size_t DI>
+static constexpr Real dl(point_t const &x0, delta_t const &delta)
+{
 
-    template<typename ...Others>
-    static constexpr Real volume(size_t node_id, point_t const &x0,
-		    delta_t delta, Others &&...)
-    {
+	return dl_(integer_sequence<size_t, DI>(), x0, delta);
+}
 
-	    return (((node_id >> CylindricalRAxis) & 1UL)
-			    * (dl<CylindricalRAxis>(x0, delta)
-			    * st::get<CylindricalRAxis>(delta) - 1.0) + 1.0)
+template<typename ...Others>
+static constexpr Real volume(size_t node_id, point_t const &x0,
+		delta_t delta, Others &&...)
+{
 
-			    * (((node_id >> CylindricalZAxis) & 1UL)
-			    * (dl<CylindricalZAxis>(x0, delta)
-			    * st::get<CylindricalZAxis>(delta) - 1.0) + 1.0)
+	return (((node_id >> CylindricalRAxis) & 1UL)
+			* (dl<CylindricalRAxis>(x0, delta)
+			* st::get<CylindricalRAxis>(delta) - 1.0) + 1.0)
 
-			    * (((node_id >> CylindricalPhiAxis) & 1UL)
-			    * (dl<CylindricalPhiAxis>(x0, delta)
-			    * st::get<CylindricalPhiAxis>(delta) - 1.0)
-			    + 1.0);
+			* (((node_id >> CylindricalZAxis) & 1UL)
+			* (dl<CylindricalZAxis>(x0, delta)
+			* st::get<CylindricalZAxis>(delta) - 1.0) + 1.0)
 
-    }
+			* (((node_id >> CylindricalPhiAxis) & 1UL)
+			* (dl<CylindricalPhiAxis>(x0, delta)
+			* st::get<CylindricalPhiAxis>(delta) - 1.0)
+			+ 1.0);
 
-    template<typename ...Others>
-    static constexpr Real dual_volume(size_t node_id, Others &&...others)
-    {
-	    return volume(7UL & (~node_id), std::forward<Others>(others)...);
-    }
+}
+
+template<typename ...Others>
+static constexpr Real dual_volume(size_t node_id, Others &&...others)
+{
+	return volume(7UL & (~node_id), std::forward<Others>(others)...);
+}
 
 };
 
@@ -371,12 +373,12 @@ namespace traits
 {
 
 template<size_t IPhiAxis>
-struct type_id<geometry::coordinate_system::template Cylindrical<IPhiAxis> >
+struct type_id<geometry::template Cylindrical<IPhiAxis> >
 {
-    static std::string name()
-    {
-	    return "Cylindrical<" + simpla::type_cast<std::string>(IPhiAxis) + ">";
-    }
+	static std::string name()
+	{
+		return "Cylindrical<" + simpla::type_cast<std::string>(IPhiAxis) + ">";
+	}
 };
 
 }  // namespace traits

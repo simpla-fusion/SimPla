@@ -14,23 +14,22 @@ namespace simpla
 {
 template<typename ...> struct Domain;
 
-template<int IFORM, typename ...Policies, typename TM>
-Domain<TM, std::integral_constant<int, IFORM>, Policies...> make_domain(
-		TM const & mesh)
-{
-	return Domain<TM, std::integral_constant<int, IFORM>, Policies...>(mesh);
-}
 namespace traits
 {
+template<int IFORM, typename TM>
+Domain<TM, std::integral_constant<int, IFORM> > make_domain(TM const &mesh)
+{
+	return Domain<TM, std::integral_constant<int, IFORM> >(mesh);
+}
 
-template<typename > struct is_domain;
-template<typename > struct domain_type;
-template<typename > struct mesh_type;
-template<typename > struct iform;
-template<typename > struct rank;
+template<typename> struct is_domain;
+template<typename> struct domain_type;
+template<typename> struct mesh_type;
+template<typename> struct iform;
+template<typename> struct rank;
 
 template<typename T>
-struct is_domain: public std::integral_constant<bool, false>
+struct is_domain : public std::integral_constant<bool, false>
 {
 };
 template<typename ...T>
@@ -50,12 +49,12 @@ struct mesh_type<Domain<TM, Others...> >
 	typedef TM type;
 };
 
-template<typename > struct iform: public std::integral_constant<int, 0>
+template<typename> struct iform : public std::integral_constant<int, 0>
 {
 };
 
 template<typename ...T>
-struct iform_list: public integer_sequence<int, iform<T>::value...>
+struct iform_list : public integer_sequence<int, iform<T>::value...>
 {
 	typedef integer_sequence<int, iform<T>::value...> type;
 };

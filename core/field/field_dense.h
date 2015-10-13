@@ -14,19 +14,12 @@
 #include <string>
 
 #include "../application/sp_object.h"
-#include "../gtl/dataset/dataset.h"
-#include "../gtl/dataset/datatype.h"
 #include "../gtl/properties.h"
 #include "../gtl/type_traits.h"
-#include "../mesh/domain.h"
-#include "../mesh/mesh_traits.h"
 #include "field_traits.h"
 
 namespace simpla
 {
-
-template<typename ...>
-struct Domain;
 
 /**
  * @ingroup field
@@ -36,29 +29,27 @@ struct Domain;
 /**
  *  Simple Field
  */
-template<typename ... TM, typename TV, typename ...TAGS>
-struct _Field<Domain<TM ...>, TV, TAGS...> : public SpObject
+template<typename TD, typename TV, typename ...TAGS>
+struct _Field<TD, TV, TAGS...> : public SpObject
 {
 public:
 
 	typedef TV value_type;
 
-	typedef Domain<TM ...> domain_type;
+	typedef TD domain_type;
 
-	static constexpr int iform = traits::iform<domain_type>::value;
+	typedef typename domain_type::id_type id_type;
 
-	typedef traits::mesh_type_t<domain_type> mesh_type;
-
-	typedef typename mesh_type::id_type id_type;
-
-	typedef typename mesh_type::point_type point_type;
+	typedef typename domain_type::point_type point_type;
 
 	typedef _Field<domain_type, value_type, TAGS...> this_type;
+
+	typedef traits::field_value_t<this_type> field_value_type;
 
 private:
 
 	domain_type m_domain_;
-	traits::container_t<this_type> m_data_;
+	std::shared_ptr<value_type> m_data_;
 
 public:
 
@@ -81,10 +72,6 @@ public:
 	{
 	}
 
-	std::string get_type_as_string() const
-	{
-		return "Field";
-	}
 
 	void swap(this_type &other)
 	{
@@ -102,12 +89,9 @@ public:
 		return m_domain_;
 	}
 
-	traits::container_t<this_type> &data() { return m_data_; }
+	std::shared_ptr<value_type> &data() { return m_data_; }
 
-	std::shared_ptr<const value_type> data() const
-	{
-		return m_data_;
-	}
+	std::shared_ptr<const value_type> data() const { return m_data_; }
 
 	void clear()
 	{
@@ -115,7 +99,7 @@ public:
 		value_type t;
 		t = 0;
 
-		std::fill(m_data_.get(), m_data_.get() + m_domain_.max_hash(), t);
+//		std::fill(m_data_.get(), m_data_.get() + m_domain_.max_hash(), t);
 
 		sync();
 
@@ -126,7 +110,7 @@ public:
 	{
 		wait();
 
-		std::fill(m_data_.get(), m_data_.get() + m_domain_.max_hash(), v);
+//		std::fill(m_data_.get(), m_data_.get() + m_domain_.max_hash(), v);
 
 		sync();
 
@@ -141,10 +125,42 @@ public:
 		return m_data_ == nullptr;
 	}
 
+
 	bool is_valid() const
 	{
 		return m_data_ != nullptr;
 	}
+
+	std::string get_type_as_string() const { return "Field"; }
+
+
+	void deploy()
+	{
+		if (m_data_ == nullptr)
+		{
+			m_data_ = sp_make_shared_array<value_type>(m_domain_.max_hash());
+		}
+
+		SpObject::prepare_sync(m_domain_.ghost_shape());
+	}
+
+	DataSet dataset() const
+	{
+		//ASSERT(is_ready());
+
+		DataSet res;
+
+		res.data = m_data_;
+
+		res.datatype = traits::datatype<value_type>::create();
+
+		res.dataspace = m_domain_.dataspace();
+
+		res.properties = SpObject::properties;
+
+		return std::move(res);
+	}
+
 	/**@}*/
 
 	/**
@@ -202,7 +218,6 @@ public:
 		m_domain_.for_each([&](id_type const &s)
 		{
 			op(at(s), m_domain_.calculate(other, s));
-
 		});
 
 		sync();
@@ -265,32 +280,7 @@ public:
 
 	/** @} */
 
-	void deploy()
-	{
-		if (m_data_ == nullptr)
-		{
-			m_data_ = sp_make_shared_array<value_type>(m_domain_.max_hash());
-		}
 
-		SpObject::prepare_sync(m_domain_.ghost_shape());
-	}
-
-	DataSet dataset() const
-	{
-		//ASSERT(is_ready());
-
-		DataSet res;
-
-		res.data = m_data_;
-
-		res.datatype = traits::datatype<value_type>::create();
-
-		res.dataspace = m_domain_.dataspace();
-
-		res.properties = SpObject::properties;
-
-		return std::move(res);
-	}
 
 	template<typename TFun>
 	void for_each(TFun const &fun)
@@ -347,7 +337,7 @@ public:
 
 	/** @name as_function
 	 *  @{*/
-	traits::field_value_t<this_type> gather(point_type const &x) const
+	field_value_type gather(point_type const &x) const
 	{
 		return std::move(m_domain_.gather(*this, x));
 	}
@@ -359,7 +349,7 @@ public:
 	}
 
 	template<typename ...Args>
-	traits::field_value_t<this_type> operator()(Args &&...args) const
+	field_value_type operator()(Args &&...args) const
 	{
 		return m_domain_.gather(*this, std::forward<Args>(args)...);
 	}

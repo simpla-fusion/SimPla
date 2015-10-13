@@ -15,7 +15,7 @@
 
 #include "../../utilities/utilities.h"
 #include "../field.h"
-#include "field_basic_algerbra_test.h"
+#include "field_basic_algebra_test.h"
 
 using namespace simpla;
 

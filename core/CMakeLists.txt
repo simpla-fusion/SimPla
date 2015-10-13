@@ -18,4 +18,4 @@ ADD_SUBDIRECTORY( particle)
 ADD_SUBDIRECTORY( solver  )
 
 add_library(simpla_aux   )
-TARGET_LINK_LIBRARIES(simpla_aux  application physics utilities io parallel gtl/dataset )
+TARGET_LINK_LIBRARIES(simpla_aux  application physics utilities io parallel  dataset )

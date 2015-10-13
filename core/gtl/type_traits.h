@@ -26,7 +26,7 @@ struct EmptyType
 
 namespace tags {
 
-struct split;
+struct split{};
 
 struct do_nothing
 {

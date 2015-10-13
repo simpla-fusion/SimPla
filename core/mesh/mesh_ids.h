@@ -30,11 +30,11 @@ struct id_type<MeshIDs_<TAGS>>
 	typedef typename MeshIDs_<TAGS>::id_type type;
 };
 
-template<typename> struct point_type;
+template<typename> struct coordinates_tuple;
 template<size_t TAGS>
-struct point_type<MeshIDs_<TAGS>>
+struct coordinates_tuple<MeshIDs_<TAGS>>
 {
-	typedef typename MeshIDs_<TAGS>::point_type type;
+	typedef typename MeshIDs_<TAGS>::coordinates_tuple type;
 };
 
 }  // namespace traits
@@ -84,8 +84,8 @@ struct MeshIDs_
 
 	typedef nTuple<id_type, ndims> id_tuple;
 
-	typedef nTuple<Real, ndims> point_type;
-
+	typedef nTuple<Real, ndims> coordinates_tuple;
+	
 	typedef long index_type;
 
 	typedef nTuple<index_type, ndims> index_tuple;
@@ -182,7 +182,7 @@ struct MeshIDs_
 
 	};
 
-	static constexpr point_type m_id_to_coordinates_shift_[] = {
+	static constexpr coordinates_tuple m_id_to_coordinates_shift_[] = {
 
 			{0, 0, 0},            // 000
 			{_R, 0, 0},           // 001
@@ -285,9 +285,9 @@ struct MeshIDs_
 		return static_cast<T>(unpack(s));
 	}
 
-	static constexpr point_type point(id_type s)
+	static constexpr coordinates_tuple coordinates(id_type s)
 	{
-		return static_cast<point_type>(unpack(s & (~FULL_OVERFLOW_FLAG)));
+		return static_cast<coordinates_tuple>(unpack(s & (~FULL_OVERFLOW_FLAG)));
 	}
 
 	static constexpr int num_of_ele_in_cell(id_type s)
@@ -296,25 +296,25 @@ struct MeshIDs_
 	}
 
 	template<typename TX>
-	static std::tuple<id_type, point_type> coordinates_global_to_local(
+	static std::tuple<id_type, coordinates_tuple> coordinates_global_to_local(
 			TX const &x, int n_id = 0)
 	{
 
 		id_type s = (pack(x - m_id_to_coordinates_shift_[n_id])
 				& PRIMARY_ID_MASK) | m_id_to_shift_[n_id];
 
-		point_type r;
+		coordinates_tuple r;
 
-		r = (x - point(s)) / (_R * 2.0);
+		r = (x - coordinates(s)) / (_R * 2.0);
 
 		return std::make_tuple(s, r);
 
 	}
 
-	static constexpr point_type coordinates_local_to_global(
-			std::tuple<id_type, point_type> const &t)
+	static constexpr coordinates_tuple coordinates_local_to_global(
+			std::tuple<id_type, coordinates_tuple> const &t)
 	{
-		return point(std::get<0>(t)) + std::get<1>(t);
+		return coordinates(std::get<0>(t)) + std::get<1>(t);
 	}
 
 //! @name id auxiliary functions
@@ -993,7 +993,7 @@ template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::id_type MeshIDs_<TAGS>:
 template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::id_type
 		MeshIDs_<TAGS>::m_adjoint_matrix_[4/* to iform*/][8/* node id*/][MAX_NUM_OF_CELL/*id shift*/];
 
-template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::point_type MeshIDs_<TAGS>::m_id_to_coordinates_shift_[];
+template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::coordinates_tuple MeshIDs_<TAGS>::m_id_to_coordinates_shift_[];
 
 typedef MeshIDs_<> MeshIDs;
 

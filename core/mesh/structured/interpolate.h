@@ -1,12 +1,12 @@
 /**
- * @file  interpolator.h
+ * @file  interpolate.h
  *
  *  created on: 2014-4-17
  *      Author: salmon
  */
 
-#ifndef INTERPOLATOR_H_
-#define INTERPOLATOR_H_
+#ifndef INTERPOLATE_H_
+#define INTERPOLATE_H_
 
 #include <stddef.h>
 #include <type_traits>
@@ -21,14 +21,14 @@ template<typename ...> class _Field;
 
 template<typename ...> class Domain;
 
-namespace  tags
+namespace tags
 {
 struct linear;
 }
 
 /**
  * @ingroup diff_geo
- * @addtogroup interpolate Interpolator
+ * @addtogroup interpolate Interpolate
  * @brief   mapping discrete points to continue space
  *
  */
@@ -231,4 +231,4 @@ public:
 }
 // namespace simpla
 
-#endif /* INTERPOLATOR_H_ */
+#endif /* INTERPOLATE_H_ */

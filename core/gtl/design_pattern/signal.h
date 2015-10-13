@@ -212,5 +212,4 @@ struct Signal<TResult(Args...)>::Slot
 }// namespace simpla
 
 
->>>>>>> ba2d991a415cad15e2e1816d2f40de9e5eb46fbc
-#endif //SIMPLA_SIGNAL_H
+ #endif //SIMPLA_SIGNAL_H

@@ -11,7 +11,7 @@
 #include <gtest/gtest.h>
 #include "../kinetic_particle.h"
 #include "../particle_engine.h"
-#include "../../mesh/simple_mesh.h"
+#include "rect_mesh.h"
 #include "../../numeric/rectangle_distribution.h"
 
 using namespace simpla;

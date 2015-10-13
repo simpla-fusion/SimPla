@@ -23,7 +23,7 @@ namespace simpla
 {
 
 template<typename ...> struct Domain;
-template<typename ... >struct _Field;
+template<typename ...> struct _Field;
 
 namespace tags
 {
@@ -46,26 +46,26 @@ struct field_type
 };
 
 template<typename TM, int IFORM, typename ValueType, typename ...Policies>
-using field_t= typename field_type<TM,IFORM,ValueType,Policies...>::type;
+using field_t= typename field_type<TM, IFORM, ValueType, Policies...>::type;
 
-template<typename > struct is_field: public std::integral_constant<bool, false>
+template<typename> struct is_field : public std::integral_constant<bool, false>
 {
 };
 
 template<typename ...T> struct is_field<_Field<T...>> : public std::integral_constant<
-bool, true>
+		bool, true>
 {
 };
 
 template<typename TM, typename TV, typename ...Others>
 struct reference<_Field<TM, TV, Others...> >
 {
-	typedef _Field<TM, TV, Others...> const & type;
+	typedef _Field<TM, TV, Others...> const &type;
 };
 
 template<typename ...T, int M>
 struct extent<_Field<T ...>, M> : public std::integral_constant<int,
-		simpla::mpl::seq_get<M, extents_t<_Field<T ...> >>::value>
+		simpla::mpl::seq_get<M, extents_t < _Field<T ...> >>::value>
 {
 };
 
@@ -78,27 +78,27 @@ struct key_type<_Field<T ...> >
 template<typename ...T>
 struct mesh_type<_Field<T...> >
 {
-	typedef mesh_type_t<domain_t<_Field<T...> > > type;
+	typedef mesh_type_t <domain_t<_Field<T...> >> type;
 };
 
 template<typename ...T>
-struct iform<_Field<T...> > : public iform<domain_t<_Field<T...> > >::type
+struct iform<_Field<T...> > : public iform<domain_t < _Field<T...> > >::type
 {
 };
 
 template<typename ...T>
-struct rank<_Field<T...>> : public rank<domain_t<_Field<T...> > >::type
+struct rank<_Field<T...>> : public rank<domain_t < _Field<T...> > >::type
 {
 };
 
-template<typename > struct field_value_type;
+template<typename> struct field_value_type;
 
 template<typename T>
 struct field_value_type
 {
 	typedef typename std::conditional<
 			(iform<T>::value == VERTEX || iform<T>::value == VOLUME),
-			value_type_t<T>, nTuple<value_type_t<T>, 3> >::type type;
+			value_type_t < T>, nTuple<value_type_t < T>, 3> >::type type;
 };
 
 template<typename T> using field_value_t = typename field_value_type<T>::type;
@@ -124,7 +124,7 @@ struct container_type_helper<TV, tags::sequence_container>
 	typedef std::shared_ptr<TV> type;
 };
 }  // namespace _impl
-template<typename > struct container_type;
+template<typename> struct container_type;
 
 template<typename T> struct container_type
 {
@@ -134,6 +134,14 @@ template<typename T> struct container_type
 };
 
 template<typename T> using container_t=typename container_type<T>::type;
+
+
+template<int I, typename ...U, typename TM>
+_Field<Domain<TM, std::integral_constant<int, I>>, U...>
+make_field(TM const &mesh)
+{
+	return _Field<Domain<TM, std::integral_constant<int, I>>, U...>(make_domain<I>(mesh));
+};
 
 }  // namespace traits
 }  // namespace simpla

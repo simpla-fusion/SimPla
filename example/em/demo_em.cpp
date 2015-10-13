@@ -19,9 +19,9 @@
 #include "../../core/mesh/mesh.h"
 #include "../../core/mesh/domain.h"
 
-#include "../../core/mesh/structured.h"
-#include "../../core/mesh/structured/interpolator.h"
-#include "../../core/mesh/structured/fdm.h"
+#include "rect_mesh.h"
+//#include "../../core/mesh/structured/interpolate.h"
+//#include "../../core/mesh/structured/fdm.h"
 
 #include "../../core/physics/constants.h"
 #include "../../core/physics/physical_constants.h"
@@ -42,7 +42,7 @@ using namespace simpla;
 #  define COORDINATE_SYSTEM simpla::geometry::coordinate_system::Cartesian<3, 2>
 #endif
 
-typedef Mesh<COORDINATE_SYSTEM, simpla::tags::structured> mesh_type;
+typedef Mesh<COORDINATE_SYSTEM, simpla::tags::RectMeshSimple> mesh_type;
 
 USE_CASE(em," Maxwell Eqs.")
 {

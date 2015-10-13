@@ -123,7 +123,7 @@ template<typename ... > class Expression;
  *
  * Mesh policy concept {#concept_manifold_policy}
  * ================================================
- *   Poilcies define the behavior of manifold , such as  interpolator or calculus;
+ *   Poilcies define the behavior of manifold , such as  interpolate or calculus;
  ~~~~~~~~~~~~~{.cpp}
  template <typename Geometry > class P;
  ~~~~~~~~~~~~~

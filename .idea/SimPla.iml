@@ -79,10 +79,12 @@
       <sourceFolder url="file://$MODULE_DIR$/core/field/field_sparse.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/field/field_traits.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/field/load_field.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/field/test/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/field/test/fetl_test2.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/field/test/fetl_test3.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/field/test/fetl_test4.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/field/test/field_basic_algerbra_test.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/field/test/field_basic_algebra_test.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/field/test/field_basic_algebra_test.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/field/test/field_basic_test.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/field/test/field_continue.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/field/test/field_io_test.h" isTestSource="false" />
@@ -219,19 +221,29 @@
       <sourceFolder url="file://$MODULE_DIR$/core/mesh/block/mesh_id.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/mesh/block/tiling_block.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/mesh/boundary.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/mesh/default_mesh.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/mesh/domain.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/mesh/domain_traits.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/mesh/mesh.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/mesh/mesh_block.h.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/mesh/mesh_connection.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/mesh/mesh_ids.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/mesh/mesh_layout.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/mesh/mesh_traits.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/mesh/meshfree.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/mesh/meshfree/CMakeLists.txt" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/mesh/mock_mesh.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/mesh/policy.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/mesh/simple_mesh.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/mesh/structured.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/mesh/policy/calculate_mock.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/mesh/policy/constant_metric.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/mesh/policy/rect_mesh.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/mesh/policy/time_integrator.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/mesh/structured/CMakeLists.txt" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/mesh/structured/calculate.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/mesh/structured/interpolate.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/mesh/structured/rect_mesh.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/mesh/structured/rect_mesh_ext.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/mesh/structured/structured.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/mesh/structured/test/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/mesh/structured/test/geometry_cartesian_test.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/mesh/structured/test/geometry_cylindrical_test.cpp" isTestSource="false" />
@@ -241,6 +253,7 @@
       <sourceFolder url="file://$MODULE_DIR$/core/mesh/structured/test/topology_structured_test.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/mesh/structured/test/topology_test.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/mesh/time_integrator/time_integrator.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/mesh/topology/rect_mesh.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/mesh/unstructured.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/mesh/unstructured/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/model/CMakeLists.txt" isTestSource="false" />
@@ -319,7 +332,6 @@
       <sourceFolder url="file://$MODULE_DIR$/core/solver/structured/test/geometry_test.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/solver/structured/test/interpolator_test.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/solver/structured/test/topology_test.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/solver/structured/topology.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/solver/test/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/solver/test/field_basic_algerbra_test.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/solver/test/field_basic_algerbra_test.h" isTestSource="false" />
@@ -360,29 +372,25 @@
       <library name="Header Search Paths">
         <CLASSES>
           <root url="file://$USER_HOME$/.clion11/system/cmake/generated/82e76996/82e76996/Debug/external_project/googletest/include" />
-          <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/compiler/include" />
           <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/daal/include" />
           <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/ipp/include" />
           <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/mkl/include" />
           <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/tbb/include" />
           <root url="file:///usr/include" />
           <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include" />
-          <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include-fixed" />
-          <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include/objc" />
+          <root url="file:///usr/lib/llvm-3.6/lib/clang/3.6.0/include" />
           <root url="file:///usr/lib/openmpi/include" />
           <root url="file:///usr/local/include" />
         </CLASSES>
         <SOURCES>
           <root url="file://$USER_HOME$/.clion11/system/cmake/generated/82e76996/82e76996/Debug/external_project/googletest/include" />
-          <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/compiler/include" />
           <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/daal/include" />
           <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/ipp/include" />
           <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/mkl/include" />
           <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/tbb/include" />
           <root url="file:///usr/include" />
           <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include" />
-          <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include-fixed" />
-          <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include/objc" />
+          <root url="file:///usr/lib/llvm-3.6/lib/clang/3.6.0/include" />
           <root url="file:///usr/lib/openmpi/include" />
           <root url="file:///usr/local/include" />
         </SOURCES>
