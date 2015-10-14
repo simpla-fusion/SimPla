@@ -7,35 +7,38 @@
 
 #ifndef CONTAINER_POOL_H_
 #define CONTAINER_POOL_H_
+
 #include <map>
 #include <list>
 
-namespace simpla
-{
+namespace simpla {
+namespace gtl {
 
 /** @ingroup container */
 template<typename ValueType> struct ContainerPool
 {
 
 public:
-	typedef ValueType value_type;
-	typedef ContainerPool<value_type> this_type;
+    typedef ValueType value_type;
+    typedef ContainerPool<value_type> this_type;
 
-	value_type & operator[](size_t s)
-	{
-		return (pages_[s >> PAGE_SIZE_DIGITS].get())[s & PAGE_MASK];
-	}
-	value_type const& operator[](size_t s) const
-	{
-		return (pages_[s >> PAGE_SIZE_DIGITS].get())[s & PAGE_MASK];
-	}
+    value_type &operator[](size_t s)
+    {
+        return (pages_[s >> PAGE_SIZE_DIGITS].get())[s & PAGE_MASK];
+    }
+
+    value_type const &operator[](size_t s) const
+    {
+        return (pages_[s >> PAGE_SIZE_DIGITS].get())[s & PAGE_MASK];
+    }
+
 private:
-	static constexpr size_t PAGE_SIZE_DIGITS = 10;
-	static constexpr size_t PAGE_SIZE = 1 << PAGE_SIZE_DIGITS;
-	static constexpr size_t PAGE_MASK = (1 << PAGE_SIZE_DIGITS) - 1;
+    static constexpr size_t PAGE_SIZE_DIGITS = 10;
+    static constexpr size_t PAGE_SIZE = 1 << PAGE_SIZE_DIGITS;
+    static constexpr size_t PAGE_MASK = (1 << PAGE_SIZE_DIGITS) - 1;
 
-	size_t tail_ = 0;
-	std::vector<std::shared_ptr<value_type>> pages_;
+    size_t tail_ = 0;
+    std::vector <std::shared_ptr<value_type>> pages_;
 
 };
 //
@@ -229,6 +232,7 @@ private:
 //
 //}
 
-}// namespace simpla
+}
+}//  namespace simpla::gtl
 
 #endif /* CONTAINER_POOL_H_ */

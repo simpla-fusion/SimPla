@@ -9,6 +9,7 @@
 #define CORE_GTL_CONTAINERS_SP_HASH_CONTAINER_H_
 
 namespace simpla
+{namespace gtl
 {
 
 template<typename Key, typename Value, typename Hash>
@@ -127,6 +128,6 @@ struct SpHashContainer
 	}
 };
 
-}  // namespace simpla
+}  }//  namespace simpla::gtl
 
 #endif /* CORE_GTL_CONTAINERS_SP_HASH_CONTAINER_H_ */

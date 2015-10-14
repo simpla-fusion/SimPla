@@ -21,8 +21,8 @@
 /**
  *  @ingroup    utilities
  */
-namespace simpla
-{
+namespace simpla {
+namespace gtl {
 
 //template<typename T>
 //inline T string_to_value(std::string const & str)
@@ -61,60 +61,75 @@ namespace simpla
 //	return (os.str());
 //}
 
-inline std::string AutoIncrease(std::function<bool(std::string)> const & fun,
-		size_t count = 0, unsigned int width = 4)
+inline std::string
+AutoIncrease(std::function<bool(std::string)> const
+             &fun,
+             size_t count = 0,
+             unsigned int width = 4
+)
 {
-	std::string res("");
-	while (fun(res))
-	{
-		std::ostringstream os;
+    std::string res("");
+    while (
+            fun(res)
+            )
+    {
+        std::ostringstream os;
 
-		os << std::setw(width) << std::setfill('0') << count;
-		++count;
-		res = os.str();
-	}
-	return res;
+        os <<
+        std::setw(width)
+        << std::setfill('0') <<
+        count;
+        ++
+                count;
+        res = os.str();
+    }
+    return
+            res;
 }
 
-inline bool CheckFileExists(std::string const & name)
+inline bool CheckFileExists(std::string const &name)
 {
-	if (FILE *file = fopen(name.c_str(), "r"))
-	{
-		fclose(file);
-		return true;
-	}
-	else
-	{
-		return false;
-	}
+    if (FILE *file = fopen(name.c_str(), "r"))
+    {
+        fclose(file);
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 template<typename T>
 inline unsigned long make_hash(T s)
 {
-	return static_cast<unsigned long>(s);
+    return static_cast<unsigned long>(s);
 }
-template<typename TR> size_t size_of_range(TR const &range)
+
+template<typename TR>
+size_t size_of_range(TR const &range)
 {
-	size_t count = 0;
-	for (auto const & item : range)
-	{
-		++count;
-	}
-	return count;
+    size_t count = 0;
+    for (auto const &item : range)
+    {
+        ++count;
+    }
+    return count;
 }
 
 template<typename T>
-bool find_same(T const & left)
+bool find_same(T const &left)
 {
-	return false;
+    return false;
 }
+
 template<typename T, typename ...Others>
-bool find_same(T const & left, T const & first, Others && ... others)
+bool find_same(T const &left, T const &first, Others &&... others)
 {
-	return left == first || equal_to(left, std::forward<Others>( others)...);
+    return left == first || equal_to(left, std::forward<Others>(others)...);
 }
+
 }
-// namespace simpla
+}//  namespace simpla::gtl
 
 #endif /* UTILITIES_H_ */

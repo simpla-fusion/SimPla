@@ -10,6 +10,7 @@
 #define INCLUDE_SINGLETON_HOLDER_H_
 namespace simpla
 {
+namespace gtl {
 
 /** @ingroup design_pattern
  *
@@ -54,5 +55,5 @@ template<class T>
 T * volatile SingletonHolder<T>::pInstance_ = 0;
 
 /** @} */
-}  // namespace simpla
+}  }//  namespace simpla::gtl
 #endif  // INCLUDE_SINGLETON_HOLDER_H_

@@ -20,7 +20,8 @@
 #include "../type_traits.h"
 
 namespace simpla
-{
+{namespace gtl {
+
 /**
  *  @ingroup data_interface
  *
@@ -139,6 +140,6 @@ struct datatype
 }// namespace traits
 
 }
-// namespace simpla
+}//  namespace simpla::gtl
 
 #endif /* DATA_TYPE_H_ */

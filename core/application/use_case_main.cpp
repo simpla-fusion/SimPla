@@ -7,12 +7,11 @@
 
 #include <iostream>
 #include <string>
-
-#include "../io/io.h"
+ 
 #include "../parallel/parallel.h"
 #include "../sp_config.h"
-#include "../gtl/utilities/log.h"
-#include "../gtl/utilities/parse_command_line.h"
+#include "../gtl/log.h"
+#include "../gtl/parse_command_line.h"
 #include "use_case.h"
 #include "logo.h"
 

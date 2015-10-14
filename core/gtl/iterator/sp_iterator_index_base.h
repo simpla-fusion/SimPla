@@ -9,52 +9,62 @@
 #define SP_ITERATOR_INDEX_BASE_H_
 
 #include "iterator.h"
-namespace simpla
-{
+
+namespace simpla {
+namespace gtl {
+
 
 template<typename T>
-class Iterator<T*, std::nullptr_t, std::nullptr_t> : public std::iterator<std::bidirectional_iterator_tag, T>
+class Iterator<T *, std::nullptr_t, std::nullptr_t> : public std::iterator<std::bidirectional_iterator_tag, T>
 {
 public:
-	typedef Iterator<T*, std::nullptr_t, std::nullptr_t> this_type;
+    typedef Iterator<T *, std::nullptr_t, std::nullptr_t> this_type;
 
-	Iterator()
-	{
-	}
-	virtual ~Iterator()
-	{
-	}
-	virtual T get() const =0;
-	virtual void next()=0;
-	virtual void prev()=0;
-	virtual bool is_same(this_type const& rhs) const
-	{
-		return this->get() == rhs.get();
-	}
+    Iterator()
+    {
+    }
 
-	auto operator*() const DECL_RET_TYPE (this->get())
+    virtual ~Iterator()
+    {
+    }
 
-	this_type & operator++()
-	{
-		next();
-		return *this;
-	}
-	this_type & operator--()
-	{
-		prev();
-		return *this;
-	}
+    virtual T get() const = 0;
 
-	bool operator==(this_type const &rhs) const
-	{
-		return is_same(rhs);
-	}
-	bool operator!=(this_type const &rhs) const
-	{
-		return !is_same(rhs);
-	}
+    virtual void next() = 0;
+
+    virtual void prev() = 0;
+
+    virtual bool is_same(this_type const &rhs) const
+    {
+        return this->get() == rhs.get();
+    }
+
+    auto operator*() const DECL_RET_TYPE (this->get())
+
+    this_type &operator++()
+    {
+        next();
+        return *this;
+    }
+
+    this_type &operator--()
+    {
+        prev();
+        return *this;
+    }
+
+    bool operator==(this_type const &rhs) const
+    {
+        return is_same(rhs);
+    }
+
+    bool operator!=(this_type const &rhs) const
+    {
+        return !is_same(rhs);
+    }
 
 };
-}  // namespace simpla
+}
+}//  namespace simpla::gtl
 
 #endif /* SP_ITERATOR_INDEX_BASE_H_ */

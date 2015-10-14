@@ -155,6 +155,6 @@ private:
 }
 ;
 
-}  // namespace simpla
+}  }//  namespace simpla::gtl
 
 #endif /* CORE_UTILITIES_CONFIG_PARSER_H_ */

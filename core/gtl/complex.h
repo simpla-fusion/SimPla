@@ -74,6 +74,6 @@ struct is_arithmetic_scalar<std::complex<T>>
 {
 	static constexpr bool value = true;
 };
-}  // namespace simpla
+}  }//  namespace simpla::gtl
 
 #endif /* COMPLEX_OPS_H_ */

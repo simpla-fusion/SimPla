@@ -10,6 +10,7 @@
 
 namespace simpla
 {
+namespace gtl {
 
 template<typename SIGNATURE> struct Observable;
 template<typename SIGNATURE> struct Observer;
@@ -115,5 +116,5 @@ struct Observable<Signature> : public std::enable_shared_from_this<Observable<Si
 };
 
 
-}// namespace simpla
+}}//  namespace simpla::gtl
 #endif //SIMPLA_GTL_DESIGN_PATTERN_OBSERVER_H

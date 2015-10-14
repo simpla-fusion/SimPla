@@ -9,6 +9,7 @@
 #define CORE_GTL_CONTAINERS_SP_INDIRECT_CONTAINER_H_
 #include "../iterator/indirect_iterator.h"
 namespace simpla
+{namespace gtl
 {
 template<typename KeyContainer, typename ValueContiner>
 struct indirect_container: public KeyContainer
@@ -59,6 +60,6 @@ struct indirect_container: public KeyContainer
 		return iterator(key_conatinaer_type::cend(), m_base_);
 	}
 };
-}  // namespace simpla
+}  }//  namespace simpla::gtl
 
 #endif /* CORE_GTL_CONTAINERS_SP_INDIRECT_CONTAINER_H_ */
