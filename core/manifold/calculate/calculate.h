@@ -12,6 +12,9 @@
 
 namespace simpla
 {
+
+template<typename ...> struct Calculate;
+
 namespace calculate
 {
 namespace tags
@@ -21,10 +24,6 @@ struct finite_volume;
 struct DG;
 
 }//namespace tags
-
-
-template<typename ...> struct Calculate;
-
 }//namespace calculate
 }//namespace simpla
 #endif //SIMPLA_CALCULATE_H

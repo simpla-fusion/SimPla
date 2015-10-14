@@ -37,6 +37,13 @@ template<int NDIMS> using Mock= Manifold<
 
 
 >;
+
+template<int NDIMS> using CartesianCoordinate= Geometry<geometry::coordinate_system::Cartesian<NDIMS, 2>, topology::tags::CoRectMesh>;
+template<int NDIMS> using Riemannian= Manifold<
+		CartesianCoordinate<NDIMS>,
+		calculate::Calculate<CartesianCoordinate<NDIMS>, calculate::tags::finite_volume>,
+		interpolate::Interpolate<CartesianCoordinate<NDIMS>, interpolate::tags::linear>
+>;
 }//namespace  manifold
 }//namespace simpla
 #endif //SIMPLA_MOCK_MESH_H

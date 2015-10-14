@@ -8,14 +8,14 @@
 #define SIMPLA_INTERPOLATE_H
 namespace simpla
 {
-namespace interpolate
-{
 
 template<typename ...> struct Interpolate;
-
+namespace interpolate
+{
 namespace tags
 {
 struct linear;
+struct spline;
 }//namespace tags
 
 

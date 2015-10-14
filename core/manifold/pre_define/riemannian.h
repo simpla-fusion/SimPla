@@ -10,7 +10,7 @@
 #include "../../gtl/primitives.h"
 #include "../../geometry/cs_cartesian.h"
 
-#include "../policy/time_integrator.h"
+#include "../time_integrator/time_integrator.h"
 #include "../topology/structured.h"
 #include "../calculate/fvm_structured.h"
 #include "../interpolate/linear.h"
@@ -24,17 +24,12 @@ namespace simpla
 {
 namespace manifold
 {
+template<int NDIMS> using CartesianCoordinate= Geometry<geometry::coordinate_system::Cartesian<NDIMS, 2>, topology::tags::CoRectMesh>;
 template<int NDIMS> using Riemannian= Manifold<
-
-		Geometry<geometry::coordinate_system::Cartesian<NDIMS, 2>, topology::tags::CoRectMesh>,
-
-		calculate::tags::finite_volume,
-
-		interpolate::tags::linear,
-
-		policy::TimeIntegrator
-
-
+		CartesianCoordinate<NDIMS>,
+		Calculate<CartesianCoordinate<NDIMS>, calculate::tags::finite_volume>,
+		Interpolate<CartesianCoordinate<NDIMS>, interpolate::tags::linear>,
+		TimeIntegrator<CartesianCoordinate<NDIMS>>
 >;
 }//namespace  manifold
 }//namespace simpla

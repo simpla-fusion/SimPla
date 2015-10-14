@@ -28,63 +28,56 @@ template<typename ...> class Field;
  *  @brief   FdMesh
  */
 
-namespace calculate
-{
-
-template<typename TGeo> using FVM=  Calculate<TGeo, tags::finite_volume>;
 
 
-template<typename Geometry>
-struct Calculate<Geometry, tags::finite_volume>
+#define DECLARE_FUNCTION_SUFFIX const
+#define DECLARE_FUNCTION_PREFIX inline
+namespace ct = calculate::tags;
+
+template<typename TGeo>
+struct Calculate<TGeo, ct::finite_volume>
 {
 private:
 
-	typedef Geometry mesh_type;
+	typedef TGeo geometry_type;
 
-	typedef Calculate<mesh_type, tags::finite_volume> this_type;
+	typedef Calculate<geometry_type, ct::finite_volume> this_type;
 
-//	typedef typename mesh_type::scalar_type scalar_type;
+	typedef typename geometry_type::id_type id;
 
-	typedef typename mesh_type::id_type id;
+	geometry_type &m_geo_;
 
-public:
+
 	///***************************************************************************************************
 	/// @name general_algebra General algebra
 	/// @{
 	///***************************************************************************************************
 
-	static constexpr Real eval(mesh_type const &geo, Real v, id s)
+	constexpr Real eval(Real v, id s) DECLARE_FUNCTION_SUFFIX
 	{
 		return v;
 	}
 
-	static constexpr int eval(mesh_type const &geo, int v, id s)
+	constexpr int eval(int v, id s) DECLARE_FUNCTION_SUFFIX
 	{
 		return v;
 	}
 
-	static constexpr std::complex<Real> eval(mesh_type const &geo,
-			std::complex<Real> v, id s)
+	constexpr std::complex<Real> eval(std::complex<Real> v, id s) DECLARE_FUNCTION_SUFFIX
 	{
 		return v;
 	}
 
 	template<typename T, size_t ...N>
-	static constexpr nTuple<T, N...> const &eval(mesh_type const &geo,
-			nTuple<T, N...> const &v, id s)
+	constexpr nTuple<T, N...> const &eval(nTuple<T, N...> const &v, id s) DECLARE_FUNCTION_SUFFIX
 	{
 
 		return v;
 	}
 
 	template<typename ...T>
-	static inline traits::primary_type_t<nTuple<Expression<T...>>>
-	eval(
-			mesh_type const
-			&geo,
-			nTuple<Expression<T...>> const &v,
-			id
-			s)
+	DECLARE_FUNCTION_PREFIX traits::primary_type_t<nTuple<Expression<T...>>>
+	eval(nTuple<Expression<T...>> const &v, id s) DECLARE_FUNCTION_SUFFIX
 	{
 		traits::primary_type_t<nTuple<Expression<T...> > > res;
 		res = v;
@@ -92,48 +85,36 @@ public:
 	}
 
 	template<typename TM, typename TV, typename ... Others, typename ... Args>
-	static constexpr TV eval(mesh_type const &geo, Field<TM, TV, Others...> const &f, id s)
+	constexpr TV eval(Field<TM, TV, Others...> const &f, id s) DECLARE_FUNCTION_SUFFIX
 	{
 		return traits::index(f, s);
 	}
 
 	template<typename TOP, typename ... T>
-	static constexpr traits::primary_type_t<
+	constexpr traits::primary_type_t<
 			traits::value_type_t<Field<Expression<TOP, T...> >>>
-	eval(
-			mesh_type const
-			&geo, Field<Expression<TOP, T...> > const &expr,
-			id const &s
-	)
+	eval(Field<Expression<TOP, T...> > const &expr, id const &s) DECLARE_FUNCTION_SUFFIX
 	{
-		return eval(geo, expr, s, traits::iform_list_t<T...>());
+		return eval(expr, s, traits::iform_list_t<T...>());
 	}
 
-private:
 
 	template<typename Expr, size_t ... index>
-	static traits::primary_type_t<traits::value_type_t<Expr>> _invoke_helper(
-			mesh_type const &geo, Expr const &expr, id s,
-			index_sequence<index...>)
+	traits::primary_type_t<traits::value_type_t<Expr>> _invoke_helper(
+			Expr const &expr, id s, index_sequence<index...>) DECLARE_FUNCTION_SUFFIX
 	{
 		traits::primary_type_t<traits::value_type_t<Expr>> res = (expr.m_op_(
-				eval(geo, std::get<index>(expr.args), s)...));
+				eval(std::get<index>(expr.args), s)...));
 
 		return std::move(res);
 	}
 
-public:
 
 	template<typename TOP, typename ... T>
-	static constexpr traits::primary_type_t<
-			traits::value_type_t<Field<Expression<TOP, T...> >>>
-	eval(
-			mesh_type const
-			&geo, Field<Expression<TOP, T...> > const &expr,
-			id const &s, traits::iform_list_t<T...>
-	)
+	constexpr traits::primary_type_t<traits::value_type_t<Field<Expression<TOP, T...> >>>
+	eval(Field<Expression<TOP, T...> > const &expr, id const &s, traits::iform_list_t<T...>) DECLARE_FUNCTION_SUFFIX
 	{
-		return _invoke_helper(geo, expr, s, typename make_index_sequence<sizeof...(T)>::type());
+		return _invoke_helper(expr, s, typename make_index_sequence<sizeof...(T)>::type());
 	}
 
 
@@ -143,155 +124,126 @@ public:
 	//***************************************************************************************************
 
 	template<typename T>
-	static inline traits::value_type_t<
-			Field<Expression<tags::ExteriorDerivative, T>>>
-	eval(
-			mesh_type const
-			&geo,
-			Field<Expression<tags::ExteriorDerivative, T> > const &f,
-			id s, integer_sequence<int, VERTEX>
-	)
+	DECLARE_FUNCTION_PREFIX traits::value_type_t<
+			Field<Expression<ct::ExteriorDerivative, T>>>
+	eval(Field<Expression<ct::ExteriorDerivative, T> > const &f,
+			id s, integer_sequence<int, VERTEX>) DECLARE_FUNCTION_SUFFIX
 	{
-		id D = mesh_type::delta_index(s);
-		return (eval(geo, std::get<0>(f.args), s + D) * geo.volume(s + D)
-				- eval(geo, std::get<0>(f.args), s - D) * geo.volume(s - D))
-				* geo.inv_volume(s);
+		id D = geometry_type::delta_index(s);
+		return (eval(std::get<0>(f.args), s + D) * m_geo_.volume(s + D)
+				- eval(std::get<0>(f.args), s - D) * m_geo_.volume(s - D))
+				* m_geo_.inv_volume(s);
 	}
 
 	template<typename T>
-	static inline traits::value_type_t<
-			Field<Expression<tags::ExteriorDerivative, T>>>
-	eval(
-			mesh_type const
-			&geo,
-			Field<Expression<tags::ExteriorDerivative, T> > const &expr,
-			id s, integer_sequence<int, EDGE>
-	)
+	DECLARE_FUNCTION_PREFIX traits::value_type_t<
+			Field<Expression<ct::ExteriorDerivative, T>>>
+	eval(Field<Expression<ct::ExteriorDerivative, T> > const &expr,
+			id s, integer_sequence<int, EDGE>) DECLARE_FUNCTION_SUFFIX
 	{
 
-		id X = mesh_type::delta_index(mesh_type::dual(s));
-		id Y = mesh_type::rotate(X);
-		id Z = mesh_type::inverse_rotate(X);
+		id X = geometry_type::delta_index(geometry_type::dual(s));
+		id Y = geometry_type::rotate(X);
+		id Z = geometry_type::inverse_rotate(X);
 
-		return ((eval(geo, std::get<0>(expr.args), s + Y) * geo.volume(s + Y) //
-				- eval(geo, std::get<0>(expr.args), s - Y) * geo.volume(s - Y))
-				- (eval(geo, std::get<0>(expr.args), s + Z) * geo.volume(s + Z) //
-				- eval(geo, std::get<0>(expr.args), s - Z) * geo.volume(s - Z) //
+		return ((eval(std::get<0>(expr.args), s + Y) * m_geo_.volume(s + Y) //
+				- eval(std::get<0>(expr.args), s - Y) * m_geo_.volume(s - Y))
+				- (eval(std::get<0>(expr.args), s + Z) * m_geo_.volume(s + Z) //
+				- eval(std::get<0>(expr.args), s - Z) * m_geo_.volume(s - Z) //
 		)
 
-		) * geo.inv_volume(s);
+		) * m_geo_.inv_volume(s);
 
 	}
 
 	template<typename T>
-	static constexpr inline traits::value_type_t<
-			Field<Expression<tags::ExteriorDerivative, T>>>
-	eval(
-			mesh_type const
-			&geo,
-			Field<Expression<tags::ExteriorDerivative, T> > const &expr,
-			id s, integer_sequence<int, FACE>
-	)
+	constexpr DECLARE_FUNCTION_PREFIX traits::value_type_t<
+			Field<Expression<ct::ExteriorDerivative, T>>>
+	eval(Field<Expression<ct::ExteriorDerivative, T> > const &expr,
+			id s, integer_sequence<int, FACE>) DECLARE_FUNCTION_SUFFIX
 	{
-		return (eval(geo, std::get<0>(expr.args), s + mesh_type::_DI)
-				* geo.volume(s + mesh_type::_DI)
-				- eval(geo, std::get<0>(expr.args), s - mesh_type::_DI)
-				* geo.volume(s - mesh_type::_DI)
-				+ eval(geo, std::get<0>(expr.args), s + mesh_type::_DJ)
-				* geo.volume(s + mesh_type::_DJ)
-				- eval(geo, std::get<0>(expr.args), s - mesh_type::_DJ)
-				* geo.volume(s - mesh_type::_DJ)
-				+ eval(geo, std::get<0>(expr.args), s + mesh_type::_DK)
-				* geo.volume(s + mesh_type::_DK)
-				- eval(geo, std::get<0>(expr.args), s - mesh_type::_DK)
-				* geo.volume(s - mesh_type::_DK)
+		return (eval(std::get<0>(expr.args), s + geometry_type::_DI)
+				* m_geo_.volume(s + geometry_type::_DI)
+				- eval(std::get<0>(expr.args), s - geometry_type::_DI)
+				* m_geo_.volume(s - geometry_type::_DI)
+				+ eval(std::get<0>(expr.args), s + geometry_type::_DJ)
+				* m_geo_.volume(s + geometry_type::_DJ)
+				- eval(std::get<0>(expr.args), s - geometry_type::_DJ)
+				* m_geo_.volume(s - geometry_type::_DJ)
+				+ eval(std::get<0>(expr.args), s + geometry_type::_DK)
+				* m_geo_.volume(s + geometry_type::_DK)
+				- eval(std::get<0>(expr.args), s - geometry_type::_DK)
+				* m_geo_.volume(s - geometry_type::_DK)
 
-		) * geo.inv_volume(s);
+		) * m_geo_.inv_volume(s);
 	}
 //
 ////	template<typename geometry_type,typename TM, int IL, typename TL> void eval(
-////			tags::ExteriorDerivative, Field<Domain<TM, IL>, TL> const & f,
+////			ct::ExteriorDerivative, Field<Domain<TM, IL>, TL> const & f,
 ////					typename geometry_type::id_type   s)  = delete;
 ////
 ////	template<typename geometry_type,typename TM, int IL, typename TL> void eval(
-////			tags::CodifferentialDerivative,
+////			ct::CodifferentialDerivative,
 ////			Field<TL...> const & f, 		typename geometry_type::id_type   s)  = delete;
 
 	template<typename T>
-	static constexpr inline traits::value_type_t<
-			Field<Expression<tags::CodifferentialDerivative, T>>>
-	eval(
-			mesh_type const
-			&geo,
-			Field<Expression<tags::CodifferentialDerivative, T>> const &expr,
-			id s, integer_sequence<int, EDGE>
-	)
+	constexpr DECLARE_FUNCTION_PREFIX traits::value_type_t<
+			Field<Expression<ct::CodifferentialDerivative, T>>>
+	eval(Field<Expression<ct::CodifferentialDerivative, T>> const &expr,
+			id s, integer_sequence<int, EDGE>) DECLARE_FUNCTION_SUFFIX
 	{
-		return -(eval(geo, std::get<0>(expr.args), s + mesh_type::_DI)
-				* geo.dual_volume(s + mesh_type::_DI)
-				- eval(geo, std::get<0>(expr.args), s - mesh_type::_DI)
-				* geo.dual_volume(s - mesh_type::_DI)
-				+ eval(geo, std::get<0>(expr.args), s + mesh_type::_DJ)
-				* geo.dual_volume(s + mesh_type::_DJ)
-				- eval(geo, std::get<0>(expr.args), s - mesh_type::_DJ)
-				* geo.dual_volume(s - mesh_type::_DJ)
-				+ eval(geo, std::get<0>(expr.args), s + mesh_type::_DK)
-				* geo.dual_volume(s + mesh_type::_DK)
-				- eval(geo, std::get<0>(expr.args), s - mesh_type::_DK)
-				* geo.dual_volume(s - mesh_type::_DK)
+		return -(eval(std::get<0>(expr.args), s + geometry_type::_DI)
+				* m_geo_.dual_volume(s + geometry_type::_DI)
+				- eval(std::get<0>(expr.args), s - geometry_type::_DI)
+				* m_geo_.dual_volume(s - geometry_type::_DI)
+				+ eval(std::get<0>(expr.args), s + geometry_type::_DJ)
+				* m_geo_.dual_volume(s + geometry_type::_DJ)
+				- eval(std::get<0>(expr.args), s - geometry_type::_DJ)
+				* m_geo_.dual_volume(s - geometry_type::_DJ)
+				+ eval(std::get<0>(expr.args), s + geometry_type::_DK)
+				* m_geo_.dual_volume(s + geometry_type::_DK)
+				- eval(std::get<0>(expr.args), s - geometry_type::_DK)
+				* m_geo_.dual_volume(s - geometry_type::_DK)
 
-		) * geo.inv_dual_volume(s);
+		) * m_geo_.inv_dual_volume(s);
 
 	}
 
 	template<typename T>
-	static inline traits::value_type_t<
-			Field<Expression<tags::CodifferentialDerivative, T>>>
-	eval(
-			mesh_type const
-			&geo,
-			Field<Expression<tags::CodifferentialDerivative, T>> const &expr,
-			id s, integer_sequence<int, FACE>
-	)
+	DECLARE_FUNCTION_PREFIX traits::value_type_t<
+			Field<Expression<ct::CodifferentialDerivative, T>>>
+	eval(Field<Expression<ct::CodifferentialDerivative, T>> const &expr,
+			id s, integer_sequence<int, FACE>) DECLARE_FUNCTION_SUFFIX
 	{
 
-		id X = mesh_type::delta_index(s);
-		id Y = mesh_type::rotate(X);
-		id Z = mesh_type::inverse_rotate(X);
+		id X = geometry_type::delta_index(s);
+		id Y = geometry_type::rotate(X);
+		id Z = geometry_type::inverse_rotate(X);
 
 		return
 
-				-((eval(geo, std::get<0>(expr.args), s + Y) * (geo.dual_volume(s + Y))
-						- eval(geo, std::get<0>(expr.args), s - Y)
-						* (geo.dual_volume(s - Y)))
+				-((eval(std::get<0>(expr.args), s + Y) * (m_geo_.dual_volume(s + Y))
+						- eval(std::get<0>(expr.args), s - Y)
+						* (m_geo_.dual_volume(s - Y)))
 
-						- (eval(geo, std::get<0>(expr.args), s + Z)
-						* (geo.dual_volume(s + Z))
-						- eval(geo, std::get<0>(expr.args), s - Z)
-						* (geo.dual_volume(s - Z)))
+						- (eval(std::get<0>(expr.args), s + Z)
+						* (m_geo_.dual_volume(s + Z))
+						- eval(std::get<0>(expr.args), s - Z)
+						* (m_geo_.dual_volume(s - Z)))
 
-				) * geo.inv_dual_volume(s);
+				) * m_geo_.inv_dual_volume(s);
 	}
 
 	template<typename T>
-	static inline traits::value_type_t<
-			Field<Expression<tags::CodifferentialDerivative, T>>>
-	eval(
-			mesh_type const
-			&geo,
-			Field<Expression<tags::CodifferentialDerivative, T> > const &expr,
-			id s, integer_sequence<int, VOLUME>
-	)
+	DECLARE_FUNCTION_PREFIX traits::value_type_t<
+			Field<Expression<ct::CodifferentialDerivative, T>>>
+	eval(Field<Expression<ct::CodifferentialDerivative, T> > const &expr,
+			id s, integer_sequence<int, VOLUME>) DECLARE_FUNCTION_SUFFIX
 	{
-		id D = mesh_type::delta_index(mesh_type::dual(s));
-		return
-
-				-(
-
-						eval(geo, std::get<0>(expr.args), s + D) * (geo.dual_volume(s + D)) //
-								- eval(geo, std::get<0>(expr.args), s - D) * (geo.dual_volume(s - D))
-
-				) * geo.inv_dual_volume(s);
+		id D = geometry_type::delta_index(geometry_type::dual(s));
+		return -(eval(std::get<0>(expr.args), s + D) * (m_geo_.dual_volume(s + D)) //
+				- eval(std::get<0>(expr.args), s - D) * (m_geo_.dual_volume(s - D))
+		) * m_geo_.inv_dual_volume(s);
 	}
 
 ////***************************************************************************************************
@@ -299,264 +251,221 @@ public:
 ////! Form<IR> ^ Form<IR> => Form<IR+IL>
 
 	template<typename TL, typename TR>
-	static inline traits::value_type_t<Field<Expression<tags::Wedge, TL, TR>>>
-	eval(
-			mesh_type const
-			&geo,
-			Field<Expression<tags::Wedge, TL, TR>> const &expr,
-			id s,
-			integer_sequence<int, VERTEX, VERTEX>
-	)
+	DECLARE_FUNCTION_PREFIX traits::value_type_t<Field<Expression<ct::Wedge, TL, TR>>>
+	eval(Field<Expression<ct::Wedge, TL, TR>> const &expr,
+			id s, integer_sequence<int, VERTEX, VERTEX>) DECLARE_FUNCTION_SUFFIX
 	{
-		return (eval(geo, std::get<0>(expr.args), s)
-				* eval(geo, std::get<1>(expr.args), s));
+		return (eval(std::get<0>(expr.args), s)
+				* eval(std::get<1>(expr.args), s));
 	}
 
 	template<typename TL, typename TR>
-	static inline traits::value_type_t<Field<Expression<tags::Wedge, TL, TR>>>
-	eval(
-			mesh_type const
-			&geo,
-			Field<Expression<tags::Wedge, TL, TR>> const &expr,
-			id s,
-			integer_sequence<int, VERTEX, EDGE>
-	)
+	DECLARE_FUNCTION_PREFIX traits::value_type_t<Field<Expression<ct::Wedge, TL, TR>>>
+	eval(Field<Expression<ct::Wedge, TL, TR>> const &expr,
+			id s, integer_sequence<int, VERTEX, EDGE>) DECLARE_FUNCTION_SUFFIX
 	{
-		auto X = mesh_type::delta_index(s);
+		auto X = geometry_type::delta_index(s);
 
-		return (eval(geo, std::get<0>(expr.args), s - X)
-				+ eval(geo, std::get<0>(expr.args), s + X)) * 0.5
-				* eval(geo, std::get<1>(expr.args), s);
+		return (eval(std::get<0>(expr.args), s - X)
+				+ eval(std::get<0>(expr.args), s + X)) * 0.5
+				* eval(std::get<1>(expr.args), s);
 	}
 
 	template<typename TL, typename TR>
-	static inline traits::value_type_t<Field<Expression<tags::Wedge, TL, TR>>>
-	eval(
-			mesh_type const
-			&geo,
-			Field<Expression<tags::Wedge, TL, TR>> const &expr,
-			id s,
-			integer_sequence<int, VERTEX, FACE>
-	)
+	DECLARE_FUNCTION_PREFIX traits::value_type_t<Field<Expression<ct::Wedge, TL, TR>>>
+	eval(Field<Expression<ct::Wedge, TL, TR>> const &expr,
+			id s, integer_sequence<int, VERTEX, FACE>) DECLARE_FUNCTION_SUFFIX
 	{
-		auto X = mesh_type::delta_index(mesh_type::dual(s));
-		auto Y = mesh_type::rotate(X);
-		auto Z = mesh_type::inverse_rotate(X);
+		auto X = geometry_type::delta_index(geometry_type::dual(s));
+		auto Y = geometry_type::rotate(X);
+		auto Z = geometry_type::inverse_rotate(X);
 
-		return (
-
-				eval(geo, std::get<0>(expr.args), (s - Y) - Z)
-						+ eval(geo, std::get<0>(expr.args), (s - Y) + Z)
-						+ eval(geo, std::get<0>(expr.args), (s + Y) - Z)
-						+ eval(geo, std::get<0>(expr.args), (s + Y) + Z)
-
-		) * 0.25 * eval(geo, std::get<1>(expr.args), s);
+		return (eval(std::get<0>(expr.args), (s - Y) - Z)
+				+ eval(std::get<0>(expr.args), (s - Y) + Z)
+				+ eval(std::get<0>(expr.args), (s + Y) - Z)
+				+ eval(std::get<0>(expr.args), (s + Y) + Z)
+		) * 0.25 * eval(std::get<1>(expr.args), s);
 	}
 
 	template<typename TL, typename TR>
-	static inline traits::value_type_t<Field<Expression<tags::Wedge, TL, TR>>>
-	eval(
-			mesh_type const
-			&geo,
-			Field<Expression<tags::Wedge, TL, TR>> const &expr,
-			id s,
-			integer_sequence<int, VERTEX, VOLUME>
-	)
+	DECLARE_FUNCTION_PREFIX traits::value_type_t<Field<Expression<ct::Wedge, TL, TR>>>
+	eval(Field<Expression<ct::Wedge, TL, TR>> const &expr,
+			id s, integer_sequence<int, VERTEX, VOLUME>) DECLARE_FUNCTION_SUFFIX
 	{
 
 		auto const &l = std::get<0>(expr.args);
 		auto const &r = std::get<1>(expr.args);
 
-		auto X = geo.DI(0, s);
-		auto Y = geo.DI(1, s);
-		auto Z = geo.DI(2, s);
+		auto X = m_geo_.DI(0, s);
+		auto Y = m_geo_.DI(1, s);
+		auto Z = m_geo_.DI(2, s);
 
-		return (
+		return (eval(l, ((s - X) - Y) - Z) +
 
-				eval(geo, l, ((s - X) - Y) - Z) +
+				eval(l, ((s - X) - Y) + Z) +
 
-						eval(geo, l, ((s - X) - Y) + Z) +
+				eval(l, ((s - X) + Y) - Z) +
 
-						eval(geo, l, ((s - X) + Y) - Z) +
+				eval(l, ((s - X) + Y) + Z) +
 
-						eval(geo, l, ((s - X) + Y) + Z) +
+				eval(l, ((s + X) - Y) - Z) +
 
-						eval(geo, l, ((s + X) - Y) - Z) +
+				eval(l, ((s + X) - Y) + Z) +
 
-						eval(geo, l, ((s + X) - Y) + Z) +
+				eval(l, ((s + X) + Y) - Z) +
 
-						eval(geo, l, ((s + X) + Y) - Z) +
+				eval(l, ((s + X) + Y) + Z)
 
-						eval(geo, l, ((s + X) + Y) + Z)
-
-		) * 0.125 * eval(geo, r, s);
+		) * 0.125 * eval(r, s);
 	}
 
 	template<typename TL, typename TR>
-	static inline traits::value_type_t<Field<Expression<tags::Wedge, TL, TR>>>
-	eval(
-			mesh_type const
-			&geo,
-			Field<Expression<tags::Wedge, TL, TR>> const &expr,
-			id s,
-			integer_sequence<int, EDGE, VERTEX>
-	)
+	DECLARE_FUNCTION_PREFIX traits::value_type_t<Field<Expression<ct::Wedge, TL, TR>>>
+	eval(Field<Expression<ct::Wedge, TL, TR>> const &expr,
+			id s, integer_sequence<int, EDGE, VERTEX>) DECLARE_FUNCTION_SUFFIX
 	{
 
 		auto const &l = std::get<0>(expr.args);
 		auto const &r = std::get<1>(expr.args);
 
-		auto X = mesh_type::delta_index(s);
-		return eval(geo, l, s) * (eval(geo, r, s - X) + eval(geo, r, s + X))
-				* 0.5;
+		auto X = geometry_type::delta_index(s);
+		return eval(l, s) * (eval(r, s - X) + eval(r, s + X)) * 0.5;
 	}
 
 	template<typename TL, typename TR>
-	static inline traits::value_type_t<Field<Expression<tags::Wedge, TL, TR>>>
-	eval(
-			mesh_type const
-			&geo,
-			Field<Expression<tags::Wedge, TL, TR>> const &expr,
-			id s,
-			integer_sequence<int, EDGE, EDGE>
-	)
+	DECLARE_FUNCTION_PREFIX traits::value_type_t<Field<Expression<ct::Wedge, TL, TR>>>
+	eval(Field<Expression<ct::Wedge, TL, TR>> const &expr,
+			id s, integer_sequence<int, EDGE, EDGE>) DECLARE_FUNCTION_SUFFIX
 	{
 		auto const &l = std::get<0>(expr.args);
 		auto const &r = std::get<1>(expr.args);
 
-		auto Y = mesh_type::delta_index(mesh_type::rotate(mesh_type::dual(s)));
-		auto Z = mesh_type::delta_index(
-				mesh_type::inverse_rotate(mesh_type::dual(s)));
+		auto Y = geometry_type::delta_index(geometry_type::rotate(geometry_type::dual(s)));
+		auto Z = geometry_type::delta_index(
+				geometry_type::inverse_rotate(geometry_type::dual(s)));
 
-		return ((eval(geo, l, s - Y) + eval(geo, l, s + Y))
-				* (eval(geo, l, s - Z) + eval(geo, l, s + Z)) * 0.25);
+		return ((eval(l, s - Y) + eval(l, s + Y))
+				* (eval(l, s - Z) + eval(l, s + Z)) * 0.25);
 	}
 
 	template<typename TL, typename TR>
-	static inline traits::value_type_t<Field<Expression<tags::Wedge, TL, TR>>>
-	eval(
-			mesh_type const
-			&geo,
-			Field<Expression<tags::Wedge, TL, TR>> const &expr,
-			id s,
-			integer_sequence<int, EDGE, FACE>
-	)
+	DECLARE_FUNCTION_PREFIX traits::value_type_t<Field<Expression<ct::Wedge, TL, TR>>>
+	eval(Field<Expression<ct::Wedge, TL, TR>> const &expr,
+			id s, integer_sequence<int, EDGE, FACE>) DECLARE_FUNCTION_SUFFIX
 	{
 		auto const &l = std::get<0>(expr.args);
 		auto const &r = std::get<1>(expr.args);
-		auto X = geo.DI(0, s);
-		auto Y = geo.DI(1, s);
-		auto Z = geo.DI(2, s);
+		auto X = m_geo_.DI(0, s);
+		auto Y = m_geo_.DI(1, s);
+		auto Z = m_geo_.DI(2, s);
 
 		return
 
 				(
 
-						(eval(geo, l, (s - Y) - Z) + eval(geo, l, (s - Y) + Z)
-								+ eval(geo, l, (s + Y) - Z) + eval(geo, l, (s + Y) + Z))
-								* (eval(geo, r, s - X) + eval(geo, r, s + X))
+						(eval(l, (s - Y) - Z) + eval(l, (s - Y) + Z)
+								+ eval(l, (s + Y) - Z) + eval(l, (s + Y) + Z))
+								* (eval(r, s - X) + eval(r, s + X))
 								+
 
-								(eval(geo, l, (s - Z) - X) + eval(geo, l, (s - Z) + X)
-										+ eval(geo, l, (s + Z) - X) + eval(geo, l, (s + Z) + X))
-										* (eval(geo, r, s - Y) + eval(geo, r, s + Y))
+								(eval(l, (s - Z) - X) + eval(l, (s - Z) + X)
+										+ eval(l, (s + Z) - X) + eval(l, (s + Z) + X))
+										* (eval(r, s - Y) + eval(r, s + Y))
 										+
 
-								(eval(geo, l, (s - X) - Y) + eval(geo, l, (s - X) + Y)
-										+ eval(geo, l, (s + X) - Y) + eval(geo, l, (s + X) + Y))
-										* (eval(geo, r, s - Z) + eval(geo, r, s + Z))
+								(eval(l, (s - X) - Y) + eval(l, (s - X) + Y)
+										+ eval(l, (s + X) - Y) + eval(l, (s + X) + Y))
+										* (eval(r, s - Z) + eval(r, s + Z))
 
 				) * 0.125;
 	}
 
 	template<typename TL, typename TR>
-	static inline traits::value_type_t<Field<Expression<tags::Wedge, TL, TR>>>
-	eval(
-			mesh_type const
-			&geo,
-			Field<Expression<tags::Wedge, TL, TR> > const &expr,
-			id s,
-			integer_sequence<int, FACE, VERTEX>
-	)
+	DECLARE_FUNCTION_PREFIX traits::value_type_t<Field<Expression<ct::Wedge, TL, TR>>>
+	eval(Field<Expression<ct::Wedge, TL, TR> > const &expr,
+			id s, integer_sequence<int, FACE, VERTEX>) DECLARE_FUNCTION_SUFFIX
 	{
 		auto const &l = std::get<0>(expr.args);
 		auto const &r = std::get<1>(expr.args);
-		auto Y = mesh_type::delta_index(mesh_type::rotate(mesh_type::dual(s)));
-		auto Z = mesh_type::delta_index(
-				mesh_type::inverse_rotate(mesh_type::dual(s)));
+		auto Y = geometry_type::delta_index(geometry_type::rotate(geometry_type::dual(s)));
+		auto Z = geometry_type::delta_index(
+				geometry_type::inverse_rotate(geometry_type::dual(s)));
 
-		return eval(geo, l, s)
-				* (eval(geo, r, (s - Y) - Z) + eval(geo, r, (s - Y) + Z)
-				+ eval(geo, r, (s + Y) - Z) + eval(geo, r, (s + Y) + Z))
+		return eval(l, s)
+				* (eval(r, (s - Y) - Z) + eval(r, (s - Y) + Z)
+				+ eval(r, (s + Y) - Z) + eval(r, (s + Y) + Z))
 				* 0.25;
 	}
 
 	template<typename TL, typename TR>
-	static inline traits::value_type_t<Field<Expression<tags::Wedge, TL, TR>>>
-	eval(
-			mesh_type const
-			&geo,
-			Field<Expression<tags::Wedge, TL, TR> > const &expr,
-			id s,
-			integer_sequence<int, FACE, EDGE>
-	)
+	DECLARE_FUNCTION_PREFIX traits::value_type_t<Field<Expression<ct::Wedge, TL, TR>>>
+	eval(Field<Expression<ct::Wedge, TL, TR> > const &expr,
+			id s, integer_sequence<int, FACE, EDGE>) DECLARE_FUNCTION_SUFFIX
 	{
 		auto const &l = std::get<0>(expr.args);
 		auto const &r = std::get<1>(expr.args);
-		auto X = geo.DI(0, s);
-		auto Y = geo.DI(1, s);
-		auto Z = geo.DI(2, s);
+		auto X = m_geo_.DI(0, s);
+		auto Y = m_geo_.DI(1, s);
+		auto Z = m_geo_.DI(2, s);
 
-		return
+		return ((eval(r, (s - Y) - Z) + eval(r, (s - Y) + Z)
+				+ eval(r, (s + Y) - Z) + eval(r, (s + Y) + Z))
+				* (eval(l, s - X) + eval(l, s + X))
 
-				(
+				+ (eval(r, (s - Z) - X) + eval(r, (s - Z) + X)
+				+ eval(r, (s + Z) - X) + eval(r, (s + Z) + X))
+				* (eval(l, s - Y) + eval(l, s + Y))
 
-						(eval(geo, r, (s - Y) - Z) + eval(geo, r, (s - Y) + Z)
-								+ eval(geo, r, (s + Y) - Z) + eval(geo, r, (s + Y) + Z))
-								* (eval(geo, l, s - X) + eval(geo, l, s + X))
+				+ (eval(r, (s - X) - Y) + eval(r, (s - X) + Y)
+				+ eval(r, (s + X) - Y) + eval(r, (s + X) + Y))
+				* (eval(l, s - Z) + eval(l, s + Z))
 
-								+ (eval(geo, r, (s - Z) - X) + eval(geo, r, (s - Z) + X)
-								+ eval(geo, r, (s + Z) - X) + eval(geo, r, (s + Z) + X))
-								* (eval(geo, l, s - Y) + eval(geo, l, s + Y))
-
-								+ (eval(geo, r, (s - X) - Y) + eval(geo, r, (s - X) + Y)
-								+ eval(geo, r, (s + X) - Y) + eval(geo, r, (s + X) + Y))
-								* (eval(geo, l, s - Z) + eval(geo, l, s + Z))
-
-				) * 0.125;
+		) * 0.125;
 	}
 
 	template<typename TL, typename TR>
-	static inline traits::value_type_t<Field<Expression<tags::Wedge, TL, TR>>>
-	eval(mesh_type const
-	&geo, Field<Expression<tags::Wedge, TL, TR>> const &expr,
-			id s,
-			integer_sequence<int, VOLUME, VERTEX>
-	)
+	DECLARE_FUNCTION_PREFIX traits::value_type_t<Field<Expression<ct::Wedge, TL, TR>>>
+	eval(Field<Expression<ct::Wedge, TL, TR>> const &expr,
+			id s, integer_sequence<int, VOLUME, VERTEX>) DECLARE_FUNCTION_SUFFIX
 	{
 		auto const &l = std::get<0>(expr.args);
 		auto const &r = std::get<1>(expr.args);
-		auto X = geo.DI(0, s);
-		auto Y = geo.DI(1, s);
-		auto Z = geo.DI(2, s);
+		auto X = m_geo_.DI(0, s);
+		auto Y = m_geo_.DI(1, s);
+		auto Z = m_geo_.DI(2, s);
 
 		return
 
-				eval(geo, l, s) * (
-
-						eval(geo, r, ((s - X) - Y) - Z) + //
-								eval(geo, r, ((s - X) - Y) + Z) + //
-								eval(geo, r, ((s - X) + Y) - Z) + //
-								eval(geo, r, ((s - X) + Y) + Z) + //
-								eval(geo, r, ((s + X) - Y) - Z) + //
-								eval(geo, r, ((s + X) - Y) + Z) + //
-								eval(geo, r, ((s + X) + Y) - Z) + //
-								eval(geo, r, ((s + X) + Y) + Z) //
+				eval(l, s) * (eval(r, ((s - X) - Y) - Z) + //
+						eval(r, ((s - X) - Y) + Z) + //
+						eval(r, ((s - X) + Y) - Z) + //
+						eval(r, ((s - X) + Y) + Z) + //
+						eval(r, ((s + X) - Y) - Z) + //
+						eval(r, ((s + X) - Y) + Z) + //
+						eval(r, ((s + X) + Y) - Z) + //
+						eval(r, ((s + X) + Y) + Z) //
 
 				) * 0.125;
 	}
-};// struct Calculate<Geometry, tags::finite_volume>
-}// namespace calculate
+
+public:
+
+	Calculate(geometry_type &geo) : m_geo_(geo)
+	{
+	}
+
+	virtual ~Calculate()
+	{
+	}
+
+
+	template<typename ...Args>
+	auto calculate(Args &&...args) DECLARE_FUNCTION_SUFFIX
+	DECL_RET_TYPE((this->eval(std::forward<Args>(args)...)))
+};// struct Calculate<TGeo, ct::finite_volume>
+
+#undef DECLARE_FUNCTION_PREFIX
+#undef DECLARE_FUNCTION_SUFFIX
 }// namespace simpla
 
 #endif /* FDM_H_ */

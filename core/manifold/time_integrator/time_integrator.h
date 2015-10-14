@@ -8,10 +8,17 @@ namespace simpla
 {
 template<typename ...> struct TimeIntegrator;
 
-template<typename TM, typename ...Policy>
-struct TimeIntegrator<TM, Policy...>
+template<typename TGeo, typename ...Policy>
+struct TimeIntegrator<TGeo, Policy...>
 {
-	typedef TM mesh_type;
+private:
+	typedef TGeo geometry_type;
+public:
+
+	TimeIntegrator(TGeo &) { }
+
+	virtual ~TimeIntegrator() { }
+
 
 	double time() const
 	{
