@@ -156,17 +156,17 @@ struct vector_type<Manifold<T...> >
 	typedef typename Manifold<T...>::vector_type type;
 };
 
-template<typename ...T>
-struct rank<Manifold<T...> > : public std::integral_constant<size_t,
-		Manifold<T...>::ndims>
-{
-};
-
-template<typename ...T>
-struct ZAxis<Manifold<T...> > : public std::integral_constant<size_t,
-		Manifold<T...>::ZAXIS>
-{
-};
+//template<typename ...T>
+//struct rank<Manifold<T...> > : public std::integral_constant<int,
+//		Manifold<T...>::ndims>
+//{
+//};
+//
+//template<typename ...T>
+//struct ZAxis<Manifold<T...> > : public std::integral_constant<int,
+//		ZAxis<typename Manifold<T...>::coordinates_system>::value>
+//{
+//};
 
 }  // namespace traits
 

@@ -27,12 +27,12 @@ TEST_P(TestFETL ,vec_zero_form)
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-	auto res_scalarField = manifold.makeField<VERTEX, scalar_type>();
+	auto res_scalarField = manifold.make_field<VERTEX, scalar_type>();
 
-	auto vaf = manifold.makeField<VERTEX, nTuple<3, scalar_type> >();
-	auto vbf = manifold.makeField<VERTEX, nTuple<3, scalar_type> >();
+	auto vaf = manifold.make_field<VERTEX, nTuple<3, scalar_type> >();
+	auto vbf = manifold.make_field<VERTEX, nTuple<3, scalar_type> >();
 
-	auto res_vectorField = manifold.makeField<VERTEX, nTuple<3, scalar_type> >();
+	auto res_vectorField = manifold.make_field<VERTEX, nTuple<3, scalar_type> >();
 
 	vaf.clear();
 	vbf.clear();

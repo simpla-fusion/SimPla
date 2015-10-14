@@ -72,7 +72,7 @@ TYPED_TEST_P(TestField, assign){
 
 	auto const & mesh= TestFixture::mesh;
 
-	auto f1 = makeField<field_type>(mesh);
+	auto f1 = make_field<field_type>(mesh);
 
 	value_type va;
 
@@ -101,9 +101,9 @@ TYPED_TEST_P(TestField, constant_real){
 	typedef typename TestFixture::value_type value_type;
 
 	auto const & mesh= TestFixture::mesh;
-	auto f1 = makeField<field_type>(mesh);
-	auto f2 = makeField<field_type>(mesh);
-	auto f3 = makeField<field_type>(mesh);
+	auto f1 = make_field<field_type>(mesh);
+	auto f2 = make_field<field_type>(mesh);
+	auto f3 = make_field<field_type>(mesh);
 
 	f3 = 1;
 	Real a, b, c;
@@ -134,10 +134,10 @@ TYPED_TEST_P(TestField, scalarField){
 	typedef typename TestFixture::value_type value_type;
 
 	auto const & mesh= TestFixture::mesh;
-	auto f1 = makeField<field_type>(mesh);
-	auto f2 = makeField<field_type>(mesh);
-	auto f3 = makeField<field_type>(mesh);
-	auto f4 = makeField<field_type>(mesh);
+	auto f1 = make_field<field_type>(mesh);
+	auto f2 = make_field<field_type>(mesh);
+	auto f3 = make_field<field_type>(mesh);
+	auto f4 = make_field<field_type>(mesh);
 
 	auto a = f1.template clone<Real>();
 	auto b = f1.template clone<Real>();

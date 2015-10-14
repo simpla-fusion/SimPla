@@ -163,22 +163,12 @@ namespace calculate
 {
 namespace tags
 {
-struct HodgeStar
-{
-};
-struct InteriorProduct
-{
-};
-struct Wedge
-{
-};
+struct HodgeStar { };
+struct InteriorProduct { };
+struct Wedge { };
 
-struct ExteriorDerivative
-{
-};
-struct CodifferentialDerivative
-{
-};
+struct ExteriorDerivative { };
+struct CodifferentialDerivative { };
 
 struct MapTo;
 }  // namespace tags
@@ -197,7 +187,6 @@ template<typename T0, typename T1>
 struct iform<Field<Expression<calculate::tags::InteriorProduct, T0, T1> > > : public std::integral_constant<
 		int, traits::iform<T1>::value - 1>
 {
-
 };
 
 template<typename T>
@@ -211,7 +200,6 @@ struct iform<Field<Expression<calculate::tags::CodifferentialDerivative, T> > > 
 		int, traits::iform<T>::value - 1>
 {
 };
-
 template<typename T0, typename T1>
 struct iform<Field<Expression<calculate::tags::Wedge, T0, T1> > > : public std::integral_constant<
 		int, iform<T0>::value + iform<T1>::value>
@@ -349,8 +337,7 @@ DECL_RET_TYPE(wedge(lhs, hodge_star(rhs)));
 
 template<typename ...TL, typename ...TR> inline auto cross(
 		Field<TL...> const &lhs, Field<TR...> const &rhs)
-ENABLE_IF_DECL_RET_TYPE((traits::iform<Field<TL...>>::value == EDGE),
-		wedge(lhs, rhs));
+ENABLE_IF_DECL_RET_TYPE((traits::iform<Field<TL...>>::value == EDGE), wedge(lhs, rhs));
 
 template<typename ...TL, typename ...TR> inline auto cross(
 		Field<TL...> const &lhs, Field<TR...> const &rhs)

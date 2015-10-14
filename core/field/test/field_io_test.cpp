@@ -53,8 +53,8 @@ int main(int argc, char **argv)
 //
 //	geometry.update();
 
-	auto f0 = makeField<int>(domain);
-	auto f1 = makeField<int>(domain);
+	auto f0 = make_field<int>(domain);
+	auto f1 = make_field<int>(domain);
 //
 //	f0.clear();
 //	f1.clear();
@@ -110,7 +110,7 @@ int main(int argc, char **argv)
 //	size_t size = vec.size();
 //	INFORM << GLOBAL_DATA_STREAM.write("data",&vec[0],DataType::create<int>(),1,nullptr,&size,nullptr,nullptr,nullptr,nullptr ,DataStream::SP_UNORDER);
 //
-//	auto fv = geometry.makeField<EDGE, Real>();
+//	auto fv = geometry.make_field<EDGE, Real>();
 //
 //	fv.clear();
 //

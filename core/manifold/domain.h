@@ -23,7 +23,6 @@
 
 
 #include "domain_traits.h"
-#include "policy.h"
 
 namespace simpla
 {

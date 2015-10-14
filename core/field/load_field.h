@@ -91,7 +91,7 @@ bool loadField(TDict const & dict, TField *f)
 //		Field<T...> *f)
 //{
 //
-//	auto ff = makeField<nTuple<Real, DIMS>>(f->domain());
+//	auto ff = make_field<nTuple<Real, DIMS>>(f->domain());
 //
 //	ff.clear();
 //
@@ -107,7 +107,7 @@ bool loadField(TDict const & dict, TField *f)
 //bool loadField_wrap(std::complex<TV>, TDict const &dict, Field<T...> *f)
 //{
 //
-//	auto ff = makeField<Real>(f->domain());
+//	auto ff = make_field<Real>(f->domain());
 //
 //	ff.clear();
 //

@@ -8,6 +8,7 @@
 #define SIMPLA_DATASET_H
 
 #include "../../gtl/dataset/dataspace.h"
+#include "../manifold_traits.h"
 
 namespace simpla
 {
@@ -22,6 +23,8 @@ struct DataSetPolicy
 	typedef DataSetPolicy<geometry_type> this_type;
 
 	geometry_type const &m_geo_;
+	typedef geometry_type::index_type index_type;
+	static constexpr int ndims = geometry_type::ndims;
 public:
 	DataSetPolicy(geometry_type &geo) : m_geo_(geo) { }
 
@@ -41,17 +44,17 @@ public:
 
 		int f_ndims = ndims;
 
-		f_dims = m::unpack_index(m_id_max_ - m_id_min_);
+		f_dims = geometry_type::unpack_index(m_geo_.m_id_max_ - m_geo_.m_id_min_);
 
-		f_offset = m::unpack_index(m_id_local_min_ - m_id_min_);
+		f_offset = geometry_type::unpack_index(m_geo_.m_id_local_min_ - m_geo_.m_id_min_);
 
-		f_count = m::unpack_index(
-				m_id_local_max_ - m_id_local_min_);
+		f_count = geometry_type::unpack_index(
+				m_geo_.m_id_local_max_ - m_geo_.m_id_local_min_);
 
-		m_dims = m::unpack_index(
-				m_id_memory_max_ - m_id_memory_min_);;
+		m_dims = geometry_type::unpack_index(
+				m_geo_.m_id_memory_max_ - m_geo_.m_id_memory_min_);;
 
-		m_offset = m::unpack_index(m_id_local_min_ - m_id_min_);
+		m_offset = geometry_type::unpack_index(m_geo_.m_id_local_min_ - m_geo_.m_id_min_);
 
 		if ((IFORM == EDGE || IFORM == FACE))
 		{

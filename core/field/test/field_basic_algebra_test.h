@@ -64,14 +64,14 @@ public:
 	auto domain() const
 	DECL_RET_TYPE((traits::make_domain<iform>(*mesh)))
 
-	auto makeField() const
-	DECL_RET_TYPE((traits::makeField<iform, value_type>(*mesh)))
+	auto make_field() const
+	DECL_RET_TYPE((traits::make_field<iform, value_type>(*mesh)))
 
 	auto make_scalarField() const
-	DECL_RET_TYPE((traits::makeField<iform, scalar_type>(*mesh)))
+	DECL_RET_TYPE((traits::make_field<iform, scalar_type>(*mesh)))
 
 	auto make_vectorField() const
-	DECL_RET_TYPE((traits::makeField<iform, nTuple<value_type, 3>>(*mesh)))
+	DECL_RET_TYPE((traits::make_field<iform, nTuple<value_type, 3>>(*mesh)))
 
 
 };
@@ -85,7 +85,7 @@ TYPED_TEST_P(TestField, assign)
 		typedef typename TestFixture::value_type value_type;
 		typedef typename TestFixture::field_type field_type;
 
-		auto f1 = TestFixture::makeField();
+		auto f1 = TestFixture::make_field();
 
 		value_type va;
 
@@ -107,7 +107,7 @@ TYPED_TEST_P(TestField, index)
 		typedef typename TestFixture::value_type value_type;
 		typedef typename TestFixture::field_type field_type;
 
-		auto f1 = TestFixture::makeField();
+		auto f1 = TestFixture::make_field();
 
 		f1.clear();
 
@@ -136,9 +136,9 @@ TYPED_TEST_P(TestField, constant_real
 		typedef typename TestFixture::value_type value_type;
 		typedef typename TestFixture::field_type field_type;
 
-		auto f1 = TestFixture::makeField();
-		auto f2 = TestFixture::makeField();
-		auto f3 = TestFixture::makeField();
+		auto f1 = TestFixture::make_field();
+		auto f2 = TestFixture::make_field();
+		auto f3 = TestFixture::make_field();
 
 		f3 = 1;
 		Real a, b, c;
@@ -159,8 +159,7 @@ TYPED_TEST_P(TestField, constant_real
 			value_type res;
 			res = -f1[s] * a + f2[s] * c - f1[s] / b - f1[s];
 
-			EXPECT_LE(mod(res - f3[s]), EPSILON
-			)<<res << " " << f1[s] << " " << f2[s] << " " << f3[s];;
+			EXPECT_LE(mod(res - f3[s]), EPSILON)<<res << " " << f1[s] << " " << f2[s] << " " << f3[s];;
 		}
 	}
 }
@@ -172,10 +171,10 @@ TYPED_TEST_P(TestField, scalarField
 
 		typedef typename TestFixture::value_type value_type;
 
-		auto f1 = TestFixture::makeField();
-		auto f2 = TestFixture::makeField();
-		auto f3 = TestFixture::makeField();
-		auto f4 = TestFixture::makeField();
+		auto f1 = TestFixture::make_field();
+		auto f2 = TestFixture::make_field();
+		auto f3 = TestFixture::make_field();
+		auto f4 = TestFixture::make_field();
 
 		auto a = TestFixture::make_scalarField();
 		auto b = TestFixture::make_scalarField();

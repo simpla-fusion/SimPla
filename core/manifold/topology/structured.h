@@ -142,6 +142,8 @@ public:
 		std::swap(m_id_memory_min_, other.m_id_memory_min_);
 	}
 
+	virtual bool is_valid() const { return true; }
+
 	template<typename TI>
 	void dimensions(TI const &d)
 	{

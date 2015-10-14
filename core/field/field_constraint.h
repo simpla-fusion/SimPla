@@ -18,7 +18,7 @@ namespace simpla
 //auto make_constraint(TM const & geometry, TDict const & dict)
 //{
 //
-//	return makeField_function<TM, TV>(
+//	return make_field_function<TM, TV>(
 //			select_ids_by_configure(geometry, dict["Domain"]), dict["Value"]);
 //
 //}

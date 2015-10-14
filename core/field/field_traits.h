@@ -137,7 +137,7 @@ template<typename T> using container_t=typename container_type<T>::type;
 
 template<int I, typename ...U, typename TM>
 Field<Domain<TM, std::integral_constant<int, I>>, U...>
-makeField(TM const &mesh)
+make_field(TM const &mesh)
 {
 	return Field<Domain<TM, std::integral_constant<int, I>>, U...>(make_domain<I>(mesh));
 };

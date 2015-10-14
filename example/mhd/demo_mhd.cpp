@@ -190,37 +190,37 @@ int main(int argc, char **argv)
 
 	INFORM << "Configuration: \n" << model;
 
-	auto E = model.template makeField<EDGE, scalar_type>();
+	auto E = model.template make_field<EDGE, scalar_type>();
 	E.clear();
 
-	auto B = model.template makeField<EDGE, scalar_type>();
+	auto B = model.template make_field<EDGE, scalar_type>();
 	B.clear();
 
-	auto dE = model.template makeField<EDGE, scalar_type>();
+	auto dE = model.template make_field<EDGE, scalar_type>();
 	dE.clear();
 
-	auto dB = model.template makeField<EDGE, scalar_type>();
+	auto dB = model.template make_field<EDGE, scalar_type>();
 	dB.clear();
 
-	auto J0 = model.template makeField<EDGE, scalar_type>();
+	auto J0 = model.template make_field<EDGE, scalar_type>();
 	J0.clear();
 
-	auto Jext = model.template makeField<EDGE, scalar_type>();
+	auto Jext = model.template make_field<EDGE, scalar_type>();
 	Jext.clear();
 
-	auto u = model.template makeField<VERTEX, nTuple<3, scalar_type>>();
+	auto u = model.template make_field<VERTEX, nTuple<3, scalar_type>>();
 	u.clear();
 
-	auto T = model.template makeField<VERTEX, scalar_type>();
+	auto T = model.template make_field<VERTEX, scalar_type>();
 	T.clear();
 
-	auto n = model.template makeField<VERTEX, scalar_type>();
+	auto n = model.template make_field<VERTEX, scalar_type>();
 	n.clear();
 
-	auto J = model.template makeField<EDGE, scalar_type>();
+	auto J = model.template make_field<EDGE, scalar_type>();
 	J.clear();
 
-	auto p = model.template makeField<VERTEX, scalar_type>();
+	auto p = model.template make_field<VERTEX, scalar_type>();
 	p.clear();
 
 	auto limiter_face = model.SelectInterface(FACE, model_type::VACUUM, model_type::NONE);

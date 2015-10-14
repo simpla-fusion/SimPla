@@ -121,9 +121,9 @@ TEST_P(TestFETL, grad0)
 
 	Real error = abs(std::pow(dot(K_real, manifold.dx()), 2.0));
 
-	auto f0 = makeField<VERTEX, scalar_type>();
-	auto f1 = makeField<EDGE, scalar_type>();
-	auto f1b = makeField<EDGE, scalar_type>();
+	auto f0 = make_field<VERTEX, scalar_type>();
+	auto f1 = make_field<EDGE, scalar_type>();
+	auto f1b = make_field<EDGE, scalar_type>();
 
 	f0.clear();
 	f1.clear();
@@ -199,9 +199,9 @@ TEST_P(TestFETL, grad3)
 		return;
 	Real error = abs(std::pow(dot(K_real, manifold.dx()), 2.0));
 
-	auto f2 = makeField<FACE, scalar_type>();
-	auto f2b = makeField<FACE, scalar_type>();
-	auto f3 = makeField<VOLUME, scalar_type>();
+	auto f2 = make_field<FACE, scalar_type>();
+	auto f2b = make_field<FACE, scalar_type>();
+	auto f3 = make_field<VOLUME, scalar_type>();
 
 	f3.clear();
 	f2.clear();
@@ -274,9 +274,9 @@ TEST_P(TestFETL, diverge1)
 		return;
 	Real error = abs(std::pow(dot(K_real, manifold.get_dx()), 2.0));
 
-	auto f1 = makeField<EDGE, scalar_type>();
-	auto f0 = makeField<VERTEX, scalar_type>();
-	auto f0b = makeField<VERTEX, scalar_type>();
+	auto f1 = make_field<EDGE, scalar_type>();
+	auto f0 = make_field<VERTEX, scalar_type>();
+	auto f0b = make_field<VERTEX, scalar_type>();
 	f0.clear();
 	f0b.clear();
 	f1.clear();
@@ -367,8 +367,8 @@ TEST_P(TestFETL, diverge2)
 
 	Real error = abs(std::pow(dot(K_real, manifold.get_dx()), 2.0));
 
-	auto f2 = makeField<FACE, scalar_type>();
-	auto f3 = makeField<VOLUME, scalar_type>();
+	auto f2 = make_field<FACE, scalar_type>();
+	auto f3 = make_field<VOLUME, scalar_type>();
 
 	f3.clear();
 	f2.clear();
@@ -445,10 +445,10 @@ TEST_P(TestFETL, curl1)
 		return;
 	Real error = abs(std::pow(dot(K_real, manifold.get_dx()), 2.0));
 
-	auto vf1 = makeField<EDGE, scalar_type>();
-	auto vf1b = makeField<EDGE, scalar_type>();
-	auto vf2 = makeField<FACE, scalar_type>();
-	auto vf2b = makeField<FACE, scalar_type>();
+	auto vf1 = make_field<EDGE, scalar_type>();
+	auto vf1b = make_field<EDGE, scalar_type>();
+	auto vf2 = make_field<FACE, scalar_type>();
+	auto vf2b = make_field<FACE, scalar_type>();
 
 	vf1.clear();
 	vf1b.clear();
@@ -553,10 +553,10 @@ TEST_P(TestFETL, curl2)
 		return;
 	Real error = abs(std::pow(dot(K_real, manifold.get_dx()), 2.0));
 
-	auto vf1 = makeField<EDGE, scalar_type>();
-	auto vf1b = makeField<EDGE, scalar_type>();
-	auto vf2 = makeField<FACE, scalar_type>();
-	auto vf2b = makeField<FACE, scalar_type>();
+	auto vf1 = make_field<EDGE, scalar_type>();
+	auto vf1b = make_field<EDGE, scalar_type>();
+	auto vf2 = make_field<FACE, scalar_type>();
+	auto vf2b = make_field<FACE, scalar_type>();
 
 	vf1.clear();
 	vf1b.clear();
@@ -663,10 +663,10 @@ TEST_P(TestFETL, identity_curl_grad_f0_eq_0)
 		return;
 	Real error = abs(std::pow(dot(K_real, manifold.get_dx()), 2.0));
 
-	auto f0 = makeField<VERTEX, scalar_type>();
-	auto f1 = makeField<EDGE, scalar_type>();
-	auto f2a = makeField<FACE, scalar_type>();
-	auto f2b = makeField<FACE, scalar_type>();
+	auto f0 = make_field<VERTEX, scalar_type>();
+	auto f1 = make_field<EDGE, scalar_type>();
+	auto f2a = make_field<FACE, scalar_type>();
+	auto f2b = make_field<FACE, scalar_type>();
 
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
@@ -712,10 +712,10 @@ TEST_P(TestFETL, identity_curl_grad_f3_eq_0)
 		return;
 	Real error = abs(std::pow(dot(K_real, manifold.get_dx()), 2.0));
 
-	auto f3 = makeField<VOLUME, scalar_type>();
-	auto f1a = makeField<EDGE, scalar_type>();
-	auto f1b = makeField<EDGE, scalar_type>();
-	auto f2 = makeField<FACE, scalar_type>();
+	auto f3 = make_field<VOLUME, scalar_type>();
+	auto f1a = make_field<EDGE, scalar_type>();
+	auto f1b = make_field<EDGE, scalar_type>();
+	auto f2 = make_field<FACE, scalar_type>();
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
@@ -760,10 +760,10 @@ TEST_P(TestFETL, identity_div_curl_f1_eq0)
 		return;
 	Real error = abs(std::pow(dot(K_real, manifold.get_dx()), 2.0));
 
-	auto f1 = makeField<EDGE, scalar_type>();
-	auto f2 = makeField<FACE, scalar_type>();
-	auto f0a = makeField<VERTEX, scalar_type>();
-	auto f0b = makeField<VERTEX, scalar_type>();
+	auto f1 = make_field<EDGE, scalar_type>();
+	auto f2 = make_field<FACE, scalar_type>();
+	auto f0a = make_field<VERTEX, scalar_type>();
+	auto f0b = make_field<VERTEX, scalar_type>();
 
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
@@ -812,10 +812,10 @@ TEST_P(TestFETL, identity_div_curl_f2_eq0)
 		return;
 //	Real error = abs(std::pow(dot(K_real, geometry.get_dx()), 2.0));
 
-	auto f1 = makeField<EDGE, scalar_type>();
-	auto f2 = makeField<FACE, scalar_type>();
-	auto f3a = makeField<VOLUME, scalar_type>();
-	auto f3b = makeField<VOLUME, scalar_type>();
+	auto f1 = make_field<EDGE, scalar_type>();
+	auto f2 = make_field<FACE, scalar_type>();
+	auto f3a = make_field<VOLUME, scalar_type>();
+	auto f3b = make_field<VOLUME, scalar_type>();
 
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);

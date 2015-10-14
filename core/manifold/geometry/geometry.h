@@ -25,7 +25,9 @@ template<typename ...> struct Geometry;
 template<typename CS, typename TopologyTags>
 struct Geometry<CS, TopologyTags> : public Topology<TopologyTags>
 {
+public:
 	typedef CS cs_type;
+	typedef CS coordinates_system;
 
 	geometry::mertic<cs_type> m_metric_;
 
@@ -73,11 +75,11 @@ public:
 		return topology_type::EPSILON * m_from_topology_scale_;
 	}
 
-	template<typename ...Args>
-	void extents(Args &&...args)
+	template<typename X0, typename X1>
+	void extents(X0 const &x0, X1 const &x1)
 	{
-		m_coords_min_ = simpla::traits::unpack_args<0>(std::forward<Args>(args)...);
-		m_coords_max_ = simpla::traits::unpack_args<1>(std::forward<Args>(args)...);
+		m_coords_min_ = x0;
+		m_coords_max_ = x1;
 	}
 
 	template<typename T0>

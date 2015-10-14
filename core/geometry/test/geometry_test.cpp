@@ -149,7 +149,7 @@ TYPED_TEST_P(TestModel,SelectByRectangle ){
 	}
 	auto domain=make_domain< TestFixture:: iform>(model);
 
-	auto f = makeField<Real>(domain);
+	auto f = make_field<Real>(domain);
 
 
 	f.clear();
@@ -214,7 +214,7 @@ TYPED_TEST_P(TestModel,SelectByPolylines ){
 
 	auto domain = make_domain<TestFixture::iform>(model);
 
-	auto f = makeField<Real>(domain);
+	auto f = make_field<Real>(domain);
 
 	f.clear();
 	f=0;
@@ -257,7 +257,7 @@ TYPED_TEST_P(TestModel,SelectByMaterial ){
 	auto vertex_domain = make_domain<VERTEX>(model);
 	auto domain = make_domain<TestFixture::iform>(model);
 
-	auto f = makeField<Real>(domain );
+	auto f = make_field<Real>(domain );
 
 	model.Set( model.SelectByPoints(vertex_domain, TestFixture::points), "Vacuum");
 

@@ -131,7 +131,7 @@ public:
 };
 
 template<typename TV, typename TDomain, typename TFun>
-Field<TDomain, TV, tags::function, TFun> makeField_function(
+Field<TDomain, TV, tags::function, TFun> make_field_function(
 		TDomain const& domain, TFun const& fun)
 {
 	return std::move(Field<TDomain, TV, tags::function, TFun>(domain, fun));

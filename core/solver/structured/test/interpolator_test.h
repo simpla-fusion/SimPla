@@ -79,7 +79,7 @@ TYPED_TEST_P(TestInterpolator,scatter){
 	typedef typename TestFixture::scalar_type scalar_type;
 	typedef typename TestFixture::interpolator_type interpolator_type;
 
-	auto f= mesh.template makeField<Field<mesh_type,iform,
+	auto f= mesh.template make_field<Field<mesh_type,iform,
 	SparseContainer<index_type,scalar_type>>> ();
 
 	typename decltype(f)::field_value_type a;
@@ -128,7 +128,7 @@ TYPED_TEST_P(TestInterpolator,gather){
 	typedef typename TestFixture::scalar_type scalar_type;
 	typedef typename TestFixture::interpolator_type interpolator_type;
 
-	auto f= mesh.template makeField<iform,scalar_type > ();
+	auto f= mesh.template make_field<iform,scalar_type > ();
 
 	f.clear();
 

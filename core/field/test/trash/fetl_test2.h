@@ -38,7 +38,7 @@ public:
 
 	typedef Field<domain_type, value_type> field_type;
 
-	Field<domain_type, value_type> makeField() const
+	Field<domain_type, value_type> make_field() const
 	{
 		return std::move(Field<domain_type, value_type>(domain));
 	}
@@ -57,13 +57,13 @@ TYPED_TEST_P(TestField, vector_arithmetic)
 	if (!mesh.is_valid())
 		return;
 
-	auto f0 = mesh.makeField<VERTEX, value_type>();
-	auto f1 = mesh.makeField<EDGE, value_type>();
-	auto f1a = mesh.makeField<EDGE, value_type>();
-	auto f1b = mesh.makeField<EDGE, value_type>();
-	auto f2a = mesh.makeField<FACE, value_type>();
-	auto f2b = mesh.makeField<FACE, value_type>();
-	auto f3 = mesh.makeField<VOLUME, value_type>();
+	auto f0 = mesh.make_field<VERTEX, value_type>();
+	auto f1 = mesh.make_field<EDGE, value_type>();
+	auto f1a = mesh.make_field<EDGE, value_type>();
+	auto f1b = mesh.make_field<EDGE, value_type>();
+	auto f2a = mesh.make_field<FACE, value_type>();
+	auto f2b = mesh.make_field<FACE, value_type>();
+	auto f3 = mesh.make_field<VOLUME, value_type>();
 
 	Real ra = 1.0, rb = 10.0, rc = 100.0;
 	value_type va, vb, vc;

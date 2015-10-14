@@ -71,7 +71,7 @@ public:
 };
 
 template<typename TM, typename TV>
-Field<TM, TV, _impl::this_is_constant> makeField_constant(TM const &m,
+Field<TM, TV, _impl::this_is_constant> make_field_constant(TM const &m,
 		TV const &v)
 {
 	return std::move(Field<TM, TV, _impl::this_is_constant>(m, v));
