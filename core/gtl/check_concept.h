@@ -13,7 +13,8 @@
 
 namespace simpla
 {
-
+namespace gtl
+{
 namespace traits
 {
 
@@ -402,6 +403,6 @@ template<typename, typename > struct is_indexable;
 }  // namespace traits
 
 }
-// namespace simpla
+}//  namespace simpla::gtl
 
 #endif /* CORE_GPTL_CONCEPT_CHECK_H_ */

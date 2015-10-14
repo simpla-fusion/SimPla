@@ -6,10 +6,11 @@
  */
 
 #include "dataset.h"
-#include "../utilities/utilities.h"
+#include "utilities.h"
 #include <ostream>
 namespace simpla
-{
+{namespace gtl {
+
 
 std::ostream & DataSet::print(std::ostream & os) const
 {
@@ -69,5 +70,5 @@ std::ostream & DataSet::print(std::ostream & os) const
 
 	return os;
 }
-}  // namespace simpla
+}  }//  namespace simpla::gtl
 

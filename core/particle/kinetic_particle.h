@@ -8,7 +8,7 @@
 #ifndef CORE_PARTICLE_KINETIC_PARTICLE_H_
 #define CORE_PARTICLE_KINETIC_PARTICLE_H_
 #include <memory>
-#include "../gtl/utilities/utilities.h"
+#include "../gtl/utilities.h"
 #include "../gtl/containers/sp_sorted_set.h"
 #include "particle.h"
 namespace simpla

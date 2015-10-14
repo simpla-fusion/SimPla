@@ -13,14 +13,13 @@
 #include <string>
 #include <tuple>
 
-namespace simpla
-{
+namespace simpla {
+namespace gtl {
 
 enum
 {
-	CONTINUE = 0, TERMINATE = 1
-}
-;
+    CONTINUE = 0, TERMINATE = 1
+};
 /**
  * @ingroup utilities
  * @addtogroup configuration Configuration Parser
@@ -76,7 +75,7 @@ enum
  *
  */
 void parse_cmd_line(int argc, char **argv,
-		std::function<int(std::string const &, std::string const &)> const & fun);
+                    std::function<int(std::string const &, std::string const &)> const &fun);
 
 /**
  * @ingroup  configuration
@@ -86,9 +85,10 @@ void parse_cmd_line(int argc, char **argv,
  * @param key
  * @return  if key is found return {true, option string} else return {false,...}
  */
-std::tuple<bool, std::string> find_option_from_cmd_line(int argc, char ** argv,
-		std::string const & key);
+std::tuple<bool, std::string> find_option_from_cmd_line(int argc, char **argv,
+                                                        std::string const &key);
 
 /**@}*/
-}  // namespace simpla
+}
+}//  namespace simpla::gtl
 #endif /* PARSE_COMMAND_LINE_H_ */

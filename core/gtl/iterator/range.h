@@ -7,10 +7,12 @@
 
 #ifndef SP_RANGE_H_
 #define SP_RANGE_H_
+
 #include <iterator>
 
-namespace simpla
-{
+namespace simpla {
+namespace gtl {
+
 
 //#ifdef USE_TBB
 //#include <tbb/tbb.h>
@@ -21,6 +23,7 @@ class op_split
 };
 
 template<typename ...> class Range;
+
 /**
  * @ingroup gtl
  *  @addtogroup range Range
@@ -43,21 +46,22 @@ template<typename ...> class Range;
 template<typename TIterator>
 class Range<TIterator>
 {
-	typedef TIterator iterator_type;
+    typedef TIterator iterator_type;
 
-	typedef typename iterator_type::iterator_category iterator_category;
-	/// The type "pointed to" by the iterator.
-	typedef typename iterator_type::value_type value_type;
-	/// Distance between iterators is represented as this type.
-	typedef typename iterator_type::value_type difference_type;
-	/// This type represents a pointer-to-value_type.
-	typedef typename iterator_type::pointer pointer;
-	/// This type represents a reference-to-value_type.
-	typedef typename iterator_type::reference reference;
+    typedef typename iterator_type::iterator_category iterator_category;
+    /// The type "pointed to" by the iterator.
+    typedef typename iterator_type::value_type value_type;
+    /// Distance between iterators is represented as this type.
+    typedef typename iterator_type::value_type difference_type;
+    /// This type represents a pointer-to-value_type.
+    typedef typename iterator_type::pointer pointer;
+    /// This type represents a reference-to-value_type.
+    typedef typename iterator_type::reference reference;
 
 };
 
 /** @}*/
-}  // namespace simpla
+}
+}//  namespace simpla::gtl
 
 #endif /* SP_RANGE_H_ */

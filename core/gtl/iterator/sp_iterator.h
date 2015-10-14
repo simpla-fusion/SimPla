@@ -12,6 +12,7 @@
 #include "../type_traits.h"
 namespace simpla
 {
+namespace gtl {
 
 template<typename > struct sp_back_insert_iterator;
 
@@ -85,6 +86,6 @@ template<typename ...Args>
 auto back_inserter(Args && ...args)
 DECL_RET_TYPE((std::back_inserter(std::forward<Args>(args)...)))
 
-}  // namespace simpla
+}  }//  namespace simpla::gtl
 
 #endif /* CORE_GTL_ITERATOR_SP_ITERATOR_H_ */

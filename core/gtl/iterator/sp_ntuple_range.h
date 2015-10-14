@@ -16,6 +16,8 @@
 #include "range.h"
 
 namespace simpla {
+namespace gtl {
+
 namespace _impl {
 template<typename T0, typename T1, typename TV, size_t NDIMS>
 typename std::make_signed<TV>::type ntuple_carry(T0 const &min, T1 const &max,
@@ -343,6 +345,6 @@ IndexType distance(
 
 }
 }
-// namespace simpla
+}//  namespace simpla::gtl
 
 #endif /* CORE_GTL_ITERATOR_SP_NTUPLE_RANGE_H_ */

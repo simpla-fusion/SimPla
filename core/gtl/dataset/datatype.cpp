@@ -11,7 +11,8 @@
 #include <iterator>
 
 namespace simpla
-{
+{namespace gtl {
+
 struct DataType::pimpl_s
 {
 	pimpl_s();
@@ -262,4 +263,4 @@ std::ostream & print(std::ostream & os, DataType const &self)
 }
 } //namespace traits
 
-}  // namespace simpla
+}  }//  namespace simpla::gtl
