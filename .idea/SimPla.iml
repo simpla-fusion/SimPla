@@ -223,26 +223,26 @@
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/calculate/calculate.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/calculate/fvm_structured.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/calculus.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/pre_define/riemannian.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/domain.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/domain_traits.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/geometry/geometry.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/geometry/geometry_traits.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/interpolate/interpolate.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/interpolate/linear.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/manifold.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/manifold_traits.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/mesh.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/geometry/geometry.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/geometry/geometry_traits.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/mesh_backup.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/mesh_block.h.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/mesh_connection.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/mesh_layout.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/meshfree.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/meshfree/CMakeLists.txt" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/pre_define/mock.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/policy.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/policy/mock_policies.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/policy/time_integrator.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/pre_define/mock.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/pre_define/riemannian.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/structured/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/structured/interpolate.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/structured/mesh_aux.h" isTestSource="false" />
