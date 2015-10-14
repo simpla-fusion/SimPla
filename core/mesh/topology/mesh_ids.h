@@ -76,7 +76,7 @@ struct MeshIDs_
 	/// @{
 
 	static constexpr int ndims = 3;
-	static constexpr int MESH_RESOLUTION = (TAGS & 0xF);
+	static constexpr int MESH_RESOLUTION = static_cast<int> (TAGS & 0xF);
 
 	typedef MeshIDs_<TAGS> this_type;
 
@@ -888,7 +888,7 @@ struct MeshIDs_
 				+ sub_index(s);
 	}
 
-	static constexpr size_t hash_(id_type const &s, id_type const &d)
+	static constexpr index_type hash_(id_type const &s, id_type const &d)
 	{
 		//C-ORDER SLOW FIRST
 

@@ -76,7 +76,7 @@ template<typename ...> struct Topology;
 template<typename ...> struct Mesh;
 
 template<typename ... T>
-std::ostream & operator<<(std::ostream & os, Mesh<T...> const &d)
+std::ostream &operator<<(std::ostream &os, Mesh<T...> const &d)
 {
 	return d.print(os);
 }
@@ -91,29 +91,29 @@ std::shared_ptr<Mesh<T...>> make_mesh()
  */
 namespace traits
 {
-template<typename > struct type_id;
+template<typename> struct type_id;
 
-template<typename > struct is_mesh;
-template<typename > struct mesh_type;
+template<typename> struct is_mesh;
+template<typename> struct mesh_type;
 template<typename T> using mesh_type_t= typename mesh_type<T>::type;
 
-template<typename > struct id_type;
+template<typename> struct id_type;
 template<typename T> using id_type_t= typename id_type<T>::type;
 
-template<typename > struct coordinate_system_type;
-template<typename T> using coordinate_system_t= typename coordinate_system_type<T >::type;
+template<typename> struct coordinate_system_type;
+template<typename T> using coordinate_system_t= typename coordinate_system_type<T>::type;
 
-template<typename > struct scalar_type;
-template<typename T> using scalar_type_t= typename scalar_type<T >::type;
+template<typename> struct scalar_type;
+template<typename T> using scalar_type_t= typename scalar_type<T>::type;
 
-template<typename > struct point_type;
+template<typename> struct point_type;
 template<typename T> using point_type_t= typename point_type<T>::type;
 
-template<typename > struct vector_type;
+template<typename> struct vector_type;
 template<typename T> using vector_type_t= typename vector_type<T>::type;
 
-template<typename > struct rank;
-template<typename > struct ZAxis;
+template<typename> struct rank;
+template<typename> struct ZAxis;
 
 template<typename ... T>
 struct type_id<Mesh<T...> >
@@ -126,7 +126,7 @@ struct type_id<Mesh<T...> >
 };
 
 template<typename T>
-struct is_mesh: public std::integral_constant<bool, false>
+struct is_mesh : public std::integral_constant<bool, false>
 {
 };
 template<typename ...T>

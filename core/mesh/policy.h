@@ -25,7 +25,7 @@ struct cubic;
 
 namespace solver
 {
-template<typename TM, typename TAGS> struct calculate;
+template<typename TM, typename TAGS> struct calculate_fvm;
 
 template<typename TM, typename TAGS> struct interpolate;
 

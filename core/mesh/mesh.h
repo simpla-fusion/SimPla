@@ -17,35 +17,53 @@ namespace simpla
 
 template<typename ...> class Domain;
 
-template<typename ...> class _Field;
+template<typename ...> class Field;
 
+template<typename ...> class Mesh;
 
-template<typename ...Policies>
-class Mesh : public Policies ...
+namespace policy
+{
+template<typename ...> class calculate;
+
+template<typename ...> class interpolator;
+}
+
+template<typename TGeometry, typename CalculateTag, typename InterpolatorTag, typename ...Others>
+class Mesh<TGeometry, CalculateTag, InterpolatorTag, Others ...>
+		: public TGeometry, public policy::calculate<TGeometry, CalculateTag>,
+				public policy::interpolator<TGeometry, InterpolatorTag>, public Others ...
 {
 public:
 
-	typedef Mesh<Policies ...> this_type;
+	typedef Mesh<TGeometry, CalculateTag, InterpolatorTag, Others ...> this_type;
 
-	static constexpr size_t ndims = 3;
+	typedef TGeometry geometry_type;
 
+	typedef policy::calculate<TGeometry, CalculateTag> calculate_policy;
 
-//***************************************************************************************************
+	typedef policy::interpolator<TGeometry, InterpolatorTag> interpolator_policy;
 
 	Mesh()
 	{
 	}
 
-	~Mesh()
+	virtual ~Mesh()
 	{
 	}
 
-	Mesh(this_type const &other)
+	Mesh(this_type const &other) :
+			geometry_type(other)
 	{
 	}
 
-	void swap(this_type &other)
+	void swap(const this_type &other)
 	{
+		geometry_type::swap(other);
+	}
+
+	geometry_type const &geometry() const
+	{
+		return *this;
 	}
 
 	this_type &operator=(const this_type &other)
@@ -55,27 +73,13 @@ public:
 	}
 
 
-	template<typename TDict>
-	void load(TDict const &dict)
-	{
-
-		INFORM << "Mesh.load" << std::endl;
-
-//		dimensions(dict["Dimensions"].as(index_tuple({10, 10, 10})));
-//
-//		extents(dict["Box"].template as<std::tuple<point_type, point_type> >());
-//
-//		dt(dict["dt"].template as<Real>(1.0));
-	}
-
 	template<typename OS>
 	OS &print(OS &os) const
 	{
-		os << " This is a mock mesh " << std::endl;
+		os << "Mesh<>" << std::endl;
 		return os;
 
 	}
-
 
 	static std::string get_type_as_string()
 	{
@@ -83,27 +87,28 @@ public:
 	}
 
 
+	template<typename ...Args>
+	auto calculate(Args &&...args) const
+	DECL_RET_TYPE((calculate_policy::eval(*this, std::forward<Args>(args)...)))
+
+
 	template<int I, typename ...Args>
 	auto sample(Args &&...args) const
-	DECL_RET_TYPE((this->template proxy_sample<I>(*this, std::forward<Args>(args) ...)))
-
-
-	template<typename TF, typename ...Args>
-	auto gather(TF const &field, Args &&...args) const
-	DECL_RET_TYPE((this->proxy_gather(*this, field, std::forward<Args>(args)...)))
+	DECL_RET_TYPE((interpolator_policy::template sample<I>(*this, std::forward<Args>(args) ...)))
 
 
 	template<typename ...Args>
-	auto calculate(Args &&...args) const
-	DECL_RET_TYPE((this->proxy_calculate(*this, std::forward<Args>(args)...)))
+	auto gather(Args &&...args) const
+	DECL_RET_TYPE((interpolator_policy::gather(*this, std::forward<Args>(args)...)))
+
 
 	template<typename ...Args>
 	void scatter(Args &&...args) const
 	{
-		this->proxy_scatter(*this, std::forward<Args>(args)...);
+		interpolator_policy::scatter(*this, std::forward<Args>(args)...);
 	}
 
-	//! @}
+//! @}
 
 }; //class Mesh
 

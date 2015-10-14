@@ -29,7 +29,7 @@
 namespace simpla
 {
 
-template<typename ...> struct _Field;
+template<typename ...> struct Field;
 template<typename ...> struct Domain;
 
 template<typename TM, int IFORM>

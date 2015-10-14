@@ -24,7 +24,7 @@
 #include "../mesh_traits.h"
 #include "../mesh_ids.h"
 #include "../policy.h"
-#include "../topology/rect_mesh.h"
+#include "structured.h"
 //#include "structured/topology.h"
 //#include "structured/select.h"
 

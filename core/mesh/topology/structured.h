@@ -5,7 +5,7 @@
 #ifndef SIMPLA_TOPOLOGY_H
 #define SIMPLA_TOPOLOGY_H
 
-#include "../../mesh/mesh_ids.h"
+#include "mesh_ids.h"
 #include "../../gtl/macro.h"
 #include "../../gtl/primitives.h"
 #include "../../gtl/ntuple.h"
@@ -14,20 +14,42 @@
 #include "../../parallel/mpi_comm.h"
 #include "../../parallel/mpi_update.h"
 #include "../../gtl/dataset/dataspace.h"
+#include "topology.h"
 #include <vector>
 
 namespace simpla
 {
 
-namespace tags
+namespace topology
 {
-struct RectMesh;
-}
+struct StructuredMesh;
 
-template<typename ...> struct Topology;
+typedef Topology <tags::CoRectMesh> CoRectMesh;
+typedef Topology <tags::Curvilinear> Curvilinear;
+typedef Topology <tags::RectMesh> RectMesh;
 
-template<>
-struct Topology<tags::RectMesh> : public MeshIDs_<4>
+struct Topology<tags::CoRectMesh> : public StructuredMesh
+{
+
+};
+struct Topology<tags::RectMesh> : public StructuredMesh
+{
+};
+
+struct Topology<tags::Curvilinear> : public StructuredMesh
+{
+};
+
+namespace traits
+{
+template<typename TAG>
+struct point_type<Topology<TAG> >
+{
+	typedef nTuple<Real, 3> type;
+};
+} //namespace traits
+
+struct StructuredMesh : public MeshIDs_<4>
 {
 	enum { DEFAULT_GHOST_WIDTH = 2 };
 
@@ -37,8 +59,6 @@ public:
 
 	typedef MeshIDs_<4> m;
 
-
-	typedef Topology<tags::RectMesh> this_type;
 
 	typedef typename m::id_type id_type;
 
@@ -101,13 +121,13 @@ public:
 
 public:
 
-	Topology()
+	StructuredMesh()
 	{
 
 	}
 
 
-	Topology(this_type const &other) :
+	StructuredMesh(this_type const &other) :
 
 			m_id_min_(other.m_id_min_),
 
@@ -458,17 +478,8 @@ public:
 	}
 
 
-};
-
-namespace traits
-{
-template<typename TAG>
-struct point_type<Topology<TAG> >
-{
-	typedef nTuple<Real, 3> type;
-};
-}
-
-}// namespace simpla
+};//struct StructuredMesh
+} // namespace topology
+} // namespace simpla
 
 #endif //SIMPLA_TOPOLOGY_H

@@ -12,21 +12,25 @@
 #include "../gtl/primitives.h"
 #include "mesh.h"
 #include "policy/time_integrator.h"
-#include "policy/rect_mesh.h"
-#include "policy/constant_metric.h"
-#include "policy/calculate_mock.h"
+#include "policy/mock_policies.h"
+#include "structured/mesh_aux.h"
+#include "structured/rect_mesh.h"
+#include "geometry.h"
+
 
 namespace simpla
 {
 
 
-template<typename ...> class _Field;
+template<typename ...> class Field;
 
 template<typename ...> class Mesh;
 
 template<typename CS> using MockMesh= Mesh<
-		policy::Metric<CS, tags::constant_space>,
-		policy::RectMesh, policy::MockCalculate, policy::TimeIntegrator>;
+		policy::Geometry<CS, policy::RectMesh, tags::constant_space>,
+		tags::is_mock, tags::is_mock, policy::TimeIntegrator,
+		policy::MeshUtilities<policy::Geometry<CS, policy::RectMesh, tags::constant_space> >
+>;
 
 
 }// namespace simpla
