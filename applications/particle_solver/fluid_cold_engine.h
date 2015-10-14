@@ -290,8 +290,8 @@ void Particle<TM, ColdFluid, PolicyFluidParticle>::next_timestep_half(
 {
 	LOGGER << "Push particles Step Half[ " << get_type_as_string() << "]";
 
-	auto K = mesh.template makeField<VERTEX, nTuple<scalar_type, 3>>();
-	auto B2 = mesh.template makeField<VERTEX, Real>();
+	auto K = mesh.template make_field<VERTEX, nTuple<scalar_type, 3>>();
+	auto B2 = mesh.template make_field<VERTEX, Real>();
 
 	Real as = 0.5 * q / m * mesh.get_dt();
 

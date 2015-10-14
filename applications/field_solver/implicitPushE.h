@@ -87,14 +87,14 @@ void ImplicitPushE<TM>::next_timestep(field<scalar_type, EDGE> *pdE)
 //
 //	BB = Dot(B0, B0);
 //
-//	auto Q = geometry.template makeField<VERTEX, nTuple<scalar_type,3>>();
-//	auto K = geometry.template makeField<VERTEX, nTuple<scalar_type,3>>();
+//	auto Q = geometry.template make_field<VERTEX, nTuple<scalar_type,3>>();
+//	auto K = geometry.template make_field<VERTEX, nTuple<scalar_type,3>>();
 //
 //	Q = MapTo<VERTEX>(*pdE);
 //
-//	auto a = geometry.template makeField<VERTEX, scalar_type>();
-//	auto b = geometry.template makeField<VERTEX, scalar_type>();
-//	auto c = geometry.template makeField<VERTEX, scalar_type>();
+//	auto a = geometry.template make_field<VERTEX, scalar_type>();
+//	auto b = geometry.template make_field<VERTEX, scalar_type>();
+//	auto c = geometry.template make_field<VERTEX, scalar_type>();
 //
 //	a.clear();
 //	b.clear();
@@ -128,7 +128,7 @@ void ImplicitPushE<TM>::next_timestep(field<scalar_type, EDGE> *pdE)
 //	c *= 0.5 * dt / epsilon0;
 //	a += 1;
 //
-//	auto dEv = geometry.template makeField<VERTEX, nTuple<scalar_type,3>>();
+//	auto dEv = geometry.template make_field<VERTEX, nTuple<scalar_type,3>>();
 //
 //	dEv = (Q * a - Cross(Q, B0) * b + B0 * (Dot(Q, B0) * (b * b - c * a) / (a + c * BB))) / (b * b * BB + a * a);
 //
