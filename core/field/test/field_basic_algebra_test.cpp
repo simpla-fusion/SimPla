@@ -9,19 +9,20 @@
 
 
 #include "../../field/field.h"
-#include "../../manifold/pre_define/riemannian.h"
-#include "../../manifold/manifold_traits.h"
-#include "field_basic_algebra_test.h"
+#include "../../field/field_dense.h"
+#include "../../manifold/domain.h"
+#include "../../manifold/pre_define/mock.h"
 
+#include "field_basic_algebra_test.h"
 
 using namespace simpla;
 
 
-typedef manifold::Riemannian<3> mesh_type;
+typedef manifold::Mock mesh_type;
 
 typedef testing::Types< //
 
-		traits::field_t<mesh_type, VERTEX, double> //,
+		traits::field_t<mesh_type, VERTEX, double>, //
 		traits::field_t<mesh_type, EDGE, double>, //
 		traits::field_t<mesh_type, FACE, double>, //
 		traits::field_t<mesh_type, VOLUME, double>, //
@@ -35,5 +36,6 @@ typedef testing::Types< //
 template<typename TF> std::shared_ptr<typename TestField<TF>::mesh_type> //
 		TestField<TF>::mesh = std::make_shared<typename TestField<TF>::mesh_type>();
 
-INSTANTIATE_TYPED_TEST_CASE_P(FIELD, TestField, TypeParamList);
+INSTANTIATE_TYPED_TEST_CASE_P(FIELD, TestField, TypeParamList
+);
 

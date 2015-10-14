@@ -4,8 +4,8 @@
  * @date 2015-10-13.
  */
 
-#ifndef SIMPLA_DEFAULT_MESH_H
-#define SIMPLA_DEFAULT_MESH_H
+#ifndef SIMPLA_RIEMANNIAN_MESH_H
+#define SIMPLA_RIEMANNIAN_MESH_H
 
 #include "../../gtl/primitives.h"
 #include "../../geometry/cs_cartesian.h"
@@ -19,7 +19,6 @@
 
 #include "../manifold.h"
 
-
 namespace simpla
 {
 namespace manifold
@@ -31,7 +30,7 @@ template<int NDIMS> using Riemannian= Manifold<
 		Interpolate<CartesianCoordinate<NDIMS>, interpolate::tags::linear>,
 		TimeIntegrator<CartesianCoordinate<NDIMS>>
 >;
-}//namespace  manifold
+}//namespace manifold
 }//namespace simpla
 
-#endif //SIMPLA_DEFAULT_MESH_H
+#endif //SIMPLA_RIEMANNIAN_MESH_H

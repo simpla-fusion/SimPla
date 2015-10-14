@@ -163,21 +163,21 @@ public:
 		return m_id_set_;
 	}
 
-	constexpr size_t max_hash() const
-	{
-		return m_mesh_.template max_hash<iform>();
-	}
-
-	constexpr size_t hash(id_type s) const
-	{
-		return m_mesh_.hash(s);
-	}
-
-	constexpr id_type hash(index_type i, index_type j, index_type k,
-			index_type n = 0) const
-	{
-		return m_mesh_.hash(m_mesh_.template pack_index<iform>(i, j, k, n));
-	}
+//	constexpr size_t max_hash() const
+//	{
+//		return m_mesh_.template max_hash<iform>();
+//	}
+//
+//	constexpr size_t hash(id_type s) const
+//	{
+//		return m_mesh_.hash(s);
+//	}
+//
+//	constexpr id_type hash(index_type i, index_type j, index_type k,
+//			index_type n = 0) const
+//	{
+//		return m_mesh_.hash(m_mesh_.template pack_index<iform>(i, j, k, n));
+//	}
 
 
 	constexpr id_type pack_relative_index(index_type i, index_type j,
@@ -425,66 +425,66 @@ public:
  * @{
  **/
 
-	DataSpace dataspace() const
-	{
-		DataSpace res = m_mesh_.template dataspace<iform>();
+//	DataSpace dataspace() const
+//	{
+//		DataSpace res = m_mesh_.template dataspace<iform>();
+//
+//		if (is_simply())
+//		{
+//			typename DataSpace::index_tuple b, e, l_b;
+//
+//			b = mesh_type::unpack_index(std::get<0>(range_type::box()));
+//			e = mesh_type::unpack_index(std::get<1>(range_type::box()));
+//
+//			std::tie(l_b, std::ignore) = m_mesh_.local_index_box();
+//
+//			typename DataSpace::index_tuple offset, count;
+//
+//			offset = b - l_b;
+//			offset[ndims] = 0;
+//			count = e - b;
+//			count[ndims] = (iform == VERTEX || iform == VOLUME) ? 1 : 3;
+//
+//			res.select_hyperslab(&offset[0], nullptr, &count[0], nullptr);
+//		}
+//		else
+//		{
+//			UNIMPLEMENTED;
+//		}
+//
+//		return std::move(res);
+//
+//	}
 
-		if (is_simply())
-		{
-			typename DataSpace::index_tuple b, e, l_b;
-
-			b = mesh_type::unpack_index(std::get<0>(range_type::box()));
-			e = mesh_type::unpack_index(std::get<1>(range_type::box()));
-
-			std::tie(l_b, std::ignore) = m_mesh_.local_index_box();
-
-			typename DataSpace::index_tuple offset, count;
-
-			offset = b - l_b;
-			offset[ndims] = 0;
-			count = e - b;
-			count[ndims] = (iform == VERTEX || iform == VOLUME) ? 1 : 3;
-
-			res.select_hyperslab(&offset[0], nullptr, &count[0], nullptr);
-		}
-		else
-		{
-			UNIMPLEMENTED;
-		}
-
-		return std::move(res);
-
-	}
-
-	auto ghost_shape() const DECL_RET_TYPE((m_mesh_.template ghost_shape<iform>()))
+//	auto ghost_shape() const DECL_RET_TYPE((m_mesh_.template ghost_shape<iform>()))
 
 /** @}*/
 
 
 
-	template<typename ...Args>
-	void scatter(Args &&...args) const { m_mesh_.scatter(std::forward<Args>(args)...); }
-
-	template<typename ...Args>
-	auto sample(Args &&...args) const
-	DECL_RET_TYPE((m_mesh_.template sample<iform>(std::forward<Args>(args)...)))
-
-
-	template<typename ...Args>
-	auto gather(Args &&...args) const
-	DECL_RET_TYPE((m_mesh_.gather(std::forward<Args>(args)...)))
-
-
-	template<typename ...Args>
-	auto calculate(Args &&...args) const
-	DECL_RET_TYPE((m_mesh_.calculate(std::forward<Args>(args)...)))
-
-	template<typename ...Args>
-	auto point(Args &&...args) const
-	DECL_RET_TYPE(m_mesh_.point(std::forward<Args>(args)...))
-
-	constexpr auto time() const
-	DECL_RET_TYPE(m_mesh_.time())
+//	template<typename ...Args>
+//	void scatter(Args &&...args) const { m_mesh_.scatter(std::forward<Args>(args)...); }
+//
+//	template<typename ...Args>
+//	auto sample(Args &&...args) const
+//	DECL_RET_TYPE((m_mesh_.template sample<iform>(std::forward<Args>(args)...)))
+//
+//
+//	template<typename ...Args>
+//	auto gather(Args &&...args) const
+//	DECL_RET_TYPE((m_mesh_.gather(std::forward<Args>(args)...)))
+//
+//
+//	template<typename ...Args>
+//	auto calculate(Args &&...args) const
+//	DECL_RET_TYPE((m_mesh_.calculate(std::forward<Args>(args)...)))
+//
+//	template<typename ...Args>
+//	auto point(Args &&...args) const
+//	DECL_RET_TYPE(m_mesh_.point(std::forward<Args>(args)...))
+//
+//	constexpr auto time() const
+//	DECL_RET_TYPE(m_mesh_.time())
 };
 
 

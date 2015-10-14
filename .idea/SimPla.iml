@@ -239,8 +239,10 @@
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/meshfree.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/meshfree/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/policy.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/policy/dataset.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/policy/mock_policies.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/policy/time_integrator.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/policy/parallel.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/pre_define/cylindrical.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/pre_define/mock.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/pre_define/riemannian.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/structured/CMakeLists.txt" isTestSource="false" />
@@ -330,21 +332,14 @@
       <sourceFolder url="file://$MODULE_DIR$/core/physics/physical_constants.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/physics/physical_constants.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/physics/physics.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/solver/CMakeLists.txt" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/solver/structured/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/solver/structured/fdm.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/solver/structured/interpolator.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/solver/structured/select.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/solver/structured/test/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/solver/structured/test/geometry_test.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/solver/structured/test/interpolator_test.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/solver/structured/test/topology_test.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/solver/test/CMakeLists.txt" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/solver/test/field_basic_algerbra_test.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/solver/test/field_basic_algerbra_test.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/solver/test/field_diff_calculus_test.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/solver/test/field_basic_algebra_test.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/solver/test/field_diff_calculus_test.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/solver/test/mesh_test.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/solver/test/mesh_test.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/sp_config.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/docs/CMakeLists.txt" isTestSource="false" />

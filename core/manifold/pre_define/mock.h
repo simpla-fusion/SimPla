@@ -1,49 +1,27 @@
 /**
- * @file mock_mesh.h
+ * @file mock.h
  * @author salmon
- * @date 2015-10-13.
+ * @date 2015-10-14.
  */
 
-#ifndef SIMPLA_MOCK_MESH_H
-#define SIMPLA_MOCK_MESH_H
-
+#ifndef SIMPLA_MOCK_H
+#define SIMPLA_MOCK_H
 
 #include "../../gtl/primitives.h"
 #include "../../geometry/cs_cartesian.h"
-
-#include "../policy/time_integrator.h"
+#include "../geometry/geometry.h"
 #include "../topology/structured.h"
 #include "../calculate/fvm_structured.h"
-#include "../interpolate/linear.h"
-#include "../geometry/geometry.h"
-
-
 #include "../manifold.h"
-
 
 namespace simpla
 {
 namespace manifold
 {
-template<int NDIMS> using Mock= Manifold<
+using CartesianCoordinate= Geometry<geometry::coordinate_system::Cartesian<3, 2>, topology::tags::CoRectMesh>;
 
-		Geometry<geometry::coordinate_system::Cartesian<NDIMS, 2>, topology::tags::CoRectMesh>,
-
-		calculate::tags::finite_volume,
-
-		interpolate::tags::linear,
-
-		policy::TimeIntegrator
-
-
->;
-
-template<int NDIMS> using CartesianCoordinate= Geometry<geometry::coordinate_system::Cartesian<NDIMS, 2>, topology::tags::CoRectMesh>;
-template<int NDIMS> using Riemannian= Manifold<
-		CartesianCoordinate<NDIMS>,
-		calculate::Calculate<CartesianCoordinate<NDIMS>, calculate::tags::finite_volume>,
-		interpolate::Interpolate<CartesianCoordinate<NDIMS>, interpolate::tags::linear>
+using Mock= Manifold<CartesianCoordinate, Calculate<CartesianCoordinate, calculate::tags::finite_volume>
 >;
 }//namespace  manifold
 }//namespace simpla
-#endif //SIMPLA_MOCK_MESH_H
+#endif //SIMPLA_MOCK_H

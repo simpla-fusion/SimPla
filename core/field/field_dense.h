@@ -5,8 +5,8 @@
  *      @author: salmon
  */
 
-#ifndef COREFieldField_DENSE_H_
-#define COREFieldField_DENSE_H_
+#ifndef FIELD_DENSE_H_
+#define FIELD_DENSE_H_
 
 #include <algorithm>
 #include <cstdbool>
@@ -37,6 +37,8 @@ public:
 
 	typedef TD domain_type;
 
+	typedef typename domain_type::mesh_type mesh_type;
+
 	typedef typename domain_type::id_type id_type;
 
 	typedef typename domain_type::point_type point_type;
@@ -45,25 +47,30 @@ public:
 
 	typedef traits::field_value_t<this_type> field_value_type;
 
+	static constexpr int iform = traits::iform<TD>::value;
+
 private:
 
 	domain_type m_domain_;
+
+	mesh_type const &m_mesh_;
+
 	std::shared_ptr<value_type> m_data_;
 
 public:
 
 	Field(domain_type const &d)
-			: m_domain_(d), m_data_(nullptr)
+			: m_domain_(d), m_mesh_(d.mesh()), m_data_(nullptr)
 	{
 	}
 
 	Field(this_type const &other)
-			: m_domain_(other.m_domain_), m_data_(other.m_data_)
+			: m_domain_(other.m_domain_), m_mesh_(other.m_domain_.mesh()), m_data_(other.m_data_)
 	{
 	}
 
 	Field(this_type &&other)
-			: m_domain_(other.m_domain_), m_data_(other.m_data_)
+			: m_domain_(other.m_domain_), m_mesh_(other.m_domain_.mesh()), m_data_(other.m_data_)
 	{
 	}
 
@@ -76,6 +83,7 @@ public:
 	{
 		std::swap(m_domain_, other.m_domain_);
 		std::swap(m_data_, other.m_data_);
+		std::swap(m_mesh_, other.m_mesh_);
 	}
 
 	domain_type const &domain() const
@@ -137,10 +145,10 @@ public:
 	{
 		if (m_data_ == nullptr)
 		{
-			m_data_ = sp_make_shared_array<value_type>(m_domain_.max_hash());
+			m_data_ = sp_make_shared_array<value_type>(m_mesh_.template max_hash<iform>());
 		}
 
-		SpObject::prepare_sync(m_domain_.ghost_shape());
+//		SpObject::prepare_sync(m_domain_.ghost_shape());
 	}
 
 	DataSet dataset() const
@@ -149,13 +157,13 @@ public:
 
 		DataSet res;
 
-		res.data = m_data_;
-
-		res.datatype = traits::datatype<value_type>::create();
-
-		res.dataspace = m_domain_.dataspace();
-
-		res.properties = SpObject::properties;
+//		res.data = m_data_;
+//
+//		res.datatype = traits::datatype<value_type>::create();
+//
+//		res.dataspace = m_domain_.dataspace();
+//
+//		res.properties = SpObject::properties;
 
 		return std::move(res);
 	}
@@ -216,7 +224,7 @@ public:
 
 		m_domain_.for_each([&](id_type const &s)
 		{
-			op(at(s), m_domain_.calculate(other, s));
+			op(at(s), m_mesh_.calculate(other, s));
 		});
 
 		sync();
@@ -249,8 +257,8 @@ public:
 			m_domain_.for_each(other.domain(),
 					[&](id_type const &s)
 					{
-						auto x = m_domain_.point(s);
-						at(s) += m_domain_.sample(s, other(x, m_domain_.time(), gather(x)));
+						auto x = m_mesh_.point(s);
+						at(s) += m_mesh_.sample(s, other(x, m_mesh_.time(), gather(x)));
 					});
 		}
 
@@ -269,8 +277,8 @@ public:
 			other.domain().for_each(
 					[&](id_type const &s)
 					{
-						auto x = m_domain_.point(s);
-						at(s) = m_domain_.sample(s, other(x, m_domain_.time(), gather(x)));
+						auto x = m_mesh_.point(s);
+						at(s) = m_mesh_.sample(s, other(x, m_mesh_.time(), gather(x)));
 					});
 		}
 
@@ -288,7 +296,7 @@ public:
 
 		for (auto s : m_domain_)
 		{
-			fun(m_data_.get()[m_domain_.hash(s)]);
+			fun(m_data_.get()[m_mesh_.hash(s)]);
 		}
 
 	}
@@ -300,7 +308,7 @@ public:
 
 		for (auto s : m_domain_)
 		{
-			fun(m_data_.get()[m_domain_.hash(s)]);
+			fun(m_data_.get()[m_mesh_.hash(s)]);
 		}
 	}
 
@@ -311,24 +319,24 @@ public:
 	 */
 	value_type &operator[](id_type const &s)
 	{
-		return m_data_.get()[m_domain_.hash(s)];
+		return m_data_.get()[m_mesh_.hash(s)];
 	}
 
 	value_type const &operator[](id_type const &s) const
 	{
-		return m_data_.get()[m_domain_.hash(s)];
+		return m_data_.get()[m_mesh_.hash(s)];
 	}
 
 	template<typename ...Args>
 	value_type &at(Args &&... args)
 	{
-		return (m_data_.get()[m_domain_.hash(std::forward<Args>(args)...)]);
+		return (m_data_.get()[m_mesh_.hash(std::forward<Args>(args)...)]);
 	}
 
 	template<typename ...Args>
 	value_type const &at(Args &&... args) const
 	{
-		return (m_data_.get()[m_domain_.hash(std::forward<Args>(args)...)]);
+		return (m_data_.get()[m_mesh_.hash(std::forward<Args>(args)...)]);
 	}
 	/**
 	 * @}
@@ -338,7 +346,7 @@ public:
 	 *  @{*/
 	field_value_type gather(point_type const &x) const
 	{
-		return std::move(m_domain_.gather(*this, x));
+		return std::move(m_mesh_.gather(*this, x));
 	}
 
 	template<typename ...Args>
@@ -350,12 +358,12 @@ public:
 	template<typename ...Args>
 	field_value_type operator()(Args &&...args) const
 	{
-		return m_domain_.gather(*this, std::forward<Args>(args)...);
+		return m_mesh_.gather(*this, std::forward<Args>(args)...);
 	}
 
 	/**@}*/
 
-};
+}; // struct Field
 
 namespace traits
 {
@@ -387,9 +395,8 @@ struct domain_type<Field<Domain<TM ...>, TV, Policies...>>
 	typedef Domain<TM ...> type;
 };
 
-}
-// namespace traits
+}// namespace traits
 
 }// namespace simpla
 
-#endif /* COREFieldField_DENSE_H_ */
+#endif /* FIELD_DENSE_H_ */

@@ -13,7 +13,7 @@
 #include "../../manifold/pre_define/riemannian.h"
 #include "../../manifold/domain.h"
 
-#include "field_basic_algerbra_test.h"
+#include "field_basic_algebra_test.h"
 
 using namespace simpla;
 
