@@ -1,5 +1,5 @@
 /**
- * @file mesh_traits.h
+ * @file manifold_traits.h
  *
  * @date 2015-6-19
  * @author salmon
@@ -73,21 +73,21 @@ template<typename ...> struct Topology;
 /**
  *
  */
-template<typename ...> struct Mesh;
+template<typename ...> struct Manifold;
 
 template<typename ... T>
-std::ostream &operator<<(std::ostream &os, Mesh<T...> const &d)
+std::ostream &operator<<(std::ostream &os, Manifold<T...> const &d)
 {
 	return d.print(os);
 }
 
 template<typename ...T>
-std::shared_ptr<Mesh<T...>> make_mesh()
+std::shared_ptr<Manifold<T...>> make_mesh()
 {
-	return std::make_shared<Mesh<T...>>();
+	return std::make_shared<Manifold<T...>>();
 }
 /**
- *  Default value of Mesh are defined following
+ *  Default value of Manifold are defined following
  */
 namespace traits
 {
@@ -116,79 +116,55 @@ template<typename> struct rank;
 template<typename> struct ZAxis;
 
 template<typename ... T>
-struct type_id<Mesh<T...> >
+struct type_id<Manifold<T...> >
 {
 	static const std::string name()
 	{
-		return "Mesh<+" + type_id<coordinate_system_t<Mesh<T...> > >::name()
+		return "Manifold<+" + type_id<coordinate_system_t<Manifold<T...> > >::name()
 				+ " >";
 	}
 };
 
 template<typename T>
-struct is_mesh : public std::integral_constant<bool, false>
-{
-};
+struct is_manifold : public std::integral_constant<bool, false> { };
 template<typename ...T>
-struct is_mesh<Mesh<T...>> : public std::integral_constant<bool, true>
-{
-};
+struct is_manifold<Manifold<T...>> : public std::integral_constant<bool, true> { };
 
-template<typename T>
-struct mesh_type
-{
-	typedef std::nullptr_t type;
-};
+template<typename T> struct manifold_type { typedef std::nullptr_t type; };
 
-template<typename T>
-struct id_type
-{
-	typedef int64_t type;
-};
+template<typename T> struct id_type { typedef int64_t type; };
 
-template<typename ...T>
-struct id_type<Mesh<T...> >
-{
-	typedef std::uint64_t type;
-};
+template<typename ...T> struct id_type<Manifold<T...> > { typedef std::uint64_t type; };
 
-template<typename T>
-struct coordinate_system_type
-{
-	typedef std::nullptr_t type;
-};
+template<typename T> struct coordinate_system_type { typedef std::nullptr_t type; };
+
 template<typename TM, typename ... T>
-struct coordinate_system_type<Mesh<TM, T...>>
+struct coordinate_system_type<Manifold<TM, T...>> { typedef typename TM::coordinates_system_type type; };
+
+template<typename ...T>
+struct scalar_type<Manifold<T...> > { typedef typename Manifold<T...>::scalar_type type; };
+
+template<typename ...T>
+struct point_type<Manifold<T...> >
 {
-	typedef typename TM::coordinates_system_type type;
+	typedef typename Manifold<T...>::point_type type;
 };
 
 template<typename ...T>
-struct scalar_type<Mesh<T...> >
+struct vector_type<Manifold<T...> >
 {
-	typedef typename Mesh<T...>::scalar_type type;
-};
-template<typename ...T>
-struct point_type<Mesh<T...> >
-{
-	typedef typename Mesh<T...>::point_type type;
+	typedef typename Manifold<T...>::vector_type type;
 };
 
 template<typename ...T>
-struct vector_type<Mesh<T...> >
-{
-	typedef typename Mesh<T...>::vector_type type;
-};
-
-template<typename ...T>
-struct rank<Mesh<T...> > : public std::integral_constant<size_t,
-		Mesh<T...>::ndims>
+struct rank<Manifold<T...> > : public std::integral_constant<size_t,
+		Manifold<T...>::ndims>
 {
 };
 
 template<typename ...T>
-struct ZAxis<Mesh<T...> > : public std::integral_constant<size_t,
-		Mesh<T...>::ZAXIS>
+struct ZAxis<Manifold<T...> > : public std::integral_constant<size_t,
+		Manifold<T...>::ZAXIS>
 {
 };
 

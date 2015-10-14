@@ -1,5 +1,5 @@
 /**
- * @file constant_metric.h.h
+ * @file mesh.h
  * @author salmon
  * @date 2015-10-13.
  */
@@ -12,69 +12,24 @@
 #include "../../gtl/type_traits.h"
 #include "../../geometry/coordinate_system.h"
 #include "../topology/topology.h"
-#include "../mesh_traits.h"
+#include "geometry_traits.h"
 
 
 namespace simpla
 {
 
 
-template<typename ...> struct Manifold;
+template<typename ...> struct Geometry;
 
-
-namespace traits
-{
-template<typename> struct type_id;
-
-template<typename> struct is_manifold;
-template<typename> struct manifold_type;
-
-template<typename ... T>
-struct type_id<Manifold<T...> >
-{
-	static const std::string name()
-	{
-		return "Manifold<+" + type_id<coordinate_system_t<Manifold<T...> > >::name()
-				+ " >";
-	}
-};
-
-template<typename T> struct is_manifold : public std::integral_constant<bool, false> { };
-
-template<typename ...T> struct is_manifold<Manifold<T...>> : public std::integral_constant<bool, true> { };
-
-template<typename T> struct manifold_type { typedef std::nullptr_t type; };
-
-template<typename ...T> struct id_type<Manifold<T...> > { typedef std::uint64_t type; };
-
-template<typename CS, typename ... T>
-struct coordinate_system_type<Manifold<CS, T...>> { typedef CS type; };
-
-template<typename ...T>
-struct scalar_type<Manifold<T...> > { typedef typename Manifold<T...>::scalar_type type; };
-
-template<typename ...T>
-struct point_type<Manifold<T...> > { typedef typename Manifold<T...>::point_type type; };
-
-template<typename ...T>
-struct vector_type<Manifold<T...> > { typedef typename Manifold<T...>::vector_type type; };
-
-template<typename ...T>
-struct rank<Manifold<T...> > : public std::integral_constant<size_t, Manifold<T...>::ndims> { };
-
-template<typename ...T>
-struct ZAxis<Manifold<T...> > : public std::integral_constant<size_t, Manifold<T...>::ZAXIS> { };
-
-}  // namespace traits
 
 template<typename CS, typename TopologyTags>
-struct Manifold<CS, TopologyTags> : public topology::Topology<TopologyTags>
+struct Geometry<CS, TopologyTags> : public Topology<TopologyTags>
 {
 	typedef CS cs_type;
 
 	geometry::mertic<cs_type> m_metric_;
 
-	typedef topology::Topology<TopologyTags> topology_type;
+	typedef Topology<TopologyTags> topology_type;
 
 	static constexpr int ndims = topology_type::ndims;
 
@@ -150,7 +105,7 @@ public:
  * @name  Coordinate map
  * @{
  *
- *        Topology Manifold       Geometry Manifold
+ *        Topology Mesh       Geometry Mesh
  *                        map
  *              M      ---------->      G
  *              x                       y
@@ -278,7 +233,6 @@ public:
 	{
 		return std::move(topology_type::coordinates_global_to_local(coordinates_to_topology(x), n_id));
 	}
-}; //struct Geometry<CS, topology::Topology<TopologyTags> >
-
+}; //struct Geometry<CS,TopologyTags >
 }//namespace simpla
 #endif //SIMPLA_GEOMETRY_H

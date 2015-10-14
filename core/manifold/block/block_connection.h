@@ -62,6 +62,6 @@ public:
 
 };
 
-} // namespace manifold
+} // namespace geometry
 } // namespace simpla
 #endif //SIMPLA_BLOCK_CONNECTION_H

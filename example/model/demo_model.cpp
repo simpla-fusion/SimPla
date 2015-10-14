@@ -92,12 +92,12 @@ USE_CASE(model,"Model")
 //
 //	options["Domain"]["Polylines"].as(&pp);
 //
-//	auto domain0 = manifold->template domain<VERTEX>();
-//	auto domain1 = manifold->template domain<EDGE>();
-//	auto domain1b = manifold->template domain<EDGE>();
-//	auto domain2b = manifold->template domain<FACE>();
-//	auto domain2 = manifold->template domain<FACE>();
-//	auto domain3 = manifold->template domain<VOLUME>();
+//	auto domain0 = geometry->template domain<VERTEX>();
+//	auto domain1 = geometry->template domain<EDGE>();
+//	auto domain1b = geometry->template domain<EDGE>();
+//	auto domain2b = geometry->template domain<FACE>();
+//	auto domain2 = geometry->template domain<FACE>();
+//	auto domain3 = geometry->template domain<VOLUME>();
 //	select_boundary_by_polylines(&(domain0), pp.begin(), pp.end(), ZAXIS);
 //
 //	select_boundary_by_polylines(&(domain1), pp.begin(), pp.end(), ZAXIS, 0);

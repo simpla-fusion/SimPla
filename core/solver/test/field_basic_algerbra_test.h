@@ -18,8 +18,8 @@
 #include "../../gtl/primitives.h"
 #include "../../gtl/type_traits.h"
 #include "../../gtl/utilities/log.h"
-#include "../../mesh/domain_traits.h"
-#include "../../mesh/mesh_traits.h"
+#include "../../manifold/domain_traits.h"
+#include "../../manifold/manifold_traits.h"
 #include "../../field/field_dense.h"
 #include "../../field/field_traits.h"
 
@@ -38,7 +38,7 @@ protected:
 		size_t dims[3] = {10, 1, 1};
 
 		mesh->dimensions(&dims[0]);
-//		manifold->extents(xmin, xmax);
+//		geometry->extents(xmin, xmax);
 		mesh->deploy();
 	}
 
@@ -249,7 +249,7 @@ REGISTER_TYPED_TEST_CASE_P(TestField, index, assign, constant_real, scalarField)
 //#include <gtest/gtest.h>
 //
 //#include "field.h"
-//#include "../manifold/domain_traits.h"
+//#include "../geometry/domain_traits.h"
 //using namespace simpla;
 //
 ////#include "../utilities/log.h"
@@ -292,10 +292,10 @@ REGISTER_TYPED_TEST_CASE_P(TestField, index, assign, constant_real, scalarField)
 //			}
 //		}
 //
-//		manifold.set_dimensions(dims);
-//		manifold.set_extents(xmin, xmax);
+//		geometry.set_dimensions(dims);
+//		geometry.set_extents(xmin, xmax);
 //
-//		manifold.update();
+//		geometry.update();
 //
 //	}
 //public:
@@ -306,7 +306,7 @@ REGISTER_TYPED_TEST_CASE_P(TestField, index, assign, constant_real, scalarField)
 //	typedef domain_type::iterator iterator;
 //	typedef domain_type::coordinate_tuple coordinate_tuple;
 //
-//	domain_type manifold;
+//	domain_type geometry;
 //
 //	static constexpr unsigned int NDIMS = domain_type::NDIMS;
 //

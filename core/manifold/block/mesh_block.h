@@ -38,7 +38,7 @@ template<typename CS, int LEVEL = 0> using BlockMesh= Mesh<CS, tags::multi_block
 
 
 /**
- *  @brief Block represents a 'NDIMS'-dimensional 'LEVEL'th-level AMR manifold ;
+ *  @brief Block represents a 'NDIMS'-dimensional 'LEVEL'th-level AMR geometry ;
  */
 template<typename CS, int LEVEL>
 struct Mesh<CS, tags::multi_block<LEVEL>>

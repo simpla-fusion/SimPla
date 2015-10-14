@@ -95,12 +95,12 @@ TEST_F(TestKineticParticle,insert)
 //TEST_F(TestKineticParticle, dump)
 //{
 //
-//	SimpleField<mesh_type, Real> n(manifold), n0(manifold);
+//	SimpleField<mesh_type, Real> n(geometry), n0(geometry);
 //
-//	particle_type ion(manifold);
+//	particle_type ion(geometry);
 //
-//	SimpleField<mesh_type, Real> E(manifold);
-//	SimpleField<mesh_type, Real> B(manifold);
+//	SimpleField<mesh_type, Real> E(geometry);
+//	SimpleField<mesh_type, Real> B(geometry);
 //
 //	E.clear();
 //	B.clear();
@@ -112,9 +112,9 @@ TEST_F(TestKineticParticle,insert)
 //
 //	Real average = 0.0;
 //
-////	for (auto s : manifold->range())
+////	for (auto s : geometry->range())
 ////	{
-////		coordinate_tuple x = manifold->id_to_coordinates(s);
+////		coordinate_tuple x = geometry->id_to_coordinates(s);
 ////
 ////		Real expect = q * n(x[0], x[1], x[2]).template as<Real>();
 ////

@@ -19,10 +19,10 @@
 
 namespace simpla
 {
+template<typename...> struct Topology;
 
 namespace topology
 {
-template<typename...> struct Topology;
 
 
 struct StructuredMesh : public MeshIDs_<4>
@@ -462,27 +462,6 @@ public:
 };//struct StructuredMesh
 
 
-
-typedef Topology<tags::CoRectMesh> CoRectMesh;
-typedef Topology<tags::Curvilinear> Curvilinear;
-typedef Topology<tags::RectMesh> RectMesh;
-
-template<>
-struct Topology<tags::CoRectMesh> : public StructuredMesh
-{
-
-};
-
-template<>
-struct Topology<tags::RectMesh> : public StructuredMesh
-{
-};
-
-template<>
-struct Topology<tags::Curvilinear> : public StructuredMesh
-{
-};
-
 namespace traits
 {
 
@@ -493,6 +472,20 @@ struct point_type<Topology<TAG> >
 };
 } //namespace traits
 } // namespace topology
+
+typedef Topology<topology::tags::CoRectMesh> CoRectMesh;
+typedef Topology<topology::tags::Curvilinear> Curvilinear;
+typedef Topology<topology::tags::RectMesh> RectMesh;
+
+template<>
+struct Topology<topology::tags::CoRectMesh> : public topology::StructuredMesh { };
+
+template<>
+struct Topology<topology::tags::RectMesh> : public topology::StructuredMesh { };
+
+template<>
+struct Topology<topology::tags::Curvilinear> : public topology::StructuredMesh { };
+
 } // namespace simpla
 
 #endif //SIMPLA_TOPOLOGY_H

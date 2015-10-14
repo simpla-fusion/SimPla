@@ -26,7 +26,7 @@ namespace simpla
  *
  * ## Summary
  *  - @ref field  assigns a scalar/vector/tensor to each point of a
- *     mathematical space (typically a Euclidean space or manifold).
+ *     mathematical space (typically a Euclidean space or geometry).
  *
  *  - @ref field  is function, \f$ y=f(x)\f$ , on the
  *     @ref configuration_space, where \f$x\in D\f$ is

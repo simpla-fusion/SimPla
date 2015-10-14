@@ -53,7 +53,7 @@ bool loadField(TDict const & dict, TField *f)
 }
 //
 //template<typename TMesh, typename TDomain, typename TDict, typename TF>
-//bool assignField_by_config_impl_(TMesh const & manifold, TDomain const & domain,
+//bool assignField_by_config_impl_(TMesh const & geometry, TDomain const & domain,
 //		TDict const &dict, TF *f)
 //{
 //
@@ -63,8 +63,8 @@ bool loadField(TDict const & dict, TField *f)
 //	{
 //		for (auto const &s : domain)
 //		{
-//			(*f)[s] = manifold.sample(
-//					dict(manifold.coordinates(s)).template as<field_value_type>(),
+//			(*f)[s] = geometry.sample(
+//					dict(geometry.coordinates(s)).template as<field_value_type>(),
 //					s);
 //		}
 //	}
@@ -74,7 +74,7 @@ bool loadField(TDict const & dict, TField *f)
 //
 //		for (auto const &s : domain)
 //		{
-//			(*f)[s] = manifold.sample(v, s);
+//			(*f)[s] = geometry.sample(v, s);
 //		}
 //
 //	}

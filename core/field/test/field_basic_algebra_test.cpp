@@ -9,16 +9,15 @@
 
 
 #include "../../field/field.h"
-#include "../../geometry/cs_cartesian.h"
-#include "../../mesh/default_mesh.h"
-
+#include "../../manifold/pre_define/riemannian.h"
+#include "../../manifold/manifold_traits.h"
 #include "field_basic_algebra_test.h"
+
 
 using namespace simpla;
 
-typedef geometry::coordinate_system::Cartesian<3, 2> cs_type;
 
-typedef DefaultMesh<cs_type> mesh_type;
+typedef manifold::Riemannian<3> mesh_type;
 
 typedef testing::Types< //
 

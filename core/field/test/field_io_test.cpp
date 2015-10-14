@@ -10,12 +10,12 @@
 #include "field.h"
 #include "saveField.h"
 #include "../utilities/log.h"
-//#include "../manifold/manifold.h"
-//#include "../manifold/domain.h"
-//#include "../manifold/topology/structured.h"
-//#include "../manifold/geometry/cartesian.h"
-//#include "../manifold/diff_scheme/fdm.h"
-//#include "../manifold/interpolator/interpolator.h"
+//#include "../geometry/geometry.h"
+//#include "../geometry/domain.h"
+//#include "../geometry/topology/structured.h"
+//#include "../geometry/geometry/cartesian.h"
+//#include "../geometry/diff_scheme/fdm.h"
+//#include "../geometry/interpolator/interpolator.h"
 
 #include "../parallel/parallel.h"
 #include "../parallel/message_comm.h"
@@ -46,12 +46,12 @@ int main(int argc, char **argv)
 
 	SimpleMesh<> domain;
 //
-//	mesh_type manifold;
+//	mesh_type geometry;
 //
-//	manifold.dimensions(dims);
-//	manifold.extents(xmin, xmax);
+//	geometry.dimensions(dims);
+//	geometry.extents(xmin, xmax);
 //
-//	manifold.update();
+//	geometry.update();
 
 	auto f0 = makeField<int>(domain);
 	auto f1 = makeField<int>(domain);
@@ -59,10 +59,10 @@ int main(int argc, char **argv)
 //	f0.clear();
 //	f1.clear();
 //
-//	for (auto s : manifold.select(VERTEX))
+//	for (auto s : geometry.select(VERTEX))
 //	{
 //		auto idx = (mesh_type::decompact(s) >> mesh_type::MAX_DEPTH_OF_TREE)
-//				- manifold.global_begin_;
+//				- geometry.global_begin_;
 //
 //		f0[s] = idx[0] + (GLOBAL_COMM.get_rank())*100;
 //
@@ -110,13 +110,13 @@ int main(int argc, char **argv)
 //	size_t size = vec.size();
 //	INFORM << GLOBAL_DATA_STREAM.write("data",&vec[0],DataType::create<int>(),1,nullptr,&size,nullptr,nullptr,nullptr,nullptr ,DataStream::SP_UNORDER);
 //
-//	auto fv = manifold.makeField<EDGE, Real>();
+//	auto fv = geometry.makeField<EDGE, Real>();
 //
 //	fv.clear();
 //
-//	for (auto s : manifold.select(EDGE))
+//	for (auto s : geometry.select(EDGE))
 //	{
-//		auto x = manifold.get_coordinates(s);
+//		auto x = geometry.get_coordinates(s);
 //
 //		fv[s] = std::sin(
 //				x[0] * TWOPI / (xmax[0] - xmin[0])

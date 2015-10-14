@@ -17,7 +17,7 @@ template<typename PrimaryShape> struct unstructured;
 template<typename ...> struct Mesh;
 
 /**
- * @ingroup manifold
+ * @ingroup geometry
  */
 template<typename CoordinateSystem, typename PrimaryShape>
 struct Mesh<CoordinateSystem, tags::unstructured<PrimaryShape> >

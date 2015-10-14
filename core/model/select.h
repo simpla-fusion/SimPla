@@ -304,7 +304,7 @@ void select_boundary_by_polylines(Domain<TM, IFORM> *domain, TI const & ib,
 //	{
 //		for (auto const & item : vmap)
 //		{
-//			if (point_in_polygon(manifold.coordinates(item.first))
+//			if (point_in_polygon(geometry.coordinates(item.first))
 //					== (flag == 0 || flag == 2))
 //			{
 //				domain->id_set().insert(item.first);

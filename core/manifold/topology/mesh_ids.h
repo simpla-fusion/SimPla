@@ -14,7 +14,7 @@
 
 #include "../../gtl/ntuple.h"
 #include "../../gtl/primitives.h"
-#include "../mesh_traits.h"
+#include "../manifold_traits.h"
 
 namespace simpla
 {
@@ -82,13 +82,13 @@ struct MeshIDs_
 
 	typedef std::uint64_t id_type;
 
-	typedef nTuple<id_type, ndims> id_tuple;
+	typedef nTuple <id_type, ndims> id_tuple;
 
-	typedef nTuple<Real, ndims> coordinates_tuple;
+	typedef nTuple <Real, ndims> coordinates_tuple;
 	
 	typedef long index_type;
 
-	typedef nTuple<index_type, ndims> index_tuple;
+	typedef nTuple <index_type, ndims> index_tuple;
 
 //	typedef Real coordinate_type;
 

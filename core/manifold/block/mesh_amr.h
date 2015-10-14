@@ -10,7 +10,7 @@
 #include <list>
 #include <utility>
 
-#include "../mesh_traits.h"
+#include "manifold_traits.h"
 #include "coordinate_system_geo.h"
 #include "../../gtl/design_pattern/signal.h"
 

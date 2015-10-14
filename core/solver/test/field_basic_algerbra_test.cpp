@@ -10,17 +10,15 @@
 
 #include "../../field/field.h"
 #include "../../field/field_dense.h"
-#include "../../geometry/cs_cartesian.h"
-#include "../../mesh/mock_mesh.h"
-#include "../../mesh/domain.h"
+#include "../../manifold/pre_define/mock.h"
+#include "../../manifold/domain.h"
 
 #include "field_basic_algerbra_test.h"
 
 using namespace simpla;
 
-typedef geometry::coordinate_system::Cartesian<3, 2> cs_type;
 
-typedef MockMesh<cs_type> mesh_type;
+typedef manifold::Mock<3> mesh_type;
 
 typedef testing::Types< //
 

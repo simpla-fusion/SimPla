@@ -52,7 +52,7 @@ public:
 	{
 	}
 
-	/// Move Construct copy manifold, and move data,
+	/// Move Construct copy geometry, and move data,
 	DummyField(this_type &&rhs) :
 			mesh(rhs.mesh), data_(rhs.data_), default_value_(rhs.default_value_)
 	{

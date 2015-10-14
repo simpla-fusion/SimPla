@@ -25,7 +25,7 @@ class Properties;
  *   - Electric field is a @ref physical_object
  *   - Magnetic field is a @ref physical_object;
  *   - Plasma density field is a @ref physical_object;
- *   - @ref physical_object is a manifold defined on a domain in configuration space;
+ *   - @ref physical_object is a geometry defined on a domain in configuration space;
  *   - @ref physical_object has properties;
  *   - @ref physical_object can be saved or loaded as DataSet;
  *   - @ref physical_object may be decomposed and sync between mpi processes;

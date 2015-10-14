@@ -252,7 +252,7 @@ std::shared_ptr<
 //
 //	hash_fun_ = [& ](Point_s const & p)->id_type
 //	{
-//		return std::get<0>(domain_.manifold()->coordinates_global_to_local(
+//		return std::get<0>(domain_.geometry()->coordinates_global_to_local(
 //						std::get<0>(engine_type::pull_back(p))));
 //	};
 //

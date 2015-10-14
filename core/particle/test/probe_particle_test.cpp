@@ -57,7 +57,7 @@ int main(int argc, char **argv)
 
 //	auto buffer = p.create_child();
 //
-//	auto extents = manifold.extents();
+//	auto extents = geometry.extents();
 //
 //	rectangle_distribution<mesh_type::ndims> x_dist(nTuple<Real,3>( { 0, 0, 0 }), nTuple<Real,3>( { 1, 1, 1 }));
 //
@@ -80,16 +80,16 @@ int main(int argc, char **argv)
 //	p.properties("DumpParticle", true);
 //	p.properties("ScatterN", true);
 
-//	init_particle(&p, manifold.select(VERTEX), 500, n, T);
+//	init_particle(&p, geometry.select(VERTEX), 500, n, T);
 //
 ////	{
-////		auto range=manifold.select(VERTEX);
+////		auto range=geometry.select(VERTEX);
 ////		auto s0=*std::get<0>(range);
 ////		nTuple<3,Real> r=
 ////		{	0.5,0.5,0.5};
 ////
 ////		particle_type::Point_s a;
-////		a.x = manifold.coordinates_local_to_global(s0, r);
+////		a.x = geometry.coordinates_local_to_global(s0, r);
 ////		a.f = 1.0;
 ////		p[s0].push_back(std::move(a));
 ////
@@ -110,7 +110,7 @@ int main(int argc, char **argv)
 
 //	if(GLOBAL_COMM.get_rank()==0)
 //	{
-//		for (auto s : manifold.select(VERTEX))
+//		for (auto s : geometry.select(VERTEX))
 //		{
 //			rho[s]+=10;
 //		}

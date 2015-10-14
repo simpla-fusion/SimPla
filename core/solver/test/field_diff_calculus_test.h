@@ -152,7 +152,7 @@ TEST_P(FETLTest, grad0)
 #ifdef CYLINDRICAL_COORDINATE_SYTEM
 		if (n == (traits::ZAxis<mesh_type>::value + 1) % 3)
 		{
-			auto r = manifold->point(s);
+			auto r = geometry->point(s);
 			expect /= r[(traits::ZAxis<mesh_type>::value + 2) % 3];
 		}
 #endif
@@ -170,13 +170,13 @@ TEST_P(FETLTest, grad0)
 //		if (mod(expect) > EPSILON)
 //		{
 //			EXPECT_LE(mod(2.0 * (f1[s] - expect) / (f1[s] + expect)), error) << " expect = " << expect
-//			        << " actual = " << f1[s] << " x= " << manifold->point(s) << " K= " << K_real << " manifold->K="
-//			        << manifold->k_imag;
+//			        << " actual = " << f1[s] << " x= " << geometry->point(s) << " K= " << K_real << " geometry->K="
+//			        << geometry->k_imag;
 //		}
 //		else
 //		{
 //			EXPECT_LE(mod(f1[s]), error) << " expect = " << expect << " actual = " << f1[s] << " x= "
-//			        << manifold->point(s);
+//			        << geometry->point(s);
 //		}
 //		if (mod(f1[s]) > epsilon || mod(expect) > epsilon)
 //		{
@@ -234,7 +234,7 @@ TEST_P(FETLTest, grad3)
 #ifdef CYLINDRICAL_COORDINATE_SYTEM
 		if (n == (traits::ZAxis<mesh_type>::value + 1) % 3)
 		{
-			auto r = manifold->point(s);
+			auto r = geometry->point(s);
 			expect /= r[(traits::ZAxis<mesh_type>::value + 2) % 3];
 		}
 #endif
@@ -247,12 +247,12 @@ TEST_P(FETLTest, grad3)
 //		if (mod(expect) > EPSILON)
 //		{
 //			EXPECT_LE(mod(2.0 * (f2[s] - expect) / (f2[s] + expect)), error) << " expect = " << expect
-//			        << " actual = " << f2[s] << " x= " << manifold->point(s) << " K= " << K_real;
+//			        << " actual = " << f2[s] << " x= " << geometry->point(s) << " K= " << K_real;
 //		}
 //		else
 //		{
 //			EXPECT_LE(mod(f2[s]), error) << " expect = " << expect << " actual = " << f2[s] << " x= "
-//			        << manifold->point(s);
+//			        << geometry->point(s);
 //
 //		}
 
@@ -341,13 +341,13 @@ TEST_P(FETLTest, diverge1)
 //		if (mod(expect) > EPSILON)
 //		{
 //			EXPECT_LE(mod(2.0 * (f0[s] - expect) / (f0[s] + expect)), error) << " expect = " << expect
-//			        << " actual = " << f0[s] << " x= " << manifold->point(s) << " K= " << K_real << " K_i= "
+//			        << " actual = " << f0[s] << " x= " << geometry->point(s) << " K= " << K_real << " K_i= "
 //			        << K_imag;
 //		}
 //		else
 //		{
 //			EXPECT_LE(mod(f0[s]), error) << " expect = " << expect << " actual = " << f0[s] << " x= "
-//			        << manifold->point(s);
+//			        << geometry->point(s);
 //
 //		}
 	}
@@ -360,7 +360,7 @@ TEST_P(FETLTest, diverge1)
 	EXPECT_LE(std::sqrt(variance), error) << dims;
 	EXPECT_LE(mod(average), error) << " K= " << K_real << " K_i= " << K_imag
 
-//			<< " manifold->Ki=" << manifold->k_imag
+//			<< " geometry->Ki=" << geometry->k_imag
 
 			;
 
@@ -417,7 +417,7 @@ TEST_P(FETLTest, diverge2)
 				K_imag[(traits::ZAxis<mesh_type>::value + 3) % 3]//  k_z
 		) * sin_v;
 
-		expect += std::sin(inner_product(K_real, manifold->point(s)))
+		expect += std::sin(inner_product(K_real, geometry->point(s)))
 		/ x[(traits::ZAxis<mesh_type>::value + 2) % 3];//A_r
 
 #	else
@@ -508,7 +508,7 @@ TEST_P(FETLTest, curl1)
 					- K_imag[(traits::ZAxis<mesh_type>::value + 2) % 3])
 			* sin_v;
 
-			expect -= std::sin(inner_product(K_real, manifold->point(s)))
+			expect -= std::sin(inner_product(K_real, geometry->point(s)))
 			/ x[(traits::ZAxis<mesh_type>::value + 2) % 3];//A_r
 			break;
 
@@ -529,12 +529,12 @@ TEST_P(FETLTest, curl1)
 //		if (mod(expect) > epsilon)
 //		{
 //			EXPECT_LE(mod(2.0 * (vf2[s] - expect) / (vf2[s] + expect)), error) << " expect = " << expect
-//			        << " actual = " << vf2[s] << " x= " << manifold->point(s);
+//			        << " actual = " << vf2[s] << " x= " << geometry->point(s);
 //		}
 //		else
 //		{
 //			EXPECT_LE(mod(vf2[s]), error) << " expect = " << expect << " actual = " << vf2[s] << " x= "
-//			        << manifold->point(s);
+//			        << geometry->point(s);
 //		}
 
 	}
@@ -620,7 +620,7 @@ TEST_P(FETLTest, curl2)
 					- K_imag[(traits::ZAxis<mesh_type>::value + 2) % 3])
 			* sin_v;
 
-			expect -= std::sin(inner_product(K_real, manifold->point(s)))
+			expect -= std::sin(inner_product(K_real, geometry->point(s)))
 			/ x[(traits::ZAxis<mesh_type>::value + 2) % 3];//A_r
 			break;
 
@@ -640,11 +640,11 @@ TEST_P(FETLTest, curl2)
 
 //		if (mod(expect) > epsilon)
 //		{
-//			ASSERT_LE(mod(2.0 * (vf1[s] - expect) / (vf1[s] + expect)), error)<< " expect = "<<expect<<" actual = "<<vf1[s]<< " x= "<<manifold->point(s);
+//			ASSERT_LE(mod(2.0 * (vf1[s] - expect) / (vf1[s] + expect)), error)<< " expect = "<<expect<<" actual = "<<vf1[s]<< " x= "<<geometry->point(s);
 //		}
 //		else
 //		{
-//			ASSERT_LE(mod(vf1[s]), error)<< " expect = "<<expect<<" actual = "<<vf1[s]<< " x= "<<manifold->point(s);
+//			ASSERT_LE(mod(vf1[s]), error)<< " expect = "<<expect<<" actual = "<<vf1[s]<< " x= "<<geometry->point(s);
 //
 //		}
 

@@ -14,7 +14,7 @@
 
 #include "../../gtl/ntuple.h"
 #include "../../gtl/primitives.h"
-#include "../mesh_traits.h"
+#include "manifold_traits.h"
 
 namespace simpla
 {

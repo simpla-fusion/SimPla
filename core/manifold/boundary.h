@@ -5,7 +5,7 @@
 #ifndef SIMPLA_BOUNDARY_H
 #define SIMPLA_BOUNDARY_H
 
-#include "mesh_traits.h"
+#include "manifold_traits.h"
 #include "../gtl/macro.h"
 #include <map>
 #include <bits/unordered_map.h>

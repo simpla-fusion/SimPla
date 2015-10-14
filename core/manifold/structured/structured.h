@@ -21,7 +21,7 @@
 #include "coordinate_system_geo.h"
 #include "../../physics/physical_constants.h"
 #include "../../gtl/utilities/log.h"
-#include "../mesh_traits.h"
+#include "manifold_traits.h"
 #include "../mesh_ids.h"
 #include "../policy.h"
 #include "structured.h"
@@ -40,8 +40,8 @@ struct structured;
 template<typename ...> struct Mesh;
 
 /**
- * @ingroup manifold
- *  @brief  structured manifold, n-dimensional array
+ * @ingroup geometry
+ *  @brief  structured geometry, n-dimensional array
  *
  *## Cell Shape
  * - Voxel(hexahedron):

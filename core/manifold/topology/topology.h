@@ -8,9 +8,14 @@
 #define SIMPLA_TOPOLOGY_H_H
 namespace simpla
 {
+
+
+template<typename.../* tags */> struct Topology;
+
+
 namespace topology
 {
-template<typename.../* tags */> struct Topology;
+
 
 namespace tags
 {

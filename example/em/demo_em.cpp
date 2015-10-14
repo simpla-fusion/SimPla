@@ -88,7 +88,7 @@ USE_CASE(em, " Maxwell Eqs.")
 //
 //	if (options["FieldSolver"]["PML"])
 //	{
-//		pml_solver = std::make_shared<PML<mesh_type>>(*manifold,
+//		pml_solver = std::make_shared<PML<mesh_type>>(*geometry,
 //				options["FieldSolver"]["PML"]);
 //
 //	}
@@ -164,9 +164,9 @@ USE_CASE(em, " Maxwell Eqs.")
 		}
 //		else
 //		{
-//			pml_solver->next_timestepE(manifold->dt(), E, B, &E);
+//			pml_solver->next_timestepE(geometry->dt(), E, B, &E);
 //			LOG_CMD(E -= J / epsilon0 * dt);
-//			pml_solver->next_timestepB(manifold->dt(), E, B, &B);
+//			pml_solver->next_timestepB(geometry->dt(), E, B, &B);
 //		}
 
 		VERBOSE << SAVE_RECORD(J) << std::endl;

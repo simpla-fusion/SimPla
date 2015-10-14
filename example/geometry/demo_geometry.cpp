@@ -20,7 +20,7 @@
 //#include "../../core/io/io.h"
 //#include "../../core/physics/physical_constants.h"
 //
-//#include "../../core/manifold/manifold.h"
+//#include "../../core/geometry/geometry.h"
 //
 //#include "../../core/model/cut_cell.h"
 //#include <memory>
@@ -285,11 +285,11 @@ int main(int argc, char **argv)
 //
 //	typedef typename mesh_type::id_type id_type;
 //
-//	auto manifold = std::make_shared<mesh_type>();
+//	auto geometry = std::make_shared<mesh_type>();
 //
-//	manifold->load(options["Mesh"]);
+//	geometry->load(options["Mesh"]);
 //
-//	manifold->deploy();
+//	geometry->deploy();
 //
 //	std::vector<coordinate_tuple> p0, p1, p2, p3, p4, p5, p6, p7;
 //
@@ -304,15 +304,15 @@ int main(int argc, char **argv)
 //
 //	std::multimap<id_type, Real> b_cell;
 //
-//	polygen_cut_cell(*manifold, p0.begin(), p0.end(), &b_cell, node_id);
+//	polygen_cut_cell(*geometry, p0.begin(), p0.end(), &b_cell, node_id);
 //
 //	for (auto const & item : b_cell)
 //	{
-//		coordinate_tuple x0 = manifold->coordinates(item.first);
+//		coordinate_tuple x0 = geometry->coordinates(item.first);
 //
 //		p1.push_back(x0);
 //
-//		p2.push_back(manifold->pull_back(x0, item.second));
+//		p2.push_back(geometry->pull_back(x0, item.second));
 //
 //		//		coordinate_tuple q0, q1;
 //		//

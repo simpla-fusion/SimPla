@@ -21,7 +21,7 @@ struct mesh_free;
 template<typename ... > struct Mesh;
 
 /**
- * @ingroup manifold
+ * @ingroup geometry
  */
 template<typename CoordinateSystem>
 struct Mesh<CoordinateSystem, tags::mesh_free>

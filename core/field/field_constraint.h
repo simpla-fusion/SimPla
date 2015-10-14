@@ -15,11 +15,11 @@ namespace simpla
 {
 
 //template<typename TM, typename TV, typename TDict>
-//auto make_constraint(TM const & manifold, TDict const & dict)
+//auto make_constraint(TM const & geometry, TDict const & dict)
 //{
 //
 //	return makeField_function<TM, TV>(
-//			select_ids_by_configure(manifold, dict["Domain"]), dict["Value"]);
+//			select_ids_by_configure(geometry, dict["Domain"]), dict["Value"]);
 //
 //}
 

@@ -21,20 +21,20 @@ struct structured;
 //
 //template<typename CoordinateSystem, typename DistanceFunction, typename TBox,
 //		typename ...Args>
-//void select(Mesh<CoordinateSystem, tags::structured> const &manifold,
+//void select(Mesh<CoordinateSystem, tags::structured> const &geometry,
 //            DistanceFunction const &dist, TBox const &t_box, Args &&...args)
 //{
 //	typedef typename Mesh<CoordinateSystem, tags::structured>::id_type id_type;
 //	typedef typename Mesh<CoordinateSystem, tags::structured>::topology_type topology_type;
 //
-//	select(dynamic_cast<topology_type const &>(manifold),
+//	select(dynamic_cast<topology_type const &>(geometry),
 //
 //	       [&](id_type t)
 //	       {
-//	           return static_cast<Real>(dist(manifold.point(t)));
+//	           return static_cast<Real>(dist(geometry.point(t)));
 //	       },
 //
-//	       manifold.inv_map(traits::get<0>(t_box)), manifold.inv_map(traits::get<1>(t_box)),
+//	       geometry.inv_map(traits::get<0>(t_box)), geometry.inv_map(traits::get<1>(t_box)),
 //
 //	       std::forward<Args>(args)...
 //

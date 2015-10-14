@@ -23,7 +23,7 @@ namespace simpla
 
 //namespace fetl_impl
 //{
-//template<typename TM, typename TL, typename TR, typename TI> inline auto Opcalculus(std::integral_constant<unsigned int ,DOT>, TM const &manifold,
+//template<typename TM, typename TL, typename TR, typename TI> inline auto Opcalculus(std::integral_constant<unsigned int ,DOT>, TM const &geometry,
 //        Field<TM, VERTEX, TL> const &l, Field<TM, VERTEX, TR> const &r, TI s)
 //        DECL_RET_TYPE((Dot(l.get(s) , r.get(s))))
 ////
@@ -35,7 +35,7 @@ namespace simpla
 ////		nTuple<3, TL> const & l, Field<TM, VERTEX, TR> const & r, TI s)
 ////		DECL_RET_TYPE((Dot(l , r.get(s))))
 //
-//template<typename TM, typename TL, typename TR, typename TI> inline auto Opcalculus(std::integral_constant<unsigned int ,CROSS>, TM const &manifold,
+//template<typename TM, typename TL, typename TR, typename TI> inline auto Opcalculus(std::integral_constant<unsigned int ,CROSS>, TM const &geometry,
 //        Field<TM, VERTEX, TL> const &l, Field<TM, VERTEX, TR> const &r, TI s)
 //        DECL_RET_TYPE((Cross(l.get(s) , r.get(s))))
 //

@@ -99,7 +99,7 @@ public:
 	void RefreshCache(size_t s)
 	{
 //		cell_idx_ = s;
-//		num_of_points_ = (manifold.GetAffectedPoints(std::integral_constant<unsigned int ,IForm>(), cell_idx_,
+//		num_of_points_ = (geometry.GetAffectedPoints(std::integral_constant<unsigned int ,IForm>(), cell_idx_,
 //				nullptr, affect_Range_));
 //		if (num_of_points_ == 0)
 //		{
@@ -109,7 +109,7 @@ public:
 //		points_.resize(num_of_points_);
 //		cache_.resize(num_of_points_);
 //
-//		manifold.GetAffectedPoints(std::integral_constant<unsigned int ,IForm>(), cell_idx_, &points_[0],
+//		geometry.GetAffectedPoints(std::integral_constant<unsigned int ,IForm>(), cell_idx_, &points_[0],
 //				affect_Range_);
 //
 //		for (size_t i = 0; i < num_of_points_; ++i)
@@ -175,13 +175,13 @@ public:
 	{
 //		coordinate_tuple pcoords;
 //
-//		iterator idx = manifold.SearchCell(cell_idx_, x, &(pcoords[0]));
+//		iterator idx = geometry.SearchCell(cell_idx_, x, &(pcoords[0]));
 //
 //		field_value_type res;
 //
 //		if (idx == cell_idx_)
 //		{
-//			manifold.template Gather(std::integral_constant<unsigned int ,IForm>(), &pcoords[0], &cache_[0],
+//			geometry.template Gather(std::integral_constant<unsigned int ,IForm>(), &pcoords[0], &cache_[0],
 //					&res, affect_Range_);
 //		}
 //		else //failsafe
@@ -324,7 +324,7 @@ public:
 	{
 //		cell_idx_ = s;
 //
-//		num_of_points_ = (manifold.GetAffectedPoints(std::integral_constant<unsigned int ,IForm>(), cell_idx_,
+//		num_of_points_ = (geometry.GetAffectedPoints(std::integral_constant<unsigned int ,IForm>(), cell_idx_,
 //				nullptr, affect_Range_));
 //
 //		if (num_of_points_ == 0)
@@ -335,7 +335,7 @@ public:
 //		points_.resize(num_of_points_);
 //		cache_.resize(num_of_points_);
 //
-//		manifold.GetAffectedPoints(std::integral_constant<unsigned int ,IForm>(), cell_idx_, &points_[0],
+//		geometry.GetAffectedPoints(std::integral_constant<unsigned int ,IForm>(), cell_idx_, &points_[0],
 //				affect_Range_);
 //
 //		value_type zero_value_;
@@ -353,13 +353,13 @@ public:
 	{
 //		coordinate_tuple pcoords;
 //
-//		iterator idx = manifold.SearchCell(cell_idx_, x, &pcoords[0]);
+//		iterator idx = geometry.SearchCell(cell_idx_, x, &pcoords[0]);
 //
 //		if (idx == cell_idx_)
 //		{
 //			field_value_type vv;
 //			vv = v;
-//			manifold.Scatter(std::integral_constant<unsigned int ,IForm>(), &pcoords[0], vv, &cache_[0],
+//			geometry.Scatter(std::integral_constant<unsigned int ,IForm>(), &pcoords[0], vv, &cache_[0],
 //					affect_Range_);
 //		}
 //		else //failsafe

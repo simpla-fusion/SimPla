@@ -8,7 +8,7 @@
 #define SIMPLA_BLOCK_H
 
 #include "../../gtl/primitives.h"
-#include "../mesh_traits.h"
+#include "manifold_traits.h"
 #include "mesh_id.h"
 
 namespace simpla
@@ -134,7 +134,7 @@ public:
 };
 
 
-} //namespace manifold
+} //namespace geometry
 } //namespace simpla
 
 #endif //SIMPLA_BLOCK_H

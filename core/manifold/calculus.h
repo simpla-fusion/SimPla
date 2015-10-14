@@ -15,9 +15,9 @@
 #include "../gtl/macro.h"
 #include "../gtl/mpl.h"
 #include "../gtl/type_traits.h"
-#include "../mesh/domain_traits.h"
-#include "../mesh/topology/mesh_ids.h"
-#include "../mesh/mesh_traits.h"
+#include "../manifold/domain_traits.h"
+#include "../manifold/topology/mesh_ids.h"
+#include "../manifold/manifold_traits.h"
 
 namespace simpla
 {
@@ -33,7 +33,7 @@ template<typename ...> class Expression;
  *    @brief  This module collects linear algebra operations between field/forms
  *
  *    \note  Linear algebra is the branch of mathematics concerning vector spaces and linear mappings between such spaces. --wiki
- *    \note \f$\Omega^n\f$ means fields/forms on N-dimensional manifold \f$M\f$.
+ *    \note \f$\Omega^n\f$ means fields/forms on N-dimensional geometry \f$M\f$.
  *  @}
  *
  */
@@ -91,7 +91,7 @@ template<typename ...> class Expression;
 
 /**
  * @ingroup diff_geo
- * \addtogroup  manifold Manifold
+ * \addtogroup  geometry Manifold
  *  @{
  *    \brief   Discrete spatial-temporal space
  *
@@ -115,16 +115,16 @@ template<typename ...> class Expression;
  *  ------------------------|-------------
  *  `M( const M& )` 		| Copy constructor.
  *  `~M()` 				    | Destructor.
- *  `geometry_type`		    | Geometry type of manifold, which describes coordinates and metric
- *  `topology_type`		    | Topology structure of manifold,   Topology of grid points
+ *  `geometry_type`		    | Geometry type of geometry, which describes coordinates and metric
+ *  `topology_type`		    | Topology structure of geometry,   Topology of grid points
  *  `coordiantes_type` 	    | data type of coordinates, i.e. nTuple<3,Real>
  *  `index_type`			| data type of the index of grid points, i.e. unsigned long
- *  `Domain  domain()`	    | Root domain of manifold
+ *  `Domain  domain()`	    | Root domain of geometry
  *
  *
  * Mesh policy concept {#concept_manifold_policy}
  * ================================================
- *   Poilcies define the behavior of manifold , such as  interpolate or calculus;
+ *   Poilcies define the behavior of geometry , such as  interpolate or calculus;
  ~~~~~~~~~~~~~{.cpp}
  template <typename Geometry > class P;
  ~~~~~~~~~~~~~
@@ -146,7 +146,7 @@ template<typename ...> class Expression;
  *  `scatter(field_type &f, coordinate_tuple x ,value_type v)` 	| scatter `v` to field  `f` at coordinates `x`.
  *
  * ## Calculus  policy
- *  Define calculus operation of  fields on the manifold, such  as algebra or differential calculus.
+ *  Define calculus operation of  fields on the geometry, such  as algebra or differential calculus.
  *  Differential calculus scheme , i.e. FDM,FVM,FEM,DG ....
  *
  *
@@ -229,16 +229,16 @@ template<typename T>
 struct value_type<Field<Expression<calculate::tags::ExteriorDerivative, T> > >
 {
 	typedef result_of_t<
-			simpla::_impl::multiplies(scalar_type_t<mesh_type_t<T >>,
-					value_type_t<T>)> type;
+			simpla::_impl::multiplies(scalar_type_t < mesh_type_t < T >> ,
+					value_type_t < T > )> type;
 };
 
 template<typename T>
 struct value_type<Field<Expression<calculate::tags::CodifferentialDerivative, T> > >
 {
 	typedef result_of_t<
-			simpla::_impl::multiplies(scalar_type_t<mesh_type_t<T >>,
-					value_type_t<T>)> type;
+			simpla::_impl::multiplies(scalar_type_t < mesh_type_t < T >> ,
+					value_type_t < T > )> type;
 };
 
 template<typename T0, typename T1>
@@ -246,7 +246,7 @@ struct value_type<Field<Expression<calculate::tags::Wedge, T0, T1> > >
 {
 
 	typedef result_of_t<
-			simpla::_impl::multiplies(value_type_t<T0>, value_type_t<T1>)> type;
+			simpla::_impl::multiplies(value_type_t < T0 > , value_type_t < T1 > )> type;
 };
 
 template<typename T0, typename T1>
@@ -254,13 +254,13 @@ struct value_type<Field<Expression<calculate::tags::InteriorProduct, T0, T1> > >
 {
 
 	typedef result_of_t<
-			simpla::_impl::multiplies(value_type_t<T0>, value_type_t<T1>)> type;
+			simpla::_impl::multiplies(value_type_t < T0 > , value_type_t < T1 > )> type;
 };
 
 template<typename T0, typename T1>
 struct value_type<Field<Expression<calculate::tags::MapTo, T0, T1> > >
 {
-	typedef value_type_t<T1> type;
+	typedef value_type_t <T1> type;
 };
 
 namespace _impl
@@ -271,7 +271,7 @@ template<typename ...T> using first_domain_t=typename first_domain<T...>::type;
 
 template<typename T0> struct first_domain<T0>
 {
-	typedef domain_t<T0> type;
+	typedef domain_t <T0> type;
 };
 template<typename T0, typename ...T> struct first_domain<T0, T...>
 {
@@ -316,7 +316,7 @@ inline auto operator*(Field<T...> const &f)
 DECL_RET_TYPE((hodge_star(f)))
 
 template<size_t ndims, typename TL, typename ...T>
-inline auto iv(nTuple<TL, ndims> const &v, Field<T...> const &f)
+inline auto iv(nTuple <TL, ndims> const &v, Field<T...> const &f)
 DECL_RET_TYPE((interior_product(v, f)))
 
 template<typename ...T1, typename ... T2>

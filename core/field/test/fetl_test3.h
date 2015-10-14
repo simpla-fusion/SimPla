@@ -167,13 +167,13 @@ TEST_P(TestFETL, grad0)
 //		if (abs(expect) > EPSILON)
 //		{
 //			EXPECT_LE(abs(2.0 * (f1[s] - expect) / (f1[s] + expect)), error) << " expect = " << expect
-//			        << " actual = " << f1[s] << " x= " << manifold.coordinates(s) << " K= " << K_real << " manifold.K="
-//			        << manifold.k_imag;
+//			        << " actual = " << f1[s] << " x= " << geometry.coordinates(s) << " K= " << K_real << " geometry.K="
+//			        << geometry.k_imag;
 //		}
 //		else
 //		{
 //			EXPECT_LE(abs(f1[s]), error) << " expect = " << expect << " actual = " << f1[s] << " x= "
-//			        << manifold.coordinates(s);
+//			        << geometry.coordinates(s);
 //
 //		}
 
@@ -245,12 +245,12 @@ TEST_P(TestFETL, grad3)
 //		if (abs(expect) > EPSILON)
 //		{
 //			EXPECT_LE(abs(2.0 * (f2[s] - expect) / (f2[s] + expect)), error) << " expect = " << expect
-//			        << " actual = " << f2[s] << " x= " << manifold.coordinates(s) << " K= " << K_real;
+//			        << " actual = " << f2[s] << " x= " << geometry.coordinates(s) << " K= " << K_real;
 //		}
 //		else
 //		{
 //			EXPECT_LE(abs(f2[s]), error) << " expect = " << expect << " actual = " << f2[s] << " x= "
-//			        << manifold.coordinates(s);
+//			        << geometry.coordinates(s);
 //
 //		}
 
@@ -340,13 +340,13 @@ TEST_P(TestFETL, diverge1)
 //		if (abs(expect) > EPSILON)
 //		{
 //			EXPECT_LE(abs(2.0 * (f0[s] - expect) / (f0[s] + expect)), error) << " expect = " << expect
-//			        << " actual = " << f0[s] << " x= " << manifold.coordinates(s) << " K= " << K_real << " K_i= "
+//			        << " actual = " << f0[s] << " x= " << geometry.coordinates(s) << " K= " << K_real << " K_i= "
 //			        << K_imag;
 //		}
 //		else
 //		{
 //			EXPECT_LE(abs(f0[s]), error) << " expect = " << expect << " actual = " << f0[s] << " x= "
-//			        << manifold.coordinates(s);
+//			        << geometry.coordinates(s);
 //
 //		}
 	}
@@ -356,7 +356,7 @@ TEST_P(TestFETL, diverge1)
 
 	EXPECT_LE(std::sqrt(variance), error);
 	EXPECT_LE(std::abs(average), error) << " K= " << K_real << " K_i= "
-			<< K_imag << " manifold.Ki=" << manifold.k_imag;
+			<< K_imag << " geometry.Ki=" << manifold.k_imag;
 
 }
 
@@ -529,12 +529,12 @@ TEST_P(TestFETL, curl1)
 //		if (abs(expect) > epsilon)
 //		{
 //			EXPECT_LE(abs(2.0 * (vf2[s] - expect) / (vf2[s] + expect)), error) << " expect = " << expect
-//			        << " actual = " << vf2[s] << " x= " << manifold.coordinates(s);
+//			        << " actual = " << vf2[s] << " x= " << geometry.coordinates(s);
 //		}
 //		else
 //		{
 //			EXPECT_LE(abs(vf2[s]), error) << " expect = " << expect << " actual = " << vf2[s] << " x= "
-//			        << manifold.coordinates(s);
+//			        << geometry.coordinates(s);
 //		}
 
 	}
@@ -639,11 +639,11 @@ TEST_P(TestFETL, curl2)
 
 //		if (abs(expect) > epsilon)
 //		{
-//			ASSERT_LE(abs(2.0 * (vf1[s] - expect) / (vf1[s] + expect)), error)<< " expect = "<<expect<<" actual = "<<vf1[s]<< " x= "<<manifold.coordinates(s);
+//			ASSERT_LE(abs(2.0 * (vf1[s] - expect) / (vf1[s] + expect)), error)<< " expect = "<<expect<<" actual = "<<vf1[s]<< " x= "<<geometry.coordinates(s);
 //		}
 //		else
 //		{
-//			ASSERT_LE(abs(vf1[s]), error)<< " expect = "<<expect<<" actual = "<<vf1[s]<< " x= "<<manifold.coordinates(s);
+//			ASSERT_LE(abs(vf1[s]), error)<< " expect = "<<expect<<" actual = "<<vf1[s]<< " x= "<<geometry.coordinates(s);
 //
 //		}
 
@@ -810,7 +810,7 @@ TEST_P(TestFETL, identity_div_curl_f2_eq0)
 {
 	if (!manifold.is_valid())
 		return;
-//	Real error = abs(std::pow(dot(K_real, manifold.get_dx()), 2.0));
+//	Real error = abs(std::pow(dot(K_real, geometry.get_dx()), 2.0));
 
 	auto f1 = makeField<EDGE, scalar_type>();
 	auto f2 = makeField<FACE, scalar_type>();

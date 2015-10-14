@@ -15,8 +15,8 @@
 
 #include "../gtl/integer_sequence.h"
 #include "../gtl/type_traits.h"
-#include "../mesh/mesh_traits.h"
-#include "../mesh/domain_traits.h"
+#include "../manifold/manifold_traits.h"
+#include "../manifold/domain_traits.h"
 
 namespace simpla
 {
@@ -64,7 +64,7 @@ struct reference<Field<TM, TV, Others...> >
 
 template<typename ...T, int M>
 struct extent<Field<T ...>, M> : public std::integral_constant<int,
-		simpla::mpl::seq_get<M, extents_t < Field<T ...> >>::value>
+		simpla::mpl::seq_get<M, extents_t<Field<T ...> >>::value>
 {
 };
 
@@ -77,16 +77,16 @@ struct key_type<Field<T ...> >
 template<typename ...T>
 struct mesh_type<Field<T...> >
 {
-	typedef mesh_type_t <domain_t<Field<T...> >> type;
+	typedef mesh_type_t<domain_t<Field<T...> >> type;
 };
 
 template<typename ...T>
-struct iform<Field<T...> > : public iform<domain_t < Field<T...> > >::type
+struct iform<Field<T...> > : public iform<domain_t<Field<T...> > >::type
 {
 };
 
 template<typename ...T>
-struct rank<Field<T...>> : public rank<domain_t < Field<T...> > >::type
+struct rank<Field<T...>> : public rank<domain_t<Field<T...> > >::type
 {
 };
 
@@ -97,7 +97,7 @@ struct field_value_type
 {
 	typedef typename std::conditional<
 			(iform<T>::value == VERTEX || iform<T>::value == VOLUME),
-			value_type_t < T>, nTuple<value_type_t < T>, 3> >::type type;
+			value_type_t<T>, nTuple<value_type_t<T>, 3> >::type type;
 };
 
 template<typename T> using field_value_t = typename field_value_type<T>::type;

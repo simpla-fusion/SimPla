@@ -183,21 +183,21 @@ public:
 //{
 //	coordinate_tuple x0 = { 0, 0, 0 }, x1 = { 1, 1, 1 };
 //
-//	CHECK(manifold.coordinates_to_index(x0));
-//	CHECK(manifold.coordinates_to_index(x1));
-//	auto d = manifold.delta_index(manifold.get_first_node_shift(EDGE));
-//	auto s0 = manifold.compact(manifold.coordinates_to_index(x0)) | manifold.get_first_node_shift(VERTEX);
-//	auto s1 = manifold.compact(manifold.coordinates_to_index(x1)) | manifold.get_first_node_shift(VERTEX);
+//	CHECK(geometry.coordinates_to_index(x0));
+//	CHECK(geometry.coordinates_to_index(x1));
+//	auto d = geometry.delta_index(geometry.get_first_node_shift(EDGE));
+//	auto s0 = geometry.compact(geometry.coordinates_to_index(x0)) | geometry.get_first_node_shift(VERTEX);
+//	auto s1 = geometry.compact(geometry.coordinates_to_index(x1)) | geometry.get_first_node_shift(VERTEX);
 //	CHECK_BIT(s0);
 //	CHECK_BIT(d);
 //	CHECK_BIT(s0 - d);
 //	CHECK_BIT(s0 - d);
 //	CHECK_BIT(s0 + d);
-//	CHECK(manifold.Hash(s0));
-//	CHECK(manifold.Hash(s0 - d));
-//	CHECK(manifold.Hash(s0 + d));
-//	CHECK(manifold.get_coordinates(s0 - d));
-//	CHECK(manifold.get_coordinates(s0 + d));
+//	CHECK(geometry.Hash(s0));
+//	CHECK(geometry.Hash(s0 - d));
+//	CHECK(geometry.Hash(s0 + d));
+//	CHECK(geometry.get_coordinates(s0 - d));
+//	CHECK(geometry.get_coordinates(s0 + d));
 //}
 
 //TEST_P(TestTopology,misc)

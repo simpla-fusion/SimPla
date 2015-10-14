@@ -47,7 +47,7 @@ typedef testing::Types<
 
 //#define DECLARE_STATIC_MANIFOLD( _VALUE_TYPE_,_IFORM_ )                            \
 //template<> std::shared_ptr<manifold_type>                                          \
-//TestField<Field<_VALUE_TYPE_, Domain<manifold_type, _IFORM_> >>::manifold =        \
+//TestField<Field<_VALUE_TYPE_, Domain<manifold_type, _IFORM_> >>::geometry =        \
 //		std::make_shared<manifold_type>(nTuple<Real, 3>( { 0.0, 0.0, 0.0 }),       \
 //				nTuple<Real, 3>( { 1.0, 2.0, 1.0 }), nTuple<size_t, 3>( { 40,      \
 //						12, 10 }));

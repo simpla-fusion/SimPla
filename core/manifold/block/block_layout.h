@@ -314,6 +314,6 @@ struct BlockLayout
 		return std::move(res);
 	}
 };
-}// namespace manifold
+}// namespace geometry
 }// namespace simpla
 #endif //SIMPLA_MESH_BLOCK_BLOCK_LAYOUT_H
