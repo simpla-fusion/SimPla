@@ -83,34 +83,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6cbb065d-692b-4192-ac68-cfb30db06ffe" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/core/mesh/calculate/calculate.h" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/core/mesh/calculus.h" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/core/mesh/geometry/coordinate_system.h" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/core/mesh/geometry/cs_cartesian.h" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/core/mesh/geometry/cs_cylindrical.h" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/core/mesh/calculate/fvm_structured.h" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/core/mesh/geometry/geometry.h" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/core/mesh/geometry_traits.h" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/core/mesh/structured/mesh_aux.h" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/core/mesh/mesh_backup.h" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/core/mesh/policy/mock_policies.h" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/core/mesh/topology/topology.h" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/core/mesh/policy/calculate_mock.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/core/mesh/policy/constant_metric.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/core/mesh/policy/rect_mesh.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/core/mesh/structured/calculate.h" afterPath="" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/core/mesh/mesh_ids.h" afterPath="$PROJECT_DIR$/core/mesh/topology/mesh_ids.h" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/core/mesh/topology/rect_mesh.h" afterPath="$PROJECT_DIR$/core/mesh/topology/structured.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/mesh/default_mesh.h" afterPath="$PROJECT_DIR$/core/mesh/default_mesh.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/mesh/domain.h" afterPath="$PROJECT_DIR$/core/mesh/domain.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/mesh/structured/interpolate.h" afterPath="$PROJECT_DIR$/core/mesh/structured/interpolate.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/mesh/structured/test/interpolator_test.h" afterPath="$PROJECT_DIR$/core/mesh/structured/test/interpolator_test.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/mesh/mesh.h" afterPath="$PROJECT_DIR$/core/mesh/mesh.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/mesh/mesh_traits.h" afterPath="$PROJECT_DIR$/core/mesh/mesh_traits.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/mesh/mock_mesh.h" afterPath="$PROJECT_DIR$/core/mesh/mock_mesh.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/mesh/policy.h" afterPath="$PROJECT_DIR$/core/mesh/policy.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/mesh/structured/rect_mesh.h" afterPath="$PROJECT_DIR$/core/mesh/structured/rect_mesh.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/mesh/structured/structured.h" afterPath="$PROJECT_DIR$/core/mesh/structured/structured.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="SimPla.iws" />
@@ -173,6 +145,11 @@
     </splitter>
   </component>
   <component name="Git.Settings">
+    <option name="PREVIOUS_COMMIT_AUTHORS">
+      <list>
+        <option value="salmon" />
+      </list>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="IdeDocumentHistory">
@@ -869,6 +846,13 @@
       <option name="number" value="Default" />
       <updated>1444647723773</updated>
     </task>
+    <task id="LOCAL-00001" summary="snapshot">
+      <created>1444801998073</created>
+      <option name="number" value="00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1444801998073</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TodoView">
@@ -886,6 +870,7 @@
     <layout>
       <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.1671875" sideWeight="0.4962963" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32962963" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32916668" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="CMake" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32962963" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32962963" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -893,7 +878,6 @@
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5055249" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32916668" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
@@ -914,6 +898,12 @@
   </component>
   <component name="VcsContentAnnotationSettings">
     <option name="myLimit" value="2678400000" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
+    <option name="CHECK_NEW_TODO" value="false" />
+    <MESSAGE value="snapshot" />
+    <option name="LAST_COMMIT_MESSAGE" value="snapshot" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
