@@ -8,134 +8,99 @@
 #include <gtest/gtest.h>
 #include "../kinetic_particle.h"
 #include "../simple_particle.h"
-<<<<<<< HEAD
 #include "rect_mesh.h"
 #include "../../field/field.h"
-=======
-#include "../../mesh/simple_mesh.h"
->>>>>>> origin/master
 
-#include "../../gtl/memory_pool.h"
+#include "../../utilities/memory_pool.h"
 #include "../../gtl/iterator/sp_iterator.h"
 #include "../../io/data_stream.h"
 #include "../../io/io.h"
 
 using namespace simpla;
 
-class TestKineticParticle : public testing::Test
+class TestKineticParticle: public testing::Test
 {
 protected:
-    virtual void SetUp()
-    {
-        LOGGER.set_stdout_visable_level(LOG_DEBUG);
-        nTuple <Real, 3> xmin =
-                {0, 2, 3};
-        nTuple <Real, 3> xmax =
-                {11, 15, 16};
-        nTuple <size_t, 3> imin =
-                {0, 0, 0};
-        nTuple <size_t, 3> imax =
-                {10, 10, 10};
-        mesh = std::shared_ptr<mesh_type>(
-                new mesh_type(xmin, xmax, imin, imax));
-    }
-
+	virtual void SetUp()
+	{
+		LOGGER.set_stdout_visable_level(LOG_DEBUG);
+		nTuple<Real, 3> xmin =
+		{ 0, 2, 3 };
+		nTuple<Real, 3> xmax =
+		{ 11, 15, 16 };
+		nTuple<size_t, 3> imin =
+		{ 0, 0, 0 };
+		nTuple<size_t, 3> imax =
+		{ 10, 10, 10 };
+		mesh = std::shared_ptr<mesh_type>(
+				new mesh_type(xmin, xmax, imin, imax));
+	}
 public:
-    typedef SimpleMesh mesh_type;
-    typedef SimpleParticleEngine engine_type;
-    typedef typename mesh_type::coordinate_tuple coordinate_tuple;
+	typedef SimpleMesh mesh_type;
+	typedef SimpleParticleEngine engine_type;
+	typedef typename mesh_type::coordinate_tuple coordinate_tuple;
 
-    typedef KineticParticle <mesh_type, engine_type> particle_type;
+	typedef KineticParticle<mesh_type, engine_type> particle_type;
 
-    static constexpr size_t pic = 10;
+	static constexpr size_t pic = 10;
 
-    std::shared_ptr<mesh_type> mesh;
+	std::shared_ptr<mesh_type> mesh;
 
-    typedef typename engine_type::Point_s Point_s;
+	typedef typename engine_type::Point_s Point_s;
 
 };
-
 constexpr size_t TestKineticParticle::pic;
 
-TEST_F(TestKineticParticle, insert
-)
+TEST_F(TestKineticParticle,insert)
 {
 
-particle_type p(*mesh);
+	particle_type p(*mesh);
 
-auto extents = mesh->extents();
+	auto extents = mesh->extents();
 
-auto range = mesh->range();
+	auto range = mesh->range();
 
-auto p_generator = simple_particle_generator(p, extents, 1.0);
+	auto p_generator = simple_particle_generator(p, extents, 1.0);
 
-std::mt19937 rnd_gen;
+	std::mt19937 rnd_gen;
 
-size_t num = 1000; //range.size();
+	size_t num = 1000; //range.size();
 
-std::copy(p_generator
-.
-begin(rnd_gen), p_generator
-.
-end(rnd_gen, pic
-* num),
-std::front_inserter(p)
-);
+	std::copy(p_generator.begin(rnd_gen), p_generator.end(rnd_gen, pic * num),
+			std::front_inserter(p));
 
-Real variance = 0;
-Real mean = 0;
+	Real variance = 0;
+	Real mean = 0;
 
-for (
-typename particle_type::bucket_type const &item :
-p.
-select(range)
-)
-{
-size_t n = std::distance(item.begin(), item.end());
-variance += (static_cast
-<Real>(n)
-- pic) * (static_cast
-<Real>(n)
-- pic);
-}
+	for (typename particle_type::bucket_type const & item : p.select(range))
+	{
+		size_t n = std::distance(item.begin(), item.end());
+		variance += (static_cast<Real>(n) - pic) * (static_cast<Real>(n) - pic);
+	}
 
-variance = std::sqrt(variance / (num * pic * pic));
+	variance = std::sqrt(variance / (num * pic * pic));
 
-EXPECT_LE(variance,
-1.0 /
-std::sqrt(pic)
-);
+	EXPECT_LE(variance, 1.0 / std::sqrt(pic));
 
-CHECK(variance);
+	CHECK(variance);
 
-CHECK(p.size());
+	CHECK(p.size());
 
-EXPECT_EQ(p
-.
+	EXPECT_EQ(p.size(), pic * num);
 
-size(), pic
-
-* num);
-
-LOGGER
-<< save("pic", p.
-
-dataset()
-
-) <<
-std::endl;
+	LOGGER << save("pic", p.dataset()) << std::endl;
 
 }
 
 //TEST_F(TestKineticParticle, dump)
 //{
 //
-//	SimpleField<mesh_type, Real> n(mesh), n0(mesh);
+//	SimpleField<mesh_type, Real> n(manifold), n0(manifold);
 //
-//	particle_type ion(mesh);
+//	particle_type ion(manifold);
 //
-//	SimpleField<mesh_type, Real> E(mesh);
-//	SimpleField<mesh_type, Real> B(mesh);
+//	SimpleField<mesh_type, Real> E(manifold);
+//	SimpleField<mesh_type, Real> B(manifold);
 //
 //	E.clear();
 //	B.clear();
@@ -147,9 +112,9 @@ std::endl;
 //
 //	Real average = 0.0;
 //
-////	for (auto s : mesh->range())
+////	for (auto s : manifold->range())
 ////	{
-////		coordinate_tuple x = mesh->id_to_coordinates(s);
+////		coordinate_tuple x = manifold->id_to_coordinates(s);
 ////
 ////		Real expect = q * n(x[0], x[1], x[2]).template as<Real>();
 ////

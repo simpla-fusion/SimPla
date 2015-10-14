@@ -8,10 +8,9 @@
 #ifndef ITERATOR_CACHED_H_
 #define ITERATOR_CACHED_H_
 
-namespace simpla {
-namespace gtl {
+namespace simpla
+{
 
-}
-}//  namespace simpla::gtl
+}  // namespace simpla
 
 #endif /* ITERATOR_CACHED_H_ */

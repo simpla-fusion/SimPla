@@ -9,7 +9,6 @@
 #define CORE_GPTL_CONCEPT_CHECK_H_
 
 namespace simpla
-{namespace gtl
 {
 /**
  * @ingroup gtl
@@ -355,6 +354,6 @@ typename std::enable_if<!is_callable<TFun,Args&&...>::value,TFun>::type
 	return fun;
 }
 }
-}//  namespace simpla::gtl
+// namespace simpla
 
 #endif /* CORE_GPTL_CONCEPT_CHECK_H_ */

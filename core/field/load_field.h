@@ -1,12 +1,12 @@
 /**
- * @file load_field.h
+ * @file loadField.h
  *
  *  created on: 2013-12-9
  *      Author: salmon
  */
 
-#ifndef CORE_FIELD_LOAD_FIELD_H_
-#define CORE_FIELD_LOAD_FIELD_H_
+#ifndef COREField_LOADField_H_
+#define COREField_LOADField_H_
 
 #include <string>
 
@@ -17,7 +17,7 @@ namespace simpla
 {
 
 template<typename TDict, typename TField>
-bool load_field(TDict const & dict, TField *f)
+bool loadField(TDict const & dict, TField *f)
 {
 	if (!f->is_valid())
 	{
@@ -53,7 +53,7 @@ bool load_field(TDict const & dict, TField *f)
 }
 //
 //template<typename TMesh, typename TDomain, typename TDict, typename TF>
-//bool assign_field_by_config_impl_(TMesh const & mesh, TDomain const & domain,
+//bool assignField_by_config_impl_(TMesh const & manifold, TDomain const & domain,
 //		TDict const &dict, TF *f)
 //{
 //
@@ -63,8 +63,8 @@ bool load_field(TDict const & dict, TField *f)
 //	{
 //		for (auto const &s : domain)
 //		{
-//			(*f)[s] = mesh.sample(
-//					dict(mesh.coordinates(s)).template as<field_value_type>(),
+//			(*f)[s] = manifold.sample(
+//					dict(manifold.coordinates(s)).template as<field_value_type>(),
 //					s);
 //		}
 //	}
@@ -74,7 +74,7 @@ bool load_field(TDict const & dict, TField *f)
 //
 //		for (auto const &s : domain)
 //		{
-//			(*f)[s] = mesh.sample(v, s);
+//			(*f)[s] = manifold.sample(v, s);
 //		}
 //
 //	}
@@ -87,15 +87,15 @@ bool load_field(TDict const & dict, TField *f)
 //
 //}
 //template<int DIMS, typename TV, typename TDict, typename ...T>
-//bool load_field_wrap(nTuple<std::complex<TV>, DIMS>, TDict const &dict,
-//		_Field<T...> *f)
+//bool loadField_wrap(nTuple<std::complex<TV>, DIMS>, TDict const &dict,
+//		Field<T...> *f)
 //{
 //
-//	auto ff = make_field<nTuple<Real, DIMS>>(f->domain());
+//	auto ff = makeField<nTuple<Real, DIMS>>(f->domain());
 //
 //	ff.clear();
 //
-//	bool success = load_field_(dict, &ff);
+//	bool success = loadField_(dict, &ff);
 //
 //	if (success)
 //		*f = ff;
@@ -104,14 +104,14 @@ bool load_field(TDict const & dict, TField *f)
 //}
 //
 //template<typename TV, typename TDict, typename ... T>
-//bool load_field_wrap(std::complex<TV>, TDict const &dict, _Field<T...> *f)
+//bool loadField_wrap(std::complex<TV>, TDict const &dict, Field<T...> *f)
 //{
 //
-//	auto ff = make_field<Real>(f->domain());
+//	auto ff = makeField<Real>(f->domain());
 //
 //	ff.clear();
 //
-//	bool success = load_field_(dict, &ff);
+//	bool success = loadField_(dict, &ff);
 //
 //	if (success)
 //		*f = ff;
@@ -120,17 +120,17 @@ bool load_field(TDict const & dict, TField *f)
 //}
 //
 //template<typename TV, typename TDict, typename ...T>
-//bool load_field_wrap(TV, TDict const &dict, _Field<T...> *f)
+//bool loadField_wrap(TV, TDict const &dict, Field<T...> *f)
 //{
-//	return load_field_(dict, f);
+//	return loadField_(dict, f);
 //}
 //
 //template<typename TDict, typename ...T>
-//bool load_field(TDict const &dict, _Field<T...> *f)
+//bool loadField(TDict const &dict, Field<T...> *f)
 //{
-//	typedef typename field_traits<_Field<T...>>::value_type value_type;
+//	typedef typename field_traits<Field<T...>>::value_type value_type;
 //
-//	return load_field_wrap(value_type(), dict, f);
+//	return loadField_wrap(value_type(), dict, f);
 //}
 
 //template<typename TDict>
@@ -178,4 +178,4 @@ bool load_field(TDict const & dict, TField *f)
 //}
 }// namespace simpla
 
-#endif /* CORE_FIELD_LOAD_FIELD_H_ */
+#endif /* COREField_LOADField_H_ */

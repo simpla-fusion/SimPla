@@ -8,7 +8,7 @@
 #include <iostream>
 #include <cmath>
 #include "field.h"
-#include "save_field.h"
+#include "saveField.h"
 #include "../utilities/log.h"
 //#include "../manifold/manifold.h"
 //#include "../manifold/domain.h"
@@ -46,23 +46,23 @@ int main(int argc, char **argv)
 
 	SimpleMesh<> domain;
 //
-//	mesh_type mesh;
+//	mesh_type manifold;
 //
-//	mesh.dimensions(dims);
-//	mesh.extents(xmin, xmax);
+//	manifold.dimensions(dims);
+//	manifold.extents(xmin, xmax);
 //
-//	mesh.update();
+//	manifold.update();
 
-	auto f0 = make_field<int>(domain);
-	auto f1 = make_field<int>(domain);
+	auto f0 = makeField<int>(domain);
+	auto f1 = makeField<int>(domain);
 //
 //	f0.clear();
 //	f1.clear();
 //
-//	for (auto s : mesh.select(VERTEX))
+//	for (auto s : manifold.select(VERTEX))
 //	{
 //		auto idx = (mesh_type::decompact(s) >> mesh_type::MAX_DEPTH_OF_TREE)
-//				- mesh.global_begin_;
+//				- manifold.global_begin_;
 //
 //		f0[s] = idx[0] + (GLOBAL_COMM.get_rank())*100;
 //
@@ -110,13 +110,13 @@ int main(int argc, char **argv)
 //	size_t size = vec.size();
 //	INFORM << GLOBAL_DATA_STREAM.write("data",&vec[0],DataType::create<int>(),1,nullptr,&size,nullptr,nullptr,nullptr,nullptr ,DataStream::SP_UNORDER);
 //
-//	auto fv = mesh.make_field<EDGE, Real>();
+//	auto fv = manifold.makeField<EDGE, Real>();
 //
 //	fv.clear();
 //
-//	for (auto s : mesh.select(EDGE))
+//	for (auto s : manifold.select(EDGE))
 //	{
-//		auto x = mesh.get_coordinates(s);
+//		auto x = manifold.get_coordinates(s);
 //
 //		fv[s] = std::sin(
 //				x[0] * TWOPI / (xmax[0] - xmin[0])

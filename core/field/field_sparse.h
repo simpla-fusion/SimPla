@@ -5,8 +5,8 @@
  *  @author: salmon
  */
 
-#ifndef CORE_FIELD_FIELD_SPARSE_H_
-#define CORE_FIELD_FIELD_SPARSE_H_
+#ifndef COREFieldField_SPARSE_H_
+#define COREFieldField_SPARSE_H_
 
 #include <cstdbool>
 #include <memory>
@@ -18,14 +18,14 @@
 #include "field_expression.h"
 namespace simpla
 {
-template<typename ...>struct _Field;
+template<typename ...>struct Field;
 
 /**
  * @ingroup field
  * @brief Field using  associative container 'map'
  */
 template<typename TM, typename TV>
-struct _Field<TM, TV, _impl::is_associative_container> : public SpObject
+struct Field<TM, TV, _impl::is_associative_container> : public SpObject
 {
 	typedef TM mesh_type;
 
@@ -37,7 +37,7 @@ struct _Field<TM, TV, _impl::is_associative_container> : public SpObject
 
 	typedef std::map<id_type, value_type> container_type;
 
-	typedef _Field<mesh_type, value_type, _impl::is_associative_container> this_type;
+	typedef Field<mesh_type, value_type, _impl::is_associative_container> this_type;
 
 private:
 
@@ -48,17 +48,17 @@ private:
 public:
 
 	template<typename ...Args>
-	_Field(mesh_type const & d, Args && ... args)
+	Field(mesh_type const & d, Args && ... args)
 			: m_mesh_(d)
 	{
 
 	}
-	_Field(this_type const & that)
+	Field(this_type const & that)
 			: m_mesh_(that.m_mesh_), m_data_(that.m_data_)
 	{
 	}
 
-	~_Field()
+	~Field()
 	{
 	}
 
@@ -67,12 +67,12 @@ public:
 		return "Field<" + m_mesh_.get_type_as_string() + ">";
 	}
 
-	template<typename TU> using clone_field_type= _Field<TM,TU, _impl::is_associative_container>;
+	template<typename TU> using cloneField_type= Field<TM,TU, _impl::is_associative_container>;
 
 	template<typename TU>
-	clone_field_type<TU> clone() const
+	cloneField_type<TU> clone() const
 	{
-		return clone_field_type<TU>(m_mesh_);
+		return cloneField_type<TU>(m_mesh_);
 	}
 
 	mesh_type const & mesh() const
@@ -93,21 +93,21 @@ public:
 		return m_mesh_.is_divisible();
 	}
 
-	inline _Field<AssignmentExpression<_impl::_assign, this_type, this_type>> operator =(
+	inline Field<AssignmentExpression<_impl::_assign, this_type, this_type>> operator =(
 			this_type const &that)
 	{
 		return std::move(
-				_Field<
+				Field<
 						AssignmentExpression<_impl::_assign, this_type,
 								this_type>>(*this, that));
 	}
 
 	template<typename TR>
-	inline _Field<AssignmentExpression<_impl::_assign, this_type, TR>> operator =(
+	inline Field<AssignmentExpression<_impl::_assign, this_type, TR>> operator =(
 			TR const &that)
 	{
 		return std::move(
-				_Field<AssignmentExpression<_impl::_assign, this_type, TR>>(
+				Field<AssignmentExpression<_impl::_assign, this_type, TR>>(
 						*this, that));
 	}
 
@@ -145,4 +145,4 @@ public:
 
 }  // namespace simpla
 
-#endif /* CORE_FIELD_FIELD_SPARSE_H_ */
+#endif /* COREFieldField_SPARSE_H_ */

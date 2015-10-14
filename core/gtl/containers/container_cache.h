@@ -11,8 +11,7 @@
 #include "../type_traits.h"
 namespace simpla
 {
-namespace gtl
-{
+
 /**
  * \brief  Cache is transparent, and would not change the behavior
  * of source object. In default, Cache do nothing. It only affect
@@ -113,6 +112,6 @@ void FlushCache(T & f, Others & ...others)
 
 template<typename T> auto make_cache(T&& v)
 DECL_RET_TYPE((CacheContariner<T>(std::forward<T>(v))))
-}  }//  namespace simpla::gtl
+}  // namespace simpla
 
 #endif /* CONTAINER_CACHE_H_ */

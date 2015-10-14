@@ -16,9 +16,24 @@
 #include "chains.h"
 //#include "model.h"
 #ifdef USE_BOOST
-#	error "Custom geometry library is not implemented!"
+#	error "Custom geometry_obj library is not implemented!"
 #else
+
 #	include "boost_gemetry_adapted.h"
+
 #endif
+
+namespace simpla
+{
+namespace geometry
+{
+
+
+template<typename, typename> struct map;
+
+template<typename> struct mertic;
+
+}//namespace geometry
+}//namespace simpla
 
 #endif /* CORE_GEOMETRY_GEOMETRY_H_ */

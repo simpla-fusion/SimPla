@@ -14,6 +14,7 @@
 #include "model.h"
 
 namespace simpla {
+
 namespace geometry {
 template<typename CS>
 auto area(model::Polyline<CS, tags::is_closed> const &poly)

@@ -27,12 +27,12 @@ TEST_P(TestFETL ,vec_zero_form)
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-	auto res_scalar_field = manifold.make_field<VERTEX, scalar_type>();
+	auto res_scalarField = manifold.makeField<VERTEX, scalar_type>();
 
-	auto vaf = manifold.make_field<VERTEX, nTuple<3, scalar_type> >();
-	auto vbf = manifold.make_field<VERTEX, nTuple<3, scalar_type> >();
+	auto vaf = manifold.makeField<VERTEX, nTuple<3, scalar_type> >();
+	auto vbf = manifold.makeField<VERTEX, nTuple<3, scalar_type> >();
 
-	auto res_vector_field = manifold.make_field<VERTEX, nTuple<3, scalar_type> >();
+	auto res_vectorField = manifold.makeField<VERTEX, nTuple<3, scalar_type> >();
 
 	vaf.clear();
 	vbf.clear();
@@ -48,19 +48,19 @@ TEST_P(TestFETL ,vec_zero_form)
 	}
 	update_ghosts(&vbf);
 
-	LOG_CMD(res_vector_field = Cross(vaf, vbf));
+	LOG_CMD(res_vectorField = Cross(vaf, vbf));
 
 	for (auto s : manifold.select(VERTEX))
 	{
-		ASSERT_EQ(Cross(vaf[s], vbf[s]), res_vector_field[s]);
+		ASSERT_EQ(Cross(vaf[s], vbf[s]), res_vectorField[s]);
 
 	}
 
-	LOG_CMD(res_scalar_field = Dot(vaf, vbf));
+	LOG_CMD(res_scalarField = Dot(vaf, vbf));
 
 	for (auto s : manifold.select(VERTEX))
 	{
-		ASSERT_EQ(InnerProductNTuple(vaf[s], vbf[s]), res_scalar_field[s]);
+		ASSERT_EQ(InnerProductNTuple(vaf[s], vbf[s]), res_scalarField[s]);
 	}
 
 }

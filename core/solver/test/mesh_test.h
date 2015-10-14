@@ -121,10 +121,10 @@ TEST_P(MeshTest, coordinates)
 
 		auto x = mesh.coordinates_global_to_local(mesh.coordinates(s), nid);
 
-//		EXPECT_EQ( mesh.pack( mesh.coordinates_to_topology(mesh.coordinates(s)) ),s)
-//				<< mesh.coordinates(s) << " "
-//				<< mesh.coordinates_to_topology(mesh.coordinates(s)) << " "
-//				<< std::hex << mesh.unpack(s);
+//		EXPECT_EQ( manifold.pack( manifold.coordinates_to_topology(manifold.coordinates(s)) ),s)
+//				<< manifold.coordinates(s) << " "
+//				<< manifold.coordinates_to_topology(manifold.coordinates(s)) << " "
+//				<< std::hex << manifold.unpack(s);
 
 	}
 

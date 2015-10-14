@@ -4,8 +4,8 @@
  * @date  2013-7-19
  * @author  salmon
  */
-#ifndef CORE_FIELD_FIELD_H_
-#define CORE_FIELD_FIELD_H_
+#ifndef COREFieldField_H_
+#define COREFieldField_H_
 
 #include <stddef.h>
 #include <memory>
@@ -13,10 +13,7 @@
 #include "field_expression.h"
 #include "field_dense.h"
 #include "field_function.h"
-#include "field_traits.h"
 #include "load_field.h"
-
-#include "calculus.h"
 
 namespace simpla
 {
@@ -118,7 +115,7 @@ namespace simpla
  * Field Class
  */
 template<typename ...> struct Domain;
-template<typename ...> struct _Field;
+template<typename ...> struct Field;
 
 
 /** @} */
@@ -126,13 +123,13 @@ template<typename ...> struct _Field;
 namespace traits
 {
 template<typename ... T, typename ...Others>
-struct domain_type<_Field<Domain<T...>, Others...> >
+struct domain_type<Field<Domain<T...>, Others...> >
 {
 	typedef Domain<T...> type;
 };
 template<typename> struct mesh_type;
 template<typename ... T, typename ...Others>
-struct mesh_type<_Field<Domain<T...>, Others...> >
+struct mesh_type<Field<Domain<T...>, Others...> >
 {
 	typedef mesh_type_t<Domain<T...>> type;
 };
@@ -142,4 +139,4 @@ struct mesh_type<_Field<Domain<T...>, Others...> >
 }
 // namespace simpla
 
-#endif /* CORE_FIELD_FIELD_H_ */
+#endif /* COREFieldField_H_ */

@@ -15,7 +15,7 @@
 #include "../gtl/dataset/dataset.h"
 #include "../gtl/enable_create_from_this.h"
 #include "../physics/physical_object.h"
-#include "utilities.h"
+#include "../gtl/utilities/utilities.h"
 #include "../gtl/primitives.h"
 
 namespace simpla {

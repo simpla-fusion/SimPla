@@ -17,13 +17,13 @@
 #include "../../gtl/macro.h"
 #include "../../gtl/primitives.h"
 #include "../../gtl/type_traits.h"
-#include "../../mesh/mesh_ids.h"
+#include "manifold"
 #include "../../mesh/mesh_traits.h"
 
 namespace simpla
 {
 
-template<typename ...> class _Field;
+template<typename ...> class Field;
 
 /** @ingroup diff_scheme
  *  @brief   FdMesh
@@ -46,16 +46,17 @@ struct MapTo;
 
 namespace solver
 {
-template<typename TM, typename TAGS> struct calculate;
+
+template<typename TM, typename TAGS> struct calculate_fvm;
 
 template<typename MeshType>
-struct calculate<MeshType, tags::finite_difference>
+struct calculate_fvm<MeshType, tags::finite_difference>
 {
 public:
 
 	typedef MeshType mesh_type;
 
-	typedef calculate<mesh_type, tags::finite_difference> this_type;
+	typedef calculate_fvm<mesh_type, tags::finite_difference> this_type;
 
 	typedef traits::scalar_type_t <mesh_type> scalar_type;
 
@@ -105,17 +106,17 @@ public:
 
 	template<typename TM, typename TV, typename ... Others, typename ... Args>
 	static constexpr TV eval(mesh_type const &geo,
-			_Field<TM, TV, Others...> const &f, id_type s)
+			Field<TM, TV, Others...> const &f, id_type s)
 	{
 		return traits::index(f, s);
 	}
 
 	template<typename TOP, typename ... T>
 	static constexpr traits::primary_type_t <
-	traits::value_type_t<_Field<Expression < TOP, T...> >> >
+	traits::value_type_t<Field<Expression < TOP, T...> >> >
 	eval(
 			mesh_type const
-	&geo, _Field<Expression < TOP, T...> > const &expr,
+	&geo, Field<Expression < TOP, T...> > const &expr,
 	id_type const &s
 	)
 	{
@@ -139,10 +140,10 @@ public:
 
 	template<typename TOP, typename ... T>
 	static constexpr traits::primary_type_t <
-	traits::value_type_t<_Field<Expression < TOP, T...> >> >
+	traits::value_type_t<Field<Expression < TOP, T...> >> >
 	eval(
 			mesh_type const
-	&geo, _Field<Expression < TOP, T...> > const &expr,
+	&geo, Field<Expression < TOP, T...> > const &expr,
 	id_type const &s, traits::iform_list_t<T...>
 	)
 	{
@@ -157,11 +158,11 @@ public:
 
 	template<typename T>
 	static inline traits::value_type_t <
-	_Field<Expression < tags::ExteriorDerivative, T>> >
+	Field<Expression < tags::ExteriorDerivative, T>> >
 	eval(
 			mesh_type const
 	&geo,
-	_Field<Expression < tags::ExteriorDerivative, T> > const &f,
+	Field<Expression < tags::ExteriorDerivative, T> > const &f,
 	id_type s, integer_sequence<int, VERTEX>
 	)
 	{
@@ -173,11 +174,11 @@ public:
 
 	template<typename T>
 	static inline traits::value_type_t <
-	_Field<Expression < tags::ExteriorDerivative, T>> >
+	Field<Expression < tags::ExteriorDerivative, T>> >
 	eval(
 			mesh_type const
 	&geo,
-	_Field<Expression < tags::ExteriorDerivative, T> > const &expr,
+	Field<Expression < tags::ExteriorDerivative, T> > const &expr,
 	id_type s, integer_sequence<int, EDGE>
 	)
 	{
@@ -198,11 +199,11 @@ public:
 
 	template<typename T>
 	static constexpr inline traits::value_type_t <
-	_Field<Expression < tags::ExteriorDerivative, T>> >
+	Field<Expression < tags::ExteriorDerivative, T>> >
 	eval(
 			mesh_type const
 	&geo,
-	_Field<Expression < tags::ExteriorDerivative, T> > const &expr,
+	Field<Expression < tags::ExteriorDerivative, T> > const &expr,
 	id_type s, integer_sequence<int, FACE>
 	)
 	{
@@ -223,20 +224,20 @@ public:
 	}
 //
 ////	template<typename geometry_type,typename TM, int IL, typename TL> void eval(
-////			tags::ExteriorDerivative, _Field<Domain<TM, IL>, TL> const & f,
+////			tags::ExteriorDerivative, Field<Domain<TM, IL>, TL> const & f,
 ////					typename geometry_type::id_type   s)  = delete;
 ////
 ////	template<typename geometry_type,typename TM, int IL, typename TL> void eval(
 ////			tags::CodifferentialDerivative,
-////			_Field<TL...> const & f, 		typename geometry_type::id_type   s)  = delete;
+////			Field<TL...> const & f, 		typename geometry_type::id_type   s)  = delete;
 
 	template<typename T>
 	static constexpr inline traits::value_type_t <
-	_Field<Expression < tags::CodifferentialDerivative, T>> >
+	Field<Expression < tags::CodifferentialDerivative, T>> >
 	eval(
 			mesh_type const
 	&geo,
-	_Field<Expression < tags::CodifferentialDerivative, T>> const &expr,
+	Field<Expression < tags::CodifferentialDerivative, T>> const &expr,
 	id_type s, integer_sequence<int, EDGE>
 	)
 	{
@@ -259,11 +260,11 @@ public:
 
 	template<typename T>
 	static inline traits::value_type_t <
-	_Field<Expression < tags::CodifferentialDerivative, T>> >
+	Field<Expression < tags::CodifferentialDerivative, T>> >
 	eval(
 			mesh_type const
 	&geo,
-	_Field<Expression < tags::CodifferentialDerivative, T>> const &expr,
+	Field<Expression < tags::CodifferentialDerivative, T>> const &expr,
 	id_type s, integer_sequence<int, FACE>
 	)
 	{
@@ -288,11 +289,11 @@ public:
 
 	template<typename T>
 	static inline traits::value_type_t <
-	_Field<Expression < tags::CodifferentialDerivative, T>> >
+	Field<Expression < tags::CodifferentialDerivative, T>> >
 	eval(
 			mesh_type const
 	&geo,
-	_Field<Expression < tags::CodifferentialDerivative, T> > const &expr,
+	Field<Expression < tags::CodifferentialDerivative, T> > const &expr,
 	id_type s, integer_sequence<int, VOLUME>
 	)
 	{
@@ -312,11 +313,11 @@ public:
 ////! Form<IR> ^ Form<IR> => Form<IR+IL>
 
 	template<typename TL, typename TR>
-	static inline traits::value_type_t <_Field<Expression < tags::Wedge, TL, TR>> >
+	static inline traits::value_type_t <Field<Expression < tags::Wedge, TL, TR>> >
 	eval(
 			mesh_type const
 	&geo,
-	_Field<Expression < tags::Wedge, TL, TR>> const &expr,
+	Field<Expression < tags::Wedge, TL, TR>> const &expr,
 	id_type s,
 			integer_sequence<int, VERTEX, VERTEX>
 	)
@@ -326,11 +327,11 @@ public:
 	}
 
 	template<typename TL, typename TR>
-	static inline traits::value_type_t <_Field<Expression < tags::Wedge, TL, TR>> >
+	static inline traits::value_type_t <Field<Expression < tags::Wedge, TL, TR>> >
 	eval(
 			mesh_type const
 	&geo,
-	_Field<Expression < tags::Wedge, TL, TR>> const &expr,
+	Field<Expression < tags::Wedge, TL, TR>> const &expr,
 	id_type s,
 			integer_sequence<int, VERTEX, EDGE>
 	)
@@ -343,11 +344,11 @@ public:
 	}
 
 	template<typename TL, typename TR>
-	static inline traits::value_type_t <_Field<Expression < tags::Wedge, TL, TR>> >
+	static inline traits::value_type_t <Field<Expression < tags::Wedge, TL, TR>> >
 	eval(
 			mesh_type const
 	&geo,
-	_Field<Expression < tags::Wedge, TL, TR>> const &expr,
+	Field<Expression < tags::Wedge, TL, TR>> const &expr,
 	id_type s,
 			integer_sequence<int, VERTEX, FACE>
 	)
@@ -367,11 +368,11 @@ public:
 	}
 
 	template<typename TL, typename TR>
-	static inline traits::value_type_t <_Field<Expression < tags::Wedge, TL, TR>> >
+	static inline traits::value_type_t <Field<Expression < tags::Wedge, TL, TR>> >
 	eval(
 			mesh_type const
 	&geo,
-	_Field<Expression < tags::Wedge, TL, TR>> const &expr,
+	Field<Expression < tags::Wedge, TL, TR>> const &expr,
 	id_type s,
 			integer_sequence<int, VERTEX, VOLUME>
 	)
@@ -406,11 +407,11 @@ public:
 	}
 
 	template<typename TL, typename TR>
-	static inline traits::value_type_t <_Field<Expression < tags::Wedge, TL, TR>> >
+	static inline traits::value_type_t <Field<Expression < tags::Wedge, TL, TR>> >
 	eval(
 			mesh_type const
 	&geo,
-	_Field<Expression < tags::Wedge, TL, TR>> const &expr,
+	Field<Expression < tags::Wedge, TL, TR>> const &expr,
 	id_type s,
 			integer_sequence<int, EDGE, VERTEX>
 	)
@@ -425,11 +426,11 @@ public:
 	}
 
 	template<typename TL, typename TR>
-	static inline traits::value_type_t <_Field<Expression < tags::Wedge, TL, TR>> >
+	static inline traits::value_type_t <Field<Expression < tags::Wedge, TL, TR>> >
 	eval(
 			mesh_type const
 	&geo,
-	_Field<Expression < tags::Wedge, TL, TR>> const &expr,
+	Field<Expression < tags::Wedge, TL, TR>> const &expr,
 	id_type s,
 			integer_sequence<int, EDGE, EDGE>
 	)
@@ -446,11 +447,11 @@ public:
 	}
 
 	template<typename TL, typename TR>
-	static inline traits::value_type_t <_Field<Expression < tags::Wedge, TL, TR>> >
+	static inline traits::value_type_t <Field<Expression < tags::Wedge, TL, TR>> >
 	eval(
 			mesh_type const
 	&geo,
-	_Field<Expression < tags::Wedge, TL, TR>> const &expr,
+	Field<Expression < tags::Wedge, TL, TR>> const &expr,
 	id_type s,
 			integer_sequence<int, EDGE, FACE>
 	)
@@ -483,11 +484,11 @@ public:
 	}
 
 	template<typename TL, typename TR>
-	static inline traits::value_type_t <_Field<Expression < tags::Wedge, TL, TR>> >
+	static inline traits::value_type_t <Field<Expression < tags::Wedge, TL, TR>> >
 	eval(
 			mesh_type const
 	&geo,
-	_Field<Expression < tags::Wedge, TL, TR> > const &expr,
+	Field<Expression < tags::Wedge, TL, TR> > const &expr,
 	id_type s,
 			integer_sequence<int, FACE, VERTEX>
 	)
@@ -505,11 +506,11 @@ public:
 	}
 
 	template<typename TL, typename TR>
-	static inline traits::value_type_t <_Field<Expression < tags::Wedge, TL, TR>> >
+	static inline traits::value_type_t <Field<Expression < tags::Wedge, TL, TR>> >
 	eval(
 			mesh_type const
 	&geo,
-	_Field<Expression < tags::Wedge, TL, TR> > const &expr,
+	Field<Expression < tags::Wedge, TL, TR> > const &expr,
 	id_type s,
 			integer_sequence<int, FACE, EDGE>
 	)
@@ -540,11 +541,11 @@ public:
 	}
 
 	template<typename TL, typename TR>
-	static inline traits::value_type_t <_Field<Expression < tags::Wedge, TL, TR>> >
+	static inline traits::value_type_t <Field<Expression < tags::Wedge, TL, TR>> >
 	eval(
 			mesh_type const
 	&geo,
-	_Field<Expression < tags::Wedge, TL, TR>> const &expr,
+	Field<Expression < tags::Wedge, TL, TR>> const &expr,
 	id_type s,
 			integer_sequence<int, VOLUME, VERTEX>
 	)
@@ -574,9 +575,9 @@ public:
 //////***************************************************************************************************
 //
 //	template<typename T>
-//	static inline traits::value_type_t<_Field<Expression<tags::HodgeStar, T> > > eval(
+//	static inline traits::value_type_t<Field<Expression<tags::HodgeStar, T> > > eval(
 //			mesh_type const & geo,
-//			_Field<Expression<tags::HodgeStar, T> > const & expr, id_type s,
+//			Field<Expression<tags::HodgeStar, T> > const & expr, id_type s,
 //			integer_sequence<int, VOLUME>)
 //	{
 //		auto const & f = std::get<0>(expr.args);
@@ -611,14 +612,14 @@ public:
 //
 ////	template<typename geometry_type,typename TM, typename TL, typename TR> void eval(
 ////			tags::InteriorProduct, nTuple<TR, G::ndims> const & v,
-////			_Field<Domain<TM, VERTEX>, TL> const & f,
+////			Field<Domain<TM, VERTEX>, TL> const & f,
 ////					typename geometry_type::id_type   s)  = delete;
 //
 //	template<typename TL, typename TR>
 //	static inline traits::value_type_t<
-//			_Field<Expression<tags::InteriorProduct, TL, TR> > > eval(
+//			Field<Expression<tags::InteriorProduct, TL, TR> > > eval(
 //			mesh_type const & geo,
-//			_Field<Expression<tags::InteriorProduct, TL, TR>> const & expr,
+//			Field<Expression<tags::InteriorProduct, TL, TR>> const & expr,
 //			id_type s, integer_sequence<int, EDGE, VERTEX>)
 //	{
 //		auto const & f = std::get<0>(expr.args);
@@ -637,9 +638,9 @@ public:
 //
 //	template<typename TL, typename TR>
 //	static inline traits::value_type_t<
-//			_Field<Expression<tags::InteriorProduct, TL, TR> > > eval(
+//			Field<Expression<tags::InteriorProduct, TL, TR> > > eval(
 //			mesh_type const & geo,
-//			_Field<Expression<tags::InteriorProduct, TL, TR>> const & expr,
+//			Field<Expression<tags::InteriorProduct, TL, TR>> const & expr,
 //			id_type s, integer_sequence<int, FACE, VERTEX>)
 //	{
 //		auto const & f = std::get<0>(expr.args);
@@ -659,9 +660,9 @@ public:
 //
 //	template<typename TL, typename TR>
 //	static inline traits::value_type_t<
-//			_Field<Expression<tags::InteriorProduct, TL, TR> > > eval(
+//			Field<Expression<tags::InteriorProduct, TL, TR> > > eval(
 //			mesh_type const & geo,
-//			_Field<Expression<tags::InteriorProduct, TL, TR>> const & expr,
+//			Field<Expression<tags::InteriorProduct, TL, TR>> const & expr,
 //			id_type s, integer_sequence<int, VOLUME, VERTEX>)
 //	{
 //		auto const & f = std::get<0>(expr.args);
@@ -677,16 +678,16 @@ public:
 //
 //	template<typename T>
 //	static inline traits::value_type_t<T> eval(mesh_type const & geo,
-//			_Field<Expression<tags::MapTo, typename traits::iform<T>::type, T> > const & f,
+//			Field<Expression<tags::MapTo, typename traits::iform<T>::type, T> > const & f,
 //			id_type s, typename traits::iform_list<T>::type)
 //	{
 //		return eval(geo, f, s);
 //	}
 //
 //	template<typename T>
-//	traits::value_type_t<_Field<Expression<tags::MapTo,std::integral_constant<int,EDGE>, T>> > //
+//	traits::value_type_t<Field<Expression<tags::MapTo,std::integral_constant<int,EDGE>, T>> > //
 //	eval( mesh_type const & geo,
-//			_Field<Expression<tags::MapTo,integer_sequence<int,EDGE>, T>> const & expr,
+//			Field<Expression<tags::MapTo,integer_sequence<int,EDGE>, T>> const & expr,
 //			id_type s,integer_sequence< int, VERTEX >)
 //	{
 //		auto const & f = std::get<1>(expr.args);
@@ -708,9 +709,9 @@ public:
 //	}
 //
 //	template<typename T>
-//	traits::value_type_t<_Field<Expression<tags::MapTo,std::integral_constant<int,VERTEX>, T>> > eval(
+//	traits::value_type_t<Field<Expression<tags::MapTo,std::integral_constant<int,VERTEX>, T>> > eval(
 //			mesh_type const & geo,
-//			_Field<Expression<tags::MapTo,std::integral_constant<int,VERTEX>, T>> const & expr,
+//			Field<Expression<tags::MapTo,std::integral_constant<int,VERTEX>, T>> const & expr,
 //			id_type s,integer_sequence< int, EDGE >)
 //	{
 //		auto const & f = std::get<1>(expr.args);
@@ -722,9 +723,9 @@ public:
 //	}
 //
 //	template<typename T>
-//	traits::value_type_t<_Field<Expression<tags::MapTo,std::integral_constant<int,FACE>, T>> > eval(
+//	traits::value_type_t<Field<Expression<tags::MapTo,std::integral_constant<int,FACE>, T>> > eval(
 //			mesh_type const & geo,
-//			_Field<Expression<tags::MapTo, std::integral_constant<int,FACE>,T> > const & expr,
+//			Field<Expression<tags::MapTo, std::integral_constant<int,FACE>,T> > const & expr,
 //			id_type s,integer_sequence< int, EDGE >)
 //	{
 //		auto const & f = std::get<0>(expr.args);
@@ -775,9 +776,9 @@ public:
 //	}
 //
 //	template<typename T>
-//	traits::value_type_t<_Field<Expression<tags::MapTo,std::integral_constant<int,VERTEX>, T>> > eval(
+//	traits::value_type_t<Field<Expression<tags::MapTo,std::integral_constant<int,VERTEX>, T>> > eval(
 //			mesh_type const & geo,
-//			_Field<Expression<tags::MapTo,std::integral_constant<int,VERTEX>, T>> const & expr,
+//			Field<Expression<tags::MapTo,std::integral_constant<int,VERTEX>, T>> const & expr,
 //			id_type s,integer_sequence<int, FACE >)
 //	{
 //		auto const & f = std::get<0>(expr.args);
@@ -805,9 +806,9 @@ public:
 //	}
 //
 //	template<typename T>
-//	traits::value_type_t<_Field<Expression<tags::MapTo,FACE, VOLUME, T>> > eval(
+//	traits::value_type_t<Field<Expression<tags::MapTo,FACE, VOLUME, T>> > eval(
 //			mesh_type const & geo,
-//			_Field<Expression<tags::MapTo,FACE, VOLUME, T>> const & expr,
+//			Field<Expression<tags::MapTo,FACE, VOLUME, T>> const & expr,
 //			id_type s)
 //	{
 //		auto const & f = std::get<0>(expr.args);
@@ -829,9 +830,9 @@ public:
 //	}
 //
 //	template<typename T>
-//	traits::value_type_t<_Field<Expression<tags::MapTo,VOLUME, FACE, T>> > eval(
+//	traits::value_type_t<Field<Expression<tags::MapTo,VOLUME, FACE, T>> > eval(
 //			mesh_type const & geo,
-//			_Field<Expression<tags::MapTo,VOLUME, FACE, T>> const & expr,
+//			Field<Expression<tags::MapTo,VOLUME, FACE, T>> const & expr,
 //			id_type s)
 //	{
 //		auto const & f = std::get<0>(expr.args);
@@ -844,9 +845,9 @@ public:
 //	}
 //
 //	template<typename T>
-//	traits::value_type_t<_Field<Expression<tags::MapTo,EDGE, VOLUME, T>> > eval(
+//	traits::value_type_t<Field<Expression<tags::MapTo,EDGE, VOLUME, T>> > eval(
 //			mesh_type const & geo,
-//			_Field<Expression<tags::MapTo,EDGE, VOLUME, T>> const & expr,
+//			Field<Expression<tags::MapTo,EDGE, VOLUME, T>> const & expr,
 //			id_type s)
 //	{
 //		auto const & f = std::get<0>(expr.args);
@@ -898,9 +899,9 @@ public:
 //	}
 //
 //	template<typename T>
-//	traits::value_type_t<_Field<Expression<tags::MapTo,VOLUME, EDGE, T>> > eval(
+//	traits::value_type_t<Field<Expression<tags::MapTo,VOLUME, EDGE, T>> > eval(
 //			mesh_type const & geo,
-//			_Field<Expression<tags::MapTo,VOLUME, EDGE, T>> const & expr,
+//			Field<Expression<tags::MapTo,VOLUME, EDGE, T>> const & expr,
 //			id_type s)
 //	{
 //		auto const & f = std::get<0>(expr.args);
@@ -928,9 +929,9 @@ public:
 //	// For curl_pdx
 //
 //	template<int N, typename T> static inline traits::value_type_t<
-//	_Field<Expression<tags::ExteriorDerivative,N, EDGE, T> > > eval(
+//	Field<Expression<tags::ExteriorDerivative,N, EDGE, T> > > eval(
 //			mesh_type const & geo,
-//			_Field<Expression<tags::ExteriorDerivative,N, EDGE, T>> const & expr,
+//			Field<Expression<tags::ExteriorDerivative,N, EDGE, T>> const & expr,
 //			id_type s)
 //	{
 //		auto const & f = std::get<0>(expr.args);
@@ -947,9 +948,9 @@ public:
 //	}
 //
 //	template<int N, typename T> static inline traits::value_type_t<
-//	_Field<Expression<tags::CodifferentialDerivative,N, FACE, T>> > eval(
+//	Field<Expression<tags::CodifferentialDerivative,N, FACE, T>> > eval(
 //			mesh_type const & geo,
-//			_Field<Expression<tags::CodifferentialDerivative,N, FACE, T>> const & expr,
+//			Field<Expression<tags::CodifferentialDerivative,N, FACE, T>> const & expr,
 //			id_type s)
 //	{
 //		auto const & f = std::get<0>(expr.args);

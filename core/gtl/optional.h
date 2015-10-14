@@ -7,11 +7,10 @@
 
 #ifndef CORE_GTL_OPTIONAL_H_
 #define CORE_GTL_OPTIONAL_H_
-
 #include <boost/optional.hpp>
 
-namespace simpla {
-namespace gtl {
+namespace simpla
+{
 #ifndef NO_BOOST
 
 template<typename T> using optional=boost::optional<T>;
@@ -81,6 +80,6 @@ public:
 };
 #endif
 }
-}//  namespace simpla::gtl
+ // namespace simpla
 
 #endif /* CORE_GTL_OPTIONAL_H_ */

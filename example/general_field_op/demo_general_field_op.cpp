@@ -1,5 +1,5 @@
 /**
- * @file demo_general_field_op.cpp
+ * @file demo_generalField_op.cpp
  *
  * @date 2015-3-4
  * @author salmon
@@ -12,19 +12,19 @@
 #include "../../core/application/use_case.h"
 #include "../../core/io/io.h"
 #include "../../core/mesh/mesh.h"
-#include "../../core/mesh/mesh_common.h"
-#include "../../core/mesh/structured/diff_scheme/fdm.h"
-#include "../../core/mesh/structured/interpolator/interpolator.h"
-#include "../../core/mesh/structured/manifold.h"
-#include "../../core/mesh/structured/topology/structured.h"
+#include "manifold"
+#include "manifold"
+#include "manifold"
+#include "manifold"
+#include "manifold"
 #include "../../core/parallel/mpi_comm.h"
 #include "../../core/utilities/log.h"
 #include "../../core/field/field_sequence.h"
-#include "../../core/mesh/structured/coordinates/coordiantes_cartesian.h"
+#include "manifold"
 
 using namespace simpla;
 
-USE_CASE(general_field_op)
+USE_CASE(generalField_op)
 {
 
 	typedef CartesianCoordinate<RectMesh> mesh_type;
@@ -76,5 +76,5 @@ USE_CASE(general_field_op)
 	cd("/Output2/");
 	VERBOSE << SAVE(f1) << std::endl;
 	VERBOSE << SAVE(f2) << std::endl;
-} // USE_CASE(general_field_op)
+} // USE_CASE(generalField_op)
 

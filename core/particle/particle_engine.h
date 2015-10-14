@@ -10,7 +10,7 @@
 
 #include <stddef.h>
 #include "../physics/physical_constants.h"
-#include "utilities.h"
+#include "../gtl/utilities/utilities.h"
 #include "../gtl/type_traits.h"
 #include "../gtl/dataset/datatype.h"
 

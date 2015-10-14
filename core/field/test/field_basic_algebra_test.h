@@ -37,7 +37,7 @@ protected:
 		size_t dims[3] = {10, 1, 1};
 
 		mesh->dimensions(&dims[0]);
-//		mesh->extents(xmin, xmax);
+//		manifold->extents(xmin, xmax);
 		mesh->deploy();
 	}
 
@@ -60,15 +60,15 @@ public:
 	value_type default_value;
 
 
-	auto make_scalar_field() const
-	DECL_RET_TYPE((make_field<scalar_type>(make_domain<iform>(*mesh))))
+	auto make_scalarField() const
+	DECL_RET_TYPE((traits::make_field<scalar_type>(traits::make_domain<iform>(*mesh))))
 
-	auto make_vector_field() const
-	DECL_RET_TYPE((make_field<iform, nTuple<value_type, 3>>(make_domain<iform>(*mesh))))
+	auto make_vectorField() const
+	DECL_RET_TYPE((traits::make_field<iform, nTuple<value_type, 3>>(traits::make_domain<iform>(*mesh))))
 
 	domain_type domain() const
 	{
-		return make_domain<iform>(*mesh);
+		return traits::make_domain<iform>(*mesh);
 	}
 
 };
@@ -167,7 +167,7 @@ TYPED_TEST_P(TestField, constant_real
 	}
 }
 
-TYPED_TEST_P(TestField, scalar_field
+TYPED_TEST_P(TestField, scalarField
 )
 {
 	{
@@ -179,9 +179,9 @@ TYPED_TEST_P(TestField, scalar_field
 		auto f3 = TestFixture::make_field();
 		auto f4 = TestFixture::make_field();
 
-		auto a = TestFixture::make_scalar_field();
-		auto b = TestFixture::make_scalar_field();
-		auto c = TestFixture::make_scalar_field();
+		auto a = TestFixture::make_scalarField();
+		auto b = TestFixture::make_scalarField();
+		auto c = TestFixture::make_scalarField();
 
 		Real ra = 1.0, rb = 10.0, rc = 100.0;
 
@@ -258,7 +258,7 @@ TYPED_TEST_P(TestField, scalar_field
 }
 
 REGISTER_TYPED_TEST_CASE_P(TestField, index, assign, constant_real,
-		scalar_field
+		scalarField
 );
 
 //#include <gtest/gtest.h>
@@ -307,10 +307,10 @@ REGISTER_TYPED_TEST_CASE_P(TestField, index, assign, constant_real,
 //			}
 //		}
 //
-//		mesh.set_dimensions(dims);
-//		mesh.set_extents(xmin, xmax);
+//		manifold.set_dimensions(dims);
+//		manifold.set_extents(xmin, xmax);
 //
-//		mesh.update();
+//		manifold.update();
 //
 //	}
 //public:
@@ -321,7 +321,7 @@ REGISTER_TYPED_TEST_CASE_P(TestField, index, assign, constant_real,
 //	typedef domain_type::iterator iterator;
 //	typedef domain_type::coordinate_tuple coordinate_tuple;
 //
-//	domain_type mesh;
+//	domain_type manifold;
 //
 //	static constexpr unsigned int NDIMS = domain_type::NDIMS;
 //

@@ -21,7 +21,7 @@ extern "C"
 #include "../gtl/ntuple.h"
 #include "../gtl/dataset/dataset.h"
 #include "../gtl/design_pattern/singleton_holder.h"
-#include "utilities.h"
+#include "../gtl/utilities/utilities.h"
 
 namespace simpla
 {

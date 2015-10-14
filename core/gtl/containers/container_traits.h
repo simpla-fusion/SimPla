@@ -14,7 +14,6 @@
 #include "../utilities/memory_pool.h"
 #include "../type_traits.h"
 namespace simpla
-{namespace gtl
 {
 
 /** @ingroup container
@@ -99,5 +98,5 @@ template<typename TV> struct container_traits<std::shared_ptr<TV>>
 /** @}*/
 
 }
-}//  namespace simpla::gtl
+// namespace simpla
 #endif /* CONTAINER_TRAITS_H_ */

@@ -5,8 +5,8 @@
  * @author salmon
  */
 
-#ifndef CORE_FIELD_FIELD_TRAITS_H_
-#define CORE_FIELD_FIELD_TRAITS_H_
+#ifndef COREFieldField_TRAITS_H_
+#define COREFieldField_TRAITS_H_
 
 #include <stddef.h>
 #include <cstdbool>
@@ -15,15 +15,14 @@
 
 #include "../gtl/integer_sequence.h"
 #include "../gtl/type_traits.h"
-#include "../mesh/mesh_ids.h"
-#include "../mesh/domain_traits.h"
 #include "../mesh/mesh_traits.h"
+#include "../mesh/domain_traits.h"
 
 namespace simpla
 {
 
 template<typename ...> struct Domain;
-template<typename ...> struct _Field;
+template<typename ...> struct Field;
 
 namespace tags
 {
@@ -41,53 +40,53 @@ namespace traits
 template<typename TM, int IFORM, typename ValueType, typename ...Policies>
 struct field_type
 {
-	typedef _Field<Domain<TM, std::integral_constant<int, IFORM>, Policies...>,
+	typedef Field<Domain<TM, std::integral_constant<int, IFORM>, Policies...>,
 			ValueType, tags::sequence_container> type;
 };
 
 template<typename TM, int IFORM, typename ValueType, typename ...Policies>
 using field_t= typename field_type<TM, IFORM, ValueType, Policies...>::type;
 
-template<typename> struct is_field : public std::integral_constant<bool, false>
+template<typename> struct isField : public std::integral_constant<bool, false>
 {
 };
 
-template<typename ...T> struct is_field<_Field<T...>> : public std::integral_constant<
+template<typename ...T> struct isField<Field<T...>> : public std::integral_constant<
 		bool, true>
 {
 };
 
 template<typename TM, typename TV, typename ...Others>
-struct reference<_Field<TM, TV, Others...> >
+struct reference<Field<TM, TV, Others...> >
 {
-	typedef _Field<TM, TV, Others...> const &type;
+	typedef Field<TM, TV, Others...> const &type;
 };
 
 template<typename ...T, int M>
-struct extent<_Field<T ...>, M> : public std::integral_constant<int,
-		simpla::mpl::seq_get<M, extents_t < _Field<T ...> >>::value>
+struct extent<Field<T ...>, M> : public std::integral_constant<int,
+		simpla::mpl::seq_get<M, extents_t < Field<T ...> >>::value>
 {
 };
 
 template<typename ...T>
-struct key_type<_Field<T ...> >
+struct key_type<Field<T ...> >
 {
 	typedef size_t type;
 };
 
 template<typename ...T>
-struct mesh_type<_Field<T...> >
+struct mesh_type<Field<T...> >
 {
-	typedef mesh_type_t <domain_t<_Field<T...> >> type;
+	typedef mesh_type_t <domain_t<Field<T...> >> type;
 };
 
 template<typename ...T>
-struct iform<_Field<T...> > : public iform<domain_t < _Field<T...> > >::type
+struct iform<Field<T...> > : public iform<domain_t < Field<T...> > >::type
 {
 };
 
 template<typename ...T>
-struct rank<_Field<T...>> : public rank<domain_t < _Field<T...> > >::type
+struct rank<Field<T...>> : public rank<domain_t < Field<T...> > >::type
 {
 };
 
@@ -137,13 +136,13 @@ template<typename T> using container_t=typename container_type<T>::type;
 
 
 template<int I, typename ...U, typename TM>
-_Field<Domain<TM, std::integral_constant<int, I>>, U...>
-make_field(TM const &mesh)
+Field<Domain<TM, std::integral_constant<int, I>>, U...>
+makeField(TM const &mesh)
 {
-	return _Field<Domain<TM, std::integral_constant<int, I>>, U...>(make_domain<I>(mesh));
+	return Field<Domain<TM, std::integral_constant<int, I>>, U...>(make_domain<I>(mesh));
 };
 
 }  // namespace traits
 }  // namespace simpla
 
-#endif /* CORE_FIELD_FIELD_TRAITS_H_ */
+#endif /* COREFieldField_TRAITS_H_ */

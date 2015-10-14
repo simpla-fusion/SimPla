@@ -11,7 +11,6 @@
 #include "../containers/container_traits.h"
 namespace simpla
 {
-namespace gtl {
 
 template<typename BaseIterator, typename Container, typename Hasher = std::hash<
 		typename std::iterator_traits<BaseIterator>::value_type>>
@@ -170,6 +169,6 @@ struct sp_indirect_range
 	}
 };
 }
-}//  namespace simpla::gtl
+// namespace simpla
 
 #endif /* CORE_GTL_ITERATOR_SP_INDIRECT_ITERATOR_H_ */

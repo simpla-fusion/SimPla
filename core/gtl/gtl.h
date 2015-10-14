@@ -11,8 +11,8 @@
 
 
 /**
- * @addtogroup gtl General Toolbox Library
- * @brief This module collects general templates, which is alternative to STL or Boost.
+ * @addtogroup gtl General Template Library
+ * @brief This module collects general templates, which are alternative to STL or Boost.
  *
  */
 

@@ -18,7 +18,6 @@
 
 namespace simpla
 {
-namespace gtl {
 
 struct DataSet;
 /**
@@ -119,6 +118,6 @@ DataSpace make_dataspace(Args && ... args)
 
 /**@}  */
 
-}  }//  namespace simpla::gtl
+}  // namespace simpla
 
 #endif /* CORE_DATASET_DATASPACE_H_ */

@@ -7,7 +7,7 @@
 
 #include "../../core/gtl/ntuple.h"
 #include "utilities.h"
-#include "../../core/mesh/mesh_ids.h"
+#include "manifold"
 
 #include <iostream>
 

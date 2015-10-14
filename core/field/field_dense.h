@@ -5,8 +5,8 @@
  *      @author: salmon
  */
 
-#ifndef CORE_FIELD_FIELD_DENSE_H_
-#define CORE_FIELD_FIELD_DENSE_H_
+#ifndef COREFieldField_DENSE_H_
+#define COREFieldField_DENSE_H_
 
 #include <algorithm>
 #include <cstdbool>
@@ -16,7 +16,6 @@
 #include "../application/sp_object.h"
 #include "../gtl/properties.h"
 #include "../gtl/type_traits.h"
-#include "field_traits.h"
 
 namespace simpla
 {
@@ -30,7 +29,7 @@ namespace simpla
  *  Simple Field
  */
 template<typename TD, typename TV, typename ...TAGS>
-struct _Field<TD, TV, TAGS...> : public SpObject
+struct Field<TD, TV, TAGS...> : public SpObject
 {
 public:
 
@@ -42,7 +41,7 @@ public:
 
 	typedef typename domain_type::point_type point_type;
 
-	typedef _Field<domain_type, value_type, TAGS...> this_type;
+	typedef Field<domain_type, value_type, TAGS...> this_type;
 
 	typedef traits::field_value_t<this_type> field_value_type;
 
@@ -53,22 +52,22 @@ private:
 
 public:
 
-	_Field(domain_type const &d)
+	Field(domain_type const &d)
 			: m_domain_(d), m_data_(nullptr)
 	{
 	}
 
-	_Field(this_type const &other)
+	Field(this_type const &other)
 			: m_domain_(other.m_domain_), m_data_(other.m_data_)
 	{
 	}
 
-	_Field(this_type &&other)
+	Field(this_type &&other)
 			: m_domain_(other.m_domain_), m_data_(other.m_data_)
 	{
 	}
 
-	~_Field()
+	~Field()
 	{
 	}
 
@@ -224,7 +223,7 @@ public:
 	}
 
 	template<typename ...T, typename TOP>
-	void assign(_Field<domain_type, T...> const &other, TOP const &op)
+	void assign(Field<domain_type, T...> const &other, TOP const &op)
 	{
 
 		wait();
@@ -260,7 +259,7 @@ public:
 
 	template<typename ...T>
 	void assign(
-			_Field<domain_type, value_type, tags::function, T...> const &other)
+			Field<domain_type, value_type, tags::function, T...> const &other)
 	{
 
 		wait();
@@ -362,28 +361,28 @@ namespace traits
 {
 
 template<typename ... TM, typename ...Others>
-struct type_id<_Field<Domain<TM ...>, Others...>>
+struct type_id<Field<Domain<TM ...>, Others...>>
 {
 	static const std::string name()
 	{
-		return _Field<Domain<TM ...>, Others...>::get_type_as_string();
+		return Field<Domain<TM ...>, Others...>::get_type_as_string();
 	}
 };
 
 template<typename OS, typename ... TM, typename ...Others>
-OS print(OS &os, _Field<Domain<TM ...>, Others...> const &f)
+OS print(OS &os, Field<Domain<TM ...>, Others...> const &f)
 {
 	return f.dataset().print(os);
 }
 
 template<typename ... TM, typename TV, typename ...Policies>
-struct value_type<_Field<Domain<TM ...>, TV, Policies...>>
+struct value_type<Field<Domain<TM ...>, TV, Policies...>>
 {
 	typedef TV type;
 };
 
 template<typename ... TM, typename TV, typename ...Policies>
-struct domain_type<_Field<Domain<TM ...>, TV, Policies...>>
+struct domain_type<Field<Domain<TM ...>, TV, Policies...>>
 {
 	typedef Domain<TM ...> type;
 };
@@ -393,4 +392,4 @@ struct domain_type<_Field<Domain<TM ...>, TV, Policies...>>
 
 }// namespace simpla
 
-#endif /* CORE_FIELD_FIELD_DENSE_H_ */
+#endif /* COREFieldField_DENSE_H_ */

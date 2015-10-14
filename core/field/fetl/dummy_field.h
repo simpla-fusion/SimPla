@@ -1,12 +1,12 @@
 /*
- * dummy_field.h
+ * dummyField.h
  *
  *  created on: 2014-6-29
  *      Author: salmon
  */
 
-#ifndef DUMMY_FIELD_H_
-#define DUMMY_FIELD_H_
+#ifndef DUMMYField_H_
+#define DUMMYField_H_
 #include "../utilities/log.h"
 namespace simpla
 {
@@ -52,7 +52,7 @@ public:
 	{
 	}
 
-	/// Move Construct copy mesh, and move data,
+	/// Move Construct copy manifold, and move data,
 	DummyField(this_type &&rhs) :
 			mesh(rhs.mesh), data_(rhs.data_), default_value_(rhs.default_value_)
 	{
@@ -221,4 +221,4 @@ public:
 }
   // namespace simpla
 
-#endif /* DUMMY_FIELD_H_ */
+#endif /* DUMMYField_H_ */

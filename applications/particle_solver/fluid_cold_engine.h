@@ -10,8 +10,8 @@
 #include <functional>
 #include <typeinfo>
 #include "../../core/field/field.h"
-#include "../../core/field/load_field.h"
-#include "../../core/field/save_field.h"
+#include "../../core/field/loadField.h"
+#include "../../core/field/saveField.h"
 #include "../../core/particle/particle_base.h"
 #include "../../core/utilities/properties.h"
 #include "../../core/utilities/any.h"
@@ -180,7 +180,7 @@ public:
 		return reinterpret_cast<void const*>(&J);
 	}
 
-	void update_fields();
+	void updateFields();
 
 	void next_timestep()
 	{
@@ -218,8 +218,8 @@ void Particle<TM, ColdFluid, PolicyFluidParticle>::load(TDict const & dict,
 
 	try
 	{
-		load_field(dict["Density"], &(rho));
-		load_field(dict["Current"], &(J));
+		loadField(dict["Density"], &(rho));
+		loadField(dict["Current"], &(J));
 
 		if (!rho.empty())
 		{
@@ -290,8 +290,8 @@ void Particle<TM, ColdFluid, PolicyFluidParticle>::next_timestep_half(
 {
 	LOGGER << "Push particles Step Half[ " << get_type_as_string() << "]";
 
-	auto K = mesh.template make_field<VERTEX, nTuple<scalar_type, 3>>();
-	auto B2 = mesh.template make_field<VERTEX, Real>();
+	auto K = mesh.template makeField<VERTEX, nTuple<scalar_type, 3>>();
+	auto B2 = mesh.template makeField<VERTEX, Real>();
 
 	Real as = 0.5 * q / m * mesh.get_dt();
 
@@ -304,7 +304,7 @@ void Particle<TM, ColdFluid, PolicyFluidParticle>::next_timestep_half(
 
 }
 template<typename TM>
-void Particle<TM, ColdFluid, PolicyFluidParticle>::update_fields()
+void Particle<TM, ColdFluid, PolicyFluidParticle>::updateFields()
 {
 	LOGGER << "Push particles update fields[ " << get_type_as_string() << "]";
 

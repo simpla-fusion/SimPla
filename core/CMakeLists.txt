@@ -5,9 +5,9 @@ ADD_SUBDIRECTORY( application )
 
 ADD_SUBDIRECTORY( physics)
 
-ADD_SUBDIRECTORY( mesh  )
+ADD_SUBDIRECTORY(manifold)
 
-ADD_SUBDIRECTORY( geometry )
+ADD_SUBDIRECTORY(geometry)
 
 ADD_SUBDIRECTORY( model )
 

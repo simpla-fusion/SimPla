@@ -5,24 +5,25 @@
  *      Author: salmon
  */
 
-#ifndef CORE_FIELD_FIELD_CONSTRAINT_H_
-#define CORE_FIELD_FIELD_CONSTRAINT_H_
- #include "../gtl/utilities/log.h"
+#ifndef COREFieldField_CONSTRAINT_H_
+#define COREFieldField_CONSTRAINT_H_
+#include "../model/select.h"
+#include "../gtl/utilities/log.h"
 #include "field_function.h"
 #include <set>
 namespace simpla
 {
 
 //template<typename TM, typename TV, typename TDict>
-//auto make_constraint(TM const & mesh, TDict const & dict)
+//auto make_constraint(TM const & manifold, TDict const & dict)
 //{
 //
-//	return make_field_function<TM, TV>(
-//			select_ids_by_configure(mesh, dict["Domain"]), dict["Value"]);
+//	return makeField_function<TM, TV>(
+//			select_ids_by_configure(manifold, dict["Domain"]), dict["Value"]);
 //
 //}
 
 }
 // namespace simpla
 
-#endif /* CORE_FIELD_FIELD_CONSTRAINT_H_ */
+#endif /* COREFieldField_CONSTRAINT_H_ */

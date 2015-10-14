@@ -5,8 +5,8 @@
  * @author  salmon
  */
 
-#ifndef CORE_FIELD_FIELD_CONTINUE_H_
-#define CORE_FIELD_FIELD_CONTINUE_H_
+#ifndef COREFieldField_CONTINUE_H_
+#define COREFieldField_CONTINUE_H_
 
 #include <stddef.h>
 #include <cstdbool>
@@ -20,13 +20,13 @@
 
 namespace simpla
 {
-template<typename ...>struct _Field;
+template<typename ...>struct Field;
 
 /** @ingroup field
  *  @brief Field using  sequence container,i.e.  'vector'
  */
 template<typename TM, typename TContainer>
-struct _Field<TM, TContainer, _impl::is_sequence_container> : public SpObject
+struct Field<TM, TContainer, _impl::is_sequence_container> : public SpObject
 {
 
 public:
@@ -38,7 +38,7 @@ public:
 	typedef TContainer container_type;
 	typedef typename container_type::value_type value_type;
 
-	typedef _Field<mesh_type, container_type, _impl::is_sequence_container> this_type;
+	typedef Field<mesh_type, container_type, _impl::is_sequence_container> this_type;
 
 private:
 
@@ -48,7 +48,7 @@ private:
 
 public:
 	template<typename ...Args>
-	_Field(mesh_type const & d, Args && ...args)
+	Field(mesh_type const & d, Args && ...args)
 			: mesh_(d), data_(
 					std::make_shared<container_type>(
 							std::forward<Args>(args...))
@@ -56,11 +56,11 @@ public:
 							)
 	{
 	}
-	_Field(this_type const & that)
+	Field(this_type const & that)
 			: mesh_(that.mesh_), data_(that.data_)
 	{
 	}
-	~_Field()
+	~Field()
 	{
 	}
 
@@ -72,21 +72,21 @@ public:
 	{
 		return mesh_;
 	}
-	template<typename TU> using clone_field_type=
-	_Field<TM,typename replace_template_type<0,TU,container_type>::type,
+	template<typename TU> using cloneField_type=
+	Field<TM,typename replace_template_type<0,TU,container_type>::type,
 	_impl::is_sequence_container>;
 
 	template<typename TU>
-	clone_field_type<TU> clone() const
+	cloneField_type<TU> clone() const
 	{
-		return clone_field_type<TU>(mesh_);
+		return cloneField_type<TU>(mesh_);
 	}
 	/** @name range concept
 	 * @{
 	 */
 
 	template<typename ...Args>
-	_Field(this_type & that, Args && ...args)
+	Field(this_type & that, Args && ...args)
 			: mesh_(that.mesh_, std::forward<Args>(args)...), data_(that.data_)
 	{
 	}
@@ -106,23 +106,23 @@ public:
 	 * @{
 	 */
 
-	inline _Field<AssignmentExpression<_impl::_assign, this_type, this_type>> operator =(
+	inline Field<AssignmentExpression<_impl::_assign, this_type, this_type>> operator =(
 			this_type const &that)
 	{
 		allocate();
 		return std::move(
-				_Field<
+				Field<
 						AssignmentExpression<_impl::_assign, this_type,
 								this_type>>(*this, that));
 	}
 
 	template<typename TR>
-	inline _Field<AssignmentExpression<_impl::_assign, this_type, TR>> operator =(
+	inline Field<AssignmentExpression<_impl::_assign, this_type, TR>> operator =(
 			TR const &that)
 	{
 		allocate();
 		return std::move(
-				_Field<AssignmentExpression<_impl::_assign, this_type, TR>>(
+				Field<AssignmentExpression<_impl::_assign, this_type, TR>>(
 						*this, that));
 	}
 
@@ -195,4 +195,4 @@ public:
 }
 // namespace simpla
 
-#endif /* CORE_FIELD_FIELD_CONTINUE_H_ */
+#endif /* COREFieldField_CONTINUE_H_ */

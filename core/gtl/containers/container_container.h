@@ -20,8 +20,7 @@ template<typename T> using FixedSmallSizeAlloc=__gnu_cxx::__mt_alloc<T>;
 
 namespace simpla
 {
-namespace gtl
-{
+
 template<typename TV> using ListOfSmallObject=std::list<TV/*,FixedSmallSizeAlloc<TV>*/>;
 
 /**
@@ -168,6 +167,6 @@ public:
 
 };
 
-}  }//  namespace simpla::gtl
+}  // namespace simpla
 
 #endif /* CONTAINER_CONTAINER_H_ */

@@ -53,7 +53,7 @@
 //
 //#include "save_particle.h"
 using namespace simpla;
-#include "../field/save_field.h"
+#include "../field/saveField.h"
 #include "../../diff_geometry/mesh.h"
 #include "../../diff_geometry/domain.h"
 #include "../../diff_geometry/topology/structured.h"
@@ -114,23 +114,23 @@ int main(int argc, char **argv)
 	p.properties("DumpParticle", true);
 	p.properties("ScatterN", true);
 
-//	init_particle(&p, mesh.select(VERTEX), 500, n, T);
+//	init_particle(&p, manifold.select(VERTEX), 500, n, T);
 //
 ////	{
-////		auto range=mesh.select(VERTEX);
+////		auto range=manifold.select(VERTEX);
 ////		auto s0=*std::get<0>(range);
 ////		nTuple<3,Real> r=
 ////		{	0.5,0.5,0.5};
 ////
 ////		particle_type::Point_s a;
-////		a.x = mesh.coordinates_local_to_global(s0, r);
+////		a.x = manifold.coordinates_local_to_global(s0, r);
 ////		a.f = 1.0;
 ////		p[s0].push_back(std::move(a));
 ////
 ////	}
 //
 	p.save("/H");
-//	p.update_fields();
+//	p.updateFields();
 //
 //	p.save("/H");
 //
@@ -138,13 +138,13 @@ int main(int argc, char **argv)
 //
 //	INFORM << "update_ghosts particle DONE. Total particle number = " << reduce(p.Count()) << std::endl;
 //
-//	p.update_fields();
+//	p.updateFields();
 //
 //	p.save("/H/");
 
 //	if(GLOBAL_COMM.get_rank()==0)
 //	{
-//		for (auto s : mesh.select(VERTEX))
+//		for (auto s : manifold.select(VERTEX))
 //		{
 //			rho[s]+=10;
 //		}

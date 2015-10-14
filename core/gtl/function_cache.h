@@ -10,114 +10,114 @@
 
 #include <functional>
 
-namespace simpla {
-namespace gtl {
+namespace simpla
+{
+
 template<typename RectValue, typename TFun, typename Hash>
 struct FunctionCache
 {
-    typedef TFun function_type;
+	typedef TFun function_type;
 
-    typedef Hash hash_fun;
+	typedef Hash hash_fun;
 
-    typedef size_t key_type;
+	typedef size_t key_type;
 
-    typedef RectValue value_type;
+	typedef RectValue value_type;
 
-    function_type m_fun_;
+	function_type m_fun_;
 
-    hash_fun m_hash_;
+	hash_fun m_hash_;
 
-    std::map <key_type, value_type> m_cache_;
+	std::map<key_type, value_type> m_cache_;
 
-    FunctionCache(function_type const &f) :
-            m_fun_(f), m_hash_(hash_fun())
-    {
+	FunctionCache(function_type const & f) :
+			m_fun_(f), m_hash_(hash_fun())
+	{
 
-    }
+	}
+	~FunctionCache()
+	{
+	}
 
-    ~FunctionCache()
-    {
-    }
+	template<typename ...T>
+	value_type operator()(T&& ...args) const
+	{
+		auto key = m_hash_(std::forward<T>(args)...);
 
-    template<typename ...T>
-    value_type operator()(T &&...args) const
-    {
-        auto key = m_hash_(std::forward<T>(args)...);
+		auto it = m_cache_.find(key);
 
-        auto it = m_cache_.find(key);
+		if (it != m_cache_.end())
+		{
+			return it->second;
+		}
+		else
+		{
+			auto res = static_cast<value_type>(m_fun_(std::forward<T>(args)...));
+			m_cache_[key] = res;
+			return std::move(res);
+		}
 
-        if (it != m_cache_.end())
-        {
-            return it->second;
-        }
-        else
-        {
-            auto res = static_cast<value_type>(m_fun_(std::forward<T>(args)...));
-            m_cache_[key] = res;
-            return std::move(res);
-        }
-
-    }
-};
+	}
+}
+;
 
 template<typename RectValue, typename TFun>
 struct FunctionCache<RectValue, TFun, void>
 {
-    typedef FunctionCache<RectValue, TFun, void> this_type;
+	typedef FunctionCache<RectValue, TFun, void> this_type;
 
-    typedef TFun function_type;
+	typedef TFun function_type;
 
-    typedef size_t key_type;
+	typedef size_t key_type;
 
-    typedef RectValue value_type;
+	typedef RectValue value_type;
 
-    function_type m_fun_;
+	function_type m_fun_;
 
-    std::map <key_type, value_type> m_cache_;
+	std::map<key_type, value_type> m_cache_;
 
-    FunctionCache(function_type const &f) :
-            m_fun_(f)
-    {
+	FunctionCache(function_type const & f) :
+			m_fun_(f)
+	{
 
-    }
+	}
+	~FunctionCache()
+	{
+	}
+	template<typename T>
+	value_type operator()(T key)const
+	{
 
-    ~FunctionCache()
-    {
-    }
+		auto it = m_cache_.find(key);
 
-    template<typename T>
-    value_type operator()(T key) const
-    {
+		if (it != m_cache_.end())
+		{
+			return it->second;
+		}
+		else
+		{
+			auto res = static_cast<value_type>(m_fun_(key));
+			const_cast<this_type*>(this)->m_cache_[key] = res;
+			return std::move(res);
+		}
 
-        auto it = m_cache_.find(key);
-
-        if (it != m_cache_.end())
-        {
-            return it->second;
-        }
-        else
-        {
-            auto res = static_cast<value_type>(m_fun_(key));
-            const_cast<this_type *>(this)->m_cache_[key] = res;
-            return std::move(res);
-        }
-
-    }
-};
+	}
+}
+;
 
 template<typename TRect, typename TFun>
-FunctionCache<TRect, TFun, void> make_function_cache(TFun const &fun)
+FunctionCache<TRect, TFun, void> make_function_cache(TFun const & fun)
 {
-    return FunctionCache<TRect, TFun, void>(fun);
+	return FunctionCache<TRect, TFun, void>(fun);
 }
 
 template<typename TRect, typename TFun, typename Hash>
-FunctionCache<TRect, TFun, Hash> make_function_cache(TFun const &fun,
-                                                     Hash const &hash)
+FunctionCache<TRect, TFun, Hash> make_function_cache(TFun const & fun,
+		Hash const & hash)
 {
-    return FunctionCache<TRect, TFun, Hash>(fun, hash);
+	return FunctionCache<TRect, TFun, Hash>(fun, hash);
 }
 }
-}//  namespace simpla::gtl
+// namespace simpla
 
 #endif /* CORE_GTL_FUNCTION_CACHE_H_ */

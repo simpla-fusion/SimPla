@@ -7,11 +7,10 @@
 
 #ifndef CORE_GTL_CACHE_H_
 #define CORE_GTL_CACHE_H_
-
 #include "type_traits.h"
+namespace simpla
+{
 
-namespace simpla {
-namespace gtl {
 /**
  * @ingroup gtl
  *
@@ -24,20 +23,20 @@ namespace gtl {
 template<typename T>
 struct Cache
 {
-    typedef T cached_type;
+	typedef T cached_type;
 
-    T &f_;
+	T & f_;
 
-    template<typename ... Args>
-    Cache(T &f, Args ...) :
-            f_(f)
-    {
-    }
+	template<typename ... Args>
+	Cache(T& f, Args ...) :
+			f_(f)
+	{
+	}
 
-    T &operator*()
-    {
-        return f_;
-    }
+	T & operator*()
+	{
+		return f_;
+	}
 
 };
 
@@ -45,61 +44,61 @@ template<typename T>
 struct Cache<T const &>
 {
 
-    typedef T const &cached_type;
+	typedef T const & cached_type;
 
-    T const &f_;
+	T const & f_;
 
-    template<typename ... Args>
-    Cache(T const &f, Args ...) :
-            f_(f)
-    {
-    }
+	template<typename ... Args>
+	Cache(T const & f, Args ...) :
+			f_(f)
+	{
+	}
 
-    T const &operator*() const
-    {
-        return f_;
-    }
+	T const & operator*() const
+	{
+		return f_;
+	}
 
 };
 
 template<typename T>
-struct Cache<T *>
+struct Cache<T*>
 {
-    typedef T *cached_type;
-    typedef Cache<T *> this_type;
+	typedef T * cached_type;
+	typedef Cache<T*> this_type;
 
-    T *f_;
+	T * f_;
 
-    template<typename ... Args>
-    Cache(T *f, Args ...) :
-            f_(f)
-    {
-    }
+	template<typename ... Args>
+	Cache(T* f, Args ...) :
+			f_(f)
+	{
+	}
 
-    T &operator*()
-    {
-        return *f_;
-    }
+	T & operator*()
+	{
+		return *f_;
+	}
 
 };
 
 template<typename T>
 constexpr bool is_cached(Cache<T> &&)
 {
-    return true;
+	return true;
 }
 
 template<typename T, typename ...Args>
-bool is_cached(T &&first, Args &&...args)
+bool is_cached(T && first, Args && ...args)
 {
-    return std::is_same<T, typename Cache<T>::cached_type>::value
-           && is_cached(std::forward<Args>(args)...);
+	return std::is_same<T, typename Cache<T>::cached_type>::value
+			&& is_cached(std::forward<Args>(args)...);
 }
 
 template<typename T, typename ...Args>
-typename Cache<T>::cached_type cache(Args &&...args)
+typename Cache<T>::cached_type cache(Args&& ...args)
 {
-    return Cache<T>::create(std::forward<Args>(args)...);
+	return Cache<T>::create(std::forward<Args>(args)...);
 }
 
 /**
@@ -109,10 +108,10 @@ typename Cache<T>::cached_type cache(Args &&...args)
  *  This function is used to implement "cache forwarding".
  */
 template<typename _Tp>
-constexpr _Tp &&
-cache_forward(_Tp &__t) noexcept
+constexpr _Tp&&
+cache_forward(_Tp & __t) noexcept
 {
-    return std::forward<_Tp>(__t);
+	return std::forward<_Tp>(__t);
 }
 
 //template<typename TIndexType, typename T>
@@ -152,7 +151,6 @@ cache_forward(_Tp &__t) noexcept
 //	FlushCache(others...);
 //}
 
-}
-}//  namespace simpla::gtl
+}// namespace simpla
 
 #endif /* CORE_GTL_CACHE_H_ */

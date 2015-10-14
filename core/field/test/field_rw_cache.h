@@ -18,17 +18,17 @@
 
 namespace simpla
 {
-template<typename ...> class _Field;
+template<typename ...> class Field;
 
 template<typename TM, typename TContainer>
-class _Field<TM, Cache<const Field<TM, TContainer> > >
+class Field<TM, Cache<const Field<TM, TContainer> > >
 {
 
 public:
 
-	typedef _Field<TM, TContainer> field_type;
+	typedef Field<TM, TContainer> field_type;
 
-	typedef _Field<TM, Cache<const _Field<TM, TContainer> > > this_type;
+	typedef Field<TM, Cache<const Field<TM, TContainer> > > this_type;
 
 	typedef TM mesh_type;
 
@@ -61,7 +61,7 @@ private:
 
 public:
 
-	_Field(this_type const& r) :
+	Field(this_type const& r) :
 			mesh(r.mesh), f_(r.f_),
 
 			cell_idx_(r.cell_idx_), affect_Range_(r.affect_Range_),
@@ -73,7 +73,7 @@ public:
 	{
 	}
 
-	_Field(this_type && r) :
+	Field(this_type && r) :
 			mesh(r.mesh), f_(r.f_),
 
 			cell_idx_(r.cell_idx_), affect_Range_(r.affect_Range_),
@@ -85,21 +85,21 @@ public:
 	{
 	}
 
-	_Field(field_type const & f, iterator const &s, unsigned int affect_Range =
+	Field(field_type const & f, iterator const &s, unsigned int affect_Range =
 			2) :
 			mesh(f.mesh), f_(f), cell_idx_(s), affect_Range_(affect_Range), num_of_points_(
 					0)
 	{
 	}
 
-	~_Field()
+	~Field()
 	{
 	}
 
 	void RefreshCache(size_t s)
 	{
 //		cell_idx_ = s;
-//		num_of_points_ = (mesh.GetAffectedPoints(std::integral_constant<unsigned int ,IForm>(), cell_idx_,
+//		num_of_points_ = (manifold.GetAffectedPoints(std::integral_constant<unsigned int ,IForm>(), cell_idx_,
 //				nullptr, affect_Range_));
 //		if (num_of_points_ == 0)
 //		{
@@ -109,7 +109,7 @@ public:
 //		points_.resize(num_of_points_);
 //		cache_.resize(num_of_points_);
 //
-//		mesh.GetAffectedPoints(std::integral_constant<unsigned int ,IForm>(), cell_idx_, &points_[0],
+//		manifold.GetAffectedPoints(std::integral_constant<unsigned int ,IForm>(), cell_idx_, &points_[0],
 //				affect_Range_);
 //
 //		for (size_t i = 0; i < num_of_points_; ++i)
@@ -175,13 +175,13 @@ public:
 	{
 //		coordinate_tuple pcoords;
 //
-//		iterator idx = mesh.SearchCell(cell_idx_, x, &(pcoords[0]));
+//		iterator idx = manifold.SearchCell(cell_idx_, x, &(pcoords[0]));
 //
 //		field_value_type res;
 //
 //		if (idx == cell_idx_)
 //		{
-//			mesh.template Gather(std::integral_constant<unsigned int ,IForm>(), &pcoords[0], &cache_[0],
+//			manifold.template Gather(std::integral_constant<unsigned int ,IForm>(), &pcoords[0], &cache_[0],
 //					&res, affect_Range_);
 //		}
 //		else //failsafe
@@ -203,14 +203,14 @@ public:
 ;
 
 template<typename TM, typename TContainer>
-class _Field<TM, Cache<_Field<TM, TContainer> *> >
+class Field<TM, Cache<Field<TM, TContainer> *> >
 {
 
 public:
 
-	typedef _Field<TM, TContainer> field_type;
+	typedef Field<TM, TContainer> field_type;
 
-	typedef _Field<TM, Cache<field_type> > this_type;
+	typedef Field<TM, Cache<field_type> > this_type;
 
 	typedef TM mesh_type;
 
@@ -242,7 +242,7 @@ private:
 
 public:
 
-	_Field(this_type && r) :
+	Field(this_type && r) :
 			mesh(r.mesh), f_(r.f_),
 
 			cell_idx_(r.cell_idx_), affect_Range_(r.affect_Range_),
@@ -252,7 +252,7 @@ public:
 			points_(r.points_), cache_(r.cache_), is_fresh_(r.is_fresh_)
 	{
 	}
-	_Field(this_type const& r) :
+	Field(this_type const& r) :
 			mesh(r.mesh), f_(r.f_),
 
 			cell_idx_(r.cell_idx_), affect_Range_(r.affect_Range_),
@@ -264,13 +264,13 @@ public:
 	{
 	}
 
-	_Field(field_type * f, unsigned int affect_Range = 2) :
+	Field(field_type * f, unsigned int affect_Range = 2) :
 			mesh(f->mesh), f_(f), affect_Range_(affect_Range), num_of_points_(
 					0), is_fresh_(false)
 	{
 	}
 
-	~_Field()
+	~Field()
 	{
 		FlushCache();
 	}
@@ -324,7 +324,7 @@ public:
 	{
 //		cell_idx_ = s;
 //
-//		num_of_points_ = (mesh.GetAffectedPoints(std::integral_constant<unsigned int ,IForm>(), cell_idx_,
+//		num_of_points_ = (manifold.GetAffectedPoints(std::integral_constant<unsigned int ,IForm>(), cell_idx_,
 //				nullptr, affect_Range_));
 //
 //		if (num_of_points_ == 0)
@@ -335,7 +335,7 @@ public:
 //		points_.resize(num_of_points_);
 //		cache_.resize(num_of_points_);
 //
-//		mesh.GetAffectedPoints(std::integral_constant<unsigned int ,IForm>(), cell_idx_, &points_[0],
+//		manifold.GetAffectedPoints(std::integral_constant<unsigned int ,IForm>(), cell_idx_, &points_[0],
 //				affect_Range_);
 //
 //		value_type zero_value_;
@@ -353,13 +353,13 @@ public:
 	{
 //		coordinate_tuple pcoords;
 //
-//		iterator idx = mesh.SearchCell(cell_idx_, x, &pcoords[0]);
+//		iterator idx = manifold.SearchCell(cell_idx_, x, &pcoords[0]);
 //
 //		if (idx == cell_idx_)
 //		{
 //			field_value_type vv;
 //			vv = v;
-//			mesh.Scatter(std::integral_constant<unsigned int ,IForm>(), &pcoords[0], vv, &cache_[0],
+//			manifold.Scatter(std::integral_constant<unsigned int ,IForm>(), &pcoords[0], vv, &cache_[0],
 //					affect_Range_);
 //		}
 //		else //failsafe
@@ -371,18 +371,18 @@ public:
 };
 
 template<typename TM, typename TContainer>
-struct Cache<const _Field<TM, TContainer> >
+struct Cache<const Field<TM, TContainer> >
 {
 
-	typedef _Field<TM, Cache<const _Field<TM, TContainer> > > type;
+	typedef Field<TM, Cache<const Field<TM, TContainer> > > type;
 
-	typedef typename _Field<TM, TContainer>::value_type value_type;
+	typedef typename Field<TM, TContainer>::value_type value_type;
 
 	template<typename ... Args>
-	Cache(_Field<TM, TContainer> const & f, Args && ... args) :
+	Cache(Field<TM, TContainer> const & f, Args && ... args) :
 			f_(f, std::forward<Args >(args)...)
 	{
-		VERBOSE << "_Field read cache applied!";
+		VERBOSE << "Field read cache applied!";
 	}
 
 	type & operator*()
@@ -399,19 +399,19 @@ private:
 };
 
 template<typename TM, typename TContainer>
-struct Cache<_Field<TM, TContainer>*>
+struct Cache<Field<TM, TContainer>*>
 {
-	typedef Cache<_Field<TM, TContainer>*> this_type;
+	typedef Cache<Field<TM, TContainer>*> this_type;
 
-	typedef _Field<TM, this_type> type;
+	typedef Field<TM, this_type> type;
 
-	typedef typename _Field<TM, TContainer>::value_type value_type;
+	typedef typename Field<TM, TContainer>::value_type value_type;
 
 	template<typename ... Args>
-	Cache(_Field<TM, TContainer>* f, Args && ... args) :
+	Cache(Field<TM, TContainer>* f, Args && ... args) :
 			f_(f, std::forward<Args >(args)...)
 	{
-		VERBOSE << "_Field write cache applied!";
+		VERBOSE << "Field write cache applied!";
 	}
 
 	type * operator*()
@@ -423,13 +423,13 @@ private:
 };
 
 template<typename TM, typename TF>
-void RefreshCache(size_t s, _Field<TM, Cache<TF>> & f)
+void RefreshCache(size_t s, Field<TM, Cache<TF>> & f)
 {
 	f.RefreshCache(s);
 }
 
 template<typename TM, typename TF>
-void FlushCache(_Field<TM, Cache<TF*>> & f)
+void FlushCache(Field<TM, Cache<TF*>> & f)
 {
 	f.FlushCache();
 }

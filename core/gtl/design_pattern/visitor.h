@@ -8,9 +8,8 @@
 #ifndef VISITOR_H_
 #define VISITOR_H_
 
-namespace simpla {
-namespace gtl {
-
+namespace simpla
+{
 /**
  * @ingroup  design_pattern
  *
@@ -104,27 +103,25 @@ namespace gtl {
 struct VisitorBase
 {
 
-    VisitorBase()
-    {
-    }
+	VisitorBase()
+	{
+	}
+	virtual ~VisitorBase()
+	{
+	}
 
-    virtual ~VisitorBase()
-    {
-    }
-
-    void Visit(void *p) const
-    {
-        Visit_(p);
-    }
-
-    virtual std::string get_type_as_string() const
-    {
-        return "Custom";
-    }
+	void Visit(void*p) const
+	{
+		Visit_(p);
+	}
+	virtual std::string get_type_as_string() const
+	{
+		return "Custom";
+	}
 
 private:
 
-    virtual void Visit_(void *) const = 0;
+	virtual void Visit_(void*) const=0;
 };
 
 //
@@ -222,7 +219,6 @@ private:
 //}
 
 /** @}*/
-}
-}//  namespace simpla::gtl
+} // namespace simpla
 
 #endif /* VISITOR_H_ */

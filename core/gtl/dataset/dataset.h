@@ -21,8 +21,7 @@
 #include "datatype.h"
 
 namespace simpla
-{namespace gtl {
-
+{
 /**
  * @addtogroup dataset Dataset
  * @brief This section describes the interface of data set.
@@ -144,6 +143,6 @@ DataSet make_dataset(std::vector<T> const & p)
 }
 /**@}*/
 
-}  }//  namespace simpla::gtl
+}  // namespace simpla
 
 #endif /* CORE_DATASET_DATASET_H_ */

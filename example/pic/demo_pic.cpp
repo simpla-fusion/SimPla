@@ -70,16 +70,16 @@ USE_CASE(pic," Particle in cell" )
 	B.clear();
 	J.clear();
 
-	VERBOSE_CMD(load_field(options["InitValue"]["E"], &E));
-	VERBOSE_CMD(load_field(options["InitValue"]["B"], &B));
+	VERBOSE_CMD(loadField(options["InitValue"]["E"], &E));
+	VERBOSE_CMD(loadField(options["InitValue"]["B"], &B));
 
-	auto J_src = make_field_function_by_config<EDGE, Real>(*mesh,
+	auto J_src = makeField_function_by_config<EDGE, Real>(*mesh,
 			options["Constraint"]["J"]);
 
-	auto B_src = make_field_function_by_config<FACE, Real>(*mesh,
+	auto B_src = makeField_function_by_config<FACE, Real>(*mesh,
 			options["Constraint"]["B"]);
 
-	auto E_src = make_field_function_by_config<EDGE, Real>(*mesh,
+	auto E_src = makeField_function_by_config<EDGE, Real>(*mesh,
 			options["Constraint"]["E"]);
 
 	typedef PICDemo engine_type;

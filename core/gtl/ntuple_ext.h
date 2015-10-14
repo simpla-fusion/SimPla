@@ -16,76 +16,74 @@
 #include "ntuple.h"
 #include "type_cast.h"
 
-namespace simpla {
-namespace gtl {
-template<typename T, size_t N>
-std::istream &
-operator>>(std::istream &is, nTuple<T, N> &tv)
+namespace simpla
 {
-    for (int i = 0; i < N && is; ++i)
-    {
-        is >> tv[i];
-    }
+template<typename T, size_t N> std::istream &
+operator>>(std::istream& is, nTuple<T, N> & tv)
+{
+	for (int i = 0; i < N && is; ++i)
+	{
+		is >> tv[i];
+	}
 
-    return (is);
+	return (is);
 }
-
 template<typename T, size_t M>
-std::ostream &operator<<(std::ostream &os, nTuple<T, M> const &v)
+std::ostream &operator<<(std::ostream & os, nTuple<T, M> const & v)
 {
-    os << "{" << v[0];
-    for (int i = 1; i < M; ++i)
-    {
-        os << " , " << v[i];
-    }
-    os << "}";
+	os << "{" << v[0];
+	for (int i = 1; i < M; ++i)
+	{
+		os << " , " << v[i];
+	}
+	os << "}";
 
-    return os;
+	return os;
 }
 
 template<typename T, size_t M, size_t M2, size_t ...N>
-std::ostream &operator<<(std::ostream &os, nTuple<T, M, M2, N...> const &v)
+std::ostream &operator<<(std::ostream & os, nTuple<T, M, M2, N...> const & v)
 {
-    os << "{" << v[0];
-    for (int i = 1; i < M; ++i)
-    {
-        os << " , " << v[i] << std::endl;
-    }
-    os << "}" << std::endl;
+	os << "{" << v[0];
+	for (int i = 1; i < M; ++i)
+	{
+		os << " , " << v[i] << std::endl;
+	}
+	os << "}" << std::endl;
 
-    return os;
+	return os;
 }
 
-namespace traits {
+namespace traits
+{
 template<typename TSrc, typename TDesc> struct type_cast;
 
 template<unsigned int N, typename T>
 struct type_cast<nTuple<T, N>, std::string>
 {
-    static std::string eval(nTuple<T, N> const &v)
-    {
-        std::ostringstream buffer;
-        buffer << v;
-        return buffer.str();
-    }
+	static std::string eval(nTuple<T, N> const &v)
+	{
+		std::ostringstream buffer;
+		buffer << v;
+		return buffer.str();
+	}
 };
 
 template<unsigned int N, typename T>
 struct type_cast<std::string, nTuple<T, N>>
 {
-    static nTuple<T, N> eval(std::string const &s)
-    {
-        nTuple<T, N> v;
-        std::istringstream is(s);
-        is >> v;
-        return std::move(v);
+	static nTuple<T, N> eval(std::string const &s)
+	{
+		nTuple<T, N> v;
+		std::istringstream is(s);
+		is >> v;
+		return std::move(v);
 
-    }
+	}
 };
 
 } // namespace traits
-}
-}//  namespace simpla::gtl
+}  // namespace simpla
 //
 //namespace std
 //{

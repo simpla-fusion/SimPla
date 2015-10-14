@@ -22,7 +22,7 @@
 //#include "cache.h"
 //namespace simpla
 //{
-//#define DEFINE_FIELDS(TM)                                                                              \
+//#define DEFINEFieldS(TM)                                                                              \
 //typedef TM Mesh;                                                                                       \
 //typedef typename Mesh::iterator iterator ;                                                         \
 //typedef typename Mesh::scalar_type scalar_type;                                                        \

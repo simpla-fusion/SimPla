@@ -12,16 +12,12 @@
 
 #include "../../core/application/application.h"
 #include "../../core/application/use_case.h"
-#include "../../core/geometry/coordinate_system.h"
+#include "coordinate_system_geo.h"
 #include "../../core/gtl/primitives.h"
 #include "../../core/gtl/type_cast.h"
 #include "../../core/io/io.h"
-#include "../../core/mesh/mesh.h"
-#include "../../core/mesh/domain.h"
 
-#include "rect_mesh.h"
-//#include "../../core/mesh/structured/interpolate.h"
-//#include "../../core/mesh/structured/fdm.h"
+#include "../../core/mesh/default_mesh.h"
 
 #include "../../core/physics/constants.h"
 #include "../../core/physics/physical_constants.h"
@@ -35,6 +31,7 @@ using namespace simpla;
 #  include "../../core/geometry/cs_cylindrical.h"
 #  define COORDINATE_SYSTEM Cylindrical<2>
 #else
+
 # include "../../core/geometry/cs_cartesian.h"
 # include "../../core/field/field_dense.h"
 #include "../../core/field/field_constant.h"
@@ -42,9 +39,9 @@ using namespace simpla;
 #  define COORDINATE_SYSTEM simpla::geometry::coordinate_system::Cartesian<3, 2>
 #endif
 
-typedef Mesh<COORDINATE_SYSTEM, simpla::tags::RectMeshSimple> mesh_type;
+typedef DefaultMesh<COORDINATE_SYSTEM > mesh_type;
 
-USE_CASE(em," Maxwell Eqs.")
+USE_CASE(em, " Maxwell Eqs.")
 {
 
 	size_t num_of_steps = 1000;
@@ -53,14 +50,14 @@ USE_CASE(em," Maxwell Eqs.")
 	if (options["case_help"])
 	{
 
-		MESSAGE<< " Options:" << std::endl
-		<<
+		MESSAGE << " Options:" << std::endl
+				<<
 
-		"\t -n,\t--number_of_steps <NUMBER>  \t, Number of steps = <NUMBER> ,default="
-		+ type_cast <std::string>(num_of_steps)
-		+ "\n"
-		"\t -s,\t--strides <NUMBER>            \t, Dump record per <NUMBER> steps, default="
-		+ type_cast <std::string>(check_point) + "\n";
+				"\t -n,\t--number_of_steps <NUMBER>  \t, Number of steps = <NUMBER> ,default="
+						+ type_cast<std::string>(num_of_steps)
+						+ "\n"
+						"\t -s,\t--strides <NUMBER>            \t, Dump record per <NUMBER> steps, default="
+						+ type_cast<std::string>(check_point) + "\n";
 
 		return;
 	}
@@ -75,23 +72,23 @@ USE_CASE(em," Maxwell Eqs.")
 
 	mesh->deploy();
 
-	MESSAGE<< std::endl
+	MESSAGE << std::endl
 
-	<< "[ Configuration ]" << std::endl
+			<< "[ Configuration ]" << std::endl
 
-	<< " Description=\"" << options["Description"].as<std::string>("") << "\""
+			<< " Description=\"" << options["Description"].as<std::string>("") << "\""
 
-	<< std::endl
+			<< std::endl
 
-	<< " Mesh = \n {" << *mesh << "} " << std::endl
+			<< " Mesh = \n {" << *mesh << "} " << std::endl
 
-	<< " TIME_STEPS = " << num_of_steps << std::endl;
+			<< " TIME_STEPS = " << num_of_steps << std::endl;
 
 //	std::shared_ptr<PML<mesh_type>> pml_solver;
 //
 //	if (options["FieldSolver"]["PML"])
 //	{
-//		pml_solver = std::make_shared<PML<mesh_type>>(*mesh,
+//		pml_solver = std::make_shared<PML<mesh_type>>(*manifold,
 //				options["FieldSolver"]["PML"]);
 //
 //	}
@@ -131,13 +128,13 @@ USE_CASE(em," Maxwell Eqs.")
 		B_Boundary.clear();
 	}
 
-	LOGGER<< "----------  Dump input ---------- " << std::endl;
+	LOGGER << "----------  Dump input ---------- " << std::endl;
 
 	cd("/Input/");
 
-	VERBOSE<< SAVE(E) << std::endl;
-	VERBOSE<< SAVE(B) << std::endl;
-	VERBOSE<< SAVE(J) << std::endl;
+	VERBOSE << SAVE(E) << std::endl;
+	VERBOSE << SAVE(B) << std::endl;
+	VERBOSE << SAVE(J) << std::endl;
 
 	DEFINE_PHYSICAL_CONST
 	Real dt = mesh->dt();
@@ -145,13 +142,13 @@ USE_CASE(em," Maxwell Eqs.")
 
 	Real omega = 0.01 * PI / dt;
 
-	LOGGER<< "----------  START ---------- " << std::endl;
+	LOGGER << "----------  START ---------- " << std::endl;
 
 	cd("/Save/");
 
 	for (size_t step = 0; step < num_of_steps; ++step)
 	{
-		VERBOSE<< "Step [" << step << "/" << num_of_steps << "]" << std::endl;
+		VERBOSE << "Step [" << step << "/" << num_of_steps << "]" << std::endl;
 
 		J.self_assign(J_src);
 		E.self_assign(E_src);
@@ -167,9 +164,9 @@ USE_CASE(em," Maxwell Eqs.")
 		}
 //		else
 //		{
-//			pml_solver->next_timestepE(mesh->dt(), E, B, &E);
+//			pml_solver->next_timestepE(manifold->dt(), E, B, &E);
 //			LOG_CMD(E -= J / epsilon0 * dt);
-//			pml_solver->next_timestepB(mesh->dt(), E, B, &B);
+//			pml_solver->next_timestepB(manifold->dt(), E, B, &B);
 //		}
 
 		VERBOSE << SAVE_RECORD(J) << std::endl;
@@ -181,11 +178,11 @@ USE_CASE(em," Maxwell Eqs.")
 	}
 
 	cd("/Output/");
-	VERBOSE<< SAVE(E) << std::endl;
-	VERBOSE<< SAVE(B) << std::endl;
-	VERBOSE<< SAVE(J) << std::endl;
+	VERBOSE << SAVE(E) << std::endl;
+	VERBOSE << SAVE(B) << std::endl;
+	VERBOSE << SAVE(J) << std::endl;
 
-	LOGGER<< "----------  DONE ---------- " << std::endl;
+	LOGGER << "----------  DONE ---------- " << std::endl;
 
 }
 

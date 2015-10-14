@@ -16,7 +16,7 @@ LENGTH={2*math.pi/(DIMS[1]-GW[1]*2-1)*(DIMS[1]-1),
             
 DT=0.5*LENGTH[3]/(DIMS[3]-1)    -- time step     
         
-LOAD_FIELDS={E1=1,B0=2,N0=0}          
+LOADFieldS={E1=1,B0=2,N0=0}
         
 SP_LIST={"ele"}  
 -- the list of species in the simulation       

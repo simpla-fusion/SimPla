@@ -14,7 +14,6 @@
 #include "../utilities/memory_pool.h"
 #include "../utilities/misc_utilities.h"
 namespace simpla
-{namespace gtl
 {
 /**
  * @ingroup container
@@ -201,6 +200,6 @@ public:
 };
 
 }
-				}//  namespace simpla::gtl
+				// namespace simpla
 
 #endif /* CONATINER_DENSE_H_ */

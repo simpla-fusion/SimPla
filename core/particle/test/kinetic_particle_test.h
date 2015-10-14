@@ -64,7 +64,7 @@ TEST_P(TestKineticParticle,Add)
 
 //	INFORM << "Add particle DONE " << p.size() << std::endl;
 //
-//	EXPECT_EQ(p.size(), mesh.get_local_memory_size(VERTEX) * pic);
+//	EXPECT_EQ(p.size(), manifold.get_local_memory_size(VERTEX) * pic);
 
 	sync(&p);
 
@@ -139,19 +139,19 @@ TEST_P(TestKineticParticle, scatter_n)
 //
 //	typedef scalar_type scalar_type;
 //
-//	mesh_type const & mesh = mesh;
+//	mesh_type const & manifold = manifold;
 //
 //	LuaObject cfg;
 //	cfg.ParseString(cfg_str);
 //
-//	Field<mesh_type,VERTEX,scalar_type> n0(mesh);
+//	Field<mesh_type,VERTEX,scalar_type> n0(manifold);
 //
-//	pool_type ion(mesh,cfg["ion"]);
+//	pool_type ion(manifold,cfg["ion"]);
 //	ion.SetParticleSorting(enable_sorting);
-//	Field<mesh_type,EDGE,Real> E(mesh);
-//	Field<mesh_type,FACE,Real> B(mesh);
+//	Field<mesh_type,EDGE,Real> E(manifold);
+//	Field<mesh_type,FACE,Real> B(manifold);
 //
-//	Field<mesh_type,EDGE,scalar_type> J0(mesh);
+//	Field<mesh_type,EDGE,scalar_type> J0(manifold);
 //
 //	n0.Clear();
 //	J0.Clear();
@@ -173,26 +173,26 @@ TEST_P(TestKineticParticle, scatter_n)
 //
 //	Real pic =cfg["ion"]["PIC"].template as<Real>();
 //
-//	for(auto s:mesh.select(VERTEX))
+//	for(auto s:manifold.select(VERTEX))
 //	{
-//		auto x =mesh.get_coordinates(s);
+//		auto x =manifold.get_coordinates(s);
 //		n0[s]=q* n0_cfg(x[0],x[1],x[2]).template as<Real>();
 //	}
 //
-//	for (auto s : mesh.select(EDGE))
+//	for (auto s : manifold.select(EDGE))
 //	{
-//		auto x=mesh.get_coordinates(s);
+//		auto x=manifold.get_coordinates(s);
 //
 //		nTuple<3,Real> Ev;
 //
-//		Ev=E0*std::sin(Dot(k,mesh.get_coordinates(s)));
+//		Ev=E0*std::sin(Dot(k,manifold.get_coordinates(s)));
 //
-//		E[s]=mesh.Sample(std::integral_constant<unsigned int ,EDGE>(),s,Ev);
+//		E[s]=manifold.Sample(std::integral_constant<unsigned int ,EDGE>(),s,Ev);
 //	}
 //
-//	for (auto s : mesh.select(FACE))
+//	for (auto s : manifold.select(FACE))
 //	{
-//		B[s]= mesh.Sample(std::integral_constant<unsigned int ,FACE>(),s,Bv);
+//		B[s]= manifold.Sample(std::integral_constant<unsigned int ,FACE>(),s,Bv);
 //	}
 //
 //	Real dt=1.0e-12;
@@ -212,7 +212,7 @@ TEST_P(TestKineticParticle, scatter_n)
 //
 //	Real average=0.0;
 //
-//	for(auto s:mesh.select(VERTEX))
+//	for(auto s:manifold.select(VERTEX))
 //	{
 //		auto expect=J0[s];
 //
@@ -227,7 +227,7 @@ TEST_P(TestKineticParticle, scatter_n)
 //		Real relative_error=std::sqrt(variance)/abs(average);
 //
 //		CHECK(relative_error);
-//		EXPECT_LE(relative_error,1.0/std::sqrt(pic))<<mesh.get_dimensions();
+//		EXPECT_LE(relative_error,1.0/std::sqrt(pic))<<manifold.get_dimensions();
 //	}
 //
 //}

@@ -8,7 +8,7 @@
 #ifndef FIELD_IO_TEST_H_
 #define FIELD_IO_TEST_H_
 #include <gtest/gtest.h>
-#include "save_field.h"
+#include "saveField.h"
 namespace simpla
 {
 template<typename TParam>
@@ -46,9 +46,9 @@ TYPED_TEST_P(TestFieldIO, write){
 	auto const & mesh= TestFixture::mesh;
 	typedef typename TestFixture::value_type value_type;
 
-	auto f2=mesh. make_field<FACE,value_type>();
-	auto f2b=mesh. make_field<FACE,value_type>();
-	auto f3=mesh. make_field<VOLUME,value_type>();
+	auto f2=mesh. makeField<FACE,value_type>();
+	auto f2b=mesh. makeField<FACE,value_type>();
+	auto f3=mesh. makeField<VOLUME,value_type>();
 
 	f3.clear();
 	f2.clear();

@@ -484,19 +484,19 @@ bool intersection(nTuple<TS, NDIMS> const & l_b, nTuple<TS, NDIMS> const &l_e,
 ////
 //////	typedef typename TSurface::plane_type plane_type;
 ////
-//////	auto extent = mesh.get_extents();
-//////	auto dims = mesh.get_dimensions();
+//////	auto extent = manifold.get_extents();
+//////	auto dims = manifold.get_dimensions();
 //////	auto xmin = extent.first;
 //////	auto xmax = extent.second;
-//////	auto d = mesh.get_dx();
+//////	auto d = manifold.get_dx();
 //////	nTuple<Real,3> x0 = { 0, 0, 0 };
 //////	nTuple<Real,3> x1 = { d[0], 0, 0 };
 //////	nTuple<Real,3> x2 = { 0, d[1], 0 };
 //////	nTuple<Real,3> x3 = { 0, 0, d[2] };
 //////
-//////	for (auto s : mesh.select(VERTEX))
+//////	for (auto s : manifold.select(VERTEX))
 //////	{
-//////		auto x = mesh.get_coordinates(s);
+//////		auto x = manifold.get_coordinates(s);
 //////
 //////		if (x[0] < xmin[0] + width)
 //////		{

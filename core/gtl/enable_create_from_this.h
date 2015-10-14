@@ -11,8 +11,7 @@
 
 namespace simpla
 {
-namespace gtl
-{
+
 /**
  *  @ingroup gtl
  *  @[
@@ -237,6 +236,6 @@ struct enable_create_from_this: public std::enable_shared_from_this<TObject>
 	}
 };
 
-}  }//  namespace simpla::gtl
+}  // namespace simpla
 
 #endif /* CORE_GTL_ENABLE_CREATE_FROM_THIS_H_ */

@@ -8,7 +8,6 @@
 #ifndef FIELD_BASIC_ALGEBRA_TEST_H_
 #define FIELD_BASIC_ALGEBRA_TEST_H_
 
-<<<<<<< HEAD
 #include <stddef.h>
 #include <memory>
 #include <random>
@@ -23,13 +22,7 @@
 #include "../../mesh/mesh_traits.h"
 #include "../../field/field_dense.h"
 #include "../../field/field_traits.h"
-=======
-#include <gtest/gtest.h>
-#include <random>
->>>>>>> origin/master
 
-#include "../field.h"
-#include "utilities.h"
 using namespace simpla;
 
 template<typename TField>
@@ -40,30 +33,27 @@ protected:
 	{
 		LOGGER.set_stdout_visable_level(10);
 
-<<<<<<< HEAD
 		mesh = std::make_shared<mesh_type>();
 
 		size_t dims[3] = {10, 1, 1};
-=======
-		domain_type(mesh).swap(domain);
->>>>>>> origin/master
 
+		mesh->dimensions(&dims[0]);
+//		manifold->extents(xmin, xmax);
+		mesh->deploy();
 	}
 
 public:
 
 	typedef TField field_type;
 
-	typedef typename field_type::domain_type domain_type;
-	typedef typename field_type::mesh_type mesh_type;
+	typedef traits::domain_t<field_type> domain_type;
 
-	typedef typename field_type::value_type value_type;
+	typedef traits::mesh_type_t<field_type> mesh_type;
 
-	static constexpr size_t iform = field_traits<TField>::iform;
+	typedef traits::value_type_t<field_type> value_type;
 
-	static std::shared_ptr<const mesh_type> mesh;
+	typedef typename mesh_type::scalar_type scalar_type;
 
-<<<<<<< HEAD
 	static constexpr int iform = traits::iform<TField>::value;
 
 	static std::shared_ptr<mesh_type> mesh;
@@ -74,22 +64,16 @@ public:
 	auto domain() const
 	DECL_RET_TYPE((traits::make_domain<iform>(*mesh)))
 
-	auto make_field() const
-	DECL_RET_TYPE((traits::make_field<iform, value_type>(*mesh)))
+	auto makeField() const
+	DECL_RET_TYPE((traits::makeField<iform, value_type>(*mesh)))
 
-	auto make_scalar_field() const
-	DECL_RET_TYPE((traits::make_field<iform, scalar_type>(*mesh)))
+	auto make_scalarField() const
+	DECL_RET_TYPE((traits::makeField<iform, scalar_type>(*mesh)))
 
-	auto make_vector_field() const
-	DECL_RET_TYPE((traits::make_field<iform, nTuple<value_type, 3>>(*mesh)))
+	auto make_vectorField() const
+	DECL_RET_TYPE((traits::makeField<iform, nTuple<value_type, 3>>(*mesh)))
 
 
-=======
-	domain_type domain;
-
-	value_type default_value;
-
->>>>>>> origin/master
 };
 
 TYPED_TEST_CASE_P(TestField);
@@ -101,7 +85,7 @@ TYPED_TEST_P(TestField, assign)
 		typedef typename TestFixture::value_type value_type;
 		typedef typename TestFixture::field_type field_type;
 
-		auto f1 = TestFixture::make_field();
+		auto f1 = TestFixture::makeField();
 
 		value_type va;
 
@@ -109,16 +93,10 @@ TYPED_TEST_P(TestField, assign)
 
 		f1 = va;
 
-<<<<<<< HEAD
 		for (auto s : TestFixture::domain())
 		{
 			EXPECT_LE(mod(va - f1[s]), EPSILON);
 		}
-=======
-	for(auto s : TestFixture::domain)
-	{
-		EXPECT_LE(mod( va- f1[s]),EPSILON);
->>>>>>> origin/master
 	}
 }
 
@@ -129,7 +107,7 @@ TYPED_TEST_P(TestField, index)
 		typedef typename TestFixture::value_type value_type;
 		typedef typename TestFixture::field_type field_type;
 
-		auto f1 = TestFixture::make_field();
+		auto f1 = TestFixture::makeField();
 
 		f1.clear();
 
@@ -137,7 +115,6 @@ TYPED_TEST_P(TestField, index)
 
 		va = 2.0;
 
-<<<<<<< HEAD
 		for (auto s : TestFixture::domain())
 		{
 			f1[s] = va * TestFixture::domain().hash(s);
@@ -148,16 +125,6 @@ TYPED_TEST_P(TestField, index)
 			EXPECT_LE(mod(va * TestFixture::domain().hash(s) - f1[s]), EPSILON
 			);
 		}
-=======
-	for(auto s : TestFixture::domain)
-	{
-		f1[s]=va* TestFixture::domain.hash(s);
-	}
-
-	for(auto s : TestFixture::domain)
-	{
-		EXPECT_LE(mod( va* TestFixture::domain.hash(s)- f1[s]),EPSILON);
->>>>>>> origin/master
 	}
 }
 
@@ -169,9 +136,9 @@ TYPED_TEST_P(TestField, constant_real
 		typedef typename TestFixture::value_type value_type;
 		typedef typename TestFixture::field_type field_type;
 
-		auto f1 = TestFixture::make_field();
-		auto f2 = TestFixture::make_field();
-		auto f3 = TestFixture::make_field();
+		auto f1 = TestFixture::makeField();
+		auto f2 = TestFixture::makeField();
+		auto f3 = TestFixture::makeField();
 
 		f3 = 1;
 		Real a, b, c;
@@ -185,7 +152,6 @@ TYPED_TEST_P(TestField, constant_real
 		f1 = va;
 		f2 = vb;
 
-<<<<<<< HEAD
 		LOG_CMD(f3 = -f1 * a + f2 * c - f1 / b - f1);
 
 		for (auto s : TestFixture::domain())
@@ -196,34 +162,24 @@ TYPED_TEST_P(TestField, constant_real
 			EXPECT_LE(mod(res - f3[s]), EPSILON
 			)<<res << " " << f1[s] << " " << f2[s] << " " << f3[s];;
 		}
-=======
-	LOG_CMD(f3 = -f1 *a +f2*c - f1/b -f1/**/);
-
-	for(auto s : TestFixture::domain)
-	{
-		value_type res;
-		res= -f1[s] *a + f2[s] *c -f1[s]/b-f1[s];
-
-		EXPECT_LE(mod( res- f3[s]),EPSILON)<<res<< " "<<f1[s];
->>>>>>> origin/master
 	}
 }
 
-TYPED_TEST_P(TestField, scalar_field
+TYPED_TEST_P(TestField, scalarField
 )
 {
 	{
 
 		typedef typename TestFixture::value_type value_type;
 
-		auto f1 = TestFixture::make_field();
-		auto f2 = TestFixture::make_field();
-		auto f3 = TestFixture::make_field();
-		auto f4 = TestFixture::make_field();
+		auto f1 = TestFixture::makeField();
+		auto f2 = TestFixture::makeField();
+		auto f3 = TestFixture::makeField();
+		auto f4 = TestFixture::makeField();
 
-		auto a = TestFixture::make_scalar_field();
-		auto b = TestFixture::make_scalar_field();
-		auto c = TestFixture::make_scalar_field();
+		auto a = TestFixture::make_scalarField();
+		auto b = TestFixture::make_scalarField();
+		auto c = TestFixture::make_scalarField();
 
 		Real ra = 1.0, rb = 10.0, rc = 100.0;
 
@@ -265,7 +221,6 @@ TYPED_TEST_P(TestField, scalar_field
 
 //	Plus( Minus(Negate(Wedge(f1,a)),Divides(f2,b)),Multiplies(f3,c) )
 
-<<<<<<< HEAD
 /**           (+)
  *           /   \
  *         (-)    (*)
@@ -280,25 +235,6 @@ TYPED_TEST_P(TestField, scalar_field
 		for (auto s : TestFixture::domain())
 		{
 			value_type res = -f1[s] * ra + f2[s] * rb - f3[s] / rc - f1[s];
-=======
-	/**           (+)
-	 *           /   \
-	 *         (-)    (*)
-	 *        /   \    | \
-	 *      (^)    (/) f1 c
-	 *     /  \   /  \
-	 *-f1      a f2   b
-	 *
-	 * */
-	count =0;
-
-	for(auto s :TestFixture::domain )
-	{
-		value_type res= - f1[s]*ra +f2[s]* rb -f3[s]/ rc -f1[s];
-
-		EXPECT_LE( mod(res-f4[s]) ,EPSILON )<< "s= "<<(TestFixture::domain.hash(s));
-	}
->>>>>>> origin/master
 
 			EXPECT_LE(mod(res - f4[s]), EPSILON)<< "s= " << (TestFixture::domain().
 					hash(s));
@@ -308,13 +244,8 @@ TYPED_TEST_P(TestField, scalar_field
 	}
 }
 
-<<<<<<< HEAD
-REGISTER_TYPED_TEST_CASE_P(TestField, index, assign, constant_real, scalar_field);
+REGISTER_TYPED_TEST_CASE_P(TestField, index, assign, constant_real, scalarField);
 
-=======
-REGISTER_TYPED_TEST_CASE_P(TestField, index, assign, constant_real,
-		scalar_field);
->>>>>>> origin/master
 //#include <gtest/gtest.h>
 //
 //#include "field.h"
@@ -361,10 +292,10 @@ REGISTER_TYPED_TEST_CASE_P(TestField, index, assign, constant_real,
 //			}
 //		}
 //
-//		mesh.set_dimensions(dims);
-//		mesh.set_extents(xmin, xmax);
+//		manifold.set_dimensions(dims);
+//		manifold.set_extents(xmin, xmax);
 //
-//		mesh.update();
+//		manifold.update();
 //
 //	}
 //public:
@@ -375,7 +306,7 @@ REGISTER_TYPED_TEST_CASE_P(TestField, index, assign, constant_real,
 //	typedef domain_type::iterator iterator;
 //	typedef domain_type::coordinate_tuple coordinate_tuple;
 //
-//	domain_type mesh;
+//	domain_type manifold;
 //
 //	static constexpr unsigned int NDIMS = domain_type::NDIMS;
 //

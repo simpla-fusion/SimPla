@@ -8,69 +8,67 @@
 #ifndef CORE_GTL_ITERATOR_INDIRECT_ITERATOR_H_
 #define CORE_GTL_ITERATOR_INDIRECT_ITERATOR_H_
 
-namespace simpla {
-namespace gtl {
+namespace simpla
+{
 
 template<typename TSIterator>
 struct indirect_iterator
 {
 
-    typedef TSIterator src_iterator;
+	typedef TSIterator src_iterator;
 
-    typedef typename std::iterator_traits<src_iterator>::value_type base_iterator;
-    typedef typename std::iterator_traits<base_iterator>::value_type value_type;
+	typedef typename std::iterator_traits<src_iterator>::value_type base_iterator;
+	typedef typename std::iterator_traits<base_iterator>::value_type value_type;
 
-    typedef indirect_iterator<src_iterator> this_type;
+	typedef indirect_iterator<src_iterator> this_type;
 
-    src_iterator m_it_;
+	src_iterator m_it_;
 
-    indirect_iterator(src_iterator const &s_it) :
-            m_it_(s_it)
-    {
+	indirect_iterator(src_iterator const & s_it) :
+			m_it_(s_it)
+	{
 
-    }
+	}
 
-    ~indirect_iterator()
-    {
-    }
+	~indirect_iterator()
+	{
+	}
 
-    value_type &operator*()
-    {
-        return **m_it_;
-    }
+	value_type & operator *()
+	{
+		return **m_it_;
+	}
 
-    value_type &operator->()
-    {
-        return **m_it_;
-    }
+	value_type & operator ->()
+	{
+		return **m_it_;
+	}
 
-    indirect_iterator &operator++()
-    {
-        ++m_it_;
-        return *this;
-    }
+	indirect_iterator & operator++()
+	{
+		++m_it_;
+		return *this;
+	}
+	indirect_iterator operator++(int) const
+	{
+		indirect_iterator res(*this);
+		++res;
+		return std::move(res);
+	}
 
-    indirect_iterator operator++(int) const
-    {
-        indirect_iterator res(*this);
-        ++res;
-        return std::move(res);
-    }
-
-    bool operator==(this_type const &other) const
-    {
-        return m_it_ == other.m_it_;
-    }
+	bool operator==(this_type const & other) const
+	{
+		return m_it_ == other.m_it_;
+	}
 };
 
 template<typename TSIterator>
 constexpr indirect_iterator<TSIterator> make_indirect_iterator(
-        TSIterator const &sit)
+		TSIterator const & sit)
 {
-    return std::move(indirect_iterator<TSIterator>(si));
+	return std::move(indirect_iterator<TSIterator>(si));
 }
 
-}
-}//  namespace simpla::gtl
+}  // namespace simpla
 
 #endif /* CORE_GTL_ITERATOR_INDIRECT_ITERATOR_H_ */

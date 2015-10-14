@@ -24,8 +24,8 @@
 #include "../../core/io/io.h"
 
 // Field
-#include "../../core/field/load_field.h"
-#include "../../core/geometry/geqdsk.h"
+#include "../../core/field/loadField.h"
+#include "geometry_obj"
 #include "../../core/geometry/model.h"
 
 // Particle
@@ -143,7 +143,7 @@ public:
 
 	std::shared_ptr<Model<mesh_type>> model;
 
-	template<typename TV, size_t iform> using field=_Field<Domain<Model<mesh_type>,iform>,std::shared_ptr<TV>>;
+	template<typename TV, size_t iform> using field=Field<Domain<Model<mesh_type>,iform>,std::shared_ptr<TV>>;
 
 	field<scalar_type, EDGE> E1, dE;
 	field<scalar_type, FACE> B1, dB;
@@ -355,17 +355,17 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 		J1.clear();
 		B0.clear();
 
-		VERBOSE_CMD(load_field(dict["InitValue"]["B"], &B1));
+		VERBOSE_CMD(loadField(dict["InitValue"]["B"], &B1));
 
-		VERBOSE_CMD(load_field(dict["InitValue"]["E"], &E1));
+		VERBOSE_CMD(loadField(dict["InitValue"]["E"], &E1));
 
-		VERBOSE_CMD(load_field(dict["InitValue"]["J"], &J1));
+		VERBOSE_CMD(loadField(dict["InitValue"]["J"], &J1));
 
-		VERBOSE_CMD(load_field(dict["InitValue"]["ne"], &ne0));
+		VERBOSE_CMD(loadField(dict["InitValue"]["ne"], &ne0));
 
-		VERBOSE_CMD(load_field(dict["InitValue"]["Te"], &Te0));
+		VERBOSE_CMD(loadField(dict["InitValue"]["Te"], &Te0));
 
-		VERBOSE_CMD(load_field(dict["InitValue"]["Ti"], &Ti0));
+		VERBOSE_CMD(loadField(dict["InitValue"]["Ti"], &Ti0));
 
 	}
 

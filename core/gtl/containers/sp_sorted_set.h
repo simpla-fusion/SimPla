@@ -17,9 +17,8 @@
 #include <utility>
 #include "../../dataset/dataset.h"
 #include "../iterator/sp_indirect_iterator.h"
-
-namespace simpla {
-namespace gtl {
+namespace simpla
+{
 /**
  * @brief an alternative implement of `std::unordered_multiset`
  * - elements are organized into buckets,
@@ -30,451 +29,439 @@ namespace gtl {
  *> of possibly non-unique objects of type Key. --http://en.cppreference.com/w/cpp/container/unordered_multiset
  */
 template<typename T, typename Hash = std::hash<T>,
-        typename Allocator = std::allocator<T> >
+		typename Allocator = std::allocator<T> >
 class sp_sorted_set
 {
 
 public:
-    typedef T value_type;
-    typedef Hash hasher;
-    typedef Allocator allocator_type;
-    typedef typename std::result_of<hasher(value_type const &)>::type key_type;
+	typedef T value_type;
+	typedef Hash hasher;
+	typedef Allocator allocator_type;
+	typedef typename std::result_of<hasher(value_type const &)>::type key_type;
 
-    typedef sp_sorted_set<value_type, hasher, allocator_type> this_type;
+	typedef sp_sorted_set<value_type, hasher, allocator_type> this_type;
 
-    typedef std::forward_list<T, allocator_type> bucket_type;
+	typedef std::forward_list<T, allocator_type> bucket_type;
 
-    typedef std::map<key_type, bucket_type> base_container_type;
+	typedef std::map<key_type, bucket_type> base_container_type;
 
 //private:
 
-    hasher m_hasher_;
+	hasher m_hasher_;
 
-    base_container_type m_data_;
+	base_container_type m_data_;
 
-    std::set<key_type> m_modified_;
+	std::set<key_type> m_modified_;
 
 public:
 
-    // Constructor
-    sp_sorted_set()
-    {
-    }
+	// Constructor
+	sp_sorted_set()
+	{
+	}
+	sp_sorted_set(this_type const & other) :
+			m_hasher_(other.m_hasher_), m_data_(other.m_data_)
+	{
+	}
 
-    sp_sorted_set(this_type const &other) :
-            m_hasher_(other.m_hasher_), m_data_(other.m_data_)
-    {
-    }
+	sp_sorted_set(this_type && other) :
+			m_hasher_(other.m_hasher_), m_data_(other.m_data_)
+	{
+	}
 
-    sp_sorted_set(this_type &&other) :
-            m_hasher_(other.m_hasher_), m_data_(other.m_data_)
-    {
-    }
+	template<typename TRange>
+	sp_sorted_set(this_type & other, TRange const &range)
+	{
+		splice(range, other);
+	}
 
-    template<typename TRange>
-    sp_sorted_set(this_type &other, TRange const &range)
-    {
-        splice(range, other);
-    }
+	~sp_sorted_set()
+	{
+	}
 
-    ~sp_sorted_set()
-    {
-    }
+	hasher const & hash_function() const
+	{
+		return m_hasher_;
+	}
 
-    hasher const &hash_function() const
-    {
-        return m_hasher_;
-    }
+	void hash_function(hasher const & h_fun)
+	{
+		m_hasher_ = h_fun;
+	}
 
-    void hash_function(hasher const &h_fun)
-    {
-        m_hasher_ = h_fun;
-    }
+	void swap(base_container_type & other)
+	{
+		m_data_.swap(other);
+	}
 
-    void swap(base_container_type &other)
-    {
-        m_data_.swap(other);
-    }
+	void swap(this_type & other)
+	{
+		m_data_.swap(other.m_data_);
+		std::swap(m_hasher_, other.m_hasher_);
+	}
 
-    void swap(this_type &other)
-    {
-        m_data_.swap(other.m_data_);
-        std::swap(m_hasher_, other.m_hasher_);
-    }
+	bool empty() const
+	{
+		return m_data_.empty();
+	}
+	bool is_divisible() const
+	{
+		return false;
+	}
+	bucket_type & operator[](key_type const & key)
+	{
+		m_modified_.insert(key);
+		return m_data_[key];
+	}
 
-    bool empty() const
-    {
-        return m_data_.empty();
-    }
+	bucket_type & at(key_type const & key)
+	{
+		m_modified_.insert(key);
+		return m_data_.at(key);
+	}
 
-    bool is_divisible() const
-    {
-        return false;
-    }
+	bucket_type const& at(key_type const & key) const
+	{
+		return m_data_.at(key);
+	}
 
-    bucket_type &operator[](key_type const &key)
-    {
-        m_modified_.insert(key);
-        return m_data_[key];
-    }
+	typedef typename bucket_type::iterator local_iterator;
+	typedef typename bucket_type::const_iterator const_local_iterator;
 
-    bucket_type &at(key_type const &key)
-    {
-        m_modified_.insert(key);
-        return m_data_.at(key);
-    }
+	local_iterator begin(key_type const & id)
+	{
+		return std::move((*this)[id].begin());
+	}
 
-    bucket_type const &at(key_type const &key) const
-    {
-        return m_data_.at(key);
-    }
+	local_iterator end(key_type const & id)
+	{
+		return std::move((*this)[id].end());
+	}
 
-    typedef typename bucket_type::iterator local_iterator;
-    typedef typename bucket_type::const_iterator const_local_iterator;
+	constexpr const_local_iterator cbegin(key_type const & id) const
+	{
+		return std::move(m_data_.at(id).begin());
+	}
 
-    local_iterator begin(key_type const &id)
-    {
-        return std::move((*this)[id].begin());
-    }
+	constexpr const_local_iterator cend(key_type const & id) const
+	{
+		return std::move(m_data_.at(id).end());
+	}
 
-    local_iterator end(key_type const &id)
-    {
-        return std::move((*this)[id].end());
-    }
+	constexpr const_local_iterator begin(key_type const & id) const
+	{
+		return std::move(m_data_.at(id).begin());
+	}
 
-    constexpr const_local_iterator cbegin(key_type const &id) const
-    {
-        return std::move(m_data_.at(id).begin());
-    }
+	constexpr const_local_iterator end(key_type const & id) const
+	{
+		return std::move(m_data_.at(id).end());
+	}
 
-    constexpr const_local_iterator cend(key_type const &id) const
-    {
-        return std::move(m_data_.at(id).end());
-    }
+	template<typename TV>
+	void insert(key_type const & key, TV && v)
+	{
+		(*this)[key].insert_after(m_data_[key].before_begin(),
+				std::forward<TV>(v));
+	}
 
-    constexpr const_local_iterator begin(key_type const &id) const
-    {
-        return std::move(m_data_.at(id).begin());
-    }
+	template<typename TV>
+	key_type insert(TV const& v)
+	{
+		auto s = m_hasher_(v);
 
-    constexpr const_local_iterator end(key_type const &id) const
-    {
-        return std::move(m_data_.at(id).end());
-    }
+		(*this)[s].push_front(v);
 
-    template<typename TV>
-    void insert(key_type const &key, TV &&v)
-    {
-        (*this)[key].insert_after(m_data_[key].before_begin(),
-                                  std::forward<TV>(v));
-    }
+		return s;
+	}
 
-    template<typename TV>
-    key_type insert(TV const &v)
-    {
-        auto s = m_hasher_(v);
+	template<typename TV>
+	void push_front(TV && v)
+	{
+		(*this)[m_hasher_(v)].push_front(std::forward<TV>(v));
+	}
 
-        (*this)[s].push_front(v);
+	void insert(std::initializer_list<value_type> ilist)
+	{
+		insert(ilist.begin(), ilist.end());
+	}
 
-        return s;
-    }
+	template<typename InputIter>
+	void insert(InputIter first, InputIter last)
+	{
+		for (auto it = first; it != last; ++it)
+		{
+			insert(*it);
+		}
+	}
 
-    template<typename TV>
-    void push_front(TV &&v)
-    {
-        (*this)[m_hasher_(v)].push_front(std::forward<TV>(v));
-    }
+	void insert(key_type const & key, std::initializer_list<value_type> ilist)
+	{
+		(*this)[key].insert_after(m_data_[key].before_begin(), ilist);
+	}
 
-    void insert(std::initializer_list<value_type> ilist)
-    {
-        insert(ilist.begin(), ilist.end());
-    }
+	template<typename InputIter>
+	void insert(key_type const & key, InputIter first, InputIter last)
+	{
+		(*this)[key].insert_after(m_data_[key].before_begin(), first, last);
+	}
 
-    template<typename InputIter>
-    void insert(InputIter first, InputIter last)
-    {
-        for (auto it = first; it != last; ++it)
-        {
-            insert(*it);
-        }
-    }
+	template<typename ...Others>
+	void assign(key_type const & key, Others && ...others)
+	{
+		(*this)[key].assign(std::forward<Others>(others)...);
+	}
 
-    void insert(key_type const &key, std::initializer_list<value_type> ilist)
-    {
-        (*this)[key].insert_after(m_data_[key].before_begin(), ilist);
-    }
+	template<typename IputIterator>
+	void assign(IputIterator first, IputIterator last)
+	{
+		clear();
+		insert(first, last);
+	}
 
-    template<typename InputIter>
-    void insert(key_type const &key, InputIter first, InputIter last)
-    {
-        (*this)[key].insert_after(m_data_[key].before_begin(), first, last);
-    }
+	template<typename TRange>
+	void splice(TRange const & range, this_type & other)
+	{
+		for (auto const & key : range)
+		{
+			auto it = other.m_data_.find(key);
+			if (it != other.m_data_.end())
+			{
+				auto & dest = m_data_[it->first];
 
-    template<typename ...Others>
-    void assign(key_type const &key, Others &&...others)
-    {
-        (*this)[key].assign(std::forward<Others>(others)...);
-    }
+				dest.splice_after(dest.before_begin(), it->seond);
+			}
+		}
+	}
+	/**
+	 *  BucketInputIter=  std::pair<key_type,bucket_type> *
+	 * @param first
+	 * @param last
+	 */
+	template<typename BucketInputIter>
+	void splice(BucketInputIter first, BucketInputIter last)
+	{
+		for (auto it = first; it != last; ++it)
+		{
+			auto & dest = m_data_[it->first];
 
-    template<typename IputIterator>
-    void assign(IputIterator first, IputIterator last)
-    {
-        clear();
-        insert(first, last);
-    }
+			dest.splice_after(dest.before_begin(), it->second);
+		}
+	}
 
-    template<typename TRange>
-    void splice(TRange const &range, this_type &other)
-    {
-        for (auto const &key : range)
-        {
-            auto it = other.m_data_.find(key);
-            if (it != other.m_data_.end())
-            {
-                auto &dest = m_data_[it->first];
+	void erase(key_type const & key)
+	{
+		m_data_.erase(key);
+		m_modified_.erase(key);
 
-                dest.splice_after(dest.before_begin(), it->seond);
-            }
-        }
-    }
+	}
+	void erase_all()
+	{
+		m_data_.clear();
+		m_modified_.clear();
+	}
+	void clear()
+	{
+		erase_all();
 
-    /**
-     *  BucketInputIter=  std::pair<key_type,bucket_type> *
-     * @param first
-     * @param last
-     */
-    template<typename BucketInputIter>
-    void splice(BucketInputIter first, BucketInputIter last)
-    {
-        for (auto it = first; it != last; ++it)
-        {
-            auto &dest = m_data_[it->first];
+	}
+	template<typename TRange>
+	void erase(TRange const & range)
+	{
+		for (auto const & key : range)
+		{
+			erase((key));
+		}
 
-            dest.splice_after(dest.before_begin(), it->second);
-        }
-    }
-
-    void erase(key_type const &key)
-    {
-        m_data_.erase(key);
-        m_modified_.erase(key);
-
-    }
-
-    void erase_all()
-    {
-        m_data_.clear();
-        m_modified_.clear();
-    }
-
-    void clear()
-    {
-        erase_all();
-
-    }
-
-    template<typename TRange>
-    void erase(TRange const &range)
-    {
-        for (auto const &key : range)
-        {
-            erase((key));
-        }
-
-    }
-    /**
-     *  move  elements  which `hash(value)!=key`  from   `m_data_[key]`
-     *   to container `other[hash(value)]`
-     * @param key
-     * @param other
-     * @return number of moved elements
-     */
+	}
+	/**
+	 *  move  elements  which `hash(value)!=key`  from   `m_data_[key]`
+	 *   to container `other[hash(value)]`
+	 * @param key
+	 * @param other
+	 * @return number of moved elements
+	 */
 private:
-    size_t rehash_one(key_type key, base_container_type &other)
-    {
-        if (m_modified_.find(key) == m_modified_.end())
-        {
-            return 0;
-        }
+	size_t rehash_one(key_type key, base_container_type & other)
+	{
+		if (m_modified_.find(key) == m_modified_.end())
+		{
+			return 0;
+		}
 
-        m_modified_.erase(key);
+		m_modified_.erase(key);
 
-        auto it = m_data_.find(key);
-        if (it == m_data_.end())
-        {
-            return 0;
-        }
-        auto &bucket = it->second;
-        auto pt = bucket.begin();
-        size_t count = 0;
-        while (pt != bucket.end())
-        {
-            auto p = pt;
-            ++pt;
+		auto it = m_data_.find(key);
+		if (it == m_data_.end())
+		{
+			return 0;
+		}
+		auto & bucket = it->second;
+		auto pt = bucket.begin();
+		size_t count = 0;
+		while (pt != bucket.end())
+		{
+			auto p = pt;
+			++pt;
 
-            auto o_key = m_hasher_(*p);
+			auto o_key = m_hasher_(*p);
 
-            if (o_key != key)
-            {
-                auto &dest = other[o_key];
-                dest.splice_after(dest.before_begin(), bucket, p);
-                ++count;
-            }
-        }
+			if (o_key != key)
+			{
+				auto & dest = other[o_key];
+				dest.splice_after(dest.before_begin(), bucket, p);
+				++count;
+			}
+		}
 
-        return count;
-    }
-
+		return count;
+	}
 public:
-    template<typename TRange>
-    void rehash(TRange const &r)
-    {
-        base_container_type other;
+	template<typename TRange>
+	void rehash(TRange const & r)
+	{
+		base_container_type other;
 
-        for (auto const &s : r)
-        {
-            rehash_one(s, other);
-        }
+		for (auto const & s : r)
+		{
+			rehash_one(s, other);
+		}
 
-        splice(other.begin(), other.end());
+		splice(other.begin(), other.end());
 
-    }
+	}
 
-    void rehash()
-    {
-        rehash(m_modified_);
-    }
+	void rehash()
+	{
+		rehash(m_modified_);
+	}
 
-    template<typename TFun>
-    void for_each(TFun const &fun)
-    {
+	template<typename TFun>
+	void for_each(TFun const& fun)
+	{
 
-        for (auto const &bucket : *this)
-        {
-            for (auto &p : bucket.second)
-            {
-                fun(p);
-            }
-        }
+		for (auto const & bucket : *this)
+		{
+			for (auto &p : bucket.second)
+			{
+				fun(p);
+			}
+		}
 
-    }
+	}
 
-    template<typename TFun>
-    void erase_if(TFun const &fun, key_type hint = 0)
-    {
-        if (hint == 0)
-        {
-            for (auto const &item : *this)
-            {
-                erase_if(fun, item.first);
-            }
-        }
-        else
-        {
-            auto &bucket = (*this)[hint];
+	template<typename TFun>
+	void erase_if(TFun const & fun, key_type hint = 0)
+	{
+		if (hint == 0)
+		{
+			for (auto const & item : *this)
+			{
+				erase_if(fun, item.first);
+			}
+		}
+		else
+		{
+			auto & bucket = (*this)[hint];
 
-            bucket.erase(std::remove_if(bucket.begin(), bucket.end(), fun),
-                         bucket.end());
-        }
+			bucket.erase(std::remove_if(bucket.begin(), bucket.end(), fun),
+					bucket.end());
+		}
 
-    }
+	}
 
-    template<typename TFun>
-    void modify(TFun const &fun, key_type hint = 0)
-    {
-        if (hint == 0)
-        {
-            for (auto const &item : *this)
-            {
-                modify(fun, item.first);
-            }
-        }
-        else
-        {
-            if (this->find(hint) != this->end())
-            {
-                auto &bucket = (*this)[hint];
+	template<typename TFun>
+	void modify(TFun const & fun, key_type hint = 0)
+	{
+		if (hint == 0)
+		{
+			for (auto const & item : *this)
+			{
+				modify(fun, item.first);
+			}
+		}
+		else
+		{
+			if (this->find(hint) != this->end())
+			{
+				auto & bucket = (*this)[hint];
 
-                for (auto &p : bucket)
-                {
-                    fun(&p);
-                }
-            }
-        }
+				for (auto & p : bucket)
+				{
+					fun(&p);
+				}
+			}
+		}
 
-    }
+	}
 
-    size_t size(key_type const &key) const
-    {
-        size_t count = 0;
+	size_t size(key_type const & key) const
+	{
+		size_t count = 0;
 
-        auto item = m_data_.find(key);
-        if (item != m_data_.end())
-        {
-            count = std::distance(item->second.begin(), item->second.end());
-        }
-        return count;
-    }
+		auto item = m_data_.find(key);
+		if (item != m_data_.end())
+		{
+			count = std::distance(item->second.begin(), item->second.end());
+		}
+		return count;
+	}
+	template<typename TRange>
+	size_t size_all(TRange const & range) const
+	{
+		size_t count = 0;
+		for (auto const & key : range)
+		{
+			count += size(key);
+		}
+		return count;
+	}
+	size_t size() const
+	{
 
-    template<typename TRange>
-    size_t size_all(TRange const &range) const
-    {
-        size_t count = 0;
-        for (auto const &key : range)
-        {
-            count += size(key);
-        }
-        return count;
-    }
+		size_t count = 0;
+		for (auto const & item : m_data_)
+		{
+			count += std::distance(item.second.begin(), item.second.end());
+		}
+		return count;
+	}
 
-    size_t size() const
-    {
+	typedef typename base_container_type::iterator iterator;
+	typedef typename base_container_type::const_iterator const_iterator;
 
-        size_t count = 0;
-        for (auto const &item : m_data_)
-        {
-            count += std::distance(item.second.begin(), item.second.end());
-        }
-        return count;
-    }
+	const_iterator begin() const
+	{
+		return m_data_.cbegin();
+	}
+	const_iterator end() const
+	{
+		return m_data_.cend();
+	}
+	const_iterator cbegin() const
+	{
+		return m_data_.cbegin();
+	}
+	const_iterator cend() const
+	{
+		return m_data_.cend();
+	}
 
-    typedef typename base_container_type::iterator iterator;
-    typedef typename base_container_type::const_iterator const_iterator;
+	iterator find(key_type const & key)
+	{
+		auto it = this->m_data_.find(key);
+		if (it != m_data_.end())
+			m_modified_.insert(key);
+		return std::move(it);
+	}
 
-    const_iterator begin() const
-    {
-        return m_data_.cbegin();
-    }
-
-    const_iterator end() const
-    {
-        return m_data_.cend();
-    }
-
-    const_iterator cbegin() const
-    {
-        return m_data_.cbegin();
-    }
-
-    const_iterator cend() const
-    {
-        return m_data_.cend();
-    }
-
-    iterator find(key_type const &key)
-    {
-        auto it = this->m_data_.find(key);
-        if (it != m_data_.end())
-            m_modified_.insert(key);
-        return std::move(it);
-    }
-
-    auto find(key_type const &key) const
-    DECL_RET_TYPE(this->m_data_.find(key))
-
-};
+	auto find(key_type const & key) const
+	DECL_RET_TYPE(this->m_data_.find(key))
 
 }
-}//  namespace simpla::gtl
+;
+
+}
+// namespace simpla
 
 #endif /* CORE_GTL_CONTAINER_SORTED_SET_H_ */
