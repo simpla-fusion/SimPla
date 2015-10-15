@@ -212,10 +212,20 @@
       <sourceFolder url="file://$MODULE_DIR$/core/io/io.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/io/test/xdmf_io.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/CMakeLists.txt" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/block/block.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/block/block_connection.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/block/block_data_container.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/block/block_layout.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/block/mesh_amr.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/block/mesh_block.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/block/mesh_block_id.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/block/mesh_id.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/block/tiling_block.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/calculate/calculate.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/calculate/fvm_structured.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/calculus.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/domain.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/domain_operation.h.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/domain_traits.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/geometry/geometry.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/geometry/geometry_traits.h" isTestSource="false" />
@@ -283,7 +293,9 @@
       <sourceFolder url="file://$MODULE_DIR$/core/numeric/sobol_engine.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/blocked_range.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/parallel/distributed_array.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/distributed_array.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/parallel/distributed_unordered_set.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/mpi_aux_functions.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/mpi_aux_functions.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/mpi_comm.cpp" isTestSource="false" />
@@ -333,6 +345,7 @@
       <sourceFolder url="file://$MODULE_DIR$/core/solver/structured/test/interpolator_test.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/solver/structured/test/topology_test.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/solver/test/field_basic_algebra_test.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/solver/test/field_basic_algerbra_test.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/solver/test/field_diff_calculus_test.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/solver/test/mesh_test.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/sp_config.h" isTestSource="false" />

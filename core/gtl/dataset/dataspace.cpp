@@ -48,13 +48,9 @@ struct DataSpace::pimpl_s
 
 //===================================================================
 
-DataSpace::DataSpace() :
-		pimpl_
-		{ nullptr }
-{
-}
+DataSpace::DataSpace() : pimpl_{new pimpl_s} { }
 
-DataSpace::DataSpace(int ndims, index_type const * dims) :
+DataSpace::DataSpace(int ndims, index_type const *dims) :
 		pimpl_(new pimpl_s)
 {
 
@@ -69,31 +65,24 @@ DataSpace::DataSpace(int ndims, index_type const * dims) :
 	pimpl_->m_local_offset_ = 0;
 
 }
-DataSpace::DataSpace(const DataSpace& other) :
-		pimpl_(nullptr)
+
+DataSpace::DataSpace(const DataSpace &other) :
+		pimpl_(new pimpl_s)
 {
-	if (!!other.pimpl_)
-	{
-		pimpl_ = std::unique_ptr<pimpl_s>
-		{ new pimpl_s };
-		pimpl_->m_d_shape_.ndims = other.pimpl_->m_d_shape_.ndims;
+	pimpl_->m_d_shape_.ndims = other.pimpl_->m_d_shape_.ndims;
 
-		pimpl_->m_d_shape_.dimensions = other.pimpl_->m_d_shape_.dimensions;
-		pimpl_->m_d_shape_.offset = other.pimpl_->m_d_shape_.offset;
-		pimpl_->m_d_shape_.count = other.pimpl_->m_d_shape_.count;
-		pimpl_->m_d_shape_.stride = other.pimpl_->m_d_shape_.stride;
-		pimpl_->m_d_shape_.block = other.pimpl_->m_d_shape_.block;
+	pimpl_->m_d_shape_.dimensions = other.pimpl_->m_d_shape_.dimensions;
+	pimpl_->m_d_shape_.offset = other.pimpl_->m_d_shape_.offset;
+	pimpl_->m_d_shape_.count = other.pimpl_->m_d_shape_.count;
+	pimpl_->m_d_shape_.stride = other.pimpl_->m_d_shape_.stride;
+	pimpl_->m_d_shape_.block = other.pimpl_->m_d_shape_.block;
 
-		pimpl_->m_local_dimensions_ = other.pimpl_->m_local_dimensions_;
-		pimpl_->m_local_offset_ = other.pimpl_->m_local_offset_;
-	}
+	pimpl_->m_local_dimensions_ = other.pimpl_->m_local_dimensions_;
+	pimpl_->m_local_offset_ = other.pimpl_->m_local_offset_;
+
 
 }
 
-//DataSpace::DataSpace(DataSpace&& other) :
-//		pimpl_(new pimpl_s(*other.pimpl_))
-//{
-//}
 
 DataSpace::~DataSpace()
 {
@@ -103,7 +92,8 @@ void DataSpace::swap(DataSpace &other)
 {
 	std::swap(pimpl_, other.pimpl_);
 }
-DataSpace DataSpace::create_simple(int ndims, const index_type * dims)
+
+DataSpace DataSpace::create_simple(int ndims, const index_type *dims)
 {
 	return std::move(DataSpace(ndims, dims));
 }
@@ -112,10 +102,27 @@ bool DataSpace::is_valid() const
 {
 	return !!(pimpl_);
 }
+
+bool DataSpace::is_distributed() const
+{
+	bool flag = false;
+	for (int i = 0; i < pimpl_->m_d_shape_.ndims; ++i)
+	{
+		if (pimpl_->m_d_shape_.dimensions[i] != pimpl_->m_local_dimensions_[i])
+		{
+			flag = true;
+			break;
+		};
+	}
+	return flag;
+}
+
+
 DataSpace::data_shape_s DataSpace::shape() const
 {
 	return global_shape();
 }
+
 DataSpace::data_shape_s DataSpace::local_shape() const
 {
 
@@ -133,9 +140,33 @@ DataSpace::data_shape_s DataSpace::global_shape() const
 	return pimpl_->m_d_shape_;
 }
 
-DataSpace & DataSpace::select_hyperslab(index_type const * offset,
-		index_type const * stride, index_type const * count,
-		index_type const * block)
+
+size_t DataSpace::local_memory_size() const
+{
+	size_t s = 1;
+
+	for (int i = 0; i < pimpl_->m_d_shape_.ndims; ++i)
+	{
+		s *= pimpl_->m_local_dimensions_[i];
+	}
+	return s;
+}
+
+size_t DataSpace::global_size() const
+{
+	size_t s = 1;
+
+	for (int i = 0; i < pimpl_->m_d_shape_.ndims; ++i)
+	{
+		s *= pimpl_->m_d_shape_.dimensions[i];
+	}
+	return s;
+}
+
+
+DataSpace &DataSpace::select_hyperslab(index_type const *offset,
+		index_type const *stride, index_type const *count,
+		index_type const *block)
 {
 	if (!is_valid())
 	{
@@ -165,8 +196,8 @@ DataSpace & DataSpace::select_hyperslab(index_type const * offset,
 
 }
 
-DataSpace & DataSpace::set_local_shape(index_type const *local_dimensions =
-		nullptr, index_type const *local_offset = nullptr)
+DataSpace &DataSpace::set_local_shape(index_type const *local_dimensions =
+nullptr, index_type const *local_offset = nullptr)
 {
 
 	if (local_offset != nullptr)
@@ -238,7 +269,6 @@ DataSpace & DataSpace::set_local_shape(index_type const *local_dimensions =
 //		size_t * local_inner_start, size_t * local_inner_count)
 //{
 //
-////FIXME this is wrong!!!
 //	for (int i = 0; i < ndims; ++i)
 //	{
 //		local_outer_count[i] = global_count[i];

@@ -13,6 +13,7 @@
 #include "../topology/structured.h"
 #include "../calculate/fvm_structured.h"
 #include "../manifold.h"
+#include "../policy/dataset.h"
 
 namespace simpla
 {
@@ -20,8 +21,10 @@ namespace manifold
 {
 using CartesianCoordinate= Geometry<geometry::coordinate_system::Cartesian<3, 2>, topology::tags::CoRectMesh>;
 
-using Mock= Manifold<CartesianCoordinate, Calculate<CartesianCoordinate, calculate::tags::finite_volume>
->;
+using Mock= Manifold<CartesianCoordinate, Calculate<CartesianCoordinate, calculate::tags::finite_volume>,
+		DataSetPolicy<CartesianCoordinate>>;
+
+
 }//namespace  manifold
 }//namespace simpla
 #endif //SIMPLA_MOCK_H

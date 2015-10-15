@@ -28,7 +28,7 @@ MPIDataType::~MPIDataType()
 }
 
 MPIDataType MPIDataType::create(DataType const & data_type, //
-		unsigned int ndims, //
+		int ndims, //
 		size_t const * p_dims,        //
 		size_t const * p_offset,      //
 		size_t const * p_stride,      //
@@ -136,7 +136,7 @@ MPIDataType MPIDataType::create(DataType const & data_type, //
 	if (data_type.is_array() || (ndims > 0 && p_dims != nullptr))
 	{
 
-		unsigned int mdims = ndims + data_type.rank();
+		int mdims = ndims + data_type.rank();
 
 		nTuple<int, MAX_NDIMS_OF_ARRAY> l_dims;
 		nTuple<int, MAX_NDIMS_OF_ARRAY> l_offset;

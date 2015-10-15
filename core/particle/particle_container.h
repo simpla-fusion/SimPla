@@ -24,6 +24,7 @@
 #include "../gtl/iterator/sp_iterator.h"
 #include "../parallel/mpi_update.h"
 #include "../parallel/mpi_aux_functions.h"
+#include "distributed_unordered_set.h"
 
 /** @ingroup physical_object
  *  @addtogroup particle Particle
@@ -87,7 +88,7 @@ template<typename TContainer>
 struct particle_container_traits
 {
 	template<typename ...Args>
-	static std::shared_ptr<TContainer> create(Args && ...args)
+	static std::shared_ptr<TContainer> create(Args &&...args)
 	{
 		return std::make_shared<TContainer>();
 	}
@@ -97,10 +98,10 @@ struct particle_container_traits
 
 template<typename TDomain, typename Engine, typename TContainer>
 class Particle<TDomain, Engine, TContainer> //
-:	public SpObject,
-	public Engine,
-	public TContainer,
-	public enable_create_from_this<Particle<TDomain, Engine, TContainer> >
+		: public DistributedObject,
+				public Engine,
+				public TContainer,
+				public enable_create_from_this<Particle<TDomain, Engine, TContainer> >
 {
 public:
 
@@ -125,15 +126,15 @@ public:
 
 private:
 	domain_type m_domain_;
-	mesh_type const & m_mesh_;
+	mesh_type const &m_mesh_;
 public:
 
-	Particle(domain_type const & d)
+	Particle(domain_type const &d)
 			: m_domain_(d), m_mesh_(d.mesh())
 	{
 	}
 
-	Particle(this_type const& other)
+	Particle(this_type const &other)
 			: engine_type(other),
 
 			container_type(other),
@@ -143,7 +144,7 @@ public:
 	}
 
 	template<typename ... Args>
-	Particle(this_type & other, Args && ...args)
+	Particle(this_type &other, Args &&...args)
 			: engine_type(other),
 
 			container_type(other, std::forward<Args>(args)...),
@@ -158,11 +159,12 @@ public:
 
 	using SpObject::properties;
 
-	this_type & self()
+	this_type &self()
 	{
 		return *this;
 	}
-	this_type const& self() const
+
+	this_type const &self() const
 	{
 		return *this;
 	}
@@ -171,22 +173,24 @@ public:
 	{
 		return engine_type::get_type_as_string();
 	}
+
 	std::string get_type_as_string() const
 	{
 		return get_type_as_string_static();
 	}
-	mesh_type const & mesh() const
+
+	mesh_type const &mesh() const
 	{
 		return m_mesh_;
 	}
 
-	domain_type const & domain() const
+	domain_type const &domain() const
 	{
 		return m_domain_;
 	}
 
 	template<typename TDict, typename ...Others>
-	void load(TDict const & dict, Others && ...others)
+	void load(TDict const &dict, Others &&...others)
 	{
 		engine_type::load(dict, std::forward<Others>(others)...);
 
@@ -195,13 +199,15 @@ public:
 			UNIMPLEMENTED2("load particle from [DataSrc]");
 		}
 	}
+
 	template<typename OS>
-	OS & print(OS & os) const
+	OS &print(OS &os) const
 	{
 		engine_type::print(os);
 		os << " num= " << size() << ",";
 		return os;
 	}
+
 	bool empty() const
 	{
 		return TContainer::empty();
@@ -225,7 +231,7 @@ public:
 	}
 
 	template<typename TRange>
-	size_t size(TRange const & r) const
+	size_t size(TRange const &r) const
 	{
 		return container_type::size_all(r);
 	}
@@ -234,12 +240,13 @@ public:
 	{
 		return container_type::size_all(m_domain_);
 	}
+
 	void sync()
 	{
 
 		auto ghost_list = m_domain_.mesh().template ghost_shape<iform>();
 
-		for (auto const & item : ghost_list)
+		for (auto const &item : ghost_list)
 		{
 			mpi_send_recv_buffer_s send_recv_s;
 
@@ -262,12 +269,12 @@ public:
 					send_recv_s.send_size * send_recv_s.datatype.size());
 
 			value_type *data =
-					reinterpret_cast<value_type*>(send_recv_s.send_data.get());
+					reinterpret_cast<value_type *>(send_recv_s.send_data.get());
 
 			// FIXME need parallel optimize
-			for (auto const & key : send_range)
+			for (auto const &key : send_range)
 			{
-				for (auto const & p : container_type::operator[](key))
+				for (auto const &p : container_type::operator[](key))
 				{
 					*data = p;
 					++data;
@@ -295,11 +302,11 @@ public:
 	{
 		SpObject::wait();
 
-		for (auto const & item : m_send_recv_buffer_)
+		for (auto const &item : m_send_recv_buffer_)
 		{
 
 			value_type *data =
-					reinterpret_cast<value_type*>(item.recv_data.get());
+					reinterpret_cast<value_type *>(item.recv_data.get());
 
 			container_type::insert(data, data + item.recv_size);
 		}
@@ -327,7 +334,7 @@ public:
 
 		res.data = sp_alloc_memory(count * sizeof(value_type));
 
-		value_type * p = reinterpret_cast<value_type *>(res.data.get());
+		value_type *p = reinterpret_cast<value_type *>(res.data.get());
 
 		//TODO need parallel optimize
 
@@ -337,7 +344,7 @@ public:
 
 			if (it != container_type::end())
 			{
-				for (auto const & pit : it->second)
+				for (auto const &pit : it->second)
 				{
 					*p = pit;
 					++p;
@@ -380,12 +387,12 @@ public:
 	 *
 	 */
 	template<typename ...Args>
-	void next_timestep(Args && ...args)
+	void next_timestep(Args &&...args)
 	{
 
 		wait();
 
-		for (auto & item : *this)
+		for (auto &item : *this)
 		{
 			for (auto &p : (*this)[item.first])
 			{
@@ -416,12 +423,12 @@ public:
 	 */
 	template<typename ...Args>
 	Real next_n_timesteps(size_t num_of_steps, Real t0, Real dt,
-			Args && ...args)
+			Args &&...args)
 	{
 
 		wait();
 
-		for (auto & item : *this)
+		for (auto &item : *this)
 		{
 			for (auto &p : (*this)[item.first])
 			{
@@ -442,7 +449,7 @@ public:
 		point_type d;
 		d = xmax - xmin;
 
-		for (auto & item : *this)
+		for (auto &item : *this)
 		{
 			point_type x0;
 			x0 = m_domain_.mesh().point(item.first);
@@ -471,8 +478,7 @@ public:
 
 	}
 
-}
-;
+};
 }  // namespace simpla
 
 #endif /* CORE_PARTICLE_PARTICLE_CONTAINER_H_ */

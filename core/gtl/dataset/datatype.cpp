@@ -15,7 +15,9 @@ namespace simpla
 struct DataType::pimpl_s
 {
 	pimpl_s();
+
 	~pimpl_s();
+
 	size_t m_ele_size_in_byte_ = 0;
 	std::type_index m_t_index_;
 	std::string m_name_;
@@ -24,19 +26,23 @@ struct DataType::pimpl_s
 	std::vector<std::tuple<DataType, std::string, int>> m_members_;
 
 };
+
 DataType::DataType() :
 		pimpl_(new pimpl_s)
 {
 }
+
 DataType::pimpl_s::pimpl_s() :
 		m_t_index_(std::type_index(typeid(void)))
 {
 }
+
 DataType::pimpl_s::~pimpl_s()
 {
 }
+
 DataType::DataType(std::type_index t_index, size_t ele_size_in_byte,
-		unsigned int ndims, size_t const* dims, std::string name) :
+		int ndims, size_t const *dims, std::string name) :
 		pimpl_(new pimpl_s)
 {
 	pimpl_->m_t_index_ = (t_index);
@@ -55,33 +61,21 @@ DataType::DataType(std::type_index t_index, size_t ele_size_in_byte,
 	if (pimpl_->m_name_ == "")
 	{
 		if (is_same<int>())
-		{
-			pimpl_->m_name_ = "int";
-		}
+		{ pimpl_->m_name_ = "int"; }
 		else if (is_same<long>())
-		{
-			pimpl_->m_name_ = "long";
-		}
+		{ pimpl_->m_name_ = "long"; }
 		else if (is_same<unsigned long>())
-		{
-			pimpl_->m_name_ = "unsigned long";
-		}
+		{ pimpl_->m_name_ = "unsigned long"; }
 		else if (is_same<float>())
-		{
-			pimpl_->m_name_ = "float";
-		}
+		{ pimpl_->m_name_ = "float"; }
 		else if (is_same<double>())
-		{
-			pimpl_->m_name_ = "double";
-		}
+		{ pimpl_->m_name_ = "double"; }
 		else
-		{
-			pimpl_->m_name_ = "UNKNOWN";
-		}
+		{ pimpl_->m_name_ = "UNKNOWN"; }
 	}
 }
 
-DataType::DataType(const DataType & other) :
+DataType::DataType(const DataType &other) :
 		pimpl_(new pimpl_s)
 {
 	pimpl_->m_ele_size_in_byte_ = (other.pimpl_->m_ele_size_in_byte_);
@@ -98,7 +92,7 @@ DataType::~DataType()
 {
 }
 
-DataType& DataType::operator=(DataType const& other)
+DataType &DataType::operator=(DataType const &other)
 {
 	pimpl_->m_ele_size_in_byte_ = (other.pimpl_->m_ele_size_in_byte_);
 	pimpl_->m_t_index_ = (other.pimpl_->m_t_index_);
@@ -111,10 +105,12 @@ DataType& DataType::operator=(DataType const& other)
 
 	return *this;
 }
-void DataType::swap(DataType & other)
+
+void DataType::swap(DataType &other)
 {
 	std::swap(pimpl_, other.pimpl_);
 }
+
 DataType DataType::element_type() const
 {
 	DataType res(*this);
@@ -128,10 +124,12 @@ std::string DataType::name() const
 {
 	return std::move(pimpl_->m_t_index_.name());
 }
+
 bool DataType::is_valid() const
 {
 	return pimpl_->m_t_index_ != std::type_index(typeid(void));
 }
+
 size_t DataType::ele_size_in_byte() const
 {
 	return pimpl_->m_ele_size_in_byte_;
@@ -141,33 +139,39 @@ size_t DataType::size() const
 {
 	size_t res = 1;
 
-	for (auto const & d : pimpl_->m_extents_)
+	for (auto const &d : pimpl_->m_extents_)
 	{
 		res *= d;
 	}
 	return res;
 }
+
 size_t DataType::size_in_byte() const
 {
 	return pimpl_->m_ele_size_in_byte_ * size();
 }
-size_t DataType::rank() const
+
+int DataType::rank() const
 {
-	return pimpl_->m_extents_.size();
+	return static_cast<int>(pimpl_->m_extents_.size());
 }
+
 size_t DataType::extent(size_t n) const
 {
 	return pimpl_->m_extents_[n];
 }
-std::vector<size_t> const & DataType::extents() const
+
+std::vector<size_t> const &DataType::extents() const
 {
 	return pimpl_->m_extents_;
 }
+
 void DataType::extent(size_t *d) const
 {
 	std::copy(pimpl_->m_extents_.begin(), pimpl_->m_extents_.end(), d);
 }
-void DataType::extent(size_t rank, size_t const*d)
+
+void DataType::extent(int rank, size_t const *d)
 {
 	pimpl_->m_extents_.resize(rank);
 	for (int i = 0; i < rank; ++i)
@@ -176,18 +180,22 @@ void DataType::extent(size_t rank, size_t const*d)
 	}
 
 }
-std::vector<std::tuple<DataType, std::string, int>> const & DataType::members() const
+
+std::vector<std::tuple<DataType, std::string, int>> const &DataType::members() const
 {
 	return pimpl_->m_members_;
 }
+
 bool DataType::is_compound() const
 {
 	return pimpl_->m_members_.size() > 0;
 }
+
 bool DataType::is_array() const
 {
 	return pimpl_->m_extents_.size() > 0;
 }
+
 bool DataType::is_opaque() const
 {
 	return pimpl_->m_extents_.size() == 0
@@ -199,7 +207,7 @@ bool DataType::is_same(std::type_index const &other) const
 	return pimpl_->m_t_index_ == other;
 }
 
-void DataType::push_back(DataType && d_type, std::string const & name, int pos)
+void DataType::push_back(DataType &&d_type, std::string const &name, int pos)
 {
 	if (pos < 0)
 	{
@@ -218,18 +226,19 @@ void DataType::push_back(DataType && d_type, std::string const & name, int pos)
 	pimpl_->m_members_.push_back(std::forward_as_tuple(d_type, name, pos));
 
 }
+
 namespace traits
 {
-std::ostream & print(std::ostream & os, DataType const &self)
+std::ostream &print(std::ostream &os, DataType const &self)
 {
 
 	if (self.is_compound())
 	{
 		os << "DATATYPE" << std::endl <<
 
-		"struct " << self.name() << std::endl
+				"struct " << self.name() << std::endl
 
-		<< "{" << std::endl;
+				<< "{" << std::endl;
 
 		auto it = self.members().begin();
 		auto ie = self.members().end();
@@ -252,7 +261,7 @@ std::ostream & print(std::ostream & os, DataType const &self)
 	else
 	{
 		os << self.name();
-		for (auto const & d : self.extents())
+		for (auto const &d : self.extents())
 		{
 			os << "[" << d << "]";
 		}

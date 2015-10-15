@@ -16,7 +16,6 @@
 #include "../check_concept.h"
 #include "../properties.h"
 #include "../type_traits.h"
-#include "../utilities/memory_pool.h"
 #include "dataspace.h"
 #include "datatype.h"
 
@@ -44,103 +43,124 @@ namespace simpla
 struct DataSet
 {
 	std::shared_ptr<void> data;
+
 	DataType datatype;
+
 	DataSpace dataspace;
+
 	Properties properties;
 
-	typedef long index_type;
+	DataSet() : data(nullptr) { }
 
-	DataSet()
-	{
-	}
 	DataSet(DataSet const &other) :
-			data(other.data), datatype(other.datatype), dataspace(
-					other.dataspace), properties(other.properties)
+			data(other.data),
+			datatype(other.datatype),
+			dataspace(other.dataspace),
+			properties(other.properties) { }
+
+
+	virtual ~DataSet() { }
+
+	void swap(DataSet &other)
 	{
-	}
-//	DataSet(DataSet &&other) :
-//			data(other.data), datatype(other.datatype), dataspace(
-//					other.dataspace), properties(other.properties)
-//	{
-//	}
-	~DataSet()
-	{
-	}
-	bool is_valid() const
-	{
-		return data != nullptr && datatype.is_valid() && dataspace.is_valid();
+		std::swap(data, other.data);
+		std::swap(datatype, other.datatype);
+		std::swap(dataspace, other.dataspace);
+		std::swap(properties, other.properties);
 	}
 
-	std::ostream & print(std::ostream & os) const;
-};
+	bool operator==(DataSet const &other) const { return is_equal(other.data.get()); }
 
-namespace _impl
-{
-HAS_MEMBER_FUNCTION(dataset)
-}  // namespace _impl
+	virtual bool is_valid() const { return data != nullptr && datatype.is_valid() && dataspace.is_valid(); }
 
-template<typename T>
-auto make_dataset(T & d)->
-typename std::enable_if<_impl:: has_member_function_dataset<T >::value,
-decltype(d.dataset())>::type
-{
-	return std::move(d.dataset());
-}
+	virtual bool empty() const { return data == nullptr; }
 
-template<typename T>
-auto make_dataset(T * d)->
-typename std::enable_if< _impl:: has_member_function_dataset<T >::value,
-decltype(d->dataset())>::type
-{
-	return std::move(d->dataset());
-}
+	virtual void deploy();
 
-template<typename T, typename TI>
-DataSet make_dataset(T * p, int rank, TI const * dims, Properties const & prop =
-		Properties())
-{
+	virtual std::ostream &print(std::ostream &os) const;
 
-	DataSet res;
+	virtual void clear();
 
-	res.datatype = traits::datatype<T>::create();
-	res.dataspace = DataSpace::create_simple(rank, dims);
-//	res.data = std::shared_ptr<void>(
-//			const_cast<void*>(reinterpret_cast<typename std::conditional<
-//					std::is_const<T>::value, void const *, void *>::type>(p)),
-//			do_nothing());
-	res.properties = prop;
+	virtual void copy(void const *other);
 
-	return std::move(res);
-}
+	virtual bool is_same(void const *other) const;
 
-template<typename T, typename TI>
-DataSet make_dataset(std::shared_ptr<T> p, int rank, TI const * dims,
-		Properties const & prop = Properties())
-{
+	virtual bool is_equal(void const *other) const;
 
-	DataSet res;
-	res.data = p;
-	res.datatype = traits::datatype<T>::create();
-	res.dataspace = make_dataspace(rank, dims);
-	res.properties = prop;
 
-	return std::move(res);
-}
+	template<typename T> T &get_value(size_t s) { return reinterpret_cast<T *>( data.get())[s]; }
 
-template<typename T>
-DataSet make_dataset(std::vector<T> const & p)
-{
+	template<typename T> T const &get_value(size_t s) const { return reinterpret_cast<T *>( data.get())[s]; }
 
-	DataSet res;
-	long num = p.size();
-	res.datatype = traits::datatype<T>::create();
-	res.dataspace = DataSpace::create_simple(1, &num);
+
+}; //class DataSet
+//
+//namespace _impl
+//{
+//HAS_MEMBER_FUNCTION(dataset)
+//}  // namespace _impl
+//
+//template<typename T>
+//auto make_dataset(T &d) ->
+//typename std::enable_if<_impl::has_member_function_dataset<T>::value,
+//		decltype(d.dataset())>::type
+//{
+//	return std::move(d.dataset());
+//}
+//
+//template<typename T>
+//auto make_dataset(T *d) ->
+//typename std::enable_if<_impl::has_member_function_dataset<T>::value,
+//		decltype(d->dataset())>::type
+//{
+//	return std::move(d->dataset());
+//}
+//
+//template<typename T, typename TI>
+//DataSet make_dataset(T *p, int rank, TI const *dims, Properties const &prop =
+//Properties())
+//{
+//
+//	DataSet res;
+//
+//	res.datatype = traits::datatype<T>::create();
+//	res.dataspace = DataSpace::create_simple(rank, dims);
+////	res.data = std::shared_ptr<void>(
+////			const_cast<void*>(reinterpret_cast<typename std::conditional<
+////					std::is_const<T>::value, void const *, void *>::type>(p)),
+////			do_nothing());
+//	res.properties = prop;
+//
+//	return std::move(res);
+//}
+//
+//template<typename T, typename TI>
+//DataSet make_dataset(std::shared_ptr<T> p, int rank, TI const *dims,
+//		Properties const &prop = Properties())
+//{
+//	DataSet res;
+//	res.data = p;
+//	res.datatype = traits::datatype<T>::create();
+//	res.dataspace = make_dataspace(rank, dims);
+//	res.properties = prop;
+//
+//	return std::move(res);
+//}
+//
+//template<typename T>
+//DataSet make_dataset(std::vector<T> const &p)
+//{
+//
+//	DataSet res;
+//	long num = p.size();
+//	res.datatype = traits::datatype<T>::create();
+//	res.dataspace = DataSpace::create_simple(1, &num);
 //	res.data = std::shared_ptr<void>(
 //			const_cast<void*>(reinterpret_cast<void const *>(&p[0])),
 //			do_nothing());
-
-	return std::move(res);
-}
+//
+//	return std::move(res);
+//}
 /**@}*/
 
 }  // namespace simpla

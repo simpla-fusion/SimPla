@@ -8,274 +8,226 @@
 #ifndef CORE_PARALLEL_DISTRIBUTED_ARRAY_CPP_
 #define CORE_PARALLEL_DISTRIBUTED_ARRAY_CPP_
 
-#include "distributed_array.h"
-
-#include <mpi.h>
-#include <memory>
-#include <vector>
-
-#include "../dataset/dataset.h"
-#include "../numeric/geometric_algorithm.h"
-#include "../utilities/utilities.h"
+#include "../gtl/utilities/log.h"
 
 #include "mpi_comm.h"
-#include "mpi_datatype.h"
+#include "mpi_aux_functions.h"
+#include "mpi_update.h"
+
+#include "distributed_array.h"
 
 namespace simpla
 {
+
 struct DistributedArray::pimpl_s
 {
+	std::vector<mpi_send_recv_s> m_send_recv_list_;
+	std::vector<mpi_send_recv_buffer_s> m_send_recv_buffer_;
+	std::vector<MPI_Request> m_mpi_requests_;
 
-	typedef nTuple<size_t, MAX_NDIMS_OF_ARRAY> index_type;
-
-	size_t ndims_ = 3;
-
-	int self_id_ = 0;
-
-//	std::vector<send_recv_s> send_recv_; // dest, send_tag,recv_tag, sub_array_s
-//
-//	int hash(size_t const *d) const
-//	{
-//		index_type g_stride;
-//		g_stride[0] = 1;
-//
-//		for (int i = 1; i < ndims_; ++i)
-//		{
-//			g_stride[i] = global_shape_.count[i] * g_stride[i - 1];
-//		}
-//		int res = 0;
-//		for (int i = 0; i < ndims_; ++i)
-//		{
-//			res += ((d[i] - global_shape_.offset[i] + global_shape_.count[i])
-//					% global_shape_.count[i]) * g_stride[i];
-//		}
-//		return res;
-//	}
+	int m_object_id_;
 
 };
 
-void DistributedArray::decompose(size_t nd, int const * dims)
+//! Default constructor
+DistributedArray::DistributedArray(DataType const &d_type, DataSpace const &d_space)
+		: pimpl_(new pimpl_s)
 {
-	if (nd == 0 || dims != nullptr)
-	{
-		int d = GLOBAL_COMM.num_of_process();
-		decompose(1,&d);
-		return;
-	}
+	pimpl_->m_object_id_ = SingletonHolder<simpla::MPIComm>::instance().generate_object_id();
+
+	DataSet::datatype = d_type;
+
+	DataSet::dataspace = d_space;
+
+	DataSet::data = nullptr;
 
 }
 
-void decomposer_(size_t num_process, size_t process_num, size_t gw,
-		size_t ndims, size_t const *global_start, size_t const * global_count,
-		size_t * local_outer_start, size_t * local_outer_count,
-		size_t * local_inner_start, size_t * local_inner_count)
+DistributedArray::DistributedArray(DistributedArray const &other) : pimpl_(new pimpl_s(*other.pimpl_)),
+		DataSet(other)
 {
-
-	//FIXME this is wrong!!!
-	for (int i = 0; i < ndims; ++i)
-	{
-		local_outer_count[i] = global_count[i];
-		local_outer_start[i] = global_start[i];
-		local_inner_count[i] = global_count[i];
-		local_inner_start[i] = global_start[i];
-	}
-
-	if (num_process <= 1)
-		return;
-
-	int n = 0;
-	long L = 0;
-	for (int i = 0; i < ndims; ++i)
-	{
-		if (global_count[i] > L)
-		{
-			L = global_count[i];
-			n = i;
-		}
-	}
-
-	if ((2 * gw * num_process > global_count[n] || num_process > global_count[n]))
-	{
-
-		RUNTIME_ERROR("Array is too small to split");
-
-//		if (process_num > 0)
-//			local_outer_end = local_outer_begin;
-	}
-	else
-	{
-		local_inner_start[n] = (global_count[n] * process_num) / num_process
-				+ global_start[n];
-		local_inner_count[n] = (global_count[n] * (process_num + 1))
-				/ num_process + global_start[n];
-		local_outer_start[n] = local_inner_start[n] - gw;
-		local_outer_count[n] = local_inner_count[n] + gw;
-	}
-
 }
 
-void DistributedArray::pimpl_s::decompose()
-{
-
-	local_outer_shape_.offset = global_shape_.offset;
-	local_outer_shape_.count = global_shape_.count;
-	local_inner_shape_.offset = global_shape_.offset;
-	local_inner_shape_.count = global_shape_.count;
-
-	if (!GLOBAL_COMM.is_valid()) return;
-
-	int num_process = GLOBAL_COMM.get_size();
-	unsigned int process_num = GLOBAL_COMM.get_rank();
-
-	decomposer_(num_process, process_num, gw, ndims_,  //
-			&global_shape_.offset[0], &global_shape_.count[0],  //
-			&local_outer_shape_.offset[0], &local_outer_shape_.count[0],  //
-			&local_inner_shape_.offset[0], &local_inner_shape_.count[0]);
-
-	self_id_ = (process_num);
-
-	for (int dest = 0; dest < num_process; ++dest)
-	{
-		if (dest == self_id_)
-			continue;
-
-		sub_array_s node;
-
-		decomposer_(num_process, dest, gw, ndims_, &global_shape_.offset[0],
-				&global_shape_.count[0], &node.outer_offset[0],
-				&node.outer_count[0], &node.inner_offset[0],
-				&node.inner_count[0]
-
-				);
-
-		sub_array_s remote;
-
-		for (unsigned long s = 0, s_e = (1UL << (ndims_ * 2)); s < s_e; ++s)
-		{
-			remote = node;
-
-			bool is_duplicate = false;
-
-			for (int i = 0; i < ndims_; ++i)
-			{
-
-				int n = (s >> (i * 2)) & 3UL;
-
-				if (n == 3)
-				{
-					is_duplicate = true;
-					continue;
-				}
-
-				auto L = global_shape_.count[i] * ((n + 1) % 3 - 1);
-
-				remote.outer_offset[i] += L;
-				remote.inner_offset[i] += L;
-
-			}
-			if (!is_duplicate)
-			{
-				bool f_inner = Clipping(ndims_, local_outer_shape_.offset,
-						local_outer_shape_.count, remote.inner_offset,
-						remote.inner_count);
-				bool f_outer = Clipping(ndims_, local_inner_shape_.offset,
-						local_inner_shape_.count, remote.outer_offset,
-						remote.outer_count);
-
-				bool flag = f_inner && f_outer;
-
-				for (int i = 0; i < ndims_; ++i)
-				{
-					flag = flag && (remote.outer_count[i] != 0);
-				}
-				if (flag)
-				{
-					send_recv_.emplace_back(
-							send_recv_s(
-									{ dest, hash(&remote.outer_offset[0]), hash(
-											&remote.inner_offset[0]),
-											remote.outer_offset,
-											remote.outer_count,
-											remote.inner_offset,
-											remote.inner_count }));
-				}
-			}
-		}
-	}
-
-	is_valid_ = true;
-}
-
-bool DistributedArray::sync_ghosts(DataSet * ds, size_t flag) const
-{
-//#ifdef USE_MPI
-	if (!GLOBAL_COMM.is_valid() || send_recv_.size() == 0)
-	{
-		return true;
-	}
-
-	MPI_Comm comm = GLOBAL_COMM.comm();
-
-	MPI_Request request[send_recv_.size() * 2];
-
-	int count = 0;
-
-	for (auto const & item : send_recv_)
-	{
-
-		pimpl_s::index_type send_offset;
-		send_offset = item.send.offset - local_outer_shape_.offset;
-
-		MPIDataType send_type = MPIDataType::create(ds->datatype, ndims_,
-		&local_outer_shape_.count[0],
-		&send_offset[0],
-		&item.send.stride[0],
-		&item.send.count[0],
-		&item.send.block[0] );
-
-		pimpl_s::index_type recv_offset;
-		recv_offset = item.recv.offset - local_outer_shape_.offset;
-
-		MPIDataType recv_type = MPIDataType::create(ds->datatype, ndims_,
-		&local_outer_shape_.count[0],
-		&send_offset[0],
-		&item.recv.stride[0],
-		&item.recv.count[0],
-		&item.recv.block[0] ));
-
-		MPI_Isend(ds->data.get(), 1, send_type.type(), item.dest, item.send_tag,
-		comm, &request[count * 2]);
-		MPI_Irecv(ds->data.get(), 1, recv_type.type(), item.dest, item.recv_tag,
-		comm, &request[count * 2 + 1]);
-
-		++count;
-	}
-
-	MPI_Waitall(send_recv_.size() * 2, request, MPI_STATUSES_IGNORE);
-//#endif
-	return true;
-}
-
-//********************************************************************
-
-DistributedArray::DistributedArray(size_t nd, size_t const * dims)
-{
-	if (pimpl_ == nullptr)
-		pimpl_ = std::unique_ptr<pimpl_s> { new pimpl_s };
-
-	pimpl_->init(nd, dims, gw);
-	pimpl_->ndims_ = nd;
-
-	pimpl_->dimensions = dims;
-	pimpl_->global_shape_.count = dims;
-	pimpl_->global_shape_.offset = 0;
-	pimpl_->global_shape_.stride = 1;
-	pimpl_->global_shape_.block = 1;
-}
 DistributedArray::~DistributedArray()
 {
 }
 
-}  // namespace simpla
+void DistributedArray::swap(DistributedArray &other)
+{
+	std::swap(pimpl_, other.pimpl_);
+	DataSet::swap(other);
+}
+
+
+void DistributedArray::sync()
+{
+	if (GLOBAL_COMM.is_valid() && !pimpl_->m_send_recv_list_.empty())
+	{
+		sync_update_continue(pimpl_->m_send_recv_list_, DataSet::data.get());
+	}
+}
+
+void DistributedArray::async()
+{
+	if (GLOBAL_COMM.is_valid() && !pimpl_->m_send_recv_list_.empty())
+	{
+		sync_update_continue(pimpl_->m_send_recv_list_, DataSet::data.get(), &(pimpl_->m_mpi_requests_));
+	}
+}
+
+
+void DistributedArray::wait()
+{
+
+	DataSet::deploy();
+
+	if (GLOBAL_COMM.is_valid() && !pimpl_->m_mpi_requests_.empty())
+	{
+		wait_all_request(const_cast<std::vector<MPI_Request> *>(&pimpl_->m_mpi_requests_));
+	}
+}
+
+bool DistributedArray::is_valid() const
+{
+	return !empty() && !pimpl_;
+}
+
+bool DistributedArray::is_ready() const
+{
+	//! FIXME this is not multi-threads safe
+
+	if (!is_valid())
+	{
+		return false;
+	}
+
+	if (pimpl_->m_mpi_requests_.size() > 0)
+	{
+		int flag = 0;
+		MPI_ERROR(MPI_Testall(static_cast<int>( pimpl_->m_mpi_requests_.size()), //
+				const_cast<MPI_Request *>(&pimpl_->m_mpi_requests_[0]),//
+				&flag, MPI_STATUSES_IGNORE));
+
+		return flag != 0;
+	}
+
+	return true;
+
+}
+
+
+void DistributedArray::deploy()
+{
+	DataSet::deploy();
+
+	if ((!GLOBAL_COMM.is_valid()))
+	{
+		return;
+	}
+
+	pimpl_->m_send_recv_list_.clear();
+
+	auto global_shape = DataSet::dataspace.global_shape();
+
+	auto local_shape = DataSet::dataspace.local_shape();
+
+	int ndims = global_shape.ndims;
+
+	nTuple<size_t, MAX_NDIMS_OF_ARRAY> l_dims, l_offset, l_stride, l_count, l_block, ghost_width;
+
+	l_dims = local_shape.dimensions;
+	l_offset = local_shape.offset;
+	l_stride = local_shape.stride;
+	l_count = local_shape.count;
+	l_block = local_shape.block;
+
+	ghost_width = l_offset;
+
+	nTuple<size_t, MAX_NDIMS_OF_ARRAY> send_count, send_offset;
+	nTuple<size_t, MAX_NDIMS_OF_ARRAY> recv_count, recv_offset;
+
+	for (unsigned int tag = 0, tag_e = (1U << (ndims * 2)); tag < tag_e; ++tag)
+	{
+		nTuple<int, 3> coord_shift;
+
+		bool tag_is_valid = true;
+
+		for (int n = 0; n < ndims; ++n)
+		{
+			if (((tag >> (n * 2)) & 3UL) == 3UL)
+			{
+				tag_is_valid = false;
+				break;
+			}
+
+			coord_shift[n] = ((tag >> (n * 2)) & 3U) - 1;
+
+			switch (coord_shift[n])
+			{
+			case 0:
+				send_count[n] = l_count[n];
+				send_offset[n] = l_offset[n];
+				recv_count[n] = l_count[n];
+				recv_offset[n] = l_offset[n];
+				break;
+			case -1: //left
+
+				send_count[n] = ghost_width[n];
+				send_offset[n] = l_offset[n];
+
+				recv_count[n] = ghost_width[n];
+				recv_offset[n] = l_offset[n] - ghost_width[n];
+
+				break;
+			case 1: //right
+				send_count[n] = ghost_width[n];
+				send_offset[n] = l_offset[n] + l_count[n] - ghost_width[n];
+
+				recv_count[n] = ghost_width[n];
+				recv_offset[n] = l_offset[n] + l_count[n];
+				break;
+			default:
+				tag_is_valid = false;
+				break;
+			}
+
+			if (send_count[n] == 0 || recv_count[n] == 0)
+			{
+				tag_is_valid = false;
+				break;
+			}
+
+		}
+
+		if (tag_is_valid && (coord_shift[0] != 0 || coord_shift[1] != 0 || coord_shift[2] != 0))
+		{
+
+			int dest, send_tag, recv_tag;
+
+			std::tie(dest, send_tag, recv_tag) = GLOBAL_COMM.make_send_recv_tag(pimpl_->m_object_id_, &coord_shift[0]);
+
+			pimpl_->m_send_recv_list_.emplace_back(
+
+					mpi_send_recv_s {
+
+							dest, send_tag, recv_tag,
+
+							MPIDataType::create(DataSet::datatype, ndims, &l_dims[0], &send_offset[0], nullptr,
+									&send_count[0], nullptr),
+
+							MPIDataType::create(DataSet::datatype, ndims, &l_dims[0], &recv_offset[0], nullptr,
+									&recv_count[0], nullptr)
+
+					}
+
+			);
+		}
+	}
+
+}
+
+
+}// namespace simpla
+
 
 #endif /* CORE_PARALLEL_DISTRIBUTED_ARRAY_CPP_ */

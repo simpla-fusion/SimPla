@@ -14,7 +14,7 @@
 #include <string>
 
 #include "../application/sp_object.h"
-#include "../gtl/properties.h"
+#include "../parallel/distributed_array.h"
 #include "../gtl/type_traits.h"
 
 namespace simpla
@@ -29,7 +29,7 @@ namespace simpla
  *  Simple Field
  */
 template<typename TD, typename TV, typename ...TAGS>
-struct Field<TD, TV, TAGS...> : public SpObject
+struct Field<TD, TV, TAGS...> : public DistributedArray
 {
 public:
 
@@ -55,22 +55,21 @@ private:
 
 	mesh_type const &m_mesh_;
 
-	std::shared_ptr<value_type> m_data_;
-
 public:
 
 	Field(domain_type const &d)
-			: m_domain_(d), m_mesh_(d.mesh()), m_data_(nullptr)
+			: DistributedArray(traits::datatype<value_type>::create(), d.m_mesh_.template dataspace<iform>()),
+			m_domain_(d), m_mesh_(d.mesh())
 	{
 	}
 
 	Field(this_type const &other)
-			: m_domain_(other.m_domain_), m_mesh_(other.m_domain_.mesh()), m_data_(other.m_data_)
+			: DistributedArray(other), m_domain_(other.m_domain_), m_mesh_(other.m_mesh_)
 	{
 	}
 
 	Field(this_type &&other)
-			: m_domain_(other.m_domain_), m_mesh_(other.m_domain_.mesh()), m_data_(other.m_data_)
+			: DistributedArray(other), m_domain_(other.m_domain_), m_mesh_(other.m_mesh_)
 	{
 	}
 
@@ -82,8 +81,8 @@ public:
 	void swap(this_type &other)
 	{
 		std::swap(m_domain_, other.m_domain_);
-		std::swap(m_data_, other.m_data_);
 		std::swap(m_mesh_, other.m_mesh_);
+		DistributedArray::swap(other);
 	}
 
 	domain_type const &domain() const
@@ -96,77 +95,11 @@ public:
 		return m_domain_;
 	}
 
-	std::shared_ptr<value_type> &data() { return m_data_; }
-
-	std::shared_ptr<const value_type> data() const { return m_data_; }
-
-	void clear()
-	{
-		wait();
-		value_type t;
-		t = 0;
-
-//		std::fill(m_data_.get(), m_data_.get() + m_domain_.max_hash(), t);
-
-		sync();
-
-	}
-
-	template<typename T>
-	void fill(T const &v)
-	{
-		wait();
-
-//		std::fill(m_data_.get(), m_data_.get() + m_domain_.max_hash(), v);
-
-		sync();
-
-	}
-
 	/** @name range concept
 	 * @{
 	 */
 
-	bool empty() const
-	{
-		return m_data_ == nullptr;
-	}
-
-
-	bool is_valid() const
-	{
-		return m_data_ != nullptr;
-	}
-
 	std::string get_type_as_string() const { return "Field"; }
-
-
-	void deploy()
-	{
-		if (m_data_ == nullptr)
-		{
-			m_data_ = sp_make_shared_array<value_type>(m_mesh_.template max_hash<iform>());
-		}
-
-//		SpObject::prepare_sync(m_domain_.ghost_shape());
-	}
-
-	DataSet dataset() const
-	{
-		//ASSERT(is_ready());
-
-		DataSet res;
-
-//		res.data = m_data_;
-//
-//		res.datatype = traits::datatype<value_type>::create();
-//
-//		res.dataspace = m_domain_.dataspace();
-//
-//		res.properties = SpObject::properties;
-
-		return std::move(res);
-	}
 
 	/**@}*/
 
@@ -296,7 +229,7 @@ public:
 
 		for (auto s : m_domain_)
 		{
-			fun(m_data_.get()[m_mesh_.hash(s)]);
+			fun(at(s));
 		}
 
 	}
@@ -308,7 +241,7 @@ public:
 
 		for (auto s : m_domain_)
 		{
-			fun(m_data_.get()[m_mesh_.hash(s)]);
+			fun(at(s));
 		}
 	}
 
@@ -319,24 +252,24 @@ public:
 	 */
 	value_type &operator[](id_type const &s)
 	{
-		return m_data_.get()[m_mesh_.hash(s)];
+		return get_value<value_type>(m_mesh_.hash(s));
 	}
 
 	value_type const &operator[](id_type const &s) const
 	{
-		return m_data_.get()[m_mesh_.hash(s)];
+		return get_value<value_type>(m_mesh_.hash(s));
 	}
 
 	template<typename ...Args>
 	value_type &at(Args &&... args)
 	{
-		return (m_data_.get()[m_mesh_.hash(std::forward<Args>(args)...)]);
+		return get_value<value_type>(m_mesh_.hash(std::forward<Args>(args)...));
 	}
 
 	template<typename ...Args>
 	value_type const &at(Args &&... args) const
 	{
-		return (m_data_.get()[m_mesh_.hash(std::forward<Args>(args)...)]);
+		return get_value<value_type>(m_mesh_.hash(std::forward<Args>(args)...));
 	}
 	/**
 	 * @}

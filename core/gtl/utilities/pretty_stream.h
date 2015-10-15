@@ -29,7 +29,7 @@ namespace simpla
  */
 
 template<typename OS, typename TV, typename TI> inline TV const *
-printNdArray(OS & os, TV const *v, size_t rank, TI const* d,
+printNdArray(OS & os, TV const *v, int rank, TI const* d,
 		std::string const & left_brace = "{", std::string const & sep = ",",
 		std::string const & right_brace = "}")
 {

@@ -38,15 +38,14 @@ struct DataType
 {
 	DataType();
 
-	DataType(std::type_index t_index, size_t ele_size_in_byte,
-			unsigned int ndims = 0, size_t const* dims = nullptr,
+	DataType(std::type_index t_index, size_t ele_size_in_byte, int ndims = 0, size_t const *dims = nullptr,
 			std::string name = "");
 
-	DataType(const DataType & other);
+	DataType(const DataType &other);
 
 	~DataType();
 
-	DataType& operator=(DataType const& other);
+	DataType &operator=(DataType const &other);
 
 	void swap(DataType &);
 
@@ -60,7 +59,7 @@ struct DataType
 
 	size_t ele_size_in_byte() const;
 
-	size_t rank() const;
+	int rank() const;
 
 	DataType element_type() const;
 
@@ -68,9 +67,9 @@ struct DataType
 
 	void extent(size_t *d) const;
 
-	void extent(size_t rank, size_t const*d);
+	void extent(int rank, size_t const *d);
 
-	std::vector<size_t> const&extents() const;
+	std::vector<size_t> const &extents() const;
 
 	bool is_compound() const;
 
@@ -78,7 +77,7 @@ struct DataType
 
 	bool is_opaque() const;
 
-	bool is_same(std::type_index const & other) const;
+	bool is_same(std::type_index const &other) const;
 
 	template<typename T>
 	bool is_same() const
@@ -86,9 +85,9 @@ struct DataType
 		return is_same(std::type_index(typeid(T)));
 	}
 
-	void push_back(DataType && dtype, std::string const & name, int pos = -1);
+	void push_back(DataType &&dtype, std::string const &name, int pos = -1);
 
-	std::vector<std::tuple<DataType, std::string, int>> const & members() const;
+	std::vector<std::tuple<DataType, std::string, int>> const &members() const;
 
 private:
 	struct pimpl_s;
@@ -102,12 +101,12 @@ template<typename T> struct rank;
 template<typename T> struct extents;
 template<typename T> struct value_type;
 
-std::ostream & print(std::ostream & os, DataType const &self);
+std::ostream &print(std::ostream &os, DataType const &self);
 
 template<typename T>
 struct datatype
 {
-	static DataType create(std::string const & name = "")
+	static DataType create(std::string const &name = "")
 	{
 
 		typedef typename std::remove_cv<T>::type obj_type;
@@ -118,15 +117,15 @@ struct datatype
 
 		return std::move(
 
-		DataType(std::type_index(typeid(element_type)),
+				DataType(std::type_index(typeid(element_type)),
 
-		ele_size_in_byte,
+						ele_size_in_byte,
 
-		rank<obj_type>::value,
+						rank<obj_type>::value,
 
-		&traits::seq_value<extents_t<obj_type> >::value[0],
+						&traits::seq_value<extents_t<obj_type> >::value[0],
 
-		name)
+						name)
 
 		);
 

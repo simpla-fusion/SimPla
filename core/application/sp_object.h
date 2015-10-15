@@ -12,9 +12,11 @@
 #include "../parallel/mpi_comm.h"
 #include "../parallel/mpi_aux_functions.h"
 #include "../parallel/mpi_update.h"
+
 namespace simpla
 {
 class DataSet;
+
 class Properties;
 
 /** @ingroup application
@@ -83,43 +85,32 @@ struct SpObject
 {
 	Properties properties;
 
-	//! Default constructor
-	SpObject();
-	//! destroy.
-	virtual ~SpObject();
+	SpObject();//! Default constructor
 
-	SpObject(const SpObject&);
+	virtual ~SpObject();//! destroy.
 
-	int object_id() const
-	{
-		return m_object_id_;
-	}
+	SpObject(const SpObject &);
 
-	virtual std::string get_type_as_string() const=0;
+	virtual std::string get_type_as_string() const = 0;
 
-	virtual DataSet dataset() const=0;
 
-	virtual bool empty() const = 0;
+	virtual std::ostream &print(std::ostream &os) const;
 
-	virtual bool is_valid() const=0;
-
-	virtual void deploy()=0;
-
-	virtual std::ostream &print(std::ostream & os) const;
-
-	virtual void prepare_sync(std::vector<mpi_ghosts_shape_s> const &);
-
-	virtual void sync();
-
-	virtual void wait();
-
-	virtual bool is_ready() const;
-
-protected:
-	std::vector<mpi_send_recv_s> m_send_recv_list_;
-	std::vector<mpi_send_recv_buffer_s> m_send_recv_buffer_;
-	std::vector<MPI_Request> m_mpi_requests_;
-	int m_object_id_;
+//	int object_id() const { return m_object_id_; }
+//
+//	virtual void prepare_sync(std::vector<mpi_ghosts_shape_s> const &);
+//
+//	virtual void sync();
+//
+//	virtual void wait();
+//
+//	virtual bool is_ready() const;
+//
+//protected:
+//	std::vector<mpi_send_recv_s> m_send_recv_list_;
+//	std::vector<mpi_send_recv_buffer_s> m_send_recv_buffer_;
+//	std::vector<MPI_Request> m_mpi_requests_;
+//	int m_object_id_;
 
 };
 }  // namespace simpla

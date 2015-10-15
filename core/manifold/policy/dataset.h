@@ -15,25 +15,31 @@ namespace simpla
 template<typename ...> struct DataSetPolicy;
 
 template<typename TGeo>
-struct DataSetPolicy
+struct DataSetPolicy<TGeo>
 {
+private:
+
 	typedef TGeo geometry_type;
 
 
 	typedef DataSetPolicy<geometry_type> this_type;
 
 	geometry_type const &m_geo_;
-	typedef geometry_type::index_type index_type;
-	static constexpr int ndims = geometry_type::ndims;
+
+
 public:
 	DataSetPolicy(geometry_type &geo) : m_geo_(geo) { }
 
-	virtual ~ParallelPolicy() { }
+	virtual ~DataSetPolicy() { }
 
 
 	template<size_t IFORM>
 	DataSpace dataspace() const
 	{
+		typedef typename geometry_type::index_type index_type;
+
+		static constexpr int ndims = geometry_type::ndims;
+
 		nTuple<index_type, ndims + 1> f_dims;
 		nTuple<index_type, ndims + 1> f_offset;
 		nTuple<index_type, ndims + 1> f_count;
