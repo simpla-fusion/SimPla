@@ -43,7 +43,7 @@ DistributedArray::DistributedArray(DataType const &d_type, DataSpace const &d_sp
 
 }
 
-DistributedArray::DistributedArray(DistributedArray const &other) : pimpl_(new pimpl_s(*other.pimpl_)),
+DistributedArray::DistributedArray(DistributedArray const &other) : pimpl_(new pimpl_s),
 		DataSet(other)
 {
 }
@@ -87,10 +87,10 @@ void DistributedArray::wait()
 	}
 }
 
-bool DistributedArray::is_valid() const
-{
-	return !empty() && !pimpl_;
-}
+//bool DistributedArray::is_valid() const
+//{
+//	return DataSet::is_valid() && (!pimpl_);
+//}
 
 bool DistributedArray::is_ready() const
 {

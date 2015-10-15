@@ -23,22 +23,24 @@ void DataSet::deploy()
 	}
 	else
 	{
-		CHECK(datatype.size_in_byte() * dataspace.local_memory_size());
+//		CHECK(datatype.size_in_byte() * dataspace.local_memory_size());
 
 		data = SingletonHolder<MemoryPool>::instance().raw_alloc(
 				datatype.size_in_byte() * dataspace.local_memory_size());
-		clear();
+
 	}
 }
 
 void DataSet::clear()
 {
+	deploy();
 	memset(data.get(), 0, dataspace.local_memory_size() * datatype.size_in_byte());
 }
 
 
 void DataSet::copy(void const *other)
 {
+	deploy();
 	memcpy(data.get(), other, dataspace.local_memory_size() * datatype.size_in_byte());
 }
 

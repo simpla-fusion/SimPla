@@ -8,12 +8,7 @@
 #define COREFieldField_H_
 
 #include <stddef.h>
-#include <memory>
 
-#include "field_expression.h"
-#include "field_dense.h"
-#include "field_function.h"
-#include "load_field.h"
 
 namespace simpla
 {
@@ -117,24 +112,19 @@ namespace simpla
 template<typename ...> struct Domain;
 template<typename ...> struct Field;
 
+namespace tags
+{
 
+struct sequence_container;
+
+struct associative_container;
+
+struct function;
+
+}  // namespace tags
 /** @} */
 
-namespace traits
-{
-template<typename ... T, typename ...Others>
-struct domain_type<Field<Domain<T...>, Others...> >
-{
-	typedef Domain<T...> type;
-};
-template<typename> struct mesh_type;
-template<typename ... T, typename ...Others>
-struct mesh_type<Field<Domain<T...>, Others...> >
-{
-	typedef mesh_type_t<Domain<T...>> type;
-};
 
-}  // namespace traits
 
 }
 // namespace simpla

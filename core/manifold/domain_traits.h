@@ -9,6 +9,7 @@
 #define CORE_MESH_DOMAIN_TRAITS_H_
 
 #include <type_traits>
+#include "../gtl/type_traits.h"
 
 namespace simpla
 {

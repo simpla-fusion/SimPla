@@ -8,6 +8,8 @@
 #ifndef FIELD_DENSE_H_
 #define FIELD_DENSE_H_
 
+#include "field.h"
+#include "../manifold/domain_traits.h"
 #include <algorithm>
 #include <cstdbool>
 #include <memory>
@@ -19,6 +21,7 @@
 
 namespace simpla
 {
+template<typename ...> struct Field;
 
 /**
  * @ingroup field
@@ -28,26 +31,23 @@ namespace simpla
 /**
  *  Simple Field
  */
-template<typename TD, typename TV, typename ...TAGS>
-struct Field<TD, TV, TAGS...> : public DistributedArray
+template<typename TG, int IFORM, typename TV, typename ...Others>
+struct Field<Domain<TG, std::integral_constant<int, IFORM>>, TV, Others...> : public DistributedArray
 {
 public:
 
 	typedef TV value_type;
+	typedef TG mesh_type;
+	static constexpr int iform = IFORM;
 
-	typedef TD domain_type;
+	typedef Domain<mesh_type, std::integral_constant<int, IFORM>> domain_type;
 
-	typedef typename domain_type::mesh_type mesh_type;
+	typedef typename mesh_type::id_type id_type;
 
-	typedef typename domain_type::id_type id_type;
+	typedef typename mesh_type::point_type point_type;
 
-	typedef typename domain_type::point_type point_type;
+	typedef Field<domain_type, value_type, Others...> this_type;
 
-	typedef Field<domain_type, value_type, TAGS...> this_type;
-
-	typedef traits::field_value_t<this_type> field_value_type;
-
-	static constexpr int iform = traits::iform<TD>::value;
 
 private:
 
@@ -277,10 +277,7 @@ public:
 
 	/** @name as_function
 	 *  @{*/
-	field_value_type gather(point_type const &x) const
-	{
-		return std::move(m_mesh_.gather(*this, x));
-	}
+
 
 	template<typename ...Args>
 	void scatter(Args &&... args)
@@ -288,11 +285,13 @@ public:
 		m_domain_.scatter(*this, std::forward<Args>(args)...);
 	}
 
+	auto gather(point_type const &x) const
+	DECL_RET_TYPE((m_mesh_.gather(*this, x)))
+
 	template<typename ...Args>
-	field_value_type operator()(Args &&...args) const
-	{
-		return m_mesh_.gather(*this, std::forward<Args>(args)...);
-	}
+	auto operator()(Args &&...args) const
+	DECL_RET_TYPE((m_mesh_.gather(*this, std::forward<Args>(args)...)))
+
 
 	/**@}*/
 
@@ -313,7 +312,7 @@ struct type_id<Field<Domain<TM ...>, Others...>>
 template<typename OS, typename ... TM, typename ...Others>
 OS print(OS &os, Field<Domain<TM ...>, Others...> const &f)
 {
-	return f.dataset().print(os);
+	return f.print(os);
 }
 
 template<typename ... TM, typename TV, typename ...Policies>

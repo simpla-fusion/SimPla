@@ -18,8 +18,10 @@
 #include <gtest/gtest.h>
 #include "../../io/io.h"
 
-#include "../../field/field.h"
 #include "../../field/field_dense.h"
+#include "../../field/field_expression.h"
+#include "../../field/field_traits.h"
+
 #include "../../manifold/domain.h"
 
 #include "../../gtl/ntuple.h"

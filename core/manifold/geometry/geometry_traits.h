@@ -9,6 +9,9 @@
 
 #include <type_traits>
 #include <string>
+#include "../../gtl/type_traits.h"
+#include "../manifold_traits.h"
+
 
 namespace simpla
 {

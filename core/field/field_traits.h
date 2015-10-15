@@ -8,6 +8,7 @@
 #ifndef COREFieldField_TRAITS_H_
 #define COREFieldField_TRAITS_H_
 
+#include "field.h"
 #include <stddef.h>
 #include <cstdbool>
 #include <memory>
@@ -24,18 +25,20 @@ namespace simpla
 template<typename ...> struct Domain;
 template<typename ...> struct Field;
 
-namespace tags
-{
-
-class sequence_container;
-
-class associative_container;
-
-class function;
-
-}  // namespace tags
 namespace traits
 {
+template<typename ... T, typename ...Others>
+struct domain_type<Field<Domain<T...>, Others...> >
+{
+	typedef Domain<T...> type;
+};
+template<typename> struct mesh_type;
+template<typename ... T, typename ...Others>
+struct mesh_type<Field<Domain<T...>, Others...> >
+{
+	typedef mesh_type_t <Domain<T...>> type;
+};
+
 
 template<typename TM, int IFORM, typename ValueType, typename ...Policies>
 struct field_type

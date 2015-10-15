@@ -12,6 +12,7 @@
 #include "../geometry/geometry.h"
 #include "../topology/structured.h"
 #include "../calculate/fvm_structured.h"
+#include "../interpolate/linear.h"
 #include "../manifold.h"
 #include "../policy/dataset.h"
 
@@ -22,6 +23,7 @@ namespace manifold
 using CartesianCoordinate= Geometry<geometry::coordinate_system::Cartesian<3, 2>, topology::tags::CoRectMesh>;
 
 using Mock= Manifold<CartesianCoordinate, Calculate<CartesianCoordinate, calculate::tags::finite_volume>,
+		Interpolate<CartesianCoordinate, interpolate::tags::linear>,
 		DataSetPolicy<CartesianCoordinate>>;
 
 

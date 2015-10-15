@@ -16,8 +16,12 @@
 #include "../interpolate/linear.h"
 #include "../geometry/geometry.h"
 
-
 #include "../manifold.h"
+#include "../domain.h"
+#include "../domain_traits.h"
+#include "../domain_operation.h.h"
+
+#include "../policy/dataset.h"
 
 namespace simpla
 {
@@ -28,7 +32,8 @@ template<int NDIMS> using Riemannian= Manifold<
 		CartesianCoordinate<NDIMS>,
 		Calculate<CartesianCoordinate<NDIMS>, calculate::tags::finite_volume>,
 		Interpolate<CartesianCoordinate<NDIMS>, interpolate::tags::linear>,
-		TimeIntegrator<CartesianCoordinate<NDIMS>>
+		TimeIntegrator<CartesianCoordinate<NDIMS>>,
+		DataSetPolicy<CartesianCoordinate<NDIMS>>
 >;
 }//namespace manifold
 }//namespace simpla

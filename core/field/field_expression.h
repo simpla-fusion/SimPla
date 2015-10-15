@@ -12,9 +12,11 @@
 #include <cstdbool>
 #include <type_traits>
 
+#include "field.h"
+#include "field_traits.h"
+
 #include "../gtl/expression_template.h"
 #include "../gtl/type_traits.h"
-#include "field_traits.h"
 
 namespace simpla
 {

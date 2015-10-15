@@ -22,6 +22,7 @@
 #include "../../manifold/manifold_traits.h"
 #include "../../field/field_dense.h"
 #include "../../field/field_traits.h"
+#include "../../field/field_expression.h"
 
 using namespace simpla;
 

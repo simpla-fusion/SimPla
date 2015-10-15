@@ -71,7 +71,7 @@ struct DataSet
 
 	bool operator==(DataSet const &other) const { return is_equal(other.data.get()); }
 
-	virtual bool is_valid() const { return data != nullptr && datatype.is_valid() && dataspace.is_valid(); }
+	virtual bool is_valid() const { return (data != nullptr) && (datatype.is_valid()) && (dataspace.is_valid()); }
 
 	virtual bool empty() const { return data == nullptr; }
 

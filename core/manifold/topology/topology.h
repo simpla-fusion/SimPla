@@ -9,14 +9,10 @@
 namespace simpla
 {
 
-
 template<typename.../* tags */> struct Topology;
-
 
 namespace topology
 {
-
-
 namespace tags
 {
 

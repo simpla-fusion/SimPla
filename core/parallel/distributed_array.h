@@ -40,7 +40,7 @@ struct DistributedArray : public DataSet
 
 	virtual std::string get_type_as_string() const = 0;
 
-	virtual bool is_valid() const;
+//	virtual bool is_valid() const;
 
 	virtual void deploy();
 
