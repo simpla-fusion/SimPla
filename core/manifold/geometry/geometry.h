@@ -62,7 +62,11 @@ private:
 
 	topology_point_type m_from_topology_scale_;
 public:
+	Geometry() { }
 
+	virtual ~Geometry() { }
+
+	virtual void deploy();
 
 	std::string get_type_as_string() const
 	{
@@ -74,6 +78,7 @@ public:
 	{
 		return topology_type::EPSILON * m_from_topology_scale_;
 	}
+
 
 	template<typename X0, typename X1>
 	void extents(X0 const &x0, X1 const &x1)
@@ -236,5 +241,158 @@ public:
 		return std::move(topology_type::coordinates_global_to_local(coordinates_to_topology(x), n_id));
 	}
 }; //struct Geometry<CS,TopologyTags >
+
+
+template<typename CS, typename TopologyTags>
+void Geometry<CS, TopologyTags>::deploy()
+{
+	topology_type::deploy();
+
+	nTuple<id_type, ndims> dims = topology_type::dimensions();
+
+	for (int i = 0; i < ndims; ++i)
+	{
+		if (dims[i] > 1 && (m_coords_max_[i] - m_coords_min_[i]) > EPSILON)
+		{
+
+			m_dx_[i] = (m_coords_max_[i] - m_coords_min_[i])
+					/ static_cast<Real>(dims[i]);
+
+			m_delta_[i] = m_dx_[i]; // this is the correct one
+
+			m_to_topology_scale_[i] = static_cast<Real>(dims[i])
+					/ (m_coords_max_[i] - m_coords_min_[i])
+					* topology_type::COORDINATES_MESH_FACTOR;
+
+			m_from_topology_scale_[i] = (m_coords_max_[i] - m_coords_min_[i])
+					/ static_cast<Real>(dims[i])
+					/ topology_type::COORDINATES_MESH_FACTOR;
+
+			m_to_topology_orig_[i] = -m_coords_min_[i] * m_to_topology_scale_[i]
+					+ topology_type::INDEX_ZERO;
+
+			m_from_topology_orig_[i] = m_coords_min_[i]
+					- m_from_topology_scale_[i] * topology_type::INDEX_ZERO;
+
+		}
+//#ifdef  ENABLE_COMPLEX_COORDINATE_SYSTEM
+//		else if ((m_coords_max_[i] - m_coords_min_[i]) > EPSILON)
+//		{
+//			m_index_dimensions_[i] = 1;
+//			m_dx_[i] = 0;
+//			m_to_topology_scale_ = 1.0 / (m_coords_max_[i] - m_coords_min_[i]);
+//			m_from_topology_scale_[i] = (m_coords_max_[i] - m_coords_min_[i])
+//			/ 1.0;
+//		}
+//#endif
+		else
+		{
+			dims[i] = 1;
+
+			m_dx_[i] = 0;
+
+			m_delta_[i] = 1.0;
+
+			m_coords_max_[i] = m_coords_min_[i];
+
+			m_to_topology_scale_[i] = 0;
+
+			m_from_topology_scale_[i] = 0;
+
+			m_to_topology_orig_[i] = -m_coords_min_[i] * m_to_topology_scale_[i]
+					+ topology_type::INDEX_ZERO;
+
+			m_from_topology_orig_[i] = -m_from_topology_scale_[i]
+					* topology_type::INDEX_ZERO + m_coords_min_[i];
+		}
+
+	}
+
+	topology_type::dimensions(dims);
+//	topology_type::deploy(gw);
+
+	/**
+	 *  deploy volume
+	 **/
+
+	/**
+	 *\verbatim
+	 *                ^y
+	 *               /
+	 *        z     /
+	 *        ^    /
+	 *        |  110-------------111
+	 *        |  /|              /|
+	 *        | / |             / |
+	 *        |/  |            /  |
+	 *       100--|----------101  |
+	 *        | m |           |   |
+	 *        |  010----------|--011
+	 *        |  /            |  /
+	 *        | /             | /
+	 *        |/              |/
+	 *       000-------------001---> x
+	 *
+	 *\endverbatim
+	 */
+	m_volume_[0] = 1.0;
+
+	m_volume_[1/* 001*/] = (m_dx_[0] <= EPSILON) ? 1 : m_dx_[0];
+	m_volume_[2/* 010*/] = (m_dx_[1] <= EPSILON) ? 1 : m_dx_[1];
+	m_volume_[4/* 100*/] = (m_dx_[2] <= EPSILON) ? 1 : m_dx_[2];
+
+	m_volume_[3] /* 011 */= m_volume_[1] * m_volume_[2];
+	m_volume_[5] /* 101 */= m_volume_[4] * m_volume_[1];
+	m_volume_[6] /* 110 */= m_volume_[2] * m_volume_[4];
+
+	m_volume_[7] /* 111 */= m_volume_[1] * m_volume_[2] * m_volume_[4];
+
+	m_dual_volume_[7] = 1.0;
+
+	m_dual_volume_[6] = (m_dx_[0] <= EPSILON) ? 1 : m_dx_[0];
+	m_dual_volume_[5] = (m_dx_[1] <= EPSILON) ? 1 : m_dx_[1];
+	m_dual_volume_[3] = (m_dx_[2] <= EPSILON) ? 1 : m_dx_[2];
+
+	m_dual_volume_[4] /* 011 */= m_dual_volume_[6] * m_dual_volume_[5];
+	m_dual_volume_[2] /* 101 */= m_dual_volume_[3] * m_dual_volume_[6];
+	m_dual_volume_[1] /* 110 */= m_dual_volume_[5] * m_dual_volume_[3];
+
+	m_dual_volume_[0] /* 111 */= m_dual_volume_[6] * m_dual_volume_[5]
+			* m_dual_volume_[3];
+
+	m_inv_volume_[7] = 1.0;
+
+	m_inv_volume_[1/* 001 */] = (m_dx_[0] <= EPSILON) ? 1 : 1.0 / m_dx_[0];
+	m_inv_volume_[2/* 010 */] = (m_dx_[1] <= EPSILON) ? 1 : 1.0 / m_dx_[1];
+	m_inv_volume_[4/* 100 */] = (m_dx_[2] <= EPSILON) ? 1 : 1.0 / m_dx_[2];
+
+	m_inv_volume_[3] /* 011 */= m_inv_volume_[1] * m_inv_volume_[2];
+	m_inv_volume_[5] /* 101 */= m_inv_volume_[4] * m_inv_volume_[1];
+	m_inv_volume_[6] /* 110 */= m_inv_volume_[2] * m_inv_volume_[4];
+	m_inv_volume_[7] /* 111 */= m_inv_volume_[1] * m_inv_volume_[2]
+			* m_inv_volume_[4];
+
+	m_inv_dual_volume_[7] = 1.0;
+
+	m_inv_dual_volume_[6/* 110 */] = (m_dx_[0] <= EPSILON) ? 1 : 1.0 / m_dx_[0];
+	m_inv_dual_volume_[5/* 101 */] = (m_dx_[1] <= EPSILON) ? 1 : 1.0 / m_dx_[1];
+	m_inv_dual_volume_[3/* 001 */] = (m_dx_[2] <= EPSILON) ? 1 : 1.0 / m_dx_[2];
+
+	m_inv_dual_volume_[4] /* 011 */= m_inv_dual_volume_[6]
+			* m_inv_dual_volume_[5];
+	m_inv_dual_volume_[2] /* 101 */= m_inv_dual_volume_[3]
+			* m_inv_dual_volume_[6];
+	m_inv_dual_volume_[1] /* 110 */= m_inv_dual_volume_[5]
+			* m_inv_dual_volume_[3];
+
+	m_inv_dual_volume_[0] /* 111 */= m_inv_dual_volume_[6]
+			* m_inv_dual_volume_[5] * m_inv_dual_volume_[3];
+
+
+//	m_is_valid_ = true;
+
+	VERBOSE << get_type_as_string() << " is deployed!" << std::endl;
+
+}
 }//namespace simpla
 #endif //SIMPLA_GEOMETRY_H
