@@ -12,34 +12,36 @@
 
 #include "../../core/application/application.h"
 #include "../../core/application/use_case.h"
-#include "coordinate_system_geo.h"
 #include "../../core/gtl/primitives.h"
 #include "../../core/gtl/type_cast.h"
 #include "../../core/io/io.h"
-
-#include "../../core/mesh/default_mesh.h"
 
 #include "../../core/physics/constants.h"
 #include "../../core/physics/physical_constants.h"
 #include "../../core/gtl/utilities/config_parser.h"
 #include "../../core/gtl/utilities/log.h"
+
+#include "../../core/manifold/manifold_traits.h"
+#include "../../core/manifold/calculus.h"
+#include "../../core/manifold/domain.h"
+
 #include "../../core/field/field.h"
 
 using namespace simpla;
 
 #ifdef CYLINDRICAL_COORDINATE_SYTEM
-#  include "../../core/geometry/cs_cylindrical.h"
-#  define COORDINATE_SYSTEM Cylindrical<2>
+#include "../../core/manifold/pre_define/cylindrical.h"
+#define COORDINATE_SYSTEM CylindricalCoordinate
+typedef manifold::CylindricalCoRect mesh_type;
 #else
 
-# include "../../core/geometry/cs_cartesian.h"
-# include "../../core/field/field_dense.h"
-#include "../../core/field/field_constant.h"
+#include "../../core/manifold/pre_define/riemannian.h"
 
-#  define COORDINATE_SYSTEM simpla::geometry::coordinate_system::Cartesian<3, 2>
+#define COORDINATE_SYSTEM CartesianCoordinate<3>
+typedef manifold::Riemannian<3> mesh_type;
+
 #endif
 
-typedef DefaultMesh<COORDINATE_SYSTEM > mesh_type;
 
 USE_CASE(em, " Maxwell Eqs.")
 {
@@ -68,7 +70,7 @@ USE_CASE(em, " Maxwell Eqs.")
 
 	auto mesh = std::make_shared<mesh_type>();
 
-	mesh->load(options["Mesh"]);
+//	mesh->load(options["Mesh"]);
 
 	mesh->deploy();
 
@@ -93,34 +95,34 @@ USE_CASE(em, " Maxwell Eqs.")
 //
 //	}
 
-	auto J = make_form<EDGE, Real>(*mesh);
+	auto J = traits::make_field<EDGE, Real>(*mesh);
 
-	auto E = make_form<EDGE, Real>(*mesh);
+	auto E = traits::make_field<EDGE, Real>(*mesh);
 
-	auto B = make_form<FACE, Real>(*mesh);
+	auto B = traits::make_field<FACE, Real>(*mesh);
 
-	E = make_function_by_config<Real>(options["InitValue"]["E"],
-			make_domain<EDGE>(*mesh));
+	E = traits::make_function_by_config<Real>(options["InitValue"]["E"],
+			traits::make_domain<EDGE>(*mesh));
 
-	B = make_function_by_config<Real>(options["InitValue"]["B"],
-			make_domain<FACE>(*mesh));
+	B = traits::make_function_by_config<Real>(options["InitValue"]["B"],
+			traits::make_domain<FACE>(*mesh));
 
-	J = make_function_by_config<Real>(options["InitValue"]["J"],
-			make_domain<EDGE>(*mesh));
+	J = traits::make_function_by_config<Real>(options["InitValue"]["J"],
+			traits::make_domain<EDGE>(*mesh));
 
-	auto J_src = make_function_by_config<Real>(options["Constraint"]["J"],
-			make_domain<EDGE>(*mesh));
+	auto J_src = traits::make_function_by_config<Real>(options["Constraint"]["J"],
+			traits::make_domain<EDGE>(*mesh));
 
-	auto E_src = make_function_by_config<Real>(options["Constraint"]["E"],
-			make_domain<EDGE>(*mesh));
+	auto E_src = traits::make_function_by_config<Real>(options["Constraint"]["E"],
+			traits::make_domain<EDGE>(*mesh));
 
 	auto E_Boundary = (E);
 	auto B_Boundary = (B);
 
 	if (options["PEC"])
 	{
-		filter_by_config(options["PEC"]["Domain"], &B_Boundary.domain());
-		filter_by_config(options["PEC"]["Domain"], &E_Boundary.domain());
+//		filter_by_config(options["PEC"]["Domain"], &B_Boundary.domain());
+//		filter_by_config(options["PEC"]["Domain"], &E_Boundary.domain());
 	}
 	else
 	{

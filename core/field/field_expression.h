@@ -12,7 +12,7 @@
 #include <cstdbool>
 #include <type_traits>
 
-#include "field.h"
+#include "field_comm.h"
 #include "field_traits.h"
 
 #include "../gtl/expression_template.h"

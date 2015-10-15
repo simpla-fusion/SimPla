@@ -8,7 +8,7 @@
 #ifndef IMPLICITPUSHE_H_
 #define IMPLICITPUSHE_H_
 
-#include "../../core/field/field.h"
+#include "field_comm.h"
 #include "../../core/utilities/log.h"
 #include "../../core/physics/physical_constants.h"
 

@@ -10,7 +10,7 @@
 
 #include "../../utilities/utilities.h"
 #include "../../io/io.h"
-#include "../field.h"
+#include "field_comm.h"
 using namespace simpla;
 
 template<typename TV, typename TM>

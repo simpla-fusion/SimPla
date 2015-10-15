@@ -8,16 +8,20 @@
 #ifndef FIELD_DENSE_H_
 #define FIELD_DENSE_H_
 
-#include "field.h"
-#include "../manifold/domain_traits.h"
+#include "field_comm.h"
+
+
 #include <algorithm>
 #include <cstdbool>
 #include <memory>
 #include <string>
 
-#include "../application/sp_object.h"
-#include "../parallel/distributed_array.h"
+#include "../manifold/domain_traits.h"
+#include "../manifold/manifold_traits.h"
+
 #include "../gtl/type_traits.h"
+
+#include "../parallel/distributed_array.h"
 
 namespace simpla
 {
@@ -32,7 +36,8 @@ template<typename ...> struct Field;
  *  Simple Field
  */
 template<typename TG, int IFORM, typename TV, typename ...Others>
-struct Field<Domain<TG, std::integral_constant<int, IFORM>>, TV, Others...> : public DistributedArray
+struct Field<Domain<TG, std::integral_constant<int, IFORM>>, TV, tags::sequence_container, Others...>
+		: public DistributedArray
 {
 public:
 
@@ -46,7 +51,7 @@ public:
 
 	typedef typename mesh_type::point_type point_type;
 
-	typedef Field<domain_type, value_type, Others...> this_type;
+	typedef Field<domain_type, value_type, tags::sequence_container, Others...> this_type;
 
 
 private:
@@ -191,7 +196,7 @@ public:
 					[&](id_type const &s)
 					{
 						auto x = m_mesh_.point(s);
-						at(s) += m_mesh_.sample(s, other(x, m_mesh_.time(), gather(x)));
+						at(s) += m_mesh_.template sample<iform>(s, other(x, m_mesh_.time(), gather(x)));
 					});
 		}
 
@@ -211,7 +216,7 @@ public:
 					[&](id_type const &s)
 					{
 						auto x = m_mesh_.point(s);
-						at(s) = m_mesh_.sample(s, other(x, m_mesh_.time(), gather(x)));
+						at(s) = m_mesh_.template sample<iform>(s, other(x, m_mesh_.time(), gather(x)));
 					});
 		}
 
@@ -314,6 +319,7 @@ OS print(OS &os, Field<Domain<TM ...>, Others...> const &f)
 {
 	return f.print(os);
 }
+
 
 template<typename ... TM, typename TV, typename ...Policies>
 struct value_type<Field<Domain<TM ...>, TV, Policies...>>

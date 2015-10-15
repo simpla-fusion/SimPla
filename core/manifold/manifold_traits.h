@@ -93,10 +93,6 @@ namespace traits
 {
 template<typename> struct type_id;
 
-template<typename> struct is_mesh;
-template<typename> struct mesh_type;
-template<typename T> using mesh_type_t= typename mesh_type<T>::type;
-
 template<typename> struct id_type;
 template<typename T> using id_type_t= typename id_type<T>::type;
 
@@ -131,6 +127,7 @@ template<typename ...T>
 struct is_manifold<Manifold<T...>> : public std::integral_constant<bool, true> { };
 
 template<typename T> struct manifold_type { typedef std::nullptr_t type; };
+template<typename T> using manifold_type_t= typename manifold_type<T>::type;
 
 template<typename T> struct id_type { typedef int64_t type; };
 

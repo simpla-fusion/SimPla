@@ -13,7 +13,7 @@
 #include "utilities.h"
 #include "../../core/io/io.h"
 #include "../../core/physics/physical_constants.h"
-#include "../../core/field/field.h"
+#include "field_comm.h"
 
 #include "../../core/mesh/mesh.h"
 

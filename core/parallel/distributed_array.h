@@ -10,10 +10,10 @@
 
 
 #include <memory>
+#include "../gtl/dataset/dataset.h"
 
 namespace simpla
 {
-struct DataSet;
 
 /* @brief  DistributedArray is used to manage the parallel
  * communication while using the n-dimensional regular array.

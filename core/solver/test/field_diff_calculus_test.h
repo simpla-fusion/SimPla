@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include "../../field/field.h"
+#include "field_comm.h"
 #include "../../gtl/ntuple.h"
 #include "../../gtl/primitives.h"
 #include "../../io/io.h"

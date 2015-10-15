@@ -12,7 +12,7 @@
 #include <tuple>
 
 #include "utilities.h"
-#include "../../field/field.h"
+#include "field_comm.h"
 #include "../structured/structured.h"
 #include "../../io/io.h"
 

@@ -9,7 +9,7 @@
 #include "../kinetic_particle.h"
 #include "../simple_particle.h"
 #include "rect_mesh.h"
-#include "../../field/field.h"
+#include "field_comm.h"
 
 #include "../../utilities/memory_pool.h"
 #include "../../gtl/iterator/sp_iterator.h"

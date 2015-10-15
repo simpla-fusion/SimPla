@@ -25,7 +25,7 @@ Domain<TM, std::integral_constant<int, IFORM> > make_domain(TM const &mesh)
 
 template<typename> struct is_domain;
 template<typename> struct domain_type;
-template<typename> struct mesh_type;
+template<typename> struct manifold_type;
 template<typename> struct iform;
 template<typename> struct rank;
 
@@ -45,7 +45,7 @@ template<typename T> struct domain_type
 template<typename ...T> using domain_t= typename domain_type<T...>::type;
 
 template<typename TM, typename ...Others>
-struct mesh_type<Domain<TM, Others...> >
+struct manifold_type<Domain<TM, Others...> >
 {
 	typedef TM type;
 };
@@ -69,7 +69,7 @@ struct iform<Domain<TM, std::integral_constant<int, IFORM>, Others...> > : publi
 };
 
 template<typename ...T>
-struct rank<Domain<T...> > : public rank<typename mesh_type<Domain<T...> >::type>::type
+struct rank<Domain<T...> > : public rank<typename manifold_type<Domain<T...> >::type>::type
 {
 };
 

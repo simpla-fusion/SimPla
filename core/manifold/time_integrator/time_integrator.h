@@ -20,16 +20,18 @@ public:
 	virtual ~TimeIntegrator() { }
 
 
-	double time() const
-	{
-		return m_time_;
-	}
+	double time() const { return m_time_; }
 
-	void time(double t)
-	{
-		m_time_ = t;
-	}
+	void time(double t) { m_time_ = t; }
 
+	double dt() const { return m_dt_; }
+
+	void dt(double p_dt) { m_dt_ = p_dt; }
+
+	virtual void next_time_step() { m_time_ += m_dt_; }
+
+private:
+	double m_dt_;
 	double m_time_;
 
 };

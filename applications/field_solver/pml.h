@@ -14,7 +14,7 @@
 #include "../../core/mesh/mesh.h"
 #include "../../core/physics/physical_constants.h"
 #include "utilities.h"
-#include "../../core/field/field.h"
+#include "field_comm.h"
 
 namespace simpla
 {

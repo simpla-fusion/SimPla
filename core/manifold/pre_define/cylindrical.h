@@ -16,7 +16,7 @@
 #include "../interpolate/linear.h"
 #include "../geometry/geometry.h"
 
-
+#include "../policy/dataset.h"
 #include "../manifold.h"
 
 namespace simpla
@@ -28,7 +28,8 @@ using CylindricalCoRect= Manifold<
 		CylindricalCoordinate,
 		Calculate<CylindricalCoordinate, calculate::tags::finite_volume>,
 		Interpolate<CylindricalCoordinate, interpolate::tags::linear>,
-		TimeIntegrator<CylindricalCoordinate>
+		TimeIntegrator<CylindricalCoordinate>,
+		DataSetPolicy<CylindricalCoordinate>
 >;
 }//namespace  manifold
 }//namespace simpla

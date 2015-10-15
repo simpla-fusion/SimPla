@@ -49,7 +49,7 @@ public:
 
 	typedef traits::domain_t<field_type> domain_type;
 
-	typedef traits::mesh_type_t<field_type> mesh_type;
+	typedef traits::manifold_type_t<field_type> mesh_type;
 
 	typedef traits::value_type_t<field_type> value_type;
 
@@ -160,7 +160,9 @@ TYPED_TEST_P(TestField, constant_real
 			value_type res;
 			res = -f1[s] * a + f2[s] * c - f1[s] / b - f1[s];
 
-			EXPECT_LE(mod(res - f3[s]), EPSILON)<<res << " " << f1[s] << " " << f2[s] << " " << f3[s];;
+			EXPECT_LE(mod(res - f3[s]), EPSILON)
+//			<<res << " " << f1[s] << " " << f2[s] << " " << f3[s];
+			;
 		}
 	}
 }

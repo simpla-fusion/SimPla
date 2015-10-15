@@ -202,8 +202,7 @@ public:
 	
 	template<int IFORM, typename ...Args>
 	DECLARE_FUNCTION_PREFIX auto sample(Args &&... args) DECLARE_FUNCTION_SUFFIX
-	DECL_RET_TYPE((sample_(m_geo_, std::integral_constant<int, IFORM>(),
-			std::forward<Args>(args)...)))
+	DECL_RET_TYPE((sample_(std::integral_constant<int, IFORM>(), std::forward<Args>(args)...)))
 
 
 public:

@@ -12,7 +12,7 @@
 #include <string>
 #include <functional>
 
-#include "../field/field.h"
+#include "field_comm.h"
 #include "../field/loadField.h"
 
 #include "../numeric/multi_normal_distribution.h"

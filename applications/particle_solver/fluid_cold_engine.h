@@ -9,7 +9,7 @@
 #define FLUID_COLD_ENGINE_H_
 #include <functional>
 #include <typeinfo>
-#include "../../core/field/field.h"
+#include "field_comm.h"
 #include "../../core/field/loadField.h"
 #include "../../core/field/saveField.h"
 #include "../../core/particle/particle_base.h"

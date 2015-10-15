@@ -8,7 +8,7 @@
 #include <gtest/gtest.h>
 
 
-#include "../../field/field.h"
+#include "../../field/field_comm.h"
 #include "../../field/field_dense.h"
 #include "../../manifold/domain.h"
 #include "../../manifold/pre_define/mock.h"

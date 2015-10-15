@@ -217,16 +217,16 @@ template<typename T>
 struct value_type<Field<Expression<calculate::tags::ExteriorDerivative, T> > >
 {
 	typedef result_of_t<
-			simpla::_impl::multiplies(scalar_type_t < mesh_type_t < T >> ,
-					value_type_t < T > )> type;
+			simpla::_impl::multiplies(scalar_type_t<manifold_type_t<T >>,
+					value_type_t<T>)> type;
 };
 
 template<typename T>
 struct value_type<Field<Expression<calculate::tags::CodifferentialDerivative, T> > >
 {
 	typedef result_of_t<
-			simpla::_impl::multiplies(scalar_type_t < mesh_type_t < T >> ,
-					value_type_t < T > )> type;
+			simpla::_impl::multiplies(scalar_type_t<manifold_type_t<T >>,
+					value_type_t<T>)> type;
 };
 
 template<typename T0, typename T1>
@@ -234,7 +234,7 @@ struct value_type<Field<Expression<calculate::tags::Wedge, T0, T1> > >
 {
 
 	typedef result_of_t<
-			simpla::_impl::multiplies(value_type_t < T0 > , value_type_t < T1 > )> type;
+			simpla::_impl::multiplies(value_type_t<T0>, value_type_t<T1>)> type;
 };
 
 template<typename T0, typename T1>
@@ -242,13 +242,13 @@ struct value_type<Field<Expression<calculate::tags::InteriorProduct, T0, T1> > >
 {
 
 	typedef result_of_t<
-			simpla::_impl::multiplies(value_type_t < T0 > , value_type_t < T1 > )> type;
+			simpla::_impl::multiplies(value_type_t<T0>, value_type_t<T1>)> type;
 };
 
 template<typename T0, typename T1>
 struct value_type<Field<Expression<calculate::tags::MapTo, T0, T1> > >
 {
-	typedef value_type_t <T1> type;
+	typedef value_type_t<T1> type;
 };
 
 namespace _impl
@@ -259,7 +259,7 @@ template<typename ...T> using first_domain_t=typename first_domain<T...>::type;
 
 template<typename T0> struct first_domain<T0>
 {
-	typedef domain_t <T0> type;
+	typedef domain_t<T0> type;
 };
 template<typename T0, typename ...T> struct first_domain<T0, T...>
 {
@@ -304,7 +304,7 @@ inline auto operator*(Field<T...> const &f)
 DECL_RET_TYPE((hodge_star(f)))
 
 template<size_t ndims, typename TL, typename ...T>
-inline auto iv(nTuple <TL, ndims> const &v, Field<T...> const &f)
+inline auto iv(nTuple<TL, ndims> const &v, Field<T...> const &f)
 DECL_RET_TYPE((interior_product(v, f)))
 
 template<typename ...T1, typename ... T2>
