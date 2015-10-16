@@ -63,6 +63,15 @@
       <sourceFolder url="file://$MODULE_DIR$/core/application/sp_object.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/application/task.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/application/use_case.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/dataset/CMakeLists.txt" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/dataset/dataset.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/dataset/dataset.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/dataset/dataspace.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/dataset/dataspace.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/dataset/datatype.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/dataset/datatype.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/dataset/datatype_ext.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/dataset/dataview.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/field/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/field/field.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/field/field_comm.h" isTestSource="false" />
@@ -136,15 +145,6 @@
       <sourceFolder url="file://$MODULE_DIR$/core/gtl/containers/sp_indirect_container.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/gtl/containers/sp_ndarray.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/gtl/containers/sp_sorted_set.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/gtl/dataset/CMakeLists.txt" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/gtl/dataset/dataset.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/gtl/dataset/dataset.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/gtl/dataset/dataspace.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/gtl/dataset/dataspace.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/gtl/dataset/datatype.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/gtl/dataset/datatype.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/gtl/dataset/datatype_ext.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/gtl/dataset/dataview.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/gtl/design_pattern/design_pattern.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/gtl/design_pattern/factory.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/gtl/design_pattern/observer.h" isTestSource="false" />
@@ -313,6 +313,7 @@
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/parallel.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/parallel_dummy.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/parallel_tbb.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/parallel/parallel_traits.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/seq_range.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/test/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/test/multi_thread_test.cpp" isTestSource="false" />
@@ -383,10 +384,6 @@
       <library name="Header Search Paths">
         <CLASSES>
           <root url="file://$USER_HOME$/.clion11/system/cmake/generated/82e76996/82e76996/Debug/external_project/googletest/include" />
-          <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/daal/include" />
-          <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/ipp/include" />
-          <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/mkl/include" />
-          <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/tbb/include" />
           <root url="file:///usr/include" />
           <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include" />
           <root url="file:///usr/lib/llvm-3.6/lib/clang/3.6.0/include" />
@@ -395,10 +392,6 @@
         </CLASSES>
         <SOURCES>
           <root url="file://$USER_HOME$/.clion11/system/cmake/generated/82e76996/82e76996/Debug/external_project/googletest/include" />
-          <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/daal/include" />
-          <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/ipp/include" />
-          <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/mkl/include" />
-          <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/tbb/include" />
           <root url="file:///usr/include" />
           <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include" />
           <root url="file:///usr/lib/llvm-3.6/lib/clang/3.6.0/include" />

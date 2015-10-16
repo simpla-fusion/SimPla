@@ -7,7 +7,7 @@
 #ifndef SIMPLA_DATASET_H
 #define SIMPLA_DATASET_H
 
-#include "../../gtl/dataset/dataspace.h"
+#include "../../dataset/dataspace.h"
 #include "../manifold_traits.h"
 
 namespace simpla

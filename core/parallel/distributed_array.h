@@ -10,7 +10,8 @@
 
 
 #include <memory>
-#include "../gtl/dataset/dataset.h"
+#include "parallel_traits.h"
+#include "../dataset/dataset.h"
 
 namespace simpla
 {
@@ -38,10 +39,6 @@ struct DistributedArray : public DataSet
 
 	void swap(DistributedArray &);
 
-	virtual std::string get_type_as_string() const = 0;
-
-//	virtual bool is_valid() const;
-
 	virtual void deploy();
 
 	virtual void sync();
@@ -60,6 +57,16 @@ private:
 
 
 };
+
+namespace parallel
+{
+inline void wait(DistributedArray *d) { d->wait(); }
+
+inline void sync(DistributedArray *d) { d->sync(); }
+
+inline bool is_ready(DistributedArray const *d) { return d->is_ready(); }
+
+}//namespace parallel
 }//namespace simpla
 
 #endif /* DISTRIBUTED_ARRAY_H_ */

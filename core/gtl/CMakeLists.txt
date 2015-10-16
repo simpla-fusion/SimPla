@@ -1,5 +1,4 @@
 
 ADD_SUBDIRECTORY( utilities)
-ADD_SUBDIRECTORY( dataset)
 
 ADD_SUBDIRECTORY( test)

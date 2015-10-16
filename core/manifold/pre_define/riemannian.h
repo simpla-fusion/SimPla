@@ -22,18 +22,21 @@
 #include "../domain_operation.h.h"
 
 #include "../policy/dataset.h"
+#include "../policy/parallel.h"
 
 namespace simpla
 {
 namespace manifold
 {
 template<int NDIMS> using CartesianCoordinate= Geometry<geometry::coordinate_system::Cartesian<NDIMS, 2>, topology::tags::CoRectMesh>;
+
 template<int NDIMS> using Riemannian= Manifold<
 		CartesianCoordinate<NDIMS>,
 		Calculate<CartesianCoordinate<NDIMS>, calculate::tags::finite_volume>,
 		Interpolate<CartesianCoordinate<NDIMS>, interpolate::tags::linear>,
 		TimeIntegrator<CartesianCoordinate<NDIMS>>,
-		DataSetPolicy<CartesianCoordinate<NDIMS>>
+		DataSetPolicy<CartesianCoordinate<NDIMS>>,
+		ParallelPolicy<CartesianCoordinate<NDIMS>>
 >;
 }//namespace manifold
 }//namespace simpla

@@ -7,7 +7,8 @@
 
 #include "mpi_update.h"
 #include "mpi_datatype.h"
-#include "../gtl/dataset/dataset.h"
+
+#include "../dataset/dataset.h"
 #include "../gtl/utilities/log.h"
 
 namespace simpla

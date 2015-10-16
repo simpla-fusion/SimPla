@@ -25,11 +25,13 @@ template<typename TGeo, typename ...Policies>
 class Manifold<TGeo, Policies ...>
 		: public TGeo, public Policies ...
 {
-public:
 
-	typedef Manifold<TGeo, Policies ...> this_type;
 
 	typedef TGeo geometry_type;
+
+	typedef Manifold<geometry_type, Policies ...> this_type;
+
+public:
 
 	Manifold() : Policies(static_cast<geometry_type &>(*this))... { }
 
@@ -52,15 +54,18 @@ private:
 
 	TEMPLATE_DISPATCH(print, inline, const)
 
-
 public:
 	void swap(const this_type &other) { _dispatch_swap<geometry_type, Policies...>(other); }
 
 	template<typename TDict>
-	void load(TDict const &dict) { _dispatch_load<geometry_type, Policies...>(dict["Manifold"]); }
+	void load(TDict const &dict)
+	{
+		auto d = dict["Manifold"];
+		_dispatch_load<geometry_type, Policies...>(d);
+	}
 
-
-	std::ostream &print(std::ostream &os) const
+	template<typename OS>
+	OS &print(OS &os) const
 	{
 		os << "Manifold={" << std::endl;
 
@@ -70,7 +75,6 @@ public:
 		return os;
 	}
 
-	static std::string get_type_as_string() { return "Manifold< >"; }
 
 }; //class Manifold
 

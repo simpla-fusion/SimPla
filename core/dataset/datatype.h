@@ -17,7 +17,7 @@
 #include <typeindex>
 #include <vector>
 
-#include "../type_traits.h"
+#include "../gtl/type_traits.h"
 
 namespace simpla
 {

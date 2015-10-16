@@ -17,7 +17,7 @@
 #include <typeindex>
 #include <typeinfo>
 
-#include "dataset/datatype.h"
+#include "../dataset/datatype.h"
 #include "utilities/log.h"
 
 namespace simpla

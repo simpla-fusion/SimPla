@@ -16,12 +16,11 @@
 #include <memory>
 #include <string>
 
+#include "../gtl/type_traits.h"
+#include "../parallel/distributed_array.h"
 #include "../manifold/domain_traits.h"
 #include "../manifold/manifold_traits.h"
-
-#include "../gtl/type_traits.h"
-
-#include "../parallel/distributed_array.h"
+#include "../dataset/dataset_traits.h"
 
 namespace simpla
 {
@@ -35,8 +34,8 @@ template<typename ...> struct Field;
 /**
  *  Simple Field
  */
-template<typename TG, int IFORM, typename TV, typename ...Others>
-struct Field<Domain<TG, std::integral_constant<int, IFORM>>, TV, tags::sequence_container, Others...>
+template<typename TG, int IFORM, typename TV>
+struct Field<Domain<TG, std::integral_constant<int, IFORM>>, TV>
 		: public DistributedArray
 {
 public:
@@ -44,6 +43,7 @@ public:
 	typedef TV value_type;
 	typedef TG mesh_type;
 	static constexpr int iform = IFORM;
+	typedef DistributedArray storage_policy;
 
 	typedef Domain<mesh_type, std::integral_constant<int, IFORM>> domain_type;
 
@@ -51,7 +51,7 @@ public:
 
 	typedef typename mesh_type::point_type point_type;
 
-	typedef Field<domain_type, value_type, tags::sequence_container, Others...> this_type;
+	typedef Field<domain_type, value_type> this_type;
 
 
 private:
@@ -63,18 +63,18 @@ private:
 public:
 
 	Field(domain_type const &d)
-			: DistributedArray(traits::datatype<value_type>::create(), d.m_mesh_.template dataspace<iform>()),
+			: storage_policy(traits::datatype<value_type>::create(), d.m_mesh_.template dataspace<iform>()),
 			m_domain_(d), m_mesh_(d.mesh())
 	{
 	}
 
 	Field(this_type const &other)
-			: DistributedArray(other), m_domain_(other.m_domain_), m_mesh_(other.m_mesh_)
+			: storage_policy(other), m_domain_(other.m_domain_), m_mesh_(other.m_mesh_)
 	{
 	}
 
 	Field(this_type &&other)
-			: DistributedArray(other), m_domain_(other.m_domain_), m_mesh_(other.m_mesh_)
+			: storage_policy(other), m_domain_(other.m_domain_), m_mesh_(other.m_mesh_)
 	{
 	}
 
@@ -87,8 +87,9 @@ public:
 	{
 		std::swap(m_domain_, other.m_domain_);
 		std::swap(m_mesh_, other.m_mesh_);
-		DistributedArray::swap(other);
+		storage_policy::swap(other);
 	}
+
 
 	domain_type const &domain() const
 	{
@@ -100,13 +101,6 @@ public:
 		return m_domain_;
 	}
 
-	/** @name range concept
-	 * @{
-	 */
-
-	std::string get_type_as_string() const { return "Field"; }
-
-	/**@}*/
 
 	/**
 	 * @name assignment
@@ -157,22 +151,24 @@ public:
 	template<typename TOther, typename TOP>
 	void assign(TOther const &other, TOP const &op)
 	{
+		storage_policy::deploy();
 
-		wait();
+		parallel::wait(this);
 
 		m_domain_.for_each([&](id_type const &s)
 		{
 			op(at(s), m_mesh_.calculate(other, s));
 		});
 
-		sync();
+		parallel::sync(this);
 	}
 
 	template<typename ...T, typename TOP>
 	void assign(Field<domain_type, T...> const &other, TOP const &op)
 	{
+		storage_policy::deploy();
 
-		wait();
+		parallel::wait(this);
 
 		if (!other.domain().is_null())
 		{
@@ -181,14 +177,15 @@ public:
 				op(at(s), other[s]);
 			});
 		}
-		sync();
+		parallel::sync(this);
 	}
 
 	template<typename TFun>
 	void self_assign(TFun const &other)
 	{
+		storage_policy::deploy();
 
-		wait();
+		parallel::wait(this);
 
 		if (!other.domain().is_null())
 		{
@@ -200,15 +197,15 @@ public:
 					});
 		}
 
-		sync();
+		parallel::sync(this);
 	}
 
-	template<typename ...T>
-	void assign(
+	template<typename ...T> void assign(
 			Field<domain_type, value_type, tags::function, T...> const &other)
 	{
+		storage_policy::deploy();
 
-		wait();
+		parallel::wait(this);
 
 		if (!other.domain().is_null())
 		{
@@ -220,7 +217,7 @@ public:
 					});
 		}
 
-		sync();
+		parallel::sync(this);
 	}
 
 	/** @} */
@@ -230,7 +227,9 @@ public:
 	template<typename TFun>
 	void for_each(TFun const &fun)
 	{
-		wait();
+		storage_policy::deploy();
+
+		parallel::wait(this);
 
 		for (auto s : m_domain_)
 		{
@@ -243,7 +242,7 @@ public:
 	void for_each(TFun const &fun) const
 	{
 //		ASSERT(is_ready());
-
+		parallel::wait(this);
 		for (auto s : m_domain_)
 		{
 			fun(at(s));
@@ -257,24 +256,24 @@ public:
 	 */
 	value_type &operator[](id_type const &s)
 	{
-		return get_value<value_type>(m_mesh_.hash(s));
+		return storage_policy::get_value<value_type>(m_mesh_.hash(s));
 	}
 
 	value_type const &operator[](id_type const &s) const
 	{
-		return get_value<value_type>(m_mesh_.hash(s));
+		return storage_policy::get_value<value_type>(m_mesh_.hash(s));
 	}
 
 	template<typename ...Args>
 	value_type &at(Args &&... args)
 	{
-		return get_value<value_type>(m_mesh_.hash(std::forward<Args>(args)...));
+		return storage_policy::get_value<value_type>(m_mesh_.hash(std::forward<Args>(args)...));
 	}
 
 	template<typename ...Args>
 	value_type const &at(Args &&... args) const
 	{
-		return get_value<value_type>(m_mesh_.hash(std::forward<Args>(args)...));
+		return storage_policy::get_value<value_type>(m_mesh_.hash(std::forward<Args>(args)...));
 	}
 	/**
 	 * @}
@@ -310,15 +309,9 @@ struct type_id<Field<Domain<TM ...>, Others...>>
 {
 	static const std::string name()
 	{
-		return Field<Domain<TM ...>, Others...>::get_type_as_string();
+		return "Feild<" + type_id<Domain<TM...> >::name() + "," + type_id<Others...>::name() + ">";
 	}
 };
-
-template<typename OS, typename ... TM, typename ...Others>
-OS print(OS &os, Field<Domain<TM ...>, Others...> const &f)
-{
-	return f.print(os);
-}
 
 
 template<typename ... TM, typename TV, typename ...Policies>

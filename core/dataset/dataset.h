@@ -13,9 +13,9 @@
 #include <memory>
 #include <type_traits>
 
-#include "../check_concept.h"
-#include "../properties.h"
-#include "../type_traits.h"
+#include "../gtl/check_concept.h"
+#include "../gtl/properties.h"
+#include "../gtl/type_traits.h"
 #include "dataspace.h"
 #include "datatype.h"
 
@@ -94,6 +94,16 @@ struct DataSet
 
 
 }; //class DataSet
+
+namespace traits
+{
+inline void deploy(DataSet *d) { d->deploy(); }
+
+template<typename T> inline T &get_value(DataSet &d, size_t s) { return d.template get_value<T>(s); }
+
+template<typename T> inline T const &get_value(DataSet const &d, size_t s) { return d.template get_value<T>(s); }
+
+}//namespace traits
 //
 //namespace _impl
 //{

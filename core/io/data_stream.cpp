@@ -16,7 +16,7 @@ extern "C"
 
 #include "data_stream.h"
 
-#include "../gtl/dataset/dataset.h"
+#include "../dataset/dataset.h"
 
 #if !NO_MPI || USE_MPI
 #   include "../parallel/parallel.h"

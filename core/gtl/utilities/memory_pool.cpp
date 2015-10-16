@@ -145,7 +145,8 @@ void * MemoryPool::pimpl_s::pop(size_t s)
 
 		} catch (std::bad_alloc const &error)
 		{
-			ERROR_BAD_ALLOC_MEMORY(s, error);
+			ERROR_BAD_ALLOC_MEMORY(s, error);\
+
 		}
 
 	}

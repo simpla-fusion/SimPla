@@ -8,9 +8,9 @@
 #include <string.h>
 
 #include "dataset.h"
-#include "../utilities/pretty_stream.h"
-#include "../utilities/memory_pool.h"
-#include "../design_pattern/singleton_holder.h"
+#include "../gtl/utilities/pretty_stream.h"
+#include "../gtl/utilities/memory_pool.h"
+#include "../gtl/design_pattern/singleton_holder.h"
 
 namespace simpla
 {
@@ -24,10 +24,8 @@ void DataSet::deploy()
 	else
 	{
 //		CHECK(datatype.size_in_byte() * dataspace.local_memory_size());
-
 		data = SingletonHolder<MemoryPool>::instance().raw_alloc(
 				datatype.size_in_byte() * dataspace.local_memory_size());
-
 	}
 }
 

@@ -137,11 +137,11 @@ template<typename T> struct container_type
 template<typename T> using container_t=typename container_type<T>::type;
 
 
-template<int I, typename TV, typename ...U, typename TM>
-Field<Domain<TM, std::integral_constant<int, I>>, TV, tags::sequence_container, U...>
+template<int I, typename TV, typename TM>
+Field<Domain<TM, std::integral_constant<int, I>>, TV>
 make_field(TM const &mesh)
 {
-	return Field<Domain<TM, std::integral_constant<int, I>>, TV, tags::sequence_container, U...>(make_domain<I>(mesh));
+	return Field<Domain<TM, std::integral_constant<int, I>>, TV>(make_domain<I>(mesh));
 };
 
 }  // namespace traits

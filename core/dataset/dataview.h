@@ -8,8 +8,8 @@
 #define SIMPLA_DATAVIEW_H
 
 #include <memory>
-#include "../utilities/memory_pool.h"
-#include "../containers/iterator_proxy.h"
+#include "../gtl/utilities/memory_pool.h"
+#include "../gtl/containers/iterator_proxy.h"
 
 
 namespace simpla

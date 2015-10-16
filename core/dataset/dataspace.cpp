@@ -8,8 +8,8 @@
 #include <algorithm>
 #include <utility>
 
-#include "../ntuple.h"
-#include "../utilities/utilities.h"
+#include "../gtl/ntuple.h"
+#include "../gtl/utilities/utilities.h"
 #include "dataspace.h"
 
 namespace simpla

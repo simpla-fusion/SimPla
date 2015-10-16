@@ -16,7 +16,7 @@
 #include <tuple>
 #include <type_traits>
 
-#include "../gtl/dataset/dataspace.h"
+#include "../dataset/dataspace.h"
 #include "../gtl/macro.h"
 #include "../gtl/mpl.h"
 #include "../gtl/ntuple.h"

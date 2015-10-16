@@ -12,8 +12,8 @@
 #include <string>
 
 #include "../gtl/utilities/utilities.h"
-#include "../gtl/dataset/dataset.h"
-#include "../gtl/dataset/datatype.h"
+#include "../dataset/dataset.h"
+#include "../dataset/datatype.h"
 #include "data_stream.h"
 
 namespace simpla {

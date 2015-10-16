@@ -25,7 +25,6 @@ namespace topology
 
 struct StructuredMesh : public MeshIDs_<4>
 {
-	enum { DEFAULT_GHOST_WIDTH = 2 };
 	static constexpr int ndims = 3;
 
 private:
@@ -76,17 +75,17 @@ public:
  *
  */
 
-	id_type m_id_min_;
+	id_type m_id_min_ = 0UL;
 
-	id_type m_id_max_;
+	id_type m_id_max_ = 0UL;
 
-	id_type m_id_local_min_;
+	id_type m_id_local_min_ = 0UL;
 
-	id_type m_id_local_max_;
+	id_type m_id_local_max_ = 0UL;
 
-	id_type m_id_memory_min_;
+	id_type m_id_memory_min_ = 0UL;
 
-	id_type m_id_memory_max_;
+	id_type m_id_memory_max_ = 0UL;
 
 
 public:
@@ -148,6 +147,16 @@ public:
 
 	virtual bool is_valid() const { return true; }
 
+	void deploy()
+	{
+		m_id_local_min_ = m_id_min_;
+
+		m_id_local_max_ = m_id_max_;
+
+		m_id_memory_min_ = m_id_local_min_;
+
+		m_id_memory_max_ = m_id_local_max_;
+	}
 
 	this_type &operator=(this_type const &other)
 	{
@@ -204,84 +213,6 @@ public:
 		return std::move(res);
 	}
 
-	void deploy(size_t const *gw = nullptr)
-	{
-/**
-* Decompose
-*/
-//
-//		if (GLOBAL_COMM.num_of_process() > 1)
-//		{
-//			auto idx_b = m::unpack_index(m_id_min_);
-//
-//			auto idx_e = m::unpack_index(m_id_max_);
-//
-//			GLOBAL_COMM.
-//					decompose(ndims, &idx_b[0], &idx_e[0]
-//			);
-//
-//			typename m::index_tuple ghost_width;
-//
-//			if (gw != nullptr)
-//			{
-//				ghost_width = gw;
-//			}
-//			else
-//			{
-//				ghost_width = DEFAULT_GHOST_WIDTH;
-//			}
-//
-//			for (
-//					int i = 0;
-//					i < ndims;
-//					++i)
-//			{
-//
-//				if (idx_b[i] + 1 == idx_e[i])
-//				{
-//					ghost_width[i] = 0;
-//				}
-//				else if (idx_e[i] <= idx_b[i] + ghost_width[i] * 2)
-//				{
-//					ERROR(
-//							"Dimension is to small to split!["
-////				" Dimensions= " + type_cast < std::string
-////				> (m::unpack_index(
-////								m_id_max_ - m_id_min_))
-////				+ " , Local dimensions=" + type_cast
-////				< std::string
-////				> (m::unpack_index(
-////								m_id_local_max_ - m_id_local_min_))
-////				+ " , Ghost width =" + type_cast
-////				< std::string > (ghost_width) +
-//									"]");
-//				}
-//
-//			}
-//
-//			m_id_local_min_ = m::pack_index(idx_b);
-//
-//			m_id_local_max_ = m::pack_index(idx_e);
-//
-//			m_id_memory_min_ = m_id_local_min_ - m::pack_index(ghost_width);
-//
-//			m_id_memory_max_ = m_id_local_max_ + m::pack_index(ghost_width);
-//
-//
-//		}
-//		else
-		{
-			m_id_local_min_ = m_id_min_;
-
-			m_id_local_max_ = m_id_max_;
-
-			m_id_memory_min_ = m_id_local_min_;
-
-			m_id_memory_max_ = m_id_local_max_;
-
-		}
-
-	}
 
 	std::tuple<id_tuple, id_tuple> index_box() const
 	{
@@ -312,13 +243,6 @@ public:
 	bool in_box(id_type s) const
 	{
 		return in_box(m::unpack_index(s));
-	}
-
-
-	template<typename ...Args>
-	void reset(Args &&...args)
-	{
-		this_type(m::pack(args)...).swap(*this);
 	}
 
 

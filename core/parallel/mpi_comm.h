@@ -13,13 +13,12 @@
 #include <memory>
 #include <algorithm>
 
-extern "C"
-{
+
 #include <mpi.h>
-}
+
+#include "../dataset/dataset.h"
 
 #include "../gtl/ntuple.h"
-#include "../gtl/dataset/dataset.h"
 #include "../gtl/design_pattern/singleton_holder.h"
 #include "../gtl/utilities/utilities.h"
 
