@@ -29,9 +29,9 @@ namespace simpla
  */
 
 template<typename OS, typename TV, typename TI> inline TV const *
-printNdArray(OS & os, TV const *v, int rank, TI const* d,
-		std::string const & left_brace = "{", std::string const & sep = ",",
-		std::string const & right_brace = "}")
+printNdArray(OS &os, TV const *v, int rank, TI const *d,
+		std::string const &left_brace = "{", std::string const &sep = ",",
+		std::string const &right_brace = "}")
 {
 	constexpr int ELE_NUM_PER_LINE = 10;
 	if (rank == 1)
@@ -42,7 +42,9 @@ printNdArray(OS & os, TV const *v, int rank, TI const* d,
 		{
 			os << sep << "\t";
 			if (s % ELE_NUM_PER_LINE == 0 && s != 0)
+			{
 				os << std::endl;
+			}
 			os << (*v);
 			++v;
 		}
@@ -67,8 +69,8 @@ printNdArray(OS & os, TV const *v, int rank, TI const* d,
 }
 
 
-template<typename TX, typename TY, typename ...Others> std::istream&
-get_(std::istream& is, size_t num, std::map<TX, TY, Others...> & a)
+template<typename TX, typename TY, typename ...Others> std::istream &
+get_(std::istream &is, size_t num, std::map<TX, TY, Others...> &a)
 {
 
 	for (size_t s = 0; s < num; ++s)
@@ -82,10 +84,12 @@ get_(std::istream& is, size_t num, std::map<TX, TY, Others...> & a)
 }
 
 template<typename TI>
-std::ostream & ContainerOutPut1(std::ostream & os, TI const ib, TI const ie)
+std::ostream &ContainerOutPut1(std::ostream &os, TI const ib, TI const ie)
 {
 	if (ib == ie)
+	{
 		return os;
+	}
 
 	TI it = ib;
 
@@ -99,17 +103,21 @@ std::ostream & ContainerOutPut1(std::ostream & os, TI const ib, TI const ie)
 
 		++s;
 		if (s % 10 == 0)
+		{
 			os << std::endl;
+		}
 	}
 
 	return os;
 }
 
 template<typename TI>
-std::ostream & ContainerOutPut2(std::ostream & os, TI const & ib, TI const & ie)
+std::ostream &ContainerOutPut2(std::ostream &os, TI const &ib, TI const &ie)
 {
 	if (ib == ie)
+	{
 		return os;
+	}
 
 	TI it = ib;
 
@@ -123,12 +131,15 @@ std::ostream & ContainerOutPut2(std::ostream & os, TI const & ib, TI const & ie)
 	}
 	return os;
 }
+
 template<typename TI, typename TFUN>
-std::ostream & ContainerOutPut3(std::ostream & os, TI const & ib, TI const & ie,
-		TFUN const& fun)
+std::ostream &ContainerOutPut3(std::ostream &os, TI const &ib, TI const &ie,
+		TFUN const &fun)
 {
 	if (ib == ie)
+	{
 		return os;
+	}
 
 	TI it = ib;
 
@@ -149,29 +160,31 @@ namespace std
 {
 
 template<typename T> std::ostream &
-operator<<(std::ostream& os, const std::complex<T> & tv)
+operator<<(std::ostream &os, const std::complex<T> &tv)
 {
 	os << "{" << tv.real() << "," << tv.imag() << "}";
 	return (os);
 }
+
 template<typename T1, typename T2> std::ostream &
-operator<<(std::ostream& os, std::pair<T1, T2>const & p)
+operator<<(std::ostream &os, std::pair<T1, T2> const &p)
 {
 	os << p.first << " = { " << p.second << " }";
 	return (os);
 }
+
 template<typename T1, typename T2> std::ostream &
-operator<<(std::ostream& os, std::map<T1, T2>const & p)
+operator<<(std::ostream &os, std::map<T1, T2> const &p)
 {
-	for (auto const & v : p)
+	for (auto const &v : p)
 		os << v << "," << std::endl;
 	return (os);
 }
 
-template<typename TV, typename ...Others> std::istream&
-operator>>(std::istream& is, std::vector<TV, Others...> & a)
+template<typename TV, typename ...Others> std::istream &
+operator>>(std::istream &is, std::vector<TV, Others...> &a)
 {
-	for (auto & v : a)
+	for (auto &v : a)
 	{
 		is >> v;
 	}
@@ -181,41 +194,79 @@ operator>>(std::istream& is, std::vector<TV, Others...> & a)
 }
 
 template<typename U, typename ...Others>
-std::ostream & operator<<(std::ostream & os, std::vector<U, Others...> const &d)
+std::ostream &operator<<(std::ostream &os, std::vector<U, Others...> const &d)
 {
 	return simpla::ContainerOutPut1(os, d.begin(), d.end());
 }
 
 template<typename U, typename ...Others>
-std::ostream & operator<<(std::ostream & os, std::list<U, Others...> const &d)
+std::ostream &operator<<(std::ostream &os, std::list<U, Others...> const &d)
 {
 	return simpla::ContainerOutPut1(os, d.begin(), d.end());
 }
 
 template<typename U, typename ...Others>
-std::ostream & operator<<(std::ostream & os, std::set<U, Others...> const &d)
+std::ostream &operator<<(std::ostream &os, std::set<U, Others...> const &d)
 {
 	return simpla::ContainerOutPut1(os, d.begin(), d.end());
 }
 
 template<typename U, typename ...Others>
-std::ostream & operator<<(std::ostream & os,
+std::ostream &operator<<(std::ostream &os,
 		std::multiset<U, Others...> const &d)
 {
 	return simpla::ContainerOutPut1(os, d.begin(), d.end());
 }
 
-template<typename TX, typename TY, typename ...Others> std::ostream&
-operator<<(std::ostream& os, std::map<TX, TY, Others...> const& d)
+template<typename TX, typename TY, typename ...Others> std::ostream &
+operator<<(std::ostream &os, std::map<TX, TY, Others...> const &d)
 {
 	return simpla::ContainerOutPut2(os, d.begin(), d.end());
 }
 
-template<typename TX, typename TY, typename ...Others> std::ostream&
-operator<<(std::ostream& os, std::multimap<TX, TY, Others...> const& d)
+template<typename TX, typename TY, typename ...Others> std::ostream &
+operator<<(std::ostream &os, std::multimap<TX, TY, Others...> const &d)
 {
 	return simpla::ContainerOutPut2(os, d.begin(), d.end());
 }
+
+
+template<typename OS, typename T0, typename T1>
+OS &operator<<(OS &os, std::tuple<T0, T1> const &v)
+{
+	os << "{ " << std::get<0>(v) << " , " << std::get<1>(v) << "}";
+
+	return os;
+};
+
+
+template<typename OS, typename T0, typename T1, typename T2>
+OS &operator<<(OS &os, std::tuple<T0, T1, T2> const &v)
+{
+	os << "{ " << std::get<0>(v) << " , " << std::get<1>(v) << " , " << std::get<2>(v) << "}";
+
+	return os;
+};
+
+
+template<typename OS, typename T0, typename T1, typename T2, typename T3>
+OS &operator<<(OS &os, std::tuple<T0, T1, T2, T3> const &v)
+{
+	os << "{ " << std::get<0>(v) << " , " << std::get<1>(v) << " , " << std::get<2>(v) << " , " << std::get<3>(v) <<
+			"}";
+
+	return os;
+};
+
+template<typename OS, typename T, typename ...Others>
+OS &print(OS &os, T const &first, Others &&... others)
+{
+	os << first << " , ";
+
+	print(os, std::forward<Others>(others)...);
+
+	return os;
+};
 
 /** @}*/
 }  // namespace std

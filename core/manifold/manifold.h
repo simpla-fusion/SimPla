@@ -57,7 +57,7 @@ public:
 	void swap(const this_type &other) { _dispatch_swap<geometry_type, Policies...>(other); }
 
 	template<typename TDict>
-	void load(TDict const &dict) { _dispatch_load<geometry_type, Policies...>(dict); }
+	void load(TDict const &dict) { _dispatch_load<geometry_type, Policies...>(dict["Manifold"]); }
 
 
 	std::ostream &print(std::ostream &os) const

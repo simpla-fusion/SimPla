@@ -125,7 +125,11 @@ public:
 	}
 
 	template<typename TDict>
-	void load(TDict const &) { }
+	void load(TDict const &dict)
+	{
+
+		dimensions(dict["Topology"]["Dimensions"].template as<id_tuple>());
+	}
 
 	template<typename OS>
 	OS &print(OS &os) const

@@ -72,8 +72,11 @@ public:
 	template<typename TDict>
 	void load(TDict const &dict)
 	{
-		topology_type::load(dict["Topology"]);
-		extents(dict["Box"].template as<std::tuple<point_type, point_type> >());
+		auto d = dict["Geometry"];
+
+		topology_type::load(d);
+
+		extents(d["Box"].template as<std::tuple<point_type, point_type> >());
 	}
 
 	template<typename OS>
@@ -83,8 +86,8 @@ public:
 
 		os << "\t\tCoordinateSystem = { " << std::endl
 				<< "\t\t Type = \"" << traits::type_id<CS>::name() << "\"," << std::endl
-				<< "\t\t xmin = " << m_coords_min_ << "," << std::endl
-				<< "\t\t xmax = " << m_coords_max_ << "," << std::endl
+				<< "\t\t Box = " << extents() << "," << std::endl
+//				<< "\t\t xmax = " << m_coords_max_ << "," << std::endl
 				<< "\t\t}," << std::endl;
 
 		topology_type::print(os);
@@ -117,9 +120,9 @@ public:
 		extents(simpla::traits::get<0>(box), simpla::traits::get<1>(box));
 	}
 
-	constexpr std::pair<point_type, point_type> extents() const
+	constexpr std::tuple<point_type, point_type> extents() const
 	{
-		return (std::make_pair(m_coords_min_, m_coords_max_));
+		return (std::make_tuple(m_coords_min_, m_coords_max_));
 	}
 
 //	constexpr std::pair<point_type, point_type> local_extents() const

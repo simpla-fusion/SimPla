@@ -269,6 +269,7 @@
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/time_integrator/time_integrator.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/mesh_ids.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/structured.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/topology.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/topology_common.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/model/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/model/geqdsk.cpp" isTestSource="false" />

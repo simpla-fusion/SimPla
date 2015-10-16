@@ -70,7 +70,7 @@ USE_CASE(em, " Maxwell Eqs.")
 
 	auto mesh = std::make_shared<mesh_type>();
 
-//	mesh->load(options["Mesh"]);
+	mesh->load(options);
 
 	mesh->deploy();
 
@@ -78,11 +78,9 @@ USE_CASE(em, " Maxwell Eqs.")
 
 			<< "[ Configuration ]" << std::endl
 
-			<< " Description=\"" << options["Description"].as<std::string>("") << "\""
+			<< "Description=\"" << options["Description"].as<std::string>("") << "\"" << std::endl
 
-			<< std::endl
-
-			<< " Mesh = \n {" << *mesh << "} " << std::endl
+			<< *mesh << std::endl
 
 			<< " TIME_STEPS = " << num_of_steps << std::endl;
 
@@ -94,97 +92,97 @@ USE_CASE(em, " Maxwell Eqs.")
 //				options["FieldSolver"]["PML"]);
 //
 //	}
-
-	auto J = traits::make_field<EDGE, Real>(*mesh);
-
-	auto E = traits::make_field<EDGE, Real>(*mesh);
-
-	auto B = traits::make_field<FACE, Real>(*mesh);
-
-	E = traits::make_function_by_config<Real>(options["InitValue"]["E"],
-			traits::make_domain<EDGE>(*mesh));
-
-	B = traits::make_function_by_config<Real>(options["InitValue"]["B"],
-			traits::make_domain<FACE>(*mesh));
-
-	J = traits::make_function_by_config<Real>(options["InitValue"]["J"],
-			traits::make_domain<EDGE>(*mesh));
-
-	auto J_src = traits::make_function_by_config<Real>(options["Constraint"]["J"],
-			traits::make_domain<EDGE>(*mesh));
-
-	auto E_src = traits::make_function_by_config<Real>(options["Constraint"]["E"],
-			traits::make_domain<EDGE>(*mesh));
-
-	auto E_Boundary = (E);
-	auto B_Boundary = (B);
-
-	if (options["PEC"])
-	{
-//		filter_by_config(options["PEC"]["Domain"], &B_Boundary.domain());
-//		filter_by_config(options["PEC"]["Domain"], &E_Boundary.domain());
-	}
-	else
-	{
-		E_Boundary.clear();
-		B_Boundary.clear();
-	}
-
-	LOGGER << "----------  Dump input ---------- " << std::endl;
-
+//
+//	auto J = traits::make_field<EDGE, Real>(*mesh);
+//
+//	auto E = traits::make_field<EDGE, Real>(*mesh);
+//
+//	auto B = traits::make_field<FACE, Real>(*mesh);
+//
+//	E = traits::make_function_by_config<Real>(options["InitValue"]["E"],
+//			traits::make_domain<EDGE>(*mesh));
+//
+//	B = traits::make_function_by_config<Real>(options["InitValue"]["B"],
+//			traits::make_domain<FACE>(*mesh));
+//
+//	J = traits::make_function_by_config<Real>(options["InitValue"]["J"],
+//			traits::make_domain<EDGE>(*mesh));
+//
+//	auto J_src = traits::make_function_by_config<Real>(options["Constraint"]["J"],
+//			traits::make_domain<EDGE>(*mesh));
+//
+//	auto E_src = traits::make_function_by_config<Real>(options["Constraint"]["E"],
+//			traits::make_domain<EDGE>(*mesh));
+//
+//	auto E_Boundary = (E);
+//	auto B_Boundary = (B);
+//
+//	if (options["PEC"])
+//	{
+////		filter_by_config(options["PEC"]["Domain"], &B_Boundary.domain());
+////		filter_by_config(options["PEC"]["Domain"], &E_Boundary.domain());
+//	}
+//	else
+//	{
+//		E_Boundary.clear();
+//		B_Boundary.clear();
+//	}
+//
+//	LOGGER << "----------  Dump input ---------- " << std::endl;
+//
 	cd("/Input/");
-
-	VERBOSE << SAVE(E) << std::endl;
-	VERBOSE << SAVE(B) << std::endl;
-	VERBOSE << SAVE(J) << std::endl;
-
-	DEFINE_PHYSICAL_CONST
-	Real dt = mesh->dt();
-	auto dx = mesh->dx();
-
-	Real omega = 0.01 * PI / dt;
-
-	LOGGER << "----------  START ---------- " << std::endl;
-
-	cd("/Save/");
-
-	for (size_t step = 0; step < num_of_steps; ++step)
-	{
-		VERBOSE << "Step [" << step << "/" << num_of_steps << "]" << std::endl;
-
-		J.self_assign(J_src);
-		E.self_assign(E_src);
-
-//		if (!pml_solver)
-		{
-
-			LOG_CMD(E += curl(B) * (dt * speed_of_light2) - J * (dt / epsilon0));
-			E_Boundary = 0;
-			LOG_CMD(B -= curl(E) * dt);
-			B_Boundary = 0;
-
-		}
-//		else
+//
+//	VERBOSE << SAVE(E) << std::endl;
+//	VERBOSE << SAVE(B) << std::endl;
+//	VERBOSE << SAVE(J) << std::endl;
+//
+//	DEFINE_PHYSICAL_CONST
+//	Real dt = mesh->dt();
+//	auto dx = mesh->dx();
+//
+//	Real omega = 0.01 * PI / dt;
+//
+//	LOGGER << "----------  START ---------- " << std::endl;
+//
+//	cd("/Save/");
+//
+//	for (size_t step = 0; step < num_of_steps; ++step)
+//	{
+//		VERBOSE << "Step [" << step << "/" << num_of_steps << "]" << std::endl;
+//
+//		J.self_assign(J_src);
+//		E.self_assign(E_src);
+//
+////		if (!pml_solver)
 //		{
-//			pml_solver->next_timestepE(geometry->dt(), E, B, &E);
-//			LOG_CMD(E -= J / epsilon0 * dt);
-//			pml_solver->next_timestepB(geometry->dt(), E, B, &B);
+//
+//			LOG_CMD(E += curl(B) * (dt * speed_of_light2) - J * (dt / epsilon0));
+//			E_Boundary = 0;
+//			LOG_CMD(B -= curl(E) * dt);
+//			B_Boundary = 0;
+//
 //		}
-
-		VERBOSE << SAVE_RECORD(J) << std::endl;
-		VERBOSE << SAVE_RECORD(E) << std::endl;
-		VERBOSE << SAVE_RECORD(B) << std::endl;
-
-		mesh->next_time_step();
-
-	}
-
-	cd("/Output/");
-	VERBOSE << SAVE(E) << std::endl;
-	VERBOSE << SAVE(B) << std::endl;
-	VERBOSE << SAVE(J) << std::endl;
-
-	LOGGER << "----------  DONE ---------- " << std::endl;
+////		else
+////		{
+////			pml_solver->next_timestepE(geometry->dt(), E, B, &E);
+////			LOG_CMD(E -= J / epsilon0 * dt);
+////			pml_solver->next_timestepB(geometry->dt(), E, B, &B);
+////		}
+//
+//		VERBOSE << SAVE_RECORD(J) << std::endl;
+//		VERBOSE << SAVE_RECORD(E) << std::endl;
+//		VERBOSE << SAVE_RECORD(B) << std::endl;
+//
+//		mesh->next_time_step();
+//
+//	}
+//
+//	cd("/Output/");
+//	VERBOSE << SAVE(E) << std::endl;
+//	VERBOSE << SAVE(B) << std::endl;
+//	VERBOSE << SAVE(J) << std::endl;
+//
+//	LOGGER << "----------  DONE ---------- " << std::endl;
 
 }
 
