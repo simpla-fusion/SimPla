@@ -47,7 +47,19 @@ private:
 
 	geometry_type &m_geo_;
 
+public:
+	template<typename TDict>
+	void load(TDict const &) { }
 
+	template<typename OS>
+	OS &print(OS &os) const
+	{
+		os << "\t Calculate = { Type = \"Finite Volume\" }," << std::endl;
+
+		return os;
+	}
+
+private:
 	///***************************************************************************************************
 	/// @name general_algebra General algebra
 	/// @{

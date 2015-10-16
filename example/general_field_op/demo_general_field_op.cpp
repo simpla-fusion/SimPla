@@ -30,19 +30,22 @@ USE_CASE(general_field_op, "General field operation")
 	typedef typename mesh_type::point_type coordinate_tuple;
 	typedef typename mesh_type::index_tuple index_tuple;
 
-	index_tuple dims =
-			{16, 16, 16};
-	index_tuple ghost_width =
-			{2, 2, 0};
-	coordinate_tuple xmin =
-			{0, 0, 0};
-	coordinate_tuple xmax =
-			{1, 1, 1};
-	auto mesh = make_mesh<mesh_type>();
+	index_tuple dims = {16, 16, 16};
+	index_tuple ghost_width = {2, 2, 0};
+	coordinate_tuple xmin = {0, 0, 0};
+	coordinate_tuple xmax = {1, 1, 1};
+
+	auto mesh = std::make_shared<mesh_type>();
+
 	mesh->dimensions(dims);
 	mesh->extents(xmin, xmax);
 //	mesh->ghost_width(ghost_width);
 	mesh->deploy();
+
+	CHECK(*mesh);
+
+	CHECK(traits::type_id<mesh_type>::name());
+
 
 	auto f1 = traits::make_field<EDGE, double>(*mesh);
 	auto f2 = traits::make_field<FACE, double>(*mesh);
@@ -52,7 +55,7 @@ USE_CASE(general_field_op, "General field operation")
 	f2.deploy();
 
 	CHECK(f1.is_valid());
-	CHECK(f1.data!=nullptr);
+	CHECK(f1.data != nullptr);
 	CHECK(f1.datatype.is_valid());
 	CHECK(f1.dataspace.is_valid());
 	size_t count = 0;

@@ -11,9 +11,9 @@
 #include "../../gtl/macro.h"
 #include "../../gtl/type_traits.h"
 #include "../../geometry/coordinate_system.h"
-#include "../topology/topology.h"
-#include "geometry_traits.h"
 
+#include "../topology/topology_common.h"
+#include "geometry_traits.h"
 
 namespace simpla
 {
@@ -26,10 +26,10 @@ template<typename CS, typename TopologyTags>
 struct Geometry<CS, TopologyTags> : public Topology<TopologyTags>
 {
 public:
-	typedef CS cs_type;
-	typedef CS coordinates_system;
+	typedef CS coordinates_system_type;
 
-	geometry::mertic<cs_type> m_metric_;
+
+	geometry::mertic<coordinates_system_type> m_metric_;
 
 	typedef Topology<TopologyTags> topology_type;
 
@@ -38,13 +38,15 @@ public:
 	typedef nTuple<Real, ndims> topology_point_type;
 
 
-	typedef geometry::traits::scalar_type_t<cs_type> scalar_type;
+	typedef geometry::traits::scalar_type_t<coordinates_system_type> scalar_type;
 
-	typedef geometry::traits::point_type_t<cs_type> point_type;
+	typedef geometry::traits::point_type_t<coordinates_system_type> point_type;
 
-	typedef geometry::traits::vector_type_t<cs_type> vector_type;
+	typedef geometry::traits::vector_type_t<coordinates_system_type> vector_type;
 
 private:
+
+	typedef Geometry<CS, TopologyTags> this_type;
 
 	topology_point_type m_from_topology_orig_ = {0, 0, 0};
 
@@ -66,12 +68,34 @@ public:
 
 	virtual ~Geometry() { }
 
-	virtual void deploy();
 
-	std::string get_type_as_string() const
+	template<typename TDict>
+	void load(TDict const &dict)
 	{
-		return "Geometry Unnamed";
+		topology_type::load(dict["Topology"]);
+		extents(dict["Box"].template as<std::tuple<point_type, point_type> >());
 	}
+
+	template<typename OS>
+	OS &print(OS &os) const
+	{
+		os << "\t Gemetry = {" << std::endl;
+
+		os << "\t\tCoordinateSystem = { " << std::endl
+				<< "\t\t Type = \"" << traits::type_id<CS>::name() << "\"," << std::endl
+				<< "\t\t xmin = " << m_coords_min_ << "," << std::endl
+				<< "\t\t xmax = " << m_coords_max_ << "," << std::endl
+				<< "\t\t}," << std::endl;
+
+		topology_type::print(os);
+
+
+		os << "\t }, #Gemetry " << std::endl;
+
+		return os;
+	}
+
+	virtual void deploy();
 
 
 	point_type epsilon() const
@@ -391,8 +415,10 @@ void Geometry<CS, TopologyTags>::deploy()
 
 //	m_is_valid_ = true;
 
-	VERBOSE << get_type_as_string() << " is deployed!" << std::endl;
+	VERBOSE << traits::type_id<this_type>::name() << " is deployed!" << std::endl;
 
 }
+
+
 }//namespace simpla
 #endif //SIMPLA_GEOMETRY_H

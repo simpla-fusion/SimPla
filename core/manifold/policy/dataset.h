@@ -32,6 +32,15 @@ public:
 
 	virtual ~DataSetPolicy() { }
 
+	template<typename TDict> void load(TDict const &) { }
+
+	template<typename OS> OS &print(OS &os) const
+	{
+		os << "\t DataSetPolicy={ Default }," << std::endl;
+		
+
+		return os;
+	}
 
 	template<size_t IFORM>
 	DataSpace dataspace() const
@@ -91,5 +100,18 @@ public:
 	}
 };//template<typename TGeo> struct DataSetPolicy
 
+
+namespace traits
+{
+
+template<typename TGeo>
+struct type_id<DataSetPolicy<TGeo>>
+{
+	static std::string name()
+	{
+		return "DataSetPolicy<" + type_id<TGeo>::name() + ">";
+	}
+};
+}
 }//namespace simpla
 #endif //SIMPLA_DATASET_H

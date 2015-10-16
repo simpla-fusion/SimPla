@@ -78,7 +78,9 @@ template<typename ...> struct Manifold;
 template<typename ... T>
 std::ostream &operator<<(std::ostream &os, Manifold<T...> const &d)
 {
-	return d.print(os);
+	d.print(os);
+
+	return os;
 }
 
 template<typename ...T>
@@ -91,7 +93,6 @@ std::shared_ptr<Manifold<T...>> make_mesh()
  */
 namespace traits
 {
-template<typename> struct type_id;
 
 template<typename> struct id_type;
 template<typename T> using id_type_t= typename id_type<T>::type;
@@ -114,10 +115,9 @@ template<typename> struct ZAxis;
 template<typename ... T>
 struct type_id<Manifold<T...> >
 {
-	static const std::string name()
+	static std::string name()
 	{
-		return "Manifold<+" + type_id<coordinate_system_t<Manifold<T...> > >::name()
-				+ " >";
+		return "Manifold<" + type_id<T...>::name() + " >";
 	}
 };
 

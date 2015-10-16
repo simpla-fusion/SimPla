@@ -32,6 +32,15 @@ public:
 	{
 	}
 
+	template<typename TDict> void load(TDict const &) { }
+
+
+	template<typename OS> OS &print(OS &os) const
+	{
+		os << "\t ParallelPolicy={ Default }," << std::endl;
+
+		return os;
+	}
 
 	template<size_t IFORM>
 	void ghost_shape(
@@ -87,5 +96,19 @@ public:
 		return std::move(res);
 	}
 }; //template<typename TGeo> struct ParallelPolicy
+
+
+namespace traits
+{
+
+template<typename TGeo>
+struct type_id<ParallelPolicy<TGeo>>
+{
+	static std::string name()
+	{
+		return "ParallelPolicy<" + type_id<TGeo>::name() + ">";
+	}
+};
+}
 }//namespace simpla
 #endif //SIMPLA_PARALLEL_H

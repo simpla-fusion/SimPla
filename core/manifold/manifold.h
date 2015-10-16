@@ -10,6 +10,8 @@
 
 #include <iostream>
 #include <memory>
+#include "../gtl/macro.h"
+
 #include "calculate/calculate.h"
 #include "interpolate/interpolate.h"
 
@@ -19,25 +21,21 @@ namespace simpla
 template<typename ...> class Manifold;
 
 
-template<typename TGeo, typename ...Polices>
-class Manifold<TGeo, Polices ...>
-		: public TGeo, public Polices ...
+template<typename TGeo, typename ...Policies>
+class Manifold<TGeo, Policies ...>
+		: public TGeo, public Policies ...
 {
 public:
 
-	typedef Manifold<TGeo, Polices ...> this_type;
+	typedef Manifold<TGeo, Policies ...> this_type;
 
 	typedef TGeo geometry_type;
 
-	Manifold() : Polices(static_cast<geometry_type &>(*this))... { }
+	Manifold() : Policies(static_cast<geometry_type &>(*this))... { }
 
 	virtual ~Manifold() { }
 
-	Manifold(this_type const &other) : geometry_type(other) { }
-
-	void swap(const this_type &other) { geometry_type::swap(other); }
-
-	geometry_type const &geometry() const { return static_cast<geometry_type &>(*this); }
+	Manifold(this_type const &other) : geometry_type(other), Policies(other)... { }
 
 	this_type &operator=(const this_type &other)
 	{
@@ -46,10 +44,29 @@ public:
 	}
 
 
-	template<typename OS>
-	OS &print(OS &os) const
+private:
+
+	TEMPLATE_DISPATCH_DEFAULT(load)
+
+	TEMPLATE_DISPATCH(swap, inline,)
+
+	TEMPLATE_DISPATCH(print, inline, const)
+
+
+public:
+	void swap(const this_type &other) { _dispatch_swap<geometry_type, Policies...>(other); }
+
+	template<typename TDict>
+	void load(TDict const &dict) { _dispatch_load<geometry_type, Policies...>(dict); }
+
+
+	std::ostream &print(std::ostream &os) const
 	{
-		os << "Manifold<>" << std::endl;
+		os << "Manifold={" << std::endl;
+
+		_dispatch_print<geometry_type, Policies...>(os);
+
+		os << "}, # Manifold " << std::endl;
 		return os;
 	}
 

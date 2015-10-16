@@ -19,6 +19,22 @@ public:
 
 	virtual ~TimeIntegrator() { }
 
+	template<typename TDict>
+	void load(TDict const &) { }
+
+	template<typename OS>
+	OS &print(OS &os) const
+	{
+
+		os << "\t TimeIntegator = {" << std::endl
+				<< "\t\t Type = \"Default\"," << std::endl
+				<< "\t\t Time = " << m_time_ << "," << std::endl
+				<< "\t\t dt =   " << m_dt_ << "," << std::endl
+				<< "\t }, " << std::endl;
+		return os;
+	}
+
+	void next_time_step() { m_time_ += m_dt_; }
 
 	double time() const { return m_time_; }
 
@@ -28,12 +44,24 @@ public:
 
 	void dt(double p_dt) { m_dt_ = p_dt; }
 
-	virtual void next_time_step() { m_time_ += m_dt_; }
 
 private:
 	double m_dt_;
 	double m_time_;
 
 };
+
+
+namespace traits
+{
+template<typename ... T>
+struct type_id<TimeIntegrator<T...> >
+{
+	static std::string name()
+	{
+		return "TimeIntegrator<" + type_id<T...>::name() + " >";
+	}
+};
+}//namespace traits
 }// namespace simpla
 #endif //SIMPLA_TIME_INTEGRATOR_H

@@ -21,22 +21,20 @@ template<typename ...> class Geometry;
 
 namespace traits
 {
-template<typename> struct type_id;
 
-template<typename> struct is_geometry;
-template<typename> struct geometry_type;
 
 template<typename ... T>
 struct type_id<Geometry<T...> >
 {
-	static const std::string name()
+	static std::string name()
 	{
-		return "Geometry";
-
-//		return "Geometry<+" + type_id<coordinate_system_t < Geometry<T...> > > ::name()
-//				+ " >";
+		return "Geometry<" + type_id<T...>::name() + "> ";
 	}
 };
+
+template<typename> struct is_geometry;
+
+template<typename> struct geometry_type;
 
 template<typename T> struct is_geometry : public std::integral_constant<bool, false> { };
 

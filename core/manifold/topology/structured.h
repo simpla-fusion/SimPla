@@ -5,14 +5,15 @@
 #ifndef SIMPLA_TOPOLOGY_H
 #define SIMPLA_TOPOLOGY_H
 
-#include "mesh_ids.h"
+#include <vector>
+
 #include "../../gtl/macro.h"
 #include "../../gtl/primitives.h"
 #include "../../gtl/ntuple.h"
 #include "../../gtl/type_traits.h"
+#include "mesh_ids.h"
+#include "topology_common.h"
 
-#include "topology.h"
-#include <vector>
 
 namespace simpla
 {
@@ -90,10 +91,7 @@ public:
 
 public:
 
-	StructuredMesh()
-	{
-
-	}
+	StructuredMesh() { }
 
 
 	StructuredMesh(StructuredMesh const &other) :
@@ -113,10 +111,39 @@ public:
 
 	}
 
-	~StructuredMesh()
+	virtual  ~StructuredMesh() { }
+
+	virtual void swap(this_type &other)
 	{
 
+		std::swap(m_id_min_, other.m_id_min_);
+		std::swap(m_id_max_, other.m_id_max_);
+		std::swap(m_id_local_min_, other.m_id_local_min_);
+		std::swap(m_id_local_max_, other.m_id_local_max_);
+		std::swap(m_id_memory_max_, other.m_id_memory_max_);
+		std::swap(m_id_memory_min_, other.m_id_memory_min_);
 	}
+
+	template<typename TDict>
+	void load(TDict const &) { }
+
+	template<typename OS>
+	OS &print(OS &os) const
+	{
+
+		os << "\t\tTopology = {" << std::endl
+				<< "\t\t Type = \"StructuredMesh\"," << std::endl
+				<< "\t\t Dimensions = {" << dimensions() << "}," << std::endl
+				<< "\t\t Offset = {}," << std::endl
+				<< "\t\t Count = {}," << std::endl
+				<< "\t\t}, " << std::endl;
+
+		return os;
+	}
+
+
+	virtual bool is_valid() const { return true; }
+
 
 	this_type &operator=(this_type const &other)
 	{
@@ -129,19 +156,6 @@ public:
 	{
 		return *this;
 	}
-
-	void swap(this_type &other)
-	{
-
-		std::swap(m_id_min_, other.m_id_min_);
-		std::swap(m_id_max_, other.m_id_max_);
-		std::swap(m_id_local_min_, other.m_id_local_min_);
-		std::swap(m_id_local_max_, other.m_id_local_max_);
-		std::swap(m_id_memory_max_, other.m_id_memory_max_);
-		std::swap(m_id_memory_min_, other.m_id_memory_min_);
-	}
-
-	virtual bool is_valid() const { return true; }
 
 	template<typename TI>
 	void dimensions(TI const &d)
@@ -277,17 +291,6 @@ public:
 				m::unpack_index(m_id_local_max_));
 	}
 
-	template<typename OS>
-	OS &print(OS &os) const
-	{
-
-
-//		os << " Dimensions\t= " << dimensions() << "," << std::endl;
-
-		return os;
-
-	}
-
 
 	auto box() const
 	DECL_RET_TYPE(std::forward_as_tuple(m_id_local_min_, m_id_local_max_))
@@ -352,16 +355,10 @@ public:
 };//struct StructuredMesh
 
 
-namespace traits
-{
-
-template<typename TAG>
-struct point_type<Topology<TAG> >
-{
-	typedef nTuple<Real, 3> type;
-};
-} //namespace traits
 } // namespace topology
+
+
+
 
 typedef Topology<topology::tags::CoRectMesh> CoRectMesh;
 typedef Topology<topology::tags::Curvilinear> Curvilinear;

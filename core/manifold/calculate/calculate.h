@@ -25,5 +25,25 @@ struct DG;
 
 }//namespace tags
 }//namespace calculate
+
+namespace traits
+{
+
+template<typename ... T>
+struct type_id<Calculate<T...> >
+{
+	static std::string name()
+	{
+		return "Calculate< \"" + type_id<T...>::name() + "\" >";
+	}
+};
+
+DEFINE_TYPE_ID_NAME(calculate::tags::finite_difference)
+
+DEFINE_TYPE_ID_NAME(calculate::tags::finite_volume)
+
+DEFINE_TYPE_ID_NAME(calculate::tags::DG)
+
+}//namespace traits
 }//namespace simpla
 #endif //SIMPLA_CALCULATE_H

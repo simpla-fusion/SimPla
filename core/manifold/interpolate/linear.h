@@ -41,6 +41,17 @@ private:
 	typedef Interpolate<geometry_type, pt::linear> this_type;
 
 	geometry_type const &m_geo_;
+public:
+
+
+	template<typename TDict> void load(TDict const &) { }
+
+
+	template<typename OS> OS &print(OS &os) const
+	{
+		os << "\t Interpolate = { Type = \"Linear\" }," << std::endl;
+		return os;
+	}
 
 private:
 	

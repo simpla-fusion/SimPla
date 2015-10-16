@@ -64,11 +64,7 @@
       <sourceFolder url="file://$MODULE_DIR$/core/application/task.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/application/use_case.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/field/CMakeLists.txt" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/field/obsolete/cache.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/field/obsolete/dummy_field.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/field/obsolete/fetl.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/field/obsolete/field_rw_cache.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/field/obsolete/field_vector_ops.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/field/field.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/field/field_comm.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/field/field_constant.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/field/field_constraint.h" isTestSource="false" />
@@ -78,6 +74,11 @@
       <sourceFolder url="file://$MODULE_DIR$/core/field/field_sparse.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/field/field_traits.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/field/load_field.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/field/obsolete/cache.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/field/obsolete/dummy_field.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/field/obsolete/fetl.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/field/obsolete/field_rw_cache.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/field/obsolete/field_vector_ops.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/field/test/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/field/test/field_basic_algebra_test.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/field/test/field_basic_algebra_test.h" isTestSource="false" />
@@ -268,7 +269,7 @@
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/time_integrator/time_integrator.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/mesh_ids.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/structured.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/topology.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/topology_common.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/model/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/model/geqdsk.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/model/geqdsk.h" isTestSource="false" />
