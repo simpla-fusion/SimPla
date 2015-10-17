@@ -14,18 +14,17 @@
 #include <string>
 #include <tuple>
 #include <vector>
-#include "../application/sp_object.h"
+
 #include "../dataset/dataset.h"
-#include "../utilities/log.h"
-#include "../utilities/memory_pool.h"
+#include "../dataset/datatype.h"
+#include "../gtl/utilities/log.h"
+#include "../gtl/utilities/memory_pool.h"
 #include "../gtl/enable_create_from_this.h"
 #include "../gtl/primitives.h"
 #include "../gtl/properties.h"
 #include "../gtl/iterator/sp_iterator.h"
-#include "../parallel/mpi_update.h"
-#include "../parallel/mpi_aux_functions.h"
-#include "distributed_unordered_set.h"
 
+#include "../parallel/distributed_object.h"
 /** @ingroup physical_object
  *  @addtogroup particle Particle
  *  @{
@@ -49,7 +48,7 @@
  * ` P( ) `             | Constructor
  * ` ~P( ) `            | Destructor
  * ` void  next_timestep(dt, args ...) const; `  | push  particles a time interval 'dt'
- * ` void  next_timestep(num_of_steps,t0, dt, args ...) const; `  | push  particles from time 't0' to 't1' with time step 'dt'.
+ * ` void  next_time_step(num_of_steps,t0, dt, args ...) const; `  | push  particles from time 't0' to 't1' with time step 'dt'.
  * ` flush_buffer( ) `  | flush input buffer to internal data container
  *
  *- @ref particle meets the requirement of @ref container,
@@ -157,7 +156,12 @@ public:
 	{
 	}
 
-	using SpObject::properties;
+	Properties properties;
+
+	template<typename OS> OS &print(OS &os)
+	{
+		return os;
+	}
 
 	this_type &self()
 	{
@@ -227,7 +231,7 @@ public:
 	{
 		engine_type::deploy();
 
-		SpObject::properties.append(engine_type::properties);
+		properties.append(engine_type::properties);
 	}
 
 	template<typename TRange>
@@ -241,135 +245,18 @@ public:
 		return container_type::size_all(m_domain_);
 	}
 
-	void sync()
+
+	bool is_ready() const
 	{
-
-		auto ghost_list = m_domain_.mesh().template ghost_shape<iform>();
-
-		for (auto const &item : ghost_list)
-		{
-			mpi_send_recv_buffer_s send_recv_s;
-
-			send_recv_s.datatype = MPIDataType::create<value_type>();
-
-			std::tie(send_recv_s.dest, send_recv_s.send_tag,
-					send_recv_s.recv_tag) = GLOBAL_COMM.make_send_recv_tag(SpObject::object_id(),
-					&item.coord_shift[0]);
-
-			//   collect send data
-
-			domain_type send_range(m_domain_);
-
-			send_range.select(item.send_offset,
-					item.send_offset + item.send_count);
-
-			send_recv_s.send_size = container_type::size_all(send_range);
-
-			send_recv_s.send_data = sp_alloc_memory(
-					send_recv_s.send_size * send_recv_s.datatype.size());
-
-			value_type *data =
-					reinterpret_cast<value_type *>(send_recv_s.send_data.get());
-
-			// FIXME need parallel optimize
-			for (auto const &key : send_range)
-			{
-				for (auto const &p : container_type::operator[](key))
-				{
-					*data = p;
-					++data;
-				}
-			}
-
-			send_recv_s.recv_size = 0;
-			send_recv_s.recv_data = nullptr;
-			m_send_recv_buffer_.push_back(std::move(send_recv_s));
-
-			//  clear ghosts cell
-			domain_type recv_range(m_domain_);
-			recv_range.select(item.recv_offset,
-					item.recv_offset + item.recv_count);
-
-			container_type::erase(recv_range);
-
-		}
-
-		sync_update_varlength(&m_send_recv_buffer_,
-				&(SpObject::m_mpi_requests_));
+		return true;
 	}
 
-	void wait()
-	{
-		SpObject::wait();
+	void sync();
 
-		for (auto const &item : m_send_recv_buffer_)
-		{
+	void wait();
 
-			value_type *data =
-					reinterpret_cast<value_type *>(item.recv_data.get());
+	DataSet dataset() const;
 
-			container_type::insert(data, data + item.recv_size);
-		}
-		m_send_recv_buffer_.clear();
-	}
-
-	DataSet dataset() const
-	{
-
-		DataSet res;
-
-		res.datatype = DataType::create<value_type>();
-		res.properties = SpObject::properties;
-
-		index_type count = 0;
-
-		m_domain_.for_each([&](id_type const &s)
-		{
-			auto it = container_type::find(s);
-			if (it != container_type::end())
-			{
-				count += std::distance(it->second.begin(), it->second.end());
-			}
-		});
-
-		res.data = sp_alloc_memory(count * sizeof(value_type));
-
-		value_type *p = reinterpret_cast<value_type *>(res.data.get());
-
-		//TODO need parallel optimize
-
-		m_domain_.for_each([&](id_type const &s)
-		{
-			auto it = container_type::find(s);
-
-			if (it != container_type::end())
-			{
-				for (auto const &pit : it->second)
-				{
-					*p = pit;
-					++p;
-				}
-			}
-		});
-
-		ASSERT(std::distance(data.get(), p) == count);
-
-		index_type offset = 0;
-		index_type total_count = count;
-
-		std::tie(offset, total_count) = sync_global_location(count);
-
-		DataSpace(1, &total_count).swap(res.dataspace);
-
-		res.dataspace.select_hyperslab(&offset, nullptr, &count, nullptr);
-
-		res.dataspace.set_local_shape(&count, &offset);
-
-		VERBOSE << "dump particles [" << count << "/" << total_count << "] "
-				<< std::endl;
-
-		return std::move(res);
-	}
 
 //! @}
 
@@ -387,7 +274,7 @@ public:
 	 *
 	 */
 	template<typename ...Args>
-	void next_timestep(Args &&...args)
+	void next_time_step(Args &&...args)
 	{
 
 		wait();
@@ -396,7 +283,7 @@ public:
 		{
 			for (auto &p : (*this)[item.first])
 			{
-				engine_type::next_timestep(&p, std::forward<Args>(args)...);
+				engine_type::next_time_step(&p, std::forward<Args>(args)...);
 			}
 		}
 	}
@@ -422,7 +309,7 @@ public:
 	 @endcode
 	 */
 	template<typename ...Args>
-	Real next_n_timesteps(size_t num_of_steps, Real t0, Real dt,
+	Real next_n_time_steps(size_t num_of_steps, Real t0, Real dt,
 			Args &&...args)
 	{
 
@@ -454,22 +341,22 @@ public:
 			point_type x0;
 			x0 = m_domain_.mesh().point(item.first);
 
-			if (!in_box(x0, xmin, xmax))
-			{
-				for (auto &p : (*this)[item.first])
-				{
-					point_type x;
-					Vec3 v;
-					Real f;
-					std::tie(x, v, f) = engine_type::pull_back(p);
-
-					x[0] += std::fmod(x[0] - xmin[0] + d[0], d[0]);
-					x[1] += std::fmod(x[1] - xmin[1] + d[1], d[1]);
-					x[2] += std::fmod(x[2] - xmin[2] + d[2], d[2]);
-
-					engine_type::push_forward(x, v, f, &p);
-				}
-			}
+//			if (!m_mesh_.in_box(x0, xmin, xmax))
+//			{
+//				for (auto &p : (*this)[item.first])
+//				{
+//					point_type x;
+//					Vec3 v;
+//					Real f;
+//					std::tie(x, v, f) = engine_type::pull_back(p);
+//
+//					x[0] += std::fmod(x[0] - xmin[0] + d[0], d[0]);
+//					x[1] += std::fmod(x[1] - xmin[1] + d[1], d[1]);
+//					x[2] += std::fmod(x[2] - xmin[2] + d[2], d[2]);
+//
+//					engine_type::push_forward(x, v, f, &p);
+//				}
+//			}
 
 		}
 		container_type::rehash();
@@ -478,7 +365,144 @@ public:
 
 	}
 
+private:
+	std::vector<mpi_send_recv_block_s> m_send_recv_list_;
+	std::vector<mpi_send_recv_buffer_s> m_send_recv_buffer_;
+	std::vector<MPI_Request> m_mpi_requests_;
+
 };
+
+
+template<typename TDomain, typename Engine, typename TContainer>
+void Particle<TDomain, Engine, TContainer>::sync()
+{
+
+	auto ghost_list = m_domain_.mesh().template ghost_shape<iform>();
+
+	for (auto const &item : ghost_list)
+	{
+		mpi_send_recv_buffer_s send_recv_s;
+
+		send_recv_s.datatype = MPIDataType::create<value_type>();
+
+		std::tie(send_recv_s.dest, send_recv_s.send_tag,
+				send_recv_s.recv_tag) = GLOBAL_COMM.make_send_recv_tag(global_id(),
+				&item.coord_shift[0]);
+
+		//   collect send data
+
+		domain_type send_range(m_domain_);
+
+		send_range.select(item.send_offset,
+				item.send_offset + item.send_count);
+
+		send_recv_s.send_size = container_type::size_all(send_range);
+
+		send_recv_s.send_data = sp_alloc_memory(
+				send_recv_s.send_size * send_recv_s.datatype.size());
+
+		value_type *data =
+				reinterpret_cast<value_type *>(send_recv_s.send_data.get());
+
+		// FIXME need parallel optimize
+		for (auto const &key : send_range)
+		{
+			for (auto const &p : container_type::operator[](key))
+			{
+				*data = p;
+				++data;
+			}
+		}
+
+		send_recv_s.recv_size = 0;
+		send_recv_s.recv_data = nullptr;
+		m_send_recv_buffer_.push_back(std::move(send_recv_s));
+
+		//  clear ghosts cell
+		domain_type recv_range(m_domain_);
+		recv_range.select(item.recv_offset,
+				item.recv_offset + item.recv_count);
+
+		container_type::erase(recv_range);
+
+	}
+
+	sync_update_varlength(&m_send_recv_buffer_, &(m_mpi_requests_));
+}
+
+template<typename TDomain, typename Engine, typename TContainer>
+void Particle<TDomain, Engine, TContainer>::wait()
+{
+	for (auto const &item : m_send_recv_buffer_)
+	{
+
+		value_type *data =
+				reinterpret_cast<value_type *>(item.recv_data.get());
+
+		container_type::insert(data, data + item.recv_size);
+	}
+	m_send_recv_buffer_.clear();
+}
+
+
+template<typename TDomain, typename Engine, typename TContainer>
+DataSet Particle<TDomain, Engine, TContainer>::dataset() const
+{
+
+	DataSet res;
+
+	res.datatype = traits::datatype<value_type>::create();
+	res.properties = properties;
+
+	index_type count = 0;
+
+	m_domain_.for_each([&](id_type const &s)
+	{
+		auto it = container_type::find(s);
+		if (it != container_type::end())
+		{
+			count += std::distance(it->second.begin(), it->second.end());
+		}
+	});
+
+	res.data = sp_alloc_memory(count * sizeof(value_type));
+
+	value_type *p = reinterpret_cast<value_type *>(res.data.get());
+
+	//TODO need parallel optimize
+
+	m_domain_.for_each([&](id_type const &s)
+	{
+		auto it = container_type::find(s);
+
+		if (it != container_type::end())
+		{
+			for (auto const &pit : it->second)
+			{
+				*p = pit;
+				++p;
+			}
+		}
+	});
+
+//		ASSERT(std::distance(data.get(), p) == count);
+
+	index_type offset = 0;
+	index_type total_count = count;
+
+	std::tie(offset, total_count) = sync_global_location(count);
+
+	DataSpace(1, &total_count).swap(res.dataspace);
+
+	res.dataspace.select_hyperslab(&offset, nullptr, &count, nullptr);
+
+	res.dataspace.set_local_shape(&count, &offset);
+
+	VERBOSE << "dump particles [" << count << "/" << total_count << "] "
+			<< std::endl;
+
+	return std::move(res);
+}
 }  // namespace simpla
 
 #endif /* CORE_PARTICLE_PARTICLE_CONTAINER_H_ */

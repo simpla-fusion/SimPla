@@ -12,6 +12,7 @@
 #include <memory>
 #include "parallel_traits.h"
 #include "../dataset/dataset.h"
+#include "distributed_object.h"
 
 namespace simpla
 {
@@ -27,7 +28,7 @@ namespace simpla
  *
  **/
 
-struct DistributedArray : public DataSet
+struct DistributedArray : public DataSet, public DistributedObject
 {
 
 	DistributedArray(DataType const &d_type, DataSpace const &d_space);
@@ -36,37 +37,15 @@ struct DistributedArray : public DataSet
 
 	virtual ~DistributedArray();
 
-
-	void swap(DistributedArray &);
+	virtual void swap(DistributedArray &);
 
 	virtual void deploy();
 
-	virtual void sync();
-
-	virtual void async();
-
-	virtual void wait();
-
-	virtual bool is_ready() const;
-
-
 private:
-
-	struct pimpl_s;
-	std::unique_ptr<pimpl_s> pimpl_;
-
 
 };
 
-namespace parallel
-{
-inline void wait(DistributedArray *d) { d->wait(); }
 
-inline void sync(DistributedArray *d) { d->sync(); }
-
-inline bool is_ready(DistributedArray const *d) { return d->is_ready(); }
-
-}//namespace parallel
 }//namespace simpla
 
 #endif /* DISTRIBUTED_ARRAY_H_ */

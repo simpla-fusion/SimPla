@@ -40,16 +40,21 @@ PIC=200
 
 omega_ext=omega_ci*1.9
 
-Mesh=
-  {
-    Dimensions={NX,NY,NZ}, -- number of grid, now only first dimension is valid
 
-    Box={ {0.0, 0.0 , 0.0} , {LX,LY,LZ} },
+Manifold=
+{
+  Geometry = {
 
-    dt=0.5*LX/NX/c  -- time step
+    Topology = {
+      Dimensions={NX ,NY ,NZ },
+    },
+
+    Box={{0.0,0.0,0.0},{LX,LY,LZ}},
+
+    dt=  0.5*(LX/NX)/c
+
   }
-
-
+}
 Particle=
   {
     H={

@@ -33,9 +33,9 @@ public:
 
 	typedef Topology<TopologyTags> topology_type;
 
-	static constexpr int ndims = topology_type::ndims;
+	using topology_type::ndims;
 
-	typedef nTuple<Real, ndims> topology_point_type;
+	typedef typename topology_type::point_type topology_point_type;
 
 
 	typedef geometry::traits::scalar_type_t<coordinates_system_type> scalar_type;
@@ -56,13 +56,13 @@ private:
 
 	point_type m_coords_max_ = {1, 1, 1};
 
-	vector_type m_dx_; //!< width of cell, except m_dx_[i]=0 when m_dims_[i]==1
+	vector_type m_dx_ = {1, 1, 1};; //!< width of cell, except m_dx_[i]=0 when m_dims_[i]==1
 
-	vector_type m_delta_; //!< equiv. m_dx_, except m_delta_[i]=1 when m_dims_[i]==1
+	vector_type m_delta_ = {1, 1, 1};; //!< equiv. m_dx_, except m_delta_[i]=1 when m_dims_[i]==1
 
-	topology_point_type m_to_topology_scale_;
+	topology_point_type m_to_topology_scale_ = {1, 1, 1};
 
-	topology_point_type m_from_topology_scale_;
+	topology_point_type m_from_topology_scale_ = {1, 1, 1};
 public:
 	Geometry() { }
 

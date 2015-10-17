@@ -59,15 +59,16 @@ public:
 
 		int f_ndims = ndims;
 
+
+		// FIXME policy should not access private members in m_geo_
+
 		f_dims = geometry_type::unpack_index(m_geo_.m_id_max_ - m_geo_.m_id_min_);
 
 		f_offset = geometry_type::unpack_index(m_geo_.m_id_local_min_ - m_geo_.m_id_min_);
 
-		f_count = geometry_type::unpack_index(
-				m_geo_.m_id_local_max_ - m_geo_.m_id_local_min_);
+		f_count = geometry_type::unpack_index(m_geo_.m_id_local_max_ - m_geo_.m_id_local_min_);
 
-		m_dims = geometry_type::unpack_index(
-				m_geo_.m_id_memory_max_ - m_geo_.m_id_memory_min_);;
+		m_dims = geometry_type::unpack_index(m_geo_.m_id_memory_max_ - m_geo_.m_id_memory_min_);;
 
 		m_offset = geometry_type::unpack_index(m_geo_.m_id_local_min_ - m_geo_.m_id_min_);
 
@@ -92,8 +93,7 @@ public:
 
 		DataSpace res(f_ndims, &(f_dims[0]));
 
-		res.select_hyperslab(&f_offset[0], nullptr, &f_count[0], nullptr)
-				.set_local_shape(&m_dims[0], &m_offset[0]);
+		res.select_hyperslab(&f_offset[0], nullptr, &f_count[0], nullptr).set_local_shape(&m_dims[0], &m_offset[0]);
 
 		return std::move(res);
 

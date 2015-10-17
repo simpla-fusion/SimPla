@@ -427,9 +427,7 @@ struct primary_type<nTuple<T, N...>>
 			traits::value_type_t<nTuple<T, N...>>,
 
 			traits::extents_t<nTuple<T, N...>>
-
 	>
-
 			type;
 
 };
@@ -447,11 +445,14 @@ struct pod_type<nTuple<T, N...>>
 
 };
 
+
 template<typename TV, size_t ...M>
 struct extents<nTuple<TV, M...> > : public simpla::traits::seq_concat<
 		integer_sequence<size_t, M...>, traits::extents_t<TV>>
 {
 };
+
+
 namespace _impl
 {
 template<typename ...> struct extents_helper;

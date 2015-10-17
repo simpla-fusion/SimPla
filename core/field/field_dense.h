@@ -286,7 +286,7 @@ public:
 	template<typename ...Args>
 	void scatter(Args &&... args)
 	{
-		m_domain_.scatter(*this, std::forward<Args>(args)...);
+		m_mesh_.scatter(*this, std::forward<Args>(args)...);
 	}
 
 	auto gather(point_type const &x) const

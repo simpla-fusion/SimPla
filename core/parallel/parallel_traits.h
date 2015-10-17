@@ -12,6 +12,9 @@ namespace simpla
 namespace parallel
 {
 
+
+
+
 template<typename ...T> bool is_ready(T &&...) { return true; }
 
 template<typename ...T> void wait(T &&...) { }

@@ -28,7 +28,7 @@ namespace simpla {
  * @TODO
  * @{   It can cache the history of particle position.
  *
- *  function next_timestep(Point * p, Real dt, Args && ...)
+ *  function next_time_step(Point * p, Real dt, Args && ...)
  *  * p - m0  particle position  at m0 steps before
  *  * p - 1   particle position  at last time step
  *  * p       particle position  at current time step

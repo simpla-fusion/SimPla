@@ -55,7 +55,7 @@ struct ParticleGenerator
 		return std::move(
 				gen_(rnd_gen,
 						std::integral_constant<bool,
-								is_callable<distribute_function, vector_type,
+								traits::is_callable<distribute_function, vector_type,
 										vector_type>::value>()));
 	}
 private:

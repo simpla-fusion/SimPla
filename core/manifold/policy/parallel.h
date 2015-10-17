@@ -49,6 +49,51 @@ public:
 
 
 }; //template<typename TGeo> struct ParallelPolicy
+//
+//template<typename TGeo> template<typename IFORM>
+//std::vector<ghost_shape_s> ParallelPolicy<TGeo>::ghost_shape()
+//{
+//	nTuple<size_t, ndims + 1> f_local_dims;
+//	nTuple<size_t, ndims + 1> f_local_offset;
+//	nTuple<size_t, ndims + 1> f_local_count;
+//	nTuple<size_t, ndims + 1> f_ghost_width;
+//
+//	int f_ndims = ndims;
+//
+////		f_local_dims = mids::unpack_index(
+////				m_id_memory_max_ - m_id_memory_min_);
+//
+//	f_local_offset = mids::unpack_index(
+//			m_id_local_min_ - m_id_memory_min_);
+//
+//	f_local_count = mids::unpack_index(
+//			m_id_local_max_ - m_id_local_min_);
+//
+//	f_ghost_width = mids::unpack_index(
+//			m_id_local_min_ - m_id_memory_min_);
+//
+//	if ((IFORM == EDGE || IFORM == FACE))
+//	{
+//		f_ndims = ndims + 1;
+//		f_local_offset[ndims] = 0;
+//		f_local_count[ndims] = 3;
+//		f_ghost_width[ndims] = 0;
+//	}
+//	else
+//	{
+//		f_ndims = ndims;
+//
+////			f_local_dims[ndims] = 1;
+//		f_local_offset[ndims] = 0;
+//		f_local_count[ndims] = 1;
+//		f_ghost_width[ndims] = 0;
+//
+//	}
+//
+//	get_ghost_shape(f_ndims, &f_local_offset[0],
+//			nullptr, &f_local_count[0],
+//			nullptr, &f_ghost_width[0], res);
+//}
 
 template<typename TGeo>
 void ParallelPolicy<TGeo>::decompose(size_t const *gw)

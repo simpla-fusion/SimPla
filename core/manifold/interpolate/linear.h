@@ -146,20 +146,17 @@ private:
 		
 	}
 
-public:
 	
-	template<typename ...Others, typename ...TF, typename TV, typename TW>
-	DECLARE_FUNCTION_PREFIX void scatter(Field<Domain<geometry_type, std::integral_constant<int, VERTEX>,
-			Others...>, TF...> &f,
-			typename geometry_type::point_type const &x, TV const &u, TW const &w) DECLARE_FUNCTION_SUFFIX
+	template<typename TF, typename TX, typename TV, typename TW>
+	DECLARE_FUNCTION_PREFIX void scatter_(std::integral_constant<int, VERTEX>, TF &
+	f, TX const &x, TV const &u, TW const &w) DECLARE_FUNCTION_SUFFIX
 	{
 		scatter_impl_(f, m_geo_.coordinates_global_to_local(x, 0), u * w);
 	}
 	
-	template<typename ...Others, typename ...TF, typename TV, typename TW>
-	DECLARE_FUNCTION_PREFIX void scatter(Field<Domain<geometry_type, std::integral_constant<int, EDGE>, Others...
-	>, TF...> &f, typename geometry_type::point_type const &x, TV const &u, TW const &w
-	) DECLARE_FUNCTION_SUFFIX
+	template<typename TF, typename TX, typename TV, typename TW>
+	DECLARE_FUNCTION_PREFIX void scatter_(std::integral_constant<int, EDGE>, TF &
+	f, TX const &x, TV const &u, TW const &w) DECLARE_FUNCTION_SUFFIX
 	{
 		
 		scatter_impl_(f, m_geo_.coordinates_global_to_local(x, 1), u[0] * w);
@@ -168,9 +165,9 @@ public:
 		
 	}
 	
-	template<typename ...Others, typename ...TF, typename TV, typename TW>
-	DECLARE_FUNCTION_PREFIX void scatter(Field<Domain<geometry_type, std::integral_constant<int, FACE>,
-			Others...>, TF...> &f, typename geometry_type::point_type const &x, TV const &u,
+	template<typename TF, typename TX, typename TV, typename TW>
+	DECLARE_FUNCTION_PREFIX void scatter_(std::integral_constant<int, FACE>, TF &f,
+			TX const &x, TV const &u,
 			TW const &w) DECLARE_FUNCTION_SUFFIX
 	{
 		
@@ -179,13 +176,18 @@ public:
 		scatter_impl_(f, m_geo_.coordinates_global_to_local(x, 3), u[2] * w);
 	}
 	
-	template<typename ...Others, typename ...TF, typename TV, typename TW>
-	DECLARE_FUNCTION_PREFIX void scatter(
-			Field<Domain<geometry_type, std::integral_constant<int, VOLUME>,
-					Others...>, TF...> &f, typename geometry_type::point_type const &x, TV const &u, TW const &w
-	) DECLARE_FUNCTION_SUFFIX
+	template<typename TF, typename TX, typename TV, typename TW>
+	DECLARE_FUNCTION_PREFIX void scatter_(std::integral_constant<int, VOLUME>,
+			TF &f, TX const &x, TV const &u, TW const &w) DECLARE_FUNCTION_SUFFIX
 	{
 		scatter_impl_(f, m_geo_.coordinates_global_to_local(x, 7), w);
+	}
+
+public:
+	template<typename TF, typename ...Args>
+	DECLARE_FUNCTION_PREFIX void scatter(TF &f, Args &&...args) DECLARE_FUNCTION_SUFFIX
+	{
+		scatter_(traits::iform<TF>(), f, std::forward<Args>(args)...);
 	}
 
 private:

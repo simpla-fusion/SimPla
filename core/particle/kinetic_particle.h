@@ -7,10 +7,12 @@
 
 #ifndef CORE_PARTICLE_KINETIC_PARTICLE_H_
 #define CORE_PARTICLE_KINETIC_PARTICLE_H_
+
 #include <memory>
 #include "../gtl/utilities/utilities.h"
-#include "../gtl/containers/sp_sorted_set.h"
+#include "../gtl/containers/unordered_set.h"
 #include "particle.h"
+
 namespace simpla
 {
 namespace _impl
@@ -28,21 +30,23 @@ struct particle_hasher
 	static constexpr size_t iform = domain_type::iform;
 	static constexpr size_t cell_id = (iform == VOLUME) ? 7 : 0;
 
-	mesh_type const * m_mesh_;
+	mesh_type const *m_mesh_;
 
 	particle_hasher()
 			: m_mesh_(nullptr)
 	{
 	}
-	particle_hasher(domain_type const & d)
+
+	particle_hasher(domain_type const &d)
 			: m_mesh_(&d.mesh())
 	{
 	}
+
 	~particle_hasher()
 	{
 	}
 
-	constexpr id_type operator()(value_type const & p) const
+	constexpr id_type operator()(value_type const &p) const
 	{
 		return std::get<0>(m_mesh_->coordinates_global_to_local(p.x, cell_id));
 	}
@@ -50,14 +54,11 @@ struct particle_hasher
 //	template<typename ...Args>
 //	constexpr auto operator()(Args &&... args) const
 //	DECL_RET_TYPE((m_mesh_->hash(std::forward<Args>(args)...)))
-}
-;
-template<typename TDomain, typename TPoint_s> constexpr size_t particle_hasher<
-		TDomain, TPoint_s>::iform;
-template<typename TDomain, typename TPoint_s> constexpr size_t particle_hasher<
-		TDomain, TPoint_s>::ndims;
-template<typename TDomain, typename TPoint_s> constexpr size_t particle_hasher<
-		TDomain, TPoint_s>::cell_id;
+};
+
+template<typename TDomain, typename TPoint_s> constexpr size_t particle_hasher<TDomain, TPoint_s>::iform;
+template<typename TDomain, typename TPoint_s> constexpr size_t particle_hasher<TDomain, TPoint_s>::ndims;
+template<typename TDomain, typename TPoint_s> constexpr size_t particle_hasher<TDomain, TPoint_s>::cell_id;
 
 }  // namespace _impl
 
@@ -74,20 +75,28 @@ template<typename TDomain, typename TPoint_s> constexpr size_t particle_hasher<
 template<typename Engine, typename TDomain, typename ...Others>
 std::shared_ptr<
 		Particle<TDomain, Engine,
-				sp_sorted_set<typename Engine::Point_s,
-						_impl::particle_hasher<TDomain, typename Engine::Point_s> > > > make_kinetic_particle(
-		TDomain const & domain, Others && ...others)
+				unordered_set < typename Engine::Point_s,
+				_impl::particle_hasher<TDomain, typename Engine::Point_s> > > >
+make_kinetic_particle(
+		TDomain const
+&domain,
+Others &&...others
+)
 {
-	typedef Particle<TDomain, Engine,
-			sp_sorted_set<typename Engine::Point_s,
-					_impl::particle_hasher<TDomain, typename Engine::Point_s> > > particle_type;
-	auto res = std::make_shared<particle_type>(domain,
-			std::forward<Others>(others)...);
+typedef Particle<TDomain, Engine,
+		unordered_set < typename Engine::Point_s,
+		_impl::particle_hasher<TDomain, typename Engine::Point_s> > >
+particle_type;
+auto res = std::make_shared<particle_type>(domain,
+		std::forward<Others>(others)...);
 
-	res->hash_function(
-			_impl::particle_hasher<TDomain, typename Engine::Point_s>(domain));
+res->
 
-	return res;
+hash_function(
+		_impl::particle_hasher<TDomain, typename Engine::Point_s>(domain));
+
+return
+res;
 }
 
 } // namespace simpla

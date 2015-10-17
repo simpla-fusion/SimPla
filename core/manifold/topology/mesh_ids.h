@@ -21,23 +21,7 @@ namespace simpla
 
 template<size_t TAGS> struct MeshIDs_;
 
-namespace traits
-{
-template<typename> struct id_type;
-template<size_t TAGS>
-struct id_type<MeshIDs_<TAGS>>
-{
-	typedef typename MeshIDs_<TAGS>::id_type type;
-};
 
-template<typename> struct coordinates_tuple;
-template<size_t TAGS>
-struct coordinates_tuple<MeshIDs_<TAGS>>
-{
-	typedef typename MeshIDs_<TAGS>::coordinates_tuple type;
-};
-
-}  // namespace traits
 //  \verbatim
 //
 //   |----------------|----------------|---------------|--------------|------------|
@@ -144,8 +128,7 @@ struct MeshIDs_
 	/// @}
 	static constexpr Vec3 dx()
 	{
-		return Vec3({COORDINATES_MESH_FACTOR, COORDINATES_MESH_FACTOR,
-		             COORDINATES_MESH_FACTOR});
+		return Vec3({COORDINATES_MESH_FACTOR, COORDINATES_MESH_FACTOR, COORDINATES_MESH_FACTOR});
 	}
 
 	static constexpr id_type m_sub_index_to_id_[4][3] = { //
@@ -248,29 +231,12 @@ struct MeshIDs_
 
 	static constexpr id_tuple unpack(id_type s)
 	{
-		return id_tuple({
-
-				UNPACK_ID(s, 0),
-
-				UNPACK_ID(s, 1),
-
-				UNPACK_ID(s, 2)
-
-		});;
+		return id_tuple({UNPACK_ID(s, 0), UNPACK_ID(s, 1), UNPACK_ID(s, 2)});;
 	}
 
 	static constexpr index_tuple unpack_index(id_type s)
 	{
-		return index_tuple({
-
-				UNPACK_INDEX(s, 0),
-
-				UNPACK_INDEX(s, 1),
-
-				UNPACK_INDEX(s, 2)
-
-		});
-
+		return index_tuple({UNPACK_INDEX(s, 0), UNPACK_INDEX(s, 1), UNPACK_INDEX(s, 2)});
 	}
 
 	template<typename T>
@@ -378,7 +344,7 @@ struct MeshIDs_
 		TAG_VOLUME = 7
 	};
 
-	static constexpr int node_id(id_type const &s)
+	static constexpr size_t node_id(id_type const &s)
 	{
 		return ((s >> (MESH_RESOLUTION - 1)) & 1UL)
 				| ((s >> (ID_DIGITS + MESH_RESOLUTION - 2)) & 2UL)
@@ -397,7 +363,7 @@ struct MeshIDs_
 			0, // 111
 	};
 
-	static constexpr id_type sub_index(id_type const &s)
+	static constexpr int sub_index(id_type const &s)
 	{
 		return m_id_to_index_[node_id(s)];
 	}
@@ -632,6 +598,9 @@ struct MeshIDs_
 	private:
 
 		id_type m_min_, m_max_;
+
+		typedef range_type this_type;
+
 	public:
 
 		typedef id_type value_type;
@@ -642,32 +611,27 @@ struct MeshIDs_
 
 		typedef iterator const_iterator;
 
-		typedef range_type this_type;
 
 		template<typename T0, typename T1>
 		range_type(T0 const &min, T1 const &max, int n_id = 0) :
 				m_min_(pack_index(min) | m_id_to_shift_[n_id]), m_max_(
 				pack_index(max) | m_id_to_shift_[n_id])
 		{
-
 		}
 
 		range_type(id_type const &min, id_type const &max, int n_id = 0) :
 				m_min_(min | m_id_to_shift_[n_id]), m_max_(
 				max | m_id_to_shift_[n_id])
 		{
-
 		}
 
 		range_type(this_type const &other) :
 				m_min_(other.m_min_), m_max_(other.m_max_)
 		{
-
 		}
 
 		~range_type()
 		{
-
 		}
 
 		this_type &operator=(this_type const &other)
@@ -741,11 +705,11 @@ struct MeshIDs_
 			m_min_ = m_max_;
 		}
 
-		constexpr difference_type size() const
-		{
-			return NProduct(unpack_index(m_max_ - m_min_))
-					* m_id_to_num_of_ele_in_cell_[node_id(m_min_)];
-		}
+//		constexpr difference_type size() const
+//		{
+//			return NProduct(unpack_index(m_max_ - m_min_))
+//					* m_id_to_num_of_ele_in_cell_[node_id(m_min_)];
+//		}
 
 		template<typename ...Args>
 		void reset(Args &&...args)
@@ -954,6 +918,24 @@ struct MeshIDs_
 
 };
 
+
+namespace traits
+{
+template<typename> struct id_type;
+template<size_t TAGS>
+struct id_type<MeshIDs_<TAGS>>
+{
+	typedef typename MeshIDs_<TAGS>::id_type type;
+};
+
+template<typename> struct coordinates_tuple;
+template<size_t TAGS>
+struct coordinates_tuple<MeshIDs_<TAGS>>
+{
+	typedef typename MeshIDs_<TAGS>::coordinates_tuple type;
+};
+
+}  // namespace traits
 /**
  * Solve problem: Undefined reference to static constexpr char[]
  * http://stackoverflow.com/questions/22172789/passing-a-static-constexpr-variable-by-universal-reference

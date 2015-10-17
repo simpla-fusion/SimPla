@@ -30,8 +30,6 @@ struct StructuredMesh : public MeshIDs_<4>
 private:
 
 	typedef StructuredMesh this_type;
-
-
 	typedef MeshIDs_<4> m;
 
 public:
@@ -40,9 +38,7 @@ public:
 	using m::index_type;
 	typedef id_type value_type;
 	typedef size_t difference_type;
-
-
-	bool m_is_distributed_ = false;
+	typedef nTuple<Real, ndims> point_type;
 
 
 /**

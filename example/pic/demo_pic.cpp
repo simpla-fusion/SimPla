@@ -10,21 +10,24 @@
 #include "../../core/application/application.h"
 #include "../../core/application/use_case.h"
 
-#include "utilities.h"
+#include "../../core/gtl/utilities/utilities.h"
 #include "../../core/io/io.h"
 #include "../../core/physics/physical_constants.h"
-#include "field_comm.h"
 
-#include "../../core/mesh/mesh.h"
+#include "../../core/manifold/pre_define/riemannian.h"
 
 #include "../../core/particle/particle.h"
 
+#include "../../core/field/field.h"
+//#include "../../core/field/field_dense.h"
+//#include "../../core/field/field_traits.h"
+//#include "../../core/field/field_function.h"
+
 using namespace simpla;
 
-typedef StructuredMesh<geometry::coordinate_system::Cartesian<3>,
-		InterpolatorLinear, FiniteDiffMethod> mesh_type;
+typedef manifold::Riemannian<3> mesh_type;
 
-USE_CASE(pic," Particle in cell" )
+USE_CASE(pic, " Particle in cell")
 {
 
 	size_t num_of_steps = 1000;
@@ -33,19 +36,19 @@ USE_CASE(pic," Particle in cell" )
 	if (options["case_help"])
 	{
 
-		MESSAGE
+		/*	MESSAGE
 
-		<< " Options:" << endl
+					<< " Options:" << endl
 
-				<<
+					<<
 
-				"\t -n,\t--number_of_steps <NUMBER>  \t, "
-						"Number of steps = <NUMBER> ,default="
-						+ value_to_string(num_of_steps) + "\n"
-								"\t -s,\t--check_point <NUMBER>          "
-								"  \t, default=" + value_to_string(check_point)
-						+ "\n";
-
+					"\t -n,\t--number_of_steps <NUMBER>  \t, "
+							"Number of steps = <NUMBER> ,default="
+					//		+ value_to_string(num_of_steps) + "\n"
+						//	"\t -s,\t--check_point <NUMBER>          "
+						//	"  \t, default=" + value_to_string(check_point)
+							+ "\n";
+	*/
 		return;
 	}
 
@@ -55,37 +58,36 @@ USE_CASE(pic," Particle in cell" )
 
 	auto mesh = std::make_shared<mesh_type>();
 
-	mesh->load(options["Mesh"]);
+	mesh->load(options);
 
 	mesh->deploy();
 
 	MESSAGE << "======== Initialize ========" << std::endl;
 
-	auto rho = mesh->template make_form<VERTEX, Real>();
-	auto J = mesh->template make_form<EDGE, Real>();
-	auto E = mesh->template make_form<EDGE, Real>();
-	auto B = mesh->template make_form<FACE, Real>();
+	auto rho = traits::make_field<VERTEX, Real>(*mesh);
+	auto J = traits::make_field<EDGE, Real>(*mesh);
+	auto E = traits::make_field<EDGE, Real>(*mesh);
+	auto B = traits::make_field<FACE, Real>(*mesh);
 
 	E.clear();
 	B.clear();
 	J.clear();
 
-	VERBOSE_CMD(loadField(options["InitValue"]["E"], &E));
-	VERBOSE_CMD(loadField(options["InitValue"]["B"], &B));
+//	VERBOSE_CMD(load_field(options["InitValue"]["E"], &E));
+//	VERBOSE_CMD(load_field(options["InitValue"]["B"], &B));
 
-	auto J_src = make_field_function_by_config<EDGE, Real>(*mesh,
-			options["Constraint"]["J"]);
+	auto J_src = traits::make_function_by_config<Real>(
+			options["Constraint"]["J"], traits::make_domain<EDGE>(*mesh));
 
-	auto B_src = make_field_function_by_config<FACE, Real>(*mesh,
-			options["Constraint"]["B"]);
+	auto B_src = traits::make_function_by_config<Real>(
+			options["Constraint"]["B"], traits::make_domain<FACE>(*mesh));
 
-	auto E_src = make_field_function_by_config<EDGE, Real>(*mesh,
-			options["Constraint"]["E"]);
+	auto E_src = traits::make_function_by_config<Real>(
+			options["Constraint"]["E"], traits::make_domain<EDGE>(*mesh));
 
 	typedef PICDemo engine_type;
 
-	auto ion = make_kinetic_particle<engine_type>(
-			mesh->template domain<VERTEX>());
+	auto ion = make_kinetic_particle<engine_type>(traits::make_domain<VERTEX>(*mesh));
 
 	size_t pic = options["Particle"]["H"]["pic"].template as<size_t>(10);
 
@@ -97,15 +99,15 @@ USE_CASE(pic," Particle in cell" )
 
 	ion->deploy();
 
-	auto p_generator = simple_particle_generator(*ion, mesh->local_extents(),
-			ion->temperature(), options["Particle"]["H"]["Distribution"]);
-
-	std::mt19937 rnd_gen;
-
-	for (size_t i = 0, ie = pic * ion->domain().size(); i < ie; ++i)
-	{
-		ion->insert(p_generator(rnd_gen));
-	}
+//	auto p_generator = simple_particle_generator(*ion, mesh->extents(),
+//			ion->temperature(), options["Particle"]["H"]["Distribution"]);
+//
+//	std::mt19937 rnd_gen;
+//
+//	for (size_t i = 0, ie = pic * ion->domain().size(); i < ie; ++i)
+//	{
+//		ion->insert(p_generator(rnd_gen));
+//	}
 
 	ion->sync();
 	ion->wait();
@@ -113,30 +115,30 @@ USE_CASE(pic," Particle in cell" )
 
 	VERBOSE << save("H1", ion->dataset()) << std::endl;
 
-	LOGGER << "----------  Show Configuration  ---------- " << endl;
+	LOGGER << "----------  Show Configuration  ---------- " << std::endl;
 
-	if (GLOBAL_COMM.process_num()==0)
+	if (GLOBAL_COMM.process_num() == 0)
 	{
 
-		MESSAGE << endl
+		MESSAGE << std::endl
 
-		<< "[ Configuration ]" << endl
+				<< "[ Configuration ]" << std::endl
 
-		<< " Description=\"" << options["Description"].as<std::string>("") << "\""
-		<< endl
+				<< " Description=\"" << options["Description"].as<std::string>("") << "\""
+				<< std::endl
 
-		<< " Mesh = " << endl << "  {" << *mesh << "} " << endl
+				<< " Mesh = " << std::endl << "  {" << *mesh << "} " << std::endl
 
-		<< " Particle ="<<endl<<
+				<< " Particle =" << std::endl
 
-		" H = {"<<*ion<<"}"<<endl
+//			    <<	" H = {" << *ion << "}" << std::endl
 
-		<< " TIME_STEPS = " << num_of_steps << endl;
+				<< " TIME_STEPS = " << num_of_steps << std::endl;
 	}
 
-	LOGGER << "----------  Dump input ---------- " << endl;
-	VERBOSE << SAVE(E) << endl;
-	VERBOSE << SAVE(B) << endl;
+	LOGGER << "----------  Dump input ---------- " << std::endl;
+	VERBOSE << SAVE(E) << std::endl;
+	VERBOSE << SAVE(B) << std::endl;
 
 	DEFINE_PHYSICAL_CONST
 	Real dt = mesh->dt();
@@ -144,17 +146,17 @@ USE_CASE(pic," Particle in cell" )
 
 	Real omega = 0.01 * PI / dt;
 
-	LOGGER << "----------  START ---------- " << endl;
+	LOGGER << "----------  START ---------- " << std::endl;
 
 	cd("/Save/");
 
 	for (size_t step = 0; step < num_of_steps; ++step)
 	{
-		VERBOSE << "Step [" << step << "/" << num_of_steps << "]" << endl;
+		VERBOSE << "Step [" << step << "/" << num_of_steps << "]" << std::endl;
 
 		J.clear();
 
-		LOG_CMD(ion->next_timestep(dt, E, B, &J));
+		LOG_CMD(ion->next_time_step(dt, E, B, &J));
 		LOG_CMD(ion->rehash());
 
 		J.self_assign(J_src);
@@ -165,11 +167,11 @@ USE_CASE(pic," Particle in cell" )
 
 		E.self_assign(E_src);
 
-		VERBOSE << SAVE_RECORD(J) << endl;
-		VERBOSE << SAVE_RECORD(E) << endl;
-		VERBOSE << SAVE_RECORD(B) << endl;
+		VERBOSE << SAVE_RECORD(J) << std::endl;
+		VERBOSE << SAVE_RECORD(E) << std::endl;
+		VERBOSE << SAVE_RECORD(B) << std::endl;
 
-		mesh->next_timestep();
+		mesh->next_time_step();
 
 	}
 	MESSAGE << "======== DONE! ========" << std::endl;
@@ -177,7 +179,7 @@ USE_CASE(pic," Particle in cell" )
 	cd("/Output/");
 
 	VERBOSE << save("H", ion->dataset()) << std::endl;
-	VERBOSE << SAVE(E) << endl;
-	VERBOSE << SAVE(B) << endl;
-	VERBOSE << SAVE(J) << endl;
+	VERBOSE << SAVE(E) << std::endl;
+	VERBOSE << SAVE(B) << std::endl;
+	VERBOSE << SAVE(J) << std::endl;
 }

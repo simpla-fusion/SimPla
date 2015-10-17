@@ -107,7 +107,7 @@ struct SpObject
 //	virtual bool is_ready() const;
 //
 //protected:
-//	std::vector<mpi_send_recv_s> m_send_recv_list_;
+//	std::vector<mpi_send_recv_block_s> m_send_recv_list_;
 //	std::vector<mpi_send_recv_buffer_s> m_send_recv_buffer_;
 //	std::vector<MPI_Request> m_mpi_requests_;
 //	int m_object_id_;

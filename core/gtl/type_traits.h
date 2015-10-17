@@ -355,26 +355,13 @@ template<size_t N, typename ... Args>
 auto unpack_args(Args &&...args)
 DECL_RET_TYPE ((_impl::unpack_args_helper<N>(std::forward<Args>(args)...)))
 
-template<typename T>
-struct pod_type
-{
-	typedef T type;
-};
+template<typename T> struct pod_type { typedef T type; };
 template<typename T> using pod_type_t = typename pod_type<T>::type;
 
-template<typename T>
-struct primary_type
-{
-	typedef T type;
-};
+template<typename T> struct primary_type { typedef T type; };
 template<typename T> using primary_type_t=typename primary_type<T>::type;
 
-template<typename _Signature>
-struct result_of
-{
-	typedef typename std::result_of<_Signature>::type type;
-
-};
+template<typename _Signature> struct result_of { typedef typename std::result_of<_Signature>::type type; };
 template<typename _Signature> using result_of_t = typename result_of<_Signature>::type;
 
 template<typename T0>

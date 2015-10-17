@@ -106,7 +106,14 @@ std::ostream &print(std::ostream &os, DataType const &self);
 template<typename T>
 struct datatype
 {
-	static DataType create(std::string const &name = "")
+	HAS_STATIC_MEMBER_FUNCTION (datatype)
+
+	static DataType create_(std::string const &name, std::integral_constant<bool, true>)
+	{
+		return T::datatype();
+	}
+
+	static DataType create_(std::string const &name, std::integral_constant<bool, false>)
 	{
 
 		typedef typename std::remove_cv<T>::type obj_type;
@@ -129,7 +136,14 @@ struct datatype
 
 		);
 
+
 	}
+
+	static DataType create(std::string const &name = "")
+	{
+		return create_(name, std::integral_constant<bool, has_static_member_function_datatype<T>::value>());
+	}
+
 
 };
 //template<typename T>

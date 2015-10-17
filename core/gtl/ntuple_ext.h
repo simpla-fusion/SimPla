@@ -81,7 +81,19 @@ struct type_cast<std::string, nTuple<T, N>>
 
 	}
 };
-
+//
+//	template<typename T>
+//	typename array_to_ntuple_convert<T>::type as(T const & default_v) const
+//	{
+//		typename array_to_ntuple_convert<T>::type res = default_v;
+//		if (!value_type::empty())
+//		{
+//			res = value_type::template as<
+//					typename array_to_ntuple_convert<T>::type>();
+//		}
+//
+//		return std::move(res);
+//	}
 } // namespace traits
 }  // namespace simpla
 //

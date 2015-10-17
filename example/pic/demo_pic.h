@@ -13,6 +13,8 @@
 #include <tuple>
 
 #include "../../core/dataset/datatype.h"
+#include "../../core/dataset/datatype_ext.h"
+
 #include "../../core/gtl/ntuple.h"
 #include "../../core/gtl/primitives.h"
 #include "../../core/gtl/type_traits.h"
@@ -24,6 +26,7 @@ using namespace simpla;
 namespace simpla
 {
 
+
 struct PICDemo
 {
 	typedef PICDemo this_type;
@@ -32,11 +35,10 @@ struct PICDemo
 	typedef Real scalar_type;
 
 	SP_DEFINE_STRUCT(Point_s,
-			point_type ,x,
+			Vec3, x,
 			Vec3, v,
 			Real, f,
 			Real, w)
-
 
 
 	SP_DEFINE_PROPERTIES(
@@ -72,8 +74,8 @@ public:
 	}
 
 	template<typename TE, typename TB, typename TJ>
-	void next_timestep(Point_s * p0, Real dt, TE const &fE, TB const & fB,
-			TJ * J)
+	void next_time_step(Point_s *p0, Real dt, TE const &fE, TB const &fB,
+			TJ *J)
 	{
 		p0->x += p0->v * dt * 0.5;
 
@@ -103,21 +105,24 @@ public:
 
 	}
 
-	static inline Point_s push_forward(point_type const & x,
+	static inline Point_s push_forward(point_type const &x,
 			Vec3 const &v, Real f = 1.0)
 	{
-		return std::move(Point_s({ x, v, f }));
+		return std::move(Point_s({x, v, f}));
 	}
-	static inline void push_forward(point_type const & x, Vec3 const &v,
-			Real f, Point_s * p)
+
+	static inline void push_forward(point_type const &x, Vec3 const &v,
+			Real f, Point_s *p)
 	{
 		p->x = x;
 		p->v = v;
 		p->f = f;
 	}
-	static inline auto pull_back(Point_s const & p)
-	DECL_RET_TYPE((std::make_tuple(p.x,p.v,p.f )))
+
+	static inline auto pull_back(Point_s const &p)
+	DECL_RET_TYPE((std::make_tuple(p.x, p.v, p.f)))
 };
+
 
 }  // namespace simpla
 

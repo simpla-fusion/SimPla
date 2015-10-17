@@ -1,47 +1,53 @@
 /**
- * @file distributed_object.cpp
+ * @file distributed_unordered_set.cpp
  * @author salmon
  * @date 2015-10-15.
  */
-#include "../gtl/utilities/log.h"
+
 #include "distributed_unordered_set.h"
+
+
+#include "../gtl/utilities/log.h"
 #include "mpi_comm.h"
 #include "mpi_aux_functions.h"
 #include "mpi_update.h"
 
 namespace simpla
 {
-//! Default constructor
-DistributedObject::DistributedObject()
+struct DistributedUnorderedSetBase::pimpl_s
 {
-	m_object_id_ =
-			SingletonHolder<simpla::MPIComm>::instance().generate_object_id();
+	std::vector<mpi_send_recv_s> m_send_recv_list_;
+	std::vector<mpi_send_recv_buffer_s> m_send_recv_buffer_;
+	std::vector<MPI_Request> m_mpi_requests_;
+
+
+};
+
+//! Default constructor
+DistributedUnorderedSetBase::DistributedUnorderedSetBase() : pimpl_(new pimpl_s)
+{
 }
 
-DistributedObject::DistributedObject(const DistributedObject &)
-{
-	m_object_id_ =
-			SingletonHolder<simpla::MPIComm>::instance().generate_object_id();
-}
 
 //! destroy.
-DistributedObject::~DistributedObject()
+DistributedUnorderedSetBase::~DistributedUnorderedSetBase()
 {
 }
 
-bool DistributedObject::is_ready() const
+bool DistributedUnorderedSetBase::is_ready() const
 {
-	//FIXME this is not multi-threads safe
+	//! FIXME this is not multi-threads safe
 
-	if (is_valid())
+	if (!is_valid())
 	{
 		return false;
 	}
-	else if (m_mpi_requests_.size() > 0)
+
+	if (pimpl_->m_mpi_requests_.size() > 0)
 	{
 		int flag = 0;
-		MPI_ERROR(MPI_Testall(static_cast<int>(m_mpi_requests_.size()), //
-				const_cast<MPI_Request *>(&m_mpi_requests_[0]),//
+		MPI_ERROR(MPI_Testall(static_cast<int>( pimpl_->m_mpi_requests_.size()), //
+				const_cast<MPI_Request *>(&pimpl_->m_mpi_requests_[0]),//
 				&flag, MPI_STATUSES_IGNORE));
 
 		return flag != 0;
@@ -51,7 +57,8 @@ bool DistributedObject::is_ready() const
 
 }
 
-void DistributedObject::deploy(std::vector<dist_sync_connection> const &ghost_shape)
+
+void DistributedUnorderedSetBase::deploy(std::vector<dist_sync_connection> const &ghost_shape)
 {
 	int ndims = 3;
 
@@ -65,128 +72,75 @@ void DistributedObject::deploy(std::vector<dist_sync_connection> const &ghost_sh
 
 	l_dims = d_shape.dimensions;
 
-	make_send_recv_list(object_id(), ds.datatype, ndims, &l_dims[0],
+	make_send_recv_list(global_id(), ds.datatype, ndims, &l_dims[0],
 			ghost_shape, &m_send_recv_list_);
 }
 
-void DistributedObject::sync()
+void DistributedUnorderedSetBase::sync()
 {
-	if (m_send_recv_list_.size() > 0)
+	auto ghost_list = m_domain_.mesh().template ghost_shape<iform>();
+
+	for (auto const &item : ghost_list)
 	{
-		sync_update_continue(m_send_recv_list_, dataset().data.get());
-	}
-}
+		mpi_send_recv_buffer_s send_recv_s;
 
-void DistributedObject::async()
-{
-	if (m_send_recv_list_.size() > 0)
-	{
-		sync_update_continue(m_send_recv_list_, dataset().data.get(), &(m_mpi_requests_));
-	}
-}
+		send_recv_s.datatype = traits::datatype<value_type>::create();
 
+		std::tie(send_recv_s.dest, send_recv_s.send_tag,
+				send_recv_s.recv_tag) = GLOBAL_COMM.make_send_recv_tag(global_id(),
+				&item.coord_shift[0]);
 
-void DistributedObject::wait() const
-{
-	if (!is_valid())
-	{
-		ERROR("Object is not depolied!");
-	}
+		//   collect send data
 
-	wait_all_request(const_cast<std::vector<MPI_Request> *>(&m_mpi_requests_));
-}
+		domain_type send_range(m_domain_);
 
+		send_range.select(item.send_offset,
+				item.send_offset + item.send_count);
 
-struct dist_sync_connection
-{
-	nTuple<int, 3> coord_shift;
+		send_recv_s.send_size = container_type::size_all(send_range);
 
-	nTuple<size_t, MAX_NDIMS_OF_ARRAY> send_offset;
-	nTuple<size_t, MAX_NDIMS_OF_ARRAY> send_count;
-	nTuple<size_t, MAX_NDIMS_OF_ARRAY> recv_offset;
-	nTuple<size_t, MAX_NDIMS_OF_ARRAY> recv_count;
-};
+		send_recv_s.send_data = sp_alloc_memory(
+				send_recv_s.send_size * send_recv_s.datatype.size());
 
-void make_dist_connection(int ndims, size_t const *offset, size_t const *stride,
-		size_t const *count, size_t const *block, size_t const *ghost_width,
-		std::vector<dist_sync_connection> *dist_connect);
+		value_type *data =
+				reinterpret_cast<value_type *>(send_recv_s.send_data.get());
 
-void get_ghost_shape(int ndims, size_t const *l_offset,
-		size_t const *l_stride, size_t const *l_count, size_t const *l_block,
-		size_t const *ghost_width,
-		std::vector<dist_sync_connection> *dist_connect)
-{
-	dist_connect->clear();
-
-	nTuple<size_t, MAX_NDIMS_OF_ARRAY> send_count, send_offset;
-	nTuple<size_t, MAX_NDIMS_OF_ARRAY> recv_count, recv_offset;
-
-	for (unsigned int tag = 0, tag_e = (1U << (ndims * 2)); tag < tag_e; ++tag)
-	{
-		nTuple<int, 3> coords_shift;
-
-		bool tag_is_valid = true;
-
-		for (int n = 0; n < ndims; ++n)
+		// FIXME need parallel optimize
+		for (auto const &key : send_range)
 		{
-			if (((tag >> (n * 2)) & 3UL) == 3UL)
+			for (auto const &p : container_type::operator[](key))
 			{
-				tag_is_valid = false;
-				break;
+				*data = p;
+				++data;
 			}
-
-			coords_shift[n] = ((tag >> (n * 2)) & 3U) - 1;
-
-			switch (coords_shift[n])
-			{
-			case 0:
-				send_count[n] = l_count[n];
-				send_offset[n] = l_offset[n];
-				recv_count[n] = l_count[n];
-				recv_offset[n] = l_offset[n];
-				break;
-			case -1: //left
-
-				send_count[n] = ghost_width[n];
-				send_offset[n] = l_offset[n];
-
-				recv_count[n] = ghost_width[n];
-				recv_offset[n] = l_offset[n] - ghost_width[n];
-
-				break;
-			case 1: //right
-				send_count[n] = ghost_width[n];
-				send_offset[n] = l_offset[n] + l_count[n] - ghost_width[n];
-
-				recv_count[n] = ghost_width[n];
-				recv_offset[n] = l_offset[n] + l_count[n];
-				break;
-			default:
-				tag_is_valid = false;
-				break;
-			}
-
-			if (send_count[n] == 0 || recv_count[n] == 0)
-			{
-				tag_is_valid = false;
-				break;
-			}
-
 		}
 
-		if (tag_is_valid
-				&& (coords_shift[0] != 0 || coords_shift[1] != 0
-				|| coords_shift[2] != 0))
-		{
+		send_recv_s.recv_size = 0;
+		send_recv_s.recv_data = nullptr;
+		m_send_recv_buffer_.push_back(std::move(send_recv_s));
 
-			dist_connect->emplace_back(dist_sync_connection {coords_shift,
-			                                                 send_offset, send_count, recv_offset, recv_count});
-		}
+		//  clear ghosts cell
+		domain_type recv_range(m_domain_);
+
+		recv_range.select(item.recv_offset, item.recv_offset + item.recv_count);
+
+		container_type::erase(recv_range);
+
 	}
 
+	sync_update_varlength(&m_send_recv_buffer_, &(m_mpi_requests_));
 }
 
-void DistributedObject::make_send_recv_list(int object_id, DataType const &datatype, int ndims,
+
+void DistributedUnorderedSetBase::wait() const
+{
+	if (GLOBAL_COMM.is_valid() && !pimpl_->m_mpi_requests_.empty())
+	{
+		wait_all_request(const_cast<std::vector<MPI_Request> *>(&pimpl_->m_mpi_requests_));
+	}
+}
+
+void DistributedUnorderedSetBase::make_send_recv_list(int object_id, DataType const &datatype, int ndims,
 		size_t const *l_dims,
 		std::vector<dist_sync_connection> const &ghost_shape,
 		std::vector<mpi_send_recv_s> *res)
@@ -313,7 +267,7 @@ void DistributedObject::make_send_recv_list(int object_id, DataType const &datat
 //
 //			res->emplace_back(
 //
-//					mpi_send_recv_s {
+//					mpi_send_recv_block_s {
 //
 //					mpi_comm.get_neighbour(coords_shift),
 //
@@ -336,12 +290,12 @@ void DistributedObject::make_send_recv_list(int object_id, DataType const &datat
 //void sync_update_dataset(DataSet * dset, size_t const * ghost_width,
 //		std::vector<MPI_Request> *requests)
 //{
-//	std::vector<mpi_send_recv_s> s_r_list;
+//	std::vector<mpi_send_recv_block_s> s_r_list;
 //
 //	make_send_recv_list(dset->dataspace, dset->datatype, ghost_width,
 //			&s_r_list);
 //
-//	sync_update_continue(s_r_list, dset->data.get(), requests);
+//	sync_update_block(s_r_list, dset->data.get(), requests);
 //}
 
 }  // namespace simpla

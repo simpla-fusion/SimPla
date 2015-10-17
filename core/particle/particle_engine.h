@@ -12,9 +12,10 @@
 #include "../physics/physical_constants.h"
 #include "../gtl/utilities/utilities.h"
 #include "../gtl/type_traits.h"
-#include "../gtl/dataset/datatype.h"
+#include "../dataset/datatype.h"
 
-namespace simpla {
+namespace simpla
+{
 
 /**
  * @ingroup particle
@@ -29,7 +30,7 @@ namespace simpla {
  * \code E::Point_s \endcode |explicit |data structure and description of single particle/sample point
  * \code E( ) \endcode  |explicit | Constructor
  * \code ~E( ) \endcode |explicit | Destructor
- * \code void  next_timestep(Point_s * p, args ...) const; \endcode |explicit | push one particle to next timestep
+ * \code void  next_time_step(Point_s * p, args ...) const; \endcode |explicit | push one particle to next timestep
  * \code void  update();\endcode | (optional) |update charge/mass and properties cache
  * \code static Point_s  push_forward(Vec3 const & x, Vec3 const &v, Real f);\endcode| (optional)| push forward Cartesian Coordinate x , velocity vector v  and sample weight f to paritlce's coordinates
  * \code static std::tuple<Vec3,Vec3,Real>  pull_back(Point_s const & p); \endcode| (optional)| pull back particle coordinates to Cartesian coordinates;
@@ -137,9 +138,9 @@ namespace simpla {
 //
 ///* Pick the right helper macro to invoke. */
 #define SP_PROPERTIES_DEFINE_MEMBER_HELPER2(_T0_, _N0_) \
-    private:typename array_to_ntuple_convert<_T0_>::type m_##_N0_; \
-    public:    typename array_to_ntuple_convert<_T0_>::type _N0_()const{return m_##_N0_;} \
-    void _N0_(typename array_to_ntuple_convert<_T0_>::type  v) {  m_##_N0_=v;}
+    private:  traits::primary_type_t<_T0_> m_##_N0_; \
+    public:    traits::primary_type_t<_T0_> _N0_()const{return m_##_N0_;} \
+    void _N0_( traits::primary_type_t<_T0_>   v) {  m_##_N0_=v;}
 
 #define SP_PROPERTIES_DEFINE_MEMBER_HELPER4(_T0_, _N0_, _T1_, _N1_) SP_PROPERTIES_DEFINE_MEMBER_HELPER2(_T0_,_N0_) \
       SP_PROPERTIES_DEFINE_MEMBER_HELPER2(_T1_,_N1_)
@@ -271,7 +272,7 @@ namespace simpla {
 //#define SP_PARTICLE_ADD_PROP_CHOOSE_HELPER(count) SP_PARTICLE_ADD_PROP_CHOOSE_HELPER1(count)
 //#define SP_PARTICLE_ADD_PROP(_S_NAME_,...) SP_PARTICLE_ADD_PROP_CHOOSE_HELPER(COUNT_MACRO_ARGS(__VA_ARGS__)) (_S_NAME_,__VA_ARGS__)
 
-#define SP_PARTICLE_LOAD_DICT_HELPER2(_S1_, _S2_, _T0_, _N0_) m_##_N0_=_S2_[#_N0_].template as<typename array_to_ntuple_convert<_T0_>::type>();
+#define SP_PARTICLE_LOAD_DICT_HELPER2(_S1_, _S2_, _T0_, _N0_) m_##_N0_=_S2_[#_N0_].template as< traits::primary_type_t<_T0_> >();
 #define SP_PARTICLE_LOAD_DICT_HELPER4(_S1_, _S2_, _T0_, _N0_, _T1_, _N1_) SP_PARTICLE_LOAD_DICT_HELPER2(_S1_,_S2_,_T0_,_N0_) \
       SP_PARTICLE_LOAD_DICT_HELPER2(_S1_,_S2_,_T1_,_N1_)
 #define SP_PARTICLE_LOAD_DICT_HELPER6(_S1_, _S2_, _T0_, _N0_, _T1_, _N1_, _T2_, _N2_)  SP_PARTICLE_LOAD_DICT_HELPER2(_S1_,_S2_,_T0_,_N0_) \

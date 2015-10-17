@@ -66,6 +66,7 @@
       <sourceFolder url="file://$MODULE_DIR$/core/dataset/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/dataset/dataset.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/dataset/dataset.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/dataset/dataset_traits.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/dataset/dataspace.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/dataset/dataspace.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/dataset/datatype.cpp" isTestSource="false" />
@@ -144,7 +145,7 @@
       <sourceFolder url="file://$MODULE_DIR$/core/gtl/containers/sp_hash_container.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/gtl/containers/sp_indirect_container.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/gtl/containers/sp_ndarray.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/gtl/containers/sp_sorted_set.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/gtl/containers/unordered_set.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/gtl/design_pattern/design_pattern.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/gtl/design_pattern/factory.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/gtl/design_pattern/observer.h" isTestSource="false" />
@@ -297,6 +298,9 @@
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/blocked_range.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/distributed_array.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/distributed_array.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/parallel/distributed_object.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/parallel/distributed_object.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/parallel/distributed_unordered_set.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/distributed_unordered_set.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/mpi_aux_functions.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/mpi_aux_functions.h" isTestSource="false" />
