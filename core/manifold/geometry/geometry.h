@@ -28,7 +28,6 @@ struct Geometry<CS, TopologyTags> : public Topology<TopologyTags>
 public:
 	typedef CS coordinates_system_type;
 
-
 	geometry::mertic<coordinates_system_type> m_metric_;
 
 	typedef Topology<TopologyTags> topology_type;

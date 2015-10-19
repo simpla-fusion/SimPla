@@ -10,13 +10,15 @@
 #include "mpi_comm.h"
 #include "mpi_datatype.h"
 #include "../gtl/utilities/utilities.h"
+
 namespace simpla
 {
 
 MPIDataType::MPIDataType()
 {
 }
-MPIDataType::MPIDataType(MPIDataType const & other)
+
+MPIDataType::MPIDataType(MPIDataType const &other)
 {
 	MPI_ERROR(MPI_Type_dup(other.type(), &m_type_));
 }
@@ -24,16 +26,18 @@ MPIDataType::MPIDataType(MPIDataType const & other)
 MPIDataType::~MPIDataType()
 {
 	if (is_commited_)
+	{
 		MPI_Type_free(&m_type_);
+	}
 }
 
-MPIDataType MPIDataType::create(DataType const & data_type, //
+MPIDataType MPIDataType::create(DataType const &data_type, //
 		int ndims, //
-		size_t const * p_dims,        //
-		size_t const * p_offset,      //
-		size_t const * p_stride,      //
-		size_t const * p_count,       //
-		size_t const * p_block,       //
+		size_t const *p_dims,        //
+		size_t const *p_offset,      //
+		size_t const *p_stride,      //
+		size_t const *p_count,       //
+		size_t const *p_block,       //
 		bool c_order_array)
 {
 
@@ -62,7 +66,7 @@ MPIDataType MPIDataType::create(DataType const & data_type, //
 		std::vector<MPI_Datatype> array_of_types;
 		//		  MPI_Aint array_of_displacements[],
 		//		  MPI_Datatype array_of_types[],
-		for (auto const & item : data_type.members())
+		for (auto const &item : data_type.members())
 		{
 			DataType sub_datatype;
 
@@ -85,10 +89,10 @@ MPIDataType MPIDataType::create(DataType const & data_type, //
 
 		}
 
-		MPI_ERROR(MPI_Type_create_struct(		//
-				array_of_blocklengths.size(),		//
-				&array_of_blocklengths[0],		//
-				&array_of_displacements[0],		//
+		MPI_ERROR(MPI_Type_create_struct(        //
+				array_of_blocklengths.size(),        //
+				&array_of_blocklengths[0],        //
+				&array_of_displacements[0],        //
 				&array_of_types[0], &res_type));
 
 	}
@@ -100,11 +104,11 @@ MPIDataType MPIDataType::create(DataType const & data_type, //
 	{
 		res_type = MPI_LONG;
 	}
-	else if (data_type.is_same<unsigned int>())
+	else if (data_type.template is_same<unsigned int>())
 	{
 		res_type = MPI_UNSIGNED;
 	}
-	else if (data_type.is_same<unsigned long>())
+	else if (data_type.template is_same<unsigned long>())
 	{
 		res_type = MPI_UNSIGNED_LONG;
 	}
@@ -116,7 +120,7 @@ MPIDataType MPIDataType::create(DataType const & data_type, //
 	{
 		res_type = MPI_DOUBLE;
 	}
-	else if (data_type.is_same<long double>())
+	else if (data_type.template is_same<long double>())
 	{
 		res_type = MPI_LONG_DOUBLE;
 	}
@@ -171,15 +175,14 @@ MPIDataType MPIDataType::create(DataType const & data_type, //
 
 		if (p_stride != nullptr || p_block != nullptr)
 		{
-			//TODO create mpi datatype with stride and block
-			WARNING << "UNIMPLEMENTED!! 'stride'  and 'block' are ignored! "
-					<< std::endl;
+			//TODO create mpi data type with stride and block
+			WARNING << "UNIMPLEMENTED!! 'stride'  and 'block' are ignored! " << std::endl;
 		}
 
 		for (int i = 0; i < data_type.rank(); ++i)
 		{
-			l_dims[ndims + i] = data_type.extent(i);
-			l_count[ndims + i] = data_type.extent(i);
+			l_dims[ndims + i] = static_cast<int>(data_type.extent(i));
+			l_count[ndims + i] = static_cast<int>(data_type.extent(i));
 			l_offset[ndims + i] = 0;
 		}
 
@@ -210,11 +213,17 @@ MPIDataType MPIDataType::create(DataType const & data_type, //
 	return std::move(res);
 }
 
+MPIDataType MPIDataType::create(DataType const &data_type, DataSpace const &space, bool c_order_array)
+{
+	UNIMPLEMENTED;
+}
+
 size_t MPIDataType::size() const
 {
 	int s = 0;
 	MPI_ERROR(MPI_Type_size(m_type_, &s));
 	return s;
 }
+
 }  // namespace simpla
 

@@ -53,6 +53,8 @@ public:
 		return os;
 	}
 
+	void deploy() { }
+
 private:
 	
 	template<typename TD, typename TIDX>
@@ -84,17 +86,13 @@ public:
 	DECLARE_FUNCTION_PREFIX auto gather(TF const &f,
 			TX const &r) DECLARE_FUNCTION_SUFFIX//
 	ENABLE_IF_DECL_RET_TYPE((traits::iform<TF>::value
-			== VERTEX),
-			(
-					gather_impl_(f, m_geo_.coordinates_global_to_local(r,
-							0))))
+			== VERTEX), (gather_impl_(f, m_geo_.coordinates_global_to_local(r, 0))))
 	
 	template<typename TF>
 	DECLARE_FUNCTION_PREFIX auto gather(TF const &f,
 			typename geometry_type::point_type const &r) DECLARE_FUNCTION_SUFFIX
 	ENABLE_IF_DECL_RET_TYPE((traits::iform<TF>::value
 			== EDGE),
-			
 			make_nTuple(
 					gather_impl_(f, m_geo_.coordinates_global_to_local(r, 1)),
 					gather_impl_(f, m_geo_.coordinates_global_to_local(r, 2)),
@@ -106,7 +104,6 @@ public:
 			typename geometry_type::point_type const &r) DECLARE_FUNCTION_SUFFIX
 	ENABLE_IF_DECL_RET_TYPE((traits::iform<TF>::value
 			== FACE),
-			
 			make_nTuple(
 					gather_impl_(f, m_geo_.coordinates_global_to_local(r, 6)),
 					gather_impl_(f, m_geo_.coordinates_global_to_local(r, 5)),
@@ -118,10 +115,7 @@ public:
 			typename geometry_type::point_type const &x) DECLARE_FUNCTION_SUFFIX
 	ENABLE_IF_DECL_RET_TYPE((traits::iform<TF>::value
 			== VOLUME),
-			gather_impl_(f, m_geo_
-					.
-							coordinates_global_to_local(x,
-							7)))
+			gather_impl_(f, m_geo_.coordinates_global_to_local(x, 7)))
 
 private:
 	template<typename TF, typename IDX, typename TV>
@@ -147,40 +141,39 @@ private:
 	}
 
 	
-	template<typename TF, typename TX, typename TV, typename TW>
+	template<typename TF, typename TX, typename TV>
 	DECLARE_FUNCTION_PREFIX void scatter_(std::integral_constant<int, VERTEX>, TF &
-	f, TX const &x, TV const &u, TW const &w) DECLARE_FUNCTION_SUFFIX
+	f, TX const &x, TV const &u) DECLARE_FUNCTION_SUFFIX
 	{
-		scatter_impl_(f, m_geo_.coordinates_global_to_local(x, 0), u * w);
+		scatter_impl_(f, m_geo_.coordinates_global_to_local(x, 0), u);
 	}
 	
-	template<typename TF, typename TX, typename TV, typename TW>
+	template<typename TF, typename TX, typename TV>
 	DECLARE_FUNCTION_PREFIX void scatter_(std::integral_constant<int, EDGE>, TF &
-	f, TX const &x, TV const &u, TW const &w) DECLARE_FUNCTION_SUFFIX
+	f, TX const &x, TV const &u) DECLARE_FUNCTION_SUFFIX
 	{
 		
-		scatter_impl_(f, m_geo_.coordinates_global_to_local(x, 1), u[0] * w);
-		scatter_impl_(f, m_geo_.coordinates_global_to_local(x, 2), u[1] * w);
-		scatter_impl_(f, m_geo_.coordinates_global_to_local(x, 4), u[2] * w);
+		scatter_impl_(f, m_geo_.coordinates_global_to_local(x, 1), u[0]);
+		scatter_impl_(f, m_geo_.coordinates_global_to_local(x, 2), u[1]);
+		scatter_impl_(f, m_geo_.coordinates_global_to_local(x, 4), u[2]);
 		
 	}
 	
-	template<typename TF, typename TX, typename TV, typename TW>
+	template<typename TF, typename TX, typename TV>
 	DECLARE_FUNCTION_PREFIX void scatter_(std::integral_constant<int, FACE>, TF &f,
-			TX const &x, TV const &u,
-			TW const &w) DECLARE_FUNCTION_SUFFIX
+			TX const &x, TV const &u) DECLARE_FUNCTION_SUFFIX
 	{
 		
-		scatter_impl_(f, m_geo_.coordinates_global_to_local(x, 6), u[0] * w);
-		scatter_impl_(f, m_geo_.coordinates_global_to_local(x, 5), u[1] * w);
-		scatter_impl_(f, m_geo_.coordinates_global_to_local(x, 3), u[2] * w);
+		scatter_impl_(f, m_geo_.coordinates_global_to_local(x, 6), u[0]);
+		scatter_impl_(f, m_geo_.coordinates_global_to_local(x, 5), u[1]);
+		scatter_impl_(f, m_geo_.coordinates_global_to_local(x, 3), u[2]);
 	}
 	
-	template<typename TF, typename TX, typename TV, typename TW>
+	template<typename TF, typename TX, typename TV>
 	DECLARE_FUNCTION_PREFIX void scatter_(std::integral_constant<int, VOLUME>,
-			TF &f, TX const &x, TV const &u, TW const &w) DECLARE_FUNCTION_SUFFIX
+			TF &f, TX const &x, TV const &u) DECLARE_FUNCTION_SUFFIX
 	{
-		scatter_impl_(f, m_geo_.coordinates_global_to_local(x, 7), w);
+		scatter_impl_(f, m_geo_.coordinates_global_to_local(x, 7), u);
 	}
 
 public:

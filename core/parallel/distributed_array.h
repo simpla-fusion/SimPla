@@ -10,9 +10,12 @@
 
 
 #include <memory>
-#include "parallel_traits.h"
+
 #include "../dataset/dataset.h"
-#include "distributed_object.h"
+
+#include "parallel_traits.h"
+
+#include "distributed.h"
 
 namespace simpla
 {
@@ -28,23 +31,7 @@ namespace simpla
  *
  **/
 
-struct DistributedArray : public DataSet, public DistributedObject
-{
-
-	DistributedArray(DataType const &d_type, DataSpace const &d_space);
-
-	DistributedArray(const DistributedArray &);
-
-	virtual ~DistributedArray();
-
-	virtual void swap(DistributedArray &);
-
-	virtual void deploy();
-
-private:
-
-};
-
+template<> void Distributed<DataSet>::deploy();
 
 }//namespace simpla
 

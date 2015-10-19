@@ -26,7 +26,6 @@ class Manifold<TGeo, Policies ...>
 		: public TGeo, public Policies ...
 {
 
-
 	typedef TGeo geometry_type;
 
 	typedef Manifold<geometry_type, Policies ...> this_type;
@@ -50,6 +49,8 @@ private:
 
 	TEMPLATE_DISPATCH_DEFAULT(load)
 
+	TEMPLATE_DISPATCH_DEFAULT(deploy)
+
 	TEMPLATE_DISPATCH(swap, inline,)
 
 	TEMPLATE_DISPATCH(print, inline, const)
@@ -62,6 +63,12 @@ public:
 	{
 		auto d = dict["Manifold"];
 		_dispatch_load<geometry_type, Policies...>(d);
+	}
+
+
+	void deploy()
+	{
+		_dispatch_deploy<geometry_type, Policies...>();
 	}
 
 	template<typename OS>

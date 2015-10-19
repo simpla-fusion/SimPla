@@ -42,6 +42,8 @@ public:
 		return os;
 	}
 
+	void deploy() { }
+
 	template<size_t IFORM>
 	DataSpace dataspace() const
 	{

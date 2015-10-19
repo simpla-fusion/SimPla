@@ -36,14 +36,14 @@ template<typename ...> struct Field;
  */
 template<typename TG, int IFORM, typename TV>
 struct Field<Domain<TG, std::integral_constant<int, IFORM>>, TV>
-		: public DistributedArray
+		: public Distributed<DataSet>
 {
 public:
 
 	typedef TV value_type;
 	typedef TG mesh_type;
 	static constexpr int iform = IFORM;
-	typedef DistributedArray storage_policy;
+	typedef Distributed<DataSet> storage_policy;
 
 	typedef Domain<mesh_type, std::integral_constant<int, IFORM>> domain_type;
 
@@ -63,8 +63,7 @@ private:
 public:
 
 	Field(domain_type const &d)
-			: storage_policy(traits::datatype<value_type>::create(), d.m_mesh_.template dataspace<iform>()),
-			m_domain_(d), m_mesh_(d.mesh())
+			: storage_policy(d.mesh().comm()), m_domain_(d), m_mesh_(d.mesh())
 	{
 	}
 

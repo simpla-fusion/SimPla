@@ -7,104 +7,134 @@
 #ifndef SIMPLA_DISTRIBUTED_UNORDERED_SET_H
 #define SIMPLA_DISTRIBUTED_UNORDERED_SET_H
 
-
+#include "distributed.h"
 #include "distributed_object.h"
-#include "mpi_comm.h"
-#include "mpi_aux_functions.h"
-#include "mpi_update.h"
+
 #include "../gtl/containers/unordered_set.h"
 
 namespace simpla
 {
-
+template<typename ...> struct Distributed;
 
 //namespace parallel
-template<typename TV, typename ...Others>
-struct DistributedUnorderedSet
+template<typename TV, typename ...Others, typename TRange>
+struct Distributed<UnorderedSet<TV, Others...>, TRange>
 		: public UnorderedSet<TV, Others...>, public DistributedObject
 {
+private:
 
-	DistributedUnorderedSet() { };
+	typedef UnorderedSet<TV, Others...> base_type;
+	typedef Distributed<UnorderedSet<TV, Others...>, TRange> this_type;
+	typedef TRange range_type;
 
-	virtual ~DistributedUnorderedSet() { };
+public:
 
+	Distributed() { };
+
+	Distributed(this_type const &other) : base_type(other) { };
+
+	virtual ~Distributed() { };
+
+	void swap(this_type &other) { base_type::swap(other) };
 
 	virtual void sync();
 
-	virtual void async();
+	virtual void wait();
 
-	virtual void wait() const;
+	template<typename TConnection> void deploy(TConnection const &conns);
 
-	virtual bool is_ready() const;
+	template<typename Hash> void rehash(Hash const &hasher);
 
-	DataType datatype;
-
-	struct connection_s
+private:
+	struct connection_node
 	{
-		nTuple<int, 3> coord_shift;
-
+		nTuple<int, 3> coord_offset;
 		range_type send_range;
-
 		range_type recv_range;
+		size_t send_size;
+		size_t recv_size;
+		std::shared_ptr<value_type> send_buffer;
+		std::shared_ptr<value_type> recv_buffer;
 	};
 
-	std::vecotr<connection_s> m_connection_;
+	std::vector<connection_node> m_connections_;
 
 };
 
 template<typename TV, typename ...Others>
-void DistributedUnorderedSet<TV, Others...>::sync()
+void Distributed<UnorderedSet<TV, Others...>>::sync()
 {
-	for (auto const &item : m_connection_)
+	auto d_type = traits::datatype::template create<TV>::create();
+	for (auto &item : m_connections_)
 	{
-		mpi_send_recv_buffer_s send_recv_buffer;
 
+		item.send_size = base_type::size_all(item.send_range);
 
-		std::tie(send_recv_buffer.dest, send_recv_buffer.send_tag,
-				send_recv_buffer.recv_tag) = GLOBAL_COMM.make_send_recv_tag(global_id(),
-				&item.coord_shift[0]);
+		item.send_buffer = sp_alloc_memory(item.send_size * sizeof(value_type));
 
-		//   collect send data
-
-		send_recv_buffer.send_size = container_type::size_all(item.send_range);
-
-		send_recv_buffer.send_data = sp_alloc_memory(send_recv_buffer.send_size * send_recv_buffer.datatype.size());
-
-		value_type *data = reinterpret_cast<value_type *>(send_recv_buffer.send_data.get());
+		value_type *data = item.send_buffer.get();
 
 		// FIXME need parallel optimize
-		for (auto const &key : send_range)
+		for (auto const &key : item.send_range)
 		{
-			for (auto const &p : container_type::operator[](key))
+			for (auto const &p : base_type::operator[](key))
 			{
 				*data = p;
 				++data;
 			}
 		}
 
-		send_recv_buffer.recv_size = 0;
-		send_recv_buffer.recv_data = nullptr;
+		item.recv_size = 0;
+		item.recv_buffer = nullptr;
+		base_type::erase(item.recv_range);
 
-		m_send_recv_buffer_.push_back(std::move(send_recv_buffer));
+		DistributedObject::add_link_send(&item.coord_offset[0], item.send_size, d_type, &item.send_buffer);
+		DistributedObject::add_link_recv(&item.coord_offset[0], item.recv_size, d_type, &item.recv_buffer);
 
-		container_type::erase(item.recv_range);
 	}
 
-	sync_update_varlength(&m_send_recv_buffer_, &(m_mpi_requests_));
+	DistributedObject::sync();
 }
 
 template<typename TV, typename ...Others>
-void DistributedUnorderedSet<TV, Others...>::wait() const
+void Distributed<UnorderedSet<TV, Others...>>::wait()
 {
-	// FIXME need parallel optimize
-	for (auto const &item : m_send_recv_buffer_)
-	{
-		value_type *data = reinterpret_cast<value_type *>(item.recv_data.get());
+	DistributedObject::wait();
 
-		container_type::insert(data, data + item.recv_size);
+	// FIXME need parallel optimize
+	for (auto const &item : m_connections_)
+	{
+		TV const *data = item.recv_buffer.get();
+
+		base_type::insert(data, data + item.recv_size);
+
+		item.recv_buffer = nullptr;
+		item.recv_size = 0;
 	}
-	m_send_recv_buffer_.clear();
+
 
 }
+
+template<typename TV, typename ...Others>
+template<typename TCoonection>
+void Distributed<UnorderedSet<TV, Others...>>::deploy(TCoonection const &conns)
+{
+	for (auto const &item:conns)
+	{
+		m_connections_.emplace_back(item.coord_offset, item.send_range, item.recv_range,
+				0, 0, std::shared_ptr<void>(), std::shared_ptr<void>());
+	}
+};
+
+
+template<typename TV, typename ...Others>
+template<typename Hash>
+void Distributed<UnorderedSet<TV, Others...>>::rehash(Hash const &hasher)
+{
+	wait();
+	base_type::rehash(hasher);
+	sync();
+
+};
 }//namespace simpla
 #endif //SIMPLA_DISTRIBUTED_UNORDERED_SET_H

@@ -44,6 +44,8 @@ struct MPIDataType
 			size_t const *stride = nullptr, size_t const *block = nullptr,
 			bool c_order_array = true);
 
+	static MPIDataType create(DataType const &data_type, DataSpace const &space, bool c_order_array = true);
+
 	template<typename T, typename ...Others>
 	static MPIDataType create(Others &&... others)
 	{

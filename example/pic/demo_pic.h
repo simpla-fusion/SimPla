@@ -21,25 +21,40 @@
 #include "../../core/particle/particle_engine.h"
 #include "../../core/physics/physical_constants.h"
 
+#include "../../core/manifold/domain.h"
+
 using namespace simpla;
 
 namespace simpla
 {
+SP_DEFINE_STRUCT(pic_demo,
+		Vec3, x,
+		Vec3, v,
+		Real, f,
+		Real, w)
 
-
-struct PICDemo
+template<typename TBase>
+struct FiberBundle<pic_demo, TBase>
 {
-	typedef PICDemo this_type;
-	typedef Vec3 point_type;
+	typedef FiberBundle<pic_demo, TBase> this_type;
+public:
 	typedef Vec3 vector_type;
 	typedef Real scalar_type;
 
-	SP_DEFINE_STRUCT(Point_s,
-			Vec3, x,
-			Vec3, v,
-			Real, f,
-			Real, w)
 
+	typedef pic_demo point_type;
+
+
+	typedef TBase base_manifold;
+
+	typedef TBase::range_type range_type;
+
+	typedef Domain<base_manifold> domain_type;
+
+
+private:
+	base_manifold const &m_mesh_;
+	domain_type m_domain_;
 
 	SP_DEFINE_PROPERTIES(
 			Real, mass,
@@ -51,7 +66,7 @@ private:
 	Real m_cmr_, m_q_kT_;
 public:
 
-	PICDemo() :
+	FiberBundle() :
 			m_mass(1.0), m_charge(1.0), m_temperature(1.0)
 	{
 		update();
@@ -64,23 +79,41 @@ public:
 		m_q_kT_ = m_charge / (m_temperature * boltzmann_constant);
 	}
 
-	~PICDemo()
+	~FiberBundle()
 	{
 	}
 
-	static std::string get_type_as_string()
+	template<typename ...Args>
+	static inline typename base_manifold::point_type project(point_type const &p, Args &&...args)
 	{
-		return "PICDemo";
+		return p.x;
 	}
+
+	template<typename TV, typename ...Args>
+	static inline point_type lift(typename base_manifold::point_type const &x, TV const &v, Real f, Args &&...args)
+	{
+		point_type res{x, v, f};
+
+		return std::move(res);
+	}
+
+	template<typename ...Args>
+	static inline vector_type push_forward(point_type const &p, Args &&...args)
+	{
+		vector_type res;
+		res = p.v * p.f;
+		return std::move(res);
+	}
+
 
 	template<typename TE, typename TB, typename TJ>
-	void next_time_step(Point_s *p0, Real dt, TE const &fE, TB const &fB,
+	void next_time_step(point_type *p0, Real dt, TE const &fE, TB const &fB,
 			TJ *J)
 	{
 		p0->x += p0->v * dt * 0.5;
 
-		auto B = fB(p0->x);
-		auto E = fE(p0->x);
+		auto B = pull_back(fB, project(*p0));
+		auto E = pull_back(fE, project(*p0));
 
 		Vec3 v_;
 
@@ -101,26 +134,10 @@ public:
 
 		p0->x += p0->v * dt * 0.5;
 
-		J->scatter(p0->x, p0->v, p0->f);
+		m_mesh_.scatter(J, project(*p0), push_forward(*p0));
 
 	}
 
-	static inline Point_s push_forward(point_type const &x,
-			Vec3 const &v, Real f = 1.0)
-	{
-		return std::move(Point_s({x, v, f}));
-	}
-
-	static inline void push_forward(point_type const &x, Vec3 const &v,
-			Real f, Point_s *p)
-	{
-		p->x = x;
-		p->v = v;
-		p->f = f;
-	}
-
-	static inline auto pull_back(Point_s const &p)
-	DECL_RET_TYPE((std::make_tuple(p.x, p.v, p.f)))
 };
 
 

@@ -30,18 +30,16 @@ namespace simpla
  *>  Unordered multi-set is an associative container that contains set
  *> of possibly non-unique objects of type Key. --http://en.cppreference.com/w/cpp/container/unordered_multiset
  */
-template<typename T, typename Hash = std::hash<T>,
-		typename Allocator = std::allocator<T> >
+template<typename T, typename BucketKeyType=size_t, typename Allocator = std::allocator<T> >
 class UnorderedSet
 {
 
 public:
 	typedef T value_type;
-	typedef Hash hasher;
+	typedef BucketKeyType key_type;
 	typedef Allocator allocator_type;
-	typedef typename std::result_of<hasher(value_type const &)>::type key_type;
 
-	typedef UnorderedSet<value_type, hasher, allocator_type> this_type;
+	typedef UnorderedSet<value_type, key_type, allocator_type> this_type;
 
 	typedef std::forward_list<T, allocator_type> bucket_type;
 
@@ -49,7 +47,6 @@ public:
 
 //private:
 
-	hasher m_hasher_;
 
 	base_container_type m_data_;
 
@@ -57,18 +54,20 @@ public:
 
 public:
 
+	typedef std::set<key_type> range_type;
+
 	// Constructor
 	UnorderedSet()
 	{
 	}
 
 	UnorderedSet(this_type const &other) :
-			m_hasher_(other.m_hasher_), m_data_(other.m_data_)
+			m_data_(other.m_data_)
 	{
 	}
 
 	UnorderedSet(this_type &&other) :
-			m_hasher_(other.m_hasher_), m_data_(other.m_data_)
+			m_data_(other.m_data_)
 	{
 	}
 
@@ -82,26 +81,15 @@ public:
 	{
 	}
 
-	hasher const &hash_function() const
-	{
-		return m_hasher_;
-	}
-
-	void hash_function(hasher const &h_fun)
-	{
-		m_hasher_ = h_fun;
-	}
-
-	void swap(base_container_type &other)
-	{
-		m_data_.swap(other);
-	}
 
 	void swap(this_type &other)
 	{
 		m_data_.swap(other.m_data_);
-		std::swap(m_hasher_, other.m_hasher_);
 	}
+
+	DataSet dataset() const;
+
+	void load(DataSet const &);1
 
 	bool empty() const
 	{
@@ -170,20 +158,20 @@ public:
 				std::forward<TV>(v));
 	}
 
-	template<typename TV>
-	key_type insert(TV const &v)
+	template<typename TV, typename Hash>
+	key_type insert(TV const &v, Hash const &hasher)
 	{
-		auto s = m_hasher_(v);
+		auto s = hasher(v);
 
 		(*this)[s].push_front(v);
 
 		return s;
 	}
 
-	template<typename TV>
-	void push_front(TV &&v)
+	template<typename TV, typename Hash>
+	void push_front(TV &&v, Hash const &hasher)
 	{
-		(*this)[m_hasher_(v)].push_front(std::forward<TV>(v));
+		(*this)[hasher(v)].push_front(std::forward<TV>(v));
 	}
 
 	void insert(std::initializer_list<value_type> ilist)
@@ -191,22 +179,23 @@ public:
 		insert(ilist.begin(), ilist.end());
 	}
 
-	template<typename InputIter>
-	void insert(InputIter first, InputIter last)
+	template<typename InputIter, typename Hash>
+	void insert(InputIter first, InputIter last, Hash const &hasher)
 	{
 		for (auto it = first; it != last; ++it)
 		{
-			insert(*it);
+			insert(*it, hasher);
 		}
 	}
 
-	void insert(key_type const &key, std::initializer_list<value_type> ilist)
+	template<typename Hash>
+	void insert(key_type const &key, std::initializer_list<value_type> ilist, Hash const &hasher)
 	{
 		(*this)[key].insert_after(m_data_[key].before_begin(), ilist);
 	}
 
-	template<typename InputIter>
-	void insert(key_type const &key, InputIter first, InputIter last)
+	template<typename InputIter, typename Hash>
+	void insert(key_type const &key, InputIter first, InputIter last, Hash const &hasher)
 	{
 		(*this)[key].insert_after(m_data_[key].before_begin(), first, last);
 	}
@@ -291,7 +280,8 @@ public:
 	 * @return number of moved elements
 	 */
 private:
-	size_t rehash_one(key_type key, base_container_type &other)
+	template<typename Hash>
+	size_t rehash_one(key_type key, base_container_type &other, Hash const &hasher)
 	{
 		if (m_modified_.find(key) == m_modified_.end())
 		{
@@ -313,7 +303,7 @@ private:
 			auto p = pt;
 			++pt;
 
-			auto o_key = m_hasher_(*p);
+			auto o_key = hasher(*p);
 
 			if (o_key != key)
 			{
@@ -327,23 +317,24 @@ private:
 	}
 
 public:
-	template<typename TRange>
-	void rehash(TRange const &r)
+	template<typename TRange, typename Hash>
+	void rehash(TRange const &r, Hash const &hasher)
 	{
 		base_container_type other;
 
 		for (auto const &s : r)
 		{
-			rehash_one(s, other);
+			rehash_one(s, other, hasher);
 		}
 
 		splice(other.begin(), other.end());
 
 	}
 
-	void rehash()
+	template<typename Hash>
+	void rehash(Hash const &hasher)
 	{
-		rehash(m_modified_);
+		rehash(m_modified_, hasher);
 	}
 
 	template<typename TFun>

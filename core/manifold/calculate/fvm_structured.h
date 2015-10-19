@@ -59,6 +59,8 @@ public:
 		return os;
 	}
 
+	void deploy() { }
+
 private:
 	///***************************************************************************************************
 	/// @name general_algebra General algebra

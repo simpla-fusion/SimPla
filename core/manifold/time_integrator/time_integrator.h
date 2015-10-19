@@ -39,6 +39,8 @@ public:
 		return os;
 	}
 
+	void deploy() { }
+
 	void next_time_step() { m_time_ += m_dt_; }
 
 	double time() const { return m_time_; }

@@ -30,19 +30,59 @@ namespace simpla
 template<typename ...> struct Field;
 template<typename ...> struct Domain;
 
+
 template<typename TM, int IFORM>
 struct Domain<TM, std::integral_constant<int, IFORM> >
-		: public TM::range_type, public std::enable_shared_from_this<Domain<TM, std::integral_constant<int, IFORM> >>
+		: public Domain<TM>
+{
+private:
+	typedef Domain<TM> base_type;
+	typedef Domain<TM, std::integral_constant<int, IFORM> > this_type;
+public:
+	static constexpr int iform = IFORM;
+
+	template<typename ...Args>
+	Domain(Args &&... args) : base_type(std::forward<Args>(args)...)
+	{
+	}
+
+	Domain(TM const &m)
+			: base_type(m, std::integral_constant<int, IFORM>())
+	{
+	}
+
+	~Domain()
+	{
+
+	}
+
+
+	template<typename ...Args>
+	constexpr id_type pack_relative_index(Args &&...args) const
+	{
+		return base_type::template pack_relative_index<IFORM>(std::forward<Args>(args)...);
+	}
+
+	this_type &operator=(this_type const &other)
+	{
+		this_type(other).swap(*this);
+		return *this;
+	}
+
+};
+
+
+template<typename TM>
+struct Domain<TM> : public TM::range_type
 {
 
 public:
 	typedef TM mesh_type;
-
-	static constexpr int iform = IFORM;
 	static constexpr int ndims = mesh_type::ndims;
 
-	typedef Domain<mesh_type, std::integral_constant<int, iform> > this_type;
-
+private:
+	typedef Domain<mesh_type> this_type;
+public:
 	typedef typename mesh_type::id_type id_type;
 	typedef typename mesh_type::point_type point_type;
 	typedef typename mesh_type::index_type index_type;
@@ -55,12 +95,18 @@ public:
 	using range_type::begin;
 	using range_type::end;
 
-	mesh_type const &m_mesh_;
+	mesh_type const *m_mesh_;
 	std::set<id_type> m_id_set_;
 public:
 
 	Domain(mesh_type const &m)
-			: range_type(m.template make_range<iform>()), m_mesh_(m)
+			: range_type(m.template make_range<VERTEX>()), m_mesh_(&m)
+	{
+	}
+
+	template<int IFORM>
+	Domain(mesh_type const &m, std::integral_constant<int, IFORM>)
+			: range_type(m.template make_range<IFORM>()), m_mesh_(&m)
 	{
 	}
 
@@ -70,21 +116,35 @@ public:
 	{
 	}
 
-	Domain(this_type
-	&&other) : range_type(other), m_mesh_(other.m_mesh_), m_id_set_(
+	Domain(this_type &&other) : range_type(other), m_mesh_(other.m_mesh_), m_id_set_(
 			other.m_id_set_)
 	{
 	}
 
+	virtual ~Domain() { }
+
+	virtual void swap(this_type &other)
+	{
+		range_type::swap(other);
+		std::swap(m_mesh_, other.m_mesh_);
+		std::swap(m_id_set_, other.m_id_set_);
+	}
+
+	this_type &operator=(this_type const &other)
+	{
+		this_type(other).swap(*this);
+		return *this;
+	}
+
 	mesh_type const &mesh() const
 	{
-		return m_mesh_;
+		return *m_mesh_;
 	}
 
 
 	bool is_valid() const
 	{
-		return m_mesh_.is_valid();
+		return m_mesh_->is_valid();
 	}
 
 	bool is_simply() const
@@ -134,22 +194,10 @@ public:
 
 /** @} */
 
-	this_type operator=(this_type const &other)
-	{
-		this_type(other).swap(*this);
-		return *this;
-	}
 
-	void swap(this_type &other)
-	{
-		range_type::swap(other);
-		std::swap(m_mesh_, other.m_mesh_);
-		std::swap(m_id_set_, other.m_id_set_);
-	}
 
 	void deploy()
 	{
-		range_type(m_mesh_.template range<iform>()).swap(*this);
 	}
 
 	std::set<id_type> &id_set()
@@ -164,43 +212,43 @@ public:
 
 //	constexpr size_t max_hash() const
 //	{
-//		return m_mesh_.template max_hash<iform>();
+//		return m_mesh_->template max_hash<iform>();
 //	}
 //
 //	constexpr size_t hash(id_type s) const
 //	{
-//		return m_mesh_.hash(s);
+//		return m_mesh_->hash(s);
 //	}
 //
 //	constexpr id_type hash(index_type i, index_type j, index_type k,
 //			index_type n = 0) const
 //	{
-//		return m_mesh_.hash(m_mesh_.template pack_index<iform>(i, j, k, n));
+//		return m_mesh_->hash(m_mesh_->template pack_index<iform>(i, j, k, n));
 //	}
 
-
+	template<int IFORM>
 	constexpr id_type pack_relative_index(index_type i, index_type j,
 			index_type k, index_type n = 0) const
 	{
-		return m_mesh_.template pack_relative_index<iform>(i, j, k, n);
+		return m_mesh_->template pack_relative_index<IFORM>(i, j, k, n);
 	}
 
-	template<typename TI>
+	template<int IFORM, typename TI>
 	constexpr id_type pack_relative_index(nTuple<TI, 3> const &i, index_type n =
 	0) const
 	{
-		return m_mesh_.template pack_relative_index<iform>(i[0], i[1], i[2], n);
+		return m_mesh_->template pack_relative_index<IFORM>(i[0], i[1], i[2], n);
 	}
 
-	template<typename TI>
+	template<int IFORM, typename TI>
 	constexpr id_type pack_relative_index(nTuple<TI, 4> const &i) const
 	{
-		return m_mesh_.template pack_relative_index<iform>(i[0], i[1], i[2],
+		return m_mesh_->template pack_relative_index<IFORM>(i[0], i[1], i[2],
 				i[3]);
 	}
 
 	constexpr auto unpack_relative_index(id_type s) const
-	DECL_RET_TYPE((m_mesh_.unpack_relative_index(s)))
+	DECL_RET_TYPE((m_mesh_->unpack_relative_index(s)))
 
 	template<typename TFun>
 	void for_each(TFun const &fun) const
@@ -231,7 +279,7 @@ public:
 	{
 		for_each([&](id_type s)
 		{
-			fun(m_mesh_.point(s));
+			fun(m_mesh_->point(s));
 		});
 
 	}
@@ -307,22 +355,22 @@ public:
 	{
 		auto ext = range_type::box();
 
-		return std::make_tuple(m_mesh_.point(std::get<0>(ext)),
-				m_mesh_.point(std::get<1>(ext)));
+		return std::make_tuple(m_mesh_->point(std::get<0>(ext)),
+				m_mesh_->point(std::get<1>(ext)));
 	}
 
 	void update_bound_box()
 	{
-		if (m_id_set_.size() > 0)
-		{
-			UNIMPLEMENTED2("TODO find bound of indices,"
-					"and remove ids which are out of bound");
-		}
-		else
-		{
-			m_mesh_.range(m_mesh_.template sub_index_to_id<iform>()).swap(
-					*this);
-		}
+//		if (m_id_set_.size() > 0)
+//		{
+//			UNIMPLEMENTED2("TODO find bound of indices,"
+//					"and remove ids which are out of bound");
+//		}
+//		else
+//		{
+//			m_mesh_->range(m_mesh_->template sub_index_to_id<iform>()).swap(
+//					*this);
+//		}
 	}
 
 	void clear_ids()
@@ -335,8 +383,8 @@ public:
 
 	void reset(point_type const &b, point_type const &e)
 	{
-		range_type::reset(m_mesh_.coordinates_to_topology(b),
-				m_mesh_.coordinates_to_topology(e));
+		range_type::reset(m_mesh_->coordinates_to_topology(b),
+				m_mesh_->coordinates_to_topology(e));
 	}
 
 	template<typename T0, typename T1>
@@ -380,13 +428,13 @@ public:
 		{
 
 			std::copy_if(this->begin(), this->end(),
-					std::inserter(res, res.begin()), [&](id_type const &s) { return pred(m_mesh_.point(s)); });
+					std::inserter(res, res.begin()), [&](id_type const &s) { return pred(m_mesh_->point(s)); });
 
 		}
 		else
 		{
 			std::copy_if(m_id_set_.begin(), m_id_set_.end(),
-					std::inserter(res, res.begin()), [&](id_type const &s) { return pred(m_mesh_.point(s)); });
+					std::inserter(res, res.begin()), [&](id_type const &s) { return pred(m_mesh_->point(s)); });
 		}
 		res.swap(m_id_set_);
 		update_bound_box();
@@ -398,7 +446,7 @@ public:
 		std::transform(b, e, std::inserter(m_id_set_, m_id_set_.begin()),
 				[&](id_type const &s)
 				{
-					return in_box(m_mesh_.point(s));
+					return in_box(m_mesh_->point(s));
 				});
 	}
 
@@ -415,7 +463,7 @@ public:
 	{
 		filter([&](id_type const &s)
 		{
-			return !pred(m_mesh_.point(s));
+			return !pred(m_mesh_->point(s));
 		});
 	}
 
@@ -426,7 +474,7 @@ public:
 
 //	DataSpace dataspace() const
 //	{
-//		DataSpace res = m_mesh_.template dataspace<iform>();
+//		DataSpace res = m_mesh_->template dataspace<iform>();
 //
 //		if (is_simply())
 //		{
@@ -435,7 +483,7 @@ public:
 //			b = mesh_type::unpack_index(std::get<0>(range_type::box()));
 //			e = mesh_type::unpack_index(std::get<1>(range_type::box()));
 //
-//			std::tie(l_b, std::ignore) = m_mesh_.local_index_box();
+//			std::tie(l_b, std::ignore) = m_mesh_->local_index_box();
 //
 //			typename DataSpace::index_tuple offset, count;
 //
@@ -455,35 +503,35 @@ public:
 //
 //	}
 
-//	auto ghost_shape() const DECL_RET_TYPE((m_mesh_.template ghost_shape<iform>()))
+//	auto ghost_shape() const DECL_RET_TYPE((m_mesh_->template ghost_shape<iform>()))
 
 /** @}*/
 
 
 
 //	template<typename ...Args>
-//	void scatter(Args &&...args) const { m_mesh_.scatter(std::forward<Args>(args)...); }
+//	void scatter(Args &&...args) const { m_mesh_->scatter(std::forward<Args>(args)...); }
 //
 //	template<typename ...Args>
 //	auto sample(Args &&...args) const
-//	DECL_RET_TYPE((m_mesh_.template sample<iform>(std::forward<Args>(args)...)))
+//	DECL_RET_TYPE((m_mesh_->template sample<iform>(std::forward<Args>(args)...)))
 //
 //
 //	template<typename ...Args>
 //	auto gather(Args &&...args) const
-//	DECL_RET_TYPE((m_mesh_.gather(std::forward<Args>(args)...)))
+//	DECL_RET_TYPE((m_mesh_->gather(std::forward<Args>(args)...)))
 //
 //
 //	template<typename ...Args>
 //	auto calculate(Args &&...args) const
-//	DECL_RET_TYPE((m_mesh_.calculate(std::forward<Args>(args)...)))
+//	DECL_RET_TYPE((m_mesh_->calculate(std::forward<Args>(args)...)))
 //
 //	template<typename ...Args>
 //	auto point(Args &&...args) const
-//	DECL_RET_TYPE(m_mesh_.point(std::forward<Args>(args)...))
+//	DECL_RET_TYPE(m_mesh_->point(std::forward<Args>(args)...))
 //
 //	constexpr auto time() const
-//	DECL_RET_TYPE(m_mesh_.time())
+//	DECL_RET_TYPE(m_mesh_->time())
 };
 
 

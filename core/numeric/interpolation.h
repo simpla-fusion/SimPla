@@ -555,8 +555,8 @@ public:
 //	 * @param yp1
 //	 * @param ypn
 //	 */
-//	template<typename container_type>
-//	void update(container_type const &xy)
+//	template<typename base_type>
+//	void update(base_type const &xy)
 //	{
 //		if (static_cast<void const *>(&xy) == data_)
 //			return;

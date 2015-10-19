@@ -158,7 +158,7 @@ struct Container {
 
 \begin_layout Code
 
-	typedef std::shared_ptr<value_type> container_type;
+	typedef std::shared_ptr<value_type> base_type;
 \end_layout
 
 \begin_layout Code
@@ -230,7 +230,7 @@ struct Container {
 
 \begin_layout Code
 
-	container_type & data();
+	base_type & data();
 \end_layout
 
 \begin_layout Code
@@ -239,7 +239,7 @@ struct Container {
 
 \begin_layout Code
 
-	const container_type & data() const ;
+	const base_type & data() const ;
 \end_layout
 
 \begin_layout Code

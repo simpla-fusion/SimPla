@@ -229,6 +229,7 @@
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/domain.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/domain_operation.h.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/domain_traits.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/fiber_bundle.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/geometry/geometry.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/geometry/geometry_traits.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/interpolate/interpolate.h" isTestSource="false" />
@@ -296,11 +297,12 @@
       <sourceFolder url="file://$MODULE_DIR$/core/numeric/sobol_engine.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/blocked_range.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/parallel/distributed.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/distributed_array.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/distributed_array.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/parallel/distributed_object.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/parallel/distributed_comm.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/parallel/distributed.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/distributed_object.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/parallel/distributed_unordered_set.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/distributed_unordered_set.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/mpi_aux_functions.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/mpi_aux_functions.h" isTestSource="false" />

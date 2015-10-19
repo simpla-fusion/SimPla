@@ -4,7 +4,7 @@
  * @date 2015-10-17.
  */
 
-#include "distributed_object.h"
+#include "distributed.h"
 
 #include "mpi_comm.h"
 #include "mpi_aux_functions.h"
@@ -48,20 +48,25 @@ struct DistributedObject::pimpl_s
 };
 
 //! Default constructor
-DistributedObject::DistributedObject()
-		: pimpl_(new pimpl_s(SingletonHolder<MPIComm>::instance()))
+DistributedObject::DistributedObject(MPIComm &comm)
+		: pimpl_(new pimpl_s(comm))
 {
 
 }
 
-//DistributedObject::DistributedObject(DistributedObject const &other) : pimpl_(new pimpl_s)
-//{
-//
-//}
+DistributedObject::DistributedObject(DistributedObject const &other) : pimpl_(new pimpl_s(*other.pimpl_))
+{
+
+}
 
 DistributedObject::~DistributedObject()
 {
 
+}
+
+void DistributedObject::swap(DistributedObject &other)
+{
+	std::swap(pimpl_, other.pimpl_);
 }
 
 DistributedObject::pimpl_s::pimpl_s(MPIComm &comm) : m_comm_(comm), m_object_id_(m_comm_.generate_object_id())
@@ -80,6 +85,7 @@ bool DistributedObject::is_distributed() const
 {
 	return pimpl_->m_send_links_.size() + pimpl_->m_recv_links_.size() > 0;
 }
+
 
 void DistributedObject::sync()
 {
@@ -167,123 +173,26 @@ void DistributedObject::add_link(bool is_send, int const coord_offset[], int siz
 {
 
 	int dest_id, send_tag, recv_tag;
-
+	auto mpi_d_type = MPIDataType::create(d_type);
 	std::tie(dest_id, send_tag, recv_tag) = pimpl_->m_comm_.make_send_recv_tag(pimpl_->m_object_id_, &coord_offset[0]);
 
 	if (is_send)
 	{
-		pimpl_->m_send_links_.push_back(
-				pimpl_s::mpi_link_node({dest_id, send_tag, size, MPIDataType::create(d_type), p}));
+		pimpl_->m_send_links_.push_back(pimpl_s::mpi_link_node({dest_id, send_tag, size, mpi_d_type, p}));
 	}
 	else
 	{
-		pimpl_->m_recv_links_.push_back(
-				pimpl_s::mpi_link_node({dest_id, recv_tag, size, MPIDataType::create(d_type), p}));
+		pimpl_->m_recv_links_.push_back(pimpl_s::mpi_link_node({dest_id, recv_tag, size, mpi_d_type, p}));
 	}
 }
 
-
-void DistributedObject::add_link(DataSet &ds)
+void DistributedObject::add_link(bool is_send, int const coord_offset[], DataSpace d_space,
+		DataType const &d_type, std::shared_ptr<void> *p)
 {
+	auto mpi_d_type = MPIDataType::create(d_type, d_space);
 
-
-	auto global_shape = ds.dataspace.global_shape();
-
-	auto local_shape = ds.dataspace.local_shape();
-
-	int ndims = global_shape.ndims;
-
-	nTuple<size_t, MAX_NDIMS_OF_ARRAY> l_dims, l_offset, l_stride, l_count, l_block, ghost_width;
-
-	l_dims = local_shape.dimensions;
-	l_offset = local_shape.offset;
-	l_stride = local_shape.stride;
-	l_count = local_shape.count;
-	l_block = local_shape.block;
-
-	ghost_width = l_offset;
-
-	nTuple<size_t, MAX_NDIMS_OF_ARRAY> send_count, send_offset;
-	nTuple<size_t, MAX_NDIMS_OF_ARRAY> recv_count, recv_offset;
-
-	for (unsigned int tag = 0, tag_e = (1U << (ndims * 2)); tag < tag_e; ++tag)
-	{
-		nTuple<int, 3> coord_shift;
-
-		bool tag_is_valid = true;
-
-		for (int n = 0; n < ndims; ++n)
-		{
-			if (((tag >> (n * 2)) & 3UL) == 3UL)
-			{
-				tag_is_valid = false;
-				break;
-			}
-
-			coord_shift[n] = ((tag >> (n * 2)) & 3U) - 1;
-
-			switch (coord_shift[n])
-			{
-			case 0:
-				send_count[n] = l_count[n];
-				send_offset[n] = l_offset[n];
-				recv_count[n] = l_count[n];
-				recv_offset[n] = l_offset[n];
-				break;
-			case -1: //left
-
-				send_count[n] = ghost_width[n];
-				send_offset[n] = l_offset[n];
-
-				recv_count[n] = ghost_width[n];
-				recv_offset[n] = l_offset[n] - ghost_width[n];
-
-				break;
-			case 1: //right
-				send_count[n] = ghost_width[n];
-				send_offset[n] = l_offset[n] + l_count[n] - ghost_width[n];
-
-				recv_count[n] = ghost_width[n];
-				recv_offset[n] = l_offset[n] + l_count[n];
-				break;
-			default:
-				tag_is_valid = false;
-				break;
-			}
-
-			if (send_count[n] == 0 || recv_count[n] == 0)
-			{
-				tag_is_valid = false;
-				break;
-			}
-
-		}
-
-		if (tag_is_valid && (coord_shift[0] != 0 || coord_shift[1] != 0 || coord_shift[2] != 0))
-		{
-
-			int dest_id, send_tag, recv_tag;
-
-			std::tie(dest_id, send_tag, recv_tag) = pimpl_->m_comm_.make_send_recv_tag(pimpl_->m_object_id_,
-					&coord_shift[0]);
-
-
-			pimpl_->m_send_links_.push_back(
-					pimpl_s::mpi_link_node({dest_id, send_tag, 1,
-					                        MPIDataType::create(ds.datatype, ndims,
-							                        &l_dims[0], &send_offset[0], nullptr,
-							                        &send_count[0], nullptr), &ds.data}));
-
-			pimpl_->m_recv_links_.push_back(
-					pimpl_s::mpi_link_node({dest_id, recv_tag, 1,
-					                        MPIDataType::create(ds.datatype, ndims,
-							                        &l_dims[0], &recv_offset[0], nullptr,
-							                        &recv_count[0], nullptr), &ds.data}));
-
-
-		}
-	}
-
+//	add_link(is_send, coord_offset, 1, mpi_d_type, p);
 }
+
 
 }//namespace simpla
