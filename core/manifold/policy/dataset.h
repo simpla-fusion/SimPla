@@ -47,6 +47,8 @@ public:
 	template<size_t IFORM>
 	DataSpace dataspace() const
 	{
+		UNIMPLEMENTED;
+
 		return DataSpace();
 	}
 

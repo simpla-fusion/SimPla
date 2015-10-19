@@ -486,7 +486,7 @@ DataSet UnorderedSet<T, BucketKeyType, Allocator>::dataset() const
 
 	value_type *p = reinterpret_cast<value_type *>(res.data.get());
 
-	//TODO need parallel optimize
+	NEED_OPTIMIZATION;
 
 	for (auto const &item:m_data_)
 	{
@@ -510,7 +510,7 @@ void UnorderedSet<T, BucketKeyType, Allocator>::dataset(DataSet const &ds)
 
 	value_type const *d = reinterpret_cast<value_type const *>(ds.data.get());
 
-	//TODO need parallel optimize
+	NEED_OPTIMIZATION;
 
 	auto &bucket = m_data_[0];
 

@@ -15,6 +15,7 @@
 
 #include "../design_pattern/singleton_holder.h"
 #include "log.h"
+
 namespace simpla
 {
 
@@ -23,7 +24,7 @@ struct MemoryPool::pimpl_s
 
 	std::mutex locker_;
 
-	std::multimap<size_t, void*> pool_;
+	std::multimap<size_t, void *> pool_;
 
 	static constexpr size_t ONE_GIGA = 1024l * 1024l * 1024l;
 	static constexpr size_t MAX_BLOCK_SIZE = 4 * ONE_GIGA; //std::numeric_limits<size_t>::max();
@@ -32,8 +33,10 @@ struct MemoryPool::pimpl_s
 	size_t max_pool_depth_ = 16 * ONE_GIGA;
 	size_t pool_depth_ = 0;
 
-	void push(void * d, size_t s);
-	void * pop(size_t s);
+	void push(void *d, size_t s);
+
+	void *pop(size_t s);
+
 	void clear();
 };
 
@@ -42,6 +45,7 @@ MemoryPool::MemoryPool() :
 {
 	pimpl_->pool_depth_ = 0;
 }
+
 MemoryPool::~MemoryPool()
 {
 	clear();
@@ -61,24 +65,28 @@ double MemoryPool::size() const
 {
 	return static_cast<double>(pimpl_->pool_depth_);
 }
+
 void MemoryPool::clear()
 {
 	pimpl_->clear();
 }
+
 void MemoryPool::pimpl_s::clear()
 {
 	locker_.lock();
-	for (auto & item : pool_)
+	for (auto &item : pool_)
 	{
-		delete[] reinterpret_cast<byte_type*>(item.second);
+		delete[] reinterpret_cast<byte_type *>(item.second);
 	}
 	locker_.unlock();
 }
-void MemoryPool::push(void * p, size_t s)
+
+void MemoryPool::push(void *p, size_t s)
 {
 	pimpl_->push(p, s);
 }
-void MemoryPool::pimpl_s::push(void * p, size_t s)
+
+void MemoryPool::pimpl_s::push(void *p, size_t s)
 {
 	if ((s > MIN_BLOCK_SIZE) && (s < MAX_BLOCK_SIZE))
 	{
@@ -95,15 +103,19 @@ void MemoryPool::pimpl_s::push(void * p, size_t s)
 
 	}
 	if (p != nullptr)
-		delete[] reinterpret_cast<byte_type*>(p);
+	{
+		delete[] reinterpret_cast<byte_type *>(p);
+	}
 }
-void * MemoryPool::pop(size_t s)
+
+void *MemoryPool::pop(size_t s)
 {
 	return pimpl_->pop(s);
 }
-void * MemoryPool::pimpl_s::pop(size_t s)
+
+void *MemoryPool::pimpl_s::pop(size_t s)
 {
-	void * addr = nullptr;
+	void *addr = nullptr;
 
 	if ((s > MIN_BLOCK_SIZE) && (s < MAX_BLOCK_SIZE))
 	{
@@ -141,11 +153,11 @@ void * MemoryPool::pimpl_s::pop(size_t s)
 
 		try
 		{
-			addr = reinterpret_cast<void*>(new byte_type[s]);
+			addr = reinterpret_cast<void *>(new byte_type[s]);
 
 		} catch (std::bad_alloc const &error)
 		{
-			ERROR_BAD_ALLOC_MEMORY(s, error);\
+			ERROR_BAD_ALLOC_MEMORY(s, error);
 
 		}
 
@@ -153,9 +165,10 @@ void * MemoryPool::pimpl_s::pop(size_t s)
 	return addr;
 
 }
+
 std::shared_ptr<void> sp_alloc_memory(size_t s)
 {
-	void * addr = SingletonHolder<MemoryPool>::instance().pop(s);
+	void *addr = SingletonHolder<MemoryPool>::instance().pop(s);
 
 	return std::shared_ptr<void>(addr, MemoryPool::deleter_s(addr, s));
 }
