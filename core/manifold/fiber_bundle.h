@@ -7,6 +7,9 @@
 #ifndef SIMPLA_FIBER_BUNDLE_H
 #define SIMPLA_FIBER_BUNDLE_H
 
+#include "../gtl/primitives.h"
+#include "../gtl/properties.h"
+
 namespace simpla
 {
 template<typename ...> struct Domain;

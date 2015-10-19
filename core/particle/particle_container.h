@@ -285,8 +285,7 @@ void Particle<P, TBase>::wait()
 template<typename P, typename TBase>
 void Particle<P, TBase>::rehash()
 {
-	UNIMPLEMENTED;
-//		container_type::rehash();
+	//		container_type::rehash();
 //		point_type xmin, xmax;
 //		std::tie(xmin, xmax) = m_domain_.mesh().extents();
 //		point_type d;
@@ -315,9 +314,15 @@ void Particle<P, TBase>::rehash()
 ////			}
 //
 //		}
-//	container_type::rehash();
-//
-//
+	wait();
+	
+	container_type::rehash([&](point_type const &p)
+	{
+		return bundle_type::id(p);
+	});
+
+	sync();
+
 }
 
 template<typename P, typename TBase>

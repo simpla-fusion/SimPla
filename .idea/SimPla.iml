@@ -329,15 +329,15 @@
       <sourceFolder url="file://$MODULE_DIR$/core/particle/obsolete/bc_reflect.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/particle/obsolete/kinetic_particle.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/particle/obsolete/load_particle.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/particle/particle.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/particle/obsolete/particle_constraint.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/particle/particle_container.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/particle/particle_engine.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/particle/particle_generator.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/particle/obsolete/probe_particle.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/particle/obsolete/simple_particle.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/particle/obsolete/simple_particle_generator.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/particle/obsolete/sync_particle.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/particle/particle.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/particle/particle_container.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/particle/particle_engine.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/particle/particle_generator.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/particle/test/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/particle/test/kinetic_particle_test.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/particle/test/kinetic_particle_test.h" isTestSource="false" />

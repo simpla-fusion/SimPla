@@ -266,6 +266,11 @@ public:
 	{
 		return std::move(topology_type::coordinates_global_to_local(coordinates_to_topology(x), n_id));
 	}
+
+	id_type id(point_type x, int n_id = 0) const
+	{
+		return std::get<0>(topology_type::coordinates_global_to_local(coordinates_to_topology(x), n_id));
+	}
 }; //struct Geometry<CS,TopologyTags >
 
 

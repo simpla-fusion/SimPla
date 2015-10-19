@@ -89,13 +89,13 @@ public:
 
 
 	template<typename ...Args>
-	static inline typename base_manifold::point_type project(point_type const &p, Args &&...args)
+	inline typename base_manifold::point_type project(point_type const &p, Args &&...args) const
 	{
 		return p.x;
 	}
 
 	template<typename TV, typename ...Args>
-	static inline point_type lift(typename base_manifold::point_type const &x, TV const &v, Real f, Args &&...args)
+	inline point_type lift(typename base_manifold::point_type const &x, TV const &v, Real f, Args &&...args) const
 	{
 		point_type res{x, v, f};
 
@@ -103,16 +103,22 @@ public:
 	}
 
 	template<typename ...Args>
-	static inline vector_type push_forward(point_type const &p, Args &&...args)
+	inline vector_type push_forward(point_type const &p, Args &&...args) const
 	{
 		vector_type res;
 		res = p.v * p.f;
 		return std::move(res);
 	}
 
+	template<typename ...Args>
+	inline typename base_manifold::id_type id(point_type const &p, Args &&...args) const
+	{
+		return m_mesh_.id(project(p, std::forward<Args>(args)...));
+	}
+
 
 	template<typename TE, typename TB, typename TJ>
-	void move(point_type *p0, Real dt, TE const &fE, TB const &fB, TJ *J)
+	void move(point_type *p0, Real dt, TE const &fE, TB const &fB, TJ *J) const
 	{
 //		p0->x += p0->v * dt * 0.5;
 //

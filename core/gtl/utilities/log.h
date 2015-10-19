@@ -65,24 +65,34 @@ public:
 	typedef Logger this_type;
 
 	Logger();
-	Logger(int lv);
-	Logger(Logger const & r);
 
-	Logger(Logger && r);
+	Logger(int lv);
+
+	Logger(Logger const &r);
+
+	Logger(Logger &&r);
+
 	~Logger();
 
-	static std::string init(int argc, char** argv);
+	static std::string init(int argc, char **argv);
+
 	static void set_stdout_visable_level(int l);
+
 	static void set_mpi_comm(int rank = 0, int size = 1);
 
 	size_t get_buffer_length() const;
+
 	size_t get_line_width() const;
+
 	void flush();
-	void surffix(std::string const & s);
+
+	void surffix(std::string const &s);
+
 	void endl();
+
 	void not_endl();
 
-	template<typename T> inline this_type & operator<<(T const& value)
+	template<typename T> inline this_type &operator<<(T const &value)
 	{
 
 		current_line_char_count_ -= get_buffer_length();
@@ -92,38 +102,42 @@ public:
 		current_line_char_count_ += get_buffer_length();
 
 		if (current_line_char_count_ > get_line_width())
+		{
 			endl();
+		}
 
 		return *this;
 	}
 
-	inline this_type & operator<<(char const value[])
+	inline this_type &operator<<(char const value[])
 	{
 
 		current_line_char_count_ -= get_buffer_length();
 
-		const_cast<this_type*>(this)->buffer_ << value;
+		const_cast<this_type *>(this)->buffer_ << value;
 
 		current_line_char_count_ += get_buffer_length();
 
 		if (current_line_char_count_ > get_line_width())
+		{
 			endl();
+		}
 
 		return *this;
 	}
 
-	typedef Logger & (*LoggerStreamManipulator)(Logger &);
+	typedef Logger &(*LoggerStreamManipulator)(Logger &);
 
-	Logger & operator<<(LoggerStreamManipulator manip)
+	Logger &operator<<(LoggerStreamManipulator manip)
 	{
 		// call the function, and return it's value
 		return manip(*this);
 	}
 
-	typedef Logger & (*LoggerStreamConstManipulator)(Logger const &);
+	typedef Logger &(*LoggerStreamConstManipulator)(Logger const &);
 
 	// take in a function with the custom signature
-	Logger const& operator<<(LoggerStreamConstManipulator manip) const
+	Logger const &operator<<(LoggerStreamConstManipulator manip) const
 	{
 		// call the function, and return it's value
 		return manip(*this);
@@ -154,26 +168,27 @@ public:
 
 	// this is the function signature of std::endl
 	typedef std::basic_ostream<char, std::char_traits<char> > StdCoutType;
-	typedef StdCoutType& (*StandardEndLine)(StdCoutType&);
+
+	typedef StdCoutType &(*StandardEndLine)(StdCoutType &);
 
 	//! define an operator<< to take in std::endl
-	this_type const& operator<<(StandardEndLine manip) const
+	this_type const &operator<<(StandardEndLine manip) const
 	{
 		// call the function, but we cannot return it's value
-		manip(const_cast<this_type*>(this)->buffer_);
+		manip(const_cast<this_type *>(this)->buffer_);
 		return *this;
 	}
 
-	this_type & operator<<(StandardEndLine manip)
+	this_type &operator<<(StandardEndLine manip)
 	{
 		// call the function, but we cannot return it's value
-		manip(const_cast<this_type*>(this)->buffer_);
+		manip(const_cast<this_type *>(this)->buffer_);
 		return *this;
 	}
 
 };
 
-std::string init_logger(int argc, char**argv);
+std::string init_logger(int argc, char **argv);
 
 void close_logger();
 
@@ -182,32 +197,32 @@ void close_logger();
  * @{
  **/
 
-inline Logger & endl(Logger & self)
+inline Logger &endl(Logger &self)
 {
 	self << std::endl;
 	self.flush();
 	return self;
 }
 
-inline Logger & done(Logger & self)
+inline Logger &done(Logger &self)
 {
 	self.surffix("[DONE]");
 	return self;
 }
 
-inline Logger & failed(Logger & self)
+inline Logger &failed(Logger &self)
 {
 	self.surffix("\e[1;31m[FAILED]\e[1;37m");
 	return self;
 }
 
-inline Logger & start(Logger & self)
+inline Logger &start(Logger &self)
 {
 	self.surffix("[START]");
 	return self;
 }
 
-inline Logger & flush(Logger & self)
+inline Logger &flush(Logger &self)
 {
 	self.flush();
 	return self;
@@ -237,21 +252,21 @@ inline std::string ShowBit(unsigned long s)
         << "This function should be optimized!"<<std::endl
 
 #define UNIMPLEMENTED logger::Logger(logger::LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
-	          << "Sorry, this function is not implemented. Try again next year, good luck!"
+              << "Sorry, this function is not implemented. Try again next year, good luck!"<<std::endl
 #define OBSOLETE  logger::Logger(logger::LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
-	          << "The function ["<< __PRETTY_FUNCTION__ << "] is obsolete. Please do not use  it any more."
+              << "The function ["<< __PRETTY_FUNCTION__ << "] is obsolete. Please do not use  it any more."
 
 #define CHANGE_INTERFACE(_MSG_)  logger::Logger(logger::LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
-	          << "The function ["<< __PRETTY_FUNCTION__ << "] is obsolete. Please use ["<<_MSG_<<"] inside."
+              << "The function ["<< __PRETTY_FUNCTION__ << "] is obsolete. Please use ["<<_MSG_<<"] inside."
 
 #define UNIMPLEMENTED2(_MSG_) logger::Logger(logger::LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
-	          << "Sorry, I don't know how to '"<< _MSG_ <<"'. Try again next year, good luck!"
+              << "Sorry, I don't know how to '"<< _MSG_ <<"'. Try again next year, good luck!"
 
 #define UNDEFINE_FUNCTION logger::Logger(logger::LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
-	          << "This function is not defined!"
+              << "This function is not defined!"
 
 #define NOTHING_TODO logger::Logger(logger::LOG_VERBOSE)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
-	          << "oh....... NOTHING TODO!"
+              << "oh....... NOTHING TODO!"
 
 #define DEADEND logger::Logger(logger::LOG_DEBUG)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
         << "WHAT YOU DO!! YOU SHOULD NOT GET HERE!!"
@@ -270,7 +285,7 @@ inline std::string ShowBit(unsigned long s)
 
 #define OUT_RANGE_ERROR(_MSG_) { {logger::Logger(logger::LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::out_of_range("out of range"));}
 
-#define ERROR_BAD_ALLOC_MEMORY(_SIZE_,_error_)    logger::Logger(logger::LOG_ERROR)<<__FILE__<<"["<<__LINE__<<"]: "<< "Can not get enough memory! [ "  \
+#define ERROR_BAD_ALLOC_MEMORY(_SIZE_, _error_)    logger::Logger(logger::LOG_ERROR)<<__FILE__<<"["<<__LINE__<<"]: "<< "Can not get enough memory! [ "  \
         << _SIZE_ / 1024.0 / 1024.0 / 1024.0 << " GiB ]" << std::endl; throw(_error_);
 
 #define PARSER_ERROR(_MSG_)  {{ logger::Logger(logger::LOG_ERROR)<<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"<<"\n\tConfigure fails :"<<(_MSG_) ;}throw(std::runtime_error(""));}
@@ -283,13 +298,15 @@ inline std::string ShowBit(unsigned long s)
 #ifdef NDEBUG
 #  define ASSERT(_COND_)
 #else
+
 #include <cassert>
+
 #  define ASSERT(_COND_)   std::assert((_COND_));
 #endif
 
 //#ifndef NDEBUG
 #define CHECK(_MSG_)    logger::Logger(logger::LOG_DEBUG) <<" "<< (__FILE__) <<": line "<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
-	<<"\n\t"<< __STRING(_MSG_)<<"="<< ( _MSG_)<<std::endl
+    <<"\n\t"<< __STRING(_MSG_)<<"="<< ( _MSG_)<<std::endl
 #define SHOW(_MSG_)    logger::Logger(logger::LOG_VERBOSE) << __STRING(_MSG_)<<"\t= "<< ( _MSG_) <<std::endl;
 #define SHOW_HEX(_MSG_)    logger::Logger(logger::LOG_VERBOSE) << __STRING(_MSG_)<<"\t= "<<std::hex << ( _MSG_) <<std::dec<<std::endl;
 
@@ -298,7 +315,7 @@ inline std::string ShowBit(unsigned long s)
 //#endif
 
 #define REDUCE_CHECK(_MSG_)    {auto __a= (_MSG_); __a=reduce(__a); if(GLOBAL_COMM.get_rank()==0){ logger::Logger(logger::LOG_DEBUG) <<" "<< (__FILE__) <<": line "<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
-	<<"\n\t GLOBAL_SUM:"<< __STRING(_MSG_)<<"="<<__a;}}
+    <<"\n\t GLOBAL_SUM:"<< __STRING(_MSG_)<<"="<<__a;}}
 
 #define RIGHT_COLUMN(_FIRST_) MESSAGE <<std::setw(15) <<std::right << _FIRST_
 #define LEFT_COLUMN(_FIRST_) MESSAGE <<std::setw(15) <<std::left << _FIRST_
@@ -316,9 +333,9 @@ inline std::string ShowBit(unsigned long s)
 
 #define VERBOSE_CMD(_CMD_) {auto __logger=logger::Logger(logger::LOG_VERBOSE);__logger<<__STRING(_CMD_);try{_CMD_;__logger<< DONE;}catch(...){__logger<<logger::failed;} }
 
-#define LOG_CMD1(_LEVEL_,_MSG_,_CMD_) {auto __logger=logger::Logger(_LEVEL_);__logger<<_MSG_;_CMD_;__logger<<DONE;}
+#define LOG_CMD1(_LEVEL_, _MSG_, _CMD_) {auto __logger=logger::Logger(_LEVEL_);__logger<<_MSG_;_CMD_;__logger<<DONE;}
 
-#define LOG_CMD2(_MSG_,_CMD_) {auto __logger=logger::Logger(logger::LOG_LOG);__logger<<_MSG_<<__STRING(_CMD_);_CMD_;__logger<<DONE;}
+#define LOG_CMD2(_MSG_, _CMD_) {auto __logger=logger::Logger(logger::LOG_LOG);__logger<<_MSG_<<__STRING(_CMD_);_CMD_;__logger<<DONE;}
 
 #define CHECK_BIT(_MSG_)  std::cout<<std::setfill(' ')<<std::setw(40) <<__STRING(_MSG_)<<" = 0b"<< ShowBit( _MSG_)  << std::endl
 #define SHOW_BIT(_MSG_)  std::cout<<std::setfill(' ')<<std::setw(40) <<__STRING(_MSG_)<<" = 0b"<< ShowBit( _MSG_)  << std::endl

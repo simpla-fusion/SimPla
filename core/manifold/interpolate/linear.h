@@ -36,8 +36,8 @@ private:
 	
 	typedef TGeo geometry_type;
 	
-	typedef typename geometry_type::id_type id;
-	
+	typedef typename TGeo::id_type id_t;
+
 	typedef Interpolate<geometry_type, pt::linear> this_type;
 
 	geometry_type const &m_geo_;
@@ -185,23 +185,23 @@ public:
 
 private:
 	template<typename TV>
-	DECLARE_FUNCTION_PREFIX TV sample_(std::integral_constant<int, VERTEX>, id s,
+	DECLARE_FUNCTION_PREFIX TV sample_(std::integral_constant<int, VERTEX>, id_t s,
 			TV const &v) DECLARE_FUNCTION_SUFFIX { return v; }
 	
 	template<typename TV>
-	DECLARE_FUNCTION_PREFIX TV sample_(std::integral_constant<int, VOLUME>, id s,
+	DECLARE_FUNCTION_PREFIX TV sample_(std::integral_constant<int, VOLUME>, id_t s,
 			TV const &v) DECLARE_FUNCTION_SUFFIX { return v; }
 	
 	template<typename TV>
 	DECLARE_FUNCTION_PREFIX TV sample_(std::integral_constant<int, EDGE>,
-			id s, nTuple<TV, 3> const &v) DECLARE_FUNCTION_SUFFIX { return v[geometry_type::sub_index(s)]; }
+			id_t s, nTuple<TV, 3> const &v) DECLARE_FUNCTION_SUFFIX { return v[geometry_type::sub_index(s)]; }
 	
 	template<typename TV>
 	DECLARE_FUNCTION_PREFIX TV sample_(std::integral_constant<int, FACE>,
-			id s, nTuple<TV, 3> const &v) DECLARE_FUNCTION_SUFFIX { return v[geometry_type::sub_index(s)]; }
+			id_t s, nTuple<TV, 3> const &v) DECLARE_FUNCTION_SUFFIX { return v[geometry_type::sub_index(s)]; }
 	
 	template<int IFORM, typename TV>
-	DECLARE_FUNCTION_PREFIX TV sample_(std::integral_constant<int, IFORM>, id s,
+	DECLARE_FUNCTION_PREFIX TV sample_(std::integral_constant<int, IFORM>, id_t s,
 			TV const &v) DECLARE_FUNCTION_SUFFIX { return v; }
 
 public:

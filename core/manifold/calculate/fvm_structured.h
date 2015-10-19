@@ -43,7 +43,7 @@ private:
 
 	typedef Calculate<geometry_type, ct::finite_volume> this_type;
 
-	typedef typename geometry_type::id_type id;
+	typedef typename geometry_type::id_type id_t;
 
 	geometry_type &m_geo_;
 
@@ -67,23 +67,23 @@ private:
 	/// @{
 	///***************************************************************************************************
 
-	constexpr Real eval(Real v, id s) DECLARE_FUNCTION_SUFFIX
+	constexpr Real eval(Real v, id_t s) DECLARE_FUNCTION_SUFFIX
 	{
 		return v;
 	}
 
-	constexpr int eval(int v, id s) DECLARE_FUNCTION_SUFFIX
+	constexpr int eval(int v, id_t s) DECLARE_FUNCTION_SUFFIX
 	{
 		return v;
 	}
 
-	constexpr std::complex<Real> eval(std::complex<Real> v, id s) DECLARE_FUNCTION_SUFFIX
+	constexpr std::complex<Real> eval(std::complex<Real> v, id_t s) DECLARE_FUNCTION_SUFFIX
 	{
 		return v;
 	}
 
 	template<typename T, size_t ...N>
-	constexpr nTuple<T, N...> const &eval(nTuple<T, N...> const &v, id s) DECLARE_FUNCTION_SUFFIX
+	constexpr nTuple<T, N...> const &eval(nTuple<T, N...> const &v, id_t s) DECLARE_FUNCTION_SUFFIX
 	{
 
 		return v;
@@ -91,7 +91,7 @@ private:
 
 	template<typename ...T>
 	DECLARE_FUNCTION_PREFIX traits::primary_type_t<nTuple<Expression<T...>>>
-	eval(nTuple<Expression<T...>> const &v, id s) DECLARE_FUNCTION_SUFFIX
+	eval(nTuple<Expression<T...>> const &v, id_t s) DECLARE_FUNCTION_SUFFIX
 	{
 		traits::primary_type_t<nTuple<Expression<T...> > > res;
 		res = v;
@@ -99,7 +99,7 @@ private:
 	}
 
 	template<typename TM, typename TV, typename ... Others, typename ... Args>
-	constexpr TV eval(Field<TM, TV, Others...> const &f, id s) DECLARE_FUNCTION_SUFFIX
+	constexpr TV eval(Field<TM, TV, Others...> const &f, id_t s) DECLARE_FUNCTION_SUFFIX
 	{
 		return traits::index(f, s);
 	}
@@ -107,7 +107,7 @@ private:
 	template<typename TOP, typename ... T>
 	constexpr traits::primary_type_t<
 			traits::value_type_t<Field<Expression<TOP, T...> >>>
-	eval(Field<Expression<TOP, T...> > const &expr, id const &s) DECLARE_FUNCTION_SUFFIX
+	eval(Field<Expression<TOP, T...> > const &expr, id_t const &s) DECLARE_FUNCTION_SUFFIX
 	{
 		return eval(expr, s, traits::iform_list_t<T...>());
 	}
@@ -115,7 +115,7 @@ private:
 
 	template<typename Expr, size_t ... index>
 	traits::primary_type_t<traits::value_type_t<Expr>> _invoke_helper(
-			Expr const &expr, id s, index_sequence<index...>) DECLARE_FUNCTION_SUFFIX
+			Expr const &expr, id_t s, index_sequence<index...>) DECLARE_FUNCTION_SUFFIX
 	{
 		traits::primary_type_t<traits::value_type_t<Expr>> res = (expr.m_op_(
 				eval(std::get<index>(expr.args), s)...));
@@ -126,7 +126,7 @@ private:
 
 	template<typename TOP, typename ... T>
 	constexpr traits::primary_type_t<traits::value_type_t<Field<Expression<TOP, T...> >>>
-	eval(Field<Expression<TOP, T...> > const &expr, id const &s, traits::iform_list_t<T...>) DECLARE_FUNCTION_SUFFIX
+	eval(Field<Expression<TOP, T...> > const &expr, id_t const &s, traits::iform_list_t<T...>) DECLARE_FUNCTION_SUFFIX
 	{
 		return _invoke_helper(expr, s, typename make_index_sequence<sizeof...(T)>::type());
 	}
@@ -141,9 +141,9 @@ private:
 	DECLARE_FUNCTION_PREFIX traits::value_type_t<
 			Field<Expression<ct::ExteriorDerivative, T>>>
 	eval(Field<Expression<ct::ExteriorDerivative, T> > const &f,
-			id s, integer_sequence<int, VERTEX>) DECLARE_FUNCTION_SUFFIX
+			id_t s, integer_sequence<int, VERTEX>) DECLARE_FUNCTION_SUFFIX
 	{
-		id D = geometry_type::delta_index(s);
+		id_t D = geometry_type::delta_index(s);
 		return (eval(std::get<0>(f.args), s + D) * m_geo_.volume(s + D)
 				- eval(std::get<0>(f.args), s - D) * m_geo_.volume(s - D))
 				* m_geo_.inv_volume(s);
@@ -153,12 +153,12 @@ private:
 	DECLARE_FUNCTION_PREFIX traits::value_type_t<
 			Field<Expression<ct::ExteriorDerivative, T>>>
 	eval(Field<Expression<ct::ExteriorDerivative, T> > const &expr,
-			id s, integer_sequence<int, EDGE>) DECLARE_FUNCTION_SUFFIX
+			id_t s, integer_sequence<int, EDGE>) DECLARE_FUNCTION_SUFFIX
 	{
 
-		id X = geometry_type::delta_index(geometry_type::dual(s));
-		id Y = geometry_type::rotate(X);
-		id Z = geometry_type::inverse_rotate(X);
+		id_t X = geometry_type::delta_index(geometry_type::dual(s));
+		id_t Y = geometry_type::rotate(X);
+		id_t Z = geometry_type::inverse_rotate(X);
 
 		return ((eval(std::get<0>(expr.args), s + Y) * m_geo_.volume(s + Y) //
 				- eval(std::get<0>(expr.args), s - Y) * m_geo_.volume(s - Y))
@@ -174,7 +174,7 @@ private:
 	constexpr DECLARE_FUNCTION_PREFIX traits::value_type_t<
 			Field<Expression<ct::ExteriorDerivative, T>>>
 	eval(Field<Expression<ct::ExteriorDerivative, T> > const &expr,
-			id s, integer_sequence<int, FACE>) DECLARE_FUNCTION_SUFFIX
+			id_t s, integer_sequence<int, FACE>) DECLARE_FUNCTION_SUFFIX
 	{
 		return (eval(std::get<0>(expr.args), s + geometry_type::_DI)
 				* m_geo_.volume(s + geometry_type::_DI)
@@ -204,7 +204,7 @@ private:
 	constexpr DECLARE_FUNCTION_PREFIX traits::value_type_t<
 			Field<Expression<ct::CodifferentialDerivative, T>>>
 	eval(Field<Expression<ct::CodifferentialDerivative, T>> const &expr,
-			id s, integer_sequence<int, EDGE>) DECLARE_FUNCTION_SUFFIX
+			 id_t  s, integer_sequence<int, EDGE>) DECLARE_FUNCTION_SUFFIX
 	{
 		return -(eval(std::get<0>(expr.args), s + geometry_type::_DI)
 				* m_geo_.dual_volume(s + geometry_type::_DI)
@@ -227,12 +227,12 @@ private:
 	DECLARE_FUNCTION_PREFIX traits::value_type_t<
 			Field<Expression<ct::CodifferentialDerivative, T>>>
 	eval(Field<Expression<ct::CodifferentialDerivative, T>> const &expr,
-			id s, integer_sequence<int, FACE>) DECLARE_FUNCTION_SUFFIX
+			 id_t  s, integer_sequence<int, FACE>) DECLARE_FUNCTION_SUFFIX
 	{
 
-		id X = geometry_type::delta_index(s);
-		id Y = geometry_type::rotate(X);
-		id Z = geometry_type::inverse_rotate(X);
+		id_t X = geometry_type::delta_index(s);
+		id_t Y = geometry_type::rotate(X);
+		id_t Z = geometry_type::inverse_rotate(X);
 
 		return
 
@@ -252,9 +252,9 @@ private:
 	DECLARE_FUNCTION_PREFIX traits::value_type_t<
 			Field<Expression<ct::CodifferentialDerivative, T>>>
 	eval(Field<Expression<ct::CodifferentialDerivative, T> > const &expr,
-			id s, integer_sequence<int, VOLUME>) DECLARE_FUNCTION_SUFFIX
+			 id_t  s, integer_sequence<int, VOLUME>) DECLARE_FUNCTION_SUFFIX
 	{
-		id D = geometry_type::delta_index(geometry_type::dual(s));
+		id_t D = geometry_type::delta_index(geometry_type::dual(s));
 		return -(eval(std::get<0>(expr.args), s + D) * (m_geo_.dual_volume(s + D)) //
 				- eval(std::get<0>(expr.args), s - D) * (m_geo_.dual_volume(s - D))
 		) * m_geo_.inv_dual_volume(s);
@@ -267,7 +267,7 @@ private:
 	template<typename TL, typename TR>
 	DECLARE_FUNCTION_PREFIX traits::value_type_t<Field<Expression<ct::Wedge, TL, TR>>>
 	eval(Field<Expression<ct::Wedge, TL, TR>> const &expr,
-			id s, integer_sequence<int, VERTEX, VERTEX>) DECLARE_FUNCTION_SUFFIX
+			 id_t  s, integer_sequence<int, VERTEX, VERTEX>) DECLARE_FUNCTION_SUFFIX
 	{
 		return (eval(std::get<0>(expr.args), s)
 				* eval(std::get<1>(expr.args), s));
@@ -276,7 +276,7 @@ private:
 	template<typename TL, typename TR>
 	DECLARE_FUNCTION_PREFIX traits::value_type_t<Field<Expression<ct::Wedge, TL, TR>>>
 	eval(Field<Expression<ct::Wedge, TL, TR>> const &expr,
-			id s, integer_sequence<int, VERTEX, EDGE>) DECLARE_FUNCTION_SUFFIX
+			 id_t  s, integer_sequence<int, VERTEX, EDGE>) DECLARE_FUNCTION_SUFFIX
 	{
 		auto X = geometry_type::delta_index(s);
 
@@ -288,7 +288,7 @@ private:
 	template<typename TL, typename TR>
 	DECLARE_FUNCTION_PREFIX traits::value_type_t<Field<Expression<ct::Wedge, TL, TR>>>
 	eval(Field<Expression<ct::Wedge, TL, TR>> const &expr,
-			id s, integer_sequence<int, VERTEX, FACE>) DECLARE_FUNCTION_SUFFIX
+			 id_t  s, integer_sequence<int, VERTEX, FACE>) DECLARE_FUNCTION_SUFFIX
 	{
 		auto X = geometry_type::delta_index(geometry_type::dual(s));
 		auto Y = geometry_type::rotate(X);
@@ -304,7 +304,7 @@ private:
 	template<typename TL, typename TR>
 	DECLARE_FUNCTION_PREFIX traits::value_type_t<Field<Expression<ct::Wedge, TL, TR>>>
 	eval(Field<Expression<ct::Wedge, TL, TR>> const &expr,
-			id s, integer_sequence<int, VERTEX, VOLUME>) DECLARE_FUNCTION_SUFFIX
+			 id_t  s, integer_sequence<int, VERTEX, VOLUME>) DECLARE_FUNCTION_SUFFIX
 	{
 
 		auto const &l = std::get<0>(expr.args);
@@ -336,7 +336,7 @@ private:
 	template<typename TL, typename TR>
 	DECLARE_FUNCTION_PREFIX traits::value_type_t<Field<Expression<ct::Wedge, TL, TR>>>
 	eval(Field<Expression<ct::Wedge, TL, TR>> const &expr,
-			id s, integer_sequence<int, EDGE, VERTEX>) DECLARE_FUNCTION_SUFFIX
+			 id_t  s, integer_sequence<int, EDGE, VERTEX>) DECLARE_FUNCTION_SUFFIX
 	{
 
 		auto const &l = std::get<0>(expr.args);
@@ -349,7 +349,7 @@ private:
 	template<typename TL, typename TR>
 	DECLARE_FUNCTION_PREFIX traits::value_type_t<Field<Expression<ct::Wedge, TL, TR>>>
 	eval(Field<Expression<ct::Wedge, TL, TR>> const &expr,
-			id s, integer_sequence<int, EDGE, EDGE>) DECLARE_FUNCTION_SUFFIX
+			 id_t  s, integer_sequence<int, EDGE, EDGE>) DECLARE_FUNCTION_SUFFIX
 	{
 		auto const &l = std::get<0>(expr.args);
 		auto const &r = std::get<1>(expr.args);
@@ -365,7 +365,7 @@ private:
 	template<typename TL, typename TR>
 	DECLARE_FUNCTION_PREFIX traits::value_type_t<Field<Expression<ct::Wedge, TL, TR>>>
 	eval(Field<Expression<ct::Wedge, TL, TR>> const &expr,
-			id s, integer_sequence<int, EDGE, FACE>) DECLARE_FUNCTION_SUFFIX
+			 id_t  s, integer_sequence<int, EDGE, FACE>) DECLARE_FUNCTION_SUFFIX
 	{
 		auto const &l = std::get<0>(expr.args);
 		auto const &r = std::get<1>(expr.args);
@@ -397,7 +397,7 @@ private:
 	template<typename TL, typename TR>
 	DECLARE_FUNCTION_PREFIX traits::value_type_t<Field<Expression<ct::Wedge, TL, TR>>>
 	eval(Field<Expression<ct::Wedge, TL, TR> > const &expr,
-			id s, integer_sequence<int, FACE, VERTEX>) DECLARE_FUNCTION_SUFFIX
+			 id_t  s, integer_sequence<int, FACE, VERTEX>) DECLARE_FUNCTION_SUFFIX
 	{
 		auto const &l = std::get<0>(expr.args);
 		auto const &r = std::get<1>(expr.args);
@@ -414,7 +414,7 @@ private:
 	template<typename TL, typename TR>
 	DECLARE_FUNCTION_PREFIX traits::value_type_t<Field<Expression<ct::Wedge, TL, TR>>>
 	eval(Field<Expression<ct::Wedge, TL, TR> > const &expr,
-			id s, integer_sequence<int, FACE, EDGE>) DECLARE_FUNCTION_SUFFIX
+			 id_t  s, integer_sequence<int, FACE, EDGE>) DECLARE_FUNCTION_SUFFIX
 	{
 		auto const &l = std::get<0>(expr.args);
 		auto const &r = std::get<1>(expr.args);
@@ -440,7 +440,7 @@ private:
 	template<typename TL, typename TR>
 	DECLARE_FUNCTION_PREFIX traits::value_type_t<Field<Expression<ct::Wedge, TL, TR>>>
 	eval(Field<Expression<ct::Wedge, TL, TR>> const &expr,
-			id s, integer_sequence<int, VOLUME, VERTEX>) DECLARE_FUNCTION_SUFFIX
+			id_t s, integer_sequence<int, VOLUME, VERTEX>) DECLARE_FUNCTION_SUFFIX
 	{
 		auto const &l = std::get<0>(expr.args);
 		auto const &r = std::get<1>(expr.args);

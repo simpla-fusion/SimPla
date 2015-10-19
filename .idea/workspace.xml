@@ -5,9 +5,10 @@
       <config projectName="SimPla" targetName="NightlyStart" />
       <config projectName="SimPla" targetName="Nightly" />
       <config projectName="SimPla" targetName="kinetic_particle_test" />
-      <config projectName="SimPla" targetName="geqdsk_convert" />
+      <config projectName="SimPla" targetName="memory_pool_test" />
       <config projectName="SimPla" targetName="NightlyBuild" />
       <config projectName="SimPla" targetName="demo_em_cylindrical" />
+      <config projectName="SimPla" targetName="ExperimentalStart" />
       <config projectName="SimPla" targetName="parallel" />
       <config projectName="SimPla" targetName="NightlyMemCheck" />
       <config projectName="SimPla" targetName="NightlyConfigure" />
@@ -15,13 +16,12 @@
       <config projectName="SimPla" targetName="NightlyCoverage" />
       <config projectName="SimPla" targetName="demo_general_field_op" />
       <config projectName="SimPla" targetName="probe_particle_test" />
+      <config projectName="SimPla" targetName="NightlyMemoryCheck" />
       <config projectName="SimPla" targetName="ExperimentalMemCheck" />
-      <config projectName="SimPla" targetName="demo_em" />
       <config projectName="SimPla" targetName="lua_state_test" />
-      <config projectName="SimPla" targetName="simpla" />
       <config projectName="SimPla" targetName="utilities" />
       <config projectName="SimPla" targetName="field_diff_calculus_cartesian_test" />
-      <config projectName="SimPla" targetName="NightlyTest" />
+      <config projectName="SimPla" targetName="NightlySubmit" />
       <config projectName="SimPla" targetName="dataset" />
       <config projectName="SimPla" targetName="ntuple_test" />
       <config projectName="SimPla" targetName="context" />
@@ -29,44 +29,44 @@
       <config projectName="SimPla" targetName="ExperimentalCoverage" />
       <config projectName="SimPla" targetName="Experimental" />
       <config projectName="SimPla" targetName="ContinuousUpdate" />
-      <config projectName="SimPla" targetName="simpla_aux" />
       <config projectName="SimPla" targetName="ContinuousConfigure" />
-      <config projectName="SimPla" targetName="demo_pic" />
       <config projectName="SimPla" targetName="ContinuousSubmit" />
+      <config projectName="SimPla" targetName="ExperimentalConfigure" />
       <config projectName="SimPla" targetName="io" />
       <config projectName="SimPla" targetName="ContinuousTest" />
-      <config projectName="SimPla" targetName="ExperimentalConfigure" />
+      <config projectName="SimPla" targetName="demo_em" />
       <config projectName="SimPla" targetName="docs" />
       <config projectName="SimPla" targetName="properties_test" />
       <config projectName="SimPla" targetName="demo_misc3" />
       <config projectName="SimPla" targetName="demo_misc2" />
       <config projectName="SimPla" targetName="ExperimentalTest" />
-      <config projectName="SimPla" targetName="geqdsk" />
+      <config projectName="SimPla" targetName="demo_pic" />
       <config projectName="SimPla" targetName="field_diff_calculus_cylindrical_test" />
       <config projectName="SimPla" targetName="ContinuousStart" />
-      <config projectName="SimPla" targetName="ExperimentalStart" />
+      <config projectName="SimPla" targetName="geqdsk" />
       <config projectName="SimPla" targetName="application" />
       <config projectName="SimPla" targetName="multi_thread_test" />
-      <config projectName="SimPla" targetName="ContinuousBuild" />
+      <config projectName="SimPla" targetName="simpla" />
       <config projectName="SimPla" targetName="Continuous" />
       <config projectName="SimPla" targetName="demo_misc" />
-      <config projectName="SimPla" targetName="NightlyUpdate" />
+      <config projectName="SimPla" targetName="simpla_aux" />
       <config projectName="SimPla" targetName="physics" />
       <config projectName="SimPla" targetName="demo_mhd" />
-      <config projectName="SimPla" targetName="NightlySubmit" />
+      <config projectName="SimPla" targetName="NightlyUpdate" />
       <config projectName="SimPla" targetName="log_test" />
       <config projectName="SimPla" targetName="ExperimentalUpdate" />
       <config projectName="SimPla" targetName="demo_model" />
       <config projectName="SimPla" targetName="demo" />
-      <config projectName="SimPla" targetName="NightlyMemoryCheck" />
+      <config projectName="SimPla" targetName="ContinuousBuild" />
       <config projectName="SimPla" targetName="ContinuousMemCheck" />
       <config projectName="SimPla" targetName="ExperimentalSubmit" />
       <config projectName="SimPla" targetName="all_clion" />
       <config projectName="SimPla" targetName="demo_probe_particle" />
+      <config projectName="SimPla" targetName="NightlyTest" />
       <config projectName="SimPla" targetName="ContinuousCoverage" />
       <config projectName="SimPla" targetName="lhw" />
       <config projectName="SimPla" targetName="ExperimentalBuild" />
-      <config projectName="SimPla" targetName="memory_pool_test" />
+      <config projectName="SimPla" targetName="geqdsk_convert" />
       <config projectName="SimPla" targetName="demo_geometry" />
     </generated>
   </component>
@@ -77,8 +77,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8efbd43d-8992-43f8-9555-f0e951692589" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/SimPla.iml" afterPath="$PROJECT_DIR$/.idea/SimPla.iml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/policy/dataset.h" afterPath="$PROJECT_DIR$/core/manifold/policy/dataset.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/gtl/utilities/memory_pool.cpp" afterPath="$PROJECT_DIR$/core/gtl/utilities/memory_pool.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/example/pic/demo_pic.h" afterPath="$PROJECT_DIR$/example/pic/demo_pic.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/fiber_bundle.h" afterPath="$PROJECT_DIR$/core/manifold/fiber_bundle.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/calculate/fvm_structured.h" afterPath="$PROJECT_DIR$/core/manifold/calculate/fvm_structured.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/geometry/geometry.h" afterPath="$PROJECT_DIR$/core/manifold/geometry/geometry.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/interpolate/linear.h" afterPath="$PROJECT_DIR$/core/manifold/interpolate/linear.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/gtl/utilities/log.h" afterPath="$PROJECT_DIR$/core/gtl/utilities/log.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/particle/particle_container.h" afterPath="$PROJECT_DIR$/core/particle/particle_container.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/gtl/containers/unordered_set.h" afterPath="$PROJECT_DIR$/core/gtl/containers/unordered_set.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
@@ -101,12 +108,14 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="particle_container.h" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/core/particle/particle_container.h">
+      <file leaf-file-name="unordered_set.h" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/core/gtl/containers/unordered_set.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="4.9687138">
-              <caret line="288" column="22" selection-start-line="288" selection-start-column="8" selection-end-line="288" selection-end-column="22" />
-              <folding />
+            <state vertical-scroll-proportion="0.2912482">
+              <caret line="95" column="36" selection-start-line="95" selection-start-column="36" selection-end-line="95" selection-end-column="36" />
+              <folding>
+                <element signature="e#1757#1770#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -126,21 +135,17 @@
       <list>
         <option value="$PROJECT_DIR$/core/particle/kinetic_particle.h" />
         <option value="$PROJECT_DIR$/core/manifold/fiber_bundle/fiber_bundle.h" />
-        <option value="$PROJECT_DIR$/core/manifold/geometry/geometry.h" />
         <option value="$PROJECT_DIR$/core/parallel/mpi_comm.cpp" />
         <option value="$PROJECT_DIR$/core/parallel/mpi_comm.h" />
         <option value="$PROJECT_DIR$/core/parallel/mpi_datatype.h" />
         <option value="$PROJECT_DIR$/core/parallel/distributed_array.cpp" />
         <option value="$PROJECT_DIR$/core/manifold/manifold.h" />
-        <option value="$PROJECT_DIR$/core/manifold/calculate/fvm_structured.h" />
-        <option value="$PROJECT_DIR$/core/manifold/interpolate/linear.h" />
         <option value="$PROJECT_DIR$/core/manifold/time_integrator/time_integrator.h" />
         <option value="$PROJECT_DIR$/core/parallel/distributed.cpp" />
         <option value="$PROJECT_DIR$/core/parallel/distributed_unordered_set.h" />
         <option value="$PROJECT_DIR$/core/parallel/CMakeLists.txt" />
         <option value="$PROJECT_DIR$/core/parallel/distributed.h" />
         <option value="$PROJECT_DIR$/core/parallel/distributed_array.h" />
-        <option value="$PROJECT_DIR$/core/manifold/fiber_bundle.h" />
         <option value="$PROJECT_DIR$/core/field/field_dense.h" />
         <option value="$PROJECT_DIR$/core/manifold/domain.h" />
         <option value="$PROJECT_DIR$/core/manifold/policy/parallel.h" />
@@ -152,12 +157,17 @@
         <option value="$PROJECT_DIR$/core/dataset/dataspace.h" />
         <option value="$PROJECT_DIR$/core/parallel/distributed_object.cpp" />
         <option value="$PROJECT_DIR$/core/parallel/mpi_datatype.cpp" />
-        <option value="$PROJECT_DIR$/example/pic/demo_pic.h" />
         <option value="$PROJECT_DIR$/core/dataset/dataset.h" />
-        <option value="$PROJECT_DIR$/core/particle/particle_container.h" />
-        <option value="$PROJECT_DIR$/core/manifold/policy/dataset.h" />
-        <option value="$PROJECT_DIR$/core/gtl/containers/unordered_set.h" />
         <option value="$PROJECT_DIR$/core/gtl/utilities/memory_pool.cpp" />
+        <option value="$PROJECT_DIR$/core/manifold/policy/dataset.h" />
+        <option value="$PROJECT_DIR$/core/gtl/utilities/log.h" />
+        <option value="$PROJECT_DIR$/core/manifold/geometry/geometry.h" />
+        <option value="$PROJECT_DIR$/core/manifold/fiber_bundle.h" />
+        <option value="$PROJECT_DIR$/example/pic/demo_pic.h" />
+        <option value="$PROJECT_DIR$/core/manifold/calculate/fvm_structured.h" />
+        <option value="$PROJECT_DIR$/core/manifold/interpolate/linear.h" />
+        <option value="$PROJECT_DIR$/core/particle/particle_container.h" />
+        <option value="$PROJECT_DIR$/core/gtl/containers/unordered_set.h" />
       </list>
     </option>
   </component>
@@ -170,10 +180,10 @@
   </component>
   <component name="OCFindUsagesOptions" text="true" ivars="false" properties="true" derivedClasses="false" />
   <component name="ProjectFrameBounds">
-    <option name="x" value="2558" />
+    <option name="x" value="1918" />
     <option name="y" value="-23" />
-    <option name="width" value="2564" />
-    <option name="height" value="1467" />
+    <option name="width" value="1924" />
+    <option name="height" value="1107" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="false">
     <OptionsSetting value="true" id="Add" />
@@ -244,7 +254,117 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
+              <option name="myItemId" value="example" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SimPla" />
+              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SimPla" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SimPla" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="example" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="pic" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SimPla" />
+              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SimPla" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SimPla" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
               <option name="myItemId" value="core" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SimPla" />
+              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SimPla" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SimPla" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="core" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="particle" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SimPla" />
+              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SimPla" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SimPla" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="core" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="manifold" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SimPla" />
+              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SimPla" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SimPla" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="core" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="manifold" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="geometry" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -255,7 +375,7 @@
   <component name="PropertiesComponent">
     <property name="recentsLimit" value="5" />
     <property name="FullScreen" value="true" />
-    <property name="settings.editor.selected.configurable" value="preferences.sourceCode.C/C++" />
+    <property name="settings.editor.selected.configurable" value="reference.settingsdialog.IDE.editor.colors.Font" />
     <property name="settings.editor.splitter.proportion" value="0.2" />
   </component>
   <component name="RecentsManager">
@@ -266,7 +386,7 @@
       <recent name="$PROJECT_DIR$/core/parallel/trash" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.demo_em">
+  <component name="RunManager" selected="Application.demo_pic">
     <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="SimPla" TARGET_NAME="all_clion" CONFIG_NAME="Debug">
       <envs />
       <method />
@@ -648,20 +768,19 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="2558" y="-23" width="2564" height="1467" extended-state="6" />
+    <frame x="1918" y="-23" width="1924" height="1107" extended-state="6" />
     <editor active="false" />
     <layout>
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.1875" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.34444445" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="CMake" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="LuaJ" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32847223" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.1875" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="LuaJ" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32916668" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32777777" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
@@ -669,6 +788,7 @@
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32916668" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
@@ -691,25 +811,11 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/core/gtl/containers/unordered_set.h</url>
-          <line>515</line>
-          <option name="timeStamp" value="7" />
-        </line-breakpoint>
-      </breakpoints>
-      <option name="time" value="8" />
+      <option name="time" value="10" />
     </breakpoint-manager>
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file:///usr/include/c++/4.8/typeindex">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.68860054">
-          <caret line="85" column="4" selection-start-line="85" selection-start-column="4" selection-end-line="85" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/core/dataset/datatype.cpp">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.33271548">
@@ -729,7 +835,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.33287004">
           <caret line="140" column="6" selection-start-line="140" selection-start-column="6" selection-end-line="140" selection-end-column="6" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -737,7 +842,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.33287004">
           <caret line="621" column="8" selection-start-line="621" selection-start-column="8" selection-end-line="621" selection-end-column="8" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -745,7 +849,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.11118832">
           <caret line="10" column="9" selection-start-line="10" selection-start-column="9" selection-end-line="10" selection-end-column="9" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -775,132 +878,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.88229054">
           <caret line="74" column="0" selection-start-line="74" selection-start-column="0" selection-end-line="74" selection-end-column="0" />
-          <folding>
-            <marker date="1445027322113" expanded="true" signature="-1:-1" placeholder="/.../" />
-            <marker date="1445027322113" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1445027322113" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1445027322113" expanded="true" signature="-1:-1" placeholder="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/manifold/calculate/fvm_structured.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.47507954">
-          <caret line="61" column="4" selection-start-line="61" selection-start-column="4" selection-end-line="61" selection-end-column="21" />
-          <folding>
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445224977660" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224977660" expanded="false" signature="-1:-1" placeholder="&lt;...&gt;" />
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445224977660" expanded="false" signature="-1:-1" placeholder="&lt;TGeo&gt;" />
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="&lt;TDict&gt;" />
-            <marker date="1445224977660" expanded="false" signature="-1:-1" placeholder="&lt;OS&gt;" />
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224977660" expanded="false" signature="-1:-1" placeholder="&lt;T,size_t...N&gt;" />
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224977660" expanded="false" signature="-1:-1" placeholder="&lt;...T&gt;" />
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224977660" expanded="false" signature="-1:-1" placeholder="&lt;TM,TV,...Others,...Args&gt;" />
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224977660" expanded="false" signature="-1:-1" placeholder="&lt;TOP,...T&gt;" />
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224977660" expanded="false" signature="-1:-1" placeholder="&lt;Expr,size_t...index&gt;" />
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224977660" expanded="false" signature="-1:-1" placeholder="&lt;TOP,...T&gt;" />
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224977660" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224977660" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224977660" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224977660" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224977660" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224977660" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224977660" expanded="false" signature="-1:-1" placeholder="&lt;TL,TR&gt;" />
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224977660" expanded="false" signature="-1:-1" placeholder="&lt;TL,TR&gt;" />
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224977660" expanded="false" signature="-1:-1" placeholder="&lt;TL,TR&gt;" />
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224977660" expanded="false" signature="-1:-1" placeholder="&lt;TL,TR&gt;" />
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224977660" expanded="false" signature="-1:-1" placeholder="&lt;TL,TR&gt;" />
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224977660" expanded="false" signature="-1:-1" placeholder="&lt;TL,TR&gt;" />
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224977660" expanded="false" signature="-1:-1" placeholder="&lt;TL,TR&gt;" />
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224977660" expanded="false" signature="-1:-1" placeholder="&lt;TL,TR&gt;" />
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224977660" expanded="false" signature="-1:-1" placeholder="&lt;TL,TR&gt;" />
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224977660" expanded="false" signature="-1:-1" placeholder="&lt;TL,TR&gt;" />
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224977660" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224977660" expanded="false" signature="-1:-1" placeholder="&lt;...Args&gt;" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/manifold/interpolate/linear.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.6447508">
-          <caret line="56" column="0" selection-start-line="56" selection-start-column="0" selection-end-line="56" selection-end-column="0" />
-          <folding>
-            <marker date="1445225001724" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445225001724" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445225001724" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445225001724" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445225001724" expanded="false" signature="-1:-1" placeholder="&lt;TGeo&gt;" />
-            <marker date="1445225001724" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445225001724" expanded="true" signature="-1:-1" placeholder="&lt;TDict&gt;" />
-            <marker date="1445225001724" expanded="false" signature="-1:-1" placeholder="&lt;OS&gt;" />
-            <marker date="1445225001724" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445225001724" expanded="false" signature="-1:-1" placeholder="&lt;TD,TIDX&gt;" />
-            <marker date="1445225001724" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445225001724" expanded="false" signature="-1:-1" placeholder="&lt;TF,TX&gt;" />
-            <marker date="1445225001724" expanded="false" signature="-1:-1" placeholder="&lt;TF&gt;" />
-            <marker date="1445225001724" expanded="false" signature="-1:-1" placeholder="&lt;TF&gt;" />
-            <marker date="1445225001724" expanded="false" signature="-1:-1" placeholder="&lt;TF&gt;" />
-            <marker date="1445225001724" expanded="false" signature="-1:-1" placeholder="&lt;TF,IDX,TV&gt;" />
-            <marker date="1445225001724" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445225001724" expanded="false" signature="-1:-1" placeholder="&lt;TF,TX,TV&gt;" />
-            <marker date="1445225001724" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445225001724" expanded="false" signature="-1:-1" placeholder="&lt;TF,TX,TV&gt;" />
-            <marker date="1445225001724" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445225001724" expanded="false" signature="-1:-1" placeholder="&lt;TF,TX,TV&gt;" />
-            <marker date="1445225001724" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445225001724" expanded="false" signature="-1:-1" placeholder="&lt;TF,TX,TV&gt;" />
-            <marker date="1445225001724" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445225001724" expanded="false" signature="-1:-1" placeholder="&lt;TF,...Args&gt;" />
-            <marker date="1445225001724" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445225001724" expanded="false" signature="-1:-1" placeholder="&lt;TV&gt;" />
-            <marker date="1445225001724" expanded="false" signature="-1:-1" placeholder="&lt;TV&gt;" />
-            <marker date="1445225001724" expanded="false" signature="-1:-1" placeholder="&lt;TV&gt;" />
-            <marker date="1445225001724" expanded="false" signature="-1:-1" placeholder="&lt;TV&gt;" />
-            <marker date="1445225001724" expanded="false" signature="-1:-1" placeholder="&lt;int IFORM,TV&gt;" />
-            <marker date="1445225001724" expanded="false" signature="-1:-1" placeholder="&lt;int IFORM,...Args&gt;" />
-            <marker date="1445225001724" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445225001724" expanded="true" signature="-1:-1" placeholder="{...}" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -908,21 +885,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.7126193">
           <caret line="42" column="4" selection-start-line="42" selection-start-column="4" selection-end-line="42" selection-end-column="4" />
-          <folding>
-            <marker date="1445225058656" expanded="true" signature="-1:-1" placeholder="//..." />
-            <marker date="1445225058656" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445225058656" expanded="false" signature="-1:-1" placeholder="&lt;...&gt;" />
-            <marker date="1445225058656" expanded="false" signature="-1:-1" placeholder="&lt;TGeo,...Policy&gt;" />
-            <marker date="1445225058656" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445225058656" expanded="true" signature="-1:-1" placeholder="&lt;TDict&gt;" />
-            <marker date="1445225058656" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445225058656" expanded="false" signature="-1:-1" placeholder="&lt;OS&gt;" />
-            <marker date="1445225058656" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445225058656" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445225058656" expanded="false" signature="-1:-1" placeholder="&lt;...T&gt;" />
-            <marker date="1445225058656" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445225058656" expanded="true" signature="-1:-1" placeholder="{...}" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -930,7 +892,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0174482">
           <caret line="1" column="73" selection-start-line="1" selection-start-column="73" selection-end-line="1" selection-end-column="73" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -938,15 +899,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.44114527">
           <caret line="32" column="0" selection-start-line="32" selection-start-column="0" selection-end-line="32" selection-end-column="0" />
-          <folding>
-            <marker date="1445224696186" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445224696186" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1445224696186" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224696186" expanded="true" signature="-1:-1" placeholder="/.../" />
-            <marker date="1445224696186" expanded="true" signature="-1:-1" placeholder="&lt;&gt;" />
-            <marker date="1445224696186" expanded="true" signature="-1:-1" placeholder="&lt;TConnection&gt;" />
-            <marker date="1445224696186" expanded="true" signature="-1:-1" placeholder="{...}" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -954,13 +906,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-0.45811242">
           <caret line="21" column="10" selection-start-line="21" selection-start-column="10" selection-end-line="21" selection-end-column="10" />
-          <folding>
-            <marker date="1445224743851" expanded="true" signature="-1:-1" placeholder="/.../" />
-            <marker date="1445224743851" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1445224743851" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224743851" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
-            <marker date="1445224743851" expanded="true" signature="-1:-1" placeholder="{...}" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -968,19 +913,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.1104934">
           <caret line="17" column="7" selection-start-line="17" selection-start-column="7" selection-end-line="17" selection-end-column="7" />
-          <folding>
-            <marker date="1445224613118" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445224613118" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1445224613118" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224613118" expanded="false" signature="-1:-1" placeholder="&lt;...&gt;" />
-            <marker date="1445224613118" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224613118" expanded="false" signature="-1:-1" placeholder="&lt;...Args&gt;" />
-            <marker date="1445224613118" expanded="false" signature="-1:-1" placeholder="&lt;...Args&gt;" />
-            <marker date="1445224613118" expanded="false" signature="-1:-1" placeholder="&lt;TBase&gt;" />
-            <marker date="1445224613118" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224613118" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224613118" expanded="false" signature="-1:-1" placeholder="&lt;TConnection&gt;" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -988,33 +920,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.33297986">
           <caret line="145" column="35" selection-start-line="145" selection-start-column="35" selection-end-line="145" selection-end-column="35" />
-          <folding>
-            <marker date="1445221878289" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445221878289" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1445221878289" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445221878289" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445221878289" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445221878289" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445221878289" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445221878289" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445221878289" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445221878289" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445221878289" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445221878289" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445221878289" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445221878289" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445221878289" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445221878289" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445221878289" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445221878289" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445221878289" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445221878289" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445221878289" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445221878289" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445221878289" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445221878289" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445221878289" expanded="true" signature="-1:-1" placeholder="{...}" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1022,10 +927,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.16967127">
           <caret line="10" column="9" selection-start-line="10" selection-start-column="9" selection-end-line="10" selection-end-column="9" />
-          <folding>
-            <marker date="1444950811857" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1444950811857" expanded="true" signature="-1:-1" placeholder="..." />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1033,24 +934,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.07847296">
           <caret line="106" column="7" selection-start-line="106" selection-start-column="7" selection-end-line="106" selection-end-column="7" />
-          <folding>
-            <marker date="1445039411809" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445039411809" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1445039411809" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445039411809" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445039411809" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445039411809" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
-            <marker date="1445039411809" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445039411809" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445039411809" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
-            <marker date="1445039411809" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
-            <marker date="1445039411809" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
-            <marker date="1445039411809" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
-            <marker date="1445039411809" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445039411809" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445039411809" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445039411809" expanded="true" signature="-1:-1" placeholder="{...}" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1058,56 +941,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.29813665">
           <caret line="26" column="4" selection-start-line="26" selection-start-column="4" selection-end-line="26" selection-end-column="4" />
-          <folding>
-            <marker date="1444967566223" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1444967566223" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1444967566223" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444967566223" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444967566223" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1444967566223" expanded="false" signature="-1:-1" placeholder="&lt;...&gt;" />
-            <marker date="1444967566223" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1444967566223" expanded="false" signature="-1:-1" placeholder="&lt;...&gt;" />
-            <marker date="1444967566223" expanded="false" signature="-1:-1" placeholder="&lt;...T&gt;" />
-            <marker date="1444967566223" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444967566223" expanded="false" signature="-1:-1" placeholder="&lt;...T&gt;" />
-            <marker date="1444967566223" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444967566223" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1444967566223" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444967566223" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
-            <marker date="1444967566223" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
-            <marker date="1444967566223" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
-            <marker date="1444967566223" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
-            <marker date="1444967566223" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
-            <marker date="1444967566223" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
-            <marker date="1444967566223" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
-            <marker date="1444967566223" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
-            <marker date="1444967566223" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
-            <marker date="1444967566223" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
-            <marker date="1444967566223" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
-            <marker date="1444967566223" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
-            <marker date="1444967566223" expanded="false" signature="-1:-1" placeholder="&lt;...T&gt;" />
-            <marker date="1444967566223" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444967566223" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444967566223" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
-            <marker date="1444967566223" expanded="false" signature="-1:-1" placeholder="&lt;...T&gt;" />
-            <marker date="1444967566223" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
-            <marker date="1444967566223" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444967566223" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
-            <marker date="1444967566223" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
-            <marker date="1444967566223" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444967566223" expanded="false" signature="-1:-1" placeholder="&lt;...T&gt;" />
-            <marker date="1444967566223" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444967566223" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
-            <marker date="1444967566223" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444967566223" expanded="false" signature="-1:-1" placeholder="&lt;TM,...T&gt;" />
-            <marker date="1444967566223" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444967566223" expanded="false" signature="-1:-1" placeholder="&lt;...T&gt;" />
-            <marker date="1444967566223" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444967566223" expanded="false" signature="-1:-1" placeholder="&lt;...T&gt;" />
-            <marker date="1444967566223" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444967566223" expanded="false" signature="-1:-1" placeholder="&lt;...T&gt;" />
-            <marker date="1444967566223" expanded="true" signature="-1:-1" placeholder="{...}" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1115,27 +948,306 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.7619048">
           <caret line="51" column="0" selection-start-line="51" selection-start-column="0" selection-end-line="51" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/manifold/domain.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-3.2360249">
+          <caret line="64" column="0" selection-start-line="64" selection-start-column="0" selection-end-line="64" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/parallel/distributed_unordered_set.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.33297986">
+          <caret line="55" column="34" selection-start-line="55" selection-start-column="24" selection-end-line="55" selection-end-column="34" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/particle/obsolete/kinetic_particle.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.016967127">
+          <caret line="31" column="59" selection-start-line="31" selection-start-column="59" selection-end-line="31" selection-end-column="59" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/particle/obsolete/particle_constraint.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.24461432">
+          <caret line="28" column="0" selection-start-line="28" selection-start-column="0" selection-end-line="28" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/particle/particle_generator.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-0.99027103">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/particle/particle.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.14454482">
+          <caret line="13" column="16" selection-start-line="13" selection-start-column="16" selection-end-line="13" selection-end-column="16" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/dataset/datatype_ext.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-0.9851538">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/parallel/distributed_object.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.2836439">
+          <caret line="25" column="13" selection-start-line="25" selection-start-column="13" selection-end-line="25" selection-end-column="13" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/parallel/mpi_update.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.23188406">
+          <caret line="18" column="21" selection-start-line="18" selection-start-column="21" selection-end-line="18" selection-end-column="21" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/manifold/pre_define/riemannian.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.35630965">
+          <caret line="21" column="0" selection-start-line="21" selection-start-column="0" selection-end-line="21" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/manifold/domain_operation.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-2.1887593">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/dataset/dataspace.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.38388124">
+          <caret line="143" column="18" selection-start-line="143" selection-start-column="18" selection-end-line="143" selection-end-column="18" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/parallel/distributed_object.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.79639447">
+          <caret line="203" column="53" selection-start-line="203" selection-start-column="53" selection-end-line="203" selection-end-column="53" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/parallel/mpi_datatype.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.50795335">
+          <caret line="46" column="27" selection-start-line="46" selection-start-column="27" selection-end-line="46" selection-end-column="27" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/dataset/dataspace.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.33297986">
+          <caret line="28" column="6" selection-start-line="28" selection-start-column="6" selection-end-line="28" selection-end-column="6" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/parallel/mpi_datatype.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.48654243">
+          <caret line="218" column="4" selection-start-line="218" selection-start-column="4" selection-end-line="218" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/example/pic/demo_pic.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.30540827">
+          <caret line="18" column="0" selection-start-line="18" selection-start-column="0" selection-end-line="18" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/manifold/topology/topology_common.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/gtl/utilities/memory_pool.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.33371958">
+          <caret line="42" column="26" selection-start-line="42" selection-start-column="26" selection-end-line="42" selection-end-column="26" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/dataset/dataset.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.49655172">
+          <caret line="49" column="0" selection-start-line="49" selection-start-column="0" selection-end-line="50" selection-end-column="0" />
           <folding>
-            <marker date="1445224900248" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445224900248" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1445224900248" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224900248" expanded="false" signature="-1:-1" placeholder="&lt;...&gt;" />
-            <marker date="1445224900248" expanded="false" signature="-1:-1" placeholder="&lt;TGeo,...Policies&gt;" />
-            <marker date="1445224900248" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224900248" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224900248" expanded="false" signature="-1:-1" placeholder="&lt;TDict&gt;" />
-            <marker date="1445224900248" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224900248" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224900248" expanded="false" signature="-1:-1" placeholder="&lt;OS&gt;" />
-            <marker date="1445224900248" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445240590700" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1445240590700" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1445240590700" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445240590700" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1445240590700" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1445240590700" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445240590700" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445240590700" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
+            <marker date="1445240590700" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
+            <marker date="1445240590700" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445240590700" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
+            <marker date="1445240590700" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/manifold/policy/parallel.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.9406897">
+          <caret line="72" column="6" selection-start-line="72" selection-start-column="6" selection-end-line="72" selection-end-column="6" />
+          <folding>
+            <marker date="1445235798464" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1445235798464" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1445235798464" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445235798464" expanded="false" signature="-1:-1" placeholder="&lt;...&gt;" />
+            <marker date="1445235798464" expanded="false" signature="-1:-1" placeholder="&lt;TGeo&gt;" />
+            <marker date="1445235798464" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445235798464" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445235798464" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445235798464" expanded="false" signature="-1:-1" placeholder="&lt;TDict&gt;" />
+            <marker date="1445235798464" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445235798464" expanded="false" signature="-1:-1" placeholder="&lt;OS&gt;" />
+            <marker date="1445235798464" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445235798464" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445235798464" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445235798464" expanded="false" signature="-1:-1" placeholder="&lt;int IFORM&gt;" />
+            <marker date="1445235798464" expanded="false" signature="-1:-1" placeholder="&lt;TGeo&gt;" />
+            <marker date="1445235798464" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445235798464" expanded="false" signature="-1:-1" placeholder="&lt;TGeo&gt;" />
+            <marker date="1445235798464" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445235798464" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445235798464" expanded="false" signature="-1:-1" placeholder="&lt;TGeo&gt;" />
+            <marker date="1445235798464" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445235798464" expanded="true" signature="-1:-1" placeholder="{...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/manifold/topology/structured.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="//..." />
+            <marker date="1445028288721" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445028288721" expanded="false" signature="-1:-1" placeholder="&lt;...&gt;" />
+            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445028288721" expanded="false" signature="-1:-1" placeholder="&lt;TDict&gt;" />
+            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445028288721" expanded="false" signature="-1:-1" placeholder="&lt;OS&gt;" />
+            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445028288721" expanded="false" signature="-1:-1" placeholder="&lt;TI&gt;" />
+            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445028288721" expanded="false" signature="-1:-1" placeholder="&lt;size_t IFORM&gt;" />
+            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445028288721" expanded="false" signature="-1:-1" placeholder="&lt;size_t IFORM&gt;" />
+            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445028288721" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
+            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445028288721" expanded="false" signature="-1:-1" placeholder="&lt;int I&gt;" />
+            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445028288721" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1445028288721" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+            <marker date="1445028288721" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/manifold/policy/dataset.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="1.5296552">
+          <caret line="60" column="47" selection-start-line="60" selection-start-column="47" selection-end-line="60" selection-end-column="47" />
+          <folding>
+            <marker date="1445259447705" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1445259447705" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1445259447705" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445259447705" expanded="false" signature="-1:-1" placeholder="&lt;...&gt;" />
+            <marker date="1445259447705" expanded="false" signature="-1:-1" placeholder="&lt;TGeo&gt;" />
+            <marker date="1445259447705" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445259447705" expanded="false" signature="-1:-1" placeholder="&lt;TDict&gt;" />
+            <marker date="1445259447705" expanded="false" signature="-1:-1" placeholder="&lt;OS&gt;" />
+            <marker date="1445259447705" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445259447705" expanded="false" signature="-1:-1" placeholder="&lt;size_t IFORM&gt;" />
+            <marker date="1445259447705" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445259447705" expanded="false" signature="-1:-1" placeholder="&lt;size_t IFORM&gt;" />
+            <marker date="1445259447705" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445259447705" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445259447705" expanded="false" signature="-1:-1" placeholder="&lt;TGeo&gt;" />
+            <marker date="1445259447705" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445259447705" expanded="true" signature="-1:-1" placeholder="{...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/gtl/utilities/log.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.33384854">
+          <caret line="238" column="0" selection-start-line="238" selection-start-column="0" selection-end-line="238" selection-end-column="0" />
+          <folding>
+            <marker date="1445259537441" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1445259537441" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1445259537441" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445259537441" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445259537441" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1445259537441" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445259537441" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1445259537441" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445259537441" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
+            <marker date="1445259537441" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445259537441" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445259537441" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445259537441" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445259537441" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1445259537441" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445259537441" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445259537441" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1445259537441" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445259537441" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445259537441" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445259537441" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445259537441" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445259537441" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445259537441" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1445259537441" expanded="false" signature="-1:-1" placeholder="..." />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/core/field/field_dense.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.53234357">
-          <caret line="99" column="9" selection-start-line="99" selection-start-column="9" selection-end-line="99" selection-end-column="9" />
+        <state vertical-scroll-proportion="0.59971714">
+          <caret line="302" column="0" selection-start-line="302" selection-start-column="0" selection-end-line="302" selection-end-column="0" />
           <folding>
             <marker date="1445235642219" expanded="true" signature="-1:-1" placeholder="/**...*/" />
             <marker date="1445235642219" expanded="false" signature="-1:-1" placeholder="..." />
@@ -1200,813 +1312,299 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/core/manifold/domain.h">
+    <entry file="file://$PROJECT_DIR$/core/manifold/geometry/geometry.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-3.2360249">
-          <caret line="64" column="0" selection-start-line="64" selection-start-column="0" selection-end-line="64" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.33239037">
+          <caret line="269" column="14" selection-start-line="269" selection-start-column="12" selection-end-line="269" selection-end-column="14" />
           <folding>
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445235756384" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="false" signature="-1:-1" placeholder="&lt;...&gt;" />
-            <marker date="1445235756384" expanded="false" signature="-1:-1" placeholder="&lt;...&gt;" />
-            <marker date="1445235756384" expanded="false" signature="-1:-1" placeholder="&lt;TM&gt;" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="false" signature="-1:-1" placeholder="&lt;int IFORM&gt;" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="false" signature="-1:-1" placeholder="&lt;int IFORM&gt;" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="false" signature="-1:-1" placeholder="&lt;int IFORM,TI&gt;" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="false" signature="-1:-1" placeholder="&lt;int IFORM,TI&gt;" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="false" signature="-1:-1" placeholder="&lt;TFun&gt;" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="false" signature="-1:-1" placeholder="&lt;TFun&gt;" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="false" signature="-1:-1" placeholder="&lt;TFun&gt;" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="false" signature="-1:-1" placeholder="&lt;TI&gt;" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="false" signature="-1:-1" placeholder="&lt;T0,T1&gt;" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="false" signature="-1:-1" placeholder="&lt;TPred&gt;" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="false" signature="-1:-1" placeholder="&lt;TPred&gt;" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="false" signature="-1:-1" placeholder="&lt;Tit&gt;" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="false" signature="-1:-1" placeholder="&lt;Pred&gt;" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="false" signature="-1:-1" placeholder="&lt;TM,int IFORM&gt;" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="false" signature="-1:-1" placeholder="&lt;...Args&gt;" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="false" signature="-1:-1" placeholder="&lt;...Args&gt;" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235756384" expanded="true" signature="-1:-1" placeholder="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/manifold/policy/parallel.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.93955463">
-          <caret line="72" column="6" selection-start-line="72" selection-start-column="6" selection-end-line="72" selection-end-column="6" />
-          <folding>
-            <marker date="1445235798464" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445235798464" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1445235798464" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235798464" expanded="false" signature="-1:-1" placeholder="&lt;...&gt;" />
-            <marker date="1445235798464" expanded="false" signature="-1:-1" placeholder="&lt;TGeo&gt;" />
-            <marker date="1445235798464" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235798464" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235798464" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235798464" expanded="false" signature="-1:-1" placeholder="&lt;TDict&gt;" />
-            <marker date="1445235798464" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235798464" expanded="false" signature="-1:-1" placeholder="&lt;OS&gt;" />
-            <marker date="1445235798464" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235798464" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235798464" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235798464" expanded="false" signature="-1:-1" placeholder="&lt;int IFORM&gt;" />
-            <marker date="1445235798464" expanded="false" signature="-1:-1" placeholder="&lt;TGeo&gt;" />
-            <marker date="1445235798464" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235798464" expanded="false" signature="-1:-1" placeholder="&lt;TGeo&gt;" />
-            <marker date="1445235798464" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235798464" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235798464" expanded="false" signature="-1:-1" placeholder="&lt;TGeo&gt;" />
-            <marker date="1445235798464" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445235798464" expanded="true" signature="-1:-1" placeholder="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/parallel/distributed_unordered_set.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.33297986">
-          <caret line="55" column="34" selection-start-line="55" selection-start-column="24" selection-end-line="55" selection-end-column="34" />
-          <folding>
-            <marker date="1445209797454" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445209797454" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1445209797454" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445209797454" expanded="false" signature="-1:-1" placeholder="&lt;...&gt;" />
-            <marker date="1445209797454" expanded="false" signature="-1:-1" placeholder="&lt;TV,...Others,TRange&gt;" />
-            <marker date="1445209797454" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445209797454" expanded="false" signature="-1:-1" placeholder="&lt;TConnection&gt;" />
-            <marker date="1445209797454" expanded="false" signature="-1:-1" placeholder="&lt;Hash&gt;" />
-            <marker date="1445209797454" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445209797454" expanded="false" signature="-1:-1" placeholder="&lt;TV,...Others&gt;" />
-            <marker date="1445209797454" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445209797454" expanded="false" signature="-1:-1" placeholder="&lt;TV,...Others&gt;" />
-            <marker date="1445209797454" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445209797454" expanded="false" signature="-1:-1" placeholder="&lt;TV,...Others&gt;" />
-            <marker date="1445209797454" expanded="false" signature="-1:-1" placeholder="&lt;TCoonection&gt;" />
-            <marker date="1445209797454" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445209797454" expanded="false" signature="-1:-1" placeholder="&lt;TV,...Others&gt;" />
-            <marker date="1445209797454" expanded="false" signature="-1:-1" placeholder="&lt;Hash&gt;" />
-            <marker date="1445209797454" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261718789" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1445261718789" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1445261718789" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261718789" expanded="false" signature="-1:-1" placeholder="&lt;...&gt;" />
+            <marker date="1445261718789" expanded="false" signature="-1:-1" placeholder="&lt;CS,TopologyTags&gt;" />
+            <marker date="1445261718789" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261718789" expanded="false" signature="-1:-1" placeholder="&lt;TDict&gt;" />
+            <marker date="1445261718789" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261718789" expanded="false" signature="-1:-1" placeholder="&lt;OS&gt;" />
+            <marker date="1445261718789" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261718789" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261718789" expanded="false" signature="-1:-1" placeholder="&lt;X0,X1&gt;" />
+            <marker date="1445261718789" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261718789" expanded="false" signature="-1:-1" placeholder="&lt;T0&gt;" />
+            <marker date="1445261718789" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261718789" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261718789" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261718789" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1445261718789" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261718789" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261718789" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1445261718789" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261718789" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261718789" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261718789" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261718789" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261718789" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261718789" expanded="false" signature="-1:-1" placeholder="&lt;TFun&gt;" />
+            <marker date="1445261718789" expanded="false" signature="-1:-1" placeholder="&lt;TFun&gt;" />
+            <marker date="1445261718789" expanded="false" signature="-1:-1" placeholder="&lt;TX&gt;" />
+            <marker date="1445261718789" expanded="false" signature="-1:-1" placeholder="&lt;TX&gt;" />
+            <marker date="1445261718789" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1445261718789" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261718789" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261718789" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261718789" expanded="false" signature="-1:-1" placeholder="&lt;CS,TopologyTags&gt;" />
+            <marker date="1445261718789" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261718789" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1445261718789" expanded="true" signature="-1:-1" placeholder="/**...*/" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/core/manifold/fiber_bundle.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.2545069">
-          <caret line="15" column="36" selection-start-line="15" selection-start-column="36" selection-end-line="15" selection-end-column="36" />
+        <state vertical-scroll-proportion="-1.1711457">
+          <caret line="39" column="13" selection-start-line="39" selection-start-column="13" selection-end-line="39" selection-end-column="13" />
           <folding>
-            <marker date="1445234440517" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445234440517" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445234440517" expanded="false" signature="-1:-1" placeholder="&lt;...&gt;" />
-            <marker date="1445234440517" expanded="true" signature="-1:-1" placeholder="&lt;...&gt;" />
-            <marker date="1445234440517" expanded="true" signature="-1:-1" placeholder="&lt;P,TBase&gt;" />
-            <marker date="1445234440517" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445234440517" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445234440517" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445234440517" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445234440517" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445234440517" expanded="false" signature="-1:-1" placeholder="&lt;...Args&gt;" />
-            <marker date="1445234440517" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445234440517" expanded="false" signature="-1:-1" placeholder="&lt;TV,...Args&gt;" />
-            <marker date="1445234440517" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445234440517" expanded="false" signature="-1:-1" placeholder="&lt;...Args&gt;" />
-            <marker date="1445234440517" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445234440517" expanded="false" signature="-1:-1" placeholder="&lt;TJ,...Args&gt;" />
-            <marker date="1445234440517" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445234440517" expanded="false" signature="-1:-1" placeholder="&lt;TF,...Args&gt;" />
-            <marker date="1445234440517" expanded="false" signature="-1:-1" placeholder="&lt;...Args&gt;" />
-            <marker date="1445234440517" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445234440517" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/particle/obsolete/kinetic_particle.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.016967127">
-          <caret line="31" column="59" selection-start-line="31" selection-start-column="59" selection-end-line="31" selection-end-column="59" />
-          <folding>
-            <marker date="1445152828376" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445152828376" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1445152828376" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445152828376" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445152828376" expanded="false" signature="-1:-1" placeholder="&lt;TDomain,TPoint_s&gt;" />
-            <marker date="1445152828376" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445152828376" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445152828376" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445152828376" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445152828376" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445152828376" expanded="false" signature="-1:-1" placeholder="&lt;TDomain,TPoint_s&gt;" />
-            <marker date="1445152828376" expanded="false" signature="-1:-1" placeholder="&lt;TDomain,TPoint_s&gt;" />
-            <marker date="1445152828376" expanded="false" signature="-1:-1" placeholder="&lt;TDomain,TPoint_s&gt;" />
-            <marker date="1445152828376" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445152828376" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445152828376" expanded="false" signature="-1:-1" placeholder="&lt;Engine,TDomain,...Others&gt;" />
-            <marker date="1445152828376" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
-            <marker date="1445152828376" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
-            <marker date="1445152828376" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
-            <marker date="1445152828376" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445152828376" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
-            <marker date="1445152828376" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
-            <marker date="1445152828376" expanded="false" signature="-1:-1" placeholder="&lt;TDomain,Engine&gt;" />
-            <marker date="1445152828376" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445152828376" expanded="false" signature="-1:-1" placeholder="&lt;...Args&gt;" />
-            <marker date="1445152828376" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445152828376" expanded="false" signature="-1:-1" placeholder="&lt;TDict,...Others&gt;" />
-            <marker date="1445152828376" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445152828376" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445152828376" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445152828376" expanded="false" signature="-1:-1" placeholder="&lt;...Args&gt;" />
-            <marker date="1445152828376" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445152828376" expanded="false" signature="-1:-1" placeholder="&lt;TFun,...Args&gt;" />
-            <marker date="1445152828376" expanded="false" signature="-1:-1" placeholder="&lt;...Args&gt;" />
-            <marker date="1445152828376" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445152828376" expanded="false" signature="-1:-1" placeholder="&lt;...Args&gt;" />
-            <marker date="1445152828376" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445152828376" expanded="false" signature="-1:-1" placeholder="&lt;TIterator&gt;" />
-            <marker date="1445152828376" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445152828376" expanded="false" signature="-1:-1" placeholder="&lt;Engine,TDomain&gt;" />
-            <marker date="1445152828376" expanded="false" signature="-1:-1" placeholder="&lt;...Args&gt;" />
-            <marker date="1445152828376" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445152828376" expanded="false" signature="-1:-1" placeholder="&lt;Engine,TDomain&gt;" />
-            <marker date="1445152828376" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445152828376" expanded="false" signature="-1:-1" placeholder="&lt;Engine,TDomain&gt;" />
-            <marker date="1445152828376" expanded="false" signature="-1:-1" placeholder="&lt;TDict,...Others&gt;" />
-            <marker date="1445152828376" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445152828376" expanded="false" signature="-1:-1" placeholder="&lt;Engine,TDomain&gt;" />
-            <marker date="1445152828376" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445152828376" expanded="false" signature="-1:-1" placeholder="&lt;Engine,TDomain&gt;" />
-            <marker date="1445152828376" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445152828376" expanded="false" signature="-1:-1" placeholder="&lt;Engine,TDomain&gt;" />
-            <marker date="1445152828376" expanded="false" signature="-1:-1" placeholder="&lt;TFun,...Args&gt;" />
-            <marker date="1445152828376" expanded="true" signature="-1:-1" placeholder="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/particle/obsolete/particle_constraint.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.24461432">
-          <caret line="28" column="0" selection-start-line="28" selection-start-column="0" selection-end-line="28" selection-end-column="0" />
-          <folding>
-            <marker date="1445236311946" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445236311946" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1445236311946" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445236311946" expanded="false" signature="-1:-1" placeholder="&lt;...&gt;" />
-            <marker date="1445236311946" expanded="false" signature="-1:-1" placeholder="&lt;TM,Engine,Policy=PolicyReflectSurface&gt;" />
-            <marker date="1445236311946" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445236311946" expanded="false" signature="-1:-1" placeholder="&lt;Func&gt;" />
-            <marker date="1445236311946" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445236311946" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445236311946" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445236311946" expanded="true" signature="-1:-1" placeholder="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/particle/particle_generator.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-0.99027103">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <marker date="1445036100777" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445036100777" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445036100777" expanded="false" signature="-1:-1" placeholder="&lt;Engine,XRandomEngine,VRandomEngine,DistFunction=Real&gt;" />
-            <marker date="1445036100777" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445036100777" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
-            <marker date="1445036100777" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445036100777" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445036100777" expanded="false" signature="-1:-1" placeholder="&lt;TRNDGen&gt;" />
-            <marker date="1445036100777" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445036100777" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
-            <marker date="1445036100777" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
-            <marker date="1445036100777" expanded="false" signature="-1:-1" placeholder="&lt;TRNDGen&gt;" />
-            <marker date="1445036100777" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445036100777" expanded="false" signature="-1:-1" placeholder="&lt;TRNDGen&gt;" />
-            <marker date="1445036100777" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445036100777" expanded="false" signature="-1:-1" placeholder="&lt;TRNDGen&gt;" />
-            <marker date="1445036100777" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
-            <marker date="1445036100777" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445036100777" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445036100777" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445036100777" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445036100777" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445036100777" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445036100777" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445036100777" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445036100777" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445036100777" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445036100777" expanded="false" signature="-1:-1" placeholder="&lt;TRNDGen&gt;" />
-            <marker date="1445036100777" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445036100777" expanded="false" signature="-1:-1" placeholder="&lt;TRNDGen&gt;" />
-            <marker date="1445036100777" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445036100777" expanded="false" signature="-1:-1" placeholder="&lt;EngineType,XGen,VGen&gt;" />
-            <marker date="1445036100777" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445036100777" expanded="false" signature="-1:-1" placeholder="&lt;EngineType,XGen,VGen,DistFun&gt;" />
-            <marker date="1445036100777" expanded="true" signature="-1:-1" placeholder="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/particle/particle.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.14454482">
-          <caret line="13" column="16" selection-start-line="13" selection-start-column="16" selection-end-line="13" selection-end-column="16" />
-          <folding>
-            <marker date="1445236901489" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445236901489" expanded="true" signature="-1:-1" placeholder="..." />
-            <marker date="1445236901489" expanded="true" signature="-1:-1" placeholder="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/dataset/datatype_ext.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-0.9851538">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <marker date="1445039523477" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445039523477" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1445039523477" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445039523477" expanded="true" signature="-1:-1" placeholder="/.../" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/parallel/distributed_object.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.2836439">
-          <caret line="25" column="13" selection-start-line="25" selection-start-column="13" selection-end-line="25" selection-end-column="13" />
-          <folding>
-            <marker date="1445237849922" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445237849922" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1445237849922" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445237849922" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445237849922" expanded="false" signature="-1:-1" placeholder="&lt;...Args&gt;" />
-            <marker date="1445237849922" expanded="false" signature="-1:-1" placeholder="&lt;...Args&gt;" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/parallel/mpi_update.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.23188406">
-          <caret line="18" column="21" selection-start-line="18" selection-start-column="21" selection-end-line="18" selection-end-column="21" />
-          <folding>
-            <marker date="1445060555892" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445060555892" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1445060555892" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445060555892" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445060555892" expanded="true" signature="-1:-1" placeholder="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/manifold/pre_define/riemannian.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.35630965">
-          <caret line="21" column="0" selection-start-line="21" selection-start-column="0" selection-end-line="21" selection-end-column="0" />
-          <folding>
-            <marker date="1445238412565" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445238412565" expanded="true" signature="-1:-1" placeholder="..." />
-            <marker date="1445238412565" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445238412565" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445238412565" expanded="false" signature="-1:-1" placeholder="&lt;int NDIMS&gt;" />
-            <marker date="1445238412565" expanded="false" signature="-1:-1" placeholder="&lt;int NDIMS&gt;" />
-            <marker date="1445238412565" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/manifold/domain_operation.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-2.1887593">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <marker date="1444943688074" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1444943688074" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1444943688074" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444943688074" expanded="false" signature="-1:-1" placeholder="&lt;...&gt;" />
-            <marker date="1444943688074" expanded="false" signature="-1:-1" placeholder="&lt;TM,int IFORM,TPred&gt;" />
-            <marker date="1444943688074" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444943688074" expanded="false" signature="-1:-1" placeholder="&lt;TM,int IFORM,Tit&gt;" />
-            <marker date="1444943688074" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444943688074" expanded="false" signature="-1:-1" placeholder="&lt;TM,int IFORM,Pred&gt;" />
-            <marker date="1444943688074" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444943688074" expanded="false" signature="-1:-1" placeholder="&lt;TM,int IFORM&gt;" />
-            <marker date="1444943688074" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
-            <marker date="1444943688074" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444943688074" expanded="false" signature="-1:-1" placeholder="&lt;TM,int IFORM,T0,T1&gt;" />
-            <marker date="1444943688074" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444943688074" expanded="false" signature="-1:-1" placeholder="&lt;TM,int IFORM,TPred&gt;" />
-            <marker date="1444943688074" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444943688074" expanded="false" signature="-1:-1" placeholder="&lt;TM,int IFORM,TFun&gt;" />
-            <marker date="1444943688074" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444943688074" expanded="false" signature="-1:-1" placeholder="&lt;TM,int IFORM,TFun&gt;" />
-            <marker date="1444943688074" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444943688074" expanded="false" signature="-1:-1" placeholder="&lt;TM,int IFORM,TFun&gt;" />
-            <marker date="1444943688074" expanded="true" signature="-1:-1" placeholder="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/dataset/dataspace.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.38388124">
-          <caret line="143" column="18" selection-start-line="143" selection-start-column="18" selection-end-line="143" selection-end-column="18" />
-          <folding>
-            <marker date="1445001170963" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445001170963" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1445001170963" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445001170963" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445001170963" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445001170963" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445001170963" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445001170963" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445001170963" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445001170963" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445001170963" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445001170963" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445001170963" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445001170963" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445001170963" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445001170963" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445001170963" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445001170963" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445001170963" expanded="true" signature="-1:-1" placeholder="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/parallel/distributed_object.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.79639447">
-          <caret line="203" column="53" selection-start-line="203" selection-start-column="53" selection-end-line="203" selection-end-column="53" />
-          <folding>
-            <marker date="1445238898535" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445238898535" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1445238898535" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445238898535" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445238898535" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445238898535" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445238898535" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445238898535" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445238898535" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445238898535" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445238898535" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445238898535" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445238898535" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445238898535" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445238898535" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445238898535" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445238898535" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445238898535" expanded="true" signature="-1:-1" placeholder="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/parallel/mpi_datatype.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.50795335">
-          <caret line="46" column="27" selection-start-line="46" selection-start-column="27" selection-end-line="46" selection-end-column="27" />
-          <folding>
-            <marker date="1445224730207" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445224730207" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1445224730207" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224730207" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224730207" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445224730207" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224730207" expanded="false" signature="-1:-1" placeholder="&lt;T,...Others&gt;" />
-            <marker date="1445224730207" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445224730207" expanded="true" signature="-1:-1" placeholder="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/dataset/dataspace.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.33297986">
-          <caret line="28" column="6" selection-start-line="28" selection-start-column="6" selection-end-line="28" selection-end-column="6" />
-          <folding>
-            <marker date="1445238482049" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445238482049" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1445238482049" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445238482049" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445238482049" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445238482049" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445238482049" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445238482049" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445238482049" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445238482049" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445238482049" expanded="false" signature="-1:-1" placeholder="&lt;...Args&gt;" />
-            <marker date="1445238482049" expanded="true" signature="-1:-1" placeholder="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/parallel/mpi_datatype.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.48654243">
-          <caret line="218" column="4" selection-start-line="218" selection-start-column="4" selection-end-line="218" selection-end-column="4" />
-          <folding>
-            <marker date="1445239792392" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445239792392" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1445239792392" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445239792392" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445239792392" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445239792392" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445239792392" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445239792392" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445239792392" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261771629" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1445261771629" expanded="true" signature="-1:-1" placeholder="..." />
+            <marker date="1445261771629" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261771629" expanded="false" signature="-1:-1" placeholder="&lt;...&gt;" />
+            <marker date="1445261771629" expanded="false" signature="-1:-1" placeholder="&lt;...&gt;" />
+            <marker date="1445261771629" expanded="false" signature="-1:-1" placeholder="&lt;P,TBase&gt;" />
+            <marker date="1445261771629" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261771629" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261771629" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261771629" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261771629" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261771629" expanded="false" signature="-1:-1" placeholder="&lt;...Args&gt;" />
+            <marker date="1445261771629" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261771629" expanded="false" signature="-1:-1" placeholder="&lt;TV,...Args&gt;" />
+            <marker date="1445261771629" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261771629" expanded="false" signature="-1:-1" placeholder="&lt;...Args&gt;" />
+            <marker date="1445261771629" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261771629" expanded="false" signature="-1:-1" placeholder="&lt;TJ,...Args&gt;" />
+            <marker date="1445261771629" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261771629" expanded="false" signature="-1:-1" placeholder="&lt;TF,...Args&gt;" />
+            <marker date="1445261771629" expanded="false" signature="-1:-1" placeholder="&lt;...Args&gt;" />
+            <marker date="1445261771629" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261771629" expanded="true" signature="-1:-1" placeholder="/**...*/" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/example/pic/demo_pic.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.016563147">
-          <caret line="39" column="7" selection-start-line="39" selection-start-column="7" selection-end-line="39" selection-end-column="7" />
+        <state vertical-scroll-proportion="0.688826">
+          <caret line="115" column="25" selection-start-line="115" selection-start-column="25" selection-end-line="115" selection-end-column="25" />
           <folding>
-            <marker date="1445240110825" expanded="true" signature="-1:-1" placeholder="/.../" />
-            <marker date="1445240110825" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1445240110825" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445240110825" expanded="false" signature="-1:-1" placeholder="&lt;...&gt;" />
-            <marker date="1445240110825" expanded="false" signature="-1:-1" placeholder="&lt;TBase&gt;" />
-            <marker date="1445240110825" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445240110825" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445240110825" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445240110825" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445240110825" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445240110825" expanded="false" signature="-1:-1" placeholder="&lt;...Args&gt;" />
-            <marker date="1445240110825" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445240110825" expanded="false" signature="-1:-1" placeholder="&lt;TV,...Args&gt;" />
-            <marker date="1445240110825" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445240110825" expanded="false" signature="-1:-1" placeholder="&lt;...Args&gt;" />
-            <marker date="1445240110825" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445240110825" expanded="false" signature="-1:-1" placeholder="&lt;TE,TB,TJ&gt;" />
-            <marker date="1445240110825" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261778557" expanded="true" signature="-1:-1" placeholder="/.../" />
+            <marker date="1445261778557" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1445261778557" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261778557" expanded="false" signature="-1:-1" placeholder="&lt;...&gt;" />
+            <marker date="1445261778557" expanded="false" signature="-1:-1" placeholder="&lt;TBase&gt;" />
+            <marker date="1445261778557" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261778557" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261778557" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261778557" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261778557" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261778557" expanded="false" signature="-1:-1" placeholder="&lt;...Args&gt;" />
+            <marker date="1445261778557" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261778557" expanded="false" signature="-1:-1" placeholder="&lt;TV,...Args&gt;" />
+            <marker date="1445261778557" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261778557" expanded="false" signature="-1:-1" placeholder="&lt;...Args&gt;" />
+            <marker date="1445261778557" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261778557" expanded="false" signature="-1:-1" placeholder="&lt;...Args&gt;" />
+            <marker date="1445261778557" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261778557" expanded="false" signature="-1:-1" placeholder="&lt;TE,TB,TJ&gt;" />
+            <marker date="1445261778557" expanded="true" signature="-1:-1" placeholder="{...}" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/example/pic/demo_pic.cpp">
+    <entry file="file://$PROJECT_DIR$/core/manifold/calculate/fvm_structured.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.30540827">
-          <caret line="18" column="0" selection-start-line="18" selection-start-column="0" selection-end-line="18" selection-end-column="0" />
+        <state vertical-scroll-proportion="3.66">
+          <caret line="155" column="16" selection-start-line="155" selection-start-column="16" selection-end-line="155" selection-end-column="16" />
           <folding>
-            <marker date="1445236333266" expanded="true" signature="-1:-1" placeholder="/.../" />
-            <marker date="1445236333266" expanded="true" signature="-1:-1" placeholder="..." />
-            <marker date="1445236333266" expanded="true" signature="-1:-1" placeholder="//..." />
-            <marker date="1445236333266" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445236333266" expanded="true" signature="-1:-1" placeholder="/.../" />
+            <marker date="1445261885333" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1445261885333" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1445261885333" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261885333" expanded="false" signature="-1:-1" placeholder="&lt;...&gt;" />
+            <marker date="1445261885333" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1445261885333" expanded="false" signature="-1:-1" placeholder="&lt;TGeo&gt;" />
+            <marker date="1445261885333" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261885333" expanded="false" signature="-1:-1" placeholder="&lt;TDict&gt;" />
+            <marker date="1445261885333" expanded="false" signature="-1:-1" placeholder="&lt;OS&gt;" />
+            <marker date="1445261885333" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261885333" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261885333" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261885333" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261885333" expanded="false" signature="-1:-1" placeholder="&lt;T,size_t...N&gt;" />
+            <marker date="1445261885333" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261885333" expanded="false" signature="-1:-1" placeholder="&lt;...T&gt;" />
+            <marker date="1445261885333" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261885333" expanded="false" signature="-1:-1" placeholder="&lt;TM,TV,...Others,...Args&gt;" />
+            <marker date="1445261885333" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261885333" expanded="false" signature="-1:-1" placeholder="&lt;TOP,...T&gt;" />
+            <marker date="1445261885333" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1445261885333" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261885333" expanded="false" signature="-1:-1" placeholder="&lt;Expr,size_t...index&gt;" />
+            <marker date="1445261885333" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261885333" expanded="false" signature="-1:-1" placeholder="&lt;TOP,...T&gt;" />
+            <marker date="1445261885333" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261885333" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
+            <marker date="1445261885333" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1445261885333" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261885333" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
+            <marker date="1445261885333" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1445261885333" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261885333" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
+            <marker date="1445261885333" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1445261885333" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261885333" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
+            <marker date="1445261885333" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1445261885333" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261885333" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
+            <marker date="1445261885333" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1445261885333" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261885333" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
+            <marker date="1445261885333" expanded="true" signature="-1:-1" placeholder="&lt;~&gt;" />
+            <marker date="1445261885333" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261885333" expanded="false" signature="-1:-1" placeholder="&lt;TL,TR&gt;" />
+            <marker date="1445261885333" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261885333" expanded="false" signature="-1:-1" placeholder="&lt;TL,TR&gt;" />
+            <marker date="1445261885333" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261885333" expanded="false" signature="-1:-1" placeholder="&lt;TL,TR&gt;" />
+            <marker date="1445261885333" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261885333" expanded="false" signature="-1:-1" placeholder="&lt;TL,TR&gt;" />
+            <marker date="1445261885333" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261885333" expanded="false" signature="-1:-1" placeholder="&lt;TL,TR&gt;" />
+            <marker date="1445261885333" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261885333" expanded="false" signature="-1:-1" placeholder="&lt;TL,TR&gt;" />
+            <marker date="1445261885333" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261885333" expanded="false" signature="-1:-1" placeholder="&lt;TL,TR&gt;" />
+            <marker date="1445261885333" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261885333" expanded="false" signature="-1:-1" placeholder="&lt;TL,TR&gt;" />
+            <marker date="1445261885333" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261885333" expanded="false" signature="-1:-1" placeholder="&lt;TL,TR&gt;" />
+            <marker date="1445261885333" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261885333" expanded="false" signature="-1:-1" placeholder="&lt;TL,TR&gt;" />
+            <marker date="1445261885333" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261885333" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261885333" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261885333" expanded="false" signature="-1:-1" placeholder="&lt;...Args&gt;" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/core/dataset/dataset.h">
+    <entry file="file://$PROJECT_DIR$/core/manifold/interpolate/linear.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.016563147">
-          <caret line="42" column="7" selection-start-line="42" selection-start-column="7" selection-end-line="42" selection-end-column="7" />
+        <state vertical-scroll-proportion="0.73570323">
+          <caret line="39" column="4" selection-start-line="39" selection-start-column="4" selection-end-line="39" selection-end-column="4" />
           <folding>
-            <marker date="1445240590700" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445240590700" expanded="true" signature="-1:-1" placeholder="..." />
-            <marker date="1445240590700" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445240590700" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445240590700" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445240590700" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445240590700" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445240590700" expanded="true" signature="-1:-1" placeholder="&lt;T&gt;" />
-            <marker date="1445240590700" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
-            <marker date="1445240590700" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445240590700" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
-            <marker date="1445240590700" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/manifold/topology/topology_common.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <marker date="1444968403720" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1444968403720" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444968403720" expanded="false" signature="-1:-1" placeholder="&lt;...&gt;" />
-            <marker date="1444968403720" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444968403720" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444968403720" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444968403720" expanded="false" signature="-1:-1" placeholder="&lt;TAG&gt;" />
-            <marker date="1444968403720" expanded="true" signature="-1:-1" placeholder="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/manifold/topology/structured.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-0.8447205">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="//..." />
-            <marker date="1445028288721" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445028288721" expanded="false" signature="-1:-1" placeholder="&lt;...&gt;" />
-            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445028288721" expanded="false" signature="-1:-1" placeholder="&lt;TDict&gt;" />
-            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445028288721" expanded="false" signature="-1:-1" placeholder="&lt;OS&gt;" />
-            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445028288721" expanded="false" signature="-1:-1" placeholder="&lt;TI&gt;" />
-            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445028288721" expanded="false" signature="-1:-1" placeholder="&lt;size_t IFORM&gt;" />
-            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445028288721" expanded="false" signature="-1:-1" placeholder="&lt;size_t IFORM&gt;" />
-            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445028288721" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
-            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445028288721" expanded="false" signature="-1:-1" placeholder="&lt;int I&gt;" />
-            <marker date="1445028288721" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445028288721" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
-            <marker date="1445028288721" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
-            <marker date="1445028288721" expanded="false" signature="-1:-1" placeholder="&lt;&gt;" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/manifold/policy/dataset.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-0.29813665">
-          <caret line="49" column="13" selection-start-line="49" selection-start-column="13" selection-end-line="49" selection-end-column="13" />
-          <folding>
-            <marker date="1445241115114" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445241115114" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1445241115114" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241115114" expanded="false" signature="-1:-1" placeholder="&lt;...&gt;" />
-            <marker date="1445241115114" expanded="false" signature="-1:-1" placeholder="&lt;TGeo&gt;" />
-            <marker date="1445241115114" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241115114" expanded="false" signature="-1:-1" placeholder="&lt;TDict&gt;" />
-            <marker date="1445241115114" expanded="false" signature="-1:-1" placeholder="&lt;OS&gt;" />
-            <marker date="1445241115114" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241115114" expanded="false" signature="-1:-1" placeholder="&lt;size_t IFORM&gt;" />
-            <marker date="1445241115114" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241115114" expanded="false" signature="-1:-1" placeholder="&lt;size_t IFORM&gt;" />
-            <marker date="1445241115114" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241115114" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241115114" expanded="false" signature="-1:-1" placeholder="&lt;TGeo&gt;" />
-            <marker date="1445241115114" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241115114" expanded="true" signature="-1:-1" placeholder="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/gtl/utilities/log.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.2836439">
-          <caret line="235" column="8" selection-start-line="235" selection-start-column="8" selection-end-line="235" selection-end-column="8" />
-          <folding>
-            <marker date="1444820967221" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1444820967221" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1444820967221" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444820967221" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444820967221" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1444820967221" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444820967221" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1444820967221" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444820967221" expanded="false" signature="-1:-1" placeholder="&lt;T&gt;" />
-            <marker date="1444820967221" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444820967221" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444820967221" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444820967221" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444820967221" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1444820967221" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444820967221" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444820967221" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1444820967221" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444820967221" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444820967221" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444820967221" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444820967221" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444820967221" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1444820967221" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1444820967221" expanded="false" signature="-1:-1" placeholder="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/gtl/containers/unordered_set.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="1.3151796">
-          <caret line="512" column="22" selection-start-line="512" selection-start-column="22" selection-end-line="512" selection-end-column="22" />
-          <folding>
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="/.../" />
-            <marker date="1445241226943" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445241226943" expanded="false" signature="-1:-1" placeholder="&lt;T,BucketKeyType=size_t,Allocator=std::allocator&lt;T&gt;&gt;" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="false" signature="-1:-1" placeholder="&lt;TRange&gt;" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="false" signature="-1:-1" placeholder="&lt;TV&gt;" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="false" signature="-1:-1" placeholder="&lt;TV,Hash&gt;" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="false" signature="-1:-1" placeholder="&lt;TV,Hash&gt;" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="false" signature="-1:-1" placeholder="&lt;InputIter,Hash&gt;" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="false" signature="-1:-1" placeholder="&lt;Hash&gt;" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="false" signature="-1:-1" placeholder="&lt;InputIter,Hash&gt;" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="false" signature="-1:-1" placeholder="&lt;...Others&gt;" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="false" signature="-1:-1" placeholder="&lt;IputIterator&gt;" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="false" signature="-1:-1" placeholder="&lt;TRange&gt;" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445241226943" expanded="false" signature="-1:-1" placeholder="&lt;BucketInputIter&gt;" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="false" signature="-1:-1" placeholder="&lt;TRange&gt;" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445241226943" expanded="false" signature="-1:-1" placeholder="&lt;Hash&gt;" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="false" signature="-1:-1" placeholder="&lt;TRange,Hash&gt;" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="false" signature="-1:-1" placeholder="&lt;Hash&gt;" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="false" signature="-1:-1" placeholder="&lt;TFun&gt;" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="false" signature="-1:-1" placeholder="&lt;TFun&gt;" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="false" signature="-1:-1" placeholder="&lt;TFun&gt;" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="false" signature="-1:-1" placeholder="&lt;TRange&gt;" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="false" signature="-1:-1" placeholder="&lt;T,BucketKeyType,Allocator&gt;" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241226943" expanded="false" signature="-1:-1" placeholder="&lt;T,BucketKeyType,Allocator&gt;" />
-            <marker date="1445241226943" expanded="true" signature="-1:-1" placeholder="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/gtl/utilities/memory_pool.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.33371958">
-          <caret line="42" column="26" selection-start-line="42" selection-start-column="26" selection-end-line="42" selection-end-column="26" />
-          <folding>
-            <marker date="1445241264887" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445241264887" expanded="false" signature="-1:-1" placeholder="..." />
-            <marker date="1445241264887" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241264887" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241264887" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241264887" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241264887" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241264887" expanded="true" signature="-1:-1" placeholder="/**...*/" />
-            <marker date="1445241264887" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241264887" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241264887" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241264887" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241264887" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241264887" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241264887" expanded="true" signature="-1:-1" placeholder="{...}" />
-            <marker date="1445241264887" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261967189" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1445261967189" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261967189" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1445261967189" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1445261967189" expanded="false" signature="-1:-1" placeholder="&lt;TGeo&gt;" />
+            <marker date="1445261967189" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261967189" expanded="false" signature="-1:-1" placeholder="&lt;TDict&gt;" />
+            <marker date="1445261967189" expanded="false" signature="-1:-1" placeholder="&lt;OS&gt;" />
+            <marker date="1445261967189" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261967189" expanded="false" signature="-1:-1" placeholder="&lt;TD,TIDX&gt;" />
+            <marker date="1445261967189" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261967189" expanded="false" signature="-1:-1" placeholder="&lt;TF,TX&gt;" />
+            <marker date="1445261967189" expanded="false" signature="-1:-1" placeholder="&lt;TF&gt;" />
+            <marker date="1445261967189" expanded="false" signature="-1:-1" placeholder="&lt;TF&gt;" />
+            <marker date="1445261967189" expanded="false" signature="-1:-1" placeholder="&lt;TF&gt;" />
+            <marker date="1445261967189" expanded="false" signature="-1:-1" placeholder="&lt;TF,IDX,TV&gt;" />
+            <marker date="1445261967189" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261967189" expanded="false" signature="-1:-1" placeholder="&lt;TF,TX,TV&gt;" />
+            <marker date="1445261967189" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261967189" expanded="false" signature="-1:-1" placeholder="&lt;TF,TX,TV&gt;" />
+            <marker date="1445261967189" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261967189" expanded="false" signature="-1:-1" placeholder="&lt;TF,TX,TV&gt;" />
+            <marker date="1445261967189" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261967189" expanded="false" signature="-1:-1" placeholder="&lt;TF,TX,TV&gt;" />
+            <marker date="1445261967189" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261967189" expanded="false" signature="-1:-1" placeholder="&lt;TF,...Args&gt;" />
+            <marker date="1445261967189" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261967189" expanded="false" signature="-1:-1" placeholder="&lt;TV&gt;" />
+            <marker date="1445261967189" expanded="false" signature="-1:-1" placeholder="&lt;TV&gt;" />
+            <marker date="1445261967189" expanded="false" signature="-1:-1" placeholder="&lt;TV&gt;" />
+            <marker date="1445261967189" expanded="false" signature="-1:-1" placeholder="&lt;TV&gt;" />
+            <marker date="1445261967189" expanded="false" signature="-1:-1" placeholder="&lt;int IFORM,TV&gt;" />
+            <marker date="1445261967189" expanded="false" signature="-1:-1" placeholder="&lt;int IFORM,...Args&gt;" />
+            <marker date="1445261967189" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261967189" expanded="true" signature="-1:-1" placeholder="{...}" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/core/particle/particle_container.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="4.9687138">
-          <caret line="288" column="22" selection-start-line="288" selection-start-column="8" selection-end-line="288" selection-end-column="22" />
-          <folding />
+        <state vertical-scroll-proportion="0.06138934">
+          <caret line="101" column="29" selection-start-line="101" selection-start-column="29" selection-end-line="101" selection-end-column="29" />
+          <folding>
+            <marker date="1445261989629" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1445261989629" expanded="false" signature="-1:-1" placeholder="..." />
+            <marker date="1445261989629" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1445261989629" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261989629" expanded="false" signature="-1:-1" placeholder="&lt;...T&gt;" />
+            <marker date="1445261989629" expanded="false" signature="-1:-1" placeholder="&lt;...T&gt;" />
+            <marker date="1445261989629" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1445261989629" expanded="false" signature="-1:-1" placeholder="&lt;P,TBase&gt;" />
+            <marker date="1445261989629" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261989629" expanded="false" signature="-1:-1" placeholder="&lt;TDict,...Others&gt;" />
+            <marker date="1445261989629" expanded="false" signature="-1:-1" placeholder="&lt;OS&gt;" />
+            <marker date="1445261989629" expanded="false" signature="-1:-1" placeholder="&lt;...Args&gt;" />
+            <marker date="1445261989629" expanded="false" signature="-1:-1" placeholder="&lt;...Args&gt;" />
+            <marker date="1445261989629" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261989629" expanded="false" signature="-1:-1" placeholder="&lt;P,TBase&gt;" />
+            <marker date="1445261989629" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261989629" expanded="false" signature="-1:-1" placeholder="&lt;P,TBase&gt;" />
+            <marker date="1445261989629" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261989629" expanded="false" signature="-1:-1" placeholder="&lt;P,TBase&gt;" />
+            <marker date="1445261989629" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261989629" expanded="false" signature="-1:-1" placeholder="&lt;P,TBase&gt;" />
+            <marker date="1445261989629" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261989629" expanded="false" signature="-1:-1" placeholder="&lt;P,TBase&gt;" />
+            <marker date="1445261989629" expanded="false" signature="-1:-1" placeholder="&lt;TDict,...Others&gt;" />
+            <marker date="1445261989629" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261989629" expanded="false" signature="-1:-1" placeholder="&lt;P,TBase&gt;" />
+            <marker date="1445261989629" expanded="false" signature="-1:-1" placeholder="&lt;OS&gt;" />
+            <marker date="1445261989629" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261989629" expanded="false" signature="-1:-1" placeholder="&lt;P,TBase&gt;" />
+            <marker date="1445261989629" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261989629" expanded="false" signature="-1:-1" placeholder="&lt;P,TBase&gt;" />
+            <marker date="1445261989629" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261989629" expanded="false" signature="-1:-1" placeholder="&lt;P,TBase&gt;" />
+            <marker date="1445261989629" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261989629" expanded="false" signature="-1:-1" placeholder="&lt;P,TBase&gt;" />
+            <marker date="1445261989629" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261989629" expanded="false" signature="-1:-1" placeholder="&lt;P,TBase&gt;" />
+            <marker date="1445261989629" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261989629" expanded="false" signature="-1:-1" placeholder="&lt;P,TBase&gt;" />
+            <marker date="1445261989629" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261989629" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1445261989629" expanded="false" signature="-1:-1" placeholder="&lt;P,TBase&gt;" />
+            <marker date="1445261989629" expanded="false" signature="-1:-1" placeholder="&lt;...Args&gt;" />
+            <marker date="1445261989629" expanded="true" signature="-1:-1" placeholder="{...}" />
+            <marker date="1445261989629" expanded="true" signature="-1:-1" placeholder="/**...*/" />
+            <marker date="1445261989629" expanded="false" signature="-1:-1" placeholder="&lt;P,TBase&gt;" />
+            <marker date="1445261989629" expanded="false" signature="-1:-1" placeholder="&lt;...Args&gt;" />
+            <marker date="1445261989629" expanded="true" signature="-1:-1" placeholder="{...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/gtl/containers/unordered_set.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.2912482">
+          <caret line="95" column="36" selection-start-line="95" selection-start-column="36" selection-end-line="95" selection-end-column="36" />
+          <folding>
+            <element signature="e#1757#1770#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

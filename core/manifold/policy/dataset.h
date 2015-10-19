@@ -47,9 +47,7 @@ public:
 	template<size_t IFORM>
 	DataSpace dataspace() const
 	{
-		UNIMPLEMENTED;
-
-		return DataSpace();
+		return dataspace<IFORM>(m_geo_.template make_range<IFORM>());
 	}
 
 	template<size_t IFORM>

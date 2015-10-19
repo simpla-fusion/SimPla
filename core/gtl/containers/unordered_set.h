@@ -88,6 +88,11 @@ public:
 		m_data_.swap(other.m_data_);
 	}
 
+	template<typename OS> OS &print(OS &os) const
+	{
+		return os;
+	}
+
 	virtual DataSet dataset() const;
 
 	virtual void dataset(DataSet const &);
