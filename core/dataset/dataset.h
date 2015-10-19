@@ -92,6 +92,10 @@ struct DataSet
 
 	template<typename T> T const &get_value(size_t s) const { return reinterpret_cast<T *>( data.get())[s]; }
 
+	void load(std::string const &) { UNIMPLEMENTED; }
+
+	void save(std::string const &) { UNIMPLEMENTED; }
+
 
 }; //class DataSet
 

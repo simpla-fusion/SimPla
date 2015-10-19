@@ -23,6 +23,8 @@ struct DistributedObject
 
 	virtual ~DistributedObject();
 
+	MPIComm &comm() const;
+
 	void swap(DistributedObject &);
 
 	virtual void sync();

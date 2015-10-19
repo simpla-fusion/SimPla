@@ -16,9 +16,10 @@
 
 #include "../../core/manifold/pre_define/riemannian.h"
 
-#include "../../core/particle/particle.h"
+#include "../../core/particle/particle_container.h"
 
 #include "../../core/field/field.h"
+
 //#include "../../core/field/field_dense.h"
 //#include "../../core/field/field_traits.h"
 //#include "../../core/field/field_function.h"
@@ -85,9 +86,8 @@ USE_CASE(pic, " Particle in cell")
 	auto E_src = traits::make_function_by_config<Real>(
 			options["Constraint"]["E"], traits::make_domain<EDGE>(*mesh));
 
-	typedef PICDemo engine_type;
 
-	auto ion = make_kinetic_particle<engine_type>(traits::make_domain<VERTEX>(*mesh));
+	auto ion = std::make_shared<Particle<pic_demo, mesh_type>>(*mesh);
 
 	size_t pic = options["Particle"]["H"]["pic"].template as<size_t>(10);
 

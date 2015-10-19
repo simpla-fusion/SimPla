@@ -20,8 +20,10 @@
 namespace simpla
 {
 class PolicyProbeParticle;
+
 class PolicyKineticParticle;
-template<typename TM, typename Engine, typename Policy> class Particle;
+
+template<typename ...> class Particle;
 
 class PolicyReflectSurface;
 
@@ -52,18 +54,20 @@ private:
 	std::function<void(c_particle_type, Vec3 const &)> op_;
 
 public:
-	mesh_type const & mesh;
+	mesh_type const &mesh;
 	std::vector<index_type> range;
 
 	template<typename Func>
-	ParticleConstraint(mesh_type const & pm, engine_type const & pe, Func const & fun)
+	ParticleConstraint(mesh_type const &pm, engine_type const &pe, Func const &fun)
 			: mesh(pm), op_(fun)
 	{
 
 	}
+
 	~ParticleConstraint()
 	{
 	}
+
 	/**
 	 *
 	 * @param p
@@ -78,8 +82,7 @@ public:
 		return true;
 	}
 
-}
-;
+};
 }  // namespace simpla
 
 #endif /* PARTICLE_CONSTRAINT_H_ */

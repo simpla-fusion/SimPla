@@ -18,6 +18,7 @@
 #include <set>
 #include "../../dataset/dataset.h"
 #include "../iterator/sp_indirect_iterator.h"
+#include "../../parallel/distributed_object.h"
 
 namespace simpla
 {
@@ -87,14 +88,15 @@ public:
 		m_data_.swap(other.m_data_);
 	}
 
-	DataSet dataset() const;
+	virtual DataSet dataset() const;
 
-	void load(DataSet const &);1
+	virtual void dataset(DataSet const &);
 
 	bool empty() const
 	{
 		return m_data_.empty();
 	}
+
 
 	bool is_divisible() const
 	{
@@ -119,6 +121,7 @@ public:
 	}
 
 	typedef typename bucket_type::iterator local_iterator;
+
 	typedef typename bucket_type::const_iterator const_local_iterator;
 
 	local_iterator begin(key_type const &id)
@@ -408,6 +411,7 @@ public:
 		return count;
 	}
 
+
 	template<typename TRange>
 	size_t size_all(TRange const &range) const
 	{
@@ -468,6 +472,53 @@ public:
 
 };
 
+
+template<typename T, typename BucketKeyType, typename Allocator>
+DataSet UnorderedSet<T, BucketKeyType, Allocator>::dataset() const
+{
+	DataSet res;
+
+	res.datatype = traits::datatype<value_type>::create();
+
+	DataSpace::index_type count = size();
+
+	res.data = sp_alloc_memory(count * sizeof(value_type));
+
+	value_type *p = reinterpret_cast<value_type *>(res.data.get());
+
+	//TODO need parallel optimize
+
+	for (auto const &item:m_data_)
+	{
+		for (auto const &pit : item.second)
+		{
+			*p = pit;
+			++p;
+		}
+
+	}
+
+	DataSpace(1, &count).swap(res.dataspace);
+
+
+	return std::move(res);
+}
+
+template<typename T, typename BucketKeyType, typename Allocator>
+void UnorderedSet<T, BucketKeyType, Allocator>::dataset(DataSet const &ds)
+{
+
+	value_type const *d = reinterpret_cast<value_type const *>(ds.data.get());
+
+	//TODO need parallel optimize
+
+	auto &bucket = m_data_[0];
+
+	for (size_t i = 0, ie = ds.dataspace.size(); i < ie; ++i)
+	{
+		bucket.push_front(d[i]);
+	}
+};
 }
 // namespace simpla
 

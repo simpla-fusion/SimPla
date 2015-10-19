@@ -24,8 +24,6 @@ private:
 	typedef ParallelPolicy<geometry_type> this_type;
 
 
-	typedef typename geometry_type::range_type range_t;
-
 public:
 	ParallelPolicy(geometry_type &geo) : m_geo_(geo), m_mpi_comm_(SingletonHolder<MPIComm>::instance())
 	{
@@ -53,22 +51,24 @@ public:
 
 	void ghost_width(const nTuple<size_t, geometry_type::ndims> &gw) { m_ghost_width_ = gw; }
 
-	void add_link(int const coord_offset[], range_t const &send_range, range_t const &recv_range);
+	void add_link(int const coord_offset[], typename geometry_type::range_type const &send_range,
+			typename geometry_type::range_type const &recv_range);
 
 
 private:
+
+
 	geometry_type const &m_geo_;
 
 	MPIComm &m_mpi_comm_;
 
 	enum { DEFAULT_GHOST_WIDTH = 2 };
 
-
 	struct connection_node
 	{
 		nTuple<int, 3> coord_offset;
-		DataSpace send_range;
-		DataSpace recv_range;
+		typename geometry_type::range_type send_range;
+		typename geometry_type::range_type recv_range;
 
 	};
 
@@ -86,8 +86,8 @@ public:
 
 
 template<typename TGeo>
-void ParallelPolicy<TGeo>::add_link(int const coord_offset[], range_t const &send_range,
-		range_t const &recv_range)
+void ParallelPolicy<TGeo>::add_link(int const coord_offset[], typename geometry_type::range_type const &send_range,
+		typename geometry_type::range_type const &recv_range)
 {
 	m_connections_.emplace_back(&coord_offset[0], send_range, recv_range);
 };

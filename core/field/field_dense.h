@@ -100,11 +100,13 @@ public:
 		{
 			DataSet::deploy();
 
-			for (auto const &conn :  m_mesh_.template connections<iform>())
+			for (auto const &item :  m_mesh_.template connections<iform>())
 			{
-				DistributedObject::add_link_send(&conn.coord_offset[0], conn.send_range, DataSet::datatype,
+				DistributedObject::add_link_send(&item.coord_offset[0],
+						m_mesh_.template dataspace<iform>(item.send_range), DataSet::datatype,
 						&(DataSet::data));
-				DistributedObject::add_link_recv(&conn.coord_offset[0], conn.recv_range, DataSet::datatype,
+				DistributedObject::add_link_recv(&item.coord_offset[0],
+						m_mesh_.template dataspace<iform>(item.recv_range), DataSet::datatype,
 						&(DataSet::data));
 			}
 		}

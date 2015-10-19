@@ -16,13 +16,14 @@ template<typename ...> class FiberBundle;
 template<typename P, typename TBase>
 class FiberBundle
 {
-	typedef TBase base_manifold;
+public:
+
 	typedef P point_type;
 	typedef Vec3 vector_type;
 	typedef Real scalar_type;
 private:
-
-	typedef FiberBundle<point_type, TBase> this_type;
+	typedef TBase base_manifold;
+	typedef FiberBundle<point_type, base_manifold> this_type;
 	typedef TBase::range_type range_type;
 
 
@@ -32,6 +33,8 @@ private:
 public:
 
 	typedef P point_type;
+
+	Properties properties;
 
 	FiberBundle(base_manifold const &b) : m_mesh_(b)
 	{
@@ -46,6 +49,12 @@ public:
 	{
 	}
 
+	void swap(this_type &other)
+	{
+		std::swap(m_mesh_, other.m_mesh_);
+	}
+
+	base_manifold const &mesh() const { return m_mesh_; }
 
 	template<typename ...Args>
 	inline typename base_manifold::point_type project(point_type const &p, Args &&...args) const
@@ -96,58 +105,6 @@ public:
  *  `FiberBundle<P,M>` represents a fiber bundle \f$ \pi:P\to M\f$
  */
 
-
-template<typename TBase, typename P>
-struct Manifold<FiberBundle<P, TBase> >
-		: public FiberBundle<P, TBase>,
-				public Distributed<UnorderedSet<typename FiberBundle<P, TBase>::point_type>,
-						typename TBase::range_type>
-{
-	typedef Distributed<UnorderedSet<typename P::point_type>, typename TBase::range_type> container_type;
-
-	typedef FiberBundle<P, TBase> bundle_type;
-private:
-	typedef TBase base_manifold;
-	typedef Manifold<base_manifold, FiberBundle<P, TBase> > this_type;
-public:
-	template<typename ...Args>
-	Manifold(Args &&...args) :
-			bundle_type(std::forward<Args>(args))
-	{
-	}
-
-	Manifold(this_type const &other) :
-			bundle_type(other), container_type(other)
-	{
-	}
-
-	~Manifold()
-	{
-	}
-
-	void swap(this_type const &other)
-	{
-		bundle_type::swap(other);
-		container_type::swap(other);
-	}
-
-	template<typename TDict, typename ...Others>
-	void load(TDict const &dict, Others &&...others)
-	{
-		bundle_type::load(dict, std::forward<Others>(others)...);
-		container_type::load(dict);
-	}
-
-	template<typename OS>
-	OS &print(OS &os) const
-	{
-		bundle_type::print(os);
-		container_type::print(os);
-		return os;
-	}
-
-
-};
 
 
 }//namespace simpla

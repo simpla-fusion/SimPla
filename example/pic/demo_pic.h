@@ -18,15 +18,18 @@
 #include "../../core/gtl/ntuple.h"
 #include "../../core/gtl/primitives.h"
 #include "../../core/gtl/type_traits.h"
-#include "../../core/particle/particle_engine.h"
+
 #include "../../core/physics/physical_constants.h"
 
-#include "../../core/manifold/domain.h"
+#include "../../core/particle/particle_engine.h"
 
 using namespace simpla;
 
 namespace simpla
 {
+
+template<typename ...> class FiberBundle;
+
 SP_DEFINE_STRUCT(pic_demo,
 		Vec3, x,
 		Vec3, v,
@@ -37,24 +40,23 @@ template<typename TBase>
 struct FiberBundle<pic_demo, TBase>
 {
 	typedef FiberBundle<pic_demo, TBase> this_type;
+
 public:
+
 	typedef Vec3 vector_type;
 	typedef Real scalar_type;
 
-
 	typedef pic_demo point_type;
-
 
 	typedef TBase base_manifold;
 
-	typedef TBase::range_type range_type;
-
-	typedef Domain<base_manifold> domain_type;
-
 
 private:
+
 	base_manifold const &m_mesh_;
-	domain_type m_domain_;
+
+	Real m_cmr_, m_q_kT_;
+public:
 
 	SP_DEFINE_PROPERTIES(
 			Real, mass,
@@ -62,12 +64,7 @@ private:
 			Real, temperature
 	)
 
-private:
-	Real m_cmr_, m_q_kT_;
-public:
-
-	FiberBundle() :
-			m_mass(1.0), m_charge(1.0), m_temperature(1.0)
+	FiberBundle(base_manifold const &m) : m_mesh_(m)
 	{
 		update();
 	}
@@ -82,6 +79,14 @@ public:
 	~FiberBundle()
 	{
 	}
+
+	void swap(this_type &other)
+	{
+		UNIMPLEMENTED;
+	}
+
+	base_manifold const &mesh() const { return m_mesh_; }
+
 
 	template<typename ...Args>
 	static inline typename base_manifold::point_type project(point_type const &p, Args &&...args)
@@ -107,34 +112,33 @@ public:
 
 
 	template<typename TE, typename TB, typename TJ>
-	void next_time_step(point_type *p0, Real dt, TE const &fE, TB const &fB,
-			TJ *J)
+	void move(point_type *p0, Real dt, TE const &fE, TB const &fB, TJ *J)
 	{
-		p0->x += p0->v * dt * 0.5;
-
-		auto B = pull_back(fB, project(*p0));
-		auto E = pull_back(fE, project(*p0));
-
-		Vec3 v_;
-
-		auto t = B * (m_cmr_ * dt * 0.5);
-
-		p0->v += E * (m_cmr_ * dt * 0.5);
-
-		v_ = p0->v + cross(p0->v, t);
-
-		v_ = cross(v_, t) / (inner_product(t, t) + 1.0);
-
-		p0->v += v_;
-		auto a = (-inner_product(E, p0->v) * m_q_kT_ * dt);
-		p0->w = (-a + (1 + 0.5 * a) * p0->w) / (1 - 0.5 * a);
-
-		p0->v += v_;
-		p0->v += E * (m_cmr_ * dt * 0.5);
-
-		p0->x += p0->v * dt * 0.5;
-
-		m_mesh_.scatter(J, project(*p0), push_forward(*p0));
+//		p0->x += p0->v * dt * 0.5;
+//
+//		auto B = pull_back(fB, project(*p0));
+//		auto E = pull_back(fE, project(*p0));
+//
+//		Vec3 v_;
+//
+//		auto t = B * (m_cmr_ * dt * 0.5);
+//
+//		p0->v += E * (m_cmr_ * dt * 0.5);
+//
+//		v_ = p0->v + cross(p0->v, t);
+//
+//		v_ = cross(v_, t) / (inner_product(t, t) + 1.0);
+//
+//		p0->v += v_;
+//		auto a = (-inner_product(E, p0->v) * m_q_kT_ * dt);
+//		p0->w = (-a + (1 + 0.5 * a) * p0->w) / (1 - 0.5 * a);
+//
+//		p0->v += v_;
+//		p0->v += E * (m_cmr_ * dt * 0.5);
+//
+//		p0->x += p0->v * dt * 0.5;
+//
+//		m_mesh_.scatter(J, project(*p0), push_forward(*p0));
 
 	}
 

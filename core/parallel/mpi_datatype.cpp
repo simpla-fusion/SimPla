@@ -10,13 +10,15 @@
 #include "mpi_comm.h"
 #include "mpi_datatype.h"
 #include "../gtl/utilities/utilities.h"
+
 namespace simpla
 {
 
 MPIDataType::MPIDataType()
 {
 }
-MPIDataType::MPIDataType(MPIDataType const & other)
+
+MPIDataType::MPIDataType(MPIDataType const &other)
 {
 	MPI_ERROR(MPI_Type_dup(other.type(), &m_type_));
 }
@@ -24,16 +26,18 @@ MPIDataType::MPIDataType(MPIDataType const & other)
 MPIDataType::~MPIDataType()
 {
 	if (is_commited_)
+	{
 		MPI_Type_free(&m_type_);
+	}
 }
 
-MPIDataType MPIDataType::create(DataType const & data_type, //
+MPIDataType MPIDataType::create(DataType const &data_type, //
 		int ndims, //
-		size_t const * p_dims,        //
-		size_t const * p_offset,      //
-		size_t const * p_stride,      //
-		size_t const * p_count,       //
-		size_t const * p_block,       //
+		size_t const *p_dims,        //
+		size_t const *p_offset,      //
+		size_t const *p_stride,      //
+		size_t const *p_count,       //
+		size_t const *p_block,       //
 		bool c_order_array)
 {
 
@@ -62,7 +66,7 @@ MPIDataType MPIDataType::create(DataType const & data_type, //
 		std::vector<MPI_Datatype> array_of_types;
 		//		  MPI_Aint array_of_displacements[],
 		//		  MPI_Datatype array_of_types[],
-		for (auto const & item : data_type.members())
+		for (auto const &item : data_type.members())
 		{
 			DataType sub_datatype;
 
@@ -85,46 +89,46 @@ MPIDataType MPIDataType::create(DataType const & data_type, //
 
 		}
 
-		MPI_ERROR(MPI_Type_create_struct(		//
-				array_of_blocklengths.size(),		//
-				&array_of_blocklengths[0],		//
-				&array_of_displacements[0],		//
+		MPI_ERROR(MPI_Type_create_struct(        //
+				array_of_blocklengths.size(),        //
+				&array_of_blocklengths[0],        //
+				&array_of_displacements[0],        //
 				&array_of_types[0], &res_type));
 
 	}
-	else if (data_type.is_same<int>())
+	else if (data_type.template is_same<int>())
 	{
 		res_type = MPI_INT;
 	}
-	else if (data_type.is_same<long>())
+	else if (data_type.template is_same<long>())
 	{
 		res_type = MPI_LONG;
 	}
-	else if (data_type.is_same<unsigned int>())
+	else if (data_type.template is_same<unsigned int>())
 	{
 		res_type = MPI_UNSIGNED;
 	}
-	else if (data_type.is_same<unsigned long>())
+	else if (data_type.template is_same<unsigned long>())
 	{
 		res_type = MPI_UNSIGNED_LONG;
 	}
-	else if (data_type.is_same<float>())
+	else if (data_type.template is_same<float>())
 	{
 		res_type = MPI_FLOAT;
 	}
-	else if (data_type.is_same<double>())
+	else if (data_type.template is_same<double>())
 	{
 		res_type = MPI_DOUBLE;
 	}
-	else if (data_type.is_same<long double>())
+	else if (data_type.template is_same<long double>())
 	{
 		res_type = MPI_LONG_DOUBLE;
 	}
-	else if (data_type.is_same<std::complex<double>>())
+	else if (data_type.template is_same<std::complex<double>>())
 	{
 		res_type = MPI_2DOUBLE_COMPLEX;
 	}
-	else if (data_type.is_same<std::complex<float>>())
+	else if (data_type.template is_same<std::complex<float>>())
 	{
 		res_type = MPI_2COMPLEX;
 	}
@@ -205,9 +209,31 @@ MPIDataType MPIDataType::create(DataType const & data_type, //
 	MPIDataType res;
 	res.m_type_ = res_type;
 	res.is_commited_ = !is_predefined;
-//	CHECK(data_type.size_in_byte());
-//	CHECK(res.size());
+
 	return std::move(res);
+}
+
+MPIDataType MPIDataType::create(DataType const &data_type, DataSpace const &d_space, bool c_order_array)
+{
+	auto shape = d_space.shape();
+	
+	nTuple<size_t, MAX_NDIMS_OF_ARRAY> dimensions, offset, count, stride, block;
+
+	dimensions = shape.dimensions;
+	offset = shape.offset;
+	count = shape.stride;
+	stride = shape.count;
+	block = shape.block;
+
+	return create(data_type,
+			shape.ndims,
+			&dimensions[0],
+			&offset[0],
+			&stride[0],
+			&count[0],
+			&block[0],
+			c_order_array
+	);
 }
 
 size_t MPIDataType::size() const

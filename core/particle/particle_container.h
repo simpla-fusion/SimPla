@@ -26,10 +26,10 @@
 
 #include "../gtl/containers/unordered_set.h"
 #include "../parallel/distributed.h"
-#include "../parallel/distributed_unordered_set.h"
+
 #include "../manifold/manifold_traits.h"
 #include "../manifold/domain.h"
-#include "../manifold/fiber_bundle.h"
+
 /** @ingroup physical_object
 *  @addtogroup particle Particle
 *  @{
@@ -87,201 +87,205 @@ namespace simpla
 
 template<typename ... T> class Particle;
 
-
-template<typename ... T> class Distributed;
-
-
-namespace particle
-{
-
-template<typename P, typename M>
-class FiberBundle
-{
-
-
-};
-}
+template<typename ... T> class FiberBundle;
 
 /**
  *   `Particle<M,P>` represents a fiber bundle \f$ \pi:P\to M\f$
  *
  */
-template<typename P, typename M>
-class Particle<P, M>
-		: public FiberBundle<P, M>,
-				public Distributed<UnorderedSet<typename P::point_type, typename particle::FiberBundle<P, M>::hasher> >
+
+
+
+template<typename P, typename TBase>
+struct Particle<P, TBase>
+		: public FiberBundle<P, TBase>,
+				public UnorderedSet<typename FiberBundle<P, TBase>::point_type>,
+				public DistributedObject
 {
-public:
-
-	typedef M base_manifold_type;
-
-	static constexpr size_t iform = VOLUME;
-
-	typedef Domain<base_manifold_type, std::integral_constant<int, iform>> domain_type;
-
-	typedef Distributed<UnorderedSet<typename P::point_type, typename particle::FiberBundle<P, M>::hasher> > container_type;
-
-	typedef Particle<P, M> this_type;
-
-	typedef typename P::point_type point_type;
-
-//	typedef typename mesh_type::index_type index_type;
-//	typedef typename mesh_type::id_type id_type;
-//	typedef typename mesh_type::point_type point_type;
-//	typedef typename mesh_type::vector_type vector_type;
-
 
 private:
 
-	domain_type m_domain_;
+	typedef TBase base_manifold;
 
-	base_manifold_type const &m_mesh_;
+	typedef UnorderedSet<P> container_type;
+
+	typedef FiberBundle<P, TBase> bundle_type;
+
+	typedef Particle<P, TBase> this_type;
 
 public:
 
-	Particle(domain_type const &d)
-			: m_domain_(d), m_mesh_(d.mesh())
-	{
-	}
+	typedef typename FiberBundle<P, TBase>::point_type point_type;
 
-	Particle(this_type const &other) :
-			container_type(other),
-			m_domain_(other.m_domain_), m_mesh_(other.m_mesh_)
-	{
-	}
+	Particle(base_manifold const &m);
 
+	Particle(this_type const &other);
 
-	~Particle()
-	{
-	}
+	~Particle();
 
-	Properties properties;
+	void swap(this_type &other);
 
+	template<typename TDict, typename ...Others> void load(TDict const &dict, Others &&...others);
 
-	this_type const &self() const
-	{
-		return *this;
-	}
-
-
-	mesh_type const &mesh() const
-	{
-		return m_mesh_;
-	}
-
-	domain_type const &domain() const
-	{
-		return m_domain_;
-	}
-
-	template<typename TDict, typename ...Others>
-	void load(TDict const &dict, Others &&...others)
-	{
-		engine_type::load(dict, std::forward<Others>(others)...);
-
-		if (dict["DataSrc"])
-		{
-			UNIMPLEMENTED2("load particle from [DataSrc]");
-		}
-	}
-
-	template<typename OS>
-	OS &print(OS &os) const
-	{
-		engine_type::print(os);
-		os << " num= " << container_type::size() << ",";
-		return os;
-	}
-
-
-	bool is_valid() const
-	{
-		return engine_type::is_valid();
-	}
+	template<typename OS> OS &print(OS &os) const;
 
 	void deploy();
 
+	void sync();
 
-	bool is_ready() const
-	{
-		return true;
-	}
+	void wait();
 
+	void rehash();
 
+	DataSet dataset() const;
 
+	void dataset(DataSet const &);
 
 //! @}
 
-/**
- *
- * @param args arguments
- *
- * - Semantics
- @code
- for( Point_s & point: all particle)
- {
- engine_type::next_time_step(& point,std::forward<Args>(args)... );
- }
- @endcode
- *
- */
-	template<typename ...Args>
-	void next_time_step(Args &&...args)
+
+	template<typename ...Args> void next_time_step(Args &&...args);
+
+	template<typename ...Args> Real next_n_time_steps(size_t num_of_steps, Real t0, Real dt, Args &&...args);
+
+private:
+
+	struct buffer_node_s
 	{
+		size_t send_size;
+		size_t recv_size;
+		std::shared_ptr<void> send_buffer;
+		std::shared_ptr<void> recv_buffer;
+	};
 
-		wait();
+	std::vector<buffer_node_s> m_buffer_;
 
-		for (auto &item : *this)
-		{
-			for (auto &p : (*this)[item.first])
-			{
-				engine_type::next_time_step(&p, std::forward<Args>(args)...);
-			}
-		}
+
+};//class Particle
+
+
+
+template<typename P, typename TBase>
+Particle<P, TBase>::Particle(base_manifold const &m) :
+		bundle_type(m), DistributedObject(m.comm())
+{
+
+}
+
+template<typename P, typename TBase>
+Particle<P, TBase>::Particle(this_type const &other) :
+		bundle_type(other), DistributedObject(other), container_type(other)
+{
+}
+
+template<typename P, typename TBase>
+Particle<P, TBase>::~Particle()
+{
+}
+
+template<typename P, typename TBase>
+void Particle<P, TBase>::swap(this_type &other)
+{
+	bundle_type::swap(other);
+	DistributedObject::swap(other);
+	container_type::swap(other);
+}
+
+template<typename P, typename TBase>
+template<typename TDict, typename ...Others>
+void Particle<P, TBase>::load(TDict const &dict, Others &&...others)
+{
+	bundle_type::load(dict, std::forward<Others>(others)...);
+
+	container_type::load(dict);
+
+	if (dict["DataSet"])
+	{
+		DataSet ds;
+		ds.load(dict["DataSet"].template as<std::string>());
+		dataset(ds);
+	}
+}
+
+template<typename P, typename TBase>
+template<typename OS>
+OS &Particle<P, TBase>::print(OS &os) const
+{
+	bundle_type::print(os);
+	container_type::print(os);
+	return os;
+}
+
+template<typename P, typename TBase>
+void Particle<P, TBase>::deploy()
+{
+
+	if (bundle_type::is_valid())
+	{
+		return;
 	}
 
-/**
- *
- * @param num_of_steps number of time steps
- * @param t0 start time point
- * @param dt delta time step
- * @param args other arguments
- * @return t0+num_of_steps*dt
- *
- *-Semantics
- @code
- for(s=0;s<num_of_steps;++s)
- {
- for( Point_s & point: all particle)
- {
- engine_type::next_time_step(& point,t0+s*dt,dt,std::forward<Args>(args)... );
- }
- }
- return t0+num_of_steps*dt;
- @endcode
- */
-	template<typename ...Args>
-	Real next_n_time_steps(size_t num_of_steps, Real t0, Real dt,
-			Args &&...args)
+	bundle_type::deploy();
+
+
+}
+
+template<typename P, typename TBase>
+void Particle<P, TBase>::sync()
+{
+	auto d_type = traits::datatype<point_type>::create();
+
+	for (auto &item :  bundle_type::mesh().template connections<VERTEX>())
 	{
 
-		wait();
+		buffer_node_s buffer;
 
-		for (auto &item : *this)
+		buffer.send_size = container_type::size_all(item.send_range);
+
+		buffer.send_buffer = sp_alloc_memory(buffer.send_size * sizeof(point_type));
+
+		point_type *data = reinterpret_cast<point_type *>(buffer.send_buffer.get());
+
+		// FIXME need parallel optimize
+		for (auto const &key : item.send_range)
 		{
-			for (auto &p : (*this)[item.first])
+			for (auto const &p : container_type::operator[](key))
 			{
-				for (int s = 0; s < num_of_steps; ++s)
-				{
-					engine_type::next_time_step(&p, t0 + dt * s, dt,
-							std::forward<Args>(args)...);
-				}
+				*data = p;
+				++data;
 			}
 		}
+
+		buffer.recv_size = 0;
+
+		buffer.recv_buffer = nullptr;
+
+		container_type::erase(item.recv_range);
+
+		m_buffer_.push_back(buffer);
+
+		DistributedObject::add_link_send(&item.coord_offset[0], buffer.send_size, d_type,
+				&m_buffer_.back().send_buffer);
+		DistributedObject::add_link_recv(&item.coord_offset[0], buffer.recv_size, d_type,
+				&m_buffer_.back().recv_buffer);
+
 	}
 
-//	void rehash()
-//	{
+	DistributedObject::sync();
+
+}
+
+template<typename P, typename TBase>
+void Particle<P, TBase>::wait()
+{
+
+};
+
+
+template<typename P, typename TBase>
+void Particle<P, TBase>::rehash()
+{
+	UNIMPLEMENTED;
 //		container_type::rehash();
 //		point_type xmin, xmax;
 //		std::tie(xmin, xmax) = m_domain_.mesh().extents();
@@ -311,90 +315,112 @@ public:
 ////			}
 //
 //		}
-//		container_type::rehash();
+//	container_type::rehash();
 //
 //
-//	}
-
-
-};//class Particle
-
-template<typename TDomain, typename Engine>
-void Particle<TDomain, Engine>::deploy()
-{
-
-	engine_type::deploy();
-
-	properties.append(engine_type::properties);
-
-	m_mesh_.for_each_ghost_range([&](int const coord_offset[3], range_type const
-	&send_range, range_type const &recv_range)
-	{
-		container_type::add_link(coord_offset, send_range, recv_range);
-	}
-	);
-
 }
 
-template<typename TDomain, typename Engine, typename TContainer>
-DataSet Particle<TDomain, Engine, TContainer>::dataset() const
+template<typename P, typename TBase>
+DataSet Particle<P, TBase>::dataset() const
+{
+	auto ds = container_type::dataset();
+
+	DataSpace::index_type count = ds.dataspace.size();
+	DataSpace::index_type offset = 0;
+	DataSpace::index_type total_count = count;
+
+	std::tie(offset, total_count) = sync_global_location(DistributedObject::comm(), count);
+
+	DataSpace(1, &total_count).swap(ds.dataspace);
+
+	ds.dataspace.select_hyperslab(&offset, nullptr, &count, nullptr);
+
+	ds.dataspace.set_local_shape(&count, &offset);
+
+	ds.properties.append(bundle_type::properties);
+
+	return std::move(ds);
+}
+
+template<typename P, typename TBase>
+void Particle<P, TBase>::dataset(DataSet const &ds)
+{
+	container_type::dataset(ds);
+
+	bundle_type::properties.append(ds.properties);
+
+	rehash();
+}
+
+
+/**
+ *
+ * @param args arguments
+ *
+ * - Semantics
+ @code
+ for( Point_s & point: all particle)
+ {
+ engine_type::next_time_step(& point,std::forward<Args>(args)... );
+ }
+ @endcode
+ *
+ */
+template<typename P, typename TBase>
+template<typename ...Args>
+void Particle<P, TBase>::next_time_step(Args &&...args)
 {
 
-	DataSet res;
+	wait();
 
-	res.datatype = traits::datatype<value_type>::create();
-	res.properties = properties;
-
-	index_type count = 0;
-
-	m_domain_.for_each([&](id_type const &s)
+	for (auto &item : *this)
 	{
-		auto it = container_type::find(s);
-		if (it != container_type::end())
+		for (auto &p : (*this)[item.first])
 		{
-			count += std::distance(it->second.begin(), it->second.end());
+			bundle_type::move(&p, std::forward<Args>(args)...);
 		}
-	});
+	}
+}
 
-	res.data = sp_alloc_memory(count * sizeof(value_type));
+/**
+ *
+ * @param num_of_steps number of time steps
+ * @param t0 start time point
+ * @param dt delta time step
+ * @param args other arguments
+ * @return t0+num_of_steps*dt
+ *
+ *-Semantics
+ @code
+ for(s=0;s<num_of_steps;++s)
+ {
+ for( Point_s & point: all particle)
+ {
+ engine_type::next_time_step(& point,t0+s*dt,dt,std::forward<Args>(args)... );
+ }
+ }
+ return t0+num_of_steps*dt;
+ @endcode
+ */
 
-	value_type *p = reinterpret_cast<value_type *>(res.data.get());
+template<typename P, typename TBase>
+template<typename ...Args>
+Real Particle<P, TBase>::next_n_time_steps(size_t num_of_steps, Real t0, Real dt, Args &&...args)
+{
 
-	//TODO need parallel optimize
+	wait();
 
-	m_domain_.for_each([&](id_type const &s)
+	for (auto &item : *this)
 	{
-		auto it = container_type::find(s);
-
-		if (it != container_type::end())
+		for (auto &p : (*this)[item.first])
 		{
-			for (auto const &pit : it->second)
+			for (int s = 0; s < num_of_steps; ++s)
 			{
-				*p = pit;
-				++p;
+				bundle_type::move(&p, t0 + dt * s, dt, std::forward<Args>(args)...);
 			}
 		}
-	});
-
-//		ASSERT(std::distance(data.get(), p) == count);
-
-	index_type offset = 0;
-	index_type total_count = count;
-
-	std::tie(offset, total_count) = sync_global_location(count);
-
-	DataSpace(1, &total_count).swap(res.dataspace);
-
-	res.dataspace.select_hyperslab(&offset, nullptr, &count, nullptr);
-
-	res.dataspace.set_local_shape(&count, &offset);
-
-	VERBOSE << "dump particles [" << count << "/" << total_count << "] "
-			<< std::endl;
-
-	return std::move(res);
+	}
 }
-
 }  // namespace simpla
 
 #endif /* CORE_PARTICLE_PARTICLE_CONTAINER_H_ */

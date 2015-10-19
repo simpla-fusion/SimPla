@@ -73,6 +73,11 @@ DistributedObject::pimpl_s::pimpl_s(MPIComm &comm) : m_comm_(comm), m_object_id_
 
 }
 
+MPIComm &DistributedObject::comm() const
+{
+	return pimpl_->m_comm_;
+}
+
 void DistributedObject::clear_links()
 {
 	wait();
@@ -197,6 +202,8 @@ void DistributedObject::add_link(bool is_send, int const coord_offset[], DataSpa
 {
 
 	pimpl_->add_link(is_send, coord_offset, 1, MPIDataType::create(d_type, d_space), p);
+
+
 }
 
 

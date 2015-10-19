@@ -30,7 +30,7 @@ class DataSpace
 {
 public:
 	typedef long index_type;
-	typedef nTuple<index_type, MAX_NDIMS_OF_ARRAY> index_tuple;
+	typedef nTuple <index_type, MAX_NDIMS_OF_ARRAY> index_tuple;
 
 	struct data_shape_s
 	{
@@ -99,6 +99,7 @@ public:
 
 	size_t global_size() const;
 
+	size_t size() const { return global_size(); }
 private:
 	struct pimpl_s;
 	std::unique_ptr<pimpl_s> pimpl_;

@@ -21,7 +21,7 @@
 #include "../gtl/mpl.h"
 #include "../gtl/ntuple.h"
 
-
+#include "manifold_traits.h"
 #include "domain_traits.h"
 
 namespace simpla
@@ -29,47 +29,6 @@ namespace simpla
 
 template<typename ...> struct Field;
 template<typename ...> struct Domain;
-
-
-template<typename TM, int IFORM>
-struct Domain<TM, std::integral_constant<int, IFORM> >
-		: public Domain<TM>
-{
-private:
-	typedef Domain<TM> base_type;
-	typedef Domain<TM, std::integral_constant<int, IFORM> > this_type;
-public:
-	static constexpr int iform = IFORM;
-
-	template<typename ...Args>
-	Domain(Args &&... args) : base_type(std::forward<Args>(args)...)
-	{
-	}
-
-	Domain(TM const &m)
-			: base_type(m, std::integral_constant<int, IFORM>())
-	{
-	}
-
-	~Domain()
-	{
-
-	}
-
-
-	template<typename ...Args>
-	constexpr id_type pack_relative_index(Args &&...args) const
-	{
-		return base_type::template pack_relative_index<IFORM>(std::forward<Args>(args)...);
-	}
-
-	this_type &operator=(this_type const &other)
-	{
-		this_type(other).swap(*this);
-		return *this;
-	}
-
-};
 
 
 template<typename TM>
@@ -467,74 +426,47 @@ public:
 		});
 	}
 
-/**
- * @name  Data Shape
- * @{
- **/
-
-//	DataSpace dataspace() const
-//	{
-//		DataSpace res = m_mesh_->template dataspace<iform>();
-//
-//		if (is_simply())
-//		{
-//			typename DataSpace::index_tuple b, e, l_b;
-//
-//			b = mesh_type::unpack_index(std::get<0>(range_type::box()));
-//			e = mesh_type::unpack_index(std::get<1>(range_type::box()));
-//
-//			std::tie(l_b, std::ignore) = m_mesh_->local_index_box();
-//
-//			typename DataSpace::index_tuple offset, count;
-//
-//			offset = b - l_b;
-//			offset[ndims] = 0;
-//			count = e - b;
-//			count[ndims] = (iform == VERTEX || iform == VOLUME) ? 1 : 3;
-//
-//			res.select_hyperslab(&offset[0], nullptr, &count[0], nullptr);
-//		}
-//		else
-//		{
-//			UNIMPLEMENTED;
-//		}
-//
-//		return std::move(res);
-//
-//	}
-
-//	auto ghost_shape() const DECL_RET_TYPE((m_mesh_->template ghost_shape<iform>()))
-
-/** @}*/
-
-
-
-//	template<typename ...Args>
-//	void scatter(Args &&...args) const { m_mesh_->scatter(std::forward<Args>(args)...); }
-//
-//	template<typename ...Args>
-//	auto sample(Args &&...args) const
-//	DECL_RET_TYPE((m_mesh_->template sample<iform>(std::forward<Args>(args)...)))
-//
-//
-//	template<typename ...Args>
-//	auto gather(Args &&...args) const
-//	DECL_RET_TYPE((m_mesh_->gather(std::forward<Args>(args)...)))
-//
-//
-//	template<typename ...Args>
-//	auto calculate(Args &&...args) const
-//	DECL_RET_TYPE((m_mesh_->calculate(std::forward<Args>(args)...)))
-//
-//	template<typename ...Args>
-//	auto point(Args &&...args) const
-//	DECL_RET_TYPE(m_mesh_->point(std::forward<Args>(args)...))
-//
-//	constexpr auto time() const
-//	DECL_RET_TYPE(m_mesh_->time())
 };
 
+template<typename TM, int IFORM>
+struct Domain<TM, std::integral_constant<int, IFORM> >
+		: public Domain<TM>
+{
+private:
+	typedef Domain<TM> base_type;
+	typedef Domain<TM, std::integral_constant<int, IFORM> > this_type;
+public:
+	static constexpr int iform = IFORM;
 
+	template<typename ...Args>
+	Domain(Args &&... args) : base_type(std::forward<Args>(args)...)
+	{
+	}
+
+	Domain(TM const &m)
+			: base_type(m, std::integral_constant<int, IFORM>())
+	{
+	}
+
+	~Domain()
+	{
+
+	}
+
+
+	template<typename ...Args>
+	constexpr id_type pack_relative_index(Args &&...args) const
+	{
+		return base_type::template pack_relative_index<IFORM>(std::forward<Args>(args)...);
+	}
+
+	this_type &operator=(this_type const &other)
+	{
+		this_type(other).swap(*this);
+		return *this;
+	}
+
+};
 } // namespace simpla
 
 #endif /* CORE_MESH_DOMAIN_H_ */

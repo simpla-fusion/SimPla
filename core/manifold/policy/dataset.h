@@ -21,7 +21,6 @@ private:
 
 	typedef TGeo geometry_type;
 
-
 	typedef DataSetPolicy<geometry_type> this_type;
 
 	geometry_type const &m_geo_;
@@ -44,8 +43,15 @@ public:
 
 	void deploy() { }
 
+
 	template<size_t IFORM>
 	DataSpace dataspace() const
+	{
+		return DataSpace();
+	}
+
+	template<size_t IFORM>
+	DataSpace dataspace(typename geometry_type::range_type const &r) const
 	{
 		typedef typename geometry_type::index_type index_type;
 

@@ -19,7 +19,6 @@
 #include "../manifold.h"
 #include "../domain.h"
 #include "../domain_traits.h"
-#include "../domain_operation.h.h"
 
 #include "../policy/dataset.h"
 #include "../policy/parallel.h"
