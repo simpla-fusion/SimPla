@@ -54,7 +54,6 @@ public:
 
 	typedef Field<domain_type, value_type> this_type;
 
-
 private:
 
 	domain_type m_domain_;

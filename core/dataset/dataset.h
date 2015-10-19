@@ -58,6 +58,11 @@ struct DataSet
 			dataspace(other.dataspace),
 			properties(other.properties) { }
 
+	DataSet(DataSet &&other) :
+			data(other.data),
+			datatype(other.datatype),
+			dataspace(other.dataspace),
+			properties(other.properties) { }
 
 	virtual ~DataSet() { }
 
@@ -91,10 +96,6 @@ struct DataSet
 	template<typename T> T &get_value(size_t s) { return reinterpret_cast<T *>( data.get())[s]; }
 
 	template<typename T> T const &get_value(size_t s) const { return reinterpret_cast<T *>( data.get())[s]; }
-
-	void load(std::string const &) { UNIMPLEMENTED; }
-
-	void save(std::string const &) { UNIMPLEMENTED; }
 
 
 }; //class DataSet

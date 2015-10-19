@@ -484,6 +484,8 @@ DataSet UnorderedSet<T, BucketKeyType, Allocator>::dataset() const
 	DataSet res;
 
 	res.datatype = traits::datatype<value_type>::create();
+//	CHECK(res.datatype.name());
+//	CHECK(res.datatype.is_valid());
 
 	DataSpace::index_type count = size();
 

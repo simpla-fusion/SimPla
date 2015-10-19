@@ -16,6 +16,10 @@ struct DataType::pimpl_s
 {
 	pimpl_s();
 
+	pimpl_s(pimpl_s const &);
+
+	pimpl_s(pimpl_s &&);
+
 	~pimpl_s();
 
 	size_t m_ele_size_in_byte_ = 0;
@@ -34,6 +38,24 @@ DataType::DataType() :
 
 DataType::pimpl_s::pimpl_s() :
 		m_t_index_(std::type_index(typeid(void)))
+{
+}
+
+DataType::pimpl_s::pimpl_s(pimpl_s const &other) :
+		m_ele_size_in_byte_(other.m_ele_size_in_byte_),
+		m_t_index_(other.m_t_index_),
+		m_name_(other.m_name_),
+		m_extents_(other.m_extents_),
+		m_members_(other.m_members_)
+{
+}
+
+DataType::pimpl_s::pimpl_s(pimpl_s &&other) :
+		m_ele_size_in_byte_(other.m_ele_size_in_byte_),
+		m_t_index_(other.m_t_index_),
+		m_name_(other.m_name_),
+		m_extents_(other.m_extents_),
+		m_members_(other.m_members_)
 {
 }
 
@@ -76,16 +98,14 @@ DataType::DataType(std::type_index t_index, size_t ele_size_in_byte,
 }
 
 DataType::DataType(const DataType &other) :
-		pimpl_(new pimpl_s)
+		pimpl_(new pimpl_s(*other.pimpl_))
 {
-	pimpl_->m_ele_size_in_byte_ = (other.pimpl_->m_ele_size_in_byte_);
-	pimpl_->m_t_index_ = (other.pimpl_->m_t_index_);
-	pimpl_->m_name_ = (other.pimpl_->m_name_);
 
-	std::copy(other.pimpl_->m_extents_.begin(), other.pimpl_->m_extents_.end(),
-			std::back_inserter(pimpl_->m_extents_));
-	std::copy(other.pimpl_->m_members_.begin(), other.pimpl_->m_members_.end(),
-			std::back_inserter(pimpl_->m_members_));
+}
+
+DataType::DataType(DataType &&other) :
+		pimpl_(new pimpl_s(*other.pimpl_))
+{
 }
 
 DataType::~DataType()
@@ -122,7 +142,7 @@ DataType DataType::element_type() const
 
 std::string DataType::name() const
 {
-	return std::move(pimpl_->m_t_index_.name());
+	return std::move(pimpl_->m_name_);
 }
 
 bool DataType::is_valid() const

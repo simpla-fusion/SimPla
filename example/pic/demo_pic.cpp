@@ -19,6 +19,7 @@
 #include "../../core/particle/particle_container.h"
 
 #include "../../core/field/field.h"
+#include "../../core/particle/obsolete/simple_particle_generator.h"
 
 //#include "../../core/field/field_dense.h"
 //#include "../../core/field/field_traits.h"
@@ -99,15 +100,15 @@ USE_CASE(pic, " Particle in cell")
 
 	ion->deploy();
 
-//	auto p_generator = simple_particle_generator(*ion, mesh->extents(),
-//			ion->temperature(), options["Particle"]["H"]["Distribution"]);
-//
-//	std::mt19937 rnd_gen;
-//
-//	for (size_t i = 0, ie = pic * ion->domain().size(); i < ie; ++i)
-//	{
-//		ion->insert(p_generator(rnd_gen));
-//	}
+	auto p_generator = simple_particle_generator(*ion, mesh->extents(),
+			ion->temperature(), options["Particle"]["H"]["Distribution"]);
+
+	std::mt19937 rnd_gen;
+
+	for (size_t i = 0, ie = pic; i < ie; ++i)
+	{
+		ion->insert(p_generator(rnd_gen));
+	}
 
 	ion->sync();
 	ion->wait();

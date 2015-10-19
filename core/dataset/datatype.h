@@ -43,6 +43,8 @@ struct DataType
 
 	DataType(const DataType &other);
 
+	DataType(DataType &&other);
+
 	~DataType();
 
 	DataType &operator=(DataType const &other);
@@ -141,7 +143,8 @@ struct datatype
 
 	static DataType create(std::string const &name = "")
 	{
-		return create_(name, std::integral_constant<bool, has_static_member_function_datatype<T>::value>());
+		return create_(((name != "") ? name : (typeid(T).name())),
+				std::integral_constant<bool, has_static_member_function_datatype<T>::value>());
 	}
 
 

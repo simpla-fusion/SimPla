@@ -8,6 +8,7 @@
 #ifndef CORE_DATASET_DATATYPE_EXT_H_
 #define CORE_DATASET_DATATYPE_EXT_H_
 
+#include <typeinfo>
 #include "../gtl/type_traits.h"
 #include "../gtl/ntuple.h"
 #include "datatype.h"
@@ -101,7 +102,7 @@ struct _S_NAME_  {                                      \
                                                         \
     static DataType datatype()                          \
     {                                                   \
-        DataType d_type;                                \
+        DataType d_type(typeid(_S_NAME_),sizeof(_S_NAME_),0,nullptr,__STRING(_S_NAME_));                                \
         SP_DEFINE_STRUCT_DESC(_S_NAME_, __VA_ARGS__);   \
         return std::move(d_type);                       \
     }                                                   \

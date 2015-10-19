@@ -66,7 +66,7 @@ public:
 
 	FiberBundle(base_manifold const &m) : m_mesh_(m)
 	{
-		update();
+
 	}
 
 	void update()

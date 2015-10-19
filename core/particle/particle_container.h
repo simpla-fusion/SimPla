@@ -26,6 +26,7 @@
 
 #include "../gtl/containers/unordered_set.h"
 #include "../parallel/distributed.h"
+#include "../io/data_stream.h"
 
 #include "../manifold/manifold_traits.h"
 #include "../manifold/domain.h"
@@ -141,6 +142,10 @@ public:
 
 	void dataset(DataSet const &);
 
+	void insert(typename bundle_type::point_type const &p)
+	{
+		container_type::insert(p, [&](point_type const &p) { return bundle_type::id(p); });
+	}
 //! @}
 
 
@@ -202,7 +207,7 @@ void Particle<P, TBase>::load(TDict const &dict, Others &&...others)
 	if (dict["DataSet"])
 	{
 		DataSet ds;
-		ds.load(dict["DataSet"].template as<std::string>());
+		GLOBAL_DATA_STREAM.read(dict["DataSet"].template as<std::string>(), &ds);
 		dataset(ds);
 	}
 }
@@ -229,6 +234,7 @@ void Particle<P, TBase>::deploy()
 
 
 }
+
 
 template<typename P, typename TBase>
 void Particle<P, TBase>::sync()
@@ -315,11 +321,8 @@ void Particle<P, TBase>::rehash()
 //
 //		}
 	wait();
-	
-	container_type::rehash([&](point_type const &p)
-	{
-		return bundle_type::id(p);
-	});
+
+	container_type::rehash([&](point_type const &p) { return bundle_type::id(p); });
 
 	sync();
 
