@@ -301,7 +301,7 @@
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/distributed_array.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/distributed_array.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/distributed_comm.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/parallel/distributed.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/parallel/distributed_object.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/distributed_object.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/distributed_unordered_set.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/mpi_aux_functions.cpp" isTestSource="false" />

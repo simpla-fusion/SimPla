@@ -4,7 +4,7 @@
  * @date 2015-10-17.
  */
 
-#include "distributed.h"
+#include "distributed_object.h"
 
 #include "mpi_comm.h"
 #include "mpi_aux_functions.h"
@@ -45,6 +45,10 @@ struct DistributedObject::pimpl_s
 
 	std::vector<MPI_Request> m_mpi_requests_;
 
+
+	void add_link(bool is_send, int const coord_offset[], int size,
+			MPIDataType const &d_type, std::shared_ptr<void> *p);
+
 };
 
 //! Default constructor
@@ -62,11 +66,6 @@ DistributedObject::DistributedObject(DistributedObject const &other) : pimpl_(ne
 DistributedObject::~DistributedObject()
 {
 
-}
-
-void DistributedObject::swap(DistributedObject &other)
-{
-	std::swap(pimpl_, other.pimpl_);
 }
 
 DistributedObject::pimpl_s::pimpl_s(MPIComm &comm) : m_comm_(comm), m_object_id_(m_comm_.generate_object_id())
@@ -168,30 +167,36 @@ bool DistributedObject::is_ready() const
 
 }
 
-void DistributedObject::add_link(bool is_send, int const coord_offset[], int size,
-		DataType const &d_type, std::shared_ptr<void> *p)
+void DistributedObject::pimpl_s::add_link(bool is_send, int const coord_offset[], int size,
+		MPIDataType const &mpi_d_type, std::shared_ptr<void> *p)
 {
-
 	int dest_id, send_tag, recv_tag;
-	auto mpi_d_type = MPIDataType::create(d_type);
-	std::tie(dest_id, send_tag, recv_tag) = pimpl_->m_comm_.make_send_recv_tag(pimpl_->m_object_id_, &coord_offset[0]);
+
+	std::tie(dest_id, send_tag, recv_tag) = m_comm_.make_send_recv_tag(m_object_id_, &coord_offset[0]);
 
 	if (is_send)
 	{
-		pimpl_->m_send_links_.push_back(pimpl_s::mpi_link_node({dest_id, send_tag, size, mpi_d_type, p}));
+		m_send_links_.push_back(mpi_link_node({dest_id, send_tag, size, mpi_d_type, p}));
 	}
 	else
 	{
-		pimpl_->m_recv_links_.push_back(pimpl_s::mpi_link_node({dest_id, recv_tag, size, mpi_d_type, p}));
+		m_recv_links_.push_back(mpi_link_node({dest_id, recv_tag, size, mpi_d_type, p}));
 	}
+}
+
+void DistributedObject::add_link(bool is_send, int const coord_offset[], int size,
+		DataType const &d_type, std::shared_ptr<void> *p)
+{
+	pimpl_->add_link(is_send, coord_offset, size, MPIDataType::create(d_type), p);
+
+
 }
 
 void DistributedObject::add_link(bool is_send, int const coord_offset[], DataSpace d_space,
 		DataType const &d_type, std::shared_ptr<void> *p)
 {
-	auto mpi_d_type = MPIDataType::create(d_type, d_space);
 
-//	add_link(is_send, coord_offset, 1, mpi_d_type, p);
+	pimpl_->add_link(is_send, coord_offset, 1, MPIDataType::create(d_type, d_space), p);
 }
 
 

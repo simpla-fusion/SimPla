@@ -77,6 +77,7 @@ private:
 	std::vector<connection_node> m_connections_;
 
 public:
+	template<int IFORM>
 	std::vector<connection_node> const &connections() const { return m_connections_; }
 
 	MPIComm &comm() const { return m_mpi_comm_; }
