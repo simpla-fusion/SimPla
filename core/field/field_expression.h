@@ -18,58 +18,62 @@
 #include "../gtl/expression_template.h"
 #include "../gtl/type_traits.h"
 
-namespace simpla
-{
+namespace simpla {
 /** @addtogroup field
  *  @{
  */
-template<typename ...> struct Field;
-template<typename ...> struct Domain;
+template<typename ...>
+struct Field;
+template<typename ...>
+struct Domain;
 
 /// @name  Field Expression
 /// @{
 
-template<typename ...> class Expression;
+template<typename ...>
+class Expression;
 
-template<typename ...> class BooleanExpression;
+template<typename ...>
+class BooleanExpression;
 
 template<typename ...T>
 struct Field<Expression<T...> > : public Expression<T...>
 {
-	typedef Field<Expression<T...> > this_type;
-	using Expression<T...>::args;
-	using Expression<T...>::m_op_;
-	using Expression<T...>::Expression;
+    typedef Field<Expression<T...> > this_type;
+    using Expression<T...>::args;
+    using Expression<T...>::m_op_;
+    using Expression<T...>::Expression;
 };
 
 template<typename ...T>
 struct Field<BooleanExpression<T...> > : Expression<T...>
 {
-	using Expression<T...>::args;
-	using Expression<T...>::m_op_;
-	using Expression<T...>::Expression;
+    using Expression<T...>::args;
+    using Expression<T...>::m_op_;
+    using Expression<T...>::Expression;
 };
-namespace traits
-{
+namespace traits {
 
-template<typename> struct value_type;
-template<typename> struct field_value_type;
+template<typename>
+struct value_type;
+template<typename>
+struct field_value_type;
 
 template<typename TOP, typename ...T>
 struct value_type<Field<BooleanExpression<TOP, T...> > >
 {
-	typedef bool type;
+    typedef bool type;
 };
 template<typename TOP, typename ...T>
 struct field_value_type<Field<BooleanExpression<TOP, T...> > >
 {
-	typedef bool type;
+    typedef bool type;
 };
 
 template<typename TOP, typename ...T>
 struct value_type<Field<Expression<TOP, T...> > >
 {
-	typedef result_of_t<TOP(value_type_t<T> ...)> type;
+    typedef result_of_t<TOP(value_type_t < T > ...)> type;
 };
 
 //namespace _impl
@@ -96,42 +100,43 @@ struct iform<Field<Expression<TAG, T0, T...> > > : public traits::iform<T0>::typ
 };
 }  // namespace traits
 
+template<typename ...>
+struct AssignmentExpression;
+
+
 template<typename TOP, typename TL, typename TR>
-struct Field<AssignmentExpression<TOP, TL, TR>> : public AssignmentExpression<
-		TOP, TL, TR>
+struct Field<AssignmentExpression<TOP, TL, TR> > : public AssignmentExpression<TOP, TL, TR>
 {
-	typedef AssignmentExpression<TOP, TL, TR> expression_type;
+    typedef AssignmentExpression<TOP, TL, TR> expression_type;
 
-	typedef traits::value_type_t<TL> value_type;
+    typedef traits::value_type_t<TL> value_type;
 
-	typedef traits::domain_t<TL> domain_type;
+    typedef traits::domain_t<TL> domain_type;
 
-	typedef Field<AssignmentExpression<TOP, TL, TR>>
-			this_type;
+    typedef Field<AssignmentExpression<TOP, TL, TR>> this_type;
 
-	using AssignmentExpression<TOP, TL, TR>::AssignmentExpression;
+    using AssignmentExpression<TOP, TL, TR>::AssignmentExpression;
 
-	bool is_excuted_ = false;
+    bool is_excuted_ = false;
 
-	void excute()
-	{
-		if (!is_excuted_)
-		{
-			expression_type::lhs.mesh().calculate(*this);
-			is_excuted_ = true;
-		}
+    void excute()
+    {
+        if (!is_excuted_) {
+//            expression_type::lhs = expression_type::rhs;
+//            is_excuted_ = true;
+        }
 
-	}
+    }
 
-	void do_not_excute()
-	{
-		is_excuted_ = true;
-	}
+    void do_not_excute()
+    {
+        is_excuted_ = true;
+    }
 
-	~Field()
-	{
-		excute();
-	}
+    ~Field()
+    {
+        excute();
+    }
 };
 
 DEFINE_EXPRESSOPM_TEMPLATE_BASIC_ALGEBRA(Field)

@@ -38,6 +38,7 @@ struct Domain<TM> : public TM::range_type
 public:
 	typedef TM mesh_type;
 	static constexpr int ndims = mesh_type::ndims;
+	static constexpr int iform = VERTEX;
 
 private:
 	typedef Domain<mesh_type> this_type;

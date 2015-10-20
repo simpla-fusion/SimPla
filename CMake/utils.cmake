@@ -31,6 +31,7 @@ function(simpla_test name )
 target_link_libraries(${name} gtest gtest_main pthread)   
  
 #GTEST_ADD_TESTS(${name}  " "   ${name}.cpp    ${ARGN} )  
-add_test(${name}  ${EXECUTABLE_OUTPUT_PATH}/${name}  )  
+add_test(${name}  ${EXECUTABLE_OUTPUT_PATH}/${name}  )
+ ADD_DEPENDENCIES(${name} googletest)
 endfunction()
  

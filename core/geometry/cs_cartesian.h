@@ -77,13 +77,13 @@ struct map<coordinate_system::Cartesian<3, ZAXIS0>,
 
 	template<typename TFun>
 	auto pull_back(point_t0 const &x0, TFun const &fun)
-	DECL_RET_TYPE ((fun(map(x0))))
+	DECL_RET_TYPE ((fun(this->operator()(x0))))
 
 	template<typename TRect>
 	TRect pull_back(point_t0 const &x0,
 			std::function<TRect(point_t0 const &)> const &fun)
 	{
-		return fun(map(x0));
+		return fun(this->operator()(x0));
 	}
 
 	/**
