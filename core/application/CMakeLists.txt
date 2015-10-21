@@ -1,2 +1,3 @@
-add_library(application sp_object.cpp application.cpp application_main.cpp logo.cpp )
-TARGET_LINK_LIBRARIES(application   physics  io    parallel utilities)
+SET(APPLICATION_SRC sp_object.cpp application.cpp application_main.cpp)
+add_library(application   ${APPLICATION_SRC})
+

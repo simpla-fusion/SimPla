@@ -8,6 +8,8 @@
 #ifndef CORE_GTL_MACRO_H_
 #define CORE_GTL_MACRO_H_
 
+#pragma warning( disable : 1334)
+
 #define DECL_RET_TYPE(_EXPR_) ->decltype((_EXPR_)){return (_EXPR_);}
 
 #define ENABLE_IF_DECL_RET_TYPE(_COND_, _EXPR_) \

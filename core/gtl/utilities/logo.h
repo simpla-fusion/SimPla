@@ -1,13 +1,11 @@
 /**
- * @file logo.h
- *
- *  Created on: 2014-11-21
- *      Author: salmon
+ * @file simpla_lib.cpp.h
+ * @author salmon
+ * @date 2015-10-21.
  */
 
-#ifndef CORE_APPLICATION_LOGO_H_
-#define CORE_APPLICATION_LOGO_H_
-
+#ifndef SIMPLA_SIMPLA_LIB_CPP_H
+#define SIMPLA_SIMPLA_LIB_CPP_H
 #include <string>
 
 namespace simpla
@@ -21,5 +19,4 @@ void TheStart(int flag = 1);
 void TheEnd(int flag = 1);
 
 }
-
-#endif /* CORE_APPLICATION_LOGO_H_ */
+#endif //SIMPLA_SIMPLA_LIB_CPP_H

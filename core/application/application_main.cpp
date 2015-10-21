@@ -8,13 +8,13 @@
 #include <iostream>
 #include <string>
 
+#include "application.h"
 #include "../io/io.h"
 #include "../parallel/parallel.h"
 #include "../sp_config.h"
 #include "../gtl/utilities/log.h"
 #include "../gtl/utilities/config_parser.h"
-#include "application.h"
-#include "logo.h"
+#include "../gtl/utilities/logo.h"
 
 /**
  *  @ingroup application

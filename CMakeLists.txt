@@ -11,44 +11,34 @@ include(${PROJECT_SOURCE_DIR}/CMake/utils.cmake)
 
 SET(CMAKE_VERBOSE_MAKEFILE ON)
 
+SET(BUILD_SHARED_LIBS OFF)
+
 SET(PREFIX ${CMAKE_CXX_COMPILER_ID}-${CMAKE_BUILD_TYPE})
 
 SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake ${CMAKE_MODULE_PATH})
 
-#SET(CMAKE_CXX_COMPILER "/pkg/intel/compilers_and_libraries_2016.0.109/linux/mpi/intel64/bin/mpiicpc")
-
-#SET(CMAKE_CXX_FLAGS_RELEASE "  -DNDEBUG -O3  ")
 
 MESSAGE(STATUS "Using C++ Compiler ${CMAKE_CXX_COMPILER_ID} ")
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
-    SET(CMAKE_CXX_FLAGS "-fPIC -std=c++11 -O3    -fcolor-diagnostics   -ftemplate-backtrace-limit=0   ")
-
-    #  SET(CMAKE_AR      "llvm-ar-3.5")
-    # SET(CMAKE_LINKER  "llvm-ld-3.5")
-    #SET(CMAKE_LINKER_FLAG " -L/usr/lib/gcc/x86_64-linux-gnu/4.8/")
-    #SET(CMAKE_NM      "llvm-nm-3.5")
-    # SET(CMAKE_OBJDUMP "llvm-objdump-3.5")
-    #SET(CMAKE_RANLIB  "llvm-ranlib-3.5")
-    #SET(CMAKE_CXX_FLAGS  ${CMAKE_CXX_FLAGS} "-stdlib=libc++")
-
+    SET(CMAKE_CXX_FLAGS "-std=c++11  -fcolor-diagnostics   -ftemplate-backtrace-limit=0   ")
+    ADD_DEFINITIONS(-DUSE_MPI -DOMPI_SKIP_MPICXX)
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
-    SET(CMAKE_CXX_FLAGS "-fPIC -std=c++11  -fopenmp -O3 ")
-    MESSAGE("INTEL COMPILER")
+    SET(CMAKE_CXX_FLAGS " -fPIC -std=c++11 -static -fopenmp ")
     ADD_DEFINITIONS(-DUSE_MPI -DMPICH_SKIP_MPICXX)
-
 else()
-    SET(CMAKE_CXX_COMPILER "/usr/bin/clang++-3.6")
-    SET(CMAKE_CXX_FLAGS "-fPIC -std=c++11  -fopenmp  ")
+
+    SET(CMAKE_CXX_FLAGS "  -std=c++11  -fopenmp  ")
     ADD_DEFINITIONS(-DUSE_MPI -DOMPI_SKIP_MPICXX)
 
 endif ()
 
 
-FIND_PACKAGE(Lua52)
+FIND_PACKAGE(Lua)
 INCLUDE_DIRECTORIES(${LUA_INCLUDE_DIR})
+
 
 
 FIND_PACKAGE(MPI)
@@ -57,12 +47,14 @@ IF (MPI_FOUND)
     ADD_DEFINITIONS(-DUSE_MPI -DMPICH_SKIP_MPICXX)
 ENDIF (MPI_FOUND)
 
+SET(HDF5_USE_STATIC_LIBRARIES ON)
 FIND_PACKAGE(HDF5 1.8 COMPONENTS C HL)
 IF (HDF5_FOUND)
     INCLUDE_DIRECTORIES(BEFORE ${HDF5_INCLUDE_DIRS})
     IF (HDF5_IS_PARALLEL)
         ADD_DEFINITIONS(-DUSE_PARALLEL_IO)
     ENDIF (HDF5_IS_PARALLEL)
+    #LINK_DIRECTORIES(${HDF5_LIBRARY_DIRS})
 ENDIF (HDF5_FOUND)
 
 SET(Boost_USE_STATIC_LIBS ON) # only find static libs

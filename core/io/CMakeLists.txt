@@ -1,6 +1,5 @@
-
-add_library(io  io.cpp data_stream.cpp  )
-TARGET_LINK_LIBRARIES(io  ${HDF5_LIBRARIES} dataset parallel)
+SET(IO_SRC io.cpp data_stream.cpp)
+add_library(io   ${IO_SRC})
 
 
 #my_test(data_stream_test    )

@@ -1,2 +1,2 @@
-add_library(dataset dataset.cpp dataspace.cpp datatype.cpp )
-TARGET_LINK_LIBRARIES(dataset  simpla_aux)
+SET(DATASET_SRC dataset.cpp dataspace.cpp datatype.cpp)
+add_library(dataset   ${DATASET_SRC} )

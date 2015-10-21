@@ -11,4 +11,4 @@ ADD_SUBDIRECTORY( model)
 
 
 ADD_EXECUTABLE(demo pic/demo_pic.cpp  em/demo_em.cpp )
-TARGET_LINK_LIBRARIES(demo  simpla_aux)
+TARGET_LINK_LIBRARIES(demo  simpla_lib)

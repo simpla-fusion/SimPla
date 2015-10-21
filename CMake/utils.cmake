@@ -1,4 +1,4 @@
-  
+
 function(my_test name )
 
  add_executable(${name} ${name}.cpp ${ARGN})
