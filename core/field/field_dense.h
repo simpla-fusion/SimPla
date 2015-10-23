@@ -26,7 +26,8 @@
 #include "field_traits.h"
 
 
-namespace simpla {
+namespace simpla
+{
 template<typename ...>
 struct Field;
 
@@ -45,11 +46,15 @@ struct Field<Domain<TG, std::integral_constant<int, IFORM> >, TV>
 public:
 
     typedef TV value_type;
+
     typedef TG mesh_type;
+
     static constexpr int iform = IFORM;
+
+private:
     typedef DataSet storage_policy;
 
-    typedef Domain<mesh_type, std::integral_constant<int, IFORM>> domain_type;
+    typedef Domain<mesh_type, std::integral_constant<int, iform>> domain_type;
 
     typedef typename mesh_type::id_type id_type;
 
@@ -59,7 +64,6 @@ public:
 
     typedef typename traits::field_value_type<this_type>::type field_value_type;
 
-private:
 
     domain_type m_domain_;
 
@@ -100,18 +104,21 @@ public:
 
     void deploy()
     {
-        if (!DataSet::is_valid()) {
+        if (!DataSet::is_valid())
+        {
             DataSet::deploy();
 
-            for (auto const &item :  m_mesh_.template connections<iform>()) {
-                DistributedObject::add_link_send(&item.coord_offset[0],
-                                                 m_mesh_.template dataspace<iform>(item.send_range),
-                                                 DataSet::datatype,
-                                                 &(DataSet::data));
-                DistributedObject::add_link_recv(&item.coord_offset[0],
-                                                 m_mesh_.template dataspace<iform>(item.recv_range),
-                                                 DataSet::datatype,
-                                                 &(DataSet::data));
+            for (auto const &item :  m_mesh_.template connections<iform>())
+            {
+                DistributedObject::add_link_send(
+                        &item.coord_offset[0],
+                        m_mesh_.template dataspace<iform>(item.send_range),
+                        DataSet::datatype, &(DataSet::data));
+
+                DistributedObject::add_link_recv(
+                        &item.coord_offset[0],
+                        m_mesh_.template dataspace<iform>(item.recv_range),
+                        DataSet::datatype, &(DataSet::data));
             }
         }
     }
@@ -180,9 +187,31 @@ public:
 
         DistributedObject::wait();
 
-        m_domain_.for_each([&](id_type const &s) {
-            op(at(s), m_mesh_.calculate(other, s));
-        });
+        m_domain_.for_each([&](id_type const &s) { op(at(s), m_mesh_.calculate(other, s)); });
+
+        DistributedObject::sync();
+    }
+
+    template<typename TV, typename TD, typename ...Other, typename TOP>
+    void assign(Field<TD, TV, tags::function, Other...> const &f, TOP const &op)
+    {
+        deploy();
+
+        DistributedObject::wait();
+
+        m_domain_.for_each_st([&](id_type const &s) { op(at(s), f[s]); });
+
+        DistributedObject::sync();
+    }
+
+    template<typename ... TOther, typename TOP>
+    void assign(Field<Expression<TOther...> > const &expr, TOP const &op)
+    {
+        deploy();
+
+        DistributedObject::wait();
+
+        m_domain_.for_each([&](id_type const &s) { op(at(s), m_mesh_.calculate(expr, s)); });
 
         DistributedObject::sync();
     }
@@ -240,36 +269,36 @@ public:
 //
 //        DistributedObject::sync();
 //    }
-
-    /** @} */
-
-
-
-    template<typename TFun>
-    void for_each(TFun const &fun)
-    {
-        deploy();
-
-        DistributedObject::wait();
-
-
-        for (auto s : m_domain_) {
-            fun(at(s));
-        }
-
-    }
-
-    template<typename TFun>
-    void for_each(TFun const &fun) const
-    {
-//		ASSERT(is_ready());
-        while (!DistributedObject::is_ready()) {
-//			std::wait(10);
-        };
-        for (auto s : m_domain_) {
-            fun(at(s));
-        }
-    }
+//
+//    /** @} */
+//
+//
+//
+//    template<typename TFun>
+//    void for_each(TFun const &fun)
+//    {
+//        deploy();
+//
+//        DistributedObject::wait();
+//
+//
+//        for (auto s : m_domain_) {
+//            fun(at(s));
+//        }
+//
+//    }
+//
+//    template<typename TFun>
+//    void for_each(TFun const &fun) const
+//    {
+////		ASSERT(is_ready());
+//        while (!DistributedObject::is_ready()) {
+////			std::wait(10);
+//        };
+//        for (auto s : m_domain_) {
+//            fun(at(s));
+//        }
+//    }
 
 public:
     /**
@@ -297,12 +326,12 @@ public:
     {
         return DataSet::template get_value<value_type>(m_mesh_.hash(std::forward<Args>(args)...));
     }
-    /**
-     * @}
-     */
+/**
+ * @}
+ */
 
-    /** @name as_function
-     *  @{*/
+/** @name as_function
+ *  @{*/
 
     template<typename ...Args>
     auto gather(Args &&...args) const
@@ -313,11 +342,12 @@ public:
     DECL_RET_TYPE((m_mesh_.gather(*this, std::forward<Args>(args)...)))
 
 
-    /**@}*/
+/**@}*/
 
 }; // struct Field
 
-namespace traits {
+namespace traits
+{
 
 template<typename ... TM, typename ...Others>
 struct type_id<Field<Domain<TM ...>, Others...>>

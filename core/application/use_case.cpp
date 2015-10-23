@@ -16,40 +16,47 @@
 #include <utility>
 
 #include "../gtl/utilities/utilities.h"
+#include "../parallel/mpi_comm.h"
 
 namespace simpla
 {
 
-std::string UseCaseList::add(std::string const & name,
-		std::shared_ptr<UseCase> const & p)
+std::string UseCaseList::add(std::string const &name,
+                             std::shared_ptr<UseCase> const &p)
 {
-	list_[name] = p;
-	return "UseCase" + value_to_string(list_.size()) + "_" + name;
+    base_type::operator[](name) = p;
+
+    return "UseCase" + type_cast<std::string>(base_type::size()) + "_" + name;
 }
 
-std::ostream & UseCaseList::print(std::ostream & os)
+std::ostream &UseCaseList::print(std::ostream &os)
 {
-	for (auto const & item : list_)
-	{
-		os << item.first << std::endl;
-	}
-	return os;
+    for (auto const &item : *this)
+    {
+        os << item.first << std::endl;
+    }
+    return os;
 }
 
-void UseCaseList::run(int argc, char ** argv)
+void UseCase::run()
 {
-	for (auto const & item : list_)
-	{
+    for (size_t step = 0; step < m_num_of_steps_; ++step)
+    {
+        VERBOSE << "Step [" << step << "/" << m_num_of_steps_ << "]" << std::endl;
 
-		LOGGER << "Case [" << item.first << "] initialize ." << std::endl;
 
-		item.second->init(argc, argv);
+        GLOBAL_COMM.barrier();
 
-		LOGGER << "Case [" << item.first << "] start." << std::endl;
+        accept_signal();
 
-		item.second->body();
+        body();
 
-		LOGGER << "Case [" << item.first << "] done." << std::endl;
-	}
+        GLOBAL_COMM.barrier();
+
+        // Check Point
+        if (step % m_check_point_ == 0) { checkpoint(); }
+
+        GLOBAL_COMM.barrier();
+    }
 }
 }  // namespace simpla

@@ -16,9 +16,9 @@
 #include <tuple>
 
 #include "../gtl/utilities/utilities.h"
-
 #include "../gtl/design_pattern/singleton_holder.h"
-#include "application.h"
+#include "../gtl/utilities/config_parser.h"
+
 
 namespace simpla
 {
@@ -27,63 +27,89 @@ namespace simpla
  *
  *  */
 //
-//class UseCase: public SpApp
-//{
-//	std::string case_info_;
-//public:
-//
-//	ConfigParser options;
-//
-//	UseCase()
-//	{
-//	}
-//	virtual ~UseCase()
-//	{
-//	}
-//
-//	virtual void init(int argc, char ** argv)
-//	{
-//		options.init(argc, argv);
-//	}
-//
-//	virtual void body() =0;
-//};
-//
-//struct UseCaseList
-//{
-//	std::map<std::string, std::shared_ptr<UseCase>> list_;
-//
-//	std::string add(std::string const & name,
-//			std::shared_ptr<UseCase> const & p);
-//
-//	template<typename T>
-//	std::string add(std::string const & name, std::shared_ptr<T> const & p)
-//	{
-//		list_[name] = std::dynamic_pointer_cast<UseCase>(p);
-//		return "UseCase" + value_to_string(list_.size()) + "_" + name;
-//	}
-//	template<typename T>
-//	std::string add(std::string const & name)
-//	{
-//		return add(name, std::make_shared<T>());
-//	}
-//
-//	std::ostream & print(std::ostream & os);
-//
-//	void run(int argc, char ** argv);
-//
-//}
-//;
-//template<typename T>
-//std::string RegisterUseCase(std::string const &name)
-//{
-//	return SingletonHolder<UseCaseList>::instance().template add < T > (name);
-//}
-//inline void RunAllUseCase(int argc, char ** argv)
-//{
-//	SingletonHolder<UseCaseList>::instance().run(argc, argv);
-//}
-#define USE_CASE(_use_case_name,_desc) SP_APP(_use_case_name,_desc)
+class UseCase
+{
+    std::string info;
+public:
+
+    UseCase()
+    {
+    }
+
+    virtual ~UseCase()
+    {
+    }
+
+
+    virtual std::string const &description() = 0
+
+    virtual void body() = 0;
+
+    virtual void setup() = 0;
+
+    virtual void accept_signal() { };
+
+    virtual void teardown() { };
+
+    virtual void checkpoint() { }
+
+    virtual void dump() { }
+
+    void run();
+};
+
+
+class UseCaseList : public std::map<std::string, std::shared_ptr<UseCase>>
+{
+    typedef std::map<std::string, std::shared_ptr<UseCase>> base_type;
+
+    std::string add(std::string const &name,
+                    std::shared_ptr<UseCase> const &p);
+
+public:
+    template<typename T>
+    std::string add(std::string const &name, std::shared_ptr<T> const &p)
+    {
+        base_type::operator[](name) = std::dynamic_pointer_cast<UseCase>(p);
+        return "UseCase" + traits::type_cast<std::string>(list_.size()) + "_" + name;
+    }
+
+    template<typename T>
+    std::string add(std::string const &name)
+    {
+        return add(name, std::make_shared<T>());
+    }
+
+    std::ostream &print(std::ostream &os);
+
+    void run();
+};
+
+template<typename T, typename ...Args>
+std::string register_app(std::string const &name, Args &&...args)
+{
+    SingletonHolder<UseCaseList>::instance()[name] = std::dynamic_pointer_cast<
+            UseCase>(std::make_shared<T>(std::forward<Args>(args)...));
+
+    return name;
+}
+
+#define USE_CASE(_app_name, _app_desc) \
+struct _app_name:public UseCase  \
+{ \
+    static const std::string info; \
+    typedef _app_name  this_type; \
+    _app_name () {}\
+    _app_name(this_type const &)=delete; \
+    virtual ~_app_name  () {}\
+    std::string const & description(){return info;} \
+private:\
+    void  body();\
+};\
+const std::string   _app_name::info =  register_app<_app_name>(( #_app_name))+_app_desc ; \
+void _app_name::body()
+
+
 
 /** @} */
 

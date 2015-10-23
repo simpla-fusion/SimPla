@@ -8,7 +8,6 @@
 #include "demo_pic.h"
 
 #include "../../core/application/application.h"
-#include "../../core/application/use_case.h"
 
 #include "../../core/gtl/utilities/utilities.h"
 #include "../../core/io/io.h"

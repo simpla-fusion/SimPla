@@ -19,7 +19,8 @@
 #include "../../gtl/type_traits.h"
 #include "../../manifold/manifold_traits.h"
 
-namespace simpla {
+namespace simpla
+{
 
 template<typename ...>
 class Field;
@@ -473,14 +474,6 @@ public:
     {
     }
 
-
-    template<typename ...Args>
-    auto calculate(Args &&...args) DECLARE_FUNCTION_SUFFIX
-    DECL_RET_TYPE((this->eval(std::forward<Args>(args)...)))
-
-//    template<typename ...D, typename T>
-//    auto calculate(Field<Domain<D...>, T, tags::function> && f,id_type s) DECLARE_FUNCTION_SUFFIX
-//    DECL_RET_TYPE((f(this->coordinates(s)))
 
 };// struct Calculate<TGeo, ct::finite_volume>
 

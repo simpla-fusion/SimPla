@@ -14,7 +14,8 @@
 
 #include "../gtl/primitives.h"
 
-namespace simpla {
+namespace simpla
+{
 template<typename ...>
 class Field;
 
@@ -25,34 +26,31 @@ template<typename ...TDomain, typename TV, typename TFun>
 class Field<Domain<TDomain...>, TV, tags::function, TFun>
 {
 public:
+
     typedef Domain<TDomain...> domain_type;
+
     typedef TV value_type;
-    typedef TFun function_type;
-
-    typedef Field<domain_type, value_type, tags::function, function_type> this_type;
-
-    typedef typename domain_type::mesh_type mesh_type;
-
-    typedef typename mesh_type::id_type id_type;
-
-    typedef typename mesh_type::point_type point_type;
-
-    typedef typename traits::field_value_type<this_type>::type field_value_type;
 
     static constexpr int iform = domain_type::iform;
+
     static constexpr int ndims = domain_type::ndims;
 
 private:
-    function_type m_fun_;
+
+    typedef Field<domain_type, value_type, tags::function, TFun> this_type;
+
+    typedef typename domain_type::mesh_type mesh_type;
+
+    typedef typename traits::field_value_type<this_type>::type field_value_type;
+
+    TFun m_fun_;
+
     domain_type m_domain_;
+
     mesh_type const &m_mesh_;
+
 public:
 
-
-    Field(domain_type const &d) :
-            m_domain_(d), m_mesh_(d.mesh())
-    {
-    }
 
     template<typename TF>
     Field(domain_type const &d, TF const &fun) :
@@ -61,11 +59,6 @@ public:
     }
 
     Field(this_type const &other) :
-            m_domain_(other.m_domain_), m_mesh_(other.m_mesh_), m_fun_(other.m_fun_)
-    {
-    }
-
-    Field(this_type &&other) :
             m_domain_(other.m_domain_), m_mesh_(other.m_mesh_), m_fun_(other.m_fun_)
     {
     }
@@ -89,48 +82,50 @@ public:
         return m_domain_;
     }
 
-//    value_type operator[](id_type s) const
+    template<typename TID>
+    value_type operator[](TID s) const
+    {
+        return m_mesh_.template sample<iform>(s, this->operator()(m_mesh_.point(s), m_mesh_.time()));
+    }
+
+    template<typename ...Args>
+    field_value_type operator()(Args &&...args) const
+    {
+        return static_cast<field_value_type>(m_fun_(std::forward<Args>(args)...));
+    }
+
+//    template<typename ...Others>
+//    field_value_type operator()(Others &&... others) const
 //    {
-//        Real t = m_mesh_.time();
-//        field_value_type v = static_cast<field_value_type>(m_fun_(m_mesh_.coordinates(s), t));
-//        return m_mesh_.template sample<iform>(s, v);
+//        return static_cast<field_value_type>(m_fun_(std::forward<Others>(others)...));
 //    }
 
-    field_value_type operator()(point_type const &x, Real t) const
-    {
-        return static_cast<field_value_type>(m_fun_(x, t));
-    }
-
-    template<typename ...Others>
-    field_value_type operator()(point_type const &x, Real t, Others &&... others) const
-    {
-        return static_cast<field_value_type>(m_fun_(x, t, std::forward<Others>(others)...));
-    }
-
-    /**
-     *
-     * @param args
-     * @return (x,t) -> m_fun_(x,t,args(x,t))
-     */
-    template<typename ...Args>
-    Field<domain_type, value_type, tags::function,
-            std::function<field_value_type(point_type const &, Real)>> op_on(
-            Args const &...args) const
-    {
-        typedef std::function<field_value_type(point_type const &, Real)> res_function_type;
-
-        typedef Field<domain_type, value_type, tags::function, res_function_type> res_type;
-
-        res_function_type fun = [&](point_type const &x, Real t) {
-            return static_cast<field_value_type>(m_fun_(x, t, static_cast<field_value_type>((args)(x))...));
-        };
-
-        return res_type(m_domain_, fun);
-
-    }
+//    /**
+//     *
+//     * @param args
+//     * @return (x,t) -> m_fun_(x,t,args(x,t))
+//     */
+//    template<typename ...Args>
+//    Field<domain_type, value_type, tags::function,
+//            std::function<field_value_type(point_type const &, Real)>> op_on(
+//            Args const &...args) const
+//    {
+//        typedef std::function<field_value_type(point_type const &, Real)> res_function_type;
+//
+//        typedef Field<domain_type, value_type, tags::function, res_function_type> res_type;
+//
+//        res_function_type fun = [&](point_type const &x, Real t)
+//        {
+//            return static_cast<field_value_type>(m_fun_(x, t, static_cast<field_value_type>((args)(x))...));
+//        };
+//
+//        return res_type(m_domain_, fun);
+//
+//    }
 
 };
-namespace traits {
+namespace traits
+{
 template<typename TV, typename TDomain, typename TFun>
 Field<TDomain, TV, tags::function, TFun> make_field_function(
         TDomain const &domain, TFun const &fun)
@@ -148,20 +143,14 @@ make_function_by_config(TDict const &dict, TD domain)
 
     typedef Field<domain_type, value_type, tags::function, TDict> field_type;
 
-    // TODO create null filed
+    // TODO if domain is empty,then create null field
 
-    if (dict["Domain"]) {
+//    domain_type d(domain);
+//    if (dict["Domain"]) { filter_by_config(dict["Domain"], domain); }
 
-//		filter_by_config(dict["Domain"], &domain);
+    if (!dict["Value"]) {ERROR("illegal configure file!"); }
 
-        return field_type(domain, dict["Value"]);
-    }
-    else {
-        domain.clear();
-        return field_type(domain);
-
-    }
-
+    return field_type(domain, dict["Value"]);
 }
 }//namespace traits
 }

@@ -9,7 +9,9 @@
 
 #include "interpolate.h"
 #include "../../gtl/ntuple.h"
-namespace simpla {
+
+namespace simpla
+{
 
 
 /**
@@ -207,16 +209,25 @@ private:
     {
         return v[geometry_type::sub_index(s)];
     }
-
-    template<int IFORM, typename TI, typename TV>
-    DECLARE_FUNCTION_PREFIX TV sample_(std::integral_constant<int, IFORM>, TI s,
-                                       TV const &v) DECLARE_FUNCTION_SUFFIX { return v; }
+//
+//    template<int IFORM, typename TI, typename TV>
+//    DECLARE_FUNCTION_PREFIX TV sample_(std::integral_constant<int, IFORM>, TI s,
+//                                       TV const &v) DECLARE_FUNCTION_SUFFIX { return v; }
 
 public:
 
-    template<int IFORM, typename ...Args>
-    DECLARE_FUNCTION_PREFIX auto sample(Args &&... args) DECLARE_FUNCTION_SUFFIX
-    DECL_RET_TYPE((sample_(std::integral_constant<int, IFORM>(), std::forward<Args>(args)...)))
+//    template<int IFORM, typename TI, typename TV>
+//    DECLARE_FUNCTION_PREFIX auto sample(TI const &s, TV const &v) DECLARE_FUNCTION_SUFFIX
+//    DECL_RET_TYPE((sample_(std::integral_constant<int, IFORM>(), s, v)))
+
+
+    template<int IFORM, typename TI, typename TV>
+    DECLARE_FUNCTION_PREFIX typename traits::value_type<TV>::type
+    sample(TI const &s, TV const &v) DECLARE_FUNCTION_SUFFIX
+    {
+        return sample_(std::integral_constant<int, IFORM>(), s, v);
+    }
+
 
 public:
     Interpolate(geometry_type &geo) : m_geo_(geo)

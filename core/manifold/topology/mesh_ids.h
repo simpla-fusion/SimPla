@@ -16,7 +16,8 @@
 #include "../../gtl/primitives.h"
 #include "../manifold_traits.h"
 
-namespace simpla {
+namespace simpla
+{
 
 template<size_t TAGS>
 struct MeshIDs_;
@@ -582,8 +583,10 @@ struct MeshIDs_
     static int get_adjoints(id_type s, size_t IFORM, size_t nodeid,
                             id_type *res = nullptr)
     {
-        if (res != nullptr) {
-            for (int i = 0; i < m_adjoint_num_[IFORM][nodeid]; ++i) {
+        if (res != nullptr)
+        {
+            for (int i = 0; i < m_adjoint_num_[IFORM][nodeid]; ++i)
+            {
                 res[i] = ((s + m_adjoint_matrix_[IFORM][nodeid][i]));
             }
         }
@@ -730,7 +733,24 @@ struct MeshIDs_
 #pragma omp parallel for
             for (id_type i0 = b[0]; i0 < e[0]; ++i0)
                 for (id_type i1 = b[1]; i1 < e[1]; ++i1)
-                    for (id_type i2 = b[2]; i2 < e[2]; ++i2) {
+                    for (id_type i2 = b[2]; i2 < e[2]; ++i2)
+                    {
+                        fun((i0 & ID_MASK) | ((i1 & ID_MASK) << ID_DIGITS) | ((i2 & ID_MASK) << (ID_DIGITS * 2)));
+
+                    }
+        }
+
+        template<typename TFun>
+        void for_each_st(TFun const &fun) const
+        {
+            auto b = unpack_index(m_min_);
+            auto e = unpack_index(m_max_);
+
+
+            for (id_type i0 = b[0]; i0 < e[0]; ++i0)
+                for (id_type i1 = b[1]; i1 < e[1]; ++i1)
+                    for (id_type i2 = b[2]; i2 < e[2]; ++i2)
+                    {
                         fun((i0 & ID_MASK) | ((i1 & ID_MASK) << ID_DIGITS) | ((i2 & ID_MASK) << (ID_DIGITS * 2)));
 
                     }
@@ -818,7 +838,8 @@ struct MeshIDs_
             void next()
             {
                 m_self_ = rotate(m_self_);
-                if (sub_index(m_self_) == 0) {
+                if (sub_index(m_self_) == 0)
+                {
                     carray(&m_self_, m_min_, m_max_, 1);
                 }
 
@@ -827,7 +848,8 @@ struct MeshIDs_
             void prev()
             {
                 m_self_ = inverse_rotate(m_self_);
-                if (sub_index(m_self_) == 0) {
+                if (sub_index(m_self_) == 0)
+                {
                     carray(&m_self_, m_min_, m_max_, -1);
                 }
             }
@@ -936,7 +958,8 @@ struct MeshIDs_
 };
 
 
-namespace traits {
+namespace traits
+{
 template<typename>
 struct id_type;
 template<size_t TAGS>

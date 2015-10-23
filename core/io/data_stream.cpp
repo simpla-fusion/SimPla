@@ -810,8 +810,7 @@ std::string DataStream::write(std::string const &url, DataSet const &ds,
 	{
 		WARNING << "Invalid dataset! "
 				<< "[ URL = \"" << url << "\","
-
-				<< " Data is " << ((ds.data == nullptr) ? "not" : " ") << " empty. "
+				<< " Data is " << ((ds.data != nullptr) ? "not" : " ") << " empty. "
 				<< " Datatype is " << ((ds.datatype.is_valid()) ? "" : "not") << " valid. "
 				<< " Dataspace is " << ((ds.dataspace.is_valid()) ? "" : "not") << " valid. ]" << std::endl;
 		return "Invalid dataset: " + pwd();

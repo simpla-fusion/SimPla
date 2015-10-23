@@ -28,39 +28,41 @@ struct SpApp
 {
 public:
 
-	SpApp()
-	{
-	}
-	virtual ~SpApp()
-	{
-	}
+    SpApp()
+    {
+    }
 
-	virtual std::string const & description()=0;
-	virtual void body(ConfigParser &) =0;
+    virtual ~SpApp()
+    {
+    }
+
+    virtual std::string const &description() = 0;
+
+    virtual void body(ConfigParser &) = 0;
 };
-struct SpAppList: public std::map<std::string, std::shared_ptr<SpApp>>
+
+struct SpAppList : public std::map<std::string, std::shared_ptr<SpApp>>
 {
-}
-;
+};
 
 template<typename T, typename ...Args>
-std::string register_app(std::string const & name, Args && ...args)
+std::string register_app(std::string const &name, Args &&...args)
 {
-	SingletonHolder<SpAppList>::instance()[name] = std::dynamic_pointer_cast<
-			SpApp>(std::make_shared<T>(std::forward<Args>(args)...));
+    SingletonHolder<SpAppList>::instance()[name] = std::dynamic_pointer_cast<
+            SpApp>(std::make_shared<T>(std::forward<Args>(args)...));
 
-	return " ";
+    return " ";
 }
 
-#define SP_APP(_app_name,_app_desc) \
+#define SP_APP(_app_name, _app_desc) \
 struct _app_name:public SpApp  \
 { \
-	static const std::string info; \
-	typedef _app_name  this_type; \
-	_app_name () {}\
-	_app_name(this_type const &)=delete; \
-	virtual ~_app_name  () {}\
-	std::string const & description(){return info;} \
+    static const std::string info; \
+    typedef _app_name  this_type; \
+    _app_name () {}\
+    _app_name(this_type const &)=delete; \
+    virtual ~_app_name  () {}\
+    std::string const & description(){return info;} \
 private:\
     void  body(ConfigParser & );\
 };\
@@ -68,6 +70,8 @@ const std::string   _app_name::info =  register_app<_app_name>(( #_app_name))+_a
 void _app_name::body(ConfigParser & options)
 
 /** @} */
+
+//#define USE_CASE(_use_case_name,_desc) SP_APP(_use_case_name,_desc)
 
 }
 // namespace simpla

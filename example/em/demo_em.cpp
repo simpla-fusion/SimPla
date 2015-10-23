@@ -11,7 +11,6 @@
 #include <string>
 
 #include "../../core/application/application.h"
-#include "../../core/application/use_case.h"
 #include "../../core/gtl/primitives.h"
 #include "../../core/gtl/type_cast.h"
 #include "../../core/io/io.h"
@@ -44,22 +43,25 @@ typedef manifold::Riemannian<3> mesh_type;
 #endif
 
 
-USE_CASE(em, " Maxwell Eqs.")
+SP_APP(em, " Maxwell Eqs.")
 {
 
     size_t num_of_steps = 1000;
     size_t check_point = 10;
 
-    if (options["case_help"]) {
+    if (options["case_help"])
+    {
+        MESSAGE
 
-        MESSAGE << " Options:" << std::endl
-        <<
+        << " Options:" << std::endl
 
-        "\t -n,\t--number_of_steps <NUMBER>  \t, Number of steps = <NUMBER> ,default="
-        + type_cast<std::string>(num_of_steps)
-        + "\n"
-                "\t -s,\t--strides <NUMBER>            \t, Dump record per <NUMBER> steps, default="
-        + type_cast<std::string>(check_point) + "\n";
+        << "\t -n,\t--number_of_steps <NUMBER>  \t, Number of steps = <NUMBER> ,default="
+
+        << type_cast<std::string>(num_of_steps) << std::endl
+
+        << "\t -s,\t--strides <NUMBER>            \t, Dump record per <NUMBER> steps, default="
+
+        << type_cast<std::string>(check_point) << std::endl;
 
         return;
     }
@@ -100,87 +102,100 @@ USE_CASE(em, " Maxwell Eqs.")
 
     auto B = traits::make_field<FACE, Real>(*mesh);
 
+    E.clear();
+    B.clear();
+    J.clear();
 
-    E = traits::make_function_by_config<Real>(options["InitValue"]["E"],
-                                              traits::make_domain<EDGE>(*mesh));
+    E = traits::make_function_by_config<Real>(options["InitValue"]["E"], traits::make_domain<EDGE>(*mesh));
 
-    B = traits::make_function_by_config<Real>(options["InitValue"]["B"],
-                                              traits::make_domain<FACE>(*mesh));
+    B = traits::make_function_by_config<Real>(options["InitValue"]["B"], traits::make_domain<FACE>(*mesh));
 
-    J = traits::make_function_by_config<Real>(options["InitValue"]["J"],
-                                              traits::make_domain<EDGE>(*mesh));
+    J = traits::make_function_by_config<Real>(options["InitValue"]["J"], traits::make_domain<EDGE>(*mesh));
 
-    auto J_src = traits::make_function_by_config<Real>(options["Constraint"]["J"],
-                                                       traits::make_domain<EDGE>(*mesh));
-
-    auto E_src = traits::make_function_by_config<Real>(options["Constraint"]["E"],
-                                                       traits::make_domain<EDGE>(*mesh));
-
-    auto E_Boundary = (E);
-    auto B_Boundary = (B);
-
-    if (options["PEC"]) {
-//		filter_by_config(options["PEC"]["Domain"], &B_Boundary.domain());
-//		filter_by_config(options["PEC"]["Domain"], &E_Boundary.domain());
-    }
-    else {
-        E_Boundary.clear();
-        B_Boundary.clear();
-    }
-
-    LOGGER << "----------  Dump input ---------- " << std::endl;
-
-    cd("/Input/");
+//    auto J_src = traits::make_function_by_config<Real>(options["Constraint"]["J"], traits::make_domain<EDGE>(*mesh));
+//
+//    auto E_src = traits::make_function_by_config<Real>(options["Constraint"]["E"], traits::make_domain<EDGE>(*mesh));
+//
+//    auto E_Boundary = E;
+//
+//    auto B_Boundary = B;
+//
+//    if (options["PEC"])
+//    {
+//        filter_by_config(options["PEC"]["Domain"], &B_Boundary.domain());
+//        filter_by_config(options["PEC"]["Domain"], &E_Boundary.domain());
+//    }
+//    else
+//    {
+//        E_Boundary.clear();
+//        B_Boundary.clear();
+//    }
+//
+//    LOGGER << "----------  Dump input ---------- " << std::endl;
+//
+//    cd("/Input/");
 
     VERBOSE << SAVE(E) << std::endl;
     VERBOSE << SAVE(B) << std::endl;
     VERBOSE << SAVE(J) << std::endl;
 
-    DEFINE_PHYSICAL_CONST
-    Real dt = mesh->dt();
-    auto dx = mesh->dx();
-
-    Real omega = 0.01 * PI / dt;
-
-    LOGGER << "----------  START ---------- " << std::endl;
-
-    cd("/Save/");
-
-    for (size_t step = 0; step < num_of_steps; ++step) {
-        VERBOSE << "Step [" << step << "/" << num_of_steps << "]" << std::endl;
-
-//        J.self_assign(J_src);
-//        E.self_assign(E_src);
-        J = J_src;
-        E = E_src;
-//		if (!pml_solver)
-        {
-
-            LOG_CMD(E += curl(B) * (dt * speed_of_light2) - J * (dt / epsilon0));
-            E_Boundary = 0;
-            LOG_CMD(B -= curl(E) * dt);
-            B_Boundary = 0;
-
-        }
-//		else
-//		{
-//			pml_solver->next_timestepE(geometry->dt(), E, B, &E);
-//			LOG_CMD(E -= J / epsilon0 * dt);
-//			pml_solver->next_timestepB(geometry->dt(), E, B, &B);
-//		}
-
-        VERBOSE << SAVE_RECORD(J) << std::endl;
-        VERBOSE << SAVE_RECORD(E) << std::endl;
-        VERBOSE << SAVE_RECORD(B) << std::endl;
-
-        mesh->next_time_step();
-
-    }
-
-    cd("/Output/");
-    VERBOSE << SAVE(E) << std::endl;
-    VERBOSE << SAVE(B) << std::endl;
-    VERBOSE << SAVE(J) << std::endl;
+//    DEFINE_PHYSICAL_CONST
+//
+//    Real dt = mesh->dt();
+//
+//    Real omega = 0.01 * PI / dt;
+//
+//    LOGGER << "----------  START ---------- " << std::endl;
+//
+//    cd("/Save/");
+//
+//    for (size_t step = 0; step < num_of_steps; ++step)
+//    {
+//        VERBOSE << "Step [" << step << "/" << num_of_steps << "]" << std::endl;
+//
+////        J.self_assign(J_src);
+////        E.self_assign(E_src);
+//
+//        J = J_src;
+//
+//        E = E_src;
+//
+////		if (!pml_solver)
+////        {
+//
+//        LOG_CMD(E += (curl(B) * speed_of_light2 - J / epsilon0) * dt);
+//
+//        E_Boundary = 0;
+//
+//        LOG_CMD(B -= curl(E) * dt);
+//
+//        B_Boundary = 0;
+//
+////        }
+////		else
+////		{
+////			pml_solver->next_timestepE(geometry->dt(), E, B, &E);
+////			LOG_CMD(E -= J / epsilon0 * dt);
+////			pml_solver->next_timestepB(geometry->dt(), E, B, &B);
+////		}
+//
+//
+//        mesh->next_time_step();
+//
+//        if (step % check_point == 0)
+//        {
+//            VERBOSE << SAVE_RECORD(J) << std::endl;
+//            VERBOSE << SAVE_RECORD(E) << std::endl;
+//            VERBOSE << SAVE_RECORD(B) << std::endl;
+//        }
+//
+//    }
+//
+//    cd("/Output/");
+//
+//    VERBOSE << SAVE(E) << std::endl;
+//    VERBOSE << SAVE(B) << std::endl;
+//    VERBOSE << SAVE(J) << std::endl;
 
     LOGGER << "----------  DONE ---------- " << std::endl;
 

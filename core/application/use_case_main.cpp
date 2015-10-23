@@ -4,17 +4,19 @@
  *  Created on: 2014-11-21
  *      Author: salmon
  */
-
 #include <iostream>
 #include <string>
 
+#include "use_case.h"
 #include "../io/io.h"
 #include "../parallel/parallel.h"
 #include "../sp_config.h"
 #include "../gtl/utilities/log.h"
-#include "../gtl/utilities/parse_command_line.h"
-#include "use_case.h"
-#include "logo.h"
+#include "../gtl/utilities/config_parser.h"
+#include "../gtl/utilities/logo.h"
+
+
+std::shared_ptr<UseCase> use_case;
 
 /**
  *  @ingroup application
@@ -25,57 +27,84 @@ int main(int argc, char **argv)
 {
     using namespace simpla;
 
-    init_logger(argc, argv);
-    init_parallel(argc, argv);
-    init_io(argc, argv);
+    std::string help_message;
 
-    bool no_logo = false;
-    bool show_help = false;
+    help_message += logger::init_logger(argc, argv);
+    help_message += init_parallel(argc, argv);
+    help_message += init_io(argc, argv);
 
-    parse_cmd_line(argc, argv,
+    ConfigParser options;
 
-                   [&](std::string const &opt, std::string const &value) -> int
-                       {
-                       if (opt == "V" || opt == "version")
-                       {
-                           MESSAGE << "SIMPla " << ShowVersion();
-                           TheEnd(0);
-                           return TERMINATE;
-                       }
-                       else if (opt == "h" || opt == "help")
-                       {
-                           show_help = true;
-                       }
-                       return CONTINUE;
-                       }
 
-    );
-    if (GLOBAL_COMM.process_num() == 0)
+    help_message += options.init(argc, argv);
 
-        MESSAGE << ShowCopyRight() << endl;
+    if (GLOBAL_COMM.process_num() == 0) { MESSAGE << ShowCopyRight() << std::endl; }
 
-    if (show_help)
+    if (options["V"] || options["version"])
     {
-        MESSAGE << " Usage: " << argv[0] << "  <options> ..." << endl << endl;
-
-        MESSAGE << " Options:" << endl;
-
-        SHOW_OPTIONS("-h", "Print help information");
-        SHOW_OPTIONS("-v,--version", "Print version");
-        SHOW_OPTIONS("-g,--generator", "Generates  demo configure file");
+        MESSAGE << "SIMPla " << ShowVersion();
+        TheEnd(0);
+        return TERMINATE;
     }
+    else if (options["h"] || options["help"])
+    {
 
-    MESSAGE << "--------- START --------- " << endl;
+        MESSAGE << " Usage: " << argv[0] << "   <options> ..." << std::endl << std::endl;
 
-    RunAllUseCase(argc, argv);
+        MESSAGE
 
-    MESSAGE << "--------- DONE --------- " << endl;
+        << " Options:" << std::endl
+
+        <<
+
+        "\t -h,\t--help            \t, Print a usage message and exit.\n"
+                "\t -v,\t--version         \t, Print version information exit. \n"
+//						"\t -g,\t--generator       \t, Generates a demo configure file \n"
+                "\n"
+                "\t--case <CASE ID>         \t, Select a case <CASE ID> to execute \n "
+                "\t--case_help <CASE ID>    \t, Print a usag message of case <CASE ID> \n "
+        << help_message;
+
+        MESSAGE
+
+        << " Use case list:" << std::endl
+
+        << "        CASE ID     | Description " << std::endl
+        << "--------------------|-------------------------------------"
+        << std::endl;
+
+        for (auto const &item : case_list)
+        {
+
+            MESSAGE << std::setw(19) << std::right << item.first << " |"
+            << item.second->description() << std::endl;
+        }
+
+        TheEnd(0);
+
+    }
+    MESSAGE
+    << std::endl
+    << "====================================================" << std::endl
+    << "   Use Case [" << use_case->first << "]:  " << std::endl
+    << "\t" << use_case->second->description() << std::endl
+    << "----------------------------------------------------" << std::endl;
+
+    use_case->setup();
+
+    use_case->body();
+
+    use_case->teardown();
+
+    MESSAGE << "===================================================="
+    << std::endl
+
+    << "\t >>> Done <<< " << std::endl;
 
     close_io();
     close_parallel();
-    close_logger();
+    logger::close_logger();
 
     return 0;
 
 }
-
