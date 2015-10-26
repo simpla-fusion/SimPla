@@ -19,14 +19,14 @@
 #include "../gtl/mpl.h"
 #include "../gtl/integer_sequence.h"
 
-namespace simpla {
+namespace simpla
+{
 
-template<typename ...>
-struct Domain;
-template<typename ...>
-struct Field;
+template<typename ...> struct Domain;
+template<typename ...> struct Field;
 
-namespace traits {
+namespace traits
+{
 template<typename ... T, typename ...Others>
 struct domain_type<Field<Domain<T...>, Others...> >
 {
@@ -111,44 +111,15 @@ template<typename T> using field_value_t = typename field_value_type<T>::type;
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
-
-template<typename T>
-struct container_tag
-{
-    typedef tags::sequence_container type;
-};
-
-namespace _impl {
-
-template<typename TV, typename TAG>
-struct container_type_helper;
-
-template<typename TV>
-struct container_type_helper<TV, tags::sequence_container>
-{
-    typedef std::shared_ptr<TV> type;
-};
-}  // namespace _impl
-template<typename>
-struct container_type;
-
-template<typename T>
-struct container_type
-{
-
-    typedef typename _impl::container_type_helper<traits::value_type_t<T>,
-            typename container_tag<T>::type>::type type;
-};
-
-template<typename T> using container_t=typename container_type<T>::type;
-
-
-template<int I, typename TV, typename TM>
-Field<Domain<TM, std::integral_constant<int, I>>, TV>
-make_field(TM const &mesh)
-{
-    return Field<Domain<TM, std::integral_constant<int, I>>, TV>(make_domain<I>(mesh));
-};
+//
+//
+//
+//template<int I, typename TV, typename TM>
+//Field<Domain<TM, std::integral_constant<int, I>>, TV>
+//make_field(TM const &mesh)
+//{
+//    return Field<Domain<TM, std::integral_constant<int, I>>, TV>(mesh);
+//};
 
 }  // namespace traits
 }  // namespace simpla

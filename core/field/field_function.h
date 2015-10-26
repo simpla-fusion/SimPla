@@ -16,11 +16,9 @@
 
 namespace simpla
 {
-template<typename ...>
-class Field;
+template<typename ...> class Field;
 
-template<typename ...>
-class Domain;
+template<typename ...> class Domain;
 
 template<typename ...TDomain, typename TV, typename TFun>
 class Field<Domain<TDomain...>, TV, tags::function, TFun>
@@ -43,23 +41,22 @@ private:
 
     typedef typename traits::field_value_type<this_type>::type field_value_type;
 
+    mesh_type const &m_mesh_;
+
     TFun m_fun_;
 
-    domain_type m_domain_;
-
-    mesh_type const &m_mesh_;
 
 public:
 
-
     template<typename TF>
-    Field(domain_type const &d, TF const &fun) :
-            m_domain_(d), m_mesh_(d.mesh()), m_fun_(fun)
+    Field(mesh_type const &m, TF const &fun) :
+            m_mesh_(m), m_fun_(fun)
     {
     }
 
+
     Field(this_type const &other) :
-            m_domain_(other.m_domain_), m_mesh_(other.m_mesh_), m_fun_(other.m_fun_)
+            m_mesh_(other.m_mesh_), m_fun_(other.m_fun_)
     {
     }
 
@@ -69,7 +66,7 @@ public:
 
     bool is_valid() const
     {
-        return (!!m_fun_) && m_domain_.is_valid();
+        return (!!m_fun_);
     }
 
     operator bool() const
@@ -77,10 +74,6 @@ public:
         return !!m_fun_;
     }
 
-    domain_type const &domain() const
-    {
-        return m_domain_;
-    }
 
     template<typename TID>
     value_type operator[](TID s) const
@@ -126,31 +119,36 @@ public:
 };
 namespace traits
 {
-template<typename TV, typename TDomain, typename TFun>
-Field<TDomain, TV, tags::function, TFun> make_field_function(
-        TDomain const &domain, TFun const &fun)
+//template<typename TV, typename TDomain, typename TFun>
+//Field<TDomain, TV, tags::function, TFun> make_field_function(
+//        TDomain const &domain, TFun const &fun)
+//{
+//    return std::move(Field<TDomain, TV, tags::function, TFun>(domain, fun));
+//}
+
+template<int IFORM, typename TV, typename TM, typename TFun>
+Field<Domain<TM, std::integral_constant<int, IFORM> >, TV, tags::function, TFun> //
+make_field_function(TM const &m, TFun const &fun)
 {
-    return std::move(Field<TDomain, TV, tags::function, TFun>(domain, fun));
+    return Field<Domain<TM, std::integral_constant<int, IFORM> >, TV, tags::function, TFun>(m, fun);
 }
 
-template<typename TV, typename TD, typename TDict>
-Field<TD, TV, tags::function, TDict> //
-make_function_by_config(TDict const &dict, TD domain)
+
+template<int IFORM, typename TV, typename TM, typename TDict>
+Field<Domain<TM, std::integral_constant<int, IFORM> >, TV, tags::function, TDict> //
+make_function_by_config(TM const &m, TDict const &dict)
 {
     typedef TV value_type;
 
-    typedef TD domain_type;
-
-    typedef Field<domain_type, value_type, tags::function, TDict> field_type;
-
-    // TODO if domain is empty,then create null field
-
-//    domain_type d(domain);
-//    if (dict["Domain"]) { filter_by_config(dict["Domain"], domain); }
+    typedef Field<Domain<TM, std::integral_constant<int, IFORM> >, TV, tags::function, TDict> field_type;
 
     if (!dict["Value"]) {ERROR("illegal configure file!"); }
 
-    return field_type(domain, dict["Value"]);
+    field_type res(m, dict["Value"]);
+
+//    if (dict["Domain"]) { res.domain().filter(dict["Domain"]); }
+
+    return std::move(res);
 }
 }//namespace traits
 }

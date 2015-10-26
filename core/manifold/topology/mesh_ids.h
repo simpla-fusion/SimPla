@@ -15,6 +15,8 @@
 #include "../../gtl/ntuple.h"
 #include "../../gtl/primitives.h"
 #include "../manifold_traits.h"
+#include "../../gtl/iterator/block_iterator.h"
+#include "../../gtl/iterator/range.h"
 
 namespace simpla
 {
@@ -67,13 +69,13 @@ struct MeshIDs_
 
     typedef std::uint64_t id_type;
 
-    typedef nTuple <id_type, ndims> id_tuple;
+    typedef nTuple<id_type, ndims> id_tuple;
 
-    typedef nTuple <Real, ndims> coordinates_tuple;
+    typedef nTuple<Real, ndims> coordinates_tuple;
 
     typedef long index_type;
 
-    typedef nTuple <index_type, ndims> index_tuple;
+    typedef nTuple<index_type, ndims> index_tuple;
 
 //	typedef Real coordinate_type;
 
@@ -133,7 +135,7 @@ struct MeshIDs_
         return Vec3({COORDINATES_MESH_FACTOR, COORDINATES_MESH_FACTOR, COORDINATES_MESH_FACTOR});
     }
 
-    static constexpr id_type m_sub_index_to_id_[4][3] = { //
+    static constexpr int m_sub_index_to_id_[4][3] = { //
 
             {0, 0, 0}, /*VERTEX*/
             {1, 2, 4}, /*EDGE*/
@@ -169,14 +171,14 @@ struct MeshIDs_
 
     static constexpr coordinates_tuple m_id_to_coordinates_shift_[] = {
 
-            {0,  0,  0},            // 000
-            {_R, 0,  0},           // 001
-            {0,  _R, 0},           // 010
-            {0,  0,  _R},           // 011
+            {0, 0, 0},            // 000
+            {_R, 0, 0},           // 001
+            {0, _R, 0},           // 010
+            {0, 0, _R},           // 011
             {_R, _R, 0},          // 100
-            {_R, 0,  _R},          // 101
-            {0,  _R, _R},          // 110
-            {0,  _R, _R},          // 111
+            {_R, 0, _R},          // 101
+            {0, _R, _R},          // 110
+            {0, _R, _R},          // 111
 
     };
 
@@ -205,7 +207,7 @@ struct MeshIDs_
     };
 
     template<size_t IFORM>
-    static constexpr id_type sub_index_to_id(int n = 0)
+    static constexpr int sub_index_to_id(int n = 0)
     {
         return m_sub_index_to_id_[IFORM][n];
     }
@@ -251,6 +253,7 @@ struct MeshIDs_
     {
         return (pack(idx) << MESH_RESOLUTION) | m_id_to_shift_[n_id];
     }
+
 
     template<typename T>
     static constexpr T type_cast(id_type s)
@@ -460,13 +463,13 @@ struct MeshIDs_
                             /* 000*/
                             {0},
                             /* 001*/
-                            {_LI,       _HI},
+                            {_LI, _HI},
                             /* 010*/
-                            {_LJ,       _HJ},
+                            {_LJ, _HJ},
                             /* 011*/
                             {_LI | _LJ, _HI | _LJ, _HI | _HJ, _LI | _HJ},
                             /* 100*/
-                            {_LK,       _HK},
+                            {_LK, _HK},
                             /* 101*/
                             {_LK | _LI, _HK | _LI, _HK | _HI, _LK | _HI},
                             /* 110*/
@@ -474,11 +477,11 @@ struct MeshIDs_
                             /* 111*/
                             {_LI | _LJ | _LK, //
                                     _HI | _LJ | _LK, //
-                                         _HI | _HJ | _LK, //
-                                              _LI | _HJ | _LK, //
+                                    _HI | _HJ | _LK, //
+                                    _LI | _HJ | _LK, //
 
-                                                   _LI | _LJ | _HK, //
-                                                        _HI | _LJ | _HK, //
+                                    _LI | _LJ | _HK, //
+                                    _HI | _LJ | _HK, //
                                     _HI | _HJ | _HK, //
                                     _LI | _HJ | _HK}
 
@@ -493,23 +496,23 @@ struct MeshIDs_
                             /* 010*/
                             {0},
                             /* 011*/
-                            {_LJ,       _HI,       _HJ,       _LI},
+                            {_LJ, _HI, _HJ, _LI},
                             /* 100*/
                             {0},
                             /* 101*/
-                            {_LI,       _HK,       _HI,       _LK},
+                            {_LI, _HK, _HI, _LK},
                             /* 110*/
-                            {_LK,       _HJ,       _HK,       _LJ},
+                            {_LK, _HJ, _HK, _LJ},
                             /* 111*/
                             {_LK | _LJ,  //-> 001
                                     _LK | _HI,  //   012
-                                         _LK | _HJ,  //   021
-                                              _LK | _LI,  //   010
+                                    _LK | _HJ,  //   021
+                                    _LK | _LI,  //   010
 
-                                                   _LI | _LJ,  //
-                                                        _LI | _HJ,  //
+                                    _LI | _LJ,  //
+                                    _LI | _HJ,  //
                                     _HI | _LJ,  //
-                                    _HI | _HI,  //
+                                    _HI | _HJ,  //
 
                                     _HK | _LJ,  //
                                     _HK | _HI,  //
@@ -521,14 +524,14 @@ struct MeshIDs_
                     {
                             /* 000*/
                             {_LK | _LJ,  //
-                                  _LK | _HI,  //
-                                       _LK | _HJ,  //
-                                            _LK | _LI,  //
+                                    _LK | _HI,  //
+                                    _LK | _HJ,  //
+                                    _LK | _LI,  //
 
-                                                 _LI | _LJ,  //
-                                                      _LI | _HJ,  //
+                                    _LI | _LJ,  //
+                                    _LI | _HJ,  //
                                     _HI | _LJ,  //
-                                    _HI | _HI,  //
+                                    _HI | _HJ,  //
 
                                     _HK | _LJ,  //
                                     _HK | _HI,  //
@@ -536,29 +539,29 @@ struct MeshIDs_
                                     _HK | _LI  //
                             },
                             /* 001*/
-                            {_LJ,       _HK,       _HJ,       _LK},
+                            {_LJ, _HK, _HJ, _LK},
                             /* 010*/
-                            {_LK,       _HI,       _HK,       _LI},
+                            {_LK, _HI, _HK, _LI},
                             /* 011*/
                             {0},
                             /* 100*/
-                            {_LI,       _HJ,       _HI,       _LJ},
+                            {_LI, _HJ, _HI, _LJ},
                             /* 101*/
                             {0},
                             /* 110*/
                             {0},
                             /* 111*/
-                            {_LI,   _LJ, _LK, _HI, _HJ, _HK}},
+                            {_LI, _LJ, _LK, _HI, _HJ, _HK}},
                     // TO VOLUME
                     {
                             /* 000*/
                             {_LI | _LJ | _LK,  //
-                                  _LI | _HJ | _LK,  //
-                                       _LI | _LJ | _HK,  //
-                                            _LI | _HJ | _HK,  //
+                                    _LI | _HJ | _LK,  //
+                                    _LI | _LJ | _HK,  //
+                                    _LI | _HJ | _HK,  //
 
-                                                 _HI | _LJ | _LK,  //
-                                                      _HI | _HJ | _LK,  //
+                                    _HI | _LJ | _LK,  //
+                                    _HI | _HJ | _LK,  //
                                     _HI | _LJ | _HK,  //
                                     _HI | _HJ | _HK  //
 
@@ -568,13 +571,13 @@ struct MeshIDs_
                             /* 010*/
                             {_LK | _LI, _LK | _HI, _HK | _LI, _HK | _HI},
                             /* 011*/
-                            {_LK,       _HK},
+                            {_LK, _HK},
                             /* 100*/
                             {_LI | _LJ, _LI | _HJ, _HI | _LJ, _HI | _HJ},
                             /* 101*/
-                            {_LJ,       _HJ},
+                            {_LJ, _HJ},
                             /* 110*/
-                            {_LI,       _HI},
+                            {_LI, _HI},
                             /* 111*/
                             {0}}
 
@@ -599,297 +602,170 @@ struct MeshIDs_
         return get_adjoints(s, IFORM, NODE_ID, res);
     }
 
-    struct range_type
+    template<size_t AXE>
+    static constexpr std::tuple<id_type, id_type> primary_line(id_type s)
     {
+        return std::make_tuple(((s | OVERFLOW_FLAG) - (_D << (ID_DIGITS * AXE))) & (~OVERFLOW),
+                               s + (_D << (ID_DIGITS * AXE)));
+    }
 
+    template<size_t AXE>
+    static constexpr std::tuple<id_type, id_type> pixel(id_type s)
+    {
+        return std::make_tuple(((s | OVERFLOW_FLAG) - (_DA & (~(_D << (ID_DIGITS * AXE))))) & (~OVERFLOW),
+                               s + (_DA & (~(_D << (ID_DIGITS * AXE)))));
+    }
+
+    static constexpr std::tuple<id_type, id_type> voxel(id_type s)
+    {
+        return std::make_tuple(((s | OVERFLOW_FLAG) - _DA) & (~OVERFLOW), s + _DA);
+    }
+
+    template<typename TID>
+    static TID bit_shift_id(TID s, size_t n)
+    {
+        id_type m = (1UL << (ID_DIGITS - n - 1)) - 1;
+        return ((s & (m | (m << ID_DIGITS) | (m << (ID_DIGITS * 2)))) << n) & (~FULL_OVERFLOW_FLAG);
+    }
+
+    static constexpr id_type id_add(id_type s, id_type d)
+    {
+        return ((s & (~FULL_OVERFLOW_FLAG)) + d) & (~FULL_OVERFLOW_FLAG);
+    }
+
+    static constexpr id_type id_minus(id_type s, id_type d)
+    {
+        return ((s & (~FULL_OVERFLOW_FLAG)) - d) & (~FULL_OVERFLOW_FLAG);
+    }
+
+
+    struct iterator : public block_iterator<index_type, ndims + 1>
+    {
     private:
+        typedef block_iterator<index_type, ndims + 1> base_type;
 
-        id_type m_min_, m_max_;
-
-        typedef range_type this_type;
+        int m_iform_;
 
     public:
 
-        typedef id_type value_type;
-
-        typedef size_t difference_type;
-
-        struct iterator;
-
-        typedef iterator const_iterator;
-
-
-        template<typename T0, typename T1>
-        range_type(T0 const &min, T1 const &max, int n_id = 0) :
-                m_min_(pack_index(min) | m_id_to_shift_[n_id]), m_max_(
-                pack_index(max) | m_id_to_shift_[n_id])
+        iterator(id_type s, id_type b, id_type e)
+                : base_type(unpack_index(s), unpack_index(b), unpack_index(e)), m_iform_(iform(s))
         {
+            nTuple<index_type, ndims + 1> self, min, max;
+            self = unpack_index(s);
+            min = unpack_index(b);
+            max = unpack_index(e);
+
+            self[ndims] = 0;
+
+            min[ndims] = 0;
+
+            max[ndims] = num_of_ele_in_cell(s);
+
+            base_type(self, min, max).swap(*this);
+
         }
-
-        range_type(id_type const &min, id_type const &max, int n_id = 0) :
-                m_min_(min | m_id_to_shift_[n_id]), m_max_(
-                max | m_id_to_shift_[n_id])
-        {
-        }
-
-        range_type(this_type const &other) :
-                m_min_(other.m_min_), m_max_(other.m_max_)
-        {
-        }
-
-        ~range_type()
-        {
-        }
-
-        this_type &operator=(this_type const &other)
-        {
-            this_type(other).swap(*this);
-            return *this;
-        }
-
-        this_type operator&(this_type const &other) const
-        {
-            return *this;
-        }
-
-        void swap(this_type &other)
-        {
-            std::swap(m_min_, other.m_min_);
-            std::swap(m_max_, other.m_max_);
-        }
-
-        const_iterator begin() const
-        {
-            return const_iterator(m_min_, m_max_, m_min_);
-        }
-
-        const_iterator end() const
-        {
-            return ++const_iterator(m_min_, m_max_,
-                                    inverse_rotate(m_max_ - (_DA << 1)));
-        }
-
-//		const_iterator rbegin() const
-//		{
-//			return const_iterator(m_min_, m_max_,
-//					inverse_rotate(m_max_ - (_DA << 1)));
-//		}
-//
-//		const_iterator rend() const
-//		{
-//			const_iterator res(m_min_, m_max_,
-//					inverse_rotate(m_min_ - (_DA << 1)));
-//
-//			++res;
-//			return std::move(res);
-//		}
-
-        auto box() const
-        DECL_RET_TYPE(std::forward_as_tuple(m_min_, m_max_))
 
         template<typename T>
-        bool in_box(T const &x) const
+        iterator(T const &pself, T const &pmin, T const &pmax, int IFORM = VERTEX) :
+                base_type(pself, pmin, pmax), m_iform_(IFORM)
         {
-            auto b = unpack_index(m_min_);
-            auto e = unpack_index(m_max_);
-            return (b[1] <= x[1]) && (b[2] <= x[2]) && (b[0] <= x[0])  //
-                   && (e[1] > x[1]) && (e[2] > x[2]) && (e[0] > x[0]);
+            nTuple<index_type, ndims + 1> self, min, max;
+            self = pmin;
+            min = pmin;
+            max = pmax;
 
+            self[ndims] = 0;
+
+            min[ndims] = 0;
+
+            max[ndims] = (IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3;
+
+            base_type(self, min, max).swap(*this);
         }
 
-        constexpr bool in_box(id_type s) const
+        iterator(iterator const &other) : base_type(other), m_iform_(other.m_iform_)
         {
-            return in_box(unpack_index(s));
         }
 
-        constexpr bool empty() const
+        iterator(iterator &&other) : base_type(other), m_iform_(other.m_iform_)
         {
-            return m_min_ == m_max_;
         }
 
-        void clear()
+        ~iterator() { }
+
+        iterator &operator=(iterator const &other)
         {
-            m_min_ = m_max_;
+            iterator(other).swap(*this);
+            return *this;
         }
 
-//		constexpr difference_type size() const
-//		{
-//			return NProduct(unpack_index(m_max_ - m_min_))
-//					* m_id_to_num_of_ele_in_cell_[node_id(m_min_)];
-//		}
-
-        template<typename ...Args>
-        void reset(Args &&...args)
+        iterator &operator=(base_type const &other)
         {
-            this_type(pack(args)...).swap(*this);
+            base_type(other).swap(*this);
+            return *this;
         }
 
-        template<typename TFun>
-        void for_each(TFun const &fun) const
+        void swap(iterator &other)
         {
-            auto b = unpack_index(m_min_);
-            auto e = unpack_index(m_max_);
-
-#pragma omp parallel for
-            for (id_type i0 = b[0]; i0 < e[0]; ++i0)
-                for (id_type i1 = b[1]; i1 < e[1]; ++i1)
-                    for (id_type i2 = b[2]; i2 < e[2]; ++i2)
-                    {
-                        fun((i0 & ID_MASK) | ((i1 & ID_MASK) << ID_DIGITS) | ((i2 & ID_MASK) << (ID_DIGITS * 2)));
-
-                    }
+            base_type::swap(other);
+            std::swap(m_iform_, other.m_iform_);
         }
 
-        template<typename TFun>
-        void for_each_st(TFun const &fun) const
+        constexpr id_type operator*() const { return pack_(base_type::operator*()); }
+
+        constexpr id_type pack_(nTuple<index_type, ndims + 1> const &idx) const
         {
-            auto b = unpack_index(m_min_);
-            auto e = unpack_index(m_max_);
-
-
-            for (id_type i0 = b[0]; i0 < e[0]; ++i0)
-                for (id_type i1 = b[1]; i1 < e[1]; ++i1)
-                    for (id_type i2 = b[2]; i2 < e[2]; ++i2)
-                    {
-                        fun((i0 & ID_MASK) | ((i1 & ID_MASK) << ID_DIGITS) | ((i2 & ID_MASK) << (ID_DIGITS * 2)));
-
-                    }
+            return (pack(idx) << MESH_RESOLUTION) | m_id_to_shift_[m_sub_index_to_id_[m_iform_][idx[ndims]]];
         }
-
-        struct iterator : public std::iterator<
-                typename std::bidirectional_iterator_tag, id_type,
-                difference_type>
-        {
-        private:
-            id_type m_min_, m_max_, m_self_;
-        public:
-            iterator(id_type const &min, id_type const &max,
-                     id_type const &self) :
-                    m_min_(min), m_max_(max), m_self_(self)
-            {
-            }
-
-            iterator(id_type const &min, id_type const &max) :
-                    m_min_(min), m_max_(max), m_self_(min)
-            {
-            }
-
-            iterator(iterator const &other) :
-                    m_min_(other.m_min_), m_max_(other.m_max_), m_self_(
-                    other.m_self_)
-            {
-            }
-
-            ~iterator()
-            {
-
-            }
-
-            typedef iterator this_type;
-
-            bool operator==(this_type const &other) const
-            {
-                return m_self_ == other.m_self_;
-            }
-
-            bool operator!=(this_type const &other) const
-            {
-                return m_self_ != other.m_self_;
-            }
-
-            value_type const &operator*() const
-            {
-                return m_self_;
-            }
-
-        private:
-
-            index_type carray_(id_type *self, id_type min, id_type max,
-                               index_type flag = 0)
-            {
-
-                auto div = std::div(
-                        static_cast<long>(*self + flag * (_D << 1) + max
-                                          - min * 2), static_cast<long>(max - min));
-
-                *self = static_cast<id_type>(div.rem + min);
-
-                return div.quot - 1L;
-            }
-
-            index_type carray(id_type *self, id_type xmin, id_type xmax,
-                              index_type flag = 0)
-            {
-                id_tuple idx, min, max;
-
-                idx = unpack(*self);
-                min = unpack(xmin);
-                max = unpack(xmax);
-
-                flag = carray_(&idx[0], min[0], max[0], flag);
-                flag = carray_(&idx[1], min[1], max[1], flag);
-                flag = carray_(&idx[2], min[2], max[2], flag);
-
-                *self = pack(idx) | (std::abs(flag) << (FULL_DIGITS - 1));
-                return flag;
-            }
-
-        public:
-            void next()
-            {
-                m_self_ = rotate(m_self_);
-                if (sub_index(m_self_) == 0)
-                {
-                    carray(&m_self_, m_min_, m_max_, 1);
-                }
-
-            }
-
-            void prev()
-            {
-                m_self_ = inverse_rotate(m_self_);
-                if (sub_index(m_self_) == 0)
-                {
-                    carray(&m_self_, m_min_, m_max_, -1);
-                }
-            }
-
-            this_type &operator++()
-            {
-                next();
-                return *this;
-            }
-
-            this_type &operator--()
-            {
-                prev();
-
-                return *this;
-            }
-
-            this_type operator++(int)
-            {
-                this_type res(*this);
-                ++(*this);
-                return std::move(res);
-            }
-
-            this_type operator--(int)
-            {
-                this_type res(*this);
-                --(*this);
-                return std::move(res);
-            }
-
-        };
 
     };
 
-    static constexpr size_t hash(id_type s, id_type b, id_type e)
+
+    typedef Range<iterator> range_type;
+
+    template<typename T>
+    static range_type range(T const &b, T const &e, int iform = VERTEX)
     {
-        return hash_((s - b + (e - b)), (e - b)) * num_of_ele_in_cell(s)
-               + sub_index(s);
+        return range_type(iterator(b, b, e, iform), iterator(e, b, e, iform));
     }
+
+    template<int IFORM, typename T>
+    static range_type range(T const &b, T const &e)
+    {
+        return range(b, e, IFORM);
+    }
+
+    static range_type range(id_type const &b, id_type const &e)
+    {
+        return range_type(iterator(b, b, e), iterator(e, b, e));
+    }
+
+
+    static constexpr index_type hash(id_type const &s, index_tuple const &b, index_tuple const &e)
+    {
+        //C-ORDER SLOW FIRST
+
+        return
+                (
+                        (UNPACK_INDEX(s, 0) + e[0] - b[0] - b[0]) % (e[0] - b[0]) +
+
+                        (
+                                ((UNPACK_INDEX(s, 1) + e[1] - b[1] - b[1]) % (e[1] - b[1])) +
+
+                                ((UNPACK_INDEX(s, 2) + e[2] - b[2] - b[2]) % (e[2] - b[2])) * (e[1] - b[1])
+
+                        ) * (e[0] - b[0])
+
+                ) * num_of_ele_in_cell(s) + sub_index(s);
+
+    }
+
+    static constexpr index_type hash(id_type s, id_type b, id_type e)
+    {
+        return hash_((diff(s, b) + diff(e, b)), diff(e, b)) * num_of_ele_in_cell(s) + sub_index(s);
+    }
+
 
     static constexpr index_type hash_(id_type const &s, id_type const &d)
     {
@@ -910,50 +786,10 @@ struct MeshIDs_
     template<size_t IFORM>
     static constexpr size_t max_hash(id_type b, id_type e)
     {
-        return NProduct(unpack_index(e - b))
+        return NProduct(unpack_index(diff(e, b)))
                * m_id_to_num_of_ele_in_cell_[sub_index_to_id<IFORM>(0)];
     }
 
-    template<size_t AXE>
-    static constexpr std::tuple<id_type, id_type> primary_line(id_type s)
-    {
-        return std::make_tuple(
-                ((s | OVERFLOW_FLAG) - (_D << (ID_DIGITS * AXE))) & (~OVERFLOW), s + (_D << (ID_DIGITS * AXE))
-        );
-    }
-
-    template<size_t AXE>
-    static constexpr std::tuple<id_type, id_type> pixel(id_type s)
-    {
-        return std::make_tuple(
-                ((s | OVERFLOW_FLAG) - (_DA & (~(_D << (ID_DIGITS * AXE))))) & (~OVERFLOW),
-                s + (_DA & (~(_D << (ID_DIGITS * AXE))))
-        );
-    }
-
-    static constexpr std::tuple<id_type, id_type> voxel(id_type s)
-    {
-        return std::make_tuple(
-                ((s | OVERFLOW_FLAG) - _DA) & (~OVERFLOW), s + _DA
-        );
-    }
-
-    template<typename TID>
-    static TID bit_shift_id(TID s, size_t n)
-    {
-        id_type m = (1UL << (ID_DIGITS - n - 1)) - 1;
-        return ((s & (m | (m << ID_DIGITS) | (m << (ID_DIGITS * 2)))) << n) & (~FULL_OVERFLOW_FLAG);
-    }
-
-    static constexpr id_type id_add(id_type s, id_type d)
-    {
-        return ((s & (~FULL_OVERFLOW_FLAG)) + d) & (~FULL_OVERFLOW_FLAG);
-    }
-
-    static constexpr id_type id_minus(id_type s, id_type d)
-    {
-        return ((s & (~FULL_OVERFLOW_FLAG)) - d) & (~FULL_OVERFLOW_FLAG);
-    }
 
 };
 
@@ -1010,7 +846,7 @@ template<size_t TAGS> constexpr int MeshIDs_<TAGS>::m_adjoint_num_[4][8];
 
 
 template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::id_type MeshIDs_<TAGS>::m_id_to_shift_[];
-template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::id_type MeshIDs_<TAGS>::m_sub_index_to_id_[4][3];
+template<size_t TAGS> constexpr int MeshIDs_<TAGS>::m_sub_index_to_id_[4][3];
 
 
 template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::id_type

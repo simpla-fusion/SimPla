@@ -105,6 +105,7 @@ private:
         return traits::index(f, s);
     }
 
+public:
     template<typename TOP, typename ... T>
     constexpr traits::primary_type_t<
             traits::value_type_t<Field<Expression<TOP, T...> >>>
@@ -113,6 +114,7 @@ private:
         return eval(expr, s, traits::iform_list_t<T...>());
     }
 
+private:
 
     template<typename Expr, size_t ... index>
     traits::primary_type_t<traits::value_type_t<Expr>> _invoke_helper(

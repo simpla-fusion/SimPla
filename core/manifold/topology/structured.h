@@ -14,6 +14,8 @@
 #include "mesh_ids.h"
 #include "topology_common.h"
 
+#include "../../gtl/utilities/utilities.h"
+
 
 namespace simpla
 {
@@ -25,21 +27,24 @@ namespace topology
 
 struct StructuredMesh : public MeshIDs_<4>
 {
-	static constexpr int ndims = 3;
-
+    static constexpr int ndims = 3;
+    enum
+    {
+        DEFAULT_GHOST_WIDTH = 2
+    };
 private:
 
-	typedef StructuredMesh this_type;
-	typedef MeshIDs_<4> m;
+    typedef StructuredMesh this_type;
+    typedef MeshIDs_<4> m;
 
 public:
-	using m::id_type;
-	using m::id_tuple;
-	using m::index_type;
-	typedef id_type value_type;
-	typedef size_t difference_type;
-	typedef nTuple<Real, ndims> point_type;
-
+    using m::id_type;
+    using m::id_tuple;
+    using m::index_type;
+    typedef id_type value_type;
+    typedef size_t difference_type;
+    typedef nTuple<Real, ndims> point_type;
+    using m::index_tuple;
 
 /**
  *
@@ -70,212 +75,204 @@ public:
  *
  *
  */
-
-	id_type m_id_min_ = 0UL;
-
-	id_type m_id_max_ = 0UL;
-
-	id_type m_id_local_min_ = 0UL;
-
-	id_type m_id_local_max_ = 0UL;
-
-	id_type m_id_memory_min_ = 0UL;
-
-	id_type m_id_memory_max_ = 0UL;
+    index_tuple m_min_;
+    index_tuple m_max_;
+    index_tuple m_local_min_;
+    index_tuple m_local_max_;
+    index_tuple m_memory_min_;
+    index_tuple m_memory_max_;
 
 
 public:
 
-	StructuredMesh() { }
+    StructuredMesh()
+    {
+        m_min_ = 0;
+        m_max_ = 0;
+        m_local_min_ = m_min_;
+        m_local_max_ = m_max_;
+        m_memory_min_ = m_min_;
+        m_memory_max_ = m_max_;
+    }
 
 
-	StructuredMesh(StructuredMesh const &other) :
+    StructuredMesh(StructuredMesh const &other) :
 
-			m_id_min_(other.m_id_min_),
+            m_min_(other.m_min_),
 
-			m_id_max_(other.m_id_max_),
+            m_max_(other.m_max_),
 
-			m_id_local_min_(other.m_id_local_min_),
+            m_local_min_(other.m_local_min_),
 
-			m_id_local_max_(other.m_id_local_max_),
+            m_local_max_(other.m_local_max_),
 
-			m_id_memory_max_(other.m_id_memory_max_),
+            m_memory_min_(other.m_memory_min_),
 
-			m_id_memory_min_(other.m_id_memory_min_)
-	{
+            m_memory_max_(other.m_memory_max_)
+    {
 
-	}
+    }
 
-	virtual  ~StructuredMesh() { }
+    virtual  ~StructuredMesh() { }
 
-	virtual void swap(this_type &other)
-	{
+    virtual void swap(this_type &other)
+    {
+        std::swap(m_min_, other.m_min_);
+        std::swap(m_max_, other.m_max_);
+        std::swap(m_local_min_, other.m_local_min_);
+        std::swap(m_local_max_, other.m_local_max_);
+        std::swap(m_memory_min_, other.m_memory_min_);
+        std::swap(m_memory_max_, other.m_memory_max_);
+    }
 
-		std::swap(m_id_min_, other.m_id_min_);
-		std::swap(m_id_max_, other.m_id_max_);
-		std::swap(m_id_local_min_, other.m_id_local_min_);
-		std::swap(m_id_local_max_, other.m_id_local_max_);
-		std::swap(m_id_memory_max_, other.m_id_memory_max_);
-		std::swap(m_id_memory_min_, other.m_id_memory_min_);
-	}
+    template<typename TDict>
+    void load(TDict const &dict)
+    {
+        m_min_ = 0;
+        m_max_ = m_min_ + dict["Topology"]["Dimensions"].template as<id_tuple>();
+    }
 
-	template<typename TDict>
-	void load(TDict const &dict)
-	{
+    template<typename OS>
+    OS &print(OS &os) const
+    {
 
-		dimensions(dict["Topology"]["Dimensions"].template as<id_tuple>());
-	}
+        os << "\t\tTopology = {" << std::endl
+        << "\t\t Type = \"StructuredMesh\"," << std::endl
+        << "\t\t Extents = {" << box() << "}," << std::endl
+        << "\t\t Count = {}," << std::endl
+        << "\t\t}, " << std::endl;
 
-	template<typename OS>
-	OS &print(OS &os) const
-	{
-
-		os << "\t\tTopology = {" << std::endl
-				<< "\t\t Type = \"StructuredMesh\"," << std::endl
-				<< "\t\t Dimensions = {" << dimensions() << "}," << std::endl
-				<< "\t\t Offset = {}," << std::endl
-				<< "\t\t Count = {}," << std::endl
-				<< "\t\t}, " << std::endl;
-
-		return os;
-	}
+        return os;
+    }
 
 
-	virtual bool is_valid() const { return true; }
-
-	void deploy()
-	{
-		m_id_local_min_ = m_id_min_;
-
-		m_id_local_max_ = m_id_max_;
-
-		m_id_memory_min_ = m_id_local_min_;
-
-		m_id_memory_max_ = m_id_local_max_;
-	}
-
-	this_type &operator=(this_type const &other)
-	{
-		this_type(other).swap(*this);
-		return *this;
-	}
+    virtual bool is_valid() const { return true; }
 
 
-	this_type operator&(this_type const &other) const
-	{
-		return *this;
-	}
-
-	template<typename TI>
-	void dimensions(TI const &d)
-	{
-
-		m_id_min_ = m::ID_ZERO;
-		m_id_max_ = m_id_min_ + m::pack_index(d);
-
-	}
-
-	index_tuple dimensions() const
-	{
-		return m::unpack_index(m_id_max_ - m_id_min_);
-	}
-
-	template<size_t IFORM>
-	size_t max_hash() const
-	{
-		return m::template max_hash<IFORM>(m_id_memory_min_,
-				m_id_memory_max_);
-	}
-
-	size_t hash(id_type s) const
-	{
-		return m::hash(s, m_id_memory_min_, m_id_memory_max_);
-	}
-
-	template<size_t IFORM>
-	id_type pack_relative_index(index_type i, index_type j,
-			index_type k, index_type n = 0) const
-	{
-		return m::pack_index(nTuple<index_type, 3>({i, j, k}),
-				m::template sub_index_to_id<IFORM>(n)) + m_id_min_;
-	}
+    this_type &operator=(this_type const &other)
+    {
+        this_type(other).swap(*this);
+        return *this;
+    }
 
 
-	nTuple<index_type, ndims + 1> unpack_relative_index(id_type s) const
-	{
-		nTuple<index_type, ndims + 1> res;
-		res = m::unpack_index(s - m_id_min_);
-		res[ndims] = m::sub_index(s);
-		return std::move(res);
-	}
+    void deploy()
+    {
+        m_local_min_ = m_min_;
+        m_local_max_ = m_max_;
+
+        ghost_width(DEFAULT_GHOST_WIDTH);
+
+//        CHECK(m_min_);
+//        CHECK(m_max_);
+//        CHECK(m_local_min_);
+//        CHECK(m_local_max_);
+//        CHECK(m_memory_min_);
+//        CHECK(m_memory_max_);
+
+    }
+
+    void ghost_width(index_type gw)
+    {
+        for (int i = 0; i < ndims; ++i)
+        {
+            m_memory_min_[i] = m_local_min_[i] - ((m_local_max_[i] - m_local_min_[i] > 1) ? gw : 0);
+            m_memory_max_[i] = m_local_max_[i] + ((m_local_max_[i] - m_local_min_[i] > 1) ? gw : 0);
+        }
+    }
+
+    void decompose(index_tuple const &dist_dimensions, index_tuple const &dist_coord, index_type gw = 2)
+    {
 
 
-	std::tuple<id_tuple, id_tuple> index_box() const
-	{
-		return std::make_tuple(m::unpack_index(m_id_min_),
-				m::unpack_index(m_id_max_));
-	}
+        index_tuple b, e;
+        b = m_local_min_;
+        e = m_local_max_;
+        for (int n = 0; n < ndims; ++n)
+        {
 
-	std::tuple<id_tuple, id_tuple> local_index_box() const
-	{
-		return std::make_tuple(m::unpack_index(m_id_local_min_),
-				m::unpack_index(m_id_local_max_));
-	}
+            m_local_min_[n] = b[n] + (e[n] - b[n]) * dist_coord[n] / dist_dimensions[n];
+
+            m_local_max_[n] = b[n] + (e[n] - b[n]) * (dist_coord[n] + 1) / dist_dimensions[n];
 
 
-	auto box() const
-	DECL_RET_TYPE(std::forward_as_tuple(m_id_local_min_, m_id_local_max_))
+            if (m_local_min_[n] == m_local_max_[n])
+            {
+                RUNTIME_ERROR(
+                        "Mesh decompose fail! Dimension  is smaller than process grid. "
+//                                "[begin= " + type_cast<std::string>(b)
+//                        + ", end=" + type_cast<std::string>(e)
+//                        + " ,process grid="
+//                        + type_cast<std::string>(dist_coord)
+                );
+            }
+        }
 
-	template<typename T>
-	bool in_box(T const &x) const
-	{
-		auto b = m::unpack_index(m_id_local_min_);
-		auto e = m::unpack_index(m_id_local_max_);
-		return (b[1] <= x[1]) && (b[2] <= x[2]) && (b[0] <= x[0])  //
-				&& (e[1] > x[1]) && (e[2] > x[2]) && (e[0] > x[0]);
+        ghost_width(DEFAULT_GHOST_WIDTH);
 
-	}
-
-	bool in_box(id_type s) const
-	{
-		return in_box(m::unpack_index(s));
-	}
+    }
 
 
-	range_type range(int nid = 0) const
-	{
-		return range_type(m_id_local_min_, m_id_local_max_, nid);
-	}
+    template<typename TD>
+    void dimensions(TD const &d)
+    {
+        m_max_ = d;
+        m_min_ = 0;
+    }
 
-	template<int I> range_type make_range() const
-	{
-		return range_type(m_id_local_min_, m_id_local_max_, m::sub_index_to_id<I>());
-	}
+    index_tuple dimensions() const
+    {
+        index_tuple res;
+
+        res = m_max_ - m_min_;
+
+        return std::move(res);
+    }
+
+    template<typename T0, typename T1>
+    void box(T0 const &min, T1 const &max)
+    {
+        m_min_ = min;
+        m_max_ = max;
+    };
 
 
-//	range_type range(point_type const &min, point_type const &max,
-//			int nid = 0) const
-//	{
-////		geometry::model::Box<point_type> b;
-////		bool success = geometry::intersection(
-////				geometry::make_box(point(m_id_local_min_),
-////						point(m_id_local_min_)), geometry::make_box(min, max),
-////				b);
-////		if (success)
-////		{
-////			return range_type(
-////					traits::get<0>(
-////							coordinates_global_to_local(traits::get<0>(b), nid)),
-////					traits::get<1>(
-////							coordinates_global_to_local(traits::get<1>(b), nid)),
-////					nid);
-////		}
-////		else
-////		{
-////		}
-//
-//	}
-//
+    auto box() const
+    DECL_RET_TYPE((std::forward_as_tuple(m_min_, m_max_)))
+
+
+    auto local_box() const
+    DECL_RET_TYPE((std::forward_as_tuple(m_local_min_, m_local_max_)))
+
+    auto memory_box() const
+    DECL_RET_TYPE((std::forward_as_tuple(m_memory_min_, m_memory_max_)))
+
+
+    template<typename T>
+    bool in_box(T const &x) const
+    {
+        return (m_local_min_[1] <= x[1]) && (m_local_min_[2] <= x[2]) && (m_local_min_[0] <= x[0])  //
+               && (m_local_max_[1] > x[1]) && (m_local_max_[2] > x[2]) && (m_local_max_[0] > x[0]);
+
+    }
+
+    bool in_box(id_type s) const
+    {
+        return in_box(m::unpack_index(s));
+    }
+
+    template<int I>
+    range_type range() const { return m::template range<I>(m_local_min_, m_local_max_); }
+
+
+    template<size_t IFORM>
+    auto max_hash() const
+    DECL_RET_TYPE((m::hash(m::pack_index(m_memory_max_ - 1, m::template sub_index_to_id<IFORM>(3UL)),
+                           m_memory_min_, m_memory_max_)))
+
+
+    size_t hash(id_type s) const { return m::hash(s, m_memory_min_, m_memory_max_); }
+
 };//struct StructuredMesh
 
 
@@ -289,13 +286,19 @@ typedef Topology<topology::tags::Curvilinear> Curvilinear;
 typedef Topology<topology::tags::RectMesh> RectMesh;
 
 template<>
-struct Topology<topology::tags::CoRectMesh> : public topology::StructuredMesh { };
+struct Topology<topology::tags::CoRectMesh> : public topology::StructuredMesh
+{
+};
 
 template<>
-struct Topology<topology::tags::RectMesh> : public topology::StructuredMesh { };
+struct Topology<topology::tags::RectMesh> : public topology::StructuredMesh
+{
+};
 
 template<>
-struct Topology<topology::tags::Curvilinear> : public topology::StructuredMesh { };
+struct Topology<topology::tags::Curvilinear> : public topology::StructuredMesh
+{
+};
 
 } // namespace simpla
 

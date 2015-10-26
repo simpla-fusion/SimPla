@@ -20,67 +20,104 @@ namespace simpla
 
 template<typename ...> class Manifold;
 
+template<typename ...> struct Domain;
+template<typename ...> struct Field;
 
 template<typename TGeo, typename ...Policies>
 class Manifold<TGeo, Policies ...>
-		: public TGeo, public Policies ...
+        : public TGeo, public Policies ...
 {
 
-	typedef TGeo geometry_type;
+    typedef TGeo geometry_type;
 
-	typedef Manifold<geometry_type, Policies ...> this_type;
+    typedef Manifold<geometry_type, Policies ...> this_type;
 
 public:
 
-	Manifold() : Policies(static_cast<geometry_type &>(*this))... { }
+    Manifold() : Policies(static_cast<geometry_type &>(*this))... { }
 
-	virtual ~Manifold() { }
+    virtual ~Manifold() { }
 
-	Manifold(this_type const &other) : geometry_type(other), Policies(other)... { }
+    Manifold(this_type const &other) : geometry_type(other), Policies(other)... { }
 
-	this_type &operator=(const this_type &other)
-	{
-		this_type(other).swap(*this);
-		return *this;
-	}
+    this_type &operator=(const this_type &other)
+    {
+        this_type(other).swap(*this);
+        return *this;
+    }
 
 
 private:
 
-	TEMPLATE_DISPATCH_DEFAULT(load)
+    TEMPLATE_DISPATCH_DEFAULT(load)
 
-	TEMPLATE_DISPATCH_DEFAULT(deploy)
+    TEMPLATE_DISPATCH_DEFAULT(deploy)
 
-	TEMPLATE_DISPATCH(swap, inline,)
+    TEMPLATE_DISPATCH(swap, inline,)
 
-	TEMPLATE_DISPATCH(print, inline, const)
+    TEMPLATE_DISPATCH(print, inline, const)
 
 public:
-	void swap(const this_type &other) { _dispatch_swap<geometry_type, Policies...>(other); }
+    void swap(const this_type &other) { _dispatch_swap<geometry_type, Policies...>(other); }
 
-	template<typename TDict>
-	void load(TDict const &dict)
-	{
-		auto d = dict["Manifold"];
-		_dispatch_load<geometry_type, Policies...>(d);
-	}
+    template<typename TDict>
+    void load(TDict const &dict)
+    {
+        auto d = dict["Manifold"];
+        _dispatch_load<geometry_type, Policies...>(d);
+    }
 
 
-	void deploy()
-	{
-		_dispatch_deploy<geometry_type, Policies...>();
-	}
+    void deploy()
+    {
+        _dispatch_deploy<geometry_type, Policies...>();
+    }
 
-	template<typename OS>
-	OS &print(OS &os) const
-	{
-		os << "Manifold={" << std::endl;
+    template<typename OS>
+    OS &print(OS &os) const
+    {
+        os << "Manifold={" << std::endl;
+        _dispatch_print<geometry_type, Policies...>(os);
+        os << "}, # Manifold " << std::endl;
+        return os;
+    }
 
-		_dispatch_print<geometry_type, Policies...>(os);
+    template<typename T>
+    inline constexpr T access(T const &v, id_t s) const { return v; }
 
-		os << "}, # Manifold " << std::endl;
-		return os;
-	}
+    template<typename T, size_t ...N>
+    inline constexpr nTuple<T, N...> const &
+    access(nTuple<T, N...> const &v, id_t s) const { return v; }
+
+
+    template<typename ...T>
+    inline traits::primary_type_t<nTuple<Expression<T...>>>
+    access(nTuple<Expression<T...>> const &v, id_t s) const
+    {
+        traits::primary_type_t<nTuple<Expression<T...> > > res;
+        res = v;
+        return std::move(res);
+    }
+
+    template<typename ...Others>
+    inline typename traits::value_type<Field<Others...>>::type &
+    access(Field<Others...> &f, id_type s) const
+    {
+        return f[s];
+    }
+
+
+    template<typename ...Others>
+    inline typename traits::value_type<Field<Others...>>::type
+    access(Field<Others...> const &f, id_type s) const
+    {
+        return f[s];
+    }
+
+
+    template<typename ...TD>
+    inline auto access(Field<Expression<TD...> > const &f, id_type s) const
+    DECL_RET_TYPE((this->eval(f, s)))
 
 
 }; //class Manifold

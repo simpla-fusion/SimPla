@@ -1,0 +1,2 @@
+simpla_test(mesh_ids_test mesh_ids_test.cpp)
+target_link_libraries(mesh_ids_test simpla_lib)

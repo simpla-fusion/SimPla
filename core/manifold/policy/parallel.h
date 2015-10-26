@@ -19,83 +19,84 @@ struct ParallelPolicy<TGeo>
 {
 
 private:
-	typedef TGeo geometry_type;
+    typedef TGeo geometry_type;
 
-	typedef ParallelPolicy<geometry_type> this_type;
+    typedef ParallelPolicy<geometry_type> this_type;
 
 
 public:
-	ParallelPolicy(geometry_type &geo) : m_geo_(geo), m_mpi_comm_(SingletonHolder<MPIComm>::instance())
-	{
-	}
+    ParallelPolicy(geometry_type &geo) : m_geo_(geo), m_mpi_comm_(SingletonHolder<MPIComm>::instance())
+    {
+    }
 
-	virtual ~ParallelPolicy()
-	{
-	}
+    virtual ~ParallelPolicy()
+    {
+    }
 
-	template<typename TDict> void load(TDict const &dict)
-	{
-		ghost_width(dict["GhostWidth"].template as<nTuple<size_t, geometry_type::ndims> >());
-	}
+    template<typename TDict> void load(TDict const &dict)
+    {
+//        ghost_width(dict["GhostWidth"].template as<nTuple<size_t, geometry_type::ndims> >());
+    }
 
 
-	template<typename OS> OS &print(OS &os) const
-	{
-		os << "\t ParallelPolicy={ Default }," << std::endl;
-		return os;
-	}
+    template<typename OS> OS &print(OS &os) const
+    {
+        os << "\t ParallelPolicy={ Default }," << std::endl;
+        return os;
+    }
 
-	void deploy();
+    void deploy();
 
-	const nTuple<size_t, geometry_type::ndims> &ghost_width() const { return m_ghost_width_; }
+//    const nTuple<size_t, geometry_type::ndims> &ghost_width() const { return m_ghost_width_; }
 
-	void ghost_width(const nTuple<size_t, geometry_type::ndims> &gw) { m_ghost_width_ = gw; }
+//    void ghost_width(const nTuple<size_t, geometry_type::ndims> &gw) { m_ghost_width_ = gw; }
+//    nTuple<size_t, geometry_type::ndims> m_ghost_width_ = {DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH,
+//                                                           DEFAULT_GHOST_WIDTH};
 
-	void add_link(int const coord_offset[], typename geometry_type::range_type const &send_range,
-			typename geometry_type::range_type const &recv_range);
+    void add_link(int const coord_offset[], typename geometry_type::range_type const &send_range,
+                  typename geometry_type::range_type const &recv_range);
 
 
 private:
 
+    geometry_type &m_geo_;
 
-	geometry_type const &m_geo_;
+    MPIComm &m_mpi_comm_;
 
-	MPIComm &m_mpi_comm_;
+    struct connection_node
+    {
+        nTuple<int, 3> coord_offset;
+        typename geometry_type::range_type send_range;
+        typename geometry_type::range_type recv_range;
 
-	enum { DEFAULT_GHOST_WIDTH = 2 };
+    };
 
-	struct connection_node
-	{
-		nTuple<int, 3> coord_offset;
-		typename geometry_type::range_type send_range;
-		typename geometry_type::range_type recv_range;
 
-	};
-
-	nTuple<size_t, geometry_type::ndims> m_ghost_width_ = {DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH};
-
-	std::vector<connection_node> m_connections_;
+    std::vector<connection_node> m_connections_;
 
 public:
-	template<int IFORM>
-	std::vector<connection_node> const &connections() const { return m_connections_; }
+    template<int IFORM>
+    std::vector<connection_node> const &connections() const { return m_connections_; }
 
-	MPIComm &comm() const { return m_mpi_comm_; }
+    MPIComm &comm() const { return m_mpi_comm_; }
 
 }; //template<typename TGeo> struct ParallelPolicy
 
 
 template<typename TGeo>
 void ParallelPolicy<TGeo>::add_link(int const coord_offset[], typename geometry_type::range_type const &send_range,
-		typename geometry_type::range_type const &recv_range)
+                                    typename geometry_type::range_type const &recv_range)
 {
-	m_connections_.emplace_back(&coord_offset[0], send_range, recv_range);
+    m_connections_.emplace_back(&coord_offset[0], send_range, recv_range);
 };
 
 
 template<typename TGeo>
 void ParallelPolicy<TGeo>::deploy()
 {
+
+    m_geo_.decompose(m_mpi_comm_.topology(), m_mpi_comm_.coordinate());
+
 //	auto idx_b = geometry_type::unpack_index(geometry_type::m_id_min_);
 //
 //	auto idx_e = geometry_type::unpack_index(geometry_type::m_id_max_);
@@ -217,10 +218,10 @@ namespace traits
 template<typename TGeo>
 struct type_id<ParallelPolicy<TGeo>>
 {
-	static std::string name()
-	{
-		return "ParallelPolicy<" + type_id<TGeo>::name() + ">";
-	}
+    static std::string name()
+    {
+        return "ParallelPolicy<" + type_id<TGeo>::name() + ">";
+    }
 };
 }
 }//namespace simpla

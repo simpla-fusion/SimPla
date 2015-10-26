@@ -102,15 +102,12 @@ SP_APP(em, " Maxwell Eqs.")
 
     auto B = traits::make_field<FACE, Real>(*mesh);
 
-    E.clear();
-    B.clear();
-    J.clear();
 
-    E = traits::make_function_by_config<Real>(options["InitValue"]["E"], traits::make_domain<EDGE>(*mesh));
+    E = traits::make_function_by_config<EDGE, Real>(*mesh, options["InitValue"]["E"]);
 
-    B = traits::make_function_by_config<Real>(options["InitValue"]["B"], traits::make_domain<FACE>(*mesh));
+    B = traits::make_function_by_config<EDGE, Real>(*mesh, options["InitValue"]["B"]);
 
-    J = traits::make_function_by_config<Real>(options["InitValue"]["J"], traits::make_domain<EDGE>(*mesh));
+    J = traits::make_function_by_config<FACE, Real>(*mesh, options["InitValue"]["J"]);
 
 //    auto J_src = traits::make_function_by_config<Real>(options["Constraint"]["J"], traits::make_domain<EDGE>(*mesh));
 //
@@ -139,10 +136,10 @@ SP_APP(em, " Maxwell Eqs.")
     VERBOSE << SAVE(B) << std::endl;
     VERBOSE << SAVE(J) << std::endl;
 
-//    DEFINE_PHYSICAL_CONST
-//
-//    Real dt = mesh->dt();
-//
+    DEFINE_PHYSICAL_CONST
+
+    Real dt = mesh->dt();
+
 //    Real omega = 0.01 * PI / dt;
 //
 //    LOGGER << "----------  START ---------- " << std::endl;
@@ -167,7 +164,7 @@ SP_APP(em, " Maxwell Eqs.")
 //
 //        E_Boundary = 0;
 //
-//        LOG_CMD(B -= curl(E) * dt);
+    LOG_CMD(B -= curl(E) * dt);
 //
 //        B_Boundary = 0;
 //

@@ -42,60 +42,60 @@ namespace simpla
 
 struct DataSet
 {
-	std::shared_ptr<void> data;
+    std::shared_ptr<void> data;
 
-	DataType datatype;
+    DataType datatype;
 
-	DataSpace dataspace;
+    DataSpace dataspace;
 
-	Properties properties;
+    Properties properties;
 
-	DataSet() : data(nullptr) { }
+    DataSet() : data(nullptr) { }
 
-	DataSet(DataSet const &other) :
-			data(other.data),
-			datatype(other.datatype),
-			dataspace(other.dataspace),
-			properties(other.properties) { }
+    DataSet(DataSet const &other) :
+            data(other.data),
+            datatype(other.datatype),
+            dataspace(other.dataspace),
+            properties(other.properties) { }
 
-	DataSet(DataSet &&other) :
-			data(other.data),
-			datatype(other.datatype),
-			dataspace(other.dataspace),
-			properties(other.properties) { }
+    DataSet(DataSet &&other) :
+            data(other.data),
+            datatype(other.datatype),
+            dataspace(other.dataspace),
+            properties(other.properties) { }
 
-	virtual ~DataSet() { }
+    virtual ~DataSet() { }
 
-	void swap(DataSet &other)
-	{
-		std::swap(data, other.data);
-		std::swap(datatype, other.datatype);
-		std::swap(dataspace, other.dataspace);
-		std::swap(properties, other.properties);
-	}
+    void swap(DataSet &other)
+    {
+        std::swap(data, other.data);
+        std::swap(datatype, other.datatype);
+        std::swap(dataspace, other.dataspace);
+        std::swap(properties, other.properties);
+    }
 
-	bool operator==(DataSet const &other) const { return is_equal(other.data.get()); }
+    bool operator==(DataSet const &other) const { return is_equal(other.data.get()); }
 
-	virtual bool is_valid() const { return (data != nullptr) && (datatype.is_valid()) && (dataspace.is_valid()); }
+    virtual bool is_valid() const { return (data != nullptr) && (datatype.is_valid()) && (dataspace.is_valid()); }
 
-	virtual bool empty() const { return data == nullptr; }
+    virtual bool empty() const { return data == nullptr; }
 
-	virtual void deploy();
+    virtual void deploy();
 
-	virtual std::ostream &print(std::ostream &os) const;
+    virtual std::ostream &print(std::ostream &os) const;
 
-	virtual void clear();
+    virtual void clear();
 
-	virtual void copy(void const *other);
+    virtual void copy(void const *other);
 
-	virtual bool is_same(void const *other) const;
+    virtual bool is_same(void const *other) const;
 
-	virtual bool is_equal(void const *other) const;
+    virtual bool is_equal(void const *other) const;
 
 
-	template<typename T> T &get_value(size_t s) { return reinterpret_cast<T *>( data.get())[s]; }
+    template<typename T> T &get_value(size_t s) { return reinterpret_cast<T *>( data.get())[s]; }
 
-	template<typename T> T const &get_value(size_t s) const { return reinterpret_cast<T *>( data.get())[s]; }
+    template<typename T> T const &get_value(size_t s) const { return reinterpret_cast<T *>( data.get())[s]; }
 
 
 }; //class DataSet

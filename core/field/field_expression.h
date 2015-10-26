@@ -22,19 +22,15 @@ namespace simpla {
 /** @addtogroup field
  *  @{
  */
-template<typename ...>
-struct Field;
-template<typename ...>
-struct Domain;
+template<typename ...> struct Field;
+template<typename ...> struct Domain;
 
 /// @name  Field Expression
 /// @{
 
-template<typename ...>
-class Expression;
+template<typename ...> class Expression;
 
-template<typename ...>
-class BooleanExpression;
+template<typename ...> class BooleanExpression;
 
 template<typename ...T>
 struct Field<Expression<T...> > : public Expression<T...>
@@ -52,12 +48,11 @@ struct Field<BooleanExpression<T...> > : Expression<T...>
     using Expression<T...>::m_op_;
     using Expression<T...>::Expression;
 };
-namespace traits {
+namespace traits
+{
 
-template<typename>
-struct value_type;
-template<typename>
-struct field_value_type;
+template<typename> struct value_type;
+template<typename> struct field_value_type;
 
 template<typename TOP, typename ...T>
 struct value_type<Field<BooleanExpression<TOP, T...> > >
@@ -73,7 +68,7 @@ struct field_value_type<Field<BooleanExpression<TOP, T...> > >
 template<typename TOP, typename ...T>
 struct value_type<Field<Expression<TOP, T...> > >
 {
-    typedef result_of_t<TOP(value_type_t < T > ...)> type;
+    typedef result_of_t<TOP(typename value_type<T>::type ...)> type;
 };
 
 //namespace _impl
@@ -100,8 +95,7 @@ struct iform<Field<Expression<TAG, T0, T...> > > : public traits::iform<T0>::typ
 };
 }  // namespace traits
 
-template<typename ...>
-struct AssignmentExpression;
+template<typename ...> struct AssignmentExpression;
 
 
 template<typename TOP, typename TL, typename TR>
@@ -121,7 +115,8 @@ struct Field<AssignmentExpression<TOP, TL, TR> > : public AssignmentExpression<T
 
     void excute()
     {
-        if (!is_excuted_) {
+        if (!is_excuted_)
+        {
 //            expression_type::lhs = expression_type::rhs;
 //            is_excuted_ = true;
         }

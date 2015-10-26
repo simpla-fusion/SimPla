@@ -49,12 +49,12 @@ public:
 
     typedef TG mesh_type;
 
-    static constexpr int iform = IFORM;
+    typedef Domain<TG, std::integral_constant<int, IFORM> > domain_type;
+
+    static constexpr int iform = traits::iform<domain_type>::value;
 
 private:
     typedef DataSet storage_policy;
-
-    typedef Domain<mesh_type, std::integral_constant<int, iform>> domain_type;
 
     typedef typename mesh_type::id_type id_type;
 
@@ -71,26 +71,39 @@ private:
 
 public:
 
-    Field(domain_type const &d)
-            : DistributedObject(d.mesh().comm()), m_domain_(d), m_mesh_(d.mesh())
+
+    //create construct
+    Field(mesh_type const &m)
+            : DistributedObject(m.comm()), m_domain_(m), m_mesh_(m)
     {
         DataSet::datatype = traits::datatype<value_type>::create();
         DataSet::dataspace = m_mesh_.template dataspace<iform>();
-
     }
 
+
+    ~Field()
+    {
+    }
+
+    //copy construct
     Field(this_type const &other)
             : DistributedObject(other), DataSet(other), m_domain_(other.m_domain_), m_mesh_(other.m_mesh_)
     {
     }
 
+    // move construct
     Field(this_type &&other)
             : DistributedObject(other), DataSet(other), m_domain_(other.m_domain_), m_mesh_(other.m_mesh_)
     {
     }
 
-    ~Field()
+    // split construct
+    template<typename TSplit>
+    Field(this_type &f, TSplit const &split)
+            : DistributedObject(f.mesh().comm()), m_domain_(f.domain(), split), m_mesh_(f.mesh())
     {
+        DataSet::datatype = f.DataSet::datatype;
+        DataSet::data = f.DataSet::data;
     }
 
 
@@ -123,15 +136,9 @@ public:
         }
     }
 
-    domain_type const &domain() const
-    {
-        return m_domain_;
-    }
+    domain_type const &domain() const { return m_domain_; }
 
-    domain_type &domain()
-    {
-        return m_domain_;
-    }
+    domain_type &domain() { return m_domain_; }
 
 
     /**
@@ -139,166 +146,81 @@ public:
      * @{
      */
 
-    inline this_type &operator=(this_type const &other)
-    {
-        assign(other, _impl::_assign());
-        return *this;
-    }
+
 
     template<typename Other>
     inline this_type &operator=(Other const &other)
     {
-        assign(other, _impl::_assign());
+        action(_impl::_assign(), *this, other);
         return *this;
     }
 
     template<typename Other>
     inline this_type &operator+=(Other const &other)
     {
-        assign(other, _impl::plus_assign());
+
+
+        action(_impl::plus_assign(), *this, other);
         return *this;
     }
 
     template<typename Other>
     inline this_type &operator-=(Other const &other)
     {
-        assign(other, _impl::minus_assign());
+        action(_impl::minus_assign(), *this, other);
+
         return *this;
     }
 
     template<typename Other>
     inline this_type &operator*=(Other const &other)
     {
-        assign(other, _impl::multiplies_assign());
+
+        action(_impl::multiplies_assign(), *this, other);
+
         return *this;
     }
 
     template<typename Other>
     inline this_type &operator/=(Other const &other)
     {
-        assign(other, _impl::divides_assign());
+        action(_impl::divides_assign(), *this, other);
         return *this;
     }
 
-    template<typename TOther, typename TOP>
-    void assign(TOther const &other, TOP const &op)
+    template<typename TOP, typename ...Args>
+    void action(TOP const &op, Args &&... args)
     {
         deploy();
 
         DistributedObject::wait();
 
-        m_domain_.for_each([&](id_type const &s) { op(at(s), m_mesh_.calculate(other, s)); });
+        m_domain_.action(op, std::forward<Args>(args)...);
 
         DistributedObject::sync();
     }
 
-    template<typename TV, typename TD, typename ...Other, typename TOP>
-    void assign(Field<TD, TV, tags::function, Other...> const &f, TOP const &op)
+    template<typename TOP, typename ...Args>
+    void action(TOP const &op, Args &&... args) const
     {
-        deploy();
-
-        DistributedObject::wait();
-
-        m_domain_.for_each_st([&](id_type const &s) { op(at(s), f[s]); });
-
-        DistributedObject::sync();
+        m_domain_.action(op, std::forward<Args>(args)...);
     }
 
-    template<typename ... TOther, typename TOP>
-    void assign(Field<Expression<TOther...> > const &expr, TOP const &op)
-    {
-        deploy();
+    /** @name as_function
+     *  @{*/
 
-        DistributedObject::wait();
+    template<typename ...Args>
+    auto gather(Args &&...args) const
+    DECL_RET_TYPE((m_mesh_.gather(*this, std::forward<Args>(args)...)))
 
-        m_domain_.for_each([&](id_type const &s) { op(at(s), m_mesh_.calculate(expr, s)); });
+    template<typename ...Args>
+    auto operator()(Args &&...args) const
+    DECL_RET_TYPE((m_mesh_.gather(*this, std::forward<Args>(args)...)))
 
-        DistributedObject::sync();
-    }
 
-//        template<typename T0, typename ...T, typename TOP>
-//        void assign(Field<domain_type, T0, T...> const &other, TOP const &op)
-//        {
-//            deploy();
-//
-//            DistributedObject::wait();
-//
-//            if (!other.domain().is_null())
-//            {
-//                m_domain_.for_each(other.domain(), [&](id_type const &s)
-//                {
-//                    op(at(s), other[s]);
-//                });
-//            }
-//            DistributedObject::sync();
-//        }
-//
-//    template<typename TFun>
-//    void self_assign(TFun const &other)
-//    {
-//        deploy();
-//
-//        DistributedObject::wait();
-//        if (!other.domain().is_null()) {
-//            m_domain_.for_each(other.domain(),
-//                               [&](id_type const &s) {
-//                                   auto x = m_mesh_.coordinates(s);
-//                                   field_value_type v = static_cast<field_value_type >(other(x, m_mesh_.time()));
-//                                   at(s) += m_mesh_.calculate(other, s);
-//                               });
-//        }
-//
-//        DistributedObject::sync();
-//    }
-//
-//    template<typename ...T>
-//    void assign(
-//            Field<domain_type, value_type, tags::function, T...> const &other)
-//    {
-//        deploy();
-//
-//        DistributedObject::wait();
-//
-//        if (!other.domain().is_null()) {
-//            other.domain().for_each(
-//                    [&](id_type const &s) {
-//                        auto x = m_mesh_.point(s);
-//                        at(s) = m_mesh_.template sample<iform>(s, other(x, m_mesh_.time()));
-//                    });
-//        }
-//
-//        DistributedObject::sync();
-//    }
-//
-//    /** @} */
-//
-//
-//
-//    template<typename TFun>
-//    void for_each(TFun const &fun)
-//    {
-//        deploy();
-//
-//        DistributedObject::wait();
-//
-//
-//        for (auto s : m_domain_) {
-//            fun(at(s));
-//        }
-//
-//    }
-//
-//    template<typename TFun>
-//    void for_each(TFun const &fun) const
-//    {
-////		ASSERT(is_ready());
-//        while (!DistributedObject::is_ready()) {
-////			std::wait(10);
-//        };
-//        for (auto s : m_domain_) {
-//            fun(at(s));
-//        }
-//    }
+/**@}*/
+
+
 
 public:
     /**
@@ -330,19 +252,6 @@ public:
  * @}
  */
 
-/** @name as_function
- *  @{*/
-
-    template<typename ...Args>
-    auto gather(Args &&...args) const
-    DECL_RET_TYPE((m_mesh_.gather(*this, std::forward<Args>(args)...)))
-
-    template<typename ...Args>
-    auto operator()(Args &&...args) const
-    DECL_RET_TYPE((m_mesh_.gather(*this, std::forward<Args>(args)...)))
-
-
-/**@}*/
 
 }; // struct Field
 
@@ -363,6 +272,13 @@ template<typename ... TM, typename TV, typename ...Policies>
 struct value_type<Field<Domain<TM ...>, TV, Policies...>>
 {
     typedef TV type;
+};
+
+template<int I, typename TV, typename TM>
+Field<Domain<TM, std::integral_constant<int, I>>, TV>
+make_field(TM const &mesh)
+{
+    return Field<Domain<TM, std::integral_constant<int, I>>, TV>(mesh);
 };
 
 

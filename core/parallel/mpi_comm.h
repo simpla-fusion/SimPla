@@ -29,84 +29,84 @@ class MPIComm
 {
 
 public:
-	static constexpr int NDIMS = 3;
+    static constexpr int NDIMS = 3;
 
-	MPIComm();
+    MPIComm();
 
-	MPIComm(int argc, char **argv);
+    MPIComm(int argc, char **argv);
 
-	~MPIComm();
+    ~MPIComm();
 
-	std::string init(int argc = 0, char **argv = nullptr);
+    std::string init(int argc = 0, char **argv = nullptr);
 
-	void close();
+    void close();
 
-	MPI_Comm comm();
+    MPI_Comm comm();
 
-	MPI_Info info();
+    MPI_Info info();
 
-	void barrier();
+    void barrier();
 
-	bool is_valid() const;
+    bool is_valid() const;
 
-	int process_num() const;
+    int process_num() const;
 
-	int num_of_process() const;
+    int num_of_process() const;
 
-	int generate_object_id();
+    int generate_object_id();
 
 //	void set_num_of_threads(int num);
 //
 //	unsigned int get_num_of_threads() const;
 
-	nTuple<int, 3> topology() const;
+    nTuple<int, 3> topology() const;
 
-	void topology(nTuple<int, 3> const &d);
 
-	int get_neighbour(nTuple<int, 3> const &d) const;
+    void topology(nTuple<int, 3> const &d);
 
-	template<typename TI>
-	int get_neighbour(TI const &d) const
-	{
-		return get_neighbour(nTuple<int, 3>({d[0], d[1], d[2]}));
-	}
 
-	nTuple<int, 3> get_coordinate(int rank) const;
+    int get_neighbour(nTuple<int, 3> const &d) const;
 
-	nTuple<int, 3> get_coordinate() const;
+    template<typename TI>
+    int get_neighbour(TI const &d) const
+    {
+        return get_neighbour(nTuple<int, 3>({d[0], d[1], d[2]}));
+    }
 
-	int get_rank() const;
+    nTuple<int, 3> coordinate(int rank = -1) const;
 
-	template<typename TD>
-	int get_rank(TD const &d) const
-	{
-		return get_rank(nTuple<int, 3>({d[0], d[1], d[2]}));
-	}
 
-	int get_rank(nTuple<int, 3> const &d) const;
+    int get_rank() const;
 
-	std::tuple<int, int, int> make_send_recv_tag(int prefix,
-			int const *offset);
+    template<typename TD>
+    int get_rank(TD const &d) const
+    {
+        return get_rank(nTuple<int, 3>({d[0], d[1], d[2]}));
+    }
 
-	void decompose(int ndims, size_t *count, size_t *offset) const;
+    int get_rank(nTuple<int, 3> const &d) const;
 
-	template<typename TI>
-	void decompose(int ndims, TI *count, TI *offset) const
-	{
-		nTuple<size_t, MAX_NDIMS_OF_ARRAY> t_count, t_offset;
-		t_count = count;
-		t_offset = offset;
-		decompose(ndims, &t_count[0], &t_offset[0]);
-		for (int i = 0; i < ndims; ++i)
-		{
-			count[i] = t_count[i];
-			offset[i] = t_offset[i];
-		}
-	}
+    std::tuple<int, int, int> make_send_recv_tag(int prefix, int const *offset);
+
+//    void decompose(int ndims, size_t *count, size_t *offset) const;
+//
+//    template<typename TI>
+//    void decompose(int ndims, TI *count, TI *offset) const
+//    {
+//        nTuple<size_t, MAX_NDIMS_OF_ARRAY> t_count, t_offset;
+//        t_count = count;
+//        t_offset = offset;
+//        decompose(ndims, &t_count[0], &t_offset[0]);
+//        for (int i = 0; i < ndims; ++i)
+//        {
+//            count[i] = t_count[i];
+//            offset[i] = t_offset[i];
+//        }
+//    }
 
 private:
-	struct pimpl_s;
-	std::unique_ptr<pimpl_s> pimpl_;
+    struct pimpl_s;
+    std::unique_ptr<pimpl_s> pimpl_;
 };
 
 #define GLOBAL_COMM   SingletonHolder<simpla::MPIComm>::instance()
