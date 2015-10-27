@@ -102,12 +102,14 @@ SP_APP(em, " Maxwell Eqs.")
 
     auto B = traits::make_field<FACE, Real>(*mesh);
 
-
-    E = traits::make_function_by_config<EDGE, Real>(*mesh, options["InitValue"]["E"]);
+    E.clear();
+    B.clear();
+    J.clear();
+//    E = traits::make_function_by_config<EDGE, Real>(*mesh, options["InitValue"]["E"]);
 
     B = traits::make_function_by_config<EDGE, Real>(*mesh, options["InitValue"]["B"]);
 
-    J = traits::make_function_by_config<FACE, Real>(*mesh, options["InitValue"]["J"]);
+//    J = traits::make_function_by_config<FACE, Real>(*mesh, options["InitValue"]["J"]);
 
 //    auto J_src = traits::make_function_by_config<Real>(options["Constraint"]["J"], traits::make_domain<EDGE>(*mesh));
 //

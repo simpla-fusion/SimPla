@@ -273,15 +273,29 @@ struct MeshIDs_
         return static_cast<T>(unpack(s));
     }
 
+//    static coordinates_tuple coordinates(id_type s)
+//    {
+//        return coordinates_tuple{static_cast<Real>(UNPACK_ID(s, 0) - OVERFLOW_FLAG) * MESH_COORDINATES_FACTOR,
+//                                 static_cast<Real>(UNPACK_ID(s, 1) - OVERFLOW_FLAG) * MESH_COORDINATES_FACTOR,
+//                                 static_cast<Real>(UNPACK_ID(s, 2) - OVERFLOW_FLAG) * MESH_COORDINATES_FACTOR};
+//    }
+
     static coordinates_tuple coordinates(id_type s)
     {
-        return coordinates_tuple{UNPACK_ID(s, 0) * MESH_COORDINATES_FACTOR,
-
-                                 UNPACK_ID(s, 1) * MESH_COORDINATES_FACTOR,
-
-                                 UNPACK_ID(s, 2) * MESH_COORDINATES_FACTOR,};
-
+        return coordinates_tuple{static_cast<Real>(UNPACK_ID(s, 0)),
+                                 static_cast<Real>(UNPACK_ID(s, 1)),
+                                 static_cast<Real>(UNPACK_ID(s, 2))};
     }
+
+    static coordinates_tuple point(nTuple<index_type, ndims> const &idx)
+    {
+        return coordinates_tuple{
+                static_cast<Real>((idx[0] << MESH_RESOLUTION) + OVERFLOW_FLAG),
+                static_cast<Real>((idx[1] << MESH_RESOLUTION) + OVERFLOW_FLAG),
+                static_cast<Real>((idx[2] << MESH_RESOLUTION) + OVERFLOW_FLAG)
+        };
+    }
+
 
     static constexpr int num_of_ele_in_cell(id_type s)
     {

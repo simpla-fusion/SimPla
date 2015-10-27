@@ -55,10 +55,10 @@ INSTANTIATE_TEST_CASE_P(
                 testing::Values(
 
                         std::make_tuple(nTuple<Real, 3>({1.0, 0, 0}),
-                                        nTuple<Real, 3>({2.0, 2.0, TWOPI})),
+                                        nTuple<Real, 3>({2.0, 2.0, TWOPI}))
 
-                        std::make_tuple(nTuple<Real, 3>({1.0, -2.0, 0.0}),
-                                        nTuple<Real, 3>({2.0, 1.0, HALFPI}))
+//                      ,  std::make_tuple(nTuple<Real, 3>({1.0, -2.0, 0.0}),
+//                                        nTuple<Real, 3>({2.0, 1.0, HALFPI}))
 
                 ),
 
@@ -69,9 +69,9 @@ INSTANTIATE_TEST_CASE_P(
                         , nTuple<size_t, 3>({1, 200, 1}) //
                         , nTuple<size_t, 3>({1, 1, 10}) //
                         , nTuple<size_t, 3>({1, 10, 20}) //
-                        , nTuple<size_t, 3>({17, 1, 17}) //
+                        , nTuple<size_t, 3>({40, 1, 50}) //
                         , nTuple<size_t, 3>({17, 17, 1}) //
-                        , nTuple<size_t, 3>({12, 16, 10})   //
+                        , nTuple<size_t, 3>({50, 10, 50})   //
                 ),
 
                 testing::Values(nTuple<Real, 3>({TWOPI, 3 * TWOPI, TWOPI}))

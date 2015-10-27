@@ -17,7 +17,7 @@
 
 using namespace simpla;
 
-TEST(TopologyTest, MeshIDs)
+TEST(GeometryTest, MeshIDs)
 {
     std::cout << "Hello world" << std::endl;
 
@@ -68,7 +68,7 @@ TEST(TopologyTest, MeshIDs)
 //    }
 }
 
-TEST(TopologyTest, structured_mesh)
+TEST(GeometryTest, structured_mesh)
 {
     RectMesh t;
 
@@ -108,54 +108,11 @@ TEST(TopologyTest, structured_mesh)
 }
 
 
-TEST(TopologyTest, Geometry)
-{
-    Geometry<geometry::coordinate_system::Cartesian<3, 2>, topology::tags::CoRectMesh> g;
-
-    nTuple<size_t, 3> dim = {10, 1, 1};
-
-    nTuple<size_t, 3> xmin = {0, 0, 0};
-    nTuple<size_t, 3> xmax = {1, 1, 1};
-
-    g.dimensions(dim);
-
-    g.extents(xmin, xmax);
-
-    g.deploy();
-
-    CHECK(g.dx());
-
-    for (auto const &s:g.range<VERTEX>())
-    {
-        std::cout << "[" << g.iform(s) << "\t," << g.hash(s) << "] \t " << g.unpack_index(s) << " [" <<
-        g.sub_index(s) << "] v=" << g.volume(s) << std::endl;
-    }
-    CHECK("=======================");
-    for (auto const &s:g.range<EDGE>())
-    {
-        std::cout << "[" << g.iform(s) << "\t," << g.hash(s) << "] \t " << g.unpack_index(s) << " [" <<
-        g.sub_index(s) << "] v=" << g.volume(s) << std::endl;
-    }
-    CHECK("=======================");
-    for (auto const &s:g.range<FACE>())
-    {
-        std::cout << "[" << g.iform(s) << "\t," << g.hash(s) << "] \t " << g.unpack_index(s) << " [" <<
-        g.sub_index(s) << "] v=" << g.volume(s) << std::endl;
-    }
-    CHECK("=======================");
-    for (auto const &s:g.range<VOLUME>())
-    {
-        std::cout << "[" << g.iform(s) << "\t," << g.hash(s) << "] \t " << g.unpack_index(s) << " [" <<
-        g.sub_index(s) << "] v=" << g.volume(s) << std::endl;
-    }
-}
-
-
-TEST(TopologyTest, Ids)
+TEST(GeometryTest, Coordinates)
 {
     RectMesh t;
 
-    nTuple<size_t, 3> dims = {10, 1, 1};
+    nTuple<size_t, 3> dims = {5, 5, 5};
 
     t.dimensions(dims);
 
@@ -188,8 +145,94 @@ TEST(TopologyTest, Ids)
 
     for (auto const &s0:t.range<VOLUME>())
     {
-        auto s =  s0- RectMesh::_DI;
+        auto s = s0 - RectMesh::_DI;
         std::cout << "[" << t.iform(s) << "\t," << t.hash(s) << "] \t " << t.unpack_index(s) << " [" <<
         t.sub_index(s) << "]" << std::endl;
+    }
+}
+
+
+TEST(GeometryTest, Geometry)
+{
+    Geometry<coordinate_system::Cartesian<3, 2>, topology::tags::CoRectMesh> g;
+
+    nTuple<size_t, 3> dim = {10, 1, 1};
+
+    nTuple<size_t, 3> xmin = {0, 0, 0};
+    nTuple<size_t, 3> xmax = {1, 1, 1};
+
+    g.dimensions(dim);
+
+    g.box(xmin, xmax);
+
+    g.deploy();
+
+    CHECK(g.dx());
+
+    for (auto const &s:g.range<VERTEX>())
+    {
+        std::cout << "[" << g.iform(s) << "\t," << g.hash(s) << "] \t " << g.unpack_index(s) << " [" <<
+        g.sub_index(s) << "] v=" << g.volume(s) << std::endl;
+    }
+    CHECK("=======================");
+    for (auto const &s:g.range<EDGE>())
+    {
+        std::cout << "[" << g.iform(s) << "\t," << g.hash(s) << "] \t " << g.unpack_index(s) << " [" <<
+        g.sub_index(s) << "] v=" << g.volume(s) << std::endl;
+    }
+    CHECK("=======================");
+    for (auto const &s:g.range<FACE>())
+    {
+        std::cout << "[" << g.iform(s) << "\t," << g.hash(s) << "] \t " << g.unpack_index(s) << " [" <<
+        g.sub_index(s) << "] v=" << g.volume(s) << std::endl;
+    }
+    CHECK("=======================");
+    for (auto const &s:g.range<VOLUME>())
+    {
+        std::cout << "[" << g.iform(s) << "\t," << g.hash(s) << "] \t " << g.unpack_index(s) << " [" <<
+        g.sub_index(s) << "] v=" << g.volume(s) << std::endl;
+    }
+}
+
+
+TEST(GeometryTest, CoordinateSystem)
+{
+    Geometry<coordinate_system::Cartesian<3, 2>, topology::tags::CoRectMesh> g;
+
+    nTuple<size_t, 3> dim = {5, 5, 5};
+
+    nTuple<size_t, 3> xmin = {0, 0, 0};
+    nTuple<size_t, 3> xmax = {1, 2, 3};
+
+    g.dimensions(dim);
+
+    g.box(xmin, xmax);
+
+    g.deploy();
+
+    CHECK(g.dx());
+
+    for (auto const &s:g.range<VERTEX>())
+    {
+        std::cout << "[" << g.iform(s) << "\t," << g.hash(s) << "] \t " << g.unpack_index(s) << " [" <<
+        g.sub_index(s) << "] p=" << g.point(s) << " (s,r)=" << g.coordinates_global_to_local(g.point(s)) << std::endl;
+    }
+    CHECK("=======================");
+    for (auto const &s:g.range<EDGE>())
+    {
+        std::cout << "[" << g.iform(s) << "\t," << g.hash(s) << "] \t " << g.unpack_index(s) << " [" <<
+        g.sub_index(s) << "] p=" << g.point(s) << " (s,r)=" << g.coordinates_global_to_local(g.point(s)) << std::endl;
+    }
+    CHECK("=======================");
+    for (auto const &s:g.range<FACE>())
+    {
+        std::cout << "[" << g.iform(s) << "\t," << g.hash(s) << "] \t " << g.unpack_index(s) << " [" <<
+        g.sub_index(s) << "] p=" << g.point(s) << " (s,r)=" << g.coordinates_global_to_local(g.point(s)) << std::endl;
+    }
+    CHECK("=======================");
+    for (auto const &s:g.range<VOLUME>())
+    {
+        std::cout << "[" << g.iform(s) << "\t," << g.hash(s) << "] \t " << g.unpack_index(s) << " [" <<
+        g.sub_index(s) << "] p=" << g.point(s) << " (s,r)=" << g.coordinates_global_to_local(g.point(s)) << std::endl;
     }
 }

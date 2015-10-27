@@ -128,8 +128,8 @@ struct mertic<coordinate_system::Cartesian<3, ICARTESIAN_ZAXIS> >
 
 public:
     template<typename ...Others>
-    static constexpr Real volume(size_t node_id, point_t const &x0,
-                                 delta_t delta, Others &&...)
+    static constexpr Real volume(/*size_t node_id, point_t const &x0,
+                                 delta_t delta, */Others &&...)
     {
         return 1.0;
         // FIXME !!!
@@ -149,10 +149,15 @@ public:
     }
 
     template<typename ...Others>
-    static constexpr Real dual_volume(size_t node_id, Others &&...others)
+    static constexpr Real dual_volume(/*size_t node_id,*/ Others &&...others)
     {
-        return volume(7UL & (~node_id), std::forward<Others>(others)...);
+        return 1.0;
+//        return volume(7UL & (~node_id), std::forward<Others>(others)...);
     }
+
+    template<typename T0, typename T1, typename ...Others>
+    static constexpr auto inner_product(T0 const &v0, T1 const &v1, Others &&... others)
+    DECL_RET_TYPE((v0[0] * v1[0] + v0[1] * v1[1] + v0[2] * v1[2]))
 
 };
 

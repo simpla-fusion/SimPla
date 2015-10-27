@@ -281,52 +281,47 @@ struct mertic<Cylindrical<IPhiAxis> >
 private:
 
     static constexpr Real dl_(integer_sequence<size_t, CylindricalRAxis>,
-                              point_t const &x0, delta_t const &delta)
+                              point_t const &x0)
     {
-        return st::get<CylindricalRAxis>(delta);
+        return 1.0;
     }
 
     static constexpr Real dl_(integer_sequence<size_t, CylindricalZAxis>,
-                              point_t const &x0, delta_t const &delta)
+                              point_t const &x0)
     {
-        return st::get<CylindricalZAxis>(delta);
+        return 1.0;
     }
 
     static constexpr Real dl_(integer_sequence<size_t, CylindricalPhiAxis>,
-                              point_t const &x0, delta_t const &delta)
+                              point_t const &x0)
     {
 
-        return st::get<CylindricalRAxis>(x0)
-               * st::get<CylindricalPhiAxis>(delta);
+        return st::get<CylindricalRAxis>(x0);
 
+    }
+
+    template<size_t DI>
+    static constexpr Real dl(point_t const &x0)
+    {
+        return dl_(integer_sequence<size_t, DI>(), x0);
     }
 
 public:
 
-    template<size_t DI>
-    static constexpr Real dl(point_t const &x0, delta_t const &delta)
-    {
-
-        return dl_(integer_sequence<size_t, DI>(), x0, delta);
-    }
 
     template<typename ...Others>
-    static constexpr Real volume(size_t node_id, point_t const &x0,
-                                 delta_t delta, Others &&...)
+    static constexpr Real volume(size_t node_id, point_t const &x0, Others &&...)
     {
 
-        return (((node_id >> CylindricalRAxis) & 1UL)
-                * (dl<CylindricalRAxis>(x0, delta)
-                   * st::get<CylindricalRAxis>(delta) - 1.0) + 1.0)
+        return ((((node_id >> CylindricalRAxis) & 1UL) > 0) ?
+                (dl<CylindricalRAxis>(x0)) : 1.0)
 
-               * (((node_id >> CylindricalZAxis) & 1UL)
-                  * (dl<CylindricalZAxis>(x0, delta)
-                     * st::get<CylindricalZAxis>(delta) - 1.0) + 1.0)
+               * ((((node_id >> CylindricalZAxis) & 1UL) > 0) ?
+                  (dl<CylindricalZAxis>(x0)) : 1.0)
 
-               * (((node_id >> CylindricalPhiAxis) & 1UL)
-                  * (dl<CylindricalPhiAxis>(x0, delta)
-                     * st::get<CylindricalPhiAxis>(delta) - 1.0)
-                  + 1.0);
+               * ((((node_id >> CylindricalPhiAxis) & 1UL) > 0) ?
+                  (dl<CylindricalPhiAxis>(x0)) : 1.0);
+
 
     }
 
@@ -335,6 +330,11 @@ public:
     {
         return volume(7UL & (~node_id), std::forward<Others>(others)...);
     }
+
+    template<typename T0, typename T1, typename ...Others>
+    static constexpr auto inner_product(T0 const &v0, T1 const &v1, point_t const &x, Others &&... others)
+    DECL_RET_TYPE((v0[CylindricalRAxis] * v1[CylindricalRAxis] + v0[CylindricalZAxis] * v1[CylindricalZAxis] +
+                   v0[CylindricalPhiAxis] * v1[CylindricalPhiAxis] * x[CylindricalRAxis] * x[CylindricalRAxis]))
 
 };
 

@@ -76,7 +76,7 @@ public:
 
 
     template<typename TID>
-    value_type operator[](TID s) const
+    value_type operator[](TID const &s) const
     {
         return m_mesh_.template sample<iform>(s, this->operator()(m_mesh_.point(s), m_mesh_.time()));
     }

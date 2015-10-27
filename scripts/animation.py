@@ -6,7 +6,6 @@ import h5py as H5
 f1=H5.File("data_dump/geqdsk0027.h5","r")
 
 r=linspace(1.2,2.8,128)
-q,r=meshgrid(q,r)
 q=linspace(0,6.28/4,128)
 q,r=meshgrid(q,r)
 
