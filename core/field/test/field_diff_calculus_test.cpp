@@ -51,9 +51,17 @@ INSTANTIATE_TEST_CASE_P(DiffCalculus, FETLTest,
 
                         testing::Combine(
 
-                                testing::Values(nTuple<Real, 3>({-1.0, -2.0, -3.0})),
+                                testing::Values(
 
-                                testing::Values(nTuple<Real, 3>({1.0, 1.0, 1.0})),
+                                        std::make_tuple(nTuple<Real, 3>({0, 0, 0}),
+                                                        nTuple<Real, 3>({1.0, 2.0, 3.0})),
+
+                                        std::make_tuple(nTuple<Real, 3>({-1.0, -2.0, -3.0}),
+                                                        nTuple<Real, 3>({1.0, 1.0, 1.0}))
+
+
+                                ),
+
 
                                 testing::Values(
                                         nTuple<size_t, 3>({100, 1, 1}) //

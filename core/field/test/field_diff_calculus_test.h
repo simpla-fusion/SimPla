@@ -47,7 +47,7 @@ typedef manifold::Riemannian<3> mesh_type;
 #endif
 
 class FETLTest : public testing::TestWithParam<
-        std::tuple<nTuple<Real, 3>, nTuple<Real, 3>, nTuple<size_t, 3>,
+        std::tuple<std::tuple<nTuple<Real, 3>, nTuple<Real, 3> >, nTuple<size_t, 3>,
                 nTuple<Real, 3>>>
 {
 protected:
@@ -55,7 +55,7 @@ protected:
     {
         LOGGER.set_stdout_visable_level(logger::LOG_VERBOSE);
 
-        std::tie(xmin, xmax, dims, K_real) = GetParam();
+        std::tie(box, dims, K_real) = GetParam();
 
         K_imag = 0;
 
@@ -67,10 +67,12 @@ protected:
 
         mesh = std::make_shared<mesh_type>();
         mesh->dimensions(dims);
-        mesh->extents(xmin, xmax);
+        mesh->extents(box);
         mesh->deploy();
         Vec3 dx = mesh->dx();
         error = 10 * std::pow(inner_product(K_real, dx), 2.0);
+
+        one = 1;
     }
 
     void TearDown()
@@ -84,8 +86,8 @@ public:
     typedef typename mesh_type::point_type point_type;
 
     static constexpr size_t ndims = mesh_type::ndims;
-    nTuple<double, 3> xmin;
-    nTuple<Real, 3> xmax;
+    std::tuple<nTuple<double, 3>, nTuple<double, 3>> box;
+
     nTuple<size_t, 3> dims;
     nTuple<Real, 3> K_real; // @NOTE must   k = n TWOPI, period condition
     nTuple<scalar_type, 3> K_imag;
@@ -175,12 +177,12 @@ TEST_P(FETLTest, grad0)
 
     EXPECT_LE(std::sqrt(variance / count), error);
     EXPECT_LE(mod(average) / count, error);
-
-//    cd("/grad1/");
-//    LOGGER << SAVE(f0) << std::endl;
-//    LOGGER << SAVE(f1) << std::endl;
-//    LOGGER << SAVE(f1b) << std::endl;
-
+#ifdef DEBUG
+    cd("/grad1/");
+    LOGGER << SAVE(f0) << std::endl;
+    LOGGER << SAVE(f1) << std::endl;
+    LOGGER << SAVE(f1b) << std::endl;
+#endif
 }
 
 TEST_P(FETLTest, grad3)
@@ -250,12 +252,12 @@ TEST_P(FETLTest, grad3)
 
     }
 
-
+#ifdef DEBUG
     cd("/grad3/");
     LOGGER << SAVE(f3) << std::endl;
     LOGGER << SAVE(f2) << std::endl;
     LOGGER << SAVE(f2b) << std::endl;
-
+#endif
 
     EXPECT_LE(std::sqrt(variance / count), error);
     EXPECT_LE(mod(average / count), error);
@@ -351,12 +353,12 @@ TEST_P(FETLTest, diverge1)
     variance /= f0.domain().size();
     average /= f0.domain().size();
 
-
+#ifdef DEBUG
     cd("/div1/");
     LOGGER << SAVE(f1) << std::endl;
     LOGGER << SAVE(f0) << std::endl;
     LOGGER << SAVE(f0b) << std::endl;
-
+#endif
 
     EXPECT_LE(std::sqrt(variance), error) << dims;
     EXPECT_LE(mod(average), error) << " K= " << K_real << " K_i= " << K_imag
@@ -544,12 +546,12 @@ TEST_P(FETLTest, curl1)
 
     }
 
-
+#ifdef DEBUG
     cd("/curl1/");
     LOGGER << SAVE(f1) << std::endl;
     LOGGER << SAVE(f2) << std::endl;
     LOGGER << SAVE(f2b) << std::endl;
-
+#endif
     variance /= f2.domain().size();
     average /= f2.domain().size();
 
@@ -663,12 +665,12 @@ TEST_P(FETLTest, curl2)
 //		}
 
     }
-
+#ifdef DEBUG
     cd("/curl2/");
     LOGGER << SAVE(f2) << std::endl;
     LOGGER << SAVE(f1) << std::endl;
     LOGGER << SAVE(f1b) << std::endl;
-
+#endif
     variance /= f1.domain().size();
     average /= f1.domain().size();
 
@@ -696,6 +698,7 @@ TEST_P(FETLTest, identity_curl_grad_f0_eq_0)
 
         auto a = uniform_dist(gen);
         f0[s] = one * a;
+
         m += a * a;
     }
     f0.sync();
