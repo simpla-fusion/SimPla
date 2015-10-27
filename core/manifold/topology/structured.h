@@ -19,7 +19,8 @@
 
 namespace simpla
 {
-template<typename...> struct Topology;
+template<typename...>
+struct Topology;
 
 namespace topology
 {
@@ -46,7 +47,8 @@ public:
     typedef nTuple<Real, ndims> point_type;
     using m::index_tuple;
 
-/**
+
+    /**
  *
  *   -----------------------------5
  *   |                            |
@@ -123,6 +125,7 @@ public:
         std::swap(m_local_max_, other.m_local_max_);
         std::swap(m_memory_min_, other.m_memory_min_);
         std::swap(m_memory_max_, other.m_memory_max_);
+
     }
 
     template<typename TDict>
@@ -160,26 +163,10 @@ public:
     {
         m_local_min_ = m_min_;
         m_local_max_ = m_max_;
-
-        ghost_width(DEFAULT_GHOST_WIDTH);
-
-//        CHECK(m_min_);
-//        CHECK(m_max_);
-//        CHECK(m_local_min_);
-//        CHECK(m_local_max_);
-//        CHECK(m_memory_min_);
-//        CHECK(m_memory_max_);
-
+        m_memory_min_ = m_min_;
+        m_memory_max_ = m_max_;
     }
 
-    void ghost_width(index_type gw)
-    {
-        for (int i = 0; i < ndims; ++i)
-        {
-            m_memory_min_[i] = m_local_min_[i] - ((m_local_max_[i] - m_local_min_[i] > 1) ? gw : 0);
-            m_memory_max_[i] = m_local_max_[i] + ((m_local_max_[i] - m_local_min_[i] > 1) ? gw : 0);
-        }
-    }
 
     void decompose(index_tuple const &dist_dimensions, index_tuple const &dist_coord, index_type gw = 2)
     {
@@ -206,9 +193,15 @@ public:
 //                        + type_cast<std::string>(dist_coord)
                 );
             }
+
+
+            if (m_local_max_[n] - m_local_min_[n] > 1 && dist_dimensions[n] > 1)
+            {
+                m_memory_min_[n] = m_local_min_[n] - gw;
+                m_memory_max_[n] = m_local_max_[n] + gw;
+            }
         }
 
-        ghost_width(DEFAULT_GHOST_WIDTH);
 
     }
 
@@ -271,7 +264,7 @@ public:
                            m_memory_min_, m_memory_max_)))
 
 
-    size_t hash(id_type s) const { return m::hash(s, m_memory_min_, m_memory_max_); }
+    size_t hash(id_type const &s) const { return m::hash(s, m_memory_min_, m_memory_max_); }
 
 };//struct StructuredMesh
 

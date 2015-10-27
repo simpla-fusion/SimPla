@@ -128,6 +128,7 @@ struct MeshIDs_
     static constexpr id_type _DA = _DI | _DJ | _DK;
 
     static constexpr Real COORDINATES_MESH_FACTOR = static_cast<Real>(1UL << MESH_RESOLUTION);
+    static constexpr Real MESH_COORDINATES_FACTOR = 1.0 / COORDINATES_MESH_FACTOR;
 
     /// @}
     static constexpr Vec3 dx()
@@ -171,14 +172,14 @@ struct MeshIDs_
 
     static constexpr coordinates_tuple m_id_to_coordinates_shift_[] = {
 
-            {0, 0, 0},            // 000
-            {_R, 0, 0},           // 001
-            {0, _R, 0},           // 010
-            {0, 0, _R},           // 011
+            {0,  0,  0},            // 000
+            {_R, 0,  0},           // 001
+            {0,  _R, 0},           // 010
+            {0,  0,  _R},           // 011
             {_R, _R, 0},          // 100
-            {_R, 0, _R},          // 101
-            {0, _R, _R},          // 110
-            {0, _R, _R},          // 111
+            {_R, 0,  _R},          // 101
+            {0,  _R, _R},          // 110
+            {0,  _R, _R},          // 111
 
     };
 
@@ -221,9 +222,19 @@ struct MeshIDs_
     {
         return ((a | OVERFLOW_FLAG) - b) & (~OVERFLOW_FLAG);
     }
+//
+//    static constexpr id_type minus(id_type a, id_type b)
+//    {
+//        rezturn ((a | OVERFLOW_FLAG) - b) & (~OVERFLOW_FLAG);
+//    }
+//
+//    static constexpr id_type plus(id_type a, id_type b)
+//    {
+//        return (a + b) & (~OVERFLOW_FLAG);
+//    }
 
 #define UNPACK_ID(_S_, _I_)    (static_cast<id_type>(_S_) >> (ID_DIGITS*(_I_ )) & ID_MASK)
-#define UNPACK_INDEX(_S_, _I_)   static_cast<index_type>((_S_>> (ID_DIGITS*(_I_ )) & ID_MASK)>>MESH_RESOLUTION)
+#define UNPACK_INDEX(_S_, _I_)  (static_cast<index_type>(((_S_)>> (ID_DIGITS*(_I_ )) & ID_MASK)>>MESH_RESOLUTION)-static_cast<index_type>(OVERFLOW_FLAG>>MESH_RESOLUTION))
 
     template<typename T>
     static constexpr id_type pack(T const &idx)
@@ -251,7 +262,7 @@ struct MeshIDs_
     template<typename T>
     static constexpr id_type pack_index(T const &idx, int n_id = 0)
     {
-        return (pack(idx) << MESH_RESOLUTION) | m_id_to_shift_[n_id];
+        return (pack(idx) << MESH_RESOLUTION) | FULL_OVERFLOW_FLAG | m_id_to_shift_[n_id];
     }
 
 
@@ -263,7 +274,12 @@ struct MeshIDs_
 
     static coordinates_tuple coordinates(id_type s)
     {
-        return static_cast<coordinates_tuple>(unpack(s & (~FULL_OVERFLOW_FLAG)));
+        return coordinates_tuple{UNPACK_ID(s, 0) * MESH_COORDINATES_FACTOR,
+
+                                 UNPACK_ID(s, 1) * MESH_COORDINATES_FACTOR,
+
+                                 UNPACK_ID(s, 2) * MESH_COORDINATES_FACTOR,};
+
     }
 
     static constexpr int num_of_ele_in_cell(id_type s)
@@ -463,13 +479,13 @@ struct MeshIDs_
                             /* 000*/
                             {0},
                             /* 001*/
-                            {_LI, _HI},
+                            {_LI,       _HI},
                             /* 010*/
-                            {_LJ, _HJ},
+                            {_LJ,       _HJ},
                             /* 011*/
                             {_LI | _LJ, _HI | _LJ, _HI | _HJ, _LI | _HJ},
                             /* 100*/
-                            {_LK, _HK},
+                            {_LK,       _HK},
                             /* 101*/
                             {_LK | _LI, _HK | _LI, _HK | _HI, _LK | _HI},
                             /* 110*/
@@ -477,11 +493,11 @@ struct MeshIDs_
                             /* 111*/
                             {_LI | _LJ | _LK, //
                                     _HI | _LJ | _LK, //
-                                    _HI | _HJ | _LK, //
-                                    _LI | _HJ | _LK, //
+                                         _HI | _HJ | _LK, //
+                                              _LI | _HJ | _LK, //
 
-                                    _LI | _LJ | _HK, //
-                                    _HI | _LJ | _HK, //
+                                                   _LI | _LJ | _HK, //
+                                                        _HI | _LJ | _HK, //
                                     _HI | _HJ | _HK, //
                                     _LI | _HJ | _HK}
 
@@ -496,21 +512,21 @@ struct MeshIDs_
                             /* 010*/
                             {0},
                             /* 011*/
-                            {_LJ, _HI, _HJ, _LI},
+                            {_LJ,       _HI,       _HJ,       _LI},
                             /* 100*/
                             {0},
                             /* 101*/
-                            {_LI, _HK, _HI, _LK},
+                            {_LI,       _HK,       _HI,       _LK},
                             /* 110*/
-                            {_LK, _HJ, _HK, _LJ},
+                            {_LK,       _HJ,       _HK,       _LJ},
                             /* 111*/
                             {_LK | _LJ,  //-> 001
                                     _LK | _HI,  //   012
-                                    _LK | _HJ,  //   021
-                                    _LK | _LI,  //   010
+                                         _LK | _HJ,  //   021
+                                              _LK | _LI,  //   010
 
-                                    _LI | _LJ,  //
-                                    _LI | _HJ,  //
+                                                   _LI | _LJ,  //
+                                                        _LI | _HJ,  //
                                     _HI | _LJ,  //
                                     _HI | _HJ,  //
 
@@ -524,12 +540,12 @@ struct MeshIDs_
                     {
                             /* 000*/
                             {_LK | _LJ,  //
-                                    _LK | _HI,  //
-                                    _LK | _HJ,  //
-                                    _LK | _LI,  //
+                                  _LK | _HI,  //
+                                       _LK | _HJ,  //
+                                            _LK | _LI,  //
 
-                                    _LI | _LJ,  //
-                                    _LI | _HJ,  //
+                                                 _LI | _LJ,  //
+                                                      _LI | _HJ,  //
                                     _HI | _LJ,  //
                                     _HI | _HJ,  //
 
@@ -539,29 +555,29 @@ struct MeshIDs_
                                     _HK | _LI  //
                             },
                             /* 001*/
-                            {_LJ, _HK, _HJ, _LK},
+                            {_LJ,       _HK,       _HJ,       _LK},
                             /* 010*/
-                            {_LK, _HI, _HK, _LI},
+                            {_LK,       _HI,       _HK,       _LI},
                             /* 011*/
                             {0},
                             /* 100*/
-                            {_LI, _HJ, _HI, _LJ},
+                            {_LI,       _HJ,       _HI,       _LJ},
                             /* 101*/
                             {0},
                             /* 110*/
                             {0},
                             /* 111*/
-                            {_LI, _LJ, _LK, _HI, _HJ, _HK}},
+                            {_LI,   _LJ, _LK, _HI, _HJ, _HK}},
                     // TO VOLUME
                     {
                             /* 000*/
                             {_LI | _LJ | _LK,  //
-                                    _LI | _HJ | _LK,  //
-                                    _LI | _LJ | _HK,  //
-                                    _LI | _HJ | _HK,  //
+                                  _LI | _HJ | _LK,  //
+                                       _LI | _LJ | _HK,  //
+                                            _LI | _HJ | _HK,  //
 
-                                    _HI | _LJ | _LK,  //
-                                    _HI | _HJ | _LK,  //
+                                                 _HI | _LJ | _LK,  //
+                                                      _HI | _HJ | _LK,  //
                                     _HI | _LJ | _HK,  //
                                     _HI | _HJ | _HK  //
 
@@ -571,13 +587,13 @@ struct MeshIDs_
                             /* 010*/
                             {_LK | _LI, _LK | _HI, _HK | _LI, _HK | _HI},
                             /* 011*/
-                            {_LK, _HK},
+                            {_LK,       _HK},
                             /* 100*/
                             {_LI | _LJ, _LI | _HJ, _HI | _LJ, _HI | _HJ},
                             /* 101*/
-                            {_LJ, _HJ},
+                            {_LJ,       _HJ},
                             /* 110*/
-                            {_LI, _HI},
+                            {_LI,       _HI},
                             /* 111*/
                             {0}}
 
@@ -628,15 +644,15 @@ struct MeshIDs_
         return ((s & (m | (m << ID_DIGITS) | (m << (ID_DIGITS * 2)))) << n) & (~FULL_OVERFLOW_FLAG);
     }
 
-    static constexpr id_type id_add(id_type s, id_type d)
-    {
-        return ((s & (~FULL_OVERFLOW_FLAG)) + d) & (~FULL_OVERFLOW_FLAG);
-    }
-
-    static constexpr id_type id_minus(id_type s, id_type d)
-    {
-        return ((s & (~FULL_OVERFLOW_FLAG)) - d) & (~FULL_OVERFLOW_FLAG);
-    }
+//    static constexpr id_type id_add(id_type s, id_type d)
+//    {
+//        return ((s & (~FULL_OVERFLOW_FLAG)) + d) & (~FULL_OVERFLOW_FLAG);
+//    }
+//
+//    static constexpr id_type id_minus(id_type s, id_type d)
+//    {
+//        return ((s & (~FULL_OVERFLOW_FLAG)) - d) & (~FULL_OVERFLOW_FLAG);
+//    }
 
 
     struct iterator : public block_iterator<index_type, ndims + 1>
@@ -666,12 +682,12 @@ struct MeshIDs_
 
         }
 
-        template<typename T>
-        iterator(T const &pself, T const &pmin, T const &pmax, int IFORM = VERTEX) :
+        template<typename T0, typename T1, typename T2>
+        iterator(T0 const &pself, T1 const &pmin, T2 const &pmax, int IFORM = VERTEX) :
                 base_type(pself, pmin, pmax), m_iform_(IFORM)
         {
             nTuple<index_type, ndims + 1> self, min, max;
-            self = pmin;
+            self = pself;
             min = pmin;
             max = pmax;
 
@@ -692,7 +708,16 @@ struct MeshIDs_
         {
         }
 
+        iterator(base_type const &other, int IFORM) : base_type(other), m_iform_(IFORM)
+        {
+        }
+
         ~iterator() { }
+
+        iterator end() const
+        {
+            return iterator(base_type::end(), m_iform_);
+        }
 
         iterator &operator=(iterator const &other)
         {
@@ -716,7 +741,8 @@ struct MeshIDs_
 
         constexpr id_type pack_(nTuple<index_type, ndims + 1> const &idx) const
         {
-            return (pack(idx) << MESH_RESOLUTION) | m_id_to_shift_[m_sub_index_to_id_[m_iform_][idx[ndims]]];
+            return (pack(idx) << MESH_RESOLUTION) | FULL_OVERFLOW_FLAG |
+                   m_id_to_shift_[m_sub_index_to_id_[m_iform_][idx[ndims]]];
         }
 
     };
@@ -724,14 +750,16 @@ struct MeshIDs_
 
     typedef Range<iterator> range_type;
 
-    template<typename T>
-    static range_type range(T const &b, T const &e, int iform = VERTEX)
+    template<typename T0, typename T1>
+    static range_type range(T0 const &min, T1 const &max, int iform = VERTEX)
     {
-        return range_type(iterator(b, b, e, iform), iterator(e, b, e, iform));
+        iterator ib(min, min, max, iform);
+
+        return range_type(ib, ib.end());
     }
 
-    template<int IFORM, typename T>
-    static range_type range(T const &b, T const &e)
+    template<int IFORM, typename T0, typename T1>
+    static range_type range(T0 const &b, T1 const &e)
     {
         return range(b, e, IFORM);
     }
@@ -748,40 +776,43 @@ struct MeshIDs_
 
         return
                 (
-                        (UNPACK_INDEX(s, 0) + e[0] - b[0] - b[0]) % (e[0] - b[0]) +
+                        (UNPACK_INDEX(s, 2) + e[2] - b[2] - b[2]) % (e[2] - b[2]) +
 
                         (
                                 ((UNPACK_INDEX(s, 1) + e[1] - b[1] - b[1]) % (e[1] - b[1])) +
 
-                                ((UNPACK_INDEX(s, 2) + e[2] - b[2] - b[2]) % (e[2] - b[2])) * (e[1] - b[1])
+                                ((UNPACK_INDEX(s, 0) + e[0] - b[0] - b[0]) % (e[0] - b[0])) * (e[1] - b[1])
 
-                        ) * (e[0] - b[0])
+                        ) * (e[2] - b[2])
 
                 ) * num_of_ele_in_cell(s) + sub_index(s);
 
     }
-
-    static constexpr index_type hash(id_type s, id_type b, id_type e)
-    {
-        return hash_((diff(s, b) + diff(e, b)), diff(e, b)) * num_of_ele_in_cell(s) + sub_index(s);
-    }
-
-
-    static constexpr index_type hash_(id_type const &s, id_type const &d)
-    {
-        //C-ORDER SLOW FIRST
-
-        return
-
-                (UNPACK_INDEX(s, 0) % UNPACK_INDEX(d, 0)) +
-                (
-                        (UNPACK_INDEX(s, 1) % UNPACK_INDEX(d, 1)) +
-                        (UNPACK_INDEX(s, 2) % UNPACK_INDEX(d, 2)) * UNPACK_INDEX(d, 1)
-                )
-
-                * UNPACK_INDEX(d, 0);
-
-    }
+//
+//    static constexpr index_type hash(id_type s, id_type b, id_type e)
+//    {
+//        return hash(s, unpack_index(b), unpack_index(e));
+//
+//        //  return hash_((diff(s, b) + diff(e, b)), diff(e, b)) * num_of_ele_in_cell(s) + sub_index(s);
+//    }
+//
+//
+//    static constexpr index_type hash_(id_type const &s, id_type const &d)
+//    {
+//        //C-ORDER SLOW FIRST
+//
+//        return
+//
+//                (UNPACK_INDEX(s, 2) % UNPACK_INDEX(d, 2)) +
+//
+//                (
+//                        (UNPACK_INDEX(s, 1) % UNPACK_INDEX(d, 1)) +
+//                        (UNPACK_INDEX(s, 0) % UNPACK_INDEX(d, 0)) * UNPACK_INDEX(d, 1)
+//                )
+//
+//                * UNPACK_INDEX(d, 2);
+//
+//    }
 
     template<size_t IFORM>
     static constexpr size_t max_hash(id_type b, id_type e)

@@ -68,6 +68,18 @@ public:
         std::swap(m_self_, other.m_self_);
     }
 
+    this_type end() const
+    {
+        this_type res(*this);
+
+        res.m_self_ = m_max_ - 1;
+
+        res.advance();
+
+        return std::move(res);
+
+    }
+
     bool operator==(this_type const &other) const { return m_self_ == other.m_self_; }
 
     bool operator!=(this_type const &other) const { return m_self_ != other.m_self_; }
@@ -152,22 +164,20 @@ public:
     bool operator>=(this_type const &other) const { return (*this - other) >= 0; }
 
 
-private:
-
     value_type m_min_, m_max_, m_self_;
 
 
-    difference_type advance(difference_type n)
+    difference_type advance(difference_type n = 1)
     {
-        for (int i = ndims - 1; i >= 0; --i)
+        for (int i = ndims - 1; i > 0; --i)
         {
             auto d = div(m_self_[i] - m_min_[i] + n + m_max_[i] - m_min_[i], m_max_[i] - m_min_[i]);
 
             m_self_[i] = d.rem + m_min_[i];
 
-            n = d.quot - 1;//- std::copysign(1, n);
-
+            n = d.quot - 1;
         }
+        m_self_[0] += n;
         return n;
     }
 

@@ -36,24 +36,20 @@ struct Domain<TM, std::integral_constant<int, IFORM> > : public TM::range_type
 {
 private:
     typedef Domain<TM, std::integral_constant<int, IFORM> > this_type;
+
+    typedef typename TM::range_type range_type;
+
 public:
+
     typedef TM mesh_type;
-
-    static constexpr int ndims = mesh_type::ndims;
-
-    static constexpr int iform = IFORM;
 
     typedef typename mesh_type::id_type id_type;
 
     typedef typename mesh_type::point_type point_type;
 
-    typedef typename mesh_type::range_type range_type;
+    static constexpr int ndims = mesh_type::ndims;
 
-//    typedef typename range_type::iterator const_iterator;
-//
-//    using range_type::begin;
-//
-//    using range_type::end;
+    static constexpr int iform = IFORM;
 
     mesh_type const *m_mesh_;
 public:
@@ -73,11 +69,6 @@ public:
     {
     }
 
-    template<typename TOP>
-    void split(this_type &other, TOP const &)
-    {
-    }
-
 
     virtual ~Domain() { }
 
@@ -93,6 +84,10 @@ public:
         return *this;
     }
 
+    using range_type::empty;
+    using range_type::size;
+
+
     mesh_type const &mesh() const
     {
         return m_mesh_;
@@ -103,37 +98,6 @@ public:
     {
         return m_mesh_->is_valid();
     }
-
-    bool is_simply() const
-    {
-        return true;
-    }
-
-    bool empty() const
-    {
-        return is_null();
-    }
-
-/** @name set
- *  @{
- */
-    bool is_null() const
-    {
-        return is_simply() && range_type::empty();
-    }
-
-    bool is_full() const
-    {
-        return is_simply() && !is_null();
-    }
-
-    operator bool() const
-    {
-        return !is_null();
-    }
-
-
-    using range_type::size;
 
 
 public:

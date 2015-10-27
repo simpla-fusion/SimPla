@@ -54,18 +54,16 @@ protected:
     void SetUp()
     {
         LOGGER.set_stdout_visable_level(logger::LOG_VERBOSE);
+
         std::tie(xmin, xmax, dims, K_real) = GetParam();
+
         K_imag = 0;
-        SetDefaultValue(&one);
+
         for (int i = 0; i < ndims; ++i)
         {
-            if (dims[i] <= 1 || (xmax[i] <= xmin[i]))
-            {
-                dims[i] = 1;
-                K_real[i] = 0.0;
-                xmax[i] = xmin[i];
-            }
+            if (dims[i] <= 1) { K_real[i] = 0; }
         }
+
 
         mesh = std::make_shared<mesh_type>();
         mesh->dimensions(dims);
@@ -96,28 +94,6 @@ public:
 
     std::shared_ptr<mesh_type> mesh;
 
-    template<typename T>
-    void SetDefaultValue(T *v)
-    {
-        *v = 1;
-    }
-
-    template<typename T>
-    void SetDefaultValue(std::complex<T> *v)
-    {
-        T r;
-        SetDefaultValue(&r);
-        *v = std::complex<T>(r, 0);
-    }
-
-    template<size_t N, typename T>
-    void SetDefaultValue(nTuple<T, N> *v)
-    {
-        for (int i = 0; i < N; ++i)
-        {
-            (*v)[i] = i;
-        }
-    }
 
     virtual ~FETLTest()
     {
@@ -135,7 +111,7 @@ TEST_P(FETLTest, grad0)
     f1.clear();
     f1b.clear();
 
-    for (auto s : traits::make_domain<VERTEX>(*mesh))
+    for (auto const &s : traits::make_domain<VERTEX>(*mesh))
     {
         f0[s] = std::sin(inner_product(K_real, mesh->point(s)));
     };
@@ -150,8 +126,11 @@ TEST_P(FETLTest, grad0)
 
     Real mean = 0;
 
-    for (auto s : traits::make_domain<EDGE>(*mesh))
+    size_t count = 0;
+
+    for (auto const &s : traits::make_domain<EDGE>(*mesh))
     {
+        ++count;
         size_t n = mesh->sub_index(s);
 
         auto x = mesh->point(s);
@@ -159,7 +138,8 @@ TEST_P(FETLTest, grad0)
         value_type expect;
 
         expect = K_real[n] * std::cos(inner_product(K_real, x))
-                 + K_imag[n] * std::sin(inner_product(K_real, x));
+//                 + K_imag[n] * std::sin(inner_product(K_real, x))
+                ;
 
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
         if (n == (traits::ZAxis<mesh_type>::value + 1) % 3)
@@ -170,16 +150,12 @@ TEST_P(FETLTest, grad0)
 #endif
         f1b[s] = expect;
 
-//		CHECK(expect) << " " << f1[s] << " " << K_real << " " << K_imag
-//				<< std::endl;
-
         variance += mod((f1[s] - expect) * (f1[s] - expect));
 
         average += (f1[s] - expect);
 
         m += mod(f1[s]);
-
-//		if (mod(expect) > EPSILON)
+        //		if (mod(expect) > EPSILON)
 //		{
 //			EXPECT_LE(mod(2.0 * (f1[s] - expect) / (f1[s] + expect)), error) << " expect = " << expect
 //			        << " actual = " << f1[s] << " x= " << geometry->point(s) << " K= " << K_real << " geometry->K="
@@ -197,8 +173,8 @@ TEST_P(FETLTest, grad0)
 
     }
 
-    EXPECT_LE(std::sqrt(variance), error);
-    EXPECT_LE(mod(average), error);
+    EXPECT_LE(std::sqrt(variance / count), error);
+    EXPECT_LE(mod(average) / count, error);
 
 //    cd("/grad1/");
 //    LOGGER << SAVE(f0) << std::endl;
@@ -209,10 +185,9 @@ TEST_P(FETLTest, grad0)
 
 TEST_P(FETLTest, grad3)
 {
-    if (!mesh->is_valid())
-    {
-        return;
-    }
+
+
+    if (!mesh->is_valid()) { return; }
 
     auto f2 = traits::make_field<FACE, value_type>(*mesh);
     auto f2b = traits::make_field<FACE, value_type>(*mesh);
@@ -234,9 +209,10 @@ TEST_P(FETLTest, grad3)
     Real m = 0.0;
     Real variance = 0;
     value_type average = one * 0.0;
-
+    size_t count = 0;
     for (auto s : traits::make_domain<FACE>(*mesh))
     {
+        ++count;
 
         size_t n = mesh->sub_index(s);
 
@@ -244,7 +220,9 @@ TEST_P(FETLTest, grad3)
 
         value_type expect;
         expect = K_real[n] * std::cos(inner_product(K_real, x))
-                 + K_imag[n] * std::sin(inner_product(K_real, x));
+
+//                 + K_imag[n] * std::sin(inner_product(K_real, x))
+                ;
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
         if (n == (traits::ZAxis<mesh_type>::value + 1) % 3)
         {
@@ -272,15 +250,16 @@ TEST_P(FETLTest, grad3)
 
     }
 
-    variance /= f2.domain().size();
-    average /= f2.domain().size();
-    EXPECT_LE(std::sqrt(variance), error) << dims;
-    EXPECT_LE(mod(average), error);
 
-//    cd("/grad3/");
-//    LOGGER << SAVE(f3) << std::endl;
-//    LOGGER << SAVE(f2) << std::endl;
-//    LOGGER << SAVE(f2b) << std::endl;
+    cd("/grad3/");
+    LOGGER << SAVE(f3) << std::endl;
+    LOGGER << SAVE(f2) << std::endl;
+    LOGGER << SAVE(f2b) << std::endl;
+
+
+    EXPECT_LE(std::sqrt(variance / count), error);
+    EXPECT_LE(mod(average / count), error);
+
 
 }
 
@@ -372,7 +351,12 @@ TEST_P(FETLTest, diverge1)
     variance /= f0.domain().size();
     average /= f0.domain().size();
 
-    CHECK(average);
+
+    cd("/div1/");
+    LOGGER << SAVE(f1) << std::endl;
+    LOGGER << SAVE(f0) << std::endl;
+    LOGGER << SAVE(f0b) << std::endl;
+
 
     EXPECT_LE(std::sqrt(variance), error) << dims;
     EXPECT_LE(mod(average), error) << " K= " << K_real << " K_i= " << K_imag
@@ -560,8 +544,15 @@ TEST_P(FETLTest, curl1)
 
     }
 
+
+    cd("/curl1/");
+    LOGGER << SAVE(f1) << std::endl;
+    LOGGER << SAVE(f2) << std::endl;
+    LOGGER << SAVE(f2b) << std::endl;
+
     variance /= f2.domain().size();
     average /= f2.domain().size();
+
 
     ASSERT_LE(std::sqrt(variance), error);
     ASSERT_LE(mod(average), error);
@@ -576,14 +567,14 @@ TEST_P(FETLTest, curl2)
     }
 
     auto f1 = traits::make_field<EDGE, value_type>(*mesh);
-    auto vf1b = traits::make_field<EDGE, value_type>(*mesh);
+    auto f1b = traits::make_field<EDGE, value_type>(*mesh);
     auto f2 = traits::make_field<FACE, value_type>(*mesh);
-    auto vf2b = traits::make_field<FACE, value_type>(*mesh);
+    auto f2b = traits::make_field<FACE, value_type>(*mesh);
 
     f1.clear();
-    vf1b.clear();
+    f1b.clear();
     f2.clear();
-    vf2b.clear();
+    f2b.clear();
 
     Real m = 0.0;
     Real variance = 0;
@@ -599,7 +590,7 @@ TEST_P(FETLTest, curl2)
 //	f1 = codifferential_derivative(f2);
 //	f1 = -f1;
 
-    vf1b.clear();
+    f1b.clear();
 
     for (auto s : traits::make_domain<EDGE>(*mesh))
     {
@@ -655,7 +646,7 @@ TEST_P(FETLTest, curl2)
                  + (K_imag[(n + 1) % 3] - K_imag[(n + 2) % 3]) * sin_v;
 
 #endif
-        vf1b[s] = expect;
+        f1b[s] = expect;
 
         variance += mod((f1[s] - expect) * (f1[s] - expect));
 
@@ -673,10 +664,11 @@ TEST_P(FETLTest, curl2)
 
     }
 
-//	GLOBAL_DATA_STREAM.cd("/");
-//	LOGGER << SAVE(vf2);
-//	LOGGER << SAVE(vf1);
-//	LOGGER << SAVE(vf1b);
+    cd("/curl2/");
+    LOGGER << SAVE(f2) << std::endl;
+    LOGGER << SAVE(f1) << std::endl;
+    LOGGER << SAVE(f1b) << std::endl;
+
     variance /= f1.domain().size();
     average /= f1.domain().size();
 
@@ -687,10 +679,7 @@ TEST_P(FETLTest, curl2)
 
 TEST_P(FETLTest, identity_curl_grad_f0_eq_0)
 {
-    if (!mesh->is_valid())
-    {
-        return;
-    }
+    if (!mesh->is_valid()) { return; }
 
     auto f0 = traits::make_field<VERTEX, value_type>(*mesh);
     auto f1 = traits::make_field<EDGE, value_type>(*mesh);

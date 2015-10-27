@@ -14,86 +14,87 @@ namespace simpla
 {
 
 //namespace tags
-template<typename ...> struct Range;
+    template<typename ...>
+    struct Range;
 
 
 // base on Range concept in TBB
 
-template<typename Iterator>
-class Range<Iterator>
-{
-    typedef Range<Iterator> this_type;
-
-public:
-
-    // types
-
-    typedef size_t size_type;
-
-    typedef Iterator const_iterator;
-
-    // constructors
-    template<typename T>
-    Range(T const &b, T const &e, ptrdiff_t grain_size = 1)
-            : m_begin_(b), m_end_(e), m_grain_size_(grain_size)
+    template<typename Iterator>
+    class Range<Iterator>
     {
-    }
+        typedef Range<Iterator> this_type;
 
-    // constructors
-    Range(const_iterator const &b, const_iterator const &e, ptrdiff_t grain_size = 1)
-            : m_begin_(b), m_end_(e), m_grain_size_(grain_size)
-    {
+    public:
 
-    }
+        // types
 
-    Range(this_type &r, tags::split) :
-            m_begin_(r.m_begin_ + r.size() / 2), m_end_(r.m_end_), m_grain_size_(r.grainsize())
-    {
-        r.m_end_ = m_begin_;
+        typedef size_t size_type;
+
+        typedef Iterator const_iterator;
+
+        // constructors
+        template<typename T0, typename T1>
+        Range(T0 const &b, T1 const &e, ptrdiff_t grain_size = 1)
+                : m_begin_(b), m_end_(e), m_grain_size_(grain_size)
+        {
+        }
+
+        // constructors
+        Range(const_iterator const &b, const_iterator const &e, ptrdiff_t grain_size = 1)
+                : m_begin_(b), m_end_(e), m_grain_size_(grain_size)
+        {
+
+        }
+
+        Range(this_type &r, tags::split) :
+                m_begin_(r.m_begin_ + r.size() / 2), m_end_(r.m_end_), m_grain_size_(r.grainsize())
+        {
+            r.m_end_ = m_begin_;
+        };
+
+        Range(this_type &r, tags::proportional_split &proportion) :
+                m_begin_(r.m_begin_ + r.size() * proportion.left() / (proportion.left() + proportion.right())),
+                m_end_(r.m_end_),
+                m_grain_size_(r.grainsize())
+        {
+            r.m_end_ = m_begin_;
+        };
+
+        ~Range() { }
+
+        void swap(this_type &other)
+        {
+            std::swap(m_begin_, other.m_begin_);
+            std::swap(m_end_, other.m_end_);
+            std::swap(m_grain_size_, other.m_grain_size_);
+        }
+
+        // Proportional split is enabled
+        static const bool is_splittable_in_proportion = true;
+
+        // capacity
+        size_type size() const { return (m_end_ - m_begin_); };
+
+        bool empty() const { return m_begin_ == m_end_; };
+
+        // access
+        ptrdiff_t grainsize() const { return m_grain_size_; }
+
+        bool is_divisible() const { return size() > grainsize(); }
+
+        // iterators
+        const_iterator const &begin() const { return m_begin_; }
+
+        const_iterator const &end() const { return m_end_; }
+
+    private:
+
+        const_iterator m_begin_, m_end_;
+
+        ptrdiff_t m_grain_size_;
+
     };
-
-    Range(this_type &r, tags::proportional_split &proportion) :
-            m_begin_(r.m_begin_ + r.size() * proportion.left() / (proportion.left() + proportion.right())),
-            m_end_(r.m_end_),
-            m_grain_size_(r.grainsize())
-    {
-        r.m_end_ = m_begin_;
-    };
-
-    ~Range() { }
-
-    void swap(this_type &other)
-    {
-        std::swap(m_begin_, other.m_begin_);
-        std::swap(m_end_, other.m_end_);
-        std::swap(m_grain_size_, other.m_grain_size_);
-    }
-
-    // Proportional split is enabled
-    static const bool is_splittable_in_proportion = true;
-
-    // capacity
-    size_type size() const { return traits::distance(m_begin_, m_end_); };
-
-    bool empty() const { return m_begin_ == m_end_; };
-
-    // access
-    ptrdiff_t grainsize() const { return m_grain_size_; }
-
-    bool is_divisible() const { return size() > grainsize(); }
-
-    // iterators
-    const_iterator begin() const { return m_begin_; }
-
-    const_iterator end() const { return m_end_; }
-
-private:
-
-    const_iterator m_begin_, m_end_;
-
-    ptrdiff_t m_grain_size_;
-
-};
 
 }//namespace simpla
 #endif //SIMPLA_RANGE_H

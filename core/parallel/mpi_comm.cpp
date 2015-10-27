@@ -75,6 +75,10 @@ std::string MPIComm::init(int argc, char **argv)
     pimpl_->m_topology_dims_ = 1;
     pimpl_->m_object_id_count_ = 0;
 
+    pimpl_->m_topology_dims_ = 1;
+    pimpl_->m_topology_coord_ = 0;
+    pimpl_->m_topology_strides_ = 0;
+
     MPI_Init(&argc, &argv);
     MPI_Comm_size(pimpl_->m_comm_, &pimpl_->m_num_process_);
     MPI_Comm_rank(pimpl_->m_comm_, &pimpl_->m_process_num_);

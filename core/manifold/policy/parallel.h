@@ -12,7 +12,8 @@
 
 namespace simpla
 {
-template<typename ...> struct ParallelPolicy;
+template<typename ...>
+struct ParallelPolicy;
 
 template<typename TGeo>
 struct ParallelPolicy<TGeo>
@@ -25,7 +26,8 @@ private:
 
 
 public:
-    ParallelPolicy(geometry_type &geo) : m_geo_(geo), m_mpi_comm_(SingletonHolder<MPIComm>::instance())
+    ParallelPolicy(geometry_type &geo) :
+            m_geo_(geo), m_mpi_comm_(SingletonHolder<MPIComm>::instance())
     {
     }
 
@@ -33,13 +35,15 @@ public:
     {
     }
 
-    template<typename TDict> void load(TDict const &dict)
+    template<typename TDict>
+    void load(TDict const &dict)
     {
 //        ghost_width(dict["GhostWidth"].template as<nTuple<size_t, geometry_type::ndims> >());
     }
 
 
-    template<typename OS> OS &print(OS &os) const
+    template<typename OS>
+    OS &print(OS &os) const
     {
         os << "\t ParallelPolicy={ Default }," << std::endl;
         return os;
@@ -94,8 +98,11 @@ void ParallelPolicy<TGeo>::add_link(int const coord_offset[], typename geometry_
 template<typename TGeo>
 void ParallelPolicy<TGeo>::deploy()
 {
-
-    m_geo_.decompose(m_mpi_comm_.topology(), m_mpi_comm_.coordinate());
+    if (m_mpi_comm_.is_valid())
+    {
+        m_geo_.decompose(m_mpi_comm_.topology(), m_mpi_comm_.coordinate());
+    }
+}
 
 //	auto idx_b = geometry_type::unpack_index(geometry_type::m_id_min_);
 //
@@ -209,7 +216,6 @@ void ParallelPolicy<TGeo>::deploy()
 //			);
 //
 //		}
-}
 
 
 namespace traits

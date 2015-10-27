@@ -30,49 +30,49 @@ template<typename TField>
 class TestField : public testing::Test
 {
 protected:
-	virtual void SetUp()
-	{
-		LOGGER.set_stdout_visable_level(10);
+    virtual void SetUp()
+    {
+        LOGGER.set_stdout_visable_level(10);
 
-		mesh = std::make_shared<mesh_type>();
+        mesh = std::make_shared<mesh_type>();
 
-		size_t dims[3] = {10, 1, 1};
+        size_t dims[3] = {10, 1, 1};
 
-		mesh->dimensions(&dims[0]);
+        mesh->dimensions(&dims[0]);
 //		geometry->extents(xmin, xmax);
-		mesh->deploy();
-	}
+        mesh->deploy();
+    }
 
 public:
 
-	typedef TField field_type;
+    typedef TField field_type;
 
-	typedef traits::domain_t<field_type> domain_type;
+    typedef traits::domain_t<field_type> domain_type;
 
-	typedef traits::manifold_type_t<field_type> mesh_type;
+    typedef traits::manifold_type_t<field_type> mesh_type;
 
-	typedef traits::value_type_t<field_type> value_type;
+    typedef traits::value_type_t<field_type> value_type;
 
-	typedef typename mesh_type::scalar_type scalar_type;
+    typedef typename mesh_type::scalar_type scalar_type;
 
-	static constexpr int iform = traits::iform<TField>::value;
+    static constexpr int iform = traits::iform<TField>::value;
 
-	static std::shared_ptr<mesh_type> mesh;
+    static std::shared_ptr<mesh_type> mesh;
 
-	value_type default_value;
+    value_type default_value;
 
 
-	auto domain() const
-	DECL_RET_TYPE((traits::make_domain<iform>(*mesh)))
+    auto domain() const
+    DECL_RET_TYPE((traits::make_domain<iform>(*mesh)))
 
-	auto make_field() const
-	DECL_RET_TYPE((traits::make_field<iform, value_type>(*mesh)))
+    auto make_field() const
+    DECL_RET_TYPE((traits::make_field<iform, value_type>(*mesh)))
 
-	auto make_scalarField() const
-	DECL_RET_TYPE((traits::make_field<iform, scalar_type>(*mesh)))
+    auto make_scalarField() const
+    DECL_RET_TYPE((traits::make_field<iform, scalar_type>(*mesh)))
 
-	auto make_vectorField() const
-	DECL_RET_TYPE((traits::make_field<iform, nTuple<value_type, 3>>(*mesh)))
+    auto make_vectorField() const
+    DECL_RET_TYPE((traits::make_field<iform, nTuple<value_type, 3>>(*mesh)))
 
 
 };
@@ -81,145 +81,147 @@ TYPED_TEST_CASE_P(TestField);
 
 TYPED_TEST_P(TestField, assign)
 {
-	{
 
-		typedef typename TestFixture::value_type value_type;
-		typedef typename TestFixture::field_type field_type;
 
-		auto f1 = TestFixture::make_field();
+    typedef typename TestFixture::value_type value_type;
+    typedef typename TestFixture::field_type field_type;
 
-		value_type va;
+    auto f1 = TestFixture::make_field();
 
-		va = 2.0;
+    value_type va;
 
-		f1 = va;
+    va = 2.0;
 
-		for (auto s : TestFixture::domain())
-		{
-			EXPECT_LE(mod(va - f1[s]), EPSILON);
-		}
-	}
+    f1 = va;
+
+    size_t count = 0;
+
+    for (auto s : TestFixture::domain())
+    {
+        ++count;
+
+        EXPECT_LE(mod(va - f1[s]), EPSILON);
+    }
+    EXPECT_EQ(count, TestFixture::domain().size());
 }
 
 TYPED_TEST_P(TestField, index)
 {
-	{
 
-		typedef typename TestFixture::value_type value_type;
-		typedef typename TestFixture::field_type field_type;
 
-		auto f1 = TestFixture::make_field();
+    typedef typename TestFixture::value_type value_type;
+    typedef typename TestFixture::field_type field_type;
 
-		f1.clear();
+    auto f1 = TestFixture::make_field();
 
-		value_type va;
+    f1.clear();
 
-		va = 2.0;
+    value_type va;
 
-		for (auto s : TestFixture::domain())
-		{
-			f1[s] = va * TestFixture::mesh->hash(s);
-		}
+    va = 2.0;
 
-		for (auto s : TestFixture::domain())
-		{
-			EXPECT_LE(mod(va * TestFixture::mesh->hash(s) - f1[s]), EPSILON
-			);
-		}
-	}
+    for (auto s : TestFixture::domain())
+    {
+        f1[s] = va * TestFixture::mesh->hash(s);
+    }
+
+    for (auto s : TestFixture::domain())
+    {
+        EXPECT_LE(mod(va * TestFixture::mesh->hash(s) - f1[s]), EPSILON
+        );
+    }
+
 }
 
-TYPED_TEST_P(TestField, constant_real
-)
+TYPED_TEST_P(TestField, constant_real)
 {
-	{
 
-		typedef typename TestFixture::value_type value_type;
-		typedef typename TestFixture::field_type field_type;
 
-		auto f1 = TestFixture::make_field();
-		auto f2 = TestFixture::make_field();
-		auto f3 = TestFixture::make_field();
+    typedef typename TestFixture::value_type value_type;
+    typedef typename TestFixture::field_type field_type;
 
-		f3 = 1;
-		Real a, b, c;
-		a = 1.0, b = -2.0, c = 3.0;
+    auto f1 = TestFixture::make_field();
+    auto f2 = TestFixture::make_field();
+    auto f3 = TestFixture::make_field();
 
-		value_type va, vb;
+    f3 = 1;
+    Real a, b, c;
+    a = 1.0, b = -2.0, c = 3.0;
 
-		va = 2.0;
-		vb = 3.0;
+    value_type va, vb;
 
-		f1 = va;
-		f2 = vb;
+    va = 2.0;
+    vb = 3.0;
 
-		LOG_CMD(f3 = -f1 * a + f2 * c - f1 / b - f1);
+    f1 = va;
+    f2 = vb;
 
-		for (auto s : TestFixture::domain())
-		{
-			value_type res;
-			res = -f1[s] * a + f2[s] * c - f1[s] / b - f1[s];
+    LOG_CMD(f3 = -f1 * a + f2 * c - f1 / b - f1);
 
-			EXPECT_LE(mod(res - f3[s]), EPSILON)
+    for (auto s : TestFixture::domain())
+    {
+        value_type res;
+        res = -f1[s] * a + f2[s] * c - f1[s] / b - f1[s];
+
+        EXPECT_LE(mod(res - f3[s]), EPSILON)
 //			<<res << " " << f1[s] << " " << f2[s] << " " << f3[s];
-			;
-		}
-	}
+        ;
+    }
+
 }
 
-TYPED_TEST_P(TestField, scalarField
-)
+TYPED_TEST_P(TestField, scalarField)
 {
-	{
 
-		typedef typename TestFixture::value_type value_type;
 
-		auto f1 = TestFixture::make_field();
-		auto f2 = TestFixture::make_field();
-		auto f3 = TestFixture::make_field();
-		auto f4 = TestFixture::make_field();
+    typedef typename TestFixture::value_type value_type;
 
-		auto a = TestFixture::make_scalarField();
-		auto b = TestFixture::make_scalarField();
-		auto c = TestFixture::make_scalarField();
+    auto f1 = TestFixture::make_field();
+    auto f2 = TestFixture::make_field();
+    auto f3 = TestFixture::make_field();
+    auto f4 = TestFixture::make_field();
 
-		Real ra = 1.0, rb = 10.0, rc = 100.0;
+    auto a = TestFixture::make_scalarField();
+    auto b = TestFixture::make_scalarField();
+    auto c = TestFixture::make_scalarField();
 
-		value_type va, vb, vc;
+    Real ra = 1.0, rb = 10.0, rc = 100.0;
 
-		va = ra;
-		vb = rb;
-		vc = rc;
+    value_type va, vb, vc;
 
-		a = ra;
-		b = rb;
-		c = rc;
+    va = ra;
+    vb = rb;
+    vc = rc;
 
-		f1.deploy();
-		f2.deploy();
-		f3.deploy();
-		f4.deploy();
+    a = ra;
+    b = rb;
+    c = rc;
 
-		size_t count = 0;
+    f1.deploy();
+    f2.deploy();
+    f3.deploy();
+    f4.deploy();
 
-		std::mt19937 gen;
-		std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
+    size_t count = 0;
 
-		for (auto s: f1.domain())
-		{
-			f1[s] = va * uniform_dist(gen);
-		}
-		for (auto s: f2.domain())
-		{
-			f2[s] = vb * uniform_dist(gen);
-		}
+    std::mt19937 gen;
+    std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-		for (auto s:   f3.domain())
-		{
-			f3[s] = vc * uniform_dist(gen);
-		}
+    for (auto s: f1.domain())
+    {
+        f1[s] = va * uniform_dist(gen);
+    }
+    for (auto s: f2.domain())
+    {
+        f2[s] = vb * uniform_dist(gen);
+    }
 
-		LOG_CMD(f4 = -f1 * a + f2 * b - f3 / c - f1);
+    for (auto s:   f3.domain())
+    {
+        f3[s] = vc * uniform_dist(gen);
+    }
+
+    LOG_CMD(f4 = -f1 * a + f2 * b - f3 / c - f1);
 
 //	Plus( Minus(Negate(Wedge(f1,a)),Divides(f2,b)),Multiplies(f3,c) )
 
@@ -232,20 +234,20 @@ TYPED_TEST_P(TestField, scalarField
  *-f1      a f2   b
  *
  * */
-		count = 0;
+    count = 0;
 
-		for (auto s : TestFixture::domain())
-		{
-			value_type res = -f1[s] * ra + f2[s] * rb - f3[s] / rc - f1[s];
+    for (auto s : TestFixture::domain())
+    {
+        value_type res = -f1[s] * ra + f2[s] * rb - f3[s] / rc - f1[s];
 
-			EXPECT_LE(mod(res - f4[s]), EPSILON)<< "s= " << (TestFixture::mesh->hash(s));
-		}
+        EXPECT_LE(mod(res - f4[s]), EPSILON)<< "s= " << (TestFixture::mesh->hash(s));
+    }
 
-		EXPECT_EQ(0, count)<< "number of error points =" << count;
-	}
+    EXPECT_EQ(0, count)<< "number of error points =" << count;
+
 }
 
-REGISTER_TYPED_TEST_CASE_P(TestField, index, assign, constant_real, scalarField);
+REGISTER_TYPED_TEST_CASE_P(TestField, assign, index, constant_real, scalarField);
 
 //#include <gtest/gtest.h>
 //

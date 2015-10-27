@@ -19,7 +19,8 @@ namespace simpla
 {
 
 
-template<typename ...> struct Geometry;
+template<typename ...>
+struct Geometry;
 
 
 template<typename CS, typename TopologyTags>
@@ -62,6 +63,7 @@ private:
     topology_point_type m_to_topology_scale_ = {1, 1, 1};
 
     topology_point_type m_from_topology_scale_ = {1, 1, 1};
+
 public:
     Geometry() { }
 
@@ -124,6 +126,7 @@ public:
     template<typename X0, typename X1>
     void extents(X0 const &x0, X1 const &x1)
     {
+
         m_coords_min_ = x0;
         m_coords_max_ = x1;
     }
@@ -166,14 +169,11 @@ public:
         point_type res;
 
 
-        res[0] = std::fma(simpla::traits::get<0>(x), m_from_topology_scale_[0],
-                          m_from_topology_orig_[0]);
+        res[0] = std::fma(x[0], m_from_topology_scale_[0], m_from_topology_orig_[0]);
 
-        res[1] = std::fma(simpla::traits::get<1>(x), m_from_topology_scale_[1],
-                          m_from_topology_orig_[1]);
+        res[1] = std::fma(x[1], m_from_topology_scale_[1], m_from_topology_orig_[1]);
 
-        res[2] = std::fma(simpla::traits::get<2>(x), m_from_topology_scale_[2],
-                          m_from_topology_orig_[2]);
+        res[2] = std::fma(x[2], m_from_topology_scale_[2], m_from_topology_orig_[2]);
 
 
         return std::move(res);
@@ -185,14 +185,11 @@ public:
         topology_point_type res;
 
 
-        res[0] = std::fma(simpla::traits::get<0>(y), m_to_topology_scale_[0],
-                          m_to_topology_orig_[0]);
+        res[0] = std::fma(y[0], m_to_topology_scale_[0], m_to_topology_orig_[0]);
 
-        res[1] = std::fma(simpla::traits::get<1>(y), m_to_topology_scale_[1],
-                          m_to_topology_orig_[1]);
+        res[1] = std::fma(y[1], m_to_topology_scale_[1], m_to_topology_orig_[1]);
 
-        res[2] = std::fma(simpla::traits::get<2>(y), m_to_topology_scale_[2],
-                          m_to_topology_orig_[2]);
+        res[2] = std::fma(y[2], m_to_topology_scale_[2], m_to_topology_orig_[2]);
 
         return std::move(res);
     }
@@ -220,37 +217,25 @@ public:
 
     Real volume(id_type s) const
     {
-        return m_volume_[topology_type::node_id(s)] * volume_(s);
+        return m_volume_[topology_type::node_id(s)];//* volume_(s);
     }
 
     Real dual_volume(id_type s) const
     {
-        return m_dual_volume_[topology_type::node_id(s)] * dual_volume_(s);
+        return m_dual_volume_[topology_type::node_id(s)];// * dual_volume_(s);
     }
 
     Real inv_volume(id_type s) const
     {
-        return m_inv_volume_[topology_type::node_id(s)] / volume_(s);
+        return m_inv_volume_[topology_type::node_id(s)];// / volume_(s);
     }
 
     Real inv_dual_volume(id_type s) const
     {
-        return m_inv_dual_volume_[topology_type::node_id(s)] / dual_volume_(s);
+        return m_inv_dual_volume_[topology_type::node_id(s)];// / dual_volume_(s);
     }
 
 /**@}*/
-
-
-
-//    template<typename TFun>
-//    auto pull_back(point_type const &x, TFun const &fun) const DECL_RET_TYPE((fun(map(x))))
-//
-//    template<typename TFun>
-//    auto push_forward(point_type const &y, TFun const &fun) const DECL_RET_TYPE((fun(inv_map(y))))
-//
-//    Vec3 pull_back(point_type const &y, vector_type const &u) const { return inv_map(y + u) - inv_map(y); }
-//
-//    Vec3 push_forward(point_type const &x, vector_type const &v) const { return map(x + v) - map(x); }
 
     template<typename TX>
     topology_point_type coordinates_to_topology(TX const &y) const { return inv_map(y); }
@@ -289,13 +274,14 @@ void Geometry<CS, TopologyTags>::deploy()
 
     point_type i_min, i_max;
 
-    std::tie(i_min, i_max) = topology_type::box();
+    std::tie(i_min, i_max) = topology_type::local_box();
 
     for (int i = 0; i < ndims; ++i)
     {
+        ASSERT((m_coords_max_[i] - m_coords_min_[i] > EPSILON));
 
 
-        if (i_max[i] - i_min[i] > 1 && (m_coords_max_[i] - m_coords_min_[i]) > EPSILON)
+        if (i_max[i] - i_min[i] > 1)
         {
 
             m_dx_[i] = (m_coords_max_[i] - m_coords_min_[i]) / (i_max[i] - i_min[i]);
@@ -345,55 +331,66 @@ void Geometry<CS, TopologyTags>::deploy()
      *
      *\endverbatim
      */
+
+    auto dims = topology_type::dimensions();
+
+#define NOT_ZERO(_V_) (_V_<EPSILON?1.0:_V_)
     m_volume_[0] = 1.0;
 
-    m_volume_[1/* 001*/] = (m_dx_[0] <= EPSILON) ? 1 : m_dx_[0];
-    m_volume_[2/* 010*/] = (m_dx_[1] <= EPSILON) ? 1 : m_dx_[1];
-    m_volume_[4/* 100*/] = (m_dx_[2] <= EPSILON) ? 1 : m_dx_[2];
+    m_volume_[1/* 001*/] = m_dx_[0];
+    m_volume_[2/* 010*/] = m_dx_[1];
+    m_volume_[4/* 100*/] = m_dx_[2];
 
-    m_volume_[3] /* 011 */= m_volume_[1] * m_volume_[2];
-    m_volume_[5] /* 101 */= m_volume_[4] * m_volume_[1];
-    m_volume_[6] /* 110 */= m_volume_[2] * m_volume_[4];
+//    m_volume_[1/* 001*/] = (m_dx_[0] <= EPSILON) ? 1 : m_dx_[0];
+//    m_volume_[2/* 010*/] = (m_dx_[1] <= EPSILON) ? 1 : m_dx_[1];
+//    m_volume_[4/* 100*/] = (m_dx_[2] <= EPSILON) ? 1 : m_dx_[2];
 
-    m_volume_[7] /* 111 */= m_volume_[1] * m_volume_[2] * m_volume_[4];
+    m_volume_[3] /* 011 */= NOT_ZERO(m_volume_[1]) * NOT_ZERO(m_volume_[2]);
+    m_volume_[5] /* 101 */= NOT_ZERO(m_volume_[4]) * NOT_ZERO(m_volume_[1]);
+    m_volume_[6] /* 110 */= NOT_ZERO(m_volume_[2]) * NOT_ZERO(m_volume_[4]);
+
+    m_volume_[7] /* 111 */= NOT_ZERO (m_volume_[1]) * NOT_ZERO (m_volume_[2]) * NOT_ZERO (m_volume_[4]);
 
     m_dual_volume_[7] = 1.0;
 
-    m_dual_volume_[6] = (m_dx_[0] <= EPSILON) ? 1 : m_dx_[0];
-    m_dual_volume_[5] = (m_dx_[1] <= EPSILON) ? 1 : m_dx_[1];
-    m_dual_volume_[3] = (m_dx_[2] <= EPSILON) ? 1 : m_dx_[2];
+    m_dual_volume_[6] = m_dx_[0];
+    m_dual_volume_[5] = m_dx_[1];
+    m_dual_volume_[3] = m_dx_[2];
 
-    m_dual_volume_[4] /* 011 */= m_dual_volume_[6] * m_dual_volume_[5];
-    m_dual_volume_[2] /* 101 */= m_dual_volume_[3] * m_dual_volume_[6];
-    m_dual_volume_[1] /* 110 */= m_dual_volume_[5] * m_dual_volume_[3];
+//    m_dual_volume_[6] = (m_dx_[0] <= EPSILON) ? 1 : m_dx_[0];
+//    m_dual_volume_[5] = (m_dx_[1] <= EPSILON) ? 1 : m_dx_[1];
+//    m_dual_volume_[3] = (m_dx_[2] <= EPSILON) ? 1 : m_dx_[2];
 
-    m_dual_volume_[0] /* 111 */= m_dual_volume_[6] * m_dual_volume_[5] * m_dual_volume_[3];
+    m_dual_volume_[4] /* 011 */= NOT_ZERO(m_dual_volume_[6]) * NOT_ZERO(m_dual_volume_[5]);
+    m_dual_volume_[2] /* 101 */= NOT_ZERO(m_dual_volume_[3]) * NOT_ZERO(m_dual_volume_[6]);
+    m_dual_volume_[1] /* 110 */= NOT_ZERO(m_dual_volume_[5]) * NOT_ZERO(m_dual_volume_[3]);
+
+    m_dual_volume_[0] /* 111 */=
+            NOT_ZERO(m_dual_volume_[6]) * NOT_ZERO(m_dual_volume_[5]) * NOT_ZERO(m_dual_volume_[3]);
 
     m_inv_volume_[7] = 1.0;
 
-    m_inv_volume_[1/* 001 */] = (m_dx_[0] <= EPSILON) ? 1 : 1.0 / m_dx_[0];
-    m_inv_volume_[2/* 010 */] = (m_dx_[1] <= EPSILON) ? 1 : 1.0 / m_dx_[1];
-    m_inv_volume_[4/* 100 */] = (m_dx_[2] <= EPSILON) ? 1 : 1.0 / m_dx_[2];
+    m_inv_volume_[1/* 001 */] = (dims[0] <= 1) ? 0 : 1.0 / m_dx_[0];
+    m_inv_volume_[2/* 010 */] = (dims[1] <= 1) ? 0 : 1.0 / m_dx_[1];
+    m_inv_volume_[4/* 100 */] = (dims[2] <= 1) ? 0 : 1.0 / m_dx_[2];
 
-    m_inv_volume_[3] /* 011 */= m_inv_volume_[1] * m_inv_volume_[2];
-    m_inv_volume_[5] /* 101 */= m_inv_volume_[4] * m_inv_volume_[1];
-    m_inv_volume_[6] /* 110 */= m_inv_volume_[2] * m_inv_volume_[4];
-    m_inv_volume_[7] /* 111 */= m_inv_volume_[1] * m_inv_volume_[2]
-                                * m_inv_volume_[4];
+    m_inv_volume_[3] /* 011 */= NOT_ZERO(m_inv_volume_[1]) * NOT_ZERO(m_inv_volume_[2]);
+    m_inv_volume_[5] /* 101 */= NOT_ZERO(m_inv_volume_[4]) * NOT_ZERO(m_inv_volume_[1]);
+    m_inv_volume_[6] /* 110 */= NOT_ZERO(m_inv_volume_[2]) * NOT_ZERO(m_inv_volume_[4]);
+
+    m_inv_volume_[7] /* 111 */= NOT_ZERO(m_inv_volume_[1]) * NOT_ZERO(m_inv_volume_[2]) * NOT_ZERO(m_inv_volume_[4]);
 
     m_inv_dual_volume_[7] = 1.0;
 
-    m_inv_dual_volume_[6/* 110 */] = (m_dx_[0] <= EPSILON) ? 1 : 1.0 / m_dx_[0];
-    m_inv_dual_volume_[5/* 101 */] = (m_dx_[1] <= EPSILON) ? 1 : 1.0 / m_dx_[1];
-    m_inv_dual_volume_[3/* 001 */] = (m_dx_[2] <= EPSILON) ? 1 : 1.0 / m_dx_[2];
+    m_inv_dual_volume_[6/* 110 */] = (dims[0] <= 1) ? 0 : 1.0 / m_dx_[0];
+    m_inv_dual_volume_[5/* 101 */] = (dims[1] <= 1) ? 0 : 1.0 / m_dx_[1];
+    m_inv_dual_volume_[3/* 001 */] = (dims[2] <= 1) ? 0 : 1.0 / m_dx_[2];
 
-    m_inv_dual_volume_[4] /* 011 */= m_inv_dual_volume_[6] * m_inv_dual_volume_[5];
-    m_inv_dual_volume_[2] /* 101 */= m_inv_dual_volume_[3] * m_inv_dual_volume_[6];
-    m_inv_dual_volume_[1] /* 110 */= m_inv_dual_volume_[5] * m_inv_dual_volume_[3];
-
-    m_inv_dual_volume_[0] /* 111 */= m_inv_dual_volume_[6] * m_inv_dual_volume_[5] * m_inv_dual_volume_[3];
-
-    VERBOSE << traits::type_id<this_type>::name() << " is deployed!" << std::endl;
+    m_inv_dual_volume_[4] /* 011 */= NOT_ZERO(m_inv_dual_volume_[6]) * NOT_ZERO(m_inv_dual_volume_[5]);
+    m_inv_dual_volume_[2] /* 101 */= NOT_ZERO(m_inv_dual_volume_[3]) * NOT_ZERO(m_inv_dual_volume_[6]);
+    m_inv_dual_volume_[1] /* 110 */= NOT_ZERO(m_inv_dual_volume_[5]) * NOT_ZERO(m_inv_dual_volume_[3]);
+    m_inv_dual_volume_[0] /* 111 */=
+            NOT_ZERO(m_inv_dual_volume_[6]) * NOT_ZERO(m_inv_dual_volume_[5]) * NOT_ZERO(m_inv_dual_volume_[3]);
 
 }
 
