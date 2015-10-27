@@ -14,9 +14,10 @@
 
 #include "../../gtl/ntuple.h"
 #include "../../gtl/primitives.h"
-#include "../manifold_traits.h"
 #include "../../gtl/iterator/block_iterator.h"
 #include "../../gtl/iterator/range.h"
+
+#include "../manifold_traits.h"
 
 namespace simpla
 {

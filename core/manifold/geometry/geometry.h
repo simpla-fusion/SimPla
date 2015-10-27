@@ -29,7 +29,7 @@ struct Geometry<CS, TopologyTags> : public Topology<TopologyTags>
 public:
     typedef CS coordinates_system_type;
 
-    geometry::mertic<coordinates_system_type> m_metric_;
+    mertic<coordinates_system_type> m_metric_;
 
     typedef Topology<TopologyTags> topology_type;
 
@@ -38,11 +38,11 @@ public:
     typedef typename topology_type::point_type topology_point_type;
 
 
-    typedef geometry::traits::scalar_type_t<coordinates_system_type> scalar_type;
+    typedef traits::scalar_type_t<coordinates_system_type> scalar_type;
 
-    typedef geometry::traits::point_type_t<coordinates_system_type> point_type;
+    typedef traits::point_type_t<coordinates_system_type> point_type;
 
-    typedef geometry::traits::vector_type_t<coordinates_system_type> vector_type;
+    typedef traits::vector_type_t<coordinates_system_type> vector_type;
 
 private:
 

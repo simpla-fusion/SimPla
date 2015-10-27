@@ -23,7 +23,7 @@
 #include "../../field/field_traits.h"
 
 #include "../../manifold/domain.h"
-
+#include "../../manifold/manifold_traits.h"
 #include "../../gtl/ntuple.h"
 #include "../../gtl/primitives.h"
 
@@ -62,6 +62,7 @@ protected:
         for (int i = 0; i < ndims; ++i)
         {
             if (dims[i] <= 1) { K_real[i] = 0; }
+            K_imag = 0;
         }
 
 
@@ -69,8 +70,10 @@ protected:
         mesh->dimensions(dims);
         mesh->extents(box);
         mesh->deploy();
+
         Vec3 dx = mesh->dx();
-        error = 10 * std::pow(inner_product(K_real, dx), 2.0);
+
+        error = 20 * std::pow(inner_product(K_real, dx), 2.0);
 
         one = 1;
     }
@@ -144,10 +147,10 @@ TEST_P(FETLTest, grad0)
                 ;
 
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
-        if (n == (traits::ZAxis<mesh_type>::value + 1) % 3)
+        if (n == ( traits::ZAxis<mesh_type>::value + 1) % 3)
         {
-            auto r = geometry->point(s);
-            expect /= r[(traits::ZAxis<mesh_type>::value + 2) % 3];
+            auto r = mesh->point(s);
+            expect /= r[( traits::ZAxis<mesh_type>::value + 2) % 3];
         }
 #endif
         f1b[s] = expect;
@@ -177,7 +180,7 @@ TEST_P(FETLTest, grad0)
 
     EXPECT_LE(std::sqrt(variance / count), error);
     EXPECT_LE(mod(average) / count, error);
-#ifdef DEBUG
+#ifndef NDEBUG
     cd("/grad1/");
     LOGGER << SAVE(f0) << std::endl;
     LOGGER << SAVE(f1) << std::endl;
@@ -226,10 +229,10 @@ TEST_P(FETLTest, grad3)
 //                 + K_imag[n] * std::sin(inner_product(K_real, x))
                 ;
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
-        if (n == (traits::ZAxis<mesh_type>::value + 1) % 3)
+        if (n == ( traits::ZAxis<mesh_type>::value + 1) % 3)
         {
-            auto r = geometry->point(s);
-            expect /= r[(traits::ZAxis<mesh_type>::value + 2) % 3];
+            auto r = mesh->point(s);
+            expect /= r[( traits::ZAxis<mesh_type>::value + 2) % 3];
         }
 #endif
         f2b[s] = expect;
@@ -252,7 +255,7 @@ TEST_P(FETLTest, grad3)
 
     }
 
-#ifdef DEBUG
+#ifndef NDEBUG
     cd("/grad3/");
     LOGGER << SAVE(f3) << std::endl;
     LOGGER << SAVE(f2) << std::endl;
@@ -267,10 +270,6 @@ TEST_P(FETLTest, grad3)
 
 TEST_P(FETLTest, diverge1)
 {
-    if (!mesh->is_valid())
-    {
-        return;
-    }
 
     auto f1 = traits::make_field<EDGE, value_type>(*mesh);
     auto f0 = traits::make_field<VERTEX, value_type>(*mesh);
@@ -295,8 +294,11 @@ TEST_P(FETLTest, diverge1)
     value_type average;
     average *= 0;
 
+    size_t count = 0;
+
     for (auto s : traits::make_domain<VERTEX>(*mesh))
     {
+        ++count;
 
         auto x = mesh->point(s);
 
@@ -308,26 +310,27 @@ TEST_P(FETLTest, diverge1)
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
         expect =
 
-        (K_real[(traits::ZAxis<mesh_type>::value + 1) % 3]
-                / x[(traits::ZAxis<mesh_type>::value + 2) % 3] + //  k_theta
+        (K_real[( traits::ZAxis<mesh_type>::value + 1) % 3]
+                / x[( traits::ZAxis<mesh_type>::value + 2) % 3] + //  k_theta
 
-                K_real[(traits::ZAxis<mesh_type>::value + 2) % 3] +//  k_r
+                K_real[( traits::ZAxis<mesh_type>::value + 2) % 3] +//  k_r
 
-                K_real[(traits::ZAxis<mesh_type>::value + 3) % 3]//  k_z
+                K_real[( traits::ZAxis<mesh_type>::value + 3) % 3]//  k_z
         ) * cos_v
 
-        + (K_imag[(traits::ZAxis<mesh_type>::value + 1) % 3]
-                / x[(traits::ZAxis<mesh_type>::value + 2) % 3] +//  k_theta
+        + (K_imag[( traits::ZAxis<mesh_type>::value + 1) % 3]
+                / x[( traits::ZAxis<mesh_type>::value + 2) % 3] +//  k_theta
 
-                K_imag[(traits::ZAxis<mesh_type>::value + 2) % 3] +//  k_r
+                K_imag[( traits::ZAxis<mesh_type>::value + 2) % 3] +//  k_r
 
-                K_imag[(traits::ZAxis<mesh_type>::value + 3) % 3]//  k_z
+                K_imag[( traits::ZAxis<mesh_type>::value + 3) % 3]//  k_z
         ) * sin_v;
 
-        expect += sin_v / x[(traits::ZAxis<mesh_type>::value + 2) % 3];//A_r
+        expect += sin_v / x[( traits::ZAxis<mesh_type>::value + 2) % 3];//A_r
 #else
 
         expect = (K_real[0] + K_real[1] + K_real[2]) * cos_v
+
                  + (K_imag[0] + K_imag[1] + K_imag[2]) * sin_v;
 #endif
         f0b[s] = expect;
@@ -350,10 +353,10 @@ TEST_P(FETLTest, diverge1)
 //		}
     }
 
-    variance /= f0.domain().size();
-    average /= f0.domain().size();
+    variance /= count;
+    average /= count;
 
-#ifdef DEBUG
+#ifndef NDEBUG
     cd("/div1/");
     LOGGER << SAVE(f1) << std::endl;
     LOGGER << SAVE(f0) << std::endl;
@@ -406,24 +409,24 @@ TEST_P(FETLTest, diverge2)
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
         expect =
 
-        (K_real[(traits::ZAxis<mesh_type>::value + 1) % 3]
-                / x[(traits::ZAxis<mesh_type>::value + 2) % 3] + //  k_theta
+        (K_real[( traits::ZAxis<mesh_type>::value + 1) % 3]
+                / x[( traits::ZAxis<mesh_type>::value + 2) % 3] + //  k_theta
 
-                K_real[(traits::ZAxis<mesh_type>::value + 2) % 3] +//  k_r
+                K_real[( traits::ZAxis<mesh_type>::value + 2) % 3] +//  k_r
 
-                K_real[(traits::ZAxis<mesh_type>::value + 3) % 3]//  k_z
+                K_real[( traits::ZAxis<mesh_type>::value + 3) % 3]//  k_z
         ) * cos_v
 
-        + (K_imag[(traits::ZAxis<mesh_type>::value + 1) % 3]
-                / x[(traits::ZAxis<mesh_type>::value + 2) % 3] +//  k_theta
+        + (K_imag[( traits::ZAxis<mesh_type>::value + 1) % 3]
+                / x[( traits::ZAxis<mesh_type>::value + 2) % 3] +//  k_theta
 
-                K_imag[(traits::ZAxis<mesh_type>::value + 2) % 3] +//  k_r
+                K_imag[( traits::ZAxis<mesh_type>::value + 2) % 3] +//  k_r
 
-                K_imag[(traits::ZAxis<mesh_type>::value + 3) % 3]//  k_z
+                K_imag[( traits::ZAxis<mesh_type>::value + 3) % 3]//  k_z
         ) * sin_v;
 
-        expect += std::sin(inner_product(K_real, geometry->point(s)))
-        / x[(traits::ZAxis<mesh_type>::value + 2) % 3];//A_r
+        expect += std::sin(inner_product(K_real,  mesh->point(s)))
+        / x[( traits::ZAxis<mesh_type>::value + 2) % 3];//A_r
 
 #	else
         expect = (K_real[0] + K_real[1] + K_real[2]) * cos_v
@@ -489,34 +492,34 @@ TEST_P(FETLTest, curl1)
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
         switch (n)
         {
-            case (traits::ZAxis<mesh_type>::value + 1) % 3: // theta
-            expect = (K_real[(traits::ZAxis<mesh_type>::value + 2) % 3]
-                    - K_real[(traits::ZAxis<mesh_type>::value + 3) % 3]) * cos_v
-            + (K_imag[(traits::ZAxis<mesh_type>::value + 2) % 3]
-                    - K_imag[(traits::ZAxis<mesh_type>::value + 3) % 3])
+            case ( traits::ZAxis<mesh_type>::value + 1) % 3: // theta
+            expect = (K_real[( traits::ZAxis<mesh_type>::value + 2) % 3]
+                    - K_real[( traits::ZAxis<mesh_type>::value + 3) % 3]) * cos_v
+            + (K_imag[( traits::ZAxis<mesh_type>::value + 2) % 3]
+                    - K_imag[( traits::ZAxis<mesh_type>::value + 3) % 3])
             * sin_v;
             break;
-            case (traits::ZAxis<mesh_type>::value + 2) % 3:// r
-            expect = (K_real[(traits::ZAxis<mesh_type>::value + 3) % 3]
-                    - K_real[(traits::ZAxis<mesh_type>::value + 1) % 3]
-                    / x[(traits::ZAxis<mesh_type>::value + 2) % 3])
+            case ( traits::ZAxis<mesh_type>::value + 2) % 3:// r
+            expect = (K_real[( traits::ZAxis<mesh_type>::value + 3) % 3]
+                    - K_real[( traits::ZAxis<mesh_type>::value + 1) % 3]
+                    / x[( traits::ZAxis<mesh_type>::value + 2) % 3])
             * cos_v
 
-            + (K_imag[(traits::ZAxis<mesh_type>::value + 3) % 3]
-                    - K_imag[(traits::ZAxis<mesh_type>::value + 1) % 3]
-                    / x[(traits::ZAxis<mesh_type>::value + 2)
+            + (K_imag[( traits::ZAxis<mesh_type>::value + 3) % 3]
+                    - K_imag[( traits::ZAxis<mesh_type>::value + 1) % 3]
+                    / x[( traits::ZAxis<mesh_type>::value + 2)
                     % 3]) * sin_v;
             break;
 
-            case (traits::ZAxis<mesh_type>::value + 3) % 3:// z
-            expect = (K_real[(traits::ZAxis<mesh_type>::value + 1) % 3]
-                    - K_real[(traits::ZAxis<mesh_type>::value + 2) % 3]) * cos_v
-            + (K_imag[(traits::ZAxis<mesh_type>::value + 1) % 3]
-                    - K_imag[(traits::ZAxis<mesh_type>::value + 2) % 3])
+            case ( traits::ZAxis<mesh_type>::value + 3) % 3:// z
+            expect = (K_real[( traits::ZAxis<mesh_type>::value + 1) % 3]
+                    - K_real[( traits::ZAxis<mesh_type>::value + 2) % 3]) * cos_v
+            + (K_imag[( traits::ZAxis<mesh_type>::value + 1) % 3]
+                    - K_imag[( traits::ZAxis<mesh_type>::value + 2) % 3])
             * sin_v;
 
-            expect -= std::sin(inner_product(K_real, geometry->point(s)))
-            / x[(traits::ZAxis<mesh_type>::value + 2) % 3];//A_r
+            expect -= std::sin(inner_product(K_real,  mesh->point(s)))
+            / x[( traits::ZAxis<mesh_type>::value + 2) % 3];//A_r
             break;
 
         }
@@ -536,17 +539,17 @@ TEST_P(FETLTest, curl1)
 //		if (mod(expect) > epsilon)
 //		{
 //			EXPECT_LE(mod(2.0 * (vf2[s] - expect) / (vf2[s] + expect)), error) << " expect = " << expect
-//			        << " actual = " << vf2[s] << " x= " << geometry->point(s);
+//			        << " actual = " << vf2[s] << " x= " <<  mesh->point(s);
 //		}
 //		else
 //		{
 //			EXPECT_LE(mod(vf2[s]), error) << " expect = " << expect << " actual = " << vf2[s] << " x= "
-//			        << geometry->point(s);
+//			        <<  mesh->point(s);
 //		}
 
     }
 
-#ifdef DEBUG
+#ifndef NDEBUG
     cd("/curl1/");
     LOGGER << SAVE(f1) << std::endl;
     LOGGER << SAVE(f2) << std::endl;
@@ -610,34 +613,34 @@ TEST_P(FETLTest, curl2)
 
         switch (n)
         {
-            case (traits::ZAxis<mesh_type>::value + 1) % 3: // theta
-            expect = (K_real[(traits::ZAxis<mesh_type>::value + 2) % 3]
-                    - K_real[(traits::ZAxis<mesh_type>::value + 3) % 3]) * cos_v
-            + (K_imag[(traits::ZAxis<mesh_type>::value + 2) % 3]
-                    - K_imag[(traits::ZAxis<mesh_type>::value + 3) % 3])
+            case ( traits::ZAxis<mesh_type>::value + 1) % 3: // theta
+            expect = (K_real[( traits::ZAxis<mesh_type>::value + 2) % 3]
+                    - K_real[( traits::ZAxis<mesh_type>::value + 3) % 3]) * cos_v
+            + (K_imag[( traits::ZAxis<mesh_type>::value + 2) % 3]
+                    - K_imag[( traits::ZAxis<mesh_type>::value + 3) % 3])
             * sin_v;
             break;
-            case (traits::ZAxis<mesh_type>::value + 2) % 3:// r
-            expect = (K_real[(traits::ZAxis<mesh_type>::value + 3) % 3]
-                    - K_real[(traits::ZAxis<mesh_type>::value + 1) % 3]
-                    / x[(traits::ZAxis<mesh_type>::value + 2) % 3])
+            case ( traits::ZAxis<mesh_type>::value + 2) % 3:// r
+            expect = (K_real[( traits::ZAxis<mesh_type>::value + 3) % 3]
+                    - K_real[( traits::ZAxis<mesh_type>::value + 1) % 3]
+                    / x[( traits::ZAxis<mesh_type>::value + 2) % 3])
             * cos_v
 
-            + (K_imag[(traits::ZAxis<mesh_type>::value + 3) % 3]
-                    - K_imag[(traits::ZAxis<mesh_type>::value + 1) % 3]
-                    / x[(traits::ZAxis<mesh_type>::value + 2)
+            + (K_imag[( traits::ZAxis<mesh_type>::value + 3) % 3]
+                    - K_imag[( traits::ZAxis<mesh_type>::value + 1) % 3]
+                    / x[( traits::ZAxis<mesh_type>::value + 2)
                     % 3]) * sin_v;
             break;
 
-            case (traits::ZAxis<mesh_type>::value + 3) % 3:// z
-            expect = (K_real[(traits::ZAxis<mesh_type>::value + 1) % 3]
-                    - K_real[(traits::ZAxis<mesh_type>::value + 2) % 3]) * cos_v
-            + (K_imag[(traits::ZAxis<mesh_type>::value + 1) % 3]
-                    - K_imag[(traits::ZAxis<mesh_type>::value + 2) % 3])
+            case ( traits::ZAxis<mesh_type>::value + 3) % 3:// z
+            expect = (K_real[( traits::ZAxis<mesh_type>::value + 1) % 3]
+                    - K_real[( traits::ZAxis<mesh_type>::value + 2) % 3]) * cos_v
+            + (K_imag[( traits::ZAxis<mesh_type>::value + 1) % 3]
+                    - K_imag[( traits::ZAxis<mesh_type>::value + 2) % 3])
             * sin_v;
 
-            expect -= std::sin(inner_product(K_real, geometry->point(s)))
-            / x[(traits::ZAxis<mesh_type>::value + 2) % 3];//A_r
+            expect -= std::sin(inner_product(K_real,  mesh->point(s)))
+            / x[( traits::ZAxis<mesh_type>::value + 2) % 3];//A_r
             break;
 
         }
@@ -656,16 +659,17 @@ TEST_P(FETLTest, curl2)
 
 //		if (mod(expect) > epsilon)
 //		{
-//			ASSERT_LE(mod(2.0 * (vf1[s] - expect) / (vf1[s] + expect)), error)<< " expect = "<<expect<<" actual = "<<vf1[s]<< " x= "<<geometry->point(s);
+//			ASSERT_LE(mod(2.0 * (vf1[s] - expect) / (vf1[s] + expect)), error)<< " expect = "<<expect<<" actual = "<<vf1[s]<< " x= "<< mesh->point(s);
 //		}
 //		else
 //		{
-//			ASSERT_LE(mod(vf1[s]), error)<< " expect = "<<expect<<" actual = "<<vf1[s]<< " x= "<<geometry->point(s);
+//			ASSERT_LE(mod(vf1[s]), error)<< " expect = "<<expect<<" actual = "<<vf1[s]<< " x= "<< mesh->point(s);
 //
 //		}
 
     }
-#ifdef DEBUG
+#ifndef NDEBUG
+
     cd("/curl2/");
     LOGGER << SAVE(f2) << std::endl;
     LOGGER << SAVE(f1) << std::endl;
@@ -679,9 +683,9 @@ TEST_P(FETLTest, curl2)
 
 }
 
+
 TEST_P(FETLTest, identity_curl_grad_f0_eq_0)
 {
-    if (!mesh->is_valid()) { return; }
 
     auto f0 = traits::make_field<VERTEX, value_type>(*mesh);
     auto f1 = traits::make_field<EDGE, value_type>(*mesh);
@@ -778,10 +782,7 @@ TEST_P(FETLTest, identity_curl_grad_f3_eq_0)
 
 TEST_P(FETLTest, identity_div_curl_f1_eq0)
 {
-    if (!mesh->is_valid())
-    {
-        return;
-    }
+
 
     auto f1 = traits::make_field<EDGE, value_type>(*mesh);
     auto f2 = traits::make_field<FACE, value_type>(*mesh);

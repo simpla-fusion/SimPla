@@ -17,20 +17,10 @@
 
 namespace simpla
 {
-namespace geometry
-{
+
 template<typename, typename> struct map;
 template<typename> struct mertic;
 
-namespace traits
-{
-
-template<typename> struct dimension;
-template<typename> struct coordinate_type;
-template<typename> struct is_homogeneous;
-template<typename> struct typename_as_string;
-template<typename> struct ZAxis;
-}  // namespace traits
 
 namespace coordinate_system
 {
@@ -65,10 +55,26 @@ struct MagneticFLux
 namespace traits
 {
 
-template<typename CS>
-struct scalar_type
+template<typename> struct dimension;
+template<typename> struct coordinate_type;
+template<typename> struct is_homogeneous;
+template<typename> struct typename_as_string;
+
+
+template<typename> struct coordinate_system_type;
+template<typename T> using coordinate_system_t= typename coordinate_system_type<T>::type;
+
+
+
+template<typename> struct ZAxis;
+template<typename T>
+struct ZAxis : public ZAxis<coordinate_system_t<T>>
 {
-	typedef Real type;
+};
+
+template<typename CS> struct scalar_type
+{
+    typedef Real type;
 };
 template<typename CS>
 using scalar_type_t =typename scalar_type<CS>::type;
@@ -76,7 +82,7 @@ using scalar_type_t =typename scalar_type<CS>::type;
 template<typename CS>
 struct point_type
 {
-	typedef nTuple <Real, dimension<CS>::value> type;
+    typedef nTuple <Real, dimension<CS>::value> type;
 };
 template<typename CS>
 using point_t=typename point_type<CS>::type;
@@ -85,7 +91,7 @@ using point_type_t=typename point_type<CS>::type;
 template<typename CS>
 struct vector_type
 {
-	typedef nTuple <Real, dimension<CS>::value> type;
+    typedef nTuple <Real, dimension<CS>::value> type;
 };
 template<typename CS>
 using vector_t=typename vector_type<CS>::type;
@@ -94,7 +100,7 @@ using vector_type_t=typename vector_type<CS>::type;
 template<typename CS>
 struct covector_type
 {
-	typedef nTuple <Real, dimension<CS>::value> type;
+    typedef nTuple <Real, dimension<CS>::value> type;
 };
 template<typename CS>
 using covector_t=typename vector_type<CS>::type;
@@ -104,24 +110,24 @@ using covector_type_t=typename vector_type<CS>::type;
 template<typename CS>
 struct dimension
 {
-	static constexpr int value = 3;
+    static constexpr int value = 3;
 };
 
 template<>
-struct dimension<geometry::coordinate_system::Polar>
+struct dimension<coordinate_system::Polar>
 {
-	static constexpr int value = 2;
+    static constexpr int value = 2;
 };
 template<int N>
-struct dimension<geometry::coordinate_system::Cartesian<N>>
+struct dimension<coordinate_system::Cartesian<N>>
 {
-	static constexpr int value = N;
+    static constexpr int value = N;
 };
 
 template<typename CS>
 struct coordinate_type
 {
-	typedef Real type;
+    typedef Real type;
 };
 /**
  * if coordinate system is state-less value=true
@@ -130,52 +136,51 @@ struct coordinate_type
 template<typename CS>
 struct is_homogeneous
 {
-	static constexpr bool value = true;
+    static constexpr bool value = true;
 };
 template<>
-struct is_homogeneous<geometry::coordinate_system::Toroidal>
+struct is_homogeneous<coordinate_system::Toroidal>
 {
-	static constexpr bool value = false;
+    static constexpr bool value = false;
 };
 
 template<>
-struct is_homogeneous<geometry::coordinate_system::MagneticFLux>
+struct is_homogeneous<coordinate_system::MagneticFLux>
 {
-	static constexpr bool value = false;
+    static constexpr bool value = false;
 };
 template<int N>
-struct typename_as_string<geometry::coordinate_system::Cartesian<N>>
+struct typename_as_string<coordinate_system::Cartesian<N>>
 {
-	static constexpr char value[] = "Cartesian";
+    static constexpr char value[] = "Cartesian";
 };
 template<>
-struct typename_as_string<geometry::coordinate_system::Spherical>
+struct typename_as_string<coordinate_system::Spherical>
 {
-	static constexpr char value[] = "Spherical";
+    static constexpr char value[] = "Spherical";
 };
 
 template<int PhiAXIS>
-struct typename_as_string<geometry::coordinate_system::Cylindrical<PhiAXIS>>
+struct typename_as_string<coordinate_system::Cylindrical<PhiAXIS>>
 {
-	static constexpr char value[] = "Cylindrical";
+    static constexpr char value[] = "Cylindrical";
 };
-template<typename TM>
-struct ZAxis : public std::integral_constant<int, 2>
-{
-};
+
+
 template<int PhiAXIS>
-struct ZAxis<geometry::coordinate_system::Cylindrical<PhiAXIS>> : public std::integral_constant<
-		int, (PhiAXIS + 2) % 3>
+struct ZAxis<coordinate_system::Cylindrical<PhiAXIS>> : public std::integral_constant<
+        int, (PhiAXIS + 2) % 3>
 {
 };
 
 template<int NDIMS, int ZAXIS>
-struct ZAxis<geometry::coordinate_system::Cartesian<NDIMS, ZAXIS>> : public std::integral_constant<
-		int, ZAXIS>
+struct ZAxis<coordinate_system::Cartesian<NDIMS, ZAXIS>> : public std::integral_constant<
+        int, ZAXIS>
 {
 };
-}  // namespace traits
-}   // namespace geometry
-}   // namespace simpla
+
+
+}
+}   // namespace geometry   // namespace simpla
 
 #endif /* CORE_GEOMETRY_COORDINATE_SYSTEM_H_ */
