@@ -65,8 +65,7 @@ InitValue ={
     B = {
         Domain = { Box = { { 0, 0, 0 }, { LX, LY, LZ } } },
         Value = function(x, t)
-            print(x[1],x[2],x[3],t)
-            return { 0, 0, math.sin(x[1] * 2.0 * math.pi / LX) * math.sin(x[2] * 2.0 * math.pi / LY) }
+             return { 0, 0, math.sin(x[1] * 2.0 * math.pi / LX) * math.sin(x[2] * 2.0 * math.pi / LY) }
         end
     },
     --  phi=

@@ -35,10 +35,10 @@ using namespace simpla;
 typedef manifold::CylindricalCoRect mesh_type;
 #else
 
-#include "../../core/manifold/pre_define/riemannian.h"
+#include "../../core/manifold/pre_define/cartesian.h"
 
 #define COORDINATE_SYSTEM CartesianCoordinate<3>
-typedef manifold::Riemannian<3> mesh_type;
+typedef manifold::Cartesian<3> mesh_type;
 
 #endif
 

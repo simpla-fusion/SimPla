@@ -10,7 +10,7 @@
 #include "../../gtl/primitives.h"
 #include "../../geometry/cs_cartesian.h"
 #include "../geometry/geometry.h"
-#include "../topology/structured.h"
+#include "co_rect_mesh.h"
 #include "../calculate/fvm_structured.h"
 #include "../interpolate/linear.h"
 #include "../manifold.h"

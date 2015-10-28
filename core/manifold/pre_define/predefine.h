@@ -10,7 +10,6 @@
 #include "../../gtl/primitives.h"
 
 #include "../time_integrator/time_integrator.h"
-#include "../topology/structured.h"
 #include "../calculate/fvm_structured.h"
 #include "../interpolate/linear.h"
 #include "../geometry/geometry.h"
@@ -24,7 +23,7 @@
 
 namespace simpla
 {
-template<typename CS, typename TOPOLOGY=topology::tags::CoRectMesh> using DefaultManifold= Manifold<
+template<typename CS, typename TOPOLOGY> using DefaultManifold= Manifold<
         Geometry<CS, TOPOLOGY>,
         Calculate<Geometry<CS, TOPOLOGY>, calculate::tags::finite_volume>,
         Interpolate<Geometry<CS, TOPOLOGY>, interpolate::tags::linear>,

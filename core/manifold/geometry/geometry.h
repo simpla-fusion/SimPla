@@ -19,18 +19,16 @@ namespace simpla
 {
 
 
-template<typename ...>
-struct Geometry;
+template<typename ...> struct Geometry;
 
 
-template<typename CS, typename TopologyTags>
-struct Geometry<CS, TopologyTags> : public Topology<TopologyTags>
+template<typename CS, typename TopologyType>
+struct Geometry<CS, TopologyType> : public TopologyType
 {
 public:
     typedef CS coordinates_system_type;
 
-
-    typedef Topology<TopologyTags> topology_type;
+    typedef TopologyType topology_type;
 
     typedef traits::scalar_type_t<coordinates_system_type> scalar_type;
 
@@ -42,7 +40,7 @@ public:
 
 private:
 
-    typedef Geometry<CS, TopologyTags> this_type;
+    typedef Geometry<CS, TopologyType> this_type;
 
     mertic<coordinates_system_type> m_metric_;
 

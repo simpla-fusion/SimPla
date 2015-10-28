@@ -266,15 +266,20 @@
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/unstructured.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/policy/dataset.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/policy/parallel.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/pre_define/cartesian.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/pre_define/cylindrical.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/pre_define/mock.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/pre_define/predefine.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/pre_define/riemannian.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/test/CMakeLists.txt" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/test/geometry_test.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/test/mesh_ids_test.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/test/mesh_ids_test.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/time_integrator/time_integrator.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/corectmesh.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/mesh_block.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/mesh_ids.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/rectmesh.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/structured.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/topology.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/topology_common.h" isTestSource="false" />
@@ -398,16 +403,16 @@
           <root url="file:///usr/include" />
           <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include" />
           <root url="file:///usr/lib/llvm-3.6/lib/clang/3.6.0/include" />
-          <root url="file:///usr/lib/openmpi/include" />
           <root url="file:///usr/local/include" />
+          <root url="file:///work/pkg/intel/compilers_and_libraries_2016.0.109/linux/mpi/intel64/include" />
         </CLASSES>
         <SOURCES>
           <root url="file://$USER_HOME$/.clion11/system/cmake/generated/82e76996/82e76996/Debug/external_project/googletest/include" />
           <root url="file:///usr/include" />
           <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include" />
           <root url="file:///usr/lib/llvm-3.6/lib/clang/3.6.0/include" />
-          <root url="file:///usr/lib/openmpi/include" />
           <root url="file:///usr/local/include" />
+          <root url="file:///work/pkg/intel/compilers_and_libraries_2016.0.109/linux/mpi/intel64/include" />
         </SOURCES>
       </library>
     </orderEntry>

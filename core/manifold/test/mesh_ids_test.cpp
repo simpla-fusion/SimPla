@@ -11,7 +11,7 @@
 #include "../../gtl/utilities/log.h"
 #include "../../gtl/iterator/range.h"
 #include "../topology/mesh_ids.h"
-#include "../topology/structured.h"
+#include "co_rect_mesh.h"
 #include "../geometry/geometry.h"
 #include "../../geometry/cs_cartesian.h"
 

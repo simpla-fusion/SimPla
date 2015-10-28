@@ -36,13 +36,13 @@ using namespace simpla;
 
 #include "../../manifold/pre_define/cylindrical.h"
 
-typedef manifold::CylindricalCoRect mesh_type;
+typedef manifold::Cylindrical mesh_type;
 
 #else
 
-#	include "../../manifold/pre_define/riemannian.h"
+#	include "../../manifold/pre_define/cartesian.h"
 
-typedef manifold::Riemannian<3> mesh_type;
+typedef manifold::Cartesian<3> mesh_type;
 
 #endif
 
