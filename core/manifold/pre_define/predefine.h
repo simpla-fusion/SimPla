@@ -23,13 +23,13 @@
 
 namespace simpla
 {
-template<typename CS, typename TOPOLOGY> using DefaultManifold= Manifold<
-        Geometry<CS, TOPOLOGY>,
-        Calculate<Geometry<CS, TOPOLOGY>, calculate::tags::finite_volume>,
-        Interpolate<Geometry<CS, TOPOLOGY>, interpolate::tags::linear>,
-        TimeIntegrator<Geometry<CS, TOPOLOGY>>,
-        DataSetPolicy<Geometry<CS, TOPOLOGY>>,
-        ParallelPolicy<Geometry<CS, TOPOLOGY>>
+template<typename METRIC, typename TOPOLOGY> using DefaultManifold= Manifold<
+        Geometry<METRIC, TOPOLOGY>,
+        Calculate<Geometry<METRIC, TOPOLOGY>, calculate::tags::finite_volume>,
+        Interpolate<Geometry<METRIC, TOPOLOGY>, interpolate::tags::linear>,
+        TimeIntegrator<Geometry<METRIC, TOPOLOGY>>,
+        DataSetPolicy<Geometry<METRIC, TOPOLOGY>>,
+        ParallelPolicy<Geometry<METRIC, TOPOLOGY>>
 >;
 }// namespace simpla
 #endif //SIMPLA_PREDEFINE_H

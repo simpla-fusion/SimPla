@@ -1,30 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module type="CPP_MODULE" version="4">
   <component name="NewModuleRootManager">
-    <content url="file://$USER_HOME$/.clion11/system/cmake/generated/82e76996/82e76996/Debug/Doxyfile">
-      <sourceFolder url="file://$USER_HOME$/.clion11/system/cmake/generated/82e76996/82e76996/Debug/Doxyfile" isTestSource="false" />
-    </content>
-    <content url="file://$USER_HOME$/.clion11/system/cmake/generated/82e76996/82e76996/Debug/external_project/tmp/googletest-cfgcmd.txt.in">
-      <sourceFolder url="file://$USER_HOME$/.clion11/system/cmake/generated/82e76996/82e76996/Debug/external_project/tmp/googletest-cfgcmd.txt.in" isTestSource="false" />
-    </content>
-    <content url="file://$USER_HOME$/.clion11/system/cmake/generated/82e76996/82e76996/MinSizeRel/Doxyfile">
-      <sourceFolder url="file://$USER_HOME$/.clion11/system/cmake/generated/82e76996/82e76996/MinSizeRel/Doxyfile" isTestSource="false" />
-    </content>
-    <content url="file://$USER_HOME$/.clion11/system/cmake/generated/82e76996/82e76996/MinSizeRel/external_project/tmp/googletest-cfgcmd.txt.in">
-      <sourceFolder url="file://$USER_HOME$/.clion11/system/cmake/generated/82e76996/82e76996/MinSizeRel/external_project/tmp/googletest-cfgcmd.txt.in" isTestSource="false" />
-    </content>
-    <content url="file://$USER_HOME$/.clion11/system/cmake/generated/82e76996/82e76996/RelWithDebInfo/Doxyfile">
-      <sourceFolder url="file://$USER_HOME$/.clion11/system/cmake/generated/82e76996/82e76996/RelWithDebInfo/Doxyfile" isTestSource="false" />
-    </content>
-    <content url="file://$USER_HOME$/.clion11/system/cmake/generated/82e76996/82e76996/RelWithDebInfo/external_project/tmp/googletest-cfgcmd.txt.in">
-      <sourceFolder url="file://$USER_HOME$/.clion11/system/cmake/generated/82e76996/82e76996/RelWithDebInfo/external_project/tmp/googletest-cfgcmd.txt.in" isTestSource="false" />
-    </content>
-    <content url="file://$USER_HOME$/.clion11/system/cmake/generated/82e76996/82e76996/Release/Doxyfile">
-      <sourceFolder url="file://$USER_HOME$/.clion11/system/cmake/generated/82e76996/82e76996/Release/Doxyfile" isTestSource="false" />
-    </content>
-    <content url="file://$USER_HOME$/.clion11/system/cmake/generated/82e76996/82e76996/Release/external_project/tmp/googletest-cfgcmd.txt.in">
-      <sourceFolder url="file://$USER_HOME$/.clion11/system/cmake/generated/82e76996/82e76996/Release/external_project/tmp/googletest-cfgcmd.txt.in" isTestSource="false" />
-    </content>
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/CMake/utils.cmake" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/CMakeLists.txt" isTestSource="false" />
@@ -234,6 +210,8 @@
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/fiber_bundle.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/geometry/geometry.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/geometry/geometry_traits.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/geometry/metric.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/geometry/metric_euclidean.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/interpolate/interpolate.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/interpolate/linear.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/manifold.h" isTestSource="false" />
@@ -276,7 +254,10 @@
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/test/mesh_ids_test.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/test/mesh_ids_test.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/time_integrator/time_integrator.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/corectmesh.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/corect_mesh.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/map_linear.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/map_orthogonal.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/map_primary.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/mesh_block.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/mesh_ids.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/rectmesh.h" isTestSource="false" />
@@ -399,20 +380,20 @@
     <orderEntry type="module-library">
       <library name="Header Search Paths">
         <CLASSES>
-          <root url="file://$USER_HOME$/.clion11/system/cmake/generated/82e76996/82e76996/Debug/external_project/googletest/include" />
+          <root url="file://$USER_HOME$/.CLion12/system/cmake/generated/82e76996/82e76996/Debug/external_project/googletest/include" />
           <root url="file:///usr/include" />
           <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include" />
           <root url="file:///usr/lib/llvm-3.6/lib/clang/3.6.0/include" />
+          <root url="file:///usr/lib/openmpi/include" />
           <root url="file:///usr/local/include" />
-          <root url="file:///work/pkg/intel/compilers_and_libraries_2016.0.109/linux/mpi/intel64/include" />
         </CLASSES>
         <SOURCES>
-          <root url="file://$USER_HOME$/.clion11/system/cmake/generated/82e76996/82e76996/Debug/external_project/googletest/include" />
+          <root url="file://$USER_HOME$/.CLion12/system/cmake/generated/82e76996/82e76996/Debug/external_project/googletest/include" />
           <root url="file:///usr/include" />
           <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include" />
           <root url="file:///usr/lib/llvm-3.6/lib/clang/3.6.0/include" />
+          <root url="file:///usr/lib/openmpi/include" />
           <root url="file:///usr/local/include" />
-          <root url="file:///work/pkg/intel/compilers_and_libraries_2016.0.109/linux/mpi/intel64/include" />
         </SOURCES>
       </library>
     </orderEntry>

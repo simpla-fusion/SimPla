@@ -68,8 +68,7 @@ struct map<Cylindrical<IPhiAxis>, Cartesian<3, I_CARTESIAN_ZAXIS> >
 
         st::get<CartesianZAxis>(y) = st::get<CylindricalZAxis>(x);
 
-        return
-                std::move(y);
+        return std::move(y);
     }
 
     point_t1 operator()(point_t0 const &x) const
@@ -82,14 +81,9 @@ struct map<Cylindrical<IPhiAxis>, Cartesian<3, I_CARTESIAN_ZAXIS> >
     DECL_RET_TYPE((fun(map(x0))))
 
     template<typename TRect>
-    TRect pull_back(point_t0 const &x0,
-                    std::function<TRect(point_t0 const &)
-
-                    > const &fun)
+    TRect pull_back(point_t0 const &x0, std::function<TRect(point_t0 const &)> const &fun)
     {
-        return
-
-                fun(map(x0));
+        return fun(map(x0));
     }
 
 /**
@@ -262,10 +256,12 @@ constexpr size_t map<Cartesian<3, ICARTESIAN_ZAXIS>, Cylindrical<IPhiAxis>>::Car
 
 template<size_t IPhiAxis, size_t ICARTESIAN_ZAXIS>
 constexpr size_t map<Cartesian<3, ICARTESIAN_ZAXIS>, Cylindrical<IPhiAxis>>::CartesianZAxis;
-template<typename> struct mertic;
+
+
+template<typename...> struct Metric;
 
 template<size_t IPhiAxis>
-struct mertic<Cylindrical<IPhiAxis> >
+struct Metric<Cylindrical<IPhiAxis> >
 {
 
     typedef gt::point_t<Cylindrical<IPhiAxis>> point_t;
@@ -308,33 +304,36 @@ private:
 
 public:
 
+//
+//    template<typename ...Others>
+//    static constexpr Real volume(size_t node_id, point_t const &x0, Others &&...)
+//    {
+//
+//        return ((((node_id >> CylindricalRAxis) & 1UL) > 0) ?
+//                (dl<CylindricalRAxis>(x0)) : 1.0)
+//
+//               * ((((node_id >> CylindricalZAxis) & 1UL) > 0) ?
+//                  (dl<CylindricalZAxis>(x0)) : 1.0)
+//
+//               * ((((node_id >> CylindricalPhiAxis) & 1UL) > 0) ?
+//                  (dl<CylindricalPhiAxis>(x0)) : 1.0);
+//
+//
+//    }
+//
+//    template<typename ...Others>
+//    static constexpr Real dual_volume(size_t node_id, Others &&...others)
+//    {
+//        return volume(7UL & (~node_id), std::forward<Others>(others)...);
+//    }
 
-    template<typename ...Others>
-    static constexpr Real volume(size_t node_id, point_t const &x0, Others &&...)
+    template<typename T0, typename T1, typename TX, typename ...Others>
+    static constexpr Real inner_product(T0 const &v0, T1 const &v1, TX const &x, Others &&... others)
     {
+        return ((v0[CylindricalRAxis] * v1[CylindricalRAxis] + v0[CylindricalZAxis] * v1[CylindricalZAxis] +
+                 v0[CylindricalPhiAxis] * v1[CylindricalPhiAxis] * x[CylindricalRAxis] * x[CylindricalRAxis]));
+    };
 
-        return ((((node_id >> CylindricalRAxis) & 1UL) > 0) ?
-                (dl<CylindricalRAxis>(x0)) : 1.0)
-
-               * ((((node_id >> CylindricalZAxis) & 1UL) > 0) ?
-                  (dl<CylindricalZAxis>(x0)) : 1.0)
-
-               * ((((node_id >> CylindricalPhiAxis) & 1UL) > 0) ?
-                  (dl<CylindricalPhiAxis>(x0)) : 1.0);
-
-
-    }
-
-    template<typename ...Others>
-    static constexpr Real dual_volume(size_t node_id, Others &&...others)
-    {
-        return volume(7UL & (~node_id), std::forward<Others>(others)...);
-    }
-
-    template<typename T0, typename T1, typename ...Others>
-    static constexpr auto inner_product(T0 const &v0, T1 const &v1, point_t const &x, Others &&... others)
-    DECL_RET_TYPE((v0[CylindricalRAxis] * v1[CylindricalRAxis] + v0[CylindricalZAxis] * v1[CylindricalZAxis] +
-                   v0[CylindricalPhiAxis] * v1[CylindricalPhiAxis] * x[CylindricalRAxis] * x[CylindricalRAxis]))
 
 };
 

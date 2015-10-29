@@ -10,29 +10,31 @@
 #include "predefine.h"
 #include "../../geometry/cs_cartesian.h"
 #include "../topology/topology.h"
-#include "../topology/corectmesh.h"
+#include "../topology/corect_mesh.h"
 
 namespace simpla
 {
 namespace manifold
 {
 template<int NDIMS, typename TopologyType=topology::CoRectMesh>
-using Cartesian=DefaultManifold<coordinate_system::Cartesian<NDIMS>, topology::CoRectMesh>;
+using Cartesian=DefaultManifold<Metric<coordinate_system::Cartesian<NDIMS>>, topology::CoRectMesh>;
 }//namespace manifold
 
 
 template<typename ...> struct Geometry;
+template<typename ...> struct Metric;
+
 
 template<int NDIMS, typename TopologyType>
-struct Geometry<coordinate_system::Cartesian<NDIMS>, TopologyType>
-        : public TopologyType, public mertic<coordinate_system::Cartesian<NDIMS>>
+struct Geometry<Metric<coordinate_system::Cartesian<NDIMS>>, TopologyType>
+        : public TopologyType, public Metric<coordinate_system::Cartesian<NDIMS>>
 {
 public:
     typedef coordinate_system::Cartesian<NDIMS, 2> coordinates_system_type;
 
     typedef TopologyType topology_type;
 
-    typedef mertic<coordinate_system::Cartesian<NDIMS>> metric_type;
+    typedef Metric<coordinate_system::Cartesian<NDIMS>> metric_type;
 
     typedef traits::scalar_type_t<coordinates_system_type> scalar_type;
 
@@ -72,9 +74,7 @@ public:
 
     virtual void deploy() { topology_type::deploy(); }
 
-
     using topology_type::load;
-
 
     using topology_type::volume;
     using topology_type::dual_volume;

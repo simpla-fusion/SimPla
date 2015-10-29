@@ -11,7 +11,6 @@
 #include "../../gtl/macro.h"
 #include "../../gtl/type_traits.h"
 #include "../../geometry/coordinate_system.h"
-
 #include "../topology/topology_common.h"
 #include "geometry_traits.h"
 
@@ -22,13 +21,18 @@ namespace simpla
 template<typename ...> struct Geometry;
 
 
-template<typename CS, typename TopologyType>
-struct Geometry<CS, TopologyType> : public TopologyType
+template<typename TMetric, typename TopologyType>
+struct Geometry<TMetric, TopologyType> : public TopologyType, public TMetric
 {
 public:
-    typedef CS coordinates_system_type;
+
+    typedef TMetric metric_type;
+
 
     typedef TopologyType topology_type;
+
+    typedef traits::coordinate_system_t<metric_type> coordinates_system_type;
+
 
     typedef traits::scalar_type_t<coordinates_system_type> scalar_type;
 
@@ -40,17 +44,13 @@ public:
 
 private:
 
-    typedef Geometry<CS, TopologyType> this_type;
-
-    mertic<coordinates_system_type> m_metric_;
-
+    typedef Geometry<metric_type, topology_type> this_type;
 public:
     Geometry() { }
 
     Geometry(this_type const &other) : topology_type(other) { }
 
     virtual ~Geometry() { }
-
 
     template<typename TDict>
     void load(TDict const &dict) { topology_type::load(dict); }
@@ -62,7 +62,8 @@ public:
 
         os
 
-        << "\t\tCoordinateSystem = {  Type = \"" << traits::type_id<CS>::name() << "\",  }," << std::endl;
+        << "\t\tCoordinateSystem = {  Type = \"" << traits::type_id<coordinates_system_type>::name() << "\",  }," <<
+        std::endl;
 
         topology_type::print(os);
 
@@ -71,55 +72,16 @@ public:
         return os;
     }
 
-    virtual void deploy() { topology_type::deploy(); };
-
-
-
-/** @} */
-/** @name Volume
- * @{
- */
-
-private:
-
-    Real volume_(id_type s) const
+    virtual void deploy()
     {
-        return m_metric_.volume(topology_type::node_id(s), topology_type::point(s));
-    }
+        topology_type::deploy();
+    };
+    using topology_type::volume;
+    using topology_type::dual_volume;
+    using topology_type::inv_volume;
+    using topology_type::inv_dual_volume;
 
-    Real dual_volume_(id_type s) const
-    {
-        return m_metric_.dual_volume(topology_type::node_id(s), topology_type::point(s));
-    }
-
-public:
-
-    Real volume(id_type s) const
-    {
-        return topology_type::volume(s) * volume_(s);
-    }
-
-    Real dual_volume(id_type s) const
-    {
-        return topology_type::dual_volume(s) * dual_volume_(s);
-    }
-
-    Real inv_volume(id_type s) const
-    {
-        return topology_type::inv_volume(s) / volume_(s);
-    }
-
-    Real inv_dual_volume(id_type s) const
-    {
-        return topology_type::inv_dual_volume(s) / dual_volume_(s);
-    }
-
-/**@}*/
-
-
-    template<typename T0, typename T1, typename ...Args>
-    auto inner_product(T0 const &v0, T1 const &v1, Args &&...args) const
-    DECL_RET_TYPE((m_metric_.inner_product(v0, v1, std::forward<Args>(args)...)))
+    using metric_type::inner_product;
 
 }; //struct Geometry<CS,TopologyTags >
 

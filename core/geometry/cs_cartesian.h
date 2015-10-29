@@ -24,7 +24,6 @@ namespace gt = simpla::traits;
 
 template<typename, typename> struct map;
 
-template<typename> struct mertic;
 
 template<size_t ZAXIS0, size_t ZAXIS1>
 struct map<coordinate_system::Cartesian<3, ZAXIS0>,
@@ -107,8 +106,10 @@ struct map<coordinate_system::Cartesian<3, ZAXIS0>,
 
 };
 
+template<typename...> struct Metric;
+
 template<size_t ICARTESIAN_ZAXIS>
-struct mertic<coordinate_system::Cartesian<3, ICARTESIAN_ZAXIS> >
+struct Metric<coordinate_system::Cartesian<3, ICARTESIAN_ZAXIS> >
 {
 
     static constexpr size_t CartesianZAxis = (ICARTESIAN_ZAXIS) % 3;
@@ -119,7 +120,7 @@ struct mertic<coordinate_system::Cartesian<3, ICARTESIAN_ZAXIS> >
     typedef gt::covector_t<coordinate_system::Cartesian<3, ICARTESIAN_ZAXIS> > covector_t;
 
     typedef nTuple<Real, 3> delta_t;
-
+private:
     template<size_t DI>
     static constexpr Real dl(point_t const &x0, delta_t const &delta)
     {
@@ -128,8 +129,7 @@ struct mertic<coordinate_system::Cartesian<3, ICARTESIAN_ZAXIS> >
 
 public:
     template<typename ...Others>
-    static constexpr Real volume(/*size_t node_id, point_t const &x0,
-                                 delta_t delta, */Others &&...)
+    static constexpr Real volume(int n, point_t const p[])
     {
         return 1.0;
         // FIXME !!!
@@ -148,8 +148,8 @@ public:
 //		;
     }
 
-    template<typename ...Others>
-    static constexpr Real dual_volume(/*size_t node_id,*/ Others &&...others)
+
+    static constexpr Real dual_volume(int n, point_t const p[])
     {
         return 1.0;
 //        return volume(7UL & (~node_id), std::forward<Others>(others)...);

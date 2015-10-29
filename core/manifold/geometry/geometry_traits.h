@@ -15,7 +15,7 @@
 
 namespace simpla
 {
-
+template<typename  ...> struct Metric;
 
 template<typename ...> class Geometry;
 
@@ -54,8 +54,8 @@ template<typename ...T> struct id_type<Geometry<T...> >
     typedef std::uint64_t type;
 };
 
-template<typename CS, typename ... T>
-struct coordinate_system_type<Geometry<CS, T...>>
+template<typename CS, typename ... T0, typename ... T>
+struct coordinate_system_type<Geometry<Metric<CS, T0...>, T...>>
 {
     typedef CS type;
 };

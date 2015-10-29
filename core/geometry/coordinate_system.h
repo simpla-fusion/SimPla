@@ -19,7 +19,7 @@ namespace simpla
 {
 
 template<typename, typename> struct map;
-template<typename> struct mertic;
+template<typename...> struct Metric;
 
 
 namespace coordinate_system
@@ -64,7 +64,11 @@ template<typename> struct typename_as_string;
 template<typename> struct coordinate_system_type;
 template<typename T> using coordinate_system_t= typename coordinate_system_type<T>::type;
 
-
+template<typename CS, typename ...Others>
+struct coordinate_system_type<Metric<CS, Others...> >
+{
+    typedef CS type;
+};
 
 template<typename> struct ZAxis;
 template<typename T>

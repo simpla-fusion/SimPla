@@ -76,6 +76,8 @@ struct MeshIDs_
 
     typedef long index_type;
 
+    typedef long difference_type;
+
     typedef nTuple<index_type, ndims> index_tuple;
 
 //	typedef Real coordinate_type;

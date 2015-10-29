@@ -7,7 +7,7 @@ ENABLE_TESTING()
 
 INCLUDE(ExternalProject)
 
-include(${PROJECT_SOURCE_DIR}/CMake/utils.cmake)
+INCLUDE(${PROJECT_SOURCE_DIR}/CMake/utils.cmake)
 
 SET(CMAKE_VERBOSE_MAKEFILE ON)
 
@@ -26,12 +26,12 @@ MESSAGE(STATUS "Using C++ Compiler ${CMAKE_CXX_COMPILER_ID} ")
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
     SET(CMAKE_CXX_FLAGS "-std=c++11  -fcolor-diagnostics   -ftemplate-backtrace-limit=0   ")
-elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
+elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
     SET(CMAKE_CXX_FLAGS "-std=c++11  -openmp ")
     SET(MPI_C_COMPILER mpiicc)
     SET(MPI_CXX_COMPILER mpiicpc)
     SET(MPI_Fortran_COMPILER mpiifort)
-else()
+else ()
     SET(CMAKE_CXX_FLAGS "  -std=c++11  -openmp  ")
 endif ()
 
@@ -46,9 +46,9 @@ IF (MPI_FOUND)
 
     ADD_DEFINITIONS(-DUSE_MPI -DMPICH_SKIP_MPICXX)
     ADD_DEFINITIONS(-DUSE_MPI -DOMPI_SKIP_MPICXX)
-  #  SET(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER})
-  #  SET(CMAKE_C_COMPILER ${MPI_C_COMPILER})
-  #  SET(CMAKE_FORTRAN_COMPILER ${MPI_FORTRAN_COMPILER})
+    #  SET(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER})
+    #  SET(CMAKE_C_COMPILER ${MPI_C_COMPILER})
+    #  SET(CMAKE_FORTRAN_COMPILER ${MPI_FORTRAN_COMPILER})
 ENDIF (MPI_FOUND)
 
 SET(HDF5_USE_STATIC_LIBRARIES OFF)
@@ -68,13 +68,13 @@ find_package(Boost)
 
 if (Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
-else()
+else ()
     set(boost_cmds
             CONFIGURE_COMMAND ./bootstrap.sh --prefix=<INSTALL_DIR>
             BUILD_COMMAND ./b2 address-model=${am} ${boost_with_args}
             INSTALL_COMMAND ./b2 address-model=${am} ${boost_with_args}
             install
-    )
+            )
     ExternalProject_Add(boost
             PREFIX ${PROJECT_BINARY_DIR}/external_project
             URL http://sourceforge.net/projects/boost/files/boost/1.58.0/boost_1_58_0.tar.bz2/download
@@ -94,7 +94,7 @@ endif ()
 #ELSE()
 ExternalProject_Add(googletest
         PREFIX ${PROJECT_BINARY_DIR}/external_project
-#  URL   http://googletest.googlecode.com/files/gtest-1.7.0.zip
+        #  URL   http://googletest.googlecode.com/files/gtest-1.7.0.zip
         URL file://${CMAKE_SOURCE_DIR}/external_project/src/gtest-1.7.0.zip
         SOURCE_DIR ${PROJECT_BINARY_DIR}/external_project/googletest
         INSTALL_COMMAND "")
@@ -119,7 +119,7 @@ execute_process(COMMAND git describe --all --dirty --long
         OUTPUT_VARIABLE PROJECT_IDENTIFY
         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
         OUTPUT_STRIP_TRAILING_WHITESPACE
-)
+        )
 
 MESSAGE(STATUS "Identify: ${PROJECT_IDENTIFY}")
 

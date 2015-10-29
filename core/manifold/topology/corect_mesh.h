@@ -14,6 +14,7 @@
 #include "../../gtl/type_traits.h"
 #include "../../gtl/utilities/utilities.h"
 #include "mesh_block.h"
+#include "map_linear.h"
 
 namespace simpla
 {
@@ -21,7 +22,7 @@ namespace topology
 {
 
 
-struct CoRectMesh : public MeshBlock
+struct CoRectMesh : public MeshBlock<>, private LinearMap3
 {
     static constexpr int ndims = 3;
     enum
@@ -31,6 +32,7 @@ struct CoRectMesh : public MeshBlock
 private:
 
     typedef CoRectMesh this_type;
+    typedef LinearMap3 map_type;
     typedef MeshBlock base_type;
 public:
     using base_type::id_type;
@@ -81,13 +83,7 @@ public:
     vector_type m_dx_ = {1, 1, 1};; //!< width of cell, except m_dx_[i]=0 when m_dims_[i]==1
 
 
-    point_type m_from_topology_orig_ = {0, 0, 0};
 
-    point_type m_to_topology_orig_ = {0, 0, 0};
-
-    point_type m_to_topology_scale_ = {1, 1, 1};
-
-    point_type m_from_topology_scale_ = {1, 1, 1};
 
     bool m_is_valid_ = false;
 public:
@@ -99,19 +95,8 @@ public:
 
 
     CoRectMesh(this_type const &other) :
-            base_type(other),
-
-            m_dx_(other.m_dx_),
-
-            m_from_topology_orig_(other.m_from_topology_orig_),
-
-            m_to_topology_orig_(other.m_to_topology_orig_),
-
-            m_to_topology_scale_(other.m_to_topology_scale_),
-
-            m_from_topology_scale_(other.m_from_topology_scale_)
+            base_type(other), m_coords_min_(other.m_coords_min_), m_coords_max_(other.m_coords_max_), m_dx_(other.m_dx_)
     {
-
     }
 
     virtual  ~CoRectMesh() { }
@@ -120,14 +105,12 @@ public:
     {
 
         base_type::swap(other);
+        map_type::swap(other);
 
         std::swap(m_coords_min_, other.m_coords_min_);
         std::swap(m_coords_max_, other.m_coords_max_);
         std::swap(m_dx_, other.m_dx_);
-        std::swap(m_from_topology_orig_, other.m_from_topology_orig_);
-        std::swap(m_to_topology_orig_, other.m_to_topology_orig_);
-        std::swap(m_to_topology_scale_, other.m_to_topology_scale_);
-        std::swap(m_from_topology_scale_, other.m_from_topology_scale_);
+
 
         deploy();
         other.deploy();
@@ -166,10 +149,10 @@ public:
 
 
 
-    //================================================================================================
-    // @name Coordinates dependent
+//================================================================================================
+// @name Coordinates dependent
 
-    point_type epsilon() const { return EPSILON * m_from_topology_scale_; }
+//    point_type epsilon() const { return EPSILON * m_from_topology_scale_; }
 
     template<typename X0, typename X1>
     void box(X0 const &x0, X1 const &x1)
@@ -206,49 +189,15 @@ public:
  **/
 private:
 
-    point_type map(point_type const &x) const
-    {
-
-        point_type res;
-
-
-        res[0] = std::fma(x[0], m_from_topology_scale_[0], m_from_topology_orig_[0]);
-
-        res[1] = std::fma(x[1], m_from_topology_scale_[1], m_from_topology_orig_[1]);
-
-        res[2] = std::fma(x[2], m_from_topology_scale_[2], m_from_topology_orig_[2]);
-
-
-        return std::move(res);
-    }
-
-    point_type inv_map(point_type const &y) const
-    {
-
-        point_type res;
-
-
-        res[0] = std::fma(y[0], m_to_topology_scale_[0], m_to_topology_orig_[0]);
-
-        res[1] = std::fma(y[1], m_to_topology_scale_[1], m_to_topology_orig_[1]);
-
-        res[2] = std::fma(y[2], m_to_topology_scale_[2], m_to_topology_orig_[2]);
-
-        return std::move(res);
-    }
+    using map_type::map;
+    using map_type::inv_map;
 
 
 public:
 
     virtual point_type point(id_type const &s) const { return std::move(map(base_type::coordinates(s))); }
 
-/**
- * @bug: truncation error of coordinates transform larger than 1000
- *     epsilon (1e4 epsilon for cylindrical coordinates)
- * @param args
- * @return
- *
- */
+
     virtual point_type coordinates_local_to_global(std::tuple<id_type, point_type> const &t) const
     {
         return std::move(map(base_type::coordinates_local_to_global(t)));
@@ -263,9 +212,6 @@ public:
     {
         return std::get<0>(base_type::coordinates_global_to_local(inv_map(x), n_id));
     }
-
-    //===================================
-    //
 
 private:
     Real m_volume_[9];
@@ -289,14 +235,10 @@ public:
 
         base_type::deploy();
 
-
         auto dims = base_type::dimensions();
 
-        auto i_box = base_type::local_index_box();
+        map_type::set(base_type::local_box(), box(), dims);
 
-        point_type i_min = base_type::point(std::get<0>(i_box));
-
-        point_type i_max = base_type::point(std::get<1>(i_box));
 
         for (int i = 0; i < ndims; ++i)
         {
@@ -304,30 +246,9 @@ public:
 
             ASSERT((m_coords_max_[i] - m_coords_min_[i] > EPSILON));
 
-            ASSERT(i_max[i] - i_min[i] > 0);
-
-
             m_dx_[i] = (m_coords_max_[i] - m_coords_min_[i]) / static_cast<Real>(dims[i]);
-
-
-            m_to_topology_scale_[i] = (i_max[i] - i_min[i]) / (m_coords_max_[i] - m_coords_min_[i]);
-
-            m_from_topology_scale_[i] = (m_coords_max_[i] - m_coords_min_[i]) / (i_max[i] - i_min[i]);
-
-            if (dims[i] == 1)
-            {
-                m_dx_[i] = 1;
-
-                m_to_topology_scale_[i] = 0;
-
-                m_from_topology_scale_[i] = 0;
-
-            }
-
-            m_to_topology_orig_[i] = i_min[i] - m_coords_min_[i] * m_to_topology_scale_[i];
-
-            m_from_topology_orig_[i] = m_coords_min_[i] - i_min[i] * m_from_topology_scale_[i];
         }
+
 
         /**
          *\verbatim

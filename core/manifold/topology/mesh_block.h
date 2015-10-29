@@ -17,8 +17,8 @@
 namespace simpla
 {
 
-
-struct MeshBlock : public MeshIDs_<4>
+template<int MeshLevel = 4>
+struct MeshBlock : public MeshIDs_<MeshLevel>
 {
     static constexpr int ndims = 3;
     enum
@@ -28,17 +28,19 @@ struct MeshBlock : public MeshIDs_<4>
 private:
 
     typedef MeshBlock this_type;
-    typedef MeshIDs_<4> m;
+    typedef MeshIDs_<MeshLevel> m;
 
 public:
-    using m::id_type;
-    using m::id_tuple;
-    using m::index_type;
-    typedef id_type value_type;
-    typedef size_t difference_type;
+    using typename m::id_type;
+    using typename m::id_tuple;
+    using typename m::index_type;
+    using typename m::range_type;
+    using typename m::iterator;
+    using typename m::index_tuple;
+    using typename m::difference_type;
+
     typedef nTuple<Real, ndims> point_type;
     typedef nTuple<Real, ndims> vector_type;
-    using m::index_tuple;
 
 
     /**
@@ -160,6 +162,16 @@ public:
         return std::move(res);
     }
 
+    std::tuple<point_type, point_type> box() const
+    {
+        return std::make_tuple(m::point(m_min_), m::point(m_max_));
+    };
+
+    std::tuple<point_type, point_type> local_box() const
+    {
+        return std::make_tuple(m::point(m_local_min_), m::point(m_local_max_));
+    };
+
     template<typename T0, typename T1>
     void index_box(T0 const &min, T1 const &max)
     {
@@ -216,7 +228,7 @@ public:
 
             if (m_local_min_[n] == m_local_max_[n])
             {
-                RUNTIME_ERROR("Mesh block decompose fail! Dimension  is smaller than process grid. ");
+                RUNTIME_ERROR("Mesh block decompose failed! Block dimension is smaller than process grid. ");
             }
 
 
