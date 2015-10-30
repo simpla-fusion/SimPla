@@ -7,29 +7,37 @@
 #ifndef SIMPLA_RECT_MESH_H
 #define SIMPLA_RECT_MESH_H
 
+#include <limits>
+
+#include "mesh_ids.h"
 #include "mesh_block.h"
+#include "map_linear.h"
+#include "../../gtl/design_pattern/singleton_holder.h"
+#include "../../gtl/utilities/memory_pool.h"
 
 namespace simpla { namespace topology
 {
 
 
-template<typename TMap = LinearMap3>
-struct RectMesh : public MeshBlock, public TMap
+template<typename TMap = LinearMap, int MeshLevel = 4>
+struct RectMesh : public MeshBlock<MeshLevel>, public TMap
 {
 
 private:
     typedef RectMesh<TMap> this_type;
-    typedef MeshBlock base_type;
+    typedef MeshBlock <MeshLevel> base_type;
     typedef TMap map_type;
 public:
-    using base_type::id_type;
-    using base_type::id_tuple;
-    using base_type::index_type;
-    typedef id_type value_type;
-    typedef size_t difference_type;
-    typedef nTuple<Real, ndims> point_type;
-    typedef nTuple<Real, ndims> vector_type;
-    using base_type::index_tuple;
+    using base_type::ndims;
+
+    using typename base_type::id_type;
+    using typename base_type::id_tuple;
+    using typename base_type::index_type;
+    using typename base_type::index_tuple;
+    using typename base_type::difference_type;
+
+    typedef nTuple <Real, ndims> point_type;
+    typedef nTuple <Real, ndims> vector_type;
 
 private:
     point_type m_coords_min_ = {0, 0, 0};
@@ -54,7 +62,7 @@ public:
 
     }
 
-    virtual  ~CoRectMesh() { }
+    virtual  ~RectMesh() { }
 
     virtual void swap(this_type &other)
     {
@@ -107,10 +115,7 @@ public:
 
     //================================================================================================
     // @name Coordinates dependent
-
-
-
-    point_type epsilon() const { return EPSILON * m_from_topology_scale_; }
+    //    point_type epsilon() const { return EPSILON * m_from_topology_scale_; }
 
     template<typename X0, typename X1>
     void box(X0 const &x0, X1 const &x1)
@@ -148,7 +153,11 @@ private:
     using map_type::map;
     using map_type::inv_map;
 public:
-    virtual point_type point(id_type const &s) const { return std::move(map(base_type::point(s))); }
+    template<typename ...Args>
+    point_type point(Args &&...args) const
+    {
+        return std::move(map(base_type::point(std::forward<Args>(args)...)));
+    }
 
 /**
  * @bug: truncation error of coordinates transform larger than 1000
@@ -175,15 +184,30 @@ public:
     //===================================
     //
 
-    virtual Real volume(id_type s) const { return m_volume_.get()[hash((s & (~m::_DA)) << 1)]; }
+    virtual Real volume(id_type s) const
+    {
+        return m_volume_.get()[base_type::hash((s & (~base_type::FULL_OVERFLOW_FLAG)) << 1)];
+    }
 
-    virtual Real dual_volume(id_type s) const { return m_dual_volume_.get()[hash((s & (~m::_DA)) << 1)]; }
+    virtual Real dual_volume(id_type s) const
+    {
+        return m_dual_volume_.get()[base_type::hash((s & (~base_type::FULL_OVERFLOW_FLAG)) << 1)];
+    }
 
-    virtual Real inv_volume(id_type s) const { return m_inv_volume_.get()[hash((s & (~m::_DA)) << 1)]; }
+    virtual Real inv_volume(id_type s) const
+    {
+        return m_inv_volume_.get()[base_type::hash((s & (~base_type::FULL_OVERFLOW_FLAG)) << 1)];
+    }
 
-    virtual Real inv_dual_volume(id_type s) const { return m_inv_dual_volume_.get()[hash((s & (~m::_DA)) << 1)]; }
+    virtual Real inv_dual_volume(id_type s) const
+    {
+        return m_inv_dual_volume_.get()[base_type::hash((s & (~base_type::FULL_OVERFLOW_FLAG)) << 1)];
+    }
 
-    virtual point_type const &vertex(id_type s) const { return m_vertics_.get()[hash(s & (~m::_DA))]; }
+    virtual point_type const &vertex(id_type s) const
+    {
+        return m_vertics_.get()[base_type::hash((s & (~base_type::FULL_OVERFLOW_FLAG)) << 1)];
+    }
 
 
 private:
@@ -194,109 +218,170 @@ private:
     std::shared_ptr<point_type> m_vertics_;
 public:
 
-    virtual void deploy()
+    virtual void deploy();
+
+    template<typename TMetric>
+    void update_volume(TMetric const &metric);
+};//struct RectMesh
+
+template<typename TMap, int MeshLevel>
+void RectMesh<TMap, MeshLevel>::deploy()
+{
+
+    CHECK("Deploy");
+
+    base_type::deploy();
+
+    auto dims = base_type::dimensions();
+
+    map_type::set(base_type::box(), box(), dims);
+
+    for (int i = 0; i < ndims; ++i)
     {
-        base_type::deploy();
+        ASSERT(dims[i] >= 1);
 
-        auto dims = base_type::dimensions();
+        ASSERT((m_coords_max_[i] - m_coords_min_[i] > EPSILON));
 
-        map_type::set(base_type::box(), box(), dims);
+        m_dx_[i] = (m_coords_max_[i] - m_coords_min_[i]) / static_cast<Real>(dims[i]);
 
-        for (int i = 0; i < ndims; ++i)
+    }
+
+    /**
+     *\verbatim
+     *                ^y
+     *               /
+     *        z     /
+     *        ^    /
+     *        |  110-------------111
+     *        |  /|              /|
+     *        | / |             / |
+     *        |/  |            /  |
+     *       100--|----------101  |
+     *        | m |           |   |
+     *        |  010----------|--011
+     *        |  /            |  /
+     *        | /             | /
+     *        |/              |/
+     *       000-------------001---> x
+     *
+     *\endverbatim
+     */
+
+
+
+    m_is_valid_ = true;
+}
+
+template<typename TMap, int MeshLevel>
+template<typename TMetric>
+void RectMesh<TMap, MeshLevel>::update_volume(TMetric const &metric)
+{
+
+
+    VERBOSE << "update volume" << std::endl;
+
+    auto memory_block_range = base_type::template make_range<VERTEX>(base_type::memory_index_box());
+
+    size_t num = memory_block_range.size() * 8;
+
+    m_volume_ = SingletonHolder<MemoryPool>::instance().alloc<Real>(num);
+    m_inv_volume_ = SingletonHolder<MemoryPool>::instance().alloc<Real>(num);
+    m_dual_volume_ = SingletonHolder<MemoryPool>::instance().alloc<Real>(num);
+    m_inv_dual_volume_ = SingletonHolder<MemoryPool>::instance().alloc<Real>(num);
+
+#ifdef USE_PARALLEL_FOR
+    parallel_for(memory_block_range, [&](range_type const &range){
+#endif
+
+
+    for (auto const &s:memory_block_range)
+    {
+        point_type p[8];
+        typename base_type::id_type ss[8];
+
+        for (int nid = 0; nid < 8; ++nid)
         {
-            ASSERT(dims[i] >= 1);
+            size_t n = base_type::hash(s) * 8 + nid;
 
-            ASSERT((m_coords_max_[i] - m_coords_min_[i] > EPSILON));
+            int p_num = base_type::get_adjoin_vertices(nid, s + base_type::m_id_to_shift_[nid], ss);
+            if (p_num == 1)
+            {
+                m_volume_.get()[n] = 1;
+            }
+            else
+            {
+                for (int i = 0; i < p_num; ++i)
+                {
+                    p[i] = point(ss[i]);
+                }
 
-            m_dx_[i] = (m_coords_max_[i] - m_coords_min_[i]) / static_cast<Real>(dims[i]);
+                switch (nid)
+                {
+                    case 1:
+                    case 2:
+                    case 4:
+                        m_volume_.get()[n] = metric.length(p, p_num);
+                        break;
+                    case 3:
+                    case 5:
+                    case 6:
+                        m_volume_.get()[n] = metric.area(p, p_num);
+                        break;
+                    case 7:
+                        m_volume_.get()[n] = metric.volume(p, p_num);
+                        break;
+                    default:
+                        break;
+                }
+
+            }
+            m_inv_volume_.get()[n] = (m_dual_volume_.get()[n] > std::numeric_limits<double>::epsilon())
+                                     ? 1.0 / m_volume_.get()[n] : 1;
+
+
+            p_num = base_type::get_adjoin_vertices((~nid) & 7, s + base_type::m_id_to_shift_[nid], ss);
+            if (p_num == 1)
+            {
+                m_dual_volume_.get()[n] = 1;
+            }
+            else
+            {
+                for (int i = 0; i < p_num; ++i)
+                {
+                    p[i] = point(ss[i]);
+                }
+
+                switch (nid)
+                {
+                    case 1:
+                    case 2:
+                    case 4:
+                        m_dual_volume_.get()[n] = metric.length(p, p_num);
+                        break;
+                    case 3:
+                    case 5:
+                    case 6:
+                        m_dual_volume_.get()[n] = metric.area(p, p_num);
+                        break;
+                    case 7:
+                        m_dual_volume_.get()[n] = metric.volume(p, p_num);
+                        break;
+                    default:
+                        break;
+                }
+            }
+            m_inv_dual_volume_.get()[n] = (m_dual_volume_.get()[n] > std::numeric_limits<double>::epsilon())
+                                          ? 1.0 / m_dual_volume_.get()[n] : 1;
+
 
         }
 
-        /**
-         *\verbatim
-         *                ^y
-         *               /
-         *        z     /
-         *        ^    /
-         *        |  110-------------111
-         *        |  /|              /|
-         *        | / |             / |
-         *        |/  |            /  |
-         *       100--|----------101  |
-         *        | m |           |   |
-         *        |  010----------|--011
-         *        |  /            |  /
-         *        | /             | /
-         *        |/              |/
-         *       000-------------001---> x
-         *
-         *\endverbatim
-         */
-
-
-
-#define NOT_ZERO(_V_) ((_V_<EPSILON)?1.0:(_V_))
-        m_volume_[0] = 1.0;
-
-        m_volume_[1/* 001*/] = (dims[0] > 1) ? m_dx_[0] : 1.0;
-        m_volume_[2/* 010*/] = (dims[1] > 1) ? m_dx_[1] : 1.0;
-        m_volume_[4/* 100*/] = (dims[2] > 1) ? m_dx_[2] : 1.0;
-
-//    m_volume_[1/* 001*/] = (m_dx_[0] <= EPSILON) ? 1 : m_dx_[0];
-//    m_volume_[2/* 010*/] = (m_dx_[1] <= EPSILON) ? 1 : m_dx_[1];
-//    m_volume_[4/* 100*/] = (m_dx_[2] <= EPSILON) ? 1 : m_dx_[2];
-
-        m_volume_[3] /* 011 */= m_volume_[1] * m_volume_[2];
-        m_volume_[5] /* 101 */= m_volume_[4] * m_volume_[1];
-        m_volume_[6] /* 110 */= m_volume_[2] * m_volume_[4];
-        m_volume_[7] /* 111 */= m_volume_[1] * m_volume_[2] * m_volume_[4];
-
-        m_dual_volume_[7] = 1.0;
-
-        m_dual_volume_[6] = m_volume_[1];
-        m_dual_volume_[5] = m_volume_[2];
-        m_dual_volume_[3] = m_volume_[4];
-
-//    m_dual_volume_[6] = (m_dx_[0] <= EPSILON) ? 1 : m_dx_[0];
-//    m_dual_volume_[5] = (m_dx_[1] <= EPSILON) ? 1 : m_dx_[1];
-//    m_dual_volume_[3] = (m_dx_[2] <= EPSILON) ? 1 : m_dx_[2];
-
-        m_dual_volume_[4] /* 011 */= m_dual_volume_[6] * m_dual_volume_[5];
-        m_dual_volume_[2] /* 101 */= m_dual_volume_[3] * m_dual_volume_[6];
-        m_dual_volume_[1] /* 110 */= m_dual_volume_[5] * m_dual_volume_[3];
-
-        m_dual_volume_[0] /* 111 */= m_dual_volume_[6] * m_dual_volume_[5] * m_dual_volume_[3];
-
-        m_inv_volume_[7] = 1.0;
-
-        m_inv_volume_[1/* 001 */] = (dims[0] > 1) ? 1.0 / m_volume_[1] : 0;
-        m_inv_volume_[2/* 010 */] = (dims[1] > 1) ? 1.0 / m_volume_[2] : 0;
-        m_inv_volume_[4/* 100 */] = (dims[2] > 1) ? 1.0 / m_volume_[4] : 0;
-
-        m_inv_volume_[3] /* 011 */= NOT_ZERO(m_inv_volume_[1]) * NOT_ZERO(m_inv_volume_[2]);
-        m_inv_volume_[5] /* 101 */= NOT_ZERO(m_inv_volume_[4]) * NOT_ZERO(m_inv_volume_[1]);
-        m_inv_volume_[6] /* 110 */= NOT_ZERO(m_inv_volume_[2]) * NOT_ZERO(m_inv_volume_[4]);
-        m_inv_volume_[7] /* 111 */=
-                NOT_ZERO(m_inv_volume_[1]) * NOT_ZERO(m_inv_volume_[2]) * NOT_ZERO(m_inv_volume_[4]);
-
-        m_inv_dual_volume_[7] = 1.0;
-
-        m_inv_dual_volume_[6/* 110 */] = (dims[0] > 1) ? 1.0 / m_dual_volume_[6] : 0;
-        m_inv_dual_volume_[5/* 101 */] = (dims[1] > 1) ? 1.0 / m_dual_volume_[5] : 0;
-        m_inv_dual_volume_[3/* 001 */] = (dims[2] > 1) ? 1.0 / m_dual_volume_[3] : 0;
-
-        m_inv_dual_volume_[4] /* 011 */= NOT_ZERO(m_inv_dual_volume_[6]) * NOT_ZERO(m_inv_dual_volume_[5]);
-        m_inv_dual_volume_[2] /* 101 */= NOT_ZERO(m_inv_dual_volume_[3]) * NOT_ZERO(m_inv_dual_volume_[6]);
-        m_inv_dual_volume_[1] /* 110 */= NOT_ZERO(m_inv_dual_volume_[5]) * NOT_ZERO(m_inv_dual_volume_[3]);
-        m_inv_dual_volume_[0] /* 111 */=
-                NOT_ZERO(m_inv_dual_volume_[6]) * NOT_ZERO(m_inv_dual_volume_[5]) * NOT_ZERO(m_inv_dual_volume_[3]);
-#undef NOT_ZERO
-
-
-        m_is_valid_ = true;
     }
+#ifdef USE_PARALLEL_FOR
+    });
+#endif
 
-};//struct RectMesh
+}
 
 }}  // namespace topology // namespace simpla
 

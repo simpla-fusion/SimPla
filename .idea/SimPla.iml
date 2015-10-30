@@ -255,9 +255,8 @@
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/test/mesh_ids_test.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/time_integrator/time_integrator.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/corect_mesh.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/map_general.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/map_linear.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/map_orthogonal.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/map_primary.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/mesh_block.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/mesh_ids.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/rectmesh.h" isTestSource="false" />

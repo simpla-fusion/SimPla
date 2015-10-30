@@ -30,7 +30,7 @@ INSTANTIATE_TEST_CASE_P(
 
                 testing::Values(
                         nTuple<size_t, 3>({1, 1, 1}) //
-                        , nTuple<size_t, 3>({100, 1, 1}) //
+                        , nTuple<size_t, 3>({10, 1, 1}) //
                         , nTuple<size_t, 3>({1, 200, 1}) //
                         , nTuple<size_t, 3>({1, 1, 100}) //
                         , nTuple<size_t, 3>({1, 10, 20}) //

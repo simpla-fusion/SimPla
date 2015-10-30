@@ -17,7 +17,7 @@ namespace simpla
 namespace manifold
 {
 template<int NDIMS, typename TopologyType=topology::CoRectMesh>
-using Cartesian=DefaultManifold<Metric<coordinate_system::Cartesian<NDIMS>>, topology::CoRectMesh>;
+using Cartesian=DefaultManifold<Metric<coordinate_system::Cartesian<NDIMS>>, TopologyType>;
 }//namespace manifold
 
 
@@ -72,7 +72,11 @@ public:
         return os;
     }
 
-    virtual void deploy() { topology_type::deploy(); }
+    virtual void deploy()
+    {
+        topology_type::deploy();
+        topology_type::update_volume((*this));
+    }
 
     using topology_type::load;
 

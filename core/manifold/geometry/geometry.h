@@ -33,7 +33,6 @@ public:
 
     typedef traits::coordinate_system_t<metric_type> coordinates_system_type;
 
-
     typedef traits::scalar_type_t<coordinates_system_type> scalar_type;
 
     typedef traits::point_type_t<coordinates_system_type> point_type;
@@ -62,8 +61,9 @@ public:
 
         os
 
-        << "\t\tCoordinateSystem = {  Type = \"" << traits::type_id<coordinates_system_type>::name() << "\",  }," <<
-        std::endl;
+        << "\t\tCoordinateSystem = {  Type = \""
+
+        << traits::type_id<coordinates_system_type>::name() << "\",  }," << std::endl;
 
         topology_type::print(os);
 
@@ -75,6 +75,7 @@ public:
     virtual void deploy()
     {
         topology_type::deploy();
+        topology_type::update_volume(*this);
     };
     using topology_type::volume;
     using topology_type::dual_volume;

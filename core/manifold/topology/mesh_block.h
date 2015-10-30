@@ -12,6 +12,7 @@
 #include "../../gtl/ntuple.h"
 #include "../../gtl/type_traits.h"
 #include "mesh_ids.h"
+#include "../../gtl/utilities/log.h"
 
 
 namespace simpla
@@ -28,7 +29,7 @@ struct MeshBlock : public MeshIDs_<MeshLevel>
 private:
 
     typedef MeshBlock this_type;
-    typedef MeshIDs_<MeshLevel> m;
+    typedef MeshIDs_ <MeshLevel> m;
 
 public:
     using typename m::id_type;
@@ -39,8 +40,8 @@ public:
     using typename m::index_tuple;
     using typename m::difference_type;
 
-    typedef nTuple<Real, ndims> point_type;
-    typedef nTuple<Real, ndims> vector_type;
+    typedef nTuple <Real, ndims> point_type;
+    typedef nTuple <Real, ndims> vector_type;
 
 
     /**
@@ -132,15 +133,6 @@ public:
         return *this;
     }
 
-    virtual void deploy()
-    {
-        m_is_valid_ = true;
-        m_local_min_ = m_min_;
-        m_local_max_ = m_max_;
-        m_memory_min_ = m_min_;
-        m_memory_max_ = m_max_;
-
-    }
 
     template<typename TD>
     void dimensions(TD const &d)
@@ -199,7 +191,7 @@ public:
     bool in_box(id_type s) const { return in_box(m::unpack_index(s)); }
 
     template<int I>
-    range_type range() const { return m::template range<I>(m_local_min_, m_local_max_); }
+    range_type range() const { return m::template make_range<I>(m_local_min_, m_local_max_); }
 
 
     template<size_t IFORM>
@@ -211,7 +203,8 @@ public:
     size_t hash(id_type const &s) const { return static_cast<size_t>(m::hash(s, m_memory_min_, m_memory_max_)); }
 
 
-    void decompose(index_tuple const &dist_dimensions, index_tuple const &dist_coord, index_type gw = 2)
+    void decompose(index_tuple const &dist_dimensions, index_tuple const &dist_coord,
+                   index_type gw = DEFAULT_GHOST_WIDTH)
     {
 
 
@@ -241,6 +234,17 @@ public:
 
 
     }
+
+    virtual void deploy()
+    {
+        m_is_valid_ = true;
+        m_local_min_ = m_min_;
+        m_local_max_ = m_max_;
+        m_memory_min_ = m_min_;
+        m_memory_max_ = m_max_;
+
+    }
+
 
 }; // struct MeshBlock
 

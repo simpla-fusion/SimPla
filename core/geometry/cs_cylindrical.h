@@ -327,6 +327,30 @@ public:
 //        return volume(7UL & (~node_id), std::forward<Others>(others)...);
 //    }
 
+
+    static constexpr Real length(point_t const &p0, point_t const &p1)
+    {
+        return std::sqrt(inner_product(p1 - p0, p1 - p0));
+    }
+
+    static constexpr Real length(point_t const *p, int num = 2)
+    {
+
+        return length(p[0], p[1]);
+    }
+
+
+    static constexpr Real area(point_t const *p, int num = 4)
+    {
+
+        return length(p[0], p[1]) * length(p[1], p[2]);
+    }
+
+    static constexpr Real volume(point_t const *p, int num = 8)
+    {
+        return area(p, 4) * length(p[0], p[4]);
+    }
+
     template<typename T0, typename T1, typename TX, typename ...Others>
     static constexpr Real inner_product(T0 const &v0, T1 const &v1, TX const &x, Others &&... others)
     {

@@ -22,7 +22,7 @@ namespace topology
 {
 
 
-struct CoRectMesh : public MeshBlock<>, private LinearMap3
+struct CoRectMesh : public MeshBlock<>, private LinearMap
 {
     static constexpr int ndims = 3;
     enum
@@ -32,7 +32,7 @@ struct CoRectMesh : public MeshBlock<>, private LinearMap3
 private:
 
     typedef CoRectMesh this_type;
-    typedef LinearMap3 map_type;
+    typedef LinearMap map_type;
     typedef MeshBlock base_type;
 public:
     using base_type::id_type;
@@ -229,15 +229,15 @@ public:
 
     virtual Real inv_dual_volume(id_type s) const { return m_inv_dual_volume_[node_id(s)]; }
 
+
     virtual void deploy()
     {
-
 
         base_type::deploy();
 
         auto dims = base_type::dimensions();
 
-        map_type::set(base_type::local_box(), box(), dims);
+        map_type::set(base_type::box(), box(), dims);
 
 
         for (int i = 0; i < ndims; ++i)
@@ -248,7 +248,13 @@ public:
 
             m_dx_[i] = (m_coords_max_[i] - m_coords_min_[i]) / static_cast<Real>(dims[i]);
         }
+    }
 
+    template<typename TGeo>
+    void update_volume(TGeo const &geo)
+    {
+
+        m_is_valid_ = true;
 
         /**
          *\verbatim
@@ -273,66 +279,71 @@ public:
 
 
 
-#define NOT_ZERO(_V_) ((_V_<EPSILON)?1.0:(_V_))
-        m_volume_[0] = 1.0;
+        base_type::get_element_volume_in_cell(geo, 0, m_volume_, m_inv_volume_, m_dual_volume_, m_inv_dual_volume_);
 
-        m_volume_[1/* 001*/] = (dims[0] > 1) ? m_dx_[0] : 1.0;
-        m_volume_[2/* 010*/] = (dims[1] > 1) ? m_dx_[1] : 1.0;
-        m_volume_[4/* 100*/] = (dims[2] > 1) ? m_dx_[2] : 1.0;
+//        auto dims = geo.dimensions();
+//
+//
+//#define NOT_ZERO(_V_) ((_V_<EPSILON)?1.0:(_V_))
+//        m_volume_[0] = 1.0;
+//
+//        m_volume_[1/* 001*/] = (dims[0] > 1) ? m_dx_[0] : 1.0;
+//        m_volume_[2/* 010*/] = (dims[1] > 1) ? m_dx_[1] : 1.0;
+//        m_volume_[4/* 100*/] = (dims[2] > 1) ? m_dx_[2] : 1.0;
+//
+////    m_volume_[1/* 001*/] = (m_dx_[0] <= EPSILON) ? 1 : m_dx_[0];
+////    m_volume_[2/* 010*/] = (m_dx_[1] <= EPSILON) ? 1 : m_dx_[1];
+////    m_volume_[4/* 100*/] = (m_dx_[2] <= EPSILON) ? 1 : m_dx_[2];
+//
+//        m_volume_[3] /* 011 */= m_volume_[1] * m_volume_[2];
+//        m_volume_[5] /* 101 */= m_volume_[4] * m_volume_[1];
+//        m_volume_[6] /* 110 */= m_volume_[2] * m_volume_[4];
+//        m_volume_[7] /* 111 */= m_volume_[1] * m_volume_[2] * m_volume_[4];
+//
+//        m_dual_volume_[7] = 1.0;
+//
+//        m_dual_volume_[6] = m_volume_[1];
+//        m_dual_volume_[5] = m_volume_[2];
+//        m_dual_volume_[3] = m_volume_[4];
+//
+////    m_dual_volume_[6] = (m_dx_[0] <= EPSILON) ? 1 : m_dx_[0];
+////    m_dual_volume_[5] = (m_dx_[1] <= EPSILON) ? 1 : m_dx_[1];
+////    m_dual_volume_[3] = (m_dx_[2] <= EPSILON) ? 1 : m_dx_[2];
+//
+//        m_dual_volume_[4] /* 011 */= m_dual_volume_[6] * m_dual_volume_[5];
+//        m_dual_volume_[2] /* 101 */= m_dual_volume_[3] * m_dual_volume_[6];
+//        m_dual_volume_[1] /* 110 */= m_dual_volume_[5] * m_dual_volume_[3];
+//
+//        m_dual_volume_[0] /* 111 */= m_dual_volume_[6] * m_dual_volume_[5] * m_dual_volume_[3];
+//
+//        m_inv_volume_[7] = 1.0;
+//
+//        m_inv_volume_[1/* 001 */] = (dims[0] > 1) ? 1.0 / m_volume_[1] : 0;
+//        m_inv_volume_[2/* 010 */] = (dims[1] > 1) ? 1.0 / m_volume_[2] : 0;
+//        m_inv_volume_[4/* 100 */] = (dims[2] > 1) ? 1.0 / m_volume_[4] : 0;
+//
+//        m_inv_volume_[3] /* 011 */= NOT_ZERO(m_inv_volume_[1]) * NOT_ZERO(m_inv_volume_[2]);
+//        m_inv_volume_[5] /* 101 */= NOT_ZERO(m_inv_volume_[4]) * NOT_ZERO(m_inv_volume_[1]);
+//        m_inv_volume_[6] /* 110 */= NOT_ZERO(m_inv_volume_[2]) * NOT_ZERO(m_inv_volume_[4]);
+//        m_inv_volume_[7] /* 111 */=
+//                NOT_ZERO(m_inv_volume_[1]) * NOT_ZERO(m_inv_volume_[2]) * NOT_ZERO(m_inv_volume_[4]);
+//
+//        m_inv_dual_volume_[7] = 1.0;
+//
+//        m_inv_dual_volume_[6/* 110 */] = (dims[0] > 1) ? 1.0 / m_dual_volume_[6] : 0;
+//        m_inv_dual_volume_[5/* 101 */] = (dims[1] > 1) ? 1.0 / m_dual_volume_[5] : 0;
+//        m_inv_dual_volume_[3/* 001 */] = (dims[2] > 1) ? 1.0 / m_dual_volume_[3] : 0;
+//
+//        m_inv_dual_volume_[4] /* 011 */= NOT_ZERO(m_inv_dual_volume_[6]) * NOT_ZERO(m_inv_dual_volume_[5]);
+//        m_inv_dual_volume_[2] /* 101 */= NOT_ZERO(m_inv_dual_volume_[3]) * NOT_ZERO(m_inv_dual_volume_[6]);
+//        m_inv_dual_volume_[1] /* 110 */= NOT_ZERO(m_inv_dual_volume_[5]) * NOT_ZERO(m_inv_dual_volume_[3]);
+//        m_inv_dual_volume_[0] /* 111 */=
+//                NOT_ZERO(m_inv_dual_volume_[6]) * NOT_ZERO(m_inv_dual_volume_[5]) * NOT_ZERO(m_inv_dual_volume_[3]);
+//#undef NOT_ZERO
 
-//    m_volume_[1/* 001*/] = (m_dx_[0] <= EPSILON) ? 1 : m_dx_[0];
-//    m_volume_[2/* 010*/] = (m_dx_[1] <= EPSILON) ? 1 : m_dx_[1];
-//    m_volume_[4/* 100*/] = (m_dx_[2] <= EPSILON) ? 1 : m_dx_[2];
 
-        m_volume_[3] /* 011 */= m_volume_[1] * m_volume_[2];
-        m_volume_[5] /* 101 */= m_volume_[4] * m_volume_[1];
-        m_volume_[6] /* 110 */= m_volume_[2] * m_volume_[4];
-        m_volume_[7] /* 111 */= m_volume_[1] * m_volume_[2] * m_volume_[4];
-
-        m_dual_volume_[7] = 1.0;
-
-        m_dual_volume_[6] = m_volume_[1];
-        m_dual_volume_[5] = m_volume_[2];
-        m_dual_volume_[3] = m_volume_[4];
-
-//    m_dual_volume_[6] = (m_dx_[0] <= EPSILON) ? 1 : m_dx_[0];
-//    m_dual_volume_[5] = (m_dx_[1] <= EPSILON) ? 1 : m_dx_[1];
-//    m_dual_volume_[3] = (m_dx_[2] <= EPSILON) ? 1 : m_dx_[2];
-
-        m_dual_volume_[4] /* 011 */= m_dual_volume_[6] * m_dual_volume_[5];
-        m_dual_volume_[2] /* 101 */= m_dual_volume_[3] * m_dual_volume_[6];
-        m_dual_volume_[1] /* 110 */= m_dual_volume_[5] * m_dual_volume_[3];
-
-        m_dual_volume_[0] /* 111 */= m_dual_volume_[6] * m_dual_volume_[5] * m_dual_volume_[3];
-
-        m_inv_volume_[7] = 1.0;
-
-        m_inv_volume_[1/* 001 */] = (dims[0] > 1) ? 1.0 / m_volume_[1] : 0;
-        m_inv_volume_[2/* 010 */] = (dims[1] > 1) ? 1.0 / m_volume_[2] : 0;
-        m_inv_volume_[4/* 100 */] = (dims[2] > 1) ? 1.0 / m_volume_[4] : 0;
-
-        m_inv_volume_[3] /* 011 */= NOT_ZERO(m_inv_volume_[1]) * NOT_ZERO(m_inv_volume_[2]);
-        m_inv_volume_[5] /* 101 */= NOT_ZERO(m_inv_volume_[4]) * NOT_ZERO(m_inv_volume_[1]);
-        m_inv_volume_[6] /* 110 */= NOT_ZERO(m_inv_volume_[2]) * NOT_ZERO(m_inv_volume_[4]);
-        m_inv_volume_[7] /* 111 */=
-                NOT_ZERO(m_inv_volume_[1]) * NOT_ZERO(m_inv_volume_[2]) * NOT_ZERO(m_inv_volume_[4]);
-
-        m_inv_dual_volume_[7] = 1.0;
-
-        m_inv_dual_volume_[6/* 110 */] = (dims[0] > 1) ? 1.0 / m_dual_volume_[6] : 0;
-        m_inv_dual_volume_[5/* 101 */] = (dims[1] > 1) ? 1.0 / m_dual_volume_[5] : 0;
-        m_inv_dual_volume_[3/* 001 */] = (dims[2] > 1) ? 1.0 / m_dual_volume_[3] : 0;
-
-        m_inv_dual_volume_[4] /* 011 */= NOT_ZERO(m_inv_dual_volume_[6]) * NOT_ZERO(m_inv_dual_volume_[5]);
-        m_inv_dual_volume_[2] /* 101 */= NOT_ZERO(m_inv_dual_volume_[3]) * NOT_ZERO(m_inv_dual_volume_[6]);
-        m_inv_dual_volume_[1] /* 110 */= NOT_ZERO(m_inv_dual_volume_[5]) * NOT_ZERO(m_inv_dual_volume_[3]);
-        m_inv_dual_volume_[0] /* 111 */=
-                NOT_ZERO(m_inv_dual_volume_[6]) * NOT_ZERO(m_inv_dual_volume_[5]) * NOT_ZERO(m_inv_dual_volume_[3]);
-#undef NOT_ZERO
-
-
-        m_is_valid_ = true;
     }
+
 
 }; // struct CoRectMesh
 }// namespace topology
