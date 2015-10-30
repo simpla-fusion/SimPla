@@ -512,18 +512,23 @@ struct MeshIDs_
                             /* 010*/
                             {_LJ,       _HJ},
                             /* 011*/
-                            {_LI | _LJ, _HI | _LJ, _HI | _HJ, _LI | _HJ},
+                            {_LI | _LJ/* 000*/, _HI | _LJ/* 001*/, _LI | _HJ /* 010*/, _HI | _HJ /* 011 */},
                             /* 100*/
                             {_LK,       _HK},
                             /* 101*/
-                            {_LK | _LI, _HK | _LI, _HK | _HI, _LK | _HI},
+                            {_LK | _LI/*000*/, _LK | _HI/*001*/, _HK | _LI/*100*/, _HK | _HI/*101*/},
                             /* 110*/
-                            {_LJ | _LK, _HJ | _LK, _HJ | _HK, _LJ | _HK},
+                            {_LJ | _LK/*000*/, _HJ | _LK/*010*/, _LJ | _HK/*100*/, _HJ | _HK/*110*/},
                             /* 111*/
-                            {_LI | _LJ | _LK, _HI | _LJ | _LK, _HI | _HJ | _LK, _LI | _HJ | _LK, //
+                            {_LK | _LJ | _LI/*000*/,
+                                    _LK | _LJ | _HI/*001*/,
+                                         _LK | _HJ | _LI/*010*/,
+                                              _LK | _HJ | _HI/*011*/,
+                                                   _HK | _LJ | _LI/*100*/,
+                                                        _HK | _LJ | _HI/*101*/,
+                                    _HK | _HJ | _LI/*110*/,
+                                    _HK | _HJ | _HI/*111*/
 
-                                                                                     _LI | _LJ | _HK, _HI | _LJ | _HK,
-                                    _HI | _HJ | _HK, _LI | _HJ | _HK
                             }
 
                     },
@@ -537,23 +542,23 @@ struct MeshIDs_
                             /* 010*/
                             {0},
                             /* 011*/
-                            {_LJ,       _HI,       _HJ,       _LI},
+                            {_LJ,               _HI,               _HJ,                _LI},
                             /* 100*/
                             {0},
                             /* 101*/
-                            {_LI,       _HK,       _HI,       _LK},
+                            {_LI,              _HK,              _HI,              _LK},
                             /* 110*/
-                            {_LK,       _HJ,       _HK,       _LJ},
+                            {_LK,              _HJ,              _HK,              _LJ},
                             /* 111*/
                             {_LK | _LJ,  //-> 001
-                                              _LK | _HI,  //   012
-                                                               _LK | _HJ,  //   021
-                                                                                _LK | _LI,  //   010
+                                    _LK | _HI,  //   012
+                                         _LK | _HJ,  //   021
+                                              _LK | _LI,  //   010
 
-                                                                                     _LI | _LJ,  //
-                                                                                                      _LI | _HJ,  //
+                                                   _LI | _LJ,  //
+                                                        _LI | _HJ,  //
                                     _HI | _LJ,  //
-                                                     _HI | _HJ,  //
+                                    _HI | _HJ,  //
 
                                     _HK | _LJ,  //
                                     _HK | _HI,  //
@@ -592,7 +597,7 @@ struct MeshIDs_
                             /* 110*/
                             {0},
                             /* 111*/
-                            {_LI,             _LJ,             _LK,             _HI, _HJ,             _HK}},
+                            {_LI,   _LJ, _LK, _HI, _HJ, _HK}},
                     // TO VOLUME
                     {
                             /* 000*/
@@ -612,13 +617,13 @@ struct MeshIDs_
                             /* 010*/
                             {_LK | _LI, _LK | _HI, _HK | _LI, _HK | _HI},
                             /* 011*/
-                            {_LK,       _HK},
+                            {_LK,               _HK},
                             /* 100*/
                             {_LI | _LJ, _LI | _HJ, _HI | _LJ, _HI | _HJ},
                             /* 101*/
-                            {_LJ,       _HJ},
+                            {_LJ,              _HJ},
                             /* 110*/
-                            {_LI,       _HI},
+                            {_LI,              _HI},
                             /* 111*/
                             {0}}
 
@@ -895,83 +900,83 @@ struct MeshIDs_
 
         auto dims = geo.dimensions();
 
-        point_type p[NUM_OF_NODE_ID];
-        id_type ss[NUM_OF_NODE_ID];
+        //primary
+        {
+            point_type p[NUM_OF_NODE_ID] = {
+
+                    /*000*/  geo.point(s),                       //
+                    /*001*/  geo.point(s + (_HI << 1)),          //
+                    /*010*/  geo.point(s + (_HJ << 1)),          //
+                    /*011*/  geo.point(s + ((_HJ | _HI) << 1)),  //
+
+                    /*100*/  geo.point(s + (_HK << 1)),          //
+                    /*101*/  geo.point(s + ((_HK | _HI) << 1)),   //
+                    /*110*/  geo.point(s + ((_HK | _HJ) << 1)),   //
+                    /*111*/  geo.point(s + ((_HK | _HJ | _HI) << 1))    //
+
+            };
 
 
-        v[TAG_VERTEX] = 1;
+            v[TAG_VERTEX] = 1;
 
-        v[TAG_EDGE0] = geo.metric_length(geo.point(s), geo.point(s + (_HI << 1)));
-        v[TAG_EDGE1] = geo.metric_length(geo.point(s), geo.point(s + (_HJ << 1)));
-        v[TAG_EDGE2] = geo.metric_length(geo.point(s), geo.point(s + (_HK << 1)));
+            v[TAG_EDGE0] = geo.simplex_length(p[0], p[1]);
+            v[TAG_EDGE1] = geo.simplex_length(p[0], p[2]);
+            v[TAG_EDGE2] = geo.simplex_length(p[0], p[4]);
 
-
-        v[TAG_FACE0] = geo.metric_area(geo.point(s),
-                                       geo.point(s + ((_HJ) << 1)),
-                                       geo.point(s + ((_HJ | _HK) << 1)),
-                                       geo.point(s + ((_HK) << 1)));
+            v[TAG_FACE0] = geo.simplex_area(p[0], p[2], p[6]) + geo.simplex_area(p[0], p[6], p[4]);
+            v[TAG_FACE1] = geo.simplex_area(p[0], p[1], p[5]) + geo.simplex_area(p[0], p[5], p[4]);
+            v[TAG_FACE2] = geo.simplex_area(p[0], p[1], p[3]) + geo.simplex_area(p[0], p[3], p[2]);
 
 
-        v[TAG_FACE1] = geo.metric_area(geo.point(s),
-                                       geo.point(s + ((_HI) << 1)),
-                                       geo.point(s + ((_HI | _HK) << 1)),
-                                       geo.point(s + ((_HK) << 1)));
+            v[TAG_VOLUME] = geo.simplex_volume(p[0], p[1], p[2], p[4]) + //
+                            geo.simplex_volume(p[1], p[4], p[5], p[2]) + //
+                            geo.simplex_volume(p[2], p[6], p[4], p[5]) + //
+                            geo.simplex_volume(p[1], p[3], p[2], p[5]) + //
+                            geo.simplex_volume(p[3], p[5], p[7], p[6]) + //
+                            geo.simplex_volume(p[3], p[6], p[2], p[5]);
 
 
-        v[TAG_FACE2] = geo.metric_area(geo.point(s),
-                                       geo.point(s + ((_HI) << 1)),
-                                       geo.point(s + ((_HI | _HJ) << 1)),
-                                       geo.point(s + ((_HJ) << 1)));
+        }
+        //dual
+        {
+            point_type p[NUM_OF_NODE_ID] = {
 
-        v[TAG_VOLUME] = geo.metric_volume(
-                geo.point(s),
-                geo.point(s + ((_HI) << 1)),
-                geo.point(s + ((_HI | _HJ) << 1)),
-                geo.point(s + ((_HJ) << 1)),
+                    /*000*/    geo.point(s + (_LK | _LJ | _LI)),   //
+                    /*001*/    geo.point(s + (_LK | _LJ | _HI)),   //
+                    /*010*/    geo.point(s + (_LK | _HJ | _LI)),   //
+                    /*011*/    geo.point(s + (_LK | _HJ | _HI)),   //
 
+                    /*100*/    geo.point(s + (_HK | _LJ | _LI)),   //
+                    /*101*/    geo.point(s + (_HK | _LJ | _HI)),   //
+                    /*110*/    geo.point(s + (_HK | _HJ | _LI)),   //
+                    /*111*/    geo.point(s + (_HK | _HJ | _HI))    //
 
-                geo.point(s + ((_HK) << 1)),
-                geo.point(s + ((_HK | _HI) << 1)),
-                geo.point(s + ((_HK | _HI | _HJ) << 1)),
-                geo.point(s + ((_HK | _HJ) << 1))
-        );
-
-        dual_v[TAG_VOLUME] = 1;
-
-        dual_v[TAG_FACE0] = geo.metric_length(geo.point(s + (_LI | _HJ | _HK)), geo.point(s + (_HI | _HJ | _HK)));
-        dual_v[TAG_FACE1] = geo.metric_length(geo.point(s + (_LJ | _HK | _HI)), geo.point(s + (_HJ | _HK | _HI)));
-        dual_v[TAG_FACE2] = geo.metric_length(geo.point(s + (_LK | _HI | _HJ)), geo.point(s + (_HK | _HI | _HJ)));
+            };
 
 
-        dual_v[TAG_EDGE0] = geo.metric_area(geo.point(s + (_HI | _LJ | _LK)),
-                                            geo.point(s + (_HI | _HJ | _LK)),
-                                            geo.point(s + (_HI | _HJ | _HK)),
-                                            geo.point(s + (_HI | _LJ | _HK)));
+            dual_v[TAG_VOLUME] = 1;
+
+            dual_v[TAG_FACE0] = geo.simplex_length(p[0], p[1]);
+            dual_v[TAG_FACE1] = geo.simplex_length(p[0], p[2]);
+            dual_v[TAG_FACE2] = geo.simplex_length(p[0], p[4]);
 
 
-        dual_v[TAG_EDGE1] = geo.metric_area(geo.point(s + (_HJ | _LK | _LI)),
-                                            geo.point(s + (_HJ | _HK | _LI)),
-                                            geo.point(s + (_HJ | _HK | _HI)),
-                                            geo.point(s + (_HJ | _LK | _HI)));
+            dual_v[TAG_EDGE0] = geo.simplex_area(p[1], p[3], p[5]) + geo.simplex_area(p[3], p[7], p[5]);
+
+            dual_v[TAG_EDGE1] = geo.simplex_area(p[2], p[3], p[7]) + geo.simplex_area(p[2], p[7], p[6]);
+
+            dual_v[TAG_EDGE2] = geo.simplex_area(p[4], p[5], p[7]) + geo.simplex_area(p[4], p[7], p[6]);
 
 
-        dual_v[TAG_EDGE2] = geo.metric_area(geo.point(s + (_HK | _LI | _LJ)),
-                                            geo.point(s + (_HK | _HI | _LJ)),
-                                            geo.point(s + (_HK | _HI | _HJ)),
-                                            geo.point(s + (_HK | _LI | _HJ)));
+            dual_v[TAG_VERTEX] = geo.simplex_volume(p[0], p[1], p[2], p[4]) + //
+                                 geo.simplex_volume(p[1], p[4], p[5], p[2]) + //
+                                 geo.simplex_volume(p[2], p[6], p[4], p[5]) + //
+                                 geo.simplex_volume(p[1], p[3], p[2], p[5]) +
+                                 geo.simplex_volume(p[3], p[5], p[7], p[6]) + //
+                                 geo.simplex_volume(p[3], p[6], p[2], p[5])  //
+                    ;
 
-
-        dual_v[TAG_VERTEX] = geo.metric_volume(
-                geo.point(s + (_LK | _LI | _LJ)),
-                geo.point(s + (_LK | _HI | _LJ)),
-                geo.point(s + (_LK | _HI | _HJ)),
-                geo.point(s + (_LK | _LI | _HJ)),
-
-                geo.point(s + (_HK | _LI | _LJ)),
-                geo.point(s + (_HK | _HI | _LJ)),
-                geo.point(s + (_HK | _HI | _HJ)),
-                geo.point(s + (_HK | _LI | _HJ)));
-
+        }
 
         for (int i = 0; i < NUM_OF_NODE_ID; ++i)
         {

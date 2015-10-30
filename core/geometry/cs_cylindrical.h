@@ -263,7 +263,7 @@ template<typename...> struct Metric;
 template<size_t IPhiAxis>
 struct Metric<Cylindrical<IPhiAxis> >
 {
-
+public:
     typedef gt::point_t<Cylindrical<IPhiAxis>> point_t;
     typedef gt::vector_t<Cylindrical<IPhiAxis>> vector_t;
     typedef gt::covector_t<Cylindrical<IPhiAxis>> covector_t;
@@ -274,82 +274,23 @@ struct Metric<Cylindrical<IPhiAxis> >
     static constexpr size_t CylindricalRAxis = (CylindricalPhiAxis + 1) % 3;
     static constexpr size_t CylindricalZAxis = (CylindricalPhiAxis + 2) % 3;
 
-private:
 
-    static constexpr Real dl_(integer_sequence<size_t, CylindricalRAxis>,
-                              point_t const &x0)
+    static constexpr Real simplex_length(point_t const &p0, point_t const &p1)
     {
-        return 1.0;
+        return std::sqrt(dot(p1 - p0, p1 - p0));
     }
 
-    static constexpr Real dl_(integer_sequence<size_t, CylindricalZAxis>,
-                              point_t const &x0)
+    static constexpr Real simplex_area(point_t const &p0, point_t const &p1, point_t const &p2)
     {
-        return 1.0;
-    }
-
-    static constexpr Real dl_(integer_sequence<size_t, CylindricalPhiAxis>,
-                              point_t const &x0)
-    {
-
-        return st::get<CylindricalRAxis>(x0);
-
-    }
-
-    template<size_t DI>
-    static constexpr Real dl(point_t const &x0)
-    {
-        return dl_(integer_sequence<size_t, DI>(), x0);
-    }
-
-public:
-
-//
-//    template<typename ...Others>
-//    static constexpr Real volume(size_t node_id, point_t const &x0, Others &&...)
-//    {
-//
-//        return ((((node_id >> CylindricalRAxis) & 1UL) > 0) ?
-//                (dl<CylindricalRAxis>(x0)) : 1.0)
-//
-//               * ((((node_id >> CylindricalZAxis) & 1UL) > 0) ?
-//                  (dl<CylindricalZAxis>(x0)) : 1.0)
-//
-//               * ((((node_id >> CylindricalPhiAxis) & 1UL) > 0) ?
-//                  (dl<CylindricalPhiAxis>(x0)) : 1.0);
-//
-//
-//    }
-//
-//    template<typename ...Others>
-//    static constexpr Real dual_volume(size_t node_id, Others &&...others)
-//    {
-//        return volume(7UL & (~node_id), std::forward<Others>(others)...);
-//    }
-
-
-    static constexpr Real length(point_t const &p0, point_t const &p1)
-    {
-        return std::sqrt(inner_product(p1 - p0, p1 - p0));
-    }
-
-    static constexpr Real length(point_t const *p, int num = 2)
-    {
-
-        return length(p[0], p[1]);
+        return (std::sqrt(dot(cross(p1 - p0, p2 - p0), cross(p1 - p0, p2 - p0)))) * 0.5;
     }
 
 
-    static constexpr Real area(point_t const *p, int num = 4)
+    static constexpr Real simplex_volume(point_t const &p0, point_t const &p1, point_t const &p2, point_t const &p3)
     {
-
-        return length(p[0], p[1]) * length(p[1], p[2]);
+        return dot(p3 - p0, cross(p1 - p0, p2 - p0)) / 6.0;
     }
 
-    static constexpr Real volume(point_t const *p, int num = 8)
-    {
-        return area(p, 4) * length(p[0], p[4]);
-    }
 
     template<typename T0, typename T1, typename TX, typename ...Others>
     static constexpr Real inner_product(T0 const &v0, T1 const &v1, TX const &x, Others &&... others)

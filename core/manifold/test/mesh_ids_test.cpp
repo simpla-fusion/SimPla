@@ -47,9 +47,9 @@ TEST(GeometryTest, MeshIDs)
 
     CHECK(metric_type::metric_length(p[0], p[4]));
 
-    CHECK(metric_type::metric_area(p[0], p[1], p[2], p[3]));
+    CHECK(metric_type::metric_area(p[0], p[1], p[2]));
 
-    CHECK(metric_type::metric_area(p[0], p[1], p[2], p[3]));
+    CHECK(metric_type::metric_area(p[0], p[1], p[2]));
 
 
 //

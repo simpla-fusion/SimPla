@@ -18,6 +18,67 @@ namespace simpla
 
 namespace st = simpla::traits;
 namespace gt = simpla::traits;
+
+template<typename...> struct Metric;
+
+template<size_t ICARTESIAN_ZAXIS>
+struct Metric<coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS> >
+{
+
+    static constexpr size_t CartesianZAxis = (ICARTESIAN_ZAXIS) % 3;
+    static constexpr size_t CartesianYAxis = (CartesianZAxis + 2) % 3;
+    static constexpr size_t CartesianXAxis = (CartesianZAxis + 1) % 3;
+    typedef gt::point_t<coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS> > point_t;
+    typedef gt::vector_t<coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS> > vector_t;
+    typedef gt::covector_t<coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS> > covector_t;
+
+    /**
+     * metric only calculate the volume of simplex
+     *
+     */
+
+    static constexpr Real simplex_length(point_t const &p0, point_t const &p1)
+    {
+        return std::sqrt(dot(p1 - p0, p1 - p0));
+    }
+
+    static constexpr Real simplex_area(point_t const &p0, point_t const &p1, point_t const &p2)
+    {
+        return (std::sqrt(dot(cross(p1 - p0, p2 - p0), cross(p1 - p0, p2 - p0)))) * 0.5;
+    }
+
+
+    static constexpr Real simplex_volume(point_t const &p0, point_t const &p1, point_t const &p2, point_t const &p3)
+    {
+        return dot(p3 - p0, cross(p1 - p0, p2 - p1)) / 6.0;
+    }
+
+
+    template<typename T0, typename T1, typename ...Others>
+    static constexpr auto inner_product(T0 const &v0, T1 const &v1, Others &&... others)
+    DECL_RET_TYPE((v0[0] * v1[0] + v0[1] * v1[1] + v0[2] * v1[2]))
+
+};
+
+namespace traits
+{
+
+template<size_t N, size_t ICARTESIAN_ZAXIS>
+struct type_id<coordinate_system::Cartesian<N, ICARTESIAN_ZAXIS> >
+{
+    static std::string name()
+    {
+        return "Cartesian<" + simpla::type_cast<std::string>(N) + ","
+               + simpla::type_cast<std::string>(ICARTESIAN_ZAXIS) + ">";
+    }
+};
+
+}  // namespace traits
+}  // namespace simpla
+
+
+
+
 //
 //template<typename, typename> struct map;
 //
@@ -102,61 +163,5 @@ namespace gt = simpla::traits;
 //    }
 //
 //};
-
-template<typename...> struct Metric;
-
-template<size_t ICARTESIAN_ZAXIS>
-struct Metric<coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS> >
-{
-
-    static constexpr size_t CartesianZAxis = (ICARTESIAN_ZAXIS) % 3;
-    static constexpr size_t CartesianYAxis = (CartesianZAxis + 2) % 3;
-    static constexpr size_t CartesianXAxis = (CartesianZAxis + 1) % 3;
-    typedef gt::point_t<coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS> > point_t;
-    typedef gt::vector_t<coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS> > vector_t;
-    typedef gt::covector_t<coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS> > covector_t;
-
-    typedef nTuple<Real, 3> delta_t;
-
-    static constexpr Real metric_length(point_t const &p0, point_t const &p1)
-    {
-        return std::sqrt(dot(p1 - p0, p1 - p0));
-    }
-
-    static constexpr Real metric_area(point_t const &p0, point_t const &p1, point_t const &p2, point_t const &p3)
-    {
-        // FIXME assume  box is orthogonal
-        return std::sqrt(dot(cross(p1 - p0, p3 - p0), cross(p1 - p0, p3 - p0)));
-    }
-
-    static constexpr Real metric_volume(point_t const &p0, point_t const &p1, point_t const &p2, point_t const &p3,
-                                        point_t const &p4, point_t const &p5, point_t const &p6, point_t const &p7)
-    {
-        // FIXME assume  box is orthogonal
-        return dot(p4 - p0, cross(p1 - p0, p2 - p0));
-    }
-
-
-    template<typename T0, typename T1, typename ...Others>
-    static constexpr auto inner_product(T0 const &v0, T1 const &v1, Others &&... others)
-    DECL_RET_TYPE((v0[0] * v1[0] + v0[1] * v1[1] + v0[2] * v1[2]))
-
-};
-
-namespace traits
-{
-
-template<size_t NDIMS, size_t ICARTESIAN_ZAXIS>
-struct type_id<coordinate_system::Cartesian < NDIMS, ICARTESIAN_ZAXIS> >
-{
-static std::string name()
-{
-    return "Cartesian<" + simpla::type_cast<std::string>(NDIMS) + ","
-           + simpla::type_cast<std::string>(ICARTESIAN_ZAXIS) + ">";
-}
-};
-
-}  // namespace traits
-}  // namespace simpla
 
 #endif /* CORE_GEOMETRY_CS_CARTESIAN_H_ */

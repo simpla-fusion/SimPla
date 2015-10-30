@@ -22,6 +22,7 @@
       <config projectName="SimPla" targetName="demo_em" />
       <config projectName="SimPla" targetName="demo_misc2" />
       <config projectName="SimPla" targetName="ExperimentalMemCheck" />
+      <config projectName="SimPla" targetName="ExperimentalCoverage" />
       <config projectName="SimPla" targetName="io" />
       <config projectName="SimPla" targetName="lua_state_test" />
       <config projectName="SimPla" targetName="utilities" />
@@ -32,19 +33,18 @@
       <config projectName="SimPla" targetName="Continuous" />
       <config projectName="SimPla" targetName="context" />
       <config projectName="SimPla" targetName="googletest" />
-      <config projectName="SimPla" targetName="ExperimentalCoverage" />
+      <config projectName="SimPla" targetName="properties_test" />
       <config projectName="SimPla" targetName="Experimental" />
       <config projectName="SimPla" targetName="ContinuousUpdate" />
       <config projectName="SimPla" targetName="simpla_aux" />
       <config projectName="SimPla" targetName="ContinuousConfigure" />
       <config projectName="SimPla" targetName="demo_pic" />
       <config projectName="SimPla" targetName="ContinuousSubmit" />
-      <config projectName="SimPla" targetName="NightlyCoverage" />
+      <config projectName="SimPla" targetName="ContinuousCoverage" />
       <config projectName="SimPla" targetName="demo_probe_particle" />
       <config projectName="SimPla" targetName="ContinuousTest" />
       <config projectName="SimPla" targetName="simpla" />
-      <config projectName="SimPla" targetName="ContinuousCoverage" />
-      <config projectName="SimPla" targetName="properties_test" />
+      <config projectName="SimPla" targetName="docs" />
       <config projectName="SimPla" targetName="demo_misc3" />
       <config projectName="SimPla" targetName="lhw" />
       <config projectName="SimPla" targetName="ContinuousMemCheck" />
@@ -56,23 +56,23 @@
       <config projectName="SimPla" targetName="application" />
       <config projectName="SimPla" targetName="multi_thread_test" />
       <config projectName="SimPla" targetName="ContinuousBuild" />
-      <config projectName="SimPla" targetName="ExperimentalBuild" />
       <config projectName="SimPla" targetName="demo_misc" />
       <config projectName="SimPla" targetName="NightlyUpdate" />
       <config projectName="SimPla" targetName="physics" />
       <config projectName="SimPla" targetName="demo_mhd" />
       <config projectName="SimPla" targetName="NightlySubmit" />
-      <config projectName="SimPla" targetName="log_test" />
+      <config projectName="SimPla" targetName="NightlyCoverage" />
       <config projectName="SimPla" targetName="ExperimentalUpdate" />
       <config projectName="SimPla" targetName="demo_model" />
       <config projectName="SimPla" targetName="ExperimentalConfigure" />
       <config projectName="SimPla" targetName="NightlyMemoryCheck" />
+      <config projectName="SimPla" targetName="log_test" />
       <config projectName="SimPla" targetName="ExperimentalSubmit" />
       <config projectName="SimPla" targetName="all_clion" />
       <config projectName="SimPla" targetName="ContinuousStart" />
       <config projectName="SimPla" targetName="ExperimentalTest" />
       <config projectName="SimPla" targetName="probe_particle_test" />
-      <config projectName="SimPla" targetName="docs" />
+      <config projectName="SimPla" targetName="ExperimentalBuild" />
       <config projectName="SimPla" targetName="memory_pool_test" />
       <config projectName="SimPla" targetName="demo_geometry" />
     </generated>
@@ -86,26 +86,12 @@
     </ADDITIONAL_GENERATION_ENVIRONMENT>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="8efbd43d-8992-43f8-9555-f0e951692589" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/core/manifold/topology/map_general.h" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/core/manifold/topology/map_orthogonal.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/core/manifold/topology/map_primary.h" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/SimPla.iml" afterPath="$PROJECT_DIR$/.idea/SimPla.iml" />
+    <list default="true" id="8efbd43d-8992-43f8-9555-f0e951692589" name="Default" comment="add simplex_volume to Metric;&#10;change MeshIDs::update_volume&#10;&#10;">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/field/test/field_diff_calculus_test.cpp" afterPath="$PROJECT_DIR$/core/field/test/field_diff_calculus_test.cpp" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/geometry/cs_cartesian.h" afterPath="$PROJECT_DIR$/core/geometry/cs_cartesian.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/geometry/cs_cylindrical.h" afterPath="$PROJECT_DIR$/core/geometry/cs_cylindrical.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/gtl/expression_template.h" afterPath="$PROJECT_DIR$/core/gtl/expression_template.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/gtl/utilities/log.h" afterPath="$PROJECT_DIR$/core/gtl/utilities/log.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/geometry/geometry.h" afterPath="$PROJECT_DIR$/core/manifold/geometry/geometry.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/pre_define/cartesian.h" afterPath="$PROJECT_DIR$/core/manifold/pre_define/cartesian.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/test/geometry_test.cpp" afterPath="$PROJECT_DIR$/core/manifold/test/geometry_test.cpp" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/test/mesh_ids_test.cpp" afterPath="$PROJECT_DIR$/core/manifold/test/mesh_ids_test.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/topology/corect_mesh.h" afterPath="$PROJECT_DIR$/core/manifold/topology/corect_mesh.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/topology/map_linear.h" afterPath="$PROJECT_DIR$/core/manifold/topology/map_linear.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/topology/mesh_block.h" afterPath="$PROJECT_DIR$/core/manifold/topology/mesh_block.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/topology/mesh_ids.h" afterPath="$PROJECT_DIR$/core/manifold/topology/mesh_ids.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/topology/rectmesh.h" afterPath="$PROJECT_DIR$/core/manifold/topology/rectmesh.h" />
     </list>
     <ignored path="SimPla.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -129,26 +115,78 @@
       <file leaf-file-name="mesh_ids.h" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/core/manifold/topology/mesh_ids.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.22716628">
-              <caret line="802" column="49" selection-start-line="802" selection-start-column="49" selection-end-line="802" selection-end-column="49" />
+            <state vertical-scroll-proportion="0.4643304">
+              <caret line="871" column="42" selection-start-line="871" selection-start-column="16" selection-end-line="871" selection-end-column="42" />
               <folding>
                 <element signature="e#130#149#0" expanded="true" />
-                <element signature="e#27039#27059#0" expanded="true" />
-                <element signature="e#31907#31917#0" expanded="true" />
-                <element signature="e#31942#31955#0" expanded="true" />
-                <element signature="e#32052#32062#0" expanded="true" />
-                <element signature="e#32097#32110#0" expanded="true" />
-                <element signature="e#32686#32699#0" expanded="true" />
+                <element signature="e#21164#21194#0" expanded="true" />
+                <element signature="e#21336#21348#0" expanded="true" />
+                <element signature="e#21607#21619#0" expanded="true" />
+                <element signature="e#22057#22071#0" expanded="true" />
+                <element signature="e#25018#25044#0" expanded="true" />
+                <element signature="e#25238#25262#0" expanded="true" />
+                <element signature="e#25401#25438#0" expanded="true" />
+                <element signature="e#27025#27039#0" expanded="true" />
+                <element signature="e#27244#27264#0" expanded="true" />
+                <element signature="e#32090#32100#0" expanded="true" />
+                <element signature="e#32125#32138#0" expanded="true" />
+                <element signature="e#32235#32245#0" expanded="true" />
+                <element signature="e#32280#32293#0" expanded="true" />
+                <element signature="e#32613#32626#0" expanded="true" />
+                <element signature="e#32672#32685#0" expanded="true" />
+                <element signature="e#32741#32754#0" expanded="true" />
+                <element signature="e#32804#32817#0" expanded="true" />
+                <element signature="e#32869#32882#0" expanded="true" />
+                <element signature="e#32934#32947#0" expanded="true" />
+                <element signature="e#33030#33043#0" expanded="true" />
+                <element signature="e#33120#33133#0" expanded="true" />
+                <element signature="e#33215#33228#0" expanded="true" />
+                <element signature="e#33305#33318#0" expanded="true" />
+                <element signature="e#33391#33404#0" expanded="true" />
+                <element signature="e#33477#33490#0" expanded="true" />
+                <element signature="e#33563#33576#0" expanded="true" />
+                <element signature="e#33651#33664#0" expanded="true" />
+                <element signature="e#33722#33735#0" expanded="true" />
+                <element signature="e#33793#33806#0" expanded="true" />
+                <element signature="e#33877#33890#0" expanded="true" />
+                <element signature="e#33953#33966#0" expanded="true" />
+                <element signature="e#34052#34065#0" expanded="true" />
+                <element signature="e#34132#34145#0" expanded="true" />
+                <element signature="e#34314#34327#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="block_iterator.h" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/core/gtl/iterator/block_iterator.h">
+      <file leaf-file-name="cs_cartesian.h" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/geometry/cs_cartesian.h">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="86" column="53" selection-start-line="86" selection-start-column="53" selection-end-line="86" selection-end-column="53" />
+              <caret line="35" column="50" selection-start-line="35" selection-start-column="50" selection-end-line="35" selection-end-column="50" />
+              <folding>
+                <element signature="e#380#405#0" expanded="true" />
+                <element signature="e#1604#1650#0" expanded="true" />
+                <element signature="e#1840#1875#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="mesh_ids_test.cpp" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/manifold/test/mesh_ids_test.cpp">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="51" column="51" selection-start-line="51" selection-start-column="51" selection-end-line="51" selection-end-column="51" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="cs_cylindrical.h" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/geometry/cs_cylindrical.h">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="286" column="0" selection-start-line="286" selection-start-column="0" selection-end-line="286" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -205,7 +243,6 @@
         <option value="$PROJECT_DIR$/core/manifold/topology/map_orthogonal.h" />
         <option value="$PROJECT_DIR$/core/manifold/topology/map_general.h" />
         <option value="$PROJECT_DIR$/core/manifold/test/geometry_test.cpp" />
-        <option value="$PROJECT_DIR$/core/geometry/cs_cylindrical.h" />
         <option value="$PROJECT_DIR$/core/manifold/topology/rectmesh.h" />
         <option value="$PROJECT_DIR$/core/manifold/topology/mesh_block.h" />
         <option value="$PROJECT_DIR$/core/manifold/topology/map_linear.h" />
@@ -217,8 +254,9 @@
         <option value="$PROJECT_DIR$/core/field/test/field_diff_calculus_test.cpp" />
         <option value="$PROJECT_DIR$/core/manifold/calculate/fvm_structured.h" />
         <option value="$PROJECT_DIR$/core/manifold/test/mesh_ids_test.cpp" />
-        <option value="$PROJECT_DIR$/core/geometry/cs_cartesian.h" />
+        <option value="$PROJECT_DIR$/core/geometry/cs_cylindrical.h" />
         <option value="$PROJECT_DIR$/core/manifold/topology/mesh_ids.h" />
+        <option value="$PROJECT_DIR$/core/geometry/cs_cartesian.h" />
       </list>
     </option>
   </component>
@@ -287,10 +325,6 @@
               <option name="myItemId" value="SimPla" />
               <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
             </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="External Libraries" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ExternalLibrariesNode" />
-            </PATH_ELEMENT>
           </PATH>
           <PATH>
             <PATH_ELEMENT>
@@ -353,6 +387,46 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="topology" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SimPla" />
+              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SimPla" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="core" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="manifold" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="test" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SimPla" />
+              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SimPla" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="core" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="geometry" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -851,7 +925,13 @@
       <option name="project" value="LOCAL" />
       <updated>1446086764454</updated>
     </task>
-    <option name="localTasksCounter" value="17" />
+    <task id="LOCAL-00017" summary="update algorithm for mesh.volume">
+      <created>1446179310070</created>
+      <option name="number" value="00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1446179310070</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="TodoView">
@@ -869,9 +949,10 @@
     <layout>
       <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.16935802" sideWeight="0.49154335" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32777777" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4408602" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.44014338" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="CMake" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33168668" sideWeight="0.49364576" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.34550768" sideWeight="0.5063543" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3268817" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.329188" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.36845878" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.21662071" sideWeight="0.49577168" order="1" side_tool="false" content_ui="tabs" />
@@ -884,7 +965,6 @@
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="LuaJ" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32962668" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3268817" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
@@ -910,7 +990,8 @@
     <MESSAGE value="before change corectmesh" />
     <MESSAGE value="add mesh_block" />
     <MESSAGE value="snapshot" />
-    <option name="LAST_COMMIT_MESSAGE" value="snapshot" />
+    <MESSAGE value="update algorithm for mesh.volume" />
+    <option name="LAST_COMMIT_MESSAGE" value="update algorithm for mesh.volume" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1127,9 +1208,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="36" column="40" selection-start-line="36" selection-start-column="40" selection-end-line="36" selection-end-column="40" />
-          <folding>
-            <element signature="e#76#100#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1145,13 +1223,6 @@
         <state vertical-scroll-proportion="0.01984127">
           <caret line="57" column="22" selection-start-line="57" selection-start-column="22" selection-end-line="57" selection-end-column="22" />
           <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/geometry/cs_cylindrical.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="372" column="5" selection-start-line="372" selection-start-column="5" selection-end-line="372" selection-end-column="5" />
         </state>
       </provider>
     </entry>
@@ -1177,14 +1248,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/core/geometry/coordinate_system.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="37" column="1" selection-start-line="36" selection-start-column="16" selection-end-line="37" selection-end-column="1" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/core/manifold/test/mesh_ids_test.h">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.07025761">
@@ -1203,7 +1266,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="78" column="6" selection-start-line="78" selection-start-column="6" selection-end-line="78" selection-end-column="6" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1211,9 +1273,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="282" column="0" selection-start-line="282" selection-start-column="0" selection-end-line="282" selection-end-column="0" />
-          <folding>
-            <element signature="e#5783#5798#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1221,7 +1280,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-14.107142">
           <caret line="422" column="39" selection-start-line="422" selection-start-column="39" selection-end-line="422" selection-end-column="39" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1229,7 +1287,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="32" column="47" selection-start-line="32" selection-start-column="47" selection-end-line="32" selection-end-column="47" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1237,7 +1294,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="206" column="54" selection-start-line="206" selection-start-column="35" selection-end-line="206" selection-end-column="54" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1249,21 +1305,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/core/manifold/test/mesh_ids_test.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="3.4777517">
-          <caret line="225" column="30" selection-start-line="225" selection-start-column="30" selection-end-line="225" selection-end-column="30" />
-          <folding>
-            <element signature="e#79#103#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/core/geometry/chains.h">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.10538641">
           <caret line="47" column="0" selection-start-line="47" selection-start-column="0" selection-end-line="47" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1271,18 +1316,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-3.6358314">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/geometry/cs_cartesian.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.7763466">
-          <caret line="132" column="8" selection-start-line="132" selection-start-column="8" selection-end-line="132" selection-end-column="8" />
-          <folding>
-            <element signature="e#3230#3255#0" expanded="true" />
-            <element signature="e#4620#4666#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1290,7 +1323,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-0.5266344">
           <caret line="318" column="57" selection-start-line="318" selection-start-column="57" selection-end-line="318" selection-end-column="57" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1298,9 +1330,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.56088996">
           <caret line="77" column="37" selection-start-line="77" selection-start-column="37" selection-end-line="77" selection-end-column="37" />
-          <folding>
-            <element signature="e#157#179#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1316,22 +1345,85 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="86" column="53" selection-start-line="86" selection-start-column="53" selection-end-line="86" selection-end-column="53" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/geometry/coordinate_system.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0877193">
+          <caret line="8" column="42" selection-start-line="8" selection-start-column="42" selection-end-line="9" selection-end-column="0" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/manifold/test/mesh_ids_test.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="51" column="51" selection-start-line="51" selection-start-column="51" selection-end-line="51" selection-end-column="51" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/geometry/cs_cylindrical.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="286" column="0" selection-start-line="286" selection-start-column="0" selection-end-line="286" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/geometry/cs_cartesian.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="35" column="50" selection-start-line="35" selection-start-column="50" selection-end-line="35" selection-end-column="50" />
+          <folding>
+            <element signature="e#380#405#0" expanded="true" />
+            <element signature="e#1604#1650#0" expanded="true" />
+            <element signature="e#1840#1875#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/core/manifold/topology/mesh_ids.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.22716628">
-          <caret line="802" column="49" selection-start-line="802" selection-start-column="49" selection-end-line="802" selection-end-column="49" />
+        <state vertical-scroll-proportion="0.4643304">
+          <caret line="871" column="42" selection-start-line="871" selection-start-column="16" selection-end-line="871" selection-end-column="42" />
           <folding>
             <element signature="e#130#149#0" expanded="true" />
-            <element signature="e#27039#27059#0" expanded="true" />
-            <element signature="e#31907#31917#0" expanded="true" />
-            <element signature="e#31942#31955#0" expanded="true" />
-            <element signature="e#32052#32062#0" expanded="true" />
-            <element signature="e#32097#32110#0" expanded="true" />
-            <element signature="e#32686#32699#0" expanded="true" />
+            <element signature="e#21164#21194#0" expanded="true" />
+            <element signature="e#21336#21348#0" expanded="true" />
+            <element signature="e#21607#21619#0" expanded="true" />
+            <element signature="e#22057#22071#0" expanded="true" />
+            <element signature="e#25018#25044#0" expanded="true" />
+            <element signature="e#25238#25262#0" expanded="true" />
+            <element signature="e#25401#25438#0" expanded="true" />
+            <element signature="e#27025#27039#0" expanded="true" />
+            <element signature="e#27244#27264#0" expanded="true" />
+            <element signature="e#32090#32100#0" expanded="true" />
+            <element signature="e#32125#32138#0" expanded="true" />
+            <element signature="e#32235#32245#0" expanded="true" />
+            <element signature="e#32280#32293#0" expanded="true" />
+            <element signature="e#32613#32626#0" expanded="true" />
+            <element signature="e#32672#32685#0" expanded="true" />
+            <element signature="e#32741#32754#0" expanded="true" />
+            <element signature="e#32804#32817#0" expanded="true" />
+            <element signature="e#32869#32882#0" expanded="true" />
+            <element signature="e#32934#32947#0" expanded="true" />
+            <element signature="e#33030#33043#0" expanded="true" />
+            <element signature="e#33120#33133#0" expanded="true" />
+            <element signature="e#33215#33228#0" expanded="true" />
+            <element signature="e#33305#33318#0" expanded="true" />
+            <element signature="e#33391#33404#0" expanded="true" />
+            <element signature="e#33477#33490#0" expanded="true" />
+            <element signature="e#33563#33576#0" expanded="true" />
+            <element signature="e#33651#33664#0" expanded="true" />
+            <element signature="e#33722#33735#0" expanded="true" />
+            <element signature="e#33793#33806#0" expanded="true" />
+            <element signature="e#33877#33890#0" expanded="true" />
+            <element signature="e#33953#33966#0" expanded="true" />
+            <element signature="e#34052#34065#0" expanded="true" />
+            <element signature="e#34132#34145#0" expanded="true" />
+            <element signature="e#34314#34327#0" expanded="true" />
           </folding>
         </state>
       </provider>
