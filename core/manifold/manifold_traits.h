@@ -142,15 +142,13 @@ template<typename ...T> struct id_type<Manifold<T...> >
     typedef std::uint64_t type;
 };
 
-template<typename T> struct coordinate_system_type
-{
-    typedef std::nullptr_t type;
-};
+
+template<typename ...> struct coordinate_system_type;
 
 template<typename TM, typename ... T>
 struct coordinate_system_type<Manifold<TM, T...>>
 {
-    typedef typename TM::coordinates_system_type type;
+    typedef typename coordinate_system_type<TM>::type type;
 };
 
 template<typename ...T>

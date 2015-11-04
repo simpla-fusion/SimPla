@@ -11,13 +11,13 @@
 #include "../../geometry/coordinate_system.h"
 #include "../../geometry/cs_cylindrical.h"
 #include "../topology/topology.h"
-#include "../topology/corect_mesh.h"
+#include "../topology/rectmesh.h"
 
 namespace simpla
 {
 namespace manifold
 {
-using Cylindrical= DefaultManifold<Metric<coordinate_system::Cylindrical<2> >, topology::CoRectMesh>;
+using Cylindrical= DefaultManifold<Metric<coordinate_system::Cylindrical<2> >, topology::RectMesh<>>;
 
 }//namespace  manifold
 }//namespace simpla

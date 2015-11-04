@@ -1,10 +1,4 @@
 
-
-my_test(model_test    
-        model_test.cpp 
-     
-      )
-target_link_libraries(model_test physics   io  parallel utilities )
-
-ADD_SUBDIRECTORY( test)
+simpla_test(metric_test metric_test.cpp)
+target_link_libraries(metric_test simpla_lib)
 

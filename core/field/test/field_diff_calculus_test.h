@@ -29,7 +29,6 @@
 
 #include "../../gtl/utilities/log.h"
 
-
 using namespace simpla;
 
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
@@ -37,12 +36,17 @@ using namespace simpla;
 #include "../../manifold/pre_define/cylindrical.h"
 
 typedef manifold::Cylindrical mesh_type;
+typedef traits::coordinate_system_t<mesh_type> cs;
+static constexpr const int RAxis=cs::RAxis;
+static constexpr const int ZAxis=cs::ZAxis;
+static constexpr const int PhiAxis=cs::PhiAxis;
 
 #else
 
 #	include "../../manifold/pre_define/cartesian.h"
+#include "../../manifold/topology/rectmesh.h"
 
-typedef manifold::Cartesian<3> mesh_type;
+typedef manifold::Cartesian<3, topology::RectMesh<>> mesh_type;
 
 #endif
 
@@ -57,19 +61,21 @@ protected:
 
         std::tie(box, dims, K_real) = GetParam();
 
-        point_type xmin, xmax;
-
         std::tie(xmin, xmax) = box;
 
         K_imag = 0;
 
         for (int i = 0; i < ndims; ++i)
         {
-            if (dims[i] <= 1) { K_real[i] = 0; }
+            if (dims[i] <= 1)
+            {
+                K_real[i] = 0;
+            }
+            else
+            {
 
-            K_real[i] /= (xmax[i] - xmin[i]);
-
-            K_imag = 0;
+                K_real[i] /= (xmax[i] - xmin[i]);
+            }
         }
 
 
@@ -80,11 +86,16 @@ protected:
 
         Vec3 dx = mesh->dx();
 
+
         point_type xm;
         xm = (std::get<0>(box) + std::get<1>(box)) * 0.5;
 
-        error = 20 * std::pow(mesh->inner_product(K_real, dx, xm), 2.0);
 
+#ifdef CYLINDRICAL_COORDINATE_SYSTEM
+        error= 2 * power2(K_real[RAxis]*dx[RAxis]+K_real[ZAxis]*dx[ZAxis]+K_real[PhiAxis]*dx[PhiAxis]*xm[RAxis]);
+#else
+        error = 2 * power2(inner_product(K_real, dx));
+#endif
         one = 1;
     }
 
@@ -100,7 +111,7 @@ public:
 
     static constexpr size_t ndims = mesh_type::ndims;
     std::tuple<nTuple<double, 3>, nTuple<double, 3>> box;
-
+    point_type xmin, xmax;
     nTuple<size_t, 3> dims;
     nTuple<Real, 3> K_real; // @NOTE must   k = n TWOPI, period condition
     nTuple<scalar_type, 3> K_imag;
@@ -128,7 +139,7 @@ TEST_P(FETLTest, grad0)
 
     for (auto const &s : traits::make_domain<VERTEX>(*mesh))
     {
-        f0[s] = std::sin(mesh->inner_product(K_real, mesh->point(s), mesh->point(s)));
+        f0[s] = std::sin(inner_product(K_real, mesh->point(s)));
     };
     f0.sync();
 
@@ -152,15 +163,14 @@ TEST_P(FETLTest, grad0)
 
         value_type expect;
 
-        expect = K_real[n] * std::cos(mesh->inner_product(K_real, x, x))
-//                 + K_imag[n] * std::sin(mesh->inner_product(K_real, x,x))
+        expect = K_real[n] * std::cos(inner_product(K_real, x))
+//                 + K_imag[n] * std::sin(inner_product(K_real, x))
                 ;
 
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
-        if (n == ( traits::ZAxis<mesh_type>::value + 1) % 3)
+        if (n == PhiAxis)
         {
-            auto r = mesh->point(s);
-            expect /= r[( traits::ZAxis<mesh_type>::value + 2) % 3];
+            expect /= x[RAxis];
         }
 #endif
         f1b[s] = expect;
@@ -170,21 +180,6 @@ TEST_P(FETLTest, grad0)
         average += (f1[s] - expect);
 
         m += mod(f1[s]);
-        //		if (mod(expect) > EPSILON)
-//		{
-//			EXPECT_LE(mod(2.0 * (f1[s] - expect) / (f1[s] + expect)), error) << " expect = " << expect
-//			        << " actual = " << f1[s] << " x= " << geometry->point(s) << " K= " << K_real << " geometry->K="
-//			        << geometry->k_imag;
-//		}
-//		else
-//		{
-//			EXPECT_LE(mod(f1[s]), error) << " expect = " << expect << " actual = " << f1[s] << " x= "
-//			        << geometry->point(s);
-//		}
-//		if (mod(f1[s]) > epsilon || mod(expect) > epsilon)
-//		{
-//			ASSERT_GE(error, mod(2.0 * (f1[s] - expect) / (f1[s] + expect)));
-//		}
 
     }
 
@@ -214,7 +209,7 @@ TEST_P(FETLTest, grad3)
 
     for (auto s : traits::make_domain<VOLUME>(*mesh))
     {
-        f3[s] = std::sin(mesh->inner_product(K_real, mesh->point(s), mesh->point(s)));
+        f3[s] = std::sin(inner_product(K_real, mesh->point(s)));
     };
 
     f3.sync();
@@ -227,6 +222,7 @@ TEST_P(FETLTest, grad3)
     size_t count = 0;
     for (auto s : traits::make_domain<FACE>(*mesh))
     {
+
         ++count;
 
         size_t n = mesh->sub_index(s);
@@ -234,16 +230,12 @@ TEST_P(FETLTest, grad3)
         auto x = mesh->point(s);
 
         value_type expect;
-        expect = K_real[n] * std::cos(mesh->inner_product(K_real, x, x))
+        expect = K_real[n] * std::cos(inner_product(K_real, x))
 
-//                 + K_imag[n] * std::sin(mesh->inner_product(K_real, x,x))
+//                 + K_imag[n] * std::sin(inner_product(K_real, x))
                 ;
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
-        if (n == ( traits::ZAxis<mesh_type>::value + 1) % 3)
-        {
-            auto r = mesh->point(s);
-            expect /= r[( traits::ZAxis<mesh_type>::value + 2) % 3];
-        }
+        if (n == PhiAxis){ expect /= x[RAxis]; }
 #endif
         f2b[s] = expect;
 
@@ -251,17 +243,6 @@ TEST_P(FETLTest, grad3)
 
         average += (f2[s] - expect);
 
-//		if (mod(expect) > EPSILON)
-//		{
-//			EXPECT_LE(mod(2.0 * (f2[s] - expect) / (f2[s] + expect)), error) << " expect = " << expect
-//			        << " actual = " << f2[s] << " x= " << geometry->point(s) << " K= " << K_real;
-//		}
-//		else
-//		{
-//			EXPECT_LE(mod(f2[s]), error) << " expect = " << expect << " actual = " << f2[s] << " x= "
-//			        << geometry->point(s);
-//
-//		}
 
     }
 
@@ -291,7 +272,7 @@ TEST_P(FETLTest, diverge1)
 
     for (auto s : traits::make_domain<EDGE>(*mesh))
     {
-        f1[s] = std::sin(mesh->inner_product(K_real, mesh->point(s), mesh->point(s)));
+        f1[s] = std::sin(inner_product(K_real, mesh->point(s)));
     };
     f1.sync();
     LOG_CMD(f0 = diverge(f1));
@@ -308,60 +289,69 @@ TEST_P(FETLTest, diverge1)
 
     for (auto s : traits::make_domain<VERTEX>(*mesh))
     {
-        ++count;
-
         auto x = mesh->point(s);
 
-        Real cos_v = std::cos(mesh->inner_product(K_real, x, x));
-        Real sin_v = std::sin(mesh->inner_product(K_real, x, x));
+        Real cos_v = std::cos(inner_product(K_real, x));
+        Real sin_v = std::sin(inner_product(K_real, x));
 
         value_type expect;
 
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
         expect =
 
-        (K_real[( traits::ZAxis<mesh_type>::value + 1) % 3]
-                / x[( traits::ZAxis<mesh_type>::value + 2) % 3] + //  k_theta
+        (       K_real[PhiAxis] / x[RAxis] + /*  k_theta*/
 
-                K_real[( traits::ZAxis<mesh_type>::value + 2) % 3] +//  k_r
+                K_real[RAxis] +//  k_r
 
-                K_real[( traits::ZAxis<mesh_type>::value + 3) % 3]//  k_z
+                K_real[ZAxis]  //  k_z
         ) * cos_v
 
-        + (K_imag[( traits::ZAxis<mesh_type>::value + 1) % 3]
-                / x[( traits::ZAxis<mesh_type>::value + 2) % 3] +//  k_theta
+//        + (K_imag[PhiAxis]/ x[RAxis] +//  k_theta
+//
+//                K_imag[RAxis] +//  k_r
+//
+//                K_imag[ZAxis]//  k_z
+//        ) * sin_v
+;
 
-                K_imag[( traits::ZAxis<mesh_type>::value + 2) % 3] +//  k_r
 
-                K_imag[( traits::ZAxis<mesh_type>::value + 3) % 3]//  k_z
-        ) * sin_v;
+        if(K_real[RAxis]>EPSILON)
+        {
 
-        expect += sin_v / x[( traits::ZAxis<mesh_type>::value + 2) % 3];//A_r
+
+        expect+= sin_v / x[RAxis];
+
+        }
+//A_r
 #else
 
         expect = (K_real[0] + K_real[1] + K_real[2]) * cos_v
 
-                 + (K_imag[0] + K_imag[1] + K_imag[2]) * sin_v;
+//                 + (K_imag[0] + K_imag[1] + K_imag[2]) * sin_v
+                ;
 #endif
         f0b[s] = expect;
+
+
+#ifdef CYLINDRICAL_COORDINATE_SYSTEM
+
+        if(dims[mesh->sub_index(s)]>1 && mesh->idx_to_boundary(s)<=1)
+        {
+                  continue;
+
+        }
+#endif
+
+        ++count;
 
         variance += mod((f0[s] - expect) * (f0[s] - expect));
 
         average += (f0[s] - expect);
 
-//		if (mod(expect) > EPSILON)
-//		{
-//			EXPECT_LE(mod(2.0 * (f0[s] - expect) / (f0[s] + expect)), error) << " expect = " << expect
-//			        << " actual = " << f0[s] << " x= " << geometry->point(s) << " K= " << K_real << " K_i= "
-//			        << K_imag;
-//		}
-//		else
-//		{
-//			EXPECT_LE(mod(f0[s]), error) << " expect = " << expect << " actual = " << f0[s] << " x= "
-//			        << geometry->point(s);
-//
-//		}
+
     }
+
+    EXPECT_GT(count, 0);
 
     variance /= count;
     average /= count;
@@ -372,6 +362,7 @@ TEST_P(FETLTest, diverge1)
     LOGGER << SAVE(f0) << std::endl;
     LOGGER << SAVE(f0b) << std::endl;
 #endif
+
 
     EXPECT_LE(std::sqrt(variance), error) << dims;
     EXPECT_LE(mod(average), error) << " K= " << K_real << " K_i= " << K_imag
@@ -384,20 +375,17 @@ TEST_P(FETLTest, diverge1)
 
 TEST_P(FETLTest, diverge2)
 {
-    if (!mesh->is_valid())
-    {
-        return;
-    }
 
     auto f2 = traits::make_field<FACE, value_type>(*mesh);
     auto f3 = traits::make_field<VOLUME, value_type>(*mesh);
-
+    auto f3b = traits::make_field<VOLUME, value_type>(*mesh);
     f3.clear();
+    f3b.clear();
     f2.clear();
 
     for (auto s : traits::make_domain<FACE>(*mesh))
     {
-        f2[s] = std::sin(mesh->inner_product(K_real, mesh->point(s), mesh->point(s)));
+        f2[s] = std::sin(inner_product(K_real, mesh->point(s)));
     };
     f2.sync();
 
@@ -407,41 +395,59 @@ TEST_P(FETLTest, diverge2)
     value_type average;
     average *= 0.0;
 
+    size_t count = 0;
+
     for (auto s : traits::make_domain<VOLUME>(*mesh))
     {
+
         auto x = mesh->point(s);
 
-        Real cos_v = std::cos(mesh->inner_product(K_real, x, x));
-        Real sin_v = std::sin(mesh->inner_product(K_real, x, x));
+        Real cos_v = std::cos(inner_product(K_real, x));
+        Real sin_v = std::sin(inner_product(K_real, x));
 
         value_type expect;
 
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
         expect =
 
-        (K_real[( traits::ZAxis<mesh_type>::value + 1) % 3]
-                / x[( traits::ZAxis<mesh_type>::value + 2) % 3] + //  k_theta
+        (K_real[PhiAxis]
+                / x[RAxis] + //  k_theta
 
-                K_real[( traits::ZAxis<mesh_type>::value + 2) % 3] +//  k_r
+                K_real[RAxis] +//  k_r
 
-                K_real[( traits::ZAxis<mesh_type>::value + 3) % 3]//  k_z
+                K_real[ZAxis]//  k_z
         ) * cos_v
 
-        + (K_imag[( traits::ZAxis<mesh_type>::value + 1) % 3]
-                / x[( traits::ZAxis<mesh_type>::value + 2) % 3] +//  k_theta
+        + (K_imag[PhiAxis]
+                / x[RAxis] +//  k_theta
 
-                K_imag[( traits::ZAxis<mesh_type>::value + 2) % 3] +//  k_r
+                K_imag[RAxis] +//  k_r
 
-                K_imag[( traits::ZAxis<mesh_type>::value + 3) % 3]//  k_z
+                K_imag[ZAxis]//  k_z
         ) * sin_v;
 
-        expect += std::sin(mesh->inner_product(K_real,  mesh->point(s),  mesh->point(s)))
-        / x[( traits::ZAxis<mesh_type>::value + 2) % 3];//A_r
+        expect += std::sin( inner_product(K_real,  mesh->point(s) ))
+        / x[RAxis];//A_r
 
 #	else
         expect = (K_real[0] + K_real[1] + K_real[2]) * cos_v
                  + (K_imag[0] + K_imag[1] + K_imag[2]) * sin_v;
 #endif
+
+
+        f3b[s] = expect;
+
+#ifdef CYLINDRICAL_COORDINATE_SYSTEM
+
+        if(dims[mesh->sub_index(s)]>1 && mesh->idx_to_boundary(s)<=1)
+        {
+                  continue;
+
+        }
+#endif
+        ++count;
+
+
         variance += mod((f3[s] - expect) * (f3[s] - expect));
 
         average += (f3[s] - expect);
@@ -451,8 +457,17 @@ TEST_P(FETLTest, diverge2)
 
     }
 
-    variance /= f3.domain().size();
-    average /= f3.domain().size();
+    variance /= count;
+    average /= count;
+
+
+#ifndef NDEBUG
+
+    cd("/div2/");
+    LOGGER << SAVE(f2) << std::endl;
+    LOGGER << SAVE(f3) << std::endl;
+    LOGGER << SAVE(f3b) << std::endl;
+#endif
 
     ASSERT_LE(std::sqrt(variance), error);
     ASSERT_LE(mod(average), error);
@@ -461,10 +476,7 @@ TEST_P(FETLTest, diverge2)
 
 TEST_P(FETLTest, curl1)
 {
-    if (!mesh->is_valid())
-    {
-        return;
-    }
+
 
     auto f1 = traits::make_field<EDGE, value_type>(*mesh);
     auto f1b = traits::make_field<EDGE, value_type>(*mesh);
@@ -483,7 +495,7 @@ TEST_P(FETLTest, curl1)
 
     for (auto s : traits::make_domain<EDGE>(*mesh))
     {
-        f1[s] = std::sin(mesh->inner_product(K_real, mesh->point(s), mesh->point(s)));
+        f1[s] = std::sin(inner_product(K_real, mesh->point(s)));
     };
     f1.sync();
     LOG_CMD(f2 = curl(f1));
@@ -494,42 +506,42 @@ TEST_P(FETLTest, curl1)
 
         auto x = mesh->point(s);
 
-        Real cos_v = std::cos(mesh->inner_product(K_real, x, x));
-        Real sin_v = std::sin(mesh->inner_product(K_real, x, x));
+        Real cos_v = std::cos(inner_product(K_real, x));
+        Real sin_v = std::sin(inner_product(K_real, x));
 
         value_type expect;
 
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
         switch (n)
         {
-            case ( traits::ZAxis<mesh_type>::value + 1) % 3: // theta
-            expect = (K_real[( traits::ZAxis<mesh_type>::value + 2) % 3]
-                    - K_real[( traits::ZAxis<mesh_type>::value + 3) % 3]) * cos_v
-            + (K_imag[( traits::ZAxis<mesh_type>::value + 2) % 3]
-                    - K_imag[( traits::ZAxis<mesh_type>::value + 3) % 3])
+            case PhiAxis: // theta
+            expect = (K_real[RAxis]
+                    - K_real[ZAxis]) * cos_v
+            + (K_imag[RAxis]
+                    - K_imag[ZAxis])
             * sin_v;
             break;
-            case ( traits::ZAxis<mesh_type>::value + 2) % 3:// r
-            expect = (K_real[( traits::ZAxis<mesh_type>::value + 3) % 3]
-                    - K_real[( traits::ZAxis<mesh_type>::value + 1) % 3]
-                    / x[( traits::ZAxis<mesh_type>::value + 2) % 3])
+            case RAxis:// r
+            expect = (K_real[ZAxis]
+                    - K_real[PhiAxis]
+                    / x[RAxis])
             * cos_v
 
-            + (K_imag[( traits::ZAxis<mesh_type>::value + 3) % 3]
-                    - K_imag[( traits::ZAxis<mesh_type>::value + 1) % 3]
+            + (K_imag[ZAxis]
+                    - K_imag[PhiAxis]
                     / x[( traits::ZAxis<mesh_type>::value + 2)
                     % 3]) * sin_v;
             break;
 
-            case ( traits::ZAxis<mesh_type>::value + 3) % 3:// z
-            expect = (K_real[( traits::ZAxis<mesh_type>::value + 1) % 3]
-                    - K_real[( traits::ZAxis<mesh_type>::value + 2) % 3]) * cos_v
-            + (K_imag[( traits::ZAxis<mesh_type>::value + 1) % 3]
-                    - K_imag[( traits::ZAxis<mesh_type>::value + 2) % 3])
+            case ZAxis:// z
+            expect = (K_real[PhiAxis]
+                    - K_real[RAxis]) * cos_v
+            + (K_imag[PhiAxis]
+                    - K_imag[RAxis])
             * sin_v;
 
             expect -= std::sin(mesh->inner_product(K_real,  mesh->point(s),  mesh->point(s)))
-            / x[( traits::ZAxis<mesh_type>::value + 2) % 3];//A_r
+            / x[RAxis];//A_r
             break;
 
         }
@@ -576,10 +588,7 @@ TEST_P(FETLTest, curl1)
 
 TEST_P(FETLTest, curl2)
 {
-    if (!mesh->is_valid())
-    {
-        return;
-    }
+
 
     auto f1 = traits::make_field<EDGE, value_type>(*mesh);
     auto f1b = traits::make_field<EDGE, value_type>(*mesh);
@@ -598,7 +607,7 @@ TEST_P(FETLTest, curl2)
 
     for (auto s : traits::make_domain<FACE>(*mesh))
     {
-        f2[s] = std::sin(mesh->inner_product(K_real, mesh->point(s), mesh->point(s)));
+        f2[s] = std::sin(inner_product(K_real, mesh->point(s)));
     };
 
     f2.sync();
@@ -619,48 +628,48 @@ TEST_P(FETLTest, curl2)
 
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
 
-        Real cos_v = std::cos(mesh->inner_product(K_real, x,x));
-        Real sin_v = std::sin(mesh->inner_product(K_real, x,x));
+        Real cos_v = std::cos(inner_product(K_real, x));
+        Real sin_v = std::sin(inner_product(K_real, x));
 
         switch (n)
         {
-            case ( traits::ZAxis<mesh_type>::value + 1) % 3: // theta
-            expect = (K_real[( traits::ZAxis<mesh_type>::value + 2) % 3]
-                    - K_real[( traits::ZAxis<mesh_type>::value + 3) % 3]) * cos_v
-            + (K_imag[( traits::ZAxis<mesh_type>::value + 2) % 3]
-                    - K_imag[( traits::ZAxis<mesh_type>::value + 3) % 3])
+            case PhiAxis: // theta
+            expect = (K_real[RAxis]
+                    - K_real[ZAxis]) * cos_v
+            + (K_imag[RAxis]
+                    - K_imag[ZAxis])
             * sin_v;
             break;
-            case ( traits::ZAxis<mesh_type>::value + 2) % 3:// r
-            expect = (K_real[( traits::ZAxis<mesh_type>::value + 3) % 3]
-                    - K_real[( traits::ZAxis<mesh_type>::value + 1) % 3]
-                    / x[( traits::ZAxis<mesh_type>::value + 2) % 3])
+            case RAxis:// r
+            expect = (K_real[ZAxis]
+                    - K_real[PhiAxis]
+                    / x[RAxis])
             * cos_v
 
-            + (K_imag[( traits::ZAxis<mesh_type>::value + 3) % 3]
-                    - K_imag[( traits::ZAxis<mesh_type>::value + 1) % 3]
+            + (K_imag[ZAxis]
+                    - K_imag[PhiAxis]
                     / x[( traits::ZAxis<mesh_type>::value + 2)
                     % 3]) * sin_v;
             break;
 
-            case ( traits::ZAxis<mesh_type>::value + 3) % 3:// z
-            expect = (K_real[( traits::ZAxis<mesh_type>::value + 1) % 3]
-                    - K_real[( traits::ZAxis<mesh_type>::value + 2) % 3]) * cos_v
-            + (K_imag[( traits::ZAxis<mesh_type>::value + 1) % 3]
-                    - K_imag[( traits::ZAxis<mesh_type>::value + 2) % 3])
+            case ZAxis:// z
+            expect = (K_real[PhiAxis]
+                    - K_real[RAxis]) * cos_v
+            + (K_imag[PhiAxis]
+                    - K_imag[RAxis])
             * sin_v;
 
             expect -= std::sin(mesh->inner_product(K_real,  mesh->point(s),  mesh->point(s)))
-            / x[( traits::ZAxis<mesh_type>::value + 2) % 3];//A_r
+            / x[RAxis];//A_r
             break;
 
         }
 
 #	else
 
-        Real cos_v = std::cos(mesh->inner_product(K_real, x, x));
+        Real cos_v = std::cos(inner_product(K_real, x));
 
-        Real sin_v = std::sin(mesh->inner_product(K_real, x, x));
+        Real sin_v = std::sin(inner_product(K_real, x));
 
 
         expect = (K_real[(n + 1) % 3] - K_real[(n + 2) % 3]) * cos_v
@@ -749,10 +758,7 @@ TEST_P(FETLTest, identity_curl_grad_f0_eq_0)
 
 TEST_P(FETLTest, identity_curl_grad_f3_eq_0)
 {
-    if (!mesh->is_valid())
-    {
-        return;
-    }
+
 
     auto f3 = traits::make_field<VOLUME, value_type>(*mesh);
     auto f1a = traits::make_field<EDGE, value_type>(*mesh);
@@ -783,11 +789,8 @@ TEST_P(FETLTest, identity_curl_grad_f3_eq_0)
     Real variance_b = 0;
     for (auto s : traits::make_domain<EDGE>(*mesh))
     {
-
-//		ASSERT_EQ((f1a[s]), (f1b[s]));
         variance_a += mod(f1a[s]);
         variance_b += mod(f1b[s]);
-
     }
 
     variance_a /= m;

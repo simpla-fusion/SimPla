@@ -49,8 +49,8 @@ public:
         m_left_.set(std::forward<Others>(others)...);
 
         m_right_.set(src_box,
-                     std::tuple(m_left_.inv_map(std::get<0>(dest_box)),
-                                m_left_.nv_map(std::get<1>(dest_box))));
+                     std::make_tuple(m_left_.inv_map(std::get<0>(dest_box)),
+                                     m_left_.inv_map(std::get<1>(dest_box))));
     }
 
     template<typename TP>
@@ -80,12 +80,12 @@ public:
 
 }; // General Map
 
-template<typename TP, int N = 0>
+template<typename TP=nTuple<Real, 3>, int N = 0>
 struct SquareMap
 {
 private:
 
-    typedef SquareMap<N> this_type;
+    typedef SquareMap<TP, N> this_type;
 
     typedef TP point_type;
 public:
@@ -100,24 +100,23 @@ public:
     template<typename ...Others> void set(Others &&...others) { }
 
 
-    template<typename T>
     point_type *map(point_type *x) const
     {
         (*x)[N] = (*x)[N] * (*x)[N];
         return x;
     }
 
-    template<typename T>
+
     point_type *inv_map(point_type *x) const
     {
-        *x[N] = std::sqrt((*x)[N]);
+        (*x)[N] = std::sqrt((*x)[N]);
         return x;
 
 
     }
 
-    template<typename T>
-    point_type map(T const &x) const
+    template<typename U>
+    point_type map(U const &x) const
     {
         point_type res;
         res = x;
@@ -126,15 +125,15 @@ public:
         return std::move(res);
     }
 
-    template<typename TP>
-    point_type inv_map(TP const &y) const
+    template<typename U>
+    point_type inv_map(U const &y) const
     {
         point_type res;
         res = y;
         inv_map(&res);
         return std::move(res);
     }
-
+};
 
 }//namespace simpla
 #endif //SIMPLA_MAP_GENERAL_H

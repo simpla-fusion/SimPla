@@ -185,40 +185,6 @@ public:
 
 };
 
-template<typename T>
-T const & min(T const & first, T const & second)
-{
-	return std::min(first, second);
-}
-
-template<typename T>
-T const & min(T const & first)
-{
-	return first;
-}
-template<typename T, typename ...Others>
-T const & min(T const & first, Others &&... others)
-{
-	return min(first, min(std::forward<Others>(others)...));
-}
-
-template<typename T>
-T const & max(T const & first, T const & second)
-{
-	return std::max(first, second);
-}
-
-template<typename T>
-T const & max(T const & first)
-{
-	return first;
-}
-
-template<typename T, typename ...Others>
-T const & max(T const & first, Others &&...others)
-{
-	return max(first, max(std::forward<Others>(others)...));
-}
 
 }  // namespace simpla
 

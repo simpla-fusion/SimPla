@@ -40,6 +40,10 @@ struct Spherical
 template<int IPhiAxis = 2>
 struct Cylindrical
 {
+    static constexpr size_t PhiAxis = (IPhiAxis) % 3;
+    static constexpr size_t RAxis = (PhiAxis + 1) % 3;
+    static constexpr size_t ZAxis = (PhiAxis + 2) % 3;
+
 };
 
 struct Toroidal
@@ -61,7 +65,7 @@ template<typename> struct is_homogeneous;
 template<typename> struct typename_as_string;
 
 
-template<typename> struct coordinate_system_type;
+template<typename ...> struct coordinate_system_type;
 template<typename T> using coordinate_system_t= typename coordinate_system_type<T>::type;
 
 template<typename CS, typename ...Others>

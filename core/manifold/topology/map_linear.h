@@ -45,8 +45,8 @@ public:
         std::swap(m_inv_map_scale_, other.m_inv_map_scale_);
     }
 
-    template<typename TB0, typename TB1, typename TD>
-    void set(TB0 const &src_box, TB1 const &dest_box, TD const &dims = nTuple<size_t, 3>({10, 10, 10}))
+    template<typename TB0, typename TB1>
+    void set(TB0 const &src_box, TB1 const &dest_box, nTuple<size_t, 3> const &dims = {10, 10, 10})
     {
 
         point_type src_min_, src_max_;
@@ -59,30 +59,15 @@ public:
 
         for (int i = 0; i < 3; ++i)
         {
+            m_map_scale_[i] = (dest_max[i] - dest_min[i]) / (src_max_[i] - src_min_[i]);
 
-//            if (dims[i] <= 1)
-//            {
-//                m_map_scale_[i] = 0;
-//
-//                m_inv_map_scale_[i] = 0;
-//
-//
-//                m_map_orig_[i] = dest_min[i];
-//
-//                m_inv_map_orig_[i] = src_min_[i];
-//
-//            }
-//            else
-            {
-                m_map_scale_[i] = (dest_max[i] - dest_min[i]) / (src_max_[i] - src_min_[i]);
-
-                m_inv_map_scale_[i] = (src_max_[i] - src_min_[i]) / (dest_max[i] - dest_min[i]);
+            m_inv_map_scale_[i] = (src_max_[i] - src_min_[i]) / (dest_max[i] - dest_min[i]);
 
 
-                m_map_orig_[i] = dest_min[i] - src_min_[i] * m_map_scale_[i];
+            m_map_orig_[i] = dest_min[i] - src_min_[i] * m_map_scale_[i];
 
-                m_inv_map_orig_[i] = src_min_[i] - dest_min[i] * m_inv_map_scale_[i];
-            }
+            m_inv_map_orig_[i] = src_min_[i] - dest_min[i] * m_inv_map_scale_[i];
+
         }
     }
 

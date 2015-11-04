@@ -25,15 +25,12 @@
 
 namespace simpla
 {
-namespace geometry
-{
 
 
-template<typename, typename> struct map;
+//template<typename, typename> struct map;
 
-template<typename> struct mertic;
+template<typename> struct Mertic;
 
-}//namespace geometry
 }//namespace simpla
 
 #endif /* CORE_GEOMETRY_GEOMETRY_H_ */

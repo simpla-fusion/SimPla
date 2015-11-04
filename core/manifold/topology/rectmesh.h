@@ -24,8 +24,8 @@ struct RectMesh : public MeshBlock<MeshLevel>, public TMap
 {
 
 private:
-    typedef RectMesh<TMap> this_type;
-    typedef MeshBlock <MeshLevel> base_type;
+    typedef RectMesh<TMap, MeshLevel> this_type;
+    typedef MeshBlock<MeshLevel> base_type;
     typedef TMap map_type;
 public:
     using base_type::ndims;
@@ -36,8 +36,8 @@ public:
     using typename base_type::index_tuple;
     using typename base_type::difference_type;
 
-    typedef nTuple <Real, ndims> point_type;
-    typedef nTuple <Real, ndims> vector_type;
+    typedef nTuple<Real, ndims> point_type;
+    typedef nTuple<Real, ndims> vector_type;
 
 private:
     point_type m_coords_min_ = {0, 0, 0};
@@ -156,7 +156,7 @@ public:
     template<typename ...Args>
     point_type point(Args &&...args) const
     {
-        return std::move(map(base_type::point(std::forward<Args>(args)...)));
+        return std::move(map_type::map(base_type::point(std::forward<Args>(args)...)));
     }
 
 /**
@@ -183,30 +183,38 @@ public:
 
     //===================================
     //
+private:
+    constexpr size_t hash_(id_type s) const
+    {
+        return base_type::hash(s & (~base_type::_DA)) * base_type::NUM_OF_NODE_ID +
+               base_type::node_id(s);
+    }
 
+public:
     virtual Real volume(id_type s) const
     {
-        return m_volume_.get()[base_type::hash((s & (~base_type::FULL_OVERFLOW_FLAG)) << 1)];
+        return m_volume_.get()[hash_(s)];
     }
 
     virtual Real dual_volume(id_type s) const
     {
-        return m_dual_volume_.get()[base_type::hash((s & (~base_type::FULL_OVERFLOW_FLAG)) << 1)];
+        return m_dual_volume_.get()[hash_(s)];
     }
 
     virtual Real inv_volume(id_type s) const
     {
-        return m_inv_volume_.get()[base_type::hash((s & (~base_type::FULL_OVERFLOW_FLAG)) << 1)];
+
+        return m_inv_volume_.get()[hash_(s)];
     }
 
     virtual Real inv_dual_volume(id_type s) const
     {
-        return m_inv_dual_volume_.get()[base_type::hash((s & (~base_type::FULL_OVERFLOW_FLAG)) << 1)];
+        return m_inv_dual_volume_.get()[hash_(s)];
     }
 
     virtual point_type const &vertex(id_type s) const
     {
-        return m_vertics_.get()[base_type::hash((s & (~base_type::FULL_OVERFLOW_FLAG)) << 1)];
+        return m_vertics_.get()[base_type::hash(s) * base_type::NUM_OF_NODE_ID + base_type::sub_index(s)];
     }
 
 
@@ -220,16 +228,12 @@ public:
 
     virtual void deploy();
 
-    template<typename TMetric>
-    void update_volume(TMetric const &metric);
+    template<typename TGeo> void update_volume(TGeo const &geo);
 };//struct RectMesh
 
 template<typename TMap, int MeshLevel>
 void RectMesh<TMap, MeshLevel>::deploy()
 {
-
-    CHECK("Deploy");
-
     base_type::deploy();
 
     auto dims = base_type::dimensions();
@@ -243,7 +247,6 @@ void RectMesh<TMap, MeshLevel>::deploy()
         ASSERT((m_coords_max_[i] - m_coords_min_[i] > EPSILON));
 
         m_dx_[i] = (m_coords_max_[i] - m_coords_min_[i]) / static_cast<Real>(dims[i]);
-
     }
 
     /**
@@ -273,16 +276,13 @@ void RectMesh<TMap, MeshLevel>::deploy()
 }
 
 template<typename TMap, int MeshLevel>
-template<typename TMetric>
-void RectMesh<TMap, MeshLevel>::update_volume(TMetric const &metric)
+template<typename TGeo>
+void RectMesh<TMap, MeshLevel>::update_volume(TGeo const &geo)
 {
-
-
-    VERBOSE << "update volume" << std::endl;
 
     auto memory_block_range = base_type::template make_range<VERTEX>(base_type::memory_index_box());
 
-    size_t num = memory_block_range.size() * 8;
+    size_t num = memory_block_range.size() * base_type::NUM_OF_NODE_ID;
 
     m_volume_ = SingletonHolder<MemoryPool>::instance().alloc<Real>(num);
     m_inv_volume_ = SingletonHolder<MemoryPool>::instance().alloc<Real>(num);
@@ -291,90 +291,15 @@ void RectMesh<TMap, MeshLevel>::update_volume(TMetric const &metric)
 
 #ifdef USE_PARALLEL_FOR
     parallel_for(memory_block_range, [&](range_type const &range){
+#else
+    auto const &range = memory_block_range;
 #endif
-
-
-    for (auto const &s:memory_block_range)
+    for (auto const &s:range)
     {
-        point_type p[8];
-        typename base_type::id_type ss[8];
+        size_t n = this->hash(s) * base_type::NUM_OF_NODE_ID;
 
-        for (int nid = 0; nid < 8; ++nid)
-        {
-            size_t n = base_type::hash(s) * 8 + nid;
-
-            int p_num = base_type::get_adjoin_vertices(nid, s + base_type::m_id_to_shift_[nid], ss);
-            if (p_num == 1)
-            {
-                m_volume_.get()[n] = 1;
-            }
-            else
-            {
-                for (int i = 0; i < p_num; ++i)
-                {
-                    p[i] = point(ss[i]);
-                }
-
-                switch (nid)
-                {
-                    case 1:
-                    case 2:
-                    case 4:
-                        m_volume_.get()[n] = metric.length(p, p_num);
-                        break;
-                    case 3:
-                    case 5:
-                    case 6:
-                        m_volume_.get()[n] = metric.area(p, p_num);
-                        break;
-                    case 7:
-                        m_volume_.get()[n] = metric.volume(p, p_num);
-                        break;
-                    default:
-                        break;
-                }
-
-            }
-            m_inv_volume_.get()[n] = (m_dual_volume_.get()[n] > std::numeric_limits<double>::epsilon())
-                                     ? 1.0 / m_volume_.get()[n] : 1;
-
-
-            p_num = base_type::get_adjoin_vertices((~nid) & 7, s + base_type::m_id_to_shift_[nid], ss);
-            if (p_num == 1)
-            {
-                m_dual_volume_.get()[n] = 1;
-            }
-            else
-            {
-                for (int i = 0; i < p_num; ++i)
-                {
-                    p[i] = point(ss[i]);
-                }
-
-                switch (nid)
-                {
-                    case 1:
-                    case 2:
-                    case 4:
-                        m_dual_volume_.get()[n] = metric.length(p, p_num);
-                        break;
-                    case 3:
-                    case 5:
-                    case 6:
-                        m_dual_volume_.get()[n] = metric.area(p, p_num);
-                        break;
-                    case 7:
-                        m_dual_volume_.get()[n] = metric.volume(p, p_num);
-                        break;
-                    default:
-                        break;
-                }
-            }
-            m_inv_dual_volume_.get()[n] = (m_dual_volume_.get()[n] > std::numeric_limits<double>::epsilon())
-                                          ? 1.0 / m_dual_volume_.get()[n] : 1;
-
-
-        }
+        base_type::get_element_volume_in_cell(geo, s, m_volume_.get() + n, m_inv_volume_.get() + n,
+                                              m_dual_volume_.get() + n, m_inv_dual_volume_.get() + n);
 
     }
 #ifdef USE_PARALLEL_FOR

@@ -548,8 +548,55 @@ DECL_RET_TYPE((_impl::access_helper<N...>::get(v)))
 
 
 }
-// namespace traits
 
+// namespace traits
+template<typename T>
+T power2(T const &v)
+{
+    return v * v;
+}
+
+template<typename T>
+T power3(T const &v)
+{
+    return v * v * v;
+}
+
+template<typename T0>
+T0 max(T0 const &first)
+{
+    return first;
+};
+
+template<typename T0, typename T1>
+T0 max(T0 const &first, T1 const &second)
+{
+    return std::max(first, second);
+};
+
+template<typename T0, typename ...Others>
+T0 max(T0 const &first, Others &&...others)
+{
+    return max(first, max(std::forward<Others>(others)...));
+};
+
+template<typename T0>
+T0 min(T0 const &first)
+{
+    return first;
+};
+
+template<typename T0, typename T1>
+T0 min(T0 const &first, T1 const &second)
+{
+    return std::min(first, second);
+};
+
+template<typename T0, typename ...Others>
+T0 min(T0 const &first, Others &&...others)
+{
+    return min(first, min(std::forward<Others>(others)...));
+};
 //template<typename T, typename TI>
 //auto try_index(T & v, TI const& s)
 //ENABLE_IF_DECL_RET_TYPE((!traits::is_indexable<T,TI>::value ) , (v))

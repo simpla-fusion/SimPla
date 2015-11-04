@@ -879,22 +879,22 @@ struct MeshIDs_
          *               /
          *        z     /
          *        ^    /
-         *        |  110-------------111
+         *        |   6---------------7
          *        |  /|              /|
          *        | / |             / |
          *        |/  |            /  |
-         *       100--|----------101  |
-         *        | 6 |     7     |   |
-         *        |  010----------|--011
-         *        4  /    5       |  /
-         *        | 2      3      | /
+         *        4---|-----------5   |
+         *        |   |           |   |
+         *        |   2-----------|---3
+         *        |  /            |  /
+         *        | /             | /
          *        |/              |/
-         *       000------1------001---> x
+         *        0---------------1---> x
          *
          *\endverbatim
          */
 
-        s &= FULL_OVERFLOW_FLAG;
+        s = s & (~FULL_OVERFLOW_FLAG);
 
         typedef typename TGeometry::point_type point_type;
 
@@ -956,15 +956,13 @@ struct MeshIDs_
 
             dual_v[TAG_VOLUME] = 1;
 
-            dual_v[TAG_FACE0] = geo.simplex_length(p[0], p[1]);
-            dual_v[TAG_FACE1] = geo.simplex_length(p[0], p[2]);
-            dual_v[TAG_FACE2] = geo.simplex_length(p[0], p[4]);
+            dual_v[TAG_FACE0] = geo.simplex_length(p[6], p[7]);
+            dual_v[TAG_FACE1] = geo.simplex_length(p[5], p[7]);
+            dual_v[TAG_FACE2] = geo.simplex_length(p[3], p[7]);
 
 
             dual_v[TAG_EDGE0] = geo.simplex_area(p[1], p[3], p[5]) + geo.simplex_area(p[3], p[7], p[5]);
-
             dual_v[TAG_EDGE1] = geo.simplex_area(p[2], p[3], p[7]) + geo.simplex_area(p[2], p[7], p[6]);
-
             dual_v[TAG_EDGE2] = geo.simplex_area(p[4], p[5], p[7]) + geo.simplex_area(p[4], p[7], p[6]);
 
 
@@ -990,14 +988,17 @@ struct MeshIDs_
             inv_v[TAG_EDGE0] = 0;
             inv_dual_v[TAG_FACE0] = 0;
         }
+
         if (dims[1] <= 1)
         {
             inv_v[TAG_EDGE1] = 0;
             inv_dual_v[TAG_FACE1] = 0;
         }
+
         if (dims[2] <= 1)
         {
             inv_v[TAG_EDGE2] = 0;
+
             inv_dual_v[TAG_FACE2] = 0;
         }
 
@@ -1006,14 +1007,12 @@ struct MeshIDs_
 };
 
 
-namespace
-
-traits
+namespace traits
 {
-template<typename>
-struct id_type;
-template<size_t TAGS>
-struct id_type<MeshIDs_<TAGS>>
+
+template<typename> struct id_type;
+
+template<size_t TAGS> struct id_type<MeshIDs_<TAGS>>
 {
     typedef typename MeshIDs_<TAGS>::id_type type;
 };

@@ -11,9 +11,8 @@
 #include "../../gtl/primitives.h"
 #include "../../gtl/ntuple.h"
 #include "../../gtl/type_traits.h"
-#include "mesh_ids.h"
 #include "../../gtl/utilities/log.h"
-
+#include "mesh_ids.h"
 
 namespace simpla
 {
@@ -29,7 +28,7 @@ struct MeshBlock : public MeshIDs_<MeshLevel>
 private:
 
     typedef MeshBlock this_type;
-    typedef MeshIDs_ <MeshLevel> m;
+    typedef MeshIDs_<MeshLevel> m;
 
 public:
     using typename m::id_type;
@@ -40,8 +39,8 @@ public:
     using typename m::index_tuple;
     using typename m::difference_type;
 
-    typedef nTuple <Real, ndims> point_type;
-    typedef nTuple <Real, ndims> vector_type;
+    typedef nTuple<Real, ndims> point_type;
+    typedef nTuple<Real, ndims> vector_type;
 
 
     /**
@@ -242,6 +241,47 @@ public:
         m_local_max_ = m_max_;
         m_memory_min_ = m_min_;
         m_memory_max_ = m_max_;
+
+    }
+
+private:
+
+    template<typename T0, typename T1>
+    index_type dist_to_box_(id_type const &s, T0 const &imin, T1 const &imax) const
+    {
+        auto idx = this->unpack_index(s);
+
+        index_type res = std::numeric_limits<index_type>::max();
+
+        for (int i = 0; i < 3; ++i)
+        {
+            if (imax[i] - imin[i] <= 1)
+            {
+
+                continue;
+            }
+            else
+            {
+                res = std::min(res, std::min(idx[i] - imin[i], imax[i] - idx[i]));
+
+            }
+        }
+
+        return res;
+
+
+    }
+
+public:
+
+    index_type idx_to_local_boundary(id_type const &s) const
+    {
+        return dist_to_box_(s, m_local_min_, m_local_max_);
+    }
+
+    index_type idx_to_boundary(id_type const &s) const
+    {
+        return dist_to_box_(s, m_min_, m_max_);
 
     }
 

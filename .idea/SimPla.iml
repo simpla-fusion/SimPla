@@ -99,6 +99,8 @@
       <sourceFolder url="file://$MODULE_DIR$/core/geometry/primitive_ext.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/geometry/select.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/geometry/simplex.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/geometry/test/CMakeLists.txt" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/geometry/test/metric_test.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/gtl/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/gtl/any.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/gtl/cache.h" isTestSource="false" />

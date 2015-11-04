@@ -7,6 +7,7 @@
 #include <gtest/gtest.h>
 #include "field_diff_calculus_test.h"
 
+
 using namespace simpla;
 
 #ifndef CYLINDRICAL_COORDINATE_SYSTEM
@@ -21,7 +22,7 @@ INSTANTIATE_TEST_CASE_P(
                         std::make_tuple(nTuple<Real, 3>({0, 0, 0}),
                                         nTuple<Real, 3>({1.0, 2.0, 3.0})),
 
-                        std::make_tuple(nTuple<Real, 3>({-1.0, -2.0, -3.0}),
+                        std::make_tuple(nTuple<Real, 3>({0.0, -2.0, -3.0}),
                                         nTuple<Real, 3>({1.0, 1.0, 1.0}))
 
 
@@ -57,24 +58,24 @@ INSTANTIATE_TEST_CASE_P(
                         std::make_tuple(nTuple<Real, 3>({1.0, 0, 0}),
                                         nTuple<Real, 3>({2.0, 2.0, TWOPI}))
 
-//                      ,  std::make_tuple(nTuple<Real, 3>({1.0, -2.0, 0.0}),
-//                                        nTuple<Real, 3>({2.0, 1.0, HALFPI}))
+//                      ,  std::make_tuple(nTuple<Real, 3>({10.0, -2.0, 0.0}),
+//                                        nTuple<Real, 3>({12.0, 1.0, HALFPI}))
 
                 ),
 
 
                 testing::Values(
                         nTuple<size_t, 3>({1, 1, 1}) //
-                        , nTuple<size_t, 3>({100, 1, 1}) //
+                        , nTuple<size_t, 3>({16, 1, 1}) //
                         , nTuple<size_t, 3>({1, 200, 1}) //
-                        , nTuple<size_t, 3>({1, 1, 10}) //
-                        , nTuple<size_t, 3>({1, 10, 20}) //
+                        , nTuple<size_t, 3>({1, 1, 16}) //
+                        , nTuple<size_t, 3>({1, 20, 20}) //
                         , nTuple<size_t, 3>({40, 1, 50}) //
-                        , nTuple<size_t, 3>({17, 17, 1}) //
-                        , nTuple<size_t, 3>({50, 10, 50})   //
+                        , nTuple<size_t, 3>({17, 20, 1}) //
+                        , nTuple<size_t, 3>({16, 20, 16})   //
                 ),
 
-                testing::Values(nTuple<Real, 3>({TWOPI, 3 * TWOPI, TWOPI}))
+            testing::Values(nTuple<Real, 3>({0,  TWOPI,0}))
 
         ));
 #endif
