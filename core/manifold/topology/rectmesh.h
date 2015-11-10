@@ -129,6 +129,7 @@ public:
         box(simpla::traits::get<0>(b), simpla::traits::get<1>(b));
     }
 
+
     std::tuple<point_type, point_type> box() const
     {
         return (std::make_tuple(m_coords_min_, m_coords_max_));
@@ -146,6 +147,15 @@ public:
 
         return (std::make_tuple(l_min, l_max));
     }
+
+    template<typename ...Args>
+    void extents(Args &&...args)
+    {
+        box(std::forward<Args>(args)...);
+    }
+
+    auto extents() const
+    DECL_RET_TYPE(box())
 
     constexpr auto dx() const DECL_RET_TYPE(m_dx_);
 

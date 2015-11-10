@@ -26,8 +26,8 @@ TEST(MetricTest, volume)
 
     Real dR = 1;
     Real R0 = 1.0;
-    Real dPhi = 1.0;
-    Real dZ = 1.0;
+    Real dPhi = 2.0;
+    Real dZ = 0.2;
 
 
 
@@ -85,8 +85,8 @@ TEST(MetricTest, volume)
     EXPECT_DOUBLE_EQ(dZ, metric.simplex_length(p[5], p[7]));
 
 
-    EXPECT_DOUBLE_EQ(R0 * dPhi, metric.simplex_length(p[0], p[2]));
-    EXPECT_DOUBLE_EQ(R0 * dPhi, metric.simplex_length(p[4], p[6]));
+    EXPECT_DOUBLE_EQ(R0 * dPhi, metric.simplex_length(p[0], p[4]));
+    EXPECT_DOUBLE_EQ(R0 * dPhi, metric.simplex_length(p[2], p[6]));
     EXPECT_DOUBLE_EQ((R0 + dR) * dPhi, metric.simplex_length(p[1], p[5]));
     EXPECT_DOUBLE_EQ((R0 + dR) * dPhi, metric.simplex_length(p[3], p[7]));
 
@@ -116,6 +116,7 @@ TEST(MetricTest, volume)
                      metric.simplex_area(p[4], p[5], p[7]) + metric.simplex_area(p[4], p[7], p[6]));
 
 
+    CHECK(0.5 * dPhi * dR * (2.0 * R0 + dR) * dZ);
 
     EXPECT_DOUBLE_EQ(0.5 * dPhi * dR * (2.0 * R0 + dR) * dZ,
                      metric.simplex_volume(p[0], p[1], p[2], p[4]) + //

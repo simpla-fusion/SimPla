@@ -5,4 +5,4 @@ TARGET_LINK_LIBRARIES(geqdsk_convert   Xdmf io  parallel utilities )
 
 
 add_library(geqdsk   geqdsk.cpp)
-TARGET_LINK_LIBRARIES(geqdsk  io parallel utilities)
+TARGET_LINK_LIBRARIES(geqdsk   simpla_lib )

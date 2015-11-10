@@ -99,7 +99,15 @@ struct DataSet
 
 
 }; //class DataSet
-
+//template<typename T, typename ...Args>
+//DataSet make_dataset(Args &&...args)
+//{
+//    DataSet res;
+//    res.datatype = traits::datatype<T>::create();
+//    res.dataspace = make_dataspace(std::forward<Args>(args)...);
+//    res.deploy();
+//    return std::move(res);
+//};
 namespace traits
 {
 inline void deploy(DataSet *d) { d->deploy(); }

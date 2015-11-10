@@ -17,25 +17,27 @@
 #include "../gtl/utilities/log.h"
 #include "../gtl/utilities/pretty_stream.h"
 #include "../gtl/ntuple.h"
+#include "../gtl/ntuple_ext.h"
 #include "../physics/constants.h"
-#include "../gtl/io/data_stream.h"
 #include "../numeric/find_root.h"
-#include "../numeric/point_in_polygon.h"
+#include "../geometry/point_in_polygon.h"
 
-namespace simpla {
-constexpr size_t GEqdsk::PhiAxis;
-constexpr size_t GEqdsk::RAxis;
-constexpr size_t GEqdsk::ZAxis;
-
-void GEqdsk::load(std::string const &fname)
+namespace simpla
 {
+constexpr int GEqdsk::PhiAxis;
+constexpr int GEqdsk::RAxis;
+constexpr int GEqdsk::ZAxis;
+
+GEqdsk &GEqdsk::load(std::string const &fname)
+{
+
 
     std::ifstream inFileStream_(fname);
 
     if (!inFileStream_.is_open())
     {
         RUNTIME_ERROR("File " + fname + " is not opend!");
-        return;
+        return *this;
     }
 
     LOGGER << "Load GFile : [" << fname << "]" << std::endl;
@@ -130,11 +132,11 @@ void GEqdsk::load(std::string const &fname)
         m_rzlim_[s][ZAxis] = rzlim[s][1];
         m_rzlim_[s][PhiAxis] = 0;
     }
-    load_profile(fname + "_profiles.txt");
+    return load_profile(fname + "_profiles.txt");
 
 }
 
-void GEqdsk::load_profile(std::string const &fname)
+GEqdsk &GEqdsk::load_profile(std::string const &fname)
 {
     LOGGER << "Load GFile Profiles: [" << fname << "]" << std::endl;
 
@@ -188,6 +190,8 @@ void GEqdsk::load_profile(std::string const &fname)
     LOGGER << "GFile is ready! Profile={" << profile_list << "}" << std::endl;
 
     is_valid_ = true;
+
+    return *this;
 }
 
 //std::string GEqdsk::save(std::string const & path) const
@@ -316,7 +320,7 @@ std::ostream &GEqdsk::print(std::ostream &os)
     return os;
 }
 
-bool GEqdsk::flux_surface(double psi_j, size_t M, coordinates_type *res,
+bool GEqdsk::flux_surface(double psi_j, size_t M, coordinate_type *res,
                           size_t ToPhiAxis, double resolution)
 {
     bool success = true;
@@ -335,9 +339,9 @@ bool GEqdsk::flux_surface(double psi_j, size_t M, coordinates_type *res,
 
     std::function<double(nTuple<double, 3> const &)> fun =
             [this](nTuple<double, 3> const &x) -> double
-                {
+            {
                 return this->psi(x);
-                };
+            };
 
     for (int i = 0; i < M; ++i)
     {
@@ -377,8 +381,8 @@ bool GEqdsk::flux_surface(double psi_j, size_t M, coordinates_type *res,
 }
 
 bool GEqdsk::map_to_flux_coordiantes(
-        std::vector<coordinates_type> const &surface,
-        std::vector<coordinates_type> *res,
+        std::vector<coordinate_type> const &surface,
+        std::vector<coordinate_type> *res,
         std::function<double(double, double)> const &h, size_t PhiAxis)
 {
     bool success = false;

@@ -70,36 +70,31 @@ public:
         Real dz2 = p2[ZAxis] - z0;
         Real dphi2 = p2[PhiAxis] - phi0;
 
-//        Real A = power2(dphi1 * dr2 - dphi2 * dr1) + power2(dphi1 * dz2 - dphi2 * dz1);
-//        Real B = power2(dr1 * dz2 - dr2 * dz1);
-//        Real sqrt_AB = std::sqrt(A * power2(r0) + B);
-//        return A * r0 * (dr1 + dr2) / (6 * sqrt_AB) + sqrt_AB * 0.5;
-
-//        CHECK(dr1);
-//        CHECK(dr2);
-//        CHECK(dz1);
-//        CHECK(dz2);
-//        CHECK(dphi1);
-//        CHECK(dphi2);
-
 
         Real A = std::sqrt(
                 power2(r0) * (power2(dphi1 * dr2 - dphi2 * dr1) + power2(dphi1 * dz2 - dphi2 * dz1)) +
-                power2(dr1 * dz2 - dr2 * dz1)); // S1
+                power2(dr1 * dz2 - dr2 * dz1));
 
 
+        return
 
-        return 0.5 * A/* 2nd */
+            // 2nd
+                0.5 * A
 
-               + r0 * (dr1 + dr2) * (power2(dphi1 * dr2 - dphi2 * dr1) + power2(dphi1 * dz2 - dphi2 * dz1)) /
-                 (6 * A) /* 3rd */
+                // 3rd
+                + r0 * (dr1 + dr2) * (power2(dphi1 * dr2 - dphi2 * dr1) + power2(dphi1 * dz2 - dphi2 * dz1)) /
+                  (6 * A) /* 3rd */
 
+//                // 4th
 //                + power2(dr1 + dr2) * power2(dr1 * dz2 - dr2 * dz1) *
-//                  (power2(dphi1 * dr2 - dphi2 * dr1) + power2(dphi1 * dz2 - dphi2 * dz1)) / (24 * power3(A)) /*4th*/
+//                  (power2(dphi1 * dr2 - dphi2 * dr1) + power2(dphi1 * dz2 - dphi2 * dz1)) / (24 * power3(A))
 //
-//                  - r0 * (dr1 + dr2) * (power2(dr1) + power2(dr2)) * power2(dr1 * dz2 - dr2 * dz1) *
-//                    power2(power2(dphi1 * dr2 - dphi2 * dr1) + power2(dphi1 * dz2 - dphi2 * dz1)) /
-//                    (40 * power3(A) * power2(A))
+//                // 5th
+//                - r0 * (dr1 + dr2) * (power2(dr1) + power2(dr2)) * power2(dr1 * dz2 - dr2 * dz1) *
+//                  power2(power2(dphi1 * dr2 - dphi2 * dr1) + power2(dphi1 * dz2 - dphi2 * dz1)) /
+//                  (40 * power3(A) * power2(A))
+//
+//            //
 
                 ;
 
@@ -126,7 +121,7 @@ public:
         Real dphi3 = p3[PhiAxis] - phi0;
         Real dz3 = p3[ZAxis] - z0;
 
-        return (dr2 + dr3 + 4 * r0 + dr1) *
+        return (dr1 + dr2 + dr3 + 4 * r0) *
                (dphi1 * dr2 * dz3 - dphi1 * dr3 * dz2 - dphi2 * dr1 * dz3 + dphi2 * dr3 * dz1 + dphi3 * dr1 * dz2 -
                 dphi3 * dr2 * dz1) / 24.0;
     }

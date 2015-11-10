@@ -1,5 +1,5 @@
 SET(IO_SRC io.cpp data_stream.cpp)
-add_library(io   ${IO_SRC})
+add_library(io ${IO_SRC})
 
 
 #my_test(data_stream_test    )

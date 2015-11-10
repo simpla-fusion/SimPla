@@ -256,6 +256,7 @@
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/test/mesh_ids_test.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/test/mesh_ids_test.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/time_integrator/time_integrator.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/block.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/corect_mesh.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/map_general.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/map_linear.h" isTestSource="false" />
@@ -270,6 +271,7 @@
       <sourceFolder url="file://$MODULE_DIR$/core/model/geqdsk.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/model/geqdsk_convert.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/model/geqdsk_xdmf.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/model/mesh_snap.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/model/model.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/model/model_traits.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/model/select.h" isTestSource="false" />
@@ -357,6 +359,8 @@
       <sourceFolder url="file://$MODULE_DIR$/example/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/example/em/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/example/em/demo_em.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/example/em/em.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/example/em/em.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/example/general_field_op/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/example/general_field_op/demo_general_field_op.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/example/geometry/CMakeLists.txt" isTestSource="false" />
@@ -370,6 +374,8 @@
       <sourceFolder url="file://$MODULE_DIR$/example/model/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/example/model/demo_model.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/example/pic/CMakeLists.txt" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/example/pic/collision_pic.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/example/pic/collision_pic.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/example/pic/demo_pic.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/example/pic/demo_pic.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/example/probe_particle/CMakeLists.txt" isTestSource="false" />

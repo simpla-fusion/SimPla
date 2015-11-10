@@ -935,7 +935,6 @@ struct MeshIDs_
                             geo.simplex_volume(p[3], p[5], p[7], p[6]) + //
                             geo.simplex_volume(p[3], p[6], p[2], p[5]);
 
-
         }
         //dual
         {

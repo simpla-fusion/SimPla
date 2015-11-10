@@ -1,7 +1,6 @@
 ADD_EXECUTABLE(demo_em demo_em.cpp)
 target_compile_options(demo_em PUBLIC -DCARTESIAN_COORDINATE_SYTEM)
-TARGET_LINK_LIBRARIES(demo_em   simpla_lib)
+TARGET_LINK_LIBRARIES(demo_em simpla_lib)
 
-ADD_EXECUTABLE(demo_em_cylindrical demo_em.cpp)
-target_compile_options(demo_em_cylindrical PUBLIC -DCYLINDRICAL_COORDINATE_SYTEM)
-TARGET_LINK_LIBRARIES(demo_em_cylindrical simpla_lib )
+ADD_EXECUTABLE(em em.cpp)
+TARGET_LINK_LIBRARIES(em simpla_lib geqdsk)

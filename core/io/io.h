@@ -16,7 +16,8 @@
 #include "../dataset/datatype.h"
 #include "data_stream.h"
 
-namespace simpla {
+namespace simpla
+{
 struct DataSet;
 
 /** @addtogroup io
@@ -33,16 +34,15 @@ std::string cd(std::string const &url);
 std::string save(std::string const &url, DataSet const &ds,
                  size_t flag = 0UL);
 
-template<typename T>
-std::string save(std::string const &url, T const *data, int ndims,
-                 size_t const *dims, size_t flag = 0UL)
-{
-    return save(url, make_dataset(data, ndims, dims), flag);
-}
-
-template<typename T>
-auto save(std::string const &name, T const &d, size_t flag = 0UL)
-DECL_RET_TYPE(save(name, make_dataset(d), flag))
+//template<typename T>
+//std::string save(std::string const &url, T const *data, int ndims,
+//                 size_t const *dims, size_t flag = 0UL)
+//{
+//    return save(url, make_dataset(data, ndims, dims), flag);
+//}
+//template<typename T>
+//auto save(std::string const &name, T const &d, size_t flag = 0UL)
+//DECL_RET_TYPE(save(name, make_dataset(d), flag))
 
 #define SAVE(_F_) simpla::save(__STRING(_F_),_F_  )
 #define SAVE_APPEND(_F_) simpla::save(__STRING(_F_),_F_,SP_APPEND  )
@@ -73,6 +73,8 @@ T get_dataset_attribute(std::string const &url)
 {
     return std::move(get_dataset_attribute(url).template as<T>());
 }
+
+
 //template<typename Tuple, size_t ...Is>
 //std::string save_tuple_impl(std::string const & name, Tuple const & d,
 //		index_sequence<Is...>)

@@ -495,7 +495,7 @@ std::tuple<std::string, hid_t> DataStream::pimpl_s::open_file(
 
 	H5_ERROR(H5Pclose(plist_id));
 
-	INFORM << "File [" << filename << "] is opened!" << std::endl;
+	LOGGER << "File [" << filename << "] is opened!" << std::endl;
 
 	return std::make_tuple(filename, f_id);
 
