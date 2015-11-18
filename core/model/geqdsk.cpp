@@ -9,6 +9,7 @@
 
 #include <fstream>
 #include <iomanip>
+#include <iostream>
 #include <iterator>
 #include <map>
 #include <memory>
@@ -27,9 +28,9 @@
 
 namespace simpla
 {
-//constexpr int GEqdsk::PhiAxis;
-//constexpr int GEqdsk::RAxis;
-//constexpr int GEqdsk::ZAxis;
+constexpr int GEqdsk::PhiAxis;
+constexpr int GEqdsk::RAxis;
+constexpr int GEqdsk::ZAxis;
 
 struct GEqdsk::pimpl_s
 {
@@ -172,8 +173,8 @@ void GEqdsk::pimpl_s::load(std::string const &fname)
     inFileStream_ >> std::setw(5) >> n_bbbs >> n_limitr;
 
 
-    auto rzbbb = std::make_shared<Polygon<2> >();
-    auto rzlim = std::make_shared<Polygon<2> >();
+    auto rzbbb = std::make_shared<geometry::Polygon<2> >();
+    auto rzlim = std::make_shared<geometry::Polygon<2> >();
 
     rzbbb->data().resize(n_bbbs);
     rzlim->data().resize(n_limitr);
@@ -181,9 +182,11 @@ void GEqdsk::pimpl_s::load(std::string const &fname)
     inFileStream_ >> std::setw(16) >> rzbbb->data();
     inFileStream_ >> std::setw(16) >> rzlim->data();
 
+    rzbbb->deploy();
+    rzlim->deploy();
+
 
     m_rzbbb_ = std::dynamic_pointer_cast<geometry::Object>(rzbbb);
-
     m_rzlim_ = std::dynamic_pointer_cast<geometry::Object>(rzlim);
 
     load_profile(fname + "_profiles.txt");
@@ -422,7 +425,7 @@ GEqdsk::~GEqdsk() { }
 
 std::string const &GEqdsk::description() const { return m_pimpl_->m_desc_; }
 
-std::tuple<point_type, point_type> GEqdsk::box() const
+std::tuple<GEqdsk::point_type, GEqdsk::point_type> GEqdsk::box() const
 {
     return std::make_tuple(m_pimpl_->m_rzmin_, m_pimpl_->m_rzmax_);
 }

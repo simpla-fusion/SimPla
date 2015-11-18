@@ -27,12 +27,15 @@ template<int NDIMS = 2> class Polygon;
 template<>
 class Polygon<2> : public Object
 {
-    std::vector<nTuple<Real, 2>> m_polygon_;
+    using Object::point_type;
+    typedef nTuple<Real, 3> point2d_type;
+
+    std::vector<point2d_type> m_polygon_;
     std::vector<Real> constant_;
     std::vector<Real> multiple_;
+
 public:
 
-    typedef nTuple<Real, 2> point_type;
 
     Polygon()
     {
@@ -42,14 +45,20 @@ public:
     {
     }
 
-    std::vector<nTuple<Real, 2>> &data()
+    std::vector<point2d_type> &data()
+    {
+        return m_polygon_;
+    };
+
+    std::vector<point2d_type> const &data() const
     {
         return m_polygon_;
     };
 
     void push_back(Real x, Real y)
     {
-        m_polygon_.emplace_back(x, y);
+        point2d_type p{x, y};
+        m_polygon_.push_back(p);
 
         if (m_polygon_.empty())
         {
@@ -58,7 +67,7 @@ public:
         }
         else
         {
-            geometry::extent_box(m_polygon_.back(), &m_x0_, &m_x1_);
+            geometry::extent_box(&m_x0_, &m_x1_, m_polygon_.back());
 
         }
 
@@ -89,10 +98,12 @@ public:
             }
             j = i;
         }
+        m_x0_[2] = std::numeric_limits<Real>::min();
+        m_x1_[2] = std::numeric_limits<Real>::max();
 
     }
 
-    bool box_intersection(point_type *x0, point_type *x1) const
+    int box_intersection(point_type *x0, point_type *x1) const
     {
         return geometry::box_intersection(m_x0_, m_x1_, x0, x1);
     }
@@ -104,13 +115,8 @@ public:
     }
 
 
-    inline int is_inside(point_type const &p) const
-    {
-        return geometry::in_box(p, m_x0_, m_x1_) && is_inside(p[0], p[1]);
-    }
-
 private:
-    inline int is_inside(Real x, Real y) const
+    inline int within(Real x, Real y) const
     {
         size_t num_of_vertex_ = m_polygon_.size();
 
@@ -131,6 +137,18 @@ private:
     }
 
 public:
+    box_type box() const
+    {
+        return box_type(m_x0_, m_x1_);
+    };
+
+    /**
+     * @return  \f$ (x,y,z) \is_inside M\f$ ? 1 : 0
+     */
+    virtual int within(point_type const &x) const
+    {
+        return within(x[0], x[1]);
+    };
 
     template<typename TP>
     bool intersection(TP const &x0, TP const &x1, double error = 0.001) const

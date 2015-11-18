@@ -13,6 +13,7 @@
 #include "../../core/application/application.h"
 #include "../../core/gtl/primitives.h"
 #include "../../core/gtl/type_cast.h"
+#include "../../core/gtl/utilities/pretty_stream.h"
 #include "../../core/io/io.h"
 
 #include "../../core/physics/constants.h"
@@ -27,13 +28,12 @@
 #include "../../core/field/field.h"
 #include "../../core/manifold/pre_define/cylindrical.h"
 
-
 #include "../../core/model/geqdsk.h"
 
 using namespace simpla;
 
 typedef manifold::Cylindrical mesh_type;
-typedef traits::coordinate_system_t<mesh_type> cs;
+typedef geometry::traits::coordinate_system_t<mesh_type> cs;
 static constexpr const int RAxis = cs::RAxis;
 static constexpr const int ZAxis = cs::ZAxis;
 static constexpr const int PhiAxis = cs::PhiAxis;
@@ -74,9 +74,9 @@ SP_APP(em, " Maxwell Eqs.")
 
     geqdsk.load(options["GEQDSK"].as<std::string>(""));
 
-    CHECK(geqdsk.extents());
+//    CHECK(geqdsk.box());
 
-    mesh->extents(geqdsk.extents());
+    mesh->extents(geqdsk.box());
 
 //
 //    mesh->deploy();

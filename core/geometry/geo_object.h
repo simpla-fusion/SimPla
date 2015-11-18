@@ -29,8 +29,6 @@ public:
 
     virtual ~Object() { }
 
-    virtual void deploy() { };
-
     virtual box_type box() const = 0;
 
     /**

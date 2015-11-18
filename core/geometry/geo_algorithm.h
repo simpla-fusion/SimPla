@@ -59,25 +59,25 @@ template<typename T0, typename T1, typename TP>
 Real nearest_point_to_polygon(T0 const &p0, T1 const &p1, TP *x)
 {
     Real dist2 = 0.0;
-    TP p2 = *x;
-    Vec3 u, v;
-
-    u = x - *p0;
-    v = *p1 - *p0;
-
-    Real v2 = inner_product(v, v);
-
-    auto s = inner_product(u, v) / v2;
-
-    if (s < 0) { s = 0; }
-    else if (s > 1) { s = 1; }
+//    TP p2 = *x;
+//    Vec3 u, v;
+//
+//    u = x - *p0;
+//    v = *p1 - *p0;
+//
+//    Real v2 = inner_product(v, v);
+//
+//    auto s = inner_product(u, v) / v2;
+//
+//    if (s < 0) { s = 0; }
+//    else if (s > 1) { s = 1; }
 
 
     return std::sqrt(dist2);
 }
 
-template<typename TS, int N>
-void extent_box(nTuple <TS, N> const &x, nTuple <TS, N> *x0, nTuple<TS, N> *x1)
+template<typename TS, int N, typename TOther>
+void extent_box(nTuple<TS, N> *x0, nTuple<TS, N> *x1, TOther const &x)
 {
     for (int i = 0; i < N; ++i)
     {
@@ -86,11 +86,11 @@ void extent_box(nTuple <TS, N> const &x, nTuple <TS, N> *x0, nTuple<TS, N> *x1)
     }
 }
 
-template<typename TS, typename ...Others, int N>
-void extent_box(nTuple <TS, N> const &y0, Others &&...others, nTuple <TS, N> *x0, nTuple <TS, N> *x1)
+template<typename TS, int N, typename T1, typename ...Others>
+void extent_box(nTuple<TS, N> *x0, nTuple<TS, N> *x1, T1 const &y0, Others &&...others)
 {
-    extent_box(y0, x0, x1);
-    extent_box(std::forward<Others>(others)..., x0, x1);
+    extent_box(x0, x1, y0);
+    extent_box(x0, x1, std::forward<Others>(others)...);
 }
 
 template<typename T0, typename T1, typename TP>
@@ -408,9 +408,9 @@ inline Vec3 reflect_point_by_plane(T0 const &x0, T1 const &p0, T2 const &p1,
 //	}
 //	return std::make_tuple(s, t);
 //}
-template<typename TS, size_t NDIMS>
-bool box_intersection(nTuple <TS, NDIMS> const &l_b, nTuple <TS, NDIMS> const &l_e,
-                      nTuple <TS, NDIMS> *r_b, nTuple <TS, NDIMS> *r_e)
+template<typename TS, int NDIMS, typename TV>
+bool box_intersection(nTuple<TS, NDIMS> const &l_b, nTuple<TS, NDIMS> const &l_e,
+                      TV *r_b, TV *r_e)
 {
     bool has_overlap = false;
 
@@ -439,8 +439,13 @@ bool box_intersection(nTuple <TS, NDIMS> const &l_b, nTuple <TS, NDIMS> const &l
 
     if (has_overlap)
     {
-        *r_b = r_start;
-        *r_e = r_start + r_count;
+        for (int i = 0; i < NDIMS; ++i)
+        {
+
+
+            (*r_b)[i] = r_start[i];
+            (*r_e)[i] = r_start[i] + r_count[i];
+        }
     }
     return has_overlap;
 }
