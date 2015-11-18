@@ -14,23 +14,21 @@
 
 namespace simpla
 {
-
-
-namespace st = simpla::traits;
-namespace gt = simpla::traits;
-
+namespace geometry
+{
 template<typename...> struct Metric;
 
-template<size_t ICARTESIAN_ZAXIS>
+template<int ICARTESIAN_ZAXIS>
 struct Metric<coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS> >
 {
 
-    static constexpr size_t CartesianZAxis = (ICARTESIAN_ZAXIS) % 3;
-    static constexpr size_t CartesianYAxis = (CartesianZAxis + 2) % 3;
-    static constexpr size_t CartesianXAxis = (CartesianZAxis + 1) % 3;
-    typedef gt::point_t<coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS> > point_t;
-    typedef gt::vector_t<coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS> > vector_t;
-    typedef gt::covector_t<coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS> > covector_t;
+
+    static constexpr int CartesianZAxis = (ICARTESIAN_ZAXIS) % 3;
+    static constexpr int CartesianYAxis = (CartesianZAxis + 2) % 3;
+    static constexpr int CartesianXAxis = (CartesianZAxis + 1) % 3;
+    typedef traits::point_t<coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS>> point_t;
+    typedef traits::vector_t<coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS>> vector_t;
+    typedef traits::covector_t<coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS>> covector_t;
 
     /**
      * metric only calculate the volume of simplex
@@ -60,11 +58,15 @@ struct Metric<coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS> >
 
 };
 
+
+}  // namespace geometry
+
+
 namespace traits
 {
 
-template<size_t N, size_t ICARTESIAN_ZAXIS>
-struct type_id<coordinate_system::Cartesian<N, ICARTESIAN_ZAXIS> >
+template<int N, int ICARTESIAN_ZAXIS>
+struct type_id<simpla::geometry::coordinate_system::Cartesian<N, ICARTESIAN_ZAXIS> >
 {
     static std::string name()
     {
@@ -83,21 +85,21 @@ struct type_id<coordinate_system::Cartesian<N, ICARTESIAN_ZAXIS> >
 //template<typename, typename> struct map;
 //
 //
-//template<size_t ZAXIS0, size_t ZAXIS1>
+//template<int ZAXIS0, int ZAXIS1>
 //struct map<coordinate_system::Cartesian<3, ZAXIS0>,
 //        coordinate_system::Cartesian<3, ZAXIS1> >
 //{
 //
-//    static constexpr size_t CartesianZAxis0 = (ZAXIS0) % 3;
-//    static constexpr size_t CartesianYAxis0 = (CartesianZAxis0 + 2) % 3;
-//    static constexpr size_t CartesianXAxis0 = (CartesianZAxis0 + 1) % 3;
+//    static constexpr int CartesianZAxis0 = (ZAXIS0) % 3;
+//    static constexpr int CartesianYAxis0 = (CartesianZAxis0 + 2) % 3;
+//    static constexpr int CartesianXAxis0 = (CartesianZAxis0 + 1) % 3;
 //    typedef gt::point_t<coordinate_system::Cartesian<3, ZAXIS0> > point_t0;
 //    typedef gt::vector_t<coordinate_system::Cartesian<3, ZAXIS0> > vector_t0;
 //    typedef gt::covector_t<coordinate_system::Cartesian<3, ZAXIS0> > covector_t0;
 //
-//    static constexpr size_t CartesianZAxis1 = (ZAXIS1) % 3;
-//    static constexpr size_t CartesianYAxis1 = (CartesianZAxis1 + 2) % 3;
-//    static constexpr size_t CartesianXAxis1 = (CartesianZAxis1 + 1) % 3;
+//    static constexpr int CartesianZAxis1 = (ZAXIS1) % 3;
+//    static constexpr int CartesianYAxis1 = (CartesianZAxis1 + 2) % 3;
+//    static constexpr int CartesianXAxis1 = (CartesianZAxis1 + 1) % 3;
 //    typedef gt::point_t<coordinate_system::Cartesian<3, ZAXIS1> > point_t1;
 //    typedef gt::vector_t<coordinate_system::Cartesian<3, ZAXIS1> > vector_t1;
 //    typedef gt::covector_t<coordinate_system::Cartesian<3, ZAXIS1> > covector_t1;

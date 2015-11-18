@@ -23,22 +23,22 @@ template<typename ...> class Manifold;
 template<typename ...> struct Domain;
 template<typename ...> struct Field;
 
-template<typename TGeo, typename ...Policies>
-class Manifold<TGeo, Policies ...>
-        : public TGeo, public Policies ...
+template<typename TBase, typename ...Policies>
+class Manifold<TBase, Policies ...>
+        : public TBase, public Policies ...
 {
 
-    typedef TGeo geometry_type;
+    typedef TBase base_manifold_type;
 
-    typedef Manifold<geometry_type, Policies ...> this_type;
+    typedef Manifold<base_manifold_type, Policies ...> this_type;
 
 public:
 
-    Manifold() : Policies(static_cast<geometry_type &>(*this))... { }
+    Manifold() : Policies(static_cast<base_manifold_type &>(*this))... { }
 
     virtual ~Manifold() { }
 
-    Manifold(this_type const &other) : geometry_type(other), Policies(other)... { }
+    Manifold(this_type const &other) : base_manifold_type(other), Policies(other)... { }
 
     this_type &operator=(const this_type &other)
     {
@@ -58,26 +58,26 @@ private:
     TEMPLATE_DISPATCH(print, inline, const)
 
 public:
-    void swap(const this_type &other) { _dispatch_swap<geometry_type, Policies...>(other); }
+    void swap(const this_type &other) { _dispatch_swap<base_manifold_type, Policies...>(other); }
 
     template<typename TDict>
     void load(TDict const &dict)
     {
         auto d = dict["Manifold"];
-        _dispatch_load<geometry_type, Policies...>(d);
+        _dispatch_load<base_manifold_type, Policies...>(d);
     }
 
 
     void deploy()
     {
-        _dispatch_deploy<geometry_type, Policies...>();
+        _dispatch_deploy<base_manifold_type, Policies...>();
     }
 
     template<typename OS>
     OS &print(OS &os) const
     {
         os << "Manifold={" << std::endl;
-        _dispatch_print<geometry_type, Policies...>(os);
+        _dispatch_print<base_manifold_type, Policies...>(os);
         os << "}, # Manifold " << std::endl;
         return os;
     }

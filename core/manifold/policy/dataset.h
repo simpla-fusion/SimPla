@@ -53,17 +53,16 @@ public:
     template<size_t IFORM>
     DataSpace dataspace(typename geometry_type::range_type const &r) const
     {
-        typedef typename geometry_type::index_type index_type;
 
         static constexpr int ndims = geometry_type::ndims;
 
-        nTuple<index_type, ndims + 1> f_dims;
-        nTuple<index_type, ndims + 1> f_offset;
-        nTuple<index_type, ndims + 1> f_count;
-        nTuple<index_type, ndims + 1> f_ghost_width;
+        nTuple<size_t, ndims + 1> f_dims;
+        nTuple<size_t, ndims + 1> f_offset;
+        nTuple<size_t, ndims + 1> f_count;
+        nTuple<size_t, ndims + 1> f_ghost_width;
 
-        nTuple<index_type, ndims + 1> m_dims;
-        nTuple<index_type, ndims + 1> m_offset;
+        nTuple<size_t, ndims + 1> m_dims;
+        nTuple<size_t, ndims + 1> m_offset;
 
         int f_ndims = ndims;
 

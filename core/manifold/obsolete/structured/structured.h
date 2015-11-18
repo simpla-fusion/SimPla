@@ -322,7 +322,7 @@ public:
 	 * @name  Coordinate map
 	 * @{
 	 *
-	 *        Topology Manifold       Geometry Manifold
+	 *        Topology Manifold       BaseManifold Manifold
 	 *                        map
 	 *              M      ---------->      G
 	 *              x                       y

@@ -38,7 +38,7 @@ public:
     template<typename TDict>
     void load(TDict const &dict)
     {
-//        ghost_width(dict["GhostWidth"].template as<nTuple<size_t, geometry_type::ndims> >());
+//        ghost_width(dict["GhostWidth"].template as<nTuple<size_t, base_manifold_type::ndims> >());
     }
 
 
@@ -51,10 +51,10 @@ public:
 
     void deploy();
 
-//    const nTuple<size_t, geometry_type::ndims> &ghost_width() const { return m_ghost_width_; }
+//    const nTuple<size_t, base_manifold_type::ndims> &ghost_width() const { return m_ghost_width_; }
 
-//    void ghost_width(const nTuple<size_t, geometry_type::ndims> &gw) { m_ghost_width_ = gw; }
-//    nTuple<size_t, geometry_type::ndims> m_ghost_width_ = {DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH,
+//    void ghost_width(const nTuple<size_t, base_manifold_type::ndims> &gw) { m_ghost_width_ = gw; }
+//    nTuple<size_t, base_manifold_type::ndims> m_ghost_width_ = {DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH,
 //                                                           DEFAULT_GHOST_WIDTH};
 
     void add_link(int const coord_offset[], typename geometry_type::range_type const &send_range,
@@ -104,13 +104,13 @@ void ParallelPolicy<TGeo>::deploy()
     }
 }
 
-//	auto idx_b = geometry_type::unpack_index(geometry_type::m_id_min_);
+//	auto idx_b = base_manifold_type::unpack_index(base_manifold_type::m_id_min_);
 //
-//	auto idx_e = geometry_type::unpack_index(geometry_type::m_id_max_);
+//	auto idx_e = base_manifold_type::unpack_index(base_manifold_type::m_id_max_);
 //
-//	m_mpi_comm_.decompose(geometry_type::ndims, &idx_b[0], &idx_e[0]);
+//	m_mpi_comm_.decompose(base_manifold_type::ndims, &idx_b[0], &idx_e[0]);
 //
-//	for (int i = 0; i < geometry_type::ndims; ++i)
+//	for (int i = 0; i < base_manifold_type::ndims; ++i)
 //	{
 //		if (idx_b[i] + 1 == idx_e[i])
 //		{
@@ -120,11 +120,11 @@ void ParallelPolicy<TGeo>::deploy()
 //		{
 //			ERROR("Dimension is to small to split!["
 ////				" Dimensions= " + type_cast < std::string
-////				> (geometry_type::unpack_index(
+////				> (base_manifold_type::unpack_index(
 ////								m_id_max_ - m_id_min_))
 ////				+ " , Local dimensions=" + type_cast
 ////				< std::string
-////				> (geometry_type::unpack_index(
+////				> (base_manifold_type::unpack_index(
 ////								m_id_local_max_ - m_id_local_min_))
 ////				+ " , Ghost width =" + type_cast
 ////				< std::string > (ghost_width) +
@@ -133,13 +133,13 @@ void ParallelPolicy<TGeo>::deploy()
 //
 //	}
 //
-//	geometry_type::m_id_local_min_ = geometry_type::pack_index(idx_b);
+//	base_manifold_type::m_id_local_min_ = base_manifold_type::pack_index(idx_b);
 //
-//	geometry_type::m_id_local_max_ = geometry_type::pack_index(idx_e);
+//	base_manifold_type::m_id_local_max_ = base_manifold_type::pack_index(idx_e);
 //
-//	geometry_type::m_id_memory_min_ = geometry_type::m_id_local_min_ - geometry_type::pack_index(m_ghost_width_);
+//	base_manifold_type::m_id_memory_min_ = base_manifold_type::m_id_local_min_ - base_manifold_type::pack_index(m_ghost_width_);
 //
-//	geometry_type::m_id_memory_max_ = geometry_type::m_id_local_max_ + geometry_type::pack_index(m_ghost_width_);
+//	base_manifold_type::m_id_memory_max_ = base_manifold_type::m_id_local_max_ + base_manifold_type::pack_index(m_ghost_width_);
 //
 //
 //	nTuple<size_t, MAX_NDIMS_OF_ARRAY> l_dims, l_offset, l_stride, l_count, l_block;
@@ -154,13 +154,13 @@ void ParallelPolicy<TGeo>::deploy()
 //	nTuple<size_t, MAX_NDIMS_OF_ARRAY> send_count, send_offset;
 //	nTuple<size_t, MAX_NDIMS_OF_ARRAY> recv_count, recv_offset;
 //
-//	for (unsigned int tag = 0, tag_e = (1U << (geometry_type::ndims * 2)); tag < tag_e; ++tag)
+//	for (unsigned int tag = 0, tag_e = (1U << (base_manifold_type::ndims * 2)); tag < tag_e; ++tag)
 //	{
 //		nTuple<int, 3> coord_shift;
 //
 //		bool tag_is_valid = true;
 //
-//		for (int n = 0; n < geometry_type::ndims; ++n)
+//		for (int n = 0; n < base_manifold_type::ndims; ++n)
 //		{
 //			if (((tag >> (n * 2)) & 3UL) == 3UL)
 //			{

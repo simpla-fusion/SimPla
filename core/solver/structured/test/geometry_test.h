@@ -175,9 +175,9 @@ TEST_P(TestGeometry, Coordinate)
 //	{
 //		for (auto s : geometry.select(iform))
 //		{
-//			auto IX = geometry_type::DI(0, s);
-//			auto IY = geometry_type::DI(1, s);
-//			auto IZ = geometry_type::DI(2, s);
+//			auto IX = base_manifold_type::DI(0, s);
+//			auto IY = base_manifold_type::DI(1, s);
+//			auto IZ = base_manifold_type::DI(2, s);
 //
 //			ASSERT_DOUBLE_EQ(geometry.cell_volume(s),
 //					geometry.dual_volume(s) * geometry.volume(s));
@@ -216,9 +216,9 @@ TEST_P(TestGeometry, Coordinate)
 ////			geometry.get_first_node_shift(VERTEX));
 ////
 ////	auto s = std::get<0>(idx);
-////	auto IX = geometry_type::DI(0, s) << 1;
-////	auto IY = geometry_type::DI(1, s) << 1;
-////	auto IZ = geometry_type::DI(2, s) << 1;
+////	auto IX = base_manifold_type::DI(0, s) << 1;
+////	auto IY = base_manifold_type::DI(1, s) << 1;
+////	auto IZ = base_manifold_type::DI(2, s) << 1;
 ////
 ////	CHECK_BIT(s);
 ////	CHECK_BIT(IX);

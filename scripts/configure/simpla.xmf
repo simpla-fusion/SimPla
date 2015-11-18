@@ -20,10 +20,10 @@
 	<Information Name='Boundary' BoundartType='Cycle' />			
 
 	<Topology Type="3DCoRectMesh" Dimensions="201 201 11" Ghostwidth="2 2 2" />	
-	<Geometry Type="Origin_DxDyDz" >
+	<BaseManifold Type="Origin_DxDyDz" >
 		<DataItem Format='XML' Dimensions='3'> 0  0  0 </DataItem>
 	 	<DataItem Format='XML' Dimensions='3'> 1  1  1 </DataItem>
-	</Geometry>
+	</BaseManifold>
 	<Information Name="dt"> 1.0  </Information>
 	
 	<Attribute Name="n0" AttributeType="Scalar" Center="Node">

@@ -8,20 +8,10 @@
 #ifndef GEQDSK_H_
 #define GEQDSK_H_
 
-#include <stddef.h>
-#include <algorithm>
-#include <functional>
-#include <iostream>
-#include <map>
-#include <string>
-#include <utility>
-#include <vector>
-
 #include "../gtl/ntuple.h"
 #include "../gtl/primitives.h"
 #include "../gtl/type_traits.h"
-#include "../numeric/interpolation.h"
-#include "model.h"
+#include "../geometry/geo_object.h"
 
 namespace simpla
 {
@@ -40,189 +30,84 @@ namespace simpla
 class GEqdsk
 {
 
-public:
-
-    typedef nTuple<Real, 3> coordinate_type;
-
-    typedef Interpolation<LinearInterpolation, Real, Real> inter_type;
-
-    typedef MultiDimesionInterpolation<BiLinearInterpolation, Real> inter2d_type;
 
 private:
+
     typedef GEqdsk this_type;
+
+    typedef nTuple<Real, 3> point_type;
 
     static constexpr int PhiAxis = 2;
     static constexpr int RAxis = (PhiAxis + 1) % 3;
     static constexpr int ZAxis = (PhiAxis + 2) % 3;
 
-    nTuple<int, 3> m_dims_ = {1, 1, 1};
-    coordinate_type m_rzmin_;
-    coordinate_type m_rzmax_;
-
-    bool is_valid_ = false;
-    std::string m_desc_;
-//	size_t nw;//!< Number of horizontal R grid  points
-//	size_t nh;//!< Number of vertical Z grid points
-    Real m_rdim_; //!< Horizontal dimension in meter of computational box
-    Real m_zdim_; //!< Vertical dimension in meter of computational box
-    Real m_rleft_; //!< Minimum R in meter of rectangular computational box
-    Real m_zmid_; //!< Z of center of computational box in meter
-    Real m_rmaxis_ = 1.0; //!< R of magnetic axis in meter
-    Real zmaxis = 1.0; //!< Z of magnetic axis in meter
-//	Real simag;//!< Poloidal flux at magnetic axis in Weber / rad
-//	Real sibry;//!< Poloidal flux at the plasma boundary in Weber / rad
-    Real m_rcenter_ = 0.5; //!< R in meter of  vacuum toroidal magnetic field BCENTR
-    Real m_bcenter_ = 0.5; //!< Vacuum toroidal magnetic field in Tesla at RCENTR
-    Real m_current_ = 1.0; //!< Plasma current in Ampere
-
-//	coordinates_type rzmin_;
-//	coordinates_type rzmax_;
-
-//	inter_type fpol_; //!< Poloidal current function in m-T $F=RB_T$ on flux grid
-//	inter_type pres_;//!< Plasma pressure in $nt/m^2$ on uniform flux grid
-//	inter_type ffprim_;//!< $FF^\prime(\psi)$ in $(mT)^2/(Weber/rad)$ on uniform flux grid
-//	inter_type pprim_;//!< $P^\prime(\psi)$ in $(nt/m^2)/(Weber/rad)$ on uniform flux grid
-
-    inter2d_type psirz_; //!< Poloidal flux in Webber/rad on the rectangular grid points
-
-//	inter_type qpsi_;//!< q values on uniform flux grid from axis to boundary
-
-    std::vector<coordinate_type> m_rzbbb_; //!< R,Z of boundary points in meter
-    std::vector<coordinate_type> m_rzlim_; //!< R,Z of surrounding limiter contour in meter
-
-    std::map<std::string, inter_type> m_profile_;
-
 public:
 
-    GEqdsk() { }
+    GEqdsk();
 
-    ~GEqdsk() { }
+    ~GEqdsk();
 
-//	std::string save(std::string const & path) const;
+    void load(std::string const &fname);
 
-    this_type &load(std::string const &fname);
-
-    template<typename TGeo>
-    std::shared_ptr<Model<TGeo>> model(TGeo const &) const;
-//
-//	void Write(std::string const &fname);
-
-    this_type &load_profile(std::string const &fname);
-
-    inline Real profile(std::string const &name,
-                        coordinate_type const &x) const
-    {
-        return profile(name, psi(x[RAxis], x[ZAxis]));
-    }
-
-    inline Real profile(std::string const &name, Real R, Real Z) const
-    {
-        return profile(name, psi(R, Z));
-    }
-
-    inline Real profile(std::string const &name, Real p_psi) const
-    {
-        return m_profile_.at(name)(p_psi);
-    }
-
-    std::string const &description() const
-    {
-        return m_desc_;
-    }
-
-    nTuple<int, 3> const &dimensins() const
-    {
-        return m_dims_;
-    }
-
-    std::pair<coordinate_type, coordinate_type> extents() const
-    {
-        return std::make_pair(m_rzmin_, m_rzmax_);
-    }
-
-    bool is_valid() const
-    {
-        return is_valid_;
-    }
+    void load_profile(std::string const &fname);
 
     std::ostream &print(std::ostream &os);
 
-    inline std::vector<coordinate_type> const &boundary() const
-    {
-        return m_rzbbb_;
-    }
+    std::string const &description() const;
 
-    inline std::vector<coordinate_type> const &limiter() const
-    {
-        return m_rzlim_;
-    }
+    std::tuple<point_type, point_type> box() const;
 
-    inline Real psi(Real R, Real Z) const
-    {
-        return psirz_.calculate(R, Z);
-    }
+    std::shared_ptr<geometry::Object> boundary() const;
 
-    inline Real psi(coordinate_type const &x) const
-    {
-        return psirz_.calculate(x[RAxis], x[ZAxis]);
-    }
+    std::shared_ptr<geometry::Object> limiter() const;
+
+    Real psi(Real R, Real Z) const;
+
+    Vec3 grad_psi(Real R, Real Z) const;
+
+    Real profile(std::string const &name, Real p_psi) const;
+
+    Real profile(std::string const &name, Real R, Real Z) const { return profile(name, psi(R, Z)); }
 
     /**
      *
      * @param R
      * @param Z
-     * @return magenetic field on cylindrical coordiantes \f$\left(R,Z,\phi\right)\f$
+     * @return magnetic field on cylindrical coordinates \f$\left(R,Z,\phi\right)\f$
      */
     inline Vec3 B(Real R, Real Z) const
     {
-        auto gradPsi = psirz_.grad(R, Z);
+        auto gradPsi = grad_psi(R, Z);
 
         Vec3 res;
         res[RAxis] = gradPsi[1] / R;
         res[ZAxis] = -gradPsi[0] / R;
-        res[PhiAxis] = profile("fpol", R, Z);
+        res[PhiAxis] = profile("fpol", psi(R, Z));
 
         return std::move(res);
 
     }
 
-    inline auto B(coordinate_type const &x) const
-    DECL_RET_TYPE(B(x[RAxis], x[ZAxis]));
 
     inline Real JT(Real R, Real Z) const
     {
-        return R * profile("pprim", R, Z) + profile("ffprim", R, Z) / R;
+        return R * profile("pprim", psi(R, Z)) + profile("ffprim", psi(R, Z)) / R;
     }
 
-    inline auto JT(coordinate_type const &x) const
-    DECL_RET_TYPE(JT(x[RAxis], x[ZAxis]));
-
-    bool check_profile(std::string const &name) const
-    {
-        return (name == "psi") || (name == "JT") || (name == "B")
-               || (m_profile_.find(name) != m_profile_.end());
-    }
-
-//	coordinates_type map_cylindrical_to_flux(
-//			coordinates_type const & psi_theta_phi, size_t VecZAxis = 2) const;
-//
-//	coordinates_type map_flux_from_cylindrical(coordinates_type const & x,
-//			size_t VecZAxis = 2) const;
     /**
-     *  caculate the contour at \f$\Psi_{j}\in\left[0,1\right]\f$
+     *  calculate the contour at \f$\Psi_{j}\in\left[0,1\right]\f$
      *  \cite  Jardin:2010:CMP:1855040
      * @param psi_j \f$\Psi_j\in\left[0,1\right]\f$
      * @param M  \f$\theta_{i}=i2\pi/N\f$,
      * @param res points coordinats
      *
      * @param ToPhiAxis \f$\in\left(0,1,2\right)\f$,ToPhiAxis the \f$\phi\f$ coordinates component  of result coordinats,
-     * @param resoluton
+     * @param resolution
      * @return   if success return true, else return false
      *
      * \todo need improve!!  only valid for internal flux surface \f$\psi \le 1.0\f$; need x-point support
      */
-    bool flux_surface(Real psi_j, size_t M, coordinate_type *res,
-                      size_t ToPhiAxis = 2, Real resoluton = 0.001);
+    //    bool flux_surface(Real psi_j, size_t M, point_type *res, Real resoluton = 0.001);
 
     /**
      *
@@ -241,20 +126,17 @@ public:
      *   1  | constant volume
      *
      */
-    bool map_to_flux_coordiantes(std::vector<coordinate_type> const &surface,
-                                 std::vector<coordinate_type> *res,
-                                 std::function<Real(Real, Real)> const &h, size_t PhiAxis = 2);
+//    bool map_to_flux_coordiantes(std::vector<point_type> const &surface,
+//                                 std::vector<point_type> *res,
+//                                 std::function<Real(Real, Real)> const &h, size_t PhiAxis = 2);
 
+
+private:
+    struct pimpl_s;
+    std::unique_ptr<pimpl_s> m_pimpl_;
 };
 
 
-template<typename TGeo> std::shared_ptr<Model<TGeo>>
-GEqdsk::model(const TGeo &geo) const
-{
-    auto res = std::make_shared<Model<TGeo>>(geo);
-
-    return res;
-}
 }
 // namespace simpla
 

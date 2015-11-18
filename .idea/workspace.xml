@@ -1,125 +1,150 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="BookmarkManager">
-    <bookmark url="file://$PROJECT_DIR$/core/gtl/containers/unordered_set.h" line="485" />
-    <bookmark url="file://$PROJECT_DIR$/core/field/field_dense.h" line="76" mnemonic="1" />
-    <bookmark url="file://$PROJECT_DIR$/core/io/io_ext.h" line="23" />
-  </component>
   <component name="CMakeRunConfigurationManager" shouldGenerate="true" assignedExecutableTargets="true" buildAllGenerated="true">
     <generated>
-      <config projectName="SimPla" targetName="ExperimentalUpdate" />
-      <config projectName="SimPla" targetName="ExperimentalCoverage" />
-      <config projectName="SimPla" targetName="lua_state_test" />
-      <config projectName="SimPla" targetName="ContinuousMemCheck" />
-      <config projectName="SimPla" targetName="NightlyUpdate" />
-      <config projectName="SimPla" targetName="ntuple_test" />
-      <config projectName="SimPla" targetName="application" />
-      <config projectName="SimPla" targetName="ContinuousUpdate" />
-      <config projectName="SimPla" targetName="multi_thread_test" />
-      <config projectName="SimPla" targetName="kinetic_particle_test" />
-      <config projectName="SimPla" targetName="all_clion" />
-      <config projectName="SimPla" targetName="lhw" />
-      <config projectName="SimPla" targetName="em" />
-      <config projectName="SimPla" targetName="field_diff_calculus_cartesian_test" />
-      <config projectName="SimPla" targetName="em_cylindrical" />
-      <config projectName="SimPla" targetName="ExperimentalMemCheck" />
-      <config projectName="SimPla" targetName="dataset" />
-      <config projectName="SimPla" targetName="NightlyMemoryCheck" />
-      <config projectName="SimPla" targetName="ExperimentalSubmit" />
-      <config projectName="SimPla" targetName="simpla" />
-      <config projectName="SimPla" targetName="googletest" />
-      <config projectName="SimPla" targetName="demo_misc3" />
-      <config projectName="SimPla" targetName="demo_misc2" />
-      <config projectName="SimPla" targetName="demo" />
-      <config projectName="SimPla" targetName="NightlyBuild" />
-      <config projectName="SimPla" targetName="NightlySubmit" />
-      <config projectName="SimPla" targetName="demo_probe_particle" />
-      <config projectName="SimPla" targetName="ContinuousSubmit" />
-      <config projectName="SimPla" targetName="properties_test" />
-      <config projectName="SimPla" targetName="ContinuousBuild" />
-      <config projectName="SimPla" targetName="physics" />
-      <config projectName="SimPla" targetName="parallel" />
       <config projectName="SimPla" targetName="NightlyStart" />
+      <config projectName="SimPla" targetName="Nightly" />
+      <config projectName="SimPla" targetName="kinetic_particle_test" />
+      <config projectName="SimPla" targetName="geqdsk_convert" />
+      <config projectName="SimPla" targetName="metric_test" />
+      <config projectName="SimPla" targetName="ExperimentalMemCheck" />
+      <config projectName="SimPla" targetName="simpla_lib" />
+      <config projectName="SimPla" targetName="parallel" />
       <config projectName="SimPla" targetName="NightlyMemCheck" />
+      <config projectName="SimPla" targetName="NightlyConfigure" />
+      <config projectName="SimPla" targetName="docs" />
+      <config projectName="SimPla" targetName="ContinuousStart" />
+      <config projectName="SimPla" targetName="field_basic_algebra_test" />
+      <config projectName="SimPla" targetName="NightlyCoverage" />
       <config projectName="SimPla" targetName="demo_general_field_op" />
       <config projectName="SimPla" targetName="demo_em" />
-      <config projectName="SimPla" targetName="geometry_test" />
-      <config projectName="SimPla" targetName="NightlyTest" />
-      <config projectName="SimPla" targetName="field_basic_algebra_test" />
-      <config projectName="SimPla" targetName="ExperimentalConfigure" />
-      <config projectName="SimPla" targetName="collision_pic" />
-      <config projectName="SimPla" targetName="field_diff_calculus_cylindrical_test" />
-      <config projectName="SimPla" targetName="NightlyCoverage" />
-      <config projectName="SimPla" targetName="probe_particle_test" />
+      <config projectName="SimPla" targetName="NightlyMemoryCheck" />
+      <config projectName="SimPla" targetName="lua_state_test" />
       <config projectName="SimPla" targetName="utilities" />
-      <config projectName="SimPla" targetName="mesh_ids_test" />
-      <config projectName="SimPla" targetName="metric_test" />
-      <config projectName="SimPla" targetName="log_test" />
-      <config projectName="SimPla" targetName="geqdsk_convert" />
-      <config projectName="SimPla" targetName="simpla_aux" />
-      <config projectName="SimPla" targetName="ExperimentalBuild" />
-      <config projectName="SimPla" targetName="Continuous" />
-      <config projectName="SimPla" targetName="ContinuousStart" />
-      <config projectName="SimPla" targetName="memory_pool_test" />
-      <config projectName="SimPla" targetName="Experimental" />
-      <config projectName="SimPla" targetName="docs" />
-      <config projectName="SimPla" targetName="simpla_lib" />
-      <config projectName="SimPla" targetName="geqdsk" />
+      <config projectName="SimPla" targetName="field_diff_calculus_cartesian_test" />
+      <config projectName="SimPla" targetName="NightlyBuild" />
       <config projectName="SimPla" targetName="ExperimentalTest" />
-      <config projectName="SimPla" targetName="ExperimentalStart" />
+      <config projectName="SimPla" targetName="ntuple_test" />
+      <config projectName="SimPla" targetName="demo_probe_particle" />
       <config projectName="SimPla" targetName="context" />
-      <config projectName="SimPla" targetName="demo_geometry" />
-      <config projectName="SimPla" targetName="ContinuousTest" />
-      <config projectName="SimPla" targetName="demo_em_cylindrical" />
+      <config projectName="SimPla" targetName="googletest" />
+      <config projectName="SimPla" targetName="ExperimentalCoverage" />
+      <config projectName="SimPla" targetName="Experimental" />
+      <config projectName="SimPla" targetName="ContinuousUpdate" />
+      <config projectName="SimPla" targetName="collision_pic" />
       <config projectName="SimPla" targetName="ContinuousConfigure" />
+      <config projectName="SimPla" targetName="ContinuousSubmit" />
       <config projectName="SimPla" targetName="io" />
-      <config projectName="SimPla" targetName="demo_mhd" />
+      <config projectName="SimPla" targetName="ContinuousTest" />
+      <config projectName="SimPla" targetName="ExperimentalConfigure" />
       <config projectName="SimPla" targetName="ContinuousCoverage" />
+      <config projectName="SimPla" targetName="properties_test" />
+      <config projectName="SimPla" targetName="demo_misc3" />
+      <config projectName="SimPla" targetName="demo_misc2" />
+      <config projectName="SimPla" targetName="ContinuousMemCheck" />
       <config projectName="SimPla" targetName="demo_pic" />
-      <config projectName="SimPla" targetName="NightlyConfigure" />
-      <config projectName="SimPla" targetName="demo_model" />
-      <config projectName="SimPla" targetName="Nightly" />
+      <config projectName="SimPla" targetName="field_diff_calculus_cylindrical_test" />
+      <config projectName="SimPla" targetName="NightlyTest" />
+      <config projectName="SimPla" targetName="geqdsk" />
+      <config projectName="SimPla" targetName="application" />
+      <config projectName="SimPla" targetName="multi_thread_test" />
+      <config projectName="SimPla" targetName="ContinuousBuild" />
+      <config projectName="SimPla" targetName="Continuous" />
       <config projectName="SimPla" targetName="demo_misc" />
+      <config projectName="SimPla" targetName="NightlyUpdate" />
+      <config projectName="SimPla" targetName="physics" />
+      <config projectName="SimPla" targetName="geometry_test" />
+      <config projectName="SimPla" targetName="demo_mhd" />
+      <config projectName="SimPla" targetName="NightlySubmit" />
+      <config projectName="SimPla" targetName="ExperimentalStart" />
+      <config projectName="SimPla" targetName="ExperimentalUpdate" />
+      <config projectName="SimPla" targetName="demo_model" />
+      <config projectName="SimPla" targetName="demo" />
+      <config projectName="SimPla" targetName="log_test" />
+      <config projectName="SimPla" targetName="ExperimentalSubmit" />
+      <config projectName="SimPla" targetName="all_clion" />
+      <config projectName="SimPla" targetName="dataset" />
+      <config projectName="SimPla" targetName="em" />
+      <config projectName="SimPla" targetName="mesh_ids_test" />
+      <config projectName="SimPla" targetName="probe_particle_test" />
+      <config projectName="SimPla" targetName="lhw" />
+      <config projectName="SimPla" targetName="ExperimentalBuild" />
+      <config projectName="SimPla" targetName="memory_pool_test" />
+      <config projectName="SimPla" targetName="demo_geometry" />
     </generated>
   </component>
   <component name="CMakeSettings" AUTO_RELOAD="false" GENERATION_PASS_SYSTEM_ENVIRONMENT="true">
     <ADDITIONAL_GENERATION_ENVIRONMENT>
       <envs>
         <env name="CC" value="/usr/bin/clang-3.6" />
+        <env name="CXX_FLAGS" value="--std=c++11" />
         <env name="CXX" value="/usr/bin/clang++-3.6" />
       </envs>
     </ADDITIONAL_GENERATION_ENVIRONMENT>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="8efbd43d-8992-43f8-9555-f0e951692589" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/core/io/io_ext.h" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/core/manifold/topology/block.h" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/core/model/mesh_snap.h" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/core/model/model.cpp" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/example/em/em.cpp" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/example/em/em.h" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/example/em/em.lua" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/example/pic/collision_pic.cpp" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/example/pic/collision_pic.h" />
+    <list default="true" id="705662a6-4fa6-4a3f-beff-e386801b96a4" name="Default" comment="">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/core/geometry/polygon.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/core/model/revolve_polygon.h" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/core/model/trans_revolve.h" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/.cproject" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/.project" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/core/manifold/geometry/geometry_traits.h" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/core/manifold/geometry/metric.h" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/core/manifold/geometry/metric_euclidean.h" afterPath="" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/core/geometry/geometric_algorithm.h" afterPath="$PROJECT_DIR$/core/geometry/geo_algorithm.h" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/core/manifold/geometry/geometry.h" afterPath="$PROJECT_DIR$/core/manifold/base_manifold.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/SimPla.iml" afterPath="$PROJECT_DIR$/.idea/SimPla.iml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/dictionaries/salmon.xml" afterPath="$PROJECT_DIR$/.idea/dictionaries/salmon.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/CMakeLists.txt" afterPath="$PROJECT_DIR$/core/CMakeLists.txt" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/dataset/dataset.h" afterPath="$PROJECT_DIR$/core/dataset/dataset.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/field/test/field_diff_calculus_test.cpp" afterPath="$PROJECT_DIR$/core/field/test/field_diff_calculus_test.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/application/application_main.cpp" afterPath="$PROJECT_DIR$/core/application/application_main.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/dataset/dataspace.h" afterPath="$PROJECT_DIR$/core/dataset/dataspace.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/dataset/datatype.h" afterPath="$PROJECT_DIR$/core/dataset/datatype.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/field/test/field_diff_calculus_test.h" afterPath="$PROJECT_DIR$/core/field/test/field_diff_calculus_test.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/geometry/boost_gemetry_adapted.h" afterPath="$PROJECT_DIR$/core/geometry/boost_gemetry_adapted.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/geometry/coordinate_system.h" afterPath="$PROJECT_DIR$/core/geometry/coordinate_system.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/geometry/cs_cartesian.h" afterPath="$PROJECT_DIR$/core/geometry/cs_cartesian.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/geometry/cs_cylindrical.h" afterPath="$PROJECT_DIR$/core/geometry/cs_cylindrical.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/geometry/test/metric_test.cpp" afterPath="$PROJECT_DIR$/core/geometry/test/metric_test.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/io/CMakeLists.txt" afterPath="$PROJECT_DIR$/core/io/CMakeLists.txt" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/io/data_stream.cpp" afterPath="$PROJECT_DIR$/core/io/data_stream.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/io/io.h" afterPath="$PROJECT_DIR$/core/io/io.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/topology/mesh_ids.h" afterPath="$PROJECT_DIR$/core/manifold/topology/mesh_ids.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/geometry/cut_cell.h" afterPath="$PROJECT_DIR$/core/geometry/cut_cell.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/geometry/geo_object.h" afterPath="$PROJECT_DIR$/core/geometry/geo_object.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/geometry/implicit_function.h" afterPath="$PROJECT_DIR$/core/geometry/implicit_function.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/geometry/point_in_polygon.h" afterPath="$PROJECT_DIR$/core/geometry/point_in_polygon.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/geometry/select.h" afterPath="$PROJECT_DIR$/core/geometry/select.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/gtl/ntuple.h" afterPath="$PROJECT_DIR$/core/gtl/ntuple.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/gtl/ntuple_ext.h" afterPath="$PROJECT_DIR$/core/gtl/ntuple_ext.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/gtl/type_traits.h" afterPath="$PROJECT_DIR$/core/gtl/type_traits.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/io/io_ext.h" afterPath="$PROJECT_DIR$/core/io/io_ext.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/calculate/fvm_structured.h" afterPath="$PROJECT_DIR$/core/manifold/calculate/fvm_structured.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/calculus.h" afterPath="$PROJECT_DIR$/core/manifold/calculus.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/manifold.h" afterPath="$PROJECT_DIR$/core/manifold/manifold.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/manifold_traits.h" afterPath="$PROJECT_DIR$/core/manifold/manifold_traits.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/obsolete/structured/structured.h" afterPath="$PROJECT_DIR$/core/manifold/obsolete/structured/structured.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/obsolete/structured/test/geometry_test.h" afterPath="$PROJECT_DIR$/core/manifold/obsolete/structured/test/geometry_test.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/policy/dataset.h" afterPath="$PROJECT_DIR$/core/manifold/policy/dataset.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/policy/parallel.h" afterPath="$PROJECT_DIR$/core/manifold/policy/parallel.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/pre_define/cartesian.h" afterPath="$PROJECT_DIR$/core/manifold/pre_define/cartesian.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/pre_define/cylindrical.h" afterPath="$PROJECT_DIR$/core/manifold/pre_define/cylindrical.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/pre_define/mock.h" afterPath="$PROJECT_DIR$/core/manifold/pre_define/mock.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/pre_define/predefine.h" afterPath="$PROJECT_DIR$/core/manifold/pre_define/predefine.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/test/mesh_ids_test.cpp" afterPath="$PROJECT_DIR$/core/manifold/test/mesh_ids_test.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/time_integrator/time_integrator.h" afterPath="$PROJECT_DIR$/core/manifold/time_integrator/time_integrator.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/topology/corect_mesh.h" afterPath="$PROJECT_DIR$/core/manifold/topology/corect_mesh.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/topology/rectmesh.h" afterPath="$PROJECT_DIR$/core/manifold/topology/rectmesh.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/model/CMakeLists.txt" afterPath="$PROJECT_DIR$/core/model/CMakeLists.txt" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/topology/structured.h" afterPath="$PROJECT_DIR$/core/manifold/topology/structured.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/model/geqdsk.cpp" afterPath="$PROJECT_DIR$/core/model/geqdsk.cpp" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/model/geqdsk.h" afterPath="$PROJECT_DIR$/core/model/geqdsk.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/model/model.h" afterPath="$PROJECT_DIR$/core/model/model.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/example/em/CMakeLists.txt" afterPath="$PROJECT_DIR$/example/em/CMakeLists.txt" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/example/pic/CMakeLists.txt" afterPath="$PROJECT_DIR$/example/pic/CMakeLists.txt" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/model/select.h" afterPath="$PROJECT_DIR$/core/model/select.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/numeric/find_root.h" afterPath="$PROJECT_DIR$/core/numeric/find_root.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/solver/structured/test/geometry_test.h" afterPath="$PROJECT_DIR$/core/solver/structured/test/geometry_test.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/example/mhd/demo_mhd.cpp" afterPath="$PROJECT_DIR$/example/mhd/demo_mhd.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/example/pic/collision_pic.cpp" afterPath="$PROJECT_DIR$/example/pic/collision_pic.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/scripts/configure/mesh.xmf" afterPath="$PROJECT_DIR$/scripts/configure/mesh.xmf" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/scripts/configure/simpla.xmf" afterPath="$PROJECT_DIR$/scripts/configure/simpla.xmf" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/scripts/gfile/g038300.03900.xmf" afterPath="$PROJECT_DIR$/scripts/gfile/g038300.03900.xmf" />
     </list>
     <ignored path="SimPla.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -140,14 +165,239 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="collision_pic.cpp" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/example/pic/collision_pic.cpp">
+      <file leaf-file-name="ntuple.h" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/gtl/ntuple.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.24415056">
-              <caret line="93" column="35" selection-start-line="93" selection-start-column="35" selection-end-line="93" selection-end-column="35" />
+            <state vertical-scroll-proportion="-7.6363635">
+              <caret line="21" column="0" selection-start-line="21" selection-start-column="0" selection-end-line="21" selection-end-column="0" />
               <folding>
-                <element signature="e#75#101#0" expanded="true" />
+                <element signature="e#243#262#0" expanded="true" />
+                <element signature="e#1496#1510#0" expanded="true" />
+                <element signature="e#1597#1607#0" expanded="true" />
+                <element signature="e#1633#1643#0" expanded="true" />
+                <element signature="e#1951#1963#0" expanded="true" />
+                <element signature="e#2035#2064#0" expanded="true" />
+                <element signature="e#2182#2195#0" expanded="true" />
+                <element signature="e#2363#2379#0" expanded="true" />
+                <element signature="e#2778#2791#0" expanded="true" />
+                <element signature="e#3067#3080#0" expanded="true" />
+                <element signature="e#3221#3234#0" expanded="true" />
+                <element signature="e#3391#3420#0" expanded="true" />
+                <element signature="e#3849#3862#0" expanded="true" />
+                <element signature="e#3969#3982#0" expanded="true" />
+                <element signature="e#4105#4149#0" expanded="true" />
+                <element signature="e#4614#4627#0" expanded="true" />
+                <element signature="e#4771#4784#0" expanded="true" />
+                <element signature="e#4945#4975#0" expanded="true" />
+                <element signature="e#5776#5798#0" expanded="true" />
+                <element signature="e#5942#5954#0" expanded="true" />
+                <element signature="e#6298#6311#0" expanded="true" />
+                <element signature="e#6452#6465#0" expanded="true" />
+                <element signature="e#6606#6619#0" expanded="true" />
+                <element signature="e#6760#6773#0" expanded="true" />
+                <element signature="e#6915#6928#0" expanded="true" />
+                <element signature="e#7075#7088#0" expanded="true" />
+                <element signature="e#7243#7269#0" expanded="true" />
+                <element signature="e#7467#7496#0" expanded="true" />
+                <element signature="e#7703#7715#0" expanded="true" />
+                <element signature="e#8093#8115#0" expanded="true" />
+                <element signature="e#8239#8269#0" expanded="true" />
+                <element signature="e#8367#8389#0" expanded="true" />
+                <element signature="e#8478#8492#0" expanded="true" />
+                <element signature="e#8524#8538#0" expanded="true" />
+                <element signature="e#8576#8602#0" expanded="true" />
+                <element signature="e#8685#8728#0" expanded="true" />
+                <element signature="e#8885#8921#0" expanded="true" />
+                <element signature="e#9029#9055#0" expanded="true" />
+                <element signature="e#9144#9160#0" expanded="true" />
+                <element signature="e#9231#9247#0" expanded="true" />
+                <element signature="e#9350#9372#0" expanded="true" />
+                <element signature="e#9591#9603#0" expanded="true" />
+                <element signature="e#9665#9687#0" expanded="true" />
+                <element signature="e#9881#9904#0" expanded="true" />
+                <element signature="e#10069#10083#0" expanded="true" />
+                <element signature="e#10116#10130#0" expanded="true" />
+                <element signature="e#10212#10262#0" expanded="true" />
+                <element signature="e#10440#10478#0" expanded="true" />
+                <element signature="e#10619#10657#0" expanded="true" />
+                <element signature="e#10798#10826#0" expanded="true" />
+                <element signature="e#10954#11002#0" expanded="true" />
+                <element signature="e#11311#11341#0" expanded="true" />
+                <element signature="e#11480#11510#0" expanded="true" />
+                <element signature="e#11608#11638#0" expanded="true" />
+                <element signature="e#11798#11826#0" expanded="true" />
+                <element signature="e#12013#12041#0" expanded="true" />
+                <element signature="e#12184#12217#0" expanded="true" />
+                <element signature="e#12372#12405#0" expanded="true" />
+                <element signature="e#12576#12616#0" expanded="true" />
+                <element signature="e#12907#12926#0" expanded="true" />
+                <element signature="e#12963#12989#0" expanded="true" />
+                <element signature="e#13029#13052#0" expanded="true" />
+                <element signature="e#13092#13104#0" expanded="true" />
+                <element signature="e#13195#13207#0" expanded="true" />
+                <element signature="e#13305#13317#0" expanded="true" />
+                <element signature="e#13740#13752#0" expanded="true" />
+                <element signature="e#15614#15664#0" expanded="true" />
+                <element signature="e#16557#16565#0" expanded="true" />
+                <element signature="e#16598#16618#0" expanded="true" />
+                <element signature="e#16667#16706#0" expanded="true" />
+                <element signature="e#16994#16996#0" expanded="true" />
+                <element signature="e#17035#17074#0" expanded="true" />
+                <element signature="e#17214#17267#0" expanded="true" />
+                <element signature="e#21025#21054#0" expanded="true" />
+                <element signature="e#21151#21180#0" expanded="true" />
+                <element signature="e#21273#21302#0" expanded="true" />
+                <element signature="e#21441#21470#0" expanded="true" />
+                <element signature="e#21589#21615#0" expanded="true" />
+                <element signature="e#21686#21722#0" expanded="true" />
+                <element signature="e#22237#22266#0" expanded="true" />
+                <element signature="e#22780#22812#0" expanded="true" />
+                <element signature="e#22933#22982#0" expanded="true" />
+                <element signature="e#23250#23286#0" expanded="true" />
+                <element signature="e#23561#23597#0" expanded="true" />
+                <element signature="e#23693#23716#0" expanded="true" />
+                <element signature="e#23814#23826#0" expanded="true" />
+                <element signature="e#23889#23911#0" expanded="true" />
+                <element signature="e#24017#24033#0" expanded="true" />
+                <element signature="e#24148#24160#0" expanded="true" />
+                <element signature="e#24218#24240#0" expanded="true" />
+                <element signature="e#24312#24334#0" expanded="true" />
+                <element signature="e#24439#24461#0" expanded="true" />
+                <element signature="e#24556#24586#0" expanded="true" />
+                <element signature="e#26889#26919#0" expanded="true" />
+                <element signature="e#27121#27151#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="dataset.h" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/dataset/dataset.h">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="16" column="0" selection-start-line="16" selection-start-column="0" selection-end-line="16" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="type_traits.h" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/gtl/type_traits.h">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="-0.14545454">
+              <caret line="81" column="24" selection-start-line="81" selection-start-column="24" selection-end-line="81" selection-end-column="24" />
+              <folding>
+                <element signature="e#642#668#0" expanded="true" />
+                <element signature="e#702#720#0" expanded="true" />
+                <element signature="e#744#758#0" expanded="true" />
+                <element signature="e#1874#1898#0" expanded="true" />
+                <element signature="e#2251#2270#0" expanded="true" />
+                <element signature="e#2768#2806#0" expanded="true" />
+                <element signature="e#2993#3037#0" expanded="true" />
+                <element signature="e#3180#3200#0" expanded="true" />
+                <element signature="e#3561#3568#0" expanded="true" />
+                <element signature="e#5520#5543#0" expanded="true" />
+                <element signature="e#5792#5804#0" expanded="true" />
+                <element signature="e#5857#5876#0" expanded="true" />
+                <element signature="e#7180#7187#0" expanded="true" />
+                <element signature="e#7800#7832#0" expanded="true" />
+                <element signature="e#8029#8036#0" expanded="true" />
+                <element signature="e#8421#8447#0" expanded="true" />
+                <element signature="e#9570#9589#0" expanded="true" />
+                <element signature="e#9614#9636#0" expanded="true" />
+                <element signature="e#9974#9993#0" expanded="true" />
+                <element signature="e#10253#10286#0" expanded="true" />
+                <element signature="e#10646#10656#0" expanded="true" />
+                <element signature="e#10688#10706#0" expanded="true" />
+                <element signature="e#11192#11199#0" expanded="true" />
+                <element signature="e#11960#11982#0" expanded="true" />
+                <element signature="e#12052#12074#0" expanded="true" />
+                <element signature="e#12151#12173#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="datatype.h" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/dataset/datatype.h">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="19" column="26" selection-start-line="19" selection-start-column="26" selection-end-line="19" selection-end-column="26" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="fvm_structured.h" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/core/manifold/calculate/fvm_structured.h">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.24242425">
+              <caret line="113" column="5" selection-start-line="113" selection-start-column="5" selection-end-line="113" selection-end-column="5" />
+              <folding>
+                <element signature="e#2916#2946#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="datatype.cpp" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/dataset/datatype.cpp">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="65" column="10" selection-start-line="65" selection-start-column="10" selection-end-line="65" selection-end-column="10" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="misc_utilities.h" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/gtl/utilities/misc_utilities.h">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="18" column="0" selection-start-line="18" selection-start-column="0" selection-end-line="18" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="utilities.h" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/gtl/utilities/utilities.h">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="13" column="0" selection-start-line="13" selection-start-column="0" selection-end-line="13" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ntuple_ext.h" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/gtl/ntuple_ext.h">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.21818182">
+              <caret line="21" column="0" selection-start-line="21" selection-start-column="0" selection-end-line="21" selection-end-column="0" />
+              <folding>
+                <element signature="e#134#152#0" expanded="true" />
+                <element signature="e#285#303#0" expanded="true" />
+                <element signature="e#328#347#0" expanded="true" />
+                <element signature="e#512#531#0" expanded="true" />
+                <element signature="e#738#775#0" expanded="true" />
+                <element signature="e#1096#1115#0" expanded="true" />
+                <element signature="e#1322#1341#0" expanded="true" />
+                <marker date="1447848532242" expanded="true" signature="275:1919" placeholder="{...}" />
+                <marker date="1447848532242" expanded="true" signature="1027:1897" placeholder="{...}" />
+                <marker date="1447848532242" expanded="true" signature="1160:1311" placeholder="{...}" />
+                <marker date="1447848532242" expanded="true" signature="1387:1558" placeholder="{...}" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="polygon.h" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/geometry/polygon.h">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="63" column="0" selection-start-line="63" selection-start-column="0" selection-end-line="63" selection-end-column="0" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -155,102 +405,56 @@
     </leaf>
   </component>
   <component name="Git.Settings">
-    <option name="PREVIOUS_COMMIT_AUTHORS">
-      <list>
-        <option value="Salmon &lt;yuzhi@ipp.ac.cn&gt;" />
-        <option value="salmon" />
-      </list>
-    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/CMakeLists.txt" />
-        <option value="$PROJECT_DIR$/core/gtl/expression_template.h" />
-        <option value="$PROJECT_DIR$/core/manifold/topology/map_primary.h" />
-        <option value="$PROJECT_DIR$/core/manifold/topology/map_orthogonal.h" />
-        <option value="$PROJECT_DIR$/core/manifold/test/geometry_test.cpp" />
-        <option value="$PROJECT_DIR$/core/gtl/utilities/log.h" />
-        <option value="$PROJECT_DIR$/core/manifold/topology/corect_mesh.h" />
-        <option value="$PROJECT_DIR$/core/manifold/calculus.h" />
-        <option value="$PROJECT_DIR$/core/geometry/cs_cartesian.h" />
-        <option value="$PROJECT_DIR$/core/manifold/topology/map_general.h" />
-        <option value="$PROJECT_DIR$/core/manifold/topology/map_linear.h" />
-        <option value="$PROJECT_DIR$/core/manifold/pre_define/cylindrical.h" />
-        <option value="$PROJECT_DIR$/core/tmp" />
-        <option value="$PROJECT_DIR$/core/geometry/geometry.h" />
-        <option value="$PROJECT_DIR$/core/manifold/manifold_traits.h" />
-        <option value="$PROJECT_DIR$/core/geometry/coordinate_system.h" />
-        <option value="$PROJECT_DIR$/core/gtl/type_traits_ext.h" />
-        <option value="$PROJECT_DIR$/core/manifold/topology/mesh_block.h" />
-        <option value="$PROJECT_DIR$/core/manifold/pre_define/cartesian.h" />
-        <option value="$PROJECT_DIR$/core/geometry/CMakeLists.txt" />
-        <option value="$PROJECT_DIR$/core/geometry/test/CMakeLists.txt" />
-        <option value="$PROJECT_DIR$/core/gtl/type_traits.h" />
-        <option value="$PROJECT_DIR$/core/manifold/test/mesh_ids_test.cpp" />
-        <option value="$PROJECT_DIR$/core/geometry/cs_cylindrical.h" />
-        <option value="$PROJECT_DIR$/core/geometry/test/metric_test.cpp" />
-        <option value="$PROJECT_DIR$/core/manifold/calculate/fvm_structured.h" />
-        <option value="$PROJECT_DIR$/core/manifold/topology/mesh_ids.h" />
-        <option value="$PROJECT_DIR$/core/field/test/field_diff_calculus_test.cpp" />
-        <option value="$PROJECT_DIR$/core/field/test/field_diff_calculus_test.h" />
-        <option value="$PROJECT_DIR$/example/em/em.lua" />
-        <option value="$PROJECT_DIR$/example/em/em_cylindrical.cpp" />
-        <option value="$PROJECT_DIR$/core/model/CMakeLists.txt" />
-        <option value="$PROJECT_DIR$/core/io/CMakeLists.txt" />
-        <option value="$PROJECT_DIR$/example/em/CMakeLists.txt" />
+        <option value="$PROJECT_DIR$/core/model/revolve_polygon.h" />
+        <option value="$PROJECT_DIR$/core/geo_algorithm/geo_algorithm.h" />
+        <option value="$PROJECT_DIR$/core/numeric/find_root.h" />
+        <option value="$PROJECT_DIR$/core/model/model_base.h" />
+        <option value="$PROJECT_DIR$/core/geo_algorithm/polygon.h" />
+        <option value="$PROJECT_DIR$/core/geometry/model_base.h" />
         <option value="$PROJECT_DIR$/core/CMakeLists.txt" />
-        <option value="$PROJECT_DIR$/core/model/mesh_snap.h" />
+        <option value="$PROJECT_DIR$/core/model/model.h" />
+        <option value="$PROJECT_DIR$/core/geometry/boost_gemetry_adapted.h" />
+        <option value="$PROJECT_DIR$/core/geometry/cut_cell.h" />
         <option value="$PROJECT_DIR$/core/model/geqdsk.h" />
         <option value="$PROJECT_DIR$/core/model/geqdsk.cpp" />
-        <option value="$PROJECT_DIR$/example/em/em.cpp" />
-        <option value="$PROJECT_DIR$/core/manifold/topology/rectmesh.h" />
-        <option value="$PROJECT_DIR$/core/model/model.cpp" />
         <option value="$PROJECT_DIR$/core/manifold/geometry/geometry.h" />
-        <option value="$PROJECT_DIR$/core/manifold/topology/block.h" />
-        <option value="$PROJECT_DIR$/core/model/model.h" />
-        <option value="$PROJECT_DIR$/example/pic/collision_pic.h" />
-        <option value="$PROJECT_DIR$/example/pic/CMakeLists.txt" />
-        <option value="$PROJECT_DIR$/core/dataset/dataset.h" />
-        <option value="$PROJECT_DIR$/core/io/io.h" />
-        <option value="$PROJECT_DIR$/example/pic/collision_pic.cpp" />
-        <option value="$PROJECT_DIR$/core/io/io_ext.h" />
-        <option value="$PROJECT_DIR$/core/io/data_stream.cpp" />
+        <option value="$PROJECT_DIR$/core/manifold/geometry/metric_euclidean.h" />
+        <option value="$PROJECT_DIR$/core/manifold/geometry/base_manifold.h" />
+        <option value="$PROJECT_DIR$/core/manifold/manifold.h" />
+        <option value="$PROJECT_DIR$/core/manifold/geometry/geometry_traits.h" />
+        <option value="$PROJECT_DIR$/core/manifold/pre_define/predefine.h" />
+        <option value="$PROJECT_DIR$/core/manifold/base_manifold.h" />
+        <option value="$PROJECT_DIR$/core/manifold/topology/corect_mesh.h" />
+        <option value="$PROJECT_DIR$/core/manifold/pre_define/cartesian.h" />
+        <option value="$PROJECT_DIR$/core/geometry/cs_cartesian.h" />
+        <option value="$PROJECT_DIR$/core/manifold/pre_define/cylindrical.h" />
+        <option value="$PROJECT_DIR$/core/manifold/calculus.h" />
+        <option value="$PROJECT_DIR$/core/manifold/manifold_traits.h" />
+        <option value="$PROJECT_DIR$/core/geometry/cs_cylindrical.h" />
+        <option value="$PROJECT_DIR$/core/field/test/field_diff_calculus_test.h" />
+        <option value="$PROJECT_DIR$/core/geometry/coordinate_system.h" />
+        <option value="$PROJECT_DIR$/core/geometry/geo_object.h" />
+        <option value="$PROJECT_DIR$/core/geometry/polygon.h" />
+        <option value="$PROJECT_DIR$/core/geometry/geo_algorithm.h" />
+        <option value="$PROJECT_DIR$/core/gtl/ntuple_ext.h" />
+        <option value="$PROJECT_DIR$/core/gtl/ntuple.h" />
+        <option value="$PROJECT_DIR$/core/dataset/datatype.h" />
+        <option value="$PROJECT_DIR$/core/gtl/type_traits.h" />
+        <option value="$PROJECT_DIR$/core/manifold/calculate/fvm_structured.h" />
       </list>
     </option>
   </component>
-  <component name="JsBuildToolGruntFileManager" detection-done="true" />
-  <component name="JsGulpfileManager">
-    <detection-done>true</detection-done>
-  </component>
   <component name="OCFindUsagesOptions" text="true" ivars="false" properties="true" derivedClasses="false" />
   <component name="ProjectFrameBounds">
-    <option name="x" value="1920" />
-    <option name="width" value="1914" />
-    <option name="height" value="1080" />
-  </component>
-  <component name="ProjectInspectionProfilesVisibleTreeState">
-    <entry key="Project Default">
-      <profile-state>
-        <expanded-state>
-          <State>
-            <id />
-          </State>
-          <State>
-            <id>C/C++</id>
-          </State>
-          <State>
-            <id>Type checksC/C++</id>
-          </State>
-        </expanded-state>
-        <selected-state>
-          <State>
-            <id>Lua</id>
-          </State>
-        </selected-state>
-      </profile-state>
-    </entry>
+    <option name="x" value="1918" />
+    <option name="y" value="-23" />
+    <option name="width" value="1924" />
+    <option name="height" value="1107" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="false">
     <OptionsSetting value="true" id="Add" />
@@ -259,7 +463,7 @@
     <OptionsSetting value="true" id="Update" />
     <OptionsSetting value="true" id="Status" />
     <OptionsSetting value="true" id="Edit" />
-    <ConfirmationsSetting value="2" id="Add" />
+    <ConfirmationsSetting value="0" id="Add" />
     <ConfirmationsSetting value="0" id="Remove" />
   </component>
   <component name="ProjectView">
@@ -270,8 +474,8 @@
       <showLibraryContents />
       <hideEmptyPackages />
       <abbreviatePackageNames />
-      <autoscrollToSource ProjectPane="true" />
-      <autoscrollFromSource ProjectPane="true" />
+      <autoscrollToSource />
+      <autoscrollFromSource />
       <sortByType />
       <manualOrder />
       <foldersAlwaysOnTop value="true" />
@@ -284,327 +488,22 @@
               <option name="myItemId" value="SimPla" />
               <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
             </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="External Libraries" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ExternalLibrariesNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Header Search Paths" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.NamedLibraryElementNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="SimPla" />
-              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="External Libraries" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ExternalLibrariesNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Header Search Paths" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.NamedLibraryElementNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="include" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="SimPla" />
-              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="External Libraries" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ExternalLibrariesNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Header Search Paths" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.NamedLibraryElementNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="include" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="c++" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="SimPla" />
-              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="External Libraries" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ExternalLibrariesNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Header Search Paths" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.NamedLibraryElementNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="include" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="c++" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="4.8" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="SimPla" />
-              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="External Libraries" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ExternalLibrariesNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Header Search Paths" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.NamedLibraryElementNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="include" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="c++" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="4.8" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="bits" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="SimPla" />
-              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="SimPla" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="SimPla" />
-              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="SimPla" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="example" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="SimPla" />
-              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="SimPla" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="example" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="pic" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="SimPla" />
-              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="SimPla" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="example" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="em" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="SimPla" />
-              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="SimPla" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="core" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="SimPla" />
-              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="SimPla" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="core" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="particle" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="SimPla" />
-              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="SimPla" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="core" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="particle" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="obsolete" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="SimPla" />
-              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="SimPla" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="core" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="model" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="SimPla" />
-              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="SimPla" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="core" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="io" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="SimPla" />
-              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="SimPla" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="core" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="gtl" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="SimPla" />
-              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="SimPla" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="core" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="dataset" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
           </PATH>
         </subPane>
       </pane>
     </panes>
   </component>
   <component name="PropertiesComponent">
-    <property name="recentsLimit" value="5" />
-    <property name="settings.editor.selected.configurable" value="reference.settingsdialog.IDE.editor.colors.Font" />
+    <property name="settings.editor.selected.configurable" value="CMakeSettings" />
     <property name="settings.editor.splitter.proportion" value="0.2" />
-    <property name="js.buildTools.grunt.node_interpreter" value="" />
-    <property name="js.buildTools.grunt.grunt-cli.package" value="" />
-    <property name="js.buildTools.gulp.node_interpreter" value="" />
-    <property name="js.buildTools.gulp.gulp_package_dir" value="" />
-    <property name="SearchEverywhereHistoryKey" value="&#9;FILE&#9;file:///home/salmon/workspace/code/SimPla/core/field/test/field_diff_calculus_test.h" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/core/manifold/topology/corect_mesh_copy.h" />
-    <property name="two.files.diff.last.used.file" value="$PROJECT_DIR$/core/manifold/topology/corect_mesh_copy.h" />
     <property name="FullScreen" value="true" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/core/manifold/test" />
-      <recent name="$PROJECT_DIR$/core/gtl/iterator" />
-      <recent name="$PROJECT_DIR$/core/gtl/range" />
-      <recent name="$PROJECT_DIR$/core/gtl/utilities" />
-      <recent name="$PROJECT_DIR$/core/particle" />
-    </key>
-    <key name="CopyFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/core/manifold/topology" />
+      <recent name="$PROJECT_DIR$/core/manifold" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.collision_pic">
+  <component name="RunManager" selected="Application.field_diff_calculus_cartesian_test">
     <configuration default="true" type="CMakeGoogleTestRunConfigurationType" factoryName="Google Test" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="SimPla" TARGET_NAME="all_clion" CONFIG_NAME="Debug" TEST_MODE="SUITE_TEST">
       <envs />
       <method />
@@ -737,10 +636,6 @@
       <envs />
       <method />
     </configuration>
-    <configuration default="false" name="simpla" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="SimPla" TARGET_NAME="simpla" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="SimPla" RUN_TARGET_NAME="simpla">
-      <envs />
-      <method />
-    </configuration>
     <configuration default="false" name="context" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="SimPla" TARGET_NAME="context" CONFIG_NAME="Debug">
       <envs />
       <method />
@@ -749,7 +644,7 @@
       <envs />
       <method />
     </configuration>
-    <configuration default="false" name="simpla_aux" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="SimPla" TARGET_NAME="simpla_aux" CONFIG_NAME="Debug">
+    <configuration default="false" name="simpla_lib" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="SimPla" TARGET_NAME="simpla_lib" CONFIG_NAME="Debug">
       <envs />
       <method />
     </configuration>
@@ -762,6 +657,18 @@
       <method />
     </configuration>
     <configuration default="false" name="field_basic_algebra_test" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="SimPla" TARGET_NAME="field_basic_algebra_test" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="SimPla" RUN_TARGET_NAME="field_basic_algebra_test">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="field_diff_calculus_cartesian_test" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="SimPla" TARGET_NAME="field_diff_calculus_cartesian_test" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="SimPla" RUN_TARGET_NAME="field_diff_calculus_cartesian_test">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="field_diff_calculus_cylindrical_test" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="SimPla" TARGET_NAME="field_diff_calculus_cylindrical_test" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="SimPla" RUN_TARGET_NAME="field_diff_calculus_cylindrical_test">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="metric_test" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="SimPla" TARGET_NAME="metric_test" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="SimPla" RUN_TARGET_NAME="metric_test">
       <envs />
       <method />
     </configuration>
@@ -790,6 +697,14 @@
       <method />
     </configuration>
     <configuration default="false" name="io" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="SimPla" TARGET_NAME="io" CONFIG_NAME="Debug">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="geometry_test" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="SimPla" TARGET_NAME="geometry_test" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="SimPla" RUN_TARGET_NAME="geometry_test">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="mesh_ids_test" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="SimPla" TARGET_NAME="mesh_ids_test" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="SimPla" RUN_TARGET_NAME="mesh_ids_test">
       <envs />
       <method />
     </configuration>
@@ -829,7 +744,11 @@
       <envs />
       <method />
     </configuration>
-    <configuration default="false" name="demo_em_cylindrical" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="SimPla" TARGET_NAME="demo_em_cylindrical" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="SimPla" RUN_TARGET_NAME="demo_em_cylindrical">
+    <configuration default="false" name="demo_em" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="SimPla" TARGET_NAME="demo_em" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="SimPla" RUN_TARGET_NAME="demo_em">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="em" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="SimPla" TARGET_NAME="em" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="SimPla" RUN_TARGET_NAME="em">
       <envs />
       <method />
     </configuration>
@@ -861,55 +780,19 @@
       <envs />
       <method />
     </configuration>
-    <configuration default="false" name="demo_probe_particle" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="SimPla" TARGET_NAME="demo_probe_particle" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="SimPla" RUN_TARGET_NAME="demo_probe_particle">
-      <envs />
-      <method />
-    </configuration>
-    <configuration default="false" name="demo_pic" type="CMakeRunConfiguration" factoryName="Application" PROGRAM_PARAMS="-i /home/salmon/workspace/code/SimPla/example/pic/demo_pic.lua" WORKING_DIR="" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="SimPla" TARGET_NAME="demo_pic" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="SimPla" RUN_TARGET_NAME="demo_pic">
-      <envs />
-      <method />
-    </configuration>
-    <configuration default="false" name="demo_em" type="CMakeRunConfiguration" factoryName="Application" PROGRAM_PARAMS="-i /home/salmon/workspace/code/SimPla/example/em/demo_em.lua -n 10" WORKING_DIR="" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="SimPla" TARGET_NAME="demo_em" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="SimPla" RUN_TARGET_NAME="demo_em">
-      <envs />
-      <method />
-    </configuration>
-    <configuration default="false" name="simpla_lib" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="SimPla" TARGET_NAME="simpla_lib" CONFIG_NAME="Debug">
-      <envs />
-      <method />
-    </configuration>
-    <configuration default="false" name="mesh_ids_test" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="SimPla" TARGET_NAME="mesh_ids_test" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="SimPla" RUN_TARGET_NAME="mesh_ids_test">
-      <envs />
-      <method />
-    </configuration>
-    <configuration default="false" name="geometry_test" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="SimPla" TARGET_NAME="geometry_test" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="SimPla" RUN_TARGET_NAME="geometry_test">
-      <envs />
-      <method />
-    </configuration>
-    <configuration default="false" name="field_diff_calculus_cartesian_test" type="CMakeRunConfiguration" factoryName="Application" PROGRAM_PARAMS="--gtest_filter=*" WORKING_DIR="" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="SimPla" TARGET_NAME="field_diff_calculus_cartesian_test" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="SimPla" RUN_TARGET_NAME="field_diff_calculus_cartesian_test">
-      <envs />
-      <method />
-    </configuration>
-    <configuration default="false" name="field_diff_calculus_cylindrical_test" type="CMakeRunConfiguration" factoryName="Application" PROGRAM_PARAMS="--gtest_filter=DiffCalculusCylindrical/FETLTest.curl1/3" WORKING_DIR="" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="SimPla" TARGET_NAME="field_diff_calculus_cylindrical_test" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="SimPla" RUN_TARGET_NAME="field_diff_calculus_cylindrical_test">
-      <envs />
-      <method />
-    </configuration>
-    <configuration default="false" name="metric_test" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="SimPla" TARGET_NAME="metric_test" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="SimPla" RUN_TARGET_NAME="metric_test">
-      <envs />
-      <method />
-    </configuration>
-    <configuration default="false" name="em_cylindrical" type="CMakeRunConfiguration" factoryName="Application" PROGRAM_PARAMS="-i /home/salmon/workspace/code/SimPla/example/em/em.lua" WORKING_DIR="" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="SimPla" TARGET_NAME="em_cylindrical" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="SimPla" RUN_TARGET_NAME="em_cylindrical">
-      <envs />
-      <method />
-    </configuration>
-    <configuration default="false" name="em" type="CMakeRunConfiguration" factoryName="Application" PROGRAM_PARAMS="-i /home/salmon/workspace/code/SimPla/example/em/em.lua" WORKING_DIR="" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="SimPla" TARGET_NAME="em" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="SimPla" RUN_TARGET_NAME="em">
-      <envs />
-      <method />
-    </configuration>
     <configuration default="false" name="collision_pic" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="SimPla" TARGET_NAME="collision_pic" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="SimPla" RUN_TARGET_NAME="collision_pic">
       <envs />
       <method />
     </configuration>
-    <list size="74">
+    <configuration default="false" name="demo_pic" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="SimPla" TARGET_NAME="demo_pic" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="SimPla" RUN_TARGET_NAME="demo_pic">
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="false" name="demo_probe_particle" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="SimPla" TARGET_NAME="demo_probe_particle" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="SimPla" RUN_TARGET_NAME="demo_probe_particle">
+      <envs />
+      <method />
+    </configuration>
+    <list size="70">
       <item index="0" class="java.lang.String" itemvalue="Application.Build All" />
       <item index="1" class="java.lang.String" itemvalue="Application.all_clion" />
       <item index="2" class="java.lang.String" itemvalue="Application.Continuous" />
@@ -941,207 +824,79 @@
       <item index="28" class="java.lang.String" itemvalue="Application.NightlySubmit" />
       <item index="29" class="java.lang.String" itemvalue="Application.NightlyTest" />
       <item index="30" class="java.lang.String" itemvalue="Application.NightlyUpdate" />
-      <item index="31" class="java.lang.String" itemvalue="Application.simpla" />
-      <item index="32" class="java.lang.String" itemvalue="Application.context" />
-      <item index="33" class="java.lang.String" itemvalue="Application.lhw" />
-      <item index="34" class="java.lang.String" itemvalue="Application.simpla_aux" />
-      <item index="35" class="java.lang.String" itemvalue="Application.application" />
-      <item index="36" class="java.lang.String" itemvalue="Application.dataset" />
-      <item index="37" class="java.lang.String" itemvalue="Application.field_basic_algebra_test" />
-      <item index="38" class="java.lang.String" itemvalue="Application.log_test" />
-      <item index="39" class="java.lang.String" itemvalue="Application.lua_state_test" />
-      <item index="40" class="java.lang.String" itemvalue="Application.memory_pool_test" />
-      <item index="41" class="java.lang.String" itemvalue="Application.ntuple_test" />
-      <item index="42" class="java.lang.String" itemvalue="Application.properties_test" />
-      <item index="43" class="java.lang.String" itemvalue="Application.utilities" />
-      <item index="44" class="java.lang.String" itemvalue="Application.io" />
-      <item index="45" class="java.lang.String" itemvalue="Application.geqdsk" />
-      <item index="46" class="java.lang.String" itemvalue="Application.geqdsk_convert" />
-      <item index="47" class="java.lang.String" itemvalue="Application.parallel" />
-      <item index="48" class="java.lang.String" itemvalue="Application.multi_thread_test" />
-      <item index="49" class="java.lang.String" itemvalue="Application.kinetic_particle_test" />
-      <item index="50" class="java.lang.String" itemvalue="Application.probe_particle_test" />
-      <item index="51" class="java.lang.String" itemvalue="Application.physics" />
-      <item index="52" class="java.lang.String" itemvalue="Application.docs" />
-      <item index="53" class="java.lang.String" itemvalue="Application.demo" />
-      <item index="54" class="java.lang.String" itemvalue="Application.demo_em_cylindrical" />
-      <item index="55" class="java.lang.String" itemvalue="Application.demo_general_field_op" />
-      <item index="56" class="java.lang.String" itemvalue="Application.demo_geometry" />
-      <item index="57" class="java.lang.String" itemvalue="Application.demo_mhd" />
-      <item index="58" class="java.lang.String" itemvalue="Application.demo_misc" />
-      <item index="59" class="java.lang.String" itemvalue="Application.demo_misc2" />
-      <item index="60" class="java.lang.String" itemvalue="Application.demo_misc3" />
-      <item index="61" class="java.lang.String" itemvalue="Application.demo_model" />
-      <item index="62" class="java.lang.String" itemvalue="Application.demo_probe_particle" />
-      <item index="63" class="java.lang.String" itemvalue="Application.demo_pic" />
-      <item index="64" class="java.lang.String" itemvalue="Application.demo_em" />
-      <item index="65" class="java.lang.String" itemvalue="Application.simpla_lib" />
-      <item index="66" class="java.lang.String" itemvalue="Application.mesh_ids_test" />
-      <item index="67" class="java.lang.String" itemvalue="Application.geometry_test" />
-      <item index="68" class="java.lang.String" itemvalue="Application.field_diff_calculus_cartesian_test" />
-      <item index="69" class="java.lang.String" itemvalue="Application.field_diff_calculus_cylindrical_test" />
-      <item index="70" class="java.lang.String" itemvalue="Application.metric_test" />
-      <item index="71" class="java.lang.String" itemvalue="Application.em_cylindrical" />
-      <item index="72" class="java.lang.String" itemvalue="Application.em" />
-      <item index="73" class="java.lang.String" itemvalue="Application.collision_pic" />
+      <item index="31" class="java.lang.String" itemvalue="Application.context" />
+      <item index="32" class="java.lang.String" itemvalue="Application.lhw" />
+      <item index="33" class="java.lang.String" itemvalue="Application.simpla_lib" />
+      <item index="34" class="java.lang.String" itemvalue="Application.application" />
+      <item index="35" class="java.lang.String" itemvalue="Application.dataset" />
+      <item index="36" class="java.lang.String" itemvalue="Application.field_basic_algebra_test" />
+      <item index="37" class="java.lang.String" itemvalue="Application.field_diff_calculus_cartesian_test" />
+      <item index="38" class="java.lang.String" itemvalue="Application.field_diff_calculus_cylindrical_test" />
+      <item index="39" class="java.lang.String" itemvalue="Application.metric_test" />
+      <item index="40" class="java.lang.String" itemvalue="Application.log_test" />
+      <item index="41" class="java.lang.String" itemvalue="Application.lua_state_test" />
+      <item index="42" class="java.lang.String" itemvalue="Application.memory_pool_test" />
+      <item index="43" class="java.lang.String" itemvalue="Application.ntuple_test" />
+      <item index="44" class="java.lang.String" itemvalue="Application.properties_test" />
+      <item index="45" class="java.lang.String" itemvalue="Application.utilities" />
+      <item index="46" class="java.lang.String" itemvalue="Application.io" />
+      <item index="47" class="java.lang.String" itemvalue="Application.geometry_test" />
+      <item index="48" class="java.lang.String" itemvalue="Application.mesh_ids_test" />
+      <item index="49" class="java.lang.String" itemvalue="Application.geqdsk" />
+      <item index="50" class="java.lang.String" itemvalue="Application.geqdsk_convert" />
+      <item index="51" class="java.lang.String" itemvalue="Application.parallel" />
+      <item index="52" class="java.lang.String" itemvalue="Application.multi_thread_test" />
+      <item index="53" class="java.lang.String" itemvalue="Application.kinetic_particle_test" />
+      <item index="54" class="java.lang.String" itemvalue="Application.probe_particle_test" />
+      <item index="55" class="java.lang.String" itemvalue="Application.physics" />
+      <item index="56" class="java.lang.String" itemvalue="Application.docs" />
+      <item index="57" class="java.lang.String" itemvalue="Application.demo" />
+      <item index="58" class="java.lang.String" itemvalue="Application.demo_em" />
+      <item index="59" class="java.lang.String" itemvalue="Application.em" />
+      <item index="60" class="java.lang.String" itemvalue="Application.demo_general_field_op" />
+      <item index="61" class="java.lang.String" itemvalue="Application.demo_geometry" />
+      <item index="62" class="java.lang.String" itemvalue="Application.demo_mhd" />
+      <item index="63" class="java.lang.String" itemvalue="Application.demo_misc" />
+      <item index="64" class="java.lang.String" itemvalue="Application.demo_misc2" />
+      <item index="65" class="java.lang.String" itemvalue="Application.demo_misc3" />
+      <item index="66" class="java.lang.String" itemvalue="Application.demo_model" />
+      <item index="67" class="java.lang.String" itemvalue="Application.collision_pic" />
+      <item index="68" class="java.lang.String" itemvalue="Application.demo_pic" />
+      <item index="69" class="java.lang.String" itemvalue="Application.demo_probe_particle" />
     </list>
   </component>
   <component name="ShelveChangesManager" show_recycled="false" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="8efbd43d-8992-43f8-9555-f0e951692589" name="Default" comment="" />
-      <created>1445066557033</created>
+      <changelist id="705662a6-4fa6-4a3f-beff-e386801b96a4" name="Default" comment="" />
+      <created>1447792212604</created>
       <option name="number" value="Default" />
-      <updated>1445066557033</updated>
+      <updated>1447792212604</updated>
     </task>
-    <task id="LOCAL-00001" summary="snapshot">
-      <created>1445226253062</created>
-      <option name="number" value="00001" />
-      <option name="project" value="LOCAL" />
-      <updated>1445226253062</updated>
-    </task>
-    <task id="LOCAL-00002" summary="snapshot">
-      <created>1445231016597</created>
-      <option name="number" value="00002" />
-      <option name="project" value="LOCAL" />
-      <updated>1445231016597</updated>
-    </task>
-    <task id="LOCAL-00003" summary="snapshot">
-      <created>1445240702198</created>
-      <option name="number" value="00003" />
-      <option name="project" value="LOCAL" />
-      <updated>1445240702198</updated>
-    </task>
-    <task id="LOCAL-00004" summary="snapshot">
-      <created>1445262113724</created>
-      <option name="number" value="00004" />
-      <option name="project" value="LOCAL" />
-      <updated>1445262113724</updated>
-    </task>
-    <task id="LOCAL-00005" summary="snapshot">
-      <created>1445380564455</created>
-      <option name="number" value="00005" />
-      <option name="project" value="LOCAL" />
-      <updated>1445380564455</updated>
-    </task>
-    <task id="LOCAL-00006" summary="snapshot">
-      <created>1445380576308</created>
-      <option name="number" value="00006" />
-      <option name="project" value="LOCAL" />
-      <updated>1445380576308</updated>
-    </task>
-    <task id="LOCAL-00007" summary="snapshot">
-      <created>1445415985684</created>
-      <option name="number" value="00007" />
-      <option name="project" value="LOCAL" />
-      <updated>1445415985684</updated>
-    </task>
-    <task id="LOCAL-00008" summary="enable openmp &quot;parallel for&quot; in domain::range_type">
-      <created>1445484605955</created>
-      <option name="number" value="00008" />
-      <option name="project" value="LOCAL" />
-      <updated>1445484605955</updated>
-    </task>
-    <task id="LOCAL-00009" summary="add block_iterator&#10;add splittable range&#10;modify MeshIDs_">
-      <created>1445860840209</created>
-      <option name="number" value="00009" />
-      <option name="project" value="LOCAL" />
-      <updated>1445860840209</updated>
-    </task>
-    <task id="LOCAL-00010" summary="fix bug in mesh_ids">
-      <created>1445916108599</created>
-      <option name="number" value="00010" />
-      <option name="project" value="LOCAL" />
-      <updated>1445916108599</updated>
-    </task>
-    <task id="LOCAL-00011" summary="field basic algebra test pass&#10;field diff. calculus test pass">
-      <created>1445918870490</created>
-      <option name="number" value="00011" />
-      <option name="project" value="LOCAL" />
-      <updated>1445918870490</updated>
-    </task>
-    <task id="LOCAL-00012" summary="&#10;field diff. calculus cylindrical test pass">
-      <created>1445922737582</created>
-      <option name="number" value="00012" />
-      <option name="project" value="LOCAL" />
-      <updated>1445922737582</updated>
-    </task>
-    <task id="LOCAL-00013" summary="&#10;field diff. calculus cylindrical test pass">
-      <created>1445934631340</created>
-      <option name="number" value="00013" />
-      <option name="project" value="LOCAL" />
-      <updated>1445934631340</updated>
-    </task>
-    <task id="LOCAL-00014" summary="before change corectmesh">
-      <created>1446019122874</created>
-      <option name="number" value="00014" />
-      <option name="project" value="LOCAL" />
-      <updated>1446019122874</updated>
-    </task>
-    <task id="LOCAL-00015" summary="add mesh_block">
-      <created>1446020714892</created>
-      <option name="number" value="00015" />
-      <option name="project" value="LOCAL" />
-      <updated>1446020714892</updated>
-    </task>
-    <task id="LOCAL-00016" summary="snapshot">
-      <created>1446086764454</created>
-      <option name="number" value="00016" />
-      <option name="project" value="LOCAL" />
-      <updated>1446086764454</updated>
-    </task>
-    <task id="LOCAL-00017" summary="update algorithm for mesh.volume">
-      <created>1446179310070</created>
-      <option name="number" value="00017" />
-      <option name="project" value="LOCAL" />
-      <updated>1446179310070</updated>
-    </task>
-    <task id="LOCAL-00018" summary="add simplex_volume to Metric;&#10;change MeshIDs::get_element_volume_in_cell&#10;&#10;">
-      <created>1446188570835</created>
-      <option name="number" value="00018" />
-      <option name="project" value="LOCAL" />
-      <updated>1446188570835</updated>
-    </task>
-    <task id="LOCAL-00019" summary="test metric&#10;">
-      <created>1446618367001</created>
-      <option name="number" value="00019" />
-      <option name="project" value="LOCAL" />
-      <updated>1446618367001</updated>
-    </task>
-    <option name="localTasksCounter" value="20" />
     <servers />
   </component>
-  <component name="TodoView">
-    <todo-panel id="selected-file">
-      <is-autoscroll-to-source value="true" />
-    </todo-panel>
-    <todo-panel id="all">
-      <are-packages-shown value="true" />
-      <is-autoscroll-to-source value="true" />
-    </todo-panel>
-  </component>
   <component name="ToolWindowManager">
-    <frame x="1920" y="0" width="1914" height="1080" extended-state="4" />
+    <frame x="1918" y="-23" width="1924" height="1107" extended-state="6" />
     <editor active="false" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.15706806" sideWeight="0.49154335" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32777777" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33931947" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="CMake" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33145276" sideWeight="0.49364576" order="11" side_tool="false" content_ui="tabs" />
-      <window_info id="LuaJ" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32962668" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.34461537" sideWeight="0.5063543" order="8" side_tool="true" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.329188" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4584121" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.21662071" sideWeight="0.49577168" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32734153" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
-      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.19023438" sideWeight="0.50845665" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4621928" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.25239617" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33017975" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="CMake" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32766762" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="LuaJ" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32907662" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32923368" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.24920128" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3286119" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.325811" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32923368" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
@@ -1156,466 +911,567 @@
   <component name="VcsContentAnnotationSettings">
     <option name="myLimit" value="2678400000" />
   </component>
-  <component name="VcsManagerConfiguration">
-    <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
-    <option name="CHECK_NEW_TODO" value="false" />
-    <MESSAGE value="enable openmp &quot;parallel for&quot; in domain::range_type" />
-    <MESSAGE value="add block_iterator&#10;add splittable range&#10;modify MeshIDs_" />
-    <MESSAGE value="fix bug in mesh_ids" />
-    <MESSAGE value="field basic algebra test pass&#10;field diff. calculus test pass" />
-    <MESSAGE value="&#10;field diff. calculus cylindrical test pass" />
-    <MESSAGE value="before change corectmesh" />
-    <MESSAGE value="add mesh_block" />
-    <MESSAGE value="snapshot" />
-    <MESSAGE value="update algorithm for mesh.volume" />
-    <MESSAGE value="add simplex_volume to Metric;&#10;change MeshIDs::get_element_volume_in_cell&#10;&#10;" />
-    <MESSAGE value="test metric&#10;" />
-    <option name="LAST_COMMIT_MESSAGE" value="test metric&#10;" />
-  </component>
   <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file:///usr/include/lua5.2/lua.h</url>
-          <line>352</line>
-          <option name="timeStamp" value="16" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="NONE" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/core/gtl/range/block_range.h</url>
-          <log-expression expression="//        struct iterator : public std::iterator&lt;&#10;//                typename std::bidirectional_iterator_tag, id_type,&#10;//                difference_type&gt;&#10;//        {&#10;//        private:&#10;//            id_type m_min_, m_max_, m_self_;&#10;//        public:&#10;//            iterator(id_type const &amp;min, id_type const &amp;max,&#10;//                     id_type const &amp;self) :&#10;//                    m_min_(min), m_max_(max), m_self_(self)&#10;//            {&#10;//            }&#10;//&#10;//            iterator(id_type const &amp;min, id_type const &amp;max) :&#10;//                    m_min_(min), m_max_(max), m_self_(min)&#10;//            {&#10;//            }&#10;//&#10;//            iterator(iterator const &amp;other) :&#10;//                    m_min_(other.m_min_), m_max_(other.m_max_), m_self_(&#10;//                    other.m_self_)&#10;//            {&#10;//            }&#10;//&#10;//            ~iterator()&#10;//            {&#10;//&#10;//            }&#10;//&#10;//            typedef iterator this_type;&#10;//&#10;//            bool operator==(this_type const &amp;other) const&#10;//            {&#10;//                return m_self_ == other.m_self_;&#10;//            }&#10;//&#10;//            bool operator!=(this_type const &amp;other) const&#10;//            {&#10;//                return m_self_ != other.m_self_;&#10;//            }&#10;//&#10;//            value_type const &amp;operator*() const&#10;//            {&#10;//                return m_self_;&#10;//            }&#10;//&#10;//        private:&#10;//&#10;//            index_type carray_(index_type *self, index_type min, index_type max,&#10;//                               index_type flag = 0)&#10;//            {&#10;//&#10;//                auto div = std::div(&#10;//                        static_cast&lt;long&gt;(*self + flag * (_D &lt;&lt; 1) + max&#10;//                                          - min * 2), static_cast&lt;long&gt;(max - min));&#10;//&#10;//                *self = static_cast&lt;id_type&gt;(div.rem + min);&#10;//&#10;//                return div.quot - 1L;&#10;//            }&#10;//&#10;//            index_type carray(id_type *self, id_type xmin, id_type xmax,&#10;//                              index_type flag = 0)&#10;//            {&#10;//                index_tuple idx, min, max;&#10;//&#10;//                idx = unpack(*self);&#10;//                min = unpack(xmin);&#10;//                max = unpack(xmax);&#10;//&#10;//                flag = carray_(&amp;idx[0], min[0], max[0], flag);&#10;//                flag = carray_(&amp;idx[1], min[1], max[1], flag);&#10;//                flag = carray_(&amp;idx[2], min[2], max[2], flag);&#10;//&#10;//                *self = pack(idx) | (std::abs(flag) &lt;&lt; (FULL_DIGITS - 1));&#10;//                return flag;&#10;//            }&#10;//&#10;//        public:&#10;//            void next()&#10;//            {&#10;//                m_self_ = rotate(m_self_);&#10;//                if (sub_index(m_self_) == 0)&#10;//                {&#10;//                    carray(&amp;m_self_, m_min_, m_max_, 1);&#10;//                }&#10;//&#10;//            }&#10;//&#10;//            void prev()&#10;//            {&#10;//                m_self_ = inverse_rotate(m_self_);&#10;//                if (sub_index(m_self_) == 0)&#10;//                {&#10;//                    carray(&amp;m_self_, m_min_, m_max_, -1);&#10;//                }&#10;//            }&#10;//&#10;//            this_type &amp;operator++()&#10;//            {&#10;//                next();&#10;//                return *this;&#10;//            }&#10;//&#10;//            this_type &amp;operator--()&#10;//            {&#10;//                prev();&#10;//&#10;//                return *this;&#10;//            }&#10;//&#10;//            this_type operator++(int)&#10;//            {&#10;//                this_type res(*this);&#10;//                ++(*this);&#10;//                return std::move(res);&#10;//            }&#10;//&#10;//            this_type operator--(int)&#10;//            {&#10;//                this_type res(*this);&#10;//                --(*this);&#10;//                return std::move(res);&#10;//            }&#10;//&#10;//        };&#10;//&#10;" language="ObjectiveC" />
-          <option name="timeStamp" value="66" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="NONE" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/core/gtl/range/block_range.h</url>
-          <line>8</line>
-          <log-expression expression="#include &lt;stddef.h&gt;&#10;#include &lt;algorithm&gt;&#10;#include &lt;cstdbool&gt;&#10;#include &lt;functional&gt;&#10;#include &lt;set&gt;&#10;#include &lt;tuple&gt;&#10;#include &lt;type_traits&gt;&#10;&#10;#include &quot;../type_traits.h&quot;&#10;&#10;namespace simpla&#10;{&#10;&#10;//namespace tags&#10;template&lt;typename ...&gt; struct Range;&#10;&#10;&#10;// base on Range concept in TBB&#10;&#10;template&lt;typename Iterator&gt;&#10;class Range&lt;Iterator&gt;&#10;{&#10;    typedef Range&lt;Iterator&gt; this_type;&#10;&#10;public:&#10;&#10;    // types&#10;&#10;    typedef size_t size_type;&#10;&#10;    typedef Iterator const_iterator;&#10;&#10;    // constructors&#10;    Range(const_iterator b, const_iterator e, size_type grain_size = 1)&#10;            : m_begin_(b), m_end_(e), m_grain_size_(grain_size)&#10;    {&#10;&#10;    }&#10;&#10;    Range(this_type &amp;r, tags::split) :&#10;            m_begin_(r.m_begin_ + r.size() / 2), m_end_(r.m_end_), m_grain_size_(r.grainsize())&#10;    {&#10;        r.m_end_ = m_begin_;&#10;    };&#10;&#10;    Range(this_type &amp;r, tags::proportional_split &amp;proportion) :&#10;            m_begin_(r.m_begin_ + r.size() * proportion.left() / (proportion.left() + proportion.right())),&#10;            m_end_(r.m_end_),&#10;            m_grain_size_(r.grainsize())&#10;    {&#10;        r.m_end_ = m_begin_;&#10;    };&#10;&#10;    ~Range() { }&#10;&#10;    // Proportional split is enabled&#10;    static const bool is_splittable_in_proportion = true;&#10;&#10;    // capacity&#10;    size_type size() const { return traits::distance(m_begin_, m_end_); };&#10;&#10;    bool empty() const { return m_begin_ == m_end_; };&#10;&#10;    // access&#10;    size_type grainsize() const { return m_grain_size_; }&#10;&#10;    bool is_divisible() const { return size() &gt; grainsize(); }&#10;&#10;    // iterators&#10;    const_iterator begin() const { return m_begin_; }&#10;&#10;    const_iterator end() const { return m_end_; }&#10;&#10;private:&#10;&#10;    const_iterator m_begin_, m_end_;&#10;&#10;    size_type m_grain_size_;&#10;&#10;};&#10;&#10;}//namespace simpla" language="ObjectiveC" />
-          <option name="timeStamp" value="67" />
-        </line-breakpoint>
-      </breakpoints>
-      <breakpoints-dialog>
-        <breakpoints-dialog />
-      </breakpoints-dialog>
-      <option name="time" value="83" />
-    </breakpoint-manager>
+    <breakpoint-manager />
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/core/gtl/design_pattern/singleton_holder.h">
+    <entry file="file:///usr/include/c++/4.8/bits/vector.tcc">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="37" column="0" selection-start-line="37" selection-start-column="0" selection-end-line="37" selection-end-column="0" />
+          <caret line="91" column="6" selection-start-line="91" selection-start-column="6" selection-end-line="91" selection-end-column="6" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/core/model/CMakeLists.txt">
+    <entry file="file:///usr/include/c++/4.8/bits/stl_vector.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="8" column="0" selection-start-line="8" selection-start-column="0" selection-end-line="8" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.019379845">
+          <caret line="854" column="6" selection-start-line="854" selection-start-column="6" selection-end-line="854" selection-end-column="6" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/core/gtl/utilities/CMakeLists.txt">
+    <entry file="file:///usr/include/c++/4.8/tuple">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.33333334">
+          <caret line="859" column="4" selection-start-line="859" selection-start-column="4" selection-end-line="859" selection-end-column="4" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/core/io/CMakeLists.txt">
+    <entry file="file://$PROJECT_DIR$/core/numeric/find_root.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-1.1538461">
-          <caret line="2" column="0" selection-start-line="2" selection-start-column="0" selection-end-line="2" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="88" column="99" selection-start-line="88" selection-start-column="99" selection-end-line="88" selection-end-column="99" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/numeric/interpolation.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.33333334">
+          <caret line="167" column="6" selection-start-line="167" selection-start-column="6" selection-end-line="167" selection-end-column="6" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/geometry/primitive.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="26" column="0" selection-start-line="26" selection-start-column="0" selection-end-line="26" selection-end-column="0" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/core/CMakeLists.txt">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="24" column="141" selection-start-line="24" selection-start-column="141" selection-end-line="24" selection-end-column="141" />
+        <state vertical-scroll-proportion="0.38345107">
+          <caret line="19" column="0" selection-start-line="19" selection-start-column="0" selection-end-line="19" selection-end-column="0" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/core/gtl/utilities/memory_pool.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.09101796">
-          <caret line="69" column="0" selection-start-line="69" selection-start-column="0" selection-end-line="69" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/example/CMakeLists.txt">
+    <entry file="file://$PROJECT_DIR$/core/geometry/CMakeLists.txt">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/dataset/CMakeLists.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.035928145">
-          <caret line="2" column="0" selection-start-line="2" selection-start-column="0" selection-end-line="2" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/example/em/em.lua">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.36585367">
-          <caret line="47" column="6" selection-start-line="47" selection-start-column="0" selection-end-line="47" selection-end-column="6" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/model/mesh_snap.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.4073715">
-          <caret line="21" column="0" selection-start-line="21" selection-start-column="0" selection-end-line="21" selection-end-column="0" />
-          <folding>
-            <element signature="e#152#167#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/example/model/demo_model.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-2.0368574">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/example/geometry/demo_geometry.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-0.69835114">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///usr/include/c++/4.8/limits">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.33285406">
-          <caret line="1202" column="40" selection-start-line="1202" selection-start-column="40" selection-end-line="1202" selection-end-column="40" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/model/geqdsk.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="39" column="20" selection-start-line="39" selection-start-column="20" selection-end-line="39" selection-end-column="20" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/manifold/pre_define/cylindrical.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="19" column="27" selection-start-line="19" selection-start-column="27" selection-end-line="19" selection-end-column="27" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/manifold/pre_define/predefine.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="26" column="11" selection-start-line="26" selection-start-column="11" selection-end-line="26" selection-end-column="11" />
-          <folding>
-            <element signature="e#488#524#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/manifold/pre_define/cartesian.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/manifold/geometry/geometry.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="23" column="27" selection-start-line="23" selection-start-column="27" selection-end-line="23" selection-end-column="27" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/manifold/topology/rectmesh.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="32" column="30" selection-start-line="32" selection-start-column="30" selection-end-line="32" selection-end-column="30" />
-          <folding>
-            <element signature="e#3418#3436#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/manifold/topology/mesh_block.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="20" column="31" selection-start-line="20" selection-start-column="31" selection-end-line="20" selection-end-column="31" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/manifold/topology/mesh_ids.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="60" column="7" selection-start-line="60" selection-start-column="7" selection-end-line="60" selection-end-column="7" />
-          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/core/model/model.cpp">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="7" column="16" selection-start-line="7" selection-start-column="16" selection-end-line="7" selection-end-column="16" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/manifold/topology/block.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="14" column="9" selection-start-line="14" selection-start-column="9" selection-end-line="14" selection-end-column="9" />
-          <folding />
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/core/model/model.h">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="214" column="5" selection-start-line="214" selection-start-column="5" selection-end-line="214" selection-end-column="5" />
+          <caret line="39" column="11" selection-start-line="39" selection-start-column="11" selection-end-line="39" selection-end-column="11" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/model/revolve_polygon.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="41" column="38" selection-start-line="41" selection-start-column="38" selection-end-line="41" selection-end-column="38" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/include/boost/geometry/algorithms/within.hpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-0.58914727">
+          <caret line="263" column="12" selection-start-line="263" selection-start-column="12" selection-end-line="263" selection-end-column="12" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/geometry/cut_cell.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.40697673">
+          <caret line="48" column="48" selection-start-line="48" selection-start-column="48" selection-end-line="48" selection-end-column="48" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/geometry/cube.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/geometry/model.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.27131784">
+          <caret line="16" column="1" selection-start-line="16" selection-start-column="1" selection-end-line="16" selection-end-column="1" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/geometry/point_in_polygon.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.11627907">
+          <caret line="6" column="0" selection-start-line="6" selection-start-column="0" selection-end-line="6" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/geometry/boost_gemetry_adapted.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.8062016">
+          <caret line="403" column="21" selection-start-line="403" selection-start-column="21" selection-end-line="403" selection-end-column="21" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/geometry/simplex.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="23" column="19" selection-start-line="23" selection-start-column="19" selection-end-line="23" selection-end-column="19" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/geometry/select.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/geometry/primitive_ext.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/geometry/implicit_function.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/field/test/field_diff_calculus_test.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/manifold/topology/corect_mesh.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="220" column="7" selection-start-line="220" selection-start-column="7" selection-end-line="220" selection-end-column="7" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/manifold/pre_define/cartesian.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="17" column="1" selection-start-line="17" selection-start-column="1" selection-end-line="17" selection-end-column="1" />
           <folding>
-            <element signature="e#114#133#0" expanded="false" />
+            <element signature="e#157#179#0" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/example/em/em.cpp">
+    <entry file="file://$PROJECT_DIR$/core/manifold/manifold.h">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="78" column="0" selection-start-line="78" selection-start-column="0" selection-end-line="78" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/example/pic/collision_pic.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="29" column="0" selection-start-line="29" selection-start-column="0" selection-end-line="33" selection-end-column="25" />
+          <caret line="33" column="0" selection-start-line="33" selection-start-column="0" selection-end-line="33" selection-end-column="0" />
           <folding>
-            <element signature="e#137#157#0" expanded="false" />
-            <marker date="1447183193524" expanded="true" signature="540:675" placeholder="{...}" />
+            <element signature="e#323#337#0" expanded="false" />
+            <element signature="e#399#437#0" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/example/pic/CMakeLists.txt">
+    <entry file="file://$PROJECT_DIR$/core/geometry/cs_cartesian.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-3.7818182">
+          <caret line="21" column="7" selection-start-line="21" selection-start-column="7" selection-end-line="21" selection-end-column="7" />
+          <folding>
+            <element signature="e#162#187#0" expanded="false" />
+            <element signature="e#298#311#0" expanded="false" />
+            <element signature="e#1822#1851#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/manifold/base_manifold.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.3328446">
+          <caret line="23" column="7" selection-start-line="23" selection-start-column="7" selection-end-line="23" selection-end-column="7" />
+          <folding>
+            <element signature="e#136#166#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/manifold/pre_define/predefine.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.5601173">
+          <caret line="26" column="16" selection-start-line="26" selection-start-column="16" selection-end-line="26" selection-end-column="16" />
+          <folding>
+            <element signature="e#124#157#0" expanded="false" />
+            <element signature="e#484#520#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/manifold/pre_define/cylindrical.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.38123167">
+          <caret line="17" column="18" selection-start-line="17" selection-start-column="18" selection-end-line="17" selection-end-column="18" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/geometry/geometry.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.3841642">
+          <caret line="21" column="21" selection-start-line="21" selection-start-column="21" selection-end-line="21" selection-end-column="21" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/manifold/calculus.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.55718476">
+          <caret line="19" column="32" selection-start-line="19" selection-start-column="32" selection-end-line="19" selection-end-column="32" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/manifold/manifold_traits.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.55718476">
+          <caret line="19" column="27" selection-start-line="19" selection-start-column="27" selection-end-line="19" selection-end-column="27" />
+          <folding>
+            <element signature="e#1513#1527#0" expanded="false" />
+            <element signature="e#1565#1579#0" expanded="false" />
+            <element signature="e#3048#3058#0" expanded="false" />
+            <element signature="e#3520#3534#0" expanded="false" />
+            <element signature="e#3578#3592#0" expanded="false" />
+            <element signature="e#3633#3665#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/geometry/cs_cylindrical.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.30351907">
+          <caret line="194" column="22" selection-start-line="194" selection-start-column="22" selection-end-line="194" selection-end-column="22" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/field/test/field_diff_calculus_test.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.5278592">
+          <caret line="18" column="24" selection-start-line="18" selection-start-column="24" selection-end-line="18" selection-end-column="24" />
+          <folding>
+            <element signature="e#755#1050#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/geometry/coordinate_system.h">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="5" column="0" selection-start-line="5" selection-start-column="0" selection-end-line="5" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///usr/include/c++/4.8/ostream">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="563" column="4" selection-start-line="563" selection-start-column="4" selection-end-line="563" selection-end-column="4" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/example/pic/demo_pic.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="100" column="32" selection-start-line="100" selection-start-column="32" selection-end-line="100" selection-end-column="32" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/example/pic/demo_pic.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="15" column="44" selection-start-line="15" selection-start-column="44" selection-end-line="15" selection-end-column="44" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/dataset/dataset.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-0.9813084">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/dataset/datatype.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.023364486">
-          <caret line="36" column="7" selection-start-line="36" selection-start-column="7" selection-end-line="36" selection-end-column="7" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/field/field_dense.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/dataset/dataset_traits.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/dataset/dataview.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
+          <caret line="69" column="41" selection-start-line="69" selection-start-column="41" selection-end-line="69" selection-end-column="41" />
+          <folding>
+            <element signature="e#164#183#0" expanded="false" />
+            <element signature="e#341#354#0" expanded="false" />
+            <element signature="e#430#452#0" expanded="false" />
+            <element signature="e#1041#1053#0" expanded="false" />
+            <element signature="e#1377#1390#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/core/model/geqdsk.h">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="105" column="30" selection-start-line="105" selection-start-column="30" selection-end-line="105" selection-end-column="30" />
+          <caret line="13" column="0" selection-start-line="13" selection-start-column="0" selection-end-line="13" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/model/geqdsk.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="7" column="0" selection-start-line="7" selection-start-column="0" selection-end-line="7" selection-end-column="0" />
           <folding>
-            <element signature="e#118#137#0" expanded="true" />
-            <element signature="e#3042#3057#0" expanded="true" />
-            <element signature="e#7238#7253#0" expanded="true" />
+            <element signature="e#84#103#0" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/example/em/demo_em.cpp">
+    <entry file="file://$PROJECT_DIR$/core/gtl/utilities/log.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.1635514">
-          <caret line="7" column="9" selection-start-line="7" selection-start-column="9" selection-end-line="7" selection-end-column="9" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="254" column="8" selection-start-line="254" selection-start-column="8" selection-end-line="254" selection-end-column="8" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/geometry/geo_object.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="10" column="30" selection-start-line="10" selection-start-column="30" selection-end-line="10" selection-end-column="30" />
           <folding>
-            <element signature="e#82#101#0" expanded="true" />
+            <element signature="e#709#729#0" expanded="false" />
+            <marker date="1447848151658" expanded="true" signature="164:215" placeholder="..." />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/example/em/CMakeLists.txt">
+    <entry file="file://$PROJECT_DIR$/core/geometry/geo_algorithm.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.11682243">
-          <caret line="5" column="42" selection-start-line="5" selection-start-column="36" selection-end-line="5" selection-end-column="42" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="79" column="62" selection-start-line="79" selection-start-column="62" selection-end-line="79" selection-end-column="62" />
+          <folding>
+            <element signature="e#147#166#0" expanded="false" />
+            <element signature="e#1883#1923#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/gtl/properties.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="11" column="14" selection-start-line="11" selection-start-column="14" selection-end-line="11" selection-end-column="14" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/core/dataset/dataset.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.28621495">
-          <caret line="100" column="18" selection-start-line="100" selection-start-column="18" selection-end-line="100" selection-end-column="18" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="16" column="0" selection-start-line="16" selection-start-column="0" selection-end-line="16" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/core/particle/obsolete/simple_particle_generator.h">
+    <entry file="file://$PROJECT_DIR$/core/gtl/ntuple_ext.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.21818182">
+          <caret line="21" column="0" selection-start-line="21" selection-start-column="0" selection-end-line="21" selection-end-column="0" />
+          <folding>
+            <element signature="e#134#152#0" expanded="true" />
+            <element signature="e#285#303#0" expanded="true" />
+            <element signature="e#328#347#0" expanded="true" />
+            <element signature="e#512#531#0" expanded="true" />
+            <element signature="e#738#775#0" expanded="true" />
+            <element signature="e#1096#1115#0" expanded="true" />
+            <element signature="e#1322#1341#0" expanded="true" />
+            <marker date="1447848532242" expanded="true" signature="275:1919" placeholder="{...}" />
+            <marker date="1447848532242" expanded="true" signature="1027:1897" placeholder="{...}" />
+            <marker date="1447848532242" expanded="true" signature="1160:1311" placeholder="{...}" />
+            <marker date="1447848532242" expanded="true" signature="1387:1558" placeholder="{...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/geometry/polygon.h">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="18" column="15" selection-start-line="18" selection-start-column="15" selection-end-line="18" selection-end-column="15" />
+          <caret line="63" column="0" selection-start-line="63" selection-start-column="0" selection-end-line="63" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/core/particle/particle_generator.h">
+    <entry file="file://$PROJECT_DIR$/core/gtl/utilities/misc_utilities.h">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="17" column="7" selection-start-line="17" selection-start-column="7" selection-end-line="17" selection-end-column="7" />
+          <caret line="18" column="0" selection-start-line="18" selection-start-column="0" selection-end-line="18" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/core/io/data_stream.h">
+    <entry file="file://$PROJECT_DIR$/core/gtl/utilities/utilities.h">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <caret line="13" column="0" selection-start-line="13" selection-start-column="0" selection-end-line="13" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/core/io/io.h">
+    <entry file="file://$PROJECT_DIR$/core/gtl/ntuple.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-7.6363635">
+          <caret line="21" column="0" selection-start-line="21" selection-start-column="0" selection-end-line="21" selection-end-column="0" />
+          <folding>
+            <element signature="e#243#262#0" expanded="true" />
+            <element signature="e#1496#1510#0" expanded="true" />
+            <element signature="e#1597#1607#0" expanded="true" />
+            <element signature="e#1633#1643#0" expanded="true" />
+            <element signature="e#1951#1963#0" expanded="true" />
+            <element signature="e#2035#2064#0" expanded="true" />
+            <element signature="e#2182#2195#0" expanded="true" />
+            <element signature="e#2363#2379#0" expanded="true" />
+            <element signature="e#2778#2791#0" expanded="true" />
+            <element signature="e#3067#3080#0" expanded="true" />
+            <element signature="e#3221#3234#0" expanded="true" />
+            <element signature="e#3391#3420#0" expanded="true" />
+            <element signature="e#3849#3862#0" expanded="true" />
+            <element signature="e#3969#3982#0" expanded="true" />
+            <element signature="e#4105#4149#0" expanded="true" />
+            <element signature="e#4614#4627#0" expanded="true" />
+            <element signature="e#4771#4784#0" expanded="true" />
+            <element signature="e#4945#4975#0" expanded="true" />
+            <element signature="e#5776#5798#0" expanded="true" />
+            <element signature="e#5942#5954#0" expanded="true" />
+            <element signature="e#6298#6311#0" expanded="true" />
+            <element signature="e#6452#6465#0" expanded="true" />
+            <element signature="e#6606#6619#0" expanded="true" />
+            <element signature="e#6760#6773#0" expanded="true" />
+            <element signature="e#6915#6928#0" expanded="true" />
+            <element signature="e#7075#7088#0" expanded="true" />
+            <element signature="e#7243#7269#0" expanded="true" />
+            <element signature="e#7467#7496#0" expanded="true" />
+            <element signature="e#7703#7715#0" expanded="true" />
+            <element signature="e#8093#8115#0" expanded="true" />
+            <element signature="e#8239#8269#0" expanded="true" />
+            <element signature="e#8367#8389#0" expanded="true" />
+            <element signature="e#8478#8492#0" expanded="true" />
+            <element signature="e#8524#8538#0" expanded="true" />
+            <element signature="e#8576#8602#0" expanded="true" />
+            <element signature="e#8685#8728#0" expanded="true" />
+            <element signature="e#8885#8921#0" expanded="true" />
+            <element signature="e#9029#9055#0" expanded="true" />
+            <element signature="e#9144#9160#0" expanded="true" />
+            <element signature="e#9231#9247#0" expanded="true" />
+            <element signature="e#9350#9372#0" expanded="true" />
+            <element signature="e#9591#9603#0" expanded="true" />
+            <element signature="e#9665#9687#0" expanded="true" />
+            <element signature="e#9881#9904#0" expanded="true" />
+            <element signature="e#10069#10083#0" expanded="true" />
+            <element signature="e#10116#10130#0" expanded="true" />
+            <element signature="e#10212#10262#0" expanded="true" />
+            <element signature="e#10440#10478#0" expanded="true" />
+            <element signature="e#10619#10657#0" expanded="true" />
+            <element signature="e#10798#10826#0" expanded="true" />
+            <element signature="e#10954#11002#0" expanded="true" />
+            <element signature="e#11311#11341#0" expanded="true" />
+            <element signature="e#11480#11510#0" expanded="true" />
+            <element signature="e#11608#11638#0" expanded="true" />
+            <element signature="e#11798#11826#0" expanded="true" />
+            <element signature="e#12013#12041#0" expanded="true" />
+            <element signature="e#12184#12217#0" expanded="true" />
+            <element signature="e#12372#12405#0" expanded="true" />
+            <element signature="e#12576#12616#0" expanded="true" />
+            <element signature="e#12907#12926#0" expanded="true" />
+            <element signature="e#12963#12989#0" expanded="true" />
+            <element signature="e#13029#13052#0" expanded="true" />
+            <element signature="e#13092#13104#0" expanded="true" />
+            <element signature="e#13195#13207#0" expanded="true" />
+            <element signature="e#13305#13317#0" expanded="true" />
+            <element signature="e#13740#13752#0" expanded="true" />
+            <element signature="e#15614#15664#0" expanded="true" />
+            <element signature="e#16557#16565#0" expanded="true" />
+            <element signature="e#16598#16618#0" expanded="true" />
+            <element signature="e#16667#16706#0" expanded="true" />
+            <element signature="e#16994#16996#0" expanded="true" />
+            <element signature="e#17035#17074#0" expanded="true" />
+            <element signature="e#17214#17267#0" expanded="true" />
+            <element signature="e#21025#21054#0" expanded="true" />
+            <element signature="e#21151#21180#0" expanded="true" />
+            <element signature="e#21273#21302#0" expanded="true" />
+            <element signature="e#21441#21470#0" expanded="true" />
+            <element signature="e#21589#21615#0" expanded="true" />
+            <element signature="e#21686#21722#0" expanded="true" />
+            <element signature="e#22237#22266#0" expanded="true" />
+            <element signature="e#22780#22812#0" expanded="true" />
+            <element signature="e#22933#22982#0" expanded="true" />
+            <element signature="e#23250#23286#0" expanded="true" />
+            <element signature="e#23561#23597#0" expanded="true" />
+            <element signature="e#23693#23716#0" expanded="true" />
+            <element signature="e#23814#23826#0" expanded="true" />
+            <element signature="e#23889#23911#0" expanded="true" />
+            <element signature="e#24017#24033#0" expanded="true" />
+            <element signature="e#24148#24160#0" expanded="true" />
+            <element signature="e#24218#24240#0" expanded="true" />
+            <element signature="e#24312#24334#0" expanded="true" />
+            <element signature="e#24439#24461#0" expanded="true" />
+            <element signature="e#24556#24586#0" expanded="true" />
+            <element signature="e#26889#26919#0" expanded="true" />
+            <element signature="e#27121#27151#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/dataset/datatype.cpp">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="75" column="0" selection-start-line="75" selection-start-column="0" selection-end-line="75" selection-end-column="0" />
+          <caret line="65" column="10" selection-start-line="65" selection-start-column="10" selection-end-line="65" selection-end-column="10" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/core/io/io.cpp">
+    <entry file="file://$PROJECT_DIR$/core/dataset/datatype.h">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="28" column="12" selection-start-line="28" selection-start-column="12" selection-end-line="28" selection-end-column="12" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/dataset/dataspace.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="68" column="17" selection-start-line="68" selection-start-column="17" selection-end-line="68" selection-end-column="17" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/dataset/dataspace.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="117" column="17" selection-start-line="117" selection-start-column="17" selection-end-line="117" selection-end-column="17" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///usr/include/c++/4.8/bits/shared_ptr.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="128" column="4" selection-start-line="128" selection-start-column="4" selection-end-line="128" selection-end-column="4" />
+          <caret line="19" column="26" selection-start-line="19" selection-start-column="26" selection-end-line="19" selection-end-column="26" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/core/gtl/type_traits.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/io/io_ext.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="22" column="1" selection-start-line="22" selection-start-column="1" selection-end-line="22" selection-end-column="1" />
+        <state vertical-scroll-proportion="-0.14545454">
+          <caret line="81" column="24" selection-start-line="81" selection-start-column="24" selection-end-line="81" selection-end-column="24" />
           <folding>
-            <element signature="e#115#132#0" expanded="true" />
-            <element signature="e#209#221#0" expanded="true" />
+            <element signature="e#642#668#0" expanded="true" />
+            <element signature="e#702#720#0" expanded="true" />
+            <element signature="e#744#758#0" expanded="true" />
+            <element signature="e#1874#1898#0" expanded="true" />
+            <element signature="e#2251#2270#0" expanded="true" />
+            <element signature="e#2768#2806#0" expanded="true" />
+            <element signature="e#2993#3037#0" expanded="true" />
+            <element signature="e#3180#3200#0" expanded="true" />
+            <element signature="e#3561#3568#0" expanded="true" />
+            <element signature="e#5520#5543#0" expanded="true" />
+            <element signature="e#5792#5804#0" expanded="true" />
+            <element signature="e#5857#5876#0" expanded="true" />
+            <element signature="e#7180#7187#0" expanded="true" />
+            <element signature="e#7800#7832#0" expanded="true" />
+            <element signature="e#8029#8036#0" expanded="true" />
+            <element signature="e#8421#8447#0" expanded="true" />
+            <element signature="e#9570#9589#0" expanded="true" />
+            <element signature="e#9614#9636#0" expanded="true" />
+            <element signature="e#9974#9993#0" expanded="true" />
+            <element signature="e#10253#10286#0" expanded="true" />
+            <element signature="e#10646#10656#0" expanded="true" />
+            <element signature="e#10688#10706#0" expanded="true" />
+            <element signature="e#11192#11199#0" expanded="true" />
+            <element signature="e#11960#11982#0" expanded="true" />
+            <element signature="e#12052#12074#0" expanded="true" />
+            <element signature="e#12151#12173#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/core/io/data_stream.cpp">
+    <entry file="file://$PROJECT_DIR$/core/manifold/calculate/fvm_structured.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-83.28571">
-          <caret line="497" column="10" selection-start-line="497" selection-start-column="10" selection-end-line="497" selection-end-column="10" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/example/pic/collision_pic.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.24415056">
-          <caret line="93" column="35" selection-start-line="93" selection-start-column="35" selection-end-line="93" selection-end-column="35" />
+        <state vertical-scroll-proportion="0.24242425">
+          <caret line="113" column="5" selection-start-line="113" selection-start-column="5" selection-end-line="113" selection-end-column="5" />
           <folding>
-            <element signature="e#75#101#0" expanded="true" />
+            <element signature="e#2916#2946#0" expanded="true" />
           </folding>
         </state>
       </provider>

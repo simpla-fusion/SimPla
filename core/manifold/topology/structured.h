@@ -173,7 +173,7 @@ public:
     template<typename TDict>
     void load(TDict const &dict)
     {
-        box(dict["Geometry"]["Box"].template as<std::tuple<point_type, point_type> >());
+        box(dict["BaseManifold"]["Box"].template as<std::tuple<point_type, point_type> >());
 
         dimensions(dict["Topology"]["Dimensions"].template as<index_tuple>());
     }
@@ -299,7 +299,7 @@ public:
  * @name  Coordinate map
  * @{
  *
- *        Topology Mesh       Geometry Mesh
+ *        Topology Mesh       BaseManifold Mesh
  *                        map
  *              M      ---------->      G
  *              x                       y

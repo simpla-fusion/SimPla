@@ -12,7 +12,7 @@
 #include "../time_integrator/time_integrator.h"
 #include "../calculate/fvm_structured.h"
 #include "../interpolate/linear.h"
-#include "../geometry/geometry.h"
+#include "../base_manifold.h"
 
 #include "../manifold.h"
 #include "../domain.h"
@@ -24,12 +24,12 @@
 namespace simpla
 {
 template<typename METRIC, typename TOPOLOGY> using DefaultManifold= Manifold<
-        Geometry<METRIC, TOPOLOGY>,
-        Calculate<Geometry<METRIC, TOPOLOGY>, calculate::tags::finite_volume>,
-        Interpolate<Geometry<METRIC, TOPOLOGY>, interpolate::tags::linear>,
-        TimeIntegrator<Geometry<METRIC, TOPOLOGY>>,
-        DataSetPolicy<Geometry<METRIC, TOPOLOGY>>,
-        ParallelPolicy<Geometry<METRIC, TOPOLOGY>>
+        BaseManifold<METRIC, TOPOLOGY>,
+        Calculate<BaseManifold<METRIC, TOPOLOGY>, calculate::tags::finite_volume>,
+        Interpolate<BaseManifold<METRIC, TOPOLOGY>, interpolate::tags::linear>,
+        TimeIntegrator<BaseManifold<METRIC, TOPOLOGY>>,
+        DataSetPolicy<BaseManifold<METRIC, TOPOLOGY>>,
+        ParallelPolicy<BaseManifold<METRIC, TOPOLOGY>>
 >;
 }// namespace simpla
 #endif //SIMPLA_PREDEFINE_H

@@ -13,7 +13,7 @@
 
 #include "../../gtl/utilities/log.h"
 
-#include "../geometry/geometry.h"
+#include "base_manifold.h"
 #include "../../geometry/cs_cartesian.h"
 #include "../../geometry/cs_cylindrical.h"
 #include "../topology/rectmesh.h"
@@ -281,7 +281,7 @@ TEST(GeometryTest, Geometry)
 //
 //TEST(GeometryTest, CoordinateSystem)
 //{
-//    Geometry<coordinate_system::Cartesian<3, 2>, topology::tags::CoRectMesh> g;
+//    BaseManifold<coordinate_system::Cartesian<3, 2>, topology::tags::CoRectMesh> g;
 //
 //    nTuple<size_t, 3> dim = {5, 5, 5};
 //

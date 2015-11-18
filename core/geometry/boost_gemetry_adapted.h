@@ -5,8 +5,8 @@
  * @author salmon
  */
 
-#ifndef CORE_GEOMETRY_BOOST_GEMETRY_ADAPTED_H_
-#define CORE_GEOMETRY_BOOST_GEMETRY_ADAPTED_H_
+#ifndef CORE_GEOMETRY_BOOST_GEOMETRY_ADAPTED_H_
+#define CORE_GEOMETRY_BOOST_GEOMETRY_ADAPTED_H_
 
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/geometries.hpp>
@@ -404,4 +404,4 @@ struct interior_rings<sgm::Polygon<CS>>
 } // namespace traits
 } // namespace geometry
 } // namespace boost
-#endif // CORE_GEOMETRY_BOOST_GEMETRY_ADAPTED_H_
+#endif // CORE_GEOMETRY_BOOST_GEOMETRY_ADAPTED_H_

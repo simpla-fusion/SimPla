@@ -19,16 +19,77 @@
 #include "../gtl/ntuple.h"
 #include "../gtl/ntuple_ext.h"
 #include "../physics/constants.h"
+
+
+#include "../geometry/polygon.h"
 #include "../numeric/find_root.h"
-#include "../geometry/point_in_polygon.h"
+#include "../numeric/interpolation.h"
 
 namespace simpla
 {
-constexpr int GEqdsk::PhiAxis;
-constexpr int GEqdsk::RAxis;
-constexpr int GEqdsk::ZAxis;
+//constexpr int GEqdsk::PhiAxis;
+//constexpr int GEqdsk::RAxis;
+//constexpr int GEqdsk::ZAxis;
 
-GEqdsk &GEqdsk::load(std::string const &fname)
+struct GEqdsk::pimpl_s
+{
+    typedef Interpolation<LinearInterpolation, Real, Real> inter_type;
+
+    typedef MultiDimesionInterpolation<BiLinearInterpolation, Real> inter2d_type;
+
+    nTuple<int, 3> m_dims_ = {1, 1, 1};
+    point_type m_rzmin_;
+    point_type m_rzmax_;
+
+    bool is_valid_ = false;
+    std::string m_desc_;
+//	size_t nw;//!< Number of horizontal R grid  points
+//	size_t nh;//!< Number of vertical Z grid points
+    Real m_rdim_; //!< Horizontal dimension in meter of computational box
+    Real m_zdim_; //!< Vertical dimension in meter of computational box
+    Real m_rleft_; //!< Minimum R in meter of rectangular computational box
+    Real m_zmid_; //!< Z of center of computational box in meter
+    Real m_rmaxis_ = 1.0; //!< R of magnetic axis in meter
+    Real zmaxis = 1.0; //!< Z of magnetic axis in meter
+//	Real simag;//!< Poloidal flux at magnetic axis in Weber / rad
+//	Real sibry;//!< Poloidal flux at the plasma boundary in Weber / rad
+    Real m_rcenter_ = 0.5; //!< R in meter of  vacuum toroidal magnetic field BCENTR
+    Real m_bcenter_ = 0.5; //!< Vacuum toroidal magnetic field in Tesla at RCENTR
+    Real m_current_ = 1.0; //!< Plasma current in Ampere
+
+//	coordinates_type rzmin_;
+//	coordinates_type rzmax_;
+
+//	inter_type fpol_; //!< Poloidal current function in m-T $F=RB_T$ on flux grid
+//	inter_type pres_;//!< Plasma pressure in $nt/m^2$ on uniform flux grid
+//	inter_type ffprim_;//!< \f$FF^\prime(\psi)\f$ in $(mT)^2/(Weber/rad)$ on uniform flux grid
+//	inter_type pprim_;//!< $P^\prime(\psi)$ in $(nt/m^2)/(Weber/rad)$ on uniform flux grid
+
+    inter2d_type psirz_; //!< Poloidal flux in Webber/rad on the rectangular grid points
+
+//	inter_type qpsi_;//!< q values on uniform flux grid from axis to boundary
+
+
+
+    std::shared_ptr<geometry::Object> m_rzbbb_; //!< R,Z of boundary points in meter
+    std::shared_ptr<geometry::Object> m_rzlim_; //!< R,Z of surrounding limiter contour in meter
+
+    std::map<std::string, inter_type> m_profile_;
+
+    void load(std::string const &fname);
+
+    void load_profile(std::string const &fname);
+
+//    bool flux_surface(Real psi_j, size_t M, point_type *res, Real resoluton = 0.001);
+};
+
+void GEqdsk::load(std::string const &fname)
+{
+    m_pimpl_->load(fname);
+
+}
+
+void GEqdsk::pimpl_s::load(std::string const &fname)
 {
 
 
@@ -37,7 +98,7 @@ GEqdsk &GEqdsk::load(std::string const &fname)
     if (!inFileStream_.is_open())
     {
         RUNTIME_ERROR("File " + fname + " is not opend!");
-        return *this;
+        return;
     }
 
     LOGGER << "Load GFile : [" << fname << "]" << std::endl;
@@ -107,36 +168,34 @@ GEqdsk &GEqdsk::load(std::string const &fname)
 
 #undef INPUT_VALUE
 
-    size_t nbbbs, limitr;
-    inFileStream_ >> std::setw(5) >> nbbbs >> limitr;
+    size_t n_bbbs, n_limitr;
+    inFileStream_ >> std::setw(5) >> n_bbbs >> n_limitr;
 
-    std::vector<nTuple<double, 2>> rzbbb(nbbbs);
-    std::vector<nTuple<double, 2>> rzlim(limitr);
 
-    inFileStream_ >> std::setw(16) >> rzbbb;
-    inFileStream_ >> std::setw(16) >> rzlim;
+    auto rzbbb = std::make_shared<Polygon<2> >();
+    auto rzlim = std::make_shared<Polygon<2> >();
 
-    m_rzbbb_.resize(nbbbs);
-    m_rzlim_.resize(limitr);
+    rzbbb->data().resize(n_bbbs);
+    rzlim->data().resize(n_limitr);
 
-    for (size_t s = 0; s < nbbbs; ++s)
-    {
-        m_rzbbb_[s][RAxis] = rzbbb[s][0];
-        m_rzbbb_[s][ZAxis] = rzbbb[s][1];
-        m_rzbbb_[s][PhiAxis] = 0;
-    }
+    inFileStream_ >> std::setw(16) >> rzbbb->data();
+    inFileStream_ >> std::setw(16) >> rzlim->data();
 
-    for (size_t s = 0; s < limitr; ++s)
-    {
-        m_rzlim_[s][RAxis] = rzlim[s][0];
-        m_rzlim_[s][ZAxis] = rzlim[s][1];
-        m_rzlim_[s][PhiAxis] = 0;
-    }
-    return load_profile(fname + "_profiles.txt");
+
+    m_rzbbb_ = std::dynamic_pointer_cast<geometry::Object>(rzbbb);
+
+    m_rzlim_ = std::dynamic_pointer_cast<geometry::Object>(rzlim);
+
+    load_profile(fname + "_profiles.txt");
 
 }
 
-GEqdsk &GEqdsk::load_profile(std::string const &fname)
+void GEqdsk::load_profile(std::string const &fname)
+{
+    m_pimpl_->load_profile(fname);
+}
+
+void GEqdsk::pimpl_s::load_profile(std::string const &fname)
 {
     LOGGER << "Load GFile Profiles: [" << fname << "]" << std::endl;
 
@@ -191,37 +250,11 @@ GEqdsk &GEqdsk::load_profile(std::string const &fname)
 
     is_valid_ = true;
 
-    return *this;
 }
 
-//std::string GEqdsk::save(std::string const & path) const
-//{
-//	if (!is_valid())
-//	{
-//		return "";
-//	}
-//
-//	GLOBAL_DATA_STREAM.cd(path);
-//
-//	auto dd = geometry_type::dimensions();
-//
-//	size_t d[2] = { dd[RAxis], dd[ZAxis] };
-//
-//	LOGGER << simpla::save("psi", psirz_.data(), 2, nullptr, d) << std::endl;
-//
-//	LOGGER << simpla::save("rzbbb", rzbbb_) << std::endl;
-//
-//	LOGGER << simpla::save("rzlim", rzlim_) << std::endl;
-//
-//	for (auto const & p : profile_)
-//	{
-//		LOGGER << simpla::save(p.first, p.second.data()) << std::endl;
-//	}
-//	return path;
-//}
 std::ostream &GEqdsk::print(std::ostream &os)
 {
-    std::cout << "--" << m_desc_ << std::endl;
+    std::cout << "--" << m_pimpl_->m_desc_ << std::endl;
 
 //	std::cout << "nw" << "\t= " << nw
 //			<< "\t--  Number of horizontal R grid  points" << std::endl;
@@ -237,9 +270,8 @@ std::ostream &GEqdsk::print(std::ostream &os)
 //			<< "\t-- Vertical dimension in meter of computational box                   "
 //			<< std::endl;
 
-    std::cout << "rcentr" << "\t= " << m_rcenter_
-    << "\t--                                                                    "
-    << std::endl;
+    std::cout << "rcentr" << "\t= " << m_pimpl_->m_rcenter_
+    << "\t--                                                                    " << std::endl;
 
 //	std::cout << "rleft" << "\t= " << rleft
 //			<< "\t-- Minimum R in meter of rectangular computational box                "
@@ -249,13 +281,11 @@ std::ostream &GEqdsk::print(std::ostream &os)
 //			<< "\t-- Z of center of computational box in meter                          "
 //			<< std::endl;
 
-    std::cout << "rmaxis" << "\t= " << m_rmaxis_
-    << "\t-- R of magnetic axis in meter                                        "
-    << std::endl;
+    std::cout << "rmaxis" << "\t= " << m_pimpl_->m_rmaxis_
+    << "\t-- R of magnetic axis in meter                                        " << std::endl;
 
-    std::cout << "rmaxis" << "\t= " << zmaxis
-    << "\t-- Z of magnetic axis in meter                                        "
-    << std::endl;
+    std::cout << "rmaxis" << "\t= " << m_pimpl_->zmaxis
+    << "\t-- Z of magnetic axis in meter                                        " << std::endl;
 
 //	std::cout << "simag" << "\t= " << simag
 //			<< "\t-- poloidal flus ax magnetic axis in Weber / rad                      "
@@ -265,17 +295,14 @@ std::ostream &GEqdsk::print(std::ostream &os)
 //			<< "\t-- Poloidal flux at the plasma boundary in Weber / rad                "
 //			<< std::endl;
 
-    std::cout << "rcentr" << "\t= " << m_rcenter_
-    << "\t-- R in meter of  vacuum toroidal magnetic field BCENTR               "
-    << std::endl;
+    std::cout << "rcentr" << "\t= " << m_pimpl_->m_rcenter_
+    << "\t-- R in meter of  vacuum toroidal magnetic field BCENTR               " << std::endl;
 
-    std::cout << "bcentr" << "\t= " << m_bcenter_
-    << "\t-- Vacuum toroidal magnetic field in Tesla at RCENTR                  "
-    << std::endl;
+    std::cout << "bcentr" << "\t= " << m_pimpl_->m_bcenter_
+    << "\t-- Vacuum toroidal magnetic field in Tesla at RCENTR                  " << std::endl;
 
-    std::cout << "current" << "\t= " << m_current_
-    << "\t-- Plasma current in Ampere                                          "
-    << std::endl;
+    std::cout << "current" << "\t= " << m_pimpl_->m_current_
+    << "\t-- Plasma current in Ampere                                          " << std::endl;
 
 //	std::cout << "fpol" << "\t= "
 //			<< "\t-- Poloidal current function in m-T<< $F=RB_T$ on flux grid           "
@@ -319,79 +346,110 @@ std::ostream &GEqdsk::print(std::ostream &os)
 
     return os;
 }
+//
+//bool GEqdsk::flux_surface(double psi_j, size_t M, point_type *res,
+//                          double resolution)
+//{
+//    return m_pimpl_->flux_surface(psi_j, M, res, resolution);
+//}
+//
+//bool GEqdsk::pimpl_s::flux_surface(double psi_j, size_t M, point_type *res,
+//                                   double resolution)
+//{
+//
+//    //FIXME need check
+//    Real success = 0;
+//
+//    nTuple<double, 3> center;
+//
+//    center[PhiAxis] = 0;
+//    center[RAxis] = m_rcenter_;
+//    center[ZAxis] = m_zmid_;
+//
+//    nTuple<double, 3> drz;
+//
+//    drz[PhiAxis] = 0;
+//
+//    std::function<double(nTuple<double, 3> const &)> fun =
+//            [this](nTuple<double, 3> const &x) -> double
+//            {
+//                return psirz_(x[RAxis], x[ZAxis]);
+//            };
+//
+//    for (int i = 0; i < M; ++i)
+//    {
+//        double theta = static_cast<double>(i) * TWOPI / static_cast<double>(M);
+//
+//        drz[RAxis] = std::cos(theta);
+//        drz[ZAxis] = std::sin(theta);
+//
+//        nTuple<double, 3> rmax;
+//        nTuple<double, 3> t;
+//
+//        rmax = center
+//               + drz * std::sqrt(m_rdim_ * m_rdim_ + m_zdim_ * m_zdim_) * 0.5;
+//
+//        success = m_rzbbb_->nearest_point(center, &rmax);
+//
+//        if (success > 0)
+//        {
+//            RUNTIME_ERROR(
+//                    "Illegal Geqdsk configuration: RZ-center is out of the boundary (rzbbb)!  ");
+//        }
+//
+//        nTuple<double, 3> t2 = center + (rmax - center) * 0.1;
+//
+//        res[i] = rmax;
+//        success = find_root(fun, psi_j, t2, &res[i], resolution);
+//
+//        if (!success)
+//        {
+//            WARNING << "Construct flux surface failed!" << "at theta = "
+//            << theta << " psi = " << psi_j;
+//            break;
+//        }
+//
+//    }
+//
+//    return success == 0;
+//
+//}
 
-bool GEqdsk::flux_surface(double psi_j, size_t M, coordinate_type *res,
-                          size_t ToPhiAxis, double resolution)
+
+GEqdsk::GEqdsk() : m_pimpl_(new pimpl_s) { }
+
+GEqdsk::~GEqdsk() { }
+
+std::string const &GEqdsk::description() const { return m_pimpl_->m_desc_; }
+
+std::tuple<point_type, point_type> GEqdsk::box() const
 {
-    bool success = true;
-
-    PointInPolygon boundary(m_rzbbb_, PhiAxis);
-
-    nTuple<double, 3> center;
-
-    center[PhiAxis] = 0;
-    center[RAxis] = m_rcenter_;
-    center[ZAxis] = m_zmid_;
-
-    nTuple<double, 3> drz;
-
-    drz[PhiAxis] = 0;
-
-    std::function<double(nTuple<double, 3> const &)> fun =
-            [this](nTuple<double, 3> const &x) -> double
-            {
-                return this->psi(x);
-            };
-
-    for (int i = 0; i < M; ++i)
-    {
-        double theta = static_cast<double>(i) * TWOPI / static_cast<double>(M);
-
-        drz[RAxis] = std::cos(theta);
-        drz[ZAxis] = std::sin(theta);
-
-        nTuple<double, 3> rmax;
-        nTuple<double, 3> t;
-
-        t = center
-            + drz * std::sqrt(m_rdim_ * m_rdim_ + m_zdim_ * m_zdim_) * 0.5;
-
-        std::tie(success, rmax) = boundary.Intersection(center, t);
-
-        if (!success)
-        {
-            RUNTIME_ERROR(
-                    "Illegal Geqdsk configuration: RZ-center is out of the boundary (rzbbb)!  ");
-        }
-
-        nTuple<double, 3> t2 = center + (rmax - center) * 0.1;
-        std::tie(success, res[i]) = find_root(t2, rmax, fun, psi_j, resolution);
-
-        if (!success)
-        {
-            WARNING << "Construct flux surface failed!" << "at theta = "
-            << theta << " psi = " << psi_j;
-            break;
-        }
-
-    }
-
-    return success;
-
+    return std::make_tuple(m_pimpl_->m_rzmin_, m_pimpl_->m_rzmax_);
 }
 
-bool GEqdsk::map_to_flux_coordiantes(
-        std::vector<coordinate_type> const &surface,
-        std::vector<coordinate_type> *res,
-        std::function<double(double, double)> const &h, size_t PhiAxis)
+std::shared_ptr<geometry::Object> GEqdsk::boundary() const
 {
-    bool success = false;
-
-    UNIMPLEMENTED;
-
-    return success;
-
+    return m_pimpl_->m_rzbbb_;
 }
 
+std::shared_ptr<geometry::Object> GEqdsk::limiter() const
+{
+    return m_pimpl_->m_rzlim_;
+}
+
+Real GEqdsk::psi(Real R, Real Z) const
+{
+    return m_pimpl_->psirz_(R, Z);
+}
+
+Vec3 GEqdsk::grad_psi(Real R, Real Z) const
+{
+    return m_pimpl_->psirz_.grad(R, Z);
+}
+
+Real GEqdsk::profile(std::string const &name, Real p_psi) const
+{
+    return m_pimpl_->m_profile_[name](p_psi);
+}
 }  // namespace simpla
 

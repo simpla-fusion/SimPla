@@ -17,7 +17,7 @@ namespace simpla
 {
 namespace manifold
 {
-using Cylindrical= DefaultManifold<Metric<coordinate_system::Cylindrical<2> >, topology::RectMesh<>>;
+using Cylindrical= DefaultManifold<geometry::Metric<geometry::coordinate_system::Cylindrical<2> >, topology::RectMesh<>>;
 
 }//namespace  manifold
 }//namespace simpla

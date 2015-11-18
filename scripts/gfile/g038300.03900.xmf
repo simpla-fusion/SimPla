@@ -2,14 +2,14 @@
   <Domain>
     <Grid Name="G-Eqdsk" GridType="Uniform">
       <Topology TopologyType="2DCORECTMesh" Dimensions="129 129"/>
-      <Geometry GeometryType="ORIGIN_DXDY">
+      <BaseManifold GeometryType="ORIGIN_DXDY">
         <DataItem Name="Origin" Dimensions="2" NumberType="Float" Precision="4" Format="XML">
 -1.4 1.2 
 </DataItem>
         <DataItem Name="Spacing" Dimensions="2" NumberType="Float" Precision="4" Format="XML">
 0.021875 0.0125 
 </DataItem>
-      </Geometry>
+      </BaseManifold>
       <Attribute Name="Psi" AttributeType="Scalar" Center="Node">
         <DataItem Dimensions="129 129" NumberType="Float" Precision="8" Format="HDF">../example/gfile/g038300.03900.h5:/Psi</DataItem>
       </Attribute>
@@ -112,9 +112,9 @@
 92 0 
 </DataItem>
       </Topology>
-      <Geometry GeometryType="XYZ">
+      <BaseManifold GeometryType="XYZ">
         <DataItem Dimensions="93 3" NumberType="Float" Precision="4" Format="HDF">../example/gfile/g038300.03900.h5:/Boundary/Points</DataItem>
-      </Geometry>
+      </BaseManifold>
     </Grid>
     <Grid Name="Limter" GridType="Uniform">
       <Topology NodesPerElement="2" TopologyType="Polyline" Dimensions="93">
@@ -214,9 +214,9 @@
 92 0 
 </DataItem>
       </Topology>
-      <Geometry GeometryType="XYZ">
+      <BaseManifold GeometryType="XYZ">
         <DataItem Dimensions="93 3" NumberType="Float" Precision="4" Format="HDF">../example/gfile/g038300.03900.h5:/Limter/Points</DataItem>
-      </Geometry>
+      </BaseManifold>
     </Grid>
   </Domain>
 </Xdmf>

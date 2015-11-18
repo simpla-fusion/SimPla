@@ -17,6 +17,7 @@
 #include <typeindex>
 #include <vector>
 
+#include "../gtl/ntuple.h"
 #include "../gtl/type_traits.h"
 
 namespace simpla
@@ -36,64 +37,64 @@ namespace simpla
  */
 struct DataType
 {
-	DataType();
+    DataType();
 
-	DataType(std::type_index t_index, size_t ele_size_in_byte, int ndims = 0, size_t const *dims = nullptr,
-			std::string name = "");
+    DataType(std::type_index t_index, size_t ele_size_in_byte, int ndims = 0, size_t const *dims = nullptr,
+             std::string name = "");
 
-	DataType(const DataType &other);
+    DataType(const DataType &other);
 
-	DataType(DataType &&other);
+    DataType(DataType &&other);
 
-	~DataType();
+    ~DataType();
 
-	DataType &operator=(DataType const &other);
+    DataType &operator=(DataType const &other);
 
-	void swap(DataType &);
+    void swap(DataType &);
 
-	bool is_valid() const;
+    bool is_valid() const;
 
-	std::string name() const;
+    std::string name() const;
 
-	size_t size() const;
+    size_t size() const;
 
-	size_t size_in_byte() const;
+    size_t size_in_byte() const;
 
-	size_t ele_size_in_byte() const;
+    size_t ele_size_in_byte() const;
 
-	int rank() const;
+    int rank() const;
 
-	DataType element_type() const;
+    DataType element_type() const;
 
-	size_t extent(size_t n) const;
+    size_t extent(size_t n) const;
 
-	void extent(size_t *d) const;
+    void extent(size_t *d) const;
 
-	void extent(int rank, size_t const *d);
+    void extent(int rank, size_t const *d);
 
-	std::vector<size_t> const &extents() const;
+    std::vector<size_t> const &extents() const;
 
-	bool is_compound() const;
+    bool is_compound() const;
 
-	bool is_array() const;
+    bool is_array() const;
 
-	bool is_opaque() const;
+    bool is_opaque() const;
 
-	bool is_same(std::type_index const &other) const;
+    bool is_same(std::type_index const &other) const;
 
-	template<typename T>
-	bool is_same() const
-	{
-		return is_same(std::type_index(typeid(T)));
-	}
+    template<typename T>
+    bool is_same() const
+    {
+        return is_same(std::type_index(typeid(T)));
+    }
 
-	void push_back(DataType &&dtype, std::string const &name, int pos = -1);
+    void push_back(DataType &&dtype, std::string const &name, int pos = -1);
 
-	std::vector<std::tuple<DataType, std::string, int>> const &members() const;
+    std::vector<std::tuple<DataType, std::string, int>> const &members() const;
 
 private:
-	struct pimpl_s;
-	std::unique_ptr<pimpl_s> pimpl_;
+    struct pimpl_s;
+    std::unique_ptr<pimpl_s> pimpl_;
 
 };
 
@@ -108,44 +109,48 @@ std::ostream &print(std::ostream &os, DataType const &self);
 template<typename T>
 struct datatype
 {
-	HAS_STATIC_MEMBER_FUNCTION (datatype)
+    HAS_STATIC_MEMBER_FUNCTION (datatype)
 
-	static DataType create_(std::string const &name, std::integral_constant<bool, true>)
-	{
-		return T::datatype();
-	}
+    static DataType create_(std::string const &name, std::integral_constant<bool, true>)
+    {
+        return T::datatype();
+    }
 
-	static DataType create_(std::string const &name, std::integral_constant<bool, false>)
-	{
+    static DataType create_(std::string const &name, std::integral_constant<bool, false>)
+    {
 
-		typedef typename std::remove_cv<T>::type obj_type;
+        typedef typename std::remove_cv<T>::type obj_type;
 
-		typedef typename traits::value_type<obj_type>::type element_type;
+        typedef typename traits::value_type<obj_type>::type element_type;
 
-		size_t ele_size_in_byte = sizeof(element_type) / sizeof(char);
+        size_t ele_size_in_byte = sizeof(element_type) / sizeof(char);
 
-		return std::move(
+        nTuple<size_t, 10> d;
 
-				DataType(std::type_index(typeid(element_type)),
+        d = traits::seq_value<extents_t<obj_type> >::value;
 
-						ele_size_in_byte,
+        return std::move(
 
-						rank<obj_type>::value,
+                DataType(std::type_index(typeid(element_type)),
 
-						&traits::seq_value<extents_t<obj_type> >::value[0],
+                         ele_size_in_byte,
 
-						name)
+                         rank<obj_type>::value,
 
-		);
+                         &d[0],
+
+                         name)
+
+        );
 
 
-	}
+    }
 
-	static DataType create(std::string const &name = "")
-	{
-		return create_(((name != "") ? name : (typeid(T).name())),
-				std::integral_constant<bool, has_static_member_function_datatype<T>::value>());
-	}
+    static DataType create(std::string const &name = "")
+    {
+        return create_(((name != "") ? name : (typeid(T).name())),
+                       std::integral_constant<bool, has_static_member_function_datatype<T>::value>());
+    }
 
 
 };

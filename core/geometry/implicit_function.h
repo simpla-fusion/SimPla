@@ -19,7 +19,7 @@ ImplicitFunction<TFun> make_implicit_function(TFun const & fun)
 }
 
 /**
- *  Implicit function of Geometry object
+ *  Implicit function of BaseManifold object
  *
  *  ImplicitFunction<TF>(x,y,z) return distance from (x,y,z)to object
  *

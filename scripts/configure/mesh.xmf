@@ -6,7 +6,7 @@
          1 2 8 7   4 5 11 10
      </DataItem>
   </Topology>
-  <Geometry Type="XYZ">
+  <BaseManifold Type="XYZ">
          <DataItem Format="XML" DataType="Float" Precision="8"
                  Dimensions="4 3 3">
            0.0   0.0   1.0
@@ -25,5 +25,5 @@
            1.0   1.0   -1.0
            3.0   2.0   -2.0
          </DataItem>
-  </Geometry>
+  </BaseManifold>
 </Grid>

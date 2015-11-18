@@ -28,7 +28,7 @@ int main(int argc, char **argv)
     std::string help_message;
 
     help_message += logger::init_logger(argc, argv);
-    help_message += init_parallel(argc, argv);
+//    help_message += init_parallel(argc, argv);
     help_message += init_io(argc, argv);
 
     ConfigParser options;

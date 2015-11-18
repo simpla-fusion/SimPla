@@ -15,21 +15,22 @@
 
 namespace simpla
 {
+namespace geometry
+{
+namespace st = ::simpla::traits;
+namespace gt = ::simpla::geometry::traits;
 
-
-namespace st = simpla::traits;
-namespace gt = simpla::traits;
 
 template<typename...> struct Metric;
 
-template<size_t IPhiAxis>
-struct Metric<coordinate_system::Cylindrical<IPhiAxis> >
+template<int IPhiAxis>
+struct Metric<::simpla::geometry::coordinate_system::Cylindrical<IPhiAxis>>
 {
 public:
-    typedef coordinate_system::Cylindrical<IPhiAxis> cs;
-    typedef gt::point_t<coordinate_system::Cylindrical<IPhiAxis>> point_t;
-    typedef gt::vector_t<coordinate_system::Cylindrical<IPhiAxis>> vector_t;
-    typedef gt::covector_t<coordinate_system::Cylindrical<IPhiAxis>> covector_t;
+    typedef ::simpla::geometry::coordinate_system::Cylindrical<IPhiAxis> cs;
+    typedef gt::point_t<cs> point_t;
+    typedef gt::vector_t<cs> vector_t;
+    typedef gt::covector_t<cs> covector_t;
 
     typedef nTuple<Real, 3> delta_t;
 
@@ -51,7 +52,11 @@ public:
 
         Real a = std::sqrt(power2(dr1) + power2(dz1) + power2(r0 * dphi1));
 
-        return a /*1st*/ + power2(dphi1) * dr1 * r0 / (2 * a) /*2nd*/
+        return a /*1st*/ +
+               power2(dphi1)
+               *
+               dr1 * r0
+               / (2 * a) /*2nd*/
                 ;
     }
 
@@ -179,16 +184,16 @@ public:
     {
         return std::abs((v0[RAxis] * v1[RAxis] + v0[ZAxis] * v1[ZAxis] +
                          v0[PhiAxis] * v1[PhiAxis] * r[RAxis] * r[RAxis]));
-    };
+    }
 
 
 };
-
+}  // namespace geometry
 namespace traits
 {
 
-template<size_t IPhiAxis>
-struct type_id<coordinate_system::Cylindrical<IPhiAxis> >
+template<int IPhiAxis>
+struct type_id<::simpla::geometry::coordinate_system::Cylindrical<IPhiAxis> >
 {
     static std::string name()
     {
@@ -197,6 +202,7 @@ struct type_id<coordinate_system::Cylindrical<IPhiAxis> >
 };
 
 }  // namespace traits
+
 }  // namespace simpla
 
 

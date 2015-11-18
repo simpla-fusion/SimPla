@@ -18,68 +18,71 @@
 
 namespace simpla
 {
-template<typename T, size_t N> std::istream &
-operator>>(std::istream& is, nTuple<T, N> & tv)
-{
-	for (int i = 0; i < N && is; ++i)
-	{
-		is >> tv[i];
-	}
+template<typename, int...> struct nTuple;
 
-	return (is);
-}
-template<typename T, size_t M>
-std::ostream &operator<<(std::ostream & os, nTuple<T, M> const & v)
+template<typename T, int N> std::istream &
+operator>>(std::istream &is, nTuple<T, N> &tv)
 {
-	os << "{" << v[0];
-	for (int i = 1; i < M; ++i)
-	{
-		os << " , " << v[i];
-	}
-	os << "}";
+    for (int i = 0; i < N && is; ++i)
+    {
+        is >> tv[i];
+    }
 
-	return os;
+    return (is);
 }
 
-template<typename T, size_t M, size_t M2, size_t ...N>
-std::ostream &operator<<(std::ostream & os, nTuple<T, M, M2, N...> const & v)
+template<typename T, int M>
+std::ostream &operator<<(std::ostream &os, nTuple<T, M> const &v)
 {
-	os << "{" << v[0];
-	for (int i = 1; i < M; ++i)
-	{
-		os << " , " << v[i] << std::endl;
-	}
-	os << "}" << std::endl;
+    os << "{" << v[0];
+    for (int i = 1; i < M; ++i)
+    {
+        os << " , " << v[i];
+    }
+    os << "}";
 
-	return os;
+    return os;
+}
+
+template<typename T, int M, int M2, int ...N>
+std::ostream &operator<<(std::ostream &os, nTuple<T, M, M2, N...> const &v)
+{
+    os << "{" << v[0];
+    for (int i = 1; i < M; ++i)
+    {
+        os << " , " << v[i] << std::endl;
+    }
+    os << "}" << std::endl;
+
+    return os;
 }
 
 namespace traits
 {
 template<typename TSrc, typename TDesc> struct type_cast;
 
-template<unsigned int N, typename T>
+template<int N, typename T>
 struct type_cast<nTuple<T, N>, std::string>
 {
-	static std::string eval(nTuple<T, N> const &v)
-	{
-		std::ostringstream buffer;
-		buffer << v;
-		return buffer.str();
-	}
+    static std::string eval(nTuple<T, N> const &v)
+    {
+        std::ostringstream buffer;
+        buffer << v;
+        return buffer.str();
+    }
 };
 
-template<unsigned int N, typename T>
-struct type_cast<std::string, nTuple<T, N>>
+template<int N, typename T>
+struct type_cast<std::string, nTuple<T, N> >
 {
-	static nTuple<T, N> eval(std::string const &s)
-	{
-		nTuple<T, N> v;
-		std::istringstream is(s);
-		is >> v;
-		return std::move(v);
+    static nTuple<T, N> eval(std::string const &s)
+    {
+        nTuple<T, N> v;
+        std::istringstream is(s);
+        is >> v;
+        return std::move(v);
 
-	}
+    }
 };
 //
 //	template<typename T>
@@ -100,7 +103,7 @@ struct type_cast<std::string, nTuple<T, N>>
 //namespace std
 //{
 //
-//template<size_t M, typename T, size_t N>
+//template<int M, typename T, int N>
 //T const & get(simpla::nTuple<T, N> const & v)
 //{
 //	return v[M];
@@ -109,9 +112,9 @@ struct type_cast<std::string, nTuple<T, N>>
 // * C++11 <type_traits>
 // * @ref http://en.cppreference.com/w/cpp/types/rank
 // */
-//template<typename T, size_t ...N>
+//template<typename T, int ...N>
 //struct rank<simpla::nTuple<T, N...>> : public std::integral_constant<
-//		std::size_t, sizeof...(N)>
+//		std::int, sizeof...(N)>
 //{
 //};
 //
@@ -120,15 +123,15 @@ struct type_cast<std::string, nTuple<T, N>>
 // * @ref http://en.cppreference.com/w/cpp/types/extent
 // */
 //
-//template<class T, std::size_t N, std::size_t ...M>
+//template<class T, std::int N, std::int ...M>
 //struct extent<simpla::nTuple<T, N, M...>, 0> : std::integral_constant<
-//		std::size_t, N>
+//		std::int, N>
 //{
 //};
 //
-//template<std::size_t I, class T, std::size_t N, std::size_t ...M>
+//template<std::int I, class T, std::int N, std::int ...M>
 //struct extent<simpla::nTuple<T, N, M...>, I> : public std::integral_constant<
-//		std::size_t, std::extent<simpla::nTuple<T, M...>, I - 1>::value>
+//		std::int, std::extent<simpla::nTuple<T, M...>, I - 1>::value>
 //{
 //};
 //
@@ -136,13 +139,13 @@ struct type_cast<std::string, nTuple<T, N>>
 // * C++11 <type_traits>
 // * @ref http://en.cppreference.com/w/cpp/types/remove_all_extents
 // */
-//template<class T, std::size_t ...M>
+//template<class T, std::int ...M>
 //struct remove_all_extents<simpla::nTuple<T, M...> >
 //{
 //	typedef T type;
 //};
 //
-////template<typename T, size_t I>
+////template<typename T, int I>
 ////class std::less<simpla::nTuple<T, I> >
 ////{
 ////public:

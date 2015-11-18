@@ -117,7 +117,7 @@ public:
 
 private:
 
-    template<typename Expr, size_t ... index>
+    template<typename Expr, int ... index>
     DECLARE_FUNCTION_PREFIX traits::primary_type_t<traits::value_type_t<Expr>> _invoke_helper(
             Expr const &expr, id_t s, index_sequence<index...>) DECLARE_FUNCTION_SUFFIX
     {
@@ -225,29 +225,29 @@ private:
 
                ) * m_geo_.inv_volume(s);
 
-//        return (eval(std::get<0>(expr.args), s + geometry_type::_DI)
-//                * m_geo_.volume(s + geometry_type::_DI)
-//                - eval(std::get<0>(expr.args), s - geometry_type::_DI)
-//                  * m_geo_.volume(s - geometry_type::_DI)
-//                + eval(std::get<0>(expr.args), s + geometry_type::_DJ)
-//                  * m_geo_.volume(s + geometry_type::_DJ)
-//                - eval(std::get<0>(expr.args), s - geometry_type::_DJ)
-//                  * m_geo_.volume(s - geometry_type::_DJ)
-//                + eval(std::get<0>(expr.args), s + geometry_type::_DK)
-//                  * m_geo_.volume(s + geometry_type::_DK)
-//                - eval(std::get<0>(expr.args), s - geometry_type::_DK)
-//                  * m_geo_.volume(s - geometry_type::_DK)
+//        return (eval(std::get<0>(expr.args), s + base_manifold_type::_DI)
+//                * m_geo_.volume(s + base_manifold_type::_DI)
+//                - eval(std::get<0>(expr.args), s - base_manifold_type::_DI)
+//                  * m_geo_.volume(s - base_manifold_type::_DI)
+//                + eval(std::get<0>(expr.args), s + base_manifold_type::_DJ)
+//                  * m_geo_.volume(s + base_manifold_type::_DJ)
+//                - eval(std::get<0>(expr.args), s - base_manifold_type::_DJ)
+//                  * m_geo_.volume(s - base_manifold_type::_DJ)
+//                + eval(std::get<0>(expr.args), s + base_manifold_type::_DK)
+//                  * m_geo_.volume(s + base_manifold_type::_DK)
+//                - eval(std::get<0>(expr.args), s - base_manifold_type::_DK)
+//                  * m_geo_.volume(s - base_manifold_type::_DK)
 //
 //               ) * m_geo_.inv_volume(s);
     }
 //
-////	template<typename geometry_type,typename TM, int IL, typename TL> void eval(
+////	template<typename base_manifold_type,typename TM, int IL, typename TL> void eval(
 ////			ct::ExteriorDerivative, Field<Domain<TM, IL>, TL> const & f,
-////					typename geometry_type::id_type   s)  = delete;
+////					typename base_manifold_type::id_type   s)  = delete;
 ////
-////	template<typename geometry_type,typename TM, int IL, typename TL> void eval(
+////	template<typename base_manifold_type,typename TM, int IL, typename TL> void eval(
 ////			ct::CodifferentialDerivative,
-////			Field<TL...> const & f, 		typename geometry_type::id_type   s)  = delete;
+////			Field<TL...> const & f, 		typename base_manifold_type::id_type   s)  = delete;
 
     //! div<1>
     template<typename T>
@@ -266,18 +266,18 @@ private:
         ) * m_geo_.inv_dual_volume(s);
 
 
-//        return -(eval(std::get<0>(expr.args), s + geometry_type::_DI)
-//                 * m_geo_.dual_volume(s + geometry_type::_DI)
-//                 - eval(std::get<0>(expr.args), s - geometry_type::_DI)
-//                   * m_geo_.dual_volume(s - geometry_type::_DI)
-//                 + eval(std::get<0>(expr.args), s + geometry_type::_DJ)
-//                   * m_geo_.dual_volume(s + geometry_type::_DJ)
-//                 - eval(std::get<0>(expr.args), s - geometry_type::_DJ)
-//                   * m_geo_.dual_volume(s - geometry_type::_DJ)
-//                 + eval(std::get<0>(expr.args), s + geometry_type::_DK)
-//                   * m_geo_.dual_volume(s + geometry_type::_DK)
-//                 - eval(std::get<0>(expr.args), s - geometry_type::_DK)
-//                   * m_geo_.dual_volume(s - geometry_type::_DK)
+//        return -(eval(std::get<0>(expr.args), s + base_manifold_type::_DI)
+//                 * m_geo_.dual_volume(s + base_manifold_type::_DI)
+//                 - eval(std::get<0>(expr.args), s - base_manifold_type::_DI)
+//                   * m_geo_.dual_volume(s - base_manifold_type::_DI)
+//                 + eval(std::get<0>(expr.args), s + base_manifold_type::_DJ)
+//                   * m_geo_.dual_volume(s + base_manifold_type::_DJ)
+//                 - eval(std::get<0>(expr.args), s - base_manifold_type::_DJ)
+//                   * m_geo_.dual_volume(s - base_manifold_type::_DJ)
+//                 + eval(std::get<0>(expr.args), s + base_manifold_type::_DK)
+//                   * m_geo_.dual_volume(s + base_manifold_type::_DK)
+//                 - eval(std::get<0>(expr.args), s - base_manifold_type::_DK)
+//                   * m_geo_.dual_volume(s - base_manifold_type::_DK)
 //
 //        ) * m_geo_.inv_dual_volume(s);
 

@@ -122,10 +122,10 @@ public:
     template<typename TDict>
     void load(TDict const &dict)
     {
-        box(dict["Geometry"]["Box"].template as<std::tuple<point_type, point_type> >());
+        box(dict["BaseManifold"]["Box"].template as<std::tuple<point_type, point_type> >());
 
         base_type::dimensions(
-                dict["Geometry"]["Topology"]["Dimensions"].template as<index_tuple>(index_tuple{10, 1, 1}));
+                dict["BaseManifold"]["Topology"]["Dimensions"].template as<index_tuple>(index_tuple{10, 1, 1}));
     }
 
     template<typename OS>
@@ -168,7 +168,7 @@ public:
         box(simpla::traits::get<0>(b), simpla::traits::get<1>(b));
     }
 
-    constexpr std::tuple<point_type, point_type> box() const
+    std::tuple<point_type, point_type> box() const
     {
         return (std::make_tuple(m_coords_min_, m_coords_max_));
     }
@@ -182,7 +182,7 @@ public:
  * @name  Coordinate map
  * @{
  *
- *        Topology Mesh       Geometry Mesh
+ *        Topology Mesh       BaseManifold Mesh
  *                        map
  *              M      ---------->      G
  *              x                       y

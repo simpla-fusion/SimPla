@@ -23,8 +23,8 @@ public:
 	void load(TDict const &dict)
 	{
 
-		m_dt_ = dict["Geometry.dt"].template as<Real>(1.0);
-		m_time_ = dict["Geometry.Time"].template as<Real>(0);
+		m_dt_ = dict["BaseManifold.dt"].template as<Real>(1.0);
+		m_time_ = dict["BaseManifold.Time"].template as<Real>(0);
 	}
 
 	template<typename OS>

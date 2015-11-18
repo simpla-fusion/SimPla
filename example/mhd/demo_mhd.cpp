@@ -27,7 +27,7 @@
 
 using namespace simpla;
 
-static constexpr char key_words[] = "Cylindrical Geometry, Uniform Grid, single toridal model number  ";
+static constexpr char key_words[] = "Cylindrical BaseManifold, Uniform Grid, single toridal model number  ";
 
 /**
  *   \example  mhd/mhd.cpp

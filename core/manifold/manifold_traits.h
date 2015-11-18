@@ -17,7 +17,7 @@
 #include <type_traits>
 
 #include "../gtl/type_traits.h"
-
+#include "../geometry/coordinate_system.h"
 
 namespace simpla
 {
@@ -98,15 +98,6 @@ namespace traits
 template<typename> struct id_type;
 template<typename T> using id_type_t= typename id_type<T>::type;
 
-template<typename> struct scalar_type;
-template<typename T> using scalar_type_t= typename scalar_type<T>::type;
-
-template<typename> struct point_type;
-template<typename T> using point_type_t= typename point_type<T>::type;
-
-template<typename> struct vector_type;
-template<typename T> using vector_type_t= typename vector_type<T>::type;
-
 
 template<typename ... T>
 struct type_id<Manifold<T...> >
@@ -143,57 +134,73 @@ template<typename ...T> struct id_type<Manifold<T...> >
 };
 
 
-template<typename ...> struct coordinate_system_type;
+}  // namespace traits
 
-template<typename TM, typename ... T>
-struct coordinate_system_type<Manifold<TM, T...>>
+template<typename ...> class BaseManifold;
+
+namespace traits
 {
-    typedef typename coordinate_system_type<TM>::type type;
+
+
+template<typename ... T>
+struct type_id<BaseManifold<T...> >
+{
+    static std::string name()
+    {
+        return std::string("BaseManifold<") + type_id<T...>::name() + std::string(">");
+    }
 };
 
-template<typename ...T>
-struct scalar_type<Manifold<T...> >
+template<typename> struct is_geometry;
+
+template<typename> struct geometry_type;
+
+template<typename T> struct is_geometry : public std::integral_constant<bool, false>
 {
-    typedef typename Manifold<T...>::scalar_type type;
 };
 
-template<typename ...T>
-struct point_type<Manifold<T...> >
+template<typename ...T> struct is_geometry<BaseManifold<T...>> : public std::integral_constant<bool, true>
 {
-    typedef typename Manifold<T...>::point_type type;
 };
 
-template<typename ...T>
-struct vector_type<Manifold<T...> >
+template<typename T> struct geometry_type
 {
-    typedef typename Manifold<T...>::vector_type type;
+    typedef std::nullptr_t type;
 };
 
-//template<typename ...T>
-//struct rank<Manifold<T...> > : public std::integral_constant<int,
-//		Manifold<T...>::ndims>
-//{
-//};
-//
-//template<typename ...T>
-//struct ZAxis<Manifold<T...> > : public std::integral_constant<int,
-//		ZAxis<typename Manifold<T...>::coordinates_system>::value>
-//{
-//};
+template<typename ...T> struct id_type<BaseManifold<T...> >
+{
+    typedef std::uint64_t type;
+};
+
 
 }  // namespace traits
 
 
-namespace geometry { namespace traits
+namespace geometry
 {
-template<typename> struct coordinate_system_type;
+template<typename ...> struct Metric;
 
-template<typename CS, typename ...T> struct coordinate_system_type<Manifold<CS, T...> >
+namespace traits
+{
+template<typename ...> struct coordinate_system_type;
+
+template<typename TBase, typename ... T>
+struct coordinate_system_type<Manifold<TBase, T...>>
+{
+    typedef typename coordinate_system_type<TBase>::type type;
+};
+
+template<typename CS, typename ... T0, typename ... T>
+struct coordinate_system_type<BaseManifold<::simpla::geometry::Metric<CS, T0...>, T...>>
 {
     typedef CS type;
 };
 
-}}
+
+}
+} //namespace geometry // namespace traits
+
 
 }  // namespace simpla
 

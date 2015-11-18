@@ -17,15 +17,15 @@ namespace simpla
 namespace manifold
 {
 template<int NDIMS, typename TopologyType=topology::CoRectMesh>
-using Cartesian=DefaultManifold<Metric<coordinate_system::Cartesian<NDIMS>>, TopologyType>;
+using Cartesian=DefaultManifold<geometry::Metric<::simpla::geometry::coordinate_system::Cartesian<NDIMS>>, TopologyType>;
 }//namespace manifold
 //
 //
-//template<typename ...> struct Geometry;
+//template<typename ...> struct BaseManifold;
 //template<typename ...> struct Metric;
 //
 //template<int NDIMS, typename TopologyType>
-//struct Geometry<Metric<coordinate_system::Cartesian<NDIMS>>, TopologyType>
+//struct BaseManifold<Metric<coordinate_system::Cartesian<NDIMS>>, TopologyType>
 //        : public TopologyType, public Metric<coordinate_system::Cartesian<NDIMS>>
 //{
 //public:
@@ -44,13 +44,13 @@ using Cartesian=DefaultManifold<Metric<coordinate_system::Cartesian<NDIMS>>, Top
 //    using topology_type::ndims;
 //
 //private:
-//    typedef Geometry<coordinates_system_type, topology_type> this_type;
+//    typedef BaseManifold<coordinates_system_type, topology_type> this_type;
 //public:
-//    Geometry() { }
+//    BaseManifold() { }
 //
-//    Geometry(this_type const &other) : topology_type(other) { }
+//    BaseManifold(this_type const &other) : topology_type(other) { }
 //
-//    virtual ~Geometry() { }
+//    virtual BaseManifoldfold() { }
 //
 //
 //    template<typename OS>
@@ -66,7 +66,7 @@ using Cartesian=DefaultManifold<Metric<coordinate_system::Cartesian<NDIMS>>, Top
 //
 //        topology_type::print(os);
 //
-//        os << "\t }, #Geometry " << std::endl;
+//        os << "\t }, #BaseManifold " << std::endl;
 //
 //        return os;
 //    }

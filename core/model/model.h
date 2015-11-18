@@ -14,18 +14,22 @@
 #include <limits>
 #include <map>
 #include <string>
+#include <memory>
+
+#include "model_base.h"
 
 #include "../gtl/primitives.h"
 #include "../gtl/type_traits.h"
 #include "../gtl/utilities/utilities.h"
 #include "../manifold/topology/block.h"
+#include "../manifold/obsolete/mesh_block.h.h"
 
 namespace simpla
 {
 
 /**
  *  @defgroup  Model Model
- *  @brief Geometry modeling
+ *  @brief BaseManifold modeling
  */
 
 /**

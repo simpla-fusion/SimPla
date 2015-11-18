@@ -83,8 +83,8 @@
       <sourceFolder url="file://$MODULE_DIR$/core/geometry/cs_cylindrical.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/geometry/cube.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/geometry/cut_cell.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/geometry/geo_algorithm.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/geometry/geo_object.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/geometry/geometric_algorithm.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/geometry/geometry.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/geometry/implicit_function.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/geometry/model.h" isTestSource="false" />
@@ -95,6 +95,7 @@
       <sourceFolder url="file://$MODULE_DIR$/core/geometry/obsolete/polygons.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/geometry/obsolete/surface.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/geometry/point_in_polygon.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/geometry/polygon.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/geometry/primitive.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/geometry/primitive_ext.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/geometry/select.h" isTestSource="false" />
@@ -192,8 +193,10 @@
       <sourceFolder url="file://$MODULE_DIR$/core/io/data_stream.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/io/io.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/io/io.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/io/io_ext.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/io/test/xdmf_io.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/CMakeLists.txt" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/base_manifold.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/block/block.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/block/block_connection.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/block/block_data_container.h" isTestSource="false" />
@@ -210,10 +213,6 @@
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/domain_operation.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/domain_traits.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/fiber_bundle.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/geometry/geometry.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/geometry/geometry_traits.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/geometry/metric.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/geometry/metric_euclidean.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/interpolate/interpolate.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/interpolate/linear.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/manifold.h" isTestSource="false" />
@@ -274,7 +273,9 @@
       <sourceFolder url="file://$MODULE_DIR$/core/model/mesh_snap.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/model/model.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/model/model_traits.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/model/revolve_polygon.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/model/select.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/model/trans_revolve.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/numeric/cholesky.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/numeric/find_root.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/numeric/half_split.h" isTestSource="false" />
@@ -387,7 +388,6 @@
     <orderEntry type="module-library">
       <library name="Header Search Paths">
         <CLASSES>
-          <root url="file://$USER_HOME$/.CLion12/system/cmake/generated/82e76996/82e76996/Debug/external_project/googletest/include" />
           <root url="file:///usr/include" />
           <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include" />
           <root url="file:///usr/lib/llvm-3.6/lib/clang/3.6.0/include" />
@@ -395,7 +395,6 @@
           <root url="file:///usr/local/include" />
         </CLASSES>
         <SOURCES>
-          <root url="file://$USER_HOME$/.CLion12/system/cmake/generated/82e76996/82e76996/Debug/external_project/googletest/include" />
           <root url="file:///usr/include" />
           <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include" />
           <root url="file:///usr/lib/llvm-3.6/lib/clang/3.6.0/include" />
