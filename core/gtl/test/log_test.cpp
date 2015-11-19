@@ -6,31 +6,33 @@
  */
 
 #include "../utilities/log.h"
+
 using namespace simpla;
+
 int main(int argc, char **argv)
 {
-	logger::Logger::init(argc, argv);
+    logger::init(argc, argv);
 
-	int a;
+    int a;
 
-	LOG_CMD(a = 5);
+    LOG_CMD(a = 5);
 
 //	log::Logger::set_message_visable_level(10);
 
-	auto L = LOGGER;
+    logger::Logger L(logger::LOG_LOG);
 
-	L << "Hello world " << std::endl
+    L << "Hello world " << std::endl
 
-	<< logger::flush
+    << logger::flush
 
-	<< __STRING(a=5) << "lalalalal";
+    << __STRING(a = 5) << "lalalalal";
 
-	a = 6;
+    a = 6;
 
-	L << DONE<< a << std::endl;
+    L << DONE << a << std::endl;
 
-	INFORM<< "What?"<< std::endl;
-	INFORM<< "Why?"<< std::endl;
-	INFORM<< "Who?"<< std::endl;
-	INFORM<< "WHen?"<< std::endl;
+    INFORM << "What?" << std::endl;
+    INFORM << "Why?" << std::endl;
+    INFORM << "Who?" << std::endl;
+    INFORM << "WHen?" << __PRETTY_FUNCTION__ << "[" << __FILE__ << "]" << std::endl;
 }

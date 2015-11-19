@@ -272,7 +272,7 @@ REGISTER_TYPED_TEST_CASE_P(TestField, assign, index, constant_real, scalarField)
 //protected:
 //	void SetUp()
 //	{
-//		LOGGER.set_stdout_visable_level(LOG_INFORM);
+//		LOGGER.set_stdout_level(LOG_INFORM);
 //		auto param = GetParam();
 //
 //		xmin = std::get<0>(param);

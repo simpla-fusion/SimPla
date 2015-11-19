@@ -18,41 +18,28 @@
 
 namespace simpla
 {
+
 struct DataSet;
 
+namespace io
+{
 /** @addtogroup io
  *  @brief this module collects the classes used to read /write data file.
  * @{
  */
 
-std::string init_io(int argc, char **argv);
 
-void close_io();
+void init(int argc, char **argv);
+
+void close();
+
+std::string help_message();
 
 std::string cd(std::string const &url);
 
 std::string save(std::string const &url, DataSet const &ds,
                  size_t flag = 0UL);
 
-//template<typename T>
-//std::string save(std::string const &url, T const *data, int ndims,
-//                 size_t const *dims, size_t flag = 0UL)
-//{
-//    return save(url, make_dataset(data, ndims, dims), flag);
-//}
-//template<typename T>
-//auto save(std::string const &name, T const &d, size_t flag = 0UL)
-//DECL_RET_TYPE(save(name, make_dataset(d), flag))
-
-#define SAVE(_F_) simpla::save(__STRING(_F_),_F_  )
-#define SAVE_APPEND(_F_) simpla::save(__STRING(_F_),_F_,SP_APPEND  )
-#define SAVE_RECORD(_F_) simpla::save(__STRING(_F_),_F_,SP_RECORD  )
-
-#ifndef NDEBUG
-#	define DEBUG_SAVE(_F_) simpla::save(__STRING(_F_),_F_ )
-#else
-#   define DEBUG_SAVE(_F_) ""
-#endif
 
 void delete_attribute(std::string const &url);
 
@@ -62,8 +49,7 @@ void set_dataset_attribute(std::string const &url, any const &prop);
 
 any get_dataset_attribute(std::string const &url);
 
-template<typename T>
-void set_dataset_attribute(std::string const &url, T const &v)
+template<typename T> void set_dataset_attribute(std::string const &url, T const &v)
 {
     set_dataset_attribute(url, any(v));
 }
@@ -141,6 +127,20 @@ T get_dataset_attribute(std::string const &url)
 //	return save(name, d_, std::forward<Args>(args)...);
 //}
 /** @} */
+
+}//namespace io
+
+
+
+#define SAVE(_F_) simpla::io::save(__STRING(_F_),_F_  )
+#define SAVE_APPEND(_F_) simpla::io::save(__STRING(_F_),_F_,SP_APPEND  )
+#define SAVE_RECORD(_F_) simpla::io::save(__STRING(_F_),_F_,SP_RECORD  )
+
+#ifndef NDEBUG
+#	define DEBUG_SAVE(_F_) simpla::io::save(__STRING(_F_),_F_ )
+#else
+#   define DEBUG_SAVE(_F_) ""
+#endif
 } // namespace simpla
 
 #endif /* CORE_IO_IO_H_ */

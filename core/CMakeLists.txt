@@ -21,6 +21,7 @@ ADD_SUBDIRECTORY(field)
 ADD_SUBDIRECTORY(particle)
 
 
-add_library(simpla_lib    )
-TARGET_LINK_LIBRARIES(simpla_lib   application io parallel  physics dataset ${LUA_LIBRARIES} ${HDF5_C_LIBRARIES} ${MPI_C_LIBRARIES} utilities)
+add_library(simpla_lib)
+TARGET_LINK_LIBRARIES(simpla_lib application io parallel physics geometry
+        dataset ${LUA_LIBRARIES} ${HDF5_C_LIBRARIES} ${MPI_C_LIBRARIES} utilities)
 

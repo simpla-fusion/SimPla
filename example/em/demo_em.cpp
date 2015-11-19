@@ -132,7 +132,7 @@ SP_APP(em, " Maxwell Eqs.")
 //
 //    LOGGER << "----------  Dump input ---------- " << std::endl;
 //
-//    cd("/Input/");
+    io::cd("/Input/");
 
     VERBOSE << SAVE(E) << std::endl;
     VERBOSE << SAVE(B) << std::endl;
@@ -190,11 +190,11 @@ SP_APP(em, " Maxwell Eqs.")
 //
 //    }
 //
-//    cd("/Output/");
-//
-//    VERBOSE << SAVE(E) << std::endl;
-//    VERBOSE << SAVE(B) << std::endl;
-//    VERBOSE << SAVE(J) << std::endl;
+    io::cd("/Output/");
+
+    VERBOSE << SAVE(E) << std::endl;
+    VERBOSE << SAVE(B) << std::endl;
+    VERBOSE << SAVE(J) << std::endl;
 
     LOGGER << "----------  DONE ---------- " << std::endl;
 

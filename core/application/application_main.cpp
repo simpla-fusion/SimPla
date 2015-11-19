@@ -25,19 +25,25 @@ int main(int argc, char **argv)
 {
     using namespace simpla;
 
-    std::string help_message;
 
-    help_message += logger::init_logger(argc, argv);
-//    help_message += init_parallel(argc, argv);
-    help_message += init_io(argc, argv);
+    logger::init(argc, argv);
+
+    parallel::init(argc, argv);
+
+    io::init(argc, argv);
+
+
+    // help_message += logger::help_message();
+    // help_message += parallel::help_message();
+    // help_message += io::help_message();
 
     ConfigParser options;
+
     SpAppList &applist = SingletonHolder<SpAppList>::instance();
 
-    help_message += options.init(argc, argv);
+    options.init(argc, argv);
 
-    if (GLOBAL_COMM.process_num() == 0)
-    { MESSAGE << ShowCopyRight() << std::endl; }
+    if (GLOBAL_COMM.process_num() == 0) { MESSAGE << ShowCopyRight() << std::endl; }
 
     if (options["V"] || options["version"])
     {
@@ -64,7 +70,14 @@ int main(int argc, char **argv)
                 "\n"
                 "\t--case <CASE ID>         \t, Select a case <CASE ID> to execute \n "
                 "\t--case_help <CASE ID>    \t, Print a usag message of case <CASE ID> \n "
-        << help_message;
+
+
+        << logger::help_message()
+
+        << parallel::help_message()
+
+        << io::help_message();
+
 
         MESSAGE
 
@@ -113,9 +126,9 @@ int main(int argc, char **argv)
 
         << "\t >>> Done <<< " << std::endl;
     }
-    close_io();
-    close_parallel();
-    logger::close_logger();
+    io::close();
+    parallel::close();
+    logger::close();
 
     return 0;
 

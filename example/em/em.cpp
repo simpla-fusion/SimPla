@@ -13,19 +13,19 @@
 #include "../../core/application/application.h"
 #include "../../core/gtl/primitives.h"
 #include "../../core/gtl/type_cast.h"
-#include "../../core/gtl/utilities/pretty_stream.h"
 #include "../../core/io/io.h"
 
 #include "../../core/physics/constants.h"
 #include "../../core/physics/physical_constants.h"
 #include "../../core/gtl/utilities/config_parser.h"
+#include "../../core/gtl/utilities/pretty_stream.h"
 #include "../../core/gtl/utilities/log.h"
 
 
+#include "../../core/field/field.h"
 #include "../../core/manifold/manifold_traits.h"
 #include "../../core/manifold/calculus.h"
 #include "../../core/manifold/domain.h"
-#include "../../core/field/field.h"
 #include "../../core/manifold/pre_define/cylindrical.h"
 
 #include "../../core/model/geqdsk.h"
@@ -72,9 +72,9 @@ SP_APP(em, " Maxwell Eqs.")
 
     GEqdsk geqdsk;
 
-    geqdsk.load(options["GEQDSK"].as<std::string>(""));
+    geqdsk.load(options["gfile"].as<std::string>(""));
 
-//    CHECK(geqdsk.box());
+    CHECK(geqdsk.box());
 
     mesh->extents(geqdsk.box());
 

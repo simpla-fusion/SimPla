@@ -37,9 +37,11 @@ public:
 
     ~MPIComm();
 
-    std::string init(int argc = 0, char **argv = nullptr);
+    void init(int argc = 0, char **argv = nullptr);
 
     void close();
+
+    static std::string help_message();
 
     MPI_Comm comm();
 

@@ -14,35 +14,40 @@
 #include "../gtl/design_pattern/singleton_holder.h"
 #include "data_stream.h"
 
-namespace simpla
+namespace simpla { namespace io
 {
-
-std::string init_io(int argc, char ** argv)
+void init(int argc, char **argv)
 {
-	return SingletonHolder<DataStream>::instance().init(argc, argv);
+    SingletonHolder<DataStream>::instance().init(argc, argv);
 }
 
-void close_io()
+void close()
 {
-	SingletonHolder<DataStream>::instance().close();
-}
-std::string save(std::string const & url, DataSet const & ds, size_t flag)
-{
-	return GLOBAL_DATA_STREAM.write(url,ds,flag);
+    SingletonHolder<DataStream>::instance().close();
 }
 
-DataSet load(std::string const & url)
+std::string help_message()
 {
-	DataSet ds;
-	GLOBAL_DATA_STREAM.read(url,&ds );
-	return std::move(ds);
+    return DataStream::help_message();
+};
+
+std::string save(std::string const &url, DataSet const &ds, size_t flag)
+{
+    return SingletonHolder<io::DataStream>::instance().write(url, ds, flag);
 }
 
-std::string cd(std::string const & url)
+DataSet load(std::string const &url)
 {
-	return std::get<1>(GLOBAL_DATA_STREAM.cd(url ));
+    DataSet ds;
+    SingletonHolder<io::DataStream>::instance().read(url, &ds);
+    return std::move(ds);
 }
 
+std::string cd(std::string const &url)
+{
+    return std::get<1>(SingletonHolder<io::DataStream>::instance().cd(url));
+}
+}//namespace io
 }
 // namespace simpla
 

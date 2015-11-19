@@ -95,6 +95,7 @@
       <sourceFolder url="file://$MODULE_DIR$/core/geometry/obsolete/polygons.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/geometry/obsolete/surface.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/geometry/point_in_polygon.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/geometry/polygon.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/geometry/polygon.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/geometry/primitive.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/geometry/primitive_ext.h" isTestSource="false" />
@@ -388,17 +389,25 @@
     <orderEntry type="module-library">
       <library name="Header Search Paths">
         <CLASSES>
+          <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/daal/include" />
+          <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/ipp/include" />
+          <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/mkl/include" />
+          <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/mpi/intel64/include" />
+          <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/tbb/include" />
           <root url="file:///usr/include" />
           <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include" />
           <root url="file:///usr/lib/llvm-3.6/lib/clang/3.6.0/include" />
-          <root url="file:///usr/lib/openmpi/include" />
           <root url="file:///usr/local/include" />
         </CLASSES>
         <SOURCES>
+          <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/daal/include" />
+          <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/ipp/include" />
+          <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/mkl/include" />
+          <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/mpi/intel64/include" />
+          <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/tbb/include" />
           <root url="file:///usr/include" />
           <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include" />
           <root url="file:///usr/lib/llvm-3.6/lib/clang/3.6.0/include" />
-          <root url="file:///usr/lib/openmpi/include" />
           <root url="file:///usr/local/include" />
         </SOURCES>
       </library>

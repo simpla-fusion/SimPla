@@ -8,17 +8,24 @@
 #include "../gtl/design_pattern/singleton_holder.h"
 #include "mpi_comm.h"
 
-namespace simpla
+namespace simpla { namespace parallel
 {
 
-std::string init_parallel(int argc, char ** argv)
+void init(int argc, char **argv)
 {
-	return SingletonHolder<simpla::MPIComm>::instance().init(argc, argv);
+    SingletonHolder<simpla::MPIComm>::instance().init(argc, argv);
 }
-void close_parallel()
+
+void close()
 {
-	SingletonHolder<simpla::MPIComm>::instance().close();
+    SingletonHolder<simpla::MPIComm>::instance().close();
 }
+
+std::string help_message()
+{
+    return MPIComm::help_message();
+};
+
 ///**
 // * @param pos in {0,count} out {begin,shape}
 // */
@@ -115,6 +122,5 @@ void close_parallel()
 //	}
 //	return op;
 //}
-
-}
-// namespace simpla
+} //  namespace parallel
+} // namespace simpla

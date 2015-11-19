@@ -21,11 +21,26 @@
 #include <bitset>
 #include <sstream>
 #include <string>
+#include <memory>
 
 namespace simpla
 {
 namespace logger
 {
+
+
+void init(int argc, char **argv);
+
+void close();
+
+std::string help_message();
+
+void set_stdout_level(int l);
+
+void set_mpi_comm(int rank = 0, int size = 1);
+
+int get_line_width();
+
 
 /**
  * @ingroup utilities
@@ -57,10 +72,6 @@ enum tags
  */
 class Logger
 {
-    int level_;
-    std::ostringstream buffer_;
-    size_t current_line_char_count_;
-    bool endl_;
 public:
     typedef Logger this_type;
 
@@ -68,21 +79,13 @@ public:
 
     Logger(int lv);
 
-    Logger(Logger const &r);
-
     Logger(Logger &&r);
 
     ~Logger();
 
-    static std::string init(int argc, char **argv);
 
-    static void set_stdout_visable_level(int l);
+    int get_buffer_length() const;
 
-    static void set_mpi_comm(int rank = 0, int size = 1);
-
-    size_t get_buffer_length() const;
-
-    size_t get_line_width() const;
 
     void flush();
 
@@ -93,12 +96,12 @@ public:
     void not_endl();
 
     template<typename T>
-    inline this_type &operator<<(T const &value)
+    inline this_type &push(T const &value)
     {
 
         current_line_char_count_ -= get_buffer_length();
 
-        (this)->buffer_ << value;
+        (*m_buffer_) << value;
 
         current_line_char_count_ += get_buffer_length();
 
@@ -110,39 +113,16 @@ public:
         return *this;
     }
 
-    inline this_type &operator<<(char const value[])
-    {
-
-        current_line_char_count_ -= get_buffer_length();
-
-        const_cast<this_type *>(this)->buffer_ << value;
-
-        current_line_char_count_ += get_buffer_length();
-
-        if (current_line_char_count_ > get_line_width())
-        {
-            endl();
-        }
-
-        return *this;
-    }
 
     typedef Logger &(*LoggerStreamManipulator)(Logger &);
 
-    Logger &operator<<(LoggerStreamManipulator manip)
+    Logger &push(LoggerStreamManipulator manip)
     {
         // call the function, and return it's value
         return manip(*this);
     }
 
-    typedef Logger &(*LoggerStreamConstManipulator)(Logger const &);
 
-    // take in a function with the custom signature
-    Logger const &operator<<(LoggerStreamConstManipulator manip) const
-    {
-        // call the function, and return it's value
-        return manip(*this);
-    }
 
     /**
      *
@@ -173,25 +153,47 @@ public:
     typedef StdCoutType &(*StandardEndLine)(StdCoutType &);
 
     //! define an operator<< to take in std::endl
-    this_type const &operator<<(StandardEndLine manip) const
+    this_type &operator<<(StandardEndLine const &manip)
     {
         // call the function, but we cannot return it's value
-        manip(const_cast<this_type *>(this)->buffer_);
+        manip(*m_buffer_);
         return *this;
     }
 
-    this_type &operator<<(StandardEndLine manip)
-    {
-        // call the function, but we cannot return it's value
-        manip(const_cast<this_type *>(this)->buffer_);
-        return *this;
-    }
+
+private:
+
+    std::shared_ptr<std::ostringstream> m_buffer_;
+    int level_;
+    int current_line_char_count_;
+    bool endl_;
 
 };
 
-std::string init_logger(int argc, char **argv);
 
-void close_logger();
+template<typename Arg>
+Logger &operator<<(Logger &L, Arg const &arg)
+{
+    return L.push(arg);
+}
+
+template<typename Arg>
+Logger operator<<(Logger &&L, Arg const &arg)
+{
+    L.push(arg);
+    return std::move(L);
+}
+
+inline Logger &operator<<(Logger &L, std::string const &arg)
+{
+    return L.push(arg);
+}
+
+inline Logger operator<<(Logger &&L, std::string const &arg)
+{
+    L.push(arg);
+    return std::move(L);
+}
 
 /**
  * @name     manip for Logger
@@ -327,9 +329,9 @@ inline std::string ShowBit(unsigned long s)
 #define SEPERATOR(_C_) std::setw(80) << std::setfill(_C_) << _C_
 //"-----------------------------------------------------------------"
 
-#define LOG_CMD(_CMD_) {auto __logger=logger::Logger(logger::LOG_LOG);__logger<<__STRING(_CMD_);_CMD_;__logger<<DONE;}
+#define LOG_CMD(_CMD_) {logger::Logger __logger(logger::LOG_LOG);__logger<<__STRING(_CMD_);_CMD_;__logger<<DONE;}
 
-#define VERBOSE_CMD(_CMD_) {auto __logger=logger::Logger(logger::LOG_VERBOSE);__logger<<__STRING(_CMD_);try{_CMD_;__logger<< DONE;}catch(...){__logger<<logger::failed;} }
+#define VERBOSE_CMD(_CMD_) {logger::Logger __logger(logger::LOG_VERBOSE);__logger<<__STRING(_CMD_);try{_CMD_;__logger<< DONE;}catch(...){__logger<<logger::failed;} }
 
 #define LOG_CMD1(_LEVEL_, _MSG_, _CMD_) {auto __logger=logger::Logger(_LEVEL_);__logger<<_MSG_;_CMD_;__logger<<DONE;}
 

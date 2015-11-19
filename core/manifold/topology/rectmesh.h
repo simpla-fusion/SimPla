@@ -91,10 +91,10 @@ public:
     template<typename TDict>
     void load(TDict const &dict)
     {
-        box(dict["BaseManifold"]["Box"].template as<std::tuple<point_type, point_type> >());
+        box(dict["Geometry"]["Box"].template as<std::tuple<point_type, point_type> >());
 
         base_type::dimensions(
-                dict["BaseManifold"]["Topology"]["Dimensions"].template as<index_tuple>(index_tuple{10, 1, 1}));
+                dict["Geometry"]["Topology"]["Dimensions"].template as<index_tuple>(index_tuple{10, 1, 1}));
     }
 
     template<typename OS>

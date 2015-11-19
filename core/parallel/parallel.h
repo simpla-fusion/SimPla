@@ -36,45 +36,52 @@
 namespace simpla
 {
 
-std::string init_parallel(int argc, char **argv);
-
-void close_parallel();
-
 namespace tags
 {
 struct split;
 }
 
+
+namespace parallel
+{
+void init(int argc, char **argv);
+
+void close();
+
+std::string help_message();
+
+
 template<typename TRange, typename Function>
 void parallel_do(TRange const &range, Function const &fun)
 {
-	fun(TRange(range, tags::split()));
+    fun(TRange(range, tags::split()));
 }
 
 template<typename TRange, typename Function>
 void parallel_for(TRange const &range, Function const &fun)
 {
-	parallel_do(range, [=](TRange const &o_range)
-	{
-		for (auto const &i:o_range)
-		{
-			fun(i);
-		}
-	});
+    parallel_do(range, [=](TRange const &o_range)
+    {
+        for (auto const &i:o_range)
+        {
+            fun(i);
+        }
+    });
 }
 
 template<typename TRange, typename Function, typename Reduction>
 void parallel_reduce(TRange const &range, Function const &fun, Reduction const &reduction)
 {
-	parallel_do(range, [&](TRange const &o_range)
-	{
-		for (auto const &i:o_range)
-		{
-			fun(i);
-		}
-	});
+    parallel_do(range, [&](TRange const &o_range)
+    {
+        for (auto const &i:o_range)
+        {
+            fun(i);
+        }
+    });
 }
 
-}  // namespace simpla
+} // namespace parallel
+} // namespace simpla
 
 #endif /* PARALLEL_H_ */

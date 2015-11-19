@@ -62,7 +62,7 @@ int MPIComm::num_of_process() const
     return (!pimpl_) ? 1 : pimpl_->m_num_process_;
 }
 
-std::string MPIComm::init(int argc, char **argv)
+void MPIComm::init(int argc, char **argv)
 {
     if (!pimpl_)
     {
@@ -83,7 +83,7 @@ std::string MPIComm::init(int argc, char **argv)
     MPI_Comm_size(pimpl_->m_comm_, &pimpl_->m_num_process_);
     MPI_Comm_rank(pimpl_->m_comm_, &pimpl_->m_process_num_);
 
-    LOGGER.set_mpi_comm(pimpl_->m_process_num_, pimpl_->m_num_process_);
+    logger::set_mpi_comm(pimpl_->m_process_num_, pimpl_->m_num_process_);
 
     topology(nTuple<int, 3>({pimpl_->m_num_process_, 1, 1}));
 
@@ -100,7 +100,7 @@ std::string MPIComm::init(int argc, char **argv)
 
                        if (opt == "mpi_topology")
                        {
-                           topology(type_cast<nTuple<int, 3>>(value));
+                           topology(type_cast<nTuple<int, 3 >>(value));
                        }
 
                        return CONTINUE;
@@ -110,7 +110,10 @@ std::string MPIComm::init(int argc, char **argv)
     );
 
     VERBOSE << "MPI communicator is initialized!" << std::endl;
+}
 
+std::string MPIComm::help_message()
+{
     return
         //"\t--number_of_threads <NUMBER>  \t, Number of threads \n"
             "\t--mpi_topology <NX NY NZ>    \t, Set Topology of mpi communicator. \n";
