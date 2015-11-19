@@ -24,7 +24,7 @@ struct DataSet;
 namespace io
 {
 /** @addtogroup io
- *  @brief this module collects the classes used to read /write data file.
+ *  @brief this module collects stuff used to read/write data file.
  * @{
  */
 

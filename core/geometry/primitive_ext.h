@@ -7,10 +7,10 @@
 
 #ifndef CORE_GEOMETRY_PRIMITIVE_EXT_H_
 #define CORE_GEOMETRY_PRIMITIVE_EXT_H_
+
 #include "primitive.h"
-namespace simpla
-{
-namespace geometry
+
+namespace simpla { namespace geometry
 {
 namespace tags
 {
@@ -33,10 +33,10 @@ namespace model
 template<size_t Dimension, typename ...> struct Primitive;
 
 template<typename CoordinateSystem, typename Tag>
-using Pyramid = Primitive< 3,CoordinateSystem, tags::pyramid >;
+using Pyramid = Primitive<3, CoordinateSystem, tags::pyramid>;
 
 template<typename CoordinateSystem, typename Tag>
-using Wedge = Primitive< 3,CoordinateSystem, tags::wedge>;
+using Wedge = Primitive<3, CoordinateSystem, tags::wedge>;
 }  // namespace model
 
 namespace traits
@@ -44,15 +44,15 @@ namespace traits
 
 template<size_t Dimension, typename CoordinateSystem>
 struct number_of_vertices<
-		model::Primitive<Dimension, CoordinateSystem, tags::pyramid>>
+        model::Primitive<Dimension, CoordinateSystem, tags::pyramid>>
 {
-	static constexpr size_t value = 5;
+    static constexpr size_t value = 5;
 };
 template<size_t Dimension, typename CoordinateSystem>
 struct number_of_vertices<
-		model::Primitive<Dimension, CoordinateSystem, tags::wedge>>
+        model::Primitive<Dimension, CoordinateSystem, tags::wedge>>
 {
-	static constexpr size_t value = 6;
+    static constexpr size_t value = 6;
 };
 
 } // namespace traits

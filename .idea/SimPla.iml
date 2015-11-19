@@ -53,6 +53,7 @@
       <sourceFolder url="file://$MODULE_DIR$/core/field/field_dense.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/field/field_expression.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/field/field_function.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/field/field_patch.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/field/field_sparse.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/field/field_traits.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/field/load_field.h" isTestSource="false" />
@@ -94,7 +95,6 @@
       <sourceFolder url="file://$MODULE_DIR$/core/geometry/obsolete/polygon.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/geometry/obsolete/polygons.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/geometry/obsolete/surface.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/geometry/point_in_polygon.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/geometry/polygon.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/geometry/polygon.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/geometry/primitive.h" isTestSource="false" />
@@ -207,9 +207,9 @@
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/block/mesh_block_id.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/block/mesh_id.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/block/tiling_block.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/calculate/calculate.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/calculate/fvm_structured.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/calculus.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/diff_scheme/diff_scheme.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/diff_scheme/fvm_structured.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/domain.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/domain_operation.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/domain_traits.h" isTestSource="false" />
@@ -218,32 +218,16 @@
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/interpolate/linear.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/manifold.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/manifold_traits.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/block/block.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/block/block_connection.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/block/block_data_container.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/block/block_layout.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/block/mesh_amr.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/block/mesh_block.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/block/mesh_block_id.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/block/mesh_id.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/block/tiling_block.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/boundary.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/mesh.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/mesh_backup.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/mesh_block.h.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/mesh_connection.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/mesh_layout.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/meshfree.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/policy.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/structured/interpolate.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/structured/mesh_aux.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/structured/rect_mesh.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/structured/rect_mesh_ext.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/structured/structured.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/structured/test/geometry_test.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/structured/test/interpolator_test.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/structured/test/topology_test.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/unstructured.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/mesh/block.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/mesh/corect_mesh.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/mesh/map_general.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/mesh/map_linear.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/mesh/mesh.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/mesh/mesh_block.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/mesh/mesh_common.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/mesh/mesh_ids.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/mesh/mesh_patch.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/mesh/rectmesh.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/policy/dataset.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/policy/parallel.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/pre_define/cartesian.h" isTestSource="false" />
@@ -256,16 +240,6 @@
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/test/mesh_ids_test.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/test/mesh_ids_test.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/time_integrator/time_integrator.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/block.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/corect_mesh.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/map_general.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/map_linear.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/mesh_block.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/mesh_ids.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/rectmesh.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/structured.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/topology.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/topology/topology_common.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/model/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/model/geqdsk.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/model/geqdsk.h" isTestSource="false" />
@@ -343,16 +317,6 @@
       <sourceFolder url="file://$MODULE_DIR$/core/physics/physical_constants.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/physics/physical_constants.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/physics/physics.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/solver/structured/fdm.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/solver/structured/interpolator.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/solver/structured/select.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/solver/structured/test/geometry_test.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/solver/structured/test/interpolator_test.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/solver/structured/test/topology_test.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/solver/test/field_basic_algebra_test.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/solver/test/field_basic_algerbra_test.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/solver/test/field_diff_calculus_test.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/solver/test/mesh_test.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/sp_config.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/docs/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/docs/Doxyfile.in" isTestSource="false" />
@@ -389,6 +353,7 @@
     <orderEntry type="module-library">
       <library name="Header Search Paths">
         <CLASSES>
+          <root url="file://$USER_HOME$/.CLion12/system/cmake/generated/82e76996/82e76996/Debug/external_project/googletest/include" />
           <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/daal/include" />
           <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/ipp/include" />
           <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/mkl/include" />
@@ -400,6 +365,7 @@
           <root url="file:///usr/local/include" />
         </CLASSES>
         <SOURCES>
+          <root url="file://$USER_HOME$/.CLion12/system/cmake/generated/82e76996/82e76996/Debug/external_project/googletest/include" />
           <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/daal/include" />
           <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/ipp/include" />
           <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/mkl/include" />

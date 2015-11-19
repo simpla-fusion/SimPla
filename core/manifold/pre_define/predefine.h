@@ -10,7 +10,7 @@
 #include "../../gtl/primitives.h"
 
 #include "../time_integrator/time_integrator.h"
-#include "../calculate/fvm_structured.h"
+#include "../diff_scheme/fvm_structured.h"
 #include "../interpolate/linear.h"
 #include "../base_manifold.h"
 
@@ -23,13 +23,16 @@
 
 namespace simpla
 {
-template<typename METRIC, typename TOPOLOGY> using DefaultManifold= Manifold<
-        BaseManifold<METRIC, TOPOLOGY>,
-        Calculate<BaseManifold<METRIC, TOPOLOGY>, calculate::tags::finite_volume>,
-        Interpolate<BaseManifold<METRIC, TOPOLOGY>, interpolate::tags::linear>,
-        TimeIntegrator<BaseManifold<METRIC, TOPOLOGY>>,
-        DataSetPolicy<BaseManifold<METRIC, TOPOLOGY>>,
-        ParallelPolicy<BaseManifold<METRIC, TOPOLOGY>>
+namespace manifold
+{
+template<typename METRIC, typename MESH> using DefaultManifold= Manifold<
+        BaseManifold<METRIC, MESH>,
+        DiffScheme<BaseManifold<METRIC, MESH>, diff_scheme::tags::finite_volume>,
+        Interpolate<BaseManifold<METRIC, MESH>, interpolate::tags::linear>,
+        TimeIntegrator<BaseManifold<METRIC, MESH>>,
+        DataSetPolicy<BaseManifold<METRIC, MESH>>,
+        ParallelPolicy<BaseManifold<METRIC, MESH>>
 >;
+}; //namespace manifold
 }// namespace simpla
 #endif //SIMPLA_PREDEFINE_H

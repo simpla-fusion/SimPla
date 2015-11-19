@@ -16,8 +16,15 @@ namespace simpla
 {
 namespace geometry
 {
+
+
 template<typename...> struct Metric;
 
+/**
+ * @ingroup  coordinate_system
+ * @{
+ *  Metric of  Cartesian coordinate system
+ */
 template<int ICARTESIAN_ZAXIS>
 struct Metric<coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS> >
 {
@@ -31,7 +38,7 @@ struct Metric<coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS> >
     typedef traits::covector_t<coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS>> covector_t;
 
     /**
-     * metric only calculate the volume of simplex
+     * metric only diff_scheme the volume of simplex
      *
      */
 
@@ -57,7 +64,7 @@ struct Metric<coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS> >
     DECL_RET_TYPE((v0[0] * v1[0] + v0[1] * v1[1] + v0[2] * v1[2]))
 
 };
-
+/** @}*/
 
 }  // namespace geometry
 

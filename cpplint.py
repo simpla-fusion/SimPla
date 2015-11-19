@@ -2478,7 +2478,7 @@ def CheckLanguage(filename, clean_lines, linenum, file_extension, include_state,
   # When snprintf is used, the second argument shouldn't be a literal.
   match = Search(r'snprintf\s*\(([^,]*),\s*([0-9]*)\s*,', line)
   if match and match.group(2) != '0':
-    # If 2nd arg is zero, snprintf is used to calculate size.
+    # If 2nd arg is zero, snprintf is used to diff_scheme size.
     error(filename, linenum, 'runtime/printf', 3,
           'If you can, use sizeof(%s) instead of %s as the 2nd arg '
           'to snprintf.' % (match.group(1), match.group(2)))

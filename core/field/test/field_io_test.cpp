@@ -12,7 +12,7 @@
 #include "../utilities/log.h"
 //#include "../geometry/geometry.h"
 //#include "../geometry/domain.h"
-//#include "../geometry/topology/structured.h"
+//#include "../geometry/mesh/structured.h"
 //#include "../geometry/geometry/cartesian.h"
 //#include "../geometry/diff_scheme/fdm.h"
 //#include "../geometry/interpolator/interpolator.h"

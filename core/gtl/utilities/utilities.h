@@ -23,16 +23,15 @@
 
 #include "../../physics/physical_constants.h"
 
+
+namespace simpla
+{
 /**
  *  @addtogroup utilities Utilities
  *  @{
  *   @brief  This module collects   general purpose functions.
  *  @}
  */
-
-namespace simpla
-{
-
 }  // namespace simpla
 
 #endif /* CORE_UTILITIES_MISC_UTILITIES_H_ */

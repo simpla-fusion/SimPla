@@ -14,23 +14,28 @@
 #include "coordinate_system.h"
 #include "primitive.h"
 #include "chains.h"
-//#include "model.h"
-#ifdef USE_BOOST
-#	error "Custom geometry_obj library is not implemented!"
-#else
 
-#	include "boost_gemetry_adapted.h"
-
-#endif
+//    #ifdef USE_BOOST
+//    #	error "Custom geometry_obj library is not implemented!"
+//    #else
+//
+//    #	include "boost_gemetry_adapted.h"
+//
+//    #endif
 
 namespace simpla
 {
+/**
 
+ *  @defgroup geometry Geometry
+ *  @brief this module collects computational geometry stuff.
+  */
+namespace geometry
+{
 
-//template<typename, typename> struct map;
+}//namespace geometry
 
-template<typename> struct Mertic;
-
+/*  @} */
 }//namespace simpla
 
 #endif /* CORE_GEOMETRY_GEOMETRY_H_ */

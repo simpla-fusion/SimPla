@@ -19,7 +19,7 @@ namespace simpla
 /**
  * @ingroup Model
  * @{
- *   \defgroup GEqdsk  GEqdsk
+ *   @defgroup GEqdsk  GEqdsk
  * @}
  *
  * @ingroup GEqdsk
@@ -55,11 +55,9 @@ public:
 
     std::string const &description() const;
 
-    std::tuple<point_type, point_type> box() const;
+    geometry::Object const &boundary() const;
 
-    std::shared_ptr<geometry::Object> boundary() const;
-
-    std::shared_ptr<geometry::Object> limiter() const;
+    geometry::Object const &limiter() const;
 
     Real psi(Real R, Real Z) const;
 
@@ -68,6 +66,9 @@ public:
     Real profile(std::string const &name, Real p_psi) const;
 
     Real profile(std::string const &name, Real R, Real Z) const { return profile(name, psi(R, Z)); }
+
+    point_type magnetic_axis() const;
+
 
     /**
      *
@@ -95,7 +96,7 @@ public:
     }
 
     /**
-     *  calculate the contour at \f$\Psi_{j}\in\left[0,1\right]\f$
+     *  diff_scheme the contour at \f$\Psi_{j}\in\left[0,1\right]\f$
      *  \cite  Jardin:2010:CMP:1855040
      * @param psi_j \f$\Psi_j\in\left[0,1\right]\f$
      * @param M  \f$\theta_{i}=i2\pi/N\f$,

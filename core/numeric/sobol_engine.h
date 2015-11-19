@@ -131,7 +131,7 @@ public:
 	result_type operator()()
 	{
 
-// Calculate the next vector in the sequence.  Find the rightmost zero bit
+// DiffScheme the next vector in the sequence.  Find the rightmost zero bit
 		if (count_ % N == 0)
 		{
 			result_type im = in;

@@ -121,6 +121,5 @@ DECL_RET_TYPE ((std::fabs(m)))
  * @}
  */
 
-}
-// namespace simpla
+}// namespace simpla
 #endif /* PRIMITIVES_H_ */

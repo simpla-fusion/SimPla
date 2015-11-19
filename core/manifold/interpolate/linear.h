@@ -14,12 +14,7 @@ namespace simpla
 {
 
 
-/**
- * @ingroup diff_geo
- * @addtogroup interpolate Interpolate
- * @brief   mapping discrete points to continue space
- *
- */
+
 
 namespace pt= interpolate::tags;
 

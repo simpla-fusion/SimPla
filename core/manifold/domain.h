@@ -54,6 +54,9 @@ public:
     mesh_type const *m_mesh_;
 public:
 
+    using range_type::empty;
+    using range_type::size;
+
     Domain(mesh_type const &m)
             : range_type(m.template range<IFORM>()), m_mesh_(&m)
     {
@@ -84,21 +87,11 @@ public:
         return *this;
     }
 
-    using range_type::empty;
-    using range_type::size;
-
 
     mesh_type const &mesh() const
     {
         return m_mesh_;
     }
-
-
-    bool is_valid() const
-    {
-        return m_mesh_->is_valid();
-    }
-
 
 public:
 
@@ -112,48 +105,6 @@ public:
     }
 
     void deploy() { }
-
-
-
-//	constexpr size_t max_hash() const
-//	{
-//		return m_mesh_->template max_hash<iform>();
-//	}
-//
-//	constexpr size_t hash(id_type s) const
-//	{
-//		return m_mesh_->hash(s);
-//	}
-//
-//	constexpr id_type hash(index_type i, index_type j, index_type k,
-//			index_type n = 0) const
-//	{
-//		return m_mesh_->hash(m_mesh_->template pack_index<iform>(i, j, k, n));
-//	}
-//
-//
-//    constexpr id_type pack_relative_index(index_type i, index_type j,
-//                                          index_type k, index_type n = 0) const
-//    {
-//        return m_mesh_->template pack_relative_index<iform>(i, j, k, n);
-//    }
-//
-//    template<typename TI>
-//    constexpr id_type pack_relative_index(nTuple<TI, 3> const &i, index_type n =
-//    0) const
-//    {
-//        return m_mesh_->template pack_relative_index<iform>(i[0], i[1], i[2], n);
-//    }
-//
-//    template<typename TI>
-//    constexpr id_type pack_relative_index(nTuple<TI, 4> const &i) const
-//    {
-//        return m_mesh_->template pack_relative_index<iform>(i[0], i[1], i[2],
-//                                                            i[3]);
-//    }
-//
-//    constexpr auto unpack_relative_index(id_type s) const
-//    DECL_RET_TYPE((m_mesh_->unpack_relative_index(s)))
 
 
     template<typename TI>
@@ -182,191 +133,9 @@ public:
                           m_mesh_->coordinates_to_topology(e));
     }
 
-//    template<typename T0, typename T1>
-//    void select(T0 const &b, T1 const &e)
-//    {
-//        // FIXME this is incorrect
-//
-//        index_tuple ib, ie;
-//        ib = b;
-//        ie = e;
-//
-//        range_type(mesh_type::pack_index(ib), mesh_type::pack_index(ie)).swap(
-//                *this);
-//    }
-
 
 };
 
-//
-//template<typename ...D>
-//struct Domain<D..., tags::is_points> : public Domain<D...>, public std::set<typename Domain<D...>::id_type>
-//{
-//private:
-//    typedef Domain<D...> base_type;
-//    typedef Domain<D..., tags::is_points> this_type;
-//
-//public:
-//
-//    template<typename ...Args>
-//    Domain(Args &&... args) : base_type(std::forward<Args>(args)...)
-//    {
-//    }
-//
-//    Domain(base_type const &other) : base_type(other)
-//    {
-//    }
-//
-//    Domain(this_type const &other) : base_type(other)
-//    {
-//    }
-//
-//    ~Domain()
-//    {
-//    }
-//
-//
-//    this_type &operator=(this_type const &other)
-//    {
-//        this_type(other).swap(*this);
-//        return *this;
-//    }
-//
-//    template<typename TPred>
-//    void filter(TPred const &pred)
-//    {
-//        std::set<id_type> res;
-//        if (is_simply()) {
-//
-//            std::copy_if(this->begin(), this->end(),
-//                         std::inserter(res, res.begin()),
-//                         [&](id_type const &s) { return static_cast<bool>(pred(s)); }
-//            );
-//
-//        }
-//        else {
-//            std::copy_if(m_id_set_.begin(), m_id_set_.end(),
-//                         std::inserter(res, res.begin()), pred);
-//        }
-//        res.swap(m_id_set_);
-////		update_bound_box();
-//    }
-//
-//    template<typename TPred>
-//    void filter_by_coordinates(TPred const &pred)
-//    {
-//        std::set<id_type> res;
-//        if (is_simply()) {
-//
-//            std::copy_if(this->begin(), this->end(),
-//                         std::inserter(res, res.begin()),
-//                         [&](id_type const &s) { return pred(m_mesh_->point(s)); });
-//
-//        }
-//        else {
-//            std::copy_if(m_id_set_.begin(), m_id_set_.end(),
-//                         std::inserter(res, res.begin()),
-//                         [&](id_type const &s) { return pred(m_mesh_->point(s)); });
-//        }
-//        res.swap(m_id_set_);
-//        update_bound_box();
-//    }
-//
-//    template<typename Tit>
-//    void add(Tit const &b, Tit const &e)
-//    {
-//        std::transform(b, e, std::inserter(m_id_set_, m_id_set_.begin()),
-//                       [&](id_type const &s)
-//                       {
-//                           return in_box(m_mesh_->point(s));
-//                       });
-//    }
-//
-//    template<typename Pred>
-//    void remove(Pred const &pred)
-//    {
-//        filter([&](id_type const &s)
-//               {
-//                   return !pred(s);
-//               });
-//    }
-//
-//    void remove(std::function<bool(point_type const &)> const &pred)
-//    {
-//        filter([&](id_type const &s)
-//               {
-//                   return !pred(m_mesh_->point(s));
-//               });
-//    }
-//
-//
-//    void update_bound_box()
-//    {
-////		if (m_id_set_.size() > 0)
-////		{
-////			UNIMPLEMENTED2("TODO find bound of indices,"
-////					"and remove ids which are out of bound");
-////		}
-////		else
-////		{
-////			m_mesh_->range(m_mesh_->template sub_index_to_id<iform>()).swap(
-////					*this);
-////		}
-//    }
-//
-//    void clear_ids()
-//    {
-//        if (m_id_set_.size() > 0) {
-//            UNIMPLEMENTED2("TODO: clear ids that out of bound.");
-//        }
-//    }
-//
-//    template<typename TFun>
-//    void for_each(this_type const &other, TFun const &fun) const
-//    {
-//
-//        //FIXME NEED OPTIMIZE
-//
-//        if (is_null()) {
-//            return;
-//        }
-//        else if (is_simply() && other.is_simply()) {
-//            range_type r = *this & other;
-//
-//            for (auto s : r) {
-//                fun(s);
-//            }
-//        }
-//        else if (is_simply()) {
-//            for (auto const &s : other.id_set()) {
-//                if (in_box(s)) {
-//                    fun(s);
-//                }
-//            }
-//
-//        }
-//        else if (other.is_simply()) {
-//
-//            for (auto const &s : id_set()) {
-//                if (other.in_box(s)) {
-//                    fun(s);
-//                }
-//
-//            }
-//
-//        }
-//        else {
-//            for (auto const &s : other.id_set()) {
-//                if (m_id_set_.find(s) != m_id_set_.end()) {
-//                    fun(s);
-//                }
-//            }
-//        }
-//
-//    }
-//
-//
-//};
 } // namespace simpla
 
 #endif /* CORE_MESH_DOMAIN_H_ */

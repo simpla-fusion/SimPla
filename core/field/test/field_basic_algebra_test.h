@@ -32,7 +32,7 @@ class TestField : public testing::Test
 protected:
     virtual void SetUp()
     {
-        LOGGER.set_stdout_visable_level(10);
+        logger::set_stdout_level(10);
 
         mesh = std::make_shared<mesh_type>();
 

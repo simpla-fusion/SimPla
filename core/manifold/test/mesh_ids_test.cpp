@@ -140,7 +140,7 @@ using namespace simpla;
 //
 //TEST(GeometryTest, structured_mesh)
 //{
-//    topology::CoRectMesh t;
+//    mesh::CoRectMesh t;
 //
 //    nTuple<size_t, 3> b = {3, 4, 1};
 //
@@ -281,7 +281,7 @@ TEST(GeometryTest, Geometry)
 //
 //TEST(GeometryTest, CoordinateSystem)
 //{
-//    BaseManifold<coordinate_system::Cartesian<3, 2>, topology::tags::CoRectMesh> g;
+//    BaseManifold<coordinate_system::Cartesian<3, 2>, mesh::tags::CoRectMesh> g;
 //
 //    nTuple<size_t, 3> dim = {5, 5, 5};
 //

@@ -8,32 +8,28 @@
 #include <stddef.h>
 #include <iostream>
 #include <memory>
-#include <string>
+
 
 #include "../../core/application/application.h"
 #include "../../core/gtl/primitives.h"
-#include "../../core/gtl/type_cast.h"
 #include "../../core/io/io.h"
-
-#include "../../core/physics/constants.h"
-#include "../../core/physics/physical_constants.h"
-#include "../../core/gtl/utilities/config_parser.h"
-#include "../../core/gtl/utilities/pretty_stream.h"
-#include "../../core/gtl/utilities/log.h"
 
 
 #include "../../core/field/field.h"
-#include "../../core/manifold/manifold_traits.h"
-#include "../../core/manifold/calculus.h"
-#include "../../core/manifold/domain.h"
-#include "../../core/manifold/pre_define/cylindrical.h"
+
+#include "../../core/geometry/cs_cylindrical.h"
+#include "../../core/manifold/mesh/rectmesh.h"
+#include "../../core/manifold/pre_define/predefine.h"
 
 #include "../../core/model/geqdsk.h"
 
 using namespace simpla;
 
-typedef manifold::Cylindrical mesh_type;
-typedef geometry::traits::coordinate_system_t<mesh_type> cs;
+typedef geometry::coordinate_system::Cylindrical<2> cs;
+
+typedef manifold::DefaultManifold<geometry::Metric<cs>, mesh::RectMesh<>> mesh_type;
+
+
 static constexpr const int RAxis = cs::RAxis;
 static constexpr const int ZAxis = cs::ZAxis;
 static constexpr const int PhiAxis = cs::PhiAxis;
@@ -74,22 +70,26 @@ SP_APP(em, " Maxwell Eqs.")
 
     geqdsk.load(options["gfile"].as<std::string>(""));
 
-    CHECK(geqdsk.box());
 
-    mesh->extents(geqdsk.box());
+    auto box = geqdsk.boundary().box();
 
-//
-//    mesh->deploy();
-//
-//    MESSAGE << std::endl
-//
-//    << "[ Configuration ]" << std::endl
-//
-//    << "Description=\"" << options["Description"].as<std::string>("") << "\"" << std::endl
-//
-//    << *mesh << std::endl
-//
-//    << " TIME_STEPS = " << num_of_steps << std::endl;
+    std::get<0>(box)[2] = 0;
+    std::get<1>(box)[2] = TWOPI;
+
+
+    mesh->extents(box);
+
+    mesh->deploy();
+
+    MESSAGE << std::endl
+
+    << "[ Configuration ]" << std::endl
+
+    << "Description=\"" << options["Description"].as<std::string>("") << "\"" << std::endl
+
+    << *mesh << std::endl
+
+    << " TIME_STEPS = " << num_of_steps << std::endl;
 //
 //	std::shared_ptr<PML < mesh_type>>	pml_solver;
 //

@@ -3,14 +3,14 @@
  * @author salmon
  * @date 2015-11-18.
  */
-
+#include "../gtl/ntuple_ext.h"
 #include "polygon.h"
 #include "geo_algorithm.h"
 
 namespace simpla { namespace geometry
 {
 
-int   Polygon<2>::box_intersection(point_type *x0, point_type *x1) const
+int Polygon<2>::box_intersection(point_type *x0, point_type *x1) const
 {
     return geometry::box_intersection(m_x0_, m_x1_, x0, x1);
 }
@@ -20,22 +20,11 @@ Real  Polygon<2>::nearest_point(point_type *p) const
     return geometry::nearest_point_to_polygon(m_polygon_.begin(), m_polygon_.end(), p);
 }
 
-void Polygon<2>::push_back(Real x, Real y)
+void Polygon<2>::push_back(point_type const &pp)
 {
-    point2d_type p{x, y};
+    point2d_type p;
+    p = pp;
     m_polygon_.push_back(p);
-
-    if (m_polygon_.empty())
-    {
-        m_x0_ = m_polygon_.back();
-        m_x1_ = m_x0_;
-    }
-    else
-    {
-        geometry::extent_box(&m_x0_, &m_x1_, m_polygon_.back());
-
-    }
-
 }
 
 void Polygon<2>::deploy()
@@ -63,14 +52,25 @@ void Polygon<2>::deploy()
         }
         j = i;
     }
+
+    m_x0_ = m_polygon_.front();
+    m_x1_ = m_polygon_.front();
+
+    for (auto const &p:m_polygon_)
+    {
+        geometry::extent_box(&m_x0_, &m_x1_, p);
+    }
+
     m_x0_[2] = std::numeric_limits<Real>::min();
     m_x1_[2] = std::numeric_limits<Real>::max();
 
 }
 
 
-int  Polygon<2>::within(Real x, Real y) const
+int  Polygon<2>::within(point_type const &p) const
 {
+    Real x = p[0];
+    Real y = p[1];
     size_t num_of_vertex_ = m_polygon_.size();
 
     bool oddNodes = false;

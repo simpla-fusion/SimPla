@@ -17,14 +17,21 @@ namespace simpla
 {
 namespace geometry
 {
+
+
 namespace st = ::simpla::traits;
 namespace gt = ::simpla::geometry::traits;
 
 
 template<typename...> struct Metric;
 
+
+/** @ingroup   coordinate_system
+ ** @{
+ *  Metric of  Cylindrical coordinate system
+ */
 template<int IPhiAxis>
-struct Metric<::simpla::geometry::coordinate_system::Cylindrical<IPhiAxis>>
+struct Metric<coordinate_system::template Cylindrical<IPhiAxis> >
 {
 public:
     typedef ::simpla::geometry::coordinate_system::Cylindrical<IPhiAxis> cs;
@@ -34,9 +41,9 @@ public:
 
     typedef nTuple<Real, 3> delta_t;
 
-    static constexpr size_t PhiAxis = cs::PhiAxis;
-    static constexpr size_t RAxis = cs::RAxis;
-    static constexpr size_t ZAxis = cs::ZAxis;
+    static constexpr int PhiAxis = cs::PhiAxis;
+    static constexpr int RAxis = cs::RAxis;
+    static constexpr int ZAxis = cs::ZAxis;
 
 
     static Real simplex_length(point_t const &p0, point_t const &p1)
@@ -188,6 +195,8 @@ public:
 
 
 };
+
+/** @}*/
 }  // namespace geometry
 namespace traits
 {

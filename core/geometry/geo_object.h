@@ -13,8 +13,14 @@
 
 namespace simpla
 {
+
 namespace geometry
 {
+/**
+ * @ingroup geometry
+ *
+ *  Base Geometric object
+ */
 class Object
 {
 
@@ -32,7 +38,7 @@ public:
     virtual box_type box() const = 0;
 
     /**
-     * @return  \f$ (x,y,z) \is_inside M\f$ ? 1 : 0
+     * @return  \f$ (x,y,z) \in M\f$ ? 1 : 0
      */
     virtual int within(point_type const &x) const = 0;
 
@@ -51,7 +57,7 @@ public:
      * @return  if  \f$ BOX \cap M \neq \emptyset \f$ then x0,x1 is set to overlap box
      *          else x0,xa is not changed
      *         if \f$ BOX \cap M  = \emptyset \f$    return 0
-     *         else if  \f$ BOX \inset M   \f$ return 2
+     *         else if  \f$ BOX \in M   \f$ return 2
      *         else return 1
      */
     virtual int box_intersection(point_type *x0, point_type *x1) const = 0;
@@ -88,7 +94,7 @@ public:
     };
 
 };
-} //namespace geometry
+} // namespace geometry
 } // namespace simpla
 
 #endif /* CORE_GEOMETRY_GEO_OBJECT_H_ */

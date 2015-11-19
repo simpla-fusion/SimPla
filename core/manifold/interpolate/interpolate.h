@@ -8,7 +8,13 @@
 #define SIMPLA_INTERPOLATE_H
 namespace simpla
 {
-
+/**
+ * @ingroup diff_geo
+ * @{
+ * @addtogroup interpolate Interpolate
+ * @brief   mapping discrete points to continue space
+ *
+ */
 template<typename ...> struct Interpolate;
 namespace interpolate
 {
@@ -37,5 +43,7 @@ DEFINE_TYPE_ID_NAME(interpolate::tags::linear)
 DEFINE_TYPE_ID_NAME(interpolate::tags::spline)
 
 }//namespace traits
+
+/** @} */
 }//namespace simpla
 #endif //SIMPLA_INTERPOLATE_H

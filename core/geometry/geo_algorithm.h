@@ -16,6 +16,12 @@
 
 namespace simpla { namespace geometry
 {
+/**
+ * @ingroup geometry
+ * @{
+ * @defgroup geo_algorithm Geometric Algorithm
+ * @{
+ */
 template<typename T0, typename T1, typename T2>
 bool in_box(T0 const &x0, T1 const &xmin, T2 const &xmax)
 {
@@ -77,7 +83,7 @@ Real nearest_point_to_polygon(T0 const &p0, T1 const &p1, TP *x)
 }
 
 template<typename TS, int N, typename TOther>
-void extent_box(nTuple<TS, N> *x0, nTuple<TS, N> *x1, TOther const &x)
+void extent_box(nTuple <TS, N> *x0, nTuple <TS, N> *x1, TOther const &x)
 {
     for (int i = 0; i < N; ++i)
     {
@@ -87,7 +93,7 @@ void extent_box(nTuple<TS, N> *x0, nTuple<TS, N> *x1, TOther const &x)
 }
 
 template<typename TS, int N, typename T1, typename ...Others>
-void extent_box(nTuple<TS, N> *x0, nTuple<TS, N> *x1, T1 const &y0, Others &&...others)
+void extent_box(nTuple <TS, N> *x0, nTuple <TS, N> *x1, T1 const &y0, Others &&...others)
 {
     extent_box(x0, x1, y0);
     extent_box(x0, x1, std::forward<Others>(others)...);
@@ -409,7 +415,7 @@ inline Vec3 reflect_point_by_plane(T0 const &x0, T1 const &p0, T2 const &p1,
 //	return std::make_tuple(s, t);
 //}
 template<typename TS, int NDIMS, typename TV>
-bool box_intersection(nTuple<TS, NDIMS> const &l_b, nTuple<TS, NDIMS> const &l_e,
+bool box_intersection(nTuple <TS, NDIMS> const &l_b, nTuple <TS, NDIMS> const &l_e,
                       TV *r_b, TV *r_e)
 {
     bool has_overlap = false;
@@ -450,11 +456,6 @@ bool box_intersection(nTuple<TS, NDIMS> const &l_b, nTuple<TS, NDIMS> const &l_e
     return has_overlap;
 }
 //
-///**
-// *  @ingroup numeric
-// *  @addtogroup geometry_algorithm
-// *  @{
-// */
 //template<size_t DIM, typename TR, typename TRange>
 //bool PointInRectangle(nTuple<TR, DIM> const &x, TRange const & range)
 //{
@@ -621,7 +622,9 @@ bool box_intersection(nTuple<TS, NDIMS> const &l_b, nTuple<TS, NDIMS> const &l_e
 //	return std::forward_as_tuple(ob, oe);
 //}
 
-//! @}
+/** @}
+ * @}
+ **/
 
 }// namespace geometry
 }// namespace simpla

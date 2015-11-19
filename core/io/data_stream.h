@@ -24,15 +24,12 @@ struct DataSet;
 
 namespace simpla
 {
-namespace io
-{
 
 /**
  * @ingroup io
- * @{
- * \brief data stream , should be a singleton
  */
-
+namespace io
+{
 enum
 {
     SP_NEW = 1UL << 1,
@@ -40,6 +37,11 @@ enum
     SP_CACHE = (1UL << 3),
     SP_RECORD = (1UL << 4)
 };
+
+
+/*
+ * @brief data stream , should be a singleton
+ */
 
 class DataStream
 {

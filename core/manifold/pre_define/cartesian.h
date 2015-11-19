@@ -9,14 +9,13 @@
 
 #include "predefine.h"
 #include "../../geometry/cs_cartesian.h"
-#include "../topology/topology.h"
-#include "../topology/corect_mesh.h"
+#include "../mesh/corect_mesh.h"
 
 namespace simpla
 {
 namespace manifold
 {
-template<int NDIMS, typename TopologyType=topology::CoRectMesh>
+template<int NDIMS, typename TopologyType=mesh::CoRectMesh>
 using Cartesian=DefaultManifold<geometry::Metric<::simpla::geometry::coordinate_system::Cartesian<NDIMS>>, TopologyType>;
 }//namespace manifold
 //
@@ -31,7 +30,7 @@ using Cartesian=DefaultManifold<geometry::Metric<::simpla::geometry::coordinate_
 //public:
 //    typedef coordinate_system::Cartesian<NDIMS, 2> coordinates_system_type;
 //
-//    typedef TopologyType topology_type;
+//    typedef TopologyType mesh_type;
 //
 //    typedef Metric<coordinate_system::Cartesian<NDIMS>> metric_type;
 //
@@ -41,14 +40,14 @@ using Cartesian=DefaultManifold<geometry::Metric<::simpla::geometry::coordinate_
 //
 //    typedef traits::vector_type_t<coordinates_system_type> vector_type;
 //
-//    using topology_type::ndims;
+//    using mesh_type::ndims;
 //
 //private:
-//    typedef BaseManifold<coordinates_system_type, topology_type> this_type;
+//    typedef BaseManifold<coordinates_system_type, mesh_type> this_type;
 //public:
 //    BaseManifold() { }
 //
-//    BaseManifold(this_type const &other) : topology_type(other) { }
+//    BaseManifold(this_type const &other) : mesh_type(other) { }
 //
 //    virtual BaseManifoldfold() { }
 //
@@ -64,7 +63,7 @@ using Cartesian=DefaultManifold<geometry::Metric<::simpla::geometry::coordinate_
 //
 //        << traits::type_id<coordinates_system_type>::name() << "\",  }," << std::endl;
 //
-//        topology_type::print(os);
+//        mesh_type::print(os);
 //
 //        os << "\t }, #BaseManifold " << std::endl;
 //
@@ -73,16 +72,16 @@ using Cartesian=DefaultManifold<geometry::Metric<::simpla::geometry::coordinate_
 //
 //    virtual void deploy()
 //    {
-//        topology_type::deploy();
-//        topology_type::update_volume((*this));
+//        mesh_type::deploy();
+//        mesh_type::update_volume((*this));
 //    }
 //
-//    using topology_type::load;
+//    using mesh_type::load;
 //
-//    using topology_type::volume;
-//    using topology_type::dual_volume;
-//    using topology_type::inv_volume;
-//    using topology_type::inv_dual_volume;
+//    using mesh_type::volume;
+//    using mesh_type::dual_volume;
+//    using mesh_type::inv_volume;
+//    using mesh_type::inv_dual_volume;
 //
 //    using metric_type::inner_product;
 //

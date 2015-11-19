@@ -51,7 +51,7 @@ struct GEqdsk::pimpl_s
     Real m_rleft_; //!< Minimum R in meter of rectangular computational box
     Real m_zmid_; //!< Z of center of computational box in meter
     Real m_rmaxis_ = 1.0; //!< R of magnetic axis in meter
-    Real zmaxis = 1.0; //!< Z of magnetic axis in meter
+    Real m_zmaxis = 1.0; //!< Z of magnetic axis in meter
 //	Real simag;//!< Poloidal flux at magnetic axis in Weber / rad
 //	Real sibry;//!< Poloidal flux at the plasma boundary in Weber / rad
     Real m_rcenter_ = 0.5; //!< R in meter of  vacuum toroidal magnetic field BCENTR
@@ -72,8 +72,8 @@ struct GEqdsk::pimpl_s
 
 
 
-    std::shared_ptr<geometry::Object> m_rzbbb_; //!< R,Z of boundary points in meter
-    std::shared_ptr<geometry::Object> m_rzlim_; //!< R,Z of surrounding limiter contour in meter
+    geometry::Polygon<2> m_rzbbb_; //!< R,Z of boundary points in meter
+    geometry::Polygon<2> m_rzlim_; //!< R,Z of surrounding limiter contour in meter
 
     std::map<std::string, inter_type> m_profile_;
 
@@ -123,11 +123,11 @@ void GEqdsk::pimpl_s::load(std::string const &fname)
 
     >> m_rdim_ >> m_zdim_ >> m_rcenter_ >> m_rleft_ >> m_zmid_
 
-    >> m_rmaxis_ >> zmaxis >> simag >> sibry >> m_bcenter_
+    >> m_rmaxis_ >> m_zmaxis >> simag >> sibry >> m_bcenter_
 
     >> m_current_ >> simag >> xdum >> m_rmaxis_ >> xdum
 
-    >> zmaxis >> xdum >> sibry >> xdum >> xdum;
+    >> m_zmaxis >> xdum >> sibry >> xdum >> xdum;
 
     m_rzmin_[RAxis] = m_rleft_;
     m_rzmax_[RAxis] = m_rleft_ + m_rdim_;
@@ -173,21 +173,15 @@ void GEqdsk::pimpl_s::load(std::string const &fname)
     inFileStream_ >> std::setw(5) >> n_bbbs >> n_limitr;
 
 
-    auto rzbbb = std::make_shared<geometry::Polygon<2> >();
-    auto rzlim = std::make_shared<geometry::Polygon<2> >();
+    m_rzbbb_.data().resize(n_bbbs);
+    m_rzlim_.data().resize(n_limitr);
 
-    rzbbb->data().resize(n_bbbs);
-    rzlim->data().resize(n_limitr);
+    inFileStream_ >> std::setw(16) >> m_rzbbb_.data();
+    inFileStream_ >> std::setw(16) >> m_rzlim_.data();
 
-    inFileStream_ >> std::setw(16) >> rzbbb->data();
-    inFileStream_ >> std::setw(16) >> rzlim->data();
+    m_rzbbb_.deploy();
+    m_rzlim_.deploy();
 
-    rzbbb->deploy();
-    rzlim->deploy();
-
-
-    m_rzbbb_ = std::dynamic_pointer_cast<geometry::Object>(rzbbb);
-    m_rzlim_ = std::dynamic_pointer_cast<geometry::Object>(rzlim);
 
     load_profile(fname + "_profiles.txt");
 
@@ -287,7 +281,7 @@ std::ostream &GEqdsk::print(std::ostream &os)
     std::cout << "rmaxis" << "\t= " << m_pimpl_->m_rmaxis_
     << "\t-- R of magnetic axis in meter                                        " << std::endl;
 
-    std::cout << "rmaxis" << "\t= " << m_pimpl_->zmaxis
+    std::cout << "rmaxis" << "\t= " << m_pimpl_->m_zmaxis
     << "\t-- Z of magnetic axis in meter                                        " << std::endl;
 
 //	std::cout << "simag" << "\t= " << simag
@@ -425,19 +419,15 @@ GEqdsk::~GEqdsk() { }
 
 std::string const &GEqdsk::description() const { return m_pimpl_->m_desc_; }
 
-std::tuple<GEqdsk::point_type, GEqdsk::point_type> GEqdsk::box() const
+
+geometry::Object const &GEqdsk::boundary() const
 {
-    return std::make_tuple(m_pimpl_->m_rzmin_, m_pimpl_->m_rzmax_);
+    return dynamic_cast<geometry::Object const &>(m_pimpl_->m_rzbbb_);
 }
 
-std::shared_ptr<geometry::Object> GEqdsk::boundary() const
+geometry::Object const &GEqdsk::limiter() const
 {
-    return m_pimpl_->m_rzbbb_;
-}
-
-std::shared_ptr<geometry::Object> GEqdsk::limiter() const
-{
-    return m_pimpl_->m_rzlim_;
+    return dynamic_cast<geometry::Object const &>(m_pimpl_->m_rzlim_);
 }
 
 Real GEqdsk::psi(Real R, Real Z) const
@@ -453,6 +443,11 @@ Vec3 GEqdsk::grad_psi(Real R, Real Z) const
 Real GEqdsk::profile(std::string const &name, Real p_psi) const
 {
     return m_pimpl_->m_profile_[name](p_psi);
+}
+
+GEqdsk::point_type GEqdsk::magnetic_axis() const
+{
+    return point_type{m_pimpl_->m_rmaxis_, m_pimpl_->m_zmaxis, 0};
 }
 }  // namespace simpla
 
