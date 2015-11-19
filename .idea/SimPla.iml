@@ -36,7 +36,7 @@
       <sourceFolder url="file://$MODULE_DIR$/core/application/task.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/application/use_case.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/dataset/CMakeLists.txt" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/dataset/storage.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/dataset/dataset.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/dataset/dataset.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/dataset/dataset_traits.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/dataset/dataspace.cpp" isTestSource="false" />
@@ -57,11 +57,6 @@
       <sourceFolder url="file://$MODULE_DIR$/core/field/field_sparse.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/field/field_traits.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/field/load_field.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/field/obsolete/cache.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/field/obsolete/dummy_field.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/field/obsolete/fetl.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/field/obsolete/field_rw_cache.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/field/obsolete/field_vector_ops.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/field/test/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/field/test/field_basic_algebra_test.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/field/test/field_basic_algebra_test.h" isTestSource="false" />
@@ -197,7 +192,6 @@
       <sourceFolder url="file://$MODULE_DIR$/core/io/io_ext.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/io/test/xdmf_io.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/CMakeLists.txt" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/base_manifold.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/block/block.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/block/block_connection.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/block/block_data_container.h" isTestSource="false" />
@@ -210,9 +204,6 @@
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/calculus.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/diff_scheme/diff_scheme.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/diff_scheme/fvm_structured.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/domain.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/domain_operation.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/domain_traits.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/fiber_bundle.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/interpolate/interpolate.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/interpolate/linear.h" isTestSource="false" />
@@ -228,8 +219,12 @@
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/mesh/mesh_ids.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/mesh/mesh_patch.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/mesh/rectmesh.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/policy/storage.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/base_manifold.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/domain.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/domain_operation.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/domain_traits.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/policy/parallel.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/policy/storage.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/pre_define/cartesian.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/pre_define/cylindrical.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/pre_define/mock.h" isTestSource="false" />

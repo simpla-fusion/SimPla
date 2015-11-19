@@ -15,7 +15,6 @@
 #include "../gtl/macro.h"
 #include "../gtl/mpl.h"
 #include "../gtl/type_traits.h"
-#include "../manifold/domain_traits.h"
 #include "../manifold/mesh/mesh_ids.h"
 #include "../manifold/manifold_traits.h"
 
@@ -105,16 +104,16 @@ template<typename T>
 struct value_type<Field<Expression<calculus::tags::ExteriorDerivative, T> > >
 {
     typedef result_of_t<
-            simpla::_impl::multiplies(geometry::traits::scalar_type_t<manifold_type_t<T >>,
-                                      value_type_t<T>)> type;
+            simpla::_impl::multiplies(geometry::traits::scalar_type_t<manifold_type_t < T >>,
+    value_type_t <T>)> type;
 };
 
 template<typename T>
 struct value_type<Field<Expression<calculus::tags::CodifferentialDerivative, T> > >
 {
     typedef result_of_t<
-            simpla::_impl::multiplies(geometry::traits::scalar_type_t<manifold_type_t<T >>,
-                                      value_type_t<T>)> type;
+            simpla::_impl::multiplies(geometry::traits::scalar_type_t<manifold_type_t < T >>,
+    value_type_t <T>)> type;
 };
 
 template<typename T0, typename T1>
@@ -122,7 +121,7 @@ struct value_type<Field<Expression<calculus::tags::Wedge, T0, T1> > >
 {
 
     typedef result_of_t<
-            simpla::_impl::multiplies(value_type_t<T0>, value_type_t<T1>)> type;
+            simpla::_impl::multiplies(value_type_t < T0 > , value_type_t < T1 > )> type;
 };
 
 template<typename T0, typename T1>
@@ -130,13 +129,13 @@ struct value_type<Field<Expression<calculus::tags::InteriorProduct, T0, T1> > >
 {
 
     typedef result_of_t<
-            simpla::_impl::multiplies(value_type_t<T0>, value_type_t<T1>)> type;
+            simpla::_impl::multiplies(value_type_t < T0 > , value_type_t < T1 > )> type;
 };
 
 template<typename T0, typename T1>
 struct value_type<Field<Expression<calculus::tags::MapTo, T0, T1> > >
 {
-    typedef value_type_t<T1> type;
+    typedef value_type_t <T1> type;
 };
 
 //namespace _impl

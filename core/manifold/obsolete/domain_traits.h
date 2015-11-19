@@ -50,20 +50,6 @@ struct mesh_type<Domain<TM, Others...> >
     typedef TM type;
 };
 
-template<typename> struct iform : public std::integral_constant<int, 0>
-{
-};
-
-template<typename ...T>
-struct iform_list : public integer_sequence<int, iform<T>::value...>
-{
-    typedef integer_sequence<int, iform<T>::value...> type;
-};
-
-template<typename ...T> using iform_list_t= typename iform_list<T...>::type;
-
- 
-
 template<typename ...T>
 struct rank<Domain<T...> > : public rank<typename mesh_type<Domain<T...> >::type>::type
 {

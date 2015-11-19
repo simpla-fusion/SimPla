@@ -130,14 +130,34 @@ template<typename ...> class Manifold;
 /**
  * Manifold
  */
-template<typename TBase, typename ...Policies>
-class Manifold<TBase, Policies ...>
-        : public TBase, public Policies ...
+template<typename TMesh, typename TMetric, typename ...Policies>
+class Manifold<TMesh, TMetric, Policies ...>
+        : public TMesh, public TMetric, public Policies ...
 {
-    typedef TBase base_manifold_type;
-    typedef Manifold<base_manifold_type, Policies ...> this_type;
+    typedef TMesh base_manifold_type;
 
 public:
+
+    typedef TMetric metric_type;
+
+    typedef TMesh mesh_type;
+
+    typedef Manifold<mesh_type, metric_type, Policies ...> this_type;
+
+    typedef geometry::traits::coordinate_system_t<metric_type> coordinates_system_type;
+
+    typedef geometry::traits::scalar_type_t<coordinates_system_type> scalar_type;
+
+    typedef geometry::traits::point_type_t<coordinates_system_type> point_type;
+
+    typedef geometry::traits::vector_type_t<coordinates_system_type> vector_type;
+
+    using mesh_type::ndims;
+    using mesh_type::volume;
+    using mesh_type::dual_volume;
+    using mesh_type::inv_volume;
+    using mesh_type::inv_dual_volume;
+    using metric_type::inner_product;
 
     Manifold() : Policies(static_cast<base_manifold_type &>(*this))... { }
 
@@ -175,6 +195,8 @@ public:
 
     void deploy()
     {
+        mesh_type::deploy();
+        mesh_type::update_volume(*this);
         _dispatch_deploy<base_manifold_type, Policies...>();
     }
 
@@ -190,7 +212,7 @@ public:
     template<typename T>
     inline constexpr T access(T const &v, id_t s) const { return v; }
 
-    template<typename T, size_t ...N>
+    template<typename T, int ...N>
     inline constexpr nTuple<T, N...> const &
     access(nTuple<T, N...> const &v, id_t s) const { return v; }
 
@@ -204,35 +226,46 @@ public:
         return std::move(res);
     }
 
-    template<typename ...Others>
-    inline typename traits::value_type<Field<Others...>>::type &
-    access(Field<Others...> &f, id_type s) const
+    template<typename TV, typename ...Others>
+    inline TV &access(Field<TV, Others...> &f, id_type s) const
     {
         return f[s];
     }
 
 
-    template<typename ...Others>
-    inline typename traits::value_type<Field<Others...>>::type
-    access(Field<Others...> const &f, id_type s) const
+    template<typename TV, typename ...Others>
+    inline TV access(Field<TV, Others...> const &f, id_type s) const
     {
         return f[s];
     }
-
 
     template<typename ...TD>
     inline auto access(Field<Expression<TD...> > const &f, id_type s) const
     DECL_RET_TYPE((this->eval(f, s)))
 
-    template<int iform, typename TOP, typename ...Args>
-    void action(TOP const &op, Args &&... args) const
+    template<typename TOP, typename T, typename ...Args>
+    void action(TOP const &op, T &self, Args &&... args) const
     {
+        constexpr int iform = traits::iform<T>::value;
+
+        self.deploy();
+
         for (auto s:this->template range<iform>())
         {
-            op(this->access(std::forward<Args>(args), s)...);
+            op(this->access(self, s), this->access(std::forward<Args>(args), s)...);
         };
     }
 
+    template<typename TOP, typename T, typename ...Args>
+    void action(TOP const &op, T const &self, Args &&... args) const
+    {
+        constexpr int iform = traits::iform<T>::value;
+
+        for (auto s:this->template range<iform>())
+        {
+            op(this->access(self, s), this->access(std::forward<Args>(args), s)...);
+        };
+    }
 
 }; //class Manifold
 

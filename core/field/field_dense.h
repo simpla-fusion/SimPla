@@ -17,11 +17,8 @@
 #include <string>
 
 #include "../gtl/type_traits.h"
-
-#include "../manifold/domain_traits.h"
 #include "../manifold/manifold_traits.h"
 #include "../dataset/dataset_traits.h"
-#include "../parallel/distributed_object.h"
 
 #include "field_traits.h"
 
@@ -69,8 +66,7 @@ public:
 
 
     //create construct
-    Field(mesh_type const &m)
-            : m_mesh_(m)
+    Field(mesh_type const &m) : storage_policy(m.template make_storage<TV, IFORM>()), m_mesh_(m)
     {
     }
 
@@ -146,13 +142,13 @@ private:
     template<typename TOP, typename ...Args>
     void action(TOP const &op, Args &&... args)
     {
-        m_mesh_.template action<iform>(op, *this, std::forward<Args>(args)...);
+        m_mesh_.action(op, *this, std::forward<Args>(args)...);
     }
 
     template<typename TOP, typename ...Args>
     void action(TOP const &op, Args &&... args) const
     {
-        m_mesh_.template action<iform>(op, *this, std::forward<Args>(args)...);
+        m_mesh_.action(op, *this, std::forward<Args>(args)...);
     }
 
 public:
@@ -167,7 +163,6 @@ public:
     auto operator()(Args &&...args) const
     DECL_RET_TYPE((m_mesh_.gather(*this, std::forward<Args>(args)...)))
 
-
     auto range() const
     DECL_RET_TYPE(m_mesh_.template range<iform>())
 /**@}*/
@@ -180,34 +175,31 @@ public:
      *  @{
      */
 
-    void clear()
-    {
-        m_mesh_.clear(*this);
-    }
     void sync()
     {
-        m_mesh_.sync(*this);
+//        m_mesh_.sync(*this);
     }
+
     value_type &operator[](id_type const &s)
     {
-        return m_mesh_.access(*this, s);
+        return m_mesh_.at(*this, s);
     }
 
     value_type const &operator[](id_type const &s) const
     {
-        return m_mesh_.access(*this, s);
+        return m_mesh_.at(*this, s);
     }
 
     template<typename ...Args>
     value_type &at(Args &&... args)
     {
-        return m_mesh_.access(*this, std::forward<Args>(args)...);
+        return m_mesh_.at(*this, std::forward<Args>(args)...);
     }
 
     template<typename ...Args>
     value_type const &at(Args &&... args) const
     {
-        return m_mesh_.access(*this, std::forward<Args>(args)...);
+        return m_mesh_.at(*this, std::forward<Args>(args)...);
     }
 /**
  * @}

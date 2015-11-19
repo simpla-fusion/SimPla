@@ -88,7 +88,6 @@ private:
     DECLARE_FUNCTION_PREFIX constexpr nTuple<T, N...> const &eval(nTuple<T, N...> const &v,
                                                                   id_t s) DECLARE_FUNCTION_SUFFIX
     {
-
         return v;
     }
 
@@ -101,8 +100,8 @@ private:
         return std::move(res);
     }
 
-    template<typename TM, typename TV, typename ... Others>
-    DECLARE_FUNCTION_PREFIX constexpr TV eval(Field<TM, TV, Others...> const &f, id_t s) DECLARE_FUNCTION_SUFFIX
+    template<typename TV, typename TM, typename ... Others>
+    DECLARE_FUNCTION_PREFIX constexpr TV eval(Field<TV, TM, Others...> const &f, id_t s) DECLARE_FUNCTION_SUFFIX
     {
         return traits::index(f, s);
     }

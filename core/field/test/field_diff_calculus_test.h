@@ -22,7 +22,6 @@
 #include "../../field/field_expression.h"
 #include "../../field/field_traits.h"
 
-#include "../../manifold/domain.h"
 #include "../../manifold/manifold_traits.h"
 #include "../../gtl/ntuple.h"
 #include "../../gtl/primitives.h"
@@ -147,7 +146,7 @@ TEST_P(FETLTest, grad0)
 
             clear();
 
-    for (auto const &s : traits::make_domain<VERTEX>(*mesh))
+    for (auto const &s : mesh->template range<VERTEX>())
     {
         f0[s] = std::sin(inner_product(K_real, mesh->point(s)));
     };
@@ -164,13 +163,9 @@ TEST_P(FETLTest, grad0)
 
     size_t count = 0;
 
-    for (
-        auto const &s :
-            traits::make_domain<EDGE>(*mesh)
-            )
+    for (auto const &s :mesh->template range<EDGE>())
     {
-        ++
-                count;
+        ++count;
         size_t n = mesh->sub_index(s);
 
         auto x = mesh->point(s);
@@ -226,7 +221,7 @@ TEST_P(FETLTest, grad3)
 
     f2b.clear();
 
-    for (auto s :    traits::make_domain<VOLUME>(*mesh))
+    for (auto s :   mesh->template range<VOLUME>())
     {
         f3[s] = std::sin(inner_product(K_real, mesh->point(s)));
     };
@@ -239,7 +234,7 @@ TEST_P(FETLTest, grad3)
     Real variance = 0;
     value_type average = one * 0.0;
     size_t count = 0;
-    for (auto s :   traits::make_domain<FACE>(*mesh))
+    for (auto s :  mesh->template range<FACE>())
     {
         ++count;
 
@@ -293,7 +288,7 @@ TEST_P(FETLTest, diverge1)
 
     nTuple<Real, 3> E = {1, 2, 3};
 
-    for (auto s :    traits::make_domain<EDGE>(*mesh))
+    for (auto s : mesh->template range<EDGE>())
     {
         f1[s] = E[mesh->sub_index(s)] * std::sin(inner_product(K_real, mesh->point(s)));
     };
@@ -310,7 +305,7 @@ TEST_P(FETLTest, diverge1)
 
     size_t count = 0;
 
-    for (auto s :  traits::make_domain<VERTEX>(*mesh))
+    for (auto s : mesh->range<VERTEX>())
     {
         auto x = mesh->point(s);
 
@@ -383,7 +378,7 @@ TEST_P(FETLTest, diverge2)
 
     f2.clear();
 
-    for (auto s :     traits::make_domain<FACE>(*mesh))
+    for (auto s :  mesh->template range<FACE>())
     {
         f2[s] = std::sin(inner_product(K_real, mesh->point(s)));
     };
@@ -397,7 +392,7 @@ TEST_P(FETLTest, diverge2)
 
     size_t count = 0;
 
-    for (auto s :   traits::make_domain<VOLUME>(*mesh))
+    for (auto s :mesh->template range<VOLUME>())
     {
 
         auto x = mesh->point(s);
@@ -477,7 +472,7 @@ TEST_P(FETLTest, curl1)
 
     nTuple<Real, 3> E = {0, 0, 3};
 
-    for (auto s :  traits::make_domain<EDGE>(*mesh))
+    for (auto s : mesh->range<EDGE>())
     {
         f1[s] = E[mesh->sub_index(s)] * std::sin(inner_product(K_real, mesh->point(s)));
     };
@@ -489,7 +484,7 @@ TEST_P(FETLTest, curl1)
 
     size_t count = 0;
 
-    for (auto s :   traits::make_domain<FACE>(*mesh))
+    for (auto s :mesh->template range<FACE>())
     {
         auto n = mesh->sub_index(s);
 
@@ -574,7 +569,7 @@ TEST_P(FETLTest, curl2)
     value_type average;
     average *= 0.0;
 
-    for (auto s :     traits::make_domain<FACE>(*mesh))
+    for (auto s :  mesh->template range<FACE>())
     {
         f2[s] = std::sin(inner_product(K_real, mesh->point(s)));
     };
@@ -587,7 +582,7 @@ TEST_P(FETLTest, curl2)
 
     size_t count = 0;
 
-    for (auto s :   traits::make_domain<EDGE>(*mesh))
+    for (auto s :mesh->template range<EDGE>())
     {
 
         auto n = mesh->sub_index(s);
@@ -678,7 +673,7 @@ TEST_P(FETLTest, identity_curl_grad_f0_eq_0
     Real m = 0.0;
     f0.clear();
 
-    for (auto s : traits::make_domain<VERTEX>(*mesh))
+    for (auto s : mesh->template range<VERTEX>())
     {
 
         auto a = uniform_dist(gen);
@@ -697,7 +692,7 @@ TEST_P(FETLTest, identity_curl_grad_f0_eq_0
     size_t count = 0;
     Real variance_a = 0;
     Real variance_b = 0;
-    for (auto s :      traits::make_domain<FACE>(*mesh))
+    for (auto s :   mesh->template range<FACE>())
     {
 
         variance_a += mod(f2a[s]);
@@ -727,7 +722,7 @@ TEST_P(FETLTest, identity_curl_grad_f3_eq_0
 
     f3.clear();
 
-    for (auto s :   traits::make_domain<VOLUME>(*mesh))
+    for (auto s :mesh->template range<VOLUME>())
     {
         auto a = uniform_dist(gen);
         f3[s] = a * one;
@@ -744,7 +739,7 @@ TEST_P(FETLTest, identity_curl_grad_f3_eq_0
     size_t count = 0;
     Real variance_a = 0;
     Real variance_b = 0;
-    for (auto s :  traits::make_domain<EDGE>(*mesh))
+    for (auto s : mesh->template range<EDGE>())
     {
         variance_a += mod(f1a[s]);
         variance_b += mod(f1b[s]);
@@ -773,7 +768,7 @@ TEST_P(FETLTest, identity_div_curl_f1_eq0
 
     Real m = 0.0;
 
-    for (auto s :     traits::make_domain<FACE>(*mesh))
+    for (auto s :  mesh->template range<FACE>())
     {
         auto a = uniform_dist(gen);
 
@@ -797,7 +792,7 @@ TEST_P(FETLTest, identity_div_curl_f1_eq0
     Real variance_b = 0;
 
 
-    for (auto s :         traits::make_domain<VERTEX>(*mesh))
+    for (auto s :  mesh->template range<VERTEX>())
     {
 
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
@@ -831,7 +826,7 @@ TEST_P(FETLTest, identity_div_curl_f2_eq0
 
     Real m = 0.0;
 
-    for (auto s :  traits::make_domain<EDGE>(*mesh))
+    for (auto s : mesh->range<EDGE>())
     {
         auto a = uniform_dist(gen);
         f1[s] = one * a;
@@ -852,7 +847,7 @@ TEST_P(FETLTest, identity_div_curl_f2_eq0
     Real variance_a = 0;
     Real variance_b = 0;
 
-    for (auto s :   traits::make_domain<VOLUME>(*mesh))
+    for (auto s :mesh->template range<VOLUME>())
     {
 
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM

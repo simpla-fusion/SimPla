@@ -100,23 +100,6 @@ template<typename ...T> struct id_type<Manifold<T...> >
 };
 
 
-}  // namespace traits
-
-template<typename ...> class BaseManifold;
-
-namespace traits
-{
-
-
-template<typename ... T>
-struct type_id<BaseManifold<T...> >
-{
-    static std::string name()
-    {
-        return std::string("BaseManifold<") + type_id<T...>::name() + std::string(">");
-    }
-};
-
 template<typename> struct is_geometry;
 
 template<typename> struct geometry_type;
@@ -125,19 +108,24 @@ template<typename T> struct is_geometry : public std::integral_constant<bool, fa
 {
 };
 
-template<typename ...T> struct is_geometry<BaseManifold<T...>> : public std::integral_constant<bool, true>
-{
-};
 
 template<typename T> struct geometry_type
 {
     typedef std::nullptr_t type;
 };
 
-template<typename ...T> struct id_type<BaseManifold<T...> >
+
+template<typename> struct iform : public std::integral_constant<int, 0>
 {
-    typedef std::uint64_t type;
 };
+
+template<typename ...T>
+struct iform_list : public integer_sequence<int, iform<T>::value...>
+{
+    typedef integer_sequence<int, iform<T>::value...> type;
+};
+
+template<typename ...T> using iform_list_t= typename iform_list<T...>::type;
 
 
 }  // namespace traits
@@ -151,16 +139,10 @@ namespace traits
 {
 template<typename ...> struct coordinate_system_type;
 
-template<typename TBase, typename ... T>
-struct coordinate_system_type<Manifold<TBase, T...>>
+template<typename TM, typename TMetric, typename ... T>
+struct coordinate_system_type<Manifold<TM, TMetric, T...>>
 {
-    typedef typename coordinate_system_type<TBase>::type type;
-};
-
-template<typename CS, typename ... T0, typename ... T>
-struct coordinate_system_type<BaseManifold<::simpla::geometry::Metric<CS, T0...>, T...>>
-{
-    typedef CS type;
+    typedef typename coordinate_system_type<TMetric>::type type;
 };
 
 

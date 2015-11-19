@@ -23,7 +23,6 @@
 
 #include "../../core/manifold/manifold_traits.h"
 #include "../../core/manifold/calculus.h"
-#include "../../core/manifold/domain.h"
 
 #include "../../core/field/field.h"
 

@@ -14,9 +14,10 @@
 #include <memory>
 #include <type_traits>
 #include "../gtl/type_traits.h"
-#include "../manifold/manifold_traits.h"
 #include "../gtl/mpl.h"
 #include "../gtl/integer_sequence.h"
+#include "../manifold/manifold_traits.h"
+#include "field_expression.h"
 
 namespace simpla
 {
@@ -26,8 +27,7 @@ template<typename ...> struct Field;
 namespace traits
 {
 
-template<typename>
-struct mesh_type;
+template<typename> struct mesh_type;
 
 
 //template<typename ValueType, typename TM, int IFORM, typename ...Policies>
@@ -57,7 +57,7 @@ struct reference<Field<TM, TV, Others...> >
 
 template<typename ...T, int M>
 struct extent<Field<T ...>, M> : public std::integral_constant<int,
-        simpla::mpl::seq_get<M, extents_t < Field<T ...> >>::value>
+        simpla::mpl::seq_get<M, extents_t<Field<T ...> >>::value>
 {
 };
 
@@ -76,23 +76,11 @@ struct field_value_type
 {
     typedef typename std::conditional<
             (iform<T>::value == VERTEX || iform<T>::value == VOLUME),
-            value_type_t < T>, nTuple<value_type_t < T>, 3> >::type type;
+            value_type_t<T>, nTuple<value_type_t<T>, 3> >::type type;
 };
 
 template<typename T> using field_value_t = typename field_value_type<T>::type;
 
-//////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//
-//template<int I, typename TV, typename TM>
-//Field<Domain<TM, std::integral_constant<int, I>>, TV>
-//make_field(TM const &mesh)
-//{
-//    return Field<Domain<TM, std::integral_constant<int, I>>, TV>(mesh);
-//};
 
 }  // namespace traits
 }  // namespace simpla
