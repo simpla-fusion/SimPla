@@ -16,7 +16,6 @@
 namespace simpla
 {
 
-template<typename ...> struct Domain;
 
 //template<typename TPred, typename InOut>
 //void filter(TPred const & pred, InOut *res)

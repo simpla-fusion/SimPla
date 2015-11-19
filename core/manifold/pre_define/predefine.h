@@ -18,7 +18,7 @@
 #include "../domain.h"
 #include "../domain_traits.h"
 
-#include "../policy/dataset.h"
+#include "../policy/storage.h"
 #include "../policy/parallel.h"
 
 namespace simpla
@@ -30,7 +30,7 @@ template<typename METRIC, typename MESH> using DefaultManifold= Manifold<
         DiffScheme<BaseManifold<METRIC, MESH>, diff_scheme::tags::finite_volume>,
         Interpolate<BaseManifold<METRIC, MESH>, interpolate::tags::linear>,
         TimeIntegrator<BaseManifold<METRIC, MESH>>,
-        DataSetPolicy<BaseManifold<METRIC, MESH>>,
+        StoragePolicy<BaseManifold<METRIC, MESH>>,
         ParallelPolicy<BaseManifold<METRIC, MESH>>
 >;
 }; //namespace manifold

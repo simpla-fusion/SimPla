@@ -47,13 +47,13 @@ public:
 
     typedef TField field_type;
 
-    typedef traits::domain_t<field_type> domain_type;
-
     typedef traits::manifold_type_t<field_type> mesh_type;
 
     typedef traits::value_type_t<field_type> value_type;
 
-    typedef typename mesh_type::scalar_type scalar_type;
+    typedef Real scalar_type;
+
+//    typedef  traits::scalar_type_t<mesh_type> scalar_type;
 
     static constexpr int iform = traits::iform<TField>::value;
 
@@ -61,18 +61,18 @@ public:
 
     value_type default_value;
 
+    static auto domain()
+    DECL_RET_TYPE((mesh->template range<iform>()))
 
-    auto domain() const
-    DECL_RET_TYPE((traits::make_domain<iform>(*mesh)))
 
     auto make_field() const
-    DECL_RET_TYPE((traits::make_field<iform, value_type>(*mesh)))
+    DECL_RET_TYPE((traits::make_field<value_type, iform>(*mesh)))
 
     auto make_scalarField() const
-    DECL_RET_TYPE((traits::make_field<iform, scalar_type>(*mesh)))
+    DECL_RET_TYPE((traits::make_field<scalar_type, iform>(*mesh)))
 
     auto make_vectorField() const
-    DECL_RET_TYPE((traits::make_field<iform, nTuple<value_type, 3>>(*mesh)))
+    DECL_RET_TYPE((traits::make_field<nTuple<value_type, 3>, iform>(*mesh)))
 
 
 };
@@ -207,16 +207,16 @@ TYPED_TEST_P(TestField, scalarField)
     std::mt19937 gen;
     std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-    for (auto s: f1.domain())
+    for (auto s: f1.range())
     {
         f1[s] = va * uniform_dist(gen);
     }
-    for (auto s: f2.domain())
+    for (auto s: f2.range())
     {
         f2[s] = vb * uniform_dist(gen);
     }
 
-    for (auto s:   f3.domain())
+    for (auto s:   f3.range())
     {
         f3[s] = vc * uniform_dist(gen);
     }

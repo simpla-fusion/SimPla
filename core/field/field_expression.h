@@ -23,7 +23,6 @@ namespace simpla {
  *  @{
  */
 template<typename ...> struct Field;
-template<typename ...> struct Domain;
 
 /// @name  Field Expression
 /// @{
@@ -104,8 +103,6 @@ struct Field<AssignmentExpression<TOP, TL, TR> > : public AssignmentExpression<T
     typedef AssignmentExpression<TOP, TL, TR> expression_type;
 
     typedef traits::value_type_t<TL> value_type;
-
-    typedef traits::domain_t<TL> domain_type;
 
     typedef Field<AssignmentExpression<TOP, TL, TR>> this_type;
 

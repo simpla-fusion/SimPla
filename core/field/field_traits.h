@@ -15,41 +15,29 @@
 #include <type_traits>
 #include "../gtl/type_traits.h"
 #include "../manifold/manifold_traits.h"
-#include "../manifold/domain_traits.h"
 #include "../gtl/mpl.h"
 #include "../gtl/integer_sequence.h"
 
 namespace simpla
 {
 
-template<typename ...> struct Domain;
 template<typename ...> struct Field;
 
 namespace traits
 {
-template<typename ... T, typename ...Others>
-struct domain_type<Field<Domain<T...>, Others...> >
-{
-    typedef Domain<T...> type;
-};
+
 template<typename>
-struct manifold_type;
-template<typename ... T, typename ...Others>
-struct manifold_type<Field<Domain<T...>, Others...> >
-{
-    typedef ::simpla::traits::manifold_type_t<Domain<T...>> type;
-};
+struct mesh_type;
 
 
-template<typename TM, int IFORM, typename ValueType, typename ...Policies>
-struct field_type
-{
-    typedef Field<Domain<TM, std::integral_constant<int, IFORM>, Policies...>,
-            ValueType> type;
-};
+//template<typename ValueType, typename TM, int IFORM, typename ...Policies>
+//struct field_type
+//{
+//    typedef Field<ValueType, TM, std::integral_constant<int, IFORM>, Policies...> type;
+//};
 
-template<typename TM, int IFORM, typename ValueType, typename ...Policies>
-using field_t= typename field_type<TM, IFORM, ValueType, Policies...>::type;
+template<typename ValueType, typename TM, int IFORM = VERTEX>
+using field_t=  Field<ValueType, TM, std::integral_constant<int, IFORM>>;
 
 template<typename>
 struct isField : public std::integral_constant<bool, false>
@@ -79,21 +67,6 @@ struct key_type<Field<T ...> >
     typedef size_t type;
 };
 
-template<typename ...T>
-struct manifold_type<Field<T...> >
-{
-    typedef manifold_type_t <domain_t<Field<T...> >> type;
-};
-
-template<typename ...T>
-struct iform<Field<T...> > : public iform<domain_t < Field<T...> > >::type
-{
-};
-
-template<typename ...T>
-struct rank<Field<T...>> : public rank<domain_t < Field<T...> > >::type
-{
-};
 
 template<typename>
 struct field_value_type;

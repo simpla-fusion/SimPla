@@ -96,20 +96,18 @@ SP_APP(em, " Maxwell Eqs.")
 //
 //	}
 
-    auto J = traits::make_field<EDGE, Real>(*mesh);
-
-    auto E = traits::make_field<EDGE, Real>(*mesh);
-
-    auto B = traits::make_field<FACE, Real>(*mesh);
+    auto J = traits::make_field<Real, EDGE>(*mesh);
+    auto E = traits::make_field<Real, EDGE>(*mesh);
+    auto B = traits::make_field<Real, FACE>(*mesh);
 
     E.clear();
     B.clear();
     J.clear();
-//    E = traits::make_function_by_config<EDGE, Real>(*mesh, options["InitValue"]["E"]);
+//    E = traits::make_function_by_config<Real,EDGE>(*mesh, options["InitValue"]["E"]);
 
-    B = traits::make_function_by_config<EDGE, Real>(*mesh, options["InitValue"]["B"]);
+    B = traits::make_function_by_config<Real, EDGE>(*mesh, options["InitValue"]["B"]);
 
-//    J = traits::make_function_by_config<FACE, Real>(*mesh, options["InitValue"]["J"]);
+//    J = traits::make_function_by_config< Real,FACE>(*mesh, options["InitValue"]["J"]);
 
 //    auto J_src = traits::make_function_by_config<Real>(options["Constraint"]["J"], traits::make_domain<EDGE>(*mesh));
 //
@@ -162,7 +160,7 @@ SP_APP(em, " Maxwell Eqs.")
 ////		if (!pml_solver)
 ////        {
 //
-//        LOG_CMD(E += (curl(B) * speed_of_light2 - J / epsilon0) * dt);
+    LOG_CMD(E += (curl(B) * speed_of_light2 - J / epsilon0) * dt);
 //
 //        E_Boundary = 0;
 //

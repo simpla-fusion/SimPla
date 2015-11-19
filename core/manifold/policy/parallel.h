@@ -61,6 +61,17 @@ public:
                   typename geometry_type::range_type const &recv_range);
 
 
+    template<int iform, typename TFun>
+    void parallel_foreach(TFun const &fun) const
+    {
+
+        for (auto s:m_geo_.template range<iform>())
+        {
+            fun(s);
+        }
+    }
+
+
 private:
 
     geometry_type &m_geo_;

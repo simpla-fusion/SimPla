@@ -33,10 +33,6 @@ int main(int argc, char **argv)
     io::init(argc, argv);
 
 
-    // help_message += logger::help_message();
-    // help_message += parallel::help_message();
-    // help_message += io::help_message();
-
     ConfigParser options;
 
     SpAppList &applist = SingletonHolder<SpAppList>::instance();

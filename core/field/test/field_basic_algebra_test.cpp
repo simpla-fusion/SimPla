@@ -22,15 +22,15 @@ typedef manifold::Cartesian<3> mesh_type;
 
 typedef testing::Types< //
 
-        typename traits::field_type<mesh_type, VERTEX, double>::type, //
-        typename traits::field_type<mesh_type, EDGE, double>::type, //
-        typename traits::field_type<mesh_type, FACE, double>::type, //
-        typename traits::field_type<mesh_type, VOLUME, double>::type, //
+        typename traits::field_t<double, mesh_type, VERTEX>, //
+        typename traits::field_t<double, mesh_type, EDGE>, //
+        typename traits::field_t<double, mesh_type, FACE>, //
+        typename traits::field_t<double, mesh_type, VOLUME>, //
 
-        typename traits::field_type<mesh_type, VERTEX, Vec3>::type, //
-        typename traits::field_type<mesh_type, EDGE, Vec3>::type, //
-        typename traits::field_type<mesh_type, FACE, Vec3>::type, //
-        typename traits::field_type<mesh_type, VOLUME, Vec3>::type  //
+        typename traits::field_t<Vec3, mesh_type, VERTEX>, //
+        typename traits::field_t<Vec3, mesh_type, EDGE>, //
+        typename traits::field_t<Vec3, mesh_type, FACE>, //
+        typename traits::field_t<Vec3, mesh_type, VOLUME>  //
 
 > TypeParamList;
 template<typename TF> std::shared_ptr<typename TestField<TF>::mesh_type> //

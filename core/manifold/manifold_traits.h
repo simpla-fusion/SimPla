@@ -83,11 +83,11 @@ struct is_manifold<Manifold<T...>> : public std::integral_constant<bool, true>
 {
 };
 
-template<typename T> struct manifold_type
+template<typename T> struct mesh_type
 {
     typedef std::nullptr_t type;
 };
-template<typename T> using manifold_type_t= typename manifold_type<T>::type;
+template<typename T> using manifold_type_t= typename mesh_type<T>::type;
 
 template<typename T> struct id_type
 {

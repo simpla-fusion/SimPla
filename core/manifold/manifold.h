@@ -134,9 +134,7 @@ template<typename TBase, typename ...Policies>
 class Manifold<TBase, Policies ...>
         : public TBase, public Policies ...
 {
-
     typedef TBase base_manifold_type;
-
     typedef Manifold<base_manifold_type, Policies ...> this_type;
 
 public:
@@ -198,7 +196,7 @@ public:
 
 
     template<typename ...T>
-    inline traits::primary_type_t <nTuple<Expression<T...>>>
+    inline traits::primary_type_t<nTuple<Expression<T...>>>
     access(nTuple<Expression<T...>> const &v, id_t s) const
     {
         traits::primary_type_t<nTuple<Expression<T...> > > res;
@@ -225,6 +223,15 @@ public:
     template<typename ...TD>
     inline auto access(Field<Expression<TD...> > const &f, id_type s) const
     DECL_RET_TYPE((this->eval(f, s)))
+
+    template<int iform, typename TOP, typename ...Args>
+    void action(TOP const &op, Args &&... args) const
+    {
+        for (auto s:this->template range<iform>())
+        {
+            op(this->access(std::forward<Args>(args), s)...);
+        };
+    }
 
 
 }; //class Manifold

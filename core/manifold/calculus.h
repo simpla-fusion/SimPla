@@ -139,41 +139,41 @@ struct value_type<Field<Expression<calculus::tags::MapTo, T0, T1> > >
     typedef value_type_t<T1> type;
 };
 
-namespace _impl
-{
-template<typename ...T> struct first_domain;
-
-template<typename ...T> using first_domain_t=typename first_domain<T...>::type;
-
-template<typename T0> struct first_domain<T0>
-{
-    typedef domain_t<T0> type;
-};
-template<typename T0, typename ...T> struct first_domain<T0, T...>
-{
-    typedef typename std::conditional<
-            std::is_same<first_domain_t<T0>, std::nullptr_t>::value,
-            typename first_domain<T...>::type, first_domain_t<T0> >::type type;
-};
-
-}  // namespace _impl
-
-template<typename TAG, typename ...T>
-struct domain_type<Field<Expression<TAG, T...> > >
-{
-
-    typedef mpl::replace_tuple_t<1,
-            typename iform<Field<Expression<TAG, T...> > >::type,
-            _impl::first_domain_t<T...> > type;
-
-};
-
-template<size_t I, typename T1>
-struct domain_type<
-        Field<Expression<calculus::tags::MapTo, std::integral_constant<int, I>, T1> > >
-{
-    typedef mpl::replace_tuple_t<1, std::integral_constant<int, I>, domain_t<T1>> type;
-};
+//namespace _impl
+//{
+//template<typename ...T> struct first_domain;
+//
+//template<typename ...T> using first_domain_t=typename first_domain<T...>::type;
+//
+//template<typename T0> struct first_domain<T0>
+//{
+//    typedef domain_t<T0> type;
+//};
+//template<typename T0, typename ...T> struct first_domain<T0, T...>
+//{
+//    typedef typename std::conditional<
+//            std::is_same<first_domain_t<T0>, std::nullptr_t>::value,
+//            typename first_domain<T...>::type, first_domain_t<T0> >::type type;
+//};
+//
+//}  // namespace _impl
+//
+//template<typename TAG, typename ...T>
+//struct domain_type<Field<Expression<TAG, T...> > >
+//{
+//
+//    typedef mpl::replace_tuple_t<1,
+//            typename iform<Field<Expression<TAG, T...> > >::type,
+//            _impl::first_domain_t<T...> > type;
+//
+//};
+//
+//template<size_t I, typename T1>
+//struct domain_type<
+//        Field<Expression<calculus::tags::MapTo, std::integral_constant<int, I>, T1> > >
+//{
+//    typedef mpl::replace_tuple_t<1, std::integral_constant<int, I>, domain_t<T1>> type;
+//};
 }  // namespace traits
 
 

@@ -12,34 +12,38 @@
 
 namespace simpla
 {
-template<typename ...> struct DataSetPolicy;
+template<typename ...> struct StoragePolicy;
 
 template<typename TGeo>
-struct DataSetPolicy<TGeo>
+struct StoragePolicy<TGeo>
 {
 private:
 
     typedef TGeo geometry_type;
 
-    typedef DataSetPolicy<geometry_type> this_type;
+    typedef StoragePolicy<geometry_type> this_type;
 
     geometry_type const &m_geo_;
 
 
 public:
-    DataSetPolicy(geometry_type &geo) : m_geo_(geo) { }
+    StoragePolicy(geometry_type &geo) : m_geo_(geo) { }
 
-    virtual ~DataSetPolicy() { }
+    virtual ~StoragePolicy() { }
 
     template<typename TDict> void load(TDict const &) { }
 
     template<typename OS> OS &print(OS &os) const
     {
-        os << "\t DataSetPolicy={ Default }," << std::endl;
+        os << "\t StoragePolicy={ Default }," << std::endl;
 
 
         return os;
     }
+
+
+    template<typename TV>
+    using storage_type=std::shared_ptr<TV>;
 
     void deploy() { }
 
@@ -103,18 +107,18 @@ public:
         return std::move(res);
 
     }
-};//template<typename TGeo> struct DataSetPolicy
+};//template<typename TGeo> struct StoragePolicy
 
 
 namespace traits
 {
 
 template<typename TGeo>
-struct type_id<DataSetPolicy<TGeo>>
+struct type_id<StoragePolicy<TGeo>>
 {
     static std::string name()
     {
-        return "DataSetPolicy<" + type_id<TGeo>::name() + ">";
+        return "StoragePolicy<" + type_id<TGeo>::name() + ">";
     }
 };
 }

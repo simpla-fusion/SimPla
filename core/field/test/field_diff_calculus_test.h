@@ -131,9 +131,9 @@ public:
 TEST_P(FETLTest, grad0)
 {
 
-    auto f0 = traits::make_field<VERTEX, value_type>(*mesh);
-    auto f1 = traits::make_field<EDGE, value_type>(*mesh);
-    auto f1b = traits::make_field<EDGE, value_type>(*mesh);
+    auto f0 = traits::make_field<value_type, VERTEX>(*mesh);
+    auto f1 = traits::make_field<value_type, EDGE>(*mesh);
+    auto f1b = traits::make_field<value_type, EDGE>(*mesh);
 
     f0.
 
@@ -147,17 +147,11 @@ TEST_P(FETLTest, grad0)
 
             clear();
 
-    for (
-        auto const &s :
-            traits::make_domain<VERTEX>(*mesh)
-            )
+    for (auto const &s : traits::make_domain<VERTEX>(*mesh))
     {
-        f0[s] =
-                std::sin(inner_product(K_real, mesh->point(s)));
+        f0[s] = std::sin(inner_product(K_real, mesh->point(s)));
     };
-    f0.
-
-            sync();
+    f0.sync();
 
     LOG_CMD(f1 = grad(f0));
 
@@ -209,64 +203,35 @@ TEST_P(FETLTest, grad0)
 
     EXPECT_LE(std::sqrt(variance / count), error
     );
-    EXPECT_LE(mod(average)
-              / count, error);
+    EXPECT_LE(mod(average) / count, error);
 #ifndef NDEBUG
     io::cd("/grad1/");
-    LOGGER
-    << SAVE(f0) <<
-    std::endl;
-    LOGGER
-    << SAVE(f1) <<
-    std::endl;
-    LOGGER
-    << SAVE(f1b) <<
-    std::endl;
+    LOGGER << SAVE(f0) << std::endl;
+    LOGGER << SAVE(f1) << std::endl;
+    LOGGER << SAVE(f1b) << std::endl;
 #endif
 }
 
-TEST_P(FETLTest, grad3
-)
+TEST_P(FETLTest, grad3)
 {
 
 
-    if (!mesh->
+    auto f2 = traits::make_field<value_type, FACE>(*mesh);
+    auto f2b = traits::make_field<value_type, FACE>(*mesh);
+    auto f3 = traits::make_field<value_type, VOLUME>(*mesh);
 
-            is_valid()
+    f3.clear();
 
-            )
+    f2.clear();
+
+    f2b.clear();
+
+    for (auto s :    traits::make_domain<VOLUME>(*mesh))
     {
-        return;
-    }
-
-    auto f2 = traits::make_field<FACE, value_type>(*mesh);
-    auto f2b = traits::make_field<FACE, value_type>(*mesh);
-    auto f3 = traits::make_field<VOLUME, value_type>(*mesh);
-
-    f3.
-
-            clear();
-
-    f2.
-
-            clear();
-
-    f2b.
-
-            clear();
-
-    for (
-        auto s :
-            traits::make_domain<VOLUME>(*mesh)
-            )
-    {
-        f3[s] =
-                std::sin(inner_product(K_real, mesh->point(s)));
+        f3[s] = std::sin(inner_product(K_real, mesh->point(s)));
     };
 
-    f3.
-
-            sync();
+    f3.sync();
 
     LOG_CMD(f2 = grad(f3));
 
@@ -274,14 +239,9 @@ TEST_P(FETLTest, grad3
     Real variance = 0;
     value_type average = one * 0.0;
     size_t count = 0;
-    for (
-        auto s :
-            traits::make_domain<FACE>(*mesh)
-            )
+    for (auto s :   traits::make_domain<FACE>(*mesh))
     {
-
-        ++
-                count;
+        ++count;
 
         size_t n = mesh->sub_index(s);
 
@@ -296,12 +256,9 @@ TEST_P(FETLTest, grad3
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
         if (n == PhiAxis) { expect /= x[RAxis]; }
 #endif
-        f2b[s] =
-                expect;
+        f2b[s] = expect;
 
-        variance +=
-                mod((f2[s]
-                     - expect) * (f2[s] - expect));
+        variance += mod((f2[s] - expect) * (f2[s] - expect));
 
         average += (f2[s] - expect);
 
@@ -310,61 +267,38 @@ TEST_P(FETLTest, grad3
 
 #ifndef NDEBUG
     io::cd("/grad3/");
-    LOGGER
-    << SAVE(f3) <<
-    std::endl;
-    LOGGER
-    << SAVE(f2) <<
-    std::endl;
-    LOGGER
-    << SAVE(f2b) <<
-    std::endl;
+    LOGGER << SAVE(f3) << std::endl;
+    LOGGER << SAVE(f2) << std::endl;
+    LOGGER << SAVE(f2b) << std::endl;
 #endif
 
-    EXPECT_LE(std::sqrt(variance / count), error
-    );
-    EXPECT_LE(mod(average / count), error
-    );
+    EXPECT_LE(std::sqrt(variance / count), error);
+    EXPECT_LE(mod(average / count), error);
 
 
 }
 
-TEST_P(FETLTest, diverge1
-)
+TEST_P(FETLTest, diverge1)
 {
 
-    auto f1 = traits::make_field<EDGE, value_type>(*mesh);
-    auto f0 = traits::make_field<VERTEX, value_type>(*mesh);
-    auto f0b = traits::make_field<VERTEX, value_type>(*mesh);
+    auto f1 = traits::make_field<value_type, EDGE>(*mesh);
+    auto f0 = traits::make_field<value_type, VERTEX>(*mesh);
+    auto f0b = traits::make_field<value_type, VERTEX>(*mesh);
 
-    f0.
+    f0.clear();
 
-            clear();
+    f0b.clear();
 
-    f0b.
-
-            clear();
-
-    f1.
-
-            clear();
+    f1.clear();
 
     nTuple<Real, 3> E = {1, 2, 3};
 
-    for (
-        auto s :
-            traits::make_domain<EDGE>(*mesh)
-            )
+    for (auto s :    traits::make_domain<EDGE>(*mesh))
     {
-        f1[s] = E[mesh->
-                sub_index(s)
-                ] *
-                std::sin(inner_product(K_real, mesh->point(s)));
+        f1[s] = E[mesh->sub_index(s)] * std::sin(inner_product(K_real, mesh->point(s)));
     };
 
-    f1.
-
-            sync();
+    f1.sync();
 
     LOG_CMD(f0 = diverge(f1));
 
@@ -376,10 +310,7 @@ TEST_P(FETLTest, diverge1
 
     size_t count = 0;
 
-    for (
-        auto s :
-            traits::make_domain<VERTEX>(*mesh)
-            )
+    for (auto s :  traits::make_domain<VERTEX>(*mesh))
     {
         auto x = mesh->point(s);
 
@@ -398,8 +329,7 @@ TEST_P(FETLTest, diverge1
 #else
         expect = (K_real[0] * E[0] + K_real[1] * E[1] + K_real[2] * E[2]) * cos_v;
 #endif
-        f0b[s] =
-                expect;
+        f0b[s] = expect;
 
 
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
@@ -410,46 +340,30 @@ TEST_P(FETLTest, diverge1
         }
 #endif
 
-        ++
-                count;
+        ++count;
 
-        variance +=
-                mod((f0[s]
-                     - expect) * (f0[s] - expect));
+        variance += mod((f0[s] - expect) * (f0[s] - expect));
 
         average += (f0[s] - expect);
 
 
     }
 
-    EXPECT_GT(count,
-              0);
+    EXPECT_GT(count, 0);
 
-    variance /=
-            count;
-    average /=
-            count;
+    variance /= count;
+    average /= count;
 
 #ifndef NDEBUG
     io::cd("/div1/");
-    LOGGER
-    << SAVE(f1) <<
-    std::endl;
-    LOGGER
-    << SAVE(f0) <<
-    std::endl;
-    LOGGER
-    << SAVE(f0b) <<
-    std::endl;
+    LOGGER << SAVE(f1) << std::endl;
+    LOGGER << SAVE(f0) << std::endl;
+    LOGGER << SAVE(f0b) << std::endl;
 #endif
 
 
-    EXPECT_LE(std::sqrt(variance), error
-    ) <<
-    dims;
-    EXPECT_LE(mod(average), error
-    ) << " K= " << K_real << " K_i= " <<
-         K_imag
+    EXPECT_LE(std::sqrt(variance), error) << dims;
+    EXPECT_LE(mod(average), error) << " K= " << K_real << " K_i= " << K_imag
 
 //			<< " geometry->Ki=" << geometry->k_imag
 
@@ -460,32 +374,20 @@ TEST_P(FETLTest, diverge1
 TEST_P(FETLTest, diverge2)
 {
 
-    auto f2 = traits::make_field<FACE, value_type>(*mesh);
-    auto f3 = traits::make_field<VOLUME, value_type>(*mesh);
-    auto f3b = traits::make_field<VOLUME, value_type>(*mesh);
-    f3.
+    auto f2 = traits::make_field<value_type, FACE>(*mesh);
+    auto f3 = traits::make_field<value_type, VOLUME>(*mesh);
+    auto f3b = traits::make_field<value_type, VOLUME>(*mesh);
+    f3.clear();
 
-            clear();
+    f3b.clear();
 
-    f3b.
+    f2.clear();
 
-            clear();
-
-    f2.
-
-            clear();
-
-    for (
-        auto s :
-            traits::make_domain<FACE>(*mesh)
-            )
+    for (auto s :     traits::make_domain<FACE>(*mesh))
     {
-        f2[s] =
-                std::sin(inner_product(K_real, mesh->point(s)));
+        f2[s] = std::sin(inner_product(K_real, mesh->point(s)));
     };
-    f2.
-
-            sync();
+    f2.sync();
 
     LOG_CMD(f3 = diverge(f2));
 
@@ -495,10 +397,7 @@ TEST_P(FETLTest, diverge2)
 
     size_t count = 0;
 
-    for (
-        auto s :
-            traits::make_domain<VOLUME>(*mesh)
-            )
+    for (auto s :   traits::make_domain<VOLUME>(*mesh))
     {
 
         auto x = mesh->point(s);
@@ -520,8 +419,7 @@ TEST_P(FETLTest, diverge2)
 #endif
 
 
-        f3b[s] =
-                expect;
+        f3b[s] = expect;
 
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
 
@@ -530,9 +428,7 @@ TEST_P(FETLTest, diverge2)
         ++count;
 
 
-        variance +=
-                mod((f3[s]
-                     - expect) * (f3[s] - expect));
+        variance += mod((f3[s] - expect) * (f3[s] - expect));
 
         average += (f3[s] - expect);
 
@@ -551,10 +447,8 @@ TEST_P(FETLTest, diverge2)
     LOGGER << SAVE(f3b) << std::endl;
 #endif
 
-    ASSERT_LE(std::sqrt(variance), error
-    );
-    ASSERT_LE(mod(average), error
-    );
+    ASSERT_LE(std::sqrt(variance), error);
+    ASSERT_LE(mod(average), error);
 
 }
 
@@ -562,26 +456,18 @@ TEST_P(FETLTest, curl1)
 {
 
 
-    auto f1 = traits::make_field<EDGE, value_type>(*mesh);
-    auto f1b = traits::make_field<EDGE, value_type>(*mesh);
-    auto f2 = traits::make_field<FACE, value_type>(*mesh);
-    auto f2b = traits::make_field<FACE, value_type>(*mesh);
+    auto f1 = traits::make_field<value_type, EDGE>(*mesh);
+    auto f1b = traits::make_field<value_type, EDGE>(*mesh);
+    auto f2 = traits::make_field<value_type, FACE>(*mesh);
+    auto f2b = traits::make_field<value_type, FACE>(*mesh);
 
-    f1.
+    f1.clear();
 
-            clear();
+    f1b.clear();
 
-    f1b.
+    f2.clear();
 
-            clear();
-
-    f2.
-
-            clear();
-
-    f2b.
-
-            clear();
+    f2b.clear();
 
     Real m = 0.0;
     Real variance = 0;
@@ -591,30 +477,19 @@ TEST_P(FETLTest, curl1)
 
     nTuple<Real, 3> E = {0, 0, 3};
 
-    for (
-        auto s :
-            traits::make_domain<EDGE>(*mesh)
-            )
+    for (auto s :  traits::make_domain<EDGE>(*mesh))
     {
-        f1[s] = E[mesh->
-                sub_index(s)
-                ] *
-                std::sin(inner_product(K_real, mesh->point(s)));
+        f1[s] = E[mesh->sub_index(s)] * std::sin(inner_product(K_real, mesh->point(s)));
     };
 
 
-    f1.
-
-            sync();
+    f1.sync();
 
     LOG_CMD(f2 = curl(f1));
 
     size_t count = 0;
 
-    for (
-        auto s :
-            traits::make_domain<FACE>(*mesh)
-            )
+    for (auto s :   traits::make_domain<FACE>(*mesh))
     {
         auto n = mesh->sub_index(s);
 
@@ -653,15 +528,11 @@ TEST_P(FETLTest, curl1)
 
         if (dims[mesh->sub_index(s)] > 1 && mesh->idx_to_boundary(s) <= 1) { continue; }
 #endif
-        ++
-                count;
+        ++count;
 
-        f2b[s] =
-                expect;
+        f2b[s] = expect;
 
-        variance +=
-                mod((f2[s]
-                     - expect) * (f2[s] - expect));
+        variance += mod((f2[s] - expect) * (f2[s] - expect));
 
         average += (f2[s] - expect);
 
@@ -670,22 +541,14 @@ TEST_P(FETLTest, curl1)
 
 #ifndef NDEBUG
     io::cd("/curl1/");
-    LOGGER
-    << SAVE(f1) <<
-    std::endl;
-    LOGGER
-    << SAVE(f2) <<
-    std::endl;
-    LOGGER
-    << SAVE(f2b) <<
-    std::endl;
+    LOGGER << SAVE(f1) << std::endl;
+    LOGGER << SAVE(f2) << std::endl;
+    LOGGER << SAVE(f2b) << std::endl;
 #endif
 
 
-    ASSERT_LE(std::sqrt(variance / count), error
-    );
-    ASSERT_LE(mod(average / count), error
-    );
+    ASSERT_LE(std::sqrt(variance / count), error);
+    ASSERT_LE(mod(average / count), error);
 
 }
 
@@ -693,57 +556,38 @@ TEST_P(FETLTest, curl2)
 {
 
 
-    auto f1 = traits::make_field<EDGE, value_type>(*mesh);
-    auto f1b = traits::make_field<EDGE, value_type>(*mesh);
-    auto f2 = traits::make_field<FACE, value_type>(*mesh);
-    auto f2b = traits::make_field<FACE, value_type>(*mesh);
+    auto f1 = traits::make_field<value_type, EDGE>(*mesh);
+    auto f1b = traits::make_field<value_type, EDGE>(*mesh);
+    auto f2 = traits::make_field<value_type, FACE>(*mesh);
+    auto f2b = traits::make_field<value_type, FACE>(*mesh);
 
-    f1.
+    f1.clear();
 
-            clear();
+    f1b.clear();
 
-    f1b.
+    f2.clear();
 
-            clear();
-
-    f2.
-
-            clear();
-
-    f2b.
-
-            clear();
+    f2b.clear();
 
     Real m = 0.0;
     Real variance = 0;
     value_type average;
     average *= 0.0;
 
-    for (
-        auto s :
-            traits::make_domain<FACE>(*mesh)
-            )
+    for (auto s :     traits::make_domain<FACE>(*mesh))
     {
-        f2[s] =
-                std::sin(inner_product(K_real, mesh->point(s)));
+        f2[s] = std::sin(inner_product(K_real, mesh->point(s)));
     };
 
-    f2.
-
-            sync();
+    f2.sync();
 
     LOG_CMD(f1 = curl(f2));
 
-    f1b.
-
-            clear();
+    f1b.clear();
 
     size_t count = 0;
 
-    for (
-        auto s :
-            traits::make_domain<EDGE>(*mesh)
-            )
+    for (auto s :   traits::make_domain<EDGE>(*mesh))
     {
 
         auto n = mesh->sub_index(s);
@@ -790,19 +634,15 @@ TEST_P(FETLTest, curl2)
                  + (K_imag[(n + 1) % 3] - K_imag[(n + 2) % 3]) * sin_v;
 
 #endif
-        f1b[s] =
-                expect;
+        f1b[s] = expect;
 
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
 
         if (dims[mesh->sub_index(s)] > 1 && mesh->idx_to_boundary(s) <= 1) { continue; }
 #endif
-        ++
-                count;
+        ++count;
 
-        variance +=
-                mod((f1[s]
-                     - expect) * (f1[s] - expect));
+        variance += mod((f1[s] - expect) * (f1[s] - expect));
 
         average += (f1[s] - expect);
 
@@ -811,22 +651,14 @@ TEST_P(FETLTest, curl2)
 #ifndef NDEBUG
 
     io::cd("/curl2/");
-    LOGGER
-    << SAVE(f2) <<
-    std::endl;
-    LOGGER
-    << SAVE(f1) <<
-    std::endl;
-    LOGGER
-    << SAVE(f1b) <<
-    std::endl;
+    LOGGER << SAVE(f2) << std::endl;
+    LOGGER << SAVE(f1) << std::endl;
+    LOGGER << SAVE(f1b) << std::endl;
 #endif
 
 
-    ASSERT_LE(std::sqrt(variance / count), error
-    );
-    ASSERT_LE(mod(average / count), error
-    );
+    ASSERT_LE(std::sqrt(variance / count), error);
+    ASSERT_LE(mod(average / count), error);
 
 }
 
@@ -835,35 +667,26 @@ TEST_P(FETLTest, identity_curl_grad_f0_eq_0
 )
 {
 
-    auto f0 = traits::make_field<VERTEX, value_type>(*mesh);
-    auto f1 = traits::make_field<EDGE, value_type>(*mesh);
-    auto f2a = traits::make_field<FACE, value_type>(*mesh);
-    auto f2b = traits::make_field<FACE, value_type>(*mesh);
+    auto f0 = traits::make_field<value_type, VERTEX>(*mesh);
+    auto f1 = traits::make_field<value_type, EDGE>(*mesh);
+    auto f2a = traits::make_field<value_type, FACE>(*mesh);
+    auto f2b = traits::make_field<value_type, FACE>(*mesh);
 
     std::mt19937 gen;
     std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
     Real m = 0.0;
-    f0.
+    f0.clear();
 
-            clear();
-
-    for (
-        auto s :
-            traits::make_domain<VERTEX>(*mesh)
-            )
+    for (auto s : traits::make_domain<VERTEX>(*mesh))
     {
 
         auto a = uniform_dist(gen);
-        f0[s] =
-                one * a;
+        f0[s] = one * a;
 
-        m +=
-                a * a;
+        m += a * a;
     }
-    f0.
-
-            sync();
+    f0.sync();
 
     m = std::sqrt(m) * mod(one);
 
@@ -874,26 +697,17 @@ TEST_P(FETLTest, identity_curl_grad_f0_eq_0
     size_t count = 0;
     Real variance_a = 0;
     Real variance_b = 0;
-    for (
-        auto s :
-            traits::make_domain<FACE>(*mesh)
-            )
+    for (auto s :      traits::make_domain<FACE>(*mesh))
     {
 
-        variance_a +=
-                mod(f2a[s]);
-        variance_b +=
-                mod(f2b[s]);
+        variance_a += mod(f2a[s]);
+        variance_b += mod(f2b[s]);
     }
 
-    variance_a /=
-            m;
-    variance_b /=
-            m;
-    ASSERT_LE(std::sqrt(variance_b), error
-    );
-    ASSERT_LE(std::sqrt(variance_a), error
-    );
+    variance_a /= m;
+    variance_b /= m;
+    ASSERT_LE(std::sqrt(variance_b), error);
+    ASSERT_LE(std::sqrt(variance_a), error);
 
 }
 
@@ -902,33 +716,24 @@ TEST_P(FETLTest, identity_curl_grad_f3_eq_0
 {
 
 
-    auto f3 = traits::make_field<VOLUME, value_type>(*mesh);
-    auto f1a = traits::make_field<EDGE, value_type>(*mesh);
-    auto f1b = traits::make_field<EDGE, value_type>(*mesh);
-    auto f2 = traits::make_field<FACE, value_type>(*mesh);
+    auto f3 = traits::make_field<value_type, VOLUME>(*mesh);
+    auto f1a = traits::make_field<value_type, EDGE>(*mesh);
+    auto f1b = traits::make_field<value_type, EDGE>(*mesh);
+    auto f2 = traits::make_field<value_type, FACE>(*mesh);
     std::mt19937 gen;
     std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
     Real m = 0.0;
 
-    f3.
+    f3.clear();
 
-            clear();
-
-    for (
-        auto s :
-            traits::make_domain<VOLUME>(*mesh)
-            )
+    for (auto s :   traits::make_domain<VOLUME>(*mesh))
     {
         auto a = uniform_dist(gen);
-        f3[s] =
-                a * one;
-        m +=
-                a * a;
+        f3[s] = a * one;
+        m += a * a;
     }
-    f3.
-
-            sync();
+    f3.sync();
 
     m = std::sqrt(m) * mod(one);
 
@@ -939,25 +744,16 @@ TEST_P(FETLTest, identity_curl_grad_f3_eq_0
     size_t count = 0;
     Real variance_a = 0;
     Real variance_b = 0;
-    for (
-        auto s :
-            traits::make_domain<EDGE>(*mesh)
-            )
+    for (auto s :  traits::make_domain<EDGE>(*mesh))
     {
-        variance_a +=
-                mod(f1a[s]);
-        variance_b +=
-                mod(f1b[s]);
+        variance_a += mod(f1a[s]);
+        variance_b += mod(f1b[s]);
     }
 
-    variance_a /=
-            m;
-    variance_b /=
-            m;
-    ASSERT_LE(std::sqrt(variance_b), error
-    );
-    ASSERT_LE(std::sqrt(variance_a), error
-    );
+    variance_a /= m;
+    variance_b /= m;
+    ASSERT_LE(std::sqrt(variance_b), error);
+    ASSERT_LE(std::sqrt(variance_a), error);
 }
 
 TEST_P(FETLTest, identity_div_curl_f1_eq0
@@ -965,36 +761,27 @@ TEST_P(FETLTest, identity_div_curl_f1_eq0
 {
 
 
-    auto f1 = traits::make_field<EDGE, value_type>(*mesh);
-    auto f2 = traits::make_field<FACE, value_type>(*mesh);
-    auto f0a = traits::make_field<VERTEX, value_type>(*mesh);
-    auto f0b = traits::make_field<VERTEX, value_type>(*mesh);
+    auto f1 = traits::make_field<value_type, EDGE>(*mesh);
+    auto f2 = traits::make_field<value_type, FACE>(*mesh);
+    auto f0a = traits::make_field<value_type, VERTEX>(*mesh);
+    auto f0b = traits::make_field<value_type, VERTEX>(*mesh);
 
     std::mt19937 gen;
     std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-    f2.
-
-            clear();
+    f2.clear();
 
     Real m = 0.0;
 
-    for (
-        auto s :
-            traits::make_domain<FACE>(*mesh)
-            )
+    for (auto s :     traits::make_domain<FACE>(*mesh))
     {
         auto a = uniform_dist(gen);
 
-        f2[s] =
-                one * uniform_dist(gen);
+        f2[s] = one * uniform_dist(gen);
 
-        m +=
-                a * a;
+        m += a * a;
     }
-    f2.
-
-            sync();
+    f2.sync();
 
     m = std::sqrt(m) * mod(one);
 
@@ -1010,31 +797,21 @@ TEST_P(FETLTest, identity_div_curl_f1_eq0
     Real variance_b = 0;
 
 
-    for (
-        auto s :
-            traits::make_domain<VERTEX>(*mesh)
-            )
+    for (auto s :         traits::make_domain<VERTEX>(*mesh))
     {
 
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
         if (dims[mesh->sub_index(s)] > 1 && mesh->idx_to_boundary(s) <= 1) { continue; }
 #endif
-        ++
-                count;
+        ++count;
 
-        variance_b +=
-                mod(f0b[s]
-                    * f0b[s]);
-        variance_a +=
-                mod(f0a[s]
-                    * f0a[s]);
+        variance_b += mod(f0b[s] * f0b[s]);
+        variance_a += mod(f0a[s] * f0a[s]);
 //		ASSERT_EQ((f0a[s]), (f0b[s]));
     }
 
-    ASSERT_LE(std::sqrt(variance_b / count), error
-    );
-    ASSERT_LE(std::sqrt(variance_a / count), error
-    );
+    ASSERT_LE(std::sqrt(variance_b / count), error);
+    ASSERT_LE(std::sqrt(variance_a / count), error);
 
 }
 
@@ -1042,34 +819,25 @@ TEST_P(FETLTest, identity_div_curl_f2_eq0
 )
 {
 
-    auto f1 = traits::make_field<EDGE, value_type>(*mesh);
-    auto f2 = traits::make_field<FACE, value_type>(*mesh);
-    auto f3a = traits::make_field<VOLUME, value_type>(*mesh);
-    auto f3b = traits::make_field<VOLUME, value_type>(*mesh);
+    auto f1 = traits::make_field<value_type, EDGE>(*mesh);
+    auto f2 = traits::make_field<value_type, FACE>(*mesh);
+    auto f3a = traits::make_field<value_type, VOLUME>(*mesh);
+    auto f3b = traits::make_field<value_type, VOLUME>(*mesh);
 
     std::mt19937 gen;
     std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-    f1.
-
-            clear();
+    f1.clear();
 
     Real m = 0.0;
 
-    for (
-        auto s :
-            traits::make_domain<EDGE>(*mesh)
-            )
+    for (auto s :  traits::make_domain<EDGE>(*mesh))
     {
         auto a = uniform_dist(gen);
-        f1[s] =
-                one * a;
-        m +=
-                a * a;
+        f1[s] = one * a;
+        m += a * a;
     }
-    f1.
-
-            sync();
+    f1.sync();
 
     m = std::sqrt(m) * mod(one);
 
@@ -1084,33 +852,23 @@ TEST_P(FETLTest, identity_div_curl_f2_eq0
     Real variance_a = 0;
     Real variance_b = 0;
 
-    for (
-        auto s :
-            traits::make_domain<VOLUME>(*mesh)
-            )
+    for (auto s :   traits::make_domain<VOLUME>(*mesh))
     {
 
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
         if (dims[mesh->sub_index(s)] > 1 && mesh->idx_to_boundary(s) <= 1) { continue; }
 #endif
-        ++
-                count;
+        ++count;
 
-        variance_a +=
-                mod(f3a[s]
-                    * f3a[s]);
-        variance_b +=
-                mod(f3b[s]
-                    * f3b[s]);
+        variance_a += mod(f3a[s] * f3a[s]);
+        variance_b += mod(f3b[s] * f3b[s]);
 
     }
 
 
-    EXPECT_LE(std::sqrt(variance_b / count), error
-    );
+    EXPECT_LE(std::sqrt(variance_b / count), error);
 
-    ASSERT_LE(std::sqrt(variance_a / count), error
-    );
+    ASSERT_LE(std::sqrt(variance_a / count), error);
 
 }
 
