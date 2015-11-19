@@ -7,11 +7,18 @@
 #ifndef SIMPLA_DATASET_H
 #define SIMPLA_DATASET_H
 
+#include <string.h>
 #include "../../dataset/dataspace.h"
 #include "../manifold_traits.h"
 
 namespace simpla
 {
+/**
+ * @ingroup manifold
+ */
+namespace manifold { namespace policy
+{
+
 template<typename ...> struct StoragePolicy;
 
 template<typename TGeo>
@@ -27,6 +34,10 @@ private:
 
 
 public:
+
+    typedef this_type storage_policy;
+
+
     StoragePolicy(geometry_type &geo) : m_geo_(geo) { }
 
     virtual ~StoragePolicy() { }
@@ -36,17 +47,67 @@ public:
     template<typename OS> OS &print(OS &os) const
     {
         os << "\t StoragePolicy={ Default }," << std::endl;
-
-
         return os;
     }
 
-
-    template<typename TV>
-    using storage_type=std::shared_ptr<TV>;
+    template<typename TV> using storage_type=std::shared_ptr<TV>;
 
     void deploy() { }
 
+    template<typename TV, typename ...Others>
+    inline TV &at(storage_type<TV> &d, id_type s) const
+    {
+        return d.get()[m_geo_.hash(s)];
+    }
+
+
+    template<typename TV, typename ...Others>
+    inline TV const &at(storage_type<TV> const &d, id_type s) const
+    {
+        return d.get()[m_geo_.hash(s)];
+    }
+
+    template<typename TV, size_t IFORM>
+    DataSet dataset(storage_type<TV> const &d) const
+    {
+        DataSet res;
+        res.data = d;
+        res.dataspace = dataspace<IFORM>();
+        res.datatype = traits::datatype<TV>::create();
+        return std::move(res);
+    };
+private:
+    size_t local_memory_size(int IFORM) const
+    {
+        static constexpr int ndims = geometry_type::ndims;
+
+        size_t res = (IFORM == EDGE || IFORM == FACE) ? 3 : 1;
+        for (int i = 0; i < ndims; ++i)
+        {
+            res *= (m_geo_.m_memory_max_[i] - m_geo_.m_memory_min_[i]);
+        }
+
+        return res;
+    }
+
+public:
+    template<int IFORM, typename TV>
+    void alloc_memory(storage_type<TV> *d) const
+    {
+        if (*d == nullptr)
+        {
+            *d = SingletonHolder<MemoryPool>::instance().alloc<TV>(local_memory_size(IFORM));
+        }
+    };
+
+    template<int IFORM, typename TV>
+    void clear(storage_type<TV> *d) const
+    {
+        alloc_memory<IFORM>(d);
+        size_t ie = local_memory_size(IFORM) * sizeof(TV);
+        char *p = reinterpret_cast<char *>(d->get());
+        memset(p, 0, local_memory_size(IFORM) * sizeof(TV));
+    };
 
     template<size_t IFORM>
     DataSpace dataspace() const
@@ -109,12 +170,14 @@ public:
     }
 };//template<typename TGeo> struct StoragePolicy
 
+} //namespace policy
+} //namespace manifold
 
 namespace traits
 {
 
 template<typename TGeo>
-struct type_id<StoragePolicy<TGeo>>
+struct type_id<manifold::policy::StoragePolicy<TGeo>>
 {
     static std::string name()
     {
@@ -122,5 +185,6 @@ struct type_id<StoragePolicy<TGeo>>
     }
 };
 }
+
 }//namespace simpla
 #endif //SIMPLA_DATASET_H

@@ -63,7 +63,6 @@
       <sourceFolder url="file://$MODULE_DIR$/core/field/test/field_diff_calculus_test.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/field/test/field_diff_calculus_test.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/field/test/field_io_test.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/field/test/field_rw_cache.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/field/test/trash/fetl_test2.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/field/test/trash/fetl_test3.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/field/test/trash/fetl_test4.h" isTestSource="false" />

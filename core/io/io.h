@@ -37,9 +37,14 @@ std::string help_message();
 
 std::string cd(std::string const &url);
 
-std::string save(std::string const &url, DataSet const &ds,
-                 size_t flag = 0UL);
 
+std::string save(std::string const &url, DataSet const &ds, size_t flag = 0UL);
+
+template<typename T>
+std::string save(std::string const &url, T const &d, size_t flag = 0UL)
+{
+    return save(url, d.dataset(), flag);
+}
 
 void delete_attribute(std::string const &url);
 

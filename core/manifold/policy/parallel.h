@@ -12,6 +12,13 @@
 
 namespace simpla
 {
+/**
+ * @ingroup manifold
+ */
+namespace manifold { namespace policy
+{
+
+
 template<typename ...>
 struct ParallelPolicy;
 
@@ -26,6 +33,9 @@ private:
 
 
 public:
+
+    typedef this_type parallel_policy;
+
     ParallelPolicy(geometry_type &geo) :
             m_geo_(geo), m_mpi_comm_(SingletonHolder<MPIComm>::instance())
     {
@@ -228,12 +238,13 @@ void ParallelPolicy<TGeo>::deploy()
 //
 //		}
 
-
+} //namespace policy
+} //namespace manifold
 namespace traits
 {
 
 template<typename TGeo>
-struct type_id<ParallelPolicy<TGeo>>
+struct type_id<manifold::policy::ParallelPolicy<TGeo>>
 {
     static std::string name()
     {
@@ -241,5 +252,7 @@ struct type_id<ParallelPolicy<TGeo>>
     }
 };
 }
+
+
 }//namespace simpla
 #endif //SIMPLA_PARALLEL_H

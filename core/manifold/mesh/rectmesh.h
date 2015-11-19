@@ -22,13 +22,13 @@ namespace simpla { namespace mesh
  *
  * @brief non-Uniform structured mesh
  */
-template<typename TMap = LinearMap, int MeshLevel = 4>
-struct RectMesh : public MeshBlock<MeshLevel>, public TMap
+template<typename TMap = LinearMap>
+struct RectMesh : public MeshBlock, public TMap
 {
 
 private:
-    typedef RectMesh<TMap, MeshLevel> this_type;
-    typedef MeshBlock<MeshLevel> base_type;
+    typedef RectMesh<TMap> this_type;
+    typedef MeshBlock base_type;
     typedef TMap map_type;
 public:
     using base_type::ndims;
@@ -244,8 +244,8 @@ public:
     template<typename TGeo> void update_volume(TGeo const &geo);
 };//struct RectMesh
 
-template<typename TMap, int MeshLevel>
-void RectMesh<TMap, MeshLevel>::deploy()
+template<typename TMap>
+void RectMesh<TMap>::deploy()
 {
     base_type::deploy();
 
@@ -288,9 +288,9 @@ void RectMesh<TMap, MeshLevel>::deploy()
     m_is_valid_ = true;
 }
 
-template<typename TMap, int MeshLevel>
+template<typename TMap>
 template<typename TGeo>
-void RectMesh<TMap, MeshLevel>::update_volume(TGeo const &geo)
+void RectMesh<TMap>::update_volume(TGeo const &geo)
 {
 
     auto memory_block_range = base_type::template make_range<VERTEX>(base_type::memory_index_box());

@@ -6,68 +6,71 @@
 #define SIMPLA_TIME_INTEGRATOR_H
 namespace simpla
 {
+namespace manifold { namespace policy
+{
 template<typename ...> struct TimeIntegrator;
 
 template<typename TGeo, typename ...Policy>
 struct TimeIntegrator<TGeo, Policy...>
 {
 private:
-	typedef TGeo geometry_type;
+    typedef TGeo geometry_type;
 public:
 
-	TimeIntegrator(TGeo &) { }
+    TimeIntegrator(TGeo &) { }
 
-	virtual ~TimeIntegrator() { }
+    virtual ~TimeIntegrator() { }
 
-	template<typename TDict>
-	void load(TDict const &dict)
-	{
+    template<typename TDict>
+    void load(TDict const &dict)
+    {
 
-		m_dt_ = dict["BaseManifold.dt"].template as<Real>(1.0);
-		m_time_ = dict["BaseManifold.Time"].template as<Real>(0);
-	}
+        m_dt_ = dict["BaseManifold.dt"].template as<Real>(1.0);
+        m_time_ = dict["BaseManifold.Time"].template as<Real>(0);
+    }
 
-	template<typename OS>
-	OS &print(OS &os) const
-	{
+    template<typename OS>
+    OS &print(OS &os) const
+    {
 
-		os << "\t TimeIntegator = {" << std::endl
-				<< "\t\t Type = \"Default\"," << std::endl
-				<< "\t\t Time = " << m_time_ << "," << std::endl
-				<< "\t\t dt =   " << m_dt_ << "," << std::endl
-				<< "\t }, " << std::endl;
-		return os;
-	}
+        os << "\t TimeIntegator = {" << std::endl
+        << "\t\t Type = \"Default\"," << std::endl
+        << "\t\t Time = " << m_time_ << "," << std::endl
+        << "\t\t dt =   " << m_dt_ << "," << std::endl
+        << "\t }, " << std::endl;
+        return os;
+    }
 
-	void deploy() { }
+    void deploy() { }
 
-	void next_time_step() { m_time_ += m_dt_; }
+    void next_time_step() { m_time_ += m_dt_; }
 
-	double time() const { return m_time_; }
+    double time() const { return m_time_; }
 
-	void time(double t) { m_time_ = t; }
+    void time(double t) { m_time_ = t; }
 
-	double dt() const { return m_dt_; }
+    double dt() const { return m_dt_; }
 
-	void dt(double p_dt) { m_dt_ = p_dt; }
+    void dt(double p_dt) { m_dt_ = p_dt; }
 
 
 private:
-	double m_dt_;
-	double m_time_;
+    double m_dt_;
+    double m_time_;
 
 };
 
+}} //namespace  namespace policy namespace manifold
 
 namespace traits
 {
 template<typename ... T>
-struct type_id<TimeIntegrator<T...> >
+struct type_id<manifold::policy::TimeIntegrator<T...> >
 {
-	static std::string name()
-	{
-		return "TimeIntegrator<" + type_id<T...>::name() + " >";
-	}
+    static std::string name()
+    {
+        return "TimeIntegrator<" + type_id<T...>::name() + " >";
+    }
 };
 }//namespace traits
 }// namespace simpla

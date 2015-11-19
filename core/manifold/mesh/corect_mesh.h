@@ -27,7 +27,7 @@ namespace simpla { namespace mesh
  *
  * @brief Uniform structured mesh
  */
-struct CoRectMesh : public MeshBlock<>, private LinearMap
+struct CoRectMesh : public MeshBlock, private LinearMap
 {
     static constexpr int ndims = 3;
     enum

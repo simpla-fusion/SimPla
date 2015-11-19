@@ -23,11 +23,11 @@ namespace manifold
 {
 template<typename METRIC, typename MESH> using DefaultManifold= Manifold<
         MESH, METRIC,
-        DiffScheme<MESH, diff_scheme::tags::finite_volume>,
-        Interpolate<MESH, interpolate::tags::linear>,
-        TimeIntegrator<MESH>,
-        StoragePolicy<MESH>,
-        ParallelPolicy<MESH>
+        policy::DiffScheme<MESH, policy::diff_scheme::tags::finite_volume>,
+        policy::Interpolate<MESH, policy::interpolate::tags::linear>,
+        policy::TimeIntegrator<MESH>,
+        policy::StoragePolicy<MESH>,
+        policy::ParallelPolicy<MESH>
 >;
 }; //namespace manifold
 }// namespace simpla

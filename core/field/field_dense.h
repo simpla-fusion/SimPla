@@ -18,7 +18,7 @@
 
 #include "../gtl/type_traits.h"
 #include "../manifold/manifold_traits.h"
-#include "../dataset/dataset_traits.h"
+#include "../dataset/dataset.h"
 
 #include "field_traits.h"
 
@@ -38,7 +38,6 @@ struct Field;
  */
 template<typename TG, int IFORM, typename TV>
 struct Field<TV, TG, std::integral_constant<int, IFORM> >
-        : public TG::template storage_type<TV>
 {
 public:
 
@@ -61,12 +60,12 @@ private:
     typedef typename traits::field_value_type<this_type>::type field_value_type;
 
     mesh_type const &m_mesh_;
-
+    storage_policy m_data_;
 public:
 
 
     //create construct
-    Field(mesh_type const &m) : storage_policy(m.template make_storage<TV, IFORM>()), m_mesh_(m)
+    Field(mesh_type const &m) : m_mesh_(m)
     {
     }
 
@@ -77,23 +76,36 @@ public:
 
     //copy construct
     Field(this_type const &other)
-            : storage_policy(other), m_mesh_(other.m_mesh_)
+            : m_data_(other.m_data_), m_mesh_(other.m_mesh_)
     {
     }
 
     // move construct
     Field(this_type &&other)
-            : storage_policy(other), m_mesh_(other.m_mesh_)
+            : m_data_(other.m_data_), m_mesh_(other.m_mesh_)
     {
     }
-
 
     void swap(this_type &other)
     {
         std::swap(m_mesh_, other.m_mesh_);
-        storage_policy::swap(other);
+        std::swap(m_data_, other.m_data_);
     }
 
+    void deploy()
+    {
+        m_mesh_.template alloc_memory<iform>(&m_data_);
+    }
+
+    void clear()
+    {
+        m_mesh_.template clear<iform>(&m_data_);
+    }
+
+    DataSet dataset() const
+    {
+        return std::move(m_mesh_.template dataset<value_type, iform>(m_data_));
+    }
 
     /**
      * @name assignment
@@ -182,12 +194,12 @@ public:
 
     value_type &operator[](id_type const &s)
     {
-        return m_mesh_.at(*this, s);
+        return m_mesh_.at(m_data_, s);
     }
 
     value_type const &operator[](id_type const &s) const
     {
-        return m_mesh_.at(*this, s);
+        return m_mesh_.at(m_data_, s);
     }
 
     template<typename ...Args>

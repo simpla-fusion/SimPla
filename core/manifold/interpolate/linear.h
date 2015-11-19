@@ -12,9 +12,8 @@
 
 namespace simpla
 {
-
-
-
+namespace manifold { namespace policy
+{
 
 namespace pt= interpolate::tags;
 
@@ -39,6 +38,7 @@ private:
     geometry_type const &m_geo_;
 public:
 
+    typedef this_type interpolate_policy;
 
     template<typename TDict>
     void load(TDict const &) { }
@@ -236,6 +236,6 @@ public:
 
 };
 
-
+}}
 }//namespace simpla
 #endif //SIMPLA_LINEAR_H

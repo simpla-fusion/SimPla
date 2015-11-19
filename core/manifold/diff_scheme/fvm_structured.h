@@ -21,10 +21,9 @@
 
 namespace simpla
 {
-
-template<typename ...>
-class Field;
-
+template<typename ...> class Field;
+namespace manifold { namespace policy
+{
 
 #define DECLARE_FUNCTION_SUFFIX const
 #define DECLARE_FUNCTION_PREFIX inline
@@ -50,6 +49,8 @@ private:
     geometry_type &m_geo_;
 
 public:
+    typedef this_type calculus_policy;
+
     template<typename TDict>
     void load(TDict const &) { }
 
@@ -544,6 +545,8 @@ public:
 #undef DECLARE_FUNCTION_PREFIX
 #undef DECLARE_FUNCTION_SUFFIX
 
+} //namespace policy
+} //namespace manifold
 
 }// namespace simpla
 

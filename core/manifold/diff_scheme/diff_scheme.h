@@ -21,8 +21,10 @@ namespace simpla
  * @ingroup diff_scheme
  * @{
  */
+namespace manifold { namespace policy
+{
 
-template<typename ...> struct DiffScheme;
+template<typename...> struct DiffScheme;
 
 namespace diff_scheme
 {
@@ -34,14 +36,12 @@ struct DG;
 
 }//namespace tags
 }//namespace diff_scheme
-
-
-
+}}
 namespace traits
 {
 
 template<typename ... T>
-struct type_id<DiffScheme<T...> >
+struct type_id<manifold::policy::DiffScheme<T...> >
 {
     static std::string name()
     {
@@ -49,11 +49,11 @@ struct type_id<DiffScheme<T...> >
     }
 };
 
-DEFINE_TYPE_ID_NAME(diff_scheme::tags::finite_difference)
+DEFINE_TYPE_ID_NAME(manifold::policy::diff_scheme::tags::finite_difference)
 
-DEFINE_TYPE_ID_NAME(diff_scheme::tags::finite_volume)
+DEFINE_TYPE_ID_NAME(manifold::policy::diff_scheme::tags::finite_volume)
 
-DEFINE_TYPE_ID_NAME(diff_scheme::tags::DG)
+DEFINE_TYPE_ID_NAME(manifold::policy::diff_scheme::tags::DG)
 
 }//namespace traits
 /**  @}*/

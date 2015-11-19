@@ -144,13 +144,13 @@ public:
 
     typedef Manifold<mesh_type, metric_type, Policies ...> this_type;
 
-    typedef geometry::traits::coordinate_system_t<metric_type> coordinates_system_type;
+    typedef geometry::traits::coordinate_system_t <metric_type> coordinates_system_type;
 
-    typedef geometry::traits::scalar_type_t<coordinates_system_type> scalar_type;
+    typedef geometry::traits::scalar_type_t <coordinates_system_type> scalar_type;
 
-    typedef geometry::traits::point_type_t<coordinates_system_type> point_type;
+    typedef geometry::traits::point_type_t <coordinates_system_type> point_type;
 
-    typedef geometry::traits::vector_type_t<coordinates_system_type> vector_type;
+    typedef geometry::traits::vector_type_t <coordinates_system_type> vector_type;
 
     using mesh_type::ndims;
     using mesh_type::volume;
@@ -218,8 +218,8 @@ public:
 
 
     template<typename ...T>
-    inline traits::primary_type_t<nTuple<Expression<T...>>>
-    access(nTuple<Expression<T...>> const &v, id_t s) const
+    inline traits::primary_type_t <nTuple<Expression<T...>>>
+    access(nTuple <Expression<T...>> const &v, id_t s) const
     {
         traits::primary_type_t<nTuple<Expression<T...> > > res;
         res = v;
@@ -241,7 +241,7 @@ public:
 
     template<typename ...TD>
     inline auto access(Field<Expression<TD...> > const &f, id_type s) const
-    DECL_RET_TYPE((this->eval(f, s)))
+    DECL_RET_TYPE((this->calculus_policy::eval(f, s)))
 
     template<typename TOP, typename T, typename ...Args>
     void action(TOP const &op, T &self, Args &&... args) const
@@ -249,23 +249,38 @@ public:
         constexpr int iform = traits::iform<T>::value;
 
         self.deploy();
-
-        for (auto s:this->template range<iform>())
+        for (auto const &s:this->template range<iform>())
         {
-            op(this->access(self, s), this->access(std::forward<Args>(args), s)...);
-        };
+            op(access(self, s), access(std::forward<Args>(args), s)...);
+        }
+//        for (auto const &m:m_patch_ghost_)
+//        {
+//            m.action(op, self, std::forward<Args>(args)...);
+//        }
+//
+//        auto request = parallel_policy::sync(self);
+//
+//        for (auto const &m:m_patch_)
+//        {
+//            m.action(op, self, std::forward<Args>(args)...);
+//        }
+//        parallel_policy::wait(request);
     }
 
     template<typename TOP, typename T, typename ...Args>
     void action(TOP const &op, T const &self, Args &&... args) const
     {
         constexpr int iform = traits::iform<T>::value;
-
-        for (auto s:this->template range<iform>())
+        for (auto const &s:this->template range<iform>())
         {
-            op(this->access(self, s), this->access(std::forward<Args>(args), s)...);
-        };
+            op(access(self, s), access(std::forward<Args>(args), s)...);
+        }
     }
+
+//    typedef mesh::Patch<mesh_type> patch_type;
+//    std::map<id_type, patch_type> m_patch_ghost_;
+//    std::map<id_type, patch_type> m_patch_;
+
 
 }; //class Manifold
 

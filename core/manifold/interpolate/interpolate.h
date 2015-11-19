@@ -8,6 +8,8 @@
 #define SIMPLA_INTERPOLATE_H
 namespace simpla
 {
+namespace manifold { namespace policy
+{
 /**
  * @ingroup diff_geo
  * @{
@@ -26,24 +28,26 @@ struct spline;
 
 
 }//namespace interpolate
+}}
 
 namespace traits
 {
 template<typename ... T>
-struct type_id<Interpolate<T...> >
+struct type_id<manifold::policy::Interpolate<T...> >
 {
-	static std::string name()
-	{
-		return "Interpolate<" + type_id<T...>::name() + " >";
-	}
+    static std::string name()
+    {
+        return "Interpolate<" + type_id<T...>::name() + " >";
+    }
 };
 
 
-DEFINE_TYPE_ID_NAME(interpolate::tags::linear)
-DEFINE_TYPE_ID_NAME(interpolate::tags::spline)
+DEFINE_TYPE_ID_NAME(manifold::policy::interpolate::tags::linear)
+
+DEFINE_TYPE_ID_NAME(manifold::policy::interpolate::tags::spline)
 
 }//namespace traits
-
 /** @} */
+
 }//namespace simpla
 #endif //SIMPLA_INTERPOLATE_H
