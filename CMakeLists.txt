@@ -64,32 +64,32 @@ IF (HDF5_FOUND)
     ENDIF (HDF5_IS_PARALLEL)
     #LINK_DIRECTORIES(${HDF5_LIBRARY_DIRS})
 ENDIF (HDF5_FOUND)
-
-SET(Boost_USE_STATIC_LIBS ON) # only find static libs
-SET(Boost_USE_MULTITHREADED ON)
-SET(Boost_USE_STATIC_RUNTIME OFF)
-find_package(Boost)
-
-if (Boost_FOUND)
-    include_directories(${Boost_INCLUDE_DIRS})
-else ()
-    set(boost_cmds
-            CONFIGURE_COMMAND ./bootstrap.sh --prefix=<INSTALL_DIR>
-            BUILD_COMMAND ./b2 address-model=${am} ${boost_with_args}
-            INSTALL_COMMAND ./b2 address-model=${am} ${boost_with_args}
-            install
-            )
-    ExternalProject_Add(boost
-            PREFIX ${PROJECT_BINARY_DIR}/external_project
-            URL http://sourceforge.net/projects/boost/files/boost/1.58.0/boost_1_58_0.tar.bz2/download
-            DOWNLOAD_DIR ${CMAKE_SOURCE_DIR}/external_project/src/
-            SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/boost
-            BUILD_IN_SOURCE 1
-            INSTALL_COMMAND "")
-    ExternalProject_Get_Property(boost install_dir)
-    set(BOOST_ROOT "${install_dir}" CACHE INTERNAL "")
-    find_package(Boost 1.58.0)
-endif ()
+#
+#SET(Boost_USE_STATIC_LIBS ON) # only find static libs
+#SET(Boost_USE_MULTITHREADED ON)
+#SET(Boost_USE_STATIC_RUNTIME OFF)
+#find_package(Boost)
+#
+#if (Boost_FOUND)
+#    include_directories(${Boost_INCLUDE_DIRS})
+#else ()
+#    set(boost_cmds
+#            CONFIGURE_COMMAND ./bootstrap.sh --prefix=<INSTALL_DIR>
+#            BUILD_COMMAND ./b2 address-model=${am} ${boost_with_args}
+#            INSTALL_COMMAND ./b2 address-model=${am} ${boost_with_args}
+#            install
+#            )
+#    ExternalProject_Add(boost
+#            PREFIX ${PROJECT_BINARY_DIR}/external_project
+#            URL http://sourceforge.net/projects/boost/files/boost/1.58.0/boost_1_58_0.tar.bz2/download
+#            DOWNLOAD_DIR ${CMAKE_SOURCE_DIR}/external_project/src/
+#            SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/boost
+#            BUILD_IN_SOURCE 1
+#            INSTALL_COMMAND "")
+#    ExternalProject_Get_Property(boost install_dir)
+#    set(BOOST_ROOT "${install_dir}" CACHE INTERNAL "")
+#    find_package(Boost 1.58.0)
+#endif ()
 
 
 #IF(GTEST_ROOT)
