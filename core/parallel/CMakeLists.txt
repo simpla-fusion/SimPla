@@ -1,4 +1,4 @@
-SET(PARALLEL_SRC parallel_policy.cpp mpi_datatype.cpp
+SET(PARALLEL_SRC parallel.cpp mpi_datatype.cpp
         mpi_aux_functions.cpp mpi_comm.cpp mpi_update.cpp distributed_object.cpp distributed_array.cpp)
 add_library(parallel ${PARALLEL_SRC})
 

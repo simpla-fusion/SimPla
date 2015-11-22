@@ -1,14 +1,15 @@
 /**
- * @file parallel.h
+ * @file parallel_policy.h
  * @author salmon
  * @date 2015-10-14.
  */
 
-#ifndef SIMPLA_PARALLEL_H
-#define SIMPLA_PARALLEL_H
+#ifndef SIMPLA_PARALLEL_POLICY_H
+#define SIMPLA_PARALLEL_POLICY_H
 
 #include "../../parallel/mpi_comm.h"
 #include "../../parallel/mpi_update.h"
+#include "../../parallel/parallel.h"
 #include "../../parallel/distributed_object.h"
 
 namespace simpla
@@ -28,16 +29,16 @@ struct ParallelPolicy<TMesh>
 {
 
 private:
-    typedef TMesh geometry_type;
+    typedef TMesh mesh_type;
 
-    typedef ParallelPolicy<geometry_type> this_type;
+    typedef ParallelPolicy<mesh_type> this_type;
 
 
 public:
 
     typedef this_type parallel_policy;
 
-    ParallelPolicy(geometry_type &geo) :
+    ParallelPolicy(mesh_type &geo) :
             m_mesh_(geo), m_mpi_comm_(SingletonHolder<MPIComm>::instance())
     {
     }
@@ -71,7 +72,7 @@ public:
 
 private:
 
-    geometry_type &m_mesh_;
+    mesh_type &m_mesh_;
 
     MPIComm &m_mpi_comm_;
 
@@ -224,12 +225,20 @@ void ParallelPolicy<TMesh>::for_each(TG const &geo, TOP const &op, T *self, Args
 {
     static constexpr int IFORM = traits::iform<T>::value;
     typedef traits::value_type_t<T> value_type;
+    auto r = m_mesh_.template range<IFORM>();
+    typedef decltype(r) range_type;
+
     for (auto const &item:m_boundary_box_)
     {
-        for (auto const &s : m_mesh_.template make_range<IFORM>(std::get<0>(item), std::get<1>(item)))
-        {
-            op(geo.access(*self, s), geo.access(std::forward<Args>(args), s)...);
-        }
+        parallel::parallel_for(m_mesh_.template make_range<IFORM>(std::get<0>(item), std::get<1>(item)),
+                               [&](range_type const &r)
+                               {
+                                   for (auto const &s:r)
+                                   {
+                                       op(geo.access(*self, s), geo.access(std::forward<Args>(args), s)...);
+                                   }
+                               });
+
     }
 
 
@@ -242,10 +251,15 @@ void ParallelPolicy<TMesh>::for_each(TG const &geo, TOP const &op, T *self, Args
     //    }
     //    dist_obj.sync();
 
-    for (auto const &s : m_mesh_.template make_range<IFORM>(std::get<0>(m_center_box_), std::get<1>(m_center_box_)))
-    {
-        op(geo.access(*self, s), geo.access(std::forward<Args>(args), s)...);
-    }
+    parallel::parallel_for(m_mesh_.template make_range<IFORM>(std::get<0>(m_center_box_), std::get<1>(m_center_box_)),
+                           [&](range_type const &r)
+                           {
+                               for (auto const &s:r)
+                               {
+                                   op(geo.access(*self, s), geo.access(std::forward<Args>(args), s)...);
+                               }
+                           });
+
 
     //TODO wait
 //    dist_obj.wait();
@@ -258,10 +272,17 @@ void ParallelPolicy<TMesh>::for_each(TG const &geo, TOP const &op, Args &&... ar
 {
     static constexpr int IFORM = traits::iform<traits::unpack_type<0, Args>::type>::value;
     typedef traits::value_type_t<traits::unpack_type<0, Args>::type> value_type;
-    for (auto const &s : m_mesh_.template make_range<IFORM>())
-    {
-        op(geo.access(std::forward<Args>(args), s)...);
-    }
+    typedef decltype(m_mesh_.template make_range<IFORM>()) range_type;
+
+    parallel::parallel_for(m_mesh_.template make_range<IFORM>(),
+                           [&](range_type const &r)
+                           {
+                               for (auto const &s:r)
+                               {
+                                   op(geo.access(std::forward<Args>(args), s)...);
+                               }
+                           });
+
 
 };
 } //namespace policy
@@ -281,4 +302,4 @@ struct type_id<manifold::policy::ParallelPolicy<TMesh>>
 
 
 }//namespace simpla
-#endif //SIMPLA_PARALLEL_H
+#endif //SIMPLA_PARALLEL_POLICY_H

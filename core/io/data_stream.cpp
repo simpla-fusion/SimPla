@@ -400,10 +400,12 @@ void DataStream::pimpl_s::close()
     if (base_file_id_ > 0)
     {
         H5_ERROR(H5Fclose(base_file_id_));
+
+        VERBOSE << "File [" << current_filename_ << "] is closed!" << std::endl;
+
         base_file_id_ = -1;
     }
 
-    VERBOSE << "File [" << current_filename_ << "] is closed!" << std::endl;
 }
 
 

@@ -50,11 +50,13 @@ public:
     using base_type::id_type;
     using base_type::id_tuple;
     using base_type::index_type;
+    using base_type::index_tuple;
+    using base_type::range_type;
+
     typedef id_type value_type;
     typedef size_t difference_type;
-    typedef nTuple<Real, ndims> point_type;
-    typedef nTuple<Real, ndims> vector_type;
-    using base_type::index_tuple;
+    typedef nTuple <Real, ndims> point_type;
+    typedef nTuple <Real, ndims> vector_type;
 
 
     /**

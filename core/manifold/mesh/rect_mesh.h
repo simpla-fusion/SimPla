@@ -47,6 +47,7 @@ public:
     using typename base_type::index_type;
     using typename base_type::index_tuple;
     using typename base_type::difference_type;
+    using typename base_type::range_type;
 
     typedef nTuple<Real, ndims> point_type;
     typedef nTuple<Real, ndims> vector_type;

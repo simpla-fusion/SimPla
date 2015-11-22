@@ -211,9 +211,9 @@
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/domain.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/domain_operation.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/domain_traits.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/policy/amr.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/policy/amr_policy.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/policy/parallel_policy.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/policy/patch.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/policy/patch_policy.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/policy/storage_policy.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/pre_define/mock.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/pre_define/predefine.h" isTestSource="false" />
@@ -268,9 +268,10 @@
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/multi_thread_openmp.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/multi_thread_std_thread.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/multi_thread_tbb.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/parallel/parallel_policy.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/parallel/parallel.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/parallel.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/parallel_dummy.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/parallel/parallel_opemmp.h.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/parallel_tbb.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/parallel_traits.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/seq_range.h" isTestSource="false" />
@@ -353,7 +354,8 @@
     <orderEntry type="module-library">
       <library name="Header Search Paths">
         <CLASSES>
-          <root url="file://$USER_HOME$/.CLion12/system/cmake/generated/82e76996/82e76996/Debug/external_project/googletest/include" />
+          <root url="file://$USER_HOME$/.CLion12/system/cmake/generated/82e76996/82e76996/Debug0/external_project/googletest/include" />
+          <root url="file:///pkg/hdf5/1.8.15-parallel/intel-16/ipmi-5.1.1/include" />
           <root url="file:///usr/include" />
           <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include" />
           <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include-fixed" />
@@ -367,7 +369,8 @@
           <root url="file:///work/pkg/intel/compilers_and_libraries_2016.0.109/linux/tbb/include" />
         </CLASSES>
         <SOURCES>
-          <root url="file://$USER_HOME$/.CLion12/system/cmake/generated/82e76996/82e76996/Debug/external_project/googletest/include" />
+          <root url="file://$USER_HOME$/.CLion12/system/cmake/generated/82e76996/82e76996/Debug0/external_project/googletest/include" />
+          <root url="file:///pkg/hdf5/1.8.15-parallel/intel-16/ipmi-5.1.1/include" />
           <root url="file:///usr/include" />
           <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include" />
           <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include-fixed" />

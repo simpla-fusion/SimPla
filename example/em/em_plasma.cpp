@@ -69,6 +69,11 @@ void EMPlasma::setup(int argc, char **argv)
     m.dimensions(dims);
     m.deploy();
 
+
+    MESSAGE << std::endl
+    << "[ Configuration ]" << std::endl
+    << m << std::endl;
+
     Bv.clear();
     B0v.clear();
     Ev.clear();
@@ -199,11 +204,13 @@ int main(int argc, char **argv)
 
         MESSAGE << " Usage: " << argv[0] << "   <options> ..." << std::endl << std::endl;
 
-        MESSAGE << " Options:" << std::endl <<
-        "\t -h,\t--help            \t, Print a usage message and exit.\n"
-                "\t -v,\t--version         \t, Print version information exit. \n"
-                "\t--case <CASE ID>         \t, Select a case <CASE ID> to execute \n "
-                "\t--case_help <CASE ID>    \t, Print a usag message of case <CASE ID> \n ";
+        MESSAGE << " Options:" << std::endl
+
+        << "\t -h,\t--help            \t, Print a usage message and exit.\n"
+
+        << "\t -v,\t--version         \t, Print version information exit. \n"
+
+        << std::endl;
 
 
         TheEnd(0);
@@ -213,7 +220,7 @@ int main(int argc, char **argv)
 
     simpla::EMPlasma ctx;
 
-    int num_of_step = options["num_of_step"].as<int>(200);
+    int num_of_step = options["number_of_step"].as<int>(2);
 
     int check_point = options["check_point"].as<int>(1);
 

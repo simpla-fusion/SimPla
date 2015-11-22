@@ -23,22 +23,25 @@ struct block_iterator : public std::iterator<
         nTuple<TV, NDIMS>, ptrdiff_t>
 {
 private:
+    typedef std::iterator<typename std::random_access_iterator_tag,
+            nTuple<TV, NDIMS>, ptrdiff_t> base_type;
 
     typedef block_iterator<TV, NDIMS> this_type;
 
-    typedef nTuple<TV, NDIMS> value_type;
-
-    typedef ptrdiff_t difference_type;
-
     static constexpr int ndims = NDIMS;
 
+
 public:
-    block_iterator(value_type const &self, value_type const &min, value_type const &max) :
+
+    using base_type::value_type;
+    using base_type::difference_type;
+
+    block_iterator(nTuple<TV, NDIMS> const &self, nTuple<TV, NDIMS> const &min, nTuple<TV, NDIMS> const &max) :
             m_min_(min), m_max_(max), m_self_(self)
     {
     }
 
-    block_iterator(value_type const &min, value_type const &max) :
+    block_iterator(nTuple<TV, NDIMS> const &min, nTuple<TV, NDIMS> const &max) :
             m_min_(min), m_max_(max), m_self_(min)
     {
     }
@@ -84,7 +87,7 @@ public:
 
     bool operator!=(this_type const &other) const { return m_self_ != other.m_self_; }
 
-    value_type const &operator*() const { return m_self_; }
+    nTuple<TV, NDIMS> const &operator*() const { return m_self_; }
 
     this_type &operator++()
     {
@@ -112,20 +115,20 @@ public:
         return std::move(res);
     }
 
-    this_type &operator+=(difference_type const &n)
+    this_type &operator+=(ptrdiff_t const &n)
     {
         advance(n);
         return *this;
     }
 
-    this_type &operator-=(difference_type const &n)
+    this_type &operator-=(ptrdiff_t const &n)
     {
         advance(-n);
         return *this;
     }
 
 
-    this_type operator+(difference_type const &n) const
+    this_type operator+(ptrdiff_t const &n) const
     {
 
         this_type res(*this);
@@ -133,7 +136,7 @@ public:
         return std::move(res);
     }
 
-    this_type operator-(difference_type const &n) const
+    this_type operator-(ptrdiff_t const &n) const
     {
 
         this_type res(*this);
@@ -142,14 +145,14 @@ public:
     }
 
 
-    value_type operator[](difference_type const &n) const
+    nTuple<TV, NDIMS> operator[](int const &n) const
     {
         this_type res(*this);
         res += n;
         return *res;
     }
 
-    difference_type operator-(this_type const &other) const
+    ptrdiff_t operator-(this_type const &other) const
     {
         return distance() - other.distance();
     }
@@ -164,10 +167,10 @@ public:
     bool operator>=(this_type const &other) const { return (*this - other) >= 0; }
 
 
-    value_type m_min_, m_max_, m_self_;
+    nTuple<TV, NDIMS> m_min_, m_max_, m_self_;
 
 
-    difference_type advance(difference_type n = 1)
+    ptrdiff_t advance(ptrdiff_t n = 1)
     {
         for (int i = ndims - 1; i > 0; --i)
         {
@@ -181,10 +184,10 @@ public:
         return n;
     }
 
-    difference_type distance() const
+    ptrdiff_t distance() const
     {
 
-        difference_type res = 0;
+        ptrdiff_t res = 0;
 
 
         for (int i = 0; i < ndims - 1; ++i)

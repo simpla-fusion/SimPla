@@ -779,6 +779,13 @@ struct MeshIDs_
             return *this;
         }
 
+        iterator operator+(difference_type const &s) const
+        {
+            iterator res(*this);
+            res.advance(s);
+            return std::move(res);
+        }
+
         void swap(iterator &other)
         {
             base_type::swap(other);

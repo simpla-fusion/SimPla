@@ -9,13 +9,14 @@
 #define PARALLEL_TBB_H_
 
 #include <tbb/tbb.h>
-namespace simpla
-{
 
+namespace simpla { namespace parallel
+{
 using tbb::parallel_for;
 using tbb::parallel_do;
 using tbb::parallel_reduce;
 
-}  // namespace simpla
+}}  // namespace simpla { namespace parallel
+
 
 #endif /* PARALLEL_TBB_H_ */
