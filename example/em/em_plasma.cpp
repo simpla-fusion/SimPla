@@ -221,19 +221,18 @@ int main(int argc, char **argv)
 
     int count = 0;
 
-
     ctx.check_point();
 
-//    while (count < num_of_step)
-//    {
-//
-//        ctx.next_time_step();
-//
-//        if (count % check_point == 0)
-//            ctx.check_point();
-//
-//        ++count;
-//    }
+    while (count < num_of_step)
+    {
+
+        ctx.next_time_step();
+
+        if (count % check_point == 0)
+            ctx.check_point();
+
+        ++count;
+    }
     ctx.tear_down();
 
     MESSAGE << "====================================================" << std::endl

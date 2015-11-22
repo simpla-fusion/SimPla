@@ -9,6 +9,7 @@
 
 #include "../../parallel/mpi_comm.h"
 #include "../../parallel/mpi_update.h"
+#include "../../parallel/distributed_object.h"
 
 namespace simpla
 {
@@ -231,16 +232,23 @@ void ParallelPolicy<TMesh>::for_each(TG const &geo, TOP const &op, T *self, Args
         }
     }
 
-    // TODO sync
 
+    //    DistributedObject dist_obj(m_mpi_comm_);
+    // TODO create distributed object
+    //
+    //    for (auto const &item:m_connections_)
+    //    {
+    //        dist_obj.add_link();
+    //    }
+    //    dist_obj.sync();
 
     for (auto const &s : m_mesh_.template make_range<IFORM>(std::get<0>(m_center_box_), std::get<1>(m_center_box_)))
     {
         op(geo.access(*self, s), geo.access(std::forward<Args>(args), s)...);
     }
 
-
     //TODO wait
+//    dist_obj.wait();
 
 };
 

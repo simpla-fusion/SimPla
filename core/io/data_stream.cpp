@@ -222,8 +222,7 @@ std::tuple<bool, std::string> DataStream::cd(std::string const &url,
 
     if (obj_name != "")
     {
-        is_existed = H5Lexists(pimpl_->base_group_id_, obj_name.c_str(),
-                               H5P_DEFAULT) != 0;
+        is_existed = H5Lexists(pimpl_->base_group_id_, obj_name.c_str(), H5P_DEFAULT) != 0;
     }
 
     return std::make_tuple(is_existed, obj_name);
@@ -500,25 +499,26 @@ std::tuple<std::string, hid_t> DataStream::pimpl_s::open_file(
 
     bcast_string(&filename);
 
-    hid_t plist_id;
-
-    H5_ERROR(plist_id = H5Pcreate(H5P_FILE_ACCESS));
-
-    if (GLOBAL_COMM.is_valid())
-    {
-        MPI_Info info;
-        MPI_Info_create(&info);
-
-        H5_ERROR(H5Pset_fapl_mpio(plist_id, GLOBAL_COMM.comm(), info /*GLOBAL_COMM.info()*/));
-
-        MPI_Info_free(&info);
-    }
 
     hid_t f_id;
 
-    H5_ERROR(f_id = H5Fcreate(filename.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, plist_id));
+    if (GLOBAL_COMM.num_of_process() > 1)
+    {
+        hid_t plist_id;
 
-    H5_ERROR(H5Pclose(plist_id));
+        H5_ERROR(plist_id = H5Pcreate(H5P_FILE_ACCESS));
+
+        H5_ERROR(H5Pset_fapl_mpio(plist_id, GLOBAL_COMM.comm(), GLOBAL_COMM.info() /*GLOBAL_COMM.info()*/));
+
+        H5_ERROR(f_id = H5Fcreate(filename.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, plist_id));
+
+        H5_ERROR(H5Pclose(plist_id));
+
+    }
+    else
+    {
+        H5_ERROR(f_id = H5Fcreate(filename.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, H5P_DEFAULT));
+    }
 
 
     VERBOSE << "File [" << filename << "] is opened!" << std::endl;

@@ -70,7 +70,7 @@ public:
         return d.get()[m_geo_.hash(s)];
     }
 
-    template<typename TV, size_t IFORM>
+    template<typename TV, int IFORM>
     DataSet dataset(storage_type<TV> const &d) const
     {
         DataSet res;
@@ -112,13 +112,13 @@ public:
         memset(p, 0, local_memory_size(IFORM) * sizeof(TV));
     };
 
-    template<size_t IFORM>
+    template<int IFORM>
     DataSpace dataspace() const
     {
         return dataspace<IFORM>(m_geo_.template range<IFORM>());
     }
 
-    template<size_t IFORM>
+    template<int IFORM>
     DataSpace dataspace(typename geometry_type::range_type const &r) const
     {
 
