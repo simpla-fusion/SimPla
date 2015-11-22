@@ -7,11 +7,14 @@
 #ifndef SIMPLA_MESH_H
 #define SIMPLA_MESH_H
 
+#include "../../gtl/type_traits.h"
+#include "../../geometry/coordinate_system.h"
 
 namespace simpla
 {
 
-namespace mesh{
+namespace mesh
+{
 /**
  *  @ingroup diff_geo
  *  @addtogroup  mesh Mesh
@@ -44,7 +47,30 @@ namespace mesh{
  *
  *
  *   @} */
+
+template<typename ...> class Mesh;
+
+
 }//namespace mesh
+namespace geometry { namespace traits
+{
+
+template<typename ...T>
+struct metric_type<::simpla::mesh::Mesh<T...>>
+{
+    typedef ::simpla::traits::unpack_t<0, T...> type;
+
+};
+template<typename ...T>
+struct coordinate_system_type<::simpla::mesh::Mesh<T...>>
+{
+    typedef coordinate_system_t <metric_t<::simpla::mesh::Mesh<T...> >> type;
+
+};
+
+
+}}//namespace geometry{namespace traits{
+
 }//namespace simpla
 
 #endif //SIMPLA_MESH_H

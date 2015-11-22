@@ -345,6 +345,12 @@ struct MeshIDs_
 
     }
 
+    static constexpr id_type DI(int n, id_type s)
+    {
+        return (s >> (n * ID_DIGITS)) & _D;
+    }
+
+
     static constexpr id_type delta_index(id_type s)
     {
         return (s & _DA);

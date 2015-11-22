@@ -43,7 +43,6 @@ public:
         index_tuple block;
     };
 
-    Properties properties;
 
     // Creates a null dataspace
     DataSpace();

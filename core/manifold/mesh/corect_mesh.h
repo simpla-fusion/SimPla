@@ -15,19 +15,26 @@
 #include "../../gtl/ntuple.h"
 #include "../../gtl/type_traits.h"
 #include "../../gtl/utilities/utilities.h"
+#include "mesh.h"
 #include "mesh_block.h"
 #include "map_linear.h"
 
 namespace simpla { namespace mesh
 {
-
+namespace tags
+{
+struct corect_linear;
+}
+template<typename TMetric>
+using CoRectMesh=Mesh<TMetric, tags::corect_linear>;
 
 /**
  * @ingroup mesh
  *
  * @brief Uniform structured mesh
  */
-struct CoRectMesh : public MeshBlock, private LinearMap
+template<typename TMetric>
+struct Mesh<TMetric, tags::corect_linear> : public TMetric, public MeshBlock, private LinearMap
 {
     static constexpr int ndims = 3;
     enum
@@ -36,7 +43,7 @@ struct CoRectMesh : public MeshBlock, private LinearMap
     };
 private:
 
-    typedef CoRectMesh this_type;
+    typedef Mesh<TMetric, tags::corect_linear> this_type;
     typedef LinearMap map_type;
     typedef MeshBlock base_type;
 public:
@@ -87,24 +94,23 @@ public:
 
     vector_type m_dx_ = {1, 1, 1};; //!< width of cell, except m_dx_[i]=0 when m_dims_[i]==1
 
-
-
-
     bool m_is_valid_ = false;
 public:
 
-    CoRectMesh() : base_type()
+    Mesh() : base_type()
     {
 
     }
 
 
-    CoRectMesh(this_type const &other) :
-            base_type(other), m_coords_min_(other.m_coords_min_), m_coords_max_(other.m_coords_max_), m_dx_(other.m_dx_)
+    Mesh(this_type const &other) :
+            base_type(other), m_coords_min_(other.m_coords_min_),
+            m_coords_max_(other.m_coords_max_),
+            m_dx_(other.m_dx_)
     {
     }
 
-    virtual  ~CoRectMesh() { }
+    virtual  ~Mesh() { }
 
     virtual void swap(this_type &other)
     {
@@ -253,11 +259,7 @@ public:
 
             m_dx_[i] = (m_coords_max_[i] - m_coords_min_[i]) / static_cast<Real>(dims[i]);
         }
-    }
 
-    template<typename TGeo>
-    void update_volume(TGeo const &geo)
-    {
 
         m_is_valid_ = true;
 
@@ -284,7 +286,8 @@ public:
 
 
 
-        base_type::get_element_volume_in_cell(geo, 0, m_volume_, m_inv_volume_, m_dual_volume_, m_inv_dual_volume_);
+        base_type::get_element_volume_in_cell(*this, 0, m_volume_, m_inv_volume_,
+                                              m_dual_volume_, m_inv_dual_volume_);
 
 //        auto dims = geo.dimensions();
 //
@@ -350,7 +353,11 @@ public:
     }
 
 
-}; // struct CoRectMesh
+    template<typename T0, typename T1, typename ...Others>
+    static constexpr auto inner_product(T0 const &v0, T1 const &v1, Others &&... others)
+    DECL_RET_TYPE((v0[0] * v1[0] + v0[1] * v1[1] + v0[2] * v1[2]))
+
+}; // struct Mesh
 }// namespace mesh
 } // namespace simpla
 

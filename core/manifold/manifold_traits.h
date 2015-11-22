@@ -139,10 +139,10 @@ namespace traits
 {
 template<typename ...> struct coordinate_system_type;
 
-template<typename TM, typename TMetric, typename ... T>
-struct coordinate_system_type<Manifold<TM, TMetric, T...>>
+template<typename TM, typename ... T>
+struct coordinate_system_type<Manifold<TM, T...>>
 {
-    typedef typename coordinate_system_type<TMetric>::type type;
+    typedef typename coordinate_system_type<TM>::type type;
 };
 
 

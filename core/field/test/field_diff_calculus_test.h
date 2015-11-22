@@ -45,9 +45,9 @@ static constexpr const int PhiAxis = cs::PhiAxis;
 #else
 
 #include "../../manifold/pre_define/cartesian.h"
-#include "../../manifold/mesh/rectmesh.h"
+#include "../../manifold/mesh/rect_mesh.h"
 
-typedef manifold::Cartesian<3, mesh::RectMesh<>> mesh_type;
+typedef manifold::Cartesian mesh_type;
 
 #endif
 
@@ -182,17 +182,13 @@ TEST_P(FETLTest, grad0)
             expect /= x[RAxis];
         }
 #endif
-        f1b[s] =
-                expect;
+        f1b[s] = expect;
 
-        variance +=
-                mod((f1[s]
-                     - expect) * (f1[s] - expect));
+        variance += mod((f1[s] - expect) * (f1[s] - expect));
 
         average += (f1[s] - expect);
 
-        m +=
-                mod(f1[s]);
+        m += mod(f1[s]);
 
     }
 
@@ -658,8 +654,7 @@ TEST_P(FETLTest, curl2)
 }
 
 
-TEST_P(FETLTest, identity_curl_grad_f0_eq_0
-)
+TEST_P(FETLTest, identity_curl_grad_f0_eq_0)
 {
 
     auto f0 = traits::make_field<value_type, VERTEX>(*mesh);
@@ -751,8 +746,7 @@ TEST_P(FETLTest, identity_curl_grad_f3_eq_0
     ASSERT_LE(std::sqrt(variance_a), error);
 }
 
-TEST_P(FETLTest, identity_div_curl_f1_eq0
-)
+TEST_P(FETLTest, identity_div_curl_f1_eq0)
 {
 
 

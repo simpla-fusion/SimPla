@@ -24,17 +24,6 @@
       <sourceFolder url="file://$MODULE_DIR$/applications/particle_solver/pic_engine_implicit.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/applications/particle_solver/register_particle.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/CMakeLists.txt" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/application/CMakeLists.txt" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/application/application.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/application/application.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/application/application_main.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/application/context.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/application/context_base.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/application/schedule.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/application/sp_object.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/application/sp_object.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/application/task.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/application/use_case.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/dataset/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/dataset/dataset.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/dataset/dataset.h" isTestSource="false" />
@@ -217,12 +206,14 @@
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/mesh/mesh_common.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/mesh/mesh_ids.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/mesh/mesh_patch.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/mesh/rectmesh.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/mesh/rect_mesh.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/base_manifold.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/domain.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/domain_operation.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/domain_traits.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/policy/amr.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/policy/parallel.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/policy/patch.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/policy/storage.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/pre_define/cartesian.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/pre_define/cylindrical.h" isTestSource="false" />
@@ -312,6 +303,20 @@
       <sourceFolder url="file://$MODULE_DIR$/core/physics/physical_constants.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/physics/physics.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/sp_config.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/task_flow/CMakeLists.txt" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/task_flow/application.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/task_flow/application.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/task_flow/application_main.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/task_flow/context.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/task_flow/context.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/task_flow/context_base.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/task_flow/schedule.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/task_flow/sp_object.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/task_flow/sp_object.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/task_flow/task.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/task_flow/task_flow.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/task_flow/task_flow_base.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/task_flow/use_case.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/docs/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/docs/Doxyfile.in" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/dummy.cpp" isTestSource="false" />
@@ -321,6 +326,9 @@
       <sourceFolder url="file://$MODULE_DIR$/example/em/demo_em.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/example/em/em.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/example/em/em.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/example/em/em_plasma.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/example/em/em_plasma.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/example/em/em_task.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/example/general_field_op/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/example/general_field_op/demo_general_field_op.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/example/geometry/CMakeLists.txt" isTestSource="false" />

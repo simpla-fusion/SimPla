@@ -93,7 +93,6 @@ DataStream::~DataStream()
     {
         close();
     }
-    VERBOSE << "DataSteream is closed" << std::endl;
 
 }
 
@@ -146,6 +145,7 @@ void DataStream::init(int argc, char **argv)
 //
 
 }
+
 std::string DataStream::help_message()
 {
     return "\t-o,\t--prefix <STRING>   \t, output file path \n";

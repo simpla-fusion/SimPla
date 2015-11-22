@@ -17,7 +17,7 @@
 #include "../gtl/utilities/logo.h"
 
 /**
- *  @ingroup application
+ *  @ingroup task_flow
  *
  *  main entry of user case.
  */

@@ -10,13 +10,13 @@
 #include "predefine.h"
 #include "../../geometry/coordinate_system.h"
 #include "../../geometry/cs_cylindrical.h"
-#include "../mesh/rectmesh.h"
+#include "../mesh/rect_mesh.h"
 
 namespace simpla
 {
 namespace manifold
 {
-using Cylindrical= DefaultManifold<geometry::Metric<geometry::coordinate_system::Cylindrical<2> >, mesh::RectMesh<>>;
+using Cylindrical= DefaultManifold<mesh::RectMesh<geometry::CylindricalMetric<>>>;
 
 }//namespace  manifold
 }//namespace simpla

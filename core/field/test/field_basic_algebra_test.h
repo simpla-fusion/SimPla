@@ -18,7 +18,6 @@
 #include "../../gtl/primitives.h"
 #include "../../gtl/type_traits.h"
 #include "../../gtl/utilities/log.h"
-#include "../../manifold/domain_traits.h"
 #include "../../manifold/manifold_traits.h"
 #include "../../field/field_dense.h"
 #include "../../field/field_traits.h"

@@ -1,5 +1,5 @@
 /**
- * @file cartesian_corectmesh.h
+ * @file cartesian.h
  * @author salmon
  * @date 2015-10-28.
  */
@@ -11,13 +11,13 @@
 #include "../../geometry/cs_cartesian.h"
 #include "../mesh/corect_mesh.h"
 
-namespace simpla
+namespace simpla { namespace manifold
 {
-namespace manifold
-{
-template<int NDIMS, typename TopologyType=mesh::CoRectMesh>
-using Cartesian=DefaultManifold<geometry::Metric<::simpla::geometry::coordinate_system::Cartesian<NDIMS>>, TopologyType>;
-}//namespace manifold
+
+using Cartesian=DefaultManifold<mesh::CoRectMesh<geometry::CartesianMetric> >
+
+}}//namespace simpla {namespace manifold
+
 //
 //
 //template<typename ...> struct BaseManifold;
@@ -90,5 +90,4 @@ using Cartesian=DefaultManifold<geometry::Metric<::simpla::geometry::coordinate_
 ////    DECL_RET_TYPE((simpla::inner_product(v0, v1)))
 //};
 
-}//namespace simpla
 #endif //SIMPLA_CARTESIAN_CORECTMESH_H

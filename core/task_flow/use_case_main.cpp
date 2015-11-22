@@ -16,10 +16,10 @@
 #include "../gtl/utilities/logo.h"
 
 
-std::shared_ptr<UseCase> use_case;
+std::shared_ptr<simpla::use_case::UseCase> u_case;
 
 /**
- *  @ingroup application
+ *  @ingroup task_flow
  *
  *  main entry of user case.
  */
@@ -27,18 +27,19 @@ int main(int argc, char **argv)
 {
     using namespace simpla;
 
-    std::string help_message;
+    logger::init(argc, argv);
 
-    help_message += logger::init_logger(argc, argv);
-    help_message += init_parallel(argc, argv);
-    help_message += init_io(argc, argv);
+    parallel::init(argc, argv);
+
+    io::init(argc, argv);
+
 
     ConfigParser options;
 
 
-    help_message += options.init(argc, argv);
+    options.init(argc, argv);
 
-    if (GLOBAL_COMM.process_num() == 0) { MESSAGE << ShowCopyRight() << std::endl; }
+    INFORM << ShowCopyRight() << std::endl;
 
     if (options["V"] || options["version"])
     {
@@ -62,8 +63,7 @@ int main(int argc, char **argv)
 //						"\t -g,\t--generator       \t, Generates a demo configure file \n"
                 "\n"
                 "\t--case <CASE ID>         \t, Select a case <CASE ID> to execute \n "
-                "\t--case_help <CASE ID>    \t, Print a usag message of case <CASE ID> \n "
-        << help_message;
+                "\t--case_help <CASE ID>    \t, Print a usag message of case <CASE ID> \n ";
 
         MESSAGE
 
@@ -73,37 +73,37 @@ int main(int argc, char **argv)
         << "--------------------|-------------------------------------"
         << std::endl;
 
-        for (auto const &item : case_list)
-        {
-
-            MESSAGE << std::setw(19) << std::right << item.first << " |"
-            << item.second->description() << std::endl;
-        }
+//        for (auto const &item : case_list)
+//        {
+//
+//            MESSAGE << std::setw(19) << std::right << item.first << " |"
+//            << item.second->description() << std::endl;
+//        }
 
         TheEnd(0);
 
     }
-    MESSAGE
-    << std::endl
-    << "====================================================" << std::endl
-    << "   Use Case [" << use_case->first << "]:  " << std::endl
-    << "\t" << use_case->second->description() << std::endl
-    << "----------------------------------------------------" << std::endl;
+//    MESSAGE
+//    << std::endl
+//    << "====================================================" << std::endl
+//    << "   Use Case [" << u_case->first << "]:  " << std::endl
+//    << "\t" << u_case->second->description() << std::endl
+//    << "----------------------------------------------------" << std::endl;
+//
+    u_case->setup(argc, argv);
 
-    use_case->setup();
+    u_case->next_time_step(1.0);
+//
+//    u_case->teardown();
+//
+//    MESSAGE << "===================================================="
+//    << std::endl
+//
+//    << "\t >>> Done <<< " << std::endl;
 
-    use_case->body();
-
-    use_case->teardown();
-
-    MESSAGE << "===================================================="
-    << std::endl
-
-    << "\t >>> Done <<< " << std::endl;
-
-    close_io();
-    close_parallel();
-    logger::close_logger();
+    io::close();
+    parallel::close();
+    logger::close();
 
     return 0;
 

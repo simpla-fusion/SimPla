@@ -19,7 +19,7 @@ class DataSet;
 
 class Properties;
 
-/** @ingroup application
+/** @ingroup task_flow
  *  @addtogroup sp_object SIMPla object
  *  @{
  *  ## Summary

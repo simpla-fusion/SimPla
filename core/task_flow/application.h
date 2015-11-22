@@ -19,9 +19,9 @@
 namespace simpla
 {
 /**
- *  @addtogroup application Application
+ *  @addtogroup task_flow Application
  *  @{
- *  @brief  framework of application layer.
+ *  @brief  framework of task_flow layer.
  */
 
 struct SpApp

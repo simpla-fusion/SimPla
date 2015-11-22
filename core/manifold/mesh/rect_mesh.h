@@ -8,7 +8,7 @@
 #define SIMPLA_RECT_MESH_H
 
 #include <limits>
-
+#include "mesh.h"
 #include "mesh_ids.h"
 #include "mesh_block.h"
 #include "map_linear.h"
@@ -17,19 +17,28 @@
 
 namespace simpla { namespace mesh
 {
+namespace tags
+{
+struct rect_linear;
+}
+
+template<typename TMetric>
+using RectMesh=Mesh<TMetric, tags::rect_linear, LinearMap>;
+
 /**
  * @ingroup mesh
  *
  * @brief non-Uniform structured mesh
  */
-template<typename TMap = LinearMap>
-struct RectMesh : public MeshBlock, public TMap
+template<typename TMetric, typename TMap>
+struct Mesh<TMetric, tags::rect_linear, TMap> : public TMetric, public MeshBlock, public TMap
 {
 
 private:
-    typedef RectMesh<TMap> this_type;
+    typedef Mesh<TMetric, tags::rect_linear, TMap> this_type;
     typedef MeshBlock base_type;
     typedef TMap map_type;
+    typedef TMetric metric_type;
 public:
     using base_type::ndims;
 
@@ -53,19 +62,19 @@ private:
 public:
 
 
-    RectMesh() : base_type()
+    Mesh() : base_type()
     {
 
     }
 
 
-    RectMesh(this_type const &other) :
+    Mesh(this_type const &other) :
             base_type(other), m_dx_(other.m_dx_)
     {
 
     }
 
-    virtual  ~RectMesh() { }
+    virtual  ~ Mesh() { }
 
     virtual void swap(this_type &other)
     {
@@ -151,14 +160,6 @@ public:
         return (std::make_tuple(l_min, l_max));
     }
 
-    template<typename ...Args>
-    void extents(Args &&...args)
-    {
-        box(std::forward<Args>(args)...);
-    }
-
-    auto extents() const
-    DECL_RET_TYPE(box())
 
     constexpr auto dx() const DECL_RET_TYPE(m_dx_);
 
@@ -242,10 +243,16 @@ public:
     virtual void deploy();
 
     template<typename TGeo> void update_volume(TGeo const &geo);
+
+
+    template<typename T0, typename T1, typename ...Others>
+    static constexpr auto inner_product(T0 const &v0, T1 const &v1, Others &&... others)
+    DECL_RET_TYPE((v0[0] * v1[0] + v0[1] * v1[1] + v0[2] * v1[2]))
+
 };//struct RectMesh
 
-template<typename TMap>
-void RectMesh<TMap>::deploy()
+template<typename TMetric, typename TMap>
+void Mesh<TMetric, tags::rect_linear, TMap>::deploy()
 {
     base_type::deploy();
 
@@ -286,12 +293,8 @@ void RectMesh<TMap>::deploy()
 
 
     m_is_valid_ = true;
-}
 
-template<typename TMap>
-template<typename TGeo>
-void RectMesh<TMap>::update_volume(TGeo const &geo)
-{
+    // update volume
 
     auto memory_block_range = base_type::template make_range<VERTEX>(base_type::memory_index_box());
 
@@ -311,7 +314,7 @@ void RectMesh<TMap>::update_volume(TGeo const &geo)
     {
         size_t n = this->hash(s) * base_type::NUM_OF_NODE_ID;
 
-        base_type::get_element_volume_in_cell(geo, s, m_volume_.get() + n, m_inv_volume_.get() + n,
+        base_type::get_element_volume_in_cell(*this, s, m_volume_.get() + n, m_inv_volume_.get() + n,
                                               m_dual_volume_.get() + n, m_inv_dual_volume_.get() + n);
 
     }

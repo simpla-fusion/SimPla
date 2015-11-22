@@ -8,6 +8,7 @@
 #ifndef CORE_DATASET_DATASET_H_
 #define CORE_DATASET_DATASET_H_
 
+#include <list>
 #include <stddef.h>
 #include <algorithm>
 #include <memory>
@@ -98,6 +99,7 @@ struct DataSet
     template<typename T> T const &get_value(size_t s) const { return reinterpret_cast<T *>( data.get())[s]; }
 
 
+    std::map<size_t, std::tuple<DataSpace, DataSet>> children;
 }; //class DataSet
 //template<typename T, typename ...Args>
 //DataSet make_dataset(Args &&...args)

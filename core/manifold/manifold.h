@@ -130,34 +130,33 @@ template<typename ...> class Manifold;
 /**
  * Manifold
  */
-template<typename TMesh, typename TMetric, typename ...Policies>
-class Manifold<TMesh, TMetric, Policies ...>
-        : public TMesh, public TMetric, public Policies ...
+template<typename TMesh, typename ...Policies>
+class Manifold<TMesh, Policies ...>
+        : public TMesh, public Policies ...
 {
     typedef TMesh base_manifold_type;
 
 public:
 
-    typedef TMetric metric_type;
 
     typedef TMesh mesh_type;
 
-    typedef Manifold<mesh_type, metric_type, Policies ...> this_type;
+    typedef Manifold<mesh_type, Policies ...> this_type;
 
-    typedef geometry::traits::coordinate_system_t <metric_type> coordinates_system_type;
+    typedef geometry::traits::coordinate_system_t<mesh_type> coordinates_system_type;
 
-    typedef geometry::traits::scalar_type_t <coordinates_system_type> scalar_type;
+    typedef geometry::traits::scalar_type_t<coordinates_system_type> scalar_type;
 
-    typedef geometry::traits::point_type_t <coordinates_system_type> point_type;
+    typedef geometry::traits::point_type_t<coordinates_system_type> point_type;
 
-    typedef geometry::traits::vector_type_t <coordinates_system_type> vector_type;
+    typedef geometry::traits::vector_type_t<coordinates_system_type> vector_type;
 
     using mesh_type::ndims;
     using mesh_type::volume;
     using mesh_type::dual_volume;
     using mesh_type::inv_volume;
     using mesh_type::inv_dual_volume;
-    using metric_type::inner_product;
+    using mesh_type::inner_product;
 
     Manifold() : Policies(static_cast<base_manifold_type &>(*this))... { }
 
@@ -196,7 +195,6 @@ public:
     void deploy()
     {
         mesh_type::deploy();
-        mesh_type::update_volume(*this);
         _dispatch_deploy<base_manifold_type, Policies...>();
     }
 
@@ -218,8 +216,8 @@ public:
 
 
     template<typename ...T>
-    inline traits::primary_type_t <nTuple<Expression<T...>>>
-    access(nTuple <Expression<T...>> const &v, id_t s) const
+    inline traits::primary_type_t<nTuple<Expression<T...>>>
+    access(nTuple<Expression<T...>> const &v, id_t s) const
     {
         traits::primary_type_t<nTuple<Expression<T...> > > res;
         res = v;
@@ -244,14 +242,16 @@ public:
     DECL_RET_TYPE((this->calculus_policy::eval(f, s)))
 
     template<typename TOP, typename T, typename ...Args>
-    void action(TOP const &op, T &self, Args &&... args) const
+    void for_each(TOP const &op, T *self, Args &&... args) const
     {
+        assert(self != nullptr);
+
         constexpr int iform = traits::iform<T>::value;
 
-        self.deploy();
+        self->deploy();
         for (auto const &s:this->template range<iform>())
         {
-            op(access(self, s), access(std::forward<Args>(args), s)...);
+            op(access(*self, s), access(std::forward<Args>(args), s)...);
         }
 //        for (auto const &m:m_patch_ghost_)
 //        {
@@ -268,7 +268,7 @@ public:
     }
 
     template<typename TOP, typename T, typename ...Args>
-    void action(TOP const &op, T const &self, Args &&... args) const
+    void for_each(TOP const &op, T const &self, Args &&... args) const
     {
         constexpr int iform = traits::iform<T>::value;
         for (auto const &s:this->template range<iform>())

@@ -20,9 +20,9 @@
 #include "../gtl/utilities/config_parser.h"
 
 
-namespace simpla
+namespace simpla { namespace use_case
 {
-/** @ingroup application
+/** @ingroup task_flow
  * @{
  *
  *  */
@@ -41,19 +41,22 @@ public:
     }
 
 
-    virtual std::string const &description() = 0
+    virtual std::string const &description() = 0;
 
-    virtual void body() = 0;
-
-    virtual void setup() = 0;
+    virtual void setup(int argc, char **argv) = 0;
 
     virtual void accept_signal() { };
 
     virtual void teardown() { };
 
-    virtual void checkpoint() { }
+    virtual void check_point() { }
 
     virtual void dump() { }
+
+
+    virtual void body() = 0;
+
+    virtual void next_time_step(Real dt) { }
 
     void run();
 };
@@ -84,7 +87,6 @@ public:
 
     void run();
 };
-
 template<typename T, typename ...Args>
 std::string register_app(std::string const &name, Args &&...args)
 {
@@ -112,7 +114,7 @@ void _app_name::body()
 
 
 /** @} */
-
+}  // namespace use_case
 }  // namespace simpla
 
 #endif /* CORE_APPLICATION_USE_CASE_H_ */

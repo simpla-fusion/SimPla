@@ -8,6 +8,9 @@
 #define SIMPLA_DATASET_H
 
 #include <string.h>
+#include "../../gtl/design_pattern/singleton_holder.h"
+#include "../../gtl/utilities/memory_pool.h"
+#include "../../dataset/dataset.h"
 #include "../../dataset/dataspace.h"
 #include "../manifold_traits.h"
 

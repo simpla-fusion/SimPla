@@ -547,9 +547,34 @@ auto get(T const &v)
 DECL_RET_TYPE((_impl::access_helper<N...>::get(v)))
 
 
-}
+template<int, typename ...> struct unpack_type;
 
-// namespace traits
+template<int N>
+struct unpack_type<N>
+{
+    typedef std::nullptr_t type;
+};
+
+template<typename First, typename ...Others>
+struct unpack_type<0, First, Others...>
+{
+    typedef First type;
+};
+
+template<int N, typename First, typename ...Others>
+struct unpack_type<N, First, Others...>
+{
+    typedef typename unpack_type<N - 1, Others...>::type type;
+};
+
+template<int N, typename ...T>
+using unpack_t=typename unpack_type<N, T...>::type;
+
+}// namespace traits
+
+
+
+
 template<typename T>
 T power2(T const &v)
 {
@@ -597,6 +622,7 @@ T0 min(T0 const &first, Others &&...others)
 {
     return min(first, min(std::forward<Others>(others)...));
 };
+
 //template<typename T, typename TI>
 //auto try_index(T & v, TI const& s)
 //ENABLE_IF_DECL_RET_TYPE((!traits::is_indexable<T,TI>::value ) , (v))

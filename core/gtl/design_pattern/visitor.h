@@ -8,6 +8,11 @@
 #ifndef VISITOR_H_
 #define VISITOR_H_
 
+#include <string>
+#include <memory>
+#include "../utilities/log.h"
+#include "../type_traits.h"
+
 namespace simpla
 {
 /**
@@ -103,120 +108,101 @@ namespace simpla
 struct VisitorBase
 {
 
-	VisitorBase()
-	{
-	}
-	virtual ~VisitorBase()
-	{
-	}
+    VisitorBase() { }
 
-	void Visit(void*p) const
-	{
-		Visit_(p);
-	}
-	virtual std::string get_type_as_string() const
-	{
-		return "Custom";
-	}
+    virtual ~VisitorBase() { }
+
+    void visit(void *p) const { visit_(p); }
+
+    virtual std::string get_type_as_string() const { return "Custom"; }
 
 private:
 
-	virtual void Visit_(void*) const=0;
+    virtual void visit_(void *) const = 0;
 };
 
-//
-//struct AcceptorBase
-//{
-//	virtual ~AcceptorBase()
-//	{
-//
-//	}
-//	virtual void accept(std::shared_ptr<VisitorBase> visitor)
-//	{
-//		visitor->visit(this);
-//	}
-//	virtual bool CheckType(std::type_info const &)
-//	{
-//		return false;
-//	}
-//};
-//
-//template<typename T, typename ...Args>
-//struct Visitor: public VisitorBase
-//{
-//	std::string name_;
-//public:
-//
-//	typedef std::tuple<Args...> args_tuple_type;
-//	std::tuple<Args...> args_;
-//
-//	Visitor(std::string const &name, Args ... args)
-//			: name_(name), args_(std::make_tuple(args...))
-//	{
-//	}
-//	Visitor(Args ... args)
-//			: name_(""), args_(std::make_tuple(args...))
-//	{
-//	}
-//	~Visitor()
-//	{
-//	}
-//	inline const std::string& GetName() const
-//	{
-//		return name_;
-//	}
-//	void visit(AcceptorBase* obj)
-//	{
-//		if (obj->CheckType(typeid(T)))
-//		{
-//			reinterpret_cast<T*>(obj)->template accept(*this);
-//		}
-//		else
-//		{
-//			ERROR << "acceptor type mismatch";
-//		}
-//	}
-//
-//	template<typename TFUN>
-//	inline void excute(TFUN const & f)
-//	{
-//		callFunc(f, typename GenSeq<sizeof...(Args)>::type() );
-//	}
-//
-//private:
-//// Unpack tuple to args...
-////\note  http://stackoverflow.com/questions/7858817/unpacking-a-tuple-to-call-a-matching-function-pointer
-//
-//	template<int...>
-//	struct Seq
-//	{};
-//
-//	template<unsigned int N,  unsigned int  ...S>
-//	struct GenSeq: GenSeq<N - 1, N - 1, S...>
-//	{
-//	};
-//
-//	template<unsigned int ...S>
-//	struct GenSeq<0, S...>
-//	{
-//		typedef Seq<S...> type;
-//	};
-//
-//	template<typename TFUN,  unsigned int  ...S>
-//	inline void callFunc(TFUN const & fun, Seq<S...>)
-//	{
-//		fun(std::get<S>(args_) ...);
-//	}
-//
-//};
-//
-//template<typename T, typename ...Args>
-//std::shared_ptr<VisitorBase> createVisitor(std::string const & name, Args ...args)
-//{
-//	return std::dynamic_pointer_cast<VisitorBase>(std::shared_ptr<Visitor<T, Args...>>(
-//
-//	new Visitor<T, Args...>(name, std::forward<Args >(args)...)));
-//}
+
+struct AcceptorBase
+{
+    virtual ~AcceptorBase()
+    {
+
+    }
+
+    virtual void accept(VisitorBase &visitor)
+    {
+        visitor.visit(this);
+    }
+
+    virtual void accept(VisitorBase const &visitor)
+    {
+        visitor.visit(this);
+    }
+
+    virtual bool check_type(std::type_info const &)
+    {
+        return false;
+    }
+};
+
+template<typename TAcceptor, typename ...Args>
+struct Visitor : public VisitorBase
+{
+    std::string name_;
+    typedef TAcceptor acceptor_type;
+public:
+
+    typedef std::tuple<Args...> args_tuple_type;
+    std::tuple<Args...> args_;
+
+    Visitor(Args ... args)
+            : args_(std::make_tuple(args...))
+    {
+    }
+
+    ~Visitor()
+    {
+    }
+
+
+    void visit(AcceptorBase &obj)
+    {
+        if (obj.check_type(typeid(acceptor_type)))
+        {
+            reinterpret_cast<acceptor_type &>(obj)->template accept(*this);
+        }
+        else
+        {
+            ERROR << "acceptor type mismatch" << std::endl;
+        }
+    }
+
+    template<typename TFUN>
+    inline void execute(TFUN const &f)
+    {
+        callFunc(f, typename make_index_sequence<sizeof...(Args)>::type());
+    }
+
+private:
+// Unpack tuple to args...
+//\note  http://stackoverflow.com/questions/7858817/unpacking-a-tuple-to-call-a-matching-function-pointer
+
+
+    template<typename TFUN, unsigned int  ...S>
+    inline void callFunc(TFUN const &fun, integer_sequence<int, S...>)
+    {
+        fun(std::get<S>(args_) ...);
+    }
+
+};
+
+template<typename T, typename ...Args>
+std::shared_ptr<VisitorBase> createVisitor(std::string const &name, Args ...args)
+{
+    return std::dynamic_pointer_cast<VisitorBase>(std::shared_ptr<Visitor<T, Args...>>(
+
+            new Visitor<T, Args...>(name, std::forward<Args>(args)...)));
+}
 
 /** @}*/
 } // namespace simpla

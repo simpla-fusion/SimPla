@@ -166,6 +166,8 @@ struct coordinate_system_type<Metric<CS, Others...> >
     typedef CS type;
 };
 
+template<typename ...> struct metric_type;
+template<typename ...T> using metric_t=typename metric_type<T...>::type;
 
 }// namespace traits
 

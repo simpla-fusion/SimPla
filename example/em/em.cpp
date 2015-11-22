@@ -18,7 +18,7 @@
 #include "../../core/field/field.h"
 
 #include "../../core/geometry/cs_cylindrical.h"
-#include "../../core/manifold/mesh/rectmesh.h"
+#include "rect_mesh.h"
 #include "../../core/manifold/pre_define/predefine.h"
 
 #include "../../core/model/geqdsk.h"

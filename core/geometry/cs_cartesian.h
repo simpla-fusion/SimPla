@@ -20,6 +20,8 @@ namespace geometry
 
 template<typename...> struct Metric;
 
+using CartesianMetric= Metric<geometry::coordinate_system::Cartesian<3, 2> >;
+
 /**
  * @ingroup  coordinate_system
  * @{
@@ -58,10 +60,6 @@ struct Metric<coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS> >
         return dot(p3 - p0, cross(p1 - p0, p2 - p1)) / 6.0;
     }
 
-
-    template<typename T0, typename T1, typename ...Others>
-    static constexpr auto inner_product(T0 const &v0, T1 const &v1, Others &&... others)
-    DECL_RET_TYPE((v0[0] * v1[0] + v0[1] * v1[1] + v0[2] * v1[2]))
 
 };
 /** @}*/

@@ -4,7 +4,7 @@ ADD_SUBDIRECTORY(parallel)
 
 ADD_SUBDIRECTORY(io)
 
-ADD_SUBDIRECTORY(application)
+ADD_SUBDIRECTORY(task_flow)
 
 ADD_SUBDIRECTORY(dataset)
 
@@ -22,6 +22,6 @@ ADD_SUBDIRECTORY(particle)
 
 
 add_library(simpla_lib)
-TARGET_LINK_LIBRARIES(simpla_lib application io parallel physics geometry
+TARGET_LINK_LIBRARIES(simpla_lib task_flow io parallel physics geometry
         dataset ${LUA_LIBRARIES} ${HDF5_C_LIBRARIES} ${MPI_C_LIBRARIES} utilities)
 

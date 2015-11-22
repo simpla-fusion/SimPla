@@ -152,12 +152,12 @@ public:
         return std::move(res);
     }
 
-    std::tuple<point_type, point_type> box() const
+    virtual std::tuple<point_type, point_type> box() const
     {
         return std::make_tuple(m::point(m_min_), m::point(m_max_));
     };
 
-    std::tuple<point_type, point_type> local_box() const
+    virtual std::tuple<point_type, point_type> local_box() const
     {
         return std::make_tuple(m::point(m_local_min_), m::point(m_local_max_));
     };
