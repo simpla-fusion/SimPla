@@ -7,9 +7,6 @@
 #ifndef SIMPLA_EM_PLASMA_H
 #define SIMPLA_EM_PLASMA_H
 
-#include "../../core/gtl/primitives.h"
-#include "../../core/manifold/pre_define/cartesian.h"
-
 
 namespace simpla { namespace task_flow
 {

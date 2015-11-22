@@ -10,14 +10,14 @@
 
 #include "../../field/field_comm.h"
 #include "../../field/field_dense.h"
-#include "../../manifold/pre_define/cartesian.h"
+#include "../../manifold/pre_define/predefine.h"
 
 #include "field_basic_algebra_test.h"
 
 using namespace simpla;
 
 
-typedef manifold::Cartesian mesh_type;
+typedef manifold::CartesianManifold mesh_type;
 
 typedef testing::Types< //
 

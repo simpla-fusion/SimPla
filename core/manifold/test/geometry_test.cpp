@@ -17,13 +17,11 @@
 
 #include "../../field/field.h"
 
-#include "../../manifold/domain.h"
 #include "../../manifold/manifold_traits.h"
 
 #include "../../gtl/utilities/log.h"
 
-#include "../pre_define/cartesian.h"
-#include "../topology/rectmesh.h"
+#include "../pre_define/predefine.h"
 
 using namespace simpla;
 

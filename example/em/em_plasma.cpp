@@ -5,15 +5,14 @@
  */
 
 #include "em_plasma.h"
-#include "../../core/gtl/primitives.h"
-#include "../../core/manifold/pre_define/cartesian.h"
-#include "../../core/field/field_dense.h"
-#include "../../core/field/field_traits.h"
 
+#include "../../core/gtl/utilities/utilities.h"
 #include "../../core/parallel/parallel.h"
 #include "../../core/io/io.h"
-#include "../../core/gtl/utilities/logo.h"
-#include "../../core/gtl/utilities/config_parser.h"
+
+#include "../../core/manifold/pre_define/predefine.h"
+#include "../../core/field/field.h"
+
 
 
 namespace simpla
@@ -33,30 +32,27 @@ struct EMPlasma
 
     void next_time_step();
 
-
     void tear_down();
-
-    void dump();
 
     void check_point();
 
 
-    typedef manifold::Cartesian<3> mesh_type;
+    typedef manifold::CartesianManifold mesh_type;
 
     typedef Real scalar_type;
 
     typedef nTuple<scalar_type, 3> vector_type;
 
-    mesh_type mesh;
+    mesh_type m;
 
-    traits::field_t<vector_type, mesh_type, VERTEX> Bv{mesh};
-    traits::field_t<vector_type, mesh_type, VERTEX> B0v{mesh};
-    traits::field_t<vector_type, mesh_type, VERTEX> Ev{mesh};
+    traits::field_t<vector_type, mesh_type, VERTEX> Bv{m};
+    traits::field_t<vector_type, mesh_type, VERTEX> B0v{m};
+    traits::field_t<vector_type, mesh_type, VERTEX> Ev{m};
 
-    traits::field_t<scalar_type, mesh_type, FACE> B0{mesh};
-    traits::field_t<scalar_type, mesh_type, FACE> B1{mesh};
-    traits::field_t<scalar_type, mesh_type, EDGE> E1{mesh};
-    traits::field_t<scalar_type, mesh_type, EDGE> pdE{mesh};
+    traits::field_t<scalar_type, mesh_type, FACE> B0{m};
+    traits::field_t<scalar_type, mesh_type, FACE> B1{m};
+    traits::field_t<scalar_type, mesh_type, EDGE> E1{m};
+    traits::field_t<scalar_type, mesh_type, EDGE> pdE{m};
 
     struct particle_s
     {
@@ -71,8 +67,8 @@ struct EMPlasma
 void EMPlasma::setup(int argc, char **argv)
 {
     nTuple<size_t, 3> dims = {10, 1, 1};
-    mesh.dimensions(dims);
-    mesh.deploy();
+    m.dimensions(dims);
+    m.deploy();
 
     Bv.clear();
     B0v.clear();
@@ -94,13 +90,13 @@ void EMPlasma::tear_down()
 
 void EMPlasma::check_point()
 {
-    LOGGER << SAVE(Bv) << std::endl;
-    LOGGER << SAVE(B0v) << std::endl;
-    LOGGER << SAVE(Ev) << std::endl;
+    LOGGER << SAVE_RECORD(Bv) << std::endl;
+    LOGGER << SAVE_RECORD(B0v) << std::endl;
+    LOGGER << SAVE_RECORD(Ev) << std::endl;
 
-    LOGGER << SAVE(B0) << std::endl;
-    LOGGER << SAVE(B1) << std::endl;
-    LOGGER << SAVE(E1) << std::endl;
+    LOGGER << SAVE_RECORD(B0) << std::endl;
+    LOGGER << SAVE_RECORD(B1) << std::endl;
+    LOGGER << SAVE_RECORD(E1) << std::endl;
 
 }
 
@@ -110,22 +106,22 @@ void EMPlasma::next_time_step()
 
     DEFINE_PHYSICAL_CONST
 
-    Real dt = mesh.dt();
+    Real dt = m.dt();
 
     Ev = map_to<VERTEX>(E1);
     Bv = map_to<VERTEX>(B1);
 
-    traits::field_t<scalar_type, mesh_type, VERTEX> BB{mesh};
+    traits::field_t<scalar_type, mesh_type, VERTEX> BB{m};
     BB = dot(B0, B0);
 
-    traits::field_t<vector_type, mesh_type, VERTEX> Q{mesh};
-    traits::field_t<vector_type, mesh_type, VERTEX> K{mesh};
+    traits::field_t<vector_type, mesh_type, VERTEX> Q{m};
+    traits::field_t<vector_type, mesh_type, VERTEX> K{m};
 
     Q = map_to<VERTEX>(pdE);
 
-    traits::field_t<scalar_type, mesh_type, VERTEX> a{mesh};
-    traits::field_t<scalar_type, mesh_type, VERTEX> b{mesh};
-    traits::field_t<scalar_type, mesh_type, VERTEX> c{mesh};
+    traits::field_t<scalar_type, mesh_type, VERTEX> a{m};
+    traits::field_t<scalar_type, mesh_type, VERTEX> b{m};
+    traits::field_t<scalar_type, mesh_type, VERTEX> c{m};
 
     a.clear();
     b.clear();
@@ -157,7 +153,7 @@ void EMPlasma::next_time_step()
     c *= 0.5 * dt / epsilon0;
     a += 1;
 
-    auto dEv = traits::make_field<vector_type, VERTEX>(mesh);
+    auto dEv = traits::make_field<vector_type, VERTEX>(m);
 
     dEv = (Q * a - cross(Q, B0v) * b +
            B0v * (dot(Q, B0v) * (b * b - c * a) / (a + c * BB))) / (b * b * BB + a * a);
@@ -216,7 +212,7 @@ int main(int argc, char **argv)
 
     simpla::EMPlasma ctx;
 
-    int num_of_step = options["num_of_step"].as<int>(100);
+    int num_of_step = options["num_of_step"].as<int>(2);
 
     int check_point = options["check_point"].as<int>(1);
 

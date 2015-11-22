@@ -25,8 +25,7 @@ namespace gt = ::simpla::geometry::traits;
 
 template<typename...> struct Metric;
 
-template<int IPhiAxis = 2>
-using CylindricalMetric= Metric<geometry::coordinate_system::Cylindrical<IPhiAxis> >;
+using CylindricalMetric= Metric<geometry::coordinate_system::Cylindrical<2> >;
 
 /** @ingroup   coordinate_system
  ** @{

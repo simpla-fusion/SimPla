@@ -23,6 +23,7 @@
 
 #include "../../core/manifold/manifold_traits.h"
 #include "../../core/manifold/calculus.h"
+#include "../../core/manifold/pre_define/predefine.h"
 
 #include "../../core/field/field.h"
 
@@ -31,13 +32,12 @@ using namespace simpla;
 #ifdef CYLINDRICAL_COORDINATE_SYTEM
 #include "../../core/manifold/pre_define/cylindrical.h"
 #define COORDINATE_SYSTEM CylindricalCoordinate
-typedef manifold::CylindricalCoRect mesh_type;
+typedef manifold::CylindricalManifold mesh_type;
 #else
 
-#include "../../core/manifold/pre_define/cartesian.h"
 
 #define COORDINATE_SYSTEM CartesianCoordinate<3>
-typedef manifold::Cartesian<3> mesh_type;
+typedef manifold::CartesianManifold mesh_type;
 
 #endif
 

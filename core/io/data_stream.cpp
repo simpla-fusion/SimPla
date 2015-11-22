@@ -452,7 +452,7 @@ std::tuple<std::string, hid_t> DataStream::pimpl_s::open_file(
         filename = current_filename_;
     }
 
-    if (!is_append && GLOBAL_COMM.process_num() == 0)
+    if ( /* !is_append && fixme need do sth for append*/ GLOBAL_COMM.process_num() == 0)
     {
         std::string prefix = filename;
 

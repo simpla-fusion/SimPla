@@ -8,12 +8,17 @@
 #ifndef CORE_UTILITIES_MISC_UTILITIES_H_
 #define CORE_UTILITIES_MISC_UTILITIES_H_
 
+#include "logo.h"
+
+
 #include "log.h"
 #include "pretty_stream.h"
-#include "parse_command_line.h"
 #include "misc_utilities.h"
 #include "lua_object.h"
 #include "lua_object_ext.h"
+#include "config_parser.h"
+#include "parse_command_line.h"
+
 
 #include "../primitives.h"
 #include "../type_traits.h"

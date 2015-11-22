@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include <memory>
+#include "../gtl/utilities/log.h"
 #include "../gtl/macro.h"
 #include "../gtl/ntuple.h"
 #include "diff_scheme/diff_scheme.h"
@@ -143,13 +144,13 @@ public:
 
     typedef Manifold<mesh_type, Policies ...> this_type;
 
-    typedef geometry::traits::coordinate_system_t<mesh_type> coordinates_system_type;
+    typedef geometry::traits::coordinate_system_t <mesh_type> coordinates_system_type;
 
-    typedef geometry::traits::scalar_type_t<coordinates_system_type> scalar_type;
+    typedef geometry::traits::scalar_type_t <coordinates_system_type> scalar_type;
 
-    typedef geometry::traits::point_type_t<coordinates_system_type> point_type;
+    typedef geometry::traits::point_type_t <coordinates_system_type> point_type;
 
-    typedef geometry::traits::vector_type_t<coordinates_system_type> vector_type;
+    typedef geometry::traits::vector_type_t <coordinates_system_type> vector_type;
 
     using mesh_type::ndims;
     using mesh_type::volume;
@@ -216,8 +217,8 @@ public:
 
 
     template<typename ...T>
-    inline traits::primary_type_t<nTuple<Expression<T...>>>
-    access(nTuple<Expression<T...>> const &v, id_t s) const
+    inline traits::primary_type_t <nTuple<Expression<T...>>>
+    access(nTuple <Expression<T...>> const &v, id_t s) const
     {
         traits::primary_type_t<nTuple<Expression<T...> > > res;
         res = v;
@@ -244,7 +245,7 @@ public:
     template<typename TOP, typename T, typename ...Args>
     void for_each(TOP const &op, T *self, Args &&... args) const
     {
-        assert(self != nullptr);
+        ASSERT(self != nullptr);
 
         constexpr int iform = traits::iform<T>::value;
 

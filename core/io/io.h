@@ -138,8 +138,8 @@ T get_dataset_attribute(std::string const &url)
 
 
 #define SAVE(_F_) simpla::io::save(__STRING(_F_),_F_  )
-#define SAVE_APPEND(_F_) simpla::io::save(__STRING(_F_),_F_,SP_APPEND  )
-#define SAVE_RECORD(_F_) simpla::io::save(__STRING(_F_),_F_,SP_RECORD  )
+#define SAVE_APPEND(_F_) simpla::io::save(__STRING(_F_),_F_, simpla::io::SP_APPEND  )
+#define SAVE_RECORD(_F_) simpla::io::save(__STRING(_F_),_F_, simpla::io::SP_RECORD  )
 
 #ifndef NDEBUG
 #	define DEBUG_SAVE(_F_) simpla::io::save(__STRING(_F_),_F_ )
