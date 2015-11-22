@@ -14,7 +14,6 @@
 #include "../../core/field/field.h"
 
 
-
 namespace simpla
 {
 
@@ -90,6 +89,8 @@ void EMPlasma::tear_down()
 
 void EMPlasma::check_point()
 {
+    io::cd("record");
+
     LOGGER << SAVE_RECORD(Bv) << std::endl;
     LOGGER << SAVE_RECORD(B0v) << std::endl;
     LOGGER << SAVE_RECORD(Ev) << std::endl;
@@ -178,7 +179,7 @@ int main(int argc, char **argv)
 
     io::init(argc, argv);
 
-    logger::set_stdout_level(10);
+    logger::set_stdout_level(1000);
 
     ConfigParser options;
 
@@ -212,7 +213,7 @@ int main(int argc, char **argv)
 
     simpla::EMPlasma ctx;
 
-    int num_of_step = options["num_of_step"].as<int>(2);
+    int num_of_step = options["num_of_step"].as<int>(200);
 
     int check_point = options["check_point"].as<int>(1);
 
@@ -220,16 +221,19 @@ int main(int argc, char **argv)
 
     int count = 0;
 
-    while (count < num_of_step)
-    {
 
-        ctx.next_time_step();
+    ctx.check_point();
 
-        if (count % check_point == 0)
-            ctx.check_point();
-
-        ++count;
-    }
+//    while (count < num_of_step)
+//    {
+//
+//        ctx.next_time_step();
+//
+//        if (count % check_point == 0)
+//            ctx.check_point();
+//
+//        ++count;
+//    }
     ctx.tear_down();
 
     MESSAGE << "====================================================" << std::endl

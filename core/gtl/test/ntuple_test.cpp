@@ -1,223 +1,91 @@
-/**
- * @file ntuple_test.cpp
+/*
+ * ntuple_test2.cpp
  *
- *  created on: 2012-1-10
+ *  Created on: 2014-10-23
  *      Author: salmon
  */
 
-#include <gtest/gtest.h>
-
 #include <iostream>
-#include <type_traits>
-#include <typeinfo>
-#include <utility>
-#include "../type_traits.h"
-#include "../ntuple.h"
-#include "../primitives.h"
-#include "../mpl.h"
-#include "../integer_sequence.h"
 
+#include "../sp_integer_sequence.h"
+#include "ntuple.h"
 using namespace simpla;
 
-#define EQUATION(_A, _B, _C)  ( -(_A  +TestFixture::a )/(   _B *TestFixture::b -TestFixture::c  )- _C)
-
-template<typename T>
-class TestNtuple : public testing::Test
+int main(int argc, char **argv)
 {
-protected:
 
-	virtual void SetUp()
-	{
+	nTuple<double, 3> b = { 1, 2, 3, }, c = { 0, 1, 2, };
+//
+//	std::cout << a << std::endl;
+//
+//	b = 1;
+//	c = 2;
+//
+//	std::cout << b << std::endl;
+//
+//	std::cout << c << std::endl;
 
-		a = 1;
-		b = 3;
-		c = 4;
-		d = 7;
+	auto t = 0.3 * (b - c) + c;
+//
+//	std::cout << std::boolalpha
+//			<< std::is_same<decltype(t)::value_type, double>::value << std::endl
+//			<< std::is_same<decltype(t)::dimensions, integer_sequence<size_t, 3>>::value
+//			<< std::endl
+//			<< std::is_same<decltype(t)::primary_type, nTuple<double, 3>>::value
+//			<< std::endl << std::endl;
 
-		DIMENSIONS = traits::seq_value<extents>::value;
+//
+	nTuple<double, 3> a = 0.3 * (b - c) + c;
 
-		mpl::seq_for_each(extents(),
+//	std::cout << seq_reduce(integer_sequence<size_t, 2, 3>(), _impl::plus(), a)
+//			<< std::endl;
 
-				[&](size_t const idx[traits::extent<extents>::value])
-				{
-					traits::index(aA, idx) = idx[0] * 2;
-					traits::index(aB, idx) = 5 - idx[0];
-					traits::index(aC, idx) = idx[0] * 5 + 1;
-					traits::index(aD, idx) = 0;
-					traits::index(vA, idx) = traits::index(aA, idx);
-					traits::index(vB, idx) = traits::index(aB, idx);
-					traits::index(vC, idx) = traits::index(aC, idx);
-					traits::index(vD, idx) = 0;
+//	std::cout << _impl::traits::index_traits(a.data_, 1, 2) << std::endl;
+//
+	std::cout << a << std::endl;
 
-					traits::index(res, idx) = -(traits::index(aA, idx) + a) /
-							(traits::index(aB, idx) * b - c) - traits::index(aC, idx);
+	nTuple<double, 5> d;
+	d = 10;
+	d = a;
+	std::cout << d << std::endl;
+//
+//	std::cout << b << std::endl;
+//
+//	std::cout << c << std::endl;
+//
+////	nTuple<double, 4, 5> b;
+////	nTuple<double, 4, 5> c;
+////	a = 1.0;
+////	b = 2.0;
+////	c = a * 3.0 + b * 2;
+////	c = 1;
+//
+//	size_t id[2] = { 1, 2 };
+//
+//	double d[2][3] = { 0, 1, 2, 3, 4, 5 };
+//
+//	std::cout << std::boolalpha << std::is_array<decltype(d )>::value
+//			<< std::endl;
+////	std::cout << typeid(decltype(d)).name() << std::endl;
+////
+//	std::cout << traits::index2(d, id) << std::endl;
+////	std::cout << traits::index2(a, id) << std::endl;
+//
+////	std::cout << typeid(decltype( traits::index2(a.data_, id) )).name()
+////			<< std::endl;
+//
+////	std::cout << typeid(decltype(c.data_)).name() << std::endl;
+//
+////	seq_for_each(i_seq(), [&](size_t const idx[2])
+////	{
+////		std::cout<<traits::index(d,idx)<<std::endl;
+//////			std::cout<<traits::index(c,idx)<<std::endl;
+////
+////		});
 
-				});
-
-		num_of_loops = 1000000L;
-	}
-
-public:
-
-	std::size_t num_of_loops = 10000000L;
-
-	typedef T type;
-
-	typedef traits::extents_t<type> extents;
-
-	nTuple<std::size_t, traits::extent<extents>::value> DIMENSIONS;
-
-	typedef traits::value_type_t<type> value_type;
-
-	type vA, vB, vC, vD;
-
-	typename traits::pod_type<T>::type aA, aB, aC, aD, res;
-
-	value_type a, b, c, d;
-
-};
-
-typedef testing::Types<
-
-		nTuple<double, 3>
-
-, nTuple<double, 3, 3>
-
-, nTuple<double, 3, 4, 5>
-
-, nTuple<int, 3, 4, 5, 6>
-
-, nTuple<std::complex<double>, 3, 4, 5, 6>
-
-> ntuple_type_lists;
-
-TYPED_TEST_CASE(TestNtuple, ntuple_type_lists);
-
-TYPED_TEST(TestNtuple, swap)
-{
-	{
-
-		std::swap(TestFixture::vA, TestFixture::vB);
-
-		mpl::seq_for_each(typename TestFixture::extents(),
-				[&](size_t const idx[traits::extent<typename TestFixture::extents, 0>::value])
-				{
-					EXPECT_DOUBLE_EQ(0,
-							std::abs(traits::index(TestFixture::aA, idx) - traits::index(TestFixture::vB, idx)));
-					EXPECT_DOUBLE_EQ(0,
-							std::abs(traits::index(TestFixture::aB, idx) - traits::index(TestFixture::vA, idx)));
-				});
-
-	}
-}
-
-TYPED_TEST(TestNtuple, assign_Scalar)
-{
-	{
-
-		TestFixture::vA = TestFixture::a;
-
-		mpl::seq_for_each(typename TestFixture::extents(),
-				[&](size_t const idx[traits::extent<typename TestFixture::extents, 0>::value])
-				{
-					EXPECT_DOUBLE_EQ(0, abs(TestFixture::a - traits::index(TestFixture::vA, idx)));
-				}
-		);
-
-	}
-}
-
-TYPED_TEST(TestNtuple, assign_Array)
-{
-	{
-		TestFixture::vA = TestFixture::aA;
-
-		mpl::seq_for_each(typename TestFixture::extents(),
-				[&](size_t const idx[traits::extent<typename TestFixture::extents, 0>::value])
-				{
-					EXPECT_DOUBLE_EQ(0, abs(traits::index(TestFixture::aA, idx) - traits::index(TestFixture::vA, idx)));
-				}
-		);
-
-	}
-}
-
-TYPED_TEST(TestNtuple, self_assign)
-{
-	{
-		TestFixture::vB += TestFixture::vA;
-
-		mpl::seq_for_each(typename TestFixture::extents(),
-				[&](size_t const idx[traits::extent<typename TestFixture::extents, 0>::value])
-				{
-					EXPECT_DOUBLE_EQ(0, abs(traits::index(TestFixture::vB, idx)
-							- (traits::index(TestFixture::aB, idx) +
-							traits::index(TestFixture::aA, idx))));
-
-				}
-		);
-
-	}
-}
-
-TYPED_TEST(TestNtuple, cross)
-{
-	{
-		nTuple<typename TestFixture::value_type, 3> vA, vB, vC, vD;
-
-		for (int i = 0; i < 3; ++i)
-		{
-			vA[i] = (i * 2);
-			vB[i] = (5 - i);
-		}
-
-		for (int i = 0; i < 3; ++i)
-		{
-			vD[i] = vA[(i + 1) % 3] * vB[(i + 2) % 3]
-					- vA[(i + 2) % 3] * vB[(i + 1) % 3];
-		}
-
-		vC = cross(vA, vB);
-		vD -= vC;
-		EXPECT_DOUBLE_EQ(0, abs(vD[0]) + abs(vD[1]) + abs(vD[2]));
-	}
-}
-
-TYPED_TEST(TestNtuple, scalar_product)
-{
-	{
-		TestFixture::vD = TestFixture::vA * TestFixture::a;
-
-		mpl::seq_for_each(typename TestFixture::extents(),
-				[&](size_t const idx[traits::extent<typename TestFixture::extents, 0>::value])
-				{
-					auto &ta = traits::index(TestFixture::vA, idx);
-
-					auto &td = traits::index(TestFixture::vD, idx);
-
-					EXPECT_DOUBLE_EQ(0, abs(ta * TestFixture::a - td));
-				}
-		);
-
-	}
-}
-
-TYPED_TEST(TestNtuple, arithmetic)
-{
-	{
-		TestFixture::vD = EQUATION(TestFixture::vA, TestFixture::vB, TestFixture::vC);
-
-		mpl::seq_for_each(typename TestFixture::extents(),
-				[&](size_t const idx[traits::extent<typename TestFixture::extents, 0>::value])
-				{
-					auto &ta = traits::index(TestFixture::vA, idx);
-					auto &tb = traits::index(TestFixture::vB, idx);
-					auto &tc = traits::index(TestFixture::vC, idx);
-					auto &td = traits::index(TestFixture::vD, idx);
-
-					EXPECT_DOUBLE_EQ(0, abs(EQUATION(ta, tb, tc) - td));
-				}
-		);
-
-	}
+//	std::cout << _seq_reduce<3>::eval(_impl::plus(), c) << std::endl;
+//
+//	std::cout << std::boolalpha
+//			<< bool(_seq_reduce<3>::eval(_impl::logical_and(), a == b))
+//			<< std::endl;
 }

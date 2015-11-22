@@ -119,13 +119,23 @@ struct seq_value<integer_sequence<_Tp, N...> >
 template<typename _Tp, _Tp ...N>
 constexpr _Tp seq_value<integer_sequence<_Tp, N...> >::value[];
 
-template<typename T> struct value_type;
+template<typename T>
+struct value_type
+{
+    typedef typename std::enable_if<std::is_scalar<T>::value, T>::type type;
+};
+template< >
+struct value_type<std::string>
+{
+    typedef std::string type;
+};
 
 template<typename _Tp, _Tp ...N>
 struct value_type<integer_sequence<_Tp, N...> >
 {
     typedef _Tp type;
 };
+template<typename T> using value_type_t=typename value_type<T>::type;
 
 template<typename T, int N> struct extent;
 
@@ -278,11 +288,6 @@ template<typename T> struct key_type
 };
 template<typename T> using key_type_t=typename key_type<T>::type;
 
-template<typename T> struct value_type
-{
-    typedef T type;
-};
-template<typename T> using value_type_t=typename value_type<T>::type;
 
 template<typename T, typename TI>
 auto index(T &v, TI const &s)

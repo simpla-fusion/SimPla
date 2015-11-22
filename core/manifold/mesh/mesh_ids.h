@@ -331,10 +331,10 @@ struct MeshIDs_
 
     }
 
-    static constexpr coordinates_tuple coordinates_local_to_global(
+    static coordinates_tuple coordinates_local_to_global(
             std::tuple<id_type, coordinates_tuple> const &t)
     {
-        return coordinates(std::get<0>(t)) + std::get<1>(t);
+        return point(std::get<0>(t)) + std::get<1>(t);
     }
 
 //! @name id auxiliary functions
@@ -702,9 +702,10 @@ struct MeshIDs_
 //    }
 
 
-    struct iterator : public block_iterator<index_type, ndims + 1>
+    struct iterator : public block_iterator<index_type, MeshIDs_<TAGS>::ndims + 1>
     {
     private:
+        static constexpr int ndims = MeshIDs_<TAGS>::ndims;
         typedef block_iterator<index_type, ndims + 1> base_type;
 
         int m_iform_;
@@ -784,9 +785,9 @@ struct MeshIDs_
             std::swap(m_iform_, other.m_iform_);
         }
 
-        constexpr id_type operator*() const { return pack_(base_type::operator*()); }
+        id_type operator*() const { return pack_(base_type::operator*()); }
 
-        constexpr id_type pack_(nTuple<index_type, ndims + 1> const &idx) const
+        id_type pack_(nTuple<index_type, ndims + 1> const &idx) const
         {
             return pack_index(idx, m_sub_index_to_id_[m_iform_][idx[ndims]]);
         }
@@ -823,7 +824,7 @@ struct MeshIDs_
     }
 
 
-    static constexpr index_type hash(id_type const &s, index_tuple const &b, index_tuple const &e)
+    static index_type hash(id_type const &s, index_tuple const &b, index_tuple const &e)
     {
         //C-ORDER SLOW FIRST
 

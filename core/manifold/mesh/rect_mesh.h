@@ -198,7 +198,7 @@ public:
     //===================================
     //
 private:
-    constexpr size_t hash_(id_type s) const
+    size_t hash_(id_type s) const
     {
         return base_type::hash(s & (~base_type::_DA)) * base_type::NUM_OF_NODE_ID +
                base_type::node_id(s);

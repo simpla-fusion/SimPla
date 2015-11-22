@@ -113,6 +113,12 @@ public:
         return *this;
     }
 
+    template<typename T>
+    inline this_type const &push(T const &value) const
+    {
+        const_cast<this_type &>(*this).push(value);
+        return *this;
+    }
 
     typedef Logger &(*LoggerStreamManipulator)(Logger &);
 
@@ -121,7 +127,6 @@ public:
         // call the function, and return it's value
         return manip(*this);
     }
-
 
 
     /**
@@ -147,21 +152,26 @@ public:
      *
      */
 
-    // this is the function signature of std::endl
+
+// this is the function signature of std::endl
     typedef std::basic_ostream<char, std::char_traits<char> > StdCoutType;
 
     typedef StdCoutType &(*StandardEndLine)(StdCoutType &);
 
-    //! define an operator<< to take in std::endl
-    this_type &operator<<(StandardEndLine const &manip)
+//! define an operator<< to take in std::endl
+    Logger &operator<<(StandardEndLine manip)
     {
         // call the function, but we cannot return it's value
         manip(*m_buffer_);
         return *this;
     }
 
-
-private:
+    Logger const &operator<<(StandardEndLine manip) const
+    {
+        // call the function, but we cannot return it's value
+        manip(*m_buffer_);
+        return *this;
+    }
 
     std::shared_ptr<std::ostringstream> m_buffer_;
     int level_;
@@ -178,10 +188,9 @@ Logger &operator<<(Logger &L, Arg const &arg)
 }
 
 template<typename Arg>
-Logger operator<<(Logger &&L, Arg const &arg)
+Logger const &operator<<(Logger const &L, Arg const &arg)
 {
-    L.push(arg);
-    return std::move(L);
+    return L.push(arg);
 }
 
 inline Logger &operator<<(Logger &L, std::string const &arg)
@@ -189,10 +198,9 @@ inline Logger &operator<<(Logger &L, std::string const &arg)
     return L.push(arg);
 }
 
-inline Logger operator<<(Logger &&L, std::string const &arg)
+inline Logger const &operator<<(Logger const &L, std::string const &arg)
 {
-    L.push(arg);
-    return std::move(L);
+    return L.push(arg);
 }
 
 /**

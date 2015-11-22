@@ -36,8 +36,15 @@ namespace simpla { namespace io
 
 struct DataStream::pimpl_s
 {
+
+    pimpl_s();
+
+    ~pimpl_s();
+
+
     hid_t base_file_id_;
     hid_t base_group_id_;
+
 
     std::string current_groupname_;
     std::string current_filename_;
@@ -51,6 +58,8 @@ struct DataStream::pimpl_s
 
     std::tuple<std::string, hid_t> open_file(std::string const &path,
                                              bool is_append = false);
+
+    void close();
 
     std::string pwd() const;
 
@@ -77,23 +86,11 @@ DataStream::DataStream()
         : pimpl_(new pimpl_s)
 {
 
-    pimpl_->base_file_id_ = -1;
-    pimpl_->base_group_id_ = -1;
-    pimpl_->current_filename_ = "untitle.h5";
-    pimpl_->current_groupname_ = "/";
-
-    hid_t error_stack = H5Eget_current_stack();
-    H5Eset_auto(error_stack, NULL, NULL);
 
 }
 
 DataStream::~DataStream()
 {
-    if (pimpl_ != nullptr)
-    {
-        close();
-    }
-
 }
 
 bool DataStream::is_valid() const
@@ -237,22 +234,7 @@ void DataStream::close()
 
     if (pimpl_ != nullptr)
     {
-        if (pimpl_->base_group_id_ > 0)
-        {
-            H5_ERROR(H5Gclose(pimpl_->base_group_id_));
-            pimpl_->base_group_id_ = -1;
-        }
-
-        if (pimpl_->base_file_id_ > 0)
-        {
-            H5_ERROR(H5Fclose(pimpl_->base_file_id_));
-            pimpl_->base_file_id_ = -1;
-        }
-
-        VERBOSE << "File [" << pimpl_->current_filename_ << "] is closed!"
-        << std::endl;
-
-        std::unique_ptr<pimpl_s>(nullptr).swap(pimpl_);
+        pimpl_->close();
     }
 }
 
@@ -391,6 +373,41 @@ void DataStream::delete_attribute(std::string const &url)
 
 }
 
+DataStream::pimpl_s::pimpl_s()
+{
+    base_file_id_ = -1;
+    base_group_id_ = -1;
+    current_filename_ = "untitle.h5";
+    current_groupname_ = "/";
+
+    hid_t error_stack = H5Eget_current_stack();
+    H5Eset_auto(error_stack, NULL, NULL);
+}
+
+DataStream::pimpl_s::~pimpl_s()
+{
+    close();
+}
+
+void DataStream::pimpl_s::close()
+{
+
+    if (base_group_id_ > 0)
+    {
+        H5_ERROR(H5Gclose(base_group_id_));
+        base_group_id_ = -1;
+    }
+
+    if (base_file_id_ > 0)
+    {
+        H5_ERROR(H5Fclose(base_file_id_));
+        base_file_id_ = -1;
+    }
+
+    VERBOSE << "File [" << current_filename_ << "] is closed!" << std::endl;
+}
+
+
 /**
  *
  * @param url =<local path>/<obj name>.<attribute>
@@ -489,24 +506,28 @@ std::tuple<std::string, hid_t> DataStream::pimpl_s::open_file(
 
     if (GLOBAL_COMM.is_valid())
     {
-        H5Pset_fapl_mpio(plist_id, GLOBAL_COMM.comm(), GLOBAL_COMM.info());
+        MPI_Info info;
+        MPI_Info_create(&info);
+
+        H5_ERROR(H5Pset_fapl_mpio(plist_id, GLOBAL_COMM.comm(), info /*GLOBAL_COMM.info()*/));
+
+        MPI_Info_free(&info);
     }
 
     hid_t f_id;
 
-    H5_ERROR(
-            f_id = H5Fcreate(filename.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, plist_id));
+    H5_ERROR(f_id = H5Fcreate(filename.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, plist_id));
 
     H5_ERROR(H5Pclose(plist_id));
 
-    LOGGER << "File [" << filename << "] is opened!" << std::endl;
+
+    VERBOSE << "File [" << filename << "] is opened!" << std::endl;
 
     return std::make_tuple(filename, f_id);
 
 }
 
-std::tuple<std::string, hid_t> DataStream::pimpl_s::open_group(
-        std::string const &str)
+std::tuple<std::string, hid_t> DataStream::pimpl_s::open_group(std::string const &str)
 {
     std::string path = str;
     hid_t g_id = -1;
@@ -527,8 +548,7 @@ std::tuple<std::string, hid_t> DataStream::pimpl_s::open_group(
     }
     else
     {
-        H5_ERROR(
-                g_id = H5Gcreate(base_file_id_, path.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT));
+        H5_ERROR(g_id = H5Gcreate(base_file_id_, path.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT));
     }
 
     return std::make_tuple(path, g_id);
@@ -1188,5 +1208,6 @@ std::string DataStream::read(std::string const &url, DataSet *ds, size_t flag)
 //}
 
 //=====================================================================================
+
 }//namespace io
 }// namespace simpla

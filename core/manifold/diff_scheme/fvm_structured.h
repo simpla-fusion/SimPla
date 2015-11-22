@@ -22,6 +22,10 @@
 namespace simpla
 {
 template<typename ...> class Field;
+template<typename ...>class Expression;
+template<typename _Tp,_Tp...> class integer_sequence;
+template<typename T,int ...>class nTuple;
+
 namespace manifold { namespace policy
 {
 
@@ -606,9 +610,12 @@ public:
     }
 
     template<typename T>
-    DECLARE_FUNCTION_PREFIX constexpr auto
+    DECLARE_FUNCTION_PREFIX
+    constexpr traits::primary_type_t<traits::value_type_t<T>>
     eval(T const &expr, id_t const &s) DECLARE_FUNCTION_SUFFIX
-    DECL_RET_TYPE((eval_(expr, s)))
+    {
+        return (eval_(expr, s));
+    };
 
 
 };// struct DiffScheme<TGeo, diff_scheme::tags::finite_volume>

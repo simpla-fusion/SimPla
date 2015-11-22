@@ -140,7 +140,15 @@ MPI_Comm MPIComm::comm()
 
 MPI_Info MPIComm::info()
 {
-    return MPI_INFO_NULL;
+    if (!pimpl_)
+    {
+        return MPI_INFO_NULL;
+    }
+    else
+    {
+        return MPI_INFO_NULL;
+    }
+
 }
 
 void MPIComm::barrier()

@@ -19,8 +19,8 @@
 #include "../time_integrator/time_integrator.h"
 #include "../diff_scheme/fvm_structured.h"
 #include "../interpolate/linear.h"
-#include "../policy/storage.h"
-#include "../policy/parallel.h"
+#include "../policy/storage_policy.h"
+#include "../policy/parallel_policy.h"
 
 
 namespace simpla { namespace manifold

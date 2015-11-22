@@ -22,12 +22,12 @@ namespace manifold { namespace policy
 template<typename ...>
 struct ParallelPolicy;
 
-template<typename TGeo>
-struct ParallelPolicy<TGeo>
+template<typename TMesh>
+struct ParallelPolicy<TMesh>
 {
 
 private:
-    typedef TGeo geometry_type;
+    typedef TMesh geometry_type;
 
     typedef ParallelPolicy<geometry_type> this_type;
 
@@ -37,7 +37,7 @@ public:
     typedef this_type parallel_policy;
 
     ParallelPolicy(geometry_type &geo) :
-            m_geo_(geo), m_mpi_comm_(SingletonHolder<MPIComm>::instance())
+            m_mesh_(geo), m_mpi_comm_(SingletonHolder<MPIComm>::instance())
     {
     }
 
@@ -48,7 +48,6 @@ public:
     template<typename TDict>
     void load(TDict const &dict)
     {
-//        ghost_width(dict["GhostWidth"].template as<nTuple<size_t, base_manifold_type::ndims> >());
     }
 
 
@@ -61,69 +60,49 @@ public:
 
     void deploy();
 
-//    const nTuple<size_t, base_manifold_type::ndims> &ghost_width() const { return m_ghost_width_; }
 
-//    void ghost_width(const nTuple<size_t, base_manifold_type::ndims> &gw) { m_ghost_width_ = gw; }
-//    nTuple<size_t, base_manifold_type::ndims> m_ghost_width_ = {DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH,
-//                                                           DEFAULT_GHOST_WIDTH};
+    template<typename TG, typename TOP, typename T, typename ...Args>
+    void for_each(TG const &geo, TOP const &op, T *self, Args &&... args) const;
 
-    void add_link(int const coord_offset[], typename geometry_type::range_type const &send_range,
-                  typename geometry_type::range_type const &recv_range);
-
-
-    template<int iform, typename TFun>
-    void parallel_foreach(TFun const &fun) const
-    {
-
-        for (auto s:m_geo_.template range<iform>())
-        {
-            fun(s);
-        }
-    }
+    template<typename TG, typename TOP, typename ...Args>
+    void for_each(TG const &geo, TOP const &op, Args &&... args) const;
 
 
 private:
 
-    geometry_type &m_geo_;
+    geometry_type &m_mesh_;
 
     MPIComm &m_mpi_comm_;
 
     struct connection_node
     {
         nTuple<int, 3> coord_offset;
-        typename geometry_type::range_type send_range;
-        typename geometry_type::range_type recv_range;
+        nTuple<size_t, 3> send_min;
+        nTuple<size_t, 3> send_max;
 
+        nTuple<size_t, 3> recv_min;
+        nTuple<size_t, 3> recv_max;
     };
-
-
+    std::tuple<nTuple<size_t, 3>, nTuple<size_t, 3>> m_center_box_;
+    std::vector<std::tuple<nTuple<size_t, 3>, nTuple<size_t, 3>>> m_boundary_box_;
     std::vector<connection_node> m_connections_;
 
-public:
-    template<int IFORM>
-    std::vector<connection_node> const &connections() const { return m_connections_; }
 
-    MPIComm &comm() const { return m_mpi_comm_; }
-
-}; //template<typename TGeo> struct ParallelPolicy
+}; //template<typename TMesh> struct ParallelPolicy
 
 
-template<typename TGeo>
-void ParallelPolicy<TGeo>::add_link(int const coord_offset[], typename geometry_type::range_type const &send_range,
-                                    typename geometry_type::range_type const &recv_range)
-{
-    m_connections_.emplace_back(&coord_offset[0], send_range, recv_range);
-};
 
 
-template<typename TGeo>
-void ParallelPolicy<TGeo>::deploy()
+template<typename TMesh>
+void ParallelPolicy<TMesh>::deploy()
 {
     if (m_mpi_comm_.is_valid())
     {
-        m_geo_.decompose(m_mpi_comm_.topology(), m_mpi_comm_.coordinate());
+        m_mesh_.decompose(m_mpi_comm_.topology(), m_mpi_comm_.coordinate());
     }
-}
+
+    m_center_box_ = m_mesh_.local_index_box();
+
 
 //	auto idx_b = base_manifold_type::unpack_index(base_manifold_type::m_id_min_);
 //
@@ -232,23 +211,62 @@ void ParallelPolicy<TGeo>::deploy()
 //		{
 //			add_link(
 //					&coord_shift[0],
-//					m_geo_.local_range(send_offset, send_count),
-//					m_geo_.local_range(recv_offset, recv_count)
+//					m_mesh_.local_range(send_offset, send_count),
+//					m_mesh_.local_range(recv_offset, recv_count)
 //			);
 //
-//		}
+}
 
+template<typename TMesh>
+template<typename TG, typename TOP, typename T, typename ...Args>
+void ParallelPolicy<TMesh>::for_each(TG const &geo, TOP const &op, T *self, Args &&... args) const
+{
+    static constexpr int IFORM = traits::iform<T>::value;
+    typedef traits::value_type_t<T> value_type;
+    for (auto const &item:m_boundary_box_)
+    {
+        for (auto const &s : m_mesh_.template make_range<IFORM>(std::get<0>(item), std::get<1>(item)))
+        {
+            op(geo.access(*self, s), geo.access(std::forward<Args>(args), s)...);
+        }
+    }
+
+    // TODO sync
+
+
+    for (auto const &s : m_mesh_.template make_range<IFORM>(std::get<0>(m_center_box_), std::get<1>(m_center_box_)))
+    {
+        op(geo.access(*self, s), geo.access(std::forward<Args>(args), s)...);
+    }
+
+
+    //TODO wait
+
+};
+
+template<typename TMesh>
+template<typename TG, typename TOP, typename ...Args>
+void ParallelPolicy<TMesh>::for_each(TG const &geo, TOP const &op, Args &&... args) const
+{
+    static constexpr int IFORM = traits::iform<traits::unpack_type<0, Args>::type>::value;
+    typedef traits::value_type_t<traits::unpack_type<0, Args>::type> value_type;
+    for (auto const &s : m_mesh_.template make_range<IFORM>())
+    {
+        op(geo.access(std::forward<Args>(args), s)...);
+    }
+
+};
 } //namespace policy
 } //namespace manifold
 namespace traits
 {
 
-template<typename TGeo>
-struct type_id<manifold::policy::ParallelPolicy<TGeo>>
+template<typename TMesh>
+struct type_id<manifold::policy::ParallelPolicy<TMesh>>
 {
     static std::string name()
     {
-        return "ParallelPolicy<" + type_id<TGeo>::name() + ">";
+        return "ParallelPolicy<" + type_id<TMesh>::name() + ">";
     }
 };
 }
