@@ -2,6 +2,7 @@
 <module type="CPP_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/CMake/FindTBB.cmake" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/CMake/utils.cmake" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/applications/CMakeLists.txt" isTestSource="false" />
@@ -354,34 +355,28 @@
     <orderEntry type="module-library">
       <library name="Header Search Paths">
         <CLASSES>
-          <root url="file://$USER_HOME$/.CLion12/system/cmake/generated/82e76996/82e76996/Debug0/external_project/googletest/include" />
-          <root url="file:///pkg/hdf5/1.8.15-parallel/intel-16/ipmi-5.1.1/include" />
+          <root url="file://$USER_HOME$/.CLion12/system/cmake/generated/82e76996/82e76996/Debug/external_project/googletest/include" />
+          <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/daal/include" />
+          <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/ipp/include" />
+          <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/mkl/include" />
+          <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/tbb/include" />
           <root url="file:///usr/include" />
           <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include" />
-          <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include-fixed" />
-          <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include/objc" />
+          <root url="file:///usr/lib/llvm-3.6/lib/clang/3.6.0/include" />
+          <root url="file:///usr/lib/openmpi/include" />
           <root url="file:///usr/local/include" />
-          <root url="file:///work/pkg/intel/compilers_and_libraries_2016.0.109/linux/compiler/include" />
-          <root url="file:///work/pkg/intel/compilers_and_libraries_2016.0.109/linux/daal/include" />
-          <root url="file:///work/pkg/intel/compilers_and_libraries_2016.0.109/linux/ipp/include" />
-          <root url="file:///work/pkg/intel/compilers_and_libraries_2016.0.109/linux/mkl/include" />
-          <root url="file:///work/pkg/intel/compilers_and_libraries_2016.0.109/linux/mpi/intel64/include" />
-          <root url="file:///work/pkg/intel/compilers_and_libraries_2016.0.109/linux/tbb/include" />
         </CLASSES>
         <SOURCES>
-          <root url="file://$USER_HOME$/.CLion12/system/cmake/generated/82e76996/82e76996/Debug0/external_project/googletest/include" />
-          <root url="file:///pkg/hdf5/1.8.15-parallel/intel-16/ipmi-5.1.1/include" />
+          <root url="file://$USER_HOME$/.CLion12/system/cmake/generated/82e76996/82e76996/Debug/external_project/googletest/include" />
+          <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/daal/include" />
+          <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/ipp/include" />
+          <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/mkl/include" />
+          <root url="file:///pkg/intel/compilers_and_libraries_2016.0.109/linux/tbb/include" />
           <root url="file:///usr/include" />
           <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include" />
-          <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include-fixed" />
-          <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include/objc" />
+          <root url="file:///usr/lib/llvm-3.6/lib/clang/3.6.0/include" />
+          <root url="file:///usr/lib/openmpi/include" />
           <root url="file:///usr/local/include" />
-          <root url="file:///work/pkg/intel/compilers_and_libraries_2016.0.109/linux/compiler/include" />
-          <root url="file:///work/pkg/intel/compilers_and_libraries_2016.0.109/linux/daal/include" />
-          <root url="file:///work/pkg/intel/compilers_and_libraries_2016.0.109/linux/ipp/include" />
-          <root url="file:///work/pkg/intel/compilers_and_libraries_2016.0.109/linux/mkl/include" />
-          <root url="file:///work/pkg/intel/compilers_and_libraries_2016.0.109/linux/mpi/intel64/include" />
-          <root url="file:///work/pkg/intel/compilers_and_libraries_2016.0.109/linux/tbb/include" />
         </SOURCES>
       </library>
     </orderEntry>

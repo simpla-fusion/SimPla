@@ -39,10 +39,10 @@ struct MPIDataType
 //	static MPIDataType create(DataType const &);
 
 	static MPIDataType create(DataType const &data_type,
-			int ndims = 0, size_t const *dims = nullptr,
-			size_t const *count = nullptr, size_t const *offset = nullptr,
-			size_t const *stride = nullptr, size_t const *block = nullptr,
-			bool c_order_array = true);
+							  int ndims = 0, size_t const *dims = nullptr,
+							  size_t const *p_start = nullptr, size_t const *offset = nullptr,
+							  size_t const *stride = nullptr, size_t const *block = nullptr,
+							  bool c_order_array = true);
 
 	static MPIDataType create(DataType const &data_type, DataSpace const &space, bool c_order_array = true);
 

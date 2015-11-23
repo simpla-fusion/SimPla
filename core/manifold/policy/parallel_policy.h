@@ -79,11 +79,11 @@ private:
     struct connection_node
     {
         nTuple<int, 3> coord_offset;
-        nTuple<size_t, 3> send_min;
-        nTuple<size_t, 3> send_max;
+        nTuple<size_t, mesh_type::ndims> send_offset;
+        nTuple<size_t, mesh_type::ndims> send_count;
 
-        nTuple<size_t, 3> recv_min;
-        nTuple<size_t, 3> recv_max;
+        nTuple<size_t, mesh_type::ndims> recv_offset;
+        nTuple<size_t, mesh_type::ndims> recv_count;
     };
     std::tuple<nTuple<size_t, 3>, nTuple<size_t, 3>> m_center_box_;
     std::vector<std::tuple<nTuple<size_t, 3>, nTuple<size_t, 3>>> m_boundary_box_;
@@ -144,79 +144,88 @@ void ParallelPolicy<TMesh>::deploy()
 //	base_manifold_type::m_id_memory_max_ = base_manifold_type::m_id_local_max_ + base_manifold_type::pack_index(m_ghost_width_);
 //
 //
-//	nTuple<size_t, MAX_NDIMS_OF_ARRAY> l_dims, l_offset, l_stride, l_count, l_block;
-//
-//	l_dims = local_shape.dimensions;
-//	l_offset = local_shape.offset;
-//	l_stride = local_shape.stride;
-//	l_count = local_shape.count;
-//	l_block = local_shape.block;
-//
-//
-//	nTuple<size_t, MAX_NDIMS_OF_ARRAY> send_count, send_offset;
-//	nTuple<size_t, MAX_NDIMS_OF_ARRAY> recv_count, recv_offset;
-//
-//	for (unsigned int tag = 0, tag_e = (1U << (base_manifold_type::ndims * 2)); tag < tag_e; ++tag)
-//	{
-//		nTuple<int, 3> coord_shift;
-//
-//		bool tag_is_valid = true;
-//
-//		for (int n = 0; n < base_manifold_type::ndims; ++n)
-//		{
-//			if (((tag >> (n * 2)) & 3UL) == 3UL)
-//			{
-//				tag_is_valid = false;
-//				break;
-//			}
-//
-//			coord_shift[n] = ((tag >> (n * 2)) & 3U) - 1;
-//
-//			switch (coord_shift[n])
-//			{
-//			case 0:
-//				send_count[n] = l_count[n];
-//				send_offset[n] = l_offset[n];
-//				recv_count[n] = l_count[n];
-//				recv_offset[n] = l_offset[n];
-//				break;
-//			case -1: //left
-//
-//				send_count[n] = m_ghost_width_[n];
-//				send_offset[n] = l_offset[n];
-//
-//				recv_count[n] = m_ghost_width_[n];
-//				recv_offset[n] = l_offset[n] - m_ghost_width_[n];
-//
-//				break;
-//			case 1: //right
-//				send_count[n] = m_ghost_width_[n];
-//				send_offset[n] = l_offset[n] + l_count[n] - m_ghost_width_[n];
-//
-//				recv_count[n] = m_ghost_width_[n];
-//				recv_offset[n] = l_offset[n] + l_count[n];
-//				break;
-//			default:
-//				tag_is_valid = false;
-//				break;
-//			}
-//
-//			if (send_count[n] == 0 || recv_count[n] == 0)
-//			{
-//				tag_is_valid = false;
-//				break;
-//			}
-//
-//		}
-//
-//		if (tag_is_valid && (coord_shift[0] != 0 || coord_shift[1] != 0 || coord_shift[2] != 0))
-//		{
-//			add_link(
-//					&coord_shift[0],
-//					m_mesh_.local_range(send_offset, send_count),
-//					m_mesh_.local_range(recv_offset, recv_count)
-//			);
-//
+
+    auto memory_box = m_mesh_.memory_index_box();
+
+    auto local_box = m_mesh_.local_index_box();
+
+    nTuple<size_t, mesh_type::ndims> l_count, l_offset, ghost_width;
+
+    l_count = std::get<1>(local_box) - std::get<0>(local_box);
+    l_offset = std::get<0>(local_box) - std::get<0>(memory_box);
+    ghost_width = l_offset;
+
+
+    nTuple<size_t, mesh_type::ndims> send_offset, send_count;
+    nTuple<size_t, mesh_type::ndims> recv_offset, recv_count;
+
+    for (unsigned int tag = 0, tag_e = (1U << (mesh_type::ndims * 2)); tag < tag_e; ++tag)
+    {
+        nTuple<int, 3> coord_shift;
+
+        bool tag_is_valid = true;
+
+        for (int n = 0; n < mesh_type::ndims; ++n)
+        {
+            if (((tag >> (n * 2)) & 3UL) == 3UL)
+            {
+                tag_is_valid = false;
+                break;
+            }
+
+            coord_shift[n] = ((tag >> (n * 2)) & 3U) - 1;
+
+            switch (coord_shift[n])
+            {
+                case 0:
+                    send_offset[n] = l_offset[n];
+                    send_count[n] = l_count[n];
+                    recv_offset[n] = l_offset[n];
+                    recv_count[n] = l_count[n];
+
+                    break;
+                case -1: //left
+
+                    send_offset[n] = l_offset[n];
+                    send_count[n] = ghost_width[n];
+                    recv_offset[n] = l_offset[n] - ghost_width[n];
+                    recv_count[n] = ghost_width[n];
+
+
+                    break;
+                case 1: //right
+                    send_offset[n] = l_offset[n] + l_count[n] - ghost_width[n];
+                    send_count[n] = ghost_width[n];
+                    recv_offset[n] = l_offset[n] + l_count[n];
+                    recv_count[n] = ghost_width[n];
+
+                    break;
+                default:
+                    tag_is_valid = false;
+                    break;
+            }
+
+            if (send_count[n] == 0 || recv_count[n] == 0)
+            {
+                tag_is_valid = false;
+                break;
+            }
+
+        }
+
+        if (tag_is_valid && (coord_shift[0] != 0 || coord_shift[1] != 0 || coord_shift[2] != 0))
+        {
+            m_connections_.push_back(
+                    connection_node{
+                            coord_shift,
+                            send_offset, send_count,
+                            recv_offset, recv_count
+                    }
+            );
+
+        }
+    }
+
 }
 
 template<typename TMesh>
@@ -242,7 +251,7 @@ void ParallelPolicy<TMesh>::for_each(TG const &geo, TOP const &op, T *self, Args
     }
 
 
-    //    DistributedObject dist_obj(m_mpi_comm_);
+//    DistributedObject dist_obj(m_mpi_comm_);
     // TODO create distributed object
     //
     //    for (auto const &item:m_connections_)
@@ -270,8 +279,10 @@ template<typename TMesh>
 template<typename TG, typename TOP, typename ...Args>
 void ParallelPolicy<TMesh>::for_each(TG const &geo, TOP const &op, Args &&... args) const
 {
-    static constexpr int IFORM = traits::iform<traits::unpack_type<0, Args>::type>::value;
-    typedef traits::value_type_t<traits::unpack_type<0, Args>::type> value_type;
+    static constexpr int IFORM = traits::iform<typename traits::unpack_type<0, Args...>::type>::value;
+
+    typedef traits::value_type_t<typename traits::unpack_type<0, Args...>::type> value_type;
+
     typedef decltype(m_mesh_.template make_range<IFORM>()) range_type;
 
     parallel::parallel_for(m_mesh_.template make_range<IFORM>(),

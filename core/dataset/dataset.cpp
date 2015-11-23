@@ -24,21 +24,21 @@ void DataSet::deploy()
     else
     {
         data = SingletonHolder<MemoryPool>::instance().raw_alloc(
-                datatype.size_in_byte() * dataspace.local_memory_size());
+                datatype.size_in_byte() * dataspace.size());
     }
 }
 
 void DataSet::clear()
 {
     deploy();
-    memset(data.get(), 0, dataspace.local_memory_size() * datatype.size_in_byte());
+    memset(data.get(), 0, memory_space.size() * datatype.size_in_byte());
 }
 
 
 void DataSet::copy(void const *other)
 {
     deploy();
-    memcpy(data.get(), other, dataspace.local_memory_size() * datatype.size_in_byte());
+    memcpy(data.get(), other, memory_space.size() * datatype.size_in_byte());
 }
 
 bool DataSet::is_same(void const *other) const
@@ -49,22 +49,26 @@ bool DataSet::is_same(void const *other) const
 bool DataSet::is_equal(void const *other) const
 {
     return is_same(other) ||
-           memcmp(data.get(), other, dataspace.local_memory_size() * datatype.size_in_byte()) != 0;
+           memcmp(data.get(), other, memory_space.size() * datatype.size_in_byte()) != 0;
 }
 
 std::ostream &DataSet::print(std::ostream &os) const
 {
-    auto shape = dataspace.local_shape();
+
 
     int ndims = 0;
 
-    long d[shape.ndims];
+    nTuple<size_t, 3> dims;
 
-    for (int i = 0; i < shape.ndims; ++i)
+    std::tie(ndims, dims, std::ignore, std::ignore, std::ignore, std::ignore) = memory_space.shape();
+
+    long d[ndims];
+
+    for (int i = 0; i < ndims; ++i)
     {
-        if (shape.dimensions[i] > 1)
+        if (dims[i] > 1)
         {
-            d[ndims] = shape.dimensions[i];
+            d[ndims] = dims[i];
             ++ndims;
         }
 

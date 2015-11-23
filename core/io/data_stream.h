@@ -20,10 +20,6 @@
 namespace simpla
 {
 struct DataSet;
-} /* namespace simpla */
-
-namespace simpla
-{
 
 /**
  * @ingroup io
@@ -92,8 +88,7 @@ public:
      * @return
      */
 
-    std::string write(std::string const &url, DataSet const &ds, size_t flag =
-    0UL);
+    std::string write(std::string const &url, DataSet const &ds, size_t flag = 0UL);
 
     /**
      * 	read dataset from url

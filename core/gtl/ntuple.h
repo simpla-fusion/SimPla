@@ -276,16 +276,16 @@ public:
         return std::move(res);
     }
 
-    template<typename T>
-    bool operator==(T const &other) const
-    {
-        bool res = true;
-        for (int i = 0; i < N; ++i)
-        {
-            res = res && ((*this)[i] == other[i]);
-        }
-        return res;
-    }
+//    template<typename T>
+//    bool operator==(T const &other) const
+//    {
+//        bool res = true;
+//        for (int i = 0; i < N; ++i)
+//        {
+//            res = res && ((*this)[i] == other[i]);
+//        }
+//        return res;
+//    }
 
 //    template<typename T>
 //    bool operator!=(T const &other) const

@@ -28,20 +28,20 @@ struct DataSet;
  */
 class DataSpace
 {
-public:
+
     typedef size_t index_type;
     typedef nTuple <index_type, MAX_NDIMS_OF_ARRAY> index_tuple;
 
-    struct data_shape_s
-    {
-        int ndims = 3;
+public:
 
-        index_tuple dimensions;
-        index_tuple offset;
-        index_tuple count;
-        index_tuple stride;
-        index_tuple block;
-    };
+    typedef std::tuple<
+            int // ndims
+            , index_tuple // dimensions
+            , index_tuple // start
+            , index_tuple // stride
+            , index_tuple // count
+            , index_tuple // block
+    > data_shape_s;
 
 
     // Creates a null dataspace
@@ -53,7 +53,7 @@ public:
     // Copy constructor: makes a copy of the original DataSpace object.
     DataSpace(const DataSpace &other);
 
-//	DataSpace(DataSpace&& other);
+
     // Destructor: properly terminates access to this dataspace.
     ~DataSpace();
 
@@ -68,38 +68,23 @@ public:
 
     static DataSpace create_simple(int rank, const index_type *dims);
 
-    DataSpace &set_local_shape(index_type const *local_dimensions,
-                               index_type const *local_offset);
 
-    DataSpace &select_hyperslab(index_type const *offset,
-                                index_type const *stride, index_type const *count,
-                                index_type const *block = nullptr);
+    DataSpace &select_hyperslab(index_type const *start,
+                                index_type const *_stride,
+                                index_type const *count,
+                                index_type const *_block);
 
     bool is_valid() const;
 
-    bool is_distributed() const;
 
-    bool is_simple() const
-    {
-        /// TODO support  complex selection of data space
-        /// @ref http://www.hdfgroup.org/HDF5/doc/UG/UG_frame12Dataspaces.html
-        return is_valid() && (!is_distributed());
-    }
+    bool is_simple() const;
 
     /**
      * @return <ndims,dimensions,start,count,stride,block>
      */
-    data_shape_s shape() const;
+    data_shape_s const &shape() const;
 
-    data_shape_s local_shape() const;
-
-    data_shape_s global_shape() const;
-
-    size_t local_memory_size() const;
-
-    size_t global_size() const;
-
-    size_t size() const { return global_size(); }
+    size_t size() const;
 
 private:
     struct pimpl_s;

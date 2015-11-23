@@ -22,6 +22,7 @@
 #endif
 
 #ifdef USE_TBB
+
 #include "parallel_tbb.h"
 //#elif _OPENMP
 //#include "multi_thread_openmp.h"
@@ -32,11 +33,7 @@
 
 #endif
 
-namespace simpla
-{
-
-
-namespace parallel
+namespace simpla { namespace parallel
 {
 void init(int argc, char **argv);
 
@@ -45,7 +42,6 @@ void close();
 std::string help_message();
 
 
-} // namespace parallel
-} // namespace simpla
+}}// namespace simpla { namespace parallel
 
 #endif /* PARALLEL_H_ */

@@ -74,13 +74,16 @@ public:
     DataSet dataset(storage_type<TV> const &d) const
     {
         DataSet res;
+
         res.data = d;
-        res.dataspace = dataspace<IFORM>();
+
+        std::tie(res.dataspace, res.memory_space) = dataspace<IFORM>();
+
         res.datatype = traits::datatype<TV>::create();
         return std::move(res);
     };
 private:
-    size_t local_memory_size(int IFORM) const
+    size_t memory_size(int IFORM) const
     {
         static constexpr int ndims = geometry_type::ndims;
 
@@ -99,7 +102,7 @@ public:
     {
         if (*d == nullptr)
         {
-            *d = SingletonHolder<MemoryPool>::instance().alloc<TV>(local_memory_size(IFORM));
+            *d = SingletonHolder<MemoryPool>::instance().alloc<TV>(memory_size(IFORM));
         }
     };
 
@@ -107,68 +110,78 @@ public:
     void clear(storage_type<TV> *d) const
     {
         alloc_memory<IFORM>(d);
-        size_t ie = local_memory_size(IFORM) * sizeof(TV);
+        size_t ie = memory_size(IFORM) * sizeof(TV);
         char *p = reinterpret_cast<char *>(d->get());
-        memset(p, 0, local_memory_size(IFORM) * sizeof(TV));
+        memset(p, 0, memory_size(IFORM) * sizeof(TV));
     };
 
     template<int IFORM>
-    DataSpace dataspace() const
+    std::tuple<DataSpace, DataSpace> dataspace() const
     {
         return dataspace<IFORM>(m_geo_.template range<IFORM>());
     }
 
     template<int IFORM>
-    DataSpace dataspace(typename geometry_type::range_type const &r) const
+    std::tuple<DataSpace, DataSpace> dataspace(typename geometry_type::range_type const &r) const
     {
 
         static constexpr int ndims = geometry_type::ndims;
 
+        nTuple<size_t, ndims + 1> count;
+
         nTuple<size_t, ndims + 1> f_dims;
-        nTuple<size_t, ndims + 1> f_offset;
-        nTuple<size_t, ndims + 1> f_count;
+        nTuple<size_t, ndims + 1> f_start;
+
         nTuple<size_t, ndims + 1> f_ghost_width;
 
         nTuple<size_t, ndims + 1> m_dims;
-        nTuple<size_t, ndims + 1> m_offset;
+        nTuple<size_t, ndims + 1> m_start;
 
         int f_ndims = ndims;
 
+        count = (m_geo_.m_local_max_ - m_geo_.m_local_min_);
 
         f_dims = (m_geo_.m_max_ - m_geo_.m_min_);
 
-        f_offset = (m_geo_.m_local_min_ - m_geo_.m_min_);
+        f_start = (m_geo_.m_local_min_ - m_geo_.m_min_);
 
-        f_count = (m_geo_.m_local_max_ - m_geo_.m_local_min_);
 
         m_dims = (m_geo_.m_memory_max_ - m_geo_.m_memory_min_);
 
-        m_offset = (m_geo_.m_local_min_ - m_geo_.m_min_);
+        m_start = (m_geo_.m_local_min_ - m_geo_.m_min_);
 
         if ((IFORM == EDGE || IFORM == FACE))
         {
             f_ndims = ndims + 1;
+
+            count[ndims] = 3;
+
             f_dims[ndims] = 3;
-            f_offset[ndims] = 0;
-            f_count[ndims] = 3;
+            f_start[ndims] = 0;
+
             m_dims[ndims] = 3;
-            m_offset[ndims] = 0;
+            m_start[ndims] = 0;
         }
         else
         {
             f_ndims = ndims;
+            count[ndims] = 1;
+
             f_dims[ndims] = 1;
-            f_offset[ndims] = 0;
-            f_count[ndims] = 1;
+            f_start[ndims] = 0;
+
             m_dims[ndims] = 1;
-            m_offset[ndims] = 0;
+            m_start[ndims] = 0;
         }
 
-        DataSpace res(f_ndims, &(f_dims[0]));
+        return std::make_tuple(
 
-        res.select_hyperslab(&f_offset[0], nullptr, &f_count[0], nullptr).set_local_shape(&m_dims[0], &m_offset[0]);
+                DataSpace(f_ndims, &(f_dims[0])).select_hyperslab(&f_start[0], nullptr, &count[0], nullptr),
 
-        return std::move(res);
+                DataSpace(f_ndims, &(m_dims[0])).select_hyperslab(&m_start[0], nullptr, &count[0], nullptr)
+
+        );
+
 
     }
 };//template<typename TGeo> struct StoragePolicy

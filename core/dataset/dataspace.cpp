@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <utility>
+#include <tuple>
 
 #include "../gtl/ntuple.h"
 #include "../gtl/utilities/utilities.h"
@@ -17,32 +18,32 @@ namespace simpla
 struct DataSpace::pimpl_s
 {
 
-	/**
-	 *
-	 *   a----------------------------b
-	 *   |                            |
-	 *   |     c--------------d       |
-	 *   |     |              |       |
-	 *   |     |  e*******f   |       |
-	 *   |     |  *       *   |       |
-	 *   |     |  *       *   |       |
-	 *   |     |  *       *   |       |
-	 *   |     |  *********   |       |
-	 *   |     ----------------       |
-	 *   ------------------------------
-	 *
-	 *   a=0
-	 *   b-a = dimension
-	 *   e-a = offset
-	 *   f-e = count
-	 *   d-c = local_dimension
-	 *   c-a = local_offset
-	 */
+    /**
+     *
+     *   a----------------------------b
+     *   |                            |
+     *   |     c--------------d       |
+     *   |     |              |       |
+     *   |     |  e*******f   |       |
+     *   |     |  *       *   |       |
+     *   |     |  *       *   |       |
+     *   |     |  *       *   |       |
+     *   |     |  *********   |       |
+     *   |     ----------------       |
+     *   ------------------------------
+     *
+     *   a=0
+     *   b-a = dimension
+     *   e-a = offset
+     *   f-e = count
+     *   d-c = local_dimension
+     *   c-a = local_offset
+     */
 
-	data_shape_s m_d_shape_;
+    data_shape_s m_d_shape_;
 
-	index_tuple m_local_dimensions_;
-	index_tuple m_local_offset_;
+    // index_tuple m_local_dimensions_;
+    // index_tuple m_local_offset_;
 
 };
 
@@ -51,34 +52,33 @@ struct DataSpace::pimpl_s
 DataSpace::DataSpace() : pimpl_{new pimpl_s} { }
 
 DataSpace::DataSpace(int ndims, index_type const *dims) :
-		pimpl_(new pimpl_s)
+        pimpl_(new pimpl_s)
 {
 
-	pimpl_->m_d_shape_.ndims = ndims;
-	pimpl_->m_d_shape_.dimensions = dims;
-	pimpl_->m_d_shape_.offset = 0;
-	pimpl_->m_d_shape_.count = dims;
-	pimpl_->m_d_shape_.stride = 1;
-	pimpl_->m_d_shape_.block = 1;
+    std::get<0>(pimpl_->m_d_shape_)/*ndims      */ = ndims;
+    std::get<1>(pimpl_->m_d_shape_)/*dimensions */ = dims;
+    std::get<2>(pimpl_->m_d_shape_)/*start     */  = 0;
+    std::get<3>(pimpl_->m_d_shape_)/*stride     */ = 1;
+    std::get<4>(pimpl_->m_d_shape_)/*count      */ = dims;
+    std::get<5>(pimpl_->m_d_shape_)/*block      */ = 1;
 
-	pimpl_->m_local_dimensions_ = dims;
-	pimpl_->m_local_offset_ = 0;
 
 }
 
 DataSpace::DataSpace(const DataSpace &other) :
-		pimpl_(new pimpl_s)
+        pimpl_(new pimpl_s)
 {
-	pimpl_->m_d_shape_.ndims = other.pimpl_->m_d_shape_.ndims;
+    // pimpl_->m_d_shape_.ndims = other.pimpl_->m_d_shape_.ndims;
+    // pimpl_->m_d_shape_.dimensions = other.pimpl_->m_d_shape_.dimensions;
+    // pimpl_->m_d_shape_.offset = other.pimpl_->m_d_shape_.offset;
+    // pimpl_->m_d_shape_.count = other.pimpl_->m_d_shape_.count;
+    // pimpl_->m_d_shape_.stride = other.pimpl_->m_d_shape_.stride;
+    // pimpl_->m_d_shape_.block = other.pimpl_->m_d_shape_.block;
 
-	pimpl_->m_d_shape_.dimensions = other.pimpl_->m_d_shape_.dimensions;
-	pimpl_->m_d_shape_.offset = other.pimpl_->m_d_shape_.offset;
-	pimpl_->m_d_shape_.count = other.pimpl_->m_d_shape_.count;
-	pimpl_->m_d_shape_.stride = other.pimpl_->m_d_shape_.stride;
-	pimpl_->m_d_shape_.block = other.pimpl_->m_d_shape_.block;
+    pimpl_->m_d_shape_ = other.pimpl_->m_d_shape_;
 
-	pimpl_->m_local_dimensions_ = other.pimpl_->m_local_dimensions_;
-	pimpl_->m_local_offset_ = other.pimpl_->m_local_offset_;
+//	pimpl_->m_local_dimensions_ = other.pimpl_->m_local_dimensions_;
+//	pimpl_->m_local_offset_ = other.pimpl_->m_local_offset_;
 
 
 }
@@ -90,139 +90,155 @@ DataSpace::~DataSpace()
 
 void DataSpace::swap(DataSpace &other)
 {
-	std::swap(pimpl_, other.pimpl_);
+    std::swap(pimpl_, other.pimpl_);
 }
 
 DataSpace DataSpace::create_simple(int ndims, const index_type *dims)
 {
-	return std::move(DataSpace(ndims, dims));
+    return std::move(DataSpace(ndims, dims));
 }
 
 bool DataSpace::is_valid() const
 {
-	return !!(pimpl_);
+    return !!(pimpl_);
 }
 
-bool DataSpace::is_distributed() const
+bool DataSpace::is_simple() const
 {
-	bool flag = false;
-	for (int i = 0; i < pimpl_->m_d_shape_.ndims; ++i)
-	{
-		if (pimpl_->m_d_shape_.dimensions[i] != pimpl_->m_local_dimensions_[i])
-		{
-			flag = true;
-			break;
-		};
-	}
-	return flag;
+    // TODO add support of complex data shape.
+    return true;
 }
 
-
-DataSpace::data_shape_s DataSpace::shape() const
+DataSpace::data_shape_s const &DataSpace::shape() const
 {
-	return global_shape();
+    return pimpl_->m_d_shape_;
 }
 
-DataSpace::data_shape_s DataSpace::local_shape() const
+size_t DataSpace::size() const
 {
+    size_t s = 1;
 
-	data_shape_s res = pimpl_->m_d_shape_;
+    int ndims = std::get<0>(pimpl_->m_d_shape_);
 
-	res.dimensions = pimpl_->m_local_dimensions_;
+    auto const &dims = std::get<1>(pimpl_->m_d_shape_);
 
-	res.offset = pimpl_->m_d_shape_.offset - pimpl_->m_local_offset_;
-
-	return std::move(res);
+    for (int i = 0; i < ndims; ++i)
+    {
+        s *= dims[i];
+    }
+    return s;
 }
 
-DataSpace::data_shape_s DataSpace::global_shape() const
+
+DataSpace &DataSpace::select_hyperslab(index_type const *start,
+                                       index_type const *_stride,
+                                       index_type const *count,
+                                       index_type const *_block)
 {
-	return pimpl_->m_d_shape_;
-}
+    if (!is_valid())
+    {
+        RUNTIME_ERROR("DataSpace is invalid!");
+    }
 
+    if (start != nullptr)
+    {
+        std::get<2>(pimpl_->m_d_shape_) += start;
+//        pimpl_->m_d_shape_.offset += offset;
+    }
 
-size_t DataSpace::local_memory_size() const
-{
-	size_t s = 1;
+    if (_stride != nullptr)
+    {
+        std::get<3>(pimpl_->m_d_shape_) *= _stride;
+//        pimpl_->m_d_shape_.stride *= stride;
+    }
 
-	for (int i = 0; i < pimpl_->m_d_shape_.ndims; ++i)
-	{
-		s *= pimpl_->m_local_dimensions_[i];
-	}
-	return s;
-}
+    if (count != nullptr)
+    {
+        std::get<4>(pimpl_->m_d_shape_) = count;
+//        pimpl_->m_d_shape_.count = count;
+    }
+    if (_block != nullptr)
+    {
+        std::get<5>(pimpl_->m_d_shape_) *= _block;
+//        pimpl_->m_d_shape_.block *= block;
+    }
 
-size_t DataSpace::global_size() const
-{
-	size_t s = 1;
-
-	for (int i = 0; i < pimpl_->m_d_shape_.ndims; ++i)
-	{
-		s *= pimpl_->m_d_shape_.dimensions[i];
-	}
-	return s;
-}
-
-
-DataSpace &DataSpace::select_hyperslab(index_type const *offset,
-		index_type const *stride, index_type const *count,
-		index_type const *block)
-{
-	if (!is_valid())
-	{
-		RUNTIME_ERROR("DataSpace is invalid!");
-	}
-
-	if (offset != nullptr)
-	{
-
-		pimpl_->m_d_shape_.offset += offset;
-	}
-	if (count != nullptr)
-	{
-		pimpl_->m_d_shape_.count = count;
-	}
-	if (stride != nullptr)
-	{
-		pimpl_->m_d_shape_.stride *= stride;
-
-	}
-	if (block != nullptr)
-	{
-		pimpl_->m_d_shape_.block *= block;
-	}
-
-	return *this;
+    return *this;
 
 }
 
-DataSpace &DataSpace::set_local_shape(index_type const *local_dimensions =
-nullptr, index_type const *local_offset = nullptr)
-{
+//bool DataSpace::is_distributed() const
+//{
+//	bool flag = false;
+//	for (int i = 0; i < pimpl_->m_d_shape_.ndims; ++i)
+//	{
+//		if (pimpl_->m_d_shape_.dimensions[i] != pimpl_->m_local_dimensions_[i])
+//		{
+//			flag = true;
+//			break;
+//		};
+//	}
+//	return flag;
+//}
 
-	if (local_offset != nullptr)
-	{
-		pimpl_->m_local_offset_ = local_offset;
 
-	}
-	else
-	{
-		pimpl_->m_local_offset_ = pimpl_->m_d_shape_.offset;
 
-	}
-
-	if (local_dimensions != nullptr)
-	{
-		pimpl_->m_local_dimensions_ = local_dimensions;
-	}
-	else
-	{
-		pimpl_->m_local_dimensions_ = pimpl_->m_d_shape_.dimensions;
-	}
-
-	return *this;
-}
-
+//DataSpace::data_shape_s DataSpace::local_shape() const
+//{
+//
+//	data_shape_s res = pimpl_->m_d_shape_;
+//
+//	res.dimensions = pimpl_->m_local_dimensions_;
+//
+//	res.offset = pimpl_->m_d_shape_.offset - pimpl_->m_local_offset_;
+//
+//	return std::move(res);
+//}
+//
+//DataSpace::data_shape_s DataSpace::global_shape() const
+//{
+//	return pimpl_->m_d_shape_;
+//}
+//
+//
+//size_t DataSpace::local_memory_size() const
+//{
+//	size_t s = 1;
+//
+//	for (int i = 0; i < pimpl_->m_d_shape_.ndims; ++i)
+//	{
+//		s *= pimpl_->m_local_dimensions_[i];
+//	}
+//	return s;
+//}
+//
+//DataSpace &DataSpace::set_local_shape(index_type const *local_dimensions =
+//nullptr, index_type const *local_offset = nullptr)
+//{
+//
+//	if (local_offset != nullptr)
+//	{
+//		pimpl_->m_local_offset_ = local_offset;
+//
+//	}
+//	else
+//	{
+//		pimpl_->m_local_offset_ = pimpl_->m_d_shape_.offset;
+//
+//	}
+//
+//	if (local_dimensions != nullptr)
+//	{
+//		pimpl_->m_local_dimensions_ = local_dimensions;
+//	}
+//	else
+//	{
+//		pimpl_->m_local_dimensions_ = pimpl_->m_d_shape_.dimensions;
+//	}
+//
+//	return *this;
+//}
+//
 //void DataSpace::decompose(size_t ndims, size_t const * proc_dims,
 //		size_t const * proc_coord)
 //{

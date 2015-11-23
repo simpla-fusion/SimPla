@@ -65,8 +65,7 @@ struct DataStream::pimpl_s
 
     hid_t convert_datatype_sp_to_h5(DataType const &, size_t flag = 0UL) const;
 
-    hid_t convert_dataspace_sp_to_h5(DataSpace::data_shape_s const &,
-                                     size_t flag = 0UL) const;
+    hid_t convert_dataspace_sp_to_h5(DataSpace const &, size_t flag = 0UL) const;
 
     DataType convert_datatype_h5_to_sp(hid_t) const;
 
@@ -771,27 +770,28 @@ DataType DataStream::pimpl_s::convert_datatype_h5_to_sp(hid_t t_id) const
 
 }
 
-hid_t DataStream::pimpl_s::convert_dataspace_sp_to_h5(
-        DataSpace::data_shape_s const &d_shape, size_t flag) const
+hid_t DataStream::pimpl_s::convert_dataspace_sp_to_h5(DataSpace const &ds, size_t flag) const
 {
 
-    int ndims = d_shape.ndims;
+    int ndims = 0;
 
     index_tuple dims;
-    dims = d_shape.dimensions;
-    index_tuple offset;
-    offset = d_shape.offset;
+
+    index_tuple start;
+
     index_tuple stride;
-    stride = d_shape.stride;
+
     index_tuple count;
-    count = d_shape.count;
+
     index_tuple block;
-    block = d_shape.block;
+
+    std::tie(ndims, dims, start, stride, count, block) = ds.shape();
+
 
     if ((flag & SP_RECORD) != 0UL)
     {
         dims[ndims] = 1;
-        offset[ndims] = 0;
+        start[ndims] = 0;
         count[ndims] = 1;
         stride[ndims] = 1;
         block[ndims] = 1;
@@ -799,6 +799,7 @@ hid_t DataStream::pimpl_s::convert_dataspace_sp_to_h5(
     }
 
     index_tuple max_dims;
+
     max_dims = dims;
 
     if ((flag & SP_APPEND) != 0UL)
@@ -812,9 +813,7 @@ hid_t DataStream::pimpl_s::convert_dataspace_sp_to_h5(
 
     hid_t res = H5Screate_simple(ndims, &dims[0], &max_dims[0]);
 
-    H5_ERROR(
-            H5Sselect_hyperslab(res, H5S_SELECT_SET, &offset[0], &stride[0],
-                                &count[0], &block[0]));
+    H5_ERROR(H5Sselect_hyperslab(res, H5S_SELECT_SET, &start[0], &stride[0], &count[0], &block[0]));
 
     return res;
 
@@ -837,7 +836,13 @@ std::string DataStream::write(std::string const &url, DataSet const &ds,
         << "[ URL = \"" << url << "\","
         << " Data is " << ((ds.data != nullptr) ? "not" : " ") << " empty. "
         << " Datatype is " << ((ds.datatype.is_valid()) ? "" : "not") << " valid. "
-        << " Dataspace is " << ((ds.dataspace.is_valid()) ? "" : "not") << " valid. ]" << std::endl;
+        << " Data Space is " << ((ds.dataspace.is_valid()) ? "" : "not") << " valid. size=" << ds.dataspace.size()
+        << " Memory Space is " << ((ds.memory_space.is_valid()) ? "" : "not") << " valid.  size=" <<
+        ds.memory_space.size()
+        << " Space is " << ((ds.memory_space.is_valid()) ? "" : "not") << " valid."
+        << " ]"
+
+        << std::endl;
         return "Invalid dataset: " + pwd();
     }
 
@@ -847,13 +852,11 @@ std::string DataStream::write(std::string const &url, DataSet const &ds,
 
     std::tie(is_existed, dsname) = this->cd(url, flag);
 
-    hid_t m_type = pimpl_->convert_datatype_sp_to_h5(ds.datatype);
+    hid_t d_type = pimpl_->convert_datatype_sp_to_h5(ds.datatype);
 
-    hid_t m_space = pimpl_->convert_dataspace_sp_to_h5(
-            ds.dataspace.local_shape(), SP_NEW);
+    hid_t m_space = pimpl_->convert_dataspace_sp_to_h5(ds.memory_space, SP_NEW);
 
-    hid_t f_space = pimpl_->convert_dataspace_sp_to_h5(
-            ds.dataspace.global_shape(), flag);
+    hid_t f_space = pimpl_->convert_dataspace_sp_to_h5(ds.dataspace, flag);
 
     hid_t dset;
 
@@ -868,9 +871,7 @@ std::string DataStream::write(std::string const &url, DataSet const &ds,
 
             int f_ndims = H5Sget_simple_extent_ndims(f_space);
 
-            H5_ERROR(
-                    H5Sget_simple_extent_dims(f_space, &current_dims[0],
-                                              nullptr));
+            H5_ERROR(H5Sget_simple_extent_dims(f_space, &current_dims[0], nullptr));
 
             H5_ERROR(dcpl_id = H5Pcreate(H5P_DATASET_CREATE));
 
@@ -878,7 +879,7 @@ std::string DataStream::write(std::string const &url, DataSet const &ds,
         }
 
         H5_ERROR(dset = H5Dcreate(pimpl_->base_group_id_, dsname.c_str(), //
-                                  m_type, f_space, H5P_DEFAULT, dcpl_id, H5P_DEFAULT));
+                                  d_type, f_space, H5P_DEFAULT, dcpl_id, H5P_DEFAULT));
 
         if (dcpl_id != H5P_DEFAULT)
         {
@@ -889,8 +890,7 @@ std::string DataStream::write(std::string const &url, DataSet const &ds,
     else
     {
 
-        H5_ERROR(
-                dset = H5Dopen(pimpl_->base_group_id_, dsname.c_str(), H5P_DEFAULT));
+        H5_ERROR(dset = H5Dopen(pimpl_->base_group_id_, dsname.c_str(), H5P_DEFAULT));
 
         pimpl_s::index_tuple current_dimensions;
 
@@ -941,9 +941,9 @@ std::string DataStream::write(std::string const &url, DataSet const &ds,
 
         H5_ERROR(H5Dset_extent(dset, &new_f_dimensions[0]));
 
-        H5_ERROR(
-                H5Sset_extent_simple(f_space, new_f_ndims, &new_f_dimensions[0],
-                                     &new_f_max_dimensions[0]));
+        H5_ERROR(H5Sset_extent_simple(f_space, new_f_ndims, &new_f_dimensions[0],
+                                      &new_f_max_dimensions[0]));
+
         H5_ERROR(H5Soffset_simple(f_space, &new_f_offset2[0]));
 
     }
@@ -955,15 +955,14 @@ std::string DataStream::write(std::string const &url, DataSet const &ds,
 
         hid_t plist_id = H5Pcreate(H5P_DATASET_XFER);
         H5_ERROR(H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_INDEPENDENT));
-        H5_ERROR(H5Dwrite(dset, m_type, m_space, f_space, plist_id, ds.data.get()));
+        H5_ERROR(H5Dwrite(dset, d_type, m_space, f_space, plist_id, ds.data.get()));
         H5_ERROR(H5Pclose(plist_id));
 
     }
     else
 //#endif
     {
-        H5_ERROR(
-                H5Dwrite(dset, m_type, m_space, f_space, H5P_DEFAULT, ds.data.get()));
+        H5_ERROR(H5Dwrite(dset, d_type, m_space, f_space, H5P_DEFAULT, ds.data.get()));
     }
 
     pimpl_->set_attribute(dset, ds.properties);
@@ -974,9 +973,9 @@ std::string DataStream::write(std::string const &url, DataSet const &ds,
 
     if (f_space != H5S_ALL) H5_ERROR(H5Sclose(f_space));
 
-    if (H5Tcommitted(m_type) > 0)
+    if (H5Tcommitted(d_type) > 0)
     {
-        H5_ERROR(H5Tclose(m_type));
+        H5_ERROR(H5Tclose(d_type));
     }
 
     return pwd() + dsname;

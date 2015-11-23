@@ -49,6 +49,8 @@ struct DataSet
 
     DataSpace dataspace;
 
+    DataSpace memory_space;
+
     Properties properties;
 
     DataSet() : data(nullptr) { }
@@ -57,12 +59,14 @@ struct DataSet
             data(other.data),
             datatype(other.datatype),
             dataspace(other.dataspace),
+            memory_space(other.memory_space),
             properties(other.properties) { }
 
     DataSet(DataSet &&other) :
             data(other.data),
             datatype(other.datatype),
             dataspace(other.dataspace),
+            memory_space(other.memory_space),
             properties(other.properties) { }
 
     virtual ~DataSet() { }
@@ -72,12 +76,16 @@ struct DataSet
         std::swap(data, other.data);
         std::swap(datatype, other.datatype);
         std::swap(dataspace, other.dataspace);
+        std::swap(memory_space, other.memory_space);
         std::swap(properties, other.properties);
     }
 
     bool operator==(DataSet const &other) const { return is_equal(other.data.get()); }
 
-    virtual bool is_valid() const { return (data != nullptr) && (datatype.is_valid()) && (dataspace.is_valid()); }
+    virtual bool is_valid() const
+    {
+        return (data != nullptr) && (datatype.is_valid()) && (dataspace.size() == memory_space.size());
+    }
 
     virtual bool empty() const { return data == nullptr; }
 

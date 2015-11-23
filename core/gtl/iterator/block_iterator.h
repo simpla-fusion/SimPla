@@ -33,8 +33,8 @@ private:
 
 public:
 
-    using base_type::value_type;
-    using base_type::difference_type;
+    using typename base_type::value_type;
+    using typename base_type::difference_type;
 
     block_iterator(nTuple<TV, NDIMS> const &self, nTuple<TV, NDIMS> const &min, nTuple<TV, NDIMS> const &max) :
             m_min_(min), m_max_(max), m_self_(self)
