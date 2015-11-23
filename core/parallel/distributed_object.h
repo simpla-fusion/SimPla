@@ -13,51 +13,43 @@
 #include "mpi_update.h"
 #include "../dataset/dataset.h"
 
-namespace simpla
+namespace simpla { namespace parallel
 {
+
+
 struct DistributedObject
 {
-	DistributedObject(MPIComm &);
+    DistributedObject(MPIComm &);
 
-	DistributedObject(DistributedObject const &);
+    DistributedObject(DistributedObject const &);
 
-	virtual ~DistributedObject();
+    virtual ~DistributedObject();
 
-	MPIComm &comm() const;
+    virtual void sync();
 
-	void swap(DistributedObject &);
+    virtual void wait();
 
-	virtual void sync();
+    virtual bool is_ready() const;
 
-	virtual void wait();
 
-	virtual void deploy() = 0;
+    void add_link(bool is_send, int const coord_offset[], int size,
+                  DataType const &d_type, std::shared_ptr<void> *p);
 
-	virtual bool is_ready() const;
+    void add_link(bool is_send, int const coord_offset[], DataSpace const &space,
+                  DataType const &d_type, std::shared_ptr<void> *p);
 
-	bool is_distributed() const;
+    template<typename ...Args>
+    void add_link_send(Args &&...args) { add_link(true, std::forward<Args>(args)...); };
 
-	void clear_links();
-
-	void add_link(bool is_send, int const coord_offset[], int size,
-			DataType const &d_type, std::shared_ptr<void> *p);
-
-	void add_link(bool is_send, int const coord_offset[], DataSpace space,
-			DataType const &d_type, std::shared_ptr<void> *p);
-
-	template<typename ...Args>
-	void add_link_send(Args &&...args) { add_link(true, std::forward<Args>(args)...); };
-
-	template<typename ...Args>
-	void add_link_recv(Args &&...args) { add_link(false, std::forward<Args>(args)...); };
+    template<typename ...Args>
+    void add_link_recv(Args &&...args) { add_link(false, std::forward<Args>(args)...); };
 
 
 private:
 
-	struct pimpl_s;
-	std::unique_ptr<pimpl_s> pimpl_;
+    struct pimpl_s;
+    std::unique_ptr<pimpl_s> pimpl_;
 
 };
-
-}//namespace simpla
+}}//namespace simpla
 #endif //SIMPLA_DISTRIBUTED_OBJECT_H

@@ -101,7 +101,6 @@ struct DataSet
 
     virtual bool is_equal(void const *other) const;
 
-
     template<typename T> T &get_value(size_t s) { return reinterpret_cast<T *>( data.get())[s]; }
 
     template<typename T> T const &get_value(size_t s) const { return reinterpret_cast<T *>( data.get())[s]; }

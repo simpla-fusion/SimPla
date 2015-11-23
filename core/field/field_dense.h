@@ -92,15 +92,17 @@ public:
         std::swap(m_data_, other.m_data_);
     }
 
-    void deploy() { m_mesh_.template alloc_memory<iform>(&m_data_); }
+    void deploy() { m_mesh_.template alloc_memory<iform, value_type>(&m_data_); }
 
-    void clear() { m_mesh_.template clear<iform>(&m_data_); }
+    void clear() { m_mesh_.template clear<iform, value_type>(&m_data_); }
 
     DataSet dataset() const { return std::move(m_mesh_.template dataset<value_type, iform>(m_data_)); }
 
 //    auto sync() DECL_RET_TYPE((m_mesh_.template sync<value_type, iform>(m_data_)))
-//    storage_policy &data() { return m_data_; }
-//    storage_policy const &data() const { return m_data_; }
+
+    storage_policy &data() { return m_data_; }
+
+    storage_policy const &data() const { return m_data_; }
 
     /**
      * @name assignment
@@ -182,31 +184,29 @@ public:
      *  @{
      */
 
-    void sync()
-    {
-//        m_mesh_.sync(*this);
-    }
+    void sync() { m_mesh_.template sync<IFORM, value_type>(&m_data_).wait(); }
+
 
     value_type &operator[](id_type const &s)
     {
-        return m_mesh_.at(m_data_, s);
+        return m_mesh_.template at<value_type>(m_data_, s);
     }
 
     value_type const &operator[](id_type const &s) const
     {
-        return m_mesh_.at(m_data_, s);
+        return m_mesh_.template at<value_type>(m_data_, s);
     }
 
     template<typename ...Args>
     value_type &at(Args &&... args)
     {
-        return m_mesh_.at(*this, std::forward<Args>(args)...);
+        return m_mesh_.template at<value_type>(*this, std::forward<Args>(args)...);
     }
 
     template<typename ...Args>
     value_type const &at(Args &&... args) const
     {
-        return m_mesh_.at(*this, std::forward<Args>(args)...);
+        return m_mesh_.template at<value_type>(*this, std::forward<Args>(args)...);
     }
 /**
  * @}

@@ -49,7 +49,6 @@ MPIDataType MPIDataType::create(DataType const &data_type, //
     {
         is_predefined = false;
         //TODO create MPI structure datatype
-        //		WARNING << "TODO: create structured datatype!!" << std::endl;
         //		MPI_Type_contiguous(data_type.ele_size_in_byte(), MPI_BYTE,
         //				&res.m_type_);
 

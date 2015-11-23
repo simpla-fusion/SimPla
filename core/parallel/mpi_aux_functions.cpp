@@ -26,84 +26,83 @@ extern "C"
 
 #include "mpi_comm.h"
 #include "mpi_datatype.h"
-#include "distributed_array.h"
 
 namespace simpla
 {
 
 
-inline MPI_Op get_MPI_Op(std::string const & op_c)
+inline MPI_Op get_MPI_Op(std::string const &op_c)
 {
-	MPI_Op op = MPI_SUM;
+    MPI_Op op = MPI_SUM;
 
-	if (op_c == "Max")
-	{
-		op = MPI_MAX;
-	}
-	else if (op_c == "Min")
-	{
-		op = MPI_MIN;
-	}
-	else if (op_c == "Sum")
-	{
-		op = MPI_SUM;
-	}
-	else if (op_c == "Prod")
-	{
-		op = MPI_PROD;
-	}
-	else if (op_c == "LAND")
-	{
-		op = MPI_LAND;
-	}
-	else if (op_c == "LOR")
-	{
-		op = MPI_LOR;
-	}
-	else if (op_c == "BAND")
-	{
-		op = MPI_BAND;
-	}
-	else if (op_c == "Sum")
-	{
-		op = MPI_BOR;
-	}
-	else if (op_c == "Sum")
-	{
-		op = MPI_MAXLOC;
-	}
-	else if (op_c == "Sum")
-	{
-		op = MPI_MINLOC;
-	}
-	return op;
+    if (op_c == "Max")
+    {
+        op = MPI_MAX;
+    }
+    else if (op_c == "Min")
+    {
+        op = MPI_MIN;
+    }
+    else if (op_c == "Sum")
+    {
+        op = MPI_SUM;
+    }
+    else if (op_c == "Prod")
+    {
+        op = MPI_PROD;
+    }
+    else if (op_c == "LAND")
+    {
+        op = MPI_LAND;
+    }
+    else if (op_c == "LOR")
+    {
+        op = MPI_LOR;
+    }
+    else if (op_c == "BAND")
+    {
+        op = MPI_BAND;
+    }
+    else if (op_c == "Sum")
+    {
+        op = MPI_BOR;
+    }
+    else if (op_c == "Sum")
+    {
+        op = MPI_MAXLOC;
+    }
+    else if (op_c == "Sum")
+    {
+        op = MPI_MINLOC;
+    }
+    return op;
 }
 
-void reduce(void const* send_data, void * recv_data, size_t count,
-		DataType const & data_type, std::string const & op_c)
+void reduce(void const *send_data, void *recv_data, size_t count,
+            DataType const &data_type, std::string const &op_c)
 {
-	auto m_type = MPIDataType::create(data_type);
+    auto m_type = MPIDataType::create(data_type);
 
-	auto comm = GLOBAL_COMM.comm();
-	MPI_Barrier(comm);
-	MPI_Reduce(const_cast<void*>(send_data), (recv_data), count, m_type.type(),
-			get_MPI_Op(op_c), 0, comm);
-	MPI_Barrier(comm);
+    auto comm = GLOBAL_COMM.comm();
+    MPI_Barrier(comm);
+    MPI_Reduce(const_cast<void *>(send_data), (recv_data), count, m_type.type(),
+               get_MPI_Op(op_c), 0, comm);
+    MPI_Barrier(comm);
 
 }
 
-void allreduce(void const* send_data, void * recv_data, size_t count,
-		DataType const & data_type, std::string const & op_c)
+void allreduce(void const *send_data, void *recv_data, size_t count,
+               DataType const &data_type, std::string const &op_c)
 {
 
-	auto m_type = MPIDataType::create(data_type);
+    auto m_type = MPIDataType::create(data_type);
 
-	auto comm = GLOBAL_COMM.comm();
-	MPI_Barrier(comm);
-	MPI_Allreduce(const_cast<void*>(send_data),
-			reinterpret_cast<void*>(recv_data), count, m_type.type(),
-			get_MPI_Op(op_c), comm);
-	MPI_Barrier(comm);
+    auto comm = GLOBAL_COMM.comm();
+    MPI_Barrier(comm);
+    MPI_Allreduce(const_cast<void *>(send_data),
+                  reinterpret_cast<void *>(recv_data), count, m_type.type(),
+                  get_MPI_Op(op_c), comm);
+    MPI_Barrier(comm);
 
 }
 //
@@ -180,32 +179,32 @@ void allreduce(void const* send_data, void * recv_data, size_t count,
 //	return std::make_tuple(recv_buffer,recv_buffer_size);
 //}
 
-void bcast_string(std::string * filename_)
+void bcast_string(std::string *filename_)
 {
 
-	if (!GLOBAL_COMM.is_valid()) return;
+    if (!GLOBAL_COMM.is_valid()) return;
 
-	int name_len;
+    int name_len;
 
-	if (GLOBAL_COMM.process_num()==0) name_len=filename_->size();
+    if (GLOBAL_COMM.process_num() == 0) name_len = filename_->size();
 
-	MPI_Bcast(&name_len, 1, MPI_INT, 0, GLOBAL_COMM.comm());
+    MPI_Bcast(&name_len, 1, MPI_INT, 0, GLOBAL_COMM.comm());
 
-	std::vector<char> buffer(name_len);
+    std::vector<char> buffer(name_len);
 
-	if (GLOBAL_COMM.process_num()==0)
-	{
-		std::copy(filename_->begin(),filename_->end(),buffer.begin());
-	}
+    if (GLOBAL_COMM.process_num() == 0)
+    {
+        std::copy(filename_->begin(), filename_->end(), buffer.begin());
+    }
 
-	MPI_Bcast((&buffer[0]), name_len, MPI_CHAR, 0, GLOBAL_COMM.comm());
+    MPI_Bcast((&buffer[0]), name_len, MPI_CHAR, 0, GLOBAL_COMM.comm());
 
-	buffer.push_back('\0');
+    buffer.push_back('\0');
 
-	if (GLOBAL_COMM.process_num()!=0)
-	{
-		*filename_=&buffer[0];
-	}
+    if (GLOBAL_COMM.process_num() != 0)
+    {
+        *filename_ = &buffer[0];
+    }
 
 }
 

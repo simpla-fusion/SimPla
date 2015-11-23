@@ -192,7 +192,7 @@ public:
     range_type range() const { return m::template make_range<I>(m_local_min_, m_local_max_); }
 
 
-    template<size_t IFORM>
+    template<int IFORM>
     auto max_hash() const
     DECL_RET_TYPE((m::hash(m::pack_index(m_memory_max_ - 1, m::template sub_index_to_id<IFORM>(3UL)),
                            m_memory_min_, m_memory_max_)))

@@ -55,7 +55,6 @@ bool DataSet::is_equal(void const *other) const
 std::ostream &DataSet::print(std::ostream &os) const
 {
 
-
     int ndims = 0;
 
     nTuple<size_t, 3> dims;

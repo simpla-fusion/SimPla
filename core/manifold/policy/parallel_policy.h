@@ -63,11 +63,12 @@ public:
     void deploy();
 
 
-    template<typename TG, typename TOP, typename T, typename ...Args>
-    void for_each(TG const &geo, TOP const &op, T *self, Args &&... args) const;
+    template<int IFORM, typename T>
+    parallel::DistributedObject sync(std::shared_ptr<void> *self) const;
 
-    template<typename TG, typename TOP, typename ...Args>
-    void for_each(TG const &geo, TOP const &op, Args &&... args) const;
+
+    template<int IFORM, typename T, typename Func>
+    void for_each(Func const &fun, std::shared_ptr<void> *f = nullptr) const;
 
 
 private:
@@ -106,13 +107,13 @@ void ParallelPolicy<TMesh>::deploy()
     m_center_box_ = m_mesh_.local_index_box();
 
 
-//	auto idx_b = base_manifold_type::unpack_index(base_manifold_type::m_id_min_);
+//	auto idx_b = mesh_type::unpack_index(mesh_type::m_id_min_);
 //
-//	auto idx_e = base_manifold_type::unpack_index(base_manifold_type::m_id_max_);
+//	auto idx_e = mesh_type::unpack_index(mesh_type::m_id_max_);
 //
-//	m_mpi_comm_.decompose(base_manifold_type::ndims, &idx_b[0], &idx_e[0]);
+//	m_mpi_comm_.decompose(mesh_type::ndims, &idx_b[0], &idx_e[0]);
 //
-//	for (int i = 0; i < base_manifold_type::ndims; ++i)
+//	for (int i = 0; i < mesh_type::ndims; ++i)
 //	{
 //		if (idx_b[i] + 1 == idx_e[i])
 //		{
@@ -122,11 +123,11 @@ void ParallelPolicy<TMesh>::deploy()
 //		{
 //			ERROR("Dimension is to small to split!["
 ////				" Dimensions= " + type_cast < std::string
-////				> (base_manifold_type::unpack_index(
+////				> (mesh_type::unpack_index(
 ////								m_id_max_ - m_id_min_))
 ////				+ " , Local dimensions=" + type_cast
 ////				< std::string
-////				> (base_manifold_type::unpack_index(
+////				> (mesh_type::unpack_index(
 ////								m_id_local_max_ - m_id_local_min_))
 ////				+ " , Ghost width =" + type_cast
 ////				< std::string > (ghost_width) +
@@ -135,13 +136,13 @@ void ParallelPolicy<TMesh>::deploy()
 //
 //	}
 //
-//	base_manifold_type::m_id_local_min_ = base_manifold_type::pack_index(idx_b);
+//	mesh_type::m_id_local_min_ = mesh_type::pack_index(idx_b);
 //
-//	base_manifold_type::m_id_local_max_ = base_manifold_type::pack_index(idx_e);
+//	mesh_type::m_id_local_max_ = mesh_type::pack_index(idx_e);
 //
-//	base_manifold_type::m_id_memory_min_ = base_manifold_type::m_id_local_min_ - base_manifold_type::pack_index(m_ghost_width_);
+//	mesh_type::m_id_memory_min_ = mesh_type::m_id_local_min_ - mesh_type::pack_index(m_ghost_width_);
 //
-//	base_manifold_type::m_id_memory_max_ = base_manifold_type::m_id_local_max_ + base_manifold_type::pack_index(m_ghost_width_);
+//	mesh_type::m_id_memory_max_ = mesh_type::m_id_local_max_ + mesh_type::pack_index(m_ghost_width_);
 //
 //
 
@@ -229,73 +230,77 @@ void ParallelPolicy<TMesh>::deploy()
 }
 
 template<typename TMesh>
-template<typename TG, typename TOP, typename T, typename ...Args>
-void ParallelPolicy<TMesh>::for_each(TG const &geo, TOP const &op, T *self, Args &&... args) const
+template<int IFORM, typename T, typename Func>
+void ParallelPolicy<TMesh>::for_each(Func const &fun, std::shared_ptr<void> *self) const
 {
-    static constexpr int IFORM = traits::iform<T>::value;
-    typedef traits::value_type_t<T> value_type;
-    auto r = m_mesh_.template range<IFORM>();
-    typedef decltype(r) range_type;
-
-    for (auto const &item:m_boundary_box_)
+    if (self != nullptr)
     {
-        parallel::parallel_for(m_mesh_.template make_range<IFORM>(std::get<0>(item), std::get<1>(item)),
-                               [&](range_type const &r)
-                               {
-                                   for (auto const &s:r)
-                                   {
-                                       op(geo.access(*self, s), geo.access(std::forward<Args>(args), s)...);
-                                   }
-                               });
 
+
+        for (auto const &item:m_boundary_box_)
+        {
+            parallel::parallel_for(m_mesh_.template make_range<IFORM>(
+                    std::get<0>(item),
+                    std::get<1>(item)), fun);
+
+        }
+
+
+//        auto dist_obj = sync<IFORM, T>(self);
+
+        parallel::parallel_for(
+                m_mesh_.template make_range<IFORM>(
+                        std::get<0>(m_center_box_),
+                        std::get<1>(m_center_box_)),
+                fun);
+
+//        dist_obj.wait();
+    }
+    else
+    {
+        parallel::parallel_for(m_mesh_.template range<IFORM>(), fun);
     }
 
-
-//    DistributedObject dist_obj(m_mpi_comm_);
-    // TODO create distributed object
-    //
-    //    for (auto const &item:m_connections_)
-    //    {
-    //        dist_obj.add_link();
-    //    }
-    //    dist_obj.sync();
-
-    parallel::parallel_for(m_mesh_.template make_range<IFORM>(std::get<0>(m_center_box_), std::get<1>(m_center_box_)),
-                           [&](range_type const &r)
-                           {
-                               for (auto const &s:r)
-                               {
-                                   op(geo.access(*self, s), geo.access(std::forward<Args>(args), s)...);
-                               }
-                           });
-
-
-    //TODO wait
-//    dist_obj.wait();
-
 };
+
 
 template<typename TMesh>
-template<typename TG, typename TOP, typename ...Args>
-void ParallelPolicy<TMesh>::for_each(TG const &geo, TOP const &op, Args &&... args) const
+template<int IFORM, typename T>
+parallel::DistributedObject
+ParallelPolicy<TMesh>::sync(std::shared_ptr<void> *data) const
 {
-    static constexpr int IFORM = traits::iform<typename traits::unpack_type<0, Args...>::type>::value;
+    parallel::DistributedObject dist_obj(m_mpi_comm_);
 
-    typedef traits::value_type_t<typename traits::unpack_type<0, Args...>::type> value_type;
+    typedef T value_type;
 
-    typedef decltype(m_mesh_.template make_range<IFORM>()) range_type;
+    auto d_type = traits::datatype<value_type>::create();
 
-    parallel::parallel_for(m_mesh_.template make_range<IFORM>(),
-                           [&](range_type const &r)
-                           {
-                               for (auto const &s:r)
-                               {
-                                   op(geo.access(std::forward<Args>(args), s)...);
-                               }
-                           });
+    nTuple<size_t, mesh_type::ndims> dims = m_mesh_.dimensions();
+
+    DataSpace mem_space(m_mesh_.ndims, &dims[0]);
 
 
-};
+    for (auto const &item:m_connections_)
+    {
+        dist_obj.add_link_send(&item.coord_offset[0],
+                               DataSpace(mem_space).select_hyperslab(
+                                       &item.send_offset[0], nullptr,
+                                       &item.send_count[0], nullptr),
+                               d_type, data);
+
+        dist_obj.add_link_recv(&item.coord_offset[0],
+                               DataSpace(mem_space).select_hyperslab(
+                                       &item.recv_offset[0], nullptr,
+                                       &item.recv_count[0], nullptr),
+                               d_type, data);
+    }
+
+    dist_obj.sync();
+
+    return std::move(dist_obj);
+}
+
+
 } //namespace policy
 } //namespace manifold
 namespace traits

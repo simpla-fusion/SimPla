@@ -7,7 +7,7 @@
 
 #ifndef PARALLEL_TBB_H_
 #define PARALLEL_TBB_H_
-
+#define TBB_IMPLEMENT_CPP0X true
 #include <tbb/tbb.h>
 
 namespace simpla { namespace parallel

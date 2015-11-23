@@ -63,7 +63,7 @@ template<typename ...> struct Expression;
  *  ------------------------|-------------
  *  `M( const M& )` 		| Copy constructor.
  *  `~M()` 				    | Destructor.
- *  `base_manifold_type`		    | BaseManifold type of geometry, which describes coordinates and Metric
+ *  `mesh_type`		    | BaseManifold type of geometry, which describes coordinates and Metric
  *  `mesh_type`		    | Topology structure of geometry,   Topology of grid points
  *  `coordiantes_type` 	    | data type of coordinates, i.e. nTuple<3,Real>
  *  `index_type`			| data type of the index of grid points, i.e. unsigned long
@@ -135,10 +135,8 @@ template<typename TMesh, typename ...Policies>
 class Manifold<TMesh, Policies ...>
         : public TMesh, public Policies ...
 {
-    typedef TMesh base_manifold_type;
 
 public:
-
 
     typedef TMesh mesh_type;
 
@@ -159,11 +157,11 @@ public:
     using mesh_type::inv_dual_volume;
     using mesh_type::inner_product;
 
-    Manifold() : Policies(static_cast<base_manifold_type &>(*this))... { }
+    Manifold() : Policies(static_cast<mesh_type &>(*this))... { }
 
     virtual ~Manifold() { }
 
-    Manifold(this_type const &other) : base_manifold_type(other), Policies(other)... { }
+    Manifold(this_type const &other) : mesh_type(other), Policies(other)... { }
 
     this_type &operator=(const this_type &other)
     {
@@ -183,27 +181,27 @@ private:
     TEMPLATE_DISPATCH(print, inline, const)
 
 public:
-    void swap(const this_type &other) { _dispatch_swap<base_manifold_type, Policies...>(other); }
+    void swap(const this_type &other) { _dispatch_swap<mesh_type, Policies...>(other); }
 
     template<typename TDict>
     void load(TDict const &dict)
     {
         auto d = dict["Manifold"];
-        _dispatch_load<base_manifold_type, Policies...>(d);
+        _dispatch_load<mesh_type, Policies...>(d);
     }
 
 
     void deploy()
     {
         mesh_type::deploy();
-        _dispatch_deploy<base_manifold_type, Policies...>();
+        _dispatch_deploy<mesh_type, Policies...>();
     }
 
     template<typename OS>
     OS &print(OS &os) const
     {
         os << "Manifold={" << std::endl;
-        _dispatch_print<base_manifold_type, Policies...>(os);
+        _dispatch_print<mesh_type, Policies...>(os);
         os << "}, # Manifold " << std::endl;
         return os;
     }
@@ -242,20 +240,39 @@ public:
     inline auto access(Field<Expression<TD...> > const &f, id_type s) const
     DECL_RET_TYPE((this->calculus_policy::eval(f, s)))
 
-    template<typename TOP, typename T, typename ...Args>
-    void for_each(TOP const &op, T *self, Args &&... args) const
+    template<typename TOP, typename T, typename TM, int IFORM, typename ...Args>
+    void for_each(TOP const &op, Field<T, TM, std::integral_constant<int, IFORM> > *self, Args &&... args) const
     {
         ASSERT(self != nullptr);
+
         self->deploy();
 
-        this->parallel_policy::for_each(*this, op, self, std::forward<Args>(args)...);
+        this->parallel_policy::template for_each<IFORM, T>(
+                [&](typename mesh_type::range_type const &r)
+                {
+                    for (auto const &s:r)
+                    {
+                        op(access(*self, s), access(std::forward<Args>(args), s)...);
+                    }
+                }, &self->data()
+        );
 
     }
 
-    template<typename TOP, typename ...Args>
-    void for_each(TOP const &op, Args &&... args) const
+    template<typename TOP, typename T, typename ...Args>
+    void for_each(TOP const &op, T const &first, Args &&... args) const
     {
-        this->parallel_policy::for_each(*this, op, std::forward<Args>(args)...);
+        static constexpr int IFORM = traits::iform<T>::value;
+        typedef traits::value_type_t<T> value_type;
+
+        this->parallel_policy::template for_each<IFORM, value_type>(
+                [&](typename mesh_type::range_type const &r)
+                {
+                    for (auto const &s:r)
+                    {
+                        op(access(first, s), access(std::forward<Args>(args), s)...);
+                    }
+                }, nullptr);
     }
 
 

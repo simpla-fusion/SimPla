@@ -38,7 +38,7 @@ struct GEqdsk::pimpl_s
 
     typedef MultiDimesionInterpolation<BiLinearInterpolation, Real> inter2d_type;
 
-    nTuple<int, 3> m_dims_ = {1, 1, 1};
+    nTuple<int, 3> m_dims_ { 1, 1, 1 } ;
     point_type m_rzmin_;
     point_type m_rzmax_;
 

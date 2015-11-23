@@ -53,25 +53,25 @@ public:
         return os;
     }
 
-    template<typename TV> using storage_type=std::shared_ptr<TV>;
+    template<typename TV> using storage_type=std::shared_ptr<void>;
 
     void deploy() { }
 
     template<typename TV, typename ...Others>
-    inline TV &at(storage_type<TV> &d, id_type s) const
+    inline TV &at(std::shared_ptr<void> &d, id_type s) const
     {
-        return d.get()[m_geo_.hash(s)];
+        return reinterpret_cast<TV *>(d.get())[m_geo_.hash(s)];
     }
 
 
     template<typename TV, typename ...Others>
-    inline TV const &at(storage_type<TV> const &d, id_type s) const
+    inline TV const &at(std::shared_ptr<void> const &d, id_type s) const
     {
-        return d.get()[m_geo_.hash(s)];
+        return reinterpret_cast<TV *>(d.get())[m_geo_.hash(s)];
     }
 
     template<typename TV, int IFORM>
-    DataSet dataset(storage_type<TV> const &d) const
+    DataSet dataset(std::shared_ptr<void> const &d) const
     {
         DataSet res;
 
@@ -80,6 +80,7 @@ public:
         std::tie(res.dataspace, res.memory_space) = dataspace<IFORM>();
 
         res.datatype = traits::datatype<TV>::create();
+
         return std::move(res);
     };
 private:
@@ -98,18 +99,18 @@ private:
 
 public:
     template<int IFORM, typename TV>
-    void alloc_memory(storage_type<TV> *d) const
+    void alloc_memory(std::shared_ptr<void> *d) const
     {
         if (*d == nullptr)
         {
-            *d = SingletonHolder<MemoryPool>::instance().alloc<TV>(memory_size(IFORM));
+            *d = SingletonHolder<MemoryPool>::instance().raw_alloc(sizeof(TV) * memory_size(IFORM));
         }
     };
 
     template<int IFORM, typename TV>
-    void clear(storage_type<TV> *d) const
+    void clear(std::shared_ptr<void> *d) const
     {
-        alloc_memory<IFORM>(d);
+        alloc_memory<IFORM, TV>(d);
         size_t ie = memory_size(IFORM) * sizeof(TV);
         char *p = reinterpret_cast<char *>(d->get());
         memset(p, 0, memory_size(IFORM) * sizeof(TV));
