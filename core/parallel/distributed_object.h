@@ -19,9 +19,9 @@ namespace simpla { namespace parallel
 
 struct DistributedObject
 {
-    DistributedObject(MPIComm &);
+    DistributedObject();
 
-    DistributedObject(DistributedObject const &);
+    DistributedObject(DistributedObject const &) = delete;
 
     virtual ~DistributedObject();
 
@@ -31,6 +31,27 @@ struct DistributedObject
 
     virtual bool is_ready() const;
 
+
+    template<typename T, typename ...Others>
+    void add(T const &args, Others &&...others)
+    {
+        add(traits::get_dataset(args));
+        add(std::forward<Others>(others)...);
+    }
+
+    template<typename T>
+    void add(T const &args)
+    {
+        add(traits::get_dataset(args));
+    }
+
+    template<typename T>
+    void add(T *args)
+    {
+        add(traits::get_dataset(*args));
+    }
+
+    void add(DataSet ds);
 
     void add_link(bool is_send, int const coord_offset[], int size,
                   DataType const &d_type, std::shared_ptr<void> *p);
@@ -43,7 +64,6 @@ struct DistributedObject
 
     template<typename ...Args>
     void add_link_recv(Args &&...args) { add_link(false, std::forward<Args>(args)...); };
-
 
 private:
 

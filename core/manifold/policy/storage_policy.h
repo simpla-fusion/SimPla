@@ -93,7 +93,6 @@ private:
         {
             res *= (m_geo_.m_memory_max_[i] - m_geo_.m_memory_min_[i]);
         }
-
         return res;
     }
 
@@ -146,12 +145,11 @@ public:
 
         f_start = (m_geo_.m_local_min_ - m_geo_.m_min_);
 
-
         m_dims = (m_geo_.m_memory_max_ - m_geo_.m_memory_min_);
 
-        m_start = (m_geo_.m_local_min_ - m_geo_.m_min_);
+        m_start = (m_geo_.m_local_min_ - m_geo_.m_memory_min_);
 
-        if ((IFORM == EDGE || IFORM == FACE))
+    if ((IFORM == EDGE || IFORM == FACE))
         {
             f_ndims = ndims + 1;
 

@@ -73,7 +73,7 @@ static constexpr Real INIFITY = std::numeric_limits<Real>::infinity();
 
 static constexpr Real EPSILON = std::numeric_limits<Real>::epsilon();
 
-static constexpr unsigned int MAX_NDIMS_OF_ARRAY = 10;
+static constexpr unsigned int MAX_NDIMS_OF_ARRAY = 5;
 static constexpr unsigned int CARTESIAN_XAXIS = 0;
 static constexpr unsigned int CARTESIAN_YAXIS = 1;
 static constexpr unsigned int CARTESIAN_ZAXIS = 2;

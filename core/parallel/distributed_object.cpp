@@ -15,9 +15,9 @@ namespace simpla { namespace parallel
 
 struct DistributedObject::pimpl_s
 {
-    pimpl_s(MPIComm &);
+    pimpl_s();
 
-    pimpl_s(pimpl_s const &) = default;
+    pimpl_s(pimpl_s const &) = delete;
 
     ~pimpl_s() { }
 
@@ -36,7 +36,6 @@ struct DistributedObject::pimpl_s
 
     };
 
-    MPIComm &m_comm_;
 
     int m_object_id_;
 
@@ -53,23 +52,18 @@ struct DistributedObject::pimpl_s
 };
 
 //! Default constructor
-DistributedObject::DistributedObject(MPIComm &comm)
-        : pimpl_(new pimpl_s(comm))
+DistributedObject::DistributedObject()
+        : pimpl_(new pimpl_s())
 {
-
 }
 
-DistributedObject::DistributedObject(DistributedObject const &other) : pimpl_(new pimpl_s(*other.pimpl_))
-{
-
-}
 
 DistributedObject::~DistributedObject()
 {
 
 }
 
-DistributedObject::pimpl_s::pimpl_s(MPIComm &comm) : m_comm_(comm), m_object_id_(m_comm_.generate_object_id())
+DistributedObject::pimpl_s::pimpl_s() : m_object_id_(GLOBAL_COMM.generate_object_id())
 {
 
 }
@@ -77,13 +71,16 @@ DistributedObject::pimpl_s::pimpl_s(MPIComm &comm) : m_comm_(comm), m_object_id_
 
 void DistributedObject::sync()
 {
-
+    if (!GLOBAL_COMM.is_valid())
+    {
+        return;
+    }
     for (auto const &item : pimpl_->m_send_links_)
     {
         MPI_Request req;
 
         MPI_ERROR(MPI_Isend(item.data->get(), item.size, item.type.type(), item.dest_id,
-                            item.tag, pimpl_->m_comm_.comm(), &req));
+                            item.tag, GLOBAL_COMM.comm(), &req));
 
         pimpl_->m_mpi_requests_.push_back(std::move(req));
     }
@@ -95,7 +92,7 @@ void DistributedObject::sync()
         {
             MPI_Status status;
 
-            MPI_ERROR(MPI_Probe(item.dest_id, item.tag, pimpl_->m_comm_.comm(), &status));
+            MPI_ERROR(MPI_Probe(item.dest_id, item.tag, GLOBAL_COMM.comm(), &status));
 
             // When probe returns, the status object has the size and other
             // attributes of the incoming message. Get the size of the message
@@ -115,7 +112,7 @@ void DistributedObject::sync()
         MPI_Request req;
 
         MPI_ERROR(MPI_Irecv(item.data->get(), item.size, item.type.type(), item.dest_id,
-                            item.tag, pimpl_->m_comm_.comm(), &req));
+                            item.tag, GLOBAL_COMM.comm(), &req));
 
         pimpl_->m_mpi_requests_.push_back(std::move(req));
     }
@@ -126,10 +123,11 @@ void DistributedObject::sync()
 void DistributedObject::wait()
 {
 
-    if (pimpl_->m_comm_.is_valid() && !pimpl_->m_mpi_requests_.empty())
+    if (GLOBAL_COMM.is_valid() && !pimpl_->m_mpi_requests_.empty())
     {
 
-        MPI_ERROR(MPI_Waitall(pimpl_->m_mpi_requests_.size(), const_cast<MPI_Request *>(&(pimpl_->m_mpi_requests_[0])),
+        MPI_ERROR(MPI_Waitall(static_cast<int>(pimpl_->m_mpi_requests_.size()),
+                              const_cast<MPI_Request *>(&(pimpl_->m_mpi_requests_[0])),
                               MPI_STATUSES_IGNORE));
 
         pimpl_->m_mpi_requests_.clear();
@@ -160,7 +158,7 @@ void DistributedObject::pimpl_s::add_link(bool is_send, int const coord_offset[]
 {
     int dest_id, send_tag, recv_tag;
 
-    std::tie(dest_id, send_tag, recv_tag) = m_comm_.make_send_recv_tag(m_object_id_, &coord_offset[0]);
+    std::tie(dest_id, send_tag, recv_tag) = GLOBAL_COMM.make_send_recv_tag(m_object_id_, &coord_offset[0]);
 
     if (is_send)
     {
@@ -183,9 +181,99 @@ void DistributedObject::add_link(bool is_send, int const coord_offset[], int siz
 void DistributedObject::add_link(bool is_send, int const coord_offset[], DataSpace const &d_space,
                                  DataType const &d_type, std::shared_ptr<void> *p)
 {
-
     pimpl_->add_link(is_send, coord_offset, 1, MPIDataType::create(d_type, d_space), p);
+}
 
+
+void DistributedObject::add(DataSet ds)
+{
+
+    typedef typename DataSpace::index_tuple index_tuple;
+
+    int ndims;
+    index_tuple dimensions;
+    index_tuple start;
+//    index_tuple stride;
+    index_tuple count;
+//    index_tuple block;
+
+    std::tie(ndims, dimensions, start, std::ignore, count, std::ignore) = ds.memory_space.shape();
+
+    index_tuple ghost_width = start;
+
+
+    index_tuple send_offset, send_count;
+    index_tuple recv_offset, recv_count;
+
+    for (unsigned int tag = 0, tag_e = (1U << (ndims * 2)); tag < tag_e; ++tag)
+    {
+        nTuple<int, 3> coord_offset;
+
+        bool tag_is_valid = true;
+
+        for (int n = 0; n < ndims; ++n)
+        {
+            if (((tag >> (n * 2)) & 3UL) == 3UL)
+            {
+                tag_is_valid = false;
+                break;
+            }
+
+            coord_offset[n] = ((tag >> (n * 2)) & 3U) - 1;
+
+            switch (coord_offset[n])
+            {
+                case 0:
+                    send_offset[n] = start[n];
+                    send_count[n] = count[n];
+                    recv_offset[n] = start[n];
+                    recv_count[n] = count[n];
+
+                    break;
+                case -1: //left
+
+                    send_offset[n] = start[n];
+                    send_count[n] = ghost_width[n];
+                    recv_offset[n] = start[n] - ghost_width[n];
+                    recv_count[n] = ghost_width[n];
+
+
+                    break;
+                case 1: //right
+                    send_offset[n] = start[n] + count[n] - ghost_width[n];
+                    send_count[n] = ghost_width[n];
+                    recv_offset[n] = start[n] + count[n];
+                    recv_count[n] = ghost_width[n];
+
+                    break;
+                default:
+                    tag_is_valid = false;
+                    break;
+            }
+
+            if (send_count[n] == 0 || recv_count[n] == 0)
+            {
+                tag_is_valid = false;
+                break;
+            }
+
+        }
+
+        if (tag_is_valid && (coord_offset[0] != 0 || coord_offset[1] != 0 || coord_offset[2] != 0))
+        {
+            this->add_link_send(
+                    &coord_offset[0],
+                    DataSpace(ds.memory_space).select_hyperslab(&send_offset[0], nullptr, &send_count[0], nullptr),
+                    ds.datatype, &ds.data);
+
+            this->add_link_recv(
+                    &coord_offset[0],
+                    DataSpace(ds.memory_space).select_hyperslab(&recv_offset[0], nullptr, &recv_count[0], nullptr),
+                    ds.datatype, &ds.data);
+
+        }
+
+    }
 
 }
 

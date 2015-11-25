@@ -23,7 +23,7 @@
 
 #ifdef USE_TBB
 
-#include "parallel_tbb.h"
+#   include "parallel_tbb.h"
 //#elif _OPENMP
 //#include "multi_thread_openmp.h"
 //#include "parallel_openmp.h"
@@ -40,6 +40,8 @@ void init(int argc, char **argv);
 void close();
 
 std::string help_message();
+
+void sync(DataSet &ds);
 
 
 }}// namespace simpla { namespace parallel

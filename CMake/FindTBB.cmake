@@ -69,7 +69,7 @@ endif()
 if ( NOT TBB_ROOT )
     set(TBB_ROOT $ENV{TBB_ROOT})
 endif( )
-message ("TBB_ROOT:" ${TBB_ROOT} )
+
 if ( NOT TBB_ROOT )
     message( "TBB install not found in the system.")
 else ( ) 

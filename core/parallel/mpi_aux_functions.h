@@ -18,124 +18,125 @@
 #include "../gtl/ntuple.h"
 #include "../gtl/primitives.h"
 
-namespace simpla
+namespace simpla { namespace parallel
 {
 
-void reduce(void const* send_data, void * recv_data, size_t count,
-		DataType const & data_type, std::string const & op_c);
+void reduce(void const *send_data, void *recv_data, size_t count,
+            DataType const &data_type, std::string const &op_c);
 
-void allreduce(void const* send_data, void * recv_data, size_t count,
-		DataType const & data_type, std::string const & op_c);
+void allreduce(void const *send_data, void *recv_data, size_t count,
+               DataType const &data_type, std::string const &op_c);
 
 template<typename T>
-void reduce(T * send_data, T * recv_data, size_t count,
-		std::string const & op_c = "Sum")
+void reduce(T *send_data, T *recv_data, size_t count,
+            std::string const &op_c = "Sum")
 {
-	reduce(send_data, recv_data, count, traits::datatype<T>::create(), op_c);
+    reduce(send_data, recv_data, count, traits::datatype<T>::create(), op_c);
 
 }
 
 template<typename T>
-void allreduce(T * send_data, T * recv_data, size_t count,
-		std::string const & op_c = "Sum")
+void allreduce(T *send_data, T *recv_data, size_t count,
+               std::string const &op_c = "Sum")
 {
-	allreduce(send_data, recv_data, count, traits::datatype<T>::create, op_c);
+    allreduce(send_data, recv_data, count, traits::datatype<T>::create, op_c);
 }
 
 template<typename T>
-T reduce(T send, std::string const & op_c = "Sum")
+T reduce(T send, std::string const &op_c = "Sum")
 {
-	T recv;
+    T recv;
 
-	reduce(&send, &recv, 1, op_c);
+    reduce(&send, &recv, 1, op_c);
 
-	return recv;
+    return recv;
 }
 
 template<typename T>
-void reduce(T * p_send, std::string const & op_c = "Sum")
+void reduce(T *p_send, std::string const &op_c = "Sum")
 {
-	T recv;
+    T recv;
 
-	reduce(p_send, &recv, 1, op_c);
+    reduce(p_send, &recv, 1, op_c);
 
-	*p_send = recv;
+    *p_send = recv;
 
 }
 
 template<typename T, int DIMS>
-nTuple<T, DIMS> reduce(nTuple<T, DIMS> const & send, std::string const & op_c =
-		"Sum")
+nTuple<T, DIMS> reduce(nTuple<T, DIMS> const &send, std::string const &op_c =
+"Sum")
 {
-	nTuple<T, DIMS> recv;
+    nTuple<T, DIMS> recv;
 
-	reduce(&send[0], &recv[0], DIMS, op_c);
+    reduce(&send[0], &recv[0], DIMS, op_c);
 
-	return recv;
+    return recv;
 }
 
 template<typename T, int DIMS>
-void reduce(nTuple<T, DIMS> * p_send, std::string const & op_c = "Sum")
+void reduce(nTuple<T, DIMS> *p_send, std::string const &op_c = "Sum")
 {
-	nTuple<T, DIMS> recv;
+    nTuple<T, DIMS> recv;
 
-	reduce(&(*p_send)[0], &recv[0], DIMS, op_c);
+    reduce(&(*p_send)[0], &recv[0], DIMS, op_c);
 
-	*p_send = recv;
+    *p_send = recv;
 
 }
 
 template<typename T>
-T allreduce(T send, std::string const & op_c = "Sum")
+T allreduce(T send, std::string const &op_c = "Sum")
 {
-	T recv;
+    T recv;
 
-	allreduce(&send, &recv, 1, op_c);
+    allreduce(&send, &recv, 1, op_c);
 
-	return recv;
+    return recv;
 }
 
 template<typename T>
-void allreduce(T * p_send, std::string const & op_c = "Sum")
+void allreduce(T *p_send, std::string const &op_c = "Sum")
 {
-	T recv;
+    T recv;
 
-	allreduce(p_send, &recv, 1, op_c);
+    allreduce(p_send, &recv, 1, op_c);
 
-	*p_send = recv;
+    *p_send = recv;
 
 }
 
 template<typename T, int DIMS>
-nTuple<T, DIMS> allreduce(nTuple<T, DIMS> const & send,
-		std::string const & op_c = "Sum")
+nTuple<T, DIMS> allreduce(nTuple<T, DIMS> const &send,
+                          std::string const &op_c = "Sum")
 {
-	nTuple<T, DIMS> recv;
+    nTuple<T, DIMS> recv;
 
-	allreduce(&send[0], &recv[0], DIMS, op_c);
+    allreduce(&send[0], &recv[0], DIMS, op_c);
 
-	return recv;
+    return recv;
 }
 
 template<typename T, int DIMS>
-void allreduce(nTuple<T, DIMS> * p_send, std::string const & op_c = "Sum")
+void allreduce(nTuple<T, DIMS> *p_send, std::string const &op_c = "Sum")
 {
-	nTuple<T, DIMS> recv;
+    nTuple<T, DIMS> recv;
 
-	allreduce(&(*p_send)[0], &recv[0], DIMS, op_c);
+    allreduce(&(*p_send)[0], &recv[0], DIMS, op_c);
 
-	*p_send = recv;
+    *p_send = recv;
 
 }
+
 std::tuple<std::shared_ptr<ByteType>, int> update_ghost_unorder(
-		void const* send_buffer, std::vector<std::tuple<int, // dest;
-				int, // send_tag;
-				int, // recv_tag;
-				int, // send buffer begin;
-				int  // send buffer size;
-				>> const & info);
+        void const *send_buffer, std::vector<std::tuple<int, // dest;
+        int, // send_tag;
+        int, // recv_tag;
+        int, // send buffer begin;
+        int  // send buffer size;
+>> const &info);
 
-void bcast_string(std::string * filename_);
+void bcast_string(std::string *filename_);
 
-}  // namespace simpla
+}}  // namespace simpla { namespace parallel
 #endif /* MPI_AUX_FUNCTIONS_H_ */

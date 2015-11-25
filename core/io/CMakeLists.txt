@@ -1,6 +1,9 @@
 SET(IO_SRC io.cpp data_stream.cpp)
-add_library(io ${IO_SRC} ${MPI_C_LIBRARIES} ${HDF5_C_LIBRARIES})
 
+link_directories(${HDF5_LIBRARY_DIRS})
+add_library(io ${IO_SRC})
+
+target_link_libraries(io ${HDF5_C_LIBRARIES})
 
 #my_test(data_stream_test    )
 #target_link_libraries(data_stream_test   io parallel utilities  dataset)

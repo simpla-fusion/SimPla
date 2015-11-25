@@ -214,7 +214,7 @@ std::tuple<bool, std::string> DataStream::cd(std::string const &url,
                                     }, 0, 4);
         }
 
-        bcast_string(&obj_name);
+        parallel::bcast_string(&obj_name);
     }
 
     bool is_existed = false;
@@ -498,7 +498,7 @@ std::tuple<std::string, hid_t> DataStream::pimpl_s::open_file(
 
     }
 
-    bcast_string(&filename);
+    parallel::bcast_string(&filename);
 
 
     hid_t f_id;
@@ -836,9 +836,10 @@ std::string DataStream::write(std::string const &url, DataSet const &ds,
         << "[ URL = \"" << url << "\","
         << " Data is " << ((ds.data != nullptr) ? "not" : " ") << " empty. "
         << " Datatype is " << ((ds.datatype.is_valid()) ? "" : "not") << " valid. "
-        << " Data Space is " << ((ds.dataspace.is_valid()) ? "" : "not") << " valid. size=" << ds.dataspace.size()
+        << " Data Space is " << ((ds.dataspace.is_valid()) ? "" : "not")
+        << " valid. size=" << ds.dataspace.num_of_elements()
         << " Memory Space is " << ((ds.memory_space.is_valid()) ? "" : "not") << " valid.  size=" <<
-        ds.memory_space.size()
+        ds.memory_space.num_of_elements()
         << " Space is " << ((ds.memory_space.is_valid()) ? "" : "not") << " valid."
         << " ]"
 
@@ -949,18 +950,14 @@ std::string DataStream::write(std::string const &url, DataSet const &ds,
     }
 
 // create property list for collective DataSet write.
-//#if  USE_MPI
     if (GLOBAL_COMM.is_valid())
     {
-
         hid_t plist_id = H5Pcreate(H5P_DATASET_XFER);
         H5_ERROR(H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_INDEPENDENT));
         H5_ERROR(H5Dwrite(dset, d_type, m_space, f_space, plist_id, ds.data.get()));
         H5_ERROR(H5Pclose(plist_id));
-
     }
     else
-//#endif
     {
         H5_ERROR(H5Dwrite(dset, d_type, m_space, f_space, H5P_DEFAULT, ds.data.get()));
     }

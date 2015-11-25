@@ -97,12 +97,12 @@ void EMPlasma::check_point()
     io::cd("record");
 
     LOGGER << SAVE_RECORD(Bv) << std::endl;
-    LOGGER << SAVE_RECORD(B0v) << std::endl;
-    LOGGER << SAVE_RECORD(Ev) << std::endl;
-
-    LOGGER << SAVE_RECORD(B0) << std::endl;
-    LOGGER << SAVE_RECORD(B1) << std::endl;
-    LOGGER << SAVE_RECORD(E1) << std::endl;
+//    LOGGER << SAVE_RECORD(B0v) << std::endl;
+//    LOGGER << SAVE_RECORD(Ev) << std::endl;
+//
+//    LOGGER << SAVE_RECORD(B0) << std::endl;
+//    LOGGER << SAVE_RECORD(B1) << std::endl;
+//    LOGGER << SAVE_RECORD(E1) << std::endl;
 
 }
 

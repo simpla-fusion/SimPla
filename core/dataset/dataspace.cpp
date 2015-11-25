@@ -100,7 +100,8 @@ DataSpace DataSpace::create_simple(int ndims, const index_type *dims)
 
 bool DataSpace::is_valid() const
 {
-    return !!(pimpl_);
+    return (!!(pimpl_))
+           && (std::get<2>(pimpl_->m_d_shape_) + std::get<4>(pimpl_->m_d_shape_) <= std::get<1>(pimpl_->m_d_shape_));
 }
 
 bool DataSpace::is_simple() const
@@ -129,6 +130,20 @@ size_t DataSpace::size() const
     return s;
 }
 
+size_t DataSpace::num_of_elements() const
+{
+    size_t s = 1;
+
+    int ndims = std::get<0>(pimpl_->m_d_shape_);
+
+    auto const &count = std::get<4>(pimpl_->m_d_shape_);
+
+    for (int i = 0; i < ndims; ++i)
+    {
+        s *= count[i];
+    }
+    return s;
+}
 
 DataSpace &DataSpace::select_hyperslab(index_type const *start,
                                        index_type const *_stride,

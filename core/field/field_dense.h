@@ -98,11 +98,12 @@ public:
 
     DataSet dataset() const { return std::move(m_mesh_.template dataset<value_type, iform>(m_data_)); }
 
-//    auto sync() DECL_RET_TYPE((m_mesh_.template sync<value_type, iform>(m_data_)))
+    DataSet dataset() { return std::move(m_mesh_.template dataset<value_type, iform>(m_data_)); }
 
     storage_policy &data() { return m_data_; }
 
     storage_policy const &data() const { return m_data_; }
+
 
     /**
      * @name assignment
@@ -184,7 +185,7 @@ public:
      *  @{
      */
 
-    void sync() { m_mesh_.template sync<IFORM, value_type>(&m_data_).wait(); }
+    void sync() { m_mesh_.sync(this); }
 
 
     value_type &operator[](id_type const &s)

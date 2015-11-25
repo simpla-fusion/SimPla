@@ -247,32 +247,29 @@ public:
 
         self->deploy();
 
-        this->parallel_policy::template for_each<IFORM, T>(
+        this->parallel_policy::template update<IFORM>(
                 [&](typename mesh_type::range_type const &r)
                 {
                     for (auto const &s:r)
                     {
                         op(access(*self, s), access(std::forward<Args>(args), s)...);
                     }
-                }, &self->data()
+                }, self
         );
 
     }
 
-    template<typename TOP, typename T, typename ...Args>
-    void for_each(TOP const &op, T const &first, Args &&... args) const
+    template<typename TOP, typename   ...Args>
+    void for_each(TOP const &op, Args &&... args) const
     {
-        static constexpr int IFORM = traits::iform<T>::value;
-        typedef traits::value_type_t<T> value_type;
+        static constexpr int IFORM = traits::iform<typename traits::unpack_type<0, Args...>::type>::value;
 
-        this->parallel_policy::template for_each<IFORM, value_type>(
+        this->parallel_policy::template update<IFORM>(
                 [&](typename mesh_type::range_type const &r)
                 {
-                    for (auto const &s:r)
-                    {
-                        op(access(first, s), access(std::forward<Args>(args), s)...);
-                    }
-                }, nullptr);
+                    for (auto const &s:r) { op(access(std::forward<Args>(args), s)...); }
+                }
+        );
     }
 
 

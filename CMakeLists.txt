@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
+cmake_policy(SET CMP0015 NEW)
 
 PROJECT(SimPla CXX C)
 
@@ -25,26 +26,49 @@ SET(ARCH intel64)
 
 MESSAGE(STATUS "Using C++ Compiler ${CMAKE_CXX_COMPILER_ID} ")
 
+SET(COMPILER $ENV{PRG_ENV})
+
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
     SET(CMAKE_CXX_FLAGS "-std=c++11  -fcolor-diagnostics   -ftemplate-backtrace-limit=0   ")
-    SET(COMPILER clang-3.6)
+
 elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
     SET(CMAKE_CXX_FLAGS "-std=c++11")
-    SET(MPI_C_COMPILER mpiicc)
-    SET(MPI_CXX_COMPILER mpiicpc)
-    SET(MPI_Fortran_COMPILER mpiifort)
 else ()
     SET(CMAKE_CXX_FLAGS "  -std=c++11   ")
 endif ()
 
 
-FIND_PACKAGE(Lua)
-INCLUDE_DIRECTORIES(${LUA_INCLUDE_DIR})
 include(FindPackageHandleStandardArgs)
 
-IF (NOT MPI_ROOT)
-    FIND_PACKAGE(MPI)
-ELSE (NOT MPI_ROOT)
+
+###########################################################
+IF (DEFINED ENV{LUA_ROOT})
+
+    set(LUA_ROOT $ENV{LUA_ROOT})
+
+    find_path(LUA_INCLUDE_DIR
+            NAMES lua.h
+            HINTS ${MPI_ROOT}/include/
+            DOC "MPI header file path"
+            )
+    SET(LUA_LIBRARY_DIRS ${LUA_ROOT}/lib/)
+
+    find_library(LUA_LIBRARY liblua.a HINTS ${LUA_LIBRARY_DIRS})
+
+    SET(LUA_LIBRARIES ${LUA_LIBRARY})
+
+    FIND_PACKAGE_HANDLE_STANDARD_ARGS(LUA DEFAULT_MSG LUA_LIBRARIES LUA_INCLUDE_DIRS LUA_ROOT)
+ELSE (DEFINED ENV{LUA_ROOT})
+    FIND_PACKAGE(Lua)
+ENDIF (DEFINED ENV{LUA_ROOT})
+
+IF (LUA_FOUND)
+    INCLUDE_DIRECTORIES(${LUA_INCLUDE_DIR})
+ENDIF (LUA_FOUND)
+
+###########################################################
+IF (DEFINED ENV{MPI_ROOT})
+    set(MPI_ROOT $ENV{MPI_ROOT})
     find_path(MPI_INCLUDE_DIRS
             NAMES mpi.h
             HINTS ${MPI_ROOT}/include/
@@ -57,49 +81,60 @@ ELSE (NOT MPI_ROOT)
     SET(MPI_C_LIBRARIES ${MPI_LIBRARY})
 
     FIND_PACKAGE_HANDLE_STANDARD_ARGS(MPI DEFAULT_MSG MPI_C_LIBRARIES MPI_INCLUDE_DIRS MPI_ROOT)
-ENDIF (NOT MPI_ROOT)
+
+    mark_as_advanced(MPI_C_LIBRARIES)
+
+ELSE (DEFINED ENV{MPI_ROOT})
+    SET(MPI_ROOT /usr/lib/openmpi)
+    FIND_PACKAGE(MPI)
+ENDIF (DEFINED ENV{MPI_ROOT})
+
 IF (MPI_FOUND)
-    MESSAGE(MPI ${MPI_INCLUDE_DIRS})
-    INCLUDE_DIRECTORIES(${MPI_INCLUDE_DIRS})
+    INCLUDE_DIRECTORIES(${MPI_INCLUDE_PATH})
     ADD_DEFINITIONS(-DUSE_MPI -DMPICH_SKIP_MPICXX)
     ADD_DEFINITIONS(-DUSE_MPI -DOMPI_SKIP_MPICXX)
 ENDIF (MPI_FOUND)
 
-IF (ENV{TBB_ROOT})
-    SET(TBB_ROOT $ENV{TBB_ROOT})
-ENDIF ()
-IF (NOT TBB_ROOT)
-    FIND_PACKAGE(TBB)
-ELSE (NOT TBB_ROOT)
+###########################################################
+IF (DEFINED ENV{TBB_ROOT})
+    set(TBB_ROOT $ENV{TBB_ROOT})
+
     find_path(TBB_INCLUDE_DIRS
             NAMES tbb/tbb.h
             HINTS ${TBB_ROOT}/include
             DOC "TBB header file path"
             )
-    SET(TBB_LIBRARY_DIRS ${TBB_ROOT}/lib/${ARCH}/${COMPILER})
 
-    find_library(TBB_LIBRARY tbb HINTS ${TBB_LIBRARY_DIRS})
+    set(TBB_LIBRARY_DIRS $ENV{TBB_LIBRARY_DIRS})
 
-    find_library(TBB_MALLOC_LIBRARY tbbmalloc HINTS ${TBB_LIBRARY_DIRS})
+    find_library(TBB_LIBRARY tbb HINTS ${TBB_ROOT}/lib/${ARCH}/${COMPILER})
 
-    SET(TBB_LIBRARIES ${TBB_LIBRARY} ${TBB_MALLOC_LIBRARY})
+    find_library(TBB_MALLOC_LIBRARY tbbmalloc ${TBB_ROOT}/lib/${ARCH}/${COMPILER})
+
 
     FIND_PACKAGE_HANDLE_STANDARD_ARGS(TBB DEFAULT_MSG TBB_LIBRARIES TBB_INCLUDE_DIRS TBB_ROOT)
 
-ENDIF (NOT TBB_ROOT)
+ELSE (DEFINED ENV{TBB_ROOT})
+    SET(TBB_ROOT /usr/local)
+    FIND_PACKAGE(TBB)
+    SET(TBB_LIBRARIES ${TBB_LIBRARY} ${TBB_MALLOC_LIBRARY})
+
+ENDIF (DEFINED ENV{TBB_ROOT})
 
 IF (TBB_FOUND)
-    ADD_DEFINITIONS(-DUSE_TBB)
-    INCLUDE_DIRECTORIES(  ${TBB_INCLUDE_DIRS})
-ENDIF (TBB_FOUND)
 
-IF (ENV{HDF5_ROOT})
+    ADD_DEFINITIONS(-DUSE_TBB)
+
+    INCLUDE_DIRECTORIES(${TBB_INCLUDE_DIRS})
+
+
+ENDIF (TBB_FOUND)
+###########################################################
+
+IF (DEFINED ENV{HDF5_ROOT})
+
     SET(HDF5_ROOT $ENV{HDF5_ROOT})
-ENDIF ()
-IF (NOT HDF5_ROOT)
-#    SET(HDF5_USE_STATIC_LIBRARIES OFF)
-#    FIND_PACKAGE(HDF5 1.8 COMPONENTS C HL)
-ELSE (NOT HDF5_ROOT)
+
     find_path(HDF5_INCLUDE_DIRS
             NAMES hdf5.h
             HINTS ${HDF5_ROOT}/include
@@ -108,22 +143,33 @@ ELSE (NOT HDF5_ROOT)
     SET(HDF5_LIBRARY_DIRS ${HDF5_ROOT}/lib)
 
     find_library(HDF5_LIBRARY hdf5 HINTS ${HDF5_LIBRARY_DIRS})
+
     find_library(HDF5_hl_LIBRARY hdf5_hl HINTS ${HDF5_LIBRARY_DIRS})
 
-    SET(HDF5_C_LIBRARIES ${HDF5_LIBRARY} ${HDF5_hl_LIBRARY})
+    SET(HDF5_C_LIBRARIES z dl m ${HDF5_LIBRARY} ${HDF5_hl_LIBRARY})
 
     include(FindPackageHandleStandardArgs)
+
     FIND_PACKAGE_HANDLE_STANDARD_ARGS(HDF5 DEFAULT_MSG HDF5_C_LIBRARIES HDF5_INCLUDE_DIRS HDF5_ROOT)
-ENDIF (NOT HDF5_ROOT)
-MESSAGE(${HDF5_C_LIBRARIES})
+
+ELSE (DEFINED ENV{HDF5_ROOT})
+
+    SET(HDF5_USE_STATIC_LIBRARIES OFF)
+
+    FIND_PACKAGE(HDF5 1.8 COMPONENTS C HL)
+
+ENDIF (DEFINED ENV{HDF5_ROOT})
+
 IF (HDF5_FOUND)
-    INCLUDE_DIRECTORIES(  ${HDF5_INCLUDE_DIRS})
+    INCLUDE_DIRECTORIES(${HDF5_INCLUDE_DIRS})
     IF (HDF5_IS_PARALLEL)
         ADD_DEFINITIONS(-DUSE_PARALLEL_IO)
     ENDIF (HDF5_IS_PARALLEL)
-    #LINK_DIRECTORIES(${HDF5_LIBRARY_DIRS})
 ENDIF (HDF5_FOUND)
-#
+
+
+###########################################################
+
 #SET(Boost_USE_STATIC_LIBS ON) # only find static libs
 #SET(Boost_USE_MULTITHREADED ON)
 #SET(Boost_USE_STATIC_RUNTIME OFF)
@@ -151,10 +197,10 @@ ENDIF (HDF5_FOUND)
 #endif ()
 
 
-#IF(GTEST_ROOT)
+#IF (DEFINED ENV{HDF5_ROOT})
 #  INCLUDE(${GTEST_ROOT})
 #  INCLUDE_DIRECTORIES(${GTEST_ROOT}/include)
-#ELSE()
+#ELSE (DEFINED ENV{HDF5_ROOT})
 ExternalProject_Add(googletest
         PREFIX ${PROJECT_BINARY_DIR}/external_project
         #  URL   http://googletest.googlecode.com/files/gtest-1.7.0.zip
@@ -165,18 +211,11 @@ ExternalProject_Get_Property(googletest SOURCE_DIR)
 ExternalProject_Get_Property(googletest BINARY_DIR)
 INCLUDE_DIRECTORIES(${SOURCE_DIR}/include)
 LINK_DIRECTORIES(${BINARY_DIR})
-#ENDIF()
+#ENDIF(DEFINED ENV{HDF5_ROOT})
 
 
 #FIND_PACKAGE(CUDA 7.0)
 
-
-#SET(TBB_ARCH_PLATFORM intel64)
-#FIND_PACKAGE(TBB )
-#IF(TBB_FOUND)
-#	ADD_DEFINITIONS(-DUSE_TBB )
-#	INCLUDE_DIRECTORIES(  ${TBB_INCLUDE_DIR} )
-#ENDIF( )
 
 execute_process(COMMAND git describe --all --dirty --long
         OUTPUT_VARIABLE PROJECT_IDENTIFY
@@ -187,11 +226,10 @@ execute_process(COMMAND git describe --all --dirty --long
 MESSAGE(STATUS "Identify: ${PROJECT_IDENTIFY}")
 
 ADD_DEFINITIONS(-DIDENTIFY=\"${PROJECT_IDENTIFY}\")
-#ADD_DEFINITIONS(-Dsimpla=simpla )
 
 # workaround for CLion 1.0.x
 FILE(GLOB_RECURSE clion_all_headers ${CMAKE_SOURCE_DIR}/*.h)
-add_executable(all_clion ${clion_all_headers} dummy.h dummy.cpp)
+add_executable(all_clion ${clion_all_headers} core/dummy.h core/dummy.cpp)
 
 add_subdirectory(core)
 add_subdirectory(applications)

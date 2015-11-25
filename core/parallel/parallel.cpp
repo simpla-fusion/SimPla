@@ -6,24 +6,51 @@
  */
 
 #include "../gtl/design_pattern/singleton_holder.h"
+#include "../gtl/utilities/parse_command_line.h"
 #include "mpi_comm.h"
+#include "distributed_object.h"
 
 namespace simpla { namespace parallel
 {
 
 void init(int argc, char **argv)
 {
-    SingletonHolder<simpla::MPIComm>::instance().init(argc, argv);
+    bool no_mpi = false;
+
+    parse_cmd_line(argc, argv,
+
+                   [&](std::string const &opt, std::string const &value) -> int
+                   {
+                       if (opt == "no-mpi") { no_mpi = true; }
+
+                       return CONTINUE;
+                   }
+
+    );
+
+    if (!no_mpi) { SingletonHolder<MPIComm>::instance().init(argc, argv); }
 }
 
 void close()
 {
-    SingletonHolder<simpla::MPIComm>::instance().close();
+    SingletonHolder<MPIComm>::instance().close();
 }
 
 std::string help_message()
 {
     return MPIComm::help_message();
+};
+
+template<typename ...Args>
+void sync(Args &&...args)
+{
+    if (GLOBAL_COMM.num_of_process() > 1)
+    {
+        DistributedObject dist_obj;
+        dist_obj.add(std::forward<Args>(args)...);
+        dist_obj.sync();
+        dist_obj.wait();
+    }
 };
 
 ///**

@@ -9,10 +9,9 @@
 #define CORE_PARALLEL_MPI_UPDATE_H_
 
 #include "mpi_comm.h"
-//#include "mpi_aux_functions.h"
 #include "mpi_datatype.h"
 
-namespace simpla
+namespace simpla { namespace parallel
 {
 
 /**
@@ -25,6 +24,7 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count);
 void wait_all_request(std::vector<MPI_Request> &requests);
 
 std::tuple<int, int, int> get_mpi_tag(int obj_id, int const *coord);
+
 
 
 //template<typename Integral>
@@ -90,6 +90,6 @@ std::tuple<int, int, int> get_mpi_tag(int obj_id, int const *coord);
 //		size_t const *ghost_width,
 //		std::vector<dist_sync_connection> *dist_connect);
 
-}  // namespace simpla
+}}//namespace simpla{namespace parallel
 
 #endif /* CORE_PARALLEL_MPI_UPDATE_H_ */

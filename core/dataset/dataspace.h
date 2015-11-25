@@ -28,11 +28,10 @@ struct DataSet;
  */
 class DataSpace
 {
-
+public:
     typedef size_t index_type;
     typedef nTuple <index_type, MAX_NDIMS_OF_ARRAY> index_tuple;
 
-public:
 
     typedef std::tuple<
             int // ndims
@@ -85,6 +84,8 @@ public:
     data_shape_s const &shape() const;
 
     size_t size() const;
+
+    size_t num_of_elements() const;
 
 private:
     struct pimpl_s;

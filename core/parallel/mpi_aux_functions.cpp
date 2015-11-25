@@ -27,7 +27,7 @@ extern "C"
 #include "mpi_comm.h"
 #include "mpi_datatype.h"
 
-namespace simpla
+namespace simpla { namespace parallel
 {
 
 
@@ -208,5 +208,5 @@ void bcast_string(std::string *filename_)
 
 }
 
-}
-// namespace simpla
+}}//namespace simpla { namespace parallel
+

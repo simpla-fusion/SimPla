@@ -22,7 +22,7 @@
 #include "../gtl/design_pattern/singleton_holder.h"
 #include "../gtl/utilities/utilities.h"
 
-namespace simpla
+namespace simpla { namespace parallel
 {
 
 class MPIComm
@@ -43,7 +43,7 @@ public:
 
     static std::string help_message();
 
-    MPI_Comm comm();
+    MPI_Comm  comm();
 
     MPI_Info info();
 
@@ -111,7 +111,7 @@ private:
     std::unique_ptr<pimpl_s> pimpl_;
 };
 
-#define GLOBAL_COMM   SingletonHolder<simpla::MPIComm>::instance()
+#define GLOBAL_COMM   SingletonHolder<::simpla::parallel::MPIComm>::instance()
 
 #define MPI_ERROR(_CMD_)                                                   \
 {                                                                          \
@@ -124,6 +124,7 @@ private:
     }                                                                      \
 }
 
-}// namespace simpla
+}}//namespace simpla{namespace parallel{
+
 
 #endif /* MPI_COMM_H_ */

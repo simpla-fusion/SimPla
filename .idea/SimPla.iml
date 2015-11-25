@@ -2,6 +2,7 @@
 <module type="CPP_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/CMake/FindTBB.cmake" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/CMake/utils.cmake" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/applications/CMakeLists.txt" isTestSource="false" />
@@ -34,6 +35,8 @@
       <sourceFolder url="file://$MODULE_DIR$/core/dataset/datatype.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/dataset/datatype_ext.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/dataset/dataview.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/dummy.cpp" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/dummy.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/field/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/field/field.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/field/field_comm.h" isTestSource="false" />
@@ -317,8 +320,6 @@
       <sourceFolder url="file://$MODULE_DIR$/core/task_flow/use_case.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/docs/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/docs/Doxyfile.in" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/dummy.cpp" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/dummy.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/example/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/example/em/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/example/em/demo_em.cpp" isTestSource="false" />
@@ -353,23 +354,17 @@
     <orderEntry type="module-library">
       <library name="Header Search Paths">
         <CLASSES>
-          <root url="file://$USER_HOME$/.CLion12/system/cmake/generated/82e76996/82e76996/Debug/external_project/googletest/include" />
-          <root url="file://$MODULE_DIR$/../../pkg/hdf5/1.8.16-prarllel/clang-3.6/openmpi-1.10.1/include" />
-          <root url="file://$MODULE_DIR$/../../pkg/openmpi/1.10.1/clang-3.6/include" />
-          <root url="file://$MODULE_DIR$/../../pkg/tbb/44/include" />
           <root url="file:///usr/include" />
           <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include" />
           <root url="file:///usr/lib/llvm-3.6/lib/clang/3.6.0/include" />
+          <root url="file:///usr/lib/openmpi/include" />
           <root url="file:///usr/local/include" />
         </CLASSES>
         <SOURCES>
-          <root url="file://$USER_HOME$/.CLion12/system/cmake/generated/82e76996/82e76996/Debug/external_project/googletest/include" />
-          <root url="file://$MODULE_DIR$/../../pkg/hdf5/1.8.16-prarllel/clang-3.6/openmpi-1.10.1/include" />
-          <root url="file://$MODULE_DIR$/../../pkg/openmpi/1.10.1/clang-3.6/include" />
-          <root url="file://$MODULE_DIR$/../../pkg/tbb/44/include" />
           <root url="file:///usr/include" />
           <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include" />
           <root url="file:///usr/lib/llvm-3.6/lib/clang/3.6.0/include" />
+          <root url="file:///usr/lib/openmpi/include" />
           <root url="file:///usr/local/include" />
         </SOURCES>
       </library>

@@ -15,7 +15,7 @@
 
 #include "../gtl/utilities/utilities.h"
 
-namespace simpla
+namespace simpla { namespace parallel
 {
 struct MPIComm::pimpl_s
 {
@@ -28,7 +28,9 @@ struct MPIComm::pimpl_s
     int m_object_id_count_;
 
     nTuple<int, NDIMS> m_topology_dims_;
+
     nTuple<int, NDIMS> m_topology_strides_;
+
     nTuple<int, NDIMS> m_topology_coord_;
 
 };
@@ -64,10 +66,8 @@ int MPIComm::num_of_process() const
 
 void MPIComm::init(int argc, char **argv)
 {
-    if (!pimpl_)
-    {
-        pimpl_ = std::unique_ptr<pimpl_s>(new pimpl_s);
-    }
+    if (!pimpl_) { pimpl_ = std::unique_ptr<pimpl_s>(new pimpl_s); }
+
     pimpl_->m_comm_ = MPI_COMM_WORLD;
 
     pimpl_->m_num_process_ = 1;
@@ -326,4 +326,4 @@ int MPIComm::get_rank(nTuple<int, 3> const &d) const
            );
 }
 
-} // namespace simpla
+}}//namespace simpla{namespace parallel{

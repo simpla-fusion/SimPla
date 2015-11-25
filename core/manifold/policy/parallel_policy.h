@@ -17,7 +17,9 @@ namespace simpla
 /**
  * @ingroup manifold
  */
-namespace manifold { namespace policy
+namespace manifold
+{
+namespace policy
 {
 
 
@@ -39,7 +41,7 @@ public:
     typedef this_type parallel_policy;
 
     ParallelPolicy(mesh_type &geo) :
-            m_mesh_(geo), m_mpi_comm_(SingletonHolder<MPIComm>::instance())
+            m_mesh_(geo)
     {
     }
 
@@ -60,35 +62,26 @@ public:
         return os;
     }
 
+
     void deploy();
 
 
-    template<int IFORM, typename T>
-    parallel::DistributedObject sync(std::shared_ptr<void> *self) const;
+    template<typename T> void sync(T &self) const;
 
 
-    template<int IFORM, typename T, typename Func>
-    void for_each(Func const &fun, std::shared_ptr<void> *f = nullptr) const;
+//    template<int IFORM, typename Func>
+//    void update(Func const &fun) const;
 
+    template<int IFORM, typename Func, typename ...Args>
+    void update(Func const &fun, Args &&...args) const;
 
 private:
 
     mesh_type &m_mesh_;
 
-    MPIComm &m_mpi_comm_;
-
-    struct connection_node
-    {
-        nTuple<int, 3> coord_offset;
-        nTuple<size_t, mesh_type::ndims> send_offset;
-        nTuple<size_t, mesh_type::ndims> send_count;
-
-        nTuple<size_t, mesh_type::ndims> recv_offset;
-        nTuple<size_t, mesh_type::ndims> recv_count;
-    };
     std::tuple<nTuple<size_t, 3>, nTuple<size_t, 3>> m_center_box_;
+
     std::vector<std::tuple<nTuple<size_t, 3>, nTuple<size_t, 3>>> m_boundary_box_;
-    std::vector<connection_node> m_connections_;
 
 
 }; //template<typename TMesh> struct ParallelPolicy
@@ -99,159 +92,63 @@ private:
 template<typename TMesh>
 void ParallelPolicy<TMesh>::deploy()
 {
+    auto &m_mpi_comm_ = SingletonHolder<parallel::MPIComm>::instance();
+
     if (m_mpi_comm_.is_valid())
     {
         m_mesh_.decompose(m_mpi_comm_.topology(), m_mpi_comm_.coordinate());
     }
 
-    m_center_box_ = m_mesh_.local_index_box();
+    nTuple<size_t, mesh_type::ndims> m_min, m_max;
+    nTuple<size_t, mesh_type::ndims> l_min, l_max;
+    nTuple<size_t, mesh_type::ndims> c_min, c_max;
+    nTuple<size_t, mesh_type::ndims> ghost_width;
+    std::tie(m_min, m_max) = m_mesh_.memory_index_box();
+    std::tie(l_min, l_max) = m_mesh_.local_index_box();
+    c_min = l_min + (l_min - m_min);
+    c_max = l_max - (m_max - l_max);
+    m_center_box_ = std::make_tuple(c_min, c_max);
 
-
-//	auto idx_b = mesh_type::unpack_index(mesh_type::m_id_min_);
-//
-//	auto idx_e = mesh_type::unpack_index(mesh_type::m_id_max_);
-//
-//	m_mpi_comm_.decompose(mesh_type::ndims, &idx_b[0], &idx_e[0]);
-//
-//	for (int i = 0; i < mesh_type::ndims; ++i)
-//	{
-//		if (idx_b[i] + 1 == idx_e[i])
-//		{
-//			m_ghost_width_[i] = 0;
-//		}
-//		else if (idx_e[i] <= idx_b[i] + m_ghost_width_[i] * 2)
-//		{
-//			ERROR("Dimension is to small to split!["
-////				" Dimensions= " + type_cast < std::string
-////				> (mesh_type::unpack_index(
-////								m_id_max_ - m_id_min_))
-////				+ " , Local dimensions=" + type_cast
-////				< std::string
-////				> (mesh_type::unpack_index(
-////								m_id_local_max_ - m_id_local_min_))
-////				+ " , Ghost width =" + type_cast
-////				< std::string > (ghost_width) +
-//					"]");
-//		}
-//
-//	}
-//
-//	mesh_type::m_id_local_min_ = mesh_type::pack_index(idx_b);
-//
-//	mesh_type::m_id_local_max_ = mesh_type::pack_index(idx_e);
-//
-//	mesh_type::m_id_memory_min_ = mesh_type::m_id_local_min_ - mesh_type::pack_index(m_ghost_width_);
-//
-//	mesh_type::m_id_memory_max_ = mesh_type::m_id_local_max_ + mesh_type::pack_index(m_ghost_width_);
-//
-//
-
-    auto memory_box = m_mesh_.memory_index_box();
-
-    auto local_box = m_mesh_.local_index_box();
-
-    nTuple<size_t, mesh_type::ndims> l_count, l_offset, ghost_width;
-
-    l_count = std::get<1>(local_box) - std::get<0>(local_box);
-    l_offset = std::get<0>(local_box) - std::get<0>(memory_box);
-    ghost_width = l_offset;
-
-
-    nTuple<size_t, mesh_type::ndims> send_offset, send_count;
-    nTuple<size_t, mesh_type::ndims> recv_offset, recv_count;
-
-    for (unsigned int tag = 0, tag_e = (1U << (mesh_type::ndims * 2)); tag < tag_e; ++tag)
+    for (int i = 0; i < mesh_type::ndims; ++i)
     {
-        nTuple<int, 3> coord_shift;
+        nTuple<size_t, mesh_type::ndims> b_min, b_max;
 
-        bool tag_is_valid = true;
-
-        for (int n = 0; n < mesh_type::ndims; ++n)
-        {
-            if (((tag >> (n * 2)) & 3UL) == 3UL)
-            {
-                tag_is_valid = false;
-                break;
-            }
-
-            coord_shift[n] = ((tag >> (n * 2)) & 3U) - 1;
-
-            switch (coord_shift[n])
-            {
-                case 0:
-                    send_offset[n] = l_offset[n];
-                    send_count[n] = l_count[n];
-                    recv_offset[n] = l_offset[n];
-                    recv_count[n] = l_count[n];
-
-                    break;
-                case -1: //left
-
-                    send_offset[n] = l_offset[n];
-                    send_count[n] = ghost_width[n];
-                    recv_offset[n] = l_offset[n] - ghost_width[n];
-                    recv_count[n] = ghost_width[n];
-
-
-                    break;
-                case 1: //right
-                    send_offset[n] = l_offset[n] + l_count[n] - ghost_width[n];
-                    send_count[n] = ghost_width[n];
-                    recv_offset[n] = l_offset[n] + l_count[n];
-                    recv_count[n] = ghost_width[n];
-
-                    break;
-                default:
-                    tag_is_valid = false;
-                    break;
-            }
-
-            if (send_count[n] == 0 || recv_count[n] == 0)
-            {
-                tag_is_valid = false;
-                break;
-            }
-
-        }
-
-        if (tag_is_valid && (coord_shift[0] != 0 || coord_shift[1] != 0 || coord_shift[2] != 0))
-        {
-            m_connections_.push_back(
-                    connection_node{
-                            coord_shift,
-                            send_offset, send_count,
-                            recv_offset, recv_count
-                    }
-            );
-
-        }
+        b_min = l_min;
+        b_max = l_max;
+        b_max[i] = c_min[i];
+        if (b_min[i] != b_max[i]) { m_boundary_box_.push_back(std::make_tuple(b_min, b_max)); }
+        b_min = l_min;
+        b_max = l_max;
+        b_min[i] = c_max[i];
+        if (b_min[i] != b_max[i]) { m_boundary_box_.push_back(std::make_tuple(b_min, b_max)); }
+        l_min[i] = c_min[i];
+        l_max[i] = c_max[i];
     }
 
 }
 
 template<typename TMesh>
-template<int IFORM, typename T, typename Func>
-void ParallelPolicy<TMesh>::for_each(Func const &fun, std::shared_ptr<void> *self) const
+template<int IFORM, typename Func, typename ...Args>
+void ParallelPolicy<TMesh>::update(Func const &fun, Args &&...args) const
 {
-    if (self != nullptr)
+    if (m_boundary_box_.size() > 0)
     {
-
-
         for (auto const &item:m_boundary_box_)
         {
             parallel::parallel_for(m_mesh_.template make_range<IFORM>(
-                    std::get<0>(item),
-                    std::get<1>(item)), fun);
+                    std::get<0>(item), std::get<1>(item)), fun);
 
         }
 
-
-//        auto dist_obj = sync<IFORM, T>(self);
+//        parallel::DistributedObject dist_obj;
+//
+//        dist_obj.add(std::forward<Args>(args)...);
+//
+//        dist_obj.sync();
 
         parallel::parallel_for(
                 m_mesh_.template make_range<IFORM>(
-                        std::get<0>(m_center_box_),
-                        std::get<1>(m_center_box_)),
+                        std::get<0>(m_center_box_), std::get<1>(m_center_box_)),
                 fun);
 
 //        dist_obj.wait();
@@ -260,46 +157,15 @@ void ParallelPolicy<TMesh>::for_each(Func const &fun, std::shared_ptr<void> *sel
     {
         parallel::parallel_for(m_mesh_.template range<IFORM>(), fun);
     }
-
-};
+}
 
 
 template<typename TMesh>
-template<int IFORM, typename T>
-parallel::DistributedObject
-ParallelPolicy<TMesh>::sync(std::shared_ptr<void> *data) const
+template<typename T> void
+ParallelPolicy<TMesh>::sync(T &self) const
 {
-    parallel::DistributedObject dist_obj(m_mpi_comm_);
-
-    typedef T value_type;
-
-    auto d_type = traits::datatype<value_type>::create();
-
-    nTuple<size_t, mesh_type::ndims> dims = m_mesh_.dimensions();
-
-    DataSpace mem_space(m_mesh_.ndims, &dims[0]);
-
-
-    for (auto const &item:m_connections_)
-    {
-        dist_obj.add_link_send(&item.coord_offset[0],
-                               DataSpace(mem_space).select_hyperslab(
-                                       &item.send_offset[0], nullptr,
-                                       &item.send_count[0], nullptr),
-                               d_type, data);
-
-        dist_obj.add_link_recv(&item.coord_offset[0],
-                               DataSpace(mem_space).select_hyperslab(
-                                       &item.recv_offset[0], nullptr,
-                                       &item.recv_count[0], nullptr),
-                               d_type, data);
-    }
-
-    dist_obj.sync();
-
-    return std::move(dist_obj);
+//    parallel::sync(traits::get_dataset(self));
 }
-
 
 } //namespace policy
 } //namespace manifold

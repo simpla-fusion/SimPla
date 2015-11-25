@@ -7,68 +7,71 @@
 
 #include "mpi_update.h"
 #include "mpi_datatype.h"
-
+#include "distributed_object.h"
 #include "../dataset/dataset.h"
 #include "../gtl/utilities/log.h"
 
-namespace simpla
+namespace simpla { namespace parallel
 {
+
+
 /**
  * @param pos in {0,count} out {begin,shape}
  */
 std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count)
 {
 
-	int begin = 0;
+    int begin = 0;
 
-	if (mpi_comm.is_valid() && mpi_comm.num_of_process() > 1)
-	{
+    if (mpi_comm.is_valid() && mpi_comm.num_of_process() > 1)
+    {
 
 
-		int num_of_process = mpi_comm.num_of_process();
+        int num_of_process = mpi_comm.num_of_process();
 
-		int process_num = mpi_comm.process_num();
+        int process_num = mpi_comm.process_num();
 
-		MPIDataType m_type = MPIDataType::create<int>();
+        MPIDataType m_type = MPIDataType::create<int>();
 
-		std::vector<int> buffer;
+        std::vector<int> buffer;
 
-		if (process_num == 0)
-		{
-			buffer.resize(num_of_process);
-		}
-		MPI_Barrier(mpi_comm.comm());
+        if (process_num == 0)
+        {
+            buffer.resize(num_of_process);
+        }
+        MPI_Barrier(mpi_comm.comm());
 
-		MPI_Gather(&count, 1, m_type.type(), &buffer[0], 1, m_type.type(), 0, mpi_comm.comm());
+        MPI_Gather(&count, 1, m_type.type(), &buffer[0], 1, m_type.type(), 0, mpi_comm.comm());
 
-		MPI_Barrier(mpi_comm.comm());
+        MPI_Barrier(mpi_comm.comm());
 
-		if (process_num == 0)
-		{
-			for (int i = 1; i < num_of_process; ++i)
-			{
-				buffer[i] += buffer[i - 1];
-			}
-			buffer[0] = count;
-			count = buffer[num_of_process - 1];
+        if (process_num == 0)
+        {
+            for (int i = 1; i < num_of_process; ++i)
+            {
+                buffer[i] += buffer[i - 1];
+            }
+            buffer[0] = count;
+            count = buffer[num_of_process - 1];
 
-			for (int i = num_of_process - 1; i > 0; --i)
-			{
-				buffer[i] = buffer[i - 1];
-			}
-			buffer[0] = 0;
-		}
-		MPI_Barrier(mpi_comm.comm());
-		MPI_Scatter(&buffer[0], 1, m_type.type(), &begin, 1, m_type.type(), 0, mpi_comm.comm());
-		MPI_Barrier(mpi_comm.comm());
-		MPI_Bcast(&count, 1, m_type.type(), 0, mpi_comm.comm());
-		MPI_Barrier(mpi_comm.comm());
+            for (int i = num_of_process - 1; i > 0; --i)
+            {
+                buffer[i] = buffer[i - 1];
+            }
+            buffer[0] = 0;
+        }
+        MPI_Barrier(mpi_comm.comm());
+        MPI_Scatter(&buffer[0], 1, m_type.type(), &begin, 1, m_type.type(), 0, mpi_comm.comm());
+        MPI_Barrier(mpi_comm.comm());
+        MPI_Bcast(&count, 1, m_type.type(), 0, mpi_comm.comm());
+        MPI_Barrier(mpi_comm.comm());
 
-	}
+    }
 
-	return std::make_tuple(begin, count);
-
+    return std::make_tuple(begin, count);
 }
+
+
 //
 //void wait_all_request(std::vector<MPI_Request> &requests)
 //{
@@ -242,5 +245,5 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count)
 //
 //}
 
-}
-// namespace simpla
+}} //namespace simpla{namespace  parallel{
+

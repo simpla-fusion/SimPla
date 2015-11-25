@@ -173,6 +173,28 @@ public:
         return *this;
     }
 
+    template<typename Arg>
+    Logger const &operator<<(Arg const &arg)
+    {
+        return this->push(arg);
+    }
+
+    template<typename Arg>
+    Logger const &operator<<(Arg const &arg) const
+    {
+        return this->push(arg);
+    }
+
+    Logger const &operator<<(const char *arg)
+    {
+        return this->push(arg);
+    }
+
+    Logger const &operator<<(const char *arg) const
+    {
+        return this->push(arg);
+    }
+
     std::shared_ptr<std::ostringstream> m_buffer_;
     int level_;
     int current_line_char_count_;
@@ -181,27 +203,27 @@ public:
 };
 
 
-template<typename Arg>
-Logger &operator<<(Logger &L, Arg const &arg)
-{
-    return L.push(arg);
-}
-
-template<typename Arg>
-Logger const &operator<<(Logger const &L, Arg const &arg)
-{
-    return L.push(arg);
-}
-
-inline Logger &operator<<(Logger &L, std::string const &arg)
-{
-    return L.push(arg);
-}
-
-inline Logger const &operator<<(Logger const &L, std::string const &arg)
-{
-    return L.push(arg);
-}
+//template<typename Arg>
+//Logger &operator<<(Logger &L, Arg const &arg)
+//{
+//    return L.push(arg);
+//}
+//
+//template<typename Arg>
+//Logger const &operator<<(Logger const &L, Arg const &arg)
+//{
+//    return L.push(arg);
+//}
+//
+//inline Logger &operator<<(Logger &L, std::string const &arg)
+//{
+//    return L.push(arg);
+//}
+//
+//inline Logger const &operator<<(Logger const &L, std::string const &arg)
+//{
+//    return L.push(arg);
+//}
 
 /**
  * @name     manip for Logger

@@ -84,7 +84,11 @@ struct DataSet
 
     virtual bool is_valid() const
     {
-        return (data != nullptr) && (datatype.is_valid()) && (dataspace.size() == memory_space.size());
+        return (data != nullptr)
+               && datatype.is_valid()
+               && dataspace.is_valid()
+               && memory_space.is_valid()
+               && (dataspace.num_of_elements() == memory_space.num_of_elements());
     }
 
     virtual bool empty() const { return data == nullptr; }
@@ -125,6 +129,11 @@ template<typename T> inline T &get_value(DataSet &d, size_t s) { return d.templa
 
 template<typename T> inline T const &get_value(DataSet const &d, size_t s) { return d.template get_value<T>(s); }
 
+template<typename T>
+DataSet get_dataset(T &obj)
+{
+    return obj.dataset();
+}
 }//namespace traits
 //
 //namespace _impl
