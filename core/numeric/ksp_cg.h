@@ -25,7 +25,7 @@ void ksp_cg(Field <TM, IFORM, F1> const &Ax, Field <TM, IFORM, F3> &x, size_t ma
 {
 //	if (!CheckEquationHasVariable(Ax, x_))
 //	{
-//		LOGIC_ERROR << "Unsolvable Equation!";
+//		THROW_EXCEPTION_LOGIC_ERROR << "Unsolvable Equation!";
 //	}
 
     typedef decltype(x[0]) ValueType;

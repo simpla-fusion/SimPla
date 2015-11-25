@@ -98,7 +98,7 @@ void GEqdsk::pimpl_s::load(std::string const &fname)
 
     if (!inFileStream_.is_open())
     {
-        RUNTIME_ERROR("File " + fname + " is not opend!");
+        THROW_EXCEPTION_RUNTIME_ERROR("File " + fname + " is not opend!");
         return;
     }
 
@@ -200,7 +200,7 @@ void GEqdsk::pimpl_s::load_profile(std::string const &fname)
 
     if (!inFileStream_.is_open())
     {
-        RUNTIME_ERROR("File " + fname + " is not opend!");
+        THROW_EXCEPTION_RUNTIME_ERROR("File " + fname + " is not opend!");
     }
 
     std::string line;
@@ -390,7 +390,7 @@ std::ostream &GEqdsk::print(std::ostream &os)
 //
 //        if (success > 0)
 //        {
-//            RUNTIME_ERROR(
+//            THROW_EXCEPTION_RUNTIME_ERROR(
 //                    "Illegal Geqdsk configuration: RZ-center is out of the boundary (rzbbb)!  ");
 //        }
 //

@@ -310,23 +310,38 @@ inline std::string ShowBit(unsigned long s)
 
 #define VERBOSE logger::Logger(logger::LOG_VERBOSE)
 
-#define ERROR(_MSG_) { {logger::Logger(logger::LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::logic_error("error"));}
+#define SHOW_ERROR logger::Logger(logger::LOG_ERROR)
 
-#define RUNTIME_ERROR(_MSG_) { {logger::Logger(logger::LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::runtime_error("runtime error"));}
+#define SHOW_WARNING logger::Logger(logger::LOG_WARNING)
 
-#define LOGIC_ERROR(_MSG_)  {{logger::Logger(logger::LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::logic_error("logic error"));}
+#define MAKE_MSG(_MSG_) std::ostringstream _buffer;_buffer<<std::endl<<"From ["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"<<_MSG_;
 
-#define OUT_RANGE_ERROR(_MSG_) { {logger::Logger(logger::LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::out_of_range("out of range"));}
+//#define ERROR(_MSG_) { {logger::Logger(logger::LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::logic_error("error"));}
+#define ERROR(_MSG_) {MAKE_MSG(_MSG_);throw(std::runtime_error(_buffer.str()));}
 
-#define ERROR_BAD_ALLOC_MEMORY(_SIZE_, _error_)    logger::Logger(logger::LOG_ERROR)<<__FILE__<<"["<<__LINE__<<"]: "<< "Can not get enough memory! [ "  \
-        << _SIZE_ / 1024.0 / 1024.0 / 1024.0 << " GiB ]" << std::endl; throw(_error_);
+//#define THROW_EXCEPTION_RUNTIME_ERROR(_MSG_) { {logger::Logger(logger::LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::runtime_error("runtime error"));}
 
-#define PARSER_ERROR(_MSG_)  {{ logger::Logger(logger::LOG_ERROR)<<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"<<"\n\tConfigure fails :"<<(_MSG_) ;}throw(std::runtime_error(""));}
+#define THROW_EXCEPTION_RUNTIME_ERROR(_MSG_) {MAKE_MSG(_MSG_);throw(std::runtime_error(_buffer.str()));}
+
+//#define THROW_EXCEPTION_LOGIC_ERROR(_MSG_)  {{logger::Logger(logger::LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::logic_error("logic error"));}
+#define THROW_EXCEPTION_LOGIC_ERROR(_MSG_) {MAKE_MSG(_MSG_);throw(std::logic_error(_buffer.str()));}
+
+//#define THROW_EXCEPTION_OUT_OF_RANGE(_MSG_) { {logger::Logger(logger::LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::out_of_range("out of range"));}
+#define THROW_EXCEPTION_OUT_OF_RANGE(_MSG_) {MAKE_MSG(_MSG_);throw(std::out_of_range(_buffer.str()));}
+
+//#define THROW_EXCEPTION_BAD_ALLOC(_SIZE_, _error_)    logger::Logger(logger::LOG_ERROR)<<__FILE__<<"["<<__LINE__<<"]: "<< "Can not get enough memory! [ "  \
+//        << _SIZE_ / 1024.0 / 1024.0 / 1024.0 << " GiB ]" << std::endl; throw(_error_);
+#define THROW_EXCEPTION_BAD_ALLOC(_SIZE_, _MSG_)   {MAKE_MSG( "Can not get enough memory! [ " << _SIZE_ / 1024.0 / 1024.0 / 1024.0 << " GiB ]"<<_MSG_ ); throw(std::bad_alloc());}
+
+
+#define THROW_EXCEPTION_BAD_CAST(_FIRST_, _SECOND_) {MAKE_MSG("Can not cast " << (_FIRST_) << " to " <<(_SECOND_)); throw(std::bad_cast());}
+
+
+//#define THROW_EXCEPTION_PARSER_ERROR(_MSG_)  {{ logger::Logger(logger::LOG_ERROR)<<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"<<"\n\tConfigure fails :"<<(_MSG_) ;}throw(std::runtime_error(""));}
+#define THROW_EXCEPTION_PARSER_ERROR(_MSG_)   {MAKE_MSG("Configure fails:"<<_MSG_);throw(std::logic_error(_buffer.str()));}
+
 #define PARSER_WARNING(_MSG_)  {{ logger::Logger(logger::LOG_WARNING)<<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"<<"\n\tConfigure fails :"<<(_MSG_) ;}throw(std::runtime_error(""));}
 
-#define logical_error_endl  logger::endl;throw(std::logic_error(""));
-#define runtime_error_endl  logger::endl;throw(std::runtime_error(""));
-#define out_of_range_endl   logger::endl;throw(std::out_of_range(""));
 
 #ifdef NDEBUG
 #  define ASSERT(_COND_)

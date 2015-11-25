@@ -152,7 +152,7 @@ DataSpace &DataSpace::select_hyperslab(index_type const *start,
 {
     if (!is_valid())
     {
-        RUNTIME_ERROR("DataSpace is invalid!");
+        THROW_EXCEPTION_RUNTIME_ERROR("DataSpace is invalid!");
     }
 
     if (start != nullptr)
@@ -259,11 +259,11 @@ DataSpace &DataSpace::select_hyperslab(index_type const *start,
 //{
 //	if (!is_valid())
 //	{
-//		RUNTIME_ERROR("DataSpace is invalid!");
+//		THROW_EXCEPTION_RUNTIME_ERROR("DataSpace is invalid!");
 //	}
 //	if (ndims > pimpl_->m_ndims_)
 //	{
-//		RUNTIME_ERROR("DataSpace is too small to decompose!");
+//		THROW_EXCEPTION_RUNTIME_ERROR("DataSpace is too small to decompose!");
 //	}
 //	nTuple<size_t, MAX_NDIMS_OF_ARRAY> offset, count;
 //	offset = 0;
@@ -278,7 +278,7 @@ DataSpace &DataSpace::select_hyperslab(index_type const *start,
 //
 //		if (count[n] <= 0)
 //		{
-//			RUNTIME_ERROR(
+//			THROW_EXCEPTION_RUNTIME_ERROR(
 //					"DataSpace decompose fail! Dimension  is smaller than process grid. "
 //							"[dimensions= "
 //							+ value_to_string(pimpl_->m_dimensions_)
@@ -325,7 +325,7 @@ DataSpace &DataSpace::select_hyperslab(index_type const *start,
 //	if ((2 * gw * num_process > global_count[n] || num_process > global_count[n]))
 //	{
 //
-//		RUNTIME_ERROR("Array is too small to split");
+//		THROW_EXCEPTION_RUNTIME_ERROR("Array is too small to split");
 //
 ////		if (process_num > 0)
 ////			local_outer_end = local_outer_begin;

@@ -149,7 +149,7 @@ void allreduce(void const *send_data, void *recv_data, size_t count,
 //
 //		if (tmp == MPI_UNDEFINED)
 //		{
-//			RUNTIME_ERROR("Update Ghosts Particle fail");
+//			THROW_RUNTIME_ERROR("Update Ghosts Particle fail");
 //		}
 //		else
 //		{

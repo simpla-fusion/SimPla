@@ -102,7 +102,7 @@ void DistributedObject::sync()
 
             if (recv_num == MPI_UNDEFINED)
             {
-                RUNTIME_ERROR("Update Ghosts Particle fail");
+                THROW_EXCEPTION_RUNTIME_ERROR("Update Ghosts Particle fail");
             }
 
             *item.data = sp_alloc_memory(recv_num * item.type.size());

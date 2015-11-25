@@ -110,7 +110,7 @@ public:
         }
         else
         {
-            RUNTIME_ERROR("Too much media Type");
+            THROW_EXCEPTION_RUNTIME_ERROR("Too much media Type");
         }
         return res;
     }
@@ -130,7 +130,7 @@ public:
 
         } catch (...)
         {
-            RUNTIME_ERROR("Unknown material name : " + name);
+            THROW_EXCEPTION_RUNTIME_ERROR("Unknown material name : " + name);
         }
         return std::move(res);
     }

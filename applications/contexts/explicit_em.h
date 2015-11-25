@@ -347,7 +347,7 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 	{
 		if (!model->load(dict["Model"]))
 		{
-			PARSER_ERROR("Configure 'Model' fail!");
+			THROW_EXCEPTION_PARSER_ERROR("Configure 'Model' fail!");
 		}
 
 		B1.clear();
@@ -412,7 +412,7 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 //		} catch (...)
 //		{
 //
-//			PARSER_ERROR("Particle={" + id + " = { Type = " + type_str + "}}" + "  ");
+//			THROW_EXCEPTION_PARSER_ERROR("Particle={" + id + " = { Type = " + type_str + "}}" + "  ");
 //
 //		}
 
@@ -457,13 +457,13 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 //			}
 //			else
 //			{
-//				PARSER_ERROR("Unknown DOF!");
+//				THROW_EXCEPTION_PARSER_ERROR("Unknown DOF!");
 //			}
 //
 //		} catch (std::runtime_error const & e)
 //		{
 //
-//			PARSER_ERROR("Load 'Constraints' error! ");
+//			THROW_EXCEPTION_PARSER_ERROR("Load 'Constraints' error! ");
 //		}
 //	}
 //	bool enableImplicit = false;
@@ -508,7 +508,7 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 //
 //	} catch (std::runtime_error const & e)
 //	{
-//		PARSER_ERROR("Configure field solver error! ");
+//		THROW_EXCEPTION_PARSER_ERROR("Configure field solver error! ");
 //	}
 //	if (enableImplicit)
 //	{

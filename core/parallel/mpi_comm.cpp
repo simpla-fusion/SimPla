@@ -205,7 +205,7 @@ std::tuple<int, int, int> MPIComm::make_send_recv_tag(int prefix,
 //
 //        if (p_begin[n] == p_end[n])
 //        {
-//            RUNTIME_ERROR(
+//            THROW_EXCEPTION_RUNTIME_ERROR(
 //                    "Mesh decompose fail! Dimension  is smaller than process grid. "
 //                            "[begin= " + type_cast<std::string>(begin)
 //                    + ", end=" + type_cast<std::string>(end)
@@ -279,7 +279,7 @@ void MPIComm::topology(nTuple<int, 3> const &d)
 
     if (d[0] * d[1] * d[2] != pimpl_->m_num_process_)
     {
-        RUNTIME_ERROR("MPI Topology is invalid!");
+        THROW_EXCEPTION_RUNTIME_ERROR("MPI Topology is invalid!");
     }
 
     pimpl_->m_topology_dims_ = d;

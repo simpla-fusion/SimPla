@@ -219,7 +219,7 @@ public:
 
             if (m_local_min_[n] == m_local_max_[n])
             {
-                RUNTIME_ERROR("Mesh block decompose failed! Block dimension is smaller than process grid. ");
+                THROW_EXCEPTION_RUNTIME_ERROR("Mesh block decompose failed! Block dimension is smaller than process grid. ");
             }
 
 

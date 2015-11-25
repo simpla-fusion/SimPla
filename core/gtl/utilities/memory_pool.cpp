@@ -22,39 +22,39 @@ namespace simpla
 struct MemoryPool::pimpl_s
 {
 
-	std::mutex locker_;
+    std::mutex locker_;
 
-	std::multimap<size_t, void *> pool_;
+    std::multimap<size_t, void *> pool_;
 
-	static constexpr size_t ONE_GIGA = 1024l * 1024l * 1024l;
-	static constexpr size_t MAX_BLOCK_SIZE = 4 * ONE_GIGA; //std::numeric_limits<size_t>::max();
-	static constexpr size_t MIN_BLOCK_SIZE = 256;
+    static constexpr size_t ONE_GIGA = 1024l * 1024l * 1024l;
+    static constexpr size_t MAX_BLOCK_SIZE = 4 * ONE_GIGA; //std::numeric_limits<size_t>::max();
+    static constexpr size_t MIN_BLOCK_SIZE = 256;
 
-	size_t max_pool_depth_ = 16 * ONE_GIGA;
-	size_t pool_depth_ = 0;
+    size_t max_pool_depth_ = 16 * ONE_GIGA;
+    size_t pool_depth_ = 0;
 
-	void push(void *d, size_t s);
+    void push(void *d, size_t s);
 
-	void *pop(size_t s);
+    void *pop(size_t s);
 
-	void clear();
+    void clear();
 };
 
 MemoryPool::MemoryPool() :
-		pimpl_(new pimpl_s) //2G
+        pimpl_(new pimpl_s) //2G
 {
-	pimpl_->pool_depth_ = 0;
+    pimpl_->pool_depth_ = 0;
 }
 
 MemoryPool::~MemoryPool()
 {
-	clear();
+    clear();
 }
 
 //!  unused memory will be freed when total memory size >= pool size
 void MemoryPool::max_size(size_t s)
 {
-	pimpl_->max_pool_depth_ = s;
+    pimpl_->max_pool_depth_ = s;
 }
 
 /**
@@ -63,113 +63,113 @@ void MemoryPool::max_size(size_t s)
  */
 double MemoryPool::size() const
 {
-	return static_cast<double>(pimpl_->pool_depth_);
+    return static_cast<double>(pimpl_->pool_depth_);
 }
 
 void MemoryPool::clear()
 {
-	pimpl_->clear();
+    pimpl_->clear();
 }
 
 void MemoryPool::pimpl_s::clear()
 {
-	locker_.lock();
-	for (auto &item : pool_)
-	{
-		delete[] reinterpret_cast<byte_type *>(item.second);
-	}
-	locker_.unlock();
+    locker_.lock();
+    for (auto &item : pool_)
+    {
+        delete[] reinterpret_cast<byte_type *>(item.second);
+    }
+    locker_.unlock();
 }
 
 void MemoryPool::push(void *p, size_t s)
 {
-	pimpl_->push(p, s);
+    pimpl_->push(p, s);
 }
 
 void MemoryPool::pimpl_s::push(void *p, size_t s)
 {
-	if ((s > MIN_BLOCK_SIZE) && (s < MAX_BLOCK_SIZE))
-	{
-		locker_.lock();
+    if ((s > MIN_BLOCK_SIZE) && (s < MAX_BLOCK_SIZE))
+    {
+        locker_.lock();
 
-		if ((pool_depth_ + s < max_pool_depth_))
-		{
-			pool_.emplace(s, p);
-			pool_depth_ += s;
-			p = nullptr;
-		}
+        if ((pool_depth_ + s < max_pool_depth_))
+        {
+            pool_.emplace(s, p);
+            pool_depth_ += s;
+            p = nullptr;
+        }
 
-		locker_.unlock();
+        locker_.unlock();
 
-	}
-	if (p != nullptr)
-	{
-		delete[] reinterpret_cast<byte_type *>(p);
-	}
+    }
+    if (p != nullptr)
+    {
+        delete[] reinterpret_cast<byte_type *>(p);
+    }
 }
 
 void *MemoryPool::pop(size_t s)
 {
-	return pimpl_->pop(s);
+    return pimpl_->pop(s);
 }
 
 void *MemoryPool::pimpl_s::pop(size_t s)
 {
-	void *addr = nullptr;
+    void *addr = nullptr;
 
-	if ((s > MIN_BLOCK_SIZE) && (s < MAX_BLOCK_SIZE))
-	{
-		locker_.lock();
+    if ((s > MIN_BLOCK_SIZE) && (s < MAX_BLOCK_SIZE))
+    {
+        locker_.lock();
 
-		// find memory block which is not smaller than demand size
-		auto pt = pool_.lower_bound(s);
+        // find memory block which is not smaller than demand size
+        auto pt = pool_.lower_bound(s);
 
-		if (pt != pool_.end())
-		{
-			size_t ts = 0;
+        if (pt != pool_.end())
+        {
+            size_t ts = 0;
 
-			std::tie(ts, addr) = *pt;
+            std::tie(ts, addr) = *pt;
 
-			if (ts < s * 2)
-			{
-				s = ts;
+            if (ts < s * 2)
+            {
+                s = ts;
 
-				pool_.erase(pt);
+                pool_.erase(pt);
 
-				pool_depth_ -= s;
-			}
-			else
-			{
-				addr = nullptr;
-			}
-		}
+                pool_depth_ -= s;
+            }
+            else
+            {
+                addr = nullptr;
+            }
+        }
 
-		locker_.unlock();
+        locker_.unlock();
 
-	}
+    }
 
-	if (addr == nullptr)
-	{
+    if (addr == nullptr)
+    {
 
-		try
-		{
-			addr = reinterpret_cast<void *>(new byte_type[s]);
+        try
+        {
+            addr = reinterpret_cast<void *>(new byte_type[s]);
 
-		} catch (std::bad_alloc const &error)
-		{
-			ERROR_BAD_ALLOC_MEMORY(s, error);
+        } catch (std::bad_alloc const &error)
+        {
+            THROW_EXCEPTION_BAD_ALLOC(s, error.what());
 
-		}
+            }
 
-	}
-	return addr;
+        }
+        return addr;
 
-}
+    }
 
-std::shared_ptr<void> sp_alloc_memory(size_t s)
-{
-	void *addr = SingletonHolder<MemoryPool>::instance().pop(s);
+    std::shared_ptr<void> sp_alloc_memory(size_t s)
+    {
+        void *addr = SingletonHolder<MemoryPool>::instance().pop(s);
 
-	return std::shared_ptr<void>(addr, MemoryPool::deleter_s(addr, s));
-}
+        return std::shared_ptr<void>(addr, MemoryPool::deleter_s(addr, s));
+    }
 } // namespace simpla

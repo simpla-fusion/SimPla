@@ -561,7 +561,7 @@ hid_t DataStream::pimpl_s::convert_datatype_sp_to_h5(DataType const &d_type,
 {
     hid_t res = H5T_NO_CLASS;
 
-    if (!d_type.is_valid()) RUNTIME_ERROR("illegal data type");
+    if (!d_type.is_valid()) THROW_EXCEPTION_RUNTIME_ERROR("illegal data type");
 
     if (!d_type.is_compound())
     {
@@ -595,7 +595,7 @@ hid_t DataStream::pimpl_s::convert_datatype_sp_to_h5(DataType const &d_type,
         }
         else
         {
-            RUNTIME_ERROR("Unknown data type:" + d_type.name());
+            THROW_EXCEPTION_RUNTIME_ERROR("Unknown data type:" + d_type.name());
         }
 
         if (d_type.is_array())

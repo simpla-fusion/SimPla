@@ -68,7 +68,7 @@ void ParserConfigure<TDict>::register_callback(std::string const & key, TFun con
 
 	if (it != callbacks_.end())
 	{
-		RUNTIME_ERROR(key + "is registered!");
+		THROW_EXCEPTION_RUNTIME_ERROR(key + "is registered!");
 	}
 	else
 	{

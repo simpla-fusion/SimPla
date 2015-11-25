@@ -86,40 +86,33 @@
     </ADDITIONAL_GENERATION_ENVIRONMENT>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="705662a6-4fa6-4a3f-beff-e386801b96a4" name="Default" comment="snapshot">
-      <change type="MOVED" beforePath="$PROJECT_DIR$/dummy.cpp" afterPath="$PROJECT_DIR$/core/dummy.cpp" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/dummy.h" afterPath="$PROJECT_DIR$/core/dummy.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/SimPla.iml" afterPath="$PROJECT_DIR$/.idea/SimPla.iml" />
+    <list default="true" id="705662a6-4fa6-4a3f-beff-e386801b96a4" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/CMake/FindTBB.cmake" afterPath="$PROJECT_DIR$/CMake/FindTBB.cmake" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/CMakeLists.txt" afterPath="$PROJECT_DIR$/CMakeLists.txt" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/CMakeLists.txt" afterPath="$PROJECT_DIR$/core/CMakeLists.txt" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/dataset/dataset.h" afterPath="$PROJECT_DIR$/core/dataset/dataset.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/applications/contexts/explicit_em.h" afterPath="$PROJECT_DIR$/applications/contexts/explicit_em.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/dataset/dataspace.cpp" afterPath="$PROJECT_DIR$/core/dataset/dataspace.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/dataset/dataspace.h" afterPath="$PROJECT_DIR$/core/dataset/dataspace.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/field/field_dense.h" afterPath="$PROJECT_DIR$/core/field/field_dense.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/gtl/primitives.h" afterPath="$PROJECT_DIR$/core/gtl/primitives.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/gtl/utilities/CMakeLists.txt" afterPath="$PROJECT_DIR$/core/gtl/utilities/CMakeLists.txt" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/gtl/any.h" afterPath="$PROJECT_DIR$/core/gtl/any.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/gtl/containers/container_dense.h" afterPath="$PROJECT_DIR$/core/gtl/containers/container_dense.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/gtl/utilities/config_parser.cpp" afterPath="$PROJECT_DIR$/core/gtl/utilities/config_parser.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/gtl/utilities/config_parser.h" afterPath="$PROJECT_DIR$/core/gtl/utilities/config_parser.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/gtl/utilities/log.h" afterPath="$PROJECT_DIR$/core/gtl/utilities/log.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/gtl/utilities/pretty_stream.h" afterPath="$PROJECT_DIR$/core/gtl/utilities/pretty_stream.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/io/CMakeLists.txt" afterPath="$PROJECT_DIR$/core/io/CMakeLists.txt" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/gtl/utilities/lua_object.h" afterPath="$PROJECT_DIR$/core/gtl/utilities/lua_object.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/gtl/utilities/memory_pool.cpp" afterPath="$PROJECT_DIR$/core/gtl/utilities/memory_pool.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/gtl/utilities/parser_configure.h" afterPath="$PROJECT_DIR$/core/gtl/utilities/parser_configure.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/io/data_stream.cpp" afterPath="$PROJECT_DIR$/core/io/data_stream.cpp" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/manifold.h" afterPath="$PROJECT_DIR$/core/manifold/manifold.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/policy/parallel_policy.h" afterPath="$PROJECT_DIR$/core/manifold/policy/parallel_policy.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/policy/storage_policy.h" afterPath="$PROJECT_DIR$/core/manifold/policy/storage_policy.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/parallel/CMakeLists.txt" afterPath="$PROJECT_DIR$/core/parallel/CMakeLists.txt" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/mesh/corect_mesh.h" afterPath="$PROJECT_DIR$/core/manifold/mesh/corect_mesh.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/mesh/mesh.h" afterPath="$PROJECT_DIR$/core/manifold/mesh/mesh.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/mesh/mesh_block.h" afterPath="$PROJECT_DIR$/core/manifold/mesh/mesh_block.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/model/geqdsk.cpp" afterPath="$PROJECT_DIR$/core/model/geqdsk.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/model/model.h" afterPath="$PROJECT_DIR$/core/model/model.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/numeric/interpolation.h" afterPath="$PROJECT_DIR$/core/numeric/interpolation.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/numeric/ksp_cg.h" afterPath="$PROJECT_DIR$/core/numeric/ksp_cg.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/parallel/distributed_object.cpp" afterPath="$PROJECT_DIR$/core/parallel/distributed_object.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/parallel/distributed_object.h" afterPath="$PROJECT_DIR$/core/parallel/distributed_object.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/parallel/mpi_aux_functions.cpp" afterPath="$PROJECT_DIR$/core/parallel/mpi_aux_functions.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/parallel/mpi_aux_functions.h" afterPath="$PROJECT_DIR$/core/parallel/mpi_aux_functions.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/parallel/mpi_comm.cpp" afterPath="$PROJECT_DIR$/core/parallel/mpi_comm.cpp" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/parallel/mpi_comm.h" afterPath="$PROJECT_DIR$/core/parallel/mpi_comm.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/parallel/mpi_update.cpp" afterPath="$PROJECT_DIR$/core/parallel/mpi_update.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/parallel/mpi_update.h" afterPath="$PROJECT_DIR$/core/parallel/mpi_update.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/parallel/parallel.cpp" afterPath="$PROJECT_DIR$/core/parallel/parallel.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/parallel/parallel.h" afterPath="$PROJECT_DIR$/core/parallel/parallel.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/task_flow/CMakeLists.txt" afterPath="$PROJECT_DIR$/core/task_flow/CMakeLists.txt" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/example/em/CMakeLists.txt" afterPath="$PROJECT_DIR$/example/em/CMakeLists.txt" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/parallel/mpi_datatype.cpp" afterPath="$PROJECT_DIR$/core/parallel/mpi_datatype.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/example/em/em.lua" afterPath="$PROJECT_DIR$/example/em/em.lua" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/example/em/em_plasma.cpp" afterPath="$PROJECT_DIR$/example/em/em_plasma.cpp" />
     </list>
     <ignored path="SimPla.iws" />
@@ -141,12 +134,117 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="parallel_policy.h" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/core/manifold/policy/parallel_policy.h">
+      <file leaf-file-name="corect_mesh.h" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/manifold/mesh/corect_mesh.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="1.3107914">
-              <caret line="163" column="25" selection-start-line="163" selection-start-column="25" selection-end-line="163" selection-end-column="25" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="147" column="22" selection-start-line="147" selection-start-column="22" selection-end-line="147" selection-end-column="22" />
               <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="log.h" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/core/gtl/utilities/log.h">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="-0.13703704">
+              <caret line="273" column="30" selection-start-line="273" selection-start-column="30" selection-end-line="273" selection-end-column="30" />
+              <folding>
+                <element signature="e#297#316#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="any.h" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/gtl/any.h">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="115" column="25" selection-start-line="115" selection-start-column="25" selection-end-line="115" selection-end-column="25" />
+              <folding>
+                <marker date="1448417474977" expanded="true" signature="562:4393" placeholder="{...}" />
+                <marker date="1448417474977" expanded="true" signature="1792:1988" placeholder="{...}" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="typeinfo" pinned="false" current-in-tab="false">
+        <entry file="file:///usr/include/c++/4.8/typeinfo">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="189" column="4" selection-start-line="189" selection-start-column="4" selection-end-line="189" selection-end-column="4" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="memory_pool.cpp" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/gtl/utilities/memory_pool.cpp">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="157" column="24" selection-start-line="157" selection-start-column="24" selection-end-line="157" selection-end-column="24" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="new" pinned="false" current-in-tab="false">
+        <entry file="file:///usr/include/c++/4.8/new">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="53" column="36" selection-start-line="53" selection-start-column="27" selection-end-line="53" selection-end-column="36" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="exception" pinned="false" current-in-tab="false">
+        <entry file="file:///usr/include/c++/4.8/exception">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="59" column="8" selection-start-line="59" selection-start-column="8" selection-end-line="59" selection-end-column="8" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="config_parser.cpp" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/gtl/utilities/config_parser.cpp">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="68" column="7" selection-start-line="68" selection-start-column="7" selection-end-line="68" selection-end-column="7" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="stdexcept" pinned="false" current-in-tab="false">
+        <entry file="file:///usr/include/c++/4.8/stdexcept">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="111" column="8" selection-start-line="111" selection-start-column="8" selection-end-line="111" selection-end-column="8" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="lua_object.h" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/gtl/utilities/lua_object.h">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="53" column="31" selection-start-line="53" selection-start-column="31" selection-end-line="53" selection-end-column="31" />
+              <folding>
+                <marker date="1448418149516" expanded="true" signature="582:26578" placeholder="{...}" />
+                <marker date="1448418149516" expanded="true" signature="598:25979" placeholder="{...}" />
+                <marker date="1448418149516" expanded="true" signature="2569:21195" placeholder="{...}" />
+                <marker date="1448418149516" expanded="true" signature="7466:7668" placeholder="{...}" />
+                <marker date="1448418149516" expanded="true" signature="7727:7808" placeholder="{...}" />
+                <marker date="1448418149516" expanded="true" signature="16343:16983" placeholder="{...}" />
+                <marker date="1448418149516" expanded="true" signature="17463:17494" placeholder="{...}" />
+                <marker date="1448418149516" expanded="true" signature="17545:17586" placeholder="{...}" />
+                <marker date="1448418149516" expanded="true" signature="26016:26184" placeholder="{...}" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -165,15 +263,8 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/core/geometry/cs_cylindrical.h" />
-        <option value="$PROJECT_DIR$/core/io/io.h" />
-        <option value="$PROJECT_DIR$/example/em/em_plasma.h" />
-        <option value="$PROJECT_DIR$/core/gtl/utilities/utilities.h" />
-        <option value="$PROJECT_DIR$/core/gtl/type_traits.h" />
-        <option value="$PROJECT_DIR$/core/manifold/diff_scheme/fvm_structured.h" />
         <option value="$PROJECT_DIR$/core/manifold/pre_define/predefine.h" />
         <option value="$PROJECT_DIR$/core/manifold/mesh/rect_mesh.h" />
-        <option value="$PROJECT_DIR$/core/manifold/mesh/corect_mesh.h" />
         <option value="$PROJECT_DIR$/core/parallel/parallel_dummy.h" />
         <option value="$PROJECT_DIR$/core/manifold/mesh/mesh_ids.h" />
         <option value="$PROJECT_DIR$/core/io/data_stream.h" />
@@ -201,14 +292,11 @@
         <option value="$PROJECT_DIR$/core/parallel/parallel.h" />
         <option value="$PROJECT_DIR$/core/parallel/mpi_comm.cpp" />
         <option value="$PROJECT_DIR$/CMake/FindTBB.cmake" />
-        <option value="$PROJECT_DIR$/core/manifold/manifold.h" />
         <option value="$PROJECT_DIR$/CMakeLists.txt" />
-        <option value="$PROJECT_DIR$/core/gtl/utilities/log.h" />
         <option value="$PROJECT_DIR$/core/parallel/parallel.cpp" />
         <option value="$PROJECT_DIR$/core/parallel/distributed_object.h" />
         <option value="$PROJECT_DIR$/core/parallel/distributed_object.cpp" />
         <option value="$PROJECT_DIR$/core/dataset/dataspace.h" />
-        <option value="$PROJECT_DIR$/example/em/em_plasma.cpp" />
         <option value="$PROJECT_DIR$/core/gtl/utilities/pretty_stream.h" />
         <option value="$PROJECT_DIR$/core/gtl/primitives.h" />
         <option value="$PROJECT_DIR$/core/manifold/policy/storage_policy.h" />
@@ -216,15 +304,25 @@
         <option value="$PROJECT_DIR$/core/dataset/dataset.h" />
         <option value="$PROJECT_DIR$/core/dataset/dataspace.cpp" />
         <option value="$PROJECT_DIR$/core/manifold/policy/parallel_policy.h" />
+        <option value="$PROJECT_DIR$/example/em/em.lua" />
+        <option value="$PROJECT_DIR$/example/em/em_plasma.cpp" />
+        <option value="$PROJECT_DIR$/core/manifold/manifold.h" />
+        <option value="$PROJECT_DIR$/core/manifold/mesh/mesh.h" />
+        <option value="$PROJECT_DIR$/core/gtl/utilities/memory_pool.cpp" />
+        <option value="$PROJECT_DIR$/core/manifold/mesh/corect_mesh.h" />
+        <option value="$PROJECT_DIR$/core/gtl/any.h" />
+        <option value="$PROJECT_DIR$/core/gtl/utilities/config_parser.cpp" />
+        <option value="$PROJECT_DIR$/core/gtl/utilities/lua_object.h" />
+        <option value="$PROJECT_DIR$/core/gtl/utilities/log.h" />
       </list>
     </option>
   </component>
   <component name="OCFindUsagesOptions" text="true" ivars="false" properties="true" derivedClasses="false" />
   <component name="ProjectFrameBounds">
     <option name="x" value="2558" />
-    <option name="y" value="-23" />
+    <option name="y" value="-3" />
     <option name="width" value="2564" />
-    <option name="height" value="1467" />
+    <option name="height" value="1447" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="false">
     <OptionsSetting value="true" id="Add" />
@@ -279,6 +377,38 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
+              <option name="myItemId" value="example" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SimPla" />
+              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SimPla" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="example" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="em" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SimPla" />
+              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SimPla" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
               <option name="myItemId" value="core" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
@@ -297,7 +427,7 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="manifold" />
+              <option name="myItemId" value="gtl" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -315,11 +445,11 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="manifold" />
+              <option name="myItemId" value="gtl" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="pre_define" />
+              <option name="myItemId" value="utilities" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -328,7 +458,7 @@
     </panes>
   </component>
   <component name="PropertiesComponent">
-    <property name="settings.editor.selected.configurable" value="reference.settingsdialog.IDE.editor.colors.Font" />
+    <property name="settings.editor.selected.configurable" value="preferences.sourceCode.C/C++" />
     <property name="settings.editor.splitter.proportion" value="0.2" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="FullScreen" value="true" />
@@ -852,7 +982,13 @@
       <option name="project" value="LOCAL" />
       <updated>1448284639550</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="snapshot">
+      <created>1448415244622</created>
+      <option name="number" value="00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1448415244622</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="TestHistory">
@@ -894,19 +1030,20 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="2558" y="-23" width="2564" height="1467" extended-state="6" />
+    <frame x="2558" y="-3" width="2564" height="1447" extended-state="6" />
     <editor active="false" />
     <layout>
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.15528198" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3282876" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.34791812" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.34721243" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="CMake" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.46370682" sideWeight="0.48296058" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="LuaJ" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3256262" sideWeight="0.5170394" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32604092" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32674664" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.14495632" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4062728" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.15507813" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="LuaJ" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.325811" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.14495632" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4143803" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
@@ -914,7 +1051,6 @@
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32639545" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
@@ -952,89 +1088,17 @@
           <line>79</line>
           <option name="timeStamp" value="38" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/core/gtl/utilities/config_parser.cpp</url>
+          <line>52</line>
+          <option name="timeStamp" value="42" />
+        </line-breakpoint>
       </breakpoints>
-      <option name="time" value="41" />
+      <option name="time" value="43" />
     </breakpoint-manager>
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/core/dummy.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="4" column="2" selection-start-line="4" selection-start-column="2" selection-end-line="4" selection-end-column="2" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/model/CMakeLists.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-2.3076923">
-          <caret line="4" column="0" selection-start-line="4" selection-start-column="0" selection-end-line="4" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/example/em/CMakeLists.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-5.769231">
-          <caret line="10" column="42" selection-start-line="10" selection-start-column="42" selection-end-line="10" selection-end-column="42" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/gtl/CMakeLists.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/gtl/utilities/CMakeLists.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-0.5769231">
-          <caret line="1" column="31" selection-start-line="1" selection-start-column="31" selection-end-line="1" selection-end-column="31" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/parallel/CMakeLists.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-4.6153846">
-          <caret line="8" column="0" selection-start-line="8" selection-start-column="0" selection-end-line="8" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/io/CMakeLists.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-1.7307693">
-          <caret line="3" column="25" selection-start-line="3" selection-start-column="25" selection-end-line="3" selection-end-column="25" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/task_flow/CMakeLists.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-1.7307693">
-          <caret line="3" column="0" selection-start-line="3" selection-start-column="0" selection-end-line="3" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/cpplint.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/CMakeLists.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="19" column="0" selection-start-line="19" selection-start-column="0" selection-end-line="19" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/CMake/FindTBB.cmake.old">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/core/parallel/parallel_tbb.h">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1081,13 +1145,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="20" column="4" selection-start-line="20" selection-start-column="4" selection-end-line="20" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/gtl/utilities/lua_object.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="28" column="0" selection-start-line="28" selection-start-column="0" selection-end-line="28" selection-end-column="0" />
         </state>
       </provider>
     </entry>
@@ -1147,13 +1204,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/core/gtl/utilities/log.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="192" column="51" selection-start-line="192" selection-start-column="51" selection-end-line="192" selection-end-column="51" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/core/parallel/mpi_comm.h">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1168,20 +1218,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/core/manifold/manifold.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="246" column="0" selection-start-line="246" selection-start-column="0" selection-end-line="246" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/manifold/mesh/mesh_block.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="237" column="27" selection-start-line="237" selection-start-column="27" selection-end-line="237" selection-end-column="27" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/core/parallel/distributed_object.cpp">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1193,20 +1229,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="23" column="19" selection-start-line="23" selection-start-column="19" selection-end-line="23" selection-end-column="19" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/example/em/em_plasma.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="45" column="0" selection-start-line="45" selection-start-column="0" selection-end-line="45" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/example/em/em.lua">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
         </state>
       </provider>
     </entry>
@@ -1348,9 +1370,160 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/core/manifold/policy/parallel_policy.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="1.3107914">
-          <caret line="163" column="25" selection-start-line="163" selection-start-column="25" selection-end-line="163" selection-end-column="25" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="97" column="5" selection-start-line="97" selection-start-column="5" selection-end-line="97" selection-end-column="5" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/gtl/utilities/config_parser.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="25" column="7" selection-start-line="25" selection-start-column="7" selection-end-line="25" selection-end-column="7" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/example/em/em.lua">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="30" column="0" selection-start-line="30" selection-start-column="0" selection-end-line="30" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/example/em/em_plasma.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="70" column="29" selection-start-line="70" selection-start-column="29" selection-end-line="70" selection-end-column="29" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/manifold/manifold.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="188" column="7" selection-start-line="188" selection-start-column="7" selection-end-line="197" selection-end-column="9" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/gtl/utilities/CMakeLists.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="1" column="31" selection-start-line="1" selection-start-column="31" selection-end-line="1" selection-end-column="31" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/manifold/mesh/mesh_block.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="237" column="27" selection-start-line="237" selection-start-column="27" selection-end-line="237" selection-end-column="27" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/manifold/mesh/mesh.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="50" column="31" selection-start-line="50" selection-start-column="31" selection-end-line="50" selection-end-column="31" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/include/c++/4.8/stdexcept">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="111" column="8" selection-start-line="111" selection-start-column="8" selection-end-line="111" selection-end-column="8" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/manifold/mesh/corect_mesh.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="147" column="22" selection-start-line="147" selection-start-column="22" selection-end-line="147" selection-end-column="22" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/include/c++/4.8/exception">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="59" column="8" selection-start-line="59" selection-start-column="8" selection-end-line="59" selection-end-column="8" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/include/c++/4.8/typeinfo">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="189" column="4" selection-start-line="189" selection-start-column="4" selection-end-line="189" selection-end-column="4" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/gtl/any.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="115" column="25" selection-start-line="115" selection-start-column="25" selection-end-line="115" selection-end-column="25" />
+          <folding>
+            <marker date="1448417474977" expanded="true" signature="562:4393" placeholder="{...}" />
+            <marker date="1448417474977" expanded="true" signature="1792:1988" placeholder="{...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/include/c++/4.8/new">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="53" column="36" selection-start-line="53" selection-start-column="27" selection-end-line="53" selection-end-column="36" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/gtl/utilities/memory_pool.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="157" column="24" selection-start-line="157" selection-start-column="24" selection-end-line="157" selection-end-column="24" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/gtl/utilities/config_parser.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="68" column="7" selection-start-line="68" selection-start-column="7" selection-end-line="68" selection-end-column="7" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/gtl/utilities/lua_object.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="53" column="31" selection-start-line="53" selection-start-column="31" selection-end-line="53" selection-end-column="31" />
+          <folding>
+            <marker date="1448418149516" expanded="true" signature="582:26578" placeholder="{...}" />
+            <marker date="1448418149516" expanded="true" signature="598:25979" placeholder="{...}" />
+            <marker date="1448418149516" expanded="true" signature="2569:21195" placeholder="{...}" />
+            <marker date="1448418149516" expanded="true" signature="7466:7668" placeholder="{...}" />
+            <marker date="1448418149516" expanded="true" signature="7727:7808" placeholder="{...}" />
+            <marker date="1448418149516" expanded="true" signature="16343:16983" placeholder="{...}" />
+            <marker date="1448418149516" expanded="true" signature="17463:17494" placeholder="{...}" />
+            <marker date="1448418149516" expanded="true" signature="17545:17586" placeholder="{...}" />
+            <marker date="1448418149516" expanded="true" signature="26016:26184" placeholder="{...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/gtl/utilities/log.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-0.13703704">
+          <caret line="273" column="30" selection-start-line="273" selection-start-column="30" selection-end-line="273" selection-end-column="30" />
+          <folding>
+            <element signature="e#297#316#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

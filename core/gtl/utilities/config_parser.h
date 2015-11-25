@@ -100,7 +100,7 @@ struct ConfigParser
             }
             else
             {
-                RUNTIME_ERROR("undefined lua object!");
+                THROW_EXCEPTION_RUNTIME_ERROR("undefined lua object!");
             }
         }
 

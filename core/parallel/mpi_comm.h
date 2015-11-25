@@ -120,7 +120,7 @@ private:
     {                                                                      \
         char _error_msg[MPI_MAX_ERROR_STRING];                             \
         MPI_Error_string(_mpi_error_code_, _error_msg, nullptr);           \
-        RUNTIME_ERROR(_error_msg);                                         \
+        THROW_EXCEPTION_RUNTIME_ERROR(_error_msg);                                         \
     }                                                                      \
 }
 

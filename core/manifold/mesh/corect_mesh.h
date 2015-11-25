@@ -55,8 +55,8 @@ public:
 
     typedef id_type value_type;
     typedef size_t difference_type;
-    typedef nTuple <Real, ndims> point_type;
-    typedef nTuple <Real, ndims> vector_type;
+    typedef nTuple<Real, ndims> point_type;
+    typedef nTuple<Real, ndims> vector_type;
 
 
     /**
@@ -135,10 +135,21 @@ public:
     template<typename TDict>
     void load(TDict const &dict)
     {
-        box(dict["Geometry"]["Box"].template as<std::tuple<point_type, point_type> >());
+        try
+        {
+            box(dict["Geometry"]["Box"].template as<std::tuple<point_type, point_type> >());
 
-        base_type::dimensions(
-                dict["Geometry"]["Topology"]["Dimensions"].template as<index_tuple>(index_tuple{10, 1, 1}));
+            base_type::dimensions(
+                    dict["Geometry"]["Topology"]["Dimensions"].template as<index_tuple>(index_tuple{10, 1, 1}));
+
+        }
+        catch (std::runtime_error const &e)
+        {
+            SHOW_ERROR << e.what() << std::endl;
+
+            THROW_EXCEPTION_PARSER_ERROR("Geometry is not correctly loaded!");
+
+        }
     }
 
     template<typename OS>

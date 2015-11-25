@@ -65,8 +65,13 @@ struct EMPlasma
 
 void EMPlasma::setup(int argc, char **argv)
 {
-    nTuple<size_t, 3> dims = {10, 1, 1};
-    m.dimensions(dims);
+
+    ConfigParser options;
+
+    options.init(argc, argv);
+
+    m.load(options);
+
     m.deploy();
 
 

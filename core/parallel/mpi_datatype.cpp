@@ -133,7 +133,7 @@ MPIDataType MPIDataType::create(DataType const &data_type, //
     }
     else
     {
-        RUNTIME_ERROR("Cannot create MPI datatype:" + data_type.name());
+        THROW_EXCEPTION_RUNTIME_ERROR("Cannot create MPI datatype:" + data_type.name());
     }
 
     if (data_type.is_array() || (ndims > 0 && p_dims != nullptr))

@@ -45,9 +45,9 @@ LY = 10 --2.0*math.pi/k0
 LZ = 1.0 -- 2.0*math.pi/18
 GW = 5
 
-GEQDSK="/home/salmon/workspace/code/SimPla/scripts/gfile/g038300.03900"
+GEQDSK = "/home/salmon/workspace/code/SimPla/scripts/gfile/g038300.03900"
 
-Manifold =
+Mesh =
 {
     Geometry = {
         Topology = {
@@ -72,7 +72,7 @@ domain_center = {
     },
 }
 
-InitValue ={
+InitValue = {
     B = {
         Domain = { Box = { { 0, 0, 0 }, { LX, LY, LZ } } },
         Value = function(x, t)
