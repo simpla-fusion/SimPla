@@ -29,7 +29,7 @@ extern "C"
 #include "../gtl/utilities/utilities.h"
 #include "../gtl/utilities/memory_pool.h"
 
-#define H5_ERROR(_FUN_) if((_FUN_)<0){logger::Logger(logger::LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n HDF5 Error:";H5Eprint(H5E_DEFAULT, stderr);LOGGER<<std::endl;}
+#define H5_ERROR(_FUN_) if((_FUN_)<0){H5Eprint(H5E_DEFAULT, stderr);THROW_EXCEPTION_RUNTIME_ERROR("\e[1;32m" ,"HDF5 Error:",__STRING(_FUN_),  "\e[1;37m","");}
 
 namespace simpla { namespace io
 {
@@ -100,7 +100,6 @@ bool DataStream::is_valid() const
 std::string DataStream::pwd() const
 {
     return pimpl_->pwd();
-//		properties["File Name"].as<std::string>() + ":" + properties["Group Name"].as<std::string>();
 }
 
 void DataStream::init(int argc, char **argv)
@@ -135,8 +134,7 @@ void DataStream::init(int argc, char **argv)
 
     pimpl_->current_groupname_ = "/";
 
-    VERBOSE << "DataSteream is initialized!" << pimpl_->current_filename_
-    << std::endl;
+    VERBOSE << "DataSteream is initialized!" << std::endl;
 
 //
 

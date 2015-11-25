@@ -381,6 +381,9 @@ std::string make_error_msg(char const *file, int line, char const *func, Others 
 
 #define PARSER_WARNING(_MSG_)  {{ logger::Logger(logger::LOG_WARNING)<<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"<<"\n\tConfigure fails :"<<(_MSG_) ;}throw(std::runtime_error(""));}
 
+
+#define TRY_IT0(_CMD_) try{_CMD_;}catch (std::exception const &error){ THROW_EXCEPTION_RUNTIME_ERROR("[",__STRING(_CMD_), "]",error.what());}
+
 #define TRY_IT(_CMD_, ...) try{_CMD_;}catch (std::exception const &error){ THROW_EXCEPTION_RUNTIME_ERROR(__VA_ARGS__,":","[",__STRING(_CMD_), "]",error.what());}
 
 
@@ -414,7 +417,7 @@ std::string make_error_msg(char const *file, int line, char const *func, Others 
 #define SEPERATOR(_C_) std::setw(80) << std::setfill(_C_) << _C_
 //"-----------------------------------------------------------------"
 
-#define LOG_CMD(_CMD_) {logger::Logger __logger(logger::LOG_LOG);__logger<<__STRING(_CMD_);_CMD_;__logger<<DONE;}
+#define LOG_CMD(_CMD_) try{logger::Logger __logger(logger::LOG_LOG);__logger<<__STRING(_CMD_);_CMD_;__logger<<DONE;}catch (std::exception const &error){ THROW_EXCEPTION_RUNTIME_ERROR("[",__STRING(_CMD_), "]",error.what());}
 
 #define VERBOSE_CMD(_CMD_) {logger::Logger __logger(logger::LOG_VERBOSE);__logger<<__STRING(_CMD_);try{_CMD_;__logger<< DONE;}catch(...){__logger<<logger::failed;} }
 

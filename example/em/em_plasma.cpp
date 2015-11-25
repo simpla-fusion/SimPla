@@ -185,14 +185,12 @@ int main(int argc, char **argv)
 
     logger::init(argc, argv);
 
-    parallel::init(argc, argv);
+    TRY_IT0(parallel::init(argc, argv));
 
-    io::init(argc, argv);
+    TRY_IT0(io::init(argc, argv));
 
-    logger::set_stdout_level(1000);
 
     ConfigParser options;
-
 
     TRY_IT(options.init(argc, argv), "Option init error ");
 
@@ -236,6 +234,9 @@ int main(int argc, char **argv)
 
     ctx.check_point();
 
+    MESSAGE << "====================================================" << std::endl;
+    INFORM << "\t >>> START <<< " << std::endl;
+
     while (count < num_of_step)
     {
 
@@ -248,8 +249,9 @@ int main(int argc, char **argv)
     }
     ctx.tear_down();
 
-    MESSAGE << "====================================================" << std::endl
-    << "\t >>> Done <<< " << std::endl;
+    INFORM << "\t >>> Done <<< " << std::endl;
+    MESSAGE << "====================================================" << std::endl;
+
 
     io::close();
     parallel::close();
