@@ -33,6 +33,8 @@
 
 #endif
 
+#include "distributed_object.h"
+
 namespace simpla { namespace parallel
 {
 void init(int argc, char **argv);
@@ -41,7 +43,18 @@ void close();
 
 std::string help_message();
 
-void sync(DataSet &ds);
+
+template<typename ...Args>
+void sync(Args &&...args)
+{
+    if (GLOBAL_COMM.num_of_process() > 1)
+    {
+        DistributedObject dist_obj;
+        dist_obj.add(std::forward<Args>(args)...);
+        dist_obj.sync();
+        dist_obj.wait();
+    }
+};
 
 
 }}// namespace simpla { namespace parallel

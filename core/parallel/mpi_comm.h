@@ -43,7 +43,7 @@ public:
 
     static std::string help_message();
 
-    MPI_Comm  comm();
+    MPI_Comm comm();
 
     MPI_Info info();
 
@@ -115,8 +115,8 @@ private:
 
 #define MPI_ERROR(_CMD_)                                                   \
 {                                                                          \
-    int _mpi_error_code_ = MPI_SUCCESS;                                    \
-    if ( ( _mpi_error_code_=  _CMD_) != MPI_SUCCESS)                       \
+    int _mpi_error_code_ = _CMD_;                                    \
+    if (_mpi_error_code_ != MPI_SUCCESS)                       \
     {                                                                      \
         char _error_msg[MPI_MAX_ERROR_STRING];                             \
         MPI_Error_string(_mpi_error_code_, _error_msg, nullptr);           \

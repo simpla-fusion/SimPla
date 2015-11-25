@@ -354,6 +354,7 @@
     <orderEntry type="module-library">
       <library name="Header Search Paths">
         <CLASSES>
+          <root url="file://$USER_HOME$/.CLion12/system/cmake/generated/82e76996/82e76996/Debug/external_project/googletest/include" />
           <root url="file:///usr/include" />
           <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include" />
           <root url="file:///usr/lib/llvm-3.6/lib/clang/3.6.0/include" />
@@ -361,6 +362,7 @@
           <root url="file:///usr/local/include" />
         </CLASSES>
         <SOURCES>
+          <root url="file://$USER_HOME$/.CLion12/system/cmake/generated/82e76996/82e76996/Debug/external_project/googletest/include" />
           <root url="file:///usr/include" />
           <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include" />
           <root url="file:///usr/lib/llvm-3.6/lib/clang/3.6.0/include" />

@@ -10,6 +10,7 @@
 #include "mpi_comm.h"
 #include "mpi_datatype.h"
 #include "../gtl/utilities/utilities.h"
+#include "../gtl/utilities/pretty_stream.h"
 
 namespace simpla
 {
@@ -27,7 +28,7 @@ MPIDataType::~MPIDataType()
 {
     if (is_commited_)
     {
-        MPI_Type_free(&m_type_);
+        MPI_ERROR(MPI_Type_free(&m_type_));
     }
 }
 
@@ -41,9 +42,11 @@ MPIDataType MPIDataType::create(DataType const &data_type, //
                                 bool c_order_array)
 {
 
+
     MPI_Datatype res_type;
 
     bool is_predefined = true;
+
 
     if (data_type.is_compound())
     {
@@ -60,7 +63,7 @@ MPIDataType MPIDataType::create(DataType const &data_type, //
         ////		  MPI_Datatype *newtype
         ////		);
         std::vector<MPIDataType> dtypes;
-        std::vector<int> array_of_blocklengths;
+        std::vector<int> array_of_block_lengths;
         std::vector<MPI_Aint> array_of_displacements;
         std::vector<MPI_Datatype> array_of_types;
         //		  MPI_Aint array_of_displacements[],
@@ -82,17 +85,17 @@ MPIDataType MPIDataType::create(DataType const &data_type, //
 
             dtypes.push_back(MPIDataType::create(sub_datatype.element_type()));
 
-            array_of_blocklengths.push_back(block_length);
+            array_of_block_lengths.push_back(block_length);
             array_of_displacements.push_back(offset);
             array_of_types.push_back(dtypes.rbegin()->type());
 
         }
 
-        MPI_ERROR(MPI_Type_create_struct(        //
-                array_of_blocklengths.size(),        //
-                &array_of_blocklengths[0],        //
+        MPI_Type_create_struct(        //
+                static_cast<int>(array_of_block_lengths.size()),        //
+                &array_of_block_lengths[0],        //
                 &array_of_displacements[0],        //
-                &array_of_types[0], &res_type));
+                &array_of_types[0], &res_type);
 
     }
     else if (data_type.template is_same<int>())
@@ -147,7 +150,7 @@ MPIDataType MPIDataType::create(DataType const &data_type, //
         nTuple<int, MAX_NDIMS_OF_ARRAY> l_count;
         nTuple<int, MAX_NDIMS_OF_ARRAY> l_block;
 
-        auto old_type = MPIDataType::create(data_type);
+        MPIDataType old_type = MPIDataType::create(data_type.element_type());
 
         if (p_dims != nullptr)
         {
@@ -172,26 +175,26 @@ MPIDataType MPIDataType::create(DataType const &data_type, //
             l_count = p_count;
         }
 
-        if (p_stride != nullptr || p_block != nullptr)
-        {
-            //TODO create mpi datatype with stride and block
-            WARNING << "UNIMPLEMENTED!! 'stride'  and 'block' are ignored! "
-            << std::endl;
-        }
+//        if (p_stride != nullptr || p_block != nullptr)
+//        {
+//            //TODO create mpi datatype with stride and block
+//            UNIMPLEMENTED2("!! 'stride'  and 'block' are ignored! ");
+//        }
 
         for (int i = 0; i < data_type.rank(); ++i)
         {
-            l_dims[ndims + i] = data_type.extent(i);
-            l_count[ndims + i] = data_type.extent(i);
+            l_dims[ndims + i] = static_cast<int>(data_type.extent(i));
+            l_count[ndims + i] = static_cast<int>( data_type.extent(i));
             l_offset[ndims + i] = 0;
         }
 
         MPI_Datatype ele_type = res_type;
 
-        MPI_ERROR(MPI_Type_create_subarray(ndims + data_type.rank(), //
-                                           &l_dims[0], &l_count[0], &l_offset[0],//
-                                           (c_order_array ? MPI_ORDER_C : MPI_ORDER_FORTRAN),//
-                                           ele_type, &res_type));
+
+        MPI_Type_create_subarray(ndims + data_type.rank(),
+                                 &l_dims[0], &l_count[0], &l_offset[0],
+                                 (c_order_array ? MPI_ORDER_C : MPI_ORDER_FORTRAN),
+                                 ele_type, &res_type);
 
         if (!is_predefined)
         {
@@ -202,7 +205,7 @@ MPIDataType MPIDataType::create(DataType const &data_type, //
 
     if (!is_predefined)
     {
-        MPI_Type_commit(&res_type);
+        MPI_ERROR(MPI_Type_commit(&res_type));
     }
 
     MPIDataType res;
@@ -214,13 +217,13 @@ MPIDataType MPIDataType::create(DataType const &data_type, //
 
 MPIDataType MPIDataType::create(DataType const &data_type, DataSpace const &d_space, bool c_order_array)
 {
-    auto shape = d_space.shape();
 
     int ndims;
 
     nTuple<size_t, MAX_NDIMS_OF_ARRAY> dimensions, start, stride, count, block;
 
     std::tie(ndims, dimensions, start, stride, count, block) = d_space.shape();
+
 
     return create(data_type,
                   ndims,
@@ -237,7 +240,7 @@ size_t MPIDataType::size() const
 {
     int s = 0;
     MPI_ERROR(MPI_Type_size(m_type_, &s));
-    return s;
+    return static_cast<size_t>(s);
 }
 }  // namespace simpla
 

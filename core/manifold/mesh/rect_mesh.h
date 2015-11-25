@@ -114,11 +114,14 @@ public:
     OS &print(OS &os) const
     {
 
-        os << "\t\tTopology = {" << std::endl
-        << "\t\t Type = \"RectMesh\",  }," << std::endl
-        << "\t\t Extents = {" << box() << "}," << std::endl
+        os
+        << "\tGeometry={"<< std::endl
+        << "\t\t Topology = { Type = \"RectMesh\",  }," << std::endl
+        << "\t\t Box = {" << box() << "}," << std::endl
         << "\t\t Dimensions = " << base_type::dimensions() << "," << std::endl
-        << "\t\t}, " << std::endl;
+        << "\t\t}, "
+        << "\t}"
+        << std::endl;
 
         return os;
     }

@@ -12,4 +12,4 @@ TARGET_LINK_LIBRARIES(em_plasma simpla_lib)
 
 
 ADD_EXECUTABLE(em_task em_task.cpp)
-TARGET_LINK_LIBRARIES(em_task tbb)
+TARGET_LINK_LIBRARIES(em_task  simpla_lib)

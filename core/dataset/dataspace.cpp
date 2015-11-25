@@ -157,7 +157,7 @@ DataSpace &DataSpace::select_hyperslab(index_type const *start,
 
     if (start != nullptr)
     {
-        std::get<2>(pimpl_->m_d_shape_) += start;
+        std::get<2>(pimpl_->m_d_shape_) = start;
 //        pimpl_->m_d_shape_.offset += offset;
     }
 

@@ -140,18 +140,16 @@ void ParallelPolicy<TMesh>::update(Func const &fun, Args &&...args) const
 
         }
 
-//        parallel::DistributedObject dist_obj;
-//
-//        dist_obj.add(std::forward<Args>(args)...);
-//
-//        dist_obj.sync();
+        parallel::DistributedObject dist_obj;
+
+        dist_obj.add(std::forward<Args>(args)...);
+
+        dist_obj.sync();
 
         parallel::parallel_for(
-                m_mesh_.template make_range<IFORM>(
-                        std::get<0>(m_center_box_), std::get<1>(m_center_box_)),
-                fun);
+                m_mesh_.template make_range<IFORM>(std::get<0>(m_center_box_), std::get<1>(m_center_box_)), fun);
 
-//        dist_obj.wait();
+        dist_obj.wait();
     }
     else
     {
@@ -164,7 +162,7 @@ template<typename TMesh>
 template<typename T> void
 ParallelPolicy<TMesh>::sync(T &self) const
 {
-//    parallel::sync(traits::get_dataset(self));
+    parallel::sync(traits::get_dataset(self));
 }
 
 } //namespace policy

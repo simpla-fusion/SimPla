@@ -287,8 +287,8 @@ std::ostringstream &_make_error_msg(std::ostringstream &os, T const &first, Othe
 }
 
 
-template<typename ...Others>
-std::string make_error_msg(char const *file, int line, char const *func, Others &&...others)
+template<typename T0, typename T1, typename T2, typename ...Others>
+std::string make_error_msg(T0 const &file, T1 const &line, T2 const &func, Others &&...others)
 {
     std::ostringstream buffer;
 
@@ -321,15 +321,14 @@ std::string make_error_msg(char const *file, int line, char const *func, Others 
 
 #define NEED_OPTIMIZATION logger::Logger(logger::LOG_VERBOSE) <<MAKE_ERROR_MSG("") << "This function should be optimized!"<<std::endl
 
-#define UNIMPLEMENTED logger::Logger(logger::LOG_WARNING)  <<MAKE_ERROR_MSG("")<< "Sorry, this function is not implemented. Try again next year, good luck!"<<std::endl
+#define UNIMPLEMENTED  THROW_EXCEPTION_RUNTIME_ERROR( "Sorry, this function is not implemented. Try again next year, good luck! ")
 #define OBSOLETE  logger::Logger(logger::LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
               << "The function ["<< __PRETTY_FUNCTION__ << "] is obsolete. Please do not use  it any more."
 
 #define CHANGE_INTERFACE(_MSG_)  logger::Logger(logger::LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
               << "The function ["<< __PRETTY_FUNCTION__ << "] is obsolete. Please use ["<<_MSG_<<"] inside."
 
-#define UNIMPLEMENTED2(_MSG_) logger::Logger(logger::LOG_WARNING)<< MAKE_ERROR_MSG("") \
-              << "Sorry, I don't know how to '"<< _MSG_ <<"'. Try again next year, good luck!"
+#define UNIMPLEMENTED2(_MSG_) THROW_EXCEPTION_RUNTIME_ERROR(_MSG_)
 
 #define UNDEFINE_FUNCTION logger::Logger(logger::LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
               << "This function is not defined!"
@@ -382,7 +381,7 @@ std::string make_error_msg(char const *file, int line, char const *func, Others 
 #define PARSER_WARNING(_MSG_)  {{ logger::Logger(logger::LOG_WARNING)<<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"<<"\n\tConfigure fails :"<<(_MSG_) ;}throw(std::runtime_error(""));}
 
 
-#define TRY_IT(_CMD_) try{_CMD_;}catch (std::exception const &error){ THROW_EXCEPTION_RUNTIME_ERROR("[",__STRING(_CMD_), "]",error.what());}
+#define TRY_IT(_CMD_) try{_CMD_;}catch (std::exception const &_error){ THROW_EXCEPTION_RUNTIME_ERROR("[",__STRING(_CMD_), "]",_error.what());}
 
 #define TRY_IT1(_CMD_, ...) try{_CMD_;}catch (std::exception const &error){ THROW_EXCEPTION_RUNTIME_ERROR(__VA_ARGS__,":","[",__STRING(_CMD_), "]",error.what());}
 

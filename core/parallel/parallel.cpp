@@ -41,17 +41,8 @@ std::string help_message()
     return MPIComm::help_message();
 };
 
-template<typename ...Args>
-void sync(Args &&...args)
-{
-    if (GLOBAL_COMM.num_of_process() > 1)
-    {
-        DistributedObject dist_obj;
-        dist_obj.add(std::forward<Args>(args)...);
-        dist_obj.sync();
-        dist_obj.wait();
-    }
-};
+
+
 
 ///**
 // * @param pos in {0,count} out {begin,shape}

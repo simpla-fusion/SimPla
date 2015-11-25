@@ -56,7 +56,7 @@ struct DistributedObject
     void add_link(bool is_send, int const coord_offset[], int size,
                   DataType const &d_type, std::shared_ptr<void> *p);
 
-    void add_link(bool is_send, int const coord_offset[], DataSpace const &space,
+    void add_link(int const coord_offset[], DataSpace const &send_space, DataSpace const &recv_space,
                   DataType const &d_type, std::shared_ptr<void> *p);
 
     template<typename ...Args>

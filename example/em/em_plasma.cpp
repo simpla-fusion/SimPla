@@ -75,20 +75,25 @@ void EMPlasma::setup(int argc, char **argv)
     m.deploy();
 
 
-    MESSAGE << std::endl
-    << "[ Configuration ]" << std::endl
-    << m << std::endl;
+    MESSAGE << std::endl << "[ Configuration ]" << std::endl << m << std::endl;
 
-    Bv.clear();
-    B0v.clear();
-    Ev.clear();
+    try
+    {
+        Bv.clear();
+        B0v.clear();
+        Ev.clear();
 
-    B0.clear();
-    B1.clear();
-    E1.clear();
-    pdE.clear();
+        B0.clear();
+        B1.clear();
+        E1.clear();
+        pdE.clear();
 
-    B0v = map_to<VERTEX>(B0);
+        B0v = map_to<VERTEX>(B0);
+
+    } catch (std::exception const &error)
+    {
+        THROW_EXCEPTION_RUNTIME_ERROR("Field init error", error.what());
+    }
 
 }
 
@@ -102,12 +107,12 @@ void EMPlasma::check_point()
     io::cd("record");
 
     LOGGER << SAVE_RECORD(Bv) << std::endl;
-//    LOGGER << SAVE_RECORD(B0v) << std::endl;
-//    LOGGER << SAVE_RECORD(Ev) << std::endl;
-//
-//    LOGGER << SAVE_RECORD(B0) << std::endl;
-//    LOGGER << SAVE_RECORD(B1) << std::endl;
-//    LOGGER << SAVE_RECORD(E1) << std::endl;
+    LOGGER << SAVE_RECORD(B0v) << std::endl;
+    LOGGER << SAVE_RECORD(Ev) << std::endl;
+
+    LOGGER << SAVE_RECORD(B0) << std::endl;
+    LOGGER << SAVE_RECORD(B1) << std::endl;
+    LOGGER << SAVE_RECORD(E1) << std::endl;
 
 }
 
@@ -118,6 +123,11 @@ void EMPlasma::next_time_step()
     DEFINE_PHYSICAL_CONST
 
     Real dt = m.dt();
+
+    B1 -= curl(E1) * (dt * 0.5);
+    E1 += curl(B1) * dt;
+    B1 -= curl(E1) * (dt * 0.5);
+
 
     Ev = map_to<VERTEX>(E1);
     Bv = map_to<VERTEX>(B1);
@@ -183,17 +193,23 @@ int main(int argc, char **argv)
 {
     using namespace simpla;
 
-    logger::init(argc, argv);
-
-    TRY_IT(parallel::init(argc, argv));
-
-    TRY_IT(io::init(argc, argv));
-
-
     ConfigParser options;
 
-    TRY_IT(options.init(argc, argv));
+    try
+    {
 
+        logger::init(argc, argv);
+
+        parallel::init(argc, argv);
+
+        io::init(argc, argv);
+
+        options.init(argc, argv);
+    }
+    catch (std::exception const &error)
+    {
+        THROW_EXCEPTION_RUNTIME_ERROR("Initial error", error.what());
+    }
 
     INFORM << ShowCopyRight() << std::endl;
 
@@ -239,8 +255,7 @@ int main(int argc, char **argv)
 
     while (count < num_of_step)
     {
-
-        TRY_IT(ctx.next_time_step());
+        ctx.next_time_step();
 
         if (count % check_point == 0)
             ctx.check_point();

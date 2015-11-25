@@ -55,8 +55,8 @@ public:
 
     typedef id_type value_type;
     typedef size_t difference_type;
-    typedef nTuple<Real, ndims> point_type;
-    typedef nTuple<Real, ndims> vector_type;
+    typedef nTuple <Real, ndims> point_type;
+    typedef nTuple <Real, ndims> vector_type;
 
 
     /**
@@ -156,11 +156,13 @@ public:
     OS &print(OS &os) const
     {
 
-        os << "\t\tTopology = {" << std::endl
-        << "\t\t Type = " << ::simpla::traits::type_id<this_type>::name() << "\",  }," << std::endl
-        << "\t\t Extents = {" << box() << "}," << std::endl
+        os
+        << "\tGeometry={" << std::endl
+        << "\t\t Topology = { Type = \"CoRectMesh\",  }," << std::endl
+        << "\t\t Box = {" << box() << "}," << std::endl
         << "\t\t Dimensions = " << base_type::dimensions() << "," << std::endl
-        << "\t\t}, " << std::endl;
+        << "\t\t}, " << std::endl
+        << "\t}, " << std::endl;
 
         return os;
     }

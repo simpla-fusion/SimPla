@@ -49,6 +49,11 @@ struct DistributedObject::pimpl_s
     void add_link(bool is_send, int const coord_offset[], int size,
                   MPIDataType const &d_type, std::shared_ptr<void> *p);
 
+    void add_link(int const coord_offset[],
+                  int send_size, MPIDataType const &send_type,
+                  int recv_size, MPIDataType const &recv_type,
+                  std::shared_ptr<void> *p);
+
 };
 
 //! Default constructor
@@ -71,10 +76,10 @@ DistributedObject::pimpl_s::pimpl_s() : m_object_id_(GLOBAL_COMM.generate_object
 
 void DistributedObject::sync()
 {
-    if (!GLOBAL_COMM.is_valid())
-    {
-        return;
-    }
+    ASSERT(pimpl_ != nullptr);
+
+    if (!GLOBAL_COMM.is_valid()) { return; }
+
     for (auto const &item : pimpl_->m_send_links_)
     {
         MPI_Request req;
@@ -169,19 +174,40 @@ void DistributedObject::pimpl_s::add_link(bool is_send, int const coord_offset[]
         m_recv_links_.push_back(mpi_link_node({dest_id, recv_tag, size, mpi_d_type, p}));
     }
 }
+//
+//void DistributedObject::add_link(bool is_send, int const coord_offset[], int size,
+//                                 DataType const &d_type, std::shared_ptr<void> *p)
+//{
+//    pimpl_->add_link(is_send, coord_offset, size, MPIDataType::create(d_type), p);
+//
+//
+//}
 
-void DistributedObject::add_link(bool is_send, int const coord_offset[], int size,
-                                 DataType const &d_type, std::shared_ptr<void> *p)
+
+void DistributedObject::pimpl_s::add_link(int const coord_offset[],
+                                          int send_size, MPIDataType const &send_type,
+                                          int recv_size, MPIDataType const &recv_type,
+                                          std::shared_ptr<void> *p)
 {
-    pimpl_->add_link(is_send, coord_offset, size, MPIDataType::create(d_type), p);
+    int dest_id, send_tag, recv_tag;
 
+    std::tie(dest_id, send_tag, recv_tag) = GLOBAL_COMM.make_send_recv_tag(m_object_id_, &coord_offset[0]);
+
+    m_send_links_.push_back(mpi_link_node({dest_id, send_tag, send_size, recv_type, p}));
+
+    m_recv_links_.push_back(mpi_link_node({dest_id, recv_tag, recv_size, recv_type, p}));
 
 }
 
-void DistributedObject::add_link(bool is_send, int const coord_offset[], DataSpace const &d_space,
+void DistributedObject::add_link(int const coord_offset[],
+                                 DataSpace const &send_space,
+                                 DataSpace const &recv_space,
                                  DataType const &d_type, std::shared_ptr<void> *p)
 {
-    pimpl_->add_link(is_send, coord_offset, 1, MPIDataType::create(d_type, d_space), p);
+    pimpl_->add_link(coord_offset,
+                     1, MPIDataType::create(d_type, send_space),
+                     1, MPIDataType::create(d_type, recv_space),
+                     p);
 }
 
 
@@ -197,7 +223,12 @@ void DistributedObject::add(DataSet ds)
     index_tuple count;
 //    index_tuple block;
 
+
+
     std::tie(ndims, dimensions, start, std::ignore, count, std::ignore) = ds.memory_space.shape();
+
+
+    ASSERT(start + count <= dimensions)
 
     index_tuple ghost_width = start;
 
@@ -261,16 +292,24 @@ void DistributedObject::add(DataSet ds)
 
         if (tag_is_valid && (coord_offset[0] != 0 || coord_offset[1] != 0 || coord_offset[2] != 0))
         {
-            this->add_link_send(
-                    &coord_offset[0],
-                    DataSpace(ds.memory_space).select_hyperslab(&send_offset[0], nullptr, &send_count[0], nullptr),
-                    ds.datatype, &ds.data);
+            try
+            {
+                this->add_link(&coord_offset[0],
 
-            this->add_link_recv(
-                    &coord_offset[0],
-                    DataSpace(ds.memory_space).select_hyperslab(&recv_offset[0], nullptr, &recv_count[0], nullptr),
-                    ds.datatype, &ds.data);
+                               DataSpace(ds.memory_space).
+                                       select_hyperslab(&send_offset[0], nullptr, &send_count[0], nullptr),
 
+                               DataSpace(ds.memory_space).
+                                       select_hyperslab(&recv_offset[0], nullptr, &recv_count[0], nullptr),
+
+                               ds.datatype, &ds.data);
+
+            }
+            catch (std::exception const &error)
+            {
+                THROW_EXCEPTION_RUNTIME_ERROR("add coommnication link error", error.what());
+
+            }
         }
 
     }

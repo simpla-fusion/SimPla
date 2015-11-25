@@ -57,7 +57,7 @@ Mesh =
         dt = 0.5 * (LX / NX) / c
     }
 }
-omega_ext = 0.1 * math.pi / Mesh1.Geometry.dt --omega_ci*1.9
+omega_ext = 0.1 * math.pi / Mesh.Geometry.dt --omega_ci*1.9
 
 
 --domain_center=function( x  )

@@ -66,7 +66,7 @@ struct DataType
 
     DataType element_type() const;
 
-    size_t extent(size_t n) const;
+    size_t extent(int n) const;
 
     void extent(size_t *d) const;
 
@@ -159,6 +159,11 @@ struct datatype
 
 }// namespace traits
 
+inline std::ostream &operator<<(std::ostream &os, DataType const &self)
+{
+    traits::print(os, self);
+    return os;
+};
 }
 // namespace simpla
 

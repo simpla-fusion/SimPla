@@ -92,7 +92,11 @@ public:
         std::swap(m_data_, other.m_data_);
     }
 
-    void deploy() { m_mesh_.template alloc_memory<iform, value_type>(&m_data_); }
+    void deploy()
+    {
+        if (m_data_ == nullptr)
+            TRY_IT((m_mesh_.template alloc_memory<iform, value_type>(&m_data_)));
+    }
 
     void clear() { m_mesh_.template clear<iform, value_type>(&m_data_); }
 
@@ -152,12 +156,14 @@ private:
     template<typename TOP, typename ...Args>
     void action(TOP const &op, Args &&... args)
     {
+        deploy();
         m_mesh_.for_each(op, this, std::forward<Args>(args)...);
     }
 
     template<typename TOP, typename ...Args>
     void action(TOP const &op, Args &&... args) const
     {
+
         m_mesh_.for_each(op, *this, std::forward<Args>(args)...);
     }
 
