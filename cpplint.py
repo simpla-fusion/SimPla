@@ -3038,7 +3038,7 @@ def PrintUsage(message):
   """
   sys.stderr.write(_USAGE)
   if message:
-    sys.exit('\nFATAL ERROR: ' + message)
+    sys.exit('\nFATAL THROW_EXCEPTION: ' + message)
   else:
     sys.exit(1)
 

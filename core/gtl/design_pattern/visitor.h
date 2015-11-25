@@ -173,7 +173,7 @@ public:
         }
         else
         {
-            ERROR << "acceptor type mismatch" << std::endl;
+            THROW_EXCEPTION << "acceptor type mismatch" << std::endl;
         }
     }
 

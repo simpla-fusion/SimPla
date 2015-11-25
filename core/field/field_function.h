@@ -106,7 +106,7 @@ make_function_by_config(TM const &m, TDict const &dict)
 
     typedef Field<TV, TM, std::integral_constant<int, IFORM>, tags::function, TDict> field_type;
 
-    if (!dict["Value"]) {ERROR("illegal configure file!"); }
+    if (!dict["Value"]) { THROW_EXCEPTION("illegal configure file!"); }
 
     field_type res(m, dict["Value"]);
 

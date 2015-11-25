@@ -186,18 +186,7 @@ public:
     template<typename TDict>
     void load(TDict const &dict)
     {
-        try
-        {
-            auto d = dict["Mesh"];
-            _dispatch_load<mesh_type, Policies...>(d);
-        }
-        catch (...)
-        {
-            WARNING << "mesh is not configured!" << std::endl;
-
-        }
-
-
+        TRY_IT((_dispatch_load<mesh_type, Policies...>(dict["Mesh"])), "mesh is not configured!");
     }
 
 
@@ -210,9 +199,9 @@ public:
     template<typename OS>
     OS &print(OS &os) const
     {
-        os << "Manifold={" << std::endl;
+        os << "Mesh={" << std::endl;
         _dispatch_print<mesh_type, Policies...>(os);
-        os << "}, # Manifold " << std::endl;
+        os << "}, # Mesh " << std::endl;
         return os;
     }
 

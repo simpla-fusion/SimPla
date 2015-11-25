@@ -194,7 +194,8 @@ int main(int argc, char **argv)
     ConfigParser options;
 
 
-    options.init(argc, argv);
+    TRY_IT(options.init(argc, argv), "Option init error ");
+
 
     INFORM << ShowCopyRight() << std::endl;
 

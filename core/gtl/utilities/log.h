@@ -266,6 +266,43 @@ inline std::string ShowBit(unsigned long s)
     return std::bitset<64>(s).to_string();
 }
 
+
+inline std::ostringstream &_make_error_msg(std::ostringstream &os)
+{
+    return os;
+}
+
+template<typename T>
+std::ostringstream &_make_error_msg(std::ostringstream &os, T const &first)
+{
+    os << first;
+    return os;
+}
+
+template<typename T, typename ...Others>
+std::ostringstream &_make_error_msg(std::ostringstream &os, T const &first, Others &&...others)
+{
+    os << first;
+    return _make_error_msg(os, std::forward<Others>(others)...);
+}
+
+
+template<typename ...Others>
+std::string make_error_msg(char const *file, int line, char const *func, Others &&...others)
+{
+    std::ostringstream buffer;
+
+    buffer << std::endl << "\e[1;31m" << "From [" << file << ":" << line << ":" << (func) << "]:" << "\e[1;31m" <<
+    std::endl << "\t" << "\e[1;37m";
+
+    _make_error_msg(buffer, std::forward<Others>(others)...);
+
+    buffer << "\e[0m";
+
+    std::string msg = buffer.str();
+
+    return std::move(msg);
+}
 /** @} */
 
 }  // namespace logger
@@ -274,25 +311,24 @@ inline std::string ShowBit(unsigned long s)
  *  @name   Shortcuts for logging
  *  @{
  */
+#define MAKE_ERROR_MSG(...) logger::make_error_msg((__FILE__),(__LINE__),(__PRETTY_FUNCTION__),__VA_ARGS__)
 
 #define DONE logger::done
 
-#define WARNING logger::Logger(logger::LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
+#define WARNING logger::Logger(logger::LOG_WARNING)  <<MAKE_ERROR_MSG("")
 
 #define INFORM logger::Logger(logger::LOG_INFORM)
 
-#define NEED_OPTIMIZATION logger::Logger(logger::LOG_VERBOSE)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
-        << "This function should be optimized!"<<std::endl
+#define NEED_OPTIMIZATION logger::Logger(logger::LOG_VERBOSE) <<MAKE_ERROR_MSG("") << "This function should be optimized!"<<std::endl
 
-#define UNIMPLEMENTED logger::Logger(logger::LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
-              << "Sorry, this function is not implemented. Try again next year, good luck!"<<std::endl
+#define UNIMPLEMENTED logger::Logger(logger::LOG_WARNING)  <<MAKE_ERROR_MSG("")<< "Sorry, this function is not implemented. Try again next year, good luck!"<<std::endl
 #define OBSOLETE  logger::Logger(logger::LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
               << "The function ["<< __PRETTY_FUNCTION__ << "] is obsolete. Please do not use  it any more."
 
 #define CHANGE_INTERFACE(_MSG_)  logger::Logger(logger::LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
               << "The function ["<< __PRETTY_FUNCTION__ << "] is obsolete. Please use ["<<_MSG_<<"] inside."
 
-#define UNIMPLEMENTED2(_MSG_) logger::Logger(logger::LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
+#define UNIMPLEMENTED2(_MSG_) logger::Logger(logger::LOG_WARNING)<< MAKE_ERROR_MSG("") \
               << "Sorry, I don't know how to '"<< _MSG_ <<"'. Try again next year, good luck!"
 
 #define UNDEFINE_FUNCTION logger::Logger(logger::LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
@@ -314,44 +350,48 @@ inline std::string ShowBit(unsigned long s)
 
 #define SHOW_WARNING logger::Logger(logger::LOG_WARNING)
 
-#define MAKE_MSG(_MSG_) std::ostringstream _buffer;_buffer<<std::endl<<"From ["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"<<_MSG_;
 
-//#define ERROR(_MSG_) { {logger::Logger(logger::LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::logic_error("error"));}
-#define ERROR(_MSG_) {MAKE_MSG(_MSG_);throw(std::runtime_error(_buffer.str()));}
+
+//#define THROW_EXCEPTION(_MSG_) { {logger::Logger(logger::LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::logic_error("error"));}
+
+#define THROW_EXCEPTION(...)  throw(std::exception(MAKE_ERROR_MSG( __VA_ARGS__)));
 
 //#define THROW_EXCEPTION_RUNTIME_ERROR(_MSG_) { {logger::Logger(logger::LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::runtime_error("runtime error"));}
 
-#define THROW_EXCEPTION_RUNTIME_ERROR(_MSG_) {MAKE_MSG(_MSG_);throw(std::runtime_error(_buffer.str()));}
+#define THROW_EXCEPTION_RUNTIME_ERROR(...) throw(std::runtime_error(MAKE_ERROR_MSG(__VA_ARGS__)));
 
 //#define THROW_EXCEPTION_LOGIC_ERROR(_MSG_)  {{logger::Logger(logger::LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::logic_error("logic error"));}
-#define THROW_EXCEPTION_LOGIC_ERROR(_MSG_) {MAKE_MSG(_MSG_);throw(std::logic_error(_buffer.str()));}
+#define THROW_EXCEPTION_LOGIC_ERROR(...) throw(std::logic_error(MAKE_ERROR_MSG( __VA_ARGS__)));
 
 //#define THROW_EXCEPTION_OUT_OF_RANGE(_MSG_) { {logger::Logger(logger::LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::out_of_range("out of range"));}
-#define THROW_EXCEPTION_OUT_OF_RANGE(_MSG_) {MAKE_MSG(_MSG_);throw(std::out_of_range(_buffer.str()));}
+#define THROW_EXCEPTION_OUT_OF_RANGE(...) throw(std::out_of_range(MAKE_ERROR_MSG( __VA_ARGS__)));
 
 //#define THROW_EXCEPTION_BAD_ALLOC(_SIZE_, _error_)    logger::Logger(logger::LOG_ERROR)<<__FILE__<<"["<<__LINE__<<"]: "<< "Can not get enough memory! [ "  \
 //        << _SIZE_ / 1024.0 / 1024.0 / 1024.0 << " GiB ]" << std::endl; throw(_error_);
-#define THROW_EXCEPTION_BAD_ALLOC(_SIZE_, _MSG_)   {MAKE_MSG( "Can not get enough memory! [ " << _SIZE_ / 1024.0 / 1024.0 / 1024.0 << " GiB ]"<<_MSG_ ); throw(std::bad_alloc());}
 
+#define THROW_EXCEPTION_BAD_ALLOC(_SIZE_)   {SHOW_ERROR<<MAKE_ERROR_MSG( "Can not get enough memory! [ " , _SIZE_ / 1024.0 / 1024.0 / 1024.0 , " GiB ]", "" )<<std::endl; throw(std::bad_alloc());}
 
-#define THROW_EXCEPTION_BAD_CAST(_FIRST_, _SECOND_) {MAKE_MSG("Can not cast " << (_FIRST_) << " to " <<(_SECOND_)); throw(std::bad_cast());}
+//
+
+#define THROW_EXCEPTION_BAD_CAST(_FIRST_, _SECOND_) {SHOW_ERROR<<MAKE_ERROR_MSG("Can not cast " , (_FIRST_) , " to "  ,(_SECOND_) , "" ) <<std::endl; throw(std::bad_cast());}
 
 
 //#define THROW_EXCEPTION_PARSER_ERROR(_MSG_)  {{ logger::Logger(logger::LOG_ERROR)<<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"<<"\n\tConfigure fails :"<<(_MSG_) ;}throw(std::runtime_error(""));}
-#define THROW_EXCEPTION_PARSER_ERROR(_MSG_)   {MAKE_MSG("Configure fails:"<<_MSG_);throw(std::logic_error(_buffer.str()));}
+#define THROW_EXCEPTION_PARSER_ERROR(...)    throw(std::logic_error(MAKE_ERROR_MSG("Configure fails:", __VA_ARGS__)));
 
 #define PARSER_WARNING(_MSG_)  {{ logger::Logger(logger::LOG_WARNING)<<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"<<"\n\tConfigure fails :"<<(_MSG_) ;}throw(std::runtime_error(""));}
+
+#define TRY_IT(_CMD_, ...) try{_CMD_;}catch (std::exception const &error){ THROW_EXCEPTION_RUNTIME_ERROR(__VA_ARGS__,":","[",__STRING(_CMD_), "]",error.what());}
 
 
 #ifdef NDEBUG
 #  define ASSERT(_COND_)
 #else
-#  define ASSERT(_COND_)   if(!(_COND_)){ {logger::Logger(logger::LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t Assertion \""<<(__STRING(_COND_))<< "\" failed! Abort."<<std::endl;}throw(std::logic_error("assert error"));};
+#  define ASSERT(_COND_)   if(!(_COND_)){ THROW_EXCEPTION_RUNTIME_ERROR("Assertion \"",__STRING(_COND_), "\" failed! Abort.");};
 #endif
 
 //#ifndef NDEBUG
-#define CHECK(_MSG_)    logger::Logger(logger::LOG_DEBUG) <<" "<< (__FILE__) <<": line "<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
-    <<"\n\t"<< __STRING(_MSG_)<<"="<< ( _MSG_)<<std::endl
+#define CHECK(_MSG_)    logger::Logger(logger::LOG_DEBUG) <<MAKE_ERROR_MSG(__STRING(_MSG_)," = ", ( _MSG_))
 #define SHOW(_MSG_)    logger::Logger(logger::LOG_VERBOSE) << __STRING(_MSG_)<<"\t= "<< ( _MSG_) <<std::endl;
 #define SHOW_HEX(_MSG_)    logger::Logger(logger::LOG_VERBOSE) << __STRING(_MSG_)<<"\t= "<<std::hex << ( _MSG_) <<std::dec<<std::endl;
 

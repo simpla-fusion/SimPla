@@ -167,7 +167,7 @@ public:
         }
         else
         {
-            ERROR("Undefined result");
+            THROW_EXCEPTION("Undefined result");
             return 0;
         }
     }

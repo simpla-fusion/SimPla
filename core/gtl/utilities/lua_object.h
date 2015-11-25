@@ -51,9 +51,9 @@ namespace lua
    int error=_CMD_;                                                            \
     if(error!=0)                                                               \
     { \
-      MAKE_MSG( std::endl<<"\t Lua Error:"<<lua_tostring(L_.get(), -1)); \
+      std::string msg=MAKE_ERROR_MSG("\e[1;32m" ,"Lua Error:",lua_tostring(L_.get(), -1),  "\e[1;37m",""); \
      lua_pop(L_.get(), 1);                                                     \
-     throw(std::runtime_error(_buffer.str()));                                   \
+     throw(std::runtime_error(msg));                                   \
     }                                                                          \
 }
 
@@ -989,9 +989,7 @@ struct Converter<std::string>
         else
         {
             *v = default_value;
-            THROW_EXCEPTION_LOGIC_ERROR("Can not convert type "
-                                        << lua_typename(L.get(), lua_type(L.get(), idx))
-                                        << " to double !");
+            THROW_EXCEPTION_BAD_CAST(lua_typename(L.get(), lua_type(L.get(), idx)), "doulbe");
         }
         return 1;
     }

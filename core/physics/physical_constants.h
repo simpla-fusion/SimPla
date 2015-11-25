@@ -76,7 +76,7 @@ public:
 //		}
 //		else
 //		{
-//			ERROR << "Physical quantity " << s << " is not available!";
+//			THROW_EXCEPTION << "Physical quantity " << s << " is not available!";
 //		}
 
 		return q_.at(s);

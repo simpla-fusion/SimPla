@@ -74,7 +74,7 @@ std::string ConfigParser::init(int pargc, char **pargv)
 
     } catch (std::exception const &error)
     {
-        THROW_EXCEPTION_PARSER_ERROR(lua_file << error.what());
+        THROW_EXCEPTION_PARSER_ERROR(lua_file, error.what());
     }
 
     return "\t-i,\t--input <STRING>       \t, Input configure file \n"

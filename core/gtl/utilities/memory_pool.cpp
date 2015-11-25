@@ -157,19 +157,19 @@ void *MemoryPool::pimpl_s::pop(size_t s)
 
         } catch (std::bad_alloc const &error)
         {
-            THROW_EXCEPTION_BAD_ALLOC(s, error.what());
-
-            }
+            THROW_EXCEPTION_BAD_ALLOC(s);
 
         }
-        return addr;
 
     }
+    return addr;
 
-    std::shared_ptr<void> sp_alloc_memory(size_t s)
-    {
-        void *addr = SingletonHolder<MemoryPool>::instance().pop(s);
+}
 
-        return std::shared_ptr<void>(addr, MemoryPool::deleter_s(addr, s));
-    }
+std::shared_ptr<void> sp_alloc_memory(size_t s)
+{
+    void *addr = SingletonHolder<MemoryPool>::instance().pop(s);
+
+    return std::shared_ptr<void>(addr, MemoryPool::deleter_s(addr, s));
+}
 } // namespace simpla
