@@ -186,7 +186,7 @@ public:
     template<typename TDict>
     void load(TDict const &dict)
     {
-        TRY_IT((_dispatch_load<mesh_type, Policies...>(dict["Mesh"])), "mesh is not configured!");
+        TRY_IT((_dispatch_load<mesh_type, Policies...>(dict["Mesh"])) );
     }
 
 

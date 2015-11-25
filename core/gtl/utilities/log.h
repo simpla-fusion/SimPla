@@ -292,8 +292,8 @@ std::string make_error_msg(char const *file, int line, char const *func, Others 
 {
     std::ostringstream buffer;
 
-    buffer << std::endl << "\e[1;31m" << "From [" << file << ":" << line << ":" << (func) << "]:" << "\e[1;31m" <<
-    std::endl << "\t" << "\e[1;37m";
+    buffer << std::endl << "\e[0m" << " \e[1;37m From [" << file << ":" << line << ":" << (func) << "]"
+    << std::endl << " \e[1;31m\t";
 
     _make_error_msg(buffer, std::forward<Others>(others)...);
 
@@ -382,9 +382,9 @@ std::string make_error_msg(char const *file, int line, char const *func, Others 
 #define PARSER_WARNING(_MSG_)  {{ logger::Logger(logger::LOG_WARNING)<<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"<<"\n\tConfigure fails :"<<(_MSG_) ;}throw(std::runtime_error(""));}
 
 
-#define TRY_IT0(_CMD_) try{_CMD_;}catch (std::exception const &error){ THROW_EXCEPTION_RUNTIME_ERROR("[",__STRING(_CMD_), "]",error.what());}
+#define TRY_IT(_CMD_) try{_CMD_;}catch (std::exception const &error){ THROW_EXCEPTION_RUNTIME_ERROR("[",__STRING(_CMD_), "]",error.what());}
 
-#define TRY_IT(_CMD_, ...) try{_CMD_;}catch (std::exception const &error){ THROW_EXCEPTION_RUNTIME_ERROR(__VA_ARGS__,":","[",__STRING(_CMD_), "]",error.what());}
+#define TRY_IT1(_CMD_, ...) try{_CMD_;}catch (std::exception const &error){ THROW_EXCEPTION_RUNTIME_ERROR(__VA_ARGS__,":","[",__STRING(_CMD_), "]",error.what());}
 
 
 #ifdef NDEBUG

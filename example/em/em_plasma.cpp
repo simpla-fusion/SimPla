@@ -185,14 +185,14 @@ int main(int argc, char **argv)
 
     logger::init(argc, argv);
 
-    TRY_IT0(parallel::init(argc, argv));
+    TRY_IT(parallel::init(argc, argv));
 
-    TRY_IT0(io::init(argc, argv));
+    TRY_IT(io::init(argc, argv));
 
 
     ConfigParser options;
 
-    TRY_IT(options.init(argc, argv), "Option init error ");
+    TRY_IT(options.init(argc, argv));
 
 
     INFORM << ShowCopyRight() << std::endl;
@@ -240,7 +240,7 @@ int main(int argc, char **argv)
     while (count < num_of_step)
     {
 
-        ctx.next_time_step();
+        TRY_IT(ctx.next_time_step());
 
         if (count % check_point == 0)
             ctx.check_point();
