@@ -13,9 +13,50 @@
 #include "../../core/manifold/pre_define/predefine.h"
 #include "../../core/field/field.h"
 
+#include "../../core/particle/particle.h"
+#include "../../core/particle/particle_proxy.h"
+#include "../../core/particle/particle_engine.h"
+#include "../../core/dataset/datatype_ext.h"
 
 namespace simpla
 {
+struct PICDemo
+{
+
+
+    SP_DEFINE_STRUCT(point_type,
+                     Vec3, x,
+                     Vec3, v,
+                     Real, f,
+                     Real, w
+    );
+
+//    SP_DEFINE_PROPERTIES(
+//            Real, mass,
+//            Real, charge,
+//            Real, temperature
+//    )
+    Real mass;
+    Real charge;
+    Real temperature;
+
+    void update() { }
+
+    Vec3 project(point_type const &p) const { return p.x; }
+
+    Real function_value(point_type const &p) const { return p.f * p.w; }
+
+    point_type lift(Vec3 const &x, Vec3 const &v) const { return point_type{x, v, 1.0, 0.0}; }
+
+    template<typename TE, typename TB>
+    void push(point_type *p, Real dt, Real t, TE const &E, TB const &B)
+    {
+        p->x += p->v * dt * 0.5;
+        p->v += E(p->x, t) * dt * mass / charge;
+        p->x += p->v * dt * 0.5;
+    };
+
+};
 
 struct EMPlasma
 {
@@ -53,10 +94,20 @@ struct EMPlasma
     traits::field_t<scalar_type, mesh_type, EDGE> E1{m};
     traits::field_t<scalar_type, mesh_type, EDGE> pdE{m};
 
+    typedef traits::field_t<scalar_type, mesh_type, FACE> TB;
+    typedef traits::field_t<scalar_type, mesh_type, EDGE> TE;
+    typedef traits::field_t<scalar_type, mesh_type, EDGE> TJ;
+    typedef traits::field_t<scalar_type, mesh_type, VERTEX> TRho;
+
+    Particle<PICDemo, mesh_type> ion{m};
+
     struct particle_s
     {
+        std::shared_ptr<ParticleProxyBase<TB, TE, TJ, TRho>> p;
         Real mass;
         Real charge;
+        TJ J1;
+        TRho rho1;
         traits::field_t<scalar_type, mesh_type, VERTEX> rhos;
         traits::field_t<vector_type, mesh_type, VERTEX> Js;
     };
@@ -150,6 +201,9 @@ void EMPlasma::next_time_step()
 
     for (auto &p :   particles)
     {
+
+        p.second.p->integral(&p.second.J1);
+
         auto &rhos = p.second.rhos;
         auto &Js = p.second.Js;
 

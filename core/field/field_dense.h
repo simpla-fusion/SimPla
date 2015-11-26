@@ -191,7 +191,7 @@ public:
      *  @{
      */
 
-    void sync() { m_mesh_.sync(this); }
+    void sync() { m_mesh_.sync(*this); }
 
 
     value_type &operator[](id_type const &s)

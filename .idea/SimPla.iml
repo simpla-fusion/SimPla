@@ -294,6 +294,7 @@
       <sourceFolder url="file://$MODULE_DIR$/core/particle/particle_container.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/particle/particle_engine.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/particle/particle_generator.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/particle/particle_proxy.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/particle/test/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/particle/test/kinetic_particle_test.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/particle/test/kinetic_particle_test.h" isTestSource="false" />

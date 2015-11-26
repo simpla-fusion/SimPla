@@ -53,7 +53,7 @@ struct DistributedObject
 
     void add(DataSet ds);
 
-    void add_link(bool is_send, int const coord_offset[], int size,
+    void add_link(bool is_send, int const coord_offset[], size_t size,
                   DataType const &d_type, std::shared_ptr<void> *p);
 
     void add_link(int const coord_offset[], DataSpace const &send_space, DataSpace const &recv_space,

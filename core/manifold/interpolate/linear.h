@@ -225,6 +225,9 @@ public:
 
 
 public:
+    typedef typename geometry_type::point_type point_type;
+    typedef typename geometry_type::vector_type vector_type;
+
     Interpolate(geometry_type &geo) : m_geo_(geo)
     {
     }
@@ -233,6 +236,25 @@ public:
     {
     }
 
+    /**
+     * A radial basis function (RBF) is a real-valued function whose value depends only
+     * on the distance from the origin, so that \f$\phi(\mathbf{x}) = \phi(\|\mathbf{x}\|)\f$;
+     * or alternatively on the distance from some other point c, called a center, so that
+     * \f$\phi(\mathbf{x}, \mathbf{c}) = \phi(\|\mathbf{x}-\mathbf{c}\|)\f$.
+     */
+    Real RBF(point_type const &x0, point_type const &x1, vector_type const &a) const
+    {
+        vector_type r;
+        r = (x1 - x0) / a;
+        // @NOTE this is not  an exact  RBF
+        return (1.0 - std::abs(r[0])) * (1.0 - std::abs(r[1])) * (1.0 - std::abs(r[2]));
+    }
+
+    Real RBF(point_type const &x0, point_type const &x1, Real const &a) const
+    {
+
+        return (1.0 - m_geo_.distance(x1, x0) / a);
+    }
 
 };
 

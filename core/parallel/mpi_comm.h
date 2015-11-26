@@ -90,22 +90,6 @@ public:
 
     std::tuple<int, int, int> make_send_recv_tag(int prefix, int const *offset);
 
-//    void decompose(int ndims, size_t *count, size_t *offset) const;
-//
-//    template<typename TI>
-//    void decompose(int ndims, TI *count, TI *offset) const
-//    {
-//        nTuple<size_t, MAX_NDIMS_OF_ARRAY> t_count, t_offset;
-//        t_count = count;
-//        t_offset = offset;
-//        decompose(ndims, &t_count[0], &t_offset[0]);
-//        for (int i = 0; i < ndims; ++i)
-//        {
-//            count[i] = t_count[i];
-//            offset[i] = t_offset[i];
-//        }
-//    }
-
 private:
     struct pimpl_s;
     std::unique_ptr<pimpl_s> pimpl_;
@@ -113,17 +97,17 @@ private:
 
 #define GLOBAL_COMM   SingletonHolder<::simpla::parallel::MPIComm>::instance()
 
-#define MPI_ERROR(_CMD_)                                                   \
+#define MPI_ERROR(_CMD_)                                               \
 {                                                                          \
     int _mpi_error_code_ = _CMD_;                                    \
     if (_mpi_error_code_ != MPI_SUCCESS)                       \
     {                                                                      \
         char _error_msg[MPI_MAX_ERROR_STRING];                             \
         MPI_Error_string(_mpi_error_code_, _error_msg, nullptr);           \
-        THROW_EXCEPTION_RUNTIME_ERROR(_error_msg);                                         \
+                                          \
     }                                                                      \
 }
-
+// THROW_EXCEPTION_RUNTIME_ERROR(_error_msg);
 }}//namespace simpla{namespace parallel{
 
 

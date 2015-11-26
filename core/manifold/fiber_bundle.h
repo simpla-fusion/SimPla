@@ -10,95 +10,116 @@
 #include "../gtl/primitives.h"
 #include "../gtl/properties.h"
 
-namespace simpla
+namespace simpla { namespace manifold
 {
+
 
 template<typename ...> class FiberBundle;
 
-template<typename P, typename TBase>
-class FiberBundle
+template<typename P, typename M>
+struct DirectMap
+{
+    typedef M mesh_type;
+    typedef P point_type;
+    typedef mesh_type::vector_type vector_type;
+
+    DirectMap(mesh_type const &) { }
+
+    ~DirectMap() { }
+
+    inline typename mesh_type::point_type project(point_type const &p) const
+    {
+        return p.x;
+    }
+
+    inline point_type lift(typename mesh_type::point_type const &x, typename mesh_type::vector_type const &v) const
+    {
+        return point_type{x, v};
+    }
+
+    template<typename ...Others>
+    void parallel_move(point_type *p, Real dt, vector_type const &a, Others &&... others) const
+    {
+        p->x += p->v * dt * 0.5;
+        p->v += a * dt;
+        p->x += p->v * dt * 0.5;
+
+    }
+};
+
+/**
+ * A fiber bundle is a structure (E, B, π, F), where E, B, and F
+ * are topological spaces and \f$ \pi : E \mapto B \f$ is a continuous surjection
+ * satisfying a local triviality condition outlined below. The space B is called
+ * the '''base space''' of the bundle, \f$E\f$ the total space, and \f$F\f$ the fiber.
+ * The map \f$\pi\f$ is called the '''projection map''' (or '''bundle projection''').
+ */
+template<typename E, typename M, typename PI>
+class FiberBundle : public PI
 {
 public:
 
-    typedef P point_type;
+    typedef E point_type; //!< coordinates in the total space,
+    typedef M mesh_type; //!<  base space;
+    typedef PI project_map_type; //!<  projection map
+
     typedef Vec3 vector_type;
     typedef Real scalar_type;
 private:
-    typedef TBase base_manifold;
-    typedef FiberBundle<point_type, base_manifold> this_type;
-    typedef TBase::range_type range_type;
+    typedef FiberBundle<point_type, mesh_type, project_map_type> this_type;
+    typedef typename mesh_type::range_type range_type;
+    typedef typename mesh_type::id_type id_type;
 
 
-    base_manifold const &m_mesh_;
-
+    project_map_type const &m_map_;
 
 public:
+    mesh_type const &m_mesh_;
 
-    typedef P point_type;
+    using project_map_type::project;
+    using project_map_type::project_v;
+    using project_map_type::lift;
+    using project_map_type::parallel_move;
+    using project_map_type::RBF;
+
 
     Properties properties;
 
-    FiberBundle(base_manifold const &b) : m_mesh_(b)
+    FiberBundle(mesh_type const &b) : m_map_(b), m_mesh_(b)
     {
     }
 
-    FiberBundle(this_type const &other) : m_mesh_(other.m_mesh_)
+    FiberBundle(this_type const &other) : m_map_(other.m_map_), m_mesh_(other.m_mesh_)
     {
     }
 
 
-    ~FiberBundle()
+    virtual  ~FiberBundle()
     {
     }
 
     void swap(this_type &other)
     {
+        m_map_.swap(other);
+
         std::swap(m_mesh_, other.m_mesh_);
     }
 
-    base_manifold const &mesh() const { return m_mesh_; }
+    mesh_type const &mesh() const { return m_mesh_; }
 
-    template<typename ...Args>
-    inline typename base_manifold::point_type project(point_type const &p, Args &&...args) const
+    template<int IFORM>
+    Real integral(mesh_type::point_type const &x0, point_type const &z, vector_type const &dx) const
     {
-        return p.x;
+        return RBF((x - project(z)) / dx);
     }
 
-    template<typename TV, typename ...Args>
-    inline point_type lift(typename base_manifold::point_type const &x, TV const &v, Real f,
-                           Args &&...args) const
+    template<int IFORM>
+    Real integral(id_type const &s, point_type const &z) const
     {
-        point_type res{x, v, f};
+        auto x0 = m_mesh_.point(s);
+        auto dx = m_mesh_.dx(s);
 
-        return std::move(res);
-    }
-
-    template<typename ...Args>
-    inline vector_type push_forward(point_type const &p, Args &&...args) const
-    {
-        vector_type res;
-        res = p.v * p.f;
-        return std::move(res);
-    }
-
-    template<typename TJ, typename ...Args>
-    inline vector_type push_forward(point_type const &p, TJ *J, Args &&...args) const
-    {
-
-        return m_mesh_.scatter(J, project(p), push_forward(p, std::forward<Args>(args)...));
-
-    }
-
-    template<typename TF, typename ...Args>
-    inline auto pull_back(point_type const &p, TF const &f, Args &&...args) const
-    DECL_RET_TYPE((f(project(p, std::forward<Args>(args)...))))
-
-
-    template<typename ...Args>
-    inline void move(point_type *p0, Real dt, Args &&...args) const
-    {
-        p0->x += p0->v * dt;
-
+        return RBF((x - project(z)) / dx) * project_v<IFORM>(z, m_mesh_.sub_index(s));
     }
 };
 
@@ -109,6 +130,7 @@ public:
 
 
 
-}//namespace simpla
+}}//namespace simpla{namespace manifold
+
 
 #endif //SIMPLA_FIBER_BUNDLE_H
