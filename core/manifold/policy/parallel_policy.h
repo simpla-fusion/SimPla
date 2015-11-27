@@ -7,6 +7,9 @@
 #ifndef SIMPLA_PARALLEL_POLICY_H
 #define SIMPLA_PARALLEL_POLICY_H
 
+#include <tuple>
+#include <vector>
+#include "../../gtl/ntuple.h"
 #include "../../parallel/mpi_comm.h"
 #include "../../parallel/mpi_update.h"
 #include "../../parallel/parallel.h"
@@ -14,17 +17,14 @@
 
 namespace simpla
 {
+
 /**
  * @ingroup manifold
  */
-namespace manifold
-{
-namespace policy
+namespace manifold { namespace policy
 {
 
-
-template<typename ...>
-struct ParallelPolicy;
+template<typename ...> struct ParallelPolicy;
 
 template<typename TMesh>
 struct ParallelPolicy<TMesh>
@@ -87,13 +87,11 @@ public:
 private:
 
     mesh_type &m_mesh_;
+    typedef nTuple<size_t, 3> IVec3;
 
-    std::tuple<nTuple < size_t, 3>, nTuple<size_t, 3>> m_center_box_;
-
-    std::vector<std::tuple<nTuple < size_t, 3>, nTuple < size_t, 3>>>
-    m_boundary_box_;
-    std::vector<std::tuple<nTuple < size_t, 3>, nTuple < size_t, 3>>>
-    m_ghost_box_;
+    std::tuple<IVec3, IVec3> m_center_box_;
+    std::vector<std::tuple<IVec3, IVec3>> m_boundary_box_;
+    std::vector<std::tuple<IVec3, IVec3>> m_ghost_box_;
 
 
 }; //template<typename TMesh> struct ParallelPolicy
@@ -228,8 +226,9 @@ void  ParallelPolicy<TMesh>::for_each_center(Func const &fun) const
 };
 
 
-} //namespace policy
-} //namespace manifold
+}} //namespace policy  //namespace manifold
+
+
 namespace traits
 {
 
@@ -242,7 +241,6 @@ struct type_id<manifold::policy::ParallelPolicy<TMesh>>
     }
 };
 }
-
 
 }//namespace simpla
 #endif //SIMPLA_PARALLEL_POLICY_H

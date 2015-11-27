@@ -21,7 +21,7 @@ LOADFieldS={E1=1,B0=2,N0=0}
 SP_LIST={"ele"}  
 -- the list of species in the simulation       
             
-SPECIES= -- predefine species        
+SPECIES= -- pre_define species
 {               
  ele={desc="ele" ,Z=-1.0, m=1.0, ns=1.0,  engine="ColdFluid",pic=0 ,T=0},  
         

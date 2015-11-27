@@ -22,11 +22,12 @@ namespace simpla
 {
 struct PICDemo
 {
-
-
     SP_DEFINE_STRUCT(point_type,
                      Vec3, x,
-                     Vec3, v,
+                     Vec3, v);
+
+    SP_DEFINE_STRUCT(sample_type,
+                     point_type, z,
                      Real, f,
                      Real, w
     );
@@ -39,18 +40,37 @@ struct PICDemo
 
     void update() { }
 
-    Vec3 project(point_type const &p) const { return p.x; }
+    Vec3 project(sample_type const &p) const { return p.z.x; }
 
-    Real function_value(point_type const &p) const { return p.f * p.w; }
+    Real function_value(sample_type const &p) const { return p.f * p.w; }
 
-    point_type lift(Vec3 const &x, Vec3 const &v) const { return point_type{x, v, 1.0, 0.0}; }
+
+    point_type lift(Vec3 const &x, Vec3 const &v) const
+    {
+        return point_type{x, v};
+    }
+
+    point_type lift(std::tuple<Vec3, Vec3> const &z) const
+    {
+        return point_type{std::get<0>(z), std::get<1>(z)};
+    }
+
+    sample_type sample(Vec3 const &x, Vec3 const &v, Real f) const
+    {
+        return sample_type{lift(x, v), f, 0};
+    }
+
+    sample_type sample(point_type const &z, Real f) const
+    {
+        return sample_type{z, f, 0};
+    }
 
     template<typename TE, typename TB>
-    void push(point_type *p, Real dt, Real t, TE const &E, TB const &B)
+    void push(sample_type *p, Real dt, Real t, TE const &E, TB const &B)
     {
-        p->x += p->v * dt * 0.5;
-        p->v += E(p->x) * dt;
-        p->x += p->v * dt * 0.5;
+        p->z.x += p->z.v * dt * 0.5;
+        p->z.v += E(p->z.x) * dt;
+        p->z.x += p->z.v * dt * 0.5;
     };
 
 };
@@ -147,7 +167,6 @@ void EMPlasma::setup(int argc, char **argv)
     {
         THROW_EXCEPTION_RUNTIME_ERROR("Field init error", error.what());
     }
-
 }
 
 void EMPlasma::tear_down()

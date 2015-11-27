@@ -238,6 +238,7 @@
       <sourceFolder url="file://$MODULE_DIR$/core/model/select.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/model/trans_revolve.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/numeric/cholesky.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/numeric/compound_distribution.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/numeric/find_root.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/numeric/half_split.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/numeric/icdf_distribution.h" isTestSource="false" />
@@ -253,6 +254,7 @@
       <sourceFolder url="file://$MODULE_DIR$/core/numeric/sobol_engine.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/blocked_range.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/parallel/concurrent_unordered_multiset.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/distributed.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/distributed_array.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/parallel/distributed_comm.h" isTestSource="false" />
@@ -288,13 +290,13 @@
       <sourceFolder url="file://$MODULE_DIR$/core/particle/obsolete/particle_constraint.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/particle/obsolete/probe_particle.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/particle/obsolete/simple_particle.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/particle/obsolete/simple_particle_generator.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/particle/obsolete/sync_particle.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/particle/particle.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/particle/particle_container.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/particle/particle_engine.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/particle/particle_generator.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/particle/particle_proxy.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/particle/pre_define/simple_particle_generator.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/particle/test/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/particle/test/kinetic_particle_test.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/particle/test/kinetic_particle_test.h" isTestSource="false" />

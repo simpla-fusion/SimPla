@@ -13,98 +13,97 @@
 #include <numeric>
 #include <vector>
 #include "../gtl/ntuple.h"
+
 namespace simpla
 {
 /** @ingroup numeric */
 
-template<unsigned int NDIM>
+template<int NDIMS>
 class rectangle_distribution
 {
 
 public:
 
-	rectangle_distribution()
-	{
-		nTuple<double, NDIM> xmin, xmax;
+    typedef nTuple<Real, NDIMS> value_type;
 
-		for (int i = 0; i < NDIM; ++i)
-		{
-			xmin[i] = 0;
-			xmax[i] = 1;
-		}
-		Reset(xmin, xmax);
-	}
-	rectangle_distribution(nTuple<double, NDIM> const &xmin,
-			nTuple<double, NDIM> const & xmax)
-	{
-		Reset(xmin, xmax);
-	}
+    rectangle_distribution()
+    {
+        nTuple<double, NDIMS> xmin, xmax;
 
-	template<typename TRANGE>
-	rectangle_distribution(TRANGE const &xrange)
-	{
-		Reset(xrange);
-	}
-	~rectangle_distribution()
-	{
-	}
+        xmin = 0;
+        xmax = 1;
 
-	template<typename TR>
-	inline void Reset(TR const &xrange)
-	{
-		Reset(std::get<0>(xrange), std::get<1>(xrange));
-	}
+        reset(xmin, xmax);
+    }
 
-	inline void Reset(nTuple<double, NDIM> const *xrange)
-	{
-		Reset(xrange[0], xrange[1]);
-	}
+    template<typename TBox>
+    rectangle_distribution(TBox const &b)
+    {
+        reset(std::get<0>(b), std::get<1>(b));
+    }
 
-	inline void Reset(nTuple<double, NDIM> const &xmin,
-			nTuple<double, NDIM> const & xmax)
-	{
-		xmin_ = xmin;
-		xmax_ = xmax;
+    rectangle_distribution(nTuple<double, NDIMS> const &xmin,
+                           nTuple<double, NDIMS> const &xmax)
+    {
+        reset(xmin, xmax);
+    }
 
-		for (int i = 0; i < NDIM; ++i)
-		{
 
-			if (xmax_[i] > xmin_[i])
-				l_[i] = (xmax_[i] - xmin_[i]);
-			else
-				l_[i] = 0;
-		}
-	}
+    ~rectangle_distribution()
+    {
+    }
 
-	template<typename Generator>
-	nTuple<double, NDIM> operator()(Generator &g) const
-	{
-		nTuple<double, NDIM> res;
 
-		for (int i = 0; i < NDIM; ++i)
-		{
-			res[i] = static_cast<double>(g() - g.min())
-					/ static_cast<double>(g.max() - g.min()) * l_[i] + xmin_[i];
-		}
+    inline void reset(nTuple<double, NDIMS> const &xmin,
+                      nTuple<double, NDIMS> const &xmax)
+    {
+        xmin_ = xmin;
+        xmax_ = xmax;
 
-		return std::move(res);
+        for (int i = 0; i < NDIMS; ++i)
+        {
 
-	}
+            if (xmax_[i] > xmin_[i])
+            {
+                l_[i] = (xmax_[i] - xmin_[i]);
+            }
+            else
+            {
+                l_[i] = 0;
+            }
+        }
+    }
 
-	template<typename Generator, typename T>
-	void operator()(Generator &g, T* res) const
-	{
+    template<typename Generator>
+    nTuple<double, NDIMS> operator()(Generator &g) const
+    {
+        nTuple<double, NDIMS> res;
 
-		for (int i = 0; i < NDIM; ++i)
-		{
-			res[i] = static_cast<double>(g() - g.min())
-					/ static_cast<double>(g.max() - g.min()) * l_[i] + xmin_[i];
-		}
-	}
+        for (int i = 0; i < NDIMS; ++i)
+        {
+            res[i] = static_cast<double>(g() - g.min())
+                     / static_cast<double>(g.max() - g.min()) * l_[i] + xmin_[i];
+        }
+
+        return std::move(res);
+
+    }
+
+    template<typename Generator, typename T>
+    void operator()(Generator &g, T *res) const
+    {
+
+        for (int i = 0; i < NDIMS; ++i)
+        {
+            res[i] = static_cast<double>(g() - g.min())
+                     / static_cast<double>(g.max() - g.min()) * l_[i] + xmin_[i];
+        }
+    }
+
 private:
-	nTuple<double, NDIM> xmin_;
-	nTuple<double, NDIM> xmax_;
-	nTuple<double, NDIM> l_;
+    nTuple<double, NDIMS> xmin_;
+    nTuple<double, NDIMS> xmax_;
+    nTuple<double, NDIMS> l_;
 
 };
 
