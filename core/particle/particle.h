@@ -76,6 +76,9 @@ public:
     template<typename OS> OS &print(OS &os) const;
 
     //! @ingroup as fiber bundle @{
+    // @note this should be lock free on Particle
+    template<typename TField>
+    void integral(id_type const &s, TField *res) const;
 
     // @note this should be lock free on Particle
     template<typename TField>
@@ -84,6 +87,10 @@ public:
     // @note this should be lock free on Particle
     template<typename TField>
     void integral(TField *res) const;
+
+    // @note this should be lock free on Particle
+    template<typename ...Args>
+    void push(id_type const &s, Args &&...args);
 
 
     // @note this should be lock free on Particle
@@ -221,15 +228,14 @@ void Particle<P, M>::deploy()
 
 template<typename P, typename M>
 template<typename TField>
-void Particle<P, M>::integral(range_type const &r, TField *J) const
+void Particle<P, M>::integral(id_type const &s, TField *J) const
 {
-    // TODO cache J, base on r
-    for (auto const &s:r)
-    {
-        static constexpr int MAX_NEIGHBOUR_NUM = 12;
-        id_type neighbour[MAX_NEIGHBOUR_NUM];
-        auto x0 = m_mesh_.point(s);
-        // fixme temporary remove
+    if (m_data_.find(s) == m_data_.end()) { return; }
+
+    static constexpr int MAX_NEIGHBOUR_NUM = 12;
+    id_type neighbour[MAX_NEIGHBOUR_NUM];
+    auto x0 = m_mesh_.point(s);
+    // fixme temporary remove
 //        int num = m_mesh_.get_neighbour(s, iform);
 //
 //        for (int i = 0; i < num; ++i)
@@ -238,6 +244,17 @@ void Particle<P, M>::integral(range_type const &r, TField *J) const
 //                (*J)[s] += m_mesh_.RBF(project(p), x0) *
 //                           m_mesh_.sample(s, engine_type::integral_v(p));
 //            }
+
+};
+
+template<typename P, typename M>
+template<typename TField>
+void Particle<P, M>::integral(range_type const &r, TField *J) const
+{
+    // TODO cache J, base on r
+    for (auto const &s:r)
+    {
+        integral(s, J);
     }
 };
 
@@ -247,31 +264,39 @@ void Particle<P, M>::integral(TField *J) const
 {
     // @note this is lock free
 
-    static constexpr int f_iform = traits::iform<TField>::value;
-    m_mesh_.template for_each_boundary<f_iform>([&](range_type const &r) { integral(r, J); });
-
-    parallel::DistributedObject dist_obj;
-    dist_obj.add(*J);
-    dist_obj.sync();
-
-    m_mesh_.template for_each_center<f_iform>([&](range_type const &r) { integral(r, J); });
-
-    dist_obj.wait();
+//    static constexpr int f_iform = traits::iform<TField>::value;
+//    m_mesh_.template for_each_boundary<f_iform>([&](range_type const &r) { integral(r, J); });
+//
+//    parallel::DistributedObject dist_obj;
+//    dist_obj.add(*J);
+//    dist_obj.sync();
+//
+//    m_mesh_.template for_each_center<f_iform>([&](range_type const &r) { integral(r, J); });
+//
+//    dist_obj.wait();
 
 }
+
+template<typename P, typename M>
+template<typename ...Args>
+void Particle<P, M>::push(id_type const &s, Args &&...args)
+{
+    if (m_data_.find(s) == m_data_.end()) { return; }
+
+    for (auto &p:m_data_[s])
+    {
+        engine_type::push(&p, std::forward<Args>(args)...);
+    }
+
+
+};
 
 template<typename P, typename M>
 template<typename ...Args>
 void Particle<P, M>::push(range_type const &r, Args &&...args)
 {
     // TODO cache args, base on s or r
-    for (auto const &s:r)
-    {
-        for (auto &p:(*this)[s])
-        {
-            engine_type::push(&p, std::forward<Args>(args)...);
-        }
-    }
+    for (auto const &s:r) { push(s, std::forward<Args>(args)...); }
 };
 
 template<typename P, typename M> template<typename ...Args>

@@ -88,10 +88,12 @@ private:
 
     mesh_type &m_mesh_;
 
-    std::tuple<nTuple<size_t, 3>, nTuple<size_t, 3>> m_center_box_;
+    std::tuple<nTuple < size_t, 3>, nTuple<size_t, 3>> m_center_box_;
 
-    std::vector<std::tuple<nTuple<size_t, 3>, nTuple<size_t, 3>>> m_boundary_box_;
-    std::vector<std::tuple<nTuple<size_t, 3>, nTuple<size_t, 3>>> m_ghost_box_;
+    std::vector<std::tuple<nTuple < size_t, 3>, nTuple < size_t, 3>>>
+    m_boundary_box_;
+    std::vector<std::tuple<nTuple < size_t, 3>, nTuple < size_t, 3>>>
+    m_ghost_box_;
 
 
 }; //template<typename TMesh> struct ParallelPolicy
@@ -142,13 +144,17 @@ void ParallelPolicy<TMesh>::deploy()
     {
         nTuple<size_t, mesh_type::ndims> g_min, g_max;
 
+
         g_min = m_min;
         g_max = m_max;
+        g_min[i] = m_min[i];
         g_max[i] = l_min[i];
         if (g_min[i] != g_max[i]) { m_ghost_box_.push_back(std::make_tuple(g_min, g_max)); }
         g_min = g_min;
         g_max = g_max;
+
         g_min[i] = l_max[i];
+        g_max[i] = m_max[i];
         if (g_min[i] != g_max[i]) { m_ghost_box_.push_back(std::make_tuple(g_min, g_max)); }
         m_min[i] = l_min[i];
         m_max[i] = l_max[i];

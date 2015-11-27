@@ -292,7 +292,7 @@ std::string make_error_msg(T0 const &file, T1 const &line, T2 const &func, Other
 {
     std::ostringstream buffer;
 
-    buffer << std::endl << "\e[0m" << " \e[1;37m From [" << file << ":" << line << ":" << (func) << "]"
+    buffer << std::endl << "\e[0m" << " \e[1;37m From [" << file << ":" << line << ":0: " << (func) << "]"
     << std::endl << " \e[1;31m\t";
 
     _make_error_msg(buffer, std::forward<Others>(others)...);
