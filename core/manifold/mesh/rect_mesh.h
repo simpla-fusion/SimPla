@@ -115,7 +115,7 @@ public:
     {
 
         os
-        << "\tGeometry={"<< std::endl
+        << "\tGeometry={" << std::endl
         << "\t\t Topology = { Type = \"RectMesh\",  }," << std::endl
         << "\t\t Box = {" << box() << "}," << std::endl
         << "\t\t Dimensions = " << base_type::dimensions() << "," << std::endl
@@ -194,10 +194,12 @@ public:
         return std::move(base_type::coordinates_global_to_local(inv_map(x), n_id));
     }
 
-    virtual id_type id(point_type x, int n_id = 0) const
+    virtual id_type id(point_type const &x, int n_id = 0) const
     {
         return std::get<0>(base_type::coordinates_global_to_local(inv_map(x), n_id));
     }
+
+
 
     //===================================
     //

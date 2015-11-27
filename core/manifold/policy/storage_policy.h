@@ -33,6 +33,9 @@ private:
 
     typedef StoragePolicy<geometry_type> this_type;
 
+
+    typedef typename TGeo::id_type id_type;
+
     geometry_type const &m_geo_;
 
 
@@ -149,7 +152,7 @@ public:
 
         m_start = (m_geo_.m_local_min_ - m_geo_.m_memory_min_);
 
-    if ((IFORM == EDGE || IFORM == FACE))
+        if ((IFORM == EDGE || IFORM == FACE))
         {
             f_ndims = ndims + 1;
 

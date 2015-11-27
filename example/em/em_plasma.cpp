@@ -31,14 +31,11 @@ struct PICDemo
                      Real, w
     );
 
-//    SP_DEFINE_PROPERTIES(
-//            Real, mass,
-//            Real, charge,
-//            Real, temperature
-//    )
-    Real mass;
-    Real charge;
-    Real temperature;
+    SP_DEFINE_PROPERTIES(
+            Real, mass,
+            Real, charge,
+            Real, temperature
+    )
 
     void update() { }
 
@@ -52,7 +49,7 @@ struct PICDemo
     void push(point_type *p, Real dt, Real t, TE const &E, TB const &B)
     {
         p->x += p->v * dt * 0.5;
-        p->v += E(p->x, t) * dt * mass / charge;
+        p->v += E(p->x) * dt;
         p->x += p->v * dt * 0.5;
     };
 
@@ -99,6 +96,9 @@ struct EMPlasma
     typedef traits::field_t<scalar_type, mesh_type, EDGE> TJ;
     typedef traits::field_t<scalar_type, mesh_type, VERTEX> TRho;
 
+
+    TJ J1{m};
+
     Particle<PICDemo, mesh_type> ion{m};
 
     struct particle_s
@@ -139,6 +139,8 @@ void EMPlasma::setup(int argc, char **argv)
         E1.clear();
         pdE.clear();
 
+        J1.clear();
+
         B0v = map_to<VERTEX>(B0);
 
     } catch (std::exception const &error)
@@ -174,6 +176,10 @@ void EMPlasma::next_time_step()
     DEFINE_PHYSICAL_CONST
 
     Real dt = m.dt();
+
+    ion.push(dt, 0, E1, B1);
+
+    ion.integral(&J1);
 
     B1 -= curl(E1) * (dt * 0.5);
     E1 += curl(B1) * dt;

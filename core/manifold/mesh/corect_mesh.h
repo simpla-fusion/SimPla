@@ -234,10 +234,11 @@ public:
         return std::move(base_type::coordinates_global_to_local(inv_map(x), n_id));
     }
 
-    virtual id_type id(point_type x, int n_id = 0) const
+    virtual id_type id(point_type const &x, int n_id = 0) const
     {
         return std::get<0>(base_type::coordinates_global_to_local(inv_map(x), n_id));
     }
+
 
 private:
     Real m_volume_[9];

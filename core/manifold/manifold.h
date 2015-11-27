@@ -150,6 +150,9 @@ public:
 
     typedef geometry::traits::vector_type_t<coordinates_system_type> vector_type;
 
+
+    typedef typename mesh_type::id_type id_type;
+
     using mesh_type::ndims;
     using mesh_type::volume;
     using mesh_type::dual_volume;
@@ -186,7 +189,7 @@ public:
     template<typename TDict>
     void load(TDict const &dict)
     {
-        TRY_IT((_dispatch_load<mesh_type, Policies...>(dict["Mesh"])) );
+        TRY_IT((_dispatch_load<mesh_type, Policies...>(dict["Mesh"])));
     }
 
 

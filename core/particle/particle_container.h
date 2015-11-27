@@ -8,7 +8,6 @@
 #ifndef CORE_PARTICLE_PARTICLE_CONTAINER_H_
 #define CORE_PARTICLE_PARTICLE_CONTAINER_H_
 
-#include <stddef.h>
 #include <algorithm>
 #include <memory>
 #include <string>
@@ -16,20 +15,13 @@
 #include <vector>
 
 #include "../dataset/dataset.h"
-#include "../dataset/datatype.h"
-#include "../gtl/utilities/log.h"
-#include "../gtl/utilities/memory_pool.h"
-#include "../gtl/enable_create_from_this.h"
-#include "../gtl/primitives.h"
-#include "../gtl/properties.h"
-#include "../gtl/iterator/sp_iterator.h"
 
-#include "../gtl/containers/unordered_set.h"
-#include "../parallel/distributed.h"
+#include "../gtl/utilities/utilities.h"
+
+#include "../gtl/primitives.h"
+
 #include "../io/data_stream.h"
 
-#include "../manifold/manifold_traits.h"
-#include "../manifold/domain.h"
 
 /** @ingroup physical_object
 *  @addtogroup particle Particle
@@ -86,350 +78,276 @@ namespace simpla
 {
 
 
-template<typename ... T> class Particle;
-
-template<typename ...> class Fiber;
-
-template<typename ... T> class FiberBundle;
-
 /**
  *   `Particle<M,P>` represents a fiber bundle \f$ \pi:P\to M\f$
  *
  */
+template<typename ...> struct ParticleContainer;
 
 
-
-template<typename P, typename M, typename PI>
-struct Particle<P, M>
+template<typename P, typename Hasher>
+struct ParticleContainer<P, Hasher>
 {
 
 private:
-    typedef PI map_type;
-    typedef M mesh_type;
-    typedef P point_type;
 
-    typedef UnorderedSet<P> container_type;
+    typedef Hasher hasher_type;
+    typedef P value_type;
+
+    typedef ParticleContainer<value_type, hasher_type> this_type;
 
 
-    typedef Particle<point_type, mesh_type, map_type> this_type;
+    typedef traits::result_of_t<hasher_type(value_type)> key_type;
 
-    mesh_type const &m_mesh_;
-    map_type const &m_map_;
+    typedef std::list<value_type> bucket_type;
 
 public:
 
-    typedef P point_type;
+    typedef std::map<key_type, bucket_type> container_type;
 
-    Particle(mesh_type const &m);
+private:
 
-    Particle(this_type const &other);
+    container_type m_data_;
 
-    ~Particle();
+    hasher_type const &m_hasher_;
 
-    void swap(this_type &other);
+public:
 
-    template<typename TDict, typename ...Others> void load(TDict const &dict, Others &&...others);
 
-    template<typename OS> OS &print(OS &os) const;
+    ParticleContainer(hasher_type const &m);
 
-    void deploy();
+    ParticleContainer(this_type const &other);
 
-    void sync();
+    ~ParticleContainer();
 
-    void wait();
-
-    void rehash();
 
     DataSet dataset() const;
 
     void dataset(DataSet const &);
 
-    void insert(point_type const &p)
+    void insert(value_type const &p) { m_data_[m_hasher_(p)].push_back(p); }
+
+    template<typename IT>
+    void insert(IT const &b, IT const &e) { for (auto it = b; it != e; ++it) { insert(*it); }}
+
+    void erase(key_type const &key) { m_data_.erase(key); }
+
+    template<typename TRange>
+    void erase(TRange const &r) { for (auto const &s:r) { erase(s); }}
+
+    void clear() { m_data_.clear(); }
+
+    size_t size() const
     {
-        container_type::insert(p, m_mesh_.hash(m_map_(p)));
+        size_t count = 0;
+        for (auto const &b:m_data_)
+        {
+            count += b.second.size();
+        }
+
+        return count;
     }
-//! @}
 
-
-
-
-private:
-
-    struct buffer_node_s
+    template<typename TRange>
+    size_t size(TRange const &r) const
     {
-        size_t send_size;
-        size_t recv_size;
-        std::shared_ptr<void> send_buffer;
-        std::shared_ptr<void> recv_buffer;
-    };
+        size_t count = 0;
+        for (auto const &s:r)
+        {
+            if (m_data_.find(s) != m_data_.end())
+                count += m_data_[s].size();
+        }
 
-    std::vector<buffer_node_s> m_buffer_;
+        return count;
+    }
 
+    bucket_type &operator[](key_type const &k) { return m_data_[k]; }
+
+    bucket_type &at(key_type const &k) { return m_data_.at(k); }
+
+    bucket_type const &at(key_type const &k) const { return m_data_.at(k); }
+
+    template<typename OutputIT>
+    OutputIT copy(key_type const &s, OutputIT out_it) const
+    {
+        if (m_data_.find(s) != m_data_.end())
+        {
+            out_it = std::copy(m_data_[s].begin(), m_data_[s].end(), out_it);
+        }
+
+        return out_it;
+    }
+
+    template<typename TRange, typename OutputIT>
+    OutputIT copy(TRange const &r, OutputIT out_it) const
+    {
+        for (auto const &s:r)
+        {
+            out_it = copy(s, out_it);
+        }
+        return out_it;
+
+    }
+
+    template<typename OutputIT>
+    OutputIT copy(OutputIT out_it) const
+    {
+        for (auto const &item:m_data_)
+        {
+            out_it = std::copy(item.second.begin(), item.second.end(), out_it);
+        }
+
+        return out_it;
+    }
+
+
+    template<typename TRange>
+    void merge(TRange const &r, container_type *buffer);
+
+    void merge(container_type *buffer);
+
+    void merge(this_type *other) { merge(&(other->m_data_)); };
+
+
+    void rehash(key_type const &s, container_type *buffer);
+
+    template<typename TRange>
+    void rehash(TRange const &r, container_type *buffer);
+
+    void rehash()
+    {
+        container_type buffer;
+
+        for (auto &item:m_data_) { rehash(item.second, &buffer); }
+
+        merge(&buffer);
+
+    }
+
+//! @}
 
 };//class Particle
 
 
 
-template<typename P, typename TBaseManifold>
-Particle<P, TBaseManifold>::Particle(mesh_type const &m) :
-        bundle_type(m)
+template<typename P, typename Hasher>
+ParticleContainer<P, Hasher>::ParticleContainer(hasher_type const &m) :
+        m_hasher_(m)
 {
 
 }
 
-template<typename P, typename TBaseManifold>
-Particle<P, TBaseManifold>::Particle(this_type const &other) :
-        bundle_type(other), container_type(other)
+template<typename P, typename Hasher>
+ParticleContainer<P, Hasher>::ParticleContainer(this_type const &other) :
+        m_hasher_(other.m_hasher_), m_data_(other.m_data_)
 {
 }
 
-template<typename P, typename TBaseManifold>
-Particle<P, TBaseManifold>::~Particle()
+template<typename P, typename Hasher>
+ParticleContainer<P, Hasher>::~ParticleContainer()
 {
 }
 
-template<typename P, typename TBaseManifold>
-void Particle<P, TBaseManifold>::swap(this_type &other)
+
+template<typename P, typename Hasher> void
+ParticleContainer<P, Hasher>::rehash(key_type const &key, container_type *buffer)
 {
-    bundle_type::swap(other);
-    container_type::swap(other);
-}
 
-template<typename P, typename TBaseManifold>
-template<typename TDict, typename ...Others>
-void Particle<P, TBaseManifold>::load(TDict const &dict, Others &&...others)
-{
-    bundle_type::load(dict, std::forward<Others>(others)...);
+    if (m_data_.find(key) == m_data_.end()) { return; }
 
-    container_type::load(dict);
+    auto &src = m_data_[key];
 
-    if (dict["DataSet"])
+    auto it = src.begin(), ie = src.end();
+
+    while (it != ie)
     {
-        DataSet ds;
-        GLOBAL_DATA_STREAM.read(dict["DataSet"].template as<std::string>(), &ds);
-        dataset(ds);
-    }
-}
+        auto p = it;
 
-template<typename P, typename TBaseManifold>
-template<typename OS>
-OS &Particle<P, TBaseManifold>::print(OS &os) const
-{
-    bundle_type::print(os);
-    container_type::print(os);
-    return os;
-}
+        ++it;
 
-template<typename P, typename TBaseManifold>
-void Particle<P, TBaseManifold>::deploy()
-{
+        auto dest = m_hasher_(*p);
 
-    if (bundle_type::is_valid())
-    {
-        return;
+        if (dest != key) { (*buffer)[dest].splice((*buffer)[dest].end(), src, p); }
     }
 
-    bundle_type::deploy();
-
+    (*buffer)[key].splice((*buffer)[key].end(), src);
 
 }
 
-
-template<typename P, typename TBaseManifold>
-void Particle<P, TBaseManifold>::sync()
+template<typename P, typename Hasher>
+template<typename TRange> void
+ParticleContainer<P, Hasher>::rehash(TRange const &r, container_type *buffer)
 {
-    auto d_type = traits::datatype<point_type>::create();
+    for (auto const &s:r) { rehash(s, buffer); }
+}
 
-    for (auto &item :  bundle_type::mesh().template connections<VERTEX>())
+template<typename P, typename Hasher>
+template<typename TRange> void
+ParticleContainer<P, Hasher>::merge(TRange const &r, container_type *buffer)
+{
+    for (auto const &s:r)
     {
-
-        buffer_node_s buffer;
-
-        buffer.send_size = container_type::size_all(item.send_range);
-
-        buffer.send_buffer = sp_alloc_memory(buffer.send_size * sizeof(point_type));
-
-        point_type *data = reinterpret_cast<point_type *>(buffer.send_buffer.get());
-
-        // FIXME need parallel optimize
-        for (auto const &key : item.send_range)
+        if (buffer->find(s) != buffer->end())
         {
-            for (auto const &p : container_type::operator[](key))
-            {
-                *data = p;
-                ++data;
-            }
+            auto &src = (*buffer)[s];
+
+            auto &dest = m_data_[s];
+
+            dest.splice(dest.end(), src);
         }
-
-        buffer.recv_size = 0;
-
-        buffer.recv_buffer = nullptr;
-
-        container_type::erase(item.recv_range);
-
-        m_buffer_.push_back(buffer);
-
-        parallel::DistributedObject::add_link_send(&item.coord_offset[0], buffer.send_size, d_type,
-                                                   &m_buffer_.back().send_buffer);
-        parallel::DistributedObject::add_link_recv(&item.coord_offset[0], buffer.recv_size, d_type,
-                                                   &m_buffer_.back().recv_buffer);
-
     }
-
-    DistributedObject::sync();
-
-}
-
-template<typename P, typename TBaseManifold>
-void Particle<P, TBaseManifold>::wait()
-{
-
 };
 
 
-template<typename P, typename TBaseManifold>
-void Particle<P, TBaseManifold>::rehash()
+template<typename P, typename Hasher> void
+ParticleContainer<P, Hasher>::merge(container_type *buffer)
 {
-    //		container_type::rehash();
-//		point_type xmin, xmax;
-//		std::tie(xmin, xmax) = m_domain_.mesh().extents();
-//		point_type d;
-//		d = xmax - xmin;
-//
-//		for (auto &item : *this)
-//		{
-//			point_type x0;
-//			x0 = m_domain_.mesh().point(item.first);
-//
-////			if (!m_mesh_.in_box(x0, xmin, xmax))
-////			{
-////				for (auto &p : (*this)[item.first])
-////				{
-////					point_type x;
-////					Vec3 v;
-////					Real f;
-////					std::tie(x, v, f) = engine_type::pull_back(p);
-////
-////					x[0] += std::fmod(x[0] - xmin[0] + d[0], d[0]);
-////					x[1] += std::fmod(x[1] - xmin[1] + d[1], d[1]);
-////					x[2] += std::fmod(x[2] - xmin[2] + d[2], d[2]);
-////
-////					engine_type::push_forward(x, v, f, &p);
-////				}
-////			}
-//
-//		}
-    wait();
+    for (auto item: (*buffer))
+    {
+        auto &dest = m_data_[item.first];
 
-    container_type::rehash([&](point_type const &p) { return bundle_type::id(p); });
+        dest.splice(dest.end(), item.second);
+    }
+};
 
-    sync();
 
-}
-
-template<typename P, typename TBaseManifold>
-DataSet Particle<P, TBaseManifold>::dataset() const
+template<typename P, typename Hasher>
+DataSet ParticleContainer<P, Hasher>::dataset() const
 {
-    auto ds = container_type::dataset();
+    DataSet ds;
 
-    DataSpace::index_type count = ds.dataspace.size();
-    DataSpace::index_type offset = 0;
-    DataSpace::index_type total_count = count;
+    size_t count = static_cast<int>(size());
+    size_t offset = 0;
+    size_t total_count = count;
 
-    std::tie(offset, total_count) = parallel::sync_global_location(GLOBAL_COMM.comm(), count);
+    std::tie(offset, total_count) = parallel::sync_global_location(GLOBAL_COMM, static_cast<int>(count));
 
-    DataSpace(1, &total_count).swap(ds.dataspace);
+    ds.dataspace = DataSpace(1, &total_count);
 
     ds.dataspace.select_hyperslab(&offset, nullptr, &count, nullptr);
 
-    DataSpace(1, &total_count).swap(ds.memory_space);
+    ds.memory_space = DataSpace(1, &count);
 
-    ds.memory_space.select_hyperslab(&offset, nullptr, &count, nullptr);
+    ds.data = SingletonHolder<MemoryPool>::instance().raw_alloc(count * sizeof(value_type));
 
-    ds.properties.append(properties);
+    copy(reinterpret_cast<value_type *>(ds.data.get()));
 
     return std::move(ds);
 }
 
-template<typename P, typename TBaseManifold>
-void Particle<P, TBaseManifold>::dataset(DataSet const &ds)
+template<typename P, typename Hasher> void
+ParticleContainer<P, Hasher>::dataset(DataSet const &ds)
 {
-    container_type::dataset(ds);
+    size_t count = ds.memory_space.size();
 
-    bundle_type::properties.append(ds.properties);
+    value_type const *p = reinterpret_cast<value_type *>(ds.data.get());
+
+    insert(p, p + count);
 
     rehash();
 }
 
 
-/**
- *
- * @param args arguments
- *
- * - Semantics
- @code
- for( Point_s & point: all particle)
- {
- engine_type::next_time_step(& point,std::forward<Args>(args)... );
- }
- @endcode
- *
- */
-template<typename P, typename TBaseManifold>
-template<typename ...Args>
-void Particle<P, TBaseManifold>::next_time_step(Args &&...args)
-{
-
-    wait();
-
-    for (auto &item : *this)
-    {
-        for (auto &p : (*this)[item.first])
-        {
-            bundle_type::move(&p, std::forward<Args>(args)...);
-        }
-    }
-}
-
-/**
- *
- * @param num_of_steps number of time steps
- * @param t0 start time point
- * @param dt delta time step
- * @param args other arguments
- * @return t0+num_of_steps*dt
- *
- *-Semantics
- @code
- for(s=0;s<num_of_steps;++s)
- {
- for( Point_s & point: all particle)
- {
- engine_type::next_time_step(& point,t0+s*dt,dt,std::forward<Args>(args)... );
- }
- }
- return t0+num_of_steps*dt;
- @endcode
- */
-
-template<typename P, typename TBaseManifold>
-template<typename ...Args>
-Real Particle<P, TBaseManifold>::next_n_time_steps(size_t num_of_steps, Real t0, Real dt, Args &&...args)
-{
-
-    wait();
-
-    for (auto &item : *this)
-    {
-        for (auto &p : (*this)[item.first])
-        {
-            for (int s = 0; s < num_of_steps; ++s)
-            {
-                bundle_type::move(&p, t0 + dt * s, dt, std::forward<Args>(args)...);
-            }
-        }
-    }
-}
 }  // namespace simpla
 
 #endif /* CORE_PARTICLE_PARTICLE_CONTAINER_H_ */

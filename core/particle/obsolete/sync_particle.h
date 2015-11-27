@@ -8,9 +8,7 @@
 #ifndef CORE_PARTICLE_SYNC_PARTICLE_H_
 #define CORE_PARTICLE_SYNC_PARTICLE_H_
 
-#include "../gtl/utilities/log.h"
-#include "../gtl/parallel/mpi_comm.h"
-#include <mpi.h>
+ #include <mpi.h>
 
 namespace simpla {
 template<typename ...> class Particle;
