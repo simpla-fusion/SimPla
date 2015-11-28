@@ -46,8 +46,8 @@ public:
     // Creates a null dataspace
     DataSpace();
 
-
     DataSpace(int rank, size_t const *dims);
+
 
     // Copy constructor: makes a copy of the original DataSpace object.
     DataSpace(const DataSpace &other);

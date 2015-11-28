@@ -4,5 +4,5 @@ target_link_libraries(kinetic_particle_test physics io parallel utilities datase
 my_test(probe_particle_test)
 target_link_libraries(probe_particle_test physics io parallel utilities)
 
-my_test(particle_generator particle_generator.cpp)
+ADD_EXECUTABLE(particle_generator particle_generator_test.cpp)
 target_link_libraries(particle_generator simpla_lib)

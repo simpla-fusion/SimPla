@@ -6,9 +6,10 @@
 #include <tbb/task_group.h>
 #include <tbb/concurrent_vector.h>
 #include "../particle_engine.h"
-#include "../particle_generator.h"
 #include "../../dataset/datatype_ext.h"
 #include "../../io/io.h"
+#include "../../parallel/parallel.h"
+#include "../particle_generator.h"
 
 namespace simpla
 {
@@ -76,12 +77,17 @@ int main(int argc, char **argv)
 {
     logger::init(argc, argv);
 
+    parallel::init(argc, argv);
+
+    io::init(argc, argv);
     PICDemo pic;
 
     auto box = std::make_tuple(nTuple<Real, 3>{0, 0, 0},
                                nTuple<Real, 3>{1, 1, 1});
 
     ParticleGenerator<PICDemo> gen(pic, box, 0.0);
+
+    gen.reserve(1000);
 
     tbb::concurrent_vector<PICDemo::sample_type> data;
 
@@ -102,7 +108,6 @@ int main(int argc, char **argv)
 
 
     group.wait();
-
 
     std::vector<PICDemo::sample_type> data2;
 

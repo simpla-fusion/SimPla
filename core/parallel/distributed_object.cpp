@@ -21,39 +21,9 @@ struct DistributedObject::pimpl_s
 
     ~pimpl_s() { }
 
-
-//    struct mpi_link_node
-//    {
-//        int dest_id;
-//
-//        int tag;
-//
-//        size_t size;
-//
-//        MPIDataType type;
-//
-//        std::shared_ptr<void> *data; // pointer is a risk
-//
-//    };
-
-
     int m_object_id_;
 
-//    std::vector<mpi_link_node> m_send_links_;
-//
-//    std::vector<mpi_link_node> m_recv_links_;
-
     std::vector<MPI_Request> m_mpi_requests_;
-
-
-//    void add_link(bool is_send, int const coord_offset[], size_t size,
-//                  MPIDataType const &d_type, std::shared_ptr<void> *p);
-//
-//    void add_link(const int *const coord_offset,
-//                  size_t send_size, MPIDataType const &send_type,
-//                  size_t recv_size, MPIDataType const &recv_type,
-//                  std::shared_ptr<void> *p);
-
 };
 
 //! Default constructor
@@ -80,44 +50,63 @@ void DistributedObject::sync()
 
     if (!GLOBAL_COMM.is_valid()) { return; }
 
-    for (auto const &item : pimpl_->m_send_links_)
+    for (auto const &item :  send_buffer)
     {
+        int dest_id, send_tag, recv_tag;
+
+        std::tie(dest_id, send_tag, std::ignore) = GLOBAL_COMM.make_send_recv_tag(pimpl_->m_object_id_,
+                                                                                  &std::get<0>(item)[0]);
+
+
         MPI_Request req;
 
-        MPI_ERROR(MPI_Isend(item.data->get(), item.size, item.type.type(), item.dest_id,
-                            item.tag, GLOBAL_COMM.comm(), &req));
+        MPI_ERROR(MPI_Isend(std::get<1>(item).data.get(), 1,
+                            MPIDataType::create(std::get<1>(item).datatype, std::get<1>(item).memory_space).type(),
+                            dest_id,
+                            send_tag, GLOBAL_COMM.comm(), &req));
 
         pimpl_->m_mpi_requests_.push_back(std::move(req));
     }
 
 
-    for (auto &item : pimpl_->m_recv_links_)
+    for (auto &item : recv_buffer)
     {
-        if (item.size <= 0 || item.data == nullptr)
+
+        int dest_id, send_tag, recv_tag;
+
+        std::tie(dest_id, std::ignore, recv_tag)
+                = GLOBAL_COMM.make_send_recv_tag(pimpl_->m_object_id_, &std::get<0>(item)[0]);
+
+        if (std::get<1>(item).dataspace.size() <= 0 || std::get<1>(item).data == nullptr)
         {
             MPI_Status status;
 
-            MPI_ERROR(MPI_Probe(item.dest_id, item.tag, GLOBAL_COMM.comm(), &status));
+            MPI_ERROR(MPI_Probe(dest_id, recv_tag, GLOBAL_COMM.comm(), &status));
 
             // When probe returns, the status object has the size and other
             // attributes of the incoming message. Get the size of the message
             int recv_num = 0;
 
-            MPI_ERROR(MPI_Get_count(&status, item.type.type(), &recv_num));
+
+            MPI_ERROR(MPI_Get_count(&status,
+                                    MPIDataType::create(std::get<1>(item).datatype).type(), &recv_num));
 
             if (recv_num == MPI_UNDEFINED)
             {
                 THROW_EXCEPTION_RUNTIME_ERROR("Update Ghosts Particle fail");
             }
 
-            *item.data = sp_alloc_memory(recv_num * item.type.size());
+            std::get<1>(item).data = sp_alloc_memory(recv_num * std::get<1>(item).datatype.size());
 
-            item.size = recv_num;
+            size_t s_recv_num = recv_num;
+            std::get<1>(item).memory_space = DataSpace(1, &s_recv_num);
         }
         MPI_Request req;
 
-        MPI_ERROR(MPI_Irecv(item.data->get(), item.size, item.type.type(), item.dest_id,
-                            item.tag, GLOBAL_COMM.comm(), &req));
+        MPI_ERROR(MPI_Irecv(std::get<1>(item).data.get(), 1,
+                            MPIDataType::create(std::get<1>(item).datatype, std::get<1>(item).memory_space).type(),
+                            dest_id,
+                            recv_tag, GLOBAL_COMM.comm(), &req));
 
         pimpl_->m_mpi_requests_.push_back(std::move(req));
     }
@@ -158,58 +147,6 @@ bool DistributedObject::is_ready() const
 
 }
 
-void DistributedObject::pimpl_s::add_link(bool is_send, int const coord_offset[], size_t s,
-                                          MPIDataType const &mpi_d_type, std::shared_ptr<void> *p)
-{
-    int dest_id, send_tag, recv_tag;
-
-    std::tie(dest_id, send_tag, recv_tag) = GLOBAL_COMM.make_send_recv_tag(m_object_id_, &coord_offset[0]);
-
-    if (is_send)
-    {
-        m_send_links_.push_back(mpi_link_node({dest_id, send_tag, s, mpi_d_type, p}));
-    }
-    else
-    {
-        m_recv_links_.push_back(mpi_link_node({dest_id, recv_tag, s, mpi_d_type, p}));
-    }
-}
-
-void DistributedObject::add_link(bool is_send, int const coord_offset[], size_t size,
-                                 DataType const &d_type, std::shared_ptr<void> *p)
-{
-    pimpl_->add_link(is_send, coord_offset, size, MPIDataType::create(d_type), p);
-
-
-}
-
-
-void DistributedObject::pimpl_s::add_link(const int *const coord_offset,
-                                          size_t send_size, MPIDataType const &send_type,
-                                          size_t recv_size, MPIDataType const &recv_type,
-                                          std::shared_ptr<void> *p)
-{
-    int dest_id, send_tag, recv_tag;
-
-    std::tie(dest_id, send_tag, recv_tag) = GLOBAL_COMM.make_send_recv_tag(m_object_id_, &coord_offset[0]);
-
-    m_send_links_.push_back(mpi_link_node({dest_id, send_tag, send_size, recv_type, p}));
-
-    m_recv_links_.push_back(mpi_link_node({dest_id, recv_tag, recv_size, recv_type, p}));
-
-}
-
-void DistributedObject::add_link(int const coord_offset[],
-                                 DataSpace const &send_space,
-                                 DataSpace const &recv_space,
-                                 DataType const &d_type, std::shared_ptr<void> *p)
-{
-    pimpl_->add_link(coord_offset,
-                     1, MPIDataType::create(d_type, send_space),
-                     1, MPIDataType::create(d_type, recv_space),
-                     p);
-}
-
 
 void DistributedObject::add(DataSet ds)
 {
@@ -225,10 +162,11 @@ void DistributedObject::add(DataSet ds)
 
 
 
-    std::tie(ndims, dimensions, start, std::ignore, count, std::ignore) = ds.memory_space.shape();
+    std::tie(ndims, dimensions, start, std::ignore, count, std::ignore)
+            = ds.memory_space.shape();
 
 
-    ASSERT(start + count <= dimensions)
+    ASSERT(start + count <= dimensions);
 
     index_tuple ghost_width = start;
 
@@ -294,15 +232,18 @@ void DistributedObject::add(DataSet ds)
         {
             try
             {
-                this->add_link(&coord_offset[0],
 
-                               DataSpace(ds.memory_space).
-                                       select_hyperslab(&send_offset[0], nullptr, &send_count[0], nullptr),
+                DataSet send_buffer(ds);
 
-                               DataSpace(ds.memory_space).
-                                       select_hyperslab(&recv_offset[0], nullptr, &recv_count[0], nullptr),
+                DataSet recv_buffer(ds);
 
-                               ds.datatype, &ds.data);
+                send_buffer.memory_space.select_hyperslab(&send_offset[0], nullptr, &send_count[0], nullptr);
+
+                recv_buffer.memory_space.select_hyperslab(&recv_offset[0], nullptr, &recv_count[0], nullptr);
+
+                this->add_link_send(coord_offset, send_buffer);
+
+                this->add_link_recv(coord_offset, send_buffer);
 
             }
             catch (std::exception const &error)

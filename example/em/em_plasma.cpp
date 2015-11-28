@@ -168,7 +168,7 @@ void EMPlasma::setup(int argc, char **argv)
         THROW_EXCEPTION_RUNTIME_ERROR("Field init error", error.what());
     }
 
-    ion.generator(100);
+//    ion.generator(100);
 }
 
 void EMPlasma::tear_down()

@@ -536,7 +536,7 @@ void Particle<P, M>::sync(container_type const &buffer, parallel::DistributedObj
         {
             try
             {
-                std::shared_ptr<void> p_send, p_recv;
+                std::shared_ptr<void> p_send;
 
                 auto send_range = m_mesh_.template make_range<iform>(send_min, send_max);
 
@@ -547,13 +547,9 @@ void Particle<P, M>::sync(container_type const &buffer, parallel::DistributedObj
                 copy(send_range, reinterpret_cast<value_type *>( p_send.get()), buffer);
 
 
-                send_buffer.push_back(std::make_tuple(send_size, p_send));
+                dist_obj->add_link_send(coord_offset, d_type, p_send, send_size);
 
-                recv_buffer.push_back(std::make_tuple(0, p_recv));
-
-                dist_obj->add_link_send(&coord_offset[0], send_size, d_type, &p_send);
-
-                dist_obj->add_link_recv(&coord_offset[0], 0, d_type, &p_recv);
+                dist_obj->add_link_recv(coord_offset, d_type);
 
 
             }
@@ -640,11 +636,11 @@ void Particle<P, M>::rehash()
      *  ***************************
      */
 
-    for (auto const &item : recv_buffer)
-    {
-        value_type *p = reinterpret_cast<value_type *>(std::get<1>(item).get());
-        push_back(p, p + std::get<0>(item));
-    }
+//    for (auto const &item : recv_buffer)
+//    {
+//        value_type *p = reinterpret_cast<value_type *>(std::get<1>(item).get());
+//        push_back(p, p + std::get<0>(item));
+//    }
 }
 
 
@@ -675,12 +671,12 @@ void Particle<P, M>::rehash(id_type const &key, container_type *buffer)
 
 template<typename P, typename M>
 template<typename InputIt>
-void Particle<P, M>::insert(InputIt const &b, InputIt const &e)
+void Particle<P, M>::push_back(InputIt const &b, InputIt const &e)
 {
     // fixme need parallize
     for (auto it = b; it != e; ++it)
     {
-        insert(*it);
+        push_back(*it);
     }
 }
 

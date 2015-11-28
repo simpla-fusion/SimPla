@@ -10,7 +10,7 @@
 
 #include "../../numeric/rectangle_distribution.h"
 #include "../../numeric/multi_normal_distribution.h"
-#include "../particle_generator.h"
+#include "particle_generator_test.h"
 
 namespace simpla
 {

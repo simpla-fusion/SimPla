@@ -35,43 +35,53 @@ struct DistributedObject
     template<typename T, typename ...Others>
     void add(T const &args, Others &&...others)
     {
-        add(traits::get_dataset(args));
+        add(traits::make_dataset(args));
         add(std::forward<Others>(others)...);
     }
 
     template<typename T>
     void add(T const &args)
     {
-        add(traits::get_dataset(args));
+        add(traits::make_dataset(args));
     }
 
     template<typename T>
     void add(T *args)
     {
-        add(traits::get_dataset(*args));
+        add(traits::make_dataset(*args));
     }
 
     void add(DataSet ds);
 
-    void add_link(bool is_send, int const coord_offset[], size_t size,
-                  DataType const &d_type, std::shared_ptr<void> *p);
-
-    void add_link(int const coord_offset[], DataSpace const &send_space, DataSpace const &recv_space,
-                  DataType const &d_type, std::shared_ptr<void> *p);
-
-    template<typename ...Args>
-    void add_link_send(Args &&...args) { add_link(true, std::forward<Args>(args)...); };
-
-    template<typename ...Args>
-    void add_link_recv(Args &&...args) { add_link(false, std::forward<Args>(args)...); };
-
-
-    struct link_s
+    inline void add_link_send(nTuple<int, 3> const &coord_offset, DataSet &ds)
     {
-        nTuple<int, 3> coords;
-
-        DataSet dataset;
+        send_buffer.push_back(std::make_tuple(coord_offset, ds));
     };
+
+
+    void add_link_recv(nTuple<int, 3> const &coord_offset, DataSet &ds)
+    {
+        recv_buffer.push_back(std::make_tuple(coord_offset, ds));
+    };
+
+    template<typename ...Args>
+    void add_link_send(nTuple<int, 3> const &coord_offset, Args &&...args)
+    {
+        send_buffer.push_back(
+                std::make_tuple(coord_offset,
+                                traits::make_dataset(std::forward<Args>(args)...)));
+    };
+
+    template<typename ...Args>
+    void add_link_recv(nTuple<int, 3> const &coord_offset, Args &&...args)
+    {
+        recv_buffer.push_back(
+                std::make_tuple(coord_offset,
+                                traits::make_dataset(std::forward<Args>(args)...)));
+    };
+
+
+    typedef std::tuple<nTuple<int, 3>, DataSet> link_s;
 
     std::vector<link_s> send_buffer;
     std::vector<link_s> recv_buffer;
