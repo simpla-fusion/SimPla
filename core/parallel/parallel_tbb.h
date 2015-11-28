@@ -15,6 +15,10 @@ namespace simpla { namespace parallel
 using tbb::parallel_for;
 using tbb::parallel_do;
 using tbb::parallel_reduce;
+using tbb::concurrent_unordered_map;
+using tbb::concurrent_unordered_set;
+
+using tbb::concurrent_hash_map;
 
 }}  // namespace simpla { namespace parallel
 

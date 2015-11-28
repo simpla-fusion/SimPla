@@ -30,40 +30,48 @@ bool GetMPIType(DataType const &datatype_desc, MPI_Datatype *new_type);
 struct MPIDataType
 {
 
-	MPIDataType();
+    MPIDataType();
 
-	MPIDataType(MPIDataType const &);
+    MPIDataType(MPIDataType const &);
 
-	~MPIDataType();
+    ~MPIDataType();
 
 //	static MPIDataType create(DataType const &);
 
-	static MPIDataType create(DataType const &data_type,
-							  int ndims = 0, size_t const *dims = nullptr,
-							  size_t const *p_start = nullptr, size_t const *offset = nullptr,
-							  size_t const *stride = nullptr, size_t const *block = nullptr,
-							  bool c_order_array = true);
+    static MPIDataType create(DataType const &data_type,
+                              int ndims = 0, size_t const *dims = nullptr,
+                              size_t const *p_start = nullptr, size_t const *offset = nullptr,
+                              size_t const *stride = nullptr, size_t const *block = nullptr,
+                              bool c_order_array = true);
 
-	static MPIDataType create(DataType const &data_type, DataSpace const &space, bool c_order_array = true);
+    static MPIDataType create(DataType const &data_type, DataSpace const &space, bool c_order_array = true);
 
-	template<typename T, typename ...Others>
-	static MPIDataType create(Others &&... others)
-	{
-		return create(traits::datatype<T>::create(), std::forward<Others>(others)...);
-	}
+    void swap(MPIDataType &other);
 
-	MPI_Datatype const &type(...) const
-	{
-		return m_type_;
-	}
+    MPIDataType &operator=(MPIDataType const &other)
+    {
+        MPIDataType(other).swap(*this);
+        return *this;
+    }
 
-	size_t size() const;
+    template<typename T, typename ...Others>
+    static MPIDataType create(Others &&... others)
+    {
+        return create(traits::datatype<T>::create(), std::forward<Others>(others)...);
+    }
+
+    MPI_Datatype const &type(...) const
+    {
+        return m_type_;
+    }
+
+    size_t size() const;
 
 private:
 
-	MPI_Datatype m_type_ = MPI_DATATYPE_NULL;
+    MPI_Datatype m_type_ = MPI_DATATYPE_NULL;
 
-	bool is_commited_ = false;
+    bool is_commited_ = false;
 
 };
 

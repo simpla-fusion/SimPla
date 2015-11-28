@@ -215,6 +215,7 @@
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/domain_operation.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/domain_traits.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/policy/amr_policy.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/policy/parallel.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/policy/parallel_policy.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/policy/patch_policy.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/policy/storage_policy.h" isTestSource="false" />

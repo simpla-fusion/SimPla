@@ -55,7 +55,7 @@ private:
 
     typedef std::list<value_type> bucket_type;
 
-    typedef std::map<id_type, bucket_type> container_type;
+    typedef parallel::concurrent_hash_map <id_type, bucket_type> container_type;
 
     static constexpr int ndims = mesh_type::ndims;
 
@@ -115,27 +115,29 @@ public:
 
     id_type hash(value_type const &p) const { return m_mesh_.id(project(p), mesh_type::node_id(iform)); }
 
-    bucket_type &operator[](id_type const &k) { return m_data_[k]; }
-
-    bucket_type &at(id_type const &k) { return m_data_.at(k); }
-
-    bucket_type const &at(id_type const &k) const { return m_data_.at(k); }
-
-
-    bucket_type &equal_range(value_type const &p) { return m_data_.at(hash(p)); }
-
-    bucket_type const &equal_range(value_type const &p) const { return m_data_.at(hash(p)); }
+//    bucket_type &operator[](id_type const &k) {
+//        typename
+//        return m_data_[k]; }
+//
+//    bucket_type &at(id_type const &k) { return m_data_.at(k); }
+//
+//    bucket_type const &at(id_type const &k) const { return m_data_.at(k); }
+//
+//
+//    bucket_type &equal_range(value_type const &p) { return m_data_.at(hash(p)); }
+//
+//    bucket_type const &equal_range(value_type const &p) const { return m_data_.at(hash(p)); }
 
     DataSet dataset() const;
 
     void dataset(DataSet const &);
 
-    void push_back(value_type const &p) { m_data_[hash(p)].push_back(p); }
+    void push_back(value_type const &p);
 
     template<typename InputIter>
     void push_back(InputIter const &b, InputIter const &e);
 
-    void erase(id_type const &key) { m_data_.erase(key); }
+    void erase(id_type const &key);
 
     template<typename TRange>
     void erase(TRange const &r);
@@ -147,11 +149,9 @@ public:
 
     //! @}
     //! @{
-    size_t size(id_type const &s, container_type const &buffer) const;
+    size_t size(range_type const &r, container_type const &buffer) const;
 
-    size_t size(id_type const &s) const;
-
-    template<typename ...Args> size_t size(range_type const &r, Args &&...args) const;
+    size_t size(range_type const &r) const;
 
     size_t size() const;
 
@@ -167,14 +167,11 @@ public:
     //! @}
     //! @{
 
+    void merge(id_type const &s, container_type *other);
 
+    void merge(range_type const &r, container_type *other);
 
-    void merge(id_type const &s, container_type *buffer);
-
-
-    template<typename ...Args> void merge(range_type const &r, Args &&...);
-
-    template<typename ...Args> void merge(Args &&...args);
+    void merge(container_type *other);
 
     void merge(this_type *other) { merge(&(other->m_data_)); };
 
@@ -183,8 +180,7 @@ public:
 
     void rehash(id_type const &s, container_type *buffer);
 
-    template<typename TRange>
-    void rehash(TRange const &r, container_type *buffer);
+    void rehash(range_type const &r, container_type *buffer);
 
     void rehash();
 
@@ -258,21 +254,29 @@ template<typename P, typename M>
 template<typename TField>
 void Particle<P, M>::integral(id_type const &s, TField *J) const
 {
-    if (m_data_.find(s) == m_data_.end()) { return; }
+    typename container_type::const_accessor acc;
+    if (m_data_.find(acc, s))
+    {
+        static constexpr int MAX_NEIGHBOUR_NUM = 12;
+        id_type neighbour[MAX_NEIGHBOUR_NUM];
+        auto x0 = m_mesh_.point(s);
 
-    static constexpr int MAX_NEIGHBOUR_NUM = 12;
-    id_type neighbour[MAX_NEIGHBOUR_NUM];
-    auto x0 = m_mesh_.point(s);
-    // fixme temporary remove
+        // fixme temporary remove
 //        int num = m_mesh_.get_neighbour(s, iform);
-//
 //        for (int i = 0; i < num; ++i)
-//            for (auto const &p:(*this)[neighbour[i]])
+//        {
+//            typename container_type::const_accessor acc1;
+//
+//            if (m_data_.find(acc1, neighbour[i]))
 //            {
-//                (*J)[s] += m_mesh_.RBF(project(p), x0) *
-//                           m_mesh_.generator(s, engine_type::integral_v(p));
+//                for (auto const &p:acc1->second)
+//                {
+//                    (*J)[s] += m_mesh_.RBF(project(p), x0) *
+//                               m_mesh_.generator(s, engine_type::integral_v(p));
+//                }
 //            }
-
+//        }
+    }
 };
 
 template<typename P, typename M>
@@ -310,11 +314,14 @@ template<typename P, typename M>
 template<typename ...Args>
 void Particle<P, M>::push(id_type const &s, Args &&...args)
 {
-    if (m_data_.find(s) == m_data_.end()) { return; }
+    typename container_type::accessor acc;
 
-    for (auto &p:m_data_[s])
+    if (m_data_.find(acc, s))
     {
-        engine_type::push(&p, std::forward<Args>(args)...);
+        for (auto &p:acc->second)
+        {
+            engine_type::push(&p, std::forward<Args>(args)...);
+        }
     }
 
 
@@ -344,57 +351,53 @@ void Particle<P, M>::push(Args &&...args)
 //**************************************************************************************************
 
 template<typename P, typename M>
-size_t Particle<P, M>::size(id_type const &s, container_type const &buffer) const
+size_t Particle<P, M>::size(range_type const &r, container_type const &c) const
 {
-    return (buffer.find(s) != buffer.end()) ? buffer.at(s).size() : 0;
+
+    return parallel::parallel_reduce(r, 0,
+                                     [&](range_type &r, size_t init) -> size_t
+                                     {
+                                         for (auto const &s:r)
+                                         {
+                                             typename container_type::accessor acc;
+                                             if (c.find(acc, s))
+                                                 init += acc->second.size();
+                                         }
+
+                                         return init;
+                                     },
+                                     [](size_t x, size_t y) -> size_t
+                                     {
+                                         return x + y;
+                                     }
+    );
+
 }
 
 template<typename P, typename M>
-size_t Particle<P, M>::size(id_type const &s) const
+size_t Particle<P, M>::size(range_type const &r) const
 {
-    return size(s, m_data_);
-}
-
-template<typename P, typename M>
-template<typename ...Args>
-size_t Particle<P, M>::size(range_type const &r, Args &&...args) const
-{
-    size_t count = 0;
-//    parallel::parallel_reduce(r, [&](range_type const &r)
-    {
-        for (auto const &s:r)
-        {
-            count += size(s, std::forward<Args>(args)...);
-        }
-    }
-//    );
-
-    return count;
+    return size(r, m_data_);
 }
 
 template<typename P, typename M>
 size_t Particle<P, M>::size() const
 {
-    size_t count = 0;
-    for (auto const &b:m_data_)
-    {
-        count += b.second.size();
-    }
-
-    return count;
+    return size(m_mesh_.template range<iform>(), m_data_);
 }
 
 
 //**************************************************************************************************
+template<typename P, typename M>
+void Particle<P, M>::erase(id_type const &s)
+{
+}
 
 template<typename P, typename M>
 template<typename TRange>
 void Particle<P, M>::erase(TRange const &r)
 {
-    for (auto const &s:r)
-    {
-        erase(s);
-    }
+    for (auto const &s:r) { m_data_.erase(s); }
 }
 //**************************************************************************************************
 
@@ -404,9 +407,10 @@ template<typename P, typename M>
 template<typename OutputIter>
 OutputIter Particle<P, M>::copy(id_type s, OutputIter out_it) const
 {
-    if (m_data_.find(s) != m_data_.end())
+    typename container_type::const_accessor c_accessor;
+    if (m_data_.find(c_accessor, s))
     {
-        out_it = std::copy(m_data_.at(s).begin(), m_data_.at(s).end(), out_it);
+        out_it = std::copy(c_accessor->second.begin(), c_accessor->second.end(), out_it);
     }
     return out_it;
 }
@@ -417,10 +421,10 @@ OutputIter Particle<P, M>::copy(range_type const &r, OutputIter out_it) const
 {
     for (auto const &s:r)
     {
-        auto it = m_data_.find(s);
-        if (it == m_data_.end())continue;
+        typename container_type::const_accessor c_accessor;
 
-        out_it = std::copy(it->second.begin(), it->second.end(), out_it);
+        if (m_data_.find(c_accessor, s))
+            out_it = std::copy(c_accessor->second.begin(), c_accessor->second.end(), out_it);
     }
     return out_it;
 }
@@ -429,8 +433,7 @@ template<typename P, typename M>
 template<typename OutputIter>
 OutputIter Particle<P, M>::copy(OutputIter out_it) const
 {
-    for (auto const &item:m_data_) { out_it = std::copy(item.second.begin(), item.second.end(), out_it); }
-    return out_it;
+    return copy(m_mesh_.template range<iform>(), out_it);
 }
 //*******************************************************************************
 
@@ -438,29 +441,31 @@ OutputIter Particle<P, M>::copy(OutputIter out_it) const
 template<typename P, typename M>
 void Particle<P, M>::merge(id_type const &s, container_type *buffer)
 {
-    if (m_data_.find(s) == m_data_.end() || buffer->find(s) == buffer->end())
+    typename container_type::accessor acc0;
+    typename container_type::accessor acc1;
+
+    if (buffer->find(acc1, s))
     {
-        m_data_[s].splice(m_data_[s].end(), (*buffer)[s]);
+        m_data_.insert(acc0, s);
+        acc0->second.splice(acc0->second.end(), acc1->second);
     }
 }
 
 template<typename P, typename M>
-template<typename ...Args>
-void Particle<P, M>::merge(range_type const &r, Args &&...args)
+void Particle<P, M>::merge(range_type const &r, container_type *other)
 {
-    for (auto const &s:r) { merge(s, std::forward<Args>(args)...); }
+    for (auto const &s:r) { merge(s, other); }
 }
 
 
 template<typename P, typename M>
-template<typename ...Args>
-void Particle<P, M>::merge(Args &&...args)
+void Particle<P, M>::merge(container_type *other)
 {
-    m_mesh_.template for_each_ghost<iform>([&](range_type const &r) { merge(r, std::forward<Args>(args)...); });
+    m_mesh_.template for_each_ghost<iform>([&](range_type const &r) { merge(r, other); });
 
-    m_mesh_.template for_each_boundary<iform>([&](range_type const &r) { merge(r, std::forward<Args>(args)...); });
+    m_mesh_.template for_each_boundary<iform>([&](range_type const &r) { merge(r, other); });
 
-    m_mesh_.template for_each_center<iform>([&](range_type const &r) { merge(r, std::forward<Args>(args)...); });
+    m_mesh_.template for_each_center<iform>([&](range_type const &r) { merge(r, other); });
 }
 //*******************************************************************************
 
@@ -549,7 +554,7 @@ void Particle<P, M>::sync(container_type const &buffer, parallel::DistributedObj
         {
             try
             {
-                std::shared_ptr<void> p_send, p_recv;
+                std::shared_ptr<void> p_send(nullptr), p_recv(nullptr);
 
                 auto send_range = m_mesh_.template make_range<iform>(send_min, send_max);
 
@@ -558,13 +563,14 @@ void Particle<P, M>::sync(container_type const &buffer, parallel::DistributedObj
                 p_send = sp_alloc_memory(send_size * sizeof(value_type));
 
                 auto p = reinterpret_cast<value_type *>( p_send.get());
+
                 for (auto const &s:send_range)
                 {
-                    auto it = buffer.find(s);
+                    typename container_type::accessor acc;
 
-                    if (it != buffer.end())
+                    if (buffer.find(acc, s))
                     {
-                        p = std::copy(it->second.begin(), it->second.end(), p);
+                        p = std::copy(acc->second.begin(), acc->second.end(), p);
                     }
 
                 }
@@ -584,6 +590,43 @@ void Particle<P, M>::sync(container_type const &buffer, parallel::DistributedObj
     }
 
 
+}
+
+
+template<typename P, typename M>
+void Particle<P, M>::rehash(id_type const &key, container_type *buffer)
+{
+    typename container_type::accessor acc0;
+
+    if (m_data_.find(acc0, key))
+    {
+
+        auto &src = acc0->second;
+
+        auto it = src.begin(), ie = src.end();
+
+        while (it != ie)
+        {
+            auto p = it;
+
+            ++it;
+
+            auto dest = hash(*p);
+            typename container_type::accessor acc1;
+            buffer->insert(acc1, dest);
+
+            if (dest != key) { acc1->second.splice(acc1->second.end(), src, p); }
+        }
+        typename container_type::accessor acc1;
+        buffer->insert(acc1, key);
+        acc1->second.splice(acc1->second.end(), src);
+    }
+}
+
+template<typename P, typename M>
+void Particle<P, M>::rehash(range_type const &r, container_type *buffer)
+{
+    for (auto const &s:r) { rehash(s, buffer); }
 }
 
 template<typename P, typename M>
@@ -640,7 +683,6 @@ void Particle<P, M>::rehash()
     m_mesh_.template for_each_center<iform>([&](range_type const &r) { merge(r, &buffer); });
 
     m_mesh_.template for_each_boundary<iform>([&](range_type const &r) { merge(r, &buffer); });
-    // wait
 
     dist_obj.wait();
     /**
@@ -660,30 +702,12 @@ void Particle<P, M>::rehash()
     }
 }
 
-
 template<typename P, typename M>
-void Particle<P, M>::rehash(id_type const &key, container_type *buffer)
+void Particle<P, M>::push_back(value_type const &p)
 {
-
-    if (m_data_.find(key) == m_data_.end()) { return; }
-
-    auto &src = m_data_[key];
-
-    auto it = src.begin(), ie = src.end();
-
-    while (it != ie)
-    {
-        auto p = it;
-
-        ++it;
-
-        auto dest = hash(*p);
-
-        if (dest != key) { (*buffer)[dest].splice((*buffer)[dest].end(), src, p); }
-    }
-
-    (*buffer)[key].splice((*buffer)[key].end(), src);
-
+    typename container_type::accessor acc;
+    m_data_.insert(acc, hash(p));
+    acc->second.push_back(p);
 }
 
 template<typename P, typename M>
@@ -699,21 +723,15 @@ void Particle<P, M>::push_back(InputIt const &b, InputIt const &e)
 
 
 template<typename P, typename M>
-template<typename TRange>
-void Particle<P, M>::rehash(TRange const &r, container_type *buffer)
-{
-    for (auto const &s:r) { rehash(s, buffer); }
-}
-
-
-template<typename P, typename M>
 DataSet Particle<P, M>::dataset() const
 {
-    size_t count = static_cast<int>(size());
+
+    auto r = m_mesh_.template range<iform>();
+    size_t count = static_cast<int>(size(r));
 
     auto data = sp_alloc_memory(count * sizeof(value_type));
 
-    copy(reinterpret_cast<value_type *>( data.get()));
+    copy(r, reinterpret_cast<value_type *>( data.get()));
 
     DataSet ds = traits::make_dataset(traits::datatype<value_type>::create(), data, count);
 
@@ -729,7 +747,7 @@ void Particle<P, M>::dataset(DataSet const &ds)
 
     value_type const *p = reinterpret_cast<value_type const *>(ds.data.get());
 
-    insert(p, p + count);
+    push_back(p, p + count);
 
     engine_type::properties.append(ds.properties);
 
@@ -741,19 +759,25 @@ template<typename P, typename M>
 template<typename TGen, typename ...Args>
 void Particle<P, M>::generator(id_type s, TGen &gen, size_t pic, Args &&...args)
 {
-    auto r = gen.generator(pic,
+    auto g = gen.generator(pic,
                            m_mesh_.box(),   /*FIXME m_mesh_.box => m_mesh_.template box<iform>(s) */
                            std::forward<Args>(args)...);
 
-    std::copy(std::get<0>(r), std::get<1>(r), std::back_inserter(m_data_[s]));
+    typename container_type::accessor acc;
+    m_data_.insert(acc, s);
+    std::copy(std::get<0>(g), std::get<1>(g), std::back_inserter(acc->second));
 }
 
 
 template<typename P, typename M>
 template<typename TGen, typename ...Args>
-void Particle<P, M>::generator(const range_type &range, TGen &gen, size_t pic, Args &&...args)
+void Particle<P, M>::generator(const range_type &r, TGen &gen, size_t pic, Args &&...args)
 {
-    for (auto const &s:range) { generator(s, gen, pic, std::forward<Args>(args)...); }
+    for (auto const &s:r)
+    {
+        generator(s, gen, pic, std::forward<Args>(args)...);
+    }
+
 }
 
 
@@ -780,17 +804,12 @@ void Particle<P, M>::generator(TGen &gen, size_t pic, Args &&...args)
     m_mesh_.template for_each_center<iform>(
             [&](range_type const &r) { generator(r, gen, pic, std::forward<Args>(args)...); });
 
-    CHECK("BEFORE WAIT");
-
     dist_obj.wait();
 
-    CHECK("AFTER WAIT");
     for (auto const &item :  dist_obj.recv_buffer)
     {
-        CHECK(std::get<1>(item).memory_space.size());
-
-//        value_type const *p = reinterpret_cast<value_type const *>(std::get<1>(item).data.get());
-//        push_back(p, p + std::get<1>(item).memory_space.size());
+        value_type const *p = reinterpret_cast<value_type const *>(std::get<1>(item).data.get());
+        push_back(p, p + std::get<1>(item).memory_space.size());
     }
 }
 

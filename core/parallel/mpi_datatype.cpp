@@ -23,6 +23,11 @@ MPIDataType::MPIDataType(MPIDataType const &other)
 {
     MPI_ERROR(MPI_Type_dup(other.type(), &m_type_));
 }
+void MPIDataType::swap(MPIDataType   &other)
+{
+    std::swap(m_type_,other.m_type_);
+    std::swap(is_commited_,other.is_commited_);
+}
 
 MPIDataType::~MPIDataType()
 {
