@@ -22,37 +22,37 @@ struct DistributedObject::pimpl_s
     ~pimpl_s() { }
 
 
-    struct mpi_link_node
-    {
-        int dest_id;
-
-        int tag;
-
-        size_t size;
-
-        MPIDataType type;
-
-        std::shared_ptr<void> *data; // pointer is a risk
-
-    };
+//    struct mpi_link_node
+//    {
+//        int dest_id;
+//
+//        int tag;
+//
+//        size_t size;
+//
+//        MPIDataType type;
+//
+//        std::shared_ptr<void> *data; // pointer is a risk
+//
+//    };
 
 
     int m_object_id_;
 
-    std::vector<mpi_link_node> m_send_links_;
-
-    std::vector<mpi_link_node> m_recv_links_;
+//    std::vector<mpi_link_node> m_send_links_;
+//
+//    std::vector<mpi_link_node> m_recv_links_;
 
     std::vector<MPI_Request> m_mpi_requests_;
 
 
-    void add_link(bool is_send, int const coord_offset[], size_t size,
-                  MPIDataType const &d_type, std::shared_ptr<void> *p);
-
-    void add_link(const int *const coord_offset,
-                  size_t send_size, MPIDataType const &send_type,
-                  size_t recv_size, MPIDataType const &recv_type,
-                  std::shared_ptr<void> *p);
+//    void add_link(bool is_send, int const coord_offset[], size_t size,
+//                  MPIDataType const &d_type, std::shared_ptr<void> *p);
+//
+//    void add_link(const int *const coord_offset,
+//                  size_t send_size, MPIDataType const &send_type,
+//                  size_t recv_size, MPIDataType const &recv_type,
+//                  std::shared_ptr<void> *p);
 
 };
 

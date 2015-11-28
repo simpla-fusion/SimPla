@@ -43,7 +43,7 @@ std::string save(std::string const &url, DataSet const &ds, size_t flag = 0UL);
 template<typename T>
 std::string save(std::string const &url, T const &d, size_t flag = 0UL)
 {
-    return save(url, d.dataset(), flag);
+    return save(url, traits::make_dataset(d), flag);
 }
 
 void delete_attribute(std::string const &url);

@@ -63,7 +63,7 @@ bool loadField(TDict const & dict, TField *f)
 //	{
 //		for (auto const &s : domain)
 //		{
-//			(*f)[s] = geometry.sample(
+//			(*f)[s] = geometry.generator(
 //					dict(geometry.coordinates(s)).template as<field_value_type>(),
 //					s);
 //		}
@@ -74,7 +74,7 @@ bool loadField(TDict const & dict, TField *f)
 //
 //		for (auto const &s : domain)
 //		{
-//			(*f)[s] = geometry.sample(v, s);
+//			(*f)[s] = geometry.generator(v, s);
 //		}
 //
 //	}

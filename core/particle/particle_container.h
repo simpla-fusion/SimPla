@@ -66,7 +66,7 @@
 *
 * ## Description
 * @ref particle   consists of  @ref particle_container and @ref particle_engine .
-*   @ref particle_engine  describes the individual behavior of one sample. @ref particle_container
+*   @ref particle_engine  describes the individual behavior of one generator. @ref particle_container
 *	  is used to manage these samples.
 *
 *

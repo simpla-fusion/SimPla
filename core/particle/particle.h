@@ -130,10 +130,10 @@ public:
 
     void dataset(DataSet const &);
 
-    void insert(value_type const &p) { m_data_[hash(p)].push_back(p); }
+    void push_back(value_type const &p) { m_data_[hash(p)].push_back(p); }
 
     template<typename InputIter>
-    void insert(InputIter const &b, InputIter const &e);
+    void push_back(InputIter const &b, InputIter const &e);
 
     void erase(id_type const &key) { m_data_.erase(key); }
 
@@ -197,11 +197,12 @@ public:
 
     //! @}
 
-    template<typename TFun, typename TGen> void sample(id_type s, TFun const &fun, TGen const &, size_t num_pic);
 
-    template<typename TRange, typename ...Args> void sample(TRange const &, Args &&...args);
+    template<typename TGen, typename ...Args> void generator(id_type s, TGen &gen, size_t pic, Args &&...args);
 
-    template<typename ...Args> void sample(Args &&...args);
+    template<typename TGen, typename ...Args> void generator(range_type const &, TGen &gen, size_t pic, Args &&...args);
+
+    template<typename TGen, typename ...Args> void generator(TGen &gen, size_t pic, Args &&...args);
 
 private:
     void sync(container_type const &buffer, parallel::DistributedObject *dist_obj);
@@ -276,7 +277,7 @@ void Particle<P, M>::integral(id_type const &s, TField *J) const
 //            for (auto const &p:(*this)[neighbour[i]])
 //            {
 //                (*J)[s] += m_mesh_.RBF(project(p), x0) *
-//                           m_mesh_.sample(s, engine_type::integral_v(p));
+//                           m_mesh_.generator(s, engine_type::integral_v(p));
 //            }
 
 };
@@ -420,14 +421,14 @@ template<typename P, typename M>
 template<typename OutputIter>
 OutputIter Particle<P, M>::copy(id_type s, OutputIter out_it) const
 {
-    return copy(s, m_data_, out_it);
+    return copy(s, out_it, m_data_);
 }
 
 template<typename P, typename M>
 template<typename OutputIter, typename ...Args>
 OutputIter Particle<P, M>::copy(range_type const &r, OutputIter out_it, Args &&...args) const
 {
-    for (auto s:r)
+    for (auto const &s:r)
     {
         out_it = copy(s, out_it, std::forward<Args>(args)...);
     }
@@ -438,7 +439,7 @@ template<typename P, typename M>
 template<typename OutputIter>
 OutputIter Particle<P, M>::copy(OutputIter out_it) const
 {
-    for (auto s:m_data_) { out_it = copy(s, out_it); }
+    for (auto const &item:m_data_) { out_it = copy(item.first, out_it); }
     return out_it;
 }
 //*******************************************************************************
@@ -485,9 +486,6 @@ void Particle<P, M>::sync(container_type const &buffer, parallel::DistributedObj
 
     std::tie(memory_min, memory_max) = m_mesh_.memory_index_box();
 
-
-    std::vector<std::tuple<size_t, std::shared_ptr<void>>> send_buffer;
-    std::vector<std::tuple<size_t, std::shared_ptr<void>>> recv_buffer;
 
     for (unsigned int tag = 0, tag_e = (1U << (m_mesh_.ndims * 2)); tag < tag_e; ++tag)
     {
@@ -642,11 +640,11 @@ void Particle<P, M>::rehash()
      *  ***************************
      */
 
-//        for (auto const &item : recv_buffer)
-//        {
-//            value_type *p = reinterpret_cast<value_type *>(std::get<1>(item).get());
-//            insert(p, p + std::get<0>(item));
-//        }
+    for (auto const &item : recv_buffer)
+    {
+        value_type *p = reinterpret_cast<value_type *>(std::get<1>(item).get());
+        push_back(p, p + std::get<0>(item));
+    }
 }
 
 
@@ -735,44 +733,50 @@ void Particle<P, M>::dataset(DataSet const &ds)
     rehash();
 }
 
-template<typename P, typename M>
-template<typename TFun, typename TGen>
-void Particle<P, M>::sample(id_type s, const TFun &fun, const TGen &gen, size_t num_pic)
-{
-//    Dist dist;
-//
-//    dist.set_box(m_mesh_.box<iform>(s));
-//
-//    Real a = m_mesh_.template volume<iform>(s) / num_pic;
-//
-//
-//    for (int i = 0; i < num_pic; ++i)
-//    {
-//        auto Z = engine_type::lift(dist(gen()));
-//
-//        m_data_[s].push_back(engine_type::sample(Z, fun(Z) * a));
-//    }
-
-
-}
 
 template<typename P, typename M>
-template<typename TRange, typename ...Args>
-void Particle<P, M>::sample(const TRange &range, Args &&...args)
+template<typename TGen, typename ...Args>
+void Particle<P, M>::generator(id_type s, TGen &gen, size_t pic, Args &&...args)
 {
-    for (auto const &s:range) { sample(s, std::forward<Args>(args)...); }
+    auto r = gen.generator(pic, m_mesh_.box<iform>(s));
+    std::copy(std::get<0>(r), std::get<1>(r), std::back_inserter(m_data_[s]));
 }
 
 
 template<typename P, typename M>
-template<typename ...Args>
-void Particle<P, M>::sample(Args &&...args)
+template<typename TGen, typename ...Args>
+void Particle<P, M>::generator(const range_type &range, TGen &gen, size_t pic, Args &&...args)
 {
-//    m_mesh_.template for_each_ghost<iform>([&](range_type const &r) { sample(r, std::forward<Args>(args)...); });
+    for (auto const &s:range) { generator(s, gen, pic, std::forward<Args>(args)...); }
+}
 
-    m_mesh_.template for_each_boundary<iform>([&](range_type const &r) { sample(r, std::forward<Args>(args)...); });
 
-    m_mesh_.template for_each_center<iform>([&](range_type const &r) { sample(r, std::forward<Args>(args)...); });
+template<typename P, typename M>
+template<typename TGen, typename ...Args>
+void Particle<P, M>::generator(TGen &gen, size_t pic, Args &&...args)
+{
+//    m_mesh_.template for_each_ghost<iform>([&](range_type const &r) { generator(r, std::forward<Args>(args)...); });
+
+    size_t num_of_particle = m_mesh_.template make_range<iform>().size() * pic;
+    size_t offset = 0;
+    std::tie(offset, num_of_particle) = parallel::sync_global_location(GLOBAL_COMM, static_cast<int>(num_of_particle));
+
+    gen.discard(offset);
+
+
+    m_mesh_.template for_each_boundary<iform>(
+            [&](range_type const &r) { generator(r, gen, pic, std::forward<Args>(args)...); });
+
+    parallel::DistributedObject dist_obj;
+
+    sync(m_data_, &dist_obj);
+
+    dist_obj.sync();
+    m_mesh_.template for_each_center<iform>(
+            [&](range_type const &r) { generator(r, gen, pic, std::forward<Args>(args)...); });
+
+
+    dist_obj.wait();
 }
 
 

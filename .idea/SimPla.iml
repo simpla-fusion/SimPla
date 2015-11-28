@@ -300,6 +300,7 @@
       <sourceFolder url="file://$MODULE_DIR$/core/particle/test/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/particle/test/kinetic_particle_test.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/particle/test/kinetic_particle_test.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/particle/test/particle_generator.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/particle/test/probe_particle_test.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/physics/CMakeLists.txt" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/physics/constants.h" isTestSource="false" />

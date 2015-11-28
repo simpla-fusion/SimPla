@@ -65,7 +65,18 @@ struct DistributedObject
     template<typename ...Args>
     void add_link_recv(Args &&...args) { add_link(false, std::forward<Args>(args)...); };
 
+
+    struct link_s
+    {
+        nTuple<int, 3> coords;
+
+        DataSet dataset;
+    };
+
+    std::vector<link_s> send_buffer;
+    std::vector<link_s> recv_buffer;
 private:
+
 
     struct pimpl_s;
     std::unique_ptr<pimpl_s> pimpl_;

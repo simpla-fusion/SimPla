@@ -8,39 +8,51 @@
 #ifndef CORE_PARTICLE_PARTICLE_GENERATOR_H_
 #define CORE_PARTICLE_PARTICLE_GENERATOR_H_
 
+#include <atomic>
+#include <memory>
+#include <mutex>
+#include <thread>
 #include "../gtl/type_traits.h"
+#include "../gtl/primitives.h"
+#include "../numeric/rectangle_distribution.h"
+#include "../numeric/multi_normal_distribution.h"
 
 namespace simpla
 {
 
-template<typename XRandomEngine, typename VRandomEngine>
+template<typename Engine, typename TSeedGen=std::mt19937>
 struct ParticleGenerator
 {
 
 private:
+    typedef Engine particle_type;
 
-    typedef ParticleGenerator<XRandomEngine, VRandomEngine> generator_type;
+    typedef TSeedGen seed_type;
 
-    typedef XRandomEngine x_dist_engine;
+    typedef ParticleGenerator<particle_type, seed_type> this_type;
 
-    typedef VRandomEngine v_dist_engine;
+    typedef rectangle_distribution<3> x_dist_engine;
 
-
-    typedef nTuple<Real, 3> vector_type;
-
-    typedef nTuple<Real, 3> point_type;
+    typedef multi_normal_distribution<3> v_dist_engine;
 
 
-    typedef std::tuple<point_type, vector_type> value_type;
+    typedef typename particle_type::sample_type value_type;
+
+    particle_type const &m_p_engine_;
+
+    std::mutex m_seed_mutex;
+
+    seed_type m_seed_;
 
     x_dist_engine m_x_dist_;
 
     v_dist_engine m_v_dist_;
 
 public:
-    ParticleGenerator(x_dist_engine const &x_dist,
-                      v_dist_engine const &v_dist)
-            : m_x_dist_(x_dist), m_v_dist_(v_dist)
+    template<typename Args1, typename Args2>
+    ParticleGenerator(particle_type const &p, Args1 const &args1,
+                      Args2 const &args2)
+            : m_p_engine_(p), m_x_dist_(args1), m_v_dist_(args2)
     {
     }
 
@@ -48,101 +60,84 @@ public:
     {
     }
 
-    template<typename TRNDGen>
-    value_type operator()(TRNDGen &rnd_gen)
-    {
-        return std::forward_as_tuple(m_x_dist_(rnd_gen), m_v_dist_(rnd_gen));
-    }
 
-
-public:
-    template<typename TRNDGen>
     struct input_iterator : public std::iterator<std::input_iterator_tag, value_type>
     {
-        typedef TRNDGen rnd_generator;
-
-        generator_type &m_dist_;
-
-        rnd_generator &m_rnd_gen_;
+        particle_type const &m_p_engine_;
+        x_dist_engine x_dist_;
+        v_dist_engine v_dist_;
+        std::shared_ptr<seed_type> m_seed_;
 
         size_t m_count_;
-        value_type m_z_;
+        value_type m_value_;
 
-        input_iterator(generator_type &gen, rnd_generator &rnd_gen_,
-                       size_t count = 0)
-                : m_dist_(gen), m_count_(count), m_rnd_gen_(rnd_gen_)
+        template<typename TArgs1, typename TArgs2>
+        input_iterator(particle_type const &p_engine, seed_type seed,
+                       TArgs1 const &args1, TArgs2 args2)
+                : m_p_engine_(p_engine), m_seed_(new seed_type(seed)),
+                  x_dist_(args1), v_dist_(args2), m_count_(0)
         {
         }
 
         input_iterator(input_iterator const &other)
-                : m_dist_(other.m_dist_), m_count_(other.m_count_), m_rnd_gen_(
-                other.m_rnd_gen_)
+                : m_p_engine_(other.m_p_engine_), m_seed_(other.m_seed_), x_dist_(other.x_dist_),
+                  v_dist_(other.v_dist_), m_count_(other.m_count_)
         {
         }
 
-        input_iterator(input_iterator &&other)
-                : m_dist_(other.m_dist_), m_count_(other.m_count_), m_rnd_gen_(
-                other.m_rnd_gen_)
-        {
-        }
+        ~input_iterator() { }
 
-        ~input_iterator()
-        {
-        }
+        value_type const &operator*() const { return m_value_; }
 
-        value_type const &operator*() const
-        {
-            return m_z_;
-        }
+        value_type const *operator->() const { return &m_value_; }
 
-        value_type const *operator->() const
+        input_iterator &operator++()
         {
-            return &m_z_;
-        }
-
-        input_iterator operator++()
-        {
-            m_z_ = m_dist_(m_rnd_gen_);
+            // @note this_is not thread_safe
+            auto z = m_p_engine_.lift(x_dist_(*m_seed_), v_dist_(*m_seed_));
+            m_value_ = m_p_engine_.sample(x_dist_(*m_seed_), v_dist_(*m_seed_), 1.0);
             ++m_count_;
             return *this;
         }
 
-        bool operator==(input_iterator const &other) const
+        void advance(size_t n)
         {
-            return m_count_ == other.m_count_;
+            m_seed_->discard(n * 6);
+            m_count_ += n;
         }
 
-        bool operator!=(input_iterator const &other) const
-        {
-            return (m_count_ != other.m_count_);
-        }
+        bool operator==(input_iterator const &other) const { return m_count_ == other.m_count_; }
+
+        bool operator!=(input_iterator const &other) const { return (m_count_ != other.m_count_); }
+    }; //struct input_iterator
+
+    template<typename ...Args>
+    std::tuple<input_iterator, input_iterator>
+    generator(size_t pic, Args &&...args)
+    {
+        // TODO lock seed
+        std::lock_guard<std::mutex> guard(m_seed_mutex);
+
+        input_iterator ib(m_p_engine_, m_seed_, std::forward<Args>(args)...);
+
+        input_iterator ie(ib);
+
+        ie.advance(pic);
+
+        discard(pic);
+
+        return std::make_tuple(ib, ie);
+
     };
 
-    template<typename TRNDGen>
-    input_iterator<TRNDGen> begin(TRNDGen &rnd_gen, size_t pos = 0)
+    void discard(size_t num)
     {
-        return std::move(input_iterator<TRNDGen>(*this, rnd_gen, pos));
+        m_seed_.discard(num * 6);
     }
 
-    template<typename TRNDGen>
-    input_iterator<TRNDGen> end(TRNDGen &rnd_gen, size_t pos = 0)
-    {
-        return std::move(input_iterator<TRNDGen>(*this, rnd_gen, pos));
-    }
+
 };
 
-template<typename XGen, typename VGen>
-ParticleGenerator<XGen, VGen> make_particle_generator(XGen const &xgen, VGen const &vgen)
-{
-    return std::move(ParticleGenerator<XGen, VGen>(xgen, vgen));
-}
-
-template<typename XGen, typename VGen, typename DistFun>
-ParticleGenerator<XGen, VGen, DistFun> make_particle_generator(
-        XGen const &xgen, VGen const &vgen, DistFun const &distfun)
-{
-    return std::move(ParticleGenerator<XGen, VGen>(xgen, vgen, distfun));
-}
 
 }  // namespace simpla
 

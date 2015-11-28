@@ -212,7 +212,7 @@ private:
 public:
 
 //    template<int IFORM, typename TI, typename TV>
-//    DECLARE_FUNCTION_PREFIX auto sample(TI const &s, TV const &v) DECLARE_FUNCTION_SUFFIX
+//    DECLARE_FUNCTION_PREFIX auto generator(TI const &s, TV const &v) DECLARE_FUNCTION_SUFFIX
 //    DECL_RET_TYPE((sample_(std::integral_constant<int, IFORM>(), s, v)))
 
 

@@ -13,6 +13,7 @@
 #include <numeric>
 #include <vector>
 #include "../gtl/ntuple.h"
+#include "../gtl/primitives.h"
 
 namespace simpla
 {
