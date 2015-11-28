@@ -29,7 +29,7 @@ MESSAGE(STATUS "Using C++ Compiler ${CMAKE_CXX_COMPILER_ID} ")
 SET(COMPILER $ENV{PRG_ENV})
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
-    SET(CMAKE_CXX_FLAGS "-std=c++11  -fcolor-diagnostics   -ftemplate-backtrace-limit=0   ")
+    SET(CMAKE_CXX_FLAGS "-std=c++11  -fcolor-diagnostics   -ftemplate-backtrace-limit=0  -fPIC ")
 
 elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
     SET(CMAKE_CXX_FLAGS "-std=c++11")

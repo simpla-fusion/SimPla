@@ -129,15 +129,7 @@ template<typename T> inline T &get_value(DataSet &d, size_t s) { return d.templa
 
 template<typename T> inline T const &get_value(DataSet const &d, size_t s) { return d.template get_value<T>(s); }
 
-template<typename T>
-DataSet get_dataset(T &obj)
-{
-    return obj.dataset();
-}
-}
 
-namespace traits
-{
 //
 namespace _impl
 {
@@ -161,53 +153,38 @@ typename std::enable_if<_impl::has_member_function_dataset<T>::value,
 }
 
 
-template<typename T, typename TI>
-DataSet make_dataset(T *p, int rank, TI const *dims)
-{
-    DataSet res;
+DataSet make_dataset(DataType const &dtype, std::shared_ptr<void> const &p, size_t rank,
+                     size_t const *dims = nullptr);
 
-    res.datatype = traits::datatype<T>::create();
-    res.dataspace = DataSpace::create_simple(rank, dims);
-    res.memory_space = res.dataspace;
-    res.data = std::shared_ptr<void>(reinterpret_cast< void *>(p), tags::do_nothing());
-    return std::move(res);
+DataSet make_dataset(DataType const &dtype);
+
+template<typename T>
+DataSet make_dataset()
+{
+    return make_dataset(traits::datatype<T>::create());
 }
 
 template<typename T>
-DataSet make_dataset(T *p, size_t num)
+DataSet make_dataset(T *p, size_t rank, size_t const *dims = nullptr)
 {
-    return make_dataset(p, 1, &num);
-
+    return make_dataset(traits::datatype<T>::create(),
+                        std::shared_ptr<void>(reinterpret_cast<void *>(p), tags::do_nothing()),
+                        rank, dims);
 }
 
-//template<typename T, typename TI>
-//DataSet make_dataset(std::shared_ptr<T> p, int rank, TI const *dims,
-//		Properties const &prop = Properties())
-//{
-//	DataSet res;
-//	res.data = p;
-//	res.datatype = traits::datatype<T>::create();
-//	res.dataspace = make_dataspace(rank, dims);
-//	res.properties = prop;
-//
-//	return std::move(res);
-//}
-//
+template<typename T>
+DataSet make_dataset(std::shared_ptr<T> &p, size_t rank, size_t const *dims = nullptr)
+{
+    return make_dataset(traits::datatype<T>::create(),
+                        std::shared_ptr<void>(reinterpret_cast<void *>(p.get()), tags::do_nothing()),
+                        rank, dims);
+}
+
+
 template<typename T>
 DataSet make_dataset(std::vector<T> const &p)
 {
-
-    DataSet res;
-    size_t num = p.size();
-    res.datatype = traits::datatype<T>::create();
-    res.dataspace = DataSpace::create_simple(1, &num);
-    res.memory_space = res.dataspace;
-
-    res.data = std::shared_ptr<void>(
-            const_cast<void *>(reinterpret_cast<void const *>(&p[0])),
-            tags::do_nothing());
-
-    return std::move(res);
+    return make_dataset(&p[0], p.size());
 }
 /**@}*/
 } // namespace traits

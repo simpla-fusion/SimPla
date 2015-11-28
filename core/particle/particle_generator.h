@@ -25,6 +25,9 @@ struct ParticleGenerator
 {
 
 private:
+
+    static constexpr int NUM_OF_SEED_PER_SAMPLE = 6;
+
     typedef Engine particle_type;
 
     typedef TSeedGen seed_type;
@@ -44,15 +47,11 @@ private:
 
     seed_type m_seed_;
 
-    x_dist_engine m_x_dist_;
-
-    v_dist_engine m_v_dist_;
 
 public:
-    template<typename Args1, typename Args2>
-    ParticleGenerator(particle_type const &p, Args1 const &args1,
-                      Args2 const &args2)
-            : m_p_engine_(p), m_x_dist_(args1), m_v_dist_(args2)
+    
+    ParticleGenerator(particle_type const &p)
+            : m_p_engine_(p)
     {
     }
 
@@ -124,7 +123,7 @@ public:
 
         ie.advance(pic);
 
-        discard(pic);
+        m_seed_.discard(pic * NUM_OF_SEED_PER_SAMPLE);
 
         return std::make_tuple(ib, ie);
 
@@ -132,9 +131,23 @@ public:
 
     void discard(size_t num)
     {
-        m_seed_.discard(num * 6);
+        std::lock_guard<std::mutex> guard(m_seed_mutex);
+
+        m_seed_.discard(num * NUM_OF_SEED_PER_SAMPLE);
     }
 
+    void reserve(size_t num)
+    {
+        std::lock_guard<std::mutex> guard(m_seed_mutex);
+        size_t offset = 0;
+        size_t total = 0;
+        std::tie(offset, total) =
+                parallel::sync_global_location(GLOBAL_COMM,
+                                               static_cast<int>(num * NUM_OF_SEED_PER_SAMPLE));
+
+        m_seed_.discard(offset);
+
+    }
 
 };
 

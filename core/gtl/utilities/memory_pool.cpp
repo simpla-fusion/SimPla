@@ -166,6 +166,7 @@ void *MemoryPool::pimpl_s::pop(size_t s)
 
 }
 
+
 std::shared_ptr<void> sp_alloc_memory(size_t s)
 {
     void *addr = SingletonHolder<MemoryPool>::instance().pop(s);

@@ -158,18 +158,11 @@ public:
     //! @}
     //! @{
 
-
-    template<typename OutputIT> OutputIT copy(id_type s, OutputIT out_it, container_type const &buffer) const;
-
     template<typename OutputIT> OutputIT copy(id_type s, OutputIT out_it) const;
 
-    template<typename OutputIT, typename ...Args>
-    OutputIT copy(range_type const &r, OutputIT out_it, Args &&...args) const;
+    template<typename OutputIT> OutputIT copy(range_type const &r, OutputIT out_it) const;
 
     template<typename OutputIT> OutputIT copy(OutputIT out_it) const;
-
-
-
 
     //! @}
     //! @{
@@ -205,7 +198,7 @@ public:
     template<typename TGen, typename ...Args> void generator(TGen &gen, size_t pic, Args &&...args);
 
 private:
-    void sync(container_type const &buffer, parallel::DistributedObject *dist_obj);
+    void sync(container_type const &buffer, parallel::DistributedObject *dist_obj, bool update_ghost = true);
 
 };//class Particle
 namespace traits
@@ -405,32 +398,29 @@ void Particle<P, M>::erase(TRange const &r)
 }
 //**************************************************************************************************
 
-template<typename P, typename M>
-template<typename OutputIter>
-OutputIter Particle<P, M>::copy(id_type s, OutputIter out_it, container_type const &buffer) const
-{
-    if (buffer.find(s) != buffer.end())
-    {
-        out_it = std::copy(buffer.at(s).begin(), buffer.at(s).end(), out_it);
-    }
 
-    return out_it;
-}
 
 template<typename P, typename M>
 template<typename OutputIter>
 OutputIter Particle<P, M>::copy(id_type s, OutputIter out_it) const
 {
-    return copy(s, out_it, m_data_);
+    if (m_data_.find(s) != m_data_.end())
+    {
+        out_it = std::copy(m_data_.at(s).begin(), m_data_.at(s).end(), out_it);
+    }
+    return out_it;
 }
 
 template<typename P, typename M>
-template<typename OutputIter, typename ...Args>
-OutputIter Particle<P, M>::copy(range_type const &r, OutputIter out_it, Args &&...args) const
+template<typename OutputIter>
+OutputIter Particle<P, M>::copy(range_type const &r, OutputIter out_it) const
 {
     for (auto const &s:r)
     {
-        out_it = copy(s, out_it, std::forward<Args>(args)...);
+        auto it = m_data_.find(s);
+        if (it == m_data_.end())continue;
+
+        out_it = std::copy(it->second.begin(), it->second.end(), out_it);
     }
     return out_it;
 }
@@ -439,7 +429,7 @@ template<typename P, typename M>
 template<typename OutputIter>
 OutputIter Particle<P, M>::copy(OutputIter out_it) const
 {
-    for (auto const &item:m_data_) { out_it = copy(item.first, out_it); }
+    for (auto const &item:m_data_) { out_it = std::copy(item.second.begin(), item.second.end(), out_it); }
     return out_it;
 }
 //*******************************************************************************
@@ -477,14 +467,16 @@ void Particle<P, M>::merge(Args &&...args)
 
 
 template<typename P, typename M>
-void Particle<P, M>::sync(container_type const &buffer, parallel::DistributedObject *dist_obj)
+void Particle<P, M>::sync(container_type const &buffer, parallel::DistributedObject *dist_obj, bool update_ghost)
 {
 
     auto d_type = traits::datatype<value_type>::create();
 
     typename mesh_type::index_tuple memory_min, memory_max;
+    typename mesh_type::index_tuple local_min, local_max;
 
     std::tie(memory_min, memory_max) = m_mesh_.memory_index_box();
+    std::tie(local_min, local_max) = m_mesh_.local_index_box();
 
 
     for (unsigned int tag = 0, tag_e = (1U << (m_mesh_.ndims * 2)); tag < tag_e; ++tag)
@@ -495,7 +487,8 @@ void Particle<P, M>::sync(container_type const &buffer, parallel::DistributedObj
 
         index_tuple send_min, send_max;
 
-        std::tie(send_min, send_max) = m_mesh_.local_index_box();
+        send_min = local_min;
+        send_max = local_max;
 
         for (int n = 0; n < ndims; ++n)
         {
@@ -506,24 +499,44 @@ void Particle<P, M>::sync(container_type const &buffer, parallel::DistributedObj
             }
 
             coord_offset[n] = ((tag >> (n * 2)) & 3U) - 1;
-
-            switch (coord_offset[n])
+            if (update_ghost)
             {
-                case 0:
-                    break;
-                case -1: //left
-                    send_max[n] = send_min[n];
-                    send_min[n] = memory_min[n];
-                    break;
-                case 1: //right
-                    send_min[n] = send_max[n];
-                    send_max[n] = memory_max[n];
-                    break;
-                default:
-                    tag_is_valid = false;
-                    break;
+                switch (coord_offset[n])
+                {
+                    case 0:
+                        break;
+                    case -1: //left
+                        send_min[n] = memory_min[n];
+                        send_max[n] = local_min[n];
+                        break;
+                    case 1: //right
+                        send_min[n] = local_max[n];
+                        send_max[n] = memory_max[n];
+                        break;
+                    default:
+                        tag_is_valid = false;
+                        break;
+                }
             }
-
+            else
+            {
+                switch (coord_offset[n])
+                {
+                    case 0:
+                        break;
+                    case -1: //left
+                        send_min[n] = local_min[n];
+                        send_max[n] = local_min[n] + local_min[n] - memory_min[n];
+                        break;
+                    case 1: //right
+                        send_min[n] = local_max[n] - (memory_max[n] - local_max[n]);
+                        send_max[n] = local_max[n];
+                        break;
+                    default:
+                        tag_is_valid = false;
+                        break;
+                }
+            }
             if (send_max[n] == send_min[n])
             {
                 tag_is_valid = false;
@@ -542,19 +555,23 @@ void Particle<P, M>::sync(container_type const &buffer, parallel::DistributedObj
 
                 size_t send_size = size(send_range, buffer);
 
-                p_send = SingletonHolder<MemoryPool>::instance().raw_alloc(send_size * sizeof(value_type));
+                p_send = sp_alloc_memory(send_size * sizeof(value_type));
 
-                copy(send_range, reinterpret_cast<value_type *>( p_send.get()), buffer);
+                auto p = reinterpret_cast<value_type *>( p_send.get());
+                for (auto const &s:send_range)
+                {
+                    auto it = buffer.find(s);
 
+                    if (it != buffer.end())
+                    {
+                        p = std::copy(it->second.begin(), it->second.end(), p);
+                    }
 
-                send_buffer.push_back(std::make_tuple(send_size, p_send));
+                }
 
-                recv_buffer.push_back(std::make_tuple(0, p_recv));
+                dist_obj->add_link_send(coord_offset, d_type, p_send, send_size);
 
-                dist_obj->add_link_send(&coord_offset[0], send_size, d_type, &p_send);
-
-                dist_obj->add_link_recv(&coord_offset[0], 0, d_type, &p_recv);
-
+                dist_obj->add_link_recv(coord_offset, d_type);
 
             }
             catch (std::exception const &error)
@@ -592,11 +609,7 @@ void Particle<P, M>::rehash()
     parallel::DistributedObject dist_obj;
 
     sync(buffer, &dist_obj);
-
     dist_obj.sync();
-
-
-
 
     //**************************************************************************************
 
@@ -640,10 +653,10 @@ void Particle<P, M>::rehash()
      *  ***************************
      */
 
-    for (auto const &item : recv_buffer)
+    for (auto const &item :  dist_obj.recv_buffer)
     {
-        value_type *p = reinterpret_cast<value_type *>(std::get<1>(item).get());
-        push_back(p, p + std::get<0>(item));
+        value_type const *p = reinterpret_cast<value_type const *>(std::get<1>(item).data.get());
+        push_back(p, p + std::get<1>(item).memory_space.size());
     }
 }
 
@@ -675,12 +688,12 @@ void Particle<P, M>::rehash(id_type const &key, container_type *buffer)
 
 template<typename P, typename M>
 template<typename InputIt>
-void Particle<P, M>::insert(InputIt const &b, InputIt const &e)
+void Particle<P, M>::push_back(InputIt const &b, InputIt const &e)
 {
     // fixme need parallize
     for (auto it = b; it != e; ++it)
     {
-        insert(*it);
+        push_back(*it);
     }
 }
 
@@ -696,23 +709,13 @@ void Particle<P, M>::rehash(TRange const &r, container_type *buffer)
 template<typename P, typename M>
 DataSet Particle<P, M>::dataset() const
 {
-    DataSet ds;
-
     size_t count = static_cast<int>(size());
-    size_t offset = 0;
-    size_t total_count = count;
 
-    std::tie(offset, total_count) = parallel::sync_global_location(GLOBAL_COMM, static_cast<int>(count));
+    auto data = sp_alloc_memory(count * sizeof(value_type));
 
-    ds.dataspace = DataSpace(1, &total_count);
+    copy(reinterpret_cast<value_type *>( data.get()));
 
-    ds.dataspace.select_hyperslab(&offset, nullptr, &count, nullptr);
-
-    ds.memory_space = DataSpace(1, &count);
-
-    ds.data = SingletonHolder<MemoryPool>::instance().raw_alloc(count * sizeof(value_type));
-
-    copy(reinterpret_cast<value_type *>(ds.data.get()));
+    DataSet ds = traits::make_dataset(traits::datatype<value_type>::create(), data, count);
 
     ds.properties.append(engine_type::properties);
 
@@ -738,7 +741,10 @@ template<typename P, typename M>
 template<typename TGen, typename ...Args>
 void Particle<P, M>::generator(id_type s, TGen &gen, size_t pic, Args &&...args)
 {
-    auto r = gen.generator(pic, m_mesh_.box<iform>(s));
+    auto r = gen.generator(pic,
+                           m_mesh_.box(),   /*FIXME m_mesh_.box => m_mesh_.template box<iform>(s) */
+                           std::forward<Args>(args)...);
+
     std::copy(std::get<0>(r), std::get<1>(r), std::back_inserter(m_data_[s]));
 }
 
@@ -755,28 +761,37 @@ template<typename P, typename M>
 template<typename TGen, typename ...Args>
 void Particle<P, M>::generator(TGen &gen, size_t pic, Args &&...args)
 {
-//    m_mesh_.template for_each_ghost<iform>([&](range_type const &r) { generator(r, std::forward<Args>(args)...); });
+//    m_mesh_.template for_each_ghost<iform>([&](range_type const &r) {
+// generator(r, std::forward<Args>(args)...); });
 
-    size_t num_of_particle = m_mesh_.template make_range<iform>().size() * pic;
-    size_t offset = 0;
-    std::tie(offset, num_of_particle) = parallel::sync_global_location(GLOBAL_COMM, static_cast<int>(num_of_particle));
+    size_t num_of_particle = m_mesh_.template range<iform>().size() * pic;
 
-    gen.discard(offset);
-
+    gen.reserve(num_of_particle);
 
     m_mesh_.template for_each_boundary<iform>(
             [&](range_type const &r) { generator(r, gen, pic, std::forward<Args>(args)...); });
 
     parallel::DistributedObject dist_obj;
 
-    sync(m_data_, &dist_obj);
+    sync(m_data_, &dist_obj, false);
 
     dist_obj.sync();
+
     m_mesh_.template for_each_center<iform>(
             [&](range_type const &r) { generator(r, gen, pic, std::forward<Args>(args)...); });
 
+    CHECK("BEFORE WAIT");
 
     dist_obj.wait();
+
+    CHECK("AFTER WAIT");
+    for (auto const &item :  dist_obj.recv_buffer)
+    {
+        CHECK(std::get<1>(item).memory_space.size());
+
+//        value_type const *p = reinterpret_cast<value_type const *>(std::get<1>(item).data.get());
+//        push_back(p, p + std::get<1>(item).memory_space.size());
+    }
 }
 
 

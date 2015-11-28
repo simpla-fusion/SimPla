@@ -28,91 +28,74 @@ class MemoryPool
 {
 
 public:
-	typedef char byte_type;
+    typedef char byte_type;
 
-	MemoryPool();
+    MemoryPool();
 
-	~MemoryPool();
+    ~MemoryPool();
 
-	//!  unused memory will be freed when total memory size >= pool size
-	void max_size(size_t s);
+    //!  unused memory will be freed when total memory size >= pool size
+    void max_size(size_t s);
 
-	/**
-	 *  return the total size of memory in pool
-	 * @return
-	 */
-	double size() const;
+    /**
+     *  return the total size of memory in pool
+     * @return
+     */
+    double size() const;
 
-	/**
-	 *  push memory into pool
-	 * @param d memory address
-	 * @param s size of memory in byte
-	 */
-	void push(void *d, size_t s);
+    /**
+     *  push memory into pool
+     * @param d memory address
+     * @param s size of memory in byte
+     */
+    void push(void *d, size_t s);
 
-	/**
-	 * allocate an array TV[s] from local pool or system memory
-	 * if s < MIN_BLOCK_SIZE or s > MAX_BLOCK_SIZE or
-	 *    s + pool_depth_> max_pool_depth_ then directly allocate
-	 *    memory from system
-	 *
-	 * @param s size of memory in byte
-	 * @return shared point of memory
-	 */
-	void *pop(size_t s);
+    /**
+     * allocate an array TV[s] from local pool or system memory
+     * if s < MIN_BLOCK_SIZE or s > MAX_BLOCK_SIZE or
+     *    s + pool_depth_> max_pool_depth_ then directly allocate
+     *    memory from system
+     *
+     * @param s size of memory in byte
+     * @return shared point of memory
+     */
+    void *pop(size_t s);
 
-	void clear();
+    void clear();
 
-	template<typename TV> std::shared_ptr<TV> alloc(size_t s);
 
-	std::shared_ptr<void> raw_alloc(size_t s)
-	{
-		void *p = pop(s);
+    struct deleter_s
+    {
+        void *addr_;
+        size_t s_;
 
-		return std::shared_ptr<void>(p, deleter_s(p, s));
-	}
+        deleter_s(void *p, size_t s)
+                : addr_(p), s_(s)
+        {
+        }
 
-	struct deleter_s
-	{
-		void *addr_;
-		size_t s_;
+        ~deleter_s()
+        {
+        }
 
-		deleter_s(void *p, size_t s)
-				: addr_(p), s_(s)
-		{
-		}
-
-		~deleter_s()
-		{
-		}
-
-		inline void operator()(void *ptr)
-		{
-			SingletonHolder<MemoryPool>::instance().push(addr_, s_);
-		}
-	};
+        inline void operator()(void *ptr)
+        {
+            SingletonHolder<MemoryPool>::instance().push(addr_, s_);
+        }
+    };
 
 private:
-	struct pimpl_s;
-
-	std::unique_ptr<pimpl_s> pimpl_;
+    struct pimpl_s;
+    std::unique_ptr<pimpl_s> pimpl_;
 };
 
 
-template<typename TV>
-std::shared_ptr<TV> MemoryPool::alloc(size_t s)
+template<typename T>
+std::shared_ptr<T> sp_alloc_array(size_t s)
 {
-	s *= sizeof(TV) / sizeof(byte_type);
-	void *addr = pop(s);
-	return std::shared_ptr<TV>(reinterpret_cast<TV *>(addr), deleter_s(addr, s));
+    void *addr = SingletonHolder<MemoryPool>::instance().pop(s * sizeof(T));
 
-}
-
-template<typename TV>
-std::shared_ptr<TV> sp_make_shared_array(size_t s)
-{
-
-	return SingletonHolder<MemoryPool>::instance().template alloc<TV>(s);
+    return std::shared_ptr<T>(addr, MemoryPool::deleter_s(addr, s * sizeof(T)));
 }
 
 std::shared_ptr<void> sp_alloc_memory(size_t s);

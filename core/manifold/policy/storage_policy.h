@@ -105,7 +105,7 @@ public:
     {
         if (*d == nullptr)
         {
-            *d = SingletonHolder<MemoryPool>::instance().raw_alloc(sizeof(TV) * memory_size(IFORM));
+            *d = sp_alloc_memory(sizeof(TV) * memory_size(IFORM));
         }
     };
 

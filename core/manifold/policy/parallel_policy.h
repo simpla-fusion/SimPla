@@ -164,7 +164,7 @@ template<typename TMesh>
 template<typename T> void
 ParallelPolicy<TMesh>::sync(T &self) const
 {
-    parallel::sync(traits::get_dataset(self));
+    parallel::sync(traits::make_dataset(self));
 }
 
 template<typename TMesh>

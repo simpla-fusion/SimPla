@@ -306,10 +306,10 @@ void Mesh<TMetric, tags::rect_linear, TMap>::deploy()
 
     size_t num = memory_block_range.size() * base_type::NUM_OF_NODE_ID;
 
-    m_volume_ = SingletonHolder<MemoryPool>::instance().alloc<Real>(num);
-    m_inv_volume_ = SingletonHolder<MemoryPool>::instance().alloc<Real>(num);
-    m_dual_volume_ = SingletonHolder<MemoryPool>::instance().alloc<Real>(num);
-    m_inv_dual_volume_ = SingletonHolder<MemoryPool>::instance().alloc<Real>(num);
+    m_volume_ = sp_alloc_array<Real>(num);
+    m_inv_volume_ = sp_alloc_array<Real>(num);
+    m_dual_volume_ = sp_alloc_array<Real>(num);
+    m_inv_dual_volume_ = sp_alloc_array<Real>(num);
 
 #ifdef USE_PARALLEL_FOR
     parallel_for(memory_block_range, [&](range_type const &range){

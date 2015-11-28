@@ -328,7 +328,7 @@ DataSet ParticleContainer<P, Hasher>::dataset() const
 
     ds.memory_space = DataSpace(1, &count);
 
-    ds.data = SingletonHolder<MemoryPool>::instance().raw_alloc(count * sizeof(value_type));
+    ds.data = sp_alloc_memory(count * sizeof(value_type));
 
     copy(reinterpret_cast<value_type *>(ds.data.get()));
 

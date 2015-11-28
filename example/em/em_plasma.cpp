@@ -17,6 +17,7 @@
 #include "../../core/particle/particle_proxy.h"
 #include "../../core/particle/particle_engine.h"
 #include "../../core/dataset/datatype_ext.h"
+#include "../../core/particle/particle_generator.h"
 
 namespace simpla
 {
@@ -168,19 +169,21 @@ void EMPlasma::setup(int argc, char **argv)
         THROW_EXCEPTION_RUNTIME_ERROR("Field init error", error.what());
     }
 
-    ion.generator(100);
+    ParticleGenerator<PICDemo> gen(ion);
+
+    ion.generator(gen, 100, 1.0);
 }
 
 void EMPlasma::tear_down()
 {
-    io::cd("dump");
+    io::cd("/dump/");
     LOGGER << SAVE(ion) << std::endl;
 }
 
 
 void EMPlasma::check_point()
 {
-    io::cd("record");
+    io::cd("/record/");
 
     LOGGER << SAVE_RECORD(Bv) << std::endl;
     LOGGER << SAVE_RECORD(B0v) << std::endl;
