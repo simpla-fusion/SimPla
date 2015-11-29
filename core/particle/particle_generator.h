@@ -17,8 +17,18 @@
 #include "../numeric/rectangle_distribution.h"
 #include "../numeric/multi_normal_distribution.h"
 
-namespace simpla
+namespace simpla { namespace particle
 {
+template<typename ...> struct ParticleEngine;
+
+template<typename, typename> struct ParticleGenerator;
+template<typename TAGS, typename TGen=std::mt19937> using generator_t=ParticleGenerator<ParticleEngine<TAGS>, TGen>;
+
+template<typename TAGS, typename TM>
+generator_t<TAGS> make_generator(Particle<ParticleEngine<TAGS>, TM> const &p)
+{
+    return generator_t<TAGS>(p);
+};
 
 template<typename Engine, typename TSeedGen=std::mt19937>
 struct ParticleGenerator
@@ -52,6 +62,11 @@ public:
 
     ParticleGenerator(particle_type const &p)
             : m_p_engine_(p)
+    {
+    }
+
+    ParticleGenerator(ParticleGenerator const &other)
+            : m_p_engine_(other.m_p_engine_), m_seed_(other.m_seed_)
     {
     }
 
@@ -116,8 +131,8 @@ public:
     private:
         void generate_()
         {
-            m_value_ = m_p_engine_.sample(m_p_engine_.lift(x_dist_(*m_seed_),
-                                                           v_dist_(*m_seed_)), 1.0);
+            m_value_ = m_p_engine_.lift(x_dist_(*m_seed_),
+                                        v_dist_(*m_seed_), 1.0);
         }
 
     }; //struct input_iterator
@@ -164,6 +179,7 @@ public:
 };
 
 
-}  // namespace simpla
+}}//namespace simpla{namespace particle
+
 
 #endif /* CORE_PARTICLE_PARTICLE_GENERATOR_H_ */

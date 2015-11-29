@@ -14,8 +14,9 @@
 #include "../gtl/type_traits.h"
 #include "../dataset/datatype.h"
 
-namespace simpla
+namespace simpla { namespace particle
 {
+
 
 /**
  * @ingroup particle
@@ -388,9 +389,8 @@ private:bool m_is_valid_=false;                              \
 public: bool is_valid()const{return m_is_valid_;}            \
 void deploy( ){ update_properties();update(); m_is_valid_=true;}
 
+template<typename ...> struct ParticleEngine;
 
-
-}
-// namespace simpla
+}}// namespace simpla
 
 #endif /* PARTICLE_ENGINE_H_ */

@@ -17,8 +17,11 @@
 
 namespace simpla
 {
-template<typename...> struct Particle;
-
+namespace particle
+{
+template<typename ...> struct Particle;
+template<typename ...> struct ParticleEngine;
+template<typename TAGS, typename M> using particle_t= Particle<ParticleEngine<TAGS>, M>;
 
 template<typename P, typename M>
 struct Particle<P, M>
@@ -186,24 +189,7 @@ private:
     void sync(container_type const &buffer, parallel::DistributedObject *dist_obj, bool update_ghost = true);
 
 };//class Particle
-namespace traits
-{
-template<typename P, typename M>
-struct iform<Particle<P, M>> :
-        public std::integral_constant<int, Particle<P, M>::iform>
-{
-};
 
-template<typename P, typename M>
-struct value_type<Particle<P, M>>
-{
-    typedef typename Particle<P, M>::sample_type type;
-};
-
-
-}
-
-//namespace traits
 template<typename P, typename M>
 template<typename ...Args>
 Particle<P, M>::Particle(M const &m, Args &&...args) :
@@ -244,14 +230,19 @@ template<typename TField>
 void Particle<P, M>::integral(id_type const &s, TField *J) const
 {
     typename container_type::const_accessor acc;
+
+
     if (container_type::find(acc, s))
     {
-        static constexpr int MAX_NEIGHBOUR_NUM = 12;
-        id_type neighbour[MAX_NEIGHBOUR_NUM];
         auto x0 = m_mesh_.point(s);
 
+        static constexpr int MAX_NEIGHBOUR_NUM = 12;
+
+        id_type neighbour[MAX_NEIGHBOUR_NUM];
+
         // fixme temporary remove
-//        int num = m_mesh_.get_neighbour(s, iform);
+//        int num = m_mesh_.get_neighbour<iform>(s, neighbour);
+//
 //        for (int i = 0; i < num; ++i)
 //        {
 //            typename container_type::const_accessor acc1;
@@ -260,8 +251,9 @@ void Particle<P, M>::integral(id_type const &s, TField *J) const
 //            {
 //                for (auto const &p:acc1->second)
 //                {
-//                    (*J)[s] += m_mesh_.RBF(project(p), x0) *
-//                               m_mesh_.generator(s, engine_type::integral_v(p));
+//                    typename ::simpla::traits::field_value_type<TField>::type v;
+//                    engine_type::integral(p, &v);
+//                    (*J)[s] += m_mesh_.sample(s, v) * m_mesh_.RBF(project(p), x0);
 //                }
 //            }
 //        }
@@ -790,7 +782,6 @@ void Particle<P, M>::generator(TGen &gen, size_t pic, Args &&...args)
 
     parallel::DistributedObject dist_obj;
 
-    VERBOSE << "Sync start" << std::endl;
     sync(*this, &dist_obj, false);
 
     dist_obj.sync();
@@ -799,7 +790,6 @@ void Particle<P, M>::generator(TGen &gen, size_t pic, Args &&...args)
             [&](range_type const &r) { generator(r, gen, pic, std::forward<Args>(args)...); });
 
     dist_obj.wait();
-    VERBOSE << "Sync start" << std::endl;
 
     for (auto const &item :  dist_obj.recv_buffer)
     {
@@ -809,6 +799,25 @@ void Particle<P, M>::generator(TGen &gen, size_t pic, Args &&...args)
 }
 
 
-}  // namespace simpla
+}//{namespace particle
+
+namespace traits
+{
+template<typename P, typename M>
+struct iform<particle::Particle<P, M>> :
+        public std::integral_constant<int, particle::Particle<P, M>::iform>
+{
+};
+
+template<typename P, typename M>
+struct value_type<particle::Particle<P, M>>
+{
+    typedef typename particle::Particle<P, M>::sample_type type;
+};
+
+
+} //namespace traits
+}//namespace simpla
+
 
 #endif /* CORE_PARTICLE_PARTICLE_H_ */

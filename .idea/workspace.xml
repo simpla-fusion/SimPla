@@ -6,81 +6,81 @@
   </component>
   <component name="CMakeRunConfigurationManager" shouldGenerate="true" assignedExecutableTargets="true" buildAllGenerated="true">
     <generated>
-      <config projectName="SimPla" targetName="ContinuousCoverage" />
+      <config projectName="SimPla" targetName="ExperimentalUpdate" />
       <config projectName="SimPla" targetName="ExperimentalCoverage" />
-      <config projectName="SimPla" targetName="kinetic_particle_test" />
+      <config projectName="SimPla" targetName="lua_state_test" />
       <config projectName="SimPla" targetName="ContinuousMemCheck" />
       <config projectName="SimPla" targetName="NightlyUpdate" />
       <config projectName="SimPla" targetName="ntuple_test" />
       <config projectName="SimPla" targetName="application" />
       <config projectName="SimPla" targetName="ContinuousUpdate" />
       <config projectName="SimPla" targetName="multi_thread_test" />
-      <config projectName="SimPla" targetName="probe_particle_test" />
+      <config projectName="SimPla" targetName="kinetic_particle_test" />
       <config projectName="SimPla" targetName="all_clion" />
-      <config projectName="SimPla" targetName="parallel" />
       <config projectName="SimPla" targetName="lhw" />
-      <config projectName="SimPla" targetName="demo_geometry" />
+      <config projectName="SimPla" targetName="particle_generator" />
+      <config projectName="SimPla" targetName="em_plasma" />
       <config projectName="SimPla" targetName="em" />
+      <config projectName="SimPla" targetName="field_diff_calculus_cartesian_test" />
       <config projectName="SimPla" targetName="NightlyMemoryCheck" />
       <config projectName="SimPla" targetName="ExperimentalMemCheck" />
-      <config projectName="SimPla" targetName="physics" />
-      <config projectName="SimPla" targetName="em_task" />
-      <config projectName="SimPla" targetName="task_flow" />
+      <config projectName="SimPla" targetName="dataset" />
       <config projectName="SimPla" targetName="taskflow" />
-      <config projectName="SimPla" targetName="mesh_ids_test" />
       <config projectName="SimPla" targetName="ExperimentalSubmit" />
       <config projectName="SimPla" targetName="googletest" />
       <config projectName="SimPla" targetName="demo_misc3" />
       <config projectName="SimPla" targetName="demo_misc2" />
-      <config projectName="SimPla" targetName="demo" />
-      <config projectName="SimPla" targetName="log_test" />
+      <config projectName="SimPla" targetName="Experimental" />
       <config projectName="SimPla" targetName="NightlyBuild" />
       <config projectName="SimPla" targetName="NightlySubmit" />
+      <config projectName="SimPla" targetName="field_diff_calculus_cylindrical_test" />
       <config projectName="SimPla" targetName="demo_probe_particle" />
       <config projectName="SimPla" targetName="ContinuousSubmit" />
       <config projectName="SimPla" targetName="properties_test" />
-      <config projectName="SimPla" targetName="memory_pool_test" />
-      <config projectName="SimPla" targetName="lua_state_test" />
+      <config projectName="SimPla" targetName="ContinuousBuild" />
+      <config projectName="SimPla" targetName="physics" />
+      <config projectName="SimPla" targetName="parallel" />
       <config projectName="SimPla" targetName="NightlyStart" />
       <config projectName="SimPla" targetName="collision_pic" />
-      <config projectName="SimPla" targetName="io" />
-      <config projectName="SimPla" targetName="Continuous" />
+      <config projectName="SimPla" targetName="ExperimentalBuild" />
       <config projectName="SimPla" targetName="geometry" />
       <config projectName="SimPla" targetName="demo_em" />
       <config projectName="SimPla" targetName="geometry_test" />
       <config projectName="SimPla" targetName="NightlyTest" />
+      <config projectName="SimPla" targetName="field_basic_algebra_test" />
       <config projectName="SimPla" targetName="ExperimentalConfigure" />
       <config projectName="SimPla" targetName="context" />
-      <config projectName="SimPla" targetName="ContinuousConfigure" />
-      <config projectName="SimPla" targetName="field_diff_calculus_cylindrical_test" />
+      <config projectName="SimPla" targetName="demo" />
       <config projectName="SimPla" targetName="NightlyCoverage" />
-      <config projectName="SimPla" targetName="ContinuousBuild" />
+      <config projectName="SimPla" targetName="probe_particle_test" />
       <config projectName="SimPla" targetName="utilities" />
-      <config projectName="SimPla" targetName="NightlyMemCheck" />
+      <config projectName="SimPla" targetName="mesh_ids_test" />
       <config projectName="SimPla" targetName="metric_test" />
-      <config projectName="SimPla" targetName="demo_general_field_op" />
+      <config projectName="SimPla" targetName="log_test" />
       <config projectName="SimPla" targetName="geqdsk_convert" />
-      <config projectName="SimPla" targetName="ExperimentalBuild" />
-      <config projectName="SimPla" targetName="dataset" />
-      <config projectName="SimPla" targetName="geqdsk" />
-      <config projectName="SimPla" targetName="Nightly" />
+      <config projectName="SimPla" targetName="demo_general_field_op" />
+      <config projectName="SimPla" targetName="Continuous" />
+      <config projectName="SimPla" targetName="em_task" />
+      <config projectName="SimPla" targetName="memory_pool_test" />
       <config projectName="SimPla" targetName="ContinuousTest" />
       <config projectName="SimPla" targetName="docs" />
       <config projectName="SimPla" targetName="simpla_lib" />
-      <config projectName="SimPla" targetName="ContinuousStart" />
+      <config projectName="SimPla" targetName="geqdsk" />
       <config projectName="SimPla" targetName="ExperimentalTest" />
       <config projectName="SimPla" targetName="ExperimentalStart" />
-      <config projectName="SimPla" targetName="field_basic_algebra_test" />
-      <config projectName="SimPla" targetName="demo_misc" />
+      <config projectName="SimPla" targetName="ContinuousCoverage" />
+      <config projectName="SimPla" targetName="demo_geometry" />
+      <config projectName="SimPla" targetName="ContinuousStart" />
+      <config projectName="SimPla" targetName="ContinuousConfigure" />
+      <config projectName="SimPla" targetName="io" />
       <config projectName="SimPla" targetName="demo_mhd" />
-      <config projectName="SimPla" targetName="demo_pic" />
-      <config projectName="SimPla" targetName="field_diff_calculus_cartesian_test" />
-      <config projectName="SimPla" targetName="Experimental" />
-      <config projectName="SimPla" targetName="particle_generator" />
-      <config projectName="SimPla" targetName="em_plasma" />
+      <config projectName="SimPla" targetName="NightlyMemCheck" />
+      <config projectName="SimPla" targetName="task_flow" />
       <config projectName="SimPla" targetName="NightlyConfigure" />
       <config projectName="SimPla" targetName="demo_model" />
-      <config projectName="SimPla" targetName="ExperimentalUpdate" />
+      <config projectName="SimPla" targetName="Nightly" />
+      <config projectName="SimPla" targetName="demo_pic" />
+      <config projectName="SimPla" targetName="demo_misc" />
     </generated>
   </component>
   <component name="CMakeSettings" AUTO_RELOAD="false" GENERATION_OPTIONS="-DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang" GENERATION_PASS_SYSTEM_ENVIRONMENT="true">
@@ -92,18 +92,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="705662a6-4fa6-4a3f-beff-e386801b96a4" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/core/manifold/policy/parallel.h" afterPath="" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/core/particle/pre_define/pic_boris.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/SimPla.iml" afterPath="$PROJECT_DIR$/.idea/SimPla.iml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/mesh/corect_mesh.h" afterPath="$PROJECT_DIR$/core/manifold/mesh/corect_mesh.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/mesh/mesh_block.h" afterPath="$PROJECT_DIR$/core/manifold/mesh/mesh_block.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/mesh/rect_mesh.h" afterPath="$PROJECT_DIR$/core/manifold/mesh/rect_mesh.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/policy/parallel_policy.h" afterPath="$PROJECT_DIR$/core/manifold/policy/parallel_policy.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/numeric/rectangle_distribution.h" afterPath="$PROJECT_DIR$/core/numeric/rectangle_distribution.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/parallel/mpi_comm.cpp" afterPath="$PROJECT_DIR$/core/parallel/mpi_comm.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/parallel/mpi_update.cpp" afterPath="$PROJECT_DIR$/core/parallel/mpi_update.cpp" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/particle/particle.h" afterPath="$PROJECT_DIR$/core/particle/particle.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/particle/particle_engine.h" afterPath="$PROJECT_DIR$/core/particle/particle_engine.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/particle/particle_generator.h" afterPath="$PROJECT_DIR$/core/particle/particle_generator.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/example/em/em.lua" afterPath="$PROJECT_DIR$/example/em/em.lua" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/example/em/em_plasma.cpp" afterPath="$PROJECT_DIR$/example/em/em_plasma.cpp" />
     </list>
     <ignored path="SimPla.iws" />
@@ -124,127 +118,93 @@
     <favorites_list name="SimPla" />
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.46129543">
+    <splitter split-orientation="horizontal" split-proportion="0.5002633">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
           <file leaf-file-name="particle.h" pinned="true" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/core/particle/particle.h">
               <provider selected="true" editor-type-id="text-editor">
                 <state vertical-scroll-proportion="0.0">
-                  <caret line="801" column="26" selection-start-line="801" selection-start-column="21" selection-end-line="801" selection-end-column="26" />
+                  <caret line="256" column="19" selection-start-line="256" selection-start-column="19" selection-end-line="256" selection-end-column="19" />
                   <folding>
                     <element signature="e#150#167#0" expanded="true" />
-                    <element signature="e#322#335#0" expanded="true" />
-                    <element signature="e#363#387#0" expanded="true" />
-                    <element signature="e#1492#1510#0" expanded="true" />
-                    <element signature="e#1712#1748#0" expanded="true" />
-                    <element signature="e#1816#1829#0" expanded="true" />
-                    <element signature="e#1954#1971#0" expanded="true" />
-                    <element signature="e#2091#2108#0" expanded="true" />
-                    <element signature="e#2230#2247#0" expanded="true" />
-                    <element signature="e#2349#2367#0" expanded="true" />
-                    <element signature="e#2481#2499#0" expanded="true" />
-                    <element signature="e#2614#2632#0" expanded="true" />
-                    <element signature="e#2939#2959#0" expanded="true" />
-                    <element signature="e#3412#3431#0" expanded="true" />
-                    <element signature="e#3494#3513#0" expanded="true" />
-                    <element signature="e#3586#3605#0" expanded="true" />
-                    <element signature="e#4085#4118#0" expanded="true" />
-                    <element signature="e#4198#4231#0" expanded="true" />
-                    <element signature="e#4320#4353#0" expanded="true" />
-                    <element signature="e#4576#4600#0" expanded="true" />
-                    <element signature="e#4712#4736#0" expanded="true" />
-                    <element signature="e#4863#4887#0" expanded="true" />
-                    <element signature="e#4896#4914#0" expanded="true" />
-                    <element signature="e#5045#5069#0" expanded="true" />
-                    <element signature="e#5112#5136#0" expanded="true" />
-                    <element signature="e#5145#5181#0" expanded="true" />
-                    <element signature="e#5322#5346#0" expanded="true" />
-                    <element signature="e#5355#5368#0" expanded="true" />
-                    <element signature="e#5465#5489#0" expanded="true" />
-                    <element signature="e#5615#5639#0" expanded="true" />
-                    <element signature="e#5648#5665#0" expanded="true" />
-                    <element signature="e#6523#6547#0" expanded="true" />
-                    <element signature="e#6556#6573#0" expanded="true" />
-                    <element signature="e#6733#6757#0" expanded="true" />
-                    <element signature="e#6766#6783#0" expanded="true" />
-                    <element signature="e#7321#7345#0" expanded="true" />
-                    <element signature="e#7354#7372#0" expanded="true" />
-                    <element signature="e#7661#7685#0" expanded="true" />
-                    <element signature="e#7694#7712#0" expanded="true" />
-                    <element signature="e#7897#7921#0" expanded="true" />
-                    <element signature="e#7930#7948#0" expanded="true" />
-                    <element signature="e#8481#8505#0" expanded="true" />
-                    <element signature="e#9442#9466#0" expanded="true" />
-                    <element signature="e#9562#9586#0" expanded="true" />
-                    <element signature="e#9796#9820#0" expanded="true" />
-                    <element signature="e#10119#10143#0" expanded="true" />
-                    <element signature="e#10152#10173#0" expanded="true" />
-                    <element signature="e#10477#10501#0" expanded="true" />
-                    <element signature="e#10510#10531#0" expanded="true" />
-                    <element signature="e#10723#10747#0" expanded="true" />
-                    <element signature="e#10756#10777#0" expanded="true" />
-                    <element signature="e#10989#11013#0" expanded="true" />
-                    <element signature="e#11332#11356#0" expanded="true" />
-                    <element signature="e#11636#11660#0" expanded="true" />
-                    <element signature="e#11793#11817#0" expanded="true" />
-                    <element signature="e#12242#12266#0" expanded="true" />
-                    <element signature="e#15890#15914#0" expanded="true" />
-                    <element signature="e#16617#16641#0" expanded="true" />
+                    <element signature="e#343#357#0" expanded="true" />
+                    <element signature="e#383#397#0" expanded="true" />
+                    <element signature="e#429#456#0" expanded="true" />
+                    <element signature="e#519#543#0" expanded="true" />
+                    <element signature="e#1648#1666#0" expanded="true" />
+                    <element signature="e#1868#1904#0" expanded="true" />
+                    <element signature="e#1972#1985#0" expanded="true" />
+                    <element signature="e#2110#2127#0" expanded="true" />
+                    <element signature="e#2247#2264#0" expanded="true" />
+                    <element signature="e#2386#2403#0" expanded="true" />
+                    <element signature="e#2505#2523#0" expanded="true" />
+                    <element signature="e#2637#2655#0" expanded="true" />
+                    <element signature="e#2770#2788#0" expanded="true" />
+                    <element signature="e#3095#3115#0" expanded="true" />
+                    <element signature="e#3568#3587#0" expanded="true" />
+                    <element signature="e#3650#3669#0" expanded="true" />
+                    <element signature="e#3742#3761#0" expanded="true" />
+                    <element signature="e#4241#4274#0" expanded="true" />
+                    <element signature="e#4354#4387#0" expanded="true" />
+                    <element signature="e#4476#4509#0" expanded="true" />
+                    <element signature="e#4714#4738#0" expanded="true" />
+                    <element signature="e#4747#4765#0" expanded="true" />
+                    <element signature="e#4896#4920#0" expanded="true" />
+                    <element signature="e#4963#4987#0" expanded="true" />
+                    <element signature="e#4996#5032#0" expanded="true" />
+                    <element signature="e#5173#5197#0" expanded="true" />
+                    <element signature="e#5206#5219#0" expanded="true" />
+                    <element signature="e#5316#5340#0" expanded="true" />
+                    <element signature="e#5466#5490#0" expanded="true" />
+                    <element signature="e#5499#5516#0" expanded="true" />
+                    <element signature="e#6466#6490#0" expanded="true" />
+                    <element signature="e#6499#6516#0" expanded="true" />
+                    <element signature="e#6676#6700#0" expanded="true" />
+                    <element signature="e#6709#6726#0" expanded="true" />
+                    <element signature="e#7264#7288#0" expanded="true" />
+                    <element signature="e#7297#7315#0" expanded="true" />
+                    <element signature="e#7604#7628#0" expanded="true" />
+                    <element signature="e#7637#7655#0" expanded="true" />
+                    <element signature="e#7840#7864#0" expanded="true" />
+                    <element signature="e#7873#7891#0" expanded="true" />
+                    <element signature="e#8424#8448#0" expanded="true" />
+                    <element signature="e#9385#9409#0" expanded="true" />
+                    <element signature="e#9505#9529#0" expanded="true" />
+                    <element signature="e#9739#9763#0" expanded="true" />
+                    <element signature="e#10062#10086#0" expanded="true" />
+                    <element signature="e#10095#10116#0" expanded="true" />
+                    <element signature="e#10420#10444#0" expanded="true" />
+                    <element signature="e#10453#10474#0" expanded="true" />
+                    <element signature="e#10666#10690#0" expanded="true" />
+                    <element signature="e#10699#10720#0" expanded="true" />
+                    <element signature="e#10932#10956#0" expanded="true" />
+                    <element signature="e#11275#11299#0" expanded="true" />
+                    <element signature="e#11579#11603#0" expanded="true" />
+                    <element signature="e#11736#11760#0" expanded="true" />
+                    <element signature="e#12185#12209#0" expanded="true" />
+                    <element signature="e#15833#15857#0" expanded="true" />
+                    <element signature="e#16560#16584#0" expanded="true" />
+                    <element signature="e#21978#22002#0" expanded="true" />
+                    <element signature="e#22134#22158#0" expanded="true" />
                   </folding>
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="mesh_block.h" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/core/manifold/mesh/mesh_block.h">
+          <file leaf-file-name="particle_generator.h" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/core/particle/particle_generator.h">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="-4.714286">
-                  <caret line="221" column="71" selection-start-line="221" selection-start-column="71" selection-end-line="221" selection-end-column="71" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="ntuple.h" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/core/gtl/ntuple.h">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="220" column="7" selection-start-line="220" selection-start-column="7" selection-end-line="220" selection-end-column="7" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="corect_mesh.h" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/core/manifold/mesh/corect_mesh.h">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="201" column="0" selection-start-line="201" selection-start-column="0" selection-end-line="205" selection-end-column="0" />
+                <state vertical-scroll-proportion="0.9326187">
+                  <caret line="73" column="5" selection-start-line="73" selection-start-column="5" selection-end-line="73" selection-end-column="5" />
                   <folding>
-                    <element signature="e#4051#4077#0" expanded="true" />
-                    <element signature="e#4201#4214#0" expanded="true" />
+                    <element signature="e#448#462#0" expanded="true" />
+                    <element signature="e#495#515#0" expanded="true" />
+                    <element signature="e#550#593#0" expanded="true" />
+                    <element signature="e#668#696#0" expanded="true" />
+                    <element signature="e#822#871#0" expanded="true" />
+                    <element signature="e#3509#3527#0" expanded="true" />
                   </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="parallel_policy.h" pinned="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/core/manifold/policy/parallel_policy.h">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.04698672">
-                  <caret line="111" column="50" selection-start-line="111" selection-start-column="50" selection-end-line="111" selection-end-column="50" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="em.lua" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/example/em/em.lua">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="40" column="6" selection-start-line="40" selection-start-column="6" selection-end-line="40" selection-end-column="6" />
-                  <folding />
                 </state>
               </provider>
             </entry>
@@ -253,56 +213,51 @@
       </split-first>
       <split-second>
         <leaf>
-          <file leaf-file-name="em_plasma.cpp" pinned="false" current-in-tab="false">
+          <file leaf-file-name="em_plasma.cpp" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/example/em/em_plasma.cpp">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="146" column="0" selection-start-line="143" selection-start-column="0" selection-end-line="146" selection-end-column="0" />
+                <state vertical-scroll-proportion="0.7366003">
+                  <caret line="131" column="8" selection-start-line="131" selection-start-column="8" selection-end-line="131" selection-end-column="8" />
                   <folding>
-                    <marker date="1448765190641" expanded="true" signature="3623:3814" placeholder="..." />
+                    <element signature="e#71#93#0" expanded="true" />
+                    <marker date="1448769743985" expanded="true" signature="566:2976" placeholder="{...}" />
+                    <marker date="1448769743985" expanded="true" signature="2174:2796" placeholder="{...}" />
+                    <marker date="1448769743985" expanded="true" signature="2426:2617" placeholder="..." />
                   </folding>
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="particle_generator.h" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/core/particle/particle_generator.h">
+          <file leaf-file-name="pic_boris.h" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/core/particle/pre_define/pic_boris.h">
               <provider selected="true" editor-type-id="text-editor">
                 <state vertical-scroll-proportion="0.0">
-                  <caret line="156" column="39" selection-start-line="156" selection-start-column="39" selection-end-line="156" selection-end-column="39" />
+                  <caret line="17" column="10" selection-start-line="17" selection-start-column="10" selection-end-line="17" selection-end-column="10" />
                   <folding>
-                    <element signature="e#3018#3036#0" expanded="true" />
+                    <element signature="e#238#240#0" expanded="true" />
                   </folding>
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="mpi_update.cpp" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/core/parallel/mpi_update.cpp">
+          <file leaf-file-name="datatype_ext.h" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/core/dataset/datatype_ext.h">
               <provider selected="true" editor-type-id="text-editor">
                 <state vertical-scroll-proportion="0.0">
-                  <caret line="22" column="4" selection-start-line="22" selection-start-column="4" selection-end-line="22" selection-end-column="4" />
+                  <caret line="98" column="8" selection-start-line="98" selection-start-column="8" selection-end-line="98" selection-end-column="8" />
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="mpi_comm.cpp" pinned="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/core/parallel/mpi_comm.cpp">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.1981614">
-                  <caret line="233" column="18" selection-start-line="233" selection-start-column="18" selection-end-line="233" selection-end-column="18" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="rectangle_distribution.h" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/core/numeric/rectangle_distribution.h">
+          <file leaf-file-name="particle_engine.h" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/core/particle/particle_engine.h">
               <provider selected="true" editor-type-id="text-editor">
                 <state vertical-scroll-proportion="0.0">
-                  <caret line="58" column="0" selection-start-line="58" selection-start-column="0" selection-end-line="58" selection-end-column="0" />
-                  <folding />
+                  <caret line="368" column="10" selection-start-line="368" selection-start-column="10" selection-end-line="368" selection-end-column="10" />
+                  <folding>
+                    <element signature="e#26109#26123#0" expanded="true" />
+                  </folding>
                 </state>
               </provider>
             </entry>
@@ -323,7 +278,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/example/em/em_task.cpp" />
         <option value="$PROJECT_DIR$/example/em/CMakeLists.txt" />
         <option value="$PROJECT_DIR$/core/gtl/utilities/pretty_stream.h" />
         <option value="$PROJECT_DIR$/core/dataset/datatype.h" />
@@ -331,7 +285,6 @@
         <option value="$PROJECT_DIR$/core/field/field_dense.h" />
         <option value="$PROJECT_DIR$/core/manifold/fiber_bundle.h" />
         <option value="$PROJECT_DIR$/core/manifold/interpolate/linear.h" />
-        <option value="$PROJECT_DIR$/core/particle/particle_engine.h" />
         <option value="$PROJECT_DIR$/core/particle/particle_proxy.h" />
         <option value="$PROJECT_DIR$/core/parallel/concurrent_unordered_multiset.h" />
         <option value="$PROJECT_DIR$/core/particle/obsolete/sync_particle.h" />
@@ -365,15 +318,17 @@
         <option value="$PROJECT_DIR$/core/parallel/parallel.h" />
         <option value="$PROJECT_DIR$/core/manifold/mesh/corect_mesh.h" />
         <option value="$PROJECT_DIR$/core/manifold/mesh/rect_mesh.h" />
-        <option value="$PROJECT_DIR$/core/particle/particle_generator.h" />
         <option value="$PROJECT_DIR$/core/numeric/rectangle_distribution.h" />
-        <option value="$PROJECT_DIR$/core/particle/particle.h" />
         <option value="$PROJECT_DIR$/core/parallel/mpi_update.cpp" />
-        <option value="$PROJECT_DIR$/example/em/em_plasma.cpp" />
         <option value="$PROJECT_DIR$/example/em/em.lua" />
         <option value="$PROJECT_DIR$/core/parallel/mpi_comm.cpp" />
         <option value="$PROJECT_DIR$/core/manifold/mesh/mesh_block.h" />
         <option value="$PROJECT_DIR$/core/manifold/policy/parallel_policy.h" />
+        <option value="$PROJECT_DIR$/core/particle/particle_engine.h" />
+        <option value="$PROJECT_DIR$/core/particle/pre_define/pic_boris.h" />
+        <option value="$PROJECT_DIR$/core/particle/particle_generator.h" />
+        <option value="$PROJECT_DIR$/example/em/em_plasma.cpp" />
+        <option value="$PROJECT_DIR$/core/particle/particle.h" />
       </list>
     </option>
   </component>
@@ -487,7 +442,7 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="manifold" />
+              <option name="myItemId" value="particle" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -505,11 +460,11 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="manifold" />
+              <option name="myItemId" value="particle" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="policy" />
+              <option name="myItemId" value="pre_define" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -1153,7 +1108,13 @@
       <option name="project" value="LOCAL" />
       <updated>1448762294541</updated>
     </task>
-    <option name="localTasksCounter" value="32" />
+    <task id="LOCAL-00032" summary="looks good">
+      <created>1448766199419</created>
+      <option name="number" value="00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1448766199419</updated>
+    </task>
+    <option name="localTasksCounter" value="33" />
     <servers />
   </component>
   <component name="TestHistory">
@@ -1200,12 +1161,12 @@
     <layout>
       <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="true" show_stripe_button="true" weight="0.1790416" sideWeight="0.49204773" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3282876" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4582505" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.45725647" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="CMake" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.46242172" sideWeight="0.48296058" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="LuaJ" active="false" anchor="left" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" show_stripe_button="true" weight="0.32960597" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3250497" sideWeight="0.5170394" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32603773" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3111332" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32405567" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" show_stripe_button="true" weight="0.14375988" sideWeight="0.49568966" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.40357852" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.16008425" sideWeight="0.5079523" order="2" side_tool="true" content_ui="tabs" />
@@ -1248,7 +1209,8 @@
     <MESSAGE value="use tbb::concurrent_hash_map in particle" />
     <MESSAGE value="use tbb::concurrent_hash_map in particle .cont." />
     <MESSAGE value="snapshot" />
-    <option name="LAST_COMMIT_MESSAGE" value="snapshot" />
+    <MESSAGE value="looks good" />
+    <option name="LAST_COMMIT_MESSAGE" value="looks good" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1264,32 +1226,11 @@
           <option name="timeStamp" value="47" />
         </line-breakpoint>
       </breakpoints>
-      <option name="time" value="57" />
+      <option name="time" value="59" />
     </breakpoint-manager>
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/core/gtl/type_traits.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="124" column="0" selection-start-line="124" selection-start-column="0" selection-end-line="124" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///usr/include/c++/4.8/bits/shared_ptr.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="128" column="4" selection-start-line="128" selection-start-column="4" selection-end-line="128" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/example/em/em_plasma.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/example/em/CMakeLists.txt">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1546,7 +1487,7 @@
         <state vertical-scroll-proportion="1.3243244">
           <caret line="167" column="0" selection-start-line="167" selection-start-column="0" selection-end-line="167" selection-end-column="0" />
           <folding>
-            <element signature="e#3216#3229#0" expanded="true" />
+            <element signature="e#3216#3229#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -1572,8 +1513,8 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="201" column="0" selection-start-line="201" selection-start-column="0" selection-end-line="205" selection-end-column="0" />
           <folding>
-            <element signature="e#4051#4077#0" expanded="true" />
-            <element signature="e#4201#4214#0" expanded="true" />
+            <element signature="e#4051#4077#0" expanded="false" />
+            <element signature="e#4201#4214#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -1586,95 +1527,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/core/particle/particle_generator.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="156" column="39" selection-start-line="156" selection-start-column="39" selection-end-line="156" selection-end-column="39" />
-          <folding>
-            <element signature="e#3018#3036#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/particle/particle.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="801" column="26" selection-start-line="801" selection-start-column="21" selection-end-line="801" selection-end-column="26" />
-          <folding>
-            <element signature="e#150#167#0" expanded="true" />
-            <element signature="e#322#335#0" expanded="true" />
-            <element signature="e#363#387#0" expanded="true" />
-            <element signature="e#1492#1510#0" expanded="true" />
-            <element signature="e#1712#1748#0" expanded="true" />
-            <element signature="e#1816#1829#0" expanded="true" />
-            <element signature="e#1954#1971#0" expanded="true" />
-            <element signature="e#2091#2108#0" expanded="true" />
-            <element signature="e#2230#2247#0" expanded="true" />
-            <element signature="e#2349#2367#0" expanded="true" />
-            <element signature="e#2481#2499#0" expanded="true" />
-            <element signature="e#2614#2632#0" expanded="true" />
-            <element signature="e#2939#2959#0" expanded="true" />
-            <element signature="e#3412#3431#0" expanded="true" />
-            <element signature="e#3494#3513#0" expanded="true" />
-            <element signature="e#3586#3605#0" expanded="true" />
-            <element signature="e#4085#4118#0" expanded="true" />
-            <element signature="e#4198#4231#0" expanded="true" />
-            <element signature="e#4320#4353#0" expanded="true" />
-            <element signature="e#4576#4600#0" expanded="true" />
-            <element signature="e#4712#4736#0" expanded="true" />
-            <element signature="e#4863#4887#0" expanded="true" />
-            <element signature="e#4896#4914#0" expanded="true" />
-            <element signature="e#5045#5069#0" expanded="true" />
-            <element signature="e#5112#5136#0" expanded="true" />
-            <element signature="e#5145#5181#0" expanded="true" />
-            <element signature="e#5322#5346#0" expanded="true" />
-            <element signature="e#5355#5368#0" expanded="true" />
-            <element signature="e#5465#5489#0" expanded="true" />
-            <element signature="e#5615#5639#0" expanded="true" />
-            <element signature="e#5648#5665#0" expanded="true" />
-            <element signature="e#6523#6547#0" expanded="true" />
-            <element signature="e#6556#6573#0" expanded="true" />
-            <element signature="e#6733#6757#0" expanded="true" />
-            <element signature="e#6766#6783#0" expanded="true" />
-            <element signature="e#7321#7345#0" expanded="true" />
-            <element signature="e#7354#7372#0" expanded="true" />
-            <element signature="e#7661#7685#0" expanded="true" />
-            <element signature="e#7694#7712#0" expanded="true" />
-            <element signature="e#7897#7921#0" expanded="true" />
-            <element signature="e#7930#7948#0" expanded="true" />
-            <element signature="e#8481#8505#0" expanded="true" />
-            <element signature="e#9442#9466#0" expanded="true" />
-            <element signature="e#9562#9586#0" expanded="true" />
-            <element signature="e#9796#9820#0" expanded="true" />
-            <element signature="e#10119#10143#0" expanded="true" />
-            <element signature="e#10152#10173#0" expanded="true" />
-            <element signature="e#10477#10501#0" expanded="true" />
-            <element signature="e#10510#10531#0" expanded="true" />
-            <element signature="e#10723#10747#0" expanded="true" />
-            <element signature="e#10756#10777#0" expanded="true" />
-            <element signature="e#10989#11013#0" expanded="true" />
-            <element signature="e#11332#11356#0" expanded="true" />
-            <element signature="e#11636#11660#0" expanded="true" />
-            <element signature="e#11793#11817#0" expanded="true" />
-            <element signature="e#12242#12266#0" expanded="true" />
-            <element signature="e#15890#15914#0" expanded="true" />
-            <element signature="e#16617#16641#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/core/parallel/mpi_update.cpp">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="22" column="4" selection-start-line="22" selection-start-column="4" selection-end-line="22" selection-end-column="4" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/example/em/em.lua">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="40" column="6" selection-start-line="40" selection-start-column="6" selection-end-line="40" selection-end-column="6" />
           <folding />
         </state>
       </provider>
@@ -1687,13 +1543,27 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/example/em/em_plasma.cpp">
+    <entry file="file://$PROJECT_DIR$/core/manifold/policy/parallel_policy.h">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="146" column="0" selection-start-line="143" selection-start-column="0" selection-end-line="146" selection-end-column="0" />
-          <folding>
-            <marker date="1448765190641" expanded="true" signature="3623:3814" placeholder="..." />
-          </folding>
+          <caret line="111" column="50" selection-start-line="111" selection-start-column="50" selection-end-line="111" selection-end-column="50" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/parallel/mpi_comm.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="251" column="0" selection-start-line="251" selection-start-column="0" selection-end-line="251" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/example/em/em.lua">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="41" column="6" selection-start-line="41" selection-start-column="6" selection-end-line="41" selection-end-column="6" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -1705,19 +1575,128 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/core/manifold/policy/parallel_policy.h">
+    <entry file="file://$PROJECT_DIR$/core/dataset/datatype_ext.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.04698672">
-          <caret line="111" column="50" selection-start-line="111" selection-start-column="50" selection-end-line="111" selection-end-column="50" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="98" column="8" selection-start-line="98" selection-start-column="8" selection-end-line="98" selection-end-column="8" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/core/parallel/mpi_comm.cpp">
+    <entry file="file://$PROJECT_DIR$/core/particle/particle_engine.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.1981614">
-          <caret line="233" column="18" selection-start-line="233" selection-start-column="18" selection-end-line="233" selection-end-column="18" />
-          <folding />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="368" column="10" selection-start-line="368" selection-start-column="10" selection-end-line="368" selection-end-column="10" />
+          <folding>
+            <element signature="e#26109#26123#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/particle/pre_define/pic_boris.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="17" column="10" selection-start-line="17" selection-start-column="10" selection-end-line="17" selection-end-column="10" />
+          <folding>
+            <element signature="e#238#240#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/example/em/em_plasma.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.7366003">
+          <caret line="131" column="8" selection-start-line="131" selection-start-column="8" selection-end-line="131" selection-end-column="8" />
+          <folding>
+            <element signature="e#71#93#0" expanded="true" />
+            <marker date="1448769743985" expanded="true" signature="566:2976" placeholder="{...}" />
+            <marker date="1448769743985" expanded="true" signature="2174:2796" placeholder="{...}" />
+            <marker date="1448769743985" expanded="true" signature="2426:2617" placeholder="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/particle/particle.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="256" column="19" selection-start-line="256" selection-start-column="19" selection-end-line="256" selection-end-column="19" />
+          <folding>
+            <element signature="e#150#167#0" expanded="true" />
+            <element signature="e#343#357#0" expanded="true" />
+            <element signature="e#383#397#0" expanded="true" />
+            <element signature="e#429#456#0" expanded="true" />
+            <element signature="e#519#543#0" expanded="true" />
+            <element signature="e#1648#1666#0" expanded="true" />
+            <element signature="e#1868#1904#0" expanded="true" />
+            <element signature="e#1972#1985#0" expanded="true" />
+            <element signature="e#2110#2127#0" expanded="true" />
+            <element signature="e#2247#2264#0" expanded="true" />
+            <element signature="e#2386#2403#0" expanded="true" />
+            <element signature="e#2505#2523#0" expanded="true" />
+            <element signature="e#2637#2655#0" expanded="true" />
+            <element signature="e#2770#2788#0" expanded="true" />
+            <element signature="e#3095#3115#0" expanded="true" />
+            <element signature="e#3568#3587#0" expanded="true" />
+            <element signature="e#3650#3669#0" expanded="true" />
+            <element signature="e#3742#3761#0" expanded="true" />
+            <element signature="e#4241#4274#0" expanded="true" />
+            <element signature="e#4354#4387#0" expanded="true" />
+            <element signature="e#4476#4509#0" expanded="true" />
+            <element signature="e#4714#4738#0" expanded="true" />
+            <element signature="e#4747#4765#0" expanded="true" />
+            <element signature="e#4896#4920#0" expanded="true" />
+            <element signature="e#4963#4987#0" expanded="true" />
+            <element signature="e#4996#5032#0" expanded="true" />
+            <element signature="e#5173#5197#0" expanded="true" />
+            <element signature="e#5206#5219#0" expanded="true" />
+            <element signature="e#5316#5340#0" expanded="true" />
+            <element signature="e#5466#5490#0" expanded="true" />
+            <element signature="e#5499#5516#0" expanded="true" />
+            <element signature="e#6466#6490#0" expanded="true" />
+            <element signature="e#6499#6516#0" expanded="true" />
+            <element signature="e#6676#6700#0" expanded="true" />
+            <element signature="e#6709#6726#0" expanded="true" />
+            <element signature="e#7264#7288#0" expanded="true" />
+            <element signature="e#7297#7315#0" expanded="true" />
+            <element signature="e#7604#7628#0" expanded="true" />
+            <element signature="e#7637#7655#0" expanded="true" />
+            <element signature="e#7840#7864#0" expanded="true" />
+            <element signature="e#7873#7891#0" expanded="true" />
+            <element signature="e#8424#8448#0" expanded="true" />
+            <element signature="e#9385#9409#0" expanded="true" />
+            <element signature="e#9505#9529#0" expanded="true" />
+            <element signature="e#9739#9763#0" expanded="true" />
+            <element signature="e#10062#10086#0" expanded="true" />
+            <element signature="e#10095#10116#0" expanded="true" />
+            <element signature="e#10420#10444#0" expanded="true" />
+            <element signature="e#10453#10474#0" expanded="true" />
+            <element signature="e#10666#10690#0" expanded="true" />
+            <element signature="e#10699#10720#0" expanded="true" />
+            <element signature="e#10932#10956#0" expanded="true" />
+            <element signature="e#11275#11299#0" expanded="true" />
+            <element signature="e#11579#11603#0" expanded="true" />
+            <element signature="e#11736#11760#0" expanded="true" />
+            <element signature="e#12185#12209#0" expanded="true" />
+            <element signature="e#15833#15857#0" expanded="true" />
+            <element signature="e#16560#16584#0" expanded="true" />
+            <element signature="e#21978#22002#0" expanded="true" />
+            <element signature="e#22134#22158#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/particle/particle_generator.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.9326187">
+          <caret line="73" column="5" selection-start-line="73" selection-start-column="5" selection-end-line="73" selection-end-column="5" />
+          <folding>
+            <element signature="e#448#462#0" expanded="true" />
+            <element signature="e#495#515#0" expanded="true" />
+            <element signature="e#550#593#0" expanded="true" />
+            <element signature="e#668#696#0" expanded="true" />
+            <element signature="e#822#871#0" expanded="true" />
+            <element signature="e#3509#3527#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

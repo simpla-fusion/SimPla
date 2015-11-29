@@ -15,66 +15,13 @@
 
 #include "../../core/particle/particle.h"
 #include "../../core/particle/particle_proxy.h"
-#include "../../core/particle/particle_engine.h"
 #include "../../core/dataset/datatype_ext.h"
 #include "../../core/particle/particle_generator.h"
+#include "../../core/particle/pre_define/pic_boris.h"
 
 namespace simpla
 {
-struct PICDemo
-{
-    SP_DEFINE_STRUCT(point_type,
-                     Vec3, x,
-                     Vec3, v);
 
-    SP_DEFINE_STRUCT(sample_type,
-                     point_type, z,
-                     Real, f,
-                     Real, w
-    );
-
-    SP_DEFINE_PROPERTIES(
-            Real, mass,
-            Real, charge,
-            Real, temperature
-    )
-
-    void update() { }
-
-    Vec3 project(sample_type const &p) const { return p.z.x; }
-
-    Real function_value(sample_type const &p) const { return p.f * p.w; }
-
-
-    point_type lift(Vec3 const &x, Vec3 const &v) const
-    {
-        return point_type{x, v};
-    }
-
-    point_type lift(std::tuple<Vec3, Vec3> const &z) const
-    {
-        return point_type{std::get<0>(z), std::get<1>(z)};
-    }
-
-    sample_type sample(Vec3 const &x, Vec3 const &v, Real f) const
-    {
-        return sample_type{lift(x, v), f, 0};
-    }
-
-    sample_type sample(point_type const &z, Real f) const
-    {
-        return sample_type{z, f, 0};
-    }
-
-    template<typename TE, typename TB>
-    void push(sample_type *p, Real dt, Real t, TE const &E, TB const &B)
-    {
-        p->z.x += p->z.v * dt * 0.5;
-        p->z.v += E(p->z.x) * dt;
-        p->z.x += p->z.v * dt * 0.5;
-    };
-
-};
 
 struct EMPlasma
 {
@@ -120,7 +67,7 @@ struct EMPlasma
 
     TJ J1{m};
 
-    Particle<PICDemo, mesh_type> ion{m};
+    particle::particle_t<particle::tags::Boris, mesh_type> ion{m};
 
     struct particle_s
     {
@@ -168,7 +115,7 @@ void EMPlasma::setup(int argc, char **argv)
 
         VERBOSE << "Generator Particles" << std::endl;
 
-        ParticleGenerator<PICDemo> gen(ion);
+        auto gen = particle::make_generator(ion);
 
         ion.generator(gen, options["PIC"].as<size_t>(10), 1.0);
 
@@ -178,9 +125,8 @@ void EMPlasma::setup(int argc, char **argv)
     }
 
 
-
-//    io::cd("/dump/");
-//    LOGGER << SAVE(ion) << std::endl;
+    io::cd("/dump/");
+    LOGGER << SAVE(ion) << std::endl;
 }
 
 void EMPlasma::tear_down()
@@ -194,11 +140,11 @@ void EMPlasma::check_point()
 {
     io::cd("/record/");
 
-    LOGGER << SAVE_RECORD(Bv) << std::endl;
-    LOGGER << SAVE_RECORD(B0v) << std::endl;
-    LOGGER << SAVE_RECORD(Ev) << std::endl;
-
-    LOGGER << SAVE_RECORD(B0) << std::endl;
+//    LOGGER << SAVE_RECORD(Bv) << std::endl;
+//    LOGGER << SAVE_RECORD(B0v) << std::endl;
+//    LOGGER << SAVE_RECORD(Ev) << std::endl;
+//    LOGGER << SAVE_RECORD(B0) << std::endl;
+    LOGGER << SAVE_RECORD(J1) << std::endl;
     LOGGER << SAVE_RECORD(B1) << std::endl;
     LOGGER << SAVE_RECORD(E1) << std::endl;
 
@@ -214,69 +160,71 @@ void EMPlasma::next_time_step()
 
     ion.push(dt, 0, E1, B1);
 
+    J1.clear();
+
     ion.integral(&J1);
 
     B1 -= curl(E1) * (dt * 0.5);
-    E1 += curl(B1) * dt;
+    E1 += (curl(B1) - J1) * dt;
     B1 -= curl(E1) * (dt * 0.5);
-
-
-    Ev = map_to<VERTEX>(E1);
-    Bv = map_to<VERTEX>(B1);
-
-    traits::field_t<scalar_type, mesh_type, VERTEX> BB{m};
-    BB = dot(B0, B0);
-
-    traits::field_t<vector_type, mesh_type, VERTEX> Q{m};
-    traits::field_t<vector_type, mesh_type, VERTEX> K{m};
-
-    Q = map_to<VERTEX>(pdE);
-
-    traits::field_t<scalar_type, mesh_type, VERTEX> a{m};
-    traits::field_t<scalar_type, mesh_type, VERTEX> b{m};
-    traits::field_t<scalar_type, mesh_type, VERTEX> c{m};
-
-    a.clear();
-    b.clear();
-    c.clear();
-
-    for (auto &p :   particles)
-    {
-
-        p.second.p->integral(&p.second.J1);
-
-        auto &rhos = p.second.rhos;
-        auto &Js = p.second.Js;
-
-        Real ms = p.second.mass;
-        Real qs = p.second.charge;
-
-        Real as = (dt * qs) / (2.0 * ms);
-
-        K = (Ev * rhos * 2.0 + cross(Js, B0v)) * as + Js;
-
-        Q -= 0.5 * dt / epsilon0
-             * (K + cross(K, B0v) * as + B0v * (dot(K, B0v) * as * as) / (BB * as * as + 1)) + Js;
-
-        a += rhos / BB * (as / (as * as + 1));
-        b += rhos / BB * (as * as / (as * as + 1));
-        c += rhos / BB * (as * as * as / (as * as + 1));
-
-    }
-
-    a *= 0.5 * dt / epsilon0;
-    b *= 0.5 * dt / epsilon0;
-    c *= 0.5 * dt / epsilon0;
-    a += 1;
-
-    auto dEv = traits::make_field<vector_type, VERTEX>(m);
-
-    dEv = (Q * a - cross(Q, B0v) * b +
-           B0v * (dot(Q, B0v) * (b * b - c * a) / (a + c * BB))) / (b * b * BB + a * a);
-
-    Ev += dEv;
-
-    pdE = map_to<EDGE>(dEv);
+//
+//
+//    Ev = map_to<VERTEX>(E1);
+//    Bv = map_to<VERTEX>(B1);
+//
+//    traits::field_t<scalar_type, mesh_type, VERTEX> BB{m};
+//    BB = dot(B0, B0);
+//
+//    traits::field_t<vector_type, mesh_type, VERTEX> Q{m};
+//    traits::field_t<vector_type, mesh_type, VERTEX> K{m};
+//
+//    Q = map_to<VERTEX>(pdE);
+//
+//    traits::field_t<scalar_type, mesh_type, VERTEX> a{m};
+//    traits::field_t<scalar_type, mesh_type, VERTEX> b{m};
+//    traits::field_t<scalar_type, mesh_type, VERTEX> c{m};
+//
+//    a.clear();
+//    b.clear();
+//    c.clear();
+//
+//    for (auto &p :   particles)
+//    {
+//
+//        p.second.p->integral(&p.second.J1);
+//
+//        auto &rhos = p.second.rhos;
+//        auto &Js = p.second.Js;
+//
+//        Real ms = p.second.mass;
+//        Real qs = p.second.charge;
+//
+//        Real as = (dt * qs) / (2.0 * ms);
+//
+//        K = (Ev * rhos * 2.0 + cross(Js, B0v)) * as + Js;
+//
+//        Q -= 0.5 * dt / epsilon0
+//             * (K + cross(K, B0v) * as + B0v * (dot(K, B0v) * as * as) / (BB * as * as + 1)) + Js;
+//
+//        a += rhos / BB * (as / (as * as + 1));
+//        b += rhos / BB * (as * as / (as * as + 1));
+//        c += rhos / BB * (as * as * as / (as * as + 1));
+//
+//    }
+//
+//    a *= 0.5 * dt / epsilon0;
+//    b *= 0.5 * dt / epsilon0;
+//    c *= 0.5 * dt / epsilon0;
+//    a += 1;
+//
+//    auto dEv = traits::make_field<vector_type, VERTEX>(m);
+//
+//    dEv = (Q * a - cross(Q, B0v) * b +
+//           B0v * (dot(Q, B0v) * (b * b - c * a) / (a + c * BB))) / (b * b * BB + a * a);
+//
+//    Ev += dEv;
+//
+//    pdE = map_to<EDGE>(dEv);
 
 
 }
