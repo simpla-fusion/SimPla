@@ -406,7 +406,7 @@ template<typename OutputIter>
 OutputIter Particle<P, M>::copy(range_type const &r, OutputIter out_it) const
 {
     //TODO need optimize
-    for (auto const &s:r) { copy(s, out_it); }
+    for (auto const &s:r) { out_it = copy(s, out_it); }
     return out_it;
 }
 
@@ -467,7 +467,7 @@ template<typename P, typename M>
 void Particle<P, M>::sync(container_type const &buffer, parallel::DistributedObject *dist_obj, bool update_ghost)
 {
 
-    auto d_type = traits::datatype<value_type>::create();
+    DataType d_type = traits::datatype<value_type>::create();
 
     typename mesh_type::index_tuple memory_min, memory_max;
     typename mesh_type::index_tuple local_min, local_max;
@@ -771,11 +771,7 @@ template<typename P, typename M>
 template<typename TGen, typename ...Args>
 void Particle<P, M>::generator(const range_type &r, TGen &gen, size_t pic, Args &&...args)
 {
-    for (auto const &s:r)
-    {
-        generator(s, gen, pic, std::forward<Args>(args)...);
-    }
-
+    for (auto const &s:r) { generator(s, gen, pic, std::forward<Args>(args)...); }
 }
 
 
@@ -789,6 +785,7 @@ void Particle<P, M>::generator(TGen &gen, size_t pic, Args &&...args)
     size_t num_of_particle = m_mesh_.template range<iform>().size() * pic;
 
     gen.reserve(num_of_particle);
+
 
     m_mesh_.template for_each_boundary<iform>(
             [&](range_type const &r) { generator(r, gen, pic, std::forward<Args>(args)...); });
