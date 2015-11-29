@@ -157,6 +157,11 @@ public:
         return std::make_tuple(m::point(m_min_), m::point(m_max_));
     };
 
+    virtual std::tuple<point_type, point_type> box(id_type const &s) const
+    {
+        return std::make_tuple(m::point(s - _DA), m::point(s + _DA));
+    };
+
     virtual std::tuple<point_type, point_type> local_box() const
     {
         return std::make_tuple(m::point(m_local_min_), m::point(m_local_max_));
@@ -216,17 +221,21 @@ public:
 
             m_local_max_[n] = b[n] + (e[n] - b[n]) * (dist_coord[n] + 1) / dist_dimensions[n];
 
-
-            if (m_local_min_[n] == m_local_max_[n])
+            if (dist_dimensions[n] > 1)
             {
-                THROW_EXCEPTION_RUNTIME_ERROR("Mesh block decompose failed! Block dimension is smaller than process grid. ");
-            }
-
-
-            if (m_local_max_[n] - m_local_min_[n] > 1 && dist_dimensions[n] > 1)
-            {
-                m_memory_min_[n] = m_local_min_[n] - gw;
-                m_memory_max_[n] = m_local_max_[n] + gw;
+                if (m_local_max_[n] - m_local_min_[n] >= 2 * gw)
+                {
+                    m_memory_min_[n] = m_local_min_[n] - gw;
+                    m_memory_max_[n] = m_local_max_[n] + gw;
+                }
+                else
+                {
+                    VERBOSE << "Mesh block decompose failed! Block dimension is smaller than process grid. "
+                    << m_local_min_ << m_local_max_
+                    << dist_dimensions << dist_coord << std::endl;
+                    THROW_EXCEPTION_RUNTIME_ERROR(
+                            "Mesh block decompose failed! Block dimension is smaller than process grid. ");
+                }
             }
         }
 

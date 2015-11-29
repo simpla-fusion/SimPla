@@ -757,10 +757,8 @@ template<typename P, typename M>
 template<typename TGen, typename ...Args>
 void Particle<P, M>::generator(id_type s, TGen &gen, size_t pic, Args &&...args)
 {
-    auto g = gen.generator(pic,
-                           m_mesh_.box(),   /*FIXME m_mesh_.box => m_mesh_.template box<iform>(s) */
+    auto g = gen.generator(pic, m_mesh_.box(s),
                            std::forward<Args>(args)...);
-
     typename container_type::accessor acc;
     container_type::insert(acc, s);
     std::copy(std::get<0>(g), std::get<1>(g), std::back_inserter(acc->second));
@@ -792,6 +790,7 @@ void Particle<P, M>::generator(TGen &gen, size_t pic, Args &&...args)
 
     parallel::DistributedObject dist_obj;
 
+    VERBOSE << "Sync start" << std::endl;
     sync(*this, &dist_obj, false);
 
     dist_obj.sync();
@@ -800,6 +799,7 @@ void Particle<P, M>::generator(TGen &gen, size_t pic, Args &&...args)
             [&](range_type const &r) { generator(r, gen, pic, std::forward<Args>(args)...); });
 
     dist_obj.wait();
+    VERBOSE << "Sync start" << std::endl;
 
     for (auto const &item :  dist_obj.recv_buffer)
     {

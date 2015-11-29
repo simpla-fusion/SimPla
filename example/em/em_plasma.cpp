@@ -151,6 +151,8 @@ void EMPlasma::setup(int argc, char **argv)
 
     try
     {
+        VERBOSE << "Clear fields" << std::endl;
+
         Bv.clear();
         B0v.clear();
         Ev.clear();
@@ -164,19 +166,26 @@ void EMPlasma::setup(int argc, char **argv)
 
         B0v = map_to<VERTEX>(B0);
 
+        VERBOSE << "Generator Particles" << std::endl;
+
+        ParticleGenerator<PICDemo> gen(ion);
+
+        ion.generator(gen, options["PIC"].as<size_t>(10), 1.0);
+
     } catch (std::exception const &error)
     {
-        THROW_EXCEPTION_RUNTIME_ERROR("Field init error", error.what());
+        THROW_EXCEPTION_RUNTIME_ERROR("setup error", error.what());
     }
 
-    ParticleGenerator<PICDemo> gen(ion);
 
-    ion.generator(gen, 100, 1.0);
+
+//    io::cd("/dump/");
+//    LOGGER << SAVE(ion) << std::endl;
 }
 
 void EMPlasma::tear_down()
 {
-    io::cd("/dump/");
+    io::cd("/tear_down/");
     LOGGER << SAVE(ion) << std::endl;
 }
 

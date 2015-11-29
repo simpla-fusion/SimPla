@@ -1,14 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="BookmarkManager">
-    <bookmark url="file://$PROJECT_DIR$/core/particle/particle.h" line="794" />
-    <bookmark url="file://$PROJECT_DIR$/core/particle/particle.h" line="574" />
-    <bookmark url="file://$PROJECT_DIR$/core/particle/particle.h" line="546" />
-    <bookmark url="file://$PROJECT_DIR$/core/parallel/distributed_object.cpp" line="62" />
-    <bookmark url="file://$PROJECT_DIR$/core/particle/particle.h" line="808" />
-    <bookmark url="file://$PROJECT_DIR$/core/particle/particle.h" line="804" />
-    <bookmark url="file://$PROJECT_DIR$/core/parallel/distributed_object.cpp" line="59" />
-    <bookmark url="file://$PROJECT_DIR$/core/particle/particle.h" line="725" />
+    <bookmark url="file://$PROJECT_DIR$/core/manifold/mesh/mesh_block.h" line="234" />
+    <bookmark url="file://$PROJECT_DIR$/core/manifold/mesh/mesh_block.h" line="225" />
   </component>
   <component name="CMakeRunConfigurationManager" shouldGenerate="true" assignedExecutableTargets="true" buildAllGenerated="true">
     <generated>
@@ -98,9 +92,19 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="705662a6-4fa6-4a3f-beff-e386801b96a4" name="Default" comment="">
+      <change type="DELETED" beforePath="$PROJECT_DIR$/core/manifold/policy/parallel.h" afterPath="" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/mesh/corect_mesh.h" afterPath="$PROJECT_DIR$/core/manifold/mesh/corect_mesh.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/mesh/mesh_block.h" afterPath="$PROJECT_DIR$/core/manifold/mesh/mesh_block.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/mesh/rect_mesh.h" afterPath="$PROJECT_DIR$/core/manifold/mesh/rect_mesh.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/policy/parallel_policy.h" afterPath="$PROJECT_DIR$/core/manifold/policy/parallel_policy.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/numeric/rectangle_distribution.h" afterPath="$PROJECT_DIR$/core/numeric/rectangle_distribution.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/parallel/mpi_comm.cpp" afterPath="$PROJECT_DIR$/core/parallel/mpi_comm.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/parallel/mpi_update.cpp" afterPath="$PROJECT_DIR$/core/parallel/mpi_update.cpp" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/particle/particle.h" afterPath="$PROJECT_DIR$/core/particle/particle.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/particle/particle_generator.h" afterPath="$PROJECT_DIR$/core/particle/particle_generator.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/example/em/em.lua" afterPath="$PROJECT_DIR$/example/em/em.lua" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/example/em/em_plasma.cpp" afterPath="$PROJECT_DIR$/example/em/em_plasma.cpp" />
     </list>
     <ignored path="SimPla.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -120,14 +124,14 @@
     <favorites_list name="SimPla" />
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.46498156">
+    <splitter split-orientation="horizontal" split-proportion="0.46129543">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file leaf-file-name="particle.h" pinned="true" current-in-tab="true">
+          <file leaf-file-name="particle.h" pinned="true" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/core/particle/particle.h">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="-2.7021945">
-                  <caret line="564" column="49" selection-start-line="564" selection-start-column="49" selection-end-line="564" selection-end-column="49" />
+                <state vertical-scroll-proportion="0.0">
+                  <caret line="801" column="26" selection-start-line="801" selection-start-column="21" selection-end-line="801" selection-end-column="26" />
                   <folding>
                     <element signature="e#150#167#0" expanded="true" />
                     <element signature="e#322#335#0" expanded="true" />
@@ -192,11 +196,44 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="distributed_object.h" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/core/parallel/distributed_object.h">
+          <file leaf-file-name="mesh_block.h" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/core/manifold/mesh/mesh_block.h">
+              <provider selected="true" editor-type-id="text-editor">
+                <state vertical-scroll-proportion="-4.714286">
+                  <caret line="221" column="71" selection-start-line="221" selection-start-column="71" selection-end-line="221" selection-end-column="71" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="ntuple.h" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/core/gtl/ntuple.h">
               <provider selected="true" editor-type-id="text-editor">
                 <state vertical-scroll-proportion="0.0">
-                  <caret line="67" column="9" selection-start-line="67" selection-start-column="9" selection-end-line="67" selection-end-column="9" />
+                  <caret line="220" column="7" selection-start-line="220" selection-start-column="7" selection-end-line="220" selection-end-column="7" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="corect_mesh.h" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/core/manifold/mesh/corect_mesh.h">
+              <provider selected="true" editor-type-id="text-editor">
+                <state vertical-scroll-proportion="0.0">
+                  <caret line="201" column="0" selection-start-line="201" selection-start-column="0" selection-end-line="205" selection-end-column="0" />
+                  <folding>
+                    <element signature="e#4051#4077#0" expanded="true" />
+                    <element signature="e#4201#4214#0" expanded="true" />
+                  </folding>
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="parallel_policy.h" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/core/manifold/policy/parallel_policy.h">
+              <provider selected="true" editor-type-id="text-editor">
+                <state vertical-scroll-proportion="0.04698672">
+                  <caret line="111" column="50" selection-start-line="111" selection-start-column="50" selection-end-line="111" selection-end-column="50" />
                   <folding />
                 </state>
               </provider>
@@ -206,7 +243,7 @@
             <entry file="file://$PROJECT_DIR$/example/em/em.lua">
               <provider selected="true" editor-type-id="text-editor">
                 <state vertical-scroll-proportion="0.0">
-                  <caret line="39" column="8" selection-start-line="39" selection-start-column="8" selection-end-line="39" selection-end-column="8" />
+                  <caret line="40" column="6" selection-start-line="40" selection-start-column="6" selection-end-line="40" selection-end-column="6" />
                   <folding />
                 </state>
               </provider>
@@ -216,93 +253,56 @@
       </split-first>
       <split-second>
         <leaf>
-          <file leaf-file-name="particle.h" pinned="true" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/core/particle/particle.h">
+          <file leaf-file-name="em_plasma.cpp" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/example/em/em_plasma.cpp">
               <provider selected="true" editor-type-id="text-editor">
                 <state vertical-scroll-proportion="0.0">
-                  <caret line="695" column="23" selection-start-line="695" selection-start-column="23" selection-end-line="695" selection-end-column="23" />
+                  <caret line="146" column="0" selection-start-line="143" selection-start-column="0" selection-end-line="146" selection-end-column="0" />
                   <folding>
-                    <element signature="e#150#167#0" expanded="true" />
-                    <element signature="e#322#335#0" expanded="true" />
-                    <element signature="e#363#387#0" expanded="true" />
-                    <element signature="e#1492#1510#0" expanded="true" />
-                    <element signature="e#1712#1748#0" expanded="true" />
-                    <element signature="e#1816#1829#0" expanded="true" />
-                    <element signature="e#1954#1971#0" expanded="true" />
-                    <element signature="e#2091#2108#0" expanded="true" />
-                    <element signature="e#2230#2247#0" expanded="true" />
-                    <element signature="e#2349#2367#0" expanded="true" />
-                    <element signature="e#2481#2499#0" expanded="true" />
-                    <element signature="e#2614#2632#0" expanded="true" />
-                    <element signature="e#2939#2959#0" expanded="true" />
-                    <element signature="e#3412#3431#0" expanded="true" />
-                    <element signature="e#3494#3513#0" expanded="true" />
-                    <element signature="e#3586#3605#0" expanded="true" />
-                    <element signature="e#4085#4118#0" expanded="true" />
-                    <element signature="e#4198#4231#0" expanded="true" />
-                    <element signature="e#4320#4353#0" expanded="true" />
-                    <element signature="e#4576#4600#0" expanded="true" />
-                    <element signature="e#4712#4736#0" expanded="true" />
-                    <element signature="e#4863#4887#0" expanded="true" />
-                    <element signature="e#4896#4914#0" expanded="true" />
-                    <element signature="e#5045#5069#0" expanded="true" />
-                    <element signature="e#5112#5136#0" expanded="true" />
-                    <element signature="e#5145#5181#0" expanded="true" />
-                    <element signature="e#5322#5346#0" expanded="true" />
-                    <element signature="e#5355#5368#0" expanded="true" />
-                    <element signature="e#5465#5489#0" expanded="true" />
-                    <element signature="e#5615#5639#0" expanded="true" />
-                    <element signature="e#5648#5665#0" expanded="true" />
-                    <element signature="e#6523#6547#0" expanded="true" />
-                    <element signature="e#6556#6573#0" expanded="true" />
-                    <element signature="e#6733#6757#0" expanded="true" />
-                    <element signature="e#6766#6783#0" expanded="true" />
-                    <element signature="e#7321#7345#0" expanded="true" />
-                    <element signature="e#7354#7372#0" expanded="true" />
-                    <element signature="e#7661#7685#0" expanded="true" />
-                    <element signature="e#7694#7712#0" expanded="true" />
-                    <element signature="e#7897#7921#0" expanded="true" />
-                    <element signature="e#7930#7948#0" expanded="true" />
-                    <element signature="e#8481#8505#0" expanded="true" />
-                    <element signature="e#9442#9466#0" expanded="true" />
-                    <element signature="e#9562#9586#0" expanded="true" />
-                    <element signature="e#9796#9820#0" expanded="true" />
-                    <element signature="e#10119#10143#0" expanded="true" />
-                    <element signature="e#10152#10173#0" expanded="true" />
-                    <element signature="e#10477#10501#0" expanded="true" />
-                    <element signature="e#10510#10531#0" expanded="true" />
-                    <element signature="e#10723#10747#0" expanded="true" />
-                    <element signature="e#10756#10777#0" expanded="true" />
-                    <element signature="e#10989#11013#0" expanded="true" />
-                    <element signature="e#11332#11356#0" expanded="true" />
-                    <element signature="e#11636#11660#0" expanded="true" />
-                    <element signature="e#11793#11817#0" expanded="true" />
-                    <element signature="e#12242#12266#0" expanded="true" />
-                    <element signature="e#15890#15914#0" expanded="true" />
-                    <element signature="e#16617#16641#0" expanded="true" />
+                    <marker date="1448765190641" expanded="true" signature="3623:3814" placeholder="..." />
                   </folding>
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="em_plasma.cpp" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/example/em/em_plasma.cpp">
+          <file leaf-file-name="particle_generator.h" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/core/particle/particle_generator.h">
               <provider selected="true" editor-type-id="text-editor">
                 <state vertical-scroll-proportion="0.0">
-                  <caret line="160" column="6" selection-start-line="160" selection-start-column="6" selection-end-line="160" selection-end-column="6" />
+                  <caret line="156" column="39" selection-start-line="156" selection-start-column="39" selection-end-line="156" selection-end-column="39" />
+                  <folding>
+                    <element signature="e#3018#3036#0" expanded="true" />
+                  </folding>
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="mpi_update.cpp" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/core/parallel/mpi_update.cpp">
+              <provider selected="true" editor-type-id="text-editor">
+                <state vertical-scroll-proportion="0.0">
+                  <caret line="22" column="4" selection-start-line="22" selection-start-column="4" selection-end-line="22" selection-end-column="4" />
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="particle_generator.h" pinned="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/core/particle/particle_generator.h">
+          <file leaf-file-name="mpi_comm.cpp" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/core/parallel/mpi_comm.cpp">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="2.2462463">
-                  <caret line="126" column="0" selection-start-line="126" selection-start-column="0" selection-end-line="126" selection-end-column="0" />
-                  <folding>
-                    <element signature="e#2820#2838#0" expanded="true" />
-                  </folding>
+                <state vertical-scroll-proportion="0.1981614">
+                  <caret line="233" column="18" selection-start-line="233" selection-start-column="18" selection-end-line="233" selection-end-column="18" />
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="rectangle_distribution.h" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/core/numeric/rectangle_distribution.h">
+              <provider selected="true" editor-type-id="text-editor">
+                <state vertical-scroll-proportion="0.0">
+                  <caret line="58" column="0" selection-start-line="58" selection-start-column="0" selection-end-line="58" selection-end-column="0" />
+                  <folding />
                 </state>
               </provider>
             </entry>
@@ -323,9 +323,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/core/io/data_stream.cpp" />
-        <option value="$PROJECT_DIR$/core/dataset/dataspace.cpp" />
-        <option value="$PROJECT_DIR$/core/parallel/parallel.cpp" />
         <option value="$PROJECT_DIR$/example/em/em_task.cpp" />
         <option value="$PROJECT_DIR$/example/em/CMakeLists.txt" />
         <option value="$PROJECT_DIR$/core/gtl/utilities/pretty_stream.h" />
@@ -341,11 +338,9 @@
         <option value="$PROJECT_DIR$/core/gtl/primitives.h" />
         <option value="$PROJECT_DIR$/core/manifold/manifold.h" />
         <option value="$PROJECT_DIR$/core/manifold/diff_scheme/fvm_structured.h" />
-        <option value="$PROJECT_DIR$/core/manifold/mesh/corect_mesh.h" />
         <option value="$PROJECT_DIR$/core/gtl/utilities/log.h" />
         <option value="$PROJECT_DIR$/core/particle/pre_define/simple_particle_generator.h" />
         <option value="$PROJECT_DIR$/core/numeric/compound_distribution.h" />
-        <option value="$PROJECT_DIR$/core/numeric/rectangle_distribution.h" />
         <option value="$PROJECT_DIR$/core/io/io.h" />
         <option value="$PROJECT_DIR$/core/dataset/dataspace.h" />
         <option value="$PROJECT_DIR$/core/particle/test/particle_generator.cpp" />
@@ -353,27 +348,32 @@
         <option value="$PROJECT_DIR$/core/dataset/dataset.h" />
         <option value="$PROJECT_DIR$/core/parallel/distributed_object.h" />
         <option value="$PROJECT_DIR$/core/dataset/CMakeLists.txt" />
-        <option value="$PROJECT_DIR$/core/manifold/policy/parallel_policy.h" />
         <option value="$PROJECT_DIR$/core/CMakeLists.txt" />
         <option value="$PROJECT_DIR$/CMakeLists.txt" />
         <option value="$PROJECT_DIR$/core/io/CMakeLists.txt" />
-        <option value="$PROJECT_DIR$/core/particle/particle_generator.h" />
         <option value="$PROJECT_DIR$/core/particle/test/particle_generator_test.cpp" />
         <option value="$PROJECT_DIR$/core/dataset/dataset.cpp" />
         <option value="$PROJECT_DIR$/core/manifold/policy/storage_policy.h" />
         <option value="$PROJECT_DIR$/core/particle/particle_container.h" />
-        <option value="$PROJECT_DIR$/core/manifold/mesh/rect_mesh.h" />
         <option value="$PROJECT_DIR$/core/gtl/utilities/memory_pool.cpp" />
         <option value="$PROJECT_DIR$/core/gtl/utilities/memory_pool.h" />
         <option value="$PROJECT_DIR$/core/parallel/mpi_datatype.h" />
         <option value="$PROJECT_DIR$/core/parallel/mpi_datatype.cpp" />
-        <option value="$PROJECT_DIR$/example/em/em_plasma.cpp" />
         <option value="$PROJECT_DIR$/core/parallel/mpi_comm.h" />
         <option value="$PROJECT_DIR$/core/parallel/distributed_object.cpp" />
         <option value="$PROJECT_DIR$/core/parallel/parallel_tbb.h" />
         <option value="$PROJECT_DIR$/core/parallel/parallel.h" />
-        <option value="$PROJECT_DIR$/example/em/em.lua" />
+        <option value="$PROJECT_DIR$/core/manifold/mesh/corect_mesh.h" />
+        <option value="$PROJECT_DIR$/core/manifold/mesh/rect_mesh.h" />
+        <option value="$PROJECT_DIR$/core/particle/particle_generator.h" />
+        <option value="$PROJECT_DIR$/core/numeric/rectangle_distribution.h" />
         <option value="$PROJECT_DIR$/core/particle/particle.h" />
+        <option value="$PROJECT_DIR$/core/parallel/mpi_update.cpp" />
+        <option value="$PROJECT_DIR$/example/em/em_plasma.cpp" />
+        <option value="$PROJECT_DIR$/example/em/em.lua" />
+        <option value="$PROJECT_DIR$/core/parallel/mpi_comm.cpp" />
+        <option value="$PROJECT_DIR$/core/manifold/mesh/mesh_block.h" />
+        <option value="$PROJECT_DIR$/core/manifold/policy/parallel_policy.h" />
       </list>
     </option>
   </component>
@@ -509,7 +509,7 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="mesh" />
+              <option name="myItemId" value="policy" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -1147,7 +1147,13 @@
       <option name="project" value="LOCAL" />
       <updated>1448718716808</updated>
     </task>
-    <option name="localTasksCounter" value="31" />
+    <task id="LOCAL-00031" summary="snapshot">
+      <created>1448762294541</created>
+      <option name="number" value="00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1448762294541</updated>
+    </task>
+    <option name="localTasksCounter" value="32" />
     <servers />
   </component>
   <component name="TestHistory">
@@ -1199,7 +1205,7 @@
       <window_info id="LuaJ" active="false" anchor="left" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" show_stripe_button="true" weight="0.32960597" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3250497" sideWeight="0.5170394" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32603773" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.3111332" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3111332" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" show_stripe_button="true" weight="0.14375988" sideWeight="0.49568966" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.40357852" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.16008425" sideWeight="0.5079523" order="2" side_tool="true" content_ui="tabs" />
@@ -1237,12 +1243,12 @@
     <MESSAGE value="improve particle" />
     <MESSAGE value="complete Particle" />
     <MESSAGE value="fix bug in manifold::parallel_policy::deploy" />
-    <MESSAGE value="snapshot" />
     <MESSAGE value="global particle generator" />
     <MESSAGE value="salmon" />
     <MESSAGE value="use tbb::concurrent_hash_map in particle" />
     <MESSAGE value="use tbb::concurrent_hash_map in particle .cont." />
-    <option name="LAST_COMMIT_MESSAGE" value="use tbb::concurrent_hash_map in particle .cont." />
+    <MESSAGE value="snapshot" />
+    <option name="LAST_COMMIT_MESSAGE" value="snapshot" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1258,53 +1264,11 @@
           <option name="timeStamp" value="47" />
         </line-breakpoint>
       </breakpoints>
-      <option name="time" value="55" />
+      <option name="time" value="57" />
     </breakpoint-manager>
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/example/pic/demo_pic.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="103" column="16" selection-start-line="103" selection-start-column="0" selection-end-line="104" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///usr/include/c++/4.8/thread">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.2985782">
-          <caret line="169" column="13" selection-start-line="169" selection-start-column="13" selection-end-line="169" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/io/io.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.73238">
-          <caret line="47" column="0" selection-start-line="47" selection-start-column="0" selection-end-line="47" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/example/em/em_task.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.31460676">
-          <caret line="18" column="0" selection-start-line="18" selection-start-column="0" selection-end-line="24" selection-end-column="19" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///usr/local/include/tbb/concurrent_vector.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.49540347">
-          <caret line="565" column="8" selection-start-line="565" selection-start-column="8" selection-end-line="565" selection-end-column="28" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/io/io_ext.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.08988764">
-          <caret line="4" column="3" selection-start-line="4" selection-start-column="3" selection-end-line="4" selection-end-column="3" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/core/gtl/type_traits.h">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1351,13 +1315,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="20" column="0" selection-start-line="20" selection-start-column="0" selection-end-line="20" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/parallel/mpi_update.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="23" column="18" selection-start-line="23" selection-start-column="18" selection-end-line="23" selection-end-column="18" />
         </state>
       </provider>
     </entry>
@@ -1466,13 +1423,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/core/manifold/mesh/rect_mesh.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="308" column="27" selection-start-line="308" selection-start-column="27" selection-end-line="308" selection-end-column="27" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/core/gtl/utilities/memory_pool.cpp">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1491,6 +1441,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="1308" column="19" selection-start-line="1308" selection-start-column="19" selection-end-line="1308" selection-end-column="19" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -1547,14 +1498,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/core/manifold/policy/parallel_policy.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="165" column="1" selection-start-line="165" selection-start-column="1" selection-end-line="165" selection-end-column="1" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file:///usr/local/include/tbb/concurrent_unordered_map.h">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1598,44 +1541,65 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/example/em/em_plasma.cpp">
+    <entry file="file://$PROJECT_DIR$/core/manifold/mesh/rect_mesh.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="160" column="6" selection-start-line="160" selection-start-column="6" selection-end-line="160" selection-end-column="6" />
+        <state vertical-scroll-proportion="1.3243244">
+          <caret line="167" column="0" selection-start-line="167" selection-start-column="0" selection-end-line="167" selection-end-column="0" />
+          <folding>
+            <element signature="e#3216#3229#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/manifold/mesh/mesh_ids.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.4894895">
+          <caret line="131" column="29" selection-start-line="131" selection-start-column="29" selection-end-line="131" selection-end-column="29" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/example/em/em.lua">
+    <entry file="file://$PROJECT_DIR$/core/parallel/distributed_object.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.43243244">
+          <caret line="67" column="9" selection-start-line="67" selection-start-column="9" selection-end-line="67" selection-end-column="9" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/manifold/mesh/corect_mesh.h">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="39" column="8" selection-start-line="39" selection-start-column="8" selection-end-line="39" selection-end-column="8" />
+          <caret line="201" column="0" selection-start-line="201" selection-start-column="0" selection-end-line="205" selection-end-column="0" />
+          <folding>
+            <element signature="e#4051#4077#0" expanded="true" />
+            <element signature="e#4201#4214#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/numeric/rectangle_distribution.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="58" column="0" selection-start-line="58" selection-start-column="0" selection-end-line="58" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/core/particle/particle_generator.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="2.2462463">
-          <caret line="126" column="0" selection-start-line="126" selection-start-column="0" selection-end-line="126" selection-end-column="0" />
-          <folding>
-            <element signature="e#2820#2838#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/parallel/distributed_object.h">
-      <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="67" column="9" selection-start-line="67" selection-start-column="9" selection-end-line="67" selection-end-column="9" />
-          <folding />
+          <caret line="156" column="39" selection-start-line="156" selection-start-column="39" selection-end-line="156" selection-end-column="39" />
+          <folding>
+            <element signature="e#3018#3036#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/core/particle/particle.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-2.7021945">
-          <caret line="564" column="49" selection-start-line="564" selection-start-column="49" selection-end-line="564" selection-end-column="49" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="801" column="26" selection-start-line="801" selection-start-column="21" selection-end-line="801" selection-end-column="26" />
           <folding>
             <element signature="e#150#167#0" expanded="true" />
             <element signature="e#322#335#0" expanded="true" />
@@ -1696,6 +1660,64 @@
             <element signature="e#15890#15914#0" expanded="true" />
             <element signature="e#16617#16641#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/parallel/mpi_update.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="22" column="4" selection-start-line="22" selection-start-column="4" selection-end-line="22" selection-end-column="4" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/example/em/em.lua">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="40" column="6" selection-start-line="40" selection-start-column="6" selection-end-line="40" selection-end-column="6" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/gtl/ntuple.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="220" column="7" selection-start-line="220" selection-start-column="7" selection-end-line="220" selection-end-column="7" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/example/em/em_plasma.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="146" column="0" selection-start-line="143" selection-start-column="0" selection-end-line="146" selection-end-column="0" />
+          <folding>
+            <marker date="1448765190641" expanded="true" signature="3623:3814" placeholder="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/manifold/mesh/mesh_block.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-4.714286">
+          <caret line="221" column="71" selection-start-line="221" selection-start-column="71" selection-end-line="221" selection-end-column="71" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/manifold/policy/parallel_policy.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.04698672">
+          <caret line="111" column="50" selection-start-line="111" selection-start-column="50" selection-end-line="111" selection-end-column="50" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/parallel/mpi_comm.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.1981614">
+          <caret line="233" column="18" selection-start-line="233" selection-start-column="18" selection-end-line="233" selection-end-column="18" />
+          <folding />
         </state>
       </provider>
     </entry>

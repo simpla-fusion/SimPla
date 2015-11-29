@@ -25,7 +25,7 @@ class rectangle_distribution
 
 public:
 
-    typedef nTuple<Real, NDIMS> value_type;
+    typedef nTuple <Real, NDIMS> value_type;
 
     rectangle_distribution()
     {
@@ -35,6 +35,12 @@ public:
         xmax = 1;
 
         reset(xmin, xmax);
+    }
+
+    rectangle_distribution(rectangle_distribution const &other) :
+            xmax_(other.xmax_), xmin_(other.xmin_), l_(other.l_)
+    {
+
     }
 
     template<typename TBox>

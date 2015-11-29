@@ -102,11 +102,11 @@ private:
 template<typename TMesh>
 void ParallelPolicy<TMesh>::deploy()
 {
-    auto &m_mpi_comm_ = SingletonHolder<parallel::MPIComm>::instance();
 
-    if (m_mpi_comm_.is_valid())
+    if (GLOBAL_COMM.is_valid())
     {
-        m_mesh_.decompose(m_mpi_comm_.topology(), m_mpi_comm_.coordinate());
+        m_mesh_.decompose(GLOBAL_COMM.topology(),
+                          GLOBAL_COMM.coordinate());
     }
 
     nTuple<size_t, mesh_type::ndims> m_min, m_max;
@@ -127,10 +127,14 @@ void ParallelPolicy<TMesh>::deploy()
         b_max = l_max;
         b_max[i] = c_min[i];
         if (b_min[i] != b_max[i]) { m_boundary_box_.push_back(std::make_tuple(b_min, b_max)); }
+
+
         b_min = l_min;
         b_max = l_max;
         b_min[i] = c_max[i];
         if (b_min[i] != b_max[i]) { m_boundary_box_.push_back(std::make_tuple(b_min, b_max)); }
+
+
         l_min[i] = c_min[i];
         l_max[i] = c_max[i];
     }

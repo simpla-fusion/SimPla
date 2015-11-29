@@ -20,13 +20,10 @@ namespace simpla { namespace parallel
  */
 std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count)
 {
-
     int begin = 0;
 
-    if (mpi_comm.is_valid() && mpi_comm.num_of_process() > 1)
+    if (mpi_comm.is_valid())
     {
-
-
         int num_of_process = mpi_comm.num_of_process();
 
         int process_num = mpi_comm.process_num();

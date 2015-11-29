@@ -159,7 +159,8 @@ void MPIComm::barrier()
 
 bool MPIComm::is_valid() const
 {
-    return (!!pimpl_) && pimpl_->m_comm_ != MPI_COMM_NULL;
+    return ((!!pimpl_) && pimpl_->m_comm_ != MPI_COMM_NULL)
+           && num_of_process() > 1;
 }
 
 std::tuple<int, int, int> MPIComm::make_send_recv_tag(int prefix,
@@ -180,41 +181,6 @@ std::tuple<int, int, int> MPIComm::make_send_recv_tag(int prefix,
     }
     return std::make_tuple(dest_id, send_tag, recv_tag);
 }
-
-//void MPIComm::decompose(int ndims, size_t *p_begin, size_t *p_end) const
-//{
-//    nTuple<size_t, MAX_NDIMS_OF_ARRAY> begin, end, count;
-//
-//    begin = p_begin;
-//    end = p_end;
-//    count = p_end - p_begin;
-//    for (int n = 0; n < NDIMS; ++n)
-//    {
-//
-//        p_begin[n] = begin[n]
-//                     + (end[n] - begin[n]) * pimpl_->m_topology_coord_[n]
-//                       / pimpl_->m_topology_dims_[n];
-//
-//        p_end[n] = begin[n]
-//                   + (end[n] - begin[n]) * (pimpl_->m_topology_coord_[n] + 1)
-//                     / pimpl_->m_topology_dims_[n];
-//
-////		p_count[n] = offset[n]
-////				+ count[n] * (pimpl_->m_topology_coord_[n] + 1)
-////						/ pimpl_->m_topology_dims_[n] - p_offset[n];
-//
-//        if (p_begin[n] == p_end[n])
-//        {
-//            THROW_EXCEPTION_RUNTIME_ERROR(
-//                    "Mesh decompose fail! Dimension  is smaller than process grid. "
-//                            "[begin= " + type_cast<std::string>(begin)
-//                    + ", end=" + type_cast<std::string>(end)
-//                    + " ,process grid="
-//                    + type_cast<std::string>(pimpl_->m_topology_coord_));
-//        }
-//    }
-//
-//}
 
 
 nTuple<int, 3> MPIComm::coordinate(int rank) const
@@ -279,6 +245,8 @@ void MPIComm::topology(nTuple<int, 3> const &d)
 
     if (d[0] * d[1] * d[2] != pimpl_->m_num_process_)
     {
+        VERBOSE << " processor number=" << pimpl_->m_num_process_ <<
+        " topology=" << d << std::endl;
         THROW_EXCEPTION_RUNTIME_ERROR("MPI Topology is invalid!");
     }
 

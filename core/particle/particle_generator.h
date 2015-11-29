@@ -49,7 +49,7 @@ private:
 
 
 public:
-    
+
     ParticleGenerator(particle_type const &p)
             : m_p_engine_(p)
     {
@@ -73,14 +73,20 @@ public:
         template<typename TArgs1, typename TArgs2>
         input_iterator(particle_type const &p_engine, seed_type seed,
                        TArgs1 const &args1, TArgs2 args2)
-                : m_p_engine_(p_engine), m_seed_(new seed_type(seed)),
+                : m_p_engine_(p_engine),
+                  m_seed_(new seed_type(seed)),
                   x_dist_(args1), v_dist_(args2), m_count_(0)
         {
+            generate_();
         }
 
         input_iterator(input_iterator const &other)
-                : m_p_engine_(other.m_p_engine_), m_seed_(other.m_seed_), x_dist_(other.x_dist_),
-                  v_dist_(other.v_dist_), m_count_(other.m_count_)
+                : m_p_engine_(other.m_p_engine_),
+                  m_seed_(other.m_seed_),
+                  x_dist_(other.x_dist_),
+                  v_dist_(other.v_dist_),
+                  m_count_(other.m_count_),
+                  m_value_(other.m_value_)
         {
         }
 
@@ -92,22 +98,28 @@ public:
 
         input_iterator &operator++()
         {
-            // @note this_is not thread_safe
-            auto z = m_p_engine_.lift(x_dist_(*m_seed_), v_dist_(*m_seed_));
-            m_value_ = m_p_engine_.sample(x_dist_(*m_seed_), v_dist_(*m_seed_), 1.0);
             ++m_count_;
+            generate_();
             return *this;
         }
 
         void advance(size_t n)
         {
-            m_seed_->discard(n * 6);
+            m_seed_->discard(n * NUM_OF_SEED_PER_SAMPLE);
             m_count_ += n;
         }
 
         bool operator==(input_iterator const &other) const { return m_count_ == other.m_count_; }
 
         bool operator!=(input_iterator const &other) const { return (m_count_ != other.m_count_); }
+
+    private:
+        void generate_()
+        {
+            m_value_ = m_p_engine_.sample(m_p_engine_.lift(x_dist_(*m_seed_),
+                                                           v_dist_(*m_seed_)), 1.0);
+        }
+
     }; //struct input_iterator
 
     template<typename ...Args>

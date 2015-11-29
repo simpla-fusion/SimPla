@@ -199,6 +199,11 @@ public:
         return (std::make_tuple(m_coords_min_, m_coords_max_));
     }
 
+    std::tuple<point_type, point_type> box(id_type const &s) const
+    {
+        return std::make_tuple(point(s - base_type::_DA), point(s + base_type::_DA));
+    };
+
     vector_type const &dx() const
     {
         return m_dx_;
