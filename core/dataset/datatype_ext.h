@@ -29,7 +29,7 @@ namespace simpla
 #define COUNT_MACRO_ARGS(...) COUNT_MACRO_ARGS_IMPL((__VA_ARGS__,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0))
 
 /* Pick the right helper macro to invoke. */
-#define SP_DEFINE_STRUCT_MEMBER_HELPER2(_T0_, _N0_)  traits::primary_type_t<_T0_> _N0_;
+#define SP_DEFINE_STRUCT_MEMBER_HELPER2(_T0_, _N0_)  ::simpla::traits::primary_type_t<_T0_> _N0_;
 
 #define SP_DEFINE_STRUCT_MEMBER_HELPER4(_T0_, _N0_, _T1_, _N1_) SP_DEFINE_STRUCT_MEMBER_HELPER2(_T0_,_N0_) \
       SP_DEFINE_STRUCT_MEMBER_HELPER2(_T1_,_N1_)
@@ -74,7 +74,7 @@ namespace simpla
 //#define SP_PARTICLE_GET_NAME_CHOOSE_HELPER(count) SP_PARTICLE_GET_NAME_CHOOSE_HELPER1(count)
 //#define SP_PARTICLE_GET_NAME(...) SP_PARTICLE_GET_NAME_CHOOSE_HELPER(COUNT_MACRO_ARGS(__VA_ARGS__)) (__VA_ARGS__)
 
-#define SP_DEFINE_STRUCT_DESC_HELPER2(_S_NAME_, _T0_, _N0_) d_type.push_back(traits::datatype<traits::primary_type_t<_T0_> >::create(), #_N0_, offsetof(_S_NAME_, _N0_));
+#define SP_DEFINE_STRUCT_DESC_HELPER2(_S_NAME_, _T0_, _N0_) d_type.push_back(::simpla::traits::datatype<::simpla::traits::primary_type_t<_T0_> >::create(), #_N0_, offsetof(_S_NAME_, _N0_));
 #define SP_DEFINE_STRUCT_DESC_HELPER4(_S_NAME_, _T0_, _N0_, _T1_, _N1_) SP_DEFINE_STRUCT_DESC_HELPER2(_S_NAME_,_T0_,_N0_) \
       SP_DEFINE_STRUCT_DESC_HELPER2(_S_NAME_,_T1_,_N1_)
 #define SP_DEFINE_STRUCT_DESC_HELPER6(_S_NAME_, _T0_, _N0_, _T1_, _N1_, _T2_, _N2_)  SP_DEFINE_STRUCT_DESC_HELPER2(_S_NAME_,_T0_,_N0_) \

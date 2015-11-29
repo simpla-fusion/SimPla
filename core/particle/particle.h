@@ -229,34 +229,29 @@ template<typename P, typename M>
 template<typename TField>
 void Particle<P, M>::integral(id_type const &s, TField *J) const
 {
-    typename container_type::const_accessor acc;
+    static constexpr int f_iform = traits::iform<TField>::value;
 
+    auto x0 = m_mesh_.point(s);
 
-    if (container_type::find(acc, s))
+    static constexpr int MAX_NEIGHBOUR_NUM = 12;
+
+    id_type neighbour[MAX_NEIGHBOUR_NUM];
+
+    int num = m_mesh_.get_adjoints(iform, s, neighbour);
+
+    for (int i = 0; i < num; ++i)
     {
-        auto x0 = m_mesh_.point(s);
+        typename container_type::const_accessor acc1;
 
-        static constexpr int MAX_NEIGHBOUR_NUM = 12;
-
-        id_type neighbour[MAX_NEIGHBOUR_NUM];
-
-        // fixme temporary remove
-//        int num = m_mesh_.get_neighbour<iform>(s, neighbour);
-//
-//        for (int i = 0; i < num; ++i)
-//        {
-//            typename container_type::const_accessor acc1;
-//
-//            if (container_type::find(acc1, neighbour[i]))
-//            {
-//                for (auto const &p:acc1->second)
-//                {
-//                    typename ::simpla::traits::field_value_type<TField>::type v;
-//                    engine_type::integral(p, &v);
-//                    (*J)[s] += m_mesh_.sample(s, v) * m_mesh_.RBF(project(p), x0);
-//                }
-//            }
-//        }
+        if (container_type::find(acc1, neighbour[i]))
+        {
+            for (auto const &p:acc1->second)
+            {
+                typename ::simpla::traits::field_value_type<TField>::type v;
+                engine_type::integral(x0, p, &v);
+                (*J)[s] += m_mesh_.template sample<f_iform>(s, v);
+            }
+        }
     }
 };
 
@@ -370,11 +365,7 @@ size_t Particle<P, M>::size() const
 template<typename P, typename M>
 void Particle<P, M>::erase(range_type const &r)
 {
-//    parallel::parallel_for(r ,    [&](range_type const &r) {
-
-    for (auto const &s:r) { container_type::erase(s); }
-
-//    }  );
+    parallel::parallel_for(r, [&](range_type const &r) { for (auto const &s:r) { container_type::erase(s); }});
 
 }
 //**************************************************************************************************
@@ -749,8 +740,9 @@ template<typename P, typename M>
 template<typename TGen, typename ...Args>
 void Particle<P, M>::generator(id_type s, TGen &gen, size_t pic, Args &&...args)
 {
-    auto g = gen.generator(pic, m_mesh_.box(s),
+    auto g = gen.generator(pic, m_mesh_.volume(s), m_mesh_.box(s),
                            std::forward<Args>(args)...);
+
     typename container_type::accessor acc;
     container_type::insert(acc, s);
     std::copy(std::get<0>(g), std::get<1>(g), std::back_inserter(acc->second));

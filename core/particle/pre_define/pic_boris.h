@@ -15,6 +15,8 @@ namespace tags
 {
 struct Boris;
 }
+template<typename TM> using BorisParticle=Particle<ParticleEngine<tags::Boris>, TM>;
+
 template<>
 struct ParticleEngine<tags::Boris>
 {
@@ -52,22 +54,29 @@ struct ParticleEngine<tags::Boris>
         return point_type{std::get<0>(z), std::get<1>(z)};
     }
 
-    sample_type lift(Vec3 const &x, Vec3 const &v, Real f) const
+    sample_type sample(Vec3 const &x, Vec3 const &v, Real f) const
     {
-        return sample_type{lift(x, v), f, 0};
+        return sample_type{lift(x, v), f, 1.0};
     }
 
-    sample_type lift(point_type const &z, Real f) const
+    sample_type sample(point_type const &z, Real f) const
     {
         return sample_type{z, f, 0};
     }
 
-    void integral(sample_type const &p, Real *f) const
+    template<typename TFunc>
+    sample_type lift(point_type const &z, TFunc const &fun) const
+    {
+        return sample_type{z, fun(z), 0};
+    }
+
+
+    void integral(Vec3 const &x, sample_type const &p, Real *f) const
     {
         *f = p.f * p.w;
     }
 
-    void integral(sample_type const &p, nTuple<Real, 3> *v) const
+    void integral(Vec3 const &x, sample_type const &p, nTuple<Real, 3> *v) const
     {
         *v = p.z.v * p.f * p.w;
     }

@@ -9,9 +9,10 @@
 #define PARTICLE_ENGINE_H_
 
 #include <stddef.h>
-#include "../physics/physical_constants.h"
+//#include "../physics/physical_constants.h"
 #include "../gtl/utilities/utilities.h"
 #include "../gtl/type_traits.h"
+#include "../gtl/ntuple.h"
 #include "../dataset/datatype.h"
 
 namespace simpla { namespace particle
@@ -139,9 +140,9 @@ namespace simpla { namespace particle
 //
 ///* Pick the right helper macro to invoke. */
 #define SP_PROPERTIES_DEFINE_MEMBER_HELPER2(_T0_, _N0_) \
-    private:  traits::primary_type_t<_T0_> m_##_N0_; \
-    public:    traits::primary_type_t<_T0_> _N0_()const{return m_##_N0_;} \
-    void _N0_( traits::primary_type_t<_T0_>   v) {  m_##_N0_=v;}
+    private:  ::simpla::traits::primary_type_t<_T0_> m_##_N0_; \
+    public:    ::simpla::traits::primary_type_t<_T0_> _N0_()const{return m_##_N0_;} \
+    void _N0_( ::simpla::traits::primary_type_t<_T0_>   v) {  m_##_N0_=v;}
 
 #define SP_PROPERTIES_DEFINE_MEMBER_HELPER4(_T0_, _N0_, _T1_, _N1_) SP_PROPERTIES_DEFINE_MEMBER_HELPER2(_T0_,_N0_) \
       SP_PROPERTIES_DEFINE_MEMBER_HELPER2(_T1_,_N1_)
@@ -273,7 +274,7 @@ namespace simpla { namespace particle
 //#define SP_PARTICLE_ADD_PROP_CHOOSE_HELPER(count) SP_PARTICLE_ADD_PROP_CHOOSE_HELPER1(count)
 //#define SP_PARTICLE_ADD_PROP(_S_NAME_,...) SP_PARTICLE_ADD_PROP_CHOOSE_HELPER(COUNT_MACRO_ARGS(__VA_ARGS__)) (_S_NAME_,__VA_ARGS__)
 
-#define SP_PARTICLE_LOAD_DICT_HELPER2(_S1_, _S2_, _T0_, _N0_) m_##_N0_=_S2_[#_N0_].template as< traits::primary_type_t<_T0_> >();
+#define SP_PARTICLE_LOAD_DICT_HELPER2(_S1_, _S2_, _T0_, _N0_) m_##_N0_=_S2_[#_N0_].template as< ::simpla::traits::primary_type_t<_T0_> >();
 #define SP_PARTICLE_LOAD_DICT_HELPER4(_S1_, _S2_, _T0_, _N0_, _T1_, _N1_) SP_PARTICLE_LOAD_DICT_HELPER2(_S1_,_S2_,_T0_,_N0_) \
       SP_PARTICLE_LOAD_DICT_HELPER2(_S1_,_S2_,_T1_,_N1_)
 #define SP_PARTICLE_LOAD_DICT_HELPER6(_S1_, _S2_, _T0_, _N0_, _T1_, _N1_, _T2_, _N2_)  SP_PARTICLE_LOAD_DICT_HELPER2(_S1_,_S2_,_T0_,_N0_) \

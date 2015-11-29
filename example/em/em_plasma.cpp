@@ -67,7 +67,7 @@ struct EMPlasma
 
     TJ J1{m};
 
-    particle::particle_t<particle::tags::Boris, mesh_type> ion{m};
+    particle::BorisParticle<mesh_type> ion{m};
 
     struct particle_s
     {
@@ -115,7 +115,7 @@ void EMPlasma::setup(int argc, char **argv)
 
         VERBOSE << "Generator Particles" << std::endl;
 
-        auto gen = particle::make_generator(ion);
+        auto gen = particle::make_generator(ion, 1.0);
 
         ion.generator(gen, options["PIC"].as<size_t>(10), 1.0);
 

@@ -11,10 +11,7 @@
 #include "../gtl/utilities/log.h"
 #include "../gtl/ntuple.h"
 
-namespace simpla
-{
-
-namespace geometry
+namespace simpla { namespace geometry
 {
 /**
  * @ingroup geometry

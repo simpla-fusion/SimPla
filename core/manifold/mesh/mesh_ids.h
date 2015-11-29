@@ -635,7 +635,12 @@ struct MeshIDs_
 
             };
 
-    static int get_adjoints(id_type s, size_t IFORM, size_t nodeid, id_type *res = nullptr)
+    static int get_adjoints(size_t IFORM, id_type s, id_type *res = nullptr)
+    {
+        return get_adjoints(IFORM, node_id(s), s, res);
+    }
+
+    static int get_adjoints(size_t IFORM, size_t nodeid, id_type s, id_type *res = nullptr)
     {
         if (res != nullptr)
         {
