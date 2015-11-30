@@ -174,7 +174,9 @@ public:
     {
         for (int i = ndims - 1; i > 0; --i)
         {
-            auto d = div(m_self_[i] - m_min_[i] + n + m_max_[i] - m_min_[i], m_max_[i] - m_min_[i]);
+            auto L = m_max_[i] - m_min_[i];
+            if (L == 0)L = 1;
+            auto d = div(m_self_[i] - m_min_[i] + n + m_max_[i] - m_min_[i], L);
 
             m_self_[i] = d.rem + m_min_[i];
 

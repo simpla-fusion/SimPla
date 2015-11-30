@@ -193,7 +193,6 @@
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/block/mesh_id.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/block/tiling_block.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/calculus.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/constraint.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/diff_scheme/diff_scheme.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/diff_scheme/fvm_structured.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/fiber_bundle.h" isTestSource="false" />
@@ -211,10 +210,6 @@
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/mesh/mesh_ids.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/mesh/mesh_patch.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/mesh/rect_mesh.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/base_manifold.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/domain.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/domain_operation.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/manifold/obsolete/domain_traits.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/policy/amr_policy.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/policy/parallel_policy.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/policy/patch_policy.h" isTestSource="false" />
@@ -228,6 +223,7 @@
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/test/mesh_ids_test.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/time_integrator/time_integrator.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/model/CMakeLists.txt" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/model/constraint.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/model/geqdsk.cpp" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/model/geqdsk.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/model/geqdsk_convert.cpp" isTestSource="false" />
@@ -237,7 +233,6 @@
       <sourceFolder url="file://$MODULE_DIR$/core/model/model_traits.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/model/revolve_polygon.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/model/select.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/model/constraint.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/model/trans_revolve.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/numeric/cholesky.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/numeric/compound_distribution.h" isTestSource="false" />
@@ -361,6 +356,7 @@
     <orderEntry type="module-library">
       <library name="Header Search Paths">
         <CLASSES>
+          <root url="file://$USER_HOME$/.CLion12/system/cmake/generated/82e76996/82e76996/Debug/external_project/googletest/include" />
           <root url="file:///usr/include" />
           <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include" />
           <root url="file:///usr/lib/llvm-3.6/lib/clang/3.6.0/include" />
@@ -368,6 +364,7 @@
           <root url="file:///usr/local/include" />
         </CLASSES>
         <SOURCES>
+          <root url="file://$USER_HOME$/.CLion12/system/cmake/generated/82e76996/82e76996/Debug/external_project/googletest/include" />
           <root url="file:///usr/include" />
           <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include" />
           <root url="file:///usr/lib/llvm-3.6/lib/clang/3.6.0/include" />

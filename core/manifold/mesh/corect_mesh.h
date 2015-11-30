@@ -15,6 +15,7 @@
 #include "../../gtl/ntuple.h"
 #include "../../gtl/type_traits.h"
 #include "../../gtl/utilities/utilities.h"
+#include "../../geometry/geo_algorithm.h"
 #include "mesh.h"
 #include "mesh_block.h"
 #include "map_linear.h"
@@ -55,8 +56,8 @@ public:
 
     typedef id_type value_type;
     typedef size_t difference_type;
-    typedef nTuple <Real, ndims> point_type;
-    typedef nTuple <Real, ndims> vector_type;
+    typedef nTuple<Real, ndims> point_type;
+    typedef nTuple<Real, ndims> vector_type;
 
 
     /**
@@ -267,6 +268,26 @@ public:
         return std::get<0>(base_type::coordinates_global_to_local(inv_map(x), n_id));
     }
 
+    template<int IFORM>
+    range_type make_box_range(std::tuple<point_type, point_type> const &b) const
+    {
+
+//        point_type b0, b1, x0, x1;
+//
+//        std::tie(b0, b1) = local_box();
+//        x0 = inv_map(std::get<0>(b));
+//        x1 = inv_map(std::get<1>(b));
+        index_tuple i0, i1;
+        i0 = 0;
+        i1 = 0;
+//        if (geometry::box_intersection(b0, b1, &x0, &x1))
+//        {
+//            i0 = x0;
+//            i1 = x1;
+//        }
+
+        return base_type::template make_range<IFORM>(i0, i1);
+    }
 
 private:
     Real m_volume_[9];

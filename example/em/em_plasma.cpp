@@ -49,6 +49,8 @@ struct EMPlasma
     typedef manifold::CartesianManifold mesh_type;
 
     typedef typename mesh_type::id_type id_type;
+    typedef typename mesh_type::point_type point_type;
+    typedef typename mesh_type::box_type box_type;
 
     typedef nTuple<scalar_type, 3> vector_type;
 
@@ -88,6 +90,11 @@ struct EMPlasma
     model::Surface<mesh_type> limiter_boundary;
     model::IdSet<mesh_type> edge_boundary;
     model::IdSet<mesh_type> face_boundary;
+
+    model::IdSet<mesh_type> J_src;
+
+    std::function<Vec3(Real, point_type)> J_src_fun;
+
 };
 
 void EMPlasma::setup(int argc, char **argv)
@@ -114,6 +121,8 @@ void EMPlasma::setup(int argc, char **argv)
 
         m.deploy();
 
+        MESSAGE << std::endl << "[ Configuration ]" << std::endl << m << std::endl;
+
         {
             model::Cache<mesh_type> cache;
 
@@ -121,6 +130,9 @@ void EMPlasma::setup(int argc, char **argv)
 
             model::get_surface<EDGE>(m, cache, &edge_boundary);
             model::get_surface<FACE>(m, cache, &face_boundary);
+
+            CHECK(edge_boundary.size());
+            CHECK(face_boundary.size());
 
         }
 
@@ -131,11 +143,20 @@ void EMPlasma::setup(int argc, char **argv)
 
             model::get_surface(m, cache, &limiter_boundary);
 
-
         }
 
+        {
 
-        MESSAGE << std::endl << "[ Configuration ]" << std::endl << m << std::endl;
+            auto dict = options["Constraints"]["J"];
+
+            if (dict)
+            {
+                model::create_id_set<EDGE>(m, dict["Box"].template as<box_type>(), &J_src);
+                CHECK(J_src.size());
+                dict["Value"].as(&J_src_fun);
+            }
+
+        }
 
 
         VERBOSE << "Clear fields" << std::endl;
@@ -163,7 +184,7 @@ void EMPlasma::setup(int argc, char **argv)
     }
     catch (std::exception const &error)
     {
-          THROW_EXCEPTION_RUNTIME_ERROR("Context setup error!", error.what());
+        THROW_EXCEPTION_RUNTIME_ERROR("Context setup error!", error.what());
     }
 
 
@@ -200,12 +221,18 @@ void EMPlasma::next_time_step()
 
     Real dt = m.dt();
 
-    ion.push(dt, 0, E1, B1);
+    Real t = m.time();
 
-    J1.clear();
+//    ion.push(dt, 0, E1, B1);
+//
+//    J1.clear();
+//
+//    ion.integral(&J1);
 
-    ion.integral(&J1);
-
+//    J1.accept(J_src.range(), [&](id_type const &s, Real &v)
+//    {
+//        v += m.template sample<EDGE>(s, J_src_fun(t, m.point(s)));
+//    });
 
     LOG_CMD(B1 -= curl(E1) * (dt * 0.5));
 
@@ -336,7 +363,7 @@ int main(int argc, char **argv)
     simpla::EMPlasma ctx;
 
 
-    int num_of_step = options["number_of_step"].as<int>(2);
+    int num_of_step = options["number_of_step"].as<int>(20);
 
     int check_point = options["check_point"].as<int>(1);
 

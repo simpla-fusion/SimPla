@@ -281,21 +281,22 @@ std::ostringstream &_make_error_msg(std::ostringstream &os, T const &first)
 }
 
 template<typename T, typename ...Others>
-std::ostringstream &_make_error_msg(std::ostringstream &os, T &&first, Others &&...others)
+std::ostringstream &_make_error_msg(std::ostringstream &os, T const &first, Others const &...others)
 {
-    return _make_error_msg(_make_error_msg(os, std::forward<T>(first)), std::forward<Others>(others)...);
+    _make_error_msg(os, (first));
+    return _make_error_msg(os, (others)...);
 }
 
 
 template<typename ...Others>
-std::string make_error_msg(const char *file, int line, const char *func, Others &&...others)
+std::string make_error_msg(const char *file, int line, const char *func, Others const &...others)
 {
     std::ostringstream buffer;
 
     buffer << std::endl << "\e[0m" << " \e[1;37m From [" << file << ":" << line << ":0: " << (func) << "]"
     << std::endl << " \e[1;31m\t";
 
-    _make_error_msg(buffer, std::forward<Others>(others)...);
+    _make_error_msg(buffer, (others)...);
 
     buffer << "\e[0m";
 
@@ -393,7 +394,7 @@ std::string make_error_msg(const char *file, int line, const char *func, Others 
 #endif
 
 //#ifndef NDEBUG
-#define CHECK(_MSG_)    logger::Logger(logger::LOG_DEBUG) <<MAKE_ERROR_MSG(__STRING(_MSG_)," = ", ( _MSG_))
+#define CHECK(_MSG_)    logger::Logger(logger::LOG_DEBUG) <<MAKE_ERROR_MSG(__STRING((_MSG_))," = ", ( _MSG_))
 #define SHOW(_MSG_)    logger::Logger(logger::LOG_VERBOSE) << __STRING(_MSG_)<<"\t= "<< ( _MSG_) <<std::endl;
 #define SHOW_HEX(_MSG_)    logger::Logger(logger::LOG_VERBOSE) << __STRING(_MSG_)<<"\t= "<<std::hex << ( _MSG_) <<std::dec<<std::endl;
 

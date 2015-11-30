@@ -38,8 +38,9 @@ public:
     using typename m::index_tuple;
     using typename m::difference_type;
 
-    typedef nTuple<Real, ndims> point_type;
-    typedef nTuple<Real, ndims> vector_type;
+    typedef nTuple <Real, ndims> point_type;
+    typedef nTuple <Real, ndims> vector_type;
+    typedef std::tuple<point_type, point_type> box_type;
 
 
     /**

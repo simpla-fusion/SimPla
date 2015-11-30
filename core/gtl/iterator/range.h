@@ -55,15 +55,11 @@ public:
 
     }
 
-//    template<typename TSplit>
-//    Range(this_type &r, TSplit) :
-//            m_begin_(r.m_begin_ + r.size() / 2), m_end_(r.m_end_), m_grain_size_(r.grainsize())
-//    {
-//        r.m_end_ = m_begin_;
-//    };
 
     Range(this_type &r, tags::proportional_split &proportion) :
-            m_begin_(r.m_begin_ + r.size() * proportion.left() / (proportion.left() + proportion.right())),
+            m_begin_(r.m_begin_ + r.size() * proportion.left() /
+                                  ((proportion.left() + proportion.right() > 0) ? (proportion.left() +
+                                                                                   proportion.right()) : 1)),
             m_end_(r.m_end_),
             m_grain_size_(r.grainsize())
     {

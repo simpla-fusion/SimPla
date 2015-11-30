@@ -77,7 +77,6 @@ public:
 
         point_type res;
 
-
         res[0] = std::fma(x[0], m_inv_map_scale_[0], m_inv_map_orig_[0]);
 
         res[1] = std::fma(x[1], m_inv_map_scale_[1], m_inv_map_orig_[1]);

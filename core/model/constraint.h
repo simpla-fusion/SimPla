@@ -10,6 +10,7 @@
 #include "../parallel/parallel.h"
 #include "../geometry/geo_object.h"
 #include "../manifold/manifold_traits.h"
+#include "../geometry/geo_algorithm.h"
 
 namespace simpla { namespace model
 {
@@ -62,13 +63,12 @@ void create_cache(TM const &m, geometry::Object const &geo, Cache<TM> *cache)
                                for (auto const &s:r)
                                {
 
-                                   point_type x = m.point(s);
-
-                                   Vec3 v;
-
-                                   Real d = geo.normals(&x, &v);
-
-                                   cache->insert(typename Cache<TM>::value_type(s, std::make_tuple(d, x, v)));
+                                   thread_local point_type x = m.point(s);
+                                   thread_local Vec3 v;
+                                   thread_local Real d = geo.normals(&x, &v);
+                                   thread_local auto tmp = typename Cache<TM>::value_type(s, std::make_tuple(d, x, v));
+//                                   CHECK(m.hash(s));
+                                   cache->insert(std::move(tmp));
                                }
                            });
 
@@ -93,14 +93,14 @@ void on_surface(TM const &m, Cache<TM> const &cache, Func const &func)
             {
                 for (auto const &item: r)
                 {
-                    id_type v_s = item.first + mesh_type::_DA;
+                    thread_local id_type v_s = item.first + mesh_type::_DA;
 
-                    int num = m.get_vertices_id(mesh_type::TAG_VOLUME, v_s);
+                    thread_local int num = m.get_vertices_id(mesh_type::TAG_VOLUME, v_s);
 
-                    id_type p[num];
+                    thread_local id_type p[mesh_type::MAX_NUM_OF_NEIGHBOURS];
 
                     m.get_vertices_id(mesh_type::TAG_VOLUME, v_s, p);
-                    int count = 0;
+                    thread_local int count = 0;
                     for (int i = 0; i < num; ++i)
                     {
                         typename Cache<TM>::const_accessor acc;
@@ -161,23 +161,24 @@ void get_surface(TM const &m, Cache<TM> const &cache, IdSet<TM> *surface,
     on_surface(m, cache,
                [&](typename Cache<TM>::value_type const &item)
                {
-                   id_type ids_0[mesh_type::MAX_NUM_OF_NEIGHBOURS];
+                   thread_local id_type ids_0[mesh_type::MAX_NUM_OF_NEIGHBOURS];
+                   thread_local id_type ids_1[mesh_type::MAX_NUM_OF_NEIGHBOURS];
 
-                   int num_0 = m.get_adjoints(IFORM, mesh_type::TAG_VOLUME, item.first + mesh_type::_DA, ids_0);
+                   thread_local int num_0 = m.get_adjoints(IFORM, mesh_type::TAG_VOLUME, item.first + mesh_type::_DA,
+                                                           ids_0);
 
                    for (int i = 0; i < num_0; ++i)
                    {
-                       id_type ids_1[mesh_type::MAX_NUM_OF_NEIGHBOURS];
 
-                       int num_1 = m.get_vertices_id(ids_0[i], ids_1);
+                       thread_local int num_1 = m.get_vertices_id(ids_0[i], ids_1);
 
-                       int count = 0;
+                       thread_local int count = 0;
 
                        for (int j = 0; j < num_1; ++j)
                        {
                            typename Cache<TM>::const_accessor acc;
 
-                           bool t_is_out = true;
+                           thread_local bool t_is_out = true;
 
                            if (cache.find(acc, ids_1[j]))
                            {
@@ -194,10 +195,18 @@ void get_surface(TM const &m, Cache<TM> const &cache, IdSet<TM> *surface,
                        {
                            surface->insert(ids_0[i]);
                        }
-
-
                    }
                });
+
+}
+
+template<int IFORM, typename TM, typename TB>
+void create_id_set(TM const &m, TB const &box, IdSet<TM> *res)
+{
+    auto r0 = m.template make_box_range<IFORM>(box);
+    if (r0.size() <= 0) return;
+    parallel::parallel_for(r0,
+                           [&](typename TM::range_type const &r) { for (auto const &s:r) { res->insert(s); }});
 
 }
 
