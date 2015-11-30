@@ -91,24 +91,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="705662a6-4fa6-4a3f-beff-e386801b96a4" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/core/manifold/constraint.h" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/core/model/surface.h" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/core/particle/obsolete/particle_constraint.h" afterPath="$PROJECT_DIR$/core/particle/particle_constraint.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/SimPla.iml" afterPath="$PROJECT_DIR$/.idea/SimPla.iml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/geometry/geo_object.h" afterPath="$PROJECT_DIR$/core/geometry/geo_object.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/geometry/polygon.cpp" afterPath="$PROJECT_DIR$/core/geometry/polygon.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/geometry/polygon.h" afterPath="$PROJECT_DIR$/core/geometry/polygon.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/mesh/corect_mesh.h" afterPath="$PROJECT_DIR$/core/manifold/mesh/corect_mesh.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/mesh/mesh_ids.h" afterPath="$PROJECT_DIR$/core/manifold/mesh/mesh_ids.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/parallel/parallel.h" afterPath="$PROJECT_DIR$/core/parallel/parallel.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/parallel/parallel_dummy.h" afterPath="$PROJECT_DIR$/core/parallel/parallel_dummy.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/parallel/parallel_tbb.h" afterPath="$PROJECT_DIR$/core/parallel/parallel_tbb.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/particle/particle.h" afterPath="$PROJECT_DIR$/core/particle/particle.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/particle/particle_generator.h" afterPath="$PROJECT_DIR$/core/particle/particle_generator.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/particle/pre_define/pic_boris.h" afterPath="$PROJECT_DIR$/core/particle/pre_define/pic_boris.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/example/em/CMakeLists.txt" afterPath="$PROJECT_DIR$/example/em/CMakeLists.txt" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/example/em/em_plasma.cpp" afterPath="$PROJECT_DIR$/example/em/em_plasma.cpp" />
     </list>
     <ignored path="SimPla.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -1194,7 +1177,13 @@
       <option name="project" value="LOCAL" />
       <updated>1448780138059</updated>
     </task>
-    <option name="localTasksCounter" value="35" />
+    <task id="LOCAL-00035" summary=" snapshot">
+      <created>1448858236463</created>
+      <option name="number" value="00035" />
+      <option name="project" value="LOCAL" />
+      <updated>1448858236463</updated>
+    </task>
+    <option name="localTasksCounter" value="36" />
     <servers />
   </component>
   <component name="TestHistory">
@@ -1473,6 +1462,18 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="110" column="0" selection-start-line="110" selection-start-column="0" selection-end-line="110" selection-end-column="0" />
+          <folding>
+            <element signature="e#467#479#0" expanded="false" />
+            <element signature="e#664#682#0" expanded="false" />
+            <element signature="e#759#939#0" expanded="false" />
+            <element signature="e#975#989#0" expanded="false" />
+            <element signature="e#1022#1037#0" expanded="false" />
+            <element signature="e#1294#1320#0" expanded="false" />
+            <element signature="e#1552#1667#0" expanded="false" />
+            <element signature="e#2202#2220#0" expanded="false" />
+            <element signature="e#2939#2990#0" expanded="false" />
+            <element signature="e#5082#5115#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -1487,6 +1488,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.7085346">
           <caret line="20" column="0" selection-start-line="20" selection-start-column="0" selection-end-line="20" selection-end-column="0" />
+          <folding>
+            <element signature="e#157#175#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
