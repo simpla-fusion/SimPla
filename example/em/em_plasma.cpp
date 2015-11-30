@@ -127,7 +127,7 @@ void EMPlasma::setup(int argc, char **argv)
             model::Cache<mesh_type> cache;
 
             model::create_cache(m, geqdsk.boundary(), &cache);
-
+            CHECK(cache.size());
             model::get_surface<EDGE>(m, cache, &edge_boundary);
             model::get_surface<FACE>(m, cache, &face_boundary);
 

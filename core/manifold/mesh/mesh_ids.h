@@ -739,7 +739,7 @@ struct MeshIDs_
 
         template<typename T0, typename T1, typename T2>
         iterator(T0 const &pself, T1 const &pmin, T2 const &pmax, int IFORM = VERTEX) :
-                base_type(pself, pmin, pmax), m_iform_(IFORM)
+                m_iform_(IFORM)
         {
             nTuple<index_type, ndims + 1> self, min, max;
             self = pself;
@@ -808,15 +808,131 @@ struct MeshIDs_
 
     };
 
+    struct range_type
+    {
+    private:
+        typedef range_type this_type;
+    public:
 
-    typedef Range<iterator> range_type;
+        typedef iterator const_iterator;
+
+        range_type() : m_iform_(VERTEX), m_min_(), m_max_(m_min_), m_grain_size_(m_min_) { }
+
+        // constructors
+
+        template<typename T0, typename T1>
+        range_type(T0 const &b, T1 const &e, int IFORM = VERTEX)
+                : m_iform_(IFORM), m_min_(b), m_max_(e)
+        {
+            m_grain_size_ = 2;
+        }
+
+        range_type(this_type const &r)
+                : m_iform_(r.m_iform_), m_min_(r.m_min_), m_max_(r.m_max_), m_grain_size_(r.m_grain_size_)
+        {
+        }
+
+        template<typename T0, typename T1, typename T2>
+        range_type(T0 const &b, T1 const &e, index_tuple const &grain_size, int IFORM = VERTEX)
+                : m_iform_(IFORM), m_min_(b), m_max_(e), m_grain_size_(grain_size)
+        {
+        }
+
+
+        template<typename TSplit>
+        range_type(this_type &r, TSplit const &)
+                : m_iform_(r.m_iform_), m_min_(r.m_min_), m_max_(r.m_max_), m_grain_size_(r.m_grain_size_)
+        {
+            int n = 0;
+            index_type L = m_max_[0] - m_min_[0];
+            for (int i = 1; i < ndims; ++i)
+            {
+                if (m_max_[i] - m_min_[i] > L)
+                {
+                    n = i;
+                    L = m_max_[i] - m_min_[i];
+                }
+            }
+            m_max_[n] = m_min_[n] + L / 2;
+            r.m_min_[n] = m_max_[n];
+        }
+
+        this_type split()
+        {
+            this_type res(*this, tags::split());
+            return std::move(res);
+        }
+
+        range_type(this_type &r, tags::proportional_split &proportion)
+        {
+            int n = 0;
+            index_type L = m_max_[0] - m_min_[0];
+            for (int i = 1; i < ndims; ++i)
+            {
+                if (m_max_[i] - m_min_[i] > L)
+                {
+                    n = i;
+                    L = m_max_[i] - m_min_[i];
+                }
+            }
+
+            m_max_[n] = m_min_[n] + L * proportion.left() /
+                                    ((proportion.left() + proportion.right() > 0) ? (proportion.left() +
+                                                                                     proportion.right()) : 1);
+            r.m_min_[n] = m_max_[n];
+        }
+
+        this_type split(tags::proportional_split &proportion)
+        {
+            this_type res(*this, proportion);
+            return std::move(res);
+        }
+
+        ~range_type() { }
+
+
+        void swap(this_type &other)
+        {
+            std::swap(m_iform_, other.m_iform_);
+            std::swap(m_min_, other.m_min_);
+            std::swap(m_max_, other.m_max_);
+            std::swap(m_grain_size_, other.m_grain_size_);
+        }
+
+        // Proportional split is enabled
+        static const bool is_splittable_in_proportion = true;
+
+        // capacity
+
+
+        bool empty() const { return m_min_ == m_max_; }
+
+        size_t size() const
+        {
+            return ((m_iform_ == VERTEX || m_iform_ == VOLUME) ? 1 : 3) * NProduct(m_max_ - m_min_);
+        }
+
+        // access
+        index_tuple const &grainsize() const { return m_grain_size_; }
+
+        bool is_divisible() const { return m_max_ - m_min_ > m_grain_size_; }
+
+        // iterators
+        const_iterator begin() const { return const_iterator(m_min_, m_min_, m_max_, m_iform_); }
+
+        const_iterator end() const { return const_iterator(m_min_, m_min_, m_max_, m_iform_).end(); }
+
+    private:
+        int m_iform_;
+        index_tuple m_min_, m_max_, m_grain_size_;
+    };
+
+//    typedef Range<iterator> range_type;
 
     template<typename T0, typename T1>
     static range_type make_range(T0 const &min, T1 const &max, int iform = VERTEX)
     {
-        iterator ib(min, min, max, iform);
-
-        return range_type(ib, ib.end());
+        return range_type(min, max, iform);
     }
 
     template<int IFORM, typename TB>

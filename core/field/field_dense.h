@@ -19,7 +19,7 @@
 #include "../gtl/type_traits.h"
 #include "../manifold/manifold_traits.h"
 #include "../dataset/dataset.h"
-
+#include "../parallel/parallel.h"
 #include "field_traits.h"
 
 

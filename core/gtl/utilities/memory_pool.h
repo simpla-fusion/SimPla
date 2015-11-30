@@ -95,7 +95,7 @@ std::shared_ptr<T> sp_alloc_array(size_t s)
 {
     void *addr = SingletonHolder<MemoryPool>::instance().pop(s * sizeof(T));
 
-    return std::shared_ptr<T>(addr, MemoryPool::deleter_s(addr, s * sizeof(T)));
+    return std::shared_ptr<T>(reinterpret_cast<T *>(addr), MemoryPool::deleter_s(addr, s * sizeof(T)));
 }
 
 std::shared_ptr<void> sp_alloc_memory(size_t s);

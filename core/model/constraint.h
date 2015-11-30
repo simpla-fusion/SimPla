@@ -62,12 +62,10 @@ void create_cache(TM const &m, geometry::Object const &geo, Cache<TM> *cache)
                            {
                                for (auto const &s:r)
                                {
-
                                    thread_local point_type x = m.point(s);
                                    thread_local Vec3 v;
                                    thread_local Real d = geo.normals(&x, &v);
                                    thread_local auto tmp = typename Cache<TM>::value_type(s, std::make_tuple(d, x, v));
-//                                   CHECK(m.hash(s));
                                    cache->insert(std::move(tmp));
                                }
                            });

@@ -68,6 +68,7 @@ template<typename T0, typename T1, typename TP>
 Real nearest_point_to_polygon(T0 const &p0, T1 const &p1, TP *x)
 {
     Real dist2 = 0.0;
+    UNIMPLEMENTED;
 //    TP p2 = *x;
 //    Vec3 u, v;
 //
