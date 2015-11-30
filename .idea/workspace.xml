@@ -91,6 +91,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="705662a6-4fa6-4a3f-beff-e386801b96a4" name="Default" comment="">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/docs/CylinddicalCoordinatesMetric.lyx" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/docs/collision.mw" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/docs/shape2.mw" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/docs/shape_function.mw" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/core/manifold/obsolete/base_manifold.h" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/core/manifold/obsolete/domain.h" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/core/manifold/obsolete/domain_traits.h" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gitignore" afterPath="$PROJECT_DIR$/.gitignore" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="SimPla.iws" />
@@ -193,8 +201,8 @@
           <file leaf-file-name="surface.h" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/core/model/surface.h">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="1.4751083">
-                  <caret line="122" column="16" selection-start-line="122" selection-start-column="16" selection-end-line="122" selection-end-column="16" />
+                <state vertical-scroll-proportion="0.29642057">
+                  <caret line="61" column="0" selection-start-line="61" selection-start-column="0" selection-end-line="61" selection-end-column="0" />
                   <folding>
                     <element signature="e#118#151#0" expanded="true" />
                     <element signature="e#275#288#0" expanded="true" />
@@ -319,7 +327,7 @@
           <file leaf-file-name="geo_object.h" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/core/geometry/geo_object.h">
               <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="1.0400432">
+                <state vertical-scroll-proportion="1.074944">
                   <caret line="121" column="54" selection-start-line="121" selection-start-column="14" selection-end-line="121" selection-end-column="54" />
                   <folding>
                     <element signature="e#155#188#0" expanded="true" />
@@ -1183,7 +1191,13 @@
       <option name="project" value="LOCAL" />
       <updated>1448858236463</updated>
     </task>
-    <option name="localTasksCounter" value="36" />
+    <task id="LOCAL-00036" summary=" snapshot">
+      <created>1448858266146</created>
+      <option name="number" value="00036" />
+      <option name="project" value="LOCAL" />
+      <updated>1448858266146</updated>
+    </task>
+    <option name="localTasksCounter" value="37" />
     <servers />
   </component>
   <component name="TestHistory">
@@ -1234,8 +1248,8 @@
       <window_info id="CMake" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4612573" sideWeight="0.48296058" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="LuaJ" active="false" anchor="left" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" show_stripe_button="true" weight="0.32960597" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3250497" sideWeight="0.5170394" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32603773" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.30380672" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32576868" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.30380672" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" show_stripe_button="true" weight="0.14375988" sideWeight="0.49568966" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.40357852" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.16008425" sideWeight="0.5079523" order="2" side_tool="true" content_ui="tabs" />
@@ -1494,13 +1508,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/simpla.log">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.49919486">
-          <caret line="22" column="303" selection-start-line="22" selection-start-column="303" selection-end-line="22" selection-end-column="303" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/core/manifold/constraint.h">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.49597424">
@@ -1728,7 +1735,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/core/geometry/geo_object.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="1.0400432">
+        <state vertical-scroll-proportion="1.074944">
           <caret line="121" column="54" selection-start-line="121" selection-start-column="14" selection-end-line="121" selection-end-column="54" />
           <folding>
             <element signature="e#155#188#0" expanded="true" />
@@ -1774,8 +1781,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/core/model/surface.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="1.4751083">
-          <caret line="122" column="16" selection-start-line="122" selection-start-column="16" selection-end-line="122" selection-end-column="16" />
+        <state vertical-scroll-proportion="0.29642057">
+          <caret line="61" column="0" selection-start-line="61" selection-start-column="0" selection-end-line="61" selection-end-column="0" />
           <folding>
             <element signature="e#118#151#0" expanded="true" />
             <element signature="e#275#288#0" expanded="true" />

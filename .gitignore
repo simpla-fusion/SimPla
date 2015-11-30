@@ -34,5 +34,5 @@ build*/
 third_part
 /Default/
 /Release/
-/.idea/
+.idea/*
 .directory
