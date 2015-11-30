@@ -237,7 +237,7 @@
       <sourceFolder url="file://$MODULE_DIR$/core/model/model_traits.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/model/revolve_polygon.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/model/select.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/model/surface.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/model/constraint.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/model/trans_revolve.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/numeric/cholesky.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/numeric/compound_distribution.h" isTestSource="false" />

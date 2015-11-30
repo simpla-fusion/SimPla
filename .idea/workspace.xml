@@ -91,15 +91,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="705662a6-4fa6-4a3f-beff-e386801b96a4" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/docs/CylinddicalCoordinatesMetric.lyx" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/docs/collision.mw" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/docs/shape2.mw" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/docs/shape_function.mw" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/core/manifold/obsolete/base_manifold.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/core/manifold/obsolete/domain.h" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/core/manifold/obsolete/domain_traits.h" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/core/manifold/constraint.h" afterPath="" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/core/model/surface.h" afterPath="$PROJECT_DIR$/core/model/constraint.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gitignore" afterPath="$PROJECT_DIR$/.gitignore" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/SimPla.iml" afterPath="$PROJECT_DIR$/.idea/SimPla.iml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/field/field_dense.h" afterPath="$PROJECT_DIR$/core/field/field_dense.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/gtl/type_traits.h" afterPath="$PROJECT_DIR$/core/gtl/type_traits.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/gtl/utilities/log.h" afterPath="$PROJECT_DIR$/core/gtl/utilities/log.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/particle/particle.h" afterPath="$PROJECT_DIR$/core/particle/particle.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/particle/particle_constraint.h" afterPath="$PROJECT_DIR$/core/particle/particle_constraint.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/example/em/em_plasma.cpp" afterPath="$PROJECT_DIR$/example/em/em_plasma.cpp" />
     </list>
     <ignored path="SimPla.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -119,250 +121,171 @@
     <favorites_list name="SimPla" />
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.53012997">
-      <split-first>
-        <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file leaf-file-name="particle.h" pinned="true" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/core/particle/particle.h">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="28" column="19" selection-start-line="28" selection-start-column="19" selection-end-line="28" selection-end-column="19" />
-                  <folding>
-                    <element signature="e#150#167#0" expanded="true" />
-                    <element signature="e#377#391#0" expanded="true" />
-                    <element signature="e#417#431#0" expanded="true" />
-                    <element signature="e#463#490#0" expanded="true" />
-                    <element signature="e#553#577#0" expanded="true" />
-                    <element signature="e#1643#1661#0" expanded="true" />
-                    <element signature="e#1863#1899#0" expanded="true" />
-                    <element signature="e#1967#1980#0" expanded="true" />
-                    <element signature="e#2019#2036#0" expanded="true" />
-                    <element signature="e#2106#2123#0" expanded="true" />
-                    <element signature="e#2195#2212#0" expanded="true" />
-                    <element signature="e#2264#2282#0" expanded="true" />
-                    <element signature="e#2345#2363#0" expanded="true" />
-                    <element signature="e#2428#2446#0" expanded="true" />
-                    <element signature="e#2749#2769#0" expanded="true" />
-                    <element signature="e#3222#3241#0" expanded="true" />
-                    <element signature="e#3304#3323#0" expanded="true" />
-                    <element signature="e#3396#3415#0" expanded="true" />
-                    <element signature="e#3895#3928#0" expanded="true" />
-                    <element signature="e#4008#4041#0" expanded="true" />
-                    <element signature="e#4130#4163#0" expanded="true" />
-                    <element signature="e#4370#4407#0" expanded="true" />
-                    <element signature="e#4472#4509#0" expanded="true" />
-                    <element signature="e#4716#4740#0" expanded="true" />
-                    <element signature="e#4749#4767#0" expanded="true" />
-                    <element signature="e#4898#4922#0" expanded="true" />
-                    <element signature="e#4965#4989#0" expanded="true" />
-                    <element signature="e#4998#5034#0" expanded="true" />
-                    <element signature="e#5175#5199#0" expanded="true" />
-                    <element signature="e#5208#5221#0" expanded="true" />
-                    <element signature="e#5318#5342#0" expanded="true" />
-                    <element signature="e#5468#5492#0" expanded="true" />
-                    <element signature="e#5501#5518#0" expanded="true" />
-                    <element signature="e#6259#6283#0" expanded="true" />
-                    <element signature="e#6292#6309#0" expanded="true" />
-                    <element signature="e#6469#6493#0" expanded="true" />
-                    <element signature="e#6502#6519#0" expanded="true" />
-                    <element signature="e#7026#7050#0" expanded="true" />
-                    <element signature="e#7059#7077#0" expanded="true" />
-                    <element signature="e#7366#7390#0" expanded="true" />
-                    <element signature="e#7399#7417#0" expanded="true" />
-                    <element signature="e#7602#7626#0" expanded="true" />
-                    <element signature="e#7635#7653#0" expanded="true" />
-                    <element signature="e#8201#8225#0" expanded="true" />
-                    <element signature="e#9162#9186#0" expanded="true" />
-                    <element signature="e#9282#9306#0" expanded="true" />
-                    <element signature="e#9516#9540#0" expanded="true" />
-                    <element signature="e#9818#9842#0" expanded="true" />
-                    <element signature="e#9851#9872#0" expanded="true" />
-                    <element signature="e#10176#10200#0" expanded="true" />
-                    <element signature="e#10209#10230#0" expanded="true" />
-                    <element signature="e#10422#10446#0" expanded="true" />
-                    <element signature="e#10455#10476#0" expanded="true" />
-                    <element signature="e#10688#10712#0" expanded="true" />
-                    <element signature="e#11031#11055#0" expanded="true" />
-                    <element signature="e#11335#11359#0" expanded="true" />
-                    <element signature="e#11492#11516#0" expanded="true" />
-                    <element signature="e#11941#11965#0" expanded="true" />
-                    <element signature="e#15586#15610#0" expanded="true" />
-                    <element signature="e#16313#16337#0" expanded="true" />
-                    <element signature="e#16473#16497#0" expanded="true" />
-                    <element signature="e#21740#21777#0" expanded="true" />
-                    <element signature="e#22446#22483#0" expanded="true" />
-                    <element signature="e#23264#23288#0" expanded="true" />
-                    <element signature="e#23420#23444#0" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="surface.h" pinned="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/core/model/surface.h">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.29642057">
-                  <caret line="61" column="0" selection-start-line="61" selection-start-column="0" selection-end-line="61" selection-end-column="0" />
-                  <folding>
-                    <element signature="e#118#151#0" expanded="true" />
-                    <element signature="e#275#288#0" expanded="true" />
-                    <element signature="e#438#451#0" expanded="true" />
-                    <element signature="e#538#551#0" expanded="true" />
-                    <element signature="e#705#738#0" expanded="true" />
-                    <element signature="e#1592#1620#0" expanded="true" />
-                    <element signature="e#2883#2914#0" expanded="true" />
-                    <element signature="e#3121#3148#0" expanded="true" />
-                    <element signature="e#3407#3431#0" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="em_plasma.cpp" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/example/em/em_plasma.cpp">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="109" column="48" selection-start-line="109" selection-start-column="48" selection-end-line="109" selection-end-column="48" />
-                  <folding>
-                    <element signature="e#71#93#0" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="em.lua" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/example/em/em.lua">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="47" column="6" selection-start-line="47" selection-start-column="0" selection-end-line="47" selection-end-column="6" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="CMakeLists.txt" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/example/em/CMakeLists.txt">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="6" column="0" selection-start-line="6" selection-start-column="0" selection-end-line="6" selection-end-column="0" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="polygon.h" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/core/geometry/polygon.h">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="58" column="22" selection-start-line="58" selection-start-column="22" selection-end-line="58" selection-end-column="22" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="polygon.cpp" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/core/geometry/polygon.cpp">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="24" column="6" selection-start-line="24" selection-start-column="6" selection-end-line="24" selection-end-column="6" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="geqdsk.cpp" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/core/model/geqdsk.cpp">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="111" column="16" selection-start-line="111" selection-start-column="16" selection-end-line="111" selection-end-column="16" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="geqdsk.h" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/core/model/geqdsk.h">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="29" column="6" selection-start-line="29" selection-start-column="6" selection-end-line="29" selection-end-column="6" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="corect_mesh.h" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/core/manifold/mesh/corect_mesh.h">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="217" column="25" selection-start-line="217" selection-start-column="25" selection-end-line="217" selection-end-column="25" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-        </leaf>
-      </split-first>
-      <split-second>
-        <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file leaf-file-name="surface.h" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/core/model/surface.h">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="8" column="0" selection-start-line="8" selection-start-column="0" selection-end-line="8" selection-end-column="0" />
-                  <folding>
-                    <element signature="e#118#151#0" expanded="true" />
-                    <element signature="e#275#288#0" expanded="true" />
-                    <element signature="e#438#451#0" expanded="true" />
-                    <element signature="e#538#551#0" expanded="true" />
-                    <element signature="e#705#738#0" expanded="true" />
-                    <element signature="e#1592#1620#0" expanded="true" />
-                    <element signature="e#2883#2914#0" expanded="true" />
-                    <element signature="e#3121#3148#0" expanded="true" />
-                    <element signature="e#3407#3431#0" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="geo_object.h" pinned="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/core/geometry/geo_object.h">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="1.074944">
-                  <caret line="121" column="54" selection-start-line="121" selection-start-column="14" selection-end-line="121" selection-end-column="54" />
-                  <folding>
-                    <element signature="e#155#188#0" expanded="true" />
-                    <element signature="e#1003#1025#0" expanded="true" />
-                    <element signature="e#1202#1222#0" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="type_traits.h" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/core/gtl/type_traits.h">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="193" column="6" selection-start-line="193" selection-start-column="6" selection-end-line="193" selection-end-column="6" />
-                  <folding>
-                    <element signature="e#1577#1591#0" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="mesh_ids.h" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/core/manifold/mesh/mesh_ids.h">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="-10.607142">
-                  <caret line="655" column="30" selection-start-line="655" selection-start-column="15" selection-end-line="655" selection-end-column="30" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-        </leaf>
-      </split-second>
-    </splitter>
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file leaf-file-name="particle.h" pinned="true" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/particle/particle.h">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="210.67857">
+              <caret line="21" column="1" selection-start-line="21" selection-start-column="1" selection-end-line="21" selection-end-column="1" />
+              <folding>
+                <element signature="e#150#167#0" expanded="true" />
+                <element signature="e#379#393#0" expanded="true" />
+                <element signature="e#419#433#0" expanded="true" />
+                <element signature="e#465#492#0" expanded="true" />
+                <element signature="e#555#579#0" expanded="true" />
+                <element signature="e#1645#1663#0" expanded="true" />
+                <element signature="e#1865#1901#0" expanded="true" />
+                <element signature="e#1969#1982#0" expanded="true" />
+                <element signature="e#2021#2038#0" expanded="true" />
+                <element signature="e#2108#2125#0" expanded="true" />
+                <element signature="e#2197#2214#0" expanded="true" />
+                <element signature="e#2266#2284#0" expanded="true" />
+                <element signature="e#2347#2365#0" expanded="true" />
+                <element signature="e#2430#2448#0" expanded="true" />
+                <element signature="e#2751#2771#0" expanded="true" />
+                <element signature="e#3224#3243#0" expanded="true" />
+                <element signature="e#3306#3325#0" expanded="true" />
+                <element signature="e#3398#3417#0" expanded="true" />
+                <element signature="e#3897#3930#0" expanded="true" />
+                <element signature="e#4010#4043#0" expanded="true" />
+                <element signature="e#4132#4165#0" expanded="true" />
+                <element signature="e#4372#4409#0" expanded="true" />
+                <element signature="e#4474#4511#0" expanded="true" />
+                <element signature="e#4718#4742#0" expanded="true" />
+                <element signature="e#4751#4769#0" expanded="true" />
+                <element signature="e#4900#4924#0" expanded="true" />
+                <element signature="e#4967#4991#0" expanded="true" />
+                <element signature="e#5000#5036#0" expanded="true" />
+                <element signature="e#5177#5201#0" expanded="true" />
+                <element signature="e#5210#5223#0" expanded="true" />
+                <element signature="e#5320#5344#0" expanded="true" />
+                <element signature="e#5470#5494#0" expanded="true" />
+                <element signature="e#5503#5520#0" expanded="true" />
+                <element signature="e#6261#6285#0" expanded="true" />
+                <element signature="e#6294#6311#0" expanded="true" />
+                <element signature="e#6471#6495#0" expanded="true" />
+                <element signature="e#6504#6521#0" expanded="true" />
+                <element signature="e#7028#7052#0" expanded="true" />
+                <element signature="e#7061#7079#0" expanded="true" />
+                <element signature="e#7368#7392#0" expanded="true" />
+                <element signature="e#7401#7419#0" expanded="true" />
+                <element signature="e#7604#7628#0" expanded="true" />
+                <element signature="e#7637#7655#0" expanded="true" />
+                <element signature="e#8203#8227#0" expanded="true" />
+                <element signature="e#9164#9188#0" expanded="true" />
+                <element signature="e#9284#9308#0" expanded="true" />
+                <element signature="e#9518#9542#0" expanded="true" />
+                <element signature="e#9820#9844#0" expanded="true" />
+                <element signature="e#9853#9874#0" expanded="true" />
+                <element signature="e#10178#10202#0" expanded="true" />
+                <element signature="e#10211#10232#0" expanded="true" />
+                <element signature="e#10424#10448#0" expanded="true" />
+                <element signature="e#10457#10478#0" expanded="true" />
+                <element signature="e#10690#10714#0" expanded="true" />
+                <element signature="e#11033#11057#0" expanded="true" />
+                <element signature="e#11337#11361#0" expanded="true" />
+                <element signature="e#11494#11518#0" expanded="true" />
+                <element signature="e#11943#11967#0" expanded="true" />
+                <element signature="e#15588#15612#0" expanded="true" />
+                <element signature="e#16315#16339#0" expanded="true" />
+                <element signature="e#16475#16499#0" expanded="true" />
+                <element signature="e#21742#21779#0" expanded="true" />
+                <element signature="e#22697#22734#0" expanded="true" />
+                <element signature="e#23522#23546#0" expanded="true" />
+                <element signature="e#23678#23702#0" expanded="true" />
+                <marker date="1448861687509" expanded="true" signature="367:23472" placeholder="{...}" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="particle_constraint.h" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/particle/particle_constraint.h">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="34" column="14" selection-start-line="34" selection-start-column="14" selection-end-line="34" selection-end-column="14" />
+              <folding>
+                <element signature="e#298#322#0" expanded="true" />
+                <element signature="e#703#727#0" expanded="true" />
+                <element signature="e#1163#1217#0" expanded="true" />
+                <marker date="1448861662869" expanded="true" signature="167:247" placeholder="..." />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="constraint.h" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/model/constraint.h">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="32" column="0" selection-start-line="32" selection-start-column="0" selection-end-line="32" selection-end-column="0" />
+              <folding>
+                <element signature="e#118#151#0" expanded="true" />
+                <element signature="e#293#307#0" expanded="true" />
+                <element signature="e#347#360#0" expanded="true" />
+                <element signature="e#483#510#0" expanded="true" />
+                <element signature="e#639#685#0" expanded="true" />
+                <element signature="e#849#880#0" expanded="true" />
+                <element signature="e#966#979#0" expanded="true" />
+                <element signature="e#1017#1030#0" expanded="true" />
+                <element signature="e#1127#1140#0" expanded="true" />
+                <element signature="e#1178#1211#0" expanded="true" />
+                <element signature="e#2081#2109#0" expanded="true" />
+                <element signature="e#3372#3403#0" expanded="true" />
+                <element signature="e#3610#3623#0" expanded="true" />
+                <element signature="e#3882#3906#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="em_plasma.cpp" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/example/em/em_plasma.cpp">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="4.037415">
+              <caret line="170" column="37" selection-start-line="170" selection-start-column="37" selection-end-line="170" selection-end-column="37" />
+              <folding>
+                <element signature="e#71#93#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="memory_pool.cpp" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/gtl/utilities/memory_pool.cpp">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="35" column="33" selection-start-line="35" selection-start-column="33" selection-end-line="35" selection-end-column="33" />
+              <folding>
+                <element signature="e#87#111#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="log.h" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/gtl/utilities/log.h">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="270" column="1" selection-start-line="270" selection-start-column="1" selection-end-line="270" selection-end-column="1" />
+              <folding>
+                <element signature="e#5351#5371#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="em.cpp" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/example/em/em.cpp">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="169" column="3" selection-start-line="169" selection-start-column="0" selection-end-line="173" selection-end-column="37" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
   </component>
   <component name="Git.Settings">
     <option name="PREVIOUS_COMMIT_AUTHORS">
@@ -376,10 +299,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/core/gtl/primitives.h" />
-        <option value="$PROJECT_DIR$/core/manifold/diff_scheme/fvm_structured.h" />
-        <option value="$PROJECT_DIR$/core/gtl/utilities/log.h" />
-        <option value="$PROJECT_DIR$/core/particle/pre_define/simple_particle_generator.h" />
         <option value="$PROJECT_DIR$/core/numeric/compound_distribution.h" />
         <option value="$PROJECT_DIR$/core/io/io.h" />
         <option value="$PROJECT_DIR$/core/dataset/dataspace.h" />
@@ -411,22 +330,26 @@
         <option value="$PROJECT_DIR$/core/particle/particle_engine.h" />
         <option value="$PROJECT_DIR$/core/dataset/datatype_ext.h" />
         <option value="$PROJECT_DIR$/core/particle/particle_generator.h" />
-        <option value="$PROJECT_DIR$/core/particle/particle_constraint.h" />
         <option value="$PROJECT_DIR$/core/manifold/manifold.h" />
         <option value="$PROJECT_DIR$/core/manifold/constraint.h" />
         <option value="$PROJECT_DIR$/core/particle/pre_define/pic_boris.h" />
         <option value="$PROJECT_DIR$/core/parallel/parallel_dummy.h" />
-        <option value="$PROJECT_DIR$/core/particle/particle.h" />
         <option value="$PROJECT_DIR$/core/parallel/parallel.h" />
         <option value="$PROJECT_DIR$/core/parallel/parallel_tbb.h" />
         <option value="$PROJECT_DIR$/core/manifold/mesh/mesh_ids.h" />
         <option value="$PROJECT_DIR$/core/geometry/geo_object.h" />
         <option value="$PROJECT_DIR$/core/manifold/mesh/corect_mesh.h" />
-        <option value="$PROJECT_DIR$/core/model/surface.h" />
         <option value="$PROJECT_DIR$/example/em/CMakeLists.txt" />
         <option value="$PROJECT_DIR$/core/geometry/polygon.h" />
         <option value="$PROJECT_DIR$/core/geometry/polygon.cpp" />
+        <option value="$PROJECT_DIR$/core/field/field_dense.h" />
+        <option value="$PROJECT_DIR$/core/gtl/type_traits.h" />
+        <option value="$PROJECT_DIR$/core/model/surface.h" />
+        <option value="$PROJECT_DIR$/core/particle/particle_constraint.h" />
+        <option value="$PROJECT_DIR$/core/particle/particle.h" />
+        <option value="$PROJECT_DIR$/core/model/constraint.h" />
         <option value="$PROJECT_DIR$/example/em/em_plasma.cpp" />
+        <option value="$PROJECT_DIR$/core/gtl/utilities/log.h" />
       </list>
     </option>
   </component>
@@ -523,6 +446,38 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="core" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SimPla" />
+              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SimPla" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="core" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="manifold" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SimPla" />
+              <option name="myItemType" value="com.jetbrains.cidr.projectView.CidrFilesViewHelper$MyProjectTreeStructure$1" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SimPla" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="applications" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -857,7 +812,7 @@
       <envs />
       <method />
     </configuration>
-    <configuration default="false" name="em_plasma" type="CMakeRunConfiguration" factoryName="Application" PROGRAM_PARAMS="-i /home/salmon/workspace/code/SimPla/example/em/em.lua" WORKING_DIR="" PASS_PARENT_ENVS="TRUE" PROJECT_NAME="SimPla" TARGET_NAME="em_plasma" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="SimPla" RUN_TARGET_NAME="em_plasma">
+    <configuration default="false" name="em_plasma" type="CMakeRunConfiguration" factoryName="Application" PROGRAM_PARAMS="-i /home/salmon/workspace/code/SimPla/example/em/em.lua --verbose 20" WORKING_DIR="" PASS_PARENT_ENVS="TRUE" PROJECT_NAME="SimPla" TARGET_NAME="em_plasma" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="SimPla" RUN_TARGET_NAME="em_plasma">
       <envs>
         <env name="OMPI_MCA_btl " value="self,sm,tcp" />
       </envs>
@@ -1197,7 +1152,13 @@
       <option name="project" value="LOCAL" />
       <updated>1448858266146</updated>
     </task>
-    <option name="localTasksCounter" value="37" />
+    <task id="LOCAL-00037" summary=" snapshot">
+      <created>1448858418782</created>
+      <option name="number" value="00037" />
+      <option name="project" value="LOCAL" />
+      <updated>1448858418782</updated>
+    </task>
+    <option name="localTasksCounter" value="38" />
     <servers />
   </component>
   <component name="TestHistory">
@@ -1242,16 +1203,17 @@
     <frame x="2558" y="-23" width="2564" height="1467" extended-state="4" />
     <editor active="false" />
     <layout>
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="true" show_stripe_button="true" weight="0.1792044" sideWeight="0.49204773" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3282876" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4568082" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="CMake" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4612573" sideWeight="0.48296058" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="LuaJ" active="false" anchor="left" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" show_stripe_button="true" weight="0.32960597" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3250497" sideWeight="0.5170394" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32576868" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.30380672" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" show_stripe_button="true" weight="0.14375988" sideWeight="0.49568966" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32576868" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.54978037" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.40357852" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="true" show_stripe_button="true" weight="0.1792044" sideWeight="0.49204773" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="LuaJ" active="false" anchor="left" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" show_stripe_button="true" weight="0.32960597" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3235725" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" show_stripe_button="true" weight="0.14375739" sideWeight="0.49568966" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.16008425" sideWeight="0.5079523" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.41252485" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
@@ -1259,7 +1221,6 @@
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32359082" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
@@ -1315,13 +1276,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/core/dataset/datatype.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="60" column="17" selection-start-line="60" selection-start-column="11" selection-end-line="60" selection-end-column="23" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/core/dataset/datatype.cpp">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1438,6 +1392,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="13" column="18" selection-start-line="13" selection-start-column="18" selection-end-line="13" selection-end-column="18" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -1495,23 +1450,10 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.16666667">
           <caret line="142" column="32" selection-start-line="142" selection-start-column="24" selection-end-line="142" selection-end-column="32" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/particle/particle_constraint.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.7085346">
-          <caret line="20" column="0" selection-start-line="20" selection-start-column="0" selection-end-line="20" selection-end-column="0" />
           <folding>
-            <element signature="e#157#175#0" expanded="false" />
+            <element signature="e#211#250#0" expanded="false" />
+            <element signature="e#26178#26192#0" expanded="false" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/manifold/constraint.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.49597424">
-          <caret line="14" column="1" selection-start-line="14" selection-start-column="1" selection-end-line="14" selection-end-column="1" />
         </state>
       </provider>
     </entry>
@@ -1519,6 +1461,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.5217391">
           <caret line="26" column="0" selection-start-line="26" selection-start-column="0" selection-end-line="26" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -1526,6 +1469,11 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="72" column="65" selection-start-line="72" selection-start-column="65" selection-end-line="72" selection-end-column="65" />
+          <folding>
+            <element signature="e#240#253#0" expanded="false" />
+            <element signature="e#326#328#0" expanded="false" />
+            <marker date="1448792960086" expanded="true" signature="871:926" placeholder="{...}" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -1537,20 +1485,15 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/core/gtl/type_traits.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="193" column="6" selection-start-line="193" selection-start-column="6" selection-end-line="193" selection-end-column="6" />
-          <folding>
-            <element signature="e#1577#1591#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/core/parallel/parallel_dummy.h">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.295302">
           <caret line="24" column="7" selection-start-line="24" selection-start-column="7" selection-end-line="24" selection-end-column="7" />
+          <folding>
+            <element signature="e#264#278#0" expanded="false" />
+            <element signature="e#320#334#0" expanded="false" />
+            <element signature="e#376#390#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -1566,80 +1509,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/particle/particle.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="28" column="19" selection-start-line="28" selection-start-column="19" selection-end-line="28" selection-end-column="19" />
-          <folding>
-            <element signature="e#150#167#0" expanded="true" />
-            <element signature="e#377#391#0" expanded="true" />
-            <element signature="e#417#431#0" expanded="true" />
-            <element signature="e#463#490#0" expanded="true" />
-            <element signature="e#553#577#0" expanded="true" />
-            <element signature="e#1643#1661#0" expanded="true" />
-            <element signature="e#1863#1899#0" expanded="true" />
-            <element signature="e#1967#1980#0" expanded="true" />
-            <element signature="e#2019#2036#0" expanded="true" />
-            <element signature="e#2106#2123#0" expanded="true" />
-            <element signature="e#2195#2212#0" expanded="true" />
-            <element signature="e#2264#2282#0" expanded="true" />
-            <element signature="e#2345#2363#0" expanded="true" />
-            <element signature="e#2428#2446#0" expanded="true" />
-            <element signature="e#2749#2769#0" expanded="true" />
-            <element signature="e#3222#3241#0" expanded="true" />
-            <element signature="e#3304#3323#0" expanded="true" />
-            <element signature="e#3396#3415#0" expanded="true" />
-            <element signature="e#3895#3928#0" expanded="true" />
-            <element signature="e#4008#4041#0" expanded="true" />
-            <element signature="e#4130#4163#0" expanded="true" />
-            <element signature="e#4370#4407#0" expanded="true" />
-            <element signature="e#4472#4509#0" expanded="true" />
-            <element signature="e#4716#4740#0" expanded="true" />
-            <element signature="e#4749#4767#0" expanded="true" />
-            <element signature="e#4898#4922#0" expanded="true" />
-            <element signature="e#4965#4989#0" expanded="true" />
-            <element signature="e#4998#5034#0" expanded="true" />
-            <element signature="e#5175#5199#0" expanded="true" />
-            <element signature="e#5208#5221#0" expanded="true" />
-            <element signature="e#5318#5342#0" expanded="true" />
-            <element signature="e#5468#5492#0" expanded="true" />
-            <element signature="e#5501#5518#0" expanded="true" />
-            <element signature="e#6259#6283#0" expanded="true" />
-            <element signature="e#6292#6309#0" expanded="true" />
-            <element signature="e#6469#6493#0" expanded="true" />
-            <element signature="e#6502#6519#0" expanded="true" />
-            <element signature="e#7026#7050#0" expanded="true" />
-            <element signature="e#7059#7077#0" expanded="true" />
-            <element signature="e#7366#7390#0" expanded="true" />
-            <element signature="e#7399#7417#0" expanded="true" />
-            <element signature="e#7602#7626#0" expanded="true" />
-            <element signature="e#7635#7653#0" expanded="true" />
-            <element signature="e#8201#8225#0" expanded="true" />
-            <element signature="e#9162#9186#0" expanded="true" />
-            <element signature="e#9282#9306#0" expanded="true" />
-            <element signature="e#9516#9540#0" expanded="true" />
-            <element signature="e#9818#9842#0" expanded="true" />
-            <element signature="e#9851#9872#0" expanded="true" />
-            <element signature="e#10176#10200#0" expanded="true" />
-            <element signature="e#10209#10230#0" expanded="true" />
-            <element signature="e#10422#10446#0" expanded="true" />
-            <element signature="e#10455#10476#0" expanded="true" />
-            <element signature="e#10688#10712#0" expanded="true" />
-            <element signature="e#11031#11055#0" expanded="true" />
-            <element signature="e#11335#11359#0" expanded="true" />
-            <element signature="e#11492#11516#0" expanded="true" />
-            <element signature="e#11941#11965#0" expanded="true" />
-            <element signature="e#15586#15610#0" expanded="true" />
-            <element signature="e#16313#16337#0" expanded="true" />
-            <element signature="e#16473#16497#0" expanded="true" />
-            <element signature="e#21740#21777#0" expanded="true" />
-            <element signature="e#22446#22483#0" expanded="true" />
-            <element signature="e#23264#23288#0" expanded="true" />
-            <element signature="e#23420#23444#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1677,34 +1546,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file:///usr/local/include/tbb/concurrent_hash_map.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.3326087">
-          <caret line="559" column="28" selection-start-line="559" selection-start-column="28" selection-end-line="559" selection-end-column="28" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/example/em/em.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="67" column="0" selection-start-line="67" selection-start-column="0" selection-end-line="73" selection-end-column="39" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/core/model/geqdsk.h">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="29" column="6" selection-start-line="29" selection-start-column="6" selection-end-line="29" selection-end-column="6" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/manifold/mesh/mesh_ids.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-10.607142">
-          <caret line="655" column="30" selection-start-line="655" selection-start-column="15" selection-end-line="655" selection-end-column="30" />
           <folding />
         </state>
       </provider>
@@ -1733,18 +1578,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/core/geometry/geo_object.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="1.074944">
-          <caret line="121" column="54" selection-start-line="121" selection-start-column="14" selection-end-line="121" selection-end-column="54" />
-          <folding>
-            <element signature="e#155#188#0" expanded="true" />
-            <element signature="e#1003#1025#0" expanded="true" />
-            <element signature="e#1202#1222#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/core/geometry/polygon.cpp">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1753,46 +1586,218 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/core/model/geqdsk.cpp">
+    <entry file="file:///usr/local/include/tbb/concurrent_hash_map.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="111" column="16" selection-start-line="111" selection-start-column="16" selection-end-line="111" selection-end-column="16" />
+        <state vertical-scroll-proportion="-8.178572">
+          <caret line="968" column="33" selection-start-line="968" selection-start-column="23" selection-end-line="968" selection-end-column="33" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/field/field_dense.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.4652726">
+          <caret line="162" column="68" selection-start-line="162" selection-start-column="65" selection-end-line="162" selection-end-column="68" />
+          <folding>
+            <element signature="e#3032#3064#0" expanded="false" />
+            <element signature="e#3522#3554#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/example/em/em.lua">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
+        <state vertical-scroll-proportion="0.21508588">
           <caret line="47" column="6" selection-start-line="47" selection-start-column="0" selection-end-line="47" selection-end-column="6" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/example/em/em_plasma.cpp">
+    <entry file="file://$PROJECT_DIR$/core/model/geqdsk.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.5698282">
+          <caret line="427" column="32" selection-start-line="427" selection-start-column="32" selection-end-line="427" selection-end-column="32" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/particle/particle_constraint.h">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="109" column="48" selection-start-line="109" selection-start-column="48" selection-end-line="109" selection-end-column="48" />
+          <caret line="34" column="14" selection-start-line="34" selection-start-column="14" selection-end-line="34" selection-end-column="14" />
           <folding>
-            <element signature="e#71#93#0" expanded="true" />
+            <element signature="e#298#322#0" expanded="true" />
+            <element signature="e#703#727#0" expanded="true" />
+            <element signature="e#1163#1217#0" expanded="true" />
+            <marker date="1448861662869" expanded="true" signature="167:247" placeholder="..." />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/core/model/surface.h">
+    <entry file="file://$PROJECT_DIR$/core/particle/particle.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.29642057">
-          <caret line="61" column="0" selection-start-line="61" selection-start-column="0" selection-end-line="61" selection-end-column="0" />
+        <state vertical-scroll-proportion="210.67857">
+          <caret line="21" column="1" selection-start-line="21" selection-start-column="1" selection-end-line="21" selection-end-column="1" />
+          <folding>
+            <element signature="e#150#167#0" expanded="true" />
+            <element signature="e#379#393#0" expanded="true" />
+            <element signature="e#419#433#0" expanded="true" />
+            <element signature="e#465#492#0" expanded="true" />
+            <element signature="e#555#579#0" expanded="true" />
+            <element signature="e#1645#1663#0" expanded="true" />
+            <element signature="e#1865#1901#0" expanded="true" />
+            <element signature="e#1969#1982#0" expanded="true" />
+            <element signature="e#2021#2038#0" expanded="true" />
+            <element signature="e#2108#2125#0" expanded="true" />
+            <element signature="e#2197#2214#0" expanded="true" />
+            <element signature="e#2266#2284#0" expanded="true" />
+            <element signature="e#2347#2365#0" expanded="true" />
+            <element signature="e#2430#2448#0" expanded="true" />
+            <element signature="e#2751#2771#0" expanded="true" />
+            <element signature="e#3224#3243#0" expanded="true" />
+            <element signature="e#3306#3325#0" expanded="true" />
+            <element signature="e#3398#3417#0" expanded="true" />
+            <element signature="e#3897#3930#0" expanded="true" />
+            <element signature="e#4010#4043#0" expanded="true" />
+            <element signature="e#4132#4165#0" expanded="true" />
+            <element signature="e#4372#4409#0" expanded="true" />
+            <element signature="e#4474#4511#0" expanded="true" />
+            <element signature="e#4718#4742#0" expanded="true" />
+            <element signature="e#4751#4769#0" expanded="true" />
+            <element signature="e#4900#4924#0" expanded="true" />
+            <element signature="e#4967#4991#0" expanded="true" />
+            <element signature="e#5000#5036#0" expanded="true" />
+            <element signature="e#5177#5201#0" expanded="true" />
+            <element signature="e#5210#5223#0" expanded="true" />
+            <element signature="e#5320#5344#0" expanded="true" />
+            <element signature="e#5470#5494#0" expanded="true" />
+            <element signature="e#5503#5520#0" expanded="true" />
+            <element signature="e#6261#6285#0" expanded="true" />
+            <element signature="e#6294#6311#0" expanded="true" />
+            <element signature="e#6471#6495#0" expanded="true" />
+            <element signature="e#6504#6521#0" expanded="true" />
+            <element signature="e#7028#7052#0" expanded="true" />
+            <element signature="e#7061#7079#0" expanded="true" />
+            <element signature="e#7368#7392#0" expanded="true" />
+            <element signature="e#7401#7419#0" expanded="true" />
+            <element signature="e#7604#7628#0" expanded="true" />
+            <element signature="e#7637#7655#0" expanded="true" />
+            <element signature="e#8203#8227#0" expanded="true" />
+            <element signature="e#9164#9188#0" expanded="true" />
+            <element signature="e#9284#9308#0" expanded="true" />
+            <element signature="e#9518#9542#0" expanded="true" />
+            <element signature="e#9820#9844#0" expanded="true" />
+            <element signature="e#9853#9874#0" expanded="true" />
+            <element signature="e#10178#10202#0" expanded="true" />
+            <element signature="e#10211#10232#0" expanded="true" />
+            <element signature="e#10424#10448#0" expanded="true" />
+            <element signature="e#10457#10478#0" expanded="true" />
+            <element signature="e#10690#10714#0" expanded="true" />
+            <element signature="e#11033#11057#0" expanded="true" />
+            <element signature="e#11337#11361#0" expanded="true" />
+            <element signature="e#11494#11518#0" expanded="true" />
+            <element signature="e#11943#11967#0" expanded="true" />
+            <element signature="e#15588#15612#0" expanded="true" />
+            <element signature="e#16315#16339#0" expanded="true" />
+            <element signature="e#16475#16499#0" expanded="true" />
+            <element signature="e#21742#21779#0" expanded="true" />
+            <element signature="e#22697#22734#0" expanded="true" />
+            <element signature="e#23522#23546#0" expanded="true" />
+            <element signature="e#23678#23702#0" expanded="true" />
+            <marker date="1448861687509" expanded="true" signature="367:23472" placeholder="{...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/geometry/geo_object.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.46623793">
+          <caret line="42" column="0" selection-start-line="42" selection-start-column="0" selection-end-line="42" selection-end-column="0" />
+          <folding>
+            <element signature="e#155#188#0" expanded="false" />
+            <element signature="e#1003#1025#0" expanded="false" />
+            <element signature="e#1202#1222#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/gtl/type_traits.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-0.49732047">
+          <caret line="440" column="0" selection-start-line="440" selection-start-column="0" selection-end-line="440" selection-end-column="0" />
+          <folding>
+            <element signature="e#1577#1591#0" expanded="true" />
+            <element signature="e#9708#9727#0" expanded="true" />
+            <element signature="e#11978#11980#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/manifold/mesh/mesh_ids.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.3281768">
+          <caret line="655" column="30" selection-start-line="655" selection-start-column="15" selection-end-line="655" selection-end-column="30" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/model/constraint.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="32" column="0" selection-start-line="32" selection-start-column="0" selection-end-line="32" selection-end-column="0" />
           <folding>
             <element signature="e#118#151#0" expanded="true" />
-            <element signature="e#275#288#0" expanded="true" />
-            <element signature="e#438#451#0" expanded="true" />
-            <element signature="e#538#551#0" expanded="true" />
-            <element signature="e#705#738#0" expanded="true" />
-            <element signature="e#1592#1620#0" expanded="true" />
-            <element signature="e#2883#2914#0" expanded="true" />
-            <element signature="e#3121#3148#0" expanded="true" />
-            <element signature="e#3407#3431#0" expanded="true" />
+            <element signature="e#293#307#0" expanded="true" />
+            <element signature="e#347#360#0" expanded="true" />
+            <element signature="e#483#510#0" expanded="true" />
+            <element signature="e#639#685#0" expanded="true" />
+            <element signature="e#849#880#0" expanded="true" />
+            <element signature="e#966#979#0" expanded="true" />
+            <element signature="e#1017#1030#0" expanded="true" />
+            <element signature="e#1127#1140#0" expanded="true" />
+            <element signature="e#1178#1211#0" expanded="true" />
+            <element signature="e#2081#2109#0" expanded="true" />
+            <element signature="e#3372#3403#0" expanded="true" />
+            <element signature="e#3610#3623#0" expanded="true" />
+            <element signature="e#3882#3906#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/example/em/em.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="169" column="3" selection-start-line="169" selection-start-column="0" selection-end-line="173" selection-end-column="37" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/gtl/utilities/log.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="270" column="1" selection-start-line="270" selection-start-column="1" selection-end-line="270" selection-end-column="1" />
+          <folding>
+            <element signature="e#5351#5371#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/gtl/utilities/memory_pool.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="35" column="33" selection-start-line="35" selection-start-column="33" selection-end-line="35" selection-end-column="33" />
+          <folding>
+            <element signature="e#87#111#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/example/em/em_plasma.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="4.037415">
+          <caret line="170" column="37" selection-start-line="170" selection-start-column="37" selection-end-line="170" selection-end-column="37" />
+          <folding>
+            <element signature="e#71#93#0" expanded="true" />
           </folding>
         </state>
       </provider>

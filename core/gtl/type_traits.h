@@ -124,7 +124,7 @@ struct value_type
 {
     typedef typename std::enable_if<std::is_scalar<T>::value, T>::type type;
 };
-template< >
+template<>
 struct value_type<std::string>
 {
     typedef std::string type;
@@ -422,6 +422,22 @@ DECL_RET_TYPE((e - b))
 
 
 template<int N, typename T> struct access;
+
+template<int N, typename T>
+struct access
+{
+    static constexpr auto get(T &v)
+    DECL_RET_TYPE(v)
+
+//    static constexpr auto get(T const &v)
+//    DECL_RET_TYPE(v)
+
+    template<typename U>
+    static void set(T &v, U const &u)
+    {
+        v = static_cast<T>(u);
+    }
+};
 
 template<int N, typename ...T>
 struct access<N, std::tuple<T...>>

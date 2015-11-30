@@ -151,6 +151,36 @@ public:
         return *this;
     }
 
+    template<typename TRange, typename Func>
+    void accept(TRange const &r0, Func const &fun)
+    {
+        parallel::parallel_for(r0,
+                               [&](TRange const &r)
+                               {
+
+                                   for (auto const &item:r)
+                                   {
+                                       fun(item, (*this)[traits::get<0>(item)]);
+                                   }
+                               }
+        );
+    };
+
+    template<typename TRange, typename Func>
+    void accept(TRange const &r0, Func const &fun) const
+    {
+        parallel::parallel_for(r0,
+                               [&](TRange const &r)
+                               {
+
+                                   for (auto const &item:r)
+                                   {
+                                       fun(item, (*this)[traits::get<0>(item)]);
+                                   }
+                               }
+        );
+    };
+
 private:
 
     template<typename TOP, typename ...Args>

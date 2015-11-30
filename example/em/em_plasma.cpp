@@ -19,7 +19,8 @@
 #include "../../core/particle/particle_generator.h"
 #include "../../core/particle/pre_define/pic_boris.h"
 #include "../../core/model/geqdsk.h"
-#include "../../core/model/surface.h"
+#include "../../core/model/constraint.h"
+#include "../../core/particle/particle_constraint.h"
 
 namespace simpla
 {
@@ -43,10 +44,11 @@ struct EMPlasma
 
     void check_point();
 
+    typedef Real scalar_type;
 
     typedef manifold::CartesianManifold mesh_type;
 
-    typedef Real scalar_type;
+    typedef typename mesh_type::id_type id_type;
 
     typedef nTuple<scalar_type, 3> vector_type;
 
@@ -71,53 +73,71 @@ struct EMPlasma
 
     particle::BorisParticle<mesh_type> ion{m};
 
-    struct particle_s
-    {
-        std::shared_ptr<ParticleProxyBase<TB, TE, TJ, TRho>> p;
-        Real mass;
-        Real charge;
-        TJ J1;
-        TRho rho1;
-        traits::field_t<scalar_type, mesh_type, VERTEX> rhos;
-        traits::field_t<vector_type, mesh_type, VERTEX> Js;
-    };
-    std::map<std::string, particle_s> particles;
+//    struct particle_s
+//    {
+//        std::shared_ptr<ParticleProxyBase<TB, TE, TJ, TRho>> p;
+//        Real mass;
+//        Real charge;
+//        TJ J1;
+//        TRho rho1;
+//        traits::field_t<scalar_type, mesh_type, VERTEX> rhos;
+//        traits::field_t<vector_type, mesh_type, VERTEX> Js;
+//    };
+//    std::map<std::string, particle_s> particles;
+
+    model::Surface<mesh_type> limiter_boundary;
+    model::IdSet<mesh_type> edge_boundary;
+    model::IdSet<mesh_type> face_boundary;
 };
 
 void EMPlasma::setup(int argc, char **argv)
 {
-
-    ConfigParser options;
-
-    options.init(argc, argv);
-
-
-    m.load(options);
-
-    GEqdsk geqdsk;
-
-    geqdsk.load(options["GEQDSK"].as<std::string>(""));
-
-
-    m.box(geqdsk.boundary().box());
-
-    m.deploy();
-
-
-    model::Cache<mesh_type> cache;
-
-    model::ElementList<mesh_type> edge_boundary;
-    model::ElementList<mesh_type> face_boundary;
-
-    model::create_cache(m, geqdsk.boundary(), &cache);
-
-    model::get_surface<EDGE>(m, cache, &edge_boundary);
-    model::get_surface<FACE>(m, cache, &face_boundary);
-
-    MESSAGE << std::endl << "[ Configuration ]" << std::endl << m << std::endl;
-
     try
     {
+        ConfigParser options;
+
+        options.init(argc, argv);
+
+
+        m.load(options);
+
+        GEqdsk geqdsk;
+
+        geqdsk.load(options["GEQDSK"].as<std::string>(""));
+
+        auto box = geqdsk.boundary().box();
+
+        std::get<0>(box)[2] = 0;
+        std::get<1>(box)[2] = TWOPI;
+
+        m.box(box);
+
+        m.deploy();
+
+        {
+            model::Cache<mesh_type> cache;
+
+            model::create_cache(m, geqdsk.boundary(), &cache);
+
+            model::get_surface<EDGE>(m, cache, &edge_boundary);
+            model::get_surface<FACE>(m, cache, &face_boundary);
+
+        }
+
+        {
+            model::Cache<mesh_type> cache;
+
+            model::create_cache(m, geqdsk.limiter(), &cache);
+
+            model::get_surface(m, cache, &limiter_boundary);
+
+
+        }
+
+
+        MESSAGE << std::endl << "[ Configuration ]" << std::endl << m << std::endl;
+
+
         VERBOSE << "Clear fields" << std::endl;
 
         Bv.clear();
@@ -139,9 +159,11 @@ void EMPlasma::setup(int argc, char **argv)
 
         ion.generator(gen, options["PIC"].as<size_t>(10), 1.0);
 
-    } catch (std::exception const &error)
+
+    }
+    catch (std::exception const &error)
     {
-        THROW_EXCEPTION_RUNTIME_ERROR("setup error", error.what());
+          THROW_EXCEPTION_RUNTIME_ERROR("Context setup error!", error.what());
     }
 
 
@@ -184,9 +206,20 @@ void EMPlasma::next_time_step()
 
     ion.integral(&J1);
 
-    B1 -= curl(E1) * (dt * 0.5);
-    E1 += (curl(B1) - J1) * dt;
-    B1 -= curl(E1) * (dt * 0.5);
+
+    LOG_CMD(B1 -= curl(E1) * (dt * 0.5));
+
+    B1.accept(face_boundary.range(), [&](id_type const &, Real &v) { v = 0; });
+
+    LOG_CMD(E1 += (curl(B1) * speed_of_light2 - J1 / epsilon0) * (dt * 0.5));
+
+    E1.accept(edge_boundary.range(), [&](id_type const &, Real &v) { v = 0; });
+
+    LOG_CMD(B1 -= curl(E1) * (dt * 0.5));
+
+    B1.accept(face_boundary.range(), [&](id_type const &, Real &v) { v = 0; });
+
+    particle::absorb(ion, limiter_boundary);
 //
 //
 //    Ev = map_to<VERTEX>(E1);
@@ -260,7 +293,6 @@ int main(int argc, char **argv)
 
     try
     {
-
         logger::init(argc, argv);
 
         parallel::init(argc, argv);
@@ -303,11 +335,13 @@ int main(int argc, char **argv)
 
     simpla::EMPlasma ctx;
 
+
     int num_of_step = options["number_of_step"].as<int>(2);
 
     int check_point = options["check_point"].as<int>(1);
 
     ctx.setup(argc, argv);
+
 
     int count = 0;
 

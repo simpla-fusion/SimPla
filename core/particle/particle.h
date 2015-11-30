@@ -20,6 +20,8 @@ namespace simpla
 {
 namespace particle
 {
+
+
 template<typename ...> struct Particle;
 template<typename ...> struct ParticleEngine;
 template<typename TAGS, typename M> using particle_t= Particle<ParticleEngine<TAGS>, M>;
@@ -798,9 +800,13 @@ void Particle<P, M>::remove_if(TRange const &r, Predicate const &pred)
                                {
                                    typename container_type::accessor acc;
 
-                                   if (container_type::find(acc, s))
+                                   if (container_type::find(acc, std::get<0>(s)))
                                    {
-                                       acc->second.remove_if(pred);
+                                       acc->second.remove_if(
+                                               [&](value_type const &p)
+                                               {
+                                                   return pred(s, p);
+                                               });
                                    }
 
 
@@ -824,15 +830,15 @@ void Particle<P, M>::accept(TConstraint const &constraint, TFun const &fun)
 
                     typename container_type::accessor acc;
 
-                    if (container_type::find(acc, item.first))
+                    if (container_type::find(acc, std::get<0>(item)))
                     {
                         for (auto &p:acc->second)
                         {
-                            fun(item.second, &p);
+                            fun(item, &p);
                         }
                     }
 
-                    rehash(item.first, &buffer);
+                    rehash(std::get<0>(item), &buffer);
                 }
             }
 

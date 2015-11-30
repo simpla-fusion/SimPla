@@ -13,15 +13,34 @@
 
 namespace simpla { namespace model
 {
-template<typename TM> using Surface=parallel::concurrent_hash_map<typename TM::id_type,
-        std::tuple<typename TM::point_type, typename TM::vector_type> >;
+namespace _impl
+{
+template<typename ...> struct constraint_type_choice;
+template<typename TM>
+struct constraint_type_choice<TM>
+{
+    typedef parallel::concurrent_unordered_set<typename TM::id_type> type;
+};
+template<typename TM, typename Arg>
+struct constraint_type_choice<TM, Arg>
+{
+    typedef parallel::concurrent_hash_map<typename TM::id_type, Arg> type;
+};
 
+template<typename TM, typename Arg0, typename ...Args>
+struct constraint_type_choice<TM, Arg0, Args ...>
+{
+    typedef parallel::concurrent_hash_map<typename TM::id_type, std::tuple<Arg0, Args...>> type;
+};
+}
 
-template<typename TM> using ElementList=parallel::concurrent_unordered_set<typename TM::id_type>;
+template<typename TM, typename ...Args> using Constraint=typename _impl::constraint_type_choice<TM, Args...>::type;
 
+template<typename TM> using IdSet=Constraint<TM>;
 
-template<typename TM> using Cache=parallel::concurrent_hash_map<typename TM::id_type,
-        std::tuple<Real, typename TM::point_type, typename TM::vector_type> >;
+template<typename TM> using Surface=Constraint<TM, Real, typename TM::point_type, typename TM::vector_type>;
+
+template<typename TM> using Cache = Surface<TM>;
 
 
 template<typename TM, int IFORM = VERTEX>
@@ -49,7 +68,7 @@ void create_cache(TM const &m, geometry::Object const &geo, Cache<TM> *cache)
 
                                    Real d = geo.normals(&x, &v);
 
-                                   cache->insert(std::make_pair(s, std::make_tuple(d, x, v)));
+                                   cache->insert(typename Cache<TM>::value_type(s, std::make_tuple(d, x, v)));
                                }
                            });
 
@@ -115,7 +134,7 @@ void get_surface(TM const &m, geometry::Object const &geo, Args &&...args)
     get_surface(cache, cache, std::forward<Args>(args)...);
 }
 
-template<typename TM, typename Fun>
+template<typename TM>
 void get_surface(TM const &m, Cache<TM> const &cache, Surface<TM> *surface)
 {
     on_surface(m, cache,
@@ -128,7 +147,7 @@ void get_surface(TM const &m, Cache<TM> const &cache, Surface<TM> *surface)
 
 
 template<int IFORM, typename TM>
-void get_surface(TM const &m, Cache<TM> const &cache, ElementList<TM> *surface,
+void get_surface(TM const &m, Cache<TM> const &cache, IdSet<TM> *surface,
                  bool is_out_boundary = true)
 {
     typedef TM mesh_type;

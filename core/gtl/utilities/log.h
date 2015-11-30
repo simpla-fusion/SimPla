@@ -272,6 +272,7 @@ inline std::ostringstream &_make_error_msg(std::ostringstream &os)
     return os;
 }
 
+
 template<typename T>
 std::ostringstream &_make_error_msg(std::ostringstream &os, T const &first)
 {
@@ -280,15 +281,14 @@ std::ostringstream &_make_error_msg(std::ostringstream &os, T const &first)
 }
 
 template<typename T, typename ...Others>
-std::ostringstream &_make_error_msg(std::ostringstream &os, T const &first, Others &&...others)
+std::ostringstream &_make_error_msg(std::ostringstream &os, T &&first, Others &&...others)
 {
-    os << first;
-    return _make_error_msg(os, std::forward<Others>(others)...);
+    return _make_error_msg(_make_error_msg(os, std::forward<T>(first)), std::forward<Others>(others)...);
 }
 
 
-template<typename T0, typename T1, typename T2, typename ...Others>
-std::string make_error_msg(T0 const &file, T1 const &line, T2 const &func, Others &&...others)
+template<typename ...Others>
+std::string make_error_msg(const char *file, int line, const char *func, Others &&...others)
 {
     std::ostringstream buffer;
 
@@ -311,7 +311,7 @@ std::string make_error_msg(T0 const &file, T1 const &line, T2 const &func, Other
  *  @name   Shortcuts for logging
  *  @{
  */
-#define MAKE_ERROR_MSG(...) logger::make_error_msg((__FILE__),(__LINE__),(__PRETTY_FUNCTION__),__VA_ARGS__)
+#define MAKE_ERROR_MSG(...) logger::make_error_msg( (__FILE__),(__LINE__), (__PRETTY_FUNCTION__),__VA_ARGS__)
 
 #define DONE logger::done
 
@@ -416,7 +416,7 @@ std::string make_error_msg(T0 const &file, T1 const &line, T2 const &func, Other
 #define SEPERATOR(_C_) std::setw(80) << std::setfill(_C_) << _C_
 //"-----------------------------------------------------------------"
 
-#define LOG_CMD(_CMD_) try{logger::Logger __logger(logger::LOG_LOG);__logger<<__STRING(_CMD_);_CMD_;__logger<<DONE;}catch (std::exception const &error){ THROW_EXCEPTION_RUNTIME_ERROR("[",__STRING(_CMD_), "]",error.what());}
+#define LOG_CMD(_CMD_) try{logger::Logger __logger(logger::LOG_LOG);__logger<<std::string(__STRING(_CMD_));_CMD_;__logger<<DONE;}catch (std::exception const &error){ THROW_EXCEPTION_RUNTIME_ERROR("[",__STRING(_CMD_), "]",error.what());}
 
 #define VERBOSE_CMD(_CMD_) {logger::Logger __logger(logger::LOG_VERBOSE);__logger<<__STRING(_CMD_);try{_CMD_;__logger<< DONE;}catch(...){__logger<<logger::failed;} }
 
