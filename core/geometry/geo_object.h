@@ -10,6 +10,7 @@
 
 #include "../gtl/utilities/log.h"
 #include "../gtl/ntuple.h"
+#include "../gtl/type_traits.h"
 
 namespace simpla { namespace geometry
 {
@@ -24,7 +25,7 @@ class Object
     typedef Object this_type;
 
 public:
-
+    typedef nTuple<Real, 3> vector_type;
     typedef nTuple<Real, 3> point_type;
     typedef std::tuple<point_type, point_type> box_type;
 
@@ -49,10 +50,37 @@ public:
         return (within(std::forward<Others>(others)...) << 1UL) | within(b);
     };
 
+private:
+
+    template<typename T, int ...I>
+    inline int _invoke_helper(T const &p_tuple, index_sequence<I...>) const
+    {
+        return within(std::get<I>(std::forward<T>(p_tuple))...);
+    };
+
+
+public:
+    template<typename ...Others>
+    inline int within(std::tuple<Others...> const &p_tuple) const
+    {
+        return _invoke_helper(p_tuple, make_index_sequence<sizeof...(Others)>());
+    };
+
+    inline int within(int num, point_type const *p_tuple) const
+    {
+        ASSERT(num < std::numeric_limits<int>::digits);
+
+        int res;
+        for (int i = 0; i < num; ++i)
+        {
+            res |= (within(p_tuple[i])) << (num - 1 - i);
+        }
+        return res;
+    };
 
     /**
      * @return  if  \f$ BOX \cap M \neq \emptyset \f$ then x0,x1 is set to overlap box
-     *          else x0,xa is not changed
+     *          else x0,x1 is not changed
      *         if \f$ BOX \cap M  = \emptyset \f$    return 0
      *         else if  \f$ BOX \in M   \f$ return 2
      *         else return 1
@@ -70,6 +98,17 @@ public:
      *  else > 0
      */
     virtual Real nearest_point(point_type *x) const = 0;
+
+    /**
+      * find nearest point from \f$M\f$ to \f$x\f$, and the normal of
+      * surface at this point
+      *
+      * @inout x
+      * @out v
+      * @return d distance
+      *      x[out]=x[in]+v*d
+      */
+    virtual Real normals(point_type *x, vector_type *v) const = 0;
 
     virtual Real nearest_point(point_type *x0, point_type *x1) const
     {

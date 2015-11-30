@@ -11,10 +11,9 @@
 
 namespace simpla { namespace particle
 {
-namespace tags
-{
-struct Boris;
-}
+namespace tags { struct Boris; }
+
+
 template<typename TM> using BorisParticle=Particle<ParticleEngine<tags::Boris>, TM>;
 
 template<>
@@ -39,10 +38,16 @@ struct ParticleEngine<tags::Boris>
 
     void update() { }
 
-    Vec3 project(sample_type const &p) const { return p.z.x; }
+    Vec3 project(point_type const &z) const { return z.x; }
 
-    Real function_value(sample_type const &p) const { return p.f * p.w; }
+    std::tuple<Vec3, Vec3> push_forward(point_type const &z) const
+    {
+        return std::forward_as_tuple(z.x, z.v);
+    }
 
+    Vec3 project(sample_type const &p) const { return project(p.z); }
+
+    std::tuple<Vec3, Vec3> push_forward(sample_type const &p) const { return push_forward(p.z); }
 
     point_type lift(Vec3 const &x, Vec3 const &v) const
     {

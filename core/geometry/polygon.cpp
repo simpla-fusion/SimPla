@@ -20,6 +20,13 @@ Real  Polygon<2>::nearest_point(point_type *p) const
     return geometry::nearest_point_to_polygon(m_polygon_.begin(), m_polygon_.end(), p);
 }
 
+Real Polygon<2>::normals(point_type *x, vector_type *v) const
+{
+    //UNIMPLEMENTED;
+    return 0;
+}
+
+
 void Polygon<2>::push_back(point_type const &pp)
 {
     point2d_type p;

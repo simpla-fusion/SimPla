@@ -18,6 +18,8 @@
 #include "../../core/dataset/datatype_ext.h"
 #include "../../core/particle/particle_generator.h"
 #include "../../core/particle/pre_define/pic_boris.h"
+#include "../../core/model/geqdsk.h"
+#include "../../core/model/surface.h"
 
 namespace simpla
 {
@@ -89,10 +91,28 @@ void EMPlasma::setup(int argc, char **argv)
 
     options.init(argc, argv);
 
+
     m.load(options);
+
+    GEqdsk geqdsk;
+
+    geqdsk.load(options["GEQDSK"].as<std::string>(""));
+
+
+    m.box(geqdsk.boundary().box());
 
     m.deploy();
 
+
+    model::Cache<mesh_type> cache;
+
+    model::ElementList<mesh_type> edge_boundary;
+    model::ElementList<mesh_type> face_boundary;
+
+    model::create_cache(m, geqdsk.boundary(), &cache);
+
+    model::get_surface<EDGE>(m, cache, &edge_boundary);
+    model::get_surface<FACE>(m, cache, &face_boundary);
 
     MESSAGE << std::endl << "[ Configuration ]" << std::endl << m << std::endl;
 

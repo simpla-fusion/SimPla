@@ -15,6 +15,16 @@ namespace simpla { namespace parallel
 {
 
 
+template<typename ...> struct concurrent_unordered_map;
+template<typename ...> struct concurrent_unordered_set;
+template<typename ...> struct concurrent_hash_map;
+
+template<typename Range, typename OP>
+void parallel_do(Range const &range, OP const &op)
+{
+    op();
+}
+
 /**
  *
  * @param range Range Concept

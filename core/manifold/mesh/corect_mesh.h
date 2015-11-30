@@ -204,9 +204,32 @@ public:
         return std::make_tuple(point(s - base_type::_DA), point(s + base_type::_DA));
     };
 
+
     vector_type const &dx() const
     {
         return m_dx_;
+    }
+
+    int get_vertices(int node_id, id_type s, point_type *p = nullptr) const
+    {
+
+        int num = base_type::get_vertices_id(node_id, s);
+
+        if (p != nullptr)
+        {
+            id_type neighbour[num];
+
+            base_type::get_vertices_id(node_id, s, neighbour);
+
+            for (int i = 0; i < num; ++i)
+            {
+                p[i] = point(neighbour[i]);
+            }
+
+        }
+
+
+        return num;
     }
 
 /**

@@ -8,7 +8,7 @@ TARGET_LINK_LIBRARIES(em simpla_lib)
 
 ADD_EXECUTABLE(em_plasma em_plasma.cpp)
 
-TARGET_LINK_LIBRARIES(em_plasma simpla_lib)
+TARGET_LINK_LIBRARIES(em_plasma simpla_lib geqdsk)
 
 
 ADD_EXECUTABLE(em_task em_task.cpp)

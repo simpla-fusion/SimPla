@@ -99,8 +99,8 @@ private:
 public:
 
     template<typename ...Args>
-    ParticleGenerator(particle_type const &p, Args &&...args)
-            : m_p_engine_(p), m_func_(std::forward<Args>(args)...)
+    ParticleGenerator(particle_type const &p, Func const &fun)
+            : m_p_engine_(p), m_func_(fun)
     {
     }
 

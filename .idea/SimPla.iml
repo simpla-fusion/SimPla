@@ -193,6 +193,7 @@
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/block/mesh_id.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/block/tiling_block.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/calculus.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/manifold/constraint.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/diff_scheme/diff_scheme.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/diff_scheme/fvm_structured.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/manifold/fiber_bundle.h" isTestSource="false" />
@@ -236,6 +237,7 @@
       <sourceFolder url="file://$MODULE_DIR$/core/model/model_traits.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/model/revolve_polygon.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/model/select.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/model/surface.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/model/trans_revolve.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/numeric/cholesky.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/numeric/compound_distribution.h" isTestSource="false" />
@@ -287,11 +289,11 @@
       <sourceFolder url="file://$MODULE_DIR$/core/particle/obsolete/bc_reflect.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/particle/obsolete/kinetic_particle.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/particle/obsolete/load_particle.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/core/particle/obsolete/particle_constraint.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/particle/obsolete/probe_particle.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/particle/obsolete/simple_particle.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/particle/obsolete/sync_particle.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/particle/particle.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/particle/particle_constraint.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/particle/particle_container.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/particle/particle_engine.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/core/particle/particle_generator.h" isTestSource="false" />
@@ -359,7 +361,6 @@
     <orderEntry type="module-library">
       <library name="Header Search Paths">
         <CLASSES>
-          <root url="file://$USER_HOME$/.CLion12/system/cmake/generated/82e76996/82e76996/Debug/external_project/googletest/include" />
           <root url="file:///usr/include" />
           <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include" />
           <root url="file:///usr/lib/llvm-3.6/lib/clang/3.6.0/include" />
@@ -367,7 +368,6 @@
           <root url="file:///usr/local/include" />
         </CLASSES>
         <SOURCES>
-          <root url="file://$USER_HOME$/.CLion12/system/cmake/generated/82e76996/82e76996/Debug/external_project/googletest/include" />
           <root url="file:///usr/include" />
           <root url="file:///usr/lib/gcc/x86_64-linux-gnu/4.8/include" />
           <root url="file:///usr/lib/llvm-3.6/lib/clang/3.6.0/include" />

@@ -12,6 +12,7 @@
 #include <list>
 #include <map>
 
+#include "../parallel/parallel.h"
 #include "../gtl/design_pattern/singleton_holder.h"
 #include "../gtl/utilities/memory_pool.h"
 
@@ -50,7 +51,6 @@ private:
     using engine_type::push;
     using engine_type::project;
     using engine_type::lift;
-    using engine_type::function_value;
 
     typedef typename mesh_type::index_tuple index_tuple;
     typedef typename mesh_type::id_type id_type;
@@ -87,31 +87,22 @@ public:
 
     template<typename OS> OS &print(OS &os) const;
 
-    //! @ingroup as fiber bundle @{
-    // @note this should be lock free on Particle
     template<typename TField>
     void integral(id_type const &s, TField *res) const;
 
-    // @note this should be lock free on Particle
     template<typename TField>
     void integral(range_type const &, TField *res) const;
 
-    // @note this should be lock free on Particle
     template<typename TField>
     void integral(TField *res) const;
 
-    // @note this should be lock free on Particle
     template<typename ...Args>
     void push(id_type const &s, Args &&...args);
 
-
-    // @note this should be lock free on Particle
     template<typename ...Args>
     void push(range_type const &, Args &&...args);
 
-    // @note this should be lock free on Particle
-    template<typename ...Args>
-    void push(Args &&...args);
+    template<typename ...Args> void push(Args &&...args);
 
 
 //! @}
@@ -185,6 +176,15 @@ public:
 
     template<typename TGen, typename ...Args> void generator(TGen &gen, size_t pic, Args &&...args);
 
+    /**
+     * @require TConstraint = map<id_type,TARGS>
+     *          Fun         = function<void(TARGS const &,sample_type*)>
+     */
+    template<typename TConstraint, typename TFun> void accept(TConstraint const &, TFun const &fun);
+
+    template<typename TRange, typename Predicate> void remove_if(TRange const &r, Predicate const &pred);
+
+
 private:
     void sync(container_type const &buffer, parallel::DistributedObject *dist_obj, bool update_ghost = true);
 
@@ -233,17 +233,16 @@ void Particle<P, M>::integral(id_type const &s, TField *J) const
 
     auto x0 = m_mesh_.point(s);
 
-    static constexpr int MAX_NEIGHBOUR_NUM = 12;
 
-    id_type neighbour[MAX_NEIGHBOUR_NUM];
+    id_type neighbours[mesh_type::MAX_NUM_OF_NEIGHBOURS];
 
-    int num = m_mesh_.get_adjoints(iform, s, neighbour);
+    int num = m_mesh_.get_adjoints(iform, s, neighbours);
 
     for (int i = 0; i < num; ++i)
     {
         typename container_type::const_accessor acc1;
 
-        if (container_type::find(acc1, neighbour[i]))
+        if (container_type::find(acc1, neighbours[i]))
         {
             for (auto const &p:acc1->second)
             {
@@ -267,7 +266,6 @@ template<typename P, typename M>
 template<typename TField>
 void Particle<P, M>::integral(TField *J) const
 {
-    // @note this is lock free
 
     static constexpr int f_iform = traits::iform<TField>::value;
     m_mesh_.template for_each_boundary<f_iform>([&](range_type const &r) { integral(r, J); });
@@ -318,6 +316,8 @@ void Particle<P, M>::push(Args &&...args)
     m_mesh_.template for_each_boundary<iform>([&](range_type const &r) { push(r, std::forward<Args>(args)...); });
 
     m_mesh_.template for_each_center<iform>([&](range_type const &r) { push(r, std::forward<Args>(args)...); });
+
+    rehash();
 }
 
 
@@ -561,10 +561,7 @@ void Particle<P, M>::sync(container_type const &buffer, parallel::DistributedObj
 
             }
         }
-
     }
-
-
 }
 
 
@@ -790,7 +787,58 @@ void Particle<P, M>::generator(TGen &gen, size_t pic, Args &&...args)
     }
 }
 
+template<typename P, typename M>
+template<typename TRange, typename Predicate>
+void Particle<P, M>::remove_if(TRange const &r, Predicate const &pred)
+{
+    parallel::parallel_for(r,
+                           [&](TRange const &r)
+                           {
+                               for (auto const &s:r)
+                               {
+                                   typename container_type::accessor acc;
 
+                                   if (container_type::find(acc, s))
+                                   {
+                                       acc->second.remove_if(pred);
+                                   }
+
+
+                               }
+                           }
+
+    );
+}
+
+template<typename P, typename M>
+template<typename TConstraint, typename TFun>
+void Particle<P, M>::accept(TConstraint const &constraint, TFun const &fun)
+{
+    container_type buffer;
+    parallel::parallel_for(
+            constraint.range(),
+            [&](typename TConstraint::range_type const &r)
+            {
+                for (auto const &item:r)
+                {
+
+                    typename container_type::accessor acc;
+
+                    if (container_type::find(acc, item.first))
+                    {
+                        for (auto &p:acc->second)
+                        {
+                            fun(item.second, &p);
+                        }
+                    }
+
+                    rehash(item.first, &buffer);
+                }
+            }
+
+    );
+    merge(&buffer);
+}
 }//{namespace particle
 
 namespace traits

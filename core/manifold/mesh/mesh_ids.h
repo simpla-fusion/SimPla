@@ -63,6 +63,7 @@ struct MeshIDs_
     /// @name level independent
     /// @{
 
+    static constexpr int MAX_NUM_OF_NEIGHBOURS = 12;
     static constexpr int ndims = 3;
     static constexpr int MESH_RESOLUTION = static_cast<int> (TAGS & 0xF);
 
@@ -652,7 +653,12 @@ struct MeshIDs_
         return m_adjoint_num_[IFORM][nodeid];
     }
 
-    static int get_adjoin_vertices(int node_id, id_type s, id_type *res = nullptr)
+    static int get_vertices_id(id_type s, id_type *res = nullptr)
+    {
+        return get_vertices_id(node_id(s), s, res);
+    }
+
+    static int get_vertices_id(int node_id, id_type s, id_type *res = nullptr)
     {
         if (res != nullptr)
         {
@@ -664,11 +670,6 @@ struct MeshIDs_
         return m_adjoint_num_[VERTEX][node_id];
     }
 
-    template<size_t IFORM, size_t NODE_ID>
-    static int get_adjoints(id_type s, id_type *res = nullptr)
-    {
-        return get_adjoints(s, IFORM, NODE_ID, res);
-    }
 
     template<size_t AXE>
     static constexpr std::tuple<id_type, id_type> primary_line(id_type s)
