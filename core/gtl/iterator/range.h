@@ -33,6 +33,8 @@ public:
 
     typedef Iterator const_iterator;
 
+    Range() : m_begin_(), m_end_(m_begin_), m_grain_size_(0) { }
+
     // constructors
     template<typename T0, typename T1>
     Range(T0 const &b, T1 const &e, ptrdiff_t grain_size = 1)

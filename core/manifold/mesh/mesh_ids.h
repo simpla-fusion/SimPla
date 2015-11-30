@@ -717,6 +717,7 @@ struct MeshIDs_
         int m_iform_;
 
     public:
+        iterator() : base_type(), m_iform_(VERTEX) { }
 
         iterator(id_type s, id_type b, id_type e)
                 : base_type(unpack_index(s), unpack_index(b), unpack_index(e)), m_iform_(iform(s))

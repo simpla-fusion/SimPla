@@ -203,9 +203,7 @@ void get_surface(TM const &m, Cache<TM> const &cache, IdSet<TM> *surface,
 template<int IFORM, typename TM, typename TB>
 void create_id_set(TM const &m, TB const &box, IdSet<TM> *res)
 {
-    auto r0 = m.template make_box_range<IFORM>(box);
-    if (r0.size() <= 0) return;
-    parallel::parallel_for(r0,
+    parallel::parallel_for(m.template make_box_range<IFORM>(box),
                            [&](typename TM::range_type const &r) { for (auto const &s:r) { res->insert(s); }});
 
 }
