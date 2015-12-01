@@ -40,7 +40,7 @@ template<typename ...> struct concurrent_hash_map;
 template<typename Range, typename OP>
 void parallel_do(Range const &range, OP const &op)
 {
-    op();
+    if (!range.empty()) op();
 }
 
 /**
@@ -51,7 +51,8 @@ void parallel_do(Range const &range, OP const &op)
 template<typename Range, typename OP>
 void parallel_for(Range const &range, OP const &op)
 {
-    op(range);
+//    if (!range.empty())
+        op(range);
 }
 
 ///**

@@ -65,16 +65,16 @@ void create_cache(TM const &m, geometry::Object const &geo, Cache<TM> *cache)
                                    point_type x = m.point(s);
                                    Vec3 v;
                                    Real d = geo.normals(&x, &v);
-                                   typename Cache<TM>::value_type tmp{s, std::make_tuple(d, x, v)};
-                                   cache->insert(tmp);
+
+                                   cache->insert(typename Cache<TM>::value_type  {s, std::make_tuple(d, x, v)});
                                }
                            });
 
 
 }
 
-template<typename TM, typename Func>
-void on_surface(TM const &m, Cache<TM> const &cache, Func const &func)
+template<typename TM, typename TRange, typename Func>
+void on_surface(TM const &m, TRange const &r0, Cache<TM> const &cache, Func const &func)
 {
 
     typedef TM mesh_type;
@@ -88,17 +88,16 @@ void on_surface(TM const &m, Cache<TM> const &cache, Func const &func)
 
     size_t MASK = m.id_mask();
 
-    serial::parallel_for(
-            cache.range(),
-            [&](typename Cache<TM>::const_range_type const &r)
+    parallel::parallel_for(
+            r0,
+            [&](TRange const &r)
             {
-                for (auto const &item: r)
+                for (auto const &v_s: r)
                 {
-                    id_type v_s = item.first + mesh_type::_DA;
 
                     id_type p[mesh_type::MAX_NUM_OF_NEIGHBOURS];
 
-                    int num = m.get_adjacent_cells(VERTEX, mesh_type::TAG_VOLUME, v_s, p);
+                    int num = m.get_adjacent_cells(VERTEX, v_s, p);
 
                     int count = 0;
 
@@ -113,7 +112,7 @@ void on_surface(TM const &m, Cache<TM> const &cache, Func const &func)
                     }
                     if ((count > 0) && (count < num))
                     {
-                        func(item);
+                        func(v_s);
                     }
 
                 }
@@ -136,17 +135,43 @@ void get_surface(TM const &m, geometry::Object const &geo, Args &&...args)
     get_surface(cache, cache, std::forward<Args>(args)...);
 }
 
-template<typename TM>
-void get_surface(TM const &m, Cache<TM> const &cache, Surface<TM> *surface)
+
+template<typename TM, typename TRange>
+void get_surface(TM const &m, TRange const &r0, Cache<TM> const &cache, Surface<TM> *surface)
 {
-    on_surface(m, cache,
-               [&](typename Cache<TM>::value_type const &item) { surface->insert(item); });
+    typedef TM mesh_type;
+
+    typedef typename mesh_type::point_type point_type;
+
+    typedef typename mesh_type::vector_type vector_type;
+
+    typedef typename mesh_type::id_type id_type;
+
+
+    size_t MASK = m.id_mask();
+
+    on_surface(m, r0, cache,
+               [&](typename TM::id_type const &s)
+               {
+                   typename Cache<TM>::const_accessor acc;
+
+                   if (cache.find(acc, (((s | mesh_type::FULL_OVERFLOW_FLAG) - mesh_type::_DA) & MASK)))
+                   {
+                       surface->insert(*acc);
+                   }
+
+               });
 
 };
 
+template<typename TM>
+void get_surface(TM const &m, Cache<TM> const &cache, Surface<TM> *surface)
+{
+    get_surface(m, m.template range<VOLUME>, cache, surface);
+}
 
-template<int IFORM, typename TM>
-void get_surface(TM const &m, Cache<TM> const &cache, IdSet<TM> *surface,
+template<int IFORM, typename TRange, typename TM>
+void get_surface(TM const &m, TRange const &r0, Cache<TM> const &cache, IdSet<TM> *surface,
                  bool is_out_boundary = true)
 {
     typedef TM mesh_type;
@@ -156,17 +181,17 @@ void get_surface(TM const &m, Cache<TM> const &cache, IdSet<TM> *surface,
     typedef typename mesh_type::vector_type vector_type;
 
     typedef typename mesh_type::id_type id_type;
+
     size_t MASK = m.id_mask();
 
-    on_surface(m, cache,
-               [&](typename Cache<TM>::value_type const &item)
+    on_surface(m, r0, cache,
+               [&](typename TM::id_type const &v_s)
                {
                    id_type ids_0[mesh_type::MAX_NUM_OF_NEIGHBOURS];
                    id_type ids_1[mesh_type::MAX_NUM_OF_NEIGHBOURS];
 
 
-                   int num_0 = m.get_adjacent_cells(IFORM, mesh_type::TAG_VOLUME,
-                                              item.first + mesh_type::_DA, ids_0);
+                   int num_0 = m.get_adjacent_cells(IFORM, mesh_type::TAG_VOLUME, v_s, ids_0);
 
                    for (int i = 0; i < num_0; ++i)
                    {
@@ -199,6 +224,13 @@ void get_surface(TM const &m, Cache<TM> const &cache, IdSet<TM> *surface,
                });
 
 }
+
+template<int IFORM, typename TM>
+void get_surface(TM const &m, Cache<TM> const &cache, IdSet<TM> *surface,
+                 bool is_out_boundary = true)
+{
+    get_surface<IFORM>(m, m.template range<VOLUME>(), cache, surface, is_out_boundary);
+};
 
 template<int IFORM, typename TM, typename TB>
 void create_id_set(TM const &m, TB const &box, IdSet<TM> *res)

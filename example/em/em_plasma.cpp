@@ -161,11 +161,11 @@ void EMPlasma::setup(int argc, char **argv)
         }
 
         {
-            model::Cache<mesh_type> cache;
-
-            model::create_cache(m, geqdsk.limiter(), &cache);
-
-            model::get_surface(m, cache, &limiter_boundary);
+//            model::Cache<mesh_type> cache;
+//
+//            model::create_cache(m, geqdsk.limiter(), &cache);
+//
+//            model::get_surface(m, cache, &limiter_boundary);
 
         }
 
