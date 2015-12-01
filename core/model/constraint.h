@@ -98,7 +98,7 @@ void on_surface(TM const &m, Cache<TM> const &cache, Func const &func)
 
                     id_type p[mesh_type::MAX_NUM_OF_NEIGHBOURS];
 
-                    int num = m.get_vertices_id(mesh_type::TAG_VOLUME, v_s, p);
+                    int num = m.get_adjoints(VERTEX, mesh_type::TAG_VOLUME, v_s, p);
 
                     int count = 0;
 
@@ -164,13 +164,14 @@ void get_surface(TM const &m, Cache<TM> const &cache, IdSet<TM> *surface,
                    id_type ids_0[mesh_type::MAX_NUM_OF_NEIGHBOURS];
                    id_type ids_1[mesh_type::MAX_NUM_OF_NEIGHBOURS];
 
-                   int num_0 = m.get_adjoints(IFORM, mesh_type::TAG_VOLUME, item.first + mesh_type::_DA,
-                                              ids_0);
+
+                   int num_0 = m.get_adjoints(IFORM, mesh_type::TAG_VOLUME,
+                                              item.first + mesh_type::_DA, ids_0);
 
                    for (int i = 0; i < num_0; ++i)
                    {
 
-                       int num_1 = m.get_vertices_id(ids_0[i], ids_1);
+                       int num_1 = m.get_adjoints(VERTEX, ids_0[i], ids_1);
 
                        int count = 0;
 

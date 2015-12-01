@@ -122,6 +122,8 @@ struct MeshIDs_
 
     static constexpr id_type _DK = _D << (ID_DIGITS * 2);
 
+    static constexpr id_type _DA = _DI | _DJ | _DK;
+
 
     static constexpr id_type PRIMARY_ID_MASK_ = ID_MASK & (~SUB_ID_MASK);
 
@@ -129,7 +131,6 @@ struct MeshIDs_
                                                | (PRIMARY_ID_MASK_ << ID_DIGITS)
                                                | (PRIMARY_ID_MASK_ << (ID_DIGITS * 2));
 
-    static constexpr id_type _DA = _DI | _DJ | _DK;
 
     static constexpr Real COORDINATES_MESH_FACTOR = static_cast<Real>(1UL << MESH_RESOLUTION);
     static constexpr Real MESH_COORDINATES_FACTOR = 1.0 / COORDINATES_MESH_FACTOR;
@@ -176,14 +177,14 @@ struct MeshIDs_
 
     static constexpr coordinates_tuple m_id_to_coordinates_shift_[] = {
 
-            {0,  0,  0},            // 000
-            {_R, 0,  0},           // 001
-            {0,  _R, 0},           // 010
-            {0,  0,  _R},           // 011
+            {0, 0, 0},            // 000
+            {_R, 0, 0},           // 001
+            {0, _R, 0},           // 010
+            {0, 0, _R},           // 011
             {_R, _R, 0},          // 100
-            {_R, 0,  _R},          // 101
-            {0,  _R, _R},          // 110
-            {0,  _R, _R},          // 111
+            {_R, 0, _R},          // 101
+            {0, _R, _R},          // 110
+            {0, _R, _R},          // 111
 
     };
 
@@ -288,15 +289,17 @@ struct MeshIDs_
     static coordinates_tuple coordinates(id_type const &s)
     {
         return coordinates_tuple{static_cast<Real>(static_cast<index_type>(unpack_id(s, 0))),
-                                 static_cast<Real>(static_cast<index_type>(unpack_id(s, 1))),
-                                 static_cast<Real>(static_cast<index_type>(unpack_id(s, 2)))};
+                static_cast<Real>(static_cast<index_type>(unpack_id(s, 1))),
+                static_cast<Real>(static_cast<index_type>(unpack_id(s, 2)))
+        };
     }
 
     static coordinates_tuple point(id_type const &s)
     {
         return coordinates_tuple{static_cast<Real>(static_cast<index_type>(unpack_id(s, 0))),
-                                 static_cast<Real>(static_cast<index_type>(unpack_id(s, 1))),
-                                 static_cast<Real>(static_cast<index_type>(unpack_id(s, 2)))};
+                static_cast<Real>(static_cast<index_type>(unpack_id(s, 1))),
+                static_cast<Real>(static_cast<index_type>(unpack_id(s, 2)))
+        };
     }
 
 
@@ -451,13 +454,10 @@ struct MeshIDs_
      */
     static constexpr int MAX_NUM_OF_CELL = 12;
 
-    static constexpr id_type _HI = _D << 1;
+    static constexpr id_type _HI = _D;
     static constexpr id_type _HJ = _HI << ID_DIGITS;
     static constexpr id_type _HK = _HI << (ID_DIGITS * 2);
-    static constexpr id_type _LI = 0;
-    //(-_D) & (ID_MASK >> 1);
-    static constexpr id_type _LJ = _LI << ID_DIGITS;
-    static constexpr id_type _LK = _LI << (ID_DIGITS * 2);
+
 
     static constexpr int m_adjoint_num_[4/* to iform*/][8/* node id*/] =
 
@@ -470,7 +470,8 @@ struct MeshIDs_
                             /* 100*/2,
                             /* 101*/4,
                             /* 110*/4,
-                            /* 111*/8},
+                            /* 111*/8
+                    },
 
                     // EDGE
                     {
@@ -481,7 +482,8 @@ struct MeshIDs_
                             /* 100*/1,
                             /* 101*/4,
                             /* 110*/4,
-                            /* 111*/12},
+                            /* 111*/12
+                    },
 
                     // FACE
                     {
@@ -492,7 +494,8 @@ struct MeshIDs_
                             /* 100*/4,
                             /* 101*/1,
                             /* 110*/1,
-                            /* 111*/6},
+                            /* 111*/6
+                    },
 
                     // VOLUME
                     {
@@ -503,7 +506,8 @@ struct MeshIDs_
                             /* 100*/4,
                             /* 101*/2,
                             /* 110*/2,
-                            /* 111*/1}
+                            /* 111*/1
+                    }
 
             };
 
@@ -513,28 +517,55 @@ struct MeshIDs_
                     {
 
                             /* 000*/
-                            {0},
+                            {//
+                                    _DA
+                            },
                             /* 001*/
-                            {_LI,       _HI},
+                            {       //
+                                    _DA - _DI,
+                                    _DA + _DI
+                            },
                             /* 010*/
-                            {_LJ,       _HJ},
+                            {       //
+                                    _DA - _DJ,
+                                    _DA + _DJ
+                            },
                             /* 011*/
-                            {_LI | _LJ/* 000*/, _HI | _LJ/* 001*/, _LI | _HJ /* 010*/, _HI | _HJ /* 011 */},
+                            {//
+                                    _DA - _DI - _DJ, /* 000*/
+                                    _DA + _DI - _DJ, /* 001*/
+                                    _DA - _DI + _DJ, /* 010*/
+                                    _DA + _DI + _DJ /* 011 */
+                            },
                             /* 100*/
-                            {_LK,       _HK},
+                            {//
+                                    _DA - _DK,
+                                    _DA + _DK
+                            },
                             /* 101*/
-                            {_LK | _LI/*000*/, _LK | _HI/*001*/, _HK | _LI/*100*/, _HK | _HI/*101*/},
+                            {       //
+                                    _DA - _DK - _DI, /*000*/
+                                    _DA - _DK + _DI, /*001*/
+                                    _DA + _DK - _DI, /*100*/
+                                    _DA + _DK + _DI /*101*/
+                            },
                             /* 110*/
-                            {_LJ | _LK/*000*/, _HJ | _LK/*010*/, _LJ | _HK/*100*/, _HJ | _HK/*110*/},
+                            {//
+                                    _DA - _DJ - _DK, /*000*/
+                                    _DA + _DJ - _DK, /*010*/
+                                    _DA - _DJ + _DK, /*100*/
+                                    _DA + _DJ + _DK /*110*/
+                            },
                             /* 111*/
-                            {_LK | _LJ | _LI/*000*/,
-                                    _LK | _LJ | _HI/*001*/,
-                                         _LK | _HJ | _LI/*010*/,
-                                              _LK | _HJ | _HI/*011*/,
-                                                   _HK | _LJ | _LI/*100*/,
-                                                        _HK | _LJ | _HI/*101*/,
-                                    _HK | _HJ | _LI/*110*/,
-                                    _HK | _HJ | _HI/*111*/
+                            {       //
+                                    _DA - _DK - _DJ - _DI, /*000*/
+                                    _DA - _DK - _DJ + _DI, /*001*/
+                                    _DA - _DK + _DJ - _DI, /*010*/
+                                    _DA - _DK + _DJ + _DI, /*011*/
+                                    _DA + _DK - _DJ - _DI, /*100*/
+                                    _DA + _DK - _DJ + _DI, /*101*/
+                                    _DA + _DK + _DJ - _DI, /*110*/
+                                    _DA + _DK + _DJ + _DI  /*111*/
 
                             }
 
@@ -543,96 +574,179 @@ struct MeshIDs_
                     //To EDGE
                     {
                             /* 000*/
-                            {_HI, _LI, _HJ, _LJ, _HK, _LK},
+                            {       //
+                                    _DA + _DI,
+                                    _DA - _DI,
+                                    _DA + _DJ,
+                                    _DA - _DJ,
+                                    _DA + _DK,
+                                    _DA - _DK
+                            },
                             /* 001*/
-                            {0},
+                            {
+                                    _DA
+                            },
                             /* 010*/
-                            {0},
+                            {
+                                    _DA
+                            },
                             /* 011*/
-                            {_LJ,               _HI,               _HJ,                _LI},
+                            {        //
+                                    _DA - _DJ,
+                                    _DA + _DI,
+                                    _DA + _DJ,
+                                    _DA - _DI
+                            },
                             /* 100*/
-                            {0},
+                            {       //
+                                    _DA
+                            },
                             /* 101*/
-                            {_LI,              _HK,              _HI,              _LK},
+                            {         //
+                                    _DA - _DI,
+                                    _DA + _DK,
+                                    _DA + _DI,
+                                    _DA - _DK
+                            },
                             /* 110*/
-                            {_LK,              _HJ,              _HK,              _LJ},
+                            {       //
+                                    _DA - _DK,
+                                    _DA + _DJ,
+                                    _DA + _DK,
+                                    _DA - _DJ
+                            },
                             /* 111*/
-                            {_LK | _LJ,  //-> 001
-                                    _LK | _HI,  //   012
-                                         _LK | _HJ,  //   021
-                                              _LK | _LI,  //   010
+                            {       //
+                                    _DA - _DK - _DJ,  //-> 001
+                                    _DA - _DK + _DI,  //   012
+                                    _DA - _DK + _DJ,  //   021
+                                    _DA - _DK - _DI,  //   010
 
-                                                   _LI | _LJ,  //
-                                                        _LI | _HJ,  //
-                                    _HI | _LJ,  //
-                                    _HI | _HJ,  //
+                                    _DA - _DI - _DJ,  //
+                                    _DA - _DI + _DJ,  //
+                                    _DA + _DI - _DJ,  //
+                                    _DA + _DI + _DJ,  //
 
-                                    _HK | _LJ,  //
-                                    _HK | _HI,  //
-                                    _HK | _HJ,  //
-                                    _HK | _LI  //
+                                    _DA + _DK - _DJ,  //
+                                    _DA + _DK + _DI,  //
+                                    _DA + _DK + _DJ,  //
+                                    _DA + _DK - _DI  //
                             }},
 
                     //To FACE
                     {
                             /* 000*/
-                            {_LK | _LJ,  //
-                                  _LK | _HI,  //
-                                       _LK | _HJ,  //
-                                            _LK | _LI,  //
+                            {       //
+                                    _DA - _DK - _DJ,  //
+                                    _DA - _DK + _DI,  //
+                                    _DA - _DK + _DJ,  //
+                                    _DA - _DK - _DI,  //
 
-                                                 _LI | _LJ,  //
-                                                      _LI | _HJ,  //
-                                    _HI | _LJ,  //
-                                    _HI | _HJ,  //
+                                    _DA - _DI - _DJ,  //
+                                    _DA - _DI + _DJ,  //
+                                    _DA + _DI - _DJ,  //
+                                    _DA + _DI + _DJ,  //
 
-                                    _HK | _LJ,  //
-                                    _HK | _HI,  //
-                                    _HK | _HJ,  //
-                                    _HK | _LI  //
+                                    _DA + _DK - _DJ,  //
+                                    _DA + _DK + _DI,  //
+                                    _DA + _DK + _DJ,  //
+                                    _DA + _DK - _DI  //
                             },
                             /* 001*/
-                            {_LJ,       _HK,       _HJ,       _LK},
+                            {       //
+                                    _DA - _DJ,          //
+                                    _DA + _DK,   //
+                                    _DA + _DJ,   //
+                                    _DA - _DK    //
+                            },
                             /* 010*/
-                            {_LK,       _HI,       _HK,       _LI},
+                            {       //
+                                    _DA - _DK,          //
+                                    _DA + _DI,   //
+                                    _DA + _DK,   //
+                                    _DA - _DI    //
+                            },
                             /* 011*/
-                            {0},
+                            {_DA},
                             /* 100*/
-                            {_LI,       _HJ,       _HI,       _LJ},
+                            {//
+                                    _DA - _DI,         //
+                                    _DA + _DJ,  //
+                                    _DA + _DI,  //
+                                    _DA - _DJ   //
+                            },
                             /* 101*/
-                            {0},
+                            {       //
+                                    _DA
+                            },
                             /* 110*/
-                            {0},
+                            {       //
+                                    _DA
+                            },
                             /* 111*/
-                            {_LI,   _LJ, _LK, _HI, _HJ, _HK}},
+                            {       //
+                                    _DA - _DI,         //
+                                    _DA - _DJ,  //
+                                    _DA - _DK,  //
+                                    _DA + _DI,  //
+                                    _DA + _DJ,  //
+                                    _DA + _DK   //
+                            }},
                     // TO VOLUME
                     {
                             /* 000*/
-                            {_LI | _LJ | _LK,  //
-                                  _LI | _HJ | _LK,  //
-                                       _LI | _LJ | _HK,  //
-                                            _LI | _HJ | _HK,  //
+                            {       //
+                                    _DA - _DI - _DJ - _DK,  //
+                                    _DA - _DI + _DJ - _DK,  //
+                                    _DA - _DI - _DJ + _DK,  //
+                                    _DA - _DI + _DJ + _DK,  //
 
-                                                 _HI | _LJ | _LK,  //
-                                                      _HI | _HJ | _LK,  //
-                                    _HI | _LJ | _HK,  //
-                                    _HI | _HJ | _HK  //
+                                    _DA + _DI - _DJ - _DK,  //
+                                    _DA + _DI + _DJ - _DK,  //
+                                    _DA + _DI - _DJ + _DK,  //
+                                    _DA + _DI + _DJ + _DK  //
 
                             },
                             /* 001*/
-                            {_LJ | _LK, _LJ | _HK, _HJ | _LK, _HJ | _HK},
+                            {       //
+                                    _DA - _DJ - _DK,           //
+                                    _DA - _DJ + _DK,    //
+                                    _DA + _DJ - _DK,    //
+                                    _DA + _DJ + _DK     //
+                            },
                             /* 010*/
-                            {_LK | _LI, _LK | _HI, _HK | _LI, _HK | _HI},
+                            {        //
+                                    _DA - _DK - _DI,  //
+                                    _DA - _DK + _DI,  //
+                                    _DA + _DK - _DI,  //
+                                    _DA + _DK + _DI   //
+                            },
                             /* 011*/
-                            {_LK,               _HK},
+                            {       //
+                                    _DA - _DK,
+                                    _DA + _DK},
                             /* 100*/
-                            {_LI | _LJ, _LI | _HJ, _HI | _LJ, _HI | _HJ},
+                            {         //
+                                    _DA - _DI - _DJ,   //
+                                    _DA - _DI + _DJ,   //
+                                    _DA + _DI - _DJ,   //
+                                    _DA + _DI + _DJ    //
+                            },
                             /* 101*/
-                            {_LJ,              _HJ},
+                            {//
+                                    _DA - _DJ,
+                                    _DA + _DJ
+                            },
                             /* 110*/
-                            {_LI,              _HI},
+                            {       //
+                                    _DA - _DI,
+                                    _DA + _DI
+                            },
                             /* 111*/
-                            {0}}
+                            {//
+                                    _DA
+                            }
+                    }
 
             };
 
@@ -654,51 +768,42 @@ struct MeshIDs_
         return m_adjoint_num_[IFORM][nodeid];
     }
 
-    static int get_vertices_id(id_type s, id_type *res = nullptr)
-    {
-        return get_vertices_id(node_id(s), s, res);
-    }
-
-    static int get_vertices_id(int node_id, id_type s, id_type *res = nullptr)
-    {
-        if (res != nullptr)
-        {
-            for (int i = 0; i < m_adjoint_num_[VERTEX][node_id]; ++i)
-            {
-                res[i] = (((s | FULL_OVERFLOW_FLAG) - _DA + m_adjoint_matrix_[VERTEX][node_id][i])) |
-                         (FULL_OVERFLOW_FLAG);
-            }
-        }
-        return m_adjoint_num_[VERTEX][node_id];
-    }
+//    static int get_vertices_id(id_type s, id_type *res = nullptr)
+//    {
+//        return get_vertices_id(node_id(s), s, res);
+//    }
+//
+//    static int get_vertices_id(int node_id, id_type s, id_type *res = nullptr)
+//    {
+//        return get_adjoints(VERTEX, node_id, s, res);
+//    }
 
 
-    template<size_t AXE>
-    static constexpr std::tuple<id_type, id_type> primary_line(id_type s)
-    {
-        return std::make_tuple(((s | OVERFLOW_FLAG) - (_D << (ID_DIGITS * AXE))) & (~OVERFLOW),
-                               s + (_D << (ID_DIGITS * AXE)));
-    }
-
-    template<size_t AXE>
-    static constexpr std::tuple<id_type, id_type> pixel(id_type s)
-    {
-        return std::make_tuple(((s | OVERFLOW_FLAG) - (_DA & (~(_D << (ID_DIGITS * AXE))))) & (~OVERFLOW),
-                               s + (_DA & (~(_D << (ID_DIGITS * AXE)))));
-    }
-
-    static constexpr std::tuple<id_type, id_type> voxel(id_type s)
-    {
-        return std::make_tuple(((s | OVERFLOW_FLAG) - _DA) & (~OVERFLOW), s + _DA);
-    }
-
-    template<typename TID>
-    static TID bit_shift_id(TID s, size_t n)
-    {
-        id_type m = (1UL << (ID_DIGITS - n - 1)) - 1;
-        return ((s & (m | (m << ID_DIGITS) | (m << (ID_DIGITS * 2)))) << n) & (~FULL_OVERFLOW_FLAG);
-    }
-
+//    template<size_t AXE>
+//    static constexpr std::tuple<id_type, id_type> primary_line(id_type s)
+//    {
+//        return std::make_tuple(((s | OVERFLOW_FLAG) - (_D << (ID_DIGITS * AXE))) & (~OVERFLOW),
+//                               s + (_D << (ID_DIGITS * AXE)));
+//    }
+//
+//    template<size_t AXE>
+//    static constexpr std::tuple<id_type, id_type> pixel(id_type s)
+//    {
+//        return std::make_tuple(((s | OVERFLOW_FLAG) - (_DA & (~(_D << (ID_DIGITS * AXE))))) & (~OVERFLOW),
+//                               s + (_DA & (~(_D << (ID_DIGITS * AXE)))));
+//    }
+//
+//    static constexpr std::tuple<id_type, id_type> voxel(id_type s)
+//    {
+//        return std::make_tuple(((s | OVERFLOW_FLAG) - _DA) & (~OVERFLOW), s + _DA);
+//    }
+//
+//    template<typename TID>
+//    static TID bit_shift_id(TID s, size_t n)
+//    {
+//        id_type m = (1UL << (ID_DIGITS - n - 1)) - 1;
+//        return ((s & (m | (m << ID_DIGITS) | (m << (ID_DIGITS * 2)))) << n) & (~FULL_OVERFLOW_FLAG);
+//    }
 //    static constexpr id_type id_add(id_type s, id_type d)
 //    {
 //        return ((s & (~FULL_OVERFLOW_FLAG)) + d) & (~FULL_OVERFLOW_FLAG);
@@ -1022,7 +1127,7 @@ struct MeshIDs_
     }
 
     template<typename TGeometry>
-    static void get_element_volume_in_cell(TGeometry const &geo, id_type s, Real *v, Real *inv_v, Real *dual_v,
+    static void get_element_volume_in_cell(TGeometry const &geo, id_type s0, Real *v, Real *inv_v, Real *dual_v,
                                            Real *inv_dual_v)
     {
 
@@ -1047,25 +1152,33 @@ struct MeshIDs_
          *\endverbatim
          */
 
-        s = s | (FULL_OVERFLOW_FLAG);
+
 
         typedef typename TGeometry::point_type point_type;
 
         auto dims = geo.dimensions();
 
+
+        static constexpr id_type HI = 1UL << (MESH_RESOLUTION);
+        static constexpr id_type HJ = HI << ID_DIGITS;
+        static constexpr id_type HK = HI << (ID_DIGITS * 2);
+
+        static constexpr id_type HA = HI | HJ | HK;
         //primary
         {
+            size_t s = (s0 | FULL_OVERFLOW_FLAG);
+
             point_type p[NUM_OF_NODE_ID] = {
 
                     /*000*/  geo.point(s),                       //
-                    /*001*/  geo.point(s + (_HI)),          //
-                    /*010*/  geo.point(s + (_HJ)),          //
-                    /*011*/  geo.point(s + ((_HJ | _HI))),  //
+                    /*001*/  geo.point(s + (HI)),          //
+                    /*010*/  geo.point(s + (HJ)),          //
+                    /*011*/  geo.point(s + (HJ | HI)),  //
 
-                    /*100*/  geo.point(s + (_HK)),          //
-                    /*101*/  geo.point(s + ((_HK | _HI))),   //
-                    /*110*/  geo.point(s + ((_HK | _HJ))),   //
-                    /*111*/  geo.point(s + ((_HK | _HJ | _HI)))    //
+                    /*100*/  geo.point(s + (HK)),          //
+                    /*101*/  geo.point(s + (HK | HI)),   //
+                    /*110*/  geo.point(s + (HK | HJ)),   //
+                    /*111*/  geo.point(s + (HK | HJ | HI))    //
 
             };
 
@@ -1091,17 +1204,33 @@ struct MeshIDs_
         }
         //dual
         {
+            size_t s = (s0 | FULL_OVERFLOW_FLAG) - (HA >> 1);
+
+//            point_type p[NUM_OF_NODE_ID] = {
+//
+//                    /*000*/    geo.point(s + ((LK | LJ | LI) << 1)),   //
+//                    /*001*/    geo.point(s + ((LK | LJ | HI) << 1)),   //
+//                    /*010*/    geo.point(s + ((LK | HJ | LI) << 1)),   //
+//                    /*011*/    geo.point(s + ((LK | HJ | HI) << 1)),   //
+//
+//                    /*100*/    geo.point(s + ((HK | LJ | LI) << 1)),   //
+//                    /*101*/    geo.point(s + ((HK | LJ | HI) << 1)),   //
+//                    /*110*/    geo.point(s + ((HK | HJ | LI) << 1)),   //
+//                    /*111*/    geo.point(s + ((HK | HJ | HI) << 1))    //
+//
+//            };
+
             point_type p[NUM_OF_NODE_ID] = {
 
-                    /*000*/    geo.point(s - _DA + (_LK | _LJ | _LI)),   //
-                    /*001*/    geo.point(s - _DA + (_LK | _LJ | _HI)),   //
-                    /*010*/    geo.point(s - _DA + (_LK | _HJ | _LI)),   //
-                    /*011*/    geo.point(s - _DA + (_LK | _HJ | _HI)),   //
+                    /*000*/  geo.point(s),                       //
+                    /*001*/  geo.point(s + (HI)),          //
+                    /*010*/  geo.point(s + (HJ)),          //
+                    /*011*/  geo.point(s + (HJ | HI)),  //
 
-                    /*100*/    geo.point(s - _DA + (_HK | _LJ | _LI)),   //
-                    /*101*/    geo.point(s - _DA + (_HK | _LJ | _HI)),   //
-                    /*110*/    geo.point(s - _DA + (_HK | _HJ | _LI)),   //
-                    /*111*/    geo.point(s - _DA + (_HK | _HJ | _HI))    //
+                    /*100*/  geo.point(s + (HK)),          //
+                    /*101*/  geo.point(s + (HK | HI)),   //
+                    /*110*/  geo.point(s + (HK | HJ)),   //
+                    /*111*/  geo.point(s + (HK | HJ | HI))    //
 
             };
 

@@ -92,17 +92,9 @@
   <component name="ChangeListManager">
     <list default="true" id="705662a6-4fa6-4a3f-beff-e386801b96a4" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/field/test/field_diff_calculus_test.h" afterPath="$PROJECT_DIR$/core/field/test/field_diff_calculus_test.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/geometry/geo_object.h" afterPath="$PROJECT_DIR$/core/geometry/geo_object.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/geometry/polygon.cpp" afterPath="$PROJECT_DIR$/core/geometry/polygon.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/mesh/mesh_block.h" afterPath="$PROJECT_DIR$/core/manifold/mesh/mesh_block.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/mesh/corect_mesh.h" afterPath="$PROJECT_DIR$/core/manifold/mesh/corect_mesh.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/mesh/mesh_ids.h" afterPath="$PROJECT_DIR$/core/manifold/mesh/mesh_ids.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/model/constraint.h" afterPath="$PROJECT_DIR$/core/model/constraint.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/model/geqdsk.cpp" afterPath="$PROJECT_DIR$/core/model/geqdsk.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/model/geqdsk.h" afterPath="$PROJECT_DIR$/core/model/geqdsk.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/parallel/parallel.h" afterPath="$PROJECT_DIR$/core/parallel/parallel.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/parallel/parallel_dummy.h" afterPath="$PROJECT_DIR$/core/parallel/parallel_dummy.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/example/em/em.lua" afterPath="$PROJECT_DIR$/example/em/em.lua" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/example/em/em_plasma.cpp" afterPath="$PROJECT_DIR$/example/em/em_plasma.cpp" />
     </list>
     <ignored path="SimPla.iws" />
@@ -204,7 +196,17 @@
         <entry file="file://$PROJECT_DIR$/example/em/em_plasma.cpp">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="179" column="91" selection-start-line="179" selection-start-column="91" selection-end-line="179" selection-end-column="91" />
+              <caret line="188" column="84" selection-start-line="188" selection-start-column="84" selection-end-line="188" selection-end-column="84" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="em.lua" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/example/em/em.lua">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="39" column="8" selection-start-line="39" selection-start-column="8" selection-end-line="39" selection-end-column="8" />
               <folding />
             </state>
           </provider>
@@ -220,24 +222,38 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="mesh_ids.h" pinned="false" current-in-tab="false">
+      <file leaf-file-name="mesh_ids.h" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/core/manifold/mesh/mesh_ids.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-0.64285713">
-              <caret line="650" column="46" selection-start-line="650" selection-start-column="46" selection-end-line="650" selection-end-column="46" />
+            <state vertical-scroll-proportion="0.50274724">
+              <caret line="760" column="9" selection-start-line="760" selection-start-column="9" selection-end-line="760" selection-end-column="9" />
               <folding>
-                <element signature="e#21742#21754#0" expanded="true" />
-                <element signature="e#22013#22025#0" expanded="true" />
-                <element signature="e#22463#22477#0" expanded="true" />
-                <element signature="e#23832#23871#0" expanded="true" />
-                <element signature="e#25896#25922#0" expanded="true" />
-                <element signature="e#26512#26551#0" expanded="true" />
-                <element signature="e#29461#29487#0" expanded="true" />
-                <element signature="e#29640#29664#0" expanded="true" />
-                <element signature="e#29803#29840#0" expanded="true" />
-                <element signature="e#31417#31431#0" expanded="true" />
-                <element signature="e#31636#31656#0" expanded="true" />
+                <element signature="e#130#149#0" expanded="true" />
+                <element signature="e#412#425#0" expanded="true" />
+                <element signature="e#1851#1868#0" expanded="true" />
+                <element signature="e#6749#6761#0" expanded="true" />
+                <element signature="e#6989#7001#0" expanded="true" />
+                <element signature="e#8280#8292#0" expanded="true" />
+                <element signature="e#9506#9519#0" expanded="true" />
+                <element signature="e#27938#27977#0" expanded="true" />
+                <element signature="e#30002#30028#0" expanded="true" />
+                <element signature="e#30618#30657#0" expanded="true" />
+                <element signature="e#33567#33593#0" expanded="true" />
+                <element signature="e#33746#33770#0" expanded="true" />
+                <element signature="e#33909#33946#0" expanded="true" />
+                <element signature="e#35523#35537#0" expanded="true" />
+                <element signature="e#35742#35762#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="corect_mesh.h" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/manifold/mesh/corect_mesh.h">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="222" column="43" selection-start-line="222" selection-start-column="43" selection-end-line="222" selection-end-column="43" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -272,38 +288,18 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="polygon.h" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/core/geometry/polygon.h">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="29" column="31" selection-start-line="29" selection-start-column="31" selection-end-line="29" selection-end-column="31" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="geo_object.h" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/core/geometry/geo_object.h">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="59" column="5" selection-start-line="59" selection-start-column="5" selection-end-line="59" selection-end-column="5" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="constraint.h" pinned="false" current-in-tab="true">
+      <file leaf-file-name="constraint.h" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/core/model/constraint.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-1.8390805">
-              <caret line="91" column="26" selection-start-line="91" selection-start-column="26" selection-end-line="91" selection-end-column="26" />
+            <state vertical-scroll-proportion="-26.892857">
+              <caret line="100" column="52" selection-start-line="100" selection-start-column="52" selection-end-line="100" selection-end-column="52" />
               <folding>
                 <element signature="e#1056#1069#0" expanded="true" />
                 <element signature="e#1166#1179#0" expanded="true" />
-                <element signature="e#3459#3490#0" expanded="true" />
-                <element signature="e#3697#3710#0" expanded="true" />
-                <element signature="e#3920#3944#0" expanded="true" />
-                <element signature="e#5653#5690#0" expanded="true" />
+                <element signature="e#3464#3495#0" expanded="true" />
+                <element signature="e#3702#3715#0" expanded="true" />
+                <element signature="e#3925#3949#0" expanded="true" />
+                <element signature="e#5664#5701#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -350,7 +346,6 @@
         <option value="$PROJECT_DIR$/core/gtl/utilities/lua_object.h" />
         <option value="$PROJECT_DIR$/core/gtl/utilities/lua_object_ext.h" />
         <option value="$PROJECT_DIR$/core/manifold/mesh/map_linear.h" />
-        <option value="$PROJECT_DIR$/core/manifold/mesh/corect_mesh.h" />
         <option value="$PROJECT_DIR$/core/gtl/iterator/block_iterator.h" />
         <option value="$PROJECT_DIR$/core/geometry/geo_algorithm.h" />
         <option value="$PROJECT_DIR$/core/field/field_dense.h" />
@@ -363,17 +358,18 @@
         <option value="$PROJECT_DIR$/core/manifold/test/mesh_ids_test.cpp" />
         <option value="$PROJECT_DIR$/core/parallel/parallel_dummy.h" />
         <option value="$PROJECT_DIR$/core/parallel/parallel.h" />
-        <option value="$PROJECT_DIR$/example/em/em.lua" />
         <option value="$PROJECT_DIR$/core/model/geqdsk.h" />
         <option value="$PROJECT_DIR$/core/model/geqdsk.cpp" />
         <option value="$PROJECT_DIR$/core/geometry/polygon.h" />
         <option value="$PROJECT_DIR$/core/geometry/geo_object.h" />
-        <option value="$PROJECT_DIR$/example/em/em_plasma.cpp" />
         <option value="$PROJECT_DIR$/core/geometry/polygon.cpp" />
         <option value="$PROJECT_DIR$/core/field/test/field_diff_calculus_test.h" />
-        <option value="$PROJECT_DIR$/core/manifold/mesh/mesh_ids.h" />
         <option value="$PROJECT_DIR$/core/manifold/mesh/mesh_block.h" />
         <option value="$PROJECT_DIR$/core/model/constraint.h" />
+        <option value="$PROJECT_DIR$/core/manifold/mesh/mesh_ids.h" />
+        <option value="$PROJECT_DIR$/core/manifold/mesh/corect_mesh.h" />
+        <option value="$PROJECT_DIR$/example/em/em_plasma.cpp" />
+        <option value="$PROJECT_DIR$/example/em/em.lua" />
       </list>
     </option>
   </component>
@@ -596,7 +592,7 @@
     </panes>
   </component>
   <component name="PropertiesComponent">
-    <property name="settings.editor.selected.configurable" value="Errors" />
+    <property name="settings.editor.selected.configurable" value="preferences.sourceCode.C/C++" />
     <property name="settings.editor.splitter.proportion" value="0.2" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
   </component>
@@ -609,7 +605,7 @@
       <recent name="$PROJECT_DIR$/core/manifold" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.em_plasma">
+  <component name="RunManager" selected="Application.field_diff_calculus_cartesian_test">
     <configuration default="false" name="FETLTest.grad0" type="CMakeGoogleTestRunConfigurationType" factoryName="Google Test" temporary="true" PASS_PARENT_ENVS="FALSE" PROJECT_NAME="SimPla" TARGET_NAME="field_diff_calculus_cartesian_test" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="SimPla" RUN_TARGET_NAME="field_diff_calculus_cartesian_test" TEST_CLASS="FETLTest" TEST_METHOD="grad0" TEST_MODE="SUITE_TEST">
       <envs />
       <method />
@@ -1303,7 +1299,13 @@
       <option name="project" value="LOCAL" />
       <updated>1448934854773</updated>
     </task>
-    <option name="localTasksCounter" value="44" />
+    <task id="LOCAL-00044" summary="bug create_id_set&lt;EDGE&gt; &lt;FACE&gt; error">
+      <created>1448947532727</created>
+      <option name="number" value="00044" />
+      <option name="project" value="LOCAL" />
+      <updated>1448947532727</updated>
+    </task>
+    <option name="localTasksCounter" value="45" />
     <servers />
   </component>
   <component name="TestHistory">
@@ -1401,7 +1403,8 @@
     <MESSAGE value="looks good" />
     <MESSAGE value=" snapshot" />
     <MESSAGE value="fix bug in MeshIds::range_type" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix bug in MeshIds::range_type" />
+    <MESSAGE value="bug create_id_set&lt;EDGE&gt; &lt;FACE&gt; error" />
+    <option name="LAST_COMMIT_MESSAGE" value="bug create_id_set&lt;EDGE&gt; &lt;FACE&gt; error" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1513,17 +1516,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="17" column="19" selection-start-line="17" selection-start-column="19" selection-end-line="17" selection-end-column="19" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/manifold/mesh/corect_mesh.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="291" column="22" selection-start-line="291" selection-start-column="22" selection-end-line="291" selection-end-column="22" />
-          <folding>
-            <element signature="e#126#143#0" expanded="false" />
-            <element signature="e#6108#6119#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1686,14 +1678,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/example/em/em.lua">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="40" column="8" selection-start-line="40" selection-start-column="8" selection-end-line="40" selection-end-column="8" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/core/model/geqdsk.h">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-8.964286">
@@ -1750,14 +1734,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/example/em/em_plasma.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="179" column="91" selection-start-line="179" selection-start-column="91" selection-end-line="179" selection-end-column="91" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/core/geometry/polygon.cpp">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1779,21 +1755,21 @@
         <state vertical-scroll-proportion="0.6551724">
           <caret line="138" column="8" selection-start-line="138" selection-start-column="8" selection-end-line="138" selection-end-column="8" />
           <folding>
-            <element signature="e#187#206#0" expanded="true" />
-            <element signature="e#770#1021#0" expanded="true" />
-            <element signature="e#1989#2095#0" expanded="true" />
-            <element signature="e#3925#3990#0" expanded="true" />
-            <element signature="e#5591#5640#0" expanded="true" />
-            <element signature="e#7185#7369#0" expanded="true" />
-            <element signature="e#7556#7728#0" expanded="true" />
-            <element signature="e#9397#9599#0" expanded="true" />
-            <element signature="e#9828#9951#0" expanded="true" />
-            <element signature="e#11683#12220#0" expanded="true" />
-            <element signature="e#12387#12510#0" expanded="true" />
-            <element signature="e#14062#14824#0" expanded="true" />
-            <element signature="e#15188#15311#0" expanded="true" />
-            <element signature="e#19398#19521#0" expanded="true" />
-            <element signature="e#20931#21054#0" expanded="true" />
+            <element signature="e#187#206#0" expanded="false" />
+            <element signature="e#770#1021#0" expanded="false" />
+            <element signature="e#1989#2095#0" expanded="false" />
+            <element signature="e#3925#3990#0" expanded="false" />
+            <element signature="e#5591#5640#0" expanded="false" />
+            <element signature="e#7185#7369#0" expanded="false" />
+            <element signature="e#7556#7728#0" expanded="false" />
+            <element signature="e#9397#9599#0" expanded="false" />
+            <element signature="e#9828#9951#0" expanded="false" />
+            <element signature="e#11683#12220#0" expanded="false" />
+            <element signature="e#12387#12510#0" expanded="false" />
+            <element signature="e#14062#14824#0" expanded="false" />
+            <element signature="e#15188#15311#0" expanded="false" />
+            <element signature="e#19398#19521#0" expanded="false" />
+            <element signature="e#20931#21054#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -1880,26 +1856,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/core/manifold/mesh/mesh_ids.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-0.64285713">
-          <caret line="650" column="46" selection-start-line="650" selection-start-column="46" selection-end-line="650" selection-end-column="46" />
-          <folding>
-            <element signature="e#21742#21754#0" expanded="true" />
-            <element signature="e#22013#22025#0" expanded="true" />
-            <element signature="e#22463#22477#0" expanded="true" />
-            <element signature="e#23832#23871#0" expanded="true" />
-            <element signature="e#25896#25922#0" expanded="true" />
-            <element signature="e#26512#26551#0" expanded="true" />
-            <element signature="e#29461#29487#0" expanded="true" />
-            <element signature="e#29640#29664#0" expanded="true" />
-            <element signature="e#29803#29840#0" expanded="true" />
-            <element signature="e#31417#31431#0" expanded="true" />
-            <element signature="e#31636#31656#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/core/manifold/mesh/mesh_block.h">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1910,15 +1866,63 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/core/model/constraint.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-1.8390805">
-          <caret line="91" column="26" selection-start-line="91" selection-start-column="26" selection-end-line="91" selection-end-column="26" />
+        <state vertical-scroll-proportion="-26.892857">
+          <caret line="100" column="52" selection-start-line="100" selection-start-column="52" selection-end-line="100" selection-end-column="52" />
           <folding>
             <element signature="e#1056#1069#0" expanded="true" />
             <element signature="e#1166#1179#0" expanded="true" />
-            <element signature="e#3459#3490#0" expanded="true" />
-            <element signature="e#3697#3710#0" expanded="true" />
-            <element signature="e#3920#3944#0" expanded="true" />
-            <element signature="e#5653#5690#0" expanded="true" />
+            <element signature="e#3464#3495#0" expanded="true" />
+            <element signature="e#3702#3715#0" expanded="true" />
+            <element signature="e#3925#3949#0" expanded="true" />
+            <element signature="e#5664#5701#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/manifold/mesh/corect_mesh.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="222" column="43" selection-start-line="222" selection-start-column="43" selection-end-line="222" selection-end-column="43" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/example/em/em_plasma.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="188" column="84" selection-start-line="188" selection-start-column="84" selection-end-line="188" selection-end-column="84" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/example/em/em.lua">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="39" column="8" selection-start-line="39" selection-start-column="8" selection-end-line="39" selection-end-column="8" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/manifold/mesh/mesh_ids.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.50274724">
+          <caret line="760" column="9" selection-start-line="760" selection-start-column="9" selection-end-line="760" selection-end-column="9" />
+          <folding>
+            <element signature="e#130#149#0" expanded="true" />
+            <element signature="e#412#425#0" expanded="true" />
+            <element signature="e#1851#1868#0" expanded="true" />
+            <element signature="e#6749#6761#0" expanded="true" />
+            <element signature="e#6989#7001#0" expanded="true" />
+            <element signature="e#8280#8292#0" expanded="true" />
+            <element signature="e#9506#9519#0" expanded="true" />
+            <element signature="e#27938#27977#0" expanded="true" />
+            <element signature="e#30002#30028#0" expanded="true" />
+            <element signature="e#30618#30657#0" expanded="true" />
+            <element signature="e#33567#33593#0" expanded="true" />
+            <element signature="e#33746#33770#0" expanded="true" />
+            <element signature="e#33909#33946#0" expanded="true" />
+            <element signature="e#35523#35537#0" expanded="true" />
+            <element signature="e#35742#35762#0" expanded="true" />
           </folding>
         </state>
       </provider>

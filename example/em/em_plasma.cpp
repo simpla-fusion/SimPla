@@ -158,8 +158,6 @@ void EMPlasma::setup(int argc, char **argv)
             model::get_surface<EDGE>(m, cache, &edge_boundary);
             model::get_surface<FACE>(m, cache, &face_boundary);
             model::get_surface<VERTEX>(m, cache, &vertex_boundary);
-
-
         }
 
         {
@@ -184,9 +182,11 @@ void EMPlasma::setup(int argc, char **argv)
         }
 
 
-        rho0.accept(vertex_boundary.range(), [&](id_type const &, Real &v) { v = 1000; });
-        E1.accept(edge_boundary.range(), [&](id_type const &, Real &v) { v = 1000; });
-        B1.accept(face_boundary.range(), [&](id_type const &, Real &v) { v = 1000; });
+        rho0.accept(vertex_boundary.range(), [&](id_type const &s, Real &v) { v = 1000; });
+
+        E1.accept(edge_boundary.range(), [&](id_type const &s, Real &v) { v = 1000; });
+
+        B1.accept(face_boundary.range(), [&](id_type const &s, Real &v) { v = 1000; });
 
 
 //        VERBOSE << "Generator Particles" << std::endl;
