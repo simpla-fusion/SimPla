@@ -148,13 +148,12 @@ void EMPlasma::setup(int argc, char **argv)
         {
             model::Cache<mesh_type> cache;
 
-            model::create_cache(m, geqdsk.limiter(), &cache);
+            model::update_cache(m, geqdsk.limiter(), &cache);
 
             for (auto const &item:cache.range())
             {
                 rho1[item.first] = std::get<0>(item.second);
                 Bv[item.first] = std::get<1>(item.second);
-                B0v[item.first] = std::get<2>(item.second);
             }
 
             model::get_cell_on_surface<EDGE>(m, cache, &edge_boundary);
@@ -165,7 +164,7 @@ void EMPlasma::setup(int argc, char **argv)
         {
             model::Cache<mesh_type> cache;
 
-            model::create_cache(m, geqdsk.limiter(), &cache);
+            model::update_cache(m, geqdsk.limiter(), &cache);
 
             model::get_cell_on_surface(m, cache, &limiter_boundary);
 

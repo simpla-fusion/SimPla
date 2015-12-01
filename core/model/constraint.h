@@ -39,13 +39,18 @@ template<typename TM, typename ...Args> using Constraint=typename _impl::constra
 
 template<typename TM> using IdSet=Constraint<TM>;
 
-template<typename TM> using Surface=Constraint<TM, Real, typename TM::point_type, typename TM::vector_type>;
+template<typename TM> using Surface=Constraint<TM, Real, typename TM::point_type>;
 
 template<typename TM> using Cache = Surface<TM>;
 
+/**
+ *  flag = 0  union
+ *         1  intersection
+ *       -1  Difference
+ */
 
 template<typename TM, int IFORM = VERTEX>
-void create_cache(TM const &m, geometry::Object const &geo, Cache<TM> *cache)
+void update_cache(TM const &m, geometry::Object const &geo, Cache<TM> *cache, int flag = 0)
 {
 
     typedef TM mesh_type;
@@ -63,10 +68,30 @@ void create_cache(TM const &m, geometry::Object const &geo, Cache<TM> *cache)
                                for (auto const &s:r)
                                {
                                    point_type x = m.point(s);
-                                   Vec3 v;
-                                   Real d = geo.normals(&x, &v);
+                                   size_t id;
+                                   Real d = geo.nearest_point(&x);
+                                   typename Cache<TM>::value_type item(s, std::make_tuple(d, x));
+                                   typename Cache<TM>::accessor acc;
 
-                                   cache->insert(typename Cache<TM>::value_type  {s, std::make_tuple(d, x, v)});
+                                   if (!cache->insert(acc, item))
+                                   {
+                                       bool cond = false;
+                                       switch (flag)
+                                       {
+
+                                           case -1: //difference
+                                               cond = -d > std::get<0>(acc->second);
+                                           case 2: // intersection
+                                               cond = d > std::get<0>(acc->second);
+                                           default: //union
+                                               cond = d < std::get<0>(acc->second);
+                                       }
+                                       if (cond)
+                                       {
+                                           std::get<0>(acc->second) = d;
+                                           std::get<1>(acc->second) = x;
+                                       }
+                                   };
                                }
                            });
 

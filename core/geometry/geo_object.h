@@ -102,16 +102,6 @@ public:
      */
     virtual Real nearest_point(point_type *x) const = 0;
 
-    /**
-      * find nearest point from \f$M\f$ to \f$x\f$, and the normal of
-      * surface at this point
-      *
-      * @inout x
-      * @out v
-      * @return d distance
-      *      x[out]=x[in]+v*d
-      */
-    virtual Real normals(point_type *x, vector_type *v) const = 0;
 
     virtual Real nearest_point(point_type *x0, point_type *x1) const
     {

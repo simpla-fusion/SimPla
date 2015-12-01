@@ -15,14 +15,8 @@ int Polygon<2>::box_intersection(point_type *x0, point_type *x1) const
     return geometry::box_intersection(m_x0_, m_x1_, x0, x1);
 }
 
-Real  Polygon<2>::nearest_point(point_type *p) const
-{
-    vector_type v0;
 
-    return normals(p, &v0);
-}
-
-Real Polygon<2>::normals(point_type *x, vector_type *v_n) const
+Real Polygon<2>::nearest_point(point_type *x) const
 {
 
     typedef nTuple<Real, 2> Vec2;
@@ -39,7 +33,6 @@ Real Polygon<2>::normals(point_type *x, vector_type *v_n) const
 
     Real d2 = std::numeric_limits<Real>::max();
 
-    Real t_v2 = 1;
 
     while (it != m_polygon_.end())
     {
@@ -76,16 +69,11 @@ Real Polygon<2>::normals(point_type *x, vector_type *v_n) const
             (*x)[0] = x0[0] - u[0];
             (*x)[1] = x0[1] - u[1];
 
-            (*v_n)[0] = v[1];
-            (*v_n)[1] = -v[0];
-
-            t_v2 = v2;
         }
         p0 = p1;
 
     }
 
-    (*v_n)[2] = 0;
     d2 = std::sqrt(d2);
 
     return within(x0) > 0 ? d2 : -d2;
