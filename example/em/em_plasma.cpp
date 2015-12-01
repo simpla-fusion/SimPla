@@ -56,10 +56,13 @@ struct EMPlasma
 
     mesh_type m;
 
+
     traits::field_t<vector_type, mesh_type, VERTEX> Bv{m};
     traits::field_t<vector_type, mesh_type, VERTEX> B0v{m};
     traits::field_t<vector_type, mesh_type, VERTEX> Ev{m};
 
+    traits::field_t<scalar_type, mesh_type, VERTEX> rho0{m};
+    traits::field_t<scalar_type, mesh_type, VERTEX> rho1{m};
     traits::field_t<scalar_type, mesh_type, FACE> B0{m};
     traits::field_t<scalar_type, mesh_type, FACE> B1{m};
     traits::field_t<scalar_type, mesh_type, EDGE> E1{m};
@@ -88,6 +91,7 @@ struct EMPlasma
 //    std::map<std::string, particle_s> particles;
 
     model::Surface<mesh_type> limiter_boundary;
+    model::IdSet<mesh_type> vertex_boundary;
     model::IdSet<mesh_type> edge_boundary;
     model::IdSet<mesh_type> face_boundary;
 
@@ -112,7 +116,7 @@ void EMPlasma::setup(int argc, char **argv)
 
         geqdsk.load(options["GEQDSK"].as<std::string>(""));
 
-        auto box = geqdsk.boundary().box();
+        auto box = geqdsk.box();
 
         std::get<0>(box)[2] = 0;
         std::get<1>(box)[2] = TWOPI;
@@ -123,16 +127,38 @@ void EMPlasma::setup(int argc, char **argv)
 
         MESSAGE << std::endl << "[ Configuration ]" << std::endl << m << std::endl;
 
+        VERBOSE << "Clear fields" << std::endl;
+
+        Bv.clear();
+        B0v.clear();
+        Ev.clear();
+
+        B0.clear();
+        B1.clear();
+        E1.clear();
+        pdE.clear();
+
+        J1.clear();
+
+        B0v = map_to<VERTEX>(B0);
+        rho0.clear();
+        rho1.clear();
+
+
         {
             model::Cache<mesh_type> cache;
 
-            model::create_cache(m, geqdsk.boundary(), &cache);
-            CHECK(cache.size());
+            model::create_cache(m, geqdsk.limiter(), &cache);
+
+            for (auto const &item:cache.range())
+            {
+                rho1[item.first] = std::get<0>(item.second);
+            }
+
             model::get_surface<EDGE>(m, cache, &edge_boundary);
             model::get_surface<FACE>(m, cache, &face_boundary);
+            model::get_surface<VERTEX>(m, cache, &vertex_boundary);
 
-            CHECK(edge_boundary.size());
-            CHECK(face_boundary.size());
 
         }
 
@@ -152,33 +178,22 @@ void EMPlasma::setup(int argc, char **argv)
             if (dict)
             {
                 model::create_id_set<EDGE>(m, dict["Box"].template as<box_type>(), &J_src);
-                CHECK(J_src.size());
                 dict["Value"].as(&J_src_fun);
             }
 
         }
 
 
-        VERBOSE << "Clear fields" << std::endl;
+        rho0.accept(vertex_boundary.range(), [&](id_type const &, Real &v) { v = 1000; });
+        E1.accept(edge_boundary.range(), [&](id_type const &, Real &v) { v = 1000; });
+        B1.accept(face_boundary.range(), [&](id_type const &, Real &v) { v = 1000; });
 
-        Bv.clear();
-        B0v.clear();
-        Ev.clear();
 
-        B0.clear();
-        B1.clear();
-        E1.clear();
-        pdE.clear();
-
-        J1.clear();
-
-        B0v = map_to<VERTEX>(B0);
-
-        VERBOSE << "Generator Particles" << std::endl;
-
-        auto gen = particle::make_generator(ion, 1.0);
-
-        ion.generator(gen, options["PIC"].as<size_t>(10), 1.0);
+//        VERBOSE << "Generator Particles" << std::endl;
+//
+//        auto gen = particle::make_generator(ion, 1.0);
+//
+//        ion.generator(gen, options["PIC"].as<size_t>(10), 1.0);
 
 
     }
@@ -190,6 +205,11 @@ void EMPlasma::setup(int argc, char **argv)
 
     io::cd("/dump/");
     LOGGER << SAVE(ion) << std::endl;
+    LOGGER << SAVE(rho0) << std::endl;
+    LOGGER << SAVE(rho1) << std::endl;
+    LOGGER << SAVE(E1) << std::endl;
+    LOGGER << SAVE(B1) << std::endl;
+
 }
 
 void EMPlasma::tear_down()

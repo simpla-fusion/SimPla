@@ -36,7 +36,10 @@ public:
     virtual box_type box() const = 0;
 
     /**
-     * @return  \f$ (x,y,z) \in M\f$ ? 1 : 0
+     * @return  check \f$ (x,y,z)\f$ in \f$ M\f$
+     *           `in` then <0
+     *           `on boundary` then =0
+     *           `out` then >0
      */
     virtual int within(point_type const &x) const = 0;
 
@@ -73,7 +76,7 @@ public:
         int res;
         for (int i = 0; i < num; ++i)
         {
-            res |= (within(p_tuple[i])) << (num - 1 - i);
+            res |= (within(p_tuple[i]) > 0 ? 1 : 0) << (num - 1 - i);
         }
         return res;
     };

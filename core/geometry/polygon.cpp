@@ -39,6 +39,8 @@ Real Polygon<2>::normals(point_type *x, vector_type *v_n) const
 
     Real d2 = std::numeric_limits<Real>::max();
 
+    Real t_v2 = 1;
+
     while (it != m_polygon_.end())
     {
 
@@ -54,30 +56,39 @@ Real Polygon<2>::normals(point_type *x, vector_type *v_n) const
 
         auto s = inner_product(u, v) / v2;
 
-        Real dd = (u[1] * v[0] - u[0] * v[1]);
-        dd = dd * dd / v2;
 
+        point2d_type p;
 
         if (s < 0) { s = 0; }
         else if (s > 1) { s = 1; }
+
+        p = ((1 - s) * p0 + s * p1);
+        /**
+         * if \f$ v \times u \cdot e_z >0 \f$ then `in` else `out`
+         */
+
+        Real dd = inner_product(x0 - p, x0 - p);
 
 
         if (std::abs(dd) < std::abs(d2))
         {
             d2 = dd;
-            (*x)[0] = p0[0];
-            (*x)[1] = p0[1];
+            (*x)[0] = x0[0] - u[0];
+            (*x)[1] = x0[1] - u[1];
 
-            (*v_n)[0] = p1[1] - p0[1];
-            (*v_n)[1] = p0[0] - p1[0];
+            (*v_n)[0] = v[1];
+            (*v_n)[1] = -v[0];
+
+            t_v2 = v2;
         }
         p0 = p1;
 
     }
 
     (*v_n)[2] = 0;
+    d2 = std::sqrt(d2);
 
-    return std::sqrt(d2);
+    return within(x0) > 0 ? d2 : -d2;
 }
 
 

@@ -451,10 +451,11 @@ struct MeshIDs_
      */
     static constexpr int MAX_NUM_OF_CELL = 12;
 
-    static constexpr id_type _HI = _D;
+    static constexpr id_type _HI = _D << 1;
     static constexpr id_type _HJ = _HI << ID_DIGITS;
     static constexpr id_type _HK = _HI << (ID_DIGITS * 2);
-    static constexpr id_type _LI = (-_D) & (ID_MASK >> 1);
+    static constexpr id_type _LI = 0;
+    //(-_D) & (ID_MASK >> 1);
     static constexpr id_type _LJ = _LI << ID_DIGITS;
     static constexpr id_type _LK = _LI << (ID_DIGITS * 2);
 
@@ -646,7 +647,8 @@ struct MeshIDs_
         {
             for (int i = 0; i < m_adjoint_num_[IFORM][nodeid]; ++i)
             {
-                res[i] = ((s + m_adjoint_matrix_[IFORM][nodeid][i]));
+                res[i] = (((s | FULL_OVERFLOW_FLAG) - _DA + m_adjoint_matrix_[IFORM][nodeid][i])) |
+                         (FULL_OVERFLOW_FLAG);
             }
         }
         return m_adjoint_num_[IFORM][nodeid];
@@ -663,7 +665,8 @@ struct MeshIDs_
         {
             for (int i = 0; i < m_adjoint_num_[VERTEX][node_id]; ++i)
             {
-                res[i] = ((s + m_adjoint_matrix_[VERTEX][node_id][i])) & (~FULL_OVERFLOW_FLAG);
+                res[i] = (((s | FULL_OVERFLOW_FLAG) - _DA + m_adjoint_matrix_[VERTEX][node_id][i])) |
+                         (FULL_OVERFLOW_FLAG);
             }
         }
         return m_adjoint_num_[VERTEX][node_id];
@@ -1044,7 +1047,7 @@ struct MeshIDs_
          *\endverbatim
          */
 
-        s = s & (~FULL_OVERFLOW_FLAG);
+        s = s | (FULL_OVERFLOW_FLAG);
 
         typedef typename TGeometry::point_type point_type;
 
@@ -1055,14 +1058,14 @@ struct MeshIDs_
             point_type p[NUM_OF_NODE_ID] = {
 
                     /*000*/  geo.point(s),                       //
-                    /*001*/  geo.point(s + (_HI << 1)),          //
-                    /*010*/  geo.point(s + (_HJ << 1)),          //
-                    /*011*/  geo.point(s + ((_HJ | _HI) << 1)),  //
+                    /*001*/  geo.point(s + (_HI)),          //
+                    /*010*/  geo.point(s + (_HJ)),          //
+                    /*011*/  geo.point(s + ((_HJ | _HI))),  //
 
-                    /*100*/  geo.point(s + (_HK << 1)),          //
-                    /*101*/  geo.point(s + ((_HK | _HI) << 1)),   //
-                    /*110*/  geo.point(s + ((_HK | _HJ) << 1)),   //
-                    /*111*/  geo.point(s + ((_HK | _HJ | _HI) << 1))    //
+                    /*100*/  geo.point(s + (_HK)),          //
+                    /*101*/  geo.point(s + ((_HK | _HI))),   //
+                    /*110*/  geo.point(s + ((_HK | _HJ))),   //
+                    /*111*/  geo.point(s + ((_HK | _HJ | _HI)))    //
 
             };
 
@@ -1090,15 +1093,15 @@ struct MeshIDs_
         {
             point_type p[NUM_OF_NODE_ID] = {
 
-                    /*000*/    geo.point(s + (_LK | _LJ | _LI)),   //
-                    /*001*/    geo.point(s + (_LK | _LJ | _HI)),   //
-                    /*010*/    geo.point(s + (_LK | _HJ | _LI)),   //
-                    /*011*/    geo.point(s + (_LK | _HJ | _HI)),   //
+                    /*000*/    geo.point(s - _DA + (_LK | _LJ | _LI)),   //
+                    /*001*/    geo.point(s - _DA + (_LK | _LJ | _HI)),   //
+                    /*010*/    geo.point(s - _DA + (_LK | _HJ | _LI)),   //
+                    /*011*/    geo.point(s - _DA + (_LK | _HJ | _HI)),   //
 
-                    /*100*/    geo.point(s + (_HK | _LJ | _LI)),   //
-                    /*101*/    geo.point(s + (_HK | _LJ | _HI)),   //
-                    /*110*/    geo.point(s + (_HK | _HJ | _LI)),   //
-                    /*111*/    geo.point(s + (_HK | _HJ | _HI))    //
+                    /*100*/    geo.point(s - _DA + (_HK | _LJ | _LI)),   //
+                    /*101*/    geo.point(s - _DA + (_HK | _LJ | _HI)),   //
+                    /*110*/    geo.point(s - _DA + (_HK | _HJ | _LI)),   //
+                    /*111*/    geo.point(s - _DA + (_HK | _HJ | _HI))    //
 
             };
 

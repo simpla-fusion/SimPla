@@ -132,6 +132,14 @@ public:
         return *this;
     }
 
+    size_t id_mask() const
+    {
+        size_t M = (1UL << ID_DIGITS) - 1;
+        return FULL_OVERFLOW_FLAG
+               | ((m_max_[0] - m_min_[0] > 1) ? M : 0)
+               | ((m_max_[1] - m_min_[1] > 1) ? (M << (ID_DIGITS)) : 0)
+               | ((m_max_[2] - m_min_[2] > 1) ? (M << (ID_DIGITS * 2)) : 0);
+    }
 
     template<typename TD>
     void dimensions(TD const &d)

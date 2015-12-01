@@ -11,7 +11,7 @@
 #include <type_traits>
 #include <functional>
 
-namespace simpla { namespace parallel
+namespace simpla { namespace serial
 {
 
 namespace tags

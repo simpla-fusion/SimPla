@@ -38,7 +38,7 @@ struct GEqdsk::pimpl_s
 
     typedef MultiDimesionInterpolation<BiLinearInterpolation, Real> inter2d_type;
 
-    nTuple<int, 3> m_dims_ { 1, 1, 1 } ;
+    nTuple<int, 3> m_dims_{1, 1, 1};
     point_type m_rzmin_;
     point_type m_rzmax_;
 
@@ -134,7 +134,7 @@ void GEqdsk::pimpl_s::load(std::string const &fname)
     m_rzmin_[ZAxis] = m_zmid_ - m_zdim_ / 2;
     m_rzmax_[ZAxis] = m_zmid_ + m_zdim_ / 2;
     m_rzmin_[PhiAxis] = 0;
-    m_rzmax_[PhiAxis] = 0;
+    m_rzmax_[PhiAxis] = TWOPI;
 
     m_dims_[RAxis] = nw;
     m_dims_[ZAxis] = nh;
@@ -448,6 +448,11 @@ Real GEqdsk::profile(std::string const &name, Real p_psi) const
 GEqdsk::point_type GEqdsk::magnetic_axis() const
 {
     return point_type{m_pimpl_->m_rmaxis_, m_pimpl_->m_zmaxis, 0};
+}
+
+std::tuple<typename GEqdsk::point_type, typename GEqdsk::point_type> GEqdsk::box() const
+{
+    return std::make_tuple(m_pimpl_->m_rzmin_, m_pimpl_->m_rzmax_);
 }
 }  // namespace simpla
 

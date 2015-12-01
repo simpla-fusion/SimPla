@@ -85,29 +85,33 @@ void on_surface(TM const &m, Cache<TM> const &cache, Func const &func)
 
     typedef typename mesh_type::id_type id_type;
 
-    parallel::parallel_for(
+
+    size_t MASK = m.id_mask();
+
+    serial::parallel_for(
             cache.range(),
             [&](typename Cache<TM>::const_range_type const &r)
             {
                 for (auto const &item: r)
                 {
-                    thread_local id_type v_s = item.first + mesh_type::_DA;
+                    id_type v_s = item.first + mesh_type::_DA;
 
-                    thread_local int num = m.get_vertices_id(mesh_type::TAG_VOLUME, v_s);
+                    id_type p[mesh_type::MAX_NUM_OF_NEIGHBOURS];
 
-                    thread_local id_type p[mesh_type::MAX_NUM_OF_NEIGHBOURS];
+                    int num = m.get_vertices_id(mesh_type::TAG_VOLUME, v_s, p);
 
-                    m.get_vertices_id(mesh_type::TAG_VOLUME, v_s, p);
-                    thread_local int count = 0;
+                    int count = 0;
+
                     for (int i = 0; i < num; ++i)
                     {
                         typename Cache<TM>::const_accessor acc;
-                        if (cache.find(acc, p[i]))
+
+                        if (cache.find(acc, (p[i] & MASK)))
                         {
-                            if (std::get<0>(acc->second) < 0) { ++count; }
+                            if (std::get<0>(acc->second) > 0) { ++count; }
                         }
                     }
-                    if (count > 0 && count < num)
+                    if ((count > 0) && (count < num))
                     {
                         func(item);
                     }
@@ -152,32 +156,33 @@ void get_surface(TM const &m, Cache<TM> const &cache, IdSet<TM> *surface,
     typedef typename mesh_type::vector_type vector_type;
 
     typedef typename mesh_type::id_type id_type;
+    size_t MASK = m.id_mask();
 
     on_surface(m, cache,
                [&](typename Cache<TM>::value_type const &item)
                {
-                   thread_local id_type ids_0[mesh_type::MAX_NUM_OF_NEIGHBOURS];
-                   thread_local id_type ids_1[mesh_type::MAX_NUM_OF_NEIGHBOURS];
+                   id_type ids_0[mesh_type::MAX_NUM_OF_NEIGHBOURS];
+                   id_type ids_1[mesh_type::MAX_NUM_OF_NEIGHBOURS];
 
-                   thread_local int num_0 = m.get_adjoints(IFORM, mesh_type::TAG_VOLUME, item.first + mesh_type::_DA,
-                                                           ids_0);
+                   int num_0 = m.get_adjoints(IFORM, mesh_type::TAG_VOLUME, item.first + mesh_type::_DA,
+                                              ids_0);
 
                    for (int i = 0; i < num_0; ++i)
                    {
 
-                       thread_local int num_1 = m.get_vertices_id(ids_0[i], ids_1);
+                       int num_1 = m.get_vertices_id(ids_0[i], ids_1);
 
-                       thread_local int count = 0;
+                       int count = 0;
 
                        for (int j = 0; j < num_1; ++j)
                        {
                            typename Cache<TM>::const_accessor acc;
 
-                           thread_local bool t_is_out = true;
+                           bool t_is_out = true;
 
-                           if (cache.find(acc, ids_1[j]))
+                           if (cache.find(acc, ids_1[j] & MASK))
                            {
-                               t_is_out = (std::get<0>(acc->second) < 0);
+                               t_is_out = (std::get<0>(acc->second) > 0);
                            }
 
                            if (is_out_boundary == t_is_out)
@@ -185,7 +190,6 @@ void get_surface(TM const &m, Cache<TM> const &cache, IdSet<TM> *surface,
                                ++count;
                            }
                        }
-
                        if (count == num_1)
                        {
                            surface->insert(ids_0[i]);
@@ -207,3 +211,4 @@ void create_id_set(TM const &m, TB const &box, IdSet<TM> *res)
 }} // namespace simpla { namespace model
 
 #endif //SIMPLA_SURFACE_H
+

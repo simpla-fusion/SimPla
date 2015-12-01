@@ -55,6 +55,8 @@ public:
 
     std::string const &description() const;
 
+    std::tuple<point_type, point_type> box() const;
+
     geometry::Object const &boundary() const;
 
     geometry::Object const &limiter() const;
