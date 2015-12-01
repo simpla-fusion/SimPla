@@ -179,17 +179,21 @@ public:
         point_type b0, b1, x0, x1;
 
         std::tie(b0, b1) = local_box();
-        x0 = inv_map(std::get<0>(b));
-        x1 = inv_map(std::get<1>(b));
-        index_tuple i0, i1;
-        i0 = 0;
-        i1 = 0;
+        std::tie(x0, x1) = b;
+
         if (geometry::box_intersection(b0, b1, &x0, &x1))
         {
-            i0 = x0;
-            i1 = x1;
+            return std::make_tuple(base_type::unpack_index(id(x0)),
+                                   base_type::unpack_index(id(x1) + (base_type::_DA << 1)));
+
         }
-        return std::make_tuple(i0, i1);
+        else
+        {
+            index_tuple i0, i1;
+            i0 = 0;
+            i1 = 0;
+            return std::make_tuple(i0, i1);
+        }
 
 
     }
@@ -201,7 +205,7 @@ public:
     template<typename ...Args>
     point_type point(Args &&...args) const
     {
-        return std::move(map_type::map(base_type::point(std::forward<Args>(args)...)));
+        return std::move(map_type::inv_map(base_type::point(std::forward<Args>(args)...)));
     }
 
 /**
@@ -213,17 +217,17 @@ public:
  */
     virtual point_type coordinates_local_to_global(std::tuple<id_type, point_type> const &t) const
     {
-        return std::move(map(base_type::coordinates_local_to_global(t)));
+        return std::move(inv_map(base_type::coordinates_local_to_global(t)));
     }
 
     virtual std::tuple<id_type, point_type> coordinates_global_to_local(point_type x, int n_id = 0) const
     {
-        return std::move(base_type::coordinates_global_to_local(inv_map(x), n_id));
+        return std::move(base_type::coordinates_global_to_local(map(x), n_id));
     }
 
     virtual id_type id(point_type const &x, int n_id = 0) const
     {
-        return std::get<0>(base_type::coordinates_global_to_local(inv_map(x), n_id));
+        return std::get<0>(base_type::coordinates_global_to_local(map(x), n_id));
     }
 
 
@@ -291,7 +295,7 @@ void Mesh<TMetric, tags::rect_linear, TMap>::deploy()
 
     auto dims = base_type::dimensions();
 
-    map_type::set(base_type::box(), box(), dims);
+    map_type::set(box(), base_type::box(), dims);
 
     for (int i = 0; i < ndims; ++i)
     {

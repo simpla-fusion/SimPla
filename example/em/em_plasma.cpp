@@ -97,7 +97,7 @@ struct EMPlasma
 
     model::IdSet<mesh_type> J_src;
 
-    std::function<Vec3(Real, point_type)> J_src_fun;
+    std::function<Vec3(Real, point_type const &)> J_src_fun;
 
 };
 
@@ -176,14 +176,12 @@ void EMPlasma::setup(int argc, char **argv)
 
             if (dict)
             {
-                auto b0 = dict["Box"].template as<box_type>();
-                auto b1 = m.index_box(b0);
-                CHECK(m.box());
-                CHECK(m.local_box());
-                CHECK(b0);
-                CHECK(b1);
-                model::create_id_set(m.template make_range<EDGE>(b1), &J_src);
-                CHECK(J_src.size());
+
+
+                model::create_id_set(m, m.template make_range<EDGE>(
+                                             m.index_box(dict["Box"].template as<box_type>())),
+                                     &J_src);
+
                 dict["Value"].as(&J_src_fun);
             }
 
@@ -212,9 +210,7 @@ void EMPlasma::setup(int argc, char **argv)
 
 
     io::cd("/dump/");
-    LOGGER << SAVE(ion) << std::endl;
-    LOGGER << SAVE(rho0) << std::endl;
-    LOGGER << SAVE(rho1) << std::endl;
+
     LOGGER << SAVE(E1) << std::endl;
     LOGGER << SAVE(B1) << std::endl;
     LOGGER << SAVE(Bv) << std::endl;
@@ -259,10 +255,10 @@ void EMPlasma::next_time_step()
 //
 //    ion.integral(&J1);
 
-//    J1.accept(J_src.range(), [&](id_type const &s, Real &v)
-//    {
-//        v += m.template sample<EDGE>(s, J_src_fun(t, m.point(s)));
-//    });
+    J1.accept(J_src.range(), [&](id_type const &s, Real &v)
+    {
+        v += m.template sample<EDGE>(s, J_src_fun(t, m.point(s)));
+    });
 
     LOG_CMD(B1 -= curl(E1) * (dt * 0.5));
 

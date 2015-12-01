@@ -298,10 +298,12 @@ void get_cell_out_surface(TM const &m, Cache<TM> const &cache, IdSet<TM> *res)
 };
 
 
-template<typename TRange, typename TSet>
-void create_id_set(TRange const &r0, TSet *res)
+template<typename TM, typename TRange, typename TSet>
+void create_id_set(TM const &m, TRange const &r0, TSet *res)
 {
-    parallel::parallel_for(r0, [&](TRange const &r) { for (auto const &s:r) { res->insert(s); }});
+    size_t MASK = m.id_mask();
+
+    parallel::parallel_for(r0, [&](TRange const &r) { for (auto const &s:r) { res->insert(s & MASK); }});
 
 }
 
