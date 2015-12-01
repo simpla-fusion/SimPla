@@ -8,6 +8,7 @@
 #ifndef PARALLEL_TBB_H_
 #define PARALLEL_TBB_H_
 #define TBB_IMPLEMENT_CPP0X true
+
 #include <tbb/tbb.h>
 
 namespace simpla { namespace parallel
@@ -19,6 +20,14 @@ using tbb::concurrent_unordered_map;
 using tbb::concurrent_unordered_set;
 
 using tbb::concurrent_hash_map;
+
+namespace tags
+{
+using tbb::split;
+using tbb::proportional_split;
+
+
+}
 
 }}  // namespace simpla { namespace parallel
 

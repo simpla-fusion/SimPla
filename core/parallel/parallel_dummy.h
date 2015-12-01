@@ -14,6 +14,24 @@
 namespace simpla { namespace parallel
 {
 
+namespace tags
+{
+struct split
+{
+};
+
+struct proportional_split
+{
+
+    size_t left() { return m_left_; }
+
+    size_t right() { return m_right_; }
+
+private:
+    size_t m_left_, m_right_;
+};
+}
+
 
 template<typename ...> struct concurrent_unordered_map;
 template<typename ...> struct concurrent_unordered_set;

@@ -10,6 +10,7 @@
 #include "../../gtl/ntuple_ext.h"
 #include "../../gtl/utilities/log.h"
 #include "../mesh/mesh_ids.h"
+#include "../../parallel/parallel.h"
 
 using namespace simpla;
 
@@ -26,14 +27,38 @@ TEST(GeometryTest, MeshIDs)
 
     mesh::MeshIDs_<4>::range_type r(b, e, FACE);
 
-    auto ib = r.begin();
-
-    auto ie = r.end();
-    for (int i = 0; i < 40; ++i)
+//    auto ib = r.begin();
+//
+//    auto ie = r.end();
+//    for (int i = 0; i < 40; ++i)
+//    {
+//        CHECK(ib.m_self_);
+//        ++ib;
+//    }
+    parallel::parallel_for(r, [&](mesh::MeshIDs_<4>::range_type const &r0)
     {
-        CHECK(ib.m_self_);
-        ++ib;
-    }
+
+        CHECK(r0.size());
+    });
+
+
+    size_t res = parallel::parallel_reduce(r, 0UL,
+                                           [&](mesh::MeshIDs_<4>::range_type const &r, size_t init) -> size_t
+                                           {
+                                               for (auto const &s:r)
+                                               {
+                                                   ++init;
+                                               }
+
+                                               return init;
+                                           },
+                                           [](size_t x, size_t y) -> size_t
+                                           {
+                                               return x + y;
+                                           }
+    );
+
+    CHECK(res);
 
 }
 //

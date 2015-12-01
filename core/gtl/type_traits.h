@@ -28,20 +28,6 @@ struct EmptyType
 namespace tags
 {
 
-struct split
-{
-};
-
-struct proportional_split
-{
-
-    size_t left() { return m_left_; }
-
-    size_t right() { return m_right_; }
-
-private:
-    size_t m_left_, m_right_;
-};
 
 struct do_nothing
 {

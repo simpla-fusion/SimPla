@@ -15,8 +15,7 @@
 #include "../../gtl/ntuple.h"
 #include "../../gtl/primitives.h"
 #include "../../gtl/iterator/block_iterator.h"
-#include "../../gtl/iterator/range.h"
-
+#include "../../parallel/parallel.h"
 #include "../manifold_traits.h"
 
 namespace simpla { namespace mesh
@@ -824,7 +823,14 @@ struct MeshIDs_
         range_type(T0 const &b, T1 const &e, int IFORM = VERTEX)
                 : m_iform_(IFORM), m_min_(b), m_max_(e)
         {
-            m_grain_size_ = 2;
+            m_grain_size_ = 1;
+            for (int i = 0; i < ndims; ++i)
+            {
+                if (m_max_[i] - m_min_[i] <= m_grain_size_[i])
+                {
+                    m_grain_size_[i] = m_max_[i] - m_min_[i];
+                }
+            }
         }
 
         range_type(this_type const &r)
@@ -839,15 +845,19 @@ struct MeshIDs_
         }
 
 
-        template<typename TSplit>
-        range_type(this_type &r, TSplit const &)
+        range_type(range_type &r, parallel::tags::split)
                 : m_iform_(r.m_iform_), m_min_(r.m_min_), m_max_(r.m_max_), m_grain_size_(r.m_grain_size_)
         {
+
+            ASSERT(is_divisible());
+
             int n = 0;
-            index_type L = m_max_[0] - m_min_[0];
-            for (int i = 1; i < ndims; ++i)
+
+            index_type L = 0;
+
+            for (int i = 0; i < ndims; ++i)
             {
-                if (m_max_[i] - m_min_[i] > L)
+                if ((m_max_[i] - m_min_[i] > L) && (m_max_[i] - m_min_[i] > m_grain_size_[i]))
                 {
                     n = i;
                     L = m_max_[i] - m_min_[i];
@@ -857,13 +867,8 @@ struct MeshIDs_
             r.m_min_[n] = m_max_[n];
         }
 
-        this_type split()
-        {
-            this_type res(*this, tags::split());
-            return std::move(res);
-        }
 
-        range_type(this_type &r, tags::proportional_split &proportion)
+        range_type(this_type &r, parallel::tags::proportional_split const &proportion)
         {
             int n = 0;
             index_type L = m_max_[0] - m_min_[0];
@@ -882,11 +887,6 @@ struct MeshIDs_
             r.m_min_[n] = m_max_[n];
         }
 
-        this_type split(tags::proportional_split &proportion)
-        {
-            this_type res(*this, proportion);
-            return std::move(res);
-        }
 
         ~range_type() { }
 
@@ -915,7 +915,18 @@ struct MeshIDs_
         // access
         index_tuple const &grainsize() const { return m_grain_size_; }
 
-        bool is_divisible() const { return m_max_ - m_min_ > m_grain_size_; }
+        bool is_divisible() const
+        {
+            int count = 0;
+
+            for (int i = 0; i < ndims; ++i)
+            {
+                if (m_max_[i] - m_min_[i] <= m_grain_size_[i]) { ++count; }
+            }
+
+            return count < ndims;
+
+        }
 
         // iterators
         const_iterator begin() const { return const_iterator(m_min_, m_min_, m_max_, m_iform_); }
@@ -923,6 +934,8 @@ struct MeshIDs_
         const_iterator end() const { return const_iterator(m_min_, m_min_, m_max_, m_iform_).end(); }
 
     private:
+
+
         int m_iform_;
         index_tuple m_min_, m_max_, m_grain_size_;
     };

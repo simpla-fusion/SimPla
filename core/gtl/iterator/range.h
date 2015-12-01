@@ -7,6 +7,7 @@
 #ifndef SIMPLA_RANGE_H
 #define SIMPLA_RANGE_H
 
+#include "../parallel/parallel.h"
 
 #include "../type_traits.h"
 
@@ -58,7 +59,7 @@ public:
     }
 
 
-    Range(this_type &r, tags::proportional_split &proportion) :
+    Range(this_type &r, parallel::tags::proportional_split &proportion) :
             m_begin_(r.m_begin_ + r.size() * proportion.left() /
                                   ((proportion.left() + proportion.right() > 0) ? (proportion.left() +
                                                                                    proportion.right()) : 1)),

@@ -22,7 +22,7 @@ Real  Polygon<2>::nearest_point(point_type *p) const
     return normals(p, &v0);
 }
 
-Real Polygon<2>::normals(point_type *x, vector_type *v0) const
+Real Polygon<2>::normals(point_type *x, vector_type *v_n) const
 {
 
     typedef nTuple<Real, 2> Vec2;
@@ -33,7 +33,7 @@ Real Polygon<2>::normals(point_type *x, vector_type *v0) const
 
     point2d_type p0 = m_polygon_.back();
 
-    point2d_type p;
+    point2d_type p1;
 
     auto it = m_polygon_.begin();
 
@@ -42,8 +42,8 @@ Real Polygon<2>::normals(point_type *x, vector_type *v0) const
     while (it != m_polygon_.end())
     {
 
-        auto const &p1 = *it;
-
+        p1 = *it;
+        ++it;
 
         Vec2 u, v;
 
@@ -54,12 +54,13 @@ Real Polygon<2>::normals(point_type *x, vector_type *v0) const
 
         auto s = inner_product(u, v) / v2;
 
+        Real dd = (u[1] * v[0] - u[0] * v[1]);
+        dd = dd * dd / v2;
+
+
         if (s < 0) { s = 0; }
         else if (s > 1) { s = 1; }
 
-        p = p0 * (1 - s) + s * (p0);
-
-        Real dd = (u[1] * v[0] - u[0] * v[1]) / std::sqrt(v2);
 
         if (std::abs(dd) < std::abs(d2))
         {
@@ -67,16 +68,16 @@ Real Polygon<2>::normals(point_type *x, vector_type *v0) const
             (*x)[0] = p0[0];
             (*x)[1] = p0[1];
 
-            (*v0)[0] = p1[1] - p0[1];
-            (*v0)[1] = p0[0] - p1[0];
+            (*v_n)[0] = p1[1] - p0[1];
+            (*v_n)[1] = p0[0] - p1[0];
         }
         p0 = p1;
-        ++it;
+
     }
 
-    (*v0)[2] = 0;
+    (*v_n)[2] = 0;
 
-    return d2;
+    return std::sqrt(d2);
 }
 
 

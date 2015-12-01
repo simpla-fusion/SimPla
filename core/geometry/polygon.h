@@ -58,7 +58,7 @@ public:
 
     virtual Real nearest_point(point_type *p) const;
 
-    virtual Real normals(point_type *x, vector_type *v) const;
+    virtual Real normals(point_type *x, vector_type *v_n) const;
 
     virtual box_type box() const { return box_type(m_x0_, m_x1_); };
 

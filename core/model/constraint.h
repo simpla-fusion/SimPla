@@ -62,11 +62,11 @@ void create_cache(TM const &m, geometry::Object const &geo, Cache<TM> *cache)
                            {
                                for (auto const &s:r)
                                {
-                                   thread_local point_type x = m.point(s);
-                                   thread_local Vec3 v;
-                                   thread_local Real d = geo.normals(&x, &v);
-                                   thread_local auto tmp = typename Cache<TM>::value_type(s, std::make_tuple(d, x, v));
-                                   cache->insert(std::move(tmp));
+                                   point_type x = m.point(s);
+                                   Vec3 v;
+                                   Real d = geo.normals(&x, &v);
+                                   typename Cache<TM>::value_type tmp{s, std::make_tuple(d, x, v)};
+                                   cache->insert(tmp);
                                }
                            });
 
@@ -136,10 +136,7 @@ template<typename TM>
 void get_surface(TM const &m, Cache<TM> const &cache, Surface<TM> *surface)
 {
     on_surface(m, cache,
-               [&](typename Cache<TM>::value_type const &item)
-               {
-                   surface->insert(item);
-               });
+               [&](typename Cache<TM>::value_type const &item) { surface->insert(item); });
 
 };
 
