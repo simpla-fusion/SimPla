@@ -46,7 +46,7 @@ struct EMPlasma
 
     typedef Real scalar_type;
 
-    typedef manifold::CartesianManifold mesh_type;
+    typedef manifold::CylindricalManifold mesh_type;
 
     typedef typename mesh_type::id_type id_type;
     typedef typename mesh_type::point_type point_type;
@@ -176,7 +176,14 @@ void EMPlasma::setup(int argc, char **argv)
 
             if (dict)
             {
-                model::create_id_set<EDGE>(m, dict["Box"].template as<box_type>(), &J_src);
+                auto b0 = dict["Box"].template as<box_type>();
+                auto b1 = m.index_box(b0);
+                CHECK(m.box());
+                CHECK(m.local_box());
+                CHECK(b0);
+                CHECK(b1);
+                model::create_id_set(m.template make_range<EDGE>(b1), &J_src);
+                CHECK(J_src.size());
                 dict["Value"].as(&J_src_fun);
             }
 

@@ -61,23 +61,26 @@ public:
  *	4-1 = e-d = ghosts
  *	2-1 = counts
  *
- *	0 = m_min_
- *	5 = m_max_
+ *	0 = m_idx_min_
+ *	5 = m_idx_max_
  *
- *	1 = m_memory_min_
- *	4 = m_memory_max_
+ *	1 = m_idx_memory_min_
+ *	4 = m_idx_memory_max_
  *
- *	2 = m_local_min_
- *	3 = m_local_max_
+ *	2 = m_idx_local_min_
+ *	3 = m_idx_local_max_
  *
  *
  */
-    index_tuple m_min_;
-    index_tuple m_max_;
-    index_tuple m_local_min_;
-    index_tuple m_local_max_;
-    index_tuple m_memory_min_;
-    index_tuple m_memory_max_;
+    point_type m_x_min_;
+    point_type m_x_max_;
+
+    index_tuple m_idx_min_;
+    index_tuple m_idx_max_;
+    index_tuple m_idx_local_min_;
+    index_tuple m_idx_local_max_;
+    index_tuple m_idx_memory_min_;
+    index_tuple m_idx_memory_max_;
 
 
     bool m_is_valid_ = false;
@@ -85,28 +88,28 @@ public:
 
     MeshBlock()
     {
-        m_min_ = 0;
-        m_max_ = 0;
-        m_local_min_ = m_min_;
-        m_local_max_ = m_max_;
-        m_memory_min_ = m_min_;
-        m_memory_max_ = m_max_;
+        m_idx_min_ = 0;
+        m_idx_max_ = 0;
+        m_idx_local_min_ = m_idx_min_;
+        m_idx_local_max_ = m_idx_max_;
+        m_idx_memory_min_ = m_idx_min_;
+        m_idx_memory_max_ = m_idx_max_;
     }
 
 
     MeshBlock(this_type const &other) :
 
-            m_min_(other.m_min_),
+            m_idx_min_(other.m_idx_min_),
 
-            m_max_(other.m_max_),
+            m_idx_max_(other.m_idx_max_),
 
-            m_local_min_(other.m_local_min_),
+            m_idx_local_min_(other.m_idx_local_min_),
 
-            m_local_max_(other.m_local_max_),
+            m_idx_local_max_(other.m_idx_local_max_),
 
-            m_memory_min_(other.m_memory_min_),
+            m_idx_memory_min_(other.m_idx_memory_min_),
 
-            m_memory_max_(other.m_memory_max_)
+            m_idx_memory_max_(other.m_idx_memory_max_)
     {
 
     }
@@ -115,12 +118,12 @@ public:
 
     virtual void swap(this_type &other)
     {
-        std::swap(m_min_, other.m_min_);
-        std::swap(m_max_, other.m_max_);
-        std::swap(m_local_min_, other.m_local_min_);
-        std::swap(m_local_max_, other.m_local_max_);
-        std::swap(m_memory_min_, other.m_memory_min_);
-        std::swap(m_memory_max_, other.m_memory_max_);
+        std::swap(m_idx_min_, other.m_idx_min_);
+        std::swap(m_idx_max_, other.m_idx_max_);
+        std::swap(m_idx_local_min_, other.m_idx_local_min_);
+        std::swap(m_idx_local_max_, other.m_idx_local_max_);
+        std::swap(m_idx_memory_min_, other.m_idx_memory_min_);
+        std::swap(m_idx_memory_max_, other.m_idx_memory_max_);
         deploy();
         other.deploy();
 
@@ -136,34 +139,34 @@ public:
     {
         size_t M = (1UL << ID_DIGITS) - 1;
         return FULL_OVERFLOW_FLAG
-               | ((m_max_[0] - m_min_[0] > 1) ? M : 0)
-               | ((m_max_[1] - m_min_[1] > 1) ? (M << (ID_DIGITS)) : 0)
-               | ((m_max_[2] - m_min_[2] > 1) ? (M << (ID_DIGITS * 2)) : 0);
+               | ((m_idx_max_[0] - m_idx_min_[0] > 1) ? M : 0)
+               | ((m_idx_max_[1] - m_idx_min_[1] > 1) ? (M << (ID_DIGITS)) : 0)
+               | ((m_idx_max_[2] - m_idx_min_[2] > 1) ? (M << (ID_DIGITS * 2)) : 0);
     }
 
     template<typename TD>
     void dimensions(TD const &d)
     {
-        m_max_ = d;
-        m_min_ = 0;
-        m_local_max_ = m_max_;
-        m_local_min_ = m_min_;
-        m_memory_max_ = m_max_;
-        m_memory_min_ = m_min_;
+        m_idx_max_ = d;
+        m_idx_min_ = 0;
+        m_idx_local_max_ = m_idx_max_;
+        m_idx_local_min_ = m_idx_min_;
+        m_idx_memory_max_ = m_idx_max_;
+        m_idx_memory_min_ = m_idx_min_;
     }
 
     index_tuple dimensions() const
     {
         index_tuple res;
 
-        res = m_max_ - m_min_;
+        res = m_idx_max_ - m_idx_min_;
 
         return std::move(res);
     }
 
     virtual std::tuple<point_type, point_type> box() const
     {
-        return std::make_tuple(m::point(m_min_), m::point(m_max_));
+        return std::make_tuple(m::point(m_idx_min_), m::point(m_idx_max_));
     };
 
     virtual std::tuple<point_type, point_type> box(id_type const &s) const
@@ -173,46 +176,49 @@ public:
 
     virtual std::tuple<point_type, point_type> local_box() const
     {
-        return std::make_tuple(m::point(m_local_min_), m::point(m_local_max_));
+        return std::make_tuple(m::point(m_idx_local_min_), m::point(m_idx_local_max_));
     };
 
     template<typename T0, typename T1>
     void index_box(T0 const &min, T1 const &max)
     {
-        m_min_ = min;
-        m_max_ = max;
+        m_idx_min_ = min;
+        m_idx_max_ = max;
     };
 
 
     auto index_box() const
-    DECL_RET_TYPE((std::forward_as_tuple(m_min_, m_max_)))
+    DECL_RET_TYPE((std::forward_as_tuple(m_idx_min_, m_idx_max_)))
 
     auto local_index_box() const
-    DECL_RET_TYPE((std::forward_as_tuple(m_local_min_, m_local_max_)))
+    DECL_RET_TYPE((std::forward_as_tuple(m_idx_local_min_, m_idx_local_max_)))
 
     auto memory_index_box() const
-    DECL_RET_TYPE((std::forward_as_tuple(m_memory_min_, m_memory_max_)))
+    DECL_RET_TYPE((std::forward_as_tuple(m_idx_memory_min_, m_idx_memory_max_)))
 
     bool in_box(index_tuple const &x) const
     {
-        return (m_local_min_[1] <= x[1]) && (m_local_min_[2] <= x[2]) && (m_local_min_[0] <= x[0])  //
-               && (m_local_max_[1] > x[1]) && (m_local_max_[2] > x[2]) && (m_local_max_[0] > x[0]);
+        return (m_idx_local_min_[1] <= x[1]) && (m_idx_local_min_[2] <= x[2]) && (m_idx_local_min_[0] <= x[0])  //
+               && (m_idx_local_max_[1] > x[1]) && (m_idx_local_max_[2] > x[2]) && (m_idx_local_max_[0] > x[0]);
 
     }
 
     bool in_box(id_type s) const { return in_box(m::unpack_index(s)); }
 
     template<int I>
-    range_type range() const { return m::template make_range<I>(m_local_min_, m_local_max_); }
+    range_type range() const { return m::template make_range<I>(m_idx_local_min_, m_idx_local_max_); }
 
 
     template<int IFORM>
     auto max_hash() const
-    DECL_RET_TYPE((m::hash(m::pack_index(m_memory_max_ - 1, m::template sub_index_to_id<IFORM>(3UL)),
-                           m_memory_min_, m_memory_max_)))
+    DECL_RET_TYPE((m::hash(m::pack_index(m_idx_memory_max_ - 1, m::template sub_index_to_id<IFORM>(3UL)),
+                           m_idx_memory_min_, m_idx_memory_max_)))
 
 
-    size_t hash(id_type const &s) const { return static_cast<size_t>(m::hash(s, m_memory_min_, m_memory_max_)); }
+    size_t hash(id_type const &s) const
+    {
+        return static_cast<size_t>(m::hash(s, m_idx_memory_min_, m_idx_memory_max_));
+    }
 
 
     void decompose(index_tuple const &dist_dimensions, index_tuple const &dist_coord,
@@ -221,26 +227,26 @@ public:
 
 
         index_tuple b, e;
-        b = m_local_min_;
-        e = m_local_max_;
+        b = m_idx_local_min_;
+        e = m_idx_local_max_;
         for (int n = 0; n < ndims; ++n)
         {
 
-            m_local_min_[n] = b[n] + (e[n] - b[n]) * dist_coord[n] / dist_dimensions[n];
+            m_idx_local_min_[n] = b[n] + (e[n] - b[n]) * dist_coord[n] / dist_dimensions[n];
 
-            m_local_max_[n] = b[n] + (e[n] - b[n]) * (dist_coord[n] + 1) / dist_dimensions[n];
+            m_idx_local_max_[n] = b[n] + (e[n] - b[n]) * (dist_coord[n] + 1) / dist_dimensions[n];
 
             if (dist_dimensions[n] > 1)
             {
-                if (m_local_max_[n] - m_local_min_[n] >= 2 * gw)
+                if (m_idx_local_max_[n] - m_idx_local_min_[n] >= 2 * gw)
                 {
-                    m_memory_min_[n] = m_local_min_[n] - gw;
-                    m_memory_max_[n] = m_local_max_[n] + gw;
+                    m_idx_memory_min_[n] = m_idx_local_min_[n] - gw;
+                    m_idx_memory_max_[n] = m_idx_local_max_[n] + gw;
                 }
                 else
                 {
                     VERBOSE << "Mesh block decompose failed! Block dimension is smaller than process grid. "
-                    << m_local_min_ << m_local_max_
+                    << m_idx_local_min_ << m_idx_local_max_
                     << dist_dimensions << dist_coord << std::endl;
                     THROW_EXCEPTION_RUNTIME_ERROR(
                             "Mesh block decompose failed! Block dimension is smaller than process grid. ");
@@ -254,10 +260,10 @@ public:
     virtual void deploy()
     {
         m_is_valid_ = true;
-        m_local_min_ = m_min_;
-        m_local_max_ = m_max_;
-        m_memory_min_ = m_min_;
-        m_memory_max_ = m_max_;
+        m_idx_local_min_ = m_idx_min_;
+        m_idx_local_max_ = m_idx_max_;
+        m_idx_memory_min_ = m_idx_min_;
+        m_idx_memory_max_ = m_idx_max_;
 
     }
 
@@ -293,12 +299,12 @@ public:
 
     index_type idx_to_local_boundary(id_type const &s) const
     {
-        return dist_to_box_(s, m_local_min_, m_local_max_);
+        return dist_to_box_(s, m_idx_local_min_, m_idx_local_max_);
     }
 
     index_type idx_to_boundary(id_type const &s) const
     {
-        return dist_to_box_(s, m_min_, m_max_);
+        return dist_to_box_(s, m_idx_min_, m_idx_max_);
 
     }
 

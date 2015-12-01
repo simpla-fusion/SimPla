@@ -14,6 +14,7 @@
 #include "map_linear.h"
 #include "../../gtl/design_pattern/singleton_holder.h"
 #include "../../gtl/utilities/memory_pool.h"
+#include "../../geometry/geo_algorithm.h"
 
 namespace simpla { namespace mesh
 {
@@ -172,6 +173,27 @@ public:
 
     constexpr auto dx() const DECL_RET_TYPE(m_dx_);
 
+    std::tuple<index_tuple, index_tuple> index_box(std::tuple<point_type, point_type> const &b) const
+    {
+
+        point_type b0, b1, x0, x1;
+
+        std::tie(b0, b1) = local_box();
+        x0 = inv_map(std::get<0>(b));
+        x1 = inv_map(std::get<1>(b));
+        index_tuple i0, i1;
+        i0 = 0;
+        i1 = 0;
+        if (geometry::box_intersection(b0, b1, &x0, &x1))
+        {
+            i0 = x0;
+            i1 = x1;
+        }
+        return std::make_tuple(i0, i1);
+
+
+    }
+
 private:
     using map_type::map;
     using map_type::inv_map;
@@ -316,22 +338,19 @@ void Mesh<TMetric, tags::rect_linear, TMap>::deploy()
     m_dual_volume_ = sp_alloc_array<Real>(num);
     m_inv_dual_volume_ = sp_alloc_array<Real>(num);
 
-#ifdef USE_PARALLEL_FOR
-    parallel_for(memory_block_range, [&](range_type const &range){
-#else
-    auto const &range = memory_block_range;
-#endif
-    for (auto const &s:range)
+
+    parallel::parallel_for(memory_block_range, [&](range_type const &range)
     {
-        size_t n = this->hash(s) * base_type::NUM_OF_NODE_ID;
+        for (auto const &s:range)
+        {
+            size_t n = this->hash(s) * base_type::NUM_OF_NODE_ID;
 
-        base_type::get_element_volume_in_cell(*this, s, m_volume_.get() + n, m_inv_volume_.get() + n,
-                                              m_dual_volume_.get() + n, m_inv_dual_volume_.get() + n);
+            base_type::get_element_volume_in_cell(*this, s, m_volume_.get() + n, m_inv_volume_.get() + n,
+                                                  m_dual_volume_.get() + n, m_inv_dual_volume_.get() + n);
+        }
 
-    }
-#ifdef USE_PARALLEL_FOR
     });
-#endif
+
 
 }
 

@@ -94,7 +94,7 @@ private:
         size_t res = (IFORM == EDGE || IFORM == FACE) ? 3 : 1;
         for (int i = 0; i < ndims; ++i)
         {
-            res *= (m_geo_.m_memory_max_[i] - m_geo_.m_memory_min_[i]);
+            res *= (m_geo_.m_idx_memory_max_[i] - m_geo_.m_idx_memory_min_[i]);
         }
         return res;
     }
@@ -142,15 +142,15 @@ public:
 
         int f_ndims = ndims;
 
-        count = (m_geo_.m_local_max_ - m_geo_.m_local_min_);
+        count = (m_geo_.m_idx_local_max_ - m_geo_.m_idx_local_min_);
 
-        f_dims = (m_geo_.m_max_ - m_geo_.m_min_);
+        f_dims = (m_geo_.m_idx_max_ - m_geo_.m_idx_min_);
 
-        f_start = (m_geo_.m_local_min_ - m_geo_.m_min_);
+        f_start = (m_geo_.m_idx_local_min_ - m_geo_.m_idx_min_);
 
-        m_dims = (m_geo_.m_memory_max_ - m_geo_.m_memory_min_);
+        m_dims = (m_geo_.m_idx_memory_max_ - m_geo_.m_idx_memory_min_);
 
-        m_start = (m_geo_.m_local_min_ - m_geo_.m_memory_min_);
+        m_start = (m_geo_.m_idx_local_min_ - m_geo_.m_idx_memory_min_);
 
         if ((IFORM == EDGE || IFORM == FACE))
         {

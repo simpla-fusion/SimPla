@@ -37,12 +37,12 @@ omega_ce = qe * Btor / me -- e/m_p B0 rad/s
 vTe = math.sqrt(k_B * Te * 2 / me)
 rhoe = vTe / omega_ce -- m
 
-NX = 200
-NY = 200
+NX = 20
+NY = 20
 NZ = 1
 LX = 1 --m --100000*rhoi --0.6
 LY = 1 --2.0*math.pi/k0
-LZ = 1.0 -- 2.0*math.pi/18
+LZ = math.pi * 0.5 -- 2.0*math.pi/18
 GW = 5
 PIC = 100
 GEQDSK = "/home/salmon/workspace/code/SimPla/scripts/gfile/g038300.03900"

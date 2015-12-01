@@ -12,7 +12,9 @@
 #include "../manifold/manifold_traits.h"
 #include "../geometry/geo_algorithm.h"
 
-namespace simpla { namespace model
+namespace simpla
+{
+namespace model
 {
 namespace _impl
 {
@@ -72,10 +74,9 @@ void update_cache(TM const &m, geometry::Object const &geo, Cache<TM> *cache, in
                                    Real d = geo.nearest_point(&x);
                                    typename Cache<TM>::value_type item(s, std::make_tuple(d, x));
                                    typename Cache<TM>::accessor acc;
-
-                                   if (!cache->insert(acc, item))
+                                   bool cond = cache->insert(acc, s);
+                                   if (!cond)
                                    {
-                                       bool cond = false;
                                        switch (flag)
                                        {
 
@@ -86,14 +87,16 @@ void update_cache(TM const &m, geometry::Object const &geo, Cache<TM> *cache, in
                                            default: //union
                                                cond = d < std::get<0>(acc->second);
                                        }
-                                       if (cond)
-                                       {
-                                           std::get<0>(acc->second) = d;
-                                           std::get<1>(acc->second) = x;
-                                       }
                                    };
+                                   if (cond)
+                                   {
+                                       std::get<0>(acc->second) = d;
+                                       std::get<1>(acc->second) = x;
+                                   }
                                }
-                           });
+                           }
+
+    );
 
 
 }
@@ -295,16 +298,16 @@ void get_cell_out_surface(TM const &m, Cache<TM> const &cache, IdSet<TM> *res)
 };
 
 
-template<int IFORM, typename TM, typename TB>
-void create_id_set(TM const &m, TB const &box, IdSet<TM> *res)
+template<typename TRange, typename TSet>
+void create_id_set(TRange const &r0, TSet *res)
 {
-    parallel::parallel_for(m.template make_box_range<IFORM>(box),
-                           [&](typename TM::range_type const &r) { for (auto const &s:r) { res->insert(s); }});
+    parallel::parallel_for(r0, [&](TRange const &r) { for (auto const &s:r) { res->insert(s); }});
 
 }
 
 
-}} // namespace simpla { namespace model
+}
+} // namespace simpla { namespace model
 
 #endif //SIMPLA_SURFACE_H
 

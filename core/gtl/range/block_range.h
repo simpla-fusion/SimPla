@@ -90,21 +90,21 @@ private:
 //                difference_type>
 //        {
 //        private:
-//            id_type m_min_, m_max_, m_self_;
+//            id_type m_idx_min_, m_idx_max_, m_self_;
 //        public:
 //            iterator(id_type const &min, id_type const &max,
 //                     id_type const &self) :
-//                    m_min_(min), m_max_(max), m_self_(self)
+//                    m_idx_min_(min), m_idx_max_(max), m_self_(self)
 //            {
 //            }
 //
 //            iterator(id_type const &min, id_type const &max) :
-//                    m_min_(min), m_max_(max), m_self_(min)
+//                    m_idx_min_(min), m_idx_max_(max), m_self_(min)
 //            {
 //            }
 //
 //            iterator(iterator const &other) :
-//                    m_min_(other.m_min_), m_max_(other.m_max_), m_self_(
+//                    m_idx_min_(other.m_idx_min_), m_idx_max_(other.m_idx_max_), m_self_(
 //                    other.m_self_)
 //            {
 //            }
@@ -169,7 +169,7 @@ private:
 //                m_self_ = rotate(m_self_);
 //                if (sub_index(m_self_) == 0)
 //                {
-//                    carray(&m_self_, m_min_, m_max_, 1);
+//                    carray(&m_self_, m_idx_min_, m_idx_max_, 1);
 //                }
 //
 //            }
@@ -179,7 +179,7 @@ private:
 //                m_self_ = inverse_rotate(m_self_);
 //                if (sub_index(m_self_) == 0)
 //                {
-//                    carray(&m_self_, m_min_, m_max_, -1);
+//                    carray(&m_self_, m_idx_min_, m_idx_max_, -1);
 //                }
 //            }
 //
