@@ -92,12 +92,6 @@
   <component name="ChangeListManager">
     <list default="true" id="705662a6-4fa6-4a3f-beff-e386801b96a4" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/geometry/select.h" afterPath="$PROJECT_DIR$/core/geometry/select.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/mesh/corect_mesh.h" afterPath="$PROJECT_DIR$/core/manifold/mesh/corect_mesh.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/manifold/mesh/mesh_ids.h" afterPath="$PROJECT_DIR$/core/manifold/mesh/mesh_ids.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/model/constraint.h" afterPath="$PROJECT_DIR$/core/model/constraint.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/model/select.h" afterPath="$PROJECT_DIR$/core/model/select.h" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/particle/particle.h" afterPath="$PROJECT_DIR$/core/particle/particle.h" />
     </list>
     <ignored path="SimPla.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -227,8 +221,8 @@
       <file leaf-file-name="mesh_ids.h" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/core/manifold/mesh/mesh_ids.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.18406594">
-              <caret line="751" column="5" selection-start-line="751" selection-start-column="5" selection-end-line="751" selection-end-column="5" />
+            <state vertical-scroll-proportion="-6.590659">
+              <caret line="753" column="68" selection-start-line="753" selection-start-column="68" selection-end-line="753" selection-end-column="68" />
               <folding>
                 <element signature="e#130#149#0" expanded="true" />
                 <element signature="e#412#425#0" expanded="true" />
@@ -1313,7 +1307,13 @@
       <option name="project" value="LOCAL" />
       <updated>1448951493126</updated>
     </task>
-    <option name="localTasksCounter" value="46" />
+    <task id="LOCAL-00046" summary="correct  spelling mistakes">
+      <created>1448952002068</created>
+      <option name="number" value="00046" />
+      <option name="project" value="LOCAL" />
+      <updated>1448952002068</updated>
+    </task>
+    <option name="localTasksCounter" value="47" />
     <servers />
   </component>
   <component name="TestHistory">
@@ -1413,7 +1413,8 @@
     <MESSAGE value="fix bug in MeshIds::range_type" />
     <MESSAGE value="bug create_id_set&lt;EDGE&gt; &lt;FACE&gt; error" />
     <MESSAGE value="model test pass" />
-    <option name="LAST_COMMIT_MESSAGE" value="model test pass" />
+    <MESSAGE value="correct  spelling mistakes" />
+    <option name="LAST_COMMIT_MESSAGE" value="correct  spelling mistakes" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1915,8 +1916,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/core/manifold/mesh/mesh_ids.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.18406594">
-          <caret line="751" column="5" selection-start-line="751" selection-start-column="5" selection-end-line="751" selection-end-column="5" />
+        <state vertical-scroll-proportion="-6.590659">
+          <caret line="753" column="68" selection-start-line="753" selection-start-column="68" selection-end-line="753" selection-end-column="68" />
           <folding>
             <element signature="e#130#149#0" expanded="true" />
             <element signature="e#412#425#0" expanded="true" />
