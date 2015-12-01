@@ -153,19 +153,21 @@ void EMPlasma::setup(int argc, char **argv)
             for (auto const &item:cache.range())
             {
                 rho1[item.first] = std::get<0>(item.second);
+                Bv[item.first] = std::get<1>(item.second);
+                B0v[item.first] = std::get<2>(item.second);
             }
 
-            model::get_surface<EDGE>(m, cache, &edge_boundary);
-            model::get_surface<FACE>(m, cache, &face_boundary);
-            model::get_surface<VERTEX>(m, cache, &vertex_boundary);
+            model::get_cell_on_surface<EDGE>(m, cache, &edge_boundary);
+            model::get_cell_on_surface<FACE>(m, cache, &face_boundary);
+            model::get_cell_on_surface<VERTEX>(m, cache, &vertex_boundary);
         }
 
         {
-//            model::Cache<mesh_type> cache;
-//
-//            model::create_cache(m, geqdsk.limiter(), &cache);
-//
-//            model::get_surface(m, cache, &limiter_boundary);
+            model::Cache<mesh_type> cache;
+
+            model::create_cache(m, geqdsk.limiter(), &cache);
+
+            model::get_cell_on_surface(m, cache, &limiter_boundary);
 
         }
 
@@ -209,6 +211,8 @@ void EMPlasma::setup(int argc, char **argv)
     LOGGER << SAVE(rho1) << std::endl;
     LOGGER << SAVE(E1) << std::endl;
     LOGGER << SAVE(B1) << std::endl;
+    LOGGER << SAVE(Bv) << std::endl;
+    LOGGER << SAVE(B0v) << std::endl;
 
 }
 

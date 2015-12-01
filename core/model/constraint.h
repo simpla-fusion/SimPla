@@ -73,8 +73,14 @@ void create_cache(TM const &m, geometry::Object const &geo, Cache<TM> *cache)
 
 }
 
+
+/**
+ *  flag > 0 out of surface
+ *       = 0 on surface
+ *       < 0 in surface
+ */
 template<typename TM, typename TRange, typename Func>
-void on_surface(TM const &m, TRange const &r0, Cache<TM> const &cache, Func const &func)
+void search_cache(TM const &m, TRange const &r0, Cache<TM> const &cache, int flag, Func const &func)
 {
 
     typedef TM mesh_type;
@@ -110,7 +116,11 @@ void on_surface(TM const &m, TRange const &r0, Cache<TM> const &cache, Func cons
                             if (std::get<0>(acc->second) > 0) { ++count; }
                         }
                     }
-                    if ((count > 0) && (count < num))
+                    if (
+                            ((count == num) == (flag > 0)) ||
+                            ((count == 0) == (flag < 0)) ||
+                            ((count > 0 && count < num) == (flag == 0))
+                            )
                     {
                         func(v_s);
                     }
@@ -124,20 +134,21 @@ void on_surface(TM const &m, TRange const &r0, Cache<TM> const &cache, Func cons
 
 }
 
+
 template<typename TM, typename ...Args>
-void get_surface(TM const &m, geometry::Object const &geo, Args &&...args)
+void get_cell_on_surface(TM const &m, geometry::Object const &geo, Args &&...args)
 {
 
     Cache<TM> cache;
 
     create_cache(geo, m, &cache);
 
-    get_surface(cache, cache, std::forward<Args>(args)...);
+    get_cell_on_surface(cache, cache, std::forward<Args>(args)...);
 }
 
 
 template<typename TM, typename TRange>
-void get_surface(TM const &m, TRange const &r0, Cache<TM> const &cache, Surface<TM> *surface)
+void get_cell_on_surface(TM const &m, TRange const &r0, Cache<TM> const &cache, Surface<TM> *surface)
 {
     typedef TM mesh_type;
 
@@ -150,29 +161,29 @@ void get_surface(TM const &m, TRange const &r0, Cache<TM> const &cache, Surface<
 
     size_t MASK = m.id_mask();
 
-    on_surface(m, r0, cache,
-               [&](typename TM::id_type const &s)
-               {
-                   typename Cache<TM>::const_accessor acc;
+    search_cache(m, r0, cache, 0,
+                 [&](typename TM::id_type const &s)
+                 {
+                     typename Cache<TM>::const_accessor acc;
 
-                   if (cache.find(acc, (((s | mesh_type::FULL_OVERFLOW_FLAG) - mesh_type::_DA) & MASK)))
-                   {
-                       surface->insert(*acc);
-                   }
+                     if (cache.find(acc, (((s | mesh_type::FULL_OVERFLOW_FLAG) - mesh_type::_DA) & MASK)))
+                     {
+                         surface->insert(*acc);
+                     }
 
-               });
+                 });
 
 };
 
 template<typename TM>
-void get_surface(TM const &m, Cache<TM> const &cache, Surface<TM> *surface)
+void get_cell_on_surface(TM const &m, Cache<TM> const &cache, Surface<TM> *surface)
 {
-    get_surface(m, m.template range<VOLUME>, cache, surface);
+    get_cell_on_surface(m, m.template range<VOLUME>(), cache, surface);
 }
 
 template<int IFORM, typename TRange, typename TM>
-void get_surface(TM const &m, TRange const &r0, Cache<TM> const &cache, IdSet<TM> *surface,
-                 bool is_out_boundary = true)
+void get_cell_on_surface(TM const &m, TRange const &r0, Cache<TM> const &cache, IdSet<TM> *surface,
+                         bool is_out_boundary = true)
 {
     typedef TM mesh_type;
 
@@ -184,53 +195,80 @@ void get_surface(TM const &m, TRange const &r0, Cache<TM> const &cache, IdSet<TM
 
     size_t MASK = m.id_mask();
 
-    on_surface(m, r0, cache,
-               [&](typename TM::id_type const &v_s)
-               {
-                   id_type ids_0[mesh_type::MAX_NUM_OF_NEIGHBOURS];
-                   id_type ids_1[mesh_type::MAX_NUM_OF_NEIGHBOURS];
+    search_cache(m, r0, cache, 0,
+                 [&](typename TM::id_type const &v_s)
+                 {
+                     id_type ids_0[mesh_type::MAX_NUM_OF_NEIGHBOURS];
+                     id_type ids_1[mesh_type::MAX_NUM_OF_NEIGHBOURS];
 
 
-                   int num_0 = m.get_adjacent_cells(IFORM, mesh_type::TAG_VOLUME, v_s, ids_0);
+                     int num_0 = m.get_adjacent_cells(IFORM, mesh_type::TAG_VOLUME, v_s, ids_0);
 
-                   for (int i = 0; i < num_0; ++i)
-                   {
+                     for (int i = 0; i < num_0; ++i)
+                     {
 
-                       int num_1 = m.get_adjacent_cells(VERTEX, ids_0[i], ids_1);
+                         int num_1 = m.get_adjacent_cells(VERTEX, ids_0[i], ids_1);
 
-                       int count = 0;
+                         int count = 0;
 
-                       for (int j = 0; j < num_1; ++j)
-                       {
-                           typename Cache<TM>::const_accessor acc;
+                         for (int j = 0; j < num_1; ++j)
+                         {
+                             typename Cache<TM>::const_accessor acc;
 
-                           bool t_is_out = true;
+                             bool t_is_out = true;
 
-                           if (cache.find(acc, ids_1[j] & MASK))
-                           {
-                               t_is_out = (std::get<0>(acc->second) > 0);
-                           }
+                             if (cache.find(acc, ids_1[j] & MASK))
+                             {
+                                 t_is_out = (std::get<0>(acc->second) > 0);
+                             }
 
-                           if (is_out_boundary == t_is_out)
-                           {
-                               ++count;
-                           }
-                       }
-                       if (count == num_1)
-                       {
-                           surface->insert(ids_0[i]);
-                       }
-                   }
-               });
+                             if (is_out_boundary == t_is_out)
+                             {
+                                 ++count;
+                             }
+                         }
+                         if (count == num_1)
+                         {
+                             surface->insert(ids_0[i]);
+                         }
+                     }
+                 });
 
 }
 
 template<int IFORM, typename TM>
-void get_surface(TM const &m, Cache<TM> const &cache, IdSet<TM> *surface,
-                 bool is_out_boundary = true)
+void get_cell_on_surface(TM const &m, Cache<TM> const &cache, IdSet<TM> *surface,
+                         bool is_out_boundary = true)
 {
-    get_surface<IFORM>(m, m.template range<VOLUME>(), cache, surface, is_out_boundary);
+    get_cell_on_surface<IFORM>(m, m.template range<VOLUME>(), cache, surface, is_out_boundary);
 };
+
+
+template<typename TM, typename TRange>
+void get_cell_in_surface(TM const &m, TRange const &r0, Cache<TM> const &cache, IdSet<TM> *res)
+{
+    search_cache(m, r0, cache, -1, [&](typename TM::id_type const &s) { res->insert(s); });
+};
+
+template<int IFORM, typename TM>
+void get_cell_in_surface(TM const &m, Cache<TM> const &cache, IdSet<TM> *res)
+{
+    search_cache(m, m.template range<IFORM>(), cache, -1, [&](typename TM::id_type const &s) { res->insert(s); });
+};
+
+
+template<typename TM, typename TRange>
+void get_cell_out_surface(TM const &m, TRange const &r0, Cache<TM> const &cache, IdSet<TM> *res)
+{
+    search_cache(m, r0, cache, 1, [&](typename TM::id_type const &s) { res->insert(s); });
+};
+
+template<int IFORM, typename TM>
+void get_cell_out_surface(TM const &m, Cache<TM> const &cache, IdSet<TM> *res)
+{
+    search_cache(m, m.template range<IFORM>(), cache, 1, [&](typename TM::id_type const &s) { res->insert(s); });
+};
+
 
 template<int IFORM, typename TM, typename TB>
 void create_id_set(TM const &m, TB const &box, IdSet<TM> *res)
