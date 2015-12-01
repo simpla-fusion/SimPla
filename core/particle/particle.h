@@ -238,7 +238,7 @@ void Particle<P, M>::integral(id_type const &s, TField *J) const
 
     id_type neighbours[mesh_type::MAX_NUM_OF_NEIGHBOURS];
 
-    int num = m_mesh_.get_adjoints(iform, s, neighbours);
+    int num = m_mesh_.get_adjacent_cells(iform, s, neighbours);
 
     for (int i = 0; i < num; ++i)
     {

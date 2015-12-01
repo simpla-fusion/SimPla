@@ -452,14 +452,10 @@ struct MeshIDs_
      *
      *   \endverbatim
      */
-    static constexpr int MAX_NUM_OF_CELL = 12;
-
-    static constexpr id_type _HI = _D;
-    static constexpr id_type _HJ = _HI << ID_DIGITS;
-    static constexpr id_type _HK = _HI << (ID_DIGITS * 2);
+    static constexpr int MAX_NUM_OF_ADJACENT_CELL = 12;
 
 
-    static constexpr int m_adjoint_num_[4/* to iform*/][8/* node id*/] =
+    static constexpr int m_adjacent_cell_num_[4/* to iform*/][8/* node id*/] =
 
             { // VERTEX
                     {
@@ -511,7 +507,7 @@ struct MeshIDs_
 
             };
 
-    static constexpr id_type m_adjoint_matrix_[4/* to iform*/][NUM_OF_NODE_ID/* node id*/][MAX_NUM_OF_CELL/*id shift*/] =
+    static constexpr id_type m_adjacent_cell_matrix_[4/* to iform*/][NUM_OF_NODE_ID/* node id*/][MAX_NUM_OF_ADJACENT_CELL/*id shift*/] =
             {
                     //To VERTEX
                     {
@@ -750,34 +746,23 @@ struct MeshIDs_
 
             };
 
-    static int get_adjoints(size_t IFORM, id_type s, id_type *res = nullptr)
+    static int get_adjacent_cells(size_t IFORM, id_type s, id_type *res = nullptr)
     {
-        return get_adjoints(IFORM, node_id(s), s, res);
+        return get_adjacent_cells(IFORM, node_id(s), s, res);
     }
 
-    static int get_adjoints(size_t IFORM, size_t nodeid, id_type s, id_type *res = nullptr)
+    static int get_adjacent_cells(size_t IFORM, size_t nodeid, id_type s, id_type *res = nullptr)
     {
         if (res != nullptr)
         {
-            for (int i = 0; i < m_adjoint_num_[IFORM][nodeid]; ++i)
+            for (int i = 0; i < m_adjacent_cell_num_[IFORM][nodeid]; ++i)
             {
-                res[i] = (((s | FULL_OVERFLOW_FLAG) - _DA + m_adjoint_matrix_[IFORM][nodeid][i])) |
+                res[i] = (((s | FULL_OVERFLOW_FLAG) - _DA + m_adjacent_cell_matrix_[IFORM][nodeid][i])) |
                          (FULL_OVERFLOW_FLAG);
             }
         }
-        return m_adjoint_num_[IFORM][nodeid];
+        return m_adjacent_cell_num_[IFORM][nodeid];
     }
-
-//    static int get_vertices_id(id_type s, id_type *res = nullptr)
-//    {
-//        return get_vertices_id(node_id(s), s, res);
-//    }
-//
-//    static int get_vertices_id(int node_id, id_type s, id_type *res = nullptr)
-//    {
-//        return get_adjoints(VERTEX, node_id, s, res);
-//    }
-
 
 //    template<size_t AXE>
 //    static constexpr std::tuple<id_type, id_type> primary_line(id_type s)
@@ -1338,7 +1323,7 @@ template<size_t TAGS> constexpr int MeshIDs_<TAGS>::m_id_to_iform_[];
 
 template<size_t TAGS> constexpr int MeshIDs_<TAGS>::m_id_to_num_of_ele_in_cell_[];
 
-template<size_t TAGS> constexpr int MeshIDs_<TAGS>::m_adjoint_num_[4][8];
+template<size_t TAGS> constexpr int MeshIDs_<TAGS>::m_adjacent_cell_num_[4][8];
 
 
 template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::id_type MeshIDs_<TAGS>::m_id_to_shift_[];
@@ -1346,7 +1331,7 @@ template<size_t TAGS> constexpr int MeshIDs_<TAGS>::m_sub_index_to_id_[4][3];
 
 
 template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::id_type
-        MeshIDs_<TAGS>::m_adjoint_matrix_[4/* to iform*/][NUM_OF_NODE_ID/* node id*/][MAX_NUM_OF_CELL/*id shift*/];
+        MeshIDs_<TAGS>::m_adjacent_cell_matrix_[4/* to iform*/][NUM_OF_NODE_ID/* node id*/][MAX_NUM_OF_ADJACENT_CELL/*id shift*/];
 
 template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::coordinates_tuple MeshIDs_<TAGS>::m_id_to_coordinates_shift_[];
 

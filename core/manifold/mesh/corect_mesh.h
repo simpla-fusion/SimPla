@@ -214,13 +214,13 @@ public:
     int get_vertices(int node_id, id_type s, point_type *p = nullptr) const
     {
 
-        int num = base_type::get_adjoints(VERTEX, node_id, s);
+        int num = base_type::get_adjacent_cells(VERTEX, node_id, s);
 
         if (p != nullptr)
         {
             id_type neighbour[num];
 
-            base_type::get_adjoints(VERTEX, node_id, s, neighbour);
+            base_type::get_adjacent_cells(VERTEX, node_id, s, neighbour);
 
             for (int i = 0; i < num; ++i)
             {

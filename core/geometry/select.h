@@ -260,7 +260,7 @@ void select_cell_cross_polylines(PIP const & point_in_polygon, TDomain * domain,
 	{
 		id_type vertices[topology::MAX_NUM_OF_CELL];
 
-		int num_of_vertices = topology::template get_adjoints<VERTEX>(s,
+		int num_of_vertices = topology::template get_adjacent_cells<VERTEX>(s,
 				vertices);
 
 		int count_in = 0;
@@ -341,7 +341,7 @@ void select_boundary_by_polylines(Domain<TM...> *domain, TI const & ib,
 
 				id_type cell[topology::MAX_NUM_OF_CELL];
 
-				int num_of_cell = topology::template get_adjoints<VOLUME>(
+				int num_of_cell = topology::template get_adjacent_cells<VOLUME>(
 						item.first, cell);
 
 				for (int i = 0; i < num_of_cell; ++i)
@@ -366,7 +366,7 @@ void select_boundary_by_polylines(Domain<TM...> *domain, TI const & ib,
 
 				id_type cell[topology::MAX_NUM_OF_CELL];
 
-				int num_of_cell = topology::template get_adjoints<VOLUME>(
+				int num_of_cell = topology::template get_adjacent_cells<VOLUME>(
 						item.first, cell);
 
 				for (int i = 0; i < num_of_cell; ++i)
@@ -383,7 +383,7 @@ void select_boundary_by_polylines(Domain<TM...> *domain, TI const & ib,
 			v_domain.for_each([&](id_type s)
 			{
 				id_type cell[topology::MAX_NUM_OF_CELL];
-				int num_of_cell = topology::template get_adjoints<iform>(
+				int num_of_cell = topology::template get_adjacent_cells<iform>(
 						s, cell);
 
 				for (int i = 0; i < num_of_cell; ++i)
