@@ -70,7 +70,7 @@ TEST(GeometryTest, MeshIDs)
 //
 //    t.dimensions(b);
 //
-//    t.deploy();
+//    t.dump_grid();
 //
 //    for (auto const &s:t.range<VERTEX>())
 //    {
@@ -110,7 +110,7 @@ TEST(GeometryTest, MeshIDs)
 //
 //    t.dimensions(dims);
 //
-//    t.deploy();
+//    t.dump_grid();
 //
 //    for (auto const &s0:t.range<VERTEX>())
 //    {
@@ -159,7 +159,7 @@ TEST(GeometryTest, MeshIDs)
 //
 //    g.box(xmin, xmax);
 //
-//    g.deploy();
+//    g.dump_grid();
 //
 //    auto dx = g.dx();
 //
@@ -217,7 +217,7 @@ TEST(GeometryTest, MeshIDs)
 //
 //    g.box(xmin, xmax);
 //
-//    g.deploy();
+//    g.dump_grid();
 //
 //    CHECK(g.dx());
 //

@@ -152,7 +152,7 @@ public:
 
 
     typedef typename mesh_type::id_type id_type;
-
+    typedef typename mesh_type::range_type range_type;
     using mesh_type::ndims;
     using mesh_type::volume;
     using mesh_type::dual_volume;
@@ -273,6 +273,34 @@ public:
                 }
         );
     }
+
+
+    virtual DataSet grid_vertices() const
+    {
+        DataSet ds;
+
+        ds.datatype = traits::datatype<Real>::create();
+
+        std::tie(ds.dataspace, ds.memory_space) = this->template dataspace<EDGE>();
+
+        this->template alloc_memory<VERTEX, point_type>(&ds.data);
+
+        parallel::parallel_for(this->template range<VERTEX>(),
+                             [&](range_type const &r)
+                             {
+                                 for (auto const &s: r)
+                                 {
+                                     point_type p0 = this->point(s);
+                                     point_type p1 = this->map_to_cartesian(p0);
+
+                                     this->template at<point_type>(ds.data, s) = p1;
+                                 }
+                             }
+        );
+
+        return std::move(ds);
+
+    };
 
 
 }; //class Manifold

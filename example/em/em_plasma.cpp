@@ -125,6 +125,12 @@ void EMPlasma::setup(int argc, char **argv)
 
         m.deploy();
 
+        m.set_prefix("em_plasma", "GEqdsk");
+
+        m.set_io_time(m.time());
+
+        m.dump_grid();
+
         MESSAGE << std::endl << "[ Configuration ]" << std::endl << m << std::endl;
 
         VERBOSE << "Clear fields" << std::endl;
@@ -216,8 +222,7 @@ void EMPlasma::setup(int argc, char **argv)
     LOGGER << SAVE(Bv) << std::endl;
     LOGGER << SAVE(B0v) << std::endl;
 
-    m.set_io_prefix("em_plasma", "GEqdsk");
-    m.set_io_time(m.time());
+
     m.register_dataset("E1", E1);
 
     m.write();

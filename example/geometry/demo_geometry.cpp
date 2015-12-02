@@ -289,7 +289,7 @@ int main(int argc, char **argv)
 //
 //	geometry->load(options["Mesh"]);
 //
-//	geometry->deploy();
+//	geometry->dump_grid();
 //
 //	std::vector<coordinate_tuple> p0, p1, p2, p3, p4, p5, p6, p7;
 //

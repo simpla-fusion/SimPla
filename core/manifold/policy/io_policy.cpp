@@ -41,9 +41,7 @@ struct MeshIOBase::pimpl_s
 
     std::string m_grid_name_;
 
-
     std::string m_prefix_;
-
 
     std::string m_place_holder_;
 
@@ -149,7 +147,7 @@ std::string save_dataitem(std::string const &prefix, std::string const ds_name, 
                                   3DSMesh | 3DRectMesh | 3DCoRectMesh
  */
 
-void  MeshIOBase::deploy(int ndims, size_t const *dims, Real const *xmin, Real const *dx)
+void  MeshIOBase::dump_grid(int ndims, size_t const *dims, Real const *xmin, Real const *dx)
 {
 
 
@@ -195,35 +193,38 @@ void  MeshIOBase::deploy(int ndims, size_t const *dims, Real const *xmin, Real c
 }
 
 
-void  MeshIOBase::deploy(int ndims, size_t const *dims, point_type const *points)
+void  MeshIOBase::dump_grid(DataSet const &ds)
 {
 
+    io::cd(m_pimpl_->m_prefix_ + ".h5:/");
 
     std::ostringstream buffer;
 
-    size_t num = 1;
-    for (int i = 0; i < ndims; ++i)
-    {
-        num *= dims[i];
-    }
+    int ndims;
+
+    nTuple<size_t, MAX_NDIMS_OF_ARRAY> dims;
+
+    std::tie(ndims, dims, std::ignore, std::ignore, std::ignore, std::ignore) = ds.dataspace.shape();
+
+    --ndims;
 
     if (ndims == 2)
     {
         buffer << ""
-        << "\t <Topology TopologyType=\"2DSRect\""
+        << "\t <Topology TopologyType=\"2DSMesh\""
         << "\t      NumberOfElements=\"" << dims[0] << " " << dims[1] << " " << dims[2] << "\"/>\n"
         << "\t <Geometry GeometryType=\"XY\">\n"
-        << save_dataitem(m_pimpl_->m_prefix_ + ".h5:/" + m_pimpl_->m_grid_name_ + "/", "points", num, points)
+        << save_dataitem("/" + m_pimpl_->m_grid_name_ + "/", "points", ds)
         << "\t </Geometry>\n";
     }
 
     else if (ndims == 3)
     {
         buffer << ""
-        << "\t <Topology TopologyType=\"3DSRect\""
+        << "\t <Topology TopologyType=\"3DSMesh\""
         << "\t      NumberOfElements=\"" << dims[0] << " " << dims[1] << " " << dims[2] << "\"/>\n"
         << "\t <Geometry GeometryType=\"XYZ\">\n"
-        << save_dataitem(m_pimpl_->m_prefix_ + ".h5:/" + m_pimpl_->m_grid_name_ + "/", "points", num, points)
+        << save_dataitem("/" + m_pimpl_->m_grid_name_ + "/", "points", ds)
         << "\t </Geometry>\n";
     }
     else
@@ -288,7 +289,7 @@ void  MeshIOBase::pimpl_s::write()
         buffer << ""
         << "\t <Attribute Name=\"" << ds_name << "\"  AttributeType=\"" << a_type
         << "\" Center=\"" << a_center << "\">\n"
-        << save_dataitem(m_prefix_ + ".h5:/" + m_grid_name_ + "/", ds_name, std::get<1>(item.second))
+        << save_dataitem("/" + m_grid_name_ + "/", ds_name, std::get<1>(item.second))
         << "\t </Attribute>"
         << std::endl;
 
@@ -305,7 +306,7 @@ void  MeshIOBase::pimpl_s::write()
 
 MeshIOBase::MeshIOBase() : m_pimpl_(new pimpl_s)
 {
-    set_io_prefix();
+    set_prefix();
 }
 
 MeshIOBase::~MeshIOBase()
@@ -331,7 +332,7 @@ void MeshIOBase::register_dataset(std::string const &name, DataSet const &ds, in
 
 }
 
-void MeshIOBase::set_io_prefix(std::string const &prefix, const std::string &name)
+void MeshIOBase::set_prefix(std::string const &prefix, const std::string &name)
 {
     m_pimpl_->m_prefix_ = prefix;
     m_pimpl_->m_grid_name_ = name;

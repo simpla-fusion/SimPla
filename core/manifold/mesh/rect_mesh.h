@@ -101,6 +101,8 @@ public:
         return *this;
     }
 
+    static std::string topology_type() { return "SMesh"; }
+
 
     template<typename TDict>
     void load(TDict const &dict)
@@ -126,7 +128,6 @@ public:
 
         return os;
     }
-
 
     bool is_valid() const { return m_is_valid_; }
 
@@ -263,10 +264,10 @@ public:
         return m_inv_dual_volume_.get()[hash_(s)];
     }
 
-    virtual point_type const &vertex(id_type s) const
-    {
-        return m_vertices_.get()[base_type::hash(s) * base_type::NUM_OF_NODE_ID + base_type::sub_index(s)];
-    }
+//    virtual point_type const &vertex(id_type s) const
+//    {
+//        return m_vertices_.get()[base_type::hash(s) * base_type::NUM_OF_NODE_ID + base_type::sub_index(s)];
+//    }
 
 
 private:
@@ -274,7 +275,7 @@ private:
     std::shared_ptr<Real> m_dual_volume_;
     std::shared_ptr<Real> m_inv_volume_;
     std::shared_ptr<Real> m_inv_dual_volume_;
-    std::shared_ptr<point_type> m_vertices_;
+//    std::shared_ptr<point_type> m_vertices_;
 public:
 
     virtual void deploy();
@@ -336,6 +337,7 @@ void Mesh<TMetric, tags::rect_linear, TMap>::deploy()
     auto memory_block_range = base_type::template make_range<VERTEX>(base_type::memory_index_box());
 
     size_t num = memory_block_range.size() * base_type::NUM_OF_NODE_ID;
+
 
     m_volume_ = sp_alloc_array<Real>(num);
     m_inv_volume_ = sp_alloc_array<Real>(num);

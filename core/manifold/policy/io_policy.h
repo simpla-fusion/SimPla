@@ -41,11 +41,11 @@ public:
     };
 
 
-    void set_io_prefix(std::string const &prefix = "", std::string const &name = "unnamed");
+    void set_prefix(std::string const &prefix = "", std::string const &name = "unnamed");
 
-    void deploy(int ndims, size_t const *dims, Real const *xmin, Real const *dx);
+    void dump_grid(int ndims, size_t const *dims, Real const *xmin, Real const *dx);
 
-    void deploy(int ndims, size_t const *dims, point_type const *points);
+    void dump_grid(DataSet const &);
 
 private:
     struct pimpl_s;
@@ -79,22 +79,38 @@ public:
 
     virtual ~IOPolicy() { }
 
+    virtual DataSet grid_vertices() const = 0;
+
 
     virtual void deploy()
     {
-        int ndims = m_geo_.ndims;
 
-        nTuple<size_t, 3> dims;
 
-        dims = m_geo_.dimensions();
+    }
 
-        nTuple<Real, 3> xmin, dx;
+    void dump_grid()
+    {
+        if (m_geo_.topology_type() == "CoRectMesh")
+        {
+            int ndims = m_geo_.ndims;
 
-        std::tie(xmin, std::ignore) = m_geo_.box();
+            nTuple<size_t, 3> dims;
 
-        dx = m_geo_.dx();
+            dims = m_geo_.dimensions();
 
-        MeshIOBase::deploy(ndims, &dims[0], &xmin[0], &dx[0]);
+            nTuple<Real, 3> xmin, dx;
+
+            std::tie(xmin, std::ignore) = m_geo_.box();
+
+            dx = m_geo_.dx();
+
+            MeshIOBase::dump_grid(ndims, &dims[0], &xmin[0], &dx[0]);
+        }
+
+        else if (m_geo_.topology_type() == "SMesh")
+        {
+            MeshIOBase::dump_grid(grid_vertices());
+        }
     }
 
 

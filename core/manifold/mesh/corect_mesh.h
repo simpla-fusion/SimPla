@@ -56,8 +56,8 @@ public:
 
     typedef id_type value_type;
     typedef size_t difference_type;
-    typedef nTuple<Real, ndims> point_type;
-    typedef nTuple<Real, ndims> vector_type;
+    typedef nTuple <Real, ndims> point_type;
+    typedef nTuple <Real, ndims> vector_type;
 
 
     /**
@@ -130,6 +130,8 @@ public:
         other.deploy();
 
     }
+
+    static std::string topology_type() { return "CoRectMesh"; }
 
     bool is_valid() const { return m_is_valid_; }
 

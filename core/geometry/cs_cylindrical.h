@@ -46,6 +46,16 @@ public:
     static constexpr int RAxis = cs::RAxis;
     static constexpr int ZAxis = cs::ZAxis;
 
+    static point_t map_to_cartesian(point_t const &p)
+    {
+        point_t x;
+
+        x[0] = p[RAxis] * std::sin(p[PhiAxis]);
+        x[1] = p[RAxis] * std::cos(p[PhiAxis]);
+        x[2] = p[ZAxis];
+        return std::move(x);
+    }
+
 
     static Real simplex_length(point_t const &p0, point_t const &p1)
     {

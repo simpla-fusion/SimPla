@@ -118,7 +118,7 @@ struct DataSet
 //    DataSet res;
 //    res.datatype = traits::datatype<T>::create();
 //    res.dataspace = make_dataspace(std::forward<Args>(args)...);
-//    res.deploy();
+//    res.dump_grid();
 //    return std::move(res);
 //};
 namespace traits
