@@ -46,7 +46,7 @@ struct EMPlasma
 
     typedef Real scalar_type;
 
-    typedef manifold::CartesianManifold mesh_type;
+    typedef manifold::CylindricalManifold mesh_type;
 
     typedef typename mesh_type::id_type id_type;
     typedef typename mesh_type::point_type point_type;
@@ -187,7 +187,8 @@ void EMPlasma::setup(int argc, char **argv)
 
             if (dict)
             {
-                model::create_id_set(m, m.template make_range<EDGE>(
+                model::create_id_set(m,
+                                     m.template make_range<EDGE>(
                                              m.index_box(dict["Box"].template as<box_type>())),
                                      &J_src);
 
@@ -229,10 +230,10 @@ void EMPlasma::tear_down()
 
 void EMPlasma::check_point()
 {
-//    m.write();
-    LOGGER << SAVE_RECORD(E1) << std::endl;
-    LOGGER << SAVE_RECORD(B1) << std::endl;
-    LOGGER << SAVE_RECORD(J1) << std::endl;
+    m.write();
+//    LOGGER << SAVE_RECORD(E1) << std::endl;
+//    LOGGER << SAVE_RECORD(B1) << std::endl;
+//    LOGGER << SAVE_RECORD(J1) << std::endl;
 
 }
 

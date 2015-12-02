@@ -39,7 +39,7 @@ rhoe = vTe / omega_ce -- m
 
 NX = 50
 NY = 50
-NZ = 1
+NZ = 10
 LX = 1.0 --m --100000*rhoi --0.6
 LY = 1 --2.0*math.pi/k0
 LZ = math.pi * 0.5 -- 2.0*math.pi/18
@@ -52,7 +52,7 @@ Mesh =
     Geometry =
     {
         Topology = { Dimensions = { NX, NY, NZ }, },
-        Box = { { 0.0, 0.0, 0.0 }, { LX, LY, LZ } },
+        Box = { { 0.0, 0.0, -LZ * 0.5 }, { LX, LY, LZ * 0.5 } },
     },
     dt = 0.1 * (LX / NX) / c
 }
@@ -105,7 +105,7 @@ PEC = {
 
 Constraints = {
     J = {
-        Box = { { 1.8, -0.1, 0 }, { 1.8, 0.1, math.pi } },
+        Box = { { 1.8, -0.1, -0.1 * math.pi }, { 1.8, 0.1, 0.1 * math.pi } },
         Value = function(t, x)
             local tau = t * omega_ext -- + x[2]*TWOPI/(xmax[3]-xmin[3])
             local amp = math.sin(tau) * (1 - math.exp(-tau * tau))
