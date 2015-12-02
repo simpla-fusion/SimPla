@@ -110,6 +110,16 @@ std::string save_dataset(std::string const ds_name, DataSet const &ds)
 
     std::tie(ndims, dims, std::ignore, std::ignore, std::ignore, std::ignore) = ds.dataspace.shape();
 
+    if (ds.datatype.is_array())
+    {
+        int n = ds.datatype.rank();
+        for (int i = 0; i < n; ++i)
+        {
+            dims[ndims + i] = ds.datatype.extent(i);
+        }
+        ndims += n;
+    }
+
     buffer
     << "      <DataItem Dimensions=\"";
     for (int i = 0; i < ndims; ++i)
@@ -127,7 +137,7 @@ std::string save_dataset(std::string const ds_name, DataSet const &ds)
 template<typename T>
 std::string save_dataset(std::string const &prefix, std::string const ds_name, size_t num, T const *p)
 {
-
+    //TODO xdmf datatype convert
     std::string url = io::save(ds_name, num, p);
 
     VERBOSE << "write data item [" << url << "/" << "]" << std::endl;
@@ -272,7 +282,9 @@ void  XDMFStream::pimpl_s::write()
         m_file_stream_ << ""
         << "    <Attribute Name=\"" << ds_name << "\"  AttributeType=\""
         << ((ds.datatype.is_array() || tag == TAG_EDGE || tag == TAG_FACE) ? "Vector" : "Scalar")
-        << "\" Center=\"" << a_center_str[tag] << "\">\n"
+
+        << "\" Center=\"" << /* a_center_str[tag] */ "Node " << "\">\n"  // NOTE paraview only support "Node" element
+
         << save_dataset(ds_name, ds)
         << "    </Attribute>" << std::endl;
     }

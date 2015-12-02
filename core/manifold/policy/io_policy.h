@@ -12,6 +12,7 @@
 
 namespace simpla
 {
+template<typename ...> class Field;
 namespace manifold { namespace policy
 {
 /**
@@ -95,7 +96,12 @@ public:
         return os;
     }
 
-
+    template<typename TV, typename TM, int IFORM>
+    void register_dataset(std::string const &name,
+                          Field<TV, TM, std::integral_constant<int, IFORM> > &obj)
+    {
+        base_type::register_dataset(name, traits::make_dataset(obj), IFORM);
+    };
 };//template<typename TGeo> struct IoPolicy
 
 } //namespace policy
