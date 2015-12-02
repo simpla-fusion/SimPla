@@ -157,7 +157,6 @@ public:
         parallel::parallel_for(r0,
                                [&](TRange const &r)
                                {
-
                                    for (auto const &item:r)
                                    {
                                        fun(item, (*this)[traits::get<0>(item)]);

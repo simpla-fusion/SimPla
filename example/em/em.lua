@@ -39,7 +39,7 @@ rhoe = vTe / omega_ce -- m
 
 NX = 50
 NY = 50
-NZ = 10
+NZ = 1
 LX = 1 --m --100000*rhoi --0.6
 LY = 1 --2.0*math.pi/k0
 LZ = math.pi * 0.5 -- 2.0*math.pi/18
@@ -106,7 +106,7 @@ PEC = {
 
 Constraints = {
     J = {
-        Box = { { 1.25, -1.2, 0 }, { 1.30, 1.2, math.pi } },
+        Box = { { 1.8, -0.1, 0 }, { 1.8, 0.1, math.pi } },
         Value = function(t, x)
             local tau = t * omega_ext -- + x[2]*TWOPI/(xmax[3]-xmin[3])
             local amp = math.sin(tau) * (1 - math.exp(-tau * tau))

@@ -145,9 +145,9 @@ void search_cache(TM const &m, TRange const &r0, Cache<TM> const &cache, int fla
                         }
                     }
                     if (
-                            ((count == num) == (flag > 0)) ||
-                            ((count == 0) == (flag < 0)) ||
-                            ((count > 0 && count < num) == (flag == 0))
+                            ((count == num) && (flag > 0)) ||
+                            ((count == 0) && (flag < 0)) ||
+                            ((count > 0 && count < num) && (flag == 0))
                             )
                     {
                         func(v_s);
@@ -169,7 +169,7 @@ void get_cell_on_surface(TM const &m, geometry::Object const &geo, Args &&...arg
 
     Cache<TM> cache;
 
-    create_cache(geo, m, &cache);
+    update_cache(geo, m, &cache);
 
     get_cell_on_surface(cache, cache, std::forward<Args>(args)...);
 }
@@ -302,8 +302,7 @@ template<typename TM, typename TRange, typename TSet>
 void create_id_set(TM const &m, TRange const &r0, TSet *res)
 {
     size_t MASK = m.id_mask();
-
-    parallel::parallel_for(r0, [&](TRange const &r) { for (auto const &s:r) { res->insert(s & MASK); }});
+    serial::parallel_for(r0, [&](TRange const &r) { for (auto const &s:r) { res->insert(s & MASK); }});
 
 }
 

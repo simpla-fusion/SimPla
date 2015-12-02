@@ -283,7 +283,7 @@ void  XDMFStream::pimpl_s::write()
         << "    <Attribute Name=\"" << ds_name << "\"  AttributeType=\""
         << ((ds.datatype.is_array() || tag == TAG_EDGE || tag == TAG_FACE) ? "Vector" : "Scalar")
 
-        << "\" Center=\"" << /* a_center_str[tag] */ "Node " << "\">\n"  // NOTE paraview only support "Node" element
+        << "\" Center=\"" << /* a_center_str[tag] */ "Node" << "\">\n"  // NOTE paraview only support "Node" element
 
         << save_dataset(ds_name, ds)
         << "    </Attribute>" << std::endl;

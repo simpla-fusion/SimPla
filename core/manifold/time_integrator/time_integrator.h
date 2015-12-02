@@ -15,19 +15,24 @@ struct TimeIntegrator<TGeo, Policy...>
 {
 private:
     typedef TGeo geometry_type;
+    geometry_type &m_geo_;
 public:
 
     typedef TimeIntegrator<TGeo, Policy...> time_inegral_policy;
 
-    TimeIntegrator(TGeo &) { }
+    TimeIntegrator(TGeo &geo) : m_geo_(geo) { }
 
     virtual ~TimeIntegrator() { }
 
     template<typename TDict>
     void load(TDict const &dict)
     {
+        DEFINE_PHYSICAL_CONST;
+        auto dx = m_geo_.dx();
 
-        m_dt_ = dict["BaseManifold.dt"].template as<Real>(1.0);
+        Real default_dt = 0.5 * std::sqrt(dot(dx, dx) / speed_of_light2);
+
+        m_dt_ = dict["BaseManifold.dt"].template as<Real>(default_dt);
         m_time_ = dict["BaseManifold.Time"].template as<Real>(0);
     }
 

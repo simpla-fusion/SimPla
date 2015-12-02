@@ -46,7 +46,7 @@ struct EMPlasma
 
     typedef Real scalar_type;
 
-    typedef manifold::CylindricalManifold mesh_type;
+    typedef manifold::CartesianManifold mesh_type;
 
     typedef typename mesh_type::id_type id_type;
     typedef typename mesh_type::point_type point_type;
@@ -60,6 +60,7 @@ struct EMPlasma
     traits::field_t<vector_type, mesh_type, VERTEX> Bv{m};
     traits::field_t<vector_type, mesh_type, VERTEX> B0v{m};
     traits::field_t<vector_type, mesh_type, VERTEX> Ev{m};
+    traits::field_t<scalar_type, mesh_type, VERTEX> E2{m};
 
     traits::field_t<scalar_type, mesh_type, VERTEX> rho0{m};
     traits::field_t<scalar_type, mesh_type, VERTEX> rho1{m};
@@ -120,7 +121,7 @@ void EMPlasma::setup(int argc, char **argv)
 
         geqdsk.load(options["GEQDSK"].as<std::string>(""));
 
-        auto box = geqdsk.box();
+        auto box = geqdsk.limiter().box();
 
 
         std::get<0>(box)[2] = phi0;
@@ -144,6 +145,7 @@ void EMPlasma::setup(int argc, char **argv)
         B0.clear();
         B1.clear();
         E1.clear();
+        E2.clear();
         pdE.clear();
 
         J1.clear();
@@ -167,6 +169,7 @@ void EMPlasma::setup(int argc, char **argv)
             model::get_cell_on_surface<EDGE>(m, cache, &edge_boundary);
             model::get_cell_on_surface<FACE>(m, cache, &face_boundary);
             model::get_cell_on_surface<VERTEX>(m, cache, &vertex_boundary);
+
         }
 
         {
@@ -184,8 +187,6 @@ void EMPlasma::setup(int argc, char **argv)
 
             if (dict)
             {
-
-
                 model::create_id_set(m, m.template make_range<EDGE>(
                                              m.index_box(dict["Box"].template as<box_type>())),
                                      &J_src);
@@ -196,11 +197,7 @@ void EMPlasma::setup(int argc, char **argv)
         }
 
 
-        rho0.accept(vertex_boundary.range(), [&](id_type const &s, Real &v) { v = 1000; });
 
-        E1.accept(edge_boundary.range(), [&](id_type const &s, Real &v) { v = 1000; });
-
-        B1.accept(face_boundary.range(), [&](id_type const &s, Real &v) { v = 1000; });
 
 
 //        VERBOSE << "Generator Particles" << std::endl;
@@ -220,7 +217,7 @@ void EMPlasma::setup(int argc, char **argv)
     m.register_dataset("E1", E1);
     m.register_dataset("B1", B1);
     m.register_dataset("J1", J1);
-    m.register_dataset("Bv", Bv);
+    m.register_dataset("E2", E2);
 }
 
 void EMPlasma::tear_down()
@@ -232,7 +229,11 @@ void EMPlasma::tear_down()
 
 void EMPlasma::check_point()
 {
-    m.write();
+//    m.write();
+    LOGGER << SAVE_RECORD(E1) << std::endl;
+    LOGGER << SAVE_RECORD(B1) << std::endl;
+    LOGGER << SAVE_RECORD(J1) << std::endl;
+
 }
 
 void EMPlasma::next_time_step()
@@ -241,9 +242,10 @@ void EMPlasma::next_time_step()
 
     DEFINE_PHYSICAL_CONST
 
-    Real dt = m.dt();
+    Real dt = 0.002;//     m.dt();
 
     Real t = m.time();
+
 
 //    ion.push(dt, 0, E1, B1);
 //
@@ -256,19 +258,21 @@ void EMPlasma::next_time_step()
         v += m.template sample<EDGE>(s, J_src_fun(t, m.point(s)));
     });
 
-    LOG_CMD(B1 -= curl(E1) * (dt * 0.5));
+    LOG_CMD(B1 -= curl(E1) * (dt));
 
     B1.accept(face_boundary.range(), [&](id_type const &, Real &v) { v = 0; });
 
-    LOG_CMD(E1 += (curl(B1) * speed_of_light2 - J1 / epsilon0) * (dt * 0.5));
+    LOG_CMD(E1 += (curl(B1) /* * speed_of_light2*/ - J1 /*/ epsilon0*/) * dt);
 
     E1.accept(edge_boundary.range(), [&](id_type const &, Real &v) { v = 0; });
 
-    LOG_CMD(B1 -= curl(E1) * (dt * 0.5));
+    E2 = dot(E1, E1);
 
-    B1.accept(face_boundary.range(), [&](id_type const &, Real &v) { v = 0; });
+//    LOG_CMD(B1 -= curl(E1) * (dt * 0.5));
 
-    particle::absorb(ion, limiter_boundary);
+//    B1.accept(face_boundary.range(), [&](id_type const &, Real &v) { v = 0; });
+
+//    particle::absorb(ion, limiter_boundary);
 //
 //
 //    Ev = map_to<VERTEX>(E1);

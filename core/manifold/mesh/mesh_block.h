@@ -135,13 +135,24 @@ public:
         return *this;
     }
 
+    int number_of_dims() const
+    {
+        int count = 0;
+        for (int i = 0; i < ndims; ++i)
+        {
+            if (m_idx_max_[i] - m_idx_min_[i] > 1)++count;
+        }
+        return count;
+    }
+
     size_t id_mask() const
     {
-        size_t M = (1UL << ID_DIGITS) - 1;
+        id_type M0 = ((1UL << ID_DIGITS) - 1);
+        id_type M1 = ((1UL << (MESH_RESOLUTION)) - 1);
         return FULL_OVERFLOW_FLAG
-               | ((m_idx_max_[0] - m_idx_min_[0] > 1) ? M : 0)
-               | ((m_idx_max_[1] - m_idx_min_[1] > 1) ? (M << (ID_DIGITS)) : 0)
-               | ((m_idx_max_[2] - m_idx_min_[2] > 1) ? (M << (ID_DIGITS * 2)) : 0);
+               | ((m_idx_max_[0] - m_idx_min_[0] > 1) ? M0 : M1)
+               | (((m_idx_max_[1] - m_idx_min_[1] > 1) ? M0 : M1) << ID_DIGITS)
+               | (((m_idx_max_[2] - m_idx_min_[2] > 1) ? M0 : M1) << (ID_DIGITS * 2));
     }
 
     template<typename TD>
