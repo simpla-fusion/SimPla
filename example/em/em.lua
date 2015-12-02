@@ -40,7 +40,7 @@ rhoe = vTe / omega_ce -- m
 NX = 50
 NY = 50
 NZ = 1
-LX = 1 --m --100000*rhoi --0.6
+LX = 1.0 --m --100000*rhoi --0.6
 LY = 1 --2.0*math.pi/k0
 LZ = math.pi * 0.5 -- 2.0*math.pi/18
 GW = 5
@@ -49,15 +49,14 @@ GEQDSK = "/home/salmon/workspace/code/SimPla/scripts/gfile/g038300.03900"
 
 Mesh =
 {
-    Geometry = {
-        Topology = {
-            Dimensions = { NX, NY, NZ },
-        },
+    Geometry =
+    {
+        Topology = { Dimensions = { NX, NY, NZ }, },
         Box = { { 0.0, 0.0, 0.0 }, { LX, LY, LZ } },
-        dt = 0.5 * (LX / NX) / c
-    }
+    },
+    dt = 0.1 * (LX / NX) / c
 }
-omega_ext = 0.1 * math.pi / Mesh.Geometry.dt --omega_ci*1.9
+omega_ext = 0.1 * math.pi / Mesh.dt --omega_ci*1.9
 
 
 --domain_center=function( x  )

@@ -30,10 +30,10 @@ public:
         DEFINE_PHYSICAL_CONST;
         auto dx = m_geo_.dx();
 
-        Real default_dt = 0.5 * std::sqrt(dot(dx, dx) / speed_of_light2);
+        Real default_dt = 0.1 * std::sqrt(dot(dx, dx) / speed_of_light2);
 
-        m_dt_ = dict["BaseManifold.dt"].template as<Real>(default_dt);
-        m_time_ = dict["BaseManifold.Time"].template as<Real>(0);
+        m_dt_ = dict["dt"].template as<Real>(default_dt);
+        m_time_ = dict["Time"].template as<Real>(0);
     }
 
     template<typename OS>

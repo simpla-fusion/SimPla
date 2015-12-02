@@ -242,7 +242,7 @@ void EMPlasma::next_time_step()
 
     DEFINE_PHYSICAL_CONST
 
-    Real dt = 0.002;//     m.dt();
+    Real dt = m.dt();
 
     Real t = m.time();
 
@@ -258,19 +258,19 @@ void EMPlasma::next_time_step()
         v += m.template sample<EDGE>(s, J_src_fun(t, m.point(s)));
     });
 
-    LOG_CMD(B1 -= curl(E1) * (dt));
+    LOG_CMD(B1 -= curl(E1) * (dt * 0.5));
 
     B1.accept(face_boundary.range(), [&](id_type const &, Real &v) { v = 0; });
 
-    LOG_CMD(E1 += (curl(B1) /* * speed_of_light2*/ - J1 /*/ epsilon0*/) * dt);
+    LOG_CMD(E1 += (curl(B1) * speed_of_light2 - J1 / epsilon0) * dt);
 
     E1.accept(edge_boundary.range(), [&](id_type const &, Real &v) { v = 0; });
 
     E2 = dot(E1, E1);
 
-//    LOG_CMD(B1 -= curl(E1) * (dt * 0.5));
+    LOG_CMD(B1 -= curl(E1) * (dt * 0.5));
 
-//    B1.accept(face_boundary.range(), [&](id_type const &, Real &v) { v = 0; });
+    B1.accept(face_boundary.range(), [&](id_type const &, Real &v) { v = 0; });
 
 //    particle::absorb(ion, limiter_boundary);
 //
