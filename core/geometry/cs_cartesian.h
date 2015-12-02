@@ -35,14 +35,19 @@ struct Metric<coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS> >
     static constexpr int CartesianZAxis = (ICARTESIAN_ZAXIS) % 3;
     static constexpr int CartesianYAxis = (CartesianZAxis + 2) % 3;
     static constexpr int CartesianXAxis = (CartesianZAxis + 1) % 3;
-    typedef traits::point_t<coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS>> point_t;
-    typedef traits::vector_t<coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS>> vector_t;
-    typedef traits::covector_t<coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS>> covector_t;
+    typedef traits::point_t <coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS>> point_t;
+    typedef traits::vector_t <coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS>> vector_t;
+    typedef traits::covector_t <coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS>> covector_t;
 
     /**
      * metric only diff_scheme the volume of simplex
      *
      */
+
+    static point_t map_to_cartesian(point_t const &p)
+    {
+        return p;
+    }
 
     static constexpr Real simplex_length(point_t const &p0, point_t const &p1)
     {

@@ -112,14 +112,19 @@ void EMPlasma::setup(int argc, char **argv)
 
         m.load(options);
 
+        Real phi0 = std::get<0>(m.box())[2];
+
+        Real phi1 = std::get<1>(m.box())[2];
+
         GEqdsk geqdsk;
 
         geqdsk.load(options["GEQDSK"].as<std::string>(""));
 
         auto box = geqdsk.box();
 
-        std::get<0>(box)[2] = 0;
-        std::get<1>(box)[2] = TWOPI;
+
+        std::get<0>(box)[2] = phi0;
+        std::get<1>(box)[2] = phi1;
 
         m.box(box);
 
@@ -127,7 +132,6 @@ void EMPlasma::setup(int argc, char **argv)
 
         m.set_prefix("em_plasma", "GEqdsk");
 
-        m.set_io_time(m.time());
 
         m.dump_grid();
 
@@ -217,13 +221,11 @@ void EMPlasma::setup(int argc, char **argv)
 
     io::cd("/dump/");
 
-    LOGGER << SAVE(E1) << std::endl;
-    LOGGER << SAVE(B1) << std::endl;
-    LOGGER << SAVE(Bv) << std::endl;
-    LOGGER << SAVE(B0v) << std::endl;
-
-
     m.register_dataset("E1", E1);
+    m.register_dataset("B1", B1);
+    m.register_dataset("J1", J1);
+    m.register_dataset("Bv", Bv);
+
 
     m.write();
 
@@ -240,10 +242,6 @@ void EMPlasma::check_point()
 {
     io::cd("/record/");
 
-//    LOGGER << SAVE_RECORD(Bv) << std::endl;
-//    LOGGER << SAVE_RECORD(B0v) << std::endl;
-//    LOGGER << SAVE_RECORD(Ev) << std::endl;
-//    LOGGER << SAVE_RECORD(B0) << std::endl;
     LOGGER << SAVE_RECORD(J1) << std::endl;
     LOGGER << SAVE_RECORD(B1) << std::endl;
     LOGGER << SAVE_RECORD(E1) << std::endl;

@@ -29,15 +29,13 @@ struct MeshIOBase::pimpl_s
 
     virtual bool read();
 
-    virtual void write();
+    virtual void write(Real t) const;
 
-    virtual void set_time(Real t);
 
     virtual void register_dataset(std::string const &url, DataSet const &ds, int IFORM = 0);
 
     std::map<std::string, std::tuple<int, DataSet>> m_datasets_;
 
-    Real m_time_;
 
     std::string m_grid_name_;
 
@@ -72,10 +70,6 @@ MeshIOBase::pimpl_s::~pimpl_s()
 
 }
 
-void MeshIOBase::pimpl_s::set_time(Real t)
-{
-    m_time_ = t;
-}
 
 void _str_replace(std::string *s, std::string const &place_holder, std::string const &txt)
 {
@@ -254,7 +248,7 @@ bool MeshIOBase::pimpl_s::read()
 }
 
 
-void  MeshIOBase::pimpl_s::write()
+void  MeshIOBase::pimpl_s::write(Real t) const
 {
 
 
@@ -263,7 +257,7 @@ void  MeshIOBase::pimpl_s::write()
 
     std::ostringstream buffer;
 
-    buffer << "\t <Information Name=\"Time\" Value=\"" << m_time_ << "\"/>" << std::endl;
+    buffer << "\t <Information Name=\"Time\" Value=\"" << t << "\"/>" << std::endl;
 
 
     int count = 0;
@@ -316,7 +310,7 @@ MeshIOBase::~MeshIOBase()
 
 void  MeshIOBase::write() const
 {
-    m_pimpl_->write();
+    m_pimpl_->write(time());
 }
 
 
@@ -340,8 +334,4 @@ void MeshIOBase::set_prefix(std::string const &prefix, const std::string &name)
 }
 
 
-void MeshIOBase::set_io_time(Real t)
-{
-    m_pimpl_->set_time(t);
-}
 }}}//namespace simpla { namespace manifold { namespace policy

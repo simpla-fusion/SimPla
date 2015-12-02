@@ -26,7 +26,7 @@ public:
 
     virtual ~MeshIOBase();
 
-    virtual void set_io_time(Real t);
+    virtual Real time() const = 0;
 
     virtual bool read();
 
@@ -78,6 +78,8 @@ public:
             m_geo_(geo) { }
 
     virtual ~IOPolicy() { }
+
+    virtual Real time() const = 0;
 
     virtual DataSet grid_vertices() const = 0;
 

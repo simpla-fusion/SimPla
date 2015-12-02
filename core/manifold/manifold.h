@@ -286,21 +286,26 @@ public:
         this->template alloc_memory<VERTEX, point_type>(&ds.data);
 
         parallel::parallel_for(this->template range<VERTEX>(),
-                             [&](range_type const &r)
-                             {
-                                 for (auto const &s: r)
-                                 {
-                                     point_type p0 = this->point(s);
-                                     point_type p1 = this->map_to_cartesian(p0);
+                               [&](range_type const &r)
+                               {
+                                   for (auto const &s: r)
+                                   {
+                                       point_type p0 = this->point(s);
+                                       point_type p1 = this->map_to_cartesian(p0);
 
-                                     this->template at<point_type>(ds.data, s) = p1;
-                                 }
-                             }
+                                       this->template at<point_type>(ds.data, s) = p1;
+                                   }
+                               }
         );
 
         return std::move(ds);
 
     };
+
+    virtual Real time() const
+    {
+        return this->time_inegral_policy::time();
+    }
 
 
 }; //class Manifold

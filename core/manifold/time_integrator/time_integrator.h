@@ -17,6 +17,8 @@ private:
     typedef TGeo geometry_type;
 public:
 
+    typedef TimeIntegrator<TGeo, Policy...> time_inegral_policy;
+
     TimeIntegrator(TGeo &) { }
 
     virtual ~TimeIntegrator() { }
