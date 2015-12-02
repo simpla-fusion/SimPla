@@ -21,7 +21,7 @@
 #include "../interpolate/linear.h"
 #include "../policy/storage_policy.h"
 #include "../policy/parallel_policy.h"
-
+#include "../policy/io_policy.h"
 
 namespace simpla { namespace manifold
 {
@@ -32,7 +32,8 @@ using DefaultManifold= Manifold<
         policy::Interpolate<MESH, policy::interpolate::tags::linear>,
         policy::TimeIntegrator<MESH>,
         policy::StoragePolicy<MESH>,
-        policy::ParallelPolicy<MESH>
+        policy::ParallelPolicy<MESH>,
+        policy::IOPolicy<MESH>
 >;
 
 

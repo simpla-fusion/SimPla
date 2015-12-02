@@ -15,16 +15,13 @@ extern "C"
 #include <cstring> //for memcopy
 
 #include "data_stream.h"
-
 #include "../dataset/dataset.h"
 
-#if !NO_MPI || USE_MPI
 
-#   include "../parallel/parallel.h"
-#   include "../parallel/mpi_comm.h"
-#   include "../parallel/mpi_aux_functions.h"
+#include "../parallel/parallel.h"
+#include "../parallel/mpi_comm.h"
+#include "../parallel/mpi_aux_functions.h"
 
-#endif
 
 #include "../gtl/utilities/utilities.h"
 #include "../gtl/utilities/memory_pool.h"

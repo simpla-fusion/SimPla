@@ -51,6 +51,8 @@ public:
 
     void load_profile(std::string const &fname);
 
+    void write(const std::string &url);
+
     std::ostream &print(std::ostream &os);
 
     std::string const &description() const;
@@ -71,6 +73,7 @@ public:
 
     point_type magnetic_axis() const;
 
+    nTuple<int, 3> const &dimensions() const;
 
     /**
      *

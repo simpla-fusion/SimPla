@@ -26,6 +26,11 @@
 #include "../numeric/find_root.h"
 #include "../numeric/interpolation.h"
 
+#ifndef NO_XDMF
+
+#include "../io/xdmf_io.h"
+
+#endif
 namespace simpla
 {
 constexpr int GEqdsk::PhiAxis;
@@ -66,7 +71,7 @@ struct GEqdsk::pimpl_s
 //	inter_type ffprim_;//!< \f$FF^\prime(\psi)\f$ in $(mT)^2/(Weber/rad)$ on uniform flux grid
 //	inter_type pprim_;//!< $P^\prime(\psi)$ in $(nt/m^2)/(Weber/rad)$ on uniform flux grid
 
-    inter2d_type psirz_; //!< Poloidal flux in Webber/rad on the rectangular grid points
+    inter2d_type m_psirz_; //!< Poloidal flux in Webber/rad on the rectangular grid points
 
 //	inter_type qpsi_;//!< q values on uniform flux grid from axis to boundary
 
@@ -82,6 +87,8 @@ struct GEqdsk::pimpl_s
     void load_profile(std::string const &fname);
 
 //    bool flux_surface(Real psi_j, size_t M, point_type *res, Real resoluton = 0.001);
+
+    void write(std::string const &);
 };
 
 void GEqdsk::load(std::string const &fname)
@@ -89,6 +96,11 @@ void GEqdsk::load(std::string const &fname)
     m_pimpl_->load(fname);
 
 }
+
+nTuple<int, 3> const &GEqdsk::dimensions() const
+{
+    return m_pimpl_->m_dims_;
+};
 
 void GEqdsk::pimpl_s::load(std::string const &fname)
 {
@@ -140,7 +152,7 @@ void GEqdsk::pimpl_s::load(std::string const &fname)
     m_dims_[ZAxis] = nh;
     m_dims_[PhiAxis] = 1;
 
-    inter2d_type(m_dims_, m_rzmin_, m_rzmax_, PhiAxis).swap(psirz_);
+    inter2d_type(m_dims_, m_rzmin_, m_rzmax_, PhiAxis).swap(m_psirz_);
 
 #define INPUT_VALUE(_NAME_)                                               \
     for (int s = 0; s < nw; ++s)                                          \
@@ -162,7 +174,7 @@ void GEqdsk::pimpl_s::load(std::string const &fname)
         {
             double v;
             inFileStream_ >> std::setw(16) >> v;
-            psirz_[i + j * nw] = (v - simag) / (sibry - simag); // Normalize Poloidal flux
+            m_psirz_[i + j * nw] = (v - simag) / (sibry - simag); // Normalize Poloidal flux
         }
 
     INPUT_VALUE("qpsi");
@@ -319,7 +331,7 @@ std::ostream &GEqdsk::print(std::ostream &os)
 //
 //	std::cout << "psizr"
 //			<< "\t-- Poloidal flus in Webber/rad on the rectangular grid points         "
-//			<< std::endl << psirz_.data() << std::endl;
+//			<< std::endl << m_psirz_.data() << std::endl;
 //
 //	std::cout << "qpsi" << "\t= "
 //			<< "\t-- q values on uniform flux grid from axis to boundary                "
@@ -370,7 +382,7 @@ std::ostream &GEqdsk::print(std::ostream &os)
 //    std::function<double(nTuple<double, 3> const &)> fun =
 //            [this](nTuple<double, 3> const &x) -> double
 //            {
-//                return psirz_(x[RAxis], x[ZAxis]);
+//                return m_psirz_(x[RAxis], x[ZAxis]);
 //            };
 //
 //    for (int i = 0; i < M; ++i)
@@ -432,12 +444,12 @@ geometry::Object const &GEqdsk::limiter() const
 
 Real GEqdsk::psi(Real R, Real Z) const
 {
-    return m_pimpl_->psirz_(R, Z);
+    return m_pimpl_->m_psirz_(R, Z);
 }
 
 Vec3 GEqdsk::grad_psi(Real R, Real Z) const
 {
-    return m_pimpl_->psirz_.grad(R, Z);
+    return m_pimpl_->m_psirz_.grad(R, Z);
 }
 
 Real GEqdsk::profile(std::string const &name, Real p_psi) const
@@ -453,6 +465,158 @@ GEqdsk::point_type GEqdsk::magnetic_axis() const
 std::tuple<typename GEqdsk::point_type, typename GEqdsk::point_type> GEqdsk::box() const
 {
     return std::make_tuple(m_pimpl_->m_rzmin_, m_pimpl_->m_rzmax_);
+}
+
+void GEqdsk::write(std::string const &url)
+{
+    m_pimpl_->write(url);
+}
+
+void GEqdsk::pimpl_s::write(std::string const &url)
+{
+#ifndef NO_XDMF
+
+    typedef nTuple<Real, 3> point_type;
+    XdmfDOM dom;
+    XdmfRoot root;
+    root.SetDOM(&dom);
+    root.SetVersion(2.0);
+    root.Build();
+
+    XdmfDomain domain;
+
+
+    root.Insert(&domain);
+
+    {
+        XdmfGrid grid;
+        domain.Insert(&grid);
+
+        grid.SetName("G-Eqdsk");
+        grid.SetGridType(XDMF_GRID_UNIFORM);
+        grid.GetTopology()->SetTopologyTypeFromString("2DCoRectMesh");
+
+        XdmfInt64 dims[2] = {static_cast<XdmfInt64>(m_dims_[1]), static_cast<XdmfInt64>(m_dims_[0])};
+        grid.GetTopology()->GetShapeDesc()->SetShape(2, dims);
+
+        grid.GetGeometry()->SetGeometryTypeFromString("Origin_DxDy");
+        grid.GetGeometry()->SetOrigin(m_rzmin_[1], m_rzmin_[0], 0);
+        grid.GetGeometry()->SetDxDyDz((m_rzmax_[1] - m_rzmin_[1]) / static_cast<Real>(m_dims_[1] - 1),
+                                      (m_rzmax_[0] - m_rzmin_[0]) / static_cast<Real>(m_dims_[0] - 1), 0);
+
+        XdmfAttribute myAttribute;
+        grid.Insert(&myAttribute);
+
+        myAttribute.SetName("Psi");
+        myAttribute.SetAttributeTypeFromString("Scalar");
+        myAttribute.SetAttributeCenterFromString("Node");
+
+        XdmfDataItem data;
+        myAttribute.Insert(&data);
+
+        io::InsertDataItem(&data, 2, dims, &(m_psirz_.data().get()[0]), url + ".h5:/Psi");
+        grid.Build();
+    }
+    {
+        XdmfGrid grid;
+        domain.Insert(&grid);
+        grid.SetName("Boundary");
+        grid.SetGridType(XDMF_GRID_UNIFORM);
+        grid.GetTopology()->SetTopologyTypeFromString("POLYLINE");
+
+        XdmfInt64 dims[2] = {static_cast<XdmfInt64>(m_rzbbb_.data().size()), 2};
+        grid.GetTopology()->GetShapeDesc()->SetShape(2, dims);
+        grid.GetTopology()->Set("NodesPerElement", "2");
+        grid.GetTopology()->SetNumberOfElements(static_cast<XdmfInt64>(m_rzbbb_.data().size()));
+
+        XdmfDataItem *data = new XdmfDataItem;
+
+        grid.GetTopology()->Insert(data);
+
+        io::InsertDataItemWithFun(data, 2, dims, [&](XdmfInt64 *d) -> unsigned int
+                              {
+                                  return static_cast< unsigned int>( d[1] == 0 ? d[0] : (d[0] + 1) % dims[0]);
+                              },
+
+                              url + ".h5:/Boundary/Topology");
+
+        grid.GetGeometry()->SetGeometryTypeFromString("XYZ");
+
+        data = new XdmfDataItem;
+        data->SetHeavyDataSetName((url + ".h5:/Boundary/Points").c_str());
+
+        grid.GetGeometry()->Insert(data);
+
+        XdmfArray *points = grid.GetGeometry()->GetPoints();
+
+        dims[1] = 3;
+        points->SetShape(2, dims);
+
+        XdmfInt64 s = 0;
+        for (auto const &v : m_rzbbb_.data())
+        {
+            points->SetValue(s * 3, 0);
+            points->SetValue(s * 3 + 1, v[0]);
+            points->SetValue(s * 3 + 2, v[1]);
+
+            ++s;
+        }
+
+        grid.Build();
+    }
+    {
+        XdmfGrid grid;
+        domain.Insert(&grid);
+        grid.SetName("Limter");
+        grid.SetGridType(XDMF_GRID_UNIFORM);
+        grid.GetTopology()->SetTopologyTypeFromString("POLYLINE");
+
+        XdmfInt64 dims[2] = {static_cast<XdmfInt64>(m_rzbbb_.data().size()), 2};
+        grid.GetTopology()->GetShapeDesc()->SetShape(2, dims);
+        grid.GetTopology()->Set("NodesPerElement", "2");
+        grid.GetTopology()->SetNumberOfElements(static_cast<XdmfInt64>(m_rzbbb_.data().size()));
+
+        XdmfDataItem *data = new XdmfDataItem;
+
+        grid.GetTopology()->Insert(data);
+
+        io::InsertDataItemWithFun(data, 2, dims, [&](XdmfInt64 *d) -> unsigned int
+                              {
+                                  return static_cast<unsigned int>(d[1] == 0 ? d[0] : (d[0] + 1) % dims[0]);
+                              },
+
+                              url + ".h5:/Limter/Topology");
+
+        grid.GetGeometry()->SetGeometryTypeFromString("XYZ");
+
+        data = new XdmfDataItem;
+        data->SetHeavyDataSetName((url + ".h5:/Limter/Points").c_str());
+
+        grid.GetGeometry()->Insert(data);
+
+        XdmfArray *points = grid.GetGeometry()->GetPoints();
+
+        dims[1] = 3;
+        points->SetShape(2, dims);
+
+        XdmfInt64 s = 0;
+        for (auto const &v : m_rzbbb_.data())
+        {
+            points->SetValue(s * 3, 0);
+            points->SetValue(s * 3 + 1, v[0]);
+            points->SetValue(s * 3 + 2, v[1]);
+
+            ++s;
+        }
+
+        grid.Build();
+    }
+
+//		root.Build();
+    std::ofstream ss(url + ".xmf");
+    ss << dom.Serialize() << std::endl;
+
+#endif // NO_XDMF
 }
 }  // namespace simpla
 
