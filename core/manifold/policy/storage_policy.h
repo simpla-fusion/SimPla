@@ -1,11 +1,11 @@
 /**
- * @file dataset.h
+ * @file storage_policy.h
  * @author salmon
  * @date 2015-10-14.
  */
 
-#ifndef SIMPLA_DATASET_H
-#define SIMPLA_DATASET_H
+#ifndef SIMPLA_STORAGE_POLICY_H
+#define SIMPLA_STORAGE_POLICY_H
 
 #include <string.h>
 #include "../../gtl/design_pattern/singleton_holder.h"
@@ -205,4 +205,4 @@ struct type_id<manifold::policy::StoragePolicy<TGeo>>
 }
 
 }//namespace simpla
-#endif //SIMPLA_DATASET_H
+#endif //SIMPLA_STORAGE_POLICY_H

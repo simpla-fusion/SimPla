@@ -5,18 +5,13 @@
  */
 
 #include <string>
+#include <fstream>
 #include "io_policy.h"
 
 #include "../../dataset/dataset.h"
 #include "../../gtl/utilities/log.h"
 #include "../../gtl/type_cast.h"
-
-#ifndef NO_XDMF
-
-#include "../../io/xdmf_io.h"
 #include "../../io/io.h"
-
-#endif
 
 namespace simpla { namespace manifold { namespace policy
 {
@@ -115,11 +110,7 @@ std::string save_dataitem(std::string const &prefix, std::string const ds_name, 
     std::string url = io::save(ds_name, num, p);
 
     VERBOSE << "write data item [" << url << "/" << "]" << std::endl;
-
-    io::cd(prefix);
-
     std::ostringstream buffer;
-
 
     buffer
     << "\t <DataItem Dimensions=\"" << num << "\" " << "NumberType=\"Float\" Precision=\"4\" Format=\"HDF\">\n"
@@ -141,7 +132,7 @@ std::string save_dataitem(std::string const &prefix, std::string const ds_name, 
                                   3DSMesh | 3DRectMesh | 3DCoRectMesh
  */
 
-void  MeshIOBase::dump_grid(int ndims, size_t const *dims, Real const *xmin, Real const *dx)
+void  MeshIOBase::save_mesh(int ndims, size_t const *dims, Real const *xmin, Real const *dx)
 {
 
 
@@ -187,7 +178,7 @@ void  MeshIOBase::dump_grid(int ndims, size_t const *dims, Real const *xmin, Rea
 }
 
 
-void  MeshIOBase::dump_grid(DataSet const &ds)
+void  MeshIOBase::save_mesh(DataSet const &ds)
 {
 
     io::cd(m_pimpl_->m_prefix_ + ".h5:/");
@@ -334,4 +325,8 @@ void MeshIOBase::set_prefix(std::string const &prefix, const std::string &name)
 }
 
 
+void MeshIOBase::next_step()
+{
+    m_pimpl_->new_grid();
+}
 }}}//namespace simpla { namespace manifold { namespace policy

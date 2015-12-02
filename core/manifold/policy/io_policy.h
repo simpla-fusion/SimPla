@@ -8,54 +8,20 @@
 #define SIMPLA_IO_POLICY_H
 
 #include "../../dataset/dataset.h"
+#include "../../io/xdmf_stream.h"
 
 namespace simpla
 {
-template<typename ...> class Field;
 namespace manifold { namespace policy
 {
 /**
  * @ingroup manifold
  */
-struct MeshIOBase
-{
-private:
-    typedef nTuple<Real, 3> point_type;
-public:
-    MeshIOBase();
-
-    virtual ~MeshIOBase();
-
-    virtual Real time() const = 0;
-
-    virtual bool read();
-
-    virtual void write() const;
-
-    virtual void register_dataset(std::string const &name, DataSet const &ds, int IFORM = 0);
-
-    template<typename TV, typename TM, int IFORM>
-    void register_dataset(std::string const &name, Field<TV, TM, std::integral_constant<int, IFORM>> const &f)
-    {
-        register_dataset(name, f.dataset(), IFORM);
-    };
-
-
-    void set_prefix(std::string const &prefix = "", std::string const &name = "unnamed");
-
-    void dump_grid(int ndims, size_t const *dims, Real const *xmin, Real const *dx);
-
-    void dump_grid(DataSet const &);
-
-private:
-    struct pimpl_s;
-    std::unique_ptr<pimpl_s> m_pimpl_;
-};
 
 template<typename ...> struct IOPolicy;
 
 template<typename TGeo>
-struct IOPolicy<TGeo> : public MeshIOBase
+struct IOPolicy<TGeo> : public io::XDMFStream
 {
 private:
 
@@ -63,6 +29,7 @@ private:
 
     typedef IOPolicy<geometry_type> this_type;
 
+    typedef io::XDMFStream base_type;
 
     typedef typename TGeo::id_type id_type;
 
@@ -71,7 +38,7 @@ private:
 
 public:
 
-    typedef this_type storage_policy;
+    typedef this_type io_policy;
 
 
     IOPolicy(geometry_type &geo) :
@@ -86,11 +53,14 @@ public:
 
     virtual void deploy()
     {
-
-
     }
 
-    void dump_grid()
+    virtual void next_time_step()
+    {
+        base_type::next_time_step();
+    }
+
+    void set_grid()
     {
         if (m_geo_.topology_type() == "CoRectMesh")
         {
@@ -106,13 +76,14 @@ public:
 
             dx = m_geo_.dx();
 
-            MeshIOBase::dump_grid(ndims, &dims[0], &xmin[0], &dx[0]);
+            base_type::set_grid(ndims, &dims[0], &xmin[0], &dx[0]);
         }
 
         else if (m_geo_.topology_type() == "SMesh")
         {
-            MeshIOBase::dump_grid(grid_vertices());
+            base_type::set_grid(grid_vertices());
         }
+        base_type::set_grid();
     }
 
 
@@ -138,7 +109,7 @@ struct type_id<manifold::policy::IOPolicy<TGeo>>
 {
     static std::string name()
     {
-        return "IoPolicy<" + type_id<TGeo>::name() + ">";
+        return "IOPolicy<" + type_id<TGeo>::name() + ">";
     }
 };
 }//namespace traits

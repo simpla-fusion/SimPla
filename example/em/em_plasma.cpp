@@ -130,10 +130,8 @@ void EMPlasma::setup(int argc, char **argv)
 
         m.deploy();
 
-        m.set_prefix("em_plasma", "GEqdsk");
+        m.open("em_plasma", "GEqdsk");
 
-
-        m.dump_grid();
 
         MESSAGE << std::endl << "[ Configuration ]" << std::endl << m << std::endl;
 
@@ -219,16 +217,10 @@ void EMPlasma::setup(int argc, char **argv)
     }
 
 
-    io::cd("/dump/");
-
     m.register_dataset("E1", E1);
     m.register_dataset("B1", B1);
     m.register_dataset("J1", J1);
     m.register_dataset("Bv", Bv);
-
-
-    m.write();
-
 }
 
 void EMPlasma::tear_down()
@@ -240,12 +232,7 @@ void EMPlasma::tear_down()
 
 void EMPlasma::check_point()
 {
-    io::cd("/record/");
-
-    LOGGER << SAVE_RECORD(J1) << std::endl;
-    LOGGER << SAVE_RECORD(B1) << std::endl;
-    LOGGER << SAVE_RECORD(E1) << std::endl;
-
+    m.write();
 }
 
 void EMPlasma::next_time_step()
@@ -341,7 +328,7 @@ void EMPlasma::next_time_step()
 //
 //    pdE = map_to<EDGE>(dEv);
 
-
+    m.next_time_step();
 }
 
 }

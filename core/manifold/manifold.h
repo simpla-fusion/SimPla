@@ -199,6 +199,12 @@ public:
         _dispatch_deploy<mesh_type, Policies...>();
     }
 
+    void next_time_step()
+    {
+        this->time_inegral_policy::next_time_step();
+        this->io_policy::next_time_step();
+    }
+
     template<typename OS>
     OS &print(OS &os) const
     {
