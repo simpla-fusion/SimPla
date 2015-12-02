@@ -62,12 +62,12 @@ struct DataSet
             memory_space(other.memory_space),
             properties(other.properties) { }
 
-    DataSet(DataSet &&other) :
-            data(other.data),
-            datatype(other.datatype),
-            dataspace(other.dataspace),
-            memory_space(other.memory_space),
-            properties(other.properties) { }
+//    DataSet(DataSet &&other) :
+//            data(other.data),
+//            datatype(other.datatype),
+//            dataspace(other.dataspace),
+//            memory_space(other.memory_space),
+//            properties(other.properties) { }
 
     virtual ~DataSet() { }
 
@@ -165,10 +165,10 @@ DataSet make_dataset()
 }
 
 template<typename T>
-DataSet make_dataset(T *p, size_t rank, size_t const *dims = nullptr)
+DataSet make_dataset(T const *p, size_t rank, size_t const *dims = nullptr)
 {
     return make_dataset(traits::datatype<T>::create(),
-                        std::shared_ptr<void>(reinterpret_cast<void *>(p), tags::do_nothing()),
+                        std::shared_ptr<void>(reinterpret_cast<void *>(const_cast<T *>(p)), tags::do_nothing()),
                         rank, dims);
 }
 

@@ -15,7 +15,7 @@ namespace simpla
 {
 namespace io
 {
-
+XdmfInt32 convert_datatype_sp_to_xdmf(DataType const &d_type);
 /** @ingroup XDMF
  * @{
  */

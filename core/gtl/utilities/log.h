@@ -396,7 +396,7 @@ std::string make_msg(Others const &...others)
 #endif
 
 //#ifndef NDEBUG
-#define CHECK(_MSG_)    std::cerr<<"\n\e[0m \e[1;37m From [" << (__FILE__) << ":"<< (__LINE__) <<":0: " <<(__PRETTY_FUNCTION__) << "] \n \e[1;31m\t"<< __STRING((_MSG_))<<" = "<<( _MSG_)
+#define CHECK(_MSG_)    std::cerr<<"\n\e[0m \e[1;37m From [" << (__FILE__) << ":"<< (__LINE__) <<":0: " <<(__PRETTY_FUNCTION__) << "] \n \e[1;31m\t"<< __STRING((_MSG_))<<" = "<<( _MSG_)<<std::endl
 #define SHOW(_MSG_)    logger::Logger(logger::LOG_VERBOSE) << __STRING(_MSG_)<<"\t= "<< ( _MSG_) <<std::endl;
 #define SHOW_HEX(_MSG_)    logger::Logger(logger::LOG_VERBOSE) << __STRING(_MSG_)<<"\t= "<<std::hex << ( _MSG_) <<std::dec<<std::endl;
 

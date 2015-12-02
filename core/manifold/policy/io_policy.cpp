@@ -35,14 +35,7 @@ struct MeshIOBase::pimpl_s
 
     virtual void register_dataset(std::string const &url, DataSet const &ds, int IFORM = 0);
 
-
-    XdmfDOM m_dom_;
-
-    XdmfRoot m_root_;
-
-    XdmfDomain m_domain_;
-
-    XdmfGrid m_grid_;
+    std::map<std::string, std::tuple<int, DataSet>> m_datasets_;
 
     Real m_time_;
 
@@ -52,23 +45,28 @@ struct MeshIOBase::pimpl_s
     std::string m_prefix_;
 
 
-    int m_grid_type_id_;
+    std::string m_place_holder_;
 
-    std::string m_topology_type_str_;
+    std::string m_file_contents_;
 
-    std::map<std::string, std::tuple<int, DataSet>> m_datasets_;
-
-
-    std::string m_xdmf_txt_;
 };
 
 MeshIOBase::pimpl_s::pimpl_s()
 {
-    m_root_.SetDOM(&m_dom_);
-    m_root_.SetVersion(2.0);
-    m_root_.Build();
-    m_root_.Insert(&m_domain_);
-    m_domain_.Insert(&m_grid_);
+
+
+    m_place_holder_ = "<!-- PLACE HOLDER -->";
+
+    m_file_contents_ = ""
+                               "<Xdmf xmlns:xi=\"http://www.w3.org/2003/XInclude\" Version=\"2\">\n"
+                               "  <Domain>\n"
+                               "    <Grid GridType=\"Uniform\">\n"
+                       + m_place_holder_ + "\n"
+                               "    </Grid>\n"
+                               "  </Domain>\n"
+                               "</Xdmf>";
+
+
 }
 
 MeshIOBase::pimpl_s::~pimpl_s()
@@ -79,7 +77,64 @@ MeshIOBase::pimpl_s::~pimpl_s()
 void MeshIOBase::pimpl_s::set_time(Real t)
 {
     m_time_ = t;
-//    m_grid_.SetTime(t);
+}
+
+void _str_replace(std::string *s, std::string const &place_holder, std::string const &txt)
+{
+    s->replace(s->find(place_holder), place_holder.size(), txt + "\n" + place_holder);
+}
+
+std::string save_dataitem(std::string const &prefix, std::string const ds_name, DataSet const &ds)
+{
+    io::cd(prefix);
+
+    std::string url = io::save(ds_name, ds);
+
+    VERBOSE << "write data item [" << url << "/" << "]" << std::endl;
+
+    std::ostringstream buffer;
+
+    int ndims;
+
+    nTuple<size_t, MAX_NDIMS_OF_ARRAY> dims;
+
+    std::tie(ndims, dims, std::ignore, std::ignore, std::ignore, std::ignore) = ds.dataspace.shape();
+
+    buffer
+    << "\t\t  <DataItem Dimensions=\"";
+    for (int i = 0; i < ndims; ++i)
+    {
+        buffer << dims[i] << " ";
+    }
+
+    buffer << "\" "
+    << "NumberType=\"Float\" Precision=\"4\" Format=\"HDF\">\n"
+    << "\t\t   " << url << std::endl
+    << "\t\t  </DataItem>\n";
+    return buffer.str();
+}
+
+template<typename T>
+std::string save_dataitem(std::string const &prefix, std::string const ds_name, size_t num, T const *p)
+{
+
+    io::cd(prefix);
+
+    std::string url = io::save(ds_name, num, p);
+
+    VERBOSE << "write data item [" << url << "/" << "]" << std::endl;
+
+    io::cd(prefix);
+
+    std::ostringstream buffer;
+
+
+    buffer
+    << "\t <DataItem Dimensions=\"" << num << "\" " << "NumberType=\"Float\" Precision=\"4\" Format=\"HDF\">\n"
+    << url << std::endl
+    << "\t</DataItem>";
+
+    return buffer.str();
 }
 
 /**
@@ -94,32 +149,39 @@ void MeshIOBase::pimpl_s::set_time(Real t)
                                   3DSMesh | 3DRectMesh | 3DCoRectMesh
  */
 
-void  MeshIOBase::deploy(int ndims, size_t const *pdims, Real const *xmin, Real const *dx)
+void  MeshIOBase::deploy(int ndims, size_t const *dims, Real const *xmin, Real const *dx)
 {
-    m_pimpl_->m_grid_.SetGridType(XDMF_GRID_UNIFORM);
 
-    std::string topology_type_str;
 
-    nTuple<XdmfInt64, 3> dims;
+    std::ostringstream buffer;
 
-    dims = pdims;
 
-    if (ndims == 2)
+    if (ndims == 3)
     {
+        buffer << ""
+                "\t <Topology TopologyType=\"3DCoRectMesh\""
+                "\t      Dimensions=\"" << dims[0] << " " << dims[1] << " " << dims[2] << "\"/>\n"
+                "\t <Geometry GeometryType=\"ORIGIN_DXDYDZ\">\n"
+                "\t   <DataItem Name=\"Origin\" Dimensions=\"3\" NumberType=\"Float\" "
+                " Precision=\"4\" Format=\"XML\">" << xmin[0] << " " << xmin[1] << " " << xmin[2] << "</DataItem>\n"
+                "\t   <DataItem Name=\"Spacing\" Dimensions=\"3\" NumberType=\"Float\""
+                " Precision=\"4\" Format=\"XML\">" << dx[0] << " " << dx[1] << " " << dx[2] << "  </DataItem >\n"
+                "\t </Geometry>";
 
-        m_pimpl_->m_grid_.GetTopology()->SetTopologyTypeFromString("2DCoRectMesh");
-        m_pimpl_->m_grid_.GetTopology()->GetShapeDesc()->SetShape(ndims, &dims[0]);
-        m_pimpl_->m_grid_.GetGeometry()->SetGeometryTypeFromString("Origin_DxDy");
-        m_pimpl_->m_grid_.GetGeometry()->SetOrigin(xmin[0], xmin[1], 0);
-        m_pimpl_->m_grid_.GetGeometry()->SetDxDyDz(dx[0], dx[1], 0);
+
     }
-    else if (ndims == 3)
+    else if (ndims == 2)
     {
-        m_pimpl_->m_grid_.GetTopology()->SetTopologyTypeFromString("3DCoRectMesh");
-        m_pimpl_->m_grid_.GetTopology()->GetShapeDesc()->SetShape(ndims, &dims[0]);
-        m_pimpl_->m_grid_.GetGeometry()->SetGeometryTypeFromString("Origin_DxDyDz");
-        m_pimpl_->m_grid_.GetGeometry()->SetOrigin(xmin[0], xmin[1], xmin[2]);
-        m_pimpl_->m_grid_.GetGeometry()->SetDxDyDz(dx[0], dx[1], dx[2]);
+        buffer << ""
+                "\t <Topology TopologyType=\"2DCoRectMesh\""
+                "\t      Dimensions=\"" << dims[0] << " " << dims[1] << "\"/>\n"
+                "\t <Geometry GeometryType=\"ORIGIN_DXDY\">\n"
+                "\t   <DataItem Name=\"Origin\" Dimensions=\"2\" NumberType=\"Float\" "
+                " Precision=\"4\" Format=\"XML\">" << xmin[0] << " " << xmin[1] << "</DataItem>\n"
+                "\t   <DataItem Name=\"Spacing\" Dimensions=\"2\" NumberType=\"Float\""
+                " Precision=\"4\" Format=\"XML\">" << dx[0] << " " << dx[1] << "  </DataItem >\n"
+                "\t </Geometry>";
+
 
     }
     else
@@ -127,42 +189,60 @@ void  MeshIOBase::deploy(int ndims, size_t const *pdims, Real const *xmin, Real 
         THROW_EXCEPTION_RUNTIME_ERROR(" number of dimension is not 2 or 3");
     }
 
+
+    _str_replace(&(m_pimpl_->m_file_contents_), m_pimpl_->m_place_holder_, buffer.str());
+
 }
 
 
-void  MeshIOBase::deploy(int ndims, size_t const *pdims, point_type const *points)
+void  MeshIOBase::deploy(int ndims, size_t const *dims, point_type const *points)
 {
 
-    m_pimpl_->m_grid_.SetGridType(XDMF_GRID_UNIFORM);
 
-    std::string topology_type_str;
+    std::ostringstream buffer;
 
-    nTuple<XdmfInt64, 3> dims;
-
-    dims = pdims;
-
-    if (ndims == 3)
+    size_t num = 1;
+    for (int i = 0; i < ndims; ++i)
     {
+        num *= dims[i];
+    }
 
-        m_pimpl_->m_grid_.GetTopology()->SetTopologyTypeFromString("3DSMesh");
-        m_pimpl_->m_grid_.GetTopology()->GetShapeDesc()->SetShape(ndims, &dims[0]);
+    if (ndims == 2)
+    {
+        buffer << ""
+        << "\t <Topology TopologyType=\"2DSRect\""
+        << "\t      NumberOfElements=\"" << dims[0] << " " << dims[1] << " " << dims[2] << "\"/>\n"
+        << "\t <Geometry GeometryType=\"XY\">\n"
+        << save_dataitem(m_pimpl_->m_prefix_ + ".h5:/" + m_pimpl_->m_grid_name_ + "/", "points", num, points)
+        << "\t </Geometry>\n";
+    }
 
-        m_pimpl_->m_grid_.GetGeometry()->SetGeometryTypeFromString("XYZ");
-
+    else if (ndims == 3)
+    {
+        buffer << ""
+        << "\t <Topology TopologyType=\"3DSRect\""
+        << "\t      NumberOfElements=\"" << dims[0] << " " << dims[1] << " " << dims[2] << "\"/>\n"
+        << "\t <Geometry GeometryType=\"XYZ\">\n"
+        << save_dataitem(m_pimpl_->m_prefix_ + ".h5:/" + m_pimpl_->m_grid_name_ + "/", "points", num, points)
+        << "\t </Geometry>\n";
     }
     else
     {
         THROW_EXCEPTION_RUNTIME_ERROR("unsportted grid type");
     }
-
+    _str_replace(&(m_pimpl_->m_file_contents_), m_pimpl_->m_place_holder_, buffer.str());
 }
 
 
 void MeshIOBase::pimpl_s::register_dataset(std::string const &name, DataSet const &ds, int IFORM)
 {
     std::get<0>(m_datasets_[name]) = IFORM;
-
-    DataSet(ds).swap(std::get<1>(m_datasets_[name]));
+    std::get<1>(m_datasets_[name]) = ds;
+//
+//    ds_.dataspace = ds.dataspace;
+//    ds_.memory_space = ds.memory_space;
+//    ds_.datatype = ds.datatype;
+//    ds_.data = ds.data;
 
 }
 
@@ -172,94 +252,55 @@ bool MeshIOBase::pimpl_s::read()
     return false;
 }
 
+
 void  MeshIOBase::pimpl_s::write()
 {
 
 
     VERBOSE << "write XDMF [" << m_prefix_ << ".xdmf/" << m_grid_name_ << "/" << "]" << std::endl;
 
-    XdmfInformation info;
-    info.SetName("Time");
-    info.SetValue(type_cast<std::string>(m_time_).c_str());
-    m_grid_.Insert(&info);
+
+    std::ostringstream buffer;
+
+    buffer << "\t <Information Name=\"Time\" Value=\"" << m_time_ << "\"/>" << std::endl;
 
 
-    XdmfAttribute myAttribute;
-    m_grid_.Insert(&myAttribute);
-
-
-    std::vector<XdmfDataItem> data(m_datasets_.size());
     int count = 0;
     for (auto const &item:m_datasets_)
     {
 
 
-        std::string name = item.first;
+        std::string ds_name = item.first;
         int IFORM = std::get<0>(item.second);
         DataSet const &ds = std::get<1>(item.second);
 
-        VERBOSE << "write XDMF [" << m_prefix_ << ".xdmf/" << m_grid_name_ << "/" << name << "]" << std::endl;
+        std::string a_type = (ds.datatype.is_array() || IFORM == 1 || IFORM == 2) ? "Vector" : "Scalar";
 
+//        static const char a_center[][10] = {
+//                "Node",
+//                "Edge",
+//                "Face",
+//                "Cell"
+//        };
 
-        myAttribute.SetName(item.first.c_str());
+        std::string a_center = "Node";
 
-        if (ds.datatype.is_array())
-        {
-            myAttribute.SetAttributeTypeFromString("Vector");
-        }
-        else
-        {
+        buffer << ""
+        << "\t <Attribute Name=\"" << ds_name << "\"  AttributeType=\"" << a_type
+        << "\" Center=\"" << a_center << "\">\n"
+        << save_dataitem(m_prefix_ + ".h5:/" + m_grid_name_ + "/", ds_name, std::get<1>(item.second))
+        << "\t </Attribute>"
+        << std::endl;
 
-            myAttribute.SetAttributeTypeFromString("Scalar");
-        }
-
-        switch (IFORM)
-        {
-            case 0:
-                myAttribute.SetAttributeCenterFromString("Node");
-                break;
-
-            case 1:
-                myAttribute.SetAttributeCenterFromString("Edge");
-                break;
-            case 2:
-                myAttribute.SetAttributeCenterFromString("Face");
-                break;
-            case 3:
-                myAttribute.SetAttributeCenterFromString("Cell");
-                break;
-
-            default:
-                THROW_EXCEPTION_RUNTIME_ERROR("IFORM >3")
-        }
-
-
-        myAttribute.Insert(&data[count]);
-
-
-        int ndims = 3;
-
-        nTuple<XdmfInt64, 4> dims;
-
-        std::tie(ndims, dims, std::ignore, std::ignore, std::ignore, std::ignore) = ds.dataspace.shape();
-
-        io::cd(m_prefix_ + ".h5:/" + m_grid_name_ + "/");
-
-        auto url = io::save(name, ds);
-
-        data[count].SetHeavyDataSetName(url.c_str());
-        data[count].SetShape(ndims, (&dims[0]));
-        data[count].SetFormat(XDMF_FORMAT_HDF);
-        data[count].SetArrayIsMine(false);
-
-        ++count;
     }
 
-    m_grid_.Build();
+    std::string file_content = m_file_contents_;
+
+    _str_replace(&(file_content), m_place_holder_, buffer.str());
 
     std::ofstream ss(m_prefix_ + ".xdmf");
 
-    ss << m_dom_.Serialize() << std::endl;
+    ss << file_content << std::endl;
 }
 
 MeshIOBase::MeshIOBase() : m_pimpl_(new pimpl_s)

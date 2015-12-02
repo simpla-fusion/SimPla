@@ -46,6 +46,13 @@ std::string save(std::string const &url, T const &d, size_t flag = 0UL)
     return save(url, traits::make_dataset(d), flag);
 }
 
+
+template<typename T>
+std::string save(std::string const &url, size_t num, T const *d, size_t flag = 0UL)
+{
+    return save(url, traits::make_dataset(d, num), flag);
+}
+
 void delete_attribute(std::string const &url);
 
 void set_dataset_attribute(std::string const &url, std::string const &str);
