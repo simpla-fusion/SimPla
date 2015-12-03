@@ -51,6 +51,12 @@ public:
 
     virtual DataSet grid_vertices() const = 0;
 
+    using base_type::enroll;
+    using base_type::open;
+    using base_type::close;
+    using base_type::read;
+    using base_type::write;
+
 
     virtual void deploy()
     {
@@ -96,12 +102,6 @@ public:
         return os;
     }
 
-    template<typename TV, typename TM, int IFORM>
-    void register_dataset(std::string const &name,
-                          Field<TV, TM, std::integral_constant<int, IFORM> > &obj)
-    {
-        base_type::register_dataset(name, traits::make_dataset(obj), IFORM);
-    };
 };//template<typename TGeo> struct IoPolicy
 
 } //namespace policy

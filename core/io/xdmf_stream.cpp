@@ -7,9 +7,11 @@
 #include <iomanip>
 #include <iostream>
 #include "xdmf_stream.h"
+
+#include "io.h"
 #include "../gtl/utilities/log.h"
 #include "../dataset/dataset.h"
-#include "io.h"
+#include "../parallel/parallel.h"
 
 namespace simpla { namespace io
 {
@@ -27,9 +29,11 @@ struct XDMFStream::pimpl_s
 
     void write();
 
-    void register_dataset(std::string const &url, DataSet const &ds, int IFORM = 0);
+    void enroll(std::string const &url, DataSet const &ds, int IFORM = 0);
 
-    std::map<std::string, std::tuple<int, DataSet>> m_datasets_;
+    typedef parallel::concurrent_hash_map<std::string, std::tuple<int, DataSet>> container_type;
+
+    container_type m_datasets_;
 
     size_t m_grid_count_;
 
@@ -243,9 +247,23 @@ void  XDMFStream::set_grid(DataSet const &ds)
 }
 
 
-void XDMFStream::pimpl_s::register_dataset(std::string const &ds_name, DataSet const &ds, int tag)
+void XDMFStream::pimpl_s::enroll(std::string const &ds_name, DataSet const &ds, int tag)
 {
-    m_datasets_[ds_name] = std::make_tuple(tag, ds);
+    typename container_type::accessor acc;
+
+    if (!m_datasets_.insert(acc, ds_name))
+    {
+        THROW_EXCEPTION_RUNTIME_ERROR("DataSet [" + ds_name + "] is registered!");
+    }
+    else
+    {
+        std::get<0>(acc->second) = tag;
+        std::get<1>(acc->second) = ds;
+
+        VERBOSE << "DataSet [" << ds_name << "] is enrolled to [" << m_grid_name_ << "]!" << std::endl;
+    }
+
+
 }
 
 bool XDMFStream::pimpl_s::read()
@@ -287,6 +305,9 @@ void  XDMFStream::pimpl_s::write()
 
         << save_dataset(ds_name, ds)
         << "    </Attribute>" << std::endl;
+
+        VERBOSE << "DataSet [" << ds_name << "] is saved in [" << m_grid_name_ << m_grid_count_ << "]!" << std::endl;
+
     }
 
     m_file_stream_ << " </Grid>" << std::endl;
@@ -313,9 +334,9 @@ void  XDMFStream::read()
 }
 
 
-void XDMFStream::register_dataset(std::string const &name, DataSet const &ds, int TAG)
+void XDMFStream::enroll(std::string const &name, DataSet const &ds, int TAG)
 {
-    m_pimpl_->register_dataset(name, ds, TAG);
+    m_pimpl_->enroll(name, ds, TAG);
 
 }
 

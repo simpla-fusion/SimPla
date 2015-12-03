@@ -308,6 +308,17 @@ public:
 
     };
 
+    void enroll(std::string const &key, DataSet const &ds, int TAG)
+    {
+        this->io_policy::enroll(key, ds, TAG);
+    }
+
+    template<typename TV, int IFORM>
+    void enroll(std::string const &key, Field<TV, this_type, std::integral_constant<int, IFORM> > const &f)
+    {
+        this->io_policy::enroll(key, f.dataset(), IFORM);
+    }
+
     virtual Real time() const
     {
         return this->time_inegral_policy::time();

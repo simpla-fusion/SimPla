@@ -215,10 +215,10 @@ void EMPlasma::setup(int argc, char **argv)
     }
 
 
-    m.register_dataset("E1", E1);
-    m.register_dataset("B1", B1);
-    m.register_dataset("J1", J1);
-    m.register_dataset("E2", E2);
+    E1.declare_as("E1");
+    B1.declare_as("B1");
+    J1.declare_as("J1");
+    E2.declare_as("E2");
 }
 
 void EMPlasma::tear_down()

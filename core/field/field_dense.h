@@ -222,6 +222,8 @@ public:
 
     void sync() { m_mesh_.sync(*this); }
 
+    void declare_as(std::string const &s) { const_cast<mesh_type &>(m_mesh_).enroll(s, this->dataset(), IFORM); }
+
 
     value_type &operator[](id_type const &s)
     {
