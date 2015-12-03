@@ -51,33 +51,65 @@ struct EMPlasma
     typedef typename mesh_type::id_type id_type;
     typedef typename mesh_type::point_type point_type;
     typedef typename mesh_type::box_type box_type;
-
+    typedef typename mesh_type::range_type range_type;
     typedef nTuple<scalar_type, 3> vector_type;
 
     mesh_type m;
 
 
-    traits::field_t<vector_type, mesh_type, VERTEX> Bv{m};
-    traits::field_t<vector_type, mesh_type, VERTEX> B0v{m};
-    traits::field_t<vector_type, mesh_type, VERTEX> Ev{m};
-    traits::field_t<scalar_type, mesh_type, VERTEX> E2{m};
+    model::Surface<mesh_type> limiter_boundary;
+    model::IdSet<mesh_type> vertex_boundary;
+    model::IdSet<mesh_type> edge_boundary;
+    model::IdSet<mesh_type> face_boundary;
 
-    traits::field_t<scalar_type, mesh_type, VERTEX> rho0{m};
-    traits::field_t<scalar_type, mesh_type, VERTEX> rho1{m};
+    model::IdSet<mesh_type> J_src;
+
+    std::function<Vec3(Real, point_type const &)> J_src_fun;
+
     traits::field_t<scalar_type, mesh_type, FACE> B0{m};
+    traits::field_t<vector_type, mesh_type, VERTEX> B0v{m};
+    traits::field_t<scalar_type, mesh_type, VERTEX> BB{m};
+
+    traits::field_t<vector_type, mesh_type, VERTEX> Ev{m};
+    traits::field_t<vector_type, mesh_type, VERTEX> Bv{m};
+
     traits::field_t<scalar_type, mesh_type, FACE> B1{m};
     traits::field_t<scalar_type, mesh_type, EDGE> E1{m};
-    traits::field_t<scalar_type, mesh_type, EDGE> pdE{m};
+    traits::field_t<scalar_type, mesh_type, EDGE> J1{m};
+
+    traits::field_t<scalar_type, mesh_type, VERTEX> rho0{m};
 
     typedef traits::field_t<scalar_type, mesh_type, FACE> TB;
     typedef traits::field_t<scalar_type, mesh_type, EDGE> TE;
     typedef traits::field_t<scalar_type, mesh_type, EDGE> TJ;
     typedef traits::field_t<scalar_type, mesh_type, VERTEX> TRho;
+    typedef traits::field_t<vector_type, mesh_type, VERTEX> TJv;
 
 
-    TJ J1{m};
+//    particle::BorisParticle<mesh_type> ion{m};
 
-    particle::BorisParticle<mesh_type> ion{m};
+    typedef std::tuple<
+            Real, //mass
+            Real, //charge
+            traits::field_t<scalar_type, mesh_type, VERTEX>, //rho_0
+            traits::field_t<vector_type, mesh_type, VERTEX>  //J1
+    > particle_s;
+
+    std::map<std::string, particle_s> particles;
+
+
+    std::pair<typename std::map<std::string, particle_s>::iterator, bool>
+    add_particle(std::string const &name, Real mass, Real charge)
+    {
+        return particles.emplace(
+                std::make_pair(
+                        name,
+                        std::make_tuple(
+                                mass, charge,
+                                traits::field_t<scalar_type, mesh_type, VERTEX>(m),
+                                traits::field_t<vector_type, mesh_type, VERTEX>(m))));
+
+    }
 
 //    struct particle_s
 //    {
@@ -89,16 +121,7 @@ struct EMPlasma
 //        traits::field_t<scalar_type, mesh_type, VERTEX> rhos;
 //        traits::field_t<vector_type, mesh_type, VERTEX> Js;
 //    };
-//    std::map<std::string, particle_s> particles;
 
-    model::Surface<mesh_type> limiter_boundary;
-    model::IdSet<mesh_type> vertex_boundary;
-    model::IdSet<mesh_type> edge_boundary;
-    model::IdSet<mesh_type> face_boundary;
-
-    model::IdSet<mesh_type> J_src;
-
-    std::function<Vec3(Real, point_type const &)> J_src_fun;
 
 };
 
@@ -138,21 +161,50 @@ void EMPlasma::setup(int argc, char **argv)
 
         VERBOSE << "Clear fields" << std::endl;
 
-        Bv.clear();
-        B0v.clear();
-        Ev.clear();
 
-        B0.clear();
         B1.clear();
         E1.clear();
-        E2.clear();
-        pdE.clear();
-
         J1.clear();
 
-        B0v = map_to<VERTEX>(B0);
+        B0.clear();
+
+        parallel::parallel_for(
+                m.template range<FACE>(),
+                [&](range_type const &r)
+                {
+                    for (auto const &s:r)
+                    {
+                        B0[s] = m.template sample<FACE>(s, geqdsk.B(m.point(s)));
+                    }
+                }
+        );
+
         rho0.clear();
-        rho1.clear();
+
+        parallel::parallel_for(
+                m.template range<VERTEX>(),
+                [&](range_type const &r)
+                {
+                    for (auto const &s:r)
+                    {
+                        rho0[s] = m.template sample<VERTEX>(s, geqdsk.profile("ne", m.point(s)));
+                    }
+                }
+        );
+
+        //        if (options["InitValue"]["B0"])
+        //        {
+        //          B0 = traits::make_field_function_from_config<scalar_type, FACE>(m, options["InitValue"]["B0"]);
+        //        }
+
+        B0.sync();
+
+        LOGGER << SAVE(B0) << std::endl;
+        LOGGER << SAVE(rho0) << std::endl;
+
+        B0v = map_to<VERTEX>(B0);
+
+        BB = dot(B0, B0);
 
 
         {
@@ -160,14 +212,10 @@ void EMPlasma::setup(int argc, char **argv)
 
             model::update_cache(m, geqdsk.limiter(), &cache);
 
-            for (auto const &item:cache.range())
-            {
-                rho1[item.first] = std::get<0>(item.second);
-                Bv[item.first] = std::get<1>(item.second);
-            }
-
             model::get_cell_on_surface<EDGE>(m, cache, &edge_boundary);
+
             model::get_cell_on_surface<FACE>(m, cache, &face_boundary);
+
             model::get_cell_on_surface<VERTEX>(m, cache, &vertex_boundary);
 
         }
@@ -197,6 +245,24 @@ void EMPlasma::setup(int argc, char **argv)
 
         }
 
+        {
+            DEFINE_PHYSICAL_CONST;
+
+            add_particle("H", SI_proton_mass, SI_elementary_charge);
+            add_particle("ele", SI_proton_mass, -SI_elementary_charge);
+
+            std::get<2>(particles.at("H")) = rho0;
+            std::get<2>(particles.at("ele")) = rho0;
+
+            std::get<2>(particles.at("H")).declare_as("n_H");
+            std::get<2>(particles.at("ele")).declare_as("n_e");
+
+            std::get<3>(particles.at("H")).clear();
+            std::get<3>(particles.at("ele")).clear();
+
+            std::get<3>(particles.at("H")).declare_as("J_H");
+            std::get<3>(particles.at("ele")).declare_as("J_e");
+        }
 
 
 
@@ -218,24 +284,16 @@ void EMPlasma::setup(int argc, char **argv)
     E1.declare_as("E1");
     B1.declare_as("B1");
     J1.declare_as("J1");
-    E2.declare_as("E2");
 }
 
 void EMPlasma::tear_down()
 {
     io::cd("/tear_down/");
-    LOGGER << SAVE(ion) << std::endl;
+//    LOGGER << SAVE(ion) << std::endl;
 }
 
 
-void EMPlasma::check_point()
-{
-    m.write();
-//    LOGGER << SAVE_RECORD(E1) << std::endl;
-//    LOGGER << SAVE_RECORD(B1) << std::endl;
-//    LOGGER << SAVE_RECORD(J1) << std::endl;
-
-}
+void EMPlasma::check_point() { m.write(); }
 
 void EMPlasma::next_time_step()
 {
@@ -248,90 +306,80 @@ void EMPlasma::next_time_step()
     Real t = m.time();
 
 
-//    ion.push(dt, 0, E1, B1);
-//
-//    J1.clear();
-//
-//    ion.integral(&J1);
-
-    J1.accept(J_src.range(), [&](id_type const &s, Real &v)
-    {
-        v += m.template sample<EDGE>(s, J_src_fun(t, m.point(s)));
-    });
-
     LOG_CMD(B1 -= curl(E1) * (dt * 0.5));
 
     B1.accept(face_boundary.range(), [&](id_type const &, Real &v) { v = 0; });
+
+    J1.accept(J_src.range(),
+              [&](id_type const &s, Real &v) { v += m.template sample<EDGE>(s, J_src_fun(t, m.point(s))); });
 
     LOG_CMD(E1 += (curl(B1) * speed_of_light2 - J1 / epsilon0) * dt);
 
     E1.accept(edge_boundary.range(), [&](id_type const &, Real &v) { v = 0; });
 
-    E2 = dot(E1, E1);
+    //particle::absorb(ion, limiter_boundary);
+
+    if (Ev.empty()) { LOG_CMD(Ev = map_to<VERTEX>(E1)); }
+
+
+    traits::field_t<vector_type, mesh_type, VERTEX> Q{m};
+    traits::field_t<vector_type, mesh_type, VERTEX> K{m};
+
+
+    traits::field_t<scalar_type, mesh_type, VERTEX> a{m};
+    traits::field_t<scalar_type, mesh_type, VERTEX> b{m};
+    traits::field_t<scalar_type, mesh_type, VERTEX> c{m};
+
+    a.clear();
+    b.clear();
+    c.clear();
+
+
+    Bv = map_to<VERTEX>(B1);
+
+    Q = map_to<VERTEX>(E1) - Ev;
+
+    for (auto &p :   particles)
+    {
+
+//        p.second.p->integral(&p.second.J1);
+
+        Real ms, qs;
+
+        std::tie(ms, qs, std::ignore, std::ignore) = p.second;
+
+        traits::field_t<scalar_type, mesh_type, VERTEX> &ns = std::get<2>(p.second);
+
+        traits::field_t<vector_type, mesh_type, VERTEX> &Js = std::get<3>(p.second);;
+
+
+        Real as = (dt * qs) / (2.0 * ms);
+
+        K = (Ev * ns * 2.0 + cross(Js, B0v)) * as + Js;
+
+        Q -= 0.5 * dt / epsilon0
+             * (K + cross(K, B0v) * as + B0v * (dot(K, B0v) * as * as) / (BB * as * as + 1)) + Js;
+
+        a += ns / BB * (as / (as * as + 1));
+        b += ns / BB * (as * as / (as * as + 1));
+        c += ns / BB * (as * as * as / (as * as + 1));
+
+    }
+
+    a *= 0.5 * dt / epsilon0;
+    b *= 0.5 * dt / epsilon0;
+    c *= 0.5 * dt / epsilon0;
+    a += 1;
+
+
+    Ev += (Q * a - cross(Q, B0v) * b +
+           B0v * (dot(Q, B0v) * (b * b - c * a) / (a + c * BB))) / (b * b * BB + a * a);
+
+    LOG_CMD(E1 += map_to<EDGE>(Ev) - E1);
 
     LOG_CMD(B1 -= curl(E1) * (dt * 0.5));
 
     B1.accept(face_boundary.range(), [&](id_type const &, Real &v) { v = 0; });
-
-//    particle::absorb(ion, limiter_boundary);
-//
-//
-//    Ev = map_to<VERTEX>(E1);
-//    Bv = map_to<VERTEX>(B1);
-//
-//    traits::field_t<scalar_type, mesh_type, VERTEX> BB{m};
-//    BB = dot(B0, B0);
-//
-//    traits::field_t<vector_type, mesh_type, VERTEX> Q{m};
-//    traits::field_t<vector_type, mesh_type, VERTEX> K{m};
-//
-//    Q = map_to<VERTEX>(pdE);
-//
-//    traits::field_t<scalar_type, mesh_type, VERTEX> a{m};
-//    traits::field_t<scalar_type, mesh_type, VERTEX> b{m};
-//    traits::field_t<scalar_type, mesh_type, VERTEX> c{m};
-//
-//    a.clear();
-//    b.clear();
-//    c.clear();
-//
-//    for (auto &p :   particles)
-//    {
-//
-//        p.second.p->integral(&p.second.J1);
-//
-//        auto &rhos = p.second.rhos;
-//        auto &Js = p.second.Js;
-//
-//        Real ms = p.second.mass;
-//        Real qs = p.second.charge;
-//
-//        Real as = (dt * qs) / (2.0 * ms);
-//
-//        K = (Ev * rhos * 2.0 + cross(Js, B0v)) * as + Js;
-//
-//        Q -= 0.5 * dt / epsilon0
-//             * (K + cross(K, B0v) * as + B0v * (dot(K, B0v) * as * as) / (BB * as * as + 1)) + Js;
-//
-//        a += rhos / BB * (as / (as * as + 1));
-//        b += rhos / BB * (as * as / (as * as + 1));
-//        c += rhos / BB * (as * as * as / (as * as + 1));
-//
-//    }
-//
-//    a *= 0.5 * dt / epsilon0;
-//    b *= 0.5 * dt / epsilon0;
-//    c *= 0.5 * dt / epsilon0;
-//    a += 1;
-//
-//    auto dEv = traits::make_field<vector_type, VERTEX>(m);
-//
-//    dEv = (Q * a - cross(Q, B0v) * b +
-//           B0v * (dot(Q, B0v) * (b * b - c * a) / (a + c * BB))) / (b * b * BB + a * a);
-//
-//    Ev += dEv;
-//
-//    pdE = map_to<EDGE>(dEv);
 
     m.next_time_step();
 }

@@ -12,30 +12,33 @@
 #include "../gtl/ntuple.h"
 
 #include "coordinate_system.h"
-#include "primitive.h"
-#include "chains.h"
 
-//    #ifdef USE_BOOST
-//    #	error "Custom geometry_obj library is not implemented!"
-//    #else
-//
-//    #	include "boost_gemetry_adapted.h"
-//
-//    #endif
 
-namespace simpla
+#include "geo_object.h"
+#include "geo_algorithm.h"
+
+namespace simpla { namespace geometry
 {
 /**
 
  *  @defgroup geometry Geometry
  *  @brief this module collects computational geometry stuff.
   */
-namespace geometry
+class Object;
+
+namespace traits
 {
 
-}//namespace geometry
+template<typename TL> bool in_set(TL const &l, Object const &r) { return r.within(l); }
+
+template<typename TL, typename TP>
+bool in_set(TL const &l, std::tuple<TP, TP> const &b) { return in_box(l, std::get<0>(b), std::get<1>(b)); }
+}
+
+
 
 /*  @} */
-}//namespace simpla
+}}//namespace simpla { namespace geometry
+
 
 #endif /* CORE_GEOMETRY_GEOMETRY_H_ */

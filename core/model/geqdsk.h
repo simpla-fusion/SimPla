@@ -41,6 +41,9 @@ private:
     static constexpr int RAxis = (PhiAxis + 1) % 3;
     static constexpr int ZAxis = (PhiAxis + 2) % 3;
 
+    static constexpr int XAxis = (PhiAxis + 1) % 3;
+    static constexpr int YAxis = (PhiAxis + 2) % 3;
+
 public:
 
     GEqdsk();
@@ -71,6 +74,11 @@ public:
 
     Real profile(std::string const &name, Real R, Real Z) const { return profile(name, psi(R, Z)); }
 
+    Real profile(std::string const &name, point_type const &x) const
+    {
+        return profile(name, psi(x[RAxis], x[ZAxis]));
+    }
+
     point_type magnetic_axis() const;
 
     nTuple<int, 3> const &dimensions() const;
@@ -94,9 +102,42 @@ public:
 
     }
 
+    inline Vec3 B(point_type const &x) const
+    {
+        Real R = x[RAxis];
+        Real Z = x[ZAxis];
+        Real Phi = x[PhiAxis];
+
+        auto gradPsi = grad_psi(R, Z);
+
+
+        Real v_r = gradPsi[1] / R;
+        Real v_z = -gradPsi[0] / R;
+        Real v_phi = profile("fpol", psi(R, Z));
+
+        Vec3 res;
+
+        res[XAxis] = v_r * std::cos(Phi) - v_phi * std::sin(Phi);
+        res[ZAxis] = v_z;
+        res[YAxis] = v_r * std::sin(Phi) + v_phi * std::cos(Phi);
+
+        return std::move(res);
+
+    }
+
 
     inline Real JT(Real R, Real Z) const
     {
+        return R * profile("pprim", psi(R, Z)) + profile("ffprim", psi(R, Z)) / R;
+    }
+
+
+    inline Real JT(point_type const &x) const
+    {
+        Real R = x[RAxis];
+        Real Z = x[ZAxis];
+        Real Phi = x[PhiAxis];
+
         return R * profile("pprim", psi(R, Z)) + profile("ffprim", psi(R, Z)) / R;
     }
 

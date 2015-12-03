@@ -92,6 +92,8 @@ public:
         std::swap(m_data_, other.m_data_);
     }
 
+    bool empty() const { return m_data_ == nullptr; }
+
     void deploy()
     {
         if (m_data_ == nullptr)
@@ -113,6 +115,12 @@ public:
      * @name assignment
      * @{
      */
+    inline this_type &operator=(this_type const &other)
+    {
+        action(_impl::_assign(), other);
+        return *this;
+    }
+
     template<typename Other>
     inline this_type &operator=(Other const &other)
     {

@@ -293,9 +293,6 @@ std::string make_msg(Others const &...others)
 {
     std::ostringstream buffer;
 
-//    buffer << std::endl << "\e[0m" << " \e[1;37m From [" << file << ":" << line << ":0: " << (func) << "]"
-//    << std::endl << " \e[1;31m\t";
-
     _make_msg(buffer, (others)...);
 
     buffer << "\e[0m";

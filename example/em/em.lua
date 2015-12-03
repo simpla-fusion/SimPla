@@ -72,9 +72,9 @@ domain_center = {
 }
 
 InitValue = {
-    B = {
-        Domain = { Box = { { 0, 0, 0 }, { LX, LY, LZ } } },
-        Value = function(x, t)
+    B0 = {
+        Value = function(t, x)
+            print(x[1])
             return { 0, 0, math.sin(x[1] * 2.0 * math.pi / LX) * math.sin(x[2] * 2.0 * math.pi / LY) }
         end
     },
