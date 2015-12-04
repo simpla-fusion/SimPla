@@ -39,10 +39,10 @@ rhoe = vTe / omega_ce -- m
 
 NX = 50
 NY = 50
-NZ = 10
+NZ = 100
 LX = 1.0 --m --100000*rhoi --0.6
 LY = 1 --2.0*math.pi/k0
-LZ = math.pi * 0.5 -- 2.0*math.pi/18
+LZ = math.pi * 2 -- 2.0*math.pi/18
 GW = 5
 PIC = 100
 GEQDSK = "/home/salmon/workspace/code/SimPla/scripts/gfile/g038300.03900"

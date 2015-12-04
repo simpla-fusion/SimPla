@@ -167,45 +167,58 @@ void EMPlasma::setup(int argc, char **argv)
         VERBOSE << "Clear fields" << std::endl;
 
 
+        m.open_grid("back_ground");
+
         B1.clear();
         E1.clear();
         J1.clear();
 
         B0.clear();
 
-        parallel::parallel_for(
+        serial::parallel_for(
                 m.template range<FACE>(),
                 [&](range_type const &r)
                 {
                     for (auto const &s:r)
                     {
-                        B0[s] = m.template sample<FACE>(s, geqdsk.B(m.point(s)));
+                         B0[s] = m.template sample<FACE>(s, geqdsk.B(m.point(s)));
+
                     }
                 }
         );
 
+        B0.sync();
+
+        B0.save_as("B0");
+        //        if (options["InitValue"]["B0"])
+        //        {
+        //          B0 = traits::make_field_function_from_config<scalar_type, FACE>(m, options["InitValue"]["B0"]);
+        //        }
+
         rho0.clear();
 
+        auto const &boundary = geqdsk.boundary();
         parallel::parallel_for(
                 m.template range<VERTEX>(),
                 [&](range_type const &r)
                 {
                     for (auto const &s:r)
                     {
-                        rho0[s] = m.template sample<VERTEX>(s, geqdsk.profile("ne", m.point(s)));
+                        auto x = m.point(s);
+
+                        if (boundary.within(x))
+                        {
+                            rho0[s] = m.template sample<VERTEX>(s, geqdsk.profile("ne", x));
+                        }
+
                     }
                 }
         );
 
-        //        if (options["InitValue"]["B0"])
-        //        {
-        //          B0 = traits::make_field_function_from_config<scalar_type, FACE>(m, options["InitValue"]["B0"]);
-        //        }
+        rho0.sync();
 
-        B0.sync();
+        rho0.save_as("rho0");
 
-        LOGGER << SAVE(B0) << std::endl;
-        LOGGER << SAVE(rho0) << std::endl;
 
         B0v = map_to<VERTEX>(B0);
 
@@ -316,16 +329,24 @@ void EMPlasma::setup(int argc, char **argv)
     E1.declare_as("E1");
     B1.declare_as("B1");
     J1.declare_as("J1");
+
+    m.close_grid();
+    m.start_record("record");
 }
 
 void EMPlasma::tear_down()
 {
-    io::cd("/tear_down/");
-//    LOGGER << SAVE(ion) << std::endl;
+    m.stop_record();
+    m.open_grid("tear_down");
+
+    B1.save_as("B1");
+
+    m.close_grid();
+    m.close();
 }
 
 
-void EMPlasma::check_point() { m.write(); }
+void EMPlasma::check_point() { m.record(); }
 
 void EMPlasma::next_time_step()
 {

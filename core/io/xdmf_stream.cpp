@@ -6,6 +6,7 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <list>
 #include "xdmf_stream.h"
 
 #include "io.h"
@@ -17,96 +18,182 @@ namespace simpla { namespace io
 {
 struct XDMFStream::pimpl_s
 {
-    pimpl_s();
 
-    ~pimpl_s();
-
-    void open(std::string const &, std::string const &grid_name);
-
-    void close();
-
-    bool read();
-
-    void write();
-
-    void enroll(std::string const &url, DataSet const &ds, int IFORM = 0);
 
     typedef parallel::concurrent_hash_map<std::string, std::tuple<int, DataSet>> container_type;
 
     container_type m_datasets_;
 
-    size_t m_grid_count_;
+    std::list<std::string> m_grid_name_;
+    /**
+     *  <-1 => grid is not set
+     *  =-1 => record is not started
+     *  >=0 => record is started,
+     */
+    int m_record_count_;
 
-    std::string m_grid_name_;
     std::string m_prefix_;
     std::ofstream m_file_stream_;
 
-    Real m_time_;
 
 };
 
-XDMFStream::pimpl_s::pimpl_s()
-        : m_time_(0),
-          m_grid_count_(0),
-          m_prefix_(""),
-          m_grid_name_("unnamed")
+
+XDMFStream::XDMFStream() : m_pimpl_(new pimpl_s)
 {
+    m_pimpl_->m_record_count_ = -2;
+    m_pimpl_->m_prefix_ = "";
 }
 
-XDMFStream::pimpl_s::~pimpl_s()
+XDMFStream::~XDMFStream()
 {
     close();
 }
 
-void XDMFStream::pimpl_s::open(std::string const &prefix, std::string const &grid_name)
+std::string XDMFStream::path() const
 {
-
-    m_prefix_ = prefix;
-    m_grid_name_ = grid_name;
-
-    close();
-
-    io::cd(m_prefix_ + ".h5:/");
-
-    m_file_stream_.open(m_prefix_ + ".xdmf");
-    m_file_stream_
-    << ""
-            "<Xdmf xmlns:xi=\"http://www.w3.org/2003/XInclude\" Version=\"2\">\n"
-            "  <Domain>\n";
-}
-
-void XDMFStream::set_grid()
-{
-    m_pimpl_->m_file_stream_
-    << "<Grid Name=\"" << m_pimpl_->m_grid_name_ <<
-    "\" GridType=\"Collection\" CollectionType=\"Temporal\">" <<
-    std::endl;
-}
-
-void XDMFStream::pimpl_s::close()
-{
-    if (m_file_stream_.is_open())
+    std::ostringstream buffer;
+    buffer << "/";
+    for (auto const &g_name:m_pimpl_->m_grid_name_)
     {
-        io::close();
-        m_file_stream_
-        << "   </Grid> " << std::endl
-        << "  </Domain>" << std::endl
-        << "</Xdmf>";
-        m_file_stream_.close();
+        buffer << g_name << "/";
+    }
+    return buffer.str();
+}
+
+void XDMFStream::open(std::string const &prefix, std::string const &grid_name)
+{
+
+    m_pimpl_->m_prefix_ = prefix;
+
+
+    close();
+
+    io::cd(m_pimpl_->m_prefix_ + ".h5:/");
+
+    m_pimpl_->m_file_stream_.open(m_pimpl_->m_prefix_ + ".xdmf");
+    m_pimpl_->m_file_stream_ << ""
+            "<Xdmf xmlns:xi=\"http://www.w3.org/2003/XInclude\" Version=\"2\">\n"
+            "<Domain>\n";
+    set_grid();
+
+}
+
+void XDMFStream::close()
+{
+    stop_record();
+
+    while (!m_pimpl_->m_grid_name_.empty()) { close_grid(); }
+
+    if (m_pimpl_->m_file_stream_.is_open())
+    {
+        m_pimpl_->m_file_stream_
+        << "</Domain>" << std::endl
+        << "</Xdmf>" << std::endl;
+
+        m_pimpl_->m_file_stream_.close();
     }
 }
+
+void XDMFStream::open_grid(const std::string &g_name, int TAG)
+{
+
+    m_pimpl_->m_grid_name_.push_back(g_name);
+
+    io::cd(path());
+
+    int level = static_cast<int>(m_pimpl_->m_grid_name_.size());
+
+
+    switch (TAG)
+    {
+
+        case COLLECTION_TEMPORAL:
+
+            m_pimpl_->m_file_stream_
+
+            << std::setw(level * 2) << "" << "<Grid Name=\"" << g_name <<
+            "\" GridType=\"Collection\" CollectionType=\"Temporal\">" << std::endl;
+
+            break;
+
+        default://
+
+            m_pimpl_->m_file_stream_
+            << std::setw(level * 2) << "" << "<Grid Name=\"" << g_name << "\" GridType=\"Uniform\">" << std::endl
+            << std::setw(level * 2) << "" << "   <Topology Reference=\"/Xdmf/Domain/Topology[1]\"/>" << std::endl
+            << std::setw(level * 2) << "" << "   <Geometry Reference=\"/Xdmf/Domain/Geometry[1]\"/>" << std::endl
+            << std::setw(level * 2) << "" << "   <Time Value=\"" << time() << "\"/>" << std::endl;
+
+
+            break;
+
+    }
+
+}
+
+void XDMFStream::close_grid()
+{
+    if (!m_pimpl_->m_grid_name_.empty())
+    {
+        int level = static_cast<int>(m_pimpl_->m_grid_name_.size());
+
+        m_pimpl_->m_file_stream_ << std::setw(level * 2) << "" << "</Grid> <!--" << path() << " --> " << std::endl;
+
+        m_pimpl_->m_grid_name_.pop_back();
+    }
+
+
+}
+
+void XDMFStream::start_record(std::string const &s)
+{
+    std::string g_name = s;
+
+    if (s == "") { g_name = "unanmed"; }
+
+
+    if (m_pimpl_->m_record_count_ < 0)
+    {
+        open_grid(g_name, COLLECTION_TEMPORAL);
+
+        m_pimpl_->m_record_count_ = 0;
+    }
+
+
+}
+
+void XDMFStream::record()
+{
+    if (m_pimpl_->m_record_count_ < 0) { start_record(); }
+
+    write();
+
+    ++m_pimpl_->m_record_count_;
+}
+
+void XDMFStream::stop_record()
+{
+    if (m_pimpl_->m_record_count_ >= 0)
+    {
+        close_grid();
+        m_pimpl_->m_record_count_ = 0;
+    }
+}
+
 
 void _str_replace(std::string *s, std::string const &place_holder, std::string const &txt)
 {
     s->replace(s->find(place_holder), place_holder.size(), txt);
 }
 
-std::string save_dataset(std::string const ds_name, DataSet const &ds)
+
+void XDMFStream::write_dataitem(std::string const &ds_name, DataSet const &ds)
 {
 
     std::string url = io::save(ds_name, ds);
 
-    std::ostringstream buffer;
+    int level = static_cast<int>(m_pimpl_->m_grid_name_.size());
 
     int ndims;
 
@@ -124,36 +211,54 @@ std::string save_dataset(std::string const ds_name, DataSet const &ds)
         ndims += n;
     }
 
-    buffer
-    << "      <DataItem Dimensions=\"";
-    for (int i = 0; i < ndims; ++i)
-    {
-        buffer << dims[i] << " ";
-    }
+    m_pimpl_->m_file_stream_
 
-    buffer << "\" "
-    << "NumberType=\"Float\" Precision=\"4\" Format=\"HDF\">\n"
-    << "      " << url << std::endl
-    << "      </DataItem>\n";
-    return buffer.str();
+    << std::setw(level * 2 + 4) << "" << "<DataItem Dimensions=\"";
+
+    for (int i = 0; i < ndims; ++i) { m_pimpl_->m_file_stream_ << dims[i] << " "; }
+
+    m_pimpl_->m_file_stream_
+    << "\" " << "NumberType=\"Float\" Precision=\"4\" Format=\"HDF\">\n"
+
+    << std::setw(level * 2 + 6) << "" << url << std::endl
+    << std::setw(level * 2 + 4) << "" << "</DataItem>\n";
 }
 
-template<typename T>
-std::string save_dataset(std::string const &prefix, std::string const ds_name, size_t num, T const *p)
+//template<typename T>
+//std::string save_dataset(std::string const &prefix, std::string const ds_name, size_t num, T const *p)
+//{
+//    //TODO xdmf datatype convert
+//    std::string url = io::save(ds_name, num, p);
+//
+//    VERBOSE << "write data item [" << url << "/" << "]" << std::endl;
+//
+//    std::ostringstream buffer;
+//
+//    buffer
+//    << "      <DataItem Dimensions=\"" << num << "\" " << "NumberType=\"Float\" Precision=\"4\" Format=\"HDF\">\n"
+//    << url << std::endl
+//    << "      </DataItem>";
+//
+//    return buffer.str();
+//}
+
+void XDMFStream::write_attribute(std::string const &ds_name, DataSet const &ds, int tag)
 {
-    //TODO xdmf datatype convert
-    std::string url = io::save(ds_name, num, p);
+    int level = static_cast<int>(m_pimpl_->m_grid_name_.size());
 
-    VERBOSE << "write data item [" << url << "/" << "]" << std::endl;
+    m_pimpl_->m_file_stream_ << ""
+    << std::setw(level * 2 + 2) << "" << "<Attribute Name=\"" << ds_name << "\"  AttributeType=\""
+    << ((ds.datatype.is_array() || tag == TAG_EDGE || tag == TAG_FACE) ? "Vector" : "Scalar")
 
-    std::ostringstream buffer;
+    << "\" Center=\"" << /* a_center_str[tag] */ "Node" << "\">\n";  // NOTE paraview only support "Node" element
 
-    buffer
-    << "      <DataItem Dimensions=\"" << num << "\" " << "NumberType=\"Float\" Precision=\"4\" Format=\"HDF\">\n"
-    << url << std::endl
-    << "      </DataItem>";
+    write_dataitem(ds_name, ds);
 
-    return buffer.str();
+    m_pimpl_->m_file_stream_
+    << std::setw(level * 2 + 2) << "" << "</Attribute>" << std::endl;
+
+
+    VERBOSE << "DataSet [" << ds_name << "] is saved in [" << path() << "]!" << std::endl;
 }
 
 
@@ -172,31 +277,33 @@ std::string save_dataset(std::string const &prefix, std::string const ds_name, s
 void  XDMFStream::set_grid(int ndims, size_t const *dims, Real const *xmin, Real const *dx)
 {
 
+    int level = static_cast<int>(m_pimpl_->m_grid_name_.size());
+
     if (ndims == 3)
     {
         m_pimpl_->m_file_stream_ << ""
-                "\t <Topology TopologyType=\"3DCoRectMesh\""
-                "\t      Dimensions=\"" << dims[0] << " " << dims[1] << " " << dims[2] << "\"/>\n"
-                "\t <Geometry GeometryType=\"ORIGIN_DXDYDZ\">\n"
-                "\t   <DataItem Name=\"Origin\" Dimensions=\"3\" NumberType=\"Float\" "
+        << std::setw(level * 2 + 2) << "" << "<Topology TopologyType=\"3DCoRectMesh\""
+        << std::setw(level * 2 + 2) << "" << " Dimensions=\"" << dims[0] << " " << dims[1] << " " << dims[2] << "\"/>\n"
+        << std::setw(level * 2 + 2) << "" << "<Geometry GeometryType=\"ORIGIN_DXDYDZ\">\n"
+        << std::setw(level * 2 + 2) << "" << "  <DataItem Name=\"Origin\" Dimensions=\"3\" NumberType=\"Float\" "
                 " Precision=\"4\" Format=\"XML\">" << xmin[0] << " " << xmin[1] << " " << xmin[2] << "</DataItem>\n"
-                "\t   <DataItem Name=\"Spacing\" Dimensions=\"3\" NumberType=\"Float\""
+        << std::setw(level * 2 + 2) << "" << "  <DataItem Name=\"Spacing\" Dimensions=\"3\" NumberType=\"Float\""
                 " Precision=\"4\" Format=\"XML\">" << dx[0] << " " << dx[1] << " " << dx[2] << "  </DataItem >\n"
-                "\t </Geometry>";
+        << std::setw(level * 2 + 2) << "" << "</Geometry>";
 
 
     }
     else if (ndims == 2)
     {
         m_pimpl_->m_file_stream_ << ""
-                "\t <Topology TopologyType=\"2DCoRectMesh\""
-                "\t      Dimensions=\"" << dims[0] << " " << dims[1] << "\"/>\n"
-                "\t <Geometry GeometryType=\"ORIGIN_DXDY\">\n"
-                "\t   <DataItem Name=\"Origin\" Dimensions=\"2\" NumberType=\"Float\" "
+        << std::setw(level * 2 + 2) << "" << "<Topology TopologyType=\"2DCoRectMesh\""
+        << std::setw(level * 2 + 2) << "" << "      Dimensions=\"" << dims[0] << " " << dims[1] << "\"/>\n"
+        << std::setw(level * 2 + 2) << "" << "<Geometry GeometryType=\"ORIGIN_DXDY\">\n"
+        << std::setw(level * 2 + 2) << "" << "   <DataItem Name=\"Origin\" Dimensions=\"2\" NumberType=\"Float\" "
                 " Precision=\"4\" Format=\"XML\">" << xmin[0] << " " << xmin[1] << "</DataItem>\n"
-                "\t   <DataItem Name=\"Spacing\" Dimensions=\"2\" NumberType=\"Float\""
+        << std::setw(level * 2 + 2) << "" << "   <DataItem Name=\"Spacing\" Dimensions=\"2\" NumberType=\"Float\""
                 " Precision=\"4\" Format=\"XML\">" << dx[0] << " " << dx[1] << "  </DataItem >\n"
-                "\t </Geometry>";
+        << std::setw(level * 2 + 2) << "" << "</Geometry>";
 
 
     }
@@ -212,6 +319,7 @@ void  XDMFStream::set_grid(int ndims, size_t const *dims, Real const *xmin, Real
 void  XDMFStream::set_grid(DataSet const &ds)
 {
 
+    int level = static_cast<int>(m_pimpl_->m_grid_name_.size());
 
     int ndims;
 
@@ -220,25 +328,30 @@ void  XDMFStream::set_grid(DataSet const &ds)
     std::tie(ndims, dims, std::ignore, std::ignore, std::ignore, std::ignore) = ds.dataspace.shape();
 
     --ndims;
-    io::cd("/Grid/");
     if (ndims == 2)
     {
         m_pimpl_->m_file_stream_ << ""
-        << "  <Topology TopologyType=\"2DSMesh\""
+        << std::setw(level * 2 + 2) << "" << "<Topology TopologyType=\"2DSMesh\""
         << "       NumberOfElements=\"" << dims[0] << " " << dims[1] << " " << dims[2] << "\"/>\n"
-        << "  <Geometry GeometryType=\"XY\">\n"
-        << save_dataset("points", ds)
-        << "  </Geometry>\n";
+        << std::setw(level * 2 + 2) << "" << "<Geometry GeometryType=\"XY\">\n";
+
+        write_dataitem("/Grid/points", ds);
+
+        m_pimpl_->m_file_stream_ << ""
+        << std::setw(level * 2 + 2) << "" << " </Geometry>\n";
     }
 
     else if (ndims == 3)
     {
         m_pimpl_->m_file_stream_ << ""
-        << "  <Topology TopologyType=\"3DSMesh\""
+        << std::setw(level * 2 + 2) << "" << "<Topology TopologyType=\"3DSMesh\""
         << "       NumberOfElements=\"" << dims[0] << " " << dims[1] << " " << dims[2] << "\"/>\n"
-        << "  <Geometry GeometryType=\"XYZ\">\n"
-        << save_dataset("points", ds)
-        << "  </Geometry>\n";
+        << std::setw(level * 2 + 2) << "" << "<Geometry GeometryType=\"XYZ\">\n";
+
+        write_dataitem("/Grid/points", ds);
+
+        m_pimpl_->m_file_stream_ << ""
+        << std::setw(level * 2 + 2) << "" << "</Geometry>\n";
     }
     else
     {
@@ -247,11 +360,11 @@ void  XDMFStream::set_grid(DataSet const &ds)
 }
 
 
-void XDMFStream::pimpl_s::enroll(std::string const &ds_name, DataSet const &ds, int tag)
+void XDMFStream::enroll(std::string const &ds_name, DataSet const &ds, int tag)
 {
-    typename container_type::accessor acc;
+    typename pimpl_s::container_type::accessor acc;
 
-    if (!m_datasets_.insert(acc, ds_name))
+    if (!m_pimpl_->m_datasets_.insert(acc, ds_name))
     {
         THROW_EXCEPTION_RUNTIME_ERROR("DataSet [" + ds_name + "] is registered!");
     }
@@ -260,20 +373,19 @@ void XDMFStream::pimpl_s::enroll(std::string const &ds_name, DataSet const &ds, 
         std::get<0>(acc->second) = tag;
         std::get<1>(acc->second) = ds;
 
-        VERBOSE << "DataSet [" << ds_name << "] is enrolled to [" << m_grid_name_ << "]!" << std::endl;
+        VERBOSE << "DataSet [" << ds_name << "] is enrolled to [" << path() << "]!" << std::endl;
     }
 
 
 }
 
-bool XDMFStream::pimpl_s::read()
+void XDMFStream::read()
 {
     UNIMPLEMENTED;
-    return false;
 }
 
 
-void  XDMFStream::pimpl_s::write()
+void  XDMFStream::write()
 {
     static const char a_center_str[][10] = {
             "Node",
@@ -282,81 +394,20 @@ void  XDMFStream::pimpl_s::write()
             "Cell"
     };
 
-    m_file_stream_
-    << " <Grid Name=\"" << m_grid_name_ << m_grid_count_ << "\" GridType=\"Uniform\">" << std::endl
-    << "  <Topology Reference=\"/Xdmf/Domain/Topology[1]\"/>" << std::endl
-    << "  <Geometry Reference=\"/Xdmf/Domain/Geometry[1]\"/>" << std::endl
-    << "  <Time Value=\"" << m_time_ << "\"/>" << std::endl;
+    std::string g_name = type_cast<std::string>(m_pimpl_->m_record_count_);
 
-    io::cd("/" + m_grid_name_ + type_cast<std::string>(m_grid_count_) + "/");
+    open_grid(g_name);
 
-    int count = 0;
-    for (auto const &item: m_datasets_)
+    io::cd(path());
+
+    for (auto const &item:    m_pimpl_->m_datasets_)
     {
-        std::string ds_name = item.first;
-        int tag = std::get<0>(item.second);
-        DataSet const &ds = std::get<1>(item.second);
-
-        m_file_stream_ << ""
-        << "    <Attribute Name=\"" << ds_name << "\"  AttributeType=\""
-        << ((ds.datatype.is_array() || tag == TAG_EDGE || tag == TAG_FACE) ? "Vector" : "Scalar")
-
-        << "\" Center=\"" << /* a_center_str[tag] */ "Node" << "\">\n"  // NOTE paraview only support "Node" element
-
-        << save_dataset(ds_name, ds)
-        << "    </Attribute>" << std::endl;
-
-        VERBOSE << "DataSet [" << ds_name << "] is saved in [" << m_grid_name_ << m_grid_count_ << "]!" << std::endl;
-
+        write_attribute(item.first, std::get<1>(item.second), std::get<0>(item.second));
     }
 
-    m_file_stream_ << " </Grid>" << std::endl;
-}
-
-XDMFStream::XDMFStream() : m_pimpl_(new pimpl_s)
-{
-}
-
-XDMFStream::~XDMFStream()
-{
-
-}
-
-void  XDMFStream::write()
-{
-    m_pimpl_->write();
-}
+    close_grid();
 
 
-void  XDMFStream::read()
-{
-    m_pimpl_->read();
-}
-
-
-void XDMFStream::enroll(std::string const &name, DataSet const &ds, int TAG)
-{
-    m_pimpl_->enroll(name, ds, TAG);
-
-}
-
-
-void XDMFStream::next_time_step()
-{
-    m_pimpl_->m_time_ = time();
-    ++m_pimpl_->m_grid_count_;
-
-}
-
-void XDMFStream::open(const std::string &s, const std::string &grid_name)
-{
-    m_pimpl_->open(s, grid_name);
-    set_grid();
-}
-
-void XDMFStream::close()
-{
-    m_pimpl_->close();
 }
 
 

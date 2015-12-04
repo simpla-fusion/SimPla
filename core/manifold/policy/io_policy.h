@@ -57,17 +57,17 @@ public:
     using base_type::read;
     using base_type::write;
 
+    using base_type::start_record;
+    using base_type::stop_record;
+    using base_type::record;
+
 
     virtual void deploy()
     {
     }
 
-    virtual void next_time_step()
-    {
-        base_type::next_time_step();
-    }
 
-    void set_grid()
+    virtual void set_grid()
     {
         if (m_geo_.topology_type() == "CoRectMesh")
         {
@@ -90,7 +90,6 @@ public:
         {
             base_type::set_grid(grid_vertices());
         }
-        base_type::set_grid();
     }
 
 

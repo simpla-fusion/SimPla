@@ -8,6 +8,8 @@
 #ifndef GEQDSK_H_
 #define GEQDSK_H_
 
+#include <iostream>
+#include "../gtl/utilities/log.h"
 #include "../gtl/ntuple.h"
 #include "../gtl/primitives.h"
 #include "../gtl/type_traits.h"
@@ -40,9 +42,9 @@ private:
     static constexpr int PhiAxis = 2;
     static constexpr int RAxis = (PhiAxis + 1) % 3;
     static constexpr int ZAxis = (PhiAxis + 2) % 3;
-
-    static constexpr int XAxis = (PhiAxis + 1) % 3;
-    static constexpr int YAxis = (PhiAxis + 2) % 3;
+    static constexpr int CartesianZAxis = 2;
+    static constexpr int CartesianXAxis = (CartesianZAxis + 1) % 3;
+    static constexpr int CartesianYAxis = (CartesianZAxis + 2) % 3;
 
 public:
 
@@ -104,6 +106,7 @@ public:
 
     inline Vec3 B(point_type const &x) const
     {
+
         Real R = x[RAxis];
         Real Z = x[ZAxis];
         Real Phi = x[PhiAxis];
@@ -112,14 +115,18 @@ public:
 
 
         Real v_r = gradPsi[1] / R;
+
         Real v_z = -gradPsi[0] / R;
+
         Real v_phi = profile("fpol", psi(R, Z));
 
         Vec3 res;
 
-        res[XAxis] = v_r * std::cos(Phi) - v_phi * std::sin(Phi);
-        res[ZAxis] = v_z;
-        res[YAxis] = v_r * std::sin(Phi) + v_phi * std::cos(Phi);
+        res[CartesianXAxis] = v_r * std::sin(Phi) + v_phi * std::cos(Phi);
+
+        res[CartesianYAxis] = v_r * std::cos(Phi) - v_phi * std::sin(Phi);
+
+        res[CartesianZAxis] = v_z;
 
         return std::move(res);
 

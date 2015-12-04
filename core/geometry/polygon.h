@@ -30,6 +30,7 @@ template<>
 struct Polygon<2> : public Object
 {
     using Object::point_type;
+    using Object::box_type;
 
     typedef nTuple<Real, 2> point2d_type;
 
