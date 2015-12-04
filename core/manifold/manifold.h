@@ -305,8 +305,13 @@ public:
 //    {
 //        this->io_policy::enroll(key, ds, TAG);
 //    }
-
-
+//
+//    template<typename TV, int IFORM>
+//    void enroll(std::string const &key, Field<TV, this_type, std::integral_constant<int, IFORM> > const &f)
+//    {
+//        bool is_vector = traits::is_ntuple<TV>::value || (IFORM == EDGE || IFORM == FACE);
+//        this->io_policy::enroll(key, f.dataset(), IFORM | (is_vector ? (0x10) : 0));
+//    }
 
     virtual Real time() const
     {

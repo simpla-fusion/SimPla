@@ -233,14 +233,20 @@ public:
     void declare_as(std::string const &s)
     {
         const_cast<mesh_type &>(m_mesh_).
-                enroll(s, this->dataset(), IFORM | (traits::is_ntuple<value_type>::value ? 0x10 : 0)
+                enroll(s,
+                       this->dataset(),
+                       IFORM | ((traits::is_ntuple<value_type>::value || (IFORM == EDGE || IFORM == FACE)) ? 0x10 : 0)
         );
     }
 
     void save_as(std::string const &s)
     {
         const_cast<mesh_type &>(m_mesh_).
-                write_attribute(s, this->dataset(), IFORM | (traits::is_ntuple<value_type>::value ? 0x10 : 0)
+                write_attribute(s,
+                                this->dataset(),
+                                IFORM |
+                                ((traits::is_ntuple<value_type>::value || (IFORM == EDGE || IFORM == FACE)) ? 0x10 : 0)
+
         );
     }
 
