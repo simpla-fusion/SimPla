@@ -122,9 +122,10 @@ public:
 
         Vec3 res;
 
-        res[CartesianXAxis] = v_r * std::sin(Phi) + v_phi * std::cos(Phi);
 
-        res[CartesianYAxis] = v_r * std::cos(Phi) - v_phi * std::sin(Phi);
+        res[CartesianXAxis] = v_r * std::cos(Phi) - v_phi * std::sin(Phi);
+
+        res[CartesianYAxis] = v_r * std::sin(Phi) + v_phi * std::cos(Phi);
 
         res[CartesianZAxis] = v_z;
 

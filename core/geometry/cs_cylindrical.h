@@ -50,8 +50,8 @@ public:
     {
         point_t x;
 
-        x[0] = p[RAxis] * std::sin(p[PhiAxis]);
-        x[1] = p[RAxis] * std::cos(p[PhiAxis]);
+        x[0] = p[RAxis] * std::cos(p[PhiAxis]);
+        x[1] = p[RAxis] * std::sin(p[PhiAxis]);
         x[2] = p[ZAxis];
         return std::move(x);
     }

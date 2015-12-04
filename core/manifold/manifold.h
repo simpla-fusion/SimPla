@@ -295,10 +295,11 @@ public:
                                {
                                    for (auto const &s: r)
                                    {
-                                       point_type p0 = this->point(s);
-                                       point_type p1 = this->map_to_cartesian(p0);
 
-                                       this->template at<point_type>(ds.data, s) = p1;
+                                       this->template at<point_type>(ds.data, s) = this->map_to_cartesian(
+                                               this->point(s));
+
+//                                       this->template at<point_type>(ds.data, s) = this->point(s);
                                    }
                                }
         );
