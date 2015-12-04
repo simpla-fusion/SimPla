@@ -230,9 +230,19 @@ public:
 
     void sync() { m_mesh_.sync(*this); }
 
-    void declare_as(std::string const &s) { const_cast<mesh_type &>(m_mesh_).enroll(s, this->dataset(), IFORM); }
+    void declare_as(std::string const &s)
+    {
+        const_cast<mesh_type &>(m_mesh_).
+                enroll(s, this->dataset(), IFORM | (traits::is_ntuple<value_type>::value ? 0x10 : 0)
+        );
+    }
 
-    void save_as    (std::string const &s) { const_cast<mesh_type &>(m_mesh_).write_attribute(s, this->dataset(), IFORM); }
+    void save_as(std::string const &s)
+    {
+        const_cast<mesh_type &>(m_mesh_).
+                write_attribute(s, this->dataset(), IFORM | (traits::is_ntuple<value_type>::value ? 0x10 : 0)
+        );
+    }
 
     value_type &operator[](id_type const &s)
     {

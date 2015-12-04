@@ -43,7 +43,7 @@ namespace simpla
 
 struct DataSet
 {
-    std::shared_ptr<void> data;
+    std::shared_ptr<void> data; //fixme  weak_ptr maybe better
 
     DataType datatype;
 

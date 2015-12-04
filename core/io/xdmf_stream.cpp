@@ -244,13 +244,20 @@ void XDMFStream::write_dataitem(std::string const &ds_name, DataSet const &ds)
 
 void XDMFStream::write_attribute(std::string const &ds_name, DataSet const &ds, int tag)
 {
+    static const char a_center_str[][10] = {
+            "Node",
+            "Edge",
+            "Face",
+            "Cell"
+    };
+
     int level = static_cast<int>(m_pimpl_->m_grid_name_.size());
 
     m_pimpl_->m_file_stream_ << ""
     << std::setw(level * 2 + 2) << "" << "<Attribute Name=\"" << ds_name << "\"  AttributeType=\""
-    << ((ds.datatype.is_array() || tag == TAG_EDGE || tag == TAG_FACE) ? "Vector" : "Scalar")
+    << (((tag & 0xF0) == 0) ? "Scalar" : "Vector")
 
-    << "\" Center=\"" << /* a_center_str[tag] */ "Node" << "\">\n";  // NOTE paraview only support "Node" element
+    << "\" Center=\"" << /* a_center_str[tag&(0x0F)] */ "Node" << "\">\n";  // NOTE paraview only support "Node" element
 
     write_dataitem(ds_name, ds);
 
@@ -387,12 +394,6 @@ void XDMFStream::read()
 
 void  XDMFStream::write()
 {
-    static const char a_center_str[][10] = {
-            "Node",
-            "Edge",
-            "Face",
-            "Cell"
-    };
 
     std::string g_name = type_cast<std::string>(m_pimpl_->m_record_count_);
 

@@ -7,7 +7,7 @@
  *    This is an example of EM plasma
  */
 
-#include "em_plasma.h"
+#include "plasma.h"
 
 #include "../../core/gtl/utilities/utilities.h"
 #include "../../core/parallel/parallel.h"
@@ -169,6 +169,8 @@ void EMPlasma::setup(int argc, char **argv)
 
         m.open_grid("back_ground");
 
+        Ev.clear();
+
         B1.clear();
         E1.clear();
         J1.clear();
@@ -181,7 +183,7 @@ void EMPlasma::setup(int argc, char **argv)
                 {
                     for (auto const &s:r)
                     {
-                         B0[s] = m.template sample<FACE>(s, geqdsk.B(m.point(s)));
+                        B0[s] = m.template sample<FACE>(s, geqdsk.B(m.point(s)));
 
                     }
                 }
@@ -271,8 +273,8 @@ void EMPlasma::setup(int argc, char **argv)
             for (auto const &dict:ps)
             {
                 auto res = add_particle(dict.first.template as<std::string>(),
-                                        SI_proton_mass * dict.second["mass"].template as<Real>(),
-                                        SI_elementary_charge * dict.second["charge"].template as<Real>()
+                                        dict.second["mass"].template as<Real>(),
+                                        dict.second["charge"].template as<Real>()
                 );
 
                 if (std::get<1>(res))
@@ -318,6 +320,8 @@ void EMPlasma::setup(int argc, char **argv)
 //
 //        ion.generator(gen, options["PIC"].as<size_t>(10), 1.0);
 
+        Ev = map_to<VERTEX>(E1);
+
 
     }
     catch (std::exception const &error)
@@ -325,7 +329,7 @@ void EMPlasma::setup(int argc, char **argv)
         THROW_EXCEPTION_RUNTIME_ERROR("Context setup error!", error.what());
     }
 
-
+    Ev.declare_as("Ev");
     E1.declare_as("E1");
     B1.declare_as("B1");
     J1.declare_as("J1");
@@ -374,7 +378,6 @@ void EMPlasma::next_time_step()
 
     if (particles.size() > 0)
     {
-        if (Ev.empty()) { LOG_CMD(Ev = map_to<VERTEX>(E1)); }
 
 
         traits::field_t<vector_type, mesh_type, VERTEX> Q{m};

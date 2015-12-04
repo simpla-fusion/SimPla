@@ -39,10 +39,10 @@ rhoe = vTe / omega_ce -- m
 
 NX = 50
 NY = 50
-NZ = 100
+NZ = 1
 LX = 1.0 --m --100000*rhoi --0.6
 LY = 1 --2.0*math.pi/k0
-LZ = math.pi * 2 -- 2.0*math.pi/18
+LZ = math.pi * 0.25 -- 2.0*math.pi/18
 GW = 5
 PIC = 100
 GEQDSK = "/home/salmon/workspace/code/SimPla/scripts/gfile/g038300.03900"
@@ -91,9 +91,18 @@ InitValue = {
 }
 Particles = {
     H = {
-        mass = 1.0,
-        charge = 2.0,
+        mass = mp,
+        charge = qe,
         T = 3.0,
+        pic = PIC,
+        --        Density = function(t, x)
+        --            return (1.0 - math.cos(x[1] / LX * math.pi * 2.0)) / 2 / PIC
+        --        end
+    },
+    ele = {
+        mass = me,
+        charge = -qe,
+        T = 1.0,
         pic = PIC,
         --        Density = function(t, x)
         --            return (1.0 - math.cos(x[1] / LX * math.pi * 2.0)) / 2 / PIC
