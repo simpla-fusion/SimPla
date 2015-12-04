@@ -209,13 +209,7 @@ public:
         return std::move(map_type::inv_map(base_type::point(std::forward<Args>(args)...)));
     }
 
-/**
- * @bug: truncation error of coordinates transform larger than 1000
- *     epsilon (1e4 epsilon for cylindrical coordinates)
- * @param args
- * @return
- *
- */
+
     virtual point_type coordinates_local_to_global(std::tuple<id_type, point_type> const &t) const
     {
         return std::move(inv_map(base_type::coordinates_local_to_global(t)));

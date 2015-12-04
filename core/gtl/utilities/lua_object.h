@@ -474,7 +474,17 @@ public:
             return (r.key_ != key_);
         }
 
-        std::pair<Object, Object> operator*()
+        std::pair<Object, Object> operator*() const
+        {
+            return value();
+        };
+
+        std::pair<Object, Object> operator->() const
+        {
+            return value();
+        };
+
+        std::pair<Object, Object> value() const
         {
             if (key_ == LUA_NOREF || value_ == LUA_NOREF)
             {
@@ -1009,7 +1019,6 @@ inline std::ostream &operator<<(std::ostream &os, Object const &obj)
     os << obj.as<std::string>();
     return os;
 }
-/** @} lua_engine*/
 }  // namespace lua
 
 namespace traits

@@ -89,6 +89,17 @@ InitValue = {
     --
     --  }
 }
+Particles = {
+    H = {
+        mass = 1.0,
+        charge = 2.0,
+        T = 3.0,
+        pic = PIC,
+        --        Density = function(t, x)
+        --            return (1.0 - math.cos(x[1] / LX * math.pi * 2.0)) / 2 / PIC
+        --        end
+    }
+}
 
 PEC = {
     Domain = {

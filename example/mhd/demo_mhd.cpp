@@ -30,7 +30,7 @@ using namespace simpla;
 static constexpr char key_words[] = "Cylindrical BaseManifold, Uniform Grid, single toridal model number  ";
 
 /**
- *   \example  mhd/mhd.cpp
+ *   @example  mhd/mhd.cpp
  *    This is an example of ideal MHD instability, ELM
  */
 
