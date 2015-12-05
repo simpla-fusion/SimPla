@@ -23,7 +23,7 @@ k_B = 1.3806488e-23 --Boltzmann_constant
 --
 
 k_parallel = 18
-Btor = 1.0 * Tesla
+Btor = 2.0 * Tesla
 Ti = 0.03 * KeV
 Te = 0.05 * KeV
 N0 = 1.0e17 -- m^-3
@@ -46,17 +46,17 @@ LZ = math.pi * 0.25 -- 2.0*math.pi/18
 GW = 5
 PIC = 100
 GEQDSK = "/home/salmon/workspace/code/SimPla/scripts/gfile/g038300.03900"
-
+number_of_step = 2000
 Mesh =
 {
     Geometry =
     {
         Topology = { Dimensions = { NX, NY, NZ }, },
-        Box = { { 0.0, 0.0, -LZ * 0.5 }, { LX, LY, LZ * 0.5 } },
+        Box = { { 0.0, 0.0, 0 }, { LX, LY, LZ } },
     },
-    dt = 0.1 * (LX / NX) / c
+    dt = 0.5* (LX / NX) / c
 }
-omega_ext = 0.1 * math.pi / Mesh.dt --omega_ci*1.9
+omega_ext = omega_ci*1.9
 
 
 --domain_center=function( x  )
@@ -89,26 +89,26 @@ InitValue = {
     --
     --  }
 }
---Particles = {
---    H = {
---        mass = mp,
---        charge = qe,
---        T = 3.0,
---        pic = PIC,
---        --        Density = function(t, x)
---        --            return (1.0 - math.cos(x[1] / LX * math.pi * 2.0)) / 2 / PIC
---        --        end
---    },
---    ele = {
---        mass = me,
---        charge = -qe,
---        T = 1.0,
---        pic = PIC,
---        --        Density = function(t, x)
---        --            return (1.0 - math.cos(x[1] / LX * math.pi * 2.0)) / 2 / PIC
---        --        end
---    }
---}
+Particles = {
+    H = {
+        mass = mp,
+        charge = qe,
+        T = 3.0,
+        pic = PIC,
+        --        Density = function(t, x)
+        --            return (1.0 - math.cos(x[1] / LX * math.pi * 2.0)) / 2 / PIC
+        --        end
+    },
+    ele = {
+        mass = me,
+        charge = -qe,
+        T = 1.0,
+        pic = PIC,
+        --        Density = function(t, x)
+        --            return (1.0 - math.cos(x[1] / LX * math.pi * 2.0)) / 2 / PIC
+        --        end
+    }
+}
 
 PEC = {
     Domain = {
@@ -125,7 +125,7 @@ PEC = {
 
 Constraints = {
     J = {
-        Box = { { 1.8, -0.1, -0.1 * math.pi }, { 1.8, 0.1, 0.1 * math.pi } },
+        Box = { { 1.4, -0.1, -0.1 * math.pi }, { 1.4, 0.1, 0.1 * math.pi } },
         Value = function(t, x)
             local tau = t * omega_ext -- + x[2]*TWOPI/(xmax[3]-xmin[3])
             local amp = math.sin(tau) * (1 - math.exp(-tau * tau))

@@ -1,5 +1,5 @@
-#LyX 2.0 created this file. For more info see http://www.lyx.org/
-\lyxformat 413
+#LyX 2.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 474
 \begin_document
 \begin_header
 \textclass report
@@ -12,13 +12,13 @@
 \font_roman default
 \font_sans default
 \font_typewriter default
+\font_math auto
 \font_default_family default
 \use_non_tex_fonts false
 \font_sc false
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
-
 \graphics default
 \default_output_format default
 \output_sync 0
@@ -29,15 +29,24 @@
 \use_hyperref false
 \papersize default
 \use_geometry false
-\use_amsmath 1
-\use_esint 1
-\use_mhchem 1
-\use_mathdots 1
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
 \cite_engine basic
+\cite_engine_type default
+\biblio_style plain
 \use_bibtopic false
 \use_indices false
 \paperorientation portrait
 \suppress_date false
+\justification true
 \use_refstyle 0
 \index Index
 \shortcut idx
@@ -579,6 +588,96 @@ J_{s}^{1}=\overleftrightarrow{M_{s}}\cdot\left(K_{s}^{0}+\alpha_{s}q_{s}n_{0s}\D
 \Delta E & = & \Delta\tilde{E}-\frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\left(\overleftrightarrow{M_{s}}\cdot\left(K_{s}^{0}+\alpha_{s}q_{s}n_{0s}\Delta E\right)+J_{s}^{0}\right)\\
 \Delta E+\frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\left(\alpha_{s}q_{s}n_{0s}\overleftrightarrow{M_{s}}\right)\cdot\left(\Delta E\right) & = & \underbrace{\Delta\tilde{E}-\frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\left(\overleftrightarrow{M_{s}}\cdot K_{s}^{0}+J_{s}^{0}\right)}_{Q}
 \end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Algorithm
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+
+\begin_inset Formula 
+\begin{eqnarray*}
+\Delta\tilde{E} & = & \Delta t\left(\frac{1}{\varepsilon_{0}\mu_{0}}\nabla\times B_{1}^{1/2}-\frac{1}{\varepsilon_{0}}J_{ext}^{1/2}\right)
+\end{eqnarray*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray*}
+K_{s}^{0} & = & J_{s}^{0}+\alpha_{s}\left(2q_{s}n_{0s}E^{0}+J_{s}^{0}\times\boldsymbol{B}_{0}\right)
+\end{eqnarray*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray*}
+Q & = & \Delta\tilde{E}-\frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\left(\overleftrightarrow{M_{s}}\cdot K_{s}^{0}+J_{s}^{0}\right)
+\end{eqnarray*}
+
+\end_inset
+
+
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\strikeout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+
+\begin_inset Formula 
+\begin{eqnarray*}
+a & \equiv & \frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\frac{q_{s}n_{s}\alpha_{s}}{\alpha_{s}^{2}B\cdot B+1}+1\\
+b & \equiv & \frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\frac{q_{s}n_{s}\alpha_{s}^{2}}{\alpha_{s}^{2}B\cdot B+1}\\
+c & \equiv & \frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\frac{q_{s}n_{s}\alpha_{s}^{3}}{\alpha_{s}^{2}B\cdot B+1}
+\end{eqnarray*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray*}
+\Delta E & = & \left(aQ-bQ\times B+\frac{b^{2}-ca}{a+cB^{2}}Q\cdot BB\right)/\left(a^{2}+b^{2}B^{2}\right)
+\end{eqnarray*}
+
+\end_inset
+
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+
+\begin_inset Formula 
+\[
+J_{s}^{1}=\overleftrightarrow{M_{s}}\cdot\left(K_{s}^{0}+\alpha_{s}q_{s}n_{0s}\Delta E\right)
+\]
 
 \end_inset
 

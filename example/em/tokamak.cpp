@@ -7,7 +7,7 @@
  *    This is an example of EM plasma
  */
 
-#include "plasma.h"
+#include "tokamak.h"
 
 #include "../../core/gtl/utilities/utilities.h"
 #include "../../core/parallel/parallel.h"
@@ -159,10 +159,8 @@ void EMPlasma::setup(int argc, char **argv)
 
         m.deploy();
 
-        m.open("em_plasma", "GEqdsk");
+        m.open(options["output"].as<std::string>("tokamak"), "GEqdsk");
 
-
-        MESSAGE << std::endl << "[ Configuration ]" << std::endl << m << std::endl;
 
         VERBOSE << "Clear fields" << std::endl;
 
@@ -224,7 +222,11 @@ void EMPlasma::setup(int argc, char **argv)
 
         B0v = map_to<VERTEX>(B0);
 
-        BB = dot(B0, B0);
+        BB = dot(B0v, B0v);
+
+        B0v.save_as("B0v");
+
+        BB.save_as("BB");
 
 
         {
@@ -312,7 +314,18 @@ void EMPlasma::setup(int argc, char **argv)
         }
 
 
+        MESSAGE << std::endl << "[ Configuration ]" << std::endl << m << std::endl;
 
+        MESSAGE << "Particle = {" << std::endl;
+        for (auto const &item:particles)
+        {
+            MESSAGE << "  " << item.first << " = {"
+            << " mass =" << std::get<0>(item.second) << " , "
+            << " charge = " << std::get<1>(item.second) << " , "
+            << " },"
+            << std::endl;
+        }
+        MESSAGE << "}" << std::endl;
 
 //        VERBOSE << "Generator Particles" << std::endl;
 //
@@ -321,8 +334,6 @@ void EMPlasma::setup(int argc, char **argv)
 //        ion.generator(gen, options["PIC"].as<size_t>(10), 1.0);
 
         Ev = map_to<VERTEX>(E1);
-
-
     }
     catch (std::exception const &error)
     {
@@ -341,11 +352,11 @@ void EMPlasma::setup(int argc, char **argv)
 void EMPlasma::tear_down()
 {
     m.stop_record();
-    m.open_grid("tear_down");
-
-    B1.save_as("B1");
-
-    m.close_grid();
+//    m.open_grid("tear_down");
+//
+//    B1.save_as("B1");
+//
+//    m.close_grid();
     m.close();
 }
 
@@ -374,15 +385,17 @@ void EMPlasma::next_time_step()
 
     E1.accept(edge_boundary.range(), [&](id_type const &, Real &v) { v = 0; });
 
-    //particle::absorb(ion, limiter_boundary);
 
+    traits::field_t<vector_type, mesh_type, VERTEX> dE{m};
+
+
+
+    //particle::absorb(ion, limiter_boundary);
     if (particles.size() > 0)
     {
 
-
         traits::field_t<vector_type, mesh_type, VERTEX> Q{m};
         traits::field_t<vector_type, mesh_type, VERTEX> K{m};
-
 
         traits::field_t<scalar_type, mesh_type, VERTEX> a{m};
         traits::field_t<scalar_type, mesh_type, VERTEX> b{m};
@@ -392,16 +405,11 @@ void EMPlasma::next_time_step()
         b.clear();
         c.clear();
 
-
-        Bv = map_to<VERTEX>(B1);
-
         Q = map_to<VERTEX>(E1) - Ev;
+
 
         for (auto &p :   particles)
         {
-
-//        p.second.p->integral(&p.second.J1);
-
             Real ms, qs;
 
             std::tie(ms, qs, std::ignore, std::ignore, std::ignore) = p.second;
@@ -413,14 +421,18 @@ void EMPlasma::next_time_step()
 
             Real as = (dt * qs) / (2.0 * ms);
 
-            K = (Ev * ns * 2.0 + cross(Js, B0v)) * as + Js;
+            Q -= 0.5 * dt / epsilon0 * Js;
 
-            Q -= 0.5 * dt / epsilon0
-                 * (K + cross(K, B0v) * as + B0v * (dot(K, B0v) * as * as) / (BB * as * as + 1)) + Js;
+            K = (Ev * qs * ns * 2.0 + cross(Js, B0v)) * as + Js;
 
-            a += ns / BB * (as / (as * as + 1));
-            b += ns / BB * (as * as / (as * as + 1));
-            c += ns / BB * (as * as * as / (as * as + 1));
+            Js = (K + cross(K, B0v) * as + B0v * (dot(K, B0v) * as * as)) / (BB * as * as + 1);
+
+            Q -= 0.5 * dt / epsilon0 * Js;
+
+            a += qs * ns * (as / (BB * as * as + 1));
+            b += qs * ns * (as * as / (BB * as * as + 1));
+            c += qs * ns * (as * as * as / (BB * as * as + 1));
+
 
         }
 
@@ -430,11 +442,29 @@ void EMPlasma::next_time_step()
         a += 1;
 
 
-        Ev += (Q * a - cross(Q, B0v) * b +
-               B0v * (dot(Q, B0v) * (b * b - c * a) / (a + c * BB))) / (b * b * BB + a * a);
+        dE = (Q * a - cross(Q, B0v) * b + B0v * (dot(Q, B0v) * (b * b - c * a) / (a + c * BB))) / (b * b * BB + a * a);
+
+        for (auto &p :   particles)
+        {
+            Real ms, qs;
+
+            std::tie(ms, qs, std::ignore, std::ignore, std::ignore) = p.second;
+
+            traits::field_t<scalar_type, mesh_type, VERTEX> &ns = std::get<2>(p.second);
+
+            traits::field_t<vector_type, mesh_type, VERTEX> &Js = std::get<3>(p.second);;
+
+            Real as = (dt * qs) / (2.0 * ms);
+
+            K = dE * ns * qs * as;
+            Js += (K + cross(K, B0v) * as + B0v * (dot(K, B0v) * as * as)) / (BB * as * as + 1);
+        }
+        Ev += dE;
 
         LOG_CMD(E1 += map_to<EDGE>(Ev) - E1);
     }
+
+
     LOG_CMD(B1 -= curl(E1) * (dt * 0.5));
 
     B1.accept(face_boundary.range(), [&](id_type const &, Real &v) { v = 0; });
