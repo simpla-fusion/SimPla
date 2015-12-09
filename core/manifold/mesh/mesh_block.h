@@ -17,7 +17,7 @@
 namespace simpla { namespace mesh
 {
 
-struct MeshBlock : public MeshIDs_<4>
+struct MeshBlock : public MeshIDs
 {
     static constexpr int ndims = 3;
     enum
@@ -27,7 +27,7 @@ struct MeshBlock : public MeshIDs_<4>
 private:
 
     typedef MeshBlock this_type;
-    typedef MeshIDs_<4> m;
+    typedef MeshIDs m;
 
 public:
     using typename m::id_type;

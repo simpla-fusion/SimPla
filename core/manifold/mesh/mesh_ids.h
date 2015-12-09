@@ -56,7 +56,7 @@ struct MeshIDs_;
  *  |00000000000|11111111111111|11111111111| <=_MASK
  *  \endverbatim
  */
-template<size_t TAGS = 4>
+template<size_t LEVEL>
 struct MeshIDs_
 {
     /// @name level independent
@@ -64,9 +64,9 @@ struct MeshIDs_
 
     static constexpr int MAX_NUM_OF_NEIGHBOURS = 12;
     static constexpr int ndims = 3;
-    static constexpr int MESH_RESOLUTION = static_cast<int> (TAGS & 0xF);
+    static constexpr int MESH_RESOLUTION = static_cast<int> (LEVEL & 0xF);
 
-    typedef MeshIDs_<TAGS> this_type;
+    typedef MeshIDs_<LEVEL> this_type;
 
     typedef std::uint64_t id_type;
 
@@ -764,46 +764,10 @@ struct MeshIDs_
         return m_adjacent_cell_num_[IFORM][nodeid];
     }
 
-//    template<size_t AXE>
-//    static constexpr std::tuple<id_type, id_type> primary_line(id_type s)
-//    {
-//        return std::make_tuple(((s | OVERFLOW_FLAG) - (_D << (ID_DIGITS * AXE))) & (~OVERFLOW),
-//                               s + (_D << (ID_DIGITS * AXE)));
-//    }
-//
-//    template<size_t AXE>
-//    static constexpr std::tuple<id_type, id_type> pixel(id_type s)
-//    {
-//        return std::make_tuple(((s | OVERFLOW_FLAG) - (_DA & (~(_D << (ID_DIGITS * AXE))))) & (~OVERFLOW),
-//                               s + (_DA & (~(_D << (ID_DIGITS * AXE)))));
-//    }
-//
-//    static constexpr std::tuple<id_type, id_type> voxel(id_type s)
-//    {
-//        return std::make_tuple(((s | OVERFLOW_FLAG) - _DA) & (~OVERFLOW), s + _DA);
-//    }
-//
-//    template<typename TID>
-//    static TID bit_shift_id(TID s, size_t n)
-//    {
-//        id_type m = (1UL << (ID_DIGITS - n - 1)) - 1;
-//        return ((s & (m | (m << ID_DIGITS) | (m << (ID_DIGITS * 2)))) << n) & (~FULL_OVERFLOW_FLAG);
-//    }
-//    static constexpr id_type id_add(id_type s, id_type d)
-//    {
-//        return ((s & (~FULL_OVERFLOW_FLAG)) + d) & (~FULL_OVERFLOW_FLAG);
-//    }
-//
-//    static constexpr id_type id_minus(id_type s, id_type d)
-//    {
-//        return ((s & (~FULL_OVERFLOW_FLAG)) - d) & (~FULL_OVERFLOW_FLAG);
-//    }
-
-
-    struct iterator : public block_iterator<index_type, MeshIDs_<TAGS>::ndims + 1>
+    struct iterator : public block_iterator<index_type, MeshIDs_<LEVEL>::ndims + 1>
     {
     private:
-        static constexpr int ndims = MeshIDs_<TAGS>::ndims;
+        static constexpr int ndims = MeshIDs_<LEVEL>::ndims;
         typedef block_iterator<index_type, ndims + 1> base_type;
 
         int m_iform_;
@@ -1335,7 +1299,7 @@ template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::id_type
 
 template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::coordinates_tuple MeshIDs_<TAGS>::m_id_to_coordinates_shift_[];
 
-typedef MeshIDs_<> MeshIDs;
+typedef MeshIDs_<2> MeshIDs;
 }//namespace  mesh
 }// namespace simpla
 

@@ -41,9 +41,9 @@ namespace simpla
  * data set (DataSpace),and a container of meta data (Properties).
  */
 
-struct DataSet
+struct DataSet : public std::enable_shared_from_this<DataSet>
 {
-    std::shared_ptr<void> data; //fixme  weak_ptr maybe better
+    std::shared_ptr<void> data;
 
     DataType datatype;
 
@@ -53,6 +53,9 @@ struct DataSet
 
     Properties properties;
 
+//    std::map<size_t, DataSet> leaves;
+
+
     DataSet() : data(nullptr) { }
 
     DataSet(DataSet const &other) :
@@ -60,16 +63,13 @@ struct DataSet
             datatype(other.datatype),
             dataspace(other.dataspace),
             memory_space(other.memory_space),
-            properties(other.properties) { }
+            properties(other.properties)
+//            ,leaves(other.leaves)
+    {
+    }
 
-//    DataSet(DataSet &&other) :
-//            data(other.data),
-//            datatype(other.datatype),
-//            dataspace(other.dataspace),
-//            memory_space(other.memory_space),
-//            properties(other.properties) { }
 
-    virtual ~DataSet() { }
+    ~DataSet() { }
 
     void swap(DataSet &other)
     {
@@ -78,11 +78,12 @@ struct DataSet
         std::swap(dataspace, other.dataspace);
         std::swap(memory_space, other.memory_space);
         std::swap(properties, other.properties);
+//        std::swap(leaves, other.leaves);
     }
 
     bool operator==(DataSet const &other) const { return is_equal(other.data.get()); }
 
-    virtual bool is_valid() const
+    bool is_valid() const
     {
         return (data != nullptr)
                && datatype.is_valid()
@@ -91,36 +92,32 @@ struct DataSet
                && (dataspace.num_of_elements() == memory_space.num_of_elements());
     }
 
-    virtual bool empty() const { return data == nullptr; }
+    bool empty() const { return data == nullptr; }
 
-    virtual void deploy();
+    void deploy();
 
-    virtual std::ostream &print(std::ostream &os) const;
+    std::ostream &print(std::ostream &os) const;
 
-    virtual void clear();
+    void clear();
 
-    virtual void copy(void const *other);
+    void copy(void const *other);
 
-    virtual bool is_same(void const *other) const;
+    bool is_same(void const *other) const;
 
-    virtual bool is_equal(void const *other) const;
+    bool is_equal(void const *other) const;
 
     template<typename T> T &get_value(size_t s) { return reinterpret_cast<T *>( data.get())[s]; }
 
     template<typename T> T const &get_value(size_t s) const { return reinterpret_cast<T *>( data.get())[s]; }
 
 
-    std::map<size_t, std::tuple<DataSpace, DataSet>> children;
+    template<typename TV> TV *pointer() { return reinterpret_cast<TV *>(data.get()); }
+
+    template<typename TV> TV const *pointer() const { return reinterpret_cast<TV *>(data.get()); }
+
+
 }; //class DataSet
-//template<typename T, typename ...Args>
-//DataSet make_dataset(Args &&...args)
-//{
-//    DataSet res;
-//    res.datatype = traits::datatype<T>::create();
-//    res.dataspace = make_dataspace(std::forward<Args>(args)...);
-//    res.save_mesh();
-//    return std::move(res);
-//};
+
 namespace traits
 {
 inline void deploy(DataSet *d) { d->deploy(); }
@@ -141,7 +138,7 @@ auto make_dataset(T &d) ->
 typename std::enable_if<_impl::has_member_function_dataset<T>::value,
         decltype(d.dataset())>::type
 {
-    return std::move(d.dataset());
+    return d.dataset();
 }
 
 template<typename T>
@@ -149,7 +146,7 @@ auto make_dataset(T const &d) ->
 typename std::enable_if<_impl::has_member_function_dataset<T>::value,
         decltype(d.dataset())>::type
 {
-    return std::move(d.dataset());
+    return d.dataset();
 }
 
 

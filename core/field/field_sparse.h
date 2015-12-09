@@ -43,7 +43,7 @@ private:
 
 	mesh_type m_mesh_;
 
-	container_type m_data_;
+	container_type m_dataset_;
 
 public:
 
@@ -54,7 +54,7 @@ public:
 
 	}
 	Field(this_type const & that)
-			: m_mesh_(that.m_mesh_), m_data_(that.m_data_)
+			: m_mesh_(that.m_mesh_), m_dataset_(that.m_dataset_)
 	{
 	}
 
@@ -81,12 +81,12 @@ public:
 	}
 	void clear()
 	{
-		m_data_->clear();
+		m_dataset_->clear();
 	}
 
 	bool empty() const
 	{
-		return m_data_.empty();
+		return m_dataset_.empty();
 	}
 	bool is_divisible() const
 	{
@@ -113,31 +113,31 @@ public:
 
 	template<typename TFun> void pull_back(TFun const &fun)
 	{
-		m_mesh_.pull_back(*m_data_, fun);
+		m_mesh_.pull_back(*m_dataset_, fun);
 	}
 
 	typedef typename mesh_type::template field_value_type<value_type> field_value_type;
 
 	field_value_type gather(coordinate_tuple const& x) const
 	{
-		return std::move(m_mesh_.gather(*m_data_, x));
+		return std::move(m_mesh_.gather(*m_dataset_, x));
 	}
 
 	template<typename ...Args>
 	void scatter(Args && ... args)
 	{
-		m_mesh_.scatter(*m_data_, std::forward<Args>(args)...);
+		m_mesh_.scatter(*m_dataset_, std::forward<Args>(args)...);
 	}
 
 public:
 
 	value_type & operator[](id_type const & s)
 	{
-		return (*m_data_)[s];
+		return (*m_dataset_)[s];
 	}
 	value_type const & operator[](id_type const & s) const
 	{
-		return (*m_data_)[s];
+		return (*m_dataset_)[s];
 	}
 
 }

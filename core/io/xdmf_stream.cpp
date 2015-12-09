@@ -20,7 +20,8 @@ struct XDMFStream::pimpl_s
 {
 
 
-    typedef parallel::concurrent_hash_map<std::string, std::tuple<int, DataSet>> container_type;
+    typedef parallel::concurrent_hash_map<std::string,
+            std::tuple<int, std::shared_ptr<const DataSet> >> container_type;
 
     container_type m_datasets_;
 
@@ -378,7 +379,7 @@ void XDMFStream::enroll(std::string const &ds_name, DataSet const &ds, int tag)
     else
     {
         std::get<0>(acc->second) = tag;
-        std::get<1>(acc->second) = ds;
+        std::get<1>(acc->second) = ds.shared_from_this();
 
         VERBOSE << "DataSet [" << ds_name << "] is enrolled to [" << path() << "]!" << std::endl;
     }
@@ -403,7 +404,7 @@ void  XDMFStream::write()
 
     for (auto const &item:    m_pimpl_->m_datasets_)
     {
-        write_attribute(item.first, std::get<1>(item.second), std::get<0>(item.second));
+        write_attribute(item.first, *std::get<1>(item.second), std::get<0>(item.second));
     }
 
     close_grid();

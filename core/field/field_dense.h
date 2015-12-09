@@ -49,8 +49,6 @@ public:
 
 private:
 
-    typedef typename TG::template storage_type<TV> storage_policy;
-
     typedef typename mesh_type::id_type id_type;
 
     typedef typename mesh_type::point_type point_type;
@@ -60,55 +58,53 @@ private:
     typedef typename traits::field_value_type<this_type>::type field_value_type;
 
     mesh_type const &m_mesh_;
-    storage_policy m_data_;
+
+    std::shared_ptr<DataSet> m_dataset_;
 public:
 
 
     //create construct
-    Field(mesh_type const &m) : m_mesh_(m)
-    {
-    }
+    Field(mesh_type const &m) : m_mesh_(m), m_dataset_(nullptr) { }
 
 
-    ~Field()
-    {
-    }
+    ~Field() { }
 
     //copy construct
-    Field(this_type const &other)
-            : m_data_(other.m_data_), m_mesh_(other.m_mesh_)
-    {
-    }
+    Field(this_type const &other) : m_dataset_(other.m_dataset_), m_mesh_(other.m_mesh_) { }
 
     // move construct
-    Field(this_type &&other)
-            : m_data_(other.m_data_), m_mesh_(other.m_mesh_)
-    {
-    }
+    Field(this_type &&other) : m_dataset_(other.m_dataset_), m_mesh_(other.m_mesh_) { }
 
     void swap(this_type &other)
     {
         std::swap(m_mesh_, other.m_mesh_);
-        std::swap(m_data_, other.m_data_);
+        std::swap(m_dataset_, other.m_dataset_);
     }
 
-    bool empty() const { return m_data_ == nullptr; }
+    bool empty() const { return m_dataset_ == nullptr; }
 
     void deploy()
     {
-        if (m_data_ == nullptr)
-            TRY_IT((m_mesh_.template alloc_memory<iform, value_type>(&m_data_)));
+        if (empty())
+        {
+            m_dataset_ = std::make_shared<DataSet>(m_mesh_.template dataset<value_type, iform>());
+        }
+
     }
 
-    void clear() { m_mesh_.template clear<iform, value_type>(&m_data_); }
+    void clear()
+    {
+        deploy();
+        m_dataset_->clear();
+    }
 
-    DataSet dataset() const { return std::move(m_mesh_.template dataset<value_type, iform>(m_data_)); }
+    DataSet const &dataset() const { return *m_dataset_; }
 
-    DataSet dataset() { return std::move(m_mesh_.template dataset<value_type, iform>(m_data_)); }
-
-    storage_policy &data() { return m_data_; }
-
-    storage_policy const &data() const { return m_data_; }
+    DataSet &dataset()
+    {
+        deploy();
+        return *m_dataset_;
+    }
 
 
     /**
@@ -233,8 +229,7 @@ public:
     void declare_as(std::string const &s)
     {
         const_cast<mesh_type &>(m_mesh_).
-                enroll(s,
-                       this->dataset(),
+                enroll(s, *m_dataset_,
                        IFORM | ((traits::is_ntuple<value_type>::value || (IFORM == EDGE || IFORM == FACE)) ? 0x10 : 0)
         );
     }
@@ -242,8 +237,7 @@ public:
     void save_as(std::string const &s)
     {
         const_cast<mesh_type &>(m_mesh_).
-                write_attribute(s,
-                                this->dataset(),
+                write_attribute(s, *m_dataset_,
                                 IFORM |
                                 ((traits::is_ntuple<value_type>::value || (IFORM == EDGE || IFORM == FACE)) ? 0x10 : 0)
 
@@ -252,12 +246,12 @@ public:
 
     value_type &operator[](id_type const &s)
     {
-        return m_mesh_.template at<value_type>(m_data_, s);
+        return m_mesh_.template at<value_type>(m_dataset_->data, s);
     }
 
     value_type const &operator[](id_type const &s) const
     {
-        return m_mesh_.template at<value_type>(m_data_, s);
+        return m_mesh_.template at<value_type>(m_dataset_->data, s);
     }
 
     template<typename ...Args>
