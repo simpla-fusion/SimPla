@@ -150,12 +150,9 @@ void Object::parse_string(std::string const &str)
 }
 
 
-void Object::iterator::Next()
+Object::iterator &Object::iterator::Next()
 {
-    if (L_.empty())
-    {
-        return;
-    }
+    if (L_.empty()) { return *this; }
 
     lua_rawgeti(L_.get(), GLOBAL_IDX_, parent_);
 
@@ -200,6 +197,8 @@ void Object::iterator::Next()
     value_ = v;
 
     lua_pop(L_.get(), 1);
+
+    return *this;
 }
 
 Object::iterator::iterator() :

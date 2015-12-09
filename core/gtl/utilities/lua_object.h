@@ -203,7 +203,7 @@ public:
         int value_;
         std::string path_;
     public:
-        void Next();
+        iterator &Next();
 
     public:
         iterator();
@@ -212,68 +212,37 @@ public:
 
         iterator(iterator &&r);
 
-        iterator(LuaState L, unsigned int G, unsigned int p,
-                 std::string path);
+        iterator(LuaState L, unsigned int G, unsigned int p, std::string path);
 
         ~iterator();
 
-        bool operator!=(iterator const &r) const
-        {
-            return (r.key_ != key_);
-        }
-
-        std::pair<Object, Object> operator*() const
-        {
-            return value();
-        };
-
-        std::pair<Object, Object> operator->() const
-        {
-            return value();
-        };
+        bool operator!=(iterator const &r) const { return (r.key_ != key_); }
 
         std::pair<Object, Object> value() const;
 
-        iterator &operator++()
-        {
-            Next();
-            return *this;
-        }
+        std::pair<Object, Object> operator*() const { return value(); };
+
+        std::pair<Object, Object> operator->() const { return value(); };
+
+
+        iterator &operator++() { return Next(); }
     };
 
     iterator begin()
     {
-        if (empty())
-        {
-            return end();
-        } else
-        {
-            return iterator(L_, GLOBAL_REF_IDX_, self_, path_);
-        }
+        if (empty()) { return end(); } else { return iterator(L_, GLOBAL_REF_IDX_, self_, path_); }
     }
 
-    iterator end()
-    {
-        return iterator();
-    }
+    iterator end() { return iterator(); }
 
-    iterator begin() const
-    {
-        return iterator(L_, GLOBAL_REF_IDX_, self_, path_);
-    }
+    iterator begin() const { return iterator(L_, GLOBAL_REF_IDX_, self_, path_); }
 
-    iterator end() const
-    {
-        return iterator();
-    }
+    iterator end() const { return iterator(); }
 
     template<typename T>
     inline Object get_child(T const &key) const
     {
-        if (is_null())
-        {
-            return Object();
-        }
+        if (is_null()) { return Object(); }
 
         return std::move(at(key));
     }
@@ -316,11 +285,9 @@ public:
         }
         else
         {
-            LUA_ERROR(lua_pcall(L_.get(),
-                                _impl::push_to_lua(L_.get(), std::forward<Args>(args)...), 1, 0));
+            LUA_ERROR(lua_pcall(L_.get(), _impl::push_to_lua(L_.get(), std::forward<Args>(args)...), 1, 0));
 
-            return Object(L_, GLOBAL_REF_IDX_,
-                          luaL_ref(L_.get(), GLOBAL_REF_IDX_), path_ + "[ret]");
+            return Object(L_, GLOBAL_REF_IDX_, luaL_ref(L_.get(), GLOBAL_REF_IDX_), path_ + "[ret]");
         }
 
     }
@@ -328,14 +295,8 @@ public:
     template<typename T, typename ...Args>
     inline T create_object(Args &&... args) const
     {
-        if (is_null())
-        {
-            return std::move(T());
-        }
-        else
-        {
-            return std::move(T(*this, std::forward<Args>(args)...));
-        }
+        if (is_null()) { return std::move(T()); }
+        else { return std::move(T(*this, std::forward<Args>(args)...)); }
 
     }
 
@@ -348,21 +309,12 @@ public:
     }
 
     template<typename T>
-    operator T() const
-    {
-        return as<T>();
-    }
+    operator T() const { return as<T>(); }
 
-    operator std::basic_string<char>() const
-    {
-        return as<std::string>();
-    }
+    operator std::basic_string<char>() const { return as<std::string>(); }
 
     template<typename ... T>
-    inline std::tuple<T...> as_tuple() const
-    {
-        return std::move(as<std::tuple<T...>>());
-    }
+    inline std::tuple<T...> as_tuple() const { return std::move(as<std::tuple<T...>>()); }
 
     template<typename TRect, typename ...Args>
     void as(std::function<TRect(Args ...)> *res) const
@@ -411,11 +363,7 @@ public:
     template<typename T>
     inline void set(std::string const &name, T const &v)
     {
-
-        if (is_null())
-        {
-            return;
-        }
+        if (is_null()) { return; }
 
         lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
         _impl::push_to_lua(L_.get(), v);
@@ -426,10 +374,7 @@ public:
     template<typename T>
     inline void set(int s, T const &v)
     {
-        if (is_null())
-        {
-            return;
-        }
+        if (is_null()) { return; }
 
         lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
         _impl::push_to_lua(L_.get(), v);
@@ -440,10 +385,7 @@ public:
     template<typename T>
     inline void add(T const &v)
     {
-        if (is_null())
-        {
-            return;
-        }
+        if (is_null()) { return; }
 
         lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
         _impl::push_to_lua(L_.get(), v);
@@ -481,7 +423,6 @@ inline std::ostream &operator<<(std::ostream &os, Object const &obj)
 } // namespace simpla
 namespace simpla
 {
-
 namespace traits
 {
 
