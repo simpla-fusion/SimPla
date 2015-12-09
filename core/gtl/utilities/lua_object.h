@@ -22,18 +22,19 @@
 #include <mutex>
 #include "log.h"
 #include "../type_cast.h"
-
-extern "C"
-{
-
-#include <lua.h>
-#include <lualib.h>
-#include <lauxlib.h>
-
-#if LUA_VERSION_NUM < 502
-#error  need lua version >502
-#endif
-}
+#include "lua_object_ext.h"
+//
+//extern "C"
+//{
+//
+//#include <lua.h>
+//#include <lualib.h>
+//#include <lauxlib.h>
+//
+//#if LUA_VERSION_NUM < 502
+//#error  need lua version >502
+//#endif
+//}
 
 namespace simpla { namespace lua
 {
@@ -43,42 +44,6 @@ namespace simpla { namespace lua
  * @addtogroup  lua   Lua engine
  *  @{
  */
-
-struct LuaState
-{
-    struct lua_s
-    {
-        lua_State *m_state_;
-        std::mutex m_mutex_;
-
-        lua_s() : m_state_(luaL_newstate()) { }
-
-        ~lua_s() { lua_close(m_state_); }
-    };
-
-    std::shared_ptr<lua_s> m_l_;
-
-    LuaState() : m_l_(nullptr) { }
-
-    LuaState(LuaState const &other) : m_l_(other.m_l_) { }
-
-    ~LuaState() { }
-
-    void init() { m_l_ = std::make_shared<lua_s>(); }
-
-    bool empty() const { return m_l_ == nullptr; }
-
-    bool unique() const { return m_l_.unique(); }
-
-    lua_State *get() { return m_l_->m_state_; }
-
-    lua_State *get() const { return const_cast<lua_State *>(m_l_->m_state_); }
-
-    void lock() { m_l_->m_mutex_.lock(); }
-
-    void unlock() { m_l_->m_mutex_.unlock(); }
-
-};
 
 
 #define LUA_ERROR(_CMD_)                                                     \
@@ -94,59 +59,51 @@ struct LuaState
 
 class Object;
 
-template<typename T>
-struct Converter;
-
-namespace _impl
-{
-template<typename TC>
-void push_container_to_lua(LuaState L, TC const &v)
-{
-    lua_newtable(L.get());
-
-    size_t s = 1;
-    for (auto const &vv : v)
-    {
-        lua_pushinteger(L.get(), s);
-        Converter<decltype(vv)>::to(L, vv);
-        lua_settable(L.get(), -3);
-        ++s;
-    }
-}
-
-inline unsigned int push_to_lua(LuaState L)
-{
-    return 0;
-}
-
-template<typename T, typename ... Args>
-inline unsigned int push_to_lua(LuaState L, T const &v,
-                                Args const &... rest)
-{
-    luaL_checkstack(L.get(), 1 + sizeof...(rest), "too many arguments");
-
-    return Converter<T>::to(L, v) + push_to_lua(L, rest...);
-}
-
-inline unsigned int pop_from_lua(LuaState L, int)
-{
-    return 0;
-}
-
-template<typename T, typename ... Args>
-inline unsigned int pop_from_lua(LuaState L, unsigned int idx,
-                                 T *v, Args *... rest)
-{
-    return Converter<T>::from(L, idx, v) + pop_from_lua(L, idx + 1, rest...);
-}
-}  // namespace _impl
-
 /**
  *  @class Object
  *  \brief interface to Lua Script
  */
 class Object
 {
+
+
+    struct LuaState
+    {
+        struct lua_s
+        {
+            lua_State *m_state_;
+            std::mutex m_mutex_;
+
+            lua_s() : m_state_(luaL_newstate()) { }
+
+            ~lua_s() { lua_close(m_state_); }
+        };
+
+        std::shared_ptr<lua_s> m_l_;
+
+        LuaState() : m_l_(nullptr) { }
+
+        LuaState(LuaState const &other) : m_l_(other.m_l_) { }
+
+        ~LuaState() { }
+
+        void init() { m_l_ = std::make_shared<lua_s>(); }
+
+        bool empty() const { return m_l_ == nullptr; }
+
+        bool unique() const { return m_l_.unique(); }
+
+        lua_State *get() { return m_l_->m_state_; }
+
+        lua_State *get() const { return const_cast<lua_State *>(m_l_->m_state_); }
+
+        void lock() { m_l_->m_mutex_.lock(); }
+
+        void unlock() { m_l_->m_mutex_.unlock(); }
+
+    };
+
+
     LuaState L_;
 
     int GLOBAL_REF_IDX_;
@@ -157,38 +114,14 @@ public:
 
     typedef Object this_type;
 
-    Object() : self_(0), GLOBAL_REF_IDX_(0) { }
+    Object();
 
     Object(LuaState l, unsigned int G, unsigned int s,
-           std::string const &path = "") :
-            L_(l), GLOBAL_REF_IDX_(G), self_(s), path_(path)
-    {
-    }
+           std::string const &path = "");
 
-    Object(Object const &r) :
-            L_(r.L_), GLOBAL_REF_IDX_(r.GLOBAL_REF_IDX_), path_(r.path_)
-    {
-        if (!L_.empty())
-        {
-            if (r.self_ != 0)
-            {
-                lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, r.self_);
+    Object(Object const &r);
 
-                self_ = luaL_ref(L_.get(), GLOBAL_REF_IDX_);
-            }
-            else
-            {
-                self_ = 0;
-            }
-        }
-    }
-
-    Object(Object &&r) :
-            L_(r.L_), GLOBAL_REF_IDX_(r.GLOBAL_REF_IDX_), self_(r.self_), path_(
-            r.path_)
-    {
-        r.self_ = 0;
-    }
+    Object(Object &&r);
 
     Object &operator=(Object const &other)
     {
@@ -197,67 +130,11 @@ public:
         return *this;
     }
 
-    void swap(Object &other)
-    {
-        std::swap(L_, other.L_);
-        std::swap(GLOBAL_REF_IDX_, other.GLOBAL_REF_IDX_);
-        std::swap(self_, other.self_);
-        std::swap(path_, other.path_);
+    void swap(Object &other);
 
-    }
+    ~Object();
 
-    ~Object()
-    {
-        if (!L_.empty())
-        {
-            if (self_ > 0)
-            {
-                luaL_unref(L_.get(), GLOBAL_REF_IDX_, self_);
-            }
-
-            if (L_.unique())
-            {
-                lua_remove(L_.get(), GLOBAL_REF_IDX_);
-            }
-        }
-
-    }
-
-    inline std::basic_ostream<char> &Serialize(std::basic_ostream<char> &os)
-    {
-        ASSERT (!L_.empty());
-
-        int top = lua_gettop(L_.get());
-        for (int i = 1; i < top; ++i)
-        {
-            int t = lua_type(L_.get(), i);
-            switch (t)
-            {
-                case LUA_TSTRING:
-                    os << "[" << i << "]=" << lua_tostring(L_.get(), i)
-                    << std::endl;
-                    break;
-
-                case LUA_TBOOLEAN:
-                    os << "[" << i << "]=" << std::boolalpha
-                    << lua_toboolean(L_.get(), i) << std::endl;
-                    break;
-
-                case LUA_TNUMBER:
-                    os << "[" << i << "]=" << lua_tonumber(L_.get(), i)
-                    << std::endl;
-                    break;
-                case LUA_TTABLE:
-                    os << "[" << i << "]=" << "is a table" << std::endl;
-                    break;
-                default:
-                    os << "[" << i << "]=" << "is an unknown type" << std::endl;
-            }
-        }
-        os << "--  End the listing --" << std::endl;
-
-        return os;
-    }
+    inline std::basic_ostream<char> &Serialize(std::basic_ostream<char> &os);
 
     inline bool is_null() const
     {
@@ -309,49 +186,13 @@ public:
 
 #undef DEF_TYPE_CHECK
 
-    inline std::string get_typename() const
-    {
-        lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
-        std::string res = lua_typename(L_.get(), -1);
-        lua_pop(L_.get(), 1);
-        return res;
-    }
+    inline std::string get_typename() const;
 
-    void init()
-    {
-        if (self_ == 0 || L_.empty())
-        {
-            L_.init();
-//            L_ = LuaState(luaL_newstate(), lua_close);
-            luaL_openlibs(L_.get());
+    void init();
 
-            lua_newtable(L_.get());  // new table on stack
+    void parse_file(std::string const &filename);
 
-            GLOBAL_REF_IDX_ = lua_gettop(L_.get());
-
-            self_ = -1;
-
-            path_ = "<GLOBAL>";
-
-        }
-    }
-
-    inline void parse_file(std::string const &filename)
-    {
-        if (filename != "")
-        {
-            LUA_ERROR(luaL_dofile(L_.get(), filename.c_str()));
-//			LOGGER << "Load Lua file:[" << filename << "]" << std::endl;
-
-        }
-    }
-
-    inline void parse_string(std::string const &str)
-    {
-
-        LUA_ERROR(luaL_dostring(L_.get(), str.c_str()))
-
-    }
+    void parse_string(std::string const &str);
 
     class iterator
     {
@@ -362,141 +203,19 @@ public:
         int value_;
         std::string path_;
     public:
-        void Next()
-        {
-            if (L_.empty())
-            {
-                return;
-            }
-
-            lua_rawgeti(L_.get(), GLOBAL_IDX_, parent_);
-
-            int tidx = lua_gettop(L_.get());
-
-            if (lua_isnil(L_.get(), tidx))
-            {
-//				THROW_EXCEPTION_LOGIC_ERROR(path_ + " is not iteraterable!");
-            }
-
-            if (key_ == LUA_NOREF)
-            {
-                lua_pushnil(L_.get());
-            }
-            else
-            {
-                lua_rawgeti(L_.get(), GLOBAL_IDX_, key_);
-            }
-
-            int v, k;
-
-            if (lua_next(L_.get(), tidx))
-            {
-                v = luaL_ref(L_.get(), GLOBAL_IDX_);
-                k = luaL_ref(L_.get(), GLOBAL_IDX_);
-            }
-            else
-            {
-                k = LUA_NOREF;
-                v = LUA_NOREF;
-            }
-            if (key_ != LUA_NOREF)
-            {
-                luaL_unref(L_.get(), GLOBAL_IDX_, key_);
-            }
-            if (value_ != LUA_NOREF)
-            {
-                luaL_unref(L_.get(), GLOBAL_IDX_, value_);
-            }
-
-            key_ = k;
-            value_ = v;
-
-            lua_pop(L_.get(), 1);
-        }
+        void Next();
 
     public:
-        iterator() :
-                GLOBAL_IDX_(0), parent_(LUA_NOREF), key_(
-                LUA_NOREF), value_(LUA_NOREF)
-        {
+        iterator();
 
-        }
+        iterator(iterator const &r);
 
-        iterator(iterator const &r) :
-                L_(r.L_), GLOBAL_IDX_(r.GLOBAL_IDX_)
-        {
-            if (L_.empty()) { return; }
-
-            lua_rawgeti(L_.get(), GLOBAL_IDX_, r.parent_);
-
-            parent_ = luaL_ref(L_.get(), GLOBAL_IDX_);
-
-            lua_rawgeti(L_.get(), GLOBAL_IDX_, r.key_);
-
-            key_ = luaL_ref(L_.get(), GLOBAL_IDX_);
-
-            lua_rawgeti(L_.get(), GLOBAL_IDX_, r.value_);
-
-            value_ = luaL_ref(L_.get(), GLOBAL_IDX_);
-
-        }
-
-        iterator(iterator &&r) :
-                L_(r.L_), GLOBAL_IDX_(r.GLOBAL_IDX_), parent_(r.parent_), key_(
-                r.key_), value_(r.value_)
-        {
-            r.parent_ = LUA_NOREF;
-            r.key_ = LUA_NOREF;
-            r.value_ = LUA_NOREF;
-        }
+        iterator(iterator &&r);
 
         iterator(LuaState L, unsigned int G, unsigned int p,
-                 std::string path) :
-                L_(L), GLOBAL_IDX_(G), parent_(p), key_(LUA_NOREF), value_(
-                LUA_NOREF), path_(path + "[iterator]")
-        {
-            if (L_.empty()) { return; }
+                 std::string path);
 
-            lua_rawgeti(L_.get(), GLOBAL_IDX_, p);
-            bool is_table = lua_istable(L_.get(), -1);
-            parent_ = luaL_ref(L_.get(), GLOBAL_IDX_);
-
-            if (!is_table)
-            {
-//				THROW_EXCEPTION_LOGIC_ERROR("Object is not indexable!");
-            }
-            else
-            {
-                Next();
-            }
-
-        }
-
-        ~iterator()
-        {
-            if (L_.empty())
-            {
-                return;
-            }
-            if (key_ != LUA_NOREF)
-            {
-                luaL_unref(L_.get(), GLOBAL_IDX_, key_);
-            }
-            if (value_ != LUA_NOREF)
-            {
-                luaL_unref(L_.get(), GLOBAL_IDX_, value_);
-            }
-            if (parent_ != LUA_NOREF)
-            {
-                luaL_unref(L_.get(), GLOBAL_IDX_, parent_);
-            }
-            if (L_.unique())
-            {
-                lua_remove(L_.get(), GLOBAL_IDX_);
-            }
-//			if (L_ != nullptr)
-//				CHECK(lua_rawlen(L_.get(), GLOBAL_IDX_));
-        }
+        ~iterator();
 
         bool operator!=(iterator const &r) const
         {
@@ -513,24 +232,7 @@ public:
             return value();
         };
 
-        std::pair<Object, Object> value() const
-        {
-            if (key_ == LUA_NOREF || value_ == LUA_NOREF)
-            {
-                THROW_EXCEPTION_LOGIC_ERROR("the value of this iterator is invalid!");
-            }
-
-            lua_rawgeti(L_.get(), GLOBAL_IDX_, key_);
-
-            int key = luaL_ref(L_.get(), GLOBAL_IDX_);
-
-            lua_rawgeti(L_.get(), GLOBAL_IDX_, value_);
-
-            int value = luaL_ref(L_.get(), GLOBAL_IDX_);
-
-            return std::make_pair(Object(L_, GLOBAL_IDX_, key, path_ + ".key"),
-                                  Object(L_, GLOBAL_IDX_, value, path_ + ".value"));
-        }
+        std::pair<Object, Object> value() const;
 
         iterator &operator++()
         {
@@ -576,136 +278,23 @@ public:
         return std::move(at(key));
     }
 
-    size_t size() const
-    {
-        if (is_null())
-        {
-            return 0;
-        }
-
-        lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
-        size_t res = lua_rawlen(L_.get(), -1);
-        lua_pop(L_.get(), 1);
-        return std::move(res);
-    }
+    size_t size() const;
 
     inline Object operator[](char const s[]) const noexcept
     {
         return operator[](std::string(s));
     }
 
-    inline Object operator[](std::string const &s) const noexcept
-    {
-        if (!(is_table() || is_global()))
-        {
-            return Object();
-        }
-
-        if (is_global())
-        {
-            lua_getglobal(L_.get(), s.c_str());
-        }
-        else
-        {
-
-            lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
-            lua_getfield(L_.get(), -1, s.c_str());
-        }
-
-        if (lua_isnil(L_.get(), lua_gettop(L_.get())))
-        {
-            lua_pop(L_.get(), 1);
-            return std::move(Object());
-        }
-        else
-        {
-
-            int id = luaL_ref(L_.get(), GLOBAL_REF_IDX_);
-
-            if (!is_global())
-            {
-                lua_pop(L_.get(), 1);
-            }
-
-            return std::move(Object(L_, GLOBAL_REF_IDX_, id, path_ + "." + s));
-        }
-    }
+    Object operator[](std::string const &s) const noexcept;
 
     //! unsafe fast access, no boundary check, no path information
-    inline Object operator[](int s) const noexcept
-    {
-        if (!(is_table() || is_global()))
-        {
-            return Object();
-        }
-
-        if (self_ < 0 || L_.empty())
-        {
-            THROW_EXCEPTION_LOGIC_ERROR(path_ + " is not indexable!");
-        }
-        lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
-        int tidx = lua_gettop(L_.get());
-        lua_rawgeti(L_.get(), tidx, s + 1);
-        int res = luaL_ref(L_.get(), GLOBAL_REF_IDX_);
-        lua_pop(L_.get(), 1);
-
-        return std::move(Object(L_, GLOBAL_REF_IDX_, res));
-
-    }
+    Object operator[](int s) const noexcept;
 
     //! index operator with out_of_range exception
-    template<typename TIDX>
-    inline Object at(TIDX const &s) const
-    {
-        if (!(is_table() || is_global()))
-        {
-            return Object();
-        }
-
-        Object res = this->operator[](s);
-        if (res.is_null())
-        {
-
-            throw (std::out_of_range(
-                    type_cast<std::string>(s) + "\" is not an element in "
-                    + path_));
-        }
-
-        return std::move(res);
-
-    }
+    Object at(size_t const &s) const;
 
     //! safe access, with boundary check, no path information
-    inline Object at(int s) const
-    {
-        if (!(is_table() || is_global()))
-        {
-            return Object();
-        }
-
-        if (self_ < 0 || L_.empty())
-        {
-            THROW_EXCEPTION_LOGIC_ERROR(path_ + " is not indexable!");
-        }
-
-//		if (s > size())
-//		{
-//			throw(std::out_of_range(
-//					"index out of range! " + path_ + "[" + type_cast<std::string>(s)
-//							+ " > " + type_cast<std::string>(size()) + " ]"));
-//		}
-
-        lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
-        int tidx = lua_gettop(L_.get());
-        lua_rawgeti(L_.get(), tidx, s + 1);
-        int res = luaL_ref(L_.get(), GLOBAL_REF_IDX_);
-        lua_pop(L_.get(), 1);
-
-        return std::move(
-                Object(L_, GLOBAL_REF_IDX_, res,
-                       path_ + "[" + type_cast<std::string>(s) + "]"));
-
-    }
+    Object at(int s) const;
 
     template<typename ...Args>
     Object operator()(Args &&... args) const
@@ -728,7 +317,7 @@ public:
         else
         {
             LUA_ERROR(lua_pcall(L_.get(),
-                                _impl::push_to_lua(L_, std::forward<Args>(args)...), 1, 0));
+                                _impl::push_to_lua(L_.get(), std::forward<Args>(args)...), 1, 0));
 
             return Object(L_, GLOBAL_REF_IDX_,
                           luaL_ref(L_.get(), GLOBAL_REF_IDX_), path_ + "[ret]");
@@ -737,8 +326,7 @@ public:
     }
 
     template<typename T, typename ...Args>
-    inline T create_object(
-            Args &&... args) const
+    inline T create_object(Args &&... args) const
     {
         if (is_null())
         {
@@ -777,8 +365,7 @@ public:
     }
 
     template<typename TRect, typename ...Args>
-    void as(
-            std::function<TRect(Args ...)> *res) const
+    void as(std::function<TRect(Args ...)> *res) const
     {
 
         if (is_number() || is_table())
@@ -810,7 +397,7 @@ public:
         if (!is_null())
         {
             lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
-            _impl::pop_from_lua(L_, lua_gettop(L_.get()), res);
+            _impl::pop_from_lua(L_.get(), lua_gettop(L_.get()), res);
             lua_pop(L_.get(), 1);
 
             return true;
@@ -831,7 +418,7 @@ public:
         }
 
         lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
-        _impl::push_to_lua(L_, v);
+        _impl::push_to_lua(L_.get(), v);
         lua_setfield(L_.get(), -2, name.c_str());
         lua_pop(L_.get(), 1);
     }
@@ -845,7 +432,7 @@ public:
         }
 
         lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
-        _impl::push_to_lua(L_, v);
+        _impl::push_to_lua(L_.get(), v);
         lua_rawseti(L_.get(), -2, s);
         lua_pop(L_.get(), 1);
     }
@@ -859,7 +446,7 @@ public:
         }
 
         lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
-        _impl::push_to_lua(L_, v);
+        _impl::push_to_lua(L_.get(), v);
         size_t len = lua_rawlen(L_.get(), -1);
         lua_rawseti(L_.get(), -2, len + 1);
         lua_pop(L_.get(), 1);
@@ -880,168 +467,9 @@ public:
      *  \note Lua.org:createtable
      */
     inline Object new_table(std::string const &name, unsigned int narr = 0,
-                            unsigned int nrec = 0)
-    {
-        if (is_null())
-        {
-            return Object();
-        }
-
-        lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
-        int tidx = lua_gettop(L_.get());
-        lua_createtable(L_.get(), narr, nrec);
-        if (name == "")
-        {
-            int len = lua_rawlen(L_.get(), tidx);
-            lua_rawseti(L_.get(), tidx, len + 1);
-            lua_rawgeti(L_.get(), tidx, len + 1);
-        }
-        else
-        {
-            lua_setfield(L_.get(), tidx, name.c_str());
-            lua_getfield(L_.get(), tidx, name.c_str());
-        }
-        Object res(L_, GLOBAL_REF_IDX_, luaL_ref(L_.get(), GLOBAL_REF_IDX_),
-                   path_ + "." + name);
-        lua_pop(L_.get(), 1);
-        return std::move(res);
-    }
+                            unsigned int nrec = 0);
 };
 
-/**
- *
- *     @ingroup Convert
- *     @{
- */
-
-
-template<typename T>
-struct Converter;
-
-
-template<>
-struct Converter<unsigned int>
-{
-    typedef unsigned int value_type;
-
-    static inline unsigned int from(LuaState L, unsigned int idx, value_type *v,
-                                    value_type const &default_value = value_type())
-    {
-        if (lua_isnumber(L.get(), idx))
-        {
-
-            *v = static_cast<value_type>( lua_tointeger(L.get(), idx));
-
-        } else
-        {
-
-            *v = default_value;
-        }
-
-        return 1;
-    }
-
-    static inline unsigned int to(LuaState L, value_type const &v)
-    {
-        lua_pushinteger(L.get(), static_cast<LUA_INTEGER>(v));
-        return 1;
-    }
-};
-
-template<>
-struct Converter<unsigned long>
-{
-    typedef unsigned long value_type;
-
-    static inline unsigned int from(LuaState L, unsigned int idx, value_type *v,
-                                    value_type const &default_value = value_type())
-    {
-        if (lua_isnumber(L.get(), idx))
-        {
-
-            *v = static_cast<value_type>( lua_tointeger(L.get(), idx));
-
-        } else
-        {
-
-            *v = default_value;
-        }
-
-        return 1;
-    }
-
-    static inline unsigned int to(LuaState L, value_type const &v)
-    {
-        lua_pushinteger(L.get(), static_cast<LUA_INTEGER>(v));
-        return 1;
-    }
-};
-
-#define DEF_LUA_TRANS(_TYPE_, _TO_FUN_, _FROM_FUN_, _CHECK_FUN_)                                     \
-template<> struct Converter<_TYPE_>                                                    \
-{                                                                                     \
-    typedef _TYPE_ value_type;                                                        \
-                                                                                      \
-    static inline  unsigned int  from(LuaState L,  unsigned int  idx, value_type * v,                    \
-            value_type const &default_value=value_type())                            \
-    {                                                                                 \
-        if (_CHECK_FUN_(L.get(), idx))                                                     \
-        {                                                                             \
-            *v = static_cast<value_type>(_FROM_FUN_(L.get(), idx));                    \
-        }                                                                             \
-        else                                                                          \
-        {   *v = default_value;                                                       \
-        }                                                                             \
-        return 1;                                                                     \
-    }                                                                                 \
-    static inline  unsigned int  to(LuaState L, value_type const & v)                       \
-    {                                                                                 \
-        _TO_FUN_(L.get(), v);return 1;                                                \
-    }                                                                                 \
-};                                                                                    \
-
-
-DEF_LUA_TRANS(double, lua_pushnumber, lua_tonumber, lua_isnumber)
-
-DEF_LUA_TRANS(int, lua_pushinteger, lua_tointeger, lua_isnumber)
-
-DEF_LUA_TRANS(long, lua_pushinteger, lua_tointeger, lua_isnumber)
-
-DEF_LUA_TRANS(bool, lua_pushboolean, lua_toboolean, lua_isboolean)
-
-#undef DEF_LUA_TRANS
-
-
-template<>
-struct Converter<std::string>
-{
-    typedef std::string value_type;
-
-    static inline unsigned int from(LuaState L,
-                                    unsigned int idx, value_type *v, value_type const &default_value =
-    value_type())
-    {
-        if (lua_isstring(L.get(), idx))
-        {
-            *v = lua_tostring(L.get(), idx);
-        }
-        else
-        {
-            *v = default_value;
-            THROW_EXCEPTION_BAD_CAST(lua_typename(L.get(), lua_type(L.get(), idx)), "doulbe");
-        }
-        return 1;
-    }
-
-    static inline unsigned int to(LuaState L,
-                                  value_type const &v)
-    {
-        lua_pushstring(L.get(), v.c_str());
-        return 1;
-    }
-};
-
-/** @} LuaTrans */
 
 inline std::ostream &operator<<(std::ostream &os, Object const &obj)
 {

@@ -8,7 +8,6 @@
 #ifndef CORE_UTILITIES_LUA_OBJECT_EXT_H_
 #define CORE_UTILITIES_LUA_OBJECT_EXT_H_
 
-#include <lua.h>
 #include <stddef.h>
 #include <complex>
 #include <list>
@@ -20,29 +19,210 @@
 #include <vector>
 
 #include "../ntuple.h"
-#include "lua_object.h"
 
-namespace simpla
+extern "C"
 {
-namespace lua
+
+#include <lua.h>
+#include <lualib.h>
+#include <lauxlib.h>
+
+#if LUA_VERSION_NUM < 502
+#error  need lua version >502
+#endif
+}
+
+namespace simpla { namespace lua
 {
+
+template<typename T>
+struct Converter;
+
+namespace _impl
+{
+template<typename TC>
+void push_container_to_lua(lua_State *L, TC const &v)
+{
+    lua_newtable(L);
+
+    size_t s = 1;
+    for (auto const &vv : v)
+    {
+        lua_pushinteger(L, s);
+        Converter<decltype(vv)>::to(L, vv);
+        lua_settable(L, -3);
+        ++s;
+    }
+}
+
+inline unsigned int push_to_lua(lua_State *L)
+{
+    return 0;
+}
+
+template<typename T, typename ... Args>
+inline unsigned int push_to_lua(lua_State *L, T const &v,
+                                Args const &... rest)
+{
+    luaL_checkstack(L, 1 + sizeof...(rest), "too many arguments");
+
+    return Converter<T>::to(L, v) + push_to_lua(L, rest...);
+}
+
+inline unsigned int pop_from_lua(lua_State *L, int)
+{
+    return 0;
+}
+
+template<typename T, typename ... Args>
+inline unsigned int pop_from_lua(lua_State *L, unsigned int idx, T *v, Args *... rest)
+{
+    return Converter<T>::from(L, idx, v) + pop_from_lua(L, idx + 1, rest...);
+}
+}  // namespace _impl
+
+
+
+
+
+template<>
+struct Converter<unsigned int>
+{
+    typedef unsigned int value_type;
+
+    static inline unsigned int from(lua_State *L, unsigned int idx, value_type *v,
+                                    value_type const &default_value = value_type())
+    {
+        if (lua_isnumber(L, idx))
+        {
+
+            *v = static_cast<value_type>( lua_tointeger(L, idx));
+
+        } else
+        {
+
+            *v = default_value;
+        }
+
+        return 1;
+    }
+
+    static inline unsigned int to(lua_State *L, value_type const &v)
+    {
+        lua_pushinteger(L, static_cast<LUA_INTEGER>(v));
+        return 1;
+    }
+};
+
+template<>
+struct Converter<unsigned long>
+{
+    typedef unsigned long value_type;
+
+    static inline unsigned int from(lua_State *L, unsigned int idx, value_type *v,
+                                    value_type const &default_value = value_type())
+    {
+        if (lua_isnumber(L, idx))
+        {
+
+            *v = static_cast<value_type>( lua_tointeger(L, idx));
+
+        } else
+        {
+
+            *v = default_value;
+        }
+
+        return 1;
+    }
+
+    static inline unsigned int to(lua_State *L, value_type const &v)
+    {
+        lua_pushinteger(L, static_cast<LUA_INTEGER>(v));
+        return 1;
+    }
+};
+
+#define DEF_LUA_TRANS(_TYPE_, _TO_FUN_, _FROM_FUN_, _CHECK_FUN_)                                     \
+template<> struct Converter<_TYPE_>                                                    \
+{                                                                                     \
+    typedef _TYPE_ value_type;                                                        \
+                                                                                      \
+    static inline  unsigned int  from(lua_State* L,  unsigned int  idx, value_type * v,                    \
+            value_type const &default_value=value_type())                            \
+    {                                                                                 \
+        if (_CHECK_FUN_(L, idx))                                                     \
+        {                                                                             \
+            *v = static_cast<value_type>(_FROM_FUN_(L, idx));                    \
+        }                                                                             \
+        else                                                                          \
+        {   *v = default_value;                                                       \
+        }                                                                             \
+        return 1;                                                                     \
+    }                                                                                 \
+    static inline  unsigned int  to(lua_State* L, value_type const & v)                       \
+    {                                                                                 \
+        _TO_FUN_(L, v);return 1;                                                \
+    }                                                                                 \
+};                                                                                    \
+
+
+DEF_LUA_TRANS(double, lua_pushnumber, lua_tonumber, lua_isnumber)
+
+DEF_LUA_TRANS(int, lua_pushinteger, lua_tointeger, lua_isnumber)
+
+DEF_LUA_TRANS(long, lua_pushinteger, lua_tointeger, lua_isnumber)
+
+DEF_LUA_TRANS(bool, lua_pushboolean, lua_toboolean, lua_isboolean)
+
+#undef DEF_LUA_TRANS
+
+
+template<>
+struct Converter<std::string>
+{
+    typedef std::string value_type;
+
+    static inline unsigned int from(lua_State *L,
+                                    unsigned int idx, value_type *v, value_type const &default_value =
+    value_type())
+    {
+        if (lua_isstring(L, idx))
+        {
+            *v = lua_tostring(L, idx);
+        }
+        else
+        {
+            *v = default_value;
+            THROW_EXCEPTION_BAD_CAST(lua_typename(L, lua_type(L, idx)), "doulbe");
+        }
+        return 1;
+    }
+
+    static inline unsigned int to(lua_State *L,
+                                  value_type const &v)
+    {
+        lua_pushstring(L, v.c_str());
+        return 1;
+    }
+};
 
 template<unsigned int N, typename T> struct Converter<nTuple<T, N>>
 {
     typedef nTuple<T, N> value_type;
 
-    static inline unsigned int from(LuaState &L,
+    static inline unsigned int from(lua_State *&L,
                                     unsigned int idx, value_type *v, value_type const &default_value =
     value_type())
     {
-        if (lua_istable(L.get(), idx))
+        if (lua_istable(L, idx))
         {
-            size_t num = lua_rawlen(L.get(), idx);
+            size_t num = lua_rawlen(L, idx);
             for (size_t s = 0; s < N; ++s)
             {
-                lua_rawgeti(L.get(), idx, s % num + 1);
+                lua_rawgeti(L, idx, s % num + 1);
                 _impl::pop_from_lua(L, -1, &((*v)[s]));
-                lua_pop(L.get(), 1);
+                lua_pop(L, 1);
             }
 
         }
@@ -53,16 +233,16 @@ template<unsigned int N, typename T> struct Converter<nTuple<T, N>>
         return 1;
     }
 
-    static inline unsigned int to(LuaState &L,
+    static inline unsigned int to(lua_State *&L,
                                   value_type const &v)
     {
-        lua_newtable(L.get());
+        lua_newtable(L);
 
         for (int i = 0; i < N; ++i)
         {
-            lua_pushinteger(L.get(), i + 1);
+            lua_pushinteger(L, i + 1);
             Converter<T>::to(L, v[i]);
-            lua_settable(L.get(), -3);
+            lua_settable(L, -3);
         }
         return 1;
 
@@ -73,18 +253,18 @@ template<typename T, size_t N, size_t ...M> struct Converter<nTuple<T, N, M...>>
 {
     typedef nTuple<T, N, M...> value_type;
 
-    static inline unsigned int from(LuaState &L,
+    static inline unsigned int from(lua_State *&L,
                                     unsigned int idx, value_type *v, value_type const &default_value =
     value_type())
     {
-        if (lua_istable(L.get(), idx))
+        if (lua_istable(L, idx))
         {
-            size_t num = lua_rawlen(L.get(), idx);
+            size_t num = lua_rawlen(L, idx);
             for (size_t s = 0; s < N; ++s)
             {
-                lua_rawgeti(L.get(), idx, s % num + 1);
+                lua_rawgeti(L, idx, s % num + 1);
                 _impl::pop_from_lua(L, -1, &((*v)[s]));
-                lua_pop(L.get(), 1);
+                lua_pop(L, 1);
             }
 
         }
@@ -95,16 +275,16 @@ template<typename T, size_t N, size_t ...M> struct Converter<nTuple<T, N, M...>>
         return 1;
     }
 
-    static inline unsigned int to(LuaState &L,
+    static inline unsigned int to(lua_State *&L,
                                   value_type const &v)
     {
-        lua_newtable(L.get());
+        lua_newtable(L);
 
         for (int i = 0; i < N; ++i)
         {
-            lua_pushinteger(L.get(), i + 1);
+            lua_pushinteger(L, i + 1);
             Converter<T>::to(L, v[i]);
-            lua_settable(L.get(), -3);
+            lua_settable(L, -3);
         }
         return 1;
 
@@ -115,13 +295,13 @@ template<typename T> struct Converter<std::vector<T> >
 {
     typedef std::vector<T> value_type;
 
-    static inline unsigned int from(LuaState &L,
+    static inline unsigned int from(lua_State *&L,
                                     unsigned int idx, value_type *v, value_type const &default_value =
     value_type())
     {
-        if (lua_istable(L.get(), idx))
+        if (lua_istable(L, idx))
         {
-            size_t fnum = lua_rawlen(L.get(), idx);
+            size_t fnum = lua_rawlen(L, idx);
 
             if (fnum > 0)
             {
@@ -129,9 +309,9 @@ template<typename T> struct Converter<std::vector<T> >
                 for (size_t s = 0; s < fnum; ++s)
                 {
                     T res;
-                    lua_rawgeti(L.get(), idx, s % fnum + 1);
+                    lua_rawgeti(L, idx, s % fnum + 1);
                     _impl::pop_from_lua(L, -1, &(res));
-                    lua_pop(L.get(), 1);
+                    lua_pop(L, 1);
                     v->emplace_back(res);
                 }
             }
@@ -144,7 +324,7 @@ template<typename T> struct Converter<std::vector<T> >
         return 1;
     }
 
-    static inline unsigned int to(LuaState &L,
+    static inline unsigned int to(lua_State *&L,
                                   value_type const &v)
     {
         _impl::push_container_to_lua(L, v);
@@ -156,21 +336,21 @@ template<typename T> struct Converter<std::list<T> >
 {
     typedef std::list<T> value_type;
 
-    static inline unsigned int from(LuaState &L,
+    static inline unsigned int from(lua_State *&L,
                                     unsigned int idx, value_type *v, value_type const &default_value =
     value_type())
     {
-        if (lua_istable(L.get(), idx))
+        if (lua_istable(L, idx))
         {
-            size_t fnum = lua_rawlen(L.get(), idx);
+            size_t fnum = lua_rawlen(L, idx);
 
             for (size_t s = 0; s < fnum; ++s)
             {
-                lua_rawgeti(L.get(), idx, s % fnum + 1);
+                lua_rawgeti(L, idx, s % fnum + 1);
                 T tmp;
                 _impl::pop_from_lua(L, -1, tmp);
                 v->push_back(tmp);
-                lua_pop(L.get(), 1);
+                lua_pop(L, 1);
             }
 
         }
@@ -181,7 +361,7 @@ template<typename T> struct Converter<std::list<T> >
         return 1;
     }
 
-    static inline unsigned int to(LuaState &L,
+    static inline unsigned int to(lua_State *&L,
                                   value_type const &v)
     {
         _impl::push_container_to_lua(L, v);
@@ -193,18 +373,18 @@ template<typename T1, typename T2> struct Converter<std::map<T1, T2> >
 {
     typedef std::map<T1, T2> value_type;
 
-    static inline unsigned int from(LuaState &L,
+    static inline unsigned int from(lua_State *&L,
                                     unsigned int idx, value_type *v, value_type const &default_value =
     value_type())
     {
-        if (lua_istable(L.get(), idx))
+        if (lua_istable(L, idx))
         {
-            lua_pushnil(L.get()); /* first key */
+            lua_pushnil(L); /* first key */
 
             T1 key;
             T2 value;
 
-            while (lua_next(L.get(), idx))
+            while (lua_next(L, idx))
             {
                 /* uses 'key' (at index -2) and 'value' (at index -1) */
 
@@ -212,7 +392,7 @@ template<typename T1, typename T2> struct Converter<std::map<T1, T2> >
                 _impl::pop_from_lua(L, -1, &value);
                 (*v)[key] = value;
                 /* removes 'value'; keeps 'key' for next iteration */
-                lua_pop(L.get(), 1);
+                lua_pop(L, 1);
             }
 
         }
@@ -223,16 +403,16 @@ template<typename T1, typename T2> struct Converter<std::map<T1, T2> >
         return 1;
     }
 
-    static inline unsigned int to(LuaState &L,
+    static inline unsigned int to(lua_State *&L,
                                   value_type const &v)
     {
-        lua_newtable(L.get());
+        lua_newtable(L);
 
         for (auto const &vv : v)
         {
             Converter<T1>::to(L, vv.first);
             Converter<T2>::to(L, vv.second);
-            lua_settable(L.get(), -3);
+            lua_settable(L, -3);
         }
         return 1;
     }
@@ -242,27 +422,27 @@ template<typename T> struct Converter<std::complex<T> >
 {
     typedef std::complex<T> value_type;
 
-    static inline unsigned int from(LuaState &L,
+    static inline unsigned int from(lua_State *&L,
                                     unsigned int idx, value_type *v, value_type const &default_value =
     value_type())
     {
-        if (lua_istable(L.get(), idx))
+        if (lua_istable(L, idx))
         {
-            lua_pushnil(L.get()); /* first key */
-            while (lua_next(L.get(), idx))
+            lua_pushnil(L); /* first key */
+            while (lua_next(L, idx))
             {
                 /* uses 'key' (at index -2) and 'value' (at index -1) */
                 T r, i;
                 _impl::pop_from_lua(L, -2, &r);
                 _impl::pop_from_lua(L, -1, &i);
                 /* removes 'value'; keeps 'key' for next iteration */
-                lua_pop(L.get(), 1);
+                lua_pop(L, 1);
 
                 *v = std::complex<T>(r, i);
             }
 
         }
-        else if (lua_isnumber(L.get(), idx))
+        else if (lua_isnumber(L, idx))
         {
             T r;
             _impl::pop_from_lua(L, idx, &r);
@@ -275,14 +455,14 @@ template<typename T> struct Converter<std::complex<T> >
         return 1;
     }
 
-    static inline unsigned int to(LuaState &L, value_type const &v)
+    static inline unsigned int to(lua_State *&L, value_type const &v)
     {
         Converter<int>::to(L, 0);
         Converter<T>::to(L, v.real());
-        lua_settable(L.get(), -3);
+        lua_settable(L, -3);
         Converter<int>::to(L, 1);
         Converter<T>::to(L, v.imag());
-        lua_settable(L.get(), -3);
+        lua_settable(L, -3);
 
         return 1;
     }
@@ -292,20 +472,20 @@ template<typename T1, typename T2> struct Converter<std::pair<T1, T2> >
 {
     typedef std::pair<T1, T2> value_type;
 
-    static inline unsigned int from(LuaState &L, unsigned int idx, value_type *v, value_type const &default_value =
+    static inline unsigned int from(lua_State *&L, unsigned int idx, value_type *v, value_type const &default_value =
     value_type())
     {
-        if (lua_istable(L.get(), idx))
+        if (lua_istable(L, idx))
         {
-            lua_pushnil(L.get()); /* first key */
-            while (lua_next(L.get(), idx))
+            lua_pushnil(L); /* first key */
+            while (lua_next(L, idx))
             {
                 /* uses 'key' (at index -2) and 'value' (at index -1) */
 
                 _impl::pop_from_lua(L, -2, &(v->first));
                 _impl::pop_from_lua(L, -1, &(v->second));
                 /* removes 'value'; keeps 'key' for next iteration */
-                lua_pop(L.get(), 1);
+                lua_pop(L, 1);
             }
 
         }
@@ -316,12 +496,12 @@ template<typename T1, typename T2> struct Converter<std::pair<T1, T2> >
         return 1;
     }
 
-    static inline unsigned int to(LuaState &L,
+    static inline unsigned int to(lua_State *&L,
                                   value_type const &v)
     {
         Converter<T1>::to(L, v.first);
         Converter<T2>::to(L, v.second);
-        lua_settable(L.get(), -3);
+        lua_settable(L, -3);
         return 1;
     }
 };
@@ -331,7 +511,7 @@ template<typename ... T> struct Converter<std::tuple<T...> >
     typedef std::tuple<T...> value_type;
 
 private:
-    static inline unsigned int from_(LuaState &L,
+    static inline unsigned int from_(lua_State *&L,
                                      unsigned int idx, value_type *v,
                                      std::integral_constant<unsigned int, 0>)
     {
@@ -339,27 +519,27 @@ private:
     }
 
     template<unsigned int N>
-    static inline unsigned int from_(LuaState &L,
+    static inline unsigned int from_(lua_State *&L,
                                      unsigned int idx, value_type *v,
                                      std::integral_constant<unsigned int, N>)
     {
-        lua_rawgeti(L.get(), idx, N); // lua table's index starts from 1
+        lua_rawgeti(L, idx, N); // lua table's index starts from 1
         auto num = _impl::pop_from_lua(L, -1, &std::get<N - 1>(*v)); // C++ tuple index start from 0
-        lua_pop(L.get(), 1);
+        lua_pop(L, 1);
 
         return num
                + from_(L, idx, v,
                        std::integral_constant<unsigned int, N - 1>());
     }
 
-    static inline unsigned int to_(LuaState &L,
+    static inline unsigned int to_(lua_State *&L,
                                    value_type const &v, std::integral_constant<unsigned int, 0>)
     {
         return 0;
     }
 
     template<unsigned int N> static inline unsigned int to_(
-            LuaState &L, value_type const &v,
+            lua_State *&L, value_type const &v,
             std::integral_constant<unsigned int, N>)
     {
         return _impl::push_to_lua(L, std::get<sizeof...(T) - N>(v))
@@ -367,7 +547,7 @@ private:
     }
 
 public:
-    static inline unsigned int from(LuaState &L,
+    static inline unsigned int from(lua_State *&L,
                                     unsigned int idx, value_type *v, value_type const &default_value =
     value_type())
     {
@@ -375,14 +555,15 @@ public:
 
     }
 
-    static inline unsigned int to(LuaState &L, value_type const &v)
+    static inline unsigned int to(lua_State *&L, value_type const &v)
     {
         return to_(L, v, std::integral_constant<unsigned int, sizeof...(T)>());
     }
 
 };
 
-} // namespace lua
-}                                                                         // namespace simpla
+
+/** @} LuaTrans */
+}}                                                                         // namespace simpla
 
 #endif /* CORE_UTILITIES_LUA_OBJECT_EXT_H_ */
