@@ -21,9 +21,6 @@
 namespace simpla { namespace mesh
 {
 
-template<size_t TAGS>
-struct MeshIDs_;
-
 
 //  \verbatim
 //
@@ -56,17 +53,16 @@ struct MeshIDs_;
  *  |00000000000|11111111111111|11111111111| <=_MASK
  *  \endverbatim
  */
-template<size_t LEVEL>
-struct MeshIDs_
+struct MeshIDs
 {
     /// @name level independent
     /// @{
 
     static constexpr int MAX_NUM_OF_NEIGHBOURS = 12;
     static constexpr int ndims = 3;
-    static constexpr int MESH_RESOLUTION = static_cast<int> (LEVEL & 0xF);
+    static constexpr int MESH_RESOLUTION = 1;
 
-    typedef MeshIDs_<LEVEL> this_type;
+    typedef MeshIDs this_type;
 
     typedef std::uint64_t id_type;
 
@@ -764,10 +760,10 @@ struct MeshIDs_
         return m_adjacent_cell_num_[IFORM][nodeid];
     }
 
-    struct iterator : public block_iterator<index_type, MeshIDs_<LEVEL>::ndims + 1>
+    struct iterator : public block_iterator<index_type, MeshIDs::ndims + 1>
     {
     private:
-        static constexpr int ndims = MeshIDs_<LEVEL>::ndims;
+        static constexpr int ndims = MeshIDs::ndims;
         typedef block_iterator<index_type, ndims + 1> base_type;
 
         int m_iform_;
@@ -876,8 +872,7 @@ struct MeshIDs_
 
         // constructors
 
-        template<typename T0, typename T1>
-        range_type(T0 const &b, T1 const &e, int IFORM = VERTEX)
+        range_type(index_tuple const &b, index_tuple const &e, int IFORM = VERTEX)
                 : m_iform_(IFORM), m_min_(b), m_max_(e)
         {
             m_grain_size_ = 1;
@@ -1016,11 +1011,6 @@ struct MeshIDs_
     static range_type make_range(T0 const &b, T1 const &e)
     {
         return make_range(b, e, IFORM);
-    }
-
-    static range_type make_range(id_type const &b, id_type const &e)
-    {
-        return range_type(iterator(b, b, e), iterator(e, b, e));
     }
 
 
@@ -1237,69 +1227,49 @@ struct MeshIDs_
 };
 
 
-namespace traits
-{
-
-template<typename> struct id_type;
-
-template<size_t TAGS> struct id_type<MeshIDs_<TAGS>>
-{
-    typedef typename MeshIDs_<TAGS>::id_type type;
-};
-
-template<typename>
-struct coordinates_tuple;
-template<size_t TAGS>
-struct coordinates_tuple<MeshIDs_<TAGS>>
-{
-    typedef typename MeshIDs_<TAGS>::coordinates_tuple type;
-};
-
-}  // namespace traits
 /**
  * Solve problem: Undefined reference to static constexpr char[]
  * http://stackoverflow.com/questions/22172789/passing-a-static-constexpr-variable-by-universal-reference
  */
 
-template<size_t TAGS> constexpr int MeshIDs_<TAGS>::ndims;
-template<size_t TAGS> constexpr int MeshIDs_<TAGS>::MESH_RESOLUTION;
-template<size_t TAGS> constexpr Real MeshIDs_<TAGS>::EPSILON;
+constexpr int MeshIDs::ndims;
+constexpr int MeshIDs::MESH_RESOLUTION;
+constexpr Real MeshIDs::EPSILON;
 
-template<size_t TAGS> constexpr int MeshIDs_<TAGS>::FULL_DIGITS;
-template<size_t TAGS> constexpr int MeshIDs_<TAGS>::ID_DIGITS;
-
-
-template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::id_type MeshIDs_<TAGS>::OVERFLOW_FLAG;
-template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::id_type MeshIDs_<TAGS>::ID_ZERO;
-template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::id_type MeshIDs_<TAGS>::INDEX_ZERO;
+constexpr int MeshIDs::FULL_DIGITS;
+constexpr int MeshIDs::ID_DIGITS;
 
 
-template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::id_type MeshIDs_<TAGS>::ID_MASK;
-template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::id_type MeshIDs_<TAGS>::_DK;
-template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::id_type MeshIDs_<TAGS>::_DJ;
-template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::id_type MeshIDs_<TAGS>::_DI;
-template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::id_type MeshIDs_<TAGS>::_DA;
+constexpr typename MeshIDs::id_type MeshIDs::OVERFLOW_FLAG;
+constexpr typename MeshIDs::id_type MeshIDs::ID_ZERO;
+constexpr typename MeshIDs::id_type MeshIDs::INDEX_ZERO;
 
 
-template<size_t TAGS> constexpr int MeshIDs_<TAGS>::m_id_to_index_[];
-
-template<size_t TAGS> constexpr int MeshIDs_<TAGS>::m_id_to_iform_[];
-
-template<size_t TAGS> constexpr int MeshIDs_<TAGS>::m_id_to_num_of_ele_in_cell_[];
-
-template<size_t TAGS> constexpr int MeshIDs_<TAGS>::m_adjacent_cell_num_[4][8];
+constexpr typename MeshIDs::id_type MeshIDs::ID_MASK;
+constexpr typename MeshIDs::id_type MeshIDs::_DK;
+constexpr typename MeshIDs::id_type MeshIDs::_DJ;
+constexpr typename MeshIDs::id_type MeshIDs::_DI;
+constexpr typename MeshIDs::id_type MeshIDs::_DA;
 
 
-template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::id_type MeshIDs_<TAGS>::m_id_to_shift_[];
-template<size_t TAGS> constexpr int MeshIDs_<TAGS>::m_sub_index_to_id_[4][3];
+constexpr int MeshIDs::m_id_to_index_[];
+
+constexpr int MeshIDs::m_id_to_iform_[];
+
+constexpr int MeshIDs::m_id_to_num_of_ele_in_cell_[];
+
+constexpr int MeshIDs::m_adjacent_cell_num_[4][8];
 
 
-template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::id_type
-        MeshIDs_<TAGS>::m_adjacent_cell_matrix_[4/* to iform*/][NUM_OF_NODE_ID/* node id*/][MAX_NUM_OF_ADJACENT_CELL/*id shift*/];
+constexpr typename MeshIDs::id_type MeshIDs::m_id_to_shift_[];
+constexpr int MeshIDs::m_sub_index_to_id_[4][3];
 
-template<size_t TAGS> constexpr typename MeshIDs_<TAGS>::coordinates_tuple MeshIDs_<TAGS>::m_id_to_coordinates_shift_[];
 
-typedef MeshIDs_<2> MeshIDs;
+constexpr typename MeshIDs::id_type
+        MeshIDs::m_adjacent_cell_matrix_[4/* to iform*/][NUM_OF_NODE_ID/* node id*/][MAX_NUM_OF_ADJACENT_CELL/*id shift*/];
+
+constexpr typename MeshIDs::coordinates_tuple MeshIDs::m_id_to_coordinates_shift_[];
+
 }//namespace  mesh
 }// namespace simpla
 

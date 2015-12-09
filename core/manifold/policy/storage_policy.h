@@ -56,34 +56,26 @@ public:
         return os;
     }
 
-    template<typename TV> using storage_type=std::shared_ptr<void>;
 
     void deploy() { }
 
     template<typename TV, typename ...Others>
-    inline TV &at(std::shared_ptr<void> &d, id_type s) const
+    inline TV &at(DataSet &d, id_type s) const
     {
-        return reinterpret_cast<TV *>(d.get())[m_geo_.hash(s)];
+        return d.template get_value<TV>(m_geo_.hash(s));
     }
 
 
     template<typename TV, typename ...Others>
-    inline TV const &at(std::shared_ptr<void> const &d, id_type s) const
+    inline TV const &at(DataSet const &d, id_type s) const
     {
-        return reinterpret_cast<TV *>(d.get())[m_geo_.hash(s)];
+        return d.template get_value<TV>(m_geo_.hash(s));
     }
 
     template<typename TV, int IFORM>
     DataSet dataset(std::shared_ptr<void> d = nullptr) const
     {
         DataSet res;
-
-        if (d == nullptr) { alloc_memory<IFORM, TV>(&res.data); }
-        else { res.data = d; }
-
-//        std::tie(res.dataspace, res.memory_space) = dataspace<IFORM>();
-//        res.datatype = traits::datatype<TV>::create();
-
         //FIXME  temporary by pass for XDMF
         auto dtype = traits::datatype<TV>::create();
         if (dtype.is_array() && (IFORM == VERTEX || IFORM == VOLUME))
@@ -98,39 +90,41 @@ public:
 
         }
 
+        if (d != nullptr) { res.data = d; } else { res.deploy(); }
+
         return std::move(res);
     };
-private:
-    size_t memory_size(int IFORM) const
-    {
-        static constexpr int ndims = geometry_type::ndims;
-
-        size_t res = (IFORM == EDGE || IFORM == FACE) ? 3 : 1;
-        for (int i = 0; i < ndims; ++i)
-        {
-            res *= (m_geo_.m_idx_memory_max_[i] - m_geo_.m_idx_memory_min_[i]);
-        }
-        return res;
-    }
-
-public:
-    template<int IFORM, typename TV>
-    void alloc_memory(std::shared_ptr<void> *d) const
-    {
-        if (*d == nullptr)
-        {
-            *d = sp_alloc_memory(sizeof(TV) * memory_size(IFORM));
-        }
-    };
-
-    template<int IFORM, typename TV>
-    void clear(std::shared_ptr<void> *d) const
-    {
-        alloc_memory<IFORM, TV>(d);
-        size_t ie = memory_size(IFORM) * sizeof(TV);
-        char *p = reinterpret_cast<char *>(d->get());
-        memset(p, 0, memory_size(IFORM) * sizeof(TV));
-    };
+//private:
+//    size_t memory_size(int IFORM) const
+//    {
+//        static constexpr int ndims = geometry_type::ndims;
+//
+//        size_t res = (IFORM == EDGE || IFORM == FACE) ? 3 : 1;
+//        for (int i = 0; i < ndims; ++i)
+//        {
+//            res *= (m_geo_.m_idx_memory_max_[i] - m_geo_.m_idx_memory_min_[i]);
+//        }
+//        return res;
+//    }
+//
+//public:
+//    template<int IFORM, typename TV>
+//    void alloc_memory(std::shared_ptr<void> *d) const
+//    {
+//        if (*d == nullptr)
+//        {
+//            *d = sp_alloc_memory(sizeof(TV) * memory_size(IFORM));
+//        }
+//    };
+//
+//    template<int IFORM, typename TV>
+//    void clear(std::shared_ptr<void> *d) const
+//    {
+//        alloc_memory<IFORM, TV>(d);
+//        size_t ie = memory_size(IFORM) * sizeof(TV);
+//        char *p = reinterpret_cast<char *>(d->get());
+//        memset(p, 0, memory_size(IFORM) * sizeof(TV));
+//    };
 
     template<int IFORM>
     std::tuple<DataSpace, DataSpace> dataspace() const
@@ -192,9 +186,11 @@ public:
 
         return std::make_tuple(
 
-                DataSpace(f_ndims, &(f_dims[0])).select_hyperslab(&f_start[0], nullptr, &count[0], nullptr),
+                DataSpace(f_ndims, &(f_dims[0]))
+                        .select_hyperslab(&f_start[0], nullptr, &count[0], nullptr),
 
-                DataSpace(f_ndims, &(m_dims[0])).select_hyperslab(&m_start[0], nullptr, &count[0], nullptr)
+                DataSpace(f_ndims, &(m_dims[0]))
+                        .select_hyperslab(&m_start[0], nullptr, &count[0], nullptr)
 
         );
 

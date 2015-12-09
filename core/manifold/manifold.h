@@ -283,35 +283,24 @@ public:
     virtual DataSet grid_vertices() const
     {
         DataSet ds = this->storage_policy::template dataset<point_type, VERTEX>();
-        parallel::parallel_for(this->template range<VERTEX>(),
-                               [&](range_type const &r)
-                               {
-                                   for (auto const &s: r)
-                                   {
+        parallel::parallel_for(
+                this->template range<VERTEX>(),
+                [&](range_type const &r)
+                {
+                    for (auto const &s: r)
+                    {
+                        this->template at<point_type>(ds, s) =
+                                this->map_to_cartesian(this->point(s));
 
-                                       this->template at<point_type>(ds.data, s) = this->map_to_cartesian(
-                                               this->point(s));
-
-                                       //   this->template at<point_type>(ds.data, s) = this->point(s);
-                                   }
-                               }
+                        //   this->template at<point_type>(ds.data, s) = this->point(s);
+                    }
+                }
         );
 
         return std::move(ds);
 
     };
 
-//    void enroll(std::string const &key, DataSet const &ds, int TAG)
-//    {
-//        this->io_policy::enroll(key, ds, TAG);
-//    }
-//
-//    template<typename TV, int IFORM>
-//    void enroll(std::string const &key, Field<TV, this_type, std::integral_constant<int, IFORM> > const &f)
-//    {
-//        bool is_vector = traits::is_ntuple<TV>::value || (IFORM == EDGE || IFORM == FACE);
-//        this->io_policy::enroll(key, f.dataset(), IFORM | (is_vector ? (0x10) : 0));
-//    }
 
     virtual Real time() const
     {

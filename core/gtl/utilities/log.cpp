@@ -261,19 +261,19 @@ int get_line_width()
 }
 
 Logger::Logger()
-        : level_(0), current_line_char_count_(0), endl_(true), m_buffer_(new std::ostringstream)
+        : m_level_(0), current_line_char_count_(0), endl_(true), m_buffer_(new std::ostringstream)
 {
 }
 
 Logger::Logger(Logger &&other)
-        : level_(other.level_), m_buffer_(other.m_buffer_), current_line_char_count_(other.current_line_char_count_),
+        : m_level_(other.m_level_), m_buffer_(other.m_buffer_), current_line_char_count_(other.current_line_char_count_),
           endl_(other.endl_)
 {
 }
 
 
 Logger::Logger(int lv)
-        : level_(lv), current_line_char_count_(0), endl_(true), m_buffer_(new std::ostringstream)
+        : m_level_(lv), current_line_char_count_(0), endl_(true), m_buffer_(new std::ostringstream)
 {
     (*m_buffer_) << std::boolalpha;
 
@@ -294,7 +294,7 @@ int Logger::get_buffer_length() const
 void Logger::flush()
 {
 
-    SingletonHolder<LoggerStreams>::instance().push(level_, (*m_buffer_).str());
+    SingletonHolder<LoggerStreams>::instance().push(m_level_, (*m_buffer_).str());
     (*m_buffer_).str("");
 
 }

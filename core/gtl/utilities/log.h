@@ -196,7 +196,7 @@ public:
     }
 
     std::shared_ptr<std::ostringstream> m_buffer_;
-    int level_;
+    int m_level_ = 10;
     int current_line_char_count_;
     bool endl_;
 

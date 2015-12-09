@@ -264,7 +264,7 @@ public:
                 }
             }
         }
-
+        updata_boundary_box();
 
     }
 
@@ -275,10 +275,76 @@ public:
         m_idx_local_max_ = m_idx_max_;
         m_idx_memory_min_ = m_idx_min_;
         m_idx_memory_max_ = m_idx_max_;
-
+        updata_boundary_box();
     }
 
+    void updata_boundary_box()
+    {
+        nTuple<size_t, ndims> m_min, m_max;
+        nTuple<size_t, ndims> l_min, l_max;
+        nTuple<size_t, ndims> c_min, c_max;
+        nTuple<size_t, ndims> ghost_width;
+        std::tie(m_min, m_max) = memory_index_box();
+        std::tie(l_min, l_max) = local_index_box();
+        c_min = l_min + (l_min - m_min);
+        c_max = l_max - (m_max - l_max);
+        m_center_box_ = std::make_tuple(c_min, c_max);
+
+        for (int i = 0; i < ndims; ++i)
+        {
+            nTuple<size_t, ndims> b_min, b_max;
+
+            b_min = l_min;
+            b_max = l_max;
+            b_max[i] = c_min[i];
+            if (b_min[i] != b_max[i]) { m_boundary_box_.push_back(std::make_tuple(b_min, b_max)); }
+
+
+            b_min = l_min;
+            b_max = l_max;
+            b_min[i] = c_max[i];
+            if (b_min[i] != b_max[i]) { m_boundary_box_.push_back(std::make_tuple(b_min, b_max)); }
+
+
+            l_min[i] = c_min[i];
+            l_max[i] = c_max[i];
+        }
+
+        std::tie(m_min, m_max) = memory_index_box();
+        std::tie(l_min, l_max) = local_index_box();
+
+        for (int i = 0; i < ndims; ++i)
+        {
+            nTuple<size_t, ndims> g_min, g_max;
+
+
+            g_min = m_min;
+            g_max = m_max;
+            g_min[i] = m_min[i];
+            g_max[i] = l_min[i];
+            if (g_min[i] != g_max[i]) { m_ghost_box_.push_back(std::make_tuple(g_min, g_max)); }
+            g_min = g_min;
+            g_max = g_max;
+
+            g_min[i] = l_max[i];
+            g_max[i] = m_max[i];
+            if (g_min[i] != g_max[i]) { m_ghost_box_.push_back(std::make_tuple(g_min, g_max)); }
+            m_min[i] = l_min[i];
+            m_max[i] = l_max[i];
+        }
+    }
+
+    std::tuple<index_tuple, index_tuple> const &center_box() const { return m_center_box_; }
+
+    std::vector<std::tuple<index_tuple, index_tuple>> const &boundary_box() const { return m_boundary_box_; }
+
+    std::vector<std::tuple<index_tuple, index_tuple>> const &ghost_box() const { return m_ghost_box_; }
+
 private:
+    std::tuple<index_tuple, index_tuple> m_center_box_;
+    std::vector<std::tuple<index_tuple, index_tuple>> m_boundary_box_;
+    std::vector<std::tuple<index_tuple, index_tuple>> m_ghost_box_;
+
 
     template<typename T0, typename T1>
     index_type dist_to_box_(id_type const &s, T0 const &imin, T1 const &imax) const
@@ -302,8 +368,6 @@ private:
         }
 
         return res;
-
-
     }
 
 public:

@@ -17,13 +17,11 @@
 
 namespace simpla
 {
-
+namespace manifold { namespace policy
+{
 /**
  * @ingroup manifold
  */
-namespace manifold { namespace policy
-{
-
 template<typename ...> struct ParallelPolicy;
 
 template<typename TMesh>
@@ -40,19 +38,11 @@ public:
 
     typedef this_type parallel_policy;
 
-    ParallelPolicy(mesh_type &geo) :
-            m_mesh_(geo)
-    {
-    }
+    ParallelPolicy(mesh_type &geo) : m_mesh_(geo) { }
 
-    virtual ~ParallelPolicy()
-    {
-    }
+    virtual ~ParallelPolicy() { }
 
-    template<typename TDict>
-    void load(TDict const &dict)
-    {
-    }
+    template<typename TDict> void load(TDict const &dict) { }
 
 
     template<typename OS>
@@ -65,12 +55,22 @@ public:
 
     void deploy();
 
+    void sync(DataSet &) const;
+
 
     template<typename T> void sync(T &self) const;
 
 
     template<int IFORM, typename Func, typename ...Args>
     void update(Func const &fun, Args &&...args) const;
+
+
+    template<typename TV, int IFORM, typename Range, typename Func>
+    void for_each1(DataSet &ds, Range const &r, Func const &fun);
+
+    template<typename TV, int IFORM, typename Range, typename Func>
+    void for_each1(DataSet const &ds, Range const &r, Func const &fun) const;
+
 
     template<int IFORM, typename Func>
     void for_each(Func const &fun) const;
@@ -87,11 +87,6 @@ public:
 private:
 
     mesh_type &m_mesh_;
-    typedef nTuple<size_t, 3> IVec3;
-
-    std::tuple<IVec3, IVec3> m_center_box_;
-    std::vector<std::tuple<IVec3, IVec3>> m_boundary_box_;
-    std::vector<std::tuple<IVec3, IVec3>> m_ghost_box_;
 
 
 }; //template<typename TMesh> struct ParallelPolicy
@@ -108,60 +103,12 @@ void ParallelPolicy<TMesh>::deploy()
         m_mesh_.decompose(GLOBAL_COMM.topology(),
                           GLOBAL_COMM.coordinate());
     }
+}
 
-    nTuple<size_t, mesh_type::ndims> m_min, m_max;
-    nTuple<size_t, mesh_type::ndims> l_min, l_max;
-    nTuple<size_t, mesh_type::ndims> c_min, c_max;
-    nTuple<size_t, mesh_type::ndims> ghost_width;
-    std::tie(m_min, m_max) = m_mesh_.memory_index_box();
-    std::tie(l_min, l_max) = m_mesh_.local_index_box();
-    c_min = l_min + (l_min - m_min);
-    c_max = l_max - (m_max - l_max);
-    m_center_box_ = std::make_tuple(c_min, c_max);
-
-    for (int i = 0; i < mesh_type::ndims; ++i)
-    {
-        nTuple<size_t, mesh_type::ndims> b_min, b_max;
-
-        b_min = l_min;
-        b_max = l_max;
-        b_max[i] = c_min[i];
-        if (b_min[i] != b_max[i]) { m_boundary_box_.push_back(std::make_tuple(b_min, b_max)); }
-
-
-        b_min = l_min;
-        b_max = l_max;
-        b_min[i] = c_max[i];
-        if (b_min[i] != b_max[i]) { m_boundary_box_.push_back(std::make_tuple(b_min, b_max)); }
-
-
-        l_min[i] = c_min[i];
-        l_max[i] = c_max[i];
-    }
-
-    std::tie(m_min, m_max) = m_mesh_.memory_index_box();
-    std::tie(l_min, l_max) = m_mesh_.local_index_box();
-
-    for (int i = 0; i < mesh_type::ndims; ++i)
-    {
-        nTuple<size_t, mesh_type::ndims> g_min, g_max;
-
-
-        g_min = m_min;
-        g_max = m_max;
-        g_min[i] = m_min[i];
-        g_max[i] = l_min[i];
-        if (g_min[i] != g_max[i]) { m_ghost_box_.push_back(std::make_tuple(g_min, g_max)); }
-        g_min = g_min;
-        g_max = g_max;
-
-        g_min[i] = l_max[i];
-        g_max[i] = m_max[i];
-        if (g_min[i] != g_max[i]) { m_ghost_box_.push_back(std::make_tuple(g_min, g_max)); }
-        m_min[i] = l_min[i];
-        m_max[i] = l_max[i];
-    }
-
+template<typename TMesh> void
+ParallelPolicy<TMesh>::sync(DataSet &ds) const
+{
+    parallel::sync(ds);
 }
 
 template<typename TMesh>
@@ -175,7 +122,7 @@ template<typename TMesh>
 template<int IFORM, typename Func, typename ...Args>
 void ParallelPolicy<TMesh>::update(Func const &fun, Args &&...args) const
 {
-    if (m_boundary_box_.size() > 0)
+    if (m_mesh_.boundary_box().size() > 0)
     {
         for_each_boundary<IFORM>(fun);
 
@@ -203,10 +150,44 @@ void  ParallelPolicy<TMesh>::for_each(Func const &fun) const
 };
 
 template<typename TMesh>
+template<typename TV, int IFORM, typename TRange, typename Func>
+void  ParallelPolicy<TMesh>::for_each1(DataSet const &ds, TRange const &r0, Func const &fun) const
+{
+
+    serial::parallel_for(
+            r0,
+            [&](TRange const &r)
+            {
+                for (auto const &item:r)
+                {
+                    fun(item, reinterpret_cast<TV *>(ds.data.get())[m_mesh_.hash(item)]);
+                }
+            }
+    );
+}
+
+template<typename TMesh>
+template<typename TV, int IFORM, typename TRange, typename Func>
+void  ParallelPolicy<TMesh>::for_each1(DataSet &ds, TRange const &r0, Func const &fun)
+{
+
+    serial::parallel_for(
+            r0,
+            [&](TRange const &r)
+            {
+                for (auto const &item:r)
+                {
+                    fun(item, reinterpret_cast<TV *>(ds.data.get())[m_mesh_.hash(item)]);
+                }
+            }
+    );
+}
+
+template<typename TMesh>
 template<int IFORM, typename Func>
 void  ParallelPolicy<TMesh>::for_each_boundary(Func const &fun) const
 {
-    for (auto const &item:m_boundary_box_)
+    for (auto const &item:m_mesh_.boundary_box())
     {
         parallel::parallel_for(m_mesh_.template make_range<IFORM>(item), fun);
     }
@@ -216,7 +197,7 @@ template<typename TMesh>
 template<int IFORM, typename Func>
 void  ParallelPolicy<TMesh>::for_each_ghost(Func const &fun) const
 {
-    for (auto const &item:m_ghost_box_)
+    for (auto const &item:m_mesh_.ghost_box())
     {
         parallel::parallel_for(m_mesh_.template make_range<IFORM>(item), fun);
     }
@@ -226,7 +207,7 @@ template<typename TMesh>
 template<int IFORM, typename Func>
 void  ParallelPolicy<TMesh>::for_each_center(Func const &fun) const
 {
-    parallel::parallel_for(m_mesh_.template make_range<IFORM>(m_center_box_), fun);
+    parallel::parallel_for(m_mesh_.template make_range<IFORM>(m_mesh_.center_box()), fun);
 };
 
 

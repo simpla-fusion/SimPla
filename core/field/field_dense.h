@@ -142,9 +142,7 @@ public:
     template<typename Other>
     inline this_type &operator*=(Other const &other)
     {
-
         action(_impl::multiplies_assign(), other);
-
         return *this;
     }
 
@@ -158,30 +156,14 @@ public:
     template<typename TRange, typename Func>
     void accept(TRange const &r0, Func const &fun)
     {
-        parallel::parallel_for(r0,
-                               [&](TRange const &r)
-                               {
-                                   for (auto const &item:r)
-                                   {
-                                       fun(item, (*this)[traits::get<0>(item)]);
-                                   }
-                               }
-        );
+        m_mesh_.template for_each1<value_type, iform>(*m_dataset_, r0, fun);
+
     };
 
     template<typename TRange, typename Func>
     void accept(TRange const &r0, Func const &fun) const
     {
-        parallel::parallel_for(r0,
-                               [&](TRange const &r)
-                               {
-
-                                   for (auto const &item:r)
-                                   {
-                                       fun(item, (*this)[traits::get<0>(item)]);
-                                   }
-                               }
-        );
+        m_mesh_.template for_each1<value_type, iform>(*m_dataset_, r0, fun);
     };
 
 private:
@@ -224,7 +206,7 @@ public:
      *  @{
      */
 
-    void sync() { m_mesh_.sync(*this); }
+    void sync() { m_mesh_.sync(*m_dataset_); }
 
     void declare_as(std::string const &s)
     {
@@ -246,24 +228,24 @@ public:
 
     value_type &operator[](id_type const &s)
     {
-        return m_mesh_.template at<value_type>(m_dataset_->data, s);
+        return m_mesh_.template at<value_type>(*m_dataset_, s);
     }
 
     value_type const &operator[](id_type const &s) const
     {
-        return m_mesh_.template at<value_type>(m_dataset_->data, s);
+        return m_mesh_.template at<value_type>(*m_dataset_, s);
     }
 
     template<typename ...Args>
     value_type &at(Args &&... args)
     {
-        return m_mesh_.template at<value_type>(*this, std::forward<Args>(args)...);
+        return m_mesh_.template at<value_type>(*m_dataset_, std::forward<Args>(args)...);
     }
 
     template<typename ...Args>
     value_type const &at(Args &&... args) const
     {
-        return m_mesh_.template at<value_type>(*this, std::forward<Args>(args)...);
+        return m_mesh_.template at<value_type>(*m_dataset_, std::forward<Args>(args)...);
     }
 /**
  * @}

@@ -19,7 +19,7 @@
 #include <string>
 #include <tuple>
 #include <utility>
-
+#include <mutex>
 #include "log.h"
 #include "../type_cast.h"
 
@@ -35,9 +35,7 @@ extern "C"
 #endif
 }
 
-namespace simpla
-{
-namespace lua
+namespace simpla { namespace lua
 {
 
 /**
@@ -45,6 +43,43 @@ namespace lua
  * @addtogroup  lua   Lua engine
  *  @{
  */
+
+struct LuaState
+{
+    struct lua_s
+    {
+        lua_State *m_state_;
+        std::mutex m_mutex_;
+
+        lua_s() : m_state_(luaL_newstate()) { }
+
+        ~lua_s() { lua_close(m_state_); }
+    };
+
+    std::shared_ptr<lua_s> m_l_;
+
+    LuaState() : m_l_(nullptr) { }
+
+    LuaState(LuaState const &other) : m_l_(other.m_l_) { }
+
+    ~LuaState() { }
+
+    void init() { m_l_ = std::make_shared<lua_s>(); }
+
+    bool empty() const { return m_l_ == nullptr; }
+
+    bool unique() const { return m_l_.unique(); }
+
+    lua_State *get() { return m_l_->m_state_; }
+
+    lua_State *get() const { return const_cast<lua_State *>(m_l_->m_state_); }
+
+    void lock() { m_l_->m_mutex_.lock(); }
+
+    void unlock() { m_l_->m_mutex_.unlock(); }
+
+};
+
 
 #define LUA_ERROR(_CMD_)                                                     \
 {                                                                              \
@@ -65,8 +100,7 @@ struct Converter;
 namespace _impl
 {
 template<typename TC>
-void push_container_to_lua(std::shared_ptr<lua_State> L,
-                           TC const &v)
+void push_container_to_lua(LuaState L, TC const &v)
 {
     lua_newtable(L.get());
 
@@ -80,13 +114,13 @@ void push_container_to_lua(std::shared_ptr<lua_State> L,
     }
 }
 
-inline unsigned int push_to_lua(std::shared_ptr<lua_State> L)
+inline unsigned int push_to_lua(LuaState L)
 {
     return 0;
 }
 
 template<typename T, typename ... Args>
-inline unsigned int push_to_lua(std::shared_ptr<lua_State> L, T const &v,
+inline unsigned int push_to_lua(LuaState L, T const &v,
                                 Args const &... rest)
 {
     luaL_checkstack(L.get(), 1 + sizeof...(rest), "too many arguments");
@@ -94,13 +128,13 @@ inline unsigned int push_to_lua(std::shared_ptr<lua_State> L, T const &v,
     return Converter<T>::to(L, v) + push_to_lua(L, rest...);
 }
 
-inline unsigned int pop_from_lua(std::shared_ptr<lua_State> L, int)
+inline unsigned int pop_from_lua(LuaState L, int)
 {
     return 0;
 }
 
 template<typename T, typename ... Args>
-inline unsigned int pop_from_lua(std::shared_ptr<lua_State> L, unsigned int idx,
+inline unsigned int pop_from_lua(LuaState L, unsigned int idx,
                                  T *v, Args *... rest)
 {
     return Converter<T>::from(L, idx, v) + pop_from_lua(L, idx + 1, rest...);
@@ -113,7 +147,7 @@ inline unsigned int pop_from_lua(std::shared_ptr<lua_State> L, unsigned int idx,
  */
 class Object
 {
-    std::shared_ptr<lua_State> L_;
+    LuaState L_;
 
     int GLOBAL_REF_IDX_;
     int self_;
@@ -123,12 +157,9 @@ public:
 
     typedef Object this_type;
 
-    Object() :
-            L_(nullptr), self_(0), GLOBAL_REF_IDX_(0)
-    {
-    }
+    Object() : self_(0), GLOBAL_REF_IDX_(0) { }
 
-    Object(std::shared_ptr<lua_State> l, unsigned int G, unsigned int s,
+    Object(LuaState l, unsigned int G, unsigned int s,
            std::string const &path = "") :
             L_(l), GLOBAL_REF_IDX_(G), self_(s), path_(path)
     {
@@ -137,10 +168,18 @@ public:
     Object(Object const &r) :
             L_(r.L_), GLOBAL_REF_IDX_(r.GLOBAL_REF_IDX_), path_(r.path_)
     {
-        if (L_ != nullptr)
+        if (!L_.empty())
         {
-            lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, r.self_);
-            self_ = luaL_ref(L_.get(), GLOBAL_REF_IDX_);
+            if (r.self_ != 0)
+            {
+                lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, r.self_);
+
+                self_ = luaL_ref(L_.get(), GLOBAL_REF_IDX_);
+            }
+            else
+            {
+                self_ = 0;
+            }
         }
     }
 
@@ -151,13 +190,10 @@ public:
         r.self_ = 0;
     }
 
-    Object &operator=(Object const &r)
+    Object &operator=(Object const &other)
     {
-        this->L_ = r.L_;
-        this->GLOBAL_REF_IDX_ = r.GLOBAL_REF_IDX_;
-        this->path_ = r.path_;
-        lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, r.self_);
-        self_ = luaL_ref(L_.get(), GLOBAL_REF_IDX_);
+        Object(other).swap(*this);
+
         return *this;
     }
 
@@ -172,24 +208,25 @@ public:
 
     ~Object()
     {
+        if (!L_.empty())
+        {
+            if (self_ > 0)
+            {
+                luaL_unref(L_.get(), GLOBAL_REF_IDX_, self_);
+            }
 
-        if (L_ == nullptr)
-        {
-            return;
-        }
-        if (self_ > 0)
-        {
-            luaL_unref(L_.get(), GLOBAL_REF_IDX_, self_);
+            if (L_.unique())
+            {
+                lua_remove(L_.get(), GLOBAL_REF_IDX_);
+            }
         }
 
-        if (L_.unique())
-        {
-            lua_remove(L_.get(), GLOBAL_REF_IDX_);
-        }
     }
 
     inline std::basic_ostream<char> &Serialize(std::basic_ostream<char> &os)
     {
+        ASSERT (!L_.empty());
+
         int top = lua_gettop(L_.get());
         for (int i = 1; i < top; ++i)
         {
@@ -224,28 +261,28 @@ public:
 
     inline bool is_null() const
     {
-        return L_ == nullptr;
+        return L_.empty();
     }
 
     inline bool empty() const // STL style
     {
-        return L_ == nullptr;
+        return L_.empty();
     }
 
     operator bool() const
     {
-        return L_ != nullptr;
+        return !L_.empty();
     }
 
     bool is_global() const
     {
-        return L_ != nullptr && self_ == -1;
+        return !L_.empty() && self_ == -1;
     }
 
 #define DEF_TYPE_CHECK(_FUN_NAME_, _LUA_FUN_)                              \
     inline bool _FUN_NAME_() const                                        \
     {   bool res=false;                                                   \
-        if(L_!=nullptr)                                                   \
+        if(!L_.empty())                                                   \
         {                                                                 \
           lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);                  \
            res = _LUA_FUN_(L_.get(), -1);                                 \
@@ -282,10 +319,10 @@ public:
 
     void init()
     {
-        if (self_ == 0 || L_ == nullptr)
+        if (self_ == 0 || L_.empty())
         {
-            L_ = std::shared_ptr<lua_State>(luaL_newstate(), lua_close);
-
+            L_.init();
+//            L_ = LuaState(luaL_newstate(), lua_close);
             luaL_openlibs(L_.get());
 
             lua_newtable(L_.get());  // new table on stack
@@ -301,7 +338,6 @@ public:
 
     inline void parse_file(std::string const &filename)
     {
-        init();
         if (filename != "")
         {
             LUA_ERROR(luaL_dofile(L_.get(), filename.c_str()));
@@ -312,7 +348,6 @@ public:
 
     inline void parse_string(std::string const &str)
     {
-        init();
 
         LUA_ERROR(luaL_dostring(L_.get(), str.c_str()))
 
@@ -320,7 +355,7 @@ public:
 
     class iterator
     {
-        std::shared_ptr<lua_State> L_;
+        LuaState L_;
         int GLOBAL_IDX_;
         int parent_;
         int key_;
@@ -329,7 +364,7 @@ public:
     public:
         void Next()
         {
-            if (L_ == nullptr)
+            if (L_.empty())
             {
                 return;
             }
@@ -381,7 +416,7 @@ public:
 
     public:
         iterator() :
-                L_(nullptr), GLOBAL_IDX_(0), parent_(LUA_NOREF), key_(
+                GLOBAL_IDX_(0), parent_(LUA_NOREF), key_(
                 LUA_NOREF), value_(LUA_NOREF)
         {
 
@@ -390,10 +425,7 @@ public:
         iterator(iterator const &r) :
                 L_(r.L_), GLOBAL_IDX_(r.GLOBAL_IDX_)
         {
-            if (L_ == nullptr)
-            {
-                return;
-            }
+            if (L_.empty()) { return; }
 
             lua_rawgeti(L_.get(), GLOBAL_IDX_, r.parent_);
 
@@ -418,15 +450,12 @@ public:
             r.value_ = LUA_NOREF;
         }
 
-        iterator(std::shared_ptr<lua_State> L, unsigned int G, unsigned int p,
+        iterator(LuaState L, unsigned int G, unsigned int p,
                  std::string path) :
                 L_(L), GLOBAL_IDX_(G), parent_(p), key_(LUA_NOREF), value_(
                 LUA_NOREF), path_(path + "[iterator]")
         {
-            if (L_ == nullptr)
-            {
-                return;
-            }
+            if (L_.empty()) { return; }
 
             lua_rawgeti(L_.get(), GLOBAL_IDX_, p);
             bool is_table = lua_istable(L_.get(), -1);
@@ -445,7 +474,7 @@ public:
 
         ~iterator()
         {
-            if (L_ == nullptr)
+            if (L_.empty())
             {
                 return;
             }
@@ -610,7 +639,7 @@ public:
             return Object();
         }
 
-        if (self_ < 0 || L_ == nullptr)
+        if (self_ < 0 || L_.empty())
         {
             THROW_EXCEPTION_LOGIC_ERROR(path_ + " is not indexable!");
         }
@@ -654,7 +683,7 @@ public:
             return Object();
         }
 
-        if (self_ < 0 || L_ == nullptr)
+        if (self_ < 0 || L_.empty())
         {
             THROW_EXCEPTION_LOGIC_ERROR(path_ + " is not indexable!");
         }
@@ -895,7 +924,7 @@ struct Converter<unsigned int>
 {
     typedef unsigned int value_type;
 
-    static inline unsigned int from(std::shared_ptr<lua_State> L, unsigned int idx, value_type *v,
+    static inline unsigned int from(LuaState L, unsigned int idx, value_type *v,
                                     value_type const &default_value = value_type())
     {
         if (lua_isnumber(L.get(), idx))
@@ -912,7 +941,7 @@ struct Converter<unsigned int>
         return 1;
     }
 
-    static inline unsigned int to(std::shared_ptr<lua_State> L, value_type const &v)
+    static inline unsigned int to(LuaState L, value_type const &v)
     {
         lua_pushinteger(L.get(), static_cast<LUA_INTEGER>(v));
         return 1;
@@ -924,7 +953,7 @@ struct Converter<unsigned long>
 {
     typedef unsigned long value_type;
 
-    static inline unsigned int from(std::shared_ptr<lua_State> L, unsigned int idx, value_type *v,
+    static inline unsigned int from(LuaState L, unsigned int idx, value_type *v,
                                     value_type const &default_value = value_type())
     {
         if (lua_isnumber(L.get(), idx))
@@ -941,7 +970,7 @@ struct Converter<unsigned long>
         return 1;
     }
 
-    static inline unsigned int to(std::shared_ptr<lua_State> L, value_type const &v)
+    static inline unsigned int to(LuaState L, value_type const &v)
     {
         lua_pushinteger(L.get(), static_cast<LUA_INTEGER>(v));
         return 1;
@@ -953,7 +982,7 @@ template<> struct Converter<_TYPE_>                                             
 {                                                                                     \
     typedef _TYPE_ value_type;                                                        \
                                                                                       \
-    static inline  unsigned int  from(std::shared_ptr<lua_State>L,  unsigned int  idx, value_type * v,                    \
+    static inline  unsigned int  from(LuaState L,  unsigned int  idx, value_type * v,                    \
             value_type const &default_value=value_type())                            \
     {                                                                                 \
         if (_CHECK_FUN_(L.get(), idx))                                                     \
@@ -965,7 +994,7 @@ template<> struct Converter<_TYPE_>                                             
         }                                                                             \
         return 1;                                                                     \
     }                                                                                 \
-    static inline  unsigned int  to(std::shared_ptr<lua_State>L, value_type const & v)                       \
+    static inline  unsigned int  to(LuaState L, value_type const & v)                       \
     {                                                                                 \
         _TO_FUN_(L.get(), v);return 1;                                                \
     }                                                                                 \
@@ -988,7 +1017,7 @@ struct Converter<std::string>
 {
     typedef std::string value_type;
 
-    static inline unsigned int from(std::shared_ptr<lua_State> L,
+    static inline unsigned int from(LuaState L,
                                     unsigned int idx, value_type *v, value_type const &default_value =
     value_type())
     {
@@ -1004,7 +1033,7 @@ struct Converter<std::string>
         return 1;
     }
 
-    static inline unsigned int to(std::shared_ptr<lua_State> L,
+    static inline unsigned int to(LuaState L,
                                   value_type const &v)
     {
         lua_pushstring(L.get(), v.c_str());
@@ -1019,7 +1048,11 @@ inline std::ostream &operator<<(std::ostream &os, Object const &obj)
     os << obj.as<std::string>();
     return os;
 }
-}  // namespace lua
+}
+
+} // namespace simpla
+namespace simpla
+{
 
 namespace traits
 {
@@ -1055,6 +1088,5 @@ struct is_indexable<lua::Object, Other>
 };
 
 }  // namespace check
-} // namespace simpla
-
+}
 #endif  // CORE_UTILITIES_LUA_OBJECT_H_

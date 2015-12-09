@@ -103,7 +103,8 @@ struct EMPlasma
 
 
     std::pair<typename std::map<std::string, particle_s>::iterator, bool>
-    add_particle(std::string const &name, Real mass, Real charge, std::shared_ptr<particle_proxy_type> f = nullptr)
+    add_particle(std::string const &name, Real mass,
+                 Real charge, std::shared_ptr<particle_proxy_type> f = nullptr)
     {
         return particles.emplace(
                 std::make_pair(
@@ -379,7 +380,10 @@ void EMPlasma::next_time_step()
     B1.accept(face_boundary.range(), [&](id_type const &, Real &v) { v = 0; });
 
     J1.accept(J_src.range(),
-              [&](id_type const &s, Real &v) { v += m.template sample<EDGE>(s, J_src_fun(t, m.point(s))); });
+              [&](id_type const &s, Real &v)
+              {
+                  v += m.template sample<EDGE>(s, J_src_fun(t, m.point(s)));
+              });
 
     LOG_CMD(E1 += (curl(B1) * speed_of_light2 - J1 / epsilon0) * dt);
 
@@ -526,7 +530,7 @@ int main(int argc, char **argv)
     simpla::EMPlasma ctx;
 
 
-    int num_of_step = options["number_of_step"].as<int>(20);
+    int num_of_step = 20;//options["number_of_step"].as<int>(20);
 
     int check_point = options["check_point"].as<int>(1);
 
