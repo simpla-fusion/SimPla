@@ -15,9 +15,7 @@
 #include "../../parallel/parallel.h"
 #include "../../parallel/distributed_object.h"
 
-namespace simpla
-{
-namespace manifold { namespace policy
+namespace simpla { namespace manifold { namespace policy
 {
 /**
  * @ingroup manifold
@@ -211,10 +209,10 @@ void  ParallelPolicy<TMesh>::for_each_center(Func const &fun) const
 };
 
 
-}} //namespace policy  //namespace manifold
+}}}// namespace simpla { namespace manifold { namespace policy
 
 
-namespace traits
+namespace simpla { namespace traits
 {
 
 template<typename TMesh>
@@ -225,7 +223,5 @@ struct type_id<manifold::policy::ParallelPolicy<TMesh>>
         return "ParallelPolicy<" + type_id<TMesh>::name() + ">";
     }
 };
-}
-
-}//namespace simpla
+}}//namespace simpla
 #endif //SIMPLA_PARALLEL_POLICY_H

@@ -13,8 +13,9 @@
 #include "../gtl/utilities/log.h"
 #include "../gtl/macro.h"
 #include "../gtl/ntuple.h"
-#include "diff_scheme/diff_scheme.h"
-#include "interpolate/interpolate.h"
+#include "../geometry/coordinate_system.h"
+
+#include "manifold_traits.h"
 
 namespace simpla
 {
@@ -142,13 +143,13 @@ public:
 
     typedef Manifold<mesh_type, Policies ...> this_type;
 
-    typedef geometry::traits::coordinate_system_t<mesh_type> coordinates_system_type;
+    typedef geometry::traits::coordinate_system_t <mesh_type> coordinates_system_type;
 
-    typedef geometry::traits::scalar_type_t<coordinates_system_type> scalar_type;
+    typedef geometry::traits::scalar_type_t <coordinates_system_type> scalar_type;
 
-    typedef geometry::traits::point_type_t<coordinates_system_type> point_type;
+    typedef geometry::traits::point_type_t <coordinates_system_type> point_type;
 
-    typedef geometry::traits::vector_type_t<coordinates_system_type> vector_type;
+    typedef geometry::traits::vector_type_t <coordinates_system_type> vector_type;
 
 
     typedef typename mesh_type::id_type id_type;
@@ -222,8 +223,8 @@ public:
 
 
     template<typename ...T>
-    inline traits::primary_type_t<nTuple<Expression<T...>>>
-    access(nTuple<Expression<T...>> const &v, id_t s) const
+    inline traits::primary_type_t <nTuple<Expression<T...>>>
+    access(nTuple <Expression<T...>> const &v, id_t s) const
     {
         traits::primary_type_t<nTuple<Expression<T...> > > res;
         res = v;

@@ -22,12 +22,9 @@
 
 namespace simpla { namespace mesh
 {
-namespace tags
-{
-struct corect_linear;
-}
-template<typename TMetric>
-using CoRectMesh=Mesh<TMetric, tags::corect_linear>;
+namespace tags { struct corect_linear; }
+
+template<typename TMetric> using CoRectMesh=Mesh<TMetric, tags::corect_linear>;
 
 /**
  * @ingroup mesh
@@ -37,27 +34,22 @@ using CoRectMesh=Mesh<TMetric, tags::corect_linear>;
 template<typename TMetric>
 struct Mesh<TMetric, tags::corect_linear> : public TMetric, public MeshBlock, private LinearMap
 {
-    static constexpr int ndims = 3;
-    enum
-    {
-        DEFAULT_GHOST_WIDTH = 2
-    };
+
 private:
 
     typedef Mesh<TMetric, tags::corect_linear> this_type;
     typedef LinearMap map_type;
     typedef MeshBlock base_type;
 public:
+    using base_type::ndims;
     using base_type::id_type;
     using base_type::id_tuple;
     using base_type::index_type;
     using base_type::index_tuple;
     using base_type::range_type;
-
-    typedef id_type value_type;
-    typedef size_t difference_type;
-    typedef nTuple <Real, ndims> point_type;
-    typedef nTuple <Real, ndims> vector_type;
+    using base_type::point_type;
+    using base_type::vector_type;
+    using base_type::difference_type;
 
 
     /**

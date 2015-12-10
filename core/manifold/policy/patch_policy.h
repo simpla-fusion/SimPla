@@ -9,6 +9,7 @@
 
 #include "../../parallel/parallel.h"
 #include "../../dataset/dataset.h"
+#include "../../geometry/cut_cell.h"
 
 namespace simpla { namespace manifold { namespace policy
 {
@@ -21,9 +22,13 @@ struct PatchPolicy<TMesh>
 
 private:
     typedef TMesh mesh_type;
+
     typedef typename mesh_type::range_type range_type;
+
     typedef PatchPolicy<mesh_type> this_type;
 
+    typedef typename mesh_type::id_type id_type;
+    typedef typename mesh_type::box_type box_type;
 
 public:
 
@@ -33,71 +38,95 @@ public:
 
     virtual ~PatchPolicy() { }
 
-    template<typename TDict> void load(TDict const &dict) { }
-
-
-    template<typename OS>
-    OS &print(OS &os) const
-    {
-        os << "\t PatchPolicy ={ Default }," << std::endl;
-        return os;
-    }
 
     template<typename TV, int IFORM>
-    void coarse_average(DataSet &ds, size_t id) const;
+    bool map_to(mesh_type const &m0, DataSet const &ds0, mesh_type const &m1, DataSet &ds1);
 
     template<typename TV, int IFORM>
-    void fine_interpolate(DataSet &ds, size_t id) const;
+    TV coarsen(mesh_type const &m, DataSet const &ds, id_type const &s) const;
+
+    template<typename TV, int IFORM>
+    TV refinement(mesh_type const &m, DataSet const &ds, id_type const &s) const;
+
 
 private:
     mesh_type &m_mesh_;
 
-    std::map<size_t, std::shared_ptr<mesh_type>> m_patches_;
+    std::map<size_t, mesh_type> m_patches_;
 
 }; //template<typename TMesh> struct ParallelPolicy
 
-template<typename TMesh> template<typename TV, int IFORM>
-void PatchPolicy<TMesh>::coarse_average(DataSet &ds, size_t id) const
+
+template<typename TMesh>
+template<typename TV, int IFORM, typename TRange>
+bool PatchPolicy<TMesh>::map_to(mesh_type const &m0, DataSet const &ds0, mesh_type const &m1, DataSet &ds1)
 {
-    mesh_type const &root_level = m_mesh_;
-    mesh_type const &level_level = *m_patches_[id];
 
-    DataSet &main = ds;
-    DataSet &patch = ds.patches[id];
+    box_type box = m1.out_box();
 
-    parallel::parallel_for(
-            root_level.make_range<IFORM>(i_box),
-            [&](range_type const &r)
+    if (!intersection(m0.box(), &box)) { return false; }
+
+
+    auto r0 = m1.template make_range<IFORM>(box);
+
+    id_type shift = 0UL;// fixme shift should not be 0
+
+    if (m1.level == m0.level)
+    {
+        parallel::parallel_for(r0, [&](range_type const &r)
+        {
+            for (auto const &s:r)
             {
-                for (auto const &s:r)
-                {
-                    main.template get_value<TV>(m_mesh_.hash(s))
-                            = average<TV, IFORM>(patch, (s & (~mesh_type::FULL_OVERFLOW_FLAG)) << 1);
-                }
-            });
+                ds1.template get_value<TV>(m1.hash(s)) =
+                        ds1.template get_value<TV>(m0.hash((s & (~mesh_type::FULL_OVERFLOW_FLAG)) + shift));
+            }
+        }
+        );
 
+    }
+    else if (m1.level < m0.level)
+    {
+        parallel::parallel_for(r0, [&](range_type const &r)
+        {
+            for (auto const &s:r)
+            {
+                ds1.template get_value<TV>(m1.hash(s)) =
+                        coarsen<TV, IFORM>(m0, ds0, (s & (~mesh_type::FULL_OVERFLOW_FLAG)) + shift);
+            }
+        }
+        );
+
+    }
+    else if (m1.level > m0.level)
+    {
+        parallel::parallel_for(r0, [&](range_type const &r)
+        {
+            for (auto const &s:r)
+            {
+                ds1.template get_value<TV>(m1.hash(s)) =
+                        refinement<TV, IFORM>(m0, ds0, (s & (~mesh_type::FULL_OVERFLOW_FLAG)) + shift);
+            }
+        }
+        );
+
+    }
+
+
+};
+
+
+template<typename TMesh> template<typename TV, int IFORM>
+TV PatchPolicy<TMesh>::coarsen(mesh_type const &m, DataSet const &ds, id_type const &s) const
+{
+    return (ds.get_value<TV>(m.hash(s + H)) + ds.get_value<TV>(m.hash(s + L))) * 0.5;
 }
 
 template<typename TMesh> template<typename TV, int IFORM>
-void PatchPolicy<TMesh>::fine_interpolate(DataSet &ds, size_t id) const
+TV PatchPolicy<TMesh>::refinement(mesh_type const &m, DataSet const &ds, id_type const &s) const
 {
-    mesh_type const &main_mesh = m_mesh_;
-    mesh_type const &patch_mesh = *m_patches_[id];
-
-    DataSet &root = ds;
-    DataSet &patch = ds.patches[id];
-
-    parallel::parallel_for(
-            patch_mesh.template range<IFORM>(),
-            [&](range_type const &r)
-            {
-                for (auto const &s:r)
-                {
-                    patch.template get_value<TV>(m_mesh_.hash(s))
-                            = interpolate<TV, IFORM>(root, (s & (~mesh_type::FULL_OVERFLOW_FLAG)) >> 1);
-                }
-            });
+    return (ds.get_value<TV>(m.hash(s + H)) + ds.get_value<TV>(m.hash(s + L))) * 0.5;
 }
+
 
 }}}//namespace simpla { namespace manifold { namespace policy
 

@@ -20,6 +20,7 @@ namespace simpla { namespace mesh
 struct MeshBlock : public MeshIDs
 {
     static constexpr int ndims = 3;
+
     enum
     {
         DEFAULT_GHOST_WIDTH = 2
@@ -346,42 +347,42 @@ private:
     std::vector<std::tuple<index_tuple, index_tuple>> m_ghost_box_;
 
 
-    template<typename T0, typename T1>
-    index_type dist_to_box_(id_type const &s, T0 const &imin, T1 const &imax) const
-    {
-        auto idx = this->unpack_index(s);
-
-        index_type res = std::numeric_limits<index_type>::max();
-
-        for (int i = 0; i < 3; ++i)
-        {
-            if (imax[i] - imin[i] <= 1)
-            {
-
-                continue;
-            }
-            else
-            {
-                res = std::min(res, std::min(idx[i] - imin[i], imax[i] - idx[i]));
-
-            }
-        }
-
-        return res;
-    }
-
-public:
-
-    index_type idx_to_local_boundary(id_type const &s) const
-    {
-        return dist_to_box_(s, m_idx_local_min_, m_idx_local_max_);
-    }
-
-    index_type idx_to_boundary(id_type const &s) const
-    {
-        return dist_to_box_(s, m_idx_min_, m_idx_max_);
-
-    }
+//    template<typename T0, typename T1>
+//    index_type dist_to_box_(id_type const &s, T0 const &imin, T1 const &imax) const
+//    {
+//        auto idx = this->unpack_index(s);
+//
+//        index_type res = std::numeric_limits<index_type>::max();
+//
+//        for (int i = 0; i < 3; ++i)
+//        {
+//            if (imax[i] - imin[i] <= 1)
+//            {
+//
+//                continue;
+//            }
+//            else
+//            {
+//                res = std::min(res, std::min(idx[i] - imin[i], imax[i] - idx[i]));
+//
+//            }
+//        }
+//
+//        return res;
+//    }
+//
+//public:
+//
+//    index_type idx_to_local_boundary(id_type const &s) const
+//    {
+//        return dist_to_box_(s, m_idx_local_min_, m_idx_local_max_);
+//    }
+//
+//    index_type idx_to_boundary(id_type const &s) const
+//    {
+//        return dist_to_box_(s, m_idx_min_, m_idx_max_);
+//
+//    }
 
 
 }; // struct MeshBlock

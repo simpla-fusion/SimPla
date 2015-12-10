@@ -258,10 +258,9 @@ void EMPlasma::setup(int argc, char **argv)
 
             if (dict)
             {
-                model::create_id_set(m,
-                                     m.template make_range<EDGE>(
-                                             m.index_box(dict["Box"].template as<box_type>())),
-                                     &J_src);
+                model::create_id_set(
+                        m, m.template make_range<EDGE>(m.index_box(dict["Box"].template as<box_type>())),
+                        &J_src);
 
                 dict["Value"].as(&J_src_fun);
             }
@@ -275,10 +274,10 @@ void EMPlasma::setup(int argc, char **argv)
 
             for (auto const &dict:ps)
             {
-                auto res = add_particle(dict.first.template as<std::string>(),
-                                        dict.second["mass"].template as<Real>(),
-                                        dict.second["charge"].template as<Real>()
-                );
+                auto res = add_particle(
+                        dict.first.template as<std::string>(),
+                        dict.second["mass"].template as<Real>(),
+                        dict.second["charge"].template as<Real>());
 
                 if (std::get<1>(res))
                 {
@@ -353,11 +352,6 @@ void EMPlasma::setup(int argc, char **argv)
 void EMPlasma::tear_down()
 {
     m.stop_record();
-//    m.open_grid("tear_down");
-//
-//    B1.save_as("B1");
-//
-//    m.close_grid();
     m.close();
 }
 
@@ -380,10 +374,7 @@ void EMPlasma::next_time_step()
     B1.accept(face_boundary.range(), [&](id_type const &, Real &v) { v = 0; });
 
     J1.accept(J_src.range(),
-              [&](id_type const &s, Real &v)
-              {
-                  v += m.template sample<EDGE>(s, J_src_fun(t, m.point(s)));
-              });
+              [&](id_type const &s, Real &v) { v += m.template sample<EDGE>(s, J_src_fun(t, m.point(s))); });
 
     LOG_CMD(E1 += (curl(B1) * speed_of_light2 - J1 / epsilon0) * dt);
 

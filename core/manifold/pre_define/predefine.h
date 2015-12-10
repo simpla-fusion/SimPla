@@ -16,9 +16,9 @@
 #include "../mesh/rect_mesh.h"
 #include "../mesh/corect_mesh.h"
 
-#include "../time_integrator/time_integrator.h"
-#include "../diff_scheme/fvm_structured.h"
-#include "../interpolate/linear.h"
+#include "../policy/time_integrator_policy.h"
+#include "../policy/fvm_structured_policy.h"
+#include "../policy/linear_interpolator_policy.h"
 #include "../policy/storage_policy.h"
 #include "../policy/parallel_policy.h"
 #include "../policy/io_policy.h"
@@ -28,8 +28,8 @@ namespace simpla { namespace manifold
 template<typename MESH>
 using DefaultManifold= Manifold<
         MESH,
-        policy::DiffScheme<MESH, policy::diff_scheme::tags::finite_volume>,
-        policy::Interpolate<MESH, policy::interpolate::tags::linear>,
+        policy::DiffScheme<MESH, policy::tags::finite_volume>,
+        policy::Interpolator<MESH, policy::tags::linear_interpolator>,
         policy::TimeIntegrator<MESH>,
         policy::StoragePolicy<MESH>,
         policy::ParallelPolicy<MESH>,

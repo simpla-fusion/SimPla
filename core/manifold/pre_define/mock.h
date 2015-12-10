@@ -12,7 +12,7 @@
 #include "base_manifold.h"
 #include "co_rect_mesh.h"
 #include "../calculate/fvm_structured.h"
-#include "../interpolate/linear.h"
+#include "linear_interpolator.h"
 #include "../manifold.h"
 #include "storage.h"
 

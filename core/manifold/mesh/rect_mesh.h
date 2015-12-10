@@ -18,13 +18,10 @@
 
 namespace simpla { namespace mesh
 {
-namespace tags
-{
-struct rect_linear;
-}
 
-template<typename TMetric>
-using RectMesh=Mesh<TMetric, tags::rect_linear, LinearMap>;
+namespace tags { struct rect_linear; }
+
+template<typename TMetric> using RectMesh=Mesh<TMetric, tags::rect_linear, LinearMap>;
 
 /**
  * @ingroup mesh
@@ -37,21 +34,21 @@ struct Mesh<TMetric, tags::rect_linear, TMap> : public TMetric, public MeshBlock
 
 private:
     typedef Mesh<TMetric, tags::rect_linear, TMap> this_type;
-    typedef MeshBlock base_type;
     typedef TMap map_type;
     typedef TMetric metric_type;
+
+    typedef MeshBlock base_type;
+
 public:
     using base_type::ndims;
-
-    using typename base_type::id_type;
-    using typename base_type::id_tuple;
-    using typename base_type::index_type;
-    using typename base_type::index_tuple;
-    using typename base_type::difference_type;
-    using typename base_type::range_type;
-
-    typedef nTuple<Real, ndims> point_type;
-    typedef nTuple<Real, ndims> vector_type;
+    using base_type::id_type;
+    using base_type::id_tuple;
+    using base_type::index_type;
+    using base_type::index_tuple;
+    using base_type::range_type;
+    using base_type::point_type;
+    using base_type::vector_type;
+    using base_type::difference_type;
 
 private:
     point_type m_coords_min_ = {0, 0, 0};
@@ -64,17 +61,10 @@ private:
 public:
 
 
-    Mesh() : base_type()
-    {
-
-    }
+    Mesh() : base_type() { }
 
 
-    Mesh(this_type const &other) :
-            base_type(other), m_dx_(other.m_dx_)
-    {
-
-    }
+    Mesh(this_type const &other) : base_type(other), m_dx_(other.m_dx_) { }
 
     virtual  ~ Mesh() { }
 

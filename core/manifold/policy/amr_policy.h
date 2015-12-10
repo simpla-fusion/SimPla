@@ -36,9 +36,6 @@ public:
     patch_type refine();
 
 
-private:
-    signal m_coarsen_
-
 };
 
 

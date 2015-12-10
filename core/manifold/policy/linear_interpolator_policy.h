@@ -7,25 +7,25 @@
 #ifndef SIMPLA_LINEAR_H
 #define SIMPLA_LINEAR_H
 
-#include "interpolate.h"
 #include "../../gtl/ntuple.h"
 
-namespace simpla
-{
-namespace manifold { namespace policy
+namespace simpla { namespace manifold { namespace policy
 {
 
-namespace pt= interpolate::tags;
+template<typename ...> struct Interpolator;
+
+namespace tags { struct linear_interpolator; }
 
 #define DECLARE_FUNCTION_SUFFIX const
 #define DECLARE_FUNCTION_PREFIX
+
 
 /**
  * @ingroup interpolate
  * @brief basic linear interpolate
  */
 template<typename TGeo>
-struct Interpolate<TGeo, pt::linear>
+struct Interpolator<TGeo, tags::linear_interpolator>
 {
 private:
 
@@ -33,7 +33,7 @@ private:
 
     typedef typename TGeo::id_type id_t;
 
-    typedef Interpolate<geometry_type, pt::linear> this_type;
+    typedef Interpolator<geometry_type, tags::linear_interpolator> this_type;
 
     geometry_type const &m_geo_;
 public:
@@ -228,11 +228,11 @@ public:
     typedef typename geometry_type::point_type point_type;
     typedef typename geometry_type::vector_type vector_type;
 
-    Interpolate(geometry_type &geo) : m_geo_(geo)
+    Interpolator(geometry_type &geo) : m_geo_(geo)
     {
     }
 
-    virtual ~Interpolate()
+    virtual ~Interpolator()
     {
     }
 
@@ -258,6 +258,5 @@ public:
 
 };
 
-}}
-}//namespace simpla
+}}}//namespace simpla
 #endif //SIMPLA_LINEAR_H

@@ -4,9 +4,7 @@
 
 #ifndef SIMPLA_TIME_INTEGRATOR_H
 #define SIMPLA_TIME_INTEGRATOR_H
-namespace simpla
-{
-namespace manifold { namespace policy
+namespace simpla { namespace manifold { namespace policy
 {
 template<typename ...> struct TimeIntegrator;
 
@@ -67,9 +65,8 @@ private:
 
 };
 
-}} //namespace  namespace policy namespace manifold
-
-namespace traits
+}}}//namespace  namespace policy namespace manifold
+namespace simpla { namespace traits
 {
 template<typename ... T>
 struct type_id<manifold::policy::TimeIntegrator<T...> >
@@ -79,6 +76,5 @@ struct type_id<manifold::policy::TimeIntegrator<T...> >
         return "TimeIntegrator<" + type_id<T...>::name() + " >";
     }
 };
-}//namespace traits
-}// namespace simpla
+}}// namespace simpla
 #endif //SIMPLA_TIME_INTEGRATOR_H
