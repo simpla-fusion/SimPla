@@ -154,7 +154,7 @@ template<typename TV, int IFORM, typename TRange, typename Func>
 void  ParallelPolicy<TMesh>::for_each1(DataSet const &ds, TRange const &r0, Func const &fun) const
 {
 
-    serial::parallel_for(
+    parallel::parallel_for(
             r0,
             [&](TRange const &r)
             {
@@ -171,7 +171,7 @@ template<typename TV, int IFORM, typename TRange, typename Func>
 void  ParallelPolicy<TMesh>::for_each1(DataSet &ds, TRange const &r0, Func const &fun)
 {
 
-    serial::parallel_for(
+    parallel::parallel_for(
             r0,
             [&](TRange const &r)
             {

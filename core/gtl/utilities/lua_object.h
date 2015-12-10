@@ -57,7 +57,6 @@ namespace simpla { namespace lua
     }                                                                          \
 }
 
-class Object;
 
 /**
  *  @class Object
@@ -83,6 +82,8 @@ class Object
 
         LuaState() : m_l_(nullptr) { }
 
+        LuaState(std::shared_ptr<lua_s> const &other) : m_l_(other) { }
+
         LuaState(LuaState const &other) : m_l_(other.m_l_) { }
 
         ~LuaState() { }
@@ -93,13 +94,44 @@ class Object
 
         bool unique() const { return m_l_.unique(); }
 
+        struct accessor
+        {
+            std::shared_ptr<lua_s> m_l_;
+
+            accessor(std::shared_ptr<lua_s> const &l) : m_l_(l) { m_l_->m_mutex_.lock(); }
+
+            ~accessor() { m_l_->m_mutex_.unlock(); }
+
+            lua_State *operator*() { return m_l_->m_state_; }
+
+            std::shared_ptr<lua_s> get() { return m_l_; }
+
+
+        };
+
+        struct const_accessor
+        {
+            std::shared_ptr<lua_s> m_l_;
+
+            const_accessor(std::shared_ptr<lua_s> const &l) : m_l_(l) { m_l_->m_mutex_.lock(); }
+
+            ~const_accessor() { m_l_->m_mutex_.unlock(); }
+
+            lua_State *operator*() { return m_l_->m_state_; }
+
+            std::shared_ptr<lua_s> get() const { return m_l_; }
+        };
+
+        accessor acc() { return accessor(m_l_); }
+
+        const_accessor acc() const { return const_accessor(m_l_); }
+
+        bool try_lock() const { return m_l_->m_mutex_.try_lock(); }
+
         lua_State *get() { return m_l_->m_state_; }
 
         lua_State *get() const { return const_cast<lua_State *>(m_l_->m_state_); }
 
-        void lock() { m_l_->m_mutex_.lock(); }
-
-        void unlock() { m_l_->m_mutex_.unlock(); }
 
     };
 
@@ -116,10 +148,9 @@ public:
 
     Object();
 
-    Object(LuaState l, unsigned int G, unsigned int s,
-           std::string const &path = "");
+    Object(std::shared_ptr<LuaState::lua_s> const &l, int G, int s, std::string const &path = "");
 
-    Object(Object const &r);
+    Object(Object const &other);
 
     Object(Object &&r);
 
@@ -156,16 +187,16 @@ public:
         return !L_.empty() && self_ == -1;
     }
 
-#define DEF_TYPE_CHECK(_FUN_NAME_, _LUA_FUN_)                              \
-    inline bool _FUN_NAME_() const                                        \
-    {   bool res=false;                                                   \
-        if(!L_.empty())                                                   \
-        {                                                                 \
-          lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);                  \
-           res = _LUA_FUN_(L_.get(), -1);                                 \
-          lua_pop(L_.get(), 1);                                           \
-        }                                                                 \
-        return res;                                                       \
+#define DEF_TYPE_CHECK(_FUN_NAME_, _LUA_FUN_)                     \
+    inline bool _FUN_NAME_() const                                \
+    {   bool res=false;                                           \
+        if(!L_.empty())                                           \
+        {  ;                                                        \
+          lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);          \
+          res = _LUA_FUN_(L_.get(), -1);                          \
+          lua_pop(L_.get(), 1);                                   \
+        }                                                         \
+        return res;                                               \
     }
 
     DEF_TYPE_CHECK(is_nil, lua_isnil)
@@ -275,30 +306,36 @@ public:
             return Object();
         }
 
-        lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
-
-        int idx = lua_gettop(L_.get());
-
-        if (!lua_isfunction(L_.get(), idx))
+        Object res;
         {
-            return Object(*this);
-        }
-        else
-        {
-            LUA_ERROR(lua_pcall(L_.get(), _impl::push_to_lua(L_.get(), std::forward<Args>(args)...), 1, 0));
+            auto acc = L_.acc();
 
-            return Object(L_, GLOBAL_REF_IDX_, luaL_ref(L_.get(), GLOBAL_REF_IDX_), path_ + "[ret]");
+            lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
+
+            int idx = lua_gettop(*acc);
+
+            if (!lua_isfunction(*acc, idx))
+            {
+                Object(acc.get(), GLOBAL_REF_IDX_, self_, path_).swap(res);
+            }
+            else
+            {
+                LUA_ERROR(lua_pcall(*acc, _impl::push_to_lua(*acc, std::forward<Args>(args)...), 1, 0));
+
+                Object(acc.get(), GLOBAL_REF_IDX_, luaL_ref(*acc, GLOBAL_REF_IDX_), path_ + "[ret]").swap(res);
+            }
         }
+        return std::move(res);
 
     }
 
-    template<typename T, typename ...Args>
-    inline T create_object(Args &&... args) const
-    {
-        if (is_null()) { return std::move(T()); }
-        else { return std::move(T(*this, std::forward<Args>(args)...)); }
-
-    }
+//        template<typename T, typename ...Args>
+//        inline T create_object(Args &&... args) const
+//        {
+//            if (is_null()) { return std::move(T()); }
+//            else { return std::move(T(*this, std::forward<Args>(args)...)); }
+//
+//        }
 
     template<typename T>
     inline T as() const
@@ -325,12 +362,21 @@ public:
             auto value = this->as<TRect>();
 
             *res = [value](Args ...args) -> TRect { return value; };
-
         }
         else if (is_function())
         {
-            Object obj = *this;
-            *res = [obj](Args ...args) -> TRect { return obj(std::forward<Args>(args)...).template as<TRect>(); };
+            Object f_obj(*this);
+
+            *res = [f_obj](Args ...args) -> TRect
+            {
+                TRect t;
+
+                auto v_obj = f_obj(std::forward<Args>(args)...);
+
+                if (!v_obj.template as<TRect>(&t)) { THROW_EXCEPTION_RUNTIME_ERROR("convert error!"); }
+
+                return std::move(t);
+            };
         }
 
     }
@@ -348,9 +394,15 @@ public:
     {
         if (!is_null())
         {
-            lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
-            _impl::pop_from_lua(L_.get(), lua_gettop(L_.get()), res);
-            lua_pop(L_.get(), 1);
+            auto acc = L_.acc();
+
+
+            lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
+
+            _impl::pop_from_lua(L_.get(), lua_gettop(*acc), res);
+
+            lua_pop(*acc, 1);
+
 
             return true;
         }
@@ -365,10 +417,17 @@ public:
     {
         if (is_null()) { return; }
 
-        lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
-        _impl::push_to_lua(L_.get(), v);
-        lua_setfield(L_.get(), -2, name.c_str());
-        lua_pop(L_.get(), 1);
+        auto acc = L_.acc();
+
+        lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
+
+        _impl::push_to_lua(*acc, v);
+
+        lua_setfield(*acc, -2, name.c_str());
+
+        lua_pop(*acc, 1);
+
+
     }
 
     template<typename T>
@@ -376,10 +435,14 @@ public:
     {
         if (is_null()) { return; }
 
-        lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
-        _impl::push_to_lua(L_.get(), v);
-        lua_rawseti(L_.get(), -2, s);
-        lua_pop(L_.get(), 1);
+        auto acc = L_.acc();
+
+
+        lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
+        _impl::push_to_lua(*acc, v);
+        lua_rawseti(*acc, -2, s);
+        lua_pop(*acc, 1);
+
     }
 
     template<typename T>
@@ -387,11 +450,13 @@ public:
     {
         if (is_null()) { return; }
 
-        lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
-        _impl::push_to_lua(L_.get(), v);
-        size_t len = lua_rawlen(L_.get(), -1);
-        lua_rawseti(L_.get(), -2, len + 1);
-        lua_pop(L_.get(), 1);
+        auto acc = L_.acc();
+
+        lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
+        _impl::push_to_lua(*acc, v);
+        size_t len = lua_rawlen(*acc, -1);
+        lua_rawseti(*acc, -2, len + 1);
+        lua_pop(*acc, 1);
     }
 
     /**

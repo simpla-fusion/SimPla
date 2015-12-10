@@ -61,8 +61,7 @@ inline unsigned int push_to_lua(lua_State *L)
 }
 
 template<typename T, typename ... Args>
-inline unsigned int push_to_lua(lua_State *L, T const &v,
-                                Args const &... rest)
+inline unsigned int push_to_lua(lua_State *L, T const &v, Args const &... rest)
 {
     luaL_checkstack(L, 1 + sizeof...(rest), "too many arguments");
 
@@ -75,7 +74,7 @@ inline unsigned int pop_from_lua(lua_State *L, int)
 }
 
 template<typename T, typename ... Args>
-inline unsigned int pop_from_lua(lua_State *L, unsigned int idx, T *v, Args *... rest)
+inline unsigned int pop_from_lua(lua_State *L, int idx, T *v, Args *... rest)
 {
     return Converter<T>::from(L, idx, v) + pop_from_lua(L, idx + 1, rest...);
 }
