@@ -27,8 +27,8 @@ namespace simpla { namespace manifold
 template<typename MESH>
 using DefaultManifold= Manifold<
         MESH,
-        policy::DiffScheme<MESH, policy::tags::finite_volume>,
-        policy::Interpolator<MESH, policy::tags::linear_interpolator>,
+        policy::FiniteVolume<MESH>,
+        policy::LinearInterpolator<MESH>,
         policy::StoragePolicy<MESH>,
         policy::ParallelPolicy<MESH>
 >;

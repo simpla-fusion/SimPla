@@ -12,9 +12,6 @@
 namespace simpla { namespace manifold { namespace policy
 {
 
-template<typename ...> struct Interpolator;
-
-namespace tags { struct linear_interpolator; }
 
 #define DECLARE_FUNCTION_SUFFIX const
 #define DECLARE_FUNCTION_PREFIX
@@ -25,7 +22,7 @@ namespace tags { struct linear_interpolator; }
  * @brief basic linear interpolate
  */
 template<typename TGeo>
-struct Interpolator<TGeo, tags::linear_interpolator>
+struct LinearInterpolator
 {
 private:
 
@@ -33,7 +30,7 @@ private:
 
     typedef typename TGeo::id_type id_t;
 
-    typedef Interpolator<geometry_type, tags::linear_interpolator> this_type;
+    typedef LinearInterpolator<geometry_type> this_type;
 
     geometry_type const &m_geo_;
 public:
@@ -228,11 +225,12 @@ public:
     typedef typename geometry_type::point_type point_type;
     typedef typename geometry_type::vector_type vector_type;
 
-    Interpolator(geometry_type &geo) : m_geo_(geo)
+    LinearInterpolator(geometry_type &geo) :
+            m_geo_(geo)
     {
     }
 
-    virtual ~Interpolator()
+    virtual ~LinearInterpolator()
     {
     }
 

@@ -48,11 +48,7 @@ public:
     */
 
 
-    EnablePatchFromThis()
-    {
-
-    }
-
+    EnablePatchFromThis() { }
 
 
     virtual ~EnablePatchFromThis()
@@ -65,6 +61,10 @@ public:
             erase_patch(it->first);
         }
     }
+
+    virtual TObject &self() = 0;
+
+    virtual TObject const &self() const = 0;
 
     virtual std::shared_ptr<TObject> patch(size_t id)
     {
@@ -122,7 +122,6 @@ public:
 
 protected:
 
-    std::weak_ptr<TObject> m_parent_;
     std::map<size_t, std::shared_ptr<TObject>> m_patches_;
 };
 

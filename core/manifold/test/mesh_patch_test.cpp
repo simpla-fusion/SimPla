@@ -15,7 +15,7 @@ using namespace simpla;
 
 TEST(MeshMultiBlock, RectMesh)
 {
-    typedef mesh::MeshPatch<manifold::CartesianManifold> mesh_type;
+    typedef manifold::CartesianManifold mesh_type;
 
     mesh_type m;
 

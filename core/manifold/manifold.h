@@ -14,6 +14,7 @@
 #include "../gtl/macro.h"
 #include "../gtl/ntuple.h"
 #include "../geometry/coordinate_system.h"
+#include "mesh/mesh_patch.h"
 
 #include "manifold_traits.h"
 
@@ -127,14 +128,14 @@ template<typename ...> struct Expression;
 
  */
 
-template<typename ...> class Manifold;
-
 /**
  * Manifold
  */
 template<typename TMesh, typename ...Policies>
 class Manifold<TMesh, Policies ...>
-        : public TMesh, public Policies ...
+        : public TMesh,
+          public Policies ...,
+          public mesh::Patch<Manifold<TMesh, Policies ...> >
 {
 
 public:
@@ -143,13 +144,13 @@ public:
 
     typedef Manifold<mesh_type, Policies ...> this_type;
 
-    typedef geometry::traits::coordinate_system_t <mesh_type> coordinates_system_type;
+    typedef geometry::traits::coordinate_system_t<mesh_type> coordinates_system_type;
 
-    typedef geometry::traits::scalar_type_t <coordinates_system_type> scalar_type;
+    typedef geometry::traits::scalar_type_t<coordinates_system_type> scalar_type;
 
-    typedef geometry::traits::point_type_t <coordinates_system_type> point_type;
+    typedef geometry::traits::point_type_t<coordinates_system_type> point_type;
 
-    typedef geometry::traits::vector_type_t <coordinates_system_type> vector_type;
+    typedef geometry::traits::vector_type_t<coordinates_system_type> vector_type;
 
 
     typedef typename mesh_type::id_type id_type;
@@ -175,6 +176,9 @@ public:
         return *this;
     }
 
+    virtual this_type &self() { return *this; }
+
+    virtual this_type const &self() const { return *this; }
 
 private:
 
@@ -231,8 +235,8 @@ public:
 
 
     template<typename ...T>
-    inline traits::primary_type_t <nTuple<Expression<T...>>>
-    access(nTuple <Expression<T...>> const &v, id_t s) const
+    inline traits::primary_type_t<nTuple<Expression<T...>>>
+    access(nTuple<Expression<T...>> const &v, id_t s) const
     {
         traits::primary_type_t<nTuple<Expression<T...> > > res;
         res = v;
@@ -268,7 +272,8 @@ public:
                 {
                     for (auto const &s:r)
                     {
-                        op(access(*self, s), access(std::forward<Args>(args), s)...);
+                        op(access(*self, s),
+                           access(std::forward<Args>(args), s)...);
                     }
                 }, self
         );
@@ -278,12 +283,17 @@ public:
     template<typename TOP, typename   ...Args>
     void for_each(TOP const &op, Args &&... args) const
     {
-        static constexpr int IFORM = traits::iform<typename traits::unpack_type<0, Args...>::type>::value;
+        static constexpr int IFORM =
+                traits::iform<typename
+                traits::unpack_type<0, Args...>::type>::value;
 
         this->parallel_policy::template update<IFORM>(
                 [&](typename mesh_type::range_type const &r)
                 {
-                    for (auto const &s:r) { op(access(std::forward<Args>(args), s)...); }
+                    for (auto const &s:r)
+                    {
+                        op(access(std::forward<Args>(args), s)...);
+                    }
                 }
         );
     }
@@ -311,6 +321,12 @@ public:
         return ds;
 
     };
+
+    std::shared_ptr<this_type> patch(box_type const &b, int ratio = 2) const
+    {
+        auto res = std::make_shared<this_type>(*this);
+        return res;
+    }
 
     void next_time_step() { m_time_ += m_dt_; }
 

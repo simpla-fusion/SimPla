@@ -74,6 +74,11 @@ public:
     Field(this_type &&other) : m_dataset_(other.m_dataset_), m_mesh_(other.m_mesh_) { }
 
     virtual ~Field() { }
+
+    virtual this_type &self() { return *this; }
+
+    virtual this_type const &self() const { return *this; }
+
 //    virtual void swap(this_type &other)
 //    {
 //        std::swap(m_mesh_, other.m_mesh_);

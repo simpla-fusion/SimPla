@@ -34,98 +34,82 @@ public:
 
     typedef this_type patch_policy;
 
-    PatchPolicy(mesh_type &geo) : m_mesh_(geo) { }
 
     virtual ~PatchPolicy() { }
 
 
-    template<typename TV, int IFORM>
-    bool map_to(mesh_type const &m0, DataSet const &ds0, mesh_type const &m1, DataSet &ds1);
-
-    template<typename TV, int IFORM>
-    TV coarsen(mesh_type const &m, DataSet const &ds, id_type const &s) const;
-
-    template<typename TV, int IFORM>
-    TV refinement(mesh_type const &m, DataSet const &ds, id_type const &s) const;
-
-
-private:
-    mesh_type &m_mesh_;
-
-    std::map<size_t, mesh_type> m_patches_;
-
 }; //template<typename TMesh> struct ParallelPolicy
 
-
-template<typename TMesh>
-template<typename TV, int IFORM, typename TRange>
-bool PatchPolicy<TMesh>::map_to(mesh_type const &m0, DataSet const &ds0, mesh_type const &m1, DataSet &ds1)
-{
-
-    box_type box = m1.out_box();
-
-    if (!intersection(m0.box(), &box)) { return false; }
-
-
-    auto r0 = m1.template make_range<IFORM>(box);
-
-    id_type shift = 0UL;// fixme shift should not be 0
-
-    if (m1.level == m0.level)
-    {
-        parallel::parallel_for(r0, [&](range_type const &r)
-        {
-            for (auto const &s:r)
-            {
-                ds1.template get_value<TV>(m1.hash(s)) =
-                        ds1.template get_value<TV>(m0.hash((s & (~mesh_type::FULL_OVERFLOW_FLAG)) + shift));
-            }
-        }
-        );
-
-    }
-    else if (m1.level < m0.level)
-    {
-        parallel::parallel_for(r0, [&](range_type const &r)
-        {
-            for (auto const &s:r)
-            {
-                ds1.template get_value<TV>(m1.hash(s)) =
-                        coarsen<TV, IFORM>(m0, ds0, (s & (~mesh_type::FULL_OVERFLOW_FLAG)) + shift);
-            }
-        }
-        );
-
-    }
-    else if (m1.level > m0.level)
-    {
-        parallel::parallel_for(r0, [&](range_type const &r)
-        {
-            for (auto const &s:r)
-            {
-                ds1.template get_value<TV>(m1.hash(s)) =
-                        refinement<TV, IFORM>(m0, ds0, (s & (~mesh_type::FULL_OVERFLOW_FLAG)) + shift);
-            }
-        }
-        );
-
-    }
-
-
-};
-
-
-template<typename TMesh> template<typename TV, int IFORM>
-TV PatchPolicy<TMesh>::coarsen(mesh_type const &m, DataSet const &ds, id_type const &s) const
-{
-    return (ds.get_value<TV>(m.hash(s + H)) + ds.get_value<TV>(m.hash(s + L))) * 0.5;
-}
-
-template<typename TMesh> template<typename TV, int IFORM>
-TV PatchPolicy<TMesh>::refinement(mesh_type const &m, DataSet const &ds, id_type const &s) const
-{
-    return (ds.get_value<TV>(m.hash(s + H)) + ds.get_value<TV>(m.hash(s + L))) * 0.5;
-}
+//
+//template<typename TMesh>
+//template<typename TV, int IFORM, typename TRange>
+//bool PatchPolicy<TMesh>::map_to(mesh_type const &m0, DataSet const &ds0, mesh_type const &m1, DataSet &ds1)
+//{
+//
+//    box_type box = m1.out_box();
+//
+//    if (!intersection(m0.box(), &box)) { return false; }
+//
+//
+//    auto r0 = m1.template make_range<IFORM>(box);
+//
+//    id_type shift = 0UL;// fixme shift should not be 0
+//
+//    if (m1.level == m0.level)
+//    {
+//        parallel::parallel_for(r0, [&](range_type const &r)
+//        {
+//            for (auto const &s:r)
+//            {
+//                ds1.template get_value<TV>(m1.hash(s)) =
+//                        ds1.template get_value<TV>(m0.hash((s & (~mesh_type::FULL_OVERFLOW_FLAG)) + shift));
+//            }
+//        }
+//        );
+//
+//    }
+//    else if (m1.level < m0.level)
+//    {
+//        parallel::parallel_for(r0, [&](range_type const &r)
+//        {
+//            for (auto const &s:r)
+//            {
+//                ds1.template get_value<TV>(m1.hash(s)) =
+//                        coarsen<TV, IFORM>(m0, ds0, (s & (~mesh_type::FULL_OVERFLOW_FLAG)) + shift);
+//            }
+//        }
+//        );
+//
+//    }
+//    else if (m1.level > m0.level)
+//    {
+//        parallel::parallel_for(r0, [&](range_type const &r)
+//        {
+//            for (auto const &s:r)
+//            {
+//                ds1.template get_value<TV>(m1.hash(s)) =
+//                        refinement<TV, IFORM>(m0, ds0, (s & (~mesh_type::FULL_OVERFLOW_FLAG)) + shift);
+//            }
+//        }
+//        );
+//
+//    }
+//
+//
+//};
+//
+//
+//template<typename TMesh> template<typename TV, int IFORM>
+//TV PatchPolicy<TMesh>::coarsen(mesh_type const &m, DataSet const &ds, id_type const &s) const
+//{
+//    return (ds.get_value<TV>(m.hash(s + H)) + ds.get_value<TV>(m.hash(s + L))) * 0.5;
+//}
+//
+//template<typename TMesh> template<typename TV, int IFORM>
+//TV PatchPolicy<TMesh>::refinement(mesh_type const &m, DataSet const &ds, id_type const &s) const
+//{
+//    return (ds.get_value<TV>(m.hash(s + H)) + ds.get_value<TV>(m.hash(s + L))) * 0.5;
+//}
 
 
 }}}//namespace simpla { namespace manifold { namespace policy
