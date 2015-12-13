@@ -30,6 +30,7 @@ private:
     typedef MeshBlock this_type;
     typedef MeshIDs m;
 
+
 public:
     using typename m::id_type;
     using typename m::id_tuple;
@@ -73,8 +74,10 @@ public:
  *
  *
  */
+
     point_type m_x_min_;
     point_type m_x_max_;
+    point_type m_x_scale_;
 
     index_tuple m_idx_min_;
     index_tuple m_idx_max_;
@@ -99,17 +102,11 @@ public:
 
 
     MeshBlock(this_type const &other) :
-
             m_idx_min_(other.m_idx_min_),
-
             m_idx_max_(other.m_idx_max_),
-
             m_idx_local_min_(other.m_idx_local_min_),
-
             m_idx_local_max_(other.m_idx_local_max_),
-
             m_idx_memory_min_(other.m_idx_memory_min_),
-
             m_idx_memory_max_(other.m_idx_memory_max_)
     {
 
@@ -135,6 +132,10 @@ public:
         this_type(other).swap(*this);
         return *this;
     }
+
+
+public:
+
 
     int number_of_dims() const
     {
@@ -176,17 +177,22 @@ public:
         return std::move(res);
     }
 
-    virtual std::tuple<point_type, point_type> box() const
+    virtual void box(box_type const &b)
+    {
+        std::tie(m_x_min_, m_x_max_) = b;
+    };
+
+    virtual box_type box() const
     {
         return std::make_tuple(m::point(m_idx_min_), m::point(m_idx_max_));
     };
 
-    virtual std::tuple<point_type, point_type> box(id_type const &s) const
+    virtual box_type box(id_type const &s) const
     {
         return std::make_tuple(m::point(s - _DA), m::point(s + _DA));
     };
 
-    virtual std::tuple<point_type, point_type> local_box() const
+    virtual box_type local_box() const
     {
         return std::make_tuple(m::point(m_idx_local_min_), m::point(m_idx_local_max_));
     };

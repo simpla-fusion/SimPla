@@ -49,7 +49,7 @@ public:
 
     virtual Real time() const = 0;
 
-    virtual DataSet grid_vertices() const = 0;
+    virtual std::shared_ptr<DataSet> grid_vertices() const = 0;
 
     using base_type::enroll;
     using base_type::open;
@@ -88,7 +88,7 @@ public:
 
         else if (m_geo_.topology_type() == "SMesh")
         {
-            base_type::set_grid(grid_vertices());
+            base_type::set_grid(*grid_vertices());
         }
     }
 

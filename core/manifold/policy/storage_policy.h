@@ -73,26 +73,29 @@ public:
     }
 
     template<typename TV, int IFORM>
-    DataSet dataset(std::shared_ptr<void> d = nullptr) const
+    std::shared_ptr<DataSet> dataset(std::shared_ptr<void> d = nullptr) const
     {
-        DataSet res;
+        auto res = std::make_shared<DataSet>();
+
         //FIXME  temporary by pass for XDMF
+
         auto dtype = traits::datatype<TV>::create();
+
         if (dtype.is_array() && (IFORM == VERTEX || IFORM == VOLUME))
         {
-            res.datatype = dtype.element_type();
-            std::tie(res.dataspace, res.memory_space) = dataspace<EDGE>();
+            res->datatype = dtype.element_type();
+            std::tie(res->dataspace, res->memory_space) = dataspace<EDGE>();
         }
         else
         {
-            res.datatype = traits::datatype<TV>::create();
-            std::tie(res.dataspace, res.memory_space) = dataspace<IFORM>();
+            res->datatype = traits::datatype<TV>::create();
+            std::tie(res->dataspace, res->memory_space) = dataspace<IFORM>();
 
         }
 
-        if (d != nullptr) { res.data = d; } else { res.deploy(); }
+        if (d != nullptr) { res->data = d; }
 
-        return std::move(res);
+        return res;
     };
 //private:
 //    size_t memory_size(int IFORM) const

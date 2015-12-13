@@ -281,24 +281,26 @@ public:
     }
 
 
-    virtual DataSet grid_vertices() const
+    virtual std::shared_ptr<DataSet> grid_vertices() const
     {
-        DataSet ds = this->storage_policy::template dataset<point_type, VERTEX>();
+        auto ds = this->storage_policy::template dataset<point_type, VERTEX>();
+
+        ds->deploy();
+
         parallel::parallel_for(
                 this->template range<VERTEX>(),
                 [&](range_type const &r)
                 {
                     for (auto const &s: r)
                     {
-                        this->template at<point_type>(ds, s) =
+                        this->template at<point_type>(*ds, s) =
                                 this->map_to_cartesian(this->point(s));
-
                         //   this->template at<point_type>(ds.data, s) = this->point(s);
                     }
                 }
         );
 
-        return std::move(ds);
+        return ds;
 
     };
 

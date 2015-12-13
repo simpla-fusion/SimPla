@@ -60,7 +60,7 @@ public:
 
     virtual Real time() const = 0;
 
-    virtual DataSet grid_vertices() const = 0;
+    virtual std::shared_ptr<DataSet> grid_vertices() const = 0;
 
     virtual void set_grid() = 0;
 

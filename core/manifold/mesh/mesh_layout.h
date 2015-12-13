@@ -9,96 +9,179 @@
 
 #include <vector>
 #include "mesh_block.h"
+#include "../enable_patch_from_this.h"
+
+
+namespace simpla
+{
+template<typename ...> class Expression;
+
+template<typename ...> class Field;
+
+
+}
 
 namespace simpla { namespace mesh
 {
-struct MeshLayout
+template<typename ...> class MeshPatch;
+
+template<typename ...> class MeshLayout;
+
+
+namespace traits
 {
-    typedef MeshIDs m;
 
-    typedef m::id_type id_type;
+template<typename T> T const &
+patch(size_t id, T const &f) { return (f); };
 
-    std::map<id_type, MeshBlock> m_blocks_;
+template<typename ...T> Field<T...>
+patch(size_t id, Field<T...> &f) { return std::move(f.patch(id)); };
+
+template<typename TOP, typename ...Args, int ...I> Field<Expression<TOP, Args...>>
+_invoke_patch_helper(size_t id, Field<Expression<TOP, Args...>> const &expr,
+                     index_sequence<I...>)
+{
+    return Field<Expression<TOP, Args...>>(expr.m_op_, patch(id, std::get<I>(expr.args))...);
+};
+
+template<typename TOP, typename ...Args> Field<Expression<TOP, Args...> >
+patch(size_t id, Field<Expression<TOP, Args...> > const &expr)
+{
+    return _invoke_patch_helper(id, expr, make_index_sequence<sizeof...(Args)>());
+};
+}//namespace traits
+
+template<typename TM>
+class MeshLayout<TM> : public std::map<size_t, std::shared_ptr<MeshPatch<TM>>>
+{
+private:
+    typedef MeshPatch<TM> patch_type;
+    typedef MeshLayout<TM> layout_type;
+public:
+};
+
+template<typename TM>
+class MeshPatch<TM> : public TM, public EnablePatchFromThis<MeshPatch<TM>>
+{
+
+private:
+    typedef typedef MeshPatch<TM> this_type;
+    typedef MeshPatch<TM> mesh_patch_type;
+    typedef MeshLayout<TM> layout_type;
+    typedef TM mesh_base;
+    typedef EnablePatchFromThis<MeshPatch<TM>> patch_base;
+public:
+    typedef TM mesh_type;
+    typedef TM m;
+    typedef typename m::id_type id_type;
+    typedef typename m::point_type point_type;
+    typedef typename m::box_type box_type;
+    typedef typename m::index_tuple index_tuple;
+
+    MeshPatch();
+
+    virtual ~MeshPatch();
+
+
+    template<typename LHS, typename RHS>
+    void time_integral(Real dt, LHS &lhs, const RHS &rhs) const;
+
+    using patch_base::patch;
+
+    virtual std::tuple<size_t, std::shared_ptr<this_type>> new_patch();
+
+    virtual void erase_patch(size_t id);
+
+    virtual void refinement(size_t id);
+
+    virtual void coarsen(size_t id);
+
+
+private:
+    std::list<std::weak_ptr<PatchBase> > m_registered_entity_;
+
 
 };
 
-
-template<typename M0, typename M1>
-struct MeshMap
+template<typename TM>
+MeshPatch<TM>::MeshPatch()
 {
-    typedef MeshIDs m;
-    typedef typename MeshIDs::id_type id_type;
+}
 
+template<typename TM>
+MeshPatch<TM>::~MeshPatch()
+{
+}
 
-    M0 const &m0;
-    M1 const &m1;
-    id_type m_scale_, m_offset_;
+template<typename TM>
+std::tuple<size_t, std::shared_ptr<this_type>> MeshPatch<TM>::new_patch()
+{
+    size_t id;
+    std::shared_ptr<this_type> p;
+    std::tie(id, p) = patch_base::new_patch();
 
-
-    template<typename TV, int IFORM, typename TRange>
-    void refinement(TRange const &to_r, DataSet &ds0, DataSet &ds1)
+    for (auto &item:m_registered_entity_)
     {
+        p->m_registered_entity_.push_back(item.lock()->patch(id));
+    }
+}
 
-        m::id_type s_offset;
+template<typename TM>
+void MeshPatch<TM>::erase_patch(size_t id)
+{
+    size_t count = 0;
+    for (auto &item:m_registered_entity_)
+    {
+        item.lock()->erase_patch(id);
+    }
+    patch_base::erase_patch(id);
+}
 
-        parallel::parallel_for(
-                to_r,
-                [&](TRange const &r)
-                {
-                    for (auto const &s1:r)
-                    {
-                        m::id_type s0 = ((s1 & (~m::FULL_OVERFLOW_FLAG)) >> 1UL) + m_offset_;
-
-                        ds1.get_value(m1.hash(s1)) = m0.refinement<TV, IFORM>(s0, ds0);
-
-                    }
-                }
-        );
+template<typename TM>
+void MeshPatch<TM>::refinement(size_t id)
+{
+    patch_base::refinement(id);
+    for (auto &item:m_registered_entity_)
+    {
+        item.second->refinement(id);
     }
 
-    template<typename TV, int IFORM, typename TRange>
-    void coarsen(TRange const &to_r, DataSet &ds0, DataSet &ds1)
+}
+
+template<typename TM>
+void  MeshPatch<TM>::coarsen(size_t id)
+{
+    patch_base::coarsen(id);
+    for (auto &item:m_registered_entity_)
     {
-
-
-        parallel::parallel_for(
-                to_r,
-                [&](TRange const &r)
-                {
-                    for (auto const &s1:to_r)
-                    {
-                        m::id_type s0 = ((s1 & (~m::FULL_OVERFLOW_FLAG)) >> 1UL) + m_offset_;
-
-                        ds1.get_value(m1.hash(s1)) = m0.coarsen<TV, IFORM>(s0, ds0);
-
-                    }
-                }
-        );
+        item.second->coarsen(id);
     }
+}
 
-    template<typename TV, int IFORM, typename TRange>
-    void transform(TRange const &to_r, DataSet &ds0, DataSet &ds1)
+
+template<typename TM>
+template<typename LHS, typename RHS> void
+MeshPatch<TM>::time_integral(Real dt, LHS &lhs, const RHS &rhs) const
+{
+    lhs += rhs * dt;
+
+    lhs.refinement();
+
+    for (int i = 0; i < m_refinement_ratio_; ++i)
     {
+        for (auto const &item:patch_base::m_patches_)
+        {
+            auto f_patch = lhs.patch(item.first);
 
-        m::id_type s_offset;
+            item.second->time_integral(dt / m_refinement_ratio_, f_patch,
+                                       traits::patch(item.first, rhs));
 
-        parallel::parallel_for(
-                to_r,
-                [&](TRange const &r)
-                {
-                    for (auto const &s1:to_r)
-                    {
-                        m::id_type s0 = (s1 & (~m::FULL_OVERFLOW_FLAG)) + m_offset_;;
-
-                        ds1.get_value(m1.hash(s1)) = ds0.get_value<TV>(m0.hash(s0));
-
-                    }
-                }
-        );
+        }
     }
-};
+    lhs.coarsen();
 
-
+}
 }}//namespace simpla { namespace mesh
 
 #endif //SIMPLA_MESH_LAYOUT_H
+

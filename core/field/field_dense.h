@@ -9,6 +9,7 @@
 #define FIELD_DENSE_H_
 
 #include "field_comm.h"
+#include "field_traits.h"
 
 
 #include <algorithm>
@@ -20,13 +21,12 @@
 #include "../manifold/manifold_traits.h"
 #include "../dataset/dataset.h"
 #include "../parallel/parallel.h"
-#include "field_traits.h"
+//#include "../manifold/enable_patch_from_this.h"
 
 
 namespace simpla
 {
-template<typename ...>
-struct Field;
+template<typename ...> struct Field;
 
 /**
  * @ingroup field
@@ -38,6 +38,7 @@ struct Field;
  */
 template<typename TG, int IFORM, typename TV>
 struct Field<TV, TG, std::integral_constant<int, IFORM> >
+//        : public mesh::EnablePatchFromThis<Field<TV, TG, std::integral_constant<int, IFORM> >>
 {
 public:
 
@@ -53,7 +54,9 @@ private:
 
     typedef typename mesh_type::point_type point_type;
 
-    typedef Field<value_type, mesh_type, std::integral_constant<int, IFORM> > this_type;
+    typedef Field<value_type, mesh_type, std::integral_constant<int, iform> > this_type;
+
+    typedef Field<value_type, mesh_type, std::integral_constant<int, iform> > field_type;
 
     typedef typename traits::field_value_type<this_type>::type field_value_type;
 
@@ -66,8 +69,9 @@ public:
     //create construct
     Field(mesh_type const &m) : m_mesh_(m), m_dataset_(nullptr) { }
 
+    Field(mesh_type const &m, std::shared_ptr<DataSet> ds) : m_mesh_(m), m_dataset_(ds) { }
 
-    ~Field() { }
+    virtual ~Field() { }
 
     //copy construct
     Field(this_type const &other) : m_dataset_(other.m_dataset_), m_mesh_(other.m_mesh_) { }
@@ -75,32 +79,35 @@ public:
     // move construct
     Field(this_type &&other) : m_dataset_(other.m_dataset_), m_mesh_(other.m_mesh_) { }
 
-    void swap(this_type &other)
-    {
-        std::swap(m_mesh_, other.m_mesh_);
-        std::swap(m_dataset_, other.m_dataset_);
-    }
 
-    bool empty() const { return m_dataset_ == nullptr; }
+//    virtual void swap(this_type &other)
+//    {
+//        std::swap(m_mesh_, other.m_mesh_);
+//        std::swap(m_dataset_, other.m_dataset_);
+//    }
 
-    void deploy()
+    virtual bool empty() const { return m_dataset_ == nullptr; }
+
+    virtual void deploy()
     {
-        if (empty())
+        if (m_dataset_ == nullptr)
         {
-            m_dataset_ = std::make_shared<DataSet>(m_mesh_.template dataset<value_type, iform>());
+            m_dataset_ = m_mesh_.template dataset<value_type, iform>();
         }
-
+        m_dataset_->deploy();
     }
 
-    void clear()
+    virtual void clear()
     {
         deploy();
         m_dataset_->clear();
     }
 
-    DataSet const &dataset() const { return *m_dataset_; }
+    virtual mesh_type const &mesh() const { return m_mesh_; }
 
-    DataSet &dataset()
+    virtual DataSet const &dataset() const { return *m_dataset_; }
+
+    virtual DataSet &dataset()
     {
         deploy();
         return *m_dataset_;
@@ -157,7 +164,6 @@ public:
     void accept(TRange const &r0, Func const &fun)
     {
         m_mesh_.template for_each1<value_type, iform>(*m_dataset_, r0, fun);
-
     };
 
     template<typename TRange, typename Func>
@@ -165,6 +171,7 @@ public:
     {
         m_mesh_.template for_each1<value_type, iform>(*m_dataset_, r0, fun);
     };
+
 
 private:
 
@@ -178,7 +185,6 @@ private:
     template<typename TOP, typename ...Args>
     void action(TOP const &op, Args &&... args) const
     {
-
         m_mesh_.for_each(op, *this, std::forward<Args>(args)...);
     }
 
@@ -262,7 +268,8 @@ struct type_id<Field<TV, TM, Others...> >
 {
     static const std::string name()
     {
-        return "Feild<" + type_id<TV>::name() + " , " + type_id<TM>::name() + "," + type_id<Others...>::name() + ">";
+        return "Feild<" + type_id<TV>::name() + " , "
+               + type_id<TM>::name() + "," + type_id<Others...>::name() + ">";
     }
 };
 

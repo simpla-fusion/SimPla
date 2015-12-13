@@ -53,8 +53,6 @@ struct DataSet : public std::enable_shared_from_this<DataSet>
 
     Properties properties;
 
-    std::map<size_t, DataSet> patches;
-
 
     DataSet() : data(nullptr) { }
 
@@ -63,7 +61,7 @@ struct DataSet : public std::enable_shared_from_this<DataSet>
             datatype(other.datatype),
             dataspace(other.dataspace),
             memory_space(other.memory_space),
-            properties(other.properties), patches(other.patches)
+            properties(other.properties)
     {
     }
 
@@ -77,7 +75,6 @@ struct DataSet : public std::enable_shared_from_this<DataSet>
         std::swap(dataspace, other.dataspace);
         std::swap(memory_space, other.memory_space);
         std::swap(properties, other.properties);
-        std::swap(patches, other.patches);
     }
 
     bool operator==(DataSet const &other) const { return is_equal(other.data.get()); }
