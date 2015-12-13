@@ -5,22 +5,11 @@
  */
 
 #include <gtest/gtest.h>
-#include "../mesh/mesh_layout.h"
-#include "../../gtl/ntuple.h"
-#include "../../gtl/ntuple_ext.h"
-#include "../../gtl/utilities/log.h"
-#include "../../gtl/iterator/range.h"
-
-
-#include "../../io/io.h"
+#include "../mesh/mesh_patch.h"
+#include "../pre_define/predefine.h"
 
 #include "../../field/field.h"
-
-#include "../../manifold/manifold_traits.h"
-
 #include "../../gtl/utilities/log.h"
-
-#include "../pre_define/predefine.h"
 
 using namespace simpla;
 

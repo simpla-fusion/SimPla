@@ -97,37 +97,7 @@ public:
 
         return res;
     };
-//private:
-//    size_t memory_size(int IFORM) const
-//    {
-//        static constexpr int ndims = geometry_type::ndims;
-//
-//        size_t res = (IFORM == EDGE || IFORM == FACE) ? 3 : 1;
-//        for (int i = 0; i < ndims; ++i)
-//        {
-//            res *= (m_geo_.m_idx_memory_max_[i] - m_geo_.m_idx_memory_min_[i]);
-//        }
-//        return res;
-//    }
-//
-//public:
-//    template<int IFORM, typename TV>
-//    void alloc_memory(std::shared_ptr<void> *d) const
-//    {
-//        if (*d == nullptr)
-//        {
-//            *d = sp_alloc_memory(sizeof(TV) * memory_size(IFORM));
-//        }
-//    };
-//
-//    template<int IFORM, typename TV>
-//    void clear(std::shared_ptr<void> *d) const
-//    {
-//        alloc_memory<IFORM, TV>(d);
-//        size_t ie = memory_size(IFORM) * sizeof(TV);
-//        char *p = reinterpret_cast<char *>(d->get());
-//        memset(p, 0, memory_size(IFORM) * sizeof(TV));
-//    };
+
 
     template<int IFORM>
     std::tuple<DataSpace, DataSpace> dataspace() const
@@ -201,8 +171,7 @@ public:
     }
 };//template<typename TGeo> struct StoragePolicy
 
-} //namespace policy
-} //namespace manifold
+}} //namespace manifold //namespace policy
 
 namespace traits
 {

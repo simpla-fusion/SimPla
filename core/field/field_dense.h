@@ -47,7 +47,6 @@ public:
     typedef TG mesh_type;
 
     static constexpr int iform = IFORM;
-
 private:
 
     typedef typename mesh_type::id_type id_type;
@@ -65,11 +64,8 @@ private:
     std::shared_ptr<DataSet> m_dataset_;
 public:
 
-
     //create construct
     Field(mesh_type const &m) : m_mesh_(m), m_dataset_(nullptr) { }
-
-    virtual ~Field() { }
 
     //copy construct
     Field(this_type const &other) : m_dataset_(other.m_dataset_), m_mesh_(other.m_mesh_) { }
@@ -77,7 +73,7 @@ public:
     // move construct
     Field(this_type &&other) : m_dataset_(other.m_dataset_), m_mesh_(other.m_mesh_) { }
 
-
+    virtual ~Field() { }
 //    virtual void swap(this_type &other)
 //    {
 //        std::swap(m_mesh_, other.m_mesh_);

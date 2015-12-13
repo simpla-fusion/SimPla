@@ -202,10 +202,6 @@ public:
         _dispatch_deploy<mesh_type, Policies...>();
     }
 
-    void next_time_step()
-    {
-        this->time_inegral_policy::next_time_step();
-    }
 
     template<typename OS>
     OS &print(OS &os) const
@@ -316,11 +312,20 @@ public:
 
     };
 
+    void next_time_step() { m_time_ += m_dt_; }
 
-    virtual Real time() const
-    {
-        return this->time_inegral_policy::time();
-    }
+    double time() const { return m_time_; }
+
+    void time(double t) { m_time_ = t; }
+
+    double dt() const { return m_dt_; }
+
+    void dt(double p_dt) { m_dt_ = p_dt; }
+
+
+private:
+    double m_dt_;
+    double m_time_;
 
 
 }; //class Manifold

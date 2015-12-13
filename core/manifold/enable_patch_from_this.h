@@ -46,10 +46,14 @@ public:
     * @name patch
     * @{
     */
+
+
     EnablePatchFromThis()
     {
 
     }
+
+
 
     virtual ~EnablePatchFromThis()
     {
@@ -75,9 +79,9 @@ public:
         auto it = m_patches_.find(id);
         if (it == m_patches_.end()) { return std::shared_ptr<const TObject>(nullptr); }
         else { return it->second; }
-
-
     }
+
+    virtual void sync_patches() {/** TODO sync patches */}
 
 private:
     virtual std::shared_ptr<PatchBase> patch_(size_t id)

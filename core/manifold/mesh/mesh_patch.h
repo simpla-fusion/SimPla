@@ -7,86 +7,200 @@
 #ifndef SIMPLA_MESH_PATCH_H
 #define SIMPLA_MESH_PATCH_H
 
-#include <tuple>
-#include "../../gtl/macro.h"
-#include "../../gtl/primitives.h"
+#include <vector>
+#include "mesh_block.h"
+#include "../enable_patch_from_this.h"
+
+
+namespace simpla
+{
+template<typename ...> class Expression;
+
+template<typename ...> class Field;
+
+
+}
 
 namespace simpla { namespace mesh
 {
-/**
- *
- * @ingroup mesh
- **/
-template<typename ...> struct Patch;
+template<typename ...> class MeshPatch;
 
-template<typename TBaseMesh>
-struct Patch
+template<typename ...> class MeshLayout;
+
+
+namespace traits
 {
-    typedef TBaseMesh base_mesh;
-    base_mesh const &m_base_;
-    typedef typename base_mesh::point_type point_type;
-    typedef typename base_mesh::id_type id_type;
 
+template<typename T> T const &
+patch(size_t id, T const &f) { return (f); };
 
-    std::tuple<point_type, point_type> box() const;
+template<typename ...T> Field<T...>
+patch(size_t id, Field<T...> &f) { return std::move(f.patch(id)); };
 
-    std::tuple<point_type, point_type> local_box() const;
-
-    constexpr auto dx() const DECL_RET_TYPE(m_base_.dx());
-
-    template<typename ...Args>
-    point_type point(Args &&...args) const
-    {
-        return base_mesh::point(std::forward<Args>(args)...);
-    }
-
-
-    virtual point_type coordinates_local_to_global(std::tuple<id_type, point_type> const &t) const
-    {
-        return std::move(map(base_type::coordinates_local_to_global(t)));
-    }
-
-    virtual std::tuple<id_type, point_type> coordinates_global_to_local(point_type x, int n_id = 0) const
-    {
-        return std::move(base_type::coordinates_global_to_local(inv_map(x), n_id));
-    }
-
-    virtual id_type id(point_type x, int n_id = 0) const
-    {
-        return std::get<0>(base_type::coordinates_global_to_local(inv_map(x), n_id));
-    }
-
-    //===================================
-    //
-
-    virtual Real volume(id_type s) const
-    {
-        return m_volume_.get()[hash_(s)];
-    }
-
-    virtual Real dual_volume(id_type s) const
-    {
-        return m_dual_volume_.get()[hash_(s)];
-    }
-
-    virtual Real inv_volume(id_type s) const
-    {
-
-        return m_inv_volume_.get()[hash_(s)];
-    }
-
-    virtual Real inv_dual_volume(id_type s) const
-    {
-        return m_inv_dual_volume_.get()[hash_(s)];
-    }
-
-    virtual point_type const &vertex(id_type s) const
-    {
-        return m_vertices_.get()[base_type::hash(s) * base_type::NUM_OF_NODE_ID + base_type::sub_index(s)];
-    }
+template<typename TOP, typename ...Args, int ...I> Field<Expression<TOP, Args...>>
+_invoke_patch_helper(size_t id, Field<Expression<TOP, Args...>> const &expr,
+                     index_sequence<I...>)
+{
+    return Field<Expression<TOP, Args...>>(expr.m_op_, patch(id, std::get<I>(expr.args))...);
 };
 
-}//namespace mesh
-}//namespace simpla
+template<typename TOP, typename ...Args> Field<Expression<TOP, Args...> >
+patch(size_t id, Field<Expression<TOP, Args...> > const &expr)
+{
+    return _invoke_patch_helper(id, expr, make_index_sequence<sizeof...(Args)>());
+};
+}//namespace traits
+
+
+template<typename TM>
+class MeshPatch<TM> : public TM, public EnablePatchFromThis<MeshPatch<TM>>
+{
+
+private:
+    typedef MeshPatch<TM> this_type;
+    typedef MeshPatch<TM> mesh_patch_type;
+    typedef TM mesh_base;
+    typedef EnablePatchFromThis<MeshPatch<TM>> patch_base;
+public:
+    typedef TM mesh_type;
+    typedef TM m;
+    typedef typename m::id_type id_type;
+    typedef typename m::point_type point_type;
+    typedef typename m::box_type box_type;
+    typedef typename m::index_tuple index_tuple;
+
+    MeshPatch();
+
+    virtual ~MeshPatch();
+
+    void deploy() { };
+
+    template<typename LHS>
+    void sync(LHS &lhs) const { };
+
+    template<typename LHS, typename RHS>
+    void time_integral(Real dt, LHS &lhs, const RHS &rhs) const;
+
+    using patch_base::patch;
+
+    template<typename ...Args>
+    std::tuple<size_t, std::shared_ptr<this_type>> insert_patch(Args &&...args);
+
+    virtual void erase_patch(size_t id);
+
+    template<typename TF, typename ...Args>
+    TF &make(Args &&...args)
+    {
+        auto res = std::make_shared<TF>(*this, std::forward<Args>(args)...);
+        enroll(std::dynamic_pointer_cast<PatchBase>(res));
+        return *res;
+    }
+
+    template<typename TF>
+    void enroll(std::shared_ptr<TF> p) { m_registered_entities_.push_back(std::dynamic_pointer_cast<PatchBase>(p)); };
+
+
+private:
+
+    void enroll(std::shared_ptr<PatchBase> p) { m_registered_entities_.push_back(p); };
+
+    size_t m_count_ = 0;
+    size_t m_refinement_ratio_ = 2;
+    std::list<std::weak_ptr<PatchBase> > m_registered_entities_;
+
+
+};
+
+template<typename TM>
+MeshPatch<TM>::MeshPatch()
+{
+}
+
+template<typename TM>
+MeshPatch<TM>::~MeshPatch()
+{
+}
+
+
+template<typename TM>
+template<typename ...Args>
+std::tuple<size_t, std::shared_ptr<MeshPatch<TM>>>
+MeshPatch<TM>::insert_patch(Args &&...args)
+{
+    size_t id = m_count_;
+    ++m_count_;
+    auto p = std::dynamic_pointer_cast<MeshPatch<TM>>(
+            mesh_base::make_patch(m_refinement_ratio_, std::forward<Args>(args)...));
+
+    // TODO check no overlap!
+
+    auto res = patch_base::insert(id, p);
+    if (std::get<1>(res))
+    {
+        for (auto &entity:m_registered_entities_)
+        {
+            auto ep = entity.lock()->patch(id);
+
+            ep->refinement();
+
+            p->enroll(ep);
+        }
+    }
+    else
+    {
+        THROW_EXCEPTION_OUT_OF_RANGE("Can not create new patch!");
+    }
+
+    return std::make_tuple(id, p);
+}
+
+template<typename TM>
+void  MeshPatch<TM>::erase_patch(size_t id)
+{
+
+    for (auto &entity:m_registered_entities_)
+    {
+        entity.lock()->patch(id)->coarsen();
+
+        entity.lock()->erase_patch(id);
+    }
+    patch_base::erase_patch(id);
+
+}
+
+
+template<typename TM>
+template<typename LHS, typename RHS> void
+MeshPatch<TM>::time_integral(Real dt, LHS &lhs, const RHS &rhs) const
+{
+    lhs += rhs * dt;
+
+    if (patch_base::m_patches_.size() > 0)
+    {
+        for (auto const &item:patch_base::m_patches_)
+        {
+            lhs.patch(item.first)->refinement();
+        }
+        for (int i = 0; i < m_refinement_ratio_; ++i)
+        {
+            for (auto const &item:patch_base::m_patches_)
+            {
+
+                item.second->time_integral(
+                        dt / m_refinement_ratio_,
+                        *lhs.patch(item.first),
+                        traits::patch(item.first, rhs));
+
+            }
+            //TODO sync patches
+            lhs.sync_patches();
+        }
+        for (auto const &item:patch_base::m_patches_)
+        {
+            lhs.patch(item.first)->coarsen();
+        }
+    }
+}
+}} //namespace simpla { namespace mesh
 
 #endif //SIMPLA_MESH_PATCH_H

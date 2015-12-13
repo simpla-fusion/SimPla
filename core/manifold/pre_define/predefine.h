@@ -29,7 +29,6 @@ using DefaultManifold= Manifold<
         MESH,
         policy::DiffScheme<MESH, policy::tags::finite_volume>,
         policy::Interpolator<MESH, policy::tags::linear_interpolator>,
-        policy::TimeIntegrator<MESH>,
         policy::StoragePolicy<MESH>,
         policy::ParallelPolicy<MESH>
 >;
