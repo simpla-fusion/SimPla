@@ -22,10 +22,9 @@ namespace simpla
 namespace manifold { namespace policy
 {
 
-template<typename ...> struct StoragePolicy;
 
 template<typename TGeo>
-struct StoragePolicy<TGeo>
+struct StoragePolicy
 {
 private:
 

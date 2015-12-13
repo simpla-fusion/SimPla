@@ -20,10 +20,9 @@ namespace simpla { namespace manifold { namespace policy
 /**
  * @ingroup manifold
  */
-template<typename ...> struct ParallelPolicy;
 
 template<typename TMesh>
-struct ParallelPolicy<TMesh>
+struct ParallelPolicy
 {
 
 private:

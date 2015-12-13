@@ -10,7 +10,7 @@
 #include <stddef.h>
 #include <memory>
 #include <map>
-#include "../gtl/utilities/log.h"
+#include "../../gtl/utilities/log.h"
 
 namespace simpla { namespace mesh
 {
@@ -62,9 +62,6 @@ public:
         }
     }
 
-    virtual TObject &self() = 0;
-
-    virtual TObject const &self() const = 0;
 
     virtual std::shared_ptr<TObject> patch(size_t id)
     {

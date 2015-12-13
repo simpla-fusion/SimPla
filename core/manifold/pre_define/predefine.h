@@ -24,17 +24,17 @@
 
 namespace simpla { namespace manifold
 {
+//template<typename MESH, template<typename> class ...Policies>
+//using ManifoldWithPolicies= Manifold<MESH, Policies<MESH>...>;
+
 template<typename MESH>
-using DefaultManifold= Manifold<
-        MESH,
-        policy::FiniteVolume<MESH>,
-        policy::LinearInterpolator<MESH>,
-        policy::StoragePolicy<MESH>,
-        policy::ParallelPolicy<MESH>
->;
+using DefaultManifold= Manifold<MESH,
+        policy::FiniteVolume,
+        policy::LinearInterpolator,
+        policy::StoragePolicy,
+        policy::ParallelPolicy>;
 
-
-using CylindricalManifold= DefaultManifold<mesh::RectMesh<geometry::CylindricalMetric >>;
+using CylindricalManifold= DefaultManifold<mesh::RectMesh<geometry::CylindricalMetric> >;
 
 using CartesianManifold=DefaultManifold<mesh::CoRectMesh<geometry::CartesianMetric> >;
 

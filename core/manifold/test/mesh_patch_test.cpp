@@ -33,7 +33,7 @@ TEST(MeshMultiBlock, RectMesh)
 
     m.time_integral(1.0, f1a, f1b * f0);
 
-    m.erase_patch(std::get<0>(it));
+//    m.erase_patch(std::get<0>(it));
 
 
 }

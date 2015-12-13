@@ -9,7 +9,7 @@
 
 #include <vector>
 #include "mesh_block.h"
-#include "../enable_patch_from_this.h"
+#include "enable_patch_from_this.h"
 
 
 namespace simpla

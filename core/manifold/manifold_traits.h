@@ -40,7 +40,7 @@ template<typename ...> struct Topology;
 /**
  *
  */
-template<typename ...> struct Manifold;
+template<typename TMesh, template<typename> class ...Policies> struct Manifold;
 
 template<typename ... T>
 std::ostream &operator<<(std::ostream &os, Manifold<T...> const &d)
@@ -50,10 +50,10 @@ std::ostream &operator<<(std::ostream &os, Manifold<T...> const &d)
     return os;
 }
 
-template<typename ...T>
-std::shared_ptr<Manifold<T...>> make_mesh()
+template<typename TMesh, template<typename> class ...Policies>
+std::shared_ptr<Manifold<TMesh, Policies...>> make_mesh()
 {
-    return std::make_shared<Manifold<T...>>();
+    return std::make_shared<Manifold<TMesh, Policies...>>();
 }
 /**
  *  Default value of Manifold are defined following
@@ -65,12 +65,12 @@ template<typename> struct id_type;
 template<typename T> using id_type_t= typename id_type<T>::type;
 
 
-template<typename ... T>
-struct type_id<Manifold<T...> >
+template<typename TMesh, template<typename> class ...Policies>
+struct type_id<Manifold<TMesh, Policies...> >
 {
     static std::string name()
     {
-        return "Manifold<" + type_id<T...>::name() + " >";
+        return "Manifold<" + type_id<TMesh>::name() + " >";
     }
 };
 
@@ -78,8 +78,8 @@ template<typename T>
 struct is_manifold : public std::integral_constant<bool, false>
 {
 };
-template<typename ...T>
-struct is_manifold<Manifold<T...>> : public std::integral_constant<bool, true>
+template<typename TMesh, template<typename> class ...Policies>
+struct is_manifold<Manifold<TMesh, Policies...>> : public std::integral_constant<bool, true>
 {
 };
 
@@ -94,7 +94,8 @@ template<typename T> struct id_type
     typedef int64_t type;
 };
 
-template<typename ...T> struct id_type<Manifold<T...> >
+template<typename TMesh, template<typename> class ...Policies>
+struct id_type<Manifold<TMesh, Policies...> >
 {
     typedef std::uint64_t type;
 };
@@ -139,8 +140,8 @@ namespace traits
 {
 template<typename ...> struct coordinate_system_type;
 
-template<typename TM, typename ... T>
-struct coordinate_system_type<Manifold<TM, T...>>
+template<typename TM, template<typename> class ...Policies>
+struct coordinate_system_type<Manifold<TM, Policies...>>
 {
     typedef typename coordinate_system_type<TM>::type type;
 };

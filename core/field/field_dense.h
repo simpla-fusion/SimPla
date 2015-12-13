@@ -21,7 +21,7 @@
 #include "../manifold/manifold_traits.h"
 #include "../dataset/dataset.h"
 #include "../parallel/parallel.h"
-#include "../manifold/enable_patch_from_this.h"
+#include "../manifold/mesh/enable_patch_from_this.h"
 
 
 namespace simpla

@@ -18,6 +18,7 @@
 
 #include "manifold_traits.h"
 
+
 namespace simpla
 {
 
@@ -131,11 +132,11 @@ template<typename ...> struct Expression;
 /**
  * Manifold
  */
-template<typename TMesh, typename ...Policies>
-class Manifold<TMesh, Policies ...>
+template<typename TMesh, template<typename> class ...Policies>
+class Manifold
         : public TMesh,
-          public Policies ...,
-          public mesh::Patch<Manifold<TMesh, Policies ...> >
+          public Policies<TMesh> ...,
+          public mesh::Patch<Manifold<TMesh, Policies...>>
 {
 
 public:
@@ -164,11 +165,15 @@ public:
     using mesh_type::inv_dual_volume;
     using mesh_type::inner_product;
 
-    Manifold() : Policies(static_cast<mesh_type &>(*this))... { }
+    Manifold() : Policies<mesh_type>(dynamic_cast<mesh_type &>(*this))... { }
 
     virtual ~Manifold() { }
 
-    Manifold(this_type const &other) : mesh_type(other), Policies(other)... { }
+    virtual mesh_type &self() { return dynamic_cast<mesh_type &>(*this); }
+
+    virtual mesh_type const &self() const { return dynamic_cast<mesh_type const &>(*this); }
+
+    Manifold(this_type const &other) : mesh_type(other), Policies<mesh_type>(other)... { }
 
     this_type &operator=(const this_type &other)
     {
@@ -176,9 +181,6 @@ public:
         return *this;
     }
 
-    virtual this_type &self() { return *this; }
-
-    virtual this_type const &self() const { return *this; }
 
 private:
 
@@ -191,19 +193,18 @@ private:
     TEMPLATE_DISPATCH(print, inline, const)
 
 public:
-    void swap(const this_type &other) { _dispatch_swap<mesh_type, Policies...>(other); }
+    void swap(const this_type &other) { _dispatch_swap<mesh_type, Policies<TMesh>...>(other); }
 
     template<typename TDict>
     void load(TDict const &dict)
     {
-        TRY_IT((_dispatch_load<mesh_type, Policies...>(dict["Mesh"])));
+        TRY_IT((_dispatch_load<mesh_type, Policies<TMesh>...>(dict["Mesh"])));
     }
-
 
     void deploy()
     {
         mesh_type::deploy();
-        _dispatch_deploy<mesh_type, Policies...>();
+        _dispatch_deploy<mesh_type, Policies<TMesh>...>();
     }
 
 
@@ -211,7 +212,7 @@ public:
     OS &print(OS &os) const
     {
         os << "Mesh={" << std::endl;
-        _dispatch_print<mesh_type, Policies...>(os);
+        _dispatch_print<mesh_type, Policies<TMesh>...>(os);
         os << "}, # Mesh " << std::endl;
         return os;
     }
@@ -322,9 +323,9 @@ public:
 
     };
 
-    std::shared_ptr<this_type> patch(box_type const &b, int ratio = 2) const
+    std::shared_ptr<TMesh> patch(box_type const &b, int ratio = 2) const
     {
-        auto res = std::make_shared<this_type>(*this);
+        auto res = std::make_shared<TMesh>(*this);
         return res;
     }
 
@@ -347,7 +348,12 @@ private:
 }; //class Manifold
 
 /* @}@} */
-
+template<typename TMesh, template<typename> class ...Policies>
+std::ostream &
+operator<<(std::ostream &os, const Manifold<TMesh, Policies...> &m)
+{
+    return m.print(os);
+}
 }//namespace simpla
 
 #endif /* CORE_MANIFOLD_H_ */
