@@ -42,7 +42,6 @@ TEST(MeshMultiBlock, RectMesh)
 
     auto it = m.insert_patch(l_box);
 
-
     m.time_integral(1.0, f1a, f1b * f0);
 
     m.erase_patch(std::get<0>(it));

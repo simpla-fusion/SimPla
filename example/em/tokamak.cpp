@@ -24,6 +24,7 @@
 #include "../../core/model/geqdsk.h"
 #include "../../core/model/constraint.h"
 #include "../../core/particle/particle_constraint.h"
+#include "../../core/io/xdmf_stream.h"
 
 namespace simpla
 {

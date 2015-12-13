@@ -94,9 +94,11 @@ public:
 
     virtual void erase_patch(size_t id);
 
-    void enroll(std::shared_ptr<PatchBase> p) { m_registered_entities_.push_back(p); };
 
 private:
+
+    void enroll(std::shared_ptr<PatchBase> p) { m_registered_entities_.push_back(p); };
+
     size_t m_count_ = 0;
     size_t m_refinement_ratio_ = 2;
     std::list<std::weak_ptr<PatchBase> > m_registered_entities_;
@@ -168,22 +170,30 @@ MeshPatch<TM>::time_integral(Real dt, LHS &lhs, const RHS &rhs) const
 {
     lhs += rhs * dt;
 
-    lhs.refinement();
-
-    for (int i = 0; i < m_refinement_ratio_; ++i)
+    if (patch_base::m_patches_.size() > 0)
     {
         for (auto const &item:patch_base::m_patches_)
         {
+            lhs.patch(item.first)->refinement();
+        }
+        for (int i = 0; i < m_refinement_ratio_; ++i)
+        {
+            for (auto const &item:patch_base::m_patches_)
+            {
 
-            item.second->time_integral(
-                    dt / m_refinement_ratio_,
-                    *lhs.patch(item.first),
-                    traits::patch(item.first, rhs));
+                item.second->time_integral(
+                        dt / m_refinement_ratio_,
+                        *lhs.patch(item.first),
+                        traits::patch(item.first, rhs));
 
+            }
+            //TODO sync patches
+        }
+        for (auto const &item:patch_base::m_patches_)
+        {
+            lhs.patch(item.first)->coarsen();
         }
     }
-    lhs.coarsen();
-
 }
 }}//namespace simpla { namespace mesh
 

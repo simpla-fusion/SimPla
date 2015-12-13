@@ -69,8 +69,6 @@ public:
     //create construct
     Field(mesh_type const &m) : m_mesh_(m), m_dataset_(nullptr) { }
 
-    Field(mesh_type const &m, std::shared_ptr<DataSet> ds) : m_mesh_(m), m_dataset_(ds) { }
-
     virtual ~Field() { }
 
     //copy construct
