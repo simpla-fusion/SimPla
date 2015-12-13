@@ -59,6 +59,7 @@ struct EMPlasma
 
     mesh_type m;
 
+    io::XDMFStream out_stream;
 
     model::Surface<mesh_type> limiter_boundary;
     model::IdSet<mesh_type> vertex_boundary;
@@ -160,13 +161,37 @@ void EMPlasma::setup(int argc, char **argv)
 
         m.deploy();
 
-        m.open(options["output"].as<std::string>("tokamak"), "GEqdsk");
+        out_stream.open(options["output"].as<std::string>("tokamak"), "GEqdsk");
 
 
         VERBOSE << "Clear fields" << std::endl;
 
 
-        m.open_grid("back_ground");
+//        if (m_geo_.topology_type() == "CoRectMesh")
+//        {
+//            int ndims = m_geo_.ndims;
+//
+//            nTuple<size_t, 3> dims;
+//
+//            dims = m_geo_.dimensions();
+//
+//            nTuple<Real, 3> xmin, dx;
+//
+//            std::tie(xmin, std::ignore) = m_geo_.box();
+//
+//            dx = m_geo_.dx();
+//
+//            base_type::set_grid(ndims, &dims[0], &xmin[0], &dx[0]);
+//        }
+//
+//        else if (m_geo_.topology_type() == "SMesh")
+//        {
+//
+//        }
+
+        out_stream.set_grid(*m.grid_vertices());
+
+        out_stream.open_grid("back_ground", 0, 0);
 
         Ev.clear();
 
@@ -189,8 +214,8 @@ void EMPlasma::setup(int argc, char **argv)
         );
 
         B0.sync();
+        out_stream.write_attribute("B0", B0);
 
-        B0.save_as("B0");
         //        if (options["InitValue"]["B0"])
         //        {
         //          B0 = traits::make_field_function_from_config<scalar_type, FACE>(m, options["InitValue"]["B0"]);
@@ -218,16 +243,15 @@ void EMPlasma::setup(int argc, char **argv)
 
         rho0.sync();
 
-        rho0.save_as("rho0");
+        out_stream.write_attribute("rho0", rho0);
 
 
         B0v = map_to<VERTEX>(B0);
 
         BB = dot(B0v, B0v);
 
-        B0v.save_as("B0v");
-
-        BB.save_as("BB");
+        out_stream.write_attribute("B0v", B0v);
+        out_stream.write_attribute("BB", BB);
 
 
         {
@@ -297,8 +321,8 @@ void EMPlasma::setup(int argc, char **argv)
 
                     std::get<3>(p).clear();
 
-                    std::get<2>(p).declare_as("n_" + key);
-                    std::get<3>(p).declare_as("J_" + key);
+                    out_stream.enroll("n_" + key, std::get<2>(p));
+                    out_stream.enroll("J_" + key, std::get<3>(p));
 
 
                     if (dict.second["Type"].template as<std::string>() == "Bories")
@@ -340,23 +364,25 @@ void EMPlasma::setup(int argc, char **argv)
         THROW_EXCEPTION_RUNTIME_ERROR("Context setup error!", error.what());
     }
 
-    Ev.declare_as("Ev");
-    E1.declare_as("E1");
-    B1.declare_as("B1");
-    J1.declare_as("J1");
 
-    m.close_grid();
-    m.start_record("record");
+    out_stream.enroll("Ev", Ev);
+    out_stream.enroll("E1", E1);
+    out_stream.enroll("B1", B1);
+    out_stream.enroll("J1", J1);
+
+
+    out_stream.close_grid();
+    out_stream.start_record("record");
 }
 
 void EMPlasma::tear_down()
 {
-    m.stop_record();
-    m.close();
+    out_stream.stop_record();
+    out_stream.close();
 }
 
 
-void EMPlasma::check_point() { m.record(); }
+void EMPlasma::check_point() { out_stream.record(m.time()); }
 
 void EMPlasma::next_time_step()
 {

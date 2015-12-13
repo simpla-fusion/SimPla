@@ -21,7 +21,7 @@
 #include "../manifold/manifold_traits.h"
 #include "../dataset/dataset.h"
 #include "../parallel/parallel.h"
-//#include "../manifold/enable_patch_from_this.h"
+#include "../manifold/enable_patch_from_this.h"
 
 
 namespace simpla
@@ -38,7 +38,7 @@ template<typename ...> struct Field;
  */
 template<typename TG, int IFORM, typename TV>
 struct Field<TV, TG, std::integral_constant<int, IFORM> >
-//        : public mesh::EnablePatchFromThis<Field<TV, TG, std::integral_constant<int, IFORM> >>
+        : public mesh::EnablePatchFromThis<Field<TV, TG, std::integral_constant<int, IFORM> >>
 {
 public:
 
@@ -214,23 +214,6 @@ public:
 
     void sync() { m_mesh_.sync(*m_dataset_); }
 
-    void declare_as(std::string const &s)
-    {
-        const_cast<mesh_type &>(m_mesh_).
-                enroll(s, *m_dataset_,
-                       IFORM | ((traits::is_ntuple<value_type>::value || (IFORM == EDGE || IFORM == FACE)) ? 0x10 : 0)
-        );
-    }
-
-    void save_as(std::string const &s)
-    {
-        const_cast<mesh_type &>(m_mesh_).
-                write_attribute(s, *m_dataset_,
-                                IFORM |
-                                ((traits::is_ntuple<value_type>::value || (IFORM == EDGE || IFORM == FACE)) ? 0x10 : 0)
-
-        );
-    }
 
     value_type &operator[](id_type const &s)
     {

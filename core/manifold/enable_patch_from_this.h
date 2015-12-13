@@ -27,9 +27,9 @@ public:
 
     virtual void erase_patch(size_t id) = 0;
 
-    virtual void refinement(size_t id) = 0;
+    virtual void refinement() = 0;
 
-    virtual void coarsen(size_t id) = 0;
+    virtual void coarsen() = 0;
 
 protected:
     virtual std::shared_ptr<PatchBase> patch_(size_t) = 0;
@@ -39,7 +39,6 @@ protected:
 
 template<typename TObject>
 class EnablePatchFromThis :
-        public PatchBase,
         public std::enable_shared_from_this<TObject>
 {
 public:
@@ -47,7 +46,7 @@ public:
     * @name patch
     * @{
     */
-    EnablePatchFromThis() : m_count_(0), m_parent_(nullptr)
+    EnablePatchFromThis()
     {
 
     }
@@ -67,32 +66,15 @@ public:
     {
 
         auto it = m_patches_.find(id);
-
-        if (it == m_patches_.end())
-        {
-            auto res = m_patches_.insert(std::make_pair(id, TObject()));
-
-            it = res.first;
-
-            res.first->second->m_parent_ = this;
-
-        }
-
-        return it->second;
+        if (it == m_patches_.end()) { return std::shared_ptr<TObject>(nullptr); }
+        else { return it->second; }
     }
 
     virtual std::shared_ptr<const TObject> patch(size_t id) const
     {
         auto it = m_patches_.find(id);
-
-        if (it == m_patches_.end())
-        {
-            return std::shared_ptr<const TObject>(nullptr);
-        }
-        else
-        {
-            return it->second;
-        }
+        if (it == m_patches_.end()) { return std::shared_ptr<const TObject>(nullptr); }
+        else { return it->second; }
 
 
     }
@@ -109,11 +91,11 @@ private:
     }
 
 public:
-
-    virtual std::tuple<size_t, std::shared_ptr<TObject>> new_patch()
+    virtual std::pair<std::shared_ptr<TObject>, bool> insert(size_t id, std::shared_ptr<TObject> o)
     {
-        ++m_count_;
-        return std::make_tuple(m_count_, patch(m_count_));
+        auto res = m_patches_.insert(std::make_pair(id, o));
+
+        return std::make_pair(std::get<0>(res)->second, std::get<1>(res));
     }
 
 
@@ -134,8 +116,7 @@ public:
      * @}
      */
 
-private:
-    size_t m_count_ = 0;
+protected:
 
     std::weak_ptr<TObject> m_parent_;
     std::map<size_t, std::shared_ptr<TObject>> m_patches_;

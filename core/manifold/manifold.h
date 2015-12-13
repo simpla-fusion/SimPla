@@ -154,6 +154,8 @@ public:
 
     typedef typename mesh_type::id_type id_type;
     typedef typename mesh_type::range_type range_type;
+    typedef typename mesh_type::box_type box_type;
+
     using mesh_type::ndims;
     using mesh_type::volume;
     using mesh_type::dual_volume;
@@ -212,6 +214,16 @@ public:
         _dispatch_print<mesh_type, Policies...>(os);
         os << "}, # Mesh " << std::endl;
         return os;
+    }
+
+    std::shared_ptr<this_type> make_patch(int ratio, box_type const &b) const
+    {
+        auto m = std::make_shared<this_type>(*this);
+        auto idx_b = m->index_box(b);
+        m->dimensions((std::get<1>(idx_b) - std::get<0>(idx_b)) * ratio);
+        m->box(b);
+        m->deploy();
+        return m;
     }
 
     template<typename T>

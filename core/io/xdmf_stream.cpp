@@ -76,7 +76,6 @@ void XDMFStream::open(std::string const &prefix, std::string const &grid_name)
     m_pimpl_->m_file_stream_ << ""
             "<Xdmf xmlns:xi=\"http://www.w3.org/2003/XInclude\" Version=\"2\">\n"
             "<Domain>\n";
-    set_grid();
 
 }
 
@@ -96,7 +95,7 @@ void XDMFStream::close()
     }
 }
 
-void XDMFStream::open_grid(const std::string &g_name, int TAG)
+void XDMFStream::open_grid(const std::string &g_name, Real time, int TAG)
 {
 
     m_pimpl_->m_grid_name_.push_back(g_name);
@@ -124,7 +123,7 @@ void XDMFStream::open_grid(const std::string &g_name, int TAG)
             << std::setw(level * 2) << "" << "<Grid Name=\"" << g_name << "\" GridType=\"Uniform\">" << std::endl
             << std::setw(level * 2) << "" << "   <Topology Reference=\"/Xdmf/Domain/Topology[1]\"/>" << std::endl
             << std::setw(level * 2) << "" << "   <Geometry Reference=\"/Xdmf/Domain/Geometry[1]\"/>" << std::endl
-            << std::setw(level * 2) << "" << "   <Time Value=\"" << time() << "\"/>" << std::endl;
+            << std::setw(level * 2) << "" << "   <Time Value=\"" << time << "\"/>" << std::endl;
 
 
             break;
@@ -156,7 +155,7 @@ void XDMFStream::start_record(std::string const &s)
 
     if (m_pimpl_->m_record_count_ < 0)
     {
-        open_grid(g_name, COLLECTION_TEMPORAL);
+        open_grid(g_name, 0, COLLECTION_TEMPORAL);
 
         m_pimpl_->m_record_count_ = 0;
     }
@@ -164,11 +163,11 @@ void XDMFStream::start_record(std::string const &s)
 
 }
 
-void XDMFStream::record()
+void XDMFStream::record(Real t)
 {
     if (m_pimpl_->m_record_count_ < 0) { start_record(); }
 
-    write();
+    write(0);
 
     ++m_pimpl_->m_record_count_;
 }
@@ -393,12 +392,12 @@ void XDMFStream::read()
 }
 
 
-void  XDMFStream::write()
+void  XDMFStream::write(Real t)
 {
 
     std::string g_name = type_cast<std::string>(m_pimpl_->m_record_count_);
 
-    open_grid(g_name);
+    open_grid(g_name, 0, t);
 
     io::cd(path());
 

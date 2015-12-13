@@ -10,6 +10,8 @@
 #include <memory>
 #include "../dataset/dataset.h"
 
+namespace simpla { template<typename ...> class Field; }
+
 namespace simpla { namespace io
 {
 
@@ -27,7 +29,7 @@ public:
 
     void read();
 
-    void write();
+    void write(Real t);
 
 
     enum
@@ -47,22 +49,16 @@ public:
 
     void start_record(std::string const &s = "");
 
-    void record();
+    void record(Real t);
 
     void stop_record();
 
-    void open_grid(std::string const &g_name = "", int TAG = UNIFORM);
+    void open_grid(const std::string &g_name, Real t, int TAG);
 
     void close_grid();
 
-
     void enroll(std::string const &, DataSet const &ds, int tag = TAG_NODE);
 
-    virtual Real time() const = 0;
-
-    virtual std::shared_ptr<DataSet> grid_vertices() const = 0;
-
-    virtual void set_grid() = 0;
 
     void set_grid(int ndims, size_t const *dims, Real const *xmin, Real const *dx);
 
@@ -71,6 +67,26 @@ public:
     bool check_grid() const;
 
     std::string path() const;
+
+    template<typename TV, typename TM, int IFORM>
+    void enroll(std::string const &name,
+                Field<TV, TM, std::integral_constant<int, IFORM>> const &f)
+    {
+        enroll(name, f.dataset(),
+               IFORM | ((traits::is_ntuple<TV>::value
+                         || (IFORM == 1 || IFORM == 2)) ? 0x10 : 0));
+
+    };
+
+    template<typename TV, typename TM, int IFORM>
+    void write_attribute(std::string const &s,
+                         Field<TV, TM, std::integral_constant<int, IFORM>> const &f)
+    {
+        write_attribute(s, f.dataset(),
+                        IFORM |
+                        ((traits::is_ntuple<TV>::value
+                          || (IFORM == 1 || IFORM == 2)) ? 0x10 : 0));
+    }
 
 
 private:

@@ -42,8 +42,9 @@ public:
     typedef this_type io_policy;
 
 
-    IOPolicy(geometry_type &geo) :
-            m_geo_(geo) { }
+    IOPolicy(geometry_type &geo) : m_geo_(geo) { }
+
+    IOPolicy(IOPolicy const &other) : m_geo_(other.m_geo_) { }
 
     virtual ~IOPolicy() { }
 

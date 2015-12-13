@@ -30,6 +30,8 @@ TEST(MeshMultiBlock, RectMesh)
 
     mesh_type m;
 
+    auto l_box = m.box();
+
     traits::field_t<Real, mesh_type, VERTEX> f0{m};
     traits::field_t<Real, mesh_type, EDGE> f1a{m};
     traits::field_t<Real, mesh_type, EDGE> f1b{m};
@@ -38,8 +40,12 @@ TEST(MeshMultiBlock, RectMesh)
     f1a.clear();
     f1b.clear();
 
+    auto it = m.insert_patch(l_box);
+
 
     m.time_integral(1.0, f1a, f1b * f0);
+
+    m.erase_patch(std::get<0>(it));
 
 
 }
