@@ -37,18 +37,18 @@ private:
     typedef TMap map_type;
     typedef TMetric metric_type;
 
-    typedef MeshBlock base_type;
+    typedef MeshBlock block_type;
 
 public:
-    using base_type::ndims;
-    using base_type::id_type;
-    using base_type::id_tuple;
-    using base_type::index_type;
-    using base_type::index_tuple;
-    using base_type::range_type;
-    using base_type::point_type;
-    using base_type::vector_type;
-    using base_type::difference_type;
+    using block_type::ndims;
+    using block_type::id_type;
+    using block_type::id_tuple;
+    using block_type::index_type;
+    using block_type::index_tuple;
+    using block_type::range_type;
+    using block_type::point_type;
+    using block_type::vector_type;
+    using block_type::difference_type;
 
 private:
     point_type m_coords_min_ = {0, 0, 0};
@@ -61,17 +61,17 @@ private:
 public:
 
 
-    Mesh() : base_type() { }
+    Mesh() : block_type() { }
 
 
-    Mesh(this_type const &other) : base_type(other), m_dx_(other.m_dx_) { }
+    Mesh(this_type const &other) : block_type(other), m_dx_(other.m_dx_) { }
 
     virtual  ~ Mesh() { }
 
     virtual void swap(this_type &other)
     {
 
-        base_type::swap(other);
+        block_type::swap(other);
 
         map_type::swap(other);
 
@@ -99,7 +99,7 @@ public:
     {
         box(dict["Geometry"]["Box"].template as<std::tuple<point_type, point_type> >());
 
-        base_type::dimensions(
+        block_type::dimensions(
                 dict["Geometry"]["Topology"]["Dimensions"].template as<index_tuple>(index_tuple{10, 1, 1}));
     }
 
@@ -111,7 +111,7 @@ public:
         << "\tGeometry={" << std::endl
         << "\t\t Topology = { Type = \"RectMesh\",  }," << std::endl
         << "\t\t Box = {" << box() << "}," << std::endl
-        << "\t\t Dimensions = " << base_type::dimensions() << "," << std::endl
+        << "\t\t Dimensions = " << block_type::dimensions() << "," << std::endl
         << "\t\t}, "
         << "\t}"
         << std::endl;
@@ -145,14 +145,14 @@ public:
 
     std::tuple<point_type, point_type> box(id_type const &s) const
     {
-        return std::make_tuple(point(s - base_type::_DA), point(s + base_type::_DA));
+        return std::make_tuple(point(s - block_type::_DA), point(s + block_type::_DA));
     };
 
     std::tuple<point_type, point_type> local_box() const
     {
         point_type l_min, l_max;
 
-        std::tie(l_min, l_max) = base_type::local_box();
+        std::tie(l_min, l_max) = block_type::local_box();
 
         l_min = inv_map(l_min);
 
@@ -174,8 +174,8 @@ public:
 
         if (geometry::box_intersection(b0, b1, &x0, &x1))
         {
-            return std::make_tuple(base_type::unpack_index(id(x0)),
-                                   base_type::unpack_index(id(x1) + (base_type::_DA << 1)));
+            return std::make_tuple(block_type::unpack_index(id(x0)),
+                                   block_type::unpack_index(id(x1) + (block_type::_DA << 1)));
 
         }
         else
@@ -196,23 +196,23 @@ public:
     template<typename ...Args>
     point_type point(Args &&...args) const
     {
-        return std::move(map_type::inv_map(base_type::point(std::forward<Args>(args)...)));
+        return std::move(map_type::inv_map(block_type::point(std::forward<Args>(args)...)));
     }
 
 
     virtual point_type coordinates_local_to_global(std::tuple<id_type, point_type> const &t) const
     {
-        return std::move(inv_map(base_type::coordinates_local_to_global(t)));
+        return std::move(inv_map(block_type::coordinates_local_to_global(t)));
     }
 
     virtual std::tuple<id_type, point_type> coordinates_global_to_local(point_type x, int n_id = 0) const
     {
-        return std::move(base_type::coordinates_global_to_local(map(x), n_id));
+        return std::move(block_type::coordinates_global_to_local(map(x), n_id));
     }
 
     virtual id_type id(point_type const &x, int n_id = 0) const
     {
-        return std::get<0>(base_type::coordinates_global_to_local(map(x), n_id));
+        return std::get<0>(block_type::coordinates_global_to_local(map(x), n_id));
     }
 
 
@@ -222,8 +222,8 @@ public:
 private:
     size_t hash_(id_type s) const
     {
-        return base_type::hash(s & (~base_type::_DA)) * base_type::NUM_OF_NODE_ID +
-               base_type::node_id(s);
+        return block_type::hash(s & (~block_type::_DA)) * block_type::NUM_OF_NODE_ID +
+               block_type::node_id(s);
     }
 
 public:
@@ -276,11 +276,11 @@ public:
 template<typename TMetric, typename TMap>
 void Mesh<TMetric, tags::rect_linear, TMap>::deploy()
 {
-    base_type::deploy();
+    block_type::deploy();
 
-    auto dims = base_type::dimensions();
+    auto dims = block_type::dimensions();
 
-    map_type::set(box(), base_type::box(), dims);
+    map_type::set(box(), block_type::box(), dims);
 
     for (int i = 0; i < ndims; ++i)
     {
@@ -318,9 +318,9 @@ void Mesh<TMetric, tags::rect_linear, TMap>::deploy()
 
     // update volume
 
-    auto memory_block_range = base_type::template make_range<VERTEX>(base_type::memory_index_box());
+    auto memory_block_range = block_type::template make_range<VERTEX>(block_type::memory_index_box());
 
-    size_t num = memory_block_range.size() * base_type::NUM_OF_NODE_ID;
+    size_t num = memory_block_range.size() * block_type::NUM_OF_NODE_ID;
 
 
     m_volume_ = sp_alloc_array<Real>(num);
@@ -333,9 +333,9 @@ void Mesh<TMetric, tags::rect_linear, TMap>::deploy()
     {
         for (auto const &s:range)
         {
-            size_t n = this->hash(s) * base_type::NUM_OF_NODE_ID;
+            size_t n = this->hash(s) * block_type::NUM_OF_NODE_ID;
 
-            base_type::get_element_volume_in_cell(*this, s, m_volume_.get() + n, m_inv_volume_.get() + n,
+            block_type::get_element_volume_in_cell(*this, s, m_volume_.get() + n, m_inv_volume_.get() + n,
                                                   m_dual_volume_.get() + n, m_inv_dual_volume_.get() + n);
         }
 

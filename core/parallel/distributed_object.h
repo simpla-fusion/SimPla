@@ -51,6 +51,12 @@ struct DistributedObject
         add(traits::make_dataset(*args));
     }
 
+    template<typename T>
+    void add(T &args)
+    {
+        add(traits::make_dataset(args));
+    }
+
     void add(DataSet ds);
 
     inline void add_link_send(nTuple<int, 3> const &coord_offset, DataSet &ds)

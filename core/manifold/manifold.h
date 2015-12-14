@@ -10,12 +10,13 @@
 
 #include <iostream>
 #include <memory>
+#include "../dataset/dataset.h"
+#include "../parallel/parallel.h"
 #include "../gtl/utilities/log.h"
 #include "../gtl/macro.h"
 #include "../gtl/ntuple.h"
 #include "../geometry/coordinate_system.h"
 #include "mesh/mesh_patch.h"
-
 #include "manifold_traits.h"
 
 
@@ -136,7 +137,7 @@ template<typename TMesh, template<typename> class ...Policies>
 class Manifold
         : public TMesh,
           public Policies<TMesh> ...,
-          public mesh::Patch<Manifold<TMesh, Policies...>>
+          public mesh::MeshPatch<Manifold<TMesh, Policies...>>
 {
 
 public:
@@ -167,13 +168,14 @@ public:
 
     Manifold() : Policies<mesh_type>(dynamic_cast<mesh_type &>(*this))... { }
 
+    Manifold(this_type const &m) : mesh_type(m), Policies<mesh_type>(dynamic_cast<mesh_type &>(*this))... { }
+
     virtual ~Manifold() { }
 
-    virtual mesh_type &self() { return dynamic_cast<mesh_type &>(*this); }
+    virtual this_type &self() { return (*this); }
 
-    virtual mesh_type const &self() const { return dynamic_cast<mesh_type const &>(*this); }
+    virtual this_type const &self() const { return (*this); }
 
-    Manifold(this_type const &other) : mesh_type(other), Policies<mesh_type>(other)... { }
 
     this_type &operator=(const this_type &other)
     {
@@ -217,15 +219,6 @@ public:
         return os;
     }
 
-    std::shared_ptr<this_type> make_patch(int ratio, box_type const &b) const
-    {
-        auto m = std::make_shared<this_type>(*this);
-        auto idx_b = m->index_box(b);
-        m->dimensions((std::get<1>(idx_b) - std::get<0>(idx_b)) * ratio);
-        m->box(b);
-        m->deploy();
-        return m;
-    }
 
     template<typename T>
     inline constexpr T access(T const &v, id_t s) const { return v; }
@@ -261,29 +254,9 @@ public:
     inline auto access(Field<Expression<TD...> > const &f, id_type s) const
     DECL_RET_TYPE((this->calculus_policy::eval(f, s)))
 
-    template<typename TOP, typename T, typename TM, int IFORM, typename ...Args>
-    void for_each(TOP const &op, Field<T, TM, std::integral_constant<int, IFORM> > *self,
-                  Args &&... args) const
-    {
-        ASSERT(self != nullptr);
 
-        self->deploy();
-
-        this->parallel_policy::template update<IFORM>(
-                [&](typename mesh_type::range_type const &r)
-                {
-                    for (auto const &s:r)
-                    {
-                        op(access(*self, s),
-                           access(std::forward<Args>(args), s)...);
-                    }
-                }, self
-        );
-
-    }
-
-    template<typename TOP, typename   ...Args>
-    void for_each(TOP const &op, Args &&... args) const
+    template<typename TOP, typename TF, typename   ...Args>
+    void apply(TOP const &op, TF &f, Args &&... args) const
     {
         static constexpr int IFORM =
                 traits::iform<typename
@@ -294,9 +267,11 @@ public:
                 {
                     for (auto const &s:r)
                     {
-                        op(access(std::forward<Args>(args), s)...);
+                        op(access(f, s),
+                           access(std::forward<Args>(args), s)...);
                     }
-                }
+                }, f
+
         );
     }
 
@@ -324,11 +299,17 @@ public:
 
     };
 
-    std::shared_ptr<TMesh> patch(box_type const &b, int ratio = 2) const
+    std::shared_ptr<this_type> refinement(int ratio, box_type const &box) const
     {
-        auto res = std::make_shared<TMesh>(*this);
+        auto res = std::make_shared<this_type>(*this);
+        auto idx_box = res->index_box(box);
+        res->box(box);
+        res->dt(dt() / ratio);
+        res->dimensions((std::get<1>(idx_box) - std::get<0>(idx_box)) * ratio);
+        res->deploy();
         return res;
     }
+
 
     void next_time_step() { m_time_ += m_dt_; }
 

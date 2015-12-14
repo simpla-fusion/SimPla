@@ -18,10 +18,10 @@
 #include <string>
 
 #include "../gtl/type_traits.h"
-#include "../manifold/manifold_traits.h"
 #include "../dataset/dataset.h"
 #include "../parallel/parallel.h"
-#include "../manifold/mesh/enable_patch_from_this.h"
+#include "../manifold/mesh/patch.h"
+#include "../manifold/manifold_traits.h"
 
 
 namespace simpla
@@ -45,7 +45,8 @@ public:
     typedef TV value_type;
 
     typedef TG mesh_type;
-
+    typedef mesh::EnablePatchFromThis<Field<TV, TG, std::integral_constant<int, IFORM> >>
+            base_type;
     static constexpr int iform = IFORM;
 private:
 
@@ -78,6 +79,25 @@ public:
     virtual this_type &self() { return *this; }
 
     virtual this_type const &self() const { return *this; }
+
+    virtual std::shared_ptr<this_type>
+    patch(size_t id)
+    {
+        std::shared_ptr<this_type> res;
+
+        auto it = base_type::patches().find(id);
+        if (it != base_type::patches().end())
+        {
+            res = it->second;
+        }
+        else
+        {
+            std::tie(res, std::ignore) = base_type::insert(
+                    id, m_mesh_.patch(id)->template make<this_type>());
+        }
+
+        return res;
+    }
 
 //    virtual void swap(this_type &other)
 //    {
@@ -119,28 +139,28 @@ public:
      */
     inline this_type &operator=(this_type const &other)
     {
-        action(_impl::_assign(), other);
+        apply(_impl::_assign(), other);
         return *this;
     }
 
     template<typename Other>
     inline this_type &operator=(Other const &other)
     {
-        action(_impl::_assign(), other);
+        apply(_impl::_assign(), other);
         return *this;
     }
 
     template<typename Other>
     inline this_type &operator+=(Other const &other)
     {
-        action(_impl::plus_assign(), other);
+        apply(_impl::plus_assign(), other);
         return *this;
     }
 
     template<typename Other>
     inline this_type &operator-=(Other const &other)
     {
-        action(_impl::minus_assign(), other);
+        apply(_impl::minus_assign(), other);
 
         return *this;
     }
@@ -148,43 +168,31 @@ public:
     template<typename Other>
     inline this_type &operator*=(Other const &other)
     {
-        action(_impl::multiplies_assign(), other);
+        apply(_impl::multiplies_assign(), other);
         return *this;
     }
 
     template<typename Other>
     inline this_type &operator/=(Other const &other)
     {
-        action(_impl::divides_assign(), other);
+        apply(_impl::divides_assign(), other);
         return *this;
     }
 
     template<typename TRange, typename Func>
     void accept(TRange const &r0, Func const &fun)
     {
-        m_mesh_.template for_each1<value_type, iform>(*m_dataset_, r0, fun);
-    };
-
-    template<typename TRange, typename Func>
-    void accept(TRange const &r0, Func const &fun) const
-    {
-        m_mesh_.template for_each1<value_type, iform>(*m_dataset_, r0, fun);
+        m_mesh_.template for_each_value<value_type, iform>(*this, r0, fun);
     };
 
 
 private:
 
     template<typename TOP, typename ...Args>
-    void action(TOP const &op, Args &&... args)
+    void apply(TOP const &op, Args &&... args)
     {
         deploy();
-        m_mesh_.for_each(op, this, std::forward<Args>(args)...);
-    }
-
-    template<typename TOP, typename ...Args>
-    void action(TOP const &op, Args &&... args) const
-    {
-        m_mesh_.for_each(op, *this, std::forward<Args>(args)...);
+        m_mesh_.apply(op, *this, std::forward<Args>(args)...);
     }
 
 public:
@@ -224,16 +232,14 @@ public:
         return m_mesh_.template at<value_type>(*m_dataset_, s);
     }
 
-    template<typename ...Args>
-    value_type &at(Args &&... args)
+    value_type &at(id_type const &s)
     {
-        return m_mesh_.template at<value_type>(*m_dataset_, std::forward<Args>(args)...);
+        return m_mesh_.template at<value_type>(*m_dataset_, s);
     }
 
-    template<typename ...Args>
-    value_type const &at(Args &&... args) const
+    value_type at(id_type const &s) const
     {
-        return m_mesh_.template at<value_type>(*m_dataset_, std::forward<Args>(args)...);
+        return m_mesh_.template at<value_type>(*m_dataset_, s);
     }
 /**
  * @}

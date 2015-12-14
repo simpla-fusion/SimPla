@@ -25,14 +25,11 @@ template<int IFORM, typename TM, typename TV, typename TFun, typename TBox>
 class Field<TV, TM, std::integral_constant<int, IFORM>, tags::function, TFun, TBox>
 {
 public:
-
-
     typedef TV value_type;
 
     static constexpr int iform = IFORM;
 
     static constexpr int ndims = TM::ndims;
-
 
 private:
 
@@ -57,29 +54,17 @@ public:
 
     template<typename TF>
     Field(mesh_type const &m, TF const &fun, TBox const &box) :
-            m_mesh_(m), m_fun_(fun), m_define_domain_(box)
-    {
-    }
+            m_mesh_(m), m_fun_(fun), m_define_domain_(box) { }
 
 
     Field(this_type const &other) :
-            m_mesh_(other.m_mesh_), m_fun_(other.m_fun_), m_define_domain_(other.m_define_domain_)
-    {
-    }
+            m_mesh_(other.m_mesh_), m_fun_(other.m_fun_), m_define_domain_(other.m_define_domain_) { }
 
-    ~Field()
-    {
-    }
+    ~Field() { }
 
-    bool is_valid() const
-    {
-        return (!!m_fun_);
-    }
+    bool is_valid() const { return (!!m_fun_); }
 
-    operator bool() const
-    {
-        return !!m_fun_;
-    }
+    operator bool() const { return !!m_fun_; }
 
     value_type at(id_type const &s) const
     {
@@ -108,10 +93,7 @@ public:
 
             const_cast<this_type *>(this)->m_mutex_.unlock();
         }
-        else
-        {
-            res = 0;
-        }
+        else { res = 0; }
 
 
         return res;
@@ -157,8 +139,7 @@ make_field_function_from_config(TM const &m, TFun const &dict)
     return field_type(m, dict["Value"], b);
 
 }
-}//namespace traits
-}
-// namespace simpla
+} // namespace traits
+} // namespace simpla
 
 #endif /* COREFieldField_FUNCTION_H_ */

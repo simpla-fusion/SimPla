@@ -398,14 +398,14 @@ void EMPlasma::next_time_step()
 
     LOG_CMD(B1 -= curl(E1) * (dt * 0.5));
 
-    B1.accept(face_boundary.range(), [&](id_type const &, Real &v) { v = 0; });
+    B1.accept(face_boundary.range(), [&](id_type, Real &v) { v = 0; });
 
     J1.accept(J_src.range(),
-              [&](id_type const &s, Real &v) { v += m.template sample<EDGE>(s, J_src_fun(t, m.point(s))); });
+              [&](id_type s, Real &v) { v += m.template sample<EDGE>(s, J_src_fun(t, m.point(s))); });
 
     LOG_CMD(E1 += (curl(B1) * speed_of_light2 - J1 / epsilon0) * dt);
 
-    E1.accept(edge_boundary.range(), [&](id_type const &, Real &v) { v = 0; });
+    E1.accept(edge_boundary.range(), [&](id_type, Real &v) { v = 0; });
 
 
     traits::field_t<vector_type, mesh_type, VERTEX> dE{m};

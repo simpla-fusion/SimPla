@@ -62,11 +62,8 @@ public:
     void update(Func const &fun, Args &&...args) const;
 
 
-    template<typename TV, int IFORM, typename Range, typename Func>
-    void for_each1(DataSet &ds, Range const &r, Func const &fun);
-
-    template<typename TV, int IFORM, typename Range, typename Func>
-    void for_each1(DataSet const &ds, Range const &r, Func const &fun) const;
+    template<typename TV, int IFORM, typename TF, typename Range, typename Func>
+    void for_each_value(TF &f, Range const &r, Func const &fun) const;
 
 
     template<int IFORM, typename Func>
@@ -146,35 +143,35 @@ void  ParallelPolicy<TMesh>::for_each(Func const &fun) const
     parallel::parallel_for(m_mesh_.template range<IFORM>(), fun);
 };
 
+//template<typename TMesh>
+//template<typename TV, int IFORM, typename TF, typename TRange, typename Func>
+//void  ParallelPolicy<TMesh>::for_each1(TF const &f, TRange const &r0, Func const &fun) const
+//{
+//
+//    parallel::parallel_for(
+//            r0,
+//            [&](TRange const &r)
+//            {
+//                for (auto const &s:r)
+//                {
+//                    fun(s, f.at(s));
+//                }
+//            }
+//    );
+//}
+
 template<typename TMesh>
-template<typename TV, int IFORM, typename TRange, typename Func>
-void  ParallelPolicy<TMesh>::for_each1(DataSet const &ds, TRange const &r0, Func const &fun) const
+template<typename TV, int IFORM, typename TF, typename TRange, typename Func>
+void  ParallelPolicy<TMesh>::for_each_value(TF &f, TRange const &r0, Func const &fun) const
 {
 
     parallel::parallel_for(
             r0,
             [&](TRange const &r)
             {
-                for (auto const &item:r)
+                for (auto const &s:r)
                 {
-                    fun(item, reinterpret_cast<TV *>(ds.data.get())[m_mesh_.hash(item)]);
-                }
-            }
-    );
-}
-
-template<typename TMesh>
-template<typename TV, int IFORM, typename TRange, typename Func>
-void  ParallelPolicy<TMesh>::for_each1(DataSet &ds, TRange const &r0, Func const &fun)
-{
-
-    parallel::parallel_for(
-            r0,
-            [&](TRange const &r)
-            {
-                for (auto const &item:r)
-                {
-                    fun(item, reinterpret_cast<TV *>(ds.data.get())[m_mesh_.hash(item)]);
+                    fun(s, f.at(s));
                 }
             }
     );

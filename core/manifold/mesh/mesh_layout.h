@@ -7,7 +7,13 @@
 #ifndef SIMPLA_MESH_LAYOUT_H
 #define SIMPLA_MESH_LAYOUT_H
 
-}}//namespace simpla { namespace mesh
+#include <memory>
+#include <map>
+
+namespace simpla { namespace mesh
+{
+}}
+//namespace simpla { namespace mesh
 
 #endif //SIMPLA_MESH_LAYOUT_H
 

@@ -29,9 +29,17 @@ TEST(MeshMultiBlock, RectMesh)
     f1a.clear();
     f1b.clear();
 
-    auto it = m.insert_patch(l_box);
+    auto it = m.new_patch(l_box);
 
-    m.time_integral(1.0, f1a, f1b * f0);
+    default_time_integral(
+            m,
+            [&](Real dt, traits::field_t<Real, mesh_type, VERTEX> F0,
+                traits::field_t<Real, mesh_type, EDGE> F1a,
+                traits::field_t<Real, mesh_type, EDGE> F1b) { F1b += F1a * F0 * dt; },
+            m.dt(),
+            f0, f1a, f1b
+
+    );
 
 //    m.erase_patch(std::get<0>(it));
 
