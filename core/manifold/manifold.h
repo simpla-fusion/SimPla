@@ -254,7 +254,7 @@ public:
     template<typename TV, typename ...Others>
     inline TV access(Field<TV, Others...> const &f, id_type s) const
     {
-        return f[s];
+        return f.at(s);
     }
 
     template<typename ...TD>
@@ -262,7 +262,8 @@ public:
     DECL_RET_TYPE((this->calculus_policy::eval(f, s)))
 
     template<typename TOP, typename T, typename TM, int IFORM, typename ...Args>
-    void for_each(TOP const &op, Field<T, TM, std::integral_constant<int, IFORM> > *self, Args &&... args) const
+    void for_each(TOP const &op, Field<T, TM, std::integral_constant<int, IFORM> > *self,
+                  Args &&... args) const
     {
         ASSERT(self != nullptr);
 
@@ -348,12 +349,7 @@ private:
 }; //class Manifold
 
 /* @}@} */
-template<typename TMesh, template<typename> class ...Policies>
-std::ostream &
-operator<<(std::ostream &os, const Manifold<TMesh, Policies...> &m)
-{
-    return m.print(os);
-}
+
 }//namespace simpla
 
 #endif /* CORE_MANIFOLD_H_ */

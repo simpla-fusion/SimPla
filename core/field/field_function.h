@@ -81,13 +81,18 @@ public:
         return !!m_fun_;
     }
 
-
-    value_type operator[](id_type const &s) const
+    value_type at(id_type const &s) const
     {
 
         field_value_type v = this->operator()(m_mesh_.point(s));
 
         return m_mesh_.template sample<IFORM>(s, v);
+    }
+
+
+    value_type operator[](id_type const &s) const
+    {
+        return this->at(s);
     }
 
 

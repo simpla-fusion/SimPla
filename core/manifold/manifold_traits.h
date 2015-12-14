@@ -42,13 +42,8 @@ template<typename ...> struct Topology;
  */
 template<typename TMesh, template<typename> class ...Policies> struct Manifold;
 
-template<typename ... T>
-std::ostream &operator<<(std::ostream &os, Manifold<T...> const &d)
-{
-    d.print(os);
-
-    return os;
-}
+template<typename TMesh, template<typename> class ...Policies>
+std::ostream &operator<<(std::ostream &os, const Manifold<TMesh, Policies...> &m) { return m.print(os); }
 
 template<typename TMesh, template<typename> class ...Policies>
 std::shared_ptr<Manifold<TMesh, Policies...>> make_mesh()
