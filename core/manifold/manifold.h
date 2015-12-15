@@ -16,7 +16,6 @@
 #include "../gtl/macro.h"
 #include "../gtl/ntuple.h"
 #include "../geometry/coordinate_system.h"
-#include "mesh/mesh_patch.h"
 #include "manifold_traits.h"
 
 
@@ -136,8 +135,7 @@ template<typename ...> struct Expression;
 template<typename TMesh, template<typename> class ...Policies>
 class Manifold
         : public TMesh,
-          public Policies<TMesh> ...,
-          public mesh::MeshPatch<Manifold<TMesh, Policies...>>
+          public Policies<TMesh> ...
 {
 
 public:
@@ -146,13 +144,13 @@ public:
 
     typedef Manifold<mesh_type, Policies ...> this_type;
 
-    typedef geometry::traits::coordinate_system_t<mesh_type> coordinates_system_type;
+    typedef geometry::traits::coordinate_system_t <mesh_type> coordinates_system_type;
 
-    typedef geometry::traits::scalar_type_t<coordinates_system_type> scalar_type;
+    typedef geometry::traits::scalar_type_t <coordinates_system_type> scalar_type;
 
-    typedef geometry::traits::point_type_t<coordinates_system_type> point_type;
+    typedef geometry::traits::point_type_t <coordinates_system_type> point_type;
 
-    typedef geometry::traits::vector_type_t<coordinates_system_type> vector_type;
+    typedef geometry::traits::vector_type_t <coordinates_system_type> vector_type;
 
 
     typedef typename mesh_type::id_type id_type;
@@ -168,11 +166,18 @@ public:
 
     Manifold() : Policies<mesh_type>(dynamic_cast<mesh_type &>(*this))... { }
 
-    Manifold(this_type const &m) : mesh_type(m), Policies<mesh_type>(dynamic_cast<mesh_type &>(*this))... { }
+    Manifold(this_type const &m) : mesh_type(m), Policies<mesh_type>(
+            dynamic_cast<mesh_type &>(*this))... { }
 
-    virtual ~Manifold() { }
+    virtual ~Manifold()
+    {
+    }
 
-    virtual this_type &self() { return (*this); }
+    virtual this_type
+
+    &
+
+    self() { return (*this); }
 
     virtual this_type const &self() const { return (*this); }
 
@@ -195,6 +200,7 @@ private:
     TEMPLATE_DISPATCH(print, inline, const)
 
 public:
+
     void swap(const this_type &other) { _dispatch_swap<mesh_type, Policies<TMesh>...>(other); }
 
     template<typename TDict>
@@ -229,8 +235,8 @@ public:
 
 
     template<typename ...T>
-    inline traits::primary_type_t<nTuple<Expression<T...>>>
-    access(nTuple<Expression<T...>> const &v, id_t s) const
+    inline traits::primary_type_t <nTuple<Expression<T...>>>
+    access(nTuple <Expression<T...>> const &v, id_t s) const
     {
         traits::primary_type_t<nTuple<Expression<T...> > > res;
         res = v;

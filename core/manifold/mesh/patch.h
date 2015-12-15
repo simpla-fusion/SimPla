@@ -10,7 +10,10 @@
 #include <stddef.h>
 #include <memory>
 #include <map>
+#include <tuple>
+#include "../../gtl/ntuple.h"
 #include "../../gtl/utilities/log.h"
+#include "../../gtl/primitives.h"
 
 namespace simpla { namespace mesh
 {
@@ -32,16 +35,37 @@ public:
 
     virtual void sync_patches() { };
 
-    virtual std::shared_ptr<PatchEntity> patch_entity(size_t id) = 0;
 
-    virtual std::shared_ptr<const PatchEntity> patch_entity(size_t id) const = 0;
+    virtual std::shared_ptr<PatchEntity>
+    patch_entity(size_t id) { return (m_patches_.at(id)); }
+
+    virtual std::shared_ptr<const PatchEntity>
+    patch_entity(size_t id) const { return (m_patches_.at(id)); }
+
 
     virtual std::tuple<std::shared_ptr<PatchEntity>, bool>
-            insert(size_t id, std::shared_ptr<PatchEntity> p) = 0;
+    insert(size_t id, std::shared_ptr<PatchEntity> p)
+    {
+        auto res = m_patches_.insert(std::make_pair(id, p));
+        return std::make_tuple(res.first->second, res.second);
+    };
 
-    virtual size_t erase_patch(size_t id) = 0;
+    virtual size_t erase_patch(size_t id) { return m_patches_.erase(id); };
+
+    virtual std::tuple<nTuple < Real, 3>,nTuple<Real, 3>> get_box() const
+    {
+        return std::make_tuple(nTuple < Real, 3 > {0, 0, 0}, nTuple < Real, 3 > {1, 1, 1});
+    };
+
+    virtual nTuple<size_t, 3> get_dimensions() const
+    {
+        return nTuple<size_t, 3>{1, 1, 1};
+    };
+
+    std::map<size_t, std::shared_ptr<PatchEntity>> const &patches() const { return m_patches_; };
 
 private:
+    std::map<size_t, std::shared_ptr<PatchEntity>> m_patches_;
 };
 
 template<typename TObject>
@@ -68,43 +92,22 @@ public:
 
     virtual void coarsen() { }
 
-    virtual std::shared_ptr<PatchEntity>
-    patch_entity(size_t id) { return std::dynamic_pointer_cast<PatchEntity>(m_patches_.at(id)); }
-
-    virtual std::shared_ptr<const PatchEntity>
-    patch_entity(size_t id) const { return std::dynamic_pointer_cast<const PatchEntity>(m_patches_.at(id)); }
-
 
     virtual std::shared_ptr<TObject>
-    patch(size_t id) { return (m_patches_.at(id)); }
+    patch(size_t id) { return (std::dynamic_pointer_cast<TObject>(patch_entity(id))); }
 
     virtual std::shared_ptr<const TObject>
-    patch(size_t id) const { return (m_patches_.at(id)); }
+    patch(size_t id) const { return (std::dynamic_pointer_cast<const TObject>(patch_entity(id))); }
 
-    virtual size_t erase_patch(size_t id) { return m_patches_.erase(id); };
-
-
-    virtual std::tuple<std::shared_ptr<PatchEntity>, bool>
-    insert(size_t id, std::shared_ptr<PatchEntity> p)
-    {
-        auto res = insert(id, std::dynamic_pointer_cast<TObject>(p));
-
-        return std::make_tuple(
-                std::dynamic_pointer_cast<PatchEntity>(std::get<0>(res)),
-                std::get<1>(res));
-    };
 
     virtual std::tuple<std::shared_ptr<TObject>, bool>
     insert(size_t id, std::shared_ptr<TObject> p)
     {
-        auto res = m_patches_.insert(std::make_pair(id, p));
-        return std::make_tuple(res.first->second, res.second);
+        auto res = PatchEntity::insert(id, std::dynamic_pointer_cast<PatchEntity>(p));
+        return std::make_tuple(std::dynamic_pointer_cast<TObject>(std::get<0>(res)), std::get<1>(res));
     };
 
-    std::map<size_t, std::shared_ptr<TObject>> const &patches() const { return m_patches_; };
 
-private:
-    std::map<size_t, std::shared_ptr<TObject>> m_patches_;
 };
 
 }} //namespace simpla { namespace mesh

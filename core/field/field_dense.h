@@ -80,24 +80,24 @@ public:
 
     virtual this_type const &self() const { return *this; }
 
-    virtual std::shared_ptr<this_type>
-    patch(size_t id)
-    {
-        std::shared_ptr<this_type> res;
-
-        auto it = base_type::patches().find(id);
-        if (it != base_type::patches().end())
-        {
-            res = it->second;
-        }
-        else
-        {
-            std::tie(res, std::ignore) = base_type::insert(
-                    id, m_mesh_.patch(id)->template make<this_type>());
-        }
-
-        return res;
-    }
+//    virtual std::shared_ptr<this_type>
+//    patch(size_t id)
+//    {
+//        std::shared_ptr<this_type> res;
+//
+//        auto it = base_type::patches().find(id);
+//        if (it != base_type::patches().end())
+//        {
+//            res = std::dynamic_pointer_cast<this_type>(it->second);
+//        }
+//        else
+//        {
+//            std::tie(res, std::ignore) = base_type::insert(
+//                    id, m_mesh_.patch(id)->template make<this_type>());
+//        }
+//
+//        return res;
+//    }
 
 //    virtual void swap(this_type &other)
 //    {

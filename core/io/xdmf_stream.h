@@ -9,8 +9,14 @@
 
 #include <memory>
 #include "../dataset/dataset.h"
+#include "../manifold/mesh/patch.h"
+#include "../manifold/mesh/mesh_patch.h"
 
-namespace simpla { template<typename ...> class Field; }
+namespace simpla
+{
+template<typename ...> class Field;
+
+}
 
 namespace simpla { namespace io
 {
@@ -39,7 +45,7 @@ public:
 
     enum
     {
-        UNIFORM = 0, COLLECTION_TEMPORAL = 1
+        UNIFORM = 0, COLLECTION_TEMPORAL = 1, TREE = 2
     };
 
 
@@ -63,6 +69,8 @@ public:
     void set_grid(int ndims, size_t const *dims, Real const *xmin, Real const *dx);
 
     void set_grid(DataSet const &ds);
+
+    void set_grid(mesh::MeshPatch const &m);
 
     bool check_grid() const;
 

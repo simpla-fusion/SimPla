@@ -1,0 +1,29 @@
+<ServerManagerConfiguration>
+  <ProxyGroup name="sources">
+   <SourceProxy name="AMRSimPlaReader"
+                class="vtkAMRSimPlaReader"
+                label="SimPla reader">
+     <Documentation
+       short_help="Read a SimPla AMR file."
+       long_help="Read a  SimPla AMR  file into an image data.">
+       The PNG reader reads PNG (Portable Network Graphics) files, and the output is a uniform rectilinear (image/volume) dataset. The default file extension is .png.
+     </Documentation>
+     <StringVectorProperty
+        name="FileName"
+        animateable="0"
+        command="SetFileName"
+        number_of_elements="1"
+        panel_visibility="never">
+        <FileListDomain name="files"/>
+        <Documentation>
+          This property specifies the file name for the SimPla reader.
+        </Documentation>
+     </StringVectorProperty>
+
+     <Hints>
+      <ReaderFactory extensions="sp" file_description="SimPla AMR  Files" />
+     </Hints>
+   <!-- End MyPNGReader -->
+   </SourceProxy>
+  </ProxyGroup>
+</ServerManagerConfiguration>

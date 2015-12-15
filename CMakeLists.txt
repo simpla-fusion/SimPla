@@ -272,5 +272,6 @@ add_subdirectory(core)
 add_subdirectory(applications)
 add_subdirectory(example)
 add_subdirectory(docs)
+add_subdirectory(plugins)
 
  
