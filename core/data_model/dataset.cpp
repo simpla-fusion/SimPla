@@ -10,38 +10,26 @@
 #include "dataset.h"
 #include "../gtl/utilities/pretty_stream.h"
 #include "../gtl/utilities/memory_pool.h"
-#include "../gtl/design_pattern/singleton_holder.h"
 #include "../parallel/mpi_update.h"
 #include "../parallel/mpi_comm.h"
 
 namespace simpla
 {
 
-void DataSet::deploy()
-{
-    if (!empty())
-    {
-        return;
-    }
-    else
-    {
-        data = sp_alloc_memory(
-                datatype.size_in_byte() * dataspace.size());
-    }
-}
 
-void DataSet::clear()
-{
-    deploy();
-    memset(data.get(), 0, memory_space.size() * datatype.size_in_byte());
-}
-
-
-void DataSet::copy(void const *other)
-{
-    deploy();
-    memcpy(data.get(), other, memory_space.size() * datatype.size_in_byte());
-}
+//
+//void DataSet::clear()
+//{
+//    deploy();
+//    memset(data.get(), 0, memory_space.size() * datatype.size_in_byte());
+//}
+//
+//
+//void DataSet::copy(void const *other)
+//{
+//    deploy();
+//    memcpy(data.get(), other, memory_space.size() * datatype.size_in_byte());
+//}
 
 bool DataSet::is_same(void const *other) const
 {

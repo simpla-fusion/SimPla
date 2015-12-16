@@ -18,13 +18,13 @@
 
 #include "../../core/particle/particle.h"
 #include "../../core/particle/particle_proxy.h"
-#include "../../core/dataset/datatype_ext.h"
 #include "../../core/particle/particle_generator.h"
 #include "../../core/particle/pre_define/pic_boris.h"
 #include "../../core/model/geqdsk.h"
 #include "../../core/model/constraint.h"
 #include "../../core/particle/particle_constraint.h"
-#include "../../core/io/xdmf_stream.h"
+//#include "../../core/io/xdmf_stream.h"
+//#include "../../core/data_model/datatype_ext.h"
 
 namespace simpla
 {
@@ -60,7 +60,7 @@ struct EMPlasma
 
     mesh_type m;
 
-    io::XDMFStream out_stream;
+//    io::XDMFStream out_stream;
 
     model::Surface<mesh_type> limiter_boundary;
     model::IdSet<mesh_type> vertex_boundary;
@@ -71,16 +71,16 @@ struct EMPlasma
 
     std::function<Vec3(Real, point_type const &)> J_src_fun;
 
-    traits::field_t<scalar_type, mesh_type, FACE> B0{m};
-    traits::field_t<vector_type, mesh_type, VERTEX> B0v{m};
-    traits::field_t<scalar_type, mesh_type, VERTEX> BB{m};
+    traits::field_t<scalar_type, mesh_type, FACE> B0{m, "B0"};
+    traits::field_t<vector_type, mesh_type, VERTEX> B0v{m, "B0v"};
+    traits::field_t<scalar_type, mesh_type, VERTEX> BB{m, "BB"};
 
-    traits::field_t<vector_type, mesh_type, VERTEX> Ev{m};
-    traits::field_t<vector_type, mesh_type, VERTEX> Bv{m};
+    traits::field_t<vector_type, mesh_type, VERTEX> Ev{m, "Ev"};
+    traits::field_t<vector_type, mesh_type, VERTEX> Bv{m, "Bv"};
 
-    traits::field_t<scalar_type, mesh_type, FACE> B1{m};
-    traits::field_t<scalar_type, mesh_type, EDGE> E1{m};
-    traits::field_t<scalar_type, mesh_type, EDGE> J1{m};
+    traits::field_t<scalar_type, mesh_type, FACE> B1{m, "B1"};
+    traits::field_t<scalar_type, mesh_type, EDGE> E1{m, "E1"};
+    traits::field_t<scalar_type, mesh_type, EDGE> J1{m, "J1"};
 
     traits::field_t<scalar_type, mesh_type, VERTEX> rho0{m};
 
@@ -162,7 +162,7 @@ void EMPlasma::setup(int argc, char **argv)
 
         m.deploy();
 
-        out_stream.open(options["output"].as<std::string>("tokamak"), "GEqdsk");
+//        out_stream.open(options["output"].as<std::string>("tokamak"), "GEqdsk");
 
 
         VERBOSE << "Clear fields" << std::endl;
@@ -190,9 +190,9 @@ void EMPlasma::setup(int argc, char **argv)
 //
 //        }
 
-        out_stream.set_grid(*m.grid_vertices());
-
-        out_stream.open_grid("back_ground", 0, 0);
+//        out_stream.set_grid(m.grid_vertices());
+//
+//        out_stream.open_grid("back_ground", 0, 0);
 
         Ev.clear();
 
@@ -215,7 +215,7 @@ void EMPlasma::setup(int argc, char **argv)
         );
 
         B0.sync();
-        out_stream.write_attribute("B0", B0);
+//        out_stream.write_attribute("B0", B0);
 
         //        if (options["InitValue"]["B0"])
         //        {
@@ -244,15 +244,15 @@ void EMPlasma::setup(int argc, char **argv)
 
         rho0.sync();
 
-        out_stream.write_attribute("rho0", rho0);
+//        out_stream.write_attribute("rho0", rho0);
 
 
         B0v = map_to<VERTEX>(B0);
 
         BB = dot(B0v, B0v);
 
-        out_stream.write_attribute("B0v", B0v);
-        out_stream.write_attribute("BB", BB);
+//        out_stream.write_attribute("B0v", B0v);
+//        out_stream.write_attribute("BB", BB);
 
 
         {
@@ -322,8 +322,8 @@ void EMPlasma::setup(int argc, char **argv)
 
                     std::get<3>(p).clear();
 
-                    out_stream.enroll("n_" + key, std::get<2>(p));
-                    out_stream.enroll("J_" + key, std::get<3>(p));
+//                    out_stream.enroll("n_" + key, std::get<2>(p));
+//                    out_stream.enroll("J_" + key, std::get<3>(p));
 
 
                     if (dict.second["Type"].template as<std::string>() == "Bories")
@@ -366,24 +366,27 @@ void EMPlasma::setup(int argc, char **argv)
     }
 
 
-    out_stream.enroll("Ev", Ev);
-    out_stream.enroll("E1", E1);
-    out_stream.enroll("B1", B1);
-    out_stream.enroll("J1", J1);
+//    out_stream.enroll("Ev", Ev);
+//    out_stream.enroll("E1", E1);
+//    out_stream.enroll("B1", B1);
+//    out_stream.enroll("J1", J1);
 
 
-    out_stream.close_grid();
-    out_stream.start_record("record");
+//    out_stream.close_grid();
+//    out_stream.start_record("record");
 }
 
 void EMPlasma::tear_down()
 {
-    out_stream.stop_record();
-    out_stream.close();
+//    out_stream.stop_record();
+//    out_stream.close();
 }
 
 
-void EMPlasma::check_point() { out_stream.record(m.time()); }
+void EMPlasma::check_point()
+{
+//    out_stream.record(m.time());
+}
 
 void EMPlasma::next_time_step()
 {

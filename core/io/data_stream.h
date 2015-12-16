@@ -60,11 +60,11 @@ public:
     /**
      *	  change the working path (file/group) of datastream ,
      *
-     * @param url_hint  <filename>:<group name>/<dataset name>
+     * @param url_hint  <filename>:<group name>/<data_model name>
      * @param flag SP_APPEND|SP_RECORD ...
-     * @return  if dataset exists ,return <true,dataset name>
-     *         else return ,return <false,dataset name>
-     *         if <dataset name>=="" return <false,"">
+     * @return  if data_model exists ,return <true,data_model name>
+     *         else return ,return <false,data_model name>
+     *         if <data_model name>=="" return <false,"">
      */
     std::tuple<bool, std::string> cd(std::string const &url, size_t flag = 0UL);
 
@@ -81,8 +81,8 @@ public:
     bool is_valid() const;
 
     /**
-     * write dataset to url
-     * @param url             dataset name or path
+     * write data_model to url
+     * @param url             data_model name or path
      * @param ds		  	   data set
      * @param flag             flag to define the operation
      * @return

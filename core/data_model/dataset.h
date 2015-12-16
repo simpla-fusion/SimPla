@@ -15,24 +15,24 @@
 #include <type_traits>
 
 #include "../gtl/check_concept.h"
-#include "../gtl/properties.h"
 #include "../gtl/type_traits.h"
+#include "../base/object.h"
 #include "dataspace.h"
 #include "datatype.h"
 
 namespace simpla
 {
 /**
- * @addtogroup dataset Dataset
+ * @addtogroup data_model Dataset
  * @brief This section describes the interface of data set.
  *
- * @ref dataset  is a group of classes used to exchange data between different libraries
+ * @ref data_model  is a group of classes used to exchange data between different libraries
  * and program languages in the memory. For example, we can transfer an array
  * of particle structure in memory to hdf5 library, and save it to disk.
  */
 
 /**
- * @ingroup dataset
+ * @ingroup data_model
  *
  * @brief Describe structure of data in the memory.
  *
@@ -41,7 +41,7 @@ namespace simpla
  * data set (DataSpace),and a container of meta data (Properties).
  */
 
-struct DataSet : public std::enable_shared_from_this<DataSet>
+struct DataSet
 {
     std::shared_ptr<void> data;
 
@@ -51,8 +51,6 @@ struct DataSet : public std::enable_shared_from_this<DataSet>
 
     DataSpace memory_space;
 
-    Properties properties;
-
 
     DataSet() : data(nullptr) { }
 
@@ -60,13 +58,12 @@ struct DataSet : public std::enable_shared_from_this<DataSet>
             data(other.data),
             datatype(other.datatype),
             dataspace(other.dataspace),
-            memory_space(other.memory_space),
-            properties(other.properties)
+            memory_space(other.memory_space)
     {
     }
 
 
-    ~DataSet() { }
+    virtual ~DataSet() { }
 
     void swap(DataSet &other)
     {
@@ -74,7 +71,6 @@ struct DataSet : public std::enable_shared_from_this<DataSet>
         std::swap(datatype, other.datatype);
         std::swap(dataspace, other.dataspace);
         std::swap(memory_space, other.memory_space);
-        std::swap(properties, other.properties);
     }
 
     bool operator==(DataSet const &other) const { return is_equal(other.data.get()); }
@@ -88,15 +84,9 @@ struct DataSet : public std::enable_shared_from_this<DataSet>
                && (dataspace.num_of_elements() == memory_space.num_of_elements());
     }
 
-    bool empty() const { return data == nullptr; }
+    virtual bool empty() const { return data == nullptr; }
 
-    void deploy();
-
-    std::ostream &print(std::ostream &os) const;
-
-    void clear();
-
-    void copy(void const *other);
+    virtual std::ostream &print(std::ostream &os) const;
 
     bool is_same(void const *other) const;
 
@@ -114,13 +104,12 @@ struct DataSet : public std::enable_shared_from_this<DataSet>
 
 }; //class DataSet
 
+
+
+
+
 namespace traits
 {
-inline void deploy(DataSet *d) { d->deploy(); }
-
-template<typename T> inline T &get_value(DataSet &d, size_t s) { return d.template get_value<T>(s); }
-
-template<typename T> inline T const &get_value(DataSet const &d, size_t s) { return d.template get_value<T>(s); }
 
 
 //

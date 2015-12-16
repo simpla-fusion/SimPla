@@ -13,7 +13,8 @@
 #include "../gtl/utilities/utilities.h"
 #include "../gtl/type_traits.h"
 #include "../gtl/ntuple.h"
-#include "../dataset/datatype.h"
+#include "../data_model/datatype.h"
+#include "../data_model/datatype_ext.h"
 
 namespace simpla { namespace particle
 {

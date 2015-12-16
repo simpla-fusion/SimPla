@@ -715,7 +715,7 @@ DataSet Particle<P, M>::dataset() const
 
     DataSet ds = traits::make_dataset(traits::datatype<value_type>::create(), data, count);
 
-    ds.properties.append(engine_type::properties);
+//    ds.properties.append(engine_type::properties);
 
     return std::move(ds);
 }
@@ -729,7 +729,7 @@ void Particle<P, M>::dataset(DataSet const &ds)
 
     push_back(p, p + count);
 
-    engine_type::properties.append(ds.properties);
+//    engine_type::properties.append(ds.properties);
 
     rehash();
 }

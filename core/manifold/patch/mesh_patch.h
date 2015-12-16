@@ -13,6 +13,8 @@
 #include "../../gtl/type_traits.h"
 #include "../../gtl/primitives.h"
 #include "patch.h"
+#include "../../data_model/dataset.h"
+#include "../../data_model/attribute.h"
 
 
 namespace simpla
@@ -25,18 +27,18 @@ template<typename ...> class Field;
 namespace simpla { namespace mesh
 {
 
-
-class MeshPatch : public PatchEntity
+template<typename TM>
+class EnablePatchFromThis : public PatchEntity
 {
 
 private:
-    typedef MeshPatch this_type;
+    typedef EnablePatchFromThis<TM> this_type;
 
 public:
 
-    MeshPatch();
+    EnablePatchFromThis();
 
-    virtual ~MeshPatch();
+    virtual ~EnablePatchFromThis();
 
     virtual void deploy() { };
 
@@ -50,29 +52,38 @@ public:
 
 
     template<typename ...Args>
-    std::tuple<std::shared_ptr<MeshPatch>, bool> new_patch(Args &&...args);
+    std::tuple<std::shared_ptr<PatchEntity>, bool> new_patch(Args &&...args);
 
 
     void refinement_ratio(size_t r) { m_refinement_ratio_ = r; }
 
     size_t refinement_ratio() const { return m_refinement_ratio_; }
 
+
+
+
+
 private:
 
 
     size_t m_count_ = 0;
     size_t m_refinement_ratio_ = 2;
-    std::list<std::weak_ptr<PatchEntity>> m_registered_entities_;
+
+    std::list<std::weak_ptr<AttributeBase>> m_registered_attribute_;
+
 
 };
 
-MeshPatch::MeshPatch() { }
+template<typename TM>
+EnablePatchFromThis<TM>::EnablePatchFromThis() { }
 
-MeshPatch::~MeshPatch() { }
+template<typename TM>
+EnablePatchFromThis<TM>::~EnablePatchFromThis() { }
 
+template<typename TM>
 template<typename ...Args>
-std::tuple<std::shared_ptr<MeshPatch>, bool>
-MeshPatch::new_patch(Args &&...args)
+std::tuple<std::shared_ptr<PatchEntity>, bool>
+EnablePatchFromThis<TM>::new_patch(Args &&...args)
 {
     auto res = self().refinement(m_refinement_ratio_, std::forward<Args>(args)...);
     res->refinement_ratio(m_refinement_ratio_);
@@ -81,10 +92,11 @@ MeshPatch::new_patch(Args &&...args)
     return insert(id, res);
 };
 
+template<typename TM>
 size_t
-MeshPatch::erase_patch(size_t id)
+EnablePatchFromThis<TM>::erase_patch(size_t id)
 {
-    for (auto &entity:m_registered_entities_)
+    for (auto &entity:m_registered_attribute_)
     {
         entity.lock()->patch_entity(id)->coarsen();
 
@@ -144,7 +156,7 @@ DEFINE_INVOKE_IF_HAS(coarsen);
 
 
 template<typename TMesh, typename TFun, typename ...Args>
-void default_time_integral(MeshPatch const &m, TFun const &fun, Real dt, Args &&...args)
+void default_time_integral(EnablePatchFromThis<TM> const &m, TFun const &fun, Real dt, Args &&...args)
 {
     fun(dt, std::forward<Args>(args)...);
 
@@ -157,7 +169,7 @@ void default_time_integral(MeshPatch const &m, TFun const &fun, Real dt, Args &&
             for (auto const &item:m.patches())
             {
                 default_time_integral(
-                        *std::dynamic_pointer_cast<MeshPatch>(item.second), fun,
+                        *std::dynamic_pointer_cast<PatchEntity>(item.second), fun,
                         dt / m.refinement_ratio(),
                         _impl::patch(item.first, std::forward<Args>(args))...);
             }

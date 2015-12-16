@@ -14,7 +14,7 @@
 #include <tuple>
 #include <vector>
 
-#include "../dataset/dataset.h"
+#include "../data_model/dataset.h"
 #include "../gtl/ntuple.h"
 #include "../gtl/primitives.h"
 

@@ -15,7 +15,7 @@ extern "C"
 #include <cstring> //for memcopy
 
 #include "data_stream.h"
-#include "../dataset/dataset.h"
+#include "../data_model/dataset.h"
 
 
 #include "../parallel/parallel.h"
@@ -957,7 +957,7 @@ std::string DataStream::write(std::string const &url, DataSet const &ds,
         H5_ERROR(H5Dwrite(dset, d_type, m_space, f_space, H5P_DEFAULT, ds.data.get()));
     }
 
-    pimpl_->set_attribute(dset, ds.properties);
+//    pimpl_->set_attribute(dset, ds.properties);
 
     H5_ERROR(H5Dclose(dset));
 

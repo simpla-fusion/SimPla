@@ -11,7 +11,7 @@
 
 #include "io.h"
 #include "../gtl/utilities/log.h"
-#include "../dataset/dataset.h"
+#include "../data_model/dataset.h"
 #include "../parallel/parallel.h"
 
 namespace simpla { namespace io
@@ -384,10 +384,10 @@ void XDMFStream::enroll(std::string const &ds_name, DataSet const &ds, int tag)
     }
     else
     {
-        std::get<0>(acc->second) = tag;
-        std::get<1>(acc->second) = ds.shared_from_this();
-
-        VERBOSE << "DataSet [" << ds_name << "] is enrolled to [" << path() << "]!" << std::endl;
+//        std::get<0>(acc->second) = tag;
+//        std::get<1>(acc->second) = ds.shared_from_this();
+//
+//        VERBOSE << "DataSet [" << ds_name << "] is enrolled to [" << path() << "]!" << std::endl;
     }
 
 
@@ -416,28 +416,28 @@ void  XDMFStream::write(Real t)
     close_grid();
 }
 
-void XDMFStream::set_grid(mesh::MeshPatch const &m)
-{
-    auto b = m.get_box();
-    auto dims = m.get_dimensions();
-    nTuple<Real, 3> dx;
-    dx = (std::get<1>(b) - std::get<0>(b)) / dims;
-    set_grid(3, &dims[0], &std::get<0>(b)[0], &dx[0]);
-
-    for (auto const &item:m.patches())
-    {
-        int level = static_cast<int>(m_pimpl_->m_grid_name_.size());
-
-        if (item.second->patches().size() > 0)
-        {
-            open_grid(type_cast<std::string>(item.first), item.second->time(), TREE);
-
-            set_grid(*item.second);
-
-            close_grid();
-        }
-    }
-
-
-}
+//void XDMFStream::set_grid(mesh::MeshPatch const &m)
+//{
+//    auto b = m.get_box();
+//    auto dims = m.get_dimensions();
+//    nTuple<Real, 3> dx;
+//    dx = (std::get<1>(b) - std::get<0>(b)) / dims;
+//    set_grid(3, &dims[0], &std::get<0>(b)[0], &dx[0]);
+//
+//    for (auto const &item:m.patches())
+//    {
+//        int level = static_cast<int>(m_pimpl_->m_grid_name_.size());
+//
+//        if (item.second->patches().size() > 0)
+//        {
+//            open_grid(type_cast<std::string>(item.first), item.second->time(), TREE);
+//
+//            set_grid(*item.second);
+//
+//            close_grid();
+//        }
+//    }
+//
+//
+//}
 }}

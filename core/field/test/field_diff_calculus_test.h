@@ -361,13 +361,7 @@ TEST_P(FETLTest, diverge1
 
     size_t count = 0;
 
-    for (
-        auto s :
-            mesh->
-
-                    range<VERTEX>()
-
-            )
+    for (auto s :  mesh->range<VERTEX>())
     {
         auto x = mesh->point(s);
 
@@ -386,43 +380,31 @@ TEST_P(FETLTest, diverge1
 #else
         expect = (K_real[0] * E[0] + K_real[1] * E[1] + K_real[2] * E[2]) * cos_v;
 #endif
-        f0b[s] =
-                expect;
+        f0b[s] = expect;
 
 
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
 
-        if (dims[RAxis] > 1 && mesh->
-        sub_index(s)
-        ==
-        RAxis &&mesh
-        ->
-        idx_to_boundary(s)
-        <= 1)
+        if (dims[RAxis] > 1 && mesh->sub_index(s) == RAxis &&
+            mesh->idx_to_boundary(s) <= 1)
         {
-        continue;
+            continue;
         }
 #endif
 
-        ++
-                count;
+        ++count;
 
-        variance +=
-                mod((f0[s]
-                     - expect) * (f0[s] - expect));
+        variance += mod((f0[s] - expect) * (f0[s] - expect));
 
         average += (f0[s] - expect);
 
 
     }
 
-    EXPECT_GT(count,
-              0);
+    EXPECT_GT(count, 0);
 
-    variance /=
-            count;
-    average /=
-            count;
+    variance /= count;
+    average /= count;
 
 #ifndef NDEBUG
     io::cd("/div1/");
@@ -434,14 +416,14 @@ TEST_P(FETLTest, diverge1
 
     EXPECT_LE(std::sqrt(variance), error
     ) <<
-    dims;
+      dims;
     EXPECT_LE(mod(average), error
     ) << " K= " << K_real << " K_i= " <<
-         K_imag
+      K_imag
 
 //			<< " geometry->Ki=" << geometry->k_imag
 
-            ;
+                        ;
 
 }
 

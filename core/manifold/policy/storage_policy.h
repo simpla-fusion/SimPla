@@ -10,8 +10,8 @@
 #include <string.h>
 #include "../../gtl/design_pattern/singleton_holder.h"
 #include "../../gtl/utilities/memory_pool.h"
-#include "../../dataset/dataset.h"
-#include "../../dataset/dataspace.h"
+#include "../../data_model/dataset.h"
+#include "../../data_model/dataspace.h"
 #include "../manifold_traits.h"
 
 namespace simpla
@@ -58,23 +58,23 @@ public:
 
     void deploy() { }
 
-    template<typename TV, typename ...Others>
-    inline TV &at(DataSet &d, id_type s) const
+
+    template<typename TV, int IFORM>
+    std::shared_ptr<TV> data() const
     {
-        return d.template get_value<TV>(m_geo_.hash(s));
+        return sp_alloc_array<TV>(memory_size<IFORM>());
     }
 
-
-    template<typename TV, typename ...Others>
-    inline TV const &at(DataSet const &d, id_type s) const
+    template<int IFORM>
+    size_t memory_size() const
     {
-        return d.template get_value<TV>(m_geo_.hash(s));
+        return std::get<1>(dataspace<IFORM>()).size();
     }
 
     template<typename TV, int IFORM>
-    std::shared_ptr<DataSet> dataset(std::shared_ptr<void> d = nullptr) const
+    DataSet dataset(std::shared_ptr<TV> d = nullptr) const
     {
-        auto res = std::make_shared<DataSet>();
+        DataSet res;
 
         //FIXME  temporary by pass for XDMF
 
@@ -82,19 +82,19 @@ public:
 
         if (dtype.is_array() && (IFORM == VERTEX || IFORM == VOLUME))
         {
-            res->datatype = dtype.element_type();
-            std::tie(res->dataspace, res->memory_space) = dataspace<EDGE>();
+            res.datatype = dtype.element_type();
+            std::tie(res.dataspace, res.memory_space) = dataspace<EDGE>();
         }
         else
         {
-            res->datatype = traits::datatype<TV>::create();
-            std::tie(res->dataspace, res->memory_space) = dataspace<IFORM>();
+            res.datatype = traits::datatype<TV>::create();
+            std::tie(res.dataspace, res.memory_space) = dataspace<IFORM>();
 
         }
 
-        if (d != nullptr) { res->data = d; }
+        if (d != nullptr) { res.data = d; }
 
-        return res;
+        return std::move(res);
     };
 
 
@@ -158,32 +158,18 @@ public:
 
         return std::make_tuple(
 
-                DataSpace(f_ndims, &(f_dims[0]))
-                        .select_hyperslab(&f_start[0], nullptr, &count[0], nullptr),
+                DataSpace(f_ndims, &(f_dims[0])).select_hyperslab(&f_start[0], nullptr, &count[0], nullptr),
 
                 DataSpace(f_ndims, &(m_dims[0]))
                         .select_hyperslab(&m_start[0], nullptr, &count[0], nullptr)
 
         );
 
-
     }
 };//template<typename TGeo> struct StoragePolicy
-
 }} //namespace manifold //namespace policy
 
-namespace traits
-{
 
-template<typename TGeo>
-struct type_id<manifold::policy::StoragePolicy<TGeo>>
-{
-    static std::string name()
-    {
-        return "StoragePolicy<" + type_id<TGeo>::name() + ">";
-    }
-};
-}
 
 }//namespace simpla
 #endif //SIMPLA_STORAGE_POLICY_H

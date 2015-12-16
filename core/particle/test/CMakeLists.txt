@@ -1,5 +1,5 @@
 my_test(kinetic_particle_test)
-target_link_libraries(kinetic_particle_test physics io parallel utilities dataset)
+target_link_libraries(kinetic_particle_test physics io parallel utilities data_model)
 
 my_test(probe_particle_test)
 target_link_libraries(probe_particle_test physics io parallel utilities)

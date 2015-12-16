@@ -8,15 +8,9 @@
 #define SIMPLA_XDMF_STREAM_H
 
 #include <memory>
-#include "../dataset/dataset.h"
-#include "../manifold/mesh/patch.h"
-#include "../manifold/mesh/mesh_patch.h"
+#include "../data_model/dataset.h"
+#include "../data_model/attribute.h"
 
-namespace simpla
-{
-template<typename ...> class Field;
-
-}
 
 namespace simpla { namespace io
 {
@@ -70,30 +64,27 @@ public:
 
     void set_grid(DataSet const &ds);
 
-    void set_grid(mesh::MeshPatch const &m);
 
     bool check_grid() const;
 
     std::string path() const;
 
-    template<typename TV, typename TM, int IFORM>
-    void enroll(std::string const &name,
-                Field<TV, TM, std::integral_constant<int, IFORM>> const &f)
+    void enroll(std::string const &name, AttributeBase const &f)
     {
         enroll(name, f.dataset(),
-               IFORM | ((traits::is_ntuple<TV>::value
-                         || (IFORM == 1 || IFORM == 2)) ? 0x10 : 0));
+//               IFORM | ((traits::is_ntuple<TV>::value
+//                         || (IFORM == 1 || IFORM == 2)) ? 0x10 : 0 )
+               0);
 
     };
 
-    template<typename TV, typename TM, int IFORM>
-    void write_attribute(std::string const &s,
-                         Field<TV, TM, std::integral_constant<int, IFORM>> const &f)
+    void write_attribute(std::string const &s, AttributeBase const &f)
     {
         write_attribute(s, f.dataset(),
-                        IFORM |
-                        ((traits::is_ntuple<TV>::value
-                          || (IFORM == 1 || IFORM == 2)) ? 0x10 : 0));
+//                        IFORM |
+//                        ((traits::is_ntuple<TV>::value
+//                          || (IFORM == 1 || IFORM == 2)) ? 0x10 : 0    )
+                        0);
     }
 
 

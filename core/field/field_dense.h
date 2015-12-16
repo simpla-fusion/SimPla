@@ -18,10 +18,9 @@
 #include <string>
 
 #include "../gtl/type_traits.h"
-#include "../dataset/dataset.h"
 #include "../parallel/parallel.h"
-#include "../manifold/mesh/patch.h"
 #include "../manifold/manifold_traits.h"
+//#include "../manifold/patch/patch.h"
 
 
 namespace simpla
@@ -36,101 +35,48 @@ template<typename ...> struct Field;
 /**
  *  Simple Field
  */
-template<typename TG, int IFORM, typename TV>
-struct Field<TV, TG, std::integral_constant<int, IFORM> >
-        : public mesh::EnablePatchFromThis<Field<TV, TG, std::integral_constant<int, IFORM> >>
+template<typename TV, typename TG, int IFORM>
+class Field<TV, TG, std::integral_constant<int, IFORM> >
+        : public TG::template Attribute<TV, IFORM>
+//         , public mesh::EnablePatchFromThis<Field<TV, TG, std::integral_constant<int, IFORM> >>
 {
+private:
+    typedef Field<TV, TG, std::integral_constant<int, IFORM> > this_type;
 public:
-
-    typedef TV value_type;
+    typedef typename TG::template Attribute<TV, IFORM> attribute_type;
 
     typedef TG mesh_type;
-    typedef mesh::EnablePatchFromThis<Field<TV, TG, std::integral_constant<int, IFORM> >>
-            base_type;
+    typedef TV value_type;
+
+    using attribute_type::mesh;
+    using attribute_type::sync;
+
     static constexpr int iform = IFORM;
 private:
+//    typedef typename mesh::template EnablePatchFromThis<this_type> patch_base;
 
     typedef typename mesh_type::id_type id_type;
 
     typedef typename mesh_type::point_type point_type;
 
-    typedef Field<value_type, mesh_type, std::integral_constant<int, iform> > this_type;
-
-    typedef Field<value_type, mesh_type, std::integral_constant<int, iform> > field_type;
-
     typedef typename traits::field_value_type<this_type>::type field_value_type;
 
-    mesh_type const &m_mesh_;
-
-    std::shared_ptr<DataSet> m_dataset_;
 public:
 
+
     //create construct
-    Field(mesh_type const &m) : m_mesh_(m), m_dataset_(nullptr) { }
+    Field(mesh_type &m, std::string const &name = "")
+            : attribute_type(m.template create_attribute<this_type>(name)) { }
+
+    Field(mesh_type const &m) : attribute_type(m) { }
 
     //copy construct
-    Field(this_type const &other) : m_dataset_(other.m_dataset_), m_mesh_(other.m_mesh_) { }
+    Field(this_type const &other) : attribute_type(other) { }
 
     // move construct
-    Field(this_type &&other) : m_dataset_(other.m_dataset_), m_mesh_(other.m_mesh_) { }
+    Field(this_type &&other) : attribute_type(other) { }
 
     virtual ~Field() { }
-
-    virtual this_type &self() { return *this; }
-
-    virtual this_type const &self() const { return *this; }
-
-//    virtual std::shared_ptr<this_type>
-//    patch(size_t id)
-//    {
-//        std::shared_ptr<this_type> res;
-//
-//        auto it = base_type::patches().find(id);
-//        if (it != base_type::patches().end())
-//        {
-//            res = std::dynamic_pointer_cast<this_type>(it->second);
-//        }
-//        else
-//        {
-//            std::tie(res, std::ignore) = base_type::insert(
-//                    id, m_mesh_.patch(id)->template make<this_type>());
-//        }
-//
-//        return res;
-//    }
-
-//    virtual void swap(this_type &other)
-//    {
-//        std::swap(m_mesh_, other.m_mesh_);
-//        std::swap(m_dataset_, other.m_dataset_);
-//    }
-
-    virtual bool empty() const { return m_dataset_ == nullptr; }
-
-    virtual void deploy()
-    {
-        if (m_dataset_ == nullptr)
-        {
-            m_dataset_ = m_mesh_.template dataset<value_type, iform>();
-        }
-        m_dataset_->deploy();
-    }
-
-    virtual void clear()
-    {
-        deploy();
-        m_dataset_->clear();
-    }
-
-    virtual mesh_type const &mesh() const { return m_mesh_; }
-
-    virtual DataSet const &dataset() const { return *m_dataset_; }
-
-    virtual DataSet &dataset()
-    {
-        deploy();
-        return *m_dataset_;
-    }
 
 
     /**
@@ -179,20 +125,13 @@ public:
         return *this;
     }
 
-    template<typename TRange, typename Func>
-    void accept(TRange const &r0, Func const &fun)
-    {
-        m_mesh_.template for_each_value<value_type, iform>(*this, r0, fun);
-    };
-
-
 private:
 
     template<typename TOP, typename ...Args>
     void apply(TOP const &op, Args &&... args)
     {
-        deploy();
-        m_mesh_.apply(op, *this, std::forward<Args>(args)...);
+        attribute_type::deploy();
+        mesh().template apply<IFORM>(op, *this, std::forward<Args>(args)...);
     }
 
 public:
@@ -201,65 +140,24 @@ public:
 
     template<typename ...Args>
     auto gather(Args &&...args) const
-    DECL_RET_TYPE((m_mesh_.gather(*this, std::forward<Args>(args)...)))
+    DECL_RET_TYPE((mesh().gather(*this, std::forward<Args>(args)...)))
 
     template<typename ...Args>
     auto operator()(Args &&...args) const
-    DECL_RET_TYPE((m_mesh_.gather(*this, std::forward<Args>(args)...)))
+    DECL_RET_TYPE((mesh().gather(*this, std::forward<Args>(args)...)))
 
-    auto range() const
-    DECL_RET_TYPE(m_mesh_.template range<iform>())
+
 /**@}*/
 
 
 
-public:
-    /**
-     *  @name as container
-     *  @{
-     */
 
-    void sync() { m_mesh_.sync(*m_dataset_); }
-
-
-    value_type &operator[](id_type const &s)
-    {
-        return m_mesh_.template at<value_type>(*m_dataset_, s);
-    }
-
-    value_type const &operator[](id_type const &s) const
-    {
-        return m_mesh_.template at<value_type>(*m_dataset_, s);
-    }
-
-    value_type &at(id_type const &s)
-    {
-        return m_mesh_.template at<value_type>(*m_dataset_, s);
-    }
-
-    value_type at(id_type const &s) const
-    {
-        return m_mesh_.template at<value_type>(*m_dataset_, s);
-    }
-/**
- * @}
- */
 
 
 }; // struct Field
 
 namespace traits
 {
-
-template<typename TV, typename TM, typename ...Others>
-struct type_id<Field<TV, TM, Others...> >
-{
-    static const std::string name()
-    {
-        return "Feild<" + type_id<TV>::name() + " , "
-               + type_id<TM>::name() + "," + type_id<Others...>::name() + ">";
-    }
-};
 
 
 template<typename TV, typename TM, typename ...Others>

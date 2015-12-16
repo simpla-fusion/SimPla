@@ -1,3 +1,5 @@
+ADD_SUBDIRECTORY(base)
+
 ADD_SUBDIRECTORY(gtl)
 
 ADD_SUBDIRECTORY(parallel)
@@ -6,7 +8,7 @@ ADD_SUBDIRECTORY(io)
 
 ADD_SUBDIRECTORY(task_flow)
 
-ADD_SUBDIRECTORY(dataset)
+ADD_SUBDIRECTORY(data_model)
 
 ADD_SUBDIRECTORY(physics)
 
@@ -23,6 +25,6 @@ ADD_SUBDIRECTORY(particle)
 add_library(simpla_lib dummy.cpp)
 TARGET_LINK_LIBRARIES(simpla_lib
         ${MPI_C_LIBRARIES} ${HDF5_C_LIBRARIES} ${TBB_LIBRARIES} ${LUA_LIBRARIES}
-        task_flow mesh_policies dataset io parallel physics geometry utilities
+        task_flow mesh_policies data_model io parallel physics geometry utilities
         )
 

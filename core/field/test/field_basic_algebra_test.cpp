@@ -21,7 +21,7 @@ typedef manifold::CartesianManifold mesh_type;
 
 typedef testing::Types< //
 
-        typename traits::field_t<double, mesh_type, VERTEX>, //
+        typename traits::field_t<double, mesh_type, VERTEX>,//
         typename traits::field_t<double, mesh_type, EDGE>, //
         typename traits::field_t<double, mesh_type, FACE>, //
         typename traits::field_t<double, mesh_type, VOLUME>, //

@@ -418,7 +418,7 @@ vtkPolyData *vtkAMRSimPlaParticlesReader::ReadParticles(const int blkidx)
     if (NumParticles <= 0)
     {
         vtkPolyData *emptyParticles = vtkPolyData::New();
-        assert("Cannot create particles dataset" && (emptyParticles != NULL));
+        assert("Cannot create particles data_model" && (emptyParticles != NULL));
         return (emptyParticles);
     }
 

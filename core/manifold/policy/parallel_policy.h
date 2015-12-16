@@ -116,21 +116,21 @@ template<typename TMesh>
 template<int IFORM, typename Func, typename ...Args>
 void ParallelPolicy<TMesh>::update(Func const &fun, Args &&...args) const
 {
-    if (m_mesh_.boundary_box().size() > 0)
-    {
-        for_each_boundary<IFORM>(fun);
-
-        parallel::DistributedObject dist_obj;
-
-        dist_obj.add(std::forward<Args>(args)...);
-
-        dist_obj.sync();
-
-        for_each_center<IFORM>(fun);
-
-        dist_obj.wait();
-    }
-    else
+//    if (m_mesh_.boundary_box().size() > 0)
+//    {
+//        for_each_boundary<IFORM>(fun);
+//
+//        parallel::DistributedObject dist_obj;
+//
+//        dist_obj.add(std::forward<Args>(args)...);
+//
+//        dist_obj.sync();
+//
+//        for_each_center<IFORM>(fun);
+//
+//        dist_obj.wait();
+//    }
+//    else
     {
         for_each<IFORM>(fun);
     }
@@ -140,7 +140,7 @@ template<typename TMesh>
 template<int IFORM, typename Func>
 void  ParallelPolicy<TMesh>::for_each(Func const &fun) const
 {
-    parallel::parallel_for(m_mesh_.template range<IFORM>(), fun);
+    serial::parallel_for(m_mesh_.template range<IFORM>(), fun);
 };
 
 //template<typename TMesh>
@@ -201,7 +201,7 @@ template<typename TMesh>
 template<int IFORM, typename Func>
 void  ParallelPolicy<TMesh>::for_each_center(Func const &fun) const
 {
-    parallel::parallel_for(m_mesh_.template make_range<IFORM>(m_mesh_.center_box()), fun);
+    serial::parallel_for(m_mesh_.template make_range<IFORM>(m_mesh_.center_box()), fun);
 };
 
 

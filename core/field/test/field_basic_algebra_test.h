@@ -98,7 +98,6 @@ TYPED_TEST_P(TestField, assign)
     for (auto s : TestFixture::domain())
     {
         ++count;
-
         EXPECT_LE(mod(va - f1[s]), EPSILON);
     }
     EXPECT_EQ(count, TestFixture::domain().size());
@@ -164,7 +163,7 @@ TYPED_TEST_P(TestField, constant_real)
 
         EXPECT_LE(mod(res - f3[s]), EPSILON)
 //			<<res << " " << f1[s] << " " << f2[s] << " " << f3[s];
-        ;
+                            ;
     }
 
 }
@@ -239,10 +238,10 @@ TYPED_TEST_P(TestField, scalarField)
     {
         value_type res = -f1[s] * ra + f2[s] * rb - f3[s] / rc - f1[s];
 
-        EXPECT_LE(mod(res - f4[s]), EPSILON)<< "s= " << (TestFixture::mesh->hash(s));
+        EXPECT_LE(mod(res - f4[s]), EPSILON) << "s= " << (TestFixture::mesh->hash(s));
     }
 
-    EXPECT_EQ(0, count)<< "number of error points =" << count;
+    EXPECT_EQ(0, count) << "number of error points =" << count;
 
 }
 

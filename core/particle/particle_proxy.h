@@ -7,7 +7,7 @@
 #ifndef SIMPLA_PARTICLE_PROXY_H
 #define SIMPLA_PARTICLE_PROXY_H
 
-#include "../dataset/dataset.h"
+#include "../data_model/dataset.h"
 
 namespace simpla
 {

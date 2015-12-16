@@ -12,7 +12,7 @@
 #include <stddef.h>
 #include <cstdbool>
 
-#include "../dataset/datatype.h"
+#include "../data_model/datatype.h"
 
 namespace simpla
 {

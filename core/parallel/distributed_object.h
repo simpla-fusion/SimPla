@@ -11,7 +11,7 @@
 #include "mpi_comm.h"
 #include "mpi_aux_functions.h"
 #include "mpi_update.h"
-#include "../dataset/dataset.h"
+#include "../data_model/dataset.h"
 
 namespace simpla { namespace parallel
 {
