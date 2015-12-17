@@ -323,8 +323,7 @@ TEST_P(FETLTest, diverge1)
 
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
 
-        if (dims[RAxis] > 1 && mesh->sub_index(s) == RAxis &&
-            mesh->idx_to_boundary(s) <= 1)
+        if (dims[RAxis] > 1 && mesh->sub_index(s) == RAxis &&    mesh->idx_to_boundary(s) <= 1)
         {
             continue;
         }
@@ -411,12 +410,7 @@ TEST_P(FETLTest, diverge2)
 
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
 
-        if (dims[mesh->
-        sub_index(s)
-        ] > 1 && mesh->
-        idx_to_boundary(s)
-        <= 1) {
-        continue; }
+        if (dims[mesh->  sub_index(s)] > 1 && mesh->  idx_to_boundary(s)  <= 1) {  continue; }
 #endif
         ++count;
 

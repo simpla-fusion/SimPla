@@ -223,41 +223,6 @@ public:
         return os;
     }
 
-//
-//    template<typename T>
-//    inline constexpr T access(T const &v, id_t s) const { return v; }
-//
-//    template<typename T, int ...N>
-//    inline constexpr nTuple<T, N...> const &
-//    access(nTuple<T, N...> const &v, id_t s) const { return v; }
-//
-//
-//    template<typename ...T>
-//    inline traits::primary_type_t<nTuple<Expression<T...>>>
-//    access(nTuple<Expression<T...>> const &v, id_t s) const
-//    {
-//        traits::primary_type_t<nTuple<Expression<T...> > > res;
-//        res = v;
-//        return std::move(res);
-//    }
-//
-//    template<typename TV, typename ...Others>
-//    inline TV &access(Field<TV, Others...> &f, id_type s) const
-//    {
-//        return f[s];
-//    }
-//
-//
-//    template<typename TV, typename ...Others>
-//    inline TV access(Field<TV, Others...> const &f, id_type s) const
-//    {
-//        return f.at(s);
-//    }
-//
-//    template<typename ...TD>
-//    inline auto access(Field<Expression<TD...> > const &f, id_type s) const
-//    DECL_RET_TYPE((this->calculus_policy::eval(f, s)))
-
 
 //    template<int IFORM, typename TOP, typename TF, typename   ...Args>
 //    void apply(TOP const &op, TF &f, Args &&... args) const

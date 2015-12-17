@@ -101,7 +101,7 @@ private:
     }
 
     template<typename ...T>
-    DECLARE_FUNCTION_PREFIX traits::primary_type_t<nTuple<Expression<T...>>>
+    DECLARE_FUNCTION_PREFIX traits::primary_type_t <nTuple<Expression<T...>>>
     eval_(mesh_type const &m, nTuple<Expression<T...>> const &v, id_type s) DECLARE_FUNCTION_SUFFIX
     {
         traits::primary_type_t<nTuple<Expression<T...> > > res;
@@ -125,14 +125,14 @@ private:
 
 
     template<typename FExpr>
-    DECLARE_FUNCTION_PREFIX constexpr traits::value_type_t<FExpr>
+    DECLARE_FUNCTION_PREFIX constexpr traits::value_type_t <FExpr>
     get_v(mesh_type const &m, FExpr const &f, id_type const s) DECLARE_FUNCTION_SUFFIX
     {
         return eval_(m, f, s) * m.volume(s);
     }
 
     template<typename FExpr>
-    DECLARE_FUNCTION_PREFIX constexpr traits::value_type_t<FExpr>
+    DECLARE_FUNCTION_PREFIX constexpr traits::value_type_t <FExpr>
     get_d(mesh_type const &m, FExpr const &f, id_type const s) DECLARE_FUNCTION_SUFFIX
     {
         return eval_(m, f, s) * m.dual_volume(s);
@@ -140,7 +140,7 @@ private:
 
 
     template<typename ...T, int ... index>
-    DECLARE_FUNCTION_PREFIX traits::primary_type_t<traits::value_type_t<Field<Expression<T...> >>>
+    DECLARE_FUNCTION_PREFIX traits::primary_type_t <traits::value_type_t<Field<Expression<T...> >>>
     _invoke_helper(mesh_type const &m, Field<Expression<T...> > const &expr, id_type s,
                    index_sequence<index...>) DECLARE_FUNCTION_SUFFIX
     {
@@ -152,7 +152,7 @@ private:
 
 
     template<typename TOP, typename ... T>
-    DECLARE_FUNCTION_PREFIX constexpr traits::primary_type_t<traits::value_type_t<Field<Expression<TOP, T...> >>>
+    DECLARE_FUNCTION_PREFIX constexpr traits::primary_type_t <traits::value_type_t<Field<Expression<TOP, T...> >>>
     eval_(mesh_type const &m, Field<Expression<TOP, T...> > const &expr, id_type const &s,
           traits::iform_list_t<T...>) DECLARE_FUNCTION_SUFFIX
     {
@@ -165,7 +165,7 @@ private:
 
     //! grad<0>
     template<typename T>
-    DECLARE_FUNCTION_PREFIX traits::value_type_t<Field<Expression<ct::ExteriorDerivative, T>>>
+    DECLARE_FUNCTION_PREFIX traits::value_type_t <Field<Expression<ct::ExteriorDerivative, T>>>
     eval_(mesh_type const &m, Field<Expression<ct::ExteriorDerivative, T> > const &f,
           id_type s, ::simpla::integer_sequence<int, VERTEX>) DECLARE_FUNCTION_SUFFIX
     {
@@ -181,7 +181,7 @@ private:
 
     //! curl<1>
     template<typename T>
-    DECLARE_FUNCTION_PREFIX traits::value_type_t<Field<Expression<ct::ExteriorDerivative, T>>>
+    DECLARE_FUNCTION_PREFIX traits::value_type_t <Field<Expression<ct::ExteriorDerivative, T>>>
     eval_(mesh_type const &m, Field<Expression<ct::ExteriorDerivative, T> > const &expr,
           id_type s, ::simpla::integer_sequence<int, EDGE>) DECLARE_FUNCTION_SUFFIX
     {
@@ -205,7 +205,7 @@ private:
 
     //! div<2>
     template<typename T>
-    constexpr DECLARE_FUNCTION_PREFIX traits::value_type_t<Field<Expression<ct::ExteriorDerivative, T>>>
+    constexpr DECLARE_FUNCTION_PREFIX traits::value_type_t <Field<Expression<ct::ExteriorDerivative, T>>>
     eval_(mesh_type const &m, Field<Expression<ct::ExteriorDerivative, T> > const &expr,
           id_type s, ::simpla::integer_sequence<int, FACE>) DECLARE_FUNCTION_SUFFIX
     {
@@ -230,7 +230,7 @@ private:
 
     //! div<1>
     template<typename T>
-    constexpr DECLARE_FUNCTION_PREFIX traits::value_type_t<Field<Expression<ct::CodifferentialDerivative, T>>>
+    constexpr DECLARE_FUNCTION_PREFIX traits::value_type_t <Field<Expression<ct::CodifferentialDerivative, T>>>
     eval_(mesh_type const &m, Field<Expression<ct::CodifferentialDerivative, T>> const &expr,
           id_type s, ::simpla::integer_sequence<int, EDGE>) DECLARE_FUNCTION_SUFFIX
     {
@@ -249,8 +249,8 @@ private:
 
     //! curl<2>
     template<typename T>
-    DECLARE_FUNCTION_PREFIX traits::value_type_t<
-            Field<Expression<ct::CodifferentialDerivative, T>>>
+    DECLARE_FUNCTION_PREFIX traits::value_type_t <
+    Field<Expression<ct::CodifferentialDerivative, T>>>
     eval_(mesh_type const &m, Field<Expression<ct::CodifferentialDerivative, T>> const &expr,
           id_type s, ::simpla::integer_sequence<int, FACE>) DECLARE_FUNCTION_SUFFIX
     {
@@ -268,8 +268,8 @@ private:
 
     //! grad<3>
     template<typename T>
-    DECLARE_FUNCTION_PREFIX traits::value_type_t<
-            Field<Expression<ct::CodifferentialDerivative, T>>>
+    DECLARE_FUNCTION_PREFIX traits::value_type_t <
+    Field<Expression<ct::CodifferentialDerivative, T>>>
     eval_(mesh_type const &m, Field<Expression<ct::CodifferentialDerivative, T> > const &expr,
           id_type s, ::simpla::integer_sequence<int, VOLUME>) DECLARE_FUNCTION_SUFFIX
     {
@@ -285,7 +285,7 @@ private:
 
 
     template<typename T, int I>
-    DECLARE_FUNCTION_PREFIX traits::value_type_t<Field<Expression<ct::HodgeStar, T> >>
+    DECLARE_FUNCTION_PREFIX traits::value_type_t <Field<Expression<ct::HodgeStar, T> >>
     eval_(mesh_type const &m, Field<Expression<ct::HodgeStar, T> > const &expr, id_type s,
           ::simpla::integer_sequence<int, I>) DECLARE_FUNCTION_SUFFIX
     {
@@ -319,7 +319,7 @@ private:
 ////! map_to
 
     template<typename TF, int I>
-    DECLARE_FUNCTION_PREFIX traits::value_type_t<TF>
+    DECLARE_FUNCTION_PREFIX traits::value_type_t <TF>
     mapto(mesh_type const &m, TF const &expr, id_type s,
           ::simpla::integer_sequence<int, I, I>) DECLARE_FUNCTION_SUFFIX
     {
@@ -328,7 +328,7 @@ private:
 
 
     template<typename TF>
-    DECLARE_FUNCTION_PREFIX traits::value_type_t<TF>
+    DECLARE_FUNCTION_PREFIX traits::value_type_t <TF>
     mapto(mesh_type const &m, TF const &expr, id_type s,
           ::simpla::integer_sequence<int, VERTEX, EDGE>) DECLARE_FUNCTION_SUFFIX
     {
@@ -355,7 +355,7 @@ private:
 
 
     template<typename TF>
-    DECLARE_FUNCTION_PREFIX traits::value_type_t<TF>
+    DECLARE_FUNCTION_PREFIX traits::value_type_t <TF>
     mapto(mesh_type const &m, TF const &expr, id_type s,
           ::simpla::integer_sequence<int, VERTEX, FACE>) DECLARE_FUNCTION_SUFFIX
     {
@@ -397,7 +397,7 @@ private:
     }
 
     template<typename TF>
-    DECLARE_FUNCTION_PREFIX traits::value_type_t<TF>
+    DECLARE_FUNCTION_PREFIX traits::value_type_t <TF>
     mapto(mesh_type const &m, TF const &expr, id_type s,
           ::simpla::integer_sequence<int, VERTEX, VOLUME>) DECLARE_FUNCTION_SUFFIX
     {
@@ -594,7 +594,7 @@ private:
     //
     //! Form<IL> ^ Form<IR> => Form<IR+IL>
     template<typename ...T, int IL, int IR>
-    DECLARE_FUNCTION_PREFIX traits::value_type_t<Field<Expression<ct::Wedge, T...>>>
+    DECLARE_FUNCTION_PREFIX traits::value_type_t <Field<Expression<ct::Wedge, T...>>>
     eval_(mesh_type const &m, Field<Expression<ct::Wedge, T...>> const &expr,
           id_type s, ::simpla::integer_sequence<int, IL, IR>) DECLARE_FUNCTION_SUFFIX
     {
@@ -605,7 +605,7 @@ private:
 
 
     template<typename TL, typename TR>
-    DECLARE_FUNCTION_PREFIX traits::value_type_t<Field<Expression<ct::Wedge, TL, TR>>>
+    DECLARE_FUNCTION_PREFIX traits::value_type_t <Field<Expression<ct::Wedge, TL, TR>>>
     eval_(mesh_type const &m, Field<Expression<ct::Wedge, TL, TR>> const &expr,
           id_type s, ::simpla::integer_sequence<int, EDGE, EDGE>) DECLARE_FUNCTION_SUFFIX
     {
@@ -622,7 +622,7 @@ private:
 
 
     template<typename TL, typename TR, int I>
-    DECLARE_FUNCTION_PREFIX traits::value_type_t<Field<Expression<ct::Cross, TL, TR>>>
+    DECLARE_FUNCTION_PREFIX traits::value_type_t <Field<Expression<ct::Cross, TL, TR>>>
     eval_(mesh_type const &m, Field<Expression<ct::Cross, TL, TR>> const &expr,
           id_type s, ::simpla::integer_sequence<int, I, I>) DECLARE_FUNCTION_SUFFIX
     {
@@ -630,7 +630,7 @@ private:
     }
 
     template<typename TL, typename TR, int I>
-    DECLARE_FUNCTION_PREFIX traits::value_type_t<Field<Expression<ct::Dot, TL, TR>>>
+    DECLARE_FUNCTION_PREFIX traits::value_type_t <Field<Expression<ct::Dot, TL, TR>>>
     eval_(mesh_type const &m, Field<Expression<ct::Dot, TL, TR>> const &expr,
           id_type s, ::simpla::integer_sequence<int, I, I>) DECLARE_FUNCTION_SUFFIX
     {
@@ -639,7 +639,7 @@ private:
 
 
     template<typename ...T, int ...I>
-    constexpr DECLARE_FUNCTION_PREFIX traits::value_type_t<Field<Expression<ct::MapTo, T...> >>
+    constexpr DECLARE_FUNCTION_PREFIX traits::value_type_t <Field<Expression<ct::MapTo, T...> >>
     eval_(mesh_type const &m, Field<Expression<ct::MapTo, T...>> const &expr, id_type s,
           ::simpla::integer_sequence<int, I...>) DECLARE_FUNCTION_SUFFIX
     {
@@ -648,7 +648,7 @@ private:
 
 
     template<typename TOP, typename ... T>
-    DECLARE_FUNCTION_PREFIX constexpr traits::primary_type_t<traits::value_type_t<Field<Expression<TOP, T...> >>>
+    DECLARE_FUNCTION_PREFIX constexpr traits::primary_type_t <traits::value_type_t<Field<Expression<TOP, T...> >>>
     eval_(mesh_type const &m, Field<Expression<TOP, T...> > const &expr, id_type const &s) DECLARE_FUNCTION_SUFFIX
     {
         return eval_(m, expr, s, traits::iform_list_t<T...>());
@@ -660,12 +660,6 @@ public:
 
     virtual ~FiniteVolume() { }
 
-    template<typename T, int ...N>
-    DECLARE_FUNCTION_PREFIX constexpr nTuple<T, N...> const &
-    eval(mesh_type const &m, nTuple<T, N...> const &v, id_type s) DECLARE_FUNCTION_SUFFIX
-    {
-        return v;
-    }
 
     template<typename TV, typename mesh_type, typename ... Others>
     DECLARE_FUNCTION_PREFIX constexpr TV &
@@ -675,12 +669,9 @@ public:
     }
 
     template<typename T>
-    DECLARE_FUNCTION_PREFIX
-    constexpr traits::primary_type_t<traits::value_type_t<T>>
+    DECLARE_FUNCTION_PREFIX auto
     eval(mesh_type const &m, T const &expr, id_type const &s) DECLARE_FUNCTION_SUFFIX
-    {
-        return (eval_(m, expr, s));
-    }
+    DECL_RET_TYPE((eval_(m, expr, s)))
 
 
 };// struct DiffScheme<TGeo, diff_scheme::tags::finite_volume>

@@ -121,9 +121,8 @@ struct value_type<Field<Expression<calculus::tags::HodgeStar, T> > >
 template<typename T>
 struct value_type<Field<Expression<calculus::tags::ExteriorDerivative, T> > >
 {
-    typedef result_of_t<
-            simpla::_impl::multiplies(geometry::traits::scalar_type_t<manifold_type_t < T >>,
-    value_type_t <T>)> type;
+    typedef result_of_t<simpla::_impl::multiplies(
+            geometry::traits::scalar_type_t<manifold_type_t < T >>,    value_type_t <T>)> type;
 };
 
 template<typename T>
@@ -196,15 +195,15 @@ struct value_type<Field<Expression<calculus::tags::MapTo, T, std::integral_const
 };
 
 
-template<typename TV, typename TM>
-struct value_type<Field<Expression<calculus::tags::MapTo, Field<nTuple<TV, 3>, TM, std::integral_constant<int, VERTEX> >,
+template<typename TV, typename TM, typename ...Others>
+struct value_type<Field<Expression<calculus::tags::MapTo, Field<nTuple<TV, 3>, TM, std::integral_constant<int, VERTEX>, Others...>,
         std::integral_constant<int, EDGE> > > >
 {
     typedef TV type;
 };
 
-template<typename TV, typename TM>
-struct value_type<Field<Expression<calculus::tags::MapTo, Field<nTuple<TV, 3>, TM, std::integral_constant<int, VERTEX> >,
+template<typename TV, typename TM, typename ...Others>
+struct value_type<Field<Expression<calculus::tags::MapTo, Field<nTuple<TV, 3>, TM, std::integral_constant<int, VERTEX>, Others...>,
         std::integral_constant<int, FACE> > > >
 {
     typedef TV type;
@@ -365,9 +364,8 @@ template<int I, typename T>
 inline Field<Expression<calculus::tags::MapTo, T, std::integral_constant<int, I>>> map_to(
         T const &f)
 {
-    return std::move((
-                             Field<Expression<calculus::tags::MapTo, T,
-                                     std::integral_constant<int, I>>>(f, std::integral_constant<int, I>())
+    return std::move((Field<Expression<calculus::tags::MapTo, T,
+            std::integral_constant<int, I>>>(f, std::integral_constant<int, I>())
 
                      ));
 }
