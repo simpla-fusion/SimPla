@@ -23,7 +23,16 @@ public:
 
     virtual int extent(int i) const = 0;
 
+//    virtual void deploy() { };
+//
+//    virtual void clear() { deploy(); };
+//
+//    virtual void sync() { };
+//
+//    virtual std::ostream &print(std::ostream &os, int indent = 0) { return os; }
+
 };
+
 }//namespace simpla { namespace data_model
 
 #endif //SIMPLA_ATTRIBUTE_H

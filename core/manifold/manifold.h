@@ -139,11 +139,12 @@ class Manifold
         : public TMesh,
           public Policies<TMesh> ...
 {
+    typedef Manifold<TMesh, Policies ...> this_type;
+
 public:
 
     typedef TMesh mesh_type;
 
-    typedef Manifold<mesh_type, Policies ...> this_type;
 
     typedef geometry::traits::coordinate_system_t<mesh_type> coordinates_system_type;
 
@@ -222,60 +223,60 @@ public:
         return os;
     }
 
+//
+//    template<typename T>
+//    inline constexpr T access(T const &v, id_t s) const { return v; }
+//
+//    template<typename T, int ...N>
+//    inline constexpr nTuple<T, N...> const &
+//    access(nTuple<T, N...> const &v, id_t s) const { return v; }
+//
+//
+//    template<typename ...T>
+//    inline traits::primary_type_t<nTuple<Expression<T...>>>
+//    access(nTuple<Expression<T...>> const &v, id_t s) const
+//    {
+//        traits::primary_type_t<nTuple<Expression<T...> > > res;
+//        res = v;
+//        return std::move(res);
+//    }
+//
+//    template<typename TV, typename ...Others>
+//    inline TV &access(Field<TV, Others...> &f, id_type s) const
+//    {
+//        return f[s];
+//    }
+//
+//
+//    template<typename TV, typename ...Others>
+//    inline TV access(Field<TV, Others...> const &f, id_type s) const
+//    {
+//        return f.at(s);
+//    }
+//
+//    template<typename ...TD>
+//    inline auto access(Field<Expression<TD...> > const &f, id_type s) const
+//    DECL_RET_TYPE((this->calculus_policy::eval(f, s)))
 
-    template<typename T>
-    inline constexpr T access(T const &v, id_t s) const { return v; }
 
-    template<typename T, int ...N>
-    inline constexpr nTuple<T, N...> const &
-    access(nTuple<T, N...> const &v, id_t s) const { return v; }
-
-
-    template<typename ...T>
-    inline traits::primary_type_t<nTuple<Expression<T...>>>
-    access(nTuple<Expression<T...>> const &v, id_t s) const
-    {
-        traits::primary_type_t<nTuple<Expression<T...> > > res;
-        res = v;
-        return std::move(res);
-    }
-
-    template<typename TV, typename ...Others>
-    inline TV &access(Field<TV, Others...> &f, id_type s) const
-    {
-        return f[s];
-    }
-
-
-    template<typename TV, typename ...Others>
-    inline TV access(Field<TV, Others...> const &f, id_type s) const
-    {
-        return f.at(s);
-    }
-
-    template<typename ...TD>
-    inline auto access(Field<Expression<TD...> > const &f, id_type s) const
-    DECL_RET_TYPE((this->calculus_policy::eval(f, s)))
-
-
-    template<int IFORM, typename TOP, typename TF, typename   ...Args>
-    void apply(TOP const &op, TF &f, Args &&... args) const
-    {
-//        static constexpr int IFORM =
-//                traits::iform<typename
-//                traits::unpack_type<0, Args...>::type>::value;
-
-        this->parallel_policy::template update<IFORM>(
-                [&](typename mesh_type::range_type const &r)
-                {
-                    for (auto const &s:r)
-                    {
-                        op(access(f, s), access(std::forward<Args>(args), s)...);
-                    }
-                }, f
-
-        );
-    }
+//    template<int IFORM, typename TOP, typename TF, typename   ...Args>
+//    void apply(TOP const &op, TF &f, Args &&... args) const
+//    {
+////        static constexpr int IFORM =
+////                traits::iform<typename
+////                traits::unpack_type<0, Args...>::type>::value;
+//
+//        this->parallel_policy::template update<IFORM>(
+//                [&](typename mesh_type::range_type const &r)
+//                {
+//                    for (auto const &s:r)
+//                    {
+//                        op(access(f, s), access(std::forward<Args>(args), s)...);
+//                    }
+//                }, f
+//
+//        );
+//    }
 
 
     virtual DataSet grid_vertices() const
@@ -324,59 +325,120 @@ public:
     void dt(double p_dt) { m_dt_ = p_dt; }
 
 
+private:
+    double m_dt_;
+    double m_time_;
+
+
+private:
+    class AttributeInternal_;
+
+    std::map<std::string, std::weak_ptr<AttributeInternal_>> m_registered_attributes_;
+
+public:
+
+    template<typename TV, int IFORM> class Attribute;
+
     template<typename TF>
-    TF create_attribute(std::string const &name)
+    std::shared_ptr<TF> create_attribute(std::string const &name)
     {
         auto res = std::make_shared<TF>(*this);
 
-        if (name != "") { enroll(name, std::dynamic_pointer_cast<AttributeBase>(res)); }
+        if (name != "") { enroll(name, std::dynamic_pointer_cast<AttributeInternal_>(res)); }
 
-        return TF(*res);
+        return res;
     }
 
     template<typename TF> TF create_attribute() const { return TF(*this); }
 
-    template<typename TV, int IFORM> class Attribute;
-
-    void enroll(std::string const &name, std::shared_ptr<AttributeBase> p)
+    template<typename TF>
+    void enroll(std::string const &name, std::shared_ptr<TF> p)
     {
-        m_registered_attribute_.insert(std::make_pair(name, p));
+        m_registered_attributes_.insert(
+                std::make_pair(name,
+                               std::dynamic_pointer_cast<AttributeInternal_>(p)));
     };
-
-private:
-    double m_dt_;
-    double m_time_;
-    std::map<std::string, std::weak_ptr<AttributeBase>> m_registered_attribute_;
 
 
 }; //class Manifold
+
 template<typename TMesh, template<typename> class ...Policies>
-template<typename TV, int IFORM>
-class Manifold<TMesh, Policies...>::Attribute : public AttributeBase
+class Manifold<TMesh, Policies ...>::AttributeInternal_ : public AttributeBase
 {
+    typedef Manifold<TMesh, Policies ...> mesh_type;
+
+    typedef typename mesh_type::id_type id_type;
 
 public:
+    AttributeInternal_(mesh_type const &m) : m_mesh_(&m) { }
+
+    AttributeInternal_(AttributeInternal_ const &other) : m_mesh_(other.m_mesh_) { }
+
+    AttributeInternal_(AttributeInternal_ &&other) : m_mesh_(other.m_mesh_) { }
+
+    virtual ~AttributeInternal_() { };
+
+    void swap(AttributeInternal_ &other)
+    {
+        std::swap(m_mesh_, other.m_mesh_);
+    }
+
+    AttributeInternal_ &operator=(AttributeInternal_ const &other)
+    {
+        AttributeInternal_(other).swap(*this);
+        return *this;
+    }
+
+    virtual DataSet dataset() const = 0;
+
+    virtual int center_type() const { return 0; };
+
+    virtual int rank() const { return 0; };
+
+    virtual int extent(int i) const { return 1; }
+
+
+    mesh_type const &mesh() const { return *m_mesh_; }
+
+private:
+    mesh_type const *m_mesh_;
+
+};
+
+template<typename TMesh, template<typename> class ...Policies>
+template<typename TV, int IFORM>
+class Manifold<TMesh, Policies ...>::Attribute : public AttributeInternal_
+{
+
+private:
+    typedef Manifold<TMesh, Policies ...> mesh_type;
+
+    typedef typename mesh_type::id_type id_type;
+
+
+public:
+    using AttributeInternal_::mesh;
     typedef TV value_type;
 
-    typedef Manifold<TMesh, Policies...> mesh_type;
+    Attribute(mesh_type const &m, std::string const &) : AttributeInternal_(m), m_data_(nullptr) { }
 
-    Attribute(mesh_type const &m) : m_mesh_(&m), m_data_(nullptr) { }
+    Attribute(mesh_type const &m) : AttributeInternal_(m), m_data_(nullptr) { }
 
-    Attribute(Attribute const &other) : m_mesh_(other.m_mesh_), m_data_(other.m_data_) { }
+    Attribute(Attribute const &other) : AttributeInternal_(other), m_data_(other.m_data_) { }
 
-    Attribute(Attribute &&other) : m_mesh_(other.m_mesh_), m_data_(other.m_data_) { }
+    Attribute(Attribute &&other) : AttributeInternal_(other), m_data_(other.m_data_) { }
 
     virtual ~Attribute() { }
 
     Attribute &operator=(Attribute const &other)
     {
-        Attribute(other).swap(*this);
+        AttributeInternal_(other).swap(*this);
         return *this;
     }
 
     void swap(Attribute &other)
     {
-        std::swap(m_mesh_, other.m_mesh_);
+        AttributeInternal_::swap(other);
         std::swap(m_data_, other.m_data_);
     }
 
@@ -386,52 +448,50 @@ public:
 
     virtual int extent(int i) const { return traits::seq_value<typename traits::extents<TV>::type>::value[i]; }
 
-    mesh_type const &mesh() const { return *m_mesh_; }
 
-    virtual DataSet dataset() const { return m_mesh_->template dataset<TV, IFORM>(m_data_); };
+    virtual DataSet dataset() const { return this->mesh().template dataset<TV, IFORM>(m_data_); };
 
-    virtual DataSet dataset() { return m_mesh_->template dataset<TV, IFORM>(m_data_); };
+    virtual DataSet dataset() { return this->mesh().template dataset<TV, IFORM>(m_data_); };
 
     virtual bool empty() const { return m_data_ == nullptr; }
 
-    virtual void deploy() { if (empty()) { m_data_ = m_mesh_->template data<value_type, IFORM>(); }}
+    virtual void deploy() { if (empty()) { m_data_ = this->mesh().template data<value_type, IFORM>(); }}
 
     virtual void clear()
     {
         deploy();
-        memset(m_data_.get(), 0, mesh().template memory_size<IFORM>() * sizeof(value_type));
+        memset(m_data_.get(), 0, this->mesh().template memory_size<IFORM>() * sizeof(value_type));
     }
 
     virtual void sync()
     {
         auto ds = dataset();
-        m_mesh_->sync(ds);
+        this->mesh().sync(ds);
     }
 
     value_type &at(id_type const &s)
     {
-        return m_data_.get()[m_mesh_->hash(s)];
+        return m_data_.get()[this->mesh().hash(s)];
     }
 
     value_type const &at(id_type const &s) const
     {
-        return m_data_.get()[m_mesh_->hash(s)];
+        return m_data_.get()[this->mesh().hash(s)];
     }
 
     value_type &operator[](id_type const &s) { return at(s); }
 
     value_type const &operator[](id_type const &s) const { return at(s); }
 
-    typename mesh_type::range_type range() { return m_mesh_->template range<IFORM>(); }
+    typename mesh_type::range_type range() { return this->mesh().template range<IFORM>(); }
 
     template<typename TRange, typename Func>
     void accept(TRange const &r0, Func const &fun)
     {
         deploy();
-        mesh().template for_each_value<value_type, IFORM>(*this, r0, fun);
+        this->mesh().template for_each_value<value_type, IFORM>(*this, r0, fun);
     };
 protected:
-    mesh_type const *m_mesh_;
     std::shared_ptr<value_type> m_data_;
 
 };

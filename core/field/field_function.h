@@ -20,26 +20,30 @@ namespace simpla
 {
 template<typename ...> class Field;
 
+namespace tags { struct function; }
 
-template<int IFORM, typename TM, typename TV, typename TFun, typename TBox>
-class Field<TV, TM, std::integral_constant<int, IFORM>, tags::function, TFun, TBox>
+template<typename TV, typename TMesh, int IFORM, typename TFun, typename TBox, typename ...Policies>
+class Field<TV, TMesh, std::integral_constant<int, IFORM>, tags::function, TFun, TBox, Policies...>
+        : public Policies ...
 {
 public:
     typedef TV value_type;
 
+    typedef TMesh mesh_type;
+
     static constexpr int iform = IFORM;
 
-    static constexpr int ndims = TM::ndims;
+    static constexpr int ndims = mesh_type::ndims;
 
 private:
 
-    typedef TM mesh_type;
 
-    typedef typename TM::box_type spatial_domain_type;
-    typedef typename TM::id_type id_type;
-    typedef typename TM::point_type point_type;
-    typedef Field<TV, TM, std::integral_constant<int, IFORM>, tags::function, TFun, TBox> this_type;
-
+    typedef typename mesh_type::box_type spatial_domain_type;
+    typedef typename mesh_type::id_type id_type;
+    typedef typename mesh_type::point_type point_type;
+    typedef Field<TV, mesh_type, std::integral_constant<int, IFORM>, tags::function, TFun, TBox, Policies...> this_type;
+    typedef typename this_type::calculus_policy calculus_policy;
+    typedef typename this_type::interpolate_policy interpolate_policy;
     typedef typename traits::field_value_type<this_type>::type field_value_type;
 
     mesh_type const &m_mesh_;
@@ -62,6 +66,33 @@ public:
 
     ~Field() { }
 
+
+    template<typename TF>
+    static this_type create(mesh_type const &m, TFun const &fun)
+    {
+        return this_type(m, fun, m.box());
+    }
+
+    template<typename TDict>
+    static this_type create_from_config(mesh_type const &m, TDict const &dict)
+    {
+
+        if (!(dict["Value"])) { THROW_EXCEPTION_RUNTIME_ERROR("illegal configure file!"); }
+
+        typename mesh_type::box_type b;
+        if (dict["Box"])
+        {
+            b = dict["Box"].template as<typename mesh_type::box_type>();
+        } else
+        {
+            b = m.box();
+        }
+
+        return this_type(m, dict["Value"], b);
+
+
+    }
+
     bool is_valid() const { return (!!m_fun_); }
 
     operator bool() const { return !!m_fun_; }
@@ -71,7 +102,7 @@ public:
 
         field_value_type v = this->operator()(m_mesh_.point(s));
 
-        return m_mesh_.template sample<IFORM>(s, v);
+        return interpolate_policy::template sample<iform>(m_mesh_, s, v);
     }
 
 
@@ -102,44 +133,6 @@ public:
 
 };
 
-template<typename TV, typename TM, int IFORM, typename TFun>
-using FieldFunction=Field<TV, TM, std::integral_constant<int, IFORM>,
-        tags::function, TFun, typename TM::box_type>;
-
-namespace traits
-{
-
-template<typename TV, int IFORM, typename TM, typename TFun>
-FieldFunction<TV, TM, IFORM, TFun> //
-make_field_function(TM const &m, TFun const &fun)
-{
-    return FieldFunction<TV, TM, IFORM, TFun>(m, fun, m.box());
-}
-
-
-template<typename TV, int IFORM, typename TM, typename TFun>
-FieldFunction<TV, TM, IFORM, TFun> //
-make_field_function_from_config(TM const &m, TFun const &dict)
-{
-    typedef TV value_type;
-
-    typedef FieldFunction<TV, TM, IFORM, TFun> field_type;
-
-    if (!(dict["Value"])) { THROW_EXCEPTION_RUNTIME_ERROR("illegal configure file!"); }
-
-    typename TM::box_type b;
-    if (dict["Box"])
-    {
-        b = dict["Box"].template as<typename TM::box_type>();
-    } else
-    {
-        b = m.box();
-    }
-
-    return field_type(m, dict["Value"], b);
-
-}
-} // namespace traits
 } // namespace simpla
 
 #endif /* COREFieldField_FUNCTION_H_ */

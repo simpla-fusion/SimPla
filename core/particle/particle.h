@@ -30,6 +30,7 @@ template<typename P, typename M>
 struct Particle<P, M>
         : public P,
           public parallel::concurrent_hash_map<typename M::id_type, std::list<typename P::sample_type>>,
+          public AttributeBase,
           public std::enable_shared_from_this<Particle<P, M>>
 {
 
@@ -79,15 +80,21 @@ public:
 
     virtual ~Particle();
 
-    virtual void deploy();
+    virtual void deploy() { }
+
+    virtual void clear()
+    {
+        deploy();
+        container_type::clear();
+    }
 
     virtual void sync() { rehash(); };
+
+    virtual std::ostream &print(std::ostream &os, int indent = 0) const;
 
 
     template<typename TDict, typename ...Others>
     void load(TDict const &dict, Others &&...others);
-
-    template<typename OS> OS &print(OS &os) const;
 
     template<typename TField>
     void integral(id_type const &s, TField *res) const;
@@ -214,17 +221,13 @@ void Particle<P, M>::load(TDict const &dict, Others &&...others)
 }
 
 template<typename P, typename M>
-template<typename OS>
-OS &Particle<P, M>::print(OS &os) const
+std::ostream &Particle<P, M>::print(std::ostream &os, int indent) const
 {
-    engine_type::print(os);
-    return os;
+    return engine_type::print(os, indent + 1);
+
 }
 
-template<typename P, typename M>
-void Particle<P, M>::deploy()
-{
-}
+
 //*******************************************************************************
 
 template<typename P, typename M>

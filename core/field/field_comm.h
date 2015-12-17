@@ -119,7 +119,6 @@ struct sequence_container;
 
 struct associative_container;
 
-struct function;
 
 }  // namespace tags
 /** @} */

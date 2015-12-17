@@ -20,7 +20,6 @@
 #include "../gtl/type_traits.h"
 #include "../parallel/parallel.h"
 #include "../manifold/manifold_traits.h"
-//#include "../manifold/patch/patch.h"
 
 
 namespace simpla
@@ -35,21 +34,23 @@ template<typename ...> struct Field;
 /**
  *  Simple Field
  */
-template<typename TV, typename TG, int IFORM>
-class Field<TV, TG, std::integral_constant<int, IFORM> >
-        : public TG::template Attribute<TV, IFORM>
-//         , public mesh::EnablePatchFromThis<Field<TV, TG, std::integral_constant<int, IFORM> >>
+template<typename TV, typename TMesh, int IFORM, typename ...Policies>
+class Field<TV, TMesh, std::integral_constant<int, IFORM>, Policies...>
+        : public TMesh::template Attribute<TV, IFORM>,
+          public Policies ...
+//          ,std::enable_shared_from_this<Field<TV, TMesh, std::integral_constant<int, IFORM>, Policies...>>
+//         , public mesh::EnablePatchFromThis<Field<TV, TMesh, std::integral_constant<int, IFORM> >>
 {
 private:
-    typedef Field<TV, TG, std::integral_constant<int, IFORM> > this_type;
+    typedef Field<TV, TMesh, std::integral_constant<int, IFORM>, Policies...> this_type;
 public:
-    typedef typename TG::template Attribute<TV, IFORM> attribute_type;
+    typedef typename TMesh::template Attribute<TV, IFORM> base_type;
 
-    typedef TG mesh_type;
+    typedef TMesh mesh_type;
     typedef TV value_type;
 
-    using attribute_type::mesh;
-    using attribute_type::sync;
+    using base_type::mesh;
+    using base_type::sync;
 
     static constexpr int iform = IFORM;
 private:
@@ -61,20 +62,22 @@ private:
 
     typedef typename traits::field_value_type<this_type>::type field_value_type;
 
+    typedef typename this_type::calculus_policy calculus_policy;
+    typedef typename this_type::interpolate_policy interpolate_policy;
 public:
 
 
     //create construct
     Field(mesh_type &m, std::string const &name = "")
-            : attribute_type(m.template create_attribute<this_type>(name)) { }
+            : base_type(*m.template create_attribute<this_type>(name)) { }
 
-    Field(mesh_type const &m) : attribute_type(m) { }
+    Field(mesh_type const &m) : base_type(m) { }
 
     //copy construct
-    Field(this_type const &other) : attribute_type(other) { }
+    Field(this_type const &other) : base_type(other) { }
 
     // move construct
-    Field(this_type &&other) : attribute_type(other) { }
+    Field(this_type &&other) : base_type(other) { }
 
     virtual ~Field() { }
 
@@ -85,28 +88,28 @@ public:
      */
     inline this_type &operator=(this_type const &other)
     {
-        apply(_impl::_assign(), other);
+        apply(_impl::_assign(), *this, other);
         return *this;
     }
 
     template<typename Other>
     inline this_type &operator=(Other const &other)
     {
-        apply(_impl::_assign(), other);
+        apply(_impl::_assign(), *this, other);
         return *this;
     }
 
     template<typename Other>
     inline this_type &operator+=(Other const &other)
     {
-        apply(_impl::plus_assign(), other);
+        apply(_impl::plus_assign(), *this, other);
         return *this;
     }
 
     template<typename Other>
     inline this_type &operator-=(Other const &other)
     {
-        apply(_impl::minus_assign(), other);
+        apply(_impl::minus_assign(), *this, other);
 
         return *this;
     }
@@ -114,24 +117,38 @@ public:
     template<typename Other>
     inline this_type &operator*=(Other const &other)
     {
-        apply(_impl::multiplies_assign(), other);
+        apply(_impl::multiplies_assign(), *this, other);
         return *this;
     }
 
     template<typename Other>
     inline this_type &operator/=(Other const &other)
     {
-        apply(_impl::divides_assign(), other);
+        apply(_impl::divides_assign(), *this, other);
         return *this;
     }
 
 private:
 
     template<typename TOP, typename ...Args>
-    void apply(TOP const &op, Args &&... args)
+    void apply(TOP const &op, this_type &f, Args &&... args)
     {
-        attribute_type::deploy();
-        mesh().template apply<IFORM>(op, *this, std::forward<Args>(args)...);
+        base_type::deploy();
+//        calculus_policy::template apply<IFORM>(mesh(), op, *this, std::forward<Args>(args)...);
+
+        mesh_type const &m = mesh();
+
+        m.template update<IFORM>(
+//                m.template range<IFORM>(),
+                [&](typename mesh_type::range_type const &r)
+                {
+                    for (auto const &s:r)
+                    {
+                        op(calculus_policy::eval(m, f, s),
+                           calculus_policy::eval(m, std::forward<Args>(args), s)...);
+                    }
+                }, f
+        );
     }
 
 public:
@@ -139,15 +156,31 @@ public:
      *  @{*/
 
     template<typename ...Args>
-    auto gather(Args &&...args) const
-    DECL_RET_TYPE((mesh().gather(*this, std::forward<Args>(args)...)))
+    field_value_type gather(Args &&...args) const
+    {
+        return interpolate_policy::gather(mesh(), *this, std::forward<Args>(args)...);
+    }
+
 
     template<typename ...Args>
-    auto operator()(Args &&...args) const
-    DECL_RET_TYPE((mesh().gather(*this, std::forward<Args>(args)...)))
+    field_value_type operator()(Args &&...args) const
+    {
+        return interpolate_policy::gather(mesh(), *this, std::forward<Args>(args)...);
+    }
 
 
-/**@}*/
+    template<typename Other>
+    void assign(id_type const &s, Other const &other)
+    {
+        this->at(s) = interpolate_policy::template sample<iform>(mesh(), s, other);
+    }
+
+    template<typename Other>
+    void add(id_type const &s, Other const &other)
+    {
+        this->at(s) += interpolate_policy::template sample<iform>(mesh(), s, other);
+    }
+    /**@}*/
 
 
 
@@ -176,14 +209,6 @@ struct value_type<Field<TV, Policies...>>
 template<typename TV, typename TM, typename TFORM, typename ...Others>
 struct iform<Field<TV, TM, TFORM, Others...> > : public TFORM
 {
-};
-
-
-template<typename TV, int I, typename TM>
-Field<TV, TM, std::integral_constant<int, I> >
-make_field(TM const &mesh)
-{
-    return Field<TV, TM, std::integral_constant<int, I>>(mesh);
 };
 
 

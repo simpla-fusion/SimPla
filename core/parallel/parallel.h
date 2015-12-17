@@ -29,7 +29,7 @@
 //#include "parallel_openmp.h"
 //#else
 ////#include "multi_thread_std_thread.h"
-#include "parallel_dummy.h"
+//#include "parallel_dummy.h"
 //
 //#endif
 

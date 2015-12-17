@@ -16,13 +16,14 @@
 #include "../../core/manifold/pre_define/predefine.h"
 #include "../../core/field/field.h"
 
-#include "../../core/particle/particle.h"
-#include "../../core/particle/particle_proxy.h"
-#include "../../core/particle/particle_generator.h"
-#include "../../core/particle/pre_define/pic_boris.h"
+//#include "../../core/particle/particle.h"
+//#include "../../core/particle/particle_proxy.h"
+//#include "../../core/particle/particle_generator.h"
+//#include "../../core/particle/pre_define/pic_boris.h"
+//#include "../../core/particle/particle_constraint.h"
+
 #include "../../core/model/geqdsk.h"
 #include "../../core/model/constraint.h"
-#include "../../core/particle/particle_constraint.h"
 //#include "../../core/io/xdmf_stream.h"
 //#include "../../core/data_model/datatype_ext.h"
 
@@ -91,7 +92,8 @@ struct EMPlasma
     typedef traits::field_t<vector_type, mesh_type, VERTEX> TJv;
 
 
-    typedef ParticleProxyBase<TE, TB, TJ, TRho> particle_proxy_type;
+//    typedef ParticleProxyBase <TE, TB, TJ, TRho> particle_proxy_type;
+    typedef void particle_proxy_type;
 
     typedef std::tuple<
             Real, //mass
@@ -105,8 +107,8 @@ struct EMPlasma
 
 
     std::pair<typename std::map<std::string, particle_s>::iterator, bool>
-    add_particle(std::string const &name, Real mass,
-                 Real charge, std::shared_ptr<particle_proxy_type> f = nullptr)
+    add_particle(std::string const &name, Real mass, Real charge, std::shared_ptr<particle_proxy_type> f = nullptr
+    )
     {
         return particles.emplace(
                 std::make_pair(
@@ -114,8 +116,8 @@ struct EMPlasma
                         std::make_tuple(
                                 mass, charge,
                                 traits::field_t<scalar_type, mesh_type, VERTEX>(m),
-                                traits::field_t<vector_type, mesh_type, VERTEX>(m),
-                                f)));
+                                traits::field_t<vector_type, mesh_type, VERTEX>(m), f
+                        )));
 
     }
 
@@ -202,13 +204,13 @@ void EMPlasma::setup(int argc, char **argv)
 
         B0.clear();
 
-        serial::parallel_for(
+        parallel::parallel_for(
                 m.template range<FACE>(),
                 [&](range_type const &r)
                 {
                     for (auto const &s:r)
                     {
-                        B0[s] = m.template sample<FACE>(s, geqdsk.B(m.point(s)));
+                        B0.assign(s, geqdsk.B(m.point(s)));
 
                     }
                 }
@@ -235,7 +237,7 @@ void EMPlasma::setup(int argc, char **argv)
 
                         if (boundary.within(x))
                         {
-                            rho0[s] = m.template sample<VERTEX>(s, geqdsk.profile("ne", x));
+                            rho0.assign(s, geqdsk.profile("ne", x));
                         }
 
                     }
@@ -326,10 +328,10 @@ void EMPlasma::setup(int argc, char **argv)
 //                    out_stream.enroll("J_" + key, std::get<3>(p));
 
 
-                    if (dict.second["Type"].template as<std::string>() == "Bories")
-                    {
-                        std::get<4>(p) = particle_proxy_type::create<particle::BorisParticle<mesh_type>>(m);
-                    }
+//                    if (dict.second["Type"].template as<std::string>() == "Bories")
+//                    {
+//                        std::get<4>(p) = particle_proxy_type::create < particle::BorisParticle < mesh_type >> (m);
+//                    }
                 }
 
 
@@ -404,7 +406,7 @@ void EMPlasma::next_time_step()
     B1.accept(face_boundary.range(), [&](id_type, Real &v) { v = 0; });
 
     J1.accept(J_src.range(),
-              [&](id_type s, Real &v) { v += m.template sample<EDGE>(s, J_src_fun(t, m.point(s))); });
+              [&](id_type s, Real &v) { J1.add(s, J_src_fun(t, m.point(s))); });
 
     LOG_CMD(E1 += (curl(B1) * speed_of_light2 - J1 / epsilon0) * dt);
 

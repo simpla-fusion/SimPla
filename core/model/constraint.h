@@ -302,7 +302,7 @@ template<typename TM, typename TRange, typename TSet>
 void create_id_set(TM const &m, TRange const &r0, TSet *res)
 {
     size_t MASK = m.id_mask();
-    serial::parallel_for(r0, [&](TRange const &r) { for (auto const &s:r) { res->insert(s & MASK); }});
+    parallel::parallel_for(r0, [&](TRange const &r) { for (auto const &s:r) { res->insert(s & MASK); }});
 
 }
 

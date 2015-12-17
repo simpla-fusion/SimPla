@@ -36,9 +36,6 @@ template<typename> struct mesh_type;
 //    typedef Field<ValueType, TM, std::integral_constant<int, IFORM>, Policies...> type;
 //};
 
-template<typename ValueType, typename TM, int IFORM = VERTEX>
-using field_t=  Field<ValueType, TM, std::integral_constant<int, IFORM>>;
-
 template<typename>
 struct isField : public std::integral_constant<bool, false>
 {
