@@ -16,7 +16,7 @@
 #include "../gtl/ntuple.h"
 #include "../geometry/coordinate_system.h"
 #include "../gtl/utilities/memory_pool.h"
-#include "../data_model/attribute.h"
+#include "../base/attribute.h"
 
 #include "manifold_traits.h"
 

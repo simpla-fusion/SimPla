@@ -11,9 +11,10 @@
 #include <memory>
 #include <map>
 #include <tuple>
-#include "../../gtl/ntuple.h"
-#include "../../gtl/utilities/log.h"
-#include "../../gtl/primitives.h"
+#include "../gtl/ntuple.h"
+#include "../gtl/utilities/log.h"
+#include "../gtl/primitives.h"
+#include "attribute.h"
 
 namespace simpla { namespace mesh
 {
@@ -22,7 +23,7 @@ template<typename ...> class Patch;
 template<typename ...> class Layout;
 
 
-class PatchEntity
+class PatchEntity : public AttributeBase
 {
 public:
     PatchEntity() { };
@@ -52,9 +53,9 @@ public:
 
     virtual size_t erase_patch(size_t id) { return m_patches_.erase(id); };
 
-    virtual std::tuple<nTuple < Real, 3>,nTuple<Real, 3>> get_box() const
+    virtual std::tuple<nTuple<Real, 3>, nTuple<Real, 3>> get_box() const
     {
-        return std::make_tuple(nTuple < Real, 3 > {0, 0, 0}, nTuple < Real, 3 > {1, 1, 1});
+        return std::make_tuple(nTuple<Real, 3> {0, 0, 0}, nTuple<Real, 3> {1, 1, 1});
     };
 
     virtual nTuple<size_t, 3> get_dimensions() const

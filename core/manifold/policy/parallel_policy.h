@@ -208,16 +208,5 @@ void  ParallelPolicy<TMesh>::for_each_center(Func const &fun) const
 }}}// namespace simpla { namespace manifold { namespace policy
 
 
-namespace simpla { namespace traits
-{
 
-template<typename TMesh>
-struct type_id<manifold::policy::ParallelPolicy<TMesh>>
-{
-    static std::string name()
-    {
-        return "ParallelPolicy<" + type_id<TMesh>::name() + ">";
-    }
-};
-}}//namespace simpla
 #endif //SIMPLA_PARALLEL_POLICY_H

@@ -9,7 +9,7 @@
 
 #include <memory>
 #include "../data_model/dataset.h"
-#include "../data_model/attribute.h"
+#include "../base/attribute.h"
 
 
 namespace simpla { namespace io

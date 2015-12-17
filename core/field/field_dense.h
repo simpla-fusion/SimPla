@@ -31,9 +31,6 @@ template<typename ...> struct Field;
  * @{
  */
 
-/**
- *  Simple Field
- */
 template<typename TV, typename TMesh, int IFORM, typename ...Policies>
 class Field<TV, TMesh, std::integral_constant<int, IFORM>, Policies...>
         : public Policies ...
@@ -53,7 +50,6 @@ public:
 
     std::shared_ptr<attribute_type> m_data_;
 private:
-//    typedef typename mesh::template EnablePatchFromThis<this_type> patch_base;
 
     typedef typename mesh_type::id_type id_type;
 
@@ -62,6 +58,7 @@ private:
     typedef typename traits::field_value_type<this_type>::type field_value_type;
 
     typedef typename this_type::calculus_policy calculus_policy;
+
     typedef typename this_type::interpolate_policy interpolate_policy;
 public:
 
@@ -81,11 +78,34 @@ public:
 
     virtual ~Field() { }
 
+    virtual std::shared_ptr<attribute_type> attribute() { return m_data_; }
+
+    virtual std::shared_ptr<const attribute_type> attribute() const { return m_data_; }
+
+    virtual void sync() { attribute()->sync(); }
+
+    virtual void clear() { attribute()->clear(); }
+
+    virtual void deploy() { attribute()->deploy(); }
+
+    virtual mesh_type const &mesh() const { return attribute()->mesh(); }
+
+    virtual DataSet dataset() { return attribute()->dataset(); }
+
+    virtual DataSet dataset() const { return attribute()->dataset(); }
+
+    template<typename ...Args>
+    void accept(Args &&...args) { attribute()->accept(std::forward<Args>(args)...); }
 
     /**
      * @name assignment
      * @{
      */
+
+    value_type &operator[](id_type const &s) { return m_data_->at(s); }
+
+    value_type const &operator[](id_type const &s) const { return m_data_->at(s); }
+
     inline this_type &operator=(this_type const &other)
     {
         apply(_impl::_assign(), *this, other);
@@ -134,7 +154,6 @@ private:
     void apply(TOP const &op, this_type &f, Args &&... args)
     {
         deploy();
-//        calculus_policy::template apply<IFORM>(mesh(), op, *this, std::forward<Args>(args)...);
 
         mesh_type const &m = mesh();
 
@@ -183,28 +202,7 @@ public:
     /**@}*/
 
 
-    value_type &operator[](id_type const &s) { return m_data_->at(s); }
 
-    value_type const &operator[](id_type const &s) const { return m_data_->at(s); }
-
-    void sync() { m_data_->sync(); }
-
-    void clear() { m_data_->clear(); }
-
-    void deploy() { m_data_->deploy(); }
-
-    mesh_type const &mesh() const { return m_data_->mesh(); }
-
-    DataSet dataset() { return attribute()->dataset(); }
-
-    DataSet dataset() const { return attribute()->dataset(); }
-
-    std::shared_ptr<attribute_type> attribute() { return m_data_; }
-
-    std::shared_ptr<const attribute_type> attribute() const { return m_data_; }
-
-    template<typename ...Args>
-    void accept(Args &&...args) { m_data_->accept(std::forward<Args>(args)...); }
 
 }; // struct Field
 
@@ -212,8 +210,7 @@ namespace traits
 {
 
 
-template<typename TV, typename TM, typename ...Others>
-struct mesh_type<Field<TV, TM, Others...> >
+template<typename TV, typename TM, typename ...Others> struct mesh_type<Field<TV, TM, Others...> >
 {
     typedef TM type;
 };
