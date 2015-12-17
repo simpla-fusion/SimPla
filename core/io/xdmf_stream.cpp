@@ -208,15 +208,16 @@ void XDMFStream::write(std::string const &ds_name,
 
     int level = static_cast<int>( m_path_.size());
 
-    std::string center_type = a_Center_str[attr.center_type()];
-    std::string attr_type = a_AttributeType_str[attr.rank()];
+// @FIXME ParaView do not support EDEG or FACE
 
-// ParaView do not support EDEG or FACE
-//    std::string center_type = "Node";
-//    std::string attr_type = a_AttributeType_str[
-//            attr.rank()
-//            + ((attr.center_type() == 1 || attr.center_type() == 2) ? 1 : 0)
-//    ];
+//    std::string center_type = a_Center_str[attr.center_type()];
+//    std::string attr_type = a_AttributeType_str[attr.rank()];
+
+    std::string center_type = "Node";
+    std::string attr_type = a_AttributeType_str[
+            attr.rank()
+            + ((attr.center_type() == 1 || attr.center_type() == 2) ? 1 : 0)
+    ];
 
     m_file_stream_ << ""
     << std::setw(level * 2 + 2) << "" << "<Attribute Name=\"" << ds_name << " \" "
