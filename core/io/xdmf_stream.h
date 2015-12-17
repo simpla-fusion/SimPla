@@ -23,15 +23,6 @@ public:
 
     virtual  ~XDMFStream();
 
-    void open(std::string const &, std::string const &grid_name = "Unamed");
-
-    void close();
-
-    void read();
-
-    void write(Real t);
-
-
     enum
     {
         TAG_NODE = 0, TAG_EDGE = 1, TAG_FACE = 2, TAG_CELL = 3
@@ -43,55 +34,46 @@ public:
     };
 
 
-    void write_dataitem(std::string const &s, DataSet const &ds);
+    std::string path() const;
 
-    void write_attribute(std::string const &s, DataSet const &ds, int tag = TAG_NODE);
+    void open(std::string const &prefix, std::string const &grid_name = "Unamed");
 
-    void start_record(std::string const &s = "");
+    void close();
 
-    void record(Real t);
+    void open_grid(const std::string &g_name, int TAG);
 
-    void stop_record();
 
-    void open_grid(const std::string &g_name, Real t, int TAG);
+    void set_topology_geometry(std::string const &name, int ndims, size_t const *dims, Real const *xmin,
+                               Real const *dx);
+
+    void set_topology_geometry(std::string const &name, DataSet const &ds);
 
     void close_grid();
 
-    void enroll(std::string const &, DataSet const &ds, int tag = TAG_NODE);
+    void time(Real time);
 
+    void write(std::string const &s, DataSet const &ds);
 
-    void set_grid(int ndims, size_t const *dims, Real const *xmin, Real const *dx);
+    void write(std::string const &s, AttributeBase const &ds);
 
-    void set_grid(DataSet const &ds);
-
-
-    bool check_grid() const;
-
-    std::string path() const;
-
-    void enroll(std::string const &name, AttributeBase const &f)
+    template<typename AttrList>
+    void write(AttrList const &attr_list)
     {
-        enroll(name, f.dataset(),
-//               IFORM | ((traits::is_ntuple<TV>::value
-//                         || (IFORM == 1 || IFORM == 2)) ? 0x10 : 0 )
-               0);
-
-    };
-
-    void write_attribute(std::string const &s, AttributeBase const &f)
-    {
-        write_attribute(s, f.dataset(),
-//                        IFORM |
-//                        ((traits::is_ntuple<TV>::value
-//                          || (IFORM == 1 || IFORM == 2)) ? 0x10 : 0    )
-                        0);
+        for (auto const &item:attr_list)
+        {
+            write(item.first, *std::dynamic_pointer_cast<AttributeBase>(item.second.lock()));
+        }
     }
+
+    void reference_topology_geometry(std::string const &id);
 
 
 private:
-    struct pimpl_s;
-    std::unique_ptr<pimpl_s> m_pimpl_;
+    std::list<std::string> m_path_;
 
+    std::string m_prefix_;
+
+    std::ofstream m_file_stream_;
 };
 
 

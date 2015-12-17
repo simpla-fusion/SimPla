@@ -244,10 +244,10 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		GLOBAL_DATA_STREAM.open_group("/save");
+		GLOBAL_DATA_STREAM.open_group("/write");
 		GLOBAL_DATA_STREAM.EnableCompactStorable();
 
-		//   save initial value
+		//   write initial value
 		LOGGER << SAVE(B);
 		LOGGER << SAVE(n);
 		LOGGER << SAVE(p);

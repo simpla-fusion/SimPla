@@ -28,7 +28,7 @@ namespace simpla
  *
  * @ref data_model  is a group of classes used to exchange data between different libraries
  * and program languages in the memory. For example, we can transfer an array
- * of particle structure in memory to hdf5 library, and save it to disk.
+ * of particle structure in memory to hdf5 library, and write it to disk.
  */
 
 /**

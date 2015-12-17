@@ -98,7 +98,7 @@ int main(int argc, char **argv)
 	p.save("/H");
 //	p.updateFields();
 //
-//	p.save("/H");
+//	p.write("/H");
 //
 //	INFORM << "update_ghosts particle DONE. Local particle number =" << (p.Count()) << std::endl;
 //
@@ -106,7 +106,7 @@ int main(int argc, char **argv)
 //
 //	p.updateFields();
 //
-//	p.save("/H/");
+//	p.write("/H/");
 
 //	if(GLOBAL_COMM.get_rank()==0)
 //	{

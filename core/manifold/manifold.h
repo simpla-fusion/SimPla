@@ -187,7 +187,12 @@ public:
     void swap(const this_type &other) { mesh_type::swap(other); }
 
     template<typename TDict>
-    void load(TDict const &dict) { TRY_IT(mesh_type::load(dict["Mesh"])); }
+    void load(TDict const &dict)
+    {
+        TRY_IT(mesh_type::load(dict["Mesh"]));
+
+        m_dt_ = dict["Mesh"]["dt"].template as<Real>(1.0);
+    }
 
     void deploy() { mesh_type::deploy(); }
 
@@ -225,22 +230,22 @@ public:
     {
         auto ds = this->storage_policy::template dataset<point_type, VERTEX>();
 
-//        ds->deploy();
-//
-//        parallel::parallel_for(
-//                this->template range<VERTEX>(),
-//                [&](range_type const &r)
-//                {
-//                    for (auto const &s: r)
-//                    {
-//                        this->template at<point_type>(*ds, s) =
-//                                this->map_to_cartesian(this->point(s));
-//                        //   this->template at<point_type>(ds.data, s) = this->point(s);
-//                    }
-//                }
-//        );
+        ds.data = sp_alloc_memory(ds.memory_space.size() * sizeof(point_type));
 
-        return ds;
+        point_type *p = reinterpret_cast<point_type *>(ds.data.get());
+
+        parallel::parallel_for(
+                this->template range<VERTEX>(),
+                [&](range_type const &r)
+                {
+                    for (auto const &s: r)
+                    {
+                        p[this->hash(s)] = this->map_to_cartesian(this->point(s));
+                    }
+                }
+        );
+
+        return std::move(ds);
 
     };
 

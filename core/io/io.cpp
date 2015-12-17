@@ -31,7 +31,7 @@ std::string help_message()
     return DataStream::help_message();
 };
 
-std::string save(std::string const &url, DataSet const &ds, size_t flag)
+std::string write(std::string const &url, DataSet const &ds, size_t flag)
 {
     return SingletonHolder<io::DataStream>::instance().write(url, ds, flag);
 }

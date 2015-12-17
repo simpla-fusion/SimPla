@@ -22,4 +22,4 @@ metadata = dict(title='Movie Test', artist='YuZhi',
  
 writer =animation.FFMpegWriter(fps=30, metadata=metadata)
  
-anim.save("a.mp4",writer)
+anim.write("a.mp4",writer)

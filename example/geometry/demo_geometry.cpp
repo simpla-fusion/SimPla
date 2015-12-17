@@ -357,10 +357,10 @@ int main(int argc, char **argv)
 //	LOGGER << SAVE(p5) << std::endl;
 //
 //	size_t tdims[2] = { p4.size() / 2, 2 };
-//	LOGGER << save("p4", &p4[0], 2, tdims) << std::endl;
+//	LOGGER << write("p4", &p4[0], 2, tdims) << std::endl;
 //
 //	dims[0] = p6.size() / 2;
-//	LOGGER << save("p6", &p6[0], 2, tdims) << std::endl;
+//	LOGGER << write("p6", &p6[0], 2, tdims) << std::endl;
 //}
 //
 //

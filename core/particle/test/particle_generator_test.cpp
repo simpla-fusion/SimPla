@@ -114,5 +114,5 @@ int main(int argc, char **argv)
 
     std::copy(data.begin(), data.end(), std::back_inserter(data2));
 
-    LOGGER << io::save("D", traits::make_dataset(&data2[0], data2.size())) << std::endl;
+    LOGGER << io::write("D", traits::make_dataset(&data2[0], data2.size())) << std::endl;
 }

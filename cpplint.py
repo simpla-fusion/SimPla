@@ -1057,14 +1057,14 @@ def CheckForHeaderGuard(filename, lines, error):
   for linenum, line in enumerate(lines):
     linesplit = line.split()
     if len(linesplit) >= 2:
-      # find the first occurrence of #ifndef and #define, save arg
+      # find the first occurrence of #ifndef and #define, write arg
       if not ifndef and linesplit[0] == '#ifndef':
         # set ifndef to the header guard presented on the #ifndef line.
         ifndef = linesplit[1]
         ifndef_linenum = linenum
       if not define and linesplit[0] == '#define':
         define = linesplit[1]
-    # find the last occurrence of #endif, save entire line
+    # find the last occurrence of #endif, write entire line
     if line.startswith('#endif'):
       endif = line
       endif_linenum = linenum

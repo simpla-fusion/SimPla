@@ -7,6 +7,7 @@
  *    This is an example of EM plasma
  */
 
+#include <fstream>
 #include "tokamak.h"
 
 #include "../../core/gtl/utilities/utilities.h"
@@ -24,7 +25,7 @@
 
 #include "../../core/model/geqdsk.h"
 #include "../../core/model/constraint.h"
-//#include "../../core/io/xdmf_stream.h"
+#include "../../core/io/xdmf_stream.h"
 //#include "../../core/data_model/datatype_ext.h"
 
 namespace simpla
@@ -61,7 +62,7 @@ struct EMPlasma
 
     mesh_type m;
 
-//    io::XDMFStream out_stream;
+    io::XDMFStream out_stream;
 
     model::Surface<mesh_type> limiter_boundary;
     model::IdSet<mesh_type> vertex_boundary;
@@ -107,8 +108,8 @@ struct EMPlasma
 
 
     std::pair<typename std::map<std::string, particle_s>::iterator, bool>
-    add_particle(std::string const &name, Real mass, Real charge, std::shared_ptr<particle_proxy_type> f = nullptr
-    )
+    add_particle(std::string const &name, Real mass,
+                 Real charge, std::shared_ptr<particle_proxy_type> f = nullptr)
     {
         return particles.emplace(
                 std::make_pair(
@@ -121,6 +122,7 @@ struct EMPlasma
 
     }
 
+    size_t m_count = 0;
 //    struct particle_s
 //    {
 //        std::shared_ptr<ParticleProxyBase<TB, TE, TJ, TRho>> p;
@@ -164,8 +166,6 @@ void EMPlasma::setup(int argc, char **argv)
 
         m.deploy();
 
-//        out_stream.open(options["output"].as<std::string>("tokamak"), "GEqdsk");
-
 
         VERBOSE << "Clear fields" << std::endl;
 
@@ -191,10 +191,11 @@ void EMPlasma::setup(int argc, char **argv)
 //        {
 //
 //        }
+        out_stream.open(options["output"].as<std::string>("tokamak"), "GEqdsk");
 
-//        out_stream.set_grid(m.grid_vertices());
-//
-//        out_stream.open_grid("back_ground", 0, 0);
+        out_stream.set_topology_geometry("Main", m.grid_vertices());
+
+        out_stream.open_grid("back_ground", io::XDMFStream::UNIFORM);
 
         Ev.clear();
 
@@ -217,7 +218,8 @@ void EMPlasma::setup(int argc, char **argv)
         );
 
         B0.sync();
-//        out_stream.write_attribute("B0", B0);
+
+        out_stream.write("B0", *B0.attribute());
 
         //        if (options["InitValue"]["B0"])
         //        {
@@ -246,15 +248,15 @@ void EMPlasma::setup(int argc, char **argv)
 
         rho0.sync();
 
-//        out_stream.write_attribute("rho0", rho0);
+        out_stream.write("rho0", *rho0.attribute());
 
 
         B0v = map_to<VERTEX>(B0);
 
         BB = dot(B0v, B0v);
 
-//        out_stream.write_attribute("B0v", B0v);
-//        out_stream.write_attribute("BB", BB);
+        out_stream.write("B0v", *B0v.attribute());
+        out_stream.write("BB", *BB.attribute());
 
 
         {
@@ -368,26 +370,33 @@ void EMPlasma::setup(int argc, char **argv)
     }
 
 
-//    out_stream.enroll("Ev", Ev);
-//    out_stream.enroll("E1", E1);
-//    out_stream.enroll("B1", B1);
-//    out_stream.enroll("J1", J1);
+    out_stream.close_grid();
+    out_stream.open_grid("record", io::XDMFStream::COLLECTION_TEMPORAL);
 
-
-//    out_stream.close_grid();
-//    out_stream.start_record("record");
 }
 
 void EMPlasma::tear_down()
 {
-//    out_stream.stop_record();
-//    out_stream.close();
+    out_stream.close();
 }
 
 
 void EMPlasma::check_point()
 {
-//    out_stream.record(m.time());
+    ++m_count;
+
+    out_stream.open_grid(type_cast<std::string>(m_count), io::XDMFStream::UNIFORM);
+
+    out_stream.reference_topology_geometry("Main");
+
+    out_stream.time(m.time());
+
+    out_stream.write(m.attributes());
+
+    out_stream.close_grid();
+
+    m.next_time_step();
+
 }
 
 void EMPlasma::next_time_step()

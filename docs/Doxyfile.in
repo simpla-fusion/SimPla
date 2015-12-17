@@ -1589,7 +1589,7 @@ LATEX_CMD_NAME         = latex
 MAKEINDEX_CMD_NAME     = makeindex
 
 # If the COMPACT_LATEX tag is set to YES doxygen generates more compact LaTeX
-# documents. This may be useful for small projects and may help to save some
+# documents. This may be useful for small projects and may help to write some
 # trees in general.
 # The default value is: NO.
 # This tag requires that the tag GENERATE_LATEX is set to YES.
@@ -1718,7 +1718,7 @@ GENERATE_RTF           = NO
 RTF_OUTPUT             = rtf
 
 # If the COMPACT_RTF tag is set to YES doxygen generates more compact RTF
-# documents. This may be useful for small projects and may help to save some
+# documents. This may be useful for small projects and may help to write some
 # trees in general.
 # The default value is: NO.
 # This tag requires that the tag GENERATE_RTF is set to YES.

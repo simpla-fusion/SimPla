@@ -38,19 +38,19 @@ std::string help_message();
 std::string cd(std::string const &url);
 
 
-std::string save(std::string const &url, DataSet const &ds, size_t flag = 0UL);
+std::string write(std::string const &url, DataSet const &ds, size_t flag = 0UL);
 
 template<typename T>
-std::string save(std::string const &url, T const &d, size_t flag = 0UL)
+std::string write(std::string const &url, T const &d, size_t flag = 0UL)
 {
-    return save(url, traits::make_dataset(d), flag);
+    return write(url, traits::make_dataset(d), flag);
 }
 
 
 template<typename T>
-std::string save(std::string const &url, size_t num, T const *d, size_t flag = 0UL)
+std::string write(std::string const &url, size_t num, T const *d, size_t flag = 0UL)
 {
-    return save(url, traits::make_dataset(d, num), flag);
+    return write(url, traits::make_dataset(d, num), flag);
 }
 
 void delete_attribute(std::string const &url);
@@ -77,11 +77,11 @@ T get_dataset_attribute(std::string const &url)
 //std::string save_tuple_impl(std::string const & name, Tuple const & d,
 //		index_sequence<Is...>)
 //{
-//	return std::move(save(name, std::get<Is>(d)...));
+//	return std::move(write(name, std::get<Is>(d)...));
 //}
 //
 //template<typename ...T>
-//std::string save(std::string const & name, std::tuple<T...> const & d,
+//std::string write(std::string const & name, std::tuple<T...> const & d,
 //		size_t flag = 0UL)
 //{
 //	return std::move(save_tuple_impl(name, d,
@@ -92,13 +92,13 @@ T get_dataset_attribute(std::string const &url)
 //}
 //
 //template<typename TV, typename ...Args>
-//std::string save(std::string const & name, TV const *data, Args && ...args)
+//std::string write(std::string const & name, TV const *data, Args && ...args)
 //{
 //	return GLOBAL_DATA_STREAM.write(name, data, make_datatype<TV>(),
 //			std::forward<Args>(args)...);
 //}
 //
-//template<typename TV, typename ... Args> inline std::string save(
+//template<typename TV, typename ... Args> inline std::string write(
 //		std::string const & name, std::shared_ptr<TV> const & d,
 //		Args && ... args)
 //{
@@ -106,7 +106,7 @@ T get_dataset_attribute(std::string const &url)
 //			std::forward<Args>(args)...);
 //}
 //
-//template<typename TV> std::string save(std::string const & name,
+//template<typename TV> std::string write(std::string const & name,
 //		std::vector<TV>const & d, size_t flag = 0UL)
 //{
 //
@@ -115,7 +115,7 @@ T get_dataset_attribute(std::string const &url)
 //			nullptr, &s, nullptr, nullptr, nullptr, nullptr, flag);
 //}
 //
-//template<typename TL, typename TR, typename ... Args> std::string save(
+//template<typename TL, typename TR, typename ... Args> std::string write(
 //		std::string const & name, std::map<TL, TR>const & d, Args && ... args)
 //{
 //	std::vector<std::pair<TL, TR> > d_;
@@ -123,10 +123,10 @@ T get_dataset_attribute(std::string const &url)
 //	{
 //		d_.emplace_back(p);
 //	}
-//	return save(name, d_, std::forward<Args>(args)...);
+//	return write(name, d_, std::forward<Args>(args)...);
 //}
 //
-//template<typename TV, typename ... Args> std::string save(
+//template<typename TV, typename ... Args> std::string write(
 //		std::string const & name, std::map<TV, TV>const & d, Args && ... args)
 //{
 //	std::vector<nTuple<TV, 2> > d_;
@@ -136,7 +136,7 @@ T get_dataset_attribute(std::string const &url)
 //		{ p.first, p.second }));
 //	}
 //
-//	return save(name, d_, std::forward<Args>(args)...);
+//	return write(name, d_, std::forward<Args>(args)...);
 //}
 /** @} */
 
