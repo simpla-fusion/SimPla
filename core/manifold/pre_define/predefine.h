@@ -50,12 +50,8 @@ using field_t=  Field<ValueType, TM, std::integral_constant<int, IFORM>,
         manifold::policy::LinearInterpolator<TM>
 >;
 
-template<typename TV, int I, typename TM>
-field_t<TV, TM, I>
-make_field(TM const &mesh)
-{
-    return field_t<TV, TM, I>(mesh);
-};
+template<typename TV, int I, typename TM> field_t<TV, TM, I>
+make_field(TM const &mesh) { return field_t<TV, TM, I>(mesh); };
 
 
 template<typename TV, typename TM, int IFORM, typename TFun>

@@ -36,23 +36,22 @@ template<typename ...> struct Field;
  */
 template<typename TV, typename TMesh, int IFORM, typename ...Policies>
 class Field<TV, TMesh, std::integral_constant<int, IFORM>, Policies...>
-        : public TMesh::template Attribute<TV, IFORM>,
-          public Policies ...
+        : public Policies ...
 //          ,std::enable_shared_from_this<Field<TV, TMesh, std::integral_constant<int, IFORM>, Policies...>>
 //         , public mesh::EnablePatchFromThis<Field<TV, TMesh, std::integral_constant<int, IFORM> >>
 {
 private:
     typedef Field<TV, TMesh, std::integral_constant<int, IFORM>, Policies...> this_type;
 public:
-    typedef typename TMesh::template Attribute<TV, IFORM> base_type;
-
     typedef TMesh mesh_type;
+
     typedef TV value_type;
 
-    using base_type::mesh;
-    using base_type::sync;
-
     static constexpr int iform = IFORM;
+
+    typedef typename mesh_type::template Attribute<value_type, iform> attribute_type;
+
+    std::shared_ptr<attribute_type> m_data_;
 private:
 //    typedef typename mesh::template EnablePatchFromThis<this_type> patch_base;
 
@@ -69,15 +68,16 @@ public:
 
     //create construct
     Field(mesh_type &m, std::string const &name = "")
-            : base_type(*m.template create_attribute<this_type>(name)) { }
+            : m_data_(m.template create_attribute<value_type, iform>(name)) { }
 
-    Field(mesh_type const &m) : base_type(m) { }
+    Field(mesh_type const &m)
+            : m_data_(m.template create_attribute<value_type, iform>()) { }
 
     //copy construct
-    Field(this_type const &other) : base_type(other) { }
+    Field(this_type const &other) : m_data_(other.m_data_) { }
 
     // move construct
-    Field(this_type &&other) : base_type(other) { }
+    Field(this_type &&other) : m_data_(other.m_data_) { }
 
     virtual ~Field() { }
 
@@ -133,13 +133,12 @@ private:
     template<typename TOP, typename ...Args>
     void apply(TOP const &op, this_type &f, Args &&... args)
     {
-        base_type::deploy();
+        deploy();
 //        calculus_policy::template apply<IFORM>(mesh(), op, *this, std::forward<Args>(args)...);
 
         mesh_type const &m = mesh();
 
         m.template update<IFORM>(
-//                m.template range<IFORM>(),
                 [&](typename mesh_type::range_type const &r)
                 {
                     for (auto const &s:r)
@@ -172,20 +171,40 @@ public:
     template<typename Other>
     void assign(id_type const &s, Other const &other)
     {
-        this->at(s) = interpolate_policy::template sample<iform>(mesh(), s, other);
+        m_data_->at(s) = interpolate_policy::template sample<iform>(mesh(), s, other);
     }
 
     template<typename Other>
     void add(id_type const &s, Other const &other)
     {
-        this->at(s) += interpolate_policy::template sample<iform>(mesh(), s, other);
+        m_data_->at(s) += interpolate_policy::template sample<iform>(mesh(), s, other);
     }
+
     /**@}*/
 
 
+    value_type &operator[](id_type const &s) { return m_data_->at(s); }
 
+    value_type const &operator[](id_type const &s) const { return m_data_->at(s); }
 
+    void sync() { m_data_->sync(); }
 
+    void clear() { m_data_->clear(); }
+
+    void deploy() { m_data_->deploy(); }
+
+    mesh_type const &mesh() const { return m_data_->mesh(); }
+
+    DataSet dataset() { return attribute()->dataset(); }
+
+    DataSet dataset() const { return attribute()->dataset(); }
+
+    std::shared_ptr<attribute_type> attribute() { return m_data_; }
+
+    std::shared_ptr<const attribute_type> attribute() const { return m_data_; }
+
+    template<typename ...Args>
+    void accept(Args &&...args) { m_data_->accept(std::forward<Args>(args)...); }
 
 }; // struct Field
 

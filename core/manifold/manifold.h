@@ -304,17 +304,21 @@ public:
 
     template<typename TV, int IFORM> class Attribute;
 
-    template<typename TF>
-    std::shared_ptr<TF> create_attribute(std::string const &name)
+    template<typename TV, int IFORM>
+    std::shared_ptr<Attribute<TV, IFORM>> create_attribute(std::string const &name)
     {
-        auto res = std::make_shared<TF>(*this);
+        auto res = std::make_shared<Attribute<TV, IFORM>>(*this);
 
         if (name != "") { enroll(name, std::dynamic_pointer_cast<AttributeInternal_>(res)); }
 
         return res;
     }
 
-    template<typename TF> TF create_attribute() const { return TF(*this); }
+    template<typename TV, int IFORM>
+    std::shared_ptr<Attribute<TV, IFORM>> create_attribute() const
+    {
+        return std::make_shared<Attribute<TV, IFORM>>(*this);
+    }
 
     template<typename TF>
     void enroll(std::string const &name, std::shared_ptr<TF> p)
