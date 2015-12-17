@@ -53,15 +53,6 @@ public:
 
     virtual size_t erase_patch(size_t id) { return m_patches_.erase(id); };
 
-    virtual std::tuple<nTuple<Real, 3>, nTuple<Real, 3>> get_box() const
-    {
-        return std::make_tuple(nTuple<Real, 3> {0, 0, 0}, nTuple<Real, 3> {1, 1, 1});
-    };
-
-    virtual nTuple<size_t, 3> get_dimensions() const
-    {
-        return nTuple<size_t, 3>{1, 1, 1};
-    };
 
     std::map<size_t, std::shared_ptr<PatchEntity>> const &patches() const { return m_patches_; };
 

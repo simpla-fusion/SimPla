@@ -12,9 +12,9 @@
 #include <list>
 #include "../../gtl/type_traits.h"
 #include "../../gtl/primitives.h"
-#include "patch.h"
 #include "../../data_model/dataset.h"
-#include "../../data_model/attribute.h"
+#include "../../base/attribute.h"
+#include "../../base/patch.h"
 
 
 namespace simpla
@@ -26,6 +26,29 @@ template<typename ...> class Field;
 
 namespace simpla { namespace mesh
 {
+
+
+template<typename TM, typename TV, int IFORM>
+class PatchPolicy : public PatchEntity
+{
+    typedef TM mesh_type;
+
+    typedef TV value_type;
+
+    static constexpr int iform = IFORM;
+
+    typedef typename mesh_type::template Attribute<value_type, iform> attribute_type;
+
+    virtual attribute_type &self() = 0;
+
+    virtual attribute_type const &self() const = 0;
+
+    virtual mesh_type const &mesh() const = 0;
+
+    std::map<size_t, std::shared_ptr<attribute_type> > m_patches_;
+
+
+};
 
 template<typename TM>
 class EnablePatchFromThis : public PatchEntity
@@ -58,9 +81,6 @@ public:
     void refinement_ratio(size_t r) { m_refinement_ratio_ = r; }
 
     size_t refinement_ratio() const { return m_refinement_ratio_; }
-
-
-
 
 
 private:

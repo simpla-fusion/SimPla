@@ -171,14 +171,7 @@ public:
     Manifold(this_type const &m) : mesh_type(m), Policies<mesh_type>(
             dynamic_cast<mesh_type &>(*this))... { }
 
-    virtual ~Manifold()
-    {
-    }
-
-    virtual this_type &self() { return (*this); }
-
-    virtual this_type const &self() const { return (*this); }
-
+    virtual ~Manifold() { }
 
     this_type &operator=(const this_type &other)
     {
@@ -186,39 +179,23 @@ public:
         return *this;
     }
 
+    virtual this_type &self() { return (*this); }
 
-private:
+    virtual this_type const &self() const { return (*this); }
 
-    TEMPLATE_DISPATCH_DEFAULT(load)
 
-    TEMPLATE_DISPATCH_DEFAULT(deploy)
-
-    TEMPLATE_DISPATCH(swap, inline,)
-
-    TEMPLATE_DISPATCH(print, inline, const)
-
-public:
-
-    void swap(const this_type &other) { _dispatch_swap<mesh_type, Policies<TMesh>...>(other); }
+    void swap(const this_type &other) { mesh_type::swap(other); }
 
     template<typename TDict>
-    void load(TDict const &dict)
-    {
-        TRY_IT((_dispatch_load<mesh_type, Policies<TMesh>...>(dict["Mesh"])));
-    }
+    void load(TDict const &dict) { TRY_IT(mesh_type::load(dict["Mesh"])); }
 
-    void deploy()
-    {
-        mesh_type::deploy();
-        _dispatch_deploy<mesh_type, Policies<TMesh>...>();
-    }
+    void deploy() { mesh_type::deploy(); }
 
 
-    template<typename OS>
-    OS &print(OS &os) const
+    virtual std::ostream &print(std::ostream &os) const
     {
         os << "Mesh={" << std::endl;
-        _dispatch_print<mesh_type, Policies<TMesh>...>(os);
+        mesh_type::print(os);
         os << "}, # Mesh " << std::endl;
         return os;
     }
@@ -298,7 +275,8 @@ private:
 private:
     class AttributeInternal_;
 
-    std::map<std::string, std::weak_ptr<AttributeInternal_>> m_registered_attributes_;
+    typedef std::map<std::string, std::weak_ptr<AttributeInternal_>> attribute_holder_type;
+    attribute_holder_type m_attributes_;
 
 public:
 
@@ -323,10 +301,12 @@ public:
     template<typename TF>
     void enroll(std::string const &name, std::shared_ptr<TF> p)
     {
-        m_registered_attributes_.insert(
-                std::make_pair(name,
-                               std::dynamic_pointer_cast<AttributeInternal_>(p)));
+        m_attributes_.insert(std::make_pair(name, std::dynamic_pointer_cast<AttributeInternal_>(p)));
     };
+
+    attribute_holder_type &attributes() { return m_attributes_; };
+
+    attribute_holder_type const &attributes() const { return m_attributes_; };
 
 
 }; //class Manifold
