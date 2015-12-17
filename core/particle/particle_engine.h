@@ -385,8 +385,8 @@ void update_properties()                                     \
     SP_PARTICLE_UPDATE_PROP(properties,__VA_ARGS__)          \
     properties.update();                                     \
 }                                                            \
-template<typename OS> OS& print(OS &os)const                 \
-{  properties.print(os);        return os;    }                \
+virtual std::ostream &print(std::ostream &os) const          \
+{  properties.print(os);        return os;    }              \
 private:bool m_is_valid_=false;                              \
 public: bool is_valid()const{return m_is_valid_;}            \
 void deploy( ){ update_properties();update(); m_is_valid_=true;}

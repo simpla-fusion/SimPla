@@ -17,6 +17,7 @@
 #ifndef LOG_H_
 #define LOG_H_
 
+#include <iostream>
 #include <stddef.h>
 #include <bitset>
 #include <sstream>
@@ -70,16 +71,15 @@ enum tags
  *
  *  @brief log message buffer,
  */
-class Logger
+class Logger : public std::ostringstream
 {
-public:
-    typedef Logger this_type;
 
+    typedef std::ostringstream base_type;
+    typedef Logger this_type;
+public:
     Logger();
 
     Logger(int lv);
-
-    Logger(Logger &&r);
 
     ~Logger();
 
@@ -101,14 +101,11 @@ public:
 
         current_line_char_count_ -= get_buffer_length();
 
-        (*m_buffer_) << value;
+        *dynamic_cast<base_type *>(this) << (value);
 
         current_line_char_count_ += get_buffer_length();
 
-        if (current_line_char_count_ > get_line_width())
-        {
-            endl();
-        }
+        if (current_line_char_count_ > get_line_width()) { endl(); }
 
         return *this;
     }
@@ -162,14 +159,14 @@ public:
     Logger &operator<<(StandardEndLine manip)
     {
         // call the function, but we cannot return it's value
-        manip(*m_buffer_);
+        manip(*dynamic_cast< std::ostringstream *>(this));
         return *this;
     }
 
     Logger const &operator<<(StandardEndLine manip) const
     {
         // call the function, but we cannot return it's value
-        manip(*m_buffer_);
+        manip(*dynamic_cast< std::ostringstream *>(const_cast<this_type *>(this)));
         return *this;
     }
 
@@ -195,7 +192,6 @@ public:
         return this->push(arg);
     }
 
-    std::shared_ptr<std::ostringstream> m_buffer_;
     int m_level_ = 10;
     int current_line_char_count_;
     bool endl_;

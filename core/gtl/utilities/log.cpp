@@ -260,22 +260,13 @@ int get_line_width()
     return SingletonHolder<LoggerStreams>::instance().get_line_width();
 }
 
-Logger::Logger()
-        : m_level_(0), current_line_char_count_(0), endl_(true), m_buffer_(new std::ostringstream)
-{
-}
-
-Logger::Logger(Logger &&other)
-        : m_level_(other.m_level_), m_buffer_(other.m_buffer_), current_line_char_count_(other.current_line_char_count_),
-          endl_(other.endl_)
-{
-}
+Logger::Logger() : base_type(), m_level_(0), current_line_char_count_(0), endl_(true) { }
 
 
 Logger::Logger(int lv)
-        : m_level_(lv), current_line_char_count_(0), endl_(true), m_buffer_(new std::ostringstream)
+        : m_level_(lv), current_line_char_count_(0), endl_(true)
 {
-    (*m_buffer_) << std::boolalpha;
+    base_type::operator<<(std::boolalpha);
 
     current_line_char_count_ = get_buffer_length();
 }
@@ -287,21 +278,21 @@ Logger::~Logger()
 
 int Logger::get_buffer_length() const
 {
-    return static_cast<int>((*m_buffer_).str().size());
+    return static_cast<int>(this->str().size());
 }
 
 
 void Logger::flush()
 {
 
-    SingletonHolder<LoggerStreams>::instance().push(m_level_, (*m_buffer_).str());
-    (*m_buffer_).str("");
+    SingletonHolder<LoggerStreams>::instance().push(m_level_, this->str());
+    this->str("");
 
 }
 
 void Logger::surffix(std::string const &s)
 {
-    (*m_buffer_) << std::setfill('.')
+    (*this) << std::setfill('.')
 
     << std::setw(SingletonHolder<LoggerStreams>::instance().get_line_width()
                  - current_line_char_count_)
@@ -313,7 +304,7 @@ void Logger::surffix(std::string const &s)
 
 void Logger::endl()
 {
-    (*m_buffer_) << std::endl;
+    (*this) << std::endl;
     current_line_char_count_ = 0;
     endl_ = true;
 }

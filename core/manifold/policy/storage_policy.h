@@ -49,7 +49,7 @@ public:
 
     template<typename TDict> void load(TDict const &) { }
 
-    template<typename OS> OS &print(OS &os) const
+    virtual std::ostream &print(std::ostream &os) const
     {
         os << "\t StoragePolicy={ Default }," << std::endl;
         return os;

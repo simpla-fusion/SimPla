@@ -42,8 +42,7 @@ public:
     template<typename TDict> void load(TDict const &dict) { }
 
 
-    template<typename OS>
-    OS &print(OS &os) const
+    virtual std::ostream &print(std::ostream &os) const
     {
         os << "\t ParallelPolicy={ Default }," << std::endl;
         return os;

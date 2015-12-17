@@ -13,6 +13,7 @@ int main(int argc, char **argv)
 {
     logger::init(argc, argv);
 
+    logger::set_stdout_level(29);
     int a;
 
     LOG_CMD(a = 5);

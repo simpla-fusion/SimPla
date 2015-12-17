@@ -154,8 +154,7 @@ public:
         }
     }
 
-    template<typename OS>
-    OS &print(OS &os) const
+    virtual std::ostream &print(std::ostream &os) const
     {
 
         os

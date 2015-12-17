@@ -13,6 +13,7 @@
 #include <string>
 #include "../gtl/utilities/memory_pool.h"
 #include "constants.h"
+
 namespace simpla
 {
 
@@ -28,45 +29,45 @@ class PhysicalConstants
 {
 public:
 
-	typedef PhysicalConstants this_type;
+    typedef PhysicalConstants this_type;
 
-	PhysicalConstants(std::string type = "SI");
+    PhysicalConstants(std::string type = "SI");
 
-	~PhysicalConstants();
+    ~PhysicalConstants();
 
-	friend std::ostream & operator<<(std::ostream &os,
-			PhysicalConstants const &self);
+    friend std::ostream &operator<<(std::ostream &os,
+                                    PhysicalConstants const &self);
 
-	template<typename TDict>
-	void load(TDict const & dict)
-	{
-		if (dict.empty())
-		{
-			SetBaseUnit();
-		}
-		else
-		{
+    template<typename TDict>
+    void load(TDict const &dict)
+    {
+        if (dict.empty())
+        {
+            SetBaseUnit();
+        }
+        else
+        {
 
-			SetBaseUnit(dict["Type"].template as<std::string>(), //
-					dict["m"].template as<double>(1.0), //
-					dict["s"].template as<double>(1.0), //
-					dict["kg"].template as<double>(1.0), //
-					dict["C"].template as<double>(1.0), //
-					dict["K"].template as<double>(1.0), //
-					dict["mol"].template as<double>(1.0));
-		}
-	}
+            SetBaseUnit(dict["Type"].template as<std::string>(), //
+                        dict["m"].template as<double>(1.0), //
+                        dict["s"].template as<double>(1.0), //
+                        dict["kg"].template as<double>(1.0), //
+                        dict["C"].template as<double>(1.0), //
+                        dict["K"].template as<double>(1.0), //
+                        dict["mol"].template as<double>(1.0));
+        }
+    }
 
-	std::ostream & save(std::ostream & os) const;
+    std::ostream &save(std::ostream &os) const;
 
-	void print(std::basic_ostream<char> & os) const;
+    virtual std::ostream &print(std::ostream &os) const;
 
-	void SetBaseUnit(std::string const & type_name = "SI", double pm = 1,
-			double ps = 1, double pkg = 1, double pC = 1, double pK = 1,
-			double pMol = 1);
+    void SetBaseUnit(std::string const &type_name = "SI", double pm = 1,
+                     double ps = 1, double pkg = 1, double pC = 1, double pK = 1,
+                     double pMol = 1);
 
-	inline double operator[](std::string const &s) const
-	{
+    inline double operator[](std::string const &s) const
+    {
 //
 //		std::map<std::string, double>::const_iterator it = q_.find(s);
 //
@@ -79,30 +80,32 @@ public:
 //			THROW_EXCEPTION << "Physical quantity " << s << " is not available!";
 //		}
 
-		return q_.at(s);
-	}
-	std::string get_unit(std::string const & s) const
-	{
-		return unitSymbol_.at(s);
+        return q_.at(s);
+    }
 
-	}
+    std::string get_unit(std::string const &s) const
+    {
+        return unitSymbol_.at(s);
+
+    }
+
 private:
-	std::map<std::string, double> q_; //physical quantity
-	std::map<std::string, std::string> unitSymbol_;
+    std::map<std::string, double> q_; //physical quantity
+    std::map<std::string, std::string> unitSymbol_;
 
-	std::string type_;
+    std::string type_;
 
 //SI base unit
-	double m_; //<< length [meter]
-	double s_;	//<< time	[second]
-	double kg_; //<< mass	[kilgram]
-	double C_;	//<< electric charge	[coulomb]
-	double K_;	//<< temperature [kelvin]
-	double mol_;	//<< amount of substance [mole]
+    double m_; //<< length [meter]
+    double s_;    //<< time	[second]
+    double kg_; //<< mass	[kilgram]
+    double C_;    //<< electric charge	[coulomb]
+    double K_;    //<< temperature [kelvin]
+    double mol_;    //<< amount of substance [mole]
 
-}
-;
-std::ostream & operator<<(std::ostream & os, PhysicalConstants const & self);
+};
+
+std::ostream &operator<<(std::ostream &os, PhysicalConstants const &self);
 
 #define  CONSTANTS    SingletonHolder<PhysicalConstants>::instance()
 

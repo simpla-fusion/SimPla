@@ -103,8 +103,7 @@ public:
                 dict["Geometry"]["Topology"]["Dimensions"].template as<index_tuple>(index_tuple{10, 1, 1}));
     }
 
-    template<typename OS>
-    OS &print(OS &os) const
+    virtual std::ostream &print(std::ostream &os) const
     {
 
         os
@@ -336,7 +335,7 @@ void Mesh<TMetric, tags::rect_linear, TMap>::deploy()
             size_t n = this->hash(s) * block_type::NUM_OF_NODE_ID;
 
             block_type::get_element_volume_in_cell(*this, s, m_volume_.get() + n, m_inv_volume_.get() + n,
-                                                  m_dual_volume_.get() + n, m_inv_dual_volume_.get() + n);
+                                                   m_dual_volume_.get() + n, m_inv_dual_volume_.get() + n);
         }
 
     });

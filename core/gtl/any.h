@@ -149,11 +149,7 @@ struct any
         return *this;
     }
 
-    template<typename OS>
-    OS &print(OS &os) const
-    {
-        return ptr_->print(os);
-    }
+    inline std::ostream &print(std::ostream &os) const { return ptr_->print(os); }
 
     DataType datatype() const
     {
@@ -252,9 +248,7 @@ private:
 };
 namespace traits
 {
-
-template<typename OS>
-OS &print(OS &os, any const &self)
+inline std::ostream &print(std::ostream &os, any const &self)
 {
     self.print(os);
     return os;

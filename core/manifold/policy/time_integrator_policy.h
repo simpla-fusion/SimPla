@@ -34,8 +34,7 @@ public:
         m_time_ = dict["Time"].template as<Real>(0);
     }
 
-    template<typename OS>
-    OS &print(OS &os) const
+    virtual std::ostream &print(std::ostream &os) const
     {
 
         os << "\t TimeIntegator = {" << std::endl
@@ -57,8 +56,6 @@ public:
     double dt() const { return m_dt_; }
 
     void dt(double p_dt) { m_dt_ = p_dt; }
-
-
 
 
 private:
