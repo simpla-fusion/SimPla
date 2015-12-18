@@ -23,7 +23,7 @@
 
 //#ifdef USE_TBB
 
-#   include "parallel_tbb.h"
+#   include "ParallelTbb.h"
 //#elif _OPENMP
 //#include "multi_thread_openmp.h"
 //#include "parallel_openmp.h"
@@ -33,7 +33,7 @@
 //
 //#endif
 
-#include "distributed_object.h"
+#include "DistributedObject.h"
 
 namespace simpla { namespace parallel
 {

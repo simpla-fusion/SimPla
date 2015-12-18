@@ -8,7 +8,7 @@
 #include "../particle_engine.h"
 #include "../../dataset/datatype_ext.h"
 #include "../../io/io.h"
-#include "../../parallel/parallel.h"
+#include "Parallel.h"
 #include "../particle_generator.h"
 
 namespace simpla

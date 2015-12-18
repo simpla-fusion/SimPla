@@ -11,7 +11,7 @@
 
 #include "particle.h"
 
-#include "../parallel/parallel.h"
+#include "Parallel.h"
 #include "../model/constraint.h"
 
 

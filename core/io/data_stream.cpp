@@ -18,7 +18,7 @@ extern "C"
 #include "../data_model/DataSet.h"
 
 
-#include "../parallel/parallel.h"
+#include "../parallel/Parallel.h"
 #include "../parallel/mpi_comm.h"
 #include "../parallel/mpi_aux_functions.h"
 

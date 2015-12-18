@@ -10,8 +10,8 @@
 #include <limits>
 #include "Mesh.h"
 #include "MeshIds.h"
-#include "mesh_block.h"
-#include "map_linear.h"
+#include "MeshBlock.h"
+#include "LinearMap.h"
 #include "../../gtl/design_pattern/singleton_holder.h"
 #include "../../gtl/utilities/memory_pool.h"
 #include "../../geometry/geo_algorithm.h"

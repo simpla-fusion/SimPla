@@ -12,7 +12,7 @@
 #include "io.h"
 #include "../gtl/utilities/log.h"
 #include "../data_model/DataSet.h"
-#include "../parallel/parallel.h"
+#include "../parallel/Parallel.h"
 
 namespace simpla { namespace io
 {

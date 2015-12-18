@@ -10,7 +10,7 @@
 #include "../../gtl/ntuple_ext.h"
 #include "../../gtl/utilities/log.h"
 #include "../mesh/mesh_ids.h"
-#include "../../parallel/parallel.h"
+#include "Parallel.h"
 
 using namespace simpla;
 

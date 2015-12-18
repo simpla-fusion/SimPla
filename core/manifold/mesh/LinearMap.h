@@ -1,5 +1,5 @@
 /**
- * @file map_linear.h
+ * @file LinearMap.h
  * @author salmon
  * @date 2015-10-28.
  */

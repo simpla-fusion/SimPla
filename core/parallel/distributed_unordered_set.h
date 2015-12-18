@@ -8,7 +8,7 @@
 #define SIMPLA_DISTRIBUTED_UNORDERED_SET_H
 
 #include "distributed.h"
-#include "distributed_object.h"
+#include "DistributedObject.h"
 
 #include "../gtl/containers/unordered_set.h"
 

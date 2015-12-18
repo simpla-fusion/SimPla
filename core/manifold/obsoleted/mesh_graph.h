@@ -8,7 +8,7 @@
 #define SIMPLA_MESH_GRAPH_H
 
 #include "../../dataset/dataset.h"
-#include "mesh_block.h"
+#include "MeshBlock.h"
 
 namespace simpla { namespace mesh
 {

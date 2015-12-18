@@ -4,7 +4,7 @@
  * @date 2015-10-17.
  */
 
-#include "distributed_object.h"
+#include "DistributedObject.h"
 
 #include "mpi_comm.h"
 #include "mpi_aux_functions.h"

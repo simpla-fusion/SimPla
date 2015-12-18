@@ -12,7 +12,7 @@
 #include <list>
 #include <map>
 
-#include "../parallel/parallel.h"
+#include "Parallel.h"
 #include "../gtl/design_pattern/singleton_holder.h"
 #include "../gtl/utilities/memory_pool.h"
 

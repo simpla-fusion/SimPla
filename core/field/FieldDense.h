@@ -17,7 +17,7 @@
 #include <string>
 
 #include "../gtl/type_traits.h"
-#include "../parallel/parallel.h"
+#include "../parallel/Parallel.h"
 #include "../manifold/ManifoldTraits.h"
 
 

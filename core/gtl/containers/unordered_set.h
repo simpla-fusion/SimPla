@@ -18,7 +18,7 @@
 #include <set>
 #include "../../dataset/dataset.h"
 #include "../iterator/sp_indirect_iterator.h"
-#include "../../parallel/distributed_object.h"
+#include "DistributedObject.h"
 
 namespace simpla
 {

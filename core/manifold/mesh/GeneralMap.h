@@ -1,5 +1,5 @@
 /**
- * @file map_general.h
+ * @file GeneralMap.h
  * @author salmon
  * @date 2015-10-29.
  */
@@ -8,7 +8,7 @@
 #define SIMPLA_MAP_GENERAL_H
 
 #include "../../gtl/primitives.h"
-#include "map_linear.h"
+#include "LinearMap.h"
 
 namespace simpla { namespace mesh
 {

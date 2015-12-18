@@ -12,8 +12,8 @@
 #include "../../gtl/ntuple.h"
 #include "../../parallel/mpi_comm.h"
 #include "../../parallel/mpi_update.h"
-#include "../../parallel/parallel.h"
-#include "../../parallel/distributed_object.h"
+#include "../../parallel/Parallel.h"
+#include "../../parallel/DistributedObject.h"
 
 namespace simpla { namespace manifold { namespace policy
 {

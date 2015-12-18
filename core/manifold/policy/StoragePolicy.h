@@ -68,11 +68,11 @@ public:
     template<int IFORM>
     size_t memory_size() const
     {
-        return std::get<1>(dataspace<IFORM>()).size();
+        return std::get<1>(data_space<IFORM>()).size();
     }
 
     template<typename TV, int IFORM>
-    data_model::DataSet dataset(std::shared_ptr<TV> d = nullptr) const
+    data_model::DataSet data_set(std::shared_ptr<TV> d = nullptr) const
     {
         data_model::DataSet res;
 
@@ -83,12 +83,12 @@ public:
         if (dtype.is_array() && (IFORM == VERTEX || IFORM == VOLUME))
         {
             res.data_type = dtype.element_type();
-            std::tie(res.data_space, res.memory_space) = dataspace<EDGE>();
+            std::tie(res.data_space, res.memory_space) = data_space<EDGE>();
         }
         else
         {
             res.data_type = data_model::DataType::create<TV>();
-            std::tie(res.data_space, res.memory_space) = dataspace<IFORM>();
+            std::tie(res.data_space, res.memory_space) = data_space<IFORM>();
 
         }
 
@@ -99,13 +99,13 @@ public:
 
 
     template<int IFORM>
-    std::tuple<data_model::DataSpace, data_model::DataSpace> dataspace() const
+    std::tuple<data_model::DataSpace, data_model::DataSpace> data_space() const
     {
-        return dataspace<IFORM>(m_geo_.template range<IFORM>());
+        return data_space<IFORM>(m_geo_.template range<IFORM>());
     }
 
     template<int IFORM>
-    std::tuple<data_model::DataSpace, data_model::DataSpace> dataspace(
+    std::tuple<data_model::DataSpace, data_model::DataSpace> data_space(
             typename geometry_type::range_type const &r) const
     {
 

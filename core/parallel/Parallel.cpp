@@ -8,7 +8,7 @@
 #include "../gtl/design_pattern/singleton_holder.h"
 #include "../gtl/utilities/parse_command_line.h"
 #include "mpi_comm.h"
-#include "distributed_object.h"
+#include "DistributedObject.h"
 
 namespace simpla { namespace parallel
 {

@@ -12,11 +12,11 @@
 #include <cstddef>
 #include <type_traits>
 
-#include "../calculus.h"
 
 #include "../../gtl/macro.h"
 #include "../../gtl/primitives.h"
 #include "../../gtl/type_traits.h"
+#include "../Calculus.h"
 #include "../ManifoldTraits.h"
 
 

@@ -7,7 +7,7 @@
 #ifndef SIMPLA_SURFACE_H
 #define SIMPLA_SURFACE_H
 
-#include "../parallel/parallel.h"
+#include "../parallel/Parallel.h"
 #include "../geometry/geo_object.h"
 #include "../geometry/geo_algorithm.h"
 #include "../manifold/ManifoldTraits.h"

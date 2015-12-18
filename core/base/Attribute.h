@@ -200,9 +200,9 @@ public:
 
     virtual int extent(int i) const { return traits::seq_value<typename traits::extents<TV>::type>::value[i]; }
 
-    virtual data_model::DataSet data_set() const { return this->mesh().template dataset<TV, IFORM>(m_data_); };
+    virtual data_model::DataSet data_set() const { return this->mesh().template data_set<TV, IFORM>(m_data_); };
 
-    virtual data_model::DataSet data_set() { return this->mesh().template dataset<TV, IFORM>(m_data_); };
+    virtual data_model::DataSet data_set() { return this->mesh().template data_set<TV, IFORM>(m_data_); };
 
     virtual bool empty() const { return m_data_ == nullptr; }
 

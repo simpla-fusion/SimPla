@@ -7,7 +7,7 @@
 #ifndef SIMPLA_DISTRIBUTED_H
 #define SIMPLA_DISTRIBUTED_H
 
-#include "distributed_object.h"
+#include "DistributedObject.h"
 
 namespace simpla
 {

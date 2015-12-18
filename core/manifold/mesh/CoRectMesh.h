@@ -17,8 +17,8 @@
 #include "../../gtl/utilities/utilities.h"
 #include "../../geometry/geo_algorithm.h"
 #include "Mesh.h"
-#include "mesh_block.h"
-#include "map_linear.h"
+#include "MeshBlock.h"
+#include "LinearMap.h"
 
 namespace simpla { namespace mesh
 {

@@ -10,7 +10,7 @@
 
 #include "application.h"
 #include "../io/io.h"
-#include "../parallel/parallel.h"
+#include "../parallel/Parallel.h"
 #include "../sp_config.h"
 #include "../gtl/utilities/log.h"
 #include "../gtl/utilities/config_parser.h"
