@@ -291,7 +291,6 @@ public:
     typedef base::AttributeEntity<this_type> AttributeEntity;
 private:
 
-
     typedef std::map<std::string, std::weak_ptr<AttributeEntity>> attribute_holder_type;
     attribute_holder_type m_attributes_;
 

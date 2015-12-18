@@ -33,67 +33,29 @@ namespace simpla
 struct any
 {
     template<typename U>
-    any(U &&value) :
-            ptr_(
-                    new Derived<typename std::decay<U>::type>(
-                            std::forward<U>(value)))
-    {
-    }
+    any(U &&value) : ptr_(new Derived<typename std::decay<U>::type>(std::forward<U>(value))) { }
 
-    any(void)
-    {
-    }
+    any(void) { }
 
-    any(any &that) :
-            ptr_(that.clone())
-    {
-    }
+    any(any &that) : ptr_(that.clone()) { }
 
-    any(any const &that) :
-            ptr_(that.clone())
-    {
-    }
+    any(any const &that) : ptr_(that.clone()) { }
 
-    any(any &&that) :
-            ptr_(std::move(that.ptr_))
-    {
-    }
+    any(any &&that) : ptr_(std::move(that.ptr_)) { }
 
-    void swap(any &other)
-    {
-        std::swap(ptr_, other.ptr_);
-    }
+    void swap(any &other) { std::swap(ptr_, other.ptr_); }
 
-    bool empty() const
-    {
-        return !bool(ptr_);
-    }
+    virtual bool empty() const { return !bool(ptr_); }
 
-    inline bool IsNull() const
-    {
-        return empty();
-    }
+    virtual bool IsNull() const { return empty(); }
 
-    operator bool() const
-    {
-        return !empty();
-    }
+    operator bool() const { return !empty(); }
 
-    void const *data() const
-    {
-        return ptr_->data();
-    }
+    void const *data() const { return ptr_->data(); }
 
-    void *data()
-    {
-        return ptr_->data();
-    }
+    void *data() { return ptr_->data(); }
 
-    template<class U>
-    bool is_same() const
-    {
-        return ptr_->is_same<U>();
-    }
+    template<class U> bool is_same() const { return ptr_->is_same<U>(); }
 
     template<class U>
     bool as(U *v) const
@@ -108,27 +70,28 @@ struct any
     }
 
     template<class U>
-    U &as() const
+    U const &as() const
     {
+        if (!is_same<U>()) {THROW_EXCEPTION_BAD_CAST(typeid(U).name(), ptr_->type_name()); }
 
-        if (!is_same<U>())
-        {
-            THROW_EXCEPTION_BAD_CAST(typeid(U).name(), ptr_->type_name());
-
-        }
         return dynamic_cast<Derived <U> *>(ptr_.get())->m_value;
     }
 
     template<class U>
-    operator U() const
+    U &as()
     {
-        return as<U>();
+
+        if (!is_same<U>()) {THROW_EXCEPTION_BAD_CAST(typeid(U).name(), ptr_->type_name()); }
+
+        return dynamic_cast<Derived <U> *>(ptr_.get())->m_value;
     }
+
+    template<class U> operator U() const { return as<U>(); }
 
     any &operator=(const any &a)
     {
-        if (ptr_ == a.ptr_)
-            return *this;
+        if (ptr_ == a.ptr_) return *this;
+
         ptr_ = a.clone();
 
         return *this;
@@ -137,24 +100,14 @@ struct any
     template<typename T>
     any &operator=(T const &v)
     {
-
-        if (is_same<T>())
-        {
-            as<T>() = v;
-        }
-        else
-        {
-            any(v).swap(*this);
-        }
+        if (is_same<T>()) { as<T>() = v; }
+        else { any(v).swap(*this); }
         return *this;
     }
 
-    inline std::ostream &print(std::ostream &os) const { return ptr_->print(os); }
+    virtual std::ostream &print(std::ostream &os, int indent = 0) const { return ptr_->print(os, indent); }
 
-    data_model::DataType datatype() const
-    {
-        return ptr_->data_type();
-    }
+    data_model::DataType datatype() const { return ptr_->data_type(); }
 
 private:
     struct Base;
@@ -162,9 +115,7 @@ private:
 
     struct Base
     {
-        virtual ~Base()
-        {
-        }
+        virtual ~Base() { }
 
         virtual BasePtr clone() const = 0;
 
@@ -172,17 +123,13 @@ private:
 
         virtual void *data() = 0;
 
-        virtual std::ostream &print(std::ostream &os) const = 0;
+        virtual std::ostream &print(std::ostream &os, int indent = 0) const = 0;
 
         virtual bool is_same(std::type_index const &) const = 0;
 
         virtual std::string type_name() const = 0;
 
-        template<typename T>
-        bool is_same() const
-        {
-            return is_same(std::type_index(typeid(T)));
-        }
+        template<typename T> bool is_same() const { return is_same(std::type_index(typeid(T))); }
 
         virtual data_model::DataType data_type() const = 0;
 
@@ -192,69 +139,40 @@ private:
     struct Derived : Base
     {
         template<typename U>
-        Derived(U &&value) :
-                m_value(std::forward<U>(value))
-        {
-        }
+        Derived(U &&value) : m_value(std::forward<U>(value)) { }
 
-        BasePtr clone() const
-        {
-            return BasePtr(new Derived<T>(m_value));
-        }
+        BasePtr clone() const { return BasePtr(new Derived<T>(m_value)); }
 
-        void const *data() const
-        {
-            return reinterpret_cast<void const *>(&m_value);
-        }
+        void const *data() const { return reinterpret_cast<void const *>(&m_value); }
 
-        void *data()
-        {
-            return reinterpret_cast<void *>(&m_value);
-        }
+        void *data() { return reinterpret_cast<void *>(&m_value); }
 
-        std::ostream &print(std::ostream &os) const
+        virtual std::ostream &print(std::ostream &os, int indent = 0) const
         {
             os << m_value;
             return os;
         }
 
-        bool is_same(std::type_index const &t_idx) const
-        {
-            return std::type_index(typeid(T)) == t_idx;
-        }
+        bool is_same(std::type_index const &t_idx) const { return std::type_index(typeid(T)) == t_idx; }
 
-        std::string type_name() const
-        {
-            return typeid(T).name();
-        }
+        std::string type_name() const { return typeid(T).name(); }
+
+        data_model::DataType data_type() const { return data_model::DataType::template create<T>(); }
 
         T m_value;
-
-        data_model::DataType data_type() const
-        {
-            return data_model::DataType::template create<T>();
-        }
 
     };
 
     BasePtr clone() const
     {
-        if (ptr_ != nullptr)
-            return ptr_->clone();
+        if (ptr_ != nullptr) return ptr_->clone();
+
         return nullptr;
     }
 
     BasePtr ptr_;
 };
-namespace traits
-{
-inline std::ostream &print(std::ostream &os, any const &self)
-{
-    self.print(os);
-    return os;
-}
 
-}  // namespace traits
 }
 // namespace simpla
 

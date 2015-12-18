@@ -233,26 +233,33 @@ public:
         return *this;
     }
 
-};
-namespace traits
-{
-inline std::ostream &print(std::ostream &os, Properties const &self)
-{
-    print(os, dynamic_cast<any const &>(self));
-    for (auto const &item : self)
+    virtual inline std::ostream &print(std::ostream &os, int indent = 0) const
     {
-        os << item.first << " =  ";
-        print(os, item.second);
-        os << " , ";
-        if (item.second.size() > 0)
+        dynamic_cast<any const &>(*this).print(os, indent);
+        for (auto const &item : *this)
         {
-            print(os, item.second);
+            os << item.first << " =  ";
+            item.second.print(os, indent + 1);
+            os << " , ";
+            if (item.second.size() > 0)
+            {
+                item.second.print(os, indent + 1);
+            }
         }
+        return os;
     }
-    return os;
-}
+};
 
-}  // namespace traits
+#define HAS_PROPERTIES                                       \
+ inline Properties const& properties()const{return m_properties_;}  \
+ inline Properties  & properties() {touch();return m_properties_;}  \
+ private: Properties m_properties_; public:
+
+#define DEFINE_PROPERTIES(_TYPE_, _NAME_)                                                      \
+void _NAME_(_TYPE_ const & v)   \
+{m_##_NAME_##_ =v; this->m_properties_[__STRING(_NAME_)] = v; this->touch();}       \
+_TYPE_ _NAME_()const{return m_##_NAME_##_;}                         \
+private: _TYPE_ m_##_NAME_##_;    public:
 /** @} */
 }  // namespace simpla
 

@@ -19,34 +19,18 @@ class DataObject : public Object
 {
 public:
 
-//    virtual std::shared_ptr<DataObject> clone() const { return std::make_shared<DataObject>(); }
-
     SP_OBJECT_HEAD(DataObject, Object);
+
+    HAS_PROPERTIES;
 
     virtual data_model::DataSet data_set() = 0;
 
     virtual data_model::DataSet data_set() const = 0;
 
-    inline Properties &properties(std::string const &key)
-    {
-        this->touch();
-        return m_properties_[key];
-    }
-
-    inline Properties const &properties(std::string const &key) const { return m_properties_.at(key); }
-
-    inline Properties const &properties() const { return m_properties_; }
-
-private:
-    Properties m_properties_;
+    virtual std::ostream &print(std::ostream &os, int indent = 0) const;
 
 
 };
-
-#define SP_OBJECT_PROPERTIES(_TYPE_, _NAME_)                                  \
-void _NAME_(_TYPE_ const & v){ this->properties(__STRING(_NAME_)) = v;}         \
-_TYPE_ _NAME_()const{return properties(__STRING(_NAME_)).as<_TYPE_>();}                             \
-
 
 
 }}//namespace simpla { namespace base

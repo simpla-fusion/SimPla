@@ -7,37 +7,34 @@
 #ifndef SIMPLA_PIC_BORIS_H
 #define SIMPLA_PIC_BORIS_H
 
-#include "../ParticleEngine.h"
 #include "../Particle.h"
+#include "../ParticleProxy.h"
+#include "../ParticleEngine.h"
+#include "../ParticleGenerator.h"
+#include "../ParticleConstraint.h"
 
-namespace simpla { namespace particle
+
+namespace simpla { namespace particle { namespace engine
 {
-namespace tags { struct Boris; }
 
-
-template<typename TM> using BorisParticle=Particle<ParticleEngine<tags::Boris>, TM>;
-
-template<>
-struct ParticleEngine<tags::Boris>
+struct BorisEngine : public base::Object
 {
-    SP_DEFINE_STRUCT(point_type,
-                     Vec3, x,
-                     Vec3, v
-    );
+    SP_OBJECT_HEAD(BorisEngine, base::Object);
 
-    SP_DEFINE_STRUCT(sample_type,
-                     point_type, z,
-                     Real, f,
-                     Real, w
-    );
+    HAS_PROPERTIES
 
-    SP_DEFINE_PROPERTIES(
-            Real, mass,
-            Real, charge,
-            Real, temperature
-    )
+    virtual std::ostream &print(std::ostream &os, int indent) const { return properties().print(os, indent); }
 
-    void update() { }
+    DEFINE_PROPERTIES(Real, mass);
+
+    DEFINE_PROPERTIES(Real, charge);
+
+    DEFINE_PROPERTIES(Real, temperature);
+
+    SP_DEFINE_STRUCT(point_type, Vec3, x, Vec3, v);
+
+    SP_DEFINE_STRUCT(sample_type, point_type, z, Real, f, Real, w);
+
 
     Vec3 project(point_type const &z) const { return z.x; }
 
@@ -97,6 +94,10 @@ struct ParticleEngine<tags::Boris>
 
 };
 
-}}//namespace simpla { namespace particle
+}}}//namespace simpla { namespace particle { namespace engine
+namespace simpla { namespace particle
+{
+template<typename TM> using BorisParticle = Particle<particle::engine::BorisEngine, TM>;
+}}
 
 #endif //SIMPLA_PIC_BORIS_H

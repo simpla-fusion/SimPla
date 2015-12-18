@@ -16,9 +16,7 @@
 #include "../gtl/design_pattern/singleton_holder.h"
 #include "../gtl/utilities/memory_pool.h"
 
-namespace simpla
-{
-namespace particle
+namespace simpla { namespace particle
 {
 
 
@@ -30,7 +28,7 @@ template<typename P, typename M>
 struct Particle<P, M>
         : public P,
           public parallel::concurrent_hash_map<typename M::id_type, std::list<typename P::sample_type>>,
-          public AttributeBase,
+          public M::AttributeEntity,
           public std::enable_shared_from_this<Particle<P, M>>
 {
 
@@ -62,7 +60,7 @@ private:
 
     typedef std::list<value_type> bucket_type;
 
-    typedef parallel::concurrent_hash_map<id_type, bucket_type> container_type;
+    typedef parallel::concurrent_hash_map <id_type, bucket_type> container_type;
 
     typedef std::map<id_type, bucket_type> buffer_type;
 
@@ -92,9 +90,7 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent = 0) const;
 
-
-    template<typename TDict, typename ...Others>
-    void load(TDict const &dict, Others &&...others);
+    template<typename TDict> void load(TDict const &dict);
 
     template<typename TField>
     void integral(id_type const &s, TField *res) const;
@@ -121,9 +117,9 @@ public:
     id_type hash(value_type const &p) const { return m_mesh_.id(project(p), mesh_type::node_id(iform)); }
 
 
-    DataSet dataset() const;
+    data_model::DataSet data_set() const;
 
-    void dataset(DataSet const &);
+    void data_set(data_model::DataSet const &);
 
     void push_back(value_type const &p);
 
@@ -214,10 +210,10 @@ Particle<P, M>::~Particle()
 
 
 template<typename P, typename M>
-template<typename TDict, typename ...Others>
-void Particle<P, M>::load(TDict const &dict, Others &&...others)
+template<typename TDict>
+void Particle<P, M>::load(TDict const &dict)
 {
-    engine_type::load(dict, std::forward<Others>(others)...);
+    engine_type::load(dict);
 }
 
 template<typename P, typename M>
@@ -455,7 +451,7 @@ template<typename P, typename M>
 void Particle<P, M>::sync(container_type const &buffer, parallel::DistributedObject *dist_obj, bool update_ghost)
 {
 
-    DataType d_type = traits::datatype<value_type>::create();
+    data_model::DataType d_type = data_model::DataType::create<value_type>();
 
     typename mesh_type::index_tuple memory_min, memory_max;
     typename mesh_type::index_tuple local_min, local_max;
@@ -706,7 +702,7 @@ void Particle<P, M>::push_back(InputIt const &b, InputIt const &e)
 
 
 template<typename P, typename M>
-DataSet Particle<P, M>::dataset() const
+data_model::DataSet Particle<P, M>::data_set() const
 {
 
     auto r = m_mesh_.template range<iform>();
@@ -716,15 +712,13 @@ DataSet Particle<P, M>::dataset() const
 
     copy(r, reinterpret_cast<value_type *>( data.get()));
 
-    DataSet ds = traits::make_dataset(traits::datatype<value_type>::create(), data, count);
-
-//    ds.properties.append(engine_type::properties);
+    data_model::DataSet ds = data_model::DataSet::create(data_model::DataType::create<value_type>(), data, count);
 
     return std::move(ds);
 }
 
 template<typename P, typename M>
-void Particle<P, M>::dataset(DataSet const &ds)
+void Particle<P, M>::data_set(data_model::DataSet const &ds)
 {
     size_t count = ds.memory_space.size();
 
@@ -746,7 +740,9 @@ void Particle<P, M>::generator(id_type s, TGen &gen, size_t pic, Args &&...args)
                            std::forward<Args>(args)...);
 
     typename container_type::accessor acc;
+
     container_type::insert(acc, s);
+
     std::copy(std::get<0>(g), std::get<1>(g), std::back_inserter(acc->second));
 }
 
@@ -769,7 +765,6 @@ void Particle<P, M>::generator(TGen &gen, size_t pic, Args &&...args)
     size_t num_of_particle = m_mesh_.template range<iform>().size() * pic;
 
     gen.reserve(num_of_particle);
-
 
     m_mesh_.template for_each_boundary<iform>(
             [&](range_type const &r) { generator(r, gen, pic, std::forward<Args>(args)...); });
@@ -796,25 +791,22 @@ template<typename P, typename M>
 template<typename TRange, typename Predicate>
 void Particle<P, M>::remove_if(TRange const &r, Predicate const &pred)
 {
-    parallel::parallel_for(r,
-                           [&](TRange const &r)
-                           {
-                               for (auto const &s:r)
-                               {
-                                   typename container_type::accessor acc;
+    parallel::parallel_for(
+            r,
+            [&](TRange const &r)
+            {
+                for (auto const &s:r)
+                {
+                    typename container_type::accessor acc;
 
-                                   if (container_type::find(acc, std::get<0>(s)))
-                                   {
-                                       acc->second.remove_if(
-                                               [&](value_type const &p)
-                                               {
-                                                   return pred(s, p);
-                                               });
-                                   }
+                    if (container_type::find(acc, std::get<0>(s)))
+                    {
+                        acc->second.remove_if([&](value_type const &p) { return pred(s, p); });
+                    }
 
 
-                               }
-                           }
+                }
+            }
 
     );
 }
@@ -835,10 +827,7 @@ void Particle<P, M>::accept(TConstraint const &constraint, TFun const &fun)
 
                     if (container_type::find(acc, std::get<0>(item)))
                     {
-                        for (auto &p:acc->second)
-                        {
-                            fun(item, &p);
-                        }
+                        for (auto &p:acc->second) { fun(item, &p); }
                     }
 
                     rehash(std::get<0>(item), &buffer);
@@ -848,25 +837,7 @@ void Particle<P, M>::accept(TConstraint const &constraint, TFun const &fun)
     );
     merge(&buffer);
 }
-}//{namespace particle
-
-namespace traits
-{
-template<typename P, typename M>
-struct iform<particle::Particle<P, M>> :
-        public std::integral_constant<int, particle::Particle<P, M>::iform>
-{
-};
-
-template<typename P, typename M>
-struct value_type<particle::Particle<P, M>>
-{
-    typedef typename particle::Particle<P, M>::sample_type type;
-};
-
-
-} //namespace traits
-}//namespace simpla
+}}//namespace simpla
 
 
 #endif /* CORE_PARTICLE_PARTICLE_H_ */

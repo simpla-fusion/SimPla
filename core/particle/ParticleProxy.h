@@ -9,7 +9,7 @@
 
 #include "../data_model/DataSet.h"
 
-namespace simpla
+namespace simpla { namespace particle
 {
 template<typename...> struct Particle;
 template<typename...> struct ParticleProxyBase;
@@ -41,11 +41,11 @@ struct ParticleProxy<TP, TE, TB, TJ, TRho> : public ParticleProxyBase<TE, TB, TJ
 
     virtual void sync() { m_self_->sync(); }
 
-    virtual DataSet dataset() { return m_self_->dataset(); }
+    virtual data_model::DataSet data_set() { return m_self_->data_set(); }
 
-    virtual DataSet dataset() const { return m_self_->dataset(); }
+    virtual data_model::DataSet data_set() const { return m_self_->data_set(); }
 
-    virtual void dataset(DataSet const &ds) { m_self_->dataset(ds); }
+    virtual void data_set(data_model::DataSet const &ds) { m_self_->data_set(ds); }
 
     virtual void push(Real dt, Real t, TE const &E, TB const &B)
     {
@@ -83,11 +83,11 @@ public:
 
     virtual void sync() = 0;
 
-    virtual DataSet dataset() = 0;
+    virtual data_model::DataSet data_set() = 0;
 
-    virtual DataSet dataset() const = 0;
+    virtual data_model::DataSet data_set() const = 0;
 
-    virtual void dataset(DataSet const &) = 0;
+    virtual void data_set(data_model::DataSet const &) = 0;
 
     virtual void push(Real dt, Real t, TE const &E, TB const &B) = 0;
 
@@ -107,5 +107,6 @@ public:
 };
 
 
-}//namespace simpla
+}}//namespace simpla{namespace particle
+
 #endif //SIMPLA_PARTICLE_PROXY_H

@@ -20,16 +20,15 @@ class AttributeObject : public base::DataObject
 public:
     SP_OBJECT_HEAD(AttributeObject, DataObject);
 
-
     AttributeObject(std::string const &s_name = "") : m_name_(s_name) { }
 
-    virtual  ~ AttributeObject() { }
+    virtual ~AttributeObject() { }
 
-    virtual int center_type() const = 0;
+    virtual int center_type() const { return 0; }
 
-    virtual int rank() const = 0;
+    virtual int rank() const { return 0; }
 
-    virtual int extent(int i) const = 0;
+    virtual int extent(int i) const { return 1; }
 
     virtual data_model::DataSet data_set() = 0;
 
@@ -103,15 +102,6 @@ public:
         return "AttributeEntity<" + m_mesh_->get_class_name() + ">";
     }
 
-    virtual data_model::DataSet data_set() = 0;
-
-    virtual data_model::DataSet data_set() const = 0;
-
-    virtual int center_type() const = 0;
-
-    virtual int rank() const = 0;
-
-    virtual int extent(int i) const = 0;
 
     mesh_type const &mesh() { return *m_const_mesh_; }
 

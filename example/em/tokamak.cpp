@@ -14,13 +14,7 @@
 #include "../../core/io/IO.h"
 
 #include "../../core/manifold/pre_define/PreDefine.h"
-#include "../../core/field/Field.h"
-
-//#include "../../core/particle/Particle.h"
-//#include "../../core/particle/ParticleProxy.h"
-//#include "../../core/particle/ParticleGenerator.h"
-//#include "../../core/particle/pre_define/PICBoris.h"
-//#include "../../core/particle/particle_Constraint.h"
+#include "../../core/particle/pre_define/PICBoris.h"
 
 #include "../../core/model/GEqdsk.h"
 #include "../../core/model/Constraint.h"
@@ -91,8 +85,7 @@ struct EMPlasma
     typedef traits::field_t<vector_type, mesh_type, VERTEX> TJv;
 
 
-//    typedef ParticleProxyBase <TE, TB, TJ, TRho> particle_proxy_type;
-    typedef void particle_proxy_type;
+    typedef particle::ParticleProxyBase<TE, TB, TJ, TRho> particle_proxy_type;
 
     typedef std::tuple<
             Real, //mass
@@ -114,23 +107,15 @@ struct EMPlasma
                         name,
                         std::make_tuple(
                                 mass, charge,
-                                traits::field_t<scalar_type, mesh_type, VERTEX>(m),
-                                traits::field_t<vector_type, mesh_type, VERTEX>(m), f
+                                traits::field_t<scalar_type, mesh_type, VERTEX>(m, "n_" + name),
+                                traits::field_t<vector_type, mesh_type, VERTEX>(m, "J_" + name),
+
+                                f
                         )));
 
     }
 
     size_t m_count = 0;
-//    struct particle_s
-//    {
-//        std::shared_ptr<ParticleProxyBase<TB, TE, TJ, TRho>> p;
-//        Real mass;
-//        Real charge;
-//        TJ J1;
-//        TRho rho1;
-//        traits::field_t<scalar_type, mesh_type, VERTEX> rhos;
-//        traits::field_t<vector_type, mesh_type, VERTEX> Js;
-//    };
 
 
 };
@@ -285,7 +270,9 @@ void EMPlasma::setup(int argc, char **argv)
             if (dict)
             {
                 model::create_id_set(
-                        m, m.template make_range<EDGE>(m.index_box(dict["Box"].template as<box_type>())),
+                        m,
+                        m.template make_range<EDGE>(
+                                m.index_box(dict["Box"].template as<box_type>())),
                         &J_src);
 
                 dict["Value"].as(&J_src_fun);
@@ -300,8 +287,9 @@ void EMPlasma::setup(int argc, char **argv)
 
             for (auto const &dict:ps)
             {
+                std::string key = dict.first.template as<std::string>();
                 auto res = add_particle(
-                        dict.first.template as<std::string>(),
+                        key,
                         dict.second["mass"].template as<Real>(),
                         dict.second["charge"].template as<Real>());
 
@@ -312,24 +300,18 @@ void EMPlasma::setup(int argc, char **argv)
 
                     if (dict.second["Density"])
                     {
-                        std::get<2>(p) =
-                                traits::make_field_function_from_config<scalar_type, VERTEX>(m, dict.second["Density"]);
+                        std::get<2>(p) = traits::make_field_function_from_config<scalar_type, VERTEX>(m,
+                                                                                                      dict.second["Density"]);
                     }
-                    else
-                    {
-                        std::get<2>(p) = rho0;
-                    }
+                    else { std::get<2>(p) = rho0; }
 
 
                     std::get<3>(p).clear();
 
-//                    out_stream.enroll("n_" + key, std::get<2>(p));
-//                    out_stream.enroll("J_" + key, std::get<3>(p));
-
-
-//                    if (dict.second["Type"].template as<std::string>() == "Bories")
+//
+//                    if (dict.second["Type"].template as<std::string>() == "Boris")
 //                    {
-//                        std::get<4>(p) = particle_proxy_type::create < particle::BorisParticle < mesh_type >> (m);
+//                        std::get<4>(p) = particle_proxy_type::create<particle::BorisParticle<mesh_type>>(m, key);
 //                    }
                 }
 

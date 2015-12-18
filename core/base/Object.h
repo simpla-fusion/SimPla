@@ -11,6 +11,7 @@
 #include <mutex>
 #include <stddef.h> //for size_t
 #include <memory>
+#include  "LifeClick.h"
 
 namespace simpla { namespace base
 {
@@ -95,8 +96,6 @@ public:
 
     virtual std::string get_class_name() const;
 
-    virtual bool is_same(Object const &other) const;
-
     virtual std::ostream &print(std::ostream &os, int indent) const;
 
     /**
@@ -118,14 +117,9 @@ public:
      *  @name concept touchable
      *  @{
      */
-    inline void touch()
-    {
-        m_mutex_.lock();
-        ++m_click_;
-        m_mutex_.unlock();
-    }
+    inline void touch() { GLOBAL_CLICK_TOUCH(&m_click_); }
 
-    inline size_t get_click() const { return m_click_; }
+    inline size_t click() const { return m_click_; }
     /** @} */
 private:
 

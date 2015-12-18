@@ -9,11 +9,11 @@
 
 namespace simpla { namespace base
 {
-Object::Object() : m_click_(0) { };
+Object::Object() { this->touch(); };
 
 Object::Object(Object &&other) : m_click_(other.m_click_) { };
 
-Object::Object(Object const &) : m_click_(0) { };
+Object::Object(Object const &) { this->touch(); };
 
 Object &Object::operator=(Object const &other)
 {
@@ -27,10 +27,7 @@ void Object::swap(Object &other) { std::swap(m_click_, other.m_click_); };
 
 bool Object::is_a(std::type_info const &info) const { return typeid(Object) == info; }
 
-std::string Object::get_class_name() const { return "GeoObject"; }
-
-bool Object::is_same(Object const &other) const { return this == &other; }
-
+std::string Object::get_class_name() const { return "base::Object"; }
 
 std::ostream &Object::print(std::ostream &os, int indent) const
 {

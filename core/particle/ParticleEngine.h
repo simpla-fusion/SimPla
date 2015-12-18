@@ -385,7 +385,7 @@ void update_properties()                                     \
     SP_PARTICLE_UPDATE_PROP(properties,__VA_ARGS__)          \
     properties.update();                                     \
 }                                                            \
-virtual std::ostream &print(std::ostream &os) const          \
+virtual std::ostream &print(std::ostream &os,int ident=0) const\
 {  properties.print(os);        return os;    }              \
 private:bool m_is_valid_=false;                              \
 public: bool is_valid()const{return m_is_valid_;}            \
