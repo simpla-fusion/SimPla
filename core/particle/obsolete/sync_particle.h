@@ -82,7 +82,7 @@ void sync(Particle<Args...> *pool)
 
         if (mem_size == MPI_UNDEFINED)
         {
-            RUNTIME_ERROR("Update Ghosts Particle fail");
+            RUNTIME_ERROR("Update Ghosts particle fail");
         }
         buffer[count].resize(mem_size / sizeof(value_type));
 

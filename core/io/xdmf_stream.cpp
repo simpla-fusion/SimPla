@@ -11,7 +11,7 @@
 
 #include "io.h"
 #include "../gtl/utilities/log.h"
-#include "../data_model/dataset.h"
+#include "../data_model/DataSet.h"
 #include "../parallel/parallel.h"
 
 namespace simpla { namespace io
@@ -141,7 +141,7 @@ void _str_replace(std::string *s, std::string const &place_holder, std::string c
 }
 
 
-void XDMFStream::write(std::string const &ds_name, DataSet const &ds)
+void XDMFStream::write(std::string const &ds_name, data_model::DataSet const &ds)
 {
     if (ds.empty())
     {
@@ -159,14 +159,14 @@ void XDMFStream::write(std::string const &ds_name, DataSet const &ds)
 
     nTuple<size_t, MAX_NDIMS_OF_ARRAY> dims;
 
-    std::tie(ndims, dims, std::ignore, std::ignore, std::ignore, std::ignore) = ds.dataspace.shape();
+    std::tie(ndims, dims, std::ignore, std::ignore, std::ignore, std::ignore) = ds.data_space.shape();
 
-    if (ds.datatype.is_array())
+    if (ds.data_type.is_array())
     {
-        int n = ds.datatype.rank();
+        int n = ds.data_type.rank();
         for (int i = 0; i < n; ++i)
         {
-            dims[ndims + i] = ds.datatype.extent(i);
+            dims[ndims + i] = ds.data_type.extent(i);
         }
         ndims += n;
     }
@@ -184,9 +184,9 @@ void XDMFStream::write(std::string const &ds_name, DataSet const &ds)
 }
 
 void XDMFStream::write(std::string const &ds_name,
-                       AttributeBase const &attr)
+                       base::AttributeObject const &attr)
 {
-    if (attr.dataset().empty())
+    if (attr.data_set().empty())
     {
         VERBOSE << "Try to write empty Attribute: [" << ds_name << "] Ignored!" << std::endl;
 
@@ -224,7 +224,7 @@ void XDMFStream::write(std::string const &ds_name,
     << "AttributeType=\"" << attr_type << "\" "
     << "Center=\"" << center_type << "\">" << std::endl;
 
-    write(ds_name, attr.dataset());
+    write(ds_name, attr.data_set());
 
     m_file_stream_ << std::setw(level * 2 + 2) << "" << "</Attribute>" << std::endl;
 
@@ -256,12 +256,12 @@ void XDMFStream::set_topology_geometry(std::string const &name, int ndims, size_
         m_file_stream_ << ""
         << std::setw(level * 2 + 2) << "" << "<Topology TopologyType=\"3DCoRectMesh\""
         << std::setw(level * 2 + 2) << "" << " Dimensions=\"" << dims[0] << " " << dims[1] << " " << dims[2] << "\"/>\n"
-        << std::setw(level * 2 + 2) << "" << "<Geometry GeometryType=\"ORIGIN_DXDYDZ\">\n"
+        << std::setw(level * 2 + 2) << "" << "<geometry GeometryType=\"ORIGIN_DXDYDZ\">\n"
         << std::setw(level * 2 + 2) << "" << "  <DataItem Name=\"Origin\" Dimensions=\"3\" NumberType=\"Float\" "
                 " Precision=\"4\" Format=\"XML\">" << xmin[0] << " " << xmin[1] << " " << xmin[2] << "</DataItem>\n"
         << std::setw(level * 2 + 2) << "" << "  <DataItem Name=\"Spacing\" Dimensions=\"3\" NumberType=\"Float\""
                 " Precision=\"4\" Format=\"XML\">" << dx[0] << " " << dx[1] << " " << dx[2] << "  </DataItem >\n"
-        << std::setw(level * 2 + 2) << "" << "</Geometry>";
+        << std::setw(level * 2 + 2) << "" << "</geometry>";
 
 
     }
@@ -270,12 +270,12 @@ void XDMFStream::set_topology_geometry(std::string const &name, int ndims, size_
         m_file_stream_ << ""
         << std::setw(level * 2 + 2) << "" << "<Topology TopologyType=\"2DCoRectMesh\""
         << std::setw(level * 2 + 2) << "" << "      Dimensions=\"" << dims[0] << " " << dims[1] << "\"/>\n"
-        << std::setw(level * 2 + 2) << "" << "<Geometry GeometryType=\"ORIGIN_DXDY\">\n"
+        << std::setw(level * 2 + 2) << "" << "<geometry GeometryType=\"ORIGIN_DXDY\">\n"
         << std::setw(level * 2 + 2) << "" << "   <DataItem Name=\"Origin\" Dimensions=\"2\" NumberType=\"Float\" "
                 " Precision=\"4\" Format=\"XML\">" << xmin[0] << " " << xmin[1] << "</DataItem>\n"
         << std::setw(level * 2 + 2) << "" << "   <DataItem Name=\"Spacing\" Dimensions=\"2\" NumberType=\"Float\""
                 " Precision=\"4\" Format=\"XML\">" << dx[0] << " " << dx[1] << "  </DataItem >\n"
-        << std::setw(level * 2 + 2) << "" << "</Geometry>";
+        << std::setw(level * 2 + 2) << "" << "</geometry>";
 
 
     }
@@ -288,7 +288,7 @@ void XDMFStream::set_topology_geometry(std::string const &name, int ndims, size_
 }
 
 
-void XDMFStream::set_topology_geometry(std::string const &name, DataSet const &ds)
+void XDMFStream::set_topology_geometry(std::string const &name, data_model::DataSet const &ds)
 {
 
     int level = static_cast<int>(m_path_.size());
@@ -297,7 +297,7 @@ void XDMFStream::set_topology_geometry(std::string const &name, DataSet const &d
 
     nTuple<size_t, MAX_NDIMS_OF_ARRAY> dims;
 
-    std::tie(ndims, dims, std::ignore, std::ignore, std::ignore, std::ignore) = ds.dataspace.shape();
+    std::tie(ndims, dims, std::ignore, std::ignore, std::ignore, std::ignore) = ds.data_space.shape();
 
     --ndims;
     if (ndims == 2)
@@ -306,11 +306,11 @@ void XDMFStream::set_topology_geometry(std::string const &name, DataSet const &d
         << std::setw(level * 2 + 2) << "<Topology Name=\"" << name << "\" "
         << " TopologyType=\"2DSMesh\""
         << " NumberOfElements=\"" << dims[0] << " " << dims[1] << " " << dims[2] << "\"/>\n"
-        << std::setw(level * 2 + 2) << "<Geometry Name=  \"" << name << "\" GeometryType=\"XY\">" << std::endl;
+        << std::setw(level * 2 + 2) << "<geometry Name=  \"" << name << "\" GeometryType=\"XY\">" << std::endl;
         write("/Grid/points", ds);
 
         m_file_stream_ << ""
-        << std::setw(level * 2 + 2) << "" << " </Geometry>\n";
+        << std::setw(level * 2 + 2) << "" << " </geometry>\n";
     }
 
     else if (ndims == 3)
@@ -318,12 +318,12 @@ void XDMFStream::set_topology_geometry(std::string const &name, DataSet const &d
         m_file_stream_ << ""
         << std::setw(level * 2 + 2) << "" << "<Topology Name=\"" << name << "\" "
         << "TopologyType=\"3DSMesh\"  NumberOfElements=\"" << dims[0] << " " << dims[1] << " " << dims[2] << "\"/>\n"
-        << std::setw(level * 2 + 2) << "" << "<Geometry Name=\"" << name << "\" GeometryType=\"XYZ\">\n";
+        << std::setw(level * 2 + 2) << "" << "<geometry Name=\"" << name << "\" GeometryType=\"XYZ\">\n";
 
         write("/Grid/points", ds);
 
         m_file_stream_ << ""
-        << std::setw(level * 2 + 2) << "" << "</Geometry>\n";
+        << std::setw(level * 2 + 2) << "" << "</geometry>\n";
     }
     else
     {
@@ -338,7 +338,7 @@ void XDMFStream::reference_topology_geometry(std::string const &id)
     << std::setw(level * 2) << ""
     << "   <Topology Reference=\"XML\" >/Xdmf/Domain/Topology[@Name=\"" << id << "\"]</Topology>" << std::endl
     << std::setw(level * 2) << ""
-    << "   <Geometry Reference=\"XML\" >/Xdmf/Domain/Geometry[@Name=\"" << id << "\"]</Geometry>" << std::endl;
+    << "   <geometry Reference=\"XML\" >/Xdmf/Domain/geometry[@Name=\"" << id << "\"]</geometry>" << std::endl;
 
 }
 

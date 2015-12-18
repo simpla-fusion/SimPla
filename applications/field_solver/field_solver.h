@@ -8,6 +8,6 @@
 #ifndef FIELD_SOLVER_H_
 #define FIELD_SOLVER_H_
 
-//!\defgroup  FieldSolver Field Solver
+//!\defgroup  FieldSolver field Solver
 
 #endif /* FIELD_SOLVER_H_ */

@@ -126,9 +126,9 @@ int main(int argc, char **argv)
 
 			);
 
-	if (context_type == "" && dict["Model"]["Type"])
+	if (context_type == "" && dict["model"]["Type"])
 	{
-		context_type = dict["Model"]["Type"].template as<std::string>();
+		context_type = dict["model"]["Type"].template as<std::string>();
 	}
 
 	INFORM << SIMPLA_LOGO;

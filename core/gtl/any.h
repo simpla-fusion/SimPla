@@ -17,7 +17,7 @@
 #include <typeindex>
 #include <typeinfo>
 
-#include "../data_model/datatype.h"
+#include "../data_model/DataType.h"
 #include "utilities/log.h"
 
 namespace simpla
@@ -25,7 +25,7 @@ namespace simpla
 
 /**
  *  @ingroup gtl
- *   base on http://www.cnblogs.com/qicosmos/p/3420095.html
+ *   Base on http://www.cnblogs.com/qicosmos/p/3420095.html
  *   alt. <boost/any.hpp>
  *
  *   This an implement of 'any' with data type description/serialization information
@@ -151,9 +151,9 @@ struct any
 
     inline std::ostream &print(std::ostream &os) const { return ptr_->print(os); }
 
-    DataType datatype() const
+    data_model::DataType datatype() const
     {
-        return ptr_->datatype();
+        return ptr_->data_type();
     }
 
 private:
@@ -184,7 +184,7 @@ private:
             return is_same(std::type_index(typeid(T)));
         }
 
-        virtual DataType datatype() const = 0;
+        virtual data_model::DataType data_type() const = 0;
 
     };
 
@@ -230,9 +230,9 @@ private:
 
         T m_value;
 
-        DataType datatype() const
+        data_model::DataType data_type() const
         {
-            return traits::datatype<T>::create();
+            return data_model::DataType::template create<T>();
         }
 
     };

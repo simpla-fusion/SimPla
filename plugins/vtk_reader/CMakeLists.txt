@@ -3,25 +3,26 @@
 
 
 #IF (${BUILD_VTK_READER})
+SET(PARAVIEW_ROOT /pkg/paraview/5.0.0/)
 
-IF (${PARAVIEW_ROOT})
+#IF (${PARAVIEW_ROOT})
 
-    SET(CMAKE_PREFIX_PATH ${PARAVIEW_ROOT})
+SET(CMAKE_PREFIX_PATH ${PARAVIEW_ROOT})
 
-    FIND_PACKAGE(ParaView REQUIRED)
-    INCLUDE(${PARAVIEW_USE_FILE})
-    ADD_PARAVIEW_PLUGIN(AMRSimPlaReader "1.0"
-            SERVER_MANAGER_XML simpla_amr_reader.xml
-            SERVER_MANAGER_SOURCES vtkAMRSimPlaReader.cpp
-            )
+FIND_PACKAGE(ParaView REQUIRED)
+INCLUDE(${PARAVIEW_USE_FILE})
+ADD_PARAVIEW_PLUGIN(AMRSimPlaReader "1.0"
+        SERVER_MANAGER_XML simpla_amr_reader.xml
+        SERVER_MANAGER_SOURCES vtkAMRSimPlaReader.cpp
+        )
 
-    ADD_PARAVIEW_PLUGIN(AMRSimPlaParticlesReader "1.0"
-            SERVER_MANAGER_XML simpla_amr_particles_reader.xml
-            SERVER_MANAGER_SOURCES vtkAMRSimPlaParticlesReader.cpp
-            )
+ADD_PARAVIEW_PLUGIN(AMRSimPlaParticlesReader "1.0"
+        SERVER_MANAGER_XML simpla_amr_particles_reader.xml
+        SERVER_MANAGER_SOURCES vtkAMRSimPlaParticlesReader.cpp
+        )
 
 
-    TARGET_LINK_LIBRARIES(AMRSimPlaReader ${HDF5_C_LIBRARIES})
-    TARGET_LINK_LIBRARIES(AMRSimPlaParticlesReader ${HDF5_C_LIBRARIES})
+TARGET_LINK_LIBRARIES(AMRSimPlaReader ${HDF5_C_LIBRARIES})
+TARGET_LINK_LIBRARIES(AMRSimPlaParticlesReader ${HDF5_C_LIBRARIES})
 
-ENDIF (${PARAVIEW_ROOT})
+#ENDIF (${PARAVIEW_ROOT})

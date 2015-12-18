@@ -27,7 +27,7 @@
 #include "../../gtl/primitives.h"
 
 #include "../../gtl/utilities/log.h"
-#include "../../manifold/pre_define/predefine.h"
+#include "pre_define.h"
 
 using namespace simpla;
 

@@ -42,7 +42,7 @@ namespace simpla {
  *    engine_type::next_time_step(Point_s * p, others...);
  *
  *  - if  engine_type::memory_length  is not defined
- *     p point the "Particle" at current time step
+ *     p point the "particle" at current time step
  *
  *  - if engine_type::memory_length = m
  *    p-1,p-2,... , p-m are valid and point to "Particles" at previous m steps

@@ -16,7 +16,7 @@
 #include "../../gtl/type_traits.h"
 #include "../../gtl/utilities/utilities.h"
 #include "../../geometry/geo_algorithm.h"
-#include "mesh.h"
+#include "Mesh.h"
 #include "mesh_block.h"
 #include "map_linear.h"
 
@@ -139,17 +139,17 @@ public:
     {
         try
         {
-            box(dict["Geometry"]["Box"].template as<std::tuple<point_type, point_type> >());
+            box(dict["geometry"]["Box"].template as<std::tuple<point_type, point_type> >());
 
             block_type::dimensions(
-                    dict["Geometry"]["Topology"]["Dimensions"].template as<index_tuple>(index_tuple{10, 1, 1}));
+                    dict["geometry"]["Topology"]["Dimensions"].template as<index_tuple>(index_tuple{10, 1, 1}));
 
         }
         catch (std::runtime_error const &e)
         {
             SHOW_ERROR << e.what() << std::endl;
 
-            THROW_EXCEPTION_PARSER_ERROR("Geometry is not correctly loaded!");
+            THROW_EXCEPTION_PARSER_ERROR("geometry is not correctly loaded!");
 
         }
     }
@@ -158,7 +158,7 @@ public:
     {
 
         os
-        << "\tGeometry={" << std::endl
+        << "\tgeometry={" << std::endl
         << "\t\t Topology = { Type = \"CoRectMesh\",  }," << std::endl
         << "\t\t Box = {" << box() << "}," << std::endl
         << "\t\t Dimensions = " << block_type::dimensions() << "," << std::endl
@@ -237,7 +237,7 @@ public:
  * @name  Coordinate map
  * @{
  *
- *        Topology Mesh       Geometry Mesh
+ *        Topology mesh       geometry mesh
  *                        map
  *              M      ---------->      G
  *              x                       y
@@ -427,7 +427,7 @@ public:
     static constexpr auto inner_product(T0 const &v0, T1 const &v1, Others &&... others)
     DECL_RET_TYPE((v0[0] * v1[0] + v0[1] * v1[1] + v0[2] * v1[2]))
 
-}; // struct Mesh
+}; // struct mesh
 }// namespace mesh
 } // namespace simpla
 

@@ -15,8 +15,8 @@
 #include "../gtl/macro.h"
 #include "../gtl/mpl.h"
 #include "../gtl/type_traits.h"
-#include "../manifold/mesh/mesh_ids.h"
-#include "../manifold/manifold_traits.h"
+#include "../manifold/mesh/MeshIds.h"
+#include "manifold_traits.h"
 
 namespace simpla
 {
@@ -114,7 +114,7 @@ struct iform<std::integral_constant<int, I> > : public std::integral_constant<in
 template<typename T>
 struct value_type<Field<Expression<calculus::tags::HodgeStar, T> > >
 {
-    typedef value_type_t <T> type;
+    typedef value_type_t<T> type;
 };
 
 
@@ -122,15 +122,15 @@ template<typename T>
 struct value_type<Field<Expression<calculus::tags::ExteriorDerivative, T> > >
 {
     typedef result_of_t<simpla::_impl::multiplies(
-            geometry::traits::scalar_type_t<manifold_type_t < T >>,    value_type_t <T>)> type;
+            geometry::traits::scalar_type_t<manifold_type_t<T >>, value_type_t<T>)> type;
 };
 
 template<typename T>
 struct value_type<Field<Expression<calculus::tags::CodifferentialDerivative, T> > >
 {
     typedef result_of_t<
-            simpla::_impl::multiplies(geometry::traits::scalar_type_t<manifold_type_t < T >>,
-    value_type_t <T>)> type;
+            simpla::_impl::multiplies(geometry::traits::scalar_type_t<manifold_type_t<T >>,
+                                      value_type_t<T>)> type;
 };
 
 template<typename T0, typename T1>
@@ -138,7 +138,7 @@ struct value_type<Field<Expression<calculus::tags::Wedge, T0, T1> > >
 {
 
     typedef result_of_t<
-            simpla::_impl::multiplies(value_type_t < T0 > , value_type_t < T1 > )> type;
+            simpla::_impl::multiplies(value_type_t<T0>, value_type_t<T1>)> type;
 };
 
 template<typename T0, typename T1>
@@ -146,7 +146,7 @@ struct value_type<Field<Expression<calculus::tags::InteriorProduct, T0, T1> > >
 {
 
     typedef result_of_t<
-            simpla::_impl::multiplies(value_type_t < T0 > , value_type_t < T1 > )> type;
+            simpla::_impl::multiplies(value_type_t<T0>, value_type_t<T1>)> type;
 };
 
 
@@ -154,14 +154,14 @@ template<typename T0, typename T1>
 struct value_type<Field<Expression<calculus::tags::Cross, T0, T1> > >
 {
 
-    typedef value_type_t <T0> type;
+    typedef value_type_t<T0> type;
 };
 
 template<typename T0, typename T1>
 struct value_type<Field<Expression<calculus::tags::Dot, T0, T1> > >
 {
 
-    typedef value_type_t <value_type_t<T0>> type;
+    typedef value_type_t<value_type_t<T0>> type;
 };
 
 
@@ -175,14 +175,14 @@ struct iform<Field<Expression<calculus::tags::MapTo, T1, std::integral_constant<
 template<typename T, typename ...Others>
 struct value_type<Field<Expression<calculus::tags::MapTo, T, Others...> > >
 {
-    typedef value_type_t <T> type;
+    typedef value_type_t<T> type;
 };
 template<typename T>
 struct value_type<Field<Expression<calculus::tags::MapTo, T, std::integral_constant<int, VERTEX>>> >
 {
     typedef typename std::conditional<
             iform<T>::value == VERTEX || iform<T>::value == VOLUME,
-            value_type_t < T>,nTuple<value_type_t < T>, 3> > ::type type;
+            value_type_t<T>, nTuple<value_type_t<T>, 3> >::type type;
 };
 
 
@@ -191,7 +191,7 @@ struct value_type<Field<Expression<calculus::tags::MapTo, T, std::integral_const
 {
     typedef typename std::conditional<
             iform<T>::value == VERTEX || iform<T>::value == VOLUME,
-            value_type_t < T>,nTuple<value_type_t < T>, 3> > ::type type;
+            value_type_t<T>, nTuple<value_type_t<T>, 3> >::type type;
 };
 
 
@@ -228,18 +228,18 @@ struct value_type<Field<Expression<calculus::tags::MapTo, Field<nTuple<TV, 3>, T
 //}  // namespace _impl
 //
 //template<typename TAG, typename ...T>
-//struct domain_type<Field<Expression<TAG, T...> > >
+//struct domain_type<field<Expression<TAG, T...> > >
 //{
 //
 //    typedef mpl::replace_tuple_t<1,
-//            typename iform<Field<Expression<TAG, T...> > >::type,
+//            typename iform<field<Expression<TAG, T...> > >::type,
 //            _impl::first_domain_t<T...> > type;
 //
 //};
 //
 //template<size_t I, typename T1>
 //struct domain_type<
-//        Field<Expression<calculus::tags::MapTo, std::integral_constant<int, I>, T1> > >
+//        field<Expression<calculus::tags::MapTo, std::integral_constant<int, I>, T1> > >
 //{
 //    typedef mpl::replace_tuple_t<1, std::integral_constant<int, I>, domain_t<T1>> type;
 //};
@@ -256,7 +256,7 @@ struct value_type<Field<Expression<calculus::tags::MapTo, Field<nTuple<TV, 3>, T
  *  -------------------------------|--------------
  *  \f$\Omega^{N-n}\f$ =HodgeStar(\f$\Omega^n\f$ )	| hodge star, abbr. operator *
  *  \f$\Omega^{m+n}\f$ =Wedge(\f$\Omega^m\f$ ,\f$\Omega^m\f$  )	| wedge product, abbr. operator^
- *  \f$\Omega^{n-1}\f$ =InteriorProduct(Vector Field ,\f$\Omega^n\f$  )	| interior product, abbr. iv
+ *  \f$\Omega^{n-1}\f$ =InteriorProduct(Vector field ,\f$\Omega^n\f$  )	| interior product, abbr. iv
  *  \f$\Omega^{N}\f$ =InnerProduct(\f$\Omega^m\f$ ,\f$\Omega^m\f$ ) | inner product,
 
  **/

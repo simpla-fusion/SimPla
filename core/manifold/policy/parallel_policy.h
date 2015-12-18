@@ -51,7 +51,7 @@ public:
 
     void deploy();
 
-    void sync(DataSet &) const;
+    void sync(data_model::DataSet &) const;
 
 
     template<typename T> void sync(T &self) const;
@@ -99,7 +99,7 @@ void ParallelPolicy<TMesh>::deploy()
 }
 
 template<typename TMesh> void
-ParallelPolicy<TMesh>::sync(DataSet &ds) const
+ParallelPolicy<TMesh>::sync(data_model::DataSet &ds) const
 {
     parallel::sync(ds);
 }
@@ -108,7 +108,7 @@ template<typename TMesh>
 template<typename T> void
 ParallelPolicy<TMesh>::sync(T &self) const
 {
-    parallel::sync(traits::make_dataset(self));
+    parallel::sync(data_model::DataSet::create(self));
 }
 
 template<typename TMesh>

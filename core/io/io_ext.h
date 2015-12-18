@@ -21,8 +21,8 @@ std::string save(std::string const &url, T const *data, int ndims,
 {
 
     DataSet res;
-    res.datatype = traits::datatype<T>::create();
-    res.dataspace = make_dataspace(ndims, dims);
+    res.data_type = traits::datatype<T>::create();
+    res.data_space = make_dataspace(ndims, dims);
     res.data = std::shared_ptr<void>(const_cast<T *>(&data[0]), tags::do_nothing());
 
     return save(url, res, flag);

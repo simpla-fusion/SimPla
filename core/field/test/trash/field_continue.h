@@ -23,7 +23,7 @@ namespace simpla
 template<typename ...>struct Field;
 
 /** @ingroup field
- *  @brief Field using  sequence container,i.e.  'vector'
+ *  @brief field using  sequence container,i.e.  'vector'
  */
 template<typename TM, typename TContainer>
 struct Field<TM, TContainer, _impl::is_sequence_container> : public SpObject
@@ -66,7 +66,7 @@ public:
 
 	std::string get_type_as_string() const
 	{
-		return "Field<" + mesh_.get_type_as_string() + ">";
+		return "field<" + mesh_.get_type_as_string() + ">";
 	}
 	mesh_type const & mesh() const
 	{
@@ -188,7 +188,7 @@ public:
 //
 //	static_assert(has_const_member_function_hash<TM,typename TM::id_type>::value &&
 //			has_const_member_function_max_hash<TM>::value,
-//			"Mesh do not support 'sequence container'"
+//			"mesh do not support 'sequence container'"
 //	);
 };
 

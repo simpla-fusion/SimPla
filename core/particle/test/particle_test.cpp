@@ -7,7 +7,7 @@
 
 //#include "particle_test.h"
 //
-//INSTANTIATE_TEST_CASE_P(Particle, TestParticle, testing::Combine(
+//INSTANTIATE_TEST_CASE_P(particle, TestParticle, testing::Combine(
 //
 //testing::Values(nTuple<Real,3>( { 0.0, 0.0, 0.0, })  //
 //        , nTuple<Real,3>( { -1.0, -2.0, -3.0 })

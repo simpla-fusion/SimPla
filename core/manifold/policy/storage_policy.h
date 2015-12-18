@@ -10,8 +10,8 @@
 #include <string.h>
 #include "../../gtl/design_pattern/singleton_holder.h"
 #include "../../gtl/utilities/memory_pool.h"
-#include "../../data_model/dataset.h"
-#include "../../data_model/dataspace.h"
+#include "../../data_model/DataSet.h"
+#include "../../data_model/DataSpace.h"
 #include "../manifold_traits.h"
 
 namespace simpla
@@ -72,23 +72,23 @@ public:
     }
 
     template<typename TV, int IFORM>
-    DataSet dataset(std::shared_ptr<TV> d = nullptr) const
+    data_model::DataSet dataset(std::shared_ptr<TV> d = nullptr) const
     {
-        DataSet res;
+        data_model::DataSet res;
 
         //FIXME  temporary by pass for XDMF
 
-        auto dtype = traits::datatype<TV>::create();
+        auto dtype = data_model::DataType::create<TV>();
 
         if (dtype.is_array() && (IFORM == VERTEX || IFORM == VOLUME))
         {
-            res.datatype = dtype.element_type();
-            std::tie(res.dataspace, res.memory_space) = dataspace<EDGE>();
+            res.data_type = dtype.element_type();
+            std::tie(res.data_space, res.memory_space) = dataspace<EDGE>();
         }
         else
         {
-            res.datatype = traits::datatype<TV>::create();
-            std::tie(res.dataspace, res.memory_space) = dataspace<IFORM>();
+            res.data_type = data_model::DataType::create<TV>();
+            std::tie(res.data_space, res.memory_space) = dataspace<IFORM>();
 
         }
 
@@ -99,13 +99,14 @@ public:
 
 
     template<int IFORM>
-    std::tuple<DataSpace, DataSpace> dataspace() const
+    std::tuple<data_model::DataSpace, data_model::DataSpace> dataspace() const
     {
         return dataspace<IFORM>(m_geo_.template range<IFORM>());
     }
 
     template<int IFORM>
-    std::tuple<DataSpace, DataSpace> dataspace(typename geometry_type::range_type const &r) const
+    std::tuple<data_model::DataSpace, data_model::DataSpace> dataspace(
+            typename geometry_type::range_type const &r) const
     {
 
         static constexpr int ndims = geometry_type::ndims;
@@ -158,9 +159,9 @@ public:
 
         return std::make_tuple(
 
-                DataSpace(f_ndims, &(f_dims[0])).select_hyperslab(&f_start[0], nullptr, &count[0], nullptr),
+                data_model::DataSpace(f_ndims, &(f_dims[0])).select_hyperslab(&f_start[0], nullptr, &count[0], nullptr),
 
-                DataSpace(f_ndims, &(m_dims[0]))
+                data_model::DataSpace(f_ndims, &(m_dims[0]))
                         .select_hyperslab(&m_start[0], nullptr, &count[0], nullptr)
 
         );

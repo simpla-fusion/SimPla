@@ -8,7 +8,7 @@
 #define SIMPLA_FIBER_BUNDLE_H
 
 #include "../gtl/primitives.h"
-#include "../gtl/properties.h"
+#include "Properties.h"
 
 namespace simpla { namespace manifold
 {
@@ -51,7 +51,7 @@ struct DirectMap
  * A fiber bundle is a structure (E, B, π, F), where E, B, and F
  * are topological spaces and \f$ \pi : E \mapto B \f$ is a continuous surjection
  * satisfying a local triviality condition outlined below. The space B is called
- * the '''base space''' of the bundle, \f$E\f$ the total space, and \f$F\f$ the fiber.
+ * the '''Base space''' of the bundle, \f$E\f$ the total space, and \f$F\f$ the fiber.
  * The map \f$\pi\f$ is called the '''projection map''' (or '''bundle projection''').
  */
 template<typename E, typename M, typename PI>
@@ -60,7 +60,7 @@ class FiberBundle : public PI
 public:
 
     typedef E point_type; //!< coordinates in the total space,
-    typedef M mesh_type; //!<  base space;
+    typedef M mesh_type; //!<  Base space;
     typedef PI project_map_type; //!<  projection map
 
     typedef Vec3 vector_type;

@@ -8,8 +8,8 @@
 #define SIMPLA_RECT_MESH_H
 
 #include <limits>
-#include "mesh.h"
-#include "mesh_ids.h"
+#include "Mesh.h"
+#include "MeshIds.h"
 #include "mesh_block.h"
 #include "map_linear.h"
 #include "../../gtl/design_pattern/singleton_holder.h"
@@ -97,17 +97,17 @@ public:
     template<typename TDict>
     void load(TDict const &dict)
     {
-        box(dict["Geometry"]["Box"].template as<std::tuple<point_type, point_type> >());
+        box(dict["geometry"]["Box"].template as<std::tuple<point_type, point_type> >());
 
         block_type::dimensions(
-                dict["Geometry"]["Topology"]["Dimensions"].template as<index_tuple>(index_tuple{10, 1, 1}));
+                dict["geometry"]["Topology"]["Dimensions"].template as<index_tuple>(index_tuple{10, 1, 1}));
     }
 
     virtual std::ostream &print(std::ostream &os) const
     {
 
         os
-        << "\tGeometry={" << std::endl
+        << "\tgeometry={" << std::endl
         << "\t\t Topology = { Type = \"RectMesh\",  }," << std::endl
         << "\t\t Box = {" << box() << "}," << std::endl
         << "\t\t Dimensions = " << block_type::dimensions() << "," << std::endl

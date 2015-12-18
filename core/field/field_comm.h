@@ -16,7 +16,7 @@ namespace simpla
 /**
  * @ingroup physical_object
  *
- * @addtogroup field Field
+ * @addtogroup field field
  * @brief @ref field is an abstraction from physical field on 4d or 3d @ref configuration_space
  *
  * ## Summary
@@ -49,22 +49,22 @@ namespace simpla
  *
  *  Pseudo-Signature 	 			| Semantics
  *  --------------------------------|--------------
- *  `Field()`						| Default constructor
- *  `~Field() `					    | destructor.
- *  `Field( const Field& ) `	    | copy constructor.
- *  `Field( Field && ) `			| move constructor.
+ *  `field()`						| Default constructor
+ *  `~field() `					    | destructor.
+ *  `field( const field& ) `	    | copy constructor.
+ *  `field( field && ) `			| move constructor.
  *
  *
  * ### Domain &  Split
  *
  *  Pseudo-Signature 	 			        | Semantics
  *  ----------------------------------------|--------------
- *  `Field( Domain & D ) `			        | Construct a field on domain \f$D\f$.
- *  `Field( Field &r,split)`			    | Split field into two part,  see @ref concept_domain
+ *  `field( Domain & D ) `			        | Construct a field on domain \f$D\f$.
+ *  `field( field &r,split)`			    | Split field into two part,  see @ref concept_domain
  *  `domain_type const &domain() const `	| Get define domain of field
  *  `void domain(domain_type cont&) ` 	    | Reset define domain of field
- *  `Field split(domain_type d)`			| Sub-field on  domain \f$D \cap D_0\f$
- *  `Field boundary()`				        | Sub-field on  boundary \f${\partial D}_0\f$
+ *  `field split(domain_type d)`			| Sub-field on  domain \f$D \cap D_0\f$
+ *  `field boundary()`				        | Sub-field on  boundary \f${\partial D}_0\f$
  *
  * ###   Capacity
  *  Pseudo-Signature 	 			| Semantics
@@ -85,15 +85,15 @@ namespace simpla
  * ### Assignment
  *   Pseudo-Signature 	 				         | Semantics
  *  ---------------------------------------------|--------------
- *  `Field & operator=(Function const & f)`  	 | assign values as \f$y[s]=f(x)\f$
- *  `Field & operator=(FieldExpression const &)` | Assign operation,
- *  `Field operator=( const Field& )`            | copy-assignment operator.
- *  `Field operator=( Field&& )`		         | move-assignment operator.
+ *  `field & operator=(Function const & f)`  	 | assign values as \f$y[s]=f(x)\f$
+ *  `field & operator=(FieldExpression const &)` | Assign operation,
+ *  `field operator=( const field& )`            | copy-assignment operator.
+ *  `field operator=( field&& )`		         | move-assignment operator.
  *
  * ## Non-member functions
  *  Pseudo-Signature  				| Semantics
  *  --------------------------------|--------------
- *  `swap(Field &,Field&)`			| swap
+ *  `swap(field &,field&)`			| swap
  *
  * ## See also
  *  - @ref FETL
@@ -107,7 +107,7 @@ namespace simpla
  */
 
 /**
- * Field Class
+ * field Class
  */
 template<typename ...> struct Domain;
 template<typename ...> struct Field;

@@ -17,8 +17,8 @@ namespace simpla
 {
 
 /**
- *  @ingroup Particle
- *  @{  \defgroup  ParticleEngine Particle Engine
+ *  @ingroup particle
+ *  @{  \defgroup  ParticleEngine particle Engine
  *  @}
  */
 
@@ -28,14 +28,14 @@ Factory<std::string, ParticleBase, Args ...> RegisterAllParticles()
 
 	Factory<std::string, ParticleBase, Args ...> factory;
 
-//	factory.Register(Particle<Mesh, ColdFluid>::template CreateFactoryFun<Args...>());
+//	factory.Register(Particle<mesh, ColdFluid>::template CreateFactoryFun<Args...>());
 
-//	factory.Register(Particle<Mesh, PICEngineFullF>::template CreateFactoryFun<Args...>());
-//	factory.Register(Particle<Mesh, PICDeltaF>::template CreateFactoryFun<Args...>());
-//	factory.Register(Particle<PICEngineImplicit<Mesh>>::template CreateFactoryFun<Args...>());
-//	factory.Register(Particle<PICEngineGGauge<Mesh, 4, true>>::template CreateFactoryFun<Args...>());
-//	factory.Register(Particle<PICEngineGGauge<Mesh, 16, true>>::template CreateFactoryFun<Args...>());
-//	factory.Register(Particle<PICEngineGGauge<Mesh, 32, true>>::template CreateFactoryFun<Args...>());
+//	factory.Register(Particle<mesh, PICEngineFullF>::template CreateFactoryFun<Args...>());
+//	factory.Register(Particle<mesh, PICDeltaF>::template CreateFactoryFun<Args...>());
+//	factory.Register(Particle<PICEngineImplicit<mesh>>::template CreateFactoryFun<Args...>());
+//	factory.Register(Particle<PICEngineGGauge<mesh, 4, true>>::template CreateFactoryFun<Args...>());
+//	factory.Register(Particle<PICEngineGGauge<mesh, 16, true>>::template CreateFactoryFun<Args...>());
+//	factory.Register(Particle<PICEngineGGauge<mesh, 32, true>>::template CreateFactoryFun<Args...>());
 
 	return std::move(factory);
 }

@@ -28,7 +28,7 @@ using namespace simpla;
 
 typedef manifold::Riemannian<3> mesh_type;
 
-USE_CASE(pic, " Particle in cell")
+USE_CASE(pic, " particle in cell")
 {
 
     size_t num_of_steps = 1000;
@@ -88,18 +88,18 @@ USE_CASE(pic, " Particle in cell")
 
     auto ion = std::make_shared<Particle<pic_demo, mesh_type>>(*mesh);
 
-    size_t pic = options["Particle"]["H"]["pic"].template as<size_t>(10);
+    size_t pic = options["particle"]["H"]["pic"].template as<size_t>(10);
 
-    ion->mass(options["Particle"]["H"]["mass"].template as<Real>(1.0));
+    ion->mass(options["particle"]["H"]["mass"].template as<Real>(1.0));
 
-    ion->charge(options["Particle"]["H"]["charge"].template as<Real>(1.0));
+    ion->charge(options["particle"]["H"]["charge"].template as<Real>(1.0));
 
-    ion->temperature(options["Particle"]["H"]["T"].template as<Real>(1.0));
+    ion->temperature(options["particle"]["H"]["T"].template as<Real>(1.0));
 
     ion->deploy();
 
     auto p_generator = simple_particle_generator(*ion, mesh->extents(),
-                                                 ion->temperature(), options["Particle"]["H"]["Distribution"]);
+                                                 ion->temperature(), options["particle"]["H"]["Distribution"]);
 
     std::mt19937 rnd_gen;
 
@@ -124,9 +124,9 @@ USE_CASE(pic, " Particle in cell")
         << " Description=\"" << options["Description"].as<std::string>("") << "\""
         << std::endl
 
-        << " Mesh = " << std::endl << "  {" << *mesh << "} " << std::endl
+        << " mesh = " << std::endl << "  {" << *mesh << "} " << std::endl
 
-        << " Particle =" << std::endl
+        << " particle =" << std::endl
 
         //			    <<	" H = {" << *ion << "}" << std::endl
 

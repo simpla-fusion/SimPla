@@ -28,13 +28,13 @@ namespace simpla
 {
 
 /**
- *  @defgroup  Model Model
+ *  @defgroup  model model
  *  @brief BaseManifold modeling
  */
 
 /**
- *  @ingroup Model
- *   @brief Model
+ *  @ingroup model
+ *   @brief model
  */
 
 class Model

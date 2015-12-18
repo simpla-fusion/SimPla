@@ -16,7 +16,6 @@
 
 #include <mpi.h>
 
-#include "../data_model/dataset.h"
 
 #include "../gtl/ntuple.h"
 #include "../gtl/design_pattern/singleton_holder.h"

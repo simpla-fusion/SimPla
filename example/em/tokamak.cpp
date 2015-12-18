@@ -7,15 +7,14 @@
  *    This is an example of EM plasma
  */
 
-#include <fstream>
 #include "tokamak.h"
 
 #include "../../core/gtl/utilities/utilities.h"
 #include "../../core/parallel/parallel.h"
 #include "../../core/io/io.h"
 
-#include "../../core/manifold/pre_define/predefine.h"
-#include "../../core/field/field.h"
+#include "../../core/manifold/pre_define/pre_define.h"
+#include "../../core/field/Field.h"
 
 //#include "../../core/particle/particle.h"
 //#include "../../core/particle/particle_proxy.h"
@@ -345,7 +344,7 @@ void EMPlasma::setup(int argc, char **argv)
 
         MESSAGE << std::endl << "[ Configuration ]" << std::endl << m << std::endl;
 
-        MESSAGE << "Particle = {" << std::endl;
+        MESSAGE << "particle = {" << std::endl;
         for (auto const &item:particles)
         {
             MESSAGE << "  " << item.first << " = {"

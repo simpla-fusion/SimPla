@@ -24,7 +24,7 @@
 #include "../type_traits.h"
 #include "../ntuple.h"
 #include "../ntuple_ext.h"
-#include "../properties.h"
+#include "../Properties.h"
 
 #include "../../physics/physical_constants.h"
 

@@ -23,10 +23,11 @@ MPIDataType::MPIDataType(MPIDataType const &other)
 {
     MPI_ERROR(MPI_Type_dup(other.type(), &m_type_));
 }
-void MPIDataType::swap(MPIDataType   &other)
+
+void MPIDataType::swap(MPIDataType &other)
 {
-    std::swap(m_type_,other.m_type_);
-    std::swap(is_commited_,other.is_commited_);
+    std::swap(m_type_, other.m_type_);
+    std::swap(is_commited_, other.is_commited_);
 }
 
 MPIDataType::~MPIDataType()
@@ -37,7 +38,7 @@ MPIDataType::~MPIDataType()
     }
 }
 
-MPIDataType MPIDataType::create(DataType const &data_type, //
+MPIDataType MPIDataType::create(data_model::DataType const &data_type, //
                                 int ndims, //
                                 size_t const *p_dims,        //
                                 size_t const *p_start,      //
@@ -56,7 +57,7 @@ MPIDataType MPIDataType::create(DataType const &data_type, //
     if (data_type.is_compound())
     {
         is_predefined = false;
-        //TODO create MPI structure datatype
+        //TODO create MPI structure DataType
         //		MPI_Type_contiguous(data_type.ele_size_in_byte(), MPI_BYTE,
         //				&res.m_type_);
 
@@ -75,7 +76,7 @@ MPIDataType MPIDataType::create(DataType const &data_type, //
         //		  MPI_Datatype array_of_types[],
         for (auto const &item : data_type.members())
         {
-            DataType sub_datatype;
+            data_model::DataType sub_datatype;
 
             int offset;
 
@@ -141,7 +142,7 @@ MPIDataType MPIDataType::create(DataType const &data_type, //
     }
     else
     {
-        THROW_EXCEPTION_RUNTIME_ERROR("Cannot create MPI datatype:" + data_type.name());
+        THROW_EXCEPTION_RUNTIME_ERROR("Cannot create MPI DataType:" + data_type.name());
     }
 
     if (data_type.is_array() || (ndims > 0 && p_dims != nullptr))
@@ -182,7 +183,7 @@ MPIDataType MPIDataType::create(DataType const &data_type, //
 
 //        if (p_stride != nullptr || p_block != nullptr)
 //        {
-//            //TODO create mpi datatype with stride and block
+//            //TODO create mpi DataType with stride and block
 //            UNIMPLEMENTED2("!! 'stride'  and 'block' are ignored! ");
 //        }
 
@@ -220,7 +221,8 @@ MPIDataType MPIDataType::create(DataType const &data_type, //
     return std::move(res);
 }
 
-MPIDataType MPIDataType::create(DataType const &data_type, DataSpace const &d_space, bool c_order_array)
+MPIDataType MPIDataType::create(data_model::DataType const &data_type, data_model::DataSpace const &d_space,
+                                bool c_order_array)
 {
 
     int ndims;

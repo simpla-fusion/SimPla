@@ -10,7 +10,7 @@
 #include <string>
 #include <tuple>
 
-#include "../data_model/dataset.h"
+#include "../data_model/DataSet.h"
 #include "../gtl/design_pattern/singleton_holder.h"
 #include "data_stream.h"
 
@@ -31,14 +31,14 @@ std::string help_message()
     return DataStream::help_message();
 };
 
-std::string write(std::string const &url, DataSet const &ds, size_t flag)
+std::string write(std::string const &url, data_model::DataSet const &ds, size_t flag)
 {
     return SingletonHolder<io::DataStream>::instance().write(url, ds, flag);
 }
 
-DataSet load(std::string const &url)
+data_model::DataSet load(std::string const &url)
 {
-    DataSet ds;
+    data_model::DataSet ds;
     SingletonHolder<io::DataStream>::instance().read(url, &ds);
     return std::move(ds);
 }

@@ -17,7 +17,7 @@ static constexpr typename Model::tage_type Model::null_material;
 
 
 
-//typename Model::size_t Model::get(id_type s) const
+//typename model::size_t model::get(id_type s) const
 //{
 //
 //	size_t res = null_material;

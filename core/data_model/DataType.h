@@ -1,5 +1,5 @@
 /**
- * @file datatype.h
+ * @file data_type.h
  *
  *  created on: 2014-6-2
  *      Author: salmon
@@ -19,8 +19,16 @@
 
 #include "../gtl/ntuple.h"
 #include "../gtl/type_traits.h"
+#include "../base/Object.h"
 
-namespace simpla
+namespace simpla { namespace traits
+{
+template<typename T> struct rank;
+template<typename T> struct extents;
+template<typename T> struct value_type;
+}}//namespace simpla{namespace traits
+
+namespace simpla { namespace data_model
 {
 /**
  *  @ingroup data_interface
@@ -35,8 +43,10 @@ namespace simpla
  *        doc/reference/xdr/
  *
  */
-struct DataType
+struct DataType : public base::SpObject
 {
+    SP_OBJECT_HEAD(DataType, base::SpObject);
+
     DataType();
 
     DataType(std::type_index t_index, size_t ele_size_in_byte, int ndims = 0, size_t const *dims = nullptr,
@@ -52,9 +62,12 @@ struct DataType
 
     void swap(DataType &);
 
+    virtual std::ostream &print(std::ostream &os, int indent) const;
+
     bool is_valid() const;
 
     std::string name() const;
+
 
     size_t size() const;
 
@@ -82,15 +95,20 @@ struct DataType
 
     bool is_same(std::type_index const &other) const;
 
-    template<typename T>
-    bool is_same() const
-    {
-        return is_same(std::type_index(typeid(T)));
-    }
+    template<typename T> bool is_same() const { return is_same(std::type_index(typeid(T))); }
 
     void push_back(DataType &&dtype, std::string const &name, int pos = -1);
 
     std::vector<std::tuple<DataType, std::string, int>> const &members() const;
+
+private:
+    template<typename T> struct create_helper;
+public:
+    template<typename T>
+    static DataType create(std::string const &s_name = "")
+    {
+        return create_helper<T>::create();
+    }
 
 private:
     struct pimpl_s;
@@ -98,17 +116,10 @@ private:
 
 };
 
-namespace traits
-{
-template<typename T> struct rank;
-template<typename T> struct extents;
-template<typename T> struct value_type;
-
-std::ostream &print(std::ostream &os, DataType const &self);
-
 template<typename T>
-struct datatype
+struct DataType::create_helper
 {
+private:
     HAS_STATIC_MEMBER_FUNCTION (datatype)
 
     static DataType create_(std::string const &name, std::integral_constant<bool, true>)
@@ -127,7 +138,7 @@ struct datatype
 
         nTuple<size_t, 10> d;
 
-        d = traits::seq_value<extents_t<obj_type> >::value;
+        d = traits::seq_value<::simpla::traits::extents_t<obj_type> >::value;
 
         return std::move(
 
@@ -135,7 +146,7 @@ struct datatype
 
                          ele_size_in_byte,
 
-                         rank<obj_type>::value,
+                         ::simpla::traits::rank<obj_type>::value,
 
                          &d[0],
 
@@ -146,6 +157,8 @@ struct datatype
 
     }
 
+public:
+
     static DataType create(std::string const &name = "")
     {
         return create_(((name != "") ? name : (typeid(T).name())),
@@ -154,17 +167,9 @@ struct datatype
 
 
 };
-//template<typename T>
-//DataType create_opaque_datatype(std::string const & name = "")
 
-}// namespace traits
+}}//namespace simpla { namespace data_model
 
-inline std::ostream &operator<<(std::ostream &os, DataType const &self)
-{
-    traits::print(os, self);
-    return os;
-};
-}
-// namespace simpla
+
 
 #endif /* DATA_TYPE_H_ */

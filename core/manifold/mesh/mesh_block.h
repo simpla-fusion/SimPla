@@ -12,7 +12,7 @@
 #include "../../gtl/ntuple.h"
 #include "../../gtl/type_traits.h"
 #include "../../gtl/utilities/log.h"
-#include "mesh_ids.h"
+#include "MeshIds.h"
 
 namespace simpla { namespace mesh
 {
@@ -263,11 +263,11 @@ public:
                 }
                 else
                 {
-                    VERBOSE << "Mesh block decompose failed! Block dimension is smaller than process grid. "
+                    VERBOSE << "mesh block decompose failed! Block dimension is smaller than process grid. "
                     << m_idx_local_min_ << m_idx_local_max_
                     << dist_dimensions << dist_coord << std::endl;
                     THROW_EXCEPTION_RUNTIME_ERROR(
-                            "Mesh block decompose failed! Block dimension is smaller than process grid. ");
+                            "mesh block decompose failed! Block dimension is smaller than process grid. ");
                 }
             }
         }

@@ -9,8 +9,8 @@
 
 
 #include "../../field/field_comm.h"
-#include "../../field/field_dense.h"
-#include "../../manifold/pre_define/predefine.h"
+#include "../../field/FieldDense.h"
+#include "../../manifold/pre_define/pre_define.h"
 
 #include "field_basic_algebra_test.h"
 

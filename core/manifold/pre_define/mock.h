@@ -13,7 +13,7 @@
 #include "co_rect_mesh.h"
 #include "../calculate/fvm_structured.h"
 #include "linear_interpolator.h"
-#include "../manifold.h"
+#include "Manifold.h"
 #include "storage.h"
 
 namespace simpla

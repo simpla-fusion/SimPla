@@ -67,7 +67,7 @@ template<typename TDomain, typename TPoint_s> constexpr size_t particle_hasher<T
  * @ingroup particle
  */
 /**
- * @brief Sorted Particle / Kinetic Particle
+ * @brief Sorted particle / Kinetic particle
  *  -  KineticParticle is a container of untracable particle  .
  *  -  KineticParticle is sorted;
  *  -  KineticParticle is an unordered container;

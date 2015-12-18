@@ -105,7 +105,7 @@ Grid=
      dt= 0.5*LX/NX/c -- time step     
 }
 --[[
-Model=
+model=
 {
    {Type="Vacuum",Region={{0.2*LX,0,0},{0.8*LX,0,0}},Op="Set"},
 

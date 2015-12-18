@@ -67,7 +67,7 @@ void DistributedObject::sync()
                                                                                   &std::get<0>(item)[0]);
         auto &ds = std::get<1>(item);
         ASSERT(ds.data != nullptr);
-        MPIDataType::create(ds.datatype, ds.memory_space).swap(pimpl_->m_mpi_dtype_[count]);
+        MPIDataType::create(ds.data_type, ds.memory_space).swap(pimpl_->m_mpi_dtype_[count]);
         MPI_ERROR(MPI_Isend(ds.data.get(), 1,
                             pimpl_->m_mpi_dtype_[count].type(),
                             dest_id, send_tag, GLOBAL_COMM.comm(), &(pimpl_->m_mpi_requests_[count])));
@@ -98,7 +98,7 @@ void DistributedObject::sync()
             int recv_num = 0;
 
 
-            auto m_dtype = MPIDataType::create(ds.datatype);
+            auto m_dtype = MPIDataType::create(ds.data_type);
 
             MPI_ERROR(MPI_Get_count(&status, m_dtype.type(), &recv_num));
 
@@ -107,15 +107,15 @@ void DistributedObject::sync()
                 THROW_EXCEPTION_RUNTIME_ERROR("Update Ghosts Particle fail");
             }
 
-            ds.data = sp_alloc_memory(recv_num * ds.datatype.size_in_byte());
+            ds.data = sp_alloc_memory(recv_num * ds.data_type.size_in_byte());
 
             size_t s_recv_num = static_cast<size_t>(recv_num);
 
-            ds.memory_space = DataSpace(1, &s_recv_num);
+            ds.memory_space = data_model::DataSpace(1, &s_recv_num);
 
-            ds.dataspace = ds.memory_space;
+            ds.data_space = ds.memory_space;
 
-            MPIDataType::create(ds.datatype).swap(pimpl_->m_mpi_dtype_[count]);
+            MPIDataType::create(ds.data_type).swap(pimpl_->m_mpi_dtype_[count]);
 
             ASSERT(ds.data.get() != nullptr);
             MPI_ERROR(MPI_Irecv(ds.data.get(), recv_num,
@@ -127,7 +127,7 @@ void DistributedObject::sync()
         else
         {
             ASSERT(ds.data.get() != nullptr);
-            MPIDataType::create(ds.datatype, ds.memory_space).swap(pimpl_->m_mpi_dtype_[count]);
+            MPIDataType::create(ds.data_type, ds.memory_space).swap(pimpl_->m_mpi_dtype_[count]);
             MPI_ERROR(MPI_Irecv(ds.data.get(), 1,
                                 pimpl_->m_mpi_dtype_[count].type(),
                                 dest_id, recv_tag, GLOBAL_COMM.comm(),
@@ -183,10 +183,10 @@ bool DistributedObject::is_ready() const
 }
 
 
-void DistributedObject::add(DataSet ds)
+void DistributedObject::add(data_model::DataSet ds)
 {
 
-    typedef typename DataSpace::index_tuple index_tuple;
+    typedef typename data_model::DataSpace::index_tuple index_tuple;
 
     int ndims;
     index_tuple dimensions;
@@ -268,9 +268,9 @@ void DistributedObject::add(DataSet ds)
             try
             {
 
-                DataSet send_buffer(ds);
+                data_model::DataSet send_buffer(ds);
 
-                DataSet recv_buffer(ds);
+                data_model::DataSet recv_buffer(ds);
 
                 send_buffer.memory_space.select_hyperslab(&send_offset[0], nullptr, &send_count[0], nullptr);
 

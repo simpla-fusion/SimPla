@@ -64,7 +64,7 @@ std::tuple<int, int, int> get_mpi_tag(int obj_id, int const *coord);
 //
 //	int recv_size;
 //
-//	MPIDataType datatype;
+//	MPIDataType DataType;
 //
 //	std::shared_ptr<void> send_data;
 //	std::shared_ptr<void> recv_data;

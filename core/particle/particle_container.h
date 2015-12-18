@@ -24,7 +24,7 @@
 
 
 /** @ingroup physical_object
-*  @addtogroup particle Particle
+*  @addtogroup particle particle
 *  @{
 *	  @brief  @ref particle  is an abstraction from  physical particle or "phase-space sample".
 *	  @details
@@ -39,7 +39,7 @@
 *  -  @ref particle is  `unorder_set<Point_s>`
 *
 * ## Requirements
-*- The following table lists the requirements of a Particle type  '''P'''
+*- The following table lists the requirements of a particle type  '''P'''
 *	Pseudo-Signature    | Semantics
 * -------------------- |----------
 * ` struct Point_s `   | data  type of sample point
@@ -79,7 +79,7 @@ namespace simpla
 
 
 /**
- *   `Particle<M,P>` represents a fiber bundle \f$ \pi:P\to M\f$
+ *   `particle<M,P>` represents a fiber bundle \f$ \pi:P\to M\f$
  *
  */
 template<typename ...> struct ParticleContainer;
@@ -226,7 +226,7 @@ public:
 
 //! @}
 
-};//class Particle
+};//class particle
 
 
 

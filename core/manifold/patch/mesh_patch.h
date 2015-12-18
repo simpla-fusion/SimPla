@@ -51,31 +51,32 @@ class PatchPolicy : public PatchEntity
 };
 
 template<typename TM>
-class EnablePatchFromThis : public PatchEntity
+class MeshPatch
 {
 
 private:
-    typedef EnablePatchFromThis<TM> this_type;
-
+    typedef MeshPatch<TM> this_type;
+    typedef TM mesh_type;
+    typedef typename mesh_type::box_type box_type;
 public:
 
-    EnablePatchFromThis();
+    MeshPatch();
 
-    virtual ~EnablePatchFromThis();
+    virtual ~MeshPatch();
+
+    virtual this_type &self() = 0;
+
+    virtual this_type const &self() const = 0;
 
     virtual void deploy() { };
 
-    virtual void refinement() { }
+    virtual std::shared_ptr<mesh_type> create_patch(box_type const &b, int refinement_ratio) const = 0;
 
-    virtual void coarsen() { }
+    virtual std::tuple<iterator, bool> refinement(box_type const &);
 
-    virtual void sync_patch() const { /** TODO sync patches */};
+    virtual void coarsen(size_t id);
 
     virtual size_t erase_patch(size_t id);
-
-
-    template<typename ...Args>
-    std::tuple<std::shared_ptr<PatchEntity>, bool> new_patch(Args &&...args);
 
 
     void refinement_ratio(size_t r) { m_refinement_ratio_ = r; }
@@ -89,40 +90,51 @@ private:
     size_t m_count_ = 0;
     size_t m_refinement_ratio_ = 2;
 
-    std::list<std::weak_ptr<AttributeBase>> m_registered_attribute_;
+    std::map<size_t, std::shared_ptr<AttributeBase>> m_patches_;
+    typedef typename std::map<size_t, std::shared_ptr<AttributeBase>>::iterator iterator;
 
 
 };
 
 template<typename TM>
-EnablePatchFromThis<TM>::EnablePatchFromThis() { }
+MeshPatch<TM>::MeshPatch() { }
 
 template<typename TM>
-EnablePatchFromThis<TM>::~EnablePatchFromThis() { }
+MeshPatch<TM>::~MeshPatch() { }
 
 template<typename TM>
 template<typename ...Args>
-std::tuple<std::shared_ptr<PatchEntity>, bool>
-EnablePatchFromThis<TM>::new_patch(Args &&...args)
+std::tuple<iterator, bool>
+MeshPatch<TM>::refinement(box_type const &b)
 {
-    auto res = self().refinement(m_refinement_ratio_, std::forward<Args>(args)...);
-    res->refinement_ratio(m_refinement_ratio_);
+    auto m = std::make_shared<TM>(self());
+    m->patch(b);
+    m->refinement(m_refinement_ratio_);
     size_t id = m_count_;
     ++m_count_;
-    return insert(id, res);
+    return m_patches_.insert(id, m         );
 };
 
 template<typename TM>
 size_t
-EnablePatchFromThis<TM>::erase_patch(size_t id)
+MeshPatch<TM>::erase_patch(size_t id)
 {
-    for (auto &entity:m_registered_attribute_)
+    size_t res = 0;
+    if (m_patches_.find(id) != m_patches_.end())
     {
-        entity.lock()->patch_entity(id)->coarsen();
-
-        entity.lock()->erase_patch(id);
+        for (auto &attr:self().attributes())
+        {
+            auto p = attr.lock();
+            if (p != nullptr)
+            {
+                p->patch_entity(id)->coarsen();
+                p->erase_patch(id);
+            }
+        }
+        res = m_patches_.erase(id);
     }
-    return PatchEntity::erase_patch(id);
+
+    return res;
 }
 
 namespace _impl
@@ -176,7 +188,7 @@ DEFINE_INVOKE_IF_HAS(coarsen);
 
 
 template<typename TMesh, typename TFun, typename ...Args>
-void default_time_integral(EnablePatchFromThis<TM> const &m, TFun const &fun, Real dt, Args &&...args)
+void default_time_integral(MeshPatch<TM> const &m, TFun const &fun, Real dt, Args &&...args)
 {
     fun(dt, std::forward<Args>(args)...);
 

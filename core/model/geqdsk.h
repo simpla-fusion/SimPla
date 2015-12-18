@@ -19,7 +19,7 @@ namespace simpla
 {
 
 /**
- * @ingroup Model
+ * @ingroup model
  * @{
  *   @defgroup GEqdsk  GEqdsk
  * @}

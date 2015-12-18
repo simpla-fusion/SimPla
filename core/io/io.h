@@ -12,15 +12,12 @@
 #include <string>
 
 #include "../gtl/utilities/utilities.h"
-#include "../data_model/dataset.h"
-#include "../data_model/datatype.h"
+#include "../data_model/DataSet.h"
+#include "../data_model/DataType.h"
 #include "data_stream.h"
 
 namespace simpla
 {
-
-struct DataSet;
-
 namespace io
 {
 /** @addtogroup io
@@ -38,19 +35,19 @@ std::string help_message();
 std::string cd(std::string const &url);
 
 
-std::string write(std::string const &url, DataSet const &ds, size_t flag = 0UL);
+std::string write(std::string const &url, data_model::DataSet const &ds, size_t flag = 0UL);
 
 template<typename T>
 std::string write(std::string const &url, T const &d, size_t flag = 0UL)
 {
-    return write(url, traits::make_dataset(d), flag);
+    return write(url, data_model::DataSet::create(d), flag);
 }
 
 
 template<typename T>
 std::string write(std::string const &url, size_t num, T const *d, size_t flag = 0UL)
 {
-    return write(url, traits::make_dataset(d, num), flag);
+    return write(url, data_model::DataSet::create(d, num), flag);
 }
 
 void delete_attribute(std::string const &url);

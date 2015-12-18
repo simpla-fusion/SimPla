@@ -7,13 +7,13 @@
 #include <ostream>
 #include <string.h>
 
-#include "dataset.h"
+#include "DataSet.h"
 #include "../gtl/utilities/pretty_stream.h"
 #include "../gtl/utilities/memory_pool.h"
 #include "../parallel/mpi_update.h"
 #include "../parallel/mpi_comm.h"
 
-namespace simpla
+namespace simpla { namespace data_model
 {
 
 
@@ -21,14 +21,14 @@ namespace simpla
 //void DataSet::clear()
 //{
 //    deploy();
-//    memset(data.get(), 0, memory_space.size() * datatype.size_in_byte());
+//    memset(data.get(), 0, memory_space.size() * DataType.size_in_byte());
 //}
 //
 //
 //void DataSet::copy(void const *other)
 //{
 //    deploy();
-//    memcpy(data.get(), other, memory_space.size() * datatype.size_in_byte());
+//    memcpy(data.get(), other, memory_space.size() * DataType.size_in_byte());
 //}
 
 bool DataSet::is_same(void const *other) const
@@ -39,7 +39,7 @@ bool DataSet::is_same(void const *other) const
 bool DataSet::is_equal(void const *other) const
 {
     return is_same(other) ||
-           memcmp(data.get(), other, memory_space.size() * datatype.size_in_byte()) != 0;
+           memcmp(data.get(), other, memory_space.size() * data_type.size_in_byte()) != 0;
 }
 
 std::ostream &DataSet::print(std::ostream &os) const
@@ -63,63 +63,63 @@ std::ostream &DataSet::print(std::ostream &os) const
 
     }
 
-    if (datatype.template is_same<int>())
+    if (data_type.template is_same<int>())
     {
         printNdArray(os, reinterpret_cast<int *>(data.get()), ndims, d);
     }
-    else if (datatype.template is_same<long>())
+    else if (data_type.template is_same<long>())
     {
         printNdArray(os, reinterpret_cast<long *>(data.get()), ndims, d);
     }
-    else if (datatype.template is_same<unsigned long>())
+    else if (data_type.template is_same<unsigned long>())
     {
         printNdArray(os, reinterpret_cast<unsigned long *>(data.get()), ndims,
                      d);
     }
-    else if (datatype.template is_same<float>())
+    else if (data_type.template is_same<float>())
     {
         printNdArray(os, reinterpret_cast<float *>(data.get()), ndims, d);
     }
-    else if (datatype.template is_same<double>())
+    else if (data_type.template is_same<double>())
     {
         printNdArray(os, reinterpret_cast<double *>(data.get()), ndims, d);
     }
-    else if (datatype.template is_same<long double>())
+    else if (data_type.template is_same<long double>())
     {
         printNdArray(os, reinterpret_cast<long double *>(data.get()), ndims, d);
     }
-    else if (datatype.template is_same<std::complex<double>>())
+    else if (data_type.template is_same<std::complex<double>>())
     {
         printNdArray(os, reinterpret_cast<std::complex<double> *>(data.get()),
                      ndims, d);
     }
-    else if (datatype.template is_same<std::complex<float>>())
+    else if (data_type.template is_same<std::complex<float>>())
     {
         printNdArray(os, reinterpret_cast<std::complex<float> *>(data.get()),
                      ndims, d);
     }
     else
     {
-        UNIMPLEMENTED2("Cannot print datatype:" + datatype.name());
+        UNIMPLEMENTED2("Cannot print DataType:" + data_type.name());
     }
 
     return os;
 }
 
-namespace traits
+namespace _impl
 {
 
-DataSet make_dataset(DataType const &dtype, std::shared_ptr<void> const &p, size_t rank,
-                     size_t const *dims)
+DataSet create_data_set(DataType const &dtype, std::shared_ptr<void> const &p, size_t rank,
+                        size_t const *dims)
 {
     DataSet res;
 
-    res.datatype = dtype;
+    res.data_type = dtype;
 
     if (dims != nullptr)
     {
-        res.dataspace = DataSpace::create_simple(static_cast<int>(rank), dims);
-        res.memory_space = res.dataspace;
+        res.data_space = DataSpace::create_simple(static_cast<int>(rank), dims);
+        res.memory_space = res.data_space;
         if (GLOBAL_COMM.is_valid())
         {   //fixme calculate distributed array dimensions
             UNIMPLEMENTED2("fixme calculate distributed array dimensions");
@@ -133,9 +133,9 @@ DataSet make_dataset(DataType const &dtype, std::shared_ptr<void> const &p, size
 
         std::tie(offset, total_count) = parallel::sync_global_location(GLOBAL_COMM, static_cast<int>(count));
 
-        res.dataspace = DataSpace::create_simple(1, &total_count);
-        res.dataspace.select_hyperslab(&offset, nullptr, &count, nullptr);
-        res.memory_space = DataSpace::create_simple(1, &count);
+        res.data_space = data_model::DataSpace::create_simple(1, &total_count);
+        res.data_space.select_hyperslab(&offset, nullptr, &count, nullptr);
+        res.memory_space = data_model::DataSpace::create_simple(1, &count);
 
     }
 
@@ -145,16 +145,16 @@ DataSet make_dataset(DataType const &dtype, std::shared_ptr<void> const &p, size
     return std::move(res);
 }
 
-DataSet make_dataset(DataType const &dtype)
+DataSet create_data_set(DataType const &dtype)
 {
     DataSet res;
 
-    res.datatype = dtype;
+    res.data_type = dtype;
 
     res.data = nullptr;
 
     return std::move(res);
 }
-} // namespace traits
-} // namespace simpla
+}
+}}//namespace simpla { namespace data_model
 

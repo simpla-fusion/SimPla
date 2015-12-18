@@ -160,7 +160,7 @@ struct enable_create_from_this: public std::enable_shared_from_this<TObject>
 	std::shared_ptr<TOther> create_from_this(Args && ...args)
 	{
 		static_assert( std::is_base_of<object_type,TOther>::value,
-				"this is base of TOther");
+				"this is Base of TOther");
 
 		auto res = std::make_shared<object_type>(self(),
 				std::forward<Args>(args)...);
@@ -172,7 +172,7 @@ struct enable_create_from_this: public std::enable_shared_from_this<TObject>
 	std::shared_ptr<TOther> create_from_this(Args && ...args) const
 	{
 		static_assert( std::is_base_of<object_type,TOther>::value,
-				"this is base of TOther");
+				"this is Base of TOther");
 
 		auto res = std::make_shared<object_type>(self(),
 				std::forward<Args>(args)...);

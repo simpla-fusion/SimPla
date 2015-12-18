@@ -23,15 +23,15 @@
 // Data IO
 #include "../../core/io/io.h"
 
-// Field
+// field
 #include "../../core/field/loadField.h"
 #include "geometry_obj"
 #include "../../core/geometry/model.h"
 
-// Particle
+// particle
 //#include "../../core/particle/particle.h"
 
-// Model
+// model
 #include "../../core/numeric/geometric_algorithm.h"
 //#include "../../experimental/particle_factory.h"
 
@@ -218,7 +218,7 @@ OS &ExplicitEMContext<TM>::print_(OS &os) const
 
     << "Description = \"" << description << "\"," << std::endl
 
-    << " Model = { " << model << "} ," << std::endl;
+    << " model = { " << model << "} ," << std::endl;
 
     if (particles_.size() > 0)
     {
@@ -274,13 +274,13 @@ void ExplicitEMContext<TM>::load(TDict const &dict)
     field<Real, VERTEX> Te0(model);
     field<Real, VERTEX> Ti0(model);
 
-    if (dict["Model"]["GFile"])
+    if (dict["model"]["GFile"])
     {
-        model->mesh_type::load(dict["Model"]["Mesh"]);
+        model->mesh_type::load(dict["model"]["mesh"]);
 
         GEqdsk geqdsk;
 
-        geqdsk.load(dict["Model"]["GFile"].template as<std::string>());
+        geqdsk.load(dict["model"]["GFile"].template as<std::string>());
 
         geqdsk.save("/Geqdsk/");
 
@@ -346,9 +346,9 @@ void ExplicitEMContext<TM>::load(TDict const &dict)
     }
     else
     {
-        if (!model->load(dict["Model"]))
+        if (!model->load(dict["model"]))
         {
-            THROW_EXCEPTION_PARSER_ERROR("Configure 'Model' fail!");
+            THROW_EXCEPTION_PARSER_ERROR("Configure 'model' fail!");
         }
 
         B1.clear();
@@ -413,7 +413,7 @@ void ExplicitEMContext<TM>::load(TDict const &dict)
 //		} catch (...)
 //		{
 //
-//			THROW_EXCEPTION_PARSER_ERROR("Particle={" + id + " = { Type = " + type_str + "}}" + "  ");
+//			THROW_EXCEPTION_PARSER_ERROR("particle={" + id + " = { Type = " + type_str + "}}" + "  ");
 //
 //		}
 

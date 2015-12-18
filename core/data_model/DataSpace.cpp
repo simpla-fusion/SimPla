@@ -11,9 +11,9 @@
 
 #include "../gtl/ntuple.h"
 #include "../gtl/utilities/utilities.h"
-#include "dataspace.h"
+#include "DataSpace.h"
 
-namespace simpla
+namespace simpla { namespace data_model
 {
 struct DataSpace::pimpl_s
 {
@@ -182,6 +182,10 @@ DataSpace &DataSpace::select_hyperslab(index_type const *start,
 
 }
 
+std::ostream &DataSpace::print(std::ostream &os, int indent) const
+{
+    return base::SpObject::print(os, indent);
+}
 //bool DataSpace::is_distributed() const
 //{
 //	bool flag = false;
@@ -435,7 +439,7 @@ DataSpace &DataSpace::select_hyperslab(index_type const *start,
 //	is_valid_ = true;
 //}
 
-//bool DataSpace::sync(std::shared_ptr<void> data, DataType const & datatype,
+//bool DataSpace::sync(std::shared_ptr<void> data, DataType const & DataType,
 //		size_t flag)
 //{
 //#if  !NO_MPI || USE_MPI
@@ -453,14 +457,14 @@ DataSpace &DataSpace::select_hyperslab(index_type const *start,
 //	for (auto const & item : pimpl_->send_recv_)
 //	{
 //
-//		MPIDataType send_type = MPIDataType::create(datatype, pimpl_->local_shape_.ndims ,
+//		MPIDataType send_type = MPIDataType::create(DataType, pimpl_->local_shape_.ndims ,
 //		&pimpl_->local_shape_.dimensions[0], & item.send.offset[0],
 //		&item.send.stride[0], &item.send.count[0], &item.send.block[0]);
 //
 //		dims_type recv_offset;
 //		recv_offset = item.recv.offset - pimpl_->local_shape_.offset;
 //
-//		MPIDataType recv_type = MPIDataType::create(datatype, pimpl_->local_shape_.ndims ,
+//		MPIDataType recv_type = MPIDataType::create(DataType, pimpl_->local_shape_.ndims ,
 //		&pimpl_->local_shape_.dimensions[0], & item.recv.offset[0],
 //		&item.recv.stride[0], &item.recv.count[0], &item.recv.block[0]);
 //
@@ -479,5 +483,5 @@ DataSpace &DataSpace::select_hyperslab(index_type const *start,
 //	return true;
 //}
 
-}
-// namespace simpla
+}}//namespace simpla { namespace data_model
+

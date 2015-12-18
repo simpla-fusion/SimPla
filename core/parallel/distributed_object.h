@@ -11,7 +11,7 @@
 #include "mpi_comm.h"
 #include "mpi_aux_functions.h"
 #include "mpi_update.h"
-#include "../data_model/dataset.h"
+#include "../data_model/DataSet.h"
 
 namespace simpla { namespace parallel
 {
@@ -35,37 +35,37 @@ struct DistributedObject
     template<typename T, typename ...Others>
     void add(T const &args, Others &&...others)
     {
-        add(traits::make_dataset(args));
+        add(data_model::DataSet::create(args));
         add(std::forward<Others>(others)...);
     }
 
     template<typename T>
     void add(T const &args)
     {
-        add(traits::make_dataset(args));
+        add(data_model::DataSet::create(args));
     }
 
     template<typename T>
     void add(T *args)
     {
-        add(traits::make_dataset(*args));
+        add(data_model::DataSet::create(*args));
     }
 
     template<typename T>
     void add(T &args)
     {
-        add(traits::make_dataset(args));
+        add(data_model::DataSet::create(args));
     }
 
-    void add(DataSet ds);
+    void add(data_model::DataSet ds);
 
-    inline void add_link_send(nTuple<int, 3> const &coord_offset, DataSet &ds)
+    inline void add_link_send(nTuple<int, 3> const &coord_offset, data_model::DataSet &ds)
     {
         send_buffer.push_back(std::make_tuple(coord_offset, ds));
     };
 
 
-    void add_link_recv(nTuple<int, 3> const &coord_offset, DataSet &ds)
+    void add_link_recv(nTuple<int, 3> const &coord_offset, data_model::DataSet &ds)
     {
         recv_buffer.push_back(std::make_tuple(coord_offset, ds));
     };
@@ -75,7 +75,7 @@ struct DistributedObject
     {
         send_buffer.push_back(
                 std::make_tuple(coord_offset,
-                                traits::make_dataset(std::forward<Args>(args)...)));
+                                data_model::DataSet::create(std::forward<Args>(args)...)));
     };
 
     template<typename ...Args>
@@ -83,11 +83,11 @@ struct DistributedObject
     {
         recv_buffer.push_back(
                 std::make_tuple(coord_offset,
-                                traits::make_dataset(std::forward<Args>(args)...)));
+                                data_model::DataSet::create(std::forward<Args>(args)...)));
     };
 
 
-    typedef std::tuple<nTuple<int, 3>, DataSet> link_s;
+    typedef std::tuple<nTuple<int, 3>, data_model::DataSet> link_s;
 
     std::vector<link_s> send_buffer;
     std::vector<link_s> recv_buffer;

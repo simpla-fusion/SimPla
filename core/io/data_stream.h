@@ -13,13 +13,12 @@
 #include <cstdbool>
 #include <string>
 #include <tuple>
-
+#include "../data_model/DataSet.h"
 #include "../gtl/any.h"
-#include "../gtl/properties.h"
+#include "../gtl/Properties.h"
 
 namespace simpla
 {
-struct DataSet;
 
 /**
  * @ingroup io
@@ -88,7 +87,7 @@ public:
      * @return
      */
 
-    std::string write(std::string const &url, DataSet const &ds, size_t flag = 0UL);
+    std::string write(std::string const &url, data_model::DataSet const &ds, size_t flag = 0UL);
 
     /**
      * 	read dataset from url
@@ -97,7 +96,7 @@ public:
      * @param flag
      * @return
      */
-    std::string read(std::string const &url, DataSet *ds, size_t flag = 0UL);
+    std::string read(std::string const &url, data_model::DataSet *ds, size_t flag = 0UL);
 
     /**
      *

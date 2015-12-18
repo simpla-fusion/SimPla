@@ -228,7 +228,7 @@ void Particle<TM, ColdFluid, PolicyFluidParticle>::load(TDict const & dict,
 
 	} catch (...)
 	{
-		PARSER_ERROR("Configure  Particle<ColdFluid> error!");
+		PARSER_ERROR("Configure  particle<ColdFluid> error!");
 	}
 
 	LOGGER << "Create Particles:[ Engine=" << get_type_as_string() << "]"

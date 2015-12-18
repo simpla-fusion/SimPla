@@ -20,7 +20,7 @@ namespace simpla
 /**
  *   \defgroup  Application Application
  *   @{
- *      \defgroup  FieldSolver Field Solver
+ *      \defgroup  FieldSolver field Solver
  *      \defgroup  ParticleEngine Particle Engine
  *   @}
  *

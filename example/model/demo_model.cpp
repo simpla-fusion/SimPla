@@ -27,7 +27,7 @@ USE_CASE(model,"Model")
 	typedef typename mesh_type::point_type point_type;
 	auto mesh = std::make_shared<mesh_type>();
 
-	mesh->load(options["Mesh"]);
+	mesh->load(options["mesh"]);
 
 	mesh->deploy();
 

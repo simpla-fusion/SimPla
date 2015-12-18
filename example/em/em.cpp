@@ -19,7 +19,7 @@
 
 #include "../../core/geometry/cs_cylindrical.h"
 #include "rect_mesh.h"
-#include "../../core/manifold/pre_define/predefine.h"
+#include "pre_define.h"
 
 #include "../../core/model/geqdsk.h"
 

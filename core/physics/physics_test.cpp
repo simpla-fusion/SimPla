@@ -141,7 +141,7 @@ TEST_F(TestPhysicsUnitSystem, nature)
 //	typedef typename FieldType::Grid Grid;
 //	typedef typename FieldType::ValueType ValueType;
 //	typedef typename ComplexTraits<ValueType>::ValueType CValueType;
-//	typedef Field<TF::IForm, CValueType, _FETLField<typename TF::Grid> > CFieldType;
+//	typedef field<TF::IForm, CValueType, _FETLField<typename TF::Grid> > CFieldType;
 //	typename FieldType::Grid grid;
 //
 //};
@@ -178,7 +178,7 @@ TEST_F(TestPhysicsUnitSystem, nature)
 //	f2 = 1.0;
 //
 //	typedef decltype(typename TestFixture::FieldType::ValueType()*(si::Velocity())) PhysicalValue;
-//	Field<TestFixture::FieldType::IForm,PhysicalValue,_FETLField<typename TestFixture::Grid> > res(grid);
+//	field<TestFixture::FieldType::IForm,PhysicalValue,_FETLField<typename TestFixture::Grid> > res(grid);
 //
 //	res=-f1*a-b*f2;
 //	f3 = res/(si::m/si::s);

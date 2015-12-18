@@ -8,7 +8,7 @@
 #include "mpi_update.h"
 #include "mpi_datatype.h"
 #include "distributed_object.h"
-#include "../data_model/dataset.h"
+#include "../data_model/DataSet.h"
 #include "../gtl/utilities/log.h"
 
 namespace simpla { namespace parallel
@@ -148,10 +148,10 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count)
 //
 //		if (recv_num == MPI_UNDEFINED)
 //		{
-//			RUNTIME_ERROR("Update Ghosts Particle fail");
+//			RUNTIME_ERROR("Update Ghosts particle fail");
 //		}
 //
-//		item.recv_data = sp_alloc_memory(recv_num * datatype.size());
+//		item.recv_data = sp_alloc_memory(recv_num * data_type.size());
 //
 //		item.recv_size = recv_num;
 //

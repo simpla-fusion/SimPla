@@ -263,7 +263,7 @@ template<typename P, typename M>
 template<typename TField>
 void Particle<P, M>::integral(range_type const &r, TField *J) const
 {
-    // TODO cache J, base on r
+    // TODO cache J, Base on r
     for (auto const &s:r) { integral(s, J); }
 };
 
@@ -307,7 +307,7 @@ template<typename P, typename M>
 template<typename ...Args>
 void Particle<P, M>::push(range_type const &r, Args &&...args)
 {
-    // TODO cache args, base on s or r
+    // TODO cache args, Base on s or r
     for (auto const &s:r) { push(s, std::forward<Args>(args)...); }
 };
 

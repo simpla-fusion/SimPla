@@ -22,7 +22,7 @@ template<typename ...>struct Field;
 
 /**
  * @ingroup field
- * @brief Field using  associative container 'map'
+ * @brief field using  associative container 'map'
  */
 template<typename TM, typename TV>
 struct Field<TM, TV, _impl::is_associative_container> : public SpObject
@@ -64,7 +64,7 @@ public:
 
 	std::string get_type_as_string() const
 	{
-		return "Field<" + m_mesh_.get_type_as_string() + ">";
+		return "field<" + m_mesh_.get_type_as_string() + ">";
 	}
 
 	template<typename TU> using cloneField_type= Field<TM,TU, _impl::is_associative_container>;

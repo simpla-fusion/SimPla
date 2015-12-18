@@ -7,9 +7,10 @@
 #ifndef SIMPLA_XDMF_STREAM_H
 #define SIMPLA_XDMF_STREAM_H
 
+#include <fstream>
 #include <memory>
-#include "../data_model/dataset.h"
-#include "../base/attribute.h"
+#include "../data_model/DataSet.h"
+#include "../base/Attribute.h"
 
 
 namespace simpla { namespace io
@@ -46,22 +47,22 @@ public:
     void set_topology_geometry(std::string const &name, int ndims, size_t const *dims, Real const *xmin,
                                Real const *dx);
 
-    void set_topology_geometry(std::string const &name, DataSet const &ds);
+    void set_topology_geometry(std::string const &name, data_model::DataSet const &ds);
 
     void close_grid();
 
     void time(Real time);
 
-    void write(std::string const &s, DataSet const &ds);
+    void write(std::string const &s, data_model::DataSet const &ds);
 
-    void write(std::string const &s, AttributeBase const &ds);
+    void write(std::string const &s, base::AttributeObject const &ds);
 
     template<typename AttrList>
     void write(AttrList const &attr_list)
     {
         for (auto const &item:attr_list)
         {
-            write(item.first, *std::dynamic_pointer_cast<AttributeBase>(item.second.lock()));
+            write(item.first, *std::dynamic_pointer_cast<base::AttributeObject>(item.second.lock()));
         }
     }
 

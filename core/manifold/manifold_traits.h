@@ -51,7 +51,7 @@ std::shared_ptr<Manifold<TMesh, Policies...>> make_mesh()
     return std::make_shared<Manifold<TMesh, Policies...>>();
 }
 /**
- *  Default value of Manifold are defined following
+ *  Default value of manifold are defined following
  */
 namespace traits
 {
@@ -65,7 +65,7 @@ struct type_id<Manifold<TMesh, Policies...> >
 {
     static std::string name()
     {
-        return "Manifold<" + type_id<TMesh>::name() + " >";
+        return "manifold<" + type_id<TMesh>::name() + " >";
     }
 };
 

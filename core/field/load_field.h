@@ -12,7 +12,7 @@
 
 #include "../gtl/utilities/log.h"
 #include "../geometry/select.h"
-#include "field_function.h"
+#include "FieldFunction.h"
 namespace simpla
 {
 
@@ -88,7 +88,7 @@ bool loadField(TDict const & dict, TField *f)
 //}
 //template<int DIMS, typename TV, typename TDict, typename ...T>
 //bool loadField_wrap(nTuple<std::complex<TV>, DIMS>, TDict const &dict,
-//		Field<T...> *f)
+//		field<T...> *f)
 //{
 //
 //	auto ff = make_field<nTuple<Real, DIMS>>(f->domain());
@@ -104,7 +104,7 @@ bool loadField(TDict const & dict, TField *f)
 //}
 //
 //template<typename TV, typename TDict, typename ... T>
-//bool loadField_wrap(std::complex<TV>, TDict const &dict, Field<T...> *f)
+//bool loadField_wrap(std::complex<TV>, TDict const &dict, field<T...> *f)
 //{
 //
 //	auto ff = make_field<Real>(f->domain());
@@ -120,15 +120,15 @@ bool loadField(TDict const & dict, TField *f)
 //}
 //
 //template<typename TV, typename TDict, typename ...T>
-//bool loadField_wrap(TV, TDict const &dict, Field<T...> *f)
+//bool loadField_wrap(TV, TDict const &dict, field<T...> *f)
 //{
 //	return loadField_(dict, f);
 //}
 //
 //template<typename TDict, typename ...T>
-//bool loadField(TDict const &dict, Field<T...> *f)
+//bool loadField(TDict const &dict, field<T...> *f)
 //{
-//	typedef typename field_traits<Field<T...>>::value_type value_type;
+//	typedef typename field_traits<field<T...>>::value_type value_type;
 //
 //	return loadField_wrap(value_type(), dict, f);
 //}

@@ -15,7 +15,7 @@ extern "C"
 #include <cstring> //for memcopy
 
 #include "data_stream.h"
-#include "../data_model/dataset.h"
+#include "../data_model/DataSet.h"
 
 
 #include "../parallel/parallel.h"
@@ -60,13 +60,13 @@ struct DataStream::pimpl_s
 
     std::string pwd() const;
 
-    hid_t convert_datatype_sp_to_h5(DataType const &, size_t flag = 0UL) const;
+    hid_t convert_datatype_sp_to_h5(data_model::DataType const &, size_t flag = 0UL) const;
 
-    hid_t convert_dataspace_sp_to_h5(DataSpace const &, size_t flag = 0UL) const;
+    hid_t convert_dataspace_sp_to_h5(data_model::DataSpace const &, size_t flag = 0UL) const;
 
-    DataType convert_datatype_h5_to_sp(hid_t) const;
+    data_model::DataType convert_datatype_h5_to_sp(hid_t) const;
 
-    DataSpace convert_dataspace_h5_to_sp(hid_t) const;
+    data_model::DataSpace convert_dataspace_h5_to_sp(hid_t) const;
 
     void set_attribute(hid_t loc_id, std::string const &name, any const &v);
 
@@ -236,7 +236,7 @@ void DataStream::set_attribute(std::string const &url, any const &any_v)
 
     delete_attribute(url);
 
-    DataType dtype = any_v.datatype();
+    data_model::DataType dtype = any_v.datatype();
 
     void const *v = any_v.data();
 
@@ -551,7 +551,7 @@ std::tuple<std::string, hid_t> DataStream::pimpl_s::open_group(std::string const
 
 }
 
-hid_t DataStream::pimpl_s::convert_datatype_sp_to_h5(DataType const &d_type,
+hid_t DataStream::pimpl_s::convert_datatype_sp_to_h5(data_model::DataType const &d_type,
                                                      size_t is_compact_array) const
 {
     hid_t res = H5T_NO_CLASS;
@@ -627,18 +627,18 @@ hid_t DataStream::pimpl_s::convert_datatype_sp_to_h5(DataType const &d_type,
 
     if (res == H5T_NO_CLASS)
     {
-        WARNING << "sp.DataType convert to H5.datatype failed!" << std::endl;
+        WARNING << "sp.DataType convert to H5.DataType failed!" << std::endl;
         throw std::bad_cast();
     }
     return (res);
 }
 
-DataType DataStream::pimpl_s::convert_datatype_h5_to_sp(hid_t t_id) const
+data_model::DataType DataStream::pimpl_s::convert_datatype_h5_to_sp(hid_t t_id) const
 {
 
     bool bad_cast_error = true;
 
-    DataType dtype;
+    data_model::DataType dtype;
 
     H5T_class_t type_class = H5Tget_class(t_id);
 
@@ -648,7 +648,7 @@ DataType DataStream::pimpl_s::convert_datatype_h5_to_sp(hid_t t_id) const
     }
     else if (type_class == H5T_OPAQUE)
     {
-        DataType(std::type_index(typeid(void)), H5Tget_size(t_id)).swap(dtype);
+        data_model::DataType(std::type_index(typeid(void)), H5Tget_size(t_id)).swap(dtype);
     }
     else if (type_class == H5T_COMPOUND)
     {
@@ -756,7 +756,7 @@ DataType DataStream::pimpl_s::convert_datatype_h5_to_sp(hid_t t_id) const
     }
     if (bad_cast_error)
     {
-        logger::Logger(logger::LOG_ERROR) << "H5 datatype convert to sp.DataType failed!"
+        logger::Logger(logger::LOG_ERROR) << "H5 DataType convert to sp.DataType failed!"
         << std::endl;
         throw std::bad_cast();
     }
@@ -765,7 +765,7 @@ DataType DataStream::pimpl_s::convert_datatype_h5_to_sp(hid_t t_id) const
 
 }
 
-hid_t DataStream::pimpl_s::convert_dataspace_sp_to_h5(DataSpace const &ds, size_t flag) const
+hid_t DataStream::pimpl_s::convert_dataspace_sp_to_h5(data_model::DataSpace const &ds, size_t flag) const
 {
 
     int ndims = 0;
@@ -814,14 +814,14 @@ hid_t DataStream::pimpl_s::convert_dataspace_sp_to_h5(DataSpace const &ds, size_
 
 }
 
-DataSpace DataStream::pimpl_s::convert_dataspace_h5_to_sp(hid_t) const
+data_model::DataSpace DataStream::pimpl_s::convert_dataspace_h5_to_sp(hid_t) const
 {
     UNIMPLEMENTED;
 
-    return DataSpace();
+    return data_model::DataSpace();
 }
 
-std::string DataStream::write(std::string const &url, DataSet const &ds,
+std::string DataStream::write(std::string const &url, data_model::DataSet const &ds,
                               size_t flag)
 {
 
@@ -830,9 +830,9 @@ std::string DataStream::write(std::string const &url, DataSet const &ds,
         WARNING << "Invalid dataset! "
         << "[ URL = \"" << url << "\","
         << " Data is " << ((ds.data != nullptr) ? "not" : " ") << " empty. "
-        << " Datatype is " << ((ds.datatype.is_valid()) ? "" : "not") << " valid. "
-        << " Data Space is " << ((ds.dataspace.is_valid()) ? "" : "not")
-        << " valid. size=" << ds.dataspace.num_of_elements()
+        << " Datatype is " << ((ds.data_type.is_valid()) ? "" : "not") << " valid. "
+        << " Data Space is " << ((ds.data_space.is_valid()) ? "" : "not")
+        << " valid. size=" << ds.data_space.num_of_elements()
         << " Memory Space is " << ((ds.memory_space.is_valid()) ? "" : "not") << " valid.  size=" <<
         ds.memory_space.num_of_elements()
         << " Space is " << ((ds.memory_space.is_valid()) ? "" : "not") << " valid."
@@ -848,11 +848,11 @@ std::string DataStream::write(std::string const &url, DataSet const &ds,
 
     std::tie(is_existed, dsname) = this->cd(url, flag);
 
-    hid_t d_type = pimpl_->convert_datatype_sp_to_h5(ds.datatype);
+    hid_t d_type = pimpl_->convert_datatype_sp_to_h5(ds.data_type);
 
     hid_t m_space = pimpl_->convert_dataspace_sp_to_h5(ds.memory_space, SP_NEW);
 
-    hid_t f_space = pimpl_->convert_dataspace_sp_to_h5(ds.dataspace, flag);
+    hid_t f_space = pimpl_->convert_dataspace_sp_to_h5(ds.data_space, flag);
 
     hid_t dset;
 
@@ -973,7 +973,7 @@ std::string DataStream::write(std::string const &url, DataSet const &ds,
     return pwd() + dsname;
 }
 
-std::string DataStream::read(std::string const &url, DataSet *ds, size_t flag)
+std::string DataStream::read(std::string const &url, data_model::DataSet *ds, size_t flag)
 {
     UNIMPLEMENTED;
     return "UNIMPLEMENTED";
@@ -986,18 +986,18 @@ std::string DataStream::read(std::string const &url, DataSet *ds, size_t flag)
 //
 //	res.data = ds.data;
 //
-//	res.datatype = ds.datatype;
+//	res.DataType = ds.DataType;
 //
 //	res.flag = flag;
 //
-//	res.ndims = ds.dataspace.num_of_dims();
+//	res.ndims = ds.data_space.num_of_dims();
 //
-//	std::tie(res.f_start, res.f_count) = ds.dataspace.global_shape();
+//	std::tie(res.f_start, res.f_count) = ds.data_space.global_shape();
 //
-//	std::tie(res.m_start, res.m_count) = ds.dataspace.local_shape();
+//	std::tie(res.m_start, res.m_count) = ds.data_space.local_shape();
 //
 //	std::tie(res.start, res.count, res.stride, res.block) =
-//			ds.dataspace.shape();
+//			ds.data_space.shape();
 //
 //	if ((flag & SP_UNORDER) == SP_UNORDER)
 //	{
@@ -1007,25 +1007,25 @@ std::string DataStream::read(std::string const &url, DataSet *ds, size_t flag)
 //		res.f_stride[0] = res.f_count[0];
 //	}
 //
-//	if (ds.datatype.ndims > 0)
+//	if (ds.DataType.ndims > 0)
 //	{
-//		for (int j = 0; j < ds.datatype.ndims; ++j)
+//		for (int j = 0; j < ds.DataType.ndims; ++j)
 //		{
 //
-//			res.f_count[res.ndims + j] = ds.datatype.dimensions_[j];
+//			res.f_count[res.ndims + j] = ds.DataType.dimensions_[j];
 //			res.f_start[res.ndims + j] = 0;
 //			res.f_stride[res.ndims + j] = res.f_count[res.ndims + j];
 //
-//			res.m_count[res.ndims + j] = ds.datatype.dimensions_[j];
+//			res.m_count[res.ndims + j] = ds.DataType.dimensions_[j];
 //			res.m_start[res.ndims + j] = 0;
 //			res.m_stride[res.ndims + j] = res.m_count[res.ndims + j];
 //
 //			res.count[res.ndims + j] = 1;
-//			res.block[res.ndims + j] = ds.datatype.dimensions_[j];
+//			res.block[res.ndims + j] = ds.DataType.dimensions_[j];
 //
 //		}
 //
-//		res.ndims += ds.datatype.ndims;
+//		res.ndims += ds.DataType.ndims;
 //	}
 //
 //	if (properties["Enable Compact Storage"].as<bool>(false))
@@ -1115,7 +1115,7 @@ std::string DataStream::read(std::string const &url, DataSet *ds, size_t flag)
 //
 //	if (cache_.find(url) == cache_.end())
 //	{
-//		size_t cache_memory_size = ds.datatype.ele_size_in_byte_;
+//		size_t cache_memory_size = ds.DataType.ele_size_in_byte_;
 //		for (int i = 0; i < ds.ndims; ++i)
 //		{
 //			cache_memory_size *= ds.m_count[i];
@@ -1150,7 +1150,7 @@ std::string DataStream::read(std::string const &url, DataSet *ds, size_t flag)
 //	auto & data = std::get<0>(cache_[url]);
 //	auto & item = std::get<1>(cache_[url]);
 //
-//	size_t memory_size = ds.datatype.ele_size_in_byte_ * item.m_stride[0];
+//	size_t memory_size = ds.DataType.ele_size_in_byte_ * item.m_stride[0];
 //
 //	for (int i = 1; i < item.ndims; ++i)
 //	{

@@ -144,14 +144,14 @@ TEST_P(TestKineticParticle, scatter_n)
 //	LuaObject cfg;
 //	cfg.ParseString(cfg_str);
 //
-//	Field<mesh_type,VERTEX,scalar_type> n0(geometry);
+//	field<mesh_type,VERTEX,scalar_type> n0(geometry);
 //
 //	pool_type ion(geometry,cfg["ion"]);
 //	ion.SetParticleSorting(enable_sorting);
-//	Field<mesh_type,EDGE,Real> E(geometry);
-//	Field<mesh_type,FACE,Real> B(geometry);
+//	field<mesh_type,EDGE,Real> E(geometry);
+//	field<mesh_type,FACE,Real> B(geometry);
 //
-//	Field<mesh_type,EDGE,scalar_type> J0(geometry);
+//	field<mesh_type,EDGE,scalar_type> J0(geometry);
 //
 //	n0.Clear();
 //	J0.Clear();

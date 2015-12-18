@@ -11,7 +11,7 @@
 #include <typeinfo>
 #include "../gtl/type_traits.h"
 #include "../gtl/ntuple.h"
-#include "datatype.h"
+#include "DataType.h"
 
 namespace simpla
 {

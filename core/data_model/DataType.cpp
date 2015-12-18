@@ -1,16 +1,17 @@
 /**
- * @file datatype.cpp
+ * @file data_type.cpp
  *
  *  Created on: 2014-12-18
  *      Author: salmon
  */
 
-#include "datatype.h"
+#include "DataType.h"
 
 #include <algorithm>
 #include <iterator>
+#include <iomanip>
 
-namespace simpla
+namespace simpla { namespace data_model
 {
 struct DataType::pimpl_s
 {
@@ -126,6 +127,7 @@ DataType &DataType::operator=(DataType const &other)
 void DataType::swap(DataType &other)
 {
     std::swap(pimpl_, other.pimpl_);
+    base_type::swap(other);
 }
 
 DataType DataType::element_type() const
@@ -243,24 +245,22 @@ void DataType::push_back(DataType &&d_type, std::string const &name, int pos)
 
 }
 
-namespace traits
-{
-std::ostream &print(std::ostream &os, DataType const &self)
+std::ostream &DataType::print(std::ostream &os, int indent) const
 {
 
-    if (self.is_compound())
+    if (this->is_compound())
     {
-        os << "DATATYPE" << std::endl <<
+        os << std::setw(indent) << "DATATYPE" << std::endl << std::setw(indent)
 
-        "struct " << self.name() << std::endl
+        << "struct " << this->name() << std::endl << std::setw(indent)
 
-        << "{" << std::endl;
+        << "{" << std::endl << std::setw(indent);
 
-        auto it = self.members().begin();
-        auto ie = self.members().end();
+        auto it = this->members().begin();
+        auto ie = this->members().end();
 
         os << "\t";
-        print(os, std::get<0>(*it));
+        std::get<0>(*it).print(os, indent + 1);
         os << "\t" << std::get<1>(*it);
 
         ++it;
@@ -268,16 +268,16 @@ std::ostream &print(std::ostream &os, DataType const &self)
         for (; it != ie; ++it)
         {
             os << "," << std::endl << "\t";
-
-            print(os, std::get<0>(*it));
+            std::get<0>(*it).print(os, indent + 1);
             os << "\t" << std::get<1>(*it);
         }
-        os << std::endl << "};" << std::endl;
+        os << std::endl << std::setw(indent)
+        << "};" << std::endl << std::setw(indent);
     }
     else
     {
-        os << self.name();
-        for (auto const &d : self.extents())
+        os << this->name();
+        for (auto const &d : this->extents())
         {
             os << "[" << d << "]";
         }
@@ -285,6 +285,5 @@ std::ostream &print(std::ostream &os, DataType const &self)
 
     return os;
 }
-} //namespace traits
+}} //namespace simpla { namespace data_model
 
-}  // namespace simpla

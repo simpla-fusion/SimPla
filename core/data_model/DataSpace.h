@@ -1,5 +1,5 @@
 /**
- * @file dataspace.h
+ * @file DataSpace.h
  *
  *  Created on: 2014-11-10
  *  @author: salmon
@@ -13,10 +13,11 @@
 
 #include "../gtl/ntuple.h"
 #include "../gtl/primitives.h"
-#include "../gtl/properties.h"
+#include "../gtl/Properties.h"
 #include "../gtl/utilities/log.h"
+#include "../base/Object.h"
 
-namespace simpla
+namespace simpla { namespace data_model
 {
 
 struct DataSet;
@@ -26,11 +27,15 @@ struct DataSet;
  * @brief  Define the size and  shape of data set in memory/file
  *  Ref. http://www.hdfgroup.org/HDF5/doc/UG/UG_frame12Dataspaces.html
  */
-class DataSpace
+class DataSpace : public base::SpObject
 {
 public:
+
+    SP_OBJECT_HEAD(DataSpace, base::SpObject);
+
+
     typedef size_t index_type;
-    typedef nTuple <index_type, MAX_NDIMS_OF_ARRAY> index_tuple;
+    typedef nTuple<index_type, MAX_NDIMS_OF_ARRAY> index_tuple;
 
 
     typedef std::tuple<
@@ -43,7 +48,7 @@ public:
     > data_shape_s;
 
 
-    // Creates a null dataspace
+    // Creates a null data_space
     DataSpace();
 
     DataSpace(int rank, size_t const *dims);
@@ -53,7 +58,7 @@ public:
     DataSpace(const DataSpace &other);
 
 
-    // Destructor: properly terminates access to this dataspace.
+    // Destructor: properly terminates access to this data_space.
     ~DataSpace();
 
     void swap(DataSpace &);
@@ -64,6 +69,9 @@ public:
         DataSpace(rhs).swap(*this);
         return *this;
     }
+
+    virtual std::ostream &print(std::ostream &os, int indent) const;
+
 
     static DataSpace create_simple(int rank, const index_type *dims);
 
@@ -93,20 +101,8 @@ private:
 
 };
 
-/**
- * @ingroup data_interface
- * create dataspace
- * @param args
- * @return
- */
-template<typename ... Args>
-DataSpace make_dataspace(Args &&... args)
-{
-    return DataSpace(std::forward<Args>(args)...);
-}
 
-/**@}  */
+}} //namespace simpla { namespace data_model
 
-}  // namespace simpla
 
 #endif /* CORE_DATASET_DATASPACE_H_ */

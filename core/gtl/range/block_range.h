@@ -24,7 +24,7 @@ namespace simpla
 template<typename ...> struct BlockRange;
 
 
-// base on Range concept in TBB
+// Base on Range concept in TBB
 
 template<typename Iterator>
 class BlockRange<Iterator>

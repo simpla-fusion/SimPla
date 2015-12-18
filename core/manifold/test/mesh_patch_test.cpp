@@ -5,8 +5,8 @@
  */
 
 #include <gtest/gtest.h>
-#include "../mesh/mesh_patch.h"
-#include "../pre_define/predefine.h"
+#include "Mesh"
+#include "pre_define.h"
 
 #include "../../field/field.h"
 #include "../../gtl/utilities/log.h"

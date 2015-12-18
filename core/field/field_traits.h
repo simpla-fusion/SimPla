@@ -33,7 +33,7 @@ template<typename> struct mesh_type;
 //template<typename ValueType, typename TM, int IFORM, typename ...Policies>
 //struct field_type
 //{
-//    typedef Field<ValueType, TM, std::integral_constant<int, IFORM>, Policies...> type;
+//    typedef field<ValueType, TM, std::integral_constant<int, IFORM>, Policies...> type;
 //};
 
 template<typename>
