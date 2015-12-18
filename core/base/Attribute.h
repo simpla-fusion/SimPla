@@ -30,7 +30,7 @@ public:
 
     virtual int extent(int i) const { return 1; }
 
-    virtual data_model::DataSet data_set() = 0;
+//    virtual data_model::DataSet data_set() = 0;
 
     virtual data_model::DataSet data_set() const = 0;
 
@@ -109,13 +109,9 @@ public:
 
     mesh_type &get_mesh()
     {
-        if (m_mesh_ == nullptr)
-        {
-            VERBOSE << ("Can not  modified const Mesh!");
-        }
+        if (m_mesh_ == nullptr) { VERBOSE << ("Can not  modified const Mesh!"); }
+
         return *m_mesh_;
-
-
     }
 
 

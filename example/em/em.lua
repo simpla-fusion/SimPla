@@ -54,9 +54,9 @@ Mesh =
         Topology = { Dimensions = { NX, NY, NZ }, },
         Box = { { 0.0, 0.0, 0 }, { LX, LY, LZ } },
     },
-    dt = 0.5* (LX / NX) / c
+    dt = 0.5 * (LX / NX) / c
 }
-omega_ext = omega_ci*1.9
+omega_ext = omega_ci * 1.9
 
 
 --domain_center=function( x  )
@@ -95,6 +95,7 @@ Particles = {
         charge = qe,
         T = 3.0,
         pic = PIC,
+        Type = "Boris"
         --        Density = function(t, x)
         --            return (1.0 - math.cos(x[1] / LX * math.pi * 2.0)) / 2 / PIC
         --        end

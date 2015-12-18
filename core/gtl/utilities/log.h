@@ -293,9 +293,7 @@ std::string make_msg(Others const &...others)
 
     buffer << "\e[0m";
 
-    std::string msg = buffer.str();
-
-    return std::move(msg);
+    return buffer.str();
 }
 /** @} */
 

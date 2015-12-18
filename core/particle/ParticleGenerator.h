@@ -36,27 +36,32 @@ struct fun_constant
     T const &operator()(Args &&...args) const { return m_v_; }
 };
 }
+// namespace traits;
+template<typename ...> class Particle;
+
 template<typename Engine, typename Func=Real,
         typename XDist=rectangle_distribution<3>,
         typename VDist=multi_normal_distribution<3>,
-        typename TSeedGen=std::mt19937> struct ParticleGenerator;
+        typename TSeedGen=std::mt19937>
+struct ParticleGenerator;
 
 template<typename ...> struct ParticleEngine;
 
 template<typename TAGS>
 using generator_t=ParticleGenerator<ParticleEngine<TAGS> >;
 
-template<typename TE, typename TM, typename Func>
-ParticleGenerator<TE, Func> make_generator(Particle<TE, TM> const &p, Func const &func)
+template<typename ...T, typename Func>
+ParticleGenerator<typename Particle<T...>::engine_type, Func>
+make_generator(Particle<T...> const &p, Func const &func)
 {
-    return ParticleGenerator<TE, Func>(p);
+    return ParticleGenerator<typename Particle<T...>::engine_type, Func>(p);
 };
 
-template<typename TE, typename TM>
-ParticleGenerator<TE, traits::fun_constant<Real> >
-make_generator(Particle<TE, TM> const &p, Real const &f)
+template<typename ...T>
+ParticleGenerator<typename Particle<T...>::engine_type, traits::fun_constant<Real> >
+make_generator(Particle<T...> const &p, Real f)
 {
-    return ParticleGenerator<TE, traits::fun_constant<Real>>(
+    return ParticleGenerator<typename Particle<T...>::engine_type, traits::fun_constant<Real>>(
             p, traits::fun_constant<Real>(f));
 };
 

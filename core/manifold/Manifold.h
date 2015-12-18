@@ -138,7 +138,6 @@ template<typename TMesh, template<typename> class ...Policies>
 class Manifold
         : public TMesh,
           public Policies<TMesh> ...,
-//          public Patch<Manifold<TMesh, Policies...> >,
           public base::Object,
           public std::enable_shared_from_this<Manifold<TMesh, Policies...> >
 {
@@ -147,14 +146,9 @@ class Manifold
 public:
 
     typedef TMesh mesh_type;
-
-
     typedef geometry::traits::coordinate_system_t<mesh_type> coordinates_system_type;
-
     typedef geometry::traits::scalar_type_t<coordinates_system_type> scalar_type;
-
     typedef geometry::traits::point_type_t<coordinates_system_type> point_type;
-
     typedef geometry::traits::vector_type_t<coordinates_system_type> vector_type;
 
 
@@ -171,12 +165,10 @@ public:
 
     Manifold() : Policies<mesh_type>(dynamic_cast<mesh_type &>(*this))... { }
 
-    Manifold(this_type const &m) : mesh_type(m), Policies<mesh_type>(
-            dynamic_cast<mesh_type &>(*this))... { }
+    Manifold(this_type const &m) :
+            mesh_type(m), Policies<mesh_type>(dynamic_cast<mesh_type &>(*this))... { }
 
-    virtual ~Manifold()
-    {
-    }
+    virtual ~Manifold() { }
 
     this_type &operator=(const this_type &other)
     {

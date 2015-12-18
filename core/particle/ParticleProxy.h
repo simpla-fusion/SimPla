@@ -22,26 +22,21 @@ struct ParticleProxy<TP, TE, TB, TJ, TRho> : public ParticleProxyBase<TE, TB, TJ
 
     std::shared_ptr<particle_type> m_self_;
 
-    template<typename ...Args>
-    ParticleProxy(Args &&... args) : m_self_(std::make_shared<particle_type>(std::forward<Args>(args)...))
-    {
-    }
+    ParticleProxy(std::shared_ptr<particle_type> s) : m_self_(s) { }
 
-    ParticleProxy(particle_type &other) : m_self_(other.shared_from_this())
-    {
-    }
+    ParticleProxy(particle_type &other) : m_self_(other.shared_from_this()) { }
 
-    virtual  ~ParticleProxy()
-    {
-    }
+    virtual  ~ParticleProxy() { }
+
+    particle_type &self() { return *m_self_; }
+
+    particle_type const &self() const { return *m_self_; }
 
     virtual void deploy() { m_self_->deploy(); }
 
     virtual void rehash() { m_self_->rehash(); }
 
     virtual void sync() { m_self_->sync(); }
-
-    virtual data_model::DataSet data_set() { return m_self_->data_set(); }
 
     virtual data_model::DataSet data_set() const { return m_self_->data_set(); }
 
@@ -83,8 +78,6 @@ public:
 
     virtual void sync() = 0;
 
-    virtual data_model::DataSet data_set() = 0;
-
     virtual data_model::DataSet data_set() const = 0;
 
     virtual void data_set(data_model::DataSet const &) = 0;
@@ -95,15 +88,14 @@ public:
 
     virtual void integral(TRho *n) const = 0;
 
-    template<typename TP, typename ...Args>
-    static std::shared_ptr<this_type> create(Args &&...args)
+
+    template<typename TP>
+    static std::shared_ptr<this_type> create(std::shared_ptr<TP> p)
     {
         return std::dynamic_pointer_cast<this_type>(
-                std::make_shared<ParticleProxy<TP, TE, TB, TJ, TRho>>(std::forward<Args>(args)...)
-        );
+                std::make_shared<ParticleProxy<TP, TE, TB, TJ, TRho>>(p));
 
     };
-
 };
 
 

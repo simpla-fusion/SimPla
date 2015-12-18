@@ -7,6 +7,9 @@
 #ifndef SIMPLA_PIC_BORIS_H
 #define SIMPLA_PIC_BORIS_H
 
+#include "../../manifold/policy/FvmStructuredPolicy.h"
+#include "../../manifold/policy/LinearInterpolatorPolicy.h"
+
 #include "../Particle.h"
 #include "../ParticleProxy.h"
 #include "../ParticleEngine.h"
@@ -97,7 +100,11 @@ struct BorisEngine : public base::Object
 }}}//namespace simpla { namespace particle { namespace engine
 namespace simpla { namespace particle
 {
-template<typename TM> using BorisParticle = Particle<particle::engine::BorisEngine, TM>;
+template<typename TM> using BorisParticle =
+Particle<particle::engine::BorisEngine, TM,
+        manifold::policy::FiniteVolume<TM>,
+        manifold::policy::LinearInterpolator<TM>
+>;
 }}
 
 #endif //SIMPLA_PIC_BORIS_H

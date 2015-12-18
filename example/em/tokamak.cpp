@@ -85,7 +85,7 @@ struct EMPlasma
     typedef traits::field_t<vector_type, mesh_type, VERTEX> TJv;
 
 
-    typedef particle::ParticleProxyBase<TE, TB, TJ, TRho> particle_proxy_type;
+    typedef particle::ParticleProxyBase<TE, TB, TJv, TRho> particle_proxy_type;
 
     typedef std::tuple<
             Real, //mass
@@ -270,8 +270,7 @@ void EMPlasma::setup(int argc, char **argv)
             if (dict)
             {
                 model::create_id_set(
-                        m,
-                        m.template make_range<EDGE>(
+                        m, m.template make_range<EDGE>(
                                 m.index_box(dict["Box"].template as<box_type>())),
                         &J_src);
 
@@ -300,19 +299,26 @@ void EMPlasma::setup(int argc, char **argv)
 
                     if (dict.second["Density"])
                     {
-                        std::get<2>(p) = traits::make_field_function_from_config<scalar_type, VERTEX>(m,
-                                                                                                      dict.second["Density"]);
+                        std::get<2>(p) = traits::make_field_function_from_config<scalar_type,
+                                VERTEX>(m, dict.second["Density"]);
                     }
                     else { std::get<2>(p) = rho0; }
 
 
                     std::get<3>(p).clear();
 
-//
-//                    if (dict.second["Type"].template as<std::string>() == "Boris")
-//                    {
-//                        std::get<4>(p) = particle_proxy_type::create<particle::BorisParticle<mesh_type>>(m, key);
-//                    }
+
+                    if (dict.second["Type"].template as<std::string>() == "Boris")
+                    {
+                        auto pic = std::make_shared<particle::BorisParticle<mesh_type>>(m);
+
+                        auto gen = particle::make_generator(*pic, 1.0);
+
+//                        pic->generator(gen, options["PIC"].as<size_t>(10), 1.0);
+
+                        std::get<4>(p) = particle_proxy_type::create(pic);
+
+                    }
                 }
 
 
@@ -335,11 +341,6 @@ void EMPlasma::setup(int argc, char **argv)
         }
         MESSAGE << "}" << std::endl;
 
-//        VERBOSE << "Generator Particles" << std::endl;
-//
-//        auto gen = particle::make_generator(ion, 1.0);
-//
-//        ion.generator(gen, options["PIC"].as<size_t>(10), 1.0);
 
         Ev = map_to<VERTEX>(E1);
     }
@@ -395,7 +396,16 @@ void EMPlasma::next_time_step()
 
     J1.accept(J_src.range(),
               [&](id_type s, Real &v) { J1.add(s, J_src_fun(t, m.point(s))); });
-
+    for (auto &p:particles)
+    {
+        auto pic = std::get<4>(p.second);
+        if (pic != nullptr)
+        {
+            pic->push(dt, m.time(), E1, B1);
+            pic->integral(&std::get<2>);
+            pic->integral(&std::get<3>);
+        }
+    }
     LOG_CMD(E1 += (curl(B1) * speed_of_light2 - J1 / epsilon0) * dt);
 
     E1.accept(edge_boundary.range(), [&](id_type, Real &v) { v = 0; });
