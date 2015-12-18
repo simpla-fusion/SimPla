@@ -52,21 +52,21 @@ std::string write(std::string const &url, size_t num, T const *d, size_t flag = 
 
 void delete_attribute(std::string const &url);
 
-void set_dataset_attribute(std::string const &url, std::string const &str);
+void set_data_set_attribute(std::string const &url, std::string const &str);
 
-void set_dataset_attribute(std::string const &url, any const &prop);
+void set_data_set_attribute(std::string const &url, any const &prop);
 
-any get_dataset_attribute(std::string const &url);
+any get_data_set_attribute(std::string const &url);
 
-template<typename T> void set_dataset_attribute(std::string const &url, T const &v)
+template<typename T> void set_data_set_attribute(std::string const &url, T const &v)
 {
-    set_dataset_attribute(url, any(v));
+    set_data_set_attribute(url, any(v));
 }
 
 template<typename T>
-T get_dataset_attribute(std::string const &url)
+T get_data_set_attribute(std::string const &url)
 {
-    return std::move(get_dataset_attribute(url).template as<T>());
+    return std::move(get_data_set_attribute(url).template as<T>());
 }
 
 
@@ -141,12 +141,12 @@ T get_dataset_attribute(std::string const &url)
 
 
 
-#define SAVE(_F_) simpla::io::save(__STRING(_F_),_F_  )
-#define SAVE_APPEND(_F_) simpla::io::save(__STRING(_F_),_F_, simpla::io::SP_APPEND  )
-#define SAVE_RECORD(_F_) simpla::io::save(__STRING(_F_),_F_, simpla::io::SP_RECORD  )
+#define SAVE(_F_) simpla::io::write(__STRING(_F_),_F_  )
+#define SAVE_APPEND(_F_) simpla::io::write(__STRING(_F_),_F_, simpla::io::SP_APPEND  )
+#define SAVE_RECORD(_F_) simpla::io::write(__STRING(_F_),_F_, simpla::io::SP_RECORD  )
 
 #ifndef NDEBUG
-#	define DEBUG_SAVE(_F_) simpla::io::save(__STRING(_F_),_F_ )
+#	define DEBUG_SAVE(_F_) simpla::io::write(__STRING(_F_),_F_ )
 #else
 #   define DEBUG_SAVE(_F_) ""
 #endif

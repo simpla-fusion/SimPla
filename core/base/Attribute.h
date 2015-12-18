@@ -113,16 +113,20 @@ public:
 
     virtual int extent(int i) const = 0;
 
-    mesh_type &mesh()
+    mesh_type const &mesh() { return *m_const_mesh_; }
+
+    mesh_type const &mesh() const { return *m_const_mesh_; }
+
+    mesh_type &get_mesh()
     {
         if (m_mesh_ == nullptr)
         {
-            THROW_EXCEPTION_RUNTIME_ERROR("Can not  modified  const Mesh!");
+            VERBOSE << ("Can not  modified const Mesh!");
         }
         return *m_mesh_;
-    }
 
-    mesh_type const &mesh() const { return *m_const_mesh_; }
+
+    }
 
 
 private:

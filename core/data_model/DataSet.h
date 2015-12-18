@@ -116,6 +116,9 @@ namespace _impl
 {
 HAS_MEMBER_FUNCTION(data_set)
 
+template<typename T>
+auto create_data_set(T const &f)
+-> typename std::enable_if<has_member_function_data_set<T>::value, DataSet>::type { return f.data_set(); }
 
 DataSet create_data_set(DataType const &dtype, std::shared_ptr<void> const &p, size_t rank,
                         size_t const *dims = nullptr);

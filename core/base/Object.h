@@ -79,30 +79,23 @@ namespace simpla { namespace base
 class SpObject
 {
 public:
-    SpObject() : m_click_(0) { };
+    SpObject();
 
+    SpObject(SpObject &&other);
 
-    SpObject(SpObject &&other) : m_click_(other.m_click_) { };
+    SpObject(SpObject const &);
 
-    SpObject(SpObject const &) : m_click_(0) { };
+    SpObject &operator=(SpObject const &other);
 
-    SpObject &operator=(SpObject const &other)
-    {
-        SpObject(other).swap(*this);
-        return *this;
-    };
+    virtual  ~SpObject();
 
-    virtual  ~SpObject() { }
+    void swap(SpObject &other);
 
-    void swap(SpObject &other) { std::swap(m_click_, other.m_click_); };
+    virtual bool is_a(std::type_info const &info) const;
 
-    virtual bool is_a(std::type_info const &info) const { return typeid(SpObject) == info; }
+    virtual std::string get_class_name() const;
 
-    virtual std::string get_class_name() const { return "SpObject"; }
-
-    virtual bool is_same(SpObject const &other) const { return this == &other; }
-
-//    virtual bool is_equal(SpObject const &other) const { return false; }
+    virtual bool is_same(SpObject const &other) const;
 
     virtual std::ostream &print(std::ostream &os, int indent) const;
 
@@ -111,11 +104,11 @@ public:
      *  @{
      */
 public:
-    void lock() { m_mutex_.lock(); }
+    inline void lock() { m_mutex_.lock(); }
 
-    void unlock() { m_mutex_.unlock(); }
+    inline void unlock() { m_mutex_.unlock(); }
 
-    bool try_lock() { return m_mutex_.try_lock(); }
+    inline bool try_lock() { return m_mutex_.try_lock(); }
 
 private:
     std::mutex m_mutex_;

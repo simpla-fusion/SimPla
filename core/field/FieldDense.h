@@ -91,9 +91,9 @@ public:
 
     virtual mesh_type const &mesh() const { return attribute()->mesh(); }
 
-    virtual data_model::DataSet dataset() { return attribute()->data_set(); }
+    virtual data_model::DataSet data_set() { return attribute()->data_set(); }
 
-    virtual data_model::DataSet dataset() const { return attribute()->data_set(); }
+    virtual data_model::DataSet data_set() const { return attribute()->data_set(); }
 
     template<typename ...Args>
     void accept(Args &&...args) { attribute()->accept(std::forward<Args>(args)...); }
@@ -201,8 +201,7 @@ public:
     }
 
     /**@}*/
-
-
+    typename mesh_type::range_type range() const { return mesh().template range<iform>(); }
 
 
 }; // struct field

@@ -288,11 +288,11 @@ public:
 
     template<typename TV, int IFORM> using Attribute=base::Attribute<TV, IFORM, this_type>;
 
+    typedef base::AttributeEntity<this_type> AttributeEntity;
 private:
 
-    class AttributeInternal_;
 
-    typedef std::map<std::string, std::weak_ptr<AttributeInternal_>> attribute_holder_type;
+    typedef std::map<std::string, std::weak_ptr<AttributeEntity>> attribute_holder_type;
     attribute_holder_type m_attributes_;
 
 public:
@@ -303,7 +303,7 @@ public:
     {
         auto res = std::make_shared<Attribute<TV, IFORM>>(*this, s_name);
 
-        if (s_name != "") { enroll(s_name, std::dynamic_pointer_cast<AttributeInternal_>(res)); }
+        if (s_name != "") { enroll(s_name, std::dynamic_pointer_cast<AttributeEntity>(res)); }
 
         return res;
     }
@@ -317,7 +317,7 @@ public:
     template<typename TF>
     void enroll(std::string const &name, std::shared_ptr<TF> p)
     {
-        m_attributes_.insert(std::make_pair(name, std::dynamic_pointer_cast<AttributeInternal_>(p)));
+        m_attributes_.insert(std::make_pair(name, std::dynamic_pointer_cast<AttributeEntity>(p)));
     };
 
     attribute_holder_type &attributes() { return m_attributes_; };
