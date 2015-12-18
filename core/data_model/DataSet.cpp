@@ -1,5 +1,5 @@
 /**
- * @file dataset.cpp
+ * @file DataSet.cpp
  *
  *  Created on: 2014-12-12
  *      Author: salmon
@@ -16,20 +16,6 @@
 namespace simpla { namespace data_model
 {
 
-
-//
-//void DataSet::clear()
-//{
-//    deploy();
-//    memset(data.get(), 0, memory_space.size() * DataType.size_in_byte());
-//}
-//
-//
-//void DataSet::copy(void const *other)
-//{
-//    deploy();
-//    memcpy(data.get(), other, memory_space.size() * DataType.size_in_byte());
-//}
 
 bool DataSet::is_same(void const *other) const
 {

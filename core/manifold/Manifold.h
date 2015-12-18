@@ -207,9 +207,9 @@ public:
     template<typename TDict>
     void load(TDict const &dict)
     {
-        TRY_IT(mesh_type::load(dict["mesh"]));
+        TRY_IT(mesh_type::load(dict["Mesh"]));
 
-        m_dt_ = dict["mesh"]["dt"].template as<Real>(1.0);
+        m_dt_ = dict["Mesh"]["dt"].template as<Real>(1.0);
     }
 
     void deploy() { mesh_type::deploy(); }
@@ -217,9 +217,9 @@ public:
 
     virtual std::ostream &print(std::ostream &os) const
     {
-        os << "mesh={" << std::endl;
+        os << "Mesh={" << std::endl;
         mesh_type::print(os);
-        os << "}, # mesh " << std::endl;
+        os << "}, # Mesh " << std::endl;
         return os;
     }
 

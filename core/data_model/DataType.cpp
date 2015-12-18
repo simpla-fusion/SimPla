@@ -1,5 +1,5 @@
 /**
- * @file data_type.cpp
+ * @file DataType.cpp
  *
  *  Created on: 2014-12-18
  *      Author: salmon

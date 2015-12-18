@@ -144,7 +144,6 @@ void EMPlasma::setup(int argc, char **argv)
 
         options.init(argc, argv);
 
-
         m.load(options);
 
         Real phi0 = std::get<0>(m.box())[2];

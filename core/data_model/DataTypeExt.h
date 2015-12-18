@@ -100,7 +100,7 @@ namespace simpla
 struct _S_NAME_  {                                      \
     SP_DEFINE_STRUCT_MEMBER(__VA_ARGS__)                \
                                                         \
-    static DataType datatype()                          \
+    static DataType data_type()                          \
     {                                                   \
         DataType d_type(typeid(_S_NAME_),sizeof(_S_NAME_),0,nullptr,__STRING(_S_NAME_));                                \
         SP_DEFINE_STRUCT_DESC(_S_NAME_, __VA_ARGS__);   \

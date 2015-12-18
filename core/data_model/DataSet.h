@@ -1,5 +1,5 @@
 /**
- * @file data_set.h
+ * @file DataSet.h
  *
  *  Created on: 2014-11-10
  *      Author: salmon

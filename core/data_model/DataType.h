@@ -1,5 +1,5 @@
 /**
- * @file data_type.h
+ * @file DataType.h
  *
  *  created on: 2014-6-2
  *      Author: salmon
@@ -120,11 +120,11 @@ template<typename T>
 struct DataType::create_helper
 {
 private:
-    HAS_STATIC_MEMBER_FUNCTION (datatype)
+    HAS_STATIC_MEMBER_FUNCTION (data_type)
 
     static DataType create_(std::string const &name, std::integral_constant<bool, true>)
     {
-        return T::datatype();
+        return T::data_type();
     }
 
     static DataType create_(std::string const &name, std::integral_constant<bool, false>)
@@ -147,7 +147,6 @@ private:
                          ele_size_in_byte,
 
                          ::simpla::traits::rank<obj_type>::value,
-
                          &d[0],
 
                          name)
@@ -162,7 +161,7 @@ public:
     static DataType create(std::string const &name = "")
     {
         return create_(((name != "") ? name : (typeid(T).name())),
-                       std::integral_constant<bool, has_static_member_function_datatype<T>::value>());
+                       std::integral_constant<bool, has_static_member_function_data_type<T>::value>());
     }
 
 

@@ -97,10 +97,10 @@ public:
     template<typename TDict>
     void load(TDict const &dict)
     {
-        box(dict["geometry"]["Box"].template as<std::tuple<point_type, point_type> >());
+        box(dict["Geometry"]["Box"].template as<std::tuple<point_type, point_type> >());
 
         block_type::dimensions(
-                dict["geometry"]["Topology"]["Dimensions"].template as<index_tuple>(index_tuple{10, 1, 1}));
+                dict["Geometry"]["Topology"]["Dimensions"].template as<index_tuple>(index_tuple{10, 1, 1}));
     }
 
     virtual std::ostream &print(std::ostream &os) const
