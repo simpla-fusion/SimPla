@@ -14,7 +14,7 @@
 
 namespace simpla
 {
-template<typename ...> struct DataView;
+template<typename ...> struct data_view;
 
 namespace tags
 {
@@ -22,13 +22,13 @@ struct split;
 }
 
 template<typename TV, typename IndexRange, typename ...Tags>
-struct DataView<TV, IndexRange, Tags...>
+struct data_view<TV, IndexRange, Tags...>
 {
 	typedef TV value_type;
 
 	typedef IndexRange index_range_type;
 
-	typedef DataView<value_type, index_range_type, Tags...> this_type;
+	typedef data_view<value_type, index_range_type, Tags...> this_type;
 
 //	typedef iterator_proxy<this_type, traits::iterator_t<index_range_type>> iterator;
 //
@@ -43,19 +43,19 @@ private:
 
 public:
 
-	DataView(index_range_type const &r) :
+	data_view(index_range_type const &r) :
 			m_data_(sp_make_shared_array<value_type>(r.max_hash())), m_index_range_(r)
 	{
 
 	}
 
-	DataView(this_type &other, tags::split) :
+	data_view(this_type &other, tags::split) :
 			m_data_(other.m_data_), m_index_range_(other.m_data_, tags::split())
 	{
 
 	}
 
-	DataView(this_type const &other) :
+	data_view(this_type const &other) :
 			m_data_(other.m_data_), m_index_range_(other.m_index_range_)
 	{
 

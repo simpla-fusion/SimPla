@@ -1,5 +1,5 @@
 /**
- * @file DataSet.h
+ * @file data_set.h
  *
  *  Created on: 2014-11-10
  *      Author: salmon
@@ -36,14 +36,14 @@ namespace simpla { namespace data_model
  *
  * @brief Describe structure of data in the memory.
  *
- * A DataSet is composed of a pointer to raw data , a description
+ * A data_set is composed of a pointer to raw data , a description
  * of element data type (DataType), a description of memory layout of
- * data set (DataSpace),and a container of meta data (Properties).
+ * data set (data_space),and a container of meta data (Properties).
  */
 
-struct DataSet : public base::SpObject
+struct DataSet : public base::Object
 {
-    SP_OBJECT_HEAD(DataSet, base::SpObject);
+    SP_OBJECT_HEAD(DataSet, base::Object);
 
     std::shared_ptr<void> data;
 
@@ -106,7 +106,7 @@ struct DataSet : public base::SpObject
 
     template<typename ...Args>
     static DataSet create(Args &&...args);
-}; //class DataSet
+}; //class data_set
 
 
 

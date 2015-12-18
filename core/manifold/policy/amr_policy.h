@@ -13,8 +13,8 @@
 #include "../../gtl/type_traits.h"
 #include "../../gtl/primitives.h"
 #include "../../data_model/dataset.h"
-#include "../../base/attribute.h"
-#include "../../base/patch.h"
+#include "Attribute.h"
+#include "Patch.h"
 
 namespace simpla { template<typename ...> class Field; }
 
@@ -190,6 +190,6 @@ AMR::~AMR()
 {
 
 }
-}}}//namespace simpla{namespace manifold{namespace policy
+}}}//namespace simpla{namespace Manifold{namespace policy
 
 #endif //SIMPLA_AMR_H

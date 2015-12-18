@@ -17,7 +17,7 @@
 
 #include "../../field/field.h"
 
-#include "../../manifold/manifold_traits.h"
+#include "manifold_traits.h"
 
 #include "../../gtl/utilities/log.h"
 

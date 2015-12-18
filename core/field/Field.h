@@ -9,9 +9,8 @@
 
 
 #include "FieldDense.h"
-#include "field_traits.h"
-#include "field_constant.h"
+#include "FieldTraits.h"
 #include "FieldFunction.h"
-#include "field_expression.h"
+#include "FieldExpression.h"
 
 #endif //SIMPLA_FIELD_H

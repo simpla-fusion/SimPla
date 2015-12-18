@@ -229,14 +229,14 @@ void XDMFStream::write(std::string const &ds_name,
     m_file_stream_ << std::setw(level * 2 + 2) << "" << "</Attribute>" << std::endl;
 
 
-    VERBOSE << "DataSet [" << ds_name << "] is saved in [" << path() << "]!" << std::endl;
+    VERBOSE << "data_set [" << ds_name << "] is saved in [" << path() << "]!" << std::endl;
 }
 
 
 /**
  *
  *
- *    XML Attribute : TopologyType = Polyvertex | Polyline | Polygon |
+ *    XML attribute : TopologyType = Polyvertex | Polyline | Polygon |
                                   Triangle | Quadrilateral | Tetrahedron | Pyramid| Wedge | Hexahedron |
                                   Edge_3 | Triangle_6 | Quadrilateral_8 | Tetrahedron_10 | Pyramid_13 |
                                   Wedge_15 | Wedge_18 | Hexahedron_20 | Hexahedron_24 | Hexahedron_27 |

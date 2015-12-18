@@ -18,7 +18,7 @@
 #include "../gtl/utilities/memory_pool.h"
 #include "../base/Attribute.h"
 #include "../base/Patch.h"
-#include "manifold_traits.h"
+#include "ManifoldTraits.h"
 
 
 namespace simpla
@@ -45,9 +45,9 @@ template<typename ...> struct Expression;
  */
 /**
  * @ingroup diff_geo
- * @addtogroup   manifold Differential manifold
+ * @addtogroup   Manifold Differential Manifold
  * @{
- *    @brief  manifold
+ *    @brief  Manifold
  *
 
  * ## Requirements
@@ -132,14 +132,14 @@ template<typename ...> struct Expression;
  */
 
 /**
- * manifold
+ * Manifold
  */
 template<typename TMesh, template<typename> class ...Policies>
 class Manifold
         : public TMesh,
           public Policies<TMesh> ...,
 //          public Patch<Manifold<TMesh, Policies...> >,
-          public base::SpObject,
+          public base::Object,
           public std::enable_shared_from_this<Manifold<TMesh, Policies...> >
 {
     typedef Manifold<TMesh, Policies ...> this_type;
@@ -189,7 +189,7 @@ public:
     virtual this_type const &self() const { return (*this); }
 
 private:
-    typedef base::SpObject base_type;
+    typedef base::Object base_type;
 public:
 
     virtual bool is_a(std::type_info const &info) const
@@ -337,7 +337,7 @@ public:
 //    typedef typename this_type::patch_policy patch_policy;
 
 
-}; //class manifold
+}; //class Manifold
 
 /* @}@} */
 

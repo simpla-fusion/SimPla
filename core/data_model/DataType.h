@@ -1,5 +1,5 @@
 /**
- * @file DataType.h
+ * @file data_type.h
  *
  *  created on: 2014-6-2
  *      Author: salmon
@@ -43,9 +43,9 @@ namespace simpla { namespace data_model
  *        doc/reference/xdr/
  *
  */
-struct DataType : public base::SpObject
+struct DataType : public base::Object
 {
-    SP_OBJECT_HEAD(DataType, base::SpObject);
+    SP_OBJECT_HEAD(DataType, base::Object);
 
     DataType();
 

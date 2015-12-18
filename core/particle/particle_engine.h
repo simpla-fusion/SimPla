@@ -37,7 +37,7 @@ namespace simpla { namespace particle
  * \code void  update();\endcode | (optional) |update charge/mass and properties cache
  * \code static Point_s  push_forward(Vec3 const & x, Vec3 const &v, Real f);\endcode| (optional)| push forward Cartesian Coordinate x , velocity vector v  and generator weight f to paritlce's coordinates
  * \code static std::tuple<Vec3,Vec3,Real>  pull_back(Point_s const & p); \endcode| (optional)| pull back particle coordinates to Cartesian coordinates;
- * \code DataType  Point_s::data_type() \endcode |(implicit)| get the description of Point_s's data structure
+ * \code DataType  Point_s::DataType() \endcode |(implicit)| get the description of Point_s's data structure
  * \code Properties  properties \endcode |(implicit)| properties of engine
  *
  *
@@ -245,7 +245,7 @@ namespace simpla { namespace particle
 //struct _S_NAME_                                                  \
 //{                                                                \
 //	SP_PARTICLE_DEFINE_MEMBER(__VA_ARGS__)                                   \
-//	static DataType data_type()                             \
+//	static DataType DataType()                             \
 //	{                                                             \
 //		auto d_type = DataType::create_opaque_type<_S_NAME_>(#_S_NAME_);  \
 //		SP_PARTICLE_DEFINE_DESC(_S_NAME_,__VA_ARGS__);        \

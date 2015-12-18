@@ -16,7 +16,7 @@ template<typename ...> class Field;
 namespace manifold { namespace policy
 {
 /**
- * @ingroup manifold
+ * @ingroup Manifold
  */
 
 template<typename ...> struct IOPolicy;
@@ -105,7 +105,7 @@ public:
 };//template<typename TGeo> struct IoPolicy
 
 } //namespace policy
-} //namespace manifold
+} //namespace Manifold
 
 namespace traits
 {

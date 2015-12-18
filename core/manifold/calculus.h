@@ -16,7 +16,7 @@
 #include "../gtl/mpl.h"
 #include "../gtl/type_traits.h"
 #include "../manifold/mesh/MeshIds.h"
-#include "manifold_traits.h"
+#include "ManifoldTraits.h"
 
 namespace simpla
 {
@@ -27,7 +27,7 @@ template<typename ...> class Expression;
 
 /**
  * @ingroup diff_geo
- * @defgroup calculus Calculus on manifold
+ * @defgroup calculus Calculus on Manifold
  * @ingroup calculus
  * @{
  **/

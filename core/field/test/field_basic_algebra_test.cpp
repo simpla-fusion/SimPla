@@ -8,7 +8,7 @@
 #include <gtest/gtest.h>
 
 
-#include "../../field/field_comm.h"
+#include "../../field/FieldComm.h"
 #include "../../field/FieldDense.h"
 #include "../../manifold/pre_define/pre_define.h"
 

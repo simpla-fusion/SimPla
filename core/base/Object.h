@@ -26,7 +26,7 @@ namespace simpla { namespace base
  *   - Plasma density field is a @ref physical_object;
  *   - @ref physical_object is a geometry defined on a domain in configuration space;
  *   - @ref physical_object has properties;
- *   - @ref physical_object can be saved or loaded as DataSet;
+ *   - @ref physical_object can be saved or loaded as data_set;
  *   - @ref physical_object may be decomposed and sync between mpi processes;
  *   - The element value of PhysicalObject may be accessed through a index of discrete grid point in the domain
  *
@@ -76,26 +76,26 @@ namespace simpla { namespace base
  **/
 
 
-class SpObject
+class Object
 {
 public:
-    SpObject();
+    Object();
 
-    SpObject(SpObject &&other);
+    Object(Object &&other);
 
-    SpObject(SpObject const &);
+    Object(Object const &);
 
-    SpObject &operator=(SpObject const &other);
+    Object &operator=(Object const &other);
 
-    virtual  ~SpObject();
+    virtual  ~Object();
 
-    void swap(SpObject &other);
+    void swap(Object &other);
 
     virtual bool is_a(std::type_info const &info) const;
 
     virtual std::string get_class_name() const;
 
-    virtual bool is_same(SpObject const &other) const;
+    virtual bool is_same(Object const &other) const;
 
     virtual std::ostream &print(std::ostream &os, int indent) const;
 
@@ -140,7 +140,7 @@ private:                                                                      \
     typedef _BASE_CLASS_NAME_ base_type;                                      \
 public:
 
-//virtual std::shared_ptr<SpObject> clone_object()const { return std::dynamic_pointer_cast<SpObject>(this->clone()); }
+//virtual std::shared_ptr<Object> clone_object()const { return std::dynamic_pointer_cast<Object>(this->clone()); }
 
 
 }}//namespace simpla { namespace base

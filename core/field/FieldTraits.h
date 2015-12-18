@@ -8,7 +8,6 @@
 #ifndef COREFieldField_TRAITS_H_
 #define COREFieldField_TRAITS_H_
 
-#include "field_comm.h"
 #include <stddef.h>
 #include <cstdbool>
 #include <memory>
@@ -16,8 +15,8 @@
 #include "../gtl/type_traits.h"
 #include "../gtl/mpl.h"
 #include "../gtl/integer_sequence.h"
-#include "../manifold/manifold_traits.h"
-#include "field_expression.h"
+#include "../manifold/ManifoldTraits.h"
+#include "FieldExpression.h"
 
 namespace simpla
 {

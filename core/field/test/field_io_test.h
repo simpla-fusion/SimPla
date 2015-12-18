@@ -12,7 +12,7 @@
 
 #include "../../gtl/utilities/log.h"
 #include "../../io/io.h"
-#include "../../manifold/manifold_traits.h"
+#include "manifold_traits.h"
 
 namespace simpla
 {

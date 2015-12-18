@@ -405,7 +405,7 @@ void DataStream::pimpl_s::close()
 
 /**
  *
- * @param url =<local path>/<obj name>.<attribute>
+ * @param url =<local path>/<obj name>.<Attribute>
  * @return
  */
 std::tuple<std::string, std::string, std::string, std::string> DataStream::pimpl_s::parser_url(
@@ -944,7 +944,7 @@ std::string DataStream::write(std::string const &url, data_model::DataSet const 
 
     }
 
-// create property list for collective DataSet write.
+// create property list for collective data_set write.
     if (GLOBAL_COMM.is_valid())
     {
         hid_t plist_id = H5Pcreate(H5P_DATASET_XFER);
@@ -978,7 +978,7 @@ std::string DataStream::read(std::string const &url, data_model::DataSet *ds, si
     UNIMPLEMENTED;
     return "UNIMPLEMENTED";
 }
-//hid_t DataStream::pimpl_s::create_h5_dataset(DataSet const & ds,
+//hid_t DataStream::pimpl_s::create_h5_dataset(data_set const & ds,
 //		size_t flag) const
 //{
 //

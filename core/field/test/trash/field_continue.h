@@ -152,9 +152,9 @@ public:
 
 	/** @} */
 
-//	DataSet dump_data() const
+//	data_set dump_data() const
 //	{
-//		return DataSet();
+//		return data_set();
 //	}
 private:
 	void allocate()

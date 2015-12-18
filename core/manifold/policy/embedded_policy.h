@@ -50,6 +50,6 @@ public:
 };
 
 
-}}}//namespace simpla{namespace manifold { namespace policy
+}}}//namespace simpla{namespace Manifold { namespace policy
 
 #endif //SIMPLA_EMBEDDED_POLICY_H

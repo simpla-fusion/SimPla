@@ -1,5 +1,5 @@
 /**
- * @file Attribute.h
+ * @file attribute.h
  * @author salmon
  * @date 2015-12-16.
  */
@@ -249,7 +249,7 @@ public:
     {
         std::shared_ptr<this_type> res(nullptr);
 //@FIXME
-//        auto p_mesh = mesh().patch(id);
+//        auto p_mesh = mesh().Patch(id);
 //
 //        if (p_mesh != nullptr)
 //        {

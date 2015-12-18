@@ -54,7 +54,7 @@ class FieldAMRPolicy : public mesh::EnablePatchFromThis<TF>
             auto res = dataset().patches.insert(
                     std::make_pair(id, m->template dataset<value_type, iform>()));
 
-            if (!res.second) { THROW_EXCEPTION_RUNTIME_ERROR("can not create field patch!"); }
+            if (!res.second) { THROW_EXCEPTION_RUNTIME_ERROR("can not create field Patch!"); }
             else { it = res.first; }
         }
 
@@ -69,7 +69,7 @@ class FieldAMRPolicy : public mesh::EnablePatchFromThis<TF>
 
         if (it == dataset().patches.end())
         {
-            THROW_EXCEPTION_RUNTIME_ERROR("try to access an  unexist field patch!");
+            THROW_EXCEPTION_RUNTIME_ERROR("try to access an  unexist field Patch!");
         }
 
         return field_type(*m, it->second);

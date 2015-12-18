@@ -1,5 +1,5 @@
 /**
- * @file DataObject.h
+ * @file data_object.h
  * @author salmon
  * @date 2015-12-16.
  */
@@ -15,13 +15,13 @@
 namespace simpla { namespace base
 {
 
-class DataObject : public SpObject
+class DataObject : public Object
 {
 public:
 
 //    virtual std::shared_ptr<DataObject> clone() const { return std::make_shared<DataObject>(); }
 
-    SP_OBJECT_HEAD(DataObject, SpObject);
+    SP_OBJECT_HEAD(DataObject, Object);
 
     virtual data_model::DataSet data_set() = 0;
 

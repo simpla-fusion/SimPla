@@ -28,7 +28,7 @@
 #include <vtkIndent.h>
 #include <vtkInformation.h>
 #include <vtksys/SystemTools.hxx>
-#include <vtkDataSet.h>
+#include <vtkdata_set.h>
 #include <vtkCellData.h>
 #include <vtkIntArray.h>
 #include <vtkLongArray.h>
@@ -52,7 +52,7 @@
 #include <vtkLongArray.h>
 #include <vtkLongLongArray.h>
 #include <vtkDataArray.h>
-#include <vtkDataSet.h>
+#include <vtkdata_set.h>
 #include <vtkAMRInformation.h>
 
 #include <sstream>

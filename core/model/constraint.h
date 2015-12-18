@@ -9,12 +9,10 @@
 
 #include "../parallel/parallel.h"
 #include "../geometry/geo_object.h"
-#include "../manifold/manifold_traits.h"
 #include "../geometry/geo_algorithm.h"
+#include "../manifold/ManifoldTraits.h"
 
-namespace simpla
-{
-namespace model
+namespace simpla{namespace model
 {
 namespace _impl
 {

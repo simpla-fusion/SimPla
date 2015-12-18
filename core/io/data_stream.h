@@ -100,7 +100,7 @@ public:
 
     /**
      *
-     * @param url  <file name>:/<group path>/<obj name>.<attribute>
+     * @param url  <file name>:/<group path>/<obj name>.<Attribute>
      * @param v
      */
     void set_attribute(std::string const &url, any const &v);

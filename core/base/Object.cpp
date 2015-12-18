@@ -9,30 +9,30 @@
 
 namespace simpla { namespace base
 {
-SpObject::SpObject() : m_click_(0) { };
+Object::Object() : m_click_(0) { };
 
-SpObject::SpObject(SpObject &&other) : m_click_(other.m_click_) { };
+Object::Object(Object &&other) : m_click_(other.m_click_) { };
 
-SpObject::SpObject(SpObject const &) : m_click_(0) { };
+Object::Object(Object const &) : m_click_(0) { };
 
-SpObject &SpObject::operator=(SpObject const &other)
+Object &Object::operator=(Object const &other)
 {
-    SpObject(other).swap(*this);
+    Object(other).swap(*this);
     return *this;
 };
 
-SpObject::~SpObject() { }
+Object::~Object() { }
 
-void SpObject::swap(SpObject &other) { std::swap(m_click_, other.m_click_); };
+void Object::swap(Object &other) { std::swap(m_click_, other.m_click_); };
 
-bool SpObject::is_a(std::type_info const &info) const { return typeid(SpObject) == info; }
+bool Object::is_a(std::type_info const &info) const { return typeid(Object) == info; }
 
-std::string SpObject::get_class_name() const { return "SpObject"; }
+std::string Object::get_class_name() const { return "Object"; }
 
-bool SpObject::is_same(SpObject const &other) const { return this == &other; }
+bool Object::is_same(Object const &other) const { return this == &other; }
 
 
-std::ostream &SpObject::print(std::ostream &os, int indent) const
+std::ostream &Object::print(std::ostream &os, int indent) const
 {
     os << std::setw(indent) << this->get_class_name() << "= {";
     os << std::setw(indent) << "}," << std::endl;

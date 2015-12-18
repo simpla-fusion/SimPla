@@ -64,7 +64,7 @@ private:
 
 };
 
-}}}//namespace  namespace policy namespace manifold
+}}}//namespace  namespace policy namespace Manifold
 namespace simpla { namespace traits
 {
 template<typename ... T>

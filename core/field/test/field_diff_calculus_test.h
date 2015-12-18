@@ -19,10 +19,9 @@
 #include "../../io/io.h"
 
 #include "../../field/FieldDense.h"
-#include "../../field/field_expression.h"
-#include "../../field/field_traits.h"
+#include "../../field/FieldExpression.h"
+#include "../../field/FieldTraits.h"
 
-#include "../../manifold/manifold_traits.h"
 #include "../../gtl/ntuple.h"
 #include "../../gtl/primitives.h"
 
@@ -172,7 +171,7 @@ TEST_P(FETLTest, grad0)
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
         if (n == PhiAxis)
         {
-        expect /= x[RAxis];
+            expect /= x[RAxis];
         }
 #endif
         f1b[s] = expect;
@@ -239,8 +238,10 @@ TEST_P(FETLTest, grad3)
 
 
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
-        if (n == PhiAxis) {
-        expect /= x[RAxis]; }
+        if (n == PhiAxis)
+        {
+            expect /= x[RAxis];
+        }
 #endif
         f2b[s] = expect;
 
@@ -323,7 +324,7 @@ TEST_P(FETLTest, diverge1)
 
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
 
-        if (dims[RAxis] > 1 && mesh->sub_index(s) == RAxis &&    mesh->idx_to_boundary(s) <= 1)
+        if (dims[RAxis] > 1 && mesh->sub_index(s) == RAxis && mesh->idx_to_boundary(s) <= 1)
         {
             continue;
         }
@@ -398,8 +399,8 @@ TEST_P(FETLTest, diverge2)
 
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
         expect =
-        (K_real[PhiAxis] / x[RAxis] + K_real[RAxis] + K_real[ZAxis]) * cos_v
-        + (K_imag[PhiAxis] / x[RAxis] + K_imag[RAxis] + K_imag[ZAxis]) * sin_v;
+                (K_real[PhiAxis] / x[RAxis] + K_real[RAxis] + K_real[ZAxis]) * cos_v
+                + (K_imag[PhiAxis] / x[RAxis] + K_imag[RAxis] + K_imag[ZAxis]) * sin_v;
 
         expect += sin_v / x[RAxis];
 #else
@@ -410,7 +411,7 @@ TEST_P(FETLTest, diverge2)
 
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
 
-        if (dims[mesh->  sub_index(s)] > 1 && mesh->  idx_to_boundary(s)  <= 1) {  continue; }
+        if (dims[mesh->sub_index(s)] > 1 && mesh->idx_to_boundary(s) <= 1) { continue; }
 #endif
         ++count;
 
@@ -488,21 +489,21 @@ TEST_P(FETLTest, curl1)
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
         switch (n)
         {
-        case
-        RAxis:// r
+            case
+                RAxis:// r
                 expect = (K_real[PhiAxis] * E[ZAxis] / x[RAxis] - K_real[ZAxis] * E[RAxis]) * cos_v;
-        break;
+                break;
 
-        case
-        ZAxis:// z
+            case
+                ZAxis:// z
                 expect = K_real[PhiAxis] * E[RAxis] * cos_v / x[RAxis] - K_real[RAxis] * E[PhiAxis] * cos_v -
                          E[PhiAxis] * sin_v / x[RAxis];
-        break;
+                break;
 
-        case
-        PhiAxis: // theta
+            case
+                PhiAxis: // theta
                 expect = (K_real[RAxis] * E[ZAxis] - K_real[ZAxis] * E[RAxis]) * cos_v;
-        break;
+                break;
 
 
         }
@@ -515,11 +516,13 @@ TEST_P(FETLTest, curl1)
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
 
         if (dims[mesh->
-        sub_index(s)
-        ] > 1 && mesh->
-        idx_to_boundary(s)
-        <= 1) {
-        continue; }
+                sub_index(s)
+            ] > 1 && mesh->
+                idx_to_boundary(s)
+                     <= 1)
+        {
+            continue;
+        }
 #endif
         ++count;
 
@@ -597,25 +600,25 @@ TEST_P(FETLTest, curl2)
 
         switch (n)
         {
-        case
-        PhiAxis: // theta
+            case
+                PhiAxis: // theta
                 expect = (K_real[RAxis] - K_real[ZAxis]) * cos_v
                          + (K_imag[RAxis] - K_imag[ZAxis]) * sin_v;
-        break;
-        case
-        RAxis:// r
+                break;
+            case
+                RAxis:// r
                 expect = (K_real[ZAxis] - K_real[PhiAxis] / x[RAxis]) * cos_v
                          + (K_imag[ZAxis] - K_imag[PhiAxis] / x[RAxis]) * sin_v;
-        break;
+                break;
 
-        case
-        ZAxis:// z
+            case
+                ZAxis:// z
                 expect = (K_real[PhiAxis] - K_real[RAxis]) * cos_v
                          + (K_imag[PhiAxis] - K_imag[RAxis]) * sin_v;
 
 
-        expect -= sin_v / x[RAxis];
-        break;
+                expect -= sin_v / x[RAxis];
+                break;
 
         }
 
@@ -635,11 +638,13 @@ TEST_P(FETLTest, curl2)
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
 
         if (dims[mesh->
-        sub_index(s)
-        ] > 1 && mesh->
-        idx_to_boundary(s)
-        <= 1) {
-        continue; }
+                sub_index(s)
+            ] > 1 && mesh->
+                idx_to_boundary(s)
+                     <= 1)
+        {
+            continue;
+        }
 #endif
         ++count;
 
@@ -803,11 +808,13 @@ TEST_P(FETLTest, identity_div_curl_f1_eq0
 
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
         if (dims[mesh->
-        sub_index(s)
-        ] > 1 && mesh->
-        idx_to_boundary(s)
-        <= 1) {
-        continue; }
+                sub_index(s)
+            ] > 1 && mesh->
+                idx_to_boundary(s)
+                     <= 1)
+        {
+            continue;
+        }
 #endif
         ++count;
 
@@ -862,7 +869,7 @@ TEST_P(FETLTest, identity_div_curl_f2_eq0
     {
 
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
-        if (dims[mesh-> sub_index(s) ] > 1 && mesh-> idx_to_boundary(s) <= 1) {  continue; }
+        if (dims[mesh->sub_index(s)] > 1 && mesh->idx_to_boundary(s) <= 1) { continue; }
 #endif
         ++count;
 

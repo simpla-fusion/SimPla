@@ -13,8 +13,8 @@
 #include "../../gtl/type_traits.h"
 #include "../../gtl/primitives.h"
 #include "../../data_model/dataset.h"
-#include "../../base/attribute.h"
-#include "../../base/patch.h"
+#include "Attribute.h"
+#include "Patch.h"
 
 
 namespace simpla

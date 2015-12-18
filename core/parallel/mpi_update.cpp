@@ -108,12 +108,12 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count)
 //}
 //
 //
-//void sync_update_varlength(MPIComm &mpi_comm, DataType const &data_type,
+//void sync_update_varlength(MPIComm &mpi_comm, DataType const &DataType,
 //		std::vector<send_recv_buffer_s> &send_recv_buffer,
 //		std::vector<MPI_Request> &requests)
 //{
 //
-//	auto mpi_data_type = MPIDataType::create(data_type);
+//	auto mpi_data_type = MPIDataType::create(DataType);
 //
 //	int dest, send_tag, recv_tag;
 //
@@ -151,7 +151,7 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count)
 //			RUNTIME_ERROR("Update Ghosts particle fail");
 //		}
 //
-//		item.recv_data = sp_alloc_memory(recv_num * data_type.size());
+//		item.recv_data = sp_alloc_memory(recv_num * DataType.size());
 //
 //		item.recv_size = recv_num;
 //

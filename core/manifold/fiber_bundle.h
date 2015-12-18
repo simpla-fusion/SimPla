@@ -130,7 +130,7 @@ public:
 
 
 
-}}//namespace simpla{namespace manifold
+}}//namespace simpla{namespace Manifold
 
 
 #endif //SIMPLA_FIBER_BUNDLE_H

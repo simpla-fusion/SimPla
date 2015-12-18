@@ -1,5 +1,5 @@
 /**
- * @file DataSpace.h
+ * @file data_space.h
  *
  *  Created on: 2014-11-10
  *  @author: salmon
@@ -27,11 +27,11 @@ struct DataSet;
  * @brief  Define the size and  shape of data set in memory/file
  *  Ref. http://www.hdfgroup.org/HDF5/doc/UG/UG_frame12Dataspaces.html
  */
-class DataSpace : public base::SpObject
+class DataSpace : public base::Object
 {
 public:
 
-    SP_OBJECT_HEAD(DataSpace, base::SpObject);
+    SP_OBJECT_HEAD(DataSpace, base::Object);
 
 
     typedef size_t index_type;
@@ -54,7 +54,7 @@ public:
     DataSpace(int rank, size_t const *dims);
 
 
-    // Copy constructor: makes a copy of the original DataSpace object.
+    // Copy constructor: makes a copy of the original data_space object.
     DataSpace(const DataSpace &other);
 
 

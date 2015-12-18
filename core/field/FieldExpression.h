@@ -12,8 +12,7 @@
 #include <cstdbool>
 #include <type_traits>
 
-#include "field_comm.h"
-#include "field_traits.h"
+#include "FieldTraits.h"
 
 #include "../gtl/expression_template.h"
 #include "../gtl/type_traits.h"
@@ -87,7 +86,7 @@ struct value_type<Field<Expression<TOP, T...> > >
 //};
 //
 //}  // namespace _impl
- 
+
 template<typename TAG, typename T0, typename ... T>
 struct iform<Field<Expression<TAG, T0, T...> > > : public traits::iform<T0>::type
 {

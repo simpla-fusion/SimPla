@@ -1,5 +1,5 @@
 /**
- * @file patch.h
+ * @file Patch.h
  * @author salmon
  * @date 2015-12-13.
  */
@@ -16,7 +16,7 @@
 #include "../gtl/primitives.h"
 #include "Attribute.h"
 
-namespace simpla
+namespace simpla { namespace base
 {
 
 
@@ -25,7 +25,7 @@ class Patch
 {
 public:
     /**
-    * @name patch
+    * @name Patch
     * @{
     */
     typedef TObject object_type;
@@ -59,7 +59,7 @@ public:
     };
 
     /**
-     *  find patch[id], if id do not exist then create_patch(id)
+     *  find Patch[id], if id do not exist then create_patch(id)
      */
     virtual std::shared_ptr<object_type> patch(size_t id)
     {
@@ -104,6 +104,6 @@ protected:
 };
 
 
-} //namespace simpla { namespace mesh
+}}// namespace simpla{namespace base{
 
 #endif //SIMPLA_PATCH_H

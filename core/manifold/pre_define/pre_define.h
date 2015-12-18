@@ -26,7 +26,7 @@
 namespace simpla { namespace manifold
 {
 //template<typename MESH, template<typename> class ...Policies>
-//using ManifoldWithPolicies= manifold<MESH, Policies<MESH>...>;
+//using ManifoldWithPolicies= Manifold<MESH, Policies<MESH>...>;
 
 template<typename MESH>
 using DefaultManifold= Manifold<MESH,
@@ -38,7 +38,7 @@ using CylindricalManifold= DefaultManifold<mesh::RectMesh<geometry::CylindricalM
 using CartesianManifold=DefaultManifold<mesh::CoRectMesh<geometry::CartesianMetric> >;
 
 
-}}// namespace simpla { namespace manifold
+}}// namespace simpla { namespace Manifold
 
 namespace simpla { namespace tags { struct function; }}
 
@@ -46,8 +46,8 @@ namespace simpla { namespace traits
 {
 template<typename ValueType, typename TM, int IFORM = VERTEX>
 using field_t=  Field<ValueType, TM, std::integral_constant<int, IFORM>,
-        manifold::policy::FiniteVolume<TM>,
-        manifold::policy::LinearInterpolator<TM>
+        manifold::policy::FiniteVolume < TM>,
+manifold::policy::LinearInterpolator <TM>
 >;
 
 template<typename TV, int I, typename TM> field_t<TV, TM, I>
@@ -57,8 +57,8 @@ make_field(TM const &mesh) { return field_t<TV, TM, I>(mesh); };
 template<typename TV, typename TM, int IFORM, typename TFun>
 using field_function_t=Field<TV, TM, std::integral_constant<int, IFORM>,
         tags::function, TFun, typename TM::box_type,
-        manifold::policy::FiniteVolume<TM>,
-        manifold::policy::LinearInterpolator<TM>>;
+        manifold::policy::FiniteVolume < TM>,
+manifold::policy::LinearInterpolator <TM>>;
 
 template<typename TV, int IFORM, typename TM, typename TDict>
 field_function_t<TV, TM, IFORM, TDict> make_field_function(TM const &m, TDict const &dict)

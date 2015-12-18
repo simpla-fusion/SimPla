@@ -21,7 +21,7 @@
 #include "../../core/gtl/utilities/log.h"
 
 
-#include "../../core/manifold/manifold_traits.h"
+#include "manifold_traits.h"
 #include "../../core/manifold/calculus.h"
 #include "pre_define.h"
 

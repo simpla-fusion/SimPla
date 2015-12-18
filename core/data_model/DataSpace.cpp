@@ -152,7 +152,7 @@ DataSpace &DataSpace::select_hyperslab(index_type const *start,
 {
     if (!is_valid())
     {
-        THROW_EXCEPTION_RUNTIME_ERROR("DataSpace is invalid!");
+        THROW_EXCEPTION_RUNTIME_ERROR("data_space is invalid!");
     }
 
     if (start != nullptr)
@@ -184,9 +184,9 @@ DataSpace &DataSpace::select_hyperslab(index_type const *start,
 
 std::ostream &DataSpace::print(std::ostream &os, int indent) const
 {
-    return base::SpObject::print(os, indent);
+    return base::Object::print(os, indent);
 }
-//bool DataSpace::is_distributed() const
+//bool data_space::is_distributed() const
 //{
 //	bool flag = false;
 //	for (int i = 0; i < pimpl_->m_d_shape_.ndims; ++i)
@@ -202,7 +202,7 @@ std::ostream &DataSpace::print(std::ostream &os, int indent) const
 
 
 
-//DataSpace::data_shape_s DataSpace::local_shape() const
+//data_space::data_shape_s data_space::local_shape() const
 //{
 //
 //	data_shape_s res = pimpl_->m_d_shape_;
@@ -214,13 +214,13 @@ std::ostream &DataSpace::print(std::ostream &os, int indent) const
 //	return std::move(res);
 //}
 //
-//DataSpace::data_shape_s DataSpace::global_shape() const
+//data_space::data_shape_s data_space::global_shape() const
 //{
 //	return pimpl_->m_d_shape_;
 //}
 //
 //
-//size_t DataSpace::local_memory_size() const
+//size_t data_space::local_memory_size() const
 //{
 //	size_t s = 1;
 //
@@ -231,7 +231,7 @@ std::ostream &DataSpace::print(std::ostream &os, int indent) const
 //	return s;
 //}
 //
-//DataSpace &DataSpace::set_local_shape(index_type const *local_dimensions =
+//data_space &data_space::set_local_shape(index_type const *local_dimensions =
 //nullptr, index_type const *local_offset = nullptr)
 //{
 //
@@ -258,16 +258,16 @@ std::ostream &DataSpace::print(std::ostream &os, int indent) const
 //	return *this;
 //}
 //
-//void DataSpace::decompose(size_t ndims, size_t const * proc_dims,
+//void data_space::decompose(size_t ndims, size_t const * proc_dims,
 //		size_t const * proc_coord)
 //{
 //	if (!is_valid())
 //	{
-//		THROW_EXCEPTION_RUNTIME_ERROR("DataSpace is invalid!");
+//		THROW_EXCEPTION_RUNTIME_ERROR("data_space is invalid!");
 //	}
 //	if (ndims > pimpl_->m_ndims_)
 //	{
-//		THROW_EXCEPTION_RUNTIME_ERROR("DataSpace is too small to decompose!");
+//		THROW_EXCEPTION_RUNTIME_ERROR("data_space is too small to decompose!");
 //	}
 //	nTuple<size_t, MAX_NDIMS_OF_ARRAY> offset, count;
 //	offset = 0;
@@ -283,7 +283,7 @@ std::ostream &DataSpace::print(std::ostream &os, int indent) const
 //		if (count[n] <= 0)
 //		{
 //			THROW_EXCEPTION_RUNTIME_ERROR(
-//					"DataSpace decompose fail! Dimension  is smaller than process grid. "
+//					"data_space decompose fail! Dimension  is smaller than process grid. "
 //							"[dimensions= "
 //							+ value_to_string(pimpl_->m_dimensions_)
 //							+ ", process dimensions="
@@ -346,7 +346,7 @@ std::ostream &DataSpace::print(std::ostream &os, int indent) const
 //
 //}
 //
-//void DataSpace::pimpl_s::decompose()
+//void data_space::pimpl_s::decompose()
 //{
 //
 ////	local_shape_.dimensions = global_shape_.dimensions;
@@ -439,7 +439,7 @@ std::ostream &DataSpace::print(std::ostream &os, int indent) const
 //	is_valid_ = true;
 //}
 
-//bool DataSpace::sync(std::shared_ptr<void> data, DataType const & DataType,
+//bool data_space::sync(std::shared_ptr<void> data, DataType const & DataType,
 //		size_t flag)
 //{
 //#if  !NO_MPI || USE_MPI

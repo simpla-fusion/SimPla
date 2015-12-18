@@ -15,7 +15,7 @@
 #include "../application/sp_object.h"
 #include "../gtl/expression_template.h"
 
-#include "field_expression.h"
+#include "FieldExpression.h"
 namespace simpla
 {
 template<typename ...>struct Field;

@@ -13,7 +13,7 @@
 #include "co_rect_mesh.h"
 #include "../calculate/fvm_structured.h"
 #include "linear_interpolator.h"
-#include "Manifold.h"
+#include "manifold.h"
 #include "storage.h"
 
 namespace simpla
@@ -27,6 +27,6 @@ using Mock= Manifold<CartesianCoordinate, Calculate<CartesianCoordinate, calcula
 		DataSetPolicy<CartesianCoordinate>>;
 
 
-}//namespace  manifold
+}//namespace  Manifold
 }//namespace simpla
 #endif //SIMPLA_MOCK_H

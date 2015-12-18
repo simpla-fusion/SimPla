@@ -16,7 +16,7 @@
 #include "../../gtl/primitives.h"
 #include "../../gtl/iterator/block_iterator.h"
 #include "../../parallel/parallel.h"
-#include "../manifold_traits.h"
+#include "../ManifoldTraits.h"
 
 namespace simpla { namespace mesh
 {

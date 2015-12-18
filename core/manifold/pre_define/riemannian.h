@@ -14,7 +14,7 @@ namespace simpla
 namespace manifold
 {
 template<typename CS> using Riemannian= DefaultManifold<CS>;
-}//namespace manifold
+}//namespace Manifold
 
 
 }//namespace simpla

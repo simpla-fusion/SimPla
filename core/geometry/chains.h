@@ -98,20 +98,20 @@ struct Chains<Primitive<1, CS, tags::simplex>, Policies...> : public std::vector
 //
 //	typedef nTuple<id_type, max_number_of_points> indices_tuple;
 //
-//	typedef std::map<id_type, indices_tuple> data_type;
+//	typedef std::map<id_type, indices_tuple> DataType;
 //
-//	data_type & data()
+//	DataType & data()
 //	{
 //		return m_data_;
 //	}
-//	data_type const& data() const
+//	DataType const& data() const
 //	{
 //		return m_data_;
 //	}
 //	boundary_type boundary() const;
 //
 //private:
-//	data_type m_data_;
+//	DataType m_data_;
 };
 
 }  // namespace model

@@ -12,12 +12,12 @@
 #include "../../gtl/utilities/memory_pool.h"
 #include "../../data_model/DataSet.h"
 #include "../../data_model/DataSpace.h"
-#include "../manifold_traits.h"
+#include "../ManifoldTraits.h"
 
 namespace simpla
 {
 /**
- * @ingroup manifold
+ * @ingroup Manifold
  */
 namespace manifold { namespace policy
 {
@@ -168,7 +168,7 @@ public:
 
     }
 };//template<typename TGeo> struct StoragePolicy
-}} //namespace manifold //namespace policy
+}} //namespace Manifold //namespace policy
 
 
 

@@ -28,7 +28,7 @@ typedef nTuple<3, Real> coordinate_tuple;
 
 class TestFETL: public testing::TestWithParam<
 		std::tuple<coordiantes_type, coordiantes_type,
-				nTuple<TManifold::NDIMS, size_t>, nTuple<TManifold::NDIMS, Real> > >
+				nTuple<Tmanifold::NDIMS, size_t>, nTuple<Tmanifold::NDIMS, Real> > >
 {
 
 protected:

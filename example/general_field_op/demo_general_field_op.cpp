@@ -15,7 +15,7 @@
 #include "../../core/parallel/mpi_comm.h"
 #include "../../core/gtl/utilities/log.h"
 #include "../../core/field/field_dense.h"
-#include "../../core/field/field_expression.h"
+#include "FieldExpression.h"
 
 
 using namespace simpla;

@@ -8,8 +8,7 @@
 #ifndef FIELD_DENSE_H_
 #define FIELD_DENSE_H_
 
-#include "field_comm.h"
-#include "field_traits.h"
+#include "FieldTraits.h"
 
 
 #include <algorithm>
@@ -19,7 +18,7 @@
 
 #include "../gtl/type_traits.h"
 #include "../parallel/parallel.h"
-#include "../manifold/manifold_traits.h"
+#include "../manifold/ManifoldTraits.h"
 
 
 namespace simpla

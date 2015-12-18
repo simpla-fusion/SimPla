@@ -5,13 +5,15 @@
  *      Author: salmon
  */
 
-#include "DataType.h"
+#include "../data_model/DataType.h"
 
 #include <algorithm>
 #include <iterator>
 #include <iomanip>
 
-namespace simpla { namespace data_model
+namespace simpla
+{
+namespace data_model
 {
 struct DataType::pimpl_s
 {
@@ -57,7 +59,8 @@ DataType::pimpl_s::pimpl_s() :
 {
 }
 
-DataType::pimpl_s::pimpl_s(pimpl_s const &other) :
+DataType::pimpl_s::pimpl_s(pimpl_s const
+                           &other) :
         m_ele_size_in_byte_(other.m_ele_size_in_byte_),
         m_t_index_(other.m_t_index_),
         m_name_(other.m_name_),
@@ -100,7 +103,8 @@ DataType::DataType(std::type_index t_index, size_t ele_size_in_byte,
     {
         if (is_same<int>()) { pimpl_->m_name_ = "int"; }
         else if (is_same<long>()) { pimpl_->m_name_ = "long"; }
-        else if (is_same<unsigned long>()) { pimpl_->m_name_ = "unsigned long"; }
+        else if (is_same<unsigned
+        long>()) { pimpl_->m_name_ = "unsigned long"; }
         else if (is_same<float>()) { pimpl_->m_name_ = "float"; }
         else if (is_same<double>()) { pimpl_->m_name_ = "double"; }
         else { pimpl_->m_name_ = "UNKNOWN"; }
@@ -108,7 +112,8 @@ DataType::DataType(std::type_index t_index, size_t ele_size_in_byte,
 }
 
 
-DataType &DataType::operator=(DataType const &other)
+DataType &DataType::operator=(DataType const
+                              &other)
 {
 //    pimpl_->m_ele_size_in_byte_ = (other.pimpl_->m_ele_size_in_byte_);
 //    pimpl_->m_t_index_ = (other.pimpl_->m_t_index_);
@@ -119,7 +124,8 @@ DataType &DataType::operator=(DataType const &other)
 //    std::copy(other.pimpl_->m_members_.begin(), other.pimpl_->m_members_.end(),
 //              std::back_inserter(pimpl_->m_members_));
 
-    DataType(other).swap(*this);
+    DataType(other)
+            .swap(*this);
 
     return *this;
 }
@@ -285,5 +291,7 @@ std::ostream &DataType::print(std::ostream &os, int indent) const
 
     return os;
 }
-}} //namespace simpla { namespace data_model
+
+}
+} //namespace simpla { namespace data_model
 
