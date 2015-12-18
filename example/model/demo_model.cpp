@@ -44,7 +44,7 @@ USE_CASE(model,"Model")
 
 	mesh->select(
 
-	options["Object"],
+	options["GeoObject"],
 
 	options["SelectTag"].as<int>(0),
 

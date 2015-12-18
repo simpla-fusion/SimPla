@@ -1,5 +1,5 @@
 /**
- * @file geo_object.h
+ * @file GeoObject.h
  *
  *  Created on: 2015-6-7
  *      Author: salmon
@@ -19,19 +19,19 @@ namespace simpla { namespace geometry
  *
  *  Base Geometric object
  */
-class Object
+class GeoObject
 {
 
-    typedef Object this_type;
+    typedef GeoObject this_type;
 
 public:
     typedef nTuple<Real, 3> vector_type;
     typedef nTuple<Real, 3> point_type;
     typedef std::tuple<point_type, point_type> box_type;
 
-    Object() { }
+    GeoObject() { }
 
-    virtual ~Object() { }
+    virtual ~GeoObject() { }
 
     virtual box_type box() const = 0;
 

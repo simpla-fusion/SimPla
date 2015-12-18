@@ -26,7 +26,7 @@ namespace simpla
  * Requirements for a type whose instances share ownership between multiple objects;
  *
  * ## Requirements
- * For @ref shareable Object `X`
+ * For @ref shareable GeoObject `X`
  *
  *   Pseudo-Signature                    | Semantics
  *	 ------------------------------------|----------
@@ -90,7 +90,7 @@ namespace simpla
  *    all share ownership of `t` with `pt`.
  *
  * ## Requirement
- *   - require `Object::Object(Object & ,...)` exists
+ *   - require `GeoObject::GeoObject(GeoObject & ,...)` exists
  *
  * ## Usage
  *

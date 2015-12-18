@@ -16,16 +16,15 @@
 #include "../../core/manifold/pre_define/PreDefine.h"
 #include "../../core/field/Field.h"
 
-//#include "../../core/particle/particle.h"
-//#include "../../core/particle/particle_proxy.h"
-//#include "../../core/particle/particle_generator.h"
-//#include "../../core/particle/pre_define/pic_boris.h"
-//#include "../../core/particle/particle_constraint.h"
+//#include "../../core/particle/Particle.h"
+//#include "../../core/particle/ParticleProxy.h"
+//#include "../../core/particle/ParticleGenerator.h"
+//#include "../../core/particle/pre_define/PICBoris.h"
+//#include "../../core/particle/particle_Constraint.h"
 
-#include "../../core/model/geqdsk.h"
-#include "../../core/model/constraint.h"
+#include "../../core/model/GEqdsk.h"
+#include "../../core/model/Constraint.h"
 #include "../../core/io/XDMFStream.h"
-//#include "../../core/data_model/datatype_ext.h"
 
 namespace simpla
 {

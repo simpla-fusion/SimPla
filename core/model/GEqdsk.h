@@ -1,5 +1,5 @@
 /**
- *  @file geqdsk.h
+ *  @file GEqdsk.h
  *
  *  created on: 2013-11-29
  *      Author: salmon
@@ -13,7 +13,7 @@
 #include "../gtl/ntuple.h"
 #include "../gtl/primitives.h"
 #include "../gtl/type_traits.h"
-#include "../geometry/geo_object.h"
+#include "../geometry/GeoObject.h"
 
 namespace simpla
 {
@@ -64,9 +64,9 @@ public:
 
     std::tuple<point_type, point_type> box() const;
 
-    geometry::Object const &boundary() const;
+    geometry::GeoObject const &boundary() const;
 
-    geometry::Object const &limiter() const;
+    geometry::GeoObject const &limiter() const;
 
     Real psi(Real R, Real Z) const;
 

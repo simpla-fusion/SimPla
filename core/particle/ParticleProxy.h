@@ -1,5 +1,5 @@
 /**
- * @file particle_proxy.h
+ * @file ParticleProxy.h
  * @author salmon
  * @date 2015-11-26.
  */
@@ -7,7 +7,7 @@
 #ifndef SIMPLA_PARTICLE_PROXY_H
 #define SIMPLA_PARTICLE_PROXY_H
 
-#include "../data_model/dataset.h"
+#include "../data_model/DataSet.h"
 
 namespace simpla
 {

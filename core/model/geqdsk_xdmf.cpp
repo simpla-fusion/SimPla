@@ -5,7 +5,7 @@
  *      Author: salmon
  */
 
-#include "geqdsk.h"
+#include "GEqdsk.h"
 
 #include <XdmfArray.h>
 #include <Xdmfattribute.h>

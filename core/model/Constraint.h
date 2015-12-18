@@ -1,18 +1,18 @@
 /**
- * @file surface.h
+ * @file Constraint.h
  * @author salmon
  * @date 2015-11-30.
  */
 
-#ifndef SIMPLA_SURFACE_H
-#define SIMPLA_SURFACE_H
+#ifndef SIMPLA_CONSTRAINT_H
+#define SIMPLA_CONSTRAINT_H
 
 #include "../parallel/Parallel.h"
-#include "../geometry/geo_object.h"
-#include "../geometry/geo_algorithm.h"
+#include "../geometry/GeoObject.h"
+#include "../geometry/GeoAlgorithm.h"
 #include "../manifold/ManifoldTraits.h"
 
-namespace simpla{namespace model
+namespace simpla { namespace model
 {
 namespace _impl
 {
@@ -50,7 +50,7 @@ template<typename TM> using Cache = Surface<TM>;
  */
 
 template<typename TM, int IFORM = VERTEX>
-void update_cache(TM const &m, geometry::Object const &geo, Cache<TM> *cache, int flag = 0)
+void update_cache(TM const &m, geometry::GeoObject const &geo, Cache<TM> *cache, int flag = 0)
 {
 
     typedef TM mesh_type;
@@ -162,7 +162,7 @@ void search_cache(TM const &m, TRange const &r0, Cache<TM> const &cache, int fla
 
 
 template<typename TM, typename ...Args>
-void get_cell_on_surface(TM const &m, geometry::Object const &geo, Args &&...args)
+void get_cell_on_surface(TM const &m, geometry::GeoObject const &geo, Args &&...args)
 {
 
     Cache<TM> cache;
@@ -305,8 +305,7 @@ void create_id_set(TM const &m, TRange const &r0, TSet *res)
 }
 
 
-}
-} // namespace simpla { namespace model
+}} // namespace simpla { namespace model
 
-#endif //SIMPLA_SURFACE_H
+#endif //SIMPLA_CONSTRAINT_H
 

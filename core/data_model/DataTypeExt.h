@@ -74,7 +74,7 @@ namespace simpla
 //#define SP_PARTICLE_GET_NAME_CHOOSE_HELPER(count) SP_PARTICLE_GET_NAME_CHOOSE_HELPER1(count)
 //#define SP_PARTICLE_GET_NAME(...) SP_PARTICLE_GET_NAME_CHOOSE_HELPER(COUNT_MACRO_ARGS(__VA_ARGS__)) (__VA_ARGS__)
 
-#define SP_DEFINE_STRUCT_DESC_HELPER2(_S_NAME_, _T0_, _N0_) d_type.push_back(::simpla::traits::datatype<::simpla::traits::primary_type_t<_T0_> >::create(), #_N0_, offsetof(_S_NAME_, _N0_));
+#define SP_DEFINE_STRUCT_DESC_HELPER2(_S_NAME_, _T0_, _N0_) d_type.push_back(::simpla::data_model::DataType::template create<::simpla::traits::primary_type_t<_T0_> >(), #_N0_, offsetof(_S_NAME_, _N0_));
 #define SP_DEFINE_STRUCT_DESC_HELPER4(_S_NAME_, _T0_, _N0_, _T1_, _N1_) SP_DEFINE_STRUCT_DESC_HELPER2(_S_NAME_,_T0_,_N0_) \
       SP_DEFINE_STRUCT_DESC_HELPER2(_S_NAME_,_T1_,_N1_)
 #define SP_DEFINE_STRUCT_DESC_HELPER6(_S_NAME_, _T0_, _N0_, _T1_, _N1_, _T2_, _N2_)  SP_DEFINE_STRUCT_DESC_HELPER2(_S_NAME_,_T0_,_N0_) \
@@ -100,9 +100,9 @@ namespace simpla
 struct _S_NAME_  {                                      \
     SP_DEFINE_STRUCT_MEMBER(__VA_ARGS__)                \
                                                         \
-    static DataType data_type()                          \
+    static ::simpla::data_model::DataType data_type()                          \
     {                                                   \
-        DataType d_type(typeid(_S_NAME_),sizeof(_S_NAME_),0,nullptr,__STRING(_S_NAME_));                                \
+        ::simpla::data_model::DataType d_type(typeid(_S_NAME_),sizeof(_S_NAME_),0,nullptr,__STRING(_S_NAME_));                                \
         SP_DEFINE_STRUCT_DESC(_S_NAME_, __VA_ARGS__);   \
         return std::move(d_type);                       \
     }                                                   \

@@ -1,11 +1,11 @@
 /**
- *  @file  geqdsk.cpp
+ *  @file  Geqdsk.cpp
  *
  *  created on: 2013-11-29
  *      Author: salmon
  */
 
-#include "geqdsk.h"
+#include "GEqdsk.h"
 
 #include <fstream>
 #include <iomanip>
@@ -15,11 +15,11 @@
 #include <memory>
 #include <utility>
 
+#include "../physics/Constants.h"
 #include "../gtl/utilities/log.h"
 #include "../gtl/utilities/pretty_stream.h"
 #include "../gtl/ntuple.h"
 #include "../gtl/ntuple_ext.h"
-#include "Constants.h"
 
 
 #include "../geometry/polygon.h"
@@ -432,14 +432,14 @@ GEqdsk::~GEqdsk() { }
 std::string const &GEqdsk::description() const { return m_pimpl_->m_desc_; }
 
 
-geometry::Object const &GEqdsk::boundary() const
+geometry::GeoObject const &GEqdsk::boundary() const
 {
-    return dynamic_cast<geometry::Object const &>(m_pimpl_->m_rzbbb_);
+    return dynamic_cast<geometry::GeoObject const &>(m_pimpl_->m_rzbbb_);
 }
 
-geometry::Object const &GEqdsk::limiter() const
+geometry::GeoObject const &GEqdsk::limiter() const
 {
-    return dynamic_cast<geometry::Object const &>(m_pimpl_->m_rzlim_);
+    return dynamic_cast<geometry::GeoObject const &>(m_pimpl_->m_rzlim_);
 }
 
 Real GEqdsk::psi(Real R, Real Z) const

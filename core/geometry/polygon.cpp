@@ -5,7 +5,7 @@
  */
 #include "../gtl/ntuple_ext.h"
 #include "polygon.h"
-#include "geo_algorithm.h"
+#include "GeoAlgorithm.h"
 
 namespace simpla { namespace geometry
 {

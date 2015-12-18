@@ -15,7 +15,7 @@
 #include "../../gtl/ntuple.h"
 #include "../../gtl/type_traits.h"
 #include "../../gtl/utilities/utilities.h"
-#include "../../geometry/geo_algorithm.h"
+#include "../../geometry/GeoAlgorithm.h"
 #include "Mesh.h"
 #include "MeshBlock.h"
 #include "LinearMap.h"

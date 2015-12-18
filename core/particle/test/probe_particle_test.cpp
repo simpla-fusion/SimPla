@@ -12,12 +12,12 @@
 #include "../../utilities/lua_object.h"
 #include "../parallel/message_comm.h"
 #include "../parallel/MPIAuxFunctions.h"
-#include "../sync_particle.h"
-#include "load_particle.h"
-#include "tracable_particle.h"
+#include "../sync_Particle.h"
+#include "load_Particle.h"
+#include "tracable_Particle.h"
 
 //
-//#include "save_particle.h"
+//#include "save_Particle.h"
 using namespace simpla;
 #include "../field/saveField.h"
 #include "../../diff_geometry/mesh.h"

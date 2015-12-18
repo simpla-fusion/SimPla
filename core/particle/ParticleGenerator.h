@@ -1,5 +1,5 @@
 /**
- * @file particle_generator.h
+ * @file ParticleGenerator.h
  *
  * @date 2015-2-12
  * @author salmon

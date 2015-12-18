@@ -5,7 +5,7 @@
  *      Author: salmon
  */
 
-#include "demo_probe_particle.h"
+#include "demo_probe_Particle.h"
 
 #include <stddef.h>
 #include <cstdlib>
@@ -16,9 +16,9 @@
 #include "../../../core/parallel/parallel.h"
 
 #include "../../../core/utilities/utilities.h"
-#include "../../../core/particle/particle.h"
-#include "../../../core/particle/probe_particle.h"
-#include "../../../core/particle/particle_engine.h"
+#include "../../../core/particle/Particle.h"
+#include "../../../core/particle/probe_Particle.h"
+#include "../../../core/particle/ParticleEngine.h"
 #include "../../../core/io/IO.h"
 
 using namespace simpla;

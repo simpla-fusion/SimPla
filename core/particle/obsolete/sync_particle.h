@@ -1,5 +1,5 @@
 /**
- * @file  sync_particle.h
+ * @file  sync_Particle.h
  *
  *  created on: 2014-6-15
  *      Author: salmon

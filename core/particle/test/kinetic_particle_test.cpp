@@ -6,8 +6,8 @@
  */
 
 #include <gtest/gtest.h>
-#include "../kinetic_particle.h"
-#include "../simple_particle.h"
+#include "../kinetic_Particle.h"
+#include "../simple_Particle.h"
 #include "rect_mesh.h"
 #include "field_comm.h"
 

@@ -10,7 +10,7 @@
 #include <algorithm>
 
 #include "../geometry/point_in_polygon.h"
-#include "geo_algorithm.h"
+#include "GeoAlgorithm.h"
 #include "manifold"
 #include "../gtl/ntuple.h"
 namespace simpla

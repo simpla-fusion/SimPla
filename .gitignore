@@ -1,6 +1,6 @@
 *~
 *.bak
-# Compiled Object files
+# Compiled GeoObject files
 *.slo
 *.lo
 *.o

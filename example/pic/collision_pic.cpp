@@ -21,7 +21,7 @@
 #include "../../core/physics/PhysicalConstants.h"
 #include "../../core/gtl/utilities/config_parser.h"
 #include "../../core/gtl/utilities/log.h"
-#include "../../core/particle/obsolete/simple_particle_generator.h"
+#include "../../core/particle/obsolete/SimpleParticleGenerator.h"
 
 
 using namespace simpla;

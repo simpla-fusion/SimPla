@@ -1,5 +1,5 @@
 /**
- * @file cs_cartesian.h
+ * @file csCartesian.h
  *
  *  Created on: 2015-6-14
  *      Author: salmon
@@ -10,7 +10,7 @@
 
 #include "../gtl/macro.h"
 #include "../gtl/type_cast.h"
-#include "coordinate_system.h"
+#include "CoordinateSystem.h"
 
 namespace simpla
 {
@@ -20,7 +20,7 @@ namespace geometry
 
 template<typename...> struct Metric;
 
-using CartesianMetric= Metric<geometry::coordinate_system::Cartesian<3, 2> >;
+using CartesianMetric= Metric<coordinate_system::Cartesian<3, 2> >;
 
 /**
  * @ingroup  coordinate_system
@@ -35,9 +35,9 @@ struct Metric<coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS> >
     static constexpr int CartesianZAxis = (ICARTESIAN_ZAXIS) % 3;
     static constexpr int CartesianYAxis = (CartesianZAxis + 2) % 3;
     static constexpr int CartesianXAxis = (CartesianZAxis + 1) % 3;
-    typedef traits::point_t <coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS>> point_t;
-    typedef traits::vector_t <coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS>> vector_t;
-    typedef traits::covector_t <coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS>> covector_t;
+    typedef traits::point_t<coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS>> point_t;
+    typedef traits::vector_t<coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS>> vector_t;
+    typedef traits::covector_t<coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS>> covector_t;
 
     /**
      * metric only diff_scheme the volume of simplex

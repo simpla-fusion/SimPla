@@ -10,7 +10,7 @@
 #include <algorithm>
 
 #include "point_in_polygon.h"
-#include "geo_algorithm.h"
+#include "GeoAlgorithm.h"
 #include "../gtl/ntuple.h"
 
 namespace simpla
@@ -501,7 +501,7 @@ void filter_by_config(TDict const & dict, TDomain * domain)
 		}
 
 	}
-	else if (dict["Object"])
+	else if (dict["GeoObject"])
 	{
 		int select_tag = mesh_type::tag_inside;
 		if (dict["IsSurface"])
@@ -509,12 +509,12 @@ void filter_by_config(TDict const & dict, TDomain * domain)
 			select_tag = mesh_type::tag_boundary | mesh_type::tag_outside;
 		}
 
-		if (dict["Object"].is_function())
+		if (dict["GeoObject"].is_function())
 		{
 
 			domain->mesh().select(
 
-			dict["Object"],
+			dict["GeoObject"],
 
 			select_tag, domain->iform,
 

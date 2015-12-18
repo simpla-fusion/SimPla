@@ -1,5 +1,5 @@
 /**
- * @file geo_algorithm.h
+ * @file GeoAlgorithm.h
  *
  *  created on: 2014-4-21
  *      Author: salmon

@@ -260,7 +260,7 @@ Object::iterator::iterator(LuaState L, unsigned int G, unsigned int p, std::stri
 
 //    if (!is_table())
 //    {
-//        THROW_EXCEPTION_LOGIC_ERROR("Object is not indexable!");
+//        THROW_EXCEPTION_LOGIC_ERROR("GeoObject is not indexable!");
 //    }
 //    else
     {
@@ -449,7 +449,7 @@ Object Object::at(int s) const
  *        new table to the end of parent table
  * @param narr is a hint for how many elements the table will have as a sequence;
  * @param nrec is a hint for how many other elements the table will have.
- * @return a Object of new table
+ * @return a GeoObject of new table
  *
  * Lua may use these hints to preallocate memory for the new table.
  *  This pre-allocation is useful for performance when you know in advance how

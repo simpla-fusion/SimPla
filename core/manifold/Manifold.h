@@ -14,7 +14,7 @@
 #include "../gtl/utilities/log.h"
 #include "../gtl/macro.h"
 #include "../gtl/ntuple.h"
-#include "../geometry/coordinate_system.h"
+#include "../geometry/CoordinateSystem.h"
 #include "../gtl/utilities/memory_pool.h"
 #include "../base/Attribute.h"
 #include "../base/Patch.h"

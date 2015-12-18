@@ -59,7 +59,7 @@ namespace simpla { namespace lua
 
 
 /**
- *  @class Object
+ *  @class GeoObject
  *  \brief interface to Lua Script
  */
 class Object
@@ -302,7 +302,7 @@ public:
 
         if (is_null())
         {
-            WARNING << "Try to call a null Object." << std::endl;
+            WARNING << "Try to call a null GeoObject." << std::endl;
             return Object();
         }
 
@@ -465,7 +465,7 @@ public:
      *        new table to the end of parent table
      * @param narr is a hint for how many elements the table will have as a sequence;
      * @param nrec is a hint for how many other elements the table will have.
-     * @return a Object of new table
+     * @return a GeoObject of new table
      *
      * Lua may use these hints to preallocate memory for the new table.
      *  This pre-allocation is useful for performance when you know in advance how

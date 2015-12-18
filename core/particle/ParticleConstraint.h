@@ -1,5 +1,5 @@
 /**
- * @file particle_constraint.h
+ * @file ParticleConstraint.h
  *
  * @date    2014-9-2  AM10:39:25
  * @author salmon
@@ -9,10 +9,10 @@
 #define PARTICLE_CONSTRAINT_H_
 
 
-#include "particle.h"
+#include "Particle.h"
 
-#include "Parallel.h"
-#include "../model/constraint.h"
+#include "../parallel/Parallel.h"
+#include "../model/Constraint.h"
 
 
 namespace simpla { namespace particle

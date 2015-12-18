@@ -17,11 +17,11 @@
 
 #include "../../core/field/field.h"
 
-#include "../../core/geometry/cs_cylindrical.h"
+#include "../../core/geometry/csCylindrical.h"
 #include "rect_mesh.h"
 #include "PreDefine.h"
 
-#include "../../core/model/geqdsk.h"
+#include "../../core/model/GEqdsk.h"
 
 using namespace simpla;
 

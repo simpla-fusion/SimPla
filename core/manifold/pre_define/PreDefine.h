@@ -7,9 +7,9 @@
 #ifndef SIMPLA_PREDEFINE_H
 #define SIMPLA_PREDEFINE_H
 
-#include "../../geometry/coordinate_system.h"
-#include "../../geometry/cs_cartesian.h"
-#include "../../geometry/cs_cylindrical.h"
+#include "../../geometry/CoordinateSystem.h"
+#include "../../geometry/csCartesian.h"
+#include "../../geometry/csCylindrical.h"
 
 #include "../../field/Field.h"
 

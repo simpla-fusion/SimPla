@@ -1,5 +1,5 @@
 /*
- * register_particle.h
+ * register_Particle.h
  *
  * @date  2014-6-13
  *      @author  salmon

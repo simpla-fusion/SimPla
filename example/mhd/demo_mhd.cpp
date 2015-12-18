@@ -19,7 +19,7 @@
 #include "../src/mesh/uniform_array.h"
 
 #include "../src/model/model.h"
-#include "../src/model/geqdsk.h"
+#include "../src/model/GEqdsk.h"
 
 #include "../src/fetl/fetl.h"
 #include "../src/fetl/field_ops.h"

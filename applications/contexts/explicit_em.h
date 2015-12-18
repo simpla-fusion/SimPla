@@ -27,7 +27,7 @@
  #include "../../core/geometry/model.h"
 
 // particle
-//#include "../../core/particle/particle.h"
+//#include "../../core/particle/Particle.h"
 
 // model
 #include "../../core/numeric/geometric_algorithm.h"
@@ -36,7 +36,7 @@
 // Solver
 #include "../field_solver/pml.h"
 #include "../field_solver/implicitPushE.h"
-#include "../particle_solver/register_particle.h"
+#include "../particle_solver/register_Particle.h"
 
 namespace simpla
 {

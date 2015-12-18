@@ -1,5 +1,5 @@
 /**
- * @file particle_container.h
+ * @file ParticleContainer.h
  *
  *  Created on: 2015-3-26
  *      Author: salmon
@@ -14,7 +14,7 @@
 #include <tuple>
 #include <vector>
 
-#include "../dataset/dataset.h"
+#include "../data_model/DataSet.h"
 
 #include "../gtl/utilities/utilities.h"
 

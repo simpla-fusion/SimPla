@@ -1,5 +1,5 @@
 /**
- * @file particle_engine.h
+ * @file ParticleEngine.h
  *
  * @date    2014-8-29  AM10:36:23
  * @author salmon
@@ -13,8 +13,8 @@
 #include "../gtl/utilities/utilities.h"
 #include "../gtl/type_traits.h"
 #include "../gtl/ntuple.h"
-#include "../data_model/datatype.h"
-#include "../data_model/datatype_ext.h"
+#include "../data_model/DataType.h"
+#include "../data_model/DataTypeExt.h"
 
 namespace simpla { namespace particle
 {

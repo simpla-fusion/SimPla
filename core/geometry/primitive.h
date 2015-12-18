@@ -9,7 +9,7 @@
 #define CORE_GEOMETRY_PRIMITIVE_H_
 
 #include "../gtl/type_traits.h"
-#include "coordinate_system.h"
+#include "CoordinateSystem.h"
 /**
  *  @ref OpenGIS® Implementation Standard for Geographic information
  *  - Simple feature access -architecture Part 1: Common architecture

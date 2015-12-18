@@ -107,7 +107,7 @@ int main(int argc, char** argv)
 	std::cout << "============================" << std::endl;
 	//	pt.get_child("tt").ForEach(
 //
-//	[&](lua::Object const& key,lua::Object const&value)
+//	[&](lua::GeoObject const& key,lua::GeoObject const&value)
 //	{
 //		std::cout << key.as<std::string>()
 //		<<" = "<< value.as<int>() << std::endl;

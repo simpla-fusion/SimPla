@@ -1,5 +1,5 @@
 /**
- * @file  kinetic_particle.h
+ * @file  kinetic_Particle.h
  *
  * @date    2014-9-1  下午2:25:26
  * @author salmon
@@ -11,7 +11,7 @@
 #include <memory>
 #include "../gtl/utilities/utilities.h"
 #include "../gtl/containers/unordered_set.h"
-#include "particle.h"
+#include "Particle.h"
 #include "../manifold/manifold_traits.h"
 
 namespace simpla

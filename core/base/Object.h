@@ -140,7 +140,7 @@ private:                                                                      \
     typedef _BASE_CLASS_NAME_ base_type;                                      \
 public:
 
-//virtual std::shared_ptr<Object> clone_object()const { return std::dynamic_pointer_cast<Object>(this->clone()); }
+//virtual std::shared_ptr<GeoObject> clone_object()const { return std::dynamic_pointer_cast<GeoObject>(this->clone()); }
 
 
 }}//namespace simpla { namespace base

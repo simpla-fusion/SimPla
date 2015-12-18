@@ -259,10 +259,10 @@ DEF_BOP(less_equal, <=)
  *
  *   Pseudo-Signature 	 				         | Semantics
  *  ---------------------------------------------|--------------
- *  `operator+=(Object &,Expression const &)`     | Assign operation +
- *  `operator-=(Object & ,Expression const &)`     | Assign operation -
- *  `operator/=(Object & ,Expression const &)`     | Assign operation /
- *  `operator*=(Object & ,Expression const &)`     | Assign operation *
+ *  `operator+=(GeoObject &,Expression const &)`     | Assign operation +
+ *  `operator-=(GeoObject & ,Expression const &)`     | Assign operation -
+ *  `operator/=(GeoObject & ,Expression const &)`     | Assign operation /
+ *  `operator*=(GeoObject & ,Expression const &)`     | Assign operation *
  */
 #define DEF_ASSIGN_OP(_NAME_, _OP_)                                                               \
 struct _NAME_                                                                             \

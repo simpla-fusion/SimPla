@@ -14,7 +14,7 @@
 #include "LinearMap.h"
 #include "../../gtl/design_pattern/singleton_holder.h"
 #include "../../gtl/utilities/memory_pool.h"
-#include "../../geometry/geo_algorithm.h"
+#include "../../geometry/GeoAlgorithm.h"
 
 namespace simpla { namespace mesh
 {

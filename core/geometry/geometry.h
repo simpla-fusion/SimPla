@@ -11,11 +11,11 @@
 #include "../gtl/primitives.h"
 #include "../gtl/ntuple.h"
 
-#include "coordinate_system.h"
+#include "CoordinateSystem.h"
 
 
-#include "geo_object.h"
-#include "geo_algorithm.h"
+#include "GeoObject.h"
+#include "GeoAlgorithm.h"
 
 namespace simpla { namespace geometry
 {
@@ -24,12 +24,12 @@ namespace simpla { namespace geometry
  *  @defgroup geometry Geometry
  *  @brief this module collects computational geometry stuff.
   */
-class Object;
+class GeoObject;
 
 namespace traits
 {
 
-template<typename TL> bool in_set(TL const &l, Object const &r) { return r.within(l); }
+template<typename TL> bool in_set(TL const &l, GeoObject const &r) { return r.within(l); }
 
 template<typename TL, typename TP>
 bool in_set(TL const &l, std::tuple<TP, TP> const &b) { return in_box(l, std::get<0>(b), std::get<1>(b)); }

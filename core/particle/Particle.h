@@ -1,5 +1,5 @@
 /**
- * @file particle.h
+ * @file Particle.h
  *
  *  created on: 2012-11-1
  *      Author: salmon
@@ -12,7 +12,7 @@
 #include <list>
 #include <map>
 
-#include "Parallel.h"
+#include "../parallel/Parallel.h"
 #include "../gtl/design_pattern/singleton_holder.h"
 #include "../gtl/utilities/memory_pool.h"
 
@@ -62,7 +62,7 @@ private:
 
     typedef std::list<value_type> bucket_type;
 
-    typedef parallel::concurrent_hash_map <id_type, bucket_type> container_type;
+    typedef parallel::concurrent_hash_map<id_type, bucket_type> container_type;
 
     typedef std::map<id_type, bucket_type> buffer_type;
 

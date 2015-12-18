@@ -1,5 +1,5 @@
 /**
- * @file simple_particle.h
+ * @file simple_Particle.h
  *
  * @date 2015-2-13
  * @author salmon
@@ -8,8 +8,8 @@
 #ifndef CORE_PARTICLE_SIMPLE_PARTICLE_H_
 #define CORE_PARTICLE_SIMPLE_PARTICLE_H_
 
-#include "particle_engine.h"
-#include "simple_particle_generator.h"
+#include "ParticleEngine.h"
+#include "SimpleParticleGenerator.h"
 
 namespace simpla
 {

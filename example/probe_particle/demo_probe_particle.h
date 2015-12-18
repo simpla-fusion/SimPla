@@ -1,5 +1,5 @@
 /*
- * demo_probe_particle.h
+ * demo_probe_Particle.h
  *
  *  Created on: 2014-11-21
  *      Author: salmon
@@ -9,7 +9,7 @@
 #define EXAMPLE_USE_CASE_DEMO_PROBE_PARTICLE_H_
 
 #include "../../../core/utilities/utilities.h"
-#include "../../../core/particle/particle_engine.h"
+#include "../../../core/particle/ParticleEngine.h"
 
 namespace simpla
 {

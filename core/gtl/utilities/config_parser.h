@@ -61,7 +61,7 @@ struct ConfigParser
         }
 
         DictObject(std::string const &value)
-                : /*lua::Object(),*/
+                : /*lua::GeoObject(),*/
                 m_value_(value)
         {
         }

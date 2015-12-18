@@ -11,7 +11,7 @@
 
 #include "../gtl/ntuple.h"
 #include "../gtl/primitives.h"
-#include "geo_object.h"
+#include "GeoObject.h"
 
 namespace simpla { namespace geometry
 {
@@ -27,10 +27,10 @@ template<int NDIMS> class Polygon;
  *  @brief 2D polygon
  */
 template<>
-struct Polygon<2> : public Object
+struct Polygon<2> : public GeoObject
 {
-    using Object::point_type;
-    using Object::box_type;
+    using GeoObject::point_type;
+    using GeoObject::box_type;
 
     typedef nTuple<Real, 2> point2d_type;
 

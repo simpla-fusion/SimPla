@@ -1,5 +1,5 @@
 /**
- * @file pic_boris.h
+ * @file PICBoris.h
  * @author salmon
  * @date 2015-11-29.
  */
@@ -7,7 +7,8 @@
 #ifndef SIMPLA_PIC_BORIS_H
 #define SIMPLA_PIC_BORIS_H
 
-#include "../particle_engine.h"
+#include "../ParticleEngine.h"
+#include "../Particle.h"
 
 namespace simpla { namespace particle
 {

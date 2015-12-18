@@ -9,8 +9,8 @@
 #define KINETIC_PARTICLE_TEST_H_
 
 #include <gtest/gtest.h>
-#include "../kinetic_particle.h"
-#include "../particle_engine.h"
+#include "../kinetic_Particle.h"
+#include "../ParticleEngine.h"
 #include "rect_mesh.h"
 #include "../../numeric/rectangle_distribution.h"
 

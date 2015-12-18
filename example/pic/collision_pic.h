@@ -21,7 +21,7 @@
 
 #include "../../core/physics/PhysicalConstants.h"
 
-#include "../../core/particle/particle_engine.h"
+#include "../../core/particle/ParticleEngine.h"
 
 using namespace simpla;
 

@@ -5,11 +5,11 @@
  */
 #include <tbb/task_group.h>
 #include <tbb/concurrent_vector.h>
-#include "../particle_engine.h"
+#include "../ParticleEngine.h"
 #include "../../dataset/datatype_ext.h"
 #include "../../io/IO.h"
 #include "Parallel.h"
-#include "../particle_generator.h"
+#include "../ParticleGenerator.h"
 
 namespace simpla
 {

@@ -15,10 +15,10 @@
 
 #include "../../core/manifold/pre_define/riemannian.h"
 
-#include "../../core/particle/particle_container.h"
+#include "../../core/particle/ParticleContainer.h"
 
 #include "../../core/field/field.h"
-#include "../../core/particle/obsolete/simple_particle_generator.h"
+#include "../../core/particle/obsolete/SimpleParticleGenerator.h"
 
 //#include "../../core/field/field_dense.h"
 //#include "../../core/field/field_traits.h"
