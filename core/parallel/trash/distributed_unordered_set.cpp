@@ -8,9 +8,9 @@
 
 
 #include "../gtl/utilities/log.h"
-#include "mpi_comm.h"
-#include "mpi_aux_functions.h"
-#include "mpi_update.h"
+#include "MPIComm.h"
+#include "MPIAuxFunctions.h"
+#include "MPIUpdate.h"
 
 namespace simpla
 {

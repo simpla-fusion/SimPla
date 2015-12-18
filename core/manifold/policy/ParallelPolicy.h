@@ -10,8 +10,8 @@
 #include <tuple>
 #include <vector>
 #include "../../gtl/ntuple.h"
-#include "../../parallel/mpi_comm.h"
-#include "../../parallel/mpi_update.h"
+#include "../../parallel/MPIComm.h"
+#include "../../parallel/MPIUpdate.h"
 #include "../../parallel/Parallel.h"
 #include "../../parallel/DistributedObject.h"
 

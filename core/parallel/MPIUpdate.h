@@ -1,5 +1,5 @@
 /**
- * @file mpi_update.h
+ * @file MPIUpdate.h
  *
  *  Created on: 2014-11-10
  *      Author: salmon
@@ -8,8 +8,8 @@
 #ifndef CORE_PARALLEL_MPI_UPDATE_H_
 #define CORE_PARALLEL_MPI_UPDATE_H_
 
-#include "mpi_comm.h"
-#include "mpi_datatype.h"
+#include "MPIComm.h"
+#include "MPIDataType.h"
 
 namespace simpla { namespace parallel
 {

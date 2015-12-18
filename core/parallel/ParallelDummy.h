@@ -1,5 +1,5 @@
 /**
- * @file parallel_dummy.h
+ * @file ParallelDummy.h
  *
  *  Created on: 2014-11-6
  *      Author: salmon

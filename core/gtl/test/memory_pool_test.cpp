@@ -10,7 +10,7 @@
 #include "memory_pool.h"
 #include "log.h"
 #include "../io/data_stream.h"
-#include "../parallel/mpi_comm.h"
+#include "../parallel/MPIComm.h"
 
 using namespace simpla;
 

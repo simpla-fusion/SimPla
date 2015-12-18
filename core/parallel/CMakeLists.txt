@@ -1,5 +1,5 @@
-SET(PARALLEL_SRC Parallel.cpp mpi_datatype.cpp
-        mpi_aux_functions.cpp mpi_comm.cpp mpi_update.cpp DistributedObject.cpp)
+SET(PARALLEL_SRC Parallel.cpp MPIDataType.cpp
+        MPIAuxFunctions.cpp MPIComm.cpp MPIUpdate.cpp DistributedObject.cpp)
 add_library(parallel ${PARALLEL_SRC})
 
 target_link_libraries(parallel ${TBB_LIBRARIES} ${MPI_C_LIBRARIES})

@@ -23,7 +23,7 @@
 
 #include "../gtl/utilities/log.h"
 #include "../gtl/utilities/utilities.h"
-#include "../gtl/parallel/mpi_aux_functions.h"
+#include "../gtl/parallel/MPIAuxFunctions.h"
 #include "particle_base.h"
 
 namespace simpla {

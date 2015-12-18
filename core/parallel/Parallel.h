@@ -17,7 +17,7 @@
  */
 #ifndef NO_MPI
 
-#include "mpi_comm.h"
+#include "MPIComm.h"
 
 #endif
 
@@ -29,7 +29,7 @@
 //#include "parallel_openmp.h"
 //#else
 ////#include "multi_thread_std_thread.h"
-//#include "parallel_dummy.h"
+//#include "ParallelDummy.h"
 //
 //#endif
 

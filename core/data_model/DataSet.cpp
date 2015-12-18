@@ -10,8 +10,8 @@
 #include "DataSet.h"
 #include "../gtl/utilities/pretty_stream.h"
 #include "../gtl/utilities/memory_pool.h"
-#include "../parallel/mpi_update.h"
-#include "../parallel/mpi_comm.h"
+#include "../parallel/MPIUpdate.h"
+#include "../parallel/MPIComm.h"
 
 namespace simpla { namespace data_model
 {

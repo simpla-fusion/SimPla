@@ -5,7 +5,7 @@
  *      Author: salmon
  */
 
-#include "mpi_comm.h"
+#include "MPIComm.h"
 
 #include <stddef.h>
 #include <cstdbool>

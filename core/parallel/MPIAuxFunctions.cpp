@@ -5,7 +5,7 @@
  * @author salmon
  */
 
-#include "mpi_aux_functions.h"
+#include "MPIAuxFunctions.h"
 
 #include <stddef.h>
 #include <algorithm>
@@ -24,8 +24,8 @@ extern "C"
 #include <mpi.h>
 }
 
-#include "mpi_comm.h"
-#include "mpi_datatype.h"
+#include "MPIComm.h"
+#include "MPIDataType.h"
 
 namespace simpla { namespace parallel
 {

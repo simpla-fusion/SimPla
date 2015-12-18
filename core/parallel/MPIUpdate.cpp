@@ -5,8 +5,8 @@
  * @author salmon
  */
 
-#include "mpi_update.h"
-#include "mpi_datatype.h"
+#include "MPIUpdate.h"
+#include "MPIDataType.h"
 #include "DistributedObject.h"
 #include "../data_model/DataSet.h"
 #include "../gtl/utilities/log.h"

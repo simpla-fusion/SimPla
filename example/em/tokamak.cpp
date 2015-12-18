@@ -10,7 +10,7 @@
 #include "tokamak.h"
 
 #include "../../core/gtl/utilities/utilities.h"
-#include "../../core/parallel/parallel.h"
+#include "../../core/parallel/Parallel.h"
 #include "../../core/io/io.h"
 
 #include "../../core/manifold/pre_define/pre_define.h"

@@ -1,5 +1,5 @@
 /**
- * @file mpi_comm.h
+ * @file MPIComm.h
  *
  *  created on: 2014-5-12
  *      Author: salmon

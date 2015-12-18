@@ -8,9 +8,9 @@
 #define SIMPLA_DISTRIBUTED_OBJECT_H
 
 #include <bits/unique_ptr.h>
-#include "mpi_comm.h"
-#include "mpi_aux_functions.h"
-#include "mpi_update.h"
+#include "MPIComm.h"
+#include "MPIAuxFunctions.h"
+#include "MPIUpdate.h"
 #include "../data_model/DataSet.h"
 
 namespace simpla { namespace parallel

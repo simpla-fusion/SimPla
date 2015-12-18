@@ -7,8 +7,8 @@
 #include <mpi.h>
 #include <typeinfo>
 #include <typeindex>
-#include "mpi_comm.h"
-#include "mpi_datatype.h"
+#include "MPIComm.h"
+#include "MPIDataType.h"
 #include "../gtl/utilities/utilities.h"
 #include "../gtl/utilities/pretty_stream.h"
 

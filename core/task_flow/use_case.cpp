@@ -16,7 +16,7 @@
 //#include <utility>
 //
 //#include "../gtl/utilities/utilities.h"
-//#include "../parallel/mpi_comm.h"
+//#include "../parallel/MPIComm.h"
 
 
 //

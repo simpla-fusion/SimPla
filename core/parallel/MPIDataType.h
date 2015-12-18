@@ -1,5 +1,5 @@
 /**
- * @file mpi_datatype.h
+ * @file MPIDataType.h
  *
  *  created on: 2014-5-26
  *      Author: salmon

@@ -19,8 +19,8 @@ extern "C"
 
 
 #include "../parallel/Parallel.h"
-#include "../parallel/mpi_comm.h"
-#include "../parallel/mpi_aux_functions.h"
+#include "../parallel/MPIComm.h"
+#include "../parallel/MPIAuxFunctions.h"
 
 
 #include "../gtl/utilities/utilities.h"

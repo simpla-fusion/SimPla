@@ -22,7 +22,7 @@
 
 
 #include "manifold_traits.h"
-#include "../../core/manifold/calculus.h"
+#include "Calculus.h"
 #include "pre_define.h"
 
 #include "../../core/field/field.h"

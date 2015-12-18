@@ -12,7 +12,7 @@
 #include "../../core/io/io.h"
 
 #include "../../core/manifold/pre_define/riemannian.h"
-#include "../../core/parallel/mpi_comm.h"
+#include "../../core/parallel/MPIComm.h"
 #include "../../core/gtl/utilities/log.h"
 #include "../../core/field/field_dense.h"
 #include "FieldExpression.h"
