@@ -1,4 +1,4 @@
-SET(IO_SRC io.cpp data_stream.cpp xdmf_stream.cpp)
+SET(IO_SRC IO.cpp DataStream.cpp XDMFStream.cpp)
 
 link_directories(${HDF5_LIBRARY_DIRS})
 add_library(io ${IO_SRC})

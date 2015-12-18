@@ -6,11 +6,11 @@
 
 #include <gtest/gtest.h>
 #include "Mesh"
-#include "pre_define.h"
+#include "PreDefine.h"
 
 #include "../../field/field.h"
 #include "../../gtl/utilities/log.h"
-#include "../../io/xdmf_stream.h"
+#include "../../io/XDMFStream.h"
 
 using namespace simpla;
 

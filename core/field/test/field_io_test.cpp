@@ -21,7 +21,7 @@
 #include "../parallel/message_comm.h"
 #include "../utilities/log.h"
 #include "../utilities/pretty_stream.h"
-#include "../io/data_stream.h"
+#include "../io/DataStream.h"
 #include "../manifold/domain_dummy.h"
 #include "../physics/constants.h"
 

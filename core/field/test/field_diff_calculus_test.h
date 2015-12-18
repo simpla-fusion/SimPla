@@ -16,7 +16,7 @@
 #include <string>
 
 #include <gtest/gtest.h>
-#include "../../io/io.h"
+#include "../../io/IO.h"
 
 #include "../../field/FieldDense.h"
 #include "../../field/FieldExpression.h"
@@ -26,7 +26,7 @@
 #include "../../gtl/primitives.h"
 
 #include "../../gtl/utilities/log.h"
-#include "../../manifold/pre_define/pre_define.h"
+#include "../../manifold/pre_define/PreDefine.h"
 
 using namespace simpla;
 

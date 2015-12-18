@@ -8,9 +8,8 @@
 #ifndef IMPLICITPUSHE_H_
 #define IMPLICITPUSHE_H_
 
-#include "field_comm.h"
-#include "../../core/utilities/log.h"
-#include "../../core/physics/physical_constants.h"
+#include "../../core/utilities/utilities/log.h"
+#include "../../core/physics/PhysicalConstants.h"
 
 namespace simpla
 {
@@ -27,29 +26,29 @@ template<typename TM>
 class ImplicitPushE
 {
 public:
-	typedef TM mesh_type;
-	typedef typename mesh_type::scalar_type scalar_type;
+    typedef TM mesh_type;
+    typedef typename mesh_type::scalar_type scalar_type;
 
-	std::shared_ptr<mesh_type> mesh;
+    std::shared_ptr<mesh_type> mesh;
 
-	template<typename TV, size_t iform> using field=Field< Domain<TM,iform>,TV >;
+    template<typename TV, size_t iform> using field=Field <Domain<TM, iform>, TV>;
 
-	field<nTuple<scalar_type, 3>, VERTEX> Ev, Bv;
+    field<nTuple<scalar_type, 3>, VERTEX> Ev, Bv;
 
-	field<Real, VERTEX> BB;
+    field<Real, VERTEX> BB;
 
-	typedef field<scalar_type, VERTEX> rho_type;
+    typedef field<scalar_type, VERTEX> rho_type;
 
-	typedef field<nTuple<scalar_type, 3>, VERTEX> J_type;
+    typedef field<nTuple<scalar_type, 3>, VERTEX> J_type;
 
-	template<typename ...Others>
-	ImplicitPushE(std::shared_ptr<mesh_type> const & m, Others const &...) :
-			mesh(m), BB(mesh), Ev(mesh), Bv(mesh)
-	{
-	}
+    template<typename ...Others>
+    ImplicitPushE(std::shared_ptr<mesh_type> const &m, Others const &...) :
+            mesh(m), BB(mesh), Ev(mesh), Bv(mesh)
+    {
+    }
 
-	template<typename TP>
-	void next_timestep(field<scalar_type, EDGE> *pdE);
+    template<typename TP>
+    void next_timestep(field<scalar_type, EDGE> *pdE);
 };
 
 /**

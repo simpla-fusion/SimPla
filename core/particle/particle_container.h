@@ -20,7 +20,7 @@
 
 #include "../gtl/primitives.h"
 
-#include "../io/data_stream.h"
+#include "../io/DataStream.h"
 
 
 /** @ingroup physical_object

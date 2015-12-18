@@ -3,8 +3,8 @@
  * @author salmon
  * @date 2015-12-02.
  */
-#include "xdmf_io.h"
-#include "../dataset/datatype.h"
+#include "XDMFIO.h"
+#include "../data_model/DataType.h"
 #include "../gtl/utilities/log.h"
 
 namespace simpla { namespace io

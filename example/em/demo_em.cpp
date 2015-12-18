@@ -13,17 +13,17 @@
 #include "../../core/application/application.h"
 #include "../../core/gtl/primitives.h"
 #include "../../core/gtl/type_cast.h"
-#include "../../core/io/io.h"
+#include "../../core/io/IO.h"
 
-#include "../../core/physics/constants.h"
-#include "../../core/physics/physical_constants.h"
+#include "Constants.h"
+#include "../../core/physics/PhysicalConstants.h"
 #include "../../core/gtl/utilities/config_parser.h"
 #include "../../core/gtl/utilities/log.h"
 
 
 #include "manifold_traits.h"
 #include "Calculus.h"
-#include "pre_define.h"
+#include "PreDefine.h"
 
 #include "../../core/field/field.h"
 

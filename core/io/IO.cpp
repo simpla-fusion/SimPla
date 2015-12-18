@@ -12,7 +12,7 @@
 
 #include "../data_model/DataSet.h"
 #include "../gtl/design_pattern/singleton_holder.h"
-#include "data_stream.h"
+#include "DataStream.h"
 
 namespace simpla { namespace io
 {

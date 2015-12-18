@@ -9,7 +9,7 @@
 #include <string>
 
 #include "application.h"
-#include "../io/io.h"
+#include "../io/IO.h"
 #include "../parallel/Parallel.h"
 #include "../sp_config.h"
 #include "../gtl/utilities/log.h"

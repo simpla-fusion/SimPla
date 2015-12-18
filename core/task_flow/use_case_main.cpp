@@ -8,7 +8,7 @@
 #include <string>
 
 #include "use_case.h"
-#include "../io/io.h"
+#include "../io/IO.h"
 #include "Parallel.h"
 #include "../sp_config.h"
 #include "../gtl/utilities/log.h"

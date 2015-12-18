@@ -14,7 +14,7 @@ extern "C"
 
 #include <cstring> //for memcopy
 
-#include "data_stream.h"
+#include "DataStream.h"
 #include "../data_model/DataSet.h"
 
 

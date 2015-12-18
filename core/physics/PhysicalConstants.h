@@ -1,5 +1,5 @@
-/*
- * physical_constants.h
+/**
+ * @file PhysicalConstants.h
  *
  *  created on: 2012-10-17
  *      Author: salmon
@@ -12,7 +12,7 @@
 #include <map>
 #include <string>
 #include "../gtl/utilities/memory_pool.h"
-#include "constants.h"
+#include "Constants.h"
 
 namespace simpla
 {

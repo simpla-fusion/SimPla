@@ -11,9 +11,9 @@
 
 #include "../../core/gtl/utilities/utilities.h"
 #include "../../core/parallel/Parallel.h"
-#include "../../core/io/io.h"
+#include "../../core/io/IO.h"
 
-#include "../../core/manifold/pre_define/pre_define.h"
+#include "../../core/manifold/pre_define/PreDefine.h"
 #include "../../core/field/Field.h"
 
 //#include "../../core/particle/particle.h"
@@ -24,7 +24,7 @@
 
 #include "../../core/model/geqdsk.h"
 #include "../../core/model/constraint.h"
-#include "../../core/io/xdmf_stream.h"
+#include "../../core/io/XDMFStream.h"
 //#include "../../core/data_model/datatype_ext.h"
 
 namespace simpla

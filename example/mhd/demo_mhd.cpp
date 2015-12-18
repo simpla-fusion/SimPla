@@ -8,7 +8,7 @@
 #include <iostream>
 
 #include "../src/utilities/log.h"
-#include "../src/io/data_stream.h"
+#include "../src/io/DataStream.h"
 #include "../src/physics/constants.h"
 #include "../src/utilities/parse_command_line.h"
 #include "../src/parallel/message_comm.h"

@@ -1,5 +1,5 @@
 /**
- * @file vtk_stream.h
+ * @file vtkStream.h
  * @author salmon
  * @date 2015-12-14.
  */

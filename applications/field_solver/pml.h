@@ -12,7 +12,7 @@
 
 #include "../../core/gtl/primitives.h"
 #include "../../core/mesh/mesh.h"
-#include "../../core/physics/physical_constants.h"
+#include "../../core/physics/PhysicalConstants.h"
 #include "utilities.h"
 #include "field_comm.h"
 

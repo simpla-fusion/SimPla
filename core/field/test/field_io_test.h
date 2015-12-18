@@ -11,7 +11,7 @@
 #include <gtest/gtest.h>
 
 #include "../../gtl/utilities/log.h"
-#include "../../io/io.h"
+#include "../../io/IO.h"
 #include "manifold_traits.h"
 
 namespace simpla

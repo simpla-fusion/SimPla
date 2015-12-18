@@ -1,5 +1,5 @@
 /**
- * @file io_ext.h
+ * @file IOExt.h
  * @author salmon
  * @date 2015-11-11.
  */
@@ -8,8 +8,9 @@
 #define SIMPLA_IO_EXT_H
 
 #include <vector>
-#include "io.h"
+#include "IO.h"
 #include "../gtl/type_traits.h"
+#include "../data_model/DataSet.h"
 
 namespace simpla
 {
@@ -20,9 +21,9 @@ std::string save(std::string const &url, T const *data, int ndims,
                  size_t const *dims, size_t flag = 0UL)
 {
 
-    DataSet res;
-    res.data_type = traits::datatype<T>::create();
-    res.data_space = make_dataspace(ndims, dims);
+    data_model::DataSet res;
+    res.data_type = data_model::DataType::create<T>();
+    res.data_space = data_model::DataSpace::create(ndims, dims);
     res.data = std::shared_ptr<void>(const_cast<T *>(&data[0]), tags::do_nothing());
 
     return save(url, res, flag);

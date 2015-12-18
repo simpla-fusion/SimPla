@@ -10,8 +10,8 @@
 #include "../../core/application/application.h"
 
 #include "../../core/gtl/utilities/utilities.h"
-#include "../../core/io/io.h"
-#include "../../core/physics/physical_constants.h"
+#include "../../core/io/IO.h"
+#include "../../core/physics/PhysicalConstants.h"
 
 #include "../../core/manifold/pre_define/riemannian.h"
 

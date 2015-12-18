@@ -1,1 +1,1 @@
-add_library(physics physical_constants.cpp)
+add_library(physics PhysicalConstants.cpp)

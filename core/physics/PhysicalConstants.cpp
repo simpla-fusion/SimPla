@@ -5,10 +5,10 @@
  *      Author: salmon
  */
 
-#include "physical_constants.h"
+#include "PhysicalConstants.h"
 
 #include <iomanip>
-#include "constants.h"
+#include "Constants.h"
 
 namespace simpla
 {

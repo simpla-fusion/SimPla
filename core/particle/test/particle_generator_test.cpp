@@ -7,7 +7,7 @@
 #include <tbb/concurrent_vector.h>
 #include "../particle_engine.h"
 #include "../../dataset/datatype_ext.h"
-#include "../../io/io.h"
+#include "../../io/IO.h"
 #include "Parallel.h"
 #include "../particle_generator.h"
 

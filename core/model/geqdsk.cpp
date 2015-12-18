@@ -19,7 +19,7 @@
 #include "../gtl/utilities/pretty_stream.h"
 #include "../gtl/ntuple.h"
 #include "../gtl/ntuple_ext.h"
-#include "../physics/constants.h"
+#include "Constants.h"
 
 
 #include "../geometry/polygon.h"
@@ -28,7 +28,7 @@
 
 #ifndef NO_XDMF
 
-#include "../io/xdmf_io.h"
+#include "../io/XDMFIO.h"
 
 #endif
 namespace simpla

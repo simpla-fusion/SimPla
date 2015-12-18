@@ -7,9 +7,9 @@
 #include <iomanip>
 #include <iostream>
 #include <list>
-#include "xdmf_stream.h"
+#include "XDMFStream.h"
 
-#include "io.h"
+#include "IO.h"
 #include "../gtl/utilities/log.h"
 #include "../data_model/DataSet.h"
 #include "../parallel/Parallel.h"

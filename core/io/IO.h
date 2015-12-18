@@ -1,5 +1,5 @@
 /**
- * @file io.h
+ * @file IO.h
  *
  *  Created on: 2014-11-21
  *      Author: salmon
@@ -14,11 +14,9 @@
 #include "../gtl/utilities/utilities.h"
 #include "../data_model/DataSet.h"
 #include "../data_model/DataType.h"
-#include "data_stream.h"
+#include "DataStream.h"
 
-namespace simpla
-{
-namespace io
+namespace simpla { namespace io
 {
 /** @addtogroup io
  *  @brief this module collects stuff used to read/write data file.
@@ -137,8 +135,10 @@ T get_data_set_attribute(std::string const &url)
 //}
 /** @} */
 
-}//namespace io
+}} // namespace simpla //namespace io
 
+namespace simpla
+{
 
 
 #define SAVE(_F_) simpla::io::write(__STRING(_F_),_F_  )
@@ -150,6 +150,6 @@ T get_data_set_attribute(std::string const &url)
 #else
 #   define DEBUG_SAVE(_F_) ""
 #endif
-} // namespace simpla
+}//namespace simpla{
 
 #endif /* CORE_IO_IO_H_ */

@@ -10,7 +10,7 @@
 #include <functional>
 #include <omp.h>
 
-#include "../../src/io/data_stream.h"
+#include "../../src/io/DataStream.h"
 #include "../../src/simpla_defs.h"
 #include "../../src/utilities/log.h"
 #include "../../src/utilities/lua_state.h"
@@ -18,7 +18,7 @@
 #include "../../src/utilities/utilities.h"
 #include "../../src/gtl/ntuple.h"
 #include "../../src/utilities/ntuple_noet.h"
-#include "../../src/physics/physical_constants.h"
+#include "../../src/physics/PhysicalConstants.h"
 #include "../../src/io/hdf5_datatype.h"
 
 #include "../../src/numeric/multi_normal_distribution.h"

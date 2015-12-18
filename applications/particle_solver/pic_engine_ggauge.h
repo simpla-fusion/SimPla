@@ -15,7 +15,7 @@
 
 #include "../../src/fetl/fetl.h"
 #include "../../src/utilities/primitives.h"
-#include "../../src/physics/physical_constants.h"
+#include "../../src/physics/PhysicalConstants.h"
 #include "../../src/physics/constants.h"
 #include "../../src/utilities/utilities.h"
 #include "../../src/io/hdf5_datatype.h"

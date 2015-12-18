@@ -21,12 +21,10 @@
 #include "utilities.h"
 
 // Data IO
-#include "../../core/io/io.h"
+#include "../../core/io/IO.h"
 
 // field
-#include "../../core/field/loadField.h"
-#include "geometry_obj"
-#include "../../core/geometry/model.h"
+ #include "../../core/geometry/model.h"
 
 // particle
 //#include "../../core/particle/particle.h"

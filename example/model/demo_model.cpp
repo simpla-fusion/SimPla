@@ -12,7 +12,7 @@
 #include "../../core/application/use_case.h"
 #include "../../core/gtl/ntuple.h"
 #include "../../core/gtl/primitives.h"
-#include "../../core/io/io.h"
+#include "../../core/io/IO.h"
 #include "../../core/mesh/mesh.h"
 #include "utilities.h"
 namespace simpla

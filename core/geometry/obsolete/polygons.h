@@ -8,7 +8,7 @@
 #ifndef CORE_NUMERIC_POLYGONS_H_
 #define CORE_NUMERIC_POLYGONS_H_
 
-#include <stdio.h>
+#include <stdIO.h>
 #include <stdlib.h>
 #include <math.h>
 

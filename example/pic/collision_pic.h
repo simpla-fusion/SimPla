@@ -19,7 +19,7 @@
 #include "../../core/gtl/primitives.h"
 #include "../../core/gtl/type_traits.h"
 
-#include "../../core/physics/physical_constants.h"
+#include "../../core/physics/PhysicalConstants.h"
 
 #include "../../core/particle/particle_engine.h"
 

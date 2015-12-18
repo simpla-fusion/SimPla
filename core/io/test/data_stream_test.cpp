@@ -7,7 +7,7 @@
 
 #include <gtest/gtest.h>
 #include <iostream>
-#include "data_stream.h"
+#include "DataStream.h"
 
 #include "../dataset/dataset.h"
 #include "../utilities/utilities.h"

@@ -1,5 +1,5 @@
 /*
- * xdmf_io.h
+ * XDMFIO.h
  *
  *  created on: 2013-12-10
  *      Author: salmon
@@ -9,13 +9,14 @@
 #define XDMF_IO_H_
 
 #include <Xdmf.h>
-#include "../dataset/datatype.h"
+#include "../data_model/DataType.h"
 
 namespace simpla
 {
 namespace io
 {
 XdmfInt32 convert_datatype_sp_to_xdmf(DataType const &d_type);
+
 /** @ingroup XDMF
  * @{
  */

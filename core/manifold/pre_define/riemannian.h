@@ -7,7 +7,7 @@
 #ifndef SIMPLA_RIEMANNIAN_MESH_H
 #define SIMPLA_RIEMANNIAN_MESH_H
 
-#include "pre_define.h"
+#include "PreDefine.h"
 
 namespace simpla
 {

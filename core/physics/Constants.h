@@ -1,5 +1,5 @@
-/*
- * constant.h
+/**
+ * @file Constants.h
  *
  *  created on: 2012-3-5
  *      Author: salmon

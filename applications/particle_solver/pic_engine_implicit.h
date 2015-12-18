@@ -13,7 +13,7 @@
 #include <type_traits>
 
 #include "../../src/fetl/fetl.h"
-#include "../../src/physics/physical_constants.h"
+#include "../../src/physics/PhysicalConstants.h"
 #include "../../src/utilities/type_traits.h"
 
 namespace simpla

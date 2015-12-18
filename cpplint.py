@@ -2213,7 +2213,7 @@ def _ClassifyInclude(fileinfo, include, is_system):
     One of the _XXX_HEADER constants.
 
   For example:
-    >>> _ClassifyInclude(FileInfo('foo/foo.cc'), 'stdio.h', True)
+    >>> _ClassifyInclude(FileInfo('foo/foo.cc'), 'stdIO.h', True)
     _C_SYS_HEADER
     >>> _ClassifyInclude(FileInfo('foo/foo.cc'), 'string', True)
     _CPP_SYS_HEADER

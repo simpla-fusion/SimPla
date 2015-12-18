@@ -9,7 +9,7 @@
 #include <iomanip>
 #include "memory_pool.h"
 #include "log.h"
-#include "../io/data_stream.h"
+#include "../io/DataStream.h"
 #include "../parallel/MPIComm.h"
 
 using namespace simpla;

@@ -18,10 +18,10 @@
 #include "../../gtl/primitives.h"
 #include "../../gtl/type_traits.h"
 #include "../../gtl/utilities/log.h"
-#include "manifold_traits.h"
+#include "../../manifold/ManifoldTraits.h"
 #include "../../field/FieldDense.h"
-#include "FieldTraits.h"
-#include "FieldExpression.h"
+#include "../../field/FieldTraits.h"
+#include "../../field/FieldExpression.h"
 
 using namespace simpla;
 
