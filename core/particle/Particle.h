@@ -79,6 +79,8 @@ public:
 
     virtual ~Particle();
 
+    virtual void deploy();
+
     virtual void clear();
 
     virtual void sync();
@@ -220,6 +222,12 @@ Particle<P, M, Policies...>::clear()
 }
 
 template<typename P, typename M, typename ...Policies> void
+Particle<P, M, Policies...>::deploy()
+{
+
+}
+
+template<typename P, typename M, typename ...Policies> void
 Particle<P, M, Policies...>::sync() { rehash(); };
 
 template<typename P, typename M, typename ...Policies>
@@ -260,7 +268,7 @@ Particle<P, M, Policies...>::integral(id_type const &s, TField *J) const
 
                 engine_type::integral(x0, p, &v);
 
-                (*J)[s] += interpolate_policy::template sample<f_iform>(m_mesh_, s, v);
+                (*J)[s] += interpolate_policy::template sample<f_iform>(*m_mesh_, s, v);
             }
         }
     }

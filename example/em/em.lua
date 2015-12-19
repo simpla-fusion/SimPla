@@ -45,8 +45,8 @@ LY = 1 --2.0*math.pi/k0
 LZ = math.pi * 0.25 -- 2.0*math.pi/18
 GW = 5
 PIC = 100
-GEQDSK = "/home/salmon/workspace/code/SimPla/scripts/gfile/g038300.03900"
-number_of_step = 1
+GEQDSK = "/home/salmon/workspace-local/SimPla/scripts/gfile/g038300.03900"
+number_of_step = 5
 Mesh =
 {
     Geometry =
