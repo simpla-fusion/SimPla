@@ -16,6 +16,8 @@
 #include "../gtl/primitives.h"
 #include "../numeric/rectangle_distribution.h"
 #include "../numeric/multi_normal_distribution.h"
+#include "../parallel/MPIComm.h"
+#include "../parallel/MPIUpdate.h"
 
 namespace simpla { namespace particle
 {
@@ -136,12 +138,12 @@ public:
     public:
 
         template<typename TArgs1, typename TArgs2, typename TArgs3>
-        input_iterator(particle_type const &p_engine, seed_type seed, Real sampl_density,
+        input_iterator(particle_type const &p_engine, seed_type seed, Real sample_density,
                        TArgs1 const &args1, TArgs2 const &args2, TArgs3 const &args3)
                 : m_p_engine_(p_engine),
                   m_seed_(seed), m_x_dist_(args1), m_v_dist_(args2), m_func_(args3),
                   m_count_(0),
-                  m_inv_sample_density_(1.0 / sampl_density)
+                  m_inv_sample_density_(1.0 / sample_density)
         {
             generate_();
         }
@@ -196,7 +198,7 @@ public:
      *
      *  @param pic      number of sample point
      *  @param volume   volume of sample region
-     *  @param box      shape of spatial sample ragion (e.g. box(x_min,x_max))
+     *  @param box      shape of spatial sample region (e.g. box(x_min,x_max))
      *  @param args...  other of args for v_dist
      */
     template<typename TBox, typename ...Args>
@@ -230,8 +232,8 @@ public:
     void reserve(size_t num)
     {
         std::lock_guard<std::mutex> guard(m_seed_mutex);
-        size_t offset = 0;
-        size_t total = 0;
+        int offset = 0;
+        int total = 0;
         std::tie(offset, total) =
                 parallel::sync_global_location(GLOBAL_COMM,
                                                static_cast<int>(num * NUM_OF_SEED_PER_SAMPLE));

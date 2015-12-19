@@ -314,17 +314,13 @@ void EMPlasma::setup(int argc, char **argv)
 
                         auto gen = particle::make_generator(*pic, 1.0);
 
-//                        pic->generator(gen, options["PIC"].as<size_t>(10), 1.0);
+                       pic->generator(gen, options["PIC"].as<size_t>(10), 1.0);
 
                         std::get<4>(p) = particle_proxy_type::create(pic);
 
                     }
                 }
-
-
             }
-
-
         }
 
 
@@ -336,6 +332,8 @@ void EMPlasma::setup(int argc, char **argv)
             MESSAGE << "  " << item.first << " = {"
             << " mass =" << std::get<0>(item.second) << " , "
             << " charge = " << std::get<1>(item.second) << " , "
+            << " is kinetic particle = " << (std::get<4>(item.second) != nullptr) << " , "
+
             << " },"
             << std::endl;
         }
@@ -401,9 +399,9 @@ void EMPlasma::next_time_step()
         auto pic = std::get<4>(p.second);
         if (pic != nullptr)
         {
-            pic->push(dt, m.time(), E1, B1);
-            pic->integral(&std::get<2>);
-            pic->integral(&std::get<3>);
+            //          pic->push(dt, m.time(), E1, B1);
+//            pic->integral(&std::get<2>);
+//            pic->integral(&std::get<3>);
         }
     }
     LOG_CMD(E1 += (curl(B1) * speed_of_light2 - J1 / epsilon0) * dt);
@@ -467,7 +465,7 @@ void EMPlasma::next_time_step()
         a += 1;
 
 
-        dE = (Q * a - cross(Q, B0v) * b + B0v * (dot(Q, B0v) * (b * b - c * a) / (a + c * BB))) / (b * b * BB + a * a);
+        LOG_CMD( dE = (Q * a - cross(Q, B0v) * b + B0v * (dot(Q, B0v) * (b * b - c * a) / (a + c * BB))) / (b * b * BB + a * a));
 
         for (auto &p :   particles)
         {

@@ -102,8 +102,8 @@ namespace simpla { namespace particle
 {
 template<typename TM> using BorisParticle =
 Particle<particle::engine::BorisEngine, TM,
-        manifold::policy::FiniteVolume<TM>,
-        manifold::policy::LinearInterpolator<TM>
+        manifold::policy::FiniteVolume,
+        manifold::policy::LinearInterpolator
 >;
 }}
 
