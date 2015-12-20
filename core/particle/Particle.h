@@ -15,6 +15,7 @@
 #include "../parallel/Parallel.h"
 #include "../gtl/design_pattern/singleton_holder.h"
 #include "../gtl/utilities/memory_pool.h"
+#include "../data_model/DataTypeExt.h"
 
 namespace simpla { namespace particle
 {
@@ -22,6 +23,61 @@ template<typename ...> struct Particle;
 template<typename ...> struct ParticleEngine;
 template<typename TAGS, typename M> using particle_t= Particle<ParticleEngine<TAGS>, M>;
 
+namespace _impl
+{
+template<typename TV, bool> struct trackable_traits;
+
+template<typename TV>
+struct trackable_traits<TV, false> : public std::integral_constant<bool, false>
+{
+    typedef TV value_type;
+
+    typedef TV tagged_value_type;
+
+    static constexpr tagged_value_type &get_tagged_value(value_type &v, size_t s = 0) { return v; }
+
+
+    static constexpr value_type &get_value(tagged_value_type &v) { return v; }
+
+    static constexpr value_type const &get_value(tagged_value_type const &v) { return v; }
+
+    static constexpr size_t tag(tagged_value_type const &v) { return 0; }
+
+};
+
+template<typename TV>
+struct trackable_traits<TV, true> : public std::integral_constant<bool, true>
+{
+    typedef TV value_type;
+
+    SP_DEFINE_STRUCT(tagged_value_type,
+                     size_t, tag,
+                     TV, p
+    );
+
+    static constexpr tagged_value_type get_tagged_value(value_type const &v, size_t s = 0)
+    {
+        return tagged_value_type{s, v};
+    }
+
+    static constexpr tagged_value_type const &get_tagged_value(tagged_value_type const &v, size_t s = 0)
+    {
+        return v;
+    }
+
+    static constexpr value_type &get_value(value_type &v) { return v; }
+
+    static constexpr value_type const &get_value(value_type const &v) { return v; }
+
+    static constexpr value_type &get_value(tagged_value_type &v) { return v.p; }
+
+    static constexpr value_type const &get_value(tagged_value_type const &v) { return v.p; }
+
+    static constexpr size_t tag(tagged_value_type const &v) { return v.tag; }
+
+
+};
+}
 template<typename P, typename M, typename ...Policies>
 struct Particle<P, M, Policies...> : public P, public Policies ...
 {
@@ -44,9 +100,11 @@ public:
     typedef typename mesh_type::id_type id_type;
     typedef typename mesh_type::range_type range_type;
 
-    typedef typename M::AttributeEntity base_type;
+    typedef _impl::trackable_traits<value_type, true> trackable_traits;
 
-    typedef std::list<value_type> bucket_type;
+    typedef typename trackable_traits::tagged_value_type tagged_value_type;
+
+    typedef std::list<tagged_value_type> bucket_type;
 
     typedef parallel::concurrent_hash_map <id_type, bucket_type> container_type;
 
@@ -57,8 +115,6 @@ public:
 public:
 
     static constexpr int iform = VOLUME;
-
-
     typedef std::map<id_type, bucket_type> buffer_type;
 
     static constexpr int ndims = mesh_type::ndims;
@@ -89,10 +145,10 @@ public:
 
     template<typename TDict> void load(TDict const &dict);
 
-
-    constexpr id_type hash(value_type const &p) const
+    template<typename T>
+    constexpr id_type hash(T const &p) const
     {
-        return m_mesh_->id(engine_type::project(p), mesh_type::node_id(iform));
+        return m_mesh_->id(engine_type::project(trackable_traits::get_value(p)), mesh_type::node_id(iform));
     }
 
     template<typename TGen, typename ...Args> void generator(id_type s, TGen &gen, size_t pic, Args &&...args);
@@ -110,14 +166,14 @@ public:
     template<typename TRange, typename Predicate> void remove_if(TRange const &r, Predicate const &pred);
 
     //! @{
-    data_model::DataSet data_set() const;
+    virtual data_model::DataSet data_set() const;
 
     void data_set(data_model::DataSet const &);
 
     void push_back(value_type const &p);
 
-    template<typename InputIteratorerator>
-    void push_back(InputIteratorerator const &b, InputIteratorerator const &e);
+    template<typename InputIterator>
+    void push_back(InputIterator const &b, InputIterator const &e);
 
     void erase(id_type const &k) { m_data_->erase(k); };
 
@@ -266,7 +322,7 @@ Particle<P, M, Policies...>::integral(id_type const &s, TField *J) const
             {
                 typename ::simpla::traits::field_value_type<TField>::type v;
 
-                engine_type::integral(x0, p, &v);
+                engine_type::integral(x0, trackable_traits::get_value(p), &v);
 
                 (*J)[s] += interpolate_policy::template sample<f_iform>(*m_mesh_, s, v);
             }
@@ -311,11 +367,9 @@ Particle<P, M, Policies...>::push(id_type const &s, Args &&...args)
     {
         for (auto &p:acc->second)
         {
-            engine_type::push(&p, std::forward<Args>(args)...);
+            engine_type::push(&trackable_traits::get_value(p), std::forward<Args>(args)...);
         }
     }
-
-
 };
 
 template<typename P, typename M, typename ...Policies>
@@ -340,6 +394,7 @@ Particle<P, M, Policies...>::push(Args &&...args)
 
     m_mesh_->template for_each_center<iform>(
             [&](range_type const &r) { push(r, std::forward<Args>(args)...); });
+
 
     rehash();
 }
@@ -404,7 +459,12 @@ Particle<P, M, Policies...>::copy(id_type s, OutputIterator out_it) const
     typename container_type::const_accessor c_accessor;
     if (m_data_->find(c_accessor, s))
     {
-        out_it = std::copy(c_accessor->second.begin(), c_accessor->second.end(), out_it);
+        for (auto const &v:c_accessor->second)
+        {
+            *out_it = trackable_traits::get_value(v);
+            ++out_it;
+        }
+//        out_it = std::copy(c_accessor->second.begin(), c_accessor->second.end(), out_it);
     }
     return out_it;
 }
@@ -476,7 +536,7 @@ Particle<P, M, Policies...>::sync(container_type const &buffer, parallel::Distri
                                   bool update_ghost)
 {
 
-    data_model::DataType d_type = data_model::DataType::create<value_type>();
+    data_model::DataType d_type = data_model::DataType::create<tagged_value_type>();
 
     typename mesh_type::index_tuple memory_min, memory_max;
     typename mesh_type::index_tuple local_min, local_max;
@@ -561,9 +621,9 @@ Particle<P, M, Policies...>::sync(container_type const &buffer, parallel::Distri
 
                 size_t send_size = size(send_range, buffer);
 
-                p_send = sp_alloc_memory(send_size * sizeof(value_type));
+                p_send = sp_alloc_memory(send_size * sizeof(tagged_value_type));
 
-                auto p = reinterpret_cast<value_type *>( p_send.get());
+                auto p = reinterpret_cast<tagged_value_type *>( p_send.get());
 
                 for (auto const &s:send_range)
                 {
@@ -610,7 +670,7 @@ Particle<P, M, Policies...>::rehash(id_type const &key, container_type *other)
 
             ++it;
 
-            auto dest = hash(*p);
+            auto dest = hash(trackable_traits::get_value(*p));
 
             if (dest != key) { buffer[dest].splice(buffer[dest].end(), src, p); }
         }
@@ -699,7 +759,7 @@ Particle<P, M, Policies...>::rehash()
 
     for (auto const &item :  dist_obj.recv_buffer)
     {
-        value_type const *p = reinterpret_cast<value_type const *>(std::get<1>(item).data.get());
+        tagged_value_type const *p = reinterpret_cast<tagged_value_type const *>(std::get<1>(item).data.get());
         push_back(p, p + std::get<1>(item).memory_space.size());
     }
 }
@@ -709,7 +769,7 @@ Particle<P, M, Policies...>::push_back(value_type const &p)
 {
     typename container_type::accessor acc;
     m_data_->insert(acc, hash(p));
-    acc->second.push_back(p);
+    acc->second.push_back(trackable_traits::get_tagged_value(p, /* fixme need add tag*/));
 }
 
 template<typename P, typename M, typename ...Policies>
@@ -720,7 +780,7 @@ Particle<P, M, Policies...>::push_back(InputIterator const &b, InputIterator con
     std::map<id_type, bucket_type> buffer;
     for (auto it = b; it != e; ++it)
     {
-        buffer[hash(*it)].push_back(*it);
+        buffer[hash(*it)].push_back(trackable_traits::get_tagged_value(*it, 0/* fixme need add tag*/));
     }
     this->merge(&buffer, m_data_.get());
 }
@@ -732,12 +792,34 @@ Particle<P, M, Policies...>::data_set() const
 
     auto r = m_mesh_->template range<iform>();
     size_t count = static_cast<int>(size(r));
-
     auto data = sp_alloc_memory(count * sizeof(value_type));
-
-    copy(r, reinterpret_cast<value_type *>( data.get()));
-
     data_model::DataSet ds = data_model::DataSet::create(data_model::DataType::create<value_type>(), data, count);
+
+    auto f_space = ds.data_space;
+
+    if (trackable_traits::value)
+    {
+        value_type *out_it = reinterpret_cast<value_type * >(data.get());
+
+        for (auto const &s:r)
+        {
+            typename container_type::const_accessor c_accessor;
+            if (m_data_->find(c_accessor, s))
+            {
+                for (auto const &item:c_accessor->second)
+                {
+                    *out_it = trackable_traits::get_value(item);
+                    ++out_it;
+                    f_space.select_element(trackable_traits::tag(item));
+                }
+            }
+        }
+    }
+    else
+    {
+        copy(r, reinterpret_cast<value_type *>( data.get()));
+    }
+
 
     return std::move(ds);
 }
@@ -767,8 +849,11 @@ Particle<P, M, Policies...>::generator(id_type s, TGen &gen, size_t pic, Args &&
     typename container_type::accessor acc;
 
     m_data_->insert(acc, s);
-
-    std::copy(std::get<0>(g), std::get<1>(g), std::back_inserter(acc->second));
+    for (auto ib = std::get<0>(g), ie = std::get<1>(g); ib != ie; ++ib)
+    {
+        acc->second.push_back(trackable_traits::get_tagged_value(*ib));
+    }
+//    std::copy(std::get<0>(g), std::get<1>(g), std::back_inserter(acc->second));
 }
 
 
@@ -813,13 +898,12 @@ Particle<P, M, Policies...>::generator(TGen &gen, size_t pic, Args &&...args)
 
     for (auto const &item :  dist_obj.recv_buffer)
     {
-        value_type const *p = reinterpret_cast<value_type const *>(std::get<1>(item).data.get());
+        tagged_value_type const *p = reinterpret_cast<tagged_value_type const *>(std::get<1>(item).data.get());
         push_back(p, p + std::get<1>(item).memory_space.size());
     }
 }
 
-template<typename P, typename M, typename ...Policies>
-template<typename TRange, typename Predicate> void
+template<typename P, typename M, typename ...Policies> template<typename TRange, typename Predicate> void
 Particle<P, M, Policies...>::remove_if(TRange const &r, Predicate const &pred)
 {
     parallel::parallel_for(
@@ -842,8 +926,7 @@ Particle<P, M, Policies...>::remove_if(TRange const &r, Predicate const &pred)
     );
 }
 
-template<typename P, typename M, typename ...Policies>
-template<typename TConstraint, typename TFun> void
+template<typename P, typename M, typename ...Policies> template<typename TConstraint, typename TFun> void
 Particle<P, M, Policies...>::accept(TConstraint const &constraint, TFun const &fun)
 {
     container_type buffer;

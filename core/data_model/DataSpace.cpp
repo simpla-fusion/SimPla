@@ -41,7 +41,7 @@ struct DataSpace::pimpl_s
      */
 
     data_shape_s m_d_shape_;
-
+    std::vector<size_t> m_elements_;
     // index_tuple m_local_dimensions_;
     // index_tuple m_local_offset_;
 
@@ -49,24 +49,24 @@ struct DataSpace::pimpl_s
 
 //===================================================================
 
-DataSpace::DataSpace() : pimpl_{new pimpl_s} { }
+DataSpace::DataSpace() : m_pimpl_{new pimpl_s} { }
 
 DataSpace::DataSpace(int ndims, index_type const *dims) :
-        pimpl_(new pimpl_s)
+        m_pimpl_(new pimpl_s)
 {
 
-    std::get<0>(pimpl_->m_d_shape_)/*ndims      */ = ndims;
-    std::get<1>(pimpl_->m_d_shape_)/*dimensions */ = dims;
-    std::get<2>(pimpl_->m_d_shape_)/*start     */  = 0;
-    std::get<3>(pimpl_->m_d_shape_)/*stride     */ = 1;
-    std::get<4>(pimpl_->m_d_shape_)/*count      */ = dims;
-    std::get<5>(pimpl_->m_d_shape_)/*block      */ = 1;
+    std::get<0>(m_pimpl_->m_d_shape_)/*ndims      */ = ndims;
+    std::get<1>(m_pimpl_->m_d_shape_)/*dimensions */ = dims;
+    std::get<2>(m_pimpl_->m_d_shape_)/*start     */  = 0;
+    std::get<3>(m_pimpl_->m_d_shape_)/*stride     */ = 1;
+    std::get<4>(m_pimpl_->m_d_shape_)/*count      */ = dims;
+    std::get<5>(m_pimpl_->m_d_shape_)/*block      */ = 1;
 
 
 }
 
 DataSpace::DataSpace(const DataSpace &other) :
-        pimpl_(new pimpl_s)
+        m_pimpl_(new pimpl_s)
 {
     // m_pimpl_->m_d_shape_.ndims = other.m_pimpl_->m_d_shape_.ndims;
     // m_pimpl_->m_d_shape_.dimensions = other.m_pimpl_->m_d_shape_.dimensions;
@@ -75,7 +75,7 @@ DataSpace::DataSpace(const DataSpace &other) :
     // m_pimpl_->m_d_shape_.stride = other.m_pimpl_->m_d_shape_.stride;
     // m_pimpl_->m_d_shape_.block = other.m_pimpl_->m_d_shape_.block;
 
-    pimpl_->m_d_shape_ = other.pimpl_->m_d_shape_;
+    m_pimpl_->m_d_shape_ = other.m_pimpl_->m_d_shape_;
 
 //	m_pimpl_->m_local_dimensions_ = other.m_pimpl_->m_local_dimensions_;
 //	m_pimpl_->m_local_offset_ = other.m_pimpl_->m_local_offset_;
@@ -90,7 +90,7 @@ DataSpace::~DataSpace()
 
 void DataSpace::swap(DataSpace &other)
 {
-    std::swap(pimpl_, other.pimpl_);
+    std::swap(m_pimpl_, other.m_pimpl_);
 }
 
 DataSpace DataSpace::create_simple(int ndims, const index_type *dims)
@@ -100,28 +100,28 @@ DataSpace DataSpace::create_simple(int ndims, const index_type *dims)
 
 bool DataSpace::is_valid() const
 {
-    return (!!(pimpl_))
-           && (std::get<2>(pimpl_->m_d_shape_) + std::get<4>(pimpl_->m_d_shape_) <= std::get<1>(pimpl_->m_d_shape_));
+    return (!!(m_pimpl_))
+           &&
+           (std::get<2>(m_pimpl_->m_d_shape_) + std::get<4>(m_pimpl_->m_d_shape_) <= std::get<1>(m_pimpl_->m_d_shape_));
 }
 
 bool DataSpace::is_simple() const
 {
-    // TODO add support of complex data shape.
-    return true;
+    return m_pimpl_->m_elements_.size() == 0;
 }
 
 DataSpace::data_shape_s const &DataSpace::shape() const
 {
-    return pimpl_->m_d_shape_;
+    return m_pimpl_->m_d_shape_;
 }
 
 size_t DataSpace::size() const
 {
     size_t s = 1;
 
-    int ndims = std::get<0>(pimpl_->m_d_shape_);
+    int ndims = std::get<0>(m_pimpl_->m_d_shape_);
 
-    auto const &dims = std::get<1>(pimpl_->m_d_shape_);
+    auto const &dims = std::get<1>(m_pimpl_->m_d_shape_);
 
     for (int i = 0; i < ndims; ++i)
     {
@@ -132,51 +132,54 @@ size_t DataSpace::size() const
 
 size_t DataSpace::num_of_elements() const
 {
-    size_t s = 1;
 
-    int ndims = std::get<0>(pimpl_->m_d_shape_);
 
-    auto const &count = std::get<4>(pimpl_->m_d_shape_);
-
-    for (int i = 0; i < ndims; ++i)
+    if (!is_simple())
     {
-        s *= count[i];
+        return m_pimpl_->m_elements_.size() / std::get<0>(m_pimpl_->m_d_shape_);
     }
-    return s;
+    else
+    {
+        size_t s = 1;
+
+        int ndims = std::get<0>(m_pimpl_->m_d_shape_);
+
+        auto const &count = std::get<4>(m_pimpl_->m_d_shape_);
+
+        for (int i = 0; i < ndims; ++i) { s *= count[i]; }
+
+        return s;
+    }
+
 }
+
+std::vector<size_t> const &DataSpace::selected_elements() const { return m_pimpl_->m_elements_; };
+
+void DataSpace::select_element(index_tuple const &idx)
+{
+    for (int i = 0; i < std::get<0>(m_pimpl_->m_d_shape_); ++i)
+    {
+        m_pimpl_->m_elements_.push_back(idx[i]);
+    }
+
+}
+
+void DataSpace::select_element(size_t n) { m_pimpl_->m_elements_.push_back(n); }
 
 DataSpace &DataSpace::select_hyperslab(index_type const *start,
                                        index_type const *_stride,
                                        index_type const *count,
                                        index_type const *_block)
 {
-    if (!is_valid())
-    {
-        THROW_EXCEPTION_RUNTIME_ERROR("data_space is invalid!");
-    }
+    if (!is_valid()) { RUNTIME_ERROR << ("data_space is invalid!"); }
 
-    if (start != nullptr)
-    {
-        std::get<2>(pimpl_->m_d_shape_) = start;
-//        m_pimpl_->m_d_shape_.offset += offset;
-    }
+    if (start != nullptr) { std::get<2>(m_pimpl_->m_d_shape_) = start; }
 
-    if (_stride != nullptr)
-    {
-        std::get<3>(pimpl_->m_d_shape_) *= _stride;
-//        m_pimpl_->m_d_shape_.stride *= stride;
-    }
+    if (_stride != nullptr) { std::get<3>(m_pimpl_->m_d_shape_) *= _stride; }
 
-    if (count != nullptr)
-    {
-        std::get<4>(pimpl_->m_d_shape_) = count;
-//        m_pimpl_->m_d_shape_.count = count;
-    }
-    if (_block != nullptr)
-    {
-        std::get<5>(pimpl_->m_d_shape_) *= _block;
-//        m_pimpl_->m_d_shape_.block *= block;
-    }
+    if (count != nullptr) { std::get<4>(m_pimpl_->m_d_shape_) = count; }
+
+    if (_block != nullptr) { std::get<5>(m_pimpl_->m_d_shape_) *= _block; }
 
     return *this;
 

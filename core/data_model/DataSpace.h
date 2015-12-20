@@ -35,7 +35,7 @@ public:
 
 
     typedef size_t index_type;
-    typedef nTuple<index_type, MAX_NDIMS_OF_ARRAY> index_tuple;
+    typedef nTuple <index_type, MAX_NDIMS_OF_ARRAY> index_tuple;
 
 
     typedef std::tuple<
@@ -46,7 +46,6 @@ public:
             , index_tuple // count
             , index_tuple // block
     > data_shape_s;
-
 
     // Creates a null data_space
     DataSpace();
@@ -86,6 +85,12 @@ public:
 
     bool is_simple() const;
 
+    std::vector<size_t> const &selected_elements() const;
+
+    void select_element(index_tuple const &idx);
+
+    void select_element(size_t n);
+
     /**
      * @return <ndims,dimensions,start,count,stride,block>
      */
@@ -97,7 +102,7 @@ public:
 
 private:
     struct pimpl_s;
-    std::unique_ptr<pimpl_s> pimpl_;
+    std::unique_ptr<pimpl_s> m_pimpl_;
 
 };
 

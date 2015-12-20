@@ -585,11 +585,32 @@ hid_t convert_data_space_sp_to_h5(data_model::DataSpace const &ds, size_t flag)
     {
         max_dims[ndims - 1] = H5S_UNLIMITED;
     }
-
     hid_t res = H5Screate_simple(ndims, &dims[0], &max_dims[0]);
 
-    H5_ERROR(H5Sselect_hyperslab(res, H5S_SELECT_SET, &start[0], &stride[0], &count[0], &block[0]));
+    if (ds.is_simple())
+    {
+        H5_ERROR(H5Sselect_hyperslab(res, H5S_SELECT_SET, &start[0], &stride[0], &count[0], &block[0]));
+    }
+    else
+    {
+        size_t num_elements = ds.selected_elements().size();
 
+        std::vector<hsize_t> coords;
+
+        int r_ndims = std::get<0>(ds.shape());
+
+        auto const &idx = ds.selected_elements();
+
+        for (int i = 0; i < num_elements; ++i)
+        {
+            for (size_t j = 0; j < r_ndims; ++j)
+            {
+                coords.push_back(static_cast<hsize_t>(idx[i * r_ndims + j]));
+            }
+            if ((flag & SP_RECORD) != 0UL) { coords.push_back(0); }
+        }
+        H5Sselect_elements(res, H5S_SELECT_SET, coords.size() / ndims, &coords[0]);
+    }
     return res;
 
 }
@@ -704,20 +725,17 @@ std::string HDF5Stream::write(std::string const &url, data_model::DataSet const 
         }
         else if ((flag & SP_RECORD) != 0)
         {
-            new_f_dimensions[new_f_ndims - 1] += current_dimensions[new_f_ndims
-                                                                    - 1];
+            new_f_dimensions[new_f_ndims - 1] += current_dimensions[new_f_ndims - 1];
 
             new_f_offset2 = 0;
 
-            new_f_offset2[new_f_ndims - 1] =
-                    current_dimensions[new_f_ndims - 1];
+            new_f_offset2[new_f_ndims - 1] = current_dimensions[new_f_ndims - 1];
 
         }
 
         H5_ERROR(H5Dset_extent(dset, &new_f_dimensions[0]));
 
-        H5_ERROR(H5Sset_extent_simple(f_space, new_f_ndims, &new_f_dimensions[0],
-                                      &new_f_max_dimensions[0]));
+        H5_ERROR(H5Sset_extent_simple(f_space, new_f_ndims, &new_f_dimensions[0], &new_f_max_dimensions[0]));
 
         H5_ERROR(H5Soffset_simple(f_space, &new_f_offset2[0]));
 
@@ -744,10 +762,7 @@ std::string HDF5Stream::write(std::string const &url, data_model::DataSet const 
 
     if (f_space != H5S_ALL) H5_ERROR(H5Sclose(f_space));
 
-    if (H5Tcommitted(d_type) > 0)
-    {
-        H5_ERROR(H5Tclose(d_type));
-    }
+    if (H5Tcommitted(d_type) > 0) { H5_ERROR(H5Tclose(d_type)); }
 
     return pwd() + dsname;
 }

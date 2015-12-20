@@ -20,7 +20,6 @@
 
 #include "../gtl/primitives.h"
 
-#include "HDF5Stream.h"
 
 
 /** @ingroup physical_object
@@ -78,54 +77,35 @@ namespace simpla { namespace particle
 {
 template<typename ...> class ParticleContainer;
 
-template<typename P, typename M>
-class ParticleContainer<P, M> : public M::AttributeEntity
+template<typename P>
+class ParticleContainer<P>
 {
 
-    typedef ParticleContainer<P, M> this_type;
+    typedef ParticleContainer<P> this_type;
 
 public:
-    static constexpr int iform = VOLUME;
 
-    typedef M mesh_type;
 
     typedef P value_type;
 
-    typedef ParticleContainer<value_type, mesh_type> container_type;
-
-    typedef typename mesh_type::AttributeEntity base_type;
-
-    virtual bool is_a(std::type_info const &info) const
-    {
-        return typeid(this_type) == info || base_type::is_a(info);
-    }
-
-    virtual std::string get_class_name() const
-    {
-        return "ParticleContainer< P ," + base_type::mesh().get_class_name() + ">";
-    }
+    typedef ParticleContainer<value_type> container_type;
 
 
 private:
-    typedef typename mesh_type::index_tuple index_tuple;
-
-    typedef typename mesh_type::id_type id_type;
-
-    typedef typename mesh_type::range_type range_type;
+    typedef size_t key_type;
 
     typedef std::list<value_type> bucket_type;
 
-    typedef parallel::concurrent_hash_map<id_type, bucket_type> base_container_type;
+    typedef parallel::concurrent_hash_map<key_type, bucket_type> base_container_type;
 
-    typedef std::map<id_type, bucket_type> buffer_type;
+    typedef std::map<key_type, bucket_type> buffer_type;
 
-    static constexpr int ndims = mesh_type::ndims;
 
     std::shared_ptr<base_container_type> m_data_;
 
 public:
 
-    ParticleContainer(mesh_type const &m, std::string const &name);
+    ParticleContainer();
 
     ParticleContainer(ParticleContainer const &);
 
@@ -217,16 +197,15 @@ private:
 
 };//class Particle
 
-template<typename P, typename M>
-ParticleContainer<P, M>::ParticleContainer(M const &m, std::string const &name)
-        : base_type(m, name)
+template<typename P>
+ParticleContainer<P, M>::ParticleContainer()
 {
 
 }
 
 template<typename P, typename M>
-ParticleContainer<P, M>::ParticleContainer(const ParticleContainer<P, M> &other)
-        : base_type(other), m_data_(other.m_data_)
+ParticleContainer<P, M>::ParticleContainer(const ParticleContainer<P> &other)
+        : m_data_(other.m_data_)
 {
 
 }

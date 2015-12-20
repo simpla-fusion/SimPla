@@ -30,8 +30,6 @@ public:
 
     virtual int extent(int i) const { return 1; }
 
-//    virtual data_model::DataSet data_set() = 0;
-
     virtual data_model::DataSet data_set() const = 0;
 
 
@@ -66,6 +64,8 @@ class AttributeEntity : public AttributeObject
     typedef AttributeObject base_type;
 
 public:
+
+
     AttributeEntity(mesh_type &m, std::string const &s_name = "")
             : AttributeObject(s_name), m_mesh_(&m), m_const_mesh_(&m) { }
 
