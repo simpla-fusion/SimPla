@@ -14,7 +14,7 @@
 #include "../gtl/utilities/utilities.h"
 #include "../data_model/DataSet.h"
 #include "../data_model/DataType.h"
-#include "DataStream.h"
+#include "HDF5Stream.h"
 
 namespace simpla { namespace io
 {

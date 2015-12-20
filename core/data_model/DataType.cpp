@@ -115,14 +115,14 @@ DataType::DataType(std::type_index t_index, size_t ele_size_in_byte,
 DataType &DataType::operator=(DataType const
                               &other)
 {
-//    pimpl_->m_ele_size_in_byte_ = (other.pimpl_->m_ele_size_in_byte_);
-//    pimpl_->m_t_index_ = (other.pimpl_->m_t_index_);
-//    pimpl_->m_name_ = (other.pimpl_->m_name_);
+//    m_pimpl_->m_ele_size_in_byte_ = (other.m_pimpl_->m_ele_size_in_byte_);
+//    m_pimpl_->m_t_index_ = (other.m_pimpl_->m_t_index_);
+//    m_pimpl_->m_name_ = (other.m_pimpl_->m_name_);
 //
-//    std::copy(other.pimpl_->m_extents_.begin(), other.pimpl_->m_extents_.end(),
-//              std::back_inserter(pimpl_->m_extents_));
-//    std::copy(other.pimpl_->m_members_.begin(), other.pimpl_->m_members_.end(),
-//              std::back_inserter(pimpl_->m_members_));
+//    std::copy(other.m_pimpl_->m_extents_.begin(), other.m_pimpl_->m_extents_.end(),
+//              std::back_inserter(m_pimpl_->m_extents_));
+//    std::copy(other.m_pimpl_->m_members_.begin(), other.m_pimpl_->m_members_.end(),
+//              std::back_inserter(m_pimpl_->m_members_));
 
     DataType(other)
             .swap(*this);

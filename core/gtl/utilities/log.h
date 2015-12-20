@@ -57,6 +57,7 @@ enum tags
     LOG_OUT_RANGE_ERROR = -4, //!< LOG_OUT_RANGE_ERROR
     LOG_LOGIC_ERROR = -3,     //!< LOG_LOGIC_ERROR
     LOG_ERROR = -2,           //!< LOG_ERROR
+    LOG_RUNTIME_ERROR = -5,   //!< LOG_RUNTIME_ERROR
 
     LOG_WARNING = -1,         //!< LOG_WARNING
 
@@ -303,20 +304,22 @@ std::string make_msg(Others const &...others)
  *  @name   Shortcuts for logging
  *  @{
  */
+#define FILE_LINE_STAMP "\n\e[0m \e[1;37m From [" << (__FILE__) << ":" << (__LINE__) << ":0: " <<(__PRETTY_FUNCTION__) << "] \n \e[1;31m\t"
 #define MAKE_ERROR_MSG(...)  logger::make_msg(  "\n\e[0m \e[1;37m From [" , (__FILE__) , ":" , (__LINE__) , ":0: " ,(__PRETTY_FUNCTION__) , "] \n \e[1;31m\t",__VA_ARGS__)
 
 //logger::make_error_msg( (__FILE__),(__LINE__), (__PRETTY_FUNCTION__),__VA_ARGS__)
 
 #define DONE logger::done
 
-#define WARNING logger::Logger(logger::LOG_WARNING)  <<MAKE_ERROR_MSG("")
+#define WARNING logger::Logger(logger::LOG_WARNING)  <<FILE_LINE_STAMP
+
 
 #define INFORM logger::Logger(logger::LOG_INFORM)
 
-#define NEED_OPTIMIZATION logger::Logger(logger::LOG_VERBOSE) <<MAKE_ERROR_MSG("") << "This function should be optimized!"<<std::endl
+#define NEED_OPTIMIZATION logger::Logger(logger::LOG_VERBOSE) <<FILE_LINE_STAMP << "This function should be optimized!"<<std::endl
 
-#define UNIMPLEMENTED  THROW_EXCEPTION_RUNTIME_ERROR( "Sorry, this function is not implemented. Try again next year, good luck! ")
-#define OBSOLETE  logger::Logger(logger::LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
+#define UNIMPLEMENTED  logger::Logger(logger::LOG_WARNING)<< FILE_LINE_STAMP<<   "Sorry, this function is not implemented. Try again next year, good luck! "
+#define OBSOLETE  logger::Logger(logger::LOG_WARNING)  <<FILE_LINE_STAMP \
               << "The function ["<< __PRETTY_FUNCTION__ << "] is obsolete. Please do not use  it any more."
 
 #define CHANGE_INTERFACE(_MSG_)  logger::Logger(logger::LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
@@ -339,37 +342,40 @@ std::string make_msg(Others const &...others)
 
 #define VERBOSE logger::Logger(logger::LOG_VERBOSE)
 
-#define SHOW_ERROR logger::Logger(logger::LOG_ERROR)
+#define SHOW_ERROR logger::Logger(logger::LOG_ERROR)<<FILE_LINE_STAMP
 
 #define SHOW_WARNING logger::Logger(logger::LOG_WARNING)
 
+#define RUNTIME_ERROR logger::Logger(logger::LOG_RUNTIME_ERROR)  <<FILE_LINE_STAMP
 
+#define LOGIC_ERROR logger::Logger(logger::LOG_LOGIC_ERROR)  <<FILE_LINE_STAMP
 
+#define EXCEPTION_BAD_ALLOC
 //#define THROW_EXCEPTION(_MSG_) { {logger::Logger(logger::LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::logic_error("error"));}
-
+//
 #define THROW_EXCEPTION(...)  throw(std::exception(MAKE_ERROR_MSG( __VA_ARGS__)));
-
-//#define THROW_EXCEPTION_RUNTIME_ERROR(_MSG_) { {logger::Logger(logger::LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::runtime_error("runtime error"));}
-
+//
+////#define THROW_EXCEPTION_RUNTIME_ERROR(_MSG_) { {logger::Logger(logger::LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::runtime_error("runtime error"));}
+//
 #define THROW_EXCEPTION_RUNTIME_ERROR(...) throw(std::runtime_error(MAKE_ERROR_MSG(__VA_ARGS__)));
-
-//#define THROW_EXCEPTION_LOGIC_ERROR(_MSG_)  {{logger::Logger(logger::LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::logic_error("logic error"));}
+//
+////#define THROW_EXCEPTION_LOGIC_ERROR(_MSG_)  {{logger::Logger(logger::LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::logic_error("logic error"));}
 #define THROW_EXCEPTION_LOGIC_ERROR(...) throw(std::logic_error(MAKE_ERROR_MSG( __VA_ARGS__)));
-
-//#define THROW_EXCEPTION_OUT_OF_RANGE(_MSG_) { {logger::Logger(logger::LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::out_of_range("out of range"));}
+//
+////#define THROW_EXCEPTION_OUT_OF_RANGE(_MSG_) { {logger::Logger(logger::LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::out_of_range("out of range"));}
 #define THROW_EXCEPTION_OUT_OF_RANGE(...) throw(std::out_of_range(MAKE_ERROR_MSG( __VA_ARGS__)));
-
+//
 //#define THROW_EXCEPTION_BAD_ALLOC(_SIZE_, _error_)    logger::Logger(logger::LOG_ERROR)<<__FILE__<<"["<<__LINE__<<"]: "<< "Can not get enough memory! [ "  \
 //        << _SIZE_ / 1024.0 / 1024.0 / 1024.0 << " GiB ]" << std::endl; throw(_error_);
-
-#define THROW_EXCEPTION_BAD_ALLOC(_SIZE_)   {SHOW_ERROR<<MAKE_ERROR_MSG( "Can not get enough memory! [ " , _SIZE_ / 1024.0 / 1024.0 / 1024.0 , " GiB ]", "" )<<std::endl; throw(std::bad_alloc());}
-
 //
-
+#define THROW_EXCEPTION_BAD_ALLOC(_SIZE_)   {LOGGER<<FILE_LINE_STAMP<<  "Can not get enough memory! [ " << _SIZE_ / 1024.0 / 1024.0 / 1024.0 << " GiB ]" <<std::endl; throw(std::bad_alloc());}
+//
+////
+//
 #define THROW_EXCEPTION_BAD_CAST(_FIRST_, _SECOND_) {SHOW_ERROR<<MAKE_ERROR_MSG("Can not cast " , (_FIRST_) , " to "  ,(_SECOND_) , "" ) <<std::endl; throw(std::bad_cast());}
-
-
-//#define THROW_EXCEPTION_PARSER_ERROR(_MSG_)  {{ logger::Logger(logger::LOG_ERROR)<<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"<<"\n\tConfigure fails :"<<(_MSG_) ;}throw(std::runtime_error(""));}
+//
+//
+////#define THROW_EXCEPTION_PARSER_ERROR(_MSG_)  {{ logger::Logger(logger::LOG_ERROR)<<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"<<"\n\tConfigure fails :"<<(_MSG_) ;}throw(std::runtime_error(""));}
 #define THROW_EXCEPTION_PARSER_ERROR(...)    throw(std::logic_error(MAKE_ERROR_MSG("Configure fails:", __VA_ARGS__)));
 
 #define PARSER_WARNING(_MSG_)  {{ logger::Logger(logger::LOG_WARNING)<<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"<<"\n\tConfigure fails :"<<(_MSG_) ;}throw(std::runtime_error(""));}
@@ -383,7 +389,7 @@ std::string make_msg(Others const &...others)
 #ifdef NDEBUG
 #  define ASSERT(_COND_)
 #else
-#  define ASSERT(_COND_)   if(!(_COND_)){ THROW_EXCEPTION_RUNTIME_ERROR("Assertion \"",__STRING(_COND_), "\" failed! Abort.");};
+#  define ASSERT(_COND_)   if(!(_COND_)){ RUNTIME_ERROR<<("Assertion \"",__STRING(_COND_), "\" failed! Abort.");};
 #endif
 
 //#ifndef NDEBUG

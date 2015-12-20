@@ -25,7 +25,7 @@ XDMFStream::XDMFStream()
 
 XDMFStream::~XDMFStream()
 {
-
+    close();
 }
 
 std::string XDMFStream::path() const
@@ -49,7 +49,7 @@ void XDMFStream::open(std::string const &prefix, std::string const &grid_name)
 
     m_file_stream_.open(m_prefix_ + ".xdmf");
 
-    io::cd(m_prefix_ + ".h5:/");
+    m_h5_stream_.open(m_prefix_ + ".h5:/");
 
     m_file_stream_
     << std::endl
@@ -64,6 +64,7 @@ void XDMFStream::close()
 {
     while (!m_path_.empty()) { close_grid(); }
 
+    m_h5_stream_.close();
 
     m_file_stream_
     << "</Domain>" << std::endl
@@ -78,7 +79,7 @@ void XDMFStream::open_grid(const std::string &g_name, int TAG)
 {
     m_path_.push_back(g_name);
 
-    io::cd(path());
+    m_h5_stream_.open_group(path());
 
     int level = static_cast<int>( m_path_.size());
 
@@ -151,7 +152,7 @@ void XDMFStream::write(std::string const &ds_name, data_model::DataSet const &ds
 
     std::string url;
 
-    url = io::write(ds_name, ds);
+    url = m_h5_stream_.write(ds_name, ds);
 
     int level = static_cast<int>( m_path_.size());
 
@@ -224,7 +225,7 @@ void XDMFStream::write(std::string const &ds_name,
     << "AttributeType=\"" << attr_type << "\" "
     << "Center=\"" << center_type << "\">" << std::endl;
 
-    write(ds_name, attr.data_set());
+    this->write(ds_name, attr.data_set());
 
     m_file_stream_ << std::setw(level * 2 + 2) << "" << "</Attribute>" << std::endl;
 
@@ -307,7 +308,7 @@ void XDMFStream::set_topology_geometry(std::string const &name, data_model::Data
         << " TopologyType=\"2DSMesh\""
         << " NumberOfElements=\"" << dims[0] << " " << dims[1] << " " << dims[2] << "\"/>\n"
         << std::setw(level * 2 + 2) << "<geometry Name=  \"" << name << "\" GeometryType=\"XY\">" << std::endl;
-        write("/Grid/points", ds);
+        this->write("/Grid/points", ds);
 
         m_file_stream_ << ""
         << std::setw(level * 2 + 2) << "" << " </geometry>\n";
@@ -320,7 +321,7 @@ void XDMFStream::set_topology_geometry(std::string const &name, data_model::Data
         << "TopologyType=\"3DSMesh\"  NumberOfElements=\"" << dims[0] << " " << dims[1] << " " << dims[2] << "\"/>\n"
         << std::setw(level * 2 + 2) << "" << "<geometry Name=\"" << name << "\" GeometryType=\"XYZ\">\n";
 
-        write("/Grid/points", ds);
+        this->write("/Grid/points", ds);
 
         m_file_stream_ << ""
         << std::setw(level * 2 + 2) << "" << "</geometry>\n";

@@ -13,7 +13,7 @@
 
 #include "../../utilities/memory_pool.h"
 #include "../../gtl/iterator/sp_iterator.h"
-#include "../../io/DataStream.h"
+#include "HDF5Stream.h"
 #include "../../io/IO.h"
 
 using namespace simpla;

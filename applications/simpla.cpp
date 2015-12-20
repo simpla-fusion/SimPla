@@ -11,7 +11,7 @@
 #include <memory>
 #include <string>
 
-#include "../core/io/DataStream.h"
+#include "HDF5Stream.h"
 #include "../core/parallel/MPIComm.h"
 #include "../core/sp_config.h"
 #include "../core/utilities/log.h"

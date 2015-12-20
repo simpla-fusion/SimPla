@@ -314,7 +314,7 @@ void EMPlasma::setup(int argc, char **argv)
 
                         auto gen = particle::make_generator(*pic, 1.0);
 
-                       pic->generator(gen, options["PIC"].as<size_t>(10), 1.0);
+                        pic->generator(gen, options["PIC"].as<size_t>(10), 1.0);
 
                         std::get<4>(p) = particle_proxy_type::create(pic);
 
@@ -465,7 +465,8 @@ void EMPlasma::next_time_step()
         a += 1;
 
 
-        LOG_CMD( dE = (Q * a - cross(Q, B0v) * b + B0v * (dot(Q, B0v) * (b * b - c * a) / (a + c * BB))) / (b * b * BB + a * a));
+        LOG_CMD(dE = (Q * a - cross(Q, B0v) * b + B0v * (dot(Q, B0v) * (b * b - c * a) / (a + c * BB))) /
+                     (b * b * BB + a * a));
 
         for (auto &p :   particles)
         {
@@ -510,7 +511,6 @@ int main(int argc, char **argv)
 
         parallel::init(argc, argv);
 
-        io::init(argc, argv);
 
         options.init(argc, argv);
     }
@@ -578,7 +578,6 @@ int main(int argc, char **argv)
     MESSAGE << "====================================================" << std::endl;
 
 
-    io::close();
     parallel::close();
     logger::close();
 

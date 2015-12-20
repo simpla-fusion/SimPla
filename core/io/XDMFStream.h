@@ -11,6 +11,7 @@
 #include <memory>
 #include "../data_model/DataSet.h"
 #include "../base/Attribute.h"
+#include "HDF5Stream.h"
 
 
 namespace simpla { namespace io
@@ -75,6 +76,8 @@ private:
     std::string m_prefix_;
 
     std::ofstream m_file_stream_;
+
+    HDF5Stream m_h5_stream_;
 };
 
 

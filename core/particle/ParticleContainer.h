@@ -20,7 +20,7 @@
 
 #include "../gtl/primitives.h"
 
-#include "../io/DataStream.h"
+#include "HDF5Stream.h"
 
 
 /** @ingroup physical_object

@@ -34,19 +34,11 @@ private:
 
     bool is_changed_ = false;
 public:
-    Properties()
-    {
-    }
+    Properties() { }
 
-    template<typename T>
-    Properties(T const &v) :
-            value_type(v)
-    {
-    }
+    template<typename T> Properties(T const &v) : any(v) { }
 
-    ~Properties()
-    {
-    }
+    ~Properties() { }
 
     this_type &operator=(this_type const &other)
     {
@@ -65,30 +57,16 @@ public:
         return *this;
     }
 
-    inline bool empty() const // STL style
-    {
-        return any::empty() && map_type::empty();
-    }
+// STL style
+    inline bool empty() const { return any::empty() && map_type::empty(); }
 
-    inline bool IsNull() const
-    {
-        return empty();
-    }
+    inline bool IsNull() const { return empty(); }
 
-    inline bool is_changed() const
-    {
-        return is_changed_;
-    }
+    inline bool is_changed() const { return is_changed_; }
 
-    void update()
-    {
-        is_changed_ = false;
-    }
+    void update() { is_changed_ = false; }
 
-    operator bool() const
-    {
-        return !empty();
-    }
+    operator bool() const { return !empty(); }
 
     Properties &get(std::string const &key)
     {

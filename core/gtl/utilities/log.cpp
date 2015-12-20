@@ -273,7 +273,15 @@ Logger::Logger(int lv)
 
 Logger::~Logger()
 {
-    flush();
+
+    switch (m_level_)
+    {
+        case LOG_RUNTIME_ERROR:
+            throw (std::runtime_error(this->str()));
+            break;
+        default:
+            flush();
+    }
 }
 
 int Logger::get_buffer_length() const
