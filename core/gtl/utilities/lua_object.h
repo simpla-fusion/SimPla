@@ -23,18 +23,18 @@
 #include "log.h"
 #include "../type_cast.h"
 #include "lua_object_ext.h"
-//
-//extern "C"
-//{
-//
-//#include <lua.h>
-//#include <lualib.h>
-//#include <lauxlib.h>
-//
-//#if LUA_VERSION_NUM < 502
-//#error  need lua version >502
-//#endif
-//}
+
+extern "C"
+{
+
+#include <lua.h>
+#include <lualib.h>
+#include <lauxlib.h>
+
+#if LUA_VERSION_NUM < 502
+#error  need lua version >502
+#endif
+}
 
 namespace simpla { namespace lua
 {
@@ -51,9 +51,8 @@ namespace simpla { namespace lua
    int error=_CMD_;                                                            \
     if(error!=0)                                                               \
     { \
-      std::string msg=MAKE_ERROR_MSG("\e[1;32m" ,"Lua Error:",lua_tostring(L_.get(), -1),  "\e[1;37m",""); \
+      RUNTIME_ERROR<<std::string("\e[1;32m Lua Error:")<<lua_tostring(L_.get(), -1)<< "\e[1;37m"<<std::endl; \
      lua_pop(L_.get(), 1);                                                     \
-     throw(std::runtime_error(msg));                                   \
     }                                                                          \
 }
 
@@ -62,7 +61,7 @@ namespace simpla { namespace lua
  *  @class GeoObject
  *  \brief interface to Lua Script
  */
-class Object
+class LuaObject
 {
 
 
@@ -144,26 +143,26 @@ class Object
 
 public:
 
-    typedef Object this_type;
+    typedef LuaObject this_type;
 
-    Object();
+    LuaObject();
 
-    Object(std::shared_ptr<LuaState::lua_s> const &l, int G, int s, std::string const &path = "");
+    LuaObject(std::shared_ptr<LuaState::lua_s> const &l, int G, int s, std::string const &path = "");
 
-    Object(Object const &other);
+    LuaObject(LuaObject const &other);
 
-    Object(Object &&r);
+    LuaObject(LuaObject &&r);
 
-    Object &operator=(Object const &other)
+    LuaObject &operator=(LuaObject const &other)
     {
-        Object(other).swap(*this);
+        LuaObject(other).swap(*this);
 
         return *this;
     }
 
-    void swap(Object &other);
+    void swap(LuaObject &other);
 
-    ~Object();
+    ~LuaObject();
 
     inline std::basic_ostream<char> &Serialize(std::basic_ostream<char> &os);
 
@@ -202,6 +201,9 @@ public:
     DEF_TYPE_CHECK(is_nil, lua_isnil)
 
     DEF_TYPE_CHECK(is_number, lua_isnumber)
+#if LUA_VERSION_NUM >= 503
+    DEF_TYPE_CHECK(is_integer, lua_isinteger)
+#endif
 
     DEF_TYPE_CHECK(is_string, lua_isstring)
 
@@ -216,6 +218,25 @@ public:
     DEF_TYPE_CHECK(is_table, lua_istable)
 
 #undef DEF_TYPE_CHECK
+
+
+    inline bool is_ntuple() const
+    {
+        bool res = false;
+        if (this->is_table())
+        {
+            res = true;
+            size_t n = size();
+            for (int i = 0; i < n && res; ++i)
+            {
+                LuaObject ele = this->operator[](i);
+                if (ele.is_number() || ele.is_table()) { res = ele.is_ntuple(); }
+                else { res = false; }
+            }
+
+        }
+        return res;
+    }
 
     inline std::string get_typename() const;
 
@@ -249,11 +270,11 @@ public:
 
         bool operator!=(iterator const &r) const { return (r.key_ != key_); }
 
-        std::pair<Object, Object> value() const;
+        std::pair<LuaObject, LuaObject> value() const;
 
-        std::pair<Object, Object> operator*() const { return value(); };
+        std::pair<LuaObject, LuaObject> operator*() const { return value(); };
 
-        std::pair<Object, Object> operator->() const { return value(); };
+        std::pair<LuaObject, LuaObject> operator->() const { return value(); };
 
 
         iterator &operator++() { return Next(); }
@@ -271,42 +292,42 @@ public:
     iterator end() const { return iterator(); }
 
     template<typename T>
-    inline Object get_child(T const &key) const
+    inline LuaObject get_child(T const &key) const
     {
-        if (is_null()) { return Object(); }
+        if (is_null()) { return LuaObject(); }
 
         return std::move(at(key));
     }
 
     size_t size() const;
 
-    inline Object operator[](char const s[]) const noexcept
+    inline LuaObject operator[](char const s[]) const noexcept
     {
         return operator[](std::string(s));
     }
 
-    Object operator[](std::string const &s) const noexcept;
+    LuaObject operator[](std::string const &s) const noexcept;
 
     //! unsafe fast access, no boundary check, no path information
-    Object operator[](int s) const noexcept;
+    LuaObject operator[](int s) const noexcept;
 
     //! index operator with out_of_range exception
-    Object at(size_t const &s) const;
+    LuaObject at(size_t const &s) const;
 
     //! safe access, with boundary check, no path information
-    Object at(int s) const;
+    LuaObject at(int s) const;
 
     template<typename ...Args>
-    Object operator()(Args &&... args) const
+    LuaObject operator()(Args &&... args) const
     {
 
         if (is_null())
         {
             WARNING << "Try to call a null GeoObject." << std::endl;
-            return Object();
+            return LuaObject();
         }
 
-        Object res;
+        LuaObject res;
         {
             auto acc = L_.acc();
 
@@ -316,13 +337,13 @@ public:
 
             if (!lua_isfunction(*acc, idx))
             {
-                Object(acc.get(), GLOBAL_REF_IDX_, self_, path_).swap(res);
+                LuaObject(acc.get(), GLOBAL_REF_IDX_, self_, path_).swap(res);
             }
             else
             {
                 LUA_ERROR(lua_pcall(*acc, _impl::push_to_lua(*acc, std::forward<Args>(args)...), 1, 0));
 
-                Object(acc.get(), GLOBAL_REF_IDX_, luaL_ref(*acc, GLOBAL_REF_IDX_), path_ + "[ret]").swap(res);
+                LuaObject(acc.get(), GLOBAL_REF_IDX_, luaL_ref(*acc, GLOBAL_REF_IDX_), path_ + "[ret]").swap(res);
             }
         }
         return std::move(res);
@@ -365,7 +386,7 @@ public:
         }
         else if (is_function())
         {
-            Object f_obj(*this);
+            LuaObject f_obj(*this);
 
             *res = [f_obj](Args ...args) -> TRect
             {
@@ -373,7 +394,7 @@ public:
 
                 auto v_obj = f_obj(std::forward<Args>(args)...);
 
-                if (!v_obj.template as<TRect>(&t)) { THROW_EXCEPTION_RUNTIME_ERROR("convert error!"); }
+                if (!v_obj.template as<TRect>(&t)) { RUNTIME_ERROR << ("convert error!") << std::endl; }
 
                 return std::move(t);
             };
@@ -399,7 +420,7 @@ public:
 
             lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
 
-            _impl::pop_from_lua(L_.get(), lua_gettop(*acc), res);
+            _impl::pop_from_lua(*acc, lua_gettop(*acc), res);
 
             lua_pop(*acc, 1);
 
@@ -411,6 +432,8 @@ public:
             return false;
         }
     }
+
+    bool as(Properties *res) const;
 
     template<typename T>
     inline void set(std::string const &name, T const &v)
@@ -455,7 +478,7 @@ public:
         lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
         _impl::push_to_lua(*acc, v);
         size_t len = lua_rawlen(*acc, -1);
-        lua_rawseti(*acc, -2, len + 1);
+        lua_rawseti(*acc, -2, static_cast<int>(len + 1));
         lua_pop(*acc, 1);
     }
 
@@ -473,12 +496,12 @@ public:
      *
      *  \note Lua.org:createtable
      */
-    inline Object new_table(std::string const &name, unsigned int narr = 0,
-                            unsigned int nrec = 0);
+    inline LuaObject new_table(std::string const &name, unsigned int narr = 0,
+                               unsigned int nrec = 0);
 };
 
 
-inline std::ostream &operator<<(std::ostream &os, Object const &obj)
+inline std::ostream &operator<<(std::ostream &os, LuaObject const &obj)
 {
     os << obj.as<std::string>();
     return os;
@@ -492,9 +515,9 @@ namespace traits
 {
 
 template<typename TDest>
-struct type_cast<lua::Object, TDest>
+struct type_cast<lua::LuaObject, TDest>
 {
-    static constexpr TDest eval(lua::Object const &v)
+    static constexpr TDest eval(lua::LuaObject const &v)
     {
         return v.as<TDest>();
     }
@@ -511,12 +534,12 @@ template<typename, typename>
 struct is_indexable;
 
 template<typename ...Args>
-struct is_callable<lua::Object, Args ...>
+struct is_callable<lua::LuaObject, Args ...>
 {
     static constexpr bool value = true;
 };
 template<typename Other>
-struct is_indexable<lua::Object, Other>
+struct is_indexable<lua::LuaObject, Other>
 {
     static constexpr bool value = true;
 };

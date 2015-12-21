@@ -32,6 +32,13 @@ struct ParticleProxy<TP, TE, TB, TJ, TRho> : public ParticleProxyBase<TE, TB, TJ
 
     particle_type const &self() const { return *m_self_; }
 
+
+    virtual Properties const &properties() const { return m_self_->properties(); }
+
+    virtual Properties &properties() { return m_self_->properties(); }
+
+    virtual void update() { m_self_->update(); }
+
     virtual void deploy() { m_self_->deploy(); }
 
     virtual void rehash() { m_self_->rehash(); }
@@ -65,19 +72,21 @@ struct ParticleProxyBase<TE, TB, TJ, TRho>
 private:
     typedef ParticleProxyBase<TE, TB, TJ, TRho> this_type;
 public:
-    ParticleProxyBase()
-    {
-    }
+    ParticleProxyBase() { }
 
-    virtual ~ParticleProxyBase()
-    {
-    }
+    virtual ~ParticleProxyBase() { }
 
     virtual void deploy() = 0;
 
     virtual void rehash() = 0;
 
     virtual void sync() = 0;
+
+    virtual Properties const &properties() const = 0;
+
+    virtual Properties &properties() = 0;
+
+    virtual void update() = 0;
 
     virtual data_model::DataSet data_set() const = 0;
 

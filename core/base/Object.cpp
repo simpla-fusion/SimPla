@@ -27,7 +27,7 @@ void Object::swap(Object &other) { std::swap(m_click_, other.m_click_); };
 
 bool Object::is_a(std::type_info const &info) const { return typeid(Object) == info; }
 
-std::string Object::get_class_name() const { return "base::Object"; }
+std::string Object::get_class_name() const { return "base::LuaObject"; }
 
 std::ostream &Object::print(std::ostream &os, int indent) const
 {

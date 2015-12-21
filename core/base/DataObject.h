@@ -21,12 +21,22 @@ public:
 
     SP_OBJECT_HEAD(DataObject, Object);
 
-    EXPOSE_PROPERTIES;
+    virtual Properties &properties()
+    {
+        touch();
+        return m_properties_;
+    };
+
+
+    virtual Properties const &properties() const { return m_properties_; }; \
+
 
     virtual data_model::DataSet data_set() const = 0;
 
     virtual std::ostream &print(std::ostream &os, int indent = 0) const;
 
+private:
+    Properties m_properties_;
 
 };
 

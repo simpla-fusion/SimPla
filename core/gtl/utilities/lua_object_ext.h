@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "../ntuple.h"
+#include "../Properties.h"
 
 extern "C"
 {
@@ -182,8 +183,8 @@ struct Converter<std::string>
 {
     typedef std::string value_type;
 
-    static inline unsigned int from(lua_State *L,
-                                    unsigned int idx, value_type *v, value_type const &default_value =
+    static inline unsigned int from(lua_State *L, unsigned int idx,
+                                    value_type *v, value_type const &default_value =
     value_type())
     {
         if (lua_isstring(L, idx))
@@ -193,33 +194,33 @@ struct Converter<std::string>
         else
         {
             *v = default_value;
-            THROW_EXCEPTION_BAD_CAST(lua_typename(L, lua_type(L, idx)), "doulbe");
+            THROW_EXCEPTION_BAD_CAST(lua_typename(L, lua_type(L, idx)), "std::string");
         }
         return 1;
     }
 
-    static inline unsigned int to(lua_State *L,
-                                  value_type const &v)
+    static inline unsigned int to(lua_State *L, value_type const &v)
     {
         lua_pushstring(L, v.c_str());
         return 1;
     }
 };
 
-template<unsigned int N, typename T> struct Converter<nTuple<T, N>>
+template<int N, typename T> struct Converter<nTuple<T, N>>
 {
     typedef nTuple<T, N> value_type;
 
-    static inline unsigned int from(lua_State *&L,
-                                    unsigned int idx, value_type *v, value_type const &default_value =
-    value_type())
+    static inline unsigned int from(lua_State *&L, unsigned int idx, value_type *v,
+                                    value_type const &default_value =
+                                    value_type())
     {
         if (lua_istable(L, idx))
         {
             size_t num = lua_rawlen(L, idx);
+
             for (size_t s = 0; s < N; ++s)
             {
-                lua_rawgeti(L, idx, s % num + 1);
+                lua_rawgeti(L, idx, static_cast<int>(s % num + 1));
                 _impl::pop_from_lua(L, -1, &((*v)[s]));
                 lua_pop(L, 1);
             }
@@ -232,8 +233,7 @@ template<unsigned int N, typename T> struct Converter<nTuple<T, N>>
         return 1;
     }
 
-    static inline unsigned int to(lua_State *&L,
-                                  value_type const &v)
+    static inline unsigned int to(lua_State *&L, value_type const &v)
     {
         lua_newtable(L);
 
@@ -248,13 +248,13 @@ template<unsigned int N, typename T> struct Converter<nTuple<T, N>>
     }
 };
 
-template<typename T, size_t N, size_t ...M> struct Converter<nTuple<T, N, M...>>
+template<typename T, int N, int ...M> struct Converter<nTuple<T, N, M...>>
 {
     typedef nTuple<T, N, M...> value_type;
 
-    static inline unsigned int from(lua_State *&L,
-                                    unsigned int idx, value_type *v, value_type const &default_value =
-    value_type())
+    static inline unsigned int from(lua_State *&L, unsigned int idx, value_type *v,
+                                    value_type const &default_value =
+                                    value_type())
     {
         if (lua_istable(L, idx))
         {
@@ -274,8 +274,7 @@ template<typename T, size_t N, size_t ...M> struct Converter<nTuple<T, N, M...>>
         return 1;
     }
 
-    static inline unsigned int to(lua_State *&L,
-                                  value_type const &v)
+    static inline unsigned int to(lua_State *&L, value_type const &v)
     {
         lua_newtable(L);
 
@@ -372,8 +371,7 @@ template<typename T1, typename T2> struct Converter<std::map<T1, T2> >
 {
     typedef std::map<T1, T2> value_type;
 
-    static inline unsigned int from(lua_State *&L,
-                                    unsigned int idx, value_type *v, value_type const &default_value =
+    static inline unsigned int from(lua_State *&L, unsigned int idx, value_type *v, value_type const &default_value =
     value_type())
     {
         if (lua_istable(L, idx))
@@ -397,13 +395,12 @@ template<typename T1, typename T2> struct Converter<std::map<T1, T2> >
         }
         else
         {
-            v = default_value;
+            *v = default_value;
         }
         return 1;
     }
 
-    static inline unsigned int to(lua_State *&L,
-                                  value_type const &v)
+    static inline unsigned int to(lua_State *&L, value_type const &v)
     {
         lua_newtable(L);
 
@@ -546,8 +543,7 @@ private:
     }
 
 public:
-    static inline unsigned int from(lua_State *&L,
-                                    unsigned int idx, value_type *v, value_type const &default_value =
+    static inline unsigned int from(lua_State *&L, unsigned int idx, value_type *v, value_type const &default_value =
     value_type())
     {
         return from_(L, idx, v, std::integral_constant<unsigned int, sizeof...(T)>());
@@ -561,6 +557,18 @@ public:
 
 };
 
+
+template<> struct Converter<Properties>
+{
+    typedef Properties value_type;
+
+    static unsigned int from(lua_State *&L, unsigned int idx, value_type *v,
+                             value_type const &default_value = value_type());
+
+
+    static unsigned int to(lua_State *&L, value_type const &v);
+
+};
 
 /** @} LuaTrans */
 }}                                                                         // namespace simpla

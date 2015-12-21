@@ -310,15 +310,13 @@ void EMPlasma::setup(int argc, char **argv)
                     {
                         particle::BorisParticle<mesh_type> pic(m, key);
 
-                        pic.engine().mass(mass);
-                        pic.engine().charge(charge);
+                        dict.second.as(&pic.properties());
 
-                        pic.properties()["DisableCheckPoint"] =
-                                dict.second["DisableCheckPoint"].template as<bool>(true);
+                        pic.update();
 
                         auto gen = particle::make_generator(pic.engine(), 1.0);
 
-                        pic.generator(gen, options["PIC"].as<size_t>(10), 1.0);
+                        pic.generator(gen, pic.properties()["PIC"].as<size_t>(10), pic.properties()["T"].as<Real>(1));
 
                         std::get<4>(p) = particle_proxy_type::create(pic.data());
 
@@ -333,13 +331,13 @@ void EMPlasma::setup(int argc, char **argv)
         MESSAGE << "particle = {" << std::endl;
         for (auto const &item:particles)
         {
-            MESSAGE << "  " << item.first << " = {";
+            MESSAGE << "  " << item.first << " =  ";
 
             if ((std::get<4>(item.second) == nullptr))
             {
-                MESSAGE << " mass =" << std::get<0>(item.second) << " , "
+                MESSAGE << "{" << " mass =" << std::get<0>(item.second) << " , "
                 << " charge = " << std::get<1>(item.second) << " , "
-                << " type =   \"Fluid\" " << " , ";
+                << " type =   \"Fluid\" " << "}";
             }
             else
             {
@@ -347,7 +345,7 @@ void EMPlasma::setup(int argc, char **argv)
             }
 
 
-            MESSAGE << " }," << std::endl;
+            MESSAGE << "," << std::endl;
         }
         MESSAGE << "}" << std::endl;
 

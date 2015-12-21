@@ -24,8 +24,7 @@ namespace simpla
  */
 class Properties
         : public any,
-          public std::map<std::string, Properties>,
-          public base::Object
+          public std::map<std::string, Properties>
 {
 
 private:
@@ -36,6 +35,7 @@ private:
     typedef std::map<key_type, this_type> map_type;
 
 public:
+
     Properties() { }
 
     Properties(this_type const &other) : any(dynamic_cast<any const &>(other)), map_type(other) { }
@@ -71,8 +71,6 @@ public:
 
     Properties &get(std::string const &key)
     {
-        touch();
-
         if (key == "")
         {
             return *this;
@@ -167,17 +165,33 @@ public:
 
     std::ostream &print(std::ostream &os, int indent = 0) const
     {
-        this->any::print(os, indent);
 
-        for (auto const &item : dynamic_cast<map_type const &>(*this))
+        if (!this->any::empty()) { this->any::print(os, indent); }
+        if (this->size() > 0)
         {
-            os << item.first << " =  ";
-            item.second.print(os, indent + 1);
-            os << " , ";
+            auto it = this->begin();
+            auto ie = this->end();
+            os << "{ " << it->first << " = ";
+            it->second.print(os, indent + 1);;
+            ++it;
+            for (; it != ie; ++it)
+            {
+                os << " , " << it->first << " = ";
+                it->second.print(os, indent + 1);
+
+            }
+            os << " }";
         }
+
         return os;
     }
 };
+
+inline std::ostream &operator<<(std::ostream &os, Properties const &prop)
+{
+    prop.print(os, 0);
+    return os;
+}
 
 #define HAS_PROPERTIES                                       \
       Properties m_properties_;
@@ -189,7 +203,7 @@ public:
 
 #define DEFINE_PROPERTIES(_TYPE_, _NAME_)                                                      \
 void _NAME_(_TYPE_ const & v)   \
-{m_##_NAME_##_ =v; this->m_properties_[__STRING(_NAME_)] = v;}       \
+{m_##_NAME_##_ =v; this->m_properties_[__STRING(_NAME_)] = v; }       \
 _TYPE_ _NAME_()const{return m_##_NAME_##_;}                         \
 private: _TYPE_ m_##_NAME_##_;    public:
 /** @} */

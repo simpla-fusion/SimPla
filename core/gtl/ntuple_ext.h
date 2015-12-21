@@ -44,6 +44,7 @@ std::ostream &operator<<(std::ostream &os, nTuple<T, M> const &v)
     return os;
 }
 
+
 template<typename T, int M, int M2, int ...N>
 std::ostream &operator<<(std::ostream &os, nTuple<T, M, M2, N...> const &v)
 {

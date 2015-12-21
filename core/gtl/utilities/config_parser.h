@@ -34,28 +34,28 @@ struct ConfigParser
 
     std::string init(int argc, char **argv);
 
-    struct DictObject : public lua::Object
+    struct DictObject : public lua::LuaObject
     {
         DictObject()
-                : lua::Object(), m_value_("")
+                : lua::LuaObject(), m_value_("")
         {
 
         }
 
         DictObject(DictObject const &other)
-                : lua::Object(other), m_value_(other.m_value_)
+                : lua::LuaObject(other), m_value_(other.m_value_)
         {
 
         }
 
         DictObject(DictObject &&other)
-                : lua::Object(other), m_value_(other.m_value_)
+                : lua::LuaObject(other), m_value_(other.m_value_)
         {
 
         }
 
-        DictObject(lua::Object const &lua_obj)
-                : lua::Object(lua_obj), m_value_("")
+        DictObject(lua::LuaObject const &lua_obj)
+                : lua::LuaObject(lua_obj), m_value_("")
         {
 
         }
@@ -72,7 +72,7 @@ struct ConfigParser
 
         void swap(DictObject &other)
         {
-            lua::Object::swap(other);
+            lua::LuaObject::swap(other);
             std::swap(m_value_, other.m_value_);
         }
 
@@ -84,7 +84,7 @@ struct ConfigParser
 
         operator bool() const
         {
-            return m_value_ != "" || lua::Object::operator bool();
+            return m_value_ != "" || lua::LuaObject::operator bool();
         }
 
         template<typename T>
@@ -94,9 +94,9 @@ struct ConfigParser
             {
                 return std::move(type_cast<T>(m_value_));
             }
-            else if (!lua::Object::is_null())
+            else if (!lua::LuaObject::is_null())
             {
-                return std::move(lua::Object::template as<T>());
+                return std::move(lua::LuaObject::template as<T>());
             }
             else
             {
@@ -111,9 +111,9 @@ struct ConfigParser
             {
                 return std::move(type_cast<T>(m_value_));
             }
-            else if (!lua::Object::is_null())
+            else if (!lua::LuaObject::is_null())
             {
-                return std::move(lua::Object::template as<T>(default_value));
+                return std::move(lua::LuaObject::template as<T>(default_value));
             }
             else
             {
@@ -157,7 +157,7 @@ struct ConfigParser
 
 private:
 
-    lua::Object m_lua_object_;
+    lua::LuaObject m_lua_object_;
     std::map<std::string, std::string> m_kv_map_;
 };
 

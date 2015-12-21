@@ -96,7 +96,10 @@ Particles = {
         T = 3.0,
         pic = PIC,
         Type = "Boris",
-        DisableCheckPoint = false
+        DisableCheckPoint = false,
+        V0 = { 1, 2, 3 },
+        NAME = { "H", "D", "He" }
+
         --        Density = function(t, x)
         --            return (1.0 - math.cos(x[1] / LX * math.pi * 2.0)) / 2 / PIC
         --        end

@@ -55,7 +55,22 @@ struct any
 
     void *data() { return ptr_->data(); }
 
-    template<class U> bool is_same() const { return ptr_->is_same<U>(); }
+    std::string string() const
+    {
+        std::ostringstream os;
+        this->print(os, 0);
+        return os.str();
+    }
+
+    template<class U> bool is_same() const { return ptr_ != nullptr && ptr_->is_same<U>(); }
+
+    bool is_boolean() const { return ptr_ != nullptr && ptr_->is_boolean(); }
+
+    bool is_integral() const { return ptr_ != nullptr && ptr_->is_integral(); }
+
+    bool is_floating_point() const { return ptr_ != nullptr && ptr_->is_floating_point(); }
+
+    bool is_string() const { return ptr_ != nullptr && ptr_->is_string(); }
 
     template<class U>
     bool as(U *v) const
@@ -84,6 +99,20 @@ struct any
         if (!is_same<U>()) {THROW_EXCEPTION_BAD_CAST(typeid(U).name(), ptr_->type_name()); }
 
         return dynamic_cast<Derived <U> *>(ptr_.get())->m_value;
+    }
+
+    template<class U>
+    U as(U const &def_v) const
+    {
+
+        if (empty() || !is_same<U>())
+        {
+            return def_v;
+        }
+        else
+        {
+            return dynamic_cast<Derived <U> *>(ptr_.get())->m_value;
+        }
     }
 
     template<class U> operator U() const { return as<U>(); }
@@ -137,6 +166,15 @@ private:
 
         virtual data_model::DataType data_type() const = 0;
 
+
+        virtual bool is_boolean() const = 0;
+
+        virtual bool is_integral() const = 0;
+
+        virtual bool is_floating_point() const = 0;
+
+        virtual bool is_string() const = 0;
+
     };
 
     template<typename T>
@@ -153,7 +191,8 @@ private:
 
         std::ostream &print(std::ostream &os, int indent = 0) const
         {
-            os << m_value;
+            if (std::is_same<T, std::string>::value) { os << "\"" << m_value << "\""; } else { os << m_value; }
+
             return os;
         }
 
@@ -162,6 +201,14 @@ private:
         std::string type_name() const { return typeid(T).name(); }
 
         data_model::DataType data_type() const { return data_model::DataType::template create<T>(); }
+
+        virtual bool is_boolean() const { return std::is_same<T, bool>::value; }
+
+        virtual bool is_integral() const { return std::is_integral<T>::value; }
+
+        virtual bool is_floating_point() const { return std::is_floating_point<T>::value; }
+
+        virtual bool is_string() const { return std::is_same<T, std::string>::value; }
 
         T m_value;
 

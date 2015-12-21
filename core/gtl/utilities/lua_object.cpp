@@ -4,15 +4,18 @@
  * @date 2015-12-10.
  */
 #include "lua_object.h"
+#include "lua_object_ext.h"
+#include "pretty_stream.h"
+#include "../ntuple_ext.h"
 
 namespace simpla { namespace lua
 {
 
 
-Object::Object() : self_(0), GLOBAL_REF_IDX_(0) { }
+LuaObject::LuaObject() : self_(0), GLOBAL_REF_IDX_(0) { }
 
 
-Object::Object(std::shared_ptr<LuaState::lua_s> const &l, int G, int s, std::string const &path) :
+LuaObject::LuaObject(std::shared_ptr<LuaState::lua_s> const &l, int G, int s, std::string const &path) :
         L_(l), GLOBAL_REF_IDX_(G), path_(path)
 {
     if (s != 0)
@@ -26,17 +29,17 @@ Object::Object(std::shared_ptr<LuaState::lua_s> const &l, int G, int s, std::str
     }
 }
 
-Object::Object(Object const &other)
+LuaObject::LuaObject(LuaObject const &other)
 {
     if (!other.empty())
     {
         auto acc = other.L_.acc();
-        Object(acc.get(), other.GLOBAL_REF_IDX_, other.self_, other.path_).swap(*this);
+        LuaObject(acc.get(), other.GLOBAL_REF_IDX_, other.self_, other.path_).swap(*this);
     }
 
 }
 
-Object::Object(Object &&r) :
+LuaObject::LuaObject(LuaObject &&r) :
         L_(r.L_),
         GLOBAL_REF_IDX_(r.GLOBAL_REF_IDX_),
         self_(r.self_),
@@ -46,7 +49,7 @@ Object::Object(Object &&r) :
 }
 
 
-void Object::swap(Object &other)
+void LuaObject::swap(LuaObject &other)
 {
     std::swap(L_, other.L_);
     std::swap(GLOBAL_REF_IDX_, other.GLOBAL_REF_IDX_);
@@ -55,7 +58,7 @@ void Object::swap(Object &other)
 
 }
 
-Object::~Object()
+LuaObject::~LuaObject()
 {
     if (!L_.empty())
     {
@@ -68,7 +71,7 @@ Object::~Object()
 
 }
 
-std::basic_ostream<char> &Object::Serialize(std::basic_ostream<char> &os)
+std::basic_ostream<char> &LuaObject::Serialize(std::basic_ostream<char> &os)
 {
 
     auto acc = L_.acc();
@@ -106,7 +109,7 @@ std::basic_ostream<char> &Object::Serialize(std::basic_ostream<char> &os)
 }
 
 
-std::string Object::get_typename() const
+std::string LuaObject::get_typename() const
 {
     auto acc = L_.acc();
 
@@ -116,7 +119,7 @@ std::string Object::get_typename() const
     return res;
 }
 
-void Object::init()
+void LuaObject::init()
 {
     if (self_ == 0 || L_.empty())
     {
@@ -136,7 +139,7 @@ void Object::init()
     }
 }
 
-void Object::parse_file(std::string const &filename)
+void LuaObject::parse_file(std::string const &filename)
 {
     if (filename != "")
     {
@@ -147,7 +150,7 @@ void Object::parse_file(std::string const &filename)
     }
 }
 
-void Object::parse_string(std::string const &str)
+void LuaObject::parse_string(std::string const &str)
 {
     auto acc = L_.acc();
 
@@ -156,7 +159,7 @@ void Object::parse_string(std::string const &str)
 }
 
 
-Object::iterator &Object::iterator::Next()
+LuaObject::iterator &LuaObject::iterator::Next()
 {
     if (L_.empty()) { return *this; }
     else
@@ -210,13 +213,13 @@ Object::iterator &Object::iterator::Next()
     return *this;
 }
 
-Object::iterator::iterator() :
+LuaObject::iterator::iterator() :
         GLOBAL_IDX_(0), parent_(LUA_NOREF), key_(LUA_NOREF), value_(LUA_NOREF)
 {
 
 }
 
-Object::iterator::iterator(iterator const &r) :
+LuaObject::iterator::iterator(iterator const &r) :
         L_(r.L_), GLOBAL_IDX_(r.GLOBAL_IDX_)
 {
     if (L_.empty()) { return; }
@@ -238,7 +241,7 @@ Object::iterator::iterator(iterator const &r) :
     }
 }
 
-Object::iterator::iterator(iterator &&r) :
+LuaObject::iterator::iterator(iterator &&r) :
         L_(r.L_), GLOBAL_IDX_(r.GLOBAL_IDX_), parent_(r.parent_), key_(r.key_), value_(r.value_)
 {
     r.parent_ = LUA_NOREF;
@@ -246,7 +249,7 @@ Object::iterator::iterator(iterator &&r) :
     r.value_ = LUA_NOREF;
 }
 
-Object::iterator::iterator(LuaState L, unsigned int G, unsigned int p, std::string path) :
+LuaObject::iterator::iterator(LuaState L, unsigned int G, unsigned int p, std::string path) :
         L_(L), GLOBAL_IDX_(G), parent_(p), key_(LUA_NOREF), value_(LUA_NOREF), path_(path + "[iterator]")
 {
     if (L_.empty()) { return; }
@@ -269,7 +272,7 @@ Object::iterator::iterator(LuaState L, unsigned int G, unsigned int p, std::stri
 
 }
 
-Object::iterator::~iterator()
+LuaObject::iterator::~iterator()
 {
     if (L_.empty()) { return; }
     else
@@ -296,13 +299,13 @@ Object::iterator::~iterator()
 }
 
 
-std::pair<Object, Object> Object::iterator::value() const
+std::pair<LuaObject, LuaObject> LuaObject::iterator::value() const
 {
-    std::pair<Object, Object> res;
+    std::pair<LuaObject, LuaObject> res;
 
     if (key_ == LUA_NOREF || value_ == LUA_NOREF)
     {
-        THROW_EXCEPTION_LOGIC_ERROR("the value of this iterator is invalid!");
+        LOGIC_ERROR << ("the value of this iterator is invalid!") << std::endl;
     }
     else
     {
@@ -317,16 +320,16 @@ std::pair<Object, Object> Object::iterator::value() const
 
         int value = luaL_ref(*acc, GLOBAL_IDX_);
 
-        Object(acc.get(), GLOBAL_IDX_, key, path_ + ".key").swap(res.first);
+        LuaObject(acc.get(), GLOBAL_IDX_, key, path_ + ".key").swap(res.first);
 
-        Object(acc.get(), GLOBAL_IDX_, value, path_ + ".value").swap(res.second);
+        LuaObject(acc.get(), GLOBAL_IDX_, value, path_ + ".value").swap(res.second);
     }
 
     return std::move(res);
 }
 
 
-size_t Object::size() const
+size_t LuaObject::size() const
 {
     size_t res = 0;
 
@@ -344,9 +347,9 @@ size_t Object::size() const
 }
 
 
-Object Object::operator[](std::string const &s) const noexcept
+LuaObject LuaObject::operator[](std::string const &s) const noexcept
 {
-    Object res;
+    LuaObject res;
 
     if ((is_table() || is_global()))
     {
@@ -368,23 +371,23 @@ Object Object::operator[](std::string const &s) const noexcept
 
             if (!is_global()) { lua_pop(*acc, 1); }
 
-            Object(acc.get(), GLOBAL_REF_IDX_, id, path_ + "." + s).swap(res);
+            LuaObject(acc.get(), GLOBAL_REF_IDX_, id, path_ + "." + s).swap(res);
         }
     }
     return std::move(res);
 }
 
 //! unsafe fast access, no boundary check, no path information
-Object Object::operator[](int s) const noexcept
+LuaObject LuaObject::operator[](int s) const noexcept
 {
 
-    Object r;
+    LuaObject r;
 
 
     if ((is_table() || is_global()))
     {
 
-        if (self_ < 0 || L_.empty()) { THROW_EXCEPTION_LOGIC_ERROR(path_ + " is not indexable!"); }
+        if (self_ < 0 || L_.empty()) { LOGIC_ERROR << (path_ + " is not indexable!") << std::endl; }
 
         auto acc = L_.acc();
 
@@ -393,7 +396,7 @@ Object Object::operator[](int s) const noexcept
         lua_rawgeti(*acc, tidx, s + 1);
         int res = luaL_ref(*acc, GLOBAL_REF_IDX_);
         lua_pop(*acc, 1);
-        Object(acc.get(), GLOBAL_REF_IDX_, res).swap(r);
+        LuaObject(acc.get(), GLOBAL_REF_IDX_, res).swap(r);
 
     }
     return std::move(r);
@@ -401,13 +404,13 @@ Object Object::operator[](int s) const noexcept
 }
 
 //! index operator with out_of_range exception
-Object Object::at(size_t const &s) const
+LuaObject LuaObject::at(size_t const &s) const
 {
-    Object res;
+    LuaObject res;
 
     if ((is_table() || is_global()))
     {
-        Object(this->operator[](s)).swap(res);
+        LuaObject(this->operator[](s)).swap(res);
 
         if (res.is_null())
         {
@@ -419,13 +422,13 @@ Object Object::at(size_t const &s) const
 }
 
 //! safe access, with boundary check, no path information
-Object Object::at(int s) const
+LuaObject LuaObject::at(int s) const
 {
-    Object r;
+    LuaObject r;
     if ((is_table() || is_global()))
     {
 
-        if (self_ < 0 || L_.empty()) { THROW_EXCEPTION_LOGIC_ERROR(path_ + " is not indexable!"); }
+        if (self_ < 0 || L_.empty()) { LOGIC_ERROR << (path_ + " is not indexable!"); }
 
         auto acc = L_.acc();
 
@@ -435,7 +438,7 @@ Object Object::at(int s) const
         int res = luaL_ref(*acc, GLOBAL_REF_IDX_);
         lua_pop(*acc, 1);
 
-        Object(acc.get(), GLOBAL_REF_IDX_, res, path_ + "[" + type_cast<std::string>(s) + "]").swap(r);
+        LuaObject(acc.get(), GLOBAL_REF_IDX_, res, path_ + "[" + type_cast<std::string>(s) + "]").swap(r);
 
     }
     return std::move(r);
@@ -457,9 +460,9 @@ Object Object::at(int s) const
  *
  *  \note Lua.org:createtable
  */
-Object Object::new_table(std::string const &name, unsigned int narr, unsigned int nrec)
+LuaObject LuaObject::new_table(std::string const &name, unsigned int narr, unsigned int nrec)
 {
-    Object res;
+    LuaObject res;
     if (!is_null())
     {
         auto acc = L_.acc();
@@ -482,7 +485,7 @@ Object Object::new_table(std::string const &name, unsigned int narr, unsigned in
             lua_getfield(*acc, tidx, name.c_str());
         }
 
-        Object(acc.get(), GLOBAL_REF_IDX_, luaL_ref(*acc, GLOBAL_REF_IDX_), path_ + "." + name).swap(res);
+        LuaObject(acc.get(), GLOBAL_REF_IDX_, luaL_ref(*acc, GLOBAL_REF_IDX_), path_ + "." + name).swap(res);
 
         lua_pop(*acc, 1);
 
@@ -490,5 +493,192 @@ Object Object::new_table(std::string const &name, unsigned int narr, unsigned in
     return std::move(res);
 }
 
+unsigned int
+Converter<Properties>::to(lua_State *&L, Properties const &v)
+{
+    unsigned int res = -1;
 
+    if (v.size() > 0) { res = Converter<std::map<std::string, Properties>>::to(L, v); }
+
+    else if (v.is_boolean()) { res = Converter<bool>::to(L, v.template as<bool>()); }
+
+    else if (v.is_integral()) { res = Converter<int>::to(L, v.template as<int>()); }
+
+    else if (v.is_floating_point()) { res = Converter<double>::to(L, v.template as<double>()); }
+
+    else if (v.is_string()) { res = Converter<std::string>::to(L, v.template as<std::string>()); }
+
+
+    return res;
+
+}
+
+unsigned int
+Converter<Properties>::from(lua_State *&L, unsigned int idx, Properties *v,
+                            Properties const &default_value)
+{
+    unsigned int success = 0;
+
+    if (lua_istable(L, idx))
+    {
+        CHECK("lua_istable");
+
+        success = _impl::pop_from_lua(L, idx, dynamic_cast<std::map<std::string, Properties> *>(v));
+    }
+    else if (lua_isboolean(L, idx))
+    {
+        CHECK("lua_isboolean");
+        bool t;
+        success = _impl::pop_from_lua(L, idx, &t);
+        *v = t;
+    }
+    else if (lua_isnumber(L, idx))
+    {
+        CHECK("lua_isnumber");
+        double t;
+        success = _impl::pop_from_lua(L, idx, &t);
+        *v = t;
+    }
+    else if (lua_isstring(L, idx))
+    {
+        CHECK("is_string");
+
+        std::string t;
+        success = _impl::pop_from_lua(L, idx, &t);
+        *v = t;
+    }
+    else
+    {
+        v = default_value;
+    }
+    return success;
+}
+
+bool LuaObject::as(Properties *res) const
+{
+
+    bool success = true;
+    if (this->is_table())
+    {
+
+        bool is_tuple = false;
+        if (((*this->begin()).first.is_number())) // ntuple or list
+        {
+
+            size_t n = this->size();
+
+            if (this->operator[](0).is_number())
+            {
+
+                switch (n)
+                {
+                    case 1:
+                    {
+                        double v;
+                        success = success && this->as(&v);
+                        if (success) (*res) = v;
+                        break;
+                    }
+#define DEF_CASE(_NUM_)  case _NUM_: {  nTuple<double, _NUM_> v; success = success && this->as(&v);  if (success) (*res) = v;}break;
+
+                    DEF_CASE(2)
+                    DEF_CASE(3)
+                    DEF_CASE(4)
+                    DEF_CASE(5)
+                    DEF_CASE(6)
+                    DEF_CASE(7)
+                    DEF_CASE(8)
+                    DEF_CASE(9)
+                    DEF_CASE(10)
+                    default:
+                        success = false;
+//
+                }
+
+#undef DEF_CASE
+
+            }
+            else
+            {
+                switch (n)
+                {
+                    case 1:
+                    {
+                        double v;
+                        success = success && this->as(&v);
+                        if (success) (*res) = v;
+                        break;
+                    }
+#define DEF_CASE(_NUM_)  case _NUM_: {  nTuple<std::string, _NUM_> v; success = success && this->as(&v);  if (success) (*res) = v;break;}
+                    DEF_CASE(2)
+                    DEF_CASE(3)
+                    DEF_CASE(4)
+                    DEF_CASE(5)
+                    DEF_CASE(6)
+                    DEF_CASE(7)
+                    DEF_CASE(8)
+                    DEF_CASE(9)
+                    DEF_CASE(10)
+#undef DEF_CASE
+                    default:
+                        success = false;
+
+                }
+            }
+
+        }
+        else
+        {
+            for (auto const &item:*this)
+            {
+                auto &v = (*res)[item.first.as<std::string>()];
+                success = success && item.second.as(&(v));
+
+                if (!success)break;
+            }
+        }
+
+    }
+    else if (this->is_boolean())
+    {
+        bool v;
+
+        success = success && this->as(&v);
+
+        if (success) (*res) = v;
+    }
+#if LUA_VERSION_NUM >= 503
+        else if (this->lua_isinteger())
+        {
+            int v;
+
+            success = success && this->as(&v);
+
+            if (success) (*res) = v;
+        }
+#endif
+    else if (this->is_number())
+    {
+        double v;
+
+        success = success && this->as(&v);
+
+        if (success) (*res) = v;
+    }
+    else if (this->is_string())
+    {
+        std::string v;
+
+        success = success && this->as(&v);
+
+        if (success) (*res) = v;
+    }
+    else
+    {
+        WARNING << "unknown type can not convert" << std::endl;
+//        success = false;
+    }
+
+    return success;
+}
 }}

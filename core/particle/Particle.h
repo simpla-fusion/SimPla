@@ -84,7 +84,7 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent = 0) const;
 
-    template<typename TDict> void load(TDict const &dict);
+    virtual void update();
 
     data_model::DataSet data_set() const;
 
@@ -214,13 +214,17 @@ template<typename P, typename M, typename ...Policies> void
 ParticleInternal<P, M, Policies...>::sync() { rehash(); };
 
 template<typename P, typename M, typename ...Policies>
-template<typename TDict> void
-ParticleInternal<P, M, Policies...>::load(TDict const &dict) { engine_type::load(dict); }
+void ParticleInternal<P, M, Policies...>::update()
+{
+    if (engine_type::click() < mesh_entity::click())
+    {
+        engine_type::load(mesh_entity::properties());
+    }
+}
 
 template<typename P, typename M, typename ...Policies>
 std::ostream &ParticleInternal<P, M, Policies...>::print(std::ostream &os, int indent) const
 {
-    engine_type::print(os, indent + 1);
     mesh_entity::print(os, indent + 1);
     return os;
 }
@@ -912,6 +916,8 @@ public:
     void clear() { m_data_->clear(); }
 
     void sync() { m_data_->sync(); }
+
+    void update() { m_data_->update(); }
 
     std::ostream &print(std::ostream &os, int indent = 0) const { m_data_->print(os, indent); }
 

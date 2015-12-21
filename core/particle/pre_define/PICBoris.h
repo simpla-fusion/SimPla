@@ -20,14 +20,14 @@
 namespace simpla { namespace particle { namespace engine
 {
 
-struct BorisEngine
+struct BorisEngine : public base::Object
 {
 
     HAS_PROPERTIES
 
     virtual std::ostream &print(std::ostream &os, int indent) const
     {
-         m_properties_.print(os, indent);
+        m_properties_.print(os, indent);
         return os;
     }
 
@@ -41,6 +41,14 @@ struct BorisEngine
 
     SP_DEFINE_STRUCT(sample_type, point_type, z, Real, f, Real, w);
 
+    template<typename TDict> void load(TDict const &dict)
+    {
+        mass(dict["mass"].template as<Real>(1.0));
+        charge(dict["charge"].template as<Real>(1.0));
+        temperature(dict["temperature"].template as<Real>(1.0));
+
+        touch();
+    }
 
     Vec3 project(point_type const &z) const { return z.x; }
 
