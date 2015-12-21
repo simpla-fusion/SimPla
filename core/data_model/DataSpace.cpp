@@ -11,6 +11,7 @@
 
 #include "../gtl/ntuple.h"
 #include "../gtl/utilities/utilities.h"
+#include "../parallel/Parallel.h"
 #include "DataSpace.h"
 
 namespace simpla { namespace data_model
@@ -41,7 +42,7 @@ struct DataSpace::pimpl_s
      */
 
     data_shape_s m_d_shape_;
-    std::vector<size_t> m_elements_;
+    std::vector<size_t> m_selected_points_;
     // index_tuple m_local_dimensions_;
     // index_tuple m_local_offset_;
 
@@ -107,7 +108,7 @@ bool DataSpace::is_valid() const
 
 bool DataSpace::is_simple() const
 {
-    return m_pimpl_->m_elements_.size() == 0;
+    return m_pimpl_->m_selected_points_.size() == 0;
 }
 
 DataSpace::data_shape_s const &DataSpace::shape() const
@@ -136,7 +137,7 @@ size_t DataSpace::num_of_elements() const
 
     if (!is_simple())
     {
-        return m_pimpl_->m_elements_.size() / std::get<0>(m_pimpl_->m_d_shape_);
+        return m_pimpl_->m_selected_points_.size() / std::get<0>(m_pimpl_->m_d_shape_);
     }
     else
     {
@@ -153,18 +154,41 @@ size_t DataSpace::num_of_elements() const
 
 }
 
-std::vector<size_t> const &DataSpace::selected_elements() const { return m_pimpl_->m_elements_; };
+std::vector<size_t> const &DataSpace::selected_points() const { return m_pimpl_->m_selected_points_; };
 
-void DataSpace::select_element(index_tuple const &idx)
+void DataSpace::select_point(const size_t *idx)
 {
-    for (int i = 0; i < std::get<0>(m_pimpl_->m_d_shape_); ++i)
-    {
-        m_pimpl_->m_elements_.push_back(idx[i]);
-    }
+    int ndims = std::get<0>(m_pimpl_->m_d_shape_);
+
+    for (int i = 0; i < ndims; ++i) { m_pimpl_->m_selected_points_.push_back(idx[i]); }
 
 }
 
-void DataSpace::select_element(size_t n) { m_pimpl_->m_elements_.push_back(n); }
+void DataSpace::select_point(size_t pos) { m_pimpl_->m_selected_points_.push_back(pos); }
+
+
+void DataSpace::select_points(size_t num, const size_t *tags)
+{
+    int ndims = std::get<0>(this->shape());
+
+    size_t head = m_pimpl_->m_selected_points_.size();
+    size_t tail = head + num;
+    m_pimpl_->m_selected_points_.resize(tail);
+    parallel::parallel_for(
+            parallel::blocked_range<size_t>(head, tail),
+            [&](parallel::blocked_range<size_t> const &r)
+            {
+                for (size_t i = r.begin(), ie = r.end(); i != ie; ++i)
+                {
+                    for (size_t j = 0; j < ndims; ++j)
+                    {
+                        m_pimpl_->m_selected_points_[i * ndims + j] = tags[(i - head) * ndims + j];
+                    }
+                }
+            }
+
+    );
+}
 
 DataSpace &DataSpace::select_hyperslab(index_type const *start,
                                        index_type const *_stride,
@@ -485,6 +509,7 @@ std::ostream &DataSpace::print(std::ostream &os, int indent) const
 //
 //	return true;
 //}
+
 
 }}//namespace simpla { namespace data_model
 

@@ -11,7 +11,8 @@
 #include "MPIComm.h"
 #include "MPIAuxFunctions.h"
 #include "MPIUpdate.h"
-#include "../data_model/DataSet.h"
+//#include "../data_model/DataSet.h"
+namespace simpla { namespace data_model { class DataSet; }}
 
 namespace simpla { namespace parallel
 {

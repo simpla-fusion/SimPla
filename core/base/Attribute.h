@@ -15,7 +15,7 @@
 namespace simpla { namespace base
 {
 
-class AttributeObject : public base::DataObject
+class AttributeObject : public DataObject
 {
 public:
     SP_OBJECT_HEAD(AttributeObject, DataObject);
@@ -39,7 +39,7 @@ public:
         base_type::swap(other);
     }
 
-public:
+
     virtual std::string const &name() const
     {
         if (m_parent_.expired()) { return m_name_; }

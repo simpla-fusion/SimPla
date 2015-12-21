@@ -40,8 +40,6 @@ struct ParticleProxy<TP, TE, TB, TJ, TRho> : public ParticleProxyBase<TE, TB, TJ
 
     virtual data_model::DataSet data_set() const { return m_self_->data_set(); }
 
-    virtual void data_set(data_model::DataSet const &ds) { m_self_->data_set(ds); }
-
     virtual void push(Real dt, Real t, TE const &E, TB const &B)
     {
         m_self_->push(dt, t, E, B);
@@ -56,6 +54,9 @@ struct ParticleProxy<TP, TE, TB, TJ, TRho> : public ParticleProxyBase<TE, TB, TJ
     {
         m_self_->integral(n);
     };
+
+    std::ostream &print(std::ostream &os, int indent) const { return m_self_->print(os, indent); }
+
 };
 
 template<typename TE, typename TB, typename TJ, typename TRho>
@@ -80,14 +81,13 @@ public:
 
     virtual data_model::DataSet data_set() const = 0;
 
-    virtual void data_set(data_model::DataSet const &) = 0;
-
     virtual void push(Real dt, Real t, TE const &E, TB const &B) = 0;
 
     virtual void integral(TJ *J) const = 0;
 
     virtual void integral(TRho *n) const = 0;
 
+    virtual std::ostream &print(std::ostream &os, int indent) const = 0;
 
     template<typename TP>
     static std::shared_ptr<this_type> create(std::shared_ptr<TP> p)
@@ -98,7 +98,11 @@ public:
     };
 };
 
-
+template<typename TE, typename TB, typename TJ, typename TRho>
+std::ostream &operator<<(std::ostream &os, ParticleProxyBase<TE, TB, TJ, TRho> const &p)
+{
+    return p.print(os, 0);
+};
 }}//namespace simpla{namespace particle
 
 #endif //SIMPLA_PARTICLE_PROXY_H

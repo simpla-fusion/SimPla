@@ -21,9 +21,7 @@ public:
 
     SP_OBJECT_HEAD(DataObject, Object);
 
-    HAS_PROPERTIES;
-
-    virtual data_model::DataSet data_set() = 0;
+    EXPOSE_PROPERTIES;
 
     virtual data_model::DataSet data_set() const = 0;
 

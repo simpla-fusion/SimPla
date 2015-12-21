@@ -75,6 +75,7 @@ public:
     static DataSpace create_simple(int rank, const index_type *dims);
 
 
+    // TODO complete support H5Sselect_hyperslab:H5S_seloper_t
     DataSpace &select_hyperslab(index_type const *start,
                                 index_type const *_stride,
                                 index_type const *count,
@@ -85,11 +86,16 @@ public:
 
     bool is_simple() const;
 
-    std::vector<size_t> const &selected_elements() const;
+    std::vector<size_t> const &selected_points() const;
 
-    void select_element(index_tuple const &idx);
+    std::vector<size_t> &selected_points();
 
-    void select_element(size_t n);
+    void select_point(const size_t *idx);
+
+    void select_point(size_t pos);
+
+    void select_points(size_t num, const size_t *b);
+
 
     /**
      * @return <ndims,dimensions,start,count,stride,block>

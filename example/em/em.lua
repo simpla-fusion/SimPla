@@ -46,7 +46,7 @@ LZ = math.pi * 0.25 -- 2.0*math.pi/18
 GW = 5
 PIC = 100
 GEQDSK = "/home/salmon/workspace-local/SimPla/scripts/gfile/g038300.03900"
-number_of_step = 5
+number_of_steps = 1
 Mesh =
 {
     Geometry =
@@ -95,7 +95,8 @@ Particles = {
         charge = qe,
         T = 3.0,
         pic = PIC,
-        Type = "Boris"
+        Type = "Boris",
+        DisableCheckPoint = false
         --        Density = function(t, x)
         --            return (1.0 - math.cos(x[1] / LX * math.pi * 2.0)) / 2 / PIC
         --        end

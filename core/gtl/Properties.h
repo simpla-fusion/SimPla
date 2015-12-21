@@ -22,7 +22,10 @@ namespace simpla
  *  @brief Properties Tree
  *  @todo using shared_ptr storage data
  */
-class Properties : public any, public std::map<std::string, Properties>
+class Properties
+        : public any,
+          public std::map<std::string, Properties>,
+          public base::Object
 {
 
 private:
@@ -32,9 +35,10 @@ private:
     typedef std::string key_type;
     typedef std::map<key_type, this_type> map_type;
 
-    bool is_changed_ = false;
 public:
     Properties() { }
+
+    Properties(this_type const &other) : any(dynamic_cast<any const &>(other)), map_type(other) { }
 
     template<typename T> Properties(T const &v) : any(v) { }
 
@@ -42,17 +46,19 @@ public:
 
     this_type &operator=(this_type const &other)
     {
-        any(dynamic_cast<any const &>(other)).swap(*this);
-        map_type(dynamic_cast<map_type const &>(other)).swap(*this);
-
-//		map_type(other).swap(*this);
+        this_type(other).swap(*this);
         return *this;
+    }
+
+    void swap(this_type &other)
+    {
+        any::swap(other);
+        map_type::swap(other);
     }
 
     template<typename T>
     this_type &operator=(T const &v)
     {
-
         any(v).swap(*this);
         return *this;
     }
@@ -60,17 +66,13 @@ public:
 // STL style
     inline bool empty() const { return any::empty() && map_type::empty(); }
 
-    inline bool IsNull() const { return empty(); }
 
-    inline bool is_changed() const { return is_changed_; }
-
-    void update() { is_changed_ = false; }
-
-    operator bool() const { return !empty(); }
+    operator bool() const { return !empty() && (this->as<bool>()); }
 
     Properties &get(std::string const &key)
     {
-        is_changed_ = true;
+        touch();
+
         if (key == "")
         {
             return *this;
@@ -94,26 +96,6 @@ public:
         }
     }
 
-//	template<typename T>
-//	auto as()
-//			DECL_RET_TYPE((value_type::template as<typename array_to_ntuple_convert<T>::type>()))
-//
-//	template<typename T>
-//	auto as() const
-//			DECL_RET_TYPE((value_type::template as<typename array_to_ntuple_convert<T>::type>()))
-//
-//	template<typename T>
-//	typename array_to_ntuple_convert<T>::type as(T const & default_v) const
-//	{
-//		typename array_to_ntuple_convert<T>::type res = default_v;
-//		if (!value_type::empty())
-//		{
-//			res = value_type::template as<
-//					typename array_to_ntuple_convert<T>::type>();
-//		}
-//
-//		return std::move(res);
-//	}
 
     template<typename T>
     T get(std::string const &key, T const &default_v) const
@@ -145,52 +127,24 @@ public:
         return is_found;
     }
 
-    template<typename T>
-    void set(std::string const &key, T const &v)
-    {
-        get(key) = v;
-    }
+    template<typename T> void set(std::string const &key, T const &v) { get(key) = v; }
 
-    template<typename T>
-    void operator()(std::string const &key, T &&v)
-    {
-        set(key, std::forward<T>(v));
-    }
 
-    void operator()(Properties const &other)
-    {
-        append(other);
-    }
+    inline Properties &operator[](key_type const &key) { return get(key); }
 
-    inline Properties &operator[](key_type const &key)
-    {
-        return get(key);
-    }
+    inline Properties &operator[](const char key[]) { return get(key); }
 
-    inline Properties &operator[](const char key[])
-    {
-        return get(key);
-    }
-
-    Properties const &operator()(std::string const &key) const
-    {
-        return get(key);
-    }
-
-    Properties &operator()(std::string const &key)
-    {
-        return get(key);
-    }
-
-    Properties const &operator()() const
-    {
-        return *this;
-    }
-
-    Properties &operator()()
-    {
-        return *this;
-    }
+//   template<typename T>   void operator()(std::string const &key, T &&v) { set(key, std::forward<T>(v)); }
+//
+//    void operator()(Properties const &other) { append(other); }
+//
+//    Properties const &operator()(std::string const &key) const { return get(key); }
+//
+//    Properties &operator()(std::string const &key) { return get(key); }
+//
+//    Properties const &operator()() const   {  return *this; }
+//
+//    Properties &operator()() {   return *this;  }
 
     inline Properties const &operator[](key_type const &key) const
     {
@@ -211,31 +165,31 @@ public:
         return *this;
     }
 
-    virtual inline std::ostream &print(std::ostream &os, int indent = 0) const
+    std::ostream &print(std::ostream &os, int indent = 0) const
     {
-        dynamic_cast<any const &>(*this).print(os, indent);
-        for (auto const &item : *this)
+        this->any::print(os, indent);
+
+        for (auto const &item : dynamic_cast<map_type const &>(*this))
         {
             os << item.first << " =  ";
             item.second.print(os, indent + 1);
             os << " , ";
-            if (item.second.size() > 0)
-            {
-                item.second.print(os, indent + 1);
-            }
         }
         return os;
     }
 };
 
 #define HAS_PROPERTIES                                       \
- inline Properties const& properties()const{return m_properties_;}  \
- inline Properties  & properties() {touch();return m_properties_;}  \
- private: Properties m_properties_; public:
+      Properties m_properties_;
+
+#define  EXPOSE_PROPERTIES \
+    virtual Properties &properties(){return m_properties_; };   \
+    virtual Properties const &properties()const{return m_properties_; }; \
+    private:Properties m_properties_;public:
 
 #define DEFINE_PROPERTIES(_TYPE_, _NAME_)                                                      \
 void _NAME_(_TYPE_ const & v)   \
-{m_##_NAME_##_ =v; this->m_properties_[__STRING(_NAME_)] = v; this->touch();}       \
+{m_##_NAME_##_ =v; this->m_properties_[__STRING(_NAME_)] = v;}       \
 _TYPE_ _NAME_()const{return m_##_NAME_##_;}                         \
 private: _TYPE_ m_##_NAME_##_;    public:
 /** @} */

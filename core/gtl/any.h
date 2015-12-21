@@ -105,7 +105,11 @@ struct any
         return *this;
     }
 
-    virtual std::ostream &print(std::ostream &os, int indent = 0) const { return ptr_->print(os, indent); }
+    std::ostream &print(std::ostream &os, int indent = 0) const
+    {
+        if (ptr_ != nullptr) { ptr_->print(os, indent); }
+        return os;
+    }
 
     data_model::DataType datatype() const { return ptr_->data_type(); }
 
@@ -147,7 +151,7 @@ private:
 
         void *data() { return reinterpret_cast<void *>(&m_value); }
 
-        virtual std::ostream &print(std::ostream &os, int indent = 0) const
+        std::ostream &print(std::ostream &os, int indent = 0) const
         {
             os << m_value;
             return os;

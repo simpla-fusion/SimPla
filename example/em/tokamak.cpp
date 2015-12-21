@@ -109,7 +109,6 @@ struct EMPlasma
                                 mass, charge,
                                 traits::field_t<scalar_type, mesh_type, VERTEX>(m, "n_" + name),
                                 traits::field_t<vector_type, mesh_type, VERTEX>(m, "J_" + name),
-
                                 f
                         )));
 
@@ -286,11 +285,10 @@ void EMPlasma::setup(int argc, char **argv)
 
             for (auto const &dict:ps)
             {
+                Real mass = dict.second["mass"].template as<Real>();
+                Real charge = dict.second["charge"].template as<Real>();
                 std::string key = dict.first.template as<std::string>();
-                auto res = add_particle(
-                        key,
-                        dict.second["mass"].template as<Real>(),
-                        dict.second["charge"].template as<Real>());
+                auto res = add_particle(key, mass, charge);
 
                 if (std::get<1>(res))
                 {
@@ -310,13 +308,19 @@ void EMPlasma::setup(int argc, char **argv)
 
                     if (dict.second["Type"].template as<std::string>() == "Boris")
                     {
-                        auto pic = std::make_shared<particle::BorisParticle<mesh_type>>(m);
+                        particle::BorisParticle<mesh_type> pic(m, key);
 
-                        auto gen = particle::make_generator(*pic, 1.0);
+                        pic.engine().mass(mass);
+                        pic.engine().charge(charge);
 
-                        pic->generator(gen, options["PIC"].as<size_t>(10), 1.0);
+                        pic.properties()["DisableCheckPoint"] =
+                                dict.second["DisableCheckPoint"].template as<bool>(true);
 
-                        std::get<4>(p) = particle_proxy_type::create(pic);
+                        auto gen = particle::make_generator(pic.engine(), 1.0);
+
+                        pic.generator(gen, options["PIC"].as<size_t>(10), 1.0);
+
+                        std::get<4>(p) = particle_proxy_type::create(pic.data());
 
                     }
                 }
@@ -329,13 +333,21 @@ void EMPlasma::setup(int argc, char **argv)
         MESSAGE << "particle = {" << std::endl;
         for (auto const &item:particles)
         {
-            MESSAGE << "  " << item.first << " = {"
-            << " mass =" << std::get<0>(item.second) << " , "
-            << " charge = " << std::get<1>(item.second) << " , "
-            << " is kinetic particle = " << (std::get<4>(item.second) != nullptr) << " , "
+            MESSAGE << "  " << item.first << " = {";
 
-            << " },"
-            << std::endl;
+            if ((std::get<4>(item.second) == nullptr))
+            {
+                MESSAGE << " mass =" << std::get<0>(item.second) << " , "
+                << " charge = " << std::get<1>(item.second) << " , "
+                << " type =   \"Fluid\" " << " , ";
+            }
+            else
+            {
+                MESSAGE << *std::get<4>(item.second);
+            }
+
+
+            MESSAGE << " }," << std::endl;
         }
         MESSAGE << "}" << std::endl;
 
@@ -369,7 +381,15 @@ void EMPlasma::check_point()
 
     out_stream.time(m.time());
 
-    out_stream.write(m.attributes());
+
+    for (auto const &item:m.attributes())
+    {
+        if (!item.second.lock()->properties()["DisableCheckPoint"])
+        {
+            out_stream.write(item.first, *std::dynamic_pointer_cast<base::AttributeObject>(item.second.lock()));
+        }
+    }
+
 
     out_stream.close_grid();
 
@@ -399,9 +419,9 @@ void EMPlasma::next_time_step()
         auto pic = std::get<4>(p.second);
         if (pic != nullptr)
         {
-            //          pic->push(dt, m.time(), E1, B1);
-//            pic->integral(&std::get<2>);
-//            pic->integral(&std::get<3>);
+            pic->push(dt, m.time(), E1, B1);
+            pic->integral(&std::get<2>(p.second));
+            pic->integral(&std::get<3>(p.second));
         }
     }
     LOG_CMD(E1 += (curl(B1) * speed_of_light2 - J1 / epsilon0) * dt);
@@ -549,7 +569,7 @@ int main(int argc, char **argv)
     simpla::EMPlasma ctx;
 
 
-    int num_of_step = 20;//options["number_of_step"].as<int>(20);
+    int num_of_steps = options["number_of_steps"].as<int>(20);
 
     int check_point = options["check_point"].as<int>(1);
 
@@ -563,7 +583,7 @@ int main(int argc, char **argv)
     MESSAGE << "====================================================" << std::endl;
     INFORM << "\t >>> START <<< " << std::endl;
 
-    while (count < num_of_step)
+    while (count < num_of_steps)
     {
         ctx.next_time_step();
 

@@ -7,7 +7,8 @@
 
 #ifndef PARALLEL_TBB_H_
 #define PARALLEL_TBB_H_
-#define TBB_IMPLEMENT_CPP0X true
+
+//#define TBB_IMPLEMENT_CPP0X true
 
 #include <tbb/tbb.h>
 
@@ -20,6 +21,9 @@ using tbb::concurrent_unordered_map;
 using tbb::concurrent_unordered_set;
 
 using tbb::concurrent_hash_map;
+using tbb::blocked_range;
+using tbb::blocked_range2d;
+using tbb::blocked_range3d;
 
 namespace tags
 {

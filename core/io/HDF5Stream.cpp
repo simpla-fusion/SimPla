@@ -593,13 +593,13 @@ hid_t convert_data_space_sp_to_h5(data_model::DataSpace const &ds, size_t flag)
     }
     else
     {
-        size_t num_elements = ds.selected_elements().size();
+        size_t num_elements = ds.selected_points().size();
 
         std::vector<hsize_t> coords;
 
         int r_ndims = std::get<0>(ds.shape());
 
-        auto const &idx = ds.selected_elements();
+        auto const &idx = ds.selected_points();
 
         for (int i = 0; i < num_elements; ++i)
         {

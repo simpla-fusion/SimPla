@@ -52,19 +52,18 @@ template<typename ...> struct ParticleEngine;
 template<typename TAGS>
 using generator_t=ParticleGenerator<ParticleEngine<TAGS> >;
 
-template<typename ...T, typename Func>
-ParticleGenerator<typename Particle<T...>::engine_type, Func>
-make_generator(Particle<T...> const &p, Func const &func)
+template<typename TEngine, typename Func>
+ParticleGenerator<TEngine, Func>
+make_generator(TEngine const &p, Func const &func)
 {
-    return ParticleGenerator<typename Particle<T...>::engine_type, Func>(p);
+    return ParticleGenerator<TEngine, Func>(p);
 };
 
-template<typename ...T>
-ParticleGenerator<typename Particle<T...>::engine_type, traits::fun_constant<Real> >
-make_generator(Particle<T...> const &p, Real f)
+template<typename TEngine>
+ParticleGenerator<TEngine, traits::fun_constant<Real> >
+make_generator(TEngine const &p, Real f)
 {
-    return ParticleGenerator<typename Particle<T...>::engine_type, traits::fun_constant<Real>>(
-            p, traits::fun_constant<Real>(f));
+    return ParticleGenerator<TEngine, traits::fun_constant<Real>>(p, traits::fun_constant<Real>(f));
 };
 
 template<typename Engine,

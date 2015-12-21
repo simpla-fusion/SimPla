@@ -20,13 +20,16 @@
 namespace simpla { namespace particle { namespace engine
 {
 
-struct BorisEngine : public base::Object
+struct BorisEngine
 {
-    SP_OBJECT_HEAD(BorisEngine, base::Object);
 
     HAS_PROPERTIES
 
-    virtual std::ostream &print(std::ostream &os, int indent) const { return properties().print(os, indent); }
+    virtual std::ostream &print(std::ostream &os, int indent) const
+    {
+         m_properties_.print(os, indent);
+        return os;
+    }
 
     DEFINE_PROPERTIES(Real, mass);
 

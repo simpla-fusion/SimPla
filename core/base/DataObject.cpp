@@ -11,8 +11,8 @@ namespace simpla { namespace base
 
 std::ostream &DataObject::print(std::ostream &os, int indent) const
 {
-    properties().print(os, indent + 1);
-    return Object::print(os, indent);
+    m_properties_.print(os, indent + 1);
+    return os;
 }
 
 }}//namespace simpla { namespace base

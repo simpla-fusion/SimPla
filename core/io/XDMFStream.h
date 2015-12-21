@@ -58,14 +58,6 @@ public:
 
     void write(std::string const &s, base::AttributeObject const &ds);
 
-    template<typename AttrList>
-    void write(AttrList const &attr_list)
-    {
-        for (auto const &item:attr_list)
-        {
-            write(item.first, *std::dynamic_pointer_cast<base::AttributeObject>(item.second.lock()));
-        }
-    }
 
     void reference_topology_geometry(std::string const &id);
 
