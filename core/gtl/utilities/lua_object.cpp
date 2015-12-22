@@ -494,7 +494,7 @@ LuaObject LuaObject::new_table(std::string const &name, unsigned int narr, unsig
 }
 
 unsigned int
-Converter<Properties>::to(lua_State *&L, Properties const &v)
+Converter<Properties>::to(lua_State *L, Properties const &v)
 {
     unsigned int res = -1;
 
@@ -514,130 +514,226 @@ Converter<Properties>::to(lua_State *&L, Properties const &v)
 }
 
 unsigned int
-Converter<Properties>::from(lua_State *&L, unsigned int idx, Properties *v,
-                            Properties const &default_value)
+Converter<Properties>::from(lua_State *L, unsigned int idx, Properties *v)
 {
     unsigned int success = 0;
 
     if (lua_istable(L, idx))
     {
-        CHECK("lua_istable");
-
-        success = _impl::pop_from_lua(L, idx, dynamic_cast<std::map<std::string, Properties> *>(v));
+        success = Converter<std::map<std::string, Properties>>::from(
+                L, idx,
+                dynamic_cast<std::map<std::string, Properties> *>(v));
     }
     else if (lua_isboolean(L, idx))
     {
-        CHECK("lua_isboolean");
         bool t;
-        success = _impl::pop_from_lua(L, idx, &t);
+        success = Converter<bool>::from(L, idx, &t);
         *v = t;
     }
     else if (lua_isnumber(L, idx))
     {
-        CHECK("lua_isnumber");
+
         double t;
-        success = _impl::pop_from_lua(L, idx, &t);
+
+        success = Converter<double>::from(L, idx, &t);
+
         *v = t;
     }
     else if (lua_isstring(L, idx))
     {
-        CHECK("is_string");
 
-        std::string t;
-        success = _impl::pop_from_lua(L, idx, &t);
-        *v = t;
+//        std::string t;
+//        success = Converter<std::string>::from(L, idx, &t);
+//        *v = t;
     }
     else
     {
-        v = default_value;
+        return 0;
     }
-    return success;
+    return 1;
+}
+
+
+#define DEF_TYPE_CHECK(_FUN_NAME_, _LUA_FUN_)                     \
+    bool LuaObject::_FUN_NAME_() const                                \
+    {   bool res=false;                                           \
+        if(!L_.empty())                                           \
+        { auto acc= L_.acc();                                     \
+          lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);          \
+          res = _LUA_FUN_(*acc, -1);                          \
+          lua_pop(*acc, 1);                                   \
+        }                                                         \
+        return res;                                               \
+    }
+
+DEF_TYPE_CHECK(is_nil, lua_isnil)
+
+#if LUA_VERSION_NUM >= 503
+DEF_TYPE_CHECK(is_integer, lua_isinteger)
+#endif
+
+
+DEF_TYPE_CHECK(is_boolean, lua_isboolean)
+
+DEF_TYPE_CHECK(is_lightuserdata, lua_islightuserdata)
+
+DEF_TYPE_CHECK(is_function, lua_isfunction)
+
+DEF_TYPE_CHECK(is_thread, lua_isthread)
+
+DEF_TYPE_CHECK(is_table, lua_istable)
+
+#undef DEF_TYPE_CHECK
+
+
+bool LuaObject::is_number() const
+{
+    if (L_.empty()) { return false; }
+
+    auto acc = L_.acc();
+
+    lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
+
+    bool res = lua_type(*acc, -1) == LUA_TNUMBER;
+
+    lua_pop(*acc, 1);
+
+
+    return res;
+
+}
+
+bool LuaObject::is_string() const
+{
+    if (L_.empty()) { return false; }
+
+    auto acc = L_.acc();
+
+    lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
+
+    bool res = lua_type(*acc, -1) == LUA_TSTRING;
+
+    lua_pop(*acc, 1);
+
+
+    return res;
+
+}
+
+
+#if LUA_VERSION_NUM >= 503
+bool LuaObject::is_integer() const
+{
+    auto acc = L_.acc();
+    return lua_isinteger(*acc, self_);
+
+}
+bool LuaObject::is_floating_point() const { return is_number()&&(!is_integer); }
+#endif
+
+bool LuaObject::is_list() const
+{
+    if (!this->is_table()) { return false; }
+
+    auto first_item = *this->begin();
+    if (first_item.first.is_number()) { return true; }
+
+    return false;
+
+}
+
+bool LuaObject::is_nTuple() const
+{
+    if (!is_table()) { return false; }
+
+    auto first_item = (*this->begin());
+
+    return (first_item.first.as<int>() == 1 && first_item.second.is_number());
 }
 
 bool LuaObject::as(Properties *res) const
 {
 
     bool success = true;
-    if (this->is_table())
+
+
+    if (this->is_nTuple())
     {
 
-        bool is_tuple = false;
-        if (((*this->begin()).first.is_number())) // ntuple or list
+        size_t n = this->size();
+
+        if (this->operator[](0).is_number())
         {
 
-            size_t n = this->size();
-
-            if (this->operator[](0).is_number())
+            switch (n)
             {
-
-                switch (n)
+                case 1:
                 {
-                    case 1:
-                    {
-                        double v;
-                        success = success && this->as(&v);
-                        if (success) (*res) = v;
-                        break;
-                    }
+                    double v;
+                    success = success && this->as(&v);
+                    if (success) (*res) = v;
+                    break;
+                }
 #define DEF_CASE(_NUM_)  case _NUM_: {  nTuple<double, _NUM_> v; success = success && this->as(&v);  if (success) (*res) = v;}break;
 
-                    DEF_CASE(2)
-                    DEF_CASE(3)
-                    DEF_CASE(4)
-                    DEF_CASE(5)
-                    DEF_CASE(6)
-                    DEF_CASE(7)
-                    DEF_CASE(8)
-                    DEF_CASE(9)
-                    DEF_CASE(10)
-                    default:
-                        success = false;
+                DEF_CASE(2)
+                DEF_CASE(3)
+                DEF_CASE(4)
+                DEF_CASE(5)
+                DEF_CASE(6)
+                DEF_CASE(7)
+                DEF_CASE(8)
+                DEF_CASE(9)
+                DEF_CASE(10)
+                default:
+                    success = false;
 //
-                }
+            }
 
 #undef DEF_CASE
-
-            }
-            else
-            {
-                switch (n)
-                {
-                    case 1:
-                    {
-                        double v;
-                        success = success && this->as(&v);
-                        if (success) (*res) = v;
-                        break;
-                    }
-#define DEF_CASE(_NUM_)  case _NUM_: {  nTuple<std::string, _NUM_> v; success = success && this->as(&v);  if (success) (*res) = v;break;}
-                    DEF_CASE(2)
-                    DEF_CASE(3)
-                    DEF_CASE(4)
-                    DEF_CASE(5)
-                    DEF_CASE(6)
-                    DEF_CASE(7)
-                    DEF_CASE(8)
-                    DEF_CASE(9)
-                    DEF_CASE(10)
-#undef DEF_CASE
-                    default:
-                        success = false;
-
-                }
-            }
 
         }
         else
         {
-            for (auto const &item:*this)
+            switch (n)
             {
-                auto &v = (*res)[item.first.as<std::string>()];
-                success = success && item.second.as(&(v));
+                case 1:
+                {
+                    double v;
+                    success = success && this->as(&v);
+                    if (success) (*res) = v;
+                    break;
+                }
+#define DEF_CASE(_NUM_)  case _NUM_: {  nTuple<std::string, _NUM_> v; success = success && this->as(&v);  if (success) (*res) = v;break;}
+                DEF_CASE(2)
+                DEF_CASE(3)
+                DEF_CASE(4)
+                DEF_CASE(5)
+                DEF_CASE(6)
+                DEF_CASE(7)
+                DEF_CASE(8)
+                DEF_CASE(9)
+                DEF_CASE(10)
+#undef DEF_CASE
+                default:
+                    success = false;
 
-                if (!success)break;
             }
         }
 
+    }
+    else if (this->is_table())
+    {
+
+//        this->as(dynamic_cast<std::map<std::string, Properties> *>(res));
+
+        for (auto const &item:*this)
+        {
+            auto &v = (*res)[item.first.as<std::string>()];
+            success = success && item.second.as(&(v));
+
+            if (!success)break;
+        }
     }
     else if (this->is_boolean())
     {
@@ -648,7 +744,7 @@ bool LuaObject::as(Properties *res) const
         if (success) (*res) = v;
     }
 #if LUA_VERSION_NUM >= 503
-        else if (this->lua_isinteger())
+        else if (this->is_integer())
         {
             int v;
 
@@ -676,9 +772,16 @@ bool LuaObject::as(Properties *res) const
     else
     {
         WARNING << "unknown type can not convert" << std::endl;
-//        success = false;
+        success = false;
     }
 
     return success;
+}
+
+bool LuaObject::set(std::string const &key, Properties const &res) const
+{
+    // @TODO implement Properties to LuaOjbect convert
+    UNIMPLEMENTED;
+    return false;
 }
 }}

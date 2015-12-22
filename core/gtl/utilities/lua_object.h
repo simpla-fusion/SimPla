@@ -166,77 +166,47 @@ public:
 
     inline std::basic_ostream<char> &Serialize(std::basic_ostream<char> &os);
 
-    inline bool is_null() const
-    {
-        return L_.empty();
-    }
+    inline bool is_null() const { return L_.empty(); }
 
-    inline bool empty() const // STL style
-    {
-        return L_.empty();
-    }
+    inline bool empty() const { return L_.empty(); }
 
-    operator bool() const
-    {
-        return !L_.empty();
-    }
+    operator bool() const { return !L_.empty(); }
 
-    bool is_global() const
-    {
-        return !L_.empty() && self_ == -1;
-    }
+    bool is_global() const { return !L_.empty() && self_ == -1; }
 
-#define DEF_TYPE_CHECK(_FUN_NAME_, _LUA_FUN_)                     \
-    inline bool _FUN_NAME_() const                                \
-    {   bool res=false;                                           \
-        if(!L_.empty())                                           \
-        {  ;                                                        \
-          lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);          \
-          res = _LUA_FUN_(L_.get(), -1);                          \
-          lua_pop(L_.get(), 1);                                   \
-        }                                                         \
-        return res;                                               \
-    }
 
-    DEF_TYPE_CHECK(is_nil, lua_isnil)
+    bool is_nil() const;
 
-    DEF_TYPE_CHECK(is_number, lua_isnumber)
+    bool is_lightuserdata() const;
+
+    bool is_function() const;
+
+    bool is_thread() const;
+
+    bool is_table() const;
+
+    bool is_boolean() const;
+
+    bool is_number() const;
+
+    bool is_string() const;
+
 #if LUA_VERSION_NUM >= 503
-    DEF_TYPE_CHECK(is_integer, lua_isinteger)
+    bool is_integer();
+    bool is_floating_point();
 #endif
 
-    DEF_TYPE_CHECK(is_string, lua_isstring)
 
-    DEF_TYPE_CHECK(is_boolean, lua_isboolean)
+    /** ntuple < list < table
+     *
+     *  list =  table without key
+     *
+     *  ntuple = list with number value
+     */
+    bool is_list() const;
 
-    DEF_TYPE_CHECK(is_lightuserdata, lua_islightuserdata)
+    bool is_nTuple() const;
 
-    DEF_TYPE_CHECK(is_function, lua_isfunction)
-
-    DEF_TYPE_CHECK(is_thread, lua_isthread)
-
-    DEF_TYPE_CHECK(is_table, lua_istable)
-
-#undef DEF_TYPE_CHECK
-
-
-    inline bool is_ntuple() const
-    {
-        bool res = false;
-        if (this->is_table())
-        {
-            res = true;
-            size_t n = size();
-            for (int i = 0; i < n && res; ++i)
-            {
-                LuaObject ele = this->operator[](i);
-                if (ele.is_number() || ele.is_table()) { res = ele.is_ntuple(); }
-                else { res = false; }
-            }
-
-        }
-        return res;
-    }
 
     inline std::string get_typename() const;
 
@@ -405,9 +375,17 @@ public:
     template<typename T>
     inline T as(T const &default_value) const
     {
-        T res = default_value;
-        as(&res);
-        return (res);
+        T res;
+
+        if (!as(&res))
+        {
+            return default_value;
+        }
+        else
+        {
+            return std::move(res);
+        };
+
     }
 
     template<typename T>
@@ -420,12 +398,11 @@ public:
 
             lua_rawgeti(*acc, GLOBAL_REF_IDX_, self_);
 
-            _impl::pop_from_lua(*acc, lua_gettop(*acc), res);
+            auto num = _impl::pop_from_lua(*acc, lua_gettop(*acc), res);
 
             lua_pop(*acc, 1);
 
-
-            return true;
+            return num > 0;
         }
         else
         {
@@ -434,6 +411,8 @@ public:
     }
 
     bool as(Properties *res) const;
+
+    bool set(std::string const &key, Properties const &res) const;
 
     template<typename T>
     inline void set(std::string const &name, T const &v)

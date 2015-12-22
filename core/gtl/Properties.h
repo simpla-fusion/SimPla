@@ -176,9 +176,8 @@ public:
             ++it;
             for (; it != ie; ++it)
             {
-                os << " , " << it->first << " = ";
+                os << std::endl << " , " << it->first << " = ";
                 it->second.print(os, indent + 1);
-
             }
             os << " }";
         }

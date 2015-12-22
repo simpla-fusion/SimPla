@@ -108,7 +108,7 @@ constexpr _Tp seq_value<integer_sequence<_Tp, N...> >::value[];
 template<typename T>
 struct value_type
 {
-    typedef typename std::enable_if<std::is_scalar<T>::value, T>::type type;
+    typedef typename std::conditional<std::is_scalar<T>::value, T, std::nullptr_t>::type type;
 };
 template<>
 struct value_type<std::string>
