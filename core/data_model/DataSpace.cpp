@@ -84,6 +84,8 @@ DataSpace::DataSpace(const DataSpace &other) :
 
 }
 
+DataSpace::DataSpace(DataSpace &&other) : m_pimpl_(other.m_pimpl_) { }
+
 
 DataSpace::~DataSpace()
 {
@@ -155,6 +157,8 @@ size_t DataSpace::num_of_elements() const
 }
 
 std::vector<size_t> const &DataSpace::selected_points() const { return m_pimpl_->m_selected_points_; };
+
+std::vector<size_t> &DataSpace::selected_points() { return m_pimpl_->m_selected_points_; };
 
 void DataSpace::select_point(const size_t *idx)
 {

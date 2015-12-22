@@ -65,6 +65,13 @@ struct DataSet : public base::Object
     {
     }
 
+    DataSet(DataSet &&other) :
+            data(other.data),
+            data_type(other.data_type),
+            data_space(other.data_space),
+            memory_space(other.memory_space)
+    {
+    }
 
     virtual ~DataSet() { }
 

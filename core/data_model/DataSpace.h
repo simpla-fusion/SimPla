@@ -56,6 +56,7 @@ public:
     // Copy constructor: makes a copy of the original data_space object.
     DataSpace(const DataSpace &other);
 
+    DataSpace(DataSpace &&other);
 
     // Destructor: properly terminates access to this data_space.
     ~DataSpace();
@@ -108,7 +109,7 @@ public:
 
 private:
     struct pimpl_s;
-    std::unique_ptr<pimpl_s> m_pimpl_;
+    std::shared_ptr<pimpl_s> m_pimpl_;
 
 };
 

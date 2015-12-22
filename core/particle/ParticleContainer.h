@@ -207,7 +207,8 @@ public:
 
     template<typename TGen, typename ...Args> void generator(id_type s, TGen &gen, size_t pic, Args &&...args);
 
-    template<typename TGen, typename ...Args> void generator(range_type const &, TGen &gen, size_t pic, Args &&...args);
+    template<typename TGen, typename TRange, typename ...Args>
+    void generator(TRange const &, TGen &gen, size_t pic, Args &&...args);
 
     template<typename TGen, typename ...Args> void generator(TGen &gen, size_t pic, Args &&...args);
 
@@ -812,8 +813,8 @@ ParticleContainer<P, M, Policies...>::generator(id_type s, TGen &gen, size_t pic
 
 
 template<typename P, typename M, typename ...Policies>
-template<typename TGen, typename ...Args> void
-ParticleContainer<P, M, Policies...>::generator(const range_type &r, TGen &gen, size_t pic, Args &&...args)
+template<typename TGen, typename TRange, typename ...Args> void
+ParticleContainer<P, M, Policies...>::generator(const TRange &r, TGen &gen, size_t pic, Args &&...args)
 {
     for (auto const &s:r) { generator(s, gen, pic, std::forward<Args>(args)...); }
 }

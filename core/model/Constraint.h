@@ -101,9 +101,9 @@ void update_cache(TM const &m, geometry::GeoObject const &geo, Cache<TM> *cache,
 
 
 /**
- *  flag > 0 out of surface
+ *  flag < 0 out of surface
  *       = 0 on surface
- *       < 0 in surface
+ *       > 0 in surface
  */
 template<typename TM, typename TRange, typename Func>
 void search_cache(TM const &m, TRange const &r0, Cache<TM> const &cache, int flag, Func const &func)
@@ -273,26 +273,26 @@ void get_cell_on_surface(TM const &m, Cache<TM> const &cache, IdSet<TM> *surface
 template<typename TM, typename TRange>
 void get_cell_in_surface(TM const &m, TRange const &r0, Cache<TM> const &cache, IdSet<TM> *res)
 {
-    search_cache(m, r0, cache, -1, [&](typename TM::id_type const &s) { res->insert(s); });
+    search_cache(m, r0, cache, 1, [&](typename TM::id_type const &s) { res->insert(s); });
 };
 
 template<int IFORM, typename TM>
 void get_cell_in_surface(TM const &m, Cache<TM> const &cache, IdSet<TM> *res)
 {
-    search_cache(m, m.template range<IFORM>(), cache, -1, [&](typename TM::id_type const &s) { res->insert(s); });
+    search_cache(m, m.template range<IFORM>(), cache, 1, [&](typename TM::id_type const &s) { res->insert(s); });
 };
 
 
 template<typename TM, typename TRange>
 void get_cell_out_surface(TM const &m, TRange const &r0, Cache<TM> const &cache, IdSet<TM> *res)
 {
-    search_cache(m, r0, cache, 1, [&](typename TM::id_type const &s) { res->insert(s); });
+    search_cache(m, r0, cache, -1, [&](typename TM::id_type const &s) { res->insert(s); });
 };
 
 template<int IFORM, typename TM>
 void get_cell_out_surface(TM const &m, Cache<TM> const &cache, IdSet<TM> *res)
 {
-    search_cache(m, m.template range<IFORM>(), cache, 1, [&](typename TM::id_type const &s) { res->insert(s); });
+    search_cache(m, m.template range<IFORM>(), cache, -1, [&](typename TM::id_type const &s) { res->insert(s); });
 };
 
 

@@ -61,6 +61,10 @@ struct EMPlasma
     model::IdSet<mesh_type> edge_boundary;
     model::IdSet<mesh_type> face_boundary;
 
+    model::IdSet<mesh_type> plasma_region_volume;
+
+    model::IdSet<mesh_type> plasma_region_vertex;
+
     model::IdSet<mesh_type> J_src;
 
     std::function<Vec3(Real, point_type const &)> J_src_fun;
@@ -252,14 +256,17 @@ void EMPlasma::setup(int argc, char **argv)
 
             model::get_cell_on_surface<VERTEX>(m, cache, &vertex_boundary);
 
+            model::get_cell_on_surface(m, cache, &limiter_boundary);
+
+
         }
 
         {
             model::Cache<mesh_type> cache;
 
-            model::update_cache(m, geqdsk.limiter(), &cache);
-
-            model::get_cell_on_surface(m, cache, &limiter_boundary);
+            model::update_cache(m, geqdsk.boundary(), &cache);
+            model::get_cell_in_surface<VOLUME>(m, cache, &plasma_region_volume);
+            model::get_cell_in_surface<VOLUME>(m, cache, &plasma_region_vertex);
 
         }
 
@@ -317,7 +324,8 @@ void EMPlasma::setup(int argc, char **argv)
 
                         auto gen = particle::make_generator(pic.engine(), 1.0);
 
-                        pic.generator(gen, pic.properties()["PIC"].as<size_t>(10), pic.properties()["T"].as<Real>(1));
+                        pic.generator(plasma_region_volume, gen, pic.properties()["PIC"].as<size_t>(10),
+                                      pic.properties()["T"].as<Real>(1));
 
 
                         p.f = particle_proxy_type::create(pic.data());
@@ -375,7 +383,6 @@ void EMPlasma::tear_down()
 
 void EMPlasma::check_point()
 {
-    ++m_count;
 
     out_stream.open_grid(type_cast<std::string>(m_count), io::XDMFStream::UNIFORM);
 
@@ -397,6 +404,8 @@ void EMPlasma::check_point()
 
     m.next_time_step();
 
+    ++m_count;
+
 }
 
 void EMPlasma::next_time_step()
@@ -409,12 +418,12 @@ void EMPlasma::next_time_step()
 
     Real t = m.time();
 
-
     LOG_CMD(B1 -= curl(E1) * (dt * 0.5));
 
     B1.accept(face_boundary.range(), [&](id_type, Real &v) { v = 0; });
 
     J1.accept(J_src.range(), [&](id_type s, Real &v) { J1.add(s, J_src_fun(t, m.point(s))); });
+
     for (auto &p:particles)
     {
         auto pic = p.second.f;

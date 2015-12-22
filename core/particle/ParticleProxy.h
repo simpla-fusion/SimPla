@@ -34,7 +34,6 @@ public:
 
     particle_type const &self() const { return *m_self_; }
 
-
     virtual Properties const &properties() const { return m_self_->properties(); }
 
     virtual Properties &properties() { return m_self_->properties(); }
@@ -49,20 +48,11 @@ public:
 
     virtual data_model::DataSet data_set() const { return m_self_->data_set(); }
 
-    virtual void push(Real dt, Real t, TE const &E, TB const &B)
-    {
-        m_self_->push(dt, t, E, B);
-    };
+    virtual void push(Real dt, Real t, TE const &E, TB const &B) { m_self_->push(dt, t, E, B); }
 
-    virtual void integral(TJ *J) const
-    {
-        m_self_->integral(J);
-    };
+    virtual void integral(TJ *J) const { m_self_->integral(J); }
 
-    virtual void integral(TRho *n) const
-    {
-        m_self_->integral(n);
-    };
+    virtual void integral(TRho *n) const { m_self_->integral(n); }
 
     std::ostream &print(std::ostream &os, int indent) const { return m_self_->print(os, indent); }
 

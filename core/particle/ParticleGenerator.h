@@ -167,6 +167,7 @@ public:
 
         input_iterator &operator++()
         {
+
             ++m_count_;
             generate_();
             return *this;
