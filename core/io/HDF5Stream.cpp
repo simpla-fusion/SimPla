@@ -278,8 +278,9 @@ void HDF5Stream::close_file()
     {
         H5_ERROR(H5Fclose(m_pimpl_->base_file_id_));
         m_pimpl_->base_file_id_ = -1;
+        VERBOSE << "File [" << IOStream::current_file_name() << "] is closed!" << std::endl;
     }
-    VERBOSE << "File [" << IOStream::current_file_name() << "] is closed!" << std::endl;
+
 
 }
 

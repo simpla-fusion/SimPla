@@ -69,7 +69,7 @@ void XDMFStream::close()
     m_file_stream_
     << "</Domain>" << std::endl
     << "</Xdmf>" << std::endl;
-
+    m_h5_stream_.close();
     m_file_stream_.close();
 
 }

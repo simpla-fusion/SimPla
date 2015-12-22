@@ -87,13 +87,14 @@ struct EMPlasma
 
     typedef particle::ParticleProxyBase<TE, TB, TJv, TRho> particle_proxy_type;
 
-    typedef std::tuple<
-            Real, //mass
-            Real, //charge
-            traits::field_t<scalar_type, mesh_type, VERTEX>, //rho_0
-            traits::field_t<vector_type, mesh_type, VERTEX>,  //J1
-            std::shared_ptr<particle_proxy_type>
-    > particle_s;
+    struct particle_s
+    {
+        Real mass;
+        Real charge;
+        traits::field_t<scalar_type, mesh_type, VERTEX> rho1;
+        traits::field_t<vector_type, mesh_type, VERTEX> J1;
+        std::shared_ptr<particle_proxy_type> f;
+    };
 
     std::map<std::string, particle_s> particles;
 
@@ -105,12 +106,12 @@ struct EMPlasma
         return particles.emplace(
                 std::make_pair(
                         name,
-                        std::make_tuple(
+                        particle_s{
                                 mass, charge,
                                 traits::field_t<scalar_type, mesh_type, VERTEX>(m, "n_" + name),
                                 traits::field_t<vector_type, mesh_type, VERTEX>(m, "J_" + name),
                                 f
-                        )));
+                        }));
 
     }
 
@@ -297,18 +298,18 @@ void EMPlasma::setup(int argc, char **argv)
 
                     if (dict.second["Density"])
                     {
-                        std::get<2>(p) = traits::make_field_function_from_config<scalar_type,
+                        p.rho1 = traits::make_field_function_from_config<scalar_type,
                                 VERTEX>(m, dict.second["Density"]);
                     }
-                    else { std::get<2>(p) = rho0; }
+                    else { p.rho1 = rho0; }
 
 
-                    std::get<3>(p).clear();
+                    p.J1.clear();
 
 
                     if (dict.second["Type"].template as<std::string>() == "Boris")
                     {
-                        particle::BorisParticle<mesh_type> pic(m, key);
+                        particle::BorisTestParticle<mesh_type> pic(m, key);
 
                         dict.second.as(&pic.properties());
 
@@ -318,7 +319,9 @@ void EMPlasma::setup(int argc, char **argv)
 
                         pic.generator(gen, pic.properties()["PIC"].as<size_t>(10), pic.properties()["T"].as<Real>(1));
 
-                        std::get<4>(p) = particle_proxy_type::create(pic.data());
+
+                        p.f = particle_proxy_type::create(pic.data());
+
 
                     }
                 }
@@ -333,15 +336,16 @@ void EMPlasma::setup(int argc, char **argv)
         {
             MESSAGE << "  " << item.first << " =  ";
 
-            if ((std::get<4>(item.second) == nullptr))
+            if ((item.second.f == nullptr))
             {
-                MESSAGE << "{" << " mass =" << std::get<0>(item.second) << " , "
-                << " charge = " << std::get<1>(item.second) << " , "
+                MESSAGE << "{"
+                << " mass =" << item.second.mass << " , "
+                << " charge = " << item.second.charge << " , "
                 << " type =   \"Fluid\" " << "}";
             }
             else
             {
-                MESSAGE << *std::get<4>(item.second);
+                MESSAGE << *item.second.f;
             }
 
 
@@ -410,16 +414,15 @@ void EMPlasma::next_time_step()
 
     B1.accept(face_boundary.range(), [&](id_type, Real &v) { v = 0; });
 
-    J1.accept(J_src.range(),
-              [&](id_type s, Real &v) { J1.add(s, J_src_fun(t, m.point(s))); });
+    J1.accept(J_src.range(), [&](id_type s, Real &v) { J1.add(s, J_src_fun(t, m.point(s))); });
     for (auto &p:particles)
     {
-        auto pic = std::get<4>(p.second);
+        auto pic = p.second.f;
         if (pic != nullptr)
         {
             pic->push(dt, m.time(), E1, B1);
-            pic->integral(&std::get<2>(p.second));
-            pic->integral(&std::get<3>(p.second));
+            pic->integral(&p.second.rho1);
+            pic->integral(&p.second.J1);
         }
     }
     LOG_CMD(E1 += (curl(B1) * speed_of_light2 - J1 / epsilon0) * dt);
@@ -451,13 +454,13 @@ void EMPlasma::next_time_step()
 
         for (auto &p :   particles)
         {
-            Real ms, qs;
+            Real ms = p.second.mass;
+            Real qs = p.second.charge;
 
-            std::tie(ms, qs, std::ignore, std::ignore, std::ignore) = p.second;
 
-            traits::field_t<scalar_type, mesh_type, VERTEX> &ns = std::get<2>(p.second);
+            traits::field_t<scalar_type, mesh_type, VERTEX> &ns = p.second.rho1;
 
-            traits::field_t<vector_type, mesh_type, VERTEX> &Js = std::get<3>(p.second);;
+            traits::field_t<vector_type, mesh_type, VERTEX> &Js = p.second.J1;;
 
 
             Real as = (dt * qs) / (2.0 * ms);
@@ -488,13 +491,11 @@ void EMPlasma::next_time_step()
 
         for (auto &p :   particles)
         {
-            Real ms, qs;
+            Real ms = p.second.mass;
+            Real qs = p.second.charge;
+            traits::field_t<scalar_type, mesh_type, VERTEX> &ns = p.second.rho1;
+            traits::field_t<vector_type, mesh_type, VERTEX> &Js = p.second.J1;;
 
-            std::tie(ms, qs, std::ignore, std::ignore, std::ignore) = p.second;
-
-            traits::field_t<scalar_type, mesh_type, VERTEX> &ns = std::get<2>(p.second);
-
-            traits::field_t<vector_type, mesh_type, VERTEX> &Js = std::get<3>(p.second);;
 
             Real as = (dt * qs) / (2.0 * ms);
 
@@ -597,6 +598,7 @@ int main(int argc, char **argv)
 
 
     parallel::close();
+
     logger::close();
 
     return 0;

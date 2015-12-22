@@ -10,16 +10,16 @@
 #include "../data_model/DataTypeExt.h"
 #include "../gtl/primitives.h"
 
-namespace simpla
-{
-namespace particle
+namespace simpla { namespace particle
 {
 
 template<typename P>
 class enable_tracking : public P
 {
+
     typedef typename P::point_type value_type;
 
+public:
     SP_DEFINE_STRUCT(point_type, size_t, _tag, value_type, p);
 
 
@@ -50,37 +50,19 @@ class enable_tracking : public P
     template<typename ...Args>
     void integral(Vec3 const &x, point_type const &p, Args &&...args) const
     {
-        P::integral(x, p.p, std::forward<Args>(args)...);
     }
 
 
     template<typename ...Args>
     void push(point_type *p, Args &&...args) const
     {
-        P::push(*(p->p), std::forward<Args>(args)...);
+        P::push(&(p->p), std::forward<Args>(args)...);
 
     };
 
 };
 
-template<typename ...> class Tracker;
 
-template<typename P>
-class Tracker<P> : public P::mesh_type::AttributeEntity
-{
-    typedef typename P::mesh_type mesh_type;
-    typedef P::mesh_type::AttributeEntity base_type;
-
-    Tracker(mesh_type const &m, std::string const &s_name) : base_type(m, s_name) { }
-
-    virtual ~Tracker() { }
-
-    data_model::DataSet data_set() const
-    {
-
-    }
-};
-}
-}//namespace simpla { namespace particle{
+}}//namespace simpla { namespace particle{
 
 #endif //SIMPLA_PARTICLETRACKER_H

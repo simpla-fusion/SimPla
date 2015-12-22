@@ -93,7 +93,7 @@ private:
     function_type m_func_;
 
 
-    typedef typename particle_type::sample_type value_type;
+    typedef typename particle_type::point_type value_type;
 
     particle_type const &m_p_engine_;
 

@@ -16,15 +16,17 @@ template<typename...> struct ParticleProxyBase;
 template<typename...> struct ParticleProxy;
 
 template<typename TP, typename TE, typename TB, typename TJ, typename TRho>
-struct ParticleProxy<TP, TE, TB, TJ, TRho> : public ParticleProxyBase<TE, TB, TJ, TRho>
+class ParticleProxy<TP, TE, TB, TJ, TRho> : public ParticleProxyBase<TE, TB, TJ, TRho>
 {
+    typedef ParticleProxy<TP, TE, TB, TJ, TRho> this_type;
+public:
     typedef TP particle_type;
 
     std::shared_ptr<particle_type> m_self_;
 
-    ParticleProxy(std::shared_ptr<particle_type> s) : m_self_(s) { }
+    ParticleProxy(std::shared_ptr<particle_type> p) : m_self_(p) { }
 
-    ParticleProxy(particle_type &other) : m_self_(other.shared_from_this()) { }
+    ParticleProxy(this_type const &other) : m_self_(other.m_self_) { }
 
     virtual  ~ParticleProxy() { }
 
