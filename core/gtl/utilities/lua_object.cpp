@@ -8,7 +8,9 @@
 #include "pretty_stream.h"
 #include "../ntuple_ext.h"
 
-namespace simpla { namespace lua
+namespace simpla
+{
+namespace lua
 {
 
 
@@ -172,7 +174,7 @@ LuaObject::iterator &LuaObject::iterator::Next()
 
         if (lua_isnil(*acc, tidx))
         {
-            THROW_EXCEPTION_LOGIC_ERROR(path_ + " is not iteraterable!");
+            LOGIC_ERROR << (path_ + " is not iteraterable!") << std::endl;
         }
 
         if (key_ == LUA_NOREF)
@@ -648,7 +650,86 @@ bool LuaObject::is_nTuple() const
 
     auto first_item = (*this->begin());
 
-    return (first_item.first.as<int>() == 1 && first_item.second.is_number());
+    return (first_item.first.as<int>() == 1 && (first_item.second.is_number() || first_item.second.is_nTuple()));
+}
+
+namespace _impl
+{
+template<typename T>
+bool convert_ntuple(LuaObject const &obj, Properties *res) { return false; };
+
+template<typename T, int N, int ...M>
+bool convert_ntuple(LuaObject const &obj, Properties *res)
+{
+    bool success;
+    nTuple<T, N, M...> v;
+    success = obj.as(&v);
+    if (success) (*res) = v;
+
+    return success;
+};
+
+
+template<typename T, int ...M>
+auto _get_nTuple(LuaObject const &obj, LuaObject const &first, integer_sequence<int, M...>, Properties *res)
+-> typename std::enable_if<(sizeof...(M) >= 3), bool>::type
+{
+    return false;
+};
+
+template<typename T, int ...M>
+auto _get_nTuple(LuaObject const &obj, LuaObject const &first, integer_sequence<int, M...>, Properties *res)
+-> typename std::enable_if<sizeof...(M) < 3, bool>::type
+{
+    bool success = false;
+
+    if (first.is_number()) { success = convert_ntuple<T, M...>(obj, res); }
+    else
+    {
+        switch (first.size())
+        {
+            case 1:
+                success = _get_nTuple<T>(obj, first[0], integer_sequence<int, M..., 1>(), res);
+                break;
+            case 2:
+                success = _get_nTuple<T>(obj, first[0], integer_sequence<int, M..., 2>(), res);
+                break;
+            case 3:
+                success = _get_nTuple<T>(obj, first[0], integer_sequence<int, M..., 3>(), res);
+                break;
+            case 4:
+                success = _get_nTuple<T>(obj, first[0], integer_sequence<int, M..., 4>(), res);
+                break;
+            case 5:
+                success = _get_nTuple<T>(obj, first[0], integer_sequence<int, M..., 5>(), res);
+                break;
+            case 6:
+                success = _get_nTuple<T>(obj, first[0], integer_sequence<int, M..., 6>(), res);
+                break;
+            case 7:
+                success = _get_nTuple<T>(obj, first[0], integer_sequence<int, M..., 7>(), res);
+                break;
+            case 8:
+                success = _get_nTuple<T>(obj, first[0], integer_sequence<int, M..., 8>(), res);
+                break;
+            case 9:
+                success = _get_nTuple<T>(obj, first[0], integer_sequence<int, M..., 9>(), res);
+                break;
+            default:
+                success = false;
+        }
+
+    }
+    return success;
+}
+
+template<typename T>
+bool get_nTuple(LuaObject const &obj, Properties *res)
+{
+    return _get_nTuple<T>(obj, obj, integer_sequence<int>(), res);
+};
+
+
 }
 
 bool LuaObject::as(Properties *res) const
@@ -656,83 +737,25 @@ bool LuaObject::as(Properties *res) const
 
     bool success = true;
 
-
-    if (this->is_nTuple())
+    if (this->is_table())
     {
 
-        size_t n = this->size();
+        auto first_item = (*this->begin());
 
-        if (this->operator[](0).is_number())
+        if (first_item.first.as<int>() == 1 &&
+            (first_item.second.is_number() || first_item.second.is_nTuple())) //is ntuple
         {
-
-            switch (n)
-            {
-                case 1:
-                {
-                    double v;
-                    success = success && this->as(&v);
-                    if (success) (*res) = v;
-                    break;
-                }
-#define DEF_CASE(_NUM_)  case _NUM_: {  nTuple<double, _NUM_> v; success = success && this->as(&v);  if (success) (*res) = v;}break;
-
-                DEF_CASE(2)
-                DEF_CASE(3)
-                DEF_CASE(4)
-                DEF_CASE(5)
-                DEF_CASE(6)
-                DEF_CASE(7)
-                DEF_CASE(8)
-                DEF_CASE(9)
-                DEF_CASE(10)
-                default:
-                    success = false;
-//
-            }
-
-#undef DEF_CASE
-
+            success = success && _impl::get_nTuple<double>(*this, res);
         }
-        else
+        else //is list
         {
-            switch (n)
+            for (auto const &item:*this)
             {
-                case 1:
-                {
-                    double v;
-                    success = success && this->as(&v);
-                    if (success) (*res) = v;
-                    break;
-                }
-#define DEF_CASE(_NUM_)  case _NUM_: {  nTuple<std::string, _NUM_> v; success = success && this->as(&v);  if (success) (*res) = v;break;}
-                DEF_CASE(2)
-                DEF_CASE(3)
-                DEF_CASE(4)
-                DEF_CASE(5)
-                DEF_CASE(6)
-                DEF_CASE(7)
-                DEF_CASE(8)
-                DEF_CASE(9)
-                DEF_CASE(10)
-#undef DEF_CASE
-                default:
-                    success = false;
+                auto &v = (*res)[item.first.as<std::string>()];
+                success = success && item.second.as(&(v));
 
+                if (!success)break;
             }
-        }
-
-    }
-    else if (this->is_table())
-    {
-
-//        this->as(dynamic_cast<std::map<std::string, Properties> *>(res));
-
-        for (auto const &item:*this)
-        {
-            auto &v = (*res)[item.first.as<std::string>()];
-            success = success && item.second.as(&(v));
-
-            if (!success)break;
         }
     }
     else if (this->is_boolean())
@@ -784,4 +807,5 @@ bool LuaObject::set(std::string const &key, Properties const &res) const
     UNIMPLEMENTED;
     return false;
 }
-}}
+}
+}

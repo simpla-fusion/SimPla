@@ -94,14 +94,13 @@ struct ConfigParser
             {
                 return std::move(type_cast<T>(m_value_));
             }
-            else if (!lua::LuaObject::is_null())
+            else if (lua::LuaObject::is_null())
             {
-                return std::move(lua::LuaObject::template as<T>());
-            }
-            else
-            {
+
                 THROW_EXCEPTION_RUNTIME_ERROR("undefined lua object!");
             }
+            return std::move(lua::LuaObject::template as<T>());
+
         }
 
         template<typename T>

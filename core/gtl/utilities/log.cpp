@@ -276,8 +276,17 @@ Logger::~Logger()
 
     switch (m_level_)
     {
-        case LOG_RUNTIME_ERROR:
+        case LOG_ERROR_RUNTIME:
             throw (std::runtime_error(this->str()));
+            break;
+        case LOG_ERROR_BAD_CAST   :
+            throw (std::bad_cast());
+            break;
+        case LOG_ERROR_OUT_OF_RANGE  :
+            throw (std::out_of_range(this->str()));
+            break;
+        case LOG_ERROR_LOGICAL  :
+            throw (std::logic_error(this->str()));
             break;
         default:
             flush();

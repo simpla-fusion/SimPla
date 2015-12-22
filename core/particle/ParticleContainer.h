@@ -629,7 +629,7 @@ ParticleContainer<P, M, Policies...>::sync(container_type const &buffer, paralle
             }
             catch (std::exception const &error)
             {
-                THROW_EXCEPTION_RUNTIME_ERROR("add communication link error", error.what());
+                RUNTIME_ERROR << "add communication link error" << error.what() << std::endl;
 
             }
         }
@@ -776,10 +776,8 @@ template<typename P, typename M, typename ...Policies> data_model::DataSet
 ParticleContainer<P, M, Policies...>::data_set() const
 {
     auto r = mesh_entity::mesh().template range<iform>();
-    size_t count = static_cast<int>(size(r));
 
-    CHECK(count);
-    CHECK(size());
+    size_t count = static_cast<int>(size(r));
 
     auto data = sp_alloc_memory(count * sizeof(value_type));
 

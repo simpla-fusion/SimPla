@@ -366,7 +366,7 @@ void EMPlasma::setup(int argc, char **argv)
     }
     catch (std::exception const &error)
     {
-        THROW_EXCEPTION_RUNTIME_ERROR("Context setup error!", error.what());
+        RUNTIME_ERROR << "Context setup error!" << error.what() << std::endl;
     }
 
 
@@ -544,7 +544,7 @@ int main(int argc, char **argv)
     }
     catch (std::exception const &error)
     {
-        THROW_EXCEPTION_RUNTIME_ERROR("Initial error", error.what());
+        RUNTIME_ERROR << "Initial error" << error.what() << std::endl;
     }
 
     INFORM << ShowCopyRight() << std::endl;

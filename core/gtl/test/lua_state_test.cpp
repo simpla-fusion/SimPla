@@ -20,7 +20,8 @@ int main(int argc, char **argv)
     pt.init();
 
     pt.parse_string(
-            "c=100 \n t1={a=5,b=6.0,c=\"text\",e={a=5,b=6.0},f={2,3,4}} \n t2={e=4,f=true} \n t3={{2,3,4},{2,3,4}}\n"
+            "c=100 \n t1={a=5,b=6.0,c={\"text\",\"text2\"},e={a=5},f={2,3,4}} \n t2={e=4,f=true} \n t3={{2,3,4},{6,7,9}}\n"
+
                     "tt={6,6,7,3,e=12, d=13,h=2} \n"
                     "function f(x,y) \n"
                     "    return (x-y)   \n"
@@ -31,21 +32,22 @@ int main(int argc, char **argv)
 
 //    if (argc > 1) { pt.parse_file(argv[1]); }
 
-//    std::cout << pt["t3"].as<nTuple<double, 4>>();
-//    {
-//        Properties props;
-//
-//        pt["t1"].as(&props);
-//
-//        std::cout << props << std::endl;
-//
-//    }
+    {
+        Properties props;
+
+        pt["t1"].as(&props);
+        std::cout << props << std::endl;
+        std::cout << "a=" << props["a"].as<double>() << std::endl;
+        std::cout << "f=" << props["f"].as<nTuple<double, 3>>() << std::endl;
+        std::cout << "f=" << props["f"].as<nTuple<int, 3>>() << std::endl;
+
+    }
     {
         Properties props;
 
         pt["t3"].as(&props);
-
-        std::cout << props.template as<std::tuple<nTuple<int, 3>, nTuple<int, 3>>>() << std::endl;
+//        std::cout << props << std::endl;
+        std::cout << "t3=" << props.template as<nTuple<double, 2, 3> >() << std::endl;
 
     }
 //    for (int i = 0; i < 10; ++i)
