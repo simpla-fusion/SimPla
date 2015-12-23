@@ -536,12 +536,13 @@ ParticleContainer<P, M, Policies...>::sync(container_type const &buffer, paralle
     memory_min = traits::get<0>(mesh_entity::mesh().memory_index_box());
     memory_max = traits::get<1>(mesh_entity::mesh().memory_index_box());
 
-    local_min = traits::get<1>(mesh_entity::mesh().local_index_box());
-    local_max = traits::get<2>(mesh_entity::mesh().local_index_box());
+    local_min = traits::get<0>(mesh_entity::mesh().local_index_box());
+    local_max = traits::get<1>(mesh_entity::mesh().local_index_box());
 
 
     for (unsigned int tag = 0, tag_e = (1U << (mesh_entity::mesh().ndims * 2)); tag < tag_e; ++tag)
     {
+
         nTuple<int, 3> coord_offset;
 
         bool tag_is_valid = true;
@@ -550,6 +551,7 @@ ParticleContainer<P, M, Policies...>::sync(container_type const &buffer, paralle
 
         send_min = local_min;
         send_max = local_max;
+
 
         for (int n = 0; n < ndims; ++n)
         {
@@ -616,9 +618,11 @@ ParticleContainer<P, M, Policies...>::sync(container_type const &buffer, paralle
 
                 size_t send_size = size(send_range, buffer);
 
+
                 p_send = sp_alloc_memory(send_size * sizeof(value_type));
 
                 auto p = reinterpret_cast<value_type *>( p_send.get());
+
 
                 for (auto const &s:send_range)
                 {
@@ -631,9 +635,11 @@ ParticleContainer<P, M, Policies...>::sync(container_type const &buffer, paralle
 
                 }
 
+
                 dist_obj->add_link_send(coord_offset, d_type, p_send, send_size);
 
                 dist_obj->add_link_recv(coord_offset, d_type);
+
 
             }
             catch (std::exception const &error)
@@ -711,10 +717,8 @@ ParticleContainer<P, M, Policies...>::rehash()
 
     parallel::DistributedObject dist_obj;
 
-    WARNING << "DistributedObject.sync is disabled" << std::endl;
-
-//    sync(buffer, &dist_obj);
-//    dist_obj.sync();
+    sync(buffer, &dist_obj);
+    dist_obj.sync();
 
     //**************************************************************************************
 
@@ -740,26 +744,24 @@ ParticleContainer<P, M, Policies...>::rehash()
      *  *     ............        *
      *  ***************************
      */
-    VERBOSE << "center" << std::endl;
 
     mesh_entity::mesh().template for_each_center<iform>([&](range_type const &r) { rehash(r, &buffer); });
-
 
     //collect moved particle
     mesh_entity::mesh().template for_each_center<iform>([&](range_type const &r) { merge(r, &buffer); });
 
     mesh_entity::mesh().template for_each_boundary<iform>([&](range_type const &r) { merge(r, &buffer); });
 
-//    dist_obj.wait();
+    dist_obj.wait();
     /**
-     *
-     *  ***************************
-     *  *     ............        *
-     *  *     .  center  .        *
-     *  *     .          . ghost <== neighbour
-     *  *     ............        *
-     *  ***************************
-     */
+    *
+    *  ***************************
+    *  *     ............        *
+    *  *     .  center  .        *
+    *  *     .          . ghost <== neighbour
+    *  *     ............        *
+    *  ***************************
+    */
 
     for (auto const &item :  dist_obj.recv_buffer)
     {
