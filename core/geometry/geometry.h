@@ -31,8 +31,8 @@ namespace traits
 
 template<typename TL> bool in_set(TL const &l, GeoObject const &r) { return r.within(l); }
 
-template<typename TL, typename TP>
-bool in_set(TL const &l, std::tuple<TP, TP> const &b) { return in_box(l, std::get<0>(b), std::get<1>(b)); }
+template<typename TL, typename TBox>
+bool in_set(TL const &l, TBox const &b) { return in_box(l, ::simpla::traits::get<0>(b), ::simpla::traits::get<1>(b)); }
 }
 
 

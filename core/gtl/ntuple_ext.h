@@ -51,9 +51,9 @@ std::ostream &operator<<(std::ostream &os, nTuple<T, M, M2, N...> const &v)
     os << "{" << v[0];
     for (int i = 1; i < M; ++i)
     {
-        os << " , " << v[i] << std::endl;
+        os << " , " << v[i];
     }
-    os << "}" << std::endl;
+    os << "}";
 
     return os;
 }

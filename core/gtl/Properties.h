@@ -10,6 +10,7 @@
 
 #include <map>
 #include <string>
+#include <iomanip>
 #include "ntuple.h"
 #include "any.h"
 
@@ -24,7 +25,8 @@ namespace simpla
  */
 class Properties
         : public any,
-          public std::map<std::string, Properties>
+          public std::map<std::string, Properties>,
+          public base::Object
 {
 
 private:
@@ -163,46 +165,21 @@ public:
         return *this;
     }
 
-    std::ostream &print(std::ostream &os, int indent = 0) const
-    {
-
-        if (!this->any::empty()) { this->any::print(os, indent); }
-        if (this->size() > 0)
-        {
-            auto it = this->begin();
-            auto ie = this->end();
-            os << "{ " << it->first << " = ";
-            it->second.print(os, indent + 1);;
-            ++it;
-            for (; it != ie; ++it)
-            {
-                os << std::endl << " , " << it->first << " = ";
-                it->second.print(os, indent + 1);
-            }
-            os << " }";
-        }
-
-        return os;
-    }
+    std::ostream &print(std::ostream &os, int indent = 0) const;
 };
 
-inline std::ostream &operator<<(std::ostream &os, Properties const &prop)
-{
-    prop.print(os, 0);
-    return os;
-}
+std::ostream &operator<<(std::ostream &os, Properties const &prop);
 
-#define HAS_PROPERTIES                                       \
-      Properties m_properties_;
 
-#define  EXPOSE_PROPERTIES \
-    virtual Properties &properties(){return m_properties_; };   \
-    virtual Properties const &properties()const{return m_properties_; }; \
-    private:Properties m_properties_;public:
+#define HAS_PROPERTIES                                                                                            \
+virtual Properties &properties() {return m_properties_;};                                                         \
+virtual Properties const &properties() const {return m_properties_;};                                             \
+private: Properties m_properties_; public:
+
 
 #define DEFINE_PROPERTIES(_TYPE_, _NAME_)                                                      \
 void _NAME_(_TYPE_ const & v)   \
-{m_##_NAME_##_ =v; this->m_properties_[__STRING(_NAME_)] = v; }       \
+{m_##_NAME_##_ =v; this->properties()[__STRING(_NAME_)] = v; }       \
 _TYPE_ _NAME_()const{return m_##_NAME_##_;}                         \
 private: _TYPE_ m_##_NAME_##_;    public:
 /** @} */

@@ -53,9 +53,12 @@ public:
 
         point_type dest_min, dest_max;
 
-        std::tie(src_min_, src_max_) = src_box;
+        src_min_ = traits::get<0>(src_box);
+        src_max_ = traits::get<1>(src_box);
 
-        std::tie(dest_min, dest_max) = dest_box;
+        dest_min = traits::get<0>(dest_box);
+        dest_max = traits::get<1>(dest_box);
+
 
         for (int i = 0; i < 3; ++i)
         {

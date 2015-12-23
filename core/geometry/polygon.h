@@ -60,7 +60,13 @@ public:
     virtual Real nearest_point(point_type *p) const;
 
 
-    virtual box_type box() const { return box_type(m_x0_, m_x1_); };
+    virtual box_type box() const
+    {
+        box_type b;
+        b[0] = m_x0_;
+        b[1] = m_x1_;
+        return std::move(b);
+    };
 
     virtual int within(point_type const &x) const;
 

@@ -40,6 +40,8 @@ private:
     typedef MeshBlock block_type;
 
 public:
+
+    HAS_PROPERTIES;
     using block_type::ndims;
     using block_type::id_type;
     using block_type::id_tuple;
@@ -64,56 +66,24 @@ public:
     Mesh() : block_type() { }
 
 
-    Mesh(this_type const &other) : block_type(other), m_dx_(other.m_dx_) { }
+    Mesh(this_type const &other) = delete;
 
-    virtual  ~ Mesh() { }
+    virtual  ~Mesh() { }
 
-    virtual void swap(this_type &other)
-    {
-
-        block_type::swap(other);
-
-        map_type::swap(other);
-
-        std::swap(m_coords_min_, other.m_coords_min_);
-        std::swap(m_coords_max_, other.m_coords_max_);
-        std::swap(m_dx_, other.m_dx_);
-
-
-        deploy();
-        other.deploy();
-
-    }
-
-    this_type &operator=(this_type const &other)
-    {
-        this_type(other).swap(*this);
-        return *this;
-    }
+    this_type &operator=(this_type const &other) = delete;
 
     static std::string topology_type() { return "SMesh"; }
 
-
-    template<typename TDict>
-    void load(TDict const &dict)
-    {
-        box(dict["Geometry"]["Box"].template as<std::tuple<point_type, point_type> >());
-
-        block_type::dimensions(
-                dict["Geometry"]["Topology"]["Dimensions"].template as<index_tuple>(index_tuple{10, 1, 1}));
-    }
-
-    virtual std::ostream &print(std::ostream &os) const
+    virtual std::ostream &print(std::ostream &os, int indent = 1) const
     {
 
         os
-        << "\tgeometry={" << std::endl
-        << "\t\t Topology = { Type = \"RectMesh\",  }," << std::endl
-        << "\t\t Box = {" << box() << "}," << std::endl
-        << "\t\t Dimensions = " << block_type::dimensions() << "," << std::endl
-        << "\t\t}, "
-        << "\t}"
-        << std::endl;
+        << std::setw(indent) << "\tGeometry={" << std::endl
+        << std::setw(indent) << "\t\t Topology = { Type = \"RectMesh\",  }," << std::endl
+        << std::setw(indent) << "\t\t Box = {" << box() << "}," << std::endl
+        << std::setw(indent) << "\t\t Dimensions = " << block_type::dimensions() << "," << std::endl
+        << std::setw(indent) << "\t\t}, " << std::endl
+        << std::setw(indent) << "\t}" << std::endl;
 
         return os;
     }
@@ -127,54 +97,60 @@ public:
     template<typename X0, typename X1>
     void box(X0 const &x0, X1 const &x1)
     {
-        m_coords_min_ = x0;
-        m_coords_max_ = x1;
+        box_type b;
+        b[0] = x0;
+        b[1] = x1;
+        properties()["Geometry"]["Box"] = b;
+
     }
 
-    template<typename T0> void box(T0 const &b)
-    {
-        box(simpla::traits::get<0>(b), simpla::traits::get<1>(b));
-    }
+    template<typename T0> void box(T0 const &b) { box(simpla::traits::get<0>(b), simpla::traits::get<1>(b)); }
 
 
-    std::tuple<point_type, point_type> box() const
-    {
-        return (std::make_tuple(m_coords_min_, m_coords_max_));
-    }
+    box_type box() const { return (traits::make_nTuple(m_coords_min_, m_coords_max_)); }
 
-    std::tuple<point_type, point_type> box(id_type const &s) const
+    box_type box(id_type const &s) const
     {
-        return std::make_tuple(point(s - block_type::_DA), point(s + block_type::_DA));
+        return traits::make_nTuple(point(s - block_type::_DA), point(s + block_type::_DA));
     };
 
-    std::tuple<point_type, point_type> local_box() const
+    box_type local_box() const
     {
         point_type l_min, l_max;
 
-        std::tie(l_min, l_max) = block_type::local_box();
+        l_min = traits::get<0>(block_type::local_box());
+
+        l_max = traits::get<1>(block_type::local_box());
+
 
         l_min = inv_map(l_min);
 
         l_max = inv_map(l_max);
 
-        return (std::make_tuple(l_min, l_max));
+        return (traits::make_nTuple(l_min, l_max));
     }
 
 
     constexpr auto dx() const DECL_RET_TYPE(m_dx_);
 
-    std::tuple<index_tuple, index_tuple> index_box(std::tuple<point_type, point_type> const &b) const
+    index_box_type index_box(box_type const &b) const
     {
 
         point_type b0, b1, x0, x1;
 
-        std::tie(b0, b1) = local_box();
-        std::tie(x0, x1) = b;
+        b0 = traits::get<0>(block_type::local_box());
+
+        b1 = traits::get<1>(block_type::local_box());
+
+        x0 = traits::get<0>(b);
+
+        x1 = traits::get<1>(b);
 
         if (geometry::box_intersection(b0, b1, &x0, &x1))
         {
-            return std::make_tuple(block_type::unpack_index(id(x0)),
-                                   block_type::unpack_index(id(x1) + (block_type::_DA << 1)));
+            return traits::make_nTuple(
+                    block_type::unpack_index(id(x0)),
+                    block_type::unpack_index(id(x1) + (block_type::_DA << 1)));
 
         }
         else
@@ -182,7 +158,7 @@ public:
             index_tuple i0, i1;
             i0 = 0;
             i1 = 0;
-            return std::make_tuple(i0, i1);
+            return traits::make_nTuple(i0, i1);
         }
 
 
@@ -275,6 +251,17 @@ public:
 template<typename TMetric, typename TMap>
 void Mesh<TMetric, tags::rect_linear, TMap>::deploy()
 {
+
+
+    if (properties().click() > this->click())
+    {
+        auto b = properties()["Geometry"]["Box"].template as<box_type>();
+
+        m_coords_min_ = b[0];
+        m_coords_max_ = b[1];
+
+    }
+
     block_type::deploy();
 
     auto dims = block_type::dimensions();
@@ -340,6 +327,8 @@ void Mesh<TMetric, tags::rect_linear, TMap>::deploy()
 
     });
 
+
+    touch();
 
 }
 

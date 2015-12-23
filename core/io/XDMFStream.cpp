@@ -237,7 +237,7 @@ void XDMFStream::write(std::string const &ds_name,
 /**
  *
  *
- *    XML attribute : TopologyType = Polyvertex | Polyline | Polygon |
+ *    XML data : TopologyType = Polyvertex | Polyline | Polygon |
                                   Triangle | Quadrilateral | Tetrahedron | Pyramid| Wedge | Hexahedron |
                                   Edge_3 | Triangle_6 | Quadrilateral_8 | Tetrahedron_10 | Pyramid_13 |
                                   Wedge_15 | Wedge_18 | Hexahedron_20 | Hexahedron_24 | Hexahedron_27 |

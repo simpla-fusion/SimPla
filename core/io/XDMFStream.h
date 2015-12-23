@@ -61,6 +61,9 @@ public:
 
     void reference_topology_geometry(std::string const &id);
 
+    HDF5Stream &hdf5() { return m_h5_stream_; }
+
+    HDF5Stream const &hdf5() const { return m_h5_stream_; }
 
 private:
     std::list<std::string> m_path_;

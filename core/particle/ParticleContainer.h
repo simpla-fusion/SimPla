@@ -104,6 +104,7 @@ public:
     typedef parallel::concurrent_hash_map<id_type, bucket_type> container_type;
 
     container_type m_data_;
+    Properties m_properties_;
 
 public:
 
@@ -112,6 +113,8 @@ public:
     typedef std::map<id_type, bucket_type> buffer_type;
 
     static constexpr int ndims = mesh_type::ndims;
+
+
 public:
 
 
@@ -126,6 +129,12 @@ public:
     void swap(this_type const &other) = delete;
 
     virtual ~ParticleContainer();
+
+
+    virtual Properties &properties() { return m_properties_; };
+
+    virtual Properties const &properties() const { return m_properties_; };
+
 
     virtual void deploy();
 
@@ -233,7 +242,7 @@ public:
     //! @}
 
 
-private:
+
     void sync(container_type const &buffer, parallel::DistributedObject *dist_obj, bool update_ghost = true);
 
 };//class ParticleContainer
@@ -270,7 +279,7 @@ void ParticleContainer<P, M, Policies...>::update()
 {
     if (engine_type::click() < mesh_entity::click())
     {
-        engine_type::load(mesh_entity::properties());
+        engine_type::update();
     }
 }
 
@@ -527,8 +536,11 @@ ParticleContainer<P, M, Policies...>::sync(container_type const &buffer, paralle
     typename mesh_type::index_tuple memory_min, memory_max;
     typename mesh_type::index_tuple local_min, local_max;
 
-    std::tie(memory_min, memory_max) = mesh_entity::mesh().memory_index_box();
-    std::tie(local_min, local_max) = mesh_entity::mesh().local_index_box();
+    memory_min = traits::get<0>(mesh_entity::mesh().memory_index_box());
+    memory_max = traits::get<1>(mesh_entity::mesh().memory_index_box());
+
+    local_min = traits::get<1>(mesh_entity::mesh().local_index_box());
+    local_max = traits::get<2>(mesh_entity::mesh().local_index_box());
 
 
     for (unsigned int tag = 0, tag_e = (1U << (mesh_entity::mesh().ndims * 2)); tag < tag_e; ++tag)

@@ -46,7 +46,7 @@ public:
     template<typename TBox>
     rectangle_distribution(TBox const &b)
     {
-        reset(std::get<0>(b), std::get<1>(b));
+        reset(traits::get<0>(b), traits::get<1>(b));
     }
 
     rectangle_distribution(nTuple<double, NDIMS> const &xmin,

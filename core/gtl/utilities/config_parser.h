@@ -126,6 +126,11 @@ struct ConfigParser
             *v = as<T>(*v);
         }
 
+        bool as(Properties *v) const
+        {
+            return lua::LuaObject::as(v);
+        }
+
         template<typename T>
         operator T() const
         {

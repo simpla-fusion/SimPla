@@ -41,6 +41,7 @@ private:
     typedef LinearMap map_type;
     typedef MeshBlock block_type;
 public:
+    HAS_PROPERTIES;
     using block_type::ndims;
     using block_type::id_type;
     using block_type::id_tuple;
@@ -98,8 +99,7 @@ public:
     }
 
     Mesh(this_type const &other, box_type const &b, int ratio) :
-            block_type(other), m_coords_min_(std::get<0>(b)),
-            m_coords_max_(std::get<1>(b)),
+            block_type(other), m_coords_min_(b[0]), m_coords_max_(b[1]),
             m_dx_(other.m_dx_ / ratio)
     {
 
@@ -113,6 +113,7 @@ public:
     }
 
     virtual  ~Mesh() { }
+
 
     virtual void swap(this_type &other)
     {
@@ -134,39 +135,21 @@ public:
 
     bool is_valid() const { return m_is_valid_; }
 
-    template<typename TDict>
-    void load(TDict const &dict)
-    {
-        try
-        {
-            box(dict["geometry"]["Box"].template as<std::tuple<point_type, point_type> >());
 
-            block_type::dimensions(
-                    dict["geometry"]["Topology"]["Dimensions"].template as<index_tuple>(index_tuple{10, 1, 1}));
-
-        }
-        catch (std::runtime_error const &e)
-        {
-            SHOW_ERROR << e.what() << std::endl;
-
-            THROW_EXCEPTION_PARSER_ERROR("geometry is not correctly loaded!");
-
-        }
-    }
-
-    virtual std::ostream &print(std::ostream &os) const
+    virtual std::ostream &print(std::ostream &os, int indent = 1) const
     {
 
         os
-        << "\tgeometry={" << std::endl
-        << "\t\t Topology = { Type = \"CoRectMesh\",  }," << std::endl
-        << "\t\t Box = {" << box() << "}," << std::endl
-        << "\t\t Dimensions = " << block_type::dimensions() << "," << std::endl
-        << "\t\t}, " << std::endl
-        << "\t}, " << std::endl;
+        << std::setw(indent) << "\tGeometry={" << std::endl
+        << std::setw(indent) << "\t\t Topology = { Type = \"RectMesh\",  }," << std::endl
+        << std::setw(indent) << "\t\t Box = {" << box() << "}," << std::endl
+        << std::setw(indent) << "\t\t Dimensions = " << block_type::dimensions() << "," << std::endl
+        << std::setw(indent) << "\t\t}, " << std::endl
+        << std::setw(indent) << "\t}" << std::endl;
 
         return os;
     }
+
 
     this_type &operator=(this_type const &other)
     {
@@ -195,14 +178,14 @@ public:
         box(simpla::traits::get<0>(b), simpla::traits::get<1>(b));
     }
 
-    std::tuple<point_type, point_type> box() const
+    box_type box() const
     {
-        return (std::make_tuple(m_coords_min_, m_coords_max_));
+        return (traits::make_nTuple(m_coords_min_, m_coords_max_));
     }
 
-    std::tuple<point_type, point_type> box(id_type const &s) const
+    box_type box(id_type const &s) const
     {
-        return std::make_tuple(point(s - block_type::_DA), point(s + block_type::_DA));
+        return traits::make_nTuple(point(s - block_type::_DA), point(s + block_type::_DA));
     };
 
 
@@ -313,6 +296,21 @@ public:
 
     virtual void deploy()
     {
+        try
+        {
+            box(properties()["Geometry"]["Box"].template as<std::tuple<point_type, point_type> >());
+
+            block_type::dimensions(
+                    properties()["Geometry"]["Topology"]["Dimensions"].template as<index_tuple>(index_tuple{10, 1, 1}));
+
+        }
+        catch (std::runtime_error const &e)
+        {
+            SHOW_ERROR << e.what() << std::endl;
+
+            THROW_EXCEPTION_PARSER_ERROR("geometry is not correctly loaded!");
+
+        }
 
         block_type::deploy();
 

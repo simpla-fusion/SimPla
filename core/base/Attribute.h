@@ -1,5 +1,5 @@
 /**
- * @file attribute.h
+ * @file data.h
  * @author salmon
  * @date 2015-12-16.
  */
@@ -20,7 +20,7 @@ class AttributeObject : public DataObject
 public:
     SP_OBJECT_HEAD(AttributeObject, DataObject);
 
-    AttributeObject(std::string const &s_name = "") : m_name_(s_name) { }
+    AttributeObject() { }
 
     virtual ~AttributeObject() { }
 
@@ -35,22 +35,23 @@ public:
 
     void swap(AttributeObject &other)
     {
-        std::swap(m_name_, other.m_name_);
+        std::swap(m_parent_, other.m_parent_);
         base_type::swap(other);
     }
 
 
-    virtual std::string const &name() const
+    virtual std::string name() const
     {
-        if (m_parent_.expired()) { return m_name_; }
+        if (m_parent_.expired()) { return properties()["Name"].as<std::string>(); }
         else { return m_parent_.lock()->name(); }
     }
 
     virtual std::shared_ptr<AttributeObject> parent() { return m_parent_.lock(); }
 
+
 private:
     std::weak_ptr<AttributeObject> m_parent_;
-    std::string m_name_;
+
 };
 
 template<typename TMesh>
@@ -66,11 +67,11 @@ class AttributeEntity : public AttributeObject
 public:
 
 
-    AttributeEntity(mesh_type &m, std::string const &s_name = "")
-            : AttributeObject(s_name), m_mesh_(&m), m_const_mesh_(&m) { }
+    AttributeEntity(mesh_type &m)
+            : m_mesh_(&m), m_const_mesh_(&m) { }
 
     AttributeEntity(mesh_type const &m, std::string const &s_name = "")
-            : AttributeObject(s_name), m_mesh_(nullptr), m_const_mesh_(&m) { }
+            : m_mesh_(nullptr), m_const_mesh_(&m) { }
 
     AttributeEntity(AttributeEntity const &other)
             : m_mesh_(other.m_mesh_), m_const_mesh_(other.m_const_mesh_) { }
@@ -118,7 +119,6 @@ public:
 private:
     mesh_type *m_mesh_;
     mesh_type const *m_const_mesh_;
-
 };
 
 template<typename TV, int IFORM, typename TMesh>
@@ -165,15 +165,9 @@ public:
         std::swap(m_data_, other.m_data_);
     }
 
-    virtual bool is_a(std::type_info const &info) const
-    {
-        return typeid(this_type) == info || base_type::is_a(info);
-    }
+    virtual bool is_a(std::type_info const &info) const { return typeid(this_type) == info || base_type::is_a(info); }
 
-    virtual std::string get_class_name() const
-    {
-        return "Attribute<" + mesh().get_class_name() + ">";
-    }
+    virtual std::string get_class_name() const { return "Attribute<" + mesh().get_class_name() + ">"; }
 
 
     virtual this_type &self() { return *this; }
@@ -245,6 +239,11 @@ public:
     }
 
     /// @}
+    virtual Properties &properties() { return m_properties_; };
+
+    virtual Properties const &properties() const { return m_properties_; };
+private:
+    Properties m_properties_;
 protected:
     std::shared_ptr<value_type> m_data_;
 

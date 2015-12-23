@@ -138,7 +138,6 @@ template<typename TMesh, template<typename> class ...Policies>
 class Manifold
         : public TMesh,
           public Policies<TMesh> ...,
-          public base::Object,
           public std::enable_shared_from_this<Manifold<TMesh, Policies...> >
 {
     typedef Manifold<TMesh, Policies ...> this_type;
@@ -165,8 +164,7 @@ public:
 
     Manifold() : Policies<mesh_type>(dynamic_cast<mesh_type &>(*this))... { }
 
-    Manifold(this_type const &m) :
-            mesh_type(m), Policies<mesh_type>(dynamic_cast<mesh_type &>(*this))... { }
+    Manifold(this_type const &m) : mesh_type(m), Policies<mesh_type>(dynamic_cast<mesh_type &>(*this))... { }
 
     virtual ~Manifold() { }
 
@@ -180,38 +178,40 @@ public:
 
     virtual this_type const &self() const { return (*this); }
 
-private:
-    typedef base::Object base_type;
+    virtual Properties &properties() { return mesh_type::properties(); }
+
+    virtual Properties const &properties() const { return mesh_type::properties(); }
+
+
 public:
 
-    virtual bool is_a(std::type_info const &info) const
-    {
-        return typeid(this_type) == info || base_type::is_a(info);
-    }
+    virtual bool is_a(std::type_info const &info) const { return typeid(this_type) == info || TMesh::is_a(info); }
 
-    virtual std::string get_class_name() const
-    {
-        return "Manifold< ... >";
-    }
+    virtual std::string get_class_name() const { return "Manifold< ... >"; }
 
     void swap(const this_type &other) { mesh_type::swap(other); }
 
-    template<typename TDict>
-    void load(TDict const &dict)
-    {
-        TRY_IT(mesh_type::load(dict["Mesh"]));
 
-        m_dt_ = dict["Mesh"]["dt"].template as<Real>(1.0);
+    void deploy()
+    {
+        if (properties().click() > this->click())
+        {
+            m_dt_ = properties()["dt"].template as<Real>(1.0);
+        }
+        mesh_type::deploy();
+        this->touch();
+
     }
 
-    void deploy() { mesh_type::deploy(); }
 
-
-    virtual std::ostream &print(std::ostream &os) const
+    virtual std::ostream &print(std::ostream &os, int indent = 0) const
     {
-        os << "Mesh={" << std::endl;
-        mesh_type::print(os);
-        os << "}, # Mesh " << std::endl;
+        os << std::setw(indent + 1) << " " << "Mesh = ";
+
+        properties().print(os, indent + 1);
+
+        os << "  -- Mesh " << std::endl;
+
         return os;
     }
 

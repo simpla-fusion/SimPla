@@ -130,23 +130,35 @@ void EMPlasma::setup(int argc, char **argv)
     {
         ConfigParser options;
 
+
         options.init(argc, argv);
 
-        m.load(options);
+        options["Mesh"].as(&m.properties());
 
-        Real phi0 = std::get<0>(m.box())[2];
+        nTuple<Real, 2, 3> box;
 
-        Real phi1 = std::get<1>(m.box())[2];
+        Real phi0 = 0, phi1 = TWOPI;
+
+        if (m.properties()["Geometry"]["Box"].as(&box))
+        {
+            phi0 = box[0][2];
+
+            phi1 = box[1][2];
+
+        }
+
+
 
         GEqdsk geqdsk;
 
         geqdsk.load(options["GEQDSK"].as<std::string>(""));
 
-        auto box = geqdsk.limiter().box();
+        box = geqdsk.limiter().box();
 
 
-        std::get<0>(box)[2] = phi0;
-        std::get<1>(box)[2] = phi1;
+        box[0][2] = phi0;
+        box[1][2] = phi1;
+
 
         m.box(box);
 
@@ -184,7 +196,6 @@ void EMPlasma::setup(int argc, char **argv)
         out_stream.open_grid("back_ground", io::XDMFStream::UNIFORM);
 
         Ev.clear();
-
         B1.clear();
         E1.clear();
         J1.clear();
@@ -205,7 +216,7 @@ void EMPlasma::setup(int argc, char **argv)
 
         B0.sync();
 
-        out_stream.write("B0", *B0.attribute());
+        out_stream.write("B0", *B0.data());
 
         //        if (options["InitValue"]["B0"])
         //        {
@@ -234,15 +245,15 @@ void EMPlasma::setup(int argc, char **argv)
 
         rho0.sync();
 
-        out_stream.write("rho0", *rho0.attribute());
+        out_stream.write("rho0", *rho0.data());
 
 
         B0v = map_to<VERTEX>(B0);
 
         BB = dot(B0v, B0v);
 
-        out_stream.write("B0v", *B0v.attribute());
-        out_stream.write("BB", *BB.attribute());
+        out_stream.write("B0v", *B0v.data());
+        out_stream.write("BB", *BB.data());
 
 
         {

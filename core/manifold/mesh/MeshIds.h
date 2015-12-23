@@ -53,7 +53,12 @@ namespace simpla { namespace mesh
  *  |00000000000|11111111111111|11111111111| <=_MASK
  *  \endverbatim
  */
-struct MeshIDs
+template<int L> struct MeshIDs_;
+
+typedef MeshIDs_<4> MeshIDs;
+
+template<int LV>
+struct MeshIDs_
 {
     /// @name level independent
     /// @{
@@ -62,7 +67,7 @@ struct MeshIDs
     static constexpr int ndims = 3;
     static constexpr int MESH_RESOLUTION = 1;
 
-    typedef MeshIDs this_type;
+    typedef MeshIDs_<LV> this_type;
 
     typedef std::uint64_t id_type;
 
@@ -761,10 +766,9 @@ struct MeshIDs
         return m_adjacent_cell_num_[IFORM][nodeid];
     }
 
-    struct iterator : public block_iterator<index_type, MeshIDs::ndims + 1>
+    struct iterator : public block_iterator<index_type, ndims + 1>
     {
     private:
-        static constexpr int ndims = MeshIDs::ndims;
         typedef block_iterator<index_type, ndims + 1> base_type;
 
         int m_iform_;
@@ -1004,7 +1008,7 @@ struct MeshIDs
     template<int IFORM, typename TB>
     static range_type make_range(TB const &b)
     {
-        return make_range(std::get<0>(b), std::get<1>(b), IFORM);
+        return make_range(traits::get<0>(b), traits::get<1>(b), IFORM);
     }
 
 
@@ -1233,43 +1237,27 @@ struct MeshIDs
  * http://stackoverflow.com/questions/22172789/passing-a-static-constexpr-variable-by-universal-reference
  */
 
-constexpr int MeshIDs::ndims;
-constexpr int MeshIDs::MESH_RESOLUTION;
-constexpr Real MeshIDs::EPSILON;
-
-constexpr int MeshIDs::FULL_DIGITS;
-constexpr int MeshIDs::ID_DIGITS;
-
-
-constexpr typename MeshIDs::id_type MeshIDs::OVERFLOW_FLAG;
-constexpr typename MeshIDs::id_type MeshIDs::ID_ZERO;
-constexpr typename MeshIDs::id_type MeshIDs::INDEX_ZERO;
-
-
-constexpr typename MeshIDs::id_type MeshIDs::ID_MASK;
-constexpr typename MeshIDs::id_type MeshIDs::_DK;
-constexpr typename MeshIDs::id_type MeshIDs::_DJ;
-constexpr typename MeshIDs::id_type MeshIDs::_DI;
-constexpr typename MeshIDs::id_type MeshIDs::_DA;
-
-
-constexpr int MeshIDs::m_id_to_index_[];
-
-constexpr int MeshIDs::m_id_to_iform_[];
-
-constexpr int MeshIDs::m_id_to_num_of_ele_in_cell_[];
-
-constexpr int MeshIDs::m_adjacent_cell_num_[4][8];
-
-
-constexpr typename MeshIDs::id_type MeshIDs::m_id_to_shift_[];
-constexpr int MeshIDs::m_sub_index_to_id_[4][3];
-
-
-constexpr typename MeshIDs::id_type
-        MeshIDs::m_adjacent_cell_matrix_[4/* to iform*/][NUM_OF_NODE_ID/* node id*/][MAX_NUM_OF_ADJACENT_CELL/*id shift*/];
-
-constexpr typename MeshIDs::coordinates_tuple MeshIDs::m_id_to_coordinates_shift_[];
+template<int L> constexpr int MeshIDs_<L>::ndims;
+template<int L> constexpr int MeshIDs_<L>::MESH_RESOLUTION;
+template<int L> constexpr Real MeshIDs_<L>::EPSILON;
+template<int L> constexpr int MeshIDs_<L>::FULL_DIGITS;
+template<int L> constexpr int MeshIDs_<L>::ID_DIGITS;
+template<int L> constexpr typename MeshIDs_<L>::id_type MeshIDs_<L>::OVERFLOW_FLAG;
+template<int L> constexpr typename MeshIDs_<L>::id_type MeshIDs_<L>::ID_ZERO;
+template<int L> constexpr typename MeshIDs_<L>::id_type MeshIDs_<L>::INDEX_ZERO;
+template<int L> constexpr typename MeshIDs_<L>::id_type MeshIDs_<L>::ID_MASK;
+template<int L> constexpr typename MeshIDs_<L>::id_type MeshIDs_<L>::_DK;
+template<int L> constexpr typename MeshIDs_<L>::id_type MeshIDs_<L>::_DJ;
+template<int L> constexpr typename MeshIDs_<L>::id_type MeshIDs_<L>::_DI;
+template<int L> constexpr typename MeshIDs_<L>::id_type MeshIDs_<L>::_DA;
+template<int L> constexpr int MeshIDs_<L>::m_id_to_index_[];
+template<int L> constexpr int MeshIDs_<L>::m_id_to_iform_[];
+template<int L> constexpr int MeshIDs_<L>::m_id_to_num_of_ele_in_cell_[];
+template<int L> constexpr int MeshIDs_<L>::m_adjacent_cell_num_[4][8];
+template<int L> constexpr typename MeshIDs_<L>::id_type MeshIDs_<L>::m_id_to_shift_[];
+template<int L> constexpr int MeshIDs_<L>::m_sub_index_to_id_[4][3];
+template<int L> constexpr typename MeshIDs_<L>::id_type MeshIDs_<L>::m_adjacent_cell_matrix_[4/* to iform*/][NUM_OF_NODE_ID/* node id*/][MAX_NUM_OF_ADJACENT_CELL/*id shift*/];
+template<int L> constexpr typename MeshIDs_<L>::coordinates_tuple MeshIDs_<L>::m_id_to_coordinates_shift_[];
 
 }//namespace  mesh
 }// namespace simpla

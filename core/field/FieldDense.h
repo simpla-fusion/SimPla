@@ -78,24 +78,24 @@ public:
 
     virtual ~Field() { }
 
-    virtual std::shared_ptr<attribute_type> attribute() { return m_data_; }
+    virtual std::shared_ptr<attribute_type> data() { return m_data_; }
 
     virtual std::shared_ptr<const attribute_type> attribute() const { return m_data_; }
 
-    virtual void sync() { attribute()->sync(); }
+    virtual void sync() { data()->sync(); }
 
-    virtual void clear() { attribute()->clear(); }
+    virtual void clear() { data()->clear(); }
 
-    virtual void deploy() { attribute()->deploy(); }
+    virtual void deploy() { data()->deploy(); }
 
     virtual mesh_type const &mesh() const { return attribute()->mesh(); }
 
-    virtual data_model::DataSet data_set() { return attribute()->data_set(); }
+    virtual data_model::DataSet data_set() { return data()->data_set(); }
 
     virtual data_model::DataSet data_set() const { return attribute()->data_set(); }
 
     template<typename ...Args>
-    void accept(Args &&...args) { attribute()->accept(std::forward<Args>(args)...); }
+    void accept(Args &&...args) { data()->accept(std::forward<Args>(args)...); }
 
     /**
      * @name assignment

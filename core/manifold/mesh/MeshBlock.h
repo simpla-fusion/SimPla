@@ -17,8 +17,17 @@
 namespace simpla { namespace mesh
 {
 
-struct MeshBlock : public MeshIDs
+struct MeshBlock : public MeshIDs, public base::Object
 {
+
+
+    SP_OBJECT_HEAD(MeshBlock, base::Object)
+
+    virtual Properties &properties() = 0;
+
+    virtual Properties const &properties() const = 0;
+
+
     static constexpr int ndims = 3;
 
     enum
@@ -40,9 +49,11 @@ public:
     using typename m::index_tuple;
     using typename m::difference_type;
 
-    typedef nTuple <Real, ndims> point_type;
-    typedef nTuple <Real, ndims> vector_type;
-    typedef std::tuple<point_type, point_type> box_type;
+    typedef nTuple<Real, ndims> point_type;
+    typedef nTuple<Real, ndims> vector_type;
+    typedef nTuple<Real, 2, ndims> box_type;
+
+    typedef nTuple<index_type, 2, ndims> index_box_type;
 
 
     /**
@@ -90,48 +101,38 @@ public:
     bool m_is_valid_ = false;
 public:
 
-    MeshBlock()
-    {
-        m_idx_min_ = 0;
-        m_idx_max_ = 0;
-        m_idx_local_min_ = m_idx_min_;
-        m_idx_local_max_ = m_idx_max_;
-        m_idx_memory_min_ = m_idx_min_;
-        m_idx_memory_max_ = m_idx_max_;
-    }
+    MeshBlock();
+
+    MeshBlock(this_type const &other) = delete;
+
+    virtual  ~MeshBlock();
+
+//            base_type(other),
+//            m_idx_min_(other.m_idx_min_),
+//            m_idx_max_(other.m_idx_max_),
+//            m_idx_local_min_(other.m_idx_local_min_),
+//            m_idx_local_max_(other.m_idx_local_max_),
+//            m_idx_memory_min_(other.m_idx_memory_min_),
+//            m_idx_memory_max_(other.m_idx_memory_max_)
+//    {
+//
+//    }
 
 
-    MeshBlock(this_type const &other) :
-            m_idx_min_(other.m_idx_min_),
-            m_idx_max_(other.m_idx_max_),
-            m_idx_local_min_(other.m_idx_local_min_),
-            m_idx_local_max_(other.m_idx_local_max_),
-            m_idx_memory_min_(other.m_idx_memory_min_),
-            m_idx_memory_max_(other.m_idx_memory_max_)
-    {
-
-    }
-
-    virtual  ~MeshBlock() { }
-
-    virtual void swap(this_type &other)
-    {
-        std::swap(m_idx_min_, other.m_idx_min_);
-        std::swap(m_idx_max_, other.m_idx_max_);
-        std::swap(m_idx_local_min_, other.m_idx_local_min_);
-        std::swap(m_idx_local_max_, other.m_idx_local_max_);
-        std::swap(m_idx_memory_min_, other.m_idx_memory_min_);
-        std::swap(m_idx_memory_max_, other.m_idx_memory_max_);
-        deploy();
-        other.deploy();
-
-    }
-
-    this_type &operator=(this_type const &other)
-    {
-        this_type(other).swap(*this);
-        return *this;
-    }
+//    virtual void swap(this_type &other)
+//    {
+//        base_type::swap(other);
+//
+//        std::swap(m_idx_min_, other.m_idx_min_);
+//        std::swap(m_idx_max_, other.m_idx_max_);
+//        std::swap(m_idx_local_min_, other.m_idx_local_min_);
+//        std::swap(m_idx_local_max_, other.m_idx_local_max_);
+//        std::swap(m_idx_memory_min_, other.m_idx_memory_min_);
+//        std::swap(m_idx_memory_max_, other.m_idx_memory_max_);
+//        deploy();
+//        other.deploy();
+//
+//    }
 
 
 public:
@@ -160,42 +161,20 @@ public:
     template<typename TD>
     void dimensions(TD const &d)
     {
-        m_idx_max_ = d;
-        m_idx_min_ = 0;
-        m_idx_local_max_ = m_idx_max_;
-        m_idx_local_min_ = m_idx_min_;
-        m_idx_memory_max_ = m_idx_max_;
-        m_idx_memory_min_ = m_idx_min_;
+        index_tuple dims;
+        dims = d;
+        properties()["Geometry"]["Topology"]["Dimensions"] = dims;
     }
 
-    index_tuple dimensions() const
-    {
-        index_tuple res;
+    index_tuple dimensions() const;
 
-        res = m_idx_max_ - m_idx_min_;
+    virtual void box(box_type const &b);
 
-        return std::move(res);
-    }
+    virtual box_type box() const;
 
-    virtual void box(box_type const &b)
-    {
-        std::tie(m_x_min_, m_x_max_) = b;
-    };
+    virtual box_type box(id_type const &s) const;
 
-    virtual box_type box() const
-    {
-        return std::make_tuple(m::point(m_idx_min_), m::point(m_idx_max_));
-    };
-
-    virtual box_type box(id_type const &s) const
-    {
-        return std::make_tuple(m::point(s - _DA), m::point(s + _DA));
-    };
-
-    virtual box_type local_box() const
-    {
-        return std::make_tuple(m::point(m_idx_local_min_), m::point(m_idx_local_max_));
-    };
+    virtual box_type local_box() const;
 
     template<typename T0, typename T1>
     void index_box(T0 const &min, T1 const &max)
@@ -206,13 +185,13 @@ public:
 
 
     auto index_box() const
-    DECL_RET_TYPE((std::forward_as_tuple(m_idx_min_, m_idx_max_)))
+    DECL_RET_TYPE((traits::make_nTuple(m_idx_min_, m_idx_max_)))
 
     auto local_index_box() const
-    DECL_RET_TYPE((std::forward_as_tuple(m_idx_local_min_, m_idx_local_max_)))
+    DECL_RET_TYPE((traits::make_nTuple(m_idx_local_min_, m_idx_local_max_)))
 
     auto memory_index_box() const
-    DECL_RET_TYPE((std::forward_as_tuple(m_idx_memory_min_, m_idx_memory_max_)))
+    DECL_RET_TYPE((traits::make_nTuple(m_idx_memory_min_, m_idx_memory_max_)))
 
     bool in_box(index_tuple const &x) const
     {
@@ -240,117 +219,22 @@ public:
 
 
     void decompose(index_tuple const &dist_dimensions, index_tuple const &dist_coord,
-                   index_type gw = DEFAULT_GHOST_WIDTH)
-    {
+                   index_type gw = DEFAULT_GHOST_WIDTH);
 
+    virtual void deploy();
 
-        index_tuple b, e;
-        b = m_idx_local_min_;
-        e = m_idx_local_max_;
-        for (int n = 0; n < ndims; ++n)
-        {
+    void update_boundary_box();
 
-            m_idx_local_min_[n] = b[n] + (e[n] - b[n]) * dist_coord[n] / dist_dimensions[n];
+    box_type const &center_box() const { return m_center_box_; }
 
-            m_idx_local_max_[n] = b[n] + (e[n] - b[n]) * (dist_coord[n] + 1) / dist_dimensions[n];
+    std::vector<box_type> const &boundary_box() const { return m_boundary_box_; }
 
-            if (dist_dimensions[n] > 1)
-            {
-                if (m_idx_local_max_[n] - m_idx_local_min_[n] >= 2 * gw)
-                {
-                    m_idx_memory_min_[n] = m_idx_local_min_[n] - gw;
-                    m_idx_memory_max_[n] = m_idx_local_max_[n] + gw;
-                }
-                else
-                {
-                    VERBOSE << "mesh block decompose failed! Block dimension is smaller than process grid. "
-                    << m_idx_local_min_ << m_idx_local_max_
-                    << dist_dimensions << dist_coord << std::endl;
-                    THROW_EXCEPTION_RUNTIME_ERROR(
-                            "mesh block decompose failed! Block dimension is smaller than process grid. ");
-                }
-            }
-        }
-        updata_boundary_box();
-
-    }
-
-    virtual void deploy()
-    {
-        m_is_valid_ = true;
-        m_idx_local_min_ = m_idx_min_;
-        m_idx_local_max_ = m_idx_max_;
-        m_idx_memory_min_ = m_idx_min_;
-        m_idx_memory_max_ = m_idx_max_;
-        updata_boundary_box();
-    }
-
-    void updata_boundary_box()
-    {
-        nTuple<size_t, ndims> m_min, m_max;
-        nTuple<size_t, ndims> l_min, l_max;
-        nTuple<size_t, ndims> c_min, c_max;
-        nTuple<size_t, ndims> ghost_width;
-        std::tie(m_min, m_max) = memory_index_box();
-        std::tie(l_min, l_max) = local_index_box();
-        c_min = l_min + (l_min - m_min);
-        c_max = l_max - (m_max - l_max);
-        m_center_box_ = std::make_tuple(c_min, c_max);
-
-        for (int i = 0; i < ndims; ++i)
-        {
-            nTuple<size_t, ndims> b_min, b_max;
-
-            b_min = l_min;
-            b_max = l_max;
-            b_max[i] = c_min[i];
-            if (b_min[i] != b_max[i]) { m_boundary_box_.push_back(std::make_tuple(b_min, b_max)); }
-
-
-            b_min = l_min;
-            b_max = l_max;
-            b_min[i] = c_max[i];
-            if (b_min[i] != b_max[i]) { m_boundary_box_.push_back(std::make_tuple(b_min, b_max)); }
-
-
-            l_min[i] = c_min[i];
-            l_max[i] = c_max[i];
-        }
-
-        std::tie(m_min, m_max) = memory_index_box();
-        std::tie(l_min, l_max) = local_index_box();
-
-        for (int i = 0; i < ndims; ++i)
-        {
-            nTuple<size_t, ndims> g_min, g_max;
-
-
-            g_min = m_min;
-            g_max = m_max;
-            g_min[i] = m_min[i];
-            g_max[i] = l_min[i];
-            if (g_min[i] != g_max[i]) { m_ghost_box_.push_back(std::make_tuple(g_min, g_max)); }
-            g_min = g_min;
-            g_max = g_max;
-
-            g_min[i] = l_max[i];
-            g_max[i] = m_max[i];
-            if (g_min[i] != g_max[i]) { m_ghost_box_.push_back(std::make_tuple(g_min, g_max)); }
-            m_min[i] = l_min[i];
-            m_max[i] = l_max[i];
-        }
-    }
-
-    std::tuple<index_tuple, index_tuple> const &center_box() const { return m_center_box_; }
-
-    std::vector<std::tuple<index_tuple, index_tuple>> const &boundary_box() const { return m_boundary_box_; }
-
-    std::vector<std::tuple<index_tuple, index_tuple>> const &ghost_box() const { return m_ghost_box_; }
+    std::vector<box_type> const &ghost_box() const { return m_ghost_box_; }
 
 private:
-    std::tuple<index_tuple, index_tuple> m_center_box_;
-    std::vector<std::tuple<index_tuple, index_tuple>> m_boundary_box_;
-    std::vector<std::tuple<index_tuple, index_tuple>> m_ghost_box_;
+    box_type m_center_box_;
+    std::vector<box_type> m_boundary_box_;
+    std::vector<box_type> m_ghost_box_;
 
 
 //    template<typename T0, typename T1>

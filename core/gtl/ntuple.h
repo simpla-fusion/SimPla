@@ -530,12 +530,47 @@ struct value_type<nTuple<Expression<TOP, T...> > >
     typedef traits::result_of_t<TOP(traits::value_type_t<T>...)> type;
 };
 
-}  // namespace traits
-template<typename T1, typename ...T>
-nTuple<T1, 1 + sizeof...(T)> make_nTuple(T1 &&a1, T &&... a)
+namespace _impl
 {
-    return std::move(nTuple<T1, 1 + sizeof...(T)>(
-            {std::forward<T1>(a1), std::forward<T>(a)...}));
+template<typename T, int ...M, typename ...Others> void
+assigne_nTuple_helper(nTuple<T, M...> &lhs, std::integral_constant<int, 0> const, Others &&... others)
+{
+}
+
+
+template<typename T, int N, int ...M, int I, typename T0, typename ...Others> void
+assigne_nTuple_helper(nTuple<T, N, M...> &lhs, std::integral_constant<int, I> const, T0 const &a0,
+                      Others &&... others)
+{
+    lhs[N - I] = a0;
+
+    assigne_nTuple_helper(lhs, std::integral_constant<int, I - 1>(), std::forward<Others>(others)...);
+}
+
+
+}//namespace _impl{
+
+
+template<typename T, int ...M, typename ...Others>
+nTuple<T, 1 + sizeof...(Others), M...> make_nTuple(nTuple<T, M...> const &a0, Others &&... others)
+{
+    nTuple<T, 1 + sizeof...(Others), M...> res;
+
+    _impl::assigne_nTuple_helper(res, std::integral_constant<int, 1 + sizeof...(Others)>(), a0,
+                                 std::forward<Others>(others)...);
+
+    return std::move(res);
+}
+
+template<typename T0, typename ...Others>
+nTuple<T0, 1 + sizeof...(Others)> make_nTuple(T0 const &a0, Others &&... others)
+{
+    nTuple<T0, 1 + sizeof...(Others)> res;
+
+    _impl::assigne_nTuple_helper(res, std::integral_constant<int, 1 + sizeof...(Others)>(), a0,
+                                 std::forward<Others>(others)...);
+
+    return std::move(res);
 }
 
 template<typename TInts, TInts ...N>
@@ -577,6 +612,8 @@ nTuple<T1, N + M> join_ntuple(nTuple<T1, N> const &left, nTuple<T2, M> right)
     return std::move(res);
 }
 
+}  // namespace traits
+
 template<typename T, int N> using Vector=nTuple<T, N>;
 
 template<typename T, int M, int N> using Matrix=nTuple<T, M, N>;
@@ -603,8 +640,7 @@ DECL_RET_TYPE((m[0][0] * m[1][1] * m[2][2] - m[0][2] * m[1][1] * m[2][0] + m[0][
 )
 
 template<typename T>
-inline auto determinant(
-        Matrix<T, 4, 4> const &m)
+inline auto determinant(Matrix<T, 4, 4> const &m)
 DECL_RET_TYPE((//
                       m[0][3] * m[1][2] * m[2][1] * m[3][0] - m[0][2] * m[1][3] * m[2][1] * m[3][0]//
                       - m[0][3] * m[1][1] * m[2][2] * m[3][0] + m[0][1] * m[1][3]//

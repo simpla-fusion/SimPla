@@ -68,7 +68,7 @@ public:
     gather(M const &m, TF const &f, typename M::point_type const &r) DECLARE_FUNCTION_SUFFIX
     ENABLE_IF_DECL_RET_TYPE((traits::iform<TF>::value
                              == EDGE),
-                            make_nTuple(
+                            traits::make_nTuple(
                                     gather_impl_(m, f, m.coordinates_global_to_local(r, 1)),
                                     gather_impl_(m, f, m.coordinates_global_to_local(r, 2)),
                                     gather_impl_(m, f, m.coordinates_global_to_local(r, 4))
@@ -77,7 +77,7 @@ public:
     template<typename M, typename TF> DECLARE_FUNCTION_PREFIX auto
     gather(M const &m, TF const &f, typename M::point_type const &r) DECLARE_FUNCTION_SUFFIX
     ENABLE_IF_DECL_RET_TYPE((traits::iform<TF>::value == FACE),
-                            make_nTuple(
+                            traits::make_nTuple(
                                     gather_impl_(m, f, m.coordinates_global_to_local(r, 6)),
                                     gather_impl_(m, f, m.coordinates_global_to_local(r, 5)),
                                     gather_impl_(m, f, m.coordinates_global_to_local(r, 3))
