@@ -93,21 +93,17 @@ Particles = {
     H = {
         mass = mp,
         charge = qe,
-        T = 3.0,
+        T = Ti,
         PIC = PIC,
         Type = "Boris",
-        DisableCheckPoint = false,
+        DisableCheckPoint = true,
+        EnableHDF5Record = true,
         V0 = { 1, 2, 3 },
-        NAME = { "H", "D", "He" }
-
-        --        Density = function(t, x)
-        --            return (1.0 - math.cos(x[1] / LX * math.pi * 2.0)) / 2 / PIC
-        --        end
     },
     ele = {
         mass = me,
         charge = -qe,
-        T = 1.0,
+        T = Te,
         pic = PIC,
         --        Density = function(t, x)
         --            return (1.0 - math.cos(x[1] / LX * math.pi * 2.0)) / 2 / PIC

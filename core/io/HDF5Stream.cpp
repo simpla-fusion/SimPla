@@ -127,7 +127,7 @@ void HDF5Stream::set_attribute(std::string const &url, Properties const &any_v)
 
     delete_attribute(url);
 
-    data_model::DataType dtype = any_v.datatype();
+    data_model::DataType dtype = any_v.data_type();
 
     void const *v = any_v.data();
 
@@ -171,7 +171,7 @@ void HDF5Stream::pimpl_s::set_attribute(hid_t loc_id, std::string const &name,
     }
     else
     {
-        hid_t m_type = convert_data_type_sp_to_h5(any_v.datatype());
+        hid_t m_type = convert_data_type_sp_to_h5(any_v.data_type());
 
         hid_t m_space = H5Screate(H5S_SCALAR);
 
@@ -623,12 +623,11 @@ data_model::DataSpace convert_data_space_h5_to_sp(hid_t)
     return data_model::DataSpace();
 }
 
-std::string HDF5Stream::write(std::string const &url, data_model::DataSet const &ds,
-                              size_t flag)
+std::string HDF5Stream::write(std::string const &url, data_model::DataSet const &ds, size_t flag)
 {
     typedef nTuple<hsize_t, MAX_NDIMS_OF_ARRAY> index_tuple;
 
-    if (!ds.is_valid())
+    if (!ds.is_valid() || ds.memory_space.size() == 0)
     {
         WARNING << "Invalid dataset! "
         << "[ URL = \"" << url << "\","
@@ -642,7 +641,7 @@ std::string HDF5Stream::write(std::string const &url, data_model::DataSet const 
         << " ]"
 
         << std::endl;
-        return "Invalid dataset: " + pwd();
+        return "";
     }
 
     std::string dsname = "";

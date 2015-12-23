@@ -26,7 +26,6 @@ public:
 
     virtual Properties const &properties() const = 0;
 
-
     virtual data_model::DataSet data_set() const = 0;
 
     virtual std::ostream &print(std::ostream &os, int indent = 0) const;

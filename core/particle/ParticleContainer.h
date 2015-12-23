@@ -271,6 +271,7 @@ ParticleContainer<P, M, Policies...>::deploy()
     if (properties().click() > this->click())
     {
         engine_type::deploy();
+        this->touch();
     }
 }
 
@@ -332,7 +333,7 @@ template<typename TField> void
 ParticleContainer<P, M, Policies...>::integral(TField *J) const
 {
 
-    LOGGER << "CMD:\t integral particle [" << mesh_entity::name()
+    CMD << "integral particle [" << mesh_entity::name()
     << "] to Field [" << J->attribute()->name() << "<" << J->attribute()->center_type() << ","
     << J->attribute()->extent(0) << ">]" << std::endl;
 
@@ -347,6 +348,7 @@ ParticleContainer<P, M, Policies...>::integral(TField *J) const
     mesh_entity::mesh().template for_each_center<f_iform>([&](range_type const &r) { integral(r, J); });
 
     dist_obj.wait();
+
 
 }
 //*******************************************************************************
@@ -382,7 +384,7 @@ ParticleContainer<P, M, Policies...>::push(Args &&...args)
 {
 
 
-    LOGGER << "CMD:\t Push particle [" << mesh_entity::name() << "]" << std::endl;
+    CMD << "Push particle [" << mesh_entity::name() << "]" << std::endl;
 
     mesh_entity::mesh().template for_each_ghost<iform>(
             [&](range_type const &r) { push(r, std::forward<Args>(args)...); });
@@ -695,6 +697,9 @@ ParticleContainer<P, M, Policies...>::rehash(range_type const &r, container_type
 template<typename P, typename M, typename ...Policies> void
 ParticleContainer<P, M, Policies...>::rehash()
 {
+    if (properties()["DisableRehash"]) { return; }
+
+    CMD << "Rehash particle [" << properties()["Name"] << "]" << std::endl;
 
     container_type buffer;
     /**

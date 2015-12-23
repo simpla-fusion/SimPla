@@ -163,7 +163,6 @@ void EMPlasma::setup(int argc, char **argv)
 
         m.deploy();
 
-
         VERBOSE << "Clear fields" << std::endl;
 
 
@@ -275,8 +274,10 @@ void EMPlasma::setup(int argc, char **argv)
             model::Cache<mesh_type> cache;
 
             model::update_cache(m, geqdsk.boundary(), &cache);
+
             model::get_cell_in_surface<VOLUME>(m, cache, &plasma_region_volume);
-            model::get_cell_in_surface<VOLUME>(m, cache, &plasma_region_vertex);
+
+            model::get_cell_in_surface<VERTEX>(m, cache, &plasma_region_vertex);
 
         }
 
@@ -339,7 +340,6 @@ void EMPlasma::setup(int argc, char **argv)
 
 
                         p.f = particle_proxy_type::create(pic.data());
-
 
                     }
                 }
@@ -407,6 +407,10 @@ void EMPlasma::check_point()
         {
             out_stream.write(item.first, *std::dynamic_pointer_cast<base::AttributeObject>(item.second.lock()));
         }
+        else if (item.second.lock()->properties()["EnableHDF5Record"])
+        {
+            out_stream.hdf5().write("/record/" + item.first, item.second.lock()->data_set(), io::SP_RECORD);
+        }
     }
 
 
@@ -449,7 +453,7 @@ void EMPlasma::next_time_step()
     E1.accept(edge_boundary.range(), [&](id_type, Real &v) { v = 0; });
 
 
-    traits::field_t<vector_type, mesh_type, VERTEX> dE{m};
+    traits::field_t <vector_type, mesh_type, VERTEX> dE{m};
 
 
 
@@ -457,12 +461,12 @@ void EMPlasma::next_time_step()
     if (particles.size() > 0)
     {
 
-        traits::field_t<vector_type, mesh_type, VERTEX> Q{m};
-        traits::field_t<vector_type, mesh_type, VERTEX> K{m};
+        traits::field_t <vector_type, mesh_type, VERTEX> Q{m};
+        traits::field_t <vector_type, mesh_type, VERTEX> K{m};
 
-        traits::field_t<scalar_type, mesh_type, VERTEX> a{m};
-        traits::field_t<scalar_type, mesh_type, VERTEX> b{m};
-        traits::field_t<scalar_type, mesh_type, VERTEX> c{m};
+        traits::field_t <scalar_type, mesh_type, VERTEX> a{m};
+        traits::field_t <scalar_type, mesh_type, VERTEX> b{m};
+        traits::field_t <scalar_type, mesh_type, VERTEX> c{m};
 
         a.clear();
         b.clear();
@@ -477,9 +481,9 @@ void EMPlasma::next_time_step()
             Real qs = p.second.charge;
 
 
-            traits::field_t<scalar_type, mesh_type, VERTEX> &ns = p.second.rho1;
+            traits::field_t <scalar_type, mesh_type, VERTEX> &ns = p.second.rho1;
 
-            traits::field_t<vector_type, mesh_type, VERTEX> &Js = p.second.J1;;
+            traits::field_t <vector_type, mesh_type, VERTEX> &Js = p.second.J1;;
 
 
             Real as = (dt * qs) / (2.0 * ms);
@@ -512,8 +516,8 @@ void EMPlasma::next_time_step()
         {
             Real ms = p.second.mass;
             Real qs = p.second.charge;
-            traits::field_t<scalar_type, mesh_type, VERTEX> &ns = p.second.rho1;
-            traits::field_t<vector_type, mesh_type, VERTEX> &Js = p.second.J1;;
+            traits::field_t <scalar_type, mesh_type, VERTEX> &ns = p.second.rho1;
+            traits::field_t <vector_type, mesh_type, VERTEX> &Js = p.second.J1;;
 
 
             Real as = (dt * qs) / (2.0 * ms);

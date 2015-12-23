@@ -37,9 +37,9 @@ struct BorisEngine
 
     void deploy()
     {
-        mass(properties()["mass"].template as<Real>(1.0));
-        charge(properties()["charge"].template as<Real>(1.0));
-        temperature(properties()["temperature"].template as<Real>(1.0));
+        m_mass_ = properties()["mass"].template as<Real>(1.0);
+        m_charge_ = properties()["charge"].template as<Real>(1.0);
+        m_temperature_ = properties()["temperature"].template as<Real>(1.0);
     }
 
     Vec3 project(point_type const &z) const { return z.x; }

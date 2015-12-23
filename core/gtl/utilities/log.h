@@ -421,6 +421,7 @@ std::string make_msg(Others const &...others)
 
 #define SEPERATOR(_C_) std::setw(80) << std::setfill(_C_) << _C_
 //"-----------------------------------------------------------------"
+#define CMD LOGGER<<"CMD:\t"
 
 #define LOG_CMD(_CMD_) try{logger::Logger __logger(logger::LOG_LOG);__logger<<"CMD:\t"<<std::string(__STRING(_CMD_));_CMD_;__logger<<DONE;}catch (std::exception const &error){ RUNTIME_ERROR<<("[",__STRING(_CMD_), "]",error.what())<<std::endl;}
 
@@ -429,6 +430,7 @@ std::string make_msg(Others const &...others)
 #define LOG_CMD1(_LEVEL_, _MSG_, _CMD_) {auto __logger=logger::Logger(_LEVEL_);__logger<<_MSG_;_CMD_;__logger<<DONE;}
 
 #define LOG_CMD2(_MSG_, _CMD_) {auto __logger=logger::Logger(logger::LOG_LOG);__logger<<_MSG_<<__STRING(_CMD_);_CMD_;__logger<<DONE;}
+
 
 #define CHECK_BIT(_MSG_)  std::cout<<std::setfill(' ')<<std::setw(80) <<__STRING(_MSG_)<<" = 0b"<< simpla::logger::ShowBit( _MSG_)  << std::endl
 #define SHOW_BIT(_MSG_)  std::cout<<std::setfill(' ')<<std::setw(80) <<__STRING(_MSG_)<<" = 0b"<< simpla::logger::ShowBit( _MSG_)  << std::endl

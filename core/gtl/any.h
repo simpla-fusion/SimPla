@@ -16,6 +16,7 @@
 #include <type_traits>
 #include <typeindex>
 #include <typeinfo>
+#include <stddef.h>
 
 #include "../data_model/DataType.h"
 #include "utilities/log.h"
@@ -342,23 +343,20 @@ struct any
 
     any(void) { }
 
-    any(any &that) : ptr_(that.clone()) { }
+    any(any &other) : ptr_(other.clone()) { }
 
-    any(any const &that) : ptr_(that.clone()) { }
-
-    any(any &&that) : ptr_(std::move(that.ptr_)) { }
+    any(any const &other) : ptr_(other.clone()) { }
 
     void swap(any &other) { std::swap(ptr_, other.ptr_); }
 
-    virtual bool empty() const { return !bool(ptr_); }
+    virtual bool empty() const { return ptr_ == nullptr; }
 
-    virtual bool IsNull() const { return empty(); }
 
-    operator bool() const { return !empty(); }
+    operator bool() const { return ptr_ != nullptr; }
 
-    void const *data() const { return ptr_->data(); }
+    void const *data() const { return ptr_ != nullptr ? ptr_->data() : nullptr; }
 
-    void *data() { return ptr_->data(); }
+    void *data() { return ptr_ != nullptr ? ptr_->data() : nullptr; }
 
     std::string string() const
     {
@@ -377,21 +375,9 @@ struct any
 
     bool is_string() const { return ptr_ != nullptr && ptr_->is_string(); }
 
-    template<class U>
-    bool as(U *v) const
-    {
-        return ptr_->as(v);
-//        bool success = true;
-//
-//        if (is_same<U>()) { *v = dynamic_cast<Derived<U> *>(ptr_.get())->m_value; }
-//        else if (_impl::get_integer(v, ptr_)) { }
-//        else if (_impl::get_floating_point(v, ptr_)) { }
-//        else if (_impl::get_string(v, ptr_)) { }
-//        else if (_impl::get_tuple(v, ptr_)) { }
-//        else { success = false; }
-//
-//        return success;
-    }
+    template<class U> bool as(U *v) const { return ptr_ != nullptr && ptr_->as(v); }
+
+    template<class U> operator U() const { return as<U>(); }
 
     template<class U> U as() const
     {
@@ -405,18 +391,19 @@ struct any
     template<class U>
     U as(U const &def_v) const
     {
-
-        if (empty() || !is_same<U>())
-        {
-            return def_v;
-        }
-        else
+        if (!empty() && this->template is_same<U>())
         {
             return dynamic_cast<Derived<U> *>(ptr_.get())->m_value;
         }
+        else
+        {
+            U res;
+            if (as(&res)) { return std::move(res); }
+            else { return def_v; }
+        }
+
     }
 
-    template<class U> operator U() const { return as<U>(); }
 
     template<class U> U const &get() const
     {
@@ -455,7 +442,7 @@ struct any
         return os;
     }
 
-    data_model::DataType datatype() const { return ptr_->data_type(); }
+    data_model::DataType data_type() const { return ptr_->data_type(); }
 
 private:
 
