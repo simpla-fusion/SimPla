@@ -144,7 +144,6 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent = 0) const;
 
-    virtual void update();
 
     data_model::DataSet data_set() const;
 
@@ -249,8 +248,9 @@ public:
 
 template<typename P, typename M, typename ...Policies>
 ParticleContainer<P, M, Policies...>::ParticleContainer(M const &m, std::string const &s_name)
-        : mesh_entity(m, s_name)
+        : mesh_entity(m)
 {
+    properties()["Name"] = s_name;
 }
 
 
@@ -268,20 +268,15 @@ ParticleContainer<P, M, Policies...>::clear()
 template<typename P, typename M, typename ...Policies> void
 ParticleContainer<P, M, Policies...>::deploy()
 {
-
+    if (properties().click() > this->click())
+    {
+        engine_type::deploy();
+    }
 }
 
 template<typename P, typename M, typename ...Policies> void
 ParticleContainer<P, M, Policies...>::sync() { rehash(); };
 
-template<typename P, typename M, typename ...Policies>
-void ParticleContainer<P, M, Policies...>::update()
-{
-    if (engine_type::click() < mesh_entity::click())
-    {
-        engine_type::update();
-    }
-}
 
 template<typename P, typename M, typename ...Policies>
 std::ostream &ParticleContainer<P, M, Policies...>::print(std::ostream &os, int indent) const
@@ -385,8 +380,10 @@ template<typename P, typename M, typename ...Policies>
 template<typename ...Args> void
 ParticleContainer<P, M, Policies...>::push(Args &&...args)
 {
-    // @note this is lock free
+
+
     LOGGER << "CMD:\t Push particle [" << mesh_entity::name() << "]" << std::endl;
+
     mesh_entity::mesh().template for_each_ghost<iform>(
             [&](range_type const &r) { push(r, std::forward<Args>(args)...); });
 
@@ -703,16 +700,21 @@ ParticleContainer<P, M, Policies...>::rehash()
      *  *     ............        *
      *  ***************************
      */
+
+
     mesh_entity::mesh().template for_each_boundary<iform>([&](range_type const &r) { rehash(r, &buffer); });
 
 
     //**************************************************************************************
     // sync ghost area in buffer
 
+
     parallel::DistributedObject dist_obj;
 
-    sync(buffer, &dist_obj);
-    dist_obj.sync();
+    WARNING << "DistributedObject.sync is disabled" << std::endl;
+
+//    sync(buffer, &dist_obj);
+//    dist_obj.sync();
 
     //**************************************************************************************
 
@@ -726,6 +728,8 @@ ParticleContainer<P, M, Policies...>::rehash()
      *  *     ............        *
      *  ***************************
      */
+
+
     mesh_entity::mesh().template for_each_ghost<iform>([&](range_type const &r) { rehash(r, &buffer); });
     /**
      *
@@ -736,6 +740,8 @@ ParticleContainer<P, M, Policies...>::rehash()
      *  *     ............        *
      *  ***************************
      */
+    VERBOSE << "center" << std::endl;
+
     mesh_entity::mesh().template for_each_center<iform>([&](range_type const &r) { rehash(r, &buffer); });
 
 
@@ -744,7 +750,7 @@ ParticleContainer<P, M, Policies...>::rehash()
 
     mesh_entity::mesh().template for_each_boundary<iform>([&](range_type const &r) { merge(r, &buffer); });
 
-    dist_obj.wait();
+//    dist_obj.wait();
     /**
      *
      *  ***************************
@@ -760,13 +766,16 @@ ParticleContainer<P, M, Policies...>::rehash()
         value_type const *p = reinterpret_cast<value_type const *>(std::get<1>(item).data.get());
         push_back(p, p + std::get<1>(item).memory_space.size());
     }
+
 }
 
 template<typename P, typename M, typename ...Policies> void
 ParticleContainer<P, M, Policies...>::push_back(value_type const &p)
 {
     typename container_type::accessor acc;
+
     m_data_.insert(acc, hash(p));
+
     acc->second.push_back(p);
 }
 
@@ -776,10 +785,9 @@ ParticleContainer<P, M, Policies...>::push_back(InputIterator const &b, InputIte
 {
     // fixme need parallelism
     std::map<id_type, bucket_type> buffer;
-    for (auto it = b; it != e; ++it)
-    {
-        buffer[hash(*it)].push_back(*it);
-    }
+
+    for (auto it = b; it != e; ++it) { buffer[hash(*it)].push_back(*it); }
+
     this->merge(&buffer, &m_data_);
 }
 

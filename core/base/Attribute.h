@@ -42,7 +42,7 @@ public:
 
     virtual std::string name() const
     {
-        if (m_parent_.expired()) { return properties()["Name"].as<std::string>(); }
+        if (m_parent_.expired()) { return properties()["Name"].as<std::string>("unnamed"); }
         else { return m_parent_.lock()->name(); }
     }
 
@@ -67,11 +67,9 @@ class AttributeEntity : public AttributeObject
 public:
 
 
-    AttributeEntity(mesh_type &m)
-            : m_mesh_(&m), m_const_mesh_(&m) { }
+    AttributeEntity(mesh_type &m) : m_mesh_(&m), m_const_mesh_(&m) { }
 
-    AttributeEntity(mesh_type const &m, std::string const &s_name = "")
-            : m_mesh_(nullptr), m_const_mesh_(&m) { }
+    AttributeEntity(mesh_type const &m) : m_mesh_(nullptr), m_const_mesh_(&m) { }
 
     AttributeEntity(AttributeEntity const &other)
             : m_mesh_(other.m_mesh_), m_const_mesh_(other.m_const_mesh_) { }
@@ -141,11 +139,10 @@ public:
     using base_type::mesh;
     typedef TV value_type;
 
-    template<typename ...Args>
-    Attribute(mesh_type &m, Args &&...args) : base_type(m, std::forward<Args>(args)...), m_data_(nullptr) { }
+    Attribute(mesh_type &m) : base_type(m), m_data_(nullptr) { }
 
     template<typename ...Args>
-    Attribute(mesh_type const &m, Args &&...args) : base_type(m, std::forward<Args>(args)...), m_data_(nullptr) { }
+    Attribute(mesh_type const &m, Args &&...args) : base_type(m), m_data_(nullptr) { }
 
     Attribute(Attribute const &other) : base_type(other), m_data_(other.m_data_) { }
 
@@ -200,15 +197,9 @@ public:
         this->mesh().sync(ds);
     }
 
-    value_type &at(id_type const &s)
-    {
-        return m_data_.get()[this->mesh().hash(s)];
-    }
+    value_type &at(id_type const &s) { return m_data_.get()[this->mesh().hash(s)]; }
 
-    value_type const &at(id_type const &s) const
-    {
-        return m_data_.get()[this->mesh().hash(s)];
-    }
+    value_type const &at(id_type const &s) const { return m_data_.get()[this->mesh().hash(s)]; }
 
     value_type &operator[](id_type const &s) { return at(s); }
 

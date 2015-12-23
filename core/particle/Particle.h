@@ -84,7 +84,6 @@ public:
 
     void sync() { m_data_->sync(); }
 
-    void update() { m_data_->update(); }
 
     std::ostream &print(std::ostream &os, int indent = 0) const { m_data_->print(os, indent); }
 

@@ -20,16 +20,8 @@
 namespace simpla { namespace particle { namespace engine
 {
 
-struct BorisEngine : public base::Object
+struct BorisEngine
 {
-
-
-    virtual std::ostream &print(std::ostream &os, int indent) const
-    {
-        properties().print(os, indent);
-        return os;
-    }
-
 
     virtual Properties &properties() = 0;
 
@@ -41,52 +33,31 @@ struct BorisEngine : public base::Object
 
     DEFINE_PROPERTIES(Real, temperature);
 
-
     SP_DEFINE_STRUCT(point_type, Vec3, x, Vec3, v, Real, f, Real, w);
 
-    void update()
+    void deploy()
     {
         mass(properties()["mass"].template as<Real>(1.0));
         charge(properties()["charge"].template as<Real>(1.0));
         temperature(properties()["temperature"].template as<Real>(1.0));
-
-        touch();
     }
 
     Vec3 project(point_type const &z) const { return z.x; }
 
-    std::tuple<Vec3, Vec3> push_forward(point_type const &z) const
-    {
-        return std::forward_as_tuple(z.x, z.v);
-    }
+    std::tuple<Vec3, Vec3> push_forward(point_type const &z) const { return std::forward_as_tuple(z.x, z.v); }
 
 
-    point_type lift(Vec3 const &x, Vec3 const &v, Real f = 0) const
-    {
-        return point_type{x, v, f, 1.0};
-    }
+    point_type lift(Vec3 const &x, Vec3 const &v, Real f = 0) const { return point_type{x, v, f, 1.0}; }
 
-    point_type sample(Vec3 const &x, Vec3 const &v, Real f) const
-    {
-        return point_type{x, v, f, 1.0};
-    }
+    point_type sample(Vec3 const &x, Vec3 const &v, Real f) const { return point_type{x, v, f, 1.0}; }
 
     template<typename TFunc>
-    point_type lift(Vec3 const &x, Vec3 const &v, TFunc const &fun) const
-    {
-        return point_type{x, v, fun(x, v), 0};
-    }
+    point_type lift(Vec3 const &x, Vec3 const &v, TFunc const &fun) const { return point_type{x, v, fun(x, v), 0}; }
 
 
-    void integral(Vec3 const &x, point_type const &p, Real *f) const
-    {
-        *f = p.f * p.w;
-    }
+    void integral(Vec3 const &x, point_type const &p, Real *f) const { *f = p.f * p.w; }
 
-    void integral(Vec3 const &x, point_type const &p, nTuple<Real, 3> *v) const
-    {
-        *v = p.v * p.f * p.w;
-    }
+    void integral(Vec3 const &x, point_type const &p, nTuple<Real, 3> *v) const { *v = p.v * p.f * p.w; }
 
     template<typename TE, typename TB>
     void push(point_type *p, Real dt, Real t, TE const &E, TB const &B) const

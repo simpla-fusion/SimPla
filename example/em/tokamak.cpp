@@ -148,7 +148,6 @@ void EMPlasma::setup(int argc, char **argv)
         }
 
 
-
         GEqdsk geqdsk;
 
         geqdsk.load(options["GEQDSK"].as<std::string>(""));
@@ -331,7 +330,7 @@ void EMPlasma::setup(int argc, char **argv)
 
                         dict.second.as(&pic.properties());
 
-                        pic.update();
+                        pic.deploy();
 
                         auto gen = particle::make_generator(pic.engine(), 1.0);
 
