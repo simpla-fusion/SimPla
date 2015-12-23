@@ -294,6 +294,8 @@ public:
     {
         auto res = std::make_shared<Attribute<TV, IFORM>>(*this, s_name);
 
+        res->properties()["Name"] = s_name;
+
         if (s_name != "") { enroll(s_name, std::dynamic_pointer_cast<AttributeEntity>(res)); }
 
         return res;
@@ -302,7 +304,11 @@ public:
     template<typename TV, int IFORM>
     std::shared_ptr<Attribute<TV, IFORM>> create_attribute(std::string const &s_name = "") const
     {
-        return std::make_shared<Attribute<TV, IFORM>>(*this, s_name);
+        auto res = std::make_shared<Attribute<TV, IFORM>>(*this, s_name);
+
+        res->properties()["Name"] = s_name;
+
+        return res;
     }
 
     template<typename TF>
