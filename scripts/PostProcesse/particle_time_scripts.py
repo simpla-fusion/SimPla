@@ -28,7 +28,7 @@ pts=vtk.vtkPoints()
 pts.SetData(dsa.numpyTovtkDataArray ( coords , "Points"))
 output.SetPoints(pts)
   # Now mark the timestep produced.
-output.GetInformation().Set(output.DATA_TIME_STEP(), req_time)etInformation().Set(output.DATA_TIME_STEP(), req_time)
+output.GetInformation().Set(output.DATA_TIME_STEP(), req_time)
 
 
 ########################################################################################################
@@ -44,4 +44,4 @@ def SetOutputTimesteps(algorithm, timesteps):
       outInfo.Remove(executive.TIME_RANGE())
       outInfo.Append(executive.TIME_RANGE(), timesteps[0])
       outInfo.Append(executive.TIME_RANGE(), timesteps[-1])
-SetOutputTimesteps(self, (0, 1 , 2 , 3,4,5,6,7,8,9 ))
+SetOutputTimesteps(self, range(0,11))

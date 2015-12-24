@@ -6,10 +6,6 @@ ADD_EXECUTABLE(em em.cpp)
 TARGET_LINK_LIBRARIES(em simpla_lib)
 
 
-ADD_EXECUTABLE(tokamak  tokamak.cpp)
-
-TARGET_LINK_LIBRARIES(tokamak simpla_lib geqdsk)
-
 
 ADD_EXECUTABLE(em_task em_task.cpp)
 TARGET_LINK_LIBRARIES(em_task  simpla_lib)

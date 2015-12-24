@@ -967,7 +967,7 @@ auto select_tag(data_model::DataSpace &ds, TP const &p)
 template<typename P, typename M, typename ...Policies> data_model::DataSet
 ParticleContainer<P, M, Policies...>::checkpoint() const
 {
-    VERBOSE << "Checkpoint particle [" << this->properties()["Name"] << "]" << std::endl;
+    VERBOSE << "Save checkpoint of particle [" << this->properties()["Name"] << "]" << std::endl;
 
     auto r0 = mesh_entity::mesh().template range<iform>();
 
@@ -994,7 +994,7 @@ ParticleContainer<P, M, Policies...>::checkpoint() const
         {
             for (auto it = c_accessor->second.begin(), ie = c_accessor->second.end(); it != ie; ++it)
             {
-                *out_it = engine_type::project(*it);
+                *out_it = this->mesh().map_to_cartesian(engine_type::project(*it));
 
                 _impl::select_tag(ds.data_space, *it);
 
