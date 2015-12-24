@@ -101,6 +101,61 @@ DataSpace DataSpace::create_simple(int ndims, const index_type *dims)
     return std::move(DataSpace(ndims, dims));
 }
 
+std::tuple<DataSpace, DataSpace> DataSpace::create_simple_unordered(size_t count)
+{
+    size_t offset = 0;
+    size_t total_count = count;
+    std::tie(offset, total_count) = parallel::sync_global_location(GLOBAL_COMM, static_cast<int>(count));
+    DataSpace memory_space = data_model::DataSpace::create_simple(1, &count);
+
+    DataSpace data_space = data_model::DataSpace::create_simple(1, &total_count);
+    data_space.select_hyperslab(&offset, nullptr, &count, nullptr);
+
+    return std::forward_as_tuple(data_space, memory_space);
+}
+
+//
+//std::tuple<DataSpace, DataSpace>  DataSpace::create(
+//        size_t rank,
+//        index_type const *dims,
+//        index_type const *start,
+//        index_type const *_stride,
+//        index_type const *count,
+//        index_type const *_block)
+//{
+//
+//    DataSpace data_space, memory_space;
+//
+//    if (dims == nullptr && start == nullptr)
+//    {
+//        size_t count = rank;
+//        size_t offset = 0;
+//        size_t total_count = count;
+//
+//        std::tie(offset, total_count) = parallel::sync_global_location(GLOBAL_COMM, static_cast<int>(count));
+//
+//        data_space = DataSpace::create_simple(1, &total_count);
+//        data_space.select_hyperslab(&offset, nullptr, &count, nullptr);
+//        memory_space = DataSpace::create_simple(1, &count);
+//
+//    }
+//    else
+//    {
+//        if (dims != nullptr)
+//        {
+//            data_space = DataSpace::create_simple(static_cast<int>(rank), dims);
+//            memory_space = data_space;
+//        }
+//        else
+//        {   //fixme calculate distributed array dimensions
+//            UNIMPLEMENTED2("fixme calculate distributed array dimensions");
+//        }
+//    }
+//
+//    return std::forward_as_tuple(data_space, memory_space);
+//}
+
+
 bool DataSpace::is_valid() const
 {
     return (!!(m_pimpl_))
@@ -211,6 +266,19 @@ DataSpace &DataSpace::select_hyperslab(index_type const *start,
 
     return *this;
 
+}
+
+void DataSpace::clear_selected()
+{
+    m_pimpl_->m_selected_points_.clear();
+
+    std::get<2>(m_pimpl_->m_d_shape_) = 0;//start;
+
+    std::get<3>(m_pimpl_->m_d_shape_) = 1;//_stride;
+
+    std::get<4>(m_pimpl_->m_d_shape_) = std::get<1>(m_pimpl_->m_d_shape_);//count;
+
+    std::get<5>(m_pimpl_->m_d_shape_) = 1;// _block;
 }
 
 std::ostream &DataSpace::print(std::ostream &os, int indent) const

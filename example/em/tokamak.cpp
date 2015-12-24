@@ -69,6 +69,7 @@ struct EMPlasma
 
     std::function<Vec3(Real, point_type const &)> J_src_fun;
 
+    traits::field_t<scalar_type, mesh_type, EDGE> E0{m, "E0"};
     traits::field_t<scalar_type, mesh_type, FACE> B0{m, "B0"};
     traits::field_t<vector_type, mesh_type, VERTEX> B0v{m, "B0v"};
     traits::field_t<scalar_type, mesh_type, VERTEX> BB{m, "BB"};
@@ -193,6 +194,8 @@ void EMPlasma::setup(int argc, char **argv)
 
         out_stream.open_grid("back_ground", io::XDMFStream::UNIFORM);
 
+
+        E0.clear();
         Ev.clear();
         B1.clear();
         E1.clear();
@@ -346,6 +349,8 @@ void EMPlasma::setup(int argc, char **argv)
             }
         }
 
+        E0.data()->properties()["DisableCheckPoint"] = true;
+        B0.data()->properties()["DisableCheckPoint"] = true;
 
         MESSAGE << std::endl << "[ Configuration ]" << std::endl << m << std::endl;
 
@@ -387,6 +392,27 @@ void EMPlasma::setup(int argc, char **argv)
 
 void EMPlasma::tear_down()
 {
+    out_stream.close_grid();
+
+    out_stream.open_grid("dump", io::XDMFStream::UNIFORM);
+
+    out_stream.reference_topology_geometry("Main");
+
+    out_stream.time(m.time());
+
+    for (auto const &item:m.attributes())
+    {
+        if (!item.second.lock()->properties()["DisableXDMFOutput"])
+        {
+            out_stream.write(item.first, *std::dynamic_pointer_cast<base::AttributeObject>(item.second.lock()));
+
+        } else
+        {
+            out_stream.hdf5().write(item.first, item.second.lock()->dump(), io::SP_RECORD);
+        }
+    }
+    out_stream.close_grid();
+
     out_stream.close();
 }
 
@@ -400,21 +426,34 @@ void EMPlasma::check_point()
 
     out_stream.time(m.time());
 
-
     for (auto const &item:m.attributes())
     {
-        if (!item.second.lock()->properties()["DisableCheckPoint"])
+        auto attr = item.second.lock();
+        if (!attr->properties()["DisableCheckPoint"])
         {
-            out_stream.write(item.first, *std::dynamic_pointer_cast<base::AttributeObject>(item.second.lock()));
-        }
-        else if (item.second.lock()->properties()["EnableHDF5Record"])
-        {
-            out_stream.hdf5().write("/record/" + item.first, item.second.lock()->data_set(), io::SP_RECORD);
+            if (!attr->properties()["IsParticle"])
+            {
+                out_stream.write(item.first, *std::dynamic_pointer_cast<base::AttributeObject>(attr));
+
+            }
+
         }
     }
 
-
     out_stream.close_grid();
+
+    for (auto const &item:m.attributes())
+    {
+        auto attr = item.second.lock();
+        if (!attr->properties()["DisableCheckPoint"])
+        {
+            if (attr->properties()["IsParticle"])
+            {
+                out_stream.hdf5().write(item.first, attr->checkpoint(), io::SP_RECORD);
+            }
+
+        }
+    }
 
     m.next_time_step();
 
@@ -432,108 +471,108 @@ void EMPlasma::next_time_step()
 
     Real t = m.time();
 
-    LOG_CMD(B1 -= curl(E1) * (dt * 0.5));
-
-    B1.accept(face_boundary.range(), [&](id_type, Real &v) { v = 0; });
-
-    J1.accept(J_src.range(), [&](id_type s, Real &v) { J1.add(s, J_src_fun(t, m.point(s))); });
+//    LOG_CMD(B1 -= curl(E1) * (dt * 0.5));
+//
+//    B1.accept(face_boundary.range(), [&](id_type, Real &v) { v = 0; });
+//
+//    J1.accept(J_src.range(), [&](id_type s, Real &v) { J1.add(s, J_src_fun(t, m.point(s))); });
 
     for (auto &p:particles)
     {
         auto pic = p.second.f;
         if (pic != nullptr)
         {
-            pic->push(dt, m.time(), E1, B1);
+            pic->push(dt, m.time(), E0, B0);
             pic->integral(&p.second.rho1);
             pic->integral(&p.second.J1);
         }
     }
-    LOG_CMD(E1 += (curl(B1) * speed_of_light2 - J1 / epsilon0) * dt);
-
-    E1.accept(edge_boundary.range(), [&](id_type, Real &v) { v = 0; });
-
-
-    traits::field_t <vector_type, mesh_type, VERTEX> dE{m};
-
-
-
-    //particle::absorb(ion, limiter_boundary);
-    if (particles.size() > 0)
-    {
-
-        traits::field_t <vector_type, mesh_type, VERTEX> Q{m};
-        traits::field_t <vector_type, mesh_type, VERTEX> K{m};
-
-        traits::field_t <scalar_type, mesh_type, VERTEX> a{m};
-        traits::field_t <scalar_type, mesh_type, VERTEX> b{m};
-        traits::field_t <scalar_type, mesh_type, VERTEX> c{m};
-
-        a.clear();
-        b.clear();
-        c.clear();
-
-        Q = map_to<VERTEX>(E1) - Ev;
-
-
-        for (auto &p :   particles)
-        {
-            Real ms = p.second.mass;
-            Real qs = p.second.charge;
-
-
-            traits::field_t <scalar_type, mesh_type, VERTEX> &ns = p.second.rho1;
-
-            traits::field_t <vector_type, mesh_type, VERTEX> &Js = p.second.J1;;
-
-
-            Real as = (dt * qs) / (2.0 * ms);
-
-            Q -= 0.5 * dt / epsilon0 * Js;
-
-            K = (Ev * qs * ns * 2.0 + cross(Js, B0v)) * as + Js;
-
-            Js = (K + cross(K, B0v) * as + B0v * (dot(K, B0v) * as * as)) / (BB * as * as + 1);
-
-            Q -= 0.5 * dt / epsilon0 * Js;
-
-            a += qs * ns * (as / (BB * as * as + 1));
-            b += qs * ns * (as * as / (BB * as * as + 1));
-            c += qs * ns * (as * as * as / (BB * as * as + 1));
-
-
-        }
-
-        a *= 0.5 * dt / epsilon0;
-        b *= 0.5 * dt / epsilon0;
-        c *= 0.5 * dt / epsilon0;
-        a += 1;
-
-
-        LOG_CMD(dE = (Q * a - cross(Q, B0v) * b + B0v * (dot(Q, B0v) * (b * b - c * a) / (a + c * BB))) /
-                     (b * b * BB + a * a));
-
-        for (auto &p :   particles)
-        {
-            Real ms = p.second.mass;
-            Real qs = p.second.charge;
-            traits::field_t <scalar_type, mesh_type, VERTEX> &ns = p.second.rho1;
-            traits::field_t <vector_type, mesh_type, VERTEX> &Js = p.second.J1;;
-
-
-            Real as = (dt * qs) / (2.0 * ms);
-
-            K = dE * ns * qs * as;
-            Js += (K + cross(K, B0v) * as + B0v * (dot(K, B0v) * as * as)) / (BB * as * as + 1);
-        }
-        Ev += dE;
-
-        LOG_CMD(E1 += map_to<EDGE>(Ev) - E1);
-    }
-
-
-    LOG_CMD(B1 -= curl(E1) * (dt * 0.5));
-
-    B1.accept(face_boundary.range(), [&](id_type const &, Real &v) { v = 0; });
+//    LOG_CMD(E1 += (curl(B1) * speed_of_light2 - J1 / epsilon0) * dt);
+//
+//    E1.accept(edge_boundary.range(), [&](id_type, Real &v) { v = 0; });
+//
+//
+//    traits::field_t <vector_type, mesh_type, VERTEX> dE{m};
+//
+//
+//
+//    //particle::absorb(ion, limiter_boundary);
+//    if (particles.size() > 0)
+//    {
+//
+//        traits::field_t <vector_type, mesh_type, VERTEX> Q{m};
+//        traits::field_t <vector_type, mesh_type, VERTEX> K{m};
+//
+//        traits::field_t <scalar_type, mesh_type, VERTEX> a{m};
+//        traits::field_t <scalar_type, mesh_type, VERTEX> b{m};
+//        traits::field_t <scalar_type, mesh_type, VERTEX> c{m};
+//
+//        a.clear();
+//        b.clear();
+//        c.clear();
+//
+//        Q = map_to<VERTEX>(E1) - Ev;
+//
+//
+//        for (auto &p :   particles)
+//        {
+//            Real ms = p.second.mass;
+//            Real qs = p.second.charge;
+//
+//
+//            traits::field_t <scalar_type, mesh_type, VERTEX> &ns = p.second.rho1;
+//
+//            traits::field_t <vector_type, mesh_type, VERTEX> &Js = p.second.J1;;
+//
+//
+//            Real as = (dt * qs) / (2.0 * ms);
+//
+//            Q -= 0.5 * dt / epsilon0 * Js;
+//
+//            K = (Ev * qs * ns * 2.0 + cross(Js, B0v)) * as + Js;
+//
+//            Js = (K + cross(K, B0v) * as + B0v * (dot(K, B0v) * as * as)) / (BB * as * as + 1);
+//
+//            Q -= 0.5 * dt / epsilon0 * Js;
+//
+//            a += qs * ns * (as / (BB * as * as + 1));
+//            b += qs * ns * (as * as / (BB * as * as + 1));
+//            c += qs * ns * (as * as * as / (BB * as * as + 1));
+//
+//
+//        }
+//
+//        a *= 0.5 * dt / epsilon0;
+//        b *= 0.5 * dt / epsilon0;
+//        c *= 0.5 * dt / epsilon0;
+//        a += 1;
+//
+//
+//        LOG_CMD(dE = (Q * a - cross(Q, B0v) * b + B0v * (dot(Q, B0v) * (b * b - c * a) / (a + c * BB))) /
+//                     (b * b * BB + a * a));
+//
+//        for (auto &p :   particles)
+//        {
+//            Real ms = p.second.mass;
+//            Real qs = p.second.charge;
+//            traits::field_t <scalar_type, mesh_type, VERTEX> &ns = p.second.rho1;
+//            traits::field_t <vector_type, mesh_type, VERTEX> &Js = p.second.J1;;
+//
+//
+//            Real as = (dt * qs) / (2.0 * ms);
+//
+//            K = dE * ns * qs * as;
+//            Js += (K + cross(K, B0v) * as + B0v * (dot(K, B0v) * as * as)) / (BB * as * as + 1);
+//        }
+//        Ev += dE;
+//
+//        LOG_CMD(E1 += map_to<EDGE>(Ev) - E1);
+//    }
+//
+//
+//    LOG_CMD(B1 -= curl(E1) * (dt * 0.5));
+//
+//    B1.accept(face_boundary.range(), [&](id_type const &, Real &v) { v = 0; });
 
     m.next_time_step();
 }

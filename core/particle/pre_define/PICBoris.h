@@ -19,9 +19,12 @@
 
 namespace simpla { namespace particle { namespace engine
 {
-
+template<typename TM>
 struct BorisEngine
 {
+    typedef typename TM::point_type point_type;
+    typedef typename TM::vector_type vector_type;
+
 
     virtual Properties &properties() = 0;
 
@@ -33,7 +36,7 @@ struct BorisEngine
 
     DEFINE_PROPERTIES(Real, temperature);
 
-    SP_DEFINE_STRUCT(point_type, Vec3, x, Vec3, v, Real, f, Real, w);
+    SP_DEFINE_STRUCT(sample_type, Vec3, x, Vec3, v, Real, f, Real, w);
 
     void deploy()
     {
@@ -42,25 +45,34 @@ struct BorisEngine
         m_temperature_ = properties()["temperature"].template as<Real>(1.0);
     }
 
-    Vec3 project(point_type const &z) const { return z.x; }
+    point_type project(sample_type const &z) const { return z.x; }
 
-    std::tuple<Vec3, Vec3> push_forward(point_type const &z) const { return std::forward_as_tuple(z.x, z.v); }
+    std::tuple<point_type, vector_type> push_forward(sample_type const &z) const
+    {
+        return std::forward_as_tuple(z.x, z.v);
+    }
 
 
-    point_type lift(Vec3 const &x, Vec3 const &v, Real f = 0) const { return point_type{x, v, f, 1.0}; }
+    sample_type lift(point_type const &x, vector_type const &v, Real f = 0) const { return sample_type{x, v, f, 1.0}; }
 
-    point_type sample(Vec3 const &x, Vec3 const &v, Real f) const { return point_type{x, v, f, 1.0}; }
+    sample_type sample(point_type const &x, vector_type const &v, Real f) const { return sample_type{x, v, f, 1.0}; }
 
     template<typename TFunc>
-    point_type lift(Vec3 const &x, Vec3 const &v, TFunc const &fun) const { return point_type{x, v, fun(x, v), 0}; }
+    sample_type lift(point_type const &x, vector_type const &v, TFunc const &fun) const
+    {
+        return sample_type{x,
+                v,
+                fun(x, v),
+                0};
+    }
 
 
-    void integral(Vec3 const &x, point_type const &p, Real *f) const { *f = p.f * p.w; }
+    void integral(point_type const &x, sample_type const &p, Real *f) const { *f = p.f * p.w; }
 
-    void integral(Vec3 const &x, point_type const &p, nTuple<Real, 3> *v) const { *v = p.v * p.f * p.w; }
+    void integral(point_type const &x, sample_type const &p, nTuple<Real, 3> *v) const { *v = p.v * p.f * p.w; }
 
     template<typename TE, typename TB>
-    void push(point_type *p, Real dt, Real t, TE const &E, TB const &B) const
+    void push(sample_type *p, Real dt, Real t, TE const &E, TB const &B) const
     {
         p->x += p->v * dt * 0.5;
         p->v += E(p->x) * dt;
@@ -73,13 +85,13 @@ struct BorisEngine
 namespace simpla { namespace particle
 {
 template<typename TM> using BorisParticle =
-Particle<particle::engine::BorisEngine, TM,
+Particle<particle::engine::BorisEngine<TM>, TM,
         manifold::policy::FiniteVolume,
         manifold::policy::LinearInterpolator
 >;
 
 template<typename TM> using BorisTestParticle =
-Particle<enable_tracking<particle::engine::BorisEngine>, TM,
+Particle<enable_tracking<particle::engine::BorisEngine<TM>>, TM,
         manifold::policy::FiniteVolume,
         manifold::policy::LinearInterpolator
 >;

@@ -30,9 +30,6 @@ public:
 
     virtual int extent(int i) const { return 1; }
 
-    virtual data_model::DataSet data_set() const = 0;
-
-
     void swap(AttributeObject &other)
     {
         std::swap(m_parent_, other.m_parent_);
@@ -47,6 +44,12 @@ public:
     }
 
     virtual std::shared_ptr<AttributeObject> parent() { return m_parent_.lock(); }
+
+    virtual data_model::DataSet data_set() const = 0;
+
+    virtual data_model::DataSet dump() const = 0;
+
+    virtual data_model::DataSet checkpoint() const = 0;
 
 
 private:
@@ -113,6 +116,12 @@ public:
         return *m_mesh_;
     }
 
+    virtual data_model::DataSet data_set() const = 0;
+
+    virtual data_model::DataSet dump() const = 0;
+
+    virtual data_model::DataSet checkpoint() const = 0;
+
 
 private:
     mesh_type *m_mesh_;
@@ -144,9 +153,6 @@ public:
     template<typename ...Args>
     Attribute(mesh_type const &m, Args &&...args) : base_type(m), m_data_(nullptr) { }
 
-    Attribute(Attribute const &other) : base_type(other), m_data_(other.m_data_) { }
-
-    Attribute(Attribute &&other) : base_type(other), m_data_(other.m_data_) { }
 
     virtual ~Attribute() { }
 
@@ -179,7 +185,9 @@ public:
 
     virtual data_model::DataSet data_set() const { return this->mesh().template data_set<TV, IFORM>(m_data_); };
 
-    virtual data_model::DataSet data_set() { return this->mesh().template data_set<TV, IFORM>(m_data_); };
+    virtual data_model::DataSet dump() const { return data_set(); }
+
+    virtual data_model::DataSet checkpoint() const { return data_set(); }
 
     virtual bool empty() const { return m_data_ == nullptr; }
 

@@ -72,8 +72,17 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent) const;
 
+    static DataSpace create_simple(int rank, const index_type *dims = nullptr);
 
-    static DataSpace create_simple(int rank, const index_type *dims);
+    static std::tuple<DataSpace, DataSpace> create_simple_unordered(size_t size);
+
+//    static std::tuple<DataSpace, DataSpace> create(size_t rank,
+//                                                   index_type const *dims = nullptr,
+//                                                   index_type const *start = nullptr,
+//                                                   index_type const *_stride = nullptr,
+//                                                   index_type const *count = nullptr,
+//                                                   index_type const *_block = nullptr
+//    );
 
 
     // TODO complete support H5Sselect_hyperslab:H5S_seloper_t
@@ -81,6 +90,8 @@ public:
                                 index_type const *_stride,
                                 index_type const *count,
                                 index_type const *_block);
+
+    void clear_selected();
 
     bool is_valid() const;
 

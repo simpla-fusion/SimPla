@@ -644,6 +644,7 @@ std::string HDF5Stream::write(std::string const &url, data_model::DataSet const 
         return "";
     }
 
+
     std::string dsname = "";
 
     bool is_existed = false;
@@ -754,7 +755,7 @@ std::string HDF5Stream::write(std::string const &url, data_model::DataSet const 
         H5_ERROR(H5Dwrite(dset, d_type, m_space, f_space, H5P_DEFAULT, ds.data.get()));
     }
 
-//    m_pimpl_->set_attribute(dset, ds.properties);
+    m_pimpl_->set_attribute(dset, ds.properties);
 
     H5_ERROR(H5Dclose(dset));
 
@@ -763,6 +764,8 @@ std::string HDF5Stream::write(std::string const &url, data_model::DataSet const 
     if (f_space != H5S_ALL) H5_ERROR(H5Sclose(f_space));
 
     if (H5Tcommitted(d_type) > 0) { H5_ERROR(H5Tclose(d_type)); }
+
+    VERBOSE << "Write DataSet to hdf5 file:" << pwd() + dsname << std::endl;
 
     return pwd() + dsname;
 }

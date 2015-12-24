@@ -130,6 +130,7 @@ void XDMFStream::close_grid()
         int level = static_cast<int>( m_path_.size());
         m_file_stream_ << std::setw(level * 2) << "" << "</Grid> <!--" << path() << " --> " << std::endl;
         m_path_.pop_back();
+        m_h5_stream_.open_group(path());
     }
 
 
@@ -230,7 +231,7 @@ void XDMFStream::write(std::string const &ds_name,
     m_file_stream_ << std::setw(level * 2 + 2) << "" << "</Attribute>" << std::endl;
 
 
-    VERBOSE << "data_set [" << ds_name << "] is saved in [" << path() << "]!" << std::endl;
+//    VERBOSE << "data_set [" << ds_name << "] is saved in [" << path() << "]!" << std::endl;
 }
 
 

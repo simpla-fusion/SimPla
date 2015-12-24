@@ -92,56 +92,5 @@ std::ostream &DataSet::print(std::ostream &os) const
     return os;
 }
 
-namespace _impl
-{
-
-
-DataSet create_data_set(DataType const &dtype, std::shared_ptr<void> const &p, size_t rank,
-                        size_t const *dims)
-{
-    DataSet res;
-
-    res.data_type = dtype;
-
-    if (dims != nullptr)
-    {
-        res.data_space = DataSpace::create_simple(static_cast<int>(rank), dims);
-        res.memory_space = res.data_space;
-        if (GLOBAL_COMM.is_valid())
-        {   //fixme calculate distributed array dimensions
-            UNIMPLEMENTED2("fixme calculate distributed array dimensions");
-        }
-    }
-    else
-    {
-        size_t count = rank;
-        size_t offset = 0;
-        size_t total_count = count;
-
-        std::tie(offset, total_count) = parallel::sync_global_location(GLOBAL_COMM, static_cast<int>(count));
-
-        res.data_space = data_model::DataSpace::create_simple(1, &total_count);
-        res.data_space.select_hyperslab(&offset, nullptr, &count, nullptr);
-        res.memory_space = data_model::DataSpace::create_simple(1, &count);
-
-    }
-
-
-    res.data = p;
-
-    return std::move(res);
-}
-
-DataSet create_data_set(DataType const &dtype)
-{
-    DataSet res;
-
-    res.data_type = dtype;
-
-    res.data = nullptr;
-
-    return std::move(res);
-}
-}
 }}//namespace simpla { namespace data_model
 

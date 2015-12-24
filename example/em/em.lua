@@ -46,7 +46,7 @@ LZ = math.pi * 0.25 -- 2.0*math.pi/18
 GW = 5
 PIC = 100
 GEQDSK = "/home/salmon/workspace-local/SimPla/scripts/gfile/g038300.03900"
-number_of_steps = 1
+number_of_steps = 10
 Mesh =
 {
     Geometry =
@@ -94,10 +94,11 @@ Particles = {
         mass = mp,
         charge = qe,
         T = Ti,
-        PIC = PIC,
+        PIC = 1,
         Type = "Boris",
-        DisableCheckPoint = true,
-        EnableHDF5Record = true,
+        IsParticle = true,
+        --  DisableCheckPoint = true,
+        DisableXDMFOutput = true,
         V0 = { 1, 2, 3 },
     },
     ele = {

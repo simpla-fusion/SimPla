@@ -54,6 +54,7 @@ struct DataSet : public base::Object
 
     DataSpace memory_space;
 
+    Properties properties;
 
     DataSet() : data(nullptr) { }
 
@@ -128,104 +129,57 @@ template<typename T>
 auto create_data_set(T const &f)
 -> typename std::enable_if<has_member_function_data_set<T>::value, DataSet>::type { return f.data_set(); }
 
-DataSet create_data_set(DataType const &dtype, std::shared_ptr<void> const &p, size_t rank,
-                        size_t const *dims = nullptr);
-
-DataSet create_data_set(DataType const &dtype);
-
-template<typename T>
-DataSet create_data_set()
+template<typename ...Args>
+DataSet create_data_set(DataType const &dtype, std::shared_ptr<void> const &data, Args &&...args)
 {
-    return create_data_set(DataType::create<T>());
-}
+    DataSet ds;
 
-template<typename T>
-DataSet create_data_set(T const *p, size_t rank, size_t const *dims)
-{
-    return create_data_set(DataType::create<T>(),
-                           std::shared_ptr<void>(reinterpret_cast<void *>(const_cast<T *>(p)), tags::do_nothing()),
-                           rank, dims);
-}
+    ds.data_type = dtype;
+    ds.data = data;
 
-template<typename T>
-DataSet create_data_set(std::shared_ptr<T> &p, size_t rank, size_t const *dims)
-{
-    return create_data_set(DataType::create<T>(),
-                           std::shared_ptr<void>(reinterpret_cast<void *>(p.get()), tags::do_nothing()),
-                           rank, dims);
-}
-
-
-HAS_MEMBER(_tag)
-
-template<typename T>
-struct point_type_check : public std::integral_constant<int,
-        (std::is_integral<T>::value) ? 0 :
-        ((std::is_array<T>::value || traits::is_ntuple<T>::value) ? 1 :
-         ((std::is_class<T>::value && has_member__tag<T>::value) ? 2 : -1)
-        )>
-{
-};
-
-template<typename TV>
-size_t get_tag(std::integral_constant<int, -1>, const TV &v)
-{
-    UNIMPLEMENTED;
-    return 0;
-}
-
-template<typename TV>
-size_t get_tag(std::integral_constant<int, 0>, const TV &v) { return v; }
-
-
-template<typename TV>
-auto get_tag(std::integral_constant<int, 2>, const TV &v) -> decltype(v.tag) { return v.tag; }
-
-template<typename T>
-auto select_tag(DataSpace &sp, std::shared_ptr<T> const &p,
-                size_t num) -> typename std::enable_if<has_member__tag<T>::value, void>::type
-{
-
-    size_t ndims = std::get<0>(sp.shape());
-
-    std::vector<size_t> tags(num * ndims);
-//
-//    parallel::parallel_for(
-//            parallel::blocked_range<size_t>(0, num),
-//            [&](parallel::blocked_range <size_t> &r)
-//            {
-//                for (auto i = r.begin(), ie = r.end(); i != ie; ++i)
-    for (size_t i = 0; i < num; ++i)
-    {
-        for (size_t j = 0; j < ndims; ++j)
-        {
-            tags[i * ndims + j] = reinterpret_cast<size_t *>(&p.get()[i]._tag)[j];
-        }
-    }
-//            }
-//
-//    );
-
-    sp.select_points(num, &tags[0]);
-
-}
-
-template<typename T>
-auto select_tag(DataSpace &sp, std::shared_ptr<T> const &p,
-                size_t) -> typename std::enable_if<!has_member__tag<T>::value, void>::type
-{
-}
-
-template<typename T> DataSet
-create_data_set(std::shared_ptr<T> const &p, size_t num)
-{
-    auto ds = create_data_set(DataType::create<T>(),
-                              std::shared_ptr<void>(reinterpret_cast<void *>(p.get()), tags::do_nothing()),
-                              num);
-    select_tag(ds.data_space, p, num);
+    ds.data_space = data_model::DataSpace::create_simple(std::forward<Args>(args)...);
+    ds.memory_space = ds.data_space;
 
     return std::move(ds);
 }
+
+template<typename ...Args>
+DataSet create_data_set(DataType const &dtype)
+{
+    DataSet ds;
+
+    ds.data_type = dtype;
+    ds.data = nullptr;
+    return std::move(ds);
+}
+
+
+template<typename T, typename ...Args>
+DataSet create_data_set(T const *p, Args &&...args)
+{
+    return create_data_set(DataType::create<T>(),
+                           std::shared_ptr<void>(reinterpret_cast<void *>(const_cast<T *>(p)), tags::do_nothing()),
+                           std::forward<Args>(args)...);
+}
+
+template<typename T, typename ...Args>
+DataSet create_data_set(std::shared_ptr<T> &p, Args &&...args)
+{
+    return create_data_set(DataType::create<T>(),
+                           std::shared_ptr<void>(reinterpret_cast<void *>(p.get()), tags::do_nothing()),
+                           std::forward<Args>(args)...);
+}
+
+template<typename T, typename ...Args> DataSet
+create_data_set(std::shared_ptr<T> const &p, Args &&...args)
+{
+    auto ds = create_data_set(DataType::create<T>(),
+                              std::shared_ptr<void>(reinterpret_cast<void *>(p.get()), tags::do_nothing()),
+                              std::forward<Args>(args)...);
+
+    return std::move(ds);
+}
+
 
 template<typename T>
 DataSet create_data_set(std::vector<T> const &p)
@@ -233,7 +187,7 @@ DataSet create_data_set(std::vector<T> const &p)
     return create_data_set(&p[0], p.size());
 }
 /**@}*/
-} // namespace traits
+} // namespace _impl
 
 template<typename ...Args>
 DataSet DataSet::create(Args &&...args)

@@ -1,0 +1,30 @@
+<Xdmf>
+    <Domain Name="MSI">
+        <Grid Name="CellTime" GridType="Collection" CollectionType="Temporal">
+            <Grid Name="Cell" GridType="Uniform">
+                <Time Value="0.0"/>
+
+
+                <Topology TopologyType="Polyvertex" NodesPerElement="888"></Topology>
+
+                <Geometry GeometryType="XYZ">
+                    <DataItem ItemType="HyperSlab" Dimensions="888 3" Type="HyperSlab">
+                        <DataItem Dimensions="3 3" Format="XML">
+                            0 0   0
+                            1 1   1
+                            888 1 3
+                        </DataItem>
+                        <DataItem Name="Points"  Dimensions="888  11"  Format="HDF">
+                            /pkg/clion/etc/clion/system/cmake/generated/2774870a/2774870a/Debug/example/em/tokamak0209.h5:/record/H
+                        </DataItem>
+                    </DataItem>
+                    <!--<DataItem DataType="Float" Dimensions="888 3" Format="HDF">-->
+                    <!--/pkg/clion/etc/clion/system/cmake/generated/2774870a/2774870a/Debug/example/em/tokamak0209.h5:/record/H-->
+                    <!--</DataItem>-->
+
+                </Geometry>
+            </Grid>
+
+        </Grid>
+    </Domain>
+</Xdmf>

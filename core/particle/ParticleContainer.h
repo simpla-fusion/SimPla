@@ -94,9 +94,10 @@ public:
 
     typedef typename this_type::interpolate_policy interpolate_policy;
 
-    typedef typename engine_type::point_type point_type;
-    typedef point_type value_type;
+    typedef typename engine_type::sample_type value_type;
 
+
+    typedef typename mesh_type::point_type point_type;
     typedef typename mesh_type::index_tuple index_tuple;
     typedef typename mesh_type::id_type id_type;
     typedef typename mesh_type::range_type range_type;
@@ -104,7 +105,6 @@ public:
     typedef parallel::concurrent_hash_map<id_type, bucket_type> container_type;
 
     container_type m_data_;
-    Properties m_properties_;
 
 public:
 
@@ -131,10 +131,7 @@ public:
     virtual ~ParticleContainer();
 
 
-    virtual Properties &properties() { return m_properties_; };
-
-    virtual Properties const &properties() const { return m_properties_; };
-
+    HAS_PROPERTIES
 
     virtual void deploy();
 
@@ -145,9 +142,18 @@ public:
     virtual std::ostream &print(std::ostream &os, int indent = 0) const;
 
 
-    data_model::DataSet data_set() const;
+    /**
+     *  dump particle position x (point_type)
+     */
+    virtual data_model::DataSet data_set() const { return checkpoint(); }
 
-    void data_set(data_model::DataSet const &);
+    /**
+     *  dump all data and information to DataSet
+     */
+    virtual data_model::DataSet dump() const;
+
+
+    virtual data_model::DataSet checkpoint() const;
 
     //! @name as container
     //! @{
@@ -395,7 +401,7 @@ ParticleContainer<P, M, Policies...>::push(Args &&...args)
     mesh_entity::mesh().template for_each_center<iform>(
             [&](range_type const &r) { push(r, std::forward<Args>(args)...); });
 
-    rehash();
+//    rehash();
 }
 
 
@@ -638,7 +644,7 @@ ParticleContainer<P, M, Policies...>::sync(container_type const &buffer, paralle
                 }
 
 
-                dist_obj->add_link_send(coord_offset, d_type, p_send, send_size);
+                dist_obj->add_link_send(coord_offset, d_type, p_send, 1, &send_size);
 
                 dist_obj->add_link_recv(coord_offset, d_type);
 
@@ -799,29 +805,6 @@ ParticleContainer<P, M, Policies...>::push_back(InputIterator const &b, InputIte
 }
 
 
-template<typename P, typename M, typename ...Policies> data_model::DataSet
-ParticleContainer<P, M, Policies...>::data_set() const
-{
-    auto r = mesh_entity::mesh().template range<iform>();
-
-    size_t count = static_cast<int>(size(r));
-
-    auto data = sp_alloc_memory(count * sizeof(value_type));
-
-    copy(r, reinterpret_cast<value_type *>( data.get()));
-
-    data_model::DataSet ds = data_model::DataSet::create(data_model::DataType::create<value_type>(), data, count);
-
-    return std::move(ds);
-}
-
-template<typename P, typename M, typename ...Policies> void
-ParticleContainer<P, M, Policies...>::data_set(data_model::DataSet const &ds)
-{
-    UNIMPLEMENTED;
-}
-
-
 template<typename P, typename M, typename ...Policies>
 template<typename TGen, typename ...Args> void
 ParticleContainer<P, M, Policies...>::generator(id_type s, TGen &gen, size_t pic, Args &&...args)
@@ -934,6 +917,95 @@ ParticleContainer<P, M, Policies...>::accept(TConstraint const &constraint, TFun
     merge(&buffer);
 }
 
+
+template<typename P, typename M, typename ...Policies> data_model::DataSet
+ParticleContainer<P, M, Policies...>::dump() const
+{
+    VERBOSE << "Dump particle [" << this->properties()["Name"] << "]" << std::endl;
+
+    auto r0 = mesh_entity::mesh().template range<iform>();
+
+    size_t count = static_cast<int>(size(r0));
+
+    data_model::DataSet ds;
+
+    ds.data_type = data_model::DataType::create<value_type>();
+
+    ds.data = sp_alloc_memory(count * sizeof(value_type));
+
+    ds.properties = this->properties();
+
+    std::tie(ds.data_space, ds.memory_space) = data_model::DataSpace::create_simple_unordered(count);
+
+    copy(r0, reinterpret_cast< value_type *>( ds.data.get()));
+
+
+    return std::move(ds);
+};
+
+
+namespace _impl
+{
+
+HAS_MEMBER(_tag)
+
+template<typename TP>
+auto select_tag(data_model::DataSpace &ds, TP const &p)
+-> typename std::enable_if<has_member__tag<TP>::value, void>::type
+{
+    ds.select_point(p._tag);
+}
+
+template<typename TP>
+auto select_tag(data_model::DataSpace &ds, TP const &p)
+-> typename std::enable_if<!has_member__tag<TP>::value, void>::type
+{
+}
+} //namespace _impl
+
+
+template<typename P, typename M, typename ...Policies> data_model::DataSet
+ParticleContainer<P, M, Policies...>::checkpoint() const
+{
+    VERBOSE << "Checkpoint particle [" << this->properties()["Name"] << "]" << std::endl;
+
+    auto r0 = mesh_entity::mesh().template range<iform>();
+
+    size_t count = static_cast<int>(size(r0));
+
+    data_model::DataSet ds;
+
+    ds.data_type = data_model::DataType::create<point_type>();
+
+    ds.data = sp_alloc_memory(count * sizeof(point_type));
+
+    std::tie(ds.data_space, ds.memory_space) = data_model::DataSpace::create_simple_unordered(count);
+
+
+    auto out_it = reinterpret_cast< point_type *>( ds.data.get());
+
+    ds.data_space.clear_selected();
+
+    typename container_type::const_accessor c_accessor;
+
+    for (auto const &s:r0)
+    {
+        if (m_data_.find(c_accessor, s))
+        {
+            for (auto it = c_accessor->second.begin(), ie = c_accessor->second.end(); it != ie; ++it)
+            {
+                *out_it = engine_type::project(*it);
+
+                _impl::select_tag(ds.data_space, *it);
+
+                ++out_it;
+            }
+        }
+    }
+
+
+    return std::move(ds);
+}
 
 }} //namespace simpla { namespace particle
 
