@@ -172,8 +172,8 @@ std::ostream &operator<<(std::ostream &os, Properties const &prop);
 
 
 #define HAS_PROPERTIES                                                                                            \
-virtual Properties &properties() {return m_properties_;};                                                         \
-virtual Properties const &properties() const {return m_properties_;};                                             \
+virtual Properties const&properties()const {return m_properties_;};                                                         \
+virtual Properties &properties()  {return m_properties_;};                                             \
 private: Properties m_properties_; public:
 
 

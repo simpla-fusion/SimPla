@@ -47,6 +47,11 @@ GW = 5
 PIC = 100
 GEQDSK = "/home/salmon/workspace-local/SimPla/scripts/gfile/g038300.03900"
 number_of_steps = 10
+
+DisableField = true
+DisableParticle = false
+
+
 Mesh =
 {
     Geometry =

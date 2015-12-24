@@ -11,42 +11,33 @@
 
 namespace simpla { namespace particle
 {
-typedef particle::ParticleProxyBase<TE, TB, TJv, TRho> particle_proxy_type;
-
-template<typename TE, typename TB, typename TJ, typename TRho>
-struct ParticleFactory
+template<typename TP, typename ...Args, typename TM, typename TDict>
+std::shared_ptr<particle::ParticleProxyBase<Args...>>
+create_particle(std::string const &key, TDict const &dict)
 {
-    typedef ParticleProxyBase<TE, TB, TJ, TRho> base_type;
+    typedef particle::ParticleProxyBase<Args...> particle_proxy_type;
+    TP pic(m, key);
 
-    template<typename TDict>
-    std::shared_ptr<base_type> create(TDict const &dict);
-};
+    dict.as(&pic.properties());
 
-template<typename TE, typename TB, typename TJ, typename TRho>
-struct ParticleFactory
+    pic.deploy();
 
-template<typename TDict>
-std::shared_ptr<base_type> ParticleFactorytemplate<TE, TB, TJ, TRho>::create(std::string const key, TDict const &dict)
+    auto gen = particle::make_generator(pic.engine(), 1.0);
+
+    pic.generator(plasma_region_volume, gen, pic.properties()["PIC"].template as<size_t>(10),
+                  pic.properties()["T"].template as<Real>(1));
+
+
+    return particle_proxy_type::create(pic.data());
+
+}
+
+template<typename ...Args, typename TMesh, typename TDict>
+std::shared_ptr<particle::ParticleProxyBase<Args...>>
+create(TMesh &mesh, TDict const &dict)
 {
-    std::shared_ptr<base_type> res;
+    create_particle(std::string const &key, TDict const &dict)
 
-    if (dict.second["Type"].template as<std::string>() == "Boris")
-    {
-        particle::BorisParticle<mesh_type> pic(m, key);
-
-        pic.engine().mass(mass);
-        pic.engine().charge(charge);
-
-        pic.properties()["DisableCheckPoint"] =
-                dict.second["DisableCheckPoint"].template as<bool>(true);
-
-        auto gen = particle::make_generator(pic.engine(), 1.0);
-
-        pic.generator(gen, options["PIC"].as<size_t>(10), 1.0);
-
-        res = base_type::create(pic.data());
-
-    }
 };
 }}
 #endif //SIMPLA_PARTICLEFACTORY_H

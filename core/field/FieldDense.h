@@ -61,7 +61,7 @@ private:
 
     typedef typename this_type::interpolate_policy interpolate_policy;
 public:
-
+    Field() : m_data_(nullptr) { }
 
     //create construct
     Field(mesh_type &m, std::string const &name = "")
@@ -77,6 +77,16 @@ public:
     Field(this_type &&other) : m_data_(other.m_data_) { }
 
     virtual ~Field() { }
+
+    void swap(this_type &other) { std::swap(m_data_, other.m_data_); }
+
+    inline this_type &operator=(this_type const &other)
+    {
+        apply(_impl::_assign(), *this, other);
+        return *this;
+    }
+
+    bool empty() { return m_data_ == nullptr || m_data_->empty(); }
 
     virtual std::shared_ptr<attribute_type> data() { return m_data_; }
 
@@ -106,11 +116,6 @@ public:
 
     value_type const &operator[](id_type const &s) const { return m_data_->at(s); }
 
-    inline this_type &operator=(this_type const &other)
-    {
-        apply(_impl::_assign(), *this, other);
-        return *this;
-    }
 
     template<typename Other>
     inline this_type &operator=(Other const &other)

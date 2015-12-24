@@ -90,7 +90,7 @@ Particle<particle::engine::BorisEngine<TM>, TM,
         manifold::policy::LinearInterpolator
 >;
 
-template<typename TM> using BorisTestParticle =
+template<typename TM> using BorisTrackingParticle =
 Particle<enable_tracking<particle::engine::BorisEngine<TM>>, TM,
         manifold::policy::FiniteVolume,
         manifold::policy::LinearInterpolator
