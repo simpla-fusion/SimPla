@@ -39,8 +39,11 @@ private:
 
     typedef Mesh<TMetric, tags::corect_linear> this_type;
     typedef LinearMap map_type;
-    typedef MeshBlock block_type;
 public:
+
+    typedef TMetric metric_type;
+    typedef MeshBlock block_type;
+
     HAS_PROPERTIES;
     using block_type::ndims;
     using block_type::id_type;
@@ -48,10 +51,11 @@ public:
     using block_type::index_type;
     using block_type::index_tuple;
     using block_type::range_type;
-    using block_type::point_type;
-    using block_type::vector_type;
     using block_type::difference_type;
 
+
+    using typename metric_type::point_type;
+    using typename metric_type::vectoor_type;
 
     /**
  *
@@ -98,19 +102,19 @@ public:
 
     }
 
-    Mesh(this_type const &other, box_type const &b, int ratio) :
-            block_type(other), m_coords_min_(b[0]), m_coords_max_(b[1]),
-            m_dx_(other.m_dx_ / ratio)
-    {
-
-    }
-
-    Mesh(this_type const &other) :
-            block_type(other), m_coords_min_(other.m_coords_min_),
-            m_coords_max_(other.m_coords_max_),
-            m_dx_(other.m_dx_)
-    {
-    }
+//    Mesh(this_type const &other, box_type const &b, int ratio) :
+//            block_type(other), m_coords_min_(b[0]), m_coords_max_(b[1]),
+//            m_dx_(other.m_dx_ / ratio)
+//    {
+//
+//    }
+//
+//    Mesh(this_type const &other) :
+//            block_type(other), m_coords_min_(other.m_coords_min_),
+//            m_coords_max_(other.m_coords_max_),
+//            m_dx_(other.m_dx_)
+//    {
+//    }
 
     virtual  ~Mesh() { }
 

@@ -36,9 +36,11 @@ struct Metric<coordinate_system::template Cylindrical<IPhiAxis> >
 {
 public:
     typedef ::simpla::geometry::coordinate_system::Cylindrical<IPhiAxis> cs;
-    typedef gt::point_t<cs> point_t;
-    typedef gt::vector_t<cs> vector_t;
-    typedef gt::covector_t<cs> covector_t;
+
+    typedef Real scalar_type;
+    typedef nTuple<scalar_type, 3> point_type;
+    typedef nTuple<scalar_type, 3> vector_type;
+    typedef nTuple<scalar_type, 3> covector_type;
 
     typedef nTuple<Real, 3> delta_t;
 
@@ -46,9 +48,9 @@ public:
     static constexpr int RAxis = cs::RAxis;
     static constexpr int ZAxis = cs::ZAxis;
 
-    static point_t map_to_cartesian(point_t const &p)
+    static point_type map_to_cartesian(point_type const &p)
     {
-        point_t x;
+        point_type x;
 
         x[0] = p[RAxis] * std::cos(p[PhiAxis]);
         x[1] = p[RAxis] * std::sin(p[PhiAxis]);
@@ -57,7 +59,7 @@ public:
     }
 
 
-    static Real simplex_length(point_t const &p0, point_t const &p1)
+    static Real simplex_length(point_type const &p0, point_type const &p1)
     {
         Real r0 = p0[RAxis];
         Real z0 = p0[ZAxis];
@@ -78,7 +80,7 @@ public:
                 ;
     }
 
-    static Real simplex_area(point_t const &p0, point_t const &p1, point_t const &p2)
+    static Real simplex_area(point_type const &p0, point_type const &p1, point_type const &p2)
     {
 
         Real r0 = p0[RAxis];
@@ -125,7 +127,7 @@ public:
     }
 
 
-    static Real simplex_volume(point_t const &p0, point_t const &p1, point_t const &p2, point_t const &p3)
+    static Real simplex_volume(point_type const &p0, point_type const &p1, point_type const &p2, point_type const &p3)
     {
 
         Real r0 = p0[RAxis];
@@ -149,7 +151,7 @@ public:
                 dphi3 * dr2 * dz1) / 24.0;
     }
 
-    static Real box_area(point_t const &p0, point_t const &p1)
+    static Real box_area(point_type const &p0, point_type const &p1)
     {
 
         Real r0 = min(p0[RAxis], p1[RAxis]);
@@ -182,7 +184,7 @@ public:
         }
     }
 
-    static Real box_volume(point_t const &p0, point_t const &p1)
+    static Real box_volume(point_type const &p0, point_type const &p1)
     {
 
         Real r0 = min(p0[RAxis], p1[RAxis]);
@@ -233,19 +235,19 @@ struct type_id<::simpla::geometry::coordinate_system::Cylindrical<IPhiAxis> >
 //struct map<Cylindrical<IPhiAxis>, Cartesian<3, I_CARTESIAN_ZAXIS> >
 //{
 //
-//    typedef gt::point_t<Cylindrical<IPhiAxis> > point_t0;
-//    typedef gt::vector_t<Cylindrical<IPhiAxis> > vector_t0;
-//    typedef gt::covector_t<Cylindrical<IPhiAxis> > covector_t0;
+//    typedef gt::point_type<Cylindrical<IPhiAxis> > point_t0;
+//    typedef gt::vector_type<Cylindrical<IPhiAxis> > vector_t0;
+//    typedef gt::covector_type<Cylindrical<IPhiAxis> > covector_t0;
 //
 //    static constexpr size_t CylindricalPhiAxis = (IPhiAxis) % 3;
 //    static constexpr size_t CylindricalRAxis = (CylindricalPhiAxis + 1) % 3;
 //    static constexpr size_t CylindricalZAxis = (CylindricalPhiAxis + 2) % 3;
 //
-//    typedef gt::point_t<Cartesian<3, CARTESIAN_XAXIS> >
+//    typedef gt::point_type<Cartesian<3, CARTESIAN_XAXIS> >
 //            point_t1;
-//    typedef gt::vector_t<Cartesian<3, CARTESIAN_XAXIS> >
+//    typedef gt::vector_type<Cartesian<3, CARTESIAN_XAXIS> >
 //            vector_t1;
-//    typedef gt::covector_t<Cartesian<3, CARTESIAN_XAXIS> >
+//    typedef gt::covector_type<Cartesian<3, CARTESIAN_XAXIS> >
 //            covector_t1;
 //
 //    static constexpr size_t CartesianZAxis = (I_CARTESIAN_ZAXIS) % 3;
@@ -339,17 +341,17 @@ struct type_id<::simpla::geometry::coordinate_system::Cylindrical<IPhiAxis> >
 //struct map<Cartesian<3, ICARTESIAN_ZAXIS>, Cylindrical<IPhiAxis> >
 //{
 //
-//    typedef gt::point_t<Cylindrical<IPhiAxis>> point_t1;
-//    typedef gt::vector_t<Cylindrical<IPhiAxis>> vector_t1;
-//    typedef gt::covector_t<Cylindrical<IPhiAxis>> covector_t1;
+//    typedef gt::point_type<Cylindrical<IPhiAxis>> point_t1;
+//    typedef gt::vector_type<Cylindrical<IPhiAxis>> vector_t1;
+//    typedef gt::covector_type<Cylindrical<IPhiAxis>> covector_t1;
 //
 //    static constexpr size_t CylindricalPhiAxis = (IPhiAxis) % 3;
 //    static constexpr size_t CylindricalRAxis = (CylindricalPhiAxis + 1) % 3;
 //    static constexpr size_t CylindricalZAxis = (CylindricalPhiAxis + 2) % 3;
 //
-//    typedef gt::point_t<Cartesian<3, CARTESIAN_XAXIS>> point_t0;
-//    typedef gt::vector_t<Cartesian<3, CARTESIAN_XAXIS>> vector_t0;
-//    typedef gt::covector_t<Cartesian<3, CARTESIAN_XAXIS>> covector_t0;
+//    typedef gt::point_type<Cartesian<3, CARTESIAN_XAXIS>> point_t0;
+//    typedef gt::vector_type<Cartesian<3, CARTESIAN_XAXIS>> vector_t0;
+//    typedef gt::covector_type<Cartesian<3, CARTESIAN_XAXIS>> covector_t0;
 //
 //    static constexpr size_t CartesianZAxis = (ICARTESIAN_ZAXIS) % 3;
 //    static constexpr size_t CartesianYAxis = (CartesianZAxis + 2) % 3;

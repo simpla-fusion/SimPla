@@ -33,9 +33,6 @@ template<typename ...> struct Field;
 template<typename TV, typename TMesh, int IFORM, typename ...Policies>
 class Field<TV, TMesh, std::integral_constant<int, IFORM>, Policies...>
         : public Policies ...
-//         , public TMesh::template Attribute<TV, IFORM>
-//          ,std::enable_shared_from_this<field<TV, TMesh, std::integral_constant<int, IFORM>, Policies...>>
-//         , public mesh::EnablePatchFromThis<field<TV, TMesh, std::integral_constant<int, IFORM> >>
 {
 private:
     typedef Field<TV, TMesh, std::integral_constant<int, IFORM>, Policies...> this_type;
@@ -88,21 +85,21 @@ public:
 
     bool empty() { return m_data_ == nullptr || m_data_->empty(); }
 
-    virtual std::shared_ptr<attribute_type> data() { return m_data_; }
+    std::shared_ptr<attribute_type> data() { return m_data_; }
 
-    virtual std::shared_ptr<const attribute_type> attribute() const { return m_data_; }
+    std::shared_ptr<const attribute_type> attribute() const { return m_data_; }
 
-    virtual void sync() { data()->sync(); }
+    void sync() { data()->sync(); }
 
-    virtual void clear() { data()->clear(); }
+    void clear() { data()->clear(); }
 
-    virtual void deploy() { data()->deploy(); }
+    void deploy() { data()->deploy(); }
 
-    virtual mesh_type const &mesh() const { return attribute()->mesh(); }
+    mesh_type const &mesh() const { return attribute()->mesh(); }
 
-    virtual data_model::DataSet data_set() { return data()->data_set(); }
+    data_model::DataSet data_set() { return data()->data_set(); }
 
-    virtual data_model::DataSet data_set() const { return attribute()->data_set(); }
+    data_model::DataSet data_set() const { return attribute()->data_set(); }
 
     template<typename ...Args>
     void accept(Args &&...args) { data()->accept(std::forward<Args>(args)...); }

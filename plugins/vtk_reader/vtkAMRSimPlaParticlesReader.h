@@ -62,7 +62,7 @@ protected:
     virtual ~vtkAMRSimPlaParticlesReader();
 
     // Description:
-    // Read the particles from the given particles file for the block
+    // Read the fluid_sp from the given fluid_sp file for the block
     // corresponding to the given block index.
     vtkPolyData *GetParticles(const char *file, const int blockIdx);
 
@@ -84,7 +84,7 @@ protected:
     vtkDataArray *GetParticlesTypeArray(const int blockIdx);
 
     // Description:
-    // Reads the particles.
+    // Reads the fluid_sp.
     vtkPolyData *ReadParticles(const int blkidx);
 
     int ParticleType;

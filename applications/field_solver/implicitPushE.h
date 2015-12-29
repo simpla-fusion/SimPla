@@ -55,7 +55,7 @@ public:
  *
  * @param E
  * @param B
- * @param particles
+ * @param fluid_sp
  * @param pdE
  */
 template<typename TM>
@@ -64,7 +64,7 @@ void ImplicitPushE<TM>::next_timestep(field<scalar_type, EDGE> *pdE)
 {
 //	{
 //		bool flag = false;
-//		for (auto &p : particles)
+//		for (auto &p : fluid_sp)
 //		{
 //			flag |= (p.second->is_implicit());
 //		}
@@ -99,7 +99,7 @@ void ImplicitPushE<TM>::next_timestep(field<scalar_type, EDGE> *pdE)
 //	b.clear();
 //	c.clear();
 //
-//	for (auto &p : particles)
+//	for (auto &p : fluid_sp)
 //	{
 //		if (p.second->is_implicit())
 //		{

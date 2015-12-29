@@ -85,6 +85,8 @@ public:
 
     nTuple<int, 3> const &dimensions() const;
 
+    Real B0() const;
+
     /**
      *
      * @param R

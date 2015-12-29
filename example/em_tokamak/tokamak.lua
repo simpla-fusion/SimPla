@@ -23,7 +23,7 @@ k_B = 1.3806488e-23 --Boltzmann_constant
 --
 
 k_parallel = 18
-Btor = 2.0 * Tesla
+Btor = 1.832 * Tesla
 Ti = 0.03 * KeV
 Te = 0.05 * KeV
 N0 = 1.0e17 -- m^-3
@@ -39,14 +39,14 @@ rhoe = vTe / omega_ce -- m
 
 NX = 50
 NY = 50
-NZ = 10
+NZ = 4
 LX = 1.0 --m --100000*rhoi --0.6
 LY = 1 --2.0*math.pi/k0
 LZ = math.pi * 0.25 -- 2.0*math.pi/18
 GW = 5
 PIC = 100
 GEQDSK = "/home/salmon/workspace-local/SimPla/scripts/gfile/g038300.03900"
-number_of_steps = 10
+number_of_steps = 1000
 
 DisableField = true
 DisableParticle = false
@@ -59,7 +59,7 @@ Mesh =
         Topology = { Dimensions = { NX, NY, NZ }, },
         Box = { { 0.0, 0.0, 0 }, { LX, LY, LZ } },
     },
-    dt = 0.5 * (LX / NX) / c
+    dt = 10 * math.pi * 2 / omega_ci --0.5 * (LX / NX) / c
 }
 omega_ext = omega_ci * 1.9
 
@@ -98,12 +98,15 @@ Particles = {
     H = {
         mass = mp,
         charge = qe,
-        T = Ti,
+        temperature = Ti,
         PIC = 1,
         Type = "Boris",
-        IsParticle = true,
+        --  IsKineticParticle = true,
+        IsTestingParticle = true,
         --  DisableCheckPoint = true,
         DisableXDMFOutput = true,
+        EnableCheckPoint = true,
+        SubScycle = 1000,
         V0 = { 1, 2, 3 },
     },
     ele = {

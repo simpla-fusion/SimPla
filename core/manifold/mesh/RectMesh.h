@@ -35,22 +35,26 @@ struct Mesh<TMetric, tags::rect_linear, TMap> : public TMetric, public MeshBlock
 private:
     typedef Mesh<TMetric, tags::rect_linear, TMap> this_type;
     typedef TMap map_type;
-    typedef TMetric metric_type;
 
-    typedef MeshBlock block_type;
 
 public:
 
     HAS_PROPERTIES;
+
+    typedef TMetric metric_type;
+    typedef MeshBlock block_type;
+
     using block_type::ndims;
     using block_type::id_type;
     using block_type::id_tuple;
     using block_type::index_type;
     using block_type::index_tuple;
     using block_type::range_type;
-    using block_type::point_type;
-    using block_type::vector_type;
     using block_type::difference_type;
+
+    using typename metric_type::scalar_type;
+    using typename metric_type::point_type;
+    using typename metric_type::vector_type;
 
 private:
     point_type m_coords_min_ = {0, 0, 0};

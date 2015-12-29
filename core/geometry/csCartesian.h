@@ -12,55 +12,53 @@
 #include "../gtl/type_cast.h"
 #include "CoordinateSystem.h"
 
-namespace simpla
-{
-namespace geometry
+namespace simpla { namespace geometry
 {
 
-
-template<typename...> struct Metric;
-
-using CartesianMetric= Metric<coordinate_system::Cartesian<3, 2> >;
 
 /**
  * @ingroup  coordinate_system
  * @{
  *  Metric of  Cartesian coordinate system
  */
-template<int ICARTESIAN_ZAXIS>
-struct Metric<coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS> >
+struct CartesianMetric
 {
+    static constexpr int I_CARTESIAN_ZAXIS = 2;
 
 
-    static constexpr int CartesianZAxis = (ICARTESIAN_ZAXIS) % 3;
+    static constexpr int CartesianZAxis = (I_CARTESIAN_ZAXIS) % 3;
     static constexpr int CartesianYAxis = (CartesianZAxis + 2) % 3;
     static constexpr int CartesianXAxis = (CartesianZAxis + 1) % 3;
-    typedef traits::point_t<coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS>> point_t;
-    typedef traits::vector_t<coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS>> vector_t;
-    typedef traits::covector_t<coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS>> covector_t;
+
+    typedef Real scalar_type;
+    typedef nTuple<scalar_type, 3> point_type;
+    typedef nTuple<scalar_type, 3> vector_type;
+    typedef nTuple<scalar_type, 3> covector_type;
+
 
     /**
      * metric only diff_scheme the volume of simplex
      *
      */
 
-    static point_t map_to_cartesian(point_t const &p)
+    static inline point_type map_to_cartesian(point_type const &p)
     {
         return p;
     }
 
-    static constexpr Real simplex_length(point_t const &p0, point_t const &p1)
+    static inline Real simplex_length(point_type const &p0, point_type const &p1)
     {
         return std::sqrt(dot(p1 - p0, p1 - p0));
     }
 
-    static constexpr Real simplex_area(point_t const &p0, point_t const &p1, point_t const &p2)
+    static inline Real simplex_area(point_type const &p0, point_type const &p1, point_type const &p2)
     {
         return (std::sqrt(dot(cross(p1 - p0, p2 - p0), cross(p1 - p0, p2 - p0)))) * 0.5;
     }
 
 
-    static constexpr Real simplex_volume(point_t const &p0, point_t const &p1, point_t const &p2, point_t const &p3)
+    static inline Real simplex_volume(point_type const &p0, point_type const &p1, point_type const &p2,
+                                      point_type const &p3)
     {
         return dot(p3 - p0, cross(p1 - p0, p2 - p1)) / 6.0;
     }
@@ -69,24 +67,7 @@ struct Metric<coordinate_system::template Cartesian<3, ICARTESIAN_ZAXIS> >
 };
 /** @}*/
 
-}  // namespace geometry
-
-
-namespace traits
-{
-
-template<int N, int ICARTESIAN_ZAXIS>
-struct type_id<simpla::geometry::coordinate_system::Cartesian<N, ICARTESIAN_ZAXIS> >
-{
-    static std::string name()
-    {
-        return "Cartesian<" + simpla::type_cast<std::string>(N) + ","
-               + simpla::type_cast<std::string>(ICARTESIAN_ZAXIS) + ">";
-    }
-};
-
-}  // namespace traits
-}  // namespace simpla
+}}  // namespace simpla
 
 
 
@@ -103,16 +84,16 @@ struct type_id<simpla::geometry::coordinate_system::Cartesian<N, ICARTESIAN_ZAXI
 //    static constexpr int CartesianZAxis0 = (ZAXIS0) % 3;
 //    static constexpr int CartesianYAxis0 = (CartesianZAxis0 + 2) % 3;
 //    static constexpr int CartesianXAxis0 = (CartesianZAxis0 + 1) % 3;
-//    typedef gt::point_t<coordinate_system::Cartesian<3, ZAXIS0> > point_t0;
-//    typedef gt::vector_t<coordinate_system::Cartesian<3, ZAXIS0> > vector_t0;
-//    typedef gt::covector_t<coordinate_system::Cartesian<3, ZAXIS0> > covector_t0;
+//    typedef gt::point_type<coordinate_system::Cartesian<3, ZAXIS0> > point_t0;
+//    typedef gt::vector_type<coordinate_system::Cartesian<3, ZAXIS0> > vector_t0;
+//    typedef gt::covector_type<coordinate_system::Cartesian<3, ZAXIS0> > covector_t0;
 //
 //    static constexpr int CartesianZAxis1 = (ZAXIS1) % 3;
 //    static constexpr int CartesianYAxis1 = (CartesianZAxis1 + 2) % 3;
 //    static constexpr int CartesianXAxis1 = (CartesianZAxis1 + 1) % 3;
-//    typedef gt::point_t<coordinate_system::Cartesian<3, ZAXIS1> > point_t1;
-//    typedef gt::vector_t<coordinate_system::Cartesian<3, ZAXIS1> > vector_t1;
-//    typedef gt::covector_t<coordinate_system::Cartesian<3, ZAXIS1> > covector_t1;
+//    typedef gt::point_type<coordinate_system::Cartesian<3, ZAXIS1> > point_t1;
+//    typedef gt::vector_type<coordinate_system::Cartesian<3, ZAXIS1> > vector_t1;
+//    typedef gt::covector_type<coordinate_system::Cartesian<3, ZAXIS1> > covector_t1;
 //
 //    static point_t1 eval(point_t0 const &x)
 //    {

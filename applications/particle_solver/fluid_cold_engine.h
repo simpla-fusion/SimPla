@@ -288,7 +288,7 @@ void Particle<TM, ColdFluid, PolicyFluidParticle>::next_timestep_half(
 		E0_type const & E0, B0_type const & B0, E1_type const & E1,
 		B1_type const & B1)
 {
-	LOGGER << "Push particles Step Half[ " << get_type_as_string() << "]";
+	LOGGER << "Push fluid_sp Step Half[ " << get_type_as_string() << "]";
 
 	auto K = mesh.template make_field<VERTEX, nTuple<scalar_type, 3>>();
 	auto B2 = mesh.template make_field<VERTEX, Real>();
@@ -306,7 +306,7 @@ void Particle<TM, ColdFluid, PolicyFluidParticle>::next_timestep_half(
 template<typename TM>
 void Particle<TM, ColdFluid, PolicyFluidParticle>::updateFields()
 {
-	LOGGER << "Push particles update fields[ " << get_type_as_string() << "]";
+	LOGGER << "Push fluid_sp update fields[ " << get_type_as_string() << "]";
 
 	Real dt = mesh.get_dt();
 

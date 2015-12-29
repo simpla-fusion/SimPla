@@ -69,6 +69,13 @@ struct EMPlasma
 
     std::function<Vec3(Real, point_type const &)> J_src_fun;
 
+
+    typedef traits::field_t<scalar_type, mesh_type, FACE> TB;
+    typedef traits::field_t<scalar_type, mesh_type, EDGE> TE;
+    typedef traits::field_t<scalar_type, mesh_type, EDGE> TJ;
+    typedef traits::field_t<scalar_type, mesh_type, VERTEX> TRho;
+    typedef traits::field_t<vector_type, mesh_type, VERTEX> TJv;
+
     traits::field_t<scalar_type, mesh_type, EDGE> E0{m, "E0"};
     traits::field_t<scalar_type, mesh_type, FACE> B0{m, "B0"};
     traits::field_t<vector_type, mesh_type, VERTEX> B0v{m, "B0v"};
@@ -83,46 +90,34 @@ struct EMPlasma
 
     traits::field_t<scalar_type, mesh_type, VERTEX> rho0{m};
 
-    typedef traits::field_t<scalar_type, mesh_type, FACE> TB;
-    typedef traits::field_t<scalar_type, mesh_type, EDGE> TE;
-    typedef traits::field_t<scalar_type, mesh_type, EDGE> TJ;
-    typedef traits::field_t<scalar_type, mesh_type, VERTEX> TRho;
-    typedef traits::field_t<vector_type, mesh_type, VERTEX> TJv;
+
+    typedef particle::ParticleProxyBase<TE, TB, TJ, TRho> particle_s;
 
 
-    typedef particle::ParticleProxyBase<TE, TB, TJv, TRho> particle_proxy_type;
-
-    struct particle_s
+    struct fluid_s
     {
         Real mass;
         Real charge;
         traits::field_t<scalar_type, mesh_type, VERTEX> rho1;
         traits::field_t<vector_type, mesh_type, VERTEX> J1;
-        std::shared_ptr<particle_proxy_type> f;
-        std::shared_ptr<particle_proxy_type> test;
-
     };
 
-    std::map<std::string, particle_s> particles;
+    std::map<std::string, fluid_s> fluid_sp;
+    std::map<std::string, std::shared_ptr<particle_s>> particle_sp;
+    std::map<std::string, std::shared_ptr<particle_s>> testing_particle_sp;
 
 
-    std::pair<typename std::map<std::string, particle_s>::iterator, bool>
+    std::pair<typename std::map<std::string, fluid_s>::iterator, bool>
     add_particle(std::string const &name, Real mass,
                  Real charge)
     {
-        return particles.emplace(
-                std::make_pair(
-                        name,
-                        particle_s{
-                                mass, charge,
-                                traits::field_t<scalar_type, mesh_type, VERTEX>(m, "n_" + name),
-                                traits::field_t<vector_type, mesh_type, VERTEX>(m, "J_" + name)
-                        }));
+        return fluid_sp.emplace(
+                std::make_pair(name, fluid_s{mass, charge, TRho{m, "n_" + name}, TJv{m, "J_" + name}}));
 
     }
 
     template<typename TP, typename TDict>
-    std::shared_ptr<particle_proxy_type>
+    std::shared_ptr<particle_s>
     create_particle(std::string const &key, TDict const &dict)
     {
         VERBOSE << "Create particle [" << key << "]" << std::endl;
@@ -136,10 +131,10 @@ struct EMPlasma
         auto gen = particle::make_generator(pic.engine(), 1.0);
 
         pic.generator(plasma_region_volume, gen, pic.properties()["PIC"].template as<size_t>(10),
-                      pic.properties()["T"].template as<Real>(1));
+                      pic.properties()["temperature"].template as<Real>(1));
 
 
-        return particle_proxy_type::create(pic.data());
+        return particle_s::create(pic.data());
 
     }
 
@@ -192,27 +187,6 @@ void EMPlasma::setup(int argc, char **argv)
     VERBOSE << "Clear fields" << std::endl;
 
 
-//        if (m_geo_.topology_type() == "CoRectMesh")
-//        {
-//            int ndims = m_geo_.ndims;
-//
-//            nTuple<size_t, 3> dims;
-//
-//            dims = m_geo_.dimensions();
-//
-//            nTuple<Real, 3> xmin, dx;
-//
-//            std::tie(xmin, std::ignore) = m_geo_.box();
-//
-//            dx = m_geo_.dx();
-//
-//            base_type::set_grid(ndims, &dims[0], &xmin[0], &dx[0]);
-//        }
-//
-//        else if (m_geo_.topology_type() == "SMesh")
-//        {
-//
-//        }
     out_stream.open(options["output"].as<std::string>("tokamak"), "GEqdsk");
 
     out_stream.set_topology_geometry("Main", m.grid_vertices());
@@ -221,23 +195,17 @@ void EMPlasma::setup(int argc, char **argv)
 
 
     E0.clear();
-    Ev.clear();
+    B0.clear();
+
     B1.clear();
     E1.clear();
     J1.clear();
 
-    B0.clear();
+    Ev.clear();
 
     parallel::parallel_for(
             m.template range<FACE>(),
-            [&](range_type const &r)
-            {
-                for (auto const &s:r)
-                {
-                    B0.assign(s, geqdsk.B(m.point(s)));
-
-                }
-            }
+            [&](range_type const &r) { for (auto const &s:r) { B0.assign(s, geqdsk.B(m.point(s))); }}
     );
 
     B0.sync();
@@ -247,6 +215,7 @@ void EMPlasma::setup(int argc, char **argv)
     rho0.clear();
 
     auto const &boundary = geqdsk.boundary();
+
     parallel::parallel_for(
             m.template range<VERTEX>(),
             [&](range_type const &r)
@@ -255,10 +224,7 @@ void EMPlasma::setup(int argc, char **argv)
                 {
                     auto x = m.point(s);
 
-                    if (boundary.within(x))
-                    {
-                        rho0.assign(s, geqdsk.profile("ne", x));
-                    }
+                    if (boundary.within(x)) { rho0.assign(s, geqdsk.profile("ne", x)); }
 
                 }
             }
@@ -328,69 +294,92 @@ void EMPlasma::setup(int argc, char **argv)
         for (auto const &dict:ps)
         {
 
+
             std::string key = dict.first.template as<std::string>();
 
-            auto &p = particles[key];
 
-            p.mass = dict.second["mass"].template as<Real>();
-
-            p.charge = dict.second["charge"].template as<Real>();
-
-
-            traits::field_t<scalar_type, mesh_type, VERTEX>(m, "n_" + key).swap(p.rho1);
-
-            traits::field_t<vector_type, mesh_type, VERTEX>(m, "J_" + key).swap(p.J1);
-
-            if (dict.second["Density"])
+            if (dict.second["IsKineticParticle"])
             {
-                p.rho1 = traits::make_field_function_from_config<scalar_type, VERTEX>(m, dict.second["Density"]);
-            }
-            else { p.rho1 = rho0; }
-
-            if (dict.second["Type"].template as<std::string>() == "Boris")
-            {
-                p.f = create_particle<particle::BorisParticle<mesh_type>>(key, dict.second);
-                if (dict.second["EnableTracking"])
+                if (dict.second["Type"].template as<std::string>() == "Boris")
                 {
-                    p.test = create_particle<particle::BorisTrackingParticle<mesh_type>>(key, dict.second);
+                    particle_sp[key] = create_particle<particle::BorisParticle<mesh_type>>(key, dict.second);
                 }
+            }
+            else if (dict.second["IsTestingParticle"])
+            {
+                if (dict.second["Type"].template as<std::string>() == "Boris")
+                {
+                    testing_particle_sp[key] = create_particle<particle::BorisTrackingParticle<mesh_type>>(key,
+                                                                                                           dict.second);
+                }
+            }
+            else
+            {
+                auto &p = fluid_sp[key];
+
+                p.mass = dict.second["mass"].template as<Real>();
+
+                p.charge = dict.second["charge"].template as<Real>();
+
+
+                TRho{m, "n_" + key}.swap(p.rho1);
+
+                TJv{m, "J_" + key}.swap(p.J1);
+
+                p.rho1.clear();
+
+                p.J1.clear();
+
+                if (dict.second["Density"])
+                {
+                    p.rho1 = traits::make_field_function_from_config<scalar_type, VERTEX>(m, dict.second["Density"]);
+                }
+                else { p.rho1 = rho0; }
+
 
             }
+
 
         }
     }
 
-    BB.data()->properties()["DisableCheckPoint"] = true;
-    B0v.data()->properties()["DisableCheckPoint"] = true;
-    E0.data()->properties()["DisableCheckPoint"] = true;
-    B0.data()->properties()["DisableCheckPoint"] = true;
 
-    MESSAGE << std::endl << "[ Configuration ]" << std::endl << m << std::endl;
+    Ev = map_to<VERTEX>(E1);
+
+    //=================================================================================================================
+
+    MESSAGE << std::endl << "[ Configuration ]" << std::endl
+
+    << "\t B0 = " << geqdsk.B0() << "," << std::endl
+
+    << m << std::endl;
 
     MESSAGE << "Particles = {" << std::endl;
-    for (auto const &item:particles)
-    {
-        MESSAGE << "  " << item.first << " =  ";
 
-        if ((item.second.f == nullptr))
-        {
-            MESSAGE << "{"
-            << " mass =" << item.second.mass << " , "
-            << " charge = " << item.second.charge << " , "
-            << " type =   \"Fluid\" " << "}";
-        }
-        else
-        {
-            MESSAGE << *item.second.f;
-        }
+    for (auto const &item:fluid_sp)
+    {
+        MESSAGE << "  " << item.first << " =  "
+        << "{"
+        << " mass =" << item.second.mass << " , "
+        << " charge = " << item.second.charge << " , "
+        << " type =   \"Fluid\" " << "}";
 
 
         MESSAGE << "," << std::endl;
     }
-    MESSAGE << "}" << std::endl;
 
 
-    Ev = map_to<VERTEX>(E1);
+    for (auto const &item:particle_sp)
+    {
+        MESSAGE << "  " << item.first << " =  {" << *item.second << "}," << std::endl;
+    }
+
+
+    for (auto const &item:testing_particle_sp)
+    {
+        MESSAGE << "  " << item.first << " =  {" << *item.second << "}," << std::endl;
+    }
+    MESSAGE << "}," << std::endl;
 
 
     out_stream.close_grid();
@@ -439,12 +428,11 @@ void EMPlasma::check_point()
         for (auto const &item:m.attributes())
         {
             auto attr = item.second.lock();
-            if (!attr->properties()["DisableCheckPoint"])
+            if (attr->properties()["EnableCheckPoint"])
             {
-                if (!attr->properties()["IsParticle"])
+                if (!attr->properties()["IsKineticParticle"])
                 {
                     out_stream.write(item.first, *std::dynamic_pointer_cast<base::AttributeObject>(attr));
-
                 }
 
             }
@@ -459,12 +447,18 @@ void EMPlasma::check_point()
         for (auto const &item:m.attributes())
         {
             auto attr = item.second.lock();
-            if (!attr->properties()["DisableCheckPoint"])
+
+            if (attr->properties()["EnableCheckPoint"])
             {
-                if (attr->properties()["IsParticle"])
+                if (attr->properties()["IsTestingParticle"])
                 {
                     out_stream.hdf5().write(item.first, attr->checkpoint(), io::SP_RECORD);
                 }
+                else if (attr->properties()["IsKineticParticle"])
+                {
+                    out_stream.hdf5().write(item.first, attr->dump(), io::SP_RECORD);
+                }
+
 
             }
         }
@@ -477,44 +471,60 @@ void EMPlasma::check_point()
 
 void EMPlasma::next_time_step()
 {
-    VERBOSE << "Push one step" << std::endl;
 
     DEFINE_PHYSICAL_CONST
 
     Real dt = m.dt();
 
     Real t = m.time();
+
+    LOGGER << " Time = [" << t << "] Count = [" << m_count << "]" << std::endl;
+
+
+    if (!disable_field)
+    {
+
+        J1.clear();
+
+        J1.accept(J_src.range(), [&](id_type s, Real &v) { J1.add(s, J_src_fun(t, m.point(s))); });
+
+    }
+
+
     if (!disable_particle)
     {
-        for (auto &p:particles)
+        for (auto &p:particle_sp)
         {
-
-            if (p.second.f != nullptr)
-            {
-                p.second.rho1.clear();
-                p.second.J1.clear();
-
-                p.second.f->push(dt, m.time(), E0, B0);
-//                p.second.f->integral(&p.second.J1);
-            }
-
-            if (p.second.test != nullptr)
-            {
-                p.second.test->push(dt, m.time(), E0, B0);
-            }
+            p.second->push(dt, m.time(), E0, B0);
+            if (!disable_field) { p.second->integral(&J1); }
         }
+        for (auto &p:testing_particle_sp)
+        {
+            int sub_cycle = p.second->properties()["SubScycle"].template as<int>(1);
+
+            Real s_dt = dt / sub_cycle;
+            Real s_time = t;
+
+            for (int s = 0; s < sub_cycle; ++s)
+            {
+                p.second->push(s_dt, s_time, E0, B0);
+                s_time += s_dt;
+            }
+
+//            p.second->rehash();
+//            CHECK(p.second->size());
+        }
+
+
     }
     if (!disable_field)
     {
 
 
-        J1.clear();
-
         LOG_CMD(B1 -= curl(E1) * (dt * 0.5));
 
         B1.accept(face_boundary.range(), [&](id_type, Real &v) { v = 0; });
 
-        J1.accept(J_src.range(), [&](id_type s, Real &v) { J1.add(s, J_src_fun(t, m.point(s))); });
 
         LOG_CMD(E1 += (curl(B1) * speed_of_light2 - J1 / epsilon0) * dt);
 
@@ -526,7 +536,7 @@ void EMPlasma::next_time_step()
 
 
         //particle::absorb(ion, limiter_boundary);
-        if (particles.size() > 0)
+        if (fluid_sp.size() > 0)
         {
 
             traits::field_t<vector_type, mesh_type, VERTEX> Q{m};
@@ -543,7 +553,7 @@ void EMPlasma::next_time_step()
             Q = map_to<VERTEX>(E1) - Ev;
 
 
-            for (auto &p :   particles)
+            for (auto &p :   fluid_sp)
             {
 
                 Real ms = p.second.mass;
@@ -581,7 +591,7 @@ void EMPlasma::next_time_step()
             LOG_CMD(dE = (Q * a - cross(Q, B0v) * b + B0v * (dot(Q, B0v) * (b * b - c * a) / (a + c * BB))) /
                          (b * b * BB + a * a));
 
-            for (auto &p :   particles)
+            for (auto &p :   fluid_sp)
             {
                 Real ms = p.second.mass;
                 Real qs = p.second.charge;

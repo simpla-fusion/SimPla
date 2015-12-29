@@ -146,14 +146,13 @@ public:
 
     typedef TMesh mesh_type;
     typedef geometry::traits::coordinate_system_t<mesh_type> coordinates_system_type;
-    typedef geometry::traits::scalar_type_t<coordinates_system_type> scalar_type;
-    typedef geometry::traits::point_type_t<coordinates_system_type> point_type;
-    typedef geometry::traits::vector_type_t<coordinates_system_type> vector_type;
-
-
+    typedef typename mesh_type::scalar_type scalar_type;
     typedef typename mesh_type::id_type id_type;
     typedef typename mesh_type::range_type range_type;
     typedef typename mesh_type::box_type box_type;
+
+    using typename mesh_type::point_type;
+    using typename mesh_type::vector_type;
 
     using mesh_type::ndims;
     using mesh_type::volume;

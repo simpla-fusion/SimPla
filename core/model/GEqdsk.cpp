@@ -261,6 +261,8 @@ void GEqdsk::pimpl_s::load_profile(std::string const &fname)
 
 }
 
+Real GEqdsk::B0() const { return m_pimpl_->m_bcenter_; }
+
 std::ostream &GEqdsk::print(std::ostream &os)
 {
     std::cout << "--" << m_pimpl_->m_desc_ << std::endl;

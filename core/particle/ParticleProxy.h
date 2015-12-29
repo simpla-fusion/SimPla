@@ -52,6 +52,8 @@ public:
 
     virtual void integral(TRho *n) const { m_self_->integral(n); }
 
+    virtual size_t size() const { return m_self_->size(); }
+
     std::ostream &print(std::ostream &os, int indent) const { return m_self_->print(os, indent); }
 
 };
@@ -85,6 +87,8 @@ public:
     virtual void integral(TRho *n) const = 0;
 
     virtual std::ostream &print(std::ostream &os, int indent) const = 0;
+
+    virtual size_t size() const = 0;
 
     template<typename TP>
     static std::shared_ptr<this_type> create(std::shared_ptr<TP> p)

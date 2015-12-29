@@ -44,8 +44,8 @@
 * ` struct Point_s `   | data  type of sample point
 * ` P( ) `             | Constructor
 * ` ~P( ) `            | Destructor
-* ` void  next_time_step(dt, args ...) const; `  | push  particles a time interval 'dt'
-* ` void  next_time_step(num_of_steps,t0, dt, args ...) const; `  | push  particles from time 't0' to 't1' with time step 'dt'.
+* ` void  next_time_step(dt, args ...) const; `  | push  fluid_sp a time interval 'dt'
+* ` void  next_time_step(num_of_steps,t0, dt, args ...) const; `  | push  fluid_sp from time 't0' to 't1' with time step 'dt'.
 * ` flush_buffer( ) `  | flush input buffer to internal data container
 *
 *- @ref particle meets the requirement of @ref container,
@@ -128,7 +128,7 @@ public:
 
     void swap(this_type const &other) = delete;
 
-    virtual ~ParticleContainer();
+    virtual ~ParticleContainer() ;
 
 
     HAS_PROPERTIES

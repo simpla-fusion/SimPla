@@ -421,9 +421,9 @@ std::string make_msg(Others const &...others)
 
 #define SEPERATOR(_C_) std::setw(80) << std::setfill(_C_) << _C_
 //"-----------------------------------------------------------------"
-#define CMD LOGGER<<"CMD:\t"
+#define CMD VERBOSE<<"CMD:\t"
 
-#define LOG_CMD(_CMD_) try{logger::Logger __logger(logger::LOG_LOG);__logger<<"CMD:\t"<<std::string(__STRING(_CMD_));_CMD_;__logger<<DONE;}catch (std::exception const &error){ RUNTIME_ERROR<<("[",__STRING(_CMD_), "]",error.what())<<std::endl;}
+#define LOG_CMD(_CMD_) try{logger::Logger __logger(logger::LOG_VERBOSE);__logger<<"CMD:\t"<<std::string(__STRING(_CMD_));_CMD_;__logger<<DONE;}catch (std::exception const &error){ RUNTIME_ERROR<<("[",__STRING(_CMD_), "]",error.what())<<std::endl;}
 
 #define VERBOSE_CMD(_CMD_) {logger::Logger __logger(logger::LOG_VERBOSE);__logger<<__STRING(_CMD_);try{_CMD_;__logger<< DONE;}catch(...){__logger<<logger::failed;} }
 
