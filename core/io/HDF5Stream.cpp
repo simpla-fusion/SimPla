@@ -87,6 +87,7 @@ std::tuple<bool, std::string> HDF5Stream::open(std::string const &url, size_t fl
 
     //TODO using regex parser url
 
+
     if (IOStream::current_file_name() != file_name)
     {
         open_file(file_name, flag);
@@ -99,13 +100,14 @@ std::tuple<bool, std::string> HDF5Stream::open(std::string const &url, size_t fl
     {
         if (GLOBAL_COMM.process_num() == 0)
         {
-            obj_name = obj_name +
+            obj_name =
+                    obj_name +
 
-                       AutoIncrease([&](std::string const &s) -> bool
-                                    {
-                                        return H5Lexists(m_pimpl_->base_group_id_,
-                                                         (obj_name + s).c_str(), H5P_DEFAULT) > 0;
-                                    }, 0, 4);
+                    AutoIncrease([&](std::string const &s) -> bool
+                                 {
+                                     return H5Lexists(m_pimpl_->base_group_id_,
+                                                      (obj_name + s).c_str(), H5P_DEFAULT) > 0;
+                                 }, 0, 4);
         }
 
         parallel::bcast_string(&obj_name);

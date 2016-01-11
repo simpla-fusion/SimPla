@@ -16,13 +16,14 @@
 
 #include "../Manifold.h"
 
-#include "../mesh/RectMesh.h"
 #include "../mesh/CoRectMesh.h"
 
 #include "../policy/FvmStructuredPolicy.h"
 #include "../policy/LinearInterpolatorPolicy.h"
 #include "../policy/StoragePolicy.h"
 #include "../policy/ParallelPolicy.h"
+
+#include "CylindricalRectMesh.h"
 
 namespace simpla { namespace manifold
 {
@@ -34,7 +35,7 @@ using DefaultManifold= Manifold<MESH,
         policy::StoragePolicy,
         policy::ParallelPolicy>;
 
-using CylindricalManifold= DefaultManifold<mesh::RectMesh<geometry::CylindricalMetric> >;
+using CylindricalManifold= DefaultManifold<mesh::CylindricalRectMesh>;
 
 using CartesianManifold=DefaultManifold<mesh::CoRectMesh<geometry::CartesianMetric> >;
 

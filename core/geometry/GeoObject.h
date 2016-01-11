@@ -27,7 +27,7 @@ class GeoObject
 public:
     typedef nTuple<Real, 3> vector_type;
     typedef nTuple<Real, 3> point_type;
-    typedef nTuple<Real, 2, 3> box_type;
+    typedef std::tuple<point_type, point_type> box_type;
 
     GeoObject() { }
 

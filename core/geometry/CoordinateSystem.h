@@ -80,6 +80,11 @@ namespace traits
 template<typename> struct coordinate_type;
 
 template<typename ...> struct coordinate_system_type;
+
+template<typename T> struct coordinate_system_type<T>
+{
+    typedef typename T::coordinate_system_type type;
+};
 template<typename T> using coordinate_system_t= typename coordinate_system_type<T>::type;
 
 

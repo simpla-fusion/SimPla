@@ -154,33 +154,42 @@ void EMPlasma::setup(int argc, char **argv)
     options.init(argc, argv);
 
     disable_particle = options["DisableParticle"].template as<bool>(false);
+
     disable_field = options["DisableField"].template as<bool>(false);
-
-    options["Mesh"].as(&m.properties());
-
-    nTuple<Real, 2, 3> box;
-
-    Real phi0 = 0, phi1 = TWOPI;
-
-    if (m.properties()["Geometry"]["Box"].as(&box))
-    {
-        phi0 = box[0][2];
-        phi1 = box[1][2];
-    }
-
 
     GEqdsk geqdsk;
 
-    geqdsk.load(options["GEQDSK"].as<std::string>(""));
 
-    box = geqdsk.limiter().box();
+    {
+
+        box_type box;
+
+        Real phi0 = 0, phi1 = TWOPI;
+
+        if (options["Mesh"]["Geometry"]["Box"].as(&box))
+        {
+            phi0 = traits::get<0>(box)[2];
+            phi1 = traits::get<1>(box)[2];
+        }
+
+        geqdsk.load(options["GEQDSK"].as<std::string>(""));
+
+        box = geqdsk.limiter().box();
 
 
-    box[0][2] = phi0;
-    box[1][2] = phi1;
+        traits::get<0>(box)[2] = phi0;
+        traits::get<1>(box)[2] = phi1;
 
 
-    m.box(box);
+        m.box(box);
+
+        auto dims = options["Mesh"]["Geometry"]["Topology"]["Dimensions"].template as<nTuple<size_t, 3> >();
+
+        m.dimensions(dims);
+
+
+        m.dt(options["Mesh"]["dt"].template as<Real>(1.0));
+    }
 
     m.deploy();
 

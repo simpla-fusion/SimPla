@@ -28,7 +28,7 @@ void init(int argc, char **argv);
 
 void close();
 
-std::string help_message();
+//std::string help_message();
 
 std::string cd(std::string const &url);
 
@@ -47,26 +47,26 @@ std::string write(std::string const &url, size_t num, T const *d, size_t flag = 
 {
     return write(url, data_model::DataSet::create(d, num), flag);
 }
-
-void delete_attribute(std::string const &url);
-
-void set_data_set_attribute(std::string const &url, std::string const &str);
-
-void set_data_set_attribute(std::string const &url, any const &prop);
-
-any get_data_set_attribute(std::string const &url);
-
-template<typename T> void set_data_set_attribute(std::string const &url, T const &v)
-{
-    set_data_set_attribute(url, any(v));
-}
-
-template<typename T>
-T get_data_set_attribute(std::string const &url)
-{
-    return std::move(get_data_set_attribute(url).template as<T>());
-}
-
+//
+//void delete_attribute(std::string const &url);
+//
+//void set_data_set_attribute(std::string const &url, std::string const &str);
+//
+//void set_data_set_attribute(std::string const &url, any const &prop);
+//
+//any get_data_set_attribute(std::string const &url);
+//
+//template<typename T> void set_data_set_attribute(std::string const &url, T const &v)
+//{
+//    set_data_set_attribute(url, any(v));
+//}
+//
+//template<typename T>
+//T get_data_set_attribute(std::string const &url)
+//{
+//    return std::move(get_data_set_attribute(url).template as<T>());
+//}
+//
 
 //template<typename Tuple, size_t ...Is>
 //std::string save_tuple_impl(std::string const & name, Tuple const & d,

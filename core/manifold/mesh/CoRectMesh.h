@@ -16,15 +16,16 @@
 #include "../../gtl/type_traits.h"
 #include "../../gtl/utilities/utilities.h"
 #include "../../geometry/GeoAlgorithm.h"
-#include "Mesh.h"
 #include "MeshBlock.h"
-#include "LinearMap.h"
 
 namespace simpla { namespace mesh
 {
 namespace tags { struct corect_linear; }
 
+template<typename ...> class Mesh;
+
 template<typename TMetric> using CoRectMesh=Mesh<TMetric, tags::corect_linear>;
+
 
 /**
  * @ingroup mesh
@@ -32,19 +33,21 @@ template<typename TMetric> using CoRectMesh=Mesh<TMetric, tags::corect_linear>;
  * @brief Uniform structured mesh
  */
 template<typename TMetric>
-struct Mesh<TMetric, tags::corect_linear> : public TMetric, public MeshBlock, private LinearMap
+struct Mesh<TMetric, tags::corect_linear> : public TMetric, public MeshBlock
 {
 
 private:
 
     typedef Mesh<TMetric, tags::corect_linear> this_type;
-    typedef LinearMap map_type;
-public:
 
-    typedef TMetric metric_type;
     typedef MeshBlock block_type;
 
+    typedef block_type base_type;
+
+public:
+
     HAS_PROPERTIES;
+
     using block_type::ndims;
     using block_type::id_type;
     using block_type::id_tuple;
@@ -54,8 +57,11 @@ public:
     using block_type::difference_type;
 
 
-    using typename metric_type::point_type;
-    using typename metric_type::vectoor_type;
+    typedef TMetric metric_type;
+    typedef typename metric_type::point_type point_type;
+    typedef typename metric_type::vector_type vector_type;
+    typedef std::tuple<point_type, point_type> box_type;
+
 
     /**
  *
@@ -94,50 +100,14 @@ public:
 
     vector_type m_dx_ = {1, 1, 1};; //!< width of cell, except m_dx_[i]=0 when m_dims_[i]==1
 
-    bool m_is_valid_ = false;
 public:
 
-    Mesh() : block_type()
-    {
+    Mesh() : block_type() { }
 
-    }
 
-//    Mesh(this_type const &other, box_type const &b, int ratio) :
-//            block_type(other), m_coords_min_(b[0]), m_coords_max_(b[1]),
-//            m_dx_(other.m_dx_ / ratio)
-//    {
-//
-//    }
-//
-//    Mesh(this_type const &other) :
-//            block_type(other), m_coords_min_(other.m_coords_min_),
-//            m_coords_max_(other.m_coords_max_),
-//            m_dx_(other.m_dx_)
-//    {
-//    }
+    Mesh(this_type const &other) = delete;
 
     virtual  ~Mesh() { }
-
-
-    virtual void swap(this_type &other)
-    {
-
-        block_type::swap(other);
-        map_type::swap(other);
-
-        std::swap(m_coords_min_, other.m_coords_min_);
-        std::swap(m_coords_max_, other.m_coords_max_);
-        std::swap(m_dx_, other.m_dx_);
-
-
-        deploy();
-        other.deploy();
-
-    }
-
-    static std::string topology_type() { return "CoRectMesh"; }
-
-    bool is_valid() const { return m_is_valid_; }
 
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const
@@ -155,12 +125,6 @@ public:
     }
 
 
-    this_type &operator=(this_type const &other)
-    {
-        this_type(other).swap(*this);
-        return *this;
-    }
-
 
 
 //================================================================================================
@@ -171,32 +135,22 @@ public:
     template<typename X0, typename X1>
     void box(X0 const &x0, X1 const &x1)
     {
-
         m_coords_min_ = x0;
         m_coords_max_ = x1;
     }
 
-    template<typename T0>
-    void box(T0 const &b)
-    {
-        box(simpla::traits::get<0>(b), simpla::traits::get<1>(b));
-    }
 
-    box_type box() const
-    {
-        return (traits::make_nTuple(m_coords_min_, m_coords_max_));
-    }
+    void box(box_type const &b) { std::tie(m_coords_min_, m_coords_max_) = b; }
+
+    box_type box() const { return (std::make_tuple(m_coords_min_, m_coords_max_)); }
 
     box_type box(id_type const &s) const
     {
-        return traits::make_nTuple(point(s - block_type::_DA), point(s + block_type::_DA));
-    };
-
-
-    vector_type const &dx() const
-    {
-        return m_dx_;
+        return std::make_tuple(point(s - block_type::_DA), point(s + block_type::_DA));
     }
+
+
+    vector_type const &dx() const { return m_dx_; }
 
     int get_vertices(int node_id, id_type s, point_type *p = nullptr) const
     {
@@ -231,13 +185,48 @@ public:
  **/
 private:
 
-    using map_type::map;
-    using map_type::inv_map;
 
+    point_type m_map_orig_ = {0, 0, 0};
+
+    point_type m_map_scale_ = {1, 1, 1};
+
+    point_type m_inv_map_orig_ = {0, 0, 0};
+
+    point_type m_inv_map_scale_ = {1, 1, 1};
+
+
+    point_type inv_map(point_type const &x) const
+    {
+
+        point_type res;
+
+        res[0] = std::fma(x[0], m_inv_map_scale_[0], m_inv_map_orig_[0]);
+
+        res[1] = std::fma(x[1], m_inv_map_scale_[1], m_inv_map_orig_[1]);
+
+        res[2] = std::fma(x[2], m_inv_map_scale_[2], m_inv_map_orig_[2]);
+
+        return std::move(res);
+    }
+
+    point_type map(point_type const &y) const
+    {
+
+        point_type res;
+
+
+        res[0] = std::fma(y[0], m_map_scale_[0], m_map_orig_[0]);
+
+        res[1] = std::fma(y[1], m_map_scale_[1], m_map_orig_[1]);
+
+        res[2] = std::fma(y[2], m_map_scale_[2], m_map_orig_[2]);
+
+        return std::move(res);
+    }
 
 public:
 
-    virtual point_type point(id_type const &s) const { return std::move(map(block_type::coordinates(s))); }
+    virtual point_type point(id_type const &s) const { return std::move(map(block_type::point(s))); }
 
 
     virtual point_type coordinates_local_to_global(std::tuple<id_type, point_type> const &t) const
@@ -245,7 +234,7 @@ public:
         return std::move(map(block_type::coordinates_local_to_global(t)));
     }
 
-    virtual std::tuple<id_type, point_type> coordinates_global_to_local(point_type x, int n_id = 0) const
+    virtual std::tuple<id_type, point_type> coordinates_global_to_local(point_type const &x, int n_id = 0) const
     {
         return std::move(block_type::coordinates_global_to_local(inv_map(x), n_id));
     }
@@ -260,7 +249,8 @@ public:
 
         point_type b0, b1, x0, x1;
 
-        std::tie(b0, b1) = local_box();
+        std::tie(b0, b1) = local_index_box();
+
         std::tie(x0, x1) = b;
 
         if (geometry::box_intersection(b0, b1, &x0, &x1))
@@ -276,7 +266,6 @@ public:
             i1 = 0;
             return std::make_tuple(i0, i1);
         }
-
 
     }
 
@@ -300,27 +289,36 @@ public:
 
     virtual void deploy()
     {
-        try
-        {
-            box(properties()["Geometry"]["Box"].template as<std::tuple<point_type, point_type> >());
-
-            block_type::dimensions(
-                    properties()["Geometry"]["Topology"]["Dimensions"].template as<index_tuple>(index_tuple{10, 1, 1}));
-
-        }
-        catch (std::runtime_error const &e)
-        {
-            SHOW_ERROR << e.what() << std::endl;
-
-            THROW_EXCEPTION_PARSER_ERROR("geometry is not correctly loaded!");
-
-        }
 
         block_type::deploy();
 
         auto dims = block_type::dimensions();
 
-        map_type::set(block_type::box(), box(), dims);
+        {
+
+
+            point_type src_min_, src_max_;
+
+            point_type dest_min, dest_max;
+
+            std::tie(src_min_, src_max_) = block_type::index_box();
+
+            std::tie(dest_min, dest_max) = box();
+
+
+            for (int i = 0; i < 3; ++i)
+            {
+                m_map_scale_[i] = (dest_max[i] - dest_min[i]) / (src_max_[i] - src_min_[i]);
+
+                m_inv_map_scale_[i] = (src_max_[i] - src_min_[i]) / (dest_max[i] - dest_min[i]);
+
+
+                m_map_orig_[i] = dest_min[i] - src_min_[i] * m_map_scale_[i];
+
+                m_inv_map_orig_[i] = src_min_[i] - dest_min[i] * m_inv_map_scale_[i];
+
+            }
+        }
 
 
         for (int i = 0; i < ndims; ++i)
@@ -333,7 +331,6 @@ public:
         }
 
 
-        m_is_valid_ = true;
 
         /**
          *\verbatim
@@ -420,7 +417,6 @@ public:
 //        m_inv_dual_volume_[0] /* 111 */=
 //                NOT_ZERO(m_inv_dual_volume_[6]) * NOT_ZERO(m_inv_dual_volume_[5]) * NOT_ZERO(m_inv_dual_volume_[3]);
 //#undef NOT_ZERO
-
 
     }
 

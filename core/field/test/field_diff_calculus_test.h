@@ -78,6 +78,8 @@ protected:
 
 
         mesh = std::make_shared<mesh_type>();
+
+
         mesh->dimensions(dims);
         mesh->box(box);
         mesh->deploy();
@@ -97,18 +99,16 @@ protected:
         one = 1;
     }
 
-    void TearDown()
-    {
-        std::shared_ptr<mesh_type>(nullptr).swap(mesh);
-    }
+    void TearDown() { std::shared_ptr<mesh_type>(nullptr).swap(mesh); }
 
 public:
     typedef Real value_type;
     typedef typename mesh_type::scalar_type scalar_type;
     typedef typename mesh_type::point_type point_type;
-
+    typedef typename mesh_type::box_type box_type;
     static constexpr size_t ndims = mesh_type::ndims;
-    std::tuple<nTuple<double, 3>, nTuple<double, 3>> box;
+
+    box_type box;
     point_type xmin, xmax;
     nTuple<size_t, 3> dims;
     nTuple<Real, 3> K_real; // @NOTE must   k = n TWOPI, period condition
@@ -156,8 +156,7 @@ TEST_P(FETLTest, grad0)
 
     for (auto const &s :   mesh->template range<EDGE>())
     {
-        ++
-                count;
+        ++count;
         size_t n = mesh->sub_index(s);
 
         auto x = mesh->point(s);
@@ -169,10 +168,7 @@ TEST_P(FETLTest, grad0)
                 ;
 
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
-        if (n == PhiAxis)
-        {
-            expect /= x[RAxis];
-        }
+        if (n == PhiAxis)        {            expect /= x[RAxis];        }
 #endif
         f1b[s] = expect;
 
@@ -224,8 +220,7 @@ TEST_P(FETLTest, grad3)
     size_t count = 0;
     for (auto s : mesh->template range<FACE>())
     {
-        ++
-                count;
+        ++count;
 
         size_t n = mesh->sub_index(s);
 
@@ -259,10 +254,8 @@ TEST_P(FETLTest, grad3)
     LOGGER << SAVE(f2b) << std::endl;
 #endif
 
-    EXPECT_LE(std::sqrt(variance / count), error
-    );
-    EXPECT_LE(mod(average / count), error
-    );
+    EXPECT_LE(std::sqrt(variance / count), error);
+    EXPECT_LE(mod(average / count), error);
 
 
 }
@@ -284,8 +277,7 @@ TEST_P(FETLTest, diverge1)
 
     for (auto s :   mesh->template range<EDGE>())
     {
-        f1[s] = E[mesh->sub_index(s)] *
-                std::sin(inner_product(K_real, mesh->point(s)));
+        f1[s] = E[mesh->sub_index(s)] * std::sin(inner_product(K_real, mesh->point(s)));
     };
 
     f1.sync();
@@ -296,7 +288,8 @@ TEST_P(FETLTest, diverge1)
     Real variance = 0;
 
     value_type average;
-    average *= 0;
+
+    average = 0;
 
     size_t count = 0;
 
@@ -324,7 +317,7 @@ TEST_P(FETLTest, diverge1)
 
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
 
-        if (dims[RAxis] > 1 && mesh->sub_index(s) == RAxis && mesh->idx_to_boundary(s) <= 1)
+        if (dims[RAxis] > 1 && mesh->sub_index(s) == RAxis /*&& mesh->idx_to_boundary(s) <= 1*/)
         {
             continue;
         }
@@ -336,8 +329,8 @@ TEST_P(FETLTest, diverge1)
 
         average += (f0[s] - expect);
 
-
     }
+
 
     EXPECT_GT(count, 0);
 
@@ -352,12 +345,8 @@ TEST_P(FETLTest, diverge1)
 #endif
 
 
-    EXPECT_LE(std::sqrt(variance), error) << dims;
-    EXPECT_LE(mod(average), error) << " K= " << K_real << " K_i= " << K_imag
-
-//			<< " geometry->Ki=" << geometry->k_imag
-
-                        ;
+    EXPECT_LE(std::sqrt(variance), error);
+    EXPECT_LE(mod(average), error);
 
 }
 
@@ -377,12 +366,15 @@ TEST_P(FETLTest, diverge2)
     {
         f2[s] = std::sin(inner_product(K_real, mesh->point(s)));
     };
+
     f2.sync();
 
     LOG_CMD(f3 = diverge(f2));
 
     Real variance = 0;
+
     value_type average;
+
     average *= 0.0;
 
     size_t count = 0;
@@ -411,7 +403,7 @@ TEST_P(FETLTest, diverge2)
 
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
 
-        if (dims[mesh->sub_index(s)] > 1 && mesh->idx_to_boundary(s) <= 1) { continue; }
+        if (dims[mesh->sub_index(s)] > 1 /*&& mesh->idx_to_boundary(s) <= 1*/) { continue; }
 #endif
         ++count;
 
@@ -515,11 +507,7 @@ TEST_P(FETLTest, curl1)
 
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
 
-        if (dims[mesh->
-                sub_index(s)
-            ] > 1 && mesh->
-                idx_to_boundary(s)
-                     <= 1)
+        if (dims[mesh->  sub_index(s)] > 1  /* && mesh->idx_to_boundary(s)<= 1*/)
         {
             continue;
         }
@@ -637,11 +625,7 @@ TEST_P(FETLTest, curl2)
 
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
 
-        if (dims[mesh->
-                sub_index(s)
-            ] > 1 && mesh->
-                idx_to_boundary(s)
-                     <= 1)
+        if (dims[mesh->  sub_index(s) ] > 1 /* && mesh-> idx_to_boundary(s)  <= 1*/)
         {
             continue;
         }
@@ -717,8 +701,7 @@ TEST_P(FETLTest, identity_curl_grad_f0_eq_0
 
 }
 
-TEST_P(FETLTest, identity_curl_grad_f3_eq_0
-)
+TEST_P(FETLTest, identity_curl_grad_f3_eq_0)
 {
 
 
@@ -807,11 +790,7 @@ TEST_P(FETLTest, identity_div_curl_f1_eq0
     {
 
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
-        if (dims[mesh->
-                sub_index(s)
-            ] > 1 && mesh->
-                idx_to_boundary(s)
-                     <= 1)
+        if (dims[mesh-> sub_index(s) ] > 1 /* && mesh->  idx_to_boundary(s)   <= 1*/)
         {
             continue;
         }
@@ -869,7 +848,7 @@ TEST_P(FETLTest, identity_div_curl_f2_eq0
     {
 
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
-        if (dims[mesh->sub_index(s)] > 1 && mesh->idx_to_boundary(s) <= 1) { continue; }
+        if (dims[mesh->sub_index(s)] > 1 /* && mesh->idx_to_boundary(s) <= 1*/) { continue; }
 #endif
         ++count;
 

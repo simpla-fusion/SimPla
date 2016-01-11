@@ -58,8 +58,12 @@ std::string IOStream::pwd() const { return (current_file_name() + ":" + current_
 std::tuple<std::string, std::string, std::string, std::string>
 IOStream::parser_url(std::string const &url_hint) const
 {
-    std::string file_name(current_file_name()), grp_name(current_group_name()),
-            obj_name(""), attribute("");
+    std::string file_name(current_file_name());
+    std::string grp_name(current_group_name());
+    std::string obj_name(""), attribute("");
+
+    if (file_name == "") { file_name = "untitled.h5"; }
+    if (grp_name == "") { grp_name = "/"; }
 
     std::string url = url_hint;
 

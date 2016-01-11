@@ -23,10 +23,6 @@ struct MeshBlock : public MeshIDs, public base::Object
 
     SP_OBJECT_HEAD(MeshBlock, base::Object)
 
-    virtual Properties &properties() = 0;
-
-    virtual Properties const &properties() const = 0;
-
 
     static constexpr int ndims = 3;
 
@@ -49,11 +45,8 @@ public:
     using typename m::index_tuple;
     using typename m::difference_type;
 
-    typedef nTuple<Real, ndims> point_type;
-    typedef nTuple<Real, ndims> vector_type;
-    typedef nTuple<Real, 2, ndims> box_type;
 
-    typedef nTuple<index_type, 2, ndims> index_box_type;
+    typedef std::tuple<index_tuple, index_tuple> index_box_type;
 
 
     /**
@@ -86,10 +79,6 @@ public:
  *
  */
 
-    point_type m_x_min_;
-    point_type m_x_max_;
-    point_type m_x_scale_;
-
     index_tuple m_idx_min_;
     index_tuple m_idx_max_;
     index_tuple m_idx_local_min_;
@@ -98,7 +87,6 @@ public:
     index_tuple m_idx_memory_max_;
 
 
-    bool m_is_valid_ = false;
 public:
 
     MeshBlock();
@@ -106,34 +94,6 @@ public:
     MeshBlock(this_type const &other) = delete;
 
     virtual  ~MeshBlock();
-
-//            base_type(other),
-//            m_idx_min_(other.m_idx_min_),
-//            m_idx_max_(other.m_idx_max_),
-//            m_idx_local_min_(other.m_idx_local_min_),
-//            m_idx_local_max_(other.m_idx_local_max_),
-//            m_idx_memory_min_(other.m_idx_memory_min_),
-//            m_idx_memory_max_(other.m_idx_memory_max_)
-//    {
-//
-//    }
-
-
-//    virtual void swap(this_type &other)
-//    {
-//        base_type::swap(other);
-//
-//        std::swap(m_idx_min_, other.m_idx_min_);
-//        std::swap(m_idx_max_, other.m_idx_max_);
-//        std::swap(m_idx_local_min_, other.m_idx_local_min_);
-//        std::swap(m_idx_local_max_, other.m_idx_local_max_);
-//        std::swap(m_idx_memory_min_, other.m_idx_memory_min_);
-//        std::swap(m_idx_memory_max_, other.m_idx_memory_max_);
-//        deploy();
-//        other.deploy();
-//
-//    }
-
 
 public:
 
@@ -158,40 +118,49 @@ public:
                | (((m_idx_max_[2] - m_idx_min_[2] > 1) ? M0 : M1) << (ID_DIGITS * 2));
     }
 
-    template<typename TD>
-    void dimensions(TD const &d)
+
+    void dimensions(index_tuple const &d)
     {
-        index_tuple dims;
-        dims = d;
-        properties()["Geometry"]["Topology"]["Dimensions"] = dims;
+        m_idx_max_ = m_idx_min_ + d;
     }
 
-    index_tuple dimensions() const;
+    index_tuple dimensions() const
+    {
+        index_tuple res;
 
-    virtual void box(box_type const &b);
+        res = m_idx_max_ - m_idx_min_;
 
-    virtual box_type box() const;
+        return std::move(res);
+    }
 
-    virtual box_type box(id_type const &s) const;
 
-    virtual box_type local_box() const;
-
-    template<typename T0, typename T1>
-    void index_box(T0 const &min, T1 const &max)
+    void index_box(index_tuple const &min, index_tuple const &max)
     {
         m_idx_min_ = min;
         m_idx_max_ = max;
     };
 
 
-    auto index_box() const
-    DECL_RET_TYPE((traits::make_nTuple(m_idx_min_, m_idx_max_)))
+    index_box_type index_box() const
+    {
+        return (std::make_tuple(m_idx_min_, m_idx_max_));
+    }
 
-    auto local_index_box() const
-    DECL_RET_TYPE((traits::make_nTuple(m_idx_local_min_, m_idx_local_max_)))
 
-    auto memory_index_box() const
-    DECL_RET_TYPE((traits::make_nTuple(m_idx_memory_min_, m_idx_memory_max_)))
+    index_box_type index_box(id_type const &s) const
+    {
+        return std::make_tuple(m::unpack_index(s - _DA), m::unpack_index(s + _DA));
+    }
+
+    index_box_type local_index_box() const
+    {
+        return (std::make_tuple(m_idx_local_min_, m_idx_local_max_));
+    }
+
+    index_box_type memory_index_box() const
+    {
+        return (std::make_tuple(m_idx_memory_min_, m_idx_memory_max_));
+    }
 
     bool in_box(index_tuple const &x) const
     {
@@ -202,14 +171,17 @@ public:
 
     bool in_box(id_type s) const { return in_box(m::unpack_index(s)); }
 
-    template<int I>
-    range_type range() const { return m::template make_range<I>(m_idx_local_min_, m_idx_local_max_); }
+    template<int IFORM>
+    range_type range() const { return m::template make_range<IFORM>(m_idx_local_min_, m_idx_local_max_); }
 
 
     template<int IFORM>
-    auto max_hash() const
-    DECL_RET_TYPE((m::hash(m::pack_index(m_idx_memory_max_ - 1, m::template sub_index_to_id<IFORM>(3UL)),
-                           m_idx_memory_min_, m_idx_memory_max_)))
+    size_t max_hash() const
+    {
+        return static_cast<size_t>(m::hash(
+                m::pack_index(m_idx_memory_max_ - 1, m::template sub_index_to_id<IFORM>(3UL)),
+                m_idx_memory_min_, m_idx_memory_max_));
+    }
 
 
     size_t hash(id_type const &s) const
@@ -225,57 +197,18 @@ public:
 
     void update_boundary_box();
 
-    box_type const &center_box() const { return m_center_box_; }
+    index_box_type const &center_box() const { return m_center_box_; }
 
-    std::vector<box_type> const &boundary_box() const { return m_boundary_box_; }
+    std::vector<index_box_type> const &boundary_box() const { return m_boundary_box_; }
 
-    std::vector<box_type> const &ghost_box() const { return m_ghost_box_; }
+    std::vector<index_box_type> const &ghost_box() const { return m_ghost_box_; }
 
 private:
-    box_type m_center_box_;
-    std::vector<box_type> m_boundary_box_;
-    std::vector<box_type> m_ghost_box_;
-
-
-//    template<typename T0, typename T1>
-//    index_type dist_to_box_(id_type const &s, T0 const &imin, T1 const &imax) const
-//    {
-//        auto idx = this->unpack_index(s);
-//
-//        index_type res = std::numeric_limits<index_type>::max();
-//
-//        for (int i = 0; i < 3; ++i)
-//        {
-//            if (imax[i] - imin[i] <= 1)
-//            {
-//
-//                continue;
-//            }
-//            else
-//            {
-//                res = std::min(res, std::min(idx[i] - imin[i], imax[i] - idx[i]));
-//
-//            }
-//        }
-//
-//        return res;
-//    }
-//
-//public:
-//
-//    index_type idx_to_local_boundary(id_type const &s) const
-//    {
-//        return dist_to_box_(s, m_idx_local_min_, m_idx_local_max_);
-//    }
-//
-//    index_type idx_to_boundary(id_type const &s) const
-//    {
-//        return dist_to_box_(s, m_idx_min_, m_idx_max_);
-//
-//    }
-
+    index_box_type m_center_box_;
+    std::vector<index_box_type> m_boundary_box_;
+    std::vector<index_box_type> m_ghost_box_;
 
 }; // struct MeshBlock
-}//namespace mesh
-}//namespace simpla
+
+}}//namespace simpla//namespace mesh
 #endif //SIMPLA_BLOCK_H

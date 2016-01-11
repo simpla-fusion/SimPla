@@ -32,6 +32,7 @@ struct Polygon<2> : public GeoObject
     using GeoObject::point_type;
     using GeoObject::box_type;
 
+
     typedef nTuple<Real, 2> point2d_type;
 
     std::vector<point2d_type> m_polygon_;
@@ -62,10 +63,7 @@ public:
 
     virtual box_type box() const
     {
-        box_type b;
-        b[0] = m_x0_;
-        b[1] = m_x1_;
-        return std::move(b);
+        return std::make_tuple(m_x0_, m_x1_);
     };
 
     virtual int within(point_type const &x) const;

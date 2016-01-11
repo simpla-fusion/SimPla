@@ -95,20 +95,20 @@ InitValue = {
     --  }
 }
 Particles = {
-    H = {
-        mass = mp,
-        charge = qe,
-        temperature = Ti,
-        PIC = 1,
-        Type = "Boris",
-        --  IsKineticParticle = true,
-        IsTestingParticle = true,
-        --  DisableCheckPoint = true,
-        DisableXDMFOutput = true,
-        EnableCheckPoint = true,
-        SubScycle = 1000,
-        V0 = { 1, 2, 3 },
-    },
+--    H = {
+--        mass = mp,
+--        charge = qe,
+--        temperature = Ti,
+--        PIC = 1,
+--        Type = "Boris",
+--        --  IsKineticParticle = true,
+--        IsTestingParticle = true,
+--        --  DisableCheckPoint = true,
+--        DisableXDMFOutput = true,
+--        EnableCheckPoint = true,
+--        SubScycle = 1000,
+--        V0 = { 1, 2, 3 },
+--    },
     ele = {
         mass = me,
         charge = -qe,

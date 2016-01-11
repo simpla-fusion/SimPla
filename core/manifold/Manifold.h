@@ -145,7 +145,7 @@ class Manifold
 public:
 
     typedef TMesh mesh_type;
-    typedef geometry::traits::coordinate_system_t<mesh_type> coordinates_system_type;
+
     typedef typename mesh_type::scalar_type scalar_type;
     typedef typename mesh_type::id_type id_type;
     typedef typename mesh_type::range_type range_type;
@@ -193,10 +193,7 @@ public:
 
     void deploy()
     {
-        if (properties().click() > this->click())
-        {
-            m_dt_ = properties()["dt"].template as<Real>(1.0);
-        }
+
         mesh_type::deploy();
         this->touch();
 
@@ -205,11 +202,15 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent = 0) const
     {
-        os << std::setw(indent + 1) << " " << "Mesh = ";
+        os << std::setw(indent + 1) << " " << "Mesh = {";
 
+        os << std::setw(indent + 1) << " dt = " << m_dt_ << "," << std::endl;
+
+
+        TMesh::print(os, indent + 1);
         properties().print(os, indent + 1);
 
-        os << "  -- Mesh " << std::endl;
+        os << "}  -- Mesh " << std::endl;
 
         return os;
     }

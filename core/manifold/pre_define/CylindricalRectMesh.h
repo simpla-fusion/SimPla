@@ -1,49 +1,40 @@
 /**
- * @file rect_mesh.h
+ * @file CylindricalRectMesh.h
  * @author salmon
- * @date 2015-10-27.
+ * @date 2016-01-11.
  */
 
-#ifndef SIMPLA_RECT_MESH_H
-#define SIMPLA_RECT_MESH_H
+#ifndef SIMPLA_CYLINDRICALRECTMESH_H
+#define SIMPLA_CYLINDRICALRECTMESH_H
 
 #include <limits>
-#include "Mesh.h"
-#include "MeshIds.h"
-#include "MeshBlock.h"
-#include "LinearMap.h"
+#include "../../geometry/csCylindrical.h"
+#include "../mesh/MeshBlock.h"
+
 #include "../../gtl/design_pattern/singleton_holder.h"
 #include "../../gtl/utilities/memory_pool.h"
-#include "../../geometry/GeoAlgorithm.h"
 
 namespace simpla { namespace mesh
 {
 
-namespace tags { struct rect_linear; }
 
-template<typename TMetric> using RectMesh=Mesh<TMetric, tags::rect_linear>;
-
-/**
- * @ingroup mesh
- *
- * @brief non-Uniform structured mesh
- */
-template<typename TMetric>
-struct Mesh<TMetric, tags::rect_linear> : public TMetric, public MeshBlock
+class CylindricalRectMesh : public geometry::CylindricalMetric, public MeshBlock
 {
 
 private:
-    typedef Mesh<TMetric, tags::rect_linear> this_type;
-
-    typedef MeshBlock block_type;
-
-    typedef block_type base_type;
-
+    typedef CylindricalRectMesh this_type;
 public:
 
+    SP_OBJECT_HEAD(CylindricalRectMesh, MeshBlock)
 
-    typedef TMetric metric_type;
+    typedef geometry::CylindricalMetric metric_type;
+
+    typedef typename metric_type::cs coordinate_system_type;
+
     typedef MeshBlock block_type;
+
+
+    HAS_PROPERTIES;
 
     using block_type::ndims;
     using block_type::id_type;
@@ -69,12 +60,11 @@ private:
 public:
 
 
-    Mesh() : block_type() { }
+    CylindricalRectMesh() : block_type() { }
 
+    virtual  ~CylindricalRectMesh() { }
 
-    Mesh(this_type const &other) = delete;
-
-    virtual  ~Mesh() { }
+    CylindricalRectMesh(this_type const &other) = delete;
 
     this_type &operator=(this_type const &other) = delete;
 
@@ -93,7 +83,6 @@ public:
         return os;
     }
 
-    bool is_valid() const { return m_is_valid_; }
 
     //================================================================================================
     // @name Coordinates dependent
@@ -132,7 +121,8 @@ public:
     }
 
 
-    constexpr auto dx() const DECL_RET_TYPE(m_dx_);
+    constexpr auto dx() const
+    DECL_RET_TYPE(m_dx_);
 
     index_box_type index_box(box_type const &b) const
     {
@@ -166,13 +156,51 @@ public:
     }
 
 private:
-    using map_type::map;
-    using map_type::inv_map;
+
+
+    point_type m_map_orig_ = {0, 0, 0};
+
+    point_type m_map_scale_ = {1, 1, 1};
+
+    point_type m_inv_map_orig_ = {0, 0, 0};
+
+    point_type m_inv_map_scale_ = {1, 1, 1};
+
+
+    point_type inv_map(point_type const &x) const
+    {
+
+        point_type res;
+
+        res[0] = std::fma(x[0], m_inv_map_scale_[0], m_inv_map_orig_[0]);
+
+        res[1] = std::fma(x[1], m_inv_map_scale_[1], m_inv_map_orig_[1]);
+
+        res[2] = std::fma(x[2], m_inv_map_scale_[2], m_inv_map_orig_[2]);
+
+        return std::move(res);
+    }
+
+    point_type map(point_type const &y) const
+    {
+
+        point_type res;
+
+
+        res[0] = std::fma(y[0], m_map_scale_[0], m_map_orig_[0]);
+
+        res[1] = std::fma(y[1], m_map_scale_[1], m_map_orig_[1]);
+
+        res[2] = std::fma(y[2], m_map_scale_[2], m_map_orig_[2]);
+
+        return std::move(res);
+    }
+
 public:
     template<typename ...Args>
     point_type point(Args &&...args) const
     {
-        return std::move(map_type::inv_map(block_type::point(std::forward<Args>(args)...)));
+        return std::move(inv_map(block_type::point(std::forward<Args>(args)...)));
     }
 
 
@@ -240,34 +268,34 @@ public:
 
     virtual void deploy();
 
-    template<typename TGeo> void update_volume(TGeo const &geo);
+//    template<typename TGeo> void update_volume(TGeo const &geo);
 
 
     template<typename T0, typename T1, typename ...Others>
     static constexpr auto inner_product(T0 const &v0, T1 const &v1, Others &&... others)
-    DECL_RET_TYPE((v0[0] * v1[0] + v0[1] * v1[1] + v0[2] * v1[2]))
+    DECL_RET_TYPE((v0[0]
+                   * v1[0] + v0[1] * v1[1] + v0[2] * v1[2]))
 
 };//struct RectMesh
 
-template<typename TMetric, typename TMap>
-void Mesh<TMetric, tags::rect_linear, TMap>::deploy()
+void CylindricalRectMesh::deploy()
 {
 
-
-    if (properties().click() > this->click())
-    {
-//        auto b = properties()["Geometry"]["Box"].template as<box_type>();
-
-        std::tie(m_coords_min_, m_coords_max_) = properties()["Geometry"]["Box"].template as<box_type>();
-
-
-    }
+//
+//    if (properties().click() > this->click())
+//    {
+////        auto b = properties()["Geometry"]["Box"].template as<box_type>();
+//
+//        std::tie(m_coords_min_, m_coords_max_) = properties()["Geometry"]["Box"].template as<box_type>();
+//
+//
+//    }
 
     block_type::deploy();
 
     auto dims = block_type::dimensions();
 
-    map_type::set(box(), block_type::index_box(), dims);
+//    map_type::set(box(), block_type::index_box(), dims);
 
     for (int i = 0; i < ndims; ++i)
     {
@@ -298,10 +326,6 @@ void Mesh<TMetric, tags::rect_linear, TMap>::deploy()
      *
      *\endverbatim
      */
-
-
-
-    m_is_valid_ = true;
 
     // update volume
 
@@ -334,5 +358,4 @@ void Mesh<TMetric, tags::rect_linear, TMap>::deploy()
 }
 
 }}  // namespace mesh // namespace simpla
-
-#endif //SIMPLA_RECT_MESH_H
+#endif //SIMPLA_CYLINDRICALRECTMESH_H

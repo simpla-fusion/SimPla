@@ -72,7 +72,8 @@ int main(int argc, char **argv)
 
         << parallel::help_message()
 
-        << io::help_message();
+//        << io::help_message()
+                ;
 
 
         MESSAGE

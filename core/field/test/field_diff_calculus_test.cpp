@@ -20,24 +20,24 @@ INSTANTIATE_TEST_CASE_P(
                 testing::Values(
 
                         std::make_tuple(nTuple<Real, 3>({0, 0, 0}),
-                                        nTuple<Real, 3>({1.0, 2.0, 3.0})),
+                                        nTuple<Real, 3>({1.0, 2.0, 3.0}))//
 
-                        std::make_tuple(nTuple<Real, 3>({0.0, -2.0, -3.0}),
-                                        nTuple<Real, 3>({1.0, 1.0, 1.0}))
+//                        , std::make_tuple(nTuple<Real, 3>({0.0, -2.0, -3.0}),
+//                                          nTuple<Real, 3>({1.0, 1.0, 1.0}))
 
 
                 ),
 
 
                 testing::Values(
-                        nTuple<size_t, 3>({1, 1, 1}) //
-                        , nTuple<size_t, 3>({10, 1, 1}) //
-                        , nTuple<size_t, 3>({1, 200, 1}) //
-                        , nTuple<size_t, 3>({1, 1, 100}) //
-                        , nTuple<size_t, 3>({1, 10, 20}) //
-                        , nTuple<size_t, 3>({17, 1, 17}) //
-                        , nTuple<size_t, 3>({10, 20, 1}) //
-                        , nTuple<size_t, 3>({5, 19, 17})   //
+//                        nTuple<size_t, 3>({1, 1, 1}) //
+//                        , nTuple<size_t, 3>({10, 1, 1}) //,
+                        nTuple<size_t, 3>({1, 100, 1}) //
+//                        , nTuple<size_t, 3>({1, 1, 100}) //
+//                        , nTuple<size_t, 3>({1, 10, 20}) //
+//                        , nTuple<size_t, 3>({17, 1, 17}) //
+//                        , nTuple<size_t, 3>({10, 20, 1}) //
+//                        , nTuple<size_t, 3>({5, 19, 17})   //
                 ),
 
                 testing::Values(nTuple<Real, 3>({TWOPI, 3 * TWOPI, TWOPI}))

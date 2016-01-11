@@ -273,15 +273,18 @@ private:
 
     template<typename T0, typename T1> std::shared_ptr<Base> _index_of(std::tuple<T0, T1> const &v, int n) const
     {
+        std::shared_ptr<Base> res;
         switch (n)
         {
             case 0:
-                return std::shared_ptr<Base>(new Derived<T0>(std::get<0>(v)));
+                res = std::shared_ptr<Base>(new Derived<T0>(std::get<0>(v)));
             case 1:
-                return std::shared_ptr<Base>(new Derived<T1>(std::get<1>(v)));
+                res = std::shared_ptr<Base>(new Derived<T1>(std::get<1>(v)));
             default :
                 OUT_OF_RANGE << n << " >  2 " << std::endl;
         }
+
+        return res;
     }
 
 

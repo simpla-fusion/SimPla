@@ -35,9 +35,9 @@ protected:
 
         mesh = std::make_shared<mesh_type>();
 
-        size_t dims[3] = {10, 1, 1};
+        nTuple<size_t, 3> dims = {10, 1, 1};
 
-        mesh->dimensions(&dims[0]);
+        mesh->dimensions(dims);
 //		geometry->extents(xmin, xmax);
         mesh->deploy();
     }
@@ -125,8 +125,7 @@ TYPED_TEST_P(TestField, index)
 
     for (auto s : TestFixture::domain())
     {
-        EXPECT_LE(mod(va * TestFixture::mesh->hash(s) - f1[s]), EPSILON
-        );
+        EXPECT_LE(mod(va * TestFixture::mesh->hash(s) - f1[s]), EPSILON);
     }
 
 }
