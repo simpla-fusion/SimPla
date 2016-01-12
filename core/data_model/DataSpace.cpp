@@ -168,10 +168,13 @@ bool DataSpace::is_simple() const
     return m_pimpl_->m_selected_points_.size() == 0;
 }
 
+bool DataSpace::is_full() const { return size() == num_of_elements(); }
+
 DataSpace::data_shape_s const &DataSpace::shape() const
 {
     return m_pimpl_->m_d_shape_;
 }
+
 
 size_t DataSpace::size() const
 {
@@ -190,7 +193,6 @@ size_t DataSpace::size() const
 
 size_t DataSpace::num_of_elements() const
 {
-
 
     if (!is_simple())
     {

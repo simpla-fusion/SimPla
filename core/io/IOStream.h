@@ -10,6 +10,7 @@
 #include <string>
 #include <tuple>
 #include "../gtl/Properties.h"
+#include "../data_model/DataSet.h"
 
 namespace simpla { namespace io
 {
@@ -20,7 +21,7 @@ enum
 {
     SP_NEW = 1UL << 1,
     SP_APPEND = 1UL << 2,
-    SP_CACHE = (1UL << 3),
+    SP_BUFFER = (1UL << 3),
     SP_RECORD = (1UL << 4)
 };
 
@@ -62,6 +63,7 @@ public:
     std::string pwd() const;
 
     std::string auto_increase_file_name(std::string filename, std::string const &ext_str = ".h5") const;
+
 
 };
 

@@ -24,23 +24,19 @@ namespace simpla
 {
 
 
-struct EMPlasma
+struct EMTokamak
 {
-    EMPlasma() { }
+    EMTokamak() { }
 
-    ~EMPlasma() { }
+    virtual ~EMTokamak() { }
 
-    std::string description() { return ""; }
+    virtual void initialize(int argc, char **argv);
 
-    virtual bool check_type(std::type_info const &info) { return info == typeid(EMPlasma); }
+    virtual void next_time_step();
 
-    void setup(int argc, char **argv);
+    virtual void tear_down();
 
-    void next_time_step();
-
-    void tear_down();
-
-    void check_point();
+    virtual void check_point();
 
     typedef Real scalar_type;
 
@@ -62,9 +58,7 @@ struct EMPlasma
     model::IdSet<mesh_type> face_boundary;
 
     model::IdSet<mesh_type> plasma_region_volume;
-
     model::IdSet<mesh_type> plasma_region_vertex;
-
     model::IdSet<mesh_type> J_src;
 
     std::function<Vec3(Real, point_type const &)> J_src_fun;
@@ -108,11 +102,9 @@ struct EMPlasma
 
 
     std::pair<typename std::map<std::string, fluid_s>::iterator, bool>
-    add_particle(std::string const &name, Real mass,
-                 Real charge)
+    add_particle(std::string const &name, Real mass, Real charge)
     {
-        return fluid_sp.emplace(
-                std::make_pair(name, fluid_s{mass, charge, TRho{m, "n_" + name}, TJv{m, "J_" + name}}));
+        return fluid_sp.emplace(std::make_pair(name, fluid_s{mass, charge, TRho{m, "n_" + name}, TJv{m, "J_" + name}}));
 
     }
 
@@ -145,11 +137,10 @@ struct EMPlasma
     bool disable_field = false;
 };
 
-void EMPlasma::setup(int argc, char **argv)
+void EMTokamak::initialize(int argc, char **argv)
 {
 
     ConfigParser options;
-
 
     options.init(argc, argv);
 
@@ -214,7 +205,13 @@ void EMPlasma::setup(int argc, char **argv)
 
     parallel::parallel_for(
             m.template range<FACE>(),
-            [&](range_type const &r) { for (auto const &s:r) { B0.assign(s, geqdsk.B(m.point(s))); }}
+            [&](range_type const &r)
+            {
+                for (auto const &s:r)
+                {
+                    B0.assign(s, geqdsk.B(m.point(s)));
+                }
+            }
     );
 
     B0.sync();
@@ -396,7 +393,7 @@ void EMPlasma::setup(int argc, char **argv)
 
 }
 
-void EMPlasma::tear_down()
+void EMTokamak::tear_down()
 {
     out_stream.close_grid();
 
@@ -422,8 +419,7 @@ void EMPlasma::tear_down()
     out_stream.close();
 }
 
-
-void EMPlasma::check_point()
+void EMTokamak::check_point()
 {
     if (!disable_field)
     {
@@ -439,7 +435,7 @@ void EMPlasma::check_point()
             auto attr = item.second.lock();
             if (attr->properties()["EnableCheckPoint"])
             {
-                if (!attr->properties()["IsKineticParticle"])
+                if (!attr->properties()["IsParticle"])
                 {
                     out_stream.write(item.first, *std::dynamic_pointer_cast<base::AttributeObject>(attr));
                 }
@@ -461,9 +457,9 @@ void EMPlasma::check_point()
             {
                 if (attr->properties()["IsTestingParticle"])
                 {
-                    out_stream.hdf5().write(item.first, attr->checkpoint(), io::SP_RECORD);
+                    out_stream.hdf5().write(item.first, attr->checkpoint(), io::SP_BUFFER);
                 }
-                else if (attr->properties()["IsKineticParticle"])
+                else if (attr->properties()["IsParticle"])
                 {
                     out_stream.hdf5().write(item.first, attr->dump(), io::SP_RECORD);
                 }
@@ -478,7 +474,7 @@ void EMPlasma::check_point()
 
 }
 
-void EMPlasma::next_time_step()
+void EMTokamak::next_time_step()
 {
 
     DEFINE_PHYSICAL_CONST
@@ -509,19 +505,11 @@ void EMPlasma::next_time_step()
         }
         for (auto &p:testing_particle_sp)
         {
-            int sub_cycle = p.second->properties()["SubScycle"].template as<int>(1);
+            p.second->push(dt, t, E0, B0);
 
-            Real s_dt = dt / sub_cycle;
-            Real s_time = t;
+            p.second->rehash();
 
-            for (int s = 0; s < sub_cycle; ++s)
-            {
-                p.second->push(s_dt, s_time, E0, B0);
-                s_time += s_dt;
-            }
-
-//            p.second->rehash();
-//            CHECK(p.second->size());
+            CHECK(p.second->size());
         }
 
 
@@ -641,7 +629,6 @@ int main(int argc, char **argv)
 
         parallel::init(argc, argv);
 
-
         options.init(argc, argv);
     }
     catch (std::exception const &error)
@@ -676,7 +663,7 @@ int main(int argc, char **argv)
     }
 
 
-    simpla::EMPlasma ctx;
+    auto ctx = std::make_shared<simpla::EMTokamak>();
 
 
     int num_of_steps = options["number_of_steps"].as<int>(20);
@@ -685,31 +672,31 @@ int main(int argc, char **argv)
 
     try
     {
-        ctx.setup(argc, argv);
+        ctx->initialize(argc, argv);
     }
     catch (std::exception const &error)
     {
-        RUNTIME_ERROR << "Context setup error!" << error.what() << std::endl;
+        RUNTIME_ERROR << "Context initialize error!" << error.what() << std::endl;
     }
 
 
     int count = 0;
 
-    ctx.check_point();
+    ctx->check_point();
 
     MESSAGE << "====================================================" << std::endl;
     INFORM << "\t >>> START <<< " << std::endl;
 
     while (count < num_of_steps)
     {
-        ctx.next_time_step();
+        ctx->next_time_step();
 
         if (count % check_point == 0)
-            ctx.check_point();
+            ctx->check_point();
 
         ++count;
     }
-    ctx.tear_down();
+    ctx->tear_down();
 
     INFORM << "\t >>> Done <<< " << std::endl;
     MESSAGE << "====================================================" << std::endl;

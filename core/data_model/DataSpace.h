@@ -35,7 +35,7 @@ public:
 
 
     typedef size_t index_type;
-    typedef nTuple <index_type, MAX_NDIMS_OF_ARRAY> index_tuple;
+    typedef nTuple<index_type, MAX_NDIMS_OF_ARRAY> index_tuple;
 
 
     typedef std::tuple<
@@ -95,8 +95,9 @@ public:
 
     bool is_valid() const;
 
-
     bool is_simple() const;
+
+    bool is_full() const;
 
     std::vector<size_t> const &selected_points() const;
 

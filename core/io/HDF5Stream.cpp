@@ -60,12 +60,21 @@ struct HDF5Stream::pimpl_s
 
     Properties get_attribute(hid_t loc_id, int idx = -1) const;
 
+    static constexpr size_t DEFAULT_MAX_BUFFER_DEPTH = 1024;
+
+    std::map<std::string, data_model::DataSet> m_buffer_map_;
+
+
 };
 
 HDF5Stream::HDF5Stream() : m_pimpl_(new pimpl_s) { }
 
 HDF5Stream::~HDF5Stream()
 {
+    for (auto const &item:m_pimpl_->m_buffer_map_)
+    {
+        write_buffer(item.first, true);
+    }
 }
 
 bool HDF5Stream::is_valid() const
@@ -73,6 +82,20 @@ bool HDF5Stream::is_valid() const
     return m_pimpl_ != nullptr && m_pimpl_->base_file_id_ > 0;
 }
 
+std::string HDF5Stream::absolute_path(std::string const &url) const
+{
+    std::string file_name;
+    std::string grp_name;
+    std::string obj_name;
+
+    if (url != "")
+    {
+        std::tie(file_name, grp_name, obj_name, std::ignore) = IOStream::parser_url(url);
+    }
+    if (file_name == "") { file_name = IOStream::current_file_name(); }
+    if (grp_name == "") { grp_name = IOStream::current_group_name(); }
+    return file_name + ":" + grp_name + obj_name;
+}
 
 std::tuple<bool, std::string> HDF5Stream::open(std::string const &url, size_t flag)
 {
@@ -138,6 +161,7 @@ void HDF5Stream::set_attribute(std::string const &url, Properties const &any_v)
     std::tie(file_name, grp_path, obj_name, attr_name) = IOStream::parser_url(url);
 
     hid_t g_id, o_id;
+    UNIMPLEMENTED;
 // FIXME
 //    std::tie(grp_path, g_id) = m_pimpl_->open_group(grp_path);
 //
@@ -245,6 +269,7 @@ void HDF5Stream::delete_attribute(std::string const &url)
 //            H5Gclose(g_id);
 //        }
     }
+    UNIMPLEMENTED;
 
 }
 
@@ -625,11 +650,154 @@ data_model::DataSpace convert_data_space_h5_to_sp(hid_t)
     return data_model::DataSpace();
 }
 
+
+void HDF5Stream::push_buffer(std::string const &url, data_model::DataSet const &ds)
+{
+    typedef nTuple<data_model::DataSpace::index_type, MAX_NDIMS_OF_ARRAY> index_tuple;
+
+    std::string full_path = absolute_path(url);
+
+    auto &item = m_pimpl_->m_buffer_map_[full_path];
+
+    if (item.data_space.is_full())
+    {
+        write(full_path, item, SP_APPEND);
+        item.data_space.clear_selected();
+    }
+    else if (item.data == nullptr)
+    {
+        if (ds.data_space.is_simple())
+        {
+            int ndims = 0;
+
+            index_tuple count;
+
+            std::tie(ndims, std::ignore /* dims*/, std::ignore /* start*/, std::ignore /*stride*/, count,
+                     std::ignore /*block*/) = ds.data_space.shape();
+
+            count[ndims] = pimpl_s::DEFAULT_MAX_BUFFER_DEPTH;
+
+            item.data_space = data_model::DataSpace::create_simple(ndims + 1, &count[0]);
+
+        }
+        else
+        {
+            data_model::DataSpace::index_type dims[2] = {ds.data_space.size(), pimpl_s::DEFAULT_MAX_BUFFER_DEPTH};
+
+            item.data_space = data_model::DataSpace::create_simple(2, dims);
+        }
+
+        index_tuple count;
+
+        count = 0;
+
+        item.data_space.select_hyperslab(&count[0], nullptr, &count[0], nullptr);
+
+        item.data_type = ds.data_type;
+
+        item.data = sp_alloc_memory(item.data_space.size() * item.data_type.size_in_byte());
+
+    }
+
+
+    int dest_ndims = 0;
+    index_tuple dest_dims;
+    index_tuple dest_start;
+    index_tuple dest_count;
+
+    std::tie(dest_ndims, dest_dims, dest_start, std::ignore /*stride*/, dest_count,
+             std::ignore /*block*/ ) = item.data_space.shape();
+
+
+    if (ds.data_space.is_simple())
+    {
+        int src_ndims = 0;
+        index_tuple src_dims;
+        index_tuple src_start;
+        index_tuple src_count;
+
+        std::tie(src_ndims, src_dims, src_start, std::ignore /*stride*/, src_count,
+                 std::ignore /*block*/ ) = ds.data_space.shape();
+
+        // copy
+
+        if (!ds.data_space.is_full()) { UNIMPLEMENTED; }
+        else
+        {
+            char *dest_p = reinterpret_cast<char *>(item.data.get()) +
+                           item.data_space.num_of_elements() * item.data_type.size();
+
+            char *src_p = reinterpret_cast<char *>(ds.data.get());
+            CHECK(ds.data_space.num_of_elements() * ds.data_type.size());
+//            std::strncpy(dest_p, src_p, ds.data_space.num_of_elements() * ds.data_type.size());
+
+            for (size_t i = 0, ie = ds.data_space.num_of_elements() * ds.data_type.size(); i < ie; ++i)
+            {
+                dest_p[i] = src_p[i];
+            }
+        }
+    }
+    else
+    {
+        data_model::DataSpace::index_type dims[2] = {ds.data_space.size(), pimpl_s::DEFAULT_MAX_BUFFER_DEPTH};
+        auto const &selected_points = ds.data_space.selected_points();
+        const size_t type_size = ds.data_type.size();
+        char *dest_p = reinterpret_cast<char *>(item.data.get()) +
+                       item.data_space.num_of_elements() * item.data_type.size();
+
+        char *src_p = reinterpret_cast<char *>(ds.data.get());
+        for (size_t n = 0, ne = selected_points.size(); n < ne; ++n)
+        {
+            for (size_t i = 0, ie = type_size; i < ie; ++i)
+            {
+                dest_p[n * type_size + i] = src_p[selected_points[n] * type_size + i];
+            }
+
+        }
+    }
+    ++dest_count[dest_ndims - 1];
+    item.data_space.select_hyperslab(&dest_start[0], nullptr, &dest_count[0], nullptr);
+
+
+}
+
+std::string HDF5Stream::write_buffer(std::string const &url, bool is_forced_flush)
+{
+    std::string full_path = absolute_path(url);
+
+    std::string res = "";
+
+    auto it = m_pimpl_->m_buffer_map_.find(full_path);
+
+    if (it != m_pimpl_->m_buffer_map_.end() && (it->second.data_space.is_full() || is_forced_flush))
+    {
+        res = write(full_path, it->second, SP_APPEND);
+
+        it->second.data_space.clear_selected();
+    }
+    return res;
+
+
+}
+
 std::string HDF5Stream::write(std::string const &url, data_model::DataSet const &ds, size_t flag)
 {
+
+
+    if ((flag & SP_BUFFER) != 0)
+    {
+        push_buffer(url, ds);
+        return write_buffer(url);
+    }
+
+    if ((ds.data == nullptr) || ds.memory_space.size() == 0)
+    {
+        VERBOSE << "ignore empty data set" << std::endl;
+        return "";
+    }
     typedef nTuple<hsize_t, MAX_NDIMS_OF_ARRAY> index_tuple;
 
-    if (!ds.is_valid() || ds.memory_space.size() == 0)
+    if (!ds.is_valid())
     {
         WARNING << "Invalid dataset! "
         << "[ URL = \"" << url << "\","

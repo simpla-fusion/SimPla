@@ -34,6 +34,7 @@ public:
 
     virtual ~HDF5Stream();
 
+
     /**
      *	  change the working path (file/group) of data stream ,
      *
@@ -58,6 +59,7 @@ public:
 
     void close_file();
 
+    std::string absolute_path(std::string const &url) const;
 
     /**
      * @return true if data stream is initialized.
@@ -73,7 +75,11 @@ public:
      * @return
      */
 
-    std::string write(std::string const &url, data_model::DataSet const &ds, size_t flag = 0UL);
+    virtual std::string write(std::string const &url, data_model::DataSet const &ds, size_t flag = 0UL);
+
+    void push_buffer(std::string const &url, data_model::DataSet const &ds);
+
+    std::string write_buffer(std::string const &url, bool is_forced_flush = false);
 
     /**
      * 	read data set from url
