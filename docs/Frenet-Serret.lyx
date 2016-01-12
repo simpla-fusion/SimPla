@@ -1,0 +1,250 @@
+#LyX 2.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 474
+\begin_document
+\begin_header
+\textclass article
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_math auto
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{eqnarray*}
+r^{\prime\prime}\left(t\right) & = & E+r^{\prime}\times B\\
+r^{\prime\prime\prime}\left(t\right) & = & \partial_{t}E+r^{\prime}\cdot\nabla E+r^{\prime\prime}\times B+r^{\prime}\times\left[\partial_{t}B+r^{\prime}\cdot\nabla B\right]
+\end{eqnarray*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray*}
+\mathfrak{T} & = & \frac{r^{\prime}}{\left\Vert r^{\prime}\right\Vert }\\
+\mathfrak{N} & = & \frac{\mathfrak{T}^{\prime}}{\left\Vert \mathfrak{T}^{\prime}\right\Vert }=\frac{r^{\prime}\times\left(r^{\prime\prime}\times r^{\prime}\right)}{\left\Vert r^{\prime}\right\Vert \left\Vert r^{\prime\prime}\times r^{\prime}\right\Vert }\\
+\mathfrak{B} & = & \mathfrak{T}\times\mathfrak{N}=\frac{r^{\prime\prime}\times r^{\prime}}{\left\Vert r^{\prime\prime}\times r^{\prime}\right\Vert }
+\end{eqnarray*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray*}
+\frac{d}{dt}\left[\begin{array}{c}
+\mathfrak{T}\\
+\mathfrak{N}\\
+\mathfrak{B}
+\end{array}\right] & =\left\Vert r^{\prime}\right\Vert  & \left[\begin{array}{ccc}
+0 & \kappa & 0\\
+-\kappa & 0 & \tau\\
+0 & -\tau & 0
+\end{array}\right]\left[\begin{array}{c}
+\mathfrak{T}\\
+\mathfrak{N}\\
+\mathfrak{B}
+\end{array}\right]
+\end{eqnarray*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray*}
+\kappa & = & \frac{\left\Vert r^{\prime\prime}\times r^{\prime}\right\Vert }{\left\Vert r^{\prime}\right\Vert ^{3}}\\
+\tau & = & \frac{r^{\prime}\times r^{\prime\prime}\cdot r^{\prime\prime\prime}}{\left\Vert r^{\prime\prime}\times r^{\prime}\right\Vert ^{2}}
+\end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+\begin_inset Formula $E=0,\partial_{t}B=0$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{eqnarray*}
+\left\Vert r^{\prime}\right\Vert  & = & v\\
+r^{\prime\prime}\left(t\right) & = & r^{\prime}\times B\\
+r^{\prime\prime\prime}\left(t\right) & = & r^{\prime\prime}\times B+r^{\prime}\times\left[r^{\prime}\cdot\nabla B\right]\\
+ & = & \left(r^{\prime}\cdot B\right)B-r^{\prime}\left(B\right)^{2}+r^{\prime}\times\left[r^{\prime}\cdot\nabla B\right]
+\end{eqnarray*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\frac{d}{dt}\left\Vert r^{\prime}\right\Vert =0
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray*}
+r^{\prime\prime}\times r^{\prime} & = & r^{\prime}\times B\times r^{\prime}=\left\Vert r^{\prime}\right\Vert ^{2}B-r^{\prime}r^{\prime}\cdot B
+\end{eqnarray*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray*}
+r^{\prime}\times\left(r^{\prime\prime}\times r^{\prime}\right) & = & \left\Vert r^{\prime}\right\Vert ^{2}r^{\prime}\times B
+\end{eqnarray*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray*}
+r^{\prime}\times r^{\prime\prime}\cdot r^{\prime\prime\prime} & = & \left(r^{\prime}\times B\times B+r^{\prime}\times\left[r^{\prime}\cdot\nabla B\right]\right)\times r^{\prime}\cdot\left(r^{\prime}\times B\right)\\
+ & = & \left(r^{\prime}\times B\times B+r^{\prime}\times\left[r^{\prime}\cdot\nabla B\right]\right)\cdot B\left\Vert r^{\prime}\right\Vert ^{2}-\\
+ &  & \left(r^{\prime}\times B\times B+r^{\prime}\times\left[r^{\prime}\cdot\nabla B\right]\right)\cdot r^{\prime}\left(r^{\prime}\cdot B\right)\\
+ & = & r^{\prime}\times\left[r^{\prime}\cdot\nabla B\right]\cdot B\left\Vert r^{\prime}\right\Vert ^{2}-\left(\left(r^{\prime}\cdot B\right)^{2}-\left\Vert r^{\prime}\right\Vert ^{2}\left(B\right)^{2}\right)\left(r^{\prime}\cdot B\right)
+\end{eqnarray*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray*}
+\left\Vert r^{\prime\prime}\times r^{\prime}\right\Vert ^{2} & = & \left\Vert r^{\prime\prime}\right\Vert ^{2}\left\Vert r^{\prime}\right\Vert ^{2}-\left\Vert r^{\prime\prime}\cdot r^{\prime}\right\Vert ^{2}\\
+ & = & \left\Vert r^{\prime}\right\Vert ^{4}B^{2}-\left\Vert r^{\prime}\right\Vert ^{2}\left(r^{\prime}\cdot B\right)^{2}-\left\Vert r^{\prime}\right\Vert ^{2}\left(r^{\prime}\cdot B\right)^{2}+\left\Vert r^{\prime}\right\Vert ^{2}\left(r^{\prime}\cdot B\right)^{2}\\
+ & = & \left\Vert r^{\prime}\right\Vert ^{4}B^{2}-\left\Vert r^{\prime}\right\Vert ^{2}\left(r^{\prime}\cdot B\right)^{2}\\
+ & = & \left\Vert r^{\prime}\right\Vert ^{2}B^{2}\left[\left\Vert r^{\prime}\right\Vert ^{2}-\frac{\left(r^{\prime}\cdot B\right)^{2}}{B^{2}}\right]\\
+\left\Vert r^{\prime\prime}\times r^{\prime}\right\Vert  & = & \left\Vert r^{\prime}\right\Vert \left\Vert B\right\Vert \left\Vert v_{\perp}\right\Vert 
+\end{eqnarray*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray*}
+\mathfrak{T} & = & \frac{r^{\prime}}{\left\Vert r^{\prime}\right\Vert }\\
+\mathfrak{N} & = & \frac{\mathfrak{T}^{\prime}}{\left\Vert \mathfrak{T}^{\prime}\right\Vert }=\frac{r^{\prime}\times\left(r^{\prime\prime}\times r^{\prime}\right)}{\left\Vert r^{\prime}\right\Vert \left\Vert r^{\prime\prime}\times r^{\prime}\right\Vert }\\
+\mathfrak{B} & = & \mathfrak{T}\times\mathfrak{N}=\frac{r^{\prime\prime}\times r^{\prime}}{\left\Vert r^{\prime\prime}\times r^{\prime}\right\Vert }
+\end{eqnarray*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray*}
+\mathfrak{N} & = & \frac{\left\Vert r^{\prime}\right\Vert ^{2}r^{\prime}\times B}{\left\Vert r^{\prime}\right\Vert \left\Vert r^{\prime}\right\Vert \left\Vert B\right\Vert \left\Vert v_{\perp}\right\Vert }=\frac{r^{\prime}\times b}{\left\Vert v_{\perp}\right\Vert }
+\end{eqnarray*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray*}
+\mathfrak{B} & = & \frac{r^{\prime}\times\left(r^{\prime}\times b\right)}{\left\Vert r^{\prime}\right\Vert \left\Vert v_{\perp}\right\Vert }\\
+ & = & \frac{r^{\prime}\left(r^{\prime}\cdot b\right)-\left\Vert r^{\prime}\right\Vert ^{2}b}{\left\Vert r^{\prime}\right\Vert \left\Vert v_{\perp}\right\Vert }\\
+ & = & \frac{v_{\perp}\left(r^{\prime}\cdot b\right)-\left\Vert v_{\perp}\right\Vert ^{2}b}{\left\Vert r^{\prime}\right\Vert \left\Vert v_{\perp}\right\Vert }
+\end{eqnarray*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray*}
+\frac{d}{dt}\left[\begin{array}{c}
+\mathfrak{T}\\
+\mathfrak{N}\\
+\mathfrak{B}
+\end{array}\right] & =\left\Vert r^{\prime}\right\Vert  & \left[\begin{array}{ccc}
+0 & \kappa & 0\\
+-\kappa & 0 & \tau\\
+0 & -\tau & 0
+\end{array}\right]\left[\begin{array}{c}
+\mathfrak{T}\\
+\mathfrak{N}\\
+\mathfrak{B}
+\end{array}\right]
+\end{eqnarray*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray*}
+\kappa & = & \frac{\left\Vert r^{\prime\prime}\times r^{\prime}\right\Vert }{\left\Vert r^{\prime}\right\Vert ^{3}}=\frac{\left\Vert B\right\Vert \left\Vert v_{\perp}\right\Vert }{\left\Vert r^{\prime}\right\Vert ^{2}}\\
+\tau & = & \frac{r^{\prime}\times r^{\prime\prime}\cdot r^{\prime\prime\prime}}{\left\Vert r^{\prime\prime}\times r^{\prime}\right\Vert ^{2}}\\
+ & = & \frac{r^{\prime}\times\left[r^{\prime}\cdot\nabla B\right]\cdot B\left\Vert r^{\prime}\right\Vert ^{2}-\left(\left(r^{\prime}\cdot B\right)^{2}-\left\Vert r^{\prime}\right\Vert ^{2}\left(B\right)^{2}\right)\left(r^{\prime}\cdot B\right)}{\left\Vert r^{\prime}\right\Vert ^{2}\left[B^{2}\left\Vert r^{\prime}\right\Vert ^{2}-\left(r^{\prime}\cdot B\right)^{2}\right]}\\
+ & = & \frac{r^{\prime}\cdot\nabla B\cdot B\times r^{\prime}}{B^{2}\left\Vert r^{\prime}\right\Vert ^{2}-\left(r^{\prime}\cdot B\right)^{2}}+\frac{\left(r^{\prime}\cdot B\right)}{\left\Vert r^{\prime}\right\Vert ^{2}}
+\end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document
