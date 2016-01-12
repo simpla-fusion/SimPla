@@ -73,8 +73,13 @@ struct MeshIDs_
 
     typedef nTuple<id_type, ndims> id_tuple;
 
-    typedef nTuple<Real, ndims> coordinates_tuple;
 
+    typedef nTuple<Real, ndims> point_type;
+
+    typedef nTuple<Real, ndims> vector_type;
+
+
+    typedef std::tuple<point_type, point_type> box_type;
 
     typedef long index_type;
 
@@ -177,7 +182,7 @@ struct MeshIDs_
 
     };
 
-    static constexpr coordinates_tuple m_id_to_coordinates_shift_[] = {
+    static constexpr point_type m_id_to_coordinates_shift_[] = {
 
             {0, 0, 0},            // 000
             {_R, 0, 0},           // 001
@@ -288,26 +293,20 @@ struct MeshIDs_
         return static_cast<T>(unpack(s));
     }
 
-    static coordinates_tuple coordinates(id_type const &s)
-    {
-        return coordinates_tuple{static_cast<Real>(static_cast<index_type>(unpack_id(s, 0))),
-                static_cast<Real>(static_cast<index_type>(unpack_id(s, 1))),
-                static_cast<Real>(static_cast<index_type>(unpack_id(s, 2)))
-        };
-    }
 
-    static coordinates_tuple point(id_type const &s)
+
+    static point_type point(id_type const &s)
     {
-        return coordinates_tuple{static_cast<Real>(static_cast<index_type>(unpack_id(s, 0))),
+        return point_type{static_cast<Real>(static_cast<index_type>(unpack_id(s, 0))),
                 static_cast<Real>(static_cast<index_type>(unpack_id(s, 1))),
                 static_cast<Real>(static_cast<index_type>(unpack_id(s, 2)))
         };
     }
 
 
-    static coordinates_tuple point(nTuple<index_type, ndims> const &idx)
+    static point_type point(nTuple<index_type, ndims> const &idx)
     {
-        return coordinates_tuple{
+        return point_type{
                 static_cast<Real>((idx[0] << MESH_RESOLUTION)),
                 static_cast<Real>((idx[1] << MESH_RESOLUTION)),
                 static_cast<Real>((idx[2] << MESH_RESOLUTION))
@@ -321,23 +320,23 @@ struct MeshIDs_
     }
 
     template<typename TX>
-    static std::tuple<id_type, coordinates_tuple> coordinates_global_to_local(
+    static std::tuple<id_type, point_type> coordinates_global_to_local(
             TX const &x, int n_id = 0)
     {
 
         id_type s = (pack(x - m_id_to_coordinates_shift_[n_id])
                      & PRIMARY_ID_MASK) | m_id_to_shift_[n_id];
 
-        coordinates_tuple r;
+        point_type r;
 
-        r = (x - coordinates(s)) / (_R * 2.0);
+        r = (x - point(s)) / (_R * 2.0);
 
         return std::make_tuple(s, r);
 
     }
 
-    static coordinates_tuple coordinates_local_to_global(
-            std::tuple<id_type, coordinates_tuple> const &t)
+    static point_type coordinates_local_to_global(
+            std::tuple<id_type, point_type> const &t)
     {
         return point(std::get<0>(t)) + std::get<1>(t);
     }
@@ -1257,7 +1256,7 @@ template<int L> constexpr int MeshIDs_<L>::m_adjacent_cell_num_[4][8];
 template<int L> constexpr typename MeshIDs_<L>::id_type MeshIDs_<L>::m_id_to_shift_[];
 template<int L> constexpr int MeshIDs_<L>::m_sub_index_to_id_[4][3];
 template<int L> constexpr typename MeshIDs_<L>::id_type MeshIDs_<L>::m_adjacent_cell_matrix_[4/* to iform*/][NUM_OF_NODE_ID/* node id*/][MAX_NUM_OF_ADJACENT_CELL/*id shift*/];
-template<int L> constexpr typename MeshIDs_<L>::coordinates_tuple MeshIDs_<L>::m_id_to_coordinates_shift_[];
+template<int L> constexpr typename MeshIDs_<L>::point_type MeshIDs_<L>::m_id_to_coordinates_shift_[];
 
 }//namespace  mesh
 }// namespace simpla

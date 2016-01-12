@@ -7,9 +7,6 @@
 #ifndef SIMPLA_PREDEFINE_H
 #define SIMPLA_PREDEFINE_H
 
-#include "../../geometry/CoordinateSystem.h"
-#include "../../geometry/csCartesian.h"
-#include "../../geometry/csCylindrical.h"
 
 #include "../../field/Field.h"
 
@@ -23,21 +20,22 @@
 #include "../policy/StoragePolicy.h"
 #include "../policy/ParallelPolicy.h"
 
-#include "CylindricalRectMesh.h"
+#include "../mesh/CylindricalCoRect.h"
+#include "../mesh/CartesianCoRect.h"
 
 namespace simpla { namespace manifold
 {
 //template<typename MESH, template<typename> class ...Policies>
 //using ManifoldWithPolicies= Manifold<MESH, Policies<MESH>...>;
 
-template<typename MESH>
+template<typename MESH = mesh::CartesianCoRect>
 using DefaultManifold= Manifold<MESH,
         policy::StoragePolicy,
         policy::ParallelPolicy>;
 
-using CylindricalManifold= DefaultManifold<mesh::CylindricalRectMesh>;
+using CylindricalManifold= DefaultManifold<mesh::CylindricalCoRect>;
 
-using CartesianManifold=DefaultManifold<mesh::CoRectMesh<geometry::CartesianMetric> >;
+using CartesianManifold = DefaultManifold<mesh::CartesianCoRect>;
 
 
 }}// namespace simpla { namespace Manifold
