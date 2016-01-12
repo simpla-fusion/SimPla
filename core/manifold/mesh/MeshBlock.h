@@ -23,20 +23,19 @@ struct MeshBlock : public MeshIDs, public base::Object
 
     SP_OBJECT_HEAD(MeshBlock, base::Object)
 
-
-    static constexpr int ndims = 3;
-
-    enum
-    {
-        DEFAULT_GHOST_WIDTH = 2
-    };
 private:
 
     typedef MeshBlock this_type;
     typedef MeshIDs m;
 
 
+    static constexpr int DEFAULT_GHOST_WIDTH = 2;
+
 public:
+
+    static constexpr int ndims = 3;
+
+
     using typename m::id_type;
     using typename m::id_tuple;
     using typename m::index_type;
@@ -45,6 +44,8 @@ public:
     using typename m::index_tuple;
     using typename m::difference_type;
 
+    using typename m::point_type;
+    using typename m::box_type;
 
     typedef std::tuple<index_tuple, index_tuple> index_box_type;
 
@@ -79,34 +80,43 @@ public:
  *
  */
 
-    index_tuple m_idx_min_;
-    index_tuple m_idx_max_;
-    index_tuple m_idx_local_min_;
-    index_tuple m_idx_local_max_;
-    index_tuple m_idx_memory_min_;
-    index_tuple m_idx_memory_max_;
+    index_tuple m_idx_min_{0, 0, 0};
+    index_tuple m_idx_max_{1, 1, 1};
+    index_tuple m_idx_local_min_{0, 0, 0};
+    index_tuple m_idx_local_max_{1, 1, 1};
+    index_tuple m_idx_memory_min_{0, 0, 0};
+    index_tuple m_idx_memory_max_{1, 1, 1};
 
+    index_tuple m_dimensions_{1, 1, 1};
+
+    int m_ndims_ = 3;
 
 public:
 
     MeshBlock();
 
+    virtual  ~MeshBlock();
+
     MeshBlock(this_type const &other) = delete;
 
-    virtual  ~MeshBlock();
+
+    void dimensions(index_tuple const &d);
+
+
+    void decompose(index_tuple const &dist_dimensions, index_tuple const &dist_coord,
+                   index_type gw = DEFAULT_GHOST_WIDTH);
+
+    void deploy2();
+
+    virtual void deploy() { deploy2(); };
 
 public:
 
 
-    int number_of_dims() const
-    {
-        int count = 0;
-        for (int i = 0; i < ndims; ++i)
-        {
-            if (m_idx_max_[i] - m_idx_min_[i] > 1)++count;
-        }
-        return count;
-    }
+    int number_of_dims() const { return m_ndims_; }
+
+    index_tuple const &dimensions() const { return m_dimensions_; }
+
 
     size_t id_mask() const
     {
@@ -117,28 +127,6 @@ public:
                | (((m_idx_max_[1] - m_idx_min_[1] > 1) ? M0 : M1) << ID_DIGITS)
                | (((m_idx_max_[2] - m_idx_min_[2] > 1) ? M0 : M1) << (ID_DIGITS * 2));
     }
-
-
-    void dimensions(index_tuple const &d)
-    {
-        m_idx_max_ = m_idx_min_ + d;
-    }
-
-    index_tuple dimensions() const
-    {
-        index_tuple res;
-
-        res = m_idx_max_ - m_idx_min_;
-
-        return std::move(res);
-    }
-
-
-    void index_box(index_tuple const &min, index_tuple const &max)
-    {
-        m_idx_min_ = min;
-        m_idx_max_ = max;
-    };
 
 
     index_box_type index_box() const
@@ -172,7 +160,10 @@ public:
     bool in_box(id_type s) const { return in_box(m::unpack_index(s)); }
 
     template<int IFORM>
-    range_type range() const { return m::template make_range<IFORM>(m_idx_local_min_, m_idx_local_max_); }
+    range_type range() const
+    {
+        return m::template make_range<IFORM>(m_idx_local_min_, m_idx_local_max_);
+    }
 
 
     template<int IFORM>
@@ -190,18 +181,128 @@ public:
     }
 
 
-    void decompose(index_tuple const &dist_dimensions, index_tuple const &dist_coord,
-                   index_type gw = DEFAULT_GHOST_WIDTH);
-
-    virtual void deploy();
-
-    void update_boundary_box();
-
     index_box_type const &center_box() const { return m_center_box_; }
 
     std::vector<index_box_type> const &boundary_box() const { return m_boundary_box_; }
 
     std::vector<index_box_type> const &ghost_box() const { return m_ghost_box_; }
+
+
+
+
+    //================================================================================================
+    // @name Coordinates dependent
+private:
+    point_type m_min_;
+    point_type m_max_;
+    vector_type m_dx_;
+public:
+
+    void box(box_type const &b) { std::tie(m_min_, m_max_) = b; }
+
+    box_type box() const { return (std::make_tuple(m_min_, m_max_)); }
+
+    vector_type const &dx() const { return m_dx_; }
+
+    box_type cell_box(id_type const &s) const
+    {
+        return std::make_tuple(point(s - m::_DA), point(s + m::_DA));
+    }
+
+    int get_vertices(size_t node_id, id_type s, point_type *p = nullptr) const
+    {
+
+        int num = m::get_adjacent_cells(VERTEX, node_id, s);
+
+        if (p != nullptr)
+        {
+            id_type neighbour[num];
+
+            m::get_adjacent_cells(VERTEX, node_id, s, neighbour);
+
+            for (int i = 0; i < num; ++i)
+            {
+                p[i] = point(neighbour[i]);
+            }
+
+        }
+
+        return num;
+    }
+
+
+private:
+    /**
+     * @name  Coordinate map
+     * @{
+     *
+     *        Topology mesh       geometry mesh
+     *                        map
+     *              M      ---------->      G
+     *              x                       y
+     **/
+
+    point_type m_map_orig_ = {0, 0, 0};
+
+    point_type m_map_scale_ = {1, 1, 1};
+
+    point_type m_inv_map_orig_ = {0, 0, 0};
+
+    point_type m_inv_map_scale_ = {1, 1, 1};
+
+
+    point_type inv_map(point_type const &x) const
+    {
+
+        point_type res;
+
+        res[0] = std::fma(x[0], m_inv_map_scale_[0], m_inv_map_orig_[0]);
+
+        res[1] = std::fma(x[1], m_inv_map_scale_[1], m_inv_map_orig_[1]);
+
+        res[2] = std::fma(x[2], m_inv_map_scale_[2], m_inv_map_orig_[2]);
+
+        return std::move(res);
+    }
+
+    point_type map(point_type const &y) const
+    {
+
+        point_type res;
+
+
+        res[0] = std::fma(y[0], m_map_scale_[0], m_map_orig_[0]);
+
+        res[1] = std::fma(y[1], m_map_scale_[1], m_map_orig_[1]);
+
+        res[2] = std::fma(y[2], m_map_scale_[2], m_map_orig_[2]);
+
+        return std::move(res);
+    }
+
+public:
+
+    virtual point_type point(id_type const &s) const
+    {
+        return std::move(map(m::point(s)));
+    }
+
+
+    virtual point_type coordinates_local_to_global(std::tuple<id_type, point_type> const &t) const
+    {
+        return std::move(map(m::coordinates_local_to_global(t)));
+    }
+
+    virtual std::tuple<id_type, point_type> coordinates_global_to_local(point_type const &x, int n_id = 0) const
+    {
+        return std::move(m::coordinates_global_to_local(inv_map(x), n_id));
+    }
+
+    virtual id_type id(point_type const &x, int n_id = 0) const
+    {
+        return std::get<0>(m::coordinates_global_to_local(inv_map(x), n_id));
+    }
+
 
 private:
     index_box_type m_center_box_;

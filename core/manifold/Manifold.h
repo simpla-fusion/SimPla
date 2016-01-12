@@ -25,11 +25,6 @@ namespace simpla
 {
 
 
-template<typename ...> struct Domain;
-template<typename ...> struct Field;
-template<typename ...> struct Expression;
-
-
 /**
  * @defgroup diff_geo Differential Geometry
  * @brief collection of mesh and differential scheme
@@ -143,14 +138,16 @@ class Manifold
     typedef Manifold<TMesh, Policies ...> this_type;
 
 public:
+    HAS_PROPERTIES;
 
     typedef TMesh mesh_type;
 
-    typedef typename mesh_type::scalar_type scalar_type;
-    typedef typename mesh_type::id_type id_type;
-    typedef typename mesh_type::range_type range_type;
-    typedef typename mesh_type::box_type box_type;
+    using typename mesh_type::id_type;
+    using typename mesh_type::range_type;
+    using typename mesh_type::box_type;
 
+
+    using typename mesh_type::scalar_type;
     using typename mesh_type::point_type;
     using typename mesh_type::vector_type;
 
@@ -163,23 +160,16 @@ public:
 
     Manifold() : Policies<mesh_type>(dynamic_cast<mesh_type &>(*this))... { }
 
-    Manifold(this_type const &m) : mesh_type(m), Policies<mesh_type>(dynamic_cast<mesh_type &>(*this))... { }
-
     virtual ~Manifold() { }
 
-    this_type &operator=(const this_type &other)
-    {
-        this_type(other).swap(*this);
-        return *this;
-    }
+    Manifold(this_type const &m) = delete;
+
+    this_type &operator=(const this_type &other) = delete;
+
 
     virtual this_type &self() { return (*this); }
 
     virtual this_type const &self() const { return (*this); }
-
-    virtual Properties &properties() { return mesh_type::properties(); }
-
-    virtual Properties const &properties() const { return mesh_type::properties(); }
 
 
 public:
@@ -188,15 +178,10 @@ public:
 
     virtual std::string get_class_name() const { return "Manifold< ... >"; }
 
-    void swap(const this_type &other) { mesh_type::swap(other); }
-
-
-    void deploy()
+    virtual void deploy()
     {
-
         mesh_type::deploy();
         this->touch();
-
     }
 
 
@@ -214,26 +199,6 @@ public:
 
         return os;
     }
-
-
-//    template<int IFORM, typename TOP, typename TF, typename   ...Args>
-//    void apply(TOP const &op, TF &f, Args &&... args) const
-//    {
-////        static constexpr int IFORM =
-////                traits::iform<typename
-////                traits::unpack_type<0, Args...>::type>::value;
-//
-//        this->parallel_policy::template update<IFORM>(
-//                [&](typename mesh_type::range_type const &r)
-//                {
-//                    for (auto const &s:r)
-//                    {
-//                        op(access(f, s), access(std::forward<Args>(args), s)...);
-//                    }
-//                }, f
-//
-//        );
-//    }
 
 
     virtual data_model::DataSet grid_vertices() const

@@ -180,8 +180,7 @@ TEST_P(FETLTest, grad0)
 
     }
 
-    EXPECT_LE(std::sqrt(variance / count), error
-    );
+    EXPECT_LE(std::sqrt(variance / count), error);
     EXPECT_LE(mod(average) / count, error);
 #ifndef NDEBUG
     io::cd("/grad1/");

@@ -9,86 +9,135 @@ namespace simpla { namespace mesh
 {
 
 
-MeshBlock::MeshBlock()
-{
-    m_idx_min_ = 0;
-    m_idx_max_ = 0;
-    m_idx_local_min_ = m_idx_min_;
-    m_idx_local_max_ = m_idx_max_;
-    m_idx_memory_min_ = m_idx_min_;
-    m_idx_memory_max_ = m_idx_max_;
-}
+MeshBlock::MeshBlock() { }
 
 
 MeshBlock::~MeshBlock() { }
 
+void MeshBlock::dimensions(index_tuple const &d)
+{
+    m_dimensions_ = d;
+    m_ndims_ = 0;
+    for (int n = 0; n < ndims; ++n)
+    {
+        if (m_dimensions_[n] <= 1)
+        {
+            m_dimensions_[n] = 1;
+
+            m_idx_min_[n] = 0;
+
+            m_idx_max_[n] = 1;
+
+            m_idx_local_min_[n] = 0;
+
+            m_idx_local_max_[n] = 1;
+
+            m_idx_memory_min_[n] = 0;
+
+            m_idx_memory_max_[n] = 1;
+        }
+        else
+        {
+            ++m_ndims_;
+
+            m_idx_min_[n] = 0;
+
+            m_idx_max_[n] = m_dimensions_[n] + m_idx_min_[n];
+
+            m_idx_local_min_[n] = m_idx_min_[n];
+
+            m_idx_local_max_[n] = m_idx_max_[n];
+
+            m_idx_memory_min_[n] = m_idx_local_min_[n];
+
+            m_idx_memory_max_[n] = m_idx_local_max_[n];
+
+        }
+
+
+    }
+}
 
 void MeshBlock::decompose(index_tuple const &dist_dimensions, index_tuple const &dist_coord,
                           index_type gw)
 {
 
-
-    index_tuple b, e;
-    b = m_idx_local_min_;
-    e = m_idx_local_max_;
+    m_ndims_ = 0;
     for (int n = 0; n < ndims; ++n)
     {
+        index_type i_min = m_idx_local_min_[n];
 
-        m_idx_local_min_[n] = b[n] + (e[n] - b[n]) * dist_coord[n] / dist_dimensions[n];
+        index_type i_max = m_idx_local_max_[n];
 
-        m_idx_local_max_[n] = b[n] + (e[n] - b[n]) * (dist_coord[n] + 1) / dist_dimensions[n];
-
-        if (dist_dimensions[n] > 1)
+        if ((i_max - i_min) > 2 * gw * dist_dimensions[n])
         {
-            if (m_idx_local_max_[n] - m_idx_local_min_[n] >= 2 * gw)
-            {
-                m_idx_memory_min_[n] = m_idx_local_min_[n] - gw;
-                m_idx_memory_max_[n] = m_idx_local_max_[n] + gw;
-            }
-            else
-            {
-                VERBOSE << "mesh block decompose failed! Block dimension is smaller than process grid. "
-                << m_idx_local_min_ << m_idx_local_max_
-                << dist_dimensions << dist_coord << std::endl;
-                THROW_EXCEPTION_RUNTIME_ERROR(
-                        "mesh block decompose failed! Block dimension is smaller than process grid. ");
-            }
+
+            m_idx_local_min_[n] = i_min + (i_max - i_min) * dist_coord[n] / dist_dimensions[n];
+
+            m_idx_local_max_[n] = i_min + (i_max - i_min) * (dist_coord[n] + 1) / dist_dimensions[n];
+
+            m_idx_memory_min_[n] = m_idx_local_min_[n] - gw;
+
+            m_idx_memory_max_[n] = m_idx_local_max_[n] + gw;
         }
+        else if ((i_max - i_min) > 1)
+        {
+
+            VERBOSE << "mesh block decompose failed! Block dimension is smaller than process grid. "
+            << m_dimensions_ << dist_dimensions << dist_coord << std::endl;
+
+            THROW_EXCEPTION_RUNTIME_ERROR(
+                    "mesh block decompose failed! Block dimension is smaller than process grid. ");
+        }
+
+
     }
-    update_boundary_box();
+
 
 }
 
-void MeshBlock::deploy()
+void MeshBlock::deploy2()
 {
-//    m_idx_max_ = properties()["Geometry"]["Topology"]["Dimensions"].template as<index_tuple>(index_tuple{10, 1, 1});
-//    m_idx_min_ = 0;
-    m_idx_local_max_ = m_idx_max_;
-    m_idx_local_min_ = m_idx_min_;
-    m_idx_memory_max_ = m_idx_max_;
-    m_idx_memory_min_ = m_idx_min_;
 
-    m_idx_local_min_ = m_idx_min_;
-    m_idx_local_max_ = m_idx_max_;
-    m_idx_memory_min_ = m_idx_min_;
-    m_idx_memory_max_ = m_idx_max_;
-    update_boundary_box();
+    for (int i = 0; i < ndims; ++i)
+    {
+        ASSERT((m_max_[i] - m_min_[i] > EPSILON));
 
-    base::Object::touch();
-}
+        m_dx_[i] = (m_max_[i] - m_min_[i]) / static_cast<Real>(m_dimensions_[i]);
+    }
 
-void MeshBlock::update_boundary_box()
-{
+    point_type src_min_, src_max_;
+
+    src_min_ = m::point(m_idx_min_);
+    src_max_ = m::point(m_idx_max_);
+
+    point_type dest_min = m_min_, dest_max = m_max_;
+
+
+    for (int i = 0; i < 3; ++i)
+    {
+        m_map_scale_[i] = (dest_max[i] - dest_min[i]) / (src_max_[i] - src_min_[i]);
+
+        m_inv_map_scale_[i] = (src_max_[i] - src_min_[i]) / (dest_max[i] - dest_min[i]);
+
+
+        m_map_orig_[i] = dest_min[i] - src_min_[i] * m_map_scale_[i];
+
+        m_inv_map_orig_[i] = src_min_[i] - dest_min[i] * m_inv_map_scale_[i];
+
+    }
+
+
     index_tuple m_min, m_max;
     index_tuple l_min, l_max;
     index_tuple c_min, c_max;
     index_tuple ghost_width;
 
-    m_min = traits::get<0>(memory_index_box());
-    m_max = traits::get<1>(memory_index_box());
+    m_min = m_idx_memory_min_;
+    m_max = m_idx_memory_max_;
 
-    l_min = traits::get<0>(local_index_box());
-    l_max = traits::get<1>(local_index_box());
+    l_min = m_idx_local_min_;
+    l_max = m_idx_local_max_;
 
     c_min = l_min + (l_min - m_min);
     c_max = l_max - (m_max - l_max);
@@ -114,11 +163,11 @@ void MeshBlock::update_boundary_box()
         l_max[i] = c_max[i];
     }
 
-    m_min = traits::get<0>(memory_index_box());
-    m_max = traits::get<1>(memory_index_box());
+    m_min = m_idx_memory_min_;
+    m_max = m_idx_memory_max_;
 
-    l_min = traits::get<0>(local_index_box());
-    l_max = traits::get<1>(local_index_box());
+    l_min = m_idx_local_min_;
+    l_max = m_idx_local_max_;
 
     for (int i = 0; i < ndims; ++i)
     {
@@ -142,3 +191,4 @@ void MeshBlock::update_boundary_box()
 }
 
 }}
+
