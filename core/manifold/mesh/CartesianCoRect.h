@@ -112,30 +112,30 @@ public:
     }
 
 
-    std::tuple<index_tuple, index_tuple> index_box(std::tuple<point_type, point_type> const &b) const
-    {
-
-        point_type b0, b1, x0, x1;
-
-        std::tie(b0, b1) = local_index_box();
-
-        std::tie(x0, x1) = b;
-
-        if (geometry::box_intersection(b0, b1, &x0, &x1))
-        {
-            return std::make_tuple(block_type::unpack_index(id(x0)),
-                                   block_type::unpack_index(id(x1) + (block_type::_DA << 1)));
-
-        }
-        else
-        {
-            index_tuple i0, i1;
-            i0 = 0;
-            i1 = 0;
-            return std::make_tuple(i0, i1);
-        }
-
-    }
+//    std::tuple<index_tuple, index_tuple> index_box(std::tuple<point_type, point_type> const &b) const
+//    {
+//
+//        point_type b0, b1, x0, x1;
+//
+//        std::tie(b0, b1) = local_index_box();
+//
+//        std::tie(x0, x1) = b;
+//
+//        if (geometry::box_intersection(b0, b1, &x0, &x1))
+//        {
+//            return std::make_tuple(block_type::unpack_index(id(x0)),
+//                                   block_type::unpack_index(id(x1) + (block_type::_DA << 1)));
+//
+//        }
+//        else
+//        {
+//            index_tuple i0, i1;
+//            i0 = 0;
+//            i1 = 0;
+//            return std::make_tuple(i0, i1);
+//        }
+//
+//    }
 
 
 private:

@@ -39,6 +39,7 @@ public:
     using block_type::index_tuple;
     using block_type::range_type;
     using block_type::difference_type;
+    using block_type::index_box;
 
     using typename metric_type::scalar_type;
     using typename metric_type::point_type;
@@ -151,16 +152,58 @@ void CylindricalCoRect::deploy()
     for (index_type i = m_min_index_r_; i < m_max_index_r_; ++i)
     {
 
-        index_type s = block_type::pack(i, 0, 0);
 
         size_t n = (i - m_min_index_r_) * block_type::NUM_OF_NODE_ID;
 
         block_type::get_element_volume_in_cell(*this, block_type::pack(i, 0, 0),
-                                               &m_volume_[0] + n,
-                                               &m_inv_volume_[0] + n,
-                                               &m_dual_volume_[0] + n,
-                                               &m_inv_dual_volume_[0] + n);
+                                               &m_volume_[n],
+                                               &m_inv_volume_[n],
+                                               &m_dual_volume_[n],
+                                               &m_inv_dual_volume_[n]);
+        Real r0 = point(block_type::pack(i, 0, 0))[0];
+        Real r1 = point(block_type::pack(i + 1, 0, 0))[0];
 
+        if (dims[0] <= 1) { r1 = r0; }
+        /**
+        *\verbatim
+        *                ^Z
+        *               /
+        *       Theta  /
+        *        ^    /
+        *        |  110-------------111
+        *        |  /|              /|
+        *        | / |             / |
+        *        |/  |            /  |
+        *       100--|----------101  |
+        *        | m |           |   |
+        *        |  010----------|--011
+        *        |  /            |  /
+        *        | /             | /
+        *        |/              |/
+        *       000-------------001---> R
+        *
+        *\endverbatim
+        */
+
+        m_volume_[n + 4] *= r0;
+        m_volume_[n + 5] *= (r0 + r1) * 0.5;
+        m_volume_[n + 6] *= r0;
+        m_volume_[n + 7] *= (r0 + r1) * 0.5;
+
+        m_inv_volume_[n + 4] /= r0;
+        m_inv_volume_[n + 5] /= (r0 + r1) * 0.5;
+        m_inv_volume_[n + 6] /= r0;
+        m_inv_volume_[n + 7] /= (r0 + r1) * 0.5;
+
+        m_dual_volume_[n + 0] *= r0;
+        m_dual_volume_[n + 1] *= (r0 + r1) * 0.5;
+        m_dual_volume_[n + 2] *= r0;
+        m_dual_volume_[n + 3] *= (r0 + r1) * 0.5;
+
+        m_inv_dual_volume_[n + 0] /= r0;
+        m_inv_dual_volume_[n + 1] /= (r0 + r1) * 0.5;
+        m_inv_dual_volume_[n + 2] /= r0;
+        m_inv_dual_volume_[n + 3] /= (r0 + r1) * 0.5;
     }
 
 

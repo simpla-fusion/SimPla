@@ -71,24 +71,23 @@ void MeshBlock::deploy2()
         if (m_dimensions_[n] <= 1)
         {
             m_dimensions_[n] = 1;
-
-            m_idx_max_[n] = m_idx_min_[n] + 1;
+            m_idx_min_[n] = 0;
+            m_idx_max_[n] = 1;
+            m_idx_local_min_[n] = 0;
+            m_idx_local_max_[n] = 1;
+            m_idx_memory_min_[n] = 0;
+            m_idx_memory_max_[n] = 1;
         }
         else
         {
             ++m_ndims_;
-
+            m_idx_min_[n] = m_ghost_width_[n];
             m_idx_max_[n] = m_dimensions_[n] + m_idx_min_[n];
+            m_idx_local_min_[n] = m_idx_min_[n];
+            m_idx_local_max_[n] = m_idx_max_[n];
+            m_idx_memory_min_[n] = 0;
+            m_idx_memory_max_[n] = m_idx_max_[n] + m_ghost_width_[n];
         }
-
-        m_idx_local_min_[n] = m_idx_min_[n];
-
-        m_idx_local_max_[n] = m_idx_max_[n];
-
-
-        m_idx_memory_min_[n] = 0;
-
-        m_idx_memory_max_[n] = m_idx_max_[n] + m_idx_min_[n];
 
 
     }

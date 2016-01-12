@@ -105,9 +105,11 @@ public:
 
     void decompose(index_tuple const &dist_dimensions, index_tuple const &dist_coord);
 
-    void deploy2();
 
-    virtual void deploy() { deploy2(); };
+    virtual void deploy() { deploy2(); }
+
+private:
+    void deploy2();
 
 public:
 
@@ -131,40 +133,38 @@ public:
 
     index_box_type index_box() const
     {
-        return (std::make_tuple(m_idx_min_, m_idx_max_));
+        return std::make_tuple(m_idx_min_, m_idx_max_);
     }
 
 
-    index_box_type index_box(id_type const &s) const
-    {
-        return std::make_tuple(m::unpack_index(s - _DA), m::unpack_index(s + _DA));
-    }
-
-
-    index_box_type index_box(box_type const &b) const
-    {
-
-        point_type b0, b1, x0, x1;
-
-        std::tie(b0, b1) = local_index_box();
-
-        std::tie(x0, x1) = b;
-
-        if (geometry::box_intersection(b0, b1, &x0, &x1))
-        {
-            return std::make_tuple(m::unpack_index(id(x0)),
-                                   m::unpack_index(id(x1) + (m::_DA << 1)));
-
-        }
-        else
-        {
-            index_tuple i0, i1;
-            i0 = 0;
-            i1 = 0;
-            return std::make_tuple(i0, i1);
-        }
-
-    }
+//    index_box_type cell_index_box(id_type const &s) const
+//    {
+//        return std::make_tuple(m::unpack_index(s - _DA), m::unpack_index(s + _DA));
+//    }
+//    index_box_type index_box(box_type const &b) const
+//    {
+//
+//        point_type b0, b1, x0, x1;
+//
+//        std::tie(b0, b1) = local_index_box();
+//
+//        std::tie(x0, x1) = b;
+//
+//        if (geometry::box_intersection(b0, b1, &x0, &x1))
+//        {
+//            return std::make_tuple(m::unpack_index(id(x0)),
+//                                   m::unpack_index(id(x1) + (m::_DA << 1)));
+//
+//        }
+//        else
+//        {
+//            index_tuple i0, i1;
+//            i0 = 0;
+//            i1 = 0;
+//            return std::make_tuple(i0, i1);
+//        }
+//
+//    }
 
     index_box_type local_index_box() const
     {
