@@ -659,7 +659,7 @@ void HDF5Stream::push_buffer(std::string const &url, data_model::DataSet const &
 
     auto &item = m_pimpl_->m_buffer_map_[full_path];
 
-    if (item.data_space.is_full())
+    if (item.data_space.is_full() && item.data != nullptr)
     {
         write(full_path, item, SP_APPEND);
         item.data_space.clear_selected();
@@ -694,10 +694,11 @@ void HDF5Stream::push_buffer(std::string const &url, data_model::DataSet const &
         item.data_space.select_hyperslab(&count[0], nullptr, &count[0], nullptr);
 
         item.data_type = ds.data_type;
-
+        CHECK(item.data_space.size() * item.data_type.size_in_byte());
         item.data = sp_alloc_memory(item.data_space.size() * item.data_type.size_in_byte());
 
     }
+    ASSERT(item.data != nullptr);
 
 
     int dest_ndims = 0;
@@ -721,14 +722,21 @@ void HDF5Stream::push_buffer(std::string const &url, data_model::DataSet const &
 
         // copy
 
-        if (!ds.data_space.is_full()) { UNIMPLEMENTED; }
+        if (!ds.data_space.is_full())
+        {
+            // FIXME (!ds.data_space.is_full())
+            UNIMPLEMENTED;
+        }
         else
         {
+
             char *dest_p = reinterpret_cast<char *>(item.data.get()) +
                            item.data_space.num_of_elements() * item.data_type.size();
 
             char *src_p = reinterpret_cast<char *>(ds.data.get());
+
             CHECK(ds.data_space.num_of_elements() * ds.data_type.size());
+
 //            std::strncpy(dest_p, src_p, ds.data_space.num_of_elements() * ds.data_type.size());
 
             for (size_t i = 0, ie = ds.data_space.num_of_elements() * ds.data_type.size(); i < ie; ++i)
