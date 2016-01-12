@@ -188,67 +188,9 @@ public:
 
         block_type::get_element_volume_in_cell(*this, 0, m_volume_, m_inv_volume_,
                                                m_dual_volume_, m_inv_dual_volume_);
-
-//        auto m_dx_ = block_type::dx();
 //
-//
-//#define NOT_ZERO(_V_) ((_V_<EPSILON)?1.0:(_V_))
-//        m_volume_[0] = 1.0;
-//
-//        m_volume_[1/* 001*/] = m_dx_[0];
-//        m_volume_[2/* 010*/] = m_dx_[1];
-//        m_volume_[4/* 100*/] = m_dx_[2];
-//
-////    m_volume_[1/* 001*/] = (m_dx_[0] <= EPSILON) ? 1 : m_dx_[0];
-////    m_volume_[2/* 010*/] = (m_dx_[1] <= EPSILON) ? 1 : m_dx_[1];
-////    m_volume_[4/* 100*/] = (m_dx_[2] <= EPSILON) ? 1 : m_dx_[2];
-//
-//        m_volume_[3] /* 011 */= m_volume_[1] * m_volume_[2];
-//        m_volume_[5] /* 101 */= m_volume_[4] * m_volume_[1];
-//        m_volume_[6] /* 110 */= m_volume_[2] * m_volume_[4];
-//        m_volume_[7] /* 111 */= m_volume_[1] * m_volume_[2] * m_volume_[4];
-//
-//        m_dual_volume_[7] = 1.0;
-//
-//        m_dual_volume_[6] = m_volume_[1];
-//        m_dual_volume_[5] = m_volume_[2];
-//        m_dual_volume_[3] = m_volume_[4];
-//
-////    m_dual_volume_[6] = (m_dx_[0] <= EPSILON) ? 1 : m_dx_[0];
-////    m_dual_volume_[5] = (m_dx_[1] <= EPSILON) ? 1 : m_dx_[1];
-////    m_dual_volume_[3] = (m_dx_[2] <= EPSILON) ? 1 : m_dx_[2];
-//
-//        m_dual_volume_[4] /* 011 */= m_dual_volume_[6] * m_dual_volume_[5];
-//        m_dual_volume_[2] /* 101 */= m_dual_volume_[3] * m_dual_volume_[6];
-//        m_dual_volume_[1] /* 110 */= m_dual_volume_[5] * m_dual_volume_[3];
-//
-//        m_dual_volume_[0] /* 111 */= m_dual_volume_[6] * m_dual_volume_[5] * m_dual_volume_[3];
-//
-//        m_inv_volume_[7] = 1.0;
-//
-//        m_inv_volume_[1/* 001 */] = (dims[0] > 1) ? 1.0 / m_volume_[1] : 0;
-//        m_inv_volume_[2/* 010 */] = (dims[1] > 1) ? 1.0 / m_volume_[2] : 0;
-//        m_inv_volume_[4/* 100 */] = (dims[2] > 1) ? 1.0 / m_volume_[4] : 0;
-//
-//        m_inv_volume_[3] /* 011 */= NOT_ZERO(m_inv_volume_[1]) * NOT_ZERO(m_inv_volume_[2]);
-//        m_inv_volume_[5] /* 101 */= NOT_ZERO(m_inv_volume_[4]) * NOT_ZERO(m_inv_volume_[1]);
-//        m_inv_volume_[6] /* 110 */= NOT_ZERO(m_inv_volume_[2]) * NOT_ZERO(m_inv_volume_[4]);
-//        m_inv_volume_[7] /* 111 */=
-//                NOT_ZERO(m_inv_volume_[1]) * NOT_ZERO(m_inv_volume_[2]) * NOT_ZERO(m_inv_volume_[4]);
-//
-//        m_inv_dual_volume_[7] = 1.0;
-//
-//        m_inv_dual_volume_[6/* 110 */] = (dims[0] > 1) ? 1.0 / m_dual_volume_[6] : 0;
-//        m_inv_dual_volume_[5/* 101 */] = (dims[1] > 1) ? 1.0 / m_dual_volume_[5] : 0;
-//        m_inv_dual_volume_[3/* 001 */] = (dims[2] > 1) ? 1.0 / m_dual_volume_[3] : 0;
-//
-//        m_inv_dual_volume_[4] /* 011 */= NOT_ZERO(m_inv_dual_volume_[6]) * NOT_ZERO(m_inv_dual_volume_[5]);
-//        m_inv_dual_volume_[2] /* 101 */= NOT_ZERO(m_inv_dual_volume_[3]) * NOT_ZERO(m_inv_dual_volume_[6]);
-//        m_inv_dual_volume_[1] /* 110 */= NOT_ZERO(m_inv_dual_volume_[5]) * NOT_ZERO(m_inv_dual_volume_[3]);
-//        m_inv_dual_volume_[0] /* 111 */=
-//                NOT_ZERO(m_inv_dual_volume_[6]) * NOT_ZERO(m_inv_dual_volume_[5]) * NOT_ZERO(m_inv_dual_volume_[3]);
-//#undef NOT_ZERO
-
+//        block_type::get_volumes(m_volume_, m_inv_volume_,
+//                                m_dual_volume_, m_inv_dual_volume_);
     }
 
 

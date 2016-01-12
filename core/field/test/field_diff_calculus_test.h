@@ -167,9 +167,6 @@ TEST_P(FETLTest, grad0)
 //                 + K_imag[n] * std::sin(inner_product(K_real, x))
                 ;
 
-#ifdef CYLINDRICAL_COORDINATE_SYSTEM
-        if (n == PhiAxis)        {            expect /= x[RAxis];        }
-#endif
         f1b[s] = expect;
 
         variance += mod((f1[s] - expect) * (f1[s] - expect));
@@ -217,7 +214,12 @@ TEST_P(FETLTest, grad3)
     Real variance = 0;
     value_type average = one * 0.0;
     size_t count = 0;
+
+#ifdef CYLINDRICAL_COORDINATE_SYSTEM
+    for (auto s : mesh->template inner_range<FACE>())
+#else
     for (auto s : mesh->template range<FACE>())
+#endif
     {
         ++count;
 
@@ -231,12 +233,6 @@ TEST_P(FETLTest, grad3)
                  + K_imag[n] * std::sin(inner_product(K_real, x));
 
 
-#ifdef CYLINDRICAL_COORDINATE_SYSTEM
-        if (n == PhiAxis)
-        {
-            expect /= x[RAxis];
-        }
-#endif
         f2b[s] = expect;
 
         variance += mod((f2[s] - expect) * (f2[s] - expect));
@@ -292,7 +288,12 @@ TEST_P(FETLTest, diverge1)
 
     size_t count = 0;
 
-    for (auto s :  mesh->range<VERTEX>())
+
+#ifdef CYLINDRICAL_COORDINATE_SYSTEM
+    for (auto s : mesh->template inner_range<VERTEX>())
+#else
+    for (auto s : mesh->template range<VERTEX>())
+#endif
     {
         auto x = mesh->point(s);
 
@@ -314,13 +315,7 @@ TEST_P(FETLTest, diverge1)
         f0b[s] = expect;
 
 
-#ifdef CYLINDRICAL_COORDINATE_SYSTEM
 
-        if (dims[RAxis] > 1 && mesh->sub_index(s) == RAxis /*&& mesh->idx_to_boundary(s) <= 1*/)
-        {
-            continue;
-        }
-#endif
 
         ++count;
 
@@ -377,8 +372,11 @@ TEST_P(FETLTest, diverge2)
     average *= 0.0;
 
     size_t count = 0;
-
-    for (auto s :   mesh->template range<VOLUME>())
+#ifdef CYLINDRICAL_COORDINATE_SYSTEM
+    for (auto s : mesh->template inner_range<VOLUME>())
+#else
+    for (auto s : mesh->template range<VOLUME>())
+#endif
     {
 
         auto x = mesh->point(s);
@@ -400,10 +398,7 @@ TEST_P(FETLTest, diverge2)
 #endif
         f3b[s] = expect;
 
-#ifdef CYLINDRICAL_COORDINATE_SYSTEM
 
-        if (dims[mesh->sub_index(s)] > 1 /*&& mesh->idx_to_boundary(s) <= 1*/) { continue; }
-#endif
         ++count;
 
         variance += mod((f3[s] - expect) * (f3[s] - expect));
@@ -465,8 +460,11 @@ TEST_P(FETLTest, curl1)
     LOG_CMD(f2 = curl(f1));
 
     size_t count = 0;
-
-    for (auto s :  mesh->template range<FACE>())
+#ifdef CYLINDRICAL_COORDINATE_SYSTEM
+    for (auto s : mesh->template inner_range<FACE>())
+#else
+    for (auto s : mesh->template range<FACE>())
+#endif
     {
         auto n = mesh->sub_index(s);
 
@@ -504,13 +502,6 @@ TEST_P(FETLTest, curl1)
 
 #endif
 
-#ifdef CYLINDRICAL_COORDINATE_SYSTEM
-
-        if (dims[mesh->  sub_index(s)] > 1  /* && mesh->idx_to_boundary(s)<= 1*/)
-        {
-            continue;
-        }
-#endif
         ++count;
 
         f2b[s] = expect;
@@ -554,8 +545,10 @@ TEST_P(FETLTest, curl2)
 
     Real m = 0.0;
     Real variance = 0;
+
     value_type average;
-    average *= 0.0;
+
+    average = 0.0;
 
     for (auto s :  mesh->template range<FACE>())
     {
@@ -570,7 +563,13 @@ TEST_P(FETLTest, curl2)
 
     size_t count = 0;
 
-    for (auto s :   mesh->template range<EDGE>())
+
+#ifdef CYLINDRICAL_COORDINATE_SYSTEM
+    for (auto s : mesh->template inner_range<EDGE>())
+#else
+    for (auto s : mesh->template range<EDGE>())
+#endif
+
     {
 
         auto n = mesh->sub_index(s);
@@ -622,13 +621,7 @@ TEST_P(FETLTest, curl2)
 #endif
         f1b[s] = expect;
 
-#ifdef CYLINDRICAL_COORDINATE_SYSTEM
 
-        if (dims[mesh->  sub_index(s) ] > 1 /* && mesh-> idx_to_boundary(s)  <= 1*/)
-        {
-            continue;
-        }
-#endif
         ++count;
 
         variance += mod((f1[s] - expect) * (f1[s] - expect));
@@ -652,8 +645,7 @@ TEST_P(FETLTest, curl2)
 }
 
 
-TEST_P(FETLTest, identity_curl_grad_f0_eq_0
-)
+TEST_P(FETLTest, identity_curl_grad_f0_eq_0)
 {
 
     auto f0 = traits::make_field<value_type, VERTEX>(*mesh);
@@ -686,7 +678,13 @@ TEST_P(FETLTest, identity_curl_grad_f0_eq_0
     size_t count = 0;
     Real variance_a = 0;
     Real variance_b = 0;
+
+
+#ifdef CYLINDRICAL_COORDINATE_SYSTEM
+    for (auto s : mesh->template inner_range<FACE>())
+#else
     for (auto s : mesh->template range<FACE>())
+#endif
     {
 
         variance_a += mod(f2a[s]);
@@ -732,7 +730,12 @@ TEST_P(FETLTest, identity_curl_grad_f3_eq_0)
     size_t count = 0;
     Real variance_a = 0;
     Real variance_b = 0;
-    for (auto s :   mesh->template range<EDGE>())
+
+#ifdef CYLINDRICAL_COORDINATE_SYSTEM
+    for (auto s : mesh->template inner_range<EDGE>())
+#else
+    for (auto s : mesh->template range<EDGE>())
+#endif
     {
         variance_a += mod(f1a[s]);
         variance_b += mod(f1b[s]);
@@ -785,15 +788,13 @@ TEST_P(FETLTest, identity_div_curl_f1_eq0
     Real variance_b = 0;
 
 
+#ifdef CYLINDRICAL_COORDINATE_SYSTEM
+    for (auto s : mesh->template inner_range<VERTEX>())
+#else
     for (auto s : mesh->template range<VERTEX>())
+#endif
     {
 
-#ifdef CYLINDRICAL_COORDINATE_SYSTEM
-        if (dims[mesh-> sub_index(s) ] > 1 /* && mesh->  idx_to_boundary(s)   <= 1*/)
-        {
-            continue;
-        }
-#endif
         ++count;
 
         variance_b += mod(f0b[s] * f0b[s]);
@@ -806,8 +807,7 @@ TEST_P(FETLTest, identity_div_curl_f1_eq0
 
 }
 
-TEST_P(FETLTest, identity_div_curl_f2_eq0
-)
+TEST_P(FETLTest, identity_div_curl_f2_eq0)
 {
 
     auto f1 = traits::make_field<value_type, EDGE>(*mesh);
@@ -842,13 +842,14 @@ TEST_P(FETLTest, identity_div_curl_f2_eq0
 
     Real variance_a = 0;
     Real variance_b = 0;
-
-    for (auto s :   mesh->template range<VOLUME>())
-    {
-
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
-        if (dims[mesh->sub_index(s)] > 1 /* && mesh->idx_to_boundary(s) <= 1*/) { continue; }
+    for (auto s : mesh->template inner_range<VOLUME>())
+#else
+    for (auto s : mesh->template range<VOLUME>())
 #endif
+     {
+
+
         ++count;
 
         variance_a += mod(f3a[s] * f3a[s]);

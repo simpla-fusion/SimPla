@@ -64,14 +64,14 @@ INSTANTIATE_TEST_CASE_P(
 
 
                 testing::Values(
-//                        nTuple<size_t, 3>({1, 1, 1}) //,
-                         nTuple<size_t, 3>({16, 1, 1}) //
+//                        nTuple<size_t, 3>({1, 1, 1}) //
+//                        , nTuple<size_t, 3>({16, 1, 1}) //
 //                        , nTuple<size_t, 3>({1, 10, 1}) //
 //                        , nTuple<size_t, 3>({1, 1, 16}) //
 //                        , nTuple<size_t, 3>({1, 20, 20}) //
 //                        , nTuple<size_t, 3>({40, 1, 50}) //
-//                        , nTuple<size_t, 3>({17, 20, 1}) //
-//                        , nTuple<size_t, 3>({16, 20, 16})   //
+//                        , nTuple<size_t, 3>({17, 20, 1}) //,
+                         nTuple<size_t, 3>({16, 20, 16})   //
                 ),
 
                 testing::Values(nTuple<Real, 3>({TWOPI, TWOPI, TWOPI}))

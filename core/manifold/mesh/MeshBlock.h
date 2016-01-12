@@ -165,6 +165,29 @@ public:
         return m::template make_range<IFORM>(m_idx_local_min_, m_idx_local_max_);
     }
 
+    template<int IFORM>
+    range_type inner_range() const
+    {
+        index_tuple i_min = m_idx_local_min_;
+        index_tuple i_max = m_idx_local_max_;
+        for (int n = 0; n < ndims; ++n)
+        {
+            if (i_max[n] - i_min[n] > 2 * DEFAULT_GHOST_WIDTH)
+            {
+                i_min[n] += DEFAULT_GHOST_WIDTH;
+                i_max[n] -= DEFAULT_GHOST_WIDTH;
+            }
+
+        }
+        return m::template make_range<IFORM>(i_min, i_max);
+    }
+
+    template<int IFORM>
+    range_type outer_range() const
+    {
+        return m::template make_range<IFORM>(m_idx_memory_min_, m_idx_memory_max_);
+    }
+
 
     template<int IFORM>
     size_t max_hash() const
@@ -230,6 +253,7 @@ public:
         return num;
     }
 
+    void get_volumes(Real *v, Real *inv_v, Real *dual_v, Real *inv_dual_v);
 
 private:
     /**
