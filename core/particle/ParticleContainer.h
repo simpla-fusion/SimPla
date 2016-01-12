@@ -809,7 +809,7 @@ template<typename P, typename M, typename ...Policies>
 template<typename TGen, typename ...Args> void
 ParticleContainer<P, M, Policies...>::generator(id_type s, TGen &gen, size_t pic, Args &&...args)
 {
-    auto g = gen.generator(pic, mesh_entity::mesh().volume(s), mesh_entity::mesh().box(s),
+    auto g = gen.generator(pic, mesh_entity::mesh().volume(s), mesh_entity::mesh().cell_box(s),
                            std::forward<Args>(args)...);
 
     typename container_type::accessor acc;
