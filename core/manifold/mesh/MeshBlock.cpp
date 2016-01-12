@@ -17,49 +17,15 @@ MeshBlock::~MeshBlock() { }
 void MeshBlock::dimensions(index_tuple const &d)
 {
     m_dimensions_ = d;
-    m_ndims_ = 0;
-    for (int n = 0; n < ndims; ++n)
-    {
-        if (m_dimensions_[n] <= 1)
-        {
-            m_dimensions_[n] = 1;
 
-            m_idx_min_[n] = 0;
-
-            m_idx_max_[n] = 1;
-
-            m_idx_local_min_[n] = 0;
-
-            m_idx_local_max_[n] = 1;
-
-            m_idx_memory_min_[n] = 0;
-
-            m_idx_memory_max_[n] = 1;
-        }
-        else
-        {
-            ++m_ndims_;
-
-            m_idx_min_[n] = 0;
-
-            m_idx_max_[n] = m_dimensions_[n] + m_idx_min_[n];
-
-            m_idx_local_min_[n] = m_idx_min_[n];
-
-            m_idx_local_max_[n] = m_idx_max_[n];
-
-            m_idx_memory_min_[n] = m_idx_local_min_[n];
-
-            m_idx_memory_max_[n] = m_idx_local_max_[n];
-
-        }
-
-
-    }
 }
 
-void MeshBlock::decompose(index_tuple const &dist_dimensions, index_tuple const &dist_coord,
-                          index_type gw)
+void MeshBlock::ghost_width(index_tuple const &g)
+{
+    m_ghost_width_ = g;
+};
+
+void MeshBlock::decompose(index_tuple const &dist_dimensions, index_tuple const &dist_coord)
 {
 
     m_ndims_ = 0;
@@ -69,16 +35,16 @@ void MeshBlock::decompose(index_tuple const &dist_dimensions, index_tuple const 
 
         index_type i_max = m_idx_local_max_[n];
 
-        if ((i_max - i_min) > 2 * gw * dist_dimensions[n])
+        if ((i_max - i_min) > 2 * m_ghost_width_[n] * dist_dimensions[n])
         {
 
             m_idx_local_min_[n] = i_min + (i_max - i_min) * dist_coord[n] / dist_dimensions[n];
 
             m_idx_local_max_[n] = i_min + (i_max - i_min) * (dist_coord[n] + 1) / dist_dimensions[n];
 
-            m_idx_memory_min_[n] = m_idx_local_min_[n] - gw;
+            m_idx_memory_min_[n] = m_idx_local_min_[n] - m_ghost_width_[n];
 
-            m_idx_memory_max_[n] = m_idx_local_max_[n] + gw;
+            m_idx_memory_max_[n] = m_idx_local_max_[n] + m_ghost_width_[n];
         }
         else if ((i_max - i_min) > 1)
         {
@@ -98,6 +64,34 @@ void MeshBlock::decompose(index_tuple const &dist_dimensions, index_tuple const 
 
 void MeshBlock::deploy2()
 {
+    m_ndims_ = 0;
+
+    for (int n = 0; n < ndims; ++n)
+    {
+        if (m_dimensions_[n] <= 1)
+        {
+            m_dimensions_[n] = 1;
+
+            m_idx_max_[n] = m_idx_min_[n] + 1;
+        }
+        else
+        {
+            ++m_ndims_;
+
+            m_idx_max_[n] = m_dimensions_[n] + m_idx_min_[n];
+        }
+
+        m_idx_local_min_[n] = m_idx_min_[n];
+
+        m_idx_local_max_[n] = m_idx_max_[n];
+
+
+        m_idx_memory_min_[n] = 0;
+
+        m_idx_memory_max_[n] = m_idx_max_[n] + m_idx_min_[n];
+
+
+    }
 
     for (int i = 0; i < ndims; ++i)
     {
@@ -198,7 +192,7 @@ void MeshBlock::get_volumes(Real *m_volume_, Real *m_inv_volume_, Real *m_dual_v
 //
 
     CHECK(m_dx_);
-    
+
 #define NOT_ZERO(_V_) ((_V_<EPSILON)?1.0:(_V_))
     m_volume_[0] = 1.0;
 

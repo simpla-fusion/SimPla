@@ -29,9 +29,6 @@ private:
     typedef MeshBlock this_type;
     typedef MeshIDs m;
 
-
-    static constexpr int DEFAULT_GHOST_WIDTH = 2;
-
 public:
 
     static constexpr int ndims = 3;
@@ -89,7 +86,7 @@ public:
     index_tuple m_idx_memory_max_{1, 1, 1};
 
     index_tuple m_dimensions_{1, 1, 1};
-
+    index_tuple m_ghost_width_{0, 0, 0};
     int m_ndims_ = 3;
 
 public:
@@ -103,9 +100,10 @@ public:
 
     void dimensions(index_tuple const &d);
 
+    void ghost_width(index_tuple const &d);
 
-    void decompose(index_tuple const &dist_dimensions, index_tuple const &dist_coord,
-                   index_type gw = DEFAULT_GHOST_WIDTH);
+
+    void decompose(index_tuple const &dist_dimensions, index_tuple const &dist_coord);
 
     void deploy2();
 
@@ -118,6 +116,7 @@ public:
 
     index_tuple const &dimensions() const { return m_dimensions_; }
 
+    index_tuple const &ghost_width() const { return m_ghost_width_; }
 
     size_t id_mask() const
     {
@@ -199,10 +198,10 @@ public:
         index_tuple i_max = m_idx_local_max_;
         for (int n = 0; n < ndims; ++n)
         {
-            if (i_max[n] - i_min[n] > 2 * DEFAULT_GHOST_WIDTH)
+            if (i_max[n] - i_min[n] > 2 * m_idx_min_[n])
             {
-                i_min[n] += DEFAULT_GHOST_WIDTH;
-                i_max[n] -= DEFAULT_GHOST_WIDTH;
+                i_min[n] += m_idx_min_[n];
+                i_max[n] -= m_idx_min_[n];
             }
 
         }
