@@ -128,7 +128,7 @@ public:
 
     void swap(this_type const &other) = delete;
 
-    virtual ~ParticleContainer() ;
+    virtual ~ParticleContainer();
 
 
     HAS_PROPERTIES

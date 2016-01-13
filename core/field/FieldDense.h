@@ -62,10 +62,10 @@ public:
 
     //create construct
     Field(mesh_type &m, std::string const &name = "")
-            : m_data_(m.template create_attribute<value_type, iform>(name)) { }
+            : m_data_(m.template get_attribute<value_type, iform>(name)) { }
 
     Field(mesh_type const &m)
-            : m_data_(m.template create_attribute<value_type, iform>()) { }
+            : m_data_(m.template get_attribute<value_type, iform>()) { }
 
     //copy construct
     Field(this_type const &other) : m_data_(other.m_data_) { }

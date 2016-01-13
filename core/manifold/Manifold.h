@@ -253,6 +253,31 @@ private:
 
 public:
 
+    template<typename TV, int IFORM>
+    std::shared_ptr<Attribute<TV, IFORM>> get_attribute() const
+    {
+        return create_attribute<TV, IFORM>();
+    }
+
+    template<typename TV, int IFORM>
+    std::shared_ptr<Attribute<TV, IFORM>> get_attribute(std::string const &s_name = "")
+    {
+        auto it = m_attributes_.find(s_name);
+
+        if (it == m_attributes_.end())
+        {
+            return create_attribute<TV, IFORM>(s_name);
+        }
+        else if (it->second.lock()->is_a(typeid(Attribute<TV, IFORM>)))
+        {
+            return std::dynamic_pointer_cast<Attribute<TV, IFORM>>(it->second.lock());
+        }
+        else
+        {
+            return nullptr;
+        }
+
+    }
 
     template<typename TV, int IFORM>
     std::shared_ptr<Attribute<TV, IFORM>> create_attribute(std::string const &s_name = "")
@@ -267,11 +292,9 @@ public:
     }
 
     template<typename TV, int IFORM>
-    std::shared_ptr<Attribute<TV, IFORM>> create_attribute(std::string const &s_name = "") const
+    std::shared_ptr<Attribute<TV, IFORM>> create_attribute() const
     {
-        auto res = std::make_shared<Attribute<TV, IFORM>>(*this, s_name);
-
-        res->properties()["Name"] = s_name;
+        auto res = std::make_shared<Attribute<TV, IFORM>>(*this);
 
         return res;
     }

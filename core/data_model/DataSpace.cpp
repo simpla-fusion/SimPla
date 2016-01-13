@@ -175,6 +175,10 @@ DataSpace::data_shape_s const &DataSpace::shape() const
     return m_pimpl_->m_d_shape_;
 }
 
+DataSpace::data_shape_s &DataSpace::shape()
+{
+    return m_pimpl_->m_d_shape_;
+}
 
 size_t DataSpace::size() const
 {

@@ -395,6 +395,9 @@ void EMTokamak::initialize(int argc, char **argv)
 
 void EMTokamak::tear_down()
 {
+
+    out_stream.hdf5().flush();
+
     out_stream.close_grid();
 
     out_stream.open_grid("dump", io::XDMFStream::UNIFORM);
@@ -457,7 +460,7 @@ void EMTokamak::check_point()
             {
                 if (attr->properties()["IsTestingParticle"])
                 {
-                    out_stream.hdf5().write(item.first, attr->checkpoint(), io::SP_BUFFER);
+                    out_stream.hdf5().write(item.first, attr->checkpoint(), io::SP_RECORD);
                 }
                 else if (attr->properties()["IsParticle"])
                 {
@@ -501,15 +504,15 @@ void EMTokamak::next_time_step()
         for (auto &p:particle_sp)
         {
             p.second->push(dt, m.time(), E0, B0);
+
             if (!disable_field) { p.second->integral(&J1); }
         }
+
         for (auto &p:testing_particle_sp)
         {
-            p.second->push(dt, t, E0, B0);
+            p.second->push(dt, m.time(), E0, B0);
 
-            p.second->rehash();
-
-            CHECK(p.second->size());
+//            p.second->rehash();
         }
 
 
@@ -555,11 +558,8 @@ void EMTokamak::next_time_step()
 
                 Real ms = p.second.mass;
                 Real qs = p.second.charge;
-
-
-                traits::field_t<scalar_type, mesh_type, VERTEX> &ns = p.second.rho1;
-
-                traits::field_t<vector_type, mesh_type, VERTEX> &Js = p.second.J1;;
+                auto &ns = p.second.rho1;
+                auto &Js = p.second.J1;;
 
 
                 Real as = (dt * qs) / (2.0 * ms);
@@ -592,8 +592,8 @@ void EMTokamak::next_time_step()
             {
                 Real ms = p.second.mass;
                 Real qs = p.second.charge;
-                traits::field_t<scalar_type, mesh_type, VERTEX> &ns = p.second.rho1;
-                traits::field_t<vector_type, mesh_type, VERTEX> &Js = p.second.J1;;
+                auto &ns = p.second.rho1;
+                auto &Js = p.second.J1;;
 
 
                 Real as = (dt * qs) / (2.0 * ms);
@@ -611,6 +611,7 @@ void EMTokamak::next_time_step()
 
         B1.accept(face_boundary.range(), [&](id_type const &, Real &v) { v = 0; });
     }
+
     m.next_time_step();
 }
 
@@ -701,6 +702,8 @@ int main(int argc, char **argv)
     INFORM << "\t >>> Done <<< " << std::endl;
     MESSAGE << "====================================================" << std::endl;
 
+
+    io::close();
 
     parallel::close();
 

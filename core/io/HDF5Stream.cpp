@@ -60,7 +60,7 @@ struct HDF5Stream::pimpl_s
 
     Properties get_attribute(hid_t loc_id, int idx = -1) const;
 
-    static constexpr size_t DEFAULT_MAX_BUFFER_DEPTH = 1024;
+    static constexpr size_t DEFAULT_MAX_BUFFER_DEPTH = 100;
 
     std::map<std::string, data_model::DataSet> m_buffer_map_;
 
@@ -69,15 +69,14 @@ struct HDF5Stream::pimpl_s
 
 HDF5Stream::HDF5Stream() : m_pimpl_(new pimpl_s) { }
 
-HDF5Stream::~HDF5Stream()
-{
-    for (auto const &item:m_pimpl_->m_buffer_map_)
-    {
-        write_buffer(item.first, true);
-    }
-}
+HDF5Stream::~HDF5Stream() { close(); }
 
 bool HDF5Stream::is_valid() const
+{
+    return m_pimpl_ != nullptr && m_pimpl_->base_file_id_ > 0;
+}
+
+bool HDF5Stream::is_opened() const
 {
     return m_pimpl_ != nullptr && m_pimpl_->base_file_id_ > 0;
 }
@@ -253,10 +252,9 @@ void HDF5Stream::delete_attribute(std::string const &url)
 
     std::tie(file_name, grp_name, obj_name, attr_name) = IOStream::parser_url(url);
 
-    if (obj_name != "")
-    {
-
-        // FIXME
+//    if (obj_name != "")
+//    {
+    // FIXME UNIMPLEMENTED;
 //        hid_t g_id;
 //        std::tie(grp_name, g_id) = m_pimpl_->open_group(grp_name);
 //
@@ -268,7 +266,7 @@ void HDF5Stream::delete_attribute(std::string const &url)
 //        {
 //            H5Gclose(g_id);
 //        }
-    }
+//    }
     UNIMPLEMENTED;
 
 }
@@ -300,9 +298,12 @@ void HDF5Stream::close_group()
 void HDF5Stream::close_file()
 {
     if (m_pimpl_ == nullptr) { return; }
+
     close_group();
+
     if (m_pimpl_->base_file_id_ > 0)
     {
+        flush();
         H5_ERROR(H5Fclose(m_pimpl_->base_file_id_));
         m_pimpl_->base_file_id_ = -1;
         VERBOSE << "File [" << IOStream::current_file_name() << "] is closed!" << std::endl;
@@ -607,7 +608,7 @@ hid_t convert_data_space_sp_to_h5(data_model::DataSpace const &ds, size_t flag)
 
     if ((flag & SP_APPEND) != 0UL)
     {
-        max_dims[0] = H5S_UNLIMITED;
+        max_dims[ndims - 1] = H5S_UNLIMITED;
     }
     else if ((flag & SP_RECORD) != 0UL)
     {
@@ -653,119 +654,177 @@ data_model::DataSpace convert_data_space_h5_to_sp(hid_t)
 
 void HDF5Stream::push_buffer(std::string const &url, data_model::DataSet const &ds)
 {
-    typedef nTuple<data_model::DataSpace::index_type, MAX_NDIMS_OF_ARRAY> index_tuple;
 
     std::string full_path = absolute_path(url);
 
     auto &item = m_pimpl_->m_buffer_map_[full_path];
 
-    if (item.data_space.is_full() && item.data != nullptr)
+    if (item.memory_space.is_full() && item.data != nullptr)
     {
         write(full_path, item, SP_APPEND);
-        item.data_space.clear_selected();
+
+
+        auto &d_shape = item.data_space.shape();
+        int &d_ndims = std::get<0>(d_shape);
+        std::get<1>(d_shape)[d_ndims - 1] = 0; //dims
+        std::get<4>(d_shape)[d_ndims - 1] = 0; //count
+
+
+        auto &m_shape = item.memory_space.shape();
+        int m_ndims = std::get<0>(m_shape);
+        std::get<1>(m_shape)[m_ndims - 1] = 0; //dims
+        std::get<4>(m_shape)[m_ndims - 1] = 0; //count
+
+
     }
     else if (item.data == nullptr)
     {
-        if (ds.data_space.is_simple())
+        if (ds.memory_space.is_simple())
         {
             int ndims = 0;
 
-            index_tuple count;
+            item.data_space = ds.data_space;
+            item.memory_space = ds.memory_space;
 
-            std::tie(ndims, std::ignore /* dims*/, std::ignore /* start*/, std::ignore /*stride*/, count,
-                     std::ignore /*block*/) = ds.data_space.shape();
+            auto &d_shape = item.data_space.shape();
 
-            count[ndims] = pimpl_s::DEFAULT_MAX_BUFFER_DEPTH;
+            int &d_ndims = std::get<0>(d_shape);
 
-            item.data_space = data_model::DataSpace::create_simple(ndims + 1, &count[0]);
+            ++d_ndims;
+
+            std::get<1>(d_shape)[d_ndims - 1] = 0; //dims
+            std::get<2>(d_shape)[d_ndims - 1] = 0; //start
+            std::get<3>(d_shape)[d_ndims - 1] = 1; //stride
+            std::get<4>(d_shape)[d_ndims - 1] = 0; //count
+            std::get<5>(d_shape)[d_ndims - 1] = 1; //block
+
+
+            auto &m_shape = item.memory_space.shape();
+            int &m_ndims = std::get<0>(m_shape);
+            std::get<1>(m_shape) = std::get<4>(m_shape);
+            ++m_ndims;
+
+            std::get<1>(m_shape)[m_ndims - 1] = pimpl_s::DEFAULT_MAX_BUFFER_DEPTH; //dims
+            std::get<2>(m_shape)[m_ndims - 1] = 0; //start
+            std::get<3>(m_shape)[m_ndims - 1] = 1; //stride
+            std::get<4>(m_shape)[m_ndims - 1] = 0; //count
+            std::get<5>(m_shape)[m_ndims - 1] = 1; //block
 
         }
         else
         {
-            data_model::DataSpace::index_type dims[2] = {ds.data_space.size(), pimpl_s::DEFAULT_MAX_BUFFER_DEPTH};
-
-            item.data_space = data_model::DataSpace::create_simple(2, dims);
-        }
-
-        index_tuple count;
-
-        count = 0;
-
-        item.data_space.select_hyperslab(&count[0], nullptr, &count[0], nullptr);
-
-        item.data_type = ds.data_type;
-        CHECK(item.data_space.size() * item.data_type.size_in_byte());
-        item.data = sp_alloc_memory(item.data_space.size() * item.data_type.size_in_byte());
-
-    }
-    ASSERT(item.data != nullptr);
-
-
-    int dest_ndims = 0;
-    index_tuple dest_dims;
-    index_tuple dest_start;
-    index_tuple dest_count;
-
-    std::tie(dest_ndims, dest_dims, dest_start, std::ignore /*stride*/, dest_count,
-             std::ignore /*block*/ ) = item.data_space.shape();
-
-
-    if (ds.data_space.is_simple())
-    {
-        int src_ndims = 0;
-        index_tuple src_dims;
-        index_tuple src_start;
-        index_tuple src_count;
-
-        std::tie(src_ndims, src_dims, src_start, std::ignore /*stride*/, src_count,
-                 std::ignore /*block*/ ) = ds.data_space.shape();
-
-        // copy
-
-        if (!ds.data_space.is_full())
-        {
-            // FIXME (!ds.data_space.is_full())
             UNIMPLEMENTED;
         }
+
+
+        item.data_type = ds.data_type;
+
+        item.data = sp_alloc_memory(item.memory_space.size() * item.data_type.size_in_byte());
+
+    }
+
+
+    if (item.data != nullptr)
+    {
+        auto &d_shape = item.data_space.shape();
+        int d_ndims = std::get<0>(d_shape);
+
+
+        auto &m_shape = item.memory_space.shape();
+        int m_ndims = std::get<0>(m_shape);
+
+
+        size_t dtype_size = item.data_type.size();
+
+
+        if (ds.memory_space.is_simple())
+        {
+
+            auto const &src_shape = ds.memory_space.shape();
+
+            size_t num_element = ds.memory_space.num_of_elements();
+
+
+            int src_ndims = std::get<0>(src_shape);
+            auto src_dims = std::get<1>(src_shape);
+            auto src_start = std::get<2>(src_shape);
+            auto src_count = std::get<4>(src_shape);
+
+            int dest_ndims = std::get<0>(m_shape);
+            auto dest_dims = std::get<1>(m_shape);
+            auto dest_start = std::get<2>(m_shape);
+            auto dest_count = std::get<4>(m_shape);
+
+
+            // copy
+            char *dest_p = reinterpret_cast<char *>(item.data.get());
+            char const *src_p = reinterpret_cast<char *>(ds.data.get());
+
+
+            dest_start[dest_ndims - 1] = ++dest_count[dest_ndims - 1];
+
+            int ndims = src_ndims;
+            auto dims = src_count;
+            auto idx = dims;
+            idx = 0;
+
+
+            while (1)
+            {
+
+                size_t dest_s = 0;
+                size_t src_s = 0;
+                size_t dest_stride = 1;
+                size_t src_stride = 1;
+                for (int i = 0, ie = ndims; i < ndims; ++i)
+                {
+                    dest_s = dest_s * dest_stride + (dest_start[i] + idx[i]);
+                    src_s = dest_s * src_stride + (dest_start[i] + idx[i]);
+
+                    dest_stride *= dest_dims[i];
+                    src_stride *= src_dims[i];
+                }
+
+                dest_s *= dtype_size;
+                src_s *= dtype_size;
+
+                for (size_t i = 0, ie = dtype_size; i < ie; ++i) { dest_p[dest_s + i] = src_p[src_s + i]; }
+
+
+                ++idx[0];
+
+                int n = 0;
+                while (n < ndims)
+                {
+                    ++idx[n];
+
+                    if (idx[n] < dims[n])
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        idx[n] = 0;
+                        ++n;
+                    }
+                }
+
+                if (n >= ndims) { break; }
+            }
+
+
+        }
         else
         {
 
-            char *dest_p = reinterpret_cast<char *>(item.data.get()) +
-                           item.data_space.num_of_elements() * item.data_type.size();
-
-            char *src_p = reinterpret_cast<char *>(ds.data.get());
-
-            CHECK(ds.data_space.num_of_elements() * ds.data_type.size());
-
-//            std::strncpy(dest_p, src_p, ds.data_space.num_of_elements() * ds.data_type.size());
-
-            for (size_t i = 0, ie = ds.data_space.num_of_elements() * ds.data_type.size(); i < ie; ++i)
-            {
-                dest_p[i] = src_p[i];
-            }
+            UNIMPLEMENTED;
         }
+
+
+        ++std::get<1>(d_shape)[d_ndims - 1]; //count
+        ++std::get<4>(d_shape)[d_ndims - 1]; //count
+        ++std::get<4>(m_shape)[m_ndims - 1]; //count
     }
-    else
-    {
-        data_model::DataSpace::index_type dims[2] = {ds.data_space.size(), pimpl_s::DEFAULT_MAX_BUFFER_DEPTH};
-        auto const &selected_points = ds.data_space.selected_points();
-        const size_t type_size = ds.data_type.size();
-        char *dest_p = reinterpret_cast<char *>(item.data.get()) +
-                       item.data_space.num_of_elements() * item.data_type.size();
-
-        char *src_p = reinterpret_cast<char *>(ds.data.get());
-        for (size_t n = 0, ne = selected_points.size(); n < ne; ++n)
-        {
-            for (size_t i = 0, ie = type_size; i < ie; ++i)
-            {
-                dest_p[n * type_size + i] = src_p[selected_points[n] * type_size + i];
-            }
-
-        }
-    }
-    ++dest_count[dest_ndims - 1];
-    item.data_space.select_hyperslab(&dest_start[0], nullptr, &dest_count[0], nullptr);
-
 
 }
 
@@ -777,14 +836,39 @@ std::string HDF5Stream::write_buffer(std::string const &url, bool is_forced_flus
 
     auto it = m_pimpl_->m_buffer_map_.find(full_path);
 
-    if (it != m_pimpl_->m_buffer_map_.end() && (it->second.data_space.is_full() || is_forced_flush))
+    if (it == m_pimpl_->m_buffer_map_.end()) { return res; }
+
+
+    int ndims = std::get<0>(it->second.memory_space.shape());
+    auto count = std::get<4>(it->second.memory_space.shape());
+
+    if ((is_forced_flush && count[ndims - 1] > 0) || count[ndims - 1] == pimpl_s::DEFAULT_MAX_BUFFER_DEPTH)
     {
         res = write(full_path, it->second, SP_APPEND);
 
-        it->second.data_space.clear_selected();
+        std::get<1>(it->second.data_space.shape())[ndims - 1] = 0;
+        std::get<4>(it->second.data_space.shape())[ndims - 1] = 0;
+        std::get<4>(it->second.memory_space.shape())[ndims - 1] = 0;
+
+        VERBOSE << "======= Flush Buffer to : " << res << std::endl;
     }
+    else
+    {
+//        VERBOSE << "Push data to buffer : " << full_path << std::endl;
+    }
+
     return res;
 
+
+}
+
+void HDF5Stream::flush()
+{
+
+    for (auto const &item:m_pimpl_->m_buffer_map_)
+    {
+        write_buffer(item.first, true);
+    }
 
 }
 
@@ -895,11 +979,11 @@ std::string HDF5Stream::write(std::string const &url, data_model::DataSet const 
         if ((flag & SP_APPEND) != 0)
         {
 
-            new_f_dimensions[0] += current_dimensions[0];
+            new_f_dimensions[new_f_ndims - 1] += current_dimensions[new_f_ndims - 1];
 
             new_f_offset2 = 0;
 
-            new_f_offset2[0] += current_dimensions[0];
+            new_f_offset2[new_f_ndims - 1] += current_dimensions[new_f_ndims - 1];
 
         }
         else if ((flag & SP_RECORD) != 0)
@@ -1178,3 +1262,4 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, si
 //=====================================================================================
 
 }}// namespace simpla
+

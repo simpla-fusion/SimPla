@@ -59,6 +59,8 @@ public:
 
     void close_file();
 
+    void flush();
+
     std::string absolute_path(std::string const &url) const;
 
     /**
@@ -66,6 +68,8 @@ public:
      */
 
     bool is_valid() const;
+
+    bool is_opened() const;
 
     /**
      * write data_model to url

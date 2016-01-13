@@ -35,7 +35,7 @@ public:
 
 
     typedef size_t index_type;
-    typedef nTuple<index_type, MAX_NDIMS_OF_ARRAY> index_tuple;
+    typedef nTuple <index_type, MAX_NDIMS_OF_ARRAY> index_tuple;
 
 
     typedef std::tuple<
@@ -114,6 +114,8 @@ public:
      * @return <ndims,dimensions,start,count,stride,block>
      */
     data_shape_s const &shape() const;
+
+    data_shape_s &shape();
 
     size_t size() const;
 

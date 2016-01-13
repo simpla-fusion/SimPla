@@ -46,7 +46,7 @@ LZ = math.pi * 0.25 -- 2.0*math.pi/18
 GW = 5
 PIC = 100
 GEQDSK = "/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900"
-number_of_steps = 10
+number_of_steps = 450
 
 DisableField = true
 DisableParticle = false
@@ -108,15 +108,15 @@ Particles = {
         SubScycle = 1000,
         V0 = { 1, 2, 3 },
     },
-    ele = {
-        mass = me,
-        charge = -qe,
-        T = Te,
-        pic = PIC,
-        --        Density = function(t, x)
-        --            return (1.0 - math.cos(x[1] / LX * math.pi * 2.0)) / 2 / PIC
-        --        end
-    }
+--    ele = {
+--        mass = me,
+--        charge = -qe,
+--        T = Te,
+--        pic = PIC,
+--        --        Density = function(t, x)
+--        --            return (1.0 - math.cos(x[1] / LX * math.pi * 2.0)) / 2 / PIC
+--        --        end
+--    }
 }
 
 PEC = {
