@@ -254,7 +254,7 @@ public:
 
 template<typename P, typename M, typename ...Policies>
 ParticleContainer<P, M, Policies...>::ParticleContainer(M const &m, std::string const &s_name)
-        : mesh_entity(m)
+        : mesh_entity(m), engine_type(m)
 {
     properties()["Name"] = s_name;
 }

@@ -21,7 +21,6 @@ namespace simpla { namespace particle
 {
 template<typename ...> struct Particle;
 template<typename ...> struct ParticleEngine;
-template<typename TAGS, typename M> using particle_t= Particle<ParticleEngine<TAGS>, M>;
 
 template<typename P, typename M, typename ...Policies>
 struct Particle<P, M, Policies...>

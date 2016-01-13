@@ -1,11 +1,11 @@
 /**
- * @file PICBoris.h
+ * @file PICGyro.h
  * @author salmon
- * @date 2015-11-29.
+ * @date 2016-01-13.
  */
 
-#ifndef SIMPLA_PIC_BORIS_H
-#define SIMPLA_PIC_BORIS_H
+#ifndef SIMPLA_PICGYRO_H
+#define SIMPLA_PICGYRO_H
 
 #include "../../manifold/policy/FvmStructuredPolicy.h"
 #include "../../manifold/policy/LinearInterpolatorPolicy.h"
@@ -20,9 +20,9 @@
 namespace simpla { namespace particle { namespace engine
 {
 
-inline void BorisPusher(Real cmr, Real dt, Vec3 const &B, Vec3 const &E,
-                        ::simpla::geometry::CartesianMetric::point_type *x,
-                        ::simpla::geometry::CartesianMetric::vector_type *v)
+inline void GyroPusher(Real cmr, Real dt, Vec3 const &B, Vec3 const &E,
+                       ::simpla::geometry::CartesianMetric::point_type *x,
+                       ::simpla::geometry::CartesianMetric::vector_type *v)
 {
     (*x) += (*v) * dt * 0.5;
 
@@ -42,7 +42,7 @@ inline void BorisPusher(Real cmr, Real dt, Vec3 const &B, Vec3 const &E,
     (*x) += (*v) * dt * 0.5;
 }
 
-//inline void BorisPusher(::simpla::geometry::CylindricalMetric const &, Real cmr, Real dt, Vec3 const &B, Vec3 const &E,
+//inline void GyroPusher(::simpla::geometry::CylindricalMetric const &, Real cmr, Real dt, Vec3 const &B, Vec3 const &E,
 //                        ::simpla::geometry::CylindricalMetric::point_type *x,
 //                        ::simpla::geometry::CylindricalMetric::vector_type *v)
 //{
@@ -64,10 +64,10 @@ inline void BorisPusher(Real cmr, Real dt, Vec3 const &B, Vec3 const &E,
 //    (*x) += (*v) * dt * 0.5;
 //}
 
-template<typename TM> struct BorisEngine;
+template<typename TM> struct GyroEngine;
 
 template<>
-struct BorisEngine<geometry::CartesianMetric>
+struct GyroEngine<geometry::CartesianMetric>
 {
     typedef typename geometry::CartesianMetric::point_type point_type;
     typedef typename geometry::CartesianMetric::vector_type vector_type;
@@ -83,7 +83,7 @@ struct BorisEngine<geometry::CartesianMetric>
 
     DEFINE_PROPERTIES(Real, temperature);
 
-    SP_DEFINE_STRUCT(sample_type, point_type, x, vector_type, v, Real, f, Real, w);
+    SP_DEFINE_STRUCT(sample_type, point_type, x, Real, mu, Real, u, Real, theta, Real, f, Real, w);
 
     void deploy()
     {
@@ -159,7 +159,7 @@ struct BorisEngine<geometry::CartesianMetric>
 
 
 template<>
-struct BorisEngine<geometry::CylindricalMetric>
+struct GyroEngine<geometry::CylindricalMetric>
 {
     typedef typename geometry::CylindricalMetric::point_type point_type;
     typedef typename geometry::CylindricalMetric::vector_type vector_type;
@@ -251,17 +251,16 @@ struct BorisEngine<geometry::CylindricalMetric>
 }}}//namespace simpla { namespace particle { namespace engine
 namespace simpla { namespace particle
 {
-template<typename TM> using BorisParticle =
-Particle<particle::engine::BorisEngine<typename TM::metric_type>, TM,
+template<typename TM> using GyroParticle =
+Particle<particle::engine::GyroEngine<typename TM::metric_type>, TM,
         manifold::policy::FiniteVolume,
         manifold::policy::LinearInterpolator
 >;
 
-template<typename TM> using BorisTrackingParticle =
-Particle<enable_tracking<particle::engine::BorisEngine<typename TM::metric_type>>, TM,
-        manifold::policy::FiniteVolume,
-        manifold::policy::LinearInterpolator
+template<typename TM> using GyroTrackingParticle =
+Particle <enable_tracking<particle::engine::GyroEngine<typename TM::metric_type>>, TM,
+manifold::policy::FiniteVolume,
+manifold::policy::LinearInterpolator
 >;
 }}
-
-#endif //SIMPLA_PIC_BORIS_H
+#endif //SIMPLA_PICGYRO_H

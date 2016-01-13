@@ -15,6 +15,7 @@
 
 #include "../../core/manifold/pre_define/PreDefine.h"
 #include "../../core/particle/pre_define/PICBoris.h"
+#include "../../core/particle/pre_define/PICGyro.h"
 
 #include "../../core/model/GEqdsk.h"
 #include "../../core/model/Constraint.h"
@@ -310,6 +311,10 @@ void EMTokamak::initialize(int argc, char **argv)
                 {
                     particle_sp[key] = create_particle<particle::BorisParticle<mesh_type>>(key, dict.second);
                 }
+                if (dict.second["Type"].template as<std::string>() == "Gyro")
+                {
+                    particle_sp[key] = create_particle<particle::GyroParticle<mesh_type>>(key, dict.second);
+                }
             }
             else if (dict.second["IsTestingParticle"])
             {
@@ -317,6 +322,11 @@ void EMTokamak::initialize(int argc, char **argv)
                 {
                     testing_particle_sp[key] = create_particle<particle::BorisTrackingParticle<mesh_type>>(key,
                                                                                                            dict.second);
+                }
+                else if (dict.second["Type"].template as<std::string>() == "Gyro")
+                {
+                    testing_particle_sp[key] = create_particle<particle::GyroTrackingParticle<mesh_type>>(key,
+                                                                                                          dict.second);
                 }
             }
             else
