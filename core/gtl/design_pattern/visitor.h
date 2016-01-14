@@ -38,12 +38,12 @@ namespace simpla
  *   	}
  *
  *   	template<typename ...Args>
- *   	void accept(Visitor<this_type, Args...> &visitor)
+ *   	void filter(Visitor<this_type, Args...> &visitor)
  *   	{
  *   		visitor.excute([this](Args ... args)
  *   		{	this->Command(std::forward<Args>(args)...);});
  *   	}
- *   	void accept(Visitor<this_type, const char *> &visitor)
+ *   	void filter(Visitor<this_type, const char *> &visitor)
  *   	{
  *   		if (visitor.GetName() == "Command2")
  *   		{
@@ -95,9 +95,9 @@ namespace simpla
  *   	auto v1 = createVisitor<Foo1>("Command1", 5, 6);
  *   	auto v2 = createVisitor<Foo1>("Command2", "hello world");
  *   	auto v3 = createVisitor<Foo1>("Command3", 5, 6, 3);
- *   	f1->accept(v1);
- *   	f1->accept(v2);
- *   	f1->accept(v3);
+ *   	f1->filter(v1);
+ *   	f1->filter(v2);
+ *   	f1->filter(v3);
  *
  *   	delete f1;
  *

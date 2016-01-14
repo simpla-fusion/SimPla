@@ -56,28 +56,34 @@ public:
      *          Fun         = function<void(TARGS const &,sample_type*)>
      */
 
-    template<typename TFun> void accept(key_type const &, TFun const &fun);
+    template<typename TFun> void filter(TFun const &fun, key_type const &);
 
-    template<typename TFun> void accept(key_type const &, TFun const &fun) const;
+    template<typename TFun> void filter(TFun const &fun, key_type const &) const;
 
-    template<typename TFun> void accept(typename base_type::value_type const &, TFun const &fun);
+    template<typename TFun> void filter(TFun const &fun, typename base_type::value_type const &);
 
-    template<typename TFun> void accept(typename base_type::value_type const &, TFun const &fun) const;
+    template<typename TFun> void filter(TFun const &fun, typename base_type::value_type const &) const;
 
-    template<typename TRange, typename TFun> void accept(TRange const &, TFun const &fun);
+    template<typename TRange, typename TFun> void filter(TFun const &fun, TRange const &);
 
-    template<typename TRange, typename TFun> void accept(TRange const &, TFun const &fun) const;
+    template<typename TRange, typename TFun> void filter(TFun const &fun, TRange const &) const;
 
-    template<typename TFun> void accept(TFun const &fun);
+    template<typename TRange, typename TFun>
+    void filter(std::tuple<TFun, TRange> const &f) { filter(std::get<0>(f), std::get<1>(f)); }
 
-    template<typename TFun> void accept(TFun const &fun) const;
+    template<typename TRange, typename TFun>
+    void filter(std::tuple<TFun, TRange> const &f) const { filter(std::get<0>(f), std::get<1>(f)); }
+
+    template<typename TFun> void filter(TFun const &fun);
+
+    template<typename TFun> void filter(TFun const &fun) const;
 
 
-    template<typename Predicate> void remove_if(key_type const &r, Predicate const &pred);
+    template<typename Predicate> void remove_if(Predicate const &pred, key_type const &r);
 
-    template<typename Predicate> void remove_if(typename base_type::value_type const &r, Predicate const &pred);
+    template<typename Predicate> void remove_if(Predicate const &pred, typename base_type::value_type const &r);
 
-    template<typename TRange, typename Predicate> void remove_if(TRange const &r, Predicate const &pred);
+    template<typename TRange, typename Predicate> void remove_if(Predicate const &pred, key_type const &r);
 
     template<typename Predicate> void remove_if(Predicate const &pred);
 
@@ -113,9 +119,9 @@ public:
     size_t size() const;
 
 
-    template<typename OutputIT> OutputIT copy(key_type s, OutputIT out_it) const;
+    template<typename OutputIT> OutputIT copy(OutputIT out_it, key_type const &s) const;
 
-    template<typename OutputIT, typename TRange> OutputIT copy(TRange const &r, OutputIT out_it) const;
+    template<typename OutputIT, typename TRange> OutputIT copy(OutputIT out_it, TRange const &r) const;
 
     template<typename OutputIT> OutputIT copy(OutputIT out_it) const;
 
@@ -242,7 +248,7 @@ UnorderedSet<P, M>::erase(TRange const &r)
 
 template<typename P, typename M>
 template<typename OutputIterator> OutputIterator
-UnorderedSet<P, M>::copy(key_type s, OutputIterator out_it) const
+UnorderedSet<P, M>::copy(OutputIterator out_it, key_type const &s) const
 {
     typename base_type::const_accessor c_accessor;
     if (base_type::find(c_accessor, s))
@@ -254,10 +260,10 @@ UnorderedSet<P, M>::copy(key_type s, OutputIterator out_it) const
 
 template<typename P, typename M>
 template<typename OutputIT, typename TRange> OutputIT
-UnorderedSet<P, M>::copy(TRange const &r, OutputIT out_it) const
+UnorderedSet<P, M>::copy(OutputIT out_it, TRange const &r) const
 {
     //TODO need optimize
-    for (auto const &s:r) { out_it = copy(s, out_it); }
+    for (auto const &s:r) { out_it = copy(out_it, s); }
     return out_it;
 }
 
@@ -265,7 +271,7 @@ template<typename P, typename M>
 template<typename OutputIterator> OutputIterator
 UnorderedSet<P, M>::copy(OutputIterator out_it) const
 {
-    return copy(this->range(), out_it);
+    return copy(out_it, this->range());
 }
 //*******************************************************************************
 
@@ -372,7 +378,7 @@ UnorderedSet<P, M>::rehash(Hash const &hash, buffer_type *out_buffer)
 //*******************************************************************************
 
 template<typename P, typename M> template<typename Predicate> void
-UnorderedSet<P, M>::remove_if(key_type const &s, Predicate const &pred)
+UnorderedSet<P, M>::remove_if(Predicate const &pred, key_type const &s)
 {
     typename base_type::accessor acc;
 
@@ -384,16 +390,16 @@ UnorderedSet<P, M>::remove_if(key_type const &s, Predicate const &pred)
 
 
 template<typename P, typename M> template<typename Predicate> void
-UnorderedSet<P, M>::remove_if(typename base_type::value_type const &r, Predicate const &pred)
+UnorderedSet<P, M>::remove_if(Predicate const &pred, typename base_type::value_type const &item)
 {
-    r.second.remove_if([&](value_type const &p) { return pred(p, item.first); });
+    item.second.remove_if([&](value_type const &p) { return pred(p, item.first); });
 }
 
 
 template<typename P, typename M> template<typename TRange, typename Predicate> void
-UnorderedSet<P, M>::remove_if(TRange const &r0, Predicate const &pred)
+UnorderedSet<P, M>::remove_if(Predicate const &pred, key_type const &r0)
 {
-    parallel::parallel_for(r0, [&](TRange const &r) { for (auto const &s:r) { remove_if(s, pred); }});
+    parallel::parallel_for(r0, [&](TRange const &r) { for (auto const &s:r) { remove_if(pred, s); }});
 }
 
 template<typename P, typename M> template<typename Predicate> void
@@ -404,7 +410,7 @@ UnorderedSet<P, M>::remove_if(Predicate const &pred)
 
 
 template<typename P, typename M> template<typename TFun> void
-UnorderedSet<P, M>::accept(key_type const &s, TFun const &fun)
+UnorderedSet<P, M>::filter(TFun const &fun, key_type const &s)
 {
     typename base_type::accessor acc;
 
@@ -413,50 +419,50 @@ UnorderedSet<P, M>::accept(key_type const &s, TFun const &fun)
 };
 
 template<typename P, typename M> template<typename TFun> void
-UnorderedSet<P, M>::accept(key_type const &s, TFun const &fun) const
+UnorderedSet<P, M>::filter(TFun const &fun, key_type const &s) const
 {
     typename base_type::const_accessor acc;
 
-    if (base_type::find(acc, s)) { for (auto const &p:acc->second) { fun(&p); }}
+    if (base_type::find(acc, s)) { for (auto const &p:acc->second) { fun(p); }}
 };
 
 template<typename P, typename M> template<typename TFun> void
-UnorderedSet<P, M>::accept(typename base_type::value_type const &item, TFun const &fun)
+UnorderedSet<P, M>::filter(TFun const &fun, typename base_type::value_type const &item)
 {
     for (auto &p:item.second) { fun(&p); }
 }
 
 template<typename P, typename M> template<typename TFun> void
-UnorderedSet<P, M>::accept(typename base_type::value_type const &item, TFun const &fun) const
+UnorderedSet<P, M>::filter(TFun const &fun, typename base_type::value_type const &item) const
 {
-    for (auto const &p:item.second) { fun(&p); }
+    for (auto const &p:item.second) { fun(p); }
 }
 
 
 template<typename P, typename M>
 template<typename TRange, typename TFun> void
-UnorderedSet<P, M>::accept(TRange const &r0, TFun const &fun)
+UnorderedSet<P, M>::filter(TFun const &fun, TRange const &r0)
 {
-    parallel::parallel_for(r0, [&](TRange const &r) { for (auto const &s:r) { accept(s, fun); }});
+    parallel::parallel_for(r0, [&](TRange const &r) { for (auto const &s:r) { filter(fun, s); }});
 }
 
 template<typename P, typename M>
 template<typename TRange, typename TFun> void
-UnorderedSet<P, M>::accept(TRange const &r0, TFun const &fun) const
+UnorderedSet<P, M>::filter(TFun const &fun, TRange const &r0) const
 {
-    parallel::parallel_for(r0, [&](TRange const &r) { for (auto const &s:r) { accept(s, fun); }});
+    parallel::parallel_for(r0, [&](TRange const &r) { for (auto const &s:r) { filter(fun, s); }});
 }
 
 template<typename P, typename M> template<typename TFun> void
-UnorderedSet<P, M>::accept(TFun const &fun)
+UnorderedSet<P, M>::filter(TFun const &fun)
 {
-    accept(base_type::range(), fun);
+    filter(base_type::range(), fun);
 };
 
 template<typename P, typename M> template<typename TFun> void
-UnorderedSet<P, M>::accept(TFun const &fun) const
+UnorderedSet<P, M>::filter(TFun const &fun) const
 {
-    accept(base_type::range(), fun);
+    filter(base_type::range(), fun);
 };
 
 

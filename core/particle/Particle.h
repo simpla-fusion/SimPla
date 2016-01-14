@@ -20,7 +20,6 @@
 namespace simpla { namespace particle
 {
 
-
 struct ParticleBase
 {
 private:
@@ -48,7 +47,9 @@ public:
 
     virtual void push(Real t0, Real t1) = 0;
 
-    virtual void integral() = 0;
+    virtual void integral() const = 0;
+
+    virtual void load_filter(std::string const &key = "") = 0;
 
     std::ostream &operator<<(std::ostream &os) const { return this->print(os, 0); }
 
@@ -62,21 +63,18 @@ inline std::ostream &operator<<(std::ostream &os, ParticleBase const &p)
 template<typename ...> struct ParticleContainer;
 template<typename ...> struct Particle;
 
-template<typename P, typename M, typename ...Policies>
-struct Particle<P, M, Policies...> : public ParticleBase, public Policies ...
+template<typename P, typename M>
+struct Particle<P, M> : public ParticleBase
 {
 private:
     typedef ParticleContainer<P, M> container_type;
-    typedef Particle<P, M, Policies...> this_type;
-
-    typedef typename this_type::interpolate_policy interpolate_policy;
-
+    typedef Particle<P, M> this_type;
     std::shared_ptr<container_type> m_data_;
 public:
 
     typedef M mesh_type;
     typedef P engine_type;
-
+    typedef typename engine_type::sample_type sample_type;
     typedef typename mesh_type::point_type point_type;
     typedef typename mesh_type::index_tuple index_tuple;
     typedef typename mesh_type::id_type id_type;
@@ -98,28 +96,9 @@ public:
 
     void swap(this_type const &other) { std::swap(other.m_data_, m_data_); }
 
-    virtual Properties const &properties() const { return m_data_->properties(); };
+    engine_type const &engine() const { return *std::dynamic_pointer_cast<const engine_type>(m_data_); }
 
-    virtual Properties &properties() { return m_data_->properties(); };
-
-    virtual size_t size() const { return m_data_->size(); }
-
-    virtual void deploy() { m_data_->deploy(); }
-
-    virtual void clear() { m_data_->clear(); }
-
-    virtual void sync() { m_data_->sync(); }
-
-    virtual void rehash() { m_data_->rehash(); }
-
-    virtual void push(Real t0, Real t1) { }
-
-    virtual void integral() { }
-
-    virtual std::ostream &print(std::ostream &os, int indent = 0) const { return m_data_->print(os, indent); }
-
-    virtual data_model::DataSet data_set() const { return m_data_->data_set(); }
-
+    engine_type &engine() { return *std::dynamic_pointer_cast<engine_type>(m_data_); }
 
     std::shared_ptr<container_type> data() { return m_data_; }
 
@@ -135,136 +114,60 @@ public:
         return std::dynamic_pointer_cast<typename mesh_type::AttributeEntity>(m_data_);
     }
 
-    engine_type const &engine() const { return *std::dynamic_pointer_cast<const engine_type>(m_data_); }
+    virtual std::ostream &print(std::ostream &os, int indent = 0) const { return m_data_->print(os, indent); }
 
-    engine_type &engine() { return *std::dynamic_pointer_cast<engine_type>(m_data_); }
+    virtual data_model::DataSet data_set() const { return m_data_->data_set(); }
+
+    virtual Properties const &properties() const { return m_data_->properties(); };
+
+    virtual Properties &properties() { return m_data_->properties(); };
+
+    virtual size_t size() const { return m_data_->size(); }
+
+    virtual void deploy() { m_data_->deploy(); }
+
+    virtual void clear() { m_data_->clear(); }
+
+    virtual void sync() { m_data_->sync(); }
+
+    virtual void rehash() { m_data_->rehash(); }
+
+    virtual void push(Real t0, Real t1) {/* m_data_->filter(engine_type::pusher(t0, t1));  */}
+
+    virtual void integral() const { /*m_data_->(engine_type::gather()); */}
 
     template<typename ...Args>
     void generate(Args &&...args) { m_data_->generate(std::forward<Args>(args)...); }
 
+    typedef std::function<void(sample_type *)> filter_fun;
 
-    template<typename TField>
-    void integral(TField *res) const;
+    void filter(filter_fun const &f, range_type const &r) { m_data_->filter(f, r); }
 
-    template<typename Pusher> void push(Pusher const &pusher);
+    void filter(std::tuple<filter_fun, range_type> const &f) { m_data_->filter(std::get<0>(f), std::get<1>(f)); }
 
-
-};
-
-
-//*******************************************************************************
-
-template<typename P, typename M, typename ...Policies>
-template<typename TField> void
-Particle<P, M, Policies...>::integral(id_type const &s, TField *J) const
-{
-    static constexpr int f_iform = traits::iform<TField>::value;
-
-    auto x0 = m_data_->mesh().point(s);
-
-
-    id_type neighbours[mesh_type::MAX_NUM_OF_NEIGHBOURS];
-
-    int num = m_data_->mesh().get_adjacent_cells(container_type::iform, s, neighbours);
-
-    for (int i = 0; i < num; ++i)
+    virtual void load_filter(std::string const &key = "")
     {
-        typename container_type::const_accessor acc1;
-
-        if (m_data_->find(acc1, neighbours[i]))
+        if (key == "")
         {
-            for (auto const &p:acc1->second)
-            {
-                typename ::simpla::traits::field_value_type<TField>::type v;
-
-                engine_type::integral(x0, p, &v);
-
-                (*J)[s] += interpolate_policy::template sample<f_iform>(m_data_->mesh(), s, v);
-            }
+            for (auto const &item:m_filter_list_) { filter(item.second); }
         }
-    }
-};
-
-template<typename P, typename M, typename ...Policies>
-template<typename TField> void
-Particle<P, M, Policies...>::integral(range_type const &r, TField *J) const
-{
-    // TODO cache J, Base on r
-    for (auto const &s:r) { integral(s, J); }
-};
-
-template<typename P, typename M, typename ...Policies>
-template<typename TField> void
-Particle<P, M, Policies...>::integral(TField *J, Gather const &gather) const
-{
-
-    CMD << "integral particle [" << m_data_->name()
-    << "] to Field [" << J->attribute()->name() << "<" << J->attribute()->center_type() << ","
-    << J->attribute()->extent(0) << ">]" << std::endl;
-
-
-    static constexpr int f_iform = traits::iform<TField>::value;
-    m_data_->mesh().template for_each_boundary<f_iform>([&](range_type const &r) { integral(r, J, integrator); });
-
-    parallel::DistributedObject dist_obj;
-    dist_obj.add(*J);
-    dist_obj.sync();
-
-    m_data_->mesh().template for_each_center<f_iform>([&](range_type const &r) { integral(r, J, integrator); });
-
-    dist_obj.wait();
-
-
-}
-//*******************************************************************************
-
-template<typename P, typename M, typename ...Policies>
-template<typename ...Args> void
-Particle<P, M, Policies...>::push(id_type const &s, Args &&...args)
-{
-    typename container_type::accessor acc;
-
-    if (m_data_->find(acc, s))
-    {
-        for (auto &p:acc->second)
+        else
         {
-//            engine_type::push(&p, std::forward<Args>(args)...);
+            auto it = m_filter_list_.find(key);
+            if (it != m_filter_list_.end()) { filter(it->second); }
         }
     }
 
 
+    bool register_filter(std::string const &key, filter_fun const &f, range_type const &r)
+    {
+        return std::get<1>(m_filter_list_.insert(std::make_pair(key, std::make_tuple(f, r))));
+    }
+
+private:
+    std::map<std::string, std::tuple<filter_fun, range_type >> m_filter_list_;
 };
 
-template<typename P, typename M, typename ...Policies>
-template<typename ...Args> void
-Particle<P, M, Policies...>::push(range_type const &r, Args &&...args)
-{
-    // TODO cache args, Base on s or r
-    for (auto const &s:r) { push(s, std::forward<Args>(args)...); }
-};
-
-template<typename P, typename M, typename ...Policies>
-template<typename ...Args> void
-Particle<P, M, Policies...>::push(Args &&...args)
-{
-
-
-    CMD << "Push particle [" << m_data_->name() << "]" << std::endl;
-
-    m_data_->mesh().template for_each_ghost<container_type::iform>(
-            [&](range_type const &r) { push(r, std::forward<Args>(args)...); });
-
-    m_data_->mesh().template for_each_boundary<container_type::iform>(
-            [&](range_type const &r) { push(r, std::forward<Args>(args)...); });
-
-    m_data_->mesh().template for_each_center<container_type::iform>(
-            [&](range_type const &r) { push(r, std::forward<Args>(args)...); });
-
-//    rehash();
-}
-
-
-//**************************************************************************************************
 
 }} //namespace simpla
 

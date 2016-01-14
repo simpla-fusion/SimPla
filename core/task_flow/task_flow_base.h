@@ -39,9 +39,9 @@ public:
 
     virtual bool check_type(std::type_info const &) = 0;
 
-//    virtual void accept(TaskBase &v) const { v.visit(*this); };
-//    virtual void accept(TaskBase const &v) { v.visit(*this); };
-//    virtual void accept(TaskBase const &v) const { v.visit(*this); };
+//    virtual void filter(TaskBase &v) const { v.visit(*this); };
+//    virtual void filter(TaskBase const &v) { v.visit(*this); };
+//    virtual void filter(TaskBase const &v) const { v.visit(*this); };
 
 };
 

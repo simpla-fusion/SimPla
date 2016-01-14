@@ -258,17 +258,10 @@ struct BorisEngine
 }}}//namespace simpla { namespace particle { namespace engine
 namespace simpla { namespace particle
 {
-template<typename TM> using BorisParticle =
-Particle<particle::engine::BorisEngine<TM>, TM,
-        manifold::policy::FiniteVolume,
-        manifold::policy::LinearInterpolator
->;
+template<typename TM> using BorisParticle =Particle<particle::engine::BorisEngine<TM>, TM>;
 
 template<typename TM> using BorisTrackingParticle =
-Particle<enable_tracking<particle::engine::BorisEngine<TM >>, TM,
-        manifold::policy::FiniteVolume,
-        manifold::policy::LinearInterpolator
->;
+Particle<enable_tracking<particle::engine::BorisEngine<TM >>, TM>;
 }}
 
 #endif //SIMPLA_PIC_BORIS_H

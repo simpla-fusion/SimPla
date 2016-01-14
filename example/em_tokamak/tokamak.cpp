@@ -538,7 +538,7 @@ void EMTokamak::next_time_step()
         E1.accept(edge_boundary.range(), [&](id_type, Real &v) { v = 0; });
 
 
-        traits::field_t <vector_type, mesh_type, VERTEX> dE{m};
+        traits::field_t<vector_type, mesh_type, VERTEX> dE{m};
 
 
 
@@ -546,12 +546,12 @@ void EMTokamak::next_time_step()
         if (fluid_sp.size() > 0)
         {
 
-            traits::field_t <vector_type, mesh_type, VERTEX> Q{m};
-            traits::field_t <vector_type, mesh_type, VERTEX> K{m};
+            traits::field_t<vector_type, mesh_type, VERTEX> Q{m};
+            traits::field_t<vector_type, mesh_type, VERTEX> K{m};
 
-            traits::field_t <scalar_type, mesh_type, VERTEX> a{m};
-            traits::field_t <scalar_type, mesh_type, VERTEX> b{m};
-            traits::field_t <scalar_type, mesh_type, VERTEX> c{m};
+            traits::field_t<scalar_type, mesh_type, VERTEX> a{m};
+            traits::field_t<scalar_type, mesh_type, VERTEX> b{m};
+            traits::field_t<scalar_type, mesh_type, VERTEX> c{m};
 
             a.clear();
             b.clear();

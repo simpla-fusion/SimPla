@@ -581,7 +581,7 @@ SORT_BY_SCOPE_NAME     = NO
 # the prototype and the implementation of a member function even if there is
 # only one candidate or it is obvious which candidate to choose by doing a
 # simple string match. By disabling STRICT_PROTO_MATCHING doxygen will still
-# accept a match between prototype and implementation in such cases.
+# filter a match between prototype and implementation in such cases.
 # The default value is: NO.
 
 STRICT_PROTO_MATCHING  = NO
