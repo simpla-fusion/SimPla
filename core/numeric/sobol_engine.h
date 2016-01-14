@@ -19,7 +19,7 @@ namespace simpla
  * \note  http://web.maths.unsw.edu.au/~fkuo/sobol/index.html
  *  - Numerical Recipes 3rd pp.403, 7.8
  *  - S. Joe and F. Y. Kuo, Remark on Algorithm 659:
- *     Implementing Sobol's quasirandom sequence generator,
+ *     Implementing Sobol's quasirandom sequence generate,
  *     ACM Trans. Math. Softw. 29, 49-57 (2003).
  *  - S. Joe and F. Y. Kuo, Constructing Sobol sequences with
  *      better two-dimensional projections, SIAM J. Sci. Comput.

@@ -35,7 +35,7 @@ namespace simpla { namespace particle
  * \code ~E( ) \endcode |explicit | Destructor
  * \code void  next_time_step(Point_s * p, args ...) const; \endcode |explicit | push one particle to next timestep
  * \code void  update();\endcode | (optional) |update charge/mass and properties cache
- * \code static Point_s  push_forward(Vec3 const & x, Vec3 const &v, Real f);\endcode| (optional)| push forward Cartesian Coordinate x , velocity vector v  and generator weight f to paritlce's coordinates
+ * \code static Point_s  push_forward(Vec3 const & x, Vec3 const &v, Real f);\endcode| (optional)| push forward Cartesian Coordinate x , velocity vector v  and generate weight f to paritlce's coordinates
  * \code static std::tuple<Vec3,Vec3,Real>  pull_back(Point_s const & p); \endcode| (optional)| pull back particle coordinates to Cartesian coordinates;
  * \code DataType  Point_s::DataType() \endcode |(implicit)| get the description of Point_s's data structure
  * \code Properties  properties \endcode |(implicit)| properties of engine
@@ -110,7 +110,7 @@ namespace simpla { namespace particle
  @ingroup particle
  @addtogroup particle_engine Particle Engine
  @{
- @brief @ref particle_engine describes the individual behavior of one generator.
+ @brief @ref particle_engine describes the individual behavior of one generate.
  @details
  @}
  */

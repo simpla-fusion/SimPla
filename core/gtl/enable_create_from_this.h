@@ -86,7 +86,7 @@ namespace simpla
  * ## Summary
  *   ` enable_create_from_this` allows an object `t` that is currently
  *   managed by a `std::shared_ptr` named `pt` to safely generate additional
- *    `std::shared_ptr` instances `pt1, pt2, ...` that generator from `pt` and
+ *    `std::shared_ptr` instances `pt1, pt2, ...` that generate from `pt` and
  *    all share ownership of `t` with `pt`.
  *
  * ## Requirement

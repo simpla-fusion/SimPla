@@ -126,7 +126,7 @@ int main(int argc, char **argv)
 			" -i<STRING>\t configure file \n"
 			" -c,--config <STRING>\t Lua script passed in as string \n"
 			" -t        \t only read and parse input file, but do not process  \n"
-			" -g,--generator   \t generator a demo input script file \n"
+			" -g,--generate   \t generate a demo input script file \n"
 			" -v<NUM>   \t verbose  \n"
 			" -V        \t print version  \n"
 			" -q        \t quiet mode, standard out  \n"

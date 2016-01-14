@@ -167,7 +167,7 @@ int main(int argc, char **argv)
 		{
 			dict.parse_string(value);
 		}
-		else if(opt=="g"|| opt=="generator")
+		else if(opt=="g"|| opt=="generate")
 		{
 			INFORM
 			<< ShowCopyRight() << std::endl

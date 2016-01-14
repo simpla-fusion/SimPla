@@ -15,7 +15,7 @@
 
 #include "../../core/manifold/pre_define/PreDefine.h"
 #include "../../core/particle/pre_define/PICBoris.h"
-#include "../../core/particle/pre_define/PICGyro.h"
+//#include "../../core/particle/pre_define/PICGyro.h"
 
 #include "../../core/model/GEqdsk.h"
 #include "../../core/model/Constraint.h"
@@ -86,9 +86,6 @@ struct EMTokamak
     traits::field_t<scalar_type, mesh_type, VERTEX> rho0{m};
 
 
-    typedef particle::ParticleProxyBase<TE, TB, TJ, TRho> particle_s;
-
-
     struct fluid_s
     {
         Real mass;
@@ -98,8 +95,8 @@ struct EMTokamak
     };
 
     std::map<std::string, fluid_s> fluid_sp;
-    std::map<std::string, std::shared_ptr<particle_s>> particle_sp;
-    std::map<std::string, std::shared_ptr<particle_s>> testing_particle_sp;
+    std::map<std::string, std::shared_ptr<particle::ParticleBase>> particle_sp;
+    std::map<std::string, std::shared_ptr<particle::ParticleBase>> testing_particle_sp;
 
 
     std::pair<typename std::map<std::string, fluid_s>::iterator, bool>
@@ -110,24 +107,24 @@ struct EMTokamak
     }
 
     template<typename TP, typename TDict>
-    std::shared_ptr<particle_s>
+    std::shared_ptr<particle::ParticleBase>
     create_particle(std::string const &key, TDict const &dict)
     {
         VERBOSE << "Create particle [" << key << "]" << std::endl;
 
-        TP pic(m, key);
+        auto pic = std::make_shared<TP>(m, key);
 
-        dict.as(&pic.properties());
+        dict.as(&pic->properties());
 
-        pic.deploy();
+        pic->deploy();
 
-        auto gen = particle::make_generator(pic.engine(), 1.0);
+        auto gen = particle::make_generator(pic->engine(), 1.0);
 
-        pic.generator(plasma_region_volume, gen, pic.properties()["PIC"].template as<size_t>(10),
-                      pic.properties()["temperature"].template as<Real>(1));
+        pic->generate(plasma_region_volume, gen, pic->properties()["PIC"].template as<size_t>(10),
+                      pic->properties()["temperature"].template as<Real>(1));
 
 
-        return particle_s::create(pic.data());
+        return std::dynamic_pointer_cast<particle::ParticleBase>(pic);
 
     }
 
@@ -311,24 +308,24 @@ void EMTokamak::initialize(int argc, char **argv)
                 {
                     particle_sp[key] = create_particle<particle::BorisParticle<mesh_type>>(key, dict.second);
                 }
-                if (dict.second["Type"].template as<std::string>() == "Gyro")
-                {
-                    particle_sp[key] = create_particle<particle::GyroParticle<mesh_type>>(key, dict.second);
-                }
+//                if (dict.second["Type"].template as<std::string>() == "Gyro")
+//                {
+//                    particle_sp[key] = create_particle<particle::GyroParticle<mesh_type>>(key, dict.second);
+//                }
             }
-            else if (dict.second["IsTestingParticle"])
-            {
-                if (dict.second["Type"].template as<std::string>() == "Boris")
-                {
-                    testing_particle_sp[key] = create_particle<particle::BorisTrackingParticle<mesh_type>>(key,
-                                                                                                           dict.second);
-                }
-                else if (dict.second["Type"].template as<std::string>() == "Gyro")
-                {
-                    testing_particle_sp[key] = create_particle<particle::GyroTrackingParticle<mesh_type>>(key,
-                                                                                                          dict.second);
-                }
-            }
+//            else if (dict.second["IsTestingParticle"])
+//            {
+//                if (dict.second["Type"].template as<std::string>() == "Boris")
+//                {
+//                    testing_particle_sp[key] = create_particle<particle::BorisTrackingParticle<mesh_type>>(key,
+//                                                                                                           dict.second);
+//                }
+////                else if (dict.second["Type"].template as<std::string>() == "Gyro")
+////                {
+////                    testing_particle_sp[key] = create_particle<particle::GyroTrackingParticle<mesh_type>>(key,
+////                                                                                                          dict.second);
+////                }
+//            }
             else
             {
                 auto &p = fluid_sp[key];
@@ -513,14 +510,14 @@ void EMTokamak::next_time_step()
     {
         for (auto &p:particle_sp)
         {
-            p.second->push(dt, m.time(), E0, B0);
+            p.second->push(dt, m.time());
 
-            if (!disable_field) { p.second->integral(&J1); }
+            if (!disable_field) { p.second->integral(); }
         }
 
         for (auto &p:testing_particle_sp)
         {
-            p.second->push(dt, m.time(), E0, B0);
+            p.second->push(dt, m.time());
 
 //            p.second->rehash();
         }
@@ -541,7 +538,7 @@ void EMTokamak::next_time_step()
         E1.accept(edge_boundary.range(), [&](id_type, Real &v) { v = 0; });
 
 
-        traits::field_t<vector_type, mesh_type, VERTEX> dE{m};
+        traits::field_t <vector_type, mesh_type, VERTEX> dE{m};
 
 
 
@@ -549,12 +546,12 @@ void EMTokamak::next_time_step()
         if (fluid_sp.size() > 0)
         {
 
-            traits::field_t<vector_type, mesh_type, VERTEX> Q{m};
-            traits::field_t<vector_type, mesh_type, VERTEX> K{m};
+            traits::field_t <vector_type, mesh_type, VERTEX> Q{m};
+            traits::field_t <vector_type, mesh_type, VERTEX> K{m};
 
-            traits::field_t<scalar_type, mesh_type, VERTEX> a{m};
-            traits::field_t<scalar_type, mesh_type, VERTEX> b{m};
-            traits::field_t<scalar_type, mesh_type, VERTEX> c{m};
+            traits::field_t <scalar_type, mesh_type, VERTEX> a{m};
+            traits::field_t <scalar_type, mesh_type, VERTEX> b{m};
+            traits::field_t <scalar_type, mesh_type, VERTEX> c{m};
 
             a.clear();
             b.clear();
