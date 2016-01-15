@@ -234,9 +234,9 @@ public:
         std::lock_guard<std::mutex> guard(m_seed_mutex);
         int offset = 0;
         int total = 0;
-        std::tie(offset, total) =
-                parallel::sync_global_location(GLOBAL_COMM,
-                                               static_cast<int>(num * NUM_OF_SEED_PER_SAMPLE));
+        std::tie(offset, total) = parallel::sync_global_location(
+                GLOBAL_COMM,
+                static_cast<int>(num * NUM_OF_SEED_PER_SAMPLE));
 
         m_seed_.discard(offset);
 

@@ -65,9 +65,10 @@ public:
         return *this;
     }
 
-// STL style
+
     inline bool empty() const { return any::empty() && map_type::empty(); }
 
+    inline bool has(std::string const &s) const { return map_type::find(s) != map_type::end(); }
 
     operator bool() const { return !empty() && (this->as<bool>()); }
 

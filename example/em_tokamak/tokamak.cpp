@@ -95,8 +95,8 @@ struct EMTokamak
     };
 
     std::map<std::string, fluid_s> fluid_sp;
+
     std::map<std::string, std::shared_ptr<particle::ParticleBase>> particle_sp;
-    std::map<std::string, std::shared_ptr<particle::ParticleBase>> testing_particle_sp;
 
 
     std::pair<typename std::map<std::string, fluid_s>::iterator, bool>
@@ -288,7 +288,7 @@ void EMTokamak::initialize(int argc, char **argv)
         }
 
     }
-
+    try
     {
         DEFINE_PHYSICAL_CONST;
 
@@ -301,30 +301,15 @@ void EMTokamak::initialize(int argc, char **argv)
             std::string key = dict.first.template as<std::string>();
 
 
-            if (dict.second["IsKineticParticle"])
+            std::string engine("");
+
+            dict.second["PICEngine"].template as<std::string>(&engine);
+
+
+            if (engine == "Boris")
             {
-                if (dict.second["Type"].template as<std::string>() == "Boris")
-                {
-                    particle_sp[key] = create_particle<particle::BorisParticle<mesh_type>>(key, dict.second);
-                }
-//                if (dict.second["Type"].template as<std::string>() == "Gyro")
-//                {
-//                    particle_sp[key] = create_particle<particle::GyroParticle<mesh_type>>(key, dict.second);
-//                }
+                particle_sp[key] = create_particle<particle::BorisParticle<mesh_type>>(key, dict.second);
             }
-//            else if (dict.second["IsTestingParticle"])
-//            {
-//                if (dict.second["Type"].template as<std::string>() == "Boris")
-//                {
-//                    testing_particle_sp[key] = create_particle<particle::BorisTrackingParticle<mesh_type>>(key,
-//                                                                                                           dict.second);
-//                }
-////                else if (dict.second["Type"].template as<std::string>() == "Gyro")
-////                {
-////                    testing_particle_sp[key] = create_particle<particle::GyroTrackingParticle<mesh_type>>(key,
-////                                                                                                          dict.second);
-////                }
-//            }
             else
             {
                 auto &p = fluid_sp[key];
@@ -347,12 +332,13 @@ void EMTokamak::initialize(int argc, char **argv)
                     p.rho1 = traits::make_field_function_from_config<scalar_type, VERTEX>(m, dict.second["Density"]);
                 }
                 else { p.rho1 = rho0; }
-
-
             }
 
 
         }
+    } catch (std::exception const &error)
+    {
+        RUNTIME_ERROR << "Load particle error!" << error.what() << std::endl;
     }
 
 
@@ -386,11 +372,13 @@ void EMTokamak::initialize(int argc, char **argv)
         MESSAGE << "  " << item.first << " =  {" << *item.second << "}," << std::endl;
     }
 
-
-    for (auto const &item:testing_particle_sp)
+    MESSAGE << " Attributes={" << std::endl;
+    for (auto const &item:m.attributes())
     {
-        MESSAGE << "  " << item.first << " =  {" << *item.second << "}," << std::endl;
+
+        MESSAGE << "\"" << item.first << "\",";
     }
+    MESSAGE << " }" << std::endl;
     MESSAGE << "}," << std::endl;
 
 
@@ -430,56 +418,34 @@ void EMTokamak::tear_down()
 
 void EMTokamak::check_point()
 {
-    if (!disable_field)
+
+
+    out_stream.open_grid(type_cast<std::string>(m_count), io::XDMFStream::UNIFORM);
+
+    out_stream.reference_topology_geometry("Main");
+
+    out_stream.time(m.time());
+
+    for (auto const &item:m.attributes())
     {
-
-        out_stream.open_grid(type_cast<std::string>(m_count), io::XDMFStream::UNIFORM);
-
-        out_stream.reference_topology_geometry("Main");
-
-        out_stream.time(m.time());
-
-        for (auto const &item:m.attributes())
+        auto attr = item.second.lock();
+        if (attr->properties()["EnableCheckPoint"])
         {
-            auto attr = item.second.lock();
-            if (attr->properties()["EnableCheckPoint"])
+            if (attr->properties().has("PICEngine"))
             {
-                if (!attr->properties()["IsParticle"])
-                {
-                    out_stream.write(item.first, *std::dynamic_pointer_cast<base::AttributeObject>(attr));
-                }
-
+                out_stream.hdf5().write(item.first, attr->checkpoint(), io::SP_RECORD);
             }
-        }
-
-        out_stream.close_grid();
-    }
-    if (!disable_particle)
-    {
-
-
-        for (auto const &item:m.attributes())
-        {
-            auto attr = item.second.lock();
-
-            if (attr->properties()["EnableCheckPoint"])
+            else
             {
-                if (attr->properties()["IsTestingParticle"])
-                {
-                    out_stream.hdf5().write(item.first, attr->checkpoint(), io::SP_RECORD);
-                }
-                else if (attr->properties()["IsParticle"])
-                {
-                    out_stream.hdf5().write(item.first, attr->dump(), io::SP_RECORD);
-                }
-
-
+                out_stream.write(item.first, *std::dynamic_pointer_cast<base::AttributeObject>(attr));
             }
+
+
         }
     }
-    m.next_time_step();
 
-    ++m_count;
+    out_stream.close_grid();
+
 
 }
 
@@ -509,16 +475,9 @@ void EMTokamak::next_time_step()
     {
         for (auto &p:particle_sp)
         {
-            p.second->push(dt, m.time());
+            p.second->push(m.time(), m.time() + dt);
 
-            if (!disable_field) { p.second->integral(); }
-        }
 
-        for (auto &p:testing_particle_sp)
-        {
-            p.second->push(dt, m.time());
-
-//            p.second->rehash();
         }
 
 
@@ -537,7 +496,7 @@ void EMTokamak::next_time_step()
         E1.accept(edge_boundary.range(), [&](id_type, Real &v) { v = 0; });
 
 
-        traits::field_t<vector_type, mesh_type, VERTEX> dE{m};
+        traits::field_t <vector_type, mesh_type, VERTEX> dE{m};
 
 
 
@@ -545,12 +504,12 @@ void EMTokamak::next_time_step()
         if (fluid_sp.size() > 0)
         {
 
-            traits::field_t<vector_type, mesh_type, VERTEX> Q{m};
-            traits::field_t<vector_type, mesh_type, VERTEX> K{m};
+            traits::field_t <vector_type, mesh_type, VERTEX> Q{m};
+            traits::field_t <vector_type, mesh_type, VERTEX> K{m};
 
-            traits::field_t<scalar_type, mesh_type, VERTEX> a{m};
-            traits::field_t<scalar_type, mesh_type, VERTEX> b{m};
-            traits::field_t<scalar_type, mesh_type, VERTEX> c{m};
+            traits::field_t <scalar_type, mesh_type, VERTEX> a{m};
+            traits::field_t <scalar_type, mesh_type, VERTEX> b{m};
+            traits::field_t <scalar_type, mesh_type, VERTEX> c{m};
 
             a.clear();
             b.clear();
@@ -619,6 +578,7 @@ void EMTokamak::next_time_step()
     }
 
     m.next_time_step();
+    ++m_count;
 }
 
 }

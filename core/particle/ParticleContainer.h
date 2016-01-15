@@ -142,15 +142,15 @@ public:
     /**
      *  dump particle position x (point_type)
      */
-    virtual data_model::DataSet data_set() const { return checkpoint(); }
+    virtual data_model::DataSet data_set() const;
 
     /**
      *  dump all data and information to DataSet
      */
-    virtual data_model::DataSet dump() const;
+    virtual data_model::DataSet dump() const { return data_set(); }
 
 
-    virtual data_model::DataSet checkpoint() const;
+    virtual data_model::DataSet checkpoint() const { return data_set(); }
 
 
 private:
@@ -325,12 +325,7 @@ ParticleContainer<P, M>::ParticleContainer(mesh_type &m, std::string const &s_na
 
     m_hash_.engine_ = dynamic_cast<engine_type const *>(this);
 
-
-    if (s_name != "")
-    {
-        properties()["Name"] = s_name;
-        m.enroll(s_name, this->shared_from_this());
-    }
+    if (s_name != "") { properties()["Name"] = s_name; }
 }
 
 
@@ -634,9 +629,9 @@ ParticleContainer<P, M>::generate(TGen &gen)
 
 
 template<typename P, typename M> data_model::DataSet
-ParticleContainer<P, M>::dump() const
+ParticleContainer<P, M>::data_set() const
 {
-    VERBOSE << "Dump particle [" << this->properties()["Name"] << "]" << std::endl;
+    VERBOSE << "Dump particle [" << this->properties()["Name"] << "] to data set." << std::endl;
 
     auto r0 = mesh_attribute_entity::mesh().template range<iform>();
 
@@ -654,73 +649,72 @@ ParticleContainer<P, M>::dump() const
 
     copy_out(reinterpret_cast< sample_type *>( ds.data.get()), r0);
 
-
     return std::move(ds);
 };
 
-
-namespace _impl
-{
-
-HAS_MEMBER(_tag)
-
-template<typename TP>
-auto select_tag(data_model::DataSpace &ds, TP const &p)
--> typename std::enable_if<has_member__tag<TP>::value, void>::type
-{
-    ds.select_point(p._tag);
-}
-
-template<typename TP>
-auto select_tag(data_model::DataSpace &ds, TP const &p)
--> typename std::enable_if<!has_member__tag<TP>::value, void>::type
-{
-}
-} //namespace _impl
-
-
-template<typename P, typename M> data_model::DataSet
-ParticleContainer<P, M>::checkpoint() const
-{
-    VERBOSE << "Save checkpoint of particle [" << this->properties()["Name"] << "]" << std::endl;
-
-    auto r0 = mesh_attribute_entity::mesh().template range<iform>();
-
-    size_t num = (count(r0));
-
-    data_model::DataSet ds;
-
-    ds.data_type = data_model::DataType::create<point_type>();
-
-    ds.data = sp_alloc_memory(num * sizeof(point_type));
-
-    std::tie(ds.data_space, ds.memory_space) = data_model::DataSpace::create_simple_unordered(num);
-
-
-    auto out_it = reinterpret_cast< point_type *>( ds.data.get());
-
-    ds.data_space.clear_selected();
-
-    typename container_type::const_accessor c_accessor;
-
-    for (auto const &s:r0)
-    {
-        if (m_data_.find(c_accessor, s))
-        {
-            for (auto it = c_accessor->second.begin(), ie = c_accessor->second.end(); it != ie; ++it)
-            {
-                *out_it = this->mesh().map_to_cartesian(engine_type::project(*it));
-
-                _impl::select_tag(ds.data_space, *it);
-
-                ++out_it;
-            }
-        }
-    }
-
-
-    return std::move(ds);
-}
+//
+//namespace _impl
+//{
+//
+//HAS_MEMBER(_tag)
+//
+//template<typename TP>
+//auto select_tag(data_model::DataSpace &ds, TP const &p)
+//-> typename std::enable_if<has_member__tag<TP>::value, void>::type
+//{
+//    ds.select_point(p._tag);
+//}
+//
+//template<typename TP>
+//auto select_tag(data_model::DataSpace &ds, TP const &p)
+//-> typename std::enable_if<!has_member__tag<TP>::value, void>::type
+//{
+//}
+//} //namespace _impl
+//
+//
+//template<typename P, typename M> data_model::DataSet
+//ParticleContainer<P, M>::checkpoint() const
+//{
+//    VERBOSE << "Save checkpoint of particle [" << this->properties()["Name"] << "]" << std::endl;
+//
+//    auto r0 = mesh_attribute_entity::mesh().template range<iform>();
+//
+//    size_t num = (count(r0));
+//
+//    data_model::DataSet ds;
+//
+//    ds.data_type = data_model::DataType::create<point_type>();
+//
+//    ds.data = sp_alloc_memory(num * sizeof(point_type));
+//
+//    std::tie(ds.data_space, ds.memory_space) = data_model::DataSpace::create_simple_unordered(num);
+//
+//
+//    auto out_it = reinterpret_cast< point_type *>( ds.data.get());
+//
+//    ds.data_space.clear_selected();
+//
+//    typename container_type::const_accessor c_accessor;
+//
+//    for (auto const &s:r0)
+//    {
+//        if (m_data_.find(c_accessor, s))
+//        {
+//            for (auto it = c_accessor->second.begin(), ie = c_accessor->second.end(); it != ie; ++it)
+//            {
+//                *out_it = this->mesh().map_to_cartesian(engine_type::project(*it));
+//
+//                _impl::select_tag(ds.data_space, *it);
+//
+//                ++out_it;
+//            }
+//        }
+//    }
+//    CHECK(ds.memory_space.size());
+//
+//    return std::move(ds);
+//}
 
 //*******************************************************************************
 template<typename P, typename M> template<typename Gather> void
@@ -884,9 +878,9 @@ ParticleContainer<V, K>::erase(typename container_type::range_type const &r)
 
 
 template<typename V, typename K> template<typename TRange> void
-ParticleContainer<V, K>::erase(TRange const &r)
+ParticleContainer<V, K>::erase(TRange const &r0)
 {
-    parallel::parallel_for(r, [&](TRange const &r) { for (auto const &s:r) { m_data_.erase(s); }});
+    parallel::parallel_for(r0, [&](TRange const &r) { for (auto const &s:r) { m_data_.erase(s); }});
 }
 //**************************************************************************************************
 

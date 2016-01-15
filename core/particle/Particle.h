@@ -80,7 +80,10 @@ public:
     typedef typename mesh_type::id_type id_type;
     typedef typename mesh_type::range_type range_type;
 
-    Particle(mesh_type &m, std::string const &s_name) : m_data_(new container_type(m, s_name)) { }
+    Particle(mesh_type &m, std::string const &s_name) : m_data_(new container_type(m, s_name))
+    {
+        if (s_name != "") { m.enroll(s_name, m_data_); }
+    }
 
     ~Particle() { }
 
@@ -132,18 +135,31 @@ public:
 
     virtual void rehash() { m_data_->rehash(); }
 
-    virtual void push(Real t0, Real t1) {/* m_data_->filter(engine_type::pusher(t0, t1));  */}
+    virtual void push(Real t0, Real t1)
+    {
+        VERBOSE << "[CMD] Push particle " << m_data_->name() << std::endl;
 
-    virtual void integral() const { /*m_data_->(engine_type::gather()); */}
+        /* m_data_->filter(engine_type::pusher(t0, t1));  */
+
+        //  m_data_->rehash();
+    }
+
+    virtual void integral() const
+    {
+        VERBOSE << "[CMD] Integral particle " << m_data_->name() << std::endl;
+        /*m_data_->(engine_type::gather()); */}
 
     template<typename ...Args>
     void generate(Args &&...args) { m_data_->generate(std::forward<Args>(args)...); }
 
     typedef std::function<void(sample_type *)> filter_fun;
 
-    void filter(filter_fun const &f, range_type const &r) { m_data_->filter(f, r); }
+    template<typename ...Args>
+    void filter(Args &&...args) { m_data_->filter(std::forward<Args>(args)...); }
 
-    void filter(std::tuple<filter_fun, range_type> const &f) { m_data_->filter(std::get<0>(f), std::get<1>(f)); }
+
+    template<typename TFun>
+    void filter(std::tuple<TFun, range_type> const &f) { m_data_->filter(std::get<0>(f), std::get<1>(f)); }
 
     virtual void load_filter(std::string const &key = "")
     {
