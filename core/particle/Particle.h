@@ -15,21 +15,29 @@
 #include "../parallel/Parallel.h"
 #include "../gtl/design_pattern/singleton_holder.h"
 #include "../gtl/utilities/memory_pool.h"
-#include "Particle.h"
+#include "../base/DataObject.h"
 
 namespace simpla { namespace particle
 {
 
-struct ParticleBase
+struct ParticleBase : public base::DataObject
 {
 private:
     typedef ParticleBase this_type;
 public:
+    SP_OBJECT_HEAD(ParticleBase, base::DataObject);
+
     ParticleBase() { }
 
     virtual ~ParticleBase() { }
 
     virtual std::ostream &print(std::ostream &os, int indent) const = 0;
+
+    virtual Properties const &properties() const = 0;
+
+    virtual Properties &properties() = 0;
+
+    virtual data_model::DataSet data_set() const = 0;
 
     virtual size_t size() const = 0;
 
@@ -38,12 +46,6 @@ public:
     virtual void rehash() = 0;
 
     virtual void sync() = 0;
-
-    virtual Properties const &properties() const = 0;
-
-    virtual Properties &properties() = 0;
-
-    virtual data_model::DataSet data_set() const = 0;
 
     virtual void push(Real t0, Real t1) = 0;
 

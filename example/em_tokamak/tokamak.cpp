@@ -408,7 +408,7 @@ void EMTokamak::tear_down()
 
         } else
         {
-            out_stream.hdf5().write(item.first, item.second.lock()->dump(), io::SP_RECORD);
+            out_stream.hdf5().write(item.first, item.second.lock()->data_set(), io::SP_RECORD);
         }
     }
     out_stream.close_grid();
@@ -431,9 +431,9 @@ void EMTokamak::check_point()
         auto attr = item.second.lock();
         if (attr->properties()["EnableCheckPoint"])
         {
-            if (attr->properties().has("PICEngine"))
+            if (!item.second.lock()->properties()["DisableXDMFOutput"])
             {
-                out_stream.hdf5().write(item.first, attr->checkpoint(), io::SP_RECORD);
+                out_stream.hdf5().write(item.first, attr->data_set(), io::SP_RECORD);
             }
             else
             {

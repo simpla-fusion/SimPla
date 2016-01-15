@@ -47,10 +47,6 @@ public:
 
     virtual data_model::DataSet data_set() const = 0;
 
-    virtual data_model::DataSet dump() const = 0;
-
-    virtual data_model::DataSet checkpoint() const = 0;
-
 
 private:
     std::weak_ptr<AttributeObject> m_parent_;
@@ -118,10 +114,6 @@ public:
 
     virtual data_model::DataSet data_set() const = 0;
 
-    virtual data_model::DataSet dump() const = 0;
-
-    virtual data_model::DataSet checkpoint() const = 0;
-
 
 private:
     mesh_type *m_mesh_;
@@ -185,9 +177,6 @@ public:
 
     virtual data_model::DataSet data_set() const { return this->mesh().template data_set<TV, IFORM>(m_data_); };
 
-    virtual data_model::DataSet dump() const { return data_set(); }
-
-    virtual data_model::DataSet checkpoint() const { return data_set(); }
 
     virtual bool empty() const { return m_data_ == nullptr; }
 
