@@ -141,15 +141,15 @@ public:
     {
         VERBOSE << "[CMD] Push particle " << m_data_->name() << std::endl;
 
-        /* m_data_->filter(engine_type::pusher(t0, t1));  */
-
-        //  m_data_->rehash();
+        // m_data_->filter(engine_type::pusher(t0, t1));
+        // m_data_->rehash();
     }
 
     virtual void integral() const
     {
         VERBOSE << "[CMD] Integral particle " << m_data_->name() << std::endl;
-        /*m_data_->(engine_type::gather()); */}
+        //m_data_->(engine_type::gather());
+    }
 
     template<typename ...Args>
     void generate(Args &&...args) { m_data_->generate(std::forward<Args>(args)...); }
