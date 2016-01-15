@@ -122,7 +122,7 @@ public:
 
     virtual Properties &properties() { return m_data_->properties(); };
 
-    virtual size_t size() const { return m_data_->size(); }
+    virtual size_t size() const { return m_data_->count(); }
 
     virtual void deploy() { m_data_->deploy(); }
 

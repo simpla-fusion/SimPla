@@ -118,10 +118,9 @@ struct EMTokamak
 
         pic->deploy();
 
-        auto gen = particle::make_generator(pic->engine(), 1.0);
-
-        pic->generate(plasma_region_volume, gen, pic->properties()["PIC"].template as<size_t>(10),
-                      pic->properties()["temperature"].template as<Real>(1));
+//        , plasma_region_volume, pic->properties()["PIC"].template as<size_t>(10),
+//                pic->properties()["temperature"].template as<Real>(1)
+//        pic->generate(particle::make_generator(pic->engine(), 1.0));
 
 
         return std::dynamic_pointer_cast<particle::ParticleBase>(pic);

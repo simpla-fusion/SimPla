@@ -14,13 +14,10 @@
 #include <tuple>
 #include <vector>
 
-#include "../data_model/DataSet.h"
 
 #include "../gtl/utilities/utilities.h"
-
 #include "../gtl/primitives.h"
-#include "../gtl/containers/UnorderedSet.h"
-
+#include "../data_model/DataSet.h"
 
 
 /** @ingroup physical_object
@@ -82,7 +79,6 @@ template<typename ParticleEngine, typename M>
 struct ParticleContainer<ParticleEngine, M> :
         public M::AttributeEntity,
         public ParticleEngine,
-        public gtl::UnorderedSet<typename ParticleEngine::sample_type, typename M::id_type>,
         public std::enable_shared_from_this<ParticleContainer<ParticleEngine, M >>
 {
 
@@ -96,14 +92,19 @@ public:
 
     typedef ParticleContainer<ParticleEngine, M> this_type;
 
-    typedef gtl::UnorderedSet<typename ParticleEngine::sample_type, typename M::id_type> container_type;
-
     typedef typename ParticleEngine::sample_type sample_type;
     typedef typename mesh_type::point_type point_type;
     typedef typename mesh_type::index_tuple index_tuple;
     typedef typename mesh_type::id_type id_type;
     typedef typename mesh_type::range_type range_type;
 
+    typedef sample_type value_type;
+
+    typedef std::list<value_type> bucket_type;
+
+    typedef typename parallel::concurrent_hash_map<id_type, bucket_type> container_type;
+
+    typedef container_type buffer_type;
 
 public:
 
@@ -113,7 +114,7 @@ public:
 
     static constexpr int ndims = mesh_type::ndims;
 
-
+    container_type m_data_;
 public:
 
 
@@ -170,12 +171,7 @@ private:
 public:
 
 
-    void insert(sample_type const &p) { container_type::insert(p, m_hash_); }
-
-    template<typename InputIterator>
-    void insert(InputIterator const &b, InputIterator const &e) { container_type::insert(b, e, m_hash_); }
-
-    void rehash();
+    void sync(container_type const &buffer, parallel::DistributedObject *dist_obj, bool update_ghost = true);
 
     //! @}
 
@@ -184,15 +180,12 @@ public:
     //! @{
 
 
-    template<typename TGen, typename ...Args> void generate(id_type s, TGen &gen, size_t pic, Args &&...args);
+    template<typename TGen> void generate(TGen &gen, id_type s);
 
-    template<typename TGen, typename TRange, typename ...Args>
-    void generate(TRange const &, TGen &gen, size_t pic, Args &&...args);
+    template<typename TGen, typename TRange> void generate(TGen &gen, TRange const &);
 
-    template<typename TGen, typename ...Args> void generate(TGen &gen, size_t pic, Args &&...args);
+    template<typename TGen> void generate(TGen &gen);
 
-
-    void sync(container_type const &buffer, parallel::DistributedObject *dist_obj, bool update_ghost = true);
 
     template<typename Gather>
     void gather(Gather const &g, id_type const &s,
@@ -209,9 +202,117 @@ public:
     template<typename Gather, typename TField>
     void gather(Gather const &g, TField *res) const;
 
-    using container_type::filter;
+    //! @}
 
-    using container_type::remove_if;
+
+
+    //! @name as container
+    //! @{
+
+    /**
+     * @require TConstraint = map<key_type,TARGS>
+     *          Fun         = function<void(TARGS const &,sample_type*)>
+     */
+
+    template<typename TFun> void filter(TFun const &fun, id_type const &);
+
+    template<typename TFun> void filter(TFun const &fun, id_type const &) const;
+
+    template<typename TFun> void filter(TFun const &fun, typename container_type::value_type const &);
+
+    template<typename TFun> void filter(TFun const &fun, typename container_type::value_type const &) const;
+
+    template<typename TRange, typename TFun> void filter(TFun const &fun, TRange const &);
+
+    template<typename TRange, typename TFun> void filter(TFun const &fun, TRange const &) const;
+
+    template<typename TRange, typename TFun>
+    void filter(std::tuple<TFun, TRange> const &f) { filter(std::get<0>(f), std::get<1>(f)); }
+
+    template<typename TRange, typename TFun>
+    void filter(std::tuple<TFun, TRange> const &f) const { filter(std::get<0>(f), std::get<1>(f)); }
+
+    template<typename TFun> void filter(TFun const &fun);
+
+    template<typename TFun> void filter(TFun const &fun) const;
+
+
+    template<typename Predicate> void remove_if(Predicate const &pred, id_type const &r);
+
+    template<typename Predicate> void remove_if(Predicate const &pred, typename container_type::value_type const &r);
+
+    template<typename TRange, typename Predicate> void remove_if(Predicate const &pred, id_type const &r);
+
+    template<typename Predicate> void remove_if(Predicate const &pred);
+
+    void insert(value_type const &p, id_type const &s = 0);
+
+    template<typename Hash> void insert(value_type const &p, Hash const &hash);
+
+    template<typename InputIterator, typename ...Others>
+    void insert(InputIterator const &b, InputIterator const &e, Others &&...others)
+    {
+        for (auto it = b; it != e; ++it) { insert(*it, std::forward<Others>(others)...); }
+    }
+
+
+    template<typename InputIterator, typename ... Others>
+    void insert(std::tuple<InputIterator, InputIterator> const &r, Others &&... others)
+    {
+        insert(std::get<0>(r), std::get<1>(r), std::forward<Others>(others)...);
+    }
+
+
+    void erase(id_type const &s) { m_data_.erase(s); }
+
+    void erase(typename container_type::range_type const &r);
+
+    template<typename TRange> void erase(TRange const &r);
+
+    void erase_all() { m_data_.clear(); }
+
+
+private:
+
+    static size_t count_(container_type const &d, id_type const &s);
+
+    template<typename TRange>
+    static size_t count_(container_type const &d, TRange const &r);
+
+    static size_t count_(container_type const &d);
+
+public:
+
+
+    template<typename ...Others> size_t count(Others &&...others) const
+    {
+        return count_(m_data_, std::forward<Others>(others)...);
+    };
+
+    template<typename OutputIT> OutputIT copy_out(OutputIT out_it, id_type const &s) const;
+
+    template<typename OutputIT, typename TRange> OutputIT copy_out(OutputIT out_it, TRange const &r) const;
+
+    template<typename OutputIT> OutputIT copy_out(OutputIT out_it) const;
+
+
+    void merge(buffer_type *other, id_type const &s);
+
+    template<typename TRange> void merge(buffer_type *other, TRange const &r);
+
+    void merge(container_type *other);
+
+
+    template<typename THash> void rehash(THash const &hash, id_type const &key, buffer_type *out_buffer);
+
+    template<typename THash, typename TRange> void rehash(THash const &hash, TRange const &r, buffer_type *out_buffer);
+
+    template<typename THash> void rehash(THash const &hash, buffer_type *out_buffer = nullptr);
+
+    void rehash();
+
+    //! @}
+
 
 
 };//class ParticleContainer
@@ -241,7 +342,7 @@ template<typename P, typename M> void
 ParticleContainer<P, M>::clear()
 {
     deploy();
-    container_type::clear();
+    m_data_.clear();
 }
 
 template<typename P, typename M> void
@@ -359,7 +460,7 @@ ParticleContainer<P, M>::sync(container_type const &buffer, parallel::Distribute
 
                 auto send_range = mesh_attribute_entity::mesh().template make_range<iform>(send_min, send_max);
 
-                size_t send_size = buffer.size(send_range);
+                size_t send_size = count_(buffer, send_range);
 
 
                 p_send = sp_alloc_memory(send_size * sizeof(sample_type));
@@ -415,7 +516,7 @@ ParticleContainer<P, M>::rehash()
 
 
     mesh_attribute_entity::mesh().template for_each_boundary<iform>(
-            [&](range_type const &r) { container_type::rehash(r, m_hash_, &buffer); });
+            [&](range_type const &r) { rehash(m_hash_, r, &buffer); });
 
 
     //**************************************************************************************
@@ -442,7 +543,7 @@ ParticleContainer<P, M>::rehash()
 
 
     mesh_attribute_entity::mesh().template for_each_ghost<iform>(
-            [&](range_type const &r) { container_type::rehash(r, m_hash_, &buffer); });
+            [&](range_type const &r) { rehash(m_hash_, r, &buffer); });
     /**
      *
      *  ***************************
@@ -454,14 +555,14 @@ ParticleContainer<P, M>::rehash()
      */
 
     mesh_attribute_entity::mesh().template for_each_center<iform>(
-            [&](range_type const &r) { container_type::rehash(r, m_hash_, &buffer); });
+            [&](range_type const &r) { rehash(m_hash_, r, &buffer); });
 
     //collect moved particle
     mesh_attribute_entity::mesh().template for_each_center<iform>(
-            [&](range_type const &r) { container_type::merge(r, &buffer); });
+            [&](range_type const &r) { merge(&buffer, r); });
 
     mesh_attribute_entity::mesh().template for_each_boundary<iform>(
-            [&](range_type const &r) { container_type::merge(r, &buffer); });
+            [&](range_type const &r) { merge(&buffer, r); });
 
     dist_obj.wait();
     /**
@@ -477,50 +578,41 @@ ParticleContainer<P, M>::rehash()
 //    for (auto const &item :  dist_obj.recv_buffer)
 //    {
 //        sample_type const *p = reinterpret_cast<sample_type const *>(std::get<1>(item).data.get());
-//        container_type::insert(p, p + std::get<1>(item).memory_space.size(), m_hash_);
+//        insert(p, p + std::get<1>(item).memory_space.size(), m_hash_);
 //    }
 
 }
 
 
 template<typename P, typename M>
-template<typename TGen, typename ...Args> void
-ParticleContainer<P, M>::generate(id_type s, TGen &gen, size_t pic, Args &&...args)
+template<typename TGen> void
+ParticleContainer<P, M>::generate(TGen &gen, id_type s)
 {
-    auto g = gen.generator(pic, mesh_attribute_entity::mesh().volume(s), mesh_attribute_entity::mesh().cell_box(s),
-                           std::forward<Args>(args)...);
-
-
-    container_type::insert(std::get<0>(g), std::get<1>(g), s);
-
-
+    insert(gen(s), s);
 }
 
 
 template<typename P, typename M>
-template<typename TGen, typename TRange, typename ...Args> void
-ParticleContainer<P, M>::generate(const TRange &r, TGen &gen, size_t pic, Args &&...args)
+template<typename TGen, typename TRange> void
+ParticleContainer<P, M>::generate(TGen &gen, const TRange &r0)
 {
-    for (auto const &s:r) { generate(s, gen, pic, std::forward<Args>(args)...); }
+    parallel::parallel_for(r0, [&](TRange const &r) { for (auto const &s:r) { insert(gen(s), s); }});
 }
 
 
 template<typename P, typename M>
-template<typename TGen, typename ...Args> void
-ParticleContainer<P, M>::generate(TGen &gen, size_t pic, Args &&...args)
+template<typename TGen> void
+ParticleContainer<P, M>::generate(TGen &gen)
 {
 //    mesh_attribute_entity::mesh().template for_each_ghost<iform>([&](range_type const &r) {
 // generate(r, std::forward<Args>(args)...); });
-
-    size_t num_of_particle = mesh_attribute_entity::mesh().template range<iform>().size() * pic;
-
-    gen.reserve(num_of_particle);
+//
+//    size_t num_of_particle = mesh_attribute_entity::mesh().template range<iform>().size() * pic;
+//
+//    gen.reserve(num_of_particle);
 
     mesh_attribute_entity::mesh().template for_each_boundary<iform>(
-            [&](range_type const &r)
-            {
-                generate(r, gen, pic, std::forward<Args>(args)...);
-            });
+            [&](range_type const &r) { generate(gen, r); });
 
     parallel::DistributedObject dist_obj;
 
@@ -529,10 +621,7 @@ ParticleContainer<P, M>::generate(TGen &gen, size_t pic, Args &&...args)
     dist_obj.sync();
 
     mesh_attribute_entity::mesh().template for_each_center<iform>(
-            [&](range_type const &r)
-            {
-                generate(r, gen, pic, std::forward<Args>(args)...);
-            });
+            [&](range_type const &r) { generate(gen, r); });
 
     dist_obj.wait();
 
@@ -551,19 +640,19 @@ ParticleContainer<P, M>::dump() const
 
     auto r0 = mesh_attribute_entity::mesh().template range<iform>();
 
-    size_t count = static_cast<int>(container_type::size(r0));
+    size_t num = count(r0);
 
     data_model::DataSet ds;
 
     ds.data_type = data_model::DataType::create<sample_type>();
 
-    ds.data = sp_alloc_memory(count * sizeof(sample_type));
+    ds.data = sp_alloc_memory(num * sizeof(sample_type));
 
     ds.properties = this->properties();
 
-    std::tie(ds.data_space, ds.memory_space) = data_model::DataSpace::create_simple_unordered(count);
+    std::tie(ds.data_space, ds.memory_space) = data_model::DataSpace::create_simple_unordered(num);
 
-    container_type::copy(reinterpret_cast< sample_type *>( ds.data.get()), r0);
+    copy_out(reinterpret_cast< sample_type *>( ds.data.get()), r0);
 
 
     return std::move(ds);
@@ -597,15 +686,15 @@ ParticleContainer<P, M>::checkpoint() const
 
     auto r0 = mesh_attribute_entity::mesh().template range<iform>();
 
-    size_t count = static_cast<int>(container_type::size(r0));
+    size_t num = (count(r0));
 
     data_model::DataSet ds;
 
     ds.data_type = data_model::DataType::create<point_type>();
 
-    ds.data = sp_alloc_memory(count * sizeof(point_type));
+    ds.data = sp_alloc_memory(num * sizeof(point_type));
 
-    std::tie(ds.data_space, ds.memory_space) = data_model::DataSpace::create_simple_unordered(count);
+    std::tie(ds.data_space, ds.memory_space) = data_model::DataSpace::create_simple_unordered(num);
 
 
     auto out_it = reinterpret_cast< point_type *>( ds.data.get());
@@ -616,7 +705,7 @@ ParticleContainer<P, M>::checkpoint() const
 
     for (auto const &s:r0)
     {
-        if (container_type::find(c_accessor, s))
+        if (m_data_.find(c_accessor, s))
         {
             for (auto it = c_accessor->second.begin(), ie = c_accessor->second.end(); it != ie; ++it)
             {
@@ -647,7 +736,7 @@ ParticleContainer<P, M>::gather(Gather const &g, id_type const &s,
     {
         typename container_type::const_accessor acc1;
 
-        if (container_type::find(acc1, neighbours[i]))
+        if (m_data_.find(acc1, neighbours[i]))
         {
             auto tmp = *res;
             for (auto const &p:acc1->second) { tmp += g(x0, p); }
@@ -671,7 +760,7 @@ ParticleContainer<P, M>::gather(Gather const &g, point_type const &x0,
     {
         typename container_type::const_accessor acc1;
 
-        if (container_type::find(acc1, neighbours[i]))
+        if (m_data_.find(acc1, neighbours[i]))
         {
             auto tmp = *res;
             for (auto const &p:acc1->second) { tmp += g(x0, p); }
@@ -719,6 +808,308 @@ ParticleContainer<P, M>::gather(Gather const &g, TField *J) const
 
 }
 
+//**************************************************************************************************
+template<typename V, typename K> void
+ParticleContainer<V, K>::insert(value_type const &v, id_type const &s)
+{
+    typename container_type::accessor acc;
+
+    m_data_.insert(acc, s);
+
+    acc->second.push_back(v);
+}
+
+//**************************************************************************************************
+
+template<typename V, typename K> size_t
+ParticleContainer<V, K>::count_(container_type const &d, id_type const &s)
+{
+    typename container_type::const_accessor acc;
+
+    size_t res = 0;
+
+    if (d.find(acc, s)) { res = acc->second.size(); }
+
+    return res;
+}
+
+
+template<typename V, typename K>
+template<typename TRange> size_t
+ParticleContainer<V, K>::count_(container_type const &d, TRange const &r)
+{
+    return parallel::parallel_reduce(
+            r, 0U,
+            [&](TRange const &r, size_t init) -> size_t
+            {
+                for (auto const &s:r) { init += count_(d, s); }
+
+                return init;
+            },
+            [](size_t x, size_t y) -> size_t
+            {
+                return x + y;
+            }
+    );
+}
+
+template<typename V, typename K> size_t
+ParticleContainer<V, K>::count_(container_type const &d)
+{
+    return parallel::parallel_reduce(
+            d.range(), 0U,
+            [&](typename container_type::const_range_type const &r, size_t init) -> size_t
+            {
+                for (auto const &item : r) { init += item.second.size(); }
+
+                return init;
+            },
+            [](size_t x, size_t y) -> size_t
+            {
+                return x + y;
+            }
+    );
+}
+
+
+//**************************************************************************************************
+
+
+template<typename V, typename K> void
+ParticleContainer<V, K>::erase(typename container_type::range_type const &r)
+{
+    UNIMPLEMENTED;
+
+};
+
+
+template<typename V, typename K> template<typename TRange> void
+ParticleContainer<V, K>::erase(TRange const &r)
+{
+    parallel::parallel_for(r, [&](TRange const &r) { for (auto const &s:r) { m_data_.erase(s); }});
+}
+//**************************************************************************************************
+
+
+
+template<typename V, typename K>
+template<typename OutputIterator> OutputIterator
+ParticleContainer<V, K>::copy_out(OutputIterator out_it, id_type const &s) const
+{
+    typename container_type::const_accessor c_accessor;
+    if (m_data_.find(c_accessor, s))
+    {
+        out_it = std::copy(c_accessor->second.begin(), c_accessor->second.end(), out_it);
+    }
+    return out_it;
+}
+
+template<typename V, typename K>
+template<typename OutputIT, typename TRange> OutputIT
+ParticleContainer<V, K>::copy_out(OutputIT out_it, TRange const &r) const
+{
+    //TODO need optimize
+    for (auto const &s:r) { out_it = copy_out(out_it, s); }
+    return out_it;
+}
+
+template<typename V, typename K>
+template<typename OutputIterator> OutputIterator
+ParticleContainer<V, K>::copy_out(OutputIterator out_it) const
+{
+    return copy_out(out_it, this->range());
+}
+//*******************************************************************************
+
+
+template<typename V, typename K> void
+ParticleContainer<V, K>::merge(buffer_type *buffer) { merge(buffer, buffer->range()); }
+
+template<typename V, typename K> template<typename TRange> void
+ParticleContainer<V, K>::merge(buffer_type *other, TRange const &r0)
+{
+    parallel::parallel_for(
+            r0,
+            [&](TRange const &r)
+            {
+                for (auto const &s:r)
+                {
+                    typename container_type::accessor acc0;
+
+
+                    if (other->find(acc0, s))
+                    {
+                        typename container_type::accessor acc1;
+                        m_data_.insert(acc1, s);
+                        acc1->second.splice(acc1->second.end(), acc0->second);
+                    }
+                }
+            }
+    );
+}
+
+//*******************************************************************************
+
+
+template<typename V, typename K> template<typename THash> void
+ParticleContainer<V, K>::rehash(THash const &hash, id_type const &key, buffer_type *out_buffer)
+{
+    ASSERT(out_buffer != nullptr);
+
+    typename buffer_type::accessor acc0;
+
+    if (m_data_.find(acc0, key))
+    {
+
+        auto &src = acc0->second;
+
+        auto it = src.begin(), ie = src.end();
+
+        while (it != ie)
+        {
+            auto p = it;
+
+            ++it;
+            auto s = hash(*p);
+            if (s != key)
+            {
+
+                typename buffer_type::accessor acc1;
+
+                out_buffer->insert(acc1, s);
+
+                acc1->second.splice(acc1->second.end(), src, p);
+            }
+        }
+
+
+    }
+    acc0.release();
+
+
+}
+
+template<typename V, typename K> template<typename THash, typename TRange> void
+ParticleContainer<V, K>::rehash(THash const &hash, TRange const &r0, buffer_type *out_buffer)
+{
+    ASSERT(out_buffer != nullptr);
+
+    parallel::parallel_for(
+            r0,
+            [&](TRange const &r) { for (auto const &s:r) { rehash(hash, s, out_buffer); }}
+    );
+
+}
+
+template<typename V, typename K> template<typename THash> void
+ParticleContainer<V, K>::rehash(THash const &hash, buffer_type *out_buffer)
+{
+    if (out_buffer == nullptr)
+    {
+        buffer_type tmp;
+
+        rehash(hash, m_data_.range(), &tmp);
+
+        this->merge(&tmp);
+    }
+    else
+    {
+        rehash(hash, m_data_.range(), out_buffer);
+    }
+
+
+}
+
+
+//*******************************************************************************
+
+template<typename V, typename K> template<typename Predicate> void
+ParticleContainer<V, K>::remove_if(Predicate const &pred, id_type const &s)
+{
+    typename container_type::accessor acc;
+
+    if (m_data_.find(acc, std::get<0>(s)))
+    {
+        acc->second.remove_if([&](value_type const &p) { return pred(p, s); });
+    }
+}
+
+
+template<typename V, typename K> template<typename Predicate> void
+ParticleContainer<V, K>::remove_if(Predicate const &pred, typename container_type::value_type const &item)
+{
+    item.second.remove_if([&](value_type const &p) { return pred(p, item.first); });
+}
+
+
+template<typename V, typename K> template<typename TRange, typename Predicate> void
+ParticleContainer<V, K>::remove_if(Predicate const &pred, id_type const &r0)
+{
+    parallel::parallel_for(r0, [&](TRange const &r) { for (auto const &s:r) { remove_if(pred, s); }});
+}
+
+template<typename V, typename K> template<typename Predicate> void
+ParticleContainer<V, K>::remove_if(Predicate const &pred)
+{
+    remove_if(m_data_.range(), pred);
+}
+
+
+template<typename V, typename K> template<typename TFun> void
+ParticleContainer<V, K>::filter(TFun const &fun, id_type const &s)
+{
+    typename container_type::accessor acc;
+
+    if (m_data_.find(acc, s)) { for (auto &p:acc->second) { fun(&p); }}
+
+};
+
+template<typename V, typename K> template<typename TFun> void
+ParticleContainer<V, K>::filter(TFun const &fun, id_type const &s) const
+{
+    typename container_type::const_accessor acc;
+
+    if (m_data_.find(acc, s)) { for (auto const &p:acc->second) { fun(p); }}
+};
+
+template<typename V, typename K> template<typename TFun> void
+ParticleContainer<V, K>::filter(TFun const &fun, typename container_type::value_type const &item)
+{
+    for (auto &p:item.second) { fun(&p); }
+}
+
+template<typename V, typename K> template<typename TFun> void
+ParticleContainer<V, K>::filter(TFun const &fun, typename container_type::value_type const &item) const
+{
+    for (auto const &p:item.second) { fun(p); }
+}
+
+
+template<typename V, typename K>
+template<typename TRange, typename TFun> void
+ParticleContainer<V, K>::filter(TFun const &fun, TRange const &r0)
+{
+    parallel::parallel_for(r0, [&](TRange const &r) { for (auto const &s:r) { filter(fun, s); }});
+}
+
+template<typename V, typename K>
+template<typename TRange, typename TFun> void
+ParticleContainer<V, K>::filter(TFun const &fun, TRange const &r0) const
+{
+    parallel::parallel_for(r0, [&](TRange const &r) { for (auto const &s:r) { filter(fun, s); }});
+}
+
+template<typename V, typename K> template<typename TFun> void
+ParticleContainer<V, K>::filter(TFun const &fun)
+{
+    filter(m_data_.range(), fun);
+};
+
+template<typename V, typename K> template<typename TFun> void
+ParticleContainer<V, K>::filter(TFun const &fun) const
+{
+    filter(m_data_.range(), fun);
+};
 
 }} //namespace simpla { namespace particle
 

@@ -11,7 +11,9 @@
 #include <algorithm>
 #include "../../parallel/Parallel.h"
 
-namespace simpla { namespace gtl
+namespace simpla
+{
+namespace gtl
 {
 template<typename ValueType, typename Key=size_t>
 class UnorderedSet : public parallel::concurrent_hash_map<Key, std::list<ValueType>>
@@ -89,15 +91,20 @@ public:
 
     void insert(value_type const &p, key_type const &s = 0);
 
-    template<typename Hash>
-    void insert(value_type const &p, Hash const &hash);
+    template<typename Hash> void insert(value_type const &p, Hash const &hash);
 
-    template<typename InputIterator>
-    void insert(InputIterator const &b, InputIterator const &e, key_type const &s);
+    template<typename InputIterator, typename ...Others>
+    void insert(InputIterator const &b, InputIterator const &e, Others &&...others)
+    {
+        for (auto it = b; it != e; ++it) { insert(*it, std::forward<Others>(others)...); }
+    }
 
-    template<typename InputIterator, typename THash>
-    void insert(InputIterator const &b, InputIterator const &e, THash const &);
 
+    template<typename InputIterator, typename ... Others>
+    void insert(std::tuple<InputIterator, InputIterator> const &r, Others &&... others)
+    {
+        insert(std::get<0>(r), std::get<1>(r), std::forward<Others>(others)...);
+    }
 
     using base_type::erase;
 
@@ -110,32 +117,32 @@ public:
     void erase_all() { base_type::clear(); }
 
 
-    size_t size(key_type const &s) const;
+    size_t count(key_type const &s) const;
 
-    size_t size(typename base_type::value_type const &v) const;
+    size_t count(typename base_type::value_type const &v) const;
 
-    template<typename TRange> size_t size(TRange const &r) const;
+    template<typename TRange> size_t count(TRange const &r) const;
 
-    size_t size() const;
-
-
-    template<typename OutputIT> OutputIT copy(OutputIT out_it, key_type const &s) const;
-
-    template<typename OutputIT, typename TRange> OutputIT copy(OutputIT out_it, TRange const &r) const;
-
-    template<typename OutputIT> OutputIT copy(OutputIT out_it) const;
+    size_t count() const;
 
 
-    void merge(key_type const &s, base_type *other);
+    template<typename OutputIT> OutputIT copy_out(OutputIT out_it, key_type const &s) const;
 
-    template<typename TRange> void merge(TRange const &r, base_type *other);
+    template<typename OutputIT, typename TRange> OutputIT copy_out(OutputIT out_it, TRange const &r) const;
+
+    template<typename OutputIT> OutputIT copy_out(OutputIT out_it) const;
+
+
+    void merge(buffer_type *other, key_type const &s);
+
+    template<typename TRange> void merge(buffer_type *other, TRange const &r);
 
     void merge(base_type *other);
 
 
-    template<typename Hash> void rehash(key_type const &key, Hash const &hash, buffer_type *out_buffer);
+    template<typename Hash> void rehash(Hash const &hash, key_type const &key, buffer_type *out_buffer);
 
-    template<typename TRange, typename Hash> void rehash(TRange const &r, Hash const &hash, buffer_type *out_buffer);
+    template<typename TRange, typename Hash> void rehash(Hash const &hash, TRange const &r, buffer_type *out_buffer);
 
     template<typename Hash> void rehash(Hash const &hash, buffer_type *out_buffer = nullptr);
 
@@ -146,20 +153,20 @@ public:
 
 };//class UnorderedSet
 
-template<typename P, typename M>
-UnorderedSet<P, M>::UnorderedSet()
+template<typename ValueType, typename Key>
+UnorderedSet<ValueType, Key>::UnorderedSet()
 {
 
 }
 
 
-template<typename P, typename M>
-UnorderedSet<P, M>::~UnorderedSet() { }
+template<typename ValueType, typename Key>
+UnorderedSet<ValueType, Key>::~UnorderedSet() { }
 
 
 //**************************************************************************************************
-template<typename P, typename M> void
-UnorderedSet<P, M>::insert(value_type const &v, key_type const &s)
+template<typename ValueType, typename Key> void
+UnorderedSet<ValueType, Key>::insert(value_type const &v, key_type const &s)
 {
     typename base_type::accessor acc;
 
@@ -168,24 +175,10 @@ UnorderedSet<P, M>::insert(value_type const &v, key_type const &s)
     acc->second.push_back(v);
 }
 
-template<typename P, typename M>
-template<typename InputIterator>
-void UnorderedSet<P, M>::insert(InputIterator const &b, InputIterator const &e, key_type const &s)
-{
-    for (auto it = b; it != e; ++it) { insert(*it, s); }
-}
-
-
-template<typename P, typename M>
-template<typename InputIterator, typename THash>
-void UnorderedSet<P, M>::insert(InputIterator const &b, InputIterator const &e, THash const &hash)
-{
-    for (auto it = b; it != e; ++it) { insert(*it, hash); }
-}
 //**************************************************************************************************
 
-template<typename P, typename M> size_t
-UnorderedSet<P, M>::size(key_type const &s) const
+template<typename ValueType, typename Key> size_t
+UnorderedSet<ValueType, Key>::count(key_type const &s) const
 {
     typename base_type::const_accessor acc;
 
@@ -196,19 +189,19 @@ UnorderedSet<P, M>::size(key_type const &s) const
     return res;
 }
 
-template<typename P, typename M> size_t
-UnorderedSet<P, M>::size(typename base_type::value_type const &item) const { return item.second.size(); }
+template<typename ValueType, typename Key> size_t
+UnorderedSet<ValueType, Key>::count(typename base_type::value_type const &item) const { return item.second.size(); }
 
 
-template<typename P, typename M>
+template<typename ValueType, typename Key>
 template<typename TRange> size_t
-UnorderedSet<P, M>::size(TRange const &r) const
+UnorderedSet<ValueType, Key>::count(TRange const &r) const
 {
     return parallel::parallel_reduce(
             r, 0U,
             [&](TRange const &r, size_t init) -> size_t
             {
-                for (auto const &s:r) { init += size(s); }
+                for (auto const &s:r) { init += count(s); }
 
                 return init;
             },
@@ -219,26 +212,26 @@ UnorderedSet<P, M>::size(TRange const &r) const
     );
 }
 
-template<typename P, typename M> size_t
-UnorderedSet<P, M>::size() const
+template<typename ValueType, typename Key> size_t
+UnorderedSet<ValueType, Key>::count() const
 {
-    return size(this->range());
+    return count(this->range());
 }
 
 
 //**************************************************************************************************
 
 
-template<typename P, typename M> void
-UnorderedSet<P, M>::erase(typename base_type::range_type const &r)
+template<typename ValueType, typename Key> void
+UnorderedSet<ValueType, Key>::erase(typename base_type::range_type const &r)
 {
     UNIMPLEMENTED;
 
 };
 
 
-template<typename P, typename M> template<typename TRange> void
-UnorderedSet<P, M>::erase(TRange const &r)
+template<typename ValueType, typename Key> template<typename TRange> void
+UnorderedSet<ValueType, Key>::erase(TRange const &r)
 {
     parallel::parallel_for(r, [&](TRange const &r) { for (auto const &s:r) { base_type::erase(s); }});
 }
@@ -246,9 +239,9 @@ UnorderedSet<P, M>::erase(TRange const &r)
 
 
 
-template<typename P, typename M>
+template<typename ValueType, typename Key>
 template<typename OutputIterator> OutputIterator
-UnorderedSet<P, M>::copy(OutputIterator out_it, key_type const &s) const
+UnorderedSet<ValueType, Key>::copy_out(OutputIterator out_it, key_type const &s) const
 {
     typename base_type::const_accessor c_accessor;
     if (base_type::find(c_accessor, s))
@@ -258,29 +251,29 @@ UnorderedSet<P, M>::copy(OutputIterator out_it, key_type const &s) const
     return out_it;
 }
 
-template<typename P, typename M>
+template<typename ValueType, typename Key>
 template<typename OutputIT, typename TRange> OutputIT
-UnorderedSet<P, M>::copy(OutputIT out_it, TRange const &r) const
+UnorderedSet<ValueType, Key>::copy_out(OutputIT out_it, TRange const &r) const
 {
     //TODO need optimize
-    for (auto const &s:r) { out_it = copy(out_it, s); }
+    for (auto const &s:r) { out_it = copy_out(out_it, s); }
     return out_it;
 }
 
-template<typename P, typename M>
+template<typename ValueType, typename Key>
 template<typename OutputIterator> OutputIterator
-UnorderedSet<P, M>::copy(OutputIterator out_it) const
+UnorderedSet<ValueType, Key>::copy_out(OutputIterator out_it) const
 {
-    return copy(out_it, this->range());
+    return copy_out(out_it, this->range());
 }
 //*******************************************************************************
 
 
-template<typename P, typename M> void
-UnorderedSet<P, M>::merge(buffer_type *buffer) { merge(buffer->range(), buffer); }
+template<typename ValueType, typename Key> void
+UnorderedSet<ValueType, Key>::merge(buffer_type *buffer) { merge(buffer, buffer->range()); }
 
-template<typename P, typename M> template<typename TRange> void
-UnorderedSet<P, M>::merge(TRange const &r0, buffer_type *other)
+template<typename ValueType, typename Key> template<typename TRange> void
+UnorderedSet<ValueType, Key>::merge(buffer_type *other, TRange const &r0)
 {
     parallel::parallel_for(
             r0,
@@ -305,8 +298,8 @@ UnorderedSet<P, M>::merge(TRange const &r0, buffer_type *other)
 //*******************************************************************************
 
 
-template<typename P, typename M> template<typename Hash> void
-UnorderedSet<P, M>::rehash(key_type const &key, Hash const &hash, buffer_type *out_buffer)
+template<typename ValueType, typename Key> template<typename Hash> void
+UnorderedSet<ValueType, Key>::rehash(Hash const &hash, key_type const &key, buffer_type *out_buffer)
 {
     ASSERT(out_buffer != nullptr);
 
@@ -343,32 +336,32 @@ UnorderedSet<P, M>::rehash(key_type const &key, Hash const &hash, buffer_type *o
 
 }
 
-template<typename P, typename M> template<typename TRange, typename Hash> void
-UnorderedSet<P, M>::rehash(TRange const &r0, Hash const &hash, buffer_type *out_buffer)
+template<typename ValueType, typename Key> template<typename TRange, typename Hash> void
+UnorderedSet<ValueType, Key>::rehash(Hash const &hash, TRange const &r0, buffer_type *out_buffer)
 {
     ASSERT(out_buffer != nullptr);
 
     parallel::parallel_for(
             r0,
-            [&](TRange const &r) { for (auto const &s:r) { rehash(s, hash, out_buffer); }}
+            [&](TRange const &r) { for (auto const &s:r) { rehash(hash, s, out_buffer); }}
     );
 
 }
 
-template<typename P, typename M> template<typename Hash> void
-UnorderedSet<P, M>::rehash(Hash const &hash, buffer_type *out_buffer)
+template<typename ValueType, typename Key> template<typename Hash> void
+UnorderedSet<ValueType, Key>::rehash(Hash const &hash, buffer_type *out_buffer)
 {
     if (out_buffer == nullptr)
     {
         buffer_type tmp;
 
-        rehash(this->range(), hash, &tmp);
+        rehash(hash, this->range(), &tmp);
 
         this->merge(&tmp);
     }
     else
     {
-        rehash(this->range(), hash, out_buffer);
+        rehash(hash, this->range(), out_buffer);
     }
 
 
@@ -377,8 +370,8 @@ UnorderedSet<P, M>::rehash(Hash const &hash, buffer_type *out_buffer)
 
 //*******************************************************************************
 
-template<typename P, typename M> template<typename Predicate> void
-UnorderedSet<P, M>::remove_if(Predicate const &pred, key_type const &s)
+template<typename ValueType, typename Key> template<typename Predicate> void
+UnorderedSet<ValueType, Key>::remove_if(Predicate const &pred, key_type const &s)
 {
     typename base_type::accessor acc;
 
@@ -389,28 +382,28 @@ UnorderedSet<P, M>::remove_if(Predicate const &pred, key_type const &s)
 }
 
 
-template<typename P, typename M> template<typename Predicate> void
-UnorderedSet<P, M>::remove_if(Predicate const &pred, typename base_type::value_type const &item)
+template<typename ValueType, typename Key> template<typename Predicate> void
+UnorderedSet<ValueType, Key>::remove_if(Predicate const &pred, typename base_type::value_type const &item)
 {
     item.second.remove_if([&](value_type const &p) { return pred(p, item.first); });
 }
 
 
-template<typename P, typename M> template<typename TRange, typename Predicate> void
-UnorderedSet<P, M>::remove_if(Predicate const &pred, key_type const &r0)
+template<typename ValueType, typename Key> template<typename TRange, typename Predicate> void
+UnorderedSet<ValueType, Key>::remove_if(Predicate const &pred, key_type const &r0)
 {
     parallel::parallel_for(r0, [&](TRange const &r) { for (auto const &s:r) { remove_if(pred, s); }});
 }
 
-template<typename P, typename M> template<typename Predicate> void
-UnorderedSet<P, M>::remove_if(Predicate const &pred)
+template<typename ValueType, typename Key> template<typename Predicate> void
+UnorderedSet<ValueType, Key>::remove_if(Predicate const &pred)
 {
     remove_if(base_type::range(), pred);
 }
 
 
-template<typename P, typename M> template<typename TFun> void
-UnorderedSet<P, M>::filter(TFun const &fun, key_type const &s)
+template<typename ValueType, typename Key> template<typename TFun> void
+UnorderedSet<ValueType, Key>::filter(TFun const &fun, key_type const &s)
 {
     typename base_type::accessor acc;
 
@@ -418,53 +411,54 @@ UnorderedSet<P, M>::filter(TFun const &fun, key_type const &s)
 
 };
 
-template<typename P, typename M> template<typename TFun> void
-UnorderedSet<P, M>::filter(TFun const &fun, key_type const &s) const
+template<typename ValueType, typename Key> template<typename TFun> void
+UnorderedSet<ValueType, Key>::filter(TFun const &fun, key_type const &s) const
 {
     typename base_type::const_accessor acc;
 
     if (base_type::find(acc, s)) { for (auto const &p:acc->second) { fun(p); }}
 };
 
-template<typename P, typename M> template<typename TFun> void
-UnorderedSet<P, M>::filter(TFun const &fun, typename base_type::value_type const &item)
+template<typename ValueType, typename Key> template<typename TFun> void
+UnorderedSet<ValueType, Key>::filter(TFun const &fun, typename base_type::value_type const &item)
 {
     for (auto &p:item.second) { fun(&p); }
 }
 
-template<typename P, typename M> template<typename TFun> void
-UnorderedSet<P, M>::filter(TFun const &fun, typename base_type::value_type const &item) const
+template<typename ValueType, typename Key> template<typename TFun> void
+UnorderedSet<ValueType, Key>::filter(TFun const &fun, typename base_type::value_type const &item) const
 {
     for (auto const &p:item.second) { fun(p); }
 }
 
 
-template<typename P, typename M>
+template<typename ValueType, typename Key>
 template<typename TRange, typename TFun> void
-UnorderedSet<P, M>::filter(TFun const &fun, TRange const &r0)
+UnorderedSet<ValueType, Key>::filter(TFun const &fun, TRange const &r0)
 {
     parallel::parallel_for(r0, [&](TRange const &r) { for (auto const &s:r) { filter(fun, s); }});
 }
 
-template<typename P, typename M>
+template<typename ValueType, typename Key>
 template<typename TRange, typename TFun> void
-UnorderedSet<P, M>::filter(TFun const &fun, TRange const &r0) const
+UnorderedSet<ValueType, Key>::filter(TFun const &fun, TRange const &r0) const
 {
     parallel::parallel_for(r0, [&](TRange const &r) { for (auto const &s:r) { filter(fun, s); }});
 }
 
-template<typename P, typename M> template<typename TFun> void
-UnorderedSet<P, M>::filter(TFun const &fun)
+template<typename ValueType, typename Key> template<typename TFun> void
+UnorderedSet<ValueType, Key>::filter(TFun const &fun)
 {
     filter(base_type::range(), fun);
 };
 
-template<typename P, typename M> template<typename TFun> void
-UnorderedSet<P, M>::filter(TFun const &fun) const
+template<typename ValueType, typename Key> template<typename TFun> void
+UnorderedSet<ValueType, Key>::filter(TFun const &fun) const
 {
     filter(base_type::range(), fun);
 };
 
 
-}}//namespace simpla { namespace gtl
+}
+}//namespace simpla { namespace gtl
 #endif //SIMPLA_UNORDERED_SET_H
