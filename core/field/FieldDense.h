@@ -45,9 +45,6 @@ public:
 
     typedef typename mesh_type::template Attribute<value_type, iform> attribute_type;
 
-    std::shared_ptr<attribute_type> m_data_;
-private:
-
     typedef typename mesh_type::id_type id_type;
 
     typedef typename mesh_type::point_type point_type;
@@ -57,6 +54,9 @@ private:
     typedef typename this_type::calculus_policy calculus_policy;
 
     typedef typename this_type::interpolate_policy interpolate_policy;
+
+private:
+    std::shared_ptr<attribute_type> m_data_;
 public:
     Field() : m_data_(nullptr) { }
 
@@ -66,6 +66,8 @@ public:
 
     Field(mesh_type const &m)
             : m_data_(m.template get_attribute<value_type, iform>()) { }
+
+    Field(std::shared_ptr<attribute_type> d) : m_data_(d) { }
 
     //copy construct
     Field(this_type const &other) : m_data_(other.m_data_) { }

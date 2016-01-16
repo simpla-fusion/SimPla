@@ -122,6 +122,7 @@ struct EMTokamak
 //                pic->properties()["temperature"].template as<Real>(1)
 //        pic->generate(particle::make_generator(pic->engine(), 1.0));
 
+        pic->add_gather(J1);
 
         return std::dynamic_pointer_cast<particle::ParticleBase>(pic);
 
@@ -309,6 +310,7 @@ void EMTokamak::initialize(int argc, char **argv)
             if (engine == "Boris")
             {
                 particle_sp[key] = create_particle<particle::BorisParticle<mesh_type>>(key, dict.second);
+
             }
             else
             {
@@ -402,14 +404,15 @@ void EMTokamak::tear_down()
 
     for (auto const &item:m.attributes())
     {
-        if (!item.second.lock()->properties()["DisableXDMFOutput"])
-        {
-            out_stream.write(item.first, *std::dynamic_pointer_cast<base::AttributeObject>(item.second.lock()));
-
-        } else
+        if (item.second.lock()->properties()["DisableXDMFOutput"])
         {
             out_stream.hdf5().write(item.first, item.second.lock()->data_set(), io::SP_RECORD);
         }
+        else
+        {
+            out_stream.write(item.first, *std::dynamic_pointer_cast<base::AttributeObject>(item.second.lock()));
+        }
+
     }
     out_stream.close_grid();
 
@@ -431,7 +434,7 @@ void EMTokamak::check_point()
         auto attr = item.second.lock();
         if (attr->properties()["EnableCheckPoint"])
         {
-            if (!item.second.lock()->properties()["DisableXDMFOutput"])
+            if (item.second.lock()->properties()["DisableXDMFOutput"])
             {
                 out_stream.hdf5().write(item.first, attr->data_set(), io::SP_RECORD);
             }
@@ -439,8 +442,6 @@ void EMTokamak::check_point()
             {
                 out_stream.write(item.first, *std::dynamic_pointer_cast<base::AttributeObject>(attr));
             }
-
-
         }
     }
 
@@ -476,8 +477,9 @@ void EMTokamak::next_time_step()
         for (auto &p:particle_sp)
         {
             p.second->push(m.time(), m.time() + dt);
-
-
+            p.second->rehash();
+            p.second->apply_filter();
+            p.second->integral();
         }
 
 
@@ -496,7 +498,7 @@ void EMTokamak::next_time_step()
         E1.accept(edge_boundary.range(), [&](id_type, Real &v) { v = 0; });
 
 
-        traits::field_t <vector_type, mesh_type, VERTEX> dE{m};
+        traits::field_t<vector_type, mesh_type, VERTEX> dE{m};
 
 
 
@@ -504,12 +506,12 @@ void EMTokamak::next_time_step()
         if (fluid_sp.size() > 0)
         {
 
-            traits::field_t <vector_type, mesh_type, VERTEX> Q{m};
-            traits::field_t <vector_type, mesh_type, VERTEX> K{m};
+            traits::field_t<vector_type, mesh_type, VERTEX> Q{m};
+            traits::field_t<vector_type, mesh_type, VERTEX> K{m};
 
-            traits::field_t <scalar_type, mesh_type, VERTEX> a{m};
-            traits::field_t <scalar_type, mesh_type, VERTEX> b{m};
-            traits::field_t <scalar_type, mesh_type, VERTEX> c{m};
+            traits::field_t<scalar_type, mesh_type, VERTEX> a{m};
+            traits::field_t<scalar_type, mesh_type, VERTEX> b{m};
+            traits::field_t<scalar_type, mesh_type, VERTEX> c{m};
 
             a.clear();
             b.clear();

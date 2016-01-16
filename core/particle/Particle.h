@@ -17,6 +17,7 @@
 #include "../gtl/utilities/memory_pool.h"
 #include "../base/DataObject.h"
 
+namespace simpla { template<typename ...> class Field; }
 namespace simpla { namespace particle
 {
 
@@ -43,15 +44,15 @@ public:
 
     virtual void deploy() = 0;
 
-    virtual void rehash() = 0;
-
     virtual void sync() = 0;
+
+    virtual void rehash() = 0;
 
     virtual void push(Real t0, Real t1) = 0;
 
-    virtual void integral() const = 0;
+    virtual void integral() = 0;
 
-    virtual void load_filter(std::string const &key = "") = 0;
+    virtual void apply_filter() = 0;
 
     std::ostream &operator<<(std::ostream &os) const { return this->print(os, 0); }
 
@@ -101,23 +102,23 @@ public:
 
     void swap(this_type const &other) { std::swap(other.m_data_, m_data_); }
 
-    engine_type const &engine() const { return *std::dynamic_pointer_cast<const engine_type>(m_data_); }
-
-    engine_type &engine() { return *std::dynamic_pointer_cast<engine_type>(m_data_); }
-
-    std::shared_ptr<container_type> data() { return m_data_; }
-
-    std::shared_ptr<container_type> const data() const { return m_data_; }
-
-    std::shared_ptr<typename mesh_type::AttributeEntity> attribute()
-    {
-        return std::dynamic_pointer_cast<typename mesh_type::AttributeEntity>(m_data_);
-    }
-
-    std::shared_ptr<typename mesh_type::AttributeEntity> const attribute() const
-    {
-        return std::dynamic_pointer_cast<typename mesh_type::AttributeEntity>(m_data_);
-    }
+//    engine_type const &engine() const { return *std::dynamic_pointer_cast<const engine_type>(m_data_); }
+//
+//    engine_type &engine() { return *std::dynamic_pointer_cast<engine_type>(m_data_); }
+//
+//    std::shared_ptr<container_type> data() { return m_data_; }
+//
+//    std::shared_ptr<container_type> const data() const { return m_data_; }
+//
+//    std::shared_ptr<typename mesh_type::AttributeEntity> attribute()
+//    {
+//        return std::dynamic_pointer_cast<typename mesh_type::AttributeEntity>(m_data_);
+//    }
+//
+//    std::shared_ptr<typename mesh_type::AttributeEntity> const attribute() const
+//    {
+//        return std::dynamic_pointer_cast<typename mesh_type::AttributeEntity>(m_data_);
+//    }
 
     virtual std::ostream &print(std::ostream &os, int indent = 0) const { return m_data_->print(os, indent); }
 
@@ -139,54 +140,205 @@ public:
 
     virtual void push(Real t0, Real t1)
     {
-        VERBOSE << "[CMD] Push particle " << m_data_->name() << std::endl;
+        CMD << "Push particle " << m_data_->name() << std::endl;
 
-        // m_data_->filter(engine_type::pusher(t0, t1));
-        // m_data_->rehash();
+        m_data_->filter(
+                [&](sample_type *p)
+                {
+//                    engine_type::push(t0, t1, p);
+                }
+        );
+
     }
 
-    virtual void integral() const
+    virtual void integral()
     {
-        VERBOSE << "[CMD] Integral particle " << m_data_->name() << std::endl;
-        //m_data_->(engine_type::gather());
-    }
 
-    template<typename ...Args>
-    void generate(Args &&...args) { m_data_->generate(std::forward<Args>(args)...); }
-
-    typedef std::function<void(sample_type *)> filter_fun;
-
-    template<typename ...Args>
-    void filter(Args &&...args) { m_data_->filter(std::forward<Args>(args)...); }
-
-
-    template<typename TFun>
-    void filter(std::tuple<TFun, range_type> const &f) { m_data_->filter(std::get<0>(f), std::get<1>(f)); }
-
-    virtual void load_filter(std::string const &key = "")
-    {
-        if (key == "")
+        for (auto &item:m_integral_list_)
         {
-            for (auto const &item:m_filter_list_) { filter(item.second); }
-        }
-        else
-        {
-            auto it = m_filter_list_.find(key);
-            if (it != m_filter_list_.end()) { filter(it->second); }
+            item.second(item.first);
         }
     }
 
 
-    bool register_filter(std::string const &key, filter_fun const &f, range_type const &r)
+    virtual void add_filter(std::string const &key,
+                            std::function<void(typename container_type::bucket_type &, id_type)> const &f,
+                            range_type const &r)
     {
-        return std::get<1>(m_filter_list_.insert(std::make_pair(key, std::make_tuple(f, r))));
+        m_filter_list_.push_back(std::make_tuple(key, f, r));
     }
 
+    virtual void apply_filter()
+    {
+        for (auto const &item:m_filter_list_)
+        {
+            VERBOSE << " Apply filter [" << std::get<0>(item) << "] to " << m_data_->name() << std::endl;
+
+            m_data_->foreach_bucket(std::get<1>(item), std::get<2>(item));
+        }
+    }
+
+    template<typename TGen> void generate(TGen const &gen, id_type s);
+
+    template<typename TGen, typename TRange> void generate(TGen const &gen, TRange const &);
+
+    template<typename TGen> void generate(TGen const &);
+
+
+
+    //! @name as particle
+    //! @{
+
+    template<typename TV, int IFORM, typename ...Policies>
+    void add_gather(Field<TV, mesh_type, std::integral_constant<int, IFORM>, Policies...> &f);
+
+
+    template<typename TField, typename TRange>
+    void gather(TField *res, TRange const &r) const;
+
+    template<typename TField>
+    void gather(TField *res) const;
+
+    //! @}
 private:
-    std::map<std::string, std::tuple<filter_fun, range_type >> m_filter_list_;
+    std::list<std::tuple<std::string, std::function<void(typename container_type::bucket_type &, id_type)>,
+            typename mesh_type::range_type  >> m_filter_list_;
+
+
+    std::list<std::pair<std::weak_ptr<typename mesh_type::AttributeEntity>, std::function<void(
+            std::weak_ptr<typename mesh_type::AttributeEntity> &)> >> m_integral_list_;
+};
+//**************************************************************************************************
+
+template<typename P, typename M>
+template<typename TGen> void
+Particle<P, M>::generate(TGen const &gen, id_type s)
+{
+    auto g = gen(s);
+    m_data_->insert(std::get<1>(g), std::get<0>(g), s);
+}
+
+
+template<typename P, typename M>
+template<typename TGen, typename TRange> void
+Particle<P, M>::generate(TGen const &gen, const TRange &r0)
+{
+    parallel::parallel_for(r0, [&](TRange const &r) { for (auto const &s:r) { generate(gen, s); }});
+}
+
+template<typename P, typename M>
+template<typename TGen> void
+Particle<P, M>::generate(TGen const &gen)
+{
+    m_data_->mesh().template for_each_boundary<container_type::iform>(
+            [&](range_type const &r) { generate(gen, r); });
+
+    parallel::DistributedObject dist_obj;
+
+    m_data_->sync(*m_data_, &dist_obj, false);
+
+    dist_obj.sync();
+
+    m_data_->mesh().template for_each_center<container_type::iform>(
+            [&](range_type const &r) { generate(gen, r); });
+
+    dist_obj.wait();
+
+    for (auto const &item :  dist_obj.recv_buffer)
+    {
+        sample_type const *p = reinterpret_cast<sample_type const *>(std::get<1>(item).data.get());
+        m_data_->insert(p, p + std::get<1>(item).memory_space.size());
+    }
+}
+
+
+//*******************************************************************************
+
+
+
+template<typename P, typename M> template<typename TField, typename TRange> void
+Particle<P, M>::gather(TField *J, TRange const &r0) const
+{
+    parallel::parallel_for(r0, [&](TRange const &r)
+    {
+        for (auto const &s:r)
+        {
+            typename TField::field_value_type tmp;
+
+            tmp = 0;
+
+            id_type neighbours[mesh_type::MAX_NUM_OF_NEIGHBOURS];
+
+            int num = m_data_->mesh().get_adjacent_cells(container_type::iform, s, neighbours);
+            auto x0 = m_data_->mesh().point(s);
+
+            for (int i = 0; i < num; ++i)
+            {
+                typename container_type::const_accessor acc1;
+
+                if (m_data_->find(acc1, neighbours[i]))
+                {
+                    for (auto const &p:acc1->second)
+                    {
+                        //FIXME unimplemented
+//                g(x0, p, &tmp);
+                    }
+                }
+            }
+
+            J->assign(s, tmp);
+        }
+    });
 };
 
+template<typename P, typename M> template<typename TField> void
+Particle<P, M>::gather(TField *J) const
+{
 
+    typedef typename mesh_type::range_type range_t;
+
+    static constexpr int f_iform = traits::iform<TField>::value;
+
+    J->mesh().template for_each_boundary<f_iform>([&](range_t const &r) { gather(J, r); });
+
+    parallel::DistributedObject dist_obj;
+    dist_obj.add(*J);
+    dist_obj.sync();
+
+    J->mesh().template for_each_center<f_iform>([&](range_t const &r) { gather(J, r); });
+
+    dist_obj.wait();
+
+
+}
+
+//**************************************************************************************************
+
+template<typename P, typename M>
+template<typename TV, int IFORM, typename ...Policies>
+void  Particle<P, M>::add_gather(::simpla::Field<TV, M, std::integral_constant<int, IFORM>, Policies...> &f)
+{
+    m_integral_list_.push_back(
+            std::make_pair(
+                    std::weak_ptr<typename M::AttributeEntity>(
+                            std::dynamic_pointer_cast<typename M::AttributeEntity>(f.data())),
+                    [&](std::weak_ptr<typename M::AttributeEntity> &f_entity)
+                    {
+                        auto fp = f_entity.lock();
+
+                        ASSERT(fp->is_a(typeid(typename mesh_type::template Attribute<TV, IFORM>)));
+
+                        ::simpla::Field<TV, M, std::integral_constant<int, IFORM>, Policies...> f{
+                                std::dynamic_pointer_cast<typename M::template Attribute<TV, IFORM>>(
+                                        fp)};
+
+                        CMD << "Integral particle [" << m_data_->name()
+                        << "] to Field [" << fp->name() << "]" << std::endl;
+
+                        gather(&f);
+
+                    }));
+}
 }} //namespace simpla
 
 
