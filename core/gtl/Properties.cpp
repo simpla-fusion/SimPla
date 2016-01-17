@@ -30,7 +30,7 @@ std::ostream &Properties::print(std::ostream &os, int indent) const
         auto ie = this->end();
 
 
-        os << std::endl << std::setw(indent + 1) << "{" << std::endl;
+//        os << std::endl << std::setw(indent + 1) << "{" << std::endl;
 
 
         os << std::setw(indent + 1) << " " << it->first << " = ";
@@ -44,7 +44,7 @@ std::ostream &Properties::print(std::ostream &os, int indent) const
             it->second.print(os, indent + 1);
 
         }
-        os << std::endl << std::setw(indent + 1) << "}";
+//        os << std::endl << std::setw(indent + 1) << "}";
 
     }
 

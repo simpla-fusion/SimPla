@@ -258,18 +258,20 @@ public:
     template<typename OutputIT> OutputIT copy_out(OutputIT out_it) const;
 
 
-    void merge(buffer_type *other, id_type const &s);
+    void merge(buffer_type *other, id_type s);
+
+//    void merge(buffer_type *other, typename container_type::value_type &);
 
     template<typename TRange> void merge(buffer_type *other, TRange const &r);
 
-    void merge(container_type *other);
+    void merge(buffer_type *other);
 
 
-    template<typename THash> void rehash(THash const &hash, id_type const &key, buffer_type *out_buffer);
+    void rehash(id_type const &key, buffer_type *out_buffer);
 
-    template<typename THash, typename TRange> void rehash(THash const &hash, TRange const &r, buffer_type *out_buffer);
+    template<typename TRange> void rehash(TRange const &r, buffer_type *out_buffer);
 
-    template<typename THash> void rehash(THash const &hash, buffer_type *out_buffer = nullptr);
+    void rehash(buffer_type *out_buffer);
 
     void rehash();
 
@@ -316,6 +318,7 @@ template<typename P, typename M>
 std::ostream &ParticleContainer<P, M>::print(std::ostream &os, int indent) const
 {
     mesh_attribute_entity::print(os, indent + 1);
+    os << std::setw(indent + 1) << " " << ", num = " << count() << std::endl;
     return os;
 }
 
@@ -474,7 +477,7 @@ ParticleContainer<P, M>::rehash()
 
 
     mesh_attribute_entity::mesh().template for_each_boundary<iform>(
-            [&](range_type const &r) { rehash(m_hash_, r, &buffer); });
+            [&](range_type const &r) { rehash(r, &buffer); });
 
 
     //**************************************************************************************
@@ -501,7 +504,7 @@ ParticleContainer<P, M>::rehash()
 
 
     mesh_attribute_entity::mesh().template for_each_ghost<iform>(
-            [&](range_type const &r) { rehash(m_hash_, r, &buffer); });
+            [&](range_type const &r) { rehash(r, &buffer); });
     /**
      *
      *  ***************************
@@ -513,7 +516,7 @@ ParticleContainer<P, M>::rehash()
      */
 
     mesh_attribute_entity::mesh().template for_each_center<iform>(
-            [&](range_type const &r) { rehash(m_hash_, r, &buffer); });
+            [&](range_type const &r) { rehash(r, &buffer); });
 
     //collect moved particle
     mesh_attribute_entity::mesh().template for_each_center<iform>(
@@ -538,7 +541,9 @@ ParticleContainer<P, M>::rehash()
         sample_type const *p = reinterpret_cast<sample_type const *>(std::get<1>(item).data.get());
         insert(p, p + std::get<1>(item).memory_space.size());
     }
+    this->merge(&buffer);
 
+    CHECK(this->count());
 }
 
 template<typename P, typename M> data_model::DataSet
@@ -549,6 +554,7 @@ ParticleContainer<P, M>::data_set() const
     auto r0 = mesh_attribute_entity::mesh().template range<iform>();
 
     size_t num = count(r0);
+
 
     data_model::DataSet ds;
 
@@ -581,20 +587,17 @@ ParticleContainer<V, K>::count_(container_type const &d, id_type const &s)
 
 template<typename V, typename K>
 template<typename TRange> size_t
-ParticleContainer<V, K>::count_(container_type const &d, TRange const &r)
+ParticleContainer<V, K>::count_(container_type const &d, TRange const &r0)
 {
     return parallel::parallel_reduce(
-            r, 0U,
+            r0, 0U,
             [&](TRange const &r, size_t init) -> size_t
             {
                 for (auto const &s:r) { init += count_(d, s); }
 
                 return init;
             },
-            [](size_t x, size_t y) -> size_t
-            {
-                return x + y;
-            }
+            [](size_t x, size_t y) -> size_t { return x + y; }
     );
 }
 
@@ -666,38 +669,44 @@ ParticleContainer<V, K>::copy_out(OutputIterator out_it) const
 }
 //*******************************************************************************
 
+template<typename V, typename K> void
+ParticleContainer<V, K>::merge(buffer_type *other, id_type s)
+{
+    typename buffer_type::accessor acc0;
+    if (other->find(acc0, s))
+    {
+        typename container_type::accessor acc1;
+        container_type::insert(acc1, s);
+        acc1->second.splice(acc1->second.end(), acc0->second);
+    }
+};
+
 
 template<typename V, typename K> void
-ParticleContainer<V, K>::merge(buffer_type *buffer) { merge(buffer, buffer->range()); }
+ParticleContainer<V, K>::merge(buffer_type *buffer)
+{
+    for (auto &item:*buffer)
+    {
+        typename container_type::accessor acc1;
+        container_type::insert(acc1, item.first);
+        acc1->second.splice(acc1->second.end(), item.second);
+    }
+
+//    merge(buffer, buffer->range());
+}
 
 template<typename V, typename K> template<typename TRange> void
 ParticleContainer<V, K>::merge(buffer_type *other, TRange const &r0)
 {
-    parallel::parallel_for(
-            r0,
-            [&](TRange const &r)
-            {
-                for (auto const &s:r)
-                {
-                    typename container_type::accessor acc0;
+    parallel::parallel_for(r0, [&](TRange const &r) { for (auto const &s:r) { merge(other, s); }});
 
-
-                    if (other->find(acc0, s))
-                    {
-                        typename container_type::accessor acc1;
-                        container_type::insert(acc1, s);
-                        acc1->second.splice(acc1->second.end(), acc0->second);
-                    }
-                }
-            }
-    );
 }
 
 //*******************************************************************************
 
 
-template<typename V, typename K> template<typename THash> void
-ParticleContainer<V, K>::rehash(THash const &hash, id_type const &key, buffer_type *out_buffer)
+template<typename V, typename K> void
+ParticleContainer<V, K>::rehash(id_type const &key, buffer_type *out_buffer)
 {
     ASSERT(out_buffer != nullptr);
 
@@ -715,7 +724,7 @@ ParticleContainer<V, K>::rehash(THash const &hash, id_type const &key, buffer_ty
             auto p = it;
 
             ++it;
-            auto s = hash(*p);
+            auto s = m_hash_(*p);
             if (s != key)
             {
 
@@ -734,26 +743,26 @@ ParticleContainer<V, K>::rehash(THash const &hash, id_type const &key, buffer_ty
 
 }
 
-template<typename V, typename K> template<typename THash, typename TRange> void
-ParticleContainer<V, K>::rehash(THash const &hash, TRange const &r0, buffer_type *out_buffer)
+template<typename V, typename K> template<typename TRange> void
+ParticleContainer<V, K>::rehash(TRange const &r0, buffer_type *out_buffer)
 {
     ASSERT(out_buffer != nullptr);
 
     parallel::parallel_for(
             r0,
-            [&](TRange const &r) { for (auto const &s:r) { rehash(hash, s, out_buffer); }}
+            [&](TRange const &r) { for (auto const &s:r) { rehash(s, out_buffer); }}
     );
 
 }
 
-template<typename V, typename K> template<typename THash> void
-ParticleContainer<V, K>::rehash(THash const &hash, buffer_type *out_buffer)
+template<typename V, typename K> void
+ParticleContainer<V, K>::rehash(buffer_type *out_buffer)
 {
     if (out_buffer == nullptr)
     {
         buffer_type tmp;
 
-        rehash(hash, container_type::range(), &tmp);
+        rehash(container_type::range(), &tmp);
 
         this->merge(&tmp);
     }
@@ -769,7 +778,7 @@ ParticleContainer<V, K>::rehash(THash const &hash, buffer_type *out_buffer)
                         for (auto const &p:b.second) { fun(p); }
                     }
                 });
-        rehash(hash, container_type::range(), out_buffer);
+        rehash(container_type::range(), out_buffer);
     }
 }
 

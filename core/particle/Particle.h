@@ -58,10 +58,7 @@ public:
 
 };
 
-inline std::ostream &operator<<(std::ostream &os, ParticleBase const &p)
-{
-    return p.print(os, 0);
-};
+inline std::ostream &operator<<(std::ostream &os, ParticleBase const &p) { return p.print(os, 0); };
 
 template<typename ...> struct ParticleContainer;
 template<typename ...> struct Particle;
@@ -123,7 +120,10 @@ public:
 //        return std::dynamic_pointer_cast<typename mesh_type::AttributeEntity>(m_data_);
 //    }
 
-    virtual std::ostream &print(std::ostream &os, int indent = 0) const { return m_data_->print(os, indent); }
+    virtual std::ostream &print(std::ostream &os, int indent = 0) const
+    {
+        return m_data_->print(os, indent);
+    }
 
     virtual data_model::DataSet data_set() const { return m_data_->data_set(); }
 
@@ -205,7 +205,7 @@ template<typename TGen> void
 Particle<P, M>::generate(TGen &gen, id_type s)
 {
     auto g = gen(s);
-    m_data_->insert(std::get<1>(g), std::get<0>(g), s);
+    m_data_->insert(std::get<0>(g), std::get<1>(g));
 }
 
 
@@ -220,25 +220,26 @@ template<typename P, typename M>
 template<typename TGen> void
 Particle<P, M>::generate(TGen &gen)
 {
-    m_data_->mesh().template for_each_boundary<container_type::iform>(
-            [&](range_type const &r) { generate(gen, r); });
-
-    parallel::DistributedObject dist_obj;
-
-    m_data_->sync_(*m_data_, &dist_obj, false);
-
-    dist_obj.sync();
-
-    m_data_->mesh().template for_each_center<container_type::iform>(
-            [&](range_type const &r) { generate(gen, r); });
-
-    dist_obj.wait();
-
-    for (auto const &item :  dist_obj.recv_buffer)
-    {
-        sample_type const *p = reinterpret_cast<sample_type const *>(std::get<1>(item).data.get());
-        m_data_->insert(p, p + std::get<1>(item).memory_space.size());
-    }
+    generate(gen, m_data_->mesh().template range<container_type::iform>());
+//    m_data_->mesh().template for_each_boundary<container_type::iform>(
+//            [&](range_type const &r) { generate(gen, r); });
+//
+//    parallel::DistributedObject dist_obj;
+//
+//    m_data_->sync_(*m_data_, &dist_obj, false);
+//
+//    dist_obj.sync();
+//
+//    m_data_->mesh().template for_each_center<container_type::iform>(
+//            [&](range_type const &r) { generate(gen, r); });
+//
+//    dist_obj.wait();
+//
+//    for (auto const &item :  dist_obj.recv_buffer)
+//    {
+//        sample_type const *p = reinterpret_cast<sample_type const *>(std::get<1>(item).data.get());
+//        m_data_->insert(p, p + std::get<1>(item).memory_space.size());
+//    }
 }
 
 

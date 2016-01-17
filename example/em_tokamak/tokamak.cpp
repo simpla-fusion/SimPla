@@ -492,10 +492,10 @@ void EMTokamak::next_time_step()
     {
         for (auto &p:particle_sp)
         {
-            p.second->push(m.time(), m.time() + dt);
+//            p.second->push(m.time(), m.time() + dt);
             p.second->rehash();
-            p.second->apply_filter();
-            p.second->integral();
+//            p.second->apply_filter();
+//            p.second->integral();
         }
 
 

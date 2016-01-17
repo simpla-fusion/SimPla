@@ -166,7 +166,6 @@ public:
 
     this_type &operator=(const this_type &other) = delete;
 
-
     virtual this_type &self() { return (*this); }
 
     virtual this_type const &self() const { return (*this); }
