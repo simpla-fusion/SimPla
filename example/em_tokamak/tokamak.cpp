@@ -20,6 +20,7 @@
 #include "../../core/model/GEqdsk.h"
 #include "../../core/model/Constraint.h"
 #include "../../core/io/XDMFStream.h"
+#include "../../core/particle/ParticleGenerator.h"
 
 namespace simpla
 {
@@ -133,10 +134,16 @@ EMTokamak::create_particle(std::string const &key, TDict const &dict)
 
     pic->deploy();
 
+    particle::DefaultParticleGenerator<TP> gen(*pic, pic->properties()["PIC"].template as<size_t>(10));
 
 //        , plasma_region_volume, pic->properties()["PIC"].template as<size_t>(10),
 //                pic->properties()["temperature"].template as<Real>(1)
 //        pic->generate(particle::make_generator(pic->engine(), 1.0));
+
+    gen.density([](point_type const &x) { return 1.0; });
+    gen.temperature([](point_type const &x) { return 1.0; });
+
+    pic->generate(gen);
 
     pic->add_gather(J1);
 

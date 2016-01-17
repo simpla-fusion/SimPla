@@ -12,238 +12,211 @@
 #include <memory>
 #include <mutex>
 #include <thread>
+#include <random>
 #include "../gtl/type_traits.h"
 #include "../gtl/primitives.h"
 #include "../numeric/rectangle_distribution.h"
 #include "../numeric/multi_normal_distribution.h"
-#include "../parallel/MPIComm.h"
-#include "../parallel/MPIUpdate.h"
+#include "../parallel/DistributedCounter.h"
 
 namespace simpla { namespace particle
 {
-namespace traits
-{
-template<typename T>
-struct fun_constant
-{
-    T m_v_;
 
-    fun_constant(T const &v) : m_v_(v) { }
-
-    fun_constant(fun_constant const &other) : m_v_(other.m_v_) { }
-
-    ~fun_constant() { }
-
-    template<typename ...Args>
-    T const &operator()(Args &&...args) const { return m_v_; }
-};
-}
-// namespace traits;
-template<typename ...> class Particle;
-
-template<typename Engine, typename Func=Real,
-        typename XDist=rectangle_distribution<3>,
-        typename VDist=multi_normal_distribution<3>,
-        typename TSeedGen=std::mt19937>
-struct ParticleGenerator;
-
-template<typename ...> struct ParticleEngine;
-
-template<typename TAGS>
-using generator_t=ParticleGenerator<ParticleEngine<TAGS> >;
-
-template<typename TEngine, typename Func>
-ParticleGenerator<TEngine, Func>
-make_generator(TEngine const &p, Func const &func)
-{
-    return ParticleGenerator<TEngine, Func>(p);
-};
-
-template<typename TEngine>
-ParticleGenerator<TEngine, traits::fun_constant<Real> >
-make_generator(TEngine const &p, Real f)
-{
-    return ParticleGenerator<TEngine, traits::fun_constant<Real>>(p, traits::fun_constant<Real>(f));
-};
-
-template<typename Engine,
-        typename Func,
+template<typename TV,
+        typename TSeed,
         typename XDist,
-        typename VDist,
-        typename TSeedGen>
-struct ParticleGenerator
+        typename VDist>
+struct ParticleGenerator : public parallel::DistributedCounter
 {
 
-private:
+public:
+    typedef TV value_type;
 
-    static constexpr int NUM_OF_SEED_PER_SAMPLE = 6;
-
-    typedef Engine particle_type;
-
-    typedef TSeedGen seed_type;
-
-    typedef ParticleGenerator<particle_type, seed_type> this_type;
+    typedef TSeed seed_type;
 
     typedef XDist x_dist_engine;
 
     typedef VDist v_dist_engine;
 
-    typedef Func function_type;
-
-    function_type m_func_;
-
-
-    typedef typename particle_type::sample_type value_type;
-
-    particle_type const &m_p_engine_;
-
-    std::mutex m_seed_mutex;
-
-    seed_type m_seed_;
-
+    static constexpr int NUM_OF_SEED_PER_SAMPLE = 6;
+private:
+    TSeed m_seed_;
 
 public:
+    ParticleGenerator() { }
 
-    template<typename ...Args>
-    ParticleGenerator(particle_type const &p, Func const &fun)
-            : m_p_engine_(p), m_func_(fun)
-    {
-    }
+    ParticleGenerator(TSeed const &seed) : m_seed_(seed) { }
 
-    ParticleGenerator(ParticleGenerator const &other)
-            : m_p_engine_(other.m_p_engine_), m_seed_(other.m_seed_), m_func_(other.m_func_)
-    {
-    }
+    virtual  ~ParticleGenerator() { }
 
-    ~ParticleGenerator()
-    {
-    }
+    ParticleGenerator(ParticleGenerator const &other) = delete;
+
+    using parallel::DistributedCounter::reserve;
 
 
     struct input_iterator : public std::iterator<std::input_iterator_tag, value_type>
     {
     private:
-        particle_type const &m_p_engine_;
+
+        x_dist_engine m_x_dist_;
+
+        v_dist_engine m_v_dist_;
+
+        size_t m_count_;
+
+        std::function<void(nTuple<Real, 3> const &, nTuple<Real, 3> const &, value_type *)> m_func_;
 
         seed_type m_seed_;
 
-        x_dist_engine m_x_dist_;
-        v_dist_engine m_v_dist_;
-        function_type const &m_func_;
-        Real m_inv_sample_density_;
-
-        size_t m_count_;
         value_type m_value_;
+
+
     public:
 
-        template<typename TArgs1, typename TArgs2, typename TArgs3>
-        input_iterator(particle_type const &p_engine, seed_type seed, Real sample_density,
-                       TArgs1 const &args1, TArgs2 const &args2, TArgs3 const &args3)
-                : m_p_engine_(p_engine),
-                  m_seed_(seed), m_x_dist_(args1), m_v_dist_(args2), m_func_(args3),
-                  m_count_(0),
-                  m_inv_sample_density_(1.0 / sample_density)
+        template<typename TFun>
+        input_iterator(size_t start, TFun const &func)
+                : m_count_(start), m_func_(func)
         {
-            generate_();
+            m_seed_.discard(m_count_ * NUM_OF_SEED_PER_SAMPLE);
+            this->operator++();
+            --m_count_;
         }
 
-        input_iterator(input_iterator const &other)
-                : m_p_engine_(other.m_p_engine_),
-                  m_seed_(other.m_seed_),
-                  m_x_dist_(other.m_x_dist_),
-                  m_v_dist_(other.m_v_dist_),
-                  m_func_(other.m_func_),
-                  m_count_(other.m_count_),
-                  m_value_(other.m_value_),
-                  m_inv_sample_density_(other.m_inv_sample_density_)
+        template<typename TFun>
+        input_iterator(size_t start, TFun const &func, seed_type const &seed)
+                : m_seed_(seed), m_count_(start), m_func_(func)
+        {
+            m_seed_.discard(m_count_ * NUM_OF_SEED_PER_SAMPLE);
+            this->operator++();
+            --m_count_;
+        }
+
+        input_iterator(size_t start) : m_count_(start) { }
+
+        input_iterator(input_iterator const &other) :
+                m_count_(other.m_count_), m_seed_(other.m_seed_), m_func_(other.m_func_), m_value_(other.m_value_)
         {
         }
 
-        ~input_iterator() { }
+        virtual ~input_iterator() { }
 
         value_type const &operator*() const { return m_value_; }
 
         value_type const *operator->() const { return &m_value_; }
 
+    private:
+        HAS_MEMBER(_tags);
+
+        void set_tags_(std::integral_constant<bool, false>) const { }
+
+        void set_tags_(std::integral_constant<bool, true>) const { m_value_._tags = m_count_; }
+
+
+    public:
         input_iterator &operator++()
         {
 
+            nTuple<Real, 3> x = m_x_dist_(m_seed_);
+            nTuple<Real, 3> v = m_v_dist_(m_seed_);
+
+            size_t _tags = m_count_;
+
+            if (m_func_) { m_func_(x, v, &m_value_); }
+            set_tags_(std::integral_constant<bool, has_member__tags<size_t>::value>());
             ++m_count_;
-            generate_();
             return *this;
         }
 
-        void advance(size_t n)
-        {
-            m_seed_.discard(n * NUM_OF_SEED_PER_SAMPLE);
-            m_count_ += n;
-        }
+        size_t count() const { return m_count_; }
 
         bool operator==(input_iterator const &other) const { return m_count_ == other.m_count_; }
 
         bool operator!=(input_iterator const &other) const { return (m_count_ != other.m_count_); }
 
-    private:
-        void generate_()
-        {
-            auto x = m_x_dist_(m_seed_);
-            auto v = m_v_dist_(m_seed_);
-            m_value_ = m_p_engine_.sample(x, v,
-                                          m_func_(x, v) * m_inv_sample_density_);
-        }
 
     }; //struct input_iterator
 
-    /**
-     *
-     *  @param pic      number of sample point
-     *  @param volume   volume of sample region
-     *  @param box      shape of spatial sample region (e.g. box(x_min,x_max))
-     *  @param args...  other of args for v_dist
-     */
-    template<typename TBox, typename ...Args>
-    std::tuple<input_iterator, input_iterator>
-    generator(size_t pic, Real volume, TBox const &box, Args &&...args)
+    template<typename TFunc> std::tuple<input_iterator, input_iterator>
+    generate(size_t num, TFunc const &func)
     {
-        Real sample_density = static_cast<Real>(pic) / volume;
-
-        std::lock_guard<std::mutex> guard(m_seed_mutex);
-
-        input_iterator ib(m_p_engine_, m_seed_, sample_density,
-                          box, std::forward<Args>(args)..., m_func_);
-
-        input_iterator ie(ib);
-
-        ie.advance(pic);
-
-        m_seed_.discard(pic * NUM_OF_SEED_PER_SAMPLE);
-
-        return std::make_tuple(ib, ie);
-
-    };
-
-    void discard(size_t num)
-    {
-        std::lock_guard<std::mutex> guard(m_seed_mutex);
-
-        m_seed_.discard(num * NUM_OF_SEED_PER_SAMPLE);
-    }
-
-    void reserve(size_t num)
-    {
-        std::lock_guard<std::mutex> guard(m_seed_mutex);
-        int offset = 0;
-        int total = 0;
-        std::tie(offset, total) = parallel::sync_global_location(
-                GLOBAL_COMM,
-                static_cast<int>(num * NUM_OF_SEED_PER_SAMPLE));
-
-        m_seed_.discard(offset);
-
+        size_t ib = parallel::DistributedCounter::get(num);
+        return std::make_tuple(input_iterator(ib, func, m_seed_), input_iterator(ib + num));
     }
 
 };
 
+template<typename TP, typename TSeed, typename XDist, typename VDist>
+class ParticleGeneratorPerCell
+        : public ParticleGenerator<typename TP::sample_type, TSeed, XDist, VDist>
+{
+    typedef ParticleGenerator<typename TP::sample_type, TSeed, XDist, VDist> base_type;
+    typedef ParticleGeneratorPerCell<TP, TSeed, XDist, VDist> this_type;
+    typedef TP particle_type;
+    typedef typename particle_type::mesh_type mesh_type;
+    typedef typename mesh_type::id_type id_type;
+    typedef typename mesh_type::point_type point_type;
+
+    particle_type const &m_particle_;
+    size_t m_num_per_cell_ = 1;
+
+    std::function<Real(point_type const &)> m_density_;
+    std::function<Real(point_type const &)> m_temperature_;
+
+public:
+    template<typename ...Args>
+    ParticleGeneratorPerCell(particle_type const &e, size_t num_per_cell, Args &&...args)
+            : base_type(std::forward<Args>(args)  ...), m_particle_(e), m_num_per_cell_(num_per_cell)
+    {
+        base_type::reserve(m_particle_.mesh().template range<particle_type::iform>().size() * m_num_per_cell_);
+    }
+
+    ~ParticleGeneratorPerCell() { }
+
+    size_t num_per_cell(size_t n) { m_num_per_cell_ = n; }
+
+    size_t num_per_cell() const { return m_num_per_cell_; }
+
+    template<typename TFun> void density(TFun const &fun) { m_density_ = fun; }
+
+    template<typename TFun> void temperature(TFun const &fun) { m_temperature_ = fun; }
+
+//    using base_type::input_iterator;
+//    using base_type::value_type;
+
+    std::tuple<typename base_type::input_iterator, typename base_type::input_iterator>
+    operator()(id_type const &s)
+    {
+        Real m_mass_;
+        Real m_charge_;
+        Real mass = m_particle_.engine().mass();
+        Real charge = m_particle_.engine().charge();
+        mesh_type const &m = m_particle_.mesh();
+
+        Real inv_sample_density = m.volume(s) / num_per_cell();
+
+        DEFINE_PHYSICAL_CONST;
+
+
+        return base_type::generate(
+                num_per_cell(),
+                [&](nTuple<Real, 3> const &x0, nTuple<Real, 3> const &v0,
+                    typename base_type::value_type *p)
+                {
+                    nTuple<Real, 3> x = m.coordinates_local_to_global(std::make_tuple(s, x0));
+
+                    nTuple<Real, 3> v;
+
+//            v = v0 * std::sqrt(2.0 * m_temperature_(x) * boltzmann_constant / mass);
+//
+//            *p = m_particle_.engine().lift(x, v, m_density_(x) * inv_sample_density);
+                });
+    }
+};
+
+template<typename TV> using DefaultParticleGenerator=ParticleGeneratorPerCell<TV,
+        std::mt19937,
+        rectangle_distribution<3>,
+        multi_normal_distribution<3> >;
 
 }}//namespace simpla{namespace particle
 

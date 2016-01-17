@@ -82,6 +82,7 @@ public:
     typedef typename mesh_type::index_tuple index_tuple;
     typedef typename mesh_type::id_type id_type;
     typedef typename mesh_type::range_type range_type;
+    static constexpr int iform = container_type::iform;
 
     Particle(mesh_type &m, std::string const &s_name) : m_data_(new container_type(m, s_name))
     {
@@ -101,6 +102,8 @@ public:
     }
 
     void swap(this_type const &other) { std::swap(other.m_data_, m_data_); }
+
+    mesh_type const &mesh() const { return m_data_->mesh(); }
 
     engine_type const &engine() const { return *std::dynamic_pointer_cast<const engine_type>(m_data_); }
 
@@ -165,11 +168,11 @@ public:
         }
     }
 
-    template<typename TGen> void generate(TGen const &gen, id_type s);
+    template<typename TGen> void generate(TGen &gen, id_type s);
 
-    template<typename TGen, typename TRange> void generate(TGen const &gen, TRange const &);
+    template<typename TGen, typename TRange> void generate(TGen &gen, TRange const &);
 
-    template<typename TGen> void generate(TGen const &);
+    template<typename TGen> void generate(TGen &);
 
 
 
@@ -199,7 +202,7 @@ private:
 
 template<typename P, typename M>
 template<typename TGen> void
-Particle<P, M>::generate(TGen const &gen, id_type s)
+Particle<P, M>::generate(TGen &gen, id_type s)
 {
     auto g = gen(s);
     m_data_->insert(std::get<1>(g), std::get<0>(g), s);
@@ -208,14 +211,14 @@ Particle<P, M>::generate(TGen const &gen, id_type s)
 
 template<typename P, typename M>
 template<typename TGen, typename TRange> void
-Particle<P, M>::generate(TGen const &gen, const TRange &r0)
+Particle<P, M>::generate(TGen &gen, const TRange &r0)
 {
     parallel::parallel_for(r0, [&](TRange const &r) { for (auto const &s:r) { generate(gen, s); }});
 }
 
 template<typename P, typename M>
 template<typename TGen> void
-Particle<P, M>::generate(TGen const &gen)
+Particle<P, M>::generate(TGen &gen)
 {
     m_data_->mesh().template for_each_boundary<container_type::iform>(
             [&](range_type const &r) { generate(gen, r); });
