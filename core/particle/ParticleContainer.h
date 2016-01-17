@@ -136,6 +136,9 @@ public:
 
     virtual void sync();
 
+    void sync_(container_type const &buffer, parallel::DistributedObject *dist_obj, bool update_ghost = true);
+
+public:
     virtual std::ostream &print(std::ostream &os, int indent = 0) const;
 
 
@@ -143,15 +146,6 @@ public:
      *  dump particle position x (point_type)
      */
     virtual data_model::DataSet data_set() const;
-
-    /**
-     *  dump all data and information to DataSet
-     */
-    virtual data_model::DataSet dump() const { return data_set(); }
-
-
-    virtual data_model::DataSet checkpoint() const { return data_set(); }
-
 
 private:
     struct Hash
@@ -171,7 +165,6 @@ private:
 public:
 
 
-    void sync(container_type const &buffer, parallel::DistributedObject *dist_obj, bool update_ghost = true);
 
     //! @}
 
@@ -319,10 +312,6 @@ ParticleContainer<P, M>::deploy()
     }
 }
 
-template<typename P, typename M> void
-ParticleContainer<P, M>::sync() { rehash(); };
-
-
 template<typename P, typename M>
 std::ostream &ParticleContainer<P, M>::print(std::ostream &os, int indent) const
 {
@@ -330,10 +319,14 @@ std::ostream &ParticleContainer<P, M>::print(std::ostream &os, int indent) const
     return os;
 }
 
+template<typename P, typename M> void
+ParticleContainer<P, M>::sync() { rehash(); };
+
+
 //*******************************************************************************
 template<typename P, typename M> void
-ParticleContainer<P, M>::sync(container_type const &buffer, parallel::DistributedObject *dist_obj,
-                              bool update_ghost)
+ParticleContainer<P, M>::sync_(container_type const &buffer, parallel::DistributedObject *dist_obj,
+                               bool update_ghost)
 {
 
     data_model::DataType d_type = data_model::DataType::create<sample_type>();
@@ -490,7 +483,7 @@ ParticleContainer<P, M>::rehash()
 
     parallel::DistributedObject dist_obj;
 
-    sync(buffer, &dist_obj);
+    sync_(buffer, &dist_obj);
     dist_obj.sync();
 
     //**************************************************************************************
@@ -551,7 +544,7 @@ ParticleContainer<P, M>::rehash()
 template<typename P, typename M> data_model::DataSet
 ParticleContainer<P, M>::data_set() const
 {
-    VERBOSE << "Dump particle [" << this->properties()["Name"] << "] to data set." << std::endl;
+    CMD << "Dump particle [" << this->properties()["Name"] << "] to data set." << std::endl;
 
     auto r0 = mesh_attribute_entity::mesh().template range<iform>();
 

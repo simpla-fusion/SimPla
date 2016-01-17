@@ -107,26 +107,8 @@ struct EMTokamak
     }
 
     template<typename TP, typename TDict>
-    std::shared_ptr<particle::ParticleBase>
-    create_particle(std::string const &key, TDict const &dict)
-    {
-        VERBOSE << "Create particle [" << key << "]" << std::endl;
+    std::shared_ptr<particle::ParticleBase> create_particle(std::string const &key, TDict const &dict);
 
-        auto pic = std::make_shared<TP>(m, key);
-
-        dict.as(&pic->properties());
-
-        pic->deploy();
-
-//        , plasma_region_volume, pic->properties()["PIC"].template as<size_t>(10),
-//                pic->properties()["temperature"].template as<Real>(1)
-//        pic->generate(particle::make_generator(pic->engine(), 1.0));
-
-        pic->add_gather(J1);
-
-        return std::dynamic_pointer_cast<particle::ParticleBase>(pic);
-
-    }
 
     size_t m_count = 0;
 
@@ -134,6 +116,33 @@ struct EMTokamak
 
     bool disable_field = false;
 };
+
+template<typename TP, typename TDict>
+std::shared_ptr<particle::ParticleBase>
+EMTokamak::create_particle(std::string const &key, TDict const &dict)
+{
+    VERBOSE << "Create particle [" << key << "]" << std::endl;
+
+    auto pic = std::make_shared<TP>(m, key);
+
+    dict.as(&pic->properties());
+
+
+    pic->engine().set_E(E1);
+    pic->engine().set_B(B0);
+
+    pic->deploy();
+
+
+//        , plasma_region_volume, pic->properties()["PIC"].template as<size_t>(10),
+//                pic->properties()["temperature"].template as<Real>(1)
+//        pic->generate(particle::make_generator(pic->engine(), 1.0));
+
+    pic->add_gather(J1);
+
+    return std::dynamic_pointer_cast<particle::ParticleBase>(pic);
+
+}
 
 void EMTokamak::initialize(int argc, char **argv)
 {

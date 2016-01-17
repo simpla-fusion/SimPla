@@ -102,9 +102,9 @@ public:
 
     void swap(this_type const &other) { std::swap(other.m_data_, m_data_); }
 
-//    engine_type const &engine() const { return *std::dynamic_pointer_cast<const engine_type>(m_data_); }
-//
-//    engine_type &engine() { return *std::dynamic_pointer_cast<engine_type>(m_data_); }
+    engine_type const &engine() const { return *std::dynamic_pointer_cast<const engine_type>(m_data_); }
+
+    engine_type &engine() { return *std::dynamic_pointer_cast<engine_type>(m_data_); }
 //
 //    std::shared_ptr<container_type> data() { return m_data_; }
 //
@@ -142,23 +142,10 @@ public:
     {
         CMD << "Push particle " << m_data_->name() << std::endl;
 
-        m_data_->filter(
-                [&](sample_type *p)
-                {
-//                    engine_type::push(t0, t1, p);
-                }
-        );
-
+        m_data_->filter([&](sample_type *p) { m_data_->engine_type::push(t0, t1, p); });
     }
 
-    virtual void integral()
-    {
-
-        for (auto &item:m_integral_list_)
-        {
-            item.second(item.first);
-        }
-    }
+    virtual void integral() { for (auto &item:m_integral_list_) { item.second(item.first); }}
 
 
     virtual void add_filter(std::string const &key,
@@ -235,7 +222,7 @@ Particle<P, M>::generate(TGen const &gen)
 
     parallel::DistributedObject dist_obj;
 
-    m_data_->sync(*m_data_, &dist_obj, false);
+    m_data_->sync_(*m_data_, &dist_obj, false);
 
     dist_obj.sync();
 
@@ -278,11 +265,7 @@ Particle<P, M>::gather(TField *J, TRange const &r0) const
 
                 if (m_data_->find(acc1, neighbours[i]))
                 {
-                    for (auto const &p:acc1->second)
-                    {
-                        //FIXME unimplemented
-//                g(x0, p, &tmp);
-                    }
+                    for (auto const &p:acc1->second) { m_data_->engine_type::integral(x0, p, &tmp); }
                 }
             }
 

@@ -68,11 +68,19 @@ struct BorisEngine
 {
 
     typedef TM mesh_type;
+    typedef typename mesh_type::scalar_type scalar_type;
+    typedef typename mesh_type::point_type point_type;
+    typedef typename mesh_type::vector_type vector_type;
 
-    typedef typename geometry::CartesianMetric::point_type point_type;
-    typedef typename geometry::CartesianMetric::vector_type vector_type;
+    typedef traits::field_t<scalar_type, mesh_type, EDGE> E_field;
+    typedef traits::field_t<scalar_type, mesh_type, FACE> B_field;
 
-    BorisEngine(mesh_type const &m) { }
+    E_field E1;
+    B_field B0;
+
+    mesh_type &m_mesh_;
+
+    BorisEngine(mesh_type &m) : m_mesh_(m) { }
 
     ~BorisEngine() { }
 
@@ -86,14 +94,28 @@ struct BorisEngine
 
     DEFINE_PROPERTIES(Real, temperature);
 
-    SP_DEFINE_STRUCT(sample_type, point_type, x, vector_type, v, Real, f, Real, w);
+    SP_DEFINE_STRUCT(sample_type, size_t, _tags, point_type, x, vector_type, v, Real, f, Real, w);
 
     void deploy()
     {
         m_mass_ = properties()["mass"].template as<Real>(1.0);
         m_charge_ = properties()["charge"].template as<Real>(1.0);
         m_temperature_ = properties()["temperature"].template as<Real>(1.0);
+
+        if (E1.empty())
+        {
+            E_field{m_mesh_, properties()["E"].template as<std::string>("E")}.swap(E1);
+        }
+        if (B0.empty())
+        {
+            B_field(m_mesh_, properties()["E"].template as<std::string>("B")).swap(B0);
+        }
     }
+
+    void set_E(E_field const &fE) { E_field(fE).swap(E1); }
+
+    void set_B(B_field const &fB) { B_field(fB).swap(B0); }
+
 
     point_type project(sample_type const &z) const { return z.x; }
 
@@ -103,14 +125,61 @@ struct BorisEngine
     }
 
 
-    sample_type lift(point_type const &x, vector_type const &v, Real f = 0) const { return sample_type{x, v, f, 1.0}; }
+    sample_type lift(point_type const &x, vector_type const &v, Real f = 0) const
+    {
+        return sample_type{
+                0U,
+                x,
+                v,
+                f,
+                1.0};
+    }
 
     sample_type sample(point_type const &x, vector_type const &v, Real f) const { return sample_type{x, v, f, 1.0}; }
 
     template<typename TFunc>
     sample_type lift(point_type const &x, vector_type const &v, TFunc const &fun) const
     {
-        return sample_type{x, v, fun(x, v), 0};
+        return sample_type{0U, x, v, fun(x, v), 0};
+    }
+
+    void push(Real t0, Real t1, sample_type *p0) const
+    {
+        Real dt = t1 - t0;
+
+        auto E = E1(project(*p0));
+
+        auto B = B0(project(*p0));
+
+
+        Real cmr = m_charge_ / m_mass_;
+
+        p0->x += p0->v * dt * 0.5;
+
+        Vec3 v_, t;
+
+        t = B * (cmr * dt * 0.5);
+
+        p0->v += E * (cmr * dt * 0.5);
+
+        v_ = p0->v + cross(p0->v, t);
+
+        p0->v += cross(v_, t * 2.0) / (inner_product(t, t) + 1.0);
+
+
+        p0->v += E * (cmr * dt * 0.5);
+
+//        p0->x += p0->v * dt * 0.5;
+    }
+
+    void integral(point_type const &x0, sample_type const &p, scalar_type *res) const
+    {
+
+    }
+
+    void integral(point_type const &x0, sample_type const &p, vector_type *res) const
+    {
+
     }
 //
 //
