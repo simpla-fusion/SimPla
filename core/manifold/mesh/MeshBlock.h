@@ -120,6 +120,22 @@ public:
 
     index_tuple const &ghost_width() const { return m_ghost_width_; }
 
+
+    bool is_periodic(int n) const { return m_ghost_width_[n % 3] == 0; }
+
+    /**
+     *  remove periodic axis, which  ghost_width==0
+     */
+    id_type periodic_id_mask() const
+    {
+        id_type M0 = ((1UL << ID_DIGITS) - 1);
+        id_type M1 = ((1UL << (MESH_RESOLUTION)) - 1);
+        return FULL_OVERFLOW_FLAG
+               | (is_periodic(0) ? M1 : M0)
+               | ((is_periodic(1) ? M1 : M0) << ID_DIGITS)
+               | ((is_periodic(2) ? M1 : M0) << (ID_DIGITS * 2));
+    }
+
     size_t id_mask() const
     {
         id_type M0 = ((1UL << ID_DIGITS) - 1);
@@ -337,6 +353,10 @@ public:
         return std::move(map(m::point(s)));
     }
 
+    virtual point_type coordinates_local_to_global(id_type s, point_type const &x) const
+    {
+        return std::move(map(m::coordinates_local_to_global(s, x)));
+    }
 
     virtual point_type coordinates_local_to_global(std::tuple<id_type, point_type> const &t) const
     {

@@ -202,13 +202,12 @@ public:
                 [&](nTuple<Real, 3> const &x0, nTuple<Real, 3> const &v0,
                     typename base_type::value_type *p)
                 {
-//                    nTuple<Real, 3> x = m.coordinates_local_to_global(std::make_tuple(s, x0));
-//
-//                    nTuple<Real, 3> v;
-//
-//            v = v0 * std::sqrt(2.0 * m_temperature_(x) * boltzmann_constant / mass);
-//
-//            *p = m_particle_.engine().lift(x, v, m_density_(x) * inv_sample_density);
+                    nTuple<Real, 3> x = m.coordinates_local_to_global(m.miminal_vertex(s), x0);
+                    nTuple<Real, 3> v;
+
+                    v = v0 * std::sqrt(2.0 * m_temperature_(x) * boltzmann_constant / mass);
+
+                    *p = m_particle_.engine().lift(x, v, m_density_(x) * inv_sample_density);
                 });
     }
 };

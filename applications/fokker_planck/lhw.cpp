@@ -240,10 +240,10 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		GLOBAL_DATA_STREAM.set_property< int>("Cache Depth", 20);
+		GLOBAL_DATA_STREAM.set_property< int>("CellCache Depth", 20);
 
 		GLOBAL_DATA_STREAM.set_property("Force Record Storage",true);
-		GLOBAL_DATA_STREAM.set_property("Force Write Cache",true);
+		GLOBAL_DATA_STREAM.set_property("Force Write CellCache",true);
 
 		DEFINE_PHYSICAL_CONST;
 
@@ -298,7 +298,7 @@ int main(int argc, char **argv)
 			}
 		}
 		GLOBAL_DATA_STREAM.command("Flush");
-		GLOBAL_DATA_STREAM.set_property("Force Write Cache",false);
+		GLOBAL_DATA_STREAM.set_property("Force Write CellCache",false);
 		GLOBAL_DATA_STREAM.set_property("Force Record Storage",false);
 	}
 	LOGGER << "Process" << DONE;

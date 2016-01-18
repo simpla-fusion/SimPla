@@ -13,8 +13,8 @@ namespace simpla
 {
 
 /**
- * \brief  Cache is transparent, and would not change the behavior
- * of source object. In default, Cache do nothing. It only affect
+ * \brief  CellCache is transparent, and would not change the behavior
+ * of source object. In default, CellCache do nothing. It only affect
  * the object by the template specialization of object.
  *
  *

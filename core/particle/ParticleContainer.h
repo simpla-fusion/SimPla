@@ -238,6 +238,8 @@ private:
 
     static size_t count_(container_type const &d, id_type const &s);
 
+    static size_t count_(container_type const &d, typename container_type::value_type const &item);
+
     template<typename TRange>
     static size_t count_(container_type const &d, TRange const &r);
 
@@ -248,7 +250,7 @@ public:
 
     template<typename ...Others> size_t count(Others &&...others) const
     {
-        return count_(*this, std::forward<Others>(others)...);
+        return count_(dynamic_cast<container_type const &>(*this), std::forward<Others>(others)...);
     };
 
     template<typename OutputIT> OutputIT copy_out(OutputIT out_it, id_type const &s) const;
@@ -543,7 +545,6 @@ ParticleContainer<P, M>::rehash()
     }
     this->merge(&buffer);
 
-    CHECK(this->count());
 }
 
 template<typename P, typename M> data_model::DataSet
@@ -551,10 +552,10 @@ ParticleContainer<P, M>::data_set() const
 {
     CMD << "Dump particle [" << this->properties()["Name"] << "] to data set." << std::endl;
 
+
     auto r0 = mesh_attribute_entity::mesh().template range<iform>();
 
     size_t num = count(r0);
-
 
     data_model::DataSet ds;
 
@@ -571,6 +572,11 @@ ParticleContainer<P, M>::data_set() const
     return std::move(ds);
 };
 
+template<typename V, typename K> size_t
+ParticleContainer<V, K>::count_(container_type const &d, typename container_type::value_type const &item)
+{
+    return item.second.size();
+};
 
 template<typename V, typename K> size_t
 ParticleContainer<V, K>::count_(container_type const &d, id_type const &s)
@@ -580,6 +586,7 @@ ParticleContainer<V, K>::count_(container_type const &d, id_type const &s)
     size_t res = 0;
 
     if (d.find(acc, s)) { res = acc->second.size(); }
+
 
     return res;
 }
@@ -594,7 +601,6 @@ ParticleContainer<V, K>::count_(container_type const &d, TRange const &r0)
             [&](TRange const &r, size_t init) -> size_t
             {
                 for (auto const &s:r) { init += count_(d, s); }
-
                 return init;
             },
             [](size_t x, size_t y) -> size_t { return x + y; }
@@ -604,19 +610,20 @@ ParticleContainer<V, K>::count_(container_type const &d, TRange const &r0)
 template<typename V, typename K> size_t
 ParticleContainer<V, K>::count_(container_type const &d)
 {
-    return parallel::parallel_reduce(
-            d.range(), 0U,
-            [&](typename container_type::const_range_type const &r, size_t init) -> size_t
-            {
-                for (auto const &item : r) { init += item.second.size(); }
-
-                return init;
-            },
-            [](size_t x, size_t y) -> size_t
-            {
-                return x + y;
-            }
-    );
+    return count_(d, d.range());
+//    return parallel::parallel_reduce(
+//            d.range(), 0U,
+//            [&](typename container_type::const_range_type const &r, size_t init) -> size_t
+//            {
+//                for (auto const &item : r) { init += item.second.size(); }
+//
+//                return init;
+//            },
+//            [](size_t x, size_t y) -> size_t
+//            {
+//                return x + y;
+//            }
+//    );
 }
 
 
@@ -796,6 +803,8 @@ ParticleContainer<V, K>::insert(value_type const &v, id_type const &s)
 template<typename V, typename K> template<typename InputIterator> void
 ParticleContainer<V, K>::insert(InputIterator const &b, InputIterator const &e, id_type const &hint)
 {
+    ASSERT(hint == m_hash_(*b));
+
     typename container_type::accessor acc;
 
     container_type::insert(acc, hint);

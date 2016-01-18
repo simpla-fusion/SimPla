@@ -137,9 +137,9 @@ public:
 
     virtual void clear() { m_data_->clear(); }
 
-    virtual void sync() { m_data_->sync(); }
+    virtual void sync() {/* m_data_->sync();*/ }
 
-    virtual void rehash() { m_data_->rehash(); }
+    virtual void rehash() { /*m_data_->rehash();*/ }
 
     virtual void push(Real t0, Real t1)
     {
@@ -205,7 +205,8 @@ template<typename TGen> void
 Particle<P, M>::generate(TGen &gen, id_type s)
 {
     auto g = gen(s);
-    m_data_->insert(std::get<0>(g), std::get<1>(g));
+
+    m_data_->insert(std::get<0>(g), std::get<1>(g), s);
 }
 
 

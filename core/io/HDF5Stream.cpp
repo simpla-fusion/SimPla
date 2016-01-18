@@ -1096,7 +1096,7 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, si
 //	{
 //		res.flag |= SP_RECORD;
 //	}
-//	if (properties["Force Write Cache"].as<bool>(false))
+//	if (properties["Force Write CellCache"].as<bool>(false))
 //	{
 //		res.flag |= SP_CACHE;
 //	}
@@ -1180,10 +1180,10 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, si
 //			cache_memory_size *= ds.m_count[i];
 //		}
 //
-//		size_t cache_depth = properties["Max Cache Size"].as<size_t>(
+//		size_t cache_depth = properties["Max CellCache Size"].as<size_t>(
 //				10 * 1024 * 1024UL) / cache_memory_size;
 //
-//		if (cache_depth <= properties["Min Cache Number"].as<int>(5))
+//		if (cache_depth <= properties["Min CellCache Number"].as<int>(5))
 //		{
 //			return write_array(url, ds);
 //		}

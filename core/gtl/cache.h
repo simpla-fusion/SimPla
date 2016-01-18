@@ -14,8 +14,8 @@ namespace simpla
 /**
  * @ingroup gtl
  *
- * \brief  Cache is transparent, and would not change the behavior
- * of source object. In default, Cache do nothing. It only affect
+ * \brief  CellCache is transparent, and would not change the behavior
+ * of source object. In default, CellCache do nothing. It only affect
  * the object by the template specialization of object.
  *
  *
@@ -123,7 +123,7 @@ cache_forward(_Tp & __t) noexcept
 //{
 //}
 //template<typename TIndexType, typename T>
-//void RefreshCache(TIndexType s, Cache<T> & c)
+//void RefreshCache(TIndexType s, CellCache<T> & c)
 //{
 //	RefreshCache(s, *c);
 //}

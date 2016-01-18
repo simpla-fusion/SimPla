@@ -183,66 +183,75 @@ public:
  *              M      ---------->      G
  *              x                       y
  **/
-private:
+//private:
+//
+//
+//    point_type m_map_orig_ = {0, 0, 0};
+//
+//    point_type m_map_scale_ = {1, 1, 1};
+//
+//    point_type m_inv_map_orig_ = {0, 0, 0};
+//
+//    point_type m_inv_map_scale_ = {1, 1, 1};
+//
+//
+//    point_type inv_map(point_type const &x) const
+//    {
+//
+//        point_type res;
+//
+//        res[0] = std::fma(x[0], m_inv_map_scale_[0], m_inv_map_orig_[0]);
+//
+//        res[1] = std::fma(x[1], m_inv_map_scale_[1], m_inv_map_orig_[1]);
+//
+//        res[2] = std::fma(x[2], m_inv_map_scale_[2], m_inv_map_orig_[2]);
+//
+//        return std::move(res);
+//    }
+//
+//    point_type map(point_type const &y) const
+//    {
+//
+//        point_type res;
+//
+//
+//        res[0] = std::fma(y[0], m_map_scale_[0], m_map_orig_[0]);
+//
+//        res[1] = std::fma(y[1], m_map_scale_[1], m_map_orig_[1]);
+//
+//        res[2] = std::fma(y[2], m_map_scale_[2], m_map_orig_[2]);
+//
+//        return std::move(res);
+//    }
+//
+//public:
+//
+//    virtual point_type point(id_type const &s) const { return std::move(map(block_type::point(s))); }
+//
+//    virtual point_type coordinates_local_to_global(id_type s, point_type const &x) const
+//    {
+//        return std::move(map(block_type::coordinates_local_to_global(s, x)));
+//    }
+//
+//    virtual point_type coordinates_local_to_global(std::tuple<id_type, point_type> const &t) const
+//    {
+//        return std::move(map(block_type::coordinates_local_to_global(t)));
+//    }
+//
+//    virtual std::tuple<id_type, point_type> coordinates_global_to_local(point_type const &x, int n_id = 0) const
+//    {
+//        return std::move(block_type::coordinates_global_to_local(inv_map(x), n_id));
+//    }
+//
+//    virtual id_type id(point_type const &x, int n_id = 0) const
+//    {
+//        return std::get<0>(block_type::coordinates_global_to_local(inv_map(x), n_id));
+//    }
 
-
-    point_type m_map_orig_ = {0, 0, 0};
-
-    point_type m_map_scale_ = {1, 1, 1};
-
-    point_type m_inv_map_orig_ = {0, 0, 0};
-
-    point_type m_inv_map_scale_ = {1, 1, 1};
-
-
-    point_type inv_map(point_type const &x) const
-    {
-
-        point_type res;
-
-        res[0] = std::fma(x[0], m_inv_map_scale_[0], m_inv_map_orig_[0]);
-
-        res[1] = std::fma(x[1], m_inv_map_scale_[1], m_inv_map_orig_[1]);
-
-        res[2] = std::fma(x[2], m_inv_map_scale_[2], m_inv_map_orig_[2]);
-
-        return std::move(res);
-    }
-
-    point_type map(point_type const &y) const
-    {
-
-        point_type res;
-
-
-        res[0] = std::fma(y[0], m_map_scale_[0], m_map_orig_[0]);
-
-        res[1] = std::fma(y[1], m_map_scale_[1], m_map_orig_[1]);
-
-        res[2] = std::fma(y[2], m_map_scale_[2], m_map_orig_[2]);
-
-        return std::move(res);
-    }
-
-public:
-
-    virtual point_type point(id_type const &s) const { return std::move(map(block_type::point(s))); }
-
-
-    virtual point_type coordinates_local_to_global(std::tuple<id_type, point_type> const &t) const
-    {
-        return std::move(map(block_type::coordinates_local_to_global(t)));
-    }
-
-    virtual std::tuple<id_type, point_type> coordinates_global_to_local(point_type const &x, int n_id = 0) const
-    {
-        return std::move(block_type::coordinates_global_to_local(inv_map(x), n_id));
-    }
-
-    virtual id_type id(point_type const &x, int n_id = 0) const
-    {
-        return std::get<0>(block_type::coordinates_global_to_local(inv_map(x), n_id));
-    }
+    using MeshBlock::point;
+    using MeshBlock::coordinates_local_to_global;
+    using MeshBlock::coordinates_global_to_local;
+    using MeshBlock::id;
 
     std::tuple<index_tuple, index_tuple> index_box(std::tuple<point_type, point_type> const &b) const
     {
@@ -294,31 +303,31 @@ public:
 
         auto dims = block_type::dimensions();
 
-        {
-
-
-            point_type src_min_, src_max_;
-
-            point_type dest_min, dest_max;
-
-            std::tie(src_min_, src_max_) = block_type::index_box();
-
-            std::tie(dest_min, dest_max) = box();
-
-
-            for (int i = 0; i < 3; ++i)
-            {
-                m_map_scale_[i] = (dest_max[i] - dest_min[i]) / (src_max_[i] - src_min_[i]);
-
-                m_inv_map_scale_[i] = (src_max_[i] - src_min_[i]) / (dest_max[i] - dest_min[i]);
-
-
-                m_map_orig_[i] = dest_min[i] - src_min_[i] * m_map_scale_[i];
-
-                m_inv_map_orig_[i] = src_min_[i] - dest_min[i] * m_inv_map_scale_[i];
-
-            }
-        }
+//        {
+//
+//
+//            point_type src_min_, src_max_;
+//
+//            point_type dest_min, dest_max;
+//
+//            std::tie(src_min_, src_max_) = block_type::index_box();
+//
+//            std::tie(dest_min, dest_max) = box();
+//
+//
+//            for (int i = 0; i < 3; ++i)
+//            {
+//                m_map_scale_[i] = (dest_max[i] - dest_min[i]) / (src_max_[i] - src_min_[i]);
+//
+//                m_inv_map_scale_[i] = (src_max_[i] - src_min_[i]) / (dest_max[i] - dest_min[i]);
+//
+//
+//                m_map_orig_[i] = dest_min[i] - src_min_[i] * m_map_scale_[i];
+//
+//                m_inv_map_orig_[i] = src_min_[i] - dest_min[i] * m_inv_map_scale_[i];
+//
+//            }
+//        }
 
 
         for (int i = 0; i < ndims; ++i)

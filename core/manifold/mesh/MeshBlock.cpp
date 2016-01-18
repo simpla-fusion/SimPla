@@ -77,6 +77,7 @@ void MeshBlock::deploy2()
             m_idx_local_max_[n] = 1;
             m_idx_memory_min_[n] = 0;
             m_idx_memory_max_[n] = 1;
+            m_ghost_width_[n] = 0;
         }
         else
         {

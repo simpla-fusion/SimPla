@@ -123,6 +123,7 @@ struct MeshIDs_
 
     static constexpr Real _R = static_cast<Real>(_D);
 
+
     static constexpr id_type _DI = _D;
 
     static constexpr id_type _DJ = _D << (ID_DIGITS);
@@ -219,6 +220,12 @@ struct MeshIDs_
             VOLUME // 111
     };
 
+    static constexpr id_type miminal_vertex(id_type s)
+    {
+        return (s | FULL_OVERFLOW_FLAG) - (_DA);
+
+    }
+
     template<size_t IFORM>
     static constexpr int sub_index_to_id(int n = 0)
     {
@@ -294,7 +301,6 @@ struct MeshIDs_
     }
 
 
-
     static point_type point(id_type const &s)
     {
         return point_type{static_cast<Real>(static_cast<index_type>(unpack_id(s, 0))),
@@ -335,10 +341,12 @@ struct MeshIDs_
 
     }
 
-    static point_type coordinates_local_to_global(
-            std::tuple<id_type, point_type> const &t)
+    static point_type coordinates_local_to_global(id_type s, point_type const &x) { return point(s) + x * _R * 2; }
+
+
+    static point_type coordinates_local_to_global(std::tuple<id_type, point_type> const &t)
     {
-        return point(std::get<0>(t)) + std::get<1>(t);
+        return coordinates_local_to_global(std::get<0>(t), std::get<1>(t));
     }
 
 //! @name id auxiliary functions
@@ -1245,6 +1253,8 @@ template<int L> constexpr typename MeshIDs_<L>::id_type MeshIDs_<L>::OVERFLOW_FL
 template<int L> constexpr typename MeshIDs_<L>::id_type MeshIDs_<L>::ID_ZERO;
 template<int L> constexpr typename MeshIDs_<L>::id_type MeshIDs_<L>::INDEX_ZERO;
 template<int L> constexpr typename MeshIDs_<L>::id_type MeshIDs_<L>::ID_MASK;
+
+template<int L> constexpr Real MeshIDs_<L>::_R;
 template<int L> constexpr typename MeshIDs_<L>::id_type MeshIDs_<L>::_DK;
 template<int L> constexpr typename MeshIDs_<L>::id_type MeshIDs_<L>::_DJ;
 template<int L> constexpr typename MeshIDs_<L>::id_type MeshIDs_<L>::_DI;

@@ -45,6 +45,7 @@ struct EMTokamak
     typedef manifold::CylindricalManifold mesh_type;
 
     typedef typename mesh_type::id_type id_type;
+    typedef typename mesh_type::index_tuple index_tuple;
     typedef typename mesh_type::point_type point_type;
     typedef typename mesh_type::box_type box_type;
     typedef typename mesh_type::range_type range_type;
@@ -103,12 +104,15 @@ struct EMTokamak
     std::pair<typename std::map<std::string, fluid_s>::iterator, bool>
     add_particle(std::string const &name, Real mass, Real charge)
     {
-        return fluid_sp.emplace(std::make_pair(name, fluid_s{mass, charge, TRho{m, "n_" + name}, TJv{m, "J_" + name}}));
+        return fluid_sp.emplace(std::make_pair(name,
+                                               fluid_s{mass, charge,
+                                                       TRho{m, "n_" + name},
+                                                       TJv{m, "J_" + name}}));
 
     }
 
-    template<typename TP, typename TDict>
-    std::shared_ptr<particle::ParticleBase> create_particle(std::string const &key, TDict const &dict);
+    template<typename TP, typename TDict, typename TRange> std::shared_ptr<particle::ParticleBase>
+            create_particle(std::string const &key, TDict const &dict, TRange const &r0);
 
 
     size_t m_count = 0;
@@ -118,9 +122,9 @@ struct EMTokamak
     bool disable_field = false;
 };
 
-template<typename TP, typename TDict>
+template<typename TP, typename TDict, typename TRange>
 std::shared_ptr<particle::ParticleBase>
-EMTokamak::create_particle(std::string const &key, TDict const &dict)
+EMTokamak::create_particle(std::string const &key, TDict const &dict, TRange const &r0)
 {
     VERBOSE << "Create particle [" << key << "]" << std::endl;
 
@@ -136,14 +140,11 @@ EMTokamak::create_particle(std::string const &key, TDict const &dict)
 
     particle::DefaultParticleGenerator<TP> gen(*pic, pic->properties()["PIC"].template as<size_t>(10));
 
-//        , plasma_region_volume, pic->properties()["PIC"].template as<size_t>(10),
-//                pic->properties()["temperature"].template as<Real>(1)
-//        pic->generate(particle::make_generator(pic->engine(), 1.0));
-
     gen.density([](point_type const &x) { return 1.0; });
+
     gen.temperature([](point_type const &x) { return 1.0; });
 
-    pic->generate(gen);
+    pic->generate(gen, r0);
 
     pic->add_gather(J1);
 
@@ -191,7 +192,7 @@ void EMTokamak::initialize(int argc, char **argv)
         auto dims = options["Mesh"]["Geometry"]["Topology"]["Dimensions"].template as<nTuple<size_t, 3> >();
 
         m.dimensions(dims);
-
+        m.ghost_width(index_tuple({2, 2, 0}));
 
         m.dt(options["Mesh"]["dt"].template as<Real>(1.0));
     }
@@ -264,7 +265,7 @@ void EMTokamak::initialize(int argc, char **argv)
 
 
     {
-        model::Cache<mesh_type> cache;
+        model::CellCache<mesh_type> cache;
 
         model::update_cache(m, geqdsk.limiter(), &cache);
 
@@ -280,7 +281,7 @@ void EMTokamak::initialize(int argc, char **argv)
     }
 
     {
-        model::Cache<mesh_type> cache;
+        model::CellCache<mesh_type> cache;
 
         model::update_cache(m, geqdsk.boundary(), &cache);
 
@@ -325,7 +326,11 @@ void EMTokamak::initialize(int argc, char **argv)
 
             if (engine == "Boris")
             {
-                particle_sp[key] = create_particle<particle::BorisParticle<mesh_type>>(key, dict.second);
+                particle_sp[key] = create_particle<particle::BorisParticle<mesh_type>>(
+                        key, dict.second,
+//                        m.template range<VOLUME>()
+                        plasma_region_volume.range()
+                );
 
             }
             else
