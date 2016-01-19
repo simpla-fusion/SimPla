@@ -94,7 +94,7 @@ struct BorisEngine
 
     DEFINE_PROPERTIES(Real, temperature);
 
-    SP_DEFINE_STRUCT(sample_type, size_t, _tags, point_type, x, vector_type, v, Real, f, Real, w);
+    SP_DEFINE_STRUCT(sample_type, size_t, _tag, point_type, x, vector_type, v, Real, f, Real, w);
 
     void deploy()
     {

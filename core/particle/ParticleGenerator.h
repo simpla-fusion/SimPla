@@ -105,11 +105,11 @@ public:
         value_type const *operator->() const { return &m_value_; }
 
     private:
-        HAS_MEMBER(_tags);
+        HAS_MEMBER(_tag);
 
-        void set_tags_(std::integral_constant<bool, false>) const { }
+        void set_tags_(std::integral_constant<bool, false>, value_type *v) const { }
 
-        void set_tags_(std::integral_constant<bool, true>) const { m_value_._tags = m_count_; }
+        void set_tags_(std::integral_constant<bool, true>, value_type *v) const { v->_tag = m_count_; }
 
 
     public:
@@ -119,11 +119,12 @@ public:
             nTuple<Real, 3> x = m_x_dist_(m_seed_);
             nTuple<Real, 3> v = m_v_dist_(m_seed_);
 
-            size_t _tags = m_count_;
-
             if (m_func_) { m_func_(x, v, &m_value_); }
-            set_tags_(std::integral_constant<bool, has_member__tags<size_t>::value>());
+
+            set_tags_(std::integral_constant<bool, has_member__tag<value_type>::value>(), &m_value_);
+
             ++m_count_;
+
             return *this;
         }
 
