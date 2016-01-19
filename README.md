@@ -8,7 +8,12 @@ SIMPla {#mainpage}
 # Document {#detailed}
 
  - @subpage install
- - @subpage general_convertions
+ - @subpage general_conversions
  - @subpage design_document
  - @subpage user_guide
   
+  TODO
+  - AMR
+  - Embedding boundary
+  - Physical quantity/units
+  - CUDA?

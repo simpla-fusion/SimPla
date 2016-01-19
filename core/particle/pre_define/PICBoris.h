@@ -112,10 +112,6 @@ struct BorisEngine
         }
     }
 
-    void set_E(E_field const &fE) { E_field(fE).swap(E1); }
-
-    void set_B(B_field const &fB) { B_field(fB).swap(B0); }
-
 
     point_type project(sample_type const &z) const { return z.x; }
 
@@ -127,12 +123,17 @@ struct BorisEngine
 
     sample_type lift(point_type const &x, vector_type const &v, Real f = 0) const
     {
-        return sample_type{
-                0U,
-                x,
-                v,
-                f,
-                1.0};
+        sample_type res;
+
+        res.x = x;
+
+        res.v = v;
+
+        res.f = f;
+
+        res.w = 0;
+
+        return std::move(res);
     }
 
     sample_type sample(point_type const &x, vector_type const &v, Real f) const { return sample_type{x, v, f, 1.0}; }
@@ -166,10 +167,9 @@ struct BorisEngine
 
         p0->v += cross(v_, t * 2.0) / (inner_product(t, t) + 1.0);
 
-
         p0->v += E * (cmr * dt * 0.5);
 
-//        p0->x += p0->v * dt * 0.5;
+        p0->x += p0->v * dt * 0.5;
     }
 
     void integral(point_type const &x0, sample_type const &p, scalar_type *res) const
@@ -323,7 +323,7 @@ struct BorisEngine
 }}}//namespace simpla { namespace particle { namespace engine
 namespace simpla { namespace particle
 {
-template<typename TM> using BorisParticle = ::simpla::particle::Particle<engine::BorisEngine<TM>, TM>;
+template<typename TM> using BorisParticle = ::simpla::particle::Particle<engine::BorisEngine<TM>>;
 
 
 }}

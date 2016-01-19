@@ -132,6 +132,9 @@ EMTokamak::create_particle(std::string const &key, TDict const &dict, TRange con
 
     dict.as(&pic->properties());
 
+    DEFINE_PHYSICAL_CONST;
+
+    Real Temp = dict["T"].template as<Real>(1.0);
 
     pic->engine().set_E(E1);
     pic->engine().set_B(B0);
@@ -140,9 +143,9 @@ EMTokamak::create_particle(std::string const &key, TDict const &dict, TRange con
 
     particle::DefaultParticleGenerator<TP> gen(*pic, pic->properties()["PIC"].template as<size_t>(10));
 
-    gen.density([](point_type const &x) { return 1.0; });
+    gen.density([&](point_type const &x) { return rho0(x); });
 
-    gen.temperature([](point_type const &x) { return 1.0; });
+    gen.temperature([&](point_type const &x) { return Temp; });
 
     pic->generate(gen, r0);
 
@@ -328,7 +331,14 @@ void EMTokamak::initialize(int argc, char **argv)
             {
                 particle_sp[key] = create_particle<particle::BorisParticle<mesh_type>>(
                         key, dict.second,
-//                        m.template range<VOLUME>()
+                        plasma_region_volume.range()
+                );
+
+            }
+            else if (engine == "Boris")
+            {
+                particle_sp[key] = create_particle<particle::GyroParticle<mesh_type>>(
+                        key, dict.second,
                         plasma_region_volume.range()
                 );
 
@@ -395,12 +405,8 @@ void EMTokamak::initialize(int argc, char **argv)
         MESSAGE << "  " << item.first << " =  {" << *item.second << "}," << std::endl;
     }
 
-    MESSAGE << " Attributes={" << std::endl;
-    for (auto const &item:m.attributes())
-    {
-
-        MESSAGE << "\"" << item.first << "\",";
-    }
+    MESSAGE << " Attributes={";
+    for (auto const &item:m.attributes()) { MESSAGE << "\"" << item.first << "\","; }
     MESSAGE << " }" << std::endl;
     MESSAGE << "}," << std::endl;
 

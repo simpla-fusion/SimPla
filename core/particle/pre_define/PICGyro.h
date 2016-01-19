@@ -4,73 +4,36 @@
  * @date 2016-01-13.
  */
 
-#ifndef SIMPLA_PICGYRO_H
-#define SIMPLA_PICGYRO_H
+#ifndef SIMPLA_PIC_GYRO_H
+#define SIMPLA_PIC_GYRO_H
 
 #include "../../manifold/policy/FvmStructuredPolicy.h"
 #include "../../manifold/policy/LinearInterpolatorPolicy.h"
 
+#include "../../data_model/DataTypeExt.h"
 #include "../Particle.h"
-#include "../ParticleProxy.h"
+#include "../ParticleContainer.h"
 #include "../ParticleEngine.h"
-#include "../ParticleGenerator.h"
-#include "../ParticleConstraint.h"
-#include "../ParticleTracker.h"
+#include "../../geometry/csCylindrical.h"
+#include "../../manifold/pre_define/PreDefine.h"
 
 namespace simpla { namespace particle { namespace engine
 {
 
-inline void GyroPusher(Real cmr, Real dt, Vec3 const &B, Vec3 const &E,
-                       ::simpla::geometry::CartesianMetric::point_type *x,
-                       ::simpla::geometry::CartesianMetric::vector_type *v)
-{
-    (*x) += (*v) * dt * 0.5;
-
-    Vec3 v_, t;
-
-    t = B * (cmr * dt * 0.5);
-
-    (*v) += E * (cmr * dt * 0.5);
-
-    v_ = (*v) + cross((*v), t);
-
-    (*v) += cross(v_, t * 2.0) / (inner_product(t, t) + 1.0);
-
-
-    (*v) += E * (cmr * dt * 0.5);
-
-    (*x) += (*v) * dt * 0.5;
-}
-
-//inline void GyroPusher(::simpla::geometry::CylindricalMetric const &, Real cmr, Real dt, Vec3 const &B, Vec3 const &E,
-//                        ::simpla::geometry::CylindricalMetric::point_type *x,
-//                        ::simpla::geometry::CylindricalMetric::vector_type *v)
-//{
-//    (*x) += (*v) * dt * 0.5;
-//
-//    Vec3 v_, t;
-//
-//    t = B * (cmr * dt * 0.5);
-//
-//    (*v) += E * (cmr * dt * 0.5);
-//
-//    v_ = (*v) + cross((*v), t);
-//
-//    (*v) += cross(v_, t * 2.0) / (inner_product(t, t) + 1.0);
-//
-//
-//    (*v) += E * (cmr * dt * 0.5);
-//
-//    (*x) += (*v) * dt * 0.5;
-//}
-
 template<typename TM> struct GyroEngine;
 
-template<>
-struct GyroEngine<geometry::CartesianMetric>
+template<typename TM>
+struct GyroParticleWithCylindricalCoord
 {
-    typedef typename geometry::CartesianMetric::point_type point_type;
-    typedef typename geometry::CartesianMetric::vector_type vector_type;
+
+    static_assert(std::is_same<typename TM::metric_type, ::simpla::geometry::CylindricalMetric>::value,
+                  "Mesh is not Cylindrical");
+
+
+    typedef TM mesh_type;
+    typedef typename mesh_type::scalar_type scalar_type;
+    typedef typename mesh_type::point_type point_type;
+    typedef typename mesh_type::vector_type vector_type;
 
 
     virtual Properties &properties() = 0;
@@ -83,55 +46,105 @@ struct GyroEngine<geometry::CartesianMetric>
 
     DEFINE_PROPERTIES(Real, temperature);
 
-    SP_DEFINE_STRUCT(sample_type, point_type, x, Real, mu, Real, u, Real, theta, Real, f, Real, w);
+    SP_DEFINE_STRUCT(sample_type, size_t, _tag,
+                     point_type, X, vector_type, V,
+                     Real, f, Real, w);
+
+    mesh_type &m_mesh_;
+
+    typedef traits::field_t<scalar_type, mesh_type, VERTEX> scalar_field;
+
+    typedef traits::field_t<scalar_type, mesh_type, EDGE> E_field;
+
+    typedef traits::field_t<scalar_type, mesh_type, FACE> B_field;
+
+    typedef traits::field_t<scalar_type, mesh_type, VERTEX> n_field;
+
+
+    scalar_field n0;
+    scalar_field BB;
+
+    E_field E1;
+    B_field B1;
+    B_field B0;
+
+private:
+
+    Real m_inv_cmr_;
+    Real m_cmr_;
+public:
 
     void deploy()
     {
         m_mass_ = properties()["mass"].template as<Real>(1.0);
         m_charge_ = properties()["charge"].template as<Real>(1.0);
         m_temperature_ = properties()["temperature"].template as<Real>(1.0);
+
+        if (E1.empty())
+        {
+            E_field{m_mesh_, properties()["E"].template as<std::string>("E")}.swap(E1);
+        }
+        if (B0.empty())
+        {
+            B_field(m_mesh_, properties()["E"].template as<std::string>("B")).swap(B0);
+        }
+
+        if (B1.empty())
+        {
+            B_field(m_mesh_, properties()["E"].template as<std::string>("B1")).swap(B1);
+        }
+
+        if (BB.empty())
+        {
+            BB = dot(B0, B0);
+        }
+
+        m_cmr_ = m_charge_ / m_mass_;
+        m_inv_cmr_ = 1.0 / m_cmr_;
     }
 
     point_type project(sample_type const &z) const { return z.x; }
 
-    std::tuple<point_type, vector_type> push_forward(sample_type const &z) const
+    sample_type lift(point_type const &x, vector_type const &v, Real f = 0) const
     {
-        return std::forward_as_tuple(z.x, z.v);
+        sample_type res;
+        scalar_type BB_ = BB(x);
+        vector_type Bv_ = B0(x);
+
+
+        vector_type r = -cross(v, Bv_) / BB_ * m_inv_cmr_;
+
+        res.X = x - r;
+
+        res.u = dot(v, Bv_) / BB_;
+
+        res.mu = m_mass_ * (dot(v, v) - res.u * res.u) / std::sqrt(BB_);
+
+        return std::move(res);
+
     }
 
 
-    sample_type lift(point_type const &x, vector_type const &v, Real f = 0) const { return sample_type{x, v, f, 1.0}; }
-
-    sample_type sample(point_type const &x, vector_type const &v, Real f) const { return sample_type{x, v, f, 1.0}; }
-
-    template<typename TFunc>
-    sample_type lift(point_type const &x, vector_type const &v, TFunc const &fun) const
-    {
-        return sample_type{x, v, fun(x, v), 0};
-    }
-
-
-    void integral(point_type const &x, sample_type const &p, Real *f) const
+    void integral(point_type const &x0, sample_type const &p, Real *f) const
     {
         *f = p.f * p.w;
     }
 
-    void integral(point_type const &x, sample_type const &p, nTuple<Real, 3> *v) const
+    void integral(point_type const &x0, sample_type const &p, nTuple<Real, 3> *v) const
     {
         *v = p.v * p.f * p.w;
     }
 
 
-    template<typename TE, typename TB>
-    void push(sample_type *p0, Real dt, Real t0, TE const &fE, TB const &fB) const
+    void push(Real dt, Real t0, sample_type *p0) const
     {
 
 
         vector_type E, B;
 
-        E = fE(project(*p0));
+        E = E1(p0->X);
 
-        B = fB(project(*p0));
+        B = B1(p0->X);
 
 
         Real cmr = m_charge_ / m_mass_;
@@ -157,110 +170,10 @@ struct GyroEngine<geometry::CartesianMetric>
     };
 };
 
-
-template<>
-struct GyroEngine<geometry::CylindricalMetric>
-{
-    typedef typename geometry::CylindricalMetric::point_type point_type;
-    typedef typename geometry::CylindricalMetric::vector_type vector_type;
-
-
-    virtual Properties &properties() = 0;
-
-    virtual Properties const &properties() const = 0;
-
-    DEFINE_PROPERTIES(Real, mass);
-
-    DEFINE_PROPERTIES(Real, charge);
-
-    DEFINE_PROPERTIES(Real, temperature);
-
-    SP_DEFINE_STRUCT(sample_type, point_type, x, vector_type, v, Real, f, Real, w);
-
-    void deploy()
-    {
-        m_mass_ = properties()["mass"].template as<Real>(1.0);
-        m_charge_ = properties()["charge"].template as<Real>(1.0);
-        m_temperature_ = properties()["temperature"].template as<Real>(1.0);
-    }
-
-    point_type project(sample_type const &z) const { return z.x; }
-
-    std::tuple<point_type, vector_type> push_forward(sample_type const &z) const
-    {
-        return std::forward_as_tuple(z.x, z.v);
-    }
-
-
-    sample_type lift(point_type const &x, vector_type const &v, Real f = 0) const { return sample_type{x, v, f, 1.0}; }
-
-    sample_type sample(point_type const &x, vector_type const &v, Real f) const { return sample_type{x, v, f, 1.0}; }
-
-    template<typename TFunc>
-    sample_type lift(point_type const &x, vector_type const &v, TFunc const &fun) const
-    {
-        return sample_type{x, v, fun(x, v), 0};
-    }
-
-
-    void integral(point_type const &x, sample_type const &p, Real *f) const { *f = p.f * p.w; }
-
-    void integral(point_type const &x, sample_type const &p, nTuple<Real, 3> *v) const { *v = p.v * p.f * p.w; }
-
-
-    template<typename TE, typename TB>
-    void push(sample_type *p0, Real dt, Real t0, TE const &fE, TB const &fB) const
-    {
-
-        vector_type E, B;
-
-        E = fE(project(*p0));
-
-        B = fB(project(*p0));
-
-        Real cmr = m_charge_ / m_mass_;
-
-        Real r = p0->x[0];
-
-
-        p0->x[0] += p0->v[0] * dt * 0.5;
-        p0->x[1] += p0->v[1] * dt * 0.5;
-        p0->x[2] += p0->v[2] * dt * 0.5;
-
-        Vec3 v_, t;
-
-        t = B * (cmr * dt * 0.5);
-
-        p0->v += E * (cmr * dt * 0.5);
-
-        v_ = p0->v + cross(p0->v, t);
-
-        p0->v += cross(v_, t * 2.0) / (inner_product(t, t) + 1.0);
-
-
-        p0->v += E * (cmr * dt * 0.5);
-
-
-        p0->x[0] += p0->v[0] * dt * 0.5;
-        p0->x[1] += p0->v[1] * dt * 0.5;
-        p0->x[2] += p0->v[2] * dt * 0.5;
-
-
-    };
-};
 }}}//namespace simpla { namespace particle { namespace engine
 namespace simpla { namespace particle
 {
-template<typename TM> using GyroParticle =
-Particle<particle::engine::GyroEngine<typename TM::metric_type>, TM,
-        manifold::policy::FiniteVolume,
-        manifold::policy::LinearInterpolator
->;
+template<typename TM> using GyroParticle = Particle<particle::engine::GyroEngine<TM>, TM>;
 
-template<typename TM> using GyroTrackingParticle =
-Particle <enable_tracking<particle::engine::GyroEngine<typename TM::metric_type>>, TM,
-manifold::policy::FiniteVolume,
-manifold::policy::LinearInterpolator
->;
 }}
-#endif //SIMPLA_PICGYRO_H
+#endif //SIMPLA_PIC_GYRO_H

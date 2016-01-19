@@ -85,6 +85,8 @@ public:
         return *this;
     }
 
+    void reference(this_type &other) { m_data_ = other.m_data_; }
+
     bool empty() { return m_data_ == nullptr || m_data_->empty(); }
 
     std::shared_ptr<attribute_type> data() { return m_data_; }
