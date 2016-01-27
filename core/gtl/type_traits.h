@@ -18,6 +18,7 @@
 
 namespace simpla
 {
+
 typedef std::nullptr_t NullType;
 
 struct EmptyType
@@ -31,10 +32,7 @@ namespace tags
 
 struct do_nothing
 {
-    template<typename ...Args>
-    void operator()(Args &&...) const
-    {
-    }
+    template<typename ...Args> void operator()(Args &&...) const { }
 };
 
 }

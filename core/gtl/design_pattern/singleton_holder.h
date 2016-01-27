@@ -19,9 +19,8 @@ namespace simpla
  * @brief singleton
  *
  * @note  Meyers Singleton，
- * Ref:Andrei Alexandrescu,《Ｃ++设计新思维》 候捷 译 p133. Charpt 6.4
- * (  Modern C++ Design --Generic Programming and Design Patterns Applied
- * 2001 Addison Wesley ),
+ * Ref:Andrei Alexandrescu Chap 6.4
+ * Modern C++ Design Generic Programming and Design Patterns Applied 2001 Addison Wesley ,
  */
 template<class T>
 class SingletonHolder

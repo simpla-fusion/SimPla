@@ -49,9 +49,10 @@ struct GyroParticleWithCylindricalCoord
     SP_DEFINE_STRUCT(sample_type, size_t, _tag,
                      point_type, X, vector_type, V,
                      Real, f, Real, w);
-
+private:
     mesh_type &m_mesh_;
 
+public:
     typedef traits::field_t<scalar_type, mesh_type, VERTEX> scalar_field;
 
     typedef traits::field_t<scalar_type, mesh_type, EDGE> E_field;
@@ -73,6 +74,10 @@ private:
     Real m_inv_cmr_;
     Real m_cmr_;
 public:
+
+    GyroParticleWithCylindricalCoord(mesh_type &m) : m_mesh_(m) { }
+
+    virtual ~GyroParticleWithCylindricalCoord() { }
 
     void deploy()
     {
@@ -103,22 +108,22 @@ public:
         m_inv_cmr_ = 1.0 / m_cmr_;
     }
 
-    point_type project(sample_type const &z) const { return z.x; }
+    point_type project(sample_type const &z) const { return z.X; }
 
     sample_type lift(point_type const &x, vector_type const &v, Real f = 0) const
     {
         sample_type res;
-        scalar_type BB_ = BB(x);
-        vector_type Bv_ = B0(x);
-
-
-        vector_type r = -cross(v, Bv_) / BB_ * m_inv_cmr_;
-
-        res.X = x - r;
-
-        res.u = dot(v, Bv_) / BB_;
-
-        res.mu = m_mass_ * (dot(v, v) - res.u * res.u) / std::sqrt(BB_);
+//        scalar_type BB_ = BB(x);
+//        vector_type Bv_ = B0(x);
+//
+//
+//        vector_type r = -cross(v, Bv_) / BB_ * m_inv_cmr_;
+//
+//        res.X = x - r;
+//
+//        res.u = dot(v, Bv_) / BB_;
+//
+//        res.mu = m_mass_ * (dot(v, v) - res.u * res.u) / std::sqrt(BB_);
 
         return std::move(res);
 
@@ -127,12 +132,12 @@ public:
 
     void integral(point_type const &x0, sample_type const &p, Real *f) const
     {
-        *f = p.f * p.w;
+//        *f = p.f * p.w;
     }
 
     void integral(point_type const &x0, sample_type const &p, nTuple<Real, 3> *v) const
     {
-        *v = p.v * p.f * p.w;
+//        *v = p.v * p.f * p.w;
     }
 
 
@@ -140,31 +145,31 @@ public:
     {
 
 
-        vector_type E, B;
-
-        E = E1(p0->X);
-
-        B = B1(p0->X);
-
-
-        Real cmr = m_charge_ / m_mass_;
-
-        p0->x += p0->v * dt * 0.5;
-
-        Vec3 v_, t;
-
-        t = B * (cmr * dt * 0.5);
-
-        p0->v += E * (cmr * dt * 0.5);
-
-        v_ = p0->v + cross(p0->v, t);
-
-        p0->v += cross(v_, t * 2.0) / (inner_product(t, t) + 1.0);
-
-
-        p0->v += E * (cmr * dt * 0.5);
-
-        p0->x += p0->v * dt * 0.5;
+//        vector_type E, B;
+//
+//        E = E1(p0->X);
+//
+//        B = B1(p0->X);
+//
+//
+//        Real cmr = m_charge_ / m_mass_;
+//
+//        p0->x += p0->v * dt * 0.5;
+//
+//        Vec3 v_, t;
+//
+//        t = B * (cmr * dt * 0.5);
+//
+//        p0->v += E * (cmr * dt * 0.5);
+//
+//        v_ = p0->v + cross(p0->v, t);
+//
+//        p0->v += cross(v_, t * 2.0) / (inner_product(t, t) + 1.0);
+//
+//
+//        p0->v += E * (cmr * dt * 0.5);
+//
+//        p0->x += p0->v * dt * 0.5;
 
 
     };
@@ -173,7 +178,7 @@ public:
 }}}//namespace simpla { namespace particle { namespace engine
 namespace simpla { namespace particle
 {
-template<typename TM> using GyroParticle = Particle<particle::engine::GyroEngine<TM>, TM>;
+template<typename TM> using GyroParticle = Particle<particle::engine::GyroParticleWithCylindricalCoord<TM>, TM>;
 
 }}
 #endif //SIMPLA_PIC_GYRO_H

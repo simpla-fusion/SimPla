@@ -1,7 +1,7 @@
 /**
  * @file container_pool.h
  *
- * @date    2014-8-26  下午4:30:23
+ * @date    2014-8-26  4:30:23
  * @author salmon
  */
 

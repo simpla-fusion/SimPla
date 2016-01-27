@@ -48,7 +48,7 @@ struct DirectMap
 };
 
 /**
- * A fiber bundle is a structure (E, B, π, F), where E, B, and F
+ * A fiber bundle is a structure (E, B, \pi, F), where E, B, and F
  * are topological spaces and \f$ \pi : E \mapto B \f$ is a continuous surjection
  * satisfying a local triviality condition outlined below. The space B is called
  * the '''Base space''' of the bundle, \f$E\f$ the total space, and \f$F\f$ the fiber.

@@ -14,8 +14,8 @@
 #include "../../core/io/IO.h"
 
 #include "../../core/manifold/pre_define/PreDefine.h"
-#include "../../core/particle/pre_define/PICBoris.h"
-//#include "../../core/particle/pre_define/PICGyro.h"
+//#include "../../core/particle/pre_define/PICBoris.h"
+#include "../../core/particle/pre_define/PICGyro.h"
 
 #include "../../core/model/GEqdsk.h"
 #include "../../core/model/Constraint.h"
@@ -136,8 +136,8 @@ EMTokamak::create_particle(std::string const &key, TDict const &dict, TRange con
 
     Real Temp = dict["T"].template as<Real>(1.0);
 
-    pic->engine().set_E(E1);
-    pic->engine().set_B(B0);
+    pic->engine().E1.reference(E1);
+    pic->engine().B0.reference(B0);
 
     pic->deploy();
 
@@ -327,15 +327,16 @@ void EMTokamak::initialize(int argc, char **argv)
             dict.second["PICEngine"].template as<std::string>(&engine);
 
 
-            if (engine == "Boris")
-            {
-                particle_sp[key] = create_particle<particle::BorisParticle<mesh_type>>(
-                        key, dict.second,
-                        plasma_region_volume.range()
-                );
-
-            }
-            else if (engine == "Boris")
+//            if (engine == "Boris")
+//            {
+//                particle_sp[key] = create_particle<particle::BorisParticle<mesh_type>>(
+//                        key, dict.second,
+//                        plasma_region_volume.range()
+//                );
+//
+//            }
+//            else
+            if (engine == "Gyro")
             {
                 particle_sp[key] = create_particle<particle::GyroParticle<mesh_type>>(
                         key, dict.second,

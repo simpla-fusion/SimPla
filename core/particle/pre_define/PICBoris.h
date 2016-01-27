@@ -323,7 +323,7 @@ struct BorisEngine
 }}}//namespace simpla { namespace particle { namespace engine
 namespace simpla { namespace particle
 {
-template<typename TM> using BorisParticle = ::simpla::particle::Particle<engine::BorisEngine<TM>>;
+template<typename TM> using BorisParticle = ::simpla::particle::Particle<engine::BorisEngine<TM>, TM>;
 
 
 }}

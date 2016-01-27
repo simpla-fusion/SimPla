@@ -47,8 +47,8 @@ namespace simpla
       SP_DEFINE_STRUCT_MEMBER_HELPER14(_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_,_T6_,_N6_,_T7_,_N7_)
 #define SP_DEFINE_STRUCT_MEMBER_HELPER18(_T0_, _N0_, _T1_, _N1_, _T2_, _N2_, _T3_, _N3_, _T4_, _N4_, _T5_, _N5_, _T6_, _N6_, _T7_, _N7_, _T8_, _N8_) SP_DEFINE_STRUCT_MEMBER_HELPER2(_T0_,_N0_) \
       SP_DEFINE_STRUCT_MEMBER_HELPER16(_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_,_T6_,_N6_,_T7_,_N7_,_T8_,_N8_)
-#define SP_DEFINE_STRUCT_MEMBER_HELPER18(_T0_, _N0_, _T1_, _N1_, _T2_, _N2_, _T3_, _N3_, _T4_, _N4_, _T5_, _N5_, _T6_, _N6_, _T7_, _N7_, _T8_, _N8_, _T9_, _N9_) SP_DEFINE_STRUCT_MEMBER_HELPER2(_T0_,_N0_) \
-      SP_DEFINE_STRUCT_MEMBER_HELPER16(_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_,_T6_,_N6_,_T7_,_N7_,_T8_,_N8_,_T9_,_N9_)
+#define SP_DEFINE_STRUCT_MEMBER_HELPER20(_T0_, _N0_, _T1_, _N1_, _T2_, _N2_, _T3_, _N3_, _T4_, _N4_, _T5_, _N5_, _T6_, _N6_, _T7_, _N7_, _T8_, _N8_, _T9_, _N9_) SP_DEFINE_STRUCT_MEMBER_HELPER2(_T0_,_N0_) \
+      SP_DEFINE_STRUCT_MEMBER_HELPER18(_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_,_T6_,_N6_,_T7_,_N7_,_T8_,_N8_,_T9_,_N9_)
 
 
 #define SP_DEFINE_STRUCT_MEMBER_CHOOSE_HELPER1(count) SP_DEFINE_STRUCT_MEMBER_HELPER##count
@@ -94,8 +94,8 @@ namespace simpla
       SP_DEFINE_STRUCT_DESC_HELPER14(_S_NAME_,_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_,_T6_,_N6_,_T7_,_N7_)
 #define SP_DEFINE_STRUCT_DESC_HELPER18(_S_NAME_, _T0_, _N0_, _T1_, _N1_, _T2_, _N2_, _T3_, _N3_, _T4_, _N4_, _T5_, _N5_, _T6_, _N6_, _T7_, _N7_, _T8_, _N8_) SP_DEFINE_STRUCT_DESC_HELPER2(_S_NAME_,_T0_,_N0_) \
       SP_DEFINE_STRUCT_DESC_HELPER16(_S_NAME_,_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_,_T6_,_N6_,_T7_,_N7_,_T8_,_N8_)
-#define SP_DEFINE_STRUCT_DESC_HELPER18(_S_NAME_, _T0_, _N0_, _T1_, _N1_, _T2_, _N2_, _T3_, _N3_, _T4_, _N4_, _T5_, _N5_, _T6_, _N6_, _T7_, _N7_, _T8_, _N8_, _T9_, _N9_) SP_DEFINE_STRUCT_DESC_HELPER2(_S_NAME_,_T0_,_N0_) \
-      SP_DEFINE_STRUCT_DESC_HELPER16(_S_NAME_,_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_,_T6_,_N6_,_T7_,_N7_,_T8_,_N8_,_T9_,_N9_)
+#define SP_DEFINE_STRUCT_DESC_HELPER20(_S_NAME_, _T0_, _N0_, _T1_, _N1_, _T2_, _N2_, _T3_, _N3_, _T4_, _N4_, _T5_, _N5_, _T6_, _N6_, _T7_, _N7_, _T8_, _N8_, _T9_, _N9_) SP_DEFINE_STRUCT_DESC_HELPER2(_S_NAME_,_T0_,_N0_) \
+      SP_DEFINE_STRUCT_DESC_HELPER18(_S_NAME_,_T1_,_N1_,_T2_,_N2_,_T3_,_N3_,_T4_,_N4_,_T5_,_N5_,_T6_,_N6_,_T7_,_N7_,_T8_,_N8_,_T9_,_N9_)
 
 #define SP_DEFINE_STRUCT_DESC_CHOOSE_HELPER1(count) SP_DEFINE_STRUCT_DESC_HELPER##count
 #define SP_DEFINE_STRUCT_DESC_CHOOSE_HELPER(count) SP_DEFINE_STRUCT_DESC_CHOOSE_HELPER1(count)

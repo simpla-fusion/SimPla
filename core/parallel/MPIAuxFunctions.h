@@ -1,7 +1,7 @@
 /**
  * @file MPIAuxFunctions.h
  *
- * @date    2014-7-18  下午3:42:53
+ * @date    2014-7-18  3:42:53
  * @author salmon
  */
 

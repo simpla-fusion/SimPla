@@ -45,7 +45,7 @@ LY = 1 --2.0*math.pi/k0
 LZ = math.pi -- 2.0*math.pi/18
 GW = 5
 PIC = 100
-GEQDSK = "/home/salmon/workspace/SimPla/scripts/gfile/g038300.03900"
+GEQDSK = "/home/salmon/workspace-local/SimPla/scripts/gfile/g038300.03900"
 number_of_steps = 5
 
 DisableField = true

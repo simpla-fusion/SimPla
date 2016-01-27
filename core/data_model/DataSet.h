@@ -162,6 +162,26 @@ DataSet create_data_set(T const *p, Args &&...args)
                            std::forward<Args>(args)...);
 }
 
+
+template<typename T>
+DataSet create_data_set(T const *p, int ndims, typename DataSpace::index_type const *d)
+{
+
+    DataSet ds;
+
+    ds.data_type = DataType::create<T>();
+    ds.data = std::shared_ptr<void>(reinterpret_cast<void *>(const_cast<T *>(p)), tags::do_nothing());
+
+    ds.data_space = data_model::DataSpace::create_simple(ndims, d);
+
+    ds.memory_space = ds.data_space;
+
+    return std::move(ds);
+
+
+}
+
+
 template<typename T, typename ...Args>
 DataSet create_data_set(std::shared_ptr<T> &p, Args &&...args)
 {
@@ -184,7 +204,8 @@ create_data_set(std::shared_ptr<T> const &p, Args &&...args)
 template<typename T>
 DataSet create_data_set(std::vector<T> const &p)
 {
-    return create_data_set(&p[0], p.size());
+    typename DataSpace::index_type s = p.size();
+    return create_data_set(&p[0], 1, &s);
 }
 /**@}*/
 } // namespace _impl
