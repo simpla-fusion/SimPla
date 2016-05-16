@@ -1,0 +1,37 @@
+FIND_PACKAGE(OCE)
+IF (OCE_FOUND)
+    MESSAGE("-- Found OCE:${OCE_LIBRARIES}")
+ENDIF (OCE_FOUND)
+IF (MOAB_FOUND)
+
+    #    FIND_PACKAGE(MeshKit)
+
+
+    SET(MESHKIT_LIBRARIES "-L/pkg/sigma/1.2/lib -lMeshKit -lemon   -lFBiGeomMOAB -lMOAB -lcgm -liGeom -liMesh -liRel -L/usr/lib     -lmpi -lmpi_cxx")
+
+    SET(MESHKIT_INCLUDE_DIRS "-I/pkg/sigma/1.2/include")
+
+    INCLUDE_DIRECTORIES(${MOAB_INCLUDE_DIRS} ${MESHKIT_INCLUDE_DIRS})
+
+    ADD_DEFINITIONS(-DMESH_DIR="/pkg/sigma/1.2")
+
+    ADD_EXECUTABLE(mk_geqdsk mk_geqdsk.cpp)
+
+    TARGET_LINK_LIBRARIES(mk_geqdsk ${MOAB_LIBRARIES} ${MESHKIT_LIBRARIES} ${OCE_LIBRARIES})
+ENDIF (MOAB_FOUND)
+
+FIND_PACKAGE(Qt5Gui)
+FIND_PACKAGE(Qt5Core)
+#FIND_PACKAGE(Qt5Application)
+FIND_PACKAGE(Qt5X11Extras)
+FIND_PACKAGE(Qt5Widgets)
+
+INCLUDE_DIRECTORIES(${OCE_INCLUDE_DIRS} ${Qt5Application_INCLUDE_DIRS} ${Qt5Widgets_INCLUDE_DIRS} ${Qt5X11Extras_INCLUDE_DIRS})
+
+ADD_EXECUTABLE(MakeBottle MakeBottle.cxx)
+
+TARGET_LINK_LIBRARIES(MakeBottle ${OCE_LIBRARIES} Qt5::Core Qt5::Gui Qt5::Widgets)
+
+ADD_EXECUTABLE(ebmesh ebmesh.cpp)
+
+TARGET_LINK_LIBRARIES(ebmesh ${MESHKIT_LIBRARIES} ${MOAB_LIBRARIES})
