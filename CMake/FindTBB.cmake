@@ -67,12 +67,12 @@ if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
 endif()
 
 if ( NOT TBB_ROOT )
-    set(TBB_ROOT $ENV{TBB_ROOT})
+    set(TBB_ROOT $ENV{TBB_DIR})
 endif( )
 
-if ( NOT TBB_ROOT )
-    message( "TBB install not found in the system.")
-else ( ) 
+#if ( NOT TBB_ROOT )
+#    message( "TBB install not found in the system.")
+#else ( )
     # Search for 64bit libs if FIND_LIBRARY_USE_LIB64_PATHS is set to true in the global environment, 32bit libs else
     get_property( LIB64 GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS )
 
@@ -86,41 +86,38 @@ else ( )
     #Find TBB header files
     find_path( TBB_INCLUDE_DIRS 
         NAMES tbb/tbb.h
-        HINTS ${TBB_ROOT}/include
+        HINTS ${TBB_ROOT}/include /usr/include
         DOC "TBB header file path"
     )
     mark_as_advanced( TBB_INCLUDE_DIRS )
-    message ("TBB_INCLUDE_DIRS: " ${TBB_INCLUDE_DIRS} )
+
     
     #Find TBB Libraries
     set (_TBB_LIBRARY_DIR ${TBB_ROOT}/lib/${TBB_ARCH_PLATFORM} )
-        MESSAGE(${_TBB_LIBRARY_DIR})
-    find_library(TBB_LIBRARY ${_TBB_LIB_NAME} HINTS ${_TBB_LIBRARY_DIR}/${TBB_COMPILER}
+
+    find_library(TBB_LIBRARY ${_TBB_LIB_NAME}   HINTS ${_TBB_LIBRARY_DIR}/${TBB_COMPILER}   /usr/lib/x86_64-linux-gnu/
                 PATHS ENV LIBRARY_PATH ENV LD_LIBRARY_PATH)
-    find_library(TBB_MALLOC_LIBRARY ${_TBB_LIB_MALLOC_NAME} HINTS ${_TBB_LIBRARY_DIR}/${TBB_COMPILER}
+    find_library(TBB_MALLOC_LIBRARY ${_TBB_LIB_MALLOC_NAME} HINTS ${_TBB_LIBRARY_DIR}/${TBB_COMPILER} /usr/lib/x86_64-linux-gnu/
                 PATHS ENV LIBRARY_PATH ENV LD_LIBRARY_PATH)
-    find_library(TBB_LIBRARY_DEBUG ${_TBB_LIB_DEBUG_NAME} HINTS ${_TBB_LIBRARY_DIR}/${TBB_COMPILER}
+    find_library(TBB_LIBRARY_DEBUG ${_TBB_LIB_DEBUG_NAME} HINTS ${_TBB_LIBRARY_DIR}/${TBB_COMPILER} /usr/lib/x86_64-linux-gnu/
                 PATHS ENV LIBRARY_PATH ENV LD_LIBRARY_PATH)
-    find_library(TBB_MALLOC_LIBRARY_DEBUG ${_TBB_LIB_MALLOC_DEBUG_NAME} HINTS ${_TBB_LIBRARY_DIR}/${TBB_COMPILER}
+    find_library(TBB_MALLOC_LIBRARY_DEBUG ${_TBB_LIB_MALLOC_DEBUG_NAME} HINTS ${_TBB_LIBRARY_DIR}/${TBB_COMPILER} /usr/lib/x86_64-linux-gnu/
                 PATHS ENV LIBRARY_PATH ENV LD_LIBRARY_PATH)        
 
-    message ("TBB_LIBRARY:" ${TBB_LIBRARY})
-    message ("TBB_MALLOC_LIBRARY:" ${TBB_MALLOC_LIBRARY})
-    message ("TBB_LIBRARY_DEBUG:" ${TBB_LIBRARY_DEBUG})
-    message ("TBB_MALLOC_LIBRARY_DEBUG:" ${TBB_MALLOC_LIBRARY_DEBUG})
+    set(TBB_LIBRARIES ${TBB_LIBRARY} ${TBB_MALLOC_LIBRARY})
 
+    mark_as_advanced( TBB_LIBRARIES)
     mark_as_advanced( TBB_LIBRARY )
     mark_as_advanced( TBB_MALLOC_LIBRARY )
     mark_as_advanced( TBB_LIBRARY_DEBUG )
     mark_as_advanced( TBB_MALLOC_LIBRARY_DEBUG )
-
     mark_as_advanced( TBB_ROOT )
-    message ( "TBB_ROOT: " ${TBB_ROOT} )
+
 
     include( FindPackageHandleStandardArgs )
-    FIND_PACKAGE_HANDLE_STANDARD_ARGS( TBB DEFAULT_MSG TBB_LIBRARY TBB_MALLOC_LIBRARY TBB_LIBRARY_DEBUG TBB_MALLOC_LIBRARY_DEBUG TBB_INCLUDE_DIRS TBB_ROOT)
+    FIND_PACKAGE_HANDLE_STANDARD_ARGS( TBB DEFAULT_MSG TBB_LIBRARY TBB_MALLOC_LIBRARY   TBB_INCLUDE_DIRS )
 
     if( NOT TBB_FOUND )
         message( STATUS "FindTBB looked for libraries named tbb but could not find" )
     endif()
-endif ( ) 
+#endif ( )

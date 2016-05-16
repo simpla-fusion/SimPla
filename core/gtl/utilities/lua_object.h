@@ -191,10 +191,9 @@ public:
 
     bool is_string() const;
 
-#if LUA_VERSION_NUM >= 503
-    bool is_integer();
-    bool is_floating_point();
-#endif
+
+    bool is_integer()const;
+    bool is_floating_point()const;
 
 
     /** ntuple < list < table

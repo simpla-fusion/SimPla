@@ -27,6 +27,15 @@ INCLUDE(ExternalProject)
 
 
 
+#if(NOT MOAB_ROOT)
+#ExternalProject_Add(moab
+#    PREFIX third_part
+#    URL file:///${PROJECT_SOURCE_DIR}/third_part/src/?????
+#    SOURCE_DIR ${PROJECT_SOURCE_DIR}/third_part/?????
+#    INSTALL_COMMAND "make" )
+# ExternalProject_Get_Property(moab BINARY_DIR)
+# SET(MOAB_INSTALL_DIR ${BINARY_DIR})
+#endif()
 
 #SET(TBB_INSTALL_DIR  ${PROJECT_SOURCE_DIR}/third_part/tbb43_20140724oss)
 

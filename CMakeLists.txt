@@ -38,56 +38,56 @@ else ()
 endif ()
 
 
-include(FindPackageHandleStandardArgs)
+#include(FindPackageHandleStandardArgs)
 
 
 ###########################################################
-IF (DEFINED ENV{LUA_ROOT})
-
-    set(LUA_ROOT $ENV{LUA_ROOT})
-
-    find_path(LUA_INCLUDE_DIR
-            NAMES lua.h
-            HINTS ${MPI_ROOT}/include/
-            DOC "MPI header file path"
-            )
-    SET(LUA_LIBRARY_DIRS ${LUA_ROOT}/lib/)
-
-    find_library(LUA_LIBRARY liblua.a HINTS ${LUA_LIBRARY_DIRS})
-
-    SET(LUA_LIBRARIES ${LUA_LIBRARY})
-
-    FIND_PACKAGE_HANDLE_STANDARD_ARGS(LUA DEFAULT_MSG LUA_LIBRARIES LUA_INCLUDE_DIRS LUA_ROOT)
-ELSE (DEFINED ENV{LUA_ROOT})
-    FIND_PACKAGE(Lua)
-ENDIF (DEFINED ENV{LUA_ROOT})
+#IF (DEFINED ENV{LUA_ROOT})
+#
+#    set(LUA_ROOT $ENV{LUA_ROOT})
+#
+#    find_path(LUA_INCLUDE_DIR
+#            NAMES lua.h
+#            HINTS ${MPI_ROOT}/include/
+#            DOC "MPI header file path"
+#            )
+#    SET(LUA_LIBRARY_DIRS ${LUA_ROOT}/lib/)
+#
+#    find_library(LUA_LIBRARY liblua.a HINTS ${LUA_LIBRARY_DIRS})
+#
+#    SET(LUA_LIBRARIES ${LUA_LIBRARY})
+#
+#    FIND_PACKAGE_HANDLE_STANDARD_ARGS(LUA DEFAULT_MSG LUA_LIBRARIES LUA_INCLUDE_DIRS LUA_ROOT)
+#ELSE (DEFINED ENV{LUA_ROOT})
+FIND_PACKAGE(Lua)
+#ENDIF (DEFINED ENV{LUA_ROOT})
 
 IF (LUA_FOUND)
     INCLUDE_DIRECTORIES(${LUA_INCLUDE_DIR})
 ENDIF (LUA_FOUND)
 
 ###########################################################
-IF (DEFINED ENV{MPI_ROOT})
-    set(MPI_ROOT $ENV{MPI_ROOT})
-    find_path(MPI_INCLUDE_DIRS
-            NAMES mpi.h
-            HINTS ${MPI_ROOT}/include/
-            DOC "MPI header file path"
-            )
-    SET(MPI_LIBRARY_DIRS ${MPI_ROOT}/lib/)
-
-    find_library(MPI_LIBRARY mpi HINTS ${MPI_LIBRARY_DIRS})
-
-    SET(MPI_C_LIBRARIES ${MPI_LIBRARY})
-
-    FIND_PACKAGE_HANDLE_STANDARD_ARGS(MPI DEFAULT_MSG MPI_C_LIBRARIES MPI_INCLUDE_DIRS MPI_ROOT)
-
-    mark_as_advanced(MPI_C_LIBRARIES)
-
-ELSE (DEFINED ENV{MPI_ROOT})
-    SET(MPI_ROOT /usr/lib/openmpi)
-    FIND_PACKAGE(MPI)
-ENDIF (DEFINED ENV{MPI_ROOT})
+#IF (DEFINED ENV{MPI_ROOT})
+#    set(MPI_ROOT $ENV{MPI_ROOT})
+#    find_path(MPI_INCLUDE_DIRS
+#            NAMES mpi.h
+#            HINTS ${MPI_ROOT}/include/
+#            DOC "MPI header file path"
+#            )
+#    SET(MPI_LIBRARY_DIRS ${MPI_ROOT}/lib/)
+#
+#    find_library(MPI_LIBRARY mpi HINTS ${MPI_LIBRARY_DIRS})
+#
+#    SET(MPI_C_LIBRARIES ${MPI_LIBRARY})
+#
+#    FIND_PACKAGE_HANDLE_STANDARD_ARGS(MPI DEFAULT_MSG MPI_C_LIBRARIES MPI_INCLUDE_DIRS MPI_ROOT)
+#
+#    mark_as_advanced(MPI_C_LIBRARIES)
+#
+#ELSE (DEFINED ENV{MPI_ROOT})
+#    SET(MPI_ROOT /usr/lib/openmpi)
+FIND_PACKAGE(MPI)
+#ENDIF (DEFINED ENV{MPI_ROOT})
 
 IF (MPI_FOUND)
     INCLUDE_DIRECTORIES(${MPI_INCLUDE_PATH})
@@ -96,33 +96,33 @@ IF (MPI_FOUND)
 ENDIF (MPI_FOUND)
 
 ###########################################################
-IF (DEFINED ENV{TBB_ROOT})
-    set(TBB_ROOT $ENV{TBB_ROOT})
+#IF (DEFINED ENV{TBB_ROOT})
+#    set(TBB_ROOT $ENV{TBB_ROOT})
+#
+#    find_path(TBB_INCLUDE_DIRS
+#            NAMES tbb/tbb.h
+#            HINTS ${TBB_ROOT}/include
+#            DOC "TBB header file path"
+#            )
+#
+#    set(TBB_LIBRARY_DIRS $ENV{TBB_LIBRARY_DIRS})
+#
+#    find_library(TBB_LIBRARY tbb HINTS ${TBB_ROOT}/lib/${ARCH}/${COMPILER})
+#
+#    find_library(TBB_MALLOC_LIBRARY tbbmalloc ${TBB_ROOT}/lib/${ARCH}/${COMPILER})
+#
+#
+#    FIND_PACKAGE_HANDLE_STANDARD_ARGS(TBB DEFAULT_MSG TBB_LIBRARIES TBB_INCLUDE_DIRS TBB_ROOT)
+#
+#    set(TBB_FOUND TRUE)
+#
+#
+#ELSE (DEFINED ENV{TBB_ROOT})
+#    SET(TBB_ROOT /usr/local)
+FIND_PACKAGE(TBB)
+#    SET(TBB_LIBRARIES ${TBB_LIBRARY} ${TBB_MALLOC_LIBRARY})
 
-    find_path(TBB_INCLUDE_DIRS
-            NAMES tbb/tbb.h
-            HINTS ${TBB_ROOT}/include
-            DOC "TBB header file path"
-            )
-
-    set(TBB_LIBRARY_DIRS $ENV{TBB_LIBRARY_DIRS})
-
-    find_library(TBB_LIBRARY tbb HINTS ${TBB_ROOT}/lib/${ARCH}/${COMPILER})
-
-    find_library(TBB_MALLOC_LIBRARY tbbmalloc ${TBB_ROOT}/lib/${ARCH}/${COMPILER})
-
-
-    FIND_PACKAGE_HANDLE_STANDARD_ARGS(TBB DEFAULT_MSG TBB_LIBRARIES TBB_INCLUDE_DIRS TBB_ROOT)
-
-    set(TBB_FOUND TRUE)
-
-
-ELSE (DEFINED ENV{TBB_ROOT})
-    SET(TBB_ROOT /usr/local)
-    FIND_PACKAGE(TBB)
-    SET(TBB_LIBRARIES ${TBB_LIBRARY} ${TBB_MALLOC_LIBRARY})
-
-ENDIF (DEFINED ENV{TBB_ROOT})
+#ENDIF (DEFINED ENV{TBB_ROOT})
 
 IF (TBB_FOUND)
 
@@ -133,37 +133,38 @@ IF (TBB_FOUND)
 
 ENDIF (TBB_FOUND)
 ###########################################################
+#
+#IF (DEFINED ENV{HDF5_ROOT})
+#
+#    SET(HDF5_ROOT $ENV{HDF5_ROOT})
+#
+#    find_path(HDF5_INCLUDE_DIRS
+#            NAMES hdf5.h
+#            HINTS ${HDF5_ROOT}/include
+#            DOC "HDF5 header file path"
+#            )
+#    SET(HDF5_LIBRARY_DIRS ${HDF5_ROOT}/lib)
+#
+#    find_library(HDF5_LIBRARY hdf5 HINTS ${HDF5_LIBRARY_DIRS})
+#
+#    find_library(HDF5_hl_LIBRARY hdf5_hl HINTS ${HDF5_LIBRARY_DIRS})
+#
+#    SET(HDF5_C_LIBRARIES z dl m ${HDF5_LIBRARY} ${HDF5_hl_LIBRARY})
+#
+#    SET(HDF5_IS_PARALLEL true)
+#
+#    include(FindPackageHandleStandardArgs)
+#
+#    FIND_PACKAGE_HANDLE_STANDARD_ARGS(HDF5 DEFAULT_MSG HDF5_C_LIBRARIES HDF5_INCLUDE_DIRS HDF5_ROOT)
+#
+#ELSE (DEFINED ENV{HDF5_ROOT})
 
-IF (DEFINED ENV{HDF5_ROOT})
+SET(HDF5_PREFER_PARALLEL ON)
+SET(HDF5_USE_STATIC_LIBRARIES OFF)
 
-    SET(HDF5_ROOT $ENV{HDF5_ROOT})
+FIND_PACKAGE(HDF5 1.8 COMPONENTS C HL)
 
-    find_path(HDF5_INCLUDE_DIRS
-            NAMES hdf5.h
-            HINTS ${HDF5_ROOT}/include
-            DOC "HDF5 header file path"
-            )
-    SET(HDF5_LIBRARY_DIRS ${HDF5_ROOT}/lib)
-
-    find_library(HDF5_LIBRARY hdf5 HINTS ${HDF5_LIBRARY_DIRS})
-
-    find_library(HDF5_hl_LIBRARY hdf5_hl HINTS ${HDF5_LIBRARY_DIRS})
-
-    SET(HDF5_C_LIBRARIES z dl m ${HDF5_LIBRARY} ${HDF5_hl_LIBRARY})
-
-    SET(HDF5_IS_PARALLEL true)
-
-    include(FindPackageHandleStandardArgs)
-
-    FIND_PACKAGE_HANDLE_STANDARD_ARGS(HDF5 DEFAULT_MSG HDF5_C_LIBRARIES HDF5_INCLUDE_DIRS HDF5_ROOT)
-
-ELSE (DEFINED ENV{HDF5_ROOT})
-
-    SET(HDF5_USE_STATIC_LIBRARIES OFF)
-
-    FIND_PACKAGE(HDF5 1.8 COMPONENTS C HL)
-
-ENDIF (DEFINED ENV{HDF5_ROOT})
+#ENDIF (DEFINED ENV{HDF5_ROOT})
 
 IF (HDF5_FOUND)
     INCLUDE_DIRECTORIES(${HDF5_INCLUDE_DIRS})
@@ -173,6 +174,14 @@ IF (HDF5_FOUND)
 ENDIF (HDF5_FOUND)
 ADD_DEFINITIONS(-DNO_XDMF)
 
+
+FIND_PACKAGE(MOAB)
+
+IF (MOAB_FOUND)
+    MESSAGE("-- Found MOAB: ${MOAB_LIBRARIES}")
+else ()
+    MESSAGE("MISSING MOAB !! ")
+ENDIF (MOAB_FOUND)
 #IF (DEFINED ENV{XDMF_ROOT})
 #
 #    SET(XDMF_ROOT $ENV{XDMF_ROOT})

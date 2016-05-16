@@ -11,6 +11,7 @@ ADD_SUBDIRECTORY( pic)
 ADD_SUBDIRECTORY( geometry)
 ADD_SUBDIRECTORY( model)
 
+ADD_SUBDIRECTORY(modeling)
 
 ADD_EXECUTABLE(demo pic/demo_pic.cpp  em/demo_em.cpp )
-TARGET_LINK_LIBRARIES(demo  simpla_lib)
+TARGET_LINK_LIBRARIES(demo   simpla_lib)

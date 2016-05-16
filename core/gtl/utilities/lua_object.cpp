@@ -570,9 +570,9 @@ Converter<Properties>::from(lua_State *L, unsigned int idx, Properties *v)
 
 DEF_TYPE_CHECK(is_nil, lua_isnil)
 
-#if LUA_VERSION_NUM >= 503
+//#if LUA_VERSION_NUM >= 503
 DEF_TYPE_CHECK(is_integer, lua_isinteger)
-#endif
+//#endif
 
 
 DEF_TYPE_CHECK(is_boolean, lua_isboolean)
@@ -623,15 +623,15 @@ bool LuaObject::is_string() const
 }
 
 
-#if LUA_VERSION_NUM >= 503
-bool LuaObject::is_integer() const
-{
-    auto acc = L_.acc();
-    return lua_isinteger(*acc, self_);
-
-}
-bool LuaObject::is_floating_point() const { return is_number()&&(!is_integer); }
-#endif
+//#if LUA_VERSION_NUM >= 503
+//bool LuaObject::is_integer() const
+//{
+//    auto acc = L_.acc();
+//    return lua_isinteger(*acc, self_);
+//
+//}
+bool LuaObject::is_floating_point() const { return is_number()&&(!is_integer()); }
+//#endif
 
 bool LuaObject::is_list() const
 {
@@ -766,7 +766,7 @@ bool LuaObject::as(Properties *res) const
 
         if (success) (*res) = v;
     }
-#if LUA_VERSION_NUM >= 503
+//#if LUA_VERSION_NUM >= 503
         else if (this->is_integer())
         {
             int v;
@@ -775,7 +775,7 @@ bool LuaObject::as(Properties *res) const
 
             if (success) (*res) = v;
         }
-#endif
+//#endif
     else if (this->is_number())
     {
         double v;

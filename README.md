@@ -17,3 +17,9 @@ SIMPla {#mainpage}
   - Embedding boundary
   - Physical quantity/units
   - CUDA?
+
+  Requirement
+  -  TBB
+  -  Lua 5.3
+  -  CMake 2.8
+  -  MOAB
