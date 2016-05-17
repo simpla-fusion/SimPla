@@ -17,7 +17,6 @@ Exports a mesh file with CutCell data.
 #include "meshkit/SCDMesh.hpp"
 #include "meshkit/ModelEnt.hpp"
 
-//#include "CGMApp.hpp"
 using namespace MeshKit;
 
 
@@ -30,7 +29,8 @@ int load_and_mesh(const char *input_filename,
                   int whole_geom, int *n_intervals, int mesh_based_geom,
                   double box_increase, int vol_frac_res);
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     // check command line arg
     std::string input_filename;
     const char *output_filename = NULL;
@@ -40,7 +40,8 @@ int main(int argc, char **argv) {
     double box_increase = .03;
     int vol_frac_res = 0;
 
-    if (argc > 2 && argc < 11) {
+    if (argc > 2 && argc < 11)
+    {
         input_filename += argv[1];
         if (argc > 2) whole_geom = atoi(argv[2]);
         if (argc > 3) n_interval[0] = atoi(argv[3]);
@@ -51,7 +52,8 @@ int main(int argc, char **argv) {
         if (argc > 8) box_increase = atof(argv[8]);
         if (argc > 9) vol_frac_res = atoi(argv[9]);
     }
-    else {
+    else
+    {
         std::cout << "Usage: " << argv[0] <<
         "<input_geom_filename> <whole_geom> {x: # of intervals} {y: # of intervals} {z: # of intervals} {mesh_based_geom} {output_mesh_filename} {box_size_increase} {vol_frac_res}" <<
         std::endl;
@@ -86,20 +88,18 @@ int main(int argc, char **argv) {
 int load_and_mesh(const char *input_filename,
                   const char *output_filename,
                   int whole_geom, int *n_interval, int mesh_based_geom,
-                  double box_increase, int vol_frac_res) {
+                  double box_increase, int vol_frac_res)
+{
     bool result;
     time_t start_time, load_time, mesh_time, vol_frac_time,
             export_time, query_time_techX, query_time;
 
     // start up MK and load the geometry
     MKCore mk;
-    time(&start_time);
-    mk.load_mesh(input_filename, NULL, 0, 0, 0, true);
-    time(&load_time);
 
-    if (debug_EBMesher) {
-        mk.save_mesh("input.vtk");
-    }
+    mk.load_mesh(input_filename, NULL, 0, 0, 0, true);
+
+    mk.save_mesh("input.vtk");
 
     // get the volumes
     MEntVector vols;
@@ -118,9 +118,11 @@ int load_and_mesh(const char *input_filename,
     time(&mesh_time);
 
     // caculate volume fraction, only for geometry input
-    if (vol_frac_res > 0) {
+    if (vol_frac_res > 0)
+    {
         result = ebm->get_volume_fraction(vol_frac_res);
-        if (!result) {
+        if (!result)
+        {
             std::cerr << "Couldn't get volume fraction." << std::endl;
             return 1;
         }
@@ -128,35 +130,37 @@ int load_and_mesh(const char *input_filename,
     time(&vol_frac_time);
 
     // export mesh
-    if (output_filename != NULL) {
+    if (output_filename != NULL)
+    {
         ebm->export_mesh(output_filename);
     }
     time(&export_time);
 
-    if (whole_geom && debug_EBMesher) {
-        // techX query function test
-        double boxMin[3], boxMax[3];
-        int nDiv[3];
-        std::map<CutCellSurfEdgeKey, std::vector<double>, LessThan> mdCutCellSurfEdge;
-        std::vector<int> vnInsideCellTechX;
 
-        ebm->get_grid_and_edges_techX(boxMin, boxMax, nDiv,
-                                      mdCutCellSurfEdge, vnInsideCellTechX);
-        time(&query_time_techX);
+    // techX query function test
+    double boxMin[3], boxMax[3];
+    int nDiv[3];
+    std::map<CutCellSurfEdgeKey, std::vector<double>, LessThan> mdCutCellSurfEdge;
+    std::vector<int> vnInsideCellTechX;
 
-        // multiple intersection EBMesh_cpp_fraction query test
-        std::map<CutCellSurfEdgeKey, std::vector<double>, LessThan> mdCutCellEdge;
-        std::vector<int> vnInsideCell;
-        result = ebm->get_grid_and_edges(boxMin, boxMax, nDiv,
-                                         mdCutCellEdge, vnInsideCell);
-        if (!result) {
-            std::cerr << "Couldn't get mesh information." << std::endl;
-            return 1;
-        }
-        time(&query_time);
-        std::cout << "# of TechX cut-cell surfaces: " << mdCutCellSurfEdge.size()
-        << ", # of nInsideCell: " << vnInsideCell.size() / 3 << std::endl;
+    ebm->get_grid_and_edges_techX(boxMin, boxMax, nDiv,
+                                  mdCutCellSurfEdge, vnInsideCellTechX);
+    time(&query_time_techX);
+
+    // multiple intersection EBMesh_cpp_fraction query test
+    std::map<CutCellSurfEdgeKey, std::vector<double>, LessThan> mdCutCellEdge;
+    std::vector<int> vnInsideCell;
+    result = ebm->get_grid_and_edges(boxMin, boxMax, nDiv,
+                                     mdCutCellEdge, vnInsideCell);
+    if (!result)
+    {
+        std::cerr << "Couldn't get mesh information." << std::endl;
+        return 1;
     }
+    time(&query_time);
+    std::cout << "# of TechX cut-cell surfaces: " << mdCutCellSurfEdge.size()
+    << ", # of nInsideCell: " << vnInsideCell.size() / 3 << std::endl;
+
 
     std::cout << "EBMesh is succesfully finished." << std::endl;
     std::cout << "Time including loading: "
@@ -166,17 +170,17 @@ int load_and_mesh(const char *input_filename,
     << " secs, Time volume fraction: "
     << difftime(vol_frac_time, mesh_time) << " secs";
 
-    if (output_filename != NULL) {
-        std::cout << ", Time export mesh: "
-        << difftime(export_time, vol_frac_time) << " secs";
+    if (output_filename != NULL)
+    {
+        std::cout << ", Time export mesh: " << difftime(export_time, vol_frac_time) << " secs";
     }
 
-    if (whole_geom && debug_EBMesher) {
-        std::cout << ", TechX query time: "
-        << difftime(query_time_techX, export_time)
-        << " secs, multiple intersection EBMesh_cpp_fraction query (elems, edge-cut fractions): "
-        << difftime(query_time, query_time_techX) << " secs.";
-    }
+
+    std::cout << ", TechX query time: "
+    << difftime(query_time_techX, export_time)
+    << " secs, multiple intersection EBMesh_cpp_fraction query (elems, edge-cut fractions): "
+    << difftime(query_time, query_time_techX) << " secs.";
+
 
     std::cout << std::endl;
     mk.clear_graph();

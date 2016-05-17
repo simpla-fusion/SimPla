@@ -175,13 +175,7 @@ ENDIF (HDF5_FOUND)
 ADD_DEFINITIONS(-DNO_XDMF)
 
 
-FIND_PACKAGE(MOAB)
 
-IF (MOAB_FOUND)
-    MESSAGE("-- Found MOAB: ${MOAB_LIBRARIES}")
-else ()
-    MESSAGE("MISSING MOAB !! ")
-ENDIF (MOAB_FOUND)
 #IF (DEFINED ENV{XDMF_ROOT})
 #
 #    SET(XDMF_ROOT $ENV{XDMF_ROOT})
@@ -275,11 +269,12 @@ ADD_DEFINITIONS(-DIDENTIFY=\"${PROJECT_IDENTIFY}\")
 
 # workaround for CLion 1.0.x
 FILE(GLOB_RECURSE clion_all_headers ${CMAKE_SOURCE_DIR}/*.h)
-add_executable(all_clion ${clion_all_headers} core/dummy.h core/dummy.cpp)
+add_executable(all_clion ${clion_all_headers} core/dummy.h core/dummy.cpp tools/geqdsk_to_mesh.cpp)
 
 add_subdirectory(core)
 add_subdirectory(applications)
 add_subdirectory(example)
+add_subdirectory(tools)
 add_subdirectory(docs)
 add_subdirectory(plugins)
 

@@ -1,0 +1,277 @@
+#LyX 2.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 474
+\begin_document
+\begin_header
+\textclass article
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_math auto
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\boldsymbol{x}=\boldsymbol{X}+\boldsymbol{\rho}=\boldsymbol{X}-\frac{\boldsymbol{V}\times\boldsymbol{B}}{\boldsymbol{B}\cdot\boldsymbol{B}},\,\boldsymbol{v}=\boldsymbol{V}+\boldsymbol{D}\,.\label{eq:Cartesian-coordinate}
+\end{equation}
+
+\end_inset
+
+The zero order unperturbed one-form Eq.
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:gyroaverage-gamma0"
+
+\end_inset
+
+ is expressed as 
+\begin_inset Formula 
+\begin{eqnarray*}
+\Gamma_{0} & = & \left(\boldsymbol{A}+\frac{\boldsymbol{V}\cdot\boldsymbol{B}\boldsymbol{B}}{\boldsymbol{B}\cdot\boldsymbol{B}}\right)\cdot d\boldsymbol{X}-\left(\phi+\frac{\boldsymbol{V}^{2}}{2}\right)dt+\frac{1}{2}\frac{\boldsymbol{V}\times\boldsymbol{B}}{\boldsymbol{B}\cdot\boldsymbol{B}}\cdot d\boldsymbol{V}\\
+ & = & \boldsymbol{A}\cdot d\boldsymbol{X}-\left(\phi+\frac{\boldsymbol{V}^{2}}{2}\right)dt+\frac{\boldsymbol{V}\cdot\boldsymbol{B}\boldsymbol{B}}{\boldsymbol{B}\cdot\boldsymbol{B}}\cdot d\boldsymbol{X}+\frac{1}{2}\frac{\boldsymbol{V}\times\boldsymbol{B}}{\boldsymbol{B}\cdot\boldsymbol{B}}\cdot d\boldsymbol{V}
+\end{eqnarray*}
+
+\end_inset
+
+and the dynamics is solved as 
+\begin_inset Note Comment
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Formula 
+\begin{eqnarray}
+i_{G}d\Gamma_{0} & = & \left[-\boldsymbol{G}_{\boldsymbol{X}}\times\boldsymbol{B}^{\dagger}+\left(\boldsymbol{bb}+\frac{1}{2}\nabla\boldsymbol{\rho}\right)\cdot\boldsymbol{G}_{V}-G_{t}\boldsymbol{E}^{\dagger}\right]\cdot dX\nonumber \\
+ &  & +\left[-\boldsymbol{G}_{X}\cdot\left(\boldsymbol{bb}+\frac{1}{2}\nabla\boldsymbol{\rho}\right)+\frac{\boldsymbol{G}_{V}\times\boldsymbol{B}}{\boldsymbol{B}\cdot\boldsymbol{B}}+G_{t}\left(-\frac{1}{2}\partial_{t}\boldsymbol{\rho}+\boldsymbol{V}-\boldsymbol{D}\right)\right]\cdot dV\nonumber \\
+ &  & +\left[\boldsymbol{E}^{\dagger}\cdot\boldsymbol{G}_{X}-\left(-\frac{1}{2}\partial_{t}\boldsymbol{\rho}+\boldsymbol{V}-\boldsymbol{D}\right)\cdot\boldsymbol{G}_{V}\right]dt
+\end{eqnarray}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray}
+G_{X} & = & \frac{1}{\sqrt{\left\Vert \Omega\right\Vert }}\left[\frac{M\cdot\boldsymbol{B}}{\boldsymbol{B}\cdot\boldsymbol{B}}\times\boldsymbol{R}_{X}+R_{V}\cdot\left(\frac{\boldsymbol{B}\boldsymbol{B}^{\dagger}}{\boldsymbol{B}\cdot\boldsymbol{B}}+\left\Vert M\right\Vert M^{-1}\right)\right]\\
+G_{V} & =- & \frac{1}{\sqrt{\left\Vert \Omega\right\Vert }}\left[\boldsymbol{B}^{\dagger}\cdot M\times\boldsymbol{R}_{V}+\left(\frac{\boldsymbol{B}\boldsymbol{B}^{\dagger}}{\boldsymbol{B}\cdot\boldsymbol{B}}+\left\Vert M\right\Vert M^{-1}\right)\cdot\boldsymbol{R}_{X}\right]
+\end{eqnarray}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray*}
+\boldsymbol{R}_{X} & = & -\boldsymbol{E}^{\dagger}\\
+\boldsymbol{R}_{V} & = & -\frac{1}{2}\partial_{t}\boldsymbol{\rho}+\boldsymbol{V}-\boldsymbol{D}
+\end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray}
+\frac{d\boldsymbol{X}}{dt} & = & \frac{1}{\alpha}\left(\boldsymbol{V}\right)\cdot\left(\frac{\boldsymbol{B}\boldsymbol{B}^{\dagger}}{\boldsymbol{B}\cdot\boldsymbol{B}}+\left\Vert M\right\Vert M^{-1}\right)\label{eq:dXdt}
+\end{eqnarray}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray}
+\frac{d\boldsymbol{V}}{dt} & = & -\frac{1}{\alpha}\left[M\cdot\boldsymbol{B}^{\dagger}\times\boldsymbol{V}\right]\label{eq:dVdt}
+\end{eqnarray}
+
+\end_inset
+
+where
+\begin_inset Formula 
+\begin{align}
+\boldsymbol{B}^{\dagger}\equiv & \boldsymbol{B}+\nabla\times\frac{\boldsymbol{V}\cdot\boldsymbol{B}\boldsymbol{B}}{\boldsymbol{B}\cdot\boldsymbol{B}}\\
+\boldsymbol{E}^{\dagger}\equiv & 0\,
+\end{align}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+M\mbox{\equiv}\frac{\boldsymbol{B}\boldsymbol{B}}{\boldsymbol{B}\cdot\boldsymbol{B}}-\frac{1}{2}\nabla\frac{\boldsymbol{V}\times\boldsymbol{B}}{\boldsymbol{B}\cdot\boldsymbol{B}}
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray}
+\alpha & \equiv & \frac{\boldsymbol{B}^{\dagger}\cdot M\cdot\boldsymbol{B}}{\boldsymbol{B}\cdot\boldsymbol{B}}+\left\Vert M\right\Vert 
+\end{eqnarray}
+
+\end_inset
+
+The first unperturbed order one-form is expressed as 
+\begin_inset Formula 
+\begin{eqnarray*}
+\tilde{Z}_{n}\left(s\right) & = & \left(1-s\right)Z_{n}+sZ_{n+1}+s\left(1-s\right)\left(\left(k_{n}\left(t_{n+1}-t_{n}\right)-\left(Z_{n+1}-Z_{n}\right)\right)\left(1-s\right)-\left(k_{n+1}\left(t_{n+1}-t_{n}\right)-\left(Z_{n+1}-Z_{n}\right)\right)s\right)\\
+\tilde{Z}_{n}^{\prime}\left(s\right) & = & 6s\left(1-s\right)\left(Z_{n+1}-Z_{n}\right)+\left(t_{n+1}-t_{n}\right)\left(3s^{2}k_{n}+3s^{2}k_{n+1}-4sk_{n}-2sk_{n+1}+k_{n}\right)
+\end{eqnarray*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+L_{n}=\int_{0}^{1}ds\gamma_{i}\left(\tilde{Z}_{n}\left(s\right)\right)\tilde{Z}_{n}^{\prime i}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+L_{n}^{+}=\int_{0}^{1}ds\tilde{Z}_{n}^{\prime i}\left(\gamma_{i}\left(Z_{n+1}\right)+\epsilon\left(\tilde{Z}_{n}^{j}-Z_{n+1}^{j}\right)\gamma_{i,j}\left(Z_{n+1}\right)+O\left(\epsilon^{2}\right)\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{eqnarray*}
+\mathfrak{A}\left[Z\right] & = & \int\gamma_{i}\left(Z\right)\cdot dZ^{i}=\sum_{n}L_{n}
+\end{eqnarray*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray*}
+\delta\mathfrak{A}\left[Z\right] & = & \mathfrak{A}\left[\Phi\circ Z\right]-\mathfrak{A}\left[Z\right]=\Phi_{n}\circ L_{n-1}+\Phi_{n}\circ L_{n}-L_{n}\\
+\Phi_{n}\circ L_{n-1} & = & \int_{0}^{1}ds\left[\left[\gamma_{i}\left(\tilde{Z}_{n-1}\left(s\right)\right)+\varepsilon\left(\tilde{Z}_{n-1}^{j}\left(s\right)-Z_{n}^{j}+\Delta_{n}^{j}\right)\gamma_{i,j}\left(\tilde{Z}_{n-1}\left(s\right)\right)+o\left(\varepsilon^{2}\right)\right]\cdot\left(\tilde{Z}_{n-1}^{i\prime}+\varepsilon\Delta_{n}^{i}6s\left(1-s\right)\right)\right]\\
+ & = & \int_{0}^{1}ds\left[\left[\gamma_{i}\left(Z_{n}\right)+\varepsilon\left(\tilde{Z}_{n-1}^{j}\left(s\right)-Z_{n}^{j}+\Delta_{n}^{j}\right)\gamma_{i,j}\left(Z_{n}\right)+o\left(\varepsilon^{2}\right)\right]\cdot\left(\tilde{Z}_{n-1}^{i\prime}+\varepsilon\Delta_{n}^{i}6s\left(1-s\right)\right)\right]\\
+\\
+\end{eqnarray*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray*}
+ & = & \varepsilon\sum_{m}\Delta_{m}^{j}\frac{\partial}{\partial Z_{m}^{j}}\left(L_{m-1}+L_{m}\right)\\
+ & = & \varepsilon\Delta_{0}^{j}\int_{-1}^{1}ds\gamma_{i,j}\left(Z\left(s\right)\right)Z^{i\prime}+\left[\gamma_{i}\left(Z_{0}\right)+\left(Z\left(s\right)-Z_{0}\right)^{k}\gamma_{i,k}\left(Z_{0}\right)\right]\frac{\partial}{\partial Z_{0}^{j}}\left(Z^{i\prime}\right)\\
+ & = & \varepsilon\Delta_{0}^{j}\int_{-1}^{1}ds\gamma_{i,j}\left(Z\left(s\right)\right)Z^{i\prime}+\left(Z\left(s\right)-Z_{0}\right)^{k}\gamma_{i,k}\left(Z_{0}\right)\frac{\partial}{\partial Z_{0}^{j}}\left(Z^{i\prime}\right)\\
+\\
+\\
+\\
+\end{eqnarray*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray*}
+ &  & \frac{\partial}{\partial Z_{m}^{j}}L_{m-1}\\
+ & = & \frac{\partial}{\partial Z_{m}^{j}}\gamma_{i}\left(\tilde{Z}_{m-1}\left(s\right)\right)\tilde{Z}_{m-1}^{i\prime}\left(s\right)\\
+ & = & \gamma_{i,j}\left(Z_{m}\right)+\left(\tilde{Z}_{m-1}\left(s\right)\right)\\
+ & = & \int_{0}^{1}ds\frac{\partial\tilde{Z}_{m-1}^{k}\left(s\right)}{\partial Z_{m}^{j}}\gamma_{i,k}\tilde{Z}_{m-1}^{i\prime}+\gamma_{i}\left(\tilde{Z}_{m-1}\left(s\right)\right)\frac{\partial}{\partial Z_{m}^{j}}\tilde{Z}_{m-1}^{i\prime}
+\end{eqnarray*}
+
+\end_inset
+
+where
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{eqnarray*}
+ &  & \int_{-1}^{1}ds\gamma_{i}\left(Z_{0}\right)\frac{\partial}{\partial Z_{0}^{j}}\left(Z^{i\prime}\right)\\
+ & = & \gamma_{i}\left(Z_{0}\right)\int_{-1}^{1}ds\frac{\partial}{\partial Z_{0}^{j}}\left(Z^{i\prime}\right)
+\end{eqnarray*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\delta\boldsymbol{X}\left(s\right)=\left(1-s\right)\left(X^{0}+\Delta X^{0}\right)+sX^{1}+s\left(1-s\right)\left(a_{X}^{0}\left(1-s\right)+b_{X}^{0}s\right)
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray*}
+\delta\left[\boldsymbol{A}\left(\boldsymbol{X}\left(s\right),t\left(s\right)\right)\cdot\boldsymbol{X}^{\prime}\left(s\right)\right] & = & \delta\boldsymbol{A}\cdot\boldsymbol{X}^{\prime}\left(s\right)+\boldsymbol{A}\left(\boldsymbol{X}\left(s\right),t\left(s\right)\right)\cdot\delta\boldsymbol{X}^{\prime}\left(s\right)\\
+ & = & \delta\boldsymbol{X}\cdot\nabla A\cdot\boldsymbol{X}^{\prime}+\boldsymbol{A}\left(\boldsymbol{X}\left(s\right),t\left(s\right)\right)\cdot\delta\boldsymbol{X}^{\prime}\left(s\right)
+\end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document

@@ -1,3 +1,9 @@
+/**
+ * @file geqdsk_to_mesh.cpp
+ * @author salmon
+ * @date 2016-05-17.
+ */
+
 #include <QWidget>
 #include <QApplication>
 
