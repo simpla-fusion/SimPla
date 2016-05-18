@@ -15,7 +15,7 @@
 #include "../primitives.h"
 #include "../ntuple.h"
 #include "../integer_sequence.h"
-#include "../utilities/log.h"
+#include "../utilities/Log.h"
 using namespace simpla;
 
 template<typename T>

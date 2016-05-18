@@ -5,7 +5,7 @@
  * @author salmon
  */
 
-#include "../gtl/design_pattern/singleton_holder.h"
+#include "../gtl/design_pattern/SingletonHolder.h"
 #include "../gtl/utilities/parse_command_line.h"
 #include "MPIComm.h"
 #include "DistributedObject.h"

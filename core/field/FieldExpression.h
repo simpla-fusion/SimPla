@@ -14,7 +14,7 @@
 
 #include "FieldTraits.h"
 
-#include "../gtl/expression_template.h"
+#include "../gtl/ExpressionTemplate.h"
 #include "../gtl/type_traits.h"
 
 namespace simpla {

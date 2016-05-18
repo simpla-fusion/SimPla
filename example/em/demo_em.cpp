@@ -17,8 +17,8 @@
 
 #include "Constants.h"
 #include "../../core/physics/PhysicalConstants.h"
-#include "../../core/gtl/utilities/config_parser.h"
-#include "../../core/gtl/utilities/log.h"
+#include "../../core/gtl/utilities/ConfigParser.h"
+#include "../../core/gtl/utilities/Log.h"
 
 
 #include "manifold_traits.h"

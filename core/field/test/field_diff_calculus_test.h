@@ -25,7 +25,7 @@
 #include "../../gtl/ntuple.h"
 #include "../../gtl/primitives.h"
 
-#include "../../gtl/utilities/log.h"
+#include "../../gtl/utilities/Log.h"
 #include "../../manifold/pre_define/PreDefine.h"
 
 using namespace simpla;

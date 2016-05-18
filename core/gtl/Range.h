@@ -1,25 +1,26 @@
 /**
- * @file range.h
+ * @file Range.h
  * @author salmon
- * @date 2015-10-26.
+ * @date 2016-05-18.
  */
 
-#ifndef SIMPLA_RANGE_H
-#define SIMPLA_RANGE_H
+#ifndef SIMPLA_GTL_RANGE_H
+#define SIMPLA_GTL_RANGE_H
 
-#include "../parallel/parallel.h"
+#include <cstddef>
 
-#include "../type_traits.h"
-
-namespace simpla
+namespace simpla { namespace gtl
 {
-
-//namespace tags
-template<typename ...>
-struct Range;
+namespace tags { struct split; }
 
 
-// Base on Range concept in TBB
+template<typename ...> struct Range;
+
+/**
+ *
+ * Base on Range concept in TBB
+ *
+ */
 
 template<typename Iterator>
 class Range<Iterator>
@@ -28,11 +29,10 @@ class Range<Iterator>
 
 public:
 
-    // types
-
-    typedef size_t size_type;
 
     typedef Iterator const_iterator;
+
+    typedef Iterator iterator;
 
     Range() : m_begin_(), m_end_(m_begin_), m_grain_size_(0) { }
 
@@ -59,7 +59,7 @@ public:
     }
 
 
-    Range(this_type &r, parallel::tags::proportional_split &proportion) :
+    Range(this_type &r, tags::proportional_split &proportion) :
             m_begin_(r.m_begin_ + r.size() * proportion.left() /
                                   ((proportion.left() + proportion.right() > 0) ? (proportion.left() +
                                                                                    proportion.right()) : 1)),
@@ -82,7 +82,7 @@ public:
     static const bool is_splittable_in_proportion = true;
 
     // capacity
-    size_type size() const { return (m_end_ - m_begin_); };
+    size_t size() const { return (m_end_ - m_begin_); };
 
     bool empty() const { return m_begin_ == m_end_; };
 
@@ -98,11 +98,13 @@ public:
 
 private:
 
-    const_iterator m_begin_, m_end_;
+    iterator m_begin_, m_end_;
 
     ptrdiff_t m_grain_size_;
 
 };
 
-}//namespace simpla
-#endif //SIMPLA_RANGE_H
+
+}}//namespace simpla { namespace gtl
+
+#endif //SIMPLA_GTL_RANGE_H

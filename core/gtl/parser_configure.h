@@ -10,7 +10,7 @@
 
 #include <functional>
 #include <ostream> //for print
-#include "log.h"
+#include "Log.h"
 namespace simpla
 {
 /**

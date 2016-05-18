@@ -269,7 +269,7 @@ ADD_DEFINITIONS(-DIDENTIFY=\"${PROJECT_IDENTIFY}\")
 
 # workaround for CLion 1.0.x
 FILE(GLOB_RECURSE clion_all_headers ${CMAKE_SOURCE_DIR}/*.h)
-add_executable(all_clion ${clion_all_headers} core/dummy.h core/dummy.cpp tools/geqdsk_to_mesh.cpp)
+add_executable(all_clion ${clion_all_headers} core/dummy.h core/dummy.cpp tools/geqdsk_convert.cpp)
 
 add_subdirectory(core)
 add_subdirectory(applications)

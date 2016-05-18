@@ -13,8 +13,8 @@
 #include <memory>
 #include <string>
 
-#include "../gtl/design_pattern/singleton_holder.h"
-#include "../gtl/utilities/config_parser.h"
+#include "../gtl/design_pattern/SingletonHolder.h"
+#include "../gtl/utilities/ConfigParser.h"
 
 namespace simpla
 {

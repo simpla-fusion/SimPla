@@ -5,7 +5,7 @@
  * @author salmon
  */
 
-#include "log.h"
+#include "Log.h"
 
 #include <chrono>
 #include <cstdlib>
@@ -14,7 +14,7 @@
 #include <iomanip>
 #include <iostream>
 
-#include "../design_pattern/singleton_holder.h"
+#include "../design_pattern/SingletonHolder.h"
 #include "parse_command_line.h"
 
 namespace simpla

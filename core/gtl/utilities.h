@@ -11,12 +11,12 @@
 #include "logo.h"
 
 
-#include "log.h"
+#include "Log.h"
 #include "pretty_stream.h"
 #include "misc_utilities.h"
-#include "lua_object.h"
-#include "lua_object_ext.h"
-#include "config_parser.h"
+#include "LuaObject.h"
+#include "LuaObjectExt.h"
+#include "ConfigParser.h"
 #include "parse_command_line.h"
 
 

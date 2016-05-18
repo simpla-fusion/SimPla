@@ -9,7 +9,7 @@
 
 #include "DataSet.h"
 #include "../gtl/utilities/pretty_stream.h"
-#include "../gtl/utilities/memory_pool.h"
+#include "../gtl/utilities/MemoryPool.h"
 #include "../parallel/MPIUpdate.h"
 #include "../parallel/MPIComm.h"
 

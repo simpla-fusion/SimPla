@@ -8,7 +8,7 @@
 #define SIMPLA_DATAVIEW_H
 
 #include <memory>
-#include "../gtl/utilities/memory_pool.h"
+#include "../gtl/utilities/MemoryPool.h"
 #include "../gtl/containers/iterator_proxy.h"
 
 

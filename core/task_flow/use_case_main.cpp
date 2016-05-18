@@ -11,8 +11,8 @@
 #include "../io/IO.h"
 #include "Parallel.h"
 #include "../sp_config.h"
-#include "../gtl/utilities/log.h"
-#include "../gtl/utilities/config_parser.h"
+#include "../gtl/utilities/Log.h"
+#include "../gtl/utilities/ConfigParser.h"
 #include "../gtl/utilities/logo.h"
 
 

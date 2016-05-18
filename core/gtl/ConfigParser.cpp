@@ -5,8 +5,8 @@
  *      Author: salmon
  */
 
-#include "config_parser.h"
-#include "log.h"
+#include "ConfigParser.h"
+#include "Log.h"
 #include "parse_command_line.h"
 
 namespace simpla

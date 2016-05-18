@@ -8,8 +8,8 @@
 #define SIMPLA_STORAGE_POLICY_H
 
 #include <string.h>
-#include "../../gtl/design_pattern/singleton_holder.h"
-#include "../../gtl/utilities/memory_pool.h"
+#include "../../gtl/design_pattern/SingletonHolder.h"
+#include "../../gtl/utilities/MemoryPool.h"
 #include "../../data_model/DataSet.h"
 #include "../../data_model/DataSpace.h"
 #include "../ManifoldTraits.h"

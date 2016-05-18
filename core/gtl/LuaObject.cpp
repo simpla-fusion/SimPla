@@ -3,8 +3,8 @@
  * @author salmon
  * @date 2015-12-10.
  */
-#include "lua_object.h"
-#include "lua_object_ext.h"
+#include "LuaObject.h"
+#include "LuaObjectExt.h"
 #include "pretty_stream.h"
 #include "../ntuple_ext.h"
 

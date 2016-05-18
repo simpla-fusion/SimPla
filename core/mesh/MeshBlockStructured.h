@@ -1,118 +1,84 @@
 /**
- * @file MeshBlock.h
+ * @file MeshBlockStructured.h
  * @author salmon
- * @date 2015-10-28.
+ * @date 2016-05-18.
  */
 
-#ifndef SIMPLA_BLOCK_H
-#define SIMPLA_BLOCK_H
+#ifndef SIMPLA_MESH_MESHBLOCKSTRUCTURED_H
+#define SIMPLA_MESH_MESHBLOCKSTRUCTURED_H
 
-#include "../../gtl/macro.h"
-#include "../../gtl/primitives.h"
-#include "../../gtl/ntuple.h"
-#include "../../gtl/type_traits.h"
-#include "../../gtl/utilities/log.h"
+#include "../base/Object.h"
+#include "../gtl/IteratorBlock.h"
+#include "Mesh.h"
+#include "MeshEntity.h"
 #include "MeshIds.h"
-#include "../../geometry/GeoAlgorithm.h"
+
+namespace simpla { namespace tags { struct split; }}
 
 namespace simpla { namespace mesh
 {
-
-struct MeshBlock : public MeshIDs, public base::Object
-{
-
-
-    SP_OBJECT_HEAD(MeshBlock, base::Object)
-
-private:
-
-    typedef MeshBlock this_type;
-    typedef MeshIDs m;
-
-public:
-
-    static constexpr int ndims = 3;
-
-
-    using typename m::id_type;
-    using typename m::id_tuple;
-    using typename m::index_type;
-    using typename m::range_type;
-    using typename m::iterator;
-    using typename m::index_tuple;
-    using typename m::difference_type;
-
-    using typename m::point_type;
-    using typename m::box_type;
-
-    typedef std::tuple<index_tuple, index_tuple> index_box_type;
-
-
-    /**
- *
- *   -----------------------------5
- *   |                            |
- *   |     ---------------4       |
- *   |     |              |       |
- *   |     |  ********3   |       |
- *   |     |  *       *   |       |
- *   |     |  *       *   |       |
- *   |     |  *       *   |       |
- *   |     |  2********   |       |
- *   |     1---------------       |
- *   0-----------------------------
- *
- *	5-0 = dimensions
- *	4-1 = e-d = ghosts
- *	2-1 = counts
- *
- *	0 = m_idx_min_
- *	5 = m_idx_max_
- *
- *	1 = m_idx_memory_min_
- *	4 = m_idx_memory_max_
- *
- *	2 = m_idx_local_min_
- *	3 = m_idx_local_max_
- *
- *
+namespace tags { template<int> class BlockStructured; }
+/**
+ *  MeshBlockStructured : Block Structured Mesh
+ *  - topology  : rectangle or hexahedron;
+ *  - cell size : uniform structured;
+ *  - decompose, refine,coarse => Block Structured Mesh
  */
-
-    index_tuple m_idx_min_{0, 0, 0};
-    index_tuple m_idx_max_{1, 1, 1};
-    index_tuple m_idx_local_min_{0, 0, 0};
-    index_tuple m_idx_local_max_{1, 1, 1};
-    index_tuple m_idx_memory_min_{0, 0, 0};
-    index_tuple m_idx_memory_max_{1, 1, 1};
-
-    index_tuple m_dimensions_{1, 1, 1};
-    index_tuple m_ghost_width_{0, 0, 0};
-    int m_ndims_ = 3;
-
+template<int NDIMS>
+class Mesh<tags::BlockStructured<NDIMS>> : public base::Object
+{
+    typedef Mesh<tags::BlockStructured<NDIMS>> this_type;
 public:
 
-    MeshBlock();
-
-    virtual  ~MeshBlock();
-
-    MeshBlock(this_type const &other) = delete;
-
-
-    void dimensions(index_tuple const &d);
-
-    void ghost_width(index_tuple const &d);
+// types
+    static constexpr int ndims = NDIMS;
+    typedef size_t size_type;
+    typedef gtl::IteratorBlock<size_type, ndims> iterator;
 
 
-    void decompose(index_tuple const &dist_dimensions, index_tuple const &dist_coord);
 
+    //****************************************
+    // Range concept
 
-    virtual void deploy() { deploy2(); }
+    Mesh(iterator b, iterator e, size_type grain_size = 1) :
+            m_begin_(*b), m_end_(*e), m_grain_size_(grain_size)
+    {
+    }
 
-private:
-    void deploy2();
+    Mesh(this_type &r, tags::split) : m_begin_(r.m_begin_ + r.size() / 2), m_end_(r.m_end_),
+                                      m_grain_size_(r.grainsize())
+    {
+        r.m_end_ = m_begin_;
+    };
 
-public:
+    Mesh(this_type &r, tags::proportional_split &proportion) :
+            m_begin_(r.m_begin_ + r.size() * proportion.left() / (proportion.left() + proportion.
+                    right())),
+            m_end_(r.m_end_),
+            m_grain_size_(r.grainsize())
+    {
+        r.m_end_ = m_begin_;
+    };
 
+    // Proportional split is enabled
+    static const bool is_splittable_in_proportion = true;
+
+    // capacity
+    size_type size() const { return traits::distance(m_begin_, m_end_); };
+
+    bool empty() const { return m_begin_ == m_end_; };
+
+    // access
+    size_type grainsize() const { return m_grain_size_; }
+
+    bool is_divisible() const { return size() > grainsize(); }
+
+    // iterators
+    iterator begin() const { return m_begin_; }
+
+    iterator end() const { return m_end_; }
+
+    //****************************************
 
     int number_of_dims() const { return m_ndims_; }
 
@@ -126,10 +92,10 @@ public:
     /**
      *  remove periodic axis, which  ghost_width==0
      */
-    id_type periodic_id_mask() const
+    mesh_entity_id_t periodic_id_mask() const
     {
-        id_type M0 = ((1UL << ID_DIGITS) - 1);
-        id_type M1 = ((1UL << (MESH_RESOLUTION)) - 1);
+        mesh_entity_id_t M0 = ((1UL << ID_DIGITS) - 1);
+        mesh_entity_id_t M1 = ((1UL << (MESH_RESOLUTION)) - 1);
         return FULL_OVERFLOW_FLAG
                | (is_periodic(0) ? M1 : M0)
                | ((is_periodic(1) ? M1 : M0) << ID_DIGITS)
@@ -138,8 +104,8 @@ public:
 
     size_t id_mask() const
     {
-        id_type M0 = ((1UL << ID_DIGITS) - 1);
-        id_type M1 = ((1UL << (MESH_RESOLUTION)) - 1);
+        mesh_entity_id_t M0 = ((1UL << ID_DIGITS) - 1);
+        mesh_entity_id_t M1 = ((1UL << (MESH_RESOLUTION)) - 1);
         return FULL_OVERFLOW_FLAG
                | ((m_idx_max_[0] - m_idx_min_[0] > 1) ? M0 : M1)
                | (((m_idx_max_[1] - m_idx_min_[1] > 1) ? M0 : M1) << ID_DIGITS)
@@ -153,7 +119,7 @@ public:
     }
 
 
-//    index_box_type cell_index_box(id_type const &s) const
+//    index_box_type cell_index_box(mesh_entity_id_t const &s) const
 //    {
 //        return std::make_tuple(m::unpack_index(s - _DA), m::unpack_index(s + _DA));
 //    }
@@ -199,7 +165,7 @@ public:
 
     }
 
-    bool in_box(id_type s) const { return in_box(m::unpack_index(s)); }
+    bool in_box(mesh_entity_id_t s) const { return in_box(m::unpack_index(s)); }
 
     template<int IFORM>
     range_type range() const
@@ -240,7 +206,7 @@ public:
     }
 
 
-    size_t hash(id_type const &s) const
+    size_t hash(mesh_entity_id_t const &s) const
     {
         return static_cast<size_t>(m::hash(s, m_idx_memory_min_, m_idx_memory_max_));
     }
@@ -269,19 +235,19 @@ public:
 
     vector_type const &dx() const { return m_dx_; }
 
-    box_type cell_box(id_type const &s) const
+    box_type cell_box(mesh_entity_id_t const &s) const
     {
         return std::make_tuple(point(s - m::_DA), point(s + m::_DA));
     }
 
-    int get_vertices(size_t node_id, id_type s, point_type *p = nullptr) const
+    int get_vertices(size_t node_id, mesh_entity_id_t s, point_type *p = nullptr) const
     {
 
         int num = m::get_adjacent_cells(VERTEX, node_id, s);
 
         if (p != nullptr)
         {
-            id_type neighbour[num];
+            mesh_entity_id_t neighbour[num];
 
             m::get_adjacent_cells(VERTEX, node_id, s, neighbour);
 
@@ -348,27 +314,28 @@ private:
 
 public:
 
-    virtual point_type point(id_type const &s) const
+    virtual point_type point(mesh_entity_id_t const &s) const
     {
         return std::move(map(m::point(s)));
     }
 
-    virtual point_type coordinates_local_to_global(id_type s, point_type const &x) const
+    virtual point_type coordinates_local_to_global(mesh_entity_id_t s, point_type const &x) const
     {
         return std::move(map(m::coordinates_local_to_global(s, x)));
     }
 
-    virtual point_type coordinates_local_to_global(std::tuple<id_type, point_type> const &t) const
+    virtual point_type coordinates_local_to_global(std::tuple<mesh_entity_id_t, point_type> const &t) const
     {
         return std::move(map(m::coordinates_local_to_global(t)));
     }
 
-    virtual std::tuple<id_type, point_type> coordinates_global_to_local(point_type const &x, int n_id = 0) const
+    virtual std::tuple<mesh_entity_id_t, point_type> coordinates_global_to_local(point_type const &x,
+                                                                                 int n_id = 0) const
     {
         return std::move(m::coordinates_global_to_local(inv_map(x), n_id));
     }
 
-    virtual id_type id(point_type const &x, int n_id = 0) const
+    virtual mesh_entity_id_t id(point_type const &x, int n_id = 0) const
     {
         return std::get<0>(m::coordinates_global_to_local(inv_map(x), n_id));
     }
@@ -379,7 +346,7 @@ private:
     std::vector<index_box_type> m_boundary_box_;
     std::vector<index_box_type> m_ghost_box_;
 
-}; // struct MeshBlock
+};//class MeshBlockStructured
 
-}}//namespace simpla//namespace mesh
-#endif //SIMPLA_BLOCK_H
+}}//namespace simpla { namespace mesh
+#endif //SIMPLA_MESH_MESHBLOCKSTRUCTURED_H

@@ -10,7 +10,7 @@
 
 #include <assert.h>
 #include "../gtl/type_traits.h"
-#include "../gtl/utilities/log.h"
+#include "../gtl/utilities/Log.h"
 #include "task_flow_base.h"
 
 namespace simpla { namespace task_flow

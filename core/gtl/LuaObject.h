@@ -20,9 +20,9 @@
 #include <tuple>
 #include <utility>
 #include <mutex>
-#include "log.h"
+#include "Log.h"
 #include "../type_cast.h"
-#include "lua_object_ext.h"
+#include "LuaObjectExt.h"
 
 extern "C"
 {
