@@ -7,8 +7,8 @@
 #ifndef SIMPLA_MESH_H
 #define SIMPLA_MESH_H
 
-#include "../../gtl/type_traits.h"
-#include "../../geometry/CoordinateSystem.h"
+#include "../gtl/type_traits.h"
+#include "../model/CoordinateSystem.h"
 
 namespace simpla { namespace mesh
 {
@@ -46,6 +46,22 @@ namespace simpla { namespace mesh
  *   @} */
 
 template<typename ...> class Mesh;
+
+typedef size_t mesh_entity_id_t;
+
+typedef nTuple<size_t, 3> index_type;
+
+typedef nTuple<Real, 3> point_type;
+
+typedef nTuple<Real, 3> vector_type;
+
+typedef std::tuple<point_type, point_type> box_type;
+
+typedef long difference_type;
+
+typedef nTuple<index_type, 3> index_tuple;
+
+typedef std::tuple<index_tuple, index_tuple> index_box_type;
 
 }}//namespace mesh}//namespace simpla
 

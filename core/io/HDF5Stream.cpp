@@ -23,7 +23,7 @@ extern "C"
 
 
 #include "../gtl/utilities/utilities.h"
-#include "../gtl/utilities/memory_pool.h"
+#include "../gtl/utilities/MemoryPool.h"
 
 #define H5_ERROR(_FUN_) if((_FUN_)<0){H5Eprint(H5E_DEFAULT, stderr); \
 RUNTIME_ERROR<<"\e[1;32m" <<"HDF5 Error:" <<__STRING(_FUN_) <<  "\e[1;37m"<<std::endl;}

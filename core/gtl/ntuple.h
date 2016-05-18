@@ -14,7 +14,7 @@
 #include <cstddef>
 #include <type_traits>
 
-#include "expression_template.h"
+#include "ExpressionTemplate.h"
 #include "macro.h"
 #include "mpl.h"
 #include "type_traits.h"
@@ -22,6 +22,8 @@
 
 
 namespace simpla
+{
+namespace gtl
 {
 
 /**
@@ -1006,6 +1008,7 @@ void swap(simpla::nTuple<T, N, M...> &l,
     }
 }
 
-}  // namespace std
+}
+}  // namespace simpla{namespace gtl{
 
 #endif  // CORE_GTL_NTUPLE_H_

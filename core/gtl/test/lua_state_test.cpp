@@ -9,7 +9,7 @@
 #include <string>
 #include <utility>
 
-#include "../utilities/lua_object.h"
+#include "../utilities/LuaObject.h"
 #include "../ntuple_ext.h"
 
 using namespace simpla;

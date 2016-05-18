@@ -6,8 +6,10 @@
 
 #include "Properties.h"
 
-namespace simpla
+namespace simpla { namespace gtl
 {
+
+
 std::ostream &Properties::print(std::ostream &os, int indent) const
 {
 
@@ -57,4 +59,4 @@ std::ostream &operator<<(std::ostream &os, Properties const &prop)
     return os;
 }
 
-};//namespace simpla
+}}// namespace simpla { namespace gtl

@@ -12,7 +12,7 @@
 #include <stddef.h>
 #include <memory>
 
-#include "../design_pattern/singleton_holder.h"
+#include "../design_pattern/SingletonHolder.h"
 
 namespace simpla
 {

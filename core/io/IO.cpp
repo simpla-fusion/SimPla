@@ -11,7 +11,7 @@
 #include <tuple>
 
 #include "../data_model/DataSet.h"
-#include "../gtl/design_pattern/singleton_holder.h"
+#include "../gtl/design_pattern/SingletonHolder.h"
 #include "HDF5Stream.h"
 
 namespace simpla { namespace io

@@ -11,11 +11,11 @@
 #include <iostream>
 #include <memory>
 #include "../parallel/Parallel.h"
-#include "../gtl/utilities/log.h"
+#include "../gtl/utilities/Log.h"
 #include "../gtl/macro.h"
 #include "../gtl/ntuple.h"
-#include "../geometry/CoordinateSystem.h"
-#include "../gtl/utilities/memory_pool.h"
+#include "../gtl/utilities/MemoryPool.h"
+#include "../model/CoordinateSystem.h"
 #include "../base/Attribute.h"
 #include "../base/Patch.h"
 #include "ManifoldTraits.h"

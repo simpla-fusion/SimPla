@@ -5,7 +5,7 @@
  */
 #include "XDMFIO.h"
 #include "../data_model/DataType.h"
-#include "../gtl/utilities/log.h"
+#include "../gtl/utilities/Log.h"
 
 namespace simpla { namespace io
 {

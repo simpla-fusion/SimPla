@@ -9,7 +9,7 @@
 
 #include "../../gtl/ntuple.h"
 #include "../../gtl/ntuple_ext.h"
-#include "../../gtl/utilities/log.h"
+#include "../../gtl/utilities/Log.h"
 #include "../../gtl/iterator/range.h"
 
 
@@ -19,7 +19,7 @@
 
 #include "manifold_traits.h"
 
-#include "../../gtl/utilities/log.h"
+#include "../../gtl/utilities/Log.h"
 
 #include "PreDefine.h"
 

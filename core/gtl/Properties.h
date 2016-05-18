@@ -5,8 +5,8 @@
  * @author salmon
  */
 
-#ifndef PROPERTIES_H_
-#define PROPERTIES_H_
+#ifndef SIMPLA_GTL_PROPERTIES_H_
+#define SIMPLA_GTL_PROPERTIES_H_
 
 #include <map>
 #include <string>
@@ -14,7 +14,7 @@
 #include "ntuple.h"
 #include "any.h"
 
-namespace simpla
+namespace simpla { namespace gtl
 {
 
 /**
@@ -184,6 +184,6 @@ void _NAME_(_TYPE_ const & v)   \
 _TYPE_ _NAME_()const{return m_##_NAME_##_;}                         \
 private: _TYPE_ m_##_NAME_##_;    public:
 /** @} */
-}  // namespace simpla
+}}  // namespace simpla
 
-#endif /* PROPERTIES_H_ */
+#endif /* SIMPLA_GTL_PROPERTIES_H_ */

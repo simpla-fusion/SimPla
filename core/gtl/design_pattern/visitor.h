@@ -10,7 +10,7 @@
 
 #include <string>
 #include <memory>
-#include "../utilities/log.h"
+#include "../utilities/Log.h"
 #include "../type_traits.h"
 
 namespace simpla

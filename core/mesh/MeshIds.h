@@ -12,11 +12,11 @@
 #include <limits>
 #include <tuple>
 
-#include "../../gtl/ntuple.h"
-#include "../../gtl/primitives.h"
-#include "../../gtl/iterator/block_iterator.h"
-#include "../../parallel/Parallel.h"
-#include "../ManifoldTraits.h"
+#include "../gtl/ntuple.h"
+#include "../gtl/primitives.h"
+#include "../gtl/IteratorBlock.h"
+#include "Mesh.h"
+#include "MeshEntity.h"
 
 namespace simpla { namespace mesh
 {
@@ -73,19 +73,8 @@ struct MeshIDs_
 
     typedef nTuple<id_type, ndims> id_tuple;
 
-
-    typedef nTuple<Real, ndims> point_type;
-
-    typedef nTuple<Real, ndims> vector_type;
-
-
-    typedef std::tuple<point_type, point_type> box_type;
-
     typedef long index_type;
 
-    typedef long difference_type;
-
-    typedef nTuple<index_type, ndims> index_tuple;
 
 //	typedef Real coordinate_type;
 
@@ -101,14 +90,12 @@ struct MeshIDs_
 
     static constexpr id_type OVERFLOW_FLAG = (1UL) << (ID_DIGITS - 1);
 
-    static constexpr id_type FULL_OVERFLOW_FLAG = OVERFLOW_FLAG
-                                                  | (OVERFLOW_FLAG << ID_DIGITS) |
-                                                  (OVERFLOW_FLAG << (ID_DIGITS * 2));
+    static constexpr id_type FULL_OVERFLOW_FLAG =
+            OVERFLOW_FLAG | (OVERFLOW_FLAG << ID_DIGITS) | (OVERFLOW_FLAG << (ID_DIGITS * 2));
 
     static constexpr id_type INDEX_ZERO = (1UL) << (ID_DIGITS - 2);
 
-    static constexpr id_type ID_ZERO = INDEX_ZERO | (INDEX_ZERO << ID_DIGITS)
-                                       | (INDEX_ZERO << (ID_DIGITS * 2));
+    static constexpr id_type ID_ZERO = INDEX_ZERO | (INDEX_ZERO << ID_DIGITS) | (INDEX_ZERO << (ID_DIGITS * 2));
 
     static constexpr Real EPSILON = 1.0 / static_cast<Real>(INDEX_ZERO);
 
@@ -125,16 +112,12 @@ struct MeshIDs_
 
 
     static constexpr id_type _DI = _D;
-
     static constexpr id_type _DJ = _D << (ID_DIGITS);
-
     static constexpr id_type _DK = _D << (ID_DIGITS * 2);
-
     static constexpr id_type _DA = _DI | _DJ | _DK;
 
 
     static constexpr id_type PRIMARY_ID_MASK_ = ID_MASK & (~SUB_ID_MASK);
-
     static constexpr id_type PRIMARY_ID_MASK = PRIMARY_ID_MASK_
                                                | (PRIMARY_ID_MASK_ << ID_DIGITS)
                                                | (PRIMARY_ID_MASK_ << (ID_DIGITS * 2));
@@ -185,14 +168,14 @@ struct MeshIDs_
 
     static constexpr point_type m_id_to_coordinates_shift_[] = {
 
-            {0, 0, 0},            // 000
-            {_R, 0, 0},           // 001
-            {0, _R, 0},           // 010
-            {0, 0, _R},           // 011
+            {0,  0,  0},            // 000
+            {_R, 0,  0},           // 001
+            {0,  _R, 0},           // 010
+            {0,  0,  _R},           // 011
             {_R, _R, 0},          // 100
-            {_R, 0, _R},          // 101
-            {0, _R, _R},          // 110
-            {0, _R, _R},          // 111
+            {_R, 0,  _R},          // 101
+            {0,  _R, _R},          // 110
+            {0,  _R, _R},          // 111
 
     };
 
@@ -210,14 +193,14 @@ struct MeshIDs_
 
     static constexpr int m_id_to_iform_[] = { //
 
-            VERTEX, // 000
-            EDGE, // 001
-            EDGE, // 010
-            FACE, // 011
-            EDGE, // 100
-            FACE, // 101
-            FACE, // 110
-            VOLUME // 111
+            0, // 000
+            1, // 001
+            1, // 010
+            2, // 011
+            1, // 100
+            2, // 101
+            2, // 110
+            3 // 111
     };
 
     static constexpr id_type miminal_vertex(id_type s)
@@ -304,8 +287,8 @@ struct MeshIDs_
     static point_type point(id_type const &s)
     {
         return point_type{static_cast<Real>(static_cast<index_type>(unpack_id(s, 0))),
-                static_cast<Real>(static_cast<index_type>(unpack_id(s, 1))),
-                static_cast<Real>(static_cast<index_type>(unpack_id(s, 2)))
+                          static_cast<Real>(static_cast<index_type>(unpack_id(s, 1))),
+                          static_cast<Real>(static_cast<index_type>(unpack_id(s, 2)))
         };
     }
 
@@ -395,7 +378,7 @@ struct MeshIDs_
      * EDGE2 100--|----------101  |
      *        | m |           |   |
      *        |  010----------|--011 PIXEL2
-     *        |  / EDGE1        |  /
+     *        |  / EDGE1      |  /
      *        | /             | /
      *        |/              |/
      *       000-------------001---> x
@@ -672,7 +655,7 @@ struct MeshIDs_
                                     _DA - _DI    //
                             },
                             /* 011*/
-                            {_DA},
+                            {       _DA},
                             /* 100*/
                             {//
                                     _DA - _DI,         //
@@ -773,15 +756,15 @@ struct MeshIDs_
         return m_adjacent_cell_num_[IFORM][nodeid];
     }
 
-    struct iterator : public block_iterator<index_type, ndims + 1>
+    struct iterator : public gtl::IteratorBlock<index_type, ndims + 1>
     {
     private:
-        typedef block_iterator<index_type, ndims + 1> base_type;
+        typedef gtl::IteratorBlock<index_type, ndims + 1> base_type;
 
         int m_iform_;
 
     public:
-        iterator() : base_type(), m_iform_(VERTEX) { }
+        iterator() : base_type(), m_iform_(0) { }
 
         iterator(id_type s, id_type b, id_type e)
                 : base_type(unpack_index(s), unpack_index(b), unpack_index(e)), m_iform_(iform(s))
@@ -802,7 +785,7 @@ struct MeshIDs_
         }
 
         template<typename T0, typename T1, typename T2>
-        iterator(T0 const &pself, T1 const &pmin, T2 const &pmax, int IFORM = VERTEX) :
+        iterator(T0 const &pself, T1 const &pmin, T2 const &pmax, int IFORM = 0) :
                 m_iform_(IFORM)
         {
             nTuple<index_type, ndims + 1> self, min, max;
@@ -814,7 +797,7 @@ struct MeshIDs_
 
             min[ndims] = 0;
 
-            max[ndims] = (IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3;
+            max[ndims] = (IFORM == 0 || IFORM == 3) ? 1 : 3;
 
             base_type(self, min, max).swap(*this);
         }
@@ -884,7 +867,7 @@ struct MeshIDs_
 
         // constructors
 
-        range_type(index_tuple const &b, index_tuple const &e, int IFORM = VERTEX)
+        range_type(index_tuple const &b, index_tuple const &e, int IFORM = 0)
                 : m_iform_(IFORM), m_min_(b), m_max_(e)
         {
             m_grain_size_ = 1;
@@ -903,7 +886,7 @@ struct MeshIDs_
         }
 
         template<typename T0, typename T1, typename T2>
-        range_type(T0 const &b, T1 const &e, index_tuple const &grain_size, int IFORM = VERTEX)
+        range_type(T0 const &b, T1 const &e, index_tuple const &grain_size, int IFORM = 0)
                 : m_iform_(IFORM), m_min_(b), m_max_(e), m_grain_size_(grain_size)
         {
         }
@@ -973,7 +956,7 @@ struct MeshIDs_
 
         size_t size() const
         {
-            return ((m_iform_ == VERTEX || m_iform_ == VOLUME) ? 1 : 3) * NProduct(m_max_ - m_min_);
+            return ((m_iform_ == 0 || m_iform_ == 3) ? 1 : 3) * NProduct(m_max_ - m_min_);
         }
 
         // access
@@ -1007,7 +990,7 @@ struct MeshIDs_
 //    typedef Range<iterator> range_type;
 
     template<typename T0, typename T1>
-    static range_type make_range(T0 const &min, T1 const &max, int iform = VERTEX)
+    static range_type make_range(T0 const &min, T1 const &max, int iform = 0)
     {
         return range_type(min, max, iform);
     }

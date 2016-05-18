@@ -10,25 +10,28 @@
 #include <cstdlib>
 #include <cmath>
 #include <iterator>
-#include "../ntuple.h"
-#include "../type_traits_ext.h"
+#include "ntuple.h"
+#include "type_traits_ext.h"
 
-namespace simpla
+namespace simpla { namespace gtl
 {
 
-
 template<typename TV, int NDIMS>
-struct block_iterator : public std::iterator<
+struct IteratorBlock : public std::iterator<
         typename std::random_access_iterator_tag,
         nTuple<TV, NDIMS>, ptrdiff_t>
 {
 private:
-    typedef std::iterator<typename std::random_access_iterator_tag,
-            nTuple<TV, NDIMS>, ptrdiff_t> base_type;
+    typedef std::iterator<typename std::random_access_iterator_tag, nTuple<TV, NDIMS>, ptrdiff_t>
+            base_type;
 
-    typedef block_iterator<TV, NDIMS> this_type;
+    typedef IteratorBlock<TV, NDIMS> this_type;
 
     static constexpr int ndims = NDIMS;
+
+    friend Range<this_type>;
+
+    nTuple<TV, NDIMS> m_min_, m_max_, m_self_;
 
 
 public:
@@ -36,29 +39,29 @@ public:
     using typename base_type::value_type;
     using typename base_type::difference_type;
 
-    block_iterator() : m_min_(), m_max_(m_min_), m_self_(m_min_) { }
+    IteratorBlock() : m_min_(), m_max_(m_min_), m_self_(m_min_) { }
 
-    block_iterator(nTuple<TV, NDIMS> const &self, nTuple<TV, NDIMS> const &min, nTuple<TV, NDIMS> const &max) :
+    IteratorBlock(nTuple<TV, NDIMS> const &self, nTuple<TV, NDIMS> const &min, nTuple<TV, NDIMS> const &max) :
             m_min_(min), m_max_(max), m_self_(self)
     {
     }
 
-    block_iterator(nTuple<TV, NDIMS> const &min, nTuple<TV, NDIMS> const &max) :
+    IteratorBlock(nTuple<TV, NDIMS> const &min, nTuple<TV, NDIMS> const &max) :
             m_min_(min), m_max_(max), m_self_(min)
     {
     }
 
-    block_iterator(this_type const &other) :
+    IteratorBlock(this_type const &other) :
             m_min_(other.m_min_), m_max_(other.m_max_), m_self_(other.m_self_)
     {
     }
 
-    block_iterator(this_type &&other) :
+    IteratorBlock(this_type &&other) :
             m_min_(other.m_min_), m_max_(other.m_max_), m_self_(other.m_self_)
     {
     }
 
-    ~block_iterator() { }
+    ~IteratorBlock() { }
 
     this_type &operator=(this_type const &other)
     {
@@ -169,9 +172,6 @@ public:
     bool operator>=(this_type const &other) const { return (*this - other) >= 0; }
 
 
-    nTuple<TV, NDIMS> m_min_, m_max_, m_self_;
-
-
     ptrdiff_t advance(ptrdiff_t n = 1)
     {
         for (int i = ndims - 1; i > 0; --i)
@@ -208,6 +208,7 @@ public:
 
 };
 
-}//namespace simpla
+
+}}// namespace simpla{namespace gtl{
 
 #endif //SIMPLA_BLOCK_ITERATOR_H

@@ -15,7 +15,7 @@
 #include <utility>
 
 #include "../type_cast.h"
-#include "lua_object.h"
+#include "LuaObject.h"
 
 namespace simpla
 {

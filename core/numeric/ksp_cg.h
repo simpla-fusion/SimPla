@@ -9,7 +9,7 @@
 #define KSP_CG_H_
 
 #include "fetl/fetl.h"
-#include "../gtl/utilities/log.h"
+#include "../gtl/utilities/Log.h"
 #include <iostream>
 
 namespace simpla

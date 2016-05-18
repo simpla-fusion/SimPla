@@ -16,69 +16,84 @@
 #include <type_traits>
 
 #include "../type_traits.h"
+#include "ntuple.h"
 
-namespace simpla
+namespace simpla { namespace gtl
 {
 
-//namespace tags
-template<typename ...> struct BlockRange;
+template<typename ...> struct Range;
 
+template<typename T, int NDIMS> class IteratorBlock;
 
 // Base on Range concept in TBB
 
-template<typename Iterator>
-class BlockRange<Iterator>
+template<typename T, int NDIMS>
+class Range<IteratorBlock<T, NDIMS>>
 {
 public:
 
-    // types
+// types
 
     typedef size_t size_type;
 
-    typedef Iterator const_iterator;
+    typedef IteratorBlock<T, NDIMS> iterator;
 
-    // constructors
-    BlockRange(const_iterator b, const_iterator e, size_type grain_size = 1)
-            : m_begin_(b), m_end_(e), m_grain_size_(grain_size)
+// constructors
+    Range(const_iterator b, const_iterator e, size_type grain_size = 1) :
+            m_begin_(b), m_end_(e), m_grain_size_(grain_size)
     {
 
     }
 
-    BlockRange(BlockRange &r, tags::split) :
-            m_begin_(r.m_begin_ + r.size() / 2), m_end_(r.m_end_), m_grain_size_(r.grainsize())
+    Range(Range &r, tags::split) : m_begin_(r.m_begin_ + r.size() / 2), m_end_(r
+                                                                                       .m_end_), m_grain_size_(r.
+
+            grainsize()
+
+    )
     {
-        r.m_end_ = m_begin_;
+        r.
+                m_end_ = m_begin_;
     };
 
-    BlockRange(BlockRange &r, tags::proportional_split &proportion) :
-            m_begin_(r.m_begin_ + r.size() * proportion.left() / (proportion.left() + proportion.right())),
+    Range(Range &r, tags::proportional_split &proportion) :
+            m_begin_(r.m_begin_ + r.
+
+                    size() * proportion.
+
+                    left() / (proportion.
+
+                    left() + proportion.
+
+                    right())),
             m_end_(r.m_end_),
             m_grain_size_(r.grainsize())
     {
-        r.m_end_ = m_begin_;
+        r.
+                m_end_ = m_begin_;
     };
 
-    // Proportional split is enabled
+// Proportional split is enabled
     static const bool is_splittable_in_proportion = true;
 
-    // capacity
+// capacity
     size_type size() const { return traits::distance(m_begin_, m_end_); };
 
     bool empty() const { return m_begin_ == m_end_; };
 
-    // access
+// access
     size_type grainsize() const { return m_grain_size_; }
 
     bool is_divisible() const { return size() > grainsize(); }
 
-    // iterators
-    const_iterator begin() const { return m_begin_; }
+// iterators
+    iterator begin() const { return m_begin_; }
 
-    const_iterator end() const { return m_end_; }
+    iterator end() const { return m_end_; }
 
 private:
 
-    const_iterator m_begin_, m_end_;
+    nTuple<T, NDIMS> m_begin_, m_end_, m_start_, m_shape_;
 
     size_type m_grain_size_;
 
@@ -214,8 +229,7 @@ private:
 //
 //    };
 
-};
-
-}//namespace simpla
+};//Range<IteratorBlock>
+}}//namespace simpla{namespace gtl{
 
 #endif //SIMPLA_BLOCK_RANGE_H

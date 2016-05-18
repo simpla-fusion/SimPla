@@ -17,7 +17,7 @@
 #include "../../gtl/macro.h"
 #include "../../gtl/primitives.h"
 #include "../../gtl/type_traits.h"
-#include "../../gtl/utilities/log.h"
+#include "../../gtl/utilities/Log.h"
 #include "../../manifold/ManifoldTraits.h"
 #include "../../field/FieldDense.h"
 #include "../../field/FieldTraits.h"

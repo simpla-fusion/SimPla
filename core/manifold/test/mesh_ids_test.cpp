@@ -8,7 +8,7 @@
 
 #include "../../gtl/ntuple.h"
 #include "../../gtl/ntuple_ext.h"
-#include "../../gtl/utilities/log.h"
+#include "../../gtl/utilities/Log.h"
 #include "../mesh/mesh_ids.h"
 #include "Parallel.h"
 

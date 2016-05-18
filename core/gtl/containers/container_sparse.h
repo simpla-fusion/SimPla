@@ -10,7 +10,7 @@
 
 #include <mutex>
 #include <cstring>
-#include "../utilities/log.h"
+#include "../utilities/Log.h"
 #include "../utilities/sp_complex.h"
 
 namespace simpla {

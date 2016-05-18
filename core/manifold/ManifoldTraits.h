@@ -17,22 +17,10 @@
 #include <type_traits>
 
 #include "../gtl/type_traits.h"
-#include "../geometry/CoordinateSystem.h"
+#include "../model/CoordinateSystem.h"
 
 namespace simpla
 {
-
-
-enum ManifoldTypeID
-{
-    VERTEX = 0,
-
-    EDGE = 1,
-
-    FACE = 2,
-
-    VOLUME = 3
-};
 
 
 template<typename ...> struct Topology;

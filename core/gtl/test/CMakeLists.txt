@@ -10,7 +10,7 @@
 #target_link_libraries(properties_test utilities   parallel   physics  utilities)
 
 
-simpla_test(log_test ../utilities/log.cpp ../utilities/parse_command_line.cpp)
+simpla_test(log_test ../utilities/Log.cpp ../utilities/parse_command_line.cpp)
 #target_link_libraries(log_test      )
 
 #

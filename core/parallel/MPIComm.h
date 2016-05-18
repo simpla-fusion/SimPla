@@ -18,7 +18,7 @@
 
 
 #include "../gtl/ntuple.h"
-#include "../gtl/design_pattern/singleton_holder.h"
+#include "../gtl/design_pattern/SingletonHolder.h"
 #include "../gtl/utilities/utilities.h"
 
 namespace simpla { namespace parallel

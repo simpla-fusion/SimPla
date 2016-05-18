@@ -8,7 +8,7 @@
 #ifndef CORE_GEOMETRY_GEO_OBJECT_H_
 #define CORE_GEOMETRY_GEO_OBJECT_H_
 
-#include "../gtl/utilities/log.h"
+#include "../gtl/utilities/Log.h"
 #include "../gtl/ntuple.h"
 #include "../gtl/type_traits.h"
 

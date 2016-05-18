@@ -14,7 +14,7 @@
 #include "../gtl/ntuple.h"
 #include "../gtl/primitives.h"
 #include "../gtl/Properties.h"
-#include "../gtl/utilities/log.h"
+#include "../gtl/utilities/Log.h"
 #include "../base/Object.h"
 
 namespace simpla { namespace data_model

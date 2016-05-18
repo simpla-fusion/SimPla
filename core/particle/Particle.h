@@ -13,8 +13,8 @@
 #include <map>
 
 #include "../parallel/Parallel.h"
-#include "../gtl/design_pattern/singleton_holder.h"
-#include "../gtl/utilities/memory_pool.h"
+#include "../gtl/design_pattern/SingletonHolder.h"
+#include "../gtl/utilities/MemoryPool.h"
 #include "../base/DataObject.h"
 
 namespace simpla { template<typename ...> class Field; }

@@ -5,7 +5,7 @@
  *      Author: salmon
  */
 
-#include "memory_pool.h"
+#include "MemoryPool.h"
 
 #include <stddef.h>
 #include <map>
@@ -13,8 +13,8 @@
 #include <new>
 #include <tuple>
 
-#include "../design_pattern/singleton_holder.h"
-#include "log.h"
+#include "../design_pattern/SingletonHolder.h"
+#include "Log.h"
 
 namespace simpla
 {

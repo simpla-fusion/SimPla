@@ -9,7 +9,7 @@
 #include <iomanip>
 #include <string>
 
-#include "log.h"
+#include "Log.h"
 
 namespace simpla {
 

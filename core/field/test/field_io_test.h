@@ -10,7 +10,7 @@
 
 #include <gtest/gtest.h>
 
-#include "../../gtl/utilities/log.h"
+#include "../../gtl/utilities/Log.h"
 #include "../../io/IO.h"
 #include "manifold_traits.h"
 
