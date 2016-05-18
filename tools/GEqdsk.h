@@ -9,11 +9,11 @@
 #define GEQDSK_H_
 
 #include <iostream>
-#include "../gtl/utilities/log.h"
-#include "../gtl/ntuple.h"
-#include "../gtl/primitives.h"
-#include "../gtl/type_traits.h"
-#include "../geometry/GeoObject.h"
+#include "../core/gtl/utilities/log.h"
+#include "../core/gtl/ntuple.h"
+#include "../core/gtl/primitives.h"
+#include "../core/gtl/type_traits.h"
+#include "../core/geometry/GeoObject.h"
 
 namespace simpla
 {

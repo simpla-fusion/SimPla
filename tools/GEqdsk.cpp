@@ -15,16 +15,16 @@
 #include <memory>
 #include <utility>
 
-#include "../physics/Constants.h"
-#include "../gtl/utilities/log.h"
-#include "../gtl/utilities/pretty_stream.h"
-#include "../gtl/ntuple.h"
-#include "../gtl/ntuple_ext.h"
+#include "../core/physics/Constants.h"
+#include "../core/gtl/utilities/log.h"
+#include "../core/gtl/utilities/pretty_stream.h"
+#include "../core/gtl/ntuple.h"
+#include "../core/gtl/ntuple_ext.h"
 
 
-#include "../geometry/polygon.h"
-#include "../numeric/find_root.h"
-#include "../numeric/interpolation.h"
+#include "../core/geometry/polygon.h"
+#include "../core/numeric/find_root.h"
+#include "../core/numeric/interpolation.h"
 
 #ifndef NO_XDMF
 
