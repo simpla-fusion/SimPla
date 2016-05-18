@@ -36,4 +36,4 @@ SET(MESHKIT_EXTERNAL_INCLUDES "    ")
 # Override MESHKIT_LIBDIR and MESHKIT_INCLUDES from above with the correct
 # values for the installed MESHKIT.
 
-SET(MESHKIT_INCLUDE_DIRS "-I/pkg/sigma/1.2/include")
+    SET(MESHKIT_INCLUDE_DIRS "-I/pkg/sigma/1.2/include")

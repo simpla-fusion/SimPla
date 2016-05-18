@@ -17,7 +17,7 @@
 //#include "../../core/particle/pre_define/PICBoris.h"
 #include "../../core/particle/pre_define/PICGyro.h"
 
-#include "../../core/model/GEqdsk.h"
+#include "../../tools/GEqdsk.h"
 #include "../../core/model/Constraint.h"
 #include "../../core/io/XDMFStream.h"
 #include "../../core/particle/ParticleGenerator.h"

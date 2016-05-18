@@ -21,7 +21,7 @@
 #include "rect_mesh.h"
 #include "PreDefine.h"
 
-#include "../../core/model/GEqdsk.h"
+#include "../../tools/GEqdsk.h"
 
 using namespace simpla;
 
