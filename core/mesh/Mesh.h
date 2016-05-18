@@ -10,8 +10,7 @@
 #include "../gtl/type_traits.h"
 #include "../model/CoordinateSystem.h"
 
-namespace simpla { namespace mesh
-{
+namespace simpla { namespace mesh {
 /**
  *  @ingroup diff_geo
  *  @addtogroup  mesh mesh
@@ -45,7 +44,8 @@ namespace simpla { namespace mesh
  *
  *   @} */
 
-template<typename ...> class Mesh;
+template<typename ...>
+class Mesh;
 
 typedef size_t mesh_entity_id_t;
 
@@ -63,10 +63,18 @@ typedef nTuple<index_type, 3> index_tuple;
 
 typedef std::tuple<index_tuple, index_tuple> index_box_type;
 
+template<typename ...>
+struct Mesh
+{
+    struct Range
+    {
+        struct iterator;
+    };
+};
+
 }}//namespace mesh}//namespace simpla
 
-namespace simpla { namespace geometry { namespace traits
-{
+namespace simpla { namespace geometry { namespace traits {
 
 template<typename ...T>
 struct metric_type<::simpla::mesh::Mesh<T...>>
