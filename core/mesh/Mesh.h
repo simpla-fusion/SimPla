@@ -7,15 +7,25 @@
 #ifndef SIMPLA_MESH_H
 #define SIMPLA_MESH_H
 
+
+#include "../gtl/ntuple.h"
 #include "../gtl/type_traits.h"
 #include "../model/CoordinateSystem.h"
+#include "../base/Object.h"
 
-namespace simpla { namespace mesh {
+
+namespace simpla { namespace mesh
+{
 /**
  *  @ingroup diff_geo
  *  @addtogroup  mesh mesh
  *  @{
- *  @brief   connection between discrete points
+ *  Mesh<>
+ *  Concept:
+ *  - Mesh<> know local information of topology and vertex coordinates, and
+ *  - only explicitly store vertex adjacencies;
+ *  - Mesh<> do not know global coordinates, topology;
+ *  - Mesh<> do not know metric;
  *
  *  ## Summary
  *
@@ -32,66 +42,85 @@ namespace simpla { namespace mesh {
  * - 6 and 12 nodes  infinite prisms (InfPrism6, InfPrism12) ??
  *
  *
- * ## Note
- * - the width of unit cell is 1;
- *
- *
- *  Member type	 				    | Semantics
- *  --------------------------------|--------------
- *  point_type						| DataType of configuration space point (coordinates i.e. (x,y,z)
- *  id_type						    | DataType of grid point's index
  *
  *
  *   @} */
 
-template<typename ...>
-class Mesh;
 
-typedef size_t mesh_entity_id_t;
 
-typedef nTuple<size_t, 3> index_type;
+enum EntityType
+{
+    VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3
 
-typedef nTuple<Real, 3> point_type;
+//    TRIANGLE = (3 << 2) | 2,
+//
+//    QUADRILATERAL = (4 << 2) | 2,
+//
+//    // place holder
+//
+//    POLYGON = ((-1) << 2) | 2,
+//
+//    // custom polygon
+//
+//    TETRAHEDRON = (6 << 2) | 3,
+//    PYRAMID,
+//    PRISM,
+//    KNIFE,
+//
+//    HEXAHEDRON = MAX_POLYGON + 12,
+//    // place holder
+//            POLYHEDRON = MAX_POLYGON + (1 << 5),
+//    // custom POLYHEDRON
+//
+//    MAX_POLYHEDRON = MAX_POLYGON + (1 << 6)
 
-typedef nTuple<Real, 3> vector_type;
+};
 
-typedef std::tuple<point_type, point_type> box_type;
+typedef size_t id_type; //!< Data type  of entity id
 
-typedef long difference_type;
+typedef gtl::nTuple<Real, 3> point_type; //!< DataType of configuration space point (coordinates i.e. (x,y,z) )
 
-typedef nTuple<index_type, 3> index_tuple;
+typedef gtl::nTuple<Real, 3> vector_type;
+
+typedef std::tuple<point_type, point_type> box_type; //! two corner of rectangle (or hexahedron ) , <lower ,upper>
+
+typedef long index_type; //!< Data type of vertex's index , i.e. i,j
+
+typedef long difference_type; //!< Data type of the difference between indices,i.e.  s = i - j
+
+typedef gtl::nTuple<index_type, 3> index_tuple;
 
 typedef std::tuple<index_tuple, index_tuple> index_box_type;
 
-template<typename ...>
-struct Mesh
+class EntityIterator;
+
+class EntityRange;
+
+class ViewBase;
+
+struct MeshBase : public base::Object
 {
-    struct Range
-    {
-        struct iterator;
-    };
+    unsigned long status_tag;
+
+    virtual std::shared_ptr<ViewBase> view() = 0;
+
+    virtual box_type boundary_box() = 0;
+
+    virtual size_t number_of_entities(EntityType e = VERTEX) = 0;
+
+    virtual size_t number_of_entities_in_memory(EntityType e = VERTEX) = 0;
+
+    virtual EntityRange range(EntityType e = VERTEX) = 0;
+
+    virtual EntityRange ghosts(EntityType e = VERTEX) = 0;
+
 };
+
+template<typename ...> struct Mesh;
+
 
 }}//namespace mesh}//namespace simpla
 
-namespace simpla { namespace geometry { namespace traits {
 
-template<typename ...T>
-struct metric_type<::simpla::mesh::Mesh<T...>>
-{
-    typedef ::simpla::traits::unpack_t<0, T...> type;
-
-};
-template<typename ...T>
-struct coordinate_system_type<::simpla::mesh::Mesh<T...>>
-{
-    typedef coordinate_system_t<metric_t<::simpla::mesh::Mesh<T...> >> type;
-
-};
-
-
-}}//namespace geometry{namespace traits{
-
-}//namespace simpla
 
 #endif //SIMPLA_MESH_H

@@ -10,14 +10,11 @@
 
 #include <iostream>
 #include <memory>
-#include "../parallel/Parallel.h"
-#include "../gtl/utilities/Log.h"
+#include "../gtl/Log.h"
 #include "../gtl/macro.h"
 #include "../gtl/ntuple.h"
-#include "../gtl/utilities/MemoryPool.h"
+
 #include "../model/CoordinateSystem.h"
-#include "../base/Attribute.h"
-#include "../base/Patch.h"
 #include "ManifoldTraits.h"
 
 
@@ -132,13 +129,11 @@ namespace simpla
 template<typename TMesh, template<typename> class ...Policies>
 class Manifold
         : public TMesh,
-          public Policies<TMesh> ...,
-          public std::enable_shared_from_this<Manifold<TMesh, Policies...> >
+          public Policies<TMesh> ...
 {
     typedef Manifold<TMesh, Policies ...> this_type;
 
 public:
-    HAS_PROPERTIES;
 
     typedef TMesh mesh_type;
 
@@ -175,7 +170,7 @@ public:
 
     virtual bool is_a(std::type_info const &info) const { return typeid(this_type) == info || TMesh::is_a(info); }
 
-    virtual std::string get_class_name() const { return "Manifold< ... >"; }
+    virtual std::string get_class_name() const { return "Manifold<" + mesh_type::get_class_name() + " ... >"; }
 
     virtual void deploy()
     {
@@ -186,139 +181,46 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent = 0) const
     {
-        os << std::setw(indent + 1) << " " << "Mesh = {";
+//        os << std::setw(indent + 1) << " " << "Mesh = {";
+//
+//        os << std::setw(indent + 1) << " dt = " << m_dt_ << "," << std::endl;
+//
+//
+//        TMesh::print(os, indent + 1);
+//        properties().print(os, indent + 1);
+//
+//        os << "}  -- Mesh " << std::endl;
 
-        os << std::setw(indent + 1) << " dt = " << m_dt_ << "," << std::endl;
-
-
-        TMesh::print(os, indent + 1);
-        properties().print(os, indent + 1);
-
-        os << "}  -- Mesh " << std::endl;
-
+        mesh_type::print(os, indent);
         return os;
     }
 
 
-    virtual data_model::DataSet grid_vertices() const
-    {
-        auto ds = this->storage_policy::template data_set<point_type, VERTEX>();
-
-        ds.data = sp_alloc_memory(ds.memory_space.size() * sizeof(point_type));
-
-        point_type *p = reinterpret_cast<point_type *>(ds.data.get());
-
-        parallel::parallel_for(
-                this->template range<VERTEX>(),
-                [&](range_type const &r)
-                {
-                    for (auto const &s: r)
-                    {
-                        p[this->hash(s)] = this->map_to_cartesian(this->point(s));
-                    }
-                }
-        );
-
-        return std::move(ds);
-
-    };
-
-
-    void next_time_step() { m_time_ += m_dt_; }
-
-    double time() const { return m_time_; }
-
-    void time(double t) { m_time_ = t; }
-
-    double dt() const { return m_dt_; }
-
-    void dt(double p_dt) { m_dt_ = p_dt; }
-
-
-private:
-    double m_dt_;
-    double m_time_;
-
-
-public:
-
-    template<typename TV, int IFORM> using Attribute=base::Attribute<TV, IFORM, this_type>;
-
-    typedef base::AttributeEntity<this_type> AttributeEntity;
-private:
-
-    typedef std::map<std::string, std::weak_ptr<AttributeEntity>> attribute_holder_type;
-    attribute_holder_type m_attributes_;
-
-public:
-
-    template<typename TV, int IFORM>
-    std::shared_ptr<Attribute<TV, IFORM>> get_attribute() const
-    {
-        return create_attribute<TV, IFORM>();
-    }
-
-    template<typename TV, int IFORM>
-    std::shared_ptr<Attribute<TV, IFORM>> get_attribute(std::string const &s_name = "")
-    {
-        auto it = m_attributes_.find(s_name);
-
-        if (it == m_attributes_.end())
-        {
-            return create_attribute<TV, IFORM>(s_name);
-        }
-        else if (it->second.lock()->is_a(typeid(Attribute<TV, IFORM>)))
-        {
-            return std::dynamic_pointer_cast<Attribute<TV, IFORM>>(it->second.lock());
-        }
-        else
-        {
-            return nullptr;
-        }
-
-    }
-
-    template<typename TV, int IFORM>
-    std::shared_ptr<Attribute<TV, IFORM>> create_attribute(std::string const &s_name = "")
-    {
-        auto res = std::make_shared<Attribute<TV, IFORM>>(*this, s_name);
-
-        res->properties()["Name"] = s_name;
-
-        if (s_name != "") { enroll(s_name, std::dynamic_pointer_cast<AttributeEntity>(res)); }
-
-        return res;
-    }
-
-    template<typename TV, int IFORM>
-    std::shared_ptr<Attribute<TV, IFORM>> create_attribute() const
-    {
-        auto res = std::make_shared<Attribute<TV, IFORM>>(*this);
-
-        return res;
-    }
-
-    template<typename TF>
-    void enroll(std::string const &name, std::shared_ptr<TF> p)
-    {
-        m_attributes_.insert(std::make_pair(name, std::dynamic_pointer_cast<AttributeEntity>(p)));
-    };
-
-    attribute_holder_type &attributes() { return m_attributes_; };
-
-    attribute_holder_type const &attributes() const { return m_attributes_; };
-
-//    std::shared_ptr<this_type> refinement(int ratio, box_type const &box) const
+//    virtual data_model::DataSet grid_vertices() const
 //    {
-//        auto res = std::make_shared<this_type>(*this);
-//        auto idx_box = res->index_box(box);
-//        res->box(box);
-//        res->dt(dt() / ratio);
-//        res->dimensions((std::get<1>(idx_box) - std::get<0>(idx_box)) * ratio);
-//        res->deploy();
-//        return res;
-//    }
-//    typedef typename this_type::patch_policy patch_policy;
+//        auto ds = this->storage_policy::template data_set<point_type, VERTEX>();
+//
+//        ds.data = sp_alloc_memory(ds.memory_space.size() * sizeof(point_type));
+//
+//        point_type *p = reinterpret_cast<point_type *>(ds.data.get());
+//
+//        parallel::parallel_for(
+//                this->template range<VERTEX>(),
+//                [&](range_type const &r)
+//                {
+//                    for (auto const &s: r)
+//                    {
+//                        p[this->hash(s)] = this->map_to_cartesian(this->point(s));
+//                    }
+//                }
+//        );
+//
+//        return std::move(ds);
+//
+//    };
+
+
+
 
 
 }; //class Manifold

@@ -10,31 +10,31 @@ namespace simpla { namespace mesh
 {
 enum MeshEntity
 {
-    VERTEX = 000, EDGE = 001,
+    VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3
 
-    TRIANGLE = 3,
-
-    QUADRILATERAL = 4,
-
-    // place holder
-
-    POLYGON = 1 << 5,
-
-    // custom polygon
-
-    MAX_POLYGON = 1 << 6,
-
-    TETRAHEDRON = MAX_POLYGON + 6,
-    PYRAMID,
-    PRISM,
-    KNIFE,
-
-    HEXAHEDRON = MAX_POLYGON + 12,
-    // place holder
-            POLYHEDRON = MAX_POLYGON + (1 << 5),
-    // custom POLYHEDRON
-
-    MAX_POLYHEDRON = MAX_POLYGON + (1 << 6)
+//    TRIANGLE = (3 << 2) | 2,
+//
+//    QUADRILATERAL = (4 << 2) | 2,
+//
+//    // place holder
+//
+//    POLYGON = ((-1) << 2) | 2,
+//
+//    // custom polygon
+//
+//
+//
+//    TETRAHEDRON = (6 << 2) | 3,
+//    PYRAMID,
+//    PRISM,
+//    KNIFE,
+//
+//    HEXAHEDRON = MAX_POLYGON + 12,
+//    // place holder
+//            POLYHEDRON = MAX_POLYGON + (1 << 5),
+//    // custom POLYHEDRON
+//
+//    MAX_POLYHEDRON = MAX_POLYGON + (1 << 6)
 
 };
 

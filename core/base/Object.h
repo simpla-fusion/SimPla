@@ -12,6 +12,7 @@
 #include <stddef.h> //for size_t
 #include <memory>
 #include  "LifeClick.h"
+#include <boost/uuid/uuid.hpp>
 
 namespace simpla { namespace base
 {
@@ -98,6 +99,9 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent) const;
 
+    boost::uuids::uuid uuid() const { return m_uuid_; }
+
+    bool operator==(Object const &other) { return m_uuid_ == other.m_uuid_; }
     /**
      *  @name concept lockable
      *  @{
@@ -111,6 +115,8 @@ public:
 
 private:
     std::mutex m_mutex_;
+    boost::uuids::uuid m_uuid_;
+
     /** @} */
 public:
     /**

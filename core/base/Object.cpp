@@ -6,14 +6,20 @@
 #include <iomanip>
 #include <ostream>
 #include "Object.h"
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
 
 namespace simpla { namespace base
 {
-Object::Object() { this->touch(); };
+Object::Object() : m_uuid_(boost::uuids::random_generator()())
+{
+    this->touch();
 
-Object::Object(Object &&other) : m_click_(other.m_click_) { };
+};
 
-Object::Object(Object const &) { this->touch(); };
+Object::Object(Object &&other) : m_click_(other.m_click_), m_uuid_(other.m_uuid_) { };
+
+Object::Object(Object const &) : m_uuid_(boost::uuids::random_generator()()) { this->touch(); };
 
 Object &Object::operator=(Object const &other)
 {
@@ -23,7 +29,11 @@ Object &Object::operator=(Object const &other)
 
 Object::~Object() { }
 
-void Object::swap(Object &other) { std::swap(m_click_, other.m_click_); };
+void Object::swap(Object &other)
+{
+    std::swap(m_click_, other.m_click_);
+    std::swap(m_uuid_, other.m_uuid_);
+};
 
 bool Object::is_a(std::type_info const &info) const { return typeid(Object) == info; }
 

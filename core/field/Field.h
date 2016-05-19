@@ -8,9 +8,15 @@
 #define SIMPLA_FIELD_H
 
 
-#include "FieldDense.h"
+#include "FieldBase.h"
 #include "FieldTraits.h"
 #include "FieldFunction.h"
 #include "FieldExpression.h"
+
+namespace simpla { namespace field
+{
+
+template<typename ...> class Field;
+}}
 
 #endif //SIMPLA_FIELD_H
