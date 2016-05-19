@@ -15,15 +15,13 @@ namespace simpla { namespace mesh
 
 class MeshAtlas
 {
-    MeshBase root_;
+public:
 
-    boost::adjacency_list<> m_atlas_;
+    std::list<uuid> children(uuid const &id);
 
-    void add_edge()
-    {
-        boost::add_edge(u, v);
-    }
+    std::list<uuid> sibling(uuid const &id);
 
+    int refine_ratio(uuid const &id);
 };
 
 }}//namespace simpla{namespace mesh{

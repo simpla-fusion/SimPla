@@ -12,6 +12,7 @@
 #include "../gtl/type_traits.h"
 #include "../model/CoordinateSystem.h"
 #include "../base/Object.h"
+#include <boost/uuid/uuid.hpp>
 
 
 namespace simpla { namespace mesh
@@ -97,6 +98,8 @@ class EntityIterator;
 class EntityRange;
 
 class ViewBase;
+
+typedef boost::uuids::uuid uuid;
 
 struct MeshBase : public base::Object
 {
