@@ -32,12 +32,12 @@ template<typename ...> struct Field;
  * @{
  */
 
-template<typename TV, typename TManifold, int IFORM, typename ...Policies>
-class Field<TV, TManiflod, std::integral_constant<int, IFORM>, Policies...>
-        : public TManifold::Attribute, public Policies ...
+template<typename TV, typename TManifold, int IFORM>
+class Field<TV, TManiflod, std::integral_constant<int, IFORM> >
+        : public TManifold::Attribute
 {
 private:
-    typedef Field<TV, TManifold, std::integral_constant<int, IFORM>, TBase, Policolies...> this_type;
+    typedef Field<TV, TManifold, std::integral_constant<int, IFORM> > this_type;
 
     typedef TManifold::Attribute base_type;
 
@@ -51,9 +51,9 @@ public:
 
     typedef typename traits::field_value_type<this_type>::type field_value_type;
 
-    typedef typename this_type::calculus_policy calculus_policy;
+    typedef typename TManifold::calculus_policy calculus_policy;
 
-    typedef typename this_type::interpolate_policy interpolate_policy;
+    typedef typename TManifold::interpolate_policy interpolate_policy;
 
 private:
     manifold_type const *m = nullptr;

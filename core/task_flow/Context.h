@@ -51,8 +51,7 @@ public:
 
 
 private:
-    double m_dt_;
-    double m_time_;
+
 
     std::map<std::string, std::weak_ptr<Attribute>> m_attributes_;
 
@@ -130,7 +129,7 @@ struct Context<TManifold>::Attribute : public base::Object
 
     std::map<uuid, std::shared_ptr<void>> m_data_tree_;
 
-    uuid m_id_;
+    mesh::uuid m_id_;
 
     Attribute(mesh_atlas const &mesh_tree, std::string const &name)
             : m_mesh_tree_(mesh_tree)
@@ -139,8 +138,8 @@ struct Context<TManifold>::Attribute : public base::Object
 
     virtual void view(uuid const &id)
     {
-        assert(m_data_tree_.find(id) != m_data_tree_.end());
-        assert(m_data_tree_.find(id) != m_data_tree_.end());
+        std::assert(m_data_tree_.find(id) != m_data_tree_.end());
+        std::assert(m_data_tree_.find(id) != m_data_tree_.end());
         m_id_ = id;
 
     };
@@ -197,12 +196,10 @@ class EM : public Context<TManifold>::Worker
     {
         E += curl(B) * m_dt_;
         B -= curl(E) * m_dt_;
-
-        sync(E);
-        sync(B);
     };
-};
 
+
+};
 
 
 }//namespace task_flow
