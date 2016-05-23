@@ -21,6 +21,8 @@
 
 namespace simpla
 {
+
+typedef unsigned long uuid;
 /**
  *  @ingroup gtl
  * @{

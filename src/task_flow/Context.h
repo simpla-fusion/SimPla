@@ -8,20 +8,20 @@
 #ifndef CORE_APPLICATION_CONTEXT_H_
 #define CORE_APPLICATION_CONTEXT_H_
 
+#include <memory>
 #include <list>
-#include "task_flow_base.h"
-#include "../mesh/Mesh.h"
-#include "../mesh/MeshAtlas.h"
-#include "../mesh/MeshAttribute.h"
-#include "../field/Field.h"
-#include "../manifold/Calculus.h"
+#include <map>
+#include <boost/uuid/uuid.hpp>
+#include "../gtl/primitives.h"
+#include "../base/Object.h"
+#include "../mesh/MeshEntity.h"
+
+namespace simpla { namespace mesh { struct MeshBase; }}//namespace simpla { namespace mesh {
 
 
 namespace simpla { namespace task_flow
 {
-typedef Real scalar_type;
 
-typedef nTuple<scalar_type, 3> vector_type;
 
 class Attribute;
 
@@ -33,21 +33,13 @@ class Context
 public:
 
 
-    template<typename TV, typename TM, int IFORM> using
-    field_t=field::Field<TV, TM, std::integral_constant<int, IFORM>>;
+    void apply(Worker &w, uuid const &id, Real dt);
 
-    template<typename TEngine, typename TM> using
-    particle_t=particle::Particle<TEngine, TM, Attribute>;
-
-
-    void apply(Worker &w, mesh::uuid const &id, Real dt);
-
-    void sync(Worker &w, mesh::uuid const &oid);
+    void sync(Worker &w, uuid const &oid);
 
 
 private:
 
-    mesh::MeshAtlas m_mesh_atlas_;
 
     std::map<std::string, std::weak_ptr<Attribute>> m_attributes_;
 
@@ -108,18 +100,17 @@ struct Attribute : public base::Object
 {
     SP_OBJECT_HEAD(Attribute, base::Object);
 
-    mesh::MeshAtlas const &m_mesh_tree_;
 
-    std::map<mesh::uuid, std::shared_ptr<void>> m_data_tree_;
+    std::map<uuid, std::shared_ptr<void>> m_data_tree_;
 
-    mesh::uuid m_id_;
+    uuid m_id_;
 
     Attribute(mesh::MeshAtlas const &mesh_tree, std::string const &name)
             : m_mesh_tree_(mesh_tree)
     {
     }
 
-    virtual void view(mesh::uuid const &id)
+    virtual void view(uuid const &id)
     {
         assert(m_data_tree_.find(id) != m_data_tree_.end());
         m_id_ = id;
@@ -147,7 +138,7 @@ struct Worker
 
     virtual ~Worker() { }
 
-    void view(mesh::uuid const &id)
+    void view(uuid const &id)
     {
         for (auto &item:m_attributes_)
         {
@@ -160,46 +151,17 @@ struct Worker
     /**
     * copy data from lower level
     */
-    virtual void coarsen(mesh::uuid const &) { }
+    virtual void coarsen(uuid const &) { }
 
     /**
      * copy data to lower level
      */
-    virtual void refine(mesh::uuid const &) { }
+    virtual void refine(uuid const &) { }
 
     /**
      * copy data from same level neighbour
      */
-    virtual void sync(std::list<mesh::uuid> const &) { }
-};
-
-
-template<typename TManifold>
-class EM : public Worker
-{
-
-    typedef Context context_type;
-
-    EM(context_type &ctx) : Worker(ctx) { }
-
-    ~EM() { }
-
-
-    Field<scalar_type, TManifold, mesh::EDGE> E{m_ctx_, "E0"};
-    context_type::field_t <scalar_type, mesh::FACE> B{m_ctx_, "B0"};
-    context_type::field_t <vector_type, mesh::VERTEX> Bv{m_ctx_, "B0v"};
-    context_type::field_t <scalar_type, mesh::VERTEX> BB{m_ctx_, "BB"};
-
-
-    void work(Real dt)
-    {
-
-        E += curl(B) * dt;
-        B -= curl(E) * dt;
-
-    };
-
-
+    virtual void sync(std::list<uuid> const &) { }
 };
 
 
