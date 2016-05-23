@@ -14,15 +14,15 @@
 //#include <tuple>
 //#include <vector>
 //
-//#include "../../core/task_flow/task_flow.h"
-//#include "../../core/task_flow/use_case.h"
-//#include "../../core/utilities/utilities.h"
-//#include "../../core/io/IO.h"
-//#include "../../core/physics/PhysicalConstants.h"
+//#include "../../src/task_flow/task_flow.h"
+//#include "../../src/task_flow/use_case.h"
+//#include "../../src/utilities/utilities.h"
+//#include "../../src/io/IO.h"
+//#include "../../src/physics/PhysicalConstants.h"
 //
-//#include "../../core/geometry/geometry.h"
+//#include "../../src/geometry/geometry.h"
 //
-//#include "../../core/model/cut_cell.h"
+//#include "../../src/model/cut_cell.h"
 //#include <memory>
 //using namespace simpla;
 //

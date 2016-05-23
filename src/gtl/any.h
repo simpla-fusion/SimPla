@@ -19,7 +19,7 @@
 #include <stddef.h>
 
 #include "../data_model/DataType.h"
-#include "utilities/Log.h"
+#include "Log.h"
 
 namespace simpla
 {

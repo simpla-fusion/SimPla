@@ -12,7 +12,7 @@
  *  @addtogroup  parallel parallel
  *  @{
  *  	@addtogroup  MPI MPI Communicaion
- *  	@addtogroup  MULTICORE Multi-thread/core and many-core support
+ *  	@addtogroup  MULTICORE Multi-thread/src and many-src support
  *  @}
  */
 #ifndef NO_MPI

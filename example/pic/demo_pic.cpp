@@ -20,9 +20,9 @@
 #include "../../core/field/field.h"
 #include "../../core/particle/obsolete/SimpleParticleGenerator.h"
 
-//#include "../../core/field/field_dense.h"
-//#include "../../core/field/field_traits.h"
-//#include "../../core/field/field_function.h"
+//#include "../../src/field/field_dense.h"
+//#include "../../src/field/field_traits.h"
+//#include "../../src/field/field_function.h"
 
 using namespace simpla;
 

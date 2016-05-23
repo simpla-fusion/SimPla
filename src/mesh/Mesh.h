@@ -99,7 +99,6 @@ class EntityRange;
 
 class ViewBase;
 
-typedef boost::uuids::uuid uuid;
 
 struct MeshBase : public base::Object
 {

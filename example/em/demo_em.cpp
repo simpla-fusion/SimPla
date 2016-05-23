@@ -10,40 +10,145 @@
 #include <memory>
 #include <string>
 
-#include "../../core/application/application.h"
 #include "../../core/gtl/primitives.h"
 #include "../../core/gtl/type_cast.h"
 #include "../../core/io/IO.h"
 
-#include "Constants.h"
 #include "../../core/physics/PhysicalConstants.h"
-#include "../../core/gtl/utilities/ConfigParser.h"
-#include "../../core/gtl/utilities/Log.h"
+#include "../../core/gtl/ConfigParser.h"
+#include "../../core/gtl/Log.h"
 
 
-#include "manifold_traits.h"
-#include "Calculus.h"
-#include "PreDefine.h"
+#include "../../core/field/Field.h"
 
-#include "../../core/field/field.h"
+#include "../../core/task_flow/Context.h"
 
 using namespace simpla;
 
-#ifdef CYLINDRICAL_COORDINATE_SYTEM
 #include "../../core/manifold/pre_define/cylindrical.h"
+
 #define COORDINATE_SYSTEM CylindricalCoordinate
 typedef manifold::CylindricalManifold mesh_type;
-#else
 
 
-#define COORDINATE_SYSTEM CartesianCoordinate<3>
-typedef manifold::CartesianManifold mesh_type;
-
-#endif
+using namespace simpla::task_flow;
 
 
-SP_APP(em, " Maxwell Eqs.")
+template<typename TM>
+struct Maxwell : public Context::Worker
 {
+
+    typedef Context context_type;
+
+    typedef TM mesh_type,
+
+    Maxwell(Context &ctx) :Context::Worker(ctx) { }
+
+    virtual ~Maxwell() { }
+
+    typedef Real scalar_type;
+    typedef nTuple<scalar_type, 3> vector_type;
+
+
+    Field<scalar_type, TM, mesh::EDGE> E{*this, "E0"};
+    Field<scalar_type, TM, mesh::FACE> B{*this, "B0"};
+    Field<vector_type, TM, mesh::VERTEX> Bv{*this, "B0v"};
+    Field<scalar_type, TM, mesh::VERTEX> BB{*this, "BB"};
+
+
+    virtual void work(Real dt)
+    {
+        ////        J.self_assign(J_src);
+////        E.self_assign(E_src);
+//
+//        J = J_src;
+//
+//        E = E_src;
+//
+////		if (!pml_solver)
+////        {
+//
+        LOG_CMD(E += (curl(B) * speed_of_light2 - J / epsilon0) * dt);
+//
+//        E_Boundary = 0;
+//
+        LOG_CMD(B -= curl(E) * dt);
+//
+//        B_Boundary = 0;
+//
+////        }
+////		else
+////		{
+////			pml_solver->next_timestepE(geometry->dt(), E, B, &E);
+////			LOG_CMD(E -= J / epsilon0 * dt);
+////			pml_solver->next_timestepB(geometry->dt(), E, B, &B);
+////		}
+    };
+};
+
+template<typename TM>
+struct PML : public Context::Worker
+{
+
+    typedef Context context_type;
+
+    typedef TM mesh_type,
+
+    Maxwell(Context &ctx) :Context::Worker(ctx) { }
+
+    virtual ~Maxwell() { }
+
+    typedef Real scalar_type;
+    typedef nTuple<scalar_type, 3> vector_type;
+
+
+    Field<scalar_type, TM, mesh::EDGE> E{*this, "E0"};
+    Field<scalar_type, TM, mesh::FACE> B{*this, "B0"};
+    Field<vector_type, TM, mesh::VERTEX> Bv{*this, "B0v"};
+    Field<scalar_type, TM, mesh::VERTEX> BB{*this, "BB"};
+
+
+    virtual void work(Real dt)
+    {
+        ////        J.self_assign(J_src);
+////        E.self_assign(E_src);
+//
+//        J = J_src;
+//
+//        E = E_src;
+//
+////		if (!pml_solver)
+////        {
+//
+        LOG_CMD(E += (curl(B) * speed_of_light2 - J / epsilon0) * dt);
+//
+//        E_Boundary = 0;
+//
+        LOG_CMD(B -= curl(E) * dt);
+//
+//        B_Boundary = 0;
+//
+////        }
+////		else
+////		{
+			pml_solver->next_timestepE(geometry->dt(), E, B, &E);
+			LOG_CMD(E -= J / epsilon0 * dt);
+			pml_solver->next_timestepB(geometry->dt(), E, B, &B);
+////		}
+    };
+};
+
+
+int main(int argc, char **argv)
+{
+    Context ctx;
+
+    Maxwell<mesh_type> em;
+
+    Real dt = 1.0;
+
+    ctx.apply(em, dt);
+
 
     size_t num_of_steps = 1000;
     size_t check_point = 10;
@@ -149,31 +254,7 @@ SP_APP(em, " Maxwell Eqs.")
 //    {
 //        VERBOSE << "Step [" << step << "/" << num_of_steps << "]" << std::endl;
 //
-////        J.self_assign(J_src);
-////        E.self_assign(E_src);
-//
-//        J = J_src;
-//
-//        E = E_src;
-//
-////		if (!pml_solver)
-////        {
-//
-    LOG_CMD(E += (curl(B) * speed_of_light2 - J / epsilon0) * dt);
-//
-//        E_Boundary = 0;
-//
-    LOG_CMD(B -= curl(E) * dt);
-//
-//        B_Boundary = 0;
-//
-////        }
-////		else
-////		{
-////			pml_solver->next_timestepE(geometry->dt(), E, B, &E);
-////			LOG_CMD(E -= J / epsilon0 * dt);
-////			pml_solver->next_timestepB(geometry->dt(), E, B, &B);
-////		}
+
 //
 //
 //        mesh->next_time_step();

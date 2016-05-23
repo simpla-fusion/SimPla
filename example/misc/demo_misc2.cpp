@@ -5,37 +5,46 @@
  * @author salmon
  */
 
-#include "../../core/gtl/ntuple.h"
-#include "utilities.h"
-#include "manifold"
+#include <cstdio>
+#include <tbb/flow_graph.h>
 
-#include <iostream>
+using namespace tbb::flow;
 
-using namespace simpla;
-
-int main(int argc, char **argv)
+struct body
 {
-	MeshIDs::id_type node_ids[] = { 0, 1, 6 };
-	for (auto n_id : node_ids)
-	{
-		MeshIDs::id_type b = MeshIDs::pack_index(
-				(nTuple<size_t, 3> { 0, 0, 0 }), n_id);
+    std::string my_name;
 
-		MeshIDs::id_type e = MeshIDs::pack_index(
-				(nTuple<size_t, 3> { 6, 1, 1 }), n_id);
+    body(const char *name) : my_name(name) { }
 
-		MeshIDs::range_type r1(b, e);
+    void operator()(continue_msg) const
+    {
+        printf("%s\n", my_name.c_str());
+    }
+};
 
-		size_t count = 0;
-		for (auto s : r1)
-		{
-			SHOW_HEX((MeshIDs::template type_cast<nTuple<size_t, 4> >(s)));
-			SHOW(MeshIDs::hash(s, b, e));
-			SHOW(MeshIDs::sub_index(s));
-			++count;
-		}
+int main()
+{
+    graph g;
 
-		SHOW("=====================");
-	}
+    broadcast_node<continue_msg> start(g);
+    continue_node<continue_msg> a(g, body("A"));
+    continue_node<continue_msg> b(g, body("B"));
+    continue_node<continue_msg> c(g, body("C"));
+    continue_node<continue_msg> d(g, body("D"));
+    continue_node<continue_msg> e(g, body("E"));
 
+    make_edge(start, a);
+    make_edge(start, b);
+    make_edge(a, c);
+    make_edge(b, c);
+    make_edge(c, d);
+    make_edge(a, e);
+
+    for (int i = 0; i < 3; ++i)
+    {
+        start.try_put(continue_msg());
+        g.wait_for_all();
+    }
+
+    return 0;
 }

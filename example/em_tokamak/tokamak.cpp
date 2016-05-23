@@ -14,7 +14,7 @@
 #include "../../core/io/IO.h"
 
 #include "../../core/manifold/pre_define/PreDefine.h"
-//#include "../../core/particle/pre_define/PICBoris.h"
+//#include "../../src/particle/pre_define/PICBoris.h"
 #include "../../core/particle/pre_define/PICGyro.h"
 
 #include "../../tools/GEqdsk.h"

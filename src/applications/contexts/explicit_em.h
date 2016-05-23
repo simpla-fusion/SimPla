@@ -27,7 +27,7 @@
  #include "../../core/geometry/model.h"
 
 // particle
-//#include "../../core/particle/Particle.h"
+//#include "../../src/particle/Particle.h"
 
 // model
 #include "../../core/numeric/geometric_algorithm.h"

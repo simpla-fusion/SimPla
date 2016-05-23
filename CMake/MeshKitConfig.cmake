@@ -2,11 +2,11 @@
 # from its build build directory.  These values will be overridden below
 # for installed copies of MESHKIT.
 SET(MESHKIT_LIBS "-L/work/build/meshkit-1.4.1/src/.libs ")
-SET(MESHKIT_INCLUDES "-I/work/build/meshkit-1.4.1/src/core
+SET(MESHKIT_INCLUDES "-I/work/build/meshkit-1.4.1/src/src
                 -I/work/build/meshkit-1.4.1/src/lemon
                 -I/work/build/meshkit-1.4.1/src/extern
                 -I/work/build/meshkit-1.4.1/src/algs
-                -I/work/build/meshkit-1.4.1/src/core
+                -I/work/build/meshkit-1.4.1/src/src
                 -I/work/build/meshkit-1.4.1/src/lemon
                 -I/work/build/meshkit-1.4.1/src/extern
                 -I/work/build/meshkit-1.4.1/src/algs")

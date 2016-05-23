@@ -25,7 +25,9 @@ typedef typename mesh::id_type id_type;
 
 typedef typename mesh::point_type point_type;
 
-template<typename ...> struct Field;
+template<typename ...> struct FieldConcept;
+template<typename TV, typename TManifold, int IFORM> using Field=
+FieldConcept<TV, TManifold, std::integral_constant<int, IFORM> >;
 
 /**
  * @ingroup field
@@ -33,7 +35,7 @@ template<typename ...> struct Field;
  */
 
 template<typename TV, typename TManifold, int IFORM, typename ...Policies>
-class Field<TV, TManiflod, std::integral_constant<int, IFORM>, Policies...>
+class FieldConcept<TV, TManiflod, std::integral_constant<int, IFORM>, Policies...>
         : public TManifold::Attribute, public Policies ...
 {
 private:
@@ -63,13 +65,22 @@ public:
 
     //create construct
     template<typename ...Args>
-    Field(Args &&... args) : base_type(std::forward<Args>(args)...) { }
+    Field(Args
+    &&... args) :
+
+    base_type(std::forward<Args>(args)
+
+    ...) { }
 
     //copy construct
-    Field(this_type const &other) : base_type(other) { }
+    Field(this_type const
+    &other) :
+    base_type(other) {}
 
     // move construct
-    Field(this_type &&other) : base_type(other) { }
+    Field(this_type
+    &&other) :
+    base_type(other) {}
 
     virtual ~Field() { }
 

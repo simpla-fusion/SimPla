@@ -12,6 +12,7 @@
 
 namespace simpla { namespace mesh
 {
+class MeshBase;
 
 class MeshAtlas
 {
@@ -22,6 +23,8 @@ public:
     std::list<uuid> sibling(uuid const &id);
 
     int refine_ratio(uuid const &id);
+
+    MeshBase const *at(uuid const &id) const;
 };
 
 }}//namespace simpla{namespace mesh{
