@@ -9,7 +9,6 @@
 #define CORE_APPLICATION_CONTEXT_H_
 
 #include <list>
-#include <boost/uuid/uuid.hpp>
 #include "task_flow_base.h"
 #include "../mesh/Mesh.h"
 #include "../mesh/MeshAtlas.h"
@@ -17,57 +16,42 @@
 #include "../field/Field.h"
 #include "../manifold/Calculus.h"
 
-namespace simpla
-{
-namespace particle { template<typename ...> class Particle; }
-namespace field { template<typename ...> class Field; }
-}
 
 namespace simpla { namespace task_flow
 {
-template<typename TManifold>
+typedef Real scalar_type;
+
+typedef nTuple<scalar_type, 3> vector_type;
+
+class Attribute;
+
+class Worker;
+
 class Context
 {
-    typedef Context<TManifold> this_type;
-    typedef boost::uuids::uuid uuid;
+    typedef Context this_type;
 public:
 
-    typedef TManifold mesh_type;
 
-    mesh_type const &m;
+    template<typename TV, typename TM, int IFORM> using
+    field_t=field::Field<TV, TM, std::integral_constant<int, IFORM>>;
 
-    typedef Graph <mesh_type> mesh_atlas;
+    template<typename TEngine, typename TM> using
+    particle_t=particle::Particle<TEngine, TM, Attribute>;
 
 
-    template<typename TV, int IFORM> using
-    field_t=field::Field<TV, TManifold, std::integral_constant<int, IFORM>, Attribute>;
+    void apply(Worker &w, mesh::uuid const &id, Real dt);
 
-    template<typename TEngine> using
-    particle_t=particle::Particle<TEngine, TManifold>;
-
-    class Attribute;
-
-    class Worker;
+    void sync(Worker &w, mesh::uuid const &oid);
 
 
 private:
 
+    mesh::MeshAtlas m_mesh_atlas_;
 
     std::map<std::string, std::weak_ptr<Attribute>> m_attributes_;
 
 public:
-
-
-    void next_time_step() { m_time_ += m_dt_; }
-
-    double time() const { return m_time_; }
-
-    void time(double t) { m_time_ = t; }
-
-    double dt() const { return m_dt_; }
-
-    void dt(double p_dt) { m_dt_ = p_dt; }
-
 
     template<typename TF>
     std::shared_ptr<TF> get_attribute(std::string const &s_name)
@@ -120,26 +104,24 @@ public:
 
 };
 
-template<typename TManifold>
-struct Context<TManifold>::Attribute : public base::Object
+struct Attribute : public base::Object
 {
     SP_OBJECT_HEAD(Attribute, base::Object);
 
-    mesh_atlas const &m_mesh_tree_;
+    mesh::MeshAtlas const &m_mesh_tree_;
 
-    std::map<uuid, std::shared_ptr<void>> m_data_tree_;
+    std::map<mesh::uuid, std::shared_ptr<void>> m_data_tree_;
 
     mesh::uuid m_id_;
 
-    Attribute(mesh_atlas const &mesh_tree, std::string const &name)
+    Attribute(mesh::MeshAtlas const &mesh_tree, std::string const &name)
             : m_mesh_tree_(mesh_tree)
     {
     }
 
-    virtual void view(uuid const &id)
+    virtual void view(mesh::uuid const &id)
     {
-        std::assert(m_data_tree_.find(id) != m_data_tree_.end());
-        std::assert(m_data_tree_.find(id) != m_data_tree_.end());
+        assert(m_data_tree_.find(id) != m_data_tree_.end());
         m_id_ = id;
 
     };
@@ -148,13 +130,14 @@ struct Context<TManifold>::Attribute : public base::Object
 
     void const *data() const { return m_data_tree_.at(m_id_).get(); }
 
-    mesh_type const *mesh() const { return m_mesh_tree_.at(m_id_); }
+    mesh::Mesh const *mesh() const { return m_mesh_tree_.at(m_id_); }
+
+
 };
 
-template<typename TManifold>
-struct Context<TManifold>::Worker
+struct Worker
 {
-    typedef Context<TManifold> context_type;
+    typedef Context context_type;
 
     std::list<std::string> m_attributes_;
 
@@ -164,45 +147,62 @@ struct Context<TManifold>::Worker
 
     virtual ~Worker() { }
 
-    void view(uuid const &id) { for (auto &item:m_attributes_) { m_ctx_.m_attributes_.at(item).lock()->view(id); }}
+    void view(mesh::uuid const &id)
+    {
+        for (auto &item:m_attributes_)
+        {
+            m_ctx_.m_attributes_.at(item).lock()->view(id);
+        }
+    }
 
-    virtual void work() = 0;
+    virtual void work(Real dt) = 0;
+
+    /**
+    * copy data from lower level
+    */
+    virtual void coarsen(mesh::uuid const &) { }
+
+    /**
+     * copy data to lower level
+     */
+    virtual void refine(mesh::uuid const &) { }
+
+    /**
+     * copy data from same level neighbour
+     */
+    virtual void sync(std::list<mesh::uuid> const &) { }
 };
 
+
 template<typename TManifold>
-class EM : public Context<TManifold>::Worker
+class EM : public Worker
 {
 
-    typedef Context<TManifold> context_type;
+    typedef Context context_type;
 
-    EM(context_type &ctx) : m_ctx_(ctx) { }
+    EM(context_type &ctx) : Worker(ctx) { }
 
     ~EM() { }
 
-    typedef Real scalar_type;
-    typedef nTuple<scalar_type, 3> vector_type;
 
-
-    context_type &m_ctx_;
-
-    context_type::field_t <scalar_type, mesh::EDGE> E{m_ctx_, "E0"};
+    Field<scalar_type, TManifold, mesh::EDGE> E{m_ctx_, "E0"};
     context_type::field_t <scalar_type, mesh::FACE> B{m_ctx_, "B0"};
     context_type::field_t <vector_type, mesh::VERTEX> Bv{m_ctx_, "B0v"};
     context_type::field_t <scalar_type, mesh::VERTEX> BB{m_ctx_, "BB"};
-    scalar_type m_dt_;
 
 
-    void work()
+    void work(Real dt)
     {
-        E += curl(B) * m_dt_;
-        B -= curl(E) * m_dt_;
+
+        E += curl(B) * dt;
+        B -= curl(E) * dt;
+
     };
 
 
 };
 
 
-}//namespace task_flow
-}// namespace simpla
+}}// namespace simpla//namespace task_flow
 
 #endif /* CORE_APPLICATION_CONTEXT_H_ */
