@@ -17,6 +17,7 @@
 #include "../gtl/type_traits.h"
 #include "../parallel/Parallel.h"
 #include "../mesh/Mesh.h"
+#include "../task_flow/Context.h"
 
 
 namespace simpla { namespace field
@@ -34,18 +35,27 @@ FieldConcept<TV, TManifold, std::integral_constant<int, IFORM> >;
  * @{
  */
 
+<<<<<<< HEAD:src/field/FieldBase.h
 template<typename TV, typename TManifold, int IFORM, typename ...Policies>
 class FieldConcept<TV, TManiflod, std::integral_constant<int, IFORM>, Policies...>
         : public TManifold::Attribute, public Policies ...
+=======
+template<typename TV, typename TManifold, int IFORM>
+class Field<TV, TManifold, std::integral_constant<int, IFORM> >
+        : public task_flow::Attribute
+>>>>>>> 12337aa2f078bd60ab2d1de4b2ab4d77cc6d5beb:src/field/FieldBase.h
 {
 private:
-    typedef Field<TV, TManifold, std::integral_constant<int, IFORM>, TBase, Policolies...> this_type;
+    static_assert(std::is_base_of<mesh::Mesh, Manifold>::value);
 
-    typedef TManifold::Attribute base_type;
+
+    typedef Field<TV, TManifold, std::integral_constant<int, IFORM> > this_type;
+
+    typedef task_flow::Attribute base_type;
 
 public:
 
-    typedef TManiflod manifold_type;
+    typedef TManifold manifold_type;
 
     typedef TV value_type;
 
@@ -53,13 +63,13 @@ public:
 
     typedef typename traits::field_value_type<this_type>::type field_value_type;
 
-    typedef typename this_type::calculus_policy calculus_policy;
+    typedef typename TManifold::calculus_policy calculus_policy;
 
-    typedef typename this_type::interpolate_policy interpolate_policy;
+    typedef typename TManifold::interpolate_policy interpolate_policy;
 
 private:
-    manifold_type const *m = nullptr;
-    value_type *m_data_ = nullptr;
+    std::shared_ptr<manifold_type> const *m = nullptr;
+    std::shared_ptr<value_type> m_data_ = nullptr;
 
 public:
 
@@ -98,9 +108,9 @@ public:
 
     virtual void deploy()
     {
-        m = base_type::mesh();
+        m = std::dynamic_pointer_cast<manifold_type>(base_type::mesh());
 
-        m_data_ = reinterpret_cast<value_type *>(base_type::data());
+        m_data_ = std::dynamic_pointer_cast<value_type>(base_type::data());
     }
 
     /**

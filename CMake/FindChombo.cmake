@@ -1,0 +1,104 @@
+#- Find Chombo 
+#  This module will define the following variable:
+#  CHOMBO_DIR
+#  CHOMBO_CONFIG amrelliptic2d.Linux.64.mpicxx.gfortran.DEBUG.OPT.MPI
+# OUTPUT:
+#  CHOMBO_FOUND
+#  CHOMBO_DIR
+#  CHOMBO_INCLUDE_DIR
+#  CHOMBO_LIBRARY_DIR
+#  CHOMBO_LIBRARIES
+
+
+if (CHOMBO_INLCUDE_DIR AND CHOMBO_LIBRARIES)
+    #DO NOTHING
+
+else (CHOMBO_INLCUDE_DIR AND CHOMBO_LIBRARIES)
+
+
+    SET(CHOMBO_LIBRARIES
+            -L${CHOMBO_DIR}/lib/
+
+
+            -lebamrtimedependent${CHOMBO_CONFIG}
+            -lebamrelliptic${CHOMBO_CONFIG}
+            -lebamrtools${CHOMBO_CONFIG}
+            -lworkshop${CHOMBO_CONFIG}
+            -lebtools${CHOMBO_CONFIG}
+            -lamrelliptic${CHOMBO_CONFIG}
+            -lamrtimedependent${CHOMBO_CONFIG}
+            -lamrtools${CHOMBO_CONFIG}
+            -lboxtools${CHOMBO_CONFIG}
+            -lbasetools${CHOMBO_CONFIG}
+
+            -lblas -llapack -lgfortran
+
+
+
+
+            #${CHOMBO_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}amrelliptic${CHOMBO_CONFIG}${CMAKE_STATIC_LIBRARY_SUFFIX}
+           #${CHOMBO_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}amrtools${CHOMBO_CONFIG}${CMAKE_STATIC_LIBRARY_SUFFIX}
+           #${CHOMBO_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}boxtools${CHOMBO_CONFIG}.PETSC${CMAKE_STATIC_LIBRARY_SUFFIX}
+           #${CHOMBO_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}ebamrtools${CHOMBO_CONFIG}${CMAKE_STATIC_LIBRARY_SUFFIX}
+           #${CHOMBO_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}amrelliptic${CHOMBO_CONFIG_3d}${CMAKE_STATIC_LIBRARY_SUFFIX}
+           #${CHOMBO_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}amrtools${CHOMBO_CONFIG_3d}${CMAKE_STATIC_LIBRARY_SUFFIX}
+           #${CHOMBO_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}boxtools${CHOMBO_CONFIG}${CMAKE_STATIC_LIBRARY_SUFFIX}
+           #${CHOMBO_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}ebtools${CHOMBO_CONFIG}${CMAKE_STATIC_LIBRARY_SUFFIX}
+           #${CHOMBO_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}amrtimedependent${CHOMBO_CONFIG}${CMAKE_STATIC_LIBRARY_SUFFIX}
+           #${CHOMBO_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}basetools${CHOMBO_CONFIG}.PETSC${CMAKE_STATIC_LIBRARY_SUFFIX}
+           #${CHOMBO_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}boxtools${CHOMBO_CONFIG_3d}${CMAKE_STATIC_LIBRARY_SUFFIX}
+           #${CHOMBO_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}workshop${CHOMBO_CONFIG}${CMAKE_STATIC_LIBRARY_SUFFIX}
+           #${CHOMBO_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}amrtimedependent${CHOMBO_CONFIG_3d}${CMAKE_STATIC_LIBRARY_SUFFIX}
+           #${CHOMBO_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}basetools${CHOMBO_CONFIG}${CMAKE_STATIC_LIBRARY_SUFFIX}
+           #${CHOMBO_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}ebamrelliptic${CHOMBO_CONFIG}${CMAKE_STATIC_LIBRARY_SUFFIX}
+           #${CHOMBO_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}amrtools${CHOMBO_CONFIG}.PETSC${CMAKE_STATIC_LIBRARY_SUFFIX}
+           #${CHOMBO_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}basetools${CHOMBO_CONFIG_3d}${CMAKE_STATIC_LIBRARY_SUFFIX}
+           #${CHOMBO_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}ebamrtimedependent${CHOMBO_CONFIG}${CMAKE_STATIC_LIBRARY_SUFFIX}
+
+            )
+
+    find_path(CHOMBO_INCLUDE_DIR_
+            NAMES CH_config.H
+            HINTS /usr/include ${CHOMBO_DIR}/lib/include
+            NO_DEFAULT_PATH
+            )
+
+    SET(CHOMBO_INCLUDE_DIRS
+            ${CHOMBO_INCLUDE_DIR_}/
+            ${CHOMBO_INCLUDE_DIR_}/../src/AMRElliptic/
+            ${CHOMBO_INCLUDE_DIR_}/../src/AMRTimeDependent/
+            ${CHOMBO_INCLUDE_DIR_}/../src/AMRTools/
+            ${CHOMBO_INCLUDE_DIR_}/../src/BaseTools/
+            ${CHOMBO_INCLUDE_DIR_}/../src/BoxTools/
+            ${CHOMBO_INCLUDE_DIR_}/../src/EBAMRElliptic/
+            ${CHOMBO_INCLUDE_DIR_}/../src/EBAMRTimeDependent/
+            ${CHOMBO_INCLUDE_DIR_}/../src/EBAMRTools/
+            ${CHOMBO_INCLUDE_DIR_}/../src/EBTools/
+            ${CHOMBO_INCLUDE_DIR_}/../src/MultiDim/
+            ${CHOMBO_INCLUDE_DIR_}/../src/Workshop/
+            )
+    #SET(CHOMBO_DEFINES -DCH_SPACEDIM=2 -DCH_LANG_CC -DNODEBUG   -DCH_USE_SETVAL -DCH_USE_DOUBLE   -DCH_USE_MEMORY_TRACKING  -DCH_USE_64 -DCH_USE_DOUBLE -DCH_USE_HDF5)
+        SET(CHOMBO_DEFINES   -DCH_SPACEDIM=2 -DCH_Linux   -DCH_LANG_CC   -DCH_MPI  -DCH_USE_SETVAL -DCH_USE_COMPLEX   -DCH_USE_MEMORY_TRACKING  -DCH_USE_64 -DCH_USE_DOUBLE -DCH_USE_HDF5)
+
+    #    if(CHOMBO_INLCUDE_DIR)
+    #     message(STATUS "Found CHOMBO: static library:${CHOMBO_STATIC_LIBRARIES} shared library:  ${CHOMBO_SHARED_LIBRARIES}")
+    #    endif()
+
+    MARK_AS_ADVANCED(
+            CHOMBO_INCLUDE_DIRS
+            CHOMBO_LIBRARIES
+            CHOMBO_DEFINES
+    )
+endif (CHOMBO_INLCUDE_DIR AND CHOMBO_LIBRARIES)
+
+INCLUDE(FindPackageHandleStandardArgs)
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(CHOMBO DEFAULT_MSG CHOMBO_LIBRARIES)
+
+#
+#if(CHOMBO_INLCUDE_DIR)
+# message(STATUS "Found CHOMBO_INLCUDE_DIR ${CHOMBO_INLCUDE_DIR}")
+# message(STATUS "Found CHOMBO_LIBRARY_DIR ${CHOMBO_LIBRARY_DIR}")
+#else()
+# message(STATUS "CHOMBO Intel Math Kernel Lib. is no found.")
+#endif()
+

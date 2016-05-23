@@ -10,9 +10,7 @@
 
 #include "../gtl/ntuple.h"
 #include "../gtl/type_traits.h"
-#include "../model/CoordinateSystem.h"
-#include "../base/Object.h"
-#include <boost/uuid/uuid.hpp>
+#include "../gtl/primitives.h"
 
 
 namespace simpla { namespace mesh
@@ -97,26 +95,20 @@ class EntityIterator;
 
 class EntityRange;
 
-class ViewBase;
+
+<<<<<<< HEAD:src/mesh/Mesh.h
+=======
+typedef unsigned long EntityId;
+>>>>>>> 12337aa2f078bd60ab2d1de4b2ab4d77cc6d5beb:src/mesh/Mesh.h
 
 
-struct MeshBase : public base::Object
-{
-    unsigned long status_tag;
+class MeshBase;
 
-    virtual std::shared_ptr<ViewBase> view() = 0;
+class MeshAtlas;
 
-    virtual box_type boundary_box() = 0;
+class MeshWorker;
 
-    virtual size_t number_of_entities(EntityType e = VERTEX) = 0;
-
-    virtual size_t number_of_entities_in_memory(EntityType e = VERTEX) = 0;
-
-    virtual EntityRange range(EntityType e = VERTEX) = 0;
-
-    virtual EntityRange ghosts(EntityType e = VERTEX) = 0;
-
-};
+class MeshConnection;
 
 template<typename ...> struct Mesh;
 

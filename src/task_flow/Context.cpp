@@ -17,7 +17,11 @@
 
 namespace simpla { namespace task_flow
 {
+<<<<<<< HEAD:src/task_flow/Context.cpp
 void Context::update(uuid id, Real dt)
+=======
+void Context::apply(Worker &w, uuid const &id, Real dt)
+>>>>>>> 12337aa2f078bd60ab2d1de4b2ab4d77cc6d5beb:src/task_flow/Context.cpp
 {
 
     int ratio = m_mesh_atlas_.refine_ratio(id);

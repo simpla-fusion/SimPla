@@ -8,66 +8,42 @@
 #ifndef CORE_APPLICATION_CONTEXT_H_
 #define CORE_APPLICATION_CONTEXT_H_
 
+#include <memory>
 #include <list>
-#include "../mesh/MeshAtlas.h"
-#include <boost/graph/graph_traits.hpp>
-#include <boost/graph/adjacency_list.hpp>
+#include <map>
+#include <boost/uuid/uuid.hpp>
+#include "../gtl/primitives.h"
+#include "../base/Object.h"
+#include "../mesh/MeshEntity.h"
 
-namespace simpla { namespace mesh
-{
+namespace simpla { namespace mesh { struct MeshBase; }}//namespace simpla { namespace mesh {
 
-class MeshBase;
-
-class MeshAtlas;
-
-}}//namespace simpla{ namespace mesh{
 
 namespace simpla { namespace task_flow
 {
-typedef boost::uuids::uuid uuid;
 
+
+class Attribute;
+
+class Worker;
 
 class Context
 {
     typedef Context this_type;
 public:
 
-    class Attribute;
 
-    class Updater;
+    void apply(Worker &w, uuid const &id, Real dt);
 
-    class Mapper;
+    void sync(Worker &w, uuid const &oid);
 
-    uuid m_root_;
-
-
-    void update(Real dt) { update(m_root_, dt); };
-
-    void update(uuid id, Real dt);
 
 private:
-    typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS> Graph;
 
-    Graph m_mesh_atlas_;
 
-    std::map<uuid, std::map<uuid, std::shared_ptr<Attribute>>> m_attributes_;
+    std::map<std::string, std::weak_ptr<Attribute>> m_attributes_;
 
 public:
-
-
-//    void next_time_step() { m_time_ += m_dt_; }
-//
-//    double time() const { return m_time_; }
-//
-//    void time(double t) { m_time_ = t; }
-//
-//    double dt() const { return m_dt_; }
-//
-//    void dt(double p_dt) { m_dt_ = p_dt; }
-    std::shared_ptr<mesh::MeshBase> mesh(uuid id) const
-    {
-
-    }
 
     template<typename TF>
     std::shared_ptr<TF> get_attribute(std::string const &s_name)
@@ -120,25 +96,53 @@ public:
 
 };
 
-struct Context::Worker
+struct Attribute : public base::Object
 {
+    SP_OBJECT_HEAD(Attribute, base::Object);
 
-    Context &m_ctx_;
 
-    std::list<std::shared_ptr<Attribute> > m_attr_id_;
+    std::map<uuid, std::shared_ptr<void>> m_data_tree_;
 
-    Worker() { }
+    uuid m_id_;
 
-    Worker(Context &ctx) : m_ctx_(ctx) { }
+    Attribute(mesh::MeshAtlas const &mesh_tree, std::string const &name)
+            : m_mesh_tree_(mesh_tree)
+    {
+    }
+
+    virtual void view(uuid const &id)
+    {
+        assert(m_data_tree_.find(id) != m_data_tree_.end());
+        m_id_ = id;
+
+    };
+
+    void *data() { return m_data_tree_.at(m_id_).get(); }
+
+    void const *data() const { return m_data_tree_.at(m_id_).get(); }
+
+    mesh::Mesh const *mesh() const { return m_mesh_tree_.at(m_id_); }
+
+
+};
+
+struct Worker
+{
+    typedef Context context_type;
+
+    std::list<std::string> m_attributes_;
+
+    context_type &m_ctx_;
+
+    Worker(context_type &ctx) : m_ctx_(ctx) { }
 
     virtual ~Worker() { }
 
-    void view(mesh::uuid const &o_mesh_id)
+    void view(uuid const &id)
     {
-        for (auto &attr:m_attr_id_)
+        for (auto &item:m_attributes_)
         {
-            attr->swap(m_ctx_.attr_map[attr->id()][o_mesh_id]);
-
+            m_ctx_.m_attributes_.at(item).lock()->view(id);
         }
     }
 
@@ -147,60 +151,20 @@ struct Context::Worker
     /**
     * copy data from lower level
     */
-    virtual void coarsen(mesh::uuid const &) { }
+    virtual void coarsen(uuid const &) { }
 
     /**
      * copy data to lower level
      */
-    virtual void refine(mesh::uuid const &) { }
+    virtual void refine(uuid const &) { }
 
     /**
      * copy data from same level neighbour
      */
-    virtual void sync(std::list<mesh::uuid> const &) { }
-};
-
-struct Context::Attribute :
-        public base::Object,
-        public std::enable_shared_from_this<Attribute>
-{
-    SP_OBJECT_HEAD(Attribute, base::Object);
-
-    uuid m_attr_id_;
-
-    mesh::uuid m_mesh_id_;
-
-public:
-
-    Attribute(Context const &ctx) : m_ctx_(ctx) { }
-
-    virtual ~Attribute() { }
-
-    virtual void view(mesh::uuid const &id) { m_id_ = id; };
-
-    mesh::uuid id() const { return m_id_; }
-
-    template<typename T>
-    std::shared_ptr<T> data()
-    {
-        assert(m_data_tree_.find(m_id_) != m_data_tree_.end());
-        return m_data_tree_.at(m_id_).template as<T>();
-    }
-
-    template<typename T>
-    T const *mesh() const
-    {
-        return std::dynamic_pointer_cast<T>(m_ctx_.mesh(m_id_)).get();
-    }
-
-    virtual void swap(Attribute &other)
-    {
-        std::swap(m_mesh_id_, other.m_mesh_id_);
-    };
+    virtual void sync(std::list<uuid> const &) { }
 };
 
 
-}//namespace task_flow
-}// namespace simpla
+}}// namespace simpla//namespace task_flow
 
 #endif /* CORE_APPLICATION_CONTEXT_H_ */
