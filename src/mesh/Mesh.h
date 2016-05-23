@@ -95,18 +95,17 @@ class EntityIterator;
 
 class EntityRange;
 
-
-<<<<<<< HEAD:src/mesh/Mesh.h
-=======
 typedef unsigned long EntityId;
->>>>>>> 12337aa2f078bd60ab2d1de4b2ab4d77cc6d5beb:src/mesh/Mesh.h
 
+typedef unsigned long mesh_id;
 
 class MeshBase;
 
+class MeshUpdater;
+
 class MeshAtlas;
 
-class MeshWorker;
+class MeshAttribute;
 
 class MeshConnection;
 

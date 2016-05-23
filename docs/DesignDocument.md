@@ -89,7 +89,7 @@ toroidal coordinates and magnetic flus coordinates etc.
 -----------------------
 
 * Req(6) Physical model and numerical algorithm can be verified independently.
-* Req(7) Be flexible to efficiently solve different scale problems, from one-dimensional slab model to
+* Req(7) Be flexible to efficiently time_step different scale problems, from one-dimensional slab model to
 three-dimensional global toroidal model.
 
 1.3 Module and Integration

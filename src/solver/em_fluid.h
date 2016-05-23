@@ -338,5 +338,5 @@ void EMFluid<TM>::next_time_step()
 }
 
 
-}}//namespace simpla { namespace phy_solver {
+}}//namespace simpla { namespace solver {
 #endif //SIMPLA_EM_FLUID_H

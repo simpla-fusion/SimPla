@@ -10,22 +10,22 @@
 #include <memory>
 #include <string>
 
-#include "../../core/gtl/primitives.h"
-#include "../../core/gtl/type_cast.h"
-#include "../../core/io/IO.h"
+#include "../../src/gtl/primitives.h"
+#include "../../src/gtl/type_cast.h"
+#include "../../src/io/IO.h"
 
-#include "../../core/physics/PhysicalConstants.h"
-#include "../../core/gtl/ConfigParser.h"
-#include "../../core/gtl/Log.h"
+#include "../../src/physics/PhysicalConstants.h"
+#include "../../src/gtl/ConfigParser.h"
+#include "../../src/gtl/Log.h"
 
 
-#include "../../core/field/Field.h"
+#include "../../src/field/Field.h"
 
-#include "../../core/task_flow/Context.h"
+#include "../../src/solver/TimeDependentSolver.h"
 
 using namespace simpla;
 
-#include "../../core/manifold/pre_define/cylindrical.h"
+#include "../../src/manifold/pre_define/cylindrical.h"
 
 #define COORDINATE_SYSTEM CylindricalCoordinate
 typedef manifold::CylindricalManifold mesh_type;
@@ -35,7 +35,7 @@ using namespace simpla::task_flow;
 
 
 template<typename TM>
-struct Maxwell : public Context::Worker
+struct Maxwell : public solver::TimeDependentSolver::Worker
 {
 
     typedef Context context_type;
@@ -131,9 +131,9 @@ struct PML : public Context::Worker
 ////        }
 ////		else
 ////		{
-			pml_solver->next_timestepE(geometry->dt(), E, B, &E);
-			LOG_CMD(E -= J / epsilon0 * dt);
-			pml_solver->next_timestepB(geometry->dt(), E, B, &B);
+        pml_solver->next_timestepE(geometry->dt(), E, B, &E);
+        LOG_CMD(E -= J / epsilon0 * dt);
+        pml_solver->next_timestepB(geometry->dt(), E, B, &B);
 ////		}
     };
 };

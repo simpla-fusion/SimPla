@@ -7,23 +7,30 @@
 #ifndef SIMPLA_MESHWALKER_H
 #define SIMPLA_MESHWALKER_H
 
+#include <memory>
+#include "../gtl/primitives.h"
+#include "Mesh.h"
+
 namespace simpla { namespace mesh
 {
+
+class MeshBase;
+
 class MeshWalker
 {
 public:
 
-    virtual std::shared_ptr<MeshWalker> clone(uuid) const = 0;
+    virtual std::shared_ptr<MeshWalker> clone(MeshBase const &) const = 0;
 
-    virtual void update_ghost_from(uuid const &from) = 0;
+    virtual void update_ghost_from(MeshBase const &const &other) = 0;
 
     virtual bool check_mesh(MeshBase const &) const = 0;
 
     virtual std::vector<box_type> refine_boxes() const = 0;
 
-    virtual void refine(uuid const &) = 0;
+    virtual void refine(MeshBase const &const &other) = 0;
 
-    virtual bool coarsen(uuid const &) = 0;
+    virtual bool coarsen(MeshBase const &const &other) = 0;
 
     virtual void work(Real dt) { }
 };

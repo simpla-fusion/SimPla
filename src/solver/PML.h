@@ -188,7 +188,7 @@ void PML<TM>::work(Real dt)
     B -= dX2;
 
 }
-}} //namespace simpla { namespace phy_solver
+}} //namespace simpla { namespace solver
 
 
 #endif //SIMPLA_PML_H
