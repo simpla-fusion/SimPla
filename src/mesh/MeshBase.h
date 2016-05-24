@@ -8,6 +8,8 @@
 #include <typeinfo>
 #include "Mesh.h"
 #include "MeshEntity.h"
+#include "MeshEntityIterator.h"
+
 #include "../base/Object.h"
 
 namespace simpla { namespace mesh
@@ -31,13 +33,40 @@ public:
 
     int level() const { return m_level_; }
 
+    virtual std::ostream &print(std::ostream &os, int indent = 1) const { return os; }
+
     virtual box_type box() const = 0;
 
     virtual MeshEntityRange range(MeshEntityType entityType = VERTEX) const = 0;
 
-    virtual size_t size(MeshEntityType entityType = VERTEX) const = 0;
+    virtual size_t size(MeshEntityType entityType = VERTEX) const { max_hash(entityType); };
+
+    virtual size_t max_hash(MeshEntityType entityType = VERTEX) const = 0;
 
     virtual size_t hash(MeshEntityId const &) const = 0;
+
+    virtual point_type point(MeshEntityId const &) const = 0;
+
+    virtual int get_adjacent_entities(MeshEntityId const &, MeshEntityType t, MeshEntityId *p = nullptr) const = 0;
+
+    virtual std::shared_ptr<MeshBase> refine(box_type const &b, int flag = 0) const;
+
+
+    int get_vertices(MeshEntityId const &s, point_type *p) const
+    {
+        int num = get_adjacent_entities(s, VERTEX);
+
+        if (p != nullptr)
+        {
+            id_type neighbour[num];
+
+            get_adjacent_entities(s, VERTEX, neighbour);
+
+            for (int i = 0; i < num; ++i) { p[i] = point(neighbour[i]); }
+        }
+
+    }
+
 
 };
 

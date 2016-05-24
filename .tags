@@ -245,7 +245,7 @@ CacheContainer	core/gtl/containers/container_cache.h	/^struct CacheContainer<T*>
 CallbackMap	core/gtl/design_pattern/factory.h	/^	typedef std::map<identifier_type, create_fun_callback> CallbackMap;$/;"	t	struct:simpla::Factory
 CanonicalizeAlphabeticalOrder	cpplint.py	/^  def CanonicalizeAlphabeticalOrder(self, header_path):$/;"	m	class:_IncludeState
 Cartesian	core/geometry/CoordinateSystem.h	/^struct Cartesian$/;"	s	namespace:simpla::geometry::coordinate_system
-CartesianCoRect	core/manifold/mesh/CartesianCoRect.h	/^    CartesianCoRect() : block_type() { }$/;"	f	struct:simpla::mesh::CartesianCoRect
+CartesianCoRect	core/manifold/mesh/CartesianCoRect.h	/^    CartesianCoRect() : m() { }$/;"	f	struct:simpla::mesh::CartesianCoRect
 CartesianCoRect	core/manifold/mesh/CartesianCoRect.h	/^struct CartesianCoRect : public geometry::CartesianMetric, public MeshBlock$/;"	s	namespace:simpla::mesh
 CartesianMetric	core/geometry/csCartesian.h	/^struct CartesianMetric$/;"	s	namespace:simpla::geometry
 CartesianXAxis	core/geometry/csCartesian.h	/^    static constexpr int CartesianXAxis = (CartesianZAxis + 1) % 3;$/;"	m	struct:simpla::geometry::CartesianMetric
@@ -334,7 +334,7 @@ CycleIterator	core/gtl/iterator/sp_iterator_cycle.h	/^	CycleIterator(this_type c
 CycleIterator	core/gtl/iterator/sp_iterator_cycle.h	/^struct CycleIterator: public TBaseIterator$/;"	s	namespace:simpla
 Cylinder	core/geometry/obsolete/geometry_object.h	/^struct Cylinder$/;"	s	namespace:simpla::geometry_object
 Cylindrical	core/geometry/CoordinateSystem.h	/^struct Cylindrical$/;"	s	namespace:simpla::geometry::coordinate_system
-CylindricalCoRect	core/manifold/mesh/CylindricalCoRect.h	/^    CylindricalCoRect() : block_type() { }$/;"	f	class:simpla::mesh::CylindricalCoRect
+CylindricalCoRect	core/manifold/mesh/CylindricalCoRect.h	/^    CylindricalCoRect() : m() { }$/;"	f	class:simpla::mesh::CylindricalCoRect
 CylindricalCoRect	core/manifold/mesh/CylindricalCoRect.h	/^class CylindricalCoRect : public geometry::CylindricalMetric, public MeshBlock$/;"	c	namespace:simpla::mesh
 DATA_STREAM_	core/io/HDF5Stream.h	10;"	d
 DATA_TYPE_H_	core/data_model/DataType.h	9;"	d
@@ -863,9 +863,9 @@ MaxParentWiseIds	plugins/vtk_reader/vtkAMRSimPlaReader.cpp	/^    int MaxParentWi
 Maxwell s equations}
 MemoryPool	core/gtl/utilities/memory_pool.cpp	/^MemoryPool::MemoryPool() :$/;"	f	class:simpla::MemoryPool
 MemoryPool	core/gtl/utilities/memory_pool.h	/^class MemoryPool$/;"	c	namespace:simpla
-Mesh	core/manifold/mesh/CoRectMesh.h	/^    Mesh() : block_type() { }$/;"	f	struct:simpla::mesh::Mesh
+Mesh	core/manifold/mesh/CoRectMesh.h	/^    Mesh() : m() { }$/;"	f	struct:simpla::mesh::Mesh
 Mesh	core/manifold/mesh/CoRectMesh.h	/^struct Mesh<TMetric, tags::corect_linear> : public TMetric, public MeshBlock$/;"	s	namespace:simpla::mesh
-Mesh	core/manifold/mesh/RectMesh.h	/^    Mesh() : block_type() { }$/;"	f	struct:simpla::mesh::Mesh
+Mesh	core/manifold/mesh/RectMesh.h	/^    Mesh() : m() { }$/;"	f	struct:simpla::mesh::Mesh
 Mesh	core/manifold/mesh/RectMesh.h	/^struct Mesh<TMetric, tags::rect_linear> : public TMetric, public MeshBlock$/;"	s	namespace:simpla::mesh
 MeshBlock	core/manifold/mesh/MeshBlock.cpp	/^MeshBlock::MeshBlock() { }$/;"	f	class:simpla::mesh::MeshBlock
 MeshBlock	core/manifold/mesh/MeshBlock.h	/^struct MeshBlock : public MeshIDs, public base::Object$/;"	s	namespace:simpla::mesh
@@ -1963,9 +1963,9 @@ base_type	core/geometry/obsolete/surface.h	/^	typedef std::map<id_type, std::tup
 base_type	core/gtl/containers/UnorderedSet.h	/^    typedef typename parallel::concurrent_hash_map<Key, bucket_type> base_type;$/;"	t	class:simpla::gtl::UnorderedSet
 base_type	core/gtl/iterator/block_iterator.h	/^            nTuple<TV, NDIMS>, ptrdiff_t> base_type;$/;"	t	struct:simpla::block_iterator
 base_type	core/gtl/utilities/log.h	/^    typedef std::ostringstream base_type;$/;"	t	class:simpla::logger::Logger
-base_type	core/manifold/mesh/CoRectMesh.h	/^    typedef block_type base_type;$/;"	t	struct:simpla::mesh::Mesh
+base_type	core/manifold/mesh/CoRectMesh.h	/^    typedef m base_type;$/;"	t	struct:simpla::mesh::Mesh
 base_type	core/manifold/mesh/MeshIds.h	/^        typedef block_iterator<index_type, ndims + 1> base_type;$/;"	t	struct:simpla::mesh::MeshEntityIdCoder::iterator
-base_type	core/manifold/mesh/RectMesh.h	/^    typedef block_type base_type;$/;"	t	struct:simpla::mesh::Mesh
+base_type	core/manifold/mesh/RectMesh.h	/^    typedef m base_type;$/;"	t	struct:simpla::mesh::Mesh
 base_type	core/manifold/policy/IOPolicy.h	/^    typedef io::XDMFStream base_type;$/;"	t	struct:simpla::manifold::policy::IOPolicy
 base_type	core/parallel/obsoleted/distributed.h	/^	typedef TBase base_type;$/;"	t	class:simpla::Distributed
 base_type	core/parallel/obsoleted/distributed_unordered_set.h	/^	typedef UnorderedSet<TV, Others...> base_type;$/;"	t	struct:simpla::Distributed
@@ -2006,10 +2006,10 @@ block_iterator	core/gtl/iterator/block_iterator.h	/^    block_iterator(nTuple<TV
 block_iterator	core/gtl/iterator/block_iterator.h	/^    block_iterator(this_type &&other) :$/;"	f	struct:simpla::block_iterator
 block_iterator	core/gtl/iterator/block_iterator.h	/^    block_iterator(this_type const &other) :$/;"	f	struct:simpla::block_iterator
 block_iterator	core/gtl/iterator/block_iterator.h	/^struct block_iterator : public std::iterator<$/;"	s	namespace:simpla
-block_type	core/manifold/mesh/CartesianCoRect.h	/^    typedef MeshBlock block_type;$/;"	t	struct:simpla::mesh::CartesianCoRect
-block_type	core/manifold/mesh/CoRectMesh.h	/^    typedef MeshBlock block_type;$/;"	t	struct:simpla::mesh::Mesh
-block_type	core/manifold/mesh/CylindricalCoRect.h	/^    typedef MeshBlock block_type;$/;"	t	class:simpla::mesh::CylindricalCoRect
-block_type	core/manifold/mesh/RectMesh.h	/^    typedef MeshBlock block_type;$/;"	t	struct:simpla::mesh::Mesh
+m	core/manifold/mesh/CartesianCoRect.h	/^    typedef MeshBlock m;$/;"	t	struct:simpla::mesh::CartesianCoRect
+m	core/manifold/mesh/CoRectMesh.h	/^    typedef MeshBlock m;$/;"	t	struct:simpla::mesh::Mesh
+m	core/manifold/mesh/CylindricalCoRect.h	/^    typedef MeshBlock m;$/;"	t	class:simpla::mesh::CylindricalCoRect
+m	core/manifold/mesh/RectMesh.h	/^    typedef MeshBlock m;$/;"	t	struct:simpla::mesh::Mesh
 bondary_range	core/manifold/obsoleted/embedded_policy.h	/^    bondary_range()const{}$/;"	f	struct:simpla::manifold::policy::EmbeddedPolicy
 boost	core/geometry/boost_gemetry_adapted.h	/^namespace boost$/;"	n
 boundary	core/model/GEqdsk.cpp	/^geometry::GeoObject const &GEqdsk::boundary() const$/;"	f	class:simpla::geometry::GEqdsk
@@ -2019,16 +2019,16 @@ box	core/field/test/field_diff_calculus_test.h	/^    box_type box;$/;"	m	class:F
 box	core/geometry/obsolete/surface.h	/^	auto box(Args &&...args) const$/;"	f	class:simpla::Surface
 box	core/geometry/polygon.h	/^    virtual box_type box() const$/;"	f	struct:simpla::geometry::Polygon
 box	core/gtl/iterator/sp_ntuple_range.h	/^    std::tuple<value_type, value_type> box() const$/;"	f	struct:simpla::sp_nTuple_range
-box	core/manifold/mesh/CoRectMesh.h	/^    box_type box() const { return (std::make_tuple(m_coords_min_, m_coords_max_)); }$/;"	f	struct:simpla::mesh::Mesh
+box	core/manifold/mesh/CoRectMesh.h	/^    box_type box() const { return (std::make_tuple(m_coords_lower_, m_coords_upper_)); }$/;"	f	struct:simpla::mesh::Mesh
 box	core/manifold/mesh/CoRectMesh.h	/^    box_type box(id_type const &s) const$/;"	f	struct:simpla::mesh::Mesh
 box	core/manifold/mesh/CoRectMesh.h	/^    void box(X0 const &x0, X1 const &x1)$/;"	f	struct:simpla::mesh::Mesh
-box	core/manifold/mesh/CoRectMesh.h	/^    void box(box_type const &b) { std::tie(m_coords_min_, m_coords_max_) = b; }$/;"	f	struct:simpla::mesh::Mesh
+box	core/manifold/mesh/CoRectMesh.h	/^    void box(box_type const &b) { std::tie(m_coords_lower_, m_coords_upper_) = b; }$/;"	f	struct:simpla::mesh::Mesh
 box	core/manifold/mesh/MeshBlock.h	/^    box_type box() const { return (std::make_tuple(m_min_, m_max_)); }$/;"	f	struct:simpla::mesh::MeshBlock
 box	core/manifold/mesh/MeshBlock.h	/^    void box(box_type const &b) { std::tie(m_min_, m_max_) = b; }$/;"	f	struct:simpla::mesh::MeshBlock
-box	core/manifold/mesh/RectMesh.h	/^    box_type box() const { return (std::make_tuple(m_coords_min_, m_coords_max_)); }$/;"	f	struct:simpla::mesh::Mesh
+box	core/manifold/mesh/RectMesh.h	/^    box_type box() const { return (std::make_tuple(m_coords_lower_, m_coords_upper_)); }$/;"	f	struct:simpla::mesh::Mesh
 box	core/manifold/mesh/RectMesh.h	/^    box_type box(id_type const &s) const$/;"	f	struct:simpla::mesh::Mesh
 box	core/manifold/mesh/RectMesh.h	/^    void box(X0 const &x0, X1 const &x1)$/;"	f	struct:simpla::mesh::Mesh
-box	core/manifold/mesh/RectMesh.h	/^    void box(box_type const &b) { std::tie(m_coords_min_, m_coords_max_) = b; }$/;"	f	struct:simpla::mesh::Mesh
+box	core/manifold/mesh/RectMesh.h	/^    void box(box_type const &b) { std::tie(m_coords_lower_, m_coords_upper_) = b; }$/;"	f	struct:simpla::mesh::Mesh
 box	core/model/GEqdsk.cpp	/^std::tuple<typename GEqdsk::point_type, typename GEqdsk::point_type> GEqdsk::box() const$/;"	f	class:simpla::GEqdsk
 box	core/model/obsoleted/revolve_polygon.h	/^    box_type box() const$/;"	f	struct:simpla::RevolvePolygon
 box_area	core/geometry/csCylindrical.h	/^    static Real box_area(point_type const &p0, point_type const &p1)$/;"	f	struct:simpla::geometry::Metric
@@ -2908,7 +2908,7 @@ get_	core/gtl/utilities/pretty_stream.h	/^get_(std::istream &is, size_t num, std
 get_J	applications/particle_solver/fluid_cold_engine.h	/^	void const * get_J() const$/;"	f	class:simpla::Particle
 get_MPI_Op	core/parallel/MPIAuxFunctions.cpp	/^inline MPI_Op get_MPI_Op(std::string const &op_c)$/;"	f	namespace:simpla::parallel
 get_adjacent_cells	core/manifold/mesh/MeshIds.h	/^    static int get_adjacent_cells(size_t IFORM, id_type s, id_type *res = nullptr)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder
-get_adjacent_cells	core/manifold/mesh/MeshIds.h	/^    static int get_adjacent_cells(size_t IFORM, size_t nodeid, id_type s, id_type *res = nullptr)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder
+get_adjacent_cells	core/manifold/mesh/MeshIds.h	/^    static int get_adjacent_entities(size_t IFORM, size_t nodeid, id_type s, id_type *res = nullptr)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder
 get_allocator	core/gtl/containers/container_container.h	/^	allocator_type get_allocator() const$/;"	f	class:simpla::ContainerContainer
 get_attribute	core/io/HDF5Stream.cpp	/^Properties HDF5Stream::get_attribute(std::string const &url) const$/;"	f	class:simpla::io::HDF5Stream
 get_attribute	core/io/HDF5Stream.cpp	/^Properties HDF5Stream::pimpl_s::get_attribute(hid_t loc_id, int idx) const$/;"	f	class:simpla::io::HDF5Stream::pimpl_s
@@ -3570,10 +3570,10 @@ m_comm_	core/parallel/MPIComm.cpp	/^    MPI_Comm m_comm_;$/;"	m	struct:simpla::p
 m_connections_	core/parallel/obsoleted/distributed_unordered_set.h	/^	std::vector<connection_node> m_connections_;$/;"	m	struct:simpla::Distributed
 m_const_mesh_	core/base/Attribute.h	/^    mesh_type const *m_const_mesh_;$/;"	m	class:simpla::base::AttributeEntity
 m_container_	core/gtl/iterator/sp_indirect_iterator.h	/^    std::reference_wrapper<container_type> m_container_;$/;"	m	struct:simpla::sp_indirect_iterator
-m_coords_max_	core/manifold/mesh/CoRectMesh.h	/^    point_type m_coords_max_ = {1, 1, 1};$/;"	m	struct:simpla::mesh::Mesh
-m_coords_max_	core/manifold/mesh/RectMesh.h	/^    point_type m_coords_max_ = {1, 1, 1};$/;"	m	struct:simpla::mesh::Mesh
-m_coords_min_	core/manifold/mesh/CoRectMesh.h	/^    point_type m_coords_min_ = {0, 0, 0};$/;"	m	struct:simpla::mesh::Mesh
-m_coords_min_	core/manifold/mesh/RectMesh.h	/^    point_type m_coords_min_ = {0, 0, 0};$/;"	m	struct:simpla::mesh::Mesh
+m_coords_upper_	core/manifold/mesh/CoRectMesh.h	/^    point_type m_coords_upper_ = {1, 1, 1};$/;"	m	struct:simpla::mesh::Mesh
+m_coords_upper_	core/manifold/mesh/RectMesh.h	/^    point_type m_coords_upper_ = {1, 1, 1};$/;"	m	struct:simpla::mesh::Mesh
+m_coords_lower_	core/manifold/mesh/CoRectMesh.h	/^    point_type m_coords_lower_ = {0, 0, 0};$/;"	m	struct:simpla::mesh::Mesh
+m_coords_lower_	core/manifold/mesh/RectMesh.h	/^    point_type m_coords_lower_ = {0, 0, 0};$/;"	m	struct:simpla::mesh::Mesh
 m_count	example/em_tokamak/tokamak.cpp	/^    size_t m_count = 0;$/;"	m	struct:simpla::EMTokamak	file:
 m_count_	core/gtl/array_view.h	/^    nTuple<size_t, MAX_NDIMS_OF_ARRAY> m_count_;$/;"	m	struct:simpla::gtl::ArrayViewBase
 m_count_	core/manifold/obsoleted/amr_policy.h	/^    size_t m_count_ = 0;$/;"	m	class:simpla::manifold::policy::AMR

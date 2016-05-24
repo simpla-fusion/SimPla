@@ -123,8 +123,8 @@ public:
 //
 //        if (geometry::box_intersection(b0, b1, &x0, &x1))
 //        {
-//            return std::make_tuple(block_type::unpack_index(id(x0)),
-//                                   block_type::unpack_index(id(x1) + (block_type::_DA << 1)));
+//            return std::make_tuple(m::unpack_index(id(x0)),
+//                                   m::unpack_index(id(x1) + (m::_DA << 1)));
 //
 //        }
 //        else
@@ -189,7 +189,7 @@ public:
         block_type::get_element_volume_in_cell(*this, 0, m_volume_, m_inv_volume_,
                                                m_dual_volume_, m_inv_dual_volume_);
 //
-//        block_type::get_volumes(m_volume_, m_inv_volume_,
+//        m::get_volumes(m_volume_, m_inv_volume_,
 //                                m_dual_volume_, m_inv_dual_volume_);
     }
 

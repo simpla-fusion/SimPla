@@ -22,7 +22,6 @@ struct MeshBlock : public MeshIDs, public base::Object
 {
 
 
-    SP_OBJECT_HEAD(MeshBlock, base::Object)
 
 private:
 

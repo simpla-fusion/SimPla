@@ -59,7 +59,6 @@ namespace simpla { namespace mesh
  */
 
 
-template<int LV>
 struct MeshEntityIdCoder
 {
     /// @name level independent
@@ -69,7 +68,7 @@ struct MeshEntityIdCoder
     static constexpr int ndims = 3;
     static constexpr int MESH_RESOLUTION = 1;
 
-    typedef MeshEntityIdCoder<LV> this_type;
+    typedef MeshEntityIdCoder this_type;
 
     typedef std::uint64_t id_type;
 
@@ -742,10 +741,10 @@ struct MeshEntityIdCoder
 
     static int get_adjacent_cells(size_t IFORM, id_type s, id_type *res = nullptr)
     {
-        return get_adjacent_cells(IFORM, node_id(s), s, res);
+        return get_adjacent_entities(IFORM, node_id(s), s, res);
     }
 
-    static int get_adjacent_cells(size_t IFORM, size_t nodeid, id_type s, id_type *res = nullptr)
+    static int get_adjacent_entities(size_t IFORM, size_t nodeid, id_type s, id_type *res = nullptr)
     {
         if (res != nullptr)
         {

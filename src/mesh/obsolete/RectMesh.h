@@ -35,23 +35,23 @@ struct Mesh<TMetric, tags::rect_linear> : public TMetric, public MeshBlock
 private:
     typedef Mesh<TMetric, tags::rect_linear> this_type;
 
-    typedef MeshBlock block_type;
+    typedef MeshBlock m;
 
-    typedef block_type base_type;
+    typedef m base_type;
 
 public:
 
 
     typedef TMetric metric_type;
-    typedef MeshBlock block_type;
+    typedef MeshBlock m;
 
-    using block_type::ndims;
-    using block_type::id_type;
-    using block_type::id_tuple;
-    using block_type::index_type;
-    using block_type::index_tuple;
-    using block_type::range_type;
-    using block_type::difference_type;
+    using m::ndims;
+    using m::id_type;
+    using m::id_tuple;
+    using m::index_type;
+    using m::index_tuple;
+    using m::range_type;
+    using m::difference_type;
 
     using typename metric_type::scalar_type;
     using typename metric_type::point_type;
@@ -59,9 +59,9 @@ public:
     typedef std::tuple<point_type, point_type> box_type;
 
 private:
-    point_type m_coords_min_ = {0, 0, 0};
+    point_type m_coords_lower_ = {0, 0, 0};
 
-    point_type m_coords_max_ = {1, 1, 1};
+    point_type m_coords_upper_ = {1, 1, 1};
 
     vector_type m_dx_ = {1, 1, 1};; //!< width of cell, except m_dx_[i]=0 when m_dims_[i]==1
 
@@ -69,7 +69,7 @@ private:
 public:
 
 
-    Mesh() : block_type() { }
+    Mesh() : m() { }
 
 
     Mesh(this_type const &other) = delete;
@@ -86,7 +86,7 @@ public:
         << std::setw(indent) << "\tGeometry={" << std::endl
         << std::setw(indent) << "\t\t Topology = { Type = \"RectMesh\",  }," << std::endl
         << std::setw(indent) << "\t\t Box = {" << box() << "}," << std::endl
-        << std::setw(indent) << "\t\t Dimensions = " << block_type::dimensions() << "," << std::endl
+        << std::setw(indent) << "\t\t Dimensions = " << m::dimensions() << "," << std::endl
         << std::setw(indent) << "\t\t}, " << std::endl
         << std::setw(indent) << "\t}" << std::endl;
 
@@ -102,26 +102,26 @@ public:
     template<typename X0, typename X1>
     void box(X0 const &x0, X1 const &x1)
     {
-        m_coords_min_ = x0;
-        m_coords_max_ = x1;
+        m_coords_lower_ = x0;
+        m_coords_upper_ = x1;
     }
 
-    void box(box_type const &b) { std::tie(m_coords_min_, m_coords_max_) = b; }
+    void box(box_type const &b) { std::tie(m_coords_lower_, m_coords_upper_) = b; }
 
-    box_type box() const { return (std::make_tuple(m_coords_min_, m_coords_max_)); }
+    box_type box() const { return (std::make_tuple(m_coords_lower_, m_coords_upper_)); }
 
     box_type box(id_type const &s) const
     {
-        return std::make_tuple(point(s - block_type::_DA), point(s + block_type::_DA));
+        return std::make_tuple(point(s - m::_DA), point(s + m::_DA));
     };
 
     box_type local_box() const
     {
         point_type l_min, l_max;
 
-        l_min = traits::get<0>(block_type::local_index_box());
+        l_min = traits::get<0>(m::local_index_box());
 
-        l_max = traits::get<1>(block_type::local_index_box());
+        l_max = traits::get<1>(m::local_index_box());
 
 
         l_min = inv_map(l_min);
@@ -139,9 +139,9 @@ public:
 
         point_type b0, b1, x0, x1;
 
-        b0 = traits::get<0>(block_type::local_index_box());
+        b0 = traits::get<0>(m::local_index_box());
 
-        b1 = traits::get<1>(block_type::local_index_box());
+        b1 = traits::get<1>(m::local_index_box());
 
         x0 = traits::get<0>(b);
 
@@ -150,8 +150,8 @@ public:
         if (geometry::box_intersection(b0, b1, &x0, &x1))
         {
             return std::make_tuple(
-                    block_type::unpack_index(id(x0)),
-                    block_type::unpack_index(id(x1) + (block_type::_DA << 1)));
+                    m::unpack_index(id(x0)),
+                    m::unpack_index(id(x1) + (m::_DA << 1)));
 
         }
         else
@@ -172,23 +172,23 @@ public:
     template<typename ...Args>
     point_type point(Args &&...args) const
     {
-        return std::move(map_type::inv_map(block_type::point(std::forward<Args>(args)...)));
+        return std::move(map_type::inv_map(m::point(std::forward<Args>(args)...)));
     }
 
 
     virtual point_type coordinates_local_to_global(std::tuple<id_type, point_type> const &t) const
     {
-        return std::move(inv_map(block_type::coordinates_local_to_global(t)));
+        return std::move(inv_map(m::coordinates_local_to_global(t)));
     }
 
     virtual std::tuple<id_type, point_type> coordinates_global_to_local(point_type x, int n_id = 0) const
     {
-        return std::move(block_type::coordinates_global_to_local(map(x), n_id));
+        return std::move(m::coordinates_global_to_local(map(x), n_id));
     }
 
     virtual id_type id(point_type const &x, int n_id = 0) const
     {
-        return std::get<0>(block_type::coordinates_global_to_local(map(x), n_id));
+        return std::get<0>(m::coordinates_global_to_local(map(x), n_id));
     }
 
 
@@ -198,8 +198,8 @@ public:
 private:
     size_t hash_(id_type s) const
     {
-        return block_type::hash(s & (~block_type::_DA)) * block_type::NUM_OF_NODE_ID +
-               block_type::node_id(s);
+        return m::hash(s & (~m::_DA)) * m::NUM_OF_NODE_ID +
+               m::node_id(s);
     }
 
 public:

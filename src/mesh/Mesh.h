@@ -62,9 +62,6 @@ typedef nTuple<index_type, 3> index_tuple;
 
 typedef std::tuple<index_tuple, index_tuple> index_box_type;
 
-class MeshEntityIterator { };
-
-class MeshEntityRange { };
 
 typedef unsigned long MeshEntityId;
 
@@ -74,7 +71,6 @@ typedef unsigned long MeshBlockId;
 
 class MeshBase;
 
-class MeshUpdater;
 
 class MeshAtlas;
 
@@ -83,10 +79,9 @@ template<typename ...> class MeshAttribute;
 
 class MeshAttributeBase;
 
-class MeshConnection;
-
 template<typename ...> struct Mesh;
 
+class MeshConnection;
 
 }}//namespace mesh}//namespace simpla
 
