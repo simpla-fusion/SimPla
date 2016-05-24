@@ -16,6 +16,7 @@
 
 #include "check_concept.h"
 #include "macro.h"
+#include "type_cast.h"
 
 namespace simpla
 {
@@ -196,22 +197,50 @@ template<typename ...> struct type_id;
 
 template<typename T> struct type_id<T>
 {
+
+private:
+    HAS_STATIC_MEMBER_FUNCTION(class_name);
+
+    static std::string name_(std::true_type) { return T::class_name(); }
+
+    static std::string name_(std::false_type) { "unknown"; }
+
+public:
     static std::string name()
     {
-        return "unknown";
+        return name_(typename has_static_member_function_class_name<T>::value_type());
     }
+
+};
+
+template<int I> struct type_id<std::integral_constant<int, I>>
+{
+public:
+    static std::string name()
+    {
+        return std::string("[") + traits::type_cast<int, std::string>::eval(I) + "]";
+    }
+
 };
 
 template<typename T, typename ...Others> struct type_id<T, Others...>
 {
     static std::string name()
     {
-        return type_id<T>::name() + " , " + type_id<Others...>::name();
+        return type_id<T>::name() + "," + type_id<Others...>::name();
     }
 };
 
+
 #define DEFINE_TYPE_ID_NAME(_NAME_) template<>struct type_id<_NAME_>{static std::string name(){return #_NAME_;}};
 
+DEFINE_TYPE_ID_NAME(double)
+
+DEFINE_TYPE_ID_NAME(float)
+
+DEFINE_TYPE_ID_NAME(int)
+
+DEFINE_TYPE_ID_NAME(long)
 
 template<typename T> struct reference
 {

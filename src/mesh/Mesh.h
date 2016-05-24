@@ -62,11 +62,13 @@ typedef nTuple<index_type, 3> index_tuple;
 
 typedef std::tuple<index_tuple, index_tuple> index_box_type;
 
-class EntityIterator{};
+class MeshEntityIterator { };
 
-class EntityRange{};
+class MeshEntityRange { };
 
-typedef unsigned long EntityId;
+typedef unsigned long MeshEntityId;
+
+typedef long MeshEntityIdDiff;
 
 typedef unsigned long MeshBlockId;
 

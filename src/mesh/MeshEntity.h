@@ -38,8 +38,6 @@ enum MeshEntityType
 
 };
 
-typedef unsigned long MeshEntityId;
-typedef long MeshEntityIdDiff;
 }} //namespace simpla { namespace mesh
 
 #endif //SIMPLA_MESH_MESHENTITY_H

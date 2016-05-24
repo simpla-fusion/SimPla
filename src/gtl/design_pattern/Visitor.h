@@ -10,7 +10,6 @@
 
 #include <string>
 #include <memory>
-#include "../utilities/Log.h"
 #include "../type_traits.h"
 
 namespace simpla
@@ -105,104 +104,93 @@ namespace simpla
  *  \endcode
  *
  */
-struct VisitorBase
+struct Visitor;
+
+struct Acceptor
+{
+    Acceptor() { }
+
+    virtual ~AcceptorBase() { }
+
+    virtual void accept(Visitor &visitor) { visitor.visit(*this); }
+
+    virtual void accept(Visitor const &visitor) { visitor.visit(*this); }
+
+    virtual void accept(Visitor &visitor) const { visitor.visit(*this); }
+
+    virtual void accept(Visitor const &visitor) const { visitor.visit(*this); }
+
+};
+
+struct Visitor
 {
 
-    VisitorBase() { }
+    Visitor() { }
 
-    virtual ~VisitorBase() { }
+    virtual ~Visitor() { }
 
-    void visit(void *p) const { visit_(p); }
+    virtual void visit(Acceptor &p) { }
 
-    virtual std::string get_type_as_string() const { return "Custom"; }
+    virtual void visit(Acceptor const &p) { }
 
-private:
+    virtual void visit(Acceptor &p) const { }
 
-    virtual void visit_(void *) const = 0;
+    virtual void visit(Acceptor const &p) const { }
 };
 
 
-struct AcceptorBase
+template<typename TAcceptor>
+struct DerivedVisotor : public Visitor
 {
-    virtual ~AcceptorBase()
-    {
 
-    }
-
-    virtual void accept(VisitorBase &visitor)
-    {
-        visitor.visit(this);
-    }
-
-    virtual void accept(VisitorBase const &visitor)
-    {
-        visitor.visit(this);
-    }
-
-    virtual bool check_type(std::type_info const &)
-    {
-        return false;
-    }
-};
-
-template<typename TAcceptor, typename ...Args>
-struct Visitor : public VisitorBase
-{
-    std::string name_;
     typedef TAcceptor acceptor_type;
 public:
 
-    typedef std::tuple<Args...> args_tuple_type;
-    std::tuple<Args...> args_;
-
-    Visitor(Args ... args)
-            : args_(std::make_tuple(args...))
-    {
-    }
-
-    ~Visitor()
-    {
-    }
+    DerivedVisotor() { }
 
 
-    void visit(AcceptorBase &obj)
-    {
-        if (obj.check_type(typeid(acceptor_type)))
-        {
-            reinterpret_cast<acceptor_type &>(obj)->template accept(*this);
-        }
-        else
-        {
-            THROW_EXCEPTION << "acceptor type mismatch" << std::endl;
-        }
-    }
+    virtual ~DerivedVisotor() { }
 
-    template<typename TFUN>
-    inline void execute(TFUN const &f)
-    {
-        callFunc(f, typename make_index_sequence<sizeof...(Args)>::type());
-    }
+    virtual void visit(Acceptor &obj) { visit(static_cast<acceptor_type &>(obj)); }
 
-private:
-// Unpack tuple to args...
-//\note  http://stackoverflow.com/questions/7858817/unpacking-a-tuple-to-call-a-matching-function-pointer
+    virtual void visit(Acceptor const &obj) { visit(static_cast<acceptor_type const &>(obj)); }
+
+    virtual void visit(Acceptor &obj) const { visit(static_cast<acceptor_type &>(obj)); }
+
+    virtual void visit(Acceptor const &obj) const { visit(static_cast<acceptor_type const &>(obj)); }
 
 
-    template<typename TFUN, unsigned int  ...S>
-    inline void callFunc(TFUN const &fun, integer_sequence<int, S...>)
-    {
-        fun(std::get<S>(args_) ...);
-    }
+    virtual void visit(acceptor_type &p) { }
+
+    virtual void visit(acceptor_type const &p) { }
+
+    virtual void visit(acceptor_type &p) const { }
+
+    virtual void visit(acceptor_type const &p) const { }
 
 };
 
-template<typename T, typename ...Args>
-std::shared_ptr<VisitorBase> createVisitor(std::string const &name, Args ...args)
-{
-    return std::dynamic_pointer_cast<VisitorBase>(std::shared_ptr<Visitor<T, Args...>>(
 
-            new Visitor<T, Args...>(name, std::forward<Args>(args)...)));
-}
+//    template<typename TFUN>
+//    inline void execute(TFUN const &f)
+//    {
+//        callFunc(f, typename make_index_sequence<sizeof...(Args)>::type());
+//    }
+//
+//private:
+//// Unpack tuple to args...
+////\note  http://stackoverflow.com/questions/7858817/unpacking-a-tuple-to-call-a-matching-function-pointer
+//
+//
+//    template<typename TFUN, unsigned int  ...S>
+//    inline void callFunc(TFUN const &fun, integer_sequence<int, S...>)
+//    {
+//        fun(std::get<S>(args_) ...);
+//    }
+
+};
+
+
 
 /** @}*/
 } // namespace simpla

@@ -26,8 +26,8 @@ template<typename MAP>
 class MeshMap
 {
 
-    EntityRange m_range1_;
-    EntityRange m_range2_;
+    MeshEntityRange m_range1_;
+    MeshEntityRange m_range2_;
     MAP m_map_;
 
     template<typename TF1, typename TF2>
@@ -43,8 +43,8 @@ template<>
 class MeshMap<tags::EntityWiseCopy>
 {
 
-    EntityRange m_range1_;
-    EntityRange m_range2_;
+    MeshEntityRange m_range1_;
+    MeshEntityRange m_range2_;
 
 
     template<typename TF1, typename TF2>

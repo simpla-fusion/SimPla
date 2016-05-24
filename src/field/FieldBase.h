@@ -19,8 +19,8 @@ using mesh::point_type;
 
 template<typename ...> class Field;
 
-template<typename TV, typename TManifold, unsigned int IFORM>
-using FieldAttr= Field<TV, TManifold, std::integral_constant<unsigned int, IFORM>>;
+template<typename TV, typename TManifold, int IFORM>
+using FieldAttr= Field<TV, TManifold, std::integral_constant<int, IFORM>>;
 
 
 /**
@@ -29,9 +29,9 @@ using FieldAttr= Field<TV, TManifold, std::integral_constant<unsigned int, IFORM
  */
 
 
-template<typename TV, typename TManifold, unsigned int IFORM>
+template<typename TV, typename TManifold, int IFORM>
 class Field<TV, TManifold, std::integral_constant<int, IFORM>>
-        : public mesh::MeshAttribute<TV, TManifold, std::integral_constant<int, IFORM>>::View
+        : public mesh::MeshAttribute<TV, TManifold, std::integral_constant<int, IFORM>, mesh::tags::DENSE>::View
 {
 private:
 //    static_assert(std::is_base_of<mesh::MeshBase, TManifold>::value);
@@ -39,11 +39,11 @@ private:
 
     typedef Field<TV, TManifold, std::integral_constant<int, IFORM>> this_type;
 
-    typedef mesh::MeshAttribute<TV, TManifold, std::integral_constant<int, IFORM>> host_type;
+    typedef mesh::MeshAttribute<TV, TManifold, std::integral_constant<int, IFORM>, mesh::tags::DENSE> mesh_attribute_type;
 
-    typedef typename host_type::View base_type;
+    typedef typename mesh_attribute_type::View base_type;
 
-    std::shared_ptr<host_type> m_host_;
+    std::shared_ptr<mesh_attribute_type> m_attr_;
 
 public:
 
@@ -64,10 +64,7 @@ public:
 
     //create construct
     template<typename ...Args>
-    Field(Args &&... args) : m_host_(new host_type(std::forward<Args>(args) ...))
-    {
-        view();
-    }
+    Field(Args &&... args) : m_attr_(new mesh_attribute_type(std::forward<Args>(args) ...)) { }
 
     //copy construct
     Field(this_type const &other) : base_type(other) { }
@@ -78,7 +75,11 @@ public:
     virtual ~Field() { }
 
 
-    void view(mesh::MeshBlockId m_id = 0) { m_host_->view().swap(*this); }
+    std::shared_ptr<mesh_attribute_type> attribute() { return m_attr_; }
+
+    std::shared_ptr<mesh_attribute_type> const attribute() const { return m_attr_; }
+
+    void view(mesh::MeshBlockId m_id = 0) { m_attr_->view().swap(*this); }
 
 
     inline this_type &operator=(this_type const &other)
@@ -171,26 +172,26 @@ public:
 
 /**@}*/
 
-    template<typename ...Args>
-    void accept(Args &&...args) { base_type::accept(std::forward<Args>(args)...); }
+//    template<typename ...Args>
+//    void accept(Args &&...args) { base_type::accept(std::forward<Args>(args)...); }
 
 
 }; // struct field
-//
-//namespace traits
-//{
-//
-//
+
+namespace traits
+{
+template<typename ...> struct iform;
+
 //template<typename TV, typename TM, typename ...Others> struct mesh_type<Field<TV, TM, Others...> > { typedef TM type; };
-//
-//template<typename TV, typename ...Policies>
-//struct value_type<Field<TV, Policies...>> { typedef TV type; };
-//
-//template<typename TV, typename TM, typename TFORM, typename ...Others>
-//struct iform<Field<TV, TM, TFORM, Others...> > : public TFORM { };
-//
-//
-//}// namespace traits
+
+template<typename TV, typename ...Policies>
+struct value_type<Field<TV, Policies...>> { typedef TV type; };
+
+template<typename TV, typename TM, typename TFORM, typename ...Others>
+struct iform<Field<TV, TM, TFORM, Others...> > : public TFORM { };
+
+
+}// namespace traits
 
 
 }//namespace simpla

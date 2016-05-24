@@ -11,8 +11,12 @@
 #include <mutex>
 #include <stddef.h> //for size_t
 #include <memory>
-#include  "LifeClick.h"
+
 #include <boost/uuid/uuid.hpp>
+
+
+#include  "LifeClick.h"
+#include "../gtl/design_pattern/Visitor.h"
 
 namespace simpla { namespace base
 {
@@ -78,7 +82,7 @@ namespace simpla { namespace base
  **/
 
 
-class Object
+class Object : public Acceptor
 {
 public:
     Object();
@@ -94,6 +98,8 @@ public:
     void swap(Object &other);
 
     virtual bool is_a(std::type_info const &info) const;
+
+    template<typename T> inline bool is_a() const { return is_a(typeid(T)); };
 
     virtual std::string get_class_name() const;
 
@@ -136,6 +142,7 @@ private:
 virtual bool is_a(std::type_info const &info)const                            \
   { return typeid(_CLASS_NAME_) == info || _BASE_CLASS_NAME_::is_a(info); }   \
 virtual std::string get_class_name() const { return __STRING(_CLASS_NAME_); }  \
+static std::string class_name()  { return __STRING(_CLASS_NAME_); }            \
 private:                                                                      \
     typedef _BASE_CLASS_NAME_ base_type;                                      \
 public:

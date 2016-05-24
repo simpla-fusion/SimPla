@@ -13,7 +13,6 @@
 #include "MeshAtlas.h"
 #include "../gtl/Log.h"
 
-namespace simpla { namespace io { class IOHandle; }}
 namespace simpla { namespace mesh
 {
 namespace tags
@@ -32,6 +31,8 @@ struct MeshAttributeBase : public base::Object
 {
     SP_OBJECT_HEAD(MeshAttributeBase, base::Object)
 
+public:
+
     MeshAttributeBase(MeshAtlas const &m) : m_atlas_(m) { }
 
     virtual ~MeshAttributeBase() { }
@@ -44,21 +45,11 @@ struct MeshAttributeBase : public base::Object
 
     void swap(MeshAttributeBase &other) = delete;
 
-
-//    virtual bool is_a(std::type_info const &t_info) const = 0;
-
-    template<typename T> inline bool is_a() const
-    {
-        return (std::is_base_of<MeshAttributeBase, T>::value && is_a(typeid(T)));
-    };
-
     virtual MeshEntityType entity_type() const = 0;
 
-    /** read attribute data on m_id from IOHandle, read all if m_id=0*/
-    virtual void read(io::IOHandle &, MeshBlockId m_id = 0) = 0;
+    virtual void apply(Visitor &vistor) { vistor.visit(*this); };
 
-    /** write attribute data on m_id to IOHandle, write all if m_id=0*/
-    virtual void write(io::IOHandle &, MeshBlockId m_id = 0) const = 0;
+    virtual void apply(Visitor &vistor) const { vistor.visit(*this); };
 
 
     /** register MeshBlockId to attribute data collection.  */
@@ -88,7 +79,7 @@ struct MeshAttributeBase : public base::Object
 
         virtual MeshEntityType entity_type() const = 0;
 
-        virtual EntityRange range() const = 0;
+        virtual MeshEntityRange range() const = 0;
 
         MeshBlockId block_id() const { return m_id_; }
 
@@ -117,19 +108,39 @@ class MeshAttribute<TV, TM, std::integral_constant<int, IEntityType>, tags::DENS
         : public MeshAttributeBase,
           public std::enable_shared_from_this<MeshAttribute<TV, TM, std::integral_constant<int, IEntityType>, tags::DENSE> >
 {
+private:
     typedef MeshAttribute<TV, TM, std::integral_constant<int, IEntityType>, tags::DENSE> this_type;
 
     typedef MeshAttribute<TV, TM, std::integral_constant<int, IEntityType>, tags::DENSE> mesh_attribute_type;
 
+
 public:
     typedef TV value_type;
     typedef TM mesh_type;
+
+    //*************************************************
+    // Object Head
+
 private:
-    typedef std::map<MeshBlockId, std::shared_ptr<value_type> > data_collection_type;
+    typedef MeshAttributeBase base_type;
 public:
+    virtual bool is_a(std::type_info const &info) const { return typeid(this_type) == info || base_type::is_a(info); }
+
+    virtual std::string get_class_name() const { return class_name(); }
+
+    static std::string class_name()
+    {
+        return std::string("MeshAttribute<") +
+               traits::type_id<TV, TM, std::integral_constant<int, IEntityType>>::name() + ">";
+    }
+    //*************************************************
+public:
+
     class View;
 
     MeshAttribute(MeshAtlas const &m) : MeshAttributeBase(m) { };
+
+    virtual  ~MeshAttribute() { };
 
     MeshAttribute(MeshAttribute const &other) = delete;
 
@@ -139,33 +150,21 @@ public:
 
     void swap(MeshAttribute &other) = delete;
 
-
-    virtual bool is_a(std::type_info const &t_info) const { return t_info == typeid(this_type); }
-
-
     virtual MeshEntityType entity_type() const { return static_cast<MeshEntityType >(IEntityType); }
-
-
-    virtual void read(io::IOHandle &, MeshBlockId m_id) { UNIMPLEMENTED; };
-
-    virtual void write(io::IOHandle &, MeshBlockId m_id) const { UNIMPLEMENTED; };
 
 
     /** register MeshBlockId to attribute data collection.  */
     virtual bool add(MeshBlockId m_id)
     {
-        if (m_data_collection_ == nullptr)
-        {
-            m_data_collection_ = std::make_shared<data_collection_type>();
-        }
+
 
         bool success = false;
 
-        auto it = m_data_collection_->find(m_id);
-        if (it == m_data_collection_->end())
+        auto it = m_data_collection_.find(m_id);
+        if (it == m_data_collection_.end())
         {
             std::tie(it, success) =
-                    m_data_collection_->emplace(
+                    m_data_collection_.emplace(
                             std::make_pair(m_id, std::make_shared<value_type>(
                                     m_atlas_.template at<mesh_type>(m_id)->size(entity_type()))));
 
@@ -174,28 +173,14 @@ public:
     };
 
     /** remove MeshBlockId from attribute data collection.  */
-    virtual void remove(MeshBlockId m_id) { m_data_collection_->erase(m_id); };
-
-
-//    template<typename TFun, typename ...Args>
-//    void accept(TFun const &fun, Args &&...args)
-//    {
-//        for (auto const &s:range()) { fun(get(s), std::forward<Args>(args)...); }
-//    }
+    virtual void remove(MeshBlockId m_id) { m_data_collection_.erase(m_id); };
 
 private:
-    std::shared_ptr<data_collection_type> m_data_collection_;
+
+    typedef std::map<MeshBlockId, std::shared_ptr<value_type> > data_collection_type;
+    data_collection_type m_data_collection_;
 
 public:
-    View view(MeshBlockId m_id = 0)
-    {
-        if (m_id == 0) { m_id = m_atlas_.root(); }
-        add(m_id);
-
-        return std::make_shared<View>(m_id, m_atlas_.template at<mesh_type>(m_id).get(),
-                                      (*m_data_collection_)[m_id].get());
-    }
-
 
     struct View : public MeshAttributeBase::View
     {
@@ -223,7 +208,7 @@ public:
 
         MeshEntityType entity_type() const { return static_cast<MeshEntityType >(IEntityType); }
 
-        EntityRange range() const { return m_mesh_->range(entity_type()); }
+        MeshEntityRange range() const { return m_mesh_->range(entity_type()); }
 
         mesh_type const &mesh() const { return *m_mesh_; }
 
@@ -240,6 +225,27 @@ public:
         value_type *m_data_;
 
     };
+
+
+    View view(MeshBlockId m_id = 0)
+    {
+        if (m_id == 0) { m_id = m_atlas_.root(); }
+        add(m_id);
+
+        return View(m_id, m_atlas_.template at<mesh_type>(m_id), (*m_data_collection_)[m_id].get());
+    }
+
+    virtual std::shared_ptr<MeshAttributeBase::View> view_(MeshBlockId m_id = 0)
+    {
+
+        if (m_id == 0) { m_id = m_atlas_.root(); }
+        add(m_id);
+
+        return std::dynamic_pointer_cast<MeshAttributeBase::View>(
+                std::make_shared<View>(m_id, m_atlas_.template at<mesh_type>(m_id),
+                                       (*m_data_collection_)[m_id].get()));
+    }
+
 }; // class MeshAttribute
 
 }}//namespace simpla{namespace mesh{

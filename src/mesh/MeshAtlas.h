@@ -15,10 +15,6 @@ namespace simpla { namespace mesh
 {
 
 
-class MeshBase;
-
-class MeshAttributeBase;
-
 /**
  *  manager of mesh blocks
  *  - adjacencies (graph, ?r-tree)
@@ -82,7 +78,7 @@ public:
     {
         auto res = m_mesh_atlas_.at(id);
 
-        if (!res->is_a<TM>()) { BAD_CAST << ("illegal mesh type conversion!") << std::endl; }
+        if (!res->base::Object::template is_a<TM>()) { BAD_CAST << ("illegal mesh type conversion!") << std::endl; }
 
         return std::dynamic_pointer_cast<const TM>(res).get();
     }

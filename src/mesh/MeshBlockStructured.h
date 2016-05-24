@@ -126,7 +126,7 @@ public:
 
     //****************************************
 
-    EntityRange range() const;
+    MeshEntityRange range() const;
 
     //****************************************
 
@@ -387,7 +387,7 @@ template<int NDIMS>
 class Mesh<tags::BlockStructured<NDIMS>>::View
 {
 public:
-    EntityRange range() const;
+    MeshEntityRange range() const;
 };
 
 template<int NDIMS>

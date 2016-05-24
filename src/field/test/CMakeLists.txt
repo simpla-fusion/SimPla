@@ -42,3 +42,4 @@ target_link_libraries(field_diff_calculus_cylindrical_test simpla_lib)
 
 
 add_executable(field_dummy field_dummy.cpp)
+target_link_libraries(field_dummy utilities base)

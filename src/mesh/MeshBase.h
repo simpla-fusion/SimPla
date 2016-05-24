@@ -8,38 +8,37 @@
 #include <typeinfo>
 #include "Mesh.h"
 #include "MeshEntity.h"
+#include "../base/Object.h"
 
 namespace simpla { namespace mesh
 {
 
 
-class MeshBase
+class MeshBase : public base::Object
 {
     MeshBlockId m_id_;
     int m_level_;
     unsigned long m_status_flag_ = 0;
 public:
 
+    SP_OBJECT_HEAD(mesh::MeshBase, base::Object);
+
+    MeshBase() { }
+
+    ~MeshBase() { }
+
     MeshBlockId const &id() const { return m_id_; }
 
     int level() const { return m_level_; }
 
-    virtual box_type box() const;
+    virtual box_type box() const = 0;
 
-    virtual EntityRange range() const;
+    virtual MeshEntityRange range(MeshEntityType entityType = VERTEX) const = 0;
 
-    virtual size_t size(MeshEntityType entityType = VERTEX) const;
+    virtual size_t size(MeshEntityType entityType = VERTEX) const = 0;
 
-    virtual size_t hash(EntityId const &) const;
+    virtual size_t hash(MeshEntityId const &) const = 0;
 
-    virtual bool is_a(std::type_info const &t_info) const = 0;
-
-    template<typename T> inline bool is_a() const
-    {
-        return (std::is_base_of<MeshBase, T>::value && is_a(typeid(T)));
-    };
-
-    bool is_local() const { return (m_status_flag_ & 1) == 0; }
 };
 
 }}//namespace simpla{namespace mesh{
