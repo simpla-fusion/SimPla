@@ -17,7 +17,7 @@
 
 #include "../gtl/type_traits.h"
 #include "../gtl/complex.h"
-#include "../gtl/ntuple.h"
+#include "nTuple.h"
 
 namespace simpla
 {

@@ -22,7 +22,7 @@
 #include "../../field/FieldExpression.h"
 #include "../../field/FieldTraits.h"
 
-#include "../../gtl/ntuple.h"
+#include "../../gtl/nTuple.h"
 #include "../../gtl/primitives.h"
 
 #include "../../gtl/utilities/Log.h"

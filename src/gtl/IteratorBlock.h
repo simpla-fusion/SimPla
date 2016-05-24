@@ -10,7 +10,7 @@
 #include <cstdlib>
 #include <cmath>
 #include <iterator>
-#include "ntuple.h"
+#include "nTuple.h"
 #include "type_traits_ext.h"
 
 namespace simpla { namespace gtl

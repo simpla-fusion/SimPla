@@ -12,7 +12,8 @@
 #include <typeinfo>
 #include <utility>
 #include "../type_traits.h"
-#include "../ntuple.h"
+#include "../nTuple.h"
+#include "../nTupleExt.h"
 #include "../primitives.h"
 
 using namespace simpla;
@@ -21,7 +22,7 @@ using namespace simpla;
 
 template<typename > class nTuplePerf1;
 
-template<typename T, size_t N>
+template<typename T, int N>
 class nTuplePerf1<nTuple<T, N>> : public testing::Test
 {
 	virtual void SetUp()
@@ -109,7 +110,7 @@ TYPED_TEST(nTuplePerf1, performancenTuple){
 
 template<typename > class nTuplePerf2;
 
-template<typename T, size_t N, size_t M>
+template<typename T, int N, int M>
 class nTuplePerf2<nTuple<T, N, M>> : public testing::Test
 {
 	virtual void SetUp()

@@ -9,7 +9,7 @@
 
 #include <tuple>
 #include <vector>
-#include "../../gtl/ntuple.h"
+#include "../../gtl/nTuple.h"
 #include "../../parallel/MPIComm.h"
 #include "../../parallel/MPIUpdate.h"
 #include "../../parallel/Parallel.h"

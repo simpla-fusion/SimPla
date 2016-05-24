@@ -12,7 +12,7 @@
 #include <iterator>
 #include <type_traits>
 
-#include "../ntuple.h"
+#include "../nTuple.h"
 #include "range.h"
 
 namespace simpla {

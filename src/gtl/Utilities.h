@@ -12,21 +12,21 @@
 
 
 #include "Log.h"
-#include "pretty_stream.h"
-#include "misc_utilities.h"
+#include "PrettyStream.h"
+#include "MiscUtilities.h"
 #include "LuaObject.h"
 #include "LuaObjectExt.h"
 #include "ConfigParser.h"
 #include "parse_command_line.h"
 
 
-#include "../primitives.h"
-#include "../type_traits.h"
-#include "../ntuple.h"
-#include "../ntuple_ext.h"
-#include "../Properties.h"
+#include "primitives.h"
+#include "type_traits.h"
+#include "nTuple.h"
+#include "nTupleExt.h"
+#include "Properties.h"
 
-#include "../../physics/PhysicalConstants.h"
+#include "../physics/PhysicalConstants.h"
 
 
 namespace simpla

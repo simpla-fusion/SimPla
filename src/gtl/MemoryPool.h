@@ -14,7 +14,7 @@
 
 #include "design_pattern/SingletonHolder.h"
 
-namespace simpla { namespace gtl
+namespace simpla
 {
 
 /** @ingroup utilities
@@ -101,7 +101,7 @@ std::shared_ptr<T> sp_alloc_array(size_t s)
 std::shared_ptr<void> sp_alloc_memory(size_t s);
 /** @} */
 
-}}//namespace simpla{ namespace gtl{
+} //namespace simpla
 
 
 #endif  // CORE_UTILITIES_MEMORY_POOL_H_

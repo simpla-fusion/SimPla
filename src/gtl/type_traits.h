@@ -12,6 +12,7 @@
 #include <map>
 #include <tuple>
 #include <type_traits>
+#include <complex>
 
 #include "check_concept.h"
 #include "macro.h"
@@ -21,21 +22,10 @@ namespace simpla
 
 typedef std::nullptr_t NullType;
 
-struct EmptyType
-{
-};
+struct EmptyType { };
 
 
-namespace tags
-{
-
-
-struct do_nothing
-{
-    template<typename ...Args> void operator()(Args &&...) const { }
-};
-
-}
+namespace tags { struct do_nothing { template<typename ...Args> void operator()(Args &&...) const { }}; }
 
 template<typename _Tp, _Tp ... _I> struct integer_sequence;
 template<typename, int...> struct nTuple;
@@ -107,6 +97,11 @@ template<typename T>
 struct value_type
 {
     typedef typename std::conditional<std::is_scalar<T>::value, T, std::nullptr_t>::type type;
+};
+template<typename T>
+struct value_type<std::complex<T>>
+{
+    typedef std::complex<T> type;
 };
 template<>
 struct value_type<std::string>

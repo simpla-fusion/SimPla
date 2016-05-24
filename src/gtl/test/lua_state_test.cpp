@@ -9,8 +9,9 @@
 #include <string>
 #include <utility>
 
-#include "../utilities/LuaObject.h"
-#include "../ntuple_ext.h"
+#include "../LuaObject.h"
+#include "../nTuple.h"
+#include "../nTupleExt.h"
 
 using namespace simpla;
 

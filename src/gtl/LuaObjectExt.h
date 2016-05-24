@@ -18,8 +18,8 @@
 #include <utility>
 #include <vector>
 
-#include "../ntuple.h"
-#include "../Properties.h"
+#include "nTuple.h"
+#include "Properties.h"
 
 extern "C"
 {

@@ -6,7 +6,7 @@
  */
 
 #include "../gtl/design_pattern/SingletonHolder.h"
-#include "../gtl/utilities/parse_command_line.h"
+#include "../gtl/parse_command_line.h"
 #include "MPIComm.h"
 #include "DistributedObject.h"
 

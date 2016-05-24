@@ -35,11 +35,11 @@ public:
     void update_level(Real dt, int level = 0);
 
 
-    virtual void map_to(mesh::mesh_id const &, mesh::mesh_id const &) = 0;
+    virtual void map_to(mesh::MeshBlockId const &, mesh::MeshBlockId const &) = 0;
 
-    virtual void time_step(mesh::mesh_id const &, Real dt) = 0;
+    virtual void time_step(mesh::MeshBlockId const &, Real dt) = 0;
 
-    virtual bool need_coarsen(mesh::mesh_id const &) = 0;
+    virtual bool need_coarsen(mesh::MeshBlockId const &) = 0;
 
     virtual std::vector<mesh::box_type> refine_boxes(int level = 0) = 0;
 

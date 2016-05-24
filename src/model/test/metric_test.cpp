@@ -6,8 +6,8 @@
 
 #include <gtest/gtest.h>
 
-#include "../../gtl/ntuple.h"
-#include "../../gtl/ntuple_ext.h"
+#include "../../gtl/nTuple.h"
+#include "../../gtl/nTupleExt.h"
 #include "../../gtl/utilities/Log.h"
 #include "../../gtl/iterator/range.h"
 

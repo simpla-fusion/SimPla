@@ -12,7 +12,7 @@
 #include <memory>
 #include "../gtl/Log.h"
 #include "../gtl/macro.h"
-#include "../gtl/ntuple.h"
+#include "../gtl/nTuple.h"
 
 #include "../model/CoordinateSystem.h"
 #include "ManifoldTraits.h"

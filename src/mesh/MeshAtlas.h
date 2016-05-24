@@ -7,52 +7,84 @@
 #ifndef SIMPLA_MESH_MESHATLAS_H
 #define SIMPLA_MESH_MESHATLAS_H
 
-#include <boost/graph/adjacency_list.hpp>
 #include "Mesh.h"
+#include "MeshBase.h"
 #include "../gtl/Log.h"
 
 namespace simpla { namespace mesh
 {
 
-enum MESH_STATUS
-{
-    LOCAL = 1, // 001
-    ADJACENT = 2, // 010
 
-};
+class MeshBase;
 
+class MeshAttributeBase;
+
+/**
+ *  manager of mesh blocks
+ *  - adjacencies (graph, ?r-tree)
+ *  - refine and coarsen
+ *  - coordinates map on overlap region
+ */
 class MeshAtlas
 {
     int m_level_ratio_;
-    mesh_id m_root_;
+    MeshBlockId m_root_;
 
-    std::map<mesh_id, std::shared_ptr<MeshBase> > m_mesh_atlas_;
+    std::map<MeshBlockId, std::shared_ptr<MeshBase> > m_mesh_atlas_;
     int m_max_level_ = 1;
 public:
+    enum MESH_STATUS
+    {
+        LOCAL = 1, // 001
+        ADJACENT = 2, // 010
 
-    std::vector<mesh_id> adjacent_blocks(mesh_id const &id, int inc_level = 0, int status_flag = 0);
+    };
 
-    std::vector<mesh_id> find(int level = 0, int status_flag = 0);
+    template<typename T, typename ...Args>
+    std::shared_ptr<T> attribute(Args &&...args) const
+    {
+//        static_assert(std::is_base_of<MeshAttributeBase, T>::value);
+
+        return std::make_shared<T>(*this, std::forward<Args>(args)...);
+
+    }
+
+
+    std::vector<MeshBlockId> adjacent_blocks(MeshBlockId const &id, int inc_level = 0, int status_flag = 0);
+
+    std::vector<MeshBlockId> find(int level = 0, int status_flag = 0);
 
     int count(int level = 0, int status_flag = 0);
 
+    /**return the id of  root block*/
+    MeshBlockId root() const { };
 
-    void set(mesh_id const &id, std::shared_ptr<MeshBase> ptr)
+    void set(MeshBlockId const &id, std::shared_ptr<MeshBase> ptr)
     {
         m_mesh_atlas_[id].swap(ptr);
     };
 
-    std::shared_ptr<MeshBase> get(mesh_id const &id) const
+    std::shared_ptr<MeshBase> at(MeshBlockId const &id) const
     {
-        auto res = m_mesh_atlas_.find(id);
-        if (res != m_mesh_atlas_.end())
-        {
-            return *res;
-        }
-        else
-        {
-            return std::shared_ptr<MeshBase>(nullptr);
-        }
+        return m_mesh_atlas_.at(id);
+//        if (res != m_mesh_atlas_.end())
+//        {
+//            return *res;
+//        }
+//        else
+//        {
+//            return std::shared_ptr<MeshBase>(nullptr);
+//        }
+    }
+
+    template<typename TM>
+    TM const *at(MeshBlockId const &id) const
+    {
+        auto res = m_mesh_atlas_.at(id);
+
+        if (!res->is_a<TM>()) { BAD_CAST << ("illegal mesh type conversion!") << std::endl; }
+
+        return std::dynamic_pointer_cast<const TM>(res).get();
     }
 
     int level_ratio() const
@@ -71,16 +103,16 @@ public:
     }
 
 
-    mesh_id add(box_type const &b, int level = 0)
+    MeshBlockId add(box_type const &b, int level = 0)
     {
         m_max_level_ = std::max(m_max_level_, level);
-//        mesh_id uuid = get_id();
+//        MeshBlockId uuid = get_id();
 //        m_mesh_atlas_.emplace(std::make_pair(uuid, ptr));
         UNIMPLEMENTED;
         return 0;
     };
 
-    void remove(mesh_id const &id)
+    void remove(MeshBlockId const &id)
     {
         m_mesh_atlas_.erase(id);
         while (count(m_max_level_ - 1) == 0)

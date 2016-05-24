@@ -13,7 +13,7 @@
 #include <memory>
 #include <string>
 
-#include "../gtl/utilities/utilities.h"
+#include "../gtl/Utilities.h"
 
 namespace simpla { namespace parallel
 {

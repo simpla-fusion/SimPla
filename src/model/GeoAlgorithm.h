@@ -11,7 +11,7 @@
 #include <stddef.h>
 #include <tuple>
 
-#include "../gtl/ntuple.h"
+#include "../gtl/nTuple.h"
 #include "../gtl/primitives.h"
 
 namespace simpla

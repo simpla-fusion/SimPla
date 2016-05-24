@@ -14,7 +14,7 @@
 #include <vector>
 
 #include "../gtl/mpl.h"
-#include "../gtl/ntuple.h"
+#include "../gtl/nTuple.h"
 #include "CoordinateSystem.h"
 #include "primitive.h"
 

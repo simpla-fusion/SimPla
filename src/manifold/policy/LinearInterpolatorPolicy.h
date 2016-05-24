@@ -7,7 +7,7 @@
 #ifndef SIMPLA_LINEAR_H
 #define SIMPLA_LINEAR_H
 
-#include "../../gtl/ntuple.h"
+#include "../../gtl/nTuple.h"
 
 namespace simpla { namespace manifold { namespace policy
 {

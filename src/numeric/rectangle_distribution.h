@@ -12,7 +12,7 @@
 #include <iterator>
 #include <numeric>
 #include <vector>
-#include "../gtl/ntuple.h"
+#include "../gtl/nTuple.h"
 #include "../gtl/primitives.h"
 
 namespace simpla

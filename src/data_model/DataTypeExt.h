@@ -10,7 +10,7 @@
 
 #include <typeinfo>
 #include "../gtl/type_traits.h"
-#include "../gtl/ntuple.h"
+#include "../gtl/nTuple.h"
 #include "DataType.h"
 
 namespace simpla

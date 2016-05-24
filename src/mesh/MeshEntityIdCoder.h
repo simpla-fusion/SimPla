@@ -1,18 +1,18 @@
 /**
- * @file mesh_ids.h
+ * @file MeshEntityIdCoder.h
  *
  * @date 2015-3-19
  * @author salmon
  */
 
-#ifndef CORE_MESH_MESH_IDS_H_
-#define CORE_MESH_MESH_IDS_H_
+#ifndef CORE_MESH_MESH_ENTITY_ID_CODER_H_
+#define CORE_MESH_MESH_ENTITY_ID_CODER_H_
 
 #include <stddef.h>
 #include <limits>
 #include <tuple>
 
-#include "../gtl/ntuple.h"
+#include "../gtl/nTuple.h"
 #include "../gtl/primitives.h"
 #include "../gtl/IteratorBlock.h"
 #include "Mesh.h"
@@ -32,6 +32,7 @@ namespace simpla { namespace mesh
 //
 //  \endverbatim
 /**
+ *
  *  signed long is 63bit, unsigned long is 64 bit, add a sign bit
  *  \note
  *  \verbatim
@@ -52,13 +53,14 @@ namespace simpla { namespace mesh
  *  | Page NO.->| Tree Root  ->|
  *  |00000000000|11111111111111|11111111111| <=_MASK
  *  \endverbatim
+ *
+ *  @comment similar to MOAB::EntityHandle but using different code ruler and more efficienct for FD and SAMR  -- salmon. 2016.5.24
+ *  @note different mesh should use different 'code and hash ruler'  -- salmon. 2016.5.24
  */
-template<int L> struct MeshIDs_;
 
-typedef MeshIDs_<4> MeshIDs;
 
 template<int LV>
-struct MeshIDs_
+struct MeshEntityIdCoder
 {
     /// @name level independent
     /// @{
@@ -67,7 +69,7 @@ struct MeshIDs_
     static constexpr int ndims = 3;
     static constexpr int MESH_RESOLUTION = 1;
 
-    typedef MeshIDs_<LV> this_type;
+    typedef MeshEntityIdCoder<LV> this_type;
 
     typedef std::uint64_t id_type;
 
@@ -1227,32 +1229,32 @@ struct MeshIDs_
  * http://stackoverflow.com/questions/22172789/passing-a-static-constexpr-variable-by-universal-reference
  */
 
-template<int L> constexpr int MeshIDs_<L>::ndims;
-template<int L> constexpr int MeshIDs_<L>::MESH_RESOLUTION;
-template<int L> constexpr Real MeshIDs_<L>::EPSILON;
-template<int L> constexpr int MeshIDs_<L>::FULL_DIGITS;
-template<int L> constexpr int MeshIDs_<L>::ID_DIGITS;
-template<int L> constexpr typename MeshIDs_<L>::id_type MeshIDs_<L>::OVERFLOW_FLAG;
-template<int L> constexpr typename MeshIDs_<L>::id_type MeshIDs_<L>::ID_ZERO;
-template<int L> constexpr typename MeshIDs_<L>::id_type MeshIDs_<L>::INDEX_ZERO;
-template<int L> constexpr typename MeshIDs_<L>::id_type MeshIDs_<L>::ID_MASK;
+template<int L> constexpr int MeshEntityIdCoder<L>::ndims;
+template<int L> constexpr int MeshEntityIdCoder<L>::MESH_RESOLUTION;
+template<int L> constexpr Real MeshEntityIdCoder<L>::EPSILON;
+template<int L> constexpr int MeshEntityIdCoder<L>::FULL_DIGITS;
+template<int L> constexpr int MeshEntityIdCoder<L>::ID_DIGITS;
+template<int L> constexpr typename MeshEntityIdCoder<L>::id_type MeshEntityIdCoder<L>::OVERFLOW_FLAG;
+template<int L> constexpr typename MeshEntityIdCoder<L>::id_type MeshEntityIdCoder<L>::ID_ZERO;
+template<int L> constexpr typename MeshEntityIdCoder<L>::id_type MeshEntityIdCoder<L>::INDEX_ZERO;
+template<int L> constexpr typename MeshEntityIdCoder<L>::id_type MeshEntityIdCoder<L>::ID_MASK;
 
-template<int L> constexpr Real MeshIDs_<L>::_R;
-template<int L> constexpr typename MeshIDs_<L>::id_type MeshIDs_<L>::_DK;
-template<int L> constexpr typename MeshIDs_<L>::id_type MeshIDs_<L>::_DJ;
-template<int L> constexpr typename MeshIDs_<L>::id_type MeshIDs_<L>::_DI;
-template<int L> constexpr typename MeshIDs_<L>::id_type MeshIDs_<L>::_DA;
-template<int L> constexpr int MeshIDs_<L>::m_id_to_index_[];
-template<int L> constexpr int MeshIDs_<L>::m_id_to_iform_[];
-template<int L> constexpr int MeshIDs_<L>::m_id_to_num_of_ele_in_cell_[];
-template<int L> constexpr int MeshIDs_<L>::m_adjacent_cell_num_[4][8];
-template<int L> constexpr typename MeshIDs_<L>::id_type MeshIDs_<L>::m_id_to_shift_[];
-template<int L> constexpr int MeshIDs_<L>::m_sub_index_to_id_[4][3];
-template<int L> constexpr typename MeshIDs_<L>::id_type MeshIDs_<L>::m_adjacent_cell_matrix_[4/* to iform*/][NUM_OF_NODE_ID/* node id*/][MAX_NUM_OF_ADJACENT_CELL/*id shift*/];
-template<int L> constexpr typename MeshIDs_<L>::point_type MeshIDs_<L>::m_id_to_coordinates_shift_[];
+template<int L> constexpr Real MeshEntityIdCoder<L>::_R;
+template<int L> constexpr typename MeshEntityIdCoder<L>::id_type MeshEntityIdCoder<L>::_DK;
+template<int L> constexpr typename MeshEntityIdCoder<L>::id_type MeshEntityIdCoder<L>::_DJ;
+template<int L> constexpr typename MeshEntityIdCoder<L>::id_type MeshEntityIdCoder<L>::_DI;
+template<int L> constexpr typename MeshEntityIdCoder<L>::id_type MeshEntityIdCoder<L>::_DA;
+template<int L> constexpr int MeshEntityIdCoder<L>::m_id_to_index_[];
+template<int L> constexpr int MeshEntityIdCoder<L>::m_id_to_iform_[];
+template<int L> constexpr int MeshEntityIdCoder<L>::m_id_to_num_of_ele_in_cell_[];
+template<int L> constexpr int MeshEntityIdCoder<L>::m_adjacent_cell_num_[4][8];
+template<int L> constexpr typename MeshEntityIdCoder<L>::id_type MeshEntityIdCoder<L>::m_id_to_shift_[];
+template<int L> constexpr int MeshEntityIdCoder<L>::m_sub_index_to_id_[4][3];
+template<int L> constexpr typename MeshEntityIdCoder<L>::id_type MeshEntityIdCoder<L>::m_adjacent_cell_matrix_[4/* to iform*/][NUM_OF_NODE_ID/* node id*/][MAX_NUM_OF_ADJACENT_CELL/*id shift*/];
+template<int L> constexpr typename MeshEntityIdCoder<L>::point_type MeshEntityIdCoder<L>::m_id_to_coordinates_shift_[];
 
 }//namespace  mesh
 }// namespace simpla
 
-#endif /* CORE_MESH_MESH_IDS_H_ */
+#endif /* CORE_MESH_MESH_ENTITY_ID_CODER_H_ */
 

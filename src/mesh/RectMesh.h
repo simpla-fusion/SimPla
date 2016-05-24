@@ -9,7 +9,7 @@
 
 #include <limits>
 #include "Mesh.h"
-#include "MeshIds.h"
+#include "MeshEntityIdCoder.h"
 #include "MeshBlock.h"
 #include "LinearMap.h"
 #include "../../gtl/design_pattern/singleton_holder.h"

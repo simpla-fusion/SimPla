@@ -12,7 +12,7 @@
 //#include "../physics/PhysicalConstants.h"
 #include "../gtl/utilities/utilities.h"
 #include "../gtl/type_traits.h"
-#include "../gtl/ntuple.h"
+#include "../gtl/nTuple.h"
 #include "../data_model/DataType.h"
 #include "../data_model/DataTypeExt.h"
 

@@ -13,7 +13,7 @@
 #include <new>
 #include <tuple>
 
-#include "../design_pattern/SingletonHolder.h"
+#include "design_pattern/SingletonHolder.h"
 #include "Log.h"
 
 namespace simpla
@@ -173,4 +173,4 @@ std::shared_ptr<void> sp_alloc_memory(size_t s)
 
     return std::shared_ptr<void>(addr, MemoryPool::deleter_s(addr, s));
 }
-} // namespace simpla
+}  // namespace simpla

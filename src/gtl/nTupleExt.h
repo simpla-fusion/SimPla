@@ -13,7 +13,7 @@
 #include <string>
 #include <type_traits>
 
-#include "ntuple.h"
+#include "nTuple.h"
 #include "type_cast.h"
 
 namespace simpla

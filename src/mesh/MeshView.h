@@ -12,16 +12,6 @@
 namespace simpla { namespace mesh
 {
 
-class ViewBase
-{
-    virtual EntityRange range();
-};
-
-template<typename ...>
-class View : public ViewBase
-{
-
-};
 
 }}//namespace simpla{namespace mesh{
 #endif //SIMPLA_MESH_MESHVIEW_H

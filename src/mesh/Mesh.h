@@ -7,10 +7,9 @@
 #ifndef SIMPLA_MESH_H
 #define SIMPLA_MESH_H
 
-
-#include "../gtl/ntuple.h"
-#include "../gtl/type_traits.h"
+//#include "../gtl/type_traits.h"
 #include "../gtl/primitives.h"
+#include "../gtl/nTuple.h"
 
 
 namespace simpla { namespace mesh
@@ -47,39 +46,11 @@ namespace simpla { namespace mesh
 
 
 
-enum EntityType
-{
-    VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3
-
-//    TRIANGLE = (3 << 2) | 2,
-//
-//    QUADRILATERAL = (4 << 2) | 2,
-//
-//    // place holder
-//
-//    POLYGON = ((-1) << 2) | 2,
-//
-//    // custom polygon
-//
-//    TETRAHEDRON = (6 << 2) | 3,
-//    PYRAMID,
-//    PRISM,
-//    KNIFE,
-//
-//    HEXAHEDRON = MAX_POLYGON + 12,
-//    // place holder
-//            POLYHEDRON = MAX_POLYGON + (1 << 5),
-//    // custom POLYHEDRON
-//
-//    MAX_POLYHEDRON = MAX_POLYGON + (1 << 6)
-
-};
-
 typedef size_t id_type; //!< Data type  of entity id
 
-typedef gtl::nTuple<Real, 3> point_type; //!< DataType of configuration space point (coordinates i.e. (x,y,z) )
+typedef nTuple<Real, 3> point_type; //!< DataType of configuration space point (coordinates i.e. (x,y,z) )
 
-typedef gtl::nTuple<Real, 3> vector_type;
+typedef nTuple<Real, 3> vector_type;
 
 typedef std::tuple<point_type, point_type> box_type; //! two corner of rectangle (or hexahedron ) , <lower ,upper>
 
@@ -87,17 +58,17 @@ typedef long index_type; //!< Data type of vertex's index , i.e. i,j
 
 typedef long difference_type; //!< Data type of the difference between indices,i.e.  s = i - j
 
-typedef gtl::nTuple<index_type, 3> index_tuple;
+typedef nTuple<index_type, 3> index_tuple;
 
 typedef std::tuple<index_tuple, index_tuple> index_box_type;
 
-class EntityIterator;
+class EntityIterator{};
 
-class EntityRange;
+class EntityRange{};
 
 typedef unsigned long EntityId;
 
-typedef unsigned long mesh_id;
+typedef unsigned long MeshBlockId;
 
 class MeshBase;
 
@@ -105,7 +76,10 @@ class MeshUpdater;
 
 class MeshAtlas;
 
-class MeshAttribute;
+
+template<typename ...> class MeshAttribute;
+
+class MeshAttributeBase;
 
 class MeshConnection;
 

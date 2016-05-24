@@ -5,7 +5,7 @@
  *      Author: salmon
  */
 
-#include "../utilities/Log.h"
+#include "../Log.h"
 
 using namespace simpla;
 

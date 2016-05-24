@@ -9,8 +9,8 @@
 #include <typeindex>
 #include "MPIComm.h"
 #include "MPIDataType.h"
-#include "../gtl/utilities/utilities.h"
-#include "../gtl/utilities/pretty_stream.h"
+#include "../gtl/Utilities.h"
+#include "../gtl/PrettyStream.h"
 
 namespace simpla
 {

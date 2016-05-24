@@ -5,8 +5,8 @@
  */
 #include "LuaObject.h"
 #include "LuaObjectExt.h"
-#include "pretty_stream.h"
-#include "../ntuple_ext.h"
+#include "PrettyStream.h"
+#include "nTupleExt.h"
 
 namespace simpla
 {

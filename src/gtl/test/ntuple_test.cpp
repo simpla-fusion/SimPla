@@ -7,14 +7,16 @@
 
 #include <iostream>
 
-#include "../sp_integer_sequence.h"
-#include "ntuple.h"
+#include "../integer_sequence.h"
+#include "../nTuple.h"
+#include "../nTupleExt.h"
+
 using namespace simpla;
 
 int main(int argc, char **argv)
 {
 
-	nTuple<double, 3> b = { 1, 2, 3, }, c = { 0, 1, 2, };
+    nTuple<double, 3> b = {1, 2, 3,}, c = {0, 1, 2,};
 //
 //	std::cout << a << std::endl;
 //
@@ -25,7 +27,7 @@ int main(int argc, char **argv)
 //
 //	std::cout << c << std::endl;
 
-	auto t = 0.3 * (b - c) + c;
+    auto t = 0.3 * (b - c) + c;
 //
 //	std::cout << std::boolalpha
 //			<< std::is_same<decltype(t)::value_type, double>::value << std::endl
@@ -35,19 +37,19 @@ int main(int argc, char **argv)
 //			<< std::endl << std::endl;
 
 //
-	nTuple<double, 3> a = 0.3 * (b - c) + c;
+    nTuple<double, 3> a = 0.3 * (b - c) + c;
 
 //	std::cout << seq_reduce(integer_sequence<size_t, 2, 3>(), _impl::plus(), a)
 //			<< std::endl;
 
 //	std::cout << _impl::traits::index_traits(a.data_, 1, 2) << std::endl;
 //
-	std::cout << a << std::endl;
+    std::cout << a << std::endl;
 
-	nTuple<double, 5> d;
-	d = 10;
-	d = a;
-	std::cout << d << std::endl;
+    nTuple<double, 5> d;
+    d = 10;
+    d = a;
+    std::cout << d << std::endl;
 //
 //	std::cout << b << std::endl;
 //

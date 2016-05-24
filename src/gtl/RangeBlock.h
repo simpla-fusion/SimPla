@@ -16,7 +16,7 @@
 #include <type_traits>
 
 #include "../type_traits.h"
-#include "ntuple.h"
+#include "nTuple.h"
 
 namespace simpla { namespace gtl
 {

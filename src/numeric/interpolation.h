@@ -9,7 +9,7 @@
 #define INTERPOLATION_H_
 
 #include "../gtl/utilities/Log.h"
-#include "../gtl/ntuple.h"
+#include "../gtl/nTuple.h"
 #include <vector>
 #include <cmath>
 #include <algorithm>

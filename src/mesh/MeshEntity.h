@@ -8,9 +8,9 @@
 #define SIMPLA_MESH_MESHENTITY_H
 namespace simpla { namespace mesh
 {
-enum MeshEntity
+enum MeshEntityType
 {
-    VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3
+    VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 4
 
 //    TRIANGLE = (3 << 2) | 2,
 //
@@ -38,8 +38,8 @@ enum MeshEntity
 
 };
 
-typedef size_t mesh_entity_id_t;
-typedef ptrdiff_t mesh_entity_id_diff_t;
+typedef unsigned long MeshEntityId;
+typedef long MeshEntityIdDiff;
 }} //namespace simpla { namespace mesh
 
 #endif //SIMPLA_MESH_MESHENTITY_H

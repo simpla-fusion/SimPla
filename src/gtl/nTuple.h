@@ -18,13 +18,11 @@
 #include "macro.h"
 #include "mpl.h"
 #include "type_traits.h"
-#include "../gtl/ntuple.h"
 
 
 namespace simpla
 {
-namespace gtl
-{
+
 
 /**
  * @ingroup gtl
@@ -519,9 +517,13 @@ struct extents<nTuple<Expression<TOP, T...> > > : public _impl::extents_helper<
         TOP, traits::extents_t<T>...>::type
 {
 };
-
-template<typename TV, int N, int ...M>
-struct value_type<nTuple<TV, N, M...> >
+template<typename TV, int N>
+struct value_type<nTuple<TV, N> >
+{
+    typedef traits::value_type_t<TV> type;
+};
+template<typename TV, int ...M>
+struct value_type<nTuple<TV, M...> >
 {
     typedef traits::value_type_t<TV> type;
 };
@@ -1009,6 +1011,5 @@ void swap(simpla::nTuple<T, N, M...> &l,
 }
 
 }
-}  // namespace simpla{namespace gtl{
 
 #endif  // CORE_GTL_NTUPLE_H_

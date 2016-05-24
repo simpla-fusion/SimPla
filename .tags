@@ -124,7 +124,7 @@ CONTAINER_SPARSE_H_	core/gtl/containers/container_sparse.h	9;"	d
 CONTAINER_TRAITS_H_	core/gtl/containers/container_traits.h	9;"	d
 CONTEXT_BASE_H_	core/task_flow/context_base.h	9;"	d
 CONTINUE	core/gtl/utilities/parse_command_line.h	/^	CONTINUE = 0, TERMINATE = 1$/;"	e	enum:simpla::__anon11
-COORDINATES_MESH_FACTOR	core/manifold/mesh/MeshIds.h	/^    static constexpr Real COORDINATES_MESH_FACTOR = static_cast<Real>(1UL << MESH_RESOLUTION);$/;"	m	struct:simpla::mesh::MeshIDs_
+COORDINATES_MESH_FACTOR	core/manifold/mesh/MeshIds.h	/^    static constexpr Real COORDINATES_MESH_FACTOR = static_cast<Real>(1UL << MESH_RESOLUTION);$/;"	m	struct:simpla::mesh::MeshEntityIdCoder
 COORDINATE_SYSTEM	example/em/demo_em.cpp	34;"	d	file:
 COPYRIGHT	core/gtl/utilities/logo.cpp	23;"	d	file:
 CORE	core/model/obsoleted/model.h	/^        CORE = 1UL << 3,$/;"	e	enum:simpla::Model::__anon9
@@ -387,7 +387,7 @@ DEF_UOP	core/gtl/expression_template.h	196;"	d
 DEF_UOP	core/gtl/expression_template.h	255;"	d
 DEF_XDMF_TYPE_TRAITS	core/io/XDMFIO.h	29;"	d
 DEF_XDMF_TYPE_TRAITS	core/io/XDMFIO.h	46;"	d
-DI	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type DI(int n, id_type s)$/;"	f	struct:simpla::mesh::MeshIDs_
+DI	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type DI(int n, id_type s)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder
 DIMENSIONS	core/gtl/test/ntuple_reduce_test.cpp	/^	nTuple<std::size_t, traits::extent<extents>::value> DIMENSIONS;$/;"	m	class:TestNtupleReduce	file:
 DISTRIBUTED_ARRAY_H_	core/parallel/obsoleted/distributed_array.h	9;"	d
 DONE	core/gtl/utilities/log.h	315;"	d
@@ -465,8 +465,8 @@ EMTokamak	example/em_tokamak/tokamak.cpp	/^    EMTokamak() { }$/;"	f	struct:simp
 EMTokamak	example/em_tokamak/tokamak.cpp	/^struct EMTokamak$/;"	s	namespace:simpla	file:
 ENABLE_IF_DECL_RET_TYPE	core/gtl/macro.h	15;"	d
 EPSILON	core/gtl/primitives.h	/^static constexpr Real EPSILON = std::numeric_limits<Real>::epsilon();$/;"	m	namespace:simpla
-EPSILON	core/manifold/mesh/MeshIds.h	/^    static constexpr Real EPSILON = 1.0 \/ static_cast<Real>(INDEX_ZERO);$/;"	m	struct:simpla::mesh::MeshIDs_
-EPSILON	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr Real MeshIDs_<L>::EPSILON;$/;"	m	class:simpla::mesh::MeshIDs_
+EPSILON	core/manifold/mesh/MeshIds.h	/^    static constexpr Real EPSILON = 1.0 \/ static_cast<Real>(INDEX_ZERO);$/;"	m	struct:simpla::mesh::MeshEntityIdCoder
+EPSILON	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr Real MeshEntityIdCoder<L>::EPSILON;$/;"	m	class:simpla::mesh::MeshEntityIdCoder
 EQUATION	core/gtl/test/ntuple_perf_test.cpp	20;"	d	file:
 EXAMPLE_USE_CASE_DEMO_PROBE_PARTICLE_H_	example/probe_particle/demo_probe_particle.h	9;"	d
 EXAMPLE_USE_CASE_PIC_DEMO_PIC_H_	example/pic/demo_pic.h	9;"	d
@@ -509,9 +509,9 @@ FILE_LINE_STAMP	core/gtl/utilities/log.h	310;"	d
 FIND_ROOT_H_	core/numeric/find_root.h	9;"	d
 FLUID_COLD_ENGINE_H_	applications/particle_solver/fluid_cold_engine.h	9;"	d
 FORTRAN_ORDER	core/gtl/primitives.h	/^    FORTRAN_ORDER \/\/  FAST_FIRST$/;"	e	enum:simpla::ArrayOrder
-FULL_DIGITS	core/manifold/mesh/MeshIds.h	/^    static constexpr int FULL_DIGITS = std::numeric_limits<id_type>::digits;$/;"	m	struct:simpla::mesh::MeshIDs_
-FULL_DIGITS	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr int MeshIDs_<L>::FULL_DIGITS;$/;"	m	class:simpla::mesh::MeshIDs_
-FULL_OVERFLOW_FLAG	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type FULL_OVERFLOW_FLAG = OVERFLOW_FLAG$/;"	m	struct:simpla::mesh::MeshIDs_
+FULL_DIGITS	core/manifold/mesh/MeshIds.h	/^    static constexpr int FULL_DIGITS = std::numeric_limits<id_type>::digits;$/;"	m	struct:simpla::mesh::MeshEntityIdCoder
+FULL_DIGITS	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr int MeshEntityIdCoder<L>::FULL_DIGITS;$/;"	m	class:simpla::mesh::MeshEntityIdCoder
+FULL_OVERFLOW_FLAG	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type FULL_OVERFLOW_FLAG = OVERFLOW_FLAG$/;"	m	struct:simpla::mesh::MeshEntityIdCoder
 Factory	core/gtl/design_pattern/factory.h	/^	Factory()$/;"	f	struct:simpla::Factory
 Factory	core/gtl/design_pattern/factory.h	/^struct Factory$/;"	s	namespace:simpla
 FiberBundle	core/manifold/obsoleted/fiber_bundle.h	/^    FiberBundle(mesh_type const &b) : m_map_(b), m_mesh_(b)$/;"	f	class:simpla::manifold::FiberBundle
@@ -642,23 +642,23 @@ HAS_TYPE_MEMBER	core/gtl/check_concept.h	41;"	d
 HAS_TYPE_MEMBER	core/gtl/concept_check.h	34;"	d
 HDF5Stream	core/io/HDF5Stream.cpp	/^HDF5Stream::HDF5Stream() : m_pimpl_(new pimpl_s) { }$/;"	f	class:simpla::io::HDF5Stream
 HDF5Stream	core/io/HDF5Stream.h	/^class HDF5Stream : public IOStream$/;"	c	namespace:simpla::io
-HEAD_DIGITS	core/manifold/mesh/MeshIds.h	/^    static constexpr int HEAD_DIGITS = (FULL_DIGITS - ID_DIGITS * 3);$/;"	m	struct:simpla::mesh::MeshIDs_
+HEAD_DIGITS	core/manifold/mesh/MeshIds.h	/^    static constexpr int HEAD_DIGITS = (FULL_DIGITS - ID_DIGITS * 3);$/;"	m	struct:simpla::mesh::MeshEntityIdCoder
 Hash	core/particle/ParticleContainer.h	/^    struct Hash$/;"	s	struct:simpla::particle::ParticleContainer
 HierarchyFileName	plugins/vtk_reader/vtkAMRSimPlaReader.cpp	/^    std::string HierarchyFileName;$/;"	m	class:vtkAMRSimPlaReader::pimpl_s	file:
 HodgeStar	core/manifold/Calculus.h	/^struct HodgeStar$/;"	s	namespace:simpla::calculus::tags
 ICDF_DISTRIBUTION_H_	core/numeric/icdf_distribution.h	9;"	d
 IDENTIFY	core/gtl/utilities/logo.cpp	17;"	d	file:
-ID_DIGITS	core/manifold/mesh/MeshIds.h	/^    static constexpr int ID_DIGITS = 21;$/;"	m	struct:simpla::mesh::MeshIDs_
-ID_DIGITS	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr int MeshIDs_<L>::ID_DIGITS;$/;"	m	class:simpla::mesh::MeshIDs_
-ID_MASK	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type ID_MASK = (1UL << ID_DIGITS) - 1;$/;"	m	struct:simpla::mesh::MeshIDs_
-ID_MASK	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr typename MeshIDs_<L>::id_type MeshIDs_<L>::ID_MASK;$/;"	m	class:simpla::mesh::MeshIDs_
-ID_ZERO	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type ID_ZERO = INDEX_ZERO | (INDEX_ZERO << ID_DIGITS)$/;"	m	struct:simpla::mesh::MeshIDs_
-ID_ZERO	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr typename MeshIDs_<L>::id_type MeshIDs_<L>::ID_ZERO;$/;"	m	class:simpla::mesh::MeshIDs_
+ID_DIGITS	core/manifold/mesh/MeshIds.h	/^    static constexpr int ID_DIGITS = 21;$/;"	m	struct:simpla::mesh::MeshEntityIdCoder
+ID_DIGITS	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr int MeshEntityIdCoder<L>::ID_DIGITS;$/;"	m	class:simpla::mesh::MeshEntityIdCoder
+ID_MASK	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type ID_MASK = (1UL << ID_DIGITS) - 1;$/;"	m	struct:simpla::mesh::MeshEntityIdCoder
+ID_MASK	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr typename MeshEntityIdCoder<L>::id_type MeshEntityIdCoder<L>::ID_MASK;$/;"	m	class:simpla::mesh::MeshEntityIdCoder
+ID_ZERO	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type ID_ZERO = INDEX_ZERO | (INDEX_ZERO << ID_DIGITS)$/;"	m	struct:simpla::mesh::MeshEntityIdCoder
+ID_ZERO	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr typename MeshEntityIdCoder<L>::id_type MeshEntityIdCoder<L>::ID_ZERO;$/;"	m	class:simpla::mesh::MeshEntityIdCoder
 IForm	applications/particle_solver/fluid_cold_engine.h	/^	static constexpr std::size_t IForm = VERTEX;$/;"	m	class:simpla::Particle
 IMPLICITPUSHE_H_	applications/field_solver/implicitPushE.h	9;"	d
 INCLUDE_SINGLETON_HOLDER_H_	core/gtl/design_pattern/singleton_holder.h	10;"	d
-INDEX_ZERO	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type INDEX_ZERO = (1UL) << (ID_DIGITS - 2);$/;"	m	struct:simpla::mesh::MeshIDs_
-INDEX_ZERO	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr typename MeshIDs_<L>::id_type MeshIDs_<L>::INDEX_ZERO;$/;"	m	class:simpla::mesh::MeshIDs_
+INDEX_ZERO	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type INDEX_ZERO = (1UL) << (ID_DIGITS - 2);$/;"	m	struct:simpla::mesh::MeshEntityIdCoder
+INDEX_ZERO	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr typename MeshEntityIdCoder<L>::id_type MeshEntityIdCoder<L>::INDEX_ZERO;$/;"	m	class:simpla::mesh::MeshEntityIdCoder
 INFORM	core/gtl/utilities/log.h	320;"	d
 INFORM2	core/gtl/utilities/log.h	416;"	d
 INIFITY	core/gtl/primitives.h	/^static constexpr Real INIFITY = std::numeric_limits<Real>::infinity();$/;"	m	namespace:simpla
@@ -823,13 +823,13 @@ MAXDIM	core/numeric/sobol_engine.h	/^	static const  unsigned int  MAXDIM = 6;$/;
 MAXSIZE	core/geometry/obsolete/line_cliping.h	/^	size_t MAXSIZE = 1000; \/* maximum size of pnt2d array *\/$/;"	m	class:simpla::polygon_clip
 MAX_BLOCK_SIZE	core/gtl/utilities/memory_pool.cpp	/^    static constexpr size_t MAX_BLOCK_SIZE = 4 * ONE_GIGA; \/\/std::numeric_limits<size_t>::max();$/;"	m	struct:simpla::MemoryPool::pimpl_s	file:
 MAX_NDIMS_OF_ARRAY	core/gtl/primitives.h	/^static constexpr unsigned int MAX_NDIMS_OF_ARRAY = 8;$/;"	m	namespace:simpla
-MAX_NUM_OF_ADJACENT_CELL	core/manifold/mesh/MeshIds.h	/^    static constexpr int MAX_NUM_OF_ADJACENT_CELL = 12;$/;"	m	struct:simpla::mesh::MeshIDs_
+MAX_NUM_OF_ADJACENT_CELL	core/manifold/mesh/MeshIds.h	/^    static constexpr int MAX_NUM_OF_ADJACENT_CELL = 12;$/;"	m	struct:simpla::mesh::MeshEntityIdCoder
 MAX_NUM_OF_MEDIA_TYPE	core/model/obsoleted/model.h	/^    static constexpr int MAX_NUM_OF_MEDIA_TYPE = std::numeric_limits<tag_type>::digits;$/;"	m	class:simpla::Model
-MAX_NUM_OF_NEIGHBOURS	core/manifold/mesh/MeshIds.h	/^    static constexpr int MAX_NUM_OF_NEIGHBOURS = 12;$/;"	m	struct:simpla::mesh::MeshIDs_
+MAX_NUM_OF_NEIGHBOURS	core/manifold/mesh/MeshIds.h	/^    static constexpr int MAX_NUM_OF_NEIGHBOURS = 12;$/;"	m	struct:simpla::mesh::MeshEntityIdCoder
 MAX_NUM_OF_VERTEX	core/manifold/obsoleted/block.h	/^    static constexpr int MAX_NUM_OF_VERTEX = 8;$/;"	m	struct:simpla::Block
-MESH_COORDINATES_FACTOR	core/manifold/mesh/MeshIds.h	/^    static constexpr Real MESH_COORDINATES_FACTOR = 1.0 \/ COORDINATES_MESH_FACTOR;$/;"	m	struct:simpla::mesh::MeshIDs_
-MESH_RESOLUTION	core/manifold/mesh/MeshIds.h	/^    static constexpr int MESH_RESOLUTION = 1;$/;"	m	struct:simpla::mesh::MeshIDs_
-MESH_RESOLUTION	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr int MeshIDs_<L>::MESH_RESOLUTION;$/;"	m	class:simpla::mesh::MeshIDs_
+MESH_COORDINATES_FACTOR	core/manifold/mesh/MeshIds.h	/^    static constexpr Real MESH_COORDINATES_FACTOR = 1.0 \/ COORDINATES_MESH_FACTOR;$/;"	m	struct:simpla::mesh::MeshEntityIdCoder
+MESH_RESOLUTION	core/manifold/mesh/MeshIds.h	/^    static constexpr int MESH_RESOLUTION = 1;$/;"	m	struct:simpla::mesh::MeshEntityIdCoder
+MESH_RESOLUTION	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr int MeshEntityIdCoder<L>::MESH_RESOLUTION;$/;"	m	class:simpla::mesh::MeshEntityIdCoder
 MESSAGE	core/gtl/utilities/log.h	344;"	d
 MIN_BLOCK_SIZE	core/gtl/utilities/memory_pool.cpp	/^    static constexpr size_t MIN_BLOCK_SIZE = 256;$/;"	m	struct:simpla::MemoryPool::pimpl_s	file:
 MODEL_H_	core/model/obsoleted/model.h	9;"	d
@@ -870,8 +870,8 @@ Mesh	core/manifold/mesh/RectMesh.h	/^struct Mesh<TMetric, tags::rect_linear> : p
 MeshBlock	core/manifold/mesh/MeshBlock.cpp	/^MeshBlock::MeshBlock() { }$/;"	f	class:simpla::mesh::MeshBlock
 MeshBlock	core/manifold/mesh/MeshBlock.h	/^struct MeshBlock : public MeshIDs, public base::Object$/;"	s	namespace:simpla::mesh
 MeshCoarsen	core/manifold/obsoleted/mesh_graph.h	/^struct MeshCoarsen : public MeshMapEdge$/;"	s	namespace:simpla::mesh
-MeshIDs	core/manifold/mesh/MeshIds.h	/^typedef MeshIDs_<4> MeshIDs;$/;"	t	namespace:simpla::mesh
-MeshIDs_	core/manifold/mesh/MeshIds.h	/^struct MeshIDs_$/;"	s	namespace:simpla::mesh
+MeshIDs	core/manifold/mesh/MeshIds.h	/^typedef MeshEntityIdCoder<4> MeshIDs;$/;"	t	namespace:simpla::mesh
+MeshEntityIdCoder	core/manifold/mesh/MeshIds.h	/^struct MeshEntityIdCoder$/;"	s	namespace:simpla::mesh
 MeshMapEdge	core/manifold/obsoleted/mesh_graph.h	/^struct MeshMapEdge$/;"	s	namespace:simpla::mesh
 MeshPatch	core/manifold/obsoleted/patch/mesh_patch.h	/^MeshPatch<TM>::MeshPatch() { }$/;"	f	class:simpla::mesh::MeshPatch
 MeshPatch	core/manifold/obsoleted/patch/mesh_patch.h	/^class MeshPatch$/;"	c	namespace:simpla::mesh
@@ -900,8 +900,8 @@ NOSEGM	core/geometry/obsolete/line_cliping.h	/^	size_t NOSEGM = 0; \/* segment w
 NOTHING_TODO	core/gtl/utilities/log.h	336;"	d
 NOT_ZERO	core/manifold/mesh/MeshBlock.cpp	196;"	d	file:
 NOT_ZERO	core/manifold/mesh/MeshBlock.cpp	251;"	d	file:
-NO_HAED	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type NO_HAED = (1UL << (ID_DIGITS * 3)) - 1;$/;"	m	struct:simpla::mesh::MeshIDs_
-NUM_OF_NODE_ID	core/manifold/mesh/MeshIds.h	/^    static constexpr int NUM_OF_NODE_ID = 8;$/;"	m	struct:simpla::mesh::MeshIDs_
+NO_HAED	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type NO_HAED = (1UL << (ID_DIGITS * 3)) - 1;$/;"	m	struct:simpla::mesh::MeshEntityIdCoder
+NUM_OF_NODE_ID	core/manifold/mesh/MeshIds.h	/^    static constexpr int NUM_OF_NODE_ID = 8;$/;"	m	struct:simpla::mesh::MeshEntityIdCoder
 NUM_OF_SEED_PER_SAMPLE	core/particle/ParticleGenerator.h	/^    static constexpr int NUM_OF_SEED_PER_SAMPLE = 6;$/;"	m	struct:simpla::particle::ParticleGenerator
 Next	core/gtl/utilities/lua_object.cpp	/^LuaObject::iterator &LuaObject::iterator::Next()$/;"	f	class:simpla::lua::LuaObject::iterator
 NextCell	core/parallel/obsoleted/blocked_range.h	/^	void NextCell()$/;"	f	struct:simpla::iterator
@@ -920,8 +920,8 @@ ONE_GIGA	core/gtl/utilities/memory_pool.cpp	/^    static constexpr size_t ONE_GI
 ON_SURFACE	core/model/Constraint.h	/^    INSIDE = 1, OUTSIDE = 2, ON_SURFACE = 4$/;"	e	enum:simpla::model::__anon10
 OUTSIDE	core/model/Constraint.h	/^    INSIDE = 1, OUTSIDE = 2, ON_SURFACE = 4$/;"	e	enum:simpla::model::__anon10
 OUT_OF_RANGE	core/gtl/utilities/log.h	358;"	d
-OVERFLOW_FLAG	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type OVERFLOW_FLAG = (1UL) << (ID_DIGITS - 1);$/;"	m	struct:simpla::mesh::MeshIDs_
-OVERFLOW_FLAG	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr typename MeshIDs_<L>::id_type MeshIDs_<L>::OVERFLOW_FLAG;$/;"	m	class:simpla::mesh::MeshIDs_
+OVERFLOW_FLAG	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type OVERFLOW_FLAG = (1UL) << (ID_DIGITS - 1);$/;"	m	struct:simpla::mesh::MeshEntityIdCoder
+OVERFLOW_FLAG	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr typename MeshEntityIdCoder<L>::id_type MeshEntityIdCoder<L>::OVERFLOW_FLAG;$/;"	m	class:simpla::mesh::MeshEntityIdCoder
 Object	core/base/Object.cpp	/^Object::Object() { this->touch(); };$/;"	f	class:simpla::base::Object
 Object	core/base/Object.cpp	/^Object::Object(Object &&other) : m_click_(other.m_click_) { };$/;"	f	class:simpla::base::Object
 Object	core/base/Object.cpp	/^Object::Object(Object const &) { this->touch(); };$/;"	f	class:simpla::base::Object
@@ -974,8 +974,8 @@ PLASMA	core/model/obsoleted/model.h	/^        PLASMA = 1UL << 2,$/;"	e	enum:simp
 PML	applications/field_solver/pml.h	/^PML<TM>::PML(mesh_type const & mesh, Args && ...args) :$/;"	f	class:simpla::PML
 PML	applications/field_solver/pml.h	/^class PML$/;"	c	namespace:simpla
 PRETTY_STREAM_H_	core/gtl/utilities/pretty_stream.h	9;"	d
-PRIMARY_ID_MASK	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type PRIMARY_ID_MASK = PRIMARY_ID_MASK_$/;"	m	struct:simpla::mesh::MeshIDs_
-PRIMARY_ID_MASK_	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type PRIMARY_ID_MASK_ = ID_MASK & (~SUB_ID_MASK);$/;"	m	struct:simpla::mesh::MeshIDs_
+PRIMARY_ID_MASK	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type PRIMARY_ID_MASK = PRIMARY_ID_MASK_$/;"	m	struct:simpla::mesh::MeshEntityIdCoder
+PRIMARY_ID_MASK_	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type PRIMARY_ID_MASK_ = ID_MASK & (~SUB_ID_MASK);$/;"	m	struct:simpla::mesh::MeshEntityIdCoder
 PRIMITIVES_H_	core/gtl/primitives.h	9;"	d
 PROPERTIES_H_	core/gtl/Properties.h	9;"	d
 ParallelPolicy	core/manifold/policy/ParallelPolicy.h	/^    ParallelPolicy(mesh_type &geo) : m_mesh_(geo) { }$/;"	f	struct:simpla::manifold::policy::ParallelPolicy
@@ -1314,7 +1314,7 @@ SP_PROPERTIES_DEFINE_MEMBER_HELPER6	core/particle/ParticleEngine.h	150;"	d
 SP_PROPERTIES_DEFINE_MEMBER_HELPER8	core/particle/ParticleEngine.h	152;"	d
 SP_RECORD	core/io/IOStream.h	/^    SP_RECORD = (1UL << 4)$/;"	e	enum:simpla::io::__anon5
 SP_TYPE_TRAITS_H_	core/gtl/type_traits.h	9;"	d
-SUB_ID_MASK	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type SUB_ID_MASK = ((1UL << MESH_RESOLUTION) - 1);$/;"	m	struct:simpla::mesh::MeshIDs_
+SUB_ID_MASK	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type SUB_ID_MASK = ((1UL << MESH_RESOLUTION) - 1);$/;"	m	struct:simpla::mesh::MeshEntityIdCoder
 SURFACE_H_	core/geometry/obsolete/surface.h	9;"	d
 Scatter	applications/particle_solver/pic_engine_deltaf2.h	/^	inline typename std::enable_if<!isnTuple<TV>::value, void>::type Scatter(Point_s const &p,$/;"	f	struct:simpla::PICEngineDeltaF
 Scatter	applications/particle_solver/pic_engine_deltaf2.h	/^	inline void Scatter(Point_s const &p, Field<mesh_type, IFORM, TV>* J, Others const &... others) const$/;"	f	struct:simpla::PICEngineDeltaF
@@ -1409,16 +1409,16 @@ T	applications/fokker_planck/lhw.cpp	/^	Real T;$/;"	m	struct:PICDeltaF	file:
 T0	applications/particle_solver/pic_engine_deltaf2.h	/^	Field<mesh_type, VERTEX, Real> T0;$/;"	m	struct:simpla::PICEngineDeltaF
 TAG_CELL	core/io/XDMFStream.h	/^        TAG_NODE = 0, TAG_EDGE = 1, TAG_FACE = 2, TAG_CELL = 3$/;"	e	enum:simpla::io::XDMFStream::__anon6
 TAG_EDGE	core/io/XDMFStream.h	/^        TAG_NODE = 0, TAG_EDGE = 1, TAG_FACE = 2, TAG_CELL = 3$/;"	e	enum:simpla::io::XDMFStream::__anon6
-TAG_EDGE0	core/manifold/mesh/MeshIds.h	/^        TAG_EDGE0 = 1,$/;"	e	enum:simpla::mesh::MeshIDs_::node_id_tag
-TAG_EDGE1	core/manifold/mesh/MeshIds.h	/^        TAG_EDGE1 = 2,$/;"	e	enum:simpla::mesh::MeshIDs_::node_id_tag
-TAG_EDGE2	core/manifold/mesh/MeshIds.h	/^        TAG_EDGE2 = 4,$/;"	e	enum:simpla::mesh::MeshIDs_::node_id_tag
+TAG_EDGE0	core/manifold/mesh/MeshIds.h	/^        TAG_EDGE0 = 1,$/;"	e	enum:simpla::mesh::MeshEntityIdCoder::node_id_tag
+TAG_EDGE1	core/manifold/mesh/MeshIds.h	/^        TAG_EDGE1 = 2,$/;"	e	enum:simpla::mesh::MeshEntityIdCoder::node_id_tag
+TAG_EDGE2	core/manifold/mesh/MeshIds.h	/^        TAG_EDGE2 = 4,$/;"	e	enum:simpla::mesh::MeshEntityIdCoder::node_id_tag
 TAG_FACE	core/io/XDMFStream.h	/^        TAG_NODE = 0, TAG_EDGE = 1, TAG_FACE = 2, TAG_CELL = 3$/;"	e	enum:simpla::io::XDMFStream::__anon6
-TAG_FACE0	core/manifold/mesh/MeshIds.h	/^        TAG_FACE0 = 6,$/;"	e	enum:simpla::mesh::MeshIDs_::node_id_tag
-TAG_FACE1	core/manifold/mesh/MeshIds.h	/^        TAG_FACE1 = 5,$/;"	e	enum:simpla::mesh::MeshIDs_::node_id_tag
-TAG_FACE2	core/manifold/mesh/MeshIds.h	/^        TAG_FACE2 = 3,$/;"	e	enum:simpla::mesh::MeshIDs_::node_id_tag
+TAG_FACE0	core/manifold/mesh/MeshIds.h	/^        TAG_FACE0 = 6,$/;"	e	enum:simpla::mesh::MeshEntityIdCoder::node_id_tag
+TAG_FACE1	core/manifold/mesh/MeshIds.h	/^        TAG_FACE1 = 5,$/;"	e	enum:simpla::mesh::MeshEntityIdCoder::node_id_tag
+TAG_FACE2	core/manifold/mesh/MeshIds.h	/^        TAG_FACE2 = 3,$/;"	e	enum:simpla::mesh::MeshEntityIdCoder::node_id_tag
 TAG_NODE	core/io/XDMFStream.h	/^        TAG_NODE = 0, TAG_EDGE = 1, TAG_FACE = 2, TAG_CELL = 3$/;"	e	enum:simpla::io::XDMFStream::__anon6
-TAG_VERTEX	core/manifold/mesh/MeshIds.h	/^        TAG_VERTEX = 0,$/;"	e	enum:simpla::mesh::MeshIDs_::node_id_tag
-TAG_VOLUME	core/manifold/mesh/MeshIds.h	/^        TAG_VOLUME = 7$/;"	e	enum:simpla::mesh::MeshIDs_::node_id_tag
+TAG_VERTEX	core/manifold/mesh/MeshIds.h	/^        TAG_VERTEX = 0,$/;"	e	enum:simpla::mesh::MeshEntityIdCoder::node_id_tag
+TAG_VOLUME	core/manifold/mesh/MeshIds.h	/^        TAG_VOLUME = 7$/;"	e	enum:simpla::mesh::MeshEntityIdCoder::node_id_tag
 TASK	core/task_flow/task.h	85;"	d
 TB	core/phy_solver/em_fluid.h	/^    typedef traits::field_t<scalar_type, mesh_type, FACE> TB;$/;"	t	class:simpla::phy_solver::EMFluid
 TB	example/em_tokamak/tokamak.cpp	/^    typedef traits::field_t<scalar_type, mesh_type, FACE> TB;$/;"	t	struct:simpla::EMTokamak	file:
@@ -1648,16 +1648,16 @@ _ClassState	cpplint.py	/^class _ClassState(object):$/;"	c
 _ClassifyInclude	cpplint.py	/^def _ClassifyInclude(fileinfo, include, is_system):$/;"	f
 _CollapseStrings	cpplint.py	/^  def _CollapseStrings(elided):$/;"	m	class:CleansedLines
 _CppLintState	cpplint.py	/^class _CppLintState(object):$/;"	c
-_D	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type _D = 1UL << (MESH_RESOLUTION - 1);$/;"	m	struct:simpla::mesh::MeshIDs_
-_DA	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type _DA = _DI | _DJ | _DK;$/;"	m	struct:simpla::mesh::MeshIDs_
-_DA	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr typename MeshIDs_<L>::id_type MeshIDs_<L>::_DA;$/;"	m	class:simpla::mesh::MeshIDs_
+_D	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type _D = 1UL << (MESH_RESOLUTION - 1);$/;"	m	struct:simpla::mesh::MeshEntityIdCoder
+_DA	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type _DA = _DI | _DJ | _DK;$/;"	m	struct:simpla::mesh::MeshEntityIdCoder
+_DA	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr typename MeshEntityIdCoder<L>::id_type MeshEntityIdCoder<L>::_DA;$/;"	m	class:simpla::mesh::MeshEntityIdCoder
 _DEFAULT_FILTERS	cpplint.py	/^_DEFAULT_FILTERS = [ '-build\/include_alpha' ]$/;"	v
-_DI	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type _DI = _D;$/;"	m	struct:simpla::mesh::MeshIDs_
-_DI	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr typename MeshIDs_<L>::id_type MeshIDs_<L>::_DI;$/;"	m	class:simpla::mesh::MeshIDs_
-_DJ	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type _DJ = _D << (ID_DIGITS);$/;"	m	struct:simpla::mesh::MeshIDs_
-_DJ	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr typename MeshIDs_<L>::id_type MeshIDs_<L>::_DJ;$/;"	m	class:simpla::mesh::MeshIDs_
-_DK	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type _DK = _D << (ID_DIGITS * 2);$/;"	m	struct:simpla::mesh::MeshIDs_
-_DK	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr typename MeshIDs_<L>::id_type MeshIDs_<L>::_DK;$/;"	m	class:simpla::mesh::MeshIDs_
+_DI	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type _DI = _D;$/;"	m	struct:simpla::mesh::MeshEntityIdCoder
+_DI	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr typename MeshEntityIdCoder<L>::id_type MeshEntityIdCoder<L>::_DI;$/;"	m	class:simpla::mesh::MeshEntityIdCoder
+_DJ	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type _DJ = _D << (ID_DIGITS);$/;"	m	struct:simpla::mesh::MeshEntityIdCoder
+_DJ	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr typename MeshEntityIdCoder<L>::id_type MeshEntityIdCoder<L>::_DJ;$/;"	m	class:simpla::mesh::MeshEntityIdCoder
+_DK	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type _DK = _D << (ID_DIGITS * 2);$/;"	m	struct:simpla::mesh::MeshEntityIdCoder
+_DK	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr typename MeshEntityIdCoder<L>::id_type MeshEntityIdCoder<L>::_DK;$/;"	m	class:simpla::mesh::MeshEntityIdCoder
 _DropCommonSuffixes	cpplint.py	/^def _DropCommonSuffixes(filename):$/;"	f
 _ERROR_CATEGORIES	cpplint.py	/^_ERROR_CATEGORIES = [$/;"	v
 _Filters	cpplint.py	/^def _Filters():$/;"	f
@@ -1675,8 +1675,8 @@ _OTHER_HEADER	cpplint.py	/^_OTHER_HEADER = 5$/;"	v
 _OTHER_H_SECTION	cpplint.py	/^  _OTHER_H_SECTION = 4$/;"	v	class:_IncludeState
 _OutputFormat	cpplint.py	/^def _OutputFormat():$/;"	f
 _POSSIBLE_MY_HEADER	cpplint.py	/^_POSSIBLE_MY_HEADER = 4$/;"	v
-_R	core/manifold/mesh/MeshIds.h	/^    static constexpr Real _R = static_cast<Real>(_D);$/;"	m	struct:simpla::mesh::MeshIDs_
-_R	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr Real MeshIDs_<L>::_R;$/;"	m	class:simpla::mesh::MeshIDs_
+_R	core/manifold/mesh/MeshIds.h	/^    static constexpr Real _R = static_cast<Real>(_D);$/;"	m	struct:simpla::mesh::MeshEntityIdCoder
+_R	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr Real MeshEntityIdCoder<L>::_R;$/;"	m	class:simpla::mesh::MeshEntityIdCoder
 _RE_FIRST_COMPONENT	cpplint.py	/^_RE_FIRST_COMPONENT = re.compile(r'^[^-_.]+')$/;"	v
 _RE_PATTERN_CLEANSE_LINE_C_COMMENTS	cpplint.py	/^_RE_PATTERN_CLEANSE_LINE_C_COMMENTS = re.compile($/;"	v
 _RE_PATTERN_CLEANSE_LINE_DOUBLE_QUOTES	cpplint.py	/^_RE_PATTERN_CLEANSE_LINE_DOUBLE_QUOTES = re.compile(r'"[^"]*"')$/;"	v
@@ -1964,7 +1964,7 @@ base_type	core/gtl/containers/UnorderedSet.h	/^    typedef typename parallel::co
 base_type	core/gtl/iterator/block_iterator.h	/^            nTuple<TV, NDIMS>, ptrdiff_t> base_type;$/;"	t	struct:simpla::block_iterator
 base_type	core/gtl/utilities/log.h	/^    typedef std::ostringstream base_type;$/;"	t	class:simpla::logger::Logger
 base_type	core/manifold/mesh/CoRectMesh.h	/^    typedef block_type base_type;$/;"	t	struct:simpla::mesh::Mesh
-base_type	core/manifold/mesh/MeshIds.h	/^        typedef block_iterator<index_type, ndims + 1> base_type;$/;"	t	struct:simpla::mesh::MeshIDs_::iterator
+base_type	core/manifold/mesh/MeshIds.h	/^        typedef block_iterator<index_type, ndims + 1> base_type;$/;"	t	struct:simpla::mesh::MeshEntityIdCoder::iterator
 base_type	core/manifold/mesh/RectMesh.h	/^    typedef block_type base_type;$/;"	t	struct:simpla::mesh::Mesh
 base_type	core/manifold/policy/IOPolicy.h	/^    typedef io::XDMFStream base_type;$/;"	t	struct:simpla::manifold::policy::IOPolicy
 base_type	core/parallel/obsoleted/distributed.h	/^	typedef TBase base_type;$/;"	t	class:simpla::Distributed
@@ -1991,7 +1991,7 @@ begin	core/gtl/iterator/sp_range_filter.h	/^	iterator begin()$/;"	f	struct:simpl
 begin	core/gtl/range/block_range.h	/^    const_iterator begin() const { return m_begin_; }$/;"	f	class:simpla::BlockRange
 begin	core/gtl/utilities/lua_object.h	/^    iterator begin() const { return iterator(L_, GLOBAL_REF_IDX_, self_, path_); }$/;"	f	class:simpla::lua::LuaObject
 begin	core/gtl/utilities/lua_object.h	/^    iterator begin()$/;"	f	class:simpla::lua::LuaObject
-begin	core/manifold/mesh/MeshIds.h	/^        const_iterator begin() const { return const_iterator(m_min_, m_min_, m_max_, m_iform_); }$/;"	f	struct:simpla::mesh::MeshIDs_::range_type
+begin	core/manifold/mesh/MeshIds.h	/^        const_iterator begin() const { return const_iterator(m_min_, m_min_, m_max_, m_iform_); }$/;"	f	struct:simpla::mesh::MeshEntityIdCoder::range_type
 begin	core/parallel/obsoleted/blocked_range.h	/^	const_iterator begin() const$/;"	f	struct:simpla::BlockedRange
 begin	core/parallel/obsoleted/blocked_range.h	/^	iterator begin() const$/;"	f	struct:simpla::range
 begin_	core/parallel/obsoleted/blocked_range.h	/^	const_iterator begin_;$/;"	m	struct:simpla::BlockedRange
@@ -2041,7 +2041,7 @@ box_type	core/geometry/GeoObject.h	/^    typedef std::tuple<point_type, point_ty
 box_type	core/manifold/mesh/CartesianCoRect.h	/^    typedef std::tuple<point_type, point_type> box_type;$/;"	t	struct:simpla::mesh::CartesianCoRect
 box_type	core/manifold/mesh/CoRectMesh.h	/^    typedef std::tuple<point_type, point_type> box_type;$/;"	t	struct:simpla::mesh::Mesh
 box_type	core/manifold/mesh/CylindricalCoRect.h	/^    typedef std::tuple<point_type, point_type> box_type;$/;"	t	class:simpla::mesh::CylindricalCoRect
-box_type	core/manifold/mesh/MeshIds.h	/^    typedef std::tuple<point_type, point_type> box_type;$/;"	t	struct:simpla::mesh::MeshIDs_
+box_type	core/manifold/mesh/MeshIds.h	/^    typedef std::tuple<point_type, point_type> box_type;$/;"	t	struct:simpla::mesh::MeshEntityIdCoder
 box_type	core/manifold/mesh/RectMesh.h	/^    typedef std::tuple<point_type, point_type> box_type;$/;"	t	struct:simpla::mesh::Mesh
 box_type	core/manifold/obsoleted/patch/mesh_patch.h	/^    typedef typename mesh_type::box_type box_type;$/;"	t	class:simpla::mesh::MeshPatch
 box_type	core/phy_solver/em_fluid.h	/^    typedef typename mesh_type::box_type box_type;$/;"	t	class:simpla::phy_solver::EMFluid
@@ -2197,7 +2197,7 @@ const_iterator	core/gtl/iterator/range.h	/^    typedef Iterator const_iterator;$
 const_iterator	core/gtl/iterator/sp_indirect_iterator.h	/^            Hasher> const_iterator;$/;"	t	struct:simpla::sp_indirect_range
 const_iterator	core/gtl/iterator/sp_ntuple_range.h	/^    typedef iterator const_iterator;$/;"	t	struct:simpla::sp_nTuple_range
 const_iterator	core/gtl/range/block_range.h	/^    typedef Iterator const_iterator;$/;"	t	class:simpla::BlockRange
-const_iterator	core/manifold/mesh/MeshIds.h	/^        typedef iterator const_iterator;$/;"	t	struct:simpla::mesh::MeshIDs_::range_type
+const_iterator	core/manifold/mesh/MeshIds.h	/^        typedef iterator const_iterator;$/;"	t	struct:simpla::mesh::MeshEntityIdCoder::range_type
 const_iterator	core/parallel/obsoleted/blocked_range.h	/^	typedef T const_iterator;$/;"	t	struct:simpla::BlockedRange
 const_key_iterator	core/gtl/containers/sp_indirect_container.h	/^	typedef typename key_conatinaer_type::const_iterator const_key_iterator;$/;"	t	struct:simpla::indirect_container
 const_local_iterator	core/gtl/containers/unordered_set.h	/^    typedef typename bucket_type::const_iterator const_local_iterator;$/;"	t	class:simpla::UnorderedSet
@@ -2276,12 +2276,12 @@ coordinate_tuple	core/particle/test/kinetic_particle_test.cpp	/^	typedef typenam
 coordinate_tuple	example/probe_particle/demo_probe_particle.h	/^	typedef Vec3 coordinate_tuple;$/;"	t	struct:simpla::ProbeDemo
 coordinate_type	core/geometry/boost_gemetry_adapted.h	/^struct coordinate_type<sgm::Primitive<N, CS, TAG> >$/;"	s	namespace:boost::geometry::traits
 coordinates_global_to_local	core/manifold/mesh/MeshBlock.h	/^    virtual std::tuple<id_type, point_type> coordinates_global_to_local(point_type const &x, int n_id = 0) const$/;"	f	struct:simpla::mesh::MeshBlock
-coordinates_global_to_local	core/manifold/mesh/MeshIds.h	/^    static std::tuple<id_type, point_type> coordinates_global_to_local($/;"	f	struct:simpla::mesh::MeshIDs_
+coordinates_global_to_local	core/manifold/mesh/MeshIds.h	/^    static std::tuple<id_type, point_type> coordinates_global_to_local($/;"	f	struct:simpla::mesh::MeshEntityIdCoder
 coordinates_global_to_local	core/manifold/mesh/RectMesh.h	/^    virtual std::tuple<id_type, point_type> coordinates_global_to_local(point_type x, int n_id = 0) const$/;"	f	struct:simpla::mesh::Mesh
 coordinates_local_to_global	core/manifold/mesh/MeshBlock.h	/^    virtual point_type coordinates_local_to_global(id_type s, point_type const &x) const$/;"	f	struct:simpla::mesh::MeshBlock
 coordinates_local_to_global	core/manifold/mesh/MeshBlock.h	/^    virtual point_type coordinates_local_to_global(std::tuple<id_type, point_type> const &t) const$/;"	f	struct:simpla::mesh::MeshBlock
-coordinates_local_to_global	core/manifold/mesh/MeshIds.h	/^    static point_type coordinates_local_to_global(id_type s, point_type const &x) { return point(s) + x * _R * 2; }$/;"	f	struct:simpla::mesh::MeshIDs_
-coordinates_local_to_global	core/manifold/mesh/MeshIds.h	/^    static point_type coordinates_local_to_global(std::tuple<id_type, point_type> const &t)$/;"	f	struct:simpla::mesh::MeshIDs_
+coordinates_local_to_global	core/manifold/mesh/MeshIds.h	/^    static point_type coordinates_local_to_global(id_type s, point_type const &x) { return point(s) + x * _R * 2; }$/;"	f	struct:simpla::mesh::MeshEntityIdCoder
+coordinates_local_to_global	core/manifold/mesh/MeshIds.h	/^    static point_type coordinates_local_to_global(std::tuple<id_type, point_type> const &t)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder
 coordinates_local_to_global	core/manifold/mesh/RectMesh.h	/^    virtual point_type coordinates_local_to_global(std::tuple<id_type, point_type> const &t) const$/;"	f	struct:simpla::mesh::Mesh
 coordinates_type	core/field/obsoleted/field_constant.h	/^	typedef typename mesh_type::coordinates_type coordinates_type;$/;"	t	class:simpla::Field
 coordinates_type	core/manifold/obsoleted/block.h	/^    typedef nTuple<Real, 3> coordinates_type;$/;"	t	struct:simpla::Block
@@ -2447,7 +2447,7 @@ default_value_	core/gtl/containers/container_sparse.h	/^    value_type default_v
 delete_attribute	core/io/HDF5Stream.cpp	/^void HDF5Stream::delete_attribute(std::string const &url)$/;"	f	class:simpla::io::HDF5Stream
 deleter_s	core/gtl/utilities/memory_pool.h	/^        deleter_s(void *p, size_t s)$/;"	f	struct:simpla::MemoryPool::deleter_s
 deleter_s	core/gtl/utilities/memory_pool.h	/^    struct deleter_s$/;"	s	class:simpla::MemoryPool
-delta_index	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type delta_index(id_type s)$/;"	f	struct:simpla::mesh::MeshIDs_
+delta_index	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type delta_index(id_type s)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder
 delta_t	core/geometry/csCylindrical.h	/^    typedef nTuple<Real, 3> delta_t;$/;"	t	struct:simpla::geometry::Metric
 density	core/particle/ParticleGenerator.h	/^    template<typename TFun> void density(TFun const &fun) { m_density_ = fun; }$/;"	f	class:simpla::particle::ParticleGeneratorPerCell
 deploy	core/base/Attribute.h	/^    virtual void deploy() { if (empty()) { m_data_ = this->mesh().template data<value_type, IFORM>(); }}$/;"	f	class:simpla::base::Attribute
@@ -2491,7 +2491,7 @@ dict_type	core/gtl/utilities/parser_configure.h	/^	typedef TDict dict_type;$/;"	
 diff_type	core/gtl/iterator/iterator_sequence.h	/^			std::minus<value_type>(value_type, value_type)>::type diff_type;$/;"	t	class:simpla::IteratorSequence
 difference_type	core/gtl/iterator/iterator.h	/^	typedef typename iterator::difference_type difference_type;$/;"	t	struct:std::iterator_traits
 difference_type	core/gtl/iterator/sp_iterator_shared_container.h	/^	typedef typename std::iterator_traits<key_iterator_type>::difference_type difference_type;$/;"	t	class:simpla::TransformIterator
-difference_type	core/manifold/mesh/MeshIds.h	/^    typedef long difference_type;$/;"	t	struct:simpla::mesh::MeshIDs_
+difference_type	core/manifold/mesh/MeshIds.h	/^    typedef long difference_type;$/;"	t	struct:simpla::mesh::MeshEntityIdCoder
 dimension	core/geometry/CoordinateSystem.h	/^struct dimension$/;"	s	namespace:simpla::geometry::traits
 dimension	core/geometry/CoordinateSystem.h	/^struct dimension<coordinate_system::Cartesian<N>>$/;"	s	namespace:simpla::geometry::traits
 dimension	core/geometry/CoordinateSystem.h	/^struct dimension<coordinate_system::Polar>$/;"	s	namespace:simpla::geometry::traits
@@ -2552,7 +2552,7 @@ dt	core/manifold/Manifold.h	/^    double dt() const { return m_dt_; }$/;"	f	clas
 dt	core/manifold/Manifold.h	/^    void dt(double p_dt) { m_dt_ = p_dt; }$/;"	f	class:simpla::Manifold
 dt	core/manifold/obsoleted/time_integrator_policy.h	/^    double dt() const { return m_dt_; }$/;"	f	struct:simpla::manifold::policy::TimeIntegrator
 dt	core/manifold/obsoleted/time_integrator_policy.h	/^    void dt(double p_dt) { m_dt_ = p_dt; }$/;"	f	struct:simpla::manifold::policy::TimeIntegrator
-dual	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type dual(id_type s)$/;"	f	struct:simpla::mesh::MeshIDs_
+dual	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type dual(id_type s)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder
 dual_volume	core/manifold/mesh/CartesianCoRect.h	/^    virtual Real dual_volume(id_type s) const { return m_dual_volume_[node_id(s)]; }$/;"	f	struct:simpla::mesh::CartesianCoRect
 dual_volume	core/manifold/mesh/CoRectMesh.h	/^    virtual Real dual_volume(id_type s) const { return m_dual_volume_[node_id(s)]; }$/;"	f	struct:simpla::mesh::Mesh
 dual_volume	core/manifold/mesh/CylindricalCoRect.h	/^    virtual Real dual_volume(id_type s) const$/;"	f	class:simpla::mesh::CylindricalCoRect
@@ -2560,7 +2560,7 @@ dual_volume	core/manifold/mesh/RectMesh.h	/^    virtual Real dual_volume(id_type
 dump	core/task_flow/use_case.h	/^    virtual void dump() { }$/;"	f	class:simpla::use_case::UseCase
 dx	core/manifold/mesh/CoRectMesh.h	/^    vector_type const &dx() const { return m_dx_; }$/;"	f	struct:simpla::mesh::Mesh
 dx	core/manifold/mesh/MeshBlock.h	/^    vector_type const &dx() const { return m_dx_; }$/;"	f	struct:simpla::mesh::MeshBlock
-dx	core/manifold/mesh/MeshIds.h	/^    static constexpr Vec3 dx()$/;"	f	struct:simpla::mesh::MeshIDs_
+dx	core/manifold/mesh/MeshIds.h	/^    static constexpr Vec3 dx()$/;"	f	struct:simpla::mesh::MeshEntityIdCoder
 ebd	core/gtl/containers/sp_indirect_container.h	/^	iterator ebd()$/;"	f	struct:simpla::indirect_container
 edge_boundary	core/phy_solver/em_fluid.h	/^    model::IdSet<mesh_type> edge_boundary;$/;"	m	class:simpla::phy_solver::EMFluid
 edge_boundary	example/em_tokamak/tokamak.cpp	/^    model::IdSet<mesh_type> edge_boundary;$/;"	m	struct:simpla::EMTokamak	file:
@@ -2589,7 +2589,7 @@ empty	core/gtl/range/block_range.h	/^    bool empty() const { return m_begin_ ==
 empty	core/gtl/utilities/lua_object.h	/^        bool empty() const { return m_l_ == nullptr; }$/;"	f	struct:simpla::lua::LuaObject::LuaState
 empty	core/gtl/utilities/lua_object.h	/^    inline bool empty() const { return L_.empty(); }$/;"	f	class:simpla::lua::LuaObject
 empty	core/io/WriteBuffer.h	/^    bool empty() const { return m_buffer_depth_ == 0; }$/;"	f	class:simpla::io::WriteBuffer
-empty	core/manifold/mesh/MeshIds.h	/^        bool empty() const { return m_min_ == m_max_; }$/;"	f	struct:simpla::mesh::MeshIDs_::range_type
+empty	core/manifold/mesh/MeshIds.h	/^        bool empty() const { return m_min_ == m_max_; }$/;"	f	struct:simpla::mesh::MeshEntityIdCoder::range_type
 empty	core/model/obsoleted/model.h	/^    bool empty() const$/;"	f	class:simpla::Model
 empty	core/parallel/obsoleted/blocked_range.h	/^	bool empty() const$/;"	f	struct:simpla::BlockedRange
 empty	core/particle/obsolete/probe_particle.h	/^    bool empty() const$/;"	f	struct:simpla::ProbeParticle
@@ -2615,8 +2615,8 @@ end	core/gtl/iterator/sp_range_filter.h	/^	iterator end()$/;"	f	struct:simpla::F
 end	core/gtl/range/block_range.h	/^    const_iterator end() const { return m_end_; }$/;"	f	class:simpla::BlockRange
 end	core/gtl/utilities/lua_object.h	/^    iterator end() const { return iterator(); }$/;"	f	class:simpla::lua::LuaObject
 end	core/gtl/utilities/lua_object.h	/^    iterator end() { return iterator(); }$/;"	f	class:simpla::lua::LuaObject
-end	core/manifold/mesh/MeshIds.h	/^        const_iterator end() const { return const_iterator(m_min_, m_min_, m_max_, m_iform_).end(); }$/;"	f	struct:simpla::mesh::MeshIDs_::range_type
-end	core/manifold/mesh/MeshIds.h	/^        iterator end() const$/;"	f	struct:simpla::mesh::MeshIDs_::iterator
+end	core/manifold/mesh/MeshIds.h	/^        const_iterator end() const { return const_iterator(m_min_, m_min_, m_max_, m_iform_).end(); }$/;"	f	struct:simpla::mesh::MeshEntityIdCoder::range_type
+end	core/manifold/mesh/MeshIds.h	/^        iterator end() const$/;"	f	struct:simpla::mesh::MeshEntityIdCoder::iterator
 end	core/parallel/obsoleted/blocked_range.h	/^	const_iterator end() const$/;"	f	struct:simpla::BlockedRange
 end	core/parallel/obsoleted/blocked_range.h	/^	iterator end() const$/;"	f	struct:simpla::range
 endC	core/geometry/obsolete/line_cliping.h	/^	size_t endC; \/* code for end point *\/$/;"	m	class:simpla::polygon_clip
@@ -2690,7 +2690,7 @@ extent	core/gtl/type_traits.h	/^struct extent : public std::integral_constant<in
 extent	core/gtl/type_traits.h	/^struct extent<integer_sequence<_Tp, N...>, 0>$/;"	s	namespace:simpla::traits
 extent_box	core/geometry/GeoAlgorithm.h	/^void extent_box(nTuple<TS, N> *x0, nTuple<TS, N> *x1, T1 const &y0, Others &&...others)$/;"	f	namespace:simpla::geometry
 extent_box	core/geometry/GeoAlgorithm.h	/^void extent_box(nTuple<TS, N> *x0, nTuple<TS, N> *x1, TOther const &x)$/;"	f	namespace:simpla::geometry
-extent_flag_bit	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type extent_flag_bit(id_type const &s, int n = ID_DIGITS - 2)$/;"	f	struct:simpla::mesh::MeshIDs_
+extent_flag_bit	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type extent_flag_bit(id_type const &s, int n = ID_DIGITS - 2)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder
 extents	applications/field_solver/pml.h	/^void PML<TM>::extents(coordinate_tuple xmin, coordinate_tuple xmax)$/;"	f	class:simpla::PML
 extents	core/data_model/DataType.cpp	/^std::vector<size_t> const &DataType::extents() const$/;"	f	class:simpla::data_model::std::DataType
 extents	core/gtl/ntuple.h	/^    typedef integer_sequence<int> extents;$/;"	t	struct:simpla::nTuple
@@ -2907,8 +2907,8 @@ get	core/parallel/DistributedCounter.h	/^    size_t get(size_t num) { return (m_
 get_	core/gtl/utilities/pretty_stream.h	/^get_(std::istream &is, size_t num, std::map<TX, TY, Others...> &a)$/;"	f	namespace:simpla
 get_J	applications/particle_solver/fluid_cold_engine.h	/^	void const * get_J() const$/;"	f	class:simpla::Particle
 get_MPI_Op	core/parallel/MPIAuxFunctions.cpp	/^inline MPI_Op get_MPI_Op(std::string const &op_c)$/;"	f	namespace:simpla::parallel
-get_adjacent_cells	core/manifold/mesh/MeshIds.h	/^    static int get_adjacent_cells(size_t IFORM, id_type s, id_type *res = nullptr)$/;"	f	struct:simpla::mesh::MeshIDs_
-get_adjacent_cells	core/manifold/mesh/MeshIds.h	/^    static int get_adjacent_cells(size_t IFORM, size_t nodeid, id_type s, id_type *res = nullptr)$/;"	f	struct:simpla::mesh::MeshIDs_
+get_adjacent_cells	core/manifold/mesh/MeshIds.h	/^    static int get_adjacent_cells(size_t IFORM, id_type s, id_type *res = nullptr)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder
+get_adjacent_cells	core/manifold/mesh/MeshIds.h	/^    static int get_adjacent_cells(size_t IFORM, size_t nodeid, id_type s, id_type *res = nullptr)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder
 get_allocator	core/gtl/containers/container_container.h	/^	allocator_type get_allocator() const$/;"	f	class:simpla::ContainerContainer
 get_attribute	core/io/HDF5Stream.cpp	/^Properties HDF5Stream::get_attribute(std::string const &url) const$/;"	f	class:simpla::io::HDF5Stream
 get_attribute	core/io/HDF5Stream.cpp	/^Properties HDF5Stream::pimpl_s::get_attribute(hid_t loc_id, int idx) const$/;"	f	class:simpla::io::HDF5Stream::pimpl_s
@@ -2935,7 +2935,7 @@ get_class_name	core/base/Attribute.h	/^    virtual std::string get_class_name() 
 get_class_name	core/base/Attribute.h	/^    virtual std::string get_class_name() const$/;"	f	class:simpla::base::AttributeEntity
 get_class_name	core/base/Object.cpp	/^std::string Object::get_class_name() const { return "base::LuaObject"; }$/;"	f	class:simpla::base::Object
 get_class_name	core/manifold/Manifold.h	/^    virtual std::string get_class_name() const { return "Manifold< ... >"; }$/;"	f	class:simpla::Manifold
-get_element_volume_in_cell	core/manifold/mesh/MeshIds.h	/^    static void get_element_volume_in_cell(TGeometry const &geo, id_type s0, Real *v, Real *inv_v, Real *dual_v,$/;"	f	struct:simpla::mesh::MeshIDs_
+get_element_volume_in_cell	core/manifold/mesh/MeshIds.h	/^    static void get_element_volume_in_cell(TGeometry const &geo, id_type s0, Real *v, Real *inv_v, Real *dual_v,$/;"	f	struct:simpla::mesh::MeshEntityIdCoder
 get_line_width	core/gtl/utilities/log.cpp	/^    int get_line_width() const$/;"	f	struct:simpla::logger::LoggerStreams
 get_line_width	core/gtl/utilities/log.cpp	/^int get_line_width()$/;"	f	namespace:simpla::logger
 get_mass	applications/particle_solver/fluid_cold_engine.h	/^	Real get_mass() const$/;"	f	class:simpla::Particle
@@ -2997,7 +2997,7 @@ gradn0	applications/particle_solver/pic_engine_deltaf2.h	/^	Field<mesh_type, EDG
 grainsize	core/gtl/array_view.h	/^    size_type grainsize() const { return m_grain_size_; }$/;"	f	class:simpla::gtl::ArrayView
 grainsize	core/gtl/iterator/range.h	/^    ptrdiff_t grainsize() const { return m_grain_size_; }$/;"	f	class:simpla::Range
 grainsize	core/gtl/range/block_range.h	/^    size_type grainsize() const { return m_grain_size_; }$/;"	f	class:simpla::BlockRange
-grainsize	core/manifold/mesh/MeshIds.h	/^        index_tuple const &grainsize() const { return m_grain_size_; }$/;"	f	struct:simpla::mesh::MeshIDs_::range_type
+grainsize	core/manifold/mesh/MeshIds.h	/^        index_tuple const &grainsize() const { return m_grain_size_; }$/;"	f	struct:simpla::mesh::MeshEntityIdCoder::range_type
 grainsize	core/parallel/obsoleted/blocked_range.h	/^	size_type grainsize() const$/;"	f	struct:simpla::BlockedRange
 grainsize	core/parallel/obsoleted/blocked_range.h	/^	void grainsize(size_type const &gs)$/;"	f	struct:simpla::BlockedRange
 grainsize_	core/parallel/obsoleted/blocked_range.h	/^	size_type grainsize_;$/;"	m	struct:simpla::BlockedRange
@@ -3012,7 +3012,7 @@ hash	core/gtl/containers/sp_hash_container.h	/^	size_t hash(key_type const & s) 
 hash	core/gtl/containers/sp_ndarray.h	/^	constexpr size_t hash(index_type s) const$/;"	f	class:simpla::ndArray
 hash	core/gtl/containers/sp_ndarray.h	/^	constexpr size_t hash(index_type s, index_type ...other) const$/;"	f	class:simpla::ndArray
 hash	core/manifold/mesh/MeshBlock.h	/^    size_t hash(id_type const &s) const$/;"	f	struct:simpla::mesh::MeshBlock
-hash	core/manifold/mesh/MeshIds.h	/^    static index_type hash(id_type const &s, index_tuple const &b, index_tuple const &e)$/;"	f	struct:simpla::mesh::MeshIDs_
+hash	core/manifold/mesh/MeshIds.h	/^    static index_type hash(id_type const &s, index_tuple const &b, index_tuple const &e)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder
 hash_	core/gtl/array_view.h	/^    size_t hash_(size_t const *idx) const$/;"	f	struct:simpla::gtl::ArrayViewBase
 hash_	core/manifold/mesh/CylindricalCoRect.h	/^    size_t hash_(id_type s) const$/;"	f	class:simpla::mesh::CylindricalCoRect
 hash_	core/manifold/mesh/RectMesh.h	/^    size_t hash_(id_type s) const$/;"	f	struct:simpla::mesh::Mesh
@@ -3040,7 +3040,7 @@ id	core/manifold/mesh/MeshBlock.h	/^    virtual id_type id(point_type const &x, 
 id	core/manifold/mesh/RectMesh.h	/^    virtual id_type id(point_type const &x, int n_id = 0) const$/;"	f	struct:simpla::mesh::Mesh
 id	example/pic/demo_pic.h	/^	inline typename base_manifold::id_type id(point_type const &p, Args &&...args) const$/;"	f	struct:simpla::FiberBundle
 id_mask	core/manifold/mesh/MeshBlock.h	/^    size_t id_mask() const$/;"	f	struct:simpla::mesh::MeshBlock
-id_tuple	core/manifold/mesh/MeshIds.h	/^    typedef nTuple<id_type, ndims> id_tuple;$/;"	t	struct:simpla::mesh::MeshIDs_
+id_tuple	core/manifold/mesh/MeshIds.h	/^    typedef nTuple<id_type, ndims> id_tuple;$/;"	t	struct:simpla::mesh::MeshEntityIdCoder
 id_type	core/base/Attribute.h	/^    typedef typename mesh_type::id_type id_type;$/;"	t	class:simpla::base::Attribute
 id_type	core/base/Attribute.h	/^    typedef typename mesh_type::id_type id_type;$/;"	t	class:simpla::base::AttributeEntity
 id_type	core/field/FieldDense.h	/^    typedef typename mesh_type::id_type id_type;$/;"	t	class:simpla::Field
@@ -3053,7 +3053,7 @@ id_type	core/geometry/obsolete/polygon.h	/^	typedef typename mesh_type::id_type 
 id_type	core/geometry/obsolete/surface.h	/^	typedef typename mesh_type::id_type id_type;$/;"	t	class:simpla::Surface
 id_type	core/manifold/ManifoldTraits.h	/^struct id_type<Manifold<TMesh, Policies...> >$/;"	s	namespace:simpla::traits
 id_type	core/manifold/ManifoldTraits.h	/^template<typename T> struct id_type$/;"	s	namespace:simpla::traits
-id_type	core/manifold/mesh/MeshIds.h	/^    typedef std::uint64_t id_type;$/;"	t	struct:simpla::mesh::MeshIDs_
+id_type	core/manifold/mesh/MeshIds.h	/^    typedef std::uint64_t id_type;$/;"	t	struct:simpla::mesh::MeshEntityIdCoder
 id_type	core/manifold/obsoleted/amr_policy.h	/^    typedef typename mesh_type::id_type id_type;$/;"	t	class:simpla::manifold::policy::AMR
 id_type	core/manifold/obsoleted/block.h	/^    typedef std::int64_t id_type;$/;"	t	struct:simpla::Block
 id_type	core/manifold/obsoleted/embedded_policy.h	/^    typedef typename TGeo::id_type id_type;$/;"	t	struct:simpla::manifold::policy::EmbeddedPolicy
@@ -3083,7 +3083,7 @@ iform	core/manifold/Calculus.h	/^struct iform<Field<Expression<calculus::tags::M
 iform	core/manifold/Calculus.h	/^struct iform<Field<Expression<calculus::tags::Wedge, T0, T1> > > : public std::integral_constant<$/;"	s	namespace:simpla::traits
 iform	core/manifold/Calculus.h	/^struct iform<std::integral_constant<int, I> > : public std::integral_constant<int, I>$/;"	s	namespace:simpla::traits
 iform	core/manifold/ManifoldTraits.h	/^template<typename> struct iform : public std::integral_constant<int, 0>$/;"	s	namespace:simpla::traits
-iform	core/manifold/mesh/MeshIds.h	/^    static constexpr int iform(id_type s)$/;"	f	struct:simpla::mesh::MeshIDs_
+iform	core/manifold/mesh/MeshIds.h	/^    static constexpr int iform(id_type s)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder
 iform	core/manifold/obsoleted/patch/mesh_patch.h	/^    static constexpr int iform = IFORM;$/;"	m	class:simpla::mesh::PatchPolicy
 iform	core/model/test/model_test.cpp	/^	static constexpr size_t iform = TInt::value;$/;"	m	class:TestModel	file:
 iform	core/particle/Particle.h	/^    static constexpr int iform = container_type::iform;$/;"	m	struct:simpla::particle::Particle
@@ -3118,7 +3118,7 @@ index_tuple	core/data_model/DataSpace.h	/^    typedef nTuple <index_type, MAX_ND
 index_tuple	core/field/test/field_diff_calculus_test.h	/^    typedef typename mesh_type::index_tuple index_tuple;$/;"	t	class:FETLTest
 index_tuple	core/gtl/containers/sp_ndarray.h	/^	typedef long index_tuple;$/;"	t	class:simpla::ndArray
 index_tuple	core/gtl/containers/sp_ndarray.h	/^	typedef nTuple<index_type, NDIMS> index_tuple;$/;"	t	class:simpla::ndArray
-index_tuple	core/manifold/mesh/MeshIds.h	/^    typedef nTuple<index_type, ndims> index_tuple;$/;"	t	struct:simpla::mesh::MeshIDs_
+index_tuple	core/manifold/mesh/MeshIds.h	/^    typedef nTuple<index_type, ndims> index_tuple;$/;"	t	struct:simpla::mesh::MeshEntityIdCoder
 index_tuple	core/manifold/obsoleted/amr_policy.h	/^    typedef typename mesh_type::index_tuple index_tuple;$/;"	t	class:simpla::manifold::policy::AMR
 index_tuple	core/particle/Particle.h	/^    typedef typename mesh_type::index_tuple index_tuple;$/;"	t	struct:simpla::particle::Particle
 index_tuple	core/particle/ParticleContainer.h	/^    typedef typename mesh_type::index_tuple index_tuple;$/;"	t	struct:simpla::particle::ParticleContainer
@@ -3126,7 +3126,7 @@ index_tuple	example/em_tokamak/tokamak.cpp	/^    typedef typename mesh_type::ind
 index_type	core/data_model/DataSpace.h	/^    typedef size_t index_type;$/;"	t	class:simpla::data_model::DataSpace
 index_type	core/gtl/containers/sp_ndarray.h	/^	typedef long index_type;$/;"	t	class:simpla::ndArray
 index_type	core/gtl/iterator/sp_ntuple_range.h	/^    typedef IndexType index_type;$/;"	t	struct:simpla::sp_nTuple_range
-index_type	core/manifold/mesh/MeshIds.h	/^    typedef long index_type;$/;"	t	struct:simpla::mesh::MeshIDs_
+index_type	core/manifold/mesh/MeshIds.h	/^    typedef long index_type;$/;"	t	struct:simpla::mesh::MeshEntityIdCoder
 indexed_access	core/geometry/boost_gemetry_adapted.h	/^struct indexed_access<sgm::Box<CS>, I, Dimension>$/;"	s	namespace:boost::geometry::traits
 indexed_access	core/geometry/boost_gemetry_adapted.h	/^struct indexed_access<sgm::Primitive<N, CS, TAG>, Index, M>$/;"	s	namespace:boost::geometry::traits
 indices_tuple	core/geometry/chains.h	/^    typedef nTuple<id_type, max_number_of_points> indices_tuple;$/;"	t	struct:simpla::geometry::model::Chains
@@ -3229,7 +3229,7 @@ inv_volume	core/manifold/mesh/CartesianCoRect.h	/^    virtual Real inv_volume(id
 inv_volume	core/manifold/mesh/CoRectMesh.h	/^    virtual Real inv_volume(id_type s) const { return m_inv_volume_[node_id(s)]; }$/;"	f	struct:simpla::mesh::Mesh
 inv_volume	core/manifold/mesh/CylindricalCoRect.h	/^    virtual Real inv_volume(id_type s) const$/;"	f	class:simpla::mesh::CylindricalCoRect
 inv_volume	core/manifold/mesh/RectMesh.h	/^    virtual Real inv_volume(id_type s) const$/;"	f	struct:simpla::mesh::Mesh
-inverse_rotate	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type inverse_rotate(id_type const &s)$/;"	f	struct:simpla::mesh::MeshIDs_
+inverse_rotate	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type inverse_rotate(id_type const &s)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder
 io	core/io/HDF5Stream.cpp	/^namespace simpla { namespace io$/;"	n	namespace:simpla	file:
 io	core/io/HDF5Stream.h	/^namespace simpla { namespace io$/;"	n	namespace:simpla
 io	core/io/IO.cpp	/^namespace simpla { namespace io$/;"	n	namespace:simpla	file:
@@ -3282,7 +3282,7 @@ is_divisible	core/gtl/containers/unordered_set.h	/^    bool is_divisible() const
 is_divisible	core/gtl/iterator/range.h	/^    bool is_divisible() const { return size() > grainsize(); }$/;"	f	class:simpla::Range
 is_divisible	core/gtl/iterator/sp_indirect_iterator.h	/^    constexpr bool is_divisible() const$/;"	f	struct:simpla::sp_indirect_range
 is_divisible	core/gtl/range/block_range.h	/^    bool is_divisible() const { return size() > grainsize(); }$/;"	f	class:simpla::BlockRange
-is_divisible	core/manifold/mesh/MeshIds.h	/^        bool is_divisible() const$/;"	f	struct:simpla::mesh::MeshIDs_::range_type
+is_divisible	core/manifold/mesh/MeshIds.h	/^        bool is_divisible() const$/;"	f	struct:simpla::mesh::MeshEntityIdCoder::range_type
 is_divisible	core/parallel/obsoleted/blocked_range.h	/^	bool is_divisible() const$/;"	f	struct:simpla::BlockedRange
 is_divisible	core/particle/obsolete/probe_particle.h	/^    bool is_divisible() const$/;"	f	struct:simpla::ProbeParticle
 is_empty	core/gtl/containers/container_traits.h	/^	static bool is_empty(container_type const& that)$/;"	f	struct:simpla::container_traits
@@ -3353,7 +3353,7 @@ is_splittable_in_proportion	core/gtl/array_view.h	/^    static const bool is_spl
 is_splittable_in_proportion	core/gtl/iterator/range.h	/^    static const bool is_splittable_in_proportion = true;$/;"	m	class:simpla::Range
 is_splittable_in_proportion	core/gtl/iterator/sp_indirect_iterator.h	/^    static bool is_splittable_in_proportion()$/;"	f	struct:simpla::sp_indirect_range
 is_splittable_in_proportion	core/gtl/range/block_range.h	/^    static const bool is_splittable_in_proportion = true;$/;"	m	class:simpla::BlockRange
-is_splittable_in_proportion	core/manifold/mesh/MeshIds.h	/^        static const bool is_splittable_in_proportion = true;$/;"	m	struct:simpla::mesh::MeshIDs_::range_type
+is_splittable_in_proportion	core/manifold/mesh/MeshIds.h	/^        static const bool is_splittable_in_proportion = true;$/;"	m	struct:simpla::mesh::MeshEntityIdCoder::range_type
 is_string	core/gtl/any.h	/^    bool is_string() const { return ptr_ != nullptr && ptr_->is_string(); }$/;"	f	struct:simpla::any
 is_string	core/gtl/any.h	/^    virtual bool is_string() const { return std::is_convertible<T, std::string>::value; }$/;"	f	struct:simpla::Derived
 is_string	core/gtl/utilities/lua_object.cpp	/^bool LuaObject::is_string() const$/;"	f	class:simpla::lua::LuaObject
@@ -3392,13 +3392,13 @@ iterator	core/gtl/utilities/lua_object.cpp	/^LuaObject::iterator::iterator(LuaSt
 iterator	core/gtl/utilities/lua_object.cpp	/^LuaObject::iterator::iterator(iterator &&r) :$/;"	f	class:simpla::lua::LuaObject::iterator
 iterator	core/gtl/utilities/lua_object.cpp	/^LuaObject::iterator::iterator(iterator const &r) :$/;"	f	class:simpla::lua::LuaObject::iterator
 iterator	core/gtl/utilities/lua_object.h	/^    class iterator$/;"	c	class:simpla::lua::LuaObject
-iterator	core/manifold/mesh/MeshIds.h	/^        iterator() : base_type(), m_iform_(VERTEX) { }$/;"	f	struct:simpla::mesh::MeshIDs_::iterator
-iterator	core/manifold/mesh/MeshIds.h	/^        iterator(T0 const &pself, T1 const &pmin, T2 const &pmax, int IFORM = VERTEX) :$/;"	f	struct:simpla::mesh::MeshIDs_::iterator
-iterator	core/manifold/mesh/MeshIds.h	/^        iterator(base_type const &other, int IFORM) : base_type(other), m_iform_(IFORM)$/;"	f	struct:simpla::mesh::MeshIDs_::iterator
-iterator	core/manifold/mesh/MeshIds.h	/^        iterator(id_type s, id_type b, id_type e)$/;"	f	struct:simpla::mesh::MeshIDs_::iterator
-iterator	core/manifold/mesh/MeshIds.h	/^        iterator(iterator &&other) : base_type(other), m_iform_(other.m_iform_)$/;"	f	struct:simpla::mesh::MeshIDs_::iterator
-iterator	core/manifold/mesh/MeshIds.h	/^        iterator(iterator const &other) : base_type(other), m_iform_(other.m_iform_)$/;"	f	struct:simpla::mesh::MeshIDs_::iterator
-iterator	core/manifold/mesh/MeshIds.h	/^    struct iterator : public block_iterator<index_type, ndims + 1>$/;"	s	struct:simpla::mesh::MeshIDs_
+iterator	core/manifold/mesh/MeshIds.h	/^        iterator() : base_type(), m_iform_(VERTEX) { }$/;"	f	struct:simpla::mesh::MeshEntityIdCoder::iterator
+iterator	core/manifold/mesh/MeshIds.h	/^        iterator(T0 const &pself, T1 const &pmin, T2 const &pmax, int IFORM = VERTEX) :$/;"	f	struct:simpla::mesh::MeshEntityIdCoder::iterator
+iterator	core/manifold/mesh/MeshIds.h	/^        iterator(base_type const &other, int IFORM) : base_type(other), m_iform_(IFORM)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder::iterator
+iterator	core/manifold/mesh/MeshIds.h	/^        iterator(id_type s, id_type b, id_type e)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder::iterator
+iterator	core/manifold/mesh/MeshIds.h	/^        iterator(iterator &&other) : base_type(other), m_iform_(other.m_iform_)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder::iterator
+iterator	core/manifold/mesh/MeshIds.h	/^        iterator(iterator const &other) : base_type(other), m_iform_(other.m_iform_)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder::iterator
+iterator	core/manifold/mesh/MeshIds.h	/^    struct iterator : public block_iterator<index_type, ndims + 1>$/;"	s	struct:simpla::mesh::MeshEntityIdCoder
 iterator	core/manifold/obsoleted/patch/mesh_patch.h	/^    typedef typename std::map<size_t, std::shared_ptr<AttributeBase>>::iterator iterator;$/;"	t	class:simpla::mesh::MeshPatch
 iterator	core/numeric/interpolation.h	/^    typedef typename container_type::iterator iterator;$/;"	t	class:simpla::Interpolation
 iterator	core/parallel/obsoleted/blocked_range.h	/^	iterator(iterator && r) :$/;"	f	struct:simpla::iterator
@@ -3543,10 +3543,10 @@ m_	core/physics/PhysicalConstants.h	/^    double m_; \/\/<< length [meter]$/;"	m
 m_R_	core/geometry/model.h	/^	length_type m_R_;$/;"	m	struct:simpla::geometry::model::Primitive
 m_Z_	core/geometry/model.h	/^	vector_type m_Z_;$/;"	m	struct:simpla::geometry::model::Primitive
 m_a_	core/geometry/model.h	/^	length_type m_a_;$/;"	m	struct:simpla::geometry::model::Primitive
-m_adjacent_cell_matrix_	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type m_adjacent_cell_matrix_[4\/* to iform*\/][NUM_OF_NODE_ID\/* node id*\/][MAX_NUM_OF_ADJACENT_CELL\/*id shift*\/] =$/;"	m	struct:simpla::mesh::MeshIDs_
-m_adjacent_cell_matrix_	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr typename MeshIDs_<L>::id_type MeshIDs_<L>::m_adjacent_cell_matrix_[4\/* to iform*\/][NUM_OF_NODE_ID\/* node id*\/][MAX_NUM_OF_ADJACENT_CELL\/*id shift*\/];$/;"	m	class:simpla::mesh::MeshIDs_
-m_adjacent_cell_num_	core/manifold/mesh/MeshIds.h	/^    static constexpr int m_adjacent_cell_num_[4\/* to iform*\/][8\/* node id*\/] =$/;"	m	struct:simpla::mesh::MeshIDs_
-m_adjacent_cell_num_	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr int MeshIDs_<L>::m_adjacent_cell_num_[4][8];$/;"	m	class:simpla::mesh::MeshIDs_
+m_adjacent_cell_matrix_	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type m_adjacent_cell_matrix_[4\/* to iform*\/][NUM_OF_NODE_ID\/* node id*\/][MAX_NUM_OF_ADJACENT_CELL\/*id shift*\/] =$/;"	m	struct:simpla::mesh::MeshEntityIdCoder
+m_adjacent_cell_matrix_	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr typename MeshEntityIdCoder<L>::id_type MeshEntityIdCoder<L>::m_adjacent_cell_matrix_[4\/* to iform*\/][NUM_OF_NODE_ID\/* node id*\/][MAX_NUM_OF_ADJACENT_CELL\/*id shift*\/];$/;"	m	class:simpla::mesh::MeshEntityIdCoder
+m_adjacent_cell_num_	core/manifold/mesh/MeshIds.h	/^    static constexpr int m_adjacent_cell_num_[4\/* to iform*\/][8\/* node id*\/] =$/;"	m	struct:simpla::mesh::MeshEntityIdCoder
+m_adjacent_cell_num_	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr int MeshEntityIdCoder<L>::m_adjacent_cell_num_[4][8];$/;"	m	class:simpla::mesh::MeshEntityIdCoder
 m_attributes_	core/manifold/Manifold.h	/^    attribute_holder_type m_attributes_;$/;"	m	class:simpla::Manifold
 m_b_	core/gtl/iterator/sp_ntuple_range.h	/^    ntuple_type m_b_, m_e_;$/;"	m	struct:simpla::sp_nTuple_range
 m_base_	core/gtl/containers/sp_indirect_container.h	/^	ValueContiner & m_base_;$/;"	m	struct:simpla::indirect_container
@@ -3638,27 +3638,27 @@ m_ghost_box_	core/manifold/mesh/MeshBlock.h	/^    std::vector<index_box_type> m_
 m_grain_size_	core/gtl/array_view.h	/^    nTuple<size_t, MAX_NDIMS_OF_ARRAY> m_grain_size_;$/;"	m	struct:simpla::gtl::ArrayViewBase
 m_grain_size_	core/gtl/iterator/range.h	/^    ptrdiff_t m_grain_size_;$/;"	m	class:simpla::Range
 m_grain_size_	core/gtl/range/block_range.h	/^    size_type m_grain_size_;$/;"	m	class:simpla::BlockRange
-m_grain_size_	core/manifold/mesh/MeshIds.h	/^        index_tuple m_min_, m_max_, m_grain_size_;$/;"	m	struct:simpla::mesh::MeshIDs_::range_type
+m_grain_size_	core/manifold/mesh/MeshIds.h	/^        index_tuple m_min_, m_max_, m_grain_size_;$/;"	m	struct:simpla::mesh::MeshEntityIdCoder::range_type
 m_grainsize_	core/gtl/iterator/sp_ntuple_range.h	/^    ntuple_type m_grainsize_;$/;"	m	struct:simpla::sp_nTuple_range
 m_h5_stream_	core/io/XDMFStream.h	/^    HDF5Stream m_h5_stream_;$/;"	m	class:simpla::io::XDMFStream
 m_hash_	core/gtl/containers/sp_hash_container.h	/^	hash_function m_hash_;$/;"	m	struct:simpla::SpHashContainer
 m_hash_	core/gtl/function_cache.h	/^	hash_fun m_hash_;$/;"	m	struct:simpla::FunctionCache
 m_hash_	core/particle/ParticleContainer.h	/^    Hash m_hash_;$/;"	m	struct:simpla::particle::ParticleContainer
 m_hasher_	core/gtl/iterator/sp_indirect_iterator.h	/^    hasher_type m_hasher_;$/;"	m	struct:simpla::sp_indirect_iterator
-m_id_to_coordinates_shift_	core/manifold/mesh/MeshIds.h	/^    static constexpr point_type m_id_to_coordinates_shift_[] = {$/;"	m	struct:simpla::mesh::MeshIDs_
-m_id_to_coordinates_shift_	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr typename MeshIDs_<L>::point_type MeshIDs_<L>::m_id_to_coordinates_shift_[];$/;"	m	class:simpla::mesh::MeshIDs_
-m_id_to_iform_	core/manifold/mesh/MeshIds.h	/^    static constexpr int m_id_to_iform_[] = { \/\/$/;"	m	struct:simpla::mesh::MeshIDs_
-m_id_to_iform_	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr int MeshIDs_<L>::m_id_to_iform_[];$/;"	m	class:simpla::mesh::MeshIDs_
-m_id_to_index_	core/manifold/mesh/MeshIds.h	/^    static constexpr int m_id_to_index_[8] = { \/\/$/;"	m	struct:simpla::mesh::MeshIDs_
-m_id_to_index_	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr int MeshIDs_<L>::m_id_to_index_[];$/;"	m	class:simpla::mesh::MeshIDs_
-m_id_to_num_of_ele_in_cell_	core/manifold/mesh/MeshIds.h	/^    static constexpr int m_id_to_num_of_ele_in_cell_[] = {$/;"	m	struct:simpla::mesh::MeshIDs_
-m_id_to_num_of_ele_in_cell_	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr int MeshIDs_<L>::m_id_to_num_of_ele_in_cell_[];$/;"	m	class:simpla::mesh::MeshIDs_
-m_id_to_shift_	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type m_id_to_shift_[] = {$/;"	m	struct:simpla::mesh::MeshIDs_
-m_id_to_shift_	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr typename MeshIDs_<L>::id_type MeshIDs_<L>::m_id_to_shift_[];$/;"	m	class:simpla::mesh::MeshIDs_
-m_id_to_sub_index_	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type m_id_to_sub_index_[8] = { \/\/$/;"	m	struct:simpla::mesh::MeshIDs_
+m_id_to_coordinates_shift_	core/manifold/mesh/MeshIds.h	/^    static constexpr point_type m_id_to_coordinates_shift_[] = {$/;"	m	struct:simpla::mesh::MeshEntityIdCoder
+m_id_to_coordinates_shift_	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr typename MeshEntityIdCoder<L>::point_type MeshEntityIdCoder<L>::m_id_to_coordinates_shift_[];$/;"	m	class:simpla::mesh::MeshEntityIdCoder
+m_id_to_iform_	core/manifold/mesh/MeshIds.h	/^    static constexpr int m_id_to_iform_[] = { \/\/$/;"	m	struct:simpla::mesh::MeshEntityIdCoder
+m_id_to_iform_	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr int MeshEntityIdCoder<L>::m_id_to_iform_[];$/;"	m	class:simpla::mesh::MeshEntityIdCoder
+m_id_to_index_	core/manifold/mesh/MeshIds.h	/^    static constexpr int m_id_to_index_[8] = { \/\/$/;"	m	struct:simpla::mesh::MeshEntityIdCoder
+m_id_to_index_	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr int MeshEntityIdCoder<L>::m_id_to_index_[];$/;"	m	class:simpla::mesh::MeshEntityIdCoder
+m_id_to_num_of_ele_in_cell_	core/manifold/mesh/MeshIds.h	/^    static constexpr int m_id_to_num_of_ele_in_cell_[] = {$/;"	m	struct:simpla::mesh::MeshEntityIdCoder
+m_id_to_num_of_ele_in_cell_	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr int MeshEntityIdCoder<L>::m_id_to_num_of_ele_in_cell_[];$/;"	m	class:simpla::mesh::MeshEntityIdCoder
+m_id_to_shift_	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type m_id_to_shift_[] = {$/;"	m	struct:simpla::mesh::MeshEntityIdCoder
+m_id_to_shift_	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr typename MeshEntityIdCoder<L>::id_type MeshEntityIdCoder<L>::m_id_to_shift_[];$/;"	m	class:simpla::mesh::MeshEntityIdCoder
+m_id_to_sub_index_	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type m_id_to_sub_index_[8] = { \/\/$/;"	m	struct:simpla::mesh::MeshEntityIdCoder
 m_idx_	core/gtl/array_view.h	/^    nTuple<size_t, MAX_NDIMS_OF_ARRAY> m_idx_;$/;"	m	struct:simpla::gtl::ArrayView::iterator
-m_iform_	core/manifold/mesh/MeshIds.h	/^        int m_iform_;$/;"	m	struct:simpla::mesh::MeshIDs_::iterator
-m_iform_	core/manifold/mesh/MeshIds.h	/^        int m_iform_;$/;"	m	struct:simpla::mesh::MeshIDs_::range_type
+m_iform_	core/manifold/mesh/MeshIds.h	/^        int m_iform_;$/;"	m	struct:simpla::mesh::MeshEntityIdCoder::iterator
+m_iform_	core/manifold/mesh/MeshIds.h	/^        int m_iform_;$/;"	m	struct:simpla::mesh::MeshEntityIdCoder::range_type
 m_index_range_	core/data_model/data_view.h	/^	index_range_type m_index_range_;$/;"	m	struct:simpla::data_view
 m_inners_	core/geometry/model.h	/^	inner_container_type m_inners_;$/;"	m	struct:simpla::geometry::model::Polygon
 m_integral_list_	core/particle/Particle.h	/^            std::weak_ptr<typename mesh_type::AttributeEntity> &)> >> m_integral_list_;$/;"	m	struct:simpla::particle::Particle
@@ -3694,7 +3694,7 @@ m_map_scale_	core/manifold/mesh/MeshBlock.h	/^    point_type m_map_scale_ = {1, 
 m_max_	core/gtl/iterator/block_iterator.h	/^    nTuple<TV, NDIMS> m_min_, m_max_, m_self_;$/;"	m	struct:simpla::block_iterator
 m_max_	core/gtl/iterator/sp_ntuple_range.h	/^    ntuple_type m_min_, m_max_, m_self_;$/;"	m	struct:simpla::sp_nTuple_range::iterator
 m_max_	core/manifold/mesh/MeshBlock.h	/^    point_type m_max_;$/;"	m	struct:simpla::mesh::MeshBlock
-m_max_	core/manifold/mesh/MeshIds.h	/^        index_tuple m_min_, m_max_, m_grain_size_;$/;"	m	struct:simpla::mesh::MeshIDs_::range_type
+m_max_	core/manifold/mesh/MeshIds.h	/^        index_tuple m_min_, m_max_, m_grain_size_;$/;"	m	struct:simpla::mesh::MeshEntityIdCoder::range_type
 m_max_buffer_depth_	core/io/WriteBuffer.h	/^    size_t m_max_buffer_depth_ = 1;$/;"	m	class:simpla::io::WriteBuffer
 m_max_hash_	core/gtl/containers/sp_hash_container.h	/^	size_t m_max_hash_ = 0;$/;"	m	struct:simpla::SpHashContainer
 m_max_index_r_	core/manifold/mesh/CylindricalCoRect.h	/^    index_type m_max_index_r_ = 1;$/;"	m	class:simpla::mesh::CylindricalCoRect
@@ -3716,7 +3716,7 @@ m_mesh_	example/pic/demo_pic.h	/^	base_manifold const &m_mesh_;$/;"	m	struct:sim
 m_min_	core/gtl/iterator/block_iterator.h	/^    nTuple<TV, NDIMS> m_min_, m_max_, m_self_;$/;"	m	struct:simpla::block_iterator
 m_min_	core/gtl/iterator/sp_ntuple_range.h	/^    ntuple_type m_min_, m_max_, m_self_;$/;"	m	struct:simpla::sp_nTuple_range::iterator
 m_min_	core/manifold/mesh/MeshBlock.h	/^    point_type m_min_;$/;"	m	struct:simpla::mesh::MeshBlock
-m_min_	core/manifold/mesh/MeshIds.h	/^        index_tuple m_min_, m_max_, m_grain_size_;$/;"	m	struct:simpla::mesh::MeshIDs_::range_type
+m_min_	core/manifold/mesh/MeshIds.h	/^        index_tuple m_min_, m_max_, m_grain_size_;$/;"	m	struct:simpla::mesh::MeshEntityIdCoder::range_type
 m_min_index_r_	core/manifold/mesh/CylindricalCoRect.h	/^    index_type m_min_index_r_ = 0;$/;"	m	class:simpla::mesh::CylindricalCoRect
 m_modified_	core/gtl/containers/unordered_set.h	/^    std::set<key_type> m_modified_;$/;"	m	class:simpla::UnorderedSet
 m_mpi_dtype_	core/parallel/DistributedObject.cpp	/^    std::vector<MPIDataType> m_mpi_dtype_;$/;"	m	struct:simpla::parallel::DistributedObject::pimpl_s	file:
@@ -3804,8 +3804,8 @@ m_start_	core/parallel/ParallelRandomGenerator.h	/^    std::atomic<size_t> m_sta
 m_state_	core/gtl/utilities/lua_object.h	/^            lua_State *m_state_;$/;"	m	struct:simpla::lua::LuaObject::LuaState::lua_s
 m_std_out_level_	core/gtl/utilities/log.cpp	/^    int m_std_out_level_;$/;"	m	struct:simpla::logger::LoggerStreams	file:
 m_strides_	core/gtl/array_view.h	/^    nTuple<size_t, MAX_NDIMS_OF_ARRAY> m_strides_;$/;"	m	struct:simpla::gtl::ArrayViewBase
-m_sub_index_to_id_	core/manifold/mesh/MeshIds.h	/^    static constexpr int m_sub_index_to_id_[4][3] = { \/\/$/;"	m	struct:simpla::mesh::MeshIDs_
-m_sub_index_to_id_	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr int MeshIDs_<L>::m_sub_index_to_id_[4][3];$/;"	m	class:simpla::mesh::MeshIDs_
+m_sub_index_to_id_	core/manifold/mesh/MeshIds.h	/^    static constexpr int m_sub_index_to_id_[4][3] = { \/\/$/;"	m	struct:simpla::mesh::MeshEntityIdCoder
+m_sub_index_to_id_	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr int MeshEntityIdCoder<L>::m_sub_index_to_id_[4][3];$/;"	m	class:simpla::mesh::MeshEntityIdCoder
 m_subject_	core/gtl/design_pattern/observer.h	/^	std::shared_ptr<Observable> m_subject_;$/;"	m	struct:simpla::Observer
 m_t_index_	core/data_model/DataType.cpp	/^    std::type_index m_t_index_;$/;"	m	struct:simpla::data_model::DataType::pimpl_s	file:
 m_temperature_	core/particle/ParticleGenerator.h	/^    std::function<Real(point_type const &)> m_temperature_;$/;"	m	class:simpla::particle::ParticleGeneratorPerCell
@@ -3889,9 +3889,9 @@ make_point	applications/particle_solver/pic_engine_ggauge.h	/^	static inline Poi
 make_point	applications/particle_solver/pic_engine_implicit.h	/^	static inline Point_s make_point(coordinate_tuple const & x, Vec3 const &v, Real f)$/;"	f	struct:simpla::PICEngineImplicit
 make_primary_nTuple	core/gtl/ntuple.h	/^struct make_primary_nTuple<TV, integer_sequence<TI, N...>>$/;"	s	namespace:simpla::traits::_impl
 make_primary_nTuple	core/gtl/ntuple.h	/^struct make_primary_nTuple<TV, integer_sequence<TI>>$/;"	s	namespace:simpla::traits::_impl
-make_range	core/manifold/mesh/MeshIds.h	/^    static range_type make_range(T0 const &b, T1 const &e)$/;"	f	struct:simpla::mesh::MeshIDs_
-make_range	core/manifold/mesh/MeshIds.h	/^    static range_type make_range(T0 const &min, T1 const &max, int iform = VERTEX)$/;"	f	struct:simpla::mesh::MeshIDs_
-make_range	core/manifold/mesh/MeshIds.h	/^    static range_type make_range(TB const &b)$/;"	f	struct:simpla::mesh::MeshIDs_
+make_range	core/manifold/mesh/MeshIds.h	/^    static range_type make_range(T0 const &b, T1 const &e)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder
+make_range	core/manifold/mesh/MeshIds.h	/^    static range_type make_range(T0 const &min, T1 const &max, int iform = VERTEX)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder
+make_range	core/manifold/mesh/MeshIds.h	/^    static range_type make_range(TB const &b)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder
 make_scalarField	core/field/test/trash/fetl_test2.h	/^	Field<domain_type, Real> make_scalarField() const$/;"	f	class:TestField
 make_select_function_by_config	core/geometry/select.h	/^std::function<bool(TCoord const &)> make_select_function_by_config($/;"	f	namespace:simpla
 make_select_function_by_config	core/model/obsoleted/select.h	/^std::function<bool(TCoord const &)> make_select_function_by_config($/;"	f	namespace:simpla
@@ -3941,7 +3941,7 @@ max_buffer_depth	core/io/WriteBuffer.h	/^    void max_buffer_depth(size_t s) { m
 max_hash	core/gtl/containers/sp_hash_container.h	/^	size_t max_hash() const$/;"	f	struct:simpla::SpHashContainer
 max_hash	core/gtl/containers/sp_hash_container.h	/^	void max_hash(size_t m) const$/;"	f	struct:simpla::SpHashContainer
 max_hash	core/manifold/mesh/MeshBlock.h	/^    size_t max_hash() const$/;"	f	struct:simpla::mesh::MeshBlock
-max_hash	core/manifold/mesh/MeshIds.h	/^    static constexpr size_t max_hash(id_type b, id_type e)$/;"	f	struct:simpla::mesh::MeshIDs_
+max_hash	core/manifold/mesh/MeshIds.h	/^    static constexpr size_t max_hash(id_type b, id_type e)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder
 max_material_	core/model/obsoleted/model.h	/^    int max_material_;$/;"	m	class:simpla::Model
 max_num_of_points	core/geometry/model.h	/^	static constexpr size_t max_num_of_points = traits::number_of_points<$/;"	m	struct:simpla::geometry::model::Surface
 max_number_of_points	core/geometry/chains.h	/^    static constexpr size_t max_number_of_points = traits::number_of_points<$/;"	m	struct:simpla::geometry::model::Chains
@@ -4058,7 +4058,7 @@ metric_type	core/manifold/mesh/CoRectMesh.h	/^    typedef TMetric metric_type;$/
 metric_type	core/manifold/mesh/CylindricalCoRect.h	/^    typedef geometry::CylindricalMetric metric_type;$/;"	t	class:simpla::mesh::CylindricalCoRect
 metric_type	core/manifold/mesh/Mesh.h	/^struct metric_type<::simpla::mesh::Mesh<T...>>$/;"	s	namespace:simpla::geometry::traits
 metric_type	core/manifold/mesh/RectMesh.h	/^    typedef TMetric metric_type;$/;"	t	struct:simpla::mesh::Mesh
-miminal_vertex	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type miminal_vertex(id_type s)$/;"	f	struct:simpla::mesh::MeshIDs_
+miminal_vertex	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type miminal_vertex(id_type s)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder
 min	core/gtl/mpl.h	/^struct min<_Tp, first, Others...> : std::integral_constant<_Tp,$/;"	s	namespace:simpla::mpl
 min	core/gtl/mpl.h	/^struct min<_Tp, first, second> : std::integral_constant<_Tp,$/;"	s	namespace:simpla::mpl
 min	core/gtl/mpl.h	/^struct min<_Tp, first> : std::integral_constant<_Tp, first>$/;"	s	namespace:simpla::mpl
@@ -4134,8 +4134,8 @@ ndims	core/gtl/containers/sp_ndarray.h	/^	static constexpr size_t ndims = NDIMS;
 ndims	core/gtl/containers/sp_ndarray.h	/^template<typename T, size_t N> size_t ndArray<T, N>::ndims;$/;"	m	class:simpla::ndArray
 ndims	core/gtl/iterator/block_iterator.h	/^    static constexpr int ndims = NDIMS;$/;"	m	struct:simpla::block_iterator
 ndims	core/manifold/mesh/MeshBlock.h	/^    static constexpr int ndims = 3;$/;"	m	struct:simpla::mesh::MeshBlock
-ndims	core/manifold/mesh/MeshIds.h	/^    static constexpr int ndims = 3;$/;"	m	struct:simpla::mesh::MeshIDs_
-ndims	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr int MeshIDs_<L>::ndims;$/;"	m	class:simpla::mesh::MeshIDs_
+ndims	core/manifold/mesh/MeshIds.h	/^    static constexpr int ndims = 3;$/;"	m	struct:simpla::mesh::MeshEntityIdCoder
+ndims	core/manifold/mesh/MeshIds.h	/^template<int L> constexpr int MeshEntityIdCoder<L>::ndims;$/;"	m	class:simpla::mesh::MeshEntityIdCoder
 ndims	core/model/test/model_test.cpp	/^	static constexpr size_t ndims = manifold_type::ndims;$/;"	m	class:TestModel	file:
 ndims	core/numeric/multi_normal_distribution.h	/^	static constexpr size_t ndims = N;$/;"	m	class:simpla::multi_normal_distribution
 ndims	core/particle/ParticleContainer.h	/^    static constexpr int ndims = mesh_type::ndims;$/;"	m	struct:simpla::particle::ParticleContainer
@@ -4183,8 +4183,8 @@ no	core/gtl/check_concept.h	/^	typedef std::false_type no;$/;"	t	struct:simpla::
 no	core/gtl/check_concept.h	/^	typedef std::false_type no;$/;"	t	struct:simpla::traits::is_iterator
 no	core/gtl/concept_check.h	/^	typedef std::false_type no;$/;"	t	struct:simpla::is_callable
 no	core/gtl/concept_check.h	/^	typedef std::false_type no;$/;"	t	struct:simpla::is_indexable
-node_id	core/manifold/mesh/MeshIds.h	/^    static constexpr size_t node_id(id_type const &s)$/;"	f	struct:simpla::mesh::MeshIDs_
-node_id_tag	core/manifold/mesh/MeshIds.h	/^    enum node_id_tag$/;"	g	struct:simpla::mesh::MeshIDs_
+node_id	core/manifold/mesh/MeshIds.h	/^    static constexpr size_t node_id(id_type const &s)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder
+node_id_tag	core/manifold/mesh/MeshIds.h	/^    enum node_id_tag$/;"	g	struct:simpla::mesh::MeshEntityIdCoder
 noexcept	core/gtl/utilities/lua_object.h	/^    LuaObject operator[](int s) const noexcept;$/;"	m	class:simpla::lua::LuaObject
 noexcept	core/gtl/utilities/lua_object.h	/^    LuaObject operator[](std::string const &s) const noexcept;$/;"	m	class:simpla::lua::LuaObject
 normal_dist_	core/numeric/multi_normal_distribution.h	/^	TNormalGen normal_dist_;$/;"	m	class:simpla::multi_normal_distribution
@@ -4202,7 +4202,7 @@ null_material	core/model/obsoleted/model.cpp	/^static constexpr typename Model::
 null_material	core/model/obsoleted/model.h	/^    static constexpr tag_type null_material = 0UL;$/;"	m	class:simpla::Model
 null_op	core/gtl/expression_template.h	/^struct null_op$/;"	s	namespace:simpla::_impl
 num_of_ele_	core/gtl/containers/container_dense.h	/^	size_t num_of_ele_;$/;"	m	class:simpla::DenseContainer
-num_of_ele_in_cell	core/manifold/mesh/MeshIds.h	/^    static constexpr int num_of_ele_in_cell(id_type s)$/;"	f	struct:simpla::mesh::MeshIDs_
+num_of_ele_in_cell	core/manifold/mesh/MeshIds.h	/^    static constexpr int num_of_ele_in_cell(id_type s)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder
 num_of_elements	core/data_model/DataSpace.cpp	/^size_t DataSpace::num_of_elements() const$/;"	f	class:simpla::data_model::DataSpace
 num_of_loops	core/gtl/test/ntuple_perf_test.cpp	/^	std::size_t num_of_loops = 10000000L;$/;"	m	class:nTuplePerf1	file:
 num_of_loops	core/gtl/test/ntuple_perf_test.cpp	/^	std::size_t num_of_loops = 10000000L;$/;"	m	class:nTuplePerf2	file:
@@ -4327,7 +4327,7 @@ operator *	core/gtl/iterator/sp_ntuple_range.h	/^    ntuple_type const &operator
 operator *	core/gtl/utilities/lua_object.h	/^            lua_State *operator*() { return m_l_->m_state_; }$/;"	f	struct:simpla::lua::LuaObject::LuaState::accessor
 operator *	core/gtl/utilities/lua_object.h	/^            lua_State *operator*() { return m_l_->m_state_; }$/;"	f	struct:simpla::lua::LuaObject::LuaState::const_accessor
 operator *	core/gtl/utilities/lua_object.h	/^        std::pair<LuaObject, LuaObject> operator*() const { return value(); };$/;"	f	class:simpla::lua::LuaObject::iterator
-operator *	core/manifold/mesh/MeshIds.h	/^        id_type operator*() const { return pack_(base_type::operator*()); }$/;"	f	struct:simpla::mesh::MeshIDs_::iterator
+operator *	core/manifold/mesh/MeshIds.h	/^        id_type operator*() const { return pack_(base_type::operator*()); }$/;"	f	struct:simpla::mesh::MeshEntityIdCoder::iterator
 operator *	core/parallel/ParallelRandomGenerator.h	/^    value_type const &operator*() const { return m_count_; }$/;"	f	struct:simpla::parallel::DistributedCounter::input_iterator
 operator *	core/parallel/obsoleted/blocked_range.h	/^	value_type operator*() const$/;"	f	struct:simpla::iterator
 operator *	core/particle/ParticleGenerator.h	/^        value_type const &operator*() const { return m_value_; }$/;"	f	struct:simpla::particle::ParticleGenerator::input_iterator
@@ -4341,7 +4341,7 @@ operator +	core/gtl/expression_template.h	/^operator+(TE const &e, Zero const &)
 operator +	core/gtl/expression_template.h	/^operator+(Zero const &, TE const &e)$/;"	f	namespace:simpla
 operator +	core/gtl/iterator/block_iterator.h	/^    this_type operator+(ptrdiff_t const &n) const$/;"	f	struct:simpla::block_iterator
 operator +	core/gtl/iterator/iterator_sequence.h	/^	this_type operator+(diff_type const & r) const$/;"	f	class:simpla::IteratorSequence
-operator +	core/manifold/mesh/MeshIds.h	/^        iterator operator+(difference_type const &s) const$/;"	f	struct:simpla::mesh::MeshIDs_::iterator
+operator +	core/manifold/mesh/MeshIds.h	/^        iterator operator+(difference_type const &s) const$/;"	f	struct:simpla::mesh::MeshEntityIdCoder::iterator
 operator ++	core/gtl/iterator/block_iterator.h	/^    this_type &operator++()$/;"	f	struct:simpla::block_iterator
 operator ++	core/gtl/iterator/block_iterator.h	/^    this_type operator++(int) const$/;"	f	struct:simpla::block_iterator
 operator ++	core/gtl/iterator/indirect_iterator.h	/^	indirect_iterator & operator++()$/;"	f	struct:simpla::indirect_iterator
@@ -4489,8 +4489,8 @@ operator =	core/gtl/ntuple.h	/^    operator=(TR const &rhs)$/;"	f	struct:simpla:
 operator =	core/gtl/ntuple.h	/^    operator=(TR const *rhs)$/;"	f	struct:simpla::nTuple
 operator =	core/gtl/utilities/config_parser.h	/^        DictObject &operator=(DictObject const &other)$/;"	f	struct:simpla::ConfigParser::DictObject
 operator =	core/gtl/utilities/lua_object.h	/^    LuaObject &operator=(LuaObject const &other)$/;"	f	class:simpla::lua::LuaObject
-operator =	core/manifold/mesh/MeshIds.h	/^        iterator &operator=(base_type const &other)$/;"	f	struct:simpla::mesh::MeshIDs_::iterator
-operator =	core/manifold/mesh/MeshIds.h	/^        iterator &operator=(iterator const &other)$/;"	f	struct:simpla::mesh::MeshIDs_::iterator
+operator =	core/manifold/mesh/MeshIds.h	/^        iterator &operator=(base_type const &other)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder::iterator
+operator =	core/manifold/mesh/MeshIds.h	/^        iterator &operator=(iterator const &other)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder::iterator
 operator =	core/parallel/MPIDataType.h	/^    MPIDataType &operator=(MPIDataType const &other)$/;"	f	struct:simpla::MPIDataType
 operator =	core/particle/Particle.h	/^    this_type &operator=(this_type const &other)$/;"	f	struct:simpla::particle::Particle
 operator =	plugins/vtk_reader/vtkAMRSimPlaReader.cpp	/^    vtkAMRSimPlaReaderBlock &operator=(const vtkAMRSimPlaReaderBlock &other)$/;"	f	class:vtkAMRSimPlaReaderBlock
@@ -4595,10 +4595,10 @@ overlap_box	core/manifold/obsoleted/mesh_graph.h	/^    typename m::box_type over
 pInstance_	core/gtl/design_pattern/singleton_holder.h	/^	static T * volatile pInstance_;$/;"	m	class:simpla::SingletonHolder
 pInstance_	core/gtl/design_pattern/singleton_holder.h	/^T * volatile SingletonHolder<T>::pInstance_ = 0;$/;"	m	class:simpla::SingletonHolder
 p_	core/gtl/iterator/iterator_cycle.h	/^	base_iterator p_;$/;"	m	struct:simpla::iterator_cycle
-pack	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type pack(T const &idx)$/;"	f	struct:simpla::mesh::MeshIDs_
-pack	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type pack(id_type i0, id_type i1, id_type i2)$/;"	f	struct:simpla::mesh::MeshIDs_
-pack_	core/manifold/mesh/MeshIds.h	/^        id_type pack_(nTuple<index_type, ndims + 1> const &idx) const$/;"	f	struct:simpla::mesh::MeshIDs_::iterator
-pack_index	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type pack_index(T const &idx, int n_id = 0)$/;"	f	struct:simpla::mesh::MeshIDs_
+pack	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type pack(T const &idx)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder
+pack	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type pack(id_type i0, id_type i1, id_type i2)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder
+pack_	core/manifold/mesh/MeshIds.h	/^        id_type pack_(nTuple<index_type, ndims + 1> const &idx) const$/;"	f	struct:simpla::mesh::MeshEntityIdCoder::iterator
+pack_index	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type pack_index(T const &idx, int n_id = 0)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder
 pages_	core/gtl/containers/container_pool.h	/^	std::vector<std::shared_ptr<value_type>> pages_;$/;"	m	struct:simpla::ContainerPool
 parallel	core/parallel/DistributedCounter.h	/^namespace simpla { namespace parallel$/;"	n	namespace:simpla
 parallel	core/parallel/DistributedObject.cpp	/^namespace simpla { namespace parallel$/;"	n	namespace:simpla	file:
@@ -4711,8 +4711,8 @@ pod_type	core/gtl/ntuple.h	/^struct pod_type<nTuple<BooleanExpression<TOP, T...>
 pod_type	core/gtl/ntuple.h	/^struct pod_type<nTuple<T, N...>>$/;"	s	namespace:simpla::traits
 pod_type	core/gtl/type_traits.h	/^template<typename T> struct pod_type$/;"	s	namespace:simpla::traits
 point	core/manifold/mesh/MeshBlock.h	/^    virtual point_type point(id_type const &s) const$/;"	f	struct:simpla::mesh::MeshBlock
-point	core/manifold/mesh/MeshIds.h	/^    static point_type point(id_type const &s)$/;"	f	struct:simpla::mesh::MeshIDs_
-point	core/manifold/mesh/MeshIds.h	/^    static point_type point(nTuple<index_type, ndims> const &idx)$/;"	f	struct:simpla::mesh::MeshIDs_
+point	core/manifold/mesh/MeshIds.h	/^    static point_type point(id_type const &s)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder
+point	core/manifold/mesh/MeshIds.h	/^    static point_type point(nTuple<index_type, ndims> const &idx)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder
 point	core/manifold/mesh/RectMesh.h	/^    point_type point(Args &&...args) const$/;"	f	struct:simpla::mesh::Mesh
 point2d_type	core/geometry/polygon.h	/^    typedef nTuple<Real, 2> point2d_type;$/;"	t	struct:simpla::geometry::Polygon
 point_order	core/geometry/boost_gemetry_adapted.h	/^struct point_order<sgm::Polyline<CS, Others ...> >$/;"	s	namespace:boost::geometry::traits
@@ -4734,7 +4734,7 @@ point_type	core/geometry/primitive.h	/^struct point_type<model::Primitive<Dimens
 point_type	core/manifold/mesh/CoRectMesh.h	/^    typedef typename metric_type::point_type point_type;$/;"	t	struct:simpla::mesh::Mesh
 point_type	core/manifold/mesh/GeneralMap.h	/^    typedef TP point_type;$/;"	t	struct:simpla::mesh::SquareMap
 point_type	core/manifold/mesh/LinearMap.h	/^    typedef nTuple<Real, 3> point_type;$/;"	t	struct:simpla::mesh::LinearMap
-point_type	core/manifold/mesh/MeshIds.h	/^    typedef nTuple<Real, ndims> point_type;$/;"	t	struct:simpla::mesh::MeshIDs_
+point_type	core/manifold/mesh/MeshIds.h	/^    typedef nTuple<Real, ndims> point_type;$/;"	t	struct:simpla::mesh::MeshEntityIdCoder
 point_type	core/manifold/obsoleted/amr_policy.h	/^    typedef typename mesh_type::point_type point_type;$/;"	t	class:simpla::manifold::policy::AMR
 point_type	core/manifold/obsoleted/fiber_bundle.h	/^    typedef E point_type; \/\/!< coordinates in the total space,$/;"	t	class:simpla::manifold::FiberBundle
 point_type	core/manifold/obsoleted/fiber_bundle.h	/^    typedef P point_type;$/;"	t	struct:simpla::manifold::DirectMap
@@ -4928,13 +4928,13 @@ range	core/parallel/obsoleted/blocked_range.h	/^	range(range const & that) :$/;"
 range	core/parallel/obsoleted/blocked_range.h	/^struct range$/;"	s	namespace:simpla
 range_type	core/geometry/obsolete/surface.h	/^	typedef typename mesh_type::range_type range_type;$/;"	t	class:simpla::Surface
 range_type	core/gtl/containers/unordered_set.h	/^    typedef std::set<key_type> range_type;$/;"	t	class:simpla::UnorderedSet
-range_type	core/manifold/mesh/MeshIds.h	/^        range_type() : m_iform_(VERTEX), m_min_(), m_max_(m_min_), m_grain_size_(m_min_) { }$/;"	f	struct:simpla::mesh::MeshIDs_::range_type
-range_type	core/manifold/mesh/MeshIds.h	/^        range_type(T0 const &b, T1 const &e, index_tuple const &grain_size, int IFORM = VERTEX)$/;"	f	struct:simpla::mesh::MeshIDs_::range_type
-range_type	core/manifold/mesh/MeshIds.h	/^        range_type(index_tuple const &b, index_tuple const &e, int IFORM = VERTEX)$/;"	f	struct:simpla::mesh::MeshIDs_::range_type
-range_type	core/manifold/mesh/MeshIds.h	/^        range_type(range_type &r, parallel::tags::split)$/;"	f	struct:simpla::mesh::MeshIDs_::range_type
-range_type	core/manifold/mesh/MeshIds.h	/^        range_type(this_type &r, parallel::tags::proportional_split const &proportion)$/;"	f	struct:simpla::mesh::MeshIDs_::range_type
-range_type	core/manifold/mesh/MeshIds.h	/^        range_type(this_type const &r)$/;"	f	struct:simpla::mesh::MeshIDs_::range_type
-range_type	core/manifold/mesh/MeshIds.h	/^    struct range_type$/;"	s	struct:simpla::mesh::MeshIDs_
+range_type	core/manifold/mesh/MeshIds.h	/^        range_type() : m_iform_(VERTEX), m_min_(), m_max_(m_min_), m_grain_size_(m_min_) { }$/;"	f	struct:simpla::mesh::MeshEntityIdCoder::range_type
+range_type	core/manifold/mesh/MeshIds.h	/^        range_type(T0 const &b, T1 const &e, index_tuple const &grain_size, int IFORM = VERTEX)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder::range_type
+range_type	core/manifold/mesh/MeshIds.h	/^        range_type(index_tuple const &b, index_tuple const &e, int IFORM = VERTEX)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder::range_type
+range_type	core/manifold/mesh/MeshIds.h	/^        range_type(range_type &r, parallel::tags::split)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder::range_type
+range_type	core/manifold/mesh/MeshIds.h	/^        range_type(this_type &r, parallel::tags::proportional_split const &proportion)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder::range_type
+range_type	core/manifold/mesh/MeshIds.h	/^        range_type(this_type const &r)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder::range_type
+range_type	core/manifold/mesh/MeshIds.h	/^    struct range_type$/;"	s	struct:simpla::mesh::MeshEntityIdCoder
 range_type	core/manifold/obsoleted/fiber_bundle.h	/^    typedef typename mesh_type::range_type range_type;$/;"	t	class:simpla::manifold::FiberBundle
 range_type	core/parallel/obsoleted/distributed_unordered_set.h	/^	typedef TRange range_type;$/;"	t	struct:simpla::Distributed
 range_type	core/particle/Particle.h	/^    typedef typename mesh_type::range_type range_type;$/;"	t	struct:simpla::particle::Particle
@@ -5069,7 +5069,7 @@ root	core/gtl/enable_create_from_this.h	/^	object_type const & root() const$/;"	
 root_	core/gtl/enable_create_from_this.h	/^	holder root_;$/;"	m	struct:simpla::enable_create_from_this
 root_holder	core/gtl/enable_create_from_this.h	/^	holder root_holder() const$/;"	f	struct:simpla::enable_create_from_this
 root_holder	core/gtl/enable_create_from_this.h	/^	holder root_holder()$/;"	f	struct:simpla::enable_create_from_this
-rotate	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type rotate(id_type const &s)$/;"	f	struct:simpla::mesh::MeshIDs_
+rotate	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type rotate(id_type const &s)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder
 s0	applications/field_solver/pml.h	/^	typename mesh_type:: template field<VERTEX, Real> s0, s1, s2;$/;"	m	class:simpla::PML
 s1	applications/field_solver/pml.h	/^	typename mesh_type:: template field<VERTEX, Real> s0, s1, s2;$/;"	m	class:simpla::PML
 s2	applications/field_solver/pml.h	/^	typename mesh_type:: template field<VERTEX, Real> s0, s1, s2;$/;"	m	class:simpla::PML
@@ -5541,7 +5541,7 @@ size	core/gtl/range/block_range.h	/^    size_type size() const { return traits::
 size	core/gtl/type_traits.h	/^    static constexpr int size()$/;"	f	struct:simpla::integer_sequence
 size	core/gtl/utilities/lua_object.cpp	/^size_t LuaObject::size() const$/;"	f	class:simpla::lua::LuaObject
 size	core/gtl/utilities/memory_pool.cpp	/^double MemoryPool::size() const$/;"	f	class:simpla::MemoryPool
-size	core/manifold/mesh/MeshIds.h	/^        size_t size() const$/;"	f	struct:simpla::mesh::MeshIDs_::range_type
+size	core/manifold/mesh/MeshIds.h	/^        size_t size() const$/;"	f	struct:simpla::mesh::MeshEntityIdCoder::range_type
 size	core/parallel/MPIDataType.cpp	/^size_t MPIDataType::size() const$/;"	f	class:simpla::MPIDataType
 size	core/parallel/obsoleted/blocked_range.h	/^	int size() const$/;"	f	struct:simpla::BlockedRange
 size	core/particle/Particle.h	/^    virtual size_t size() const { return m_data_->count(); }$/;"	f	struct:simpla::particle::Particle
@@ -5613,8 +5613,8 @@ storage_type	core/gtl/iterator/sp_iterator_shared_container.h	/^	typedef Storage
 storage_value_type	applications/particle_solver/pic_engine_deltaf2.h	/^	typedef nTuple<8, Real> storage_value_type;$/;"	t	struct:simpla::PICEngineDeltaF
 storage_value_type	applications/particle_solver/pic_engine_ggauge.h	/^	typedef nTuple<7 + NMATE, Real> storage_value_type;$/;"	t	class:simpla::PICEngineGGauge
 string	core/gtl/any.h	/^    std::string string() const$/;"	f	struct:simpla::any
-sub_index	core/manifold/mesh/MeshIds.h	/^    static constexpr int sub_index(id_type const &s)$/;"	f	struct:simpla::mesh::MeshIDs_
-sub_index_to_id	core/manifold/mesh/MeshIds.h	/^    static constexpr int sub_index_to_id(int n = 0)$/;"	f	struct:simpla::mesh::MeshIDs_
+sub_index	core/manifold/mesh/MeshIds.h	/^    static constexpr int sub_index(id_type const &s)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder
+sub_index_to_id	core/manifold/mesh/MeshIds.h	/^    static constexpr int sub_index_to_id(int n = 0)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder
 sub_type	core/gtl/ntuple.h	/^            nTuple<value_type, M...>>::type sub_type;$/;"	t	struct:simpla::nTuple
 sub_type	core/gtl/ntuple.h	/^    typedef void sub_type;$/;"	t	struct:simpla::nTuple
 sub_version	applications/fokker_planck/lhw.cpp	/^static const char sub_version[] = __FILE__ "(version: 0.0.1)";$/;"	v	file:
@@ -5650,8 +5650,8 @@ swap	core/gtl/utilities/lua_object.cpp	/^void LuaObject::swap(LuaObject &other)$
 swap	core/manifold/mesh/GeneralMap.h	/^    void swap(this_type &other) { }$/;"	f	struct:simpla::mesh::SquareMap
 swap	core/manifold/mesh/GeneralMap.h	/^    void swap(this_type &other)$/;"	f	struct:simpla::mesh::GeneralMap
 swap	core/manifold/mesh/LinearMap.h	/^    void swap(this_type &other)$/;"	f	struct:simpla::mesh::LinearMap
-swap	core/manifold/mesh/MeshIds.h	/^        void swap(iterator &other)$/;"	f	struct:simpla::mesh::MeshIDs_::iterator
-swap	core/manifold/mesh/MeshIds.h	/^        void swap(this_type &other)$/;"	f	struct:simpla::mesh::MeshIDs_::range_type
+swap	core/manifold/mesh/MeshIds.h	/^        void swap(iterator &other)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder::iterator
+swap	core/manifold/mesh/MeshIds.h	/^        void swap(this_type &other)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder::range_type
 swap	core/manifold/obsoleted/fiber_bundle.h	/^    void swap(this_type &other)$/;"	f	class:simpla::manifold::FiberBundle
 swap	core/numeric/interpolation.h	/^    virtual void swap(this_type &r)$/;"	f	class:simpla::MultiDimesionInterpolation
 swap	core/numeric/interpolation.h	/^    void swap(this_type &r)$/;"	f	class:simpla::BiLinearInterpolation
@@ -5798,8 +5798,8 @@ this_type	core/manifold/mesh/GeneralMap.h	/^    typedef GeneralMap<LEFT> this_ty
 this_type	core/manifold/mesh/GeneralMap.h	/^    typedef SquareMap<TP, N> this_type;$/;"	t	struct:simpla::mesh::SquareMap
 this_type	core/manifold/mesh/LinearMap.h	/^    typedef LinearMap this_type;$/;"	t	struct:simpla::mesh::LinearMap
 this_type	core/manifold/mesh/MeshBlock.h	/^    typedef MeshBlock this_type;$/;"	t	struct:simpla::mesh::MeshBlock
-this_type	core/manifold/mesh/MeshIds.h	/^        typedef range_type this_type;$/;"	t	struct:simpla::mesh::MeshIDs_::range_type
-this_type	core/manifold/mesh/MeshIds.h	/^    typedef MeshIDs_<LV> this_type;$/;"	t	struct:simpla::mesh::MeshIDs_
+this_type	core/manifold/mesh/MeshIds.h	/^        typedef range_type this_type;$/;"	t	struct:simpla::mesh::MeshEntityIdCoder::range_type
+this_type	core/manifold/mesh/MeshIds.h	/^    typedef MeshEntityIdCoder<LV> this_type;$/;"	t	struct:simpla::mesh::MeshEntityIdCoder
 this_type	core/manifold/mesh/RectMesh.h	/^    typedef Mesh<TMetric, tags::rect_linear> this_type;$/;"	t	struct:simpla::mesh::Mesh
 this_type	core/manifold/obsoleted/amr_policy.h	/^    typedef AMR<TMesh> this_type;$/;"	t	class:simpla::manifold::policy::AMR
 this_type	core/manifold/obsoleted/embedded_policy.h	/^    typedef EmbeddedPolicy<geometry_type> this_type;$/;"	t	struct:simpla::manifold::policy::EmbeddedPolicy
@@ -6027,7 +6027,7 @@ type_cast	core/gtl/type_cast.h	/^struct type_cast<TSrc, std::string>$/;"	s	names
 type_cast	core/gtl/type_cast.h	/^struct type_cast<std::string, T>$/;"	s	namespace:simpla::traits
 type_cast	core/gtl/type_cast.h	/^struct type_cast<std::string, std::string>$/;"	s	namespace:simpla::traits
 type_cast	core/gtl/utilities/lua_object.h	/^struct type_cast<lua::LuaObject, TDest>$/;"	s	namespace:simpla::traits
-type_cast	core/manifold/mesh/MeshIds.h	/^    static constexpr T type_cast(id_type s)$/;"	f	struct:simpla::mesh::MeshIDs_
+type_cast	core/manifold/mesh/MeshIds.h	/^    static constexpr T type_cast(id_type s)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder
 type_id	core/geometry/csCylindrical.h	/^struct type_id<::simpla::geometry::coordinate_system::Cylindrical<IPhiAxis> >$/;"	s	namespace:simpla::traits
 type_id	core/gtl/type_traits.h	/^template<typename T, typename ...Others> struct type_id<T, Others...>$/;"	s	namespace:simpla::traits
 type_id	core/gtl/type_traits.h	/^template<typename T> struct type_id<T>$/;"	s	namespace:simpla::traits
@@ -6046,12 +6046,12 @@ unlock	core/base/Object.h	/^    inline void unlock() { m_mutex_.unlock(); }$/;"	
 unlock	core/gtl/containers/container_container.h	/^	void unlock()$/;"	f	class:simpla::ContainerContainer
 unlock	core/gtl/containers/container_dense.h	/^	void unlock()$/;"	f	class:simpla::DenseContainer
 unlock	core/gtl/containers/container_sparse.h	/^    void unlock()$/;"	f	class:simpla::SparseContainer
-unpack	core/manifold/mesh/MeshIds.h	/^    static constexpr id_tuple unpack(id_type s)$/;"	f	struct:simpla::mesh::MeshIDs_
+unpack	core/manifold/mesh/MeshIds.h	/^    static constexpr id_tuple unpack(id_type s)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder
 unpack_args_helper	core/gtl/type_traits.h	/^struct unpack_args_helper$/;"	s	namespace:simpla::traits::_impl
 unpack_args_helper	core/gtl/type_traits.h	/^struct unpack_args_helper<0>$/;"	s	namespace:simpla::traits::_impl
-unpack_id	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type unpack_id(id_type const &s, int n)$/;"	f	struct:simpla::mesh::MeshIDs_
-unpack_index	core/manifold/mesh/MeshIds.h	/^    static constexpr index_tuple unpack_index(id_type s)$/;"	f	struct:simpla::mesh::MeshIDs_
-unpack_index	core/manifold/mesh/MeshIds.h	/^    static constexpr index_type unpack_index(id_type const &s, int n)$/;"	f	struct:simpla::mesh::MeshIDs_
+unpack_id	core/manifold/mesh/MeshIds.h	/^    static constexpr id_type unpack_id(id_type const &s, int n)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder
+unpack_index	core/manifold/mesh/MeshIds.h	/^    static constexpr index_tuple unpack_index(id_type s)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder
+unpack_index	core/manifold/mesh/MeshIds.h	/^    static constexpr index_type unpack_index(id_type const &s, int n)$/;"	f	struct:simpla::mesh::MeshEntityIdCoder
 unpack_int_seq	core/gtl/mpl.h	/^struct unpack_int_seq<0, _Tp, I0, I...> : public std::integral_constant<_Tp, I0>$/;"	s	namespace:simpla::mpl
 unpack_int_seq	core/gtl/mpl.h	/^struct unpack_int_seq<N, _Tp, I0, I...> : public std::integral_constant<_Tp,$/;"	s	namespace:simpla::mpl
 unpack_int_seq	core/gtl/mpl.h	/^struct unpack_int_seq<N, _Tp> : public std::integral_constant<_Tp, 0>$/;"	s	namespace:simpla::mpl
@@ -6277,7 +6277,7 @@ vector_type	core/geometry/csCartesian.h	/^    typedef nTuple<scalar_type, 3> vec
 vector_type	core/geometry/csCylindrical.h	/^    typedef nTuple<scalar_type, 3> vector_type;$/;"	t	struct:simpla::geometry::Metric
 vector_type	core/geometry/model.h	/^	typedef typename traits::vector_type<CS>::type vector_type;$/;"	t	struct:simpla::geometry::model::Primitive
 vector_type	core/manifold/mesh/CoRectMesh.h	/^    typedef typename metric_type::vector_type vector_type;$/;"	t	struct:simpla::mesh::Mesh
-vector_type	core/manifold/mesh/MeshIds.h	/^    typedef nTuple<Real, ndims> vector_type;$/;"	t	struct:simpla::mesh::MeshIDs_
+vector_type	core/manifold/mesh/MeshIds.h	/^    typedef nTuple<Real, ndims> vector_type;$/;"	t	struct:simpla::mesh::MeshEntityIdCoder
 vector_type	core/manifold/obsoleted/fiber_bundle.h	/^    typedef Vec3 vector_type;$/;"	t	class:simpla::manifold::FiberBundle
 vector_type	core/manifold/obsoleted/fiber_bundle.h	/^    typedef mesh_type::vector_type vector_type;$/;"	t	struct:simpla::manifold::DirectMap
 vector_type	core/particle/ParticleTracker.h	/^    typedef typename P::vector_type vector_type;$/;"	t	class:simpla::particle::enable_tracking
@@ -6537,7 +6537,7 @@ z1	core/geometry/obsolete/geometry_object.h	/^	Real x1, y1, z1;$/;"	m	struct:sim
 ~iterator	core/gtl/containers/iterator_proxy.h	/^	virtual ~iterator()$/;"	f	struct:simpla::iterator_proxy
 ~iterator	core/gtl/iterator/sp_ntuple_range.h	/^    ~iterator()$/;"	f	struct:simpla::sp_nTuple_range::iterator
 ~iterator	core/gtl/utilities/lua_object.cpp	/^LuaObject::iterator::~iterator()$/;"	f	class:simpla::lua::LuaObject::iterator
-~iterator	core/manifold/mesh/MeshIds.h	/^        ~iterator() { }$/;"	f	struct:simpla::mesh::MeshIDs_::iterator
+~iterator	core/manifold/mesh/MeshIds.h	/^        ~iterator() { }$/;"	f	struct:simpla::mesh::MeshEntityIdCoder::iterator
 ~iterator	core/parallel/obsoleted/blocked_range.h	/^	~iterator()$/;"	f	struct:simpla::iterator
 ~iterator_cycle	core/gtl/iterator/iterator_cycle.h	/^	~iterator_cycle()$/;"	f	struct:simpla::iterator_cycle
 ~lua_s	core/gtl/utilities/lua_object.h	/^            ~lua_s() { lua_close(m_state_); }$/;"	f	struct:simpla::lua::LuaObject::LuaState::lua_s
@@ -6549,7 +6549,7 @@ z1	core/geometry/obsolete/geometry_object.h	/^	Real x1, y1, z1;$/;"	m	struct:sim
 ~pimpl_s	core/parallel/DistributedObject.cpp	/^    ~pimpl_s() { }$/;"	f	struct:simpla::parallel::DistributedObject::pimpl_s
 ~pimpl_s	plugins/vtk_reader/vtkAMRSimPlaReader.cpp	/^vtkAMRSimPlaReader::pimpl_s::~pimpl_s()$/;"	f	class:vtkAMRSimPlaReader::pimpl_s
 ~range	core/parallel/obsoleted/blocked_range.h	/^	~range()$/;"	f	struct:simpla::range
-~range_type	core/manifold/mesh/MeshIds.h	/^        ~range_type() { }$/;"	f	struct:simpla::mesh::MeshIDs_::range_type
+~range_type	core/manifold/mesh/MeshIds.h	/^        ~range_type() { }$/;"	f	struct:simpla::mesh::MeshEntityIdCoder::range_type
 ~rectangle_distribution	core/numeric/rectangle_distribution.h	/^    ~rectangle_distribution()$/;"	f	class:simpla::rectangle_distribution
 ~simplex_distribution	core/numeric/simplex_distribution.h	/^	~simplex_distribution()$/;"	f	class:simpla::simplex_distribution
 ~sobol_engine	core/numeric/sobol_engine.h	/^	~sobol_engine()$/;"	f	class:simpla::sobol_engine

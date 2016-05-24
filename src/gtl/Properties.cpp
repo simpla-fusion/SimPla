@@ -6,7 +6,7 @@
 
 #include "Properties.h"
 
-namespace simpla { namespace gtl
+namespace simpla
 {
 
 
@@ -59,4 +59,4 @@ std::ostream &operator<<(std::ostream &os, Properties const &prop)
     return os;
 }
 
-}}// namespace simpla { namespace gtl
+} // namespace simpla { namespace gtl

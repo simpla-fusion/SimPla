@@ -17,9 +17,9 @@
 #include <mpi.h>
 
 
-#include "../gtl/ntuple.h"
+#include "../gtl/nTuple.h"
 #include "../gtl/design_pattern/SingletonHolder.h"
-#include "../gtl/utilities/utilities.h"
+#include "../gtl/Utilities.h"
 
 namespace simpla { namespace parallel
 {

@@ -9,7 +9,7 @@
 #define CORE_GEOMETRY_GEO_OBJECT_H_
 
 #include "../gtl/utilities/Log.h"
-#include "../gtl/ntuple.h"
+#include "../gtl/nTuple.h"
 #include "../gtl/type_traits.h"
 
 namespace simpla { namespace geometry

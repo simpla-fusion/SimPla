@@ -9,8 +9,8 @@
 #include <utility>
 #include <tuple>
 
-#include "../gtl/ntuple.h"
-#include "../gtl/utilities/utilities.h"
+#include "../gtl/nTuple.h"
+#include "../gtl/Utilities.h"
 #include "../parallel/Parallel.h"
 #include "DataSpace.h"
 

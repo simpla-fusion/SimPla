@@ -9,7 +9,7 @@
 #define CORE_GEOMETRY_GEOMETRY_H_
 
 #include "../gtl/primitives.h"
-#include "../gtl/ntuple.h"
+#include "../gtl/nTuple.h"
 
 #include "CoordinateSystem.h"
 

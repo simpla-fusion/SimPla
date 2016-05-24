@@ -11,7 +11,7 @@
 #include "../gtl/IteratorBlock.h"
 #include "../gtl/Log.h"
 #include "Mesh.h"
-#include "MeshIds.h"
+#include "MeshEntityIdCoder.h"
 
 namespace simpla { namespace tags { struct split; }}
 

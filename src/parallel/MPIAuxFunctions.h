@@ -15,7 +15,7 @@
 #include <vector>
 
 #include "../data_model/DataSet.h"
-#include "../gtl/ntuple.h"
+#include "../gtl/nTuple.h"
 #include "../gtl/primitives.h"
 
 namespace simpla { namespace parallel

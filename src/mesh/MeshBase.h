@@ -7,6 +7,7 @@
 
 #include <typeinfo>
 #include "Mesh.h"
+#include "MeshEntity.h"
 
 namespace simpla { namespace mesh
 {
@@ -14,12 +15,12 @@ namespace simpla { namespace mesh
 
 class MeshBase
 {
-    mesh_id m_id_;
+    MeshBlockId m_id_;
     int m_level_;
     unsigned long m_status_flag_ = 0;
 public:
 
-    mesh_id const &id() const { return m_id_; }
+    MeshBlockId const &id() const { return m_id_; }
 
     int level() const { return m_level_; }
 
@@ -27,7 +28,7 @@ public:
 
     virtual EntityRange range() const;
 
-    virtual size_t size(EntityType entityType = VERTEX) const;
+    virtual size_t size(MeshEntityType entityType = VERTEX) const;
 
     virtual size_t hash(EntityId const &) const;
 

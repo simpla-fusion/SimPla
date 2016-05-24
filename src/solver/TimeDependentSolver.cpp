@@ -21,14 +21,7 @@ void simpla::solver::TimeDependentSolver::update_level(Real dt, int level)
     }
 #endif// ENABLE_MPI
 
-    for (auto const &self:m_atlas_.find(level, mesh::LOCAL))
-    {
-        // update ghost ;
-        for (auto const &neighbour:m_atlas_.adjacent_blocks(self))
-        {
-            map_to(neighbour, self);
-        }
-    }
+
 
 #ifdef ENABLE_AMR
     if (check_amr())
@@ -42,15 +35,27 @@ void simpla::solver::TimeDependentSolver::update_level(Real dt, int level)
         {
             m_atlas_.add(box, level + 1);
         }
-
-        // push dt
-        for (int n = 0; n < m_atlas_.level_ratio(); ++n)
-        {
-            update_level(level + 1, dt / static_cast<Real>(m_atlas_.level_ratio()));
-        }
     }
 #endif //ENABLE_AMR
+    // push dt
+    // update ghost ;
+    for (auto const &self:m_atlas_.find(level, mesh::LOCAL))
+    {
+        // update ghost ;
+        for (auto const &neighbour:m_atlas_.adjacent_blocks(self, 0, 1))
+        {
+            map_to(neighbour, self);
+        }
+        for (auto const &neighbour:m_atlas_.adjacent_blocks(self, 0, 1))
+        {
+            map_to(neighbour, self);
+        }
+    }
 
+    for (int n = 0; n < m_atlas_.level_ratio(); ++n)
+    {
+        update_level(level + 1, dt / static_cast<Real>(m_atlas_.level_ratio()));
+    }
     for (auto const &self:m_atlas_.find(level, mesh::LOCAL))
     {
         time_step(self, dt);

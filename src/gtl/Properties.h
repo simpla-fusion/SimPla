@@ -11,10 +11,10 @@
 #include <map>
 #include <string>
 #include <iomanip>
-#include "ntuple.h"
+#include "nTuple.h"
 #include "any.h"
 
-namespace simpla { namespace gtl
+namespace simpla
 {
 
 /**
@@ -184,6 +184,6 @@ void _NAME_(_TYPE_ const & v)   \
 _TYPE_ _NAME_()const{return m_##_NAME_##_;}                         \
 private: _TYPE_ m_##_NAME_##_;    public:
 /** @} */
-}}  // namespace simpla
+}   // namespace simpla
 
 #endif /* SIMPLA_GTL_PROPERTIES_H_ */

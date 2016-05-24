@@ -16,8 +16,8 @@
 #include <vector>
 
 #include "../gtl/primitives.h"
-#include "../gtl/utilities/Log.h"
-#include "../gtl/utilities/MemoryPool.h"
+#include "../gtl/Log.h"
+#include "../gtl/MemoryPool.h"
 
 extern "C"
 {

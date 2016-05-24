@@ -15,11 +15,10 @@
 namespace simpla { namespace base
 {
 
-class DataObject : public Object
+class DataObject
 {
 public:
 
-    SP_OBJECT_HEAD(DataObject, Object);
 
     virtual Properties &properties() = 0;
 

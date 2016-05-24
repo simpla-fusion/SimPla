@@ -18,7 +18,7 @@
 #include <utility>
 #include <vector>
 
-#include "../type_traits.h"
+#include "type_traits.h"
 
 
 namespace simpla

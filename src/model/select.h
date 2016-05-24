@@ -11,7 +11,7 @@
 
 #include "point_in_polygon.h"
 #include "GeoAlgorithm.h"
-#include "../gtl/ntuple.h"
+#include "../gtl/nTuple.h"
 
 namespace simpla
 {

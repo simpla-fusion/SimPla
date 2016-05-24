@@ -21,7 +21,7 @@
 #include <utility>
 #include <mutex>
 #include "Log.h"
-#include "../type_cast.h"
+#include "type_cast.h"
 #include "LuaObjectExt.h"
 
 extern "C"

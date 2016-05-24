@@ -12,7 +12,7 @@
 #include <memory>
 
 #include "../../dataset/dataset.h"
-#include "../ntuple.h"
+#include "../nTuple.h"
 
 namespace simpla
 {

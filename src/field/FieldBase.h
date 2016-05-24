@@ -6,52 +6,44 @@
 
 #ifndef SIMPLA_FIELD_FIELDBASE_H
 #define SIMPLA_FIELD_FIELDBASE_H
+//#include "FieldTraits.h"
+//#include "../gtl/type_traits.h"
+#include "../mesh/MeshAttribute.h"
+#include <type_traits>
 
-
-#include <algorithm>
-#include <cstdbool>
-#include <memory>
-#include <string>
-#include "FieldTraits.h"
-
-#include "../gtl/type_traits.h"
-#include "../parallel/Parallel.h"
-#include "../mesh/Mesh.h"
-#include "../task_flow/Context.h"
-
-
-namespace simpla { namespace field
+namespace simpla
 {
-typedef typename mesh::id_type id_type;
+using mesh::id_type;
 
-typedef typename mesh::point_type point_type;
+using mesh::point_type;
 
-template<typename ...> struct FieldConcept;
-template<typename TV, typename TManifold, int IFORM> using Field=
-FieldConcept<TV, TManifold, std::integral_constant<int, IFORM> >;
+template<typename ...> class Field;
+
+template<typename TV, typename TManifold, unsigned int IFORM>
+using FieldAttr= Field<TV, TManifold, std::integral_constant<unsigned int, IFORM>>;
+
 
 /**
  * @ingroup field
  * @{
  */
 
-<<<<<<< HEAD:src/field/FieldBase.h
-template<typename TV, typename TManifold, int IFORM, typename ...Policies>
-class FieldConcept<TV, TManiflod, std::integral_constant<int, IFORM>, Policies...>
-        : public TManifold::Attribute, public Policies ...
-=======
-template<typename TV, typename TManifold, int IFORM>
-class Field<TV, TManifold, std::integral_constant<int, IFORM> >
-        : public task_flow::Attribute
->>>>>>> 12337aa2f078bd60ab2d1de4b2ab4d77cc6d5beb:src/field/FieldBase.h
+
+template<typename TV, typename TManifold, unsigned int IFORM>
+class Field<TV, TManifold, std::integral_constant<int, IFORM>>
+        : public mesh::MeshAttribute<TV, TManifold, std::integral_constant<int, IFORM>>::View
 {
 private:
-    static_assert(std::is_base_of<mesh::Mesh, Manifold>::value);
+//    static_assert(std::is_base_of<mesh::MeshBase, TManifold>::value);
 
 
-    typedef Field<TV, TManifold, std::integral_constant<int, IFORM> > this_type;
+    typedef Field<TV, TManifold, std::integral_constant<int, IFORM>> this_type;
 
-    typedef task_flow::Attribute base_type;
+    typedef mesh::MeshAttribute<TV, TManifold, std::integral_constant<int, IFORM>> host_type;
+
+    typedef typename host_type::View base_type;
+
+    std::shared_ptr<host_type> m_host_;
 
 public:
 
@@ -59,68 +51,41 @@ public:
 
     typedef TV value_type;
 
-    static constexpr int iform = IFORM;
+    static constexpr unsigned int iform = IFORM;
 
-    typedef typename traits::field_value_type<this_type>::type field_value_type;
+//    typedef typename traits::field_value_type<this_type>::type field_value_type;
+//
+//    typedef typename manifold_type::calculus_policy calculus_policy;
+//
+//    typedef typename manifold_type::interpolate_policy interpolate_policy;
 
-    typedef typename TManifold::calculus_policy calculus_policy;
-
-    typedef typename TManifold::interpolate_policy interpolate_policy;
-
-private:
-    std::shared_ptr<manifold_type> const *m = nullptr;
-    std::shared_ptr<value_type> m_data_ = nullptr;
 
 public:
 
     //create construct
     template<typename ...Args>
-    Field(Args
-    &&... args) :
-
-    base_type(std::forward<Args>(args)
-
-    ...) { }
+    Field(Args &&... args) : m_host_(new host_type(std::forward<Args>(args) ...))
+    {
+        view();
+    }
 
     //copy construct
-    Field(this_type const
-    &other) :
-    base_type(other) {}
+    Field(this_type const &other) : base_type(other) { }
 
     // move construct
-    Field(this_type
-    &&other) :
-    base_type(other) {}
+    Field(this_type &&other) : base_type(other) { }
 
     virtual ~Field() { }
 
-    void swap(this_type &other) { base_type::swap(other); }
+
+    void view(mesh::MeshBlockId m_id = 0) { m_host_->view().swap(*this); }
+
 
     inline this_type &operator=(this_type const &other)
     {
         apply(_impl::_assign(), *this, other);
         return *this;
     }
-
-    virtual int entity_type() const { return iform; }
-
-    virtual int ele_size_in_byte() const { return sizeof(value_type); }
-
-    virtual void deploy()
-    {
-        m = std::dynamic_pointer_cast<manifold_type>(base_type::mesh());
-
-        m_data_ = std::dynamic_pointer_cast<value_type>(base_type::data());
-    }
-
-    /**
-     * @name assignment
-     * @{
-     */
-
-    value_type &operator[](id_type const &s) { return m_data_[m->hash<IFORM>(s)]; }
-
-    value_type const &operator[](id_type const &s) const { return m_data_[m->hash<IFORM>(s)]; }
 
 
     template<typename Other>
@@ -164,15 +129,12 @@ private:
     template<typename TOP, typename ...Args>
     void apply(TOP const &op, this_type &f, Args &&... args)
     {
-        deploy();
 
-        auto r = m->range<IFORM>();
-
-        for (auto const &s:r)
-        {
-            op(calculus_policy::eval(m, f, s),
-               calculus_policy::eval(m, std::forward<Args>(args), s)...);
-        }
+//        for (auto const &s: base_type::range())
+//        {
+//            op(calculus_policy::eval(base_type::mesh(), f, s),
+//               calculus_policy::eval(base_type::mesh(), std::forward<Args>(args), s)...);
+//        }
 
     }
 
@@ -181,64 +143,55 @@ public:
 /** @name as_function
  *  @{*/
 
-    template<typename ...Args>
-    field_value_type gather(Args &&...args) const
-    {
-        return interpolate_policy::gather(m, *this, std::forward<Args>(args)...);
-    }
+//    template<typename ...Args>
+//    field_value_type gather(Args &&...args) const
+//    {
+//        return interpolate_policy::gather(base_type::mesh(), *this, std::forward<Args>(args)...);
+//    }
+//
+//
+//    template<typename ...Args>
+//    field_value_type operator()(Args &&...args) const
+//    {
+//        return interpolate_policy::gather(base_type::mesh(), *this, std::forward<Args>(args)...);
+//    }
 
 
-    template<typename ...Args>
-    field_value_type operator()(Args &&...args) const
-    {
-        return interpolate_policy::gather(m, *this, std::forward<Args>(args)...);
-    }
-
-
-    template<typename Other>
-    void assign(id_type const &s, Other const &other)
-    {
-        m_data_[m->template hash<IFORM>(s)] = interpolate_policy::template sample<iform>(m, s, other);
-    }
-
-    template<typename Other>
-    void add(id_type const &s, Other const &other)
-    {
-        m_data_[m->template hash<IFORM>(s)] += interpolate_policy::template sample<iform>(m, s, other);
-    }
+//    template<typename Other>
+//    void assign(id_type const &s, Other const &other)
+//    {
+//        base_type::get(s) = interpolate_policy::template sample<iform>(mesh(), s, other);
+//    }
+//
+//    template<typename Other>
+//    void add(id_type const &s, Other const &other)
+//    {
+//        base_type::get(s) += interpolate_policy::template sample<iform>(mesh(), s, other);
+//    }
 
 /**@}*/
 
     template<typename ...Args>
-    void accept(Args &&...args) { data()->accept(std::forward<Args>(args)...); }
+    void accept(Args &&...args) { base_type::accept(std::forward<Args>(args)...); }
 
 
 }; // struct field
-
-namespace traits
-{
-
-
-template<typename TV, typename TM, typename ...Others> struct mesh_type<Field<TV, TM, Others...> >
-{
-    typedef TM type;
-};
-
-
-template<typename TV, typename ...Policies>
-struct value_type<Field<TV, Policies...>>
-{
-    typedef TV type;
-};
-
-template<typename TV, typename TM, typename TFORM, typename ...Others>
-struct iform<Field<TV, TM, TFORM, Others...> > : public TFORM
-{
-};
+//
+//namespace traits
+//{
+//
+//
+//template<typename TV, typename TM, typename ...Others> struct mesh_type<Field<TV, TM, Others...> > { typedef TM type; };
+//
+//template<typename TV, typename ...Policies>
+//struct value_type<Field<TV, Policies...>> { typedef TV type; };
+//
+//template<typename TV, typename TM, typename TFORM, typename ...Others>
+//struct iform<Field<TV, TM, TFORM, Others...> > : public TFORM { };
+//
+//
+//}// namespace traits
 
 
-}// namespace traits
-
-
-}}//namespace simpla { namespace field
+}//namespace simpla
 #endif //SIMPLA_FIELD_FIELDBASE_H
