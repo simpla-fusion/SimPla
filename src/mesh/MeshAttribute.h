@@ -21,7 +21,6 @@ struct DENSE;
 struct SPARSE;
 struct BIT;
 }
-class MeshAtlas;
 
 
 /**
@@ -57,7 +56,6 @@ public:
 
     /** remove MeshBlockId from attribute data collection.  */
     virtual void remove(MeshBlockId) = 0;
-
 
     struct View
     {
@@ -232,7 +230,7 @@ public:
         if (m_id == 0) { m_id = m_atlas_.root(); }
         add(m_id);
 
-        return View(m_id, m_atlas_.template at<mesh_type>(m_id), (*m_data_collection_)[m_id].get());
+        return View(m_id, m_atlas_.template at<mesh_type>(m_id), m_data_collection_[m_id].get());
     }
 
     virtual std::shared_ptr<MeshAttributeBase::View> view_(MeshBlockId m_id = 0)
@@ -243,7 +241,7 @@ public:
 
         return std::dynamic_pointer_cast<MeshAttributeBase::View>(
                 std::make_shared<View>(m_id, m_atlas_.template at<mesh_type>(m_id),
-                                       (*m_data_collection_)[m_id].get()));
+                                       m_data_collection_[m_id].get()));
     }
 
 }; // class MeshAttribute

@@ -8,7 +8,7 @@
 #include "../../mesh/MeshAtlas.h"
 
 
-#include "../FieldBase.h"
+#include "../Field.h"
 
 using namespace simpla;
 
@@ -28,6 +28,9 @@ int main(int argc, char **argv)
 
     auto f = m.attribute<field_type>();
 
-    std::cout << f->attribute()->get_class_name() << std::endl;
+
+    std::cout << traits::type_id<field_type>::name() << std::endl;
+
+    f = 0;
 
 }

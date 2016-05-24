@@ -3,7 +3,7 @@
  * @author salmon
  * @date 2015-12-23.
  */
-#include "MeshBlock.h"
+#include "obsolete/MeshBlock.h"
 
 namespace simpla { namespace mesh
 {

@@ -9,7 +9,7 @@
 
 #include <limits>
 
-#include "../mesh/MeshBlock.h"
+#include "MeshBlock.h"
 #include "../../geometry/csCylindrical.h"
 #include "../../gtl/utilities/memory_pool.h"
 

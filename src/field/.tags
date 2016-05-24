@@ -51,7 +51,7 @@ K_imag	test/field_diff_calculus_test.h	/^    nTuple<scalar_type, 3> K_imag;$/;"	
 K_imag	test/trash/fetl_test3.h	/^	nTuple<3, scalar_type> K_imag;$/;"	m	class:TestFETL
 K_real	test/field_diff_calculus_test.h	/^    nTuple<Real, 3> K_real; \/\/ @NOTE must   k = n TWOPI, period condition$/;"	m	class:FETLTest
 K_real	test/trash/fetl_test3.h	/^	nTuple<3, Real> K_real; \/\/ @NOTE must   k = n TWOPI, period condition$/;"	m	class:TestFETL
-NDIMS	test/trash/fetl_test3.h	/^	static constexpr unsigned int NDIMS = manifold_type::NDIMS;$/;"	m	class:TestFETL
+NDIMS	test/trash/fetl_test3.h	/^	static constexpr unsigned int NDIMS = mesh_type::NDIMS;$/;"	m	class:TestFETL
 PI	test/field_io_test.h	/^	static constexpr double PI = 3.141592653589793;$/;"	m	class:simpla::TestFieldIO
 PhiAxis	test/field_diff_calculus_test.h	/^static constexpr const int PhiAxis = cs::PhiAxis;$/;"	v
 RAxis	test/field_diff_calculus_test.h	/^static constexpr const int RAxis = cs::RAxis;$/;"	v
@@ -146,7 +146,7 @@ container_type	test/trash/field_simple_mesh_map_test.cpp	/^typedef std::unordere
 coordinate_tuple	obsoleted/field_sparse.h	/^	typedef typename mesh_type::coordinate_tuple coordinate_tuple;$/;"	t	struct:simpla::Field
 coordinate_tuple	test/field_dummy.cpp	/^	typedef typename mesh_type::coordinate_tuple coordinate_tuple;$/;"	t	class:FieldTest	file:
 coordinate_tuple	test/field_io_test.h	/^	typedef typename mesh_type::coordinate_tuple coordinate_tuple;$/;"	t	class:simpla::TestFieldIO
-coordinate_tuple	test/trash/fetl_test3.h	/^	typedef typename manifold_type::coordinate_tuple coordinate_tuple;$/;"	t	class:TestFETL
+coordinate_tuple	test/trash/fetl_test3.h	/^	typedef typename mesh_type::coordinate_tuple coordinate_tuple;$/;"	t	class:TestFETL
 coordinate_tuple	test/trash/fetl_test3.h	/^typedef nTuple<3, Real> coordinate_tuple;$/;"	t
 coordinate_tuple	test/trash/field_continue.h	/^	typedef typename mesh_type::coordinate_tuple coordinate_tuple;$/;"	t	struct:simpla::Field
 coordinates_type	obsoleted/field_constant.h	/^	typedef typename mesh_type::coordinates_type coordinates_type;$/;"	t	class:simpla::Field
@@ -214,7 +214,7 @@ is_divisible	obsoleted/field_sparse.h	/^	bool is_divisible() const$/;"	f	struct:
 is_divisible	test/trash/field_continue.h	/^	bool is_divisible() const$/;"	f	struct:simpla::Field
 is_valid	FieldFunction.h	/^    bool is_valid() const { return (!!m_fun_); }$/;"	f	class:simpla::Field
 iterator	test/field_io_test.h	/^	typedef typename mesh_type::iterator iterator;$/;"	t	class:simpla::TestFieldIO
-iterator	test/trash/fetl_test3.h	/^	typedef typename manifold_type::iterator iterator;$/;"	t	class:TestFETL
+iterator	test/trash/fetl_test3.h	/^	typedef typename mesh_type::iterator iterator;$/;"	t	class:TestFETL
 k	test/field_io_test.h	/^	static constexpr nTuple<3, Real> k =$/;"	m	class:simpla::TestFieldIO
 key_type	FieldTraits.h	/^struct key_type<Field<T ...> >$/;"	s	namespace:simpla::traits
 loadField	obsoleted/load_field.h	/^bool loadField(TDict const & dict, TField *f)$/;"	f	namespace:simpla
@@ -234,10 +234,10 @@ main	test/field_io_test.cpp	/^int main(int argc, char **argv)$/;"	f
 make_field	test/trash/fetl_test2.h	/^	Field<domain_type, value_type> make_field() const$/;"	f	class:TestField
 make_field_constant	obsoleted/field_constant.h	/^Field<TM, TV, _impl::this_is_constant> make_field_constant(TM const &m,$/;"	f	namespace:simpla
 make_scalarField	test/trash/fetl_test2.h	/^	Field<domain_type, Real> make_scalarField() const$/;"	f	class:TestField
-manifold	test/trash/fetl_test3.h	/^	manifold_type manifold;$/;"	m	class:TestFETL
-manifold_type	test/trash/fetl_test3.h	/^	typedef TManifold manifold_type;$/;"	t	class:TestFETL
-manifold_type	test/trash/field_basic_algebra_Cartesian_test.cpp	/^		FiniteDiffMethod, InterpolatorLinear> manifold_type;$/;"	t	file:
-manifold_type	test/trash/field_basic_algebra_cylindrical_test.cpp	/^		FiniteDiffMethod, InterpolatorLinear> manifold_type;$/;"	t	file:
+manifold	test/trash/fetl_test3.h	/^	mesh_type manifold;$/;"	m	class:TestFETL
+mesh_type	test/trash/fetl_test3.h	/^	typedef TManifold mesh_type;$/;"	t	class:TestFETL
+mesh_type	test/trash/field_basic_algebra_Cartesian_test.cpp	/^		FiniteDiffMethod, InterpolatorLinear> mesh_type;$/;"	t	file:
+mesh_type	test/trash/field_basic_algebra_cylindrical_test.cpp	/^		FiniteDiffMethod, InterpolatorLinear> mesh_type;$/;"	t	file:
 mesh	FieldDense.h	/^    mesh_type const &mesh() const { return attribute()->mesh(); }$/;"	f	class:simpla::Field
 mesh	obsoleted/field_sparse.h	/^	mesh_type const & mesh() const$/;"	f	struct:simpla::Field
 mesh	test/field_basic_algebra_test.cpp	/^        TestField<TF>::mesh = std::make_shared<typename TestField<TF>::mesh_type>();$/;"	m	class:TestField	file:
@@ -245,8 +245,8 @@ mesh	test/field_basic_algebra_test.h	/^    static std::shared_ptr<mesh_type> mes
 mesh	test/field_diff_calculus_test.h	/^    std::shared_ptr<mesh_type> mesh;$/;"	m	class:FETLTest
 mesh	test/field_dummy.cpp	/^	mesh_type mesh;$/;"	m	class:FieldTest	file:
 mesh	test/field_io_test.h	/^	mesh_type mesh;$/;"	m	class:simpla::TestFieldIO
-mesh	test/trash/field_basic_algebra_Cartesian_test.cpp	/^std::shared_ptr<typename TestField<TF>::manifold_type> TestField<TF>::mesh = \/\/$/;"	m	class:TestField	file:
-mesh	test/trash/field_basic_algebra_cylindrical_test.cpp	/^std::shared_ptr<typename TestField<TF>::manifold_type> TestField<TF>::mesh = \/\/$/;"	m	class:TestField	file:
+mesh	test/trash/field_basic_algebra_Cartesian_test.cpp	/^std::shared_ptr<typename TestField<TF>::mesh_type> TestField<TF>::mesh = \/\/$/;"	m	class:TestField	file:
+mesh	test/trash/field_basic_algebra_cylindrical_test.cpp	/^std::shared_ptr<typename TestField<TF>::mesh_type> TestField<TF>::mesh = \/\/$/;"	m	class:TestField	file:
 mesh	test/trash/field_basic_test.h	/^	mesh_type mesh;$/;"	m	class:TestField
 mesh	test/trash/field_continue.h	/^	mesh_type const & mesh() const$/;"	f	struct:simpla::Field
 mesh	test/trash/field_simple_mesh_shared_ptr_test.cpp	/^	static SimpleMesh mesh;$/;"	m	struct:TestFieldParam	file:
@@ -310,7 +310,7 @@ refinement	obsoleted/field_patch.h	/^    virtual void refinement(size_t id)$/;"	
 scalar_type	test/field_basic_algebra_test.h	/^    typedef Real scalar_type;$/;"	t	class:TestField
 scalar_type	test/field_diff_calculus_test.h	/^    typedef typename mesh_type::scalar_type scalar_type;$/;"	t	class:FETLTest
 scalar_type	test/field_dummy.cpp	/^	typedef typename mesh_type::scalar_type scalar_type;$/;"	t	class:FieldTest	file:
-scalar_type	test/trash/fetl_test3.h	/^	typedef typename manifold_type::scalar_type scalar_type;$/;"	t	class:TestFETL
+scalar_type	test/trash/fetl_test3.h	/^	typedef typename mesh_type::scalar_type scalar_type;$/;"	t	class:TestFETL
 scatter	obsoleted/field_sparse.h	/^	void scatter(Args && ... args)$/;"	f	struct:simpla::Field
 scatter	test/trash/field_continue.h	/^	void scatter(Args && ... args)$/;"	f	struct:simpla::Field
 simpla	FieldDense.h	/^namespace simpla$/;"	n

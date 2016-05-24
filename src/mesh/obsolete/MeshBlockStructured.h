@@ -7,11 +7,11 @@
 #ifndef SIMPLA_MESH_MESHBLOCKSTRUCTURED_H
 #define SIMPLA_MESH_MESHBLOCKSTRUCTURED_H
 
-#include "../base/Object.h"
-#include "../gtl/IteratorBlock.h"
-#include "../gtl/Log.h"
-#include "Mesh.h"
-#include "MeshEntityIdCoder.h"
+#include "../../base/Object.h"
+#include "../../gtl/IteratorBlock.h"
+#include "../../gtl/Log.h"
+#include "../Mesh.h"
+#include "../MeshEntityIdCoder.h"
 
 namespace simpla { namespace tags { struct split; }}
 

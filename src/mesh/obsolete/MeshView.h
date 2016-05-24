@@ -7,7 +7,7 @@
 #ifndef SIMPLA_MESH_MESHVIEW_H
 #define SIMPLA_MESH_MESHVIEW_H
 
-#include "Mesh.h"
+#include "../Mesh.h"
 
 namespace simpla { namespace mesh
 {

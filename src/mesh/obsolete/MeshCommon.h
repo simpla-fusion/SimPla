@@ -8,7 +8,7 @@
 #define SIMPLA_TOPOLOGY_H_H
 
 
-#include "../gtl/type_traits.h"
+#include "../../gtl/type_traits.h"
 
 namespace simpla
 {

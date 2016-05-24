@@ -7,13 +7,13 @@
 #ifndef SIMPLA_MESH_MESHBLOCK_H
 #define SIMPLA_MESH_MESHBLOCK_H
 
-#include "../gtl/macro.h"
-#include "../gtl/primitives.h"
-#include "../gtl/nTuple.h"
-#include "../gtl/type_traits.h"
-#include "../gtl/Log.h"
-#include "MeshEntityIdCoder.h"
-#include "../model/GeoAlgorithm.h"
+#include "../../gtl/macro.h"
+#include "../../gtl/primitives.h"
+#include "../../gtl/nTuple.h"
+#include "../../gtl/type_traits.h"
+#include "../../gtl/Log.h"
+#include "../MeshEntityIdCoder.h"
+#include "../../model/GeoAlgorithm.h"
 
 namespace simpla { namespace mesh
 {
@@ -34,11 +34,6 @@ public:
     static constexpr int ndims = 3;
 
 
-    using typename m::id_type;
-    using typename m::id_tuple;
-    using typename m::index_type;
-    using typename m::range_type;
-    using typename m::iterator;
 
 
 

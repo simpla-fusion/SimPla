@@ -71,7 +71,7 @@ template<typename T>
 struct field_value_type
 {
     typedef typename std::conditional<
-            (iform<T>::value == VERTEX || iform<T>::value == VOLUME),
+            (iform<T>::value == mesh::VERTEX || iform<T>::value == mesh::VOLUME),
             value_type_t<T>, nTuple<value_type_t<T>, 3> >::type type;
 };
 

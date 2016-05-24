@@ -282,7 +282,7 @@ value_type	test/trash/fetl_test2.h	/^	typedef typename TField::value_type value_
 FETL_TEST3_H_	test/trash/fetl_test3.h	9;"	d
 K_imag	test/trash/fetl_test3.h	/^	nTuple<3, scalar_type> K_imag;$/;"	m	class:TestFETL
 K_real	test/trash/fetl_test3.h	/^	nTuple<3, Real> K_real; \/\/ @NOTE must   k = n TWOPI, period condition$/;"	m	class:TestFETL
-NDIMS	test/trash/fetl_test3.h	/^	static constexpr unsigned int NDIMS = manifold_type::NDIMS;$/;"	m	class:TestFETL
+NDIMS	test/trash/fetl_test3.h	/^	static constexpr unsigned int NDIMS = mesh_type::NDIMS;$/;"	m	class:TestFETL
 SetDefaultValue	test/trash/fetl_test3.h	/^	void SetDefaultValue(T* v)$/;"	f	class:TestFETL
 SetDefaultValue	test/trash/fetl_test3.h	/^	void SetDefaultValue(nTuple<T, N>* v)$/;"	f	class:TestFETL
 SetDefaultValue	test/trash/fetl_test3.h	/^	void SetDefaultValue(std::complex<T>* v)$/;"	f	class:TestFETL
@@ -299,14 +299,14 @@ TEST_P	test/trash/fetl_test3.h	/^TEST_P(TestFETL, identity_div_curl_f1_eq0)$/;"	
 TEST_P	test/trash/fetl_test3.h	/^TEST_P(TestFETL, identity_div_curl_f2_eq0)$/;"	f
 TManifold	test/trash/fetl_test3.h	/^		FiniteDiffMehtod, InterpolatorLinear> TManifold;$/;"	t
 TestFETL	test/trash/fetl_test3.h	/^class TestFETL: public testing::TestWithParam<$/;"	c
-coordinate_tuple	test/trash/fetl_test3.h	/^	typedef typename manifold_type::coordinate_tuple coordinate_tuple;$/;"	t	class:TestFETL
+coordinate_tuple	test/trash/fetl_test3.h	/^	typedef typename mesh_type::coordinate_tuple coordinate_tuple;$/;"	t	class:TestFETL
 coordinate_tuple	test/trash/fetl_test3.h	/^typedef nTuple<3, Real> coordinate_tuple;$/;"	t
 dims	test/trash/fetl_test3.h	/^	nTuple<NDIMS, size_t> dims;$/;"	m	class:TestFETL
-iterator	test/trash/fetl_test3.h	/^	typedef typename manifold_type::iterator iterator;$/;"	t	class:TestFETL
-manifold	test/trash/fetl_test3.h	/^	manifold_type manifold;$/;"	m	class:TestFETL
-manifold_type	test/trash/fetl_test3.h	/^	typedef TManifold manifold_type;$/;"	t	class:TestFETL
+iterator	test/trash/fetl_test3.h	/^	typedef typename mesh_type::iterator iterator;$/;"	t	class:TestFETL
+manifold	test/trash/fetl_test3.h	/^	mesh_type manifold;$/;"	m	class:TestFETL
+mesh_type	test/trash/fetl_test3.h	/^	typedef TManifold mesh_type;$/;"	t	class:TestFETL
 one	test/trash/fetl_test3.h	/^	value_type one;$/;"	m	class:TestFETL
-scalar_type	test/trash/fetl_test3.h	/^	typedef typename manifold_type::scalar_type scalar_type;$/;"	t	class:TestFETL
+scalar_type	test/trash/fetl_test3.h	/^	typedef typename mesh_type::scalar_type scalar_type;$/;"	t	class:TestFETL
 value_type	test/trash/fetl_test3.h	/^	typedef Real value_type;$/;"	t	class:TestFETL
 xmax	test/trash/fetl_test3.h	/^	nTuple<NDIMS, Real> xmax;$/;"	m	class:TestFETL
 xmin	test/trash/fetl_test3.h	/^	nTuple<NDIMS, Real> xmin;$/;"	m	class:TestFETL
@@ -314,11 +314,11 @@ xmin	test/trash/fetl_test3.h	/^	nTuple<NDIMS, Real> xmin;$/;"	m	class:TestFETL
 FETL_TEST4_H_	test/trash/fetl_test4.h	9;"	d
 TEST_P	test/trash/fetl_test4.h	/^TEST_P(TestFETL ,vec_zero_form)$/;"	f
 TypeParamList	test/trash/field_basic_algebra_Cartesian_test.cpp	/^> TypeParamList;$/;"	t	file:
-manifold_type	test/trash/field_basic_algebra_Cartesian_test.cpp	/^		FiniteDiffMethod, InterpolatorLinear> manifold_type;$/;"	t	file:
-mesh	test/trash/field_basic_algebra_Cartesian_test.cpp	/^std::shared_ptr<typename TestField<TF>::manifold_type> TestField<TF>::mesh = \/\/$/;"	m	class:TestField	file:
+mesh_type	test/trash/field_basic_algebra_Cartesian_test.cpp	/^		FiniteDiffMethod, InterpolatorLinear> mesh_type;$/;"	t	file:
+mesh	test/trash/field_basic_algebra_Cartesian_test.cpp	/^std::shared_ptr<typename TestField<TF>::mesh_type> TestField<TF>::mesh = \/\/$/;"	m	class:TestField	file:
 TypeParamList	test/trash/field_basic_algebra_cylindrical_test.cpp	/^> TypeParamList;$/;"	t	file:
-manifold_type	test/trash/field_basic_algebra_cylindrical_test.cpp	/^		FiniteDiffMethod, InterpolatorLinear> manifold_type;$/;"	t	file:
-mesh	test/trash/field_basic_algebra_cylindrical_test.cpp	/^std::shared_ptr<typename TestField<TF>::manifold_type> TestField<TF>::mesh = \/\/$/;"	m	class:TestField	file:
+mesh_type	test/trash/field_basic_algebra_cylindrical_test.cpp	/^		FiniteDiffMethod, InterpolatorLinear> mesh_type;$/;"	t	file:
+mesh	test/trash/field_basic_algebra_cylindrical_test.cpp	/^std::shared_ptr<typename TestField<TF>::mesh_type> TestField<TF>::mesh = \/\/$/;"	m	class:TestField	file:
 COREField_TESTField_BASIC_TEST_H_	test/trash/field_basic_test.h	9;"	d
 SetUp	test/trash/field_basic_test.h	/^	void SetUp()$/;"	f	class:TestField
 TYPED_TEST_P	test/trash/field_basic_test.h	/^TYPED_TEST_P(TestField, assign){$/;"	f

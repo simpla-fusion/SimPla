@@ -10,21 +10,24 @@
 
 #include <vector>
 
-#include "../../gtl/macro.h"
-#include "../../gtl/primitives.h"
-#include "../../gtl/ntuple.h"
-#include "../../gtl/type_traits.h"
-#include "../../gtl/utilities/utilities.h"
+#include "../gtl/macro.h"
+#include "../gtl/primitives.h"
+#include "../gtl/nTuple.h"
+#include "../gtl/type_traits.h"
+#include "../../gtl/utilities.h"
 #include "../../geometry/GeoAlgorithm.h"
-#include "MeshBlock.h"
+#include "obsolete/MeshBlock.h"
+
+
+#include "Mesh.h"
 
 namespace simpla { namespace mesh
 {
-namespace tags { struct corect_linear; }
+namespace tags { struct CoRectLinear; }
 
 template<typename ...> class Mesh;
 
-template<typename TMetric> using CoRectMesh=Mesh<TMetric, tags::corect_linear>;
+template<typename TMetric> using CoRectMesh=Mesh<tags::CoRectLinear>;
 
 
 /**
@@ -32,35 +35,13 @@ template<typename TMetric> using CoRectMesh=Mesh<TMetric, tags::corect_linear>;
  *
  * @brief Uniform structured mesh
  */
-template<typename TMetric>
-struct Mesh<TMetric, tags::corect_linear> : public TMetric, public MeshBlock
+template<>
+struct Mesh<tags::CoRectLinear> : public MeshBlock
 {
-
 private:
-
-    typedef Mesh<TMetric, tags::corect_linear> this_type;
-
-    typedef MeshBlock block_type;
-
+    typedef Mesh<tags::CoRectLinear> this_type;
     typedef block_type base_type;
-
 public:
-
-    HAS_PROPERTIES;
-
-    using block_type::ndims;
-    using block_type::id_type;
-    using block_type::id_tuple;
-    using block_type::index_type;
-    using block_type::index_tuple;
-    using block_type::range_type;
-    using block_type::difference_type;
-
-
-    typedef TMetric metric_type;
-    typedef typename metric_type::point_type point_type;
-    typedef typename metric_type::vector_type vector_type;
-    typedef std::tuple<point_type, point_type> box_type;
 
 
     /**
@@ -102,7 +83,7 @@ public:
 
 public:
 
-    Mesh() : block_type() { }
+    Mesh()  { }
 
 
     Mesh(this_type const &other) = delete;

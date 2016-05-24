@@ -99,9 +99,7 @@ template<typename T> struct geometry_type
 };
 
 
-template<typename> struct iform : public std::integral_constant<int, 0>
-{
-};
+template<typename ...> struct iform : public std::integral_constant<int, 0> { };
 
 template<typename ...T>
 struct iform_list : public integer_sequence<int, iform<T>::value...>

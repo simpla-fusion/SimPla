@@ -37,11 +37,11 @@ public:
     };
 
     template<typename T, typename ...Args>
-    std::shared_ptr<T> attribute(Args &&...args) const
+    T attribute(Args &&...args) const
     {
 //        static_assert(std::is_base_of<MeshAttributeBase, T>::value);
 
-        return std::make_shared<T>(*this, std::forward<Args>(args)...);
+        return T(*this, std::forward<Args>(args)...);
 
     }
 

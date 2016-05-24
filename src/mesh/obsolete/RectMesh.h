@@ -8,8 +8,8 @@
 #define SIMPLA_RECT_MESH_H
 
 #include <limits>
-#include "Mesh.h"
-#include "MeshEntityIdCoder.h"
+#include "../Mesh.h"
+#include "../MeshEntityIdCoder.h"
 #include "MeshBlock.h"
 #include "LinearMap.h"
 #include "../../gtl/design_pattern/singleton_holder.h"

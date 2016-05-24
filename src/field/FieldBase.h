@@ -47,17 +47,17 @@ private:
 
 public:
 
-    typedef TManifold manifold_type;
+    typedef TManifold mesh_type;
 
     typedef TV value_type;
 
-    static constexpr unsigned int iform = IFORM;
+    static constexpr int iform = IFORM;
 
 //    typedef typename traits::field_value_type<this_type>::type field_value_type;
 //
-//    typedef typename manifold_type::calculus_policy calculus_policy;
+//    typedef typename mesh_type::calculus_policy calculus_policy;
 //
-//    typedef typename manifold_type::interpolate_policy interpolate_policy;
+//    typedef typename mesh_type::interpolate_policy interpolate_policy;
 
 
 public:
@@ -74,6 +74,11 @@ public:
 
     virtual ~Field() { }
 
+    static std::string class_name()
+    {
+        return std::string("Field<") +
+               traits::type_id<value_type, mesh_type, std::integral_constant<int, IFORM>>::name() + ">";
+    }
 
     std::shared_ptr<mesh_attribute_type> attribute() { return m_attr_; }
 

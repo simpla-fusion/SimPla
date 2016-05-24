@@ -104,23 +104,7 @@ namespace simpla
  *  \endcode
  *
  */
-struct Visitor;
-
-struct Acceptor
-{
-    Acceptor() { }
-
-    virtual ~AcceptorBase() { }
-
-    virtual void accept(Visitor &visitor) { visitor.visit(*this); }
-
-    virtual void accept(Visitor const &visitor) { visitor.visit(*this); }
-
-    virtual void accept(Visitor &visitor) const { visitor.visit(*this); }
-
-    virtual void accept(Visitor const &visitor) const { visitor.visit(*this); }
-
-};
+struct Acceptor;
 
 struct Visitor
 {
@@ -136,6 +120,22 @@ struct Visitor
     virtual void visit(Acceptor &p) const { }
 
     virtual void visit(Acceptor const &p) const { }
+};
+
+struct Acceptor
+{
+    Acceptor() { }
+
+    virtual ~Acceptor() { }
+
+    virtual void accept(Visitor &visitor) { visitor.visit(*this); }
+
+    virtual void accept(Visitor const &visitor) { visitor.visit(*this); }
+
+    virtual void accept(Visitor &visitor) const { visitor.visit(*this); }
+
+    virtual void accept(Visitor const &visitor) const { visitor.visit(*this); }
+
 };
 
 
@@ -188,7 +188,6 @@ public:
 //        fun(std::get<S>(args_) ...);
 //    }
 
-};
 
 
 
