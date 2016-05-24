@@ -34,3 +34,7 @@ build*/
 third_part
 .idea*/
 .directory
+
+
+# misc
+.tags
