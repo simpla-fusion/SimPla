@@ -107,8 +107,7 @@ template<typename ...> class MeshAttribute;
 
 template<typename TV, typename TM, int IEntityType>
 class MeshAttribute<TV, TM, std::integral_constant<int, IEntityType>, tags::DENSE>
-        : public MeshAttributeBase,
-          public std::enable_shared_from_this<MeshAttribute<TV, TM, std::integral_constant<int, IEntityType>, tags::DENSE> >
+        : public MeshAttributeBase
 {
 private:
     typedef MeshAttribute<TV, TM, std::integral_constant<int, IEntityType>, tags::DENSE> this_type;
@@ -161,16 +160,27 @@ public:
 
 
         bool success = false;
-
         auto it = m_data_collection_.find(m_id);
         if (it == m_data_collection_.end())
         {
-            std::tie(it, success) =
+
+
+            if (!m_atlas_.has(m_id))
+            {
+                RUNTIME_ERROR << "Mesh is not regitered! [" << hash_value(m_id) << "]" << std::endl;
+            }
+
+
+            size_t m_size = m_atlas_.template at<mesh_type>(m_id)->size(entity_type());
+
+
+            std::tie(std::ignore, success) =
                     m_data_collection_.emplace(
-                            std::make_pair(m_id, std::make_shared<value_type>(
-                                    m_atlas_.template at<mesh_type>(m_id)->size(entity_type()))));
+                            std::make_pair(m_id, std::make_shared<value_type>(m_size)));
 
         }
+
+
         return success;
     };
 
@@ -204,12 +214,13 @@ public:
 
         virtual  ~View() { }
 
-        virtual void swap(View &other)
+        virtual void swap(MeshAttributeBase::View &other)
         {
             base_type::swap(other);
-            std::swap(m_mesh_, other.m_mesh_);
-            std::swap(m_data_, other.m_data_);
-            m_range_.swap(other.m_range_);
+            auto &o_view = static_cast<View &>(other);
+            std::swap(m_mesh_, o_view.m_mesh_);
+            std::swap(m_data_, o_view.m_data_);
+            m_range_.swap(o_view.m_range_);
         }
 
         virtual bool is_a(std::type_info const &t_info) const { return t_info == typeid(View); }
@@ -241,9 +252,10 @@ public:
     View view(MeshBlockId const &id)
     {
         MeshBlockId m_id = (id.is_nil()) ? m_atlas_.root() : id;
-        add(m_id);
 
+        add(m_id);
         return View(m_id, m_atlas_.template at<mesh_type>(m_id), m_data_collection_[m_id].get());
+
     }
 
     virtual std::shared_ptr<MeshAttributeBase::View> view_(MeshBlockId const &id)

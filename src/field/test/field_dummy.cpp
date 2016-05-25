@@ -8,7 +8,8 @@
 #include "../../mesh/MeshBase.h"
 #include "../../mesh/MeshAtlas.h"
 #include "../../mesh/CoRectMesh.h"
-
+#include "../../gtl/PrettyStream.h"
+#include "../../gtl/nTupleExt.h"
 #include "../Field.h"
 
 using namespace simpla;
@@ -16,20 +17,24 @@ using namespace simpla;
 
 int main(int argc, char **argv)
 {
-    mesh::MeshAtlas m;
-
-    auto res = m.template add<mesh::CoRectMesh>();
-
-    CHECK(hash_value(res.first->uuid()));
 
     typedef FieldAttr<double, mesh::CoRectMesh, mesh::VERTEX> field_type;
-
-    auto f = m.attribute<field_type>();
-
-
     std::cout << traits::type_id<field_type>::name() << std::endl;
 
+    mesh::MeshAtlas m;
+    auto res = m.template add<mesh::CoRectMesh>();
+
+    auto block_id = res.first->uuid();
+
+    CHECK(hash_value(block_id));
+    CHECK(m.at(block_id)->box());
+    auto f = m.make_attribute<field_type>();
+
+    f.view(block_id);
+
     f = 0;
+
+
 //    mesh::DummyMesh d_mesh;
 //
 //    d_mesh.m_entities_.insert(1);
@@ -43,5 +48,5 @@ int main(int argc, char **argv)
 //    {
 //        std::cout << v << std::endl;
 //    }
-
+    INFORM << DONE << std::endl;
 }

@@ -11,13 +11,9 @@
 
 namespace simpla { namespace base
 {
-Object::Object() : m_uuid_(boost::uuids::random_generator()())
-{
-    this->touch();
+Object::Object() : m_uuid_(boost::uuids::random_generator()()) { this->touch(); }
 
-};
-
-Object::Object(Object &&other) : m_click_(other.m_click_), m_uuid_(other.m_uuid_) { };
+Object::Object(Object &&other) : m_click_(other.m_click_), m_uuid_(other.m_uuid_) { }
 
 Object::Object(Object const &) : m_uuid_(boost::uuids::random_generator()()) { this->touch(); };
 

@@ -7,6 +7,7 @@
 #ifndef SIMPLA_MESH_MESHATLAS_H
 #define SIMPLA_MESH_MESHATLAS_H
 
+#include <type_traits>
 #include "Mesh.h"
 #include "MeshBase.h"
 #include "../gtl/Log.h"
@@ -37,12 +38,11 @@ public:
     };
 
     template<typename T, typename ...Args>
-    T attribute(Args &&...args) const
+    T make_attribute(Args &&...args) const
     {
-//        static_assert(std::is_base_of<MeshAttributeBase, T>::value);
-
+        static_assert(std::is_base_of<MeshAttributeBase, typename T::attribute_type>::value,
+                      " T can not be converted to MeshAttributeBase!!");
         return T(*this, std::forward<Args>(args)...);
-
     }
 
 
@@ -51,6 +51,8 @@ public:
     std::vector<MeshBlockId> find(int level = 0, int status_flag = 0);
 
     int count(int level = 0, int status_flag = 0);
+
+    bool has(MeshBlockId const &id) const { return m_mesh_atlas_.find(id) != m_mesh_atlas_.end(); }
 
     /**return the id of  root block*/
     MeshBlockId root() const { };
@@ -74,13 +76,23 @@ public:
     }
 
     template<typename TM>
-    TM const *at(MeshBlockId const &id) const
+    TM *at(MeshBlockId const &id) const
     {
+
+
         auto res = m_mesh_atlas_.at(id);
 
-        if (!res->base::Object::template is_a<TM>()) { BAD_CAST << ("illegal mesh type conversion!") << std::endl; }
 
-        return std::dynamic_pointer_cast<const TM>(res).get();
+        static_assert(std::is_base_of<MeshBase, TM>::value, "TM is not derived from MeshBase!!");
+
+
+        if (!res->template is_a<TM>()) { BAD_CAST << ("illegal mesh type conversion!") << std::endl; }
+
+
+        auto ptr = std::dynamic_pointer_cast<TM>(res).get();
+
+
+        return ptr;
     }
 
     int level_ratio() const
@@ -101,7 +113,6 @@ public:
     template<typename TM, typename ...Args>
     std::pair<std::shared_ptr<TM>, MeshBlockId> add(Args &&...args)
     {
-//        m_max_level_ = std::max(m_max_level_, level);
         auto ptr = std::make_shared<TM>(std::forward<Args>(args)...);
         MeshBlockId uuid = ptr->uuid();
         m_mesh_atlas_.emplace(std::make_pair(uuid, std::dynamic_pointer_cast<MeshBase>(ptr)));

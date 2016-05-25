@@ -41,8 +41,15 @@ struct Mesh<tags::CoRectLinear> : public MeshBase
 {
 private:
     typedef Mesh<tags::CoRectLinear> this_type;
+    typedef MeshBase base_type;
 public:
+    virtual bool is_a(std::type_info const &info) const { return typeid(this_type) == info || base_type::is_a(info); }
 
+    template<typename _UOTHER_> bool is_a() const { return is_a(typeid(_UOTHER_)); }
+
+    virtual std::string get_class_name() const { return class_name(); }
+
+    static std::string class_name() { return std::string("Mesh<tags::CoRectLinear>"); }
 
     /**
  *
@@ -96,6 +103,7 @@ public:
     Mesh(this_type const &other) = delete;
 
     virtual  ~Mesh() { }
+
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const
     {
@@ -156,12 +164,6 @@ public:
 
 
     void box(box_type const &b) { std::tie(m_coords_lower_, m_coords_upper_) = b; }
-
-
-    box_type box(id_type const &s) const
-    {
-        return std::make_tuple(point(s - m::_DA), point(s + m::_DA));
-    }
 
 
     vector_type const &dx() const { return m_dx_; }

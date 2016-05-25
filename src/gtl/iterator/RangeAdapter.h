@@ -59,7 +59,9 @@ public :
 
     iterator end() { return m_holder_->end(); }
 
+    iterator begin() const { return m_holder_->begin(); }
 
+    iterator end() const { return m_holder_->end(); }
 
     // TBB Range Concept End
     //****************************************************************************
@@ -83,40 +85,45 @@ private:
 
         virtual iterator end() const = 0;
 
+        virtual iterator begin() = 0;
+
+        virtual iterator end() = 0;
 
     };
 
-    template<typename Tit>
+    template<typename TOtherRange>
     struct Holder : public HolderBase
     {
-        typedef Holder<Tit> this_type;
-        Tit m_iter_;
+        typedef Holder<TOtherRange> this_type;
+        TOtherRange m_range_;
     public:
 
         template<typename ...Args>
-        Holder(Args &&... args) : m_iter_(std::forward<Args>(args)...) { }
+        Holder(Args &&... args) : m_range_(std::forward<Args>(args)...) { }
 
         virtual  ~Holder() final { }
 
         virtual std::shared_ptr<HolderBase> clone() const
         {
-            return std::dynamic_pointer_cast<HolderBase>(std::make_shared<this_type>(m_iter_));
+            return std::dynamic_pointer_cast<HolderBase>(std::make_shared<this_type>(m_range_));
         }
 
 
-        virtual bool is_a(std::type_info const &t_info) const final { return typeid(Tit) == t_info; }
+        virtual bool is_a(std::type_info const &t_info) const final { return typeid(TOtherRange) == t_info; }
 
-        virtual bool is_divisible() const { return m_iter_.is_divisible(); }
+        virtual bool is_divisible() const { return m_range_.is_divisible(); }
 
-        virtual bool empty() const { return m_iter_.empty(); }
+        virtual bool empty() const { return m_range_.empty(); }
 
-        virtual void swap(this_type &other) { other.m_iter_.swap(m_iter_); }
+        virtual void swap(this_type &other) { other.m_range_.swap(m_range_); }
 
-        virtual iterator begin() const { return iterator(m_iter_.begin()); }
+        virtual iterator begin() const { return iterator(m_range_.begin()); }
 
-        virtual iterator end() const { return iterator(m_iter_.end()); }
+        virtual iterator end() const { return iterator(m_range_.end()); }
 
+        virtual iterator begin() { return iterator(m_range_.begin()); }
 
+        virtual iterator end() { return iterator(m_range_.end()); }
     };
 };
 

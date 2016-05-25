@@ -34,22 +34,31 @@ class Field<TV, TManifold, std::integral_constant<int, IFORM>>
         : public mesh::MeshAttribute<TV, TManifold, std::integral_constant<int, IFORM>, mesh::tags::DENSE>::View
 {
 private:
-//    static_assert(std::is_base_of<mesh::MeshBase, TManifold>::value);
-
-
+    static_assert(std::is_base_of<mesh::MeshBase, TManifold>::value, "TManifold is not derived from MeshBase");
     typedef Field<TV, TManifold, std::integral_constant<int, IFORM>> this_type;
+public:
 
-    typedef mesh::MeshAttribute<TV, TManifold, std::integral_constant<int, IFORM>, mesh::tags::DENSE> mesh_attribute_type;
+    virtual bool is_a(std::type_info const &info) const { return typeid(this_type) == info || base_type::is_a(info); }
 
-    typedef typename mesh_attribute_type::View base_type;
+    virtual std::string get_class_name() const { return class_name(); }
 
-    std::shared_ptr<mesh_attribute_type> m_attr_;
+    static std::string class_name()
+    {
+        return std::string("Field<") +
+               traits::type_id<value_type, mesh_type, std::integral_constant<int, IFORM>>::name() + ">";
+    }
 
+    typedef mesh::MeshAttribute<TV, TManifold, std::integral_constant<int, IFORM>, mesh::tags::DENSE> attribute_type;
+
+private:
+    typedef typename attribute_type::View base_type;
+    std::shared_ptr<attribute_type> m_attr_;
 public:
 
     typedef TManifold mesh_type;
 
     typedef TV value_type;
+
 
     static constexpr mesh::MeshEntityType iform = static_cast<mesh::MeshEntityType>(IFORM);
 
@@ -60,10 +69,10 @@ public:
 
     //create construct
 
-    Field(std::shared_ptr<mesh_attribute_type> attr) : m_attr_(attr) { }
+    Field(std::shared_ptr<attribute_type> attr) : m_attr_(attr) { }
 
     template<typename ...Args>
-    Field(Args &&... args) : m_attr_(new mesh_attribute_type(std::forward<Args>(args)...)) { }
+    Field(Args &&... args) : m_attr_(new attribute_type(std::forward<Args>(args)...)) { }
 
     //copy construct
     Field(this_type const &other) : base_type(other) { }
@@ -73,17 +82,12 @@ public:
 
     virtual ~Field() { }
 
-    static std::string class_name()
-    {
-        return std::string("Field<") +
-               traits::type_id<value_type, mesh_type, std::integral_constant<int, IFORM>>::name() + ">";
-    }
 
-    std::shared_ptr<mesh_attribute_type> attribute() { return m_attr_; }
+    std::shared_ptr<attribute_type> attribute() { return m_attr_; }
 
-    std::shared_ptr<mesh_attribute_type> const attribute() const { return m_attr_; }
+    std::shared_ptr<attribute_type> const attribute() const { return m_attr_; }
 
-    void view(mesh::MeshBlockId m_id = 0) { m_attr_->view().swap(*this); }
+    void view(mesh::MeshBlockId const &id) { m_attr_->view(id).swap(*this); }
 
 
     inline this_type &operator=(this_type const &other)
@@ -137,11 +141,11 @@ private:
 
         //TODO: need parallelism
 
-        for (auto const &s: base_type::mesh().range(iform))
-        {
-            op(f[s], /*mesh_type::calculus_policy::eval(base_type::mesh(), f, s)*/
-               mesh_type::calculus_policy::eval(base_type::mesh(), std::forward<Args>(args), s)...);
-        }
+//        for (auto const &s: base_type::mesh().range(iform))
+//        {
+//            op(f[s], /*mesh_type::calculus_policy::eval(base_type::mesh(), f, s)*/
+//               mesh_type::calculus_policy::eval(base_type::mesh(), std::forward<Args>(args), s)...);
+//        }
 
     }
 

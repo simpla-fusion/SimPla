@@ -39,11 +39,11 @@ private:
 
     typedef Field<TV, TManifold, std::integral_constant<int, IFORM>> this_type;
 
-    typedef mesh::MeshAttribute<TV, TManifold, std::integral_constant<int, IFORM>, mesh::tags::DENSE> mesh_attribute_type;
+    typedef mesh::MeshAttribute<TV, TManifold, std::integral_constant<int, IFORM>, mesh::tags::DENSE> attribute_type;
 
-    typedef typename mesh_attribute_type::View base_type;
+    typedef typename attribute_type::View base_type;
 
-    std::shared_ptr<mesh_attribute_type> m_attr_;
+    std::shared_ptr<attribute_type> m_attr_;
 
 public:
 
@@ -64,7 +64,7 @@ public:
 
     //create construct
     template<typename ...Args>
-    Field(Args &&... args) : m_attr_(new mesh_attribute_type(std::forward<Args>(args) ...)) { }
+    Field(Args &&... args) : m_attr_(new attribute_type(std::forward<Args>(args) ...)) { }
 
     //copy construct
     Field(this_type const &other) : base_type(other) { }
@@ -80,9 +80,9 @@ public:
                traits::type_id<value_type, mesh_type, std::integral_constant<int, IFORM>>::name() + ">";
     }
 
-    std::shared_ptr<mesh_attribute_type> attribute() { return m_attr_; }
+    std::shared_ptr<attribute_type> attribute() { return m_attr_; }
 
-    std::shared_ptr<mesh_attribute_type> const attribute() const { return m_attr_; }
+    std::shared_ptr<attribute_type> const attribute() const { return m_attr_; }
 
     void view(mesh::MeshBlockId m_id = 0) { m_attr_->view().swap(*this); }
 
