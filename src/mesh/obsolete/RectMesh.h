@@ -226,7 +226,7 @@ public:
 
 //    virtual point_type const &vertex(id_type s) const
 //    {
-//        return m_vertices_.get()[base_type::hash(s) * base_type::NUM_OF_NODE_ID + base_type::sub_index(s)];
+//        return m_vertices_.get()[port_type::hash(s) * port_type::NUM_OF_NODE_ID + port_type::sub_index(s)];
 //    }
 
 

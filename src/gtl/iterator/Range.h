@@ -12,7 +12,7 @@ namespace simpla
 {
 namespace tags
 {
-struct split;
+struct split { };
 struct proportional_split { int left, right; };
 }
 
@@ -23,11 +23,15 @@ template<typename ...> class Range_;
 template<typename TIter>
 class Range_<TIter, std::random_access_iterator_tag>
 {
+    typedef Range_<TIter, std::random_access_iterator_tag> this_type;
 public:
     typedef TIter const_iterator;
     typedef TIter iterator;
 
-    Range_(iterator const &b, iterator const &e, size_t grain_size = 1) :
+    Range_() : m_grain_size_(1) { }
+
+    template<typename TI>
+    Range_(TI const &b, TI const &e, size_t grain_size = 1) :
             m_begin_(b), m_end_(e), m_grain_size_(grain_size) { }
 
     //****************************************************************************
@@ -62,6 +66,13 @@ public:
     bool is_divisible() const { return m_end_ - m_begin_ > m_grain_size_; }
 
     bool empty() const { return m_end_ == m_begin_; }
+
+    void swap(this_type &other)
+    {
+        std::swap(m_begin_, other.m_begin_);
+        std::swap(m_end_, other.m_end_);
+        std::swap(m_grain_size_, other.m_grain_size_);
+    }
 
     // TBB Range Concept End
     //****************************************************************************

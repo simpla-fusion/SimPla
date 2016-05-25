@@ -136,10 +136,10 @@ private:
     void apply(TOP const &op, this_type &f, Args &&... args)
     {
 
-//        for (auto const &s: base_type::range())
+//        for (auto const &s: port_type::range())
 //        {
-//            op(calculus_policy::eval(base_type::mesh(), f, s),
-//               calculus_policy::eval(base_type::mesh(), std::forward<Args>(args), s)...);
+//            op(calculus_policy::eval(port_type::mesh(), f, s),
+//               calculus_policy::eval(port_type::mesh(), std::forward<Args>(args), s)...);
 //        }
 
     }
@@ -152,33 +152,33 @@ public:
 //    template<typename ...Args>
 //    field_value_type gather(Args &&...args) const
 //    {
-//        return interpolate_policy::gather(base_type::mesh(), *this, std::forward<Args>(args)...);
+//        return interpolate_policy::gather(port_type::mesh(), *this, std::forward<Args>(args)...);
 //    }
 //
 //
 //    template<typename ...Args>
 //    field_value_type operator()(Args &&...args) const
 //    {
-//        return interpolate_policy::gather(base_type::mesh(), *this, std::forward<Args>(args)...);
+//        return interpolate_policy::gather(port_type::mesh(), *this, std::forward<Args>(args)...);
 //    }
 
 
 //    template<typename Other>
 //    void assign(id_type const &s, Other const &other)
 //    {
-//        base_type::get(s) = interpolate_policy::template sample<iform>(mesh(), s, other);
+//        port_type::get(s) = interpolate_policy::template sample<iform>(mesh(), s, other);
 //    }
 //
 //    template<typename Other>
 //    void add(id_type const &s, Other const &other)
 //    {
-//        base_type::get(s) += interpolate_policy::template sample<iform>(mesh(), s, other);
+//        port_type::get(s) += interpolate_policy::template sample<iform>(mesh(), s, other);
 //    }
 
 /**@}*/
 
 //    template<typename ...Args>
-//    void accept(Args &&...args) { base_type::accept(std::forward<Args>(args)...); }
+//    void accept(Args &&...args) { port_type::accept(std::forward<Args>(args)...); }
 
 
 }; // struct field

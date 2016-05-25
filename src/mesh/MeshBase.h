@@ -7,6 +7,7 @@
 
 #include <typeinfo>
 #include "Mesh.h"
+#include "MeshBase.h"
 #include "MeshEntity.h"
 #include "MeshEntityIterator.h"
 
@@ -49,7 +50,7 @@ public:
 
     virtual int get_adjacent_entities(MeshEntityId const &, MeshEntityType t, MeshEntityId *p = nullptr) const = 0;
 
-    virtual std::shared_ptr<MeshBase> refine(box_type const &b, int flag = 0) const;
+    virtual std::shared_ptr<MeshBase> refine(box_type const &b, int flag = 0) const = 0;
 
 
     int get_vertices(MeshEntityId const &s, point_type *p) const

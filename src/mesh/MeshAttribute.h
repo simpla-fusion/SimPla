@@ -77,7 +77,9 @@ public:
 
         virtual MeshEntityType entity_type() const = 0;
 
-        virtual MeshEntityRange range() const = 0;
+        virtual MeshEntityRange const &range() const = 0;
+
+        virtual MeshEntityRange &range() = 0;
 
         MeshBlockId block_id() const { return m_id_; }
 
@@ -187,11 +189,13 @@ public:
         typedef mesh_attribute_type host_type;
 
         View(MeshBlockId id = 0, mesh_type const *m = nullptr, value_type *d = nullptr)
-                : base_type(id), m_mesh_(m), m_data_(d) { };
+                : base_type(id), m_mesh_(m), m_data_(d), m_range_(m->range(IEntityType)) { };
 
-        View(View const &other) : base_type(other), m_mesh_(other.m_mesh_), m_data_(other.m_data_) { }
+        View(View const &other) : base_type(other), m_mesh_(other.m_mesh_), m_data_(other.m_data_),
+                                  m_range_(other.m_range_) { }
 
-        View(View &&other) : base_type(other), m_mesh_(other.m_mesh_), m_data_(other.m_data_) { }
+        View(View &&other) : base_type(other), m_mesh_(other.m_mesh_), m_data_(other.m_data_),
+                             m_range_(other.m_range_) { }
 
         virtual  ~View() { }
 
@@ -200,13 +204,16 @@ public:
             base_type::swap(other);
             std::swap(m_mesh_, other.m_mesh_);
             std::swap(m_data_, other.m_data_);
+            m_range_.swap(other.m_range_);
         }
 
         virtual bool is_a(std::type_info const &t_info) const { return t_info == typeid(View); }
 
-        MeshEntityType entity_type() const { return static_cast<MeshEntityType >(IEntityType); }
+        virtual MeshEntityType entity_type() const { return static_cast<MeshEntityType >(IEntityType); }
 
-        MeshEntityRange range() const { return m_mesh_->range(entity_type()); }
+        virtual MeshEntityRange const &range() const { return m_range_; }
+
+        virtual MeshEntityRange &range() { return m_range_; }
 
         mesh_type const &mesh() const { return *m_mesh_; }
 
@@ -221,6 +228,7 @@ public:
     private:
         mesh_type const *m_mesh_;
         value_type *m_data_;
+        MeshEntityRange m_range_;
 
     };
 

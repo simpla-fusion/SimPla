@@ -139,7 +139,7 @@ private:
 
         for (auto const &s: base_type::mesh().range(iform))
         {
-            op(mesh_type::calculus_policy::eval(base_type::mesh(), f, s),
+            op(f[s], /*mesh_type::calculus_policy::eval(base_type::mesh(), f, s)*/
                mesh_type::calculus_policy::eval(base_type::mesh(), std::forward<Args>(args), s)...);
         }
 
@@ -164,19 +164,19 @@ public:
 //    template<typename Other>
 //    void assign(id_type const &s, Other const &other)
 //    {
-//        base_type::get(s) = interpolate_policy::template sample<iform>(mesh(), s, other);
+//        port_type::get(s) = interpolate_policy::template sample<iform>(mesh(), s, other);
 //    }
 //
 //    template<typename Other>
 //    void add(id_type const &s, Other const &other)
 //    {
-//        base_type::get(s) += interpolate_policy::template sample<iform>(mesh(), s, other);
+//        port_type::get(s) += interpolate_policy::template sample<iform>(mesh(), s, other);
 //    }
 
 /**@}*/
 
 //    template<typename ...Args>
-//    void accept(Args &&...args) { base_type::accept(std::forward<Args>(args)...); }
+//    void accept(Args &&...args) { port_type::accept(std::forward<Args>(args)...); }
 
 
 }; // struct field

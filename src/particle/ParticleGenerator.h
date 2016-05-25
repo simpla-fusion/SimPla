@@ -181,8 +181,8 @@ public:
 
     template<typename TFun> void temperature(TFun const &fun) { m_temperature_ = fun; }
 
-//    using base_type::input_iterator;
-//    using base_type::value_type;
+//    using port_type::input_iterator;
+//    using port_type::value_type;
 
     std::tuple<typename base_type::input_iterator, typename base_type::input_iterator>
     operator()(id_type const &s)
