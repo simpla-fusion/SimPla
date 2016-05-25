@@ -140,12 +140,18 @@ private:
     {
 
         //TODO: need parallelism
-
-//        for (auto const &s: base_type::mesh().range(iform))
-//        {
+//        assert(!base_type::range().empty());
+        CHECK("----");
+        CHECK(*base_type::range().end());
+        CHECK("----");
+        CHECK(*base_type::range().begin());
+        CHECK("----");
+        for (auto const &s: base_type::range())
+        {
+            CHECK(s);
 //            op(f[s], /*mesh_type::calculus_policy::eval(base_type::mesh(), f, s)*/
 //               mesh_type::calculus_policy::eval(base_type::mesh(), std::forward<Args>(args), s)...);
-//        }
+        }
 
     }
 

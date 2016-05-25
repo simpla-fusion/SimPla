@@ -765,6 +765,13 @@ struct MeshEntityIdCoder_
         int m_iform_;
 
     public:
+
+        typedef std::random_access_iterator_tag iterator_category;
+        typedef id_type value_type;
+        typedef MeshEntityIdDiff difference_type;
+        typedef value_type *pointer;
+        typedef id_type reference;
+
         iterator() : base_type(), m_iform_(0) { }
 
         iterator(id_type s, id_type b, id_type e)
@@ -847,7 +854,7 @@ struct MeshEntityIdCoder_
             std::swap(m_iform_, other.m_iform_);
         }
 
-        id_type operator*() const { return pack_(base_type::operator*()); }
+        value_type operator*() const { return pack_(base_type::operator*()); }
 
         id_type pack_(nTuple<index_type, ndims + 1> const &idx) const
         {

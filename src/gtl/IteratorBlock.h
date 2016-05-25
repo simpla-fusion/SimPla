@@ -89,7 +89,7 @@ public:
 
     bool operator!=(this_type const &other) const { return m_self_ != other.m_self_; }
 
-    nTuple<TV, NDIMS> const &operator*() const { return m_self_; }
+    value_type const &operator*() const { return m_self_; }
 
     this_type &operator++()
     {

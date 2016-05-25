@@ -14,6 +14,7 @@
 #include "../gtl/macro.h"
 #include "../gtl/primitives.h"
 #include "../gtl/nTuple.h"
+#include "../gtl/nTupleExt.h"
 #include "../gtl/PrettyStream.h"
 #include "../gtl/type_traits.h"
 
@@ -88,9 +89,9 @@ public:
 
     vector_type m_dx_{{1, 1, 1}}; //!< width of cell, except m_dx_[i]=0 when m_dims_[i]==1
 
-    index_tuple m_dims_, m_shape_;
+    index_tuple m_dims_{{10, 10, 10}}, m_shape_{{10, 10, 10}};
 
-    index_tuple m_lower_, m_upper_;
+    index_tuple m_lower_{{0, 0, 0}}, m_upper_{{10, 10, 10}};
 
     typedef MeshEntityIdCoder m;
 
@@ -124,7 +125,11 @@ public:
 
     virtual MeshEntityRange range(MeshEntityType entityType = VERTEX) const
     {
-        return MeshEntityRange(MeshEntityIdCoder::make_range(m_lower_, m_upper_, entityType));
+        MeshEntityRange res(MeshEntityIdCoder::make_range(m_lower_, m_upper_, entityType));
+        CHECK(m_lower_);
+        CHECK(m_upper_);
+        CHECK(res.end() - res.begin());
+        return std::move(res);
     };
 
     virtual size_t size(MeshEntityType entityType = VERTEX) const { max_hash(entityType); };

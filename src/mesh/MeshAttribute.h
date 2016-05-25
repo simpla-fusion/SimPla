@@ -157,30 +157,20 @@ public:
     /** register MeshBlockId to attribute data collection.  */
     virtual bool add(MeshBlockId const &m_id)
     {
-
-
         bool success = false;
         auto it = m_data_collection_.find(m_id);
         if (it == m_data_collection_.end())
         {
-
-
             if (!m_atlas_.has(m_id))
             {
                 RUNTIME_ERROR << "Mesh is not regitered! [" << hash_value(m_id) << "]" << std::endl;
             }
 
-
             size_t m_size = m_atlas_.template at<mesh_type>(m_id)->size(entity_type());
-
-
             std::tie(std::ignore, success) =
                     m_data_collection_.emplace(
                             std::make_pair(m_id, std::make_shared<value_type>(m_size)));
-
         }
-
-
         return success;
     };
 
@@ -204,7 +194,11 @@ public:
 
         View(MeshBlockId const &id, mesh_type const *m = nullptr, value_type *d = nullptr)
                 : base_type(id), m_mesh_(m), m_data_(d),
-                  m_range_(m->range(static_cast<MeshEntityType>(IEntityType))) { };
+                  m_range_(m->range(static_cast<MeshEntityType>(IEntityType)))
+        {
+            CHECK(m_range_.size());
+            CHECK(m_range_.end() - m_range_.begin());
+        };
 
         View(View const &other) : base_type(other), m_mesh_(other.m_mesh_), m_data_(other.m_data_),
                                   m_range_(other.m_range_) { }

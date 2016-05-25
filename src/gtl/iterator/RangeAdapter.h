@@ -24,7 +24,7 @@ class RangeAdapter
 public :
     typedef TIterator iterator;
 
-    RangeAdapter() { }
+    RangeAdapter() : m_holder_(nullptr) { }
 
     //****************************************************************************
     // TBB Range Concept Begin
@@ -53,6 +53,8 @@ public :
 
     bool empty() const { return m_holder_ == nullptr || m_holder_->empty(); }
 
+    size_t size() const { return (m_holder_ == nullptr) ? 0 : m_holder_->size(); }
+
     void swap(this_type &other) { std::swap(m_holder_, other.m_holder_); }
 
     iterator begin() { return m_holder_->begin(); }
@@ -78,6 +80,8 @@ private:
         virtual bool is_divisible() const = 0;
 
         virtual bool empty() const = 0;
+
+        virtual size_t size() const = 0;
 
 //        virtual void swap(this_type &other) = 0;
 
@@ -114,6 +118,8 @@ private:
         virtual bool is_divisible() const { return m_range_.is_divisible(); }
 
         virtual bool empty() const { return m_range_.empty(); }
+
+        virtual size_t size() const { return m_range_.size(); }
 
         virtual void swap(this_type &other) { other.m_range_.swap(m_range_); }
 
