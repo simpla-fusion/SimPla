@@ -18,7 +18,7 @@
 #include "ManifoldTraits.h"
 
 
-namespace simpla
+namespace simpla { namespace manifold
 {
 
 
@@ -137,21 +137,15 @@ public:
 
     typedef TMesh mesh_type;
 
-    using typename mesh_type::id_type;
-    using typename mesh_type::range_type;
-    using typename mesh_type::box_type;
+    using typename mesh::id_type;
+    using typename mesh::range_type;
+    using typename mesh::box_type;
 
 
-    using typename mesh_type::scalar_type;
-    using typename mesh_type::point_type;
-    using typename mesh_type::vector_type;
+    using typename mesh::scalar_type;
+    using typename mesh::point_type;
+    using typename mesh::vector_type;
 
-    using mesh_type::ndims;
-    using mesh_type::volume;
-    using mesh_type::dual_volume;
-    using mesh_type::inv_volume;
-    using mesh_type::inv_dual_volume;
-    using mesh_type::inner_product;
 
     Manifold() : Policies<mesh_type>(dynamic_cast<mesh_type &>(*this))... { }
 
@@ -227,6 +221,6 @@ public:
 
 /* @}@} */
 
-}//namespace simpla
+}}//namespace simpla::manifold
 
 #endif /* CORE_MANIFOLD_H_ */

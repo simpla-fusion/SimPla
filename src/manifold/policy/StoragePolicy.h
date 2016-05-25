@@ -9,7 +9,7 @@
 
 #include <string.h>
 #include "../../gtl/design_pattern/SingletonHolder.h"
-#include "../../gtl/utilities/MemoryPool.h"
+#include "../../gtl/MemoryPool.h"
 #include "../../data_model/DataSet.h"
 #include "../../data_model/DataSpace.h"
 #include "../ManifoldTraits.h"
