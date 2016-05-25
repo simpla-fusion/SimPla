@@ -311,9 +311,7 @@ public:
 
     struct calculus_policy
     {
-        template<typename TF, typename ...Args>
-        static traits::value_type_t<TF> eval(this_type const &, TF const &,
-                                             Args &&...args) { return traits::value_type_t<TF>(); }
+        template<typename ...Args> static double eval(Args &&...args) { return 1.0; }
     };
 }; // struct  Mesh
 }} // namespace simpla // namespace mesh

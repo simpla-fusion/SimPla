@@ -93,6 +93,8 @@ public:
 
     void sync() { }
 
+    void deploy() { }
+
     inline this_type &operator=(this_type const &other)
     {
         apply(_impl::_assign(), *this, other);

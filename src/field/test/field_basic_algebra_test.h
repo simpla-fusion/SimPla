@@ -17,11 +17,12 @@
 #include "../../gtl/macro.h"
 #include "../../gtl/primitives.h"
 #include "../../gtl/type_traits.h"
-#include "../../gtl/utilities/Log.h"
+#include "../../gtl/Log.h"
 #include "../../manifold/ManifoldTraits.h"
-#include "../../field/FieldDense.h"
+#include "../../field/Field.h"
 #include "../../field/FieldTraits.h"
 #include "../../field/FieldExpression.h"
+#include "../../mesh/CoRectMesh.h"
 
 using namespace simpla;
 
@@ -33,22 +34,23 @@ protected:
     {
         logger::set_stdout_level(10);
 
-        mesh = std::make_shared<mesh_type>();
+        std::tie(mesh, std::ignore) = m.add<mesh_type>();
 
         nTuple<size_t, 3> dims = {10, 1, 1};
 
         mesh->dimensions(dims);
 //		geometry->extents(xmin, xmax);
         mesh->deploy();
+        mesh->range(static_cast<mesh::MeshEntityType>(iform)).swap(m_range);
     }
 
 public:
 
     typedef TField field_type;
 
-    typedef traits::manifold_type_t<field_type> mesh_type;
+    typedef typename field_type::mesh_type mesh_type;
 
-    typedef traits::value_type_t<field_type> value_type;
+    typedef typename field_type::value_type value_type;
 
     typedef Real scalar_type;
 
@@ -60,18 +62,19 @@ public:
 
     value_type default_value;
 
-    static auto domain()
-    DECL_RET_TYPE((mesh->template range<iform>()))
+    mesh::MeshEntityRange m_range;
+
+    mesh::MeshAtlas m;
 
 
-    auto make_field() const
-    DECL_RET_TYPE((traits::make_field<value_type, iform>(*mesh)))
+    FieldAttr<value_type, mesh_type, iform> make_field() const
+    {
+        return FieldAttr<value_type, mesh_type, iform>(m);
+    };
 
-    auto make_scalarField() const
-    DECL_RET_TYPE((traits::make_field<scalar_type, iform>(*mesh)))
+    auto make_scalarField() const DECL_RET_TYPE((FieldAttr<value_type, mesh_type, iform>(m)))
 
-    auto make_vectorField() const
-    DECL_RET_TYPE((traits::make_field<nTuple<value_type, 3>, iform>(*mesh)))
+    auto make_vectorField() const DECL_RET_TYPE((FieldAttr<nTuple<value_type, 3>, mesh_type, iform>(m)))
 
 
 };
@@ -95,12 +98,12 @@ TYPED_TEST_P(TestField, assign)
 
     size_t count = 0;
 
-    for (auto s : TestFixture::domain())
+    for (auto s : TestFixture::m_range)
     {
         ++count;
         EXPECT_LE(mod(va - f1[s]), EPSILON);
     }
-    EXPECT_EQ(count, TestFixture::domain().size());
+    EXPECT_EQ(count, TestFixture::m_range.size());
 }
 
 TYPED_TEST_P(TestField, index)
@@ -118,12 +121,12 @@ TYPED_TEST_P(TestField, index)
 
     va = 2.0;
 
-    for (auto s : TestFixture::domain())
+    for (auto s : TestFixture::m_range)
     {
         f1[s] = va * TestFixture::mesh->hash(s);
     }
 
-    for (auto s : TestFixture::domain())
+    for (auto s : TestFixture::m_range)
     {
         EXPECT_LE(mod(va * TestFixture::mesh->hash(s) - f1[s]), EPSILON);
     }
@@ -155,7 +158,7 @@ TYPED_TEST_P(TestField, constant_real)
 
     LOG_CMD(f3 = -f1 * a + f2 * c - f1 / b - f1);
 
-    for (auto s : TestFixture::domain())
+    for (auto s : TestFixture::m_range)
     {
         value_type res;
         res = -f1[s] * a + f2[s] * c - f1[s] / b - f1[s];
@@ -233,7 +236,7 @@ TYPED_TEST_P(TestField, scalarField)
  * */
     count = 0;
 
-    for (auto s : TestFixture::domain())
+    for (auto s : TestFixture::m_range)
     {
         value_type res = -f1[s] * ra + f2[s] * rb - f3[s] / rc - f1[s];
 
