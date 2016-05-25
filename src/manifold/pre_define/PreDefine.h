@@ -13,15 +13,15 @@
 
 #include "../Manifold.h"
 
-#include "../mesh/CoRectMesh.h"
+#include "../../mesh/CoRectMesh.h"
 
 #include "../policy/FvmStructuredPolicy.h"
 #include "../policy/LinearInterpolatorPolicy.h"
 #include "../policy/StoragePolicy.h"
 #include "../policy/ParallelPolicy.h"
 
-#include "../mesh/CylindricalCoRect.h"
-#include "../mesh/CartesianCoRect.h"
+#include "../../mesh/CylindricalCoRect.h"
+#include "../../mesh/CartesianCoRect.h"
 
 namespace simpla { namespace manifold
 {

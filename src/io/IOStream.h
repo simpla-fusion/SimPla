@@ -66,19 +66,19 @@ public:
 
     std::string auto_increase_file_name(std::string filename, std::string const &ext_str = ".h5") const;
 
-    template<typename TV>
-    void write(mesh::MeshAtlas const &,
-               std::map<mesh::MeshBlockId, std::shared_ptr<TV> const &, mesh::MeshBlockId id= 0)
-    {
-        UNIMPLEMENTED;
-    }
-
-    template<typename TV>
-    void read(mesh::MeshAtlas const &,
-              std::map<mesh::MeshBlockId, std::shared_ptr<TV> *, mesh::MeshBlockId id= 0)
-    {
-        UNIMPLEMENTED;
-    }
+//    template<typename TV>
+//    void write(mesh::MeshAtlas const &,
+//               std::map<mesh::MeshBlockId, std::shared_ptr<TV> const &, mesh::MeshBlockId id= 0)
+//    {
+//        UNIMPLEMENTED;
+//    }
+//
+//    template<typename TV>
+//    void read(mesh::MeshAtlas const &,
+//              std::map<mesh::MeshBlockId, std::shared_ptr<TV> *, mesh::MeshBlockId id= 0)
+//    {
+//        UNIMPLEMENTED;
+//    }
 };
 
 }}//namespace simpla { namespace io

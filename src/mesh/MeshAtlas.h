@@ -45,6 +45,13 @@ public:
         return T(*this, std::forward<Args>(args)...);
     }
 
+    template<typename T>
+    T make_attribute() const
+    {
+        static_assert(std::is_base_of<MeshAttributeBase, typename T::attribute_type>::value,
+                      " T can not be converted to MeshAttributeBase!!");
+        return T(*this);
+    }
 
     std::vector<MeshBlockId> adjacent_blocks(MeshBlockId const &id, int inc_level = 0, int status_flag = 0);
 
@@ -55,12 +62,9 @@ public:
     bool has(MeshBlockId const &id) const { return m_mesh_atlas_.find(id) != m_mesh_atlas_.end(); }
 
     /**return the id of  root block*/
-    MeshBlockId root() const { };
+    MeshBlockId root() const { return m_mesh_atlas_.begin()->first; }
 
-    void set(MeshBlockId const &id, std::shared_ptr<MeshBase> ptr)
-    {
-        m_mesh_atlas_[id].swap(ptr);
-    };
+    void set(MeshBlockId const &id, std::shared_ptr<MeshBase> ptr) { m_mesh_atlas_[id].swap(ptr); }
 
     std::shared_ptr<MeshBase> at(MeshBlockId const &id) const
     {

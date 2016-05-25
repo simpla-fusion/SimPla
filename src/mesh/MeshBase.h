@@ -40,7 +40,7 @@ public:
 
     virtual MeshEntityRange range(MeshEntityType entityType = VERTEX) const = 0;
 
-    virtual size_t size(MeshEntityType entityType = VERTEX) const { max_hash(entityType); };
+    virtual size_t size(MeshEntityType entityType = VERTEX) const { return max_hash(entityType); };
 
     virtual size_t max_hash(MeshEntityType entityType = VERTEX) const = 0;
 
@@ -65,6 +65,7 @@ public:
 
             for (int i = 0; i < num; ++i) { p[i] = point(neighbour[i]); }
         }
+        return num;
 
     }
 

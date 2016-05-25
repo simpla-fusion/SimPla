@@ -15,8 +15,11 @@
 #include "../gtl/nTuple.h"
 #include "../gtl/primitives.h"
 #include "../gtl/IteratorBlock.h"
+#include "../gtl/iterator/Range.h"
+
 #include "Mesh.h"
 #include "MeshEntity.h"
+
 
 namespace simpla { namespace mesh
 {
@@ -770,7 +773,7 @@ struct MeshEntityIdCoder_
         typedef id_type value_type;
         typedef MeshEntityIdDiff difference_type;
         typedef value_type *pointer;
-        typedef id_type reference;
+        typedef value_type reference;
 
         iterator() : base_type(), m_iform_(0) { }
 
@@ -856,7 +859,7 @@ struct MeshEntityIdCoder_
 
         value_type operator*() const { return pack_(base_type::operator*()); }
 
-        id_type pack_(nTuple<index_type, ndims + 1> const &idx) const
+        value_type pack_(nTuple<index_type, ndims + 1> const &idx) const
         {
             return pack_index(idx, m_sub_index_to_id_[m_iform_][idx[ndims]]);
         }
@@ -900,7 +903,7 @@ struct MeshEntityIdCoder_
         }
 
 
-        range_type(range_type &r, tags::split)
+        range_type(range_type &r, simpla::tags::split)
                 : m_iform_(r.m_iform_), m_min_(r.m_min_), m_max_(r.m_max_), m_grain_size_(r.m_grain_size_)
         {
 
@@ -923,7 +926,7 @@ struct MeshEntityIdCoder_
         }
 
 
-        range_type(this_type &r, tags::proportional_split const &proportion)
+        range_type(this_type &r, simpla::tags::proportional_split const &proportion)
         {
             int n = 0;
             index_type L = m_max_[0] - m_min_[0];

@@ -29,12 +29,12 @@ MESSAGE(STATUS "Using C++ Compiler ${CMAKE_CXX_COMPILER_ID} ")
 SET(COMPILER $ENV{PRG_ENV})
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
-    SET(CMAKE_CXX_FLAGS "-std=c++11  -fcolor-diagnostics   -ftemplate-backtrace-limit=0  -fPIC ")
+    SET(CMAKE_CXX_FLAGS "-std=c++14  -fcolor-diagnostics   -ftemplate-backtrace-limit=0  -fPIC ")
 
 elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
-    SET(CMAKE_CXX_FLAGS "-std=c++11")
+    SET(CMAKE_CXX_FLAGS "-std=c++14")
 else ()
-    SET(CMAKE_CXX_FLAGS "  -std=c++11   ")
+    SET(CMAKE_CXX_FLAGS "-std=c++14   ")
 endif ()
 
 
@@ -173,7 +173,6 @@ IF (HDF5_FOUND)
     ENDIF (HDF5_IS_PARALLEL)
 ENDIF (HDF5_FOUND)
 ADD_DEFINITIONS(-DNO_XDMF)
-
 
 
 #IF (DEFINED ENV{XDMF_ROOT})

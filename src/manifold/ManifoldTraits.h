@@ -88,18 +88,13 @@ template<typename> struct is_geometry;
 
 template<typename> struct geometry_type;
 
-template<typename T> struct is_geometry : public std::integral_constant<bool, false>
-{
-};
+template<typename T> struct is_geometry : public std::integral_constant<bool, false> { };
 
 
-template<typename T> struct geometry_type
-{
-    typedef std::nullptr_t type;
-};
+template<typename T> struct geometry_type { typedef std::nullptr_t type; };
 
 
-template<typename ...> struct iform : public std::integral_constant<int, 0> { };
+template<typename T> struct iform : public std::integral_constant<int, 0> { };
 
 template<typename ...T>
 struct iform_list : public integer_sequence<int, iform<T>::value...>

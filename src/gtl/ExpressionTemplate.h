@@ -33,8 +33,7 @@ struct Expression<TOP, Args...>
 {
     typedef Expression<TOP, Args...> this_type;
 
-    typename std::tuple<traits::reference_t<Args> ...>
-            args;
+    typename std::tuple<traits::reference_t<Args> ...> args;
 
     TOP m_op_;
 

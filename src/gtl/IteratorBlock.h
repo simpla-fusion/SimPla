@@ -31,7 +31,6 @@ private:
 
 
 public:
-    static constexpr int ndims = NDIMS;
 
     using typename base_type::value_type;
     using typename base_type::difference_type;
@@ -171,7 +170,7 @@ public:
 
     ptrdiff_t advance(ptrdiff_t n = 1)
     {
-        for (int i = ndims - 1; i > 0; --i)
+        for (int i = NDIMS - 1; i > 0; --i)
         {
             auto L = m_max_[i] - m_min_[i];
             if (L == 0)L = 1;
@@ -191,14 +190,14 @@ public:
         ptrdiff_t res = 0;
 
 
-        for (int i = 0; i < ndims - 1; ++i)
+        for (int i = 0; i < NDIMS - 1; ++i)
         {
             res += m_self_[i] - m_min_[i];
 
             res *= m_max_[i + 1] - m_min_[i + 1];
         }
 
-        res += m_self_[ndims - 1] - m_min_[ndims - 1];
+        res += m_self_[NDIMS - 1] - m_min_[NDIMS - 1];
 
         return res;
     }

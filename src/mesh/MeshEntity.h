@@ -10,7 +10,7 @@ namespace simpla { namespace mesh
 {
 enum MeshEntityType
 {
-    VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 4
+    VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3
 
 //    TRIANGLE = (3 << 2) | 2,
 //

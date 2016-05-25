@@ -6,6 +6,7 @@
  */
 #include <gtest/gtest.h>
 #include "field_diff_calculus_test.h"
+#include "../../physics/Constants.h"
 
 
 using namespace simpla;
@@ -19,7 +20,7 @@ INSTANTIATE_TEST_CASE_P(
 
                 testing::Values(
 
-                        std::make_tuple(nTuple<Real, 3>({0, 0, 0}),
+                        std::make_tuple(nTuple<Real, 3>{{0, 0, 0}},
                                         nTuple<Real, 3>({1.0, 2.0, 3.0}))//
 
                         , std::make_tuple(nTuple<Real, 3>({0.0, -2.0, -3.0}),
@@ -30,7 +31,7 @@ INSTANTIATE_TEST_CASE_P(
 
 
                 testing::Values(
-                        nTuple<size_t, 3>({1, 1, 1}) //
+                        nTuple<size_t, 3>{1, 1, 1} //
                         , nTuple<size_t, 3>({10, 1, 1}) //
                         , nTuple<size_t, 3>({1, 100, 1}) //
                         , nTuple<size_t, 3>({1, 1, 100}) //

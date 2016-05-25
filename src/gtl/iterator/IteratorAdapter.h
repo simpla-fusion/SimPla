@@ -151,7 +151,10 @@ public:
     /** advance iterator n steps, return number of actually advanced steps  */
     void advance(difference_type n = 1) { m_holder_->advance(n); }
 
-    difference_type distance(this_type const &other) const { m_holder_->distance(*other.m_holder_); };
+    difference_type distance(this_type const &other) const
+    {
+        return m_holder_->distance(*other.m_holder_);
+    };
 
 private:
 

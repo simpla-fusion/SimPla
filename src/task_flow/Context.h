@@ -48,7 +48,7 @@ public:
     template<typename TF>
     std::shared_ptr<TF> get_attribute(std::string const &s_name)
     {
-        static_assert(std::is_base_of<Attribute, TF>::value);
+        static_assert(std::is_base_of<Attribute, TF>::value, "TF is not a Attribute");
 
         auto it = m_attributes_.find(s_name);
 
@@ -70,7 +70,7 @@ public:
     template<typename TF>
     std::shared_ptr<TF> create_attribute(std::string const &s_name = "")
     {
-        static_assert(std::is_base_of<Attribute, TF>::value);
+        static_assert(std::is_base_of<Attribute, TF>::value, "TF is not a Attribute");
 
         auto res = std::make_shared<TF>(*this);
 
@@ -88,7 +88,7 @@ public:
     template<typename TF>
     void enroll(std::string const &name, std::shared_ptr<TF> p)
     {
-        static_assert(std::is_base_of<Attribute, TF>::value);
+        static_assert(std::is_base_of<Attribute, TF>::value, "TF is not a Attribute");
 
         m_attributes_.insert(std::make_pair(name, std::dynamic_pointer_cast<Attribute>(p)));
     };

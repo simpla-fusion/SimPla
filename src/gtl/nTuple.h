@@ -95,8 +95,7 @@ struct reference<nTuple<T>>
 
 
 template<typename  ...T, typename TI>
-auto index(nTuple<Expression<T...>> const &v, TI const &s)
-DECL_RET_TYPE((v[s]))
+auto index(nTuple<Expression<T...>> const &v, TI const &s) DECL_RET_TYPE((v[s]))
 
 }  // namespace traits
 
@@ -136,23 +135,26 @@ struct nTuple<Expression<T...>> : public Expression<T...>
 
 
     template<typename ID>
-    inline auto operator[](ID const &s) const
-    DECL_RET_TYPE (at(s))
+    inline auto operator[](ID const &s) const DECL_RET_TYPE (at(s))
 
 private:
     template<typename ID, int ... index>
-    auto _invoke_helper(ID s, index_sequence<index...>) const
-    DECL_RET_TYPE(m_op_(traits::index(std::get<index>(args), s)...))
+    auto _invoke_helper(ID s, index_sequence<index...>) const DECL_RET_TYPE(
+            m_op_(traits::index(std::get<index>(args), s)...))
 
 public:
     template<typename ID>
-    auto at(ID const &s) const
-    DECL_RET_TYPE((_invoke_helper(s, typename make_index_sequence<sizeof...(T) - 1>::type())))
+    auto at(ID const &s) const DECL_RET_TYPE(
+            (_invoke_helper(s, typename make_index_sequence<sizeof...(T) - 1>::type())))
 
 
     template<typename ID>
     inline auto operator[](ID const &s) const
-    DECL_RET_TYPE((_invoke_helper(s, typename make_index_sequence<sizeof...(T) - 1>::type())))
+    -> decltype(_invoke_helper(s, typename make_index_sequence<sizeof...(T) - 1>::type()))
+    {
+        return (_invoke_helper(s, typename make_index_sequence<sizeof...(T) - 1>::type()));
+    }
+//    DECL_RET_TYPE((_invoke_helper(s, typename make_index_sequence<sizeof...(T) - 1>::type())))
 
 
 };
@@ -177,12 +179,10 @@ struct nTuple<Expression<TOP, ARG0>> : public Expression<TOP, ARG0>
 
 
     template<typename ID>
-    auto at(ID const &s) const
-    DECL_RET_TYPE(m_op_(traits::index(std::get<0>(args), s)))
+    auto at(ID const &s) const DECL_RET_TYPE(m_op_(traits::index(std::get<0>(args), s)))
 
     template<typename ID>
-    inline auto operator[](ID const &s) const
-    DECL_RET_TYPE(m_op_(traits::index(std::get<0>(args), s)))
+    inline auto operator[](ID const &s) const DECL_RET_TYPE(m_op_(traits::index(std::get<0>(args), s)))
 
 
 };
@@ -206,12 +206,12 @@ struct nTuple<Expression<TOP, ARG0, ARG1>> : public Expression<TOP, ARG0, ARG1>
 
 
     template<typename ID>
-    auto at(ID const &s) const
-    DECL_RET_TYPE(m_op_(traits::index(std::get<0>(args), s), traits::index(std::get<1>(args), s)))
+    auto at(ID const &s) const DECL_RET_TYPE(
+            m_op_(traits::index(std::get<0>(args), s), traits::index(std::get<1>(args), s)))
 
     template<typename ID>
-    inline auto operator[](ID const &s) const
-    DECL_RET_TYPE(m_op_(traits::index(std::get<0>(args), s), traits::index(std::get<1>(args), s)))
+    inline auto operator[](ID const &s) const DECL_RET_TYPE(
+            m_op_(traits::index(std::get<0>(args), s), traits::index(std::get<1>(args), s)))
 
 
 };
@@ -360,11 +360,9 @@ template<typename T, int ...M, int N>
 struct access<N, nTuple<T, M...> >
 {
 
-    static constexpr auto get(nTuple<T, M...> &v)
-    DECL_RET_TYPE(v[N])
+    static constexpr auto get(nTuple<T, M...> &v) DECL_RET_TYPE(v[N])
 
-    static constexpr auto get(nTuple<T, M...> const &v)
-    DECL_RET_TYPE(v[N])
+    static constexpr auto get(nTuple<T, M...> const &v) DECL_RET_TYPE(v[N])
 
     template<typename U>
     static void set(nTuple<T, M...> &v, U const &u)
@@ -625,48 +623,58 @@ template<typename T, int M, int N> using Matrix=nTuple<T, M, N>;
 template<typename T, int ... N> using Tensor=nTuple<T, N...>;
 
 template<typename T>
-inline auto determinant(nTuple<T, 3> const &m)
-DECL_RET_TYPE(m[0] * m[1] * m[2])
+inline auto determinant(nTuple<T, 3> const &m) DECL_RET_TYPE(m[0] * m[1] * m[2])
 
 template<typename T>
-inline auto determinant(nTuple<T, 4> const &m)
-DECL_RET_TYPE(m[0] * m[1] * m[2] * m[3])
+inline auto determinant(nTuple<T, 4> const &m) DECL_RET_TYPE(m[0] * m[1] * m[2] * m[3])
 
 template<typename T>
 inline auto determinant(
-        Matrix<T, 3, 3> const &m)
-DECL_RET_TYPE((m[0][0] * m[1][1] * m[2][2] - m[0][2] * m[1][1] * m[2][0] + m[0][1] //
-                                                                           * m[1][2] * m[2][0] -
-               m[0][1] * m[1][0] * m[2][2] + m[1][0] * m[2][1]//
-                                             * m[0][2] - m[1][2] * m[2][1] * m[0][0]//
-              )
+        Matrix<T, 3, 3> const &m) DECL_RET_TYPE((m[0][0] * m[1][1] * m[2][2] - m[0][2] * m[1][1] * m[2][0] + m[0][1] //
+                                                                                                             * m[1][2] *
+                                                                                                             m[2][0] -
+                                                 m[0][1] * m[1][0] * m[2][2] + m[1][0] * m[2][1]//
+                                                                               * m[0][2] - m[1][2] * m[2][1] * m[0][0]//
+                                                )
 
 )
 
 template<typename T>
-inline auto determinant(Matrix<T, 4, 4> const &m)
-DECL_RET_TYPE((//
-                      m[0][3] * m[1][2] * m[2][1] * m[3][0] - m[0][2] * m[1][3] * m[2][1] * m[3][0]//
-                      - m[0][3] * m[1][1] * m[2][2] * m[3][0] + m[0][1] * m[1][3]//
-                                                                * m[2][2] * m[3][0] +
-                      m[0][2] * m[1][1] * m[2][3] * m[3][0] - m[0][1]//
-                                                              * m[1][2] * m[2][3] * m[3][0] -
-                      m[0][3] * m[1][2] * m[2][0] * m[3][1]//
-                      + m[0][2] * m[1][3] * m[2][0] * m[3][1] + m[0][3] * m[1][0] * m[2][2]//
-                                                                * m[3][1] - m[0][0] * m[1][3] * m[2][2] * m[3][1] -
-                      m[0][2] * m[1][0]//
-                      * m[2][3] * m[3][1] + m[0][0] * m[1][2] * m[2][3] * m[3][1] + m[0][3]//
-                                                                                    * m[1][1] * m[2][0] * m[3][2] -
-                      m[0][1] * m[1][3] * m[2][0] * m[3][2]//
-                      - m[0][3] * m[1][0] * m[2][1] * m[3][2] + m[0][0] * m[1][3] * m[2][1]//
-                                                                * m[3][2] + m[0][1] * m[1][0] * m[2][3] * m[3][2] -
-                      m[0][0] * m[1][1]//
-                      * m[2][3] * m[3][2] - m[0][2] * m[1][1] * m[2][0] * m[3][3] + m[0][1]//
-                                                                                    * m[1][2] * m[2][0] * m[3][3] +
-                      m[0][2] * m[1][0] * m[2][1] * m[3][3]//
-                      - m[0][0] * m[1][2] * m[2][1] * m[3][3] - m[0][1] * m[1][0] * m[2][2]//
-                                                                * m[3][3] + m[0][0] * m[1][1] * m[2][2] * m[3][3]//
-              ))
+inline auto determinant(Matrix<T, 4, 4> const &m) DECL_RET_TYPE((//
+                                                                        m[0][3] * m[1][2] * m[2][1] * m[3][0] -
+                                                                        m[0][2] * m[1][3] * m[2][1] * m[3][0]//
+                                                                        - m[0][3] * m[1][1] * m[2][2] * m[3][0] +
+                                                                        m[0][1] * m[1][3]//
+                                                                        * m[2][2] * m[3][0] +
+                                                                        m[0][2] * m[1][1] * m[2][3] * m[3][0] -
+                                                                        m[0][1]//
+                                                                        * m[1][2] * m[2][3] * m[3][0] -
+                                                                        m[0][3] * m[1][2] * m[2][0] * m[3][1]//
+                                                                        + m[0][2] * m[1][3] * m[2][0] * m[3][1] +
+                                                                        m[0][3] * m[1][0] * m[2][2]//
+                                                                        * m[3][1] -
+                                                                        m[0][0] * m[1][3] * m[2][2] * m[3][1] -
+                                                                        m[0][2] * m[1][0]//
+                                                                        * m[2][3] * m[3][1] +
+                                                                        m[0][0] * m[1][2] * m[2][3] * m[3][1] +
+                                                                        m[0][3]//
+                                                                        * m[1][1] * m[2][0] * m[3][2] -
+                                                                        m[0][1] * m[1][3] * m[2][0] * m[3][2]//
+                                                                        - m[0][3] * m[1][0] * m[2][1] * m[3][2] +
+                                                                        m[0][0] * m[1][3] * m[2][1]//
+                                                                        * m[3][2] +
+                                                                        m[0][1] * m[1][0] * m[2][3] * m[3][2] -
+                                                                        m[0][0] * m[1][1]//
+                                                                        * m[2][3] * m[3][2] -
+                                                                        m[0][2] * m[1][1] * m[2][0] * m[3][3] +
+                                                                        m[0][1]//
+                                                                        * m[1][2] * m[2][0] * m[3][3] +
+                                                                        m[0][2] * m[1][0] * m[2][1] * m[3][3]//
+                                                                        - m[0][0] * m[1][2] * m[2][1] * m[3][3] -
+                                                                        m[0][1] * m[1][0] * m[2][2]//
+                                                                        * m[3][3] +
+                                                                        m[0][0] * m[1][1] * m[2][2] * m[3][3]//
+                                                                ))
 
 template<typename T1, int ... N1, typename T2, int ... N2>
 inline auto cross(nTuple<T1, N1...> const &l, nTuple<T2, N2...> const &r)
@@ -887,8 +895,7 @@ void for_each(TOP const &op, integer_sequence<int, N, M...>,
 }
 
 template<typename TR, typename T, int ... N>
-auto inner_product(nTuple<T, N...> const &l, TR const &r)
-DECL_RET_TYPE ((reduce(_impl::plus(), l * r)))
+auto inner_product(nTuple<T, N...> const &l, TR const &r) DECL_RET_TYPE ((reduce(_impl::plus(), l * r)))
 
 
 inline constexpr double dot(double const &l, double const &r) { return r * l; }
@@ -896,24 +903,19 @@ inline constexpr double dot(double const &l, double const &r) { return r * l; }
 inline constexpr float dot(float const &l, float const &r) { return r * l; }
 
 template<typename TR, typename T, int ... N>
-auto dot(nTuple<T, N...> const &l, TR const &r)
-DECL_RET_TYPE ((inner_product(l, r)))
+auto dot(nTuple<T, N...> const &l, TR const &r) DECL_RET_TYPE ((inner_product(l, r)))
 
 template<typename T, int ... N>
-auto normal(nTuple<T, N...> const &l)
-DECL_RET_TYPE((std::sqrt((inner_product(l, l)))))
+auto normal(nTuple<T, N...> const &l) DECL_RET_TYPE((std::sqrt((inner_product(l, l)))))
 
 template<typename T>
-auto sp_abs(T const &v)
-DECL_RET_TYPE((std::abs(v)))
+auto sp_abs(T const &v) DECL_RET_TYPE((std::abs(v)))
 
 template<typename T, int ...N>
-auto sp_abs(nTuple<T, N...> const &m)
-DECL_RET_TYPE((std::sqrt(std::abs(inner_product(m, m)))))
+auto sp_abs(nTuple<T, N...> const &m) DECL_RET_TYPE((std::sqrt(std::abs(inner_product(m, m)))))
 
 template<typename ... T>
-auto sp_abs(nTuple<Expression<T...>> const &m)
-DECL_RET_TYPE((std::sqrt(std::abs(inner_product(m, m)))))
+auto sp_abs(nTuple<Expression<T...>> const &m) DECL_RET_TYPE((std::sqrt(std::abs(inner_product(m, m)))))
 
 template<typename T> auto mod(T const &v) DECL_RET_TYPE((sp_abs(v)))
 
@@ -921,12 +923,10 @@ template<typename T, int ...N>
 auto abs(nTuple<T, N...> const &v) DECL_RET_TYPE((sp_abs(v)))
 
 template<typename T, int ...N>
-inline auto NProduct(nTuple<T, N...> const &v)
-DECL_RET_TYPE((reduce(_impl::multiplies(), v)))
+inline auto NProduct(nTuple<T, N...> const &v) DECL_RET_TYPE((reduce(_impl::multiplies(), v)))
 
 template<typename T, int ...N>
-inline auto NSum(nTuple<T, N...> const &v)
-DECL_RET_TYPE((reduce(_impl::plus(), v)))
+inline auto NSum(nTuple<T, N...> const &v) DECL_RET_TYPE((reduce(_impl::plus(), v)))
 
 template<typename TOP, typename ... T>
 struct nTuple<BooleanExpression<TOP, T...> > : public nTuple<

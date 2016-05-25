@@ -5,31 +5,29 @@
  * @author salmon
  */
 #include <iostream>
+#include <type_traits>
 
-struct U;
 
-struct Foo
+template<typename T>
+inline std::enable_if_t<std::is_same<std::remove_cv_t<T>, double>::value, auto> check(T const &f)
 {
-    U const &m_u_;
-
-    Foo(U const &u) : m_u_(u) { }
-
-    ~Foo() { }
-};
-
-struct U
-{
-    int a{123345};
-    Foo f1{*this};
-    Foo f2{*this};
-
-
-};
+    return "this is double";
+}
+//
+//template<typename T>
+//inline auto check(T const &f,
+//                  std::enable_if_t<std::is_same<std::remove_cv_t<T>, int>::value, void> _t = std::enable_if_t<std::is_same<std::remove_cv_t<T>, int>::value, void>())
+//{
+//    return "this is int";
+//}
 
 
 int main()
 {
+    double a;
+    int b;
 
-    U w;
-    std::cout << w.f1.m_u_.a << std::endl;
+    std::cout << "a is " << check(a) << std::endl;
+    std::cout << "b is " << check(b) << std::endl;
+
 }

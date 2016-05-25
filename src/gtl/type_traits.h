@@ -28,6 +28,8 @@ struct EmptyType { };
 
 namespace tags { struct do_nothing { template<typename ...Args> void operator()(Args &&...) const { }}; }
 
+template<int I> using IConst=std::integral_constant<int, I>;
+
 template<typename _Tp, _Tp ... _I> struct integer_sequence;
 template<typename, int...> struct nTuple;
 template<int ... Ints>
@@ -150,8 +152,8 @@ struct seq_concat<integer_sequence<_Tp, _M...>, integer_sequence<_Tp, _N...> >
 namespace _impl
 {
 template<typename Func, typename Tup, int ... index>
-auto invoke_helper(Func &&func, Tup &&tup, index_sequence<index...>)
-DECL_RET_TYPE(func(std::get<index>(std::forward<Tup>(tup))...))
+auto invoke_helper(Func &&func, Tup &&tup, index_sequence<index...>) DECL_RET_TYPE(
+        func(std::get<index>(std::forward<Tup>(tup))...))
 
 template<typename TP, int N>
 struct gen_seq
@@ -175,8 +177,7 @@ using make_index_sequence = make_integer_sequence<int, N>;
 
 template<typename Func, typename Tup>
 auto invoke(Func &&func,
-            Tup &&tup)
-DECL_RET_TYPE(
+            Tup &&tup) DECL_RET_TYPE(
 
         _impl::invoke_helper(std::forward<Func>(func),
                              std::forward<Tup>(tup),
@@ -203,7 +204,7 @@ private:
 
     static std::string name_(std::true_type) { return T::class_name(); }
 
-    static std::string name_(std::false_type) { "unknown"; }
+    static std::string name_(std::false_type) { return "unknown"; }
 
 public:
     static std::string name()
@@ -255,10 +256,8 @@ template<typename T> using reference_t=typename reference<T>::type;
  *  value equal to the number of dimensions of the array.
  *  For any other type, value is 0.
  */
-template<typename T>
-struct rank : public std::integral_constant<int, std::rank<T>::value>
+template<typename T> struct rank : public std::integral_constant<int, std::rank<T>::value>
 {
-
 };
 /**
  * alt. of std::extent
@@ -306,12 +305,10 @@ auto index(T &v, TI const &s)
 ENABLE_IF_DECL_RET_TYPE((is_indexable<T, TI>::value), (v[s]))
 
 template<typename T, typename TI>
-auto index(std::shared_ptr<T> &v, TI const &s)
-DECL_RET_TYPE(v.get()[s])
+auto index(std::shared_ptr<T> &v, TI const &s) DECL_RET_TYPE(v.get()[s])
 
 template<typename T, typename TI>
-auto index(std::shared_ptr<T> const &v, TI const &s)
-DECL_RET_TYPE(v.get()[s])
+auto index(std::shared_ptr<T> const &v, TI const &s) DECL_RET_TYPE(v.get()[s])
 
 template<typename T, typename TI>
 auto index(T &v, integer_sequence<TI>)
@@ -330,8 +327,7 @@ template<int N>
 struct recursive_try_index_aux
 {
     template<typename T, typename TI>
-    static auto eval(T &v, TI const *s)
-    DECL_RET_TYPE(
+    static auto eval(T &v, TI const *s) DECL_RET_TYPE(
             (recursive_try_index_aux<N - 1>::eval(v[s[0]], s + 1))
     )
 };
@@ -340,8 +336,7 @@ template<>
 struct recursive_try_index_aux<0>
 {
     template<typename T, typename TI>
-    static auto eval(T &v, TI const *s)
-    DECL_RET_TYPE((v))
+    static auto eval(T &v, TI const *s) DECL_RET_TYPE((v))
 };
 } // namespace _impl
 
@@ -363,23 +358,20 @@ template<int N>
 struct unpack_args_helper
 {
     template<typename ... Args>
-    auto eval(Args &&...args)
-    DECL_RET_TYPE(unpack_args_helper<N - 1>(std::forward<Args>(args)...))
+    auto eval(Args &&...args) DECL_RET_TYPE(unpack_args_helper<N - 1>(std::forward<Args>(args)...))
 };
 
 template<>
 struct unpack_args_helper<0>
 {
     template<typename First, typename ... Args>
-    auto eval(First &&first, Args &&...args)
-    DECL_RET_TYPE(std::forward<First>(first))
+    auto eval(First &&first, Args &&...args) DECL_RET_TYPE(std::forward<First>(first))
 
 };
 }  // namespace _impl
 
 template<int N, typename ... Args>
-auto unpack_args(Args &&...args)
-DECL_RET_TYPE ((_impl::unpack_args_helper<N>(std::forward<Args>(args)...)))
+auto unpack_args(Args &&...args) DECL_RET_TYPE ((_impl::unpack_args_helper<N>(std::forward<Args>(args)...)))
 
 template<typename T> struct pod_type
 {
@@ -425,8 +417,7 @@ T0 const &min(T0 const &first, Others const &...others)
 
 
 template<typename T>
-auto distance(T const &b, T const &e)
-DECL_RET_TYPE((e - b))
+auto distance(T const &b, T const &e) DECL_RET_TYPE((e - b))
 
 
 template<int N, typename T> struct access;
@@ -434,8 +425,7 @@ template<int N, typename T> struct access;
 template<int N, typename T>
 struct access
 {
-    static constexpr auto get(T &v)
-    DECL_RET_TYPE(v)
+    static constexpr auto get(T &v) DECL_RET_TYPE(v)
 
 //    static constexpr auto get(T const &v)
 //    DECL_RET_TYPE(v)
@@ -450,11 +440,9 @@ struct access
 template<int N, typename ...T>
 struct access<N, std::tuple<T...>>
 {
-    static constexpr auto get(std::tuple<T...> &v)
-    DECL_RET_TYPE(std::get<N>(v))
+    static constexpr auto get(std::tuple<T...> &v) DECL_RET_TYPE(std::get<N>(v))
 
-    static constexpr auto get(std::tuple<T...> const &v)
-    DECL_RET_TYPE(std::get<N>(v))
+    static constexpr auto get(std::tuple<T...> const &v) DECL_RET_TYPE(std::get<N>(v))
 
     template<typename U>
     static void set(std::tuple<T...> &v, U const &u)
@@ -466,11 +454,9 @@ struct access<N, std::tuple<T...>>
 template<int N, typename T>
 struct access<N, T *>
 {
-    static constexpr auto get(T *v)
-    DECL_RET_TYPE(v[N])
+    static constexpr auto get(T *v) DECL_RET_TYPE(v[N])
 
-    static constexpr auto get(T const *v)
-    DECL_RET_TYPE(v[N])
+    static constexpr auto get(T const *v) DECL_RET_TYPE(v[N])
 
     template<typename U>
     static void set(T *v, U const &u)
@@ -482,11 +468,9 @@ struct access<N, T *>
 template<int N, typename T0, typename T1>
 struct access<N, std::pair<T0, T1>>
 {
-    static constexpr auto get(std::pair<T0, T1> &v)
-    DECL_RET_TYPE(std::get<N>(v))
+    static constexpr auto get(std::pair<T0, T1> &v) DECL_RET_TYPE(std::get<N>(v))
 
-    static constexpr auto get(std::pair<T0, T1> const &v)
-    DECL_RET_TYPE(std::get<N>(v))
+    static constexpr auto get(std::pair<T0, T1> const &v) DECL_RET_TYPE(std::get<N>(v))
 
     template<typename U>
     static void set(std::pair<T0, T1> &v, U const &u)
@@ -504,13 +488,11 @@ struct access_helper<N0, N...>
 {
 
     template<typename T>
-    static constexpr auto get(T const &v)
-    DECL_RET_TYPE((access_helper<N...>::get(
+    static constexpr auto get(T const &v) DECL_RET_TYPE((access_helper<N...>::get(
             access_helper<N0>::get((v)))))
 
     template<typename T>
-    static constexpr auto get(T &v)
-    DECL_RET_TYPE((access_helper<N...>::get(
+    static constexpr auto get(T &v) DECL_RET_TYPE((access_helper<N...>::get(
             access_helper<N0>::get((v)))))
 
     template<typename T, typename U>
@@ -525,12 +507,10 @@ template<int N>
 struct access_helper<N>
 {
     template<typename T>
-    static constexpr auto get(T &v)
-    DECL_RET_TYPE((traits::access<N, T>::get(v)))
+    static constexpr auto get(T &v) DECL_RET_TYPE((traits::access<N, T>::get(v)))
 
     template<typename T>
-    static constexpr auto get(T const &v)
-    DECL_RET_TYPE((traits::access<N, T>::get(v)))
+    static constexpr auto get(T const &v) DECL_RET_TYPE((traits::access<N, T>::get(v)))
 
     template<typename T, typename U>
     static void set(T &v, U const &u)
@@ -564,16 +544,13 @@ struct access_helper<>
 };
 }  // namespace _impl
 template<int N, typename ...T>
-auto get(std::tuple<T...> &v)
-DECL_RET_TYPE(std::get<N>(v))
+auto get(std::tuple<T...> &v) DECL_RET_TYPE(std::get<N>(v))
 
 template<int ...N, typename T>
-auto get(T &v)
-DECL_RET_TYPE((_impl::access_helper<N...>::get(v)))
+auto get(T &v) DECL_RET_TYPE((_impl::access_helper<N...>::get(v)))
 
 template<int ...N, typename T>
-auto get(T const &v)
-DECL_RET_TYPE((_impl::access_helper<N...>::get(v)))
+auto get(T const &v) DECL_RET_TYPE((_impl::access_helper<N...>::get(v)))
 
 
 template<int, typename ...> struct unpack_type;

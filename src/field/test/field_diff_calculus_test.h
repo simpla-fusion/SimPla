@@ -16,25 +16,27 @@
 #include <string>
 
 #include <gtest/gtest.h>
-#include "../../io/IO.h"
+//#include "../../io/IO.h"
+#define  SAVE(_F_)  "DUMMY SAVE "  __STRING(_F_)
 
-#include "../../field/FieldDense.h"
+#include "../../field/Field.h"
 #include "../../field/FieldExpression.h"
 #include "../../field/FieldTraits.h"
+#include "../../manifold/Calculus.h"
 
 #include "../../gtl/nTuple.h"
 #include "../../gtl/primitives.h"
 
 #include "../../gtl/Log.h"
-#include "../../manifold/pre_define/PreDefine.h"
+//#include "../../manifold/pre_define/PreDefine.h"
+#include "../../mesh/CoRectMesh.h"
 
 using namespace simpla;
-
+using namespace simpla::mesh;
+using namespace simpla::calculus;
 //#define CYLINDRICAL_COORDINATE_SYSTEM 1
 
 #ifdef CYLINDRICAL_COORDINATE_SYSTEM
-
-
 typedef manifold::CylindricalManifold mesh_type;
 typedef geometry::traits::coordinate_system_t<mesh_type> cs;
 static constexpr const int RAxis = cs::RAxis;
@@ -43,7 +45,7 @@ static constexpr const int PhiAxis = cs::PhiAxis;
 
 #else
 
-typedef manifold::CartesianManifold mesh_type;
+typedef mesh::CoRectMesh mesh_type;
 
 
 #endif
@@ -62,8 +64,7 @@ protected:
         std::tie(xmin, xmax) = box;
 
 
-        mesh = std::make_shared<mesh_type>();
-
+        std::tie(mesh, std::ignore) = m.add<mesh_type>();
 
         mesh->dimensions(dims);
 
@@ -108,19 +109,19 @@ protected:
 
 public:
     typedef Real value_type;
-    typedef typename mesh_type::scalar_type scalar_type;
-    typedef typename mesh_type::point_type point_type;
-    typedef typename mesh_type::index_tuple index_tuple;
-    typedef typename mesh_type::box_type box_type;
+
     static constexpr size_t ndims = mesh_type::ndims;
 
     box_type box;
     point_type xmin, xmax;
     nTuple<size_t, 3> dims;
     nTuple<Real, 3> K_real; // @NOTE must   k = n TWOPI, period condition
-    nTuple<scalar_type, 3> K_imag;
+    nTuple<Real, 3> K_imag;
     value_type one;
     Real error;
+
+
+    mesh::MeshAtlas m;
 
     std::shared_ptr<mesh_type> mesh;
 
@@ -138,14 +139,20 @@ public:
     virtual ~FETLTest()
     {
     }
+
+    template<typename TV, int IEntityType>
+    FieldAttr<TV, mesh_type, IEntityType> make_field()
+    {
+        return FieldAttr<TV, mesh_type, IEntityType>(m);
+    };
 };
 
 TEST_P(FETLTest, grad0)
 {
 
-    auto f0 = traits::make_field<value_type, VERTEX>(*mesh);
-    auto f1 = traits::make_field<value_type, EDGE>(*mesh);
-    auto f1b = traits::make_field<value_type, EDGE>(*mesh);
+    auto f0 = make_field<value_type, VERTEX>();
+    auto f1 = make_field<value_type, EDGE>();
+    auto f1b = make_field<value_type, EDGE>();
 
     f0.clear();
 
@@ -153,7 +160,7 @@ TEST_P(FETLTest, grad0)
 
     f1b.clear();
 
-    for (auto const &s :   mesh->template outer_range<VERTEX>())
+    for (auto const &s :   mesh->range(VERTEX))
     {
         f0[s] = std::sin(q(mesh->point(s)));
     };
@@ -170,7 +177,7 @@ TEST_P(FETLTest, grad0)
 
     size_t count = 0;
 
-    for (auto const &s :   mesh->template range<EDGE>())
+    for (auto const &s :   mesh->range(EDGE))
     {
         ++count;
         size_t n = mesh->sub_index(s);
@@ -201,7 +208,7 @@ TEST_P(FETLTest, grad0)
     EXPECT_LE(mod(average) / count, error);
 
 #ifndef NDEBUG
-    io::cd("/grad1/");
+//    io::cd("/grad1/");
     LOGGER << SAVE(f0) << std::endl;
     LOGGER << SAVE(f1) << std::endl;
     LOGGER << SAVE(f1b) << std::endl;
@@ -212,9 +219,9 @@ TEST_P(FETLTest, grad3)
 {
 
 
-    auto f2 = traits::make_field<value_type, FACE>(*mesh);
-    auto f2b = traits::make_field<value_type, FACE>(*mesh);
-    auto f3 = traits::make_field<value_type, VOLUME>(*mesh);
+    auto f2 = make_field<value_type, FACE>();
+    auto f2b = make_field<value_type, FACE>();
+    auto f3 = make_field<value_type, VOLUME>();
 
     f3.clear();
 
@@ -222,7 +229,7 @@ TEST_P(FETLTest, grad3)
 
     f2b.clear();
 
-    for (auto s : mesh->template outer_range<VOLUME>())
+    for (auto s : mesh->range(VOLUME))
     {
         f3[s] = std::sin(q(mesh->point(s)));
     };
@@ -237,7 +244,7 @@ TEST_P(FETLTest, grad3)
     size_t count = 0;
 
 
-    for (auto s : mesh->template range<FACE>())
+    for (auto s : mesh->range(FACE))
     {
         ++count;
 
@@ -263,7 +270,7 @@ TEST_P(FETLTest, grad3)
     }
 
 #ifndef NDEBUG
-    io::cd("/grad3/");
+    //io::cd("/grad3/");
     LOGGER << SAVE(f3) << std::endl;
     LOGGER << SAVE(f2) << std::endl;
     LOGGER << SAVE(f2b) << std::endl;
@@ -278,9 +285,9 @@ TEST_P(FETLTest, grad3)
 TEST_P(FETLTest, diverge1)
 {
 
-    auto f1 = traits::make_field<value_type, EDGE>(*mesh);
-    auto f0 = traits::make_field<value_type, VERTEX>(*mesh);
-    auto f0b = traits::make_field<value_type, VERTEX>(*mesh);
+    auto f1 = make_field<value_type, EDGE>();
+    auto f0 = make_field<value_type, VERTEX>();
+    auto f0b = make_field<value_type, VERTEX>();
 
     f0.clear();
 
@@ -290,7 +297,7 @@ TEST_P(FETLTest, diverge1)
 
     nTuple<Real, 3> E = {1, 2, 3};
 
-    for (auto s :   mesh->template outer_range<EDGE>())
+    for (auto s :mesh->range(EDGE))
     {
         f1[s] = E[mesh->sub_index(s)] * std::sin(q(mesh->point(s)));
     };
@@ -309,7 +316,7 @@ TEST_P(FETLTest, diverge1)
     size_t count = 0;
 
 
-    for (auto s : mesh->template range<VERTEX>())
+    for (auto s : mesh->range(VERTEX))
     {
         auto x = mesh->point(s);
 
@@ -346,7 +353,7 @@ TEST_P(FETLTest, diverge1)
     average /= count;
 
 #ifndef NDEBUG
-    io::cd("/div1/");
+    //io::cd("/div1/");
     LOGGER << SAVE(f1) << std::endl;
     LOGGER << SAVE(f0) << std::endl;
     LOGGER << SAVE(f0b) << std::endl;
@@ -361,16 +368,16 @@ TEST_P(FETLTest, diverge1)
 TEST_P(FETLTest, diverge2)
 {
 
-    auto f2 = traits::make_field<value_type, FACE>(*mesh);
-    auto f3 = traits::make_field<value_type, VOLUME>(*mesh);
-    auto f3b = traits::make_field<value_type, VOLUME>(*mesh);
+    auto f2 = make_field<value_type, FACE>();
+    auto f3 = make_field<value_type, VOLUME>();
+    auto f3b = make_field<value_type, VOLUME>();
     f3.clear();
 
     f3b.clear();
 
     f2.clear();
 
-    for (auto s : mesh->template outer_range<FACE>())
+    for (auto s : mesh->range(FACE))
     {
         f2[s] = std::sin(q(mesh->point(s)));
     };
@@ -387,7 +394,7 @@ TEST_P(FETLTest, diverge2)
 
     size_t count = 0;
 
-    for (auto s : mesh->template range<VOLUME>())
+    for (auto s : mesh->range(VOLUME))
     {
 
         auto x = mesh->point(s);
@@ -423,7 +430,7 @@ TEST_P(FETLTest, diverge2)
 
 #ifndef NDEBUG
 
-    io::cd("/div2/");
+    //io::cd("/div2/");
     LOGGER << SAVE(f2) << std::endl;
     LOGGER << SAVE(f3) << std::endl;
     LOGGER << SAVE(f3b) << std::endl;
@@ -438,10 +445,10 @@ TEST_P(FETLTest, curl1)
 {
 
 
-    auto f1 = traits::make_field<value_type, EDGE>(*mesh);
-    auto f1b = traits::make_field<value_type, EDGE>(*mesh);
-    auto f2 = traits::make_field<value_type, FACE>(*mesh);
-    auto f2b = traits::make_field<value_type, FACE>(*mesh);
+    auto f1 = make_field<value_type, EDGE>();
+    auto f1b = make_field<value_type, EDGE>();
+    auto f2 = make_field<value_type, FACE>();
+    auto f2b = make_field<value_type, FACE>();
 
     f1.clear();
 
@@ -459,7 +466,7 @@ TEST_P(FETLTest, curl1)
 
     nTuple<Real, 3> E = {1, 1, 1};
 
-    for (auto s : mesh->outer_range<EDGE>())
+    for (auto s : mesh->range(EDGE))
     {
         f1[s] = E[mesh->sub_index(s)] *
                 std::sin(q(mesh->point(s)));
@@ -473,7 +480,7 @@ TEST_P(FETLTest, curl1)
 
     size_t count = 0;
 
-    for (auto s : mesh->template range<FACE>())
+    for (auto s : mesh->range(FACE))
     {
         auto n = mesh->sub_index(s);
 
@@ -538,7 +545,7 @@ TEST_P(FETLTest, curl1)
     }
 
 #ifndef NDEBUG
-    io::cd("/curl1/");
+    //io::cd("/curl1/");
     LOGGER << SAVE(f1) << std::endl;
     LOGGER << SAVE(f2) << std::endl;
     LOGGER << SAVE(f2b) << std::endl;
@@ -554,10 +561,10 @@ TEST_P(FETLTest, curl2)
 {
 
 
-    auto f1 = traits::make_field<value_type, EDGE>(*mesh);
-    auto f1b = traits::make_field<value_type, EDGE>(*mesh);
-    auto f2 = traits::make_field<value_type, FACE>(*mesh);
-    auto f2b = traits::make_field<value_type, FACE>(*mesh);
+    auto f1 = make_field<value_type, EDGE>();
+    auto f1b = make_field<value_type, EDGE>();
+    auto f2 = make_field<value_type, FACE>();
+    auto f2b = make_field<value_type, FACE>();
 
     f1.clear();
 
@@ -576,7 +583,7 @@ TEST_P(FETLTest, curl2)
 
     nTuple<Real, 3> E = {1, 2, 3};
 
-    for (auto s : mesh->outer_range<FACE>())
+    for (auto s : mesh->range(FACE))
     {
         f2[s] = E[mesh->sub_index(s)] * std::sin(q(mesh->point(s)));
 
@@ -592,7 +599,7 @@ TEST_P(FETLTest, curl2)
     size_t count = 0;
 
 
-    for (auto s : mesh->template range<EDGE>())
+    for (auto s : mesh->range(EDGE))
     {
 
         auto n = mesh->sub_index(s);
@@ -643,7 +650,7 @@ TEST_P(FETLTest, curl2)
     }
 #ifndef NDEBUG
 
-    io::cd("/curl2/");
+    //io::cd("/curl2/");
     LOGGER << SAVE(f2) << std::endl;
     LOGGER << SAVE(f1) << std::endl;
     LOGGER << SAVE(f1b) << std::endl;
@@ -659,10 +666,10 @@ TEST_P(FETLTest, curl2)
 TEST_P(FETLTest, identity_curl_grad_f0_eq_0)
 {
 
-    auto f0 = traits::make_field<value_type, VERTEX>(*mesh);
-    auto f1 = traits::make_field<value_type, EDGE>(*mesh);
-    auto f2a = traits::make_field<value_type, FACE>(*mesh);
-    auto f2b = traits::make_field<value_type, FACE>(*mesh);
+    auto f0 = make_field<value_type, VERTEX>();
+    auto f1 = make_field<value_type, EDGE>();
+    auto f2a = make_field<value_type, FACE>();
+    auto f2b = make_field<value_type, FACE>();
 
     std::mt19937 gen;
     std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
@@ -670,7 +677,7 @@ TEST_P(FETLTest, identity_curl_grad_f0_eq_0)
     Real m = 0.0;
     f0.clear();
 
-    for (auto s : mesh->template outer_range<VERTEX>())
+    for (auto s : mesh->range(VERTEX))
     {
 
         auto a = uniform_dist(gen);
@@ -691,7 +698,7 @@ TEST_P(FETLTest, identity_curl_grad_f0_eq_0)
     Real variance_b = 0;
 
 
-    for (auto s : mesh->template inner_range<FACE>())
+    for (auto s : mesh->range(FACE))
     {
 
         variance_a += mod(f2a[s]);
@@ -709,10 +716,10 @@ TEST_P(FETLTest, identity_curl_grad_f3_eq_0)
 {
 
 
-    auto f3 = traits::make_field<value_type, VOLUME>(*mesh);
-    auto f1a = traits::make_field<value_type, EDGE>(*mesh);
-    auto f1b = traits::make_field<value_type, EDGE>(*mesh);
-    auto f2 = traits::make_field<value_type, FACE>(*mesh);
+    auto f3 = make_field<value_type, VOLUME>();
+    auto f1a = make_field<value_type, EDGE>();
+    auto f1b = make_field<value_type, EDGE>();
+    auto f2 = make_field<value_type, FACE>();
     std::mt19937 gen;
     std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
@@ -720,7 +727,7 @@ TEST_P(FETLTest, identity_curl_grad_f3_eq_0)
 
     f3.clear();
 
-    for (auto s : mesh->template outer_range<VOLUME>())
+    for (auto s : mesh->range(VOLUME))
     {
         auto a = uniform_dist(gen);
         f3[s] = a * one;
@@ -738,7 +745,7 @@ TEST_P(FETLTest, identity_curl_grad_f3_eq_0)
     Real variance_a = 0;
     Real variance_b = 0;
 
-    for (auto s : mesh->template inner_range<EDGE>())
+    for (auto s : mesh->range(EDGE))
     {
         variance_a += mod(f1a[s]);
         variance_b += mod(f1b[s]);
@@ -754,10 +761,10 @@ TEST_P(FETLTest, identity_div_curl_f1_eq0)
 {
 
 
-    auto f1 = traits::make_field<value_type, EDGE>(*mesh);
-    auto f2 = traits::make_field<value_type, FACE>(*mesh);
-    auto f0a = traits::make_field<value_type, VERTEX>(*mesh);
-    auto f0b = traits::make_field<value_type, VERTEX>(*mesh);
+    auto f1 = make_field<value_type, EDGE>();
+    auto f2 = make_field<value_type, FACE>();
+    auto f0a = make_field<value_type, VERTEX>();
+    auto f0b = make_field<value_type, VERTEX>();
 
     std::mt19937 gen;
     std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
@@ -766,7 +773,7 @@ TEST_P(FETLTest, identity_div_curl_f1_eq0)
 
     Real m = 0.0;
 
-    for (auto s : mesh->template outer_range<FACE>())
+    for (auto s : mesh->range(FACE))
     {
         auto a = uniform_dist(gen);
 
@@ -790,7 +797,7 @@ TEST_P(FETLTest, identity_div_curl_f1_eq0)
     Real variance_b = 0;
 
 
-    for (auto s : mesh->template inner_range<VERTEX>())
+    for (auto s : mesh->range(VERTEX))
     {
 
         ++count;
@@ -808,10 +815,10 @@ TEST_P(FETLTest, identity_div_curl_f1_eq0)
 TEST_P(FETLTest, identity_div_curl_f2_eq0)
 {
 
-    auto f1 = traits::make_field<value_type, EDGE>(*mesh);
-    auto f2 = traits::make_field<value_type, FACE>(*mesh);
-    auto f3a = traits::make_field<value_type, VOLUME>(*mesh);
-    auto f3b = traits::make_field<value_type, VOLUME>(*mesh);
+    auto f1 = make_field<value_type, EDGE>();
+    auto f2 = make_field<value_type, FACE>();
+    auto f3a = make_field<value_type, VOLUME>();
+    auto f3b = make_field<value_type, VOLUME>();
 
     std::mt19937 gen;
     std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
@@ -820,7 +827,7 @@ TEST_P(FETLTest, identity_div_curl_f2_eq0)
 
     Real m = 0.0;
 
-    for (auto s :   mesh->outer_range<EDGE>())
+    for (auto s :   mesh->range(EDGE))
     {
         auto a = uniform_dist(gen);
         f1[s] = one * a;
@@ -841,7 +848,7 @@ TEST_P(FETLTest, identity_div_curl_f2_eq0)
     Real variance_a = 0;
     Real variance_b = 0;
 
-    for (auto s : mesh->template inner_range<VOLUME>())
+    for (auto s : mesh->range(VOLUME))
     {
 
 

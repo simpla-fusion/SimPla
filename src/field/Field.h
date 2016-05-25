@@ -69,16 +69,16 @@ public:
 
     //create construct
 
-    Field(std::shared_ptr<attribute_type> attr) : m_attr_(attr) { }
+    Field(std::shared_ptr<attribute_type> attr) : m_attr_(attr) { view(attr->mesh_atlas().root()); }
 
-    template<typename ...Args>
-    Field(Args &&... args) : m_attr_(new attribute_type(std::forward<Args>(args)...)) { }
+    Field(mesh::MeshAtlas const &m) : m_attr_(std::make_shared<attribute_type>(m)) { view(m.root()); }
 
     //copy construct
-    Field(this_type const &other) : base_type(other) { }
+    Field(this_type const &other) : base_type(other), m_attr_(other.m_attr_) { }
+
 
     // move construct
-    Field(this_type &&other) : base_type(other) { }
+    Field(this_type &&other) : base_type(other), m_attr_(other.m_attr_) { }
 
     virtual ~Field() { }
 
@@ -89,6 +89,9 @@ public:
 
     void view(mesh::MeshBlockId const &id) { m_attr_->view(id).swap(*this); }
 
+    void clear() { }
+
+    void sync() { }
 
     inline this_type &operator=(this_type const &other)
     {
@@ -140,17 +143,13 @@ private:
     {
 
         //TODO: need parallelism
-//        assert(!base_type::range().empty());
-        CHECK("----");
-        CHECK(*base_type::range().end());
-        CHECK("----");
-        CHECK(*base_type::range().begin());
-        CHECK("----");
+        assert(!base_type::range().empty());
+
         for (auto const &s: base_type::range())
         {
-            CHECK(s);
-//            op(f[s], /*mesh_type::calculus_policy::eval(base_type::mesh(), f, s)*/
-//               mesh_type::calculus_policy::eval(base_type::mesh(), std::forward<Args>(args), s)...);
+//            CHECK(base_type::mesh().hash(s));
+            op(f[s], /*mesh_type::calculus_policy::eval(base_type::mesh(), f, s)*/
+               mesh_type::calculus_policy::eval(base_type::mesh(), std::forward<Args>(args), s)...);
         }
 
     }
@@ -189,22 +188,7 @@ public:
 //    void accept(Args &&...args) { port_type::accept(std::forward<Args>(args)...); }
 
 
-}; // struct field
-
-namespace traits
-{
-template<typename ...> struct iform;
-
-//template<typename TV, typename TM, typename ...Others> struct mesh_type<Field<TV, TM, Others...> > { typedef TM type; };
-
-template<typename TV, typename ...Policies>
-struct value_type<Field<TV, Policies...>> { typedef TV type; };
-
-template<typename TV, typename TM, typename TFORM, typename ...Others>
-struct iform<Field<TV, TM, TFORM, Others...> > : public TFORM { };
-
-
-}// namespace traits
+};
 
 
 }//namespace simpla

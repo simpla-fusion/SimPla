@@ -98,6 +98,7 @@ public:
     typedef MeshEntityId id_type;
 
 public:
+    static constexpr int ndims = 3;
 
     Mesh() { }
 
@@ -105,6 +106,7 @@ public:
 
     virtual  ~Mesh() { }
 
+    void deploy() { }
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const
     {
@@ -126,15 +128,19 @@ public:
     virtual MeshEntityRange range(MeshEntityType entityType = VERTEX) const
     {
         MeshEntityRange res(MeshEntityIdCoder::make_range(m_lower_, m_upper_, entityType));
-        CHECK(m_lower_);
-        CHECK(m_upper_);
-        CHECK(res.end() - res.begin());
+
         return std::move(res);
     };
 
-    virtual size_t size(MeshEntityType entityType = VERTEX) const { max_hash(entityType); };
+    virtual size_t size(MeshEntityType entityType = VERTEX) const
+    {
+        return max_hash(entityType);
+    }
 
-    virtual size_t max_hash(MeshEntityType entityType = VERTEX) const { m::max_hash(m_lower_, m_upper_, entityType); };
+    virtual size_t max_hash(MeshEntityType entityType = VERTEX) const
+    {
+        return m::max_hash(m_lower_, m_upper_, entityType);
+    }
 
     virtual size_t hash(MeshEntityId const &s) const
     {
@@ -151,14 +157,18 @@ public:
 
     virtual std::shared_ptr<MeshBase> refine(box_type const &b, int flag = 0) const
     {
-
+        return std::shared_ptr<MeshBase>();
     }
+
+//================================================================================================
+    void dimensions(index_tuple const &dim) { m_dims_ = dim; }
 
 //================================================================================================
 // @name Coordinates dependent
 
 //    point_type epsilon() const { return EPSILON * m_from_topology_scale_; }
 
+    int sub_index(MeshEntityId const &s) const { return m::sub_index(s); }
 
     template<typename X0, typename X1>
     void box(X0 const &x0, X1 const &x1)

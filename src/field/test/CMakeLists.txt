@@ -30,15 +30,15 @@
 #                             )
 #target_link_libraries(cylindrical_test  io physics  parallel  utilities)
 simpla_test(field_basic_algebra_test field_basic_algebra_test.cpp)
-target_link_libraries(field_basic_algebra_test simpla_lib)
+target_link_libraries(field_basic_algebra_test base utilities)
 
 simpla_test(field_diff_calculus_cartesian_test field_diff_calculus_test.cpp)
 target_compile_options(field_diff_calculus_cartesian_test PUBLIC -DCARTESIAN_COORDINATE_SYSTEM)
-target_link_libraries(field_diff_calculus_cartesian_test simpla_lib)
+target_link_libraries(field_diff_calculus_cartesian_test base utilities )
 
 simpla_test(field_diff_calculus_cylindrical_test field_diff_calculus_test.cpp)
 target_compile_options(field_diff_calculus_cylindrical_test PUBLIC -DCYLINDRICAL_COORDINATE_SYSTEM)
-target_link_libraries(field_diff_calculus_cylindrical_test simpla_lib)
+target_link_libraries(field_diff_calculus_cylindrical_test base utilities)
 
 
 add_executable(field_dummy field_dummy.cpp)

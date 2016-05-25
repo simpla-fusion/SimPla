@@ -1,2 +1,2 @@
-add_library(mesh MeshBlock.cpp obsolete/MeshBlockStructured.cpp MeshAttribute.cpp)
+add_library(mesh MeshAttribute.cpp)
 target_link_libraries(mesh data_model)

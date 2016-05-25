@@ -26,8 +26,6 @@ int main(int argc, char **argv)
 
     auto block_id = res.first->uuid();
 
-    CHECK(hash_value(block_id));
-    CHECK(m.at(block_id)->box());
     auto f = m.make_attribute<field_type>();
 
     f.view(block_id);

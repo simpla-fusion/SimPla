@@ -10,10 +10,17 @@
 
 #pragma warning( disable : 1334)
 
-#define DECL_RET_TYPE(_EXPR_) ->decltype((_EXPR_)){return (_EXPR_);}
-
-#define ENABLE_IF_DECL_RET_TYPE(_COND_, _EXPR_) \
+#if __cplusplus < 201402L
+#   define DECL_RET_TYPE(_EXPR_) ->decltype((_EXPR_)){return (_EXPR_);}
+#   define ENABLE_IF_DECL_RET_TYPE(_COND_, _EXPR_) \
         ->typename std::enable_if<_COND_,decltype((_EXPR_))>::type {return (_EXPR_);}
+#else
+#   define DECL_RET_TYPE(_EXPR_) {return (_EXPR_);}
+#   define ENABLE_IF_DECL_RET_TYPE(_COND_, _EXPR_) \
+        ->  std::enable_if_t<_COND_,decltype((_EXPR_))>  {return (_EXPR_);}
+#endif
+
+
 
 /**
  * Count the number of arguments passed to MACRO, very carefully
