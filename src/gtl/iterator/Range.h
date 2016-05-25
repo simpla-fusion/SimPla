@@ -13,7 +13,14 @@ namespace simpla
 namespace tags
 {
 struct split { };
-struct proportional_split { int left, right; };
+
+struct proportional_split
+{
+    int m_left_ = 1, m_right_ = 1;
+
+    int left() const { return m_left_; }
+    int right() const { return m_right_; }
+};
 }
 
 namespace detail
@@ -54,8 +61,8 @@ public:
     Range_(Range_ &other, tags::proportional_split proportion) :
             m_begin_(other.m_begin_),
             m_end_(m_begin_ +
-                   ((other.m_end_ - other.m_begin_) * proportion.left)
-                   / (proportion.left + proportion.right)),
+                   ((other.m_end_ - other.m_begin_) * proportion.left())
+                   / (proportion.left() + proportion.right())),
             m_grain_size_(other.m_grain_size_)
     {
         other.m_begin_ = m_end_;

@@ -27,14 +27,11 @@ private:
 
     typedef IteratorBlock<TV, NDIMS> this_type;
 
-    static constexpr int ndims = NDIMS;
-
-    friend Range<this_type>;
-
     nTuple<TV, NDIMS> m_min_, m_max_, m_self_;
 
 
 public:
+    static constexpr int ndims = NDIMS;
 
     using typename base_type::value_type;
     using typename base_type::difference_type;

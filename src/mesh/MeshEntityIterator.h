@@ -9,14 +9,15 @@
 #include "Mesh.h"
 #include "../gtl/iterator/RandomAccessIterator.h"
 #include "../gtl/iterator/IteratorAdapter.h"
-#include "../gtl/iterator/Range.h"
+#include "../gtl/iterator/RangeAdapter.h"
 
 namespace simpla { namespace mesh
 {
 
 typedef IteratorAdapter<std::random_access_iterator_tag, MeshEntityId, MeshEntityIdDiff, MeshEntityId *, MeshEntityId> MeshEntityIterator;
 
-typedef Range<MeshEntityIterator> MeshEntityRange;
+
+typedef RangeAdapter<MeshEntityIterator> MeshEntityRange;
 
 }}//namespace simpla { namespace mesh {
 

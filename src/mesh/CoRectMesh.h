@@ -28,7 +28,7 @@ namespace tags { struct CoRectLinear; }
 
 template<typename ...> class Mesh;
 
-template<typename TMetric> using CoRectMesh=Mesh<tags::CoRectLinear>;
+typedef Mesh<tags::CoRectLinear> CoRectMesh;
 
 
 /**
@@ -75,11 +75,11 @@ public:
  */
 
 
-    point_type m_coords_lower_ = {0, 0, 0};
+    point_type m_coords_lower_{{0, 0, 0}};
 
-    point_type m_coords_upper_ = {1, 1, 1};
+    point_type m_coords_upper_{{1, 1, 1}};
 
-    vector_type m_dx_ = {1, 1, 1};; //!< width of cell, except m_dx_[i]=0 when m_dims_[i]==1
+    vector_type m_dx_{{1, 1, 1}}; //!< width of cell, except m_dx_[i]=0 when m_dims_[i]==1
 
     index_tuple m_dims_, m_shape_;
 
@@ -100,13 +100,13 @@ public:
     virtual std::ostream &print(std::ostream &os, int indent = 1) const
     {
 
-        os
-        << std::setw(indent) << "\tGeometry={" << std::endl
-        << std::setw(indent) << "\t\t Topology = { Type = \"RectMesh\",  }," << std::endl
-        << std::setw(indent) << "\t\t Box = {" << box() << "}," << std::endl
-        << std::setw(indent) << "\t\t Dimensions = " << dims() << "," << std::endl
-        << std::setw(indent) << "\t\t}, " << std::endl
-        << std::setw(indent) << "\t}" << std::endl;
+//        os
+//        << std::setw(indent) << "\tGeometry={" << std::endl
+//        << std::setw(indent) << "\t\t Topology = { Type = \"RectMesh\",  }," << std::endl
+//        << std::setw(indent) << "\t\t Box = {" << box() << "}," << std::endl
+//        << std::setw(indent) << "\t\t Dimensions = " << dims() << "," << std::endl
+//        << std::setw(indent) << "\t\t}, " << std::endl
+//        << std::setw(indent) << "\t}" << std::endl;
 
         return os;
     }
@@ -114,18 +114,21 @@ public:
 
     virtual box_type box() const { return box_type{m_coords_lower_, m_coords_upper_}; }
 
-    virtual MeshEntityRange range(MeshEntityType entityType = VERTEX) const = 0;
+    virtual MeshEntityRange range(MeshEntityType entityType = VERTEX) const
+    {
+        return MeshEntityRange(MeshEntityIdCoder::make_range(m_lower_, m_upper_, entityType));
+    };
 
     virtual size_t size(MeshEntityType entityType = VERTEX) const { max_hash(entityType); };
 
-    virtual size_t max_hash(MeshEntityType entityType = VERTEX) const = 0;
+    virtual size_t max_hash(MeshEntityType entityType = VERTEX) const { m::max_hash(m_lower_, m_upper_, entityType); };
 
     virtual size_t hash(MeshEntityId const &s) const
     {
         return static_cast<size_t>(m::hash(s, m_lower_, m_upper_));
     }
 
-    virtual point_type point(MeshEntityId const &) const = 0;
+    virtual point_type point(MeshEntityId const &s) const { return m::point(s); }
 
     virtual int get_adjacent_entities(MeshEntityId const &s, MeshEntityType entity_type,
                                       MeshEntityId *p = nullptr) const
@@ -133,7 +136,7 @@ public:
         return m::get_adjacent_entities(s, entity_type, entity_type, p);
     }
 
-    virtual std::shared_ptr<this_type> refine(box_type const &b, int flag = 0) const
+    virtual std::shared_ptr<MeshBase> refine(box_type const &b, int flag = 0) const
     {
 
     }
@@ -289,6 +292,12 @@ public:
 //    }
 
 
+    struct calculus_policy
+    {
+        template<typename TF, typename ...Args>
+        static traits::value_type_t<TF> eval(this_type const &, TF const &,
+                                             Args &&...args) { return traits::value_type_t<TF>(); }
+    };
 }; // struct  Mesh
 }} // namespace simpla // namespace mesh
 

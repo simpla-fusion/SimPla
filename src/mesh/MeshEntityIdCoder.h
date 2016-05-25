@@ -1,5 +1,5 @@
 /**
- * @file MeshEntityIdCoder.h
+ * @file MeshEntityIdCoder_.h
  *
  * @date 2015-3-19
  * @author salmon
@@ -58,8 +58,8 @@ namespace simpla { namespace mesh
  *  @note different mesh should use different 'code and hash ruler'  -- salmon. 2016.5.24
  */
 
-
-struct MeshEntityIdCoder
+template<int LEVEL = 4>
+struct MeshEntityIdCoder_
 {
     /// @name level independent
     /// @{
@@ -68,7 +68,7 @@ struct MeshEntityIdCoder
     static constexpr int ndims = 3;
     static constexpr int MESH_RESOLUTION = 1;
 
-    typedef MeshEntityIdCoder this_type;
+    typedef MeshEntityIdCoder_ this_type;
 
     typedef std::uint64_t id_type;
 
@@ -210,7 +210,7 @@ struct MeshEntityIdCoder
 
     }
 
-    template<size_t IFORM>
+    template<int IFORM>
     static constexpr int sub_index_to_id(int n = 0)
     {
         return m_sub_index_to_id_[IFORM][n];
@@ -739,12 +739,12 @@ struct MeshEntityIdCoder
 
             };
 
-    static int get_adjacent_cells(size_t IFORM, id_type s, id_type *res = nullptr)
+    static int get_adjacent_entities(int IFORM, id_type s, id_type *res = nullptr)
     {
         return get_adjacent_entities(IFORM, node_id(s), s, res);
     }
 
-    static int get_adjacent_entities(size_t IFORM, size_t nodeid, id_type s, id_type *res = nullptr)
+    static int get_adjacent_entities(int IFORM, int nodeid, id_type s, id_type *res = nullptr)
     {
         if (res != nullptr)
         {
@@ -757,10 +757,10 @@ struct MeshEntityIdCoder
         return m_adjacent_cell_num_[IFORM][nodeid];
     }
 
-    struct iterator : public gtl::IteratorBlock<index_type, ndims + 1>
+    struct iterator : public gtl::IteratorBlock<index_type, 3 + 1>
     {
     private:
-        typedef gtl::IteratorBlock<index_type, ndims + 1> base_type;
+        typedef gtl::IteratorBlock<index_type, 3 + 1> base_type;
 
         int m_iform_;
 
@@ -893,7 +893,7 @@ struct MeshEntityIdCoder
         }
 
 
-        range_type(range_type &r, parallel::tags::split)
+        range_type(range_type &r, tags::split)
                 : m_iform_(r.m_iform_), m_min_(r.m_min_), m_max_(r.m_max_), m_grain_size_(r.m_grain_size_)
         {
 
@@ -916,7 +916,7 @@ struct MeshEntityIdCoder
         }
 
 
-        range_type(this_type &r, parallel::tags::proportional_split const &proportion)
+        range_type(this_type &r, tags::proportional_split const &proportion)
         {
             int n = 0;
             index_type L = m_max_[0] - m_min_[0];
@@ -1054,11 +1054,18 @@ struct MeshEntityIdCoder
 //
 //    }
 
-    template<size_t IFORM>
+    template<int IFORM>
     static constexpr size_t max_hash(id_type b, id_type e)
     {
         return NProduct(unpack_index((e - b)))
                * m_id_to_num_of_ele_in_cell_[sub_index_to_id<IFORM>(0)];
+    }
+
+
+    static constexpr size_t max_hash(index_tuple const &b, index_tuple const &e, int IFORM)
+    {
+        return NProduct((e - b))
+               * m_id_to_num_of_ele_in_cell_[m_sub_index_to_id_[IFORM][0]];
     }
 
     template<typename TGeometry>
@@ -1228,30 +1235,31 @@ struct MeshEntityIdCoder
  * http://stackoverflow.com/questions/22172789/passing-a-static-constexpr-variable-by-universal-reference
  */
 
-template<int L> constexpr int MeshEntityIdCoder<L>::ndims;
-template<int L> constexpr int MeshEntityIdCoder<L>::MESH_RESOLUTION;
-template<int L> constexpr Real MeshEntityIdCoder<L>::EPSILON;
-template<int L> constexpr int MeshEntityIdCoder<L>::FULL_DIGITS;
-template<int L> constexpr int MeshEntityIdCoder<L>::ID_DIGITS;
-template<int L> constexpr typename MeshEntityIdCoder<L>::id_type MeshEntityIdCoder<L>::OVERFLOW_FLAG;
-template<int L> constexpr typename MeshEntityIdCoder<L>::id_type MeshEntityIdCoder<L>::ID_ZERO;
-template<int L> constexpr typename MeshEntityIdCoder<L>::id_type MeshEntityIdCoder<L>::INDEX_ZERO;
-template<int L> constexpr typename MeshEntityIdCoder<L>::id_type MeshEntityIdCoder<L>::ID_MASK;
+template<int L> constexpr int MeshEntityIdCoder_<L>::ndims;
+template<int L> constexpr int MeshEntityIdCoder_<L>::MESH_RESOLUTION;
+template<int L> constexpr Real MeshEntityIdCoder_<L>::EPSILON;
+template<int L> constexpr int MeshEntityIdCoder_<L>::FULL_DIGITS;
+template<int L> constexpr int MeshEntityIdCoder_<L>::ID_DIGITS;
+template<int L> constexpr typename MeshEntityIdCoder_<L>::id_type MeshEntityIdCoder_<L>::OVERFLOW_FLAG;
+template<int L> constexpr typename MeshEntityIdCoder_<L>::id_type MeshEntityIdCoder_<L>::ID_ZERO;
+template<int L> constexpr typename MeshEntityIdCoder_<L>::id_type MeshEntityIdCoder_<L>::INDEX_ZERO;
+template<int L> constexpr typename MeshEntityIdCoder_<L>::id_type MeshEntityIdCoder_<L>::ID_MASK;
 
-template<int L> constexpr Real MeshEntityIdCoder<L>::_R;
-template<int L> constexpr typename MeshEntityIdCoder<L>::id_type MeshEntityIdCoder<L>::_DK;
-template<int L> constexpr typename MeshEntityIdCoder<L>::id_type MeshEntityIdCoder<L>::_DJ;
-template<int L> constexpr typename MeshEntityIdCoder<L>::id_type MeshEntityIdCoder<L>::_DI;
-template<int L> constexpr typename MeshEntityIdCoder<L>::id_type MeshEntityIdCoder<L>::_DA;
-template<int L> constexpr int MeshEntityIdCoder<L>::m_id_to_index_[];
-template<int L> constexpr int MeshEntityIdCoder<L>::m_id_to_iform_[];
-template<int L> constexpr int MeshEntityIdCoder<L>::m_id_to_num_of_ele_in_cell_[];
-template<int L> constexpr int MeshEntityIdCoder<L>::m_adjacent_cell_num_[4][8];
-template<int L> constexpr typename MeshEntityIdCoder<L>::id_type MeshEntityIdCoder<L>::m_id_to_shift_[];
-template<int L> constexpr int MeshEntityIdCoder<L>::m_sub_index_to_id_[4][3];
-template<int L> constexpr typename MeshEntityIdCoder<L>::id_type MeshEntityIdCoder<L>::m_adjacent_cell_matrix_[4/* to iform*/][NUM_OF_NODE_ID/* node id*/][MAX_NUM_OF_ADJACENT_CELL/*id shift*/];
-template<int L> constexpr typename MeshEntityIdCoder<L>::point_type MeshEntityIdCoder<L>::m_id_to_coordinates_shift_[];
+template<int L> constexpr Real MeshEntityIdCoder_<L>::_R;
+template<int L> constexpr typename MeshEntityIdCoder_<L>::id_type MeshEntityIdCoder_<L>::_DK;
+template<int L> constexpr typename MeshEntityIdCoder_<L>::id_type MeshEntityIdCoder_<L>::_DJ;
+template<int L> constexpr typename MeshEntityIdCoder_<L>::id_type MeshEntityIdCoder_<L>::_DI;
+template<int L> constexpr typename MeshEntityIdCoder_<L>::id_type MeshEntityIdCoder_<L>::_DA;
+template<int L> constexpr int MeshEntityIdCoder_<L>::m_id_to_index_[];
+template<int L> constexpr int MeshEntityIdCoder_<L>::m_id_to_iform_[];
+template<int L> constexpr int MeshEntityIdCoder_<L>::m_id_to_num_of_ele_in_cell_[];
+template<int L> constexpr int MeshEntityIdCoder_<L>::m_adjacent_cell_num_[4][8];
+template<int L> constexpr typename MeshEntityIdCoder_<L>::id_type MeshEntityIdCoder_<L>::m_id_to_shift_[];
+template<int L> constexpr int MeshEntityIdCoder_<L>::m_sub_index_to_id_[4][3];
+template<int L> constexpr id_type MeshEntityIdCoder_<L>::m_adjacent_cell_matrix_[4/* to iform*/][NUM_OF_NODE_ID/* node id*/][MAX_NUM_OF_ADJACENT_CELL/*id shift*/];
+template<int L> constexpr point_type MeshEntityIdCoder_<L>::m_id_to_coordinates_shift_[];
 
+typedef MeshEntityIdCoder_<> MeshEntityIdCoder;
 }//namespace  mesh
 }// namespace simpla
 

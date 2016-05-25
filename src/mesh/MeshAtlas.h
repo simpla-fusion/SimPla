@@ -98,14 +98,15 @@ public:
         return m_max_level_;
     }
 
-
-    MeshBlockId add(box_type const &b, int level = 0)
+    template<typename TM, typename ...Args>
+    std::pair<std::shared_ptr<TM>, MeshBlockId> add(Args &&...args)
     {
-        m_max_level_ = std::max(m_max_level_, level);
-//        MeshBlockId uuid = get_id();
-//        m_mesh_atlas_.emplace(std::make_pair(uuid, ptr));
-        UNIMPLEMENTED;
-        return 0;
+//        m_max_level_ = std::max(m_max_level_, level);
+        auto ptr = std::make_shared<TM>(std::forward<Args>(args)...);
+        MeshBlockId uuid = ptr->uuid();
+        m_mesh_atlas_.emplace(std::make_pair(uuid, std::dynamic_pointer_cast<MeshBase>(ptr)));
+
+        return std::make_pair(ptr, uuid);
     };
 
     void remove(MeshBlockId const &id)

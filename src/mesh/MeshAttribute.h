@@ -52,14 +52,16 @@ public:
 
 
     /** register MeshBlockId to attribute data collection.  */
-    virtual bool add(MeshBlockId) = 0;
+    virtual bool add(MeshBlockId const &) = 0;
 
     /** remove MeshBlockId from attribute data collection.  */
-    virtual void remove(MeshBlockId) = 0;
+    virtual void remove(MeshBlockId const &) = 0;
 
     struct View
     {
-        View(MeshBlockId m_id = 0) : m_id_(m_id) { }
+        View() { }
+
+        View(MeshBlockId const &m_id) : m_id_(m_id) { }
 
         View(View const &other) : m_id_(other.m_id_) { }
 
@@ -81,14 +83,14 @@ public:
 
         virtual MeshEntityRange &range() = 0;
 
-        MeshBlockId block_id() const { return m_id_; }
+        MeshBlockId const &block_id() const { return m_id_; }
 
     private:
         MeshBlockId m_id_;
 
     };
 
-    virtual std::shared_ptr<View> view_(MeshBlockId id) = 0;
+    virtual std::shared_ptr<View> view_(MeshBlockId const &id) = 0;
 
 
 protected:
@@ -154,7 +156,7 @@ public:
 
 
     /** register MeshBlockId to attribute data collection.  */
-    virtual bool add(MeshBlockId m_id)
+    virtual bool add(MeshBlockId const &m_id)
     {
 
 
@@ -173,7 +175,7 @@ public:
     };
 
     /** remove MeshBlockId from attribute data collection.  */
-    virtual void remove(MeshBlockId m_id) { m_data_collection_.erase(m_id); };
+    virtual void remove(MeshBlockId const &m_id) { m_data_collection_.erase(m_id); };
 
 private:
 
@@ -188,8 +190,11 @@ public:
         typedef typename MeshAttributeBase::View base_type;
         typedef mesh_attribute_type host_type;
 
-        View(MeshBlockId id = 0, mesh_type const *m = nullptr, value_type *d = nullptr)
-                : base_type(id), m_mesh_(m), m_data_(d), m_range_(m->range(IEntityType)) { };
+        View() { }
+
+        View(MeshBlockId const &id, mesh_type const *m = nullptr, value_type *d = nullptr)
+                : base_type(id), m_mesh_(m), m_data_(d),
+                  m_range_(m->range(static_cast<MeshEntityType>(IEntityType))) { };
 
         View(View const &other) : base_type(other), m_mesh_(other.m_mesh_), m_data_(other.m_data_),
                                   m_range_(other.m_range_) { }
@@ -233,18 +238,18 @@ public:
     };
 
 
-    View view(MeshBlockId m_id = 0)
+    View view(MeshBlockId const &id)
     {
-        if (m_id == 0) { m_id = m_atlas_.root(); }
+        MeshBlockId m_id = (id.is_nil()) ? m_atlas_.root() : id;
         add(m_id);
 
         return View(m_id, m_atlas_.template at<mesh_type>(m_id), m_data_collection_[m_id].get());
     }
 
-    virtual std::shared_ptr<MeshAttributeBase::View> view_(MeshBlockId m_id = 0)
+    virtual std::shared_ptr<MeshAttributeBase::View> view_(MeshBlockId const &id)
     {
+        MeshBlockId m_id = (id.is_nil()) ? m_atlas_.root() : id;
 
-        if (m_id == 0) { m_id = m_atlas_.root(); }
         add(m_id);
 
         return std::dynamic_pointer_cast<MeshAttributeBase::View>(

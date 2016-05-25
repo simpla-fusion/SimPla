@@ -8,6 +8,7 @@
 #define SIMPLA_MESH_H
 
 //#include "../gtl/type_traits.h"
+#include <boost/uuid/uuid.hpp>
 #include "../gtl/primitives.h"
 #include "../gtl/nTuple.h"
 
@@ -67,10 +68,9 @@ typedef unsigned long MeshEntityId;
 
 typedef long MeshEntityIdDiff;
 
-typedef unsigned long MeshBlockId;
+typedef boost::uuids::uuid MeshBlockId;
 
 class MeshBase;
-
 
 class MeshAtlas;
 
