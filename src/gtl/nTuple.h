@@ -270,6 +270,24 @@ public:
         return std::move(res);
     }
 
+private:
+    template<typename TL, typename TR, TR I0, TR...I>
+    void assign(TL &l, integer_sequence<TR, I0, I...>)
+    {
+        data_[N - sizeof...(I) - 1] = I0;
+        assign(l, integer_sequence<TR, I...>());
+    };
+
+
+    template<typename TL, typename TR> void assign(TL &l, integer_sequence<TR>) { };
+
+public:
+    template<typename TR, TR...I> inline this_type &
+    operator=(integer_sequence<TR, I...> const &rhs)
+    {
+        assign(data_, rhs);
+        return (*this);
+    }
 //    template<typename T>
 //    bool operator==(T const &other) const
 //    {

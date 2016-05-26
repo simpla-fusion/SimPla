@@ -33,7 +33,7 @@ struct Expression<TOP, Args...>
 {
     typedef Expression<TOP, Args...> this_type;
 
-    typename std::tuple<traits::reference_t < Args> ...>     args;
+    typename std::tuple<traits::reference_t<Args> ...> args;
 
     TOP m_op_;
 
@@ -659,38 +659,20 @@ operator+(Zero const &, TE const &e)
 }
 
 template<typename TE> inline TE const &
-operator-(TE const &e, Zero const &)
-{
-    return (e);
-}
+operator-(TE const &e, Zero const &) { return (e); }
 
 //template<typename TE> inline auto operator -(Zero const &, TE const &e)
 //DECL_RET_TYPE (((-e)))
 
-inline Zero operator+(Zero const &, Zero const &e)
-{
-    return (Zero());
-}
+inline Zero operator+(Zero const &, Zero const &e) { return (Zero()); }
 
-template<typename TE> inline TE const &operator*(TE const &e, One const &)
-{
-    return (e);
-}
+template<typename TE> inline TE const &operator*(TE const &e, One const &) { return (e); }
 
-template<typename TE> inline TE const &operator*(One const &, TE const &e)
-{
-    return (e);
-}
+template<typename TE> inline TE const &operator*(One const &, TE const &e) { return (e); }
 
-template<typename TE> inline Zero operator*(TE const &, Zero const &)
-{
-    return (Zero());
-}
+template<typename TE> inline Zero operator*(TE const &, Zero const &) { return (Zero()); }
 
-template<typename TE> inline Zero operator*(Zero const &, TE const &)
-{
-    return (Zero());
-}
+template<typename TE> inline Zero operator*(Zero const &, TE const &) { return (Zero()); }
 
 template<typename TE> inline Infinity operator/(TE const &e, Zero const &)
 {

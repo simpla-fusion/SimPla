@@ -34,25 +34,25 @@ protected:
         c = 4;
         d = 7;
 
-        DIMENSIONS = extents::value;
+        DIMENSIONS = extents();
 
-//        mpl::seq_for_each(extents(),
-//
-//                          [&](size_t const idx[traits::extent<extents>::value])
-//                          {
-//                              traits::index(aA, idx) = idx[0] * 2;
-//                              traits::index(aB, idx) = 5 - idx[0];
-//                              traits::index(aC, idx) = idx[0] * 5 + 1;
-//                              traits::index(aD, idx) = 0;
-//                              traits::index(vA, idx) = traits::index(aA, idx);
-//                              traits::index(vB, idx) = traits::index(aB, idx);
-//                              traits::index(vC, idx) = traits::index(aC, idx);
-//                              traits::index(vD, idx) = 0;
-//
-//                              traits::index(res, idx) = -(traits::index(aA, idx) + a) /
-//                                                        (traits::index(aB, idx) * b - c) - traits::index(aC, idx);
-//
-//                          });
+        mpl::seq_for_each(extents(),
+
+                          [&](size_t const idx[traits::extent<extents>::value])
+                          {
+                              traits::index(aA, idx) = idx[0] * 2;
+                              traits::index(aB, idx) = 5 - idx[0];
+                              traits::index(aC, idx) = idx[0] * 5 + 1;
+                              traits::index(aD, idx) = 0;
+                              traits::index(vA, idx) = traits::index(aA, idx);
+                              traits::index(vB, idx) = traits::index(aB, idx);
+                              traits::index(vC, idx) = traits::index(aC, idx);
+                              traits::index(vD, idx) = 0;
+
+                              traits::index(res, idx) = -(traits::index(aA, idx) + a) /
+                                                        (traits::index(aB, idx) * b - c) - traits::index(aC, idx);
+
+                          });
 
         num_of_loops = 1000000L;
     }
