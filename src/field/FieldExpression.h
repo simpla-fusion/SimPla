@@ -17,7 +17,8 @@
 #include "../gtl/ExpressionTemplate.h"
 #include "../gtl/type_traits.h"
 
-namespace simpla {
+namespace simpla
+{
 /** @addtogroup field
  *  @{
  */
@@ -53,15 +54,9 @@ template<typename> struct value_type;
 template<typename> struct field_value_type;
 
 template<typename TOP, typename ...T>
-struct value_type<Field<BooleanExpression<TOP, T...> > >
-{
-    typedef bool type;
-};
+struct value_type<Field<BooleanExpression<TOP, T...> > > { typedef bool type; };
 template<typename TOP, typename ...T>
-struct field_value_type<Field<BooleanExpression<TOP, T...> > >
-{
-    typedef bool type;
-};
+struct field_value_type<Field<BooleanExpression<TOP, T...> > > { typedef bool type; };
 
 template<typename TOP, typename ...T>
 struct value_type<Field<Expression<TOP, T...> > >
@@ -69,28 +64,13 @@ struct value_type<Field<Expression<TOP, T...> > >
     typedef result_of_t<TOP(typename value_type<T>::type ...)> type;
 };
 
-//namespace _impl
-//{
-//template<typename ...T> struct first_field;
-//
-//template<typename ...T> using first_field_t=typename first_field<T...>::type;
-//
-//template<typename T0> struct first_field<T0>
-//{
-//	typedef domain_t<T0> type;
-//};
-//template<typename T0, typename ...T> struct first_field<T0, T...>
-//{
-//	typedef typename std::conditional<is_field<T0>::value, T0,
-//			first_field_t<T...> >::type type;
-//};
-//
-//}  // namespace _impl
 
 template<typename TAG, typename T0, typename ... T>
 struct iform<Field<Expression<TAG, T0, T...> > > : public traits::iform<T0>::type
 {
 };
+
+template<typename T, int IFORM> using iform_is_t=std::enable_if_t<iform<T>::value == IFORM>;
 }  // namespace traits
 
 template<typename ...> struct AssignmentExpression;

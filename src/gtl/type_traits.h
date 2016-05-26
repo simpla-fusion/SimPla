@@ -28,7 +28,7 @@ struct EmptyType { };
 
 namespace tags { struct do_nothing { template<typename ...Args> void operator()(Args &&...) const { }}; }
 
-template<int I> using IConst=std::integral_constant<int, I>;
+template<int I> using I_const=std::integral_constant<int, I>;
 
 template<typename _Tp, _Tp ... _I> struct integer_sequence;
 template<typename, int...> struct nTuple;
@@ -76,6 +76,7 @@ public:
     }
 
 };
+
 
 namespace traits
 {

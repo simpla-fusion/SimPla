@@ -33,7 +33,8 @@ struct Expression<TOP, Args...>
 {
     typedef Expression<TOP, Args...> this_type;
 
-    typename std::tuple<traits::reference_t<Args> ...> args;
+    typename std::tuple<traits::reference_t < Args> ...>
+    args;
 
     TOP m_op_;
 
@@ -119,7 +120,9 @@ struct AssignmentExpression<TOP, TL, TR>
 
     template<typename IndexType>
     inline auto operator[](IndexType const &s) const
-    DECL_RET_TYPE ((op_(traits::index(lhs, s), traits::index(rhs, s))))
+    {
+        return ((op_(traits::index(lhs, s), traits::index(rhs, s))));
+    }
 //			DECL_RET_TYPE ((op_( lhs, rhs, s )))
 
 };
@@ -711,12 +714,10 @@ template<typename TE> inline Infinity operator/(Infinity const &, TE const &e)
 }
 
 template<typename TL> inline auto   //
-operator==(TL const &lhs, Zero)
-DECL_RET_TYPE ((lhs))
+operator==(TL const &lhs, Zero) DECL_RET_TYPE ((lhs))
 
 template<typename TR> inline auto   //
-operator==(Zero, TR const &rhs)
-DECL_RET_TYPE ((rhs))
+operator==(Zero, TR const &rhs) DECL_RET_TYPE ((rhs))
 
 constexpr Identity operator&(Identity, Identity)
 {

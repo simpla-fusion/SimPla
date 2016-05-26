@@ -8,18 +8,21 @@
 #include <type_traits>
 
 
-template<typename T>
-inline std::enable_if_t<std::is_same<std::remove_cv_t<T>, double>::value, auto> check(T const &f)
+//namespace traits{
+template<typename T> auto
+check(T const &f, typename std::enable_if<std::is_arithmetic<T>::value>::type *p = nullptr)
 {
-    return "this is double";
+    return "  is primary value";
 }
-//
-//template<typename T>
-//inline auto check(T const &f,
-//                  std::enable_if_t<std::is_same<std::remove_cv_t<T>, int>::value, void> _t = std::enable_if_t<std::is_same<std::remove_cv_t<T>, int>::value, void>())
-//{
-//    return "this is int";
-//}
+
+template<typename T> auto
+check(T const &f, typename std::enable_if<!std::is_arithmetic<T>::value>::type *p = nullptr)
+{
+    return "  is not primary value";
+}
+
+
+struct Foo { };
 
 
 int main()
@@ -27,7 +30,10 @@ int main()
     double a;
     int b;
 
-    std::cout << "a is " << check(a) << std::endl;
-    std::cout << "b is " << check(b) << std::endl;
+    Foo foo;
+
+    std::cout << "a   " << check(a) << std::endl;
+    std::cout << "b   " << check(b) << std::endl;
+    std::cout << "foo   " << check(foo) << std::endl;
 
 }

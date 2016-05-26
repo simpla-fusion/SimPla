@@ -16,6 +16,8 @@
 #include "../../gtl/macro.h"
 #include "../../gtl/primitives.h"
 #include "../../gtl/type_traits.h"
+#include "../../gtl/ExpressionTemplate.h"
+
 #include "../Calculus.h"
 #include "../ManifoldTraits.h"
 
@@ -30,122 +32,81 @@ template<typename _Tp, _Tp...> class integer_sequence;
 
 template<typename T, int ...> class nTuple;
 
+
 }
 namespace simpla { namespace manifold { namespace policy
 {
-using simpla::mesh;
+using namespace simpla::mesh;
 
-#define DECLARE_FUNCTION_PREFIX inline static
-#define DECLARE_FUNCTION_SUFFIX /*const*/
 
 namespace ct=calculus::tags;
+namespace st=simpla::traits;
+
 
 /**
  * @ingroup diff_scheme
  *
  * finite volume
  */
+template<typename TM>
 struct FiniteVolume
 {
-private:
-
-
-    typedef FiniteVolume this_type;
-
-
 public:
-    typedef this_type calculus_policy;
-
+    typedef FiniteVolume<TM> calculus_policy;
 
 private:
+
+    typedef TM mesh_type;
+
+    typedef FiniteVolume<TM> this_type;
+
+
     ///***************************************************************************************************
     /// @name general_algebra General algebra
     /// @{
     ///***************************************************************************************************
 
 
-    template<typename M> DECLARE_FUNCTION_PREFIX constexpr Real
-    eval_(M const &m, Real v, typename M::id_type s) DECLARE_FUNCTION_SUFFIX
-    {
-        return v;
-    }
+    template<typename T> inline constexpr auto
+    eval_(T const v, id_type s, st::is_primary_t<T> *_p = nullptr) const { return v; }
 
-    template<typename M> DECLARE_FUNCTION_PREFIX constexpr int
-    eval_(M const &m, int v, typename M::id_type s) DECLARE_FUNCTION_SUFFIX
-    {
-        return v;
-    }
 
-    template<typename M> DECLARE_FUNCTION_PREFIX constexpr std::complex<Real>
-    eval_(M const &m, std::complex<Real> v, typename M::id_type s) DECLARE_FUNCTION_SUFFIX
+    template<typename T> inline constexpr auto
+    eval_(T const &v, id_type s, st::is_expression_ntuple_t<T> *_p = nullptr) const
     {
-        return v;
-    }
-
-    template<typename M, typename T, int ...N>
-    DECLARE_FUNCTION_PREFIX constexpr nTuple<T, N...> const &
-    eval_(M const &m, nTuple<T, N...> const &v, typename M::id_type s) DECLARE_FUNCTION_SUFFIX
-    {
-        return v;
-    }
-
-    template<typename M, typename ...T>
-    DECLARE_FUNCTION_PREFIX traits::primary_type_t <nTuple<Expression<T...>>>
-    eval_(M const &m, nTuple<Expression<T...>> const &v, typename M::id_type s) DECLARE_FUNCTION_SUFFIX
-    {
-        traits::primary_type_t<nTuple<Expression<T...> > > res;
+        traits::primary_type_t<T> res;
         res = v;
         return std::move(res);
     }
 
-    template<typename M, typename TV, typename ... Others>
-    DECLARE_FUNCTION_PREFIX constexpr TV
-    eval_(M const &m, Field<TV, M, Others...> const &f, typename M::id_type s) DECLARE_FUNCTION_SUFFIX
-    {
-        return f[s];
-    }
+    template<typename T> inline constexpr auto
+    eval_(T const &f, id_type s, st::is_primary_field_t<T> *_p = nullptr) const { return f[s]; }
 
-    template<typename M, typename TV, typename ... Others>
-    DECLARE_FUNCTION_PREFIX constexpr TV &
-    eval_(M const &m, Field<TV, M, Others...> &f, typename M::id_type s) DECLARE_FUNCTION_SUFFIX
-    {
-        return f[s];
-    }
+    template<typename T> inline constexpr auto
+    eval_(T &f, id_type s, st::is_primary_field_t<T> *_p = nullptr) const { return f[s]; }
 
 
-    template<typename M, typename FExpr>
-    DECLARE_FUNCTION_PREFIX constexpr traits::value_type_t <FExpr>
-    get_v(M const &m, FExpr const &f, typename M::id_type const s) DECLARE_FUNCTION_SUFFIX
-    {
-        return eval_(m, f, s) * m.volume(s);
-    }
+    template<typename T> inline constexpr auto
+    get_v(T const &f, id_type s, st::is_field_t<T> *_p = nullptr) const { return eval_(f, s) * m_.volume(s); }
 
-    template<typename M, typename FExpr>
-    DECLARE_FUNCTION_PREFIX constexpr traits::value_type_t <FExpr>
-    get_d(M const &m, FExpr const &f, typename M::id_type const s) DECLARE_FUNCTION_SUFFIX
-    {
-        return eval_(m, f, s) * m.dual_volume(s);
-    }
+    template<typename T> inline constexpr auto
+    get_d(T const &f, id_type s, st::is_field_t<T> *_p = nullptr) const { return eval_(f, s) * m_.dual_volume(s); }
 
 
-    template<typename M, typename ...T, int ... index>
-    DECLARE_FUNCTION_PREFIX traits::primary_type_t <traits::value_type_t<Field<Expression<T...> >>>
-    _invoke_helper(M const &m, Field<Expression<T...> > const &expr, typename M::id_type s,
-                   index_sequence<index...>) DECLARE_FUNCTION_SUFFIX
+    template<typename ...T, int ... index> inline auto
+    _invoke_helper(Field<Expression<T...> > const &expr, id_type s, index_sequence<index...>) const
     {
         traits::primary_type_t<traits::value_type_t<Field<Expression<T...> >>> res =
-                (expr.m_op_(eval_(m, std::get<index>(expr.args), s)...));
+                (expr.m_op_(eval_(std::get<index>(expr.args), s)...));
 
         return std::move(res);
     }
 
 
-    template<typename M, typename TOP, typename ... T>
-    DECLARE_FUNCTION_PREFIX constexpr traits::primary_type_t <traits::value_type_t<Field<Expression<TOP, T...> >>>
-    eval_(M const &m, Field<Expression<TOP, T...> > const &expr, typename M::id_type const &s,
-          traits::iform_list_t<T...>) DECLARE_FUNCTION_SUFFIX
+    template<typename TOP, typename ... T> inline constexpr auto
+    eval_(Field<Expression<TOP, T...> > const &expr, id_type const &s, traits::iform_list_t<T...>) const
     {
-        return _invoke_helper(m, expr, s, typename make_index_sequence<sizeof...(T)>::type());
+        return _invoke_helper(expr, s, typename make_index_sequence<sizeof...(T)>::type());
     }
 
     //***************************************************************************************************
@@ -153,119 +114,95 @@ private:
     //***************************************************************************************************
 
     //! grad<0>
-    template<typename M, typename T>
-    DECLARE_FUNCTION_PREFIX traits::value_type_t <Field<Expression<ct::ExteriorDerivative, T>>>
-    eval_(M const &m, Field<Expression<ct::ExteriorDerivative, T> > const &f,
-          typename M::id_type s, ::simpla::integer_sequence<int, mesh::VERTEX>) DECLARE_FUNCTION_SUFFIX
+    template<typename T> inline auto
+    eval_(Field<Expression<ct::ExteriorDerivative, T> > const &f, id_type s, index_sequence<VERTEX>) const
     {
-        typename M::id_type D = M::delta_index(s);
-
-
-        return (get_v(m, std::get<0>(f.args), s + D) - get_v(m, std::get<0>(f.args), s - D))
-               * m.inv_volume(s);
-
-
+        id_type D = mesh_type::delta_index(s);
+        return (get_v(std::get<0>(f.args), s + D) - get_v(std::get<0>(f.args), s - D)) * m_.inv_volume(s);
     }
 
 
     //! curl<1>
-    template<typename M, typename T>
-    DECLARE_FUNCTION_PREFIX traits::value_type_t <Field<Expression<ct::ExteriorDerivative, T>>>
-    eval_(M const &m, Field<Expression<ct::ExteriorDerivative, T> > const &expr,
-          typename M::id_type s, ::simpla::integer_sequence<int, EDGE>) DECLARE_FUNCTION_SUFFIX
+    template<typename T> inline auto
+    eval_(Field<Expression<ct::ExteriorDerivative, T> > const &expr, id_type s, index_sequence<EDGE>) const
     {
 
-        typename M::id_type X = M::delta_index(M::dual(s));
-        typename M::id_type Y = M::rotate(X);
-        typename M::id_type Z = M::inverse_rotate(X);
+        id_type X = mesh_type::delta_index(mesh_type::dual(s));
+        id_type Y = mesh_type::rotate(X);
+        id_type Z = mesh_type::inverse_rotate(X);
 
 
-        return (
-                       (get_v(m, std::get<0>(expr.args), s + Y)
-                        - get_v(m, std::get<0>(expr.args), s - Y))
-
-                       - (get_v(m, std::get<0>(expr.args), s + Z)
-                          - get_v(m, std::get<0>(expr.args), s - Z))
-
-               ) * m.inv_volume(s);
+        return ((get_v(std::get<0>(expr.args), s + Y) - get_v(std::get<0>(expr.args), s - Y))
+                - (get_v(std::get<0>(expr.args), s + Z) - get_v(std::get<0>(expr.args), s - Z))
+               ) * m_.inv_volume(s);
 
 
     }
 
     //! div<2>
-    template<typename M, typename T>
-    constexpr DECLARE_FUNCTION_PREFIX traits::value_type_t <Field<Expression<ct::ExteriorDerivative, T>>>
-    eval_(M const &m, Field<Expression<ct::ExteriorDerivative, T> > const &expr,
-          typename M::id_type s, ::simpla::integer_sequence<int, FACE>) DECLARE_FUNCTION_SUFFIX
+    template<typename T> inline constexpr auto
+    eval_(Field<Expression<ct::ExteriorDerivative, T> > const &expr, id_type s, index_sequence<FACE>) const
     {
 
-        return (get_v(m, std::get<0>(expr.args), s + M::_DI)
+        return (get_v(std::get<0>(expr.args), s + mesh_type::_DI)
 
-                - get_v(m, std::get<0>(expr.args), s - M::_DI)
+                - get_v(std::get<0>(expr.args), s - mesh_type::_DI)
 
-                + get_v(m, std::get<0>(expr.args), s + M::_DJ)
+                + get_v(std::get<0>(expr.args), s + mesh_type::_DJ)
 
-                - get_v(m, std::get<0>(expr.args), s - M::_DJ)
+                - get_v(std::get<0>(expr.args), s - mesh_type::_DJ)
 
-                + get_v(m, std::get<0>(expr.args), s + M::_DK)
+                + get_v(std::get<0>(expr.args), s + mesh_type::_DK)
 
-                - get_v(m, std::get<0>(expr.args), s - M::_DK)
+                - get_v(std::get<0>(expr.args), s - mesh_type::_DK)
 
 
-               ) * m.inv_volume(s);
+               ) * m_.inv_volume(s);
 
     }
 
 
     //! div<1>
-    template<typename M, typename T>
-    constexpr DECLARE_FUNCTION_PREFIX traits::value_type_t <Field<Expression<ct::CodifferentialDerivative, T>>>
-    eval_(M const &m, Field<Expression<ct::CodifferentialDerivative, T>> const &expr,
-          typename M::id_type s, ::simpla::integer_sequence<int, EDGE>) DECLARE_FUNCTION_SUFFIX
+    template<typename T> constexpr inline auto
+    eval_(Field<Expression<ct::CodifferentialDerivative, T>> const &expr, id_type s, index_sequence<EDGE>) const
     {
 
-        return -(get_d(m, std::get<0>(expr.args), s + M::_DI)
-                 - get_d(m, std::get<0>(expr.args), s - M::_DI)
-                 + get_d(m, std::get<0>(expr.args), s + M::_DJ)
-                 - get_d(m, std::get<0>(expr.args), s - M::_DJ)
-                 + get_d(m, std::get<0>(expr.args), s + M::_DK)
-                 - get_d(m, std::get<0>(expr.args), s - M::_DK)
+        return -(get_d(std::get<0>(expr.args), s + mesh_type::_DI)
+                 - get_d(std::get<0>(expr.args), s - mesh_type::_DI)
+                 + get_d(std::get<0>(expr.args), s + mesh_type::_DJ)
+                 - get_d(std::get<0>(expr.args), s - mesh_type::_DJ)
+                 + get_d(std::get<0>(expr.args), s + mesh_type::_DK)
+                 - get_d(std::get<0>(expr.args), s - mesh_type::_DK)
 
-        ) * m.inv_dual_volume(s);
+        ) * m_.inv_dual_volume(s);
 
 
     }
 
     //! curl<2>
-    template<typename M, typename T>
-    DECLARE_FUNCTION_PREFIX traits::value_type_t <
-    Field<Expression<ct::CodifferentialDerivative, T>>>
-    eval_(M const &m, Field<Expression<ct::CodifferentialDerivative, T>> const &expr,
-          typename M::id_type s, ::simpla::integer_sequence<int, FACE>) DECLARE_FUNCTION_SUFFIX
+    template<typename T> constexpr inline auto
+    eval_(Field<Expression<ct::CodifferentialDerivative, T>> const &expr, id_type s, index_sequence<FACE>) const
     {
 
-        typename M::id_type X = M::delta_index(s);
-        typename M::id_type Y = M::rotate(X);
-        typename M::id_type Z = M::inverse_rotate(X);
+        id_type X = mesh_type::delta_index(s);
+        id_type Y = mesh_type::rotate(X);
+        id_type Z = mesh_type::inverse_rotate(X);
 
 
-        return -((get_d(m, std::get<0>(expr.args), s + Y) - get_d(m, std::get<0>(expr.args), s - Y))
-                 - (get_d(m, std::get<0>(expr.args), s + Z) - get_d(m, std::get<0>(expr.args), s - Z))
-        ) * m.inv_dual_volume(s);
+        return -((get_d(std::get<0>(expr.args), s + Y) - get_d(std::get<0>(expr.args), s - Y))
+                 - (get_d(std::get<0>(expr.args), s + Z) - get_d(std::get<0>(expr.args), s - Z))
+        ) * m_.inv_dual_volume(s);
     }
 
 
     //! grad<3>
-    template<typename M, typename T>
-    DECLARE_FUNCTION_PREFIX traits::value_type_t <
-    Field<Expression<ct::CodifferentialDerivative, T>>>
-    eval_(M const &m, Field<Expression<ct::CodifferentialDerivative, T> > const &expr,
-          typename M::id_type s, ::simpla::integer_sequence<int, VOLUME>) DECLARE_FUNCTION_SUFFIX
+    template<typename T> constexpr inline auto
+    eval_(Field<Expression<ct::CodifferentialDerivative, T> > const &expr, id_type s, index_sequence<VOLUME>) const
     {
-        typename M::id_type D = M::delta_index(M::dual(s));
+        id_type D = mesh_type::delta_index(mesh_type::dual(s));
 
-        return -(get_d(m, std::get<0>(expr.args), s + D) - get_d(m, std::get<0>(expr.args), s - D)) *
-               m.inv_dual_volume(s);
+        return -(get_d(std::get<0>(expr.args), s + D) - get_d(std::get<0>(expr.args), s - D)) *
+               m_.inv_dual_volume(s);
 
 
     }
@@ -273,31 +210,29 @@ private:
     //! *Form<IR> => Form<N-IL>
 
 
-    template<typename M, typename T, int I>
-    DECLARE_FUNCTION_PREFIX traits::value_type_t <Field<Expression<ct::HodgeStar, T> >>
-    eval_(M const &m, Field<Expression<ct::HodgeStar, T> > const &expr, typename M::id_type s,
-          ::simpla::integer_sequence<int, I>) DECLARE_FUNCTION_SUFFIX
+    template<typename T, int I> constexpr inline auto
+    eval_(Field<Expression<ct::HodgeStar, T> > const &expr, id_type s, index_sequence<I>) const
     {
         auto const &l = std::get<0>(expr.args);
 
-        int i = M::iform(s);
-        typename M::id_type X = (i == VERTEX || i == VOLUME) ? M::_DI : M::delta_index(
-                M::dual(s));
-        typename M::id_type Y = M::rotate(X);
-        typename M::id_type Z = M::inverse_rotate(X);
+        int i = mesh_type::iform(s);
+        id_type X = (i == VERTEX || i == VOLUME) ? mesh_type::_DI : mesh_type::delta_index(
+                mesh_type::dual(s));
+        id_type Y = mesh_type::rotate(X);
+        id_type Z = mesh_type::inverse_rotate(X);
 
 
         return (
-                       get_v(m, l, ((s - X) - Y) - Z) +
-                       get_v(m, l, ((s - X) - Y) + Z) +
-                       get_v(m, l, ((s - X) + Y) - Z) +
-                       get_v(m, l, ((s - X) + Y) + Z) +
-                       get_v(m, l, ((s + X) - Y) - Z) +
-                       get_v(m, l, ((s + X) - Y) + Z) +
-                       get_v(m, l, ((s + X) + Y) - Z) +
-                       get_v(m, l, ((s + X) + Y) + Z)
+                       get_v(l, ((s - X) - Y) - Z) +
+                       get_v(l, ((s - X) - Y) + Z) +
+                       get_v(l, ((s - X) + Y) - Z) +
+                       get_v(l, ((s - X) + Y) + Z) +
+                       get_v(l, ((s + X) - Y) - Z) +
+                       get_v(l, ((s + X) - Y) + Z) +
+                       get_v(l, ((s + X) + Y) - Z) +
+                       get_v(l, ((s + X) + Y) + Z)
 
-               ) * m.inv_dual_volume(s) * 0.125;
+               ) * m_.inv_dual_volume(s) * 0.125;
 
 
     };
@@ -307,135 +242,118 @@ private:
 //
 ////! map_to
 
-    template<typename M, typename TF, int I>
-    DECLARE_FUNCTION_PREFIX traits::value_type_t <TF>
-    mapto(M const &m, TF const &expr, typename M::id_type s,
-          ::simpla::integer_sequence<int, I, I>) DECLARE_FUNCTION_SUFFIX
-    {
-        return eval_(m, expr, s);
-    }
+    template<typename TF, int I> constexpr inline auto
+    mapto(TF const &expr, id_type s, index_sequence<I, I>) const { return eval_(expr, s); }
 
 
-    template<typename M, typename TF>
-    DECLARE_FUNCTION_PREFIX traits::value_type_t <TF>
-    mapto(M const &m, TF const &expr, typename M::id_type s,
-          ::simpla::integer_sequence<int, VERTEX, EDGE>) DECLARE_FUNCTION_SUFFIX
+    template<typename TF> constexpr inline auto
+    mapto(TF const &expr, id_type s, index_sequence<VERTEX, EDGE>) const
     {
 
-        typename M::id_type X = s & M::_DA;
+        id_type X = s & mesh_type::_DA;
 
-        s = (s | m.FULL_OVERFLOW_FLAG) - M::_DA;
+        s = (s | m_.FULL_OVERFLOW_FLAG) - mesh_type::_DA;
 
-        return (eval_(m, expr, s + M::_DA - X) + eval_(m, expr, s + M::_DA + X)) *
+        return (eval_(expr, s + mesh_type::_DA - X) + eval_(expr, s + mesh_type::_DA + X)) *
                0.5;
     }
 
 
-    template<typename M, typename TV, typename ...Others>
-    DECLARE_FUNCTION_PREFIX TV
-    mapto(M const &m, Field<nTuple<TV, 3>, Others...> const &expr, typename M::id_type s,
-          ::simpla::integer_sequence<int, VERTEX, EDGE>) DECLARE_FUNCTION_SUFFIX
+    template<typename TV, typename ...Others> constexpr inline auto
+    mapto(Field<nTuple<TV, 3>, Others...> const &expr, id_type s, index_sequence<VERTEX, EDGE>) const
     {
-        int n = M::sub_index(s);
-        typename M::id_type X = s & M::_DA;
-        s = (s | m.FULL_OVERFLOW_FLAG) - M::_DA;
-        return (eval_(m, expr, s + M::_DA - X)[n] +
-                eval_(m, expr, s + M::_DA + X)[n]) * 0.5;
+        int n = mesh_type::sub_index(s);
+        id_type X = s & mesh_type::_DA;
+        s = (s | m_.FULL_OVERFLOW_FLAG) - mesh_type::_DA;
+        return (eval_(expr, s + mesh_type::_DA - X)[n] +
+                eval_(expr, s + mesh_type::_DA + X)[n]) * 0.5;
 
     }
 
 
-    template<typename M, typename TF>
-    DECLARE_FUNCTION_PREFIX traits::value_type_t <TF>
-    mapto(M const &m, TF const &expr, typename M::id_type s,
-          ::simpla::integer_sequence<int, VERTEX, FACE>) DECLARE_FUNCTION_SUFFIX
+    template<typename TF> constexpr inline auto
+    mapto(TF const &expr, id_type s, index_sequence<VERTEX, FACE>) const
     {
 
         auto const &l = expr;
-        auto X = M::delta_index(M::dual(s));
-        auto Y = M::rotate(X);
-        auto Z = M::inverse_rotate(X);
-        s = (s | m.FULL_OVERFLOW_FLAG) - M::_DA;
+        auto X = mesh_type::delta_index(mesh_type::dual(s));
+        auto Y = mesh_type::rotate(X);
+        auto Z = mesh_type::inverse_rotate(X);
+        s = (s | m_.FULL_OVERFLOW_FLAG) - mesh_type::_DA;
 
         return (
-                eval_(m, l, (s + M::_DA - Y - Z)) +
-                eval_(m, l, (s + M::_DA - Y + Z)) +
-                eval_(m, l, (s + M::_DA + Y - Z)) +
-                eval_(m, l, (s + M::_DA + Y + Z))
+                eval_(l, (s + mesh_type::_DA - Y - Z)) +
+                eval_(l, (s + mesh_type::_DA - Y + Z)) +
+                eval_(l, (s + mesh_type::_DA + Y - Z)) +
+                eval_(l, (s + mesh_type::_DA + Y + Z))
         );
     }
 
 
-    template<typename M, typename TV, typename ...Others>
-    DECLARE_FUNCTION_PREFIX TV
-    mapto(M const &m, Field<nTuple<TV, 3>, Others...> const &expr, typename M::id_type s,
-          ::simpla::integer_sequence<int, VERTEX, FACE>) DECLARE_FUNCTION_SUFFIX
+    template<typename TV, typename ...Others> constexpr inline auto
+    mapto(Field<nTuple<TV, 3>, Others...> const &expr, id_type s, index_sequence<VERTEX, FACE>) const
     {
 
-        int n = M::sub_index(s);
+        int n = mesh_type::sub_index(s);
         auto const &l = expr;
-        auto X = M::delta_index(M::dual(s));
-        auto Y = M::rotate(X);
-        auto Z = M::inverse_rotate(X);
-        s = (s | m.FULL_OVERFLOW_FLAG) - M::_DA;
+        auto X = mesh_type::delta_index(mesh_type::dual(s));
+        auto Y = mesh_type::rotate(X);
+        auto Z = mesh_type::inverse_rotate(X);
+        s = (s | m_.FULL_OVERFLOW_FLAG) - mesh_type::_DA;
 
         return (
-                eval_(m, l, (s + M::_DA - Y - Z))[n] +
-                eval_(m, l, (s + M::_DA - Y + Z))[n] +
-                eval_(m, l, (s + M::_DA + Y - Z))[n] +
-                eval_(m, l, (s + M::_DA + Y + Z))[n]
+                eval_(l, (s + mesh_type::_DA - Y - Z))[n] +
+                eval_(l, (s + mesh_type::_DA - Y + Z))[n] +
+                eval_(l, (s + mesh_type::_DA + Y - Z))[n] +
+                eval_(l, (s + mesh_type::_DA + Y + Z))[n]
         );
     }
 
-    template<typename M, typename TF>
-    DECLARE_FUNCTION_PREFIX traits::value_type_t <TF>
-    mapto(M const &m, TF const &expr, typename M::id_type s,
-          ::simpla::integer_sequence<int, VERTEX, VOLUME>) DECLARE_FUNCTION_SUFFIX
+    template<typename TF> constexpr inline auto
+    mapto(TF const &expr, id_type s, index_sequence<VERTEX, VOLUME>) const
     {
         auto const &l = expr;
 
-        auto X = m.DI(0, s);
-        auto Y = m.DI(1, s);
-        auto Z = m.DI(2, s);
-        s = (s | m.FULL_OVERFLOW_FLAG) - M::_DA;
+        auto X = m_.DI(0, s);
+        auto Y = m_.DI(1, s);
+        auto Z = m_.DI(2, s);
+        s = (s | m_.FULL_OVERFLOW_FLAG) - mesh_type::_DA;
 
-        return (eval_(m, l, s + M::_DA - X - Y - Z) +
-                eval_(m, l, s + M::_DA - X - Y + Z) +
-                eval_(m, l, s + M::_DA - X + Y - Z) +
-                eval_(m, l, s + M::_DA - X + Y + Z) +
-                eval_(m, l, s + M::_DA + X - Y - Z) +
-                eval_(m, l, s + M::_DA + X - Y + Z) +
-                eval_(m, l, s + M::_DA + X + Y - Z) +
-                eval_(m, l, s + M::_DA + X + Y + Z)
+        return (eval_(l, s + mesh_type::_DA - X - Y - Z) +
+                eval_(l, s + mesh_type::_DA - X - Y + Z) +
+                eval_(l, s + mesh_type::_DA - X + Y - Z) +
+                eval_(l, s + mesh_type::_DA - X + Y + Z) +
+                eval_(l, s + mesh_type::_DA + X - Y - Z) +
+                eval_(l, s + mesh_type::_DA + X - Y + Z) +
+                eval_(l, s + mesh_type::_DA + X + Y - Z) +
+                eval_(l, s + mesh_type::_DA + X + Y + Z)
 
         );
     }
 
 
-    template<typename M, typename TF>
-    DECLARE_FUNCTION_PREFIX nTuple<typename traits::value_type<TF>::type, 3>
-    mapto(M const &m, TF const &expr, typename M::id_type s,
-          ::simpla::integer_sequence<int, EDGE, VERTEX>) DECLARE_FUNCTION_SUFFIX
+    template<typename TF> constexpr inline auto
+    mapto(TF const &expr, id_type s, index_sequence<EDGE, VERTEX>) const
     {
         typedef nTuple<typename traits::value_type<TF>::type, 3> field_value_type;
 
         auto const &l = expr;
 
-        typename M::id_type DA = M::_DA;
-        typename M::id_type X = M::_D;
-        typename M::id_type Y = X << M::ID_DIGITS;
-        typename M::id_type Z = Y << M::ID_DIGITS;
+        id_type DA = mesh_type::_DA;
+        id_type X = mesh_type::_D;
+        id_type Y = X << mesh_type::ID_DIGITS;
+        id_type Z = Y << mesh_type::ID_DIGITS;
 
-        s = (s | m.FULL_OVERFLOW_FLAG) - M::_DA;
+        s = (s | m_.FULL_OVERFLOW_FLAG) - mesh_type::_DA;
 
         return field_value_type
                 {
-                        (eval_(m, l, s + M::_DA - X) +
-                         eval_(m, l, s + M::_DA + X)) * 0.5,
-                        (eval_(m, l, s + M::_DA - Y) +
-                         eval_(m, l, s + M::_DA + Y)) * 0.5,
-                        (eval_(m, l, s + M::_DA - Z) +
-                         eval_(m, l, s + M::_DA + Z)) * 0.5
+                        (eval_(l, s + mesh_type::_DA - X) +
+                         eval_(l, s + mesh_type::_DA + X)) * 0.5,
+                        (eval_(l, s + mesh_type::_DA - Y) +
+                         eval_(l, s + mesh_type::_DA + Y)) * 0.5,
+                        (eval_(l, s + mesh_type::_DA - Z) +
+                         eval_(l, s + mesh_type::_DA + Z)) * 0.5
 
                 };
 
@@ -443,117 +361,107 @@ private:
     }
 
 
-    template<typename M, typename TF>
-    DECLARE_FUNCTION_PREFIX nTuple<typename traits::value_type<TF>::type, 3>
-    mapto(M const &m, TF const &expr, typename M::id_type s,
-          ::simpla::integer_sequence<int, FACE, VERTEX>) DECLARE_FUNCTION_SUFFIX
+    template<typename TF> constexpr inline auto
+    mapto(TF const &expr, id_type s, index_sequence<FACE, VERTEX>) const
     {
         auto const &l = expr;
 
-        typename M::id_type X = M::_D;
-        typename M::id_type Y = X << M::ID_DIGITS;;
-        typename M::id_type Z = Y << M::ID_DIGITS;;
+        id_type X = mesh_type::_D;
+        id_type Y = X << mesh_type::ID_DIGITS;;
+        id_type Z = Y << mesh_type::ID_DIGITS;;
 
-        s = (s | m.FULL_OVERFLOW_FLAG) - M::_DA;
+        s = (s | m_.FULL_OVERFLOW_FLAG) - mesh_type::_DA;
 
         return nTuple<typename ::simpla::traits::value_type<TF>::type, 3>
                 {
-                        (eval_(m, l, (s + M::_DA - Y - Z)) +
-                         eval_(m, l, (s + M::_DA - Y + Z)) +
-                         eval_(m, l, (s + M::_DA + Y - Z)) +
-                         eval_(m, l, (s + M::_DA + Y + Z))),
-                        (eval_(m, l, (s + M::_DA - Z - X)) +
-                         eval_(m, l, (s + M::_DA - Z + X)) +
-                         eval_(m, l, (s + M::_DA + Z - X)) +
-                         eval_(m, l, (s + M::_DA + Z + X))),
-                        (eval_(m, l, (s + M::_DA - X - Y)) +
-                         eval_(m, l, (s + M::_DA - X + Y)) +
-                         eval_(m, l, (s + M::_DA + X - Y)) +
-                         eval_(m, l, (s + M::_DA + X + Y)))
+                        (eval_(l, (s + mesh_type::_DA - Y - Z)) +
+                         eval_(l, (s + mesh_type::_DA - Y + Z)) +
+                         eval_(l, (s + mesh_type::_DA + Y - Z)) +
+                         eval_(l, (s + mesh_type::_DA + Y + Z))),
+                        (eval_(l, (s + mesh_type::_DA - Z - X)) +
+                         eval_(l, (s + mesh_type::_DA - Z + X)) +
+                         eval_(l, (s + mesh_type::_DA + Z - X)) +
+                         eval_(l, (s + mesh_type::_DA + Z + X))),
+                        (eval_(l, (s + mesh_type::_DA - X - Y)) +
+                         eval_(l, (s + mesh_type::_DA - X + Y)) +
+                         eval_(l, (s + mesh_type::_DA + X - Y)) +
+                         eval_(l, (s + mesh_type::_DA + X + Y)))
                 };
 
 
     }
 
 
-    template<typename M, typename TF>
-    DECLARE_FUNCTION_PREFIX typename ::simpla::traits::value_type<TF>::type
-    mapto(M const &m, TF const &expr, typename M::id_type s,
-          ::simpla::integer_sequence<int, VOLUME, VERTEX>) DECLARE_FUNCTION_SUFFIX
+    template<typename TF> constexpr inline auto
+    mapto(TF const &expr, id_type s, index_sequence<VOLUME, VERTEX>) const
     {
         auto const &l = expr;
 
-        auto X = m.DI(0, s);
-        auto Y = m.DI(1, s);
-        auto Z = m.DI(2, s);
-        s = (s | M::FULL_OVERFLOW_FLAG) - M::_DA;
+        auto X = m_.DI(0, s);
+        auto Y = m_.DI(1, s);
+        auto Z = m_.DI(2, s);
+        s = (s | mesh_type::FULL_OVERFLOW_FLAG) - mesh_type::_DA;
 
         return (
-                       eval_(m, l, ((s + M::_DA - X - Y - Z))) +
-                       eval_(m, l, ((s + M::_DA - X - Y + Z))) +
-                       eval_(m, l, ((s + M::_DA - X + Y - Z))) +
-                       eval_(m, l, ((s + M::_DA - X + Y + Z))) +
-                       eval_(m, l, ((s + M::_DA + X - Y - Z))) +
-                       eval_(m, l, ((s + M::_DA + X - Y + Z))) +
-                       eval_(m, l, ((s + M::_DA + X + Y - Z))) +
-                       eval_(m, l, ((s + M::_DA + X + Y + Z)))
+                       eval_(l, ((s + mesh_type::_DA - X - Y - Z))) +
+                       eval_(l, ((s + mesh_type::_DA - X - Y + Z))) +
+                       eval_(l, ((s + mesh_type::_DA - X + Y - Z))) +
+                       eval_(l, ((s + mesh_type::_DA - X + Y + Z))) +
+                       eval_(l, ((s + mesh_type::_DA + X - Y - Z))) +
+                       eval_(l, ((s + mesh_type::_DA + X - Y + Z))) +
+                       eval_(l, ((s + mesh_type::_DA + X + Y - Z))) +
+                       eval_(l, ((s + mesh_type::_DA + X + Y + Z)))
 
                ) * 0.125;
     }
 
 
-    template<typename M, typename TF>
-    DECLARE_FUNCTION_PREFIX typename ::simpla::traits::value_type<TF>::type
-    mapto(M const &m, TF const &expr, typename M::id_type s,
-          ::simpla::integer_sequence<int, VOLUME, FACE>) DECLARE_FUNCTION_SUFFIX
+    template<typename TF> constexpr inline auto
+    mapto(TF const &expr, id_type s, index_sequence<VOLUME, FACE>) const
     {
-        auto X = M::delta_index(M::dual(s));
-        s = (s | M::FULL_OVERFLOW_FLAG) - M::DA;
+        auto X = mesh_type::delta_index(mesh_type::dual(s));
+        s = (s | mesh_type::FULL_OVERFLOW_FLAG) - mesh_type::DA;
 
-        return (eval_(m, expr, s - X) + eval_(m, expr, s + X)) * 0.5;
+        return (eval_(expr, s - X) + eval_(expr, s + X)) * 0.5;
     }
 
 
-    template<typename M, typename TF>
-    DECLARE_FUNCTION_PREFIX typename ::simpla::traits::value_type<TF>::type
-    mapto(M const &m, TF const &expr, typename M::id_type s,
-          ::simpla::integer_sequence<int, VOLUME, EDGE>) DECLARE_FUNCTION_SUFFIX
+    template<typename TF> constexpr inline auto
+    mapto(TF const &expr, id_type s, index_sequence<VOLUME, EDGE>) const
     {
         auto const &l = expr;
-        auto X = M::delta_index(s);
-        auto Y = M::rotate(X);
-        auto Z = M::inverse_rotate(X);
-        s = (s | M::FULL_OVERFLOW_FLAG) - M::_DA;
+        auto X = mesh_type::delta_index(s);
+        auto Y = mesh_type::rotate(X);
+        auto Z = mesh_type::inverse_rotate(X);
+        s = (s | mesh_type::FULL_OVERFLOW_FLAG) - mesh_type::_DA;
 
         return (
-                eval_(m, l, s + M::_DA - Y - Z) +
-                eval_(m, l, s + M::_DA - Y + Z) +
-                eval_(m, l, s + M::_DA + Y - Z) +
-                eval_(m, l, s + M::_DA + Y + Z)
+                eval_(l, s + mesh_type::_DA - Y - Z) +
+                eval_(l, s + mesh_type::_DA - Y + Z) +
+                eval_(l, s + mesh_type::_DA + Y - Z) +
+                eval_(l, s + mesh_type::_DA + Y + Z)
         );
     }
 
 
-    template<typename M, typename TF>
-    DECLARE_FUNCTION_PREFIX ::simpla::nTuple<typename ::simpla::traits::value_type<TF>::type, 3>
-    mapto(M const &m, TF const &expr, typename M::id_type s,
-          ::simpla::integer_sequence<int, FACE, VOLUME>) DECLARE_FUNCTION_SUFFIX
+    template<typename TF> constexpr inline auto
+    mapto(TF const &expr, id_type s, index_sequence<FACE, VOLUME>) const
     {
         auto const &l = expr;
 
-        auto X = m.DI(0, M::dual(s));
-        auto Y = m.DI(1, M::dual(s));
-        auto Z = m.DI(2, M::dual(s));
-        s = (s | M::FULL_OVERFLOW_FLAG) - M::_DA;
+        auto X = m_.DI(0, mesh_type::dual(s));
+        auto Y = m_.DI(1, mesh_type::dual(s));
+        auto Z = m_.DI(2, mesh_type::dual(s));
+        s = (s | mesh_type::FULL_OVERFLOW_FLAG) - mesh_type::_DA;
 
         return nTuple<traits::value_type_t<TF>, 3>
                 {
-                        (eval_(m, l, s + M::_DA - X) +
-                         eval_(m, l, s + M::_DA + X)) * 0.5,
-                        (eval_(m, l, s + M::_DA - Y) +
-                         eval_(m, l, s + M::_DA + Y)) * 0.5,
-                        (eval_(m, l, s + M::_DA - Z) +
-                         eval_(m, l, s + M::_DA + Z)) * 0.5
+                        (eval_(l, s + mesh_type::_DA - X) +
+                         eval_(l, s + mesh_type::_DA + X)) * 0.5,
+                        (eval_(l, s + mesh_type::_DA - Y) +
+                         eval_(l, s + mesh_type::_DA + Y)) * 0.5,
+                        (eval_(l, s + mesh_type::_DA - Z) +
+                         eval_(l, s + mesh_type::_DA + Z)) * 0.5
 
                 };
 
@@ -561,32 +469,30 @@ private:
     }
 
 
-    template<typename M, typename TF>
-    DECLARE_FUNCTION_PREFIX ::simpla::nTuple<typename ::simpla::traits::value_type<TF>::type, 3>
-    mapto(M const &m, TF const &expr, typename M::id_type s,
-          ::simpla::integer_sequence<int, EDGE, VOLUME>) DECLARE_FUNCTION_SUFFIX
+    template<typename TF> constexpr inline auto
+    mapto(TF const &expr, id_type s, index_sequence<EDGE, VOLUME>) const
     {
         auto const &l = expr;
 
-        auto X = m.DI(0, s);
-        auto Y = m.DI(1, s);
-        auto Z = m.DI(2, s);
-        s = (s | M::FULL_OVERFLOW_FLAG) - M::_DA;
+        auto X = m_.DI(0, s);
+        auto Y = m_.DI(1, s);
+        auto Z = m_.DI(2, s);
+        s = (s | mesh_type::FULL_OVERFLOW_FLAG) - mesh_type::_DA;
 
         return ::simpla::nTuple<typename ::simpla::traits::value_type<TF>::type, 3>
                 {
-                        (eval_(m, l, s + M::_DA - Y - Z) +
-                         eval_(m, l, s + M::_DA - Y + Z) +
-                         eval_(m, l, s + M::_DA + Y - Z) +
-                         eval_(m, l, s + M::_DA + Y + Z)),
-                        (eval_(m, l, s + M::_DA - Z - X) +
-                         eval_(m, l, s + M::_DA - Z + X) +
-                         eval_(m, l, s + M::_DA + Z - X) +
-                         eval_(m, l, s + M::_DA + Z + X)),
-                        (eval_(m, l, s + M::_DA - X - Y) +
-                         eval_(m, l, s + M::_DA - X + Y) +
-                         eval_(m, l, s + M::_DA + X - Y) +
-                         eval_(m, l, s + M::_DA + X + Y))
+                        (eval_(l, s + mesh_type::_DA - Y - Z) +
+                         eval_(l, s + mesh_type::_DA - Y + Z) +
+                         eval_(l, s + mesh_type::_DA + Y - Z) +
+                         eval_(l, s + mesh_type::_DA + Y + Z)),
+                        (eval_(l, s + mesh_type::_DA - Z - X) +
+                         eval_(l, s + mesh_type::_DA - Z + X) +
+                         eval_(l, s + mesh_type::_DA + Z - X) +
+                         eval_(l, s + mesh_type::_DA + Z + X)),
+                        (eval_(l, s + mesh_type::_DA - X - Y) +
+                         eval_(l, s + mesh_type::_DA - X + Y) +
+                         eval_(l, s + mesh_type::_DA + X - Y) +
+                         eval_(l, s + mesh_type::_DA + X + Y))
                 };
 
 
@@ -596,91 +502,85 @@ private:
     //***************************************************************************************************
     //
     //! Form<IL> ^ Form<IR> => Form<IR+IL>
-    template<typename M, typename ...T, int IL, int IR>
-    DECLARE_FUNCTION_PREFIX traits::value_type_t <Field<Expression<ct::Wedge, T...>>>
-    eval_(M const &m, Field<Expression<ct::Wedge, T...>> const &expr,
-          typename M::id_type s, ::simpla::integer_sequence<int, IL, IR>) DECLARE_FUNCTION_SUFFIX
+    template<typename ...T, int IL, int IR> constexpr inline auto
+    eval_(Field<Expression<ct::Wedge, T...>> const &expr, id_type s, index_sequence<IL, IR>) const
     {
-        return m.inner_product(mapto(m, std::get<0>(expr.args), s, ::simpla::integer_sequence<int, IL, IR + IL>()),
-                               mapto(m, std::get<1>(expr.args), s, ::simpla::integer_sequence<int, IR, IR + IL>()),
-                               s);
+        return m_.inner_product(mapto(std::get<0>(expr.args), s, index_sequence<IL, IR + IL>()),
+                                mapto(std::get<1>(expr.args), s, index_sequence<IR, IR + IL>()),
+                                s);
     }
 
 
-    template<typename M, typename TL, typename TR>
-    DECLARE_FUNCTION_PREFIX traits::value_type_t <Field<Expression<ct::Wedge, TL, TR>>>
-    eval_(M const &m, Field<Expression<ct::Wedge, TL, TR>> const &expr,
-          typename M::id_type s, ::simpla::integer_sequence<int, EDGE, EDGE>) DECLARE_FUNCTION_SUFFIX
+    template<typename TL, typename TR> constexpr inline auto
+    eval_(Field<Expression<ct::Wedge, TL, TR>> const &expr, id_type s, index_sequence<EDGE, EDGE>) const
     {
         auto const &l = std::get<0>(expr.args);
         auto const &r = std::get<1>(expr.args);
 
-        auto Y = M::delta_index(M::rotate(M::dual(s)));
-        auto Z = M::delta_index(
-                M::inverse_rotate(M::dual(s)));
+        auto Y = mesh_type::delta_index(mesh_type::rotate(mesh_type::dual(s)));
+        auto Z = mesh_type::delta_index(
+                mesh_type::inverse_rotate(mesh_type::dual(s)));
 
-        return ((eval_(m, l, s - Y) + eval_(m, l, s + Y))
-                * (eval_(m, l, s - Z) + eval_(m, l, s + Z)) * 0.25);
+        return ((eval_(l, s - Y) + eval_(l, s + Y))
+                * (eval_(l, s - Z) + eval_(l, s + Z)) * 0.25);
     }
 
 
-    template<typename M, typename TL, typename TR, int I>
-    DECLARE_FUNCTION_PREFIX traits::value_type_t <Field<Expression<ct::Cross, TL, TR>>>
-    eval_(M const &m, Field<Expression<ct::Cross, TL, TR>> const &expr,
-          typename M::id_type s, ::simpla::integer_sequence<int, I, I>) DECLARE_FUNCTION_SUFFIX
+    template<typename TL, typename TR, int I> constexpr inline auto
+    eval_(Field<Expression<ct::Cross, TL, TR>> const &expr,
+          id_type s, index_sequence<I, I>) const
     {
-        return cross(eval_(m, std::get<0>(expr.args), s), eval_(m, std::get<1>(expr.args), s));
+        return cross(eval_(std::get<0>(expr.args), s), eval_(std::get<1>(expr.args), s));
     }
 
-    template<typename M, typename TL, typename TR, int I>
-    DECLARE_FUNCTION_PREFIX traits::value_type_t <Field<Expression<ct::Dot, TL, TR>>>
-    eval_(M const &m, Field<Expression<ct::Dot, TL, TR>> const &expr,
-          typename M::id_type s, ::simpla::integer_sequence<int, I, I>) DECLARE_FUNCTION_SUFFIX
+    template<typename TL, typename TR, int I> constexpr inline auto
+    eval_(Field<Expression<ct::Dot, TL, TR>> const &expr,
+          id_type s, index_sequence<I, I>) const
     {
-        return dot(eval_(m, std::get<0>(expr.args), s), eval_(m, std::get<1>(expr.args), s));
+        return dot(eval_(std::get<0>(expr.args), s), eval_(std::get<1>(expr.args), s));
     }
 
 
-    template<typename M, typename ...T, int ...I>
-    constexpr DECLARE_FUNCTION_PREFIX traits::value_type_t <Field<Expression<ct::MapTo, T...> >>
-    eval_(M const &m, Field<Expression<ct::MapTo, T...>> const &expr, typename M::id_type s,
-          ::simpla::integer_sequence<int, I...>) DECLARE_FUNCTION_SUFFIX
+    template<typename ...T, int ...I> constexpr inline auto
+    eval_(Field<Expression<ct::MapTo, T...>> const &expr, id_type s,
+          index_sequence<I...>) const
     {
-        return mapto(m, std::get<0>(expr.args), s, ::simpla::integer_sequence<int, I...>());
+        return mapto(std::get<0>(expr.args), s, index_sequence<I...>());
     };
 
 
-    template<typename M, typename TOP, typename ... T>
-    DECLARE_FUNCTION_PREFIX constexpr traits::primary_type_t <traits::value_type_t<Field<Expression<TOP, T...> >>>
-    eval_(M const &m, Field<Expression<TOP, T...> > const &expr, typename M::id_type const &s) DECLARE_FUNCTION_SUFFIX
+    template<typename TOP, typename ... T> constexpr inline auto
+    eval_(Field<Expression<TOP, T...> > const &expr, id_type const &s) const
     {
-        return eval_(m, expr, s, traits::iform_list_t<T...>());
+        return eval_(expr, s, traits::iform_list_t<T...>());
     }
 
 public:
 
-    FiniteVolume() { }
+    FiniteVolume(mesh_type const &m) : m_(m) { }
 
     virtual ~FiniteVolume() { }
 
 
-    template<typename M, typename TV, typename ... Others>
-    DECLARE_FUNCTION_PREFIX constexpr TV &
-    eval(M const &m, Field<TV, M, Others...> &f, typename M::id_type s) DECLARE_FUNCTION_SUFFIX
-    {
-        return f[s];
-    }
+    template<typename T> inline constexpr auto
+    eval(T &f, id_type s, traits::is_primary_field_t<T> *p = nullptr) const { return f[s]; }
 
-    template<typename M, typename T>
-    DECLARE_FUNCTION_PREFIX auto
-    eval(M const &m, T const &expr, typename M::id_type const &s) DECLARE_FUNCTION_SUFFIX
-    DECL_RET_TYPE((eval_(m, expr, s)))
+    template<typename T> inline constexpr auto
+    eval(T const &f, id_type s, traits::is_primary_field_t<T> *p = nullptr) const { return f[s]; }
 
+    template<typename T> inline constexpr auto
+    eval(T const &expr, id_type s, traits::is_expression_field_t<T> *p = nullptr) const { return (eval_(expr, s)); }
+
+    template<typename T> inline constexpr auto
+    eval(T const &expr, id_type s, traits::is_primary_t<T> *p = nullptr) const { return (eval_(expr, s)); }
+
+private:
+    mesh_type const &m_;
 
 };// struct DiffScheme<TGeo, diff_scheme::tags::finite_volume>
 
-#undef DECLARE_FUNCTION_PREFIX
-#undef DECLARE_FUNCTION_SUFFIX
+#undef inline
+#undef const
 
 } //namespace policy
 } //namespace Manifold

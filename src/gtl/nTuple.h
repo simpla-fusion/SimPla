@@ -70,17 +70,11 @@ namespace traits
 {
 template<typename> struct primary_type;
 template<typename> struct pod_type;
-template<typename>
-struct is_ntuple
-{
-    static constexpr bool value = false;
-};
 
-template<typename T, int ...N>
-struct is_ntuple<nTuple<T, N...>>
-{
-    static constexpr bool value = true;
-};
+template<typename> struct is_ntuple { static constexpr bool value = false; };
+template<typename T, int ...N> struct is_ntuple<nTuple<T, N...>> { static constexpr bool value = true; };
+template<typename T> using is_ntuple_t=  std::enable_if_t<is_ntuple<T>::value>;
+
 
 template<typename T, int M, int ...N>
 struct reference<nTuple<T, M, N...>>

@@ -38,7 +38,7 @@ typedef Mesh<tags::CoRectLinear> CoRectMesh;
  * @brief Uniform structured mesh
  */
 template<>
-struct Mesh<tags::CoRectLinear> : public MeshBase
+struct Mesh<tags::CoRectLinear> : public MeshBase, public MeshEntityIdCoder
 {
 private:
     typedef Mesh<tags::CoRectLinear> this_type;
@@ -163,13 +163,6 @@ public:
 //================================================================================================
     void dimensions(index_tuple const &dim) { m_dims_ = dim; }
 
-//================================================================================================
-// @name Coordinates dependent
-
-//    point_type epsilon() const { return EPSILON * m_from_topology_scale_; }
-
-    int sub_index(MeshEntityId const &s) const { return m::sub_index(s); }
-
     template<typename X0, typename X1>
     void box(X0 const &x0, X1 const &x1)
     {
@@ -184,6 +177,23 @@ public:
     vector_type const &dx() const { return m_dx_; }
 
     index_tuple dims() const { return m_upper_ - m_lower_; }
+
+
+private:
+    Real m_volume_[9];
+    Real m_inv_volume_[9];
+    Real m_dual_volume_[9];
+    Real m_inv_dual_volume_[9];
+public:
+
+
+    virtual Real volume(id_type s) const { return m_volume_[m::node_id(s)]; }
+
+    virtual Real dual_volume(id_type s) const { return m_dual_volume_[m::node_id(s)]; }
+
+    virtual Real inv_volume(id_type s) const { return m_inv_volume_[m::node_id(s)]; }
+
+    virtual Real inv_dual_volume(id_type s) const { return m_inv_dual_volume_[m::node_id(s)]; }
 
 //    int get_vertices(int node_id, id_type s, point_type *p = nullptr) const
 //    {
@@ -309,10 +319,10 @@ public:
 //    }
 
 
-    struct calculus_policy
-    {
-        template<typename ...Args> static double eval(Args &&...args) { return 1.0; }
-    };
+//    struct calculus_policy
+//    {
+//        template<typename ...Args> static double eval(Args &&...args) { return 1.0; }
+//    };
 }; // struct  Mesh
 }} // namespace simpla // namespace mesh
 

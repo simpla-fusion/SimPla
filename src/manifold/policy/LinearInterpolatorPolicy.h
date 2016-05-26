@@ -11,41 +11,41 @@
 
 namespace simpla { namespace manifold { namespace policy
 {
-
-
-#define DECLARE_FUNCTION_PREFIX inline static
-#define DECLARE_FUNCTION_SUFFIX /*const*/
+using namespace simpla::mesh;
 
 
 /**
  * @ingroup interpolate
  * @brief basic linear interpolate
  */
+template<typename TM>
 struct LinearInterpolator
 {
-private:
+public:
 
+    typedef LinearInterpolator<TM> interpolate_policy;
+
+    LinearInterpolator(TM const &m) : m_(m) { }
+
+    virtual ~LinearInterpolator() { }
+
+private:
+    typedef TM mesh_type;
+    mesh_type const &m_;
 
     typedef LinearInterpolator this_type;
 
-public:
 
-    typedef LinearInterpolator interpolate_policy;
-
-private:
-
-    template<typename M, typename TD, typename TIDX> DECLARE_FUNCTION_PREFIX auto
-    gather_impl_(M const &m, TD const &f, TIDX const &idx) DECLARE_FUNCTION_SUFFIX -> decltype(
-    traits::index(f, std::get<0>(idx)) *
-    std::get<1>(idx)[0])
+    template<typename TD, typename TIDX> constexpr inline auto
+    gather_impl_(TD const &f, TIDX const &idx) const
     {
 
-        auto X = (M::_DI) << 1;
-        auto Y = (M::_DJ) << 1;
-        auto Z = (M::_DK) << 1;
+        auto X = (mesh_type::_DI) << 1;
+        auto Y = (mesh_type::_DJ) << 1;
+        auto Z = (mesh_type::_DK) << 1;
 
-        typename M::point_type r = std::get<1>(idx);
-        typename M::index_type s = std::get<0>(idx);
+        point_type r = std::get<1>(idx);
+        index_type s = std::get<0>(idx);
 
         return traits::index(f, ((s + X) + Y) + Z) * (r[0]) * (r[1]) * (r[2]) //
                + traits::index(f, (s + X) + Y) * (r[0]) * (r[1]) * (1.0 - r[2]) //
@@ -59,47 +59,52 @@ private:
 
 public:
 
-    template<typename M, typename TF, typename TX> DECLARE_FUNCTION_PREFIX auto
-    gather(M const &m, TF const &f, TX const &r) DECLARE_FUNCTION_SUFFIX//
-    ENABLE_IF_DECL_RET_TYPE((traits::iform<TF>::value
-                             == VERTEX), (gather_impl_(m, f, m.coordinates_global_to_local(r, 0))))
+    template<typename TF, typename TX> constexpr inline auto
+    gather(TF const &f, TX const &r, traits::iform_is_t<TF, VERTEX> *_p = nullptr) const
+    {
+        return gather_impl_(f, m_.coordinates_global_to_local(r, 0));
+    }
 
-    template<typename M, typename TF> DECLARE_FUNCTION_PREFIX auto
-    gather(M const &m, TF const &f, typename M::point_type const &r) DECLARE_FUNCTION_SUFFIX
-    ENABLE_IF_DECL_RET_TYPE((traits::iform<TF>::value
-                             == EDGE),
-                            traits::make_nTuple(
-                                    gather_impl_(m, f, m.coordinates_global_to_local(r, 1)),
-                                    gather_impl_(m, f, m.coordinates_global_to_local(r, 2)),
-                                    gather_impl_(m, f, m.coordinates_global_to_local(r, 4))
-                            ))
 
-    template<typename M, typename TF> DECLARE_FUNCTION_PREFIX auto
-    gather(M const &m, TF const &f, typename M::point_type const &r) DECLARE_FUNCTION_SUFFIX
-    ENABLE_IF_DECL_RET_TYPE((traits::iform<TF>::value == FACE),
-                            traits::make_nTuple(
-                                    gather_impl_(m, f, m.coordinates_global_to_local(r, 6)),
-                                    gather_impl_(m, f, m.coordinates_global_to_local(r, 5)),
-                                    gather_impl_(m, f, m.coordinates_global_to_local(r, 3))
-                            ))
+    template<typename TF> constexpr inline auto
+    gather(TF const &f, point_type const &r, traits::iform_is_t<TF, EDGE> *_p = nullptr) const
+    {
+        return
+                traits::make_nTuple(
+                        gather_impl_(f, m_.coordinates_global_to_local(r, 1)),
+                        gather_impl_(f, m_.coordinates_global_to_local(r, 2)),
+                        gather_impl_(f, m_.coordinates_global_to_local(r, 4))
+                );
+    }
 
-    template<typename M, typename TF> DECLARE_FUNCTION_PREFIX auto
-    gather(M const &m, TF const &f, typename M::point_type const &x) DECLARE_FUNCTION_SUFFIX
-    ENABLE_IF_DECL_RET_TYPE((traits::iform<TF>::value == VOLUME),
-                            gather_impl_(m, f, m.coordinates_global_to_local(x, 7)))
+    template<typename TF> constexpr inline auto
+    gather(TF const &f, point_type const &r, traits::iform_is_t<TF, FACE> *_p = nullptr) const
+    {
+        return
+                traits::make_nTuple(
+                        gather_impl_(f, m_.coordinates_global_to_local(r, 6)),
+                        gather_impl_(f, m_.coordinates_global_to_local(r, 5)),
+                        gather_impl_(f, m_.coordinates_global_to_local(r, 3))
+                );
+    }
+
+    template<typename TF> constexpr inline auto
+    gather(TF const &f, point_type const &x, traits::iform_is_t<TF, VOLUME> *_p = nullptr) const
+    {
+        return gather_impl_(f, m_.coordinates_global_to_local(x, 7));
+    }
 
 private:
-    template<typename M, typename TF, typename IDX, typename TV> DECLARE_FUNCTION_PREFIX void
-    scatter_impl_(M const &m, TF &f, IDX const &idx,
-                  TV const &v) DECLARE_FUNCTION_SUFFIX
+    template<typename TF, typename IDX, typename TV> inline void
+    scatter_impl_(TF &f, IDX const &idx, TV const &v) const
     {
 
-        auto X = (M::_DI) << 1;
-        auto Y = (M::_DJ) << 1;
-        auto Z = (M::_DK) << 1;
+        auto X = (mesh_type::_DI) << 1;
+        auto Y = (mesh_type::_DJ) << 1;
+        auto Z = (mesh_type::_DK) << 1;
 
-        typename M::point_type r = std::get<1>(idx);
-        typename M::index_type s = std::get<0>(idx);
+        point_type r = std::get<1>(idx);
+        index_type s = std::get<0>(idx);
 
         traits::index(f, ((s + X) + Y) + Z) += v * (r[0]) * (r[1]) * (r[2]);
         traits::index(f, (s + X) + Y) += v * (r[0]) * (r[1]) * (1.0 - r[2]);
@@ -113,94 +118,77 @@ private:
     }
 
 
-    template<typename M, typename TF, typename TX, typename TV> DECLARE_FUNCTION_PREFIX void
-    scatter_(M const &m, std::integral_constant<int, VERTEX>, TF &
-    f, TX const &x, TV const &u) DECLARE_FUNCTION_SUFFIX
+    template<typename TF, typename TX, typename TV> inline void
+    scatter_(index_sequence <VERTEX>, TF &f, TX const &x, TV const &u) const
     {
-        scatter_impl_(m, f, m.coordinates_global_to_local(x, 0), u);
+        scatter_impl_(f, m_.coordinates_global_to_local(x, 0), u);
     }
 
-    template<typename M, typename TF, typename TX, typename TV> DECLARE_FUNCTION_PREFIX void
-    scatter_(M const &m, std::integral_constant<int, EDGE>, TF &
-    f, TX const &x, TV const &u) DECLARE_FUNCTION_SUFFIX
+    template<typename TF, typename TX, typename TV> inline void
+    scatter_(index_sequence <EDGE>, TF &f, TX const &x, TV const &u) const
     {
 
-        scatter_impl_(m, f, m.coordinates_global_to_local(x, 1), u[0]);
-        scatter_impl_(m, f, m.coordinates_global_to_local(x, 2), u[1]);
-        scatter_impl_(m, f, m.coordinates_global_to_local(x, 4), u[2]);
+        scatter_impl_(f, m_.coordinates_global_to_local(x, 1), u[0]);
+        scatter_impl_(f, m_.coordinates_global_to_local(x, 2), u[1]);
+        scatter_impl_(f, m_.coordinates_global_to_local(x, 4), u[2]);
 
     }
 
-    template<typename M, typename TF, typename TX, typename TV> DECLARE_FUNCTION_PREFIX void
-    scatter_(M const &m, std::integral_constant<int, FACE>, TF &f,
-             TX const &x, TV const &u) DECLARE_FUNCTION_SUFFIX
+    template<typename TF, typename TX, typename TV> inline void
+    scatter_(index_sequence <FACE>, TF &f, TX const &x, TV const &u) const
     {
 
-        scatter_impl_(m, f, m.coordinates_global_to_local(x, 6), u[0]);
-        scatter_impl_(m, f, m.coordinates_global_to_local(x, 5), u[1]);
-        scatter_impl_(m, f, m.coordinates_global_to_local(x, 3), u[2]);
+        scatter_impl_(f, m_.coordinates_global_to_local(x, 6), u[0]);
+        scatter_impl_(f, m_.coordinates_global_to_local(x, 5), u[1]);
+        scatter_impl_(f, m_.coordinates_global_to_local(x, 3), u[2]);
     }
 
-    template<typename M, typename TF, typename TX, typename TV> DECLARE_FUNCTION_PREFIX void
-    scatter_(M const &m, std::integral_constant<int, VOLUME>,
-             TF &f, TX const &x, TV const &u) DECLARE_FUNCTION_SUFFIX
+    template<typename TF, typename TX, typename TV> inline void
+    scatter_(index_sequence <VOLUME>, TF &f, TX const &x, TV const &u) const
     {
-        scatter_impl_(m, f, m.coordinates_global_to_local(x, 7), u);
+        scatter_impl_(f, m_.coordinates_global_to_local(x, 7), u);
     }
 
 public:
-    template<typename M, typename TF, typename ...Args> DECLARE_FUNCTION_PREFIX void
-    scatter(M const &m, TF &f, Args &&...args) DECLARE_FUNCTION_SUFFIX
+    template<typename TF, typename ...Args> inline void
+    scatter(TF &f, Args &&...args) const
     {
-        scatter_(m, traits::iform<TF>(), f, std::forward<Args>(args)...);
+        scatter_(traits::iform<TF>(), f, std::forward<Args>(args)...);
     }
 
 private:
-    template<typename M, typename TV> DECLARE_FUNCTION_PREFIX TV
-    sample_(M const &m, std::integral_constant<int, VERTEX>, typename M::id_type s,
-            TV const &v) DECLARE_FUNCTION_SUFFIX { return v; }
+    template<typename TV> constexpr inline TV
+    sample_(index_sequence <VERTEX>, id_type s, TV const &v) const { return v; }
 
-    template<typename M, typename TV> DECLARE_FUNCTION_PREFIX TV
-    sample_(M const &m, std::integral_constant<int, VOLUME>, typename M::id_type s,
-            TV const &v) DECLARE_FUNCTION_SUFFIX { return v; }
+    template<typename TV> constexpr inline auto
+    sample_(index_sequence <VOLUME>, id_type s, TV const &v) const { return v; }
 
-    template<typename M, typename TV> DECLARE_FUNCTION_PREFIX TV
-    sample_(M const &m, std::integral_constant<int, EDGE>,
-            typename M::id_type s, nTuple<TV, 3> const &v) DECLARE_FUNCTION_SUFFIX
+    template<typename TV> constexpr inline auto
+    sample_(index_sequence <EDGE>, id_type s, nTuple<TV, 3> const &v) const
     {
-        return v[M::sub_index(s)];
+        return v[mesh_type::sub_index(s)];
     }
 
-    template<typename M, typename TV> DECLARE_FUNCTION_PREFIX TV
-    sample_(M const &m, std::integral_constant<int, FACE>,
-            typename M::id_type s, nTuple<TV, 3> const &v) DECLARE_FUNCTION_SUFFIX
+    template<typename TV> constexpr inline auto
+    sample_(index_sequence <FACE>, id_type s, nTuple<TV, 3> const &v) const
     {
-        return v[M::sub_index(s)];
+        return v[mesh_type::sub_index(s)];
     }
 //
 //    template<typename M,int IFORM,  typename TV>
-//    DECLARE_FUNCTION_PREFIX TV sample_(M const & m,std::integral_constant<int, IFORM>, typename M::id_type s,
-//                                       TV const &v) DECLARE_FUNCTION_SUFFIX { return v; }
+//    constexpr inline TV sample_(M const & index_sequence< IFORM>, id_type s,
+//                                       TV const &v) const { return v; }
 
 public:
 
 //    template<typename M,int IFORM,  typename TV>
-//    DECLARE_FUNCTION_PREFIX auto generate(TI const &s, TV const &v) DECLARE_FUNCTION_SUFFIX
-//    DECL_RET_TYPE((sample_(M const & m,std::integral_constant<int, IFORM>(), s, v)))
+//    constexpr inline auto generate(TI const &s, TV const &v) const
+//    DECL_RET_TYPE((sample_(M const & index_sequence< IFORM>(), s, v)))
 
 
-    template<int IFORM, typename M, typename TV>
-    DECLARE_FUNCTION_PREFIX auto
-    sample(M const &m, typename M::id_type s, TV const &v) DECLARE_FUNCTION_SUFFIX
-    DECL_RET_TYPE((sample_(m, std::integral_constant<int, IFORM>(), s, v)))
+    template<int IFORM, typename TV> constexpr inline auto
+    sample(id_type s, TV const &v) const DECL_RET_TYPE((sample_(index_sequence<IFORM>(), s, v)))
 
-
-public:
-
-
-    LinearInterpolator() { }
-
-    virtual ~LinearInterpolator() { }
 
     /**
      * A radial basis function (RBF) is a real-valued function whose value depends only
@@ -208,22 +196,20 @@ public:
      * or alternatively on the distance from some other point c, called a center, so that
      * \f$\phi(\mathbf{x}, \mathbf{c}) = \phi(\|\mathbf{x}-\mathbf{c}\|)\f$.
      */
-    template<typename M>
-    Real RBF(M const &m, typename M::point_type const &x0, typename M::point_type const &x1,
-             typename M::vector_type const &a) const
+
+    Real RBF(point_type const &x0, point_type const &x1, vector_type const &a) const
     {
-        typename M::vector_type r;
+        vector_type r;
         r = (x1 - x0) / a;
         // @NOTE this is not  an exact  RBF
         return (1.0 - std::abs(r[0])) * (1.0 - std::abs(r[1])) * (1.0 - std::abs(r[2]));
     }
 
-    template<typename M>
-    Real RBF(M const &m, typename M::point_type const &x0,
-             typename M::point_type const &x1, Real const &a) const
+
+    Real RBF(point_type const &x0, point_type const &x1, Real const &a) const
     {
 
-        return (1.0 - m.distance(x1, x0) / a);
+        return (1.0 - m_.distance(x1, x0) / a);
     }
 
 };

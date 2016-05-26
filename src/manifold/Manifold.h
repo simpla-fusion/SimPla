@@ -137,15 +137,6 @@ public:
 
     typedef TMesh mesh_type;
 
-    using typename mesh::id_type;
-    using typename mesh::range_type;
-    using typename mesh::box_type;
-
-
-    using typename mesh::scalar_type;
-    using typename mesh::point_type;
-    using typename mesh::vector_type;
-
 
     Manifold() : Policies<mesh_type>(dynamic_cast<mesh_type &>(*this))... { }
 

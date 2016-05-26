@@ -20,7 +20,7 @@ using mesh::point_type;
 template<typename ...> class Field;
 
 template<typename TV, typename TManifold, int IFORM>
-using FieldAttr= Field<TV, TManifold, std::integral_constant<int, IFORM>>;
+using field_t= Field<TV, TManifold, std::integral_constant<int, IFORM>>;
 
 
 /**

@@ -28,8 +28,8 @@
 #include "../../gtl/primitives.h"
 
 #include "../../gtl/Log.h"
-//#include "../../manifold/pre_define/PreDefine.h"
-#include "../../mesh/CoRectMesh.h"
+#include "../../manifold/pre_define/PreDefine.h"
+
 
 using namespace simpla;
 using namespace simpla::mesh;
@@ -45,8 +45,7 @@ static constexpr const int PhiAxis = cs::PhiAxis;
 
 #else
 
-typedef mesh::CoRectMesh mesh_type;
-
+typedef manifold::CartesianManifold mesh_type;
 
 #endif
 
@@ -141,9 +140,9 @@ public:
     }
 
     template<typename TV, int IEntityType>
-    FieldAttr<TV, mesh_type, IEntityType> make_field()
+    field_t<TV, mesh_type, IEntityType> make_field()
     {
-        return FieldAttr<TV, mesh_type, IEntityType>(m);
+        return field_t<TV, mesh_type, IEntityType>(m);
     };
 };
 

@@ -28,6 +28,49 @@ template<typename ...> class Field;
 
 template<typename ...> class Expression;
 
+namespace traits
+{
+
+
+template<typename T> struct is_primary_complex { static constexpr bool value = false; };
+template<typename T> struct is_primary_complex<std::complex<T>>
+{
+    static constexpr bool value = std::is_arithmetic<T>::value;
+};
+template<typename T> using is_primary_complex_t=  std::enable_if_t<is_primary_complex<T>::value>;
+
+template<typename T> struct is_primary_scalar
+{
+    static constexpr bool value = std::is_arithmetic<T>::value || is_primary_complex<T>::value;
+};
+template<typename T> using is_primary_scalar_t=  std::enable_if_t<is_primary_scalar<T>::value>;
+
+
+template<typename T> struct is_primary
+{
+    static constexpr bool value = (is_primary_scalar<T>::value || is_ntuple<T>::value) && !is_expression<T>::value;
+};
+template<typename T> using is_primary_t=  std::enable_if_t<is_primary<T>::value>;
+
+
+//template<typename T> struct is_ntuple { static constexpr bool value = false; };
+//template<typename T, int ...N> struct is_ntuple<nTuple<T, N...>> { static constexpr bool value = true; };
+template<typename T> using is_primary_ntuple_t=std::enable_if_t<is_ntuple<T>::value && !(is_expression<T>::value)>;
+template<typename T> using is_expression_ntuple_t=std::enable_if_t<is_ntuple<T>::value && (is_expression<T>::value)>;
+
+
+template<typename T> struct is_expression { static constexpr bool value = false; };
+template<typename ...T, template<typename ...> class F>
+struct is_expression<F<Expression<T...>>> { static constexpr bool value = true; };
+template<typename T> using is_expression_t=  std::enable_if_t<is_expression<T>::value>;
+
+
+
+template<typename T> using is_field_t=  std::enable_if_t<is_field<T>::value>;
+template<typename T> using is_primary_field_t=   std::enable_if_t<is_field<T>::value && !(is_expression<T>::value)>;
+template<typename T> using is_expression_field_t=  std::enable_if_t<is_field<T>::value && (is_expression<T>::value)>;
+
+}
 /**
  * @ingroup diff_geo
  * @defgroup calculus Calculus on Manifold
@@ -358,29 +401,29 @@ codifferential_derivative(T const &f) DECL_RET_TYPE(
  *
  */
 template<typename T> inline auto
-grad(T const &f, IConst <mesh::VERTEX>) DECL_RET_TYPE((exterior_derivative(f)));
+grad(T const &f, I_const <mesh::VERTEX>) DECL_RET_TYPE((exterior_derivative(f)));
 
 template<typename T> inline auto
-grad(T const &f, IConst <mesh::VOLUME>) DECL_RET_TYPE(((codifferential_derivative(-f))));
+grad(T const &f, I_const <mesh::VOLUME>) DECL_RET_TYPE(((codifferential_derivative(-f))));
 
 template<typename T> inline auto
 grad(T const &f) DECL_RET_TYPE((grad(f, traits::iform<T>())));
 
 template<typename T> inline auto
-diverge(T const &f, IConst <mesh::EDGE>) DECL_RET_TYPE((exterior_derivative(f)));
+diverge(T const &f, I_const <mesh::EDGE>) DECL_RET_TYPE((exterior_derivative(f)));
 
 template<typename T> inline auto
-diverge(T const &f, IConst <mesh::FACE>) DECL_RET_TYPE((codifferential_derivative(-f)));
+diverge(T const &f, I_const <mesh::FACE>) DECL_RET_TYPE((codifferential_derivative(-f)));
 
 template<typename T> inline auto
 diverge(T const &f) DECL_RET_TYPE((diverge(f, traits::iform<T>())));
 
 
 template<typename T> inline auto
-curl(T const &f, IConst <mesh::EDGE>) { return exterior_derivative(f); }
+curl(T const &f, I_const <mesh::EDGE>) { return exterior_derivative(f); }
 
 template<typename T> inline auto
-curl(T const &f, IConst <mesh::FACE>) { return codifferential_derivative(-f); }
+curl(T const &f, I_const <mesh::FACE>) { return codifferential_derivative(-f); }
 
 template<typename T> inline auto
 curl(T const &f) { return curl(f, traits::iform<T>()); }
@@ -395,28 +438,28 @@ p_codifferential_derivative(T const &f) DECL_RET_TYPE(
                 std::integral_constant<int, I>, T> >(std::integral_constant<int, I>(), f)));
 
 template<typename T> inline auto
-curl_pdx(T const &f, IConst <mesh::EDGE>) DECL_RET_TYPE((p_exterior_derivative<0>(f)));
+curl_pdx(T const &f, I_const <mesh::EDGE>) DECL_RET_TYPE((p_exterior_derivative<0>(f)));
 
 template<typename T> inline auto
-curl_pdx(T const &f, IConst <mesh::FACE>) DECL_RET_TYPE((p_codifferential_derivative<0>(f)));
+curl_pdx(T const &f, I_const <mesh::FACE>) DECL_RET_TYPE((p_codifferential_derivative<0>(f)));
 
 template<typename T> inline auto
 curl_pdx(T const &f) { return curl_pdx(f, traits::iform<T>()); }
 
 template<typename T> inline auto
-curl_pdy(T const &f, IConst <mesh::EDGE>) DECL_RET_TYPE((p_exterior_derivative<1>(f)));
+curl_pdy(T const &f, I_const <mesh::EDGE>) DECL_RET_TYPE((p_exterior_derivative<1>(f)));
 
 template<typename T> inline auto
-curl_pdy(T const &f, IConst <mesh::FACE>) DECL_RET_TYPE((p_codifferential_derivative<1>(f)));
+curl_pdy(T const &f, I_const <mesh::FACE>) DECL_RET_TYPE((p_codifferential_derivative<1>(f)));
 
 template<typename T> inline auto
 curl_pdy(T const &f) { return curl_pdy(f, traits::iform<T>()); }
 
 template<typename T> inline auto
-curl_pdz(T const &f, IConst <mesh::EDGE>) DECL_RET_TYPE((p_exterior_derivative<2>(f)));
+curl_pdz(T const &f, I_const <mesh::EDGE>) DECL_RET_TYPE((p_exterior_derivative<2>(f)));
 
 template<typename T> inline auto
-curl_pdz(T const &f, IConst <mesh::FACE>) DECL_RET_TYPE((p_codifferential_derivative<2>(f)));
+curl_pdz(T const &f, I_const <mesh::FACE>) DECL_RET_TYPE((p_codifferential_derivative<2>(f)));
 
 template<typename T> inline auto
 curl_pdz(T const &f) { return curl_pdz(f, traits::iform<T>()); }

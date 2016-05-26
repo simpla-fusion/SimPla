@@ -11,6 +11,7 @@
 #include "../../gtl/PrettyStream.h"
 #include "../../gtl/nTupleExt.h"
 #include "../Field.h"
+#include "../../manifold/pre_define/PreDefine.h"
 
 using namespace simpla;
 
@@ -18,7 +19,8 @@ using namespace simpla;
 int main(int argc, char **argv)
 {
 
-    typedef FieldAttr<double, mesh::CoRectMesh, mesh::VERTEX> field_type;
+    typedef manifold::CylindricalManifold mesh_type;
+    typedef field_t<double, mesh_type, mesh::VERTEX> field_type;
     std::cout << traits::type_id<field_type>::name() << std::endl;
 
     mesh::MeshAtlas m;

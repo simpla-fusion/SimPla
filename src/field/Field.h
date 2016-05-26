@@ -20,7 +20,7 @@ namespace simpla
 template<typename ...> class Field;
 
 template<typename TV, typename TManifold, int IFORM>
-using FieldAttr= Field<TV, TManifold, std::integral_constant<int, IFORM>>;
+using field_t= Field<TV, TManifold, std::integral_constant<int, IFORM>>;
 
 
 /**
@@ -81,7 +81,6 @@ public:
     Field(this_type &&other) : base_type(other), m_attr_(other.m_attr_) { }
 
     virtual ~Field() { }
-
 
     std::shared_ptr<attribute_type> attribute() { return m_attr_; }
 
@@ -151,7 +150,7 @@ private:
         {
 //            CHECK(base_type::mesh().hash(s));
             op(f[s], /*mesh_type::calculus_policy::eval(base_type::mesh(), f, s)*/
-               mesh_type::calculus_policy::eval(base_type::mesh(), std::forward<Args>(args), s)...);
+               base_type::mesh().eval(std::forward<Args>(args), s)...);
         }
 
     }
@@ -192,7 +191,12 @@ public:
 
 };
 
+namespace traits
+{
+template<typename> struct is_field { static constexpr bool value = false; };
+template<typename ...T> struct is_field<Field<T...>> { static constexpr bool value = true; };
 
+}
 }//namespace simpla
 
 #endif //SIMPLA_FIELD_H
