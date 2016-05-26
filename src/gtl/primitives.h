@@ -13,7 +13,7 @@
 #include <cstdlib>
 #include <limits>
 #include <valarray>
-
+#include <boost/uuid/uuid.hpp>
 
 #include "../gtl/type_traits.h"
 #include "../gtl/complex.h"
@@ -22,7 +22,7 @@
 namespace simpla
 {
 
-typedef unsigned long uuid;
+typedef boost::uuids::uuid uuid;
 /**
  *  @ingroup gtl
  * @{
@@ -113,8 +113,7 @@ struct is_expression
     static constexpr bool value = false;
 };
 
-template<typename T1> auto abs(T1 const &m)
-DECL_RET_TYPE ((std::fabs(m)))
+template<typename T1> auto abs(T1 const &m) DECL_RET_TYPE ((std::fabs(m)))
 
 /**
  * @}

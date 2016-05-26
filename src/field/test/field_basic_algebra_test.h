@@ -69,7 +69,9 @@ public:
 
     field_t<value_type, mesh_type, iform> make_field() const
     {
-        return field_t<value_type, mesh_type, iform>(m);
+
+        return  field_t<value_type, mesh_type, iform>  (m);
+
     };
 
     auto make_scalarField() const DECL_RET_TYPE((field_t<value_type, mesh_type, iform>(m)))
@@ -170,84 +172,84 @@ TYPED_TEST_P(TestField, constant_real)
 
 }
 
-TYPED_TEST_P(TestField, scalarField)
-{
+//TYPED_TEST_P(TestField, scalarField)
+//{
+//
+//
+//    typedef typename TestFixture::value_type value_type;
+//
+//    auto f1 = TestFixture::make_field();
+//    auto f2 = TestFixture::make_field();
+//    auto f3 = TestFixture::make_field();
+//    auto f4 = TestFixture::make_field();
+//
+//    auto a = TestFixture::make_scalarField();
+//    auto b = TestFixture::make_scalarField();
+//    auto c = TestFixture::make_scalarField();
+//
+//    Real ra = 1.0, rb = 10.0, rc = 100.0;
+//
+//    value_type va, vb, vc;
+//
+//    va = ra;
+//    vb = rb;
+//    vc = rc;
+//
+//    a = ra;
+//    b = rb;
+//    c = rc;
+//
+//    f1.deploy();
+//    f2.deploy();
+//    f3.deploy();
+//    f4.deploy();
+//
+//    size_t count = 0;
+//
+//    std::mt19937 gen;
+//    std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
+//
+//    for (auto s: f1.range())
+//    {
+//        f1[s] = va * uniform_dist(gen);
+//    }
+//    for (auto s: f2.range())
+//    {
+//        f2[s] = vb * uniform_dist(gen);
+//    }
+//
+//    for (auto s:   f3.range())
+//    {
+//        f3[s] = vc * uniform_dist(gen);
+//    }
+//
+//    LOG_CMD(f4 = -f1 * a + f2 * b - f3 / c - f1);
+//
+////	Plus( Minus(Negate(Wedge(f1,a)),Divides(f2,b)),Multiplies(f3,c) )
+//
+///**           (+)
+// *           /   \
+// *         (-)    (*)
+// *        /   \    | \
+// *      (^)    (/) f1 c
+// *     /  \   /  \
+// *-f1      a f2   b
+// *
+// * */
+//    count = 0;
+//
+//    for (auto s : TestFixture::m_range)
+//    {
+//        value_type res = -f1[s] * ra + f2[s] * rb - f3[s] / rc - f1[s];
+//
+//        EXPECT_LE(mod(res - f4[s]), EPSILON) << "s= " << (TestFixture::mesh->hash(s));
+//    }
+//
+//    EXPECT_EQ(0, count) << "number of error points =" << count;
+//
+//}
 
-
-    typedef typename TestFixture::value_type value_type;
-
-    auto f1 = TestFixture::make_field();
-    auto f2 = TestFixture::make_field();
-    auto f3 = TestFixture::make_field();
-    auto f4 = TestFixture::make_field();
-
-    auto a = TestFixture::make_scalarField();
-    auto b = TestFixture::make_scalarField();
-    auto c = TestFixture::make_scalarField();
-
-    Real ra = 1.0, rb = 10.0, rc = 100.0;
-
-    value_type va, vb, vc;
-
-    va = ra;
-    vb = rb;
-    vc = rc;
-
-    a = ra;
-    b = rb;
-    c = rc;
-
-    f1.deploy();
-    f2.deploy();
-    f3.deploy();
-    f4.deploy();
-
-    size_t count = 0;
-
-    std::mt19937 gen;
-    std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
-
-    for (auto s: f1.range())
-    {
-        f1[s] = va * uniform_dist(gen);
-    }
-    for (auto s: f2.range())
-    {
-        f2[s] = vb * uniform_dist(gen);
-    }
-
-    for (auto s:   f3.range())
-    {
-        f3[s] = vc * uniform_dist(gen);
-    }
-
-    LOG_CMD(f4 = -f1 * a + f2 * b - f3 / c - f1);
-
-//	Plus( Minus(Negate(Wedge(f1,a)),Divides(f2,b)),Multiplies(f3,c) )
-
-/**           (+)
- *           /   \
- *         (-)    (*)
- *        /   \    | \
- *      (^)    (/) f1 c
- *     /  \   /  \
- *-f1      a f2   b
- *
- * */
-    count = 0;
-
-    for (auto s : TestFixture::m_range)
-    {
-        value_type res = -f1[s] * ra + f2[s] * rb - f3[s] / rc - f1[s];
-
-        EXPECT_LE(mod(res - f4[s]), EPSILON) << "s= " << (TestFixture::mesh->hash(s));
-    }
-
-    EXPECT_EQ(0, count) << "number of error points =" << count;
-
-}
-
-REGISTER_TYPED_TEST_CASE_P(TestField, assign, index, constant_real, scalarField);
+REGISTER_TYPED_TEST_CASE_P(TestField, assign, index, constant_real/*, scalarField*/);
 
 //#include <gtest/gtest.h>
 //

@@ -32,7 +32,8 @@ int main(int argc, char **argv)
 
     mesh->dimensions(nTuple<size_t, 3> {10, 10, 10});
 
-    mesh->box(box_type{{0, 0, 0}, {1, 1, 1}});
+    mesh->box(box_type{{0, 0, 0},
+                       {1, 1, 1}});
 
     mesh->deploy();
 
@@ -45,6 +46,8 @@ int main(int argc, char **argv)
     f.view(block_id);
 
     f = 0;
+    f = f * 2;
+
     std::cout << mesh_type::class_name() << std::endl;
 
 //    mesh::DummyMesh d_mesh;

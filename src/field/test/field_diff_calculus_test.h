@@ -73,7 +73,7 @@ protected:
         mesh->box(box);
 
         mesh->deploy();
-
+        block_id = mesh->uuid();
         Vec3 dx = mesh->dx();
 
 
@@ -110,7 +110,7 @@ public:
     typedef Real value_type;
 
     static constexpr size_t ndims = mesh_type::ndims;
-
+    uuid block_id;
     box_type box;
     point_type xmin, xmax;
     nTuple<size_t, 3> dims;
@@ -142,7 +142,8 @@ public:
     template<typename TV, int IEntityType>
     field_t<TV, mesh_type, IEntityType> make_field()
     {
-        return field_t<TV, mesh_type, IEntityType>(m);
+       return  field_t  <TV, mesh_type, IEntityType>(m);
+
     };
 };
 

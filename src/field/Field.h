@@ -148,7 +148,6 @@ private:
 
         for (auto const &s: base_type::range())
         {
-//            CHECK(base_type::mesh().hash(s));
             op(f[s], /*mesh_type::calculus_policy::eval(base_type::mesh(), f, s)*/
                base_type::mesh().eval(std::forward<Args>(args), s)...);
         }
