@@ -7,8 +7,8 @@
 #ifndef SIMPLA_PIC_BORIS_H
 #define SIMPLA_PIC_BORIS_H
 
-#include "../../manifold/policy/FvmStructuredPolicy.h"
-#include "../../manifold/policy/LinearInterpolatorPolicy.h"
+#include "../../manifold/schemes/FvmStructuredPolicy.h"
+#include "../../manifold/schemes/LinearInterpolatorPolicy.h"
 
 #include "../Particle.h"
 #include "../ParticleContainer.h"

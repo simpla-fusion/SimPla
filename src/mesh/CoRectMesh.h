@@ -111,13 +111,11 @@ public:
     virtual std::ostream &print(std::ostream &os, int indent = 1) const
     {
 
-//        os
-//        << std::setw(indent) << "\tGeometry={" << std::endl
-//        << std::setw(indent) << "\t\t Topology = { Type = \"RectMesh\",  }," << std::endl
-//        << std::setw(indent) << "\t\t Box = {" << box() << "}," << std::endl
-//        << std::setw(indent) << "\t\t Dimensions = " << dims() << "," << std::endl
-//        << std::setw(indent) << "\t\t}, " << std::endl
-//        << std::setw(indent) << "\t}" << std::endl;
+        os
+        << std::setw(indent) << " "
+        << "Topology = { Type = \"CoRectMesh\", "
+        << "Dimensions = " << dims() << " }," << std::endl
+        << std::setw(indent) << " " << "Box = " << box() << "," << std::endl;
 
         return os;
     }

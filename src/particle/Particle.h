@@ -120,7 +120,7 @@ public:
 //        return std::dynamic_pointer_cast<typename mesh_type::AttributeEntity>(m_data_);
 //    }
 
-    virtual std::ostream &print(std::ostream &os, int indent = 0) const
+    virtual std::ostream &print(std::ostream &os, int indent = 1) const
     {
         return m_data_->print(os, indent);
     }

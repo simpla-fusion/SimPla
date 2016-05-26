@@ -166,7 +166,7 @@ public:
         return *this;
     }
 
-    std::ostream &print(std::ostream &os, int indent = 0) const;
+    std::ostream &print(std::ostream &os, int indent = 1) const;
 };
 
 std::ostream &operator<<(std::ostream &os, Properties const &prop);

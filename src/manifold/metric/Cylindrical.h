@@ -30,6 +30,16 @@ public:
 
     ~Cylindrical() { }
 
+    static std::string class_name() { return "Cylindrical"; }
+
+    void deploy() { }
+
+    std::ostream &print(std::ostream &os, int indent = 1) const
+    {
+        os << std::setw(indent) << " " << "Geometry={ Type=\"Cylindrical\" }," << std::endl;
+        return os;
+    }
+
 public:
 
 };

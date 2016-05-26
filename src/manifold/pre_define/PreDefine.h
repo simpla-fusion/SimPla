@@ -12,8 +12,8 @@
 
 #include "../../mesh/CoRectMesh.h"
 
-#include "../policy/FvmStructuredPolicy.h"
-#include "../policy/LinearInterpolatorPolicy.h"
+#include "../schemes/FvmStructuredPolicy.h"
+#include "../schemes/LinearInterpolatorPolicy.h"
 
 //#include "../policy/StoragePolicy.h"
 //#include "../policy/ParallelPolicy.h"

@@ -19,21 +19,33 @@ using namespace simpla;
 int main(int argc, char **argv)
 {
 
-    typedef manifold::CylindricalManifold mesh_type;
+    typedef manifold::CartesianManifold mesh_type;
     typedef field_t<double, mesh_type, mesh::VERTEX> field_type;
     std::cout << traits::type_id<field_type>::name() << std::endl;
 
     mesh::MeshAtlas m;
+    std::shared_ptr<mesh_type> mesh;
+
     auto res = m.template add<mesh::CoRectMesh>();
 
-    auto block_id = res.first->uuid();
+    std::tie(mesh, std::ignore) = m.add<mesh_type>();
+
+    mesh->dimensions(nTuple<size_t, 3> {10, 10, 10});
+
+    mesh->box(box_type{{0, 0, 0}, {1, 1, 1}});
+
+    mesh->deploy();
+
+    print(std::cout, *mesh) << std::endl;
+
+    auto block_id = mesh->uuid();
 
     auto f = m.make_attribute<field_type>();
 
     f.view(block_id);
 
     f = 0;
-
+    std::cout << mesh_type::class_name() << std::endl;
 
 //    mesh::DummyMesh d_mesh;
 //

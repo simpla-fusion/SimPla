@@ -137,8 +137,7 @@ public:
 
     typedef TMesh mesh_type;
 
-
-    Manifold() : Policies<mesh_type>(dynamic_cast<mesh_type &>(*this))... { }
+    Manifold() : Policies<mesh_type>(static_cast<mesh_type &>(*this))... { }
 
     virtual ~Manifold() { }
 
@@ -146,37 +145,47 @@ public:
 
     this_type &operator=(const this_type &other) = delete;
 
-    virtual this_type &self() { return (*this); }
-
-    virtual this_type const &self() const { return (*this); }
-
-
-public:
 
     virtual bool is_a(std::type_info const &info) const { return typeid(this_type) == info || TMesh::is_a(info); }
 
-    virtual std::string get_class_name() const { return "Manifold<" + mesh_type::get_class_name() + " ... >"; }
+    virtual std::string get_class_name() const { return class_name(); }
 
+    static std::string class_name()
+    {
+        return "Manifold<" + traits::type_id<mesh_type, Policies<mesh_type>...>::name() + " > ";
+    }
+
+private:
+    template<typename T> void deploy_dispatch() { T::deploy(); }
+
+    template<typename T, typename T1, typename ...Others>
+    void deploy_dispatch()
+    {
+        deploy_dispatch<T>();
+        deploy_dispatch<T1, Others...>();
+    }
+
+
+public:
     virtual void deploy()
     {
-        mesh_type::deploy();
+        deploy_dispatch<mesh_type, Policies<mesh_type>...>();
         this->touch();
     }
 
 
-    virtual std::ostream &print(std::ostream &os, int indent = 0) const
+    virtual std::ostream &print(std::ostream &os, int indent = 1) const
     {
-//        os << std::setw(indent + 1) << " " << "Mesh = {";
-//
-//        os << std::setw(indent + 1) << " dt = " << m_dt_ << "," << std::endl;
-//
-//
-//        TMesh::print(os, indent + 1);
-//        properties().print(os, indent + 1);
-//
-//        os << "}  -- Mesh " << std::endl;
+        os << std::setw(indent) << " " << "Manifold = {" << std::endl;
 
-        mesh_type::print(os, indent);
+        this_type::mesh_type::print(os, indent + 1);
+        this_type::metric_policy::print(os, indent + 1);
+        this_type::calculus_policy::print(os, indent + 1);
+        this_type::interpolate_policy::print(os, indent + 1);
+
+        os << std::setw(indent) << " " << "}  -- Manifold " << std::endl;
+
+
         return os;
     }
 

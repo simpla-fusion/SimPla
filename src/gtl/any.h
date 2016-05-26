@@ -137,7 +137,7 @@ struct Base
 
     virtual void *data() = 0;
 
-    virtual std::ostream &print(std::ostream &os, int indent = 0) const = 0;
+    virtual std::ostream &print(std::ostream &os, int indent = 1) const = 0;
 
     virtual bool is_same(std::type_index const &) const = 0;
 
@@ -219,7 +219,7 @@ struct Derived : Base
 
     void *data() { return reinterpret_cast<void *>(&m_value); }
 
-    std::ostream &print(std::ostream &os, int indent = 0) const
+    std::ostream &print(std::ostream &os, int indent = 1) const
     {
         if (std::is_same<T, std::string>::value) { os << "\"" << m_value << "\""; } else { os << m_value; }
 
@@ -439,7 +439,7 @@ struct any
         return *this;
     }
 
-    std::ostream &print(std::ostream &os, int indent = 0) const
+    std::ostream &print(std::ostream &os, int indent = 1) const
     {
         if (ptr_ != nullptr) { ptr_->print(os, indent); }
         return os;

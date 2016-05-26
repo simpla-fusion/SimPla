@@ -34,7 +34,7 @@ template<typename T, int ...> class nTuple;
 
 
 }
-namespace simpla { namespace manifold { namespace policy
+namespace simpla { namespace manifold { namespace schemes
 {
 using namespace simpla::mesh;
 
@@ -54,11 +54,40 @@ struct FiniteVolume
 public:
     typedef FiniteVolume<TM> calculus_policy;
 
+    FiniteVolume(TM const &m) : m_(m) { }
+
+    virtual ~FiniteVolume() { }
+
+    static std::string class_name() { return "FiniteVolume"; }
+
+    virtual std::ostream &print(std::ostream &os, int indent = 1) const
+    {
+        os << std::setw(indent) << " " << "[FiniteVolume]," << std::endl;
+        return os;
+    }
+
+    void deploy() { }
+
+    template<typename T> inline constexpr auto
+    eval(T &f, id_type s, traits::is_primary_field_t<T> *p = nullptr) const { return f[s]; }
+
+    template<typename T> inline constexpr auto
+    eval(T const &f, id_type s, traits::is_primary_field_t<T> *p = nullptr) const { return f[s]; }
+
+    template<typename T> inline constexpr auto
+    eval(T const &expr, id_type s, traits::is_expression_field_t<T> *p = nullptr) const { return (eval_(expr, s)); }
+
+    template<typename T> inline constexpr auto
+    eval(T const &expr, id_type s, traits::is_primary_t<T> *p = nullptr) const { return (eval_(expr, s)); }
+
 private:
-
-    typedef TM mesh_type;
-
     typedef FiniteVolume<TM> this_type;
+    typedef TM mesh_type;
+    mesh_type const &m_;
+
+
+
+
 
 
     ///***************************************************************************************************
@@ -555,27 +584,6 @@ private:
         return eval_(expr, s, traits::iform_list_t<T...>());
     }
 
-public:
-
-    FiniteVolume(mesh_type const &m) : m_(m) { }
-
-    virtual ~FiniteVolume() { }
-
-
-    template<typename T> inline constexpr auto
-    eval(T &f, id_type s, traits::is_primary_field_t<T> *p = nullptr) const { return f[s]; }
-
-    template<typename T> inline constexpr auto
-    eval(T const &f, id_type s, traits::is_primary_field_t<T> *p = nullptr) const { return f[s]; }
-
-    template<typename T> inline constexpr auto
-    eval(T const &expr, id_type s, traits::is_expression_field_t<T> *p = nullptr) const { return (eval_(expr, s)); }
-
-    template<typename T> inline constexpr auto
-    eval(T const &expr, id_type s, traits::is_primary_t<T> *p = nullptr) const { return (eval_(expr, s)); }
-
-private:
-    mesh_type const &m_;
 
 };// struct DiffScheme<TGeo, diff_scheme::tags::finite_volume>
 

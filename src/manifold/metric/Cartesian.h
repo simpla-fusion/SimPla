@@ -30,6 +30,16 @@ public:
 
     ~Cartesian() { }
 
+    static std::string class_name() { return "Cartesian"; }
+
+    void deploy() { }
+
+    std::ostream &print(std::ostream &os, int indent = 1) const
+    {
+        os << std::setw(indent) << " " << "Geometry={ Type=\"Cartesian\" }," << std::endl;
+        return os;
+    }
+
 public:
 
 private:

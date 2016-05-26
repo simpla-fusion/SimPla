@@ -261,33 +261,27 @@ std::ostream &operator<<(std::ostream &os, std::tuple<T, Args ...> const &v)
 
     return os;
 };
-//
-//template<typename T0, typename T1>
-//std::ostream &operator<<(std::ostream &os, std::tuple<T0, T1> const &v)
-//{
-//    os << "{ " << std::get<0>(v) << " , " << std::get<1>(v) << "}";
-//
-//    return os;
-//};
-//
-//
-//template<typename T0, typename T1, typename T2>
-//std::ostream &operator<<(std::ostream &os, std::tuple<T0, T1, T2> const &v)
-//{
-//    os << "{ " << std::get<0>(v) << " , " << std::get<1>(v) << " , " << std::get<2>(v) << "}";
-//
-//    return os;
-//};
-//
-//
-//template<typename T0, typename T1, typename T2, typename T3>
-//std::ostream &operator<<(std::ostream &os, std::tuple<T0, T1, T2, T3> const &v)
-//{
-//    os << "{ " << std::get<0>(v) << " , " << std::get<1>(v) << " , " << std::get<2>(v) << " , " << std::get<3>(v) <<
-//    "}";
-//
-//    return os;
-//};
+
+namespace traits
+{
+template<typename T>
+struct is_printable
+{
+private:
+    HAS_CONST_MEMBER_FUNCTION(print);
+
+public:
+
+    static constexpr bool value = has_const_member_function_print<T, std::ostream &>::value ||
+                                  has_const_member_function_print<T, std::ostream &, int>::value;
+
+};
+
+template<typename T> using is_printable_t=std::enable_if_t<is_printable<T>::value>;
+
+
+}//namespace traits{
+
 
 template<typename T, typename ...Others>
 std::ostream &print(std::ostream &os, T const &first, Others &&... others)
@@ -299,29 +293,14 @@ std::ostream &print(std::ostream &os, T const &first, Others &&... others)
     return os;
 };
 
+template<typename T>
+std::ostream &print(std::ostream &os, T const &v, traits::is_printable_t<T> *_p = nullptr)
+{
+    return v.print(os, 1);
+}
+
 
 /** @}*/
 }  // namespace std
-
-//namespace _impl
-//{
-//
-//HAS_MEMBER_FUNCTION(Serialize)
-//
-//}  // namespace _impl
-//
-//template<typename TOS, typename TD>
-//auto PrettyOutput(TOS & os, TD const &d)
-//ENABLE_IF_DECL_RET_TYPE( (_impl::has_member_function_Serialize<TD,TOS>::value), d.Serialize(os))
-//
-//template<typename TOS, typename TD>
-//auto PrettyOutput(TOS & os, TD const &d)
-//ENABLE_IF_DECL_RET_TYPE( (!_impl::has_member_function_Serialize<TD,TOS>::value), Serialize(os,d))
-//
-//template<typename TOS, typename TD>
-//TOS & operator<<(TOS & os, TD const &d)
-//{
-//	return PrettyOutput(os, d);
-//}
 
 #endif /* PRETTY_STREAM_H_ */

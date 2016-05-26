@@ -139,7 +139,7 @@ public:
     void sync_(container_type const &buffer, parallel::DistributedObject *dist_obj, bool update_ghost = true);
 
 public:
-    virtual std::ostream &print(std::ostream &os, int indent = 0) const;
+    virtual std::ostream &print(std::ostream &os, int indent = 1) const;
 
 
     /**

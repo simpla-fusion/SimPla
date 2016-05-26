@@ -29,6 +29,17 @@ public:
 
     virtual ~LinearInterpolator() { }
 
+    static std::string class_name() { return "LinearInterpolator"; }
+
+    void deploy() { }
+
+
+    virtual std::ostream &print(std::ostream &os, int indent = 1) const
+    {
+        os << std::setw(indent) << " " << "[LinearInterpolator]," << std::endl;
+        return os;
+    }
+
 private:
     typedef TM mesh_type;
     mesh_type const &m_;
