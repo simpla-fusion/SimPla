@@ -18,7 +18,7 @@
 #include <typeinfo>
 #include <stddef.h>
 
-#include "../data_model/DataType.h"
+//#include "../data_model/DataType.h"
 #include "Log.h"
 
 namespace simpla
@@ -145,7 +145,7 @@ struct Base
 
     template<typename T> bool is_same() const { return is_same(std::type_index(typeid(T))); }
 
-    virtual data_model::DataType data_type() const = 0;
+//    virtual data_model::DataType data_type() const = 0;
 
 
     virtual bool is_bool() const = 0;
@@ -230,7 +230,7 @@ struct Derived : Base
 
     std::string type_name() const { return typeid(T).name(); }
 
-    data_model::DataType data_type() const { return data_model::DataType::template create<T>(); }
+//    data_model::DataType data_type() const { return data_model::DataType::template create<T>(); }
 
     virtual bool is_bool() const { return std::is_convertible<T, bool>::value; }
 
@@ -445,7 +445,7 @@ struct any
         return os;
     }
 
-    data_model::DataType data_type() const { return ptr_->data_type(); }
+//    data_model::DataType data_type() const { return ptr_->data_type(); }
 
 private:
 

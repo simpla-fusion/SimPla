@@ -7,13 +7,11 @@
 #ifndef SIMPLA_PREDEFINE_H
 #define SIMPLA_PREDEFINE_H
 
-
-#include "../Manifold.h"
-
 #include "../../mesh/CoRectMesh.h"
 
-#include "../schemes/FvmStructuredPolicy.h"
-#include "../schemes/LinearInterpolatorPolicy.h"
+#include "../Manifold.h"
+#include "../schemes/FVMStructured.h"
+#include "../schemes/LinearInterpolator.h"
 
 //#include "../policy/StoragePolicy.h"
 //#include "../policy/ParallelPolicy.h"
@@ -31,10 +29,10 @@ namespace simpla { namespace manifold
 template<typename MESH = mesh::CoRectMesh, template<typename> class METRIC_POLICY= metric::Cartesian>
 using DefaultManifold= Manifold<MESH,
         METRIC_POLICY,
+        schemes::FiniteVolume,
+        schemes::LinearInterpolator
         //        policy::StoragePolicy,
         //        policy::ParallelPolicy,
-        policy::FiniteVolume,
-        policy::LinearInterpolator
 >;
 
 using CylindricalManifold= DefaultManifold<mesh::CoRectMesh, metric::Cylindrical>;

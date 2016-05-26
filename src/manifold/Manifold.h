@@ -126,7 +126,7 @@ namespace simpla { namespace manifold
 /**
  * Manifold
  */
-template<typename TMesh, template<typename> class ...Policies>
+template<typename TMesh, template<typename...> class ...Policies>
 class Manifold
         : public TMesh,
           public Policies<TMesh> ...

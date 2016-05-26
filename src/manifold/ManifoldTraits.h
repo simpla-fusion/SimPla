@@ -99,7 +99,7 @@ template<typename T> struct iform : public std::integral_constant<int, 0> { };
 template<typename ...T>
 struct iform_list : public integer_sequence<int, iform<T>::value...>
 {
-    typedef integer_sequence<int, iform<T>::value...> type;
+    typedef index_sequence<iform<T>::value...> type;
 };
 
 template<typename ...T> using iform_list_t= typename iform_list<T...>::type;

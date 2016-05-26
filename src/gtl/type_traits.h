@@ -29,16 +29,21 @@ struct EmptyType { };
 namespace tags { struct do_nothing { template<typename ...Args> void operator()(Args &&...) const { }}; }
 
 template<int I> using I_const=std::integral_constant<int, I>;
-
-template<typename _Tp, _Tp ... _I> struct integer_sequence;
 template<typename, int...> struct nTuple;
-template<int ... Ints>
-using index_sequence = integer_sequence<int, Ints...>;
+
 
 //////////////////////////////////////////////////////////////////////
 /// integer_sequence
 //////////////////////////////////////////////////////////////////////
-
+#if __cplusplus >= 201402L
+//template<typename _Tp, _Tp ... _I> using integer_sequence = std::integer_sequence<_Tp, _I...>;
+//template<int ... _I> using index_sequence=std::index_sequence<_I...>;
+using std::integer_sequence;
+using std::index_sequence;
+using std::make_index_sequence;
+using std::make_integer_sequence;
+using std::index_sequence_for;
+#else
 /**
  *  alt. of std::integer_sequence ( C++14)
  *  @quto http://en.cppreference.com/w/cpp/utilities/integer_sequence
@@ -47,6 +52,10 @@ using index_sequence = integer_sequence<int, Ints...>;
  *   to a function template, the parameter pack Ints can be deduced
  *   and used in pack expansion.
  */
+ *
+ *
+template<typename _Tp, _Tp ... _I> struct integer_sequence;
+template<int ... Ints> using index_sequence = integer_sequence<int, Ints...>;
 template<typename _Tp, _Tp ... _I>
 struct integer_sequence
 {
@@ -77,6 +86,33 @@ public:
 
 };
 
+template<class T, T N>
+using make_integer_sequence =typename _impl::gen_seq<T, N>::type;
+
+template<int N>
+using make_index_sequence = make_integer_sequence<int, N>;
+
+
+#endif
+
+namespace _impl
+{
+template<typename Func, typename Tup, int ... index>
+auto invoke_helper(Func &&func, Tup &&tup, index_sequence<index...>) DECL_RET_TYPE(
+        func(std::get<index>(std::forward<Tup>(tup))...))
+
+
+} // namespace _impl
+
+
+template<typename Func, typename Tup>
+auto invoke(Func &&func, Tup &&tup) DECL_RET_TYPE(
+
+        _impl::invoke_helper(std::forward<Func>(func),
+                             std::forward<Tup>(tup),
+                             make_index_sequence<std::tuple_size<typename std::decay<Tup>::type>::value>()
+        )
+)
 
 namespace traits
 {
@@ -138,53 +174,20 @@ struct seq_concat<First, Others...>
 {
     typedef typename seq_concat<First, typename seq_concat<Others...>::type>::type type;
 };
-template<typename First>
-struct seq_concat<First>
-{
-    typedef First type;
-};
+
 
 template<typename _Tp, _Tp ... _M, _Tp ... _N>
 struct seq_concat<integer_sequence<_Tp, _M...>, integer_sequence<_Tp, _N...> >
 {
     typedef integer_sequence<_Tp, _M..., _N...> type;
 };
+template<typename _Tp, _Tp ... _M>
+struct seq_concat<integer_sequence<_Tp, _M...>, integer_sequence<_Tp> >
+{
+    typedef integer_sequence<_Tp, _M...> type;
+};
 } // namespace traits
-namespace _impl
-{
-template<typename Func, typename Tup, int ... index>
-auto invoke_helper(Func &&func, Tup &&tup, index_sequence<index...>) DECL_RET_TYPE(
-        func(std::get<index>(std::forward<Tup>(tup))...))
 
-template<typename TP, int N>
-struct gen_seq
-{
-    typedef typename traits::seq_concat<typename gen_seq<TP, N - 1>::type,
-            integer_sequence<TP, N - 1> >::type type;
-};
-
-template<typename TP>
-struct gen_seq<TP, 0UL>
-{
-    typedef integer_sequence<TP> type;
-};
-} // namespace _impl
-
-template<class T, T N>
-using make_integer_sequence =typename _impl::gen_seq<T, N>::type;
-
-template<int N>
-using make_index_sequence = make_integer_sequence<int, N>;
-
-template<typename Func, typename Tup>
-auto invoke(Func &&func,
-            Tup &&tup) DECL_RET_TYPE(
-
-        _impl::invoke_helper(std::forward<Func>(func),
-                             std::forward<Tup>(tup),
-                             make_index_sequence<std::tuple_size<typename std::decay<Tup>::type>::value>()
-        )
-)
 
 ////////////////////////////////////////////////////////////////////////
 ///// Property queries of n-dimensional array
@@ -279,15 +282,17 @@ struct extent : public std::integral_constant<int, std::extent<T, N>::value>
  *
  */
 template<typename T>
-struct extents : public integer_sequence<int>
+struct extents
 {
+    typedef integer_sequence<int> type;
 };
 template<typename T> using extents_t=typename extents<T>::type;
 
 template<typename T, int N>
-struct extents<T[N]> : public simpla::traits::seq_concat<
-        integer_sequence<int, N>, typename extents<T>::type>::type
+struct extents<T[N]>
 {
+    typedef typename traits::seq_concat<
+            integer_sequence<int, N>, typename extents<T>::type>::type type;
 };
 
 template<typename T> struct key_type

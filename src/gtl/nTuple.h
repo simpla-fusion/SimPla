@@ -382,8 +382,9 @@ struct rank<nTuple<T, N...>> : public std::integral_constant<int,
 {
 };
 template<typename TV, int ...M, int N>
-struct extent<nTuple<TV, M...>, N> : public mpl::unpack_int_seq<N, int, M...>::type
+struct extent<nTuple<TV, M...>, N>
 {
+    typedef typename mpl::unpack_int_seq<N, int, M...>::type type;
 };
 template<typename T, int ...N>
 struct key_type<nTuple<T, N...>>
@@ -452,9 +453,9 @@ struct pod_type<nTuple<T, N...>>
 
 
 template<typename TV, int ...M>
-struct extents<nTuple<TV, M...> > : public simpla::traits::seq_concat<
-        integer_sequence<int, M...>, traits::extents_t<TV>>
+struct extents<nTuple<TV, M...> >
 {
+    typedef typename seq_concat<integer_sequence<int, M...>, traits::extents_t<TV>>::type type;
 };
 
 
@@ -505,9 +506,10 @@ struct extents_helper<TOP, integer_sequence<_Tp, N...>,
 // namespace _impl
 
 template<typename TOP, typename ... T>
-struct extents<nTuple<Expression<TOP, T...> > > : public _impl::extents_helper<
-        TOP, traits::extents_t<T>...>::type
+struct extents<nTuple<Expression<TOP, T...> > >
 {
+    typedef typename _impl::extents_helper<
+            TOP, traits::extents_t<T>...>::type type;
 };
 template<typename TV, int N>
 struct value_type<nTuple<TV, N> >
@@ -835,14 +837,14 @@ T const &reduce(TOP const &op, T const &v)
     return v;
 }
 
-template<typename TOP, typename T, int ...N>
-traits::value_type_t<nTuple<T, N...>> reduce(TOP const &op,
-                                             nTuple<T, N...> const &v)
+template<typename TOP, typename T, int N0, int ...N>
+traits::value_type_t<nTuple<T, N0, N...>> reduce(TOP const &op,
+                                                 nTuple<T, N0, N...> const &v)
 {
-    static constexpr int n = traits::extent<nTuple<T, N...>, 0>::value;
+    static constexpr int n = N0;
 
-    traits::value_type_t<nTuple<T, N...> > res = reduce(op,
-                                                        traits::index(v, 0));
+    traits::value_type_t<nTuple<T, N0, N...> > res = reduce(op,
+                                                            traits::index(v, 0));
     if (n > 1)
     {
         for (int s = 1; s < n; ++s)
@@ -935,7 +937,7 @@ struct nTuple<BooleanExpression<TOP, T...> > : public nTuple<
     operator bool() const
     {
         static constexpr int N = mpl::max<int,
-                traits::extent<T, 0>::value...>::value;
+                traits::extent<T, 0>::type::value...>::value;
 
         bool res = static_cast<bool>(at(0));
 

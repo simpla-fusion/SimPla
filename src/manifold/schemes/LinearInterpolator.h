@@ -8,10 +8,13 @@
 #define SIMPLA_LINEAR_H
 
 #include "../../gtl/nTuple.h"
+#include "../../mesh/MeshEntityIdCoder.h"
 
-namespace simpla { namespace manifold { namespace policy
+namespace simpla { namespace manifold { namespace schemes
 {
 using namespace simpla::mesh;
+
+template<typename TM, class Enable = void> struct LinearInterpolator { };
 
 
 /**
@@ -19,7 +22,7 @@ using namespace simpla::mesh;
  * @brief basic linear interpolate
  */
 template<typename TM>
-struct LinearInterpolator
+struct LinearInterpolator<TM, std::enable_if_t<std::is_base_of<mesh::MeshEntityIdCoder, TM>::value>>
 {
 public:
 
@@ -42,18 +45,17 @@ public:
 
 private:
     typedef TM mesh_type;
+    typedef LinearInterpolator<mesh_type> this_type;
+    typedef mesh::MeshEntityIdCoder M;
     mesh_type const &m_;
-
-    typedef LinearInterpolator this_type;
-
 
     template<typename TD, typename TIDX> constexpr inline auto
     gather_impl_(TD const &f, TIDX const &idx) const
     {
 
-        auto X = (mesh_type::_DI) << 1;
-        auto Y = (mesh_type::_DJ) << 1;
-        auto Z = (mesh_type::_DK) << 1;
+        auto X = (M::_DI) << 1;
+        auto Y = (M::_DJ) << 1;
+        auto Z = (M::_DK) << 1;
 
         point_type r = std::get<1>(idx);
         index_type s = std::get<0>(idx);
@@ -110,9 +112,9 @@ private:
     scatter_impl_(TF &f, IDX const &idx, TV const &v) const
     {
 
-        auto X = (mesh_type::_DI) << 1;
-        auto Y = (mesh_type::_DJ) << 1;
-        auto Z = (mesh_type::_DK) << 1;
+        auto X = (M::_DI) << 1;
+        auto Y = (M::_DJ) << 1;
+        auto Z = (M::_DK) << 1;
 
         point_type r = std::get<1>(idx);
         index_type s = std::get<0>(idx);
@@ -177,13 +179,13 @@ private:
     template<typename TV> constexpr inline auto
     sample_(index_sequence <EDGE>, id_type s, nTuple<TV, 3> const &v) const
     {
-        return v[mesh_type::sub_index(s)];
+        return v[M::sub_index(s)];
     }
 
     template<typename TV> constexpr inline auto
     sample_(index_sequence <FACE>, id_type s, nTuple<TV, 3> const &v) const
     {
-        return v[mesh_type::sub_index(s)];
+        return v[M::sub_index(s)];
     }
 //
 //    template<typename M,int IFORM,  typename TV>

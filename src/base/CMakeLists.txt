@@ -1,3 +1,3 @@
 
 
-add_library(base Object.cpp DataObject.cpp)
+add_library(base Object.cpp)

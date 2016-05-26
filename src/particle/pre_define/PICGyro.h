@@ -7,8 +7,8 @@
 #ifndef SIMPLA_PIC_GYRO_H
 #define SIMPLA_PIC_GYRO_H
 
-#include "../../manifold/schemes/FvmStructuredPolicy.h"
-#include "../../manifold/schemes/LinearInterpolatorPolicy.h"
+#include "../../manifold/schemes/FVMStructured.h"
+#include "../../manifold/schemes/LinearInterpolator.h"
 
 #include "../../data_model/DataTypeExt.h"
 #include "../Particle.h"
