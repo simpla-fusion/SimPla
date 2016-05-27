@@ -19,8 +19,8 @@ namespace simpla
 
 template<typename ...> class Field;
 
-template<typename TV, typename TManifold, int IFORM>
-using field_t= Field<TV, TManifold, std::integral_constant<int, IFORM>>;
+template<typename TV, typename TManifold, size_t IFORM>
+using field_t= Field<TV, TManifold, I_const<IFORM>>;
 
 
 /**
@@ -29,13 +29,13 @@ using field_t= Field<TV, TManifold, std::integral_constant<int, IFORM>>;
  */
 
 
-template<typename TV, typename TManifold, int IFORM>
-class Field<TV, TManifold, std::integral_constant<int, IFORM>>
-        : public mesh::MeshAttribute<TV, TManifold, std::integral_constant<int, IFORM>, mesh::tags::DENSE>::View
+template<typename TV, typename TManifold, size_t IFORM>
+class Field<TV, TManifold, I_const<IFORM>>
+        : public mesh::MeshAttribute<TV, TManifold, I_const<IFORM>, mesh::tags::DENSE>::View
 {
 private:
     static_assert(std::is_base_of<mesh::MeshBase, TManifold>::value, "TManifold is not derived from MeshBase");
-    typedef Field<TV, TManifold, std::integral_constant<int, IFORM>> this_type;
+    typedef Field<TV, TManifold, I_const<IFORM>> this_type;
 public:
 
     virtual bool is_a(std::type_info const &info) const { return typeid(this_type) == info || base_type::is_a(info); }
@@ -45,10 +45,10 @@ public:
     static std::string class_name()
     {
         return std::string("Field<") +
-               traits::type_id<value_type, mesh_type, std::integral_constant<int, IFORM>>::name() + ">";
+               traits::type_id<value_type, mesh_type, I_const<IFORM>>::name() + ">";
     }
 
-    typedef mesh::MeshAttribute<TV, TManifold, std::integral_constant<int, IFORM>, mesh::tags::DENSE> attribute_type;
+    typedef mesh::MeshAttribute<TV, TManifold, I_const<IFORM>, mesh::tags::DENSE> attribute_type;
 
 private:
     typedef typename attribute_type::View base_type;
@@ -189,13 +189,13 @@ public:
 
 
 };
-
-namespace traits
-{
-template<typename> struct is_field { static constexpr bool value = false; };
-template<typename ...T> struct is_field<Field<T...>> { static constexpr bool value = true; };
-
-}
+//
+//namespace traits
+//{
+//template<typename> struct is_field { static constexpr bool value = false; };
+//template<typename ...T> struct is_field<Field<T...>> { static constexpr bool value = true; };
+//
+//}
 }//namespace simpla
 
 #endif //SIMPLA_FIELD_H

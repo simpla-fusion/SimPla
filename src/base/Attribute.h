@@ -173,7 +173,7 @@ public:
 
     virtual int rank() const { return traits::rank<TV>::value; }
 
-    virtual int extent(int i) const { return traits::seq_value<typename traits::extents<TV>::type>::value[i]; }
+    virtual int extent(int i) const { return traits::seq_value<traits::extents<TV> >::value[i]; }
 
     virtual data_model::DataSet data_set() const { return this->mesh().template data_set<TV, IFORM>(m_data_); };
 

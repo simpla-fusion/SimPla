@@ -37,29 +37,15 @@ struct Expression<TOP, Args...>
 
     TOP m_op_;
 
-    Expression(this_type const &that) :
-            args(that.args), m_op_(that.m_op_)
-    {
-    }
+    Expression(this_type const &that) : args(that.args), m_op_(that.m_op_) { }
 
-    Expression(this_type &&that) :
-            args(that.args), m_op_(that.m_op_)
-    {
-    }
+    Expression(this_type &&that) : args(that.args), m_op_(that.m_op_) { }
 
-    Expression(Args const &... pargs) :
-            args(pargs ...), m_op_()
-    {
-    }
+    Expression(Args const &... pargs) : args(pargs ...), m_op_() { }
 
-    Expression(TOP op, Args const &... pargs) :
-            args(pargs ...), m_op_(op)
-    {
-    }
+    Expression(TOP op, Args const &... pargs) : args(pargs ...), m_op_(op) { }
 
-    ~Expression()
-    {
-    }
+    ~Expression() { }
 
 };
 
@@ -68,10 +54,7 @@ class BooleanExpression<TOP, TL, TR> : public Expression<TOP, TL, TR>
 {
     using Expression<TOP, TL, TR>::Expression;
 
-    operator bool() const
-    {
-        return false;
-    }
+    operator bool() const { return false; }
 };
 
 template<typename TOP, typename TL>
@@ -79,10 +62,7 @@ class BooleanExpression<TOP, TL> : public Expression<TOP, TL>
 {
     using Expression<TOP, TL>::Expression;
 
-    operator bool() const
-    {
-        return false;
-    }
+    operator bool() const { return false; }
 };
 
 template<typename TOP, typename TL, typename TR>
@@ -93,29 +73,15 @@ struct AssignmentExpression<TOP, TL, TR>
     typename traits::reference<TR>::type rhs;
     TOP op_;
 
-    AssignmentExpression(this_type const &that) :
-            lhs(that.lhs), rhs(that.rhs), op_(that.op_)
-    {
-    }
+    AssignmentExpression(this_type const &that) : lhs(that.lhs), rhs(that.rhs), op_(that.op_) { }
 
-    AssignmentExpression(this_type &&that) :
-            lhs(that.lhs), rhs(that.rhs), op_(that.op_)
-    {
-    }
+    AssignmentExpression(this_type &&that) : lhs(that.lhs), rhs(that.rhs), op_(that.op_) { }
 
-    AssignmentExpression(TL &l, TR const &r) :
-            lhs(l), rhs(r), op_()
-    {
-    }
+    AssignmentExpression(TL &l, TR const &r) : lhs(l), rhs(r), op_() { }
 
-    AssignmentExpression(TOP op, TL &l, TR const &r) :
-            lhs(l), rhs(r), op_(op)
-    {
-    }
+    AssignmentExpression(TOP op, TL &l, TR const &r) : lhs(l), rhs(r), op_(op) { }
 
-    ~AssignmentExpression()
-    {
-    }
+    ~AssignmentExpression() { }
 
     template<typename IndexType>
     inline auto operator[](IndexType const &s) const
@@ -129,54 +95,30 @@ struct AssignmentExpression<TOP, TL, TR>
 namespace traits
 {
 
-template<typename T>
-struct is_expresson
-{
-    static constexpr bool value = false;
-};
+template<typename T> struct is_expresson { static constexpr bool value = false; };
 template<typename ...T, template<typename ...> class F>
-struct is_expresson<F<Expression<T...> > >
-{
-    static constexpr bool value = true;
-};
+struct is_expresson<F<Expression<T...> > > { static constexpr bool value = true; };
 
-template<typename ...T>
-struct is_expresson<Expression<T...> >
-{
-    static constexpr bool value = true;
-};
+template<typename ...T> struct is_expresson<Expression<T...> > { static constexpr bool value = true; };
 }
 // namespace traits
 namespace _impl
 {
 struct binary_right
 {
-    template<typename TL, typename TR>
-    TR const &operator()(TL const &, TR const &r) const
-    {
-        return r;
-    }
+    template<typename TL, typename TR> TR const &operator()(TL const &, TR const &r) const { return r; }
 };
 
 struct null_op
 {
-    template<typename TL>
-    TL const &operator()(TL const &l) const
-    {
-        return l;
-    }
+    template<typename TL> TL const &operator()(TL const &l) const { return l; }
 };
 
 struct _swap
 {
-    template<typename TL, typename TR>
-    void operator()(TL &l, TR &r) const
-    {
-        std::swap(l, r);
-    }
+    template<typename TL, typename TR> void operator()(TL &l, TR &r) const { std::swap(l, r); }
 
-    template<typename TL, typename TR, typename TI>
-    void operator()(TL &l, TR &r, TI const &s) const
+    template<typename TL, typename TR, typename TI> void operator()(TL &l, TR &r, TI const &s) const
     {
         std::swap(traits::index(l, s), traits::index(r, s));
     }
@@ -408,16 +350,14 @@ struct _pow2
 
 
     template<typename TL, typename TI>
-    static constexpr auto eval(TL const &l, TI const &s)
-    -> decltype(_pow2::eval(traits::index(l, s))) { return _pow2::eval(traits::index(l, s)); }
+    static constexpr auto eval(TL const &l, TI const &s) { return _pow2::eval(traits::index(l, s)); }
 
     template<typename TL>
     constexpr TL operator()(TL const &l) const { return _pow2::eval(l); }
 
 
     template<typename TL, typename TI>
-    constexpr auto operator()(TL const &l, TI const &s) const
-    -> decltype(_pow2::eval(traits::index(l, s))) { return _pow2(traits::index(l, s)); }
+    constexpr auto operator()(TL const &l, TI const &s) const { return _pow2(traits::index(l, s)); }
 
 
 };
@@ -621,45 +561,18 @@ _SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_BOOLEAN_OPERATOR(>=, greater_equal)        
 /** @name Constant Expresions
  * @{*/
 
-template<typename value_type>
-struct Constant
-{
-    value_type value;
-};
+template<typename value_type> struct Constant { value_type value; };
+struct Zero { };
+struct One { };
+struct Infinity { };
+struct Undefine { };
+struct Identity { };
 
-struct Zero
-{
-};
+template<typename TE> inline TE const &operator+(TE const &e, Zero const &) { return (e); }
 
-struct One
-{
-};
-struct Infinity
-{
-};
+template<typename TE> inline TE const &operator+(Zero const &, TE const &e) { return (e); }
 
-struct Undefine
-{
-};
-struct Identity
-{
-
-};
-
-template<typename TE> inline TE const &
-operator+(TE const &e, Zero const &)
-{
-    return (e);
-}
-
-template<typename TE> inline TE const &
-operator+(Zero const &, TE const &e)
-{
-    return (e);
-}
-
-template<typename TE> inline TE const &
-operator-(TE const &e, Zero const &) { return (e); }
+template<typename TE> inline TE const &operator-(TE const &e, Zero const &) { return (e); }
 
 //template<typename TE> inline auto operator -(Zero const &, TE const &e)
 //DECL_RET_TYPE (((-e)))
@@ -674,67 +587,29 @@ template<typename TE> inline Zero operator*(TE const &, Zero const &) { return (
 
 template<typename TE> inline Zero operator*(Zero const &, TE const &) { return (Zero()); }
 
-template<typename TE> inline Infinity operator/(TE const &e, Zero const &)
-{
-    return (Infinity());
-}
+template<typename TE> inline Infinity operator/(TE const &e, Zero const &) { return (Infinity()); }
 
-template<typename TE> inline Zero operator/(Zero const &, TE const &e)
-{
-    return (Zero());
-}
+template<typename TE> inline Zero operator/(Zero const &, TE const &e) { return (Zero()); }
 
-template<typename TE> inline Zero operator/(TE const &, Infinity const &)
-{
-    return (Zero());
-}
+template<typename TE> inline Zero operator/(TE const &, Infinity const &) { return (Zero()); }
 
-template<typename TE> inline Infinity operator/(Infinity const &, TE const &e)
-{
-    return (Infinity());
-}
+template<typename TE> inline Infinity operator/(Infinity const &, TE const &e) { return (Infinity()); }
 
-template<typename TL> inline auto   //
-operator==(TL const &lhs, Zero) DECL_RET_TYPE ((lhs))
+template<typename TL> inline auto operator==(TL const &lhs, Zero) { return ((lhs)); }
 
-template<typename TR> inline auto   //
-operator==(Zero, TR const &rhs) DECL_RET_TYPE ((rhs))
+template<typename TR> inline auto operator==(Zero, TR const &rhs) { return rhs; }
 
-constexpr Identity operator&(Identity, Identity)
-{
-    return Identity();
-}
+constexpr Identity operator&(Identity, Identity) { return Identity(); }
 
-template<typename TL>
-TL const &operator&(TL const &l, Identity)
-{
-    return l;
-}
+template<typename TL> TL const &operator&(TL const &l, Identity) { return l; }
 
-template<typename TR>
-TR const &operator&(Identity, TR const &r)
-{
-    return r;
-}
+template<typename TR> TR const &operator&(Identity, TR const &r) { return r; }
 
-template<typename TL>
-constexpr Zero operator
-&(TL const &l, Zero)
-{
-    return std::move(Zero());
-}
+template<typename TL> constexpr Zero operator&(TL const &l, Zero) { return std::move(Zero()); }
 
-template<typename TR>
-constexpr Zero operator&(Zero, TR const &l)
-{
-    return std::move(Zero());
-}
+template<typename TR> constexpr Zero operator&(Zero, TR const &l) { return std::move(Zero()); }
 
-template<typename TR>
-constexpr Zero operator&(Zero, Zero)
-{
-    return std::move(Zero());
-}
+template<typename TR> constexpr Zero operator&(Zero, Zero) { return std::move(Zero()); }
 
 /** @} */
 

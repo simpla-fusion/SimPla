@@ -22,18 +22,6 @@
 #include "../ManifoldTraits.h"
 
 
-namespace simpla
-{
-template<typename ...> class Field;
-
-template<typename ...> class Expression;
-
-template<typename _Tp, _Tp...> class integer_sequence;
-
-template<typename T, int ...> class nTuple;
-
-
-}
 namespace simpla { namespace manifold { namespace schemes
 {
 using namespace simpla::mesh;

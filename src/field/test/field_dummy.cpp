@@ -30,7 +30,7 @@ int main(int argc, char **argv)
 
     std::tie(mesh, std::ignore) = m.add<mesh_type>();
 
-    mesh->dimensions(nTuple<size_t, 3> {10, 10, 10});
+    mesh->dimensions(index_tuple {10, 10, 10});
 
     mesh->box(box_type{{0, 0, 0},
                        {1, 1, 1}});

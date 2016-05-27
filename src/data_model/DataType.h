@@ -25,7 +25,6 @@ namespace simpla { namespace traits
 {
 template<typename T> struct rank;
 
-template<typename T> struct extents;
 
 template<typename T> struct value_type;
 }}//namespace simpla{namespace traits
@@ -140,7 +139,7 @@ private:
 
         nTuple<size_t, 10> d;
 
-        d = traits::seq_value<traits::extents_t<obj_type> >::value;
+        d = traits::seq_value<traits::extents<obj_type> >::value;
 
         return std::move(
 

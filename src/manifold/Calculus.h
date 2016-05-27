@@ -20,6 +20,7 @@
 #include "../field/Field.h"
 #include "../field/FieldExpression.h"
 #include "ManifoldTraits.h"
+#include "../gtl/type_traits.h"
 
 namespace simpla
 {
@@ -30,7 +31,10 @@ template<typename ...> class Expression;
 
 namespace traits
 {
-
+template<typename T> struct is_expression { static constexpr bool value = false; };
+template<typename ...T, template<typename ...> class F>
+struct is_expression<F<Expression<T...>>> { static constexpr bool value = true; };
+template<typename T> using is_expression_t=  std::enable_if_t<is_expression<T>::value>;
 
 template<typename T> struct is_primary_complex { static constexpr bool value = false; };
 template<typename T> struct is_primary_complex<std::complex<T>>
@@ -48,7 +52,7 @@ template<typename T> using is_primary_scalar_t=  std::enable_if_t<is_primary_sca
 
 template<typename T> struct is_primary
 {
-    static constexpr bool value = (is_primary_scalar<T>::value || is_ntuple<T>::value) && !is_expression<T>::value;
+    static constexpr bool value = (is_primary_scalar<T>::value || is_ntuple<T>::value) && !(is_expression<T>::value);
 };
 template<typename T> using is_primary_t=  std::enable_if_t<is_primary<T>::value>;
 
@@ -59,10 +63,7 @@ template<typename T> using is_primary_ntuple_t=std::enable_if_t<is_ntuple<T>::va
 template<typename T> using is_expression_ntuple_t=std::enable_if_t<is_ntuple<T>::value && (is_expression<T>::value)>;
 
 
-template<typename T> struct is_expression { static constexpr bool value = false; };
-template<typename ...T, template<typename ...> class F>
-struct is_expression<F<Expression<T...>>> { static constexpr bool value = true; };
-template<typename T> using is_expression_t=  std::enable_if_t<is_expression<T>::value>;
+
 
 
 
@@ -107,7 +108,7 @@ template<typename> class iform;
 template<typename> class value_type;
 
 template<typename ...T>
-struct rank<Field<T...> > : public std::integral_constant<int, 3> { };
+struct rank<Field<T...> > : public I_const<3> { };
 
 
 template<typename TV, typename TM, typename TFORM, typename ...Others>
@@ -115,49 +116,49 @@ struct iform<Field<TV, TM, TFORM, Others...> > : public TFORM { };
 
 
 template<typename T>
-struct iform<Field<Expression<calculus::tags::HodgeStar, T> > > : public std::integral_constant<
-        int, rank<T>::value - iform<T>::value>
+struct iform<Field<Expression<calculus::tags::HodgeStar, T> > > : public I_const<rank<T>::value - iform<T>::value>
 {
 };
 
 template<typename T0, typename T1>
-struct iform<Field<Expression<calculus::tags::InteriorProduct, T0, T1> > > : public std::integral_constant<
-        int, iform<T1>::value - 1>
+struct iform<Field<Expression<calculus::tags::InteriorProduct, T0, T1> > > : public I_const<iform<T1>::value - 1>
 {
 };
 
 template<typename T>
-struct iform<Field<Expression<calculus::tags::ExteriorDerivative, T> > > : public std::integral_constant<
-        int, iform<T>::value + 1>
+struct iform<Field<Expression<calculus::tags::ExteriorDerivative, T> > > : public I_const<iform<T>::value + 1>
 {
 };
 
 template<typename T>
-struct iform<Field<Expression<calculus::tags::CodifferentialDerivative, T> > > : public std::integral_constant<
-        int, iform<T>::value - 1>
+struct iform<Field<Expression<calculus::tags::CodifferentialDerivative, T> > > : public I_const<iform<T>::value - 1>
 {
 };
 template<typename T0, typename T1>
-struct iform<Field<Expression<calculus::tags::Wedge, T0, T1> > > : public std::integral_constant<
-        int, iform<T0>::value + iform<T1>::value>
+struct iform<Field<Expression<calculus::tags::Wedge, T0, T1> > > : public I_const<iform<T0>::value + iform<T1>::value>
 {
 };
-template<int I>
-struct iform<std::integral_constant<int, I> > : public std::integral_constant<int, I>
+template<size_t I> struct iform<std::integral_constant<size_t, I> > : public std::integral_constant<size_t, I>
 {
 };
 
 template<size_t I, typename T1>
-struct iform<Field<Expression<calculus::tags::MapTo, T1, std::integral_constant<int, I>>> >
-        : public std::integral_constant<int, I>
+struct iform<Field<Expression<calculus::tags::MapTo, T1, std::integral_constant<size_t, I> > > >
+        : public std::integral_constant<size_t, I>
 {
 };
 
 template<typename TV, typename ...Other>
-struct value_type<Field<TV, Other...>> { typedef TV type; };
+struct value_type<Field<TV, Other...> >
+{
+    typedef TV type;
+};
 
 template<typename T>
-struct value_type<Field<Expression<calculus::tags::HodgeStar, T> > > { typedef value_type_t <T> type; };
+struct value_type<Field<Expression<calculus::tags::HodgeStar, T> > >
+{
+    typedef value_type_t <T> type;
+};
 
 
 template<typename T>
@@ -208,35 +209,40 @@ struct value_type<Field<Expression<calculus::tags::Dot, T0, T1> > >
 
 
 template<typename T, typename ...Others>
-struct value_type<Field<Expression<calculus::tags::MapTo, T, Others...> > > { typedef value_type_t <T> type; };
-template<typename T>
-struct value_type<Field<Expression<calculus::tags::MapTo, T, std::integral_constant<int, VERTEX>>> >
+struct value_type<Field<Expression<calculus::tags::MapTo, T, Others...> > >
 {
-    typedef typename std::conditional_t<
-            iform<T>::value == VERTEX || iform<T>::value == mesh::VOLUME,
-            value_type_t < T>, simpla::nTuple<value_type_t < T>, 3> > type;
+    typedef value_type_t <T> type;
+};
+template<typename T>
+struct value_type<Field<Expression<calculus::tags::MapTo, T, I_const < VERTEX>>> >
+{
+typedef typename std::conditional_t<
+        iform<T>::value == VERTEX || iform<T>::value == mesh::VOLUME,
+        value_type_t < T>, simpla::nTuple<value_type_t < T>, 3> >
+type;
 };
 
 template<typename T>
-struct value_type<Field<Expression<calculus::tags::MapTo, T, std::integral_constant<int, mesh::VOLUME>>> >
+struct value_type<Field<Expression<calculus::tags::MapTo, T, I_const < mesh::VOLUME>>> >
 {
-    typedef typename std::conditional_t<
-            iform<T>::value == VERTEX || iform<T>::value == mesh::VOLUME,
-            value_type_t < T>, simpla::nTuple<value_type_t < T>, 3> > type;
+typedef typename std::conditional_t<
+        iform<T>::value == VERTEX || iform<T>::value == mesh::VOLUME,
+        value_type_t < T>, simpla::nTuple<value_type_t < T>, 3> >
+type;
 };
 
 
 //template<typename TV, typename TM, typename ...Others>
 //struct value_type<Field<Expression<calculus::tags::MapTo, Field<
-//        nTuple < TV, 3>, TM, std::integral_constant<int, VERTEX>, Others...>,
-//        std::integral_constant<int, mesh::EDGE> > > >
+//        nTuple < TV, 3>, TM, I_const< VERTEX>, Others...>,
+//        I_const< mesh::EDGE> > > >
 //{
 //typedef TV type;
 //};
 //template<typename TV, typename TM, typename ...Others>
 //struct value_type<Field<Expression<calculus::tags::MapTo, Field<
-//        nTuple < TV, 3>, TM, std::integral_constant<int, VERTEX>, Others...>,
-//        std::integral_constant<int, mesh::FACE> > > >
+//        nTuple < TV, 3>, TM, I_const< VERTEX>, Others...>,
+//        I_const< mesh::FACE> > > >
 //{
 //typedef TV type;
 //};
@@ -260,14 +266,15 @@ struct value_type<Field<Expression<calculus::tags::MapTo, T, std::integral_const
 
  **/
 template<typename T>
-inline auto hodge_star(T const &f) DECL_RET_TYPE((Field<Expression<calculus::tags::HodgeStar, T> >(f)))
+inline auto hodge_star(T const &f) DECL_RET_TYPE((Field < Expression < calculus::tags::HodgeStar, T > > (f)))
 
 template<typename TL, typename TR>
-inline auto wedge(TL const &l, TR const &r) DECL_RET_TYPE((Field<Expression<calculus::tags::Wedge, TL, TR> >(l, r)))
+inline auto wedge(TL const &l, TR const &r) DECL_RET_TYPE(
+        (Field < Expression < calculus::tags::Wedge, TL, TR > > (l, r)))
 
 template<typename TL, typename TR>
 inline auto interior_product(TL const &l, TR const &r) DECL_RET_TYPE(
-        (Field<Expression<calculus::tags::InteriorProduct, TL, TR> >(l, r)))
+        (Field < Expression < calculus::tags::InteriorProduct, TL, TR > > (l, r)))
 
 template<typename ...T>
 inline auto operator*(Field<T...> const &f) DECL_RET_TYPE((hodge_star(f)))
@@ -304,23 +311,23 @@ inline auto dot(Field<TL...> const &lhs, TR const &rhs) DECL_RET_TYPE(wedge(lhs,
 template<typename TL, typename TR>
 inline auto wedge(TL const &l, TR const &r)
 ENABLE_IF_DECL_RET_TYPE(traits::iform<TL>::value == mesh::VERTEX,
-                        (Field<Expression<calculus::tags::Cross, TL, TR> >(l, r)))
+                        (Field < Expression < calculus::tags::Cross, TL, TR > > (l, r)))
 
 template<typename ...TL, typename ...TR> inline auto cross(Field<TL...> const &lhs, Field<TR...> const &rhs)
-ENABLE_IF_DECL_RET_TYPE((traits::iform<Field<TL... >>::value == mesh::EDGE), wedge(lhs, rhs));
+ENABLE_IF_DECL_RET_TYPE((traits::iform < Field < TL... >>::value == mesh::EDGE), wedge(lhs, rhs));
 
 template<typename ...TL, typename ...TR> inline auto cross(Field<TL...> const &lhs, Field<TR...> const &rhs)
-ENABLE_IF_DECL_RET_TYPE((traits::iform<Field<TL... >>::value == mesh::FACE),
+ENABLE_IF_DECL_RET_TYPE((traits::iform < Field < TL... >>::value == mesh::FACE),
                         hodge_star(wedge(hodge_star(lhs), hodge_star(rhs))));
 
 
 template<typename ...TL, typename ...TR> inline auto cross(Field<TL...> const &lhs, Field<TR...> const &rhs)
-ENABLE_IF_DECL_RET_TYPE((traits::iform<Field<TL... >>::value == mesh::VERTEX),
-                        (Field<Expression<calculus::tags::Cross, Field<TL...>, Field<TR...> > >(lhs, rhs)));
+ENABLE_IF_DECL_RET_TYPE((traits::iform < Field < TL... >>::value == mesh::VERTEX),
+                        (Field < Expression < calculus::tags::Cross, Field < TL...>, Field<TR...> > >(lhs, rhs)));
 
 template<typename ...TL, typename ...TR> inline auto dot(Field<TL...> const &lhs, Field<TR...> const &rhs)
-ENABLE_IF_DECL_RET_TYPE((traits::iform<Field<TL... >>::value == mesh::VERTEX),
-                        (Field<Expression<calculus::tags::Dot, Field<TL...>, Field<TR...> > >(lhs, rhs)));
+ENABLE_IF_DECL_RET_TYPE((traits::iform < Field < TL... >>::value == mesh::VERTEX),
+                        (Field < Expression < calculus::tags::Dot, Field < TL...>, Field<TR...> > >(lhs, rhs)));
 
 
 template<typename TL, typename ... TR> inline auto
@@ -354,11 +361,11 @@ cross(Field<T...> const &f, nTuple<TL, 3> const &v) DECL_RET_TYPE((interior_prod
  *  \f}
  */
 
-template<int I, typename T> inline auto
+template<size_t I, typename T> inline auto
 map_to(T const &f)
 {
-    return std::move((Field<Expression<calculus::tags::MapTo, T,
-            std::integral_constant<int, I>>>(f, std::integral_constant<int, I>())));
+    return std::move((Field < Expression < calculus::tags::MapTo, T,
+            I_const < I >> > (f, I_const<I>())));
 }
 
 /** @} */
@@ -374,11 +381,13 @@ map_to(T const &f)
  */
 
 template<typename T> inline auto
-exterior_derivative(T const &f) DECL_RET_TYPE((Field<Expression<calculus::tags::ExteriorDerivative, T> >(f)))
+exterior_derivative(T const &f) { return Field < Expression < calculus::tags::ExteriorDerivative, T > > (f); }
 
 template<typename T> inline auto
-codifferential_derivative(T const &f) DECL_RET_TYPE(
-        (Field<Expression<calculus::tags::CodifferentialDerivative, T> >(f)))
+codifferential_derivative(T const &f)
+{
+    return (Field < Expression < calculus::tags::CodifferentialDerivative, T > > (f));
+}
 //
 //template<typename ... T> inline auto
 //d(Field<T...> const &f) DECL_RET_TYPE((exterior_derivative(f)))
@@ -401,22 +410,22 @@ codifferential_derivative(T const &f) DECL_RET_TYPE(
  *
  */
 template<typename T> inline auto
-grad(T const &f, I_const <mesh::VERTEX>) DECL_RET_TYPE((exterior_derivative(f)));
+grad(T const &f, I_const <mesh::VERTEX>) { return exterior_derivative(f); }
 
 template<typename T> inline auto
-grad(T const &f, I_const <mesh::VOLUME>) DECL_RET_TYPE(((codifferential_derivative(-f))));
+grad(T const &f, I_const <mesh::VOLUME>) { return (codifferential_derivative(-f)); }
 
 template<typename T> inline auto
-grad(T const &f) DECL_RET_TYPE((grad(f, traits::iform<T>())));
+grad(T const &f) { return grad(f, traits::iform<T>()); }
 
 template<typename T> inline auto
-diverge(T const &f, I_const <mesh::EDGE>) DECL_RET_TYPE((exterior_derivative(f)));
+diverge(T const &f, I_const <mesh::EDGE>) { return exterior_derivative(f); }
 
 template<typename T> inline auto
-diverge(T const &f, I_const <mesh::FACE>) DECL_RET_TYPE((codifferential_derivative(-f)));
+diverge(T const &f, I_const <mesh::FACE>) { return codifferential_derivative(-f); }
 
 template<typename T> inline auto
-diverge(T const &f) DECL_RET_TYPE((diverge(f, traits::iform<T>())));
+diverge(T const &f) { return diverge(f, traits::iform<T>()); }
 
 
 template<typename T> inline auto
@@ -428,38 +437,41 @@ curl(T const &f, I_const <mesh::FACE>) { return codifferential_derivative(-f); }
 template<typename T> inline auto
 curl(T const &f) { return curl(f, traits::iform<T>()); }
 
-template<int I, typename T> inline auto
-p_exterior_derivative(T const &f) DECL_RET_TYPE((Field<Expression<calculus::tags::ExteriorDerivative,
-        std::integral_constant<int, I>, T> >(std::integral_constant<int, I>(), f)));
+template<size_t I, typename T> inline auto
+p_exterior_derivative(T const &f)
+{
+    return Field < Expression < calculus::tags::ExteriorDerivative, I_const < I >, T > > (I_const<I>(), f);
+}
 
-template<int I, typename T> inline auto
-p_codifferential_derivative(T const &f) DECL_RET_TYPE(
-        (Field<Expression<calculus::tags::CodifferentialDerivative,
-                std::integral_constant<int, I>, T> >(std::integral_constant<int, I>(), f)));
+template<size_t I, typename T> inline auto
+p_codifferential_derivative(T const &f)
+{
+    return Field < Expression < calculus::tags::CodifferentialDerivative, I_const < I >, T > > (I_const<I>(), f);
+}
 
 template<typename T> inline auto
-curl_pdx(T const &f, I_const <mesh::EDGE>) DECL_RET_TYPE((p_exterior_derivative<0>(f)));
+curl_pdx(T const &f, I_const <mesh::EDGE>) { return p_exterior_derivative<0>(f); }
 
 template<typename T> inline auto
-curl_pdx(T const &f, I_const <mesh::FACE>) DECL_RET_TYPE((p_codifferential_derivative<0>(f)));
+curl_pdx(T const &f, I_const <mesh::FACE>) { return p_codifferential_derivative<0>(f); }
 
 template<typename T> inline auto
 curl_pdx(T const &f) { return curl_pdx(f, traits::iform<T>()); }
 
 template<typename T> inline auto
-curl_pdy(T const &f, I_const <mesh::EDGE>) DECL_RET_TYPE((p_exterior_derivative<1>(f)));
+curl_pdy(T const &f, I_const <mesh::EDGE>) { return p_exterior_derivative<1>(f); }
 
 template<typename T> inline auto
-curl_pdy(T const &f, I_const <mesh::FACE>) DECL_RET_TYPE((p_codifferential_derivative<1>(f)));
+curl_pdy(T const &f, I_const <mesh::FACE>) { return p_codifferential_derivative<1>(f); }
 
 template<typename T> inline auto
 curl_pdy(T const &f) { return curl_pdy(f, traits::iform<T>()); }
 
 template<typename T> inline auto
-curl_pdz(T const &f, I_const <mesh::EDGE>) DECL_RET_TYPE((p_exterior_derivative<2>(f)));
+curl_pdz(T const &f, I_const <mesh::EDGE>) { return p_exterior_derivative<2>(f); }
 
 template<typename T> inline auto
-curl_pdz(T const &f, I_const <mesh::FACE>) DECL_RET_TYPE((p_codifferential_derivative<2>(f)));
+curl_pdz(T const &f, I_const <mesh::FACE>) { return p_codifferential_derivative<2>(f); }
 
 template<typename T> inline auto
 curl_pdz(T const &f) { return curl_pdz(f, traits::iform<T>()); }

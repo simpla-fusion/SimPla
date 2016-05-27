@@ -79,20 +79,11 @@ static constexpr unsigned int CARTESIAN_XAXIS = 0;
 static constexpr unsigned int CARTESIAN_YAXIS = 1;
 static constexpr unsigned int CARTESIAN_ZAXIS = 2;
 
-template<typename> struct has_PlaceHolder
-{
-    static constexpr bool value = false;
-};
+template<typename> struct has_PlaceHolder { static constexpr bool value = false; };
 
-template<typename> struct is_real
-{
-    static constexpr bool value = false;
-};
+template<typename> struct is_real { static constexpr bool value = false; };
 
-template<> struct is_real<Real>
-{
-    static constexpr bool value = true;
-};
+template<> struct is_real<Real> { static constexpr bool value = true; };
 
 template<typename TL>
 struct is_arithmetic_scalar
@@ -101,19 +92,11 @@ struct is_arithmetic_scalar
                                    || has_PlaceHolder<TL>::value);
 };
 
-template<typename T>
-struct is_primitive
-{
-    static constexpr bool value = is_arithmetic_scalar<T>::value;
-};
+template<typename T> struct is_primitive { static constexpr bool value = is_arithmetic_scalar<T>::value; };
 
-template<typename T>
-struct is_expression
-{
-    static constexpr bool value = false;
-};
+//template<typename T> struct is_expression { static constexpr bool value = false; };
 
-template<typename T1> auto abs(T1 const &m) DECL_RET_TYPE ((std::fabs(m)))
+template<typename T1> auto abs(T1 const &m) { return std::fabs(m); }
 
 /**
  * @}

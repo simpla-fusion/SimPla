@@ -73,7 +73,7 @@ protected:
         mesh->box(box);
 
         mesh->deploy();
-         Vec3 dx = mesh->dx();
+        Vec3 dx = mesh->dx();
 
 
         point_type xm;
@@ -112,9 +112,9 @@ public:
 
     box_type box;
     point_type xmin, xmax;
-    nTuple<size_t, 3> dims;
-    nTuple<Real, 3> K_real; // @NOTE must   k = n TWOPI, period condition
-    nTuple<Real, 3> K_imag;
+    index_tuple dims;
+    vector_type K_real; // @NOTE must   k = n TWOPI, period condition
+    vector_type K_imag;
     value_type one;
     Real error;
 
@@ -138,9 +138,8 @@ public:
     {
     }
 
-    template<typename TV, int IEntityType>
-    field_t<TV, mesh_type, IEntityType> make_field()
-    { return  field_t  <TV, mesh_type, IEntityType>(m);  };
+    template<typename TV, size_t IEntityType>
+    auto make_field() { return field_t<TV, mesh_type, IEntityType>(m); };
 };
 
 TEST_P(FETLTest, grad0)

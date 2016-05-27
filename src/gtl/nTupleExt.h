@@ -18,12 +18,13 @@
 
 namespace simpla
 {
-template<typename, int...> struct nTuple;
+template<typename, size_t...> struct nTuple;
 
-template<typename T, int N> std::istream &
+
+template<typename T, size_t N> std::istream &
 operator>>(std::istream &is, nTuple<T, N> &tv)
 {
-    for (int i = 0; i < N && is; ++i)
+    for (size_t i = 0; i < N && is; ++i)
     {
         is >> tv[i];
     }
@@ -31,11 +32,11 @@ operator>>(std::istream &is, nTuple<T, N> &tv)
     return (is);
 }
 
-template<typename T, int M>
+template<typename T, size_t M>
 std::ostream &operator<<(std::ostream &os, nTuple<T, M> const &v)
 {
     os << "{" << v[0];
-    for (int i = 1; i < M; ++i)
+    for (size_t i = 1; i < M; ++i)
     {
         os << " , " << v[i];
     }
@@ -45,11 +46,11 @@ std::ostream &operator<<(std::ostream &os, nTuple<T, M> const &v)
 }
 
 
-template<typename T, int M, int M2, int ...N>
+template<typename T, size_t M, size_t M2, size_t ...N>
 std::ostream &operator<<(std::ostream &os, nTuple<T, M, M2, N...> const &v)
 {
     os << "{" << v[0];
-    for (int i = 1; i < M; ++i)
+    for (size_t i = 1; i < M; ++i)
     {
         os << " , " << v[i];
     }
@@ -62,7 +63,7 @@ namespace traits
 {
 template<typename TSrc, typename TDesc> struct type_cast;
 
-template<int N, typename T>
+template<size_t N, typename T>
 struct type_cast<nTuple<T, N>, std::string>
 {
     static std::string eval(nTuple<T, N> const &v)
@@ -73,7 +74,7 @@ struct type_cast<nTuple<T, N>, std::string>
     }
 };
 
-template<int N, typename T>
+template<size_t N, typename T>
 struct type_cast<std::string, nTuple<T, N> >
 {
     static nTuple<T, N> eval(std::string const &s)
@@ -104,7 +105,7 @@ struct type_cast<std::string, nTuple<T, N> >
 //namespace std
 //{
 //
-//template<int M, typename T, int N>
+//template<size_t M, typename T, size_t N>
 //T const & get(simpla::nTuple<T, N> const & v)
 //{
 //	return v[M];
@@ -113,9 +114,9 @@ struct type_cast<std::string, nTuple<T, N> >
 // * C++11 <type_traits>
 // * @ref http://en.cppreference.com/w/cpp/types/rank
 // */
-//template<typename T, int ...N>
-//struct rank<simpla::nTuple<T, N...>> : public std::integral_constant<
-//		std::int, sizeof...(N)>
+//template<typename T, size_t ...N>
+//struct rank<simpla::nTuple<T, N...>> : public std::size_tegral_constant<
+//		std::size_t, sizeof...(N)>
 //{
 //};
 //
@@ -124,7 +125,7 @@ struct type_cast<std::string, nTuple<T, N> >
 // * @ref http://en.cppreference.com/w/cpp/types/extent
 // */
 //
-//template<class T, std::int N, std::int ...M>
+//template<class T, std::size_t N, std::size_t ...M>
 //struct extent<simpla::nTuple<T, N, M...>, 0> : std::integral_constant<
 //		std::int, N>
 //{

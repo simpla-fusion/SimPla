@@ -5,8 +5,8 @@
  *      Author: salmon
  */
 
-#ifndef CORE_GPTL_CONCEPT_CHECK_H_
-#define CORE_GPTL_CONCEPT_CHECK_H_
+#ifndef CORE_GPL_CHECK_CONCEPT_H_
+#define CORE_GPL_CHECK_CONCEPT_H_
 
 #include <memory>
 #include <type_traits>
@@ -306,21 +306,21 @@ template<typename _T, typename _Args>
 struct is_indexable
 {
 private:
-	typedef std::true_type yes;
-	typedef std::false_type no;
+    typedef std::true_type yes;
+    typedef std::false_type no;
 
-	template<typename _U>
-	static auto test(int) ->
-			decltype(std::declval<_U>()[std::declval<_Args>()]);
+    template<typename _U>
+    static auto test(int) ->
+            decltype(std::declval<_U>()[std::declval<_Args>()]);
 
-	template<typename> static no test(...);
+    template<typename> static no test(...);
 
 public:
 
-	static constexpr bool value =
-			(!std::is_same<decltype(test<_T>(0)), no>::value)
-			|| ((std::is_array<_T>::value)
-				&& (std::is_integral<_Args>::value));
+    static constexpr bool value =
+            (!std::is_same<decltype(test<_T>(0)), no>::value)
+            || ((std::is_array<_T>::value)
+                && (std::is_integral<_Args>::value));
 
 };
 
@@ -332,19 +332,19 @@ template<typename _T, typename ... _Args>
 struct is_callable
 {
 private:
-	typedef std::true_type yes;
-	typedef std::false_type no;
+    typedef std::true_type yes;
+    typedef std::false_type no;
 
-	template<typename _U>
-	static auto test(int) ->
-			decltype(std::declval<_U>()(std::declval<_Args>() ...));
+    template<typename _U>
+    static auto test(int) ->
+            decltype(std::declval<_U>()(std::declval<_Args>() ...));
 
-	template<typename> static no test(...);
+    template<typename> static no test(...);
 
 public:
 
-	static constexpr bool value =
-			(!std::is_same<decltype(test<_T>()), no>::value);
+    static constexpr bool value =
+            (!std::is_same<decltype(test<_T>()), no>::value);
 
 };
 
@@ -352,49 +352,49 @@ template<typename TFun, typename ... Args>
 auto try_invoke(TFun const &fun, Args &&...args) ->
 typename std::result_of<TFun(Args &&...)>::type
 {
-	return (fun(std::forward<Args>(args)...));
+    return (fun(std::forward<Args>(args)...));
 }
 
 template<typename TFun, typename ... Args>
 auto try_invoke(TFun const &fun, Args &&...args) ->
 typename std::enable_if<!is_callable<TFun, Args &&...>::value, TFun>::type
 {
-	return fun;
+    return fun;
 }
 
 template<typename _T>
 struct is_iterator
 {
 private:
-	typedef std::true_type yes;
-	typedef std::false_type no;
+    typedef std::true_type yes;
+    typedef std::false_type no;
 
-	template<typename _U>
-	static auto test(int) ->
-			decltype(std::declval<_U>().operator*());
+    template<typename _U>
+    static auto test(int) ->
+            decltype(std::declval<_U>().operator*());
 
-	template<typename> static no test(...);
+    template<typename> static no test(...);
 
 public:
 
-	static constexpr bool value =
-			!std::is_same<decltype(test<_T>(0)), no>::value;
+    static constexpr bool value =
+            !std::is_same<decltype(test<_T>(0)), no>::value;
 };
 
 template<typename _T>
 struct is_shared_ptr
 {
-	static constexpr bool value = false;
+    static constexpr bool value = false;
 };
 template<typename T>
 struct is_shared_ptr<std::shared_ptr<T>>
 {
-	static constexpr bool value = true;
+    static constexpr bool value = true;
 };
 template<typename T>
 struct is_shared_ptr<const std::shared_ptr<T>>
 {
-	static constexpr bool value = true;
+    static constexpr bool value = true;
 };
 template<typename, typename ...> struct is_callable;
 template<typename, typename> struct is_indexable;
@@ -402,7 +402,9 @@ template<typename, typename> struct is_indexable;
 
 }  // namespace traits
 
-}
-// namespace simpla
 
-#endif /* CORE_GPTL_CONCEPT_CHECK_H_ */
+#define FUNCTION_REQUIREMENT(_COND_)  std::enable_if_t<_COND_> * = nullptr
+
+}// namespace simpla
+
+#endif /* CORE_GPL_CHECK_CONCEPT_H_ */

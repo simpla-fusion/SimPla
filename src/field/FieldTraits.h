@@ -36,37 +36,21 @@ template<typename> struct mesh_type;
 //    typedef field<ValueType, TM, std::integral_constant<int, IFORM>, Policies...> type;
 //};
 
-template<typename>
-struct isField : public std::integral_constant<bool, false>
-{
-};
+template<typename> struct is_field : public std::integral_constant<bool, false> { };
 
-template<typename ...T>
-struct isField<Field<T...>> : public std::integral_constant<
-        bool, true>
-{
-};
+template<typename ...T> struct is_field<Field<T...>> : public std::integral_constant<bool, true> { };
+
 template<typename TM, typename TV, typename ...Others>
-struct reference<Field<TM, TV, Others...> >
-{
-    typedef Field<TM, TV, Others...> const &type;
-};
+struct reference<Field<TM, TV, Others...> > { typedef Field<TM, TV, Others...> const &type; };
 
 template<typename ...T, int M>
-struct extent<Field<T ...>, M> : public std::integral_constant<int,
-        simpla::mpl::seq_get<M, extents_t<Field<T ...> >>::value>
-{
-};
+struct extent<Field<T ...>, M> : public I_const<traits::seq_get<M, extents<Field<T ...> > >::value> { };
 
 template<typename ...T>
-struct key_type<Field<T ...> >
-{
-    typedef size_t type;
-};
+struct key_type<Field<T ...> > { typedef size_t type; };
 
 
-template<typename>
-struct field_value_type;
+template<typename> struct field_value_type;
 
 template<typename T>
 struct field_value_type

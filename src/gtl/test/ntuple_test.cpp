@@ -34,25 +34,25 @@ protected:
         c = 4;
         d = 7;
 
-        DIMENSIONS = extents();
+//        DIMENSIONS = extents();
 
-        mpl::seq_for_each(extents(),
+        traits::seq_for_each(extents(),
 
-                          [&](size_t const idx[traits::extent<extents>::value])
-                          {
-                              traits::index(aA, idx) = idx[0] * 2;
-                              traits::index(aB, idx) = 5 - idx[0];
-                              traits::index(aC, idx) = idx[0] * 5 + 1;
-                              traits::index(aD, idx) = 0;
-                              traits::index(vA, idx) = traits::index(aA, idx);
-                              traits::index(vB, idx) = traits::index(aB, idx);
-                              traits::index(vC, idx) = traits::index(aC, idx);
-                              traits::index(vD, idx) = 0;
+                             [&](size_t const idx[traits::extent<extents>::value])
+                             {
+                                 traits::index(aA, idx) = idx[0] * 2;
+                                 traits::index(aB, idx) = 5 - idx[0];
+                                 traits::index(aC, idx) = idx[0] * 5 + 1;
+                                 traits::index(aD, idx) = 0;
+                                 traits::index(vA, idx) = traits::index(aA, idx);
+                                 traits::index(vB, idx) = traits::index(aB, idx);
+                                 traits::index(vC, idx) = traits::index(aC, idx);
+                                 traits::index(vD, idx) = 0;
 
-                              traits::index(res, idx) = -(traits::index(aA, idx) + a) /
-                                                        (traits::index(aB, idx) * b - c) - traits::index(aC, idx);
+                                 traits::index(res, idx) = -(traits::index(aA, idx) + a) /
+                                                           (traits::index(aB, idx) * b - c) - traits::index(aC, idx);
 
-                          });
+                             });
 
         num_of_loops = 1000000L;
     }
@@ -63,9 +63,9 @@ public:
 
     typedef T type;
 
-    typedef traits::extents_t<type> extents;
+    typedef traits::extents<type> extents;
 
-    nTuple<std::size_t, traits::extent<extents>::value> DIMENSIONS;
+    nTuple<std::size_t, traits::rank<type>::value> DIMENSIONS;
 
     typedef traits::value_type_t<type> value_type;
 
@@ -78,8 +78,8 @@ public:
 };
 
 typedef testing::Types<
-
-        nTuple<double, 3>, nTuple<double, 3, 3>, nTuple<double, 3, 4, 5>, nTuple<int, 3, 4, 5, 6>, nTuple<std::complex<double>, 3, 4, 5, 6>
+        nTuple<double, 3>, nTuple<double, 3, 3>, nTuple<double, 3, 4, 5>,
+        nTuple<int, 3, 4, 5, 6>, nTuple<std::complex<double>, 3, 4, 5, 6>
 
 > ntuple_type_lists;
 
@@ -87,111 +87,109 @@ TYPED_TEST_CASE(TestNtuple, ntuple_type_lists);
 
 TYPED_TEST(TestNtuple, swap)
 {
-    {
+    std::swap(TestFixture::vA, TestFixture::vB);
 
-        swap(TestFixture::vA, TestFixture::vB);
+    traits::seq_for_each(typename TestFixture::extents(),
+                         [&](size_t const idx[traits::extent<typename TestFixture::extents, 0>::value])
+                         {
+                             EXPECT_DOUBLE_EQ(0, std::abs(
+                                     traits::index(TestFixture::aA, idx) - traits::index(TestFixture::vB, idx)));
+                             EXPECT_DOUBLE_EQ(0, std::abs(
+                                     traits::index(TestFixture::aB, idx) - traits::index(TestFixture::vA, idx)));
+                         });
 
-        mpl::seq_for_each(typename TestFixture::extents(),
-                          [&](size_t const idx[traits::extent<typename TestFixture::extents, 0>::value])
-                          {
-                              EXPECT_DOUBLE_EQ(0, std::abs(
-                                      traits::index(TestFixture::aA, idx) - traits::index(TestFixture::vB, idx)));
-                              EXPECT_DOUBLE_EQ(0, std::abs(
-                                      traits::index(TestFixture::aB, idx) - traits::index(TestFixture::vA, idx)));
-                          });
 
-    }
 }
 
 TYPED_TEST(TestNtuple, assign_Scalar)
 {
-    {
 
-        TestFixture::vA = TestFixture::a;
 
-        mpl::seq_for_each(typename TestFixture::extents(),
-                          [&](size_t const idx[traits::extent<typename TestFixture::extents, 0>::value])
-                          {
-                              EXPECT_DOUBLE_EQ(0, abs(TestFixture::a - traits::index(TestFixture::vA, idx)));
-                          }
-        );
+    TestFixture::vA = TestFixture::a;
 
-    }
+    traits::seq_for_each(typename TestFixture::extents(),
+                         [&](size_t const idx[traits::extent<typename TestFixture::extents, 0>::value])
+                         {
+                             EXPECT_DOUBLE_EQ(0, abs(TestFixture::a - traits::index(TestFixture::vA, idx)));
+                         }
+    );
+
+
 }
 
 TYPED_TEST(TestNtuple, assign_Array)
 {
-    {
-        TestFixture::vA = TestFixture::aA;
 
-        mpl::seq_for_each(typename TestFixture::extents(),
-                          [&](size_t const idx[traits::extent<typename TestFixture::extents, 0>::value])
-                          {
-                              EXPECT_DOUBLE_EQ(0, abs(traits::index(TestFixture::aA, idx) -
-                                                      traits::index(TestFixture::vA, idx)));
-                          }
-        );
+    TestFixture::vA = TestFixture::aA;
 
-    }
+    traits::seq_for_each(typename TestFixture::extents(),
+                         [&](size_t const idx[traits::extent<typename TestFixture::extents, 0>::value])
+                         {
+                             EXPECT_DOUBLE_EQ(0, abs(traits::index(TestFixture::aA, idx) -
+                                                     traits::index(TestFixture::vA, idx)));
+                         }
+    );
+
+
 }
 
 TYPED_TEST(TestNtuple, self_assign)
 {
-    {
-        TestFixture::vB += TestFixture::vA;
 
-        mpl::seq_for_each(typename TestFixture::extents(),
-                          [&](size_t const idx[traits::extent<typename TestFixture::extents, 0>::value])
-                          {
-                              EXPECT_DOUBLE_EQ(0, abs(traits::index(TestFixture::vB, idx)
-                                                      - (traits::index(TestFixture::aB, idx) +
-                                                         traits::index(TestFixture::aA, idx))));
+    TestFixture::vB += TestFixture::vA;
 
-                          }
-        );
+    traits::seq_for_each(typename TestFixture::extents(),
+                         [&](size_t const idx[traits::extent<typename TestFixture::extents, 0>::value])
+                         {
+                             EXPECT_DOUBLE_EQ(0, abs(traits::index(TestFixture::vB, idx)
+                                                     - (traits::index(TestFixture::aB, idx) +
+                                                        traits::index(TestFixture::aA, idx))));
 
-    }
+                         }
+    );
+
+
 }
 
 TYPED_TEST(TestNtuple, cross)
 {
+
+    nTuple<typename TestFixture::value_type, 3> vA, vB, vC, vD;
+
+    for (int i = 0; i < 3; ++i)
     {
-        nTuple<typename TestFixture::value_type, 3> vA, vB, vC, vD;
-
-        for (int i = 0; i < 3; ++i)
-        {
-            vA[i] = (i * 2);
-            vB[i] = (5 - i);
-        }
-
-        for (int i = 0; i < 3; ++i)
-        {
-            vD[i] = vA[(i + 1) % 3] * vB[(i + 2) % 3]
-                    - vA[(i + 2) % 3] * vB[(i + 1) % 3];
-        }
-
-        vC = cross(vA, vB);
-        vD -= vC;
-        EXPECT_DOUBLE_EQ(0, abs(vD[0]) + abs(vD[1]) + abs(vD[2]));
+        vA[i] = (i * 2);
+        vB[i] = (5 - i);
     }
+
+    for (int i = 0; i < 3; ++i)
+    {
+        vD[i] = vA[(i + 1) % 3] * vB[(i + 2) % 3]
+                - vA[(i + 2) % 3] * vB[(i + 1) % 3];
+    }
+
+    vC = cross(vA, vB);
+    vD -= vC;
+    EXPECT_DOUBLE_EQ(0, abs(vD[0]) + abs(vD[1]) + abs(vD[2]));
+
 }
 
 TYPED_TEST(TestNtuple, arithmetic)
 {
-    {
-        TestFixture::vD = EQUATION(TestFixture::vA, TestFixture::vB, TestFixture::vC);
 
-        mpl::seq_for_each(typename TestFixture::extents(),
-                          [&](size_t const idx[traits::extent<typename TestFixture::extents, 0>::value])
-                          {
-                              auto &ta = traits::index(TestFixture::vA, idx);
-                              auto &tb = traits::index(TestFixture::vB, idx);
-                              auto &tc = traits::index(TestFixture::vC, idx);
-                              auto &td = traits::index(TestFixture::vD, idx);
+    TestFixture::vD = EQUATION(TestFixture::vA, TestFixture::vB, TestFixture::vC);
 
-                              EXPECT_DOUBLE_EQ(0, abs(EQUATION(ta, tb, tc) - td));
-                          }
-        );
+    traits::seq_for_each(typename TestFixture::extents(),
+                         [&](size_t const idx[traits::extent<typename TestFixture::extents, 0>::value])
+                         {
+                             auto &ta = traits::index(TestFixture::vA, idx);
+                             auto &tb = traits::index(TestFixture::vB, idx);
+                             auto &tc = traits::index(TestFixture::vC, idx);
+                             auto &td = traits::index(TestFixture::vD, idx);
 
-    }
+                             EXPECT_DOUBLE_EQ(0, abs(EQUATION(ta, tb, tc) - td));
+                         }
+    );
+
+
 }
