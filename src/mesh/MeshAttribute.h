@@ -109,13 +109,13 @@ protected:
 template<typename ...> class MeshAttribute;
 
 template<typename TV, typename TM, size_t IEntityType>
-class MeshAttribute<TV, TM, I_const<IEntityType>, tags::DENSE>
+class MeshAttribute<TV, TM, index_const<IEntityType>, tags::DENSE>
         : public MeshAttributeBase
 {
 private:
-    typedef MeshAttribute<TV, TM, I_const<IEntityType>, tags::DENSE> this_type;
+    typedef MeshAttribute<TV, TM, index_const<IEntityType>, tags::DENSE> this_type;
 
-    typedef MeshAttribute<TV, TM, I_const<IEntityType>, tags::DENSE> mesh_attribute_type;
+    typedef MeshAttribute<TV, TM, index_const<IEntityType>, tags::DENSE> mesh_attribute_type;
 
 
 public:
@@ -135,7 +135,7 @@ public:
     static std::string class_name()
     {
         return std::string("MeshAttribute<") +
-               traits::type_id<TV, TM, I_const<IEntityType>>::name() + ">";
+               traits::type_id<TV, TM, index_const<IEntityType>>::name() + ">";
     }
     //*************************************************
 public:

@@ -94,13 +94,9 @@ template<typename T> struct is_geometry : public std::integral_constant<bool, fa
 template<typename T> struct geometry_type { typedef std::nullptr_t type; };
 
 
-template<typename T> struct iform : public I_const<0> { };
+template<typename T> struct iform : public index_const<0> { };
 
-template<typename ...T>
-struct iform_list : public index_sequence<iform<T>::value...>
-{
-    typedef index_sequence<iform<T>::value...> type;
-};
+template<typename ...T> struct iform_list { typedef index_sequence<iform<T>::value...> type; };
 
 template<typename ...T> using iform_list_t= typename iform_list<T...>::type;
 

@@ -25,9 +25,9 @@ typedef std::nullptr_t NullType;
 
 struct EmptyType { };
 
-template<typename, size_t ... I> struct nTuple;
+template<typename, size_t ...> struct nTuple;
 
-template<size_t I> using I_const=std::integral_constant<size_t, I>;
+template<size_t I> using index_const=std::integral_constant<size_t, I>;
 
 namespace tags { struct do_nothing { template<typename ...Args> void operator()(Args &&...) const { }}; }
 
@@ -36,29 +36,19 @@ namespace _impl
 {
 template<typename Func, typename Tup, int ... index>
 auto invoke_helper(Func &&func, Tup &&tup, index_sequence<index...>)
-{
-    return func(std::get<index>(std::forward<Tup>(tup))...);
-}
+DECL_RET_TYPE((func(std::get<index>(std::forward<Tup>(tup))...)))
 
 } // namespace _impl
 
 
 template<typename Func, typename Tup>
 auto invoke(Func &&func, Tup &&tup)
-{
-    return _impl::invoke_helper(std::forward<Func>(func),
-                                std::forward<Tup>(tup),
-                                make_index_sequence<std::tuple_size<typename std::decay<Tup>::type>::value>());
-}
+DECL_RET_TYPE((_impl::invoke_helper(std::forward<Func>(func),
+                                    std::forward<Tup>(tup),
+                                    make_index_sequence<std::tuple_size<typename std::decay<Tup>::type>::value>())))
 
 namespace traits
 {
-
-
-template<typename _Signature> struct result_of { typedef typename std::result_of_t<_Signature> type; };
-template<typename _Signature> using result_of_t = typename result_of<_Signature>::type;
-
-
 
 
 template<typename ...> struct type_id;
@@ -143,18 +133,9 @@ template<typename T> struct rank : public std::integral_constant<int, std::rank<
 
 template<typename T, int N = 0> struct extent : public std::extent<T, N> { };
 template<typename _Tp, _Tp ...N>
-struct extent<integer_sequence<_Tp, N...>, 0> : public index_sequence<sizeof...(N)> { };
+struct extent<integer_sequence<_Tp, N...>, 0> : public index_const<sizeof...(N)> { };
 
 
-/**
- * integer sequence of the number of element along all dimensions
- * i.e.
- *
- */
-template<typename T> struct extents : public index_sequence<> { typedef index_sequence<> type; };
-template<typename T> using extents_t=typename extents<T>::type;
-
-template<typename T, int N> struct extents<T[N]> : public traits::seq_concat<index_sequence<N>, extents<T> > { };
 //**********************************************************************************************************************
 
 template<typename T>
@@ -179,51 +160,43 @@ namespace _impl
 template<int N>
 struct unpack_args_helper
 {
-    template<typename ... Args>
-    auto eval(Args &&...args) { return unpack_args_helper<N - 1>(std::forward<Args>(args)...); }
+    template<typename ... Args> auto
+    eval(Args &&...args)
+    DECL_RET_TYPE((unpack_args_helper<N - 1>(std::forward<Args>(args)...)))
 };
 
 template<>
 struct unpack_args_helper<0>
 {
-    template<typename First, typename ... Args>
-    auto eval(First &&first, Args &&...args) { return std::forward<First>(first); }
+    template<typename First, typename ... Args> auto
+    eval(First &&first, Args &&...args)
+    DECL_RET_TYPE((std::forward<First>(first)))
 
 };
 }  // namespace _impl
 
 template<int N, typename ... Args>
-auto unpack_args(Args &&...args) { return _impl::unpack_args_helper<N>(std::forward<Args>(args)...); }
+auto unpack_args(Args &&...args) DECL_RET_TYPE((_impl::unpack_args_helper<N>(std::forward<Args>(args)...)))
 
-template<typename T> struct pod_type
-{
-    typedef T type;
-};
+template<typename T> struct pod_type { typedef T type; };
 template<typename T> using pod_type_t = typename pod_type<T>::type;
 
-template<typename T> struct primary_type
-{
-    typedef T type;
-};
+template<typename T> struct primary_type { typedef T type; };
 template<typename T> using primary_type_t=typename primary_type<T>::type;
 
 
-template<typename T0> auto max(T0 const &first) { return first; }
+template<typename T0> auto max(T0 const &first) DECL_RET_TYPE((first))
 
 template<typename T0, typename ...Others> auto max(T0 const &first, Others const &...others)
-{
-    return std::max(first, max(others...));
-}
+DECL_RET_TYPE((std::max(first, max(others...))))
 
-template<typename T0> auto min(T0 const &first) { return first; }
+template<typename T0> auto min(T0 const &first) DECL_RET_TYPE((first))
 
 template<typename T0, typename ...Others> auto min(T0 const &first, Others const &...others)
-{
-    return std::min(first, min(others...));
-}
+DECL_RET_TYPE((std::min(first, min(others...))))
 
 
-template<typename T> auto distance(T const &b, T const &e) { return (e - b); }
+template<typename T> auto distance(T const &b, T const &e) DECL_RET_TYPE(((e - b)))
 
 
 
@@ -238,32 +211,28 @@ template<int N>
 struct recursive_try_index_aux
 {
     template<typename T, typename TI>
-    static auto &eval(T &v, TI const *s) { return recursive_try_index_aux<N - 1>::eval(v[s[0]], s + 1); }
+    static auto eval(T &v, TI const *s) DECL_RET_TYPE((recursive_try_index_aux<N - 1>::eval(v[s[0]], s + 1)))
 };
 
 template<>
 struct recursive_try_index_aux<0>
 {
-    template<typename T, typename TI> static auto &eval(T &v, TI const *s) { return v; }
+    template<typename T, typename TI> static auto eval(T &v, TI const *s) DECL_RET_TYPE((v))
 };
 } // namespace _impl
 template<typename T, typename TI>
-auto &index(T &v, TI s, FUNCTION_REQUIREMENT((!is_indexable<T, TI>::value))) { return v; }
+auto index(T &v, TI s, FUNCTION_REQUIREMENT((!is_indexable<T, TI>::value))) DECL_RET_TYPE((v))
 
 template<typename T, typename TI>
-auto &index(T &v, TI s, FUNCTION_REQUIREMENT((is_indexable<T, TI>::value))) { return v[s]; }
+auto index(T &v, TI s, FUNCTION_REQUIREMENT((is_indexable<T, TI>::value))) DECL_RET_TYPE((v[s]))
 
 template<typename T, typename TI>
-auto &index(T &v, TI *s, FUNCTION_REQUIREMENT((is_indexable<T, TI>::value)))
-{
-    return _impl::recursive_try_index_aux<traits::rank<T>::value>::eval(v, s);
-}
+auto index(T &v, TI *s, FUNCTION_REQUIREMENT((is_indexable<T, TI>::value)))
+DECL_RET_TYPE((_impl::recursive_try_index_aux<traits::rank<T>::value>::eval(v, s)))
 
-template<typename T, typename TI, int N>
-auto &index(T &v, nTuple<TI, N> const &s, FUNCTION_REQUIREMENT((is_indexable<T, TI>::value)))
-{
-    return _impl::recursive_try_index_aux<N>::eval(v, s);
-}
+template<typename T, typename TI, size_t N>
+auto index(T &v, nTuple<TI, N> const &s, FUNCTION_REQUIREMENT((is_indexable<T, TI>::value)))
+DECL_RET_TYPE((_impl::recursive_try_index_aux<N>::eval(v, s)))
 
 
 template<int N, typename T> struct access;
@@ -271,7 +240,7 @@ template<int N, typename T> struct access;
 template<int N, typename T>
 struct access
 {
-    static constexpr auto get(T &v) { return v; }
+    static constexpr auto get(T &v) DECL_RET_TYPE((v))
 
     template<typename U> static void set(T &v, U const &u) { v = static_cast<T>(u); }
 };
@@ -279,9 +248,9 @@ struct access
 template<int N, typename ...T>
 struct access<N, std::tuple<T...>>
 {
-    static constexpr auto get(std::tuple<T...> &v) { return std::get<N>(v); }
+    static constexpr auto get(std::tuple<T...> &v) DECL_RET_TYPE((std::get<N>(v)))
 
-    static constexpr auto get(std::tuple<T...> const &v) { return std::get<N>(v); }
+    static constexpr auto get(std::tuple<T...> const &v) DECL_RET_TYPE((std::get<N>(v)))
 
     template<typename U> static void set(std::tuple<T...> &v, U const &u) { get(v) = u; }
 };
@@ -289,9 +258,9 @@ struct access<N, std::tuple<T...>>
 template<int N, typename T>
 struct access<N, T *>
 {
-    static constexpr auto get(T *v) { return v[N]; }
+    static constexpr auto get(T *v) DECL_RET_TYPE((v[N]))
 
-    static constexpr auto get(T const *v) { return v[N]; }
+    static constexpr auto get(T const *v) DECL_RET_TYPE((v[N]))
 
     template<typename U> static void set(T *v, U const &u) { get(v) = u; }
 };
@@ -299,9 +268,9 @@ struct access<N, T *>
 template<int N, typename T0, typename T1>
 struct access<N, std::pair<T0, T1>>
 {
-    static constexpr auto get(std::pair<T0, T1> &v) { return std::get<N>(v); }
+    static constexpr auto get(std::pair<T0, T1> &v) DECL_RET_TYPE((std::get<N>(v)))
 
-    static constexpr auto get(std::pair<T0, T1> const &v) { return std::get<N>(v); }
+    static constexpr auto get(std::pair<T0, T1> const &v) DECL_RET_TYPE((std::get<N>(v)))
 
     template<typename U> static void set(std::pair<T0, T1> &v, U const &u) { get(v) = u; }
 };
@@ -315,10 +284,10 @@ struct access_helper<N0, N...>
 {
 
     template<typename T>
-    static constexpr auto get(T const &v) { return access_helper<N...>::get(access_helper<N0>::get((v))); }
+    static constexpr auto get(T const &v) DECL_RET_TYPE((access_helper<N...>::get(access_helper<N0>::get((v)))))
 
     template<typename T>
-    static constexpr auto get(T &v) { return access_helper<N...>::get(access_helper<N0>::get((v))); }
+    static constexpr auto get(T &v) DECL_RET_TYPE((access_helper<N...>::get(access_helper<N0>::get((v)))))
 
     template<typename T, typename U>
     static void set(T &v, U const &u) { access_helper<N0, N...>::get(v) = u; }
@@ -328,11 +297,11 @@ struct access_helper<N0, N...>
 template<int N>
 struct access_helper<N>
 {
-    template<typename T> static constexpr auto get(T &v) { return access<N, T>::get(v); }
+    template<typename T> static constexpr auto get(T &v) DECL_RET_TYPE((access<N, T>::get(v)))
 
-    template<typename T> static constexpr auto get(T const &v) { return access<N, T>::get(v); }
+    template<typename T> static constexpr auto get(T const &v) DECL_RET_TYPE((access<N, T>::get(v)))
 
-    template<typename T, typename U> static void set(T &v, U const &u) { return access<N, T>::get(v, u); }
+    template<typename T, typename U> static void set(T &v, U const &u) { access<N, T>::set(v, u); }
 
 };
 
@@ -347,11 +316,11 @@ struct access_helper<>
 
 };
 }  // namespace _impl
-template<int N, typename ...T> auto get(std::tuple<T...> &v) { return std::get<N>(v); }
+template<int N, typename ...T> auto get(std::tuple<T...> &v) DECL_RET_TYPE((std::get<N>(v)))
 
-template<int ...N, typename T> auto get(T &v) { return _impl::access_helper<N...>::get(v); }
+template<int ...N, typename T> auto get(T &v) DECL_RET_TYPE((_impl::access_helper<N...>::get(v)))
 
-template<int ...N, typename T> auto get(T const &v) { return _impl::access_helper<N...>::get(v); }
+template<int ...N, typename T> auto get(T const &v) DECL_RET_TYPE((_impl::access_helper<N...>::get(v)))
 
 
 template<int, typename ...> struct unpack_type;

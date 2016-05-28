@@ -12,7 +12,9 @@
 #include <typeinfo>
 #include <utility>
 #include "../type_traits.h"
+
 #include "../nTuple.h"
+
 #include "../primitives.h"
 #include "../mpl.h"
 #include "../integer_sequence.h"
@@ -78,8 +80,8 @@ public:
 };
 
 typedef testing::Types<
-        nTuple<double, 3>, nTuple<double, 3, 3>, nTuple<double, 3, 4, 5>,
-        nTuple<int, 3, 4, 5, 6>, nTuple<std::complex<double>, 3, 4, 5, 6>
+        nTuple<double, 3>, Matrix<double, 3, 3>, Tensor<double, 3, 4, 5>,
+        Tensor<int, 3, 4, 5, 6>, Tensor<std::complex<double>, 3, 4, 5, 6>
 
 > ntuple_type_lists;
 
@@ -150,7 +152,7 @@ TYPED_TEST(TestNtuple, self_assign)
 
 
 }
-
+//
 TYPED_TEST(TestNtuple, cross)
 {
 
@@ -182,10 +184,10 @@ TYPED_TEST(TestNtuple, arithmetic)
     traits::seq_for_each(typename TestFixture::extents(),
                          [&](size_t const idx[traits::extent<typename TestFixture::extents, 0>::value])
                          {
-                             auto &ta = traits::index(TestFixture::vA, idx);
-                             auto &tb = traits::index(TestFixture::vB, idx);
-                             auto &tc = traits::index(TestFixture::vC, idx);
-                             auto &td = traits::index(TestFixture::vD, idx);
+                             auto ta = traits::index(TestFixture::vA, idx);
+                             auto tb = traits::index(TestFixture::vB, idx);
+                             auto tc = traits::index(TestFixture::vC, idx);
+                             auto td = traits::index(TestFixture::vD, idx);
 
                              EXPECT_DOUBLE_EQ(0, abs(EQUATION(ta, tb, tc) - td));
                          }

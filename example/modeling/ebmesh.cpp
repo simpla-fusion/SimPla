@@ -35,7 +35,7 @@ int main(int argc, char **argv)
     std::string input_filename;
     const char *output_filename = NULL;
     int whole_geom = 1;
-    int n_interval[3] = {100, 100, 100};
+    int n_interval[3] = {100, 100, 20};
     int mesh_based_geom = 0;
     double box_increase = .03;
     int vol_frac_res = 0;

@@ -11,6 +11,7 @@
 #include "FieldExpression.h"
 
 #include "../mesh/MeshAttribute.h"
+#include "FieldTraits.h"
 #include <type_traits>
 
 namespace simpla
@@ -20,7 +21,7 @@ namespace simpla
 template<typename ...> class Field;
 
 template<typename TV, typename TManifold, size_t IFORM>
-using field_t= Field<TV, TManifold, I_const<IFORM>>;
+using field_t= Field<TV, TManifold, index_const<IFORM>>;
 
 
 /**
@@ -30,12 +31,12 @@ using field_t= Field<TV, TManifold, I_const<IFORM>>;
 
 
 template<typename TV, typename TManifold, size_t IFORM>
-class Field<TV, TManifold, I_const<IFORM>>
-        : public mesh::MeshAttribute<TV, TManifold, I_const<IFORM>, mesh::tags::DENSE>::View
+class Field<TV, TManifold, index_const<IFORM>>
+        : public mesh::MeshAttribute<TV, TManifold, index_const<IFORM>, mesh::tags::DENSE>::View
 {
 private:
     static_assert(std::is_base_of<mesh::MeshBase, TManifold>::value, "TManifold is not derived from MeshBase");
-    typedef Field<TV, TManifold, I_const<IFORM>> this_type;
+    typedef Field<TV, TManifold, index_const<IFORM>> this_type;
 public:
 
     virtual bool is_a(std::type_info const &info) const { return typeid(this_type) == info || base_type::is_a(info); }
@@ -45,10 +46,10 @@ public:
     static std::string class_name()
     {
         return std::string("Field<") +
-               traits::type_id<value_type, mesh_type, I_const<IFORM>>::name() + ">";
+               traits::type_id<value_type, mesh_type, index_const<IFORM>>::name() + ">";
     }
 
-    typedef mesh::MeshAttribute<TV, TManifold, I_const<IFORM>, mesh::tags::DENSE> attribute_type;
+    typedef mesh::MeshAttribute<TV, TManifold, index_const<IFORM>, mesh::tags::DENSE> attribute_type;
 
 private:
     typedef typename attribute_type::View base_type;
@@ -139,8 +140,8 @@ public:
 
 private:
 
-    template<typename TOP, typename ...Args>
-    void apply(TOP const &op, this_type &f, Args &&... args)
+    template<typename TOP, typename Other>
+    void apply(TOP const &op, this_type &f, Other const &other)
     {
 
         //TODO: need parallelism
@@ -148,8 +149,7 @@ private:
 
         for (auto const &s: base_type::range())
         {
-            op(f[s], /*mesh_type::calculus_policy::eval(base_type::mesh(), f, s)*/
-               base_type::mesh().eval(std::forward<Args>(args), s)...);
+            op(f[s], base_type::mesh().eval(other, s));
         }
 
     }

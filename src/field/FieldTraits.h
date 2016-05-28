@@ -44,7 +44,7 @@ template<typename TM, typename TV, typename ...Others>
 struct reference<Field<TM, TV, Others...> > { typedef Field<TM, TV, Others...> const &type; };
 
 template<typename ...T, int M>
-struct extent<Field<T ...>, M> : public I_const<traits::seq_get<M, extents<Field<T ...> > >::value> { };
+struct extent<Field<T ...>, M> : public index_const<traits::seq_get<M, extents<Field<T ...> > >::value> { };
 
 template<typename ...T>
 struct key_type<Field<T ...> > { typedef size_t type; };

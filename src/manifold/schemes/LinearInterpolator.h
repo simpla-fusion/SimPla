@@ -28,7 +28,7 @@ public:
 
     typedef LinearInterpolator<TM> interpolate_policy;
 
-    LinearInterpolator(TM const &m) : m_(m) { }
+    LinearInterpolator(TM const &m_) : m(m_) { }
 
     virtual ~LinearInterpolator() { }
 
@@ -47,10 +47,12 @@ private:
     typedef TM mesh_type;
     typedef LinearInterpolator<mesh_type> this_type;
     typedef mesh::MeshEntityIdCoder M;
-    mesh_type const &m_;
+    mesh_type const &m;
 
-    template<typename TD, typename TIDX> constexpr inline auto
-    gather_impl_(TD const &f, TIDX const &idx) const
+    template<typename M, typename TD, typename TIDX> inline auto
+    gather_impl_(M const &m, TD const &f, TIDX const &idx) const -> decltype(
+    traits::index(f, std::get<0>(idx)) *
+    std::get<1>(idx)[0])
     {
 
         auto X = (M::_DI) << 1;
@@ -72,44 +74,39 @@ private:
 
 public:
 
-    template<typename TF, typename TX> constexpr inline auto
-    gather(TF const &f, TX const &r, traits::iform_is_t<TF, VERTEX> *_p = nullptr) const
-    {
-        return gather_impl_(f, m_.coordinates_global_to_local(r, 0));
-    }
+    template<typename TF, typename TX> inline auto
+    gather(TF const &f, TX const &r) const//
+    ENABLE_IF_DECL_RET_TYPE((traits::iform<TF>::value
+                             == VERTEX), (gather_impl_(f, m.coordinates_global_to_local(r, 0))))
 
+    template<typename TF> inline auto
+    gather(TF const &f, point_type const &r) const
+    ENABLE_IF_DECL_RET_TYPE((traits::iform<TF>::value
+                             == EDGE),
+                            traits::make_nTuple(
+                                    gather_impl_(f, m.coordinates_global_to_local(r, 1)),
+                                    gather_impl_(f, m.coordinates_global_to_local(r, 2)),
+                                    gather_impl_(f, m.coordinates_global_to_local(r, 4))
+                            ))
 
-    template<typename TF> constexpr inline auto
-    gather(TF const &f, point_type const &r, traits::iform_is_t<TF, EDGE> *_p = nullptr) const
-    {
-        return
-                traits::make_nTuple(
-                        gather_impl_(f, m_.coordinates_global_to_local(r, 1)),
-                        gather_impl_(f, m_.coordinates_global_to_local(r, 2)),
-                        gather_impl_(f, m_.coordinates_global_to_local(r, 4))
-                );
-    }
+    template<typename TF> inline auto
+    gather(TF const &f, point_type const &r) const
+    ENABLE_IF_DECL_RET_TYPE((traits::iform<TF>::value == FACE),
+                            traits::make_nTuple(
+                                    gather_impl_(f, m.coordinates_global_to_local(r, 6)),
+                                    gather_impl_(f, m.coordinates_global_to_local(r, 5)),
+                                    gather_impl_(f, m.coordinates_global_to_local(r, 3))
+                            ))
 
-    template<typename TF> constexpr inline auto
-    gather(TF const &f, point_type const &r, traits::iform_is_t<TF, FACE> *_p = nullptr) const
-    {
-        return
-                traits::make_nTuple(
-                        gather_impl_(f, m_.coordinates_global_to_local(r, 6)),
-                        gather_impl_(f, m_.coordinates_global_to_local(r, 5)),
-                        gather_impl_(f, m_.coordinates_global_to_local(r, 3))
-                );
-    }
-
-    template<typename TF> constexpr inline auto
-    gather(TF const &f, point_type const &x, traits::iform_is_t<TF, VOLUME> *_p = nullptr) const
-    {
-        return gather_impl_(f, m_.coordinates_global_to_local(x, 7));
-    }
+    template<typename TF> inline auto
+    gather(TF const &f, point_type const &x) const
+    ENABLE_IF_DECL_RET_TYPE((traits::iform<TF>::value == VOLUME),
+                            gather_impl_(f, m.coordinates_global_to_local(x, 7)))
 
 private:
     template<typename TF, typename IDX, typename TV> inline void
-    scatter_impl_(TF &f, IDX const &idx, TV const &v) const
+    scatter_impl_(TF &f, IDX const &idx,
+                  TV const &v) const
     {
 
         auto X = (M::_DI) << 1;
@@ -132,34 +129,38 @@ private:
 
 
     template<typename TF, typename TX, typename TV> inline void
-    scatter_(index_sequence <VERTEX>, TF &f, TX const &x, TV const &u) const
+    scatter_(std::integral_constant<int, VERTEX>, TF &
+    f, TX const &x, TV const &u) const
     {
-        scatter_impl_(f, m_.coordinates_global_to_local(x, 0), u);
+        scatter_impl_(f, m.coordinates_global_to_local(x, 0), u);
     }
 
     template<typename TF, typename TX, typename TV> inline void
-    scatter_(index_sequence <EDGE>, TF &f, TX const &x, TV const &u) const
+    scatter_(std::integral_constant<int, EDGE>, TF &
+    f, TX const &x, TV const &u) const
     {
 
-        scatter_impl_(f, m_.coordinates_global_to_local(x, 1), u[0]);
-        scatter_impl_(f, m_.coordinates_global_to_local(x, 2), u[1]);
-        scatter_impl_(f, m_.coordinates_global_to_local(x, 4), u[2]);
+        scatter_impl_(f, m.coordinates_global_to_local(x, 1), u[0]);
+        scatter_impl_(f, m.coordinates_global_to_local(x, 2), u[1]);
+        scatter_impl_(f, m.coordinates_global_to_local(x, 4), u[2]);
 
     }
 
     template<typename TF, typename TX, typename TV> inline void
-    scatter_(index_sequence <FACE>, TF &f, TX const &x, TV const &u) const
+    scatter_(std::integral_constant<int, FACE>, TF &f,
+             TX const &x, TV const &u) const
     {
 
-        scatter_impl_(f, m_.coordinates_global_to_local(x, 6), u[0]);
-        scatter_impl_(f, m_.coordinates_global_to_local(x, 5), u[1]);
-        scatter_impl_(f, m_.coordinates_global_to_local(x, 3), u[2]);
+        scatter_impl_(f, m.coordinates_global_to_local(x, 6), u[0]);
+        scatter_impl_(f, m.coordinates_global_to_local(x, 5), u[1]);
+        scatter_impl_(f, m.coordinates_global_to_local(x, 3), u[2]);
     }
 
     template<typename TF, typename TX, typename TV> inline void
-    scatter_(index_sequence <VOLUME>, TF &f, TX const &x, TV const &u) const
+    scatter_(std::integral_constant<int, VOLUME>,
+             TF &f, TX const &x, TV const &u) const
     {
-        scatter_impl_(f, m_.coordinates_global_to_local(x, 7), u);
+        scatter_impl_(f, m.coordinates_global_to_local(x, 7), u);
     }
 
 public:
@@ -170,37 +171,43 @@ public:
     }
 
 private:
-    template<typename TV> constexpr inline TV
-    sample_(index_sequence <VERTEX>, id_type s, TV const &v) const { return v; }
+    template<typename TV> inline TV
+    sample_(std::integral_constant<int, VERTEX>, id_type s,
+            TV const &v) const { return v; }
 
-    template<typename TV> constexpr inline auto
-    sample_(index_sequence <VOLUME>, id_type s, TV const &v) const { return v; }
+    template<typename TV> inline TV
+    sample_(std::integral_constant<int, VOLUME>, id_type s,
+            TV const &v) const { return v; }
 
-    template<typename TV> constexpr inline auto
-    sample_(index_sequence <EDGE>, id_type s, nTuple<TV, 3> const &v) const
+    template<typename TV> inline TV
+    sample_(std::integral_constant<int, EDGE>,
+            id_type s, nTuple<TV, 3> const &v) const
     {
         return v[M::sub_index(s)];
     }
 
-    template<typename TV> constexpr inline auto
-    sample_(index_sequence <FACE>, id_type s, nTuple<TV, 3> const &v) const
+    template<typename TV> inline TV
+    sample_(std::integral_constant<int, FACE>,
+            id_type s, nTuple<TV, 3> const &v) const
     {
         return v[M::sub_index(s)];
     }
 //
 //    template<typename M,int IFORM,  typename TV>
-//    constexpr inline TV sample_(M const & index_sequence< IFORM>, id_type s,
+//    inline TV sample_(M const & m,std::integral_constant<int, IFORM>, id_type s,
 //                                       TV const &v) const { return v; }
 
 public:
 
 //    template<typename M,int IFORM,  typename TV>
-//    constexpr inline auto generate(TI const &s, TV const &v) const
-//    DECL_RET_TYPE((sample_(M const & index_sequence< IFORM>(), s, v)))
+//    inline auto generate(TI const &s, TV const &v) const
+//    DECL_RET_TYPE((sample_(M const & m,std::integral_constant<int, IFORM>(), s, v)))
 
 
-    template<int IFORM, typename TV> constexpr inline auto
-    sample(id_type s, TV const &v) const DECL_RET_TYPE((sample_(index_sequence<IFORM>(), s, v)))
+    template<int IFORM, typename TV>
+    inline auto
+    sample(id_type s, TV const &v) const
+    DECL_RET_TYPE((sample_(std::integral_constant<int, IFORM>(), s, v)))
 
 
     /**
@@ -222,7 +229,7 @@ public:
     Real RBF(point_type const &x0, point_type const &x1, Real const &a) const
     {
 
-        return (1.0 - m_.distance(x1, x0) / a);
+        return (1.0 - m.distance(x1, x0) / a);
     }
 
 };

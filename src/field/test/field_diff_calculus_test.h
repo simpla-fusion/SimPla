@@ -139,7 +139,7 @@ public:
     }
 
     template<typename TV, size_t IEntityType>
-    auto make_field() { return field_t<TV, mesh_type, IEntityType>(m); };
+    field_t<TV, mesh_type, IEntityType> make_field() { return field_t<TV, mesh_type, IEntityType>(m); };
 };
 
 TEST_P(FETLTest, grad0)

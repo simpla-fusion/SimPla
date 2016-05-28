@@ -88,15 +88,14 @@ template<> struct is_real<Real> { static constexpr bool value = true; };
 template<typename TL>
 struct is_arithmetic_scalar
 {
-    static constexpr bool value = (std::is_arithmetic<TL>::value
-                                   || has_PlaceHolder<TL>::value);
+    static constexpr bool value = (std::is_arithmetic<TL>::value || has_PlaceHolder<TL>::value);
 };
 
 template<typename T> struct is_primitive { static constexpr bool value = is_arithmetic_scalar<T>::value; };
 
 //template<typename T> struct is_expression { static constexpr bool value = false; };
 
-template<typename T1> auto abs(T1 const &m) { return std::fabs(m); }
+template<typename T1> auto abs(T1 const &m) DECL_RET_TYPE((std::fabs(m)))
 
 /**
  * @}

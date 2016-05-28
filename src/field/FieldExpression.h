@@ -12,8 +12,6 @@
 #include <cstdbool>
 #include <type_traits>
 
-#include "FieldTraits.h"
-
 #include "../gtl/ExpressionTemplate.h"
 #include "../gtl/type_traits.h"
 
@@ -30,6 +28,13 @@ template<typename ...> struct Field;
 template<typename ...> class Expression;
 
 template<typename ...> class BooleanExpression;
+namespace traits
+{
+
+template<typename> struct field_value_type;
+template<typename TOP, typename ...T>
+struct field_value_type<Field<simpla::BooleanExpression<TOP, T...> > > { typedef bool type; };
+}//namespace  traits
 
 template<typename ...T>
 struct Field<Expression<T...> > : public Expression<T...>
@@ -47,31 +52,7 @@ struct Field<BooleanExpression<T...> > : Expression<T...>
     using Expression<T...>::m_op_;
     using Expression<T...>::Expression;
 };
-namespace traits
-{
 
-template<typename> struct value_type;
-template<typename> struct field_value_type;
-
-template<typename TOP, typename ...T>
-struct value_type<Field<BooleanExpression<TOP, T...> > > { typedef bool type; };
-template<typename TOP, typename ...T>
-struct field_value_type<Field<BooleanExpression<TOP, T...> > > { typedef bool type; };
-
-template<typename TOP, typename ...T>
-struct value_type<Field<Expression<TOP, T...> > >
-{
-    typedef result_of_t<TOP(typename value_type<T>::type ...)> type;
-};
-
-
-template<typename TAG, typename T0, typename ... T>
-struct iform<Field<Expression<TAG, T0, T...> > > : public traits::iform<T0>::type
-{
-};
-
-template<typename T, int IFORM> using iform_is_t=std::enable_if_t<iform<T>::value == IFORM>;
-}  // namespace traits
 
 template<typename ...> struct AssignmentExpression;
 

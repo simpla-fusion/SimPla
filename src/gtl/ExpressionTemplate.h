@@ -33,7 +33,8 @@ struct Expression<TOP, Args...>
 {
     typedef Expression<TOP, Args...> this_type;
 
-    typename std::tuple<traits::reference_t<Args> ...> args;
+    typename std::tuple<traits::reference_t < Args> ...>
+    args;
 
     TOP m_op_;
 
@@ -85,10 +86,8 @@ struct AssignmentExpression<TOP, TL, TR>
 
     template<typename IndexType>
     inline auto operator[](IndexType const &s) const
-    {
-        return ((op_(traits::index(lhs, s), traits::index(rhs, s))));
-    }
-//			DECL_RET_TYPE ((op_( lhs, rhs, s )))
+    DECL_RET_TYPE (((op_(traits::index(lhs, s), traits::index(rhs, s)))))
+
 
 };
 
@@ -97,9 +96,15 @@ namespace traits
 
 template<typename T> struct is_expresson { static constexpr bool value = false; };
 template<typename ...T, template<typename ...> class F>
-struct is_expresson<F<Expression<T...> > > { static constexpr bool value = true; };
+struct is_expresson<F<Expression<T...> > >
+{
+    static constexpr bool value = true;
+};
 
-template<typename ...T> struct is_expresson<Expression<T...> > { static constexpr bool value = true; };
+template<typename ...T> struct is_expresson<Expression<T...> >
+{
+    static constexpr bool value = true;
+};
 }
 // namespace traits
 namespace _impl
@@ -345,19 +350,18 @@ struct _pow2
 {
 
 
-    template<typename TL>
-    static constexpr auto eval(TL const &l) -> decltype((l * l)) { return l * l; }
+    template<typename TL> static constexpr auto eval(TL const &l) DECL_RET_TYPE ((l * l))
 
 
     template<typename TL, typename TI>
-    static constexpr auto eval(TL const &l, TI const &s) { return _pow2::eval(traits::index(l, s)); }
+    static constexpr auto eval(TL const &l, TI const &s) DECL_RET_TYPE ((_pow2::eval(traits::index(l, s))))
 
     template<typename TL>
     constexpr TL operator()(TL const &l) const { return _pow2::eval(l); }
 
 
     template<typename TL, typename TI>
-    constexpr auto operator()(TL const &l, TI const &s) const { return _pow2(traits::index(l, s)); }
+    constexpr auto operator()(TL const &l, TI const &s) const DECL_RET_TYPE ((_pow2(traits::index(l, s))))
 
 
 };
@@ -595,9 +599,9 @@ template<typename TE> inline Zero operator/(TE const &, Infinity const &) { retu
 
 template<typename TE> inline Infinity operator/(Infinity const &, TE const &e) { return (Infinity()); }
 
-template<typename TL> inline auto operator==(TL const &lhs, Zero) { return ((lhs)); }
+template<typename TL> inline auto operator==(TL const &lhs, Zero) DECL_RET_TYPE ((lhs))
 
-template<typename TR> inline auto operator==(Zero, TR const &rhs) { return rhs; }
+template<typename TR> inline auto operator==(Zero, TR const &rhs) DECL_RET_TYPE ((rhs))
 
 constexpr Identity operator&(Identity, Identity) { return Identity(); }
 
@@ -614,6 +618,7 @@ template<typename TR> constexpr Zero operator&(Zero, Zero) { return std::move(Ze
 /** @} */
 
 /** @}*/
+
 
 }   // namespace simpla
 

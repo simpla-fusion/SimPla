@@ -36,7 +36,7 @@ protected:
 
         std::tie(mesh, std::ignore) = m.add<mesh_type>();
 
-        nTuple<size_t, 3> dims = {10, 1, 1};
+        index_tuple dims = {10, 1, 1};
 
         mesh->dimensions(dims);
 //		geometry->extents(xmin, xmax);

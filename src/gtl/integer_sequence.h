@@ -10,15 +10,17 @@
 
 #include <stddef.h>
 #include "check_concept.h"
+#include "port_cxx14.h"
 
 namespace simpla
 {
-//template<typename _Tp, _Tp ... _I> struct integer_sequence;
 
 //////////////////////////////////////////////////////////////////////
 /// integer_sequence
 //////////////////////////////////////////////////////////////////////
 #if __cplusplus >= 201402L
+
+#include <utility>
 //template<typename _Tp, _Tp ... _I> using integer_sequence = std::integer_sequence<_Tp, _I...>;
 //template<int ... _I> using index_sequence=std::index_sequence<_I...>;
 using std::integer_sequence;
@@ -34,60 +36,86 @@ using std::index_sequence_for;
  *  compile-time sequence of integers. When used as an argument
  *   to a function template, the parameter pack Ints can be deduced
  *   and used in pack expansion.
+ *
+ *
  */
- *
- *
-template<typename _Tp, _Tp ... _I> struct integer_sequence;
-template<int ... Ints> using index_sequence = integer_sequence<int, Ints...>;
-template<typename _Tp, _Tp ... _I>
+//**************************************************************************
+//from standard library
+// Stores a tuple of indices.  Used by tuple and pair, and by bind() to
+// extract the elements in a tuple.
+/// Class template integer_sequence
+
+template<typename _Tp, _Tp... _Idx>
 struct integer_sequence
 {
-private:
-    static constexpr int m_size_ = sizeof...(_I);
+    typedef _Tp value_type;
 
-public:
-    typedef integer_sequence<_Tp, _I...> type;
-
-    static constexpr int size()
-    {
-        return m_size_;
-    }
-
+    static constexpr size_t size() { return sizeof...(_Idx); }
 };
-
-template<typename _Tp>
-struct integer_sequence<_Tp>
+namespace _impl
 {
-
-public:
-    typedef integer_sequence<_Tp> type;
-
-    static constexpr int size()
-    {
-        return 0;
-    }
-
+template<size_t... _Indexes>
+struct _Index_tuple
+{
+    typedef _Index_tuple<_Indexes..., sizeof...(_Indexes)> __next;
 };
 
-template<class T, T N>
-using make_integer_sequence =typename _impl::gen_seq<T, N>::type;
+// Builds an _Index_tuple<0, 1, 2, ..., _Num-1>.
+template<size_t _Num>
+struct _Build_index_tuple
+{
+    typedef typename _Build_index_tuple<_Num - 1>::__type::__next __type;
+};
 
-template<int N>
-using make_index_sequence = make_integer_sequence<int, N>;
+template<>
+struct _Build_index_tuple<0>
+{
+    typedef _Index_tuple<> __type;
+};
+
+template<typename _Tp, _Tp _Num,
+        typename _ISeq = typename _Build_index_tuple<_Num>::__type>
+struct _Make_integer_sequence;
+
+template<typename _Tp, _Tp _Num, size_t... _Idx>
+struct _Make_integer_sequence<_Tp, _Num, _Index_tuple<_Idx...>>
+{
+    static_assert(_Num >= 0, "Cannot make integer sequence of negative length");
+
+    typedef integer_sequence<_Tp, static_cast<_Tp>(_Idx)...> __type;
+};
+}//namespace _impl
+
+/// Alias template make_integer_sequence
+template<typename _Tp, _Tp _Num>
+using make_integer_sequence= typename _impl::_Make_integer_sequence<_Tp, _Num>::__type;
+
+/// Alias template index_sequence
+template<size_t... _Idx>
+using index_sequence = integer_sequence<size_t, _Idx...>;
+
+/// Alias template make_index_sequence
+template<size_t _Num>
+using make_index_sequence = make_integer_sequence<size_t, _Num>;
+
+/// Alias template index_sequence_for
+template<typename... _Types>
+using index_sequence_for = make_index_sequence<sizeof...(_Types)>;
+//**************************************************************************
 
 
 #endif
+
 namespace traits
 {
 
 template<typename T, typename TI>
-auto &index(T &v, integer_sequence<TI>, FUNCTION_REQUIREMENT((is_indexable<T, TI>::value))) { return v; }
+auto index(T &v, integer_sequence<TI>, FUNCTION_REQUIREMENT((is_indexable<T, TI>::value))) DECL_RET_TYPE(v)
 
 template<typename T, typename TI, TI M, TI ...N>
-auto &index(T &v, integer_sequence<TI, M, N...>, FUNCTION_REQUIREMENT((is_indexable<T, TI>::value)))
-{
-    return index(v[M], integer_sequence<TI, N...>());
-}
+auto index(T &v, integer_sequence<TI, M, N...>, FUNCTION_REQUIREMENT((is_indexable<T, TI>::value)))
+DECL_RET_TYPE((index(v[M], integer_sequence<TI, N...>())))
+//----------------------------------------------------------------------------------------------------------------------
 
 template<typename> struct seq_value;
 template<typename _Tp, _Tp ...N>
@@ -95,6 +123,7 @@ struct seq_value<integer_sequence<_Tp, N...> > { static constexpr _Tp value[] = 
 template<typename _Tp, _Tp ...N>
 constexpr _Tp seq_value<integer_sequence<_Tp, N...>>::value[];
 
+//----------------------------------------------------------------------------------------------------------------------
 
 template<size_t N, typename ...> struct seq_get;
 
@@ -142,7 +171,10 @@ struct seq_get<0, integer_sequence<Tp> >
 ////					Others...>::type>::type type;
 ////
 ////};
+//----------------------------------------------------------------------------------------------------------------------
 
+namespace _impl
+{
 //TODO need implement max_integer_sequence, min_integer_sequence
 template<size_t...> struct _seq_for;
 
@@ -187,13 +219,24 @@ struct _seq_for<M, N...>
     }
 
 };
+}
 
+//namespace _impl{
 template<size_t N, typename ...Args>
-void seq_for(integer_sequence<size_t, N>, Args &&... args) { _seq_for<N>::eval(std::forward<Args>(args) ...); }
+void seq_for(index_sequence<N>, Args &&... args)
+{
+    _impl::_seq_for<N>::eval(std::forward<Args>(args) ...);
+}
 
 template<size_t ... N, typename ...Args>
-void seq_for(integer_sequence<size_t, N...>, Args &&... args) { _seq_for<N...>::eval(std::forward<Args>(args) ...); }
+void seq_for(index_sequence<N...>, Args &&... args)
+{
+    _impl::_seq_for<N...>::eval(std::forward<Args>(args) ...);
+}
+//----------------------------------------------------------------------------------------------------------------------
 
+namespace _impl
+{
 template<size_t...> struct _seq_reduce;
 
 template<size_t M, size_t ...N>
@@ -201,26 +244,21 @@ struct _seq_reduce<M, N...>
 {
 
     template<typename Reduction, size_t ...L, typename ... Args>
-    static inline auto eval(Reduction const &reduction,
-                            integer_sequence<size_t, L...>, Args &&... args)
-    {
-        return reduction(
-                _seq_reduce<N...>::eval(reduction,
-                                        integer_sequence<size_t, L..., M>(),
-                                        std::forward<Args>(args)...),
+    static inline auto eval(Reduction const &reduction, integer_sequence<size_t, L...>, Args &&... args)
+    DECL_RET_TYPE((reduction(
+            _seq_reduce<N...>::eval(reduction,
+                                    integer_sequence<size_t, L..., M>(),
+                                    std::forward<Args>(args)...),
 
-                _seq_reduce<M - 1, N...>::eval(reduction,
-                                               integer_sequence<size_t, L...>(),
-                                               std::forward<Args>(args)...)
+            _seq_reduce<M - 1, N...>::eval(reduction,
+                                           integer_sequence<size_t, L...>(),
+                                           std::forward<Args>(args)...)
 
-        );
-    }
+    )))
 
     template<typename Reduction, typename ...Args>
     static inline auto eval(Reduction const &reduction, Args &&... args)
-    {
-        return eval(reduction, integer_sequence<size_t>(), std::forward<Args>(args)...);
-    }
+    DECL_RET_TYPE(eval(reduction, integer_sequence<size_t>(), std::forward<Args>(args)...))
 
 };
 
@@ -229,13 +267,9 @@ struct _seq_reduce<1, N...>
 {
 
     template<typename Reduction, size_t ...L, typename ...Args>
-    static inline auto eval(Reduction const &reduction, integer_sequence<size_t, L...>,
-                            Args &&... args)
-    {
-        return _seq_reduce<N...>::eval(reduction,
-                                       integer_sequence<size_t, L..., 1>(),
-                                       std::forward<Args>(args)...);
-    }
+    static inline auto eval(Reduction const &reduction, integer_sequence<size_t, L...>, Args &&... args)
+    DECL_RET_TYPE((_seq_reduce<N...>::eval(reduction, integer_sequence<size_t, L..., 1>(),
+                                           std::forward<Args>(args)...)))
 
 };
 
@@ -245,17 +279,17 @@ struct _seq_reduce<>
     template<typename Reduction, size_t ...L, typename Args>
     static inline auto eval(Reduction const &, integer_sequence<size_t, L...>,
                             Args const &args)
-    {
-        return access((args), integer_sequence<size_t, (L - 1)...>());
-    }
+    DECL_RET_TYPE((access(args, integer_sequence<size_t, (L - 1)...>())))
+
 
 };
+}
 
+//namespace _impl
 template<size_t ... N, typename TOP, typename ...Args>
 auto seq_reduce(integer_sequence<size_t, N...>, TOP const &op, Args &&... args)
-{
-    return _seq_reduce<N...>::eval(op, std::forward<Args>(args)...);
-}
+DECL_RET_TYPE((_impl::_seq_reduce<N...>::eval(op, std::forward<Args>(args)...)))
+//----------------------------------------------------------------------------------------------------------------------
 
 template<typename TInts, TInts ...N, typename TOP>
 void seq_for_each(integer_sequence<TInts, N...>, TOP const &op)
@@ -290,6 +324,98 @@ void seq_for_each(integer_sequence<TInts, N...>, TOP const &op)
     }
 
 }
+
+namespace _impl
+{
+
+
+template<typename _Tp, _Tp I0, _Tp ...I>
+struct _seq_max
+{
+    static constexpr _Tp value = _seq_max<_Tp, I0, _seq_max<_Tp, I...>::value>::value;
+};
+template<typename _Tp, _Tp I0>
+struct _seq_max<_Tp, I0>
+{
+    static constexpr _Tp value = I0;
+};
+template<typename _Tp, _Tp I0, _Tp I1>
+struct _seq_max<_Tp, I0, I1>
+{
+    static constexpr _Tp value = (I0 > I1) ? I0 : I1;
+};
+
+
+template<typename _Tp, _Tp I0, _Tp ...I>
+struct _seq_min
+{
+    static constexpr _Tp value = _seq_min<_Tp, I0, _seq_min<_Tp, I...>::value>::value;
+};
+template<typename _Tp, _Tp I0>
+struct _seq_min<_Tp, I0>
+{
+    static constexpr _Tp value = I0;
+};
+template<typename _Tp, _Tp I0, _Tp I1>
+struct _seq_min<_Tp, I0, I1>
+{
+    static constexpr _Tp value = (I0 < I1) ? I0 : I1;
+};
+
+}//namespace _impl
+
+template<typename Tp> struct seq_max : public index_sequence<> { };
+
+template<typename _Tp, _Tp ...I>
+struct seq_max<integer_sequence<_Tp, I...>> : public std::integral_constant<_Tp, _impl::_seq_max<_Tp, I...>::value> { };
+
+
+template<typename Tp> struct seq_min : public index_sequence<> { };
+
+template<typename _Tp, _Tp ...I>
+struct seq_min<integer_sequence<_Tp, I...>> : public std::integral_constant<_Tp, _impl::_seq_min<_Tp, I...>::value> { };
+
+//----------------------------------------------------------------------------------------------------------------------
+
+
+namespace _impl
+{
+
+/**
+ *  cat two tuple/integer_sequence
+ */
+template<typename ...> struct seq_concat_helper;
+
+template<typename _Tp, _Tp ... _M>
+struct seq_concat_helper<integer_sequence<_Tp, _M...>>
+{
+    typedef integer_sequence<_Tp, _M...> type;
+};
+
+
+template<typename _Tp, _Tp ... _M, _Tp ... _N>
+struct seq_concat_helper<integer_sequence<_Tp, _M...>, integer_sequence<_Tp, _N...> >
+{
+    typedef integer_sequence<_Tp, _M..., _N...> type;
+};
+
+template<typename _Tp, _Tp ... _M>
+struct seq_concat_helper<integer_sequence<_Tp, _M...>, integer_sequence<_Tp> >
+{
+    typedef integer_sequence<_Tp, _M...> type;
+};
+template<typename _Tp, typename ...Others>
+struct seq_concat_helper<_Tp, Others...>
+{
+    typedef typename seq_concat_helper<_Tp, typename seq_concat_helper<Others...>::type>::type type;
+};
+
+
+}//namespace _impl{
+
+template<typename ...T> using seq_concat=typename _impl::seq_concat_helper<T...>::type;
+
+//----------------------------------------------------------------------------------------------------------------------
 
 template<typename TInts, TInts ...N, typename TA>
 std::ostream &seq_print(integer_sequence<TInts, N...>, std::ostream &os, TA const &d)
@@ -331,54 +457,15 @@ std::ostream &seq_print(integer_sequence<TInts, N...>, std::ostream &os, TA cons
     return os;
 }
 
-template<typename ...> struct seq_max;
+}// namespace traits
 
-template<typename U, typename ...T>
-struct seq_max<U, T...> { typedef typename seq_max<U, seq_max<T...> >::type type; };
-template<> struct seq_max<> { typedef void type; };
-template<typename U> struct seq_max<U> { typedef U type; };
-template<typename U> struct seq_max<U, void> { typedef U type; };
-template<typename _Tp, _Tp ...N, _Tp ...M>
-struct seq_max<integer_sequence<_Tp, N...>, integer_sequence<_Tp, M...>> { typedef integer_sequence<_Tp, N...> type; };
-template<typename U, typename T>
-struct seq_max<U, T> { typedef typename seq_max<U, seq_max<T> >::type type; };
-template<typename ...> struct seq_min;
-template<> struct seq_min<> { typedef void type; };
-template<typename U> struct seq_min<U> { typedef U type; };
-template<typename U> struct seq_min<U, void> { typedef U type; };
-template<typename U, typename ...T> struct seq_min<U, T...> { typedef typename seq_min<U, seq_min<T...> >::type type; };
-
-
-/**
- *  cat two tuple/integer_sequence
- */
-template<typename ...> struct seq_concat;
-
-template<typename _Tp, _Tp ... _M>
-struct seq_concat<integer_sequence<_Tp, _M...>> : public integer_sequence<_Tp, _M...> { };
-
-//template<typename _Tp, _Tp ..._M, typename ...Others>
-//struct seq_concat<integer_sequence<_Tp, _M...>, Others...>
-//        : public seq_concat<integer_sequence<_Tp, _M...>, seq_concat<Others...>>
-//{
-//};
-
-template<typename _Tp, _Tp ... _M, _Tp ... _N>
-struct seq_concat<integer_sequence<_Tp, _M...>, integer_sequence<_Tp, _N...> >
-        : public integer_sequence<_Tp, _M..., _N...>
-{
-};
-template<typename _Tp, _Tp ... _M>
-struct seq_concat<integer_sequence<_Tp, _M...>, integer_sequence<_Tp> > : public integer_sequence<_Tp, _M...>
-{
-};
-
-}// namespace _impl
-
-template<typename _Tp, _Tp First, _Tp...Others>
+template<typename _Tp, _Tp First, _Tp ...Others>
 std::ostream &operator<<(std::ostream &os, integer_sequence<_Tp, First, Others...> const &)
 {
-    os << First << " , " << integer_sequence<_Tp, Others...>();
+    os << First << " , " <<
+
+    integer_sequence<_Tp, Others...>();
+
     return os;
 }
 
@@ -395,5 +482,6 @@ std::ostream &operator<<(std::ostream &os, integer_sequence<_Tp> const &)
     os << std::endl;
     return os;
 }
+
 }// namespace simpla
 #endif /* CORE_GTL_INTEGER_SEQUENCE_H_ */
