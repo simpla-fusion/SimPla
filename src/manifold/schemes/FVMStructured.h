@@ -126,16 +126,6 @@ private:
     }
 
 
-
-
-//
-//    template<typename TOP, typename ... T>
-//    inline constexpr typename traits::value_type<Field<Expression<TOP, T...> > >::type
-//    eval_(Field<Expression<TOP, T...> > const &expr, id_type const &s, traits::iform_list_t<T...>) const
-//    {
-//        return _invoke_helper(expr, s, index_sequence_for<T...>());
-//    }
-
     //***************************************************************************************************
     // Exterior algebra
     //***************************************************************************************************
