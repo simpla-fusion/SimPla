@@ -20,19 +20,19 @@ class Cartesian<mesh::CoRectMesh>
     typedef Cartesian<mesh::CoRectMesh> this_type;
     typedef mesh::CoRectMesh mesh_type;
 
-    mesh_type const &m_;
+    mesh_type &m_;
 
     typedef typename mesh::MeshEntityId id_type;
 public:
     typedef this_type metric_policy;
 
-    Cartesian(mesh_type const &m) : m_(m) { }
+    Cartesian(mesh_type &m) : m_(m) { }
 
     ~Cartesian() { }
 
     static std::string class_name() { return "Cartesian"; }
 
-    void deploy() { }
+    void deploy() { m_.deploy(); }
 
     std::ostream &print(std::ostream &os, int indent = 1) const
     {
@@ -40,23 +40,7 @@ public:
         return os;
     }
 
-public:
 
-private:
-    Real m_volume_[9];
-    Real m_inv_volume_[9];
-    Real m_dual_volume_[9];
-    Real m_inv_dual_volume_[9];
-public:
-
-
-    virtual Real volume(id_type s) const { return m_volume_[mesh_type::node_id(s)]; }
-
-    virtual Real dual_volume(id_type s) const { return m_dual_volume_[mesh_type::node_id(s)]; }
-
-    virtual Real inv_volume(id_type s) const { return m_inv_volume_[mesh_type::node_id(s)]; }
-
-    virtual Real inv_dual_volume(id_type s) const { return m_inv_dual_volume_[mesh_type::node_id(s)]; }
 };
 
 }}}//namespace simpla { namespace manifold{ namespace mertic

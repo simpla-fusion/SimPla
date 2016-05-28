@@ -48,6 +48,11 @@ public:
 
     virtual point_type point(MeshEntityId const &) const = 0;
 
+    virtual point_type point_local_to_global(MeshEntityId s, point_type const &r) const = 0;
+
+    virtual std::tuple<MeshEntityId, point_type>
+            point_global_to_local(point_type const &g, int nId = 0) const = 0;
+
     virtual int get_adjacent_entities(MeshEntityId const &, MeshEntityType t, MeshEntityId *p = nullptr) const = 0;
 
     virtual std::shared_ptr<MeshBase> refine(box_type const &b, int flag = 0) const = 0;

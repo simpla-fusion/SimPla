@@ -313,13 +313,13 @@ private:
      *              x                       y
      **/
 
-    point_type m_map_orig_ = {0, 0, 0};
+    point_type m_l2g_shift_ = {0, 0, 0};
 
-    point_type m_map_scale_ = {1, 1, 1};
+    point_type m_l2g_scale_ = {1, 1, 1};
 
-    point_type m_inv_map_orig_ = {0, 0, 0};
+    point_type m_g2l_shift_ = {0, 0, 0};
 
-    point_type m_inv_map_scale_ = {1, 1, 1};
+    point_type m_g2l_scale_ = {1, 1, 1};
 
 
     point_type inv_map(point_type const &x) const
@@ -327,11 +327,11 @@ private:
 
         point_type res;
 
-        res[0] = std::fma(x[0], m_inv_map_scale_[0], m_inv_map_orig_[0]);
+        res[0] = std::fma(x[0], m_g2l_scale_[0], m_g2l_shift_[0]);
 
-        res[1] = std::fma(x[1], m_inv_map_scale_[1], m_inv_map_orig_[1]);
+        res[1] = std::fma(x[1], m_g2l_scale_[1], m_g2l_shift_[1]);
 
-        res[2] = std::fma(x[2], m_inv_map_scale_[2], m_inv_map_orig_[2]);
+        res[2] = std::fma(x[2], m_g2l_scale_[2], m_g2l_shift_[2]);
 
         return std::move(res);
     }
@@ -342,11 +342,11 @@ private:
         point_type res;
 
 
-        res[0] = std::fma(y[0], m_map_scale_[0], m_map_orig_[0]);
+        res[0] = std::fma(y[0], m_l2g_scale_[0], m_l2g_shift_[0]);
 
-        res[1] = std::fma(y[1], m_map_scale_[1], m_map_orig_[1]);
+        res[1] = std::fma(y[1], m_l2g_scale_[1], m_l2g_shift_[1]);
 
-        res[2] = std::fma(y[2], m_map_scale_[2], m_map_orig_[2]);
+        res[2] = std::fma(y[2], m_l2g_scale_[2], m_l2g_shift_[2]);
 
         return std::move(res);
     }

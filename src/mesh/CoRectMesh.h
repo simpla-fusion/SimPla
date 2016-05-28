@@ -87,7 +87,7 @@ public:
 
     point_type m_coords_upper_{{1, 1, 1}};
 
-    vector_type m_dx_{{1, 1, 1}}; //!< width of cell, except m_dx_[i]=0 when m_dims_[i]==1
+    vector_type m_dx_{{1, 1, 1}}, m_inv_dx_{{1, 1, 1}}; //!< width of cell, except m_dx_[i]=0 when m_dims_[i]==1
 
     index_tuple m_dims_{{10, 10, 10}}, m_shape_{{10, 10, 10}};
 
@@ -106,7 +106,6 @@ public:
 
     virtual  ~Mesh() { }
 
-    void deploy() { }
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const
     {
@@ -145,7 +144,50 @@ public:
         return static_cast<size_t>(m::hash(s, m_lower_, m_upper_));
     }
 
-    virtual point_type point(MeshEntityId const &s) const { return m::point(s); }
+    virtual point_type
+    point(MeshEntityId const &s) const
+    {
+        point_type p = m::point(s);
+
+        p[0] = std::fma(p[0], m_g2l_scale_[0], m_g2l_shift_[0]);
+        p[1] = std::fma(p[1], m_g2l_scale_[1], m_g2l_shift_[1]);
+        p[2] = std::fma(p[2], m_g2l_scale_[2], m_g2l_shift_[2]);
+
+        return std::move(p);
+
+    }
+
+    virtual point_type
+    point_local_to_global(MeshEntityId s, point_type const &r) const
+    {
+        point_type p = m::coordinates_local_to_global(s, r);
+
+        p[0] = std::fma(p[0], m_g2l_scale_[0], m_g2l_shift_[0]);
+        p[1] = std::fma(p[1], m_g2l_scale_[1], m_g2l_shift_[1]);
+        p[2] = std::fma(p[2], m_g2l_scale_[2], m_g2l_shift_[2]);
+
+        return std::move(p);
+
+
+    }
+
+    virtual std::tuple<MeshEntityId, point_type>
+    point_global_to_local(point_type const &g, int nId = 0) const
+    {
+
+        return m::coordinates_global_to_local(
+                point_type{{
+                                   std::fma(g[0], m_g2l_scale_[0], m_g2l_shift_[0]),
+                                   std::fma(g[1], m_g2l_scale_[1], m_g2l_shift_[1]),
+                                   std::fma(g[2], m_g2l_scale_[2], m_g2l_shift_[2])
+                           }}, nId);
+
+
+    }
+
+
+    vector_type m_l2g_scale_{{1, 1, 1}}, m_l2g_shift_{{0, 0, 0}};
+    vector_type m_g2l_scale_{{1, 1, 1}}, m_g2l_shift_{{0, 0, 0}};
 
     virtual int get_adjacent_entities(MeshEntityId const &s, MeshEntityType entity_type,
                                       MeshEntityId *p = nullptr) const
@@ -193,6 +235,94 @@ public:
 
     virtual Real inv_dual_volume(id_type s) const { return m_inv_dual_volume_[m::node_id(s)]; }
 
+    void deploy()
+    {
+        /**
+             *\verbatim
+             *                ^y
+             *               /
+             *        z     /
+             *        ^    /
+             *        |  110-------------111
+             *        |  /|              /|
+             *        | / |             / |
+             *        |/  |            /  |
+             *       100--|----------101  |
+             *        | m |           |   |
+             *        |  010----------|--011
+             *        |  /            |  /
+             *        | /             | /
+             *        |/              |/
+             *       000-------------001---> x
+             *
+             *\endverbatim
+             */
+        m_dims_[0] = (m_dims_[0] < 1) ? 1 : m_dims_[0];
+        m_dims_[1] = (m_dims_[1] < 1) ? 1 : m_dims_[1];
+        m_dims_[2] = (m_dims_[2] < 1) ? 1 : m_dims_[2];
+
+        m_dx_[0] = (m_coords_upper_[0] - m_coords_lower_[0]) / static_cast<Real>( m_dims_[0]);
+        m_dx_[1] = (m_coords_upper_[1] - m_coords_lower_[1]) / static_cast<Real>( m_dims_[1]);
+        m_dx_[2] = (m_coords_upper_[2] - m_coords_lower_[2]) / static_cast<Real>( m_dims_[2]);
+
+
+        m_volume_[0 /*000*/] = 1;
+        m_volume_[1 /*001*/] = m_dx_[0];
+        m_volume_[2 /*010*/] = m_dx_[1];
+        m_volume_[4 /*100*/] = m_dx_[2];
+        m_volume_[3 /*011*/] = m_dx_[0] * m_dx_[1];
+        m_volume_[5 /*101*/] = m_dx_[2] * m_dx_[0];
+        m_volume_[6 /*110*/] = m_dx_[1] * m_dx_[2];
+        m_volume_[7 /*110*/] = m_dx_[0] * m_dx_[1] * m_dx_[2];
+
+
+        m_dual_volume_[0 /*000*/] = m_volume_[7];
+        m_dual_volume_[1 /*001*/] = m_volume_[6];
+        m_dual_volume_[2 /*010*/] = m_volume_[5];
+        m_dual_volume_[4 /*100*/] = m_volume_[3];
+        m_dual_volume_[3 /*011*/] = m_volume_[4];
+        m_dual_volume_[5 /*101*/] = m_volume_[2];
+        m_dual_volume_[6 /*110*/] = m_volume_[1];
+        m_dual_volume_[7 /*110*/] = m_volume_[0];
+
+
+        m_inv_dx_[0] = (m_dims_[0] = 1) ? 1 : 1 / m_dx_[0];
+        m_inv_dx_[1] = (m_dims_[1] = 1) ? 1 : 1 / m_dx_[1];
+        m_inv_dx_[2] = (m_dims_[2] = 1) ? 1 : 1 / m_dx_[2];
+
+
+        m_inv_volume_[0 /*000*/] = 1;
+        m_inv_volume_[1 /*001*/] = m_inv_dx_[0];
+        m_inv_volume_[2 /*010*/] = m_inv_dx_[1];
+        m_inv_volume_[4 /*100*/] = m_inv_dx_[2];
+        m_inv_volume_[3 /*011*/] = m_inv_dx_[0] * m_inv_dx_[1];
+        m_inv_volume_[5 /*101*/] = m_inv_dx_[2] * m_inv_dx_[0];
+        m_inv_volume_[6 /*110*/] = m_inv_dx_[1] * m_inv_dx_[2];
+        m_inv_volume_[7 /*110*/] = m_inv_dx_[0] * m_inv_dx_[1] * m_inv_dx_[2];
+
+
+        m_inv_dual_volume_[0 /*000*/] = m_inv_volume_[7];
+        m_inv_dual_volume_[1 /*001*/] = m_inv_volume_[6];
+        m_inv_dual_volume_[2 /*010*/] = m_inv_volume_[5];
+        m_inv_dual_volume_[4 /*100*/] = m_inv_volume_[3];
+        m_inv_dual_volume_[3 /*011*/] = m_inv_volume_[4];
+        m_inv_dual_volume_[5 /*101*/] = m_inv_volume_[2];
+        m_inv_dual_volume_[6 /*110*/] = m_inv_volume_[1];
+        m_inv_dual_volume_[7 /*110*/] = m_inv_volume_[0];
+
+
+        m_inv_dx_[0] = (m_dims_[0] = 1) ? 0 : m_inv_dx_[0];
+        m_inv_dx_[1] = (m_dims_[1] = 1) ? 0 : m_inv_dx_[1];
+        m_inv_dx_[2] = (m_dims_[2] = 1) ? 0 : m_inv_dx_[2];
+
+
+        m_inv_volume_[1 /*001*/] = (m_dims_[0] = 1) ? 0 : m_inv_dx_[0];
+        m_inv_volume_[2 /*010*/] = (m_dims_[1] = 1) ? 0 : m_inv_dx_[1];
+        m_inv_volume_[4 /*100*/] = (m_dims_[2] = 1) ? 0 : m_inv_dx_[2];
+
+
+    }
+
 //    int get_vertices(int node_id, id_type s, point_type *p = nullptr) const
 //    {
 //
@@ -227,13 +357,13 @@ public:
 //private:
 //
 //
-//    point_type m_map_orig_ = {0, 0, 0};
+//    point_type m_l2g_shift_ = {0, 0, 0};
 //
-//    point_type m_map_scale_ = {1, 1, 1};
+//    point_type m_l2g_scale_ = {1, 1, 1};
 //
-//    point_type m_inv_map_orig_ = {0, 0, 0};
+//    point_type m_g2l_shift_ = {0, 0, 0};
 //
-//    point_type m_inv_map_scale_ = {1, 1, 1};
+//    point_type m_g2l_scale_ = {1, 1, 1};
 //
 //
 //    point_type inv_map(point_type const &x) const
@@ -241,11 +371,11 @@ public:
 //
 //        point_type res;
 //
-//        res[0] = std::fma(x[0], m_inv_map_scale_[0], m_inv_map_orig_[0]);
+//        res[0] = std::fma(x[0], m_g2l_scale_[0], m_g2l_shift_[0]);
 //
-//        res[1] = std::fma(x[1], m_inv_map_scale_[1], m_inv_map_orig_[1]);
+//        res[1] = std::fma(x[1], m_g2l_scale_[1], m_g2l_shift_[1]);
 //
-//        res[2] = std::fma(x[2], m_inv_map_scale_[2], m_inv_map_orig_[2]);
+//        res[2] = std::fma(x[2], m_g2l_scale_[2], m_g2l_shift_[2]);
 //
 //        return std::move(res);
 //    }
@@ -256,11 +386,11 @@ public:
 //        point_type res;
 //
 //
-//        res[0] = std::fma(y[0], m_map_scale_[0], m_map_orig_[0]);
+//        res[0] = std::fma(y[0], m_l2g_scale_[0], m_l2g_shift_[0]);
 //
-//        res[1] = std::fma(y[1], m_map_scale_[1], m_map_orig_[1]);
+//        res[1] = std::fma(y[1], m_l2g_scale_[1], m_l2g_shift_[1]);
 //
-//        res[2] = std::fma(y[2], m_map_scale_[2], m_map_orig_[2]);
+//        res[2] = std::fma(y[2], m_l2g_scale_[2], m_l2g_shift_[2]);
 //
 //        return std::move(res);
 //    }
