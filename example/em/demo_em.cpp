@@ -15,15 +15,13 @@
 #include "../../src/manifold/pre_define/PreDefine.h"
 
 #include "../../src/solver/EMFluid.h"
-#include "../../src/io/XDMFStream.h"
 
-namespace simpla
-{
-using namespace mesh;
+using namespace simpla;
 
-typedef manifold::CartesianManifold mesh_type;
+using namespace simpla::mesh;
 
-// namespace simpla
+typedef simpla::manifold::CartesianManifold mesh_type;
+
 int main(int argc, char **argv)
 {
     using namespace simpla;
@@ -68,20 +66,22 @@ int main(int argc, char **argv)
         TheEnd(0);
 
     }
-    io::XDMFStream out_stream;
+//    io::XDMFStream out_stream;
+
+    std::shared_ptr<io::IOStream> out_stream;
 
     MeshAtlas m;
 
     auto mesh = m.add<mesh_type>();
 
-    auto phy_solver = m.register_solver<simpla::phy_solver::EMFluid<mesh_type>>();
+    auto phy_solver = m.register_solver<simpla::phy_solver::EMFluid<mesh_type>>(mesh->id());
 
 
     try
     {
         m.setup();
 
-        m.check_point(out_stream);
+        m.check_point(*out_stream);
     }
     catch (std::exception const &error)
     {
@@ -106,7 +106,7 @@ int main(int argc, char **argv)
         m.next_step(dt);
 
         if (count % check_point == 0)
-            m.check_point(out_stream);
+            m.check_point(*out_stream);
 
         ++count;
     }
@@ -124,4 +124,5 @@ int main(int argc, char **argv)
 
     return 0;
 }
+
 

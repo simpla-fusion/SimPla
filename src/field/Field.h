@@ -8,8 +8,6 @@
 #define SIMPLA_FIELD_H
 
 
-#include "FieldExpression.h"
-
 #include "../mesh/MeshAttribute.h"
 #include "FieldTraits.h"
 #include <type_traits>
@@ -70,9 +68,22 @@ public:
 
     //create construct
 
-    Field(std::shared_ptr<attribute_type> attr) : m_attr_(attr) { view(attr->mesh_atlas().root()); }
+    Field(std::shared_ptr<attribute_type> attr, std::string const & = "") : m_attr_(attr)
+    {
+        view(attr->mesh_atlas().root());
+    }
 
-    Field(mesh::MeshAtlas const &m) : m_attr_(std::make_shared<attribute_type>(m)) { view(m.root()); }
+    Field(mesh::MeshAtlas const &m, std::string const & = "") : m_attr_(std::make_shared<attribute_type>(m))
+    {
+        view(m.root());
+    }
+
+    Field(mesh_type const &m, std::string const & = "") : m_attr_()
+    {
+        view(m.root());
+        //FIXME
+        WARNING << "This function is not completed!" << std::endl;
+    }
 
     //copy construct
     Field(this_type const &other) : base_type(other), m_attr_(other.m_attr_) { }
@@ -94,6 +105,10 @@ public:
     void sync() { }
 
     void deploy() { }
+
+    template<typename TFun> void accept(mesh::MeshEntityRange const &, TFun const) { }
+
+    template<typename TFun> void accept(mesh::MeshEntityRange const &, TFun const) const { }
 
     inline this_type &operator=(this_type const &other)
     {

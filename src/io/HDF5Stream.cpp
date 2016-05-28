@@ -22,8 +22,8 @@ extern "C"
 #include "../parallel/MPIAuxFunctions.h"
 
 
-#include "../gtl/utilities/utilities.h"
-#include "../gtl/utilities/MemoryPool.h"
+#include "../gtl/Utilities.h"
+#include "../gtl/MemoryPool.h"
 
 #define H5_ERROR(_FUN_) if((_FUN_)<0){H5Eprint(H5E_DEFAULT, stderr); \
 RUNTIME_ERROR<<"\e[1;32m" <<"HDF5 Error:" <<__STRING(_FUN_) <<  "\e[1;37m"<<std::endl;}
@@ -151,15 +151,15 @@ void HDF5Stream::set_attribute(std::string const &url, Properties const &any_v)
 
     delete_attribute(url);
 
-    data_model::DataType dtype = any_v.data_type();
-
-    void const *v = any_v.data();
-
-    std::string file_name, grp_path, obj_name, attr_name;
-
-    std::tie(file_name, grp_path, obj_name, attr_name) = IOStream::parser_url(url);
-
-    hid_t g_id, o_id;
+//    data_model::DataType dtype = any_v.data_type();
+//
+//    void const *v = any_v.data();
+//
+//    std::string file_name, grp_path, obj_name, attr_name;
+//
+//    std::tie(file_name, grp_path, obj_name, attr_name) = IOStream::parser_url(url);
+//
+//    hid_t g_id, o_id;
     UNIMPLEMENTED;
 // FIXME
 //    std::tie(grp_path, g_id) = m_pimpl_->open_group(grp_path);
@@ -196,22 +196,23 @@ void HDF5Stream::pimpl_s::set_attribute(hid_t loc_id, std::string const &name,
     }
     else
     {
-        hid_t m_type = convert_data_type_sp_to_h5(any_v.data_type());
-
-        hid_t m_space = H5Screate(H5S_SCALAR);
-
-        hid_t a_id = H5Acreate(loc_id, name.c_str(), m_type, m_space, H5P_DEFAULT, H5P_DEFAULT);
-
-        H5Awrite(a_id, m_type, any_v.data());
-
-        if (H5Tcommitted(m_type) > 0)
-        {
-            H5Tclose(m_type);
-        }
-
-        H5Aclose(a_id);
-
-        H5Sclose(m_space);
+        UNIMPLEMENTED;
+//        hid_t m_type = convert_data_type_sp_to_h5(any_v.data_type());
+//
+//        hid_t m_space = H5Screate(H5S_SCALAR);
+//
+//        hid_t a_id = H5Acreate(loc_id, name.c_str(), m_type, m_space, H5P_DEFAULT, H5P_DEFAULT);
+//
+//        H5Awrite(a_id, m_type, any_v.data());
+//
+//        if (H5Tcommitted(m_type) > 0)
+//        {
+//            H5Tclose(m_type);
+//        }
+//
+//        H5Aclose(a_id);
+//
+//        H5Sclose(m_space);
     }
 
 }

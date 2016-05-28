@@ -24,31 +24,34 @@ public:
 
     MeshWorker() { }
 
-    ~MeshWorker() { teardown(); }
+    virtual  ~MeshWorker() { teardown(); }
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const { return os; }
 
-    virtual std::shared_ptr<MeshWorker> clone(MeshBase const &) const = 0;
+    virtual std::shared_ptr<MeshWorker> clone(MeshBase const &) const
+    {
+        UNIMPLEMENTED;
+    };
 
-    virtual void update_ghost_from(MeshBase const &const &other) = 0;
+    virtual void update_ghost_from(MeshBase const &other) { };
 
-    virtual bool same_as(MeshBase const &) const = 0;
+    virtual bool same_as(MeshBase const &) const { return false; };
 
-    virtual std::vector<box_type> refine_boxes() const = 0;
+    virtual std::vector<box_type> refine_boxes() const { return std::vector<box_type>(); };
 
-    virtual void refine(MeshBase const &const &other) = 0;
+    virtual void refine(MeshBase const &other) { };
 
-    virtual bool coarsen(MeshBase const &const &other) = 0;
+    virtual bool coarsen(MeshBase const &other) { };
 
     virtual void setup() { };
 
     virtual void teardown() { };
 
-    virtual void check_point(io::IOStream &os) const { };
+    virtual io::IOStream &check_point(io::IOStream &os) const { return os; };
 
-    virtual void save(io::IOStream &os) const { };
+    virtual io::IOStream &save(io::IOStream &os) const { return os; };
 
-    virtual void load(io::IOStream &is) const { };
+    virtual io::IOStream &load(io::IOStream &is) const { return is; };
 
     virtual void next_step(Real dt)
     {

@@ -507,11 +507,12 @@ _SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(<, _CONCEPT_, less)           \
 _SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(>, _CONCEPT_, greater)        \
 _SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(<=, _CONCEPT_, less_equal)    \
 _SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(>=, _CONCEPT_, greater_equal) \
-_SP_DEFINE_EXPR_ASSIGNMENT_OPERATOR(+=,_CONCEPT_, plus_assign)        \
-_SP_DEFINE_EXPR_ASSIGNMENT_OPERATOR(-=,_CONCEPT_, minus_assign)       \
-_SP_DEFINE_EXPR_ASSIGNMENT_OPERATOR(*=,_CONCEPT_, multiplies_assign)  \
-_SP_DEFINE_EXPR_ASSIGNMENT_OPERATOR(/=,_CONCEPT_, divides_assign)     \
-_SP_DEFINE_EXPR_ASSIGNMENT_OPERATOR(%=,_CONCEPT_, modulus_assign)     \
+
+//_SP_DEFINE_EXPR_ASSIGNMENT_OPERATOR(+=,_CONCEPT_, plus_assign)        \
+//_SP_DEFINE_EXPR_ASSIGNMENT_OPERATOR(-=,_CONCEPT_, minus_assign)       \
+//_SP_DEFINE_EXPR_ASSIGNMENT_OPERATOR(*=,_CONCEPT_, multiplies_assign)  \
+//_SP_DEFINE_EXPR_ASSIGNMENT_OPERATOR(/=,_CONCEPT_, divides_assign)     \
+//_SP_DEFINE_EXPR_ASSIGNMENT_OPERATOR(%=,_CONCEPT_, modulus_assign)     \
 
 
 #define  DEFINE_EXPRESSOPM_TEMPLATE_BASIC_ALGEBRA2(_CONCEPT_)                                              \

@@ -7,6 +7,8 @@
 #ifndef SIMPLA_EM_FLUID_H
 #define SIMPLA_EM_FLUID_H
 
+#include "../field/Field.h"
+
 #include "../mesh/Mesh.h"
 #include "../mesh/MeshWorker.h"
 #include "../physics/PhysicalConstants.h"
@@ -28,19 +30,22 @@ public:
     typedef TM mesh_type;
     typedef typename mesh_type::scalar_type scalar_type;
 
-    mesh::MeshAtlas &m;
+    mesh::MeshAtlas const *m_atlas_;
 
-    EMFluid(TM &m_p) : m(m_p) { }
+    mesh_type const *m;
 
-    ~EMFluid() { }
+    EMFluid(mesh::MeshAtlas const &m_p) : m_atlas_(&m_p) { }
 
-    virtual void initialize(int argc, char **argv);
+    EMFluid(mesh_type const &m_p) : m_atlas_(nullptr), m(&m_p) { }
+
+    virtual   ~EMFluid() { }
+
 
     virtual void next_step(Real dt);
 
     virtual void tear_down();
 
-    virtual void check_point();
+    virtual io::IOStream &check_point(io::IOStream &) const;
 
 
     mesh::MeshEntityRange limiter_boundary;
@@ -52,9 +57,12 @@ public:
     mesh::MeshEntityRange plasma_region_vertex;
     mesh::MeshEntityRange J_src;
 
-    template<typename ValueType, int IFORM> using field_t =  Field<ValueType, TM, std::integral_constant<int, IFORM> >;;
+    template<typename ValueType, size_t IFORM> using field_t =  Field<ValueType, TM, std::integral_constant<size_t, IFORM> >;;
 
-    std::function<Vec3(Real, point_type const &)> J_src_fun;
+//    std::function< Vec3(Real, point_type const &)
+//
+//    >
+//    J_src_fun;
 
 
     typedef field_t<scalar_type, FACE> TB;
@@ -63,19 +71,19 @@ public:
     typedef field_t<scalar_type, VERTEX> TRho;
     typedef field_t<vector_type, VERTEX> TJv;
 
-    field_t<scalar_type, EDGE> E0{m, "E0"};
-    field_t<scalar_type, FACE> B0{m, "B0"};
-    field_t<vector_type, VERTEX> B0v{m, "B0v"};
-    field_t<scalar_type, VERTEX> BB{m, "BB"};
+    field_t<scalar_type, EDGE> E0{*m_atlas_, "E0"};
+    field_t<scalar_type, FACE> B0{*m_atlas_, "B0"};
+    field_t<vector_type, VERTEX> B0v{*m_atlas_, "B0v"};
+    field_t<scalar_type, VERTEX> BB{*m_atlas_, "BB"};
 
-    field_t<vector_type, VERTEX> Ev{m, "Ev"};
-    field_t<vector_type, VERTEX> Bv{m, "Bv"};
+    field_t<vector_type, VERTEX> Ev{*m_atlas_, "Ev"};
+    field_t<vector_type, VERTEX> Bv{*m_atlas_, "Bv"};
 
-    field_t<scalar_type, FACE> B1{m, "B1"};
-    field_t<scalar_type, EDGE> E1{m, "E1"};
-    field_t<scalar_type, EDGE> J1{m, "J1"};
+    field_t<scalar_type, FACE> B1{*m_atlas_, "B1"};
+    field_t<scalar_type, EDGE> E1{*m_atlas_, "E1"};
+    field_t<scalar_type, EDGE> J1{*m_atlas_, "J1"};
 
-    field_t<scalar_type, VERTEX> rho0{m};
+    field_t<scalar_type, VERTEX> rho0{*m_atlas_};
 
 
     struct fluid_s
@@ -91,21 +99,12 @@ public:
     std::pair<typename std::map<std::string, fluid_s>::iterator, bool>
     add_particle(std::string const &name, Real mass, Real charge)
     {
-        return fluid_sp.emplace(std::make_pair(name, fluid_s{mass, charge, TRho{m, "n_" + name}, TJv{m, "J_" + name}}));
+        return fluid_sp.emplace(
+                std::make_pair(name, fluid_s{mass, charge, TRho{*m_atlas_, "n_" + name}, TJv{*m_atlas_, "J_" + name}}));
 
     }
 };
 
-
-template<typename TM>
-void EMFluid<TM>::initialize(int argc, char **argv)
-{
-
-
-    Ev = map_to<VERTEX>(E1);
-
-
-}
 
 template<typename TM>
 void EMFluid<TM>::tear_down()
@@ -135,7 +134,7 @@ void EMFluid<TM>::tear_down()
 }
 
 template<typename TM>
-void EMFluid<TM>::check_point()
+io::IOStream &EMFluid<TM>::check_point(io::IOStream &) const
 {
 
 
@@ -153,7 +152,7 @@ void EMFluid<TM>::next_step(Real dt)
 
     J1.clear();
 
-    J1.accept(J_src, [&](id_type s, Real &v) { J1.add(s, J_src_fun(t, m.point(s))); });
+//    J1.accept(J_src, [&](id_type s, Real &v) { J1.add(s, J_src_fun(time(), m->point(s))); });
 
 
     LOG_CMD(B1 -= curl(E1) * (dt * 0.5));
@@ -166,7 +165,7 @@ void EMFluid<TM>::next_step(Real dt)
     E1.accept(edge_boundary, [&](id_type, Real &v) { v = 0; });
 
 
-    traits::field_t<vector_type, mesh_type, VERTEX> dE{m};
+    field_t<vector_type, VERTEX> dE{*m_atlas_};
 
 
 
@@ -174,12 +173,12 @@ void EMFluid<TM>::next_step(Real dt)
     if (fluid_sp.size() > 0)
     {
 
-        traits::field_t<vector_type, mesh_type, VERTEX> Q{m};
-        traits::field_t<vector_type, mesh_type, VERTEX> K{m};
+        field_t<vector_type, VERTEX> Q{*m_atlas_};
+        field_t<vector_type, VERTEX> K{*m_atlas_};
 
-        traits::field_t<scalar_type, mesh_type, VERTEX> a{m};
-        traits::field_t<scalar_type, mesh_type, VERTEX> b{m};
-        traits::field_t<scalar_type, mesh_type, VERTEX> c{m};
+        field_t<scalar_type, VERTEX> a{*m_atlas_};
+        field_t<scalar_type, VERTEX> b{*m_atlas_};
+        field_t<scalar_type, VERTEX> c{*m_atlas_};
 
         a.clear();
         b.clear();
@@ -195,9 +194,9 @@ void EMFluid<TM>::next_step(Real dt)
             Real qs = p.second.charge;
 
 
-            traits::field_t<scalar_type, mesh_type, VERTEX> &ns = p.second.rho1;
+            field_t<scalar_type, VERTEX> &ns = p.second.rho1;
 
-            traits::field_t<vector_type, mesh_type, VERTEX> &Js = p.second.J1;;
+            field_t<vector_type, VERTEX> &Js = p.second.J1;;
 
 
             Real as = (dt * qs) / (2.0 * ms);
@@ -230,8 +229,8 @@ void EMFluid<TM>::next_step(Real dt)
         {
             Real ms = p.second.mass;
             Real qs = p.second.charge;
-            traits::field_t<scalar_type, mesh_type, VERTEX> &ns = p.second.rho1;
-            traits::field_t<vector_type, mesh_type, VERTEX> &Js = p.second.J1;;
+            field_t<scalar_type, VERTEX> &ns = p.second.rho1;
+            field_t<vector_type, VERTEX> &Js = p.second.J1;;
 
 
             Real as = (dt * qs) / (2.0 * ms);
@@ -241,7 +240,7 @@ void EMFluid<TM>::next_step(Real dt)
         }
         Ev += dE;
 
-        LOG_CMD(E1 += map_to<EDGE>(Ev) - E1);
+//        LOG_CMD(E1 += map_to<EDGE>(Ev) - E1);
     }
 
 

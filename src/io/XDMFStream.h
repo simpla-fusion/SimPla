@@ -17,7 +17,7 @@
 namespace simpla { namespace io
 {
 
-class XDMFStream
+class XDMFStream : public IOStream
 {
 public:
 

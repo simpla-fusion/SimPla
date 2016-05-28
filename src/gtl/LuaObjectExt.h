@@ -147,7 +147,7 @@ struct Converter<std::string>
     }
 };
 
-template<int N, typename T> struct Converter<nTuple<T, N>>
+template<size_t N, typename T> struct Converter<nTuple<T, N>>
 {
     typedef nTuple<T, N> value_type;
 
@@ -185,43 +185,45 @@ template<int N, typename T> struct Converter<nTuple<T, N>>
     }
 };
 
-template<typename T, int N, int ...M> struct Converter<nTuple<T, N, M...>>
-{
-    typedef nTuple<T, N, M...> value_type;
 
-    static inline unsigned int from(lua_State *L, unsigned int idx, value_type *v)
-    {
-        if (lua_istable(L, idx))
-        {
-            size_t num = lua_rawlen(L, idx);
-            for (size_t s = 0; s < N; ++s)
-            {
-                lua_rawgeti(L, idx, static_cast<int>(s % num + 1));
-                _impl::pop_from_lua(L, -1, &((*v)[s]));
-                lua_pop(L, 1);
-            }
 
-            return 1;
-
-        }
-
-        return 0;
-    }
-
-    static inline unsigned int to(lua_State *L, value_type const &v)
-    {
-        lua_newtable(L);
-
-        for (int i = 0; i < N; ++i)
-        {
-            lua_pushinteger(L, i + 1);
-            Converter<T>::to(L, v[i]);
-            lua_settable(L, -3);
-        }
-        return 1;
-
-    }
-};
+//template<typename T, size_t  N, size_t  ...M> struct Converter<Tensor<T, N, M...>>
+//{
+//    typedef Tensor<T, N, M...> value_type;
+//
+//    static inline unsigned int from(lua_State *L, unsigned int idx, value_type *v)
+//    {
+//        if (lua_istable(L, idx))
+//        {
+//            size_t num = lua_rawlen(L, idx);
+//            for (size_t s = 0; s < N; ++s)
+//            {
+//                lua_rawgeti(L, idx, static_cast<int>(s % num + 1));
+//                _impl::pop_from_lua(L, -1, &((*v)[s]));
+//                lua_pop(L, 1);
+//            }
+//
+//            return 1;
+//
+//        }
+//
+//        return 0;
+//    }
+//
+//    static inline unsigned int to(lua_State *L, value_type const &v)
+//    {
+//        lua_newtable(L);
+//
+//        for (int i = 0; i < N; ++i)
+//        {
+//            lua_pushinteger(L, i + 1);
+//            Converter<T>::to(L, v[i]);
+//            lua_settable(L, -3);
+//        }
+//        return 1;
+//
+//    }
+//};
 
 template<typename T> struct Converter<std::vector<T> >
 {

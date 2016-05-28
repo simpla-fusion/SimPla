@@ -26,9 +26,16 @@ ADD_SUBDIRECTORY(field)
 
 ADD_SUBDIRECTORY(particle)
 
-add_library(simpla_lib dummy.cpp  )
+add_library(simpla_lib dummy.cpp)
 TARGET_LINK_LIBRARIES(simpla_lib
         ${MPI_C_LIBRARIES} ${HDF5_C_LIBRARIES} ${TBB_LIBRARIES} ${LUA_LIBRARIES}
-        base task_flow mesh data_model io parallel physics geometry utilities
+        base
+        #        task_flow
+        mesh
+        data_model io
+        parallel
+        physics
+        #        geometry
+        utilities
         )
 

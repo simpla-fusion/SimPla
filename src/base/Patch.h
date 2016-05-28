@@ -12,7 +12,7 @@
 #include <map>
 #include <tuple>
 #include "../gtl/nTuple.h"
-#include "../gtl/utilities/Log.h"
+#include "../gtl/Log.h"
 #include "../gtl/primitives.h"
 #include "Attribute.h"
 

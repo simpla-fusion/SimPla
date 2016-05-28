@@ -135,11 +135,11 @@ public:
 
     void teardown() { };
 
-    void check_point(io::IOStream &os) const { };
+    virtual io::IOStream &check_point(io::IOStream &os) const { return os; };
 
-    void save(io::IOStream &os) const { };
+    virtual io::IOStream &save(io::IOStream &os) const { return os; };
 
-    void load(io::IOStream &is) const { };
+    virtual io::IOStream &load(io::IOStream &is) const { return is; };
 
     void next_step(Real dt) { };
 

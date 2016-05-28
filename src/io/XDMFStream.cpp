@@ -10,7 +10,7 @@
 #include "XDMFStream.h"
 
 #include "IO.h"
-#include "../gtl/utilities/Log.h"
+#include "../gtl/Log.h"
 #include "../data_model/DataSet.h"
 #include "../parallel/Parallel.h"
 
