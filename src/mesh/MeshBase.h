@@ -12,6 +12,7 @@
 #include "MeshEntityIterator.h"
 
 #include "../base/Object.h"
+#include "MeshWorker.h"
 
 namespace simpla { namespace mesh
 {
@@ -73,7 +74,6 @@ public:
         return num;
 
     }
-
 
 };
 

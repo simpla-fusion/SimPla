@@ -26,9 +26,8 @@ int main(int argc, char **argv)
     mesh::MeshAtlas m;
     std::shared_ptr<mesh_type> mesh;
 
-    auto res = m.template add<mesh::CoRectMesh>();
 
-    std::tie(mesh, std::ignore) = m.add<mesh_type>();
+    mesh = m.add<mesh_type>();
 
     mesh->dimensions(index_tuple {10, 10, 10});
 

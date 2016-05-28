@@ -11,6 +11,7 @@
 #include "Mesh.h"
 #include "MeshBase.h"
 #include "../gtl/Log.h"
+#include "MeshWorker.h"
 
 namespace simpla { namespace mesh
 {
@@ -24,11 +25,7 @@ namespace simpla { namespace mesh
  */
 class MeshAtlas
 {
-    int m_level_ratio_;
-    MeshBlockId m_root_;
 
-    std::map<MeshBlockId, std::shared_ptr<MeshBase> > m_mesh_atlas_;
-    int m_max_level_ = 1;
 public:
     enum MESH_STATUS
     {
@@ -115,13 +112,13 @@ public:
     }
 
     template<typename TM, typename ...Args>
-    std::pair<std::shared_ptr<TM>, MeshBlockId> add(Args &&...args)
+    std::shared_ptr<TM> add(Args &&...args)
     {
         auto ptr = std::make_shared<TM>(std::forward<Args>(args)...);
         MeshBlockId uuid = ptr->uuid();
         m_mesh_atlas_.emplace(std::make_pair(uuid, std::dynamic_pointer_cast<MeshBase>(ptr)));
 
-        return std::make_pair(ptr, uuid);
+        return ptr;
     };
 
     void remove(MeshBlockId const &id)
@@ -134,7 +131,45 @@ public:
         }
     }
 
+    void setup() { };
 
+    void teardown() { };
+
+    void check_point(io::IOStream &os) const { };
+
+    void save(io::IOStream &os) const { };
+
+    void load(io::IOStream &is) const { };
+
+    void next_step(Real dt) { };
+
+
+    template<typename TSolver>
+    std::shared_ptr<TSolver> register_solver(MeshBlockId const &w_id)
+    {
+        static_assert(std::is_base_of<MeshWorker, TSolver>::value, "TSovler is not derived from MeshWorker.");
+        auto res = std::make_shared<TSolver>(*this);
+        m_workers_.emplace(std::make_pair(w_id, std::dynamic_pointer_cast<MeshWorker>(res)));
+        return res;
+    }
+
+    template<typename TSolver>
+    std::shared_ptr<TSolver> get_worker(MeshBlockId const &w_id) const
+    {
+        assert(m_workers_.at(w_id)->template is_a<TSolver>());
+        return std::dynamic_pointer_cast<TSolver>(m_workers_.at(w_id));
+    }
+
+private:
+    int m_level_ratio_;
+
+    MeshBlockId m_root_;
+
+    std::map<MeshBlockId, std::shared_ptr<MeshBase> > m_mesh_atlas_;
+
+    std::map<MeshBlockId, std::shared_ptr<MeshWorker> > m_workers_;
+
+    int m_max_level_ = 1;
 };
 
 }}//namespace simpla{namespace mesh{

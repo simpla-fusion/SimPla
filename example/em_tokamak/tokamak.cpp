@@ -9,22 +9,22 @@
 
 #include "tokamak.h"
 
-#include "../../core/gtl/utilities/utilities.h"
-#include "../../core/parallel/Parallel.h"
-#include "../../core/io/IO.h"
+#include "../../src/gtl/utilities.h"
+#include "../../src/parallel/Parallel.h"
+#include "../../src/io/IO.h"
 
-#include "../../core/manifold/pre_define/PreDefine.h"
+#include "../../src/manifold/pre_define/PreDefine.h"
 //#include "../../src/particle/pre_define/PICBoris.h"
-#include "../../core/particle/pre_define/PICGyro.h"
+#include "../../src/particle/pre_define/PICGyro.h"
 
 #include "../../tools/GEqdsk.h"
-#include "../../core/model/Constraint.h"
-#include "../../core/io/XDMFStream.h"
-#include "../../core/particle/ParticleGenerator.h"
+#include "../../src/model/Constraint.h"
+#include "../../src/io/XDMFStream.h"
+#include "../../src/particle/ParticleGenerator.h"
 
 namespace simpla
 {
-
+using namespace mesh;
 
 struct EMTokamak
 {
@@ -44,25 +44,19 @@ struct EMTokamak
 
     typedef manifold::CylindricalManifold mesh_type;
 
-    typedef typename mesh_type::id_type id_type;
-    typedef typename mesh_type::index_tuple index_tuple;
-    typedef typename mesh_type::point_type point_type;
-    typedef typename mesh_type::box_type box_type;
-    typedef typename mesh_type::range_type range_type;
-    typedef nTuple<scalar_type, 3> vector_type;
 
     mesh_type m;
 
     io::XDMFStream out_stream;
 
-    model::Surface<mesh_type> limiter_boundary;
-    model::IdSet<mesh_type> vertex_boundary;
-    model::IdSet<mesh_type> edge_boundary;
-    model::IdSet<mesh_type> face_boundary;
+    model::Surface <mesh_type> limiter_boundary;
+    model::IdSet <mesh_type> vertex_boundary;
+    model::IdSet <mesh_type> edge_boundary;
+    model::IdSet <mesh_type> face_boundary;
 
-    model::IdSet<mesh_type> plasma_region_volume;
-    model::IdSet<mesh_type> plasma_region_vertex;
-    model::IdSet<mesh_type> J_src;
+    model::IdSet <mesh_type> plasma_region_volume;
+    model::IdSet <mesh_type> plasma_region_vertex;
+    model::IdSet <mesh_type> J_src;
 
     std::function<Vec3(Real, point_type const &)> J_src_fun;
 
@@ -268,7 +262,7 @@ void EMTokamak::initialize(int argc, char **argv)
 
 
     {
-        model::CellCache<mesh_type> cache;
+        model::CellCache <mesh_type> cache;
 
         model::update_cache(m, geqdsk.limiter(), &cache);
 
@@ -284,7 +278,7 @@ void EMTokamak::initialize(int argc, char **argv)
     }
 
     {
-        model::CellCache<mesh_type> cache;
+        model::CellCache <mesh_type> cache;
 
         model::update_cache(m, geqdsk.boundary(), &cache);
 
