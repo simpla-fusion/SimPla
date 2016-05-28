@@ -25,7 +25,7 @@ template<typename ...> struct Range;
 
 template<typename T, int NDIMS> class IteratorBlock;
 
-// Base on Range concept in TBB
+// PlaceHolder on Range concept in TBB
 
 template<typename T, int NDIMS>
 class Range<IteratorBlock<T, NDIMS>>

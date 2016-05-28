@@ -27,7 +27,7 @@ namespace simpla
  *  purpose: pass variadic parameters to acceptor
  *  visitor visit acceptor twice, first get acceptor type , second get parameters type .
  *  \code
- *   struct Foo1: public AcceptorBase
+ *   struct Foo1: public Acceptor
  *   {
  *   	typedef Foo1 this_type;
  *
@@ -90,7 +90,7 @@ namespace simpla
  *
  *    unsigned int  main(int argc, char **argv)
  *   {
- *   	AcceptorBase * f1 = dynamic_cast<AcceptorBase*>(new Foo1);
+ *   	Acceptor * f1 = dynamic_cast<Acceptor*>(new Foo1);
  *   	auto v1 = createVisitor<Foo1>("Command1", 5, 6);
  *   	auto v2 = createVisitor<Foo1>("Command2", "hello world");
  *   	auto v3 = createVisitor<Foo1>("Command3", 5, 6, 3);
@@ -139,36 +139,7 @@ struct Acceptor
 };
 
 
-template<typename TAcceptor>
-struct DerivedVisotor : public Visitor
-{
 
-    typedef TAcceptor acceptor_type;
-public:
-
-    DerivedVisotor() { }
-
-
-    virtual ~DerivedVisotor() { }
-
-    virtual void visit(Acceptor &obj) { visit(static_cast<acceptor_type &>(obj)); }
-
-    virtual void visit(Acceptor const &obj) { visit(static_cast<acceptor_type const &>(obj)); }
-
-    virtual void visit(Acceptor &obj) const { visit(static_cast<acceptor_type &>(obj)); }
-
-    virtual void visit(Acceptor const &obj) const { visit(static_cast<acceptor_type const &>(obj)); }
-
-
-    virtual void visit(acceptor_type &p) { }
-
-    virtual void visit(acceptor_type const &p) { }
-
-    virtual void visit(acceptor_type &p) const { }
-
-    virtual void visit(acceptor_type const &p) const { }
-
-};
 
 
 //    template<typename TFUN>

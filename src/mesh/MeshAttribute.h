@@ -25,7 +25,7 @@ struct BIT;
 
 
 /**
- *  Base class of MeshAttributeBase
+ *  PlaceHolder class of MeshAttributeBase
  */
 struct MeshAttributeBase : public base::Object
 {

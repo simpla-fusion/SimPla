@@ -17,7 +17,7 @@ namespace simpla { namespace geometry
 /**
  * @ingroup geometry
  *
- *  Base Geometric object
+ *  PlaceHolder Geometric object
  */
 class GeoObject
 {

@@ -51,7 +51,7 @@ struct DirectMap
  * A fiber bundle is a structure (E, B, \pi, F), where E, B, and F
  * are topological spaces and \f$ \pi : E \mapto B \f$ is a continuous surjection
  * satisfying a local triviality condition outlined below. The space B is called
- * the '''Base space''' of the bundle, \f$E\f$ the total space, and \f$F\f$ the fiber.
+ * the '''PlaceHolder space''' of the bundle, \f$E\f$ the total space, and \f$F\f$ the fiber.
  * The map \f$\pi\f$ is called the '''projection map''' (or '''bundle projection''').
  */
 template<typename E, typename M, typename PI>
@@ -60,7 +60,7 @@ class FiberBundle : public PI
 public:
 
     typedef E point_type; //!< coordinates in the total space,
-    typedef M mesh_type; //!<  Base space;
+    typedef M mesh_type; //!<  PlaceHolder space;
     typedef PI project_map_type; //!<  projection map
 
     typedef Vec3 vector_type;

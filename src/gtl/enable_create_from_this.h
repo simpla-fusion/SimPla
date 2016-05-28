@@ -30,11 +30,11 @@ namespace simpla
  *
  *   Pseudo-Signature                    | Semantics
  *	 ------------------------------------|----------
- * 	 `typedef std::shared_ptr<X> holder` | hold the ownership of object;
+ * 	 `typedef std::shared_ptr<X> Holder` | hold the ownership of object;
  * 	 `private  X()`                      | disable directly construct object;
- * 	 `static holder  create()`           | create an object, and return the holder
- * 	 `holder shared_from_this()`         | Returns a `holder` that shares ownership of `*this` ;
- *   `holder shared_from_this() const`   | Returns a `read-only holder` that shares `const` ownership of `*this` ;
+ * 	 `static Holder  create()`           | create an object, and return the Holder
+ * 	 `Holder shared_from_this()`         | Returns a `Holder` that shares ownership of `*this` ;
+ *   `Holder shared_from_this() const`   | Returns a `read-only Holder` that shares `const` ownership of `*this` ;
  *
  *  @}
  */
@@ -160,7 +160,7 @@ struct enable_create_from_this: public std::enable_shared_from_this<TObject>
 	std::shared_ptr<TOther> create_from_this(Args && ...args)
 	{
 		static_assert( std::is_base_of<object_type,TOther>::value,
-				"this is Base of TOther");
+				"this is PlaceHolder of TOther");
 
 		auto res = std::make_shared<object_type>(self(),
 				std::forward<Args>(args)...);
@@ -172,7 +172,7 @@ struct enable_create_from_this: public std::enable_shared_from_this<TObject>
 	std::shared_ptr<TOther> create_from_this(Args && ...args) const
 	{
 		static_assert( std::is_base_of<object_type,TOther>::value,
-				"this is Base of TOther");
+				"this is PlaceHolder of TOther");
 
 		auto res = std::make_shared<object_type>(self(),
 				std::forward<Args>(args)...);
@@ -183,7 +183,7 @@ struct enable_create_from_this: public std::enable_shared_from_this<TObject>
 	using std::enable_shared_from_this<object_type>::shared_from_this;
 
 //	template<typename ...Args>
-//	holder select_from_this(Args && ...args)
+//	Holder select_from_this(Args && ...args)
 //	{
 //		return std::move(
 //				create_from_this<object_type>(self(), op_select(),
@@ -191,20 +191,20 @@ struct enable_create_from_this: public std::enable_shared_from_this<TObject>
 //	}
 //
 //	template<typename ...Args>
-//	holder select_from_this(Args && ...args) const
+//	Holder select_from_this(Args && ...args) const
 //	{
 //		return std::move(
 //				create_from_this(self(), op_select(),
 //						std::forward<Args>(args)...));
 //	}
 //
-//	holder merge_with_this(object_type && ...args) const
+//	Holder merge_with_this(object_type && ...args) const
 //	{
 //		return std::move(
 //				create_from_this(self(), op_merge(),
 //						std::forward<object_type>(args)...));
 //	}
-//	holder merge_with_this(object_type && ...args)
+//	Holder merge_with_this(object_type && ...args)
 //	{
 //		return std::move(
 //				create_from_this(self(), op_merge(),

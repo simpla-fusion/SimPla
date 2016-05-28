@@ -276,7 +276,7 @@ OPTIMIZE_OUTPUT_VHDL   = NO
 # instance to make doxygen treat .inc files as Fortran files (default is PHP),
 # and .f files as C (default is Fortran), use: inc=Fortran f=C.
 #
-# Note For files without extension you can use no_extension as a placeholder.
+# Note For files without extension you can use no_extension as a PlaceHolder.
 #
 # Note that for custom extensions you also need to set FILE_PATTERNS otherwise
 # the files are not read by doxygen.
@@ -1242,8 +1242,8 @@ HHC_LOCATION           =
 
 GENERATE_CHI           = NO
 
-# The CHM_INDEX_ENCODING is used to encode HtmlHelp index ( hhk), content ( hhc)
-# and project file content.
+# The CHM_INDEX_ENCODING is used to encode HtmlHelp index ( hhk), m_data_ ( hhc)
+# and project file m_data_.
 # This tag requires that the tag GENERATE_HTMLHELP is set to YES.
 
 CHM_INDEX_ENCODING     =

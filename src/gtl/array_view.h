@@ -7,9 +7,7 @@
 #ifndef SIMPLA_ARRAY_VIEW_H
 #define SIMPLA_ARRAY_VIEW_H
 
-class proportional_split;
-
-#include "primitives.h"
+ #include "primitives.h"
 
 namespace simpla { namespace tags
 {
@@ -117,8 +115,7 @@ public:
     }
 
 
-    ArrayView(this_type &r, tags::proportional_split &proportion
-    )
+    ArrayView(this_type &r, tags::proportional_split &proportion)
     {
         m_begin_(r.m_begin_ + r.size() * proportion.left() / (proportion.left() + proportion.right())),
                 m_end_(r.m_end_),

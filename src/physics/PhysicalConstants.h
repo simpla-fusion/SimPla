@@ -95,7 +95,7 @@ private:
 
     std::string type_;
 
-//SI Base unit
+//SI PlaceHolder unit
     double m_; //<< length [meter]
     double s_;    //<< time	[second]
     double kg_; //<< mass	[kilgram]
