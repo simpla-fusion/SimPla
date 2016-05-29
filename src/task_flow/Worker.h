@@ -37,7 +37,7 @@ public:
 
     Worker();
 
-    virtual  ~Worker();
+    virtual  ~Worker()noexcept;
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const { return os; }
 
@@ -46,6 +46,8 @@ public:
         UNIMPLEMENTED;
         return std::shared_ptr<Worker>(nullptr);
     };
+
+    virtual bool view(mesh::MeshBase const &other) { return false; };
 
     virtual void update_ghost_from(mesh::MeshBase const &other) { };
 
@@ -67,11 +69,18 @@ public:
 
     virtual io::IOStream &load(io::IOStream &is) const;
 
+    virtual void view(mesh::MeshBlockId const &) { }
 
     virtual void next_step(Real dt)
     {
         m_time_ += dt;
         ++m_step_count_;
+    }
+
+    template<typename T>
+    T create(std::string const &s) const
+    {
+        return T();
     }
 
     Real time() const { return m_time_; }

@@ -124,6 +124,17 @@ public:
 
     virtual MeshEntityRange range(MeshEntityType entityType = VERTEX) const
     {
+        WARNING << "THIS IS A DUMMY FUNCTION" << std::endl;
+
+        MeshEntityRange res(MeshEntityIdCoder::make_range(m_lower_, m_upper_, entityType));
+
+        return std::move(res);
+    };
+
+    virtual MeshEntityRange full_range(MeshEntityType entityType = VERTEX) const
+    {
+        WARNING << "THIS IS A DUMMY FUNCTION" << std::endl;
+
         MeshEntityRange res(MeshEntityIdCoder::make_range(m_lower_, m_upper_, entityType));
 
         return std::move(res);

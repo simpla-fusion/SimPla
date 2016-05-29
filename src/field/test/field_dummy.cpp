@@ -11,6 +11,7 @@
 #include "../../gtl/nTupleExt.h"
 #include "../Field.h"
 #include "../../manifold/pre_define/PreDefine.h"
+#include "../../mesh/MeshAtlas.h"
 
 
 using namespace simpla;

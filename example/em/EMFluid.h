@@ -8,13 +8,10 @@
 #define SIMPLA_EM_FLUID_H
 
 #include "../../src/field/Field.h"
-
-#include "../../src/mesh/Mesh.h"
-#include "../../src/mesh/MeshAttribute.h"
-
 #include "../../src/physics/PhysicalConstants.h"
-#include "../../src/manifold/pre_define/PreDefine.h"
 #include "../../src/task_flow/Worker.h"
+#include "../../src/mesh/Mesh.h"
+#include "../../src/mesh/MeshEntity.h"
 
 namespace simpla
 {
@@ -31,15 +28,11 @@ public:
     typedef TM mesh_type;
     typedef typename mesh_type::scalar_type scalar_type;
 
-    mesh::MeshAtlas const *m_atlas_;
-
     mesh_type const *m;
 
-    EMFluid(mesh::MeshAtlas const &m_p) : m_atlas_(&m_p), m(nullptr) { }
+    EMFluid() : m(nullptr) { }
 
-    EMFluid(mesh_type const &m_p) : m_atlas_(nullptr), m(&m_p) { }
-
-    virtual   ~EMFluid() { }
+    virtual ~EMFluid()noexcept { }
 
 
     virtual void next_step(Real dt);
@@ -47,7 +40,6 @@ public:
     virtual void tear_down();
 
     virtual io::IOStream &check_point(io::IOStream &) const;
-
 
     mesh::MeshEntityRange limiter_boundary;
     mesh::MeshEntityRange vertex_boundary;
@@ -62,6 +54,7 @@ public:
 
 //    std::function< Vec3(Real, point_type const &)   >    J_src_fun;
 
+    typedef simpla::tags::factory_create cr_new;
 
     typedef field_t<scalar_type, FACE> TB;
     typedef field_t<scalar_type, EDGE> TE;
@@ -69,19 +62,17 @@ public:
     typedef field_t<scalar_type, VERTEX> TRho;
     typedef field_t<vector_type, VERTEX> TJv;
 
-    field_t<scalar_type, EDGE> E0{*m, "E0"};
-    field_t<scalar_type, FACE> B0{*m, "B0"};
-    field_t<vector_type, VERTEX> B0v{*m, "B0v"};
-    field_t<scalar_type, VERTEX> BB{*m, "BB"};
+    field_t<scalar_type, EDGE> E0/*   */{cr_new(), *this, "E0"};
+    field_t<scalar_type, FACE> B0/*   */{cr_new(), *this, "B0"};
+    field_t<vector_type, VERTEX> B0v/**/{cr_new(), *this, "B0v"};
+    field_t<scalar_type, VERTEX> BB/* */{cr_new(), *this, "BB"};
+    field_t<vector_type, VERTEX> Ev/* */{cr_new(), *this, "Ev"};
+    field_t<vector_type, VERTEX> Bv/* */{cr_new(), *this, "Bv"};
+    field_t<scalar_type, FACE> B1/*   */{cr_new(), *this, "B1"};
+    field_t<scalar_type, EDGE> E1/*   */{cr_new(), *this, "E1"};
+    field_t<scalar_type, EDGE> J1/*   */{cr_new(), *this, "J1"};
 
-    field_t<vector_type, VERTEX> Ev{*m, "Ev"};
-    field_t<vector_type, VERTEX> Bv{*m, "Bv"};
-
-    field_t<scalar_type, FACE> B1{*m, "B1"};
-    field_t<scalar_type, EDGE> E1{*m, "E1"};
-    field_t<scalar_type, EDGE> J1{*m, "J1"};
-
-    field_t<scalar_type, VERTEX> rho0{*m};
+    field_t<scalar_type, VERTEX> rho0{m};
 
 
     struct fluid_s
@@ -98,9 +89,13 @@ public:
     add_particle(std::string const &name, Real mass, Real charge)
     {
         return fluid_sp.emplace(
-                std::make_pair(name, fluid_s{mass, charge, TRho{*m, "n_" + name}, TJv{*m, "J_" + name}}));
+                std::make_pair(name, fluid_s{mass, charge,
+                                             TRho{cr_new(), *this, "n_" + name},
+                                             TJv{cr_new(), *this, "J_" + name}}));
 
     }
+
+
 };
 
 
@@ -141,7 +136,7 @@ void EMFluid<TM>::next_step(Real dt)
     E1.accept(edge_boundary, [&](id_type, Real &v) { v = 0; });
 
 
-    field_t<vector_type, VERTEX> dE{*m};
+    field_t<vector_type, VERTEX> dE{m};
 
 
 
@@ -149,12 +144,12 @@ void EMFluid<TM>::next_step(Real dt)
     if (fluid_sp.size() > 0)
     {
 
-        field_t<vector_type, VERTEX> Q{*m};
-        field_t<vector_type, VERTEX> K{*m};
+        field_t<vector_type, VERTEX> Q{m};
+        field_t<vector_type, VERTEX> K{m};
 
-        field_t<scalar_type, VERTEX> a{*m};
-        field_t<scalar_type, VERTEX> b{*m};
-        field_t<scalar_type, VERTEX> c{*m};
+        field_t<scalar_type, VERTEX> a{m};
+        field_t<scalar_type, VERTEX> b{m};
+        field_t<scalar_type, VERTEX> c{m};
 
         a.clear();
         b.clear();

@@ -75,7 +75,7 @@ int main(int argc, char **argv)
 
     auto mesh = ctx.m.add<mesh_type>();
 
-    auto phy_solver = ctx.register_solver<EMFluid<mesh_type>>(mesh->id());
+    auto phy_solver = ctx.register_solver<EMFluid<mesh_type>>();
 
 
     try
@@ -107,6 +107,8 @@ int main(int argc, char **argv)
         INFORM << "\t >>> STEP [" << count << "] <<< " << std::endl;
 
         ctx.next_step(dt);
+
+        phy_solver->next_step(dt);
 
         if (count % check_point == 0)
             ctx.check_point(*out_stream);

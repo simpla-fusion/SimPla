@@ -9,7 +9,7 @@ function(my_test name)
                 COMPILE_DEFINITIONS "GTEST_LINKED_AS_SHARED_LIBRARY=1 GTEST_HAS_TR1_TUPLE=0  ")
     endif ()
 
-    target_link_libraries(${name} gtest gtest_main pthread stdc++)
+    target_link_libraries(${name} gtest gtest_main pthread  rt stdc++)
 
     #GTEST_ADD_TESTS(${name}  " "   ${name}.cpp    ${ARGN} )
     add_test(${name} ${EXECUTABLE_OUTPUT_PATH}/${name})
@@ -28,7 +28,7 @@ function(simpla_test name)
                 COMPILE_DEFINITIONS "GTEST_LINKED_AS_SHARED_LIBRARY=1 GTEST_HAS_TR1_TUPLE=0  ")
     endif ()
 
-    target_link_libraries(${name} gtest gtest_main pthread stdc++)
+    target_link_libraries(${name} gtest gtest_main pthread rt stdc++)
 
     #GTEST_ADD_TESTS(${name}  " "   ${name}.cpp    ${ARGN} )
     add_test(${name} ${EXECUTABLE_OUTPUT_PATH}/${name})

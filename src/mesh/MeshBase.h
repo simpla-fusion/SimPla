@@ -15,7 +15,7 @@
 
 namespace simpla { namespace mesh
 {
-
+class MeshAtlas;
 
 class MeshBase : public base::Object
 {
@@ -39,6 +39,8 @@ public:
     virtual box_type box() const = 0;
 
     virtual MeshEntityRange range(MeshEntityType entityType = VERTEX) const = 0;
+
+    virtual MeshEntityRange full_range(MeshEntityType entityType = VERTEX) const = 0;
 
     virtual size_t size(MeshEntityType entityType = VERTEX) const { return max_hash(entityType); };
 
@@ -74,6 +76,7 @@ public:
 
     }
 
+    MeshAtlas *m_atlas;
 };
 
 }}//namespace simpla{namespace mesh{

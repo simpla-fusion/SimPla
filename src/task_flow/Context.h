@@ -14,7 +14,7 @@
 #include "../gtl/primitives.h"
 #include "../mesh/MeshEntity.h"
 #include "../mesh/MeshAttribute.h"
-#include "Worker.h"
+#include "../mesh/MeshAtlas.h"
 #include "../io/IOStream.h"
 
 #include "Worker.h"
@@ -102,11 +102,11 @@ public:
 
 
     template<typename TSolver>
-    std::shared_ptr<TSolver> register_solver(block_id const &w_id)
+    std::shared_ptr<TSolver> register_solver()
     {
         static_assert(std::is_base_of<Worker, TSolver>::value, "TSovler is not derived from Worker.");
-        auto res = std::make_shared<TSolver>(m);
-        m_workers_.emplace(std::make_pair(w_id, std::dynamic_pointer_cast<Worker>(res)));
+        auto res = std::make_shared<TSolver>();
+//        m_workers_.emplace(std::make_pair(m.uuid(), std::dynamic_pointer_cast<Worker>(res)));
         return res;
     }
 

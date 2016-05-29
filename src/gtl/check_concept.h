@@ -12,6 +12,7 @@
 #include <type_traits>
 #include "port_cxx14.h"
 
+
 namespace simpla
 {
 
@@ -328,24 +329,28 @@ public:
 /**
  * @}
  */
+//namespace traits
+//{
+//template<typename ...Args> using is_callable = boost::proto::is_callable<Args...>;
+//}
+template<typename ...> struct is_callable;
 
-template<typename _T, typename ... _Args>
-struct is_callable
+template<typename _T, typename ... _Args, class _R>
+struct is_callable<_T(_Args...), _R>
 {
 private:
     typedef std::true_type yes;
     typedef std::false_type no;
 
     template<typename _U>
-    static auto test(int) ->
-            decltype(std::declval<_U>()(std::declval<_Args>() ...));
+    static auto test(int) -> typename std::result_of<_U(_Args...)>::type;
 
     template<typename> static no test(...);
 
 public:
 
     static constexpr bool value =
-            (!std::is_same<decltype(test<_T>()), no>::value);
+            (std::is_same<decltype(test<_T>()), _R>::value);
 
 };
 
@@ -358,9 +363,12 @@ typename std::result_of<TFun(Args &&...)>::type
 
 template<typename TFun, typename ... Args>
 auto try_invoke(TFun const &fun, Args &&...args) ->
-typename std::enable_if<!is_callable<TFun, Args &&...>::value, TFun>::type
+typename std::enable_if<!is_callable<TFun, Args &&...>::value, TFun
+
+>::type
 {
-    return fun;
+    return
+            fun;
 }
 
 template<typename _T>
@@ -397,7 +405,7 @@ struct is_shared_ptr<const std::shared_ptr<T>>
 {
     static constexpr bool value = true;
 };
-template<typename, typename ...> struct is_callable;
+template<typename ...> struct is_callable;
 template<typename, typename> struct is_indexable;
 
 

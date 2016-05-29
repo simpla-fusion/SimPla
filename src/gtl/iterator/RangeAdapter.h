@@ -47,6 +47,14 @@ public :
 
     ~RangeAdapter() { }
 
+    this_type operator=(this_type const &other) { return this_type(other).swap(*this); }
+
+    this_type &swap(this_type &other)
+    {
+        std::swap(m_holder_, other.m_holder_);
+        return *this;
+    }
+
     static const bool is_splittable_in_proportion = true;
 
     bool is_divisible() const { return m_holder_->is_divisible(); }
@@ -55,7 +63,6 @@ public :
 
     size_t size() const { return (m_holder_ == nullptr) ? 0 : m_holder_->size(); }
 
-    void swap(this_type &other) { std::swap(m_holder_, other.m_holder_); }
 
     iterator begin() { return m_holder_->begin(); }
 

@@ -34,7 +34,7 @@ protected:
     {
         logger::set_stdout_level(10);
 
-        std::tie(mesh, std::ignore) = m.add<mesh_type>();
+        mesh= m.add<mesh_type>();
 
         index_tuple dims = {10, 1, 1};
 
@@ -70,13 +70,13 @@ public:
     field_t<value_type, mesh_type, iform> make_field() const
     {
 
-        return field_t<value_type, mesh_type, iform>(m);
+        return field_t<value_type, mesh_type, iform>(mesh.get());
 
     };
 
-    auto make_scalarField() const DECL_RET_TYPE((field_t<value_type, mesh_type, iform>(m)))
+    auto make_scalarField() const DECL_RET_TYPE((field_t<value_type, mesh_type, iform>(mesh.get())))
 
-    auto make_vectorField() const DECL_RET_TYPE((field_t<nTuple<value_type, 3>, mesh_type, iform>(m)))
+    auto make_vectorField() const DECL_RET_TYPE((field_t<nTuple<value_type, 3>, mesh_type, iform>(mesh.get())))
 
 
 };

@@ -13,11 +13,9 @@
 #include "Mesh.h"
 #include "MeshBase.h"
 
-namespace simpla { namespace io { class IOStream; }}
 namespace simpla { namespace mesh
 {
 
-class MeshAttributeBase;
 
 /**
  *  manager of mesh blocks
@@ -35,21 +33,21 @@ public:
         ADJACENT = 2, // 010
     };
 
-    template<typename T, typename ...Args>
-    T make_attribute(Args &&...args) const
-    {
-        static_assert(std::is_base_of<MeshAttributeBase, typename T::attribute_type>::value,
-                      " T can not be converted to MeshAttributeBase!!");
-        return T(*this, std::forward<Args>(args)...);
-    }
-
-    template<typename T>
-    T make_attribute() const
-    {
-        static_assert(std::is_base_of<MeshAttributeBase, typename T::attribute_type>::value,
-                      " T can not be converted to MeshAttributeBase!!");
-        return T(*this);
-    }
+//    template<typename T, typename ...Args>
+//    T make_attribute(Args &&...args) const
+//    {
+//        static_assert(std::is_base_of<MeshAttribute, typename T::attribute_type>::value,
+//                      " T can not be converted to MeshAttribute!!");
+//        return T(*this, std::forward<Args>(args)...);
+//    }
+//
+//    template<typename T>
+//    T make_attribute() const
+//    {
+//        static_assert(std::is_base_of<MeshAttribute, typename T::attribute_type>::value,
+//                      " T can not be converted to MeshAttribute!!");
+//        return T(*this);
+//    }
 
 //    std::vector<MeshBlockId> adjacent_blocks(MeshBlockId const &id, int inc_level = 0, int status_flag = 0) { };
 //
@@ -127,7 +125,6 @@ private:
     MeshBlockId m_root_;
 
     std::map<MeshBlockId, std::shared_ptr<MeshBase> > m_mesh_atlas_;
-
 
     int m_max_level_ = 1;
 };
