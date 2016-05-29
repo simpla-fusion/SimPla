@@ -11,39 +11,48 @@
 #include <memory>
 #include <list>
 #include <map>
-#include <boost/uuid/uuid.hpp>
 #include "../gtl/primitives.h"
-#include "../base/Object.h"
 #include "../mesh/MeshEntity.h"
+#include "../mesh/MeshAttribute.h"
+#include "../mesh/MeshWorker.h"
+#include "../io/IOStream.h"
 
-namespace simpla { namespace mesh { struct MeshBase; }}//namespace simpla { namespace mesh {
+namespace simpla { namespace mesh
+{
+struct MeshBase;
+struct MeshWorker;
+}}//namespace simpla { namespace mesh {
 
 
 namespace simpla { namespace task_flow
 {
 
 
-class Attribute;
-
-class Worker;
-
 class Context
 {
-    typedef Context this_type;
-public:
-
-
-    void apply(Worker &w, uuid const &id, Real dt);
-
-    void sync(Worker &w, uuid const &oid);
-
-
 private:
+    typedef Context this_type;
 
 
+    typedef typename mesh::MeshAttributeBase Attribute;
+    typedef typename mesh::MeshWorker Worker;
+    typedef typename mesh::MeshBlockId block_id;
     std::map<std::string, std::weak_ptr<Attribute>> m_attributes_;
 
 public:
+    mesh::MeshAtlas m;
+
+    void setup();
+
+    void teardown();
+
+      io::IOStream &check_point(io::IOStream &os) const;
+
+      io::IOStream &save(io::IOStream &os) const;
+
+      io::IOStream &load(io::IOStream &is);
+
+    void next_step(Real dt);
 
     template<typename TF>
     std::shared_ptr<TF> get_attribute(std::string const &s_name)
@@ -94,74 +103,25 @@ public:
     };
 
 
-};
-
-struct Attribute : public base::Object
-{
-    SP_OBJECT_HEAD(Attribute, base::Object);
-
-
-    std::map<uuid, std::shared_ptr<void>> m_data_tree_;
-
-    uuid m_id_;
-
-    Attribute(mesh::MeshAtlas const &mesh_tree, std::string const &name)
-            : m_mesh_tree_(mesh_tree)
+    template<typename TSolver>
+    std::shared_ptr<TSolver> register_solver(block_id const &w_id)
     {
+        static_assert(std::is_base_of<Worker, TSolver>::value, "TSovler is not derived from MeshWorker.");
+        auto res = std::make_shared<TSolver>(m);
+        m_workers_.emplace(std::make_pair(w_id, std::dynamic_pointer_cast<Worker>(res)));
+        return res;
     }
 
-    virtual void view(uuid const &id)
+    template<typename TSolver>
+    std::shared_ptr<TSolver> get_worker(mesh::MeshBlockId const &w_id) const
     {
-        assert(m_data_tree_.find(id) != m_data_tree_.end());
-        m_id_ = id;
-
-    };
-
-    void *data() { return m_data_tree_.at(m_id_).get(); }
-
-    void const *data() const { return m_data_tree_.at(m_id_).get(); }
-
-    mesh::Mesh const *mesh() const { return m_mesh_tree_.at(m_id_); }
-
-
-};
-
-struct Worker
-{
-    typedef Context context_type;
-
-    std::list<std::string> m_attributes_;
-
-    context_type &m_ctx_;
-
-    Worker(context_type &ctx) : m_ctx_(ctx) { }
-
-    virtual ~Worker() { }
-
-    void view(uuid const &id)
-    {
-        for (auto &item:m_attributes_)
-        {
-            m_ctx_.m_attributes_.at(item).lock()->view(id);
-        }
+        assert(m_workers_.at(w_id)->template is_a<TSolver>());
+        return std::dynamic_pointer_cast<TSolver>(m_workers_.at(w_id));
     }
 
-    virtual void work(Real dt) = 0;
+    std::map<mesh::MeshBlockId, std::shared_ptr<Worker> > m_workers_;
 
-    /**
-    * copy data from lower level
-    */
-    virtual void coarsen(uuid const &) { }
 
-    /**
-     * copy data to lower level
-     */
-    virtual void refine(uuid const &) { }
-
-    /**
-     * copy data from same level neighbour
-     */
-    virtual void sync(std::list<uuid> const &) { }
 };
 
 

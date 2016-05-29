@@ -6,13 +6,12 @@
 #define SIMPLA_MESHBASE_H
 
 #include <typeinfo>
+#include "../base/Object.h"
+
 #include "Mesh.h"
 #include "MeshBase.h"
 #include "MeshEntity.h"
-#include "MeshEntityIterator.h"
 
-#include "../base/Object.h"
-#include "MeshWorker.h"
 
 namespace simpla { namespace mesh
 {

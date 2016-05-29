@@ -15,6 +15,7 @@
 #include "../../src/manifold/pre_define/PreDefine.h"
 
 #include "../../src/solver/EMFluid.h"
+#include "../../src/task_flow/Context.h"
 
 using namespace simpla;
 
@@ -32,7 +33,7 @@ int main(int argc, char **argv)
     {
         logger::init(argc, argv);
 
-        parallel::init(argc, argv);
+//        parallel::init(argc, argv);
 
         options.init(argc, argv);
     }
@@ -66,22 +67,22 @@ int main(int argc, char **argv)
         TheEnd(0);
 
     }
-//    io::XDMFStream out_stream;
 
     std::shared_ptr<io::IOStream> out_stream;
 
-    MeshAtlas m;
 
-    auto mesh = m.add<mesh_type>();
+    task_flow::Context ctx;
 
-    auto phy_solver = m.register_solver<simpla::phy_solver::EMFluid<mesh_type>>(mesh->id());
+//    auto mesh = ctx.m.add<mesh_type>();
+//
+//    auto phy_solver = ctx.register_solver<simpla::phy_solver::EMFluid<mesh_type>>(mesh->id());
 
 
     try
     {
-        m.setup();
+        ctx.setup();
 
-        m.check_point(*out_stream);
+        ctx.check_point(*out_stream);
     }
     catch (std::exception const &error)
     {
@@ -103,26 +104,27 @@ int main(int argc, char **argv)
 
     while (count < num_of_steps)
     {
-        m.next_step(dt);
+        INFORM << "\t >>> STEP [" << count << "] <<< " << std::endl;
+
+        ctx.next_step(dt);
 
         if (count % check_point == 0)
-            m.check_point(*out_stream);
+            ctx.check_point(*out_stream);
 
         ++count;
     }
-    m.teardown();
+    ctx.teardown();
 
     INFORM << "\t >>> Done <<< " << std::endl;
     MESSAGE << "====================================================" << std::endl;
 
 
-    io::close();
+//    io::close();
 
-    parallel::close();
+//    parallel::close();
 
     logger::close();
 
-    return 0;
 }
 
 

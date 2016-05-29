@@ -7,7 +7,7 @@
 #ifndef SIMPLA_ARRAY_VIEW_H
 #define SIMPLA_ARRAY_VIEW_H
 
- #include "primitives.h"
+#include "primitives.h"
 
 namespace simpla { namespace tags
 {
@@ -38,6 +38,8 @@ struct ArrayViewBase
 
 
     typedef size_t size_type;
+
+    ArrayViewBase() { }
 
     ArrayViewBase(this_type const &other) :
             m_ndims_(other.m_ndims_),

@@ -6,6 +6,14 @@
 
 #ifndef SIMPLA_MESH_MESHENTITY_H
 #define SIMPLA_MESH_MESHENTITY_H
+
+#include <cassert>
+#include "Mesh.h"
+#include "../gtl/iterator/RandomAccessIterator.h"
+#include "../gtl/iterator/IteratorAdapter.h"
+#include "../gtl/iterator/RangeAdapter.h"
+
+
 namespace simpla { namespace mesh
 {
 enum MeshEntityType
@@ -37,6 +45,12 @@ enum MeshEntityType
 //    MAX_POLYHEDRON = MAX_POLYGON + (1 << 6)
 
 };
+
+
+typedef IteratorAdapter<std::random_access_iterator_tag, MeshEntityId, MeshEntityIdDiff, MeshEntityId *, MeshEntityId> MeshEntityIterator;
+
+
+typedef RangeAdapter<MeshEntityIterator> MeshEntityRange;
 
 }} //namespace simpla { namespace mesh
 

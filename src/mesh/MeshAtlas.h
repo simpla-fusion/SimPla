@@ -8,14 +8,16 @@
 #define SIMPLA_MESH_MESHATLAS_H
 
 #include <type_traits>
+#include "../gtl/Log.h"
+
 #include "Mesh.h"
 #include "MeshBase.h"
-#include "../gtl/Log.h"
-#include "MeshWorker.h"
 
+namespace simpla { namespace io { class IOStream; }}
 namespace simpla { namespace mesh
 {
 
+class MeshAttributeBase;
 
 /**
  *  manager of mesh blocks
@@ -31,7 +33,6 @@ public:
     {
         LOCAL = 1, // 001
         ADJACENT = 2, // 010
-
     };
 
     template<typename T, typename ...Args>
@@ -50,11 +51,11 @@ public:
         return T(*this);
     }
 
-    std::vector<MeshBlockId> adjacent_blocks(MeshBlockId const &id, int inc_level = 0, int status_flag = 0);
+//    std::vector<MeshBlockId> adjacent_blocks(MeshBlockId const &id, int inc_level = 0, int status_flag = 0) { };
+//
+//    std::vector<MeshBlockId> find(int level = 0, int status_flag = 0) { };
 
-    std::vector<MeshBlockId> find(int level = 0, int status_flag = 0);
-
-    int count(int level = 0, int status_flag = 0);
+    int count(int level = 0, int status_flag = 0) { return 0; };
 
     bool has(MeshBlockId const &id) const { return m_mesh_atlas_.find(id) != m_mesh_atlas_.end(); }
 
@@ -63,23 +64,11 @@ public:
 
     void set(MeshBlockId const &id, std::shared_ptr<MeshBase> ptr) { m_mesh_atlas_[id].swap(ptr); }
 
-    std::shared_ptr<MeshBase> at(MeshBlockId const &id) const
-    {
-        return m_mesh_atlas_.at(id);
-//        if (res != m_mesh_atlas_.end())
-//        {
-//            return *res;
-//        }
-//        else
-//        {
-//            return std::shared_ptr<MeshBase>(nullptr);
-//        }
-    }
+    std::shared_ptr<MeshBase> at(MeshBlockId const &id) const { return m_mesh_atlas_.at(id); }
 
     template<typename TM>
     TM *at(MeshBlockId const &id) const
     {
-
 
         auto res = m_mesh_atlas_.at(id);
 
@@ -131,34 +120,6 @@ public:
         }
     }
 
-    void setup() { };
-
-    void teardown() { };
-
-    virtual io::IOStream &check_point(io::IOStream &os) const { return os; };
-
-    virtual io::IOStream &save(io::IOStream &os) const { return os; };
-
-    virtual io::IOStream &load(io::IOStream &is) const { return is; };
-
-    void next_step(Real dt) { };
-
-
-    template<typename TSolver>
-    std::shared_ptr<TSolver> register_solver(MeshBlockId const &w_id)
-    {
-        static_assert(std::is_base_of<MeshWorker, TSolver>::value, "TSovler is not derived from MeshWorker.");
-        auto res = std::make_shared<TSolver>(*this);
-        m_workers_.emplace(std::make_pair(w_id, std::dynamic_pointer_cast<MeshWorker>(res)));
-        return res;
-    }
-
-    template<typename TSolver>
-    std::shared_ptr<TSolver> get_worker(MeshBlockId const &w_id) const
-    {
-        assert(m_workers_.at(w_id)->template is_a<TSolver>());
-        return std::dynamic_pointer_cast<TSolver>(m_workers_.at(w_id));
-    }
 
 private:
     int m_level_ratio_;
@@ -167,7 +128,6 @@ private:
 
     std::map<MeshBlockId, std::shared_ptr<MeshBase> > m_mesh_atlas_;
 
-    std::map<MeshBlockId, std::shared_ptr<MeshWorker> > m_workers_;
 
     int m_max_level_ = 1;
 };

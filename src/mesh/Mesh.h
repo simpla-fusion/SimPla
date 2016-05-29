@@ -70,18 +70,9 @@ typedef long MeshEntityIdDiff;
 
 typedef boost::uuids::uuid MeshBlockId;
 
-class MeshBase;
-
-class MeshAtlas;
-
-
-template<typename ...> class MeshAttribute;
-
-class MeshAttributeBase;
 
 template<typename ...> struct Mesh;
 
-class MeshConnection;
 
 }}//namespace mesh}//namespace simpla
 

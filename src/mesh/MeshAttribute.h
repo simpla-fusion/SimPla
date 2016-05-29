@@ -8,14 +8,17 @@
 #define SIMPLA_MESHATTRIBUTE_H
 
 #include "../base/Object.h"
-#include "Mesh.h"
-#include "MeshEntity.h"
-#include "MeshAtlas.h"
 #include "../gtl/Log.h"
 #include "../gtl/MemoryPool.h"
 
+#include "Mesh.h"
+#include "MeshEntity.h"
+#include "MeshAtlas.h"
+
+namespace simpla { namespace data_model { struct DataSet; }}
 namespace simpla { namespace mesh
 {
+
 namespace tags
 {
 struct DENSE;
@@ -23,6 +26,7 @@ struct SPARSE;
 struct BIT;
 }
 
+class MeshAtlas;
 
 /**
  *  PlaceHolder class of MeshAttributeBase
@@ -94,6 +98,10 @@ public:
     };
 
     virtual std::shared_ptr<View> view_(MeshBlockId const &id) = 0;
+
+    virtual data_model::DataSet get_dataset() const;
+
+    virtual void set_dataset(data_model::DataSet const &);
 
 
 protected:

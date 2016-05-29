@@ -8,11 +8,18 @@
 #define SIMPLA_MESHWALKER_H
 
 #include <memory>
+#include "../base/Object.h"
 #include "../gtl/primitives.h"
+#include "../gtl/Log.h"
+
 #include "Mesh.h"
+
+
+namespace simpla { namespace io { struct IOStream; }}
 
 namespace simpla { namespace mesh
 {
+struct MeshAttributeBase;
 
 class MeshBase;
 
@@ -31,6 +38,7 @@ public:
     virtual std::shared_ptr<MeshWorker> clone(MeshBase const &) const
     {
         UNIMPLEMENTED;
+        return std::shared_ptr<MeshWorker>(nullptr);
     };
 
     virtual void update_ghost_from(MeshBase const &other) { };
@@ -41,17 +49,18 @@ public:
 
     virtual void refine(MeshBase const &other) { };
 
-    virtual bool coarsen(MeshBase const &other) { };
+    virtual bool coarsen(MeshBase const &other) { return false; };
 
     virtual void setup() { };
 
     virtual void teardown() { };
 
-    virtual io::IOStream &check_point(io::IOStream &os) const { return os; };
+    virtual io::IOStream &check_point(io::IOStream &os) const;
 
-    virtual io::IOStream &save(io::IOStream &os) const { return os; };
+    virtual io::IOStream &save(io::IOStream &os) const;
 
-    virtual io::IOStream &load(io::IOStream &is) const { return is; };
+    virtual io::IOStream &load(io::IOStream &is) const;
+
 
     virtual void next_step(Real dt)
     {
@@ -66,6 +75,7 @@ public:
 private:
     Real m_time_ = 0;
     size_t m_step_count_ = 0;
+    std::map<std::string, std::shared_ptr<MeshAttributeBase> > m_attr_;
 };
 }}//namespace simpla{namespace mesh{
 #endif //SIMPLA_MESHWALKER_H

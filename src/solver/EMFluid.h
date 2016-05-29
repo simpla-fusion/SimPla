@@ -11,8 +11,9 @@
 
 #include "../mesh/Mesh.h"
 #include "../mesh/MeshWorker.h"
+#include "../mesh/MeshAttribute.h"
+
 #include "../physics/PhysicalConstants.h"
-#include "../mesh/MeshEntityIterator.h"
 #include "../manifold/pre_define/PreDefine.h"
 
 namespace simpla { namespace phy_solver

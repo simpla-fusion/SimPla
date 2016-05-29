@@ -92,7 +92,8 @@ public:
      * @param flag
      * @return
      */
-    std::string read(std::string const &url, data_model::DataSet *ds, size_t flag = 0UL);
+    virtual std::string read(std::string const &url, data_model::DataSet *ds, size_t flag = 0UL);
+
 
     /**
      *

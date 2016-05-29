@@ -54,7 +54,7 @@ public:
 
     void time(Real time);
 
-    void write(std::string const &s, data_model::DataSet const &ds);
+    void write(std::string const &s, data_model::DataSet const &ds, size_t flag = 0UL);
 
     void write(std::string const &s, base::AttributeObject const &ds);
 

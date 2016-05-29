@@ -66,6 +66,12 @@ public:
 
     std::string auto_increase_file_name(std::string filename, std::string const &ext_str = ".h5") const;
 
+
+    virtual std::string write(std::string const &url, data_model::DataSet const &, size_t flag = 0UL) = 0;
+
+    virtual std::string read(std::string const &url, data_model::DataSet *ds, size_t flag = 0UL) = 0;
+
+
 //    template<typename TV>
 //    void write(mesh::MeshAtlas const &,
 //               std::map<mesh::MeshBlockId, std::shared_ptr<TV> const &, mesh::MeshBlockId id= 0)

@@ -164,9 +164,11 @@ private:
 
         for (auto const &s: base_type::range())
         {
-            op(f[s], base_type::mesh().eval(other, s));
-        }
 
+            value_type tmp;
+//            op(/*f[s]*/tmp, base_type::mesh().eval(other, s));
+        }
+        UNIMPLEMENTED;
     }
 
 public:
