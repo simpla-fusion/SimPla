@@ -35,7 +35,7 @@ public:
 
     mesh_type const *m;
 
-    EMFluid(mesh::MeshAtlas const &m_p) : m_atlas_(&m_p) { }
+    EMFluid(mesh::MeshAtlas const &m_p) : m_atlas_(&m_p), m(nullptr) { }
 
     EMFluid(mesh_type const &m_p) : m_atlas_(nullptr), m(&m_p) { }
 
@@ -69,19 +69,19 @@ public:
     typedef field_t<scalar_type, VERTEX> TRho;
     typedef field_t<vector_type, VERTEX> TJv;
 
-    field_t<scalar_type, EDGE> E0{*m_atlas_, "E0"};
-    field_t<scalar_type, FACE> B0{*m_atlas_, "B0"};
-    field_t<vector_type, VERTEX> B0v{*m_atlas_, "B0v"};
-    field_t<scalar_type, VERTEX> BB{*m_atlas_, "BB"};
+    field_t<scalar_type, EDGE> E0{*m, "E0"};
+    field_t<scalar_type, FACE> B0{*m, "B0"};
+    field_t<vector_type, VERTEX> B0v{*m, "B0v"};
+    field_t<scalar_type, VERTEX> BB{*m, "BB"};
 
-    field_t<vector_type, VERTEX> Ev{*m_atlas_, "Ev"};
-    field_t<vector_type, VERTEX> Bv{*m_atlas_, "Bv"};
+    field_t<vector_type, VERTEX> Ev{*m, "Ev"};
+    field_t<vector_type, VERTEX> Bv{*m, "Bv"};
 
-    field_t<scalar_type, FACE> B1{*m_atlas_, "B1"};
-    field_t<scalar_type, EDGE> E1{*m_atlas_, "E1"};
-    field_t<scalar_type, EDGE> J1{*m_atlas_, "J1"};
+    field_t<scalar_type, FACE> B1{*m, "B1"};
+    field_t<scalar_type, EDGE> E1{*m, "E1"};
+    field_t<scalar_type, EDGE> J1{*m, "J1"};
 
-    field_t<scalar_type, VERTEX> rho0{*m_atlas_};
+    field_t<scalar_type, VERTEX> rho0{*m};
 
 
     struct fluid_s
@@ -98,7 +98,7 @@ public:
     add_particle(std::string const &name, Real mass, Real charge)
     {
         return fluid_sp.emplace(
-                std::make_pair(name, fluid_s{mass, charge, TRho{*m_atlas_, "n_" + name}, TJv{*m_atlas_, "J_" + name}}));
+                std::make_pair(name, fluid_s{mass, charge, TRho{*m, "n_" + name}, TJv{*m, "J_" + name}}));
 
     }
 };
@@ -141,7 +141,7 @@ void EMFluid<TM>::next_step(Real dt)
     E1.accept(edge_boundary, [&](id_type, Real &v) { v = 0; });
 
 
-    field_t<vector_type, VERTEX> dE{*m_atlas_};
+    field_t<vector_type, VERTEX> dE{*m};
 
 
 
@@ -149,12 +149,12 @@ void EMFluid<TM>::next_step(Real dt)
     if (fluid_sp.size() > 0)
     {
 
-        field_t<vector_type, VERTEX> Q{*m_atlas_};
-        field_t<vector_type, VERTEX> K{*m_atlas_};
+        field_t<vector_type, VERTEX> Q{*m};
+        field_t<vector_type, VERTEX> K{*m};
 
-        field_t<scalar_type, VERTEX> a{*m_atlas_};
-        field_t<scalar_type, VERTEX> b{*m_atlas_};
-        field_t<scalar_type, VERTEX> c{*m_atlas_};
+        field_t<scalar_type, VERTEX> a{*m};
+        field_t<scalar_type, VERTEX> b{*m};
+        field_t<scalar_type, VERTEX> c{*m};
 
         a.clear();
         b.clear();

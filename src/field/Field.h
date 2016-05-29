@@ -35,6 +35,7 @@ class Field<TV, TManifold, index_const<IFORM>>
 private:
     static_assert(std::is_base_of<mesh::MeshBase, TManifold>::value, "TManifold is not derived from MeshBase");
     typedef Field<TV, TManifold, index_const<IFORM>> this_type;
+    typedef typename mesh::MeshAttribute<TV, TManifold, index_const<IFORM>, mesh::tags::DENSE>::View base_type;
 public:
 
     virtual bool is_a(std::type_info const &info) const { return typeid(this_type) == info || base_type::is_a(info); }
@@ -50,7 +51,6 @@ public:
     typedef mesh::MeshAttribute<TV, TManifold, index_const<IFORM>, mesh::tags::DENSE> attribute_type;
 
 private:
-    typedef typename attribute_type::View base_type;
     std::shared_ptr<attribute_type> m_attr_;
 public:
 
@@ -78,11 +78,8 @@ public:
         view(m.root());
     }
 
-    Field(mesh_type const &m, std::string const & = "") : m_attr_()
+    Field(mesh_type const &m, std::string const & = "", value_type *v = nullptr) : base_type(&m, v)
     {
-        view(m.root());
-        //FIXME
-        WARNING << "This function is not completed!" << std::endl;
     }
 
     //copy construct

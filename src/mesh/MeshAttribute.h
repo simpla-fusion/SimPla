@@ -206,9 +206,9 @@ public:
 
         View() { }
 
-        View(MeshBlockId const &id, mesh_type const *m = nullptr, value_type *d = nullptr)
-                : base_type(id), m_mesh_(m), m_data_(d),
-                  m_range_(m->range(static_cast<MeshEntityType>(IEntityType))) { }
+        View(mesh_type const *m = nullptr, value_type *d = nullptr)
+                : base_type(m != nullptr ? m->uuid() : MeshBlockId()), m_mesh_(m), m_data_(d),
+                  m_range_(m != nullptr ? m->range(static_cast<MeshEntityType>(IEntityType)) : MeshEntityRange()) { }
 
         View(View const &other) : base_type(other), m_mesh_(other.m_mesh_), m_data_(other.m_data_),
                                   m_range_(other.m_range_) { }
