@@ -20,7 +20,7 @@ namespace simpla {
 #define  AUTHOR " YU Zhi <yuzhi@ipp.ac.cn> "
 
 #ifndef COPYRIGHT
-#define  COPYRIGHT "All rights reserved. (2009-2015 )"
+#define  COPYRIGHT "All rights reserved. (2016 )"
 #endif
 
 static const char SIMPLA_LOGO[] = "\n"

@@ -4,7 +4,7 @@
  */
 
 #include "MeshAtlas.h"
-#include "MeshWorker.h"
+#include "../task_flow/Worker.h"
 
 void simpla::mesh::MeshAtlas::apply(mesh_id const &self, MeshWalker const &o_walker, Real dt)
 {

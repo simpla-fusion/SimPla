@@ -3,7 +3,7 @@
  * @author salmon
  * @date 2016-05-19.
  */
-#include "MeshWorker.h"
+#include "../task_flow/Worker.h"
 #include "MeshAtlas.h"
 #include "MeshAttribute.h"
 

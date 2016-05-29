@@ -14,13 +14,14 @@
 #include "../gtl/primitives.h"
 #include "../mesh/MeshEntity.h"
 #include "../mesh/MeshAttribute.h"
-#include "../mesh/MeshWorker.h"
+#include "Worker.h"
 #include "../io/IOStream.h"
+
+#include "Worker.h"
 
 namespace simpla { namespace mesh
 {
 struct MeshBase;
-struct MeshWorker;
 }}//namespace simpla { namespace mesh {
 
 
@@ -34,10 +35,7 @@ private:
     typedef Context this_type;
 
 
-    typedef typename mesh::MeshAttributeBase Attribute;
-    typedef typename mesh::MeshWorker Worker;
     typedef typename mesh::MeshBlockId block_id;
-    std::map<std::string, std::weak_ptr<Attribute>> m_attributes_;
 
 public:
     mesh::MeshAtlas m;
@@ -46,67 +44,67 @@ public:
 
     void teardown();
 
-      io::IOStream &check_point(io::IOStream &os) const;
+    io::IOStream &check_point(io::IOStream &os) const;
 
-      io::IOStream &save(io::IOStream &os) const;
+    io::IOStream &save(io::IOStream &os) const;
 
-      io::IOStream &load(io::IOStream &is);
+    io::IOStream &load(io::IOStream &is);
 
     void next_step(Real dt);
 
-    template<typename TF>
-    std::shared_ptr<TF> get_attribute(std::string const &s_name)
-    {
-        static_assert(std::is_base_of<Attribute, TF>::value, "TF is not a Attribute");
-
-        auto it = m_attributes_.find(s_name);
-
-        if (it == m_attributes_.end())
-        {
-            return create_attribute<TF>(s_name);
-        }
-        else if (it->second.lock()->is_a(typeid(TF)))
-        {
-            return std::dynamic_pointer_cast<TF>(it->second.lock());
-        }
-        else
-        {
-            return nullptr;
-        }
-
-    }
-
-    template<typename TF>
-    std::shared_ptr<TF> create_attribute(std::string const &s_name = "")
-    {
-        static_assert(std::is_base_of<Attribute, TF>::value, "TF is not a Attribute");
-
-        auto res = std::make_shared<TF>(*this);
-
-        if (s_name != "") { enroll(s_name, std::dynamic_pointer_cast<Attribute>(res)); }
-
-        return res;
-    }
-
-    template<typename TF>
-    std::shared_ptr<TF> create_attribute() const
-    {
-        return std::make_shared<TF>(*this);
-    }
-
-    template<typename TF>
-    void enroll(std::string const &name, std::shared_ptr<TF> p)
-    {
-        static_assert(std::is_base_of<Attribute, TF>::value, "TF is not a Attribute");
-
-        m_attributes_.insert(std::make_pair(name, std::dynamic_pointer_cast<Attribute>(p)));
-    };
+//    template<typename TF>
+//    std::shared_ptr<TF> get_attribute(std::string const &s_name)
+//    {
+//        static_assert(std::is_base_of<Attribute, TF>::value, "TF is not a Attribute");
+//
+//        auto it = m_attributes_.find(s_name);
+//
+//        if (it == m_attributes_.end())
+//        {
+//            return create_attribute<TF>(s_name);
+//        }
+//        else if (it->second.lock()->is_a(typeid(TF)))
+//        {
+//            return std::dynamic_pointer_cast<TF>(it->second.lock());
+//        }
+//        else
+//        {
+//            return nullptr;
+//        }
+//
+//    }
+//
+//    template<typename TF>
+//    std::shared_ptr<TF> create_attribute(std::string const &s_name = "")
+//    {
+//        static_assert(std::is_base_of<Attribute, TF>::value, "TF is not a Attribute");
+//
+//        auto res = std::make_shared<TF>(*this);
+//
+//        if (s_name != "") { enroll(s_name, std::dynamic_pointer_cast<Attribute>(res)); }
+//
+//        return res;
+//    }
+//
+//    template<typename TF>
+//    std::shared_ptr<TF> create_attribute() const
+//    {
+//        return std::make_shared<TF>(*this);
+//    }
+//
+//    template<typename TF>
+//    void enroll(std::string const &name, std::shared_ptr<TF> p)
+//    {
+//        static_assert(std::is_base_of<Attribute, TF>::value, "TF is not a Attribute");
+//
+//        m_attributes_.insert(std::make_pair(name, std::dynamic_pointer_cast<Attribute>(p)));
+//    };
 
 
     template<typename TSolver>
     std::shared_ptr<TSolver> register_solver(block_id const &w_id)
     {
-        static_assert(std::is_base_of<Worker, TSolver>::value, "TSovler is not derived from MeshWorker.");
+        static_assert(std::is_base_of<Worker, TSolver>::value, "TSovler is not derived from Worker.");
         auto res = std::make_shared<TSolver>(m);
         m_workers_.emplace(std::make_pair(w_id, std::dynamic_pointer_cast<Worker>(res)));
         return res;

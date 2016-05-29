@@ -12,7 +12,7 @@
 #include "../gtl/primitives.h"
 #include "../gtl/Log.h"
 
-#include "Mesh.h"
+#include "../mesh/Mesh.h"
 
 
 namespace simpla { namespace io { struct IOStream; }}
@@ -22,34 +22,40 @@ namespace simpla { namespace mesh
 struct MeshAttributeBase;
 
 class MeshBase;
+}}
 
-class MeshWorker : public base::Object
+
+namespace simpla { namespace task_flow
+{
+
+
+class Worker : public base::Object
 {
 public:
 
-    SP_OBJECT_HEAD(MeshWorker, base::Object);
+    SP_OBJECT_HEAD(Worker, base::Object);
 
-    MeshWorker() { }
+    Worker();
 
-    virtual  ~MeshWorker() { teardown(); }
+    virtual  ~Worker();
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const { return os; }
 
-    virtual std::shared_ptr<MeshWorker> clone(MeshBase const &) const
+    virtual std::shared_ptr<Worker> clone(mesh::MeshBase const &) const
     {
         UNIMPLEMENTED;
-        return std::shared_ptr<MeshWorker>(nullptr);
+        return std::shared_ptr<Worker>(nullptr);
     };
 
-    virtual void update_ghost_from(MeshBase const &other) { };
+    virtual void update_ghost_from(mesh::MeshBase const &other) { };
 
-    virtual bool same_as(MeshBase const &) const { return false; };
+    virtual bool same_as(mesh::MeshBase const &) const { return false; };
 
-    virtual std::vector<box_type> refine_boxes() const { return std::vector<box_type>(); };
+    virtual std::vector<mesh::box_type> refine_boxes() const { return std::vector<mesh::box_type>(); };
 
-    virtual void refine(MeshBase const &other) { };
+    virtual void refine(mesh::MeshBase const &other) { };
 
-    virtual bool coarsen(MeshBase const &other) { return false; };
+    virtual bool coarsen(mesh::MeshBase const &other) { return false; };
 
     virtual void setup() { };
 
@@ -75,7 +81,7 @@ public:
 private:
     Real m_time_ = 0;
     size_t m_step_count_ = 0;
-    std::map<std::string, std::shared_ptr<MeshAttributeBase> > m_attr_;
+    std::map<std::string, std::shared_ptr<mesh::MeshAttributeBase> > m_attr_;
 };
 }}//namespace simpla{namespace mesh{
 #endif //SIMPLA_MESHWALKER_H

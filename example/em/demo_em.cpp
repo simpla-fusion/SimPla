@@ -14,8 +14,8 @@
 
 #include "../../src/manifold/pre_define/PreDefine.h"
 
-#include "../../src/solver/EMFluid.h"
 #include "../../src/task_flow/Context.h"
+#include "EMFluid.h"
 
 using namespace simpla;
 
@@ -73,9 +73,9 @@ int main(int argc, char **argv)
 
     task_flow::Context ctx;
 
-//    auto mesh = ctx.m.add<mesh_type>();
-//
-//    auto phy_solver = ctx.register_solver<simpla::phy_solver::EMFluid<mesh_type>>(mesh->id());
+    auto mesh = ctx.m.add<mesh_type>();
+
+    auto phy_solver = ctx.register_solver<EMFluid<mesh_type>>(mesh->id());
 
 
     try
