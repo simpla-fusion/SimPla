@@ -21,8 +21,23 @@ using namespace simpla::mesh;
 template<typename TM>
 class EMFluid : public task_flow::Worker
 {
-    typedef task_flow::Worker base_type;
     typedef EMFluid<TM> this_type;
+    typedef task_flow::Worker base_type;
+
+public:
+    virtual bool is_a(std::type_info const &info) const
+    {
+        return typeid(this_type) == info || task_flow::Worker::is_a(info);
+    }
+
+    template<typename _UOTHER_> bool is_a() const { return is_a(typeid(_UOTHER_)); }
+
+
+    virtual std::string get_class_name() const { return class_name(); }
+
+
+    static std::string class_name() { return "EMFluid<" + traits::type_id<TM>::name() + ">"; }
+
 
 public:
     typedef TM mesh_type;

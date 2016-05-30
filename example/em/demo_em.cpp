@@ -82,6 +82,7 @@ int main(int argc, char **argv)
 //        RUNTIME_ERROR << "Fail to set WORKER to MESH!!" << std::endl;
 //    };
 
+    phy_solver->print(std::cout);
 
     try
     {

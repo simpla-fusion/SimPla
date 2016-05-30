@@ -88,22 +88,22 @@ public:
         {
             m_attr_.emplace(std::make_pair(s, std::make_shared<mesh::MeshAttribute>()));
         }
-        return TF(*(m_attr_[s]->template add<TF>(m, std::forward<Args>(args)...)));
+
+        std::shared_ptr<TF> res(nullptr);
+        try
+        {
+            res = (m_attr_[s]->template add<TF>(m, std::forward<Args>(args)...));
+        }
+        catch (...)
+        {
+            RUNTIME_ERROR << "Can not create attribute [" << s << "]" << std::endl;
+        }
+        assert(res != nullptr);
+        return TF(*res);
     }
 
-private:
-    template<typename TF, typename ...Args, size_t ...I>
-    TF create_helper_(std::tuple<Args...> const &args, index_sequence<I...>)
-    {
-        return std::move(create<TF>(std::get<I>(args)...));
-    }
 
-public:
-    template<typename TF, typename ...Args, size_t ...I>
-    TF create(std::tuple<Args...> const &args)
-    {
-        return std::move(create_helper_<TF>(args, index_sequence_for<Args...>()));
-    }
+
 
     //------------------------------------------------------------------------------------------------------------------
 

@@ -74,12 +74,11 @@ public:
     }
 
     //factory construct
-    template<typename TFactory, typename Args>
-    Field(TFactory &factory, Args &&args,
-          typename std::enable_if<TFactory::is_factory>::type *_p = nullptr)
+    template<typename TFactory, typename ... Args, typename std::enable_if<TFactory::is_factory>::type * = nullptr>
+    Field(TFactory &factory, Args &&...args)
             : m_mesh_(nullptr), m_data_(nullptr), m_range_()
     {
-        factory.template create<this_type>(std::forward<Args>(args)).swap(*this);
+        factory.template create<this_type>(std::forward<Args>(args)...).swap(*this);
     }
 
 

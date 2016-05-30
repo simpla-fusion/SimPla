@@ -55,6 +55,23 @@ io::IOStream &Worker::check_point(io::IOStream &os) const
 
 std::ostream &Worker::print(std::ostream &os, int indent) const
 {
+    auto it = m_attr_.begin();
+    auto ie = m_attr_.end();
+
+    os << std::setw(indent) << " Worker={" << std::endl;
+
+    os << std::setw(indent + 1) << " Type=\"" << get_class_name() << "\"," << std::endl;
+
+    os << std::setw(indent + 1) << " Attributes= { \"" << it->first << "\"";
+
+    ++it;
+
+    for (; it != ie; ++it) { os << " , \"" << it->first << "\""; }
+
+    os << "}," << std::endl;
+
+    os << std::setw(indent) << "}," << std::endl;
+
     return os;
 }
 
