@@ -38,6 +38,8 @@ public:
 
     Worker();
 
+    Worker(mesh::MeshBase const &);
+
     virtual  ~Worker()noexcept;
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const { return os; }
@@ -48,7 +50,15 @@ public:
         return std::shared_ptr<Worker>(nullptr);
     };
 
-    virtual bool view(mesh::MeshBase const &other) { return false; };
+    virtual bool view(mesh::MeshBase const &other)
+    {
+        m = &other;
+        for (auto &item:m_attr_)
+        {
+            //DO STD
+        }
+        UNIMPLEMENTED;
+    };
 
     virtual void update_ghost_from(mesh::MeshBase const &other) { };
 

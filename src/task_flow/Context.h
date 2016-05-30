@@ -101,12 +101,12 @@ public:
 //    };
 
 
-    template<typename TSolver>
-    std::shared_ptr<TSolver> register_solver()
+    template<typename TSolver, typename TM, typename ...Args>
+    std::shared_ptr<TSolver> register_solver(TM const &m, Args &&...args)
     {
         static_assert(std::is_base_of<Worker, TSolver>::value, "TSovler is not derived from Worker.");
-        auto res = std::make_shared<TSolver>();
-//        m_workers_.emplace(std::make_pair(m.uuid(), std::dynamic_pointer_cast<Worker>(res)));
+        auto res = std::make_shared<TSolver>(m, std::forward<Args>(args)...);
+        m_workers_.emplace(std::make_pair(m.uuid(), std::dynamic_pointer_cast<Worker>(res)));
         return res;
     }
 

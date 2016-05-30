@@ -28,7 +28,7 @@ public:
     typedef TM mesh_type;
     typedef typename mesh_type::scalar_type scalar_type;
 
-    EMFluid() { }
+    EMFluid(mesh_type const &mesh) : base_type(mesh) { }
 
     virtual ~EMFluid()noexcept { }
 

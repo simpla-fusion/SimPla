@@ -14,7 +14,9 @@ namespace simpla { namespace task_flow
 {
 
 
-Worker::Worker() { }
+Worker::Worker() : m(nullptr) { }
+
+Worker::Worker(mesh::MeshBase const &msh) : m(&msh) { };
 
 Worker::~Worker() { teardown(); }
 
