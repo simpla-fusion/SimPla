@@ -41,7 +41,7 @@ public:
 
     Worker(mesh::MeshBase const &);
 
-    virtual  ~Worker()noexcept;
+    virtual  ~Worker();
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const;
 

@@ -63,7 +63,7 @@ protected:
         std::tie(xmin, xmax) = box;
 
 
-        std::tie(mesh, std::ignore) = m.add<mesh_type>();
+        mesh  = m.add<mesh_type>();
 
         mesh->dimensions(dims);
 
@@ -139,7 +139,7 @@ public:
     }
 
     template<typename TV, size_t IEntityType>
-    field_t<TV, mesh_type, IEntityType> make_field() { return field_t<TV, mesh_type, IEntityType>(m); };
+    field_t<TV, mesh_type, IEntityType> make_field() { return field_t<TV, mesh_type, IEntityType>(mesh.get()); };
 };
 
 TEST_P(FETLTest, grad0)
@@ -159,7 +159,7 @@ TEST_P(FETLTest, grad0)
     {
         f0[s] = std::sin(q(mesh->point(s)));
     };
-    f0.sync();
+//    f0.sync();
 
     LOG_CMD(f1 = grad(f0));
 
@@ -229,7 +229,7 @@ TEST_P(FETLTest, grad3)
         f3[s] = std::sin(q(mesh->point(s)));
     };
 
-    f3.sync();
+//    f3.sync();
 
     LOG_CMD(f2 = grad(f3));
 
@@ -297,7 +297,7 @@ TEST_P(FETLTest, diverge1)
         f1[s] = E[mesh->sub_index(s)] * std::sin(q(mesh->point(s)));
     };
 
-    f1.sync();
+//    f1.sync();
 
     LOG_CMD(f0 = diverge(f1));
 
@@ -377,7 +377,7 @@ TEST_P(FETLTest, diverge2)
         f2[s] = std::sin(q(mesh->point(s)));
     };
 
-    f2.sync();
+    //f2.sync();
 
     LOG_CMD(f3 = diverge(f2));
 
@@ -469,7 +469,7 @@ TEST_P(FETLTest, curl1)
     };
 
 
-    f1.sync();
+   // f1.sync();
 
     LOG_CMD(f2 = curl(f1));
 
@@ -585,7 +585,7 @@ TEST_P(FETLTest, curl2)
     };
 
 
-    f2.sync();
+    //f2.sync();
 
     LOG_CMD(f1 = curl(f2));
 
@@ -680,7 +680,7 @@ TEST_P(FETLTest, identity_curl_grad_f0_eq_0)
 
         m += a * a;
     }
-    f0.sync();
+    //f0.sync();
 
     m = std::sqrt(m) * mod(one);
 
@@ -728,7 +728,7 @@ TEST_P(FETLTest, identity_curl_grad_f3_eq_0)
         f3[s] = a * one;
         m += a * a;
     }
-    f3.sync();
+   // f3.sync();
 
     m = std::sqrt(m) * mod(one);
 
@@ -776,7 +776,7 @@ TEST_P(FETLTest, identity_div_curl_f1_eq0)
 
         m += a * a;
     }
-    f2.sync();
+//    f2.sync();
 
     m = std::sqrt(m) * mod(one);
 
@@ -828,7 +828,7 @@ TEST_P(FETLTest, identity_div_curl_f2_eq0)
         f1[s] = one * a;
         m += a * a;
     }
-    f1.sync();
+//    f1.sync();
 
     m = std::sqrt(m) * mod(one);
 

@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 cmake_policy(SET CMP0015 NEW)
+cmake_policy(SET CMP0028 NEW)
 
 PROJECT(SimPla CXX C)
 
@@ -240,19 +241,22 @@ ADD_DEFINITIONS(-DNO_XDMF)
 #  INCLUDE(${GTEST_ROOT})
 #  INCLUDE_DIRECTORIES(${GTEST_ROOT}/include)
 #ELSE (DEFINED ENV{HDF5_ROOT})
-ExternalProject_Add(googletest
-        PREFIX ${PROJECT_BINARY_DIR}/external_project
-        #  URL   http://googletest.googlecode.com/files/gtest-1.7.0.zip
-        URL file://${CMAKE_SOURCE_DIR}/external_project/src/gtest-1.7.0.zip
-        SOURCE_DIR ${PROJECT_BINARY_DIR}/external_project/googletest
-        INSTALL_COMMAND "")
-ExternalProject_Get_Property(googletest SOURCE_DIR)
-ExternalProject_Get_Property(googletest BINARY_DIR)
-INCLUDE_DIRECTORIES(${SOURCE_DIR}/include)
-LINK_DIRECTORIES(${BINARY_DIR})
+#ExternalProject_Add(googletest
+#        PREFIX ${PROJECT_BINARY_DIR}/external_project
+#        #  URL   http://googletest.googlecode.com/files/gtest-1.7.0.zip
+#        URL file://${CMAKE_SOURCE_DIR}/external_project/src/gtest-1.7.0.zip
+#        SOURCE_DIR ${PROJECT_BINARY_DIR}/external_project/googletest
+#        INSTALL_COMMAND "")
+#ExternalProject_Get_Property(googletest SOURCE_DIR)
+#ExternalProject_Get_Property(googletest BINARY_DIR)
+#INCLUDE_DIRECTORIES(${SOURCE_DIR}/include)
+#LINK_DIRECTORIES(${BINARY_DIR})
 #ENDIF(DEFINED ENV{HDF5_ROOT})
 
 
+enable_testing()
+FIND_PACKAGE(GTest REQUIRED)
+include_directories(${GTEST_INCLUDE_DIRS})
 #FIND_PACKAGE(CUDA 7.0)
 
 

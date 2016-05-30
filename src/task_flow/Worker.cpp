@@ -81,6 +81,7 @@ bool Worker::view(mesh::MeshBase const &other)
     m = &other;
     for (auto &item:m_attr_) { }
     UNIMPLEMENTED;
+    return true;
 };
 
 
@@ -96,11 +97,6 @@ void Worker::refine(mesh::MeshBase const &other) { };
 
 bool Worker::coarsen(mesh::MeshBase const &other) { return false; };
 
-io::IOStream &Worker::check_point(io::IOStream &os) const;
-
-io::IOStream &Worker::save(io::IOStream &os) const;
-
-io::IOStream &Worker::load(io::IOStream &is) const;
 
 void Worker::next_step(Real dt)
 {
