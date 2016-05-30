@@ -10,94 +10,166 @@
 #include "../base/Object.h"
 #include "../gtl/Log.h"
 #include "../gtl/MemoryPool.h"
-
+#include "../data_model/DataSet.h"
 #include "Mesh.h"
 #include "MeshEntity.h"
 #include "MeshAtlas.h"
 
-namespace simpla { namespace data_model { struct DataSet; }}
+
 namespace simpla { namespace mesh
 {
 
-namespace tags
-{
-struct DENSE;
-struct SPARSE;
-struct BIT;
-}
-
-class MeshAtlas;
-
 /**
- *  PlaceHolder class of MeshAttributeBase
+ *  PlaceHolder class of MeshAttribute
  */
-struct MeshAttributeBase : public base::Object
+struct MeshAttribute : public base::Object
 {
-    SP_OBJECT_HEAD(MeshAttributeBase, base::Object)
+    SP_OBJECT_HEAD(MeshAttribute, base::Object)
 
 public:
-    struct View;
 
-    MeshAttributeBase() { }
+    MeshAttribute() { }
 
-    virtual ~MeshAttributeBase() { }
+    virtual ~MeshAttribute() { }
 
-    MeshAttributeBase(MeshAttributeBase const &other) = delete;
+    MeshAttribute(MeshAttribute const &other) = delete;
 
-    MeshAttributeBase(MeshAttributeBase &&other) = delete;
+    MeshAttribute(MeshAttribute &&other) = delete;
 
-    MeshAttributeBase &operator=(MeshAttributeBase const &) = delete;
+    MeshAttribute &operator=(MeshAttribute const &) = delete;
 
-    void swap(MeshAttributeBase &other) = delete;
+    void swap(MeshAttribute &other) = delete;
 
-    virtual MeshEntityType entity_type() const = 0;
+    void apply(Visitor &vistor) { vistor.visit(*this); };
 
-    virtual void apply(Visitor &vistor) { vistor.visit(*this); };
+    void apply(Visitor &vistor) const { vistor.visit(*this); };
 
-    virtual void apply(Visitor &vistor) const { vistor.visit(*this); };
 
+    struct View
+    {
+        View() { }
+
+        View(View const &other) { }
+
+        View(View &&other) { }
+
+        ~View() { };
+
+        View &operator=(View const &other) = delete;
+
+        virtual bool is_a(std::type_info const &t_info) const = 0;
+
+        template<typename T> inline bool is_a() const { return (std::is_base_of<View, T>::value && is_a(typeid(T))); }
+
+        virtual std::string get_class_name() const = 0;
+
+        virtual void swap(View &other) { }
+
+        virtual MeshEntityType entity_type() const = 0;
+
+        virtual MeshEntityRange const &range() const = 0;
+
+        virtual data_model::DataSet get_dataset() const = 0;
+
+        virtual void set_dataset(data_model::DataSet const &) = 0;
+    };
 
     /** register MeshBlockId to attribute data collection.  */
-    virtual bool add(MeshBase const *) = 0;
+    template<typename TF, typename ...Args>
+    std::shared_ptr<TF> add(MeshBase const *m, Args &&...args)
+    {
+        assert(m != nullptr);
+
+        static_assert(std::is_base_of<View, TF>::value,
+                      "Object is not a mesh::MeshAttribute::View");
+        auto it = m_attrs_.find(m->uuid());
+
+        if (it != m_attrs_.end())
+        {
+
+            if (!it->second->template is_a<TF>())
+            {
+                RUNTIME_ERROR << "Attribute type cast error! "
+                << "From:" << it->second->get_class_name()
+                << " To: " << traits::type_id<typename TF::mesh_type>::name() <<
+                std::endl;
+            }
+
+            return std::make_shared<TF>(*std::dynamic_pointer_cast<TF>(it->second));
+        }
+        else
+        {
+            if (!m->template is_a<typename TF::mesh_type>())
+            {
+                RUNTIME_ERROR << "Mesh type cast error! "
+                << "From:" << m->get_class_name()
+                << " To: " << traits::type_id<typename TF::mesh_type>::name() <<
+                std::endl;
+            }
+            else
+            {
+                auto ptr = std::make_shared<TF>(m, std::forward<Args>(args)...);
+
+                m_attrs_.emplace(std::make_pair(m->uuid(), std::dynamic_pointer_cast<View>(ptr)));
+
+                return ptr;
+            }
+        }
 
 
-    /** remove MeshBlockId from attribute data collection.  */
-    virtual void remove(MeshBlockId const &) = 0;
+    }
 
 
-    virtual std::shared_ptr<View> view_(MeshBlockId const &id) = 0;
+    /** erase MeshBlockId from attribute data collection.  */
+    size_t erase(MeshBlockId const &id)
+    {
+        return m_attrs_.erase(id);
+    }
 
+    data_model::DataSet get_dataset(MeshBlockId const &id) const
+    {
+        try
+        {
+            return m_attrs_.at(id)->get_dataset();
+
+        }
+        catch (std::out_of_range const &)
+        {
+            RUNTIME_ERROR << "Block [" << boost::uuids::hash_value(id) << "] is missing!" << std::endl;
+        }
+
+    }
+
+    void set_dataset(MeshBlockId const &id, data_model::DataSet const &d)
+    {
+        try
+        {
+            return m_attrs_.at(id)->set_dataset(d);
+
+        }
+        catch (std::out_of_range const &)
+        {
+            RUNTIME_ERROR << "Block [" << boost::uuids::hash_value(id) << "] is missing!" << std::endl;
+        }
+    }
+
+    void get_dataset(std::map<MeshBlockId, data_model::DataSet> *res) const
+    {
+        for (auto const &item:m_attrs_)
+        {
+            res->emplace(std::make_pair(item.first, item.second->get_dataset()));
+        };
+    }
+
+    void set_dataset(std::map<MeshBlockId, data_model::DataSet> const &d)
+    {
+        for (auto const &item:d) { set_dataset(item.first, item.second); }
+    }
 
 protected:
     std::map<MeshBlockId, std::shared_ptr<View>> m_attrs_;
 };
 
-struct MeshAttributeBase::View
-{
-    View() { }
-
-    View(View const &other) { }
-
-    View(View &&other) { }
-
-    ~View() { };
-
-    View &operator=(View const &other) = delete;
-
-    virtual bool is_a(std::type_info const &t_info) const = 0;
-
-    template<typename T> inline bool is_a() const { return (std::is_base_of<View, T>::value && is_a(typeid(T))); }
-
-    virtual void swap(View &other) { }
-
-    virtual MeshEntityType entity_type() const = 0;
-
-    virtual MeshEntityRange const &range() const = 0;
-
-    virtual data_model::DataSet get_dataset() const = 0;
-
-    virtual void set_dataset(data_model::DataSet const &) = 0;
-};
 //
 ///**
 // *  Data attached to mesh entities.
@@ -109,7 +181,7 @@ struct MeshAttributeBase::View
 //
 //template<typename TV, typename TM, size_t IEntityType>
 //class MeshAttribute<TV, TM, index_const<IEntityType>, tags::DENSE>
-//        : public MeshAttributeBase
+//        : public MeshAttribute
 //{
 //private:
 //    typedef MeshAttribute<TV, TM, index_const<IEntityType>, tags::DENSE> this_type;
@@ -125,7 +197,7 @@ struct MeshAttributeBase::View
 //    // Object Head
 //
 //private:
-//    typedef MeshAttributeBase base_type;
+//    typedef MeshAttribute base_type;
 //public:
 //    virtual bool is_a(std::type_info const &info) const { return typeid(this_type) == info || base_type::is_a(info); }
 //
@@ -141,7 +213,7 @@ struct MeshAttributeBase::View
 //
 //    class View;
 //
-//    MeshAttribute(MeshAtlas const &m) : MeshAttributeBase(m) { };
+//    MeshAttribute(MeshAtlas const &m) : MeshAttribute(m) { };
 //
 //    virtual  ~MeshAttribute() { };
 //
@@ -189,10 +261,10 @@ struct MeshAttributeBase::View
 //
 //public:
 //
-//    struct View : public MeshAttributeBase::View
+//    struct View : public MeshAttribute::View
 //    {
 //
-//        typedef typename MeshAttributeBase::View base_type;
+//        typedef typename MeshAttribute::View base_type;
 //        typedef mesh_attribute_type host_type;
 //
 //        View() { }
@@ -209,7 +281,7 @@ struct MeshAttributeBase::View
 //
 //        virtual  ~View() { }
 //
-//        virtual void swap(MeshAttributeBase::View &other)
+//        virtual void swap(MeshAttribute::View &other)
 //        {
 //            base_type::swap(other);
 //            auto &o_view = static_cast<View &>(other);
@@ -253,13 +325,13 @@ struct MeshAttributeBase::View
 //
 //    }
 //
-//    virtual std::shared_ptr<MeshAttributeBase::View> view_(MeshBlockId const &id)
+//    virtual std::shared_ptr<MeshAttribute::View> view_(MeshBlockId const &id)
 //    {
 //        MeshBlockId m_id = (id.is_nil()) ? m_atlas_.root() : id;
 //
 //        add(m_id);
 //
-//        return std::dynamic_pointer_cast<MeshAttributeBase::View>(
+//        return std::dynamic_pointer_cast<MeshAttribute::View>(
 //                std::make_shared<View>(m_id, m_atlas_.template at<mesh_type>(m_id),
 //                                       m_data_collection_[m_id].get()));
 //    }

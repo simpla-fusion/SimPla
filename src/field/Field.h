@@ -17,7 +17,6 @@
 
 namespace simpla
 {
-namespace tags { struct factory_create { }; }
 
 template<typename ...> class Field;
 
@@ -26,7 +25,7 @@ template<typename TV, typename TManifold, size_t IFORM> using field_t= Field<TV,
 
 template<typename TV, typename TManifold, size_t IFORM>
 class Field<TV, TManifold, index_const<IFORM>> :
-        public mesh::MeshAttributeBase::View,
+        public mesh::MeshAttribute::View,
         public std::enable_shared_from_this<Field<TV, TManifold, index_const<IFORM> > >
 {
 private:
@@ -34,7 +33,7 @@ private:
 
     typedef Field<TV, TManifold, index_const<IFORM>> this_type;
 
-    typedef typename mesh::MeshAttributeBase::View base_type;
+    typedef typename mesh::MeshAttribute::View base_type;
 public:
 
     virtual bool is_a(std::type_info const &info) const { return typeid(this_type) == info; }
@@ -66,12 +65,21 @@ public:
     {
     }
 
-    //factory construct
-    template<typename TFactory, typename ...Args>
-    Field(tags::factory_create, TFactory const &factory, Args &&...args)
+    Field(mesh::MeshBase const *m)
             : m_mesh_(nullptr), m_data_(nullptr), m_range_()
     {
-        factory.template create<this_type>(std::forward<Args>(args)...).swap(*this);
+        assert(m->template is_a<mesh_type>());
+
+        this_type(dynamic_cast<mesh_type const *>(m)).swap(*this);
+    }
+
+    //factory construct
+    template<typename TFactory, typename Args>
+    Field(TFactory &factory, Args &&args,
+          typename std::enable_if<TFactory::is_factory>::type *_p = nullptr)
+            : m_mesh_(nullptr), m_data_(nullptr), m_range_()
+    {
+        factory.template create<this_type>(std::forward<Args>(args)).swap(*this);
     }
 
 

@@ -13,13 +13,14 @@
 #include "../gtl/Log.h"
 
 #include "../mesh/Mesh.h"
+#include "../mesh/MeshAttribute.h"
 
 
 namespace simpla { namespace io { struct IOStream; }}
 
 namespace simpla { namespace mesh
 {
-struct MeshAttributeBase;
+struct MeshAttribute;
 
 class MeshBase;
 }}
@@ -76,21 +77,50 @@ public:
         m_time_ += dt;
         ++m_step_count_;
     }
+    //------------------------------------------------------------------------------------------------------------------
+    /**
+     * factory concept
+     */
+    static constexpr bool is_factory = true;
 
-    template<typename T>
-    T create(std::string const &s) const
+    template<typename TF, typename ...Args>
+    TF create(std::string const &s, Args &&...args)
     {
-        return T();
+        if (m_attr_.find(s) == m_attr_.end())
+        {
+            m_attr_.emplace(std::make_pair(s, std::make_shared<mesh::MeshAttribute>()));
+        }
+        return std::move(*(m_attr_[s]->template add<TF>(m, std::forward<Args>(args)...)));
     }
+
+private:
+    template<typename TF, typename ...Args, size_t ...I>
+    TF create_helper_(std::tuple<Args...> const &args, index_sequence<I...>)
+    {
+        return std::move(create<TF>(std::get<I>(args)...));
+    }
+
+public:
+    template<typename TF, typename ...Args, size_t ...I>
+    TF create(std::tuple<Args...> const &args)
+    {
+        return std::move(create_helper_<TF>(args, index_sequence_for<Args...>()));
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+
+
 
     Real time() const { return m_time_; }
 
     size_t step_count() const { return m_step_count_; }
 
+    mesh::MeshBase const *m;
+
 private:
     Real m_time_ = 0;
     size_t m_step_count_ = 0;
-    std::map<std::string, std::shared_ptr<mesh::MeshAttributeBase> > m_attr_;
+    std::map<std::string, std::shared_ptr<mesh::MeshAttribute> > m_attr_;
 };
 }}//namespace simpla{namespace mesh{
 #endif //SIMPLA_MESHWALKER_H

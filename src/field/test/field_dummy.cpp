@@ -1,17 +1,16 @@
-/*
- * field_dummy.cpp
+/**
+ * @file field_dummy.cpp
  *
  *  Created on: 2015-1-27
  *      Author: salmon
  */
-//#include <set>
 #include "../../mesh/MeshBase.h"
-//#include "../../mesh/MeshAtlas.h"
 #include "../../gtl/PrettyStream.h"
 #include "../../gtl/nTupleExt.h"
-#include "../Field.h"
 #include "../../manifold/pre_define/PreDefine.h"
 #include "../../mesh/MeshAtlas.h"
+
+#include "../Field.h"
 
 
 using namespace simpla;

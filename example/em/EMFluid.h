@@ -28,12 +28,9 @@ public:
     typedef TM mesh_type;
     typedef typename mesh_type::scalar_type scalar_type;
 
-    mesh_type const *m;
-
-    EMFluid() : m(nullptr) { }
+    EMFluid() { }
 
     virtual ~EMFluid()noexcept { }
-
 
     virtual void next_step(Real dt);
 
@@ -54,7 +51,6 @@ public:
 
 //    std::function< Vec3(Real, point_type const &)   >    J_src_fun;
 
-    typedef simpla::tags::factory_create cr_new;
 
     typedef field_t<scalar_type, FACE> TB;
     typedef field_t<scalar_type, EDGE> TE;
@@ -62,15 +58,15 @@ public:
     typedef field_t<scalar_type, VERTEX> TRho;
     typedef field_t<vector_type, VERTEX> TJv;
 
-    field_t<scalar_type, EDGE> E0/*   */{cr_new(), *this, "E0"};
-    field_t<scalar_type, FACE> B0/*   */{cr_new(), *this, "B0"};
-    field_t<vector_type, VERTEX> B0v/**/{cr_new(), *this, "B0v"};
-    field_t<scalar_type, VERTEX> BB/* */{cr_new(), *this, "BB"};
-    field_t<vector_type, VERTEX> Ev/* */{cr_new(), *this, "Ev"};
-    field_t<vector_type, VERTEX> Bv/* */{cr_new(), *this, "Bv"};
-    field_t<scalar_type, FACE> B1/*   */{cr_new(), *this, "B1"};
-    field_t<scalar_type, EDGE> E1/*   */{cr_new(), *this, "E1"};
-    field_t<scalar_type, EDGE> J1/*   */{cr_new(), *this, "J1"};
+    field_t<scalar_type, EDGE> E0/*   */{*this, std::make_tuple("E0")};
+    field_t<scalar_type, FACE> B0/*   */{*this, "B0"};
+    field_t<vector_type, VERTEX> B0v/**/{*this, "B0v"};
+    field_t<scalar_type, VERTEX> BB/* */{*this, "BB"};
+    field_t<vector_type, VERTEX> Ev/* */{*this, "Ev"};
+    field_t<vector_type, VERTEX> Bv/* */{*this, "Bv"};
+    field_t<scalar_type, FACE> B1/*   */{*this, "B1"};
+    field_t<scalar_type, EDGE> E1/*   */{*this, "E1"};
+    field_t<scalar_type, EDGE> J1/*   */{*this, "J1"};
 
     field_t<scalar_type, VERTEX> rho0{m};
 
@@ -89,9 +85,10 @@ public:
     add_particle(std::string const &name, Real mass, Real charge)
     {
         return fluid_sp.emplace(
-                std::make_pair(name, fluid_s{mass, charge,
-                                             TRho{cr_new(), *this, "n_" + name},
-                                             TJv{cr_new(), *this, "J_" + name}}));
+                std::make_pair(name,
+                               fluid_s{mass, charge,
+                                       TRho{*this, "n_" + name},
+                                       TJv{*this, "J_" + name}}));
 
     }
 
@@ -99,17 +96,9 @@ public:
 };
 
 
-template<typename TM>
-void EMFluid<TM>::tear_down()
-{
-}
+template<typename TM> void EMFluid<TM>::tear_down() { }
 
-template<typename TM>
-io::IOStream &EMFluid<TM>::check_point(io::IOStream &os) const
-{
-    return os;
-
-}
+template<typename TM> io::IOStream &EMFluid<TM>::check_point(io::IOStream &os) const { return os; }
 
 template<typename TM>
 void EMFluid<TM>::next_step(Real dt)
@@ -117,28 +106,21 @@ void EMFluid<TM>::next_step(Real dt)
 
     DEFINE_PHYSICAL_CONST
 
-
     LOGGER << " Time = [" << time() << "] Count = [" << step_count() << "]" << std::endl;
-
 
     J1.clear();
 
 //    J1.accept(J_src, [&](id_type s, Real &v) { J1.add(s, J_src_fun(time(), m->point(s))); });
 
-
     LOG_CMD(B1 -= curl(E1) * (dt * 0.5));
 
     B1.accept(face_boundary, [&](id_type, Real &v) { v = 0; });
-
 
     LOG_CMD(E1 += (curl(B1) * speed_of_light2 - J1 / epsilon0) * dt);
 
     E1.accept(edge_boundary, [&](id_type, Real &v) { v = 0; });
 
-
     field_t<vector_type, VERTEX> dE{m};
-
-
 
     //particle::absorb(ion, limiter_boundary);
     if (fluid_sp.size() > 0)

@@ -41,7 +41,8 @@ public :
     {
     }
 
-    RangeAdapter(this_type const &other) : m_holder_(other.m_holder_->clone()) { }
+    RangeAdapter(this_type const &other) : m_holder_(
+            other.m_holder_ == nullptr ? nullptr : other.m_holder_->clone()) { }
 
     RangeAdapter(this_type &&other) : m_holder_(other.m_holder_) { }
 

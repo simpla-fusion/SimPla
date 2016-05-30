@@ -19,18 +19,16 @@ class MeshAtlas;
 
 class MeshBase : public base::Object
 {
-    MeshBlockId m_id_;
     int m_level_;
     unsigned long m_status_flag_ = 0;
 public:
 
     SP_OBJECT_HEAD(mesh::MeshBase, base::Object);
 
+
     MeshBase() { }
 
     ~MeshBase() { }
-
-    MeshBlockId const &id() const { return m_id_; }
 
     int level() const { return m_level_; }
 
@@ -76,7 +74,6 @@ public:
 
     }
 
-    MeshAtlas *m_atlas;
 };
 
 }}//namespace simpla{namespace mesh{

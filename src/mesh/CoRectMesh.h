@@ -17,7 +17,7 @@
 #include "../gtl/nTupleExt.h"
 #include "../gtl/PrettyStream.h"
 #include "../gtl/type_traits.h"
-
+#include "../gtl/Log.h"
 
 #include "Mesh.h"
 #include "MeshBase.h"
