@@ -22,7 +22,7 @@ namespace simpla { namespace mesh
 /**
  *  PlaceHolder class of MeshAttribute
  */
-struct MeshAttribute : public base::Object
+struct MeshAttribute : public base::Object, public Acceptor
 {
     SP_OBJECT_HEAD(MeshAttribute, base::Object)
 

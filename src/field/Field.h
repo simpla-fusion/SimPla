@@ -115,7 +115,7 @@ public:
 
             if (m_range_.empty())
             {
-                m_range_ = m_mesh_->range(entity_type());
+                m_mesh_->range(entity_type()).swap(m_range_);
             }
         }
         return success;
@@ -179,7 +179,11 @@ public:
 
     inline value_type &get(mesh::MeshEntityId const &s) { return m_data_.get()[m_mesh_->hash(s)]; }
 
-    inline value_type const &get(mesh::MeshEntityId const &s) const { return m_data_.get()[m_mesh_->hash(s)]; }
+    inline value_type const &get(mesh::MeshEntityId const &s) const
+    {
+        size_t n = m_mesh_->hash(s);
+        return m_data_.get()[n];
+    }
 
     inline value_type &operator[](mesh::MeshEntityId const &s) { return get(s); }
 

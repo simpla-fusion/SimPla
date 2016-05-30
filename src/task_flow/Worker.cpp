@@ -20,11 +20,20 @@ Worker::Worker(mesh::MeshBase const &msh) : m(&msh) { };
 
 Worker::~Worker() { teardown(); }
 
+void Worker::setup() { };
 
-io::IOStream &Worker::check_point(io::IOStream &os) const
+void Worker::teardown() { };
+
+std::shared_ptr<Worker> Worker::clone(mesh::MeshBase const &) const
 {
     UNIMPLEMENTED;
-    return os;
+    return std::shared_ptr<Worker>(nullptr);
+};
+
+io::IOStream &Worker::load(io::IOStream &is) const
+{
+    UNIMPLEMENTED;
+    return is;
 }
 
 
@@ -37,11 +46,48 @@ io::IOStream &Worker::save(io::IOStream &os) const
     return os;
 }
 
-
-io::IOStream &Worker::load(io::IOStream &is) const
+io::IOStream &Worker::check_point(io::IOStream &os) const
 {
     UNIMPLEMENTED;
-    return is;
+    return os;
 }
 
+
+std::ostream &Worker::print(std::ostream &os, int indent) const
+{
+    return os;
+}
+
+
+bool Worker::view(mesh::MeshBase const &other)
+{
+    m = &other;
+    for (auto &item:m_attr_) { }
+    UNIMPLEMENTED;
+};
+
+
+void Worker::view(mesh::MeshBlockId const &) { }
+
+void Worker::update_ghost_from(mesh::MeshBase const &other) { };
+
+bool Worker::same_as(mesh::MeshBase const &) const { return false; };
+
+std::vector<mesh::box_type> Worker::refine_boxes() const { return std::vector<mesh::box_type>(); }
+
+void Worker::refine(mesh::MeshBase const &other) { };
+
+bool Worker::coarsen(mesh::MeshBase const &other) { return false; };
+
+io::IOStream &Worker::check_point(io::IOStream &os) const;
+
+io::IOStream &Worker::save(io::IOStream &os) const;
+
+io::IOStream &Worker::load(io::IOStream &is) const;
+
+void Worker::next_step(Real dt)
+{
+    m_time_ += dt;
+    ++m_step_count_;
+}
 }}//namespace simpla { namespace task_flow

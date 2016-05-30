@@ -16,19 +16,20 @@
 #include "../mesh/MeshAttribute.h"
 
 
-namespace simpla { namespace io { struct IOStream; }}
-
-namespace simpla { namespace mesh
+namespace simpla
 {
-struct MeshAttribute;
+namespace io { struct IOStream; }
 
+namespace mesh
+{
 class MeshBase;
-}}
 
+class MeshAttribute;
+} //namespace mesh
+} //namespace simpla
 
 namespace simpla { namespace task_flow
 {
-
 
 class Worker : public base::Object
 {
@@ -42,37 +43,29 @@ public:
 
     virtual  ~Worker()noexcept;
 
-    virtual std::ostream &print(std::ostream &os, int indent = 1) const { return os; }
+    virtual std::ostream &print(std::ostream &os, int indent = 1) const;
 
-    virtual std::shared_ptr<Worker> clone(mesh::MeshBase const &) const
-    {
-        UNIMPLEMENTED;
-        return std::shared_ptr<Worker>(nullptr);
-    };
+    virtual std::shared_ptr<Worker> clone(mesh::MeshBase const &) const;
 
-    virtual bool view(mesh::MeshBase const &other)
-    {
-        m = &other;
-        for (auto &item:m_attr_)
-        {
-            //DO STD
-        }
-        UNIMPLEMENTED;
-    };
+    virtual bool view(mesh::MeshBase const &other);
 
-    virtual void update_ghost_from(mesh::MeshBase const &other) { };
+    virtual void view(mesh::MeshBlockId const &);
 
-    virtual bool same_as(mesh::MeshBase const &) const { return false; };
+    virtual void update_ghost_from(mesh::MeshBase const &other);
 
-    virtual std::vector<mesh::box_type> refine_boxes() const { return std::vector<mesh::box_type>(); };
+    virtual bool same_as(mesh::MeshBase const &) const;
 
-    virtual void refine(mesh::MeshBase const &other) { };
+    virtual std::vector<mesh::box_type> refine_boxes() const;
 
-    virtual bool coarsen(mesh::MeshBase const &other) { return false; };
+    virtual void refine(mesh::MeshBase const &other);
 
-    virtual void setup() { };
+    virtual bool coarsen(mesh::MeshBase const &other);
 
-    virtual void teardown() { };
+    virtual void setup();
+
+    virtual void teardown();
+
+    virtual void next_step(Real dt);
 
     virtual io::IOStream &check_point(io::IOStream &os) const;
 
@@ -80,13 +73,8 @@ public:
 
     virtual io::IOStream &load(io::IOStream &is) const;
 
-    virtual void view(mesh::MeshBlockId const &) { }
 
-    virtual void next_step(Real dt)
-    {
-        m_time_ += dt;
-        ++m_step_count_;
-    }
+
     //------------------------------------------------------------------------------------------------------------------
     /**
      * factory concept
@@ -100,7 +88,7 @@ public:
         {
             m_attr_.emplace(std::make_pair(s, std::make_shared<mesh::MeshAttribute>()));
         }
-        return std::move(*(m_attr_[s]->template add<TF>(m, std::forward<Args>(args)...)));
+        return TF(*(m_attr_[s]->template add<TF>(m, std::forward<Args>(args)...)));
     }
 
 private:

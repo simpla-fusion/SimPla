@@ -322,6 +322,8 @@ std::string make_msg(Others const &...others)
 #define NEED_OPTIMIZATION logger::Logger(logger::LOG_VERBOSE) <<FILE_LINE_STAMP << "This function should be optimized!"<<std::endl
 
 #define UNIMPLEMENTED  logger::Logger(logger::LOG_WARNING)<< FILE_LINE_STAMP<<   "Sorry, this function is not implemented. Try again next year, good luck! "
+
+
 #define OBSOLETE  logger::Logger(logger::LOG_WARNING)  <<FILE_LINE_STAMP \
               << "The function ["<< __PRETTY_FUNCTION__ << "] is obsolete. Please do not use  it any more."
 

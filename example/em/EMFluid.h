@@ -58,7 +58,7 @@ public:
     typedef field_t<scalar_type, VERTEX> TRho;
     typedef field_t<vector_type, VERTEX> TJv;
 
-    field_t<scalar_type, EDGE> E0/*   */{*this, std::make_tuple("E0")};
+    field_t<scalar_type, EDGE> E0/*   */{*this, "E0"};
     field_t<scalar_type, FACE> B0/*   */{*this, "B0"};
     field_t<vector_type, VERTEX> B0v/**/{*this, "B0v"};
     field_t<scalar_type, VERTEX> BB/* */{*this, "BB"};

@@ -77,10 +77,10 @@ int main(int argc, char **argv)
 
     auto phy_solver = ctx.register_solver<EMFluid<mesh_type>>(*mesh);
 
-    if (!phy_solver->view(*mesh))
-    {
-        RUNTIME_ERROR << "Fail to set WORKER to MESH!!" << std::endl;
-    };
+//    if (!phy_solver->view(*mesh))
+//    {
+//        RUNTIME_ERROR << "Fail to set WORKER to MESH!!" << std::endl;
+//    };
 
 
     try

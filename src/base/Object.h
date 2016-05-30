@@ -82,7 +82,7 @@ namespace simpla { namespace base
  **/
 
 
-class Object : public Acceptor
+class Object
 {
 public:
     Object();
