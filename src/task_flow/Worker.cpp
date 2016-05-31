@@ -41,7 +41,7 @@ io::IOStream &Worker::save(io::IOStream &os) const
 {
     for (auto const &item:m_attr_)
     {
-//        os.write(item.first, item.second->get_dataset());
+//        os.write(item.first, item.second->data_set());
     }
     return os;
 }

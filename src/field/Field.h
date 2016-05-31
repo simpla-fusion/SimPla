@@ -107,7 +107,7 @@ public:
         }
         else if (m_data_ == nullptr)
         {
-            size_t m_size = m_mesh_->size(entity_type());
+            size_t m_size = m_mesh_->full_range(entity_type()).size();
 
             m_data_ = sp_alloc_array<value_type>(m_size);
 
@@ -143,13 +143,24 @@ public:
 
     virtual mesh::MeshEntityRange const &range() const { return m_range_; };
 
-    virtual data_model::DataSet get_dataset() const
+    virtual data_model::DataSet data_set() const
     {
-        UNIMPLEMENTED;
-        return data_model::DataSet();
+
+        data_model::DataSet res;
+
+        res.data_type = data_model::DataType::create<value_type>();
+
+        res.data = std::shared_ptr<void>(m_data_.get(), tags::do_nothing());
+
+        std::tie(res.memory_space, res.data_space) = m_mesh_->data_space(entity_type());
+
+        return std::move(res);
     };
 
-    virtual void set_dataset(data_model::DataSet const &) { UNIMPLEMENTED; };
+    virtual void data_set(data_model::DataSet const &)
+    {
+        UNIMPLEMENTED;
+    };
 
     template<typename TFun> void accept(mesh::MeshEntityRange const &, TFun const) { UNIMPLEMENTED; }
 

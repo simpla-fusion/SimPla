@@ -33,7 +33,7 @@ public:
 
     static std::string class_name() { return "Cartesian"; }
 
-    void deploy() { m_.deploy(); }
+    void deploy() {}
 
     std::ostream &print(std::ostream &os, int indent = 1) const
     {

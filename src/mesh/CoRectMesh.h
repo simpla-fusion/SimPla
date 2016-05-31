@@ -89,9 +89,13 @@ public:
 
     vector_type m_dx_{{1, 1, 1}}, m_inv_dx_{{1, 1, 1}}; //!< width of cell, except m_dx_[i]=0 when m_dims_[i]==1
 
-    index_tuple m_dims_{{10, 10, 10}}, m_shape_{{10, 10, 10}};
+    index_tuple m_dims_{{10, 10, 10}};
 
     index_tuple m_lower_{{0, 0, 0}}, m_upper_{{10, 10, 10}};
+
+    index_tuple m_ghost_width_{{2, 2, 2}};
+
+    index_tuple m_offset_{{0, 0, 0}};
 
     typedef MeshEntityIdCoder m;
 
@@ -113,7 +117,7 @@ public:
         os
         << std::setw(indent) << " "
         << "Topology = { Type = \"CoRectMesh\", "
-        << "Dimensions = " << dims() << " }," << std::endl
+        << "Dimensions = " << dimensions() << " offset = " << offset() << " }," << std::endl
         << std::setw(indent) << " " << "Box = " << box() << "," << std::endl;
 
         return os;
@@ -125,7 +129,8 @@ public:
     virtual MeshEntityRange range(MeshEntityType entityType = VERTEX) const
     {
         //FIXME "THIS IS A DUMMY FUNCTION"
-        return MeshEntityRange(MeshEntityIdCoder::make_range(m_lower_, m_upper_, entityType));
+        return MeshEntityRange(
+                MeshEntityIdCoder::make_range(m_ghost_width_, m_ghost_width_ + m_dims_, entityType));
     };
 
     virtual MeshEntityRange full_range(MeshEntityType entityType = VERTEX) const
@@ -134,11 +139,6 @@ public:
         return MeshEntityRange(MeshEntityIdCoder::make_range(m_lower_, m_upper_, entityType));
 
     };
-
-    virtual size_t size(MeshEntityType entityType = VERTEX) const
-    {
-        return max_hash(entityType);
-    }
 
     virtual size_t max_hash(MeshEntityType entityType = VERTEX) const
     {
@@ -207,7 +207,17 @@ public:
     }
 
 //================================================================================================
-    void dimensions(index_tuple const &dim) { m_dims_ = dim; }
+    void dimensions(index_tuple const &d) { m_dims_ = d; }
+
+    index_tuple const &dimensions() const { return m_dims_; }
+
+    void offset(index_tuple const &d) { m_offset_ = d; }
+
+    index_tuple const &offset() const { return m_offset_; }
+
+    void ghost_width(index_tuple const &d) { m_ghost_width_ = d; }
+
+    index_tuple const &ghost_width() const { return m_ghost_width_; }
 
     template<typename X0, typename X1>
     void box(X0 const &x0, X1 const &x1)
@@ -216,13 +226,11 @@ public:
         m_coords_upper_ = x1;
     }
 
+    box_type box() { return box_type{m_coords_lower_, m_coords_upper_}; }
 
     void box(box_type const &b) { std::tie(m_coords_lower_, m_coords_upper_) = b; }
 
-
     vector_type const &dx() const { return m_dx_; }
-
-    index_tuple dims() const { return m_upper_ - m_lower_; }
 
 
 private:
@@ -263,13 +271,19 @@ public:
              *
              *\endverbatim
              */
-        m_dims_[0] = (m_dims_[0] < 1) ? 1 : m_dims_[0];
-        m_dims_[1] = (m_dims_[1] < 1) ? 1 : m_dims_[1];
-        m_dims_[2] = (m_dims_[2] < 1) ? 1 : m_dims_[2];
+        for (int i = 0; i < ndims; ++i)
+        {
 
-        m_dx_[0] = (m_coords_upper_[0] - m_coords_lower_[0]) / static_cast<Real>( m_dims_[0]);
-        m_dx_[1] = (m_coords_upper_[1] - m_coords_lower_[1]) / static_cast<Real>( m_dims_[1]);
-        m_dx_[2] = (m_coords_upper_[2] - m_coords_lower_[2]) / static_cast<Real>( m_dims_[2]);
+            m_dims_[i] = (m_dims_[i] > 0) ? m_dims_[i] : 1;
+
+            m_lower_[i] = 0;
+
+            m_upper_[i] = m_dims_[i] + m_ghost_width_[i] * 2;
+
+            m_dx_[i] = (m_coords_upper_[i] - m_coords_lower_[i]) / static_cast<Real>( m_dims_[i]);
+
+            m_inv_dx_[i] = 1.0 / m_dx_[i];
+        }
 
 
         m_volume_[0 /*000*/] = 1;
@@ -292,9 +306,9 @@ public:
         m_dual_volume_[7 /*110*/] = m_volume_[0];
 
 
-        m_inv_dx_[0] = (m_dims_[0] = 1) ? 1 : 1 / m_dx_[0];
-        m_inv_dx_[1] = (m_dims_[1] = 1) ? 1 : 1 / m_dx_[1];
-        m_inv_dx_[2] = (m_dims_[2] = 1) ? 1 : 1 / m_dx_[2];
+        m_inv_dx_[0] = (m_dims_[0] == 1) ? 1 : 1 / m_dx_[0];
+        m_inv_dx_[1] = (m_dims_[1] == 1) ? 1 : 1 / m_dx_[1];
+        m_inv_dx_[2] = (m_dims_[2] == 1) ? 1 : 1 / m_dx_[2];
 
 
         m_inv_volume_[0 /*000*/] = 1;
@@ -317,17 +331,52 @@ public:
         m_inv_dual_volume_[7 /*110*/] = m_inv_volume_[0];
 
 
-        m_inv_dx_[0] = (m_dims_[0] = 1) ? 0 : m_inv_dx_[0];
-        m_inv_dx_[1] = (m_dims_[1] = 1) ? 0 : m_inv_dx_[1];
-        m_inv_dx_[2] = (m_dims_[2] = 1) ? 0 : m_inv_dx_[2];
+        m_inv_dx_[0] = (m_dims_[0] == 1) ? 0 : m_inv_dx_[0];
+        m_inv_dx_[1] = (m_dims_[1] == 1) ? 0 : m_inv_dx_[1];
+        m_inv_dx_[2] = (m_dims_[2] == 1) ? 0 : m_inv_dx_[2];
 
 
-        m_inv_volume_[1 /*001*/] = (m_dims_[0] = 1) ? 0 : m_inv_dx_[0];
-        m_inv_volume_[2 /*010*/] = (m_dims_[1] = 1) ? 0 : m_inv_dx_[1];
-        m_inv_volume_[4 /*100*/] = (m_dims_[2] = 1) ? 0 : m_inv_dx_[2];
+        m_inv_volume_[1 /*001*/] = (m_dims_[0] == 1) ? 0 : m_inv_dx_[0];
+        m_inv_volume_[2 /*010*/] = (m_dims_[1] == 1) ? 0 : m_inv_dx_[1];
+        m_inv_volume_[4 /*100*/] = (m_dims_[2] == 1) ? 0 : m_inv_dx_[2];
 
 
     }
+
+
+    virtual std::tuple<data_model::DataSpace, data_model::DataSpace> data_space(MeshEntityType const &t) const
+    {
+        int f_ndims = (t == EDGE || t == FACE) ? (ndims + 1) : ndims;
+
+        nTuple<size_t, ndims + 1> f_dims, f_count, f_start;
+        nTuple<size_t, ndims + 1> m_dims, m_count, m_start;
+
+        f_dims = m_dims_ + m_offset_;
+        f_start = m_offset_;
+        f_count = m_dims_;
+        f_dims[ndims] = 3;
+        f_start[ndims] = 0;
+        f_count[ndims] = 3;
+
+
+        data_model::DataSpace f_space(f_ndims, &f_dims[0]);
+        f_space.select_hyperslab(&f_start[0], nullptr, &f_count[0], nullptr);
+
+        m_dims = m_upper_;
+        m_start = m_lower_;
+        m_count = m_dims_;
+        m_dims[ndims] = 3;
+        m_start[ndims] = 0;
+        m_count[ndims] = 3;
+
+
+        data_model::DataSpace m_space(f_ndims, &f_dims[0]);
+        m_space.select_hyperslab(&m_start[0], nullptr, &m_count[0], nullptr);
+
+        return std::forward_as_tuple(m_space, f_space);
+
+    };
+
 
 //    int get_vertices(int node_id, id_type s, point_type *p = nullptr) const
 //    {

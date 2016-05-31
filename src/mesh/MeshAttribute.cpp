@@ -11,13 +11,13 @@
 
 namespace simpla { namespace mesh
 {
-//data_model::DataSet MeshAttribute::get_dataset() const
+//data_model::DataSet MeshAttribute::data_set() const
 //{
 //    UNIMPLEMENTED;
 //    return data_model::DataSet();
 //}
 //
-//void mesh::MeshAttribute::set_dataset(data_model::DataSet const &)
+//void mesh::MeshAttribute::data_set(data_model::DataSet const &)
 //{
 //    UNIMPLEMENTED;
 //}

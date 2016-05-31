@@ -69,9 +69,9 @@ public:
 
         virtual MeshEntityRange const &range() const = 0;
 
-        virtual data_model::DataSet get_dataset() const = 0;
+        virtual data_model::DataSet data_set() const = 0;
 
-        virtual void set_dataset(data_model::DataSet const &) = 0;
+        virtual void data_set(data_model::DataSet const &) = 0;
     };
 
     /** register MeshBlockId to attribute data collection.  */
@@ -134,7 +134,7 @@ public:
     {
         try
         {
-            return m_attrs_.at(id)->get_dataset();
+            return m_attrs_.at(id)->data_set();
 
         }
         catch (std::out_of_range const &)
@@ -148,7 +148,7 @@ public:
     {
         try
         {
-            return m_attrs_.at(id)->set_dataset(d);
+            return m_attrs_.at(id)->data_set(d);
 
         }
         catch (std::out_of_range const &)
@@ -161,7 +161,7 @@ public:
     {
         for (auto const &item:m_attrs_)
         {
-            res->emplace(std::make_pair(item.first, item.second->get_dataset()));
+            res->emplace(std::make_pair(item.first, item.second->data_set()));
         };
     }
 

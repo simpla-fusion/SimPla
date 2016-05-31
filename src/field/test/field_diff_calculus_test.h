@@ -16,19 +16,19 @@
 #include <string>
 
 #include <gtest/gtest.h>
-//#include "../../io/IO.h"
-#define  SAVE(_F_)  "DUMMY SAVE "  __STRING(_F_)
+#include "../../io/IO.h"
 
+#include "../../gtl/nTuple.h"
+#include "../../gtl/primitives.h"
 #include "../../field/Field.h"
 #include "../../field/FieldExpression.h"
 #include "../../field/FieldTraits.h"
 #include "../../manifold/Calculus.h"
+#include "../../manifold/pre_define/PreDefine.h"
 
-#include "../../gtl/nTuple.h"
-#include "../../gtl/primitives.h"
 
 #include "../../gtl/Log.h"
-#include "../../manifold/pre_define/PreDefine.h"
+#include "../../mesh/MeshBase.h"
 
 
 using namespace simpla;
@@ -62,8 +62,7 @@ protected:
 
         std::tie(xmin, xmax) = box;
 
-
-        mesh  = m.add<mesh_type>();
+        mesh = m.add<mesh_type>();
 
         mesh->dimensions(dims);
 
@@ -73,6 +72,7 @@ protected:
         mesh->box(box);
 
         mesh->deploy();
+
         Vec3 dx = mesh->dx();
 
 
@@ -154,7 +154,6 @@ TEST_P(FETLTest, grad0)
     f1.clear();
 
     f1b.clear();
-
     for (auto const &s :   mesh->range(VERTEX))
     {
         f0[s] = std::sin(q(mesh->point(s)));
@@ -203,7 +202,7 @@ TEST_P(FETLTest, grad0)
     EXPECT_LE(mod(average) / count, error);
 
 #ifndef NDEBUG
-//    io::cd("/grad1/");
+    io::cd("/grad1/");
     LOGGER << SAVE(f0) << std::endl;
     LOGGER << SAVE(f1) << std::endl;
     LOGGER << SAVE(f1b) << std::endl;
@@ -265,7 +264,7 @@ TEST_P(FETLTest, grad3)
     }
 
 #ifndef NDEBUG
-    //io::cd("/grad3/");
+    io::cd("/grad3/");
     LOGGER << SAVE(f3) << std::endl;
     LOGGER << SAVE(f2) << std::endl;
     LOGGER << SAVE(f2b) << std::endl;
@@ -348,7 +347,7 @@ TEST_P(FETLTest, diverge1)
     average /= count;
 
 #ifndef NDEBUG
-    //io::cd("/div1/");
+    io::cd("/div1/");
     LOGGER << SAVE(f1) << std::endl;
     LOGGER << SAVE(f0) << std::endl;
     LOGGER << SAVE(f0b) << std::endl;
@@ -425,7 +424,7 @@ TEST_P(FETLTest, diverge2)
 
 #ifndef NDEBUG
 
-    //io::cd("/div2/");
+    io::cd("/div2/");
     LOGGER << SAVE(f2) << std::endl;
     LOGGER << SAVE(f3) << std::endl;
     LOGGER << SAVE(f3b) << std::endl;
@@ -469,7 +468,7 @@ TEST_P(FETLTest, curl1)
     };
 
 
-   // f1.sync();
+    // f1.sync();
 
     LOG_CMD(f2 = curl(f1));
 
@@ -540,7 +539,7 @@ TEST_P(FETLTest, curl1)
     }
 
 #ifndef NDEBUG
-    //io::cd("/curl1/");
+    io::cd("/curl1/");
     LOGGER << SAVE(f1) << std::endl;
     LOGGER << SAVE(f2) << std::endl;
     LOGGER << SAVE(f2b) << std::endl;
@@ -728,7 +727,7 @@ TEST_P(FETLTest, identity_curl_grad_f3_eq_0)
         f3[s] = a * one;
         m += a * a;
     }
-   // f3.sync();
+    // f3.sync();
 
     m = std::sqrt(m) * mod(one);
 

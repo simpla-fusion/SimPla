@@ -48,7 +48,7 @@ int main(int argc, char **argv)
 
         pt["t3"].as(&props);
 //        std::cout << props << std::endl;
-        std::cout << "t3=" << props.template as<nTuple<double, 2, 3> >() << std::endl;
+        std::cout << "t3=" << props.template as<Matrix<double, 2, 3> >() << std::endl;
 
     }
 //    for (int i = 0; i < 10; ++i)

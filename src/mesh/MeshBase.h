@@ -23,12 +23,11 @@ class MeshBase : public base::Object
     unsigned long m_status_flag_ = 0;
 public:
 
-    SP_OBJECT_HEAD(mesh::MeshBase, base::Object);
-
+    SP_OBJECT_HEAD(MeshBase, base::Object);
 
     MeshBase() { }
 
-    ~MeshBase() { }
+    virtual    ~MeshBase() { }
 
     int level() const { return m_level_; }
 
@@ -73,6 +72,8 @@ public:
         return num;
 
     }
+
+    virtual std::tuple<data_model::DataSpace, data_model::DataSpace> data_space(MeshEntityType const &t) const = 0;
 
 };
 

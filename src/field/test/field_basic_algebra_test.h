@@ -34,7 +34,7 @@ protected:
     {
         logger::set_stdout_level(10);
 
-        mesh= m.add<mesh_type>();
+        mesh = m.add<mesh_type>();
 
         index_tuple dims = {10, 1, 1};
 

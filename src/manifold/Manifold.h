@@ -169,7 +169,8 @@ private:
 public:
     virtual void deploy()
     {
-        deploy_dispatch<mesh_type, Policies<mesh_type>...>();
+        mesh_type::deploy();
+        deploy_dispatch<Policies<mesh_type>...>();
         this->touch();
     }
 

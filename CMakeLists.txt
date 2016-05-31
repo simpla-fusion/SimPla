@@ -235,27 +235,25 @@ ADD_DEFINITIONS(-DNO_XDMF)
 #    set(BOOST_ROOT "${install_dir}" CACHE INTERNAL "")
 #    find_package(Boost 1.58.0)
 #endif ()
-
-
-#IF (DEFINED ENV{HDF5_ROOT})
-#  INCLUDE(${GTEST_ROOT})
-#  INCLUDE_DIRECTORIES(${GTEST_ROOT}/include)
-#ELSE (DEFINED ENV{HDF5_ROOT})
-#ExternalProject_Add(googletest
-#        PREFIX ${PROJECT_BINARY_DIR}/external_project
-#        #  URL   http://googletest.googlecode.com/files/gtest-1.7.0.zip
-#        URL file://${CMAKE_SOURCE_DIR}/external_project/src/gtest-1.7.0.zip
-#        SOURCE_DIR ${PROJECT_BINARY_DIR}/external_project/googletest
-#        INSTALL_COMMAND "")
-#ExternalProject_Get_Property(googletest SOURCE_DIR)
-#ExternalProject_Get_Property(googletest BINARY_DIR)
-#INCLUDE_DIRECTORIES(${SOURCE_DIR}/include)
-#LINK_DIRECTORIES(${BINARY_DIR})
-#ENDIF(DEFINED ENV{HDF5_ROOT})
-
-
 enable_testing()
+FIND_PACKAGE(GTest)
+
+IF (NOT ${GTEST_FOUND})
+
+    ExternalProject_Add(googletest
+            PREFIX ${PROJECT_BINARY_DIR}/external_project
+            #  URL   http://googletest.googlecode.com/files/gtest-1.7.0.zip
+            URL file://${CMAKE_SOURCE_DIR}/external_project/src/gtest-1.7.0.zip
+            SOURCE_DIR ${PROJECT_BINARY_DIR}/external_project/googletest
+            INSTALL_COMMAND "")
+    ExternalProject_Get_Property(googletest GTEST_ROOT)
+    ExternalProject_Get_Property(googletest GTEST_ROOT_BINARY_DIR)
+
+    LINK_DIRECTORIES(${BINARY_DIR})
+ENDIF (NOT ${GTEST_FOUND})
+
 FIND_PACKAGE(GTest REQUIRED)
+
 include_directories(${GTEST_INCLUDE_DIRS})
 #FIND_PACKAGE(CUDA 7.0)
 
@@ -273,6 +271,8 @@ ADD_DEFINITIONS(-DIDENTIFY=\"${PROJECT_IDENTIFY}\")
 # workaround for CLion 1.0.x
 FILE(GLOB_RECURSE clion_all_headers ${CMAKE_SOURCE_DIR}/*.h)
 add_executable(all_clion ${clion_all_headers} src/dummy.h src/dummy.cpp tools/geqdsk_convert.cpp)
+
+ADD_CUSTOM_TARGET(alltest)
 
 add_subdirectory(src)
 add_subdirectory(example)

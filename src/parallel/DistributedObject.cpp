@@ -113,7 +113,7 @@ void DistributedObject::sync()
 
             ds.memory_space = data_model::DataSpace(1, &s_recv_num);
 
-            ds.data_space = ds.memory_space;
+//            ds.data_space = ds.memory_space;
 
             MPIDataType::create(ds.data_type).swap(pimpl_->m_mpi_dtype_[count]);
 
