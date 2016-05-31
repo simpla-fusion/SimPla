@@ -12,13 +12,9 @@ ADD_SUBDIRECTORY(data_model)
 
 ADD_SUBDIRECTORY(physics)
 
-
 ADD_SUBDIRECTORY(model)
 
 ADD_SUBDIRECTORY(mesh)
-
-ADD_SUBDIRECTORY(solver)
-
 
 ADD_SUBDIRECTORY(manifold)
 

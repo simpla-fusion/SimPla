@@ -72,8 +72,9 @@ int main(int argc, char **argv)
 
 
     task_flow::Context ctx;
+    mesh::MeshAtlas atlas;
 
-    auto mesh = ctx.m.add<mesh_type>();
+    auto mesh = atlas.add<mesh_type>();
 
     auto phy_solver = ctx.register_solver<EMFluid<mesh_type>>(*mesh);
 

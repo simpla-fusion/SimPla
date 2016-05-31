@@ -93,7 +93,7 @@ public:
 
     index_tuple m_lower_{{0, 0, 0}}, m_upper_{{10, 10, 10}};
 
-    index_tuple m_ghost_width_{{2, 2, 2}};
+    index_tuple m_ghost_width_{{0, 0, 0}};
 
     index_tuple m_offset_{{0, 0, 0}};
 
@@ -133,7 +133,7 @@ public:
                 MeshEntityIdCoder::make_range(m_ghost_width_, m_ghost_width_ + m_dims_, entityType));
     };
 
-    virtual MeshEntityRange full_range(MeshEntityType entityType = VERTEX) const
+    virtual MeshEntityRange outer_range(MeshEntityType entityType = VERTEX) const
     {
         //FIXME "THIS IS A DUMMY FUNCTION"
         return MeshEntityRange(MeshEntityIdCoder::make_range(m_lower_, m_upper_, entityType));

@@ -283,7 +283,7 @@ void DistributedObject::add(data_model::DataSet ds)
             }
             catch (std::exception const &error)
             {
-                RUNTIME_ERROR << "add coommnication link error" << error.what() << std::endl;
+                RUNTIME_ERROR << "add communication link error" << error.what() << std::endl;
 
             }
         }

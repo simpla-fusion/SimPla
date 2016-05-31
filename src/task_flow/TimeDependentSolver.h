@@ -6,6 +6,7 @@
 #define SIMPLA_AMR_H
 
 #include "../mesh/MeshAtlas.h"
+#include "../mesh/MeshAttribute.h"
 
 namespace simpla { namespace solver
 {

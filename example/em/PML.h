@@ -5,54 +5,62 @@
 #ifndef SIMPLA_PML_H
 #define SIMPLA_PML_H
 
-#include "../gtl/Log.h"
-#include "../gtl/primitives.h"
-#include "../physics/PhysicalConstants.h"
-#include "../field/Field.h"
-#include "../manifold/Calculus.h"
-#include "../task_flow/Context.h"
+#include "../../src/gtl/Log.h"
+#include "../../src/gtl/primitives.h"
+#include "../../src/physics/PhysicalConstants.h"
+#include "../../src/field/Field.h"
+#include "../../src/manifold/Calculus.h"
+#include "../../src/task_flow/Context.h"
 
-namespace simpla { namespace phy_solver
+namespace simpla
 {
-using namespace field;
+using namespace mesh;
 
 /**
  *  @ingroup FieldSolver
  *  @brief absorb boundary condition, PML
  */
 template<typename TM>
-class PML : public task_flow::Context::Worker
+class PML : public task_flow::Worker
 {
+    typedef task_flow::Worker base_type;
     typedef TM mesh_type;
+public:
+    template<typename ValueType, size_t IFORM> using field_t =  Field<ValueType, TM, std::integral_constant<size_t, IFORM> >;;
+
     typedef typename mesh_type::scalar_type scalar_type;
     typedef typename mesh_type::point_type point_type;
 
-
-    mesh_type const &m_mesh_;
-    Field<scalar_type, mesh_type, mesh::EDGE> E{*this, "E"};
-    Field<scalar_type, mesh_type, mesh::FACE> B{*this, "B"};
+    field_t<scalar_type, mesh::EDGE> E{*this, "E"};
+    field_t<scalar_type, mesh::FACE> B{*this, "B"};
 
 
-    Field<scalar_type, mesh_type, mesh::EDGE> X10, X11, X12;
-    Field<scalar_type, mesh_type, mesh::FACE> X20, X21, X22;
+    field_t<scalar_type, mesh::EDGE> X10{m}, X11{m}, X12{m};
+    field_t<scalar_type, mesh::FACE> X20{m}, X21{m}, X22{m};
 
     // alpha
-    Field<scalar_type, mesh_type, mesh::VERTEX> a0{*this, "PML_a0"};
-    Field<scalar_type, mesh_type, mesh::VERTEX> a1{*this, "PML_a1"};
-    Field<scalar_type, mesh_type, mesh::VERTEX> a2{*this, "PML_a2"};
+    field_t<scalar_type, mesh::VERTEX> a0{*this, "PML_a0"};
+    field_t<scalar_type, mesh::VERTEX> a1{*this, "PML_a1"};
+    field_t<scalar_type, mesh::VERTEX> a2{*this, "PML_a2"};
     // sigma
-    Field<scalar_type, mesh_type, mesh::VERTEX> s0{*this, "PML_s0"};
-    Field<scalar_type, mesh_type, mesh::VERTEX> s1{*this, "PML_s1"};
-    Field<scalar_type, mesh_type, mesh::VERTEX> s2{*this, "PML_s2"};
+    field_t<scalar_type, mesh::VERTEX> s0{*this, "PML_s0"};
+    field_t<scalar_type, mesh::VERTEX> s1{*this, "PML_s1"};
+    field_t<scalar_type, mesh::VERTEX> s2{*this, "PML_s2"};
+
 
 public:
-    PML(task_flow::Context &ctx);
+
+    PML(mesh_type const &mesh);
 
     virtual ~PML();
 
-    virtual void view(mesh::uuid id);
+    virtual void next_step(Real dt);
 
-    virtual void work(Real dt);
+    virtual void setup();
+
+    virtual void tear_down();
+
+    virtual io::IOStream &check_point(io::IOStream &) const;
 
 private:
 
@@ -67,34 +75,21 @@ private:
         return (1.0 + 2.0 * std::pow(r, expN));
     }
 
-    void init();
 
 };
 
-template<typename TM>
-PML<TM>::PML(task_flow::Context &ctx)
-{
-    init();
-}
+template<typename TM> PML<TM>::PML(mesh_type const &m) : base_type(m) { }
 
-template<typename TM>
-PML<TM>::~PML()
-{
-}
+template<typename TM> PML<TM>::~PML() { }
 
-template<typename TM>
-void PML<TM>::view(mesh::uuid id)
-{
-    if (a0.empty()) { init() };
-}
 
-template<typename TM>
-void PML<TM>::init()
+template<typename TM> void
+PML<TM>::setup()
 {
 
     mesh::point_type xmin, xmax;
 
-    std::tie(xmin, xmax) = m_mesh_.box();
+    std::tie(xmin, xmax) = m->box();
 
     LOGGER << "create PML solver [" << xmin << " , " << xmax << " ]";
 
@@ -102,25 +97,25 @@ void PML<TM>::init()
 
     Real dB = 100, expN = 2;
 
-    a0.fill(1.0);
-    a1.fill(1.0);
-    a2.fill(1.0);
-    s0.fill(0.0);
-    s1.fill(0.0);
-    s2.fill(0.0);
-    X10.fill(0.0);
-    X11.fill(0.0);
-    X12.fill(0.0);
-    X20.fill(0.0);
-    X21.fill(0.0);
-    X22.fill(0.0);
+    a0 = 1.0;
+    a1 = 1.0;
+    a2 = 1.0;
+    s0 = 0.0;
+    s1 = 0.0;
+    s2 = 0.0;
+    X10 = 0.0;
+    X11 = 0.0;
+    X12 = 0.0;
+    X20 = 0.0;
+    X21 = 0.0;
+    X22 = 0.0;
 
     point_type ymin, ymax;
-    std::tie(ymin, ymax) = m_mesh_->extents();
+    std::tie(ymin, ymax) = m->box();
 
-    for (auto s : m_mesh_->template domain<mesh::VERTEX>())
+    for (auto s : m->range(mesh::VERTEX))
     {
-        point_type x = m_mesh_->coordinates(s);
+        point_type x = m->point(s);
 
 #define DEF(_N_)                                                                    \
         if (x[_N_] < xmin[_N_])                                                         \
@@ -147,33 +142,39 @@ void PML<TM>::init()
 
 }
 
+template<typename TM> void
+PML<TM>::tear_down() { }
+
+template<typename TM> io::IOStream &
+PML<TM>::check_point(io::IOStream &) const
+{
+
+}
+
 template<typename TM>
-void PML<TM>::work(Real dt)
+void PML<TM>::next_step(Real dt)
 {
     VERBOSE << "PML push E" << std::endl;
 
     DEFINE_PHYSICAL_CONST
 
-    field <scalar_type, mesh_type, mesh::EDGE> dX1{*this};
+    field_t<scalar_type, mesh::EDGE> dX1{*this};
 
-    dX1 = (-2.0 * dt * s0 * X10 + curl_pdx(B) / (mu0 * epsilon0) * dt)
-          / (a0 + s0 * dt);
+    dX1 = (-2.0 * dt * s0 * X10 + curl_pdx(B) / (mu0 * epsilon0) * dt) / (a0 + s0 * dt);
     X10 += dX1;
     E += dX1;
 
-    dX1 = (-2.0 * dt * s1 * X11 + curl_pdy(B) / (mu0 * epsilon0) * dt)
-          / (a1 + s1 * dt);
+    dX1 = (-2.0 * dt * s1 * X11 + curl_pdy(B) / (mu0 * epsilon0) * dt) / (a1 + s1 * dt);
     X11 += dX1;
     E += dX1;
 
-    dX1 = (-2.0 * dt * s2 * X12 + curl_pdz(B) / (mu0 * epsilon0) * dt)
-          / (a2 + s2 * dt);
+    dX1 = (-2.0 * dt * s2 * X12 + curl_pdz(B) / (mu0 * epsilon0) * dt) / (a2 + s2 * dt);
     X12 += dX1;
     E += dX1;
 
     VERBOSE << "PML Push B" << std::endl;
 
-    field <scalar_type, mesh_type, mesh::FACE> dX2{*this};
+    field_t<scalar_type, mesh::FACE> dX2{*this};
 
     dX2 = (-2.0 * dt * s0 * X20 + curl_pdx(E) * dt) / (a0 + s0 * dt);
     X20 += dX2;
@@ -188,7 +189,7 @@ void PML<TM>::work(Real dt)
     B -= dX2;
 
 }
-}} //namespace simpla { namespace solver
+} //namespace simpla
 
 
 #endif //SIMPLA_PML_H

@@ -27,11 +27,6 @@ class MeshAtlas
 {
 
 public:
-    enum MESH_STATUS
-    {
-        LOCAL = 1, // 001
-        ADJACENT = 2, // 010
-    };
 
 //    template<typename T, typename ...Args>
 //    T make_attribute(Args &&...args) const
@@ -53,7 +48,21 @@ public:
 //
 //    std::vector<MeshBlockId> find(int level = 0, int status_flag = 0) { };
 
-    int count(int level = 0, int status_flag = 0) { return 0; };
+    void decompose(int num, int rank);
+
+    void decompose(nTuple<int, size_t> const &dims, nTuple<int, size_t> const &self);
+
+    void load_balance();
+
+    void sync(std::string const &n, int level = 0);
+
+    void sync(int level = 0);
+
+    void refine(int level = 0);
+
+    void coarsen(int level = 0);
+
+    int count(int level = 0, unsigned long status_flag = 0) { return 0; };
 
     bool has(MeshBlockId const &id) const { return m_mesh_atlas_.find(id) != m_mesh_atlas_.end(); }
 

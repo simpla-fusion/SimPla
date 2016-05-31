@@ -25,21 +25,35 @@ public:
 
     SP_OBJECT_HEAD(MeshBase, base::Object);
 
-    MeshBase() { }
+    enum STATUS { LOCAL, ADJOINT, DISJOINT };
+
+    MeshBase() : m_level_(0),m_status_flag_(LOCAL) { }
 
     virtual    ~MeshBase() { }
 
-    int level() const { return m_level_; }
+    int const &level() const { return m_level_; }
+
+    void level(int l) { m_level_ = l; }
+
+    unsigned long const &status() const { return m_status_flag_; }
+
+    void status(unsigned long l) { m_status_flag_ = l; }
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const { return os; }
 
     virtual box_type box() const = 0;
 
+    virtual box_type outer_box() const { return box(); }
+
     virtual MeshEntityRange range(MeshEntityType entityType = VERTEX) const = 0;
 
-    virtual MeshEntityRange full_range(MeshEntityType entityType = VERTEX) const = 0;
+    virtual MeshEntityRange ghost_range(MeshEntityType entityType = VERTEX) const
+    {
+        UNIMPLEMENTED;
+        return MeshEntityRange();
+    };
 
-    virtual size_t size(MeshEntityType entityType = VERTEX) const { return max_hash(entityType); };
+    virtual MeshEntityRange outer_range(MeshEntityType entityType = VERTEX) const = 0;
 
     virtual size_t max_hash(MeshEntityType entityType = VERTEX) const = 0;
 
