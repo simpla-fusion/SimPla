@@ -47,7 +47,7 @@ namespace simpla { namespace mesh
 
 
 
-typedef size_t id_type; //!< Data type  of entity id
+//typedef size_t id_type; //!< Data type  of entity id
 
 typedef nTuple<Real, 3ul> point_type; //!< DataType of configuration space point (coordinates i.e. (x,y,z) )
 

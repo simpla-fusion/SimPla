@@ -134,7 +134,7 @@ public:
 
         if (p != nullptr)
         {
-            id_type neighbour[num];
+            MeshEntityId neighbour[num];
 
             get_adjacent_entities(s, VERTEX, neighbour);
 

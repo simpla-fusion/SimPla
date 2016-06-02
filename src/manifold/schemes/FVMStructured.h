@@ -26,7 +26,8 @@ namespace simpla { namespace manifold { namespace schemes
 using namespace simpla::mesh;
 
 
-template<typename TM, class Enable = void> struct FiniteVolume { };
+template<typename TM, class Enable = void>
+struct FiniteVolume { };
 
 namespace ct=calculus::tags;
 namespace st=simpla::traits;
@@ -44,6 +45,7 @@ struct FiniteVolume<TM, std::enable_if_t<std::is_base_of<mesh::MeshEntityIdCoder
     typedef TM mesh_type;
     mesh_type const &m;
     typedef mesh::MeshEntityIdCoder M;
+    typedef mesh::MeshEntityId id_type;
 public:
     typedef this_type calculus_policy;
 
@@ -63,16 +65,20 @@ public:
 
 public:
 
-    template<typename ...T> inline constexpr traits::value_type_t<Field<T...> >
+    template<typename ...T>
+    inline constexpr traits::value_type_t<Field<T...> >
     eval(Field<T...> &expr, id_type s) const { return eval_(expr, s); }
 
-    template<typename ...T> inline constexpr traits::value_type_t<Field<T...> >
+    template<typename ...T>
+    inline constexpr traits::value_type_t<Field<T...> >
     eval(Field<T...> const &expr, id_type s) const { return eval_(expr, s); }
 
-    template<typename T> inline constexpr T &eval(T &f, id_type s) const { return f; }
+    template<typename T>
+    inline constexpr T &eval(T &f, id_type s) const { return f; }
 
 
-    template<typename T> inline constexpr T const &eval(T const &f, id_type s) const { return f; }
+    template<typename T>
+    inline constexpr T const &eval(T const &f, id_type s) const { return f; }
 
 private:
 
@@ -83,11 +89,13 @@ private:
     ///***************************************************************************************************
 
 
-    template<typename T> inline constexpr T const &
+    template<typename T>
+    inline constexpr T const &
     eval_(T const &v, id_type s, st::is_primary_t<T> *_p = nullptr) const { return v; }
 
 
-    template<typename T> inline constexpr traits::primary_type_t<T>
+    template<typename T>
+    inline constexpr traits::primary_type_t<T>
     eval_(T const &v, id_type s, st::is_expression_ntuple_t<T> *_p = nullptr) const
     {
         traits::primary_type_t<T> res;
@@ -95,11 +103,13 @@ private:
         return std::move(res);
     }
 
-    template<typename TV, typename OM, typename ...Others> inline constexpr
+    template<typename TV, typename OM, typename ...Others>
+    inline constexpr
     typename traits::value_type<Field<TV, OM, Others...>>::type &
     eval_(Field<TV, OM, Others...> &f, id_type s) const { return f[s]; };
 
-    template<typename TV, typename OM, typename ...Others> inline constexpr
+    template<typename TV, typename OM, typename ...Others>
+    inline constexpr
     typename traits::value_type<Field<TV, OM, Others...>>::type const &
     eval_(Field<TV, OM, Others...> const &f, id_type s) const { return f[s]; };
 
@@ -323,7 +333,8 @@ private:
     }
 
 
-    template<typename TV, typename ...Others> constexpr inline
+    template<typename TV, typename ...Others>
+    constexpr inline
     TV
     mapto(Field<nTuple<TV, 3>, Others...> const &expr, id_type s, index_sequence<VERTEX, FACE>) const
     {
@@ -343,7 +354,8 @@ private:
         );
     }
 
-    template<typename TF> constexpr inline
+    template<typename TF>
+    constexpr inline
     traits::value_type_t<TF>
     mapto(TF const &expr, id_type s, index_sequence<VERTEX, VOLUME>) const
     {
@@ -367,7 +379,8 @@ private:
     }
 
 
-    template<typename TF> constexpr inline
+    template<typename TF>
+    constexpr inline
     nTuple<typename traits::value_type<TF>::type, 3>
     mapto(TF const &expr, id_type s, index_sequence<EDGE, VERTEX>) const
     {
@@ -397,7 +410,8 @@ private:
     }
 
 
-    template<typename TF> constexpr inline
+    template<typename TF>
+    constexpr inline
     nTuple<typename traits::value_type<TF>::type, 3>
     mapto(TF const &expr, id_type s, index_sequence<FACE, VERTEX>) const
     {
@@ -429,7 +443,8 @@ private:
     }
 
 
-    template<typename TF> constexpr inline
+    template<typename TF>
+    constexpr inline
     typename traits::value_type<TF>::type
     mapto(TF const &expr, id_type s, index_sequence<VOLUME, VERTEX>) const
     {
@@ -454,7 +469,8 @@ private:
     }
 
 
-    template<typename TF> constexpr inline
+    template<typename TF>
+    constexpr inline
     typename traits::value_type<TF>::type
     mapto(TF const &expr, id_type s, index_sequence<VOLUME, FACE>) const
     {
@@ -465,7 +481,8 @@ private:
     }
 
 
-    template<typename TF> constexpr inline
+    template<typename TF>
+    constexpr inline
     typename traits::value_type<TF>::type
     mapto(TF const &expr, id_type s, index_sequence<VOLUME, EDGE>) const
     {
@@ -484,7 +501,8 @@ private:
     }
 
 
-    template<typename TF> constexpr inline
+    template<typename TF>
+    constexpr inline
     nTuple<typename traits::value_type<TF>::type, 3>
     mapto(TF const &expr, id_type s, index_sequence<FACE, VOLUME>) const
     {
@@ -510,7 +528,8 @@ private:
     }
 
 
-    template<typename TF> constexpr inline
+    template<typename TF>
+    constexpr inline
     nTuple<typename traits::value_type<TF>::type, 3>
     mapto(TF const &expr, id_type s,
           index_sequence<EDGE, VOLUME>) const
@@ -545,7 +564,8 @@ private:
     //***************************************************************************************************
     //
     //! Form<IL> ^ Form<IR> => Form<IR+IL>
-    template<typename ...T, size_t IL, size_t IR> constexpr inline
+    template<typename ...T, size_t IL, size_t IR>
+    constexpr inline
     traits::value_type_t<Field<Expression<ct::Wedge, T...>>>
     eval_(Field<Expression<ct::Wedge, T...>> const &expr, id_type s, index_sequence<IL, IR>) const
     {
@@ -556,7 +576,8 @@ private:
     }
 
 
-    template<typename TL, typename TR> constexpr inline
+    template<typename TL, typename TR>
+    constexpr inline
     traits::value_type_t<Field<Expression<ct::Wedge, TL, TR>>>
     eval_(Field<Expression<ct::Wedge, TL, TR>> const &expr, id_type s, index_sequence<EDGE, EDGE>) const
     {
@@ -572,14 +593,16 @@ private:
     }
 
 
-    template<typename TL, typename TR, size_t I> constexpr inline
+    template<typename TL, typename TR, size_t I>
+    constexpr inline
     traits::value_type_t<Field<Expression<ct::Cross, TL, TR>>>
     eval_(Field<Expression<ct::Cross, TL, TR>> const &expr, id_type s, index_sequence<I, I>) const
     {
         return cross(eval_(std::get<0>(expr.args), s), eval_(std::get<1>(expr.args), s));
     }
 
-    template<typename TL, typename TR, size_t I> constexpr inline
+    template<typename TL, typename TR, size_t I>
+    constexpr inline
     traits::value_type_t<Field<Expression<ct::Dot, TL, TR>>>
     eval_(Field<Expression<ct::Dot, TL, TR>> const &expr, id_type s, index_sequence<I, I>) const
     {
@@ -587,14 +610,16 @@ private:
     }
 
 
-    template<typename ...T, size_t ...I> constexpr inline
+    template<typename ...T, size_t ...I>
+    constexpr inline
     traits::value_type_t<Field<Expression<ct::MapTo, T...> >>
     eval_(Field<Expression<ct::MapTo, T...>> const &expr, id_type s, index_sequence<I...>) const
     {
         return mapto(std::get<0>(expr.args), s, index_sequence<I...>());
     };
 
-    template<typename TOP, typename ...T, size_t ... I> inline constexpr
+    template<typename TOP, typename ...T, size_t ... I>
+    inline constexpr
     typename traits::value_type<Field<Expression<TOP, T...> > >::type
     _invoke_helper(Field<Expression<TOP, T...> > const &expr, id_type s, index_sequence<I...>) const
     {

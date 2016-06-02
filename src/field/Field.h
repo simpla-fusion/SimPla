@@ -232,7 +232,7 @@ public:
     field_value_type
     gather(Args &&...args) const
     {
-        return mesh_type::interpolate_policy::gather(*m_mesh_, *this, std::forward<Args>(args)...);
+        return m_mesh_->gather(*this, std::forward<Args>(args)...);
     }
 
 
@@ -278,7 +278,7 @@ public:
         if (!r.empty()) {
             for (auto const &s: r) {
                 auto x = m_mesh_->point(s);
-                get(s) = m_mesh_->sample(s, op(x, gather(x)));
+                get(s) = m_mesh_->template sample<IFORM>(s, op(x, gather(x)));
             }
         }
 

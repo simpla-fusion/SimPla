@@ -27,7 +27,8 @@ namespace simpla { namespace mesh
 {
 namespace tags { struct CoRectLinear; }
 
-template<typename ...> class Mesh;
+template<typename ...>
+class Mesh;
 
 typedef Mesh<tags::CoRectLinear> CoRectMesh;
 
@@ -46,7 +47,8 @@ private:
 public:
     virtual bool is_a(std::type_info const &info) const { return typeid(this_type) == info || base_type::is_a(info); }
 
-    template<typename _UOTHER_> bool is_a() const { return is_a(typeid(_UOTHER_)); }
+    template<typename _UOTHER_>
+    bool is_a() const { return is_a(typeid(_UOTHER_)); }
 
     virtual std::string get_class_name() const { return class_name(); }
 
@@ -174,6 +176,7 @@ public:
         return static_cast<size_t>(m::hash(s, m_lower_, m_upper_));
     }
 
+
     virtual point_type
     point(MeshEntityId const &s) const
     {
@@ -268,8 +271,7 @@ public:
              *
              *\endverbatim
              */
-        for (int i = 0; i < ndims; ++i)
-        {
+        for (int i = 0; i < ndims; ++i) {
 
             m_dims_[i] = (m_dims_[i] > 0) ? m_dims_[i] : 1;
 

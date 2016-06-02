@@ -64,7 +64,7 @@ public:
 
     template<typename ValueType, size_t IFORM> using field_t =  Field<ValueType, TM, std::integral_constant<size_t, IFORM> >;;
 
-//    std::function< Vec3(Real, point_type const &)   >    J_src_fun;
+    std::function<Vec3(Real, point_type const &, vector_type const &v)> J_src_fun;
 
 
     typedef field_t<scalar_type, FACE> TB;
@@ -125,8 +125,9 @@ void EMFluid<TM>::next_step(Real dt)
 //
 //
     J1.clear();
-//
-//    J1.accept(J_src, [&](id_type s, Real &v) { J1.add(s, J_src_fun(time(), m->point(s))); });
+
+    Real current_time = time();
+    J1.apply(J_src, [&](point_type const &x, vector_type const &v) { return J_src_fun(current_time, x, v); });
 
 
     LOG_CMD(B1 -= curl(E1) * (dt * 0.5));

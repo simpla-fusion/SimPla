@@ -14,7 +14,8 @@ namespace simpla { namespace manifold { namespace schemes
 {
 using namespace simpla::mesh;
 
-template<typename TM, class Enable = void> struct LinearInterpolator { };
+template<typename TM, class Enable = void>
+struct LinearInterpolator { };
 
 
 /**
@@ -49,8 +50,9 @@ private:
     typedef mesh::MeshEntityIdCoder M;
     mesh_type const &m;
 
-    template<typename M, typename TD, typename TIDX> inline auto
-    gather_impl_(M const &m, TD const &f, TIDX const &idx) const -> decltype(
+    template<typename TD, typename TIDX>
+    inline auto
+    gather_impl_(TD const &f, TIDX const &idx) const -> decltype(
     traits::index(f, std::get<0>(idx)) *
     std::get<1>(idx)[0])
     {
@@ -74,37 +76,42 @@ private:
 
 public:
 
-    template<typename TF, typename TX> inline auto
-    gather(TF const &f, TX const &r) const//
-    ENABLE_IF_DECL_RET_TYPE((traits::iform<TF>::value
-                             == VERTEX), (gather_impl_(f, m.coordinates_global_to_local(r, 0))))
+    template<typename TF> constexpr inline traits::field_value_t<TF>
+    gather(TF const &f, point_type const &r, FUNCTION_REQUIREMENT((traits::iform<TF>::value == VERTEX))) const
+    {
+        return gather_impl_(f, m.coordinates_global_to_local(r, 0));
+    }
 
-    template<typename TF> inline auto
-    gather(TF const &f, point_type const &r) const
-    ENABLE_IF_DECL_RET_TYPE((traits::iform<TF>::value
-                             == EDGE),
-                            traits::make_nTuple(
-                                    gather_impl_(f, m.coordinates_global_to_local(r, 1)),
-                                    gather_impl_(f, m.coordinates_global_to_local(r, 2)),
-                                    gather_impl_(f, m.coordinates_global_to_local(r, 4))
-                            ))
+    template<typename TF> constexpr inline traits::field_value_t<TF>
+    gather(TF const &f, point_type const &r, FUNCTION_REQUIREMENT((traits::iform<TF>::value == EDGE))) const
+    {
+        return traits::field_value_t<TF>{
+                gather_impl_(f, m.coordinates_global_to_local(r, 1)),
+                gather_impl_(f, m.coordinates_global_to_local(r, 2)),
+                gather_impl_(f, m.coordinates_global_to_local(r, 4))
+        };
+    }
 
-    template<typename TF> inline auto
-    gather(TF const &f, point_type const &r) const
-    ENABLE_IF_DECL_RET_TYPE((traits::iform<TF>::value == FACE),
-                            traits::make_nTuple(
-                                    gather_impl_(f, m.coordinates_global_to_local(r, 6)),
-                                    gather_impl_(f, m.coordinates_global_to_local(r, 5)),
-                                    gather_impl_(f, m.coordinates_global_to_local(r, 3))
-                            ))
+    template<typename TF> constexpr inline traits::field_value_t<TF>
+    gather(TF const &f, point_type const &r, FUNCTION_REQUIREMENT((traits::iform<TF>::value == FACE))) const
+    {
+        return traits::field_value_t<TF>{
+                gather_impl_(f, m.coordinates_global_to_local(r, 6)),
+                gather_impl_(f, m.coordinates_global_to_local(r, 5)),
+                gather_impl_(f, m.coordinates_global_to_local(r, 3))
+        };
+    }
 
-    template<typename TF> inline auto
-    gather(TF const &f, point_type const &x) const
-    ENABLE_IF_DECL_RET_TYPE((traits::iform<TF>::value == VOLUME),
-                            gather_impl_(f, m.coordinates_global_to_local(x, 7)))
+    template<typename TF> constexpr inline traits::field_value_t<TF>
+    gather(TF const &f, point_type const &x, FUNCTION_REQUIREMENT((traits::iform<TF>::value == VOLUME))) const
+    {
+        return gather_impl_(f, m.coordinates_global_to_local(x, 7));
+    }
+
 
 private:
-    template<typename TF, typename IDX, typename TV> inline void
+    template<typename TF, typename IDX, typename TV>
+    inline void
     scatter_impl_(TF &f, IDX const &idx,
                   TV const &v) const
     {
@@ -128,14 +135,16 @@ private:
     }
 
 
-    template<typename TF, typename TX, typename TV> inline void
+    template<typename TF, typename TX, typename TV>
+    inline void
     scatter_(std::integral_constant<int, VERTEX>, TF &
     f, TX const &x, TV const &u) const
     {
         scatter_impl_(f, m.coordinates_global_to_local(x, 0), u);
     }
 
-    template<typename TF, typename TX, typename TV> inline void
+    template<typename TF, typename TX, typename TV>
+    inline void
     scatter_(std::integral_constant<int, EDGE>, TF &
     f, TX const &x, TV const &u) const
     {
@@ -146,7 +155,8 @@ private:
 
     }
 
-    template<typename TF, typename TX, typename TV> inline void
+    template<typename TF, typename TX, typename TV>
+    inline void
     scatter_(std::integral_constant<int, FACE>, TF &f,
              TX const &x, TV const &u) const
     {
@@ -156,7 +166,8 @@ private:
         scatter_impl_(f, m.coordinates_global_to_local(x, 3), u[2]);
     }
 
-    template<typename TF, typename TX, typename TV> inline void
+    template<typename TF, typename TX, typename TV>
+    inline void
     scatter_(std::integral_constant<int, VOLUME>,
              TF &f, TX const &x, TV const &u) const
     {
@@ -164,31 +175,32 @@ private:
     }
 
 public:
-    template<typename TF, typename ...Args> inline void
+    template<typename TF, typename ...Args>
+    inline void
     scatter(TF &f, Args &&...args) const
     {
         scatter_(traits::iform<TF>(), f, std::forward<Args>(args)...);
     }
 
 private:
-    template<typename TV> inline TV
-    sample_(std::integral_constant<int, VERTEX>, id_type s,
-            TV const &v) const { return v; }
+    template<typename TV>
+    inline TV
+    sample_(std::integral_constant<int, VERTEX>, MeshEntityId const &s, TV const &v) const { return v; }
 
-    template<typename TV> inline TV
-    sample_(std::integral_constant<int, VOLUME>, id_type s,
-            TV const &v) const { return v; }
+    template<typename TV>
+    inline TV
+    sample_(std::integral_constant<int, VOLUME>, MeshEntityId const &s, TV const &v) const { return v; }
 
-    template<typename TV> inline TV
-    sample_(std::integral_constant<int, EDGE>,
-            id_type s, nTuple<TV, 3> const &v) const
+    template<typename TV>
+    inline TV
+    sample_(std::integral_constant<int, EDGE>, MeshEntityId const &s, nTuple<TV, 3> const &v) const
     {
         return v[M::sub_index(s)];
     }
 
-    template<typename TV> inline TV
-    sample_(std::integral_constant<int, FACE>,
-            id_type s, nTuple<TV, 3> const &v) const
+    template<typename TV>
+    inline TV
+    sample_(std::integral_constant<int, FACE>, MeshEntityId const &s, nTuple<TV, 3> const &v) const
     {
         return v[M::sub_index(s)];
     }
@@ -205,9 +217,12 @@ public:
 
 
     template<int IFORM, typename TV>
-    inline auto
-    sample(id_type s, TV const &v) const
-    DECL_RET_TYPE((sample_(std::integral_constant<int, IFORM>(), s, v)))
+    inline traits::value_type_t<TV>
+    sample(MeshEntityId const &s, TV const &v) const
+    {
+        return sample_(std::integral_constant<int, IFORM>(), s, v);
+    }
+//    DECL_RET_TYPE((sample_(std::integral_constant<int, IFORM>(), s, v)))
 
 
     /**
