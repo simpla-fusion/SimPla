@@ -49,9 +49,9 @@ namespace simpla { namespace mesh
 
 typedef size_t id_type; //!< Data type  of entity id
 
-typedef nTuple<Real, 3> point_type; //!< DataType of configuration space point (coordinates i.e. (x,y,z) )
+typedef nTuple<Real, 3ul> point_type; //!< DataType of configuration space point (coordinates i.e. (x,y,z) )
 
-typedef nTuple<Real, 3> vector_type;
+typedef nTuple<Real, 3ul> vector_type;
 
 typedef std::tuple<point_type, point_type> box_type; //! two corner of rectangle (or hexahedron ) , <lower ,upper>
 

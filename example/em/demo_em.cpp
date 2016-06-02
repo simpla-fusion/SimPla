@@ -98,14 +98,18 @@ int main(int argc, char **argv)
     INFORM << "\t >>> START <<< " << std::endl;
     INFORM << "\t >>> Time [" << problem_domain->time() << "] <<< " << std::endl;
 
+    Real current_time = problem_domain->time();
+
     while (problem_domain->time() < stop_time)
     {
 
-        problem_domain->run(problem_domain->time() + inc_time);
+        problem_domain->run(current_time + inc_time);
+
+        current_time = problem_domain->time();
 
         problem_domain->check_point(*out_stream);
 
-        INFORM << "\t >>> Time [" << problem_domain->time() << "] <<< " << std::endl;
+        INFORM << "\t >>> Time [" << current_time << "] <<< " << std::endl;
 
     }
 
