@@ -102,26 +102,27 @@ public:
 
     virtual bool deploy()
     {
-        bool success = true;
-        if (m_mesh_ == nullptr)
+        bool success = false;
+        if (empty())
         {
-            success = false;
-            RUNTIME_ERROR << "mesh is not valid!" << std::endl;
-        }
-        else if (m_data_ == nullptr)
-        {
-            size_t m_size = m_mesh_->max_hash(entity_type());
-
-            m_data_ = sp_alloc_array<value_type>(m_size);
-
-
-            if (m_range_.empty())
+            if (m_mesh_ == nullptr)
             {
+                RUNTIME_ERROR << "mesh is not valid!" << std::endl;
+            }
+            else
+            {
+                size_t m_size = m_mesh_->max_hash(entity_type());
+
+                m_data_ = sp_alloc_array<value_type>(m_size);
+
                 m_mesh_->range(entity_type()).swap(m_range_);
+
             }
         }
         return success;
     }
+
+    bool empty() const { return m_data_ == nullptr; }
 
     virtual void swap(this_type &other)
     {
@@ -148,7 +149,6 @@ public:
 
     virtual data_model::DataSet data_set() const
     {
-
         data_model::DataSet res;
 
         res.data_type = data_model::DataType::create<value_type>();
@@ -164,10 +164,6 @@ public:
     {
         UNIMPLEMENTED;
     };
-
-    template<typename TFun> void accept(mesh::MeshEntityRange const &, TFun const) { UNIMPLEMENTED; }
-
-    template<typename TFun> void accept(mesh::MeshEntityRange const &, TFun const) const { UNIMPLEMENTED; }
 
 
 public:
@@ -231,20 +227,19 @@ public:
 
 
     template<typename TSelecter> this_type
-    select(TSelecter const &s,
-           FUNCTION_REQUIREMENT(
-                   (traits::is_callable<TSelecter(
-                           typename mesh::MeshEntityRange const &), mesh::MeshEntityRange>::value))
+    select(TSelecter const &pred,
+           FUNCTION_REQUIREMENT((std::is_same<typename std::result_of<TSelecter(
+                   typename mesh::MeshEntityRange const &)>::type, mesh::MeshEntityRange>::value))
     )
     {
-        return std::move(select(s(m_range_)));
+        return std::move(select(pred(m_range_)));
     }
 
     template<typename TFun> this_type &
     apply(mesh::MeshEntityRange const &r, TFun const &op,
-          FUNCTION_REQUIREMENT(
-                  (traits::is_callable<TFun(typename mesh::point_type const &,
-                                            field_value_type const &), field_value_type>::value))
+          FUNCTION_REQUIREMENT((std::is_same<typename std::result_of<TFun(
+                  typename mesh::point_type const &,
+                  field_value_type const &)>::type, field_value_type>::value))
     )
     {
         deploy();
@@ -264,7 +259,8 @@ public:
 
     template<typename TFun> this_type &
     apply(mesh::MeshEntityRange const &r, TFun const &op,
-          FUNCTION_REQUIREMENT((traits::is_callable<TFun(typename mesh::point_type const &), field_value_type>::value))
+          FUNCTION_REQUIREMENT((std::is_same<typename std::result_of<TFun(
+                  typename mesh::point_type const &)>::type, field_value_type>::value))
     )
     {
         deploy();
@@ -277,7 +273,9 @@ public:
 
     template<typename TFun> this_type &
     apply(mesh::MeshEntityRange const &r, TFun const &op,
-          FUNCTION_REQUIREMENT((traits::is_callable<TFun(mesh::MeshEntityId const &), value_type>::value))
+          FUNCTION_REQUIREMENT(
+                  (std::is_same<typename std::result_of<TFun(mesh::MeshEntityId const &)>::type, value_type>::value)
+          )
     )
     {
         deploy();
@@ -287,6 +285,22 @@ public:
 
         return *this;
     }
+
+    template<typename TFun> this_type &
+    apply(mesh::MeshEntityRange const &r, TFun const &op,
+          FUNCTION_REQUIREMENT(
+                  (std::is_same<typename std::result_of<TFun(value_type &)>::type, void>::value)
+          )
+    )
+    {
+        deploy();
+
+        //TODO: need parallelism
+        if (!r.empty()) { for (auto const &s: r) { op(get(s)); }}
+
+        return *this;
+    }
+
 
     template<typename TFun> this_type &
     apply(mesh::MeshEntityRange const &r, TFun const &f,
@@ -313,9 +327,11 @@ private:
     }
 
 
-    std::shared_ptr<mesh_type const> m_mesh_; // @FIXME [severity: low, potential] here is a potential risk, mesh maybe destroyed before data;
+    mesh_type const *m_mesh_; // @FIXME [severity: low, potential] here is a potential risk, mesh maybe destroyed before data;
     std::shared_ptr<value_type> m_data_;
     mesh::MeshEntityRange m_range_;
+
+    std::shared_ptr<base_type> m_holder_;
 
 };
 

@@ -54,6 +54,8 @@ ProblemDomain::attribute(std::string const &s_name) const
 
 void ProblemDomain::setup()
 {
+    init();
+
     auto mesh_block_id = m->uuid();
     auto id = m->short_id();
     auto &dist_obj = m_pimpl_->m_dist_obj_[id];
@@ -62,6 +64,8 @@ void ProblemDomain::setup()
     {
         if (item.second->has(mesh_block_id))
         {
+            item.second->get(mesh_block_id)->deploy();
+
             auto ds = item.second->get_dataset(mesh_block_id);
             dist_obj.add(item.second->short_id(), ds);
         }

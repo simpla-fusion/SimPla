@@ -323,8 +323,8 @@ private:
     }
 
 
-    template<typename TV, typename ...Others>
-    inline TV
+    template<typename TV, typename ...Others> constexpr inline
+    TV
     mapto(Field<nTuple<TV, 3>, Others...> const &expr, id_type s, index_sequence<VERTEX, FACE>) const
     {
 
@@ -343,8 +343,8 @@ private:
         );
     }
 
-    template<typename TF>
-    inline traits::value_type_t<TF>
+    template<typename TF> constexpr inline
+    traits::value_type_t<TF>
     mapto(TF const &expr, id_type s, index_sequence<VERTEX, VOLUME>) const
     {
         auto const &l = expr;
@@ -367,8 +367,8 @@ private:
     }
 
 
-    template<typename TF>
-    inline nTuple<typename traits::value_type<TF>::type, 3>
+    template<typename TF> constexpr inline
+    nTuple<typename traits::value_type<TF>::type, 3>
     mapto(TF const &expr, id_type s, index_sequence<EDGE, VERTEX>) const
     {
         typedef nTuple<typename traits::value_type<TF>::type, 3> field_value_type;
@@ -397,8 +397,8 @@ private:
     }
 
 
-    template<typename TF>
-    inline nTuple<typename traits::value_type<TF>::type, 3>
+    template<typename TF> constexpr inline
+    nTuple<typename traits::value_type<TF>::type, 3>
     mapto(TF const &expr, id_type s, index_sequence<FACE, VERTEX>) const
     {
         auto const &l = expr;
@@ -409,7 +409,7 @@ private:
 
         s = (s | m.FULL_OVERFLOW_FLAG) - M::_DA;
 
-        return nTuple<typename ::simpla::traits::value_type<TF>::type, 3>
+        return nTuple<typename traits::value_type<TF>::type, 3>
                 {
                         (eval_(l, (s + M::_DA - Y - Z)) +
                          eval_(l, (s + M::_DA - Y + Z)) +
@@ -429,8 +429,8 @@ private:
     }
 
 
-    template<typename TF>
-    inline typename ::simpla::traits::value_type<TF>::type
+    template<typename TF> constexpr inline
+    typename traits::value_type<TF>::type
     mapto(TF const &expr, id_type s, index_sequence<VOLUME, VERTEX>) const
     {
         auto const &l = expr;
@@ -454,8 +454,8 @@ private:
     }
 
 
-    template<typename TF>
-    inline typename ::simpla::traits::value_type<TF>::type
+    template<typename TF> constexpr inline
+    typename traits::value_type<TF>::type
     mapto(TF const &expr, id_type s, index_sequence<VOLUME, FACE>) const
     {
         auto X = M::delta_index(M::dual(s));
@@ -465,8 +465,8 @@ private:
     }
 
 
-    template<typename TF>
-    inline typename ::simpla::traits::value_type<TF>::type
+    template<typename TF> constexpr inline
+    typename traits::value_type<TF>::type
     mapto(TF const &expr, id_type s, index_sequence<VOLUME, EDGE>) const
     {
         auto const &l = expr;
@@ -484,8 +484,8 @@ private:
     }
 
 
-    template<typename TF>
-    inline ::simpla::nTuple<typename ::simpla::traits::value_type<TF>::type, 3>
+    template<typename TF> constexpr inline
+    nTuple<typename traits::value_type<TF>::type, 3>
     mapto(TF const &expr, id_type s, index_sequence<FACE, VOLUME>) const
     {
         auto const &l = expr;
@@ -510,8 +510,8 @@ private:
     }
 
 
-    template<typename TF>
-    inline ::simpla::nTuple<typename ::simpla::traits::value_type<TF>::type, 3>
+    template<typename TF> constexpr inline
+    nTuple<typename traits::value_type<TF>::type, 3>
     mapto(TF const &expr, id_type s,
           index_sequence<EDGE, VOLUME>) const
     {
@@ -522,7 +522,7 @@ private:
         auto Z = m.DI(2, s);
         s = (s | M::FULL_OVERFLOW_FLAG) - M::_DA;
 
-        return nTuple<typename ::simpla::traits::value_type<TF>::type, 3>
+        return nTuple<typename traits::value_type<TF>::type, 3>
                 {
                         (eval_(l, s + M::_DA - Y - Z) +
                          eval_(l, s + M::_DA - Y + Z) +
@@ -545,8 +545,8 @@ private:
     //***************************************************************************************************
     //
     //! Form<IL> ^ Form<IR> => Form<IR+IL>
-    template<typename ...T, size_t IL, size_t IR>
-    constexpr inline traits::value_type_t<Field<Expression<ct::Wedge, T...>>>
+    template<typename ...T, size_t IL, size_t IR> constexpr inline
+    traits::value_type_t<Field<Expression<ct::Wedge, T...>>>
     eval_(Field<Expression<ct::Wedge, T...>> const &expr, id_type s, index_sequence<IL, IR>) const
     {
         return m.inner_product(mapto(std::get<0>(expr.args), s, index_sequence<IL, IR + IL>()),
@@ -556,8 +556,8 @@ private:
     }
 
 
-    template<typename TL, typename TR>
-    inline traits::value_type_t<Field<Expression<ct::Wedge, TL, TR>>>
+    template<typename TL, typename TR> constexpr inline
+    traits::value_type_t<Field<Expression<ct::Wedge, TL, TR>>>
     eval_(Field<Expression<ct::Wedge, TL, TR>> const &expr, id_type s, index_sequence<EDGE, EDGE>) const
     {
         auto const &l = std::get<0>(expr.args);
@@ -572,23 +572,23 @@ private:
     }
 
 
-    template<typename TL, typename TR, size_t I>
-    inline traits::value_type_t<Field<Expression<ct::Cross, TL, TR>>>
+    template<typename TL, typename TR, size_t I> constexpr inline
+    traits::value_type_t<Field<Expression<ct::Cross, TL, TR>>>
     eval_(Field<Expression<ct::Cross, TL, TR>> const &expr, id_type s, index_sequence<I, I>) const
     {
         return cross(eval_(std::get<0>(expr.args), s), eval_(std::get<1>(expr.args), s));
     }
 
-    template<typename TL, typename TR, size_t I>
-    inline traits::value_type_t<Field<Expression<ct::Dot, TL, TR>>>
+    template<typename TL, typename TR, size_t I> constexpr inline
+    traits::value_type_t<Field<Expression<ct::Dot, TL, TR>>>
     eval_(Field<Expression<ct::Dot, TL, TR>> const &expr, id_type s, index_sequence<I, I>) const
     {
         return dot(eval_(std::get<0>(expr.args), s), eval_(std::get<1>(expr.args), s));
     }
 
 
-    template<typename ...T, size_t ...I>
-    constexpr inline traits::value_type_t<Field<Expression<ct::MapTo, T...> >>
+    template<typename ...T, size_t ...I> constexpr inline
+    traits::value_type_t<Field<Expression<ct::MapTo, T...> >>
     eval_(Field<Expression<ct::MapTo, T...>> const &expr, id_type s, index_sequence<I...>) const
     {
         return mapto(std::get<0>(expr.args), s, index_sequence<I...>());

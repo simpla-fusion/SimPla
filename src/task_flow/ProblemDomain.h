@@ -63,11 +63,14 @@ public:
 
     virtual bool coarsen(mesh::MeshBase const &other);
 
+
     virtual void setup();
 
     virtual void teardown();
 
     virtual void sync();
+
+    virtual void init() = 0;
 
     virtual void next_step(Real dt) = 0;
 

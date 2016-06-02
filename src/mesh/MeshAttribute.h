@@ -65,6 +65,8 @@ public:
 
         virtual void swap(View &other) { }
 
+        virtual bool deploy() = 0;
+
         virtual MeshEntityType entity_type() const = 0;
 
         virtual MeshEntityRange const &range() const = 0;
@@ -126,6 +128,21 @@ public:
 
     }
 
+    std::shared_ptr<View> get(MeshBlockId const &id)
+    {
+        std::shared_ptr<View> res(nullptr);
+        auto it = m_attrs_.find(id);
+        if (it != m_attrs_.end()) { res = it->second; }
+        return res;
+    }
+
+    std::shared_ptr<const View> get(MeshBlockId const &id) const
+    {
+        std::shared_ptr<View> res(nullptr);
+        auto it = m_attrs_.find(id);
+        if (it != m_attrs_.end()) { res = it->second; }
+        return res;
+    }
 
     /** erase MeshBlockId from attribute data collection.  */
     size_t erase(MeshBlockId const &id)

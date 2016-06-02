@@ -137,13 +137,13 @@ template<typename T0, typename T1>
 struct iform<Field<Expression<ct::Wedge, T0, T1> > > : public index_const<iform<T0>::value + iform<T1>::value>
 {
 };
-template<size_t I> struct iform<std::integral_constant<size_t, I> > : public std::integral_constant<size_t, I>
+template<size_t I> struct iform<index_const<I> > : public index_const<I>
 {
 };
 
 template<size_t I, typename T1>
-struct iform<Field<Expression<ct::MapTo, T1, std::integral_constant<size_t, I> > > >
-        : public std::integral_constant<size_t, I>
+struct iform<Field<Expression<ct::MapTo, T1, index_const<I> > > >
+        : public index_const<I>
 {
 };
 
@@ -160,7 +160,7 @@ struct value_type<Field<simpla::BooleanExpression<TOP, T...> > > { typedef bool 
 
 
 template<typename TOP, typename ...T>
-struct value_type<simpla::Field<simpla::Expression<TOP, T...> > >
+struct value_type<Field<Expression<TOP, T...> > >
 {
     typedef std::result_of_t<TOP(typename value_type<T>::type ...)> type;
 };
@@ -172,7 +172,7 @@ struct value_type<Field<TV, Other...> >
 };
 
 template<typename T>
-struct value_type<simpla::Field<simpla::Expression<ct::HodgeStar, T> > >
+struct value_type<Field<Expression<ct::HodgeStar, T> > >
 {
     typedef value_type_t<T> type;
 };
@@ -231,7 +231,7 @@ struct value_type<Field<Expression<ct::MapTo, T, Others...> > >
 };
 
 template<typename T>
-struct value_type<simpla::Field<Expression<ct::MapTo, T, simpla::index_const<VERTEX> > > >
+struct value_type<Field<Expression<ct::MapTo, T, index_const<VERTEX> > > >
 {
     typedef typename std::conditional<
             (iform<T>::value == VERTEX) || (iform<T>::value == VOLUME),
@@ -239,9 +239,26 @@ struct value_type<simpla::Field<Expression<ct::MapTo, T, simpla::index_const<VER
             simpla::nTuple<typename value_type<T>::type, 3>
     >::type type;
 };
-
 template<typename T>
-struct value_type<simpla::Field<simpla::Expression<ct::MapTo, T, simpla::index_const<VOLUME> > > >
+struct value_type<Field<Expression<ct::MapTo, T, index_const<EDGE> > > >
+{
+    typedef typename std::conditional<
+            (iform<T>::value == VERTEX) || (iform<T>::value == VOLUME),
+            typename value_type<typename value_type<T>::type>::type,
+            typename value_type<T>::type
+    >::type type;
+};
+template<typename T>
+struct value_type<Field<Expression<ct::MapTo, T, index_const<FACE> > > >
+{
+    typedef typename std::conditional<
+            (iform<T>::value == VERTEX) || (iform<T>::value == VOLUME),
+            typename value_type<typename value_type<T>::type>::type,
+            typename value_type<T>::type
+    >::type type;
+};
+template<typename T>
+struct value_type<Field<Expression<ct::MapTo, T, index_const<VOLUME> > > >
 {
     typedef
     typename std::conditional<
@@ -387,9 +404,11 @@ cross(Field<T...> const &f, nTuple<TL, 3> const &v) DECL_RET_TYPE((interior_prod
  *  \f}
  */
 
-template<size_t I, typename T> inline auto
-map_to(T const &f) DECL_RET_TYPE((std::move((Field<Expression<ct::MapTo, T,
-        index_const<I >>>(f, index_const<I>())))))
+template<size_t I, typename T> inline Field<Expression<ct::MapTo, T, index_const<I >>>
+map_to(T const &f)
+{
+    return Field<Expression<ct::MapTo, T, index_const<I >>>(f, index_const<I>());
+}
 
 /** @} */
 
