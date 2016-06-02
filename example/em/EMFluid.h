@@ -30,7 +30,8 @@ public:
         return typeid(this_type) == info || ProblemDomain::is_a(info);
     }
 
-    template<typename _UOTHER_> bool is_a() const { return is_a(typeid(_UOTHER_)); }
+    template<typename _UOTHER_>
+    bool is_a() const { return is_a(typeid(_UOTHER_)); }
 
 
     virtual std::string get_class_name() const { return class_name(); }
@@ -109,10 +110,11 @@ public:
 
 };
 
-template<typename TM> void EMFluid<TM>::init()
+template<typename TM>
+void EMFluid<TM>::init()
 {
-//    B1.clear();
-//    E1.clear();
+    B1.clear();
+    E1.clear();
 }
 
 template<typename TM>
@@ -138,8 +140,7 @@ void EMFluid<TM>::next_step(Real dt)
 
     field_t<vector_type, VERTEX> dE{m};
 
-    if (fluid_sp.size() > 0)
-    {
+    if (fluid_sp.size() > 0) {
 
         field_t<vector_type, VERTEX> Q{m};
         field_t<vector_type, VERTEX> K{m};
@@ -155,8 +156,7 @@ void EMFluid<TM>::next_step(Real dt)
         Q = map_to<VERTEX>(E1) - Ev;
 
 
-        for (auto &p :   fluid_sp)
-        {
+        for (auto &p :   fluid_sp) {
 
             Real ms = p.second.mass;
             Real qs = p.second.charge;
@@ -193,8 +193,7 @@ void EMFluid<TM>::next_step(Real dt)
         LOG_CMD(dE = (Q * a - cross(Q, B0v) * b + B0v * (dot(Q, B0v) * (b * b - c * a) / (a + c * BB))) /
                      (b * b * BB + a * a));
 
-        for (auto &p :   fluid_sp)
-        {
+        for (auto &p :   fluid_sp) {
             Real ms = p.second.mass;
             Real qs = p.second.charge;
             field_t<scalar_type, VERTEX> &ns = p.second.rho1;
@@ -213,8 +212,8 @@ void EMFluid<TM>::next_step(Real dt)
 
 
     LOG_CMD(B1 -= curl(E1) * (dt * 0.5));
-//
-//    B1.accept(face_boundary, [&](id_type const &, Real &v) { v = 0; });
+
+    B1.apply(face_boundary, [&](Real &v) { v = 0; });
 
 }
 

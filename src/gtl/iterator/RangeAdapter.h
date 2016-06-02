@@ -20,7 +20,8 @@ class RangeAdapter
 
     class HolderBase;
 
-    template<typename> struct Holder;
+    template<typename>
+    struct Holder;
 public :
     typedef TIterator iterator;
 
@@ -110,14 +111,18 @@ private:
         TOtherRange m_range_;
     public:
 
-        template<typename ...Args>
-        Holder(Args &&... args) : m_range_(std::forward<Args>(args)...) { }
+//        template<typename ...Args>
+//        Holder(Args &&... args) : m_range_(std::forward<Args>(args)...) { }
+//
+
+        Holder(TOtherRange const &other) : m_range_(other) { }
+
 
         virtual  ~Holder() final { }
 
         virtual std::shared_ptr<HolderBase> clone() const
         {
-            return std::dynamic_pointer_cast<HolderBase>(std::make_shared<this_type>(m_range_));
+            return std::dynamic_pointer_cast<HolderBase>(std::make_shared<Holder<TOtherRange>>(m_range_));
         }
 
 

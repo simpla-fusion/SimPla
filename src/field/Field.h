@@ -19,7 +19,8 @@
 namespace simpla
 {
 
-template<typename ...> class Field;
+template<typename ...>
+class Field;
 
 template<typename TV, typename TManifold, size_t IFORM> using field_t= Field<TV, TManifold, index_const<IFORM>>;
 
@@ -62,39 +63,43 @@ public:
     //create construct
 
     Field(std::shared_ptr<mesh_type const> m = nullptr)
-            : m_mesh_(m), m_data_(nullptr), m_range_()
+            : m_holder_(nullptr), m_mesh_(m), m_data_(nullptr), m_range_()
     {
     }
 
     Field(std::shared_ptr<mesh::MeshBase const> m)
-            : m_mesh_(nullptr), m_data_(nullptr), m_range_()
+            : m_holder_(nullptr), m_mesh_(std::dynamic_pointer_cast<mesh_type const>(m)), m_data_(nullptr),
+              m_range_()
     {
         assert(m->template is_a<mesh_type>());
 
-        this_type(std::dynamic_pointer_cast<mesh_type const>(m)).swap(*this);
+    }
+
+    Field(std::shared_ptr<base_type> h)
+            : m_holder_(h), m_mesh_(nullptr), m_data_(nullptr), m_range_()
+    {
     }
 
     //factory construct
     template<typename TFactory, typename ... Args, typename std::enable_if<TFactory::is_factory>::type * = nullptr>
     Field(TFactory &factory, Args &&...args)
-            : m_mesh_(nullptr), m_data_(nullptr), m_range_()
+            : m_holder_(std::dynamic_pointer_cast<base_type>(
+            factory.template create<this_type>(std::forward<Args>(args)...))),
+              m_mesh_(nullptr), m_data_(nullptr), m_range_()
     {
-        auto f = factory.template create<this_type>(std::forward<Args>(args)...);
-
-        if (f != nullptr) { this_type(*f).swap(*this); }
     }
 
 
     //copy construct
     Field(this_type const &other)
-            : m_mesh_(other.m_mesh_), m_data_(other.m_data_), m_range_(other.m_range_)
+            : m_holder_(other.m_holder_), m_mesh_(other.m_mesh_), m_data_(other.m_data_), m_range_(other.m_range_)
     {
     }
 
 
     // move construct
     Field(this_type &&other)
-            : m_mesh_(other.m_mesh_), m_data_(other.m_data_), m_range_(other.m_range_)
+            : m_holder_(other.m_holder_), m_mesh_(other.m_mesh_), m_data_(other.m_data_), m_range_(other.m_range_)
     {
     }
 
@@ -103,26 +108,37 @@ public:
     virtual bool deploy()
     {
         bool success = false;
-        if (empty())
-        {
-            if (m_mesh_ == nullptr)
-            {
-                RUNTIME_ERROR << "mesh is not valid!" << std::endl;
-            }
-            else
-            {
-                size_t m_size = m_mesh_->max_hash(entity_type());
 
-                m_data_ = sp_alloc_array<value_type>(m_size);
+        if (m_holder_ == nullptr) {
+            if (m_data_ == nullptr) {
+                if (m_mesh_ == nullptr) { RUNTIME_ERROR << "mesh is not valid!" << std::endl; }
+                else {
+                    size_t m_size = m_mesh_->max_hash(entity_type());
 
-                m_mesh_->range(entity_type()).swap(m_range_);
+                    m_data_ = sp_alloc_array<value_type>(m_size);
 
+                    m_mesh_->range(entity_type()).swap(m_range_);
+
+                }
+
+                success = true;
             }
         }
+        else {
+            if (m_holder_->is_a<this_type>()) {
+                m_holder_->deploy();
+                auto self = std::dynamic_pointer_cast<this_type>(m_holder_);
+                m_mesh_ = self->m_mesh_;
+                m_data_ = self->m_data_;
+                m_range_ = self->m_range_;
+                success = true;
+            }
+        }
+
         return success;
     }
 
-    bool empty() const { return m_data_ == nullptr; }
+    bool empty() const { return m_holder_ == nullptr && m_data_ == nullptr; }
 
     virtual void swap(this_type &other)
     {
@@ -171,22 +187,32 @@ public:
  *  @{*/
     this_type &operator=(this_type const &other) { return apply_expr(_impl::_assign(), other); }
 
-    template<typename Other> inline this_type &
+    template<typename Other>
+    inline this_type &
     operator=(Other const &other) { return apply_expr(_impl::_assign(), other); }
 
-    template<typename Other> inline this_type &
+    template<typename Other>
+    inline this_type &
     operator+=(Other const &other) { return apply_expr(_impl::plus_assign(), other); }
 
-    template<typename Other> inline this_type &
+    template<typename Other>
+    inline this_type &
     operator-=(Other const &other) { return apply_expr(_impl::minus_assign(), other); }
 
-    template<typename Other> inline this_type &
+    template<typename Other>
+    inline this_type &
     operator*=(Other const &other) { return apply_expr(_impl::multiplies_assign(), other); }
 
-    template<typename Other> inline this_type &
+    template<typename Other>
+    inline this_type &
     operator/=(Other const &other) { return apply_expr(_impl::divides_assign(), other); }
 
-    inline value_type &get(mesh::MeshEntityId const &s) { return m_data_.get()[m_mesh_->hash(s)]; }
+    inline value_type &get(mesh::MeshEntityId const &s)
+    {
+        assert(!empty());
+
+        return m_data_.get()[m_mesh_->hash(s)];
+    }
 
     inline value_type const &get(mesh::MeshEntityId const &s) const
     {
@@ -202,14 +228,16 @@ public:
 /** @name as_function
  *  @{*/
 
-    template<typename ...Args> field_value_type
+    template<typename ...Args>
+    field_value_type
     gather(Args &&...args) const
     {
         return mesh_type::interpolate_policy::gather(*m_mesh_, *this, std::forward<Args>(args)...);
     }
 
 
-    template<typename ...Args> field_value_type
+    template<typename ...Args>
+    field_value_type
     operator()(Args &&...args) const
     {
         return gather(std::forward<Args>(args)...);
@@ -226,7 +254,8 @@ public:
     }
 
 
-    template<typename TSelecter> this_type
+    template<typename TSelecter>
+    this_type
     select(TSelecter const &pred,
            FUNCTION_REQUIREMENT((std::is_same<typename std::result_of<TSelecter(
                    typename mesh::MeshEntityRange const &)>::type, mesh::MeshEntityRange>::value))
@@ -235,7 +264,8 @@ public:
         return std::move(select(pred(m_range_)));
     }
 
-    template<typename TFun> this_type &
+    template<typename TFun>
+    this_type &
     apply(mesh::MeshEntityRange const &r, TFun const &op,
           FUNCTION_REQUIREMENT((std::is_same<typename std::result_of<TFun(
                   typename mesh::point_type const &,
@@ -245,10 +275,8 @@ public:
         deploy();
 
         //TODO: need parallelism
-        if (!r.empty())
-        {
-            for (auto const &s: r)
-            {
+        if (!r.empty()) {
+            for (auto const &s: r) {
                 auto x = m_mesh_->point(s);
                 get(s) = m_mesh_->sample(s, op(x, gather(x)));
             }
@@ -257,7 +285,8 @@ public:
         return *this;
     }
 
-    template<typename TFun> this_type &
+    template<typename TFun>
+    this_type &
     apply(mesh::MeshEntityRange const &r, TFun const &op,
           FUNCTION_REQUIREMENT((std::is_same<typename std::result_of<TFun(
                   typename mesh::point_type const &)>::type, field_value_type>::value))
@@ -271,7 +300,8 @@ public:
         return *this;
     }
 
-    template<typename TFun> this_type &
+    template<typename TFun>
+    this_type &
     apply(mesh::MeshEntityRange const &r, TFun const &op,
           FUNCTION_REQUIREMENT(
                   (std::is_same<typename std::result_of<TFun(mesh::MeshEntityId const &)>::type, value_type>::value)
@@ -286,7 +316,8 @@ public:
         return *this;
     }
 
-    template<typename TFun> this_type &
+    template<typename TFun>
+    this_type &
     apply(mesh::MeshEntityRange const &r, TFun const &op,
           FUNCTION_REQUIREMENT(
                   (std::is_same<typename std::result_of<TFun(value_type &)>::type, void>::value)
@@ -302,7 +333,8 @@ public:
     }
 
 
-    template<typename TFun> this_type &
+    template<typename TFun>
+    this_type &
     apply(mesh::MeshEntityRange const &r, TFun const &f,
           FUNCTION_REQUIREMENT((traits::is_indexable<TFun, typename mesh::MeshEntityId>::value))
     )
@@ -317,7 +349,8 @@ public:
 
 private:
 
-    template<typename TOP, typename Other> this_type &
+    template<typename TOP, typename Other>
+    this_type &
     apply_expr(TOP const &op, Other const &other)
     {
         deploy();
@@ -327,7 +360,7 @@ private:
     }
 
 
-    mesh_type const *m_mesh_; // @FIXME [severity: low, potential] here is a potential risk, mesh maybe destroyed before data;
+    std::shared_ptr<mesh_type const> m_mesh_; // @FIXME [severity: low, potential] here is a potential risk, mesh maybe destroyed before data;
     std::shared_ptr<value_type> m_data_;
     mesh::MeshEntityRange m_range_;
 
