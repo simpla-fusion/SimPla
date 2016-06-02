@@ -236,7 +236,7 @@ Particle<P, M>::generate(TGen &gen)
 //
 //    dist_obj.wait();
 //
-//    for (auto const &item :  dist_obj.recv_buffer)
+//    for (auto const &item :  dist_obj.m_recv_links_)
 //    {
 //        sample_type const *p = reinterpret_cast<sample_type const *>(std::get<1>(item).data.get());
 //        m_data_->insert(p, p + std::get<1>(item).memory_space.size());

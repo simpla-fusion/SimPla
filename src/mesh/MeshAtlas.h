@@ -12,6 +12,7 @@
 
 #include "Mesh.h"
 #include "MeshBase.h"
+#include "../parallel/DistributedObject.h"
 
 namespace simpla { namespace mesh
 {
@@ -134,7 +135,7 @@ private:
     MeshBlockId m_root_;
 
     std::map<MeshBlockId, std::shared_ptr<MeshBase> > m_mesh_atlas_;
-
+    std::vector<parallel::DistributedObject> m_dist_objs_;
     int m_max_level_ = 1;
 };
 

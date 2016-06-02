@@ -89,9 +89,13 @@ public:
 
     vector_type m_dx_{{1, 1, 1}}, m_inv_dx_{{1, 1, 1}}; //!< width of cell, except m_dx_[i]=0 when m_dims_[i]==1
 
-    index_tuple m_dims_{{10, 10, 10}};
+    index_tuple m_dims_{{10, 10, 10}}, m_shape_{{10, 10, 10}};
 
     index_tuple m_lower_{{0, 0, 0}}, m_upper_{{10, 10, 10}};
+
+    index_tuple m_inner_lower_{{0, 0, 0}}, m_inner_upper_{{10, 10, 10}};
+
+    index_tuple m_outer_lower_{{0, 0, 0}}, m_outer_upper_{{10, 10, 10}};
 
     index_tuple m_ghost_width_{{0, 0, 0}};
 
@@ -123,21 +127,41 @@ public:
         return os;
     }
 
+    void dimensions(index_tuple const &d) { m_dims_ = d; }
+
+    index_tuple const &dimensions() const { return m_dims_; }
+
+    void offset(index_tuple const &d) { m_offset_ = d; }
+
+    index_tuple const &offset() const { return m_offset_; }
+
+    void ghost_width(index_tuple const &d) { m_ghost_width_ = d; }
+
+    index_tuple const &ghost_width() const { return m_ghost_width_; }
+
+    template<typename X0, typename X1>
+    void box(X0 const &x0, X1 const &x1)
+    {
+        m_coords_lower_ = x0;
+        m_coords_upper_ = x1;
+    }
 
     virtual box_type box() const { return box_type{m_coords_lower_, m_coords_upper_}; }
 
-    virtual MeshEntityRange range(MeshEntityType entityType = VERTEX) const
+    void box(box_type const &b) { std::tie(m_coords_lower_, m_coords_upper_) = b; }
+
+    vector_type const &dx() const { return m_dx_; }
+
+    virtual MeshEntityRange range(MeshEntityType entityType = VERTEX) const { return outer_range(entityType); };
+
+    virtual MeshEntityRange inner_range(MeshEntityType entityType = VERTEX) const
     {
-        //FIXME "THIS IS A DUMMY FUNCTION"
-        return MeshEntityRange(
-                MeshEntityIdCoder::make_range(m_ghost_width_, m_ghost_width_ + m_dims_, entityType));
+        return MeshEntityRange(MeshEntityIdCoder::make_range(m_inner_lower_, m_inner_upper_, entityType));
     };
 
     virtual MeshEntityRange outer_range(MeshEntityType entityType = VERTEX) const
     {
-        //FIXME "THIS IS A DUMMY FUNCTION"
-        return MeshEntityRange(MeshEntityIdCoder::make_range(m_lower_, m_upper_, entityType));
-
+        return MeshEntityRange(MeshEntityIdCoder::make_range(m_outer_lower_, m_outer_upper_, entityType));
     };
 
     virtual size_t max_hash(MeshEntityType entityType = VERTEX) const
@@ -206,34 +230,7 @@ public:
         return std::shared_ptr<MeshBase>();
     }
 
-//================================================================================================
-    void dimensions(index_tuple const &d) { m_dims_ = d; }
 
-    index_tuple const &dimensions() const { return m_dims_; }
-
-    void offset(index_tuple const &d) { m_offset_ = d; }
-
-    index_tuple const &offset() const { return m_offset_; }
-
-    void ghost_width(index_tuple const &d) { m_ghost_width_ = d; }
-
-    index_tuple const &ghost_width() const { return m_ghost_width_; }
-
-    template<typename X0, typename X1>
-    void box(X0 const &x0, X1 const &x1)
-    {
-        m_coords_lower_ = x0;
-        m_coords_upper_ = x1;
-    }
-
-    box_type box() { return box_type{m_coords_lower_, m_coords_upper_}; }
-
-    void box(box_type const &b) { std::tie(m_coords_lower_, m_coords_upper_) = b; }
-
-    vector_type const &dx() const { return m_dx_; }
-
-
-private:
     Real m_volume_[9];
     Real m_inv_volume_[9];
     Real m_dual_volume_[9];
@@ -276,13 +273,23 @@ public:
 
             m_dims_[i] = (m_dims_[i] > 0) ? m_dims_[i] : 1;
 
-            m_lower_[i] = 0;
-
-            m_upper_[i] = m_dims_[i] + m_ghost_width_[i] * 2;
-
             m_dx_[i] = (m_coords_upper_[i] - m_coords_lower_[i]) / static_cast<Real>( m_dims_[i]);
 
             m_inv_dx_[i] = 1.0 / m_dx_[i];
+
+            m_ghost_width_[i] = (m_dims_[i] < m_ghost_width_[i] * 2) ? 0 : m_ghost_width_[i];
+
+            m_lower_[i] = m_ghost_width_[i];
+
+            m_upper_[i] = m_lower_[i] + m_dims_[i];
+
+            m_shape_[i] = m_upper_[i] + m_ghost_width_[i];
+
+            m_inner_lower_[i] = m_lower_[i] + m_ghost_width_[i];
+            m_inner_upper_[i] = m_upper_[i] - m_ghost_width_[i];
+
+            m_outer_lower_[i] = 0;
+            m_outer_upper_[i] = m_shape_[i];
         }
 
 

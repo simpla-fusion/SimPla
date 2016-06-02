@@ -19,6 +19,7 @@
 namespace simpla
 {
 namespace io { struct IOStream; }
+namespace parallel { struct DistributedObject; }
 
 namespace mesh
 {
@@ -119,6 +120,7 @@ private:
     Real m_time_ = 0;
     size_t m_step_count_ = 0;
     std::map<std::string, std::shared_ptr<mesh::MeshAttribute> > m_attr_;
+
 };
 }}//namespace simpla{namespace mesh{
 #endif //SIMPLA_MESHWALKER_H

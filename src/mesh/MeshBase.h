@@ -27,7 +27,7 @@ public:
 
     enum STATUS { LOCAL, ADJOINT, DISJOINT };
 
-    MeshBase() : m_level_(0),m_status_flag_(LOCAL) { }
+    MeshBase() : m_level_(0), m_status_flag_(LOCAL) { }
 
     virtual    ~MeshBase() { }
 
@@ -41,19 +41,77 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const { return os; }
 
+
+    /**
+ *
+ *   ********************outer box************
+ *   *      |--------------------------|     *
+ *   *      |       +-----box------+   |     *
+ *   *      |       |              |   |     *
+ *   *      |       |  **inner**   |   |     *
+ *   *      |       |  *       *   |   |     *
+ *   *      |       |  *       *   |   |     *
+ *   *      |       |  *(range)*   |   |     *
+ *   *      |       |  2********   |   |     *
+     *      |       |   boundary   |   |     *
+ *   *    /---      +--------------+   |     *
+     *   /  |             affected     |     *
+     *ghost |--------------------------|     *
+     *   \---                                *
+ *   *****************************************
+ *
+ *	5-0 = dimensions
+ *	4-1 = e-d = ghosts
+ *	2-1 = counts
+ *
+ *	0 = m_idx_min_
+ *	5 = m_idx_max_
+ *
+ *	1 = m_idx_memory_min_
+ *	4 = m_idx_memory_max_
+ *
+ *	2 = m_idx_local_min_
+ *	3 = m_idx_local_max_
+ *
+ *
+ */
+
+    virtual index_tuple const &ghost_width() const = 0;
+
+    virtual void ghost_width(index_tuple const &) = 0;
+
+
     virtual box_type box() const = 0;
 
-    virtual box_type outer_box() const { return box(); }
+    virtual box_type inner_box() const
+    {
+        UNIMPLEMENTED;
+        return box();
+    }
 
-    virtual MeshEntityRange range(MeshEntityType entityType = VERTEX) const = 0;
+    virtual box_type outer_box() const
+    {
+        UNIMPLEMENTED;
+        return box();
+    }
+
+    virtual MeshEntityRange range(MeshEntityType entityType = VERTEX) const { return outer_range(entityType); }
+
+    virtual MeshEntityRange inner_range(MeshEntityType entityType = VERTEX) = 0;
+
+    virtual MeshEntityRange outer_range(MeshEntityType entityType = VERTEX) const = 0;
+
+    virtual MeshEntityRange boundary_range(MeshEntityType entityType = VERTEX) const
+    {
+        UNIMPLEMENTED;
+        return MeshEntityRange();
+    };
 
     virtual MeshEntityRange ghost_range(MeshEntityType entityType = VERTEX) const
     {
         UNIMPLEMENTED;
         return MeshEntityRange();
     };
-
-    virtual MeshEntityRange outer_range(MeshEntityType entityType = VERTEX) const = 0;
 
     virtual size_t max_hash(MeshEntityType entityType = VERTEX) const = 0;
 
@@ -69,7 +127,6 @@ public:
     virtual int get_adjacent_entities(MeshEntityId const &, MeshEntityType t, MeshEntityId *p = nullptr) const = 0;
 
     virtual std::shared_ptr<MeshBase> refine(box_type const &b, int flag = 0) const = 0;
-
 
     int get_vertices(MeshEntityId const &s, point_type *p) const
     {

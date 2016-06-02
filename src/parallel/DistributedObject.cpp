@@ -21,70 +21,65 @@ struct DistributedObject::pimpl_s
 
     ~pimpl_s() { }
 
-    int m_object_id_;
+    void add(int id, data_model::DataSet ds);
 
+    void sync();
+
+    void wait();
+
+    bool is_ready() const;
+
+
+    struct link_s
+    {
+        int id;
+        nTuple<int, 3> shift;
+        data_model::DataSet data_set;
+    };
+
+    std::vector<link_s> m_send_links_;
+    std::vector<link_s> m_recv_links_;
 
     std::vector<MPIDataType> m_mpi_dtype_;
     std::vector<MPI_Request> m_mpi_requests_;
 };
 
-//! Default constructor
-DistributedObject::DistributedObject()
-        : pimpl_(new pimpl_s())
+void DistributedObject::pimpl_s::sync()
 {
-}
-
-
-DistributedObject::~DistributedObject()
-{
-
-}
-
-DistributedObject::pimpl_s::pimpl_s() : m_object_id_(GLOBAL_COMM.generate_object_id())
-{
-
-}
-
-
-void DistributedObject::sync()
-{
-    ASSERT(pimpl_ != nullptr);
 
     if (!GLOBAL_COMM.is_valid()) { return; }
 
-    pimpl_->m_mpi_requests_.clear();
-    pimpl_->m_mpi_requests_.resize(send_buffer.size() + recv_buffer.size());
-    pimpl_->m_mpi_dtype_.clear();
-    pimpl_->m_mpi_dtype_.resize(send_buffer.size() + recv_buffer.size());
+    m_mpi_requests_.clear();
+    m_mpi_requests_.resize(m_send_links_.size() + m_recv_links_.size());
+    m_mpi_dtype_.clear();
+    m_mpi_dtype_.resize(m_send_links_.size() + m_recv_links_.size());
 
     int count = 0;
 
-    for (auto const &item :  send_buffer)
+    for (auto const &item :  m_send_links_)
     {
         int dest_id, send_tag, recv_tag;
 
-        std::tie(dest_id, send_tag, std::ignore) = GLOBAL_COMM.make_send_recv_tag(pimpl_->m_object_id_,
-                                                                                  &std::get<0>(item)[0]);
-        auto &ds = std::get<1>(item);
+        std::tie(dest_id, send_tag, std::ignore) = GLOBAL_COMM.make_send_recv_tag(item.id, &item.shift[0]);
+        auto &ds = item.data_set;
         ASSERT(ds.data != nullptr);
-        MPIDataType::create(ds.data_type, ds.memory_space).swap(pimpl_->m_mpi_dtype_[count]);
-        MPI_ERROR(MPI_Isend(ds.data.get(), 1,
-                            pimpl_->m_mpi_dtype_[count].type(),
-                            dest_id, send_tag, GLOBAL_COMM.comm(), &(pimpl_->m_mpi_requests_[count])));
+        MPIDataType::create(ds.data_type, ds.memory_space).swap(m_mpi_dtype_[count]);
+        MPI_ERROR(MPI_Isend(ds.data.get(), 1, m_mpi_dtype_[count].type(), dest_id, send_tag, GLOBAL_COMM.comm(),
+                            &(m_mpi_requests_[count])));
 
         ++count;
     }
 
 
-    for (auto &item : recv_buffer)
+    for (auto &item : m_recv_links_)
     {
 
         int dest_id, send_tag, recv_tag;
 
         std::tie(dest_id, std::ignore, recv_tag)
-                = GLOBAL_COMM.make_send_recv_tag(pimpl_->m_object_id_, &std::get<0>(item)[0]);
+                = GLOBAL_COMM.make_send_recv_tag(item.id, &item.shift[0]);
 
-        auto &ds = std::get<1>(item);
+        auto &ds = item.data_set;
 
 
         if (ds.memory_space.size() <= 0 || ds.data == nullptr)
@@ -115,23 +110,23 @@ void DistributedObject::sync()
 
 //            ds.data_space = ds.memory_space;
 
-            MPIDataType::create(ds.data_type).swap(pimpl_->m_mpi_dtype_[count]);
+            MPIDataType::create(ds.data_type).swap(m_mpi_dtype_[count]);
 
             ASSERT(ds.data.get() != nullptr);
             MPI_ERROR(MPI_Irecv(ds.data.get(), recv_num,
-                                pimpl_->m_mpi_dtype_[count].type(),
+                                m_mpi_dtype_[count].type(),
                                 dest_id, recv_tag, GLOBAL_COMM.comm(),
-                                &(pimpl_->m_mpi_requests_[count])));
+                                &(m_mpi_requests_[count])));
 
         }
         else
         {
             ASSERT(ds.data.get() != nullptr);
-            MPIDataType::create(ds.data_type, ds.memory_space).swap(pimpl_->m_mpi_dtype_[count]);
+            MPIDataType::create(ds.data_type, ds.memory_space).swap(m_mpi_dtype_[count]);
             MPI_ERROR(MPI_Irecv(ds.data.get(), 1,
-                                pimpl_->m_mpi_dtype_[count].type(),
+                                m_mpi_dtype_[count].type(),
                                 dest_id, recv_tag, GLOBAL_COMM.comm(),
-                                &(pimpl_->m_mpi_requests_[count])));
+                                &(m_mpi_requests_[count])));
         }
 
 
@@ -141,37 +136,37 @@ void DistributedObject::sync()
 
 }
 
-void DistributedObject::wait()
+void DistributedObject::pimpl_s::wait()
 {
-    if (GLOBAL_COMM.is_valid() && !pimpl_->m_mpi_requests_.empty())
+    if (GLOBAL_COMM.is_valid() && !m_mpi_requests_.empty())
     {
 
-        int count = static_cast<int>(pimpl_->m_mpi_requests_.size());
+        int count = static_cast<int>(m_mpi_requests_.size());
 
-        MPI_Request *array_of_requests = &(pimpl_->m_mpi_requests_[0]);
+        MPI_Request *array_of_requests = &(m_mpi_requests_[0]);
 
 
         MPI_Waitall(count, array_of_requests, MPI_STATUSES_IGNORE);
 
 
-        pimpl_->m_mpi_dtype_.clear();
-        pimpl_->m_mpi_requests_.clear();
+        m_mpi_dtype_.clear();
+        m_mpi_requests_.clear();
     }
 
 
 }
 
-bool DistributedObject::is_ready() const
+bool DistributedObject::pimpl_s::is_ready() const
 {
     //! FIXME this is not multi-threads safe
 
-    if (pimpl_->m_mpi_requests_.size() > 0)
+    if (m_mpi_requests_.size() > 0)
     {
         int flag = 0;
 
-        int count = static_cast<int>(pimpl_->m_mpi_requests_.size());
+        int count = static_cast<int>(m_mpi_requests_.size());
 
-        MPI_Request *array_of_requests = &(pimpl_->m_mpi_requests_[0]);
+        MPI_Request *array_of_requests = &(m_mpi_requests_[0]);
 
         MPI_ERROR(MPI_Testall(count, array_of_requests, &flag, MPI_STATUSES_IGNORE));
 
@@ -183,7 +178,7 @@ bool DistributedObject::is_ready() const
 }
 
 
-void DistributedObject::add(data_model::DataSet ds)
+void DistributedObject::pimpl_s::add(int id, data_model::DataSet ds)
 {
 
     typedef typename data_model::DataSpace::index_tuple index_tuple;
@@ -268,17 +263,18 @@ void DistributedObject::add(data_model::DataSet ds)
             try
             {
 
-                data_model::DataSet send_buffer(ds);
+                data_model::DataSet send_ds(ds);
 
-                data_model::DataSet recv_buffer(ds);
+                data_model::DataSet recv_ds(ds);
 
-                send_buffer.memory_space.select_hyperslab(&send_offset[0], nullptr, &send_count[0], nullptr);
+                send_ds.memory_space.select_hyperslab(&send_offset[0], nullptr, &send_count[0], nullptr);
 
-                recv_buffer.memory_space.select_hyperslab(&recv_offset[0], nullptr, &recv_count[0], nullptr);
+                recv_ds.memory_space.select_hyperslab(&recv_offset[0], nullptr, &recv_count[0], nullptr);
 
-                this->add_link_send(coord_offset, send_buffer);
 
-                this->add_link_recv(coord_offset, recv_buffer);
+                m_send_links_.push_back(link_s{id, coord_offset, std::move(send_ds)});
+
+                m_recv_links_.push_back(link_s{id, coord_offset, std::move(recv_ds)});
 
             }
             catch (std::exception const &error)
@@ -292,5 +288,30 @@ void DistributedObject::add(data_model::DataSet ds)
 
 }
 
+
+//! Default constructor
+DistributedObject::DistributedObject()
+        : pimpl_(new pimpl_s())
+{
+}
+
+
+DistributedObject::~DistributedObject()
+{
+
+}
+
+DistributedObject::pimpl_s::pimpl_s()
+{
+
+}
+
+void DistributedObject::add(int id, data_model::DataSet &ds) { pimpl_->add(id, ds); }
+
+void DistributedObject::sync() { pimpl_->sync(); }
+
+void DistributedObject::wait() { pimpl_->wait(); }
+
+bool DistributedObject::is_ready() const { pimpl_->is_ready(); }
 
 }}//namespace simpla{ namespace parallel

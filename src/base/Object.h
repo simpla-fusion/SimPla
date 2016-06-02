@@ -107,6 +107,8 @@ public:
 
     boost::uuids::uuid uuid() const { return m_uuid_; }
 
+    int short_id() const { return static_cast<int>(boost::uuids::hash_value(m_uuid_)); }
+
     bool operator==(Object const &other) { return m_uuid_ == other.m_uuid_; }
     /**
      *  @name concept lockable

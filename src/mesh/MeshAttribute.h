@@ -84,6 +84,8 @@ public:
     {
         assert(m != nullptr);
 
+        std::shared_ptr<TF> res;
+
         static_assert(std::is_base_of<View, TF>::value,
                       "Object is not a mesh::MeshAttribute::View");
         auto it = m_attrs_.find(m->uuid());
@@ -99,7 +101,7 @@ public:
                 std::endl;
             }
 
-            return std::make_shared<TF>(*std::dynamic_pointer_cast<TF>(it->second));
+            res = std::make_shared<TF>(*std::dynamic_pointer_cast<TF>(it->second));
         }
         else
         {
@@ -112,14 +114,15 @@ public:
             }
             else
             {
-                auto ptr = std::make_shared<TF>(m, std::forward<Args>(args)...);
+                res = std::make_shared<TF>(m, std::forward<Args>(args)...);
 
-                m_attrs_.emplace(std::make_pair(m->uuid(), std::dynamic_pointer_cast<View>(ptr)));
+                m_attrs_.emplace(std::make_pair(m->uuid(), std::dynamic_pointer_cast<View>(res)));
 
-                return ptr;
+
             }
         }
 
+        return res;
 
     }
 
