@@ -12,9 +12,9 @@ MeshEntityRange select(MeshBase const &m, MeshEntityRange const &r,
                        std::function<bool(point_type const &x)> const &pred)
 {
     MeshEntityRange res;
-    std::set<MeshEntityId> i_set;
-
-    for (auto const &s:r) { if (pred(mesh.point(s))) { res.insert(s); }}
+//    std::set<MeshEntityId> i_set;
+//
+//    for (auto const &s:r) { if (pred(mesh.point(s))) { res.insert(s); }}
 
     return std::move(res);
 }

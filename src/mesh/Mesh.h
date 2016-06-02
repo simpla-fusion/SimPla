@@ -63,9 +63,7 @@ typedef nTuple<index_type, 3> index_tuple;
 
 typedef std::tuple<index_tuple, index_tuple> index_box_type;
 
-typedef unsigned long MeshEntityId;
 
-typedef long MeshEntityIdDiff;
 
 typedef boost::uuids::uuid MeshBlockId;
 
