@@ -76,6 +76,10 @@ int main(int argc, char **argv)
 
     auto problem_domain = std::make_shared<EMFluid<mesh_type>>(mesh);
 
+    options["Source"]["J"]["Function"].as(&problem_domain->J_src_fun);
+
+    problem_domain->J_src_range = select(mesh->range(VERTEX), options["Source"]["J"]["Range"]);
+
     problem_domain->dt(options["dt"].as<Real>(1.0));
 
     problem_domain->time(options["time"].as<Real>(0.0));

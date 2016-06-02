@@ -20,8 +20,7 @@ class RangeAdapter
 
     class HolderBase;
 
-    template<typename>
-    struct Holder;
+    template<typename> struct Holder;
 public :
     typedef TIterator iterator;
 
@@ -146,7 +145,6 @@ private:
     };
 };
 
-template<typename Tp> using AdaptRange = RangeAdapter<typename Tp::iterator>;
 
 }//namespace simpla//namespace detail
 #endif //SIMPLA_RANGEADAPTER_H

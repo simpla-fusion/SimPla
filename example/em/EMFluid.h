@@ -60,10 +60,11 @@ public:
 
     MeshEntityRange plasma_region_volume;
     MeshEntityRange plasma_region_vertex;
-    MeshEntityRange J_src;
+
 
     template<typename ValueType, size_t IFORM> using field_t =  Field<ValueType, TM, std::integral_constant<size_t, IFORM> >;;
 
+    MeshEntityRange J_src_range;
     std::function<Vec3(Real, point_type const &, vector_type const &v)> J_src_fun;
 
 
@@ -127,7 +128,7 @@ void EMFluid<TM>::next_step(Real dt)
     J1.clear();
 
     Real current_time = time();
-    J1.apply(J_src, [&](point_type const &x, vector_type const &v) { return J_src_fun(current_time, x, v); });
+    J1.apply(J_src_range, [&](point_type const &x, vector_type const &v) { return J_src_fun(current_time, x, v); });
 
 
     LOG_CMD(B1 -= curl(E1) * (dt * 0.5));

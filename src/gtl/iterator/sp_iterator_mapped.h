@@ -12,7 +12,7 @@
 #include <memory>
 
 #include "../utilities/type_traits.h"
-#include "iterator.h"
+#include "Iterator.h"
 
 namespace simpla
 {

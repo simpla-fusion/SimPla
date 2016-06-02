@@ -7,6 +7,7 @@
 
 #include <typeinfo>
 #include "../base/Object.h"
+#include "../gtl/Log.h"
 
 #include "Mesh.h"
 #include "MeshBase.h"
@@ -31,9 +32,8 @@ public:
 
     SP_OBJECT_HEAD(MeshBase, base::Object);
 
-    enum STATUS { LOCAL, ADJOINT, DISJOINT };
 
-    MeshBase() : m_level_(0), m_status_flag_(LOCAL) { }
+    MeshBase() : m_level_(0), m_status_flag_(0) { }
 
     virtual    ~MeshBase() { }
 

@@ -6,7 +6,7 @@
 #define SIMPLA_RANGE_H
 
 #include <iterator>
-
+#include "IteratorAdapter.h"
 
 namespace simpla
 {
@@ -19,58 +19,70 @@ struct proportional_split
     int m_left_ = 1, m_right_ = 1;
 
     int left() const { return m_left_; }
+
     int right() const { return m_right_; }
 };
 }
+template<typename _Category, typename _Tp,
+        typename _Distance = ptrdiff_t, typename _Pointer = _Tp *, typename _Reference = _Tp &> class Range;
 
-namespace detail
-{
-template<typename ...> class Range_;
 
-template<typename TIter>
-class Range_<TIter, std::random_access_iterator_tag>
+template<typename _Category, typename _Tp, typename _Distance, typename _Pointer, typename _Reference>
+class Range
 {
-    typedef Range_<TIter, std::random_access_iterator_tag> this_type;
+    typedef Range<_Category, _Tp, _Distance, _Pointer, _Reference> this_type;
 public:
-    typedef TIter const_iterator;
-    typedef TIter iterator;
+    typedef IteratorAdapter <_Category, _Tp, _Distance, _Pointer, _Reference> iterator;
+    typedef iterator const_iterator;
 
-    Range_() : m_grain_size_(1) { }
+    Range() : m_grain_size_(1) { }
 
     template<typename TI>
-    Range_(TI const &b, TI const &e, size_t grain_size = 1) :
-            m_begin_(b), m_end_(e), m_grain_size_(grain_size) { }
+    Range(TI const &b, TI const &e, size_t grain_size = 1) :
+            m_begin_(iterator(b)), m_end_(iterator(e)), m_grain_size_(grain_size) { }
 
     //****************************************************************************
     // TBB Range Concept Begin
 
-    ~Range_() { }
+    ~Range() { }
 
-    Range_(Range_ const &other) : m_begin_(other.m_begin_),
-                                  m_end_(other.m_end_),
-                                  m_grain_size_(other.m_grain_size_) { }
-
-    Range_(Range_ &other, tags::split)
-            : m_begin_(other.m_begin_),
-              m_end_(m_begin_ + (other.m_end_ - other.m_begin_) / 2),
-              m_grain_size_(other.m_grain_size_)
-    {
-        other.m_begin_ = m_end_;
-    }
-
-    Range_(Range_ &other, tags::proportional_split proportion) :
+    Range(Range const &other) :
             m_begin_(other.m_begin_),
-            m_end_(m_begin_ +
-                   ((other.m_end_ - other.m_begin_) * proportion.left())
-                   / (proportion.left() + proportion.right())),
+            m_end_(other.m_end_),
+            m_grain_size_(other.m_grain_size_) { }
+
+    Range(Range &other, tags::split,
+          FUNCTION_REQUIREMENT((std::is_same<std::random_access_iterator_tag, _Category>::value))) :
+            m_begin_(other.m_begin_),
+            m_end_(m_begin_ + (other.m_end_ - other.m_begin_) / 2),
             m_grain_size_(other.m_grain_size_)
     {
         other.m_begin_ = m_end_;
     }
 
-    static const bool is_splittable_in_proportion = true;
+    Range(Range &other, tags::proportional_split proportion,
+          FUNCTION_REQUIREMENT((std::is_same<std::random_access_iterator_tag, _Category>::value))) :
+            m_begin_(other.m_begin_),
+            m_end_(m_begin_ + ((other.m_end_ - other.m_begin_) * proportion.left())
+                              / (proportion.left() + proportion.right())),
+            m_grain_size_(other.m_grain_size_)
+    {
+        other.m_begin_ = m_end_;
+    }
 
-    bool is_divisible() const { return m_end_ - m_begin_ > m_grain_size_; }
+    static const bool is_splittable = std::is_same<std::random_access_iterator_tag, _Category>::value;
+    static const bool is_splittable_in_proportion = std::is_same<std::random_access_iterator_tag, _Category>::value;
+
+    bool is_divisible(FUNCTION_REQUIREMENT((std::is_same<std::random_access_iterator_tag, _Category>::value))) const
+    {
+        return m_end_ - m_begin_ > m_grain_size_;
+    }
+
+    bool is_divisible(FUNCTION_REQUIREMENT(
+                              (!std::is_same<std::random_access_iterator_tag, _Category>::value))) const
+    {
+        return false;
+    }
 
     bool empty() const { return m_end_ == m_begin_; }
 
@@ -95,9 +107,6 @@ private:
     iterator m_begin_, m_end_;
     size_t m_grain_size_;
 };
-}
-
-template<typename TIterator> using Range=detail::Range_<TIterator, typename TIterator::iterator_category>;
 
 
 }//namespace simpla { namespace mesh

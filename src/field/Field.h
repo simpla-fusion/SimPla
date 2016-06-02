@@ -109,10 +109,13 @@ public:
     {
         bool success = false;
 
-        if (m_holder_ == nullptr) {
-            if (m_data_ == nullptr) {
+        if (m_holder_ == nullptr)
+        {
+            if (m_data_ == nullptr)
+            {
                 if (m_mesh_ == nullptr) { RUNTIME_ERROR << "mesh is not valid!" << std::endl; }
-                else {
+                else
+                {
                     size_t m_size = m_mesh_->max_hash(entity_type());
 
                     m_data_ = sp_alloc_array<value_type>(m_size);
@@ -124,8 +127,10 @@ public:
                 success = true;
             }
         }
-        else {
-            if (m_holder_->is_a<this_type>()) {
+        else
+        {
+            if (m_holder_->is_a<this_type>())
+            {
                 m_holder_->deploy();
                 auto self = std::dynamic_pointer_cast<this_type>(m_holder_);
                 m_mesh_ = self->m_mesh_;
@@ -245,25 +250,6 @@ public:
     /**@}*/
 public:
 
-
-    this_type select(mesh::MeshEntityRange const &r) const
-    {
-        this_type res(*this);
-        res.m_range_ = r;
-        return std::move(res);
-    }
-
-
-    template<typename TSelecter>
-    this_type
-    select(TSelecter const &pred,
-           FUNCTION_REQUIREMENT((std::is_same<typename std::result_of<TSelecter(
-                   typename mesh::MeshEntityRange const &)>::type, mesh::MeshEntityRange>::value))
-    )
-    {
-        return std::move(select(pred(m_range_)));
-    }
-
     template<typename TFun>
     this_type &
     apply(mesh::MeshEntityRange const &r, TFun const &op,
@@ -275,8 +261,10 @@ public:
         deploy();
 
         //TODO: need parallelism
-        if (!r.empty()) {
-            for (auto const &s: r) {
+        if (!r.empty())
+        {
+            for (auto const &s: r)
+            {
                 auto x = m_mesh_->point(s);
                 get(s) = m_mesh_->template sample<IFORM>(s, op(x, gather(x)));
             }
