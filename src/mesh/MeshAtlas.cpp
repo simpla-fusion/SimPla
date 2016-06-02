@@ -4,7 +4,7 @@
  */
 
 #include "MeshAtlas.h"
-#include "../task_flow/Worker.h"
+#include "../task_flow/ProblemDomain.h"
 
 namespace simpla { namespace mesh
 {
@@ -14,7 +14,7 @@ void MeshAtlas::decompose(int num, int rank)
 
 };
 
-void MeshAtlas::decompose(nTuple<int, size_t> const &dims, nTuple<int, size_t> const &self) { }
+void MeshAtlas::decompose(nTuple<int, 3> const &dims, nTuple<int, 3> const &self) { }
 
 void MeshAtlas::load_balance() { }
 

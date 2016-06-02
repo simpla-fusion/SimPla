@@ -14,7 +14,6 @@
 
 #include "../../src/manifold/pre_define/PreDefine.h"
 
-#include "../../src/task_flow/Context.h"
 #include "EMFluid.h"
 
 using namespace simpla;
@@ -32,7 +31,9 @@ int main(int argc, char **argv)
     try
     {
         logger::init(argc, argv);
-
+#ifndef NDEBUG
+        logger::set_stdout_level(20);
+#endif
 //        parallel::init(argc, argv);
 
         options.init(argc, argv);
@@ -71,64 +72,52 @@ int main(int argc, char **argv)
     std::shared_ptr<io::IOStream> out_stream;
 
 
-    task_flow::Context ctx;
-    mesh::MeshAtlas atlas;
+    auto mesh = std::make_shared<mesh_type>();
 
-    auto mesh = atlas.add<mesh_type>();
+    auto problem_domain = std::make_shared<EMFluid<mesh_type>>(mesh);
 
-    auto phy_solver = ctx.register_solver<EMFluid<mesh_type>>(*mesh);
+    problem_domain->dt(options["dt"].as<Real>(1.0));
 
-//    if (!phy_solver->view(*mesh))
-//    {
-//        RUNTIME_ERROR << "Fail to set WORKER to MESH!!" << std::endl;
-//    };
+    problem_domain->time(options["time"].as<Real>(0.0));
 
-    phy_solver->print(std::cout);
+    problem_domain->setup();
 
-    try
-    {
-        ctx.setup();
-
-        ctx.check_point(*out_stream);
-    }
-    catch (std::exception const &error)
-    {
-        RUNTIME_ERROR << "Context initialize error!" << error.what() << std::endl;
-    }
+    problem_domain->print(std::cout);
 
 
-    size_t count = 0;
-
-    int dt = options["dt"].as<Real>(20);
+    Real stop_time = options["stop_time"].as<Real>(20);
 
     int num_of_steps = options["number_of_steps"].as<int>(20);
 
-    int check_point = options["check_point"].as<int>(1);
+
+    Real inc_time = (stop_time - problem_domain->time()) /
+                    (options["number_of_check_point"].as<int>(10));
 
 
     MESSAGE << "====================================================" << std::endl;
     INFORM << "\t >>> START <<< " << std::endl;
+    INFORM << "\t >>> Time [" << problem_domain->time() << "] <<< " << std::endl;
 
-    while (count < num_of_steps)
+    while (problem_domain->time() < stop_time)
     {
-        INFORM << "\t >>> STEP [" << count << "] <<< " << std::endl;
 
-        ctx.next_step(dt);
+        problem_domain->run(problem_domain->time() + inc_time);
 
-        phy_solver->next_step(dt);
+        problem_domain->check_point(*out_stream);
 
-        if (count % check_point == 0)
-            ctx.check_point(*out_stream);
+        INFORM << "\t >>> Time [" << problem_domain->time() << "] <<< " << std::endl;
 
-        ++count;
     }
-    ctx.teardown();
+
 
     INFORM << "\t >>> Done <<< " << std::endl;
+
+
     MESSAGE << "====================================================" << std::endl;
 
+    problem_domain->teardown();
 
-//    io::close();
+    io::close();
 
 //    parallel::close();
 

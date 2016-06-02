@@ -12,6 +12,7 @@
 #include "../gtl/nTuple.h"
 #include "../gtl/Utilities.h"
 #include "../parallel/Parallel.h"
+#include "../parallel/MPIUpdate.h"
 #include "DataSpace.h"
 
 namespace simpla { namespace data_model

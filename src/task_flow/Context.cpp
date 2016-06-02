@@ -15,7 +15,7 @@
 #include <tuple>
 
 
-namespace simpla { namespace task_flow
+namespace simpla
 {
 
 void Context::setup() { };
@@ -41,7 +41,7 @@ void Context::next_step(Real dt)
 {
 
 };
-//void Context::apply(Worker &w, uuid const &id, Real dt)
+//void Context::apply(ProblemDomain &w, uuid const &id, Real dt)
 //{
 //
 //    int ratio = m_mesh_atlas_.refine_ratio(id);
@@ -77,11 +77,12 @@ void Context::next_step(Real dt)
 //    update(id, id);
 //}
 //
-//void Context::sync(mesh::uuid const &id, Worker w)
+//void Context::sync(mesh::uuid const &id, ProblemDomain w)
 //{
 //    w.view(id);
 //
 //    for (auto const &oid: m_mesh_atlas_.sibling(id)) { w.sync(oid); }
 //}
-}}  // namespace simpla
+
+}  // namespace simpla
 

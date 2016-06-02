@@ -21,9 +21,9 @@ using namespace mesh;
  *  @brief absorb boundary condition, PML
  */
 template<typename TM>
-class PML : public task_flow::Worker
+class PML : public task_flow::ProblemDomain
 {
-    typedef task_flow::Worker base_type;
+    typedef task_flow::ProblemDomain base_type;
     typedef TM mesh_type;
 public:
     template<typename ValueType, size_t IFORM> using field_t =  Field<ValueType, TM, std::integral_constant<size_t, IFORM> >;;

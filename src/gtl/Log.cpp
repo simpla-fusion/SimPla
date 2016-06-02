@@ -195,7 +195,7 @@ void LoggerStreams::push(int level, std::string const &msg)
         prefix << "[" << mpi_rank_ << "/" << mpi_size_ << "]";
     }
 
-    prefix << "[" << time_stamp() << "]";
+    prefix << "[" << time_stamp() << "] ";
 
     if (level <= m_std_out_level_)
     {

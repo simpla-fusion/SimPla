@@ -13,7 +13,13 @@
 #include "MeshEntity.h"
 
 
-namespace simpla { namespace mesh
+namespace simpla
+{
+namespace data_model
+{
+struct DataSpace;
+}
+namespace mesh
 {
 class MeshAtlas;
 
@@ -97,17 +103,11 @@ public:
 
     virtual MeshEntityRange range(MeshEntityType entityType = VERTEX) const { return outer_range(entityType); }
 
-    virtual MeshEntityRange inner_range(MeshEntityType entityType = VERTEX) = 0;
+    virtual MeshEntityRange inner_range(MeshEntityType entityType = VERTEX) const = 0;
 
     virtual MeshEntityRange outer_range(MeshEntityType entityType = VERTEX) const = 0;
 
     virtual MeshEntityRange boundary_range(MeshEntityType entityType = VERTEX) const
-    {
-        UNIMPLEMENTED;
-        return MeshEntityRange();
-    };
-
-    virtual MeshEntityRange ghost_range(MeshEntityType entityType = VERTEX) const
     {
         UNIMPLEMENTED;
         return MeshEntityRange();
@@ -148,5 +148,6 @@ public:
 
 };
 
-}}//namespace simpla{namespace mesh{
+}
+}//namespace simpla{namespace mesh{
 #endif //SIMPLA_MESHBASE_H

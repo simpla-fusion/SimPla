@@ -17,17 +17,14 @@
 #include "../mesh/MeshAtlas.h"
 #include "../io/IOStream.h"
 
-#include "Worker.h"
+#include "ProblemDomain.h"
 
-namespace simpla { namespace mesh
+namespace simpla
+{
+namespace mesh
 {
 struct MeshBase;
-}}//namespace simpla { namespace mesh {
-
-
-namespace simpla { namespace task_flow
-{
-
+}
 
 class Context
 {
@@ -104,9 +101,9 @@ public:
     template<typename TSolver, typename TM, typename ...Args>
     std::shared_ptr<TSolver> register_solver(TM const &m, Args &&...args)
     {
-        static_assert(std::is_base_of<Worker, TSolver>::value, "TSovler is not derived from Worker.");
+        static_assert(std::is_base_of<ProblemDomain, TSolver>::value, "TSovler is not derived from ProblemDomain.");
         auto res = std::make_shared<TSolver>(m, std::forward<Args>(args)...);
-        m_workers_.emplace(std::make_pair(m.uuid(), std::dynamic_pointer_cast<Worker>(res)));
+        m_workers_.emplace(std::make_pair(m.uuid(), std::dynamic_pointer_cast<ProblemDomain>(res)));
         return res;
     }
 
@@ -117,12 +114,12 @@ public:
         return std::dynamic_pointer_cast<TSolver>(m_workers_.at(w_id));
     }
 
-    std::map<mesh::MeshBlockId, std::shared_ptr<Worker> > m_workers_;
+    std::map<mesh::MeshBlockId, std::shared_ptr<ProblemDomain> > m_workers_;
 
 
 };
 
 
-}}// namespace simpla//namespace task_flow
+}// namespace simpla
 
 #endif /* CORE_APPLICATION_CONTEXT_H_ */

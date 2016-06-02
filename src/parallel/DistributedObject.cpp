@@ -166,7 +166,7 @@ bool DistributedObject::pimpl_s::is_ready() const
 
         int count = static_cast<int>(m_mpi_requests_.size());
 
-        MPI_Request *array_of_requests = &(m_mpi_requests_[0]);
+        MPI_Request *array_of_requests = &(const_cast<pimpl_s *>(this)->m_mpi_requests_[0]);
 
         MPI_ERROR(MPI_Testall(count, array_of_requests, &flag, MPI_STATUSES_IGNORE));
 

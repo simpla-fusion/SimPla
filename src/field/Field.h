@@ -8,6 +8,7 @@
 #define SIMPLA_FIELD_H
 
 #include <type_traits>
+#include <cassert>
 
 #include "../mesh/MeshAttribute.h"
 #include "../data_model/DataSet.h"
@@ -26,7 +27,7 @@ template<typename TV, typename TManifold, size_t IFORM> using field_t= Field<TV,
 template<typename TV, typename TManifold, size_t IFORM>
 class Field<TV, TManifold, index_const<IFORM>> :
         public mesh::MeshAttribute::View,
-        public std::enable_shared_from_this<Field<TV, TManifold, index_const<IFORM> > >
+        public std::enable_shared_from_this<Field<TV, TManifold, index_const<IFORM>>>
 {
 private:
     static_assert(std::is_base_of<mesh::MeshBase, TManifold>::value, "TManifold is not derived from MeshBase");
@@ -60,17 +61,17 @@ public:
 
     //create construct
 
-    Field(mesh_type const *m = nullptr)
+    Field(std::shared_ptr<mesh_type const> m = nullptr)
             : m_mesh_(m), m_data_(nullptr), m_range_()
     {
     }
 
-    Field(mesh::MeshBase const *m)
+    Field(std::shared_ptr<mesh::MeshBase const> m)
             : m_mesh_(nullptr), m_data_(nullptr), m_range_()
     {
         assert(m->template is_a<mesh_type>());
 
-        this_type(dynamic_cast<mesh_type const *>(m)).swap(*this);
+        this_type(std::dynamic_pointer_cast<mesh_type const>(m)).swap(*this);
     }
 
     //factory construct
@@ -78,7 +79,9 @@ public:
     Field(TFactory &factory, Args &&...args)
             : m_mesh_(nullptr), m_data_(nullptr), m_range_()
     {
-        factory.template create<this_type>(std::forward<Args>(args)...).swap(*this);
+        auto f = factory.template create<this_type>(std::forward<Args>(args)...);
+
+        if (f != nullptr) { this_type(*f).swap(*this); }
     }
 
 
@@ -107,7 +110,7 @@ public:
         }
         else if (m_data_ == nullptr)
         {
-            size_t m_size = m_mesh_->full_range(entity_type()).size();
+            size_t m_size = m_mesh_->max_hash(entity_type());
 
             m_data_ = sp_alloc_array<value_type>(m_size);
 
@@ -131,7 +134,7 @@ public:
     virtual void clear()
     {
         deploy();
-        for (auto const &s: m_mesh_->full_range(entity_type())) { get(s) = 0; }
+        for (auto const &s: m_mesh_->range(entity_type())) { get(s) = 0; }
     }
 
     virtual std::shared_ptr<base_type> get_view()
@@ -310,7 +313,7 @@ private:
     }
 
 
-    mesh_type const *m_mesh_; // @FIXME [severity: low, potential] here is a potential risk, mesh maybe destroyed before data;
+    std::shared_ptr<mesh_type const> m_mesh_; // @FIXME [severity: low, potential] here is a potential risk, mesh maybe destroyed before data;
     std::shared_ptr<value_type> m_data_;
     mesh::MeshEntityRange m_range_;
 

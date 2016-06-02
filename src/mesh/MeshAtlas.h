@@ -9,7 +9,7 @@
 
 #include <type_traits>
 #include "../gtl/Log.h"
-
+#include "../gtl/nTuple.h"
 #include "Mesh.h"
 #include "MeshBase.h"
 #include "../parallel/DistributedObject.h"
@@ -51,7 +51,7 @@ public:
 
     void decompose(int num, int rank);
 
-    void decompose(nTuple<int, size_t> const &dims, nTuple<int, size_t> const &self);
+    void decompose(nTuple<int, 3> const &dims, nTuple<int, 3> const &self);
 
     void load_balance();
 

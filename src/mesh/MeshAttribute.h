@@ -12,8 +12,8 @@
 #include "../gtl/MemoryPool.h"
 #include "../data_model/DataSet.h"
 #include "Mesh.h"
+#include "MeshBase.h"
 #include "MeshEntity.h"
-#include "MeshAtlas.h"
 
 
 namespace simpla { namespace mesh
@@ -80,7 +80,7 @@ public:
 
 
     template<typename TF, typename ...Args>
-    std::shared_ptr<TF> add(MeshBase const *m, Args &&...args)
+    std::shared_ptr<TF> add(std::shared_ptr<MeshBase const> m, Args &&...args)
     {
         assert(m != nullptr);
 
@@ -135,16 +135,7 @@ public:
 
     data_model::DataSet get_dataset(MeshBlockId const &id) const
     {
-        try
-        {
-            return m_attrs_.at(id)->data_set();
-
-        }
-        catch (std::out_of_range const &)
-        {
-            RUNTIME_ERROR << "Block [" << boost::uuids::hash_value(id) << "] is missing!" << std::endl;
-        }
-
+        return m_attrs_.at(id)->data_set();
     }
 
     void set_dataset(MeshBlockId const &id, data_model::DataSet const &d)
@@ -172,6 +163,8 @@ public:
     {
         for (auto const &item:d) { set_dataset(item.first, item.second); }
     }
+
+    bool has(MeshBlockId const &id) const { return m_attrs_.find(id) != m_attrs_.end(); }
 
 protected:
     std::map<MeshBlockId, std::shared_ptr<View>> m_attrs_;

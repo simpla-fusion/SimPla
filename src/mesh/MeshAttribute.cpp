@@ -3,11 +3,10 @@
  * @author salmon
  * @date 2016-05-19.
  */
-#include "../task_flow/Worker.h"
+#include "../task_flow/ProblemDomain.h"
+#include "../data_model/DataSet.h"
 #include "MeshAtlas.h"
 #include "MeshAttribute.h"
-
-#include "../data_model/DataSet.h"
 
 namespace simpla { namespace mesh
 {
