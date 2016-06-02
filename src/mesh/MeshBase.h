@@ -101,6 +101,8 @@ public:
         return box();
     }
 
+    virtual MeshEntityRange select(box_type const &b, MeshEntityType entityType = VERTEX) const = 0;
+
     virtual MeshEntityRange range(MeshEntityType entityType = VERTEX) const { return outer_range(entityType); }
 
     virtual MeshEntityRange inner_range(MeshEntityType entityType = VERTEX) const = 0;

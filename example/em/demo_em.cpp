@@ -11,7 +11,6 @@
 #include "../../src/gtl/Utilities.h"
 #include "../../src/parallel/Parallel.h"
 #include "../../src/io/IO.h"
-
 #include "../../src/manifold/pre_define/PreDefine.h"
 
 #include "EMFluid.h"
@@ -28,20 +27,15 @@ int main(int argc, char **argv)
 
     ConfigParser options;
 
-    try
-    {
-        logger::init(argc, argv);
-#ifndef NDEBUG
-        logger::set_stdout_level(20);
-#endif
-//        parallel::init(argc, argv);
 
-        options.init(argc, argv);
-    }
-    catch (std::exception const &error)
-    {
-        RUNTIME_ERROR << "Initial error" << error.what() << std::endl;
-    }
+    logger::init(argc, argv);
+#ifndef NDEBUG
+    logger::set_stdout_level(20);
+#endif
+    parallel::init(argc, argv);
+
+    options.init(argc, argv);
+
 
     INFORM << ShowCopyRight() << std::endl;
 
@@ -76,10 +70,13 @@ int main(int argc, char **argv)
 
     auto problem_domain = std::make_shared<EMFluid<mesh_type>>(mesh);
 
-    options["Source"]["J"]["Function"].as(&problem_domain->J_src_fun);
+    if (options["Constraints"]["J"])
+    {
+        options["Constraints"]["J"]["Value"].as(&problem_domain->J_src_fun);
 
-    problem_domain->J_src_range = select(mesh->range(VERTEX), options["Source"]["J"]["Range"]);
+        problem_domain->J_src_range = mesh->select(options["Constraints"]["J"]["Box"].as<box_type>(), VERTEX);
 
+    }
     problem_domain->dt(options["dt"].as<Real>(1.0));
 
     problem_domain->time(options["time"].as<Real>(0.0));
@@ -127,7 +124,7 @@ int main(int argc, char **argv)
 
     io::close();
 
-//    parallel::close();
+    parallel::close();
 
     logger::close();
 

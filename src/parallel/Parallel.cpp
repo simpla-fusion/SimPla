@@ -27,13 +27,16 @@ void init(int argc, char **argv)
                    }
 
     );
-
+#ifndef NOMPI
     if (!no_mpi) { SingletonHolder<MPIComm>::instance().init(argc, argv); }
+#endif
 }
 
 void close()
 {
+#ifndef NOMPI
     SingletonHolder<MPIComm>::instance().close();
+#endif
 }
 
 std::string help_message()

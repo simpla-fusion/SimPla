@@ -128,10 +128,11 @@ PEC = {
 Constraints = {
     J = {
         Box = { { 1.4, -0.1, -0.1 * math.pi }, { 1.4, 0.1, 0.1 * math.pi } },
+
         Value = function(t, x)
             local tau = t * omega_ext -- + x[2]*TWOPI/(xmax[3]-xmin[3])
             local amp = math.sin(tau) * (1 - math.exp(-tau * tau))
-            return { 0, 0, amp }
+             return { 0, 0, amp }
         end
     },
 }

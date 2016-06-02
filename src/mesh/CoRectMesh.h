@@ -154,6 +154,17 @@ public:
 
     vector_type const &dx() const { return m_dx_; }
 
+
+    virtual MeshEntityRange select(box_type const &b, MeshEntityType entityType = VERTEX) const
+    {
+        return MeshEntityRange(
+                MeshEntityIdCoder::make_range(
+                        point_to_index(std::get<0>(b)),
+                        point_to_index(std::get<1>(b)),
+                        entityType));
+    };
+
+
     virtual MeshEntityRange range(MeshEntityType entityType = VERTEX) const { return outer_range(entityType); };
 
     virtual MeshEntityRange inner_range(MeshEntityType entityType = VERTEX) const
@@ -218,6 +229,16 @@ public:
 
     }
 
+    virtual index_tuple
+    point_to_index(point_type const &g, int nId = 0) const
+    {
+        m::unpack(std::get<0>(m::coordinates_global_to_local(
+                point_type{{
+                                   std::fma(g[0], m_g2l_scale_[0], m_g2l_shift_[0]),
+                                   std::fma(g[1], m_g2l_scale_[1], m_g2l_shift_[1]),
+                                   std::fma(g[2], m_g2l_scale_[2], m_g2l_shift_[2])
+                           }}, nId)));
+    };
 
     vector_type m_l2g_scale_{{1, 1, 1}}, m_l2g_shift_{{0, 0, 0}};
     vector_type m_g2l_scale_{{1, 1, 1}}, m_g2l_shift_{{0, 0, 0}};
@@ -271,7 +292,8 @@ public:
              *
              *\endverbatim
              */
-        for (int i = 0; i < ndims; ++i) {
+        for (int i = 0; i < ndims; ++i)
+        {
 
             m_dims_[i] = (m_dims_[i] > 0) ? m_dims_[i] : 1;
 

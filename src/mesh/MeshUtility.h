@@ -19,5 +19,8 @@ std::map<index_tuple, box_type> decompose(box_type const &b, index_tuple const &
 
 };
 
+
+MeshEntityRange select(MeshBase const &m, MeshEntityRange const &r,
+                       std::function<bool(point_type const &x)> const &pred);
 }}//namespace simpla {namespace mesh
 #endif //SIMPLA_MESHUTILITIY_H
