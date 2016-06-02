@@ -126,6 +126,7 @@ void EMFluid<TM>::next_step(Real dt)
 //
 //    J1.accept(J_src, [&](id_type s, Real &v) { J1.add(s, J_src_fun(time(), m->point(s))); });
 
+
     LOG_CMD(B1 -= curl(E1) * (dt * 0.5));
 
     B1.apply(face_boundary, [](mesh::MeshEntityId const &s) { return 0.0; });
@@ -133,6 +134,7 @@ void EMFluid<TM>::next_step(Real dt)
     LOG_CMD(E1 += (curl(B1) * speed_of_light2 - J1 / epsilon0) * dt);
 
     E1.apply(edge_boundary, [](double &v) { v = 0; });
+
 
     field_t<vector_type, VERTEX> dE{m};
 
