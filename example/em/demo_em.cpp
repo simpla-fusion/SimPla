@@ -34,6 +34,8 @@ int main(int argc, char **argv)
 #endif
     parallel::init(argc, argv);
 
+    io::init(argc, argv);
+
     options.init(argc, argv);
 
 

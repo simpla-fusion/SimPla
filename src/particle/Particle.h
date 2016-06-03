@@ -14,7 +14,7 @@
 
 #include "../parallel/Parallel.h"
 #include "../gtl/design_pattern/SingletonHolder.h"
-#include "../gtl/utilities/MemoryPool.h"
+#include "../gtl/MemoryPool.h"
 #include "../base/DataObject.h"
 
 namespace simpla { template<typename ...> class Field; }
