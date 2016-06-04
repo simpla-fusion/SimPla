@@ -17,7 +17,7 @@ struct ProblemDomain::pimpl_s
     Real m_dt_ = 0;
     Real m_time_ = 0;
     std::map<std::string, std::shared_ptr<mesh::MeshAttribute> > m_attr_;
-    std::map<int, parallel::DistributedObject> m_dist_obj_;
+    parallel::DistributedObject m_dist_obj_;
 };
 
 ProblemDomain::ProblemDomain() : m(nullptr), m_pimpl_(new pimpl_s) { }
@@ -58,7 +58,7 @@ void ProblemDomain::setup()
 
     auto mesh_block_id = m->uuid();
     auto id = m->short_id();
-    auto &dist_obj = m_pimpl_->m_dist_obj_[id];
+    auto &dist_obj = m_pimpl_->m_dist_obj_;
 
     for (auto &item:m_pimpl_->m_attr_)
     {
@@ -66,7 +66,7 @@ void ProblemDomain::setup()
         {
             item.second->get(mesh_block_id)->deploy();
 
-            auto ds = item.second->get_dataset(mesh_block_id);
+            auto ds = item.second->dataset(mesh_block_id);
             dist_obj.add(item.second->short_id(), ds);
         }
     }
@@ -91,11 +91,11 @@ ProblemDomain::clone(mesh::MeshBase const &) const
 };
 
 
-void
-ProblemDomain::sync()
-{
-    m_pimpl_->m_dist_obj_[m->short_id()].sync();
-}
+void ProblemDomain::sync() { m_pimpl_->m_dist_obj_.sync(); }
+
+void ProblemDomain::wait() { m_pimpl_->m_dist_obj_.wait(); }
+
+bool ProblemDomain::is_ready()const { return m_pimpl_->m_dist_obj_.is_ready(); }
 
 void
 ProblemDomain::run(Real stop_time, int num_of_step)

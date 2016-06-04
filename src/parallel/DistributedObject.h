@@ -7,6 +7,7 @@
 #ifndef SIMPLA_DISTRIBUTED_OBJECT_H
 #define SIMPLA_DISTRIBUTED_OBJECT_H
 
+#include <vector>
 #include <memory>
 
 namespace simpla
@@ -24,13 +25,23 @@ struct DistributedObject
 
     ~DistributedObject();
 
-    void add(int id, data_model::DataSet &ds);
+    void clear();
 
     void sync();
 
     void wait();
 
+    int add_send_link(int id, const int offset[3], data_model::DataSet);
+
+    int add_recv_link(int id, const int offset[3], data_model::DataSet);
+
+    void add(int id, data_model::DataSet &ds, std::vector<int> *_send_tag = nullptr,
+             std::vector<int> *_recv_tag = nullptr);
+
+    void remove(int tag, bool is_recv = false);
+
     bool is_ready() const;
+
 
 private:
     struct pimpl_s;

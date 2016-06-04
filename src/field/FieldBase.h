@@ -142,7 +142,7 @@ public:
 
     virtual bool is_valid() const { return !empty(); }
 
-    virtual void swap(View &other)
+    virtual void swap(base_type &other)
     {
         assert(other.is_a<this_type>());
         swap(dynamic_cast<this_type &>(other));

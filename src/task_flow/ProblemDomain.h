@@ -70,6 +70,10 @@ public:
 
     virtual void sync();
 
+    virtual bool is_ready() const;
+
+    virtual void wait();
+
     virtual void init() = 0;
 
     virtual void next_step(Real dt) = 0;

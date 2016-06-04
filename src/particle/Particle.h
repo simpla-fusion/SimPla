@@ -541,7 +541,6 @@ Particle<P, M>::rehash(range_type const &r, THash const &hash, buffer_type *out_
             [&](range_type const &r)
             {
                 for (auto const &s:r) { rehash(s, hash, out_buffer); }
-
             }
     );
 };
