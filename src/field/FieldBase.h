@@ -57,13 +57,13 @@ public:
 
     //create construct
 
-    Field(mesh_type const * = nullptr)
+    Field(mesh_type const *m = nullptr)
             : m_holder_(nullptr), m_mesh_(m), m_data_(nullptr), m_range_()
     {
     }
 
     Field(mesh::MeshBase const *m)
-            : m_holder_(nullptr), m_mesh_(dynamic_cast<mesh_type const>(m)), m_data_(nullptr),
+            : m_holder_(nullptr), m_mesh_(dynamic_cast<mesh_type const *>(m)), m_data_(nullptr),
               m_range_()
     {
         assert(m->template is_a<mesh_type>());
@@ -142,9 +142,14 @@ public:
 
     virtual bool is_valid() const { return !empty(); }
 
+    virtual void swap(View &other)
+    {
+        assert(other.is_a<this_type>());
+        swap(dynamic_cast<this_type &>(other));
+    };
+
     virtual void swap(this_type &other)
     {
-        base_type::swap(other);
         std::swap(m_mesh_, other.m_mesh_);
         std::swap(m_data_, other.m_data_);
         m_range_.swap(other.m_range_);
@@ -182,6 +187,17 @@ public:
     {
         UNIMPLEMENTED;
     };
+
+    virtual void data_set(mesh::MeshEntityRange const &, data_model::DataSet &)
+    {
+        UNIMPLEMENTED;
+    }
+
+    virtual data_model::DataSet data_set(mesh::MeshEntityRange const &) const
+    {
+        UNIMPLEMENTED;
+        return data_model::DataSet();
+    }
 
 
 public:
@@ -345,7 +361,7 @@ private:
     }
 
 
-    std::shared_ptr<mesh_type const> m_mesh_; // @FIXME [severity: low, potential] here is a potential risk, mesh maybe destroyed before data;
+    mesh_type const *m_mesh_; // @FIXME [severity: low, potential] here is a potential risk, mesh maybe destroyed before data;
     std::shared_ptr<value_type> m_data_;
     mesh::MeshEntityRange m_range_;
 

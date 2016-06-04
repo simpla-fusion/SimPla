@@ -22,7 +22,7 @@ struct ProblemDomain::pimpl_s
 
 ProblemDomain::ProblemDomain() : m(nullptr), m_pimpl_(new pimpl_s) { }
 
-ProblemDomain::ProblemDomain(std::shared_ptr<const mesh::MeshBase> msh) : m(msh), m_pimpl_(new pimpl_s) { };
+ProblemDomain::ProblemDomain(const mesh::MeshBase *msh) : m(msh), m_pimpl_(new pimpl_s) { };
 
 ProblemDomain::~ProblemDomain() { teardown(); }
 

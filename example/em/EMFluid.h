@@ -44,7 +44,7 @@ public:
     typedef TM mesh_type;
     typedef typename mesh_type::scalar_type scalar_type;
 
-    EMFluid(std::shared_ptr<const MeshBase> mp) : base_type(mp) { }
+    EMFluid(std::shared_ptr<const MeshBase> mp) : base_type(mp.get()) { }
 
     virtual ~EMFluid() { }
 
@@ -142,7 +142,8 @@ void EMFluid<TM>::next_step(Real dt)
 
     field_t<vector_type, VERTEX> dE{m};
 
-    if (fluid_sp.size() > 0) {
+    if (fluid_sp.size() > 0)
+    {
 
         field_t<vector_type, VERTEX> Q{m};
         field_t<vector_type, VERTEX> K{m};
@@ -158,7 +159,8 @@ void EMFluid<TM>::next_step(Real dt)
         Q = map_to<VERTEX>(E1) - Ev;
 
 
-        for (auto &p :   fluid_sp) {
+        for (auto &p :   fluid_sp)
+        {
 
             Real ms = p.second.mass;
             Real qs = p.second.charge;
@@ -195,7 +197,8 @@ void EMFluid<TM>::next_step(Real dt)
         LOG_CMD(dE = (Q * a - cross(Q, B0v) * b + B0v * (dot(Q, B0v) * (b * b - c * a) / (a + c * BB))) /
                      (b * b * BB + a * a));
 
-        for (auto &p :   fluid_sp) {
+        for (auto &p :   fluid_sp)
+        {
             Real ms = p.second.mass;
             Real qs = p.second.charge;
             field_t<scalar_type, VERTEX> &ns = p.second.rho1;

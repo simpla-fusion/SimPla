@@ -65,7 +65,7 @@ public:
 
         virtual void swap(View &other) = 0;
 
-        virtual bool is_valid() = 0;
+        virtual bool is_valid() const = 0;
 
         virtual bool deploy() = 0;
 
@@ -91,7 +91,7 @@ public:
 
 
     template<typename TF, typename ...Args>
-    std::shared_ptr<TF> add(std::shared_ptr<MeshBase const> m, Args &&...args)
+    std::shared_ptr<TF> add(MeshBase const *m, Args &&...args)
     {
         assert(m != nullptr);
 

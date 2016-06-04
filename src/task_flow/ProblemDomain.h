@@ -41,7 +41,7 @@ public:
 
     ProblemDomain();
 
-    ProblemDomain(std::shared_ptr<const mesh::MeshBase>);
+    ProblemDomain(const mesh::MeshBase *);
 
     virtual  ~ProblemDomain();
 
@@ -113,7 +113,7 @@ public:
     void run(Real stop_time, int num_of_step = 0);
 
 
-    std::shared_ptr<const mesh::MeshBase> m;
+    const mesh::MeshBase *m;
 
 private:
 
