@@ -27,12 +27,14 @@ struct Particle<P, M>
           public std::enable_shared_from_this<Particle<P, M>>
 {
 private:
-    typedef M mesh_type;
-    typedef P engine_type;
+
     typedef Particle<P, M> this_type;
     typedef mesh::MeshAttribute::View base_type;
 public:
-    typedef P::point_s value_type;
+
+    typedef M mesh_type;
+    typedef P engine_type;
+    typedef typename P::point_s value_type;
     typedef std::list<value_type> bucket_type;
     typedef typename mesh::MeshEntityId id_type;
     typedef typename mesh::MeshEntityRange range_type;
@@ -51,6 +53,7 @@ private:
     static constexpr mesh::MeshEntityType iform = mesh::VOLUME;
 
 public:
+    HAS_PROPERTIES;
 
 
     Particle(mesh_type const *m = nullptr)
@@ -59,7 +62,7 @@ public:
     }
 
     Particle(mesh::MeshBase const *m)
-            : m_holder_(nullptr), m_mesh_(dynamic_cast<mesh_type const>(m)),
+            : m_holder_(nullptr), m_mesh_(dynamic_cast<mesh_type const *>(m)),
               m_data_(nullptr), m_range_()
     {
         assert(m->template is_a<mesh_type>());
@@ -101,7 +104,14 @@ public:
         return *this;
     }
 
-    void swap(this_type const &other)
+    virtual void swap(View &other)
+    {
+        assert(other.template is_a<this_type>());
+
+        swap(dynamic_cast<this_type &>(other));
+    }
+
+    void swap(this_type &other)
     {
         std::swap(other.m_mesh_, m_mesh_);
         std::swap(other.m_data_, m_data_);
@@ -115,9 +125,9 @@ public:
 
     virtual std::string get_class_name() const { return class_name(); };
 
-    static std::string class_name() const { return "Particle<" + traits::type_id<P, M>::name() + ">"; };
+    static std::string class_name() { return "Particle<" + traits::type_id<P, M>::name() + ">"; };
 
-    virtual bool is_valid() { return m_data_ != nullptr && m_mesh_ != nullptr; }
+    virtual bool is_valid() const { return m_data_ != nullptr && m_mesh_ != nullptr; }
 
     virtual bool deploy();
 
@@ -125,15 +135,14 @@ public:
 
     virtual mesh::MeshEntityRange const &range() const { return m_range_; };
 
-    virtual data_model::DataSet data_set(range_type const &) const;
+    virtual data_model::DataSet dataset(range_type const &) const;
 
-    virtual data_model::DataSet data_set() const { return data_set(m_range_); }
+    virtual data_model::DataSet dataset() const { return dataset(m_range_); }
 
-    virtual void data_set(data_model::DataSet &);
+    virtual void dataset(data_model::DataSet const &);
 
-    virtual Properties const &properties() const { return engine_type::properties(); };
+    virtual void dataset(mesh::MeshEntityRange const &, data_model::DataSet const &) { UNIMPLEMENTED; }
 
-    virtual Properties &properties() { return engine_type::properties(); };
 
     virtual size_t size() const { return count(m_range_); }
 
@@ -142,18 +151,16 @@ public:
     virtual void clear(range_type const &r);
 
 
-    template<typename TFun, typename ...Args>
-    auto gather(mesh::point_type const &x0, TFun const &op, Args &&...args) const
-    -> typename std::result_of<TFun(value_type const &, point_type const &, Args...)>::type
+    template<typename TRes, typename ...Args>
+    void gather(TRes *res, mesh::point_type const &x0, Args &&...args) const
     {
-        typename std::result_of<TFun(value_type const &, point_type const &, Args...)>::type res;
 
         res = 0;
         mesh::MeshEntityId s = std::get<0>(m_mesh_->point_global_to_local(x0));
 
         mesh::MeshEntityId neighbours[mesh_type::MAX_NUM_OF_NEIGHBOURS];
 
-        int num = m_mesh_->get_adjacent_cells(entity_type(), s, neighbours);
+        int num = m_mesh_->get_adjacent_entities(s, entity_type(), neighbours);
 
         for (int i = 0; i < num; ++i)
         {
@@ -163,13 +170,26 @@ public:
             {
                 for (auto const &p:acc1->second)
                 {
-                    res += op(p, x0, std::forward<Args>(args)...);
+                    engine_type::gather(res, p, x0, std::forward<Args>(args)...);
                 }
             }
         }
 
-        return res;
     }
+
+    template<typename TV, typename ...Others, typename ...Args>
+    void gather(Field<TV, mesh_type, Others...> *res, Args &&...args) const
+    {
+        //FIXME  using this->box() select range
+
+        res->apply(res->range(), [&](point_type const &x)
+        {
+            typename traits::field_value_type<Field<TV, mesh_type, Others...>>::type v;
+            this->gather(&v, x, std::forward<Args>(args)...);
+            return v;
+        });
+
+    };
 
     template<typename TFun, typename ...Args>
     void apply(range_type const &r, TFun const &op, Args &&...);
@@ -213,16 +233,13 @@ public:
 
     size_t count() const { return count(m_range_); };
 
-    template<typename OutputIT> OutputIterator copy(id_type const &s, OutputIterator out_it) const;
+    template<typename OutputIT> OutputIT copy(id_type const &s, OutputIT out_it) const;
 
     template<typename OutputIT> OutputIT copy(range_type const &r, OutputIT out_it) const;
 
     void merge(buffer_type *other);
 
 };//class Particle
-
-template<typename P, typename M>
-Particle<P, M>::~Particle() { }
 
 
 template<typename P, typename M> void
@@ -250,9 +267,8 @@ Particle<P, M>::deploy()
             if (m_mesh_ == nullptr) { RUNTIME_ERROR << "mesh is not valid!" << std::endl; }
             else
             {
-                size_t m_size = m_mesh_->max_hash(entity_type());
 
-                m_data_ = sp_alloc_array<value_type>(m_size);
+                m_data_ = std::make_shared<container_type>();
 
                 m_mesh_->range(entity_type()).swap(m_range_);
 
@@ -308,7 +324,7 @@ Particle<P, M>::apply(range_type const &r0, TFun const &op, Args &&...args)
             acc.release();
         }
     });
-    for (auto const &s:r) { for (auto &p:(*m_data_)[s]) { op(&p); }}
+//    for (auto const &s:r0) { for (auto &p:(*m_data_)[s]) { op(&p); }}
 }
 
 template<typename P, typename M>
@@ -333,10 +349,10 @@ Particle<P, M>::apply(range_type const &r0, TFun const &op, Args &&...args) cons
 
 
 template<typename P, typename M> void
-Particle<P, M>::erase(id_type const &s, buffer_type *out_buffer)
+Particle<P, M>::erase(id_type const &key, buffer_type *out_buffer)
 {
     typename container_type::accessor acc1;
-    if (m_data_->find(acc1, s))
+    if (m_data_->find(acc1, key))
     {
         if (out_buffer != nullptr)
         {
@@ -368,7 +384,7 @@ Particle<P, M>::erase_if(id_type const &key, TPred const &pred, buffer_type *out
 
     if (m_data_->find(acc0, key))
     {
-        auto it = src.begin(), ie = src.end();
+        auto it = acc0->second.begin(), ie = acc0->second.end();
 
         while (it != ie)
         {
@@ -380,9 +396,9 @@ Particle<P, M>::erase_if(id_type const &key, TPred const &pred, buffer_type *out
                 {
                     typename container_type::accessor acc1;
 
-                    res->insert(acc1, key);
+                    out_buffer->insert(acc1, key);
 
-                    acc1->second.splice(acc2->second.end(), acc0->second, it);
+                    acc1->second.splice(acc1->second.end(), acc0->second, it);
 
                 } else
                 {
@@ -405,7 +421,7 @@ Particle<P, M>::erase_if(range_type const &r, TPred const &pred, buffer_type *ou
 
 
 template<typename P, typename M> data_model::DataSet
-Particle<P, M>::data_set(range_type const &r0) const
+Particle<P, M>::dataset(range_type const &r0) const
 {
 
     size_t num = count(r0);
@@ -420,13 +436,13 @@ Particle<P, M>::data_set(range_type const &r0) const
 
     std::tie(ds.data_space, ds.memory_space) = data_model::DataSpace::create_simple_unordered(num);
 
-    copy(reinterpret_cast< value_type *>( ds.data.get()), r0);
+    copy(r0, reinterpret_cast< value_type *>( ds.data.get()));
 
     return std::move(ds);
 };
 
 template<typename P, typename M> void
-Particle<P, M>::data_set(data_model::DataSet &)
+Particle<P, M>::dataset(data_model::DataSet const &)
 {
     UNIMPLEMENTED;
 };
@@ -436,6 +452,8 @@ Particle<P, M>::data_set(data_model::DataSet &)
 template<typename V, typename K> size_t
 Particle<V, K>::count(range_type const &r0) const
 {
+    return 0;
+
     return parallel::parallel_reduce(
             r0, 0U,
             [&](range_type const &r, size_t init) -> size_t
@@ -484,7 +502,7 @@ Particle<V, K>::copy(range_type const &r, OutputIT out_it) const
 template<typename V, typename K> void
 Particle<V, K>::merge(buffer_type *buffer)
 {
-    parallel::paralle_for(
+    parallel::parallel_for(
             buffer->range(),
             [&](typename buffer_type::range_type const &r)
             {
@@ -513,17 +531,17 @@ Particle<P, M>::rehash(id_type const &key0, THash const &hash, buffer_type *out_
 
     if (m_data_->find(acc0, key0))
     {
-        auto it = src.begin(), ie = src.end();
+        auto it = acc0->second.begin(), ie = acc0->second.end();
         while (it != ie)
         {
             auto p = it;
             ++it;
 
             auto key1 = hash(*p);
-            if (k1 != k0)
+            if (key1 != key0)
             {
                 typename container_type::accessor acc1;
-                res->insert(acc1, key1);
+                out_buffer->insert(acc1, key1);
                 acc1->second.splice(acc1->second.end(), acc0->second, p);
             }
         }
@@ -573,7 +591,7 @@ Particle<V, K>::remove_if(id_type const &s, Predicate const &pred)
 {
     typename container_type::accessor acc;
 
-    if (m_data_->find(acc, std::get<0>(s)))
+    if (m_data_->find(acc, s))
     {
         acc->second.remove_if([&](value_type const &p) { return pred(p, s); });
     }

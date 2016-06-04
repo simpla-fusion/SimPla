@@ -1,3 +1,12 @@
+--
+-- Created by IntelliJ IDEA.
+-- User: salmon
+-- Date: 11/5/15
+-- Time: 3:53 PM
+-- To change this template use File | Settings | File Templates.
+--
+
+
 Description = "For Cold Plasma Dispersion" -- description or other text things.
 
 -- SI Unit System
@@ -14,7 +23,7 @@ k_B = 1.3806488e-23 --Boltzmann_constant
 --
 
 k_parallel = 18
-Btor = 1.0 * Tesla
+Btor = 2.0 * Tesla
 Ti = 0.03 * KeV
 Te = 0.05 * KeV
 N0 = 1.0e17 -- m^-3
@@ -28,25 +37,26 @@ omega_ce = qe * Btor / me -- e/m_p B0 rad/s
 vTe = math.sqrt(k_B * Te * 2 / me)
 rhoe = vTe / omega_ce -- m
 
-NX = 64
-NY = 64
-NZ = 1
-LX = 10 --m --100000*rhoi --0.6
-LY = 10 --2.0*math.pi/k0
-LZ = 1.0 -- 2.0*math.pi/18
+NX = 50
+NY = 50
+NZ = 10
+LX = 1.0 --m --100000*rhoi --0.6
+LY = 1 --2.0*math.pi/k0
+LZ = math.pi * 0.25 -- 2.0*math.pi/18
 GW = 5
-
-Manifold =
+PIC = 100
+GEQDSK = "/home/salmon/workspace-local/SimPla/scripts/gfile/g038300.03900"
+number_of_steps = 10
+Mesh =
 {
-    Geometry = {
-        Topology = {
-            Dimensions = { NX, NY, NZ },
-        },
-        Box = { { 0.0, 0.0, 0.0 }, { LX, LY, LZ } },
-        dt = 0.5 * (LX / NX) / c
-    }
+    Geometry =
+    {
+        Topology = { Dimensions = { NX, NY, NZ }, },
+        Box = { { 0.0, 0.0, 0 }, { LX, LY, LZ } },
+    },
+    dt = 0.5 * (LX / NX) / c
 }
-omega_ext = 0.1 * math.pi / Manifold.Geometry.dt --omega_ci*1.9
+omega_ext = omega_ci * 1.9
 
 
 --domain_center=function( x  )
@@ -61,11 +71,11 @@ domain_center = {
     },
 }
 
-InitValue ={
-    B = {
-        Domain = { Box = { { 0, 0, 0 }, { LX, LY, LZ } } },
-        Value = function(x, t)
-             return { 0, 0, math.sin(x[1] * 2.0 * math.pi / LX) * math.sin(x[2] * 2.0 * math.pi / LY) }
+InitValue = {
+    B0 = {
+        Value = function(t, x)
+            print(x[1])
+            return { 0, 0, math.sin(x[1] * 2.0 * math.pi / LX) * math.sin(x[2] * 2.0 * math.pi / LY) }
         end
     },
     --  phi=
@@ -78,6 +88,28 @@ InitValue ={
     --    end
     --
     --  }
+}
+Particles = {
+    H = {
+        mass = mp,
+        charge = qe,
+        T = Ti,
+        PIC = 1,
+        Type = "Boris",
+        IsParticle = true,
+        --  DisableCheckPoint = true,
+        DisableXDMFOutput = true,
+        V0 = { 1, 2, 3 },
+    },
+    ele = {
+        mass = me,
+        charge = -qe,
+        T = Te,
+        pic = PIC,
+        --        Density = function(t, x)
+        --            return (1.0 - math.cos(x[1] / LX * math.pi * 2.0)) / 2 / PIC
+        --        end
+    }
 }
 
 PEC = {
@@ -93,13 +125,12 @@ PEC = {
     }
 }
 
-Constraint = {
+Constraints = {
     J = {
-        Domain = { Indices = { { NX / 4, NY / 4, 0, 2 } } },
-        Value = function(x, t, v)
+        Box = { { 1.4, -0.1, -0.1 * math.pi }, { 1.4, 0.1, 0.1 * math.pi } },
+        Value = function(t, x)
             local tau = t * omega_ext -- + x[2]*TWOPI/(xmax[3]-xmin[3])
             local amp = math.sin(tau) * (1 - math.exp(-tau * tau))
-
             return { 0, 0, amp }
         end
     },

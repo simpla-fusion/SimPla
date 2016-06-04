@@ -12,6 +12,8 @@
 #include "../../src/task_flow/ProblemDomain.h"
 #include "../../src/mesh/Mesh.h"
 #include "../../src/mesh/MeshEntity.h"
+#include "../../src/particle/Particle.h"
+#include "../../src/particle/pre_define/BorisParticle.h"
 
 namespace simpla
 {
@@ -86,6 +88,7 @@ public:
 
     field_t<scalar_type, VERTEX> rho0{m};
 
+    particle::BorisParticle<mesh_type> H{*this, "H"};
 
     struct fluid_s
     {
@@ -126,6 +129,8 @@ void EMFluid<TM>::next_step(Real dt)
 //
 //
     J1.clear();
+
+//    H.gather(&J1);
 
     Real current_time = time();
     J1.apply(J_src_range, [&](point_type const &x, vector_type const &v) { return J_src_fun(current_time, x, v); });

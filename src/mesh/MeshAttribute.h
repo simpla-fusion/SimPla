@@ -70,13 +70,13 @@ public:
 
         virtual MeshEntityRange const &range() const = 0;
 
-        virtual void data_set(data_model::DataSet const &) = 0;
+        virtual void dataset(data_model::DataSet const &) = 0;
 
-        virtual void data_set(mesh::MeshEntityRange const &, data_model::DataSet &) = 0;
+        virtual void dataset(mesh::MeshEntityRange const &, data_model::DataSet const &) = 0;
 
-        virtual data_model::DataSet data_set() const = 0;
+        virtual data_model::DataSet dataset() const = 0;
 
-        virtual data_model::DataSet data_set(mesh::MeshEntityRange const &) const = 0;
+        virtual data_model::DataSet dataset(mesh::MeshEntityRange const &) const = 0;
     };
 
     /** register MeshBlockId to attribute data collection.  */
@@ -152,14 +152,14 @@ public:
 
     data_model::DataSet dataset(MeshBlockId const &id) const
     {
-        return m_attrs_.at(id)->data_set();
+        return m_attrs_.at(id)->dataset();
     }
 
     void dataset(MeshBlockId const &id, data_model::DataSet const &d)
     {
         try
         {
-            return m_attrs_.at(id)->data_set(d);
+            return m_attrs_.at(id)->dataset(d);
 
         }
         catch (std::out_of_range const &)
@@ -172,7 +172,7 @@ public:
     {
         for (auto const &item:m_attrs_)
         {
-            res->emplace(std::make_pair(item.first, item.second->data_set()));
+            res->emplace(std::make_pair(item.first, item.second->dataset()));
         };
     }
 

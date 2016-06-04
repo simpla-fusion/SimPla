@@ -51,7 +51,7 @@
 * -------------------------------- |----------
 * ` push_back(args ...) `          | Constructor
 * ` foreach(TFun const & fun)  `   | Destructor
-* ` dataset dump() `               | dump/copy 'data' into a data_set
+* ` dataset dump() `               | dump/copy 'data' into a dataset
 *
 *- @ref particle meets the requirement of @ref physical_object
 *   Pseudo-Signature           | Semantics

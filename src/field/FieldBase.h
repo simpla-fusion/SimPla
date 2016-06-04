@@ -170,7 +170,7 @@ public:
 
     virtual mesh::MeshEntityRange const &range() const { return m_range_; };
 
-    virtual data_model::DataSet data_set() const
+    virtual data_model::DataSet dataset() const
     {
         data_model::DataSet res;
 
@@ -183,17 +183,17 @@ public:
         return std::move(res);
     };
 
-    virtual void data_set(data_model::DataSet const &)
+    virtual void dataset(data_model::DataSet const &)
     {
         UNIMPLEMENTED;
     };
 
-    virtual void data_set(mesh::MeshEntityRange const &, data_model::DataSet &)
+    virtual void dataset(mesh::MeshEntityRange const &, data_model::DataSet const &)
     {
         UNIMPLEMENTED;
     }
 
-    virtual data_model::DataSet data_set(mesh::MeshEntityRange const &) const
+    virtual data_model::DataSet dataset(mesh::MeshEntityRange const &) const
     {
         UNIMPLEMENTED;
         return data_model::DataSet();
@@ -296,7 +296,13 @@ public:
         deploy();
 
         //TODO: need parallelism
-        if (!r.empty()) { for (auto const &s: r) { get(s) = m_mesh_->sample(s, op(m_mesh_->point(s))); }}
+        if (!r.empty())
+        {
+            for (auto const &s: r)
+            {
+                get(s) = m_mesh_->template sample<IFORM>(s, op(m_mesh_->point(s)));
+            }
+        }
 
         return *this;
     }

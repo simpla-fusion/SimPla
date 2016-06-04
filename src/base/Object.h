@@ -32,7 +32,7 @@ namespace simpla { namespace base
  *   - Plasma density field is a @ref physical_object;
  *   - @ref physical_object is a geometry defined on a domain in configuration space;
  *   - @ref physical_object has properties;
- *   - @ref physical_object can be saved or loaded as data_set;
+ *   - @ref physical_object can be saved or loaded as dataset;
  *   - @ref physical_object may be decomposed and sync between mpi processes;
  *   - The element value of PhysicalObject may be accessed through a index of discrete grid point in the domain
  *
@@ -107,7 +107,7 @@ public:
 
     boost::uuids::uuid uuid() const { return m_uuid_; }
 
-    int short_id() const { return static_cast<int>(boost::uuids::hash_value(m_uuid_)); }
+    size_t short_id() const { return static_cast<size_t>(boost::uuids::hash_value(m_uuid_)); }
 
     bool operator==(Object const &other) { return m_uuid_ == other.m_uuid_; }
     /**

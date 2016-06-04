@@ -27,6 +27,8 @@ void init(int argc, char **argv);
 
 void close();
 
+IOStream &global();
+
 //std::string help_message();
 
 std::string cd(std::string const &url);

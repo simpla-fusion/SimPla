@@ -193,7 +193,7 @@ public:
 
 //    virtual data_model::DataSet grid_vertices() const
 //    {
-//        auto ds = this->storage_policy::template data_set<point_type, VERTEX>();
+//        auto ds = this->storage_policy::template dataset<point_type, VERTEX>();
 //
 //        ds.data = sp_alloc_memory(ds.memory_space.size() * sizeof(point_type));
 //

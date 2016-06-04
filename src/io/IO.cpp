@@ -25,7 +25,10 @@ void close()
 {
     SingletonHolder<HDF5Stream>::instance().close();
 }
-
+IOStream & global()
+{
+    return SingletonHolder<HDF5Stream>::instance();
+}
 //std::string help_message()
 //{
 //    return HDF5Stream::help_message();

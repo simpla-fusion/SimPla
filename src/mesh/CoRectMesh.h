@@ -45,10 +45,7 @@ private:
     typedef Mesh<tags::CoRectLinear> this_type;
     typedef MeshBase base_type;
 public:
-    virtual bool is_a(std::type_info const &info) const { return typeid(this_type) == info || base_type::is_a(info); }
-
-    template<typename _UOTHER_>
-    bool is_a() const { return is_a(typeid(_UOTHER_)); }
+    virtual bool is_a(std::type_info const &info) const { return typeid(this_type) == info; }
 
     virtual std::string get_class_name() const { return class_name(); }
 

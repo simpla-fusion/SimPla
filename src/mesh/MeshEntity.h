@@ -330,13 +330,13 @@ public :
     template<typename T> T &as()
     {
         assert(m_holder_->is_a(typeid(T)));
-        return  std::dynamic_pointer_cast<Holder<T>>(m_holder_)->get();
+        return *std::dynamic_pointer_cast<Holder<T>>(m_holder_);
     }
 
     template<typename T> T const &as() const
     {
         assert(m_holder_->is_a(typeid(T)));
-        return  std::dynamic_pointer_cast<Holder<T>>(m_holder_)->get();
+        return *std::dynamic_pointer_cast<Holder<T>>(m_holder_);
     }
 
 private:
@@ -368,18 +368,19 @@ private:
     };
 
     template<typename TOtherRange>
-    struct Holder : public HolderBase
+    struct Holder : public HolderBase, public TOtherRange
     {
         typedef Holder<TOtherRange> this_type;
-        TOtherRange m_range_;
     public:
 
 //        template<typename ...Args>
 //        Holder(Args &&... args) : m_range_(std::forward<Args>(args)...) { }
 //
 
-        Holder(TOtherRange const &other) : m_range_(other) { }
+        Holder(TOtherRange const &other) : TOtherRange(other) { }
 
+        template<typename ...Args>
+        Holder(TOtherRange &other, Args &&...args) : TOtherRange(other, std::forward<Args>(args)...) { }
 
         virtual  ~Holder() { }
 
@@ -392,38 +393,29 @@ private:
 
         virtual std::shared_ptr<HolderBase> clone() const
         {
-            return std::dynamic_pointer_cast<HolderBase>(std::make_shared<Holder<TOtherRange>>(m_range_));
+            return std::dynamic_pointer_cast<HolderBase>(std::make_shared<Holder<TOtherRange>>(*this));
         }
 
 
         virtual bool is_a(std::type_info const &t_info) const final { return typeid(TOtherRange) == t_info; }
 
 
-        virtual bool is_divisible() const
-        {
-            return false;
-//            return m_range_.is_divisible();
-        }
+        virtual bool is_divisible() const { return TOtherRange::is_divisible(); }
 
+        virtual bool empty() const { return TOtherRange::empty(); }
 
-        virtual bool empty() const { return m_range_.empty(); }
+        virtual size_t size() const { return TOtherRange::size(); }
 
-        virtual size_t size() const { return m_range_.size(); }
+        virtual void swap(this_type &other) { TOtherRange::swap(other); }
 
-        virtual void swap(this_type &other) { other.m_range_.swap(m_range_); }
+        virtual iterator begin() const { return iterator(std::begin(*this)); }
 
-        virtual iterator begin() const { return iterator(std::begin(m_range_)); }
+        virtual iterator end() const { return iterator(std::end(*this)); }
 
-        virtual iterator end() const { return iterator(std::end(m_range_)); }
+        virtual iterator begin() { return iterator(std::begin(*this)); }
 
-        virtual iterator begin() { return iterator(std::begin(m_range_)); }
+        virtual iterator end() { return iterator(std::end(*this)); }
 
-        virtual iterator end() { return iterator(std::end(m_range_)); }
-
-
-        TOtherRange const &get() const { return m_range_; }
-
-        TOtherRange &get() { return m_range_; }
 
     };
 

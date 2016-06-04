@@ -336,14 +336,14 @@ void HDF5Stream::open_file(std::string const &fname, bool is_append)
 
         H5_ERROR(H5Pset_fapl_mpio(plist_id, GLOBAL_COMM.comm(), GLOBAL_COMM.info()));
 
-        H5_ERROR(f_id = H5Fcreate(filename.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, plist_id));
+        H5_ERROR(f_id = H5Fcreate(filename.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, plist_id));
 
         H5_ERROR(H5Pclose(plist_id));
 
     }
     else
     {
-        H5_ERROR(f_id = H5Fcreate(filename.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, H5P_DEFAULT));
+        H5_ERROR(f_id = H5Fcreate(filename.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT));
     }
 
 
@@ -1005,7 +1005,7 @@ std::string HDF5Stream::write(std::string const &url, data_model::DataSet const 
 
     }
 
-// create property list for collective data_set write.
+// create property list for collective dataset write.
     if (GLOBAL_COMM.is_valid())
     {
         hid_t plist_id = H5Pcreate(H5P_DATASET_XFER);
@@ -1038,7 +1038,7 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, si
     UNIMPLEMENTED;
     return "UNIMPLEMENTED";
 }
-//hid_t HDF5Stream::pimpl_s::create_h5_dataset(data_set const & ds,
+//hid_t HDF5Stream::pimpl_s::create_h5_dataset(dataset const & ds,
 //		size_t flag) const
 //{
 //

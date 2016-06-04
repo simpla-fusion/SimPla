@@ -12,7 +12,7 @@
 #include "../../src/parallel/Parallel.h"
 #include "../../src/io/IO.h"
 #include "../../src/manifold/pre_define/PreDefine.h"
-
+#include "../../src/particle/pre_define/BorisParticle.h"
 #include "EMFluid.h"
 
 using namespace simpla;
@@ -65,10 +65,14 @@ int main(int argc, char **argv)
 
     }
 
-    std::shared_ptr<io::IOStream> out_stream;
-
 
     auto mesh = std::make_shared<mesh_type>();
+
+
+    mesh->dimensions(options["Mesh"]["Dimensions"].as<mesh::index_tuple>(mesh::index_tuple{20, 20, 1}));
+    mesh->box(options["Mesh"]["Box"].as<mesh::box_type>(mesh::box_type{{0, 0, 0},
+                                                                       {1, 1, 1}}));
+    mesh->deploy();
 
     auto problem_domain = std::make_shared<EMFluid<mesh_type>>(mesh);
 
@@ -94,7 +98,7 @@ int main(int argc, char **argv)
 
 
     Real inc_time = (stop_time - problem_domain->time()) /
-                    (options["number_of_check_point"].as<int>(10));
+                    (options["number_of_check_point"].as<int>(5));
 
 
     MESSAGE << "====================================================" << std::endl;
@@ -110,7 +114,7 @@ int main(int argc, char **argv)
 
         current_time = problem_domain->time();
 
-        problem_domain->check_point(*out_stream);
+        problem_domain->check_point(io::global());
 
         INFORM << "\t >>> Time [" << current_time << "] <<< " << std::endl;
 
@@ -123,6 +127,8 @@ int main(int argc, char **argv)
     MESSAGE << "====================================================" << std::endl;
 
     problem_domain->teardown();
+
+    problem_domain.reset();
 
     io::close();
 

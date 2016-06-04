@@ -95,7 +95,7 @@ void ProblemDomain::sync() { m_pimpl_->m_dist_obj_.sync(); }
 
 void ProblemDomain::wait() { m_pimpl_->m_dist_obj_.wait(); }
 
-bool ProblemDomain::is_ready()const { return m_pimpl_->m_dist_obj_.is_ready(); }
+bool ProblemDomain::is_ready() const { return m_pimpl_->m_dist_obj_.is_ready(); }
 
 void
 ProblemDomain::run(Real stop_time, int num_of_step)
@@ -126,6 +126,10 @@ ProblemDomain::print(std::ostream &os, int indent) const
 
     os << std::setw(indent) << " ProblemDomain={" << std::endl;
 
+    os << std::setw(indent + 1) << "Mesh= {" << std::endl;
+    m->print(os, indent + 2);
+    os << std::setw(indent + 1) << " }," << std::endl;
+
     os << std::setw(indent + 1) << " Type=\"" << get_class_name() << "\"," << std::endl;
 
     os << std::setw(indent + 1) << " Attributes= { \"" << it->first << "\"";
@@ -153,9 +157,10 @@ ProblemDomain::load(io::IOStream &is) const
 io::IOStream &
 ProblemDomain::save(io::IOStream &os) const
 {
+    auto m_id = m->uuid();
     for (auto const &item:m_pimpl_->m_attr_)
     {
-//        os.write(item.first, item.second->data_set());
+        os.write(item.first, item.second->dataset(m_id), io::SP_NEW);
     }
     return os;
 }
@@ -163,6 +168,11 @@ ProblemDomain::save(io::IOStream &os) const
 io::IOStream &
 ProblemDomain::check_point(io::IOStream &os) const
 {
+    auto m_id = m->uuid();
+    for (auto const &item:m_pimpl_->m_attr_)
+    {
+        os.write(item.first, item.second->dataset(m_id), io::SP_RECORD);
+    }
     return os;
 }
 
