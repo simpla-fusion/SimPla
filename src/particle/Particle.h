@@ -18,60 +18,19 @@
 namespace simpla
 {
 
-struct ParticleBase : public mesh::MeshAttribute::View
-{
-private:
-    typedef ParticleBase this_type;
-public:
-    SP_OBJECT_HEAD(ParticleBase, mesh::MeshAttribute::View);
-
-    ParticleBase() { }
-
-    virtual ~ParticleBase() { }
-
-    virtual std::ostream &print(std::ostream &os, int indent) const = 0;
-
-    virtual Properties const &properties() const = 0;
-
-    virtual Properties &properties() = 0;
-
-    virtual void data_set(data_model::DataSet &) = 0;
-
-    virtual void data_set(mesh::MeshEntityRange const &, data_model::DataSet &) = 0;
-
-    virtual data_model::DataSet data_set() const = 0;
-
-    virtual data_model::DataSet data_set(mesh::MeshEntityRange const &) const = 0;
-
-    virtual size_t size() const = 0;
-
-    virtual bool deploy() = 0;
-
-    virtual void sync() = 0;
-
-    virtual void rehash() = 0;
-
-    virtual void push(Real t0, Real t1) = 0;
-
-    virtual void integral() = 0;
-
-    virtual void apply() = 0;
-
-    std::ostream &operator<<(std::ostream &os) const { return this->print(os, 0); }
-
-};
-
 
 template<typename ...> struct Particle;
 
 template<typename P, typename M>
-struct Particle<P, M> : public ParticleBase, public P
+struct Particle<P, M>
+        : public mesh::MeshAttribute::View, public P,
+          public std::enable_shared_from_this<Particle<P, M>>
 {
 private:
     typedef M mesh_type;
     typedef P engine_type;
     typedef Particle<P, M> this_type;
-    typedef ParticleBase base_type;
+    typedef mesh::MeshAttribute::View base_type;
 public:
     typedef P::point_s value_type;
     typedef std::list<value_type> bucket_type;
@@ -91,16 +50,48 @@ private:
 
     static constexpr mesh::MeshEntityType iform = mesh::VOLUME;
 
-    static constexpr int ndims = mesh_type::ndims;
 public:
 
 
-    Particle(mesh_type &m, std::string const &s_name) : m_data_(new container_type) { }
+    Particle(mesh_type const *m = nullptr)
+            : m_holder_(nullptr), m_mesh_(m), m_data_(nullptr), m_range_()
+    {
+    }
+
+    Particle(mesh::MeshBase const *m)
+            : m_holder_(nullptr), m_mesh_(dynamic_cast<mesh_type const>(m)),
+              m_data_(nullptr), m_range_()
+    {
+        assert(m->template is_a<mesh_type>());
+    }
+
+    Particle(std::shared_ptr<base_type> h)
+            : m_holder_(h), m_mesh_(nullptr), m_data_(nullptr), m_range_()
+    {
+    }
+
+    //factory construct
+    template<typename TFactory, typename ... Args, typename std::enable_if<TFactory::is_factory>::type * = nullptr>
+    Particle(TFactory &factory, Args &&...args)
+            : m_holder_(std::dynamic_pointer_cast<base_type>(
+            factory.template create<this_type>(std::forward<Args>(args)...))),
+              m_mesh_(nullptr), m_data_(nullptr), m_range_()
+    {
+    }
 
 
-    Particle(this_type const &other) : m_data_(other.m_data_) { };
+    //copy construct
+    Particle(this_type const &other)
+            : m_holder_(other.m_holder_), m_mesh_(other.m_mesh_), m_data_(other.m_data_), m_range_(other.m_range_)
+    {
+    }
 
-    Particle(this_type &&other) : m_data_(other.m_data_) { };
+
+    // move construct
+    Particle(this_type &&other)
+            : m_holder_(other.m_holder_), m_mesh_(other.m_mesh_), m_data_(other.m_data_), m_range_(other.m_range_)
+    {
+    }
 
     virtual ~Particle() { }
 
@@ -250,22 +241,53 @@ Particle<P, M>::clear(range_type const &r)
 template<typename P, typename M> bool
 Particle<P, M>::deploy()
 {
-    bool success = true;
+    bool success = false;
 
-    if (!is_valid())
+    if (m_holder_ == nullptr)
     {
-        success = engine_type::deploy();
-        this->touch();
+        if (m_data_ == nullptr)
+        {
+            if (m_mesh_ == nullptr) { RUNTIME_ERROR << "mesh is not valid!" << std::endl; }
+            else
+            {
+                size_t m_size = m_mesh_->max_hash(entity_type());
+
+                m_data_ = sp_alloc_array<value_type>(m_size);
+
+                m_mesh_->range(entity_type()).swap(m_range_);
+
+                engine_type::deploy();
+
+            }
+
+            success = true;
+        }
     }
+    else
+    {
+        if (m_holder_->is_a<this_type>())
+        {
+            m_holder_->deploy();
+            auto self = std::dynamic_pointer_cast<this_type>(m_holder_);
+            m_mesh_ = self->m_mesh_;
+            m_data_ = self->m_data_;
+            m_range_ = self->m_range_;
+            success = true;
+        }
+    }
+
     return success;
+
 }
 //**************************************************************************************************
 
 template<typename P, typename M>
 std::ostream &Particle<P, M>::print(std::ostream &os, int indent) const
 {
+    os << std::setw(indent + 1) << " Particle={ Type=" << class_name() << ",";
     engine_type::print(os, indent + 1);
     os << std::setw(indent + 1) << " " << ", num = " << count() << std::endl;
+    os << std::setw(indent + 1) << " }" << std::endl;
     return os;
 }
 //**************************************************************************************************
@@ -346,8 +368,6 @@ Particle<P, M>::erase_if(id_type const &key, TPred const &pred, buffer_type *out
 
     if (m_data_->find(acc0, key))
     {
-
-
         auto it = src.begin(), ie = src.end();
 
         while (it != ie)
@@ -370,8 +390,6 @@ Particle<P, M>::erase_if(id_type const &key, TPred const &pred, buffer_type *out
                 }
             }
         }
-
-
     }
     acc0.release();
 
@@ -434,8 +452,6 @@ Particle<V, K>::count(range_type const &r0) const
             [](size_t x, size_t y) -> size_t { return x + y; }
     );
 }
-
-
 
 //**************************************************************************************************
 

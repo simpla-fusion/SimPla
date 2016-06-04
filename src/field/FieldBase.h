@@ -57,13 +57,13 @@ public:
 
     //create construct
 
-    Field(std::shared_ptr<mesh_type const> m = nullptr)
+    Field(mesh_type const * = nullptr)
             : m_holder_(nullptr), m_mesh_(m), m_data_(nullptr), m_range_()
     {
     }
 
-    Field(std::shared_ptr<mesh::MeshBase const> m)
-            : m_holder_(nullptr), m_mesh_(std::dynamic_pointer_cast<mesh_type const>(m)), m_data_(nullptr),
+    Field(mesh::MeshBase const *m)
+            : m_holder_(nullptr), m_mesh_(dynamic_cast<mesh_type const>(m)), m_data_(nullptr),
               m_range_()
     {
         assert(m->template is_a<mesh_type>());
@@ -139,6 +139,8 @@ public:
     }
 
     bool empty() const { return m_holder_ == nullptr && m_data_ == nullptr; }
+
+    virtual bool is_valid() const { return !empty(); }
 
     virtual void swap(this_type &other)
     {
