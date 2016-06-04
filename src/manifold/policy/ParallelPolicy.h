@@ -121,7 +121,7 @@ void ParallelPolicy<TMesh>::update(Func const &fun, Args &&...args) const
 
         parallel::DistributedObject dist_obj;
 
-        dist_obj.add(std::forward<Args>(args)...);
+        dist_obj.add(std::forward<Args>(args)..., <#initializer#>, false);
 
         dist_obj.sync();
 

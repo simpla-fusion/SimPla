@@ -67,7 +67,7 @@ void ProblemDomain::setup()
             item.second->get(mesh_block_id)->deploy();
 
             auto ds = item.second->dataset(mesh_block_id);
-            dist_obj.add(item.second->short_id(), ds);
+            dist_obj.add(item.second->short_id(), ds, false);
         }
     }
     LOGGER << "Setup problem domain [" << get_class_name() << "]" << std::endl;

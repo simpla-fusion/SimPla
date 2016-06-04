@@ -379,8 +379,11 @@ public:
     {
         int f_ndims = (t == EDGE || t == FACE) ? (ndims + 1) : ndims;
 
-        nTuple<size_t, ndims + 1> f_dims, f_count, f_start;
-        nTuple<size_t, ndims + 1> m_dims, m_count, m_start;
+        nTuple<size_t, ndims + 1> f_dims, f_count;
+        nTuple<ptrdiff_t, ndims + 1> f_start;
+
+        nTuple<size_t, ndims + 1> m_dims, m_count;
+        nTuple<ptrdiff_t, ndims + 1> m_start;
 
         f_dims = m_dims_ + m_offset_;
         f_start = m_offset_;

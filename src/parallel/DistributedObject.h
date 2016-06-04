@@ -9,6 +9,8 @@
 
 #include <vector>
 #include <memory>
+#include <boost/uuid/uuid.hpp>
+#include "../gtl/primitives.h"
 
 namespace simpla
 {
@@ -31,14 +33,13 @@ struct DistributedObject
 
     void wait();
 
-    int add_send_link(int id, const int offset[3], data_model::DataSet);
+    void add_send_link(size_t id, const nTuple<ptrdiff_t, 3> &offset, data_model::DataSet);
 
-    int add_recv_link(int id, const int offset[3], data_model::DataSet);
+    void add_recv_link(size_t id, const nTuple<ptrdiff_t, 3> &offset, data_model::DataSet);
 
-    void add(int id, data_model::DataSet &ds, std::vector<int> *_send_tag = nullptr,
-             std::vector<int> *_recv_tag = nullptr);
+    void add(size_t id, data_model::DataSet &ds, bool only_once);
 
-    void remove(int tag, bool is_recv = false);
+    void remove(size_t id);
 
     bool is_ready() const;
 

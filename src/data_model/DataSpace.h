@@ -34,8 +34,7 @@ public:
     SP_OBJECT_HEAD(DataSpace, base::Object);
 
 
-    typedef size_t index_type;
-    typedef nTuple <index_type, MAX_NDIMS_OF_ARRAY> index_tuple;
+    typedef nTuple <size_t, MAX_NDIMS_OF_ARRAY> index_tuple;
 
 
     typedef std::tuple<
@@ -72,7 +71,7 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent) const;
 
-    static DataSpace create_simple(int rank, const index_type *dims = nullptr);
+    static DataSpace create_simple(int rank, const size_t *dims = nullptr);
 
     static std::tuple<DataSpace, DataSpace> create_simple_unordered(size_t size);
 
@@ -86,10 +85,10 @@ public:
 
 
     // TODO complete support H5Sselect_hyperslab:H5S_seloper_t
-    DataSpace &select_hyperslab(index_type const *start,
-                                index_type const *_stride,
-                                index_type const *count,
-                                index_type const *_block);
+    DataSpace &select_hyperslab(const ptrdiff_t *start,
+                                size_t const *_stride,
+                                size_t const *count,
+                                size_t const *_block);
 
     void clear_selected();
 

@@ -164,7 +164,7 @@ DataSet create_data_set(T const *p, Args &&...args)
 
 
 template<typename T>
-DataSet create_data_set(T const *p, int ndims, typename DataSpace::index_type const *d)
+DataSet create_data_set(T const *p, int ndims, size_t const *d)
 {
 
     DataSet ds;
@@ -204,7 +204,7 @@ create_data_set(std::shared_ptr<T> const &p, Args &&...args)
 template<typename T>
 DataSet create_data_set(std::vector<T> const &p)
 {
-    typename DataSpace::index_type s = p.size();
+    size_t s = p.size();
     return create_data_set(&p[0], 1, &s);
 }
 /**@}*/

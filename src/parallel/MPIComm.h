@@ -56,38 +56,20 @@ public:
 
     int generate_object_id();
 
-//	void set_num_of_threads(int num);
-//
-//	unsigned int get_num_of_threads() const;
 
     nTuple<int, 3> topology() const;
 
-
     void topology(nTuple<int, 3> const &d);
 
-
-    int get_neighbour(nTuple<int, 3> const &d) const;
-
-    template<typename TI>
-    int get_neighbour(TI const &d) const
-    {
-        return get_neighbour(nTuple<int, 3>({d[0], d[1], d[2]}));
-    }
+    int get_neighbour(nTuple<ptrdiff_t, 3> const &d) const;
 
     nTuple<int, 3> coordinate(int rank = -1) const;
 
-
     int get_rank() const;
-
-    template<typename TD>
-    int get_rank(TD const &d) const
-    {
-        return get_rank(nTuple<int, 3>({d[0], d[1], d[2]}));
-    }
 
     int get_rank(nTuple<int, 3> const &d) const;
 
-    std::tuple<int, int, int> make_send_recv_tag(int prefix, int const *offset);
+    std::tuple<int, int, int> make_send_recv_tag(size_t prefix, const nTuple<ptrdiff_t, 3> &offset);
 
 private:
     struct pimpl_s;

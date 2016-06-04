@@ -50,7 +50,7 @@ void sync(Args &&...args)
     if (GLOBAL_COMM.num_of_process() > 1)
     {
         DistributedObject dist_obj;
-        dist_obj.add(std::forward<Args>(args)...);
+        dist_obj.add(std::forward<Args>(args)..., false);
         dist_obj.sync();
         dist_obj.wait();
     }

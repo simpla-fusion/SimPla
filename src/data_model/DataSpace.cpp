@@ -53,7 +53,7 @@ struct DataSpace::pimpl_s
 
 DataSpace::DataSpace() : m_pimpl_{new pimpl_s} { }
 
-DataSpace::DataSpace(int ndims, index_type const *dims) :
+DataSpace::DataSpace(int ndims, size_t const *dims) :
         m_pimpl_(new pimpl_s)
 {
 
@@ -97,14 +97,14 @@ void DataSpace::swap(DataSpace &other)
     std::swap(m_pimpl_, other.m_pimpl_);
 }
 
-DataSpace DataSpace::create_simple(int ndims, const index_type *dims)
+DataSpace DataSpace::create_simple(int ndims, const size_t *dims)
 {
     return std::move(DataSpace(ndims, dims));
 }
 
 std::tuple<DataSpace, DataSpace> DataSpace::create_simple_unordered(size_t count)
 {
-    size_t offset = 0;
+    ptrdiff_t offset = 0;
     size_t total_count = count;
     std::tie(offset, total_count) = parallel::sync_global_location(GLOBAL_COMM, static_cast<int>(count));
     DataSpace memory_space = data_model::DataSpace::create_simple(1, &count);
@@ -118,11 +118,11 @@ std::tuple<DataSpace, DataSpace> DataSpace::create_simple_unordered(size_t count
 //
 //std::tuple<DataSpace, DataSpace>  DataSpace::create(
 //        size_t rank,
-//        index_type const *dims,
-//        index_type const *start,
-//        index_type const *_stride,
-//        index_type const *count,
-//        index_type const *_block)
+//        size_t const *dims,
+//        size_t const *start,
+//        size_t const *_stride,
+//        size_t const *count,
+//        size_t const *_block)
 //{
 //
 //    DataSpace data_space, memory_space;
@@ -256,10 +256,10 @@ void DataSpace::select_points(size_t num, const size_t *tags)
     );
 }
 
-DataSpace &DataSpace::select_hyperslab(index_type const *start,
-                                       index_type const *_stride,
-                                       index_type const *count,
-                                       index_type const *_block)
+DataSpace &DataSpace::select_hyperslab(const ptrdiff_t *start,
+                                       size_t const *_stride,
+                                       size_t const *count,
+                                       size_t const *_block)
 {
     if (!is_valid()) { RUNTIME_ERROR << ("data_space is invalid!"); }
 
@@ -337,8 +337,8 @@ std::ostream &DataSpace::print(std::ostream &os, int indent) const
 //	return s;
 //}
 //
-//data_space &data_space::set_local_shape(index_type const *local_dimensions =
-//nullptr, index_type const *local_offset = nullptr)
+//data_space &data_space::set_local_shape(size_t const *local_dimensions =
+//nullptr, size_t const *local_offset = nullptr)
 //{
 //
 //	if (local_offset != nullptr)
@@ -422,7 +422,7 @@ std::ostream &DataSpace::print(std::ostream &os, int indent) const
 //		return;
 //
 //	int n = 0;
-//	index_type L = 0;
+//	size_t L = 0;
 //	for (int i = 0; i < ndims; ++i)
 //	{
 //		if (global_count[i] > L)
@@ -489,7 +489,7 @@ std::ostream &DataSpace::print(std::ostream &os, int indent) const
 ////
 ////		sub_array_s remote;
 ////
-////		for (unsigned index_type s = 0, s_e = (1UL << (ndims_ * 2)); s < s_e; ++s)
+////		for (unsigned size_t s = 0, s_e = (1UL << (ndims_ * 2)); s < s_e; ++s)
 ////		{
 ////			remote = node;
 ////

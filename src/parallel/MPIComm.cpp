@@ -163,15 +163,15 @@ bool MPIComm::is_valid() const
            && num_of_process() > 1;
 }
 
-std::tuple<int, int, int> MPIComm::make_send_recv_tag(int prefix,
-                                                      int const *offset)
+std::tuple<int, int, int> MPIComm::make_send_recv_tag(size_t prefix,
+                                                      const nTuple<ptrdiff_t, 3> &offset)
 {
 
     int dest_id = get_neighbour(offset);
 
-    int send_tag = prefix << (NDIMS * 2);
+    int send_tag = static_cast<int>(prefix << (NDIMS * 2));
 
-    int recv_tag = prefix << (NDIMS * 2);
+    int recv_tag = static_cast<int>(prefix << (NDIMS * 2));
 
     for (int i = 0; i < NDIMS; ++i)
     {
@@ -202,7 +202,7 @@ nTuple<int, 3> MPIComm::coordinate(int rank) const
     return std::move(coord);
 }
 
-int MPIComm::get_neighbour(nTuple<int, 3> const &d) const
+int MPIComm::get_neighbour(nTuple<ptrdiff_t, 3> const &d) const
 {
 
     return (!pimpl_) ? 0 : get_rank(pimpl_->m_topology_coord_ + d);
