@@ -63,17 +63,26 @@ public:
 
         virtual std::string get_class_name() const = 0;
 
-        virtual void swap(View &other) { }
+        virtual void swap(View &other) = 0;
+
+        virtual bool is_valid() = 0;
 
         virtual bool deploy() = 0;
+
+        virtual void clear() = 0;
 
         virtual MeshEntityType entity_type() const = 0;
 
         virtual MeshEntityRange const &range() const = 0;
 
+        virtual void data_set(data_model::DataSet const &) = 0;
+
+        virtual void data_set(mesh::MeshEntityRange const &, data_model::DataSet &) = 0;
+
         virtual data_model::DataSet data_set() const = 0;
 
-        virtual void data_set(data_model::DataSet const &) = 0;
+        virtual data_model::DataSet data_set(mesh::MeshEntityRange const &) const = 0;
+
     };
 
     /** register MeshBlockId to attribute data collection.  */
