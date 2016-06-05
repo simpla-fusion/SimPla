@@ -248,10 +248,10 @@ public:
     vector_type m_l2g_scale_{{1, 1, 1}}, m_l2g_shift_{{0, 0, 0}};
     vector_type m_g2l_scale_{{1, 1, 1}}, m_g2l_shift_{{0, 0, 0}};
 
-    virtual int get_adjacent_entities(MeshEntityId const &s, MeshEntityType entity_type,
+    virtual int get_adjacent_entities(MeshEntityType const &entity_type, MeshEntityId const &s,
                                       MeshEntityId *p = nullptr) const
     {
-        return m::get_adjacent_entities(s, entity_type, entity_type, p);
+        return m::get_adjacent_entities(entity_type, entity_type, s, p);
     }
 
     virtual std::shared_ptr<MeshBase> refine(box_type const &b, int flag = 0) const

@@ -306,13 +306,12 @@ std::ostream &Particle<P, M>::print(std::ostream &os, int indent) const
 template<typename P, typename M> template<typename TRes, typename ...Args> void
 Particle<P, M>::gather(TRes *res, mesh::point_type const &x0, Args &&...args) const
 {
-
-    res = 0;
+    *res = 0;
     mesh::MeshEntityId s = std::get<0>(m_mesh_->point_global_to_local(x0));
 
     mesh::MeshEntityId neighbours[mesh_type::MAX_NUM_OF_NEIGHBOURS];
 
-    int num = m_mesh_->get_adjacent_entities(s, entity_type(), neighbours);
+    int num = m_mesh_->get_adjacent_entities(entity_type(), s, neighbours);
 
     for (int i = 0; i < num; ++i)
     {
@@ -336,12 +335,16 @@ Particle<P, M>::gather(Field<TV, mesh_type, Others...> *res, Args &&...args) con
     //FIXME  using this->box() select range
     if (is_valid())
     {
-        res->apply(res->range(), [&](point_type const &x)
-        {
-            typename traits::field_value_type<Field<TV, mesh_type, Others...>>::type v;
-            this->gather(&v, x, std::forward<Args>(args)...);
-            return v;
-        });
+        LOGGER << "Gather [" << get_class_name() << "]" << std::endl;
+
+        res->apply(res->range(),
+                   [&](point_type const &x)
+                   {
+
+                       typename traits::field_value_type<Field<TV, mesh_type, Others...>>::type v;
+                       this->gather(&v, x, std::forward<Args>(args)...);
+                       return v;
+                   });
     }
     else
     {
@@ -356,6 +359,8 @@ Particle<P, M>::push(Args &&...args)
 {
     if (is_valid())
     {
+        LOGGER << "Push   [" << get_class_name() << "]" << std::endl;
+
         parallel::parallel_for(
                 m_range_,
                 [&](range_type const &r)

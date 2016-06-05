@@ -314,7 +314,9 @@ public:
                     {
                         for (auto const &s: r)
                         {
-                            get(s) = m_mesh_->template sample<IFORM>(s, op(m_mesh_->point(s)));
+                            auto v = op(m_mesh_->point(s));
+
+                            get(s) = m_mesh_->template sample<IFORM>(s, v);
 
                         }
                     }

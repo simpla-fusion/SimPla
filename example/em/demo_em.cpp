@@ -7,13 +7,12 @@
  *    This is an example of EM plasma
  */
 
-
+#include "../../src/io/IO.h"
 #include "../../src/gtl/Utilities.h"
 #include "../../src/parallel/Parallel.h"
-#include "../../src/io/IO.h"
 #include "../../src/manifold/pre_define/PreDefine.h"
-#include "../../src/particle/pre_define/BorisParticle.h"
 #include "EMFluid.h"
+#include "EMPIC.h"
 
 using namespace simpla;
 
@@ -70,8 +69,25 @@ int main(int argc, char **argv)
 
     mesh.setup(options["Mesh"]);
 
-    auto problem_domain = std::make_shared<EMFluid<mesh_type>>(&mesh);
+    std::shared_ptr<ProblemDomain> problem_domain;
 
+    {
+        std::string str = options["ProblemDomain"].as<std::string>();
+
+        if (str == "PIC")
+        {
+            problem_domain = std::make_shared<EMPIC<mesh_type>>(&mesh);
+        }
+        else if (str == "Fluid")
+        {
+            problem_domain = std::make_shared<EMFluid<mesh_type>>(&mesh);
+        }
+        else
+        {
+            RUNTIME_ERROR << "Unknown problem type [" << str << "]" << std::endl;
+        }
+
+    }
     problem_domain->setup(options);
 
     problem_domain->print(std::cout);

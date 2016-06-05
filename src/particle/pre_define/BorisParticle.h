@@ -78,13 +78,13 @@ struct Boris
     template<typename ...Others>
     void gather(Real *res, point_s const &p, point_type const &x0, Others &&...) const
     {
-
+        CHECK(x0);
     }
 
     template<typename ...Others>
     void gather(Vec3 *res, point_s const &p, point_type const &x0, Others &&...) const
     {
-
+        CHECK(x0);
     }
 };
 

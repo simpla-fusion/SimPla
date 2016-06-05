@@ -6,6 +6,7 @@
 -- To change this template use File | Settings | File Templates.
 --
 
+ProblemDomain = "Fluid" --"PIC"
 
 Description = "For Cold Plasma Dispersion" -- description or other text things.
 

@@ -126,19 +126,20 @@ public:
     virtual std::tuple<MeshEntityId, point_type>
             point_global_to_local(point_type const &g, int nId = 0) const = 0;
 
-    virtual int get_adjacent_entities(MeshEntityId const &, MeshEntityType t, MeshEntityId *p = nullptr) const = 0;
+    virtual int get_adjacent_entities(MeshEntityType const &t, MeshEntityId const &,
+                                      MeshEntityId *p = nullptr) const = 0;
 
     virtual std::shared_ptr<MeshBase> refine(box_type const &b, int flag = 0) const = 0;
 
     int get_vertices(MeshEntityId const &s, point_type *p) const
     {
-        int num = get_adjacent_entities(s, VERTEX);
+        int num = get_adjacent_entities(VERTEX, s);
 
         if (p != nullptr)
         {
             MeshEntityId neighbour[num];
 
-            get_adjacent_entities(s, VERTEX, neighbour);
+            get_adjacent_entities(VERTEX, s, neighbour);
 
             for (int i = 0; i < num; ++i) { p[i] = point(neighbour[i]); }
         }
