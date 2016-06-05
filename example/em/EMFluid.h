@@ -175,6 +175,7 @@ io::IOStream &EMFluid<TM>::check_point(io::IOStream &os) const
     os.write("E1", E1.dataset(), io::SP_RECORD);
     os.write("B1", B1.dataset(), io::SP_RECORD);
     os.write("J1", J1.dataset(), io::SP_RECORD);
+    return os;
 }
 
 
