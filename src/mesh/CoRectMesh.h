@@ -113,7 +113,6 @@ public:
 
     virtual  ~Mesh() { }
 
-
     virtual std::ostream &print(std::ostream &os, int indent = 1) const
     {
 
@@ -124,6 +123,15 @@ public:
         << std::setw(indent) << " " << "Box = " << box() << "," << std::endl;
 
         return os;
+    }
+
+    template<typename TDict>
+    void setup(TDict const &dict)
+    {
+        dimensions(dict["Dimensions"].template as<index_tuple>(index_tuple{20, 20, 1}));
+        box(dict["Box"].template as<box_type>(box_type{{0, 0, 0},
+                                                       {1, 1, 1}}));
+        deploy();
     }
 
     void dimensions(index_tuple const &d) { m_dims_ = d; }

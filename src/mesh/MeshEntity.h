@@ -10,7 +10,7 @@
 #include <type_traits>
 #include <cassert>
 #include "Mesh.h"
-
+#include "../parallel/Parallel.h"
 
 namespace simpla
 {
@@ -263,8 +263,10 @@ class MeshEntityRange
 
     class HolderBase;
 
-    template<typename>
-    struct Holder;
+    template<typename, bool> struct Holder;
+
+    HAS_MEMBER_FUNCTION(range)
+
 public :
     typedef MeshEntityIterator iterator;
 
@@ -272,16 +274,17 @@ public :
 
     //****************************************************************************
     // TBB Range Concept Begin
-    template<typename TOtherRange>
-    MeshEntityRange(TOtherRange const &other) :
-            m_holder_(std::dynamic_pointer_cast<HolderBase>(std::make_shared<Holder<TOtherRange>>(other)))
+    template<typename TOther>
+    MeshEntityRange(TOther const &other) :
+            m_holder_(std::dynamic_pointer_cast<HolderBase>(
+                    std::make_shared<Holder<TOther,
+                            has_member_function_range<TOther>::value>>(other)))
     {
     }
 
-    template<typename TOtherRange, typename ...Args>
-    MeshEntityRange(TOtherRange &other, Args &&...args) :
-            m_holder_(std::dynamic_pointer_cast<HolderBase>(
-                    std::make_shared<Holder<TOtherRange>>(other, std::forward<Args>(args)...)))
+    template<typename ...Args>
+    MeshEntityRange(this_type &other, parallel::tags::split) :
+            m_holder_(other.m_holder_->split())
     {
     }
 
@@ -292,29 +295,13 @@ public :
 
     ~MeshEntityRange() { }
 
-    template<typename T, typename ...Args>
-    static MeshEntityRange create(Args &&...args)
-    {
-        MeshEntityRange res;
-        res.m_holder_ = std::dynamic_pointer_cast<HolderBase>(Holder<T>::create(std::forward<Args>(args)...));
-        return std::move(res);
-    }
 
-    this_type operator=(this_type const &other) { return this_type(other).swap(*this); }
-
-    this_type &swap(this_type &other)
-    {
-        std::swap(m_holder_, other.m_holder_);
-        return *this;
-    }
-
+public:
     static const bool is_splittable_in_proportion = true;
 
     bool is_divisible() const { return m_holder_->is_divisible(); }
 
     bool empty() const { return m_holder_ == nullptr || m_holder_->empty(); }
-
-    size_t size() const { return (m_holder_ == nullptr) ? 0 : m_holder_->size(); }
 
     iterator begin() { return m_holder_->begin(); }
 
@@ -327,16 +314,38 @@ public :
     // TBB Range Concept End
     //****************************************************************************
 
+
+    template<typename T, typename ...Args>
+    static MeshEntityRange create(Args &&...args)
+    {
+        MeshEntityRange res;
+        res.m_holder_ = std::dynamic_pointer_cast<HolderBase>(
+                Holder<T, has_member_function_range<T>::value>::create(std::forward<Args>(args)...));
+        return std::move(res);
+    }
+
+    this_type operator=(this_type const &other)
+    {
+        m_holder_ = other.m_holder_;
+        return *this;
+    }
+
+    this_type &swap(this_type &other)
+    {
+        std::swap(m_holder_, other.m_holder_);
+        return *this;
+    }
+
     template<typename T> T &as()
     {
         assert(m_holder_->is_a(typeid(T)));
-        return *std::dynamic_pointer_cast<Holder<T>>(m_holder_);
+        return *std::dynamic_pointer_cast<Holder<T, has_member_function_range<T>::value>>(m_holder_);
     }
 
     template<typename T> T const &as() const
     {
         assert(m_holder_->is_a(typeid(T)));
-        return *std::dynamic_pointer_cast<Holder<T>>(m_holder_);
+        return *std::dynamic_pointer_cast<Holder<T, has_member_function_range<T>::value>>(m_holder_);
     }
 
 private:
@@ -347,15 +356,13 @@ private:
     {
         virtual std::shared_ptr<HolderBase> clone() const = 0;
 
+        virtual std::shared_ptr<HolderBase> split() = 0;
+
         virtual bool is_a(std::type_info const &) const = 0;
 
         virtual bool is_divisible() const = 0;
 
         virtual bool empty() const = 0;
-
-        virtual size_t size() const = 0;
-
-//        virtual void swap(this_type &other) = 0;
 
         virtual iterator begin() const = 0;
 
@@ -367,59 +374,104 @@ private:
 
     };
 
+
     template<typename TOtherRange>
-    struct Holder : public HolderBase, public TOtherRange
+    struct Holder<TOtherRange, false> : public HolderBase
     {
-        typedef Holder<TOtherRange> this_type;
+        typedef Holder<TOtherRange, false> this_type;
+        TOtherRange m_range_;
     public:
 
-//        template<typename ...Args>
-//        Holder(Args &&... args) : m_range_(std::forward<Args>(args)...) { }
-//
-
-        Holder(TOtherRange const &other) : TOtherRange(other) { }
+        Holder(TOtherRange const &other) : m_range_(other) { }
 
         template<typename ...Args>
-        Holder(TOtherRange &other, Args &&...args) : TOtherRange(other, std::forward<Args>(args)...) { }
+        Holder(this_type &other, Args &&...args) : m_range_(other.m_range_, std::forward<Args>(args)...) { }
 
         virtual  ~Holder() { }
 
         template<typename ...Args>
-        static std::shared_ptr<Holder<TOtherRange>> create(Args &&...args)
+        static std::shared_ptr<this_type> create(Args &&...args)
         {
-            return std::shared_ptr<Holder<TOtherRange>>(
-                    new Holder<TOtherRange>{TOtherRange(std::forward<Args>(args)...)});
+            return std::shared_ptr<this_type>(new this_type{TOtherRange(std::forward<Args>(args)...)});
         }
 
         virtual std::shared_ptr<HolderBase> clone() const
         {
-            return std::dynamic_pointer_cast<HolderBase>(std::make_shared<Holder<TOtherRange>>(*this));
+            return std::dynamic_pointer_cast<HolderBase>(std::make_shared<this_type>(*this));
         }
+
+        virtual std::shared_ptr<HolderBase> split()
+        {
+            return std::dynamic_pointer_cast<HolderBase>(std::make_shared<this_type>(*this, parallel::tags::split()));
+        };
 
 
         virtual bool is_a(std::type_info const &t_info) const final { return typeid(TOtherRange) == t_info; }
 
+        virtual bool is_divisible() const { return m_range_.is_divisible(); }
 
-        virtual bool is_divisible() const { return TOtherRange::is_divisible(); }
+        virtual bool empty() const { return m_range_.empty(); }
 
-        virtual bool empty() const { return TOtherRange::empty(); }
+        virtual iterator begin() const { return iterator(m_range_.begin()); }
 
-        virtual size_t size() const { return TOtherRange::size(); }
+        virtual iterator end() const { return iterator(m_range_.end()); }
 
-        virtual void swap(this_type &other) { TOtherRange::swap(other); }
+        virtual iterator begin() { return iterator(m_range_.begin()); }
 
-        virtual iterator begin() const { return iterator(std::begin(*this)); }
-
-        virtual iterator end() const { return iterator(std::end(*this)); }
-
-        virtual iterator begin() { return iterator(std::begin(*this)); }
-
-        virtual iterator end() { return iterator(std::end(*this)); }
-
-
+        virtual iterator end() { return iterator(m_range_.end()); }
     };
 
 
+    template<typename TContainer>
+    struct Holder<TContainer, true> : public HolderBase
+    {
+        typedef typename TContainer::const_range_type range_type;
+        typedef Holder<TContainer, true> this_type;
+        std::shared_ptr<TContainer> m_container_;
+        range_type m_range_;
+    public:
+
+        Holder(TContainer const &other) :
+                m_container_(std::make_shared<TContainer>(other)), m_range_(m_container_->range()) { }
+
+        template<typename ...Args>
+        Holder(this_type &other, Args &&...args) :
+                m_container_(other.m_container_), m_range_(other.m_range_, std::forward<Args>(args)...) { }
+
+        virtual  ~Holder() { }
+
+        template<typename ...Args> static std::shared_ptr<this_type>
+        create(Args &&...  args)
+        {
+            return std::shared_ptr<this_type>(new this_type{TContainer(std::forward<Args>(args)...)});
+        }
+
+        virtual std::shared_ptr<HolderBase> clone() const
+        {
+            return std::dynamic_pointer_cast<HolderBase>(std::make_shared<this_type>(*this));
+        }
+
+        virtual std::shared_ptr<HolderBase> split()
+        {
+            return std::dynamic_pointer_cast<HolderBase>(std::make_shared<this_type>(*this, parallel::tags::split()));
+        };
+
+        virtual bool is_a(std::type_info const &t_info)
+        const final { return typeid(TContainer) == t_info; }
+
+        virtual bool is_divisible() const { return m_range_.is_divisible(); }
+
+        virtual bool empty() const { return m_range_.empty(); }
+
+        virtual iterator begin() const { return iterator(m_range_.begin()); }
+
+        virtual iterator end() const { return iterator(m_range_.end()); }
+
+        virtual iterator begin() { return iterator(m_range_.begin()); }
+
+        virtual iterator end() { return iterator(m_range_.end()); }
+
+    };
 };
 
 }

@@ -50,7 +50,7 @@ public:
 
     virtual ~EMFluid() { }
 
-    virtual void init();
+    virtual void init(ConfigParser const &options);
 
     virtual void next_step(Real dt);
 
@@ -88,7 +88,7 @@ public:
 
     field_t<scalar_type, VERTEX> rho0{m};
 
-    particle::BorisParticle<mesh_type> H{*this, "H"};
+//    particle::BorisParticle<mesh_type> H{*this, "H"};
 
     struct fluid_s
     {
@@ -115,25 +115,38 @@ public:
 };
 
 template<typename TM>
-void EMFluid<TM>::init()
+void EMFluid<TM>::init(ConfigParser const &options)
 {
+    if (options["Constraints"]["J"])
+    {
+        options["Constraints"]["J"]["Value"].as(&J_src_fun);
+
+        J_src_range = m->select(options["Constraints"]["J"]["Box"].as<box_type>(), VERTEX);
+
+    }
+    dt(options["dt"].as<Real>(1.0));
+
+    time(options["time"].as<Real>(0.0));
+
     B1.clear();
     E1.clear();
+
 }
+
 
 template<typename TM>
 void EMFluid<TM>::next_step(Real dt)
 {
 
     DEFINE_PHYSICAL_CONST
-//
-//
+
     J1.clear();
 
 //    H.gather(&J1);
-
-    Real current_time = time();
-    J1.apply(J_src_range, [&](point_type const &x, vector_type const &v) { return J_src_fun(current_time, x, v); });
+//    H.push(dt, E1, B0);
+//
+//    Real current_time = time();
+//    J1.apply(J_src_range, [&](point_type const &x, vector_type const &v) { return J_src_fun(current_time, x, v); });
 
 
     LOG_CMD(B1 -= curl(E1) * (dt * 0.5));

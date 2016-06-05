@@ -68,26 +68,12 @@ int main(int argc, char **argv)
 
     auto mesh = std::make_shared<mesh_type>();
 
-
-    mesh->dimensions(options["Mesh"]["Dimensions"].as<mesh::index_tuple>(mesh::index_tuple{20, 20, 1}));
-    mesh->box(options["Mesh"]["Box"].as<mesh::box_type>(mesh::box_type{{0, 0, 0},
-                                                                       {1, 1, 1}}));
-    mesh->deploy();
+    mesh->setup(options["Mesh"]);
 
     auto problem_domain = std::make_shared<EMFluid<mesh_type>>(mesh);
 
-    if (options["Constraints"]["J"])
-    {
-        options["Constraints"]["J"]["Value"].as(&problem_domain->J_src_fun);
 
-        problem_domain->J_src_range = mesh->select(options["Constraints"]["J"]["Box"].as<box_type>(), VERTEX);
-
-    }
-    problem_domain->dt(options["dt"].as<Real>(1.0));
-
-    problem_domain->time(options["time"].as<Real>(0.0));
-
-    problem_domain->setup();
+    problem_domain->setup(options);
 
     problem_domain->print(std::cout);
 

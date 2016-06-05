@@ -3,7 +3,7 @@
 //
 
 #include <set>
-#include <tbb/concurrent_unordered_set.h>
+#include "../parallel/Parallel.h"
 #include "MeshUtility.h"
 
 namespace simpla { namespace mesh
@@ -12,7 +12,7 @@ namespace simpla { namespace mesh
 MeshEntityRange select(MeshBase const &m, MeshEntityRange const &r,
                        std::function<bool(point_type const &x)> const &pred)
 {
-    tbb::concurrent_unordered_set<MeshEntityId> i_set;
+    parallel::concurrent_unordered_set<MeshEntityId> i_set;
 
     for (auto const &s:r)
     {
@@ -22,6 +22,6 @@ MeshEntityRange select(MeshBase const &m, MeshEntityRange const &r,
         }
     }
 
-    return MeshEntityRange(i_set.range());
+    return MeshEntityRange(i_set);
 }
 }}//namespace simpla{namespace mesh{

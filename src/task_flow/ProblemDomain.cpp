@@ -9,6 +9,7 @@
 #include "../mesh/MeshAttribute.h"
 
 #include "../io/IOStream.h"
+#include "../gtl/ConfigParser.h"
 
 namespace simpla
 {
@@ -52,13 +53,15 @@ ProblemDomain::attribute(std::string const &s_name) const
     return m_pimpl_->m_attr_.at(s_name);
 };
 
-void ProblemDomain::setup()
+void ProblemDomain::setup(ConfigParser const &dict)
 {
-    init();
+
 
     auto mesh_block_id = m->uuid();
     auto id = m->short_id();
     auto &dist_obj = m_pimpl_->m_dist_obj_;
+
+    init(dict);
 
     for (auto &item:m_pimpl_->m_attr_)
     {
@@ -70,6 +73,8 @@ void ProblemDomain::setup()
             dist_obj.add(item.second->short_id(), ds, false);
         }
     }
+
+
     LOGGER << "Setup problem domain [" << get_class_name() << "]" << std::endl;
 
 };

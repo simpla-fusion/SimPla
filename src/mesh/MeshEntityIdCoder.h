@@ -749,8 +749,10 @@ struct MeshEntityIdCoder_
 
     static int get_adjacent_entities(int IFORM, int nodeid, id_type s, id_type *res = nullptr)
     {
-        if (res != nullptr) {
-            for (int i = 0; i < m_adjacent_cell_num_[IFORM][nodeid]; ++i) {
+        if (res != nullptr)
+        {
+            for (int i = 0; i < m_adjacent_cell_num_[IFORM][nodeid]; ++i)
+            {
                 res[i] = (((s | FULL_OVERFLOW_FLAG) - _DA + m_adjacent_cell_matrix_[IFORM][nodeid][i])) |
                          (FULL_OVERFLOW_FLAG);
             }
@@ -880,8 +882,10 @@ struct MeshEntityIdCoder_
                 : m_iform_(IFORM), m_min_(b), m_max_(e)
         {
             m_grain_size_ = 1;
-            for (int i = 0; i < ndims; ++i) {
-                if (m_max_[i] - m_min_[i] <= m_grain_size_[i]) {
+            for (int i = 0; i < ndims; ++i)
+            {
+                if (m_max_[i] - m_min_[i] <= m_grain_size_[i])
+                {
                     m_grain_size_[i] = m_max_[i] - m_min_[i];
                 }
             }
@@ -899,7 +903,7 @@ struct MeshEntityIdCoder_
         }
 
 
-        range_type(range_type &r, simpla::tags::split)
+        range_type(range_type &r, parallel::tags::split)
                 : m_iform_(r.m_iform_), m_min_(r.m_min_), m_max_(r.m_max_), m_grain_size_(r.m_grain_size_)
         {
 
@@ -909,8 +913,10 @@ struct MeshEntityIdCoder_
 
             index_type L = 0;
 
-            for (int i = 0; i < ndims; ++i) {
-                if ((m_max_[i] - m_min_[i] > L) && (m_max_[i] - m_min_[i] > m_grain_size_[i])) {
+            for (int i = 0; i < ndims; ++i)
+            {
+                if ((m_max_[i] - m_min_[i] > L) && (m_max_[i] - m_min_[i] > m_grain_size_[i]))
+                {
                     n = i;
                     L = m_max_[i] - m_min_[i];
                 }
@@ -920,12 +926,14 @@ struct MeshEntityIdCoder_
         }
 
 
-        range_type(this_type &r, simpla::tags::proportional_split const &proportion)
+        range_type(this_type &r, parallel::tags::proportional_split const &proportion)
         {
             int n = 0;
             index_type L = m_max_[0] - m_min_[0];
-            for (int i = 1; i < ndims; ++i) {
-                if (m_max_[i] - m_min_[i] > L) {
+            for (int i = 1; i < ndims; ++i)
+            {
+                if (m_max_[i] - m_min_[i] > L)
+                {
                     n = i;
                     L = m_max_[i] - m_min_[i];
                 }
@@ -969,7 +977,8 @@ struct MeshEntityIdCoder_
         {
             int count = 0;
 
-            for (int i = 0; i < ndims; ++i) {
+            for (int i = 0; i < ndims; ++i)
+            {
                 if (m_max_[i] - m_min_[i] <= m_grain_size_[i]) { ++count; }
             }
 
@@ -1200,23 +1209,27 @@ struct MeshEntityIdCoder_
 
         }
 
-        for (int i = 0; i < NUM_OF_NODE_ID; ++i) {
+        for (int i = 0; i < NUM_OF_NODE_ID; ++i)
+        {
             inv_v[i] = 1.0 / v[i];
             inv_dual_v[i] = 1.0 / dual_v[i];
         }
 
 
-        if (dims[0] <= 1) {
+        if (dims[0] <= 1)
+        {
             inv_v[TAG_EDGE0] = 0;
             inv_dual_v[TAG_FACE0] = 0;
         }
 
-        if (dims[1] <= 1) {
+        if (dims[1] <= 1)
+        {
             inv_v[TAG_EDGE1] = 0;
             inv_dual_v[TAG_FACE1] = 0;
         }
 
-        if (dims[2] <= 1) {
+        if (dims[2] <= 1)
+        {
             inv_v[TAG_EDGE2] = 0;
 
             inv_dual_v[TAG_FACE2] = 0;

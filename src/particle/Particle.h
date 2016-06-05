@@ -191,6 +191,9 @@ public:
 
     };
 
+    template<typename ...Args> void push(Args &&...args);
+
+
     template<typename TFun, typename ...Args>
     void apply(range_type const &r, TFun const &op, Args &&...);
 
@@ -270,7 +273,7 @@ Particle<P, M>::deploy()
 
                 m_data_ = std::make_shared<container_type>();
 
-                m_mesh_->range(entity_type()).swap(m_range_);
+                m_range_ = m_mesh_->range(entity_type());
 
                 engine_type::deploy();
 
@@ -306,6 +309,31 @@ std::ostream &Particle<P, M>::print(std::ostream &os, int indent) const
     os << std::setw(indent + 1) << " }" << std::endl;
     return os;
 }
+
+//**************************************************************************************************
+template<typename P, typename M>
+template<typename ...Args> void
+Particle<P, M>::push(Args &&...args)
+{
+    parallel::parallel_for(
+            m_range_,
+            [&](range_type const &r)
+            {
+                typename container_type::accessor acc;
+                for (auto const &s:r)
+                {
+                    if (m_data_->find(acc, s))
+                    {
+                        for (auto &p:acc->second)
+                        {
+                            engine_type::push(&p, std::forward<Args>(args)...);
+                        }
+                    }
+                    acc.release();
+                }
+
+            });
+}
 //**************************************************************************************************
 
 template<typename P, typename M>
@@ -319,7 +347,7 @@ Particle<P, M>::apply(range_type const &r0, TFun const &op, Args &&...args)
         {
             if (m_data_->find(acc, s))
             {
-                for (auto const &p:acc->second) { fun(&p, std::forward<Args>(args)...); }
+                for (auto &p:acc->second) { fun(&p, std::forward<Args>(args)...); }
             }
             acc.release();
         }

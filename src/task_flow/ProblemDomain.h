@@ -14,6 +14,7 @@
 
 #include "../mesh/Mesh.h"
 #include "../mesh/MeshAttribute.h"
+#include "../gtl/ConfigParser.h"
 
 
 namespace simpla
@@ -64,7 +65,7 @@ public:
     virtual bool coarsen(mesh::MeshBase const &other);
 
 
-    virtual void setup();
+    virtual void setup(ConfigParser const &dict);
 
     virtual void teardown();
 
@@ -74,7 +75,7 @@ public:
 
     virtual void wait();
 
-    virtual void init() = 0;
+    virtual void init(ConfigParser const &options) = 0;
 
     virtual void next_step(Real dt) = 0;
 

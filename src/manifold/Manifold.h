@@ -174,6 +174,12 @@ public:
         this->touch();
     }
 
+    template<typename TDict>
+    void setup(TDict const &dict)
+    {
+        mesh_type::setup(dict);
+    }
+
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const
     {
