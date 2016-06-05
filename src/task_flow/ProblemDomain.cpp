@@ -139,11 +139,15 @@ ProblemDomain::print(std::ostream &os, int indent) const
 
     os << std::setw(indent + 1) << " Type=\"" << get_class_name() << "\"," << std::endl;
 
-    os << std::setw(indent + 1) << " Attributes= { \"" << it->first << "\"";
+    os << std::setw(indent + 1) << " Attributes= { \"" << std::endl;
 
-    ++it;
 
-    for (; it != ie; ++it) { os << " , \"" << it->first << "\""; }
+    for (auto const &item:m_pimpl_->m_attr_)
+    {
+        os << " " << item.first << "={";
+        item.second->print(os, indent + 2);
+        os << "}," << std::endl;
+    }
 
     os << "}," << std::endl;
 

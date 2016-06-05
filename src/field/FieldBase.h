@@ -100,6 +100,12 @@ public:
 
     virtual ~Field() { }
 
+    std::ostream &print(std::ostream &os, int indent) const
+    {
+//        os << std::setw(indent + 1) << " Type= " << get_class_name() << ", ";
+        return os;
+    };
+
     virtual bool deploy()
     {
         bool success = false;

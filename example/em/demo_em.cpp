@@ -77,13 +77,13 @@ int main(int argc, char **argv)
     problem_domain->print(std::cout);
 
 
-    Real stop_time = options["stop_time"].as<Real>(1);
+    Real stop_time = options["stop_time"].as<Real>(problem_domain->time() + problem_domain->dt());
 
-    int num_of_steps = options["number_of_steps"].as<int>(20);
+    int num_of_steps = options["number_of_steps"].as<int>(1);
 
 
     Real inc_time = (stop_time - problem_domain->time()) /
-                    (options["number_of_check_point"].as<int>(5));
+                    (options["number_of_check_point"].as<int>(1));
 
 
     MESSAGE << "====================================================" << std::endl;
@@ -91,7 +91,7 @@ int main(int argc, char **argv)
     INFORM << "\t >>> Time [" << problem_domain->time() << "] <<< " << std::endl;
 
     Real current_time = problem_domain->time();
-
+    io::cd("/checkpoint/");
     problem_domain->check_point(io::global());
 
     while (problem_domain->time() < stop_time)
@@ -112,6 +112,9 @@ int main(int argc, char **argv)
 
 
     MESSAGE << "====================================================" << std::endl;
+    io::cd("/dump/");
+
+    problem_domain->save(io::global());
 
     problem_domain->teardown();
 

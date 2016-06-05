@@ -14,6 +14,7 @@
 #include "../../src/mesh/MeshEntity.h"
 #include "../../src/particle/Particle.h"
 #include "../../src/particle/pre_define/BorisParticle.h"
+#include "../../src/particle/ParticleGenerator.h"
 #include "../../src/mesh/MeshUtility.h"
 
 namespace simpla
@@ -91,7 +92,7 @@ public:
     field_t<scalar_type, EDGE> J1/*   */{*this, "J1"};
 
     field_t<scalar_type, VERTEX> rho0{m};
-
+    typedef particle::BorisParticle<mesh_type> particle_type;
     particle::BorisParticle<mesh_type> H{*this, "H"};
 
     struct fluid_s
@@ -139,25 +140,25 @@ void EMFluid<TM>::init(ConfigParser const &options)
 
     if (options["InitValue"])
     {
-//        if (options["InitValue"]["B0"])
-//        {
-//            std::function<vector_type(point_type const &)> fun;
-//            options["InitValue"]["B0"]["Value"].as(&fun);
-//            for (auto const &s:m->range(FACE))
-//            {
-//                B0[s] = m->template sample<FACE>(s, fun(m->point(s)));
-//            }
-//        }
-//
-//        if (options["InitValue"]["B1"])
-//        {
-//            std::function<vector_type(point_type const &)> fun;
-//            options["InitValue"]["B1"]["Value"].as(&fun);
-//            for (auto const &s:m->range(FACE))
-//            {
-//                B1[s] = m->template sample<FACE>(s, fun(m->point(s)));
-//            }
-//        }
+        if (options["InitValue"]["B0"])
+        {
+            std::function<vector_type(point_type const &)> fun;
+            options["InitValue"]["B0"]["Value"].as(&fun);
+            for (auto const &s:m->range(FACE))
+            {
+                B0[s] = m->template sample<FACE>(s, fun(m->point(s)));
+            }
+        }
+
+        if (options["InitValue"]["B1"])
+        {
+            std::function<vector_type(point_type const &)> fun;
+            options["InitValue"]["B1"]["Value"].as(&fun);
+            for (auto const &s:m->range(FACE))
+            {
+                B1[s] = m->template sample<FACE>(s, fun(m->point(s)));
+            }
+        }
 
         if (options["InitValue"]["E1"])
         {
@@ -169,6 +170,20 @@ void EMFluid<TM>::init(ConfigParser const &options)
             }
         }
     }
+
+    H.mass(options["Particles"]["H"]["mass"].as<Real>(1.0));
+    H.charge(options["Particles"]["H"]["charge"].as<Real>(1.0));
+    size_t pic = options["Particles"]["H"]["pic"].as<int>(10);
+
+    H.deploy();
+    particle::ParticleGenerator<> gen;
+
+    particle::generate_particle(
+            &H, gen, pic,
+            [&](nTuple<Real, 3> const &x0, nTuple<Real, 3> const &v0, typename particle_type::value_type *res)
+            {
+
+            });
 }
 
 template<typename TM>
@@ -190,8 +205,8 @@ void EMFluid<TM>::next_step(Real dt)
 
 
 //
-//    H.gather(&J1);
-//    H.push(dt, E1, B0);
+    H.gather(&J1);
+    H.push(dt, E1, B0);
 
     if (J_src_fun)
     {

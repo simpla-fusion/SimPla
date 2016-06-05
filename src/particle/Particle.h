@@ -53,17 +53,32 @@ private:
     static constexpr mesh::MeshEntityType iform = mesh::VOLUME;
 
 public:
-    HAS_PROPERTIES;
+    virtual Properties const &properties() const
+    {
+        assert(m_properties_ != nullptr);
+        return *m_properties_;
+    };
+
+
+    virtual Properties &properties()
+    {
+        assert(m_properties_ != nullptr);
+        return *m_properties_;
+    };
+
+private:
+    std::shared_ptr<Properties> m_properties_;
+public:
 
 
     Particle(mesh_type const *m = nullptr)
-            : m_holder_(nullptr), m_mesh_(m), m_data_(nullptr), m_range_()
+            : m_holder_(nullptr), m_mesh_(m), m_data_(nullptr), m_range_(), m_properties_(new Properties)
     {
     }
 
     Particle(mesh::MeshBase const *m)
             : m_holder_(nullptr), m_mesh_(dynamic_cast<mesh_type const *>(m)),
-              m_data_(nullptr), m_range_()
+              m_data_(nullptr), m_range_(), m_properties_(new Properties)
     {
         assert(m->template is_a<mesh_type>());
     }
@@ -71,6 +86,7 @@ public:
     Particle(std::shared_ptr<base_type> h)
             : m_holder_(h), m_mesh_(nullptr), m_data_(nullptr), m_range_()
     {
+        deploy();
     }
 
     //factory construct
@@ -78,21 +94,26 @@ public:
     Particle(TFactory &factory, Args &&...args)
             : m_holder_(std::dynamic_pointer_cast<base_type>(
             factory.template create<this_type>(std::forward<Args>(args)...))),
-              m_mesh_(nullptr), m_data_(nullptr), m_range_()
+              m_mesh_(nullptr), m_data_(nullptr), m_range_(), m_properties_(nullptr)
     {
+        deploy();
     }
 
 
     //copy construct
     Particle(this_type const &other)
-            : m_holder_(other.m_holder_), m_mesh_(other.m_mesh_), m_data_(other.m_data_), m_range_(other.m_range_)
+            : engine_type(other), m_holder_(other.m_holder_), m_mesh_(other.m_mesh_),
+              m_data_(other.m_data_), m_range_(other.m_range_),
+              m_properties_(other.m_properties_)
     {
     }
 
 
     // move construct
     Particle(this_type &&other)
-            : m_holder_(other.m_holder_), m_mesh_(other.m_mesh_), m_data_(other.m_data_), m_range_(other.m_range_)
+            : engine_type(other), m_holder_(other.m_holder_), m_mesh_(other.m_mesh_),
+              m_data_(other.m_data_), m_range_(other.m_range_),
+              m_properties_(other.m_properties_)
     {
     }
 
@@ -117,7 +138,13 @@ public:
         std::swap(other.m_data_, m_data_);
         std::swap(other.m_range_, m_range_);
         std::swap(other.m_holder_, m_holder_);
+        std::swap(m_properties_, other.m_properties_);
     }
+
+
+    container_type &data() { return *m_data_; }
+
+    container_type const &data() const { return *m_data_; }
 
     std::ostream &print(std::ostream &os, int indent) const;
 
@@ -168,14 +195,15 @@ public:
     template<typename ...Args> void apply(Args &&...args) { apply(m_range_, std::forward<Args>(args)...); };
 
     template<typename ...Args> void apply(Args &&...args) const { apply(m_range_, std::forward<Args>(args)...); };
+
     //**************************************************************************************************
     //! @name as container
     //! @{
+    void insert(id_type const &s, value_type const &v);
 
-    template<typename ...Args> void insert(id_type const &s, Args &&...args);
+    template<typename TInputIterator> void insert(id_type const &s, TInputIterator, TInputIterator);
 
     template<typename Hash, typename TRange> void insert(Hash const &, TRange const &);
-
 
     template<typename Predicate> void remove_if(id_type const &s, Predicate const &pred);
 
@@ -237,10 +265,9 @@ Particle<P, M>::deploy()
             {
 
                 m_data_ = std::make_shared<container_type>();
-
+                m_properties_ = std::make_shared<Properties>();
                 m_range_ = m_mesh_->range(entity_type());
 
-                engine_type::deploy();
 
             }
 
@@ -256,10 +283,11 @@ Particle<P, M>::deploy()
             m_mesh_ = self->m_mesh_;
             m_data_ = self->m_data_;
             m_range_ = self->m_range_;
+            m_properties_ = self->m_properties_;
             success = true;
         }
     }
-
+    engine_type::deploy();
     return success;
 
 }
@@ -268,10 +296,9 @@ Particle<P, M>::deploy()
 template<typename P, typename M>
 std::ostream &Particle<P, M>::print(std::ostream &os, int indent) const
 {
-    os << std::setw(indent + 1) << " Particle={ Type=" << class_name() << ",";
-    engine_type::print(os, indent + 1);
-    os << std::setw(indent + 1) << " " << ", num = " << count() << std::endl;
-    os << std::setw(indent + 1) << " }" << std::endl;
+//    os << std::setw(indent + 1) << "   Type=" << class_name() << " , " << std::endl;
+    os << std::setw(indent + 1) << " num = " << count() << " , ";
+    properties().print(os, indent + 1);
     return os;
 }
 
@@ -500,7 +527,6 @@ Particle<P, M>::dataset(data_model::DataSet const &)
 template<typename V, typename K> size_t
 Particle<V, K>::count(range_type const &r0) const
 {
-    return 0;
 
     return parallel::parallel_reduce(
             r0, 0U,
@@ -610,17 +636,26 @@ Particle<P, M>::rehash(range_type const &r, THash const &hash, buffer_type *out_
             }
     );
 };
+
 //**************************************************************************************************
-
-
-template<typename V, typename K> template<typename ...Args> void
-Particle<V, K>::insert(id_type const &s, Args &&...args)
+template<typename V, typename K> void
+Particle<V, K>::insert(id_type const &s, value_type const &v)
 {
     typename container_type::accessor acc;
 
     m_data_->insert(acc, s);
 
-    acc->second.insert(acc->second.end(), std::forward<Args>(args)...);
+    acc->second.insert(acc->second.end(), v);
+}
+
+template<typename V, typename K> template<typename TInputIterator> void
+Particle<V, K>::insert(id_type const &s, TInputIterator ib, TInputIterator ie)
+{
+    typename container_type::accessor acc;
+
+    m_data_->insert(acc, s);
+
+    acc->second.insert(acc->second.cend(), ib, ie);
 
 }
 
@@ -641,7 +676,10 @@ Particle<V, K>::remove_if(id_type const &s, Predicate const &pred)
 
     if (m_data_->find(acc, s))
     {
-        acc->second.remove_if([&](value_type const &p) { return pred(p, s); });
+        for (auto const &p:acc->second)
+        {
+            acc->second.remove_if([&](value_type const &p) { return pred(p, s); });
+        }
     }
 }
 

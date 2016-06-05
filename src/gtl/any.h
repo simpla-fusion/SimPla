@@ -396,6 +396,7 @@ private:
 
         std::ostream &print(std::ostream &os, int indent = 1) const
         {
+
             if (std::is_same<ValueType, std::string>::value) { os << "\"" << value << "\""; } else { os << value; }
 
             return os;

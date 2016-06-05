@@ -10,14 +10,16 @@
 
 #include "../../numeric/rectangle_distribution.h"
 #include "../../numeric/multi_normal_distribution.h"
-#include "particle_generator_test.h"
+#include "../ParticleGenerator.h"
 
-namespace simpla
+namespace simpla { namespace particle
 {
 template<typename P, typename M>
-using PredefParticleGenerator=
+using DefaultParticleGenerator=
 ParticleGenerator<P, M, rectangle_distribution<3>, multi_normal_distribution<3> >;
-
+template<typename P, typename M>
+using DefaultParticleGeneratorPerCell=
+ParticleGeneratorPerCell<P, rectangle_distribution<3>, multi_normal_distribution<3> >;
 //template<typename EngineType, typename TExtents, typename TFun>
 //ParticleGenerator<EngineType, rectangle_distribution<3>, multi_normal_distribution<3>, TFun>
 //simple_particle_generator(EngineType const &engine, TExtents const &extents, Real T,
@@ -29,6 +31,6 @@ ParticleGenerator<P, M, rectangle_distribution<3>, multi_normal_distribution<3> 
 //                                                        rectangle_distribution<3>(extents),
 //                                                        multi_normal_distribution<3>(T), fun));
 //}
-}  // namespace simpla
+}}  // namespace simpla
 
 #endif /* CORE_PARTICLE_SIMPLE_PARTICLE_GENERATOR_H_ */

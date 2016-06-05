@@ -30,7 +30,7 @@ template<size_t N, typename RealType = double,
 		typename TNormalGen = std::normal_distribution<RealType> >
 class multi_normal_distribution
 {
-	nTuple<RealType, N, N> A_;
+	Matrix<RealType, N, N> A_;
 	nTuple<RealType, N> u_;
 	TNormalGen normal_dist_;
 	typedef multi_normal_distribution<N, RealType, TNormalGen> this_type;

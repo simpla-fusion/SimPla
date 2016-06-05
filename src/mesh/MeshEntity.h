@@ -203,6 +203,7 @@ private:
 
         virtual bool equal(HolderBase const &) const = 0;
 
+
         /** return  current value */
         virtual const reference get() const = 0;
 
@@ -303,6 +304,9 @@ public:
 
     bool empty() const { return m_holder_ == nullptr || m_holder_->empty(); }
 
+    size_t size() const { return m_holder_->size(); }
+
+
     iterator begin() { return m_holder_->begin(); }
 
     iterator end() { return m_holder_->end(); }
@@ -362,6 +366,8 @@ private:
 
         virtual bool is_divisible() const = 0;
 
+        virtual size_t size() const = 0;
+
         virtual bool empty() const = 0;
 
         virtual iterator begin() const = 0;
@@ -405,6 +411,7 @@ private:
             return std::dynamic_pointer_cast<HolderBase>(std::make_shared<this_type>(*this, parallel::tags::split()));
         };
 
+        virtual size_t size() const { return m_range_.size(); }
 
         virtual bool is_a(std::type_info const &t_info) const final { return typeid(TOtherRange) == t_info; }
 
@@ -455,6 +462,8 @@ private:
         {
             return std::dynamic_pointer_cast<HolderBase>(std::make_shared<this_type>(*this, parallel::tags::split()));
         };
+
+        virtual size_t size() const { return m_container_->size(); }
 
         virtual bool is_a(std::type_info const &t_info)
         const final { return typeid(TContainer) == t_info; }

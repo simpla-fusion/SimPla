@@ -7,18 +7,17 @@
 
 #include "demo_pic.h"
 
-#include "../../core/application/application.h"
 
-#include "../../core/gtl/utilities/utilities.h"
-#include "../../core/io/IO.h"
-#include "../../core/physics/PhysicalConstants.h"
+#include "../../src/gtl/Utilities.h"
+#include "../../src/io/IO.h"
+#include "../../src/physics/PhysicalConstants.h"
 
-#include "../../core/manifold/pre_define/riemannian.h"
+#include "../../src/manifold/pre_define/riemannian.h"
 
-#include "../../core/particle/ParticleContainer.h"
+#include "../../src/particle/ParticleContainer.h"
 
-#include "../../core/field/field.h"
-#include "../../core/particle/obsolete/SimpleParticleGenerator.h"
+#include "../../src/field/field.h"
+#include "../../src/particle/obsolete/SimpleParticleGenerator.h"
 
 //#include "../../src/field/field_dense.h"
 //#include "../../src/field/field_traits.h"

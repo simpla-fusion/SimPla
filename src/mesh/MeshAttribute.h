@@ -58,6 +58,8 @@ public:
 
         virtual std::string get_class_name() const = 0;
 
+        virtual std::ostream &print(std::ostream &os, int indent = 1) const { return os; }
+
         virtual void swap(View &other) = 0;
 
         virtual bool is_valid() const = 0;
@@ -79,6 +81,17 @@ public:
         virtual data_model::DataSet dataset(mesh::MeshEntityRange const &) const = 0;
     };
 
+    virtual std::ostream &print(std::ostream &os, int indent = 1) const
+    {
+        for (auto const &item:m_views_)
+        {
+//            os << std::setw(indent + 1) << " id=" << boost::uuids::hash_value(item.first) << ",";
+            item.second->print(os, indent + 2);
+//            os << "";
+            return os;
+        }
+    }
+
     /** register MeshBlockId to attribute data collection.  */
 
     template<typename TF, typename ...Args>
@@ -90,9 +103,9 @@ public:
 
         static_assert(std::is_base_of<View, TF>::value,
                       "Object is not a mesh::MeshAttribute::View");
-        auto it = m_attrs_.find(m->uuid());
+        auto it = m_views_.find(m->uuid());
 
-        if (it != m_attrs_.end())
+        if (it != m_views_.end())
         {
 
             if (!it->second->template is_a<TF>())
@@ -118,7 +131,7 @@ public:
             {
                 res = std::make_shared<TF>(m, std::forward<Args>(args)...);
 
-                m_attrs_.emplace(std::make_pair(m->uuid(), std::dynamic_pointer_cast<View>(res)));
+                m_views_.emplace(std::make_pair(m->uuid(), std::dynamic_pointer_cast<View>(res)));
 
 
             }
@@ -131,35 +144,35 @@ public:
     std::shared_ptr<View> get(MeshBlockId const &id)
     {
         std::shared_ptr<View> res(nullptr);
-        auto it = m_attrs_.find(id);
-        if (it != m_attrs_.end()) { res = it->second; }
+        auto it = m_views_.find(id);
+        if (it != m_views_.end()) { res = it->second; }
         return res;
     }
 
     std::shared_ptr<const View> get(MeshBlockId const &id) const
     {
         std::shared_ptr<View> res(nullptr);
-        auto it = m_attrs_.find(id);
-        if (it != m_attrs_.end()) { res = it->second; }
+        auto it = m_views_.find(id);
+        if (it != m_views_.end()) { res = it->second; }
         return res;
     }
 
     /** erase MeshBlockId from attribute data collection.  */
     size_t erase(MeshBlockId const &id)
     {
-        return m_attrs_.erase(id);
+        return m_views_.erase(id);
     }
 
     data_model::DataSet dataset(MeshBlockId const &id) const
     {
-        return m_attrs_.at(id)->dataset();
+        return m_views_.at(id)->dataset();
     }
 
     void dataset(MeshBlockId const &id, data_model::DataSet const &d)
     {
         try
         {
-            return m_attrs_.at(id)->dataset(d);
+            return m_views_.at(id)->dataset(d);
 
         }
         catch (std::out_of_range const &)
@@ -170,7 +183,7 @@ public:
 
     void dataset(std::map<MeshBlockId, data_model::DataSet> *res) const
     {
-        for (auto const &item:m_attrs_)
+        for (auto const &item:m_views_)
         {
             res->emplace(std::make_pair(item.first, item.second->dataset()));
         };
@@ -181,10 +194,10 @@ public:
         for (auto const &item:d) { dataset(item.first, item.second); }
     }
 
-    bool has(MeshBlockId const &id) const { return m_attrs_.find(id) != m_attrs_.end(); }
+    bool has(MeshBlockId const &id) const { return m_views_.find(id) != m_views_.end(); }
 
 protected:
-    std::map<MeshBlockId, std::shared_ptr<View>> m_attrs_;
+    std::map<MeshBlockId, std::shared_ptr<View>> m_views_;
 };
 
 
