@@ -41,19 +41,20 @@ NX = 50
 NY = 50
 NZ = 10
 LX = 1.0 --m --100000*rhoi --0.6
-LY = 1 --2.0*math.pi/k0
-LZ = math.pi * 0.25 -- 2.0*math.pi/18
+LY = 2.0 --2.0*math.pi/k0
+LZ = 3.0 -- math.pi * 0.25 -- 2.0*math.pi/18
 GW = 5
 PIC = 100
 GEQDSK = "/home/salmon/workspace-local/SimPla/scripts/gfile/g038300.03900"
-number_of_steps = 10
+number_of_steps = 1000
+dt = 0.5 * (LX / NX) / c
+current_time = 0;
+stop_time = dt * number_of_steps;
+number_of_check_point = number_of_steps / 10
 Mesh =
 {
-    Geometry =
-    {
-        Topology = { Dimensions = { NX, NY, NZ }, },
-        Box = { { 0.0, 0.0, 0 }, { LX, LY, LZ } },
-    },
+    Dimensions = { NX, NY, NZ },
+    Box = { { 0.0, 0.0, 0 }, { LX, LY, LZ } },
     dt = 0.5 * (LX / NX) / c
 }
 omega_ext = omega_ci * 1.9
@@ -73,8 +74,7 @@ domain_center = {
 
 InitValue = {
     B0 = {
-        Value = function(t, x)
-            print(x[1])
+        Value = function(x)
             return { 0, 0, math.sin(x[1] * 2.0 * math.pi / LX) * math.sin(x[2] * 2.0 * math.pi / LY) }
         end
     },
@@ -88,6 +88,17 @@ InitValue = {
     --    end
     --
     --  }
+    --    E1 = {
+    --        Value = function(x)
+    --            local tau = x[1] * TWOPI / LX + x[2] * TWOPI / LY + x[3] * TWOPI / LZ
+    --
+    --            return {
+    --                math.sin(tau),
+    --                math.sin(tau + TWOPI / 3.0),
+    --                math.sin(tau + TWOPI * 2.0 / 3.0)
+    --            }
+    --        end
+    --    },
 }
 Particles = {
     H = {
@@ -119,7 +130,7 @@ PEC = {
         Object = function(v)
             d1 = ((v[1] - LX / 2) * (v[1] - LX / 2) + (v[2] - LY / 2) * (v[2] - LY / 2)) - LY * LY * 0.04
             d2 = math.max(math.abs(v[1] - LX * 0.6) - 2, math.abs(v[2] - LY * 0.6) - 2)
-            --   print(v[1],v[2 ],v[3])
+            -- print(v[1], v[2], v[3])
             return math.min(d1, d2)
         end
     }
@@ -127,11 +138,14 @@ PEC = {
 
 Constraints = {
     J = {
-        Box = { { 1.4, -0.1, -0.1 * math.pi }, { 1.4, 0.1, 0.1 * math.pi } },
-        Value = function(t, x)
-            local tau = t * omega_ext -- + x[2]*TWOPI/(xmax[3]-xmin[3])
+        Box = { { 0.45 * LX, 0.45 * LY, 0.45 * LZ }, { 0.55 * LX, 0.55 * LY, 0.55 * LZ } },
+        Value = function(t, x, v)
+            local tau = t * omega_ext + x[1] * TWOPI / LX
             local amp = math.sin(tau) * (1 - math.exp(-tau * tau))
-            return { 0, 0, amp }
+            --            print(x[1], x[2], x[3])
+
+
+            return { amp, amp, amp }
         end
     },
 }

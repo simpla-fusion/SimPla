@@ -198,9 +198,9 @@ public:
     {
         point_type p = m::point(s);
 
-        p[0] = std::fma(p[0], m_g2l_scale_[0], m_g2l_shift_[0]);
-        p[1] = std::fma(p[1], m_g2l_scale_[1], m_g2l_shift_[1]);
-        p[2] = std::fma(p[2], m_g2l_scale_[2], m_g2l_shift_[2]);
+        p[0] = std::fma(p[0], m_l2g_scale_[0], m_l2g_shift_[0]);
+        p[1] = std::fma(p[1], m_l2g_scale_[1], m_l2g_shift_[1]);
+        p[2] = std::fma(p[2], m_l2g_scale_[2], m_l2g_shift_[2]);
 
         return std::move(p);
 
@@ -211,9 +211,9 @@ public:
     {
         point_type p = m::coordinates_local_to_global(s, r);
 
-        p[0] = std::fma(p[0], m_g2l_scale_[0], m_g2l_shift_[0]);
-        p[1] = std::fma(p[1], m_g2l_scale_[1], m_g2l_shift_[1]);
-        p[2] = std::fma(p[2], m_g2l_scale_[2], m_g2l_shift_[2]);
+        p[0] = std::fma(p[0], m_l2g_scale_[0], m_l2g_shift_[0]);
+        p[1] = std::fma(p[1], m_l2g_scale_[1], m_l2g_shift_[1]);
+        p[2] = std::fma(p[2], m_l2g_scale_[2], m_l2g_shift_[2]);
 
         return std::move(p);
 
@@ -319,6 +319,13 @@ public:
 
             m_outer_lower_[i] = 0;
             m_outer_upper_[i] = m_shape_[i];
+
+            m_l2g_scale_[i] = (m_dims_[i] <= 1) ? 0 : m_dx_[i];
+            m_l2g_shift_ = m_coords_lower_;
+
+            m_g2l_scale_[i] = (m_dims_[i] <= 1) ? 0 : 1.0 / m_dx_[i];
+            m_g2l_shift_[i] = (m_dims_[i] <= 1) ? 0 : -m_coords_lower_[i] * m_g2l_scale_[i];
+
         }
 
 

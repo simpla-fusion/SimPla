@@ -103,6 +103,7 @@ struct MeshEntityIdCoder_
 
     static constexpr Real EPSILON = 1.0 / static_cast<Real>(INDEX_ZERO);
 
+
     /// @}
 
     /// @name level dependent
@@ -127,14 +128,10 @@ struct MeshEntityIdCoder_
                                                | (PRIMARY_ID_MASK_ << (ID_DIGITS * 2));
 
 
-    static constexpr Real COORDINATES_MESH_FACTOR = static_cast<Real>(1UL << MESH_RESOLUTION);
-    static constexpr Real MESH_COORDINATES_FACTOR = 1.0 / COORDINATES_MESH_FACTOR;
+    static constexpr Real GRID_WIDTH = static_cast<Real>(1UL << MESH_RESOLUTION);
+    static constexpr Real INV_GRID_WIDTH = 1.0 / GRID_WIDTH;
 
     /// @}
-    static constexpr Vec3 dx()
-    {
-        return Vec3({COORDINATES_MESH_FACTOR, COORDINATES_MESH_FACTOR, COORDINATES_MESH_FACTOR});
-    }
 
     static constexpr int m_sub_index_to_id_[4][3] = { //
 
@@ -290,8 +287,8 @@ struct MeshEntityIdCoder_
 
     static point_type point(id_type const &s)
     {
-        return point_type{static_cast<Real>(static_cast<index_type>(unpack_id(s, 0))),
-                          static_cast<Real>(static_cast<index_type>(unpack_id(s, 1))),
+        return point_type{static_cast<Real>(static_cast<index_type>(unpack_id(s, 0)))  ,
+                          static_cast<Real>(static_cast<index_type>(unpack_id(s, 1)))  ,
                           static_cast<Real>(static_cast<index_type>(unpack_id(s, 2)))
         };
     }
@@ -861,6 +858,7 @@ struct MeshEntityIdCoder_
 
         value_type pack_(nTuple<index_type, ndims + 1> const &idx) const
         {
+
             return pack_index(idx, m_sub_index_to_id_[m_iform_][idx[ndims]]);
         }
 

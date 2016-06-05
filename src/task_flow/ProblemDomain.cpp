@@ -135,6 +135,8 @@ ProblemDomain::print(std::ostream &os, int indent) const
     m->print(os, indent + 2);
     os << std::setw(indent + 1) << " }," << std::endl;
 
+    os << std::setw(indent + 1) << " time =" << m_pimpl_->m_time_ << ", dt =" << m_pimpl_->m_dt_ << std::endl;
+
     os << std::setw(indent + 1) << " Type=\"" << get_class_name() << "\"," << std::endl;
 
     os << std::setw(indent + 1) << " Attributes= { \"" << it->first << "\"";
@@ -176,7 +178,9 @@ ProblemDomain::check_point(io::IOStream &os) const
     auto m_id = m->uuid();
     for (auto const &item:m_pimpl_->m_attr_)
     {
-        os.write(item.first, item.second->dataset(m_id), io::SP_RECORD);
+        auto ds = item.second->dataset(m_id);
+        if (ds.is_valid()) { os.write(item.first, ds, io::SP_RECORD); }
+
     }
     return os;
 }

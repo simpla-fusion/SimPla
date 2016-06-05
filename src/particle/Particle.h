@@ -150,46 +150,11 @@ public:
 
     virtual void clear(range_type const &r);
 
-
     template<typename TRes, typename ...Args>
-    void gather(TRes *res, mesh::point_type const &x0, Args &&...args) const
-    {
-
-        res = 0;
-        mesh::MeshEntityId s = std::get<0>(m_mesh_->point_global_to_local(x0));
-
-        mesh::MeshEntityId neighbours[mesh_type::MAX_NUM_OF_NEIGHBOURS];
-
-        int num = m_mesh_->get_adjacent_entities(s, entity_type(), neighbours);
-
-        for (int i = 0; i < num; ++i)
-        {
-            typename container_type::const_accessor acc1;
-
-            if (m_data_->find(acc1, neighbours[i]))
-            {
-                for (auto const &p:acc1->second)
-                {
-                    engine_type::gather(res, p, x0, std::forward<Args>(args)...);
-                }
-            }
-        }
-
-    }
+    void gather(TRes *res, mesh::point_type const &x0, Args &&...args) const;
 
     template<typename TV, typename ...Others, typename ...Args>
-    void gather(Field<TV, mesh_type, Others...> *res, Args &&...args) const
-    {
-        //FIXME  using this->box() select range
-
-        res->apply(res->range(), [&](point_type const &x)
-        {
-            typename traits::field_value_type<Field<TV, mesh_type, Others...>>::type v;
-            this->gather(&v, x, std::forward<Args>(args)...);
-            return v;
-        });
-
-    };
+    void gather(Field<TV, mesh_type, Others...> *res, Args &&...args) const;
 
     template<typename ...Args> void push(Args &&...args);
 
@@ -311,28 +276,83 @@ std::ostream &Particle<P, M>::print(std::ostream &os, int indent) const
 }
 
 //**************************************************************************************************
+template<typename P, typename M> template<typename TRes, typename ...Args> void
+Particle<P, M>::gather(TRes *res, mesh::point_type const &x0, Args &&...args) const
+{
+
+    res = 0;
+    mesh::MeshEntityId s = std::get<0>(m_mesh_->point_global_to_local(x0));
+
+    mesh::MeshEntityId neighbours[mesh_type::MAX_NUM_OF_NEIGHBOURS];
+
+    int num = m_mesh_->get_adjacent_entities(s, entity_type(), neighbours);
+
+    for (int i = 0; i < num; ++i)
+    {
+        typename container_type::const_accessor acc1;
+
+        if (m_data_->find(acc1, neighbours[i]))
+        {
+            for (auto const &p:acc1->second)
+            {
+                engine_type::gather(res, p, x0, std::forward<Args>(args)...);
+            }
+        }
+    }
+
+}
+
+template<typename P, typename M> template<typename TV, typename ...Others, typename ...Args> void
+Particle<P, M>::gather(Field<TV, mesh_type, Others...> *res, Args &&...args) const
+{
+
+    //FIXME  using this->box() select range
+    if (is_valid())
+    {
+        res->apply(res->range(), [&](point_type const &x)
+        {
+            typename traits::field_value_type<Field<TV, mesh_type, Others...>>::type v;
+            this->gather(&v, x, std::forward<Args>(args)...);
+            return v;
+        });
+    }
+    else
+    {
+        LOGGER << "Particle is not valid! [" << get_class_name() << "]" << std::endl;
+
+    }
+};
+
 template<typename P, typename M>
 template<typename ...Args> void
 Particle<P, M>::push(Args &&...args)
 {
-    parallel::parallel_for(
-            m_range_,
-            [&](range_type const &r)
-            {
-                typename container_type::accessor acc;
-                for (auto const &s:r)
+    if (is_valid())
+    {
+        parallel::parallel_for(
+                m_range_,
+                [&](range_type const &r)
                 {
-                    if (m_data_->find(acc, s))
+                    typename container_type::accessor acc;
+                    for (auto const &s:r)
                     {
-                        for (auto &p:acc->second)
+                        if (m_data_->find(acc, s))
                         {
-                            engine_type::push(&p, std::forward<Args>(args)...);
+                            for (auto &p:acc->second)
+                            {
+                                engine_type::push(&p, std::forward<Args>(args)...);
+                            }
                         }
+                        acc.release();
                     }
-                    acc.release();
-                }
 
-            });
+                });
+
+    }
+    else
+    {
+        LOGGER << "Particle is not valid! [" << get_class_name() << "]" << std::endl;
+    }
 }
 //**************************************************************************************************
 
@@ -451,21 +471,21 @@ Particle<P, M>::erase_if(range_type const &r, TPred const &pred, buffer_type *ou
 template<typename P, typename M> data_model::DataSet
 Particle<P, M>::dataset(range_type const &r0) const
 {
-
-    size_t num = count(r0);
-
     data_model::DataSet ds;
 
-    ds.data_type = data_model::DataType::create<value_type>();
+    size_t num = count(r0);
+    if (num > 0)
+    {
+        ds.data_type = data_model::DataType::create<value_type>();
 
-    ds.data = sp_alloc_memory(num * sizeof(value_type));
+        ds.data = sp_alloc_memory(num * sizeof(value_type));
 
-    ds.properties = this->properties();
+//    ds.properties = this->properties();
 
-    std::tie(ds.data_space, ds.memory_space) = data_model::DataSpace::create_simple_unordered(num);
+        std::tie(ds.data_space, ds.memory_space) = data_model::DataSpace::create_simple_unordered(num);
 
-    copy(r0, reinterpret_cast< value_type *>( ds.data.get()));
-
+        copy(r0, reinterpret_cast< value_type *>( ds.data.get()));
+    }
     return std::move(ds);
 };
 

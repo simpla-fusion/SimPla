@@ -14,6 +14,7 @@
 #include "../../src/mesh/MeshEntity.h"
 #include "../../src/particle/Particle.h"
 #include "../../src/particle/pre_define/BorisParticle.h"
+#include "../../src/mesh/MeshUtility.h"
 
 namespace simpla
 {
@@ -45,14 +46,17 @@ public:
 public:
     typedef TM mesh_type;
     typedef typename mesh_type::scalar_type scalar_type;
+    mesh_type const *m;
 
-    EMFluid(std::shared_ptr<const MeshBase> mp) : base_type(mp.get()) { }
+    EMFluid(const mesh_type *mp) : base_type(mp), m(mp) { }
 
     virtual ~EMFluid() { }
 
     virtual void init(ConfigParser const &options);
 
     virtual void next_step(Real dt);
+
+    virtual io::IOStream &check_point(io::IOStream &os) const;
 
 
     MeshEntityRange limiter_boundary;
@@ -88,7 +92,7 @@ public:
 
     field_t<scalar_type, VERTEX> rho0{m};
 
-//    particle::BorisParticle<mesh_type> H{*this, "H"};
+    particle::BorisParticle<mesh_type> H{*this, "H"};
 
     struct fluid_s
     {
@@ -121,16 +125,58 @@ void EMFluid<TM>::init(ConfigParser const &options)
     {
         options["Constraints"]["J"]["Value"].as(&J_src_fun);
 
-        J_src_range = m->select(options["Constraints"]["J"]["Box"].as<box_type>(), VERTEX);
+        mesh::select(*m, m->range(EDGE), options["Constraints"]["J"]["Box"].as<box_type>()).swap(J_src_range);
 
     }
-    dt(options["dt"].as<Real>(1.0));
+    dt(options["Mesh"]["dt"].as<Real>(1.0));
 
-    time(options["time"].as<Real>(0.0));
+    time(options["Mesh"]["time"].as<Real>(0.0));
 
+    J1.clear();
     B1.clear();
     E1.clear();
+    B0.clear();
 
+    if (options["InitValue"])
+    {
+//        if (options["InitValue"]["B0"])
+//        {
+//            std::function<vector_type(point_type const &)> fun;
+//            options["InitValue"]["B0"]["Value"].as(&fun);
+//            for (auto const &s:m->range(FACE))
+//            {
+//                B0[s] = m->template sample<FACE>(s, fun(m->point(s)));
+//            }
+//        }
+//
+//        if (options["InitValue"]["B1"])
+//        {
+//            std::function<vector_type(point_type const &)> fun;
+//            options["InitValue"]["B1"]["Value"].as(&fun);
+//            for (auto const &s:m->range(FACE))
+//            {
+//                B1[s] = m->template sample<FACE>(s, fun(m->point(s)));
+//            }
+//        }
+
+        if (options["InitValue"]["E1"])
+        {
+            std::function<vector_type(point_type const &)> fun;
+            options["InitValue"]["E1"]["Value"].as(&fun);
+            for (auto const &s:m->range(EDGE))
+            {
+                E1[s] = m->template sample<EDGE>(s, fun(m->point(s)));
+            }
+        }
+    }
+}
+
+template<typename TM>
+io::IOStream &EMFluid<TM>::check_point(io::IOStream &os) const
+{
+    os.write("E1", E1.dataset(), io::SP_RECORD);
+    os.write("B1", B1.dataset(), io::SP_RECORD);
+    os.write("J1", J1.dataset(), io::SP_RECORD);
 }
 
 
@@ -142,101 +188,118 @@ void EMFluid<TM>::next_step(Real dt)
 
     J1.clear();
 
+
+//
 //    H.gather(&J1);
 //    H.push(dt, E1, B0);
-//
-//    Real current_time = time();
-//    J1.apply(J_src_range, [&](point_type const &x, vector_type const &v) { return J_src_fun(current_time, x, v); });
 
-
-    LOG_CMD(B1 -= curl(E1) * (dt * 0.5));
-
-    B1.apply(face_boundary, [](mesh::MeshEntityId const &s) { return 0.0; });
-
-    LOG_CMD(E1 += (curl(B1) * speed_of_light2 - J1 / epsilon0) * dt);
-
-    E1.apply(edge_boundary, [](double &v) { v = 0; });
-
-
-    field_t<vector_type, VERTEX> dE{m};
-
-    if (fluid_sp.size() > 0)
+    if (J_src_fun)
     {
+        Real current_time = time();
 
-        field_t<vector_type, VERTEX> Q{m};
-        field_t<vector_type, VERTEX> K{m};
-
-        field_t<scalar_type, VERTEX> a{m};
-        field_t<scalar_type, VERTEX> b{m};
-        field_t<scalar_type, VERTEX> c{m};
-
-        a.clear();
-        b.clear();
-        c.clear();
-
-        Q = map_to<VERTEX>(E1) - Ev;
-
-
-        for (auto &p :   fluid_sp)
+        auto f = J_src_fun;
+        for (auto const &s:J_src_range)
         {
-
-            Real ms = p.second.mass;
-            Real qs = p.second.charge;
-
-
-            field_t<scalar_type, VERTEX> &ns = p.second.rho1;
-
-            field_t<vector_type, VERTEX> &Js = p.second.J1;;
-
-
-            Real as = (dt * qs) / (2.0 * ms);
-
-            Q -= 0.5 * dt / epsilon0 * Js;
-
-            K = (Ev * qs * ns * 2.0 + cross(Js, B0v)) * as + Js;
-
-            Js = (K + cross(K, B0v) * as + B0v * (dot(K, B0v) * as * as)) / (BB * as * as + 1);
-
-            Q -= 0.5 * dt / epsilon0 * Js;
-
-            a += qs * ns * (as / (BB * as * as + 1));
-            b += qs * ns * (as * as / (BB * as * as + 1));
-            c += qs * ns * (as * as * as / (BB * as * as + 1));
-
-
+            auto x0 = m->point(s);
+            auto v = J_src_fun(current_time, x0, J1(x0));
+            J1[s] += m->template sample<EDGE>(s, v);
         }
-
-        a *= 0.5 * dt / epsilon0;
-        b *= 0.5 * dt / epsilon0;
-        c *= 0.5 * dt / epsilon0;
-        a += 1;
-
-
-        LOG_CMD(dE = (Q * a - cross(Q, B0v) * b + B0v * (dot(Q, B0v) * (b * b - c * a) / (a + c * BB))) /
-                     (b * b * BB + a * a));
-
-        for (auto &p :   fluid_sp)
-        {
-            Real ms = p.second.mass;
-            Real qs = p.second.charge;
-            field_t<scalar_type, VERTEX> &ns = p.second.rho1;
-            field_t<vector_type, VERTEX> &Js = p.second.J1;;
-
-
-            Real as = (dt * qs) / (2.0 * ms);
-
-            K = dE * ns * qs * as;
-            Js += (K + cross(K, B0v) * as + B0v * (dot(K, B0v) * as * as)) / (BB * as * as + 1);
-        }
-        Ev += dE;
-
-        E1 += map_to<EDGE>(Ev) - E1;
     }
+//    J1.apply(J_src_range,
+//             [f, current_time](point_type const &x, vector_type const &v)
+//             {
+//                 return f(current_time, x, v);
+//             });
 
-
+//
     LOG_CMD(B1 -= curl(E1) * (dt * 0.5));
-
-    B1.apply(face_boundary, [&](Real &v) { v = 0; });
+//
+//    B1.apply(face_boundary, [](mesh::MeshEntityId const &s) { return 0.0; });
+//
+    LOG_CMD(E1 += (curl(B1) * speed_of_light2 - J1 / epsilon0) * dt);
+//
+//    E1.apply(edge_boundary, [](double &v) { v = 0; });
+//
+//
+//    field_t<vector_type, VERTEX> dE{m};
+//
+//    if (fluid_sp.size() > 0)
+//    {
+//
+//        field_t<vector_type, VERTEX> Q{m};
+//        field_t<vector_type, VERTEX> K{m};
+//
+//        field_t<scalar_type, VERTEX> a{m};
+//        field_t<scalar_type, VERTEX> b{m};
+//        field_t<scalar_type, VERTEX> c{m};
+//
+//        a.clear();
+//        b.clear();
+//        c.clear();
+//
+//        Q = map_to<VERTEX>(E1) - Ev;
+//
+//
+//        for (auto &p :   fluid_sp)
+//        {
+//
+//            Real ms = p.second.mass;
+//            Real qs = p.second.charge;
+//
+//
+//            field_t<scalar_type, VERTEX> &ns = p.second.rho1;
+//
+//            field_t<vector_type, VERTEX> &Js = p.second.J1;;
+//
+//
+//            Real as = (dt * qs) / (2.0 * ms);
+//
+//            Q -= 0.5 * dt / epsilon0 * Js;
+//
+//            K = (Ev * qs * ns * 2.0 + cross(Js, B0v)) * as + Js;
+//
+//            Js = (K + cross(K, B0v) * as + B0v * (dot(K, B0v) * as * as)) / (BB * as * as + 1);
+//
+//            Q -= 0.5 * dt / epsilon0 * Js;
+//
+//            a += qs * ns * (as / (BB * as * as + 1));
+//            b += qs * ns * (as * as / (BB * as * as + 1));
+//            c += qs * ns * (as * as * as / (BB * as * as + 1));
+//
+//
+//        }
+//
+//        a *= 0.5 * dt / epsilon0;
+//        b *= 0.5 * dt / epsilon0;
+//        c *= 0.5 * dt / epsilon0;
+//        a += 1;
+//
+//
+//        LOG_CMD(dE = (Q * a - cross(Q, B0v) * b + B0v * (dot(Q, B0v) * (b * b - c * a) / (a + c * BB))) /
+//                     (b * b * BB + a * a));
+//
+//        for (auto &p :   fluid_sp)
+//        {
+//            Real ms = p.second.mass;
+//            Real qs = p.second.charge;
+//            field_t<scalar_type, VERTEX> &ns = p.second.rho1;
+//            field_t<vector_type, VERTEX> &Js = p.second.J1;;
+//
+//
+//            Real as = (dt * qs) / (2.0 * ms);
+//
+//            K = dE * ns * qs * as;
+//            Js += (K + cross(K, B0v) * as + B0v * (dot(K, B0v) * as * as)) / (BB * as * as + 1);
+//        }
+//        Ev += dE;
+//
+//        E1 += map_to<EDGE>(Ev) - E1;
+//    }
+//
+//
+//    LOG_CMD(B1 -= curl(E1) * (dt * 0.5));
+//
+//    B1.apply(face_boundary, [&](Real &v) { v = 0; });
 
 }
 

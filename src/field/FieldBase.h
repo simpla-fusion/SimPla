@@ -180,7 +180,7 @@ public:
 
         std::tie(res.memory_space, res.data_space) = m_mesh_->data_space(entity_type());
 
-        return std::move(res);
+        return res;
     };
 
     virtual void dataset(data_model::DataSet const &)
@@ -265,7 +265,7 @@ public:
 
     template<typename TFun>
     this_type &
-    apply(mesh::MeshEntityRange const &r, TFun const &op,
+    apply(mesh::MeshEntityRange const &r0, TFun const &op,
           FUNCTION_REQUIREMENT((std::is_same<typename std::result_of<TFun(
                   typename mesh::point_type const &,
                   field_value_type const &)>::type, field_value_type>::value))
@@ -273,14 +273,19 @@ public:
     {
         deploy();
 
-        //TODO: need parallelism
-        if (!r.empty())
+        if (!r0.empty())
         {
-            for (auto const &s: r)
-            {
-                auto x = m_mesh_->point(s);
-                get(s) = m_mesh_->template sample<IFORM>(s, op(x, gather(x)));
-            }
+            parallel::parallel_for(
+                    r0,
+                    [&](typename mesh::MeshEntityRange const &r)
+                    {
+                        for (auto const &s: r)
+                        {
+                            auto x = m_mesh_->point(s);
+                            get(s) = m_mesh_->template sample<IFORM>(s, op(x, gather(x)));
+                        }
+                    }
+            );
         }
 
         return *this;
@@ -288,20 +293,27 @@ public:
 
     template<typename TFun>
     this_type &
-    apply(mesh::MeshEntityRange const &r, TFun const &op,
+    apply(mesh::MeshEntityRange const &r0, TFun const &op,
           FUNCTION_REQUIREMENT((std::is_same<typename std::result_of<TFun(
                   typename mesh::point_type const &)>::type, field_value_type>::value))
     )
     {
         deploy();
 
-        //TODO: need parallelism
-        if (!r.empty())
+        if (!r0.empty())
         {
-            for (auto const &s: r)
-            {
-                get(s) = m_mesh_->template sample<IFORM>(s, op(m_mesh_->point(s)));
-            }
+            parallel::parallel_for(
+                    r0,
+                    [&](typename mesh::MeshEntityRange const &r)
+                    {
+                        for (auto const &s: r)
+                        {
+                            get(s) = m_mesh_->template sample<IFORM>(s, op(m_mesh_->point(s)));
+
+                        }
+                    }
+            );
+
         }
 
         return *this;
@@ -309,7 +321,7 @@ public:
 
     template<typename TFun>
     this_type &
-    apply(mesh::MeshEntityRange const &r, TFun const &op,
+    apply(mesh::MeshEntityRange const &r0, TFun const &op,
           FUNCTION_REQUIREMENT(
                   (std::is_same<typename std::result_of<TFun(mesh::MeshEntityId const &)>::type, value_type>::value)
           )
@@ -317,15 +329,22 @@ public:
     {
         deploy();
 
-        //TODO: need parallelism
-        if (!r.empty()) { for (auto const &s: r) { get(s) = op(s); }}
-
+        if (!r0.empty())
+        {
+            parallel::parallel_for(
+                    r0,
+                    [&](typename mesh::MeshEntityRange const &r)
+                    {
+                        for (auto const &s: r) { get(s) = op(s); }
+                    }
+            );
+        }
         return *this;
     }
 
     template<typename TFun>
     this_type &
-    apply(mesh::MeshEntityRange const &r, TFun const &op,
+    apply(mesh::MeshEntityRange const &r0, TFun const &op,
           FUNCTION_REQUIREMENT(
                   (std::is_same<typename std::result_of<TFun(value_type &)>::type, void>::value)
           )
@@ -333,8 +352,16 @@ public:
     {
         deploy();
 
-        //TODO: need parallelism
-        if (!r.empty()) { for (auto const &s: r) { op(get(s)); }}
+        if (!r0.empty())
+        {
+            parallel::parallel_for(
+                    r0,
+                    [&](typename mesh::MeshEntityRange const &r)
+                    {
+                        for (auto const &s: r) { op(get(s)); }
+                    }
+            );
+        }
 
         return *this;
     }
@@ -342,14 +369,23 @@ public:
 
     template<typename TFun>
     this_type &
-    apply(mesh::MeshEntityRange const &r, TFun const &f,
+    apply(mesh::MeshEntityRange const &r0, TFun const &f,
           FUNCTION_REQUIREMENT((traits::is_indexable<TFun, typename mesh::MeshEntityId>::value))
     )
     {
+
         deploy();
 
-        //TODO: need parallelism
-        if (!r.empty()) { for (auto const &s: r) { get(s) = f[s]; }}
+        if (!r0.empty())
+        {
+            parallel::parallel_for(
+                    r0,
+                    [&](typename mesh::MeshEntityRange const &r)
+                    {
+                        for (auto const &s: r) { get(s) = f[s]; }
+                    }
+            );
+        }
 
         return *this;
     }
@@ -362,7 +398,16 @@ private:
     {
         deploy();
         //TODO: need parallelism
-        if (!m_range_.empty()) { for (auto const &s: m_range_) { op(get(s), m_mesh_->eval(other, s)); }}
+        if (!m_range_.empty())
+        {
+            parallel::parallel_for(
+                    m_range_,
+                    [&](typename mesh::MeshEntityRange const &r)
+                    {
+                        for (auto const &s:r) { op(get(s), m_mesh_->eval(other, s)); }
+                    }
+            );
+        }
         return *this;
     }
 

@@ -66,19 +66,18 @@ int main(int argc, char **argv)
     }
 
 
-    auto mesh = std::make_shared<mesh_type>();
+    mesh_type mesh;
 
-    mesh->setup(options["Mesh"]);
+    mesh.setup(options["Mesh"]);
 
-    auto problem_domain = std::make_shared<EMFluid<mesh_type>>(mesh);
-
+    auto problem_domain = std::make_shared<EMFluid<mesh_type>>(&mesh);
 
     problem_domain->setup(options);
 
     problem_domain->print(std::cout);
 
 
-    Real stop_time = options["stop_time"].as<Real>(20);
+    Real stop_time = options["stop_time"].as<Real>(1);
 
     int num_of_steps = options["number_of_steps"].as<int>(20);
 
@@ -92,6 +91,8 @@ int main(int argc, char **argv)
     INFORM << "\t >>> Time [" << problem_domain->time() << "] <<< " << std::endl;
 
     Real current_time = problem_domain->time();
+
+    problem_domain->check_point(io::global());
 
     while (problem_domain->time() < stop_time)
     {
