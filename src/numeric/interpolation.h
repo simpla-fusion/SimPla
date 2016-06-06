@@ -616,7 +616,7 @@ public:
 //	}
 //
 //	/**
-//	 * Given a value x, and using pointers to data xx and yy, and the stored vector of second derivatives
+//	 * Given a value x, and using pointers to m_data xx and yy, and the stored vector of second derivatives
 //	 y2, this routine returns the cubic spline interpolated value y.
 //	 * @param jl
 //	 * @param x

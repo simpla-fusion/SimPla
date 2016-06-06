@@ -132,8 +132,8 @@ std::tuple<std::shared_ptr<ByteType>, int> update_ghost_unorder(
         void const *send_buffer, std::vector<std::tuple<int, // dest;
         int, // send_tag;
         int, // recv_tag;
-        int, // send buffer begin;
-        int  // send buffer size;
+        int, // send m_buffer begin;
+        int  // send m_buffer size;
 >> const &info);
 
 void bcast_string(std::string *filename_);

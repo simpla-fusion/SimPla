@@ -112,8 +112,8 @@ void allreduce(void const *send_data, void *recv_data, size_t count,
 //		std::tuple<int, // dest;
 //				int, // send_tag;
 //				int, // recv_tag;
-//				int, // send buffer begin;
-//				int  // send buffer size;
+//				int, // send m_buffer begin;
+//				int  // send m_buffer size;
 //				>> const & info)
 //{
 //	auto comm = GLOBAL_COMM.comm();

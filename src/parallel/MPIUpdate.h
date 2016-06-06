@@ -47,7 +47,7 @@ std::tuple<int, int, int> get_mpi_tag(int obj_id, int const *coord);
 //};
 //
 //void sync_update_block(MPIComm const &mpi_comm, std::vector<mpi_send_recv_block_s> const &send_recv_list,
-//		void *data, std::vector<MPI_Request> &requests);
+//		void *m_data, std::vector<MPI_Request> &requests);
 
 //void sync_update_varlength(MPIComm &mpi_comm, DataType const &DataType,
 //		std::vector<send_recv_buffer_s> &send_recv_buffer,

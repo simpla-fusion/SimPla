@@ -34,7 +34,7 @@ namespace simpla { namespace data_model
 /**
  *  @ingroup data_interface
  *
- *  \brief  Description of data type
+ *  \brief  Description of m_data type
  *
  *  @todo this class should meet the requirement of XDR
  *  http://en.wikipedia.org/wiki/External_Data_Representation#XDR_data_types

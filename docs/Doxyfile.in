@@ -364,7 +364,7 @@ SUBGROUPING            = YES
 INLINE_GROUPED_CLASSES = NO
 
 # When the INLINE_SIMPLE_STRUCTS tag is set to YES, structs, classes, and unions
-# with only public data fields or simple typedef fields will be shown inline in
+# with only public m_data fields or simple typedef fields will be shown inline in
 # the documentation of the scope in which they are defined (i.e. file,
 # namespace, or group documentation), provided this scope is documented. If set
 # to NO, structs, classes, and unions are shown on a separate page (for HTML and
@@ -1528,7 +1528,7 @@ EXTERNAL_SEARCH        = NO
 SEARCHENGINE_URL       =
 
 # When SERVER_BASED_SEARCH and EXTERNAL_SEARCH are both enabled the unindexed
-# search data is written to a file for indexing by an external tool. With the
+# search m_data is written to a file for indexing by an external tool. With the
 # SEARCHDATA_FILE tag the name of this file can be specified.
 # The default file is: searchdata.xml.
 # This tag requires that the tag SEARCHENGINE is set to YES.

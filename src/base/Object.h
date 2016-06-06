@@ -66,7 +66,7 @@ namespace simpla { namespace base
  *   -------------------------------|--------------
  *   `bool is_valid() `  			| _true_ if PhysicalObject is valid for accessing
  *   `update()`					| allocate memory
- *   `DataModel()`					| return the data set of PhysicalObject
+ *   `DataModel()`					| return the m_data set of PhysicalObject
  *   `clear()`						| set value to zero, allocate memory if empty() is _true_
  *   `T properties(std::string name)const` | get properties[name]
  *   `properties(std::string name,T const & v) ` | set properties[name]

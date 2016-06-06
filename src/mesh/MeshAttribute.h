@@ -111,7 +111,7 @@ public:
         }
     }
 
-    /** register MeshBlockId to attribute data collection.  */
+    /** register MeshBlockId to attribute m_data collection.  */
 
     template<typename TF, typename ...Args>
     std::shared_ptr<TF> add(MeshBase const *m, Args &&...args)
@@ -176,7 +176,7 @@ public:
         return res;
     }
 
-    /** erase MeshBlockId from attribute data collection.  */
+    /** erase MeshBlockId from attribute m_data collection.  */
     size_t erase(MeshBlockId const &id)
     {
         return m_views_.erase(id);

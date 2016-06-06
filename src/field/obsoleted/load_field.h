@@ -27,8 +27,8 @@ bool loadField(TDict const & dict, TField *f)
 	if (dict.is_string())
 	{
 		std::string url = dict.template as<std::string>();
-		//TODO Read field from data file
-		UNIMPLEMENTED<< "Read field from data file or other URI";
+		//TODO Read field from m_data file
+		UNIMPLEMENTED<< "Read field from m_data file or other URI";
 	}
 	else if (dict)
 	{

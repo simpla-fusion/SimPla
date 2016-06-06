@@ -110,7 +110,7 @@ private:
 //	void remove(key_type const& s);
 //
 //	template<typename Func>
-//	void modify(key_type const & s, Func const & func, inner_container*buffer =
+//	void modify(key_type const & s, Func const & func, inner_container*m_buffer =
 //			nullptr);
 //
 //	void clear()
@@ -203,7 +203,7 @@ private:
 //template<typename KeyType, typename ValueType>
 //template<typename Func>
 //void ContainerPool<KeyType, ValueType>::modify(key_type const & s,
-//		Func const & func, inner_container*buffer)
+//		Func const & func, inner_container*m_buffer)
 //{
 //
 //	auto t_buffer = make_buffer();
@@ -224,8 +224,8 @@ private:
 //		}
 //	}
 //
-//	if (buffer != nullptr)
-//		buffer->splice(buffer->begin(), t_buffer);
+//	if (m_buffer != nullptr)
+//		m_buffer->splice(m_buffer->begin(), t_buffer);
 //
 //}
 

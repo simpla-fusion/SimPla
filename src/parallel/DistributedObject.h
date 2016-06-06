@@ -33,13 +33,9 @@ struct DistributedObject
 
     void wait();
 
-    void add_send_link(size_t id, const nTuple<ptrdiff_t, 3> &offset, data_model::DataSet);
+    void add_send_link(size_t id, const nTuple<ptrdiff_t, 3> &offset, const data_model::DataSet *);
 
-    void add_recv_link(size_t id, const nTuple<ptrdiff_t, 3> &offset, data_model::DataSet);
-
-    void add(size_t id, data_model::DataSet &ds, bool only_once);
-
-    void remove(size_t id);
+    void add_recv_link(size_t id, const nTuple<ptrdiff_t, 3> &offset, data_model::DataSet *);
 
     bool is_ready() const;
 

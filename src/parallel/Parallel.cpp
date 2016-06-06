@@ -65,12 +65,12 @@ std::string help_message()
 //
 //		MPIDataType m_type;
 //
-//		std::vector<Integral> buffer;
+//		std::vector<Integral> m_buffer;
 //
 //		if (porcess_number == 0)
-//		buffer.resize(num_of_process);
+//		m_buffer.resize(num_of_process);
 //
-//		MPI_Gather(&count, 1, m_type.type(), &buffer[0], 1, m_type.type(), 0, communicator);
+//		MPI_Gather(&count, 1, m_type.type(), &m_buffer[0], 1, m_type.type(), 0, communicator);
 //
 //		MPI_Barrier(communicator);
 //
@@ -78,19 +78,19 @@ std::string help_message()
 //		{
 //			for (int i = 1; i < num_of_process; ++i)
 //			{
-//				buffer[i] += buffer[i - 1];
+//				m_buffer[i] += m_buffer[i - 1];
 //			}
-//			buffer[0] = count;
-//			count = buffer[num_of_process - 1];
+//			m_buffer[0] = count;
+//			count = m_buffer[num_of_process - 1];
 //
 //			for (int i = num_of_process - 1; i > 0; --i)
 //			{
-//				buffer[i] = buffer[i - 1];
+//				m_buffer[i] = m_buffer[i - 1];
 //			}
-//			buffer[0] = 0;
+//			m_buffer[0] = 0;
 //		}
 //		MPI_Barrier(communicator);
-//		MPI_Scatter(&buffer[0], 1, m_type.type(), &begin, 1, m_type.type(), 0, communicator);
+//		MPI_Scatter(&m_buffer[0], 1, m_type.type(), &begin, 1, m_type.type(), 0, communicator);
 //		MPI_Bcast(&count, 1, m_type.type(), 0, communicator);
 //	}
 //

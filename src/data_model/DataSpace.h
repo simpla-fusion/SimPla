@@ -24,7 +24,7 @@ struct DataSet;
 
 /**
  * @ingroup data_interface
- * @brief  Define the size and  shape of data set in memory/file
+ * @brief  Define the size and  shape of m_data set in memory/file
  *  Ref. http://www.hdfgroup.org/HDF5/doc/UG/UG_frame12Dataspaces.html
  */
 class DataSpace : public base::Object

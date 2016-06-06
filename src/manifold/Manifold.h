@@ -62,8 +62,8 @@ namespace simpla { namespace manifold
  *  `~M()` 				    | Destructor.
  *  `mesh_type`		    | BaseManifold type of geometry, which describes coordinates and Metric
  *  `mesh_type`		    | Topology structure of geometry,   Topology of grid points
- *  `coordiantes_type` 	    | data type of coordinates, i.e. nTuple<3,Real>
- *  `index_type`			| data type of the index of grid points, i.e. unsigned long
+ *  `coordiantes_type` 	    | m_data type of coordinates, i.e. nTuple<3,Real>
+ *  `index_type`			| m_data type of the index of grid points, i.e. unsigned long
  *  `Domain  domain()`	    | Root domain of geometry
  *
  *
@@ -87,7 +87,7 @@ namespace simpla { namespace manifold
  *
  *    Pseudo-Signature  	   | Semantics
  *  ---------------------------|-------------
- *  `gather(field_type const &f, coordinate_tuple x  )` 	    | gather data from `f` at coordinates `x`.
+ *  `gather(field_type const &f, coordinate_tuple x  )` 	    | gather m_data from `f` at coordinates `x`.
  *  `scatter(field_type &f, coordinate_tuple x ,value_type v)` 	| scatter `v` to field  `f` at coordinates `x`.
  *
  * ## Calculus  policy
@@ -201,9 +201,9 @@ public:
 //    {
 //        auto ds = this->storage_policy::template dataset<point_type, VERTEX>();
 //
-//        ds.data = sp_alloc_memory(ds.memory_space.size() * sizeof(point_type));
+//        ds.m_data = sp_alloc_memory(ds.memory_space.size() * sizeof(point_type));
 //
-//        point_type *p = reinterpret_cast<point_type *>(ds.data.get());
+//        point_type *p = reinterpret_cast<point_type *>(ds.m_data.get());
 //
 //        parallel::parallel_for(
 //                this->template entity_id_range<VERTEX>(),

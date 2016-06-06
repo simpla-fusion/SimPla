@@ -64,16 +64,9 @@ public:
 
     virtual bool coarsen(mesh::MeshBase const &other);
 
-
     virtual void setup(ConfigParser const &dict);
 
     virtual void teardown();
-
-    virtual void sync();
-
-    virtual bool is_ready() const;
-
-    virtual void wait();
 
     virtual void init(ConfigParser const &options) = 0;
 

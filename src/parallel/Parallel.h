@@ -44,19 +44,6 @@ void close();
 std::string help_message();
 
 
-template<typename ...Args>
-void sync(Args &&...args)
-{
-    if (GLOBAL_COMM.num_of_process() > 1)
-    {
-        DistributedObject dist_obj;
-        dist_obj.add(std::forward<Args>(args)..., false);
-        dist_obj.sync();
-        dist_obj.wait();
-    }
-};
-
-
 }}// namespace simpla { namespace parallel
 
 #endif /* PARALLEL_H_ */

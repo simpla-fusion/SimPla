@@ -73,7 +73,7 @@ enum tags
 
 /**
  *
- *  @brief log message buffer,
+ *  @brief log message m_buffer,
  */
 class Logger : public std::ostringstream
 {

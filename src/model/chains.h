@@ -100,11 +100,11 @@ struct Chains<Primitive<1, CS, tags::simplex>, Policies...> : public std::vector
 //
 //	typedef std::map<id_type, indices_tuple> DataType;
 //
-//	DataType & data()
+//	DataType & m_data()
 //	{
 //		return m_data_;
 //	}
-//	DataType const& data() const
+//	DataType const& m_data() const
 //	{
 //		return m_data_;
 //	}

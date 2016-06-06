@@ -1,7 +1,7 @@
 ISO-10303-21;
 HEADER;
 FILE_DESCRIPTION(('STEP AP203'),'1');
-FILE_NAME('/home/iulian/source/MeshKit_occ/data/square.stp','2012-02-06T15:10:22',(' '),(' '),'Spatial InterOp 3D',' ',' ');
+FILE_NAME('/home/iulian/source/MeshKit_occ/m_data/square.stp','2012-02-06T15:10:22',(' '),(' '),'Spatial InterOp 3D',' ',' ');
 FILE_SCHEMA(('CONFIG_CONTROL_DESIGN'));
 ENDSEC;
 DATA;

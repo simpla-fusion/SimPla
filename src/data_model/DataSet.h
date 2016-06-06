@@ -25,9 +25,9 @@ namespace simpla { namespace data_model
 {
 /**
  * @addtogroup data_model Dataset
- * @brief This section describes the interface of data set.
+ * @brief This section describes the interface of m_data set.
  *
- * @ref data_model  is a group of classes used to exchange data between different libraries
+ * @ref data_model  is a group of classes used to exchange m_data between different libraries
  * and program languages in the memory. For example, we can transfer an array
  * of particle structure in memory to hdf5 library, and write it to disk.
  */
@@ -35,11 +35,11 @@ namespace simpla { namespace data_model
 /**
  * @ingroup data_model
  *
- * @brief Describe structure of data in the memory.
+ * @brief Describe structure of m_data in the memory.
  *
- * A dataset is composed of a pointer to raw data , a description
- * of element data type (DataType), a description of memory layout of
- * data set (data_space),and a container of meta data (Properties).
+ * A dataset is composed of a pointer to raw m_data , a description
+ * of element m_data type (DataType), a description of memory layout of
+ * m_data set (data_space),and a container of meta m_data (Properties).
  */
 
 struct DataSet : public base::Object

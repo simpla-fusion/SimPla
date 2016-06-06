@@ -4,8 +4,8 @@
                      class="vtkAMRSimPlaParticleReader"
                      label="SimPla particle reader">
             <Documentation
-                    short_help="Read SimPla Particle data."
-                    long_help="Read SimPla Particle data.">
+                    short_help="Read SimPla Particle m_data."
+                    long_help="Read SimPla Particle m_data.">
                 The AMR reader reads SimPla files, and the output is a uniform rectilinear (image/volume) dataset. The
                 default file extension is .png.
             </Documentation>

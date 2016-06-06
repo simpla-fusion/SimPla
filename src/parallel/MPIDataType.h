@@ -26,7 +26,7 @@ bool GetMPIType(data_model::DataType const &data_type_desc, MPI_Datatype *new_ty
 
 /**
  *  @ingroup MPI
- *  \brief MPI convert C++ data type and data space to mpi data type
+ *  \brief MPI convert C++ m_data type and m_data space to mpi m_data type
  */
 struct MPIDataType
 {

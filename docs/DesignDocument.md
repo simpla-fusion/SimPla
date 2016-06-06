@@ -7,10 +7,10 @@ Background  {#Background}
  scales and are described by different physical models. To achieve the device scale simulation, these
  physical models should be integrated into one simulation system. A reasonable solution is to reuse
  and couple existing software, i.e. integrated modeling projects IMI, IMFIT and TRANSP. However,
- different codes have different data structures and different interfaces, which make it a big challenge
+ different codes have different m_data structures and different interfaces, which make it a big challenge
  to efficiently integrate them together. Therefore, we consider another more aggressive solution,
  implementing and coupling different physical models and numerical algorithms on a unified framework
- with sharable data structures and software architecture. This is maybe more challenging, but can solve
+ with sharable m_data structures and software architecture. This is maybe more challenging, but can solve
  the problem by the roots.
  There are several important advantages to implement a unified software framework for the tokamak
  simulation system.
@@ -129,8 +129,8 @@ The principle design ideas are explained in this section, and listed as:
 * Idea(2) SimPla is a unified framework.
 
 “Unified” means all different physical models are implemented by this framework and tight coupled to
- each other under this framework. “Tight coupled” means physical models share data and data structure
- as much as possible, which is to reduce the overhead of data/data structure conversion and communication
+ each other under this framework. “Tight coupled” means physical models share m_data and m_data structure
+ as much as possible, which is to reduce the overhead of m_data/m_data structure conversion and communication
  between models. SimPla is designed to couple and reuse physical models and numerical algorithms, but not
  to couple legacy codes. All physical models and some numerical algorithm need be recoded using this framework,
  before they are integrated into the simulation system. This decision bases on two reasons,
@@ -154,7 +154,7 @@ The relationship between physical models and numerical algorithms is not 1:1. On
 3. Easy to implement one physical model by using different numerical algorithms. This made it easy to
  compare those different numerical algorithms, and is helpful to form a uniformed interface to the
  physical model (despite the used numerical algorithm)
-4. Easy to implement new physical model by code and data structure reuse.
+4. Easy to implement new physical model by code and m_data structure reuse.
 The separation of computation from numerical algorithms has similar advantages. And, in particular,
 this separation makes it possible to perform the performance optimization on computational level without
 affecting the physical model, numerical algorithms and program results.

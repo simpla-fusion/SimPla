@@ -81,33 +81,6 @@ ProblemDomain::clone(mesh::MeshBase const &) const
 };
 
 
-void ProblemDomain::sync()
-{
-    auto mesh_block_id = m->uuid();
-    auto id = m->short_id();
-
-    for (auto &item:m_pimpl_->m_attr_)
-    {
-        if (item.second->has(mesh_block_id))
-        {
-            item.second->get(mesh_block_id)->deploy();
-
-            auto ds = item.second->dataset(mesh_block_id);
-            m_pimpl_->m_dist_obj_.add(item.second->short_id(), ds, false);
-        }
-    }
-
-    m_pimpl_->m_dist_obj_.sync();
-
-}
-
-void ProblemDomain::wait()
-{
-    m_pimpl_->m_dist_obj_.wait();
-}
-
-bool ProblemDomain::is_ready() const { return m_pimpl_->m_dist_obj_.is_ready(); }
-
 void
 ProblemDomain::run(Real stop_time, int num_of_step)
 {

@@ -144,7 +144,7 @@ public:
                           Args &&...args);
 
     /**
-     *  push_back and emplace will invalid data in the cache
+     *  push_back and emplace will invalid m_data in the cache
      * @param args
      */
     template<typename ...Args>
@@ -335,7 +335,7 @@ void ProbeParticle<Engine>::upload_cache()
 
     cache_ = sp_make_shared_array<Point_s>(cache_width_ * cache_depth_);
 
-    //  move data from buffer_ to data_
+    //  move m_data from buffer_ to data_
 //	for (size_t s = begin_; s < end_; ++s)
 //	{
 //		Point_s * p = cache_.get();

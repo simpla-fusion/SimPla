@@ -545,7 +545,7 @@ std::ostream &DataSpace::print(std::ostream &os, int indent) const
 //	is_valid_ = true;
 //}
 
-//bool data_space::sync(std::shared_ptr<void> data, DataType const & DataType,
+//bool data_space::sync(std::shared_ptr<void> m_data, DataType const & DataType,
 //		size_t flag)
 //{
 //#if  !NO_MPI || USE_MPI
@@ -574,9 +574,9 @@ std::ostream &DataSpace::print(std::ostream &os, int indent) const
 //		&m_pimpl_->local_shape_.dimensions[0], & item.recv.offset[0],
 //		&item.recv.stride[0], &item.recv.count[0], &item.recv.block[0]);
 //
-//		MPI_Isend(data.get(), 1, send_type.type(), item.dest, item.send_tag,
+//		MPI_Isend(m_data.get(), 1, send_type.type(), item.dest, item.send_tag,
 //		comm, &request[count * 2]);
-//		MPI_Irecv(data.get(), 1, recv_type.type(), item.dest, item.recv_tag,
+//		MPI_Irecv(m_data.get(), 1, recv_type.type(), item.dest, item.recv_tag,
 //		comm, &request[count * 2 + 1]);
 //
 //		++count;

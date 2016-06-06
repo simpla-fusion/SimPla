@@ -81,7 +81,7 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count)
 //}
 //
 //void sync_update_block(MPIComm &mpi_comm, std::vector<mpi_send_recv_block_s> const &send_recv_list,
-//		void *data, std::vector<MPI_Request> &requests)
+//		void *m_data, std::vector<MPI_Request> &requests)
 //{
 //
 //
@@ -89,7 +89,7 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count)
 //	{
 //		MPI_Request req;
 //
-//		MPI_ERROR(MPI_Isend(data, 1, item.send_type.type(), item.dest,
+//		MPI_ERROR(MPI_Isend(m_data, 1, item.send_type.type(), item.dest,
 //				item.send_tag, mpi_comm.comm(), &req));
 //
 //		requests.push_back(std::move(req));
@@ -98,7 +98,7 @@ std::tuple<int, int> sync_global_location(MPIComm &mpi_comm, int count)
 //	{
 //		MPI_Request req;
 //
-//		MPI_ERROR(MPI_Irecv(data, 1, item.recv_type.type(), item.dest,
+//		MPI_ERROR(MPI_Irecv(m_data, 1, item.recv_type.type(), item.dest,
 //				item.recv_tag, mpi_comm.comm(), &req));
 //
 //		requests.push_back(std::move(req));

@@ -39,26 +39,26 @@
 *- The following table lists the requirements of a particle type  '''P'''
 *	Pseudo-Signature    | Semantics
 * -------------------- |----------
-* ` struct Point_s `   | data  type of sample point
+* ` struct Point_s `   | m_data  type of sample point
 * ` P( ) `             | Constructor
 * ` ~P( ) `            | Destructor
 * ` void  next_time_step(dt, args ...) const; `  | push  fluid_sp a time interval 'dt'
 * ` void  next_time_step(num_of_steps,t0, dt, args ...) const; `  | push  fluid_sp from time 't0' to 't1' with time step 'dt'.
-* ` flush_buffer( ) `  | flush input buffer to internal data container
+* ` flush_buffer( ) `  | flush input m_buffer to internal m_data container
 *
 *- @ref particle meets the requirement of @ref container,
 * Pseudo-Signature                 | Semantics
 * -------------------------------- |----------
 * ` push_back(args ...) `          | Constructor
 * ` foreach(TFun const & fun)  `   | Destructor
-* ` dataset dump() `               | dump/copy 'data' into a dataset
+* ` dataset dump() `               | dump/copy 'm_data' into a dataset
 *
 *- @ref particle meets the requirement of @ref physical_object
 *   Pseudo-Signature           | Semantics
 * ---------------------------- |----------
 * ` print(std::ostream & os) ` | print decription of object
-* ` update() `                 | update internal data storage and prepare for execute 'next_time_step'
-* ` sync()  `                  | sync. internal data with other processes and threads
+* ` update() `                 | update internal m_data storage and prepare for execute 'next_time_step'
+* ` sync()  `                  | sync. internal m_data with other processes and threads
 *
 *
 * ## Description
@@ -483,7 +483,7 @@ ParticleContainer<P, M>::rehash()
 
 
     //**************************************************************************************
-    // sync ghost area in buffer
+    // sync ghost area in m_buffer
 
 
     parallel::DistributedObject dist_obj;
@@ -550,7 +550,7 @@ ParticleContainer<P, M>::rehash()
 template<typename P, typename M> data_model::DataSet
 ParticleContainer<P, M>::data_set() const
 {
-    CMD << "Dump particle [" << this->properties()["Name"] << "] to data set." << std::endl;
+    CMD << "Dump particle [" << this->properties()["Name"] << "] to m_data set." << std::endl;
 
 
     auto r0 = mesh_attribute_entity::mesh().template range<iform>();
@@ -699,7 +699,7 @@ ParticleContainer<V, K>::merge(buffer_type *buffer)
         acc1->second.splice(acc1->second.end(), item.second);
     }
 
-//    merge(buffer, buffer->entity_id_range());
+//    merge(m_buffer, m_buffer->entity_id_range());
 }
 
 template<typename V, typename K> template<typename TRange> void

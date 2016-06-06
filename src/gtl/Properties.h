@@ -22,7 +22,7 @@ namespace simpla
  *  @ingroup gtl
  *  @{
  *  @brief Properties Tree
- *  @todo using shared_ptr storage data
+ *  @todo using shared_ptr storage m_data
  */
 class Properties
         : public any,

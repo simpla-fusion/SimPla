@@ -18,7 +18,7 @@
 namespace simpla { namespace io
 {
 /** @addtogroup io
- *  @brief this module collects stuff used to read/write data file.
+ *  @brief this module collects stuff used to read/write m_data file.
  * @{
  */
 
@@ -88,9 +88,9 @@ std::string write(std::string const &url, size_t num, T const *d, size_t flag = 
 //}
 //
 //template<typename TV, typename ...Args>
-//std::string write(std::string const & name, TV const *data, Args && ...args)
+//std::string write(std::string const & name, TV const *m_data, Args && ...args)
 //{
-//	return GLOBAL_DATA_STREAM.write(name, data, make_datatype<TV>(),
+//	return GLOBAL_DATA_STREAM.write(name, m_data, make_datatype<TV>(),
 //			std::forward<Args>(args)...);
 //}
 //

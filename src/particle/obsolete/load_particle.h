@@ -191,10 +191,10 @@ void init_particle(TR const &domain, size_t pic, TN const &ns, TT const &Ts,
         }
 //
 //		auto & d = p->get(s);
-//		d.splice(d.begin(), buffer);
+//		d.splice(d.begin(), m_buffer);
     }
 
-//	p->add(&buffer);
+//	p->add(&m_buffer);
 //	update_ghosts(p);
 //	p->updateFields();
 

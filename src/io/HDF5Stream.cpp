@@ -154,7 +154,7 @@ void HDF5Stream::set_attribute(std::string const &url, Properties const &any_v)
 
 //    data_model::DataType dtype = any_v.data_type();
 //
-//    void const *v = any_v.data();
+//    void const *v = any_v.m_data();
 //
 //    std::string file_name, grp_path, obj_name, attr_name;
 //
@@ -204,7 +204,7 @@ void HDF5Stream::pimpl_s::set_attribute(hid_t loc_id, std::string const &name,
 //
 //        hid_t a_id = H5Acreate(loc_id, name.c_str(), m_type, m_space, H5P_DEFAULT, H5P_DEFAULT);
 //
-//        H5Awrite(a_id, m_type, any_v.data());
+//        H5Awrite(a_id, m_type, any_v.m_data());
 //
 //        if (H5Tcommitted(m_type) > 0)
 //        {
@@ -390,7 +390,7 @@ hid_t convert_data_type_sp_to_h5(data_model::DataType const &d_type, size_t is_c
 {
     hid_t res = H5T_NO_CLASS;
 
-    if (!d_type.is_valid()) THROW_EXCEPTION_RUNTIME_ERROR("illegal data type");
+    if (!d_type.is_valid()) THROW_EXCEPTION_RUNTIME_ERROR("illegal m_data type");
 
     if (!d_type.is_compound())
     {
@@ -424,7 +424,7 @@ hid_t convert_data_type_sp_to_h5(data_model::DataType const &d_type, size_t is_c
         }
         else
         {
-            RUNTIME_ERROR << "Unknown data type:" << d_type.name();
+            RUNTIME_ERROR << "Unknown m_data type:" << d_type.name();
         }
 
         if (d_type.is_array())
@@ -856,7 +856,7 @@ std::string HDF5Stream::write_buffer(std::string const &url, bool is_forced_flus
     }
     else
     {
-//        VERBOSE << "Push data to buffer : " << full_path << std::endl;
+//        VERBOSE << "Push m_data to m_buffer : " << full_path << std::endl;
     }
 
     return res;
@@ -886,7 +886,7 @@ std::string HDF5Stream::write(std::string const &url, data_model::DataSet const 
 
     if ((ds.data == nullptr) || ds.memory_space.size() == 0)
     {
-        WARNING << "ignore empty data set! " << url << std::endl;
+        WARNING << "ignore empty m_data set! " << url << std::endl;
         return "";
     }
     typedef nTuple<hsize_t, MAX_NDIMS_OF_ARRAY> index_tuple;
@@ -1045,7 +1045,7 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, si
 //
 //	h5_dataset res;
 //
-//	res.data = ds.data;
+//	res.m_data = ds.m_data;
 //
 //	res.DataType = ds.DataType;
 //
@@ -1208,7 +1208,7 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, si
 //
 //		}
 //	}
-//	auto & data = std::get<0>(cache_[url]);
+//	auto & m_data = std::get<0>(cache_[url]);
 //	auto & item = std::get<1>(cache_[url]);
 //
 //	size_t memory_size = ds.DataType.ele_size_in_byte_ * item.m_stride[0];
@@ -1219,8 +1219,8 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, si
 //	}
 //
 //	std::memcpy(
-//			reinterpret_cast<void*>(data.get() + item.count[0] * memory_size),
-//			ds.data.get(), memory_size);
+//			reinterpret_cast<void*>(m_data.get() + item.count[0] * memory_size),
+//			ds.m_data.get(), memory_size);
 //
 //	++item.count[0];
 //
@@ -1242,7 +1242,7 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, si
 //		return url + " is not found !";
 //	}
 //
-//	auto & data = std::get<0>(cache_[url]);
+//	auto & m_data = std::get<0>(cache_[url]);
 //	auto & item = std::get<1>(cache_[url]);
 //
 //	hsize_t t_f_shape = item.f_count[0];

@@ -1,7 +1,7 @@
 ISO-10303-21;
 HEADER;
 FILE_DESCRIPTION(('STEP AP214'),'1');
-FILE_NAME('/home/shriwise/occ_blds/meshkit/src/data/cylcube.stp','2015-06-30T18:22:53',(' '),(' '),'Spatial InterOp 3D',' ',' ');
+FILE_NAME('/home/shriwise/occ_blds/meshkit/src/m_data/cylcube.stp','2015-06-30T18:22:53',(' '),(' '),'Spatial InterOp 3D',' ',' ');
 FILE_SCHEMA(('automotive_design'));
 ENDSEC;
 DATA;

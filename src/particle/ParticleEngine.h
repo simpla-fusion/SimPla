@@ -30,14 +30,14 @@ namespace simpla { namespace particle
  *
  * Pseudo-Signature   |Semantics| optional
  * ------------- |----------|----------
- * \code E::Point_s \endcode |explicit |data structure and description of single particle/sample point
+ * \code E::Point_s \endcode |explicit |m_data structure and description of single particle/sample point
  * \code E( ) \endcode  |explicit | Constructor
  * \code ~E( ) \endcode |explicit | Destructor
  * \code void  next_time_step(Point_s * p, args ...) const; \endcode |explicit | push one particle to next timestep
  * \code void  update();\endcode | (optional) |update charge/mass and properties cache
  * \code static Point_s  push_forward(Vec3 const & x, Vec3 const &v, Real f);\endcode| (optional)| push forward Cartesian Coordinate x , velocity vector v  and generate weight f to paritlce's coordinates
  * \code static std::tuple<Vec3,Vec3,Real>  pull_back(Point_s const & p); \endcode| (optional)| pull back particle coordinates to Cartesian coordinates;
- * \code DataType  Point_s::DataType() \endcode |(implicit)| get the description of Point_s's data structure
+ * \code DataType  Point_s::DataType() \endcode |(implicit)| get the description of Point_s's m_data structure
  * \code Properties  properties \endcode |(implicit)| properties of engine
  *
  *

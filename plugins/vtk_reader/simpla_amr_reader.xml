@@ -5,7 +5,7 @@
                 label="SimPla reader">
      <Documentation
        short_help="Read a SimPla AMR file."
-       long_help="Read a  SimPla AMR  file into an image data.">
+       long_help="Read a  SimPla AMR  file into an image m_data.">
        The PNG reader reads PNG (Portable Network Graphics) files, and the output is a uniform rectilinear (image/volume) dataset. The default file extension is .png.
      </Documentation>
      <StringVectorProperty

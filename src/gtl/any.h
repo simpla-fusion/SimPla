@@ -135,7 +135,7 @@ inline bool get_string(std::string *v, std::string const &other)
  *   PlaceHolder on http://www.cnblogs.com/qicosmos/p/3420095.html
  *   alt. <boost/any.hpp>
  *
- *   This an implement of 'any' with data type description/serialization information
+ *   This an implement of 'any' with m_data type description/serialization information
  */
 struct any
 {
@@ -212,9 +212,9 @@ struct any
 
     operator bool() const { return m_data_ != nullptr; }
 //
-//    void const *data() const { return m_data_ != nullptr ? m_data_->data() : nullptr; }
+//    void const *m_data() const { return m_data_ != nullptr ? m_data_->m_data() : nullptr; }
 //
-//    void *data() { return m_data_ != nullptr ? m_data_->data() : nullptr; }
+//    void *m_data() { return m_data_ != nullptr ? m_data_->m_data() : nullptr; }
 
     std::string string() const
     {

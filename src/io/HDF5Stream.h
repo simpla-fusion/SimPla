@@ -22,7 +22,7 @@ namespace simpla { namespace io
 {
 
 /*
- * @brief data stream , should be a singleton
+ * @brief m_data stream , should be a singleton
  */
 
 class HDF5Stream : public IOStream
@@ -36,7 +36,7 @@ public:
 
 
     /**
-     *	  change the working path (file/group) of data stream ,
+     *	  change the working path (file/group) of m_data stream ,
      *
      * @param url_hint  <filename>:<group name>/<data_model name>
      * @param flag SP_APPEND|SP_RECORD ...
@@ -51,7 +51,7 @@ public:
     void open_file(std::string const &path, bool is_append = false);
 
     /**
-    *  close data set,group and file
+    *  close m_data set,group and file
     */
     void close();
 
@@ -64,7 +64,7 @@ public:
     std::string absolute_path(std::string const &url) const;
 
     /**
-     * @return true if data stream is initialized.
+     * @return true if m_data stream is initialized.
      */
 
     bool is_valid() const;
@@ -74,7 +74,7 @@ public:
     /**
      * write data_model to url
      * @param url             data_model name or path
-     * @param ds		  	   data set
+     * @param ds		  	   m_data set
      * @param flag             flag to define the operation
      * @return
      */
@@ -86,7 +86,7 @@ public:
     std::string write_buffer(std::string const &url, bool is_forced_flush = false);
 
     /**
-     * 	read data set from url
+     * 	read m_data set from url
      * @param url
      * @param ds
      * @param flag

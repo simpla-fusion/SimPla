@@ -71,7 +71,7 @@ namespace simpla
  *  --------------------------------|--------------
  *  `bool empty() `  				| _true_ if memory is not allocated.
  *  `allocate()`					| allocate memory
- *  `data()`						| direct access to the underlying memory
+ *  `m_data()`						| direct access to the underlying memory
  *  `clear()`						| set value to zero, allocate memory if empty() is _true_
  *
  *

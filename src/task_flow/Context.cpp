@@ -50,7 +50,7 @@ void Context::next_step(Real dt)
 //
 //    Real sub_dt = dt / ratio;
 //
-//    // copy data to lower level
+//    // copy m_data to lower level
 //    for (auto &sub_id:children) { refine(id, sub_id); }
 //
 //    // push lower level
@@ -71,7 +71,7 @@ void Context::next_step(Real dt)
 //        // TODO: add mpi sync at here
 //    }
 //
-//    //copy data from lower level
+//    //copy m_data from lower level
 //    for (auto &sub_id:children) { coarsen(sub_id, id); }
 //    // push this level
 //    update(id, id);

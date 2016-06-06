@@ -74,7 +74,7 @@ public:
     void PrintSelf(ostream &os, vtkIndent indent);
 
     // Description:
-    // Set/Get whether data should be converted to CGS
+    // Set/Get whether m_data should be converted to CGS
     vtkSetMacro(ConvertToCGS, int);
 
     vtkGetMacro(ConvertToCGS, int);
@@ -121,7 +121,7 @@ protected:
 
     // Description:
     // Given the variable name, return the conversion factor used to convert
-    // the data to CGS. These conversion factors are read directly from the
+    // the m_data to CGS. These conversion factors are read directly from the
     // parameters file when the filename is set.
     double GetConversionFactor(const std::string name);
 
