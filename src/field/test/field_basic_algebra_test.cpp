@@ -26,10 +26,10 @@ typedef testing::Types< //
         , field_t<double, mesh_type, mesh::FACE>//
         , field_t<double, mesh_type, mesh::VOLUME>//
 
-//        , field_t<Vec3, mesh_type, mesh::VERTEX>//
-//        , field_t<Vec3, mesh_type, mesh::EDGE> //
-//        , field_t<Vec3, mesh_type, mesh::FACE> //
-//        , field_t<Vec3, mesh_type, mesh::VOLUME>  //
+//        , field_t<Vec3, mesh_type, get_mesh::VERTEX>//
+//        , field_t<Vec3, mesh_type, get_mesh::EDGE> //
+//        , field_t<Vec3, mesh_type, get_mesh::FACE> //
+//        , field_t<Vec3, mesh_type, get_mesh::VOLUME>  //
 
 > TypeParamList;
 template<typename TF> std::shared_ptr<typename TestField<TF>::mesh_type> //

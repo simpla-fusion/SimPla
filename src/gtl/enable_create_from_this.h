@@ -66,7 +66,7 @@ namespace simpla
  * >   After the constructor runs, x and the newly constructed object should
  * >   represent the two pieces of the original x. The library uses splitting
  * >    constructors in two contexts:
- * >    - Partitioning a range into two subranges that can be processed concurrently.
+ * >    - Partitioning a entity_id_range into two subranges that can be processed concurrently.
  * >    - Forking a body (function object) into two bodies that can run concurrently.
  *
  * - Split  @ref Container  into two part, that can be accessed concurrently

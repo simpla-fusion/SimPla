@@ -106,7 +106,7 @@ public:
 
 };
 
-}//namespace  mesh
+}//namespace  get_mesh
 }//namespace simpla
 
 #endif //SIMPLA_LINEAR_MAP_H

@@ -11,6 +11,7 @@ extern "C"
 #include <hdf5_hl.h>
 }
 
+#include <H5FDmpio.h>
 #include <cstring> //for memcopy
 
 #include "HDF5Stream.h"

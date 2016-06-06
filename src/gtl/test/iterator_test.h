@@ -9,5 +9,5 @@
 
 
 //TODO   block iterator need test
-//TODO   splittable range need test
+//TODO   splittable entity_id_range need test
 #endif //SIMPLA_ITERATOR_TEST_H

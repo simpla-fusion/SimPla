@@ -174,7 +174,7 @@ public:
 
     void increase_step_counter(size_t num_of_steps = 1);
 
-    //! @name   @ref range
+    //! @name   @ref entity_id_range
     //! @{
     bool empty() const
     {

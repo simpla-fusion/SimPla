@@ -9,49 +9,18 @@
 
 #include <type_traits>
 #include <cassert>
-#include "Mesh.h"
+#include "MeshCommon.h"
 #include "../parallel/Parallel.h"
 
 namespace simpla
 {
 namespace mesh
 {
-typedef unsigned long MeshEntityId;
-
-typedef long MeshEntityIdDiff;
-enum MeshEntityType
-{
-    VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3
-
-//    TRIANGLE = (3 << 2) | 2,
-//
-//    QUADRILATERAL = (4 << 2) | 2,
-//
-//    // place Holder
-//
-//    POLYGON = ((-1) << 2) | 2,
-//
-//    // custom polygon
-//
-//
-//
-//    TETRAHEDRON = (6 << 2) | 3,
-//    PYRAMID,
-//    PRISM,
-//    KNIFE,
-//
-//    HEXAHEDRON = MAX_POLYGON + 12,
-//    // place Holder
-//            POLYHEDRON = MAX_POLYGON + (1 << 5),
-//    // custom POLYHEDRON
-//
-//    MAX_POLYHEDRON = MAX_POLYGON + (1 << 6)
-
-};
 
 
 class MeshEntityIterator
-        : public std::iterator<typename std::random_access_iterator_tag, MeshEntityId, MeshEntityIdDiff, MeshEntityId *, MeshEntityId>
+        : public std::iterator<typename std::random_access_iterator_tag,
+                MeshEntityId, MeshEntityIdDiff, MeshEntityId *, MeshEntityId>
 {
     typedef MeshEntityIterator this_type;
 
@@ -315,9 +284,16 @@ public:
 
     iterator end() const { return m_holder_->end(); }
 
-    // TBB Range Concept End
     //****************************************************************************
-
+    // TBB Range Concept End
+    //    enum op_tag { AND, OR, XOR };
+    //
+    //    MeshEntityRange op(op_tag tag, MeshEntityRange const &other) const
+    //    {
+    //        MeshEntityRange res;
+    //        res.m_holder_ = m_holder_->op(tag, *other.m_holder_);
+    //        return std::move(res);
+    //    }
 
     template<typename T, typename ...Args>
     static MeshEntityRange create(Args &&...args)
@@ -342,14 +318,13 @@ public:
 
     template<typename T> T &as()
     {
-        assert(m_holder_->is_a(typeid(T)));
-        return *std::dynamic_pointer_cast<Holder<T, has_member_function_range<T>::value>>(m_holder_);
+        return m_holder_->as<T>();
+
     }
 
     template<typename T> T const &as() const
     {
-        assert(m_holder_->is_a(typeid(T)));
-        return *std::dynamic_pointer_cast<Holder<T, has_member_function_range<T>::value>>(m_holder_);
+        return m_holder_->as<T>();
     }
 
 private:
@@ -378,6 +353,22 @@ private:
 
         virtual iterator end() = 0;
 
+        template<typename T> T &as()
+        {
+            assert(is_a(typeid(T)));
+
+            return std::dynamic_pointer_cast<Holder<T, has_member_function_range<T>::value> *>(this)->self();
+
+        }
+
+        template<typename T> T const &as() const
+        {
+            assert(is_a(typeid(T)));
+
+            return std::dynamic_pointer_cast<Holder<T, has_member_function_range<T>::value> const *>(this)->self();
+        }
+
+
     };
 
 
@@ -394,6 +385,10 @@ private:
         Holder(this_type &other, Args &&...args) : m_range_(other.m_range_, std::forward<Args>(args)...) { }
 
         virtual  ~Holder() { }
+
+        TOtherRange &self() { return m_range_; }
+
+        TOtherRange const &self() const { return m_range_; }
 
         template<typename ...Args>
         static std::shared_ptr<this_type> create(Args &&...args)
@@ -426,6 +421,8 @@ private:
         virtual iterator begin() { return iterator(m_range_.begin()); }
 
         virtual iterator end() { return iterator(m_range_.end()); }
+
+
     };
 
 
@@ -434,12 +431,12 @@ private:
     {
         typedef typename TContainer::const_range_type range_type;
         typedef Holder<TContainer, true> this_type;
-        std::shared_ptr<TContainer> m_container_;
+        TContainer const *m_container_;
         range_type m_range_;
     public:
 
         Holder(TContainer const &other) :
-                m_container_(std::make_shared<TContainer>(other)), m_range_(m_container_->range()) { }
+                m_container_(&other), m_range_(m_container_->range()) { }
 
         template<typename ...Args>
         Holder(this_type &other, Args &&...args) :
@@ -452,6 +449,10 @@ private:
         {
             return std::shared_ptr<this_type>(new this_type{TContainer(std::forward<Args>(args)...)});
         }
+
+        range_type &self() { return m_range_; }
+
+        range_type const &self() const { return m_range_; }
 
         virtual std::shared_ptr<HolderBase> clone() const
         {
@@ -480,10 +481,11 @@ private:
 
         virtual iterator end() { return iterator(m_range_.end()); }
 
+
     };
 };
 
 }
-} //namespace simpla { namespace mesh
+} //namespace simpla { namespace get_mesh
 
 #endif //SIMPLA_MESH_MESHENTITY_H

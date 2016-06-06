@@ -209,5 +209,5 @@ void CylindricalCoRect::deploy()
 
 }
 
-}}  // namespace mesh // namespace simpla
+}}  // namespace get_mesh // namespace simpla
 #endif //SIMPLA_CYLINDRICALRECTMESH_H

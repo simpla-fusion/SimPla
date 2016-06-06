@@ -46,8 +46,6 @@ private:
 
     std::shared_ptr<container_type> m_data_;
 
-    range_type m_range_;
-
     std::shared_ptr<base_type> m_holder_;
 
     static constexpr mesh::MeshEntityType iform = mesh::VOLUME;
@@ -72,19 +70,19 @@ public:
 
 
     Particle(mesh_type const *m = nullptr)
-            : m_holder_(nullptr), m_mesh_(m), m_data_(nullptr), m_range_(), m_properties_(new Properties)
+            : m_holder_(nullptr), m_mesh_(m), m_data_(nullptr), m_properties_(new Properties)
     {
     }
 
     Particle(mesh::MeshBase const *m)
             : m_holder_(nullptr), m_mesh_(dynamic_cast<mesh_type const *>(m)),
-              m_data_(nullptr), m_range_(), m_properties_(new Properties)
+              m_data_(nullptr), m_properties_(new Properties)
     {
         assert(m->template is_a<mesh_type>());
     }
 
     Particle(std::shared_ptr<base_type> h)
-            : m_holder_(h), m_mesh_(nullptr), m_data_(nullptr), m_range_()
+            : m_holder_(h), m_mesh_(nullptr), m_data_(nullptr)
     {
         deploy();
     }
@@ -94,7 +92,7 @@ public:
     Particle(TFactory &factory, Args &&...args)
             : m_holder_(std::dynamic_pointer_cast<base_type>(
             factory.template create<this_type>(std::forward<Args>(args)...))),
-              m_mesh_(nullptr), m_data_(nullptr), m_range_(), m_properties_(nullptr)
+              m_mesh_(nullptr), m_data_(nullptr), m_properties_(nullptr)
     {
         deploy();
     }
@@ -103,8 +101,7 @@ public:
     //copy construct
     Particle(this_type const &other)
             : engine_type(other), m_holder_(other.m_holder_), m_mesh_(other.m_mesh_),
-              m_data_(other.m_data_), m_range_(other.m_range_),
-              m_properties_(other.m_properties_)
+              m_data_(other.m_data_), m_properties_(other.m_properties_)
     {
     }
 
@@ -112,8 +109,7 @@ public:
     // move construct
     Particle(this_type &&other)
             : engine_type(other), m_holder_(other.m_holder_), m_mesh_(other.m_mesh_),
-              m_data_(other.m_data_), m_range_(other.m_range_),
-              m_properties_(other.m_properties_)
+              m_data_(other.m_data_), m_properties_(other.m_properties_)
     {
     }
 
@@ -136,11 +132,21 @@ public:
     {
         std::swap(other.m_mesh_, m_mesh_);
         std::swap(other.m_data_, m_data_);
-        std::swap(other.m_range_, m_range_);
         std::swap(other.m_holder_, m_holder_);
         std::swap(m_properties_, other.m_properties_);
     }
 
+    virtual mesh::MeshBase const *get_mesh() const { return dynamic_cast<mesh::MeshBase const *>(m_mesh_); };
+
+    virtual bool set_mesh(mesh::MeshBase const *m)
+    {
+        UNIMPLEMENTED;
+        assert(m->is_a<mesh_type>());
+        m_mesh_ = dynamic_cast<mesh_type const * >(m);
+        return false;
+    }
+
+    virtual mesh::MeshEntityRange entity_id_range() const { return m_mesh_->range(entity_type()); }
 
     container_type &data() { return *m_data_; }
 
@@ -160,18 +166,17 @@ public:
 
     virtual mesh::MeshEntityType entity_type() const { return iform; }
 
-    virtual mesh::MeshEntityRange const &range() const { return m_range_; };
 
     virtual data_model::DataSet dataset(range_type const &) const;
 
-    virtual data_model::DataSet dataset() const { return dataset(m_range_); }
+    virtual data_model::DataSet dataset() const { return dataset(m_mesh_->range(entity_type())); }
 
     virtual void dataset(data_model::DataSet const &);
 
     virtual void dataset(mesh::MeshEntityRange const &, data_model::DataSet const &) { UNIMPLEMENTED; }
 
 
-    virtual size_t size() const { return count(m_range_); }
+    virtual size_t size() const { return count(m_mesh_->range(entity_type())); }
 
     virtual void clear();
 
@@ -192,9 +197,15 @@ public:
     template<typename TFun, typename ...Args>
     void apply(range_type const &r, TFun const &op, Args &&...) const;
 
-    template<typename ...Args> void apply(Args &&...args) { apply(m_range_, std::forward<Args>(args)...); };
+    template<typename ...Args> void apply(Args &&...args)
+    {
+        apply(m_mesh_->range(entity_type()), std::forward<Args>(args)...);
+    };
 
-    template<typename ...Args> void apply(Args &&...args) const { apply(m_range_, std::forward<Args>(args)...); };
+    template<typename ...Args> void apply(Args &&...args) const
+    {
+        apply(m_mesh_->range(entity_type()), std::forward<Args>(args)...);
+    };
 
     //**************************************************************************************************
     //! @name as container
@@ -227,7 +238,7 @@ public:
 
     size_t count(range_type const &r) const;
 
-    size_t count() const { return count(m_range_); };
+    size_t count() const { return count(m_mesh_->range(entity_type())); };
 
     template<typename OutputIT> OutputIT copy(id_type const &s, OutputIT out_it) const;
 
@@ -260,13 +271,12 @@ Particle<P, M>::deploy()
     {
         if (m_data_ == nullptr)
         {
-            if (m_mesh_ == nullptr) { RUNTIME_ERROR << "mesh is not valid!" << std::endl; }
+            if (m_mesh_ == nullptr) { RUNTIME_ERROR << "get_mesh is not valid!" << std::endl; }
             else
             {
 
                 m_data_ = std::make_shared<container_type>();
                 m_properties_ = std::make_shared<Properties>();
-                m_range_ = m_mesh_->range(entity_type());
 
 
             }
@@ -282,7 +292,6 @@ Particle<P, M>::deploy()
             auto self = std::dynamic_pointer_cast<this_type>(m_holder_);
             m_mesh_ = self->m_mesh_;
             m_data_ = self->m_data_;
-            m_range_ = self->m_range_;
             m_properties_ = self->m_properties_;
             success = true;
         }
@@ -332,12 +341,12 @@ template<typename P, typename M> template<typename TV, typename ...Others, typen
 Particle<P, M>::gather(Field<TV, mesh_type, Others...> *res, Args &&...args) const
 {
 
-    //FIXME  using this->box() select range
+    //FIXME  using this->box() select entity_id_range
     if (is_valid())
     {
         LOGGER << "Gather [" << get_class_name() << "]" << std::endl;
 
-        res->apply(res->range(),
+        res->apply(res->entity_id_range(),
                    [&](point_type const &x)
                    {
 
@@ -362,7 +371,7 @@ Particle<P, M>::push(Args &&...args)
         LOGGER << "Push   [" << get_class_name() << "]" << std::endl;
 
         parallel::parallel_for(
-                m_range_,
+                m_mesh_->range(entity_type()),
                 [&](range_type const &r)
                 {
                     typename container_type::accessor acc;

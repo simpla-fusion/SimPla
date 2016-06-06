@@ -7,11 +7,11 @@
 #ifndef SIMPLA_DUMMYMESH_H
 #define SIMPLA_DUMMYMESH_H
 
-#include "Mesh.h"
+#include <memory>
+
+#include "MeshCommon.h"
 #include "MeshBase.h"
 #include "MeshEntity.h"
-#include "MeshEntityIterator.h"
-#include <memory>
 
 namespace simpla { namespace mesh
 {
@@ -59,11 +59,11 @@ struct DummyMesh : public MeshBase
     struct calculus_policy
     {
         template<typename TF, typename ...Args>
-        static traits::value_type_t <TF> eval(mesh_type const &, TF const &,
-                                              Args &&...args) { return traits::value_type_t<TF>(); }
+        static traits::value_type_t<TF> eval(mesh_type const &, TF const &,
+                                             Args &&...args) { return traits::value_type_t<TF>(); }
     };
 };
 
-}}//namespace simpla { namespace mesh
+}}//namespace simpla { namespace get_mesh
 
 #endif //SIMPLA_DUMMYMESH_H

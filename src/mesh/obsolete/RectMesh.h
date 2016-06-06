@@ -26,7 +26,7 @@ template<typename TMetric> using RectMesh=Mesh<TMetric, tags::rect_linear>;
 /**
  * @ingroup mesh
  *
- * @brief non-Uniform structured mesh
+ * @brief non-Uniform structured get_mesh
  */
 template<typename TMetric>
 struct Mesh<TMetric, tags::rect_linear> : public TMetric, public MeshBlock
@@ -333,6 +333,6 @@ void Mesh<TMetric, tags::rect_linear, TMap>::deploy()
 
 }
 
-}}  // namespace mesh // namespace simpla
+}}  // namespace get_mesh // namespace simpla
 
 #endif //SIMPLA_RECT_MESH_H

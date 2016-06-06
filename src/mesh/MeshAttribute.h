@@ -11,7 +11,7 @@
 #include "../gtl/Log.h"
 #include "../gtl/MemoryPool.h"
 #include "../data_model/DataSet.h"
-#include "Mesh.h"
+#include "MeshCommon.h"
 #include "MeshBase.h"
 #include "MeshEntity.h"
 
@@ -42,19 +42,21 @@ public:
 
     struct View
     {
-        View() { }
+        View();
 
-        View(View const &other) { }
+        ~View();
 
-        View(View &&other) { }
+        View(View const &other) = delete;
 
-        ~View() { };
+        View(View &&other) = delete;
+
 
         View &operator=(View const &other) = delete;
 
         virtual bool is_a(std::type_info const &t_info) const = 0;
 
-        template<typename T> inline bool is_a() const { return (std::is_base_of<View, T>::value && is_a(typeid(T))); }
+        template<typename T>
+        inline bool is_a() const { return (std::is_base_of<View, T>::value && is_a(typeid(T))); }
 
         virtual std::string get_class_name() const = 0;
 
@@ -68,9 +70,13 @@ public:
 
         virtual void clear() = 0;
 
-        virtual MeshEntityType entity_type() const = 0;
+        virtual MeshBase const *get_mesh() const = 0;
 
-        virtual MeshEntityRange const &range() const = 0;
+        virtual bool set_mesh(MeshBase const *) = 0;
+
+        virtual MeshEntityRange entity_id_range() const = 0;
+
+        virtual MeshEntityType entity_type() const = 0;
 
         virtual void dataset(data_model::DataSet const &) = 0;
 
@@ -79,6 +85,17 @@ public:
         virtual data_model::DataSet dataset() const = 0;
 
         virtual data_model::DataSet dataset(mesh::MeshEntityRange const &) const = 0;
+
+
+        void sync();
+
+        void wait();
+
+        bool is_ready() const;
+
+    private:
+        struct pimpl_s;
+        std::unique_ptr<pimpl_s> m_pimpl_;
     };
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const
@@ -102,7 +119,7 @@ public:
         std::shared_ptr<TF> res;
 
         static_assert(std::is_base_of<View, TF>::value,
-                      "Object is not a mesh::MeshAttribute::View");
+                      "Object is not a get_mesh::MeshAttribute::View");
         auto it = m_views_.find(m->uuid());
 
         if (it != m_views_.end())
@@ -201,6 +218,6 @@ protected:
 };
 
 
-}}//namespace simpla{namespace mesh{
+}}//namespace simpla{namespace get_mesh{
 
 #endif //SIMPLA_MESHATTRIBUTE_H

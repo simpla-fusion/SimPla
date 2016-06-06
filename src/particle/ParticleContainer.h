@@ -612,7 +612,7 @@ ParticleContainer<V, K>::count_(container_type const &d)
 {
     return count_(d, d.range());
 //    return parallel::parallel_reduce(
-//            d.range(), 0U,
+//            d.entity_id_range(), 0U,
 //            [&](typename container_type::const_range_type const &r, size_t init) -> size_t
 //            {
 //                for (auto const &item : r) { init += item.second.size(); }
@@ -699,7 +699,7 @@ ParticleContainer<V, K>::merge(buffer_type *buffer)
         acc1->second.splice(acc1->second.end(), item.second);
     }
 
-//    merge(buffer, buffer->range());
+//    merge(buffer, buffer->entity_id_range());
 }
 
 template<typename V, typename K> template<typename TRange> void

@@ -49,7 +49,7 @@ int main(int argc, char **argv)
 
     std::cout << mesh_type::class_name() << std::endl;
 
-//    mesh::DummyMesh d_mesh;
+//    get_mesh::DummyMesh d_mesh;
 //
 //    d_mesh.m_entities_.insert(1);
 //    d_mesh.m_entities_.insert(3);
@@ -58,7 +58,7 @@ int main(int argc, char **argv)
 //
 //    std::cout << d_mesh.m_entities_.size() << std::endl;
 //
-//    for (auto const &v:d_mesh.range(mesh::VERTEX))
+//    for (auto const &v:d_mesh.entity_id_range(get_mesh::VERTEX))
 //    {
 //        std::cout << v << std::endl;
 //    }

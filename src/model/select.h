@@ -23,16 +23,16 @@ namespace simpla
 ////	res->erase(std::remove_if(res->begin(), res->end(), pred), res->end());
 //}
 //template<typename TPred, typename IN, typename OUT>
-//void filter(TPred const & pred, IN const & range, OUT *res)
+//void filter(TPred const & pred, IN const & entity_id_range, OUT *res)
 //{
-//	for (auto s : range)
+//	for (auto s : entity_id_range)
 //	{
 //		if (pred(s))
 //		{
 //			res->insert(s);
 //		}
 //	}
-////	std::copy_if(range.begin(), range.end(), std::inserter(*res, res->begin()),
+////	std::copy_if(range.begin(), entity_id_range.end(), std::inserter(*res, res->begin()),
 ////			pred);
 //
 //}

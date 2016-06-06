@@ -38,7 +38,7 @@ USE_CASE(general_field_op, "General field operation")
 
     mesh->dimensions(dims);
     mesh->extents(xmin, xmax);
-//	mesh->ghost_width(ghost_width);
+//	get_mesh->ghost_width(ghost_width);
     mesh->deploy();
 
     CHECK(*mesh);

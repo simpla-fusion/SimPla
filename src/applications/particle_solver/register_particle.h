@@ -28,14 +28,14 @@ Factory<std::string, ParticleBase, Args ...> RegisterAllParticles()
 
 	Factory<std::string, ParticleBase, Args ...> factory;
 
-//	factory.Register(Particle<mesh, ColdFluid>::template CreateFactoryFun<Args...>());
+//	factory.Register(Particle<get_mesh, ColdFluid>::template CreateFactoryFun<Args...>());
 
-//	factory.Register(Particle<mesh, PICEngineFullF>::template CreateFactoryFun<Args...>());
-//	factory.Register(Particle<mesh, PICDeltaF>::template CreateFactoryFun<Args...>());
-//	factory.Register(Particle<PICEngineImplicit<mesh>>::template CreateFactoryFun<Args...>());
-//	factory.Register(Particle<PICEngineGGauge<mesh, 4, true>>::template CreateFactoryFun<Args...>());
-//	factory.Register(Particle<PICEngineGGauge<mesh, 16, true>>::template CreateFactoryFun<Args...>());
-//	factory.Register(Particle<PICEngineGGauge<mesh, 32, true>>::template CreateFactoryFun<Args...>());
+//	factory.Register(Particle<get_mesh, PICEngineFullF>::template CreateFactoryFun<Args...>());
+//	factory.Register(Particle<get_mesh, PICDeltaF>::template CreateFactoryFun<Args...>());
+//	factory.Register(Particle<PICEngineImplicit<get_mesh>>::template CreateFactoryFun<Args...>());
+//	factory.Register(Particle<PICEngineGGauge<get_mesh, 4, true>>::template CreateFactoryFun<Args...>());
+//	factory.Register(Particle<PICEngineGGauge<get_mesh, 16, true>>::template CreateFactoryFun<Args...>());
+//	factory.Register(Particle<PICEngineGGauge<get_mesh, 32, true>>::template CreateFactoryFun<Args...>());
 
 	return std::move(factory);
 }

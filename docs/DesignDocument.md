@@ -73,7 +73,7 @@ The physical properties of simulation system are described by physical quantitie
 The physical equations may be expressed on different coordinates systems, i.e. Cartesian coordinates,
 cylindrical coordinates, toroidal coordinates and magnetic flus coordinates etc.
 To numerically solve physical equations, the physical quantities are approximately represented by
-values on discrete space points (mesh), and equations of continuous quantities are approximately
+values on discrete space points (get_mesh), and equations of continuous quantities are approximately
 converted into algebra equations of discrete values.  The method to construct this discrete approximation
  is referred to as numerical algorithms, i.e. finite difference method (FDM), finite element method (FEM),
  finite volume method (FVM), Particle-in-cell method (PIC) etc. One physical equation may be solved by
@@ -109,7 +109,7 @@ hardware architectures, i.e. multi-core CPU, many-core GPU;
 
 1.5 Input/output
 -----------------------
-* Req(14) Provide interface for external pre-process software, i.e. modeling and mesh generate tools;
+* Req(14) Provide interface for external pre-process software, i.e. modeling and get_mesh generate tools;
 * Req(15) Provide interface for external post-process software, i.e. visualization tools
 * Req(16) Flexible configuration;
 * Req(17) Comprehensive and expressive logging information;

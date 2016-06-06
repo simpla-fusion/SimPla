@@ -468,13 +468,13 @@ bool box_intersection(TL const &l, TR *r)
 };
 //
 //template<size_t DIM, typename TR, typename TRange>
-//bool PointInRectangle(nTuple<TR, DIM> const &x, TRange const & range)
+//bool PointInRectangle(nTuple<TR, DIM> const &x, TRange const & entity_id_range)
 //{
 //	bool res = true;
 //
-//	auto min = std::get<0>(range);
+//	auto min = std::get<0>(entity_id_range);
 //
-//	auto max = std::get<1>(range);
+//	auto max = std::get<1>(entity_id_range);
 //
 //	for (size_t i = 0; i < DIM; ++i)
 //	{
@@ -592,10 +592,10 @@ bool box_intersection(TL const &l, TR *r)
 //}
 //
 ///**
-// * decompose a N-dimensional block range [b,e) into 'num_part' parts,
+// * decompose a N-dimensional block entity_id_range [b,e) into 'num_part' parts,
 // * and return the 'proc_num'th part [ob,oe)
-// * @param b minus index of block range
-// * @param e maxim index of block range
+// * @param b minus index of block entity_id_range
+// * @param e maxim index of block entity_id_range
 // * @param num_part
 // * @param part_num
 // * @param decompose_method select decompose algorithm (UNIMPLEMENTED)

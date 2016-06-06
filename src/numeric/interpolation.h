@@ -93,7 +93,7 @@ public:
         iterator jt = data_->upper_bound(x);
 //		if (jt == data_->begin() || (++jt == data_->begin()))
 //		{
-//			THROW_EXCEPTION_LOGIC_ERROR << "key value out of range!";
+//			THROW_EXCEPTION_LOGIC_ERROR << "key value out of entity_id_range!";
 //		}
         for (int s = 0; s < 2; ++s)
         {

@@ -10,16 +10,17 @@
 #include <type_traits>
 #include "../gtl/Log.h"
 #include "../gtl/nTuple.h"
-#include "Mesh.h"
-#include "MeshBase.h"
 #include "../parallel/DistributedObject.h"
+
+#include "MeshCommon.h"
+#include "MeshBase.h"
 
 namespace simpla { namespace mesh
 {
 
 
 /**
- *  manager of mesh blocks
+ *  manager of get_mesh blocks
  *  - adjacencies (graph, ?r-tree)
  *  - refine and coarsen
  *  - coordinates map on overlap region
@@ -84,7 +85,7 @@ public:
         static_assert(std::is_base_of<MeshBase, TM>::value, "TM is not derived from MeshBase!!");
 
 
-        if (!res->template is_a<TM>()) { BAD_CAST << ("illegal mesh type conversion!") << std::endl; }
+        if (!res->template is_a<TM>()) { BAD_CAST << ("illegal get_mesh type conversion!") << std::endl; }
 
 
         auto ptr = std::dynamic_pointer_cast<TM>(res).get();
@@ -139,6 +140,6 @@ private:
     int m_max_level_ = 1;
 };
 
-}}//namespace simpla{namespace mesh{
+}}//namespace simpla{namespace get_mesh{
 
 #endif //SIMPLA_MESH_MESHATLAS_H

@@ -27,7 +27,7 @@ namespace mesh
 class MeshBase;
 
 class MeshAttribute;
-} //namespace mesh
+} //namespace get_mesh
 } //namespace simpla
 
 namespace simpla
@@ -50,11 +50,11 @@ public:
 
     virtual std::shared_ptr<ProblemDomain> clone(mesh::MeshBase const &) const;
 
-//    virtual bool view(mesh::MeshBase const &other);
+//    virtual bool view(get_mesh::MeshBase const &other);
 
-//    virtual void view(mesh::MeshBlockId const &);
+//    virtual void view(get_mesh::MeshBlockId const &);
 
-//    virtual void update_ghost_from(mesh::MeshBase const &other);
+//    virtual void update_ghost_from(get_mesh::MeshBase const &other);
 
     virtual bool same_as(mesh::MeshBase const &) const;
 

@@ -57,22 +57,7 @@ void ProblemDomain::setup(ConfigParser const &dict)
 {
 
 
-    auto mesh_block_id = m->uuid();
-    auto id = m->short_id();
-    auto &dist_obj = m_pimpl_->m_dist_obj_;
-
     init(dict);
-
-    for (auto &item:m_pimpl_->m_attr_)
-    {
-        if (item.second->has(mesh_block_id))
-        {
-            item.second->get(mesh_block_id)->deploy();
-
-            auto ds = item.second->dataset(mesh_block_id);
-            dist_obj.add(item.second->short_id(), ds, false);
-        }
-    }
 
 
     LOGGER << "Setup problem domain [" << get_class_name() << "]" << std::endl;
@@ -96,18 +81,37 @@ ProblemDomain::clone(mesh::MeshBase const &) const
 };
 
 
-void ProblemDomain::sync() { m_pimpl_->m_dist_obj_.sync(); }
+void ProblemDomain::sync()
+{
+    auto mesh_block_id = m->uuid();
+    auto id = m->short_id();
 
-void ProblemDomain::wait() { m_pimpl_->m_dist_obj_.wait(); }
+    for (auto &item:m_pimpl_->m_attr_)
+    {
+        if (item.second->has(mesh_block_id))
+        {
+            item.second->get(mesh_block_id)->deploy();
+
+            auto ds = item.second->dataset(mesh_block_id);
+            m_pimpl_->m_dist_obj_.add(item.second->short_id(), ds, false);
+        }
+    }
+
+    m_pimpl_->m_dist_obj_.sync();
+
+}
+
+void ProblemDomain::wait()
+{
+    m_pimpl_->m_dist_obj_.wait();
+}
 
 bool ProblemDomain::is_ready() const { return m_pimpl_->m_dist_obj_.is_ready(); }
 
 void
 ProblemDomain::run(Real stop_time, int num_of_step)
 {
-    Real inc_t = dt();
-
-    if (num_of_step > 0) { inc_t = (stop_time - time()) / num_of_step; }
+    Real inc_t = (num_of_step > 0) ? ((stop_time - time()) / num_of_step) : dt();
 
     while (stop_time - time() > inc_t)
     {
@@ -193,9 +197,9 @@ ProblemDomain::check_point(io::IOStream &os) const
 }
 
 
-//void ProblemDomain::view(mesh::MeshBlockId const &) { }
+//void ProblemDomain::view(get_mesh::MeshBlockId const &) { }
 //
-//void ProblemDomain::update_ghost_from(mesh::MeshBase const &other) { };
+//void ProblemDomain::update_ghost_from(get_mesh::MeshBase const &other) { };
 
 bool ProblemDomain::same_as(mesh::MeshBase const &) const
 {

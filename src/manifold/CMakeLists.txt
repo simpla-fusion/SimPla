@@ -5,5 +5,5 @@
 add_subdirectory(test)
 
 
-#add_library(mesh mesh/MeshBlock.cpp)
-#target_link_libraries(mesh data_model)
+#add_library(mesh get_mesh/MeshBlock.cpp)
+#target_link_libraries(get_mesh data_model)

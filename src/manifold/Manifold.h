@@ -24,7 +24,7 @@ namespace simpla { namespace manifold
 
 /**
  * @defgroup diff_geo Differential Geometry
- * @brief collection of mesh and differential scheme
+ * @brief collection of get_mesh and differential scheme
  *
  * @detail
  * ## Summary
@@ -74,7 +74,7 @@ namespace simpla { namespace manifold
  template <typename BaseManifold > class P;
  ~~~~~~~~~~~~~
  *
- *  The following table lists requirements for a mesh policy type `P`,
+ *  The following table lists requirements for a get_mesh policy type `P`,
  *
  *  Pseudo-Signature  	   | Semantics
  *  -----------------------|-------------
@@ -206,7 +206,7 @@ public:
 //        point_type *p = reinterpret_cast<point_type *>(ds.data.get());
 //
 //        parallel::parallel_for(
-//                this->template range<VERTEX>(),
+//                this->template entity_id_range<VERTEX>(),
 //                [&](range_type const &r)
 //                {
 //                    for (auto const &s: r)

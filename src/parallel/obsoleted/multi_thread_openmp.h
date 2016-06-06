@@ -51,7 +51,7 @@ void parallel_for(TRange & range, std::function<TRange &> const & fun, size_t gr
 
 //#pragma omp parallel
 //		{
-//			parallel_for(split(range, omp_get_num_threads(), omp_get_thread_num()), fun, grain_size);
+//			parallel_for(split(entity_id_range, omp_get_num_threads(), omp_get_thread_num()), fun, grain_size);
 //		}
 
 	}
@@ -90,7 +90,7 @@ void parallel_for_each(TRange & range, TF const & fun, size_t grain_size = 0)
  */
 /**
  *
- * @param range
+ * @param entity_id_range
  * @param fun void(TRange::value_type,TRes*)
  * @param res
  * @param red_fun
@@ -114,7 +114,7 @@ void parallel_reduce(TRange const & range, TRes *res, TFun const &fun, Reduction
 // FIXME OpenMP version is not implemented!
 //		TRes tmp(*res);
 //
-//		TRange r1(range);
+//		TRange r1(entity_id_range);
 //
 //		TRange r2(split(r1));
 //
@@ -135,10 +135,10 @@ void parallel_reduce(TRange const & range, TRes *res, TFun const &fun, Reduction
 }
 
 //template<typename TRange, typename TFun, typename TRes>
-//void parallel_reduce(TRange const &range, TFun const& fun, TRes *res)
+//void parallel_reduce(TRange const &entity_id_range, TFun const& fun, TRes *res)
 //{
 //
-//	parallel_reduce(range, fun, res,
+//	parallel_reduce(entity_id_range, fun, res,
 //
 //	[](TRes const& t_res,TRes *res2)
 //	{

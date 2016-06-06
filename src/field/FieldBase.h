@@ -30,6 +30,8 @@ private:
 
     typedef Field<TV, TManifold, index_const<IFORM>> this_type;
 
+    static constexpr mesh::MeshEntityType iform = static_cast<mesh::MeshEntityType>(IFORM);
+
     typedef typename mesh::MeshAttribute::View base_type;
 public:
 
@@ -52,49 +54,40 @@ public:
 
     typedef typename traits::field_value_type<this_type>::type field_value_type;
 
-    static constexpr mesh::MeshEntityType iform = static_cast<mesh::MeshEntityType>(IFORM);
 
 
     //create construct
 
-    Field(mesh_type const *m = nullptr)
-            : m_holder_(nullptr), m_mesh_(m), m_data_(nullptr), m_range_()
-    {
-    }
+    Field(mesh_type const *m = nullptr) : m_holder_(nullptr), m_mesh_(m), m_data_(nullptr) { }
 
     Field(mesh::MeshBase const *m)
-            : m_holder_(nullptr), m_mesh_(dynamic_cast<mesh_type const *>(m)), m_data_(nullptr),
-              m_range_()
+            : m_holder_(nullptr), m_mesh_(dynamic_cast<mesh_type const *>(m)), m_data_(nullptr)
     {
         assert(m->template is_a<mesh_type>());
-
     }
 
-    Field(std::shared_ptr<base_type> h)
-            : m_holder_(h), m_mesh_(nullptr), m_data_(nullptr), m_range_()
-    {
-    }
+    Field(std::shared_ptr<base_type> h) : m_holder_(h), m_mesh_(nullptr), m_data_(nullptr) { }
 
     //factory construct
     template<typename TFactory, typename ... Args, typename std::enable_if<TFactory::is_factory>::type * = nullptr>
     Field(TFactory &factory, Args &&...args)
             : m_holder_(std::dynamic_pointer_cast<base_type>(
             factory.template create<this_type>(std::forward<Args>(args)...))),
-              m_mesh_(nullptr), m_data_(nullptr), m_range_()
+              m_mesh_(nullptr), m_data_(nullptr)
     {
     }
 
 
     //copy construct
     Field(this_type const &other)
-            : m_holder_(other.m_holder_), m_mesh_(other.m_mesh_), m_data_(other.m_data_), m_range_(other.m_range_)
+            : m_holder_(other.m_holder_), m_mesh_(other.m_mesh_), m_data_(other.m_data_)
     {
     }
 
 
     // move construct
     Field(this_type &&other)
-            : m_holder_(other.m_holder_), m_mesh_(other.m_mesh_), m_data_(other.m_data_), m_range_(other.m_range_)
+            : m_holder_(other.m_holder_), m_mesh_(other.m_mesh_), m_data_(other.m_data_)
     {
     }
 
@@ -106,6 +99,18 @@ public:
         return os;
     };
 
+    virtual mesh::MeshBase const *get_mesh() const { return dynamic_cast<mesh::MeshBase const *>(m_mesh_); };
+
+    virtual bool set_mesh(mesh::MeshBase const *m)
+    {
+        UNIMPLEMENTED;
+        assert(m->is_a<mesh_type>());
+        m_mesh_ = dynamic_cast<mesh_type const * >(m);
+        return false;
+    }
+
+    virtual mesh::MeshEntityRange entity_id_range() const { return m_mesh_->range(entity_type()); }
+
     virtual bool deploy()
     {
         bool success = false;
@@ -114,14 +119,12 @@ public:
         {
             if (m_data_ == nullptr)
             {
-                if (m_mesh_ == nullptr) { RUNTIME_ERROR << "mesh is not valid!" << std::endl; }
+                if (m_mesh_ == nullptr) { RUNTIME_ERROR << "get_mesh is not valid!" << std::endl; }
                 else
                 {
                     size_t m_size = m_mesh_->max_hash(entity_type());
 
                     m_data_ = sp_alloc_array<value_type>(m_size);
-
-                    m_mesh_->range(entity_type()).swap(m_range_);
 
                 }
 
@@ -136,7 +139,6 @@ public:
                 auto self = std::dynamic_pointer_cast<this_type>(m_holder_);
                 m_mesh_ = self->m_mesh_;
                 m_data_ = self->m_data_;
-                m_range_ = self->m_range_;
                 success = true;
             }
         }
@@ -158,7 +160,6 @@ public:
     {
         std::swap(m_mesh_, other.m_mesh_);
         std::swap(m_data_, other.m_data_);
-        m_range_.swap(other.m_range_);
     }
 
     virtual void clear()
@@ -167,14 +168,8 @@ public:
         for (auto const &s: m_mesh_->range(entity_type())) { get(s) = 0; }
     }
 
-    virtual std::shared_ptr<base_type> get_view()
-    {
-        return std::dynamic_pointer_cast<base_type>(this->shared_from_this());
-    }
 
     virtual mesh::MeshEntityType entity_type() const { return static_cast<mesh::MeshEntityType >(IFORM); }
-
-    virtual mesh::MeshEntityRange const &range() const { return m_range_; };
 
     virtual data_model::DataSet dataset() const
     {
@@ -315,13 +310,10 @@ public:
                         for (auto const &s: r)
                         {
                             auto v = op(m_mesh_->point(s));
-
                             get(s) = m_mesh_->template sample<IFORM>(s, v);
-
                         }
                     }
             );
-
         }
 
         return *this;
@@ -332,8 +324,7 @@ public:
     apply(mesh::MeshEntityRange const &r0, TFun const &op,
           FUNCTION_REQUIREMENT(
                   (std::is_same<typename std::result_of<TFun(mesh::MeshEntityId const &)>::type, value_type>::value)
-          )
-    )
+          ))
     {
         deploy();
 
@@ -355,8 +346,7 @@ public:
     apply(mesh::MeshEntityRange const &r0, TFun const &op,
           FUNCTION_REQUIREMENT(
                   (std::is_same<typename std::result_of<TFun(value_type &)>::type, void>::value)
-          )
-    )
+          ))
     {
         deploy();
 
@@ -378,8 +368,7 @@ public:
     template<typename TFun>
     this_type &
     apply(mesh::MeshEntityRange const &r0, TFun const &f,
-          FUNCTION_REQUIREMENT((traits::is_indexable<TFun, typename mesh::MeshEntityId>::value))
-    )
+          FUNCTION_REQUIREMENT((traits::is_indexable<TFun, typename mesh::MeshEntityId>::value)))
     {
 
         deploy();
@@ -400,16 +389,13 @@ public:
 
 private:
 
-    template<typename TOP, typename Other>
-    this_type &
-    apply_expr(TOP const &op, Other const &other)
+    template<typename TOP, typename Other> this_type &
+    apply_expr(mesh::MeshEntityRange const &r, TOP const &op, Other const &other)
     {
-        deploy();
-        //TODO: need parallelism
-        if (!m_range_.empty())
+        if (!r.empty())
         {
             parallel::parallel_for(
-                    m_range_,
+                    r,
                     [&](typename mesh::MeshEntityRange const &r)
                     {
                         for (auto const &s:r) { op(get(s), m_mesh_->eval(other, s)); }
@@ -420,10 +406,21 @@ private:
     }
 
 
-    mesh_type const *m_mesh_; // @FIXME [severity: low, potential] here is a potential risk, mesh maybe destroyed before data;
-    std::shared_ptr<value_type> m_data_;
-    mesh::MeshEntityRange m_range_;
+    template<typename TOP, typename Other> this_type &
+    apply_expr(TOP const &op, Other const &other)
+    {
+        deploy();
 
+        apply_expr(m_mesh_->range(entity_type(), mesh::AFFECTED), op, other);
+        sync();
+        apply_expr(m_mesh_->range(entity_type(), mesh::LOCAL), op, other);
+        wait();
+        return *this;
+    }
+
+
+    mesh_type const *m_mesh_;
+    std::shared_ptr<value_type> m_data_;
     std::shared_ptr<base_type> m_holder_;
 
 };

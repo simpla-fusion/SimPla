@@ -133,6 +133,6 @@ public:
         return std::move(res);
     }
 };
-}//namespace mesh
+}//namespace get_mesh
 }//namespace simpla
 #endif //SIMPLA_MAP_GENERAL_H

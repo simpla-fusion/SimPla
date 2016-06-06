@@ -47,4 +47,4 @@ MeshEntityRange select(MeshBase const &m, MeshEntityRange const &r, box_type con
     return MeshEntityRange(i_set);
 };
 
-}}//namespace simpla{namespace mesh{
+}}//namespace simpla{namespace get_mesh{

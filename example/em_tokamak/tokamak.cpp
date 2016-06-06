@@ -325,7 +325,7 @@ void EMTokamak::initialize(int argc, char **argv)
 //            {
 //                particle_sp[key] = create_particle<particle::BorisParticle<mesh_type>>(
 //                        key, dict.second,
-//                        plasma_region_volume.range()
+//                        plasma_region_volume.entity_id_range()
 //                );
 //
 //            }

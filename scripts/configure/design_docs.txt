@@ -109,7 +109,7 @@ three-dimensional global toroidal model.
 hardware architectures, i.e. multi-core CPU, many-core GPU;
 .5 Input/output
 -----------------------
-* Req(14) Provide interface for external pre-process software, i.e. modeling and mesh generate tools;
+* Req(14) Provide interface for external pre-process software, i.e. modeling and get_mesh generate tools;
 * Req(15) Provide interface for external post-process software, i.e. visualization tools
 * Req(16) Flexible configuration;
 * Req(17) Comprehensive and expressive logging information;

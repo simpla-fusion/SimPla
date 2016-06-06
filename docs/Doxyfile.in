@@ -389,7 +389,7 @@ TYPEDEF_HIDES_STRUCT   = NO
 # an expensive process and often the same symbol appears multiple times in the
 # code, doxygen keeps a cache of pre-resolved symbols. If the cache is too small
 # doxygen will become slower. If the cache is too large, memory is wasted. The
-# cache size is given by this formula: 2^(16+LOOKUP_CACHE_SIZE). The valid range
+# cache size is given by this formula: 2^(16+LOOKUP_CACHE_SIZE). The valid entity_id_range
 # is 0..9, the default is 0, corresponding to a cache size of 2^16=65536
 # symbols. At the end of a run doxygen will report the cache usage and suggest
 # the optimal cache size from a speed point of view.

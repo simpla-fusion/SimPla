@@ -26,7 +26,7 @@ namespace simpla { namespace mesh
 /**
  * @ingroup mesh
  *
- * @brief Uniform structured mesh
+ * @brief Uniform structured get_mesh
  */
 struct CartesianCoRect : public geometry::CartesianMetric, public MeshBlock
 {
@@ -198,6 +198,6 @@ public:
     static constexpr auto inner_product(T0 const &v0, T1 const &v1, Others &&... others)
     DECL_RET_TYPE((v0[0] * v1[0] + v0[1] * v1[1] + v0[2] * v1[2]))
 
-}; // struct mesh
-}} // namespace mesh // namespace simpla
+}; // struct get_mesh
+}} // namespace get_mesh // namespace simpla
 #endif //SIMPLA_CARTESIANCORECT_H

@@ -1,2 +1,2 @@
-add_library(mesh  MeshUtility.cpp)
-#target_link_libraries(mesh data_model)
+add_library(mesh MeshUtility.cpp MeshAttribute.cpp)
+target_link_libraries(mesh data_model parallel)

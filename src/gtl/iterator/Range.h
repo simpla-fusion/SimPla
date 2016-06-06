@@ -109,6 +109,6 @@ private:
 };
 
 
-}//namespace simpla { namespace mesh
+}//namespace simpla { namespace get_mesh
 
 #endif //SIMPLA_RANGE_H

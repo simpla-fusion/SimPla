@@ -33,18 +33,18 @@ namespace simpla
 //}
 //
 //template<typename TRange, typename Func>
-//void parallel_for(TRange && range, Func && fun)
+//void parallel_for(TRange && entity_id_range, Func && fun)
 //{
 //
-//	tbb::parallel_for(std::forward<Arrgs>(range), std::forward<Func>(fun));
-////	if (!is_divisible(std::forward<TRange>(range)))
+//	tbb::parallel_for(std::forward<Arrgs>(entity_id_range), std::forward<Func>(fun));
+////	if (!is_divisible(std::forward<TRange>(entity_id_range)))
 ////	{
-////		fun(std::forward<TRange>(range));
+////		fun(std::forward<TRange>(entity_id_range));
 ////	}
 ////	else
 ////	{
 ////
-////		auto t_r = split(std::forward<TRange>(range));
+////		auto t_r = split(std::forward<TRange>(entity_id_range));
 ////
 ////		auto f1 = std::async(std::launch::async, [&]()
 ////		{	parallel_for( std::get<0>(t_r), std::forward<Func>(fun));});
@@ -64,10 +64,10 @@ namespace simpla
 //// * @param fun
 //// */
 //template<typename TRange, typename Func>
-//void parallel_for_each(TRange && range, Func && fun)
+//void parallel_for_each(TRange && entity_id_range, Func && fun)
 //{
 //
-//	parallel_for(std::forward<TRange>(range),
+//	parallel_for(std::forward<TRange>(entity_id_range),
 //
 //	[&](TRange const & r1)
 //	{
@@ -86,7 +86,7 @@ namespace simpla
  */
 /**
  *
- * @param range
+ * @param entity_id_range
  * @param fun void(TRange::value_type,TRes*)
  * @param res
  * @param red_fun

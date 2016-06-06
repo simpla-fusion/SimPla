@@ -166,11 +166,11 @@ private:
 //void ContainerPool<KeyType, ValueType>::sort()
 //{
 //
-//	auto range = make_range(trash_.begin(), trash_.end());
+//	auto entity_id_range = make_range(trash_.begin(), trash_.end());
 //
-//	parallel_reduce((range), *this, this,
+//	parallel_reduce((entity_id_range), *this, this,
 //
-//	[&](decltype(range) const & r,this_type * t_buffer)
+//	[&](decltype(entity_id_range) const & r,this_type * t_buffer)
 //	{
 //		for(auto const & item:r)
 //		{

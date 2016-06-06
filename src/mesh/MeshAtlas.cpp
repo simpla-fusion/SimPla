@@ -4,7 +4,6 @@
  */
 
 #include "MeshAtlas.h"
-#include "../task_flow/ProblemDomain.h"
 
 namespace simpla { namespace mesh
 {

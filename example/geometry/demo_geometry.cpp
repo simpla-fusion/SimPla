@@ -287,7 +287,7 @@ int main(int argc, char **argv)
 //
 //	auto geometry = std::make_shared<mesh_type>();
 //
-//	geometry->load(options["mesh"]);
+//	geometry->load(options["get_mesh"]);
 //
 //	geometry->save_mesh();
 //

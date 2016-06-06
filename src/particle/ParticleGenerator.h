@@ -164,12 +164,12 @@ void generate_particle(TPart *part, TGen &gen, size_t number_of_pic, TFun const 
 
     DEFINE_PHYSICAL_CONST;
 
-    mesh::MeshEntityRange r = part->range();
+    mesh::MeshEntityRange r0 = part->entity_id_range();
 
-    gen.reserve(number_of_pic * r.size());
+    gen.reserve(number_of_pic * r0.size());
 
     parallel::parallel_for(
-            r,
+            r0,
             [&](mesh::MeshEntityRange const &r)
             {
                 for (auto const &s:r)

@@ -370,7 +370,7 @@ std::string make_msg(Others const &...others)
 ////#define THROW_EXCEPTION_LOGIC_ERROR(_MSG_)  {{logger::Logger(logger::LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::logic_error("logic error"));}
 #define THROW_EXCEPTION_LOGIC_ERROR(_MSG_)   {LOGIC_ERROR<<_MSG_<<std::endl;}
 //
-////#define THROW_EXCEPTION_OUT_OF_RANGE(_MSG_) { {logger::Logger(logger::LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::out_of_range("out of range"));}
+////#define THROW_EXCEPTION_OUT_OF_RANGE(_MSG_) { {logger::Logger(logger::LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::out_of_range("out of entity_id_range"));}
 #define THROW_EXCEPTION_OUT_OF_RANGE(_MSG_)  {OUT_OF_RANGE<<_MESG_<<std::endl;}
 //
 //#define THROW_EXCEPTION_BAD_ALLOC(_SIZE_, _error_)    logger::Logger(logger::LOG_ERROR)<<__FILE__<<"["<<__LINE__<<"]: "<< "Can not get enough memory! [ "  \

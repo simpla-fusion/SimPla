@@ -292,7 +292,7 @@ private:
      * @name  Coordinate map
      * @{
      *
-     *        Topology mesh       geometry mesh
+     *        Topology mesh       geometry get_mesh
      *                        map
      *              M      ---------->      G
      *              x                       y
@@ -371,5 +371,5 @@ private:
 
 }; // struct MeshBlock
 
-}}//namespace simpla//namespace mesh
+}}//namespace simpla//namespace get_mesh
 #endif //SIMPLA_MESH_MESHBLOCK_H

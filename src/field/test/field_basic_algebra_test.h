@@ -209,16 +209,16 @@ TYPED_TEST_P(TestField, scalarField)
     std::mt19937 gen;
     std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-    for (auto s: f1.range())
+    for (auto s: f1.entity_id_range())
     {
         f1[s] = va * uniform_dist(gen);
     }
-    for (auto s: f2.range())
+    for (auto s: f2.entity_id_range())
     {
         f2[s] = vb * uniform_dist(gen);
     }
 
-    for (auto s:   f3.range())
+    for (auto s:   f3.entity_id_range())
     {
         f3[s] = vc * uniform_dist(gen);
     }

@@ -217,7 +217,7 @@ public:
     {
         std::shared_ptr<this_type> res(nullptr);
 //@FIXME
-//        auto p_mesh = mesh().Patch(id);
+//        auto p_mesh = get_mesh().Patch(id);
 //
 //        if (p_mesh != nullptr)
 //        {

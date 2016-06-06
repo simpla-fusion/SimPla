@@ -212,6 +212,6 @@ void default_time_integral(MeshPatch<TM> const &m, TFun const &fun, Real dt, Arg
 }
 
 
-}} //namespace simpla { namespace mesh
+}} //namespace simpla { namespace get_mesh
 
 #endif //SIMPLA_MESH_PATCH_H

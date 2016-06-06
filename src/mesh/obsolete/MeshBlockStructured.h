@@ -60,7 +60,7 @@ public:
 
             if (m_gw_[i] * 2 > m_dims_[i])
             {
-                RUNTIME_ERROR << "Illegal mesh shape! [ dims=" << m_dims_ << " , ghost width = " << m_gw_ << "]" <<
+                RUNTIME_ERROR << "Illegal get_mesh shape! [ dims=" << m_dims_ << " , ghost width = " << m_gw_ << "]" <<
                 std::endl;
             }
         }
@@ -307,7 +307,7 @@ private:
      * @name  Coordinate map
      * @{
      *
-     *        Topology mesh       geometry mesh
+     *        Topology mesh       geometry get_mesh
      *                        map
      *              M      ---------->      G
      *              x                       y
@@ -395,5 +395,5 @@ class Mesh<tags::BlockStructured<NDIMS>>::View::Iterator
 {
 
 };
-}}//namespace simpla { namespace mesh
+}}//namespace simpla { namespace get_mesh
 #endif //SIMPLA_MESH_MESHBLOCKSTRUCTURED_H

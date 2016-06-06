@@ -68,7 +68,7 @@ public:
 	{
 		return "field<" + mesh_.get_type_as_string() + ">";
 	}
-	mesh_type const & mesh() const
+	mesh_type const & get_mesh() const
 	{
 		return mesh_;
 	}
@@ -81,7 +81,7 @@ public:
 	{
 		return cloneField_type<TU>(mesh_);
 	}
-	/** @name range concept
+	/** @name entity_id_range concept
 	 * @{
 	 */
 
@@ -188,7 +188,7 @@ public:
 //
 //	static_assert(has_const_member_function_hash<TM,typename TM::id_type>::value &&
 //			has_const_member_function_max_hash<TM>::value,
-//			"mesh do not support 'sequence container'"
+//			"get_mesh do not support 'sequence container'"
 //	);
 };
 

@@ -123,7 +123,7 @@ USE_CASE(pic, " particle in cell")
         << " Description=\"" << options["Description"].as<std::string>("") << "\""
         << std::endl
 
-        << " mesh = " << std::endl << "  {" << *mesh << "} " << std::endl
+        << " get_mesh = " << std::endl << "  {" << *mesh << "} " << std::endl
 
         << " particle =" << std::endl
 

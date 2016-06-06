@@ -9,7 +9,7 @@
 #include "../base/Object.h"
 #include "../gtl/Log.h"
 
-#include "Mesh.h"
+#include "MeshCommon.h"
 #include "MeshBase.h"
 #include "MeshEntity.h"
 
@@ -57,7 +57,7 @@ public:
  *   *      |       |  **inner**   |   |     *
  *   *      |       |  *       *   |   |     *
  *   *      |       |  *       *   |   |     *
- *   *      |       |  *(range)*   |   |     *
+ *   *      |       |  *(entity_id_range)*   |   |     *
  *   *      |       |  2********   |   |     *
      *      |       |   boundary   |   |     *
  *   *    /---      +--------------+   |     *
@@ -86,34 +86,14 @@ public:
 
     virtual void ghost_width(index_tuple const &) = 0;
 
+    virtual box_type box(size_t entityStatus = VALID) const = 0;
 
-    virtual box_type box() const = 0;
+    virtual MeshEntityRange select(box_type const &b,
+                                   MeshEntityType entityType = VERTEX,
+                                   size_t entityStatus = VALID) const = 0;
 
-    virtual box_type inner_box() const
-    {
-        UNIMPLEMENTED;
-        return box();
-    }
-
-    virtual box_type outer_box() const
-    {
-        UNIMPLEMENTED;
-        return box();
-    }
-
-    virtual MeshEntityRange select(box_type const &b, MeshEntityType entityType = VERTEX) const = 0;
-
-    virtual MeshEntityRange range(MeshEntityType entityType = VERTEX) const { return outer_range(entityType); }
-
-    virtual MeshEntityRange inner_range(MeshEntityType entityType = VERTEX) const = 0;
-
-    virtual MeshEntityRange outer_range(MeshEntityType entityType = VERTEX) const = 0;
-
-    virtual MeshEntityRange boundary_range(MeshEntityType entityType = VERTEX) const
-    {
-        UNIMPLEMENTED;
-        return MeshEntityRange();
-    };
+    virtual MeshEntityRange range(MeshEntityType entityType = VERTEX,
+                                  size_t entityStatus = VALID) const = 0;
 
     virtual size_t max_hash(MeshEntityType entityType = VERTEX) const = 0;
 
@@ -152,5 +132,5 @@ public:
 };
 
 }
-}//namespace simpla{namespace mesh{
+}//namespace simpla{namespace get_mesh{
 #endif //SIMPLA_MESHBASE_H

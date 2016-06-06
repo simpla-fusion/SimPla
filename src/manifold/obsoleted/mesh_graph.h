@@ -119,5 +119,5 @@ void MeshRefinement::update(DataSet *ds)
 //    );
 }
 
-}}//namespace simpla { namespace mesh
+}}//namespace simpla { namespace get_mesh
 #endif //SIMPLA_MESH_GRAPH_H

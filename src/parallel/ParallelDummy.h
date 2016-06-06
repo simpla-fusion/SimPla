@@ -45,25 +45,25 @@ void parallel_do(Range const &range, OP const &op)
 
 /**
  *
- * @param range Range Concept
+ * @param entity_id_range Range Concept
  * @param op std::function<void(Range)>
  */
 template<typename Range, typename OP>
 void parallel_for(Range const &range, OP const &op)
 {
-//    if (!range.empty())
+//    if (!entity_id_range.empty())
         op(range);
 }
 
 ///**
 // *
-// * @param range Range Concept
+// * @param entity_id_range Range Concept
 // * @param op std::function<void(*Range::iterator)>
 // */
 //template<typename Range, typename Body>
-//void parallel_foreach(Range const &range, Body const &body)
+//void parallel_foreach(Range const &entity_id_range, Body const &body)
 //{
-//	for (auto &&i : range)
+//	for (auto &&i : entity_id_range)
 //	{
 //		body(i);
 //	}
@@ -80,7 +80,7 @@ void parallel_for(Range const &range, OP const &op)
 
 /**
  *
- * @param range  Range Concept
+ * @param entity_id_range  Range Concept
  * @param op     std::function<T(Range)>
  * @param reduce std::function<T(T,T)>
  * @return T
@@ -95,7 +95,7 @@ typename std::result_of<OP(Range const &)>::type
 
 /**
  *
- * @param range  Range Concept
+ * @param entity_id_range  Range Concept
  * @param op     std::function<T(Range)>
  * @return T
  */

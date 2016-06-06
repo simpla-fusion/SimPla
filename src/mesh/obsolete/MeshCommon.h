@@ -58,7 +58,7 @@ struct CoRectMesh; // - Axis are perpendicular and spacing is constant
 
 
 
-}// namespace mesh
+}// namespace get_mesh
 namespace traits
 {
 

@@ -274,7 +274,7 @@ void ExplicitEMContext<TM>::load(TDict const &dict)
 
     if (dict["model"]["GFile"])
     {
-        model->mesh_type::load(dict["model"]["mesh"]);
+        model->mesh_type::load(dict["model"]["get_mesh"]);
 
         GEqdsk geqdsk;
 

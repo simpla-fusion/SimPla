@@ -33,23 +33,23 @@ nTuple<T, N> half_split(nTuple<T, N> & range)
 //std::vector<std::tuple<T, T>> split(T const start, T const & count, size_t num)
 //{
 //	nTuple<T, N> res;
-//	res = range;
+//	res = entity_id_range;
 //
 //	auto n = max_at(res);
 //
-//	res[n] = half_split(range[n]);
+//	res[n] = half_split(entity_id_range[n]);
 //
 //	return std::move(res);
 //}
 //template<typename T, size_t N>
-//std::vector<nTuple<T, N>> split(nTuple<T, N> const & range, size_t num)
+//std::vector<nTuple<T, N>> split(nTuple<T, N> const & entity_id_range, size_t num)
 //{
 //	nTuple<T, N> res;
-//	res = range;
+//	res = entity_id_range;
 //
 //	auto n = max_at(res);
 //
-//	res[n] = half_split(range[n]);
+//	res[n] = half_split(entity_id_range[n]);
 //
 //	return std::move(res);
 //}

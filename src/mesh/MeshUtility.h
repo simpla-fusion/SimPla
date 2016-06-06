@@ -7,7 +7,7 @@
 #ifndef SIMPLA_MESHUTILITIY_H
 #define SIMPLA_MESHUTILITIY_H
 
-#include "Mesh.h"
+#include "MeshCommon.h"
 #include "MeshAtlas.h"
 #include "MeshBase.h"
 
@@ -21,5 +21,5 @@ namespace simpla { namespace mesh
 
 
 MeshEntityRange select(MeshBase const &m, MeshEntityRange const &r, box_type const &b);
-}}//namespace simpla {namespace mesh
+}}//namespace simpla {namespace get_mesh
 #endif //SIMPLA_MESHUTILITIY_H

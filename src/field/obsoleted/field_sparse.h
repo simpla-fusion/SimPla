@@ -75,7 +75,7 @@ public:
 		return cloneField_type<TU>(m_mesh_);
 	}
 
-	mesh_type const & mesh() const
+	mesh_type const & get_mesh() const
 	{
 		return m_mesh_;
 	}

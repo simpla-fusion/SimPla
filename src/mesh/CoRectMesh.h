@@ -19,7 +19,7 @@
 #include "../gtl/type_traits.h"
 #include "../gtl/Log.h"
 
-#include "Mesh.h"
+#include "MeshCommon.h"
 #include "MeshBase.h"
 #include "MeshEntityIdCoder.h"
 
@@ -36,7 +36,7 @@ typedef Mesh<tags::CoRectLinear> CoRectMesh;
 /**
  * @ingroup mesh
  *
- * @brief Uniform structured mesh
+ * @brief Uniform structured get_mesh
  */
 template<>
 struct Mesh<tags::CoRectLinear> : public MeshBase, public MeshEntityIdCoder
@@ -153,34 +153,105 @@ public:
         m_coords_upper_ = x1;
     }
 
-    virtual box_type box() const { return box_type{m_coords_lower_, m_coords_upper_}; }
 
     void box(box_type const &b) { std::tie(m_coords_lower_, m_coords_upper_) = b; }
 
     vector_type const &dx() const { return m_dx_; }
 
+private:
+    //TODO should use block-entity_id_range
+    parallel::concurrent_unordered_set<MeshEntityId> m_affected_entities_[4];
+    parallel::concurrent_unordered_set<MeshEntityId> m_interface_entities_[4];
+public:
 
-    virtual MeshEntityRange select(box_type const &b, MeshEntityType entityType = VERTEX) const
+    typedef typename MeshEntityIdCoder::range_type block_range_type;
+
+    virtual MeshEntityRange select(box_type const &other, MeshEntityType entityType = VERTEX,
+                                   size_t status = VALID) const
     {
-        return MeshEntityRange(
-                MeshEntityIdCoder::make_range(
-                        point_to_index(std::get<0>(b)),
-                        point_to_index(std::get<1>(b)),
-                        entityType));
+
+        point_type c_lower, c_upper;
+        std::tie(c_lower, c_upper) = box(status);
+
+        bool overlapped = true;
+
+        for (int i = 0; i < 3; ++i)
+        {
+            c_lower[i] = std::max(c_lower[i], std::get<0>(other)[i]);
+            c_upper[i] = std::min(c_upper[i], std::get<1>(other)[i]);
+
+            if (c_lower[i] >= c_upper[i]) { overlapped = false; }
+        }
+
+        if (!overlapped)
+        {
+            return MeshEntityRange();
+        }
+        else
+        {
+            return MeshEntityRange(
+                    MeshEntityIdCoder::make_range(point_to_index(c_lower), point_to_index(c_upper), entityType));
+        }
+
     };
 
-
-    virtual MeshEntityRange range(MeshEntityType entityType = VERTEX) const { return outer_range(entityType); };
-
-    virtual MeshEntityRange inner_range(MeshEntityType entityType = VERTEX) const
+    virtual box_type box(size_t status = VALID) const
     {
-        return MeshEntityRange(MeshEntityIdCoder::make_range(m_inner_lower_, m_inner_upper_, entityType));
+        box_type res;
+
+        switch (status)
+        {
+            case VALID : //all valid
+                std::get<0>(res) = m_coords_lower_ - m_dx_ * m_ghost_width_;
+                std::get<1>(res) = m_coords_upper_ + m_dx_ * m_ghost_width_;;
+                break;
+            case LOCAL : //local and valid
+                std::get<0>(res) = m_coords_lower_ + m_dx_ * m_ghost_width_;;
+                std::get<1>(res) = m_coords_upper_ - m_dx_ * m_ghost_width_;
+                break;
+            case OWNED:
+                std::get<0>(res) = m_coords_lower_;
+                std::get<1>(res) = m_coords_upper_;
+                break;
+            case INTERFACE: //INTERFACE
+            case GHOST : //local and valid
+            case AFFECTED:
+            default:
+                UNIMPLEMENTED;
+                break;
+
+
+        }
+        return std::move(res);
+    }
+
+    virtual MeshEntityRange range(MeshEntityType entityType = VERTEX, size_t status = VALID) const
+    {
+        MeshEntityRange res;
+        switch (status)
+        {
+            case VALID : //all valid
+                MeshEntityRange(MeshEntityIdCoder::make_range(m_lower_, m_upper_, entityType)).swap(res);
+                break;
+            case LOCAL : //local and valid
+                MeshEntityRange(MeshEntityIdCoder::make_range(m_inner_lower_, m_inner_upper_, entityType)).swap(res);
+                break;
+            case GHOST : //local and valid
+                UNIMPLEMENTED;
+                break;
+            case AFFECTED:
+                MeshEntityRange(m_affected_entities_[entityType]).swap(res);
+                break;
+            case INTERFACE: //INTERFACE
+                MeshEntityRange(m_interface_entities_[entityType]).swap(res);
+                break;
+            default:
+                RUNTIME_ERROR << "illegal box region!" << std::endl;
+                break;
+        }
+        return std::move(res);
     };
 
-    virtual MeshEntityRange outer_range(MeshEntityType entityType = VERTEX) const
-    {
-        return MeshEntityRange(MeshEntityIdCoder::make_range(m_outer_lower_, m_outer_upper_, entityType));
-    };
 
     virtual size_t max_hash(MeshEntityType entityType = VERTEX) const
     {
@@ -450,7 +521,7 @@ public:
  * @name  Coordinate map
  * @{
  *
- *        Topology mesh       geometry mesh
+ *        Topology mesh       geometry get_mesh
  *                        map
  *              M      ---------->      G
  *              x                       y
@@ -553,6 +624,6 @@ public:
 //        template<typename ...Args> static double eval(Args &&...args) { return 1.0; }
 //    };
 }; // struct  Mesh
-}} // namespace simpla // namespace mesh
+}} // namespace simpla // namespace get_mesh
 
 #endif //SIMPLA_CORECTMESH_H

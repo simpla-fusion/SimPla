@@ -18,6 +18,6 @@ class SAMRObjectBase
 
 };
 
-}}//namespace simpla{namespace mesh{
+}}//namespace simpla{namespace get_mesh{
 
 #endif //SIMPLA_SAMR_OBJECT_H

@@ -42,7 +42,7 @@ namespace simpla { namespace base
  *   ---------------------------|--------------
  *   domain_type				| Domain
  *   iterator_type				| iterator of element value
- *   range_type					| range of element value
+ *   range_type					| entity_id_range of element value
  *
  *
  *

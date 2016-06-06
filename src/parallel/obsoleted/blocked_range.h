@@ -150,7 +150,7 @@ struct range
 	}
 
 };
-//struct range
+//struct entity_id_range
 
 //! iterator
 struct iterator

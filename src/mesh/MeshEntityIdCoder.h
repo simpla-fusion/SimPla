@@ -17,7 +17,7 @@
 #include "../gtl/IteratorBlock.h"
 #include "../gtl/iterator/Range.h"
 
-#include "Mesh.h"
+#include "MeshCommon.h"
 #include "MeshEntity.h"
 
 
@@ -58,7 +58,7 @@ namespace simpla { namespace mesh
  *  \endverbatim
  *
  *  @comment similar to MOAB::EntityHandle but using different code ruler and more efficienct for FD and SAMR  -- salmon. 2016.5.24
- *  @note different mesh should use different 'code and hash ruler'  -- salmon. 2016.5.24
+ *  @note different get_mesh should use different 'code and hash ruler'  -- salmon. 2016.5.24
  */
 
 template<int LEVEL = 4>
@@ -287,8 +287,8 @@ struct MeshEntityIdCoder_
 
     static point_type point(id_type const &s)
     {
-        return point_type{static_cast<Real>(static_cast<index_type>(unpack_id(s, 0)))  ,
-                          static_cast<Real>(static_cast<index_type>(unpack_id(s, 1)))  ,
+        return point_type{static_cast<Real>(static_cast<index_type>(unpack_id(s, 0))),
+                          static_cast<Real>(static_cast<index_type>(unpack_id(s, 1))),
                           static_cast<Real>(static_cast<index_type>(unpack_id(s, 2)))
         };
     }
@@ -858,7 +858,6 @@ struct MeshEntityIdCoder_
 
         value_type pack_(nTuple<index_type, ndims + 1> const &idx) const
         {
-
             return pack_index(idx, m_sub_index_to_id_[m_iform_][idx[ndims]]);
         }
 
@@ -954,6 +953,10 @@ struct MeshEntityIdCoder_
             std::swap(m_max_, other.m_max_);
             std::swap(m_grain_size_, other.m_grain_size_);
         }
+
+        MeshEntityType entity_type() const { return static_cast<MeshEntityType>(m_iform_); }
+
+        MeshEntityType index_box() const { return std::make_tuple(m_min_, m_max_); }
 
         // Proportional split is enabled
         static const bool is_splittable_in_proportion = true;
@@ -1268,7 +1271,7 @@ template<int L> constexpr MeshEntityId MeshEntityIdCoder_<L>::m_adjacent_cell_ma
 template<int L> constexpr point_type MeshEntityIdCoder_<L>::m_id_to_coordinates_shift_[];
 
 typedef MeshEntityIdCoder_<> MeshEntityIdCoder;
-}//namespace  mesh
+}//namespace  get_mesh
 }// namespace simpla
 
 #endif /* CORE_MESH_MESH_ENTITY_ID_CODER_H_ */
