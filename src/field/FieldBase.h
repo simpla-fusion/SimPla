@@ -412,9 +412,9 @@ private:
         deploy();
 
         apply_expr(m_mesh_->range(entity_type(), mesh::AFFECTED), op, other);
-        sync();
+        base_type::nonblocking_sync();
         apply_expr(m_mesh_->range(entity_type(), mesh::LOCAL), op, other);
-        wait();
+        base_type::wait();
         return *this;
     }
 

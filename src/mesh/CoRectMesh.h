@@ -287,8 +287,6 @@ public:
         p[2] = std::fma(p[2], m_l2g_scale_[2], m_l2g_shift_[2]);
 
         return std::move(p);
-
-
     }
 
     virtual std::tuple<MeshEntityId, point_type>
@@ -301,8 +299,6 @@ public:
                                    std::fma(g[1], m_g2l_scale_[1], m_g2l_shift_[1]),
                                    std::fma(g[2], m_g2l_scale_[2], m_g2l_shift_[2])
                            }}, nId);
-
-
     }
 
     virtual index_tuple

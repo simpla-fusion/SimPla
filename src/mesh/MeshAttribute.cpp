@@ -15,19 +15,19 @@ MeshAttribute::View::View() : m_pimpl_(new pimpl_s) { }
 
 MeshAttribute::View::~View() { }
 
-void MeshAttribute::View::sync()
+void MeshAttribute::View::sync(bool is_blocking)
 {
-//    m_pimpl_->m_dist_obj_.sync();
+    m_pimpl_->m_dist_obj_.sync();
+    if (is_blocking) { wait(); }
 }
 
 void MeshAttribute::View::wait()
 {
-//    m_pimpl_->m_dist_obj_.wait();
+    LOG_CMD_DESC(" SYNC [" + get_class_name() + "]", m_pimpl_->m_dist_obj_.wait());
 }
 
 bool MeshAttribute::View::is_ready() const
 {
-//    return m_pimpl_->m_dist_obj_.is_ready();
-    return true;
+    return m_pimpl_->m_dist_obj_.is_ready();
 }
 }}//namespace simpla{namespace get_mesh{

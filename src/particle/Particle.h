@@ -354,6 +354,8 @@ Particle<P, M>::gather(Field<TV, mesh_type, Others...> *res, Args &&...args) con
                        this->gather(&v, x, std::forward<Args>(args)...);
                        return v;
                    });
+        res->sync();
+
     }
     else
     {

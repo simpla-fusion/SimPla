@@ -17,9 +17,7 @@
 #include "design_pattern/SingletonHolder.h"
 #include "parse_command_line.h"
 
-namespace simpla
-{
-namespace logger
+namespace simpla { namespace logger
 {
 
 /**
@@ -28,12 +26,13 @@ namespace logger
  */
 struct LoggerStreams //: public SingletonHolder<LoggerStreams>
 {
+    static constexpr unsigned int DEFAULT_LINE_WIDTH = 120;
+
     bool is_opened_ = false;
-    int line_width_;
+    int line_width_ = DEFAULT_LINE_WIDTH;
 
     int mpi_rank_ = 0, mpi_size_ = 1;
 
-    static constexpr unsigned int DEFAULT_LINE_WIDTH = 100;
 
     LoggerStreams(int level = LOG_INFORM)
             : m_std_out_level_(level), line_width_(DEFAULT_LINE_WIDTH)
@@ -324,10 +323,7 @@ void Logger::endl()
     endl_ = true;
 }
 
-void Logger::not_endl()
-{
-    endl_ = false;
-}
+void Logger::not_endl() { endl_ = false; }
 
 
 }  // namespace logger

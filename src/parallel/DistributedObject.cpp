@@ -317,7 +317,7 @@ void DistributedObject::pimpl_s::sync()
         ++count;
     }
 
-
+ 
 }
 
 void DistributedObject::pimpl_s::wait()
@@ -329,9 +329,7 @@ void DistributedObject::pimpl_s::wait()
 
         MPI_Request *array_of_requests = &(m_mpi_requests_[0]);
 
-
         MPI_Waitall(count, array_of_requests, MPI_STATUSES_IGNORE);
-
 
         m_mpi_dtype_.clear();
         m_mpi_requests_.clear();

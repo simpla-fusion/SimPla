@@ -87,7 +87,9 @@ public:
         virtual data_model::DataSet dataset(mesh::MeshEntityRange const &) const = 0;
 
 
-        void sync();
+        void sync(bool is_blocking = true);
+
+        void nonblocking_sync() { sync(false); }
 
         void wait();
 

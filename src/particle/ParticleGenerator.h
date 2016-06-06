@@ -175,8 +175,7 @@ void generate_particle(TPart *part, TGen &gen, size_t number_of_pic, TFun const 
                 for (auto const &s:r)
                 {
                     typename TGen::template input_iterator<value_type> ib, ie;
-                    std::tie(ib, ie) = gen.template generate<value_type>(
-                            number_of_pic, fun
+                    std::tie(ib, ie) = gen.template generate<value_type>(number_of_pic, fun);
 //                            [&](nTuple<Real, 3> const &x0, nTuple<Real, 3> const &v0, value_type *res)
 //                            {
 //                            nTuple<Real, 3> x = m.point_local_to_global(m.miminal_vertex(s), x0);
@@ -186,11 +185,7 @@ void generate_particle(TPart *part, TGen &gen, size_t number_of_pic, TFun const 
 //
 //                            *res = part->lift(x, v, m_density_(x) * inv_sample_density);
 //                            }
-                    );
-
                     part->insert(s, ib, ie);
-
-
                 }
             });
 }
