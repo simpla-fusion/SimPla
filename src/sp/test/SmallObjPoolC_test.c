@@ -16,7 +16,6 @@ int main(int argc, char **argv)
     struct spPagePool *p_pool = spPagePoolCreate(sizeof(struct point_s));
     struct spPage *pg = spPageCreate(p_pool);
 
-
     {
         size_t count = 0;
         SP_OBJ_INSERT(200, struct point_s, p, pg, p_pool)
@@ -29,7 +28,7 @@ int main(int argc, char **argv)
     }
     {
         size_t count = 0;
-        SP_ELEMENT_FOREACH(struct point_s, p, pg)
+        SP_OBJ_FOREACH(struct point_s, p, pg)
         {
             p->x = count;
             ++count;
@@ -39,7 +38,7 @@ int main(int argc, char **argv)
     {
 
         size_t count = 0;
-        SP_ELEMENT_REMOVE_IF(struct point_s, p, pg, tag)
+        SP_OBJ_REMOVE_IF(struct point_s, p, pg, tag)
         {
             tag = ((count % 3) == 0) ? 0 : 1;
             ++count;

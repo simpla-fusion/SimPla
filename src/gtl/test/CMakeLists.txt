@@ -21,4 +21,3 @@ target_link_libraries(lua_state_test utilities data_model base)
 
 #simpla_test(integer_sequence_test integer_sequence_test.cpp)
 
-ADD_EXECUTABLE(SmallObjPool_test ../../sp/test/SmallObjPool_test.c ../../sp/SmallObjPool.c)

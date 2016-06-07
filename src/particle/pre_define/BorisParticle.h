@@ -91,10 +91,9 @@ struct Boris
 }}}//namespace simpla { namespace particle { namespace engine
 namespace simpla { namespace particle
 {
+template<typename TM> using BorisParticle =  DefaultParticle<engine::Boris, TM>;
 
-template<typename TM> using BorisParticle =  Particle<engine::Boris, TM>;
+}}//namespace simpla { namespace particle
 
-
-}}
 
 #endif //SIMPLA_PIC_BORIS_H

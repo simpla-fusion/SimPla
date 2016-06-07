@@ -186,16 +186,16 @@ void spPagePoolClose(struct spPagePool *pool)
 }
 
 
-void spInsertObj(size_t count, void const *src, struct spPage *head, struct spPagePool *pool)
+size_t spInsertObj(size_t count, size_t size_in_byte, void const *src, struct spPage *head)
 {
-    size_t ele_size_in_byte = pool->obj_size_in_byte;
     void *dest = 0x0;
-    for (struct spIterator __it = {0x0, 0x0, head, pool->obj_size_in_byte};
-         ((dest = spInsertIterator(&__it, pool)) != 0x0) && (count > 1); --count)
+    for (struct spIterator __it = {0x0, 0x0, head, size_in_byte};
+         ((dest = spInsertIterator(&__it)) != 0x0) && (count > 1); --count)
     {
-        memcpy(dest, src, ele_size_in_byte);
-        src += ele_size_in_byte;
+        memcpy(dest, src, size_in_byte);
+        src += size_in_byte;
     }
+    return count;
 
 
 }
@@ -231,10 +231,11 @@ void *spTraverseIterator(struct spIterator *it)
     return ret;
 }
 
-void *spInsertIterator(struct spIterator *it, struct spPagePool *pool)
+void *spInsertIterator(struct spIterator *it)
 {
     //TODO need optimize
-    if (it->page == 0x0) { it->page = spPageCreate(pool); }
+    void *ret = 0x0;
+    if (it->page == 0x0) { goto RETURN; }
 
     if (it->tag == 0x0 || it->p == 0x0)
     {
@@ -250,14 +251,16 @@ void *spInsertIterator(struct spIterator *it, struct spPagePool *pool)
 
         if (it->page->tag + 1 == 0x0 || it->tag == 0x0)
         {
-            if (it->page->next == 0x0) { it->page->next = spPageCreate(pool); }
+            if (it->page->next == 0x0) { goto RETURN; }
             it->page = it->page->next;
             it->tag = 0x01;
             it->p = it->page->data;
         }
     }
     it->page->tag |= it->tag;
-    return it->p;
+    ret = it->p;
+    RETURN:
+    return ret;
 }
 
 

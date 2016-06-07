@@ -105,6 +105,7 @@ using index_sequence_for = make_index_sequence<sizeof...(_Types)>;
 
 
 #endif
+namespace tags { template<size_t V0, size_t V1, size_t V2> using VERSION = integer_sequence<size_t, V0, V1, V2>; }
 
 namespace traits
 {
