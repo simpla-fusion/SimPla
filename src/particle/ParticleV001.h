@@ -223,6 +223,11 @@ public:
     template<typename Hash, typename TRange>
     void insert(Hash const &, TRange const &);
 
+private    :
+    template<typename TInputIterator>
+    void _insert(container_type *m_data_, id_type const &s, TInputIterator ib, TInputIterator ie);
+
+public:
     template<typename Predicate>
     void remove_if(id_type const &s, Predicate const &pred);
 
@@ -503,9 +508,29 @@ Particle<P, M, V001>::dataset(data_model::DataSet const &)
 };
 
 template<typename P, typename M> void
-Particle<P, M, V001>::dataset(mesh::MeshEntityRange const &, data_model::DataSet const &)
+Particle<P, M, V001>::dataset(mesh::MeshEntityRange const &, data_model::DataSet const &ds)
 {
-    UNIMPLEMENTED;
+    value_type const *src = reinterpret_cast<value_type const *>(ds.data.get());
+    size_t count = ds.memory_space.num_of_elements();
+    sp::spPage *pg = sp::spPageCreate(m_pool_.get());
+
+    while (count > 0)
+    {
+        for (sp::spIterator __it = {0x0, 0x0, pg, sizeof(value_type)};
+             sp::spInsertIterator(&__it) != 0x0 && (count != 0); --count, ++src)
+        {
+            *reinterpret_cast<value_type *>(__it.p) = *src;
+        }
+        if (count != 0)
+        {
+            std::unique_lock<std::mutex> pool_lock(m_pool_mutex_);
+            sp::spPage *p = pg;
+            pg = sp::spPageCreate(m_pool_.get());
+            pg->next = p;
+        }
+    }
+    std::unique_lock<std::mutex> pool_lock(m_pool_mutex_);
+    sp::spPageClose(pg, m_pool_.get());
 };
 
 
@@ -592,18 +617,13 @@ Particle<P, M, V001>::merge(buffer_type *buffer)
 }
 
 
-namespace detail
-{
-
-
-template<typename value_type, typename container_type, typename TPool, typename TID, typename TInputIterator>
-void
-insert(std::shared_ptr<container_type> &m_data_, std::shared_ptr<TPool> &pool, TID const &s, TInputIterator ib,
-       TInputIterator ie)
+template<typename P, typename M> template<typename TInputIterator> void
+Particle<P, M, V001>::_insert(container_type *data, id_type const &s,
+                              TInputIterator ib, TInputIterator ie)
 {
     typename container_type::accessor acc;
 
-    m_data_->insert(acc, s);
+    data->insert(acc, s);
 
     while (ib != ie)
     {
@@ -615,23 +635,19 @@ insert(std::shared_ptr<container_type> &m_data_, std::shared_ptr<TPool> &pool, T
         if (ib != ie)
         {
             //FIXME  here need atomic op
+            std::unique_lock<std::mutex> pool_lock(m_pool_mutex_);
             sp::spPage *p = acc->second.get();
-            sp::makePage(pool).swap(acc->second);
+            sp::makePage(m_pool_).swap(acc->second);
             acc->second->next = p;
-
         }
     }
-};
-};//namespace detail
+}
 
-template<typename P, typename M>
-void
+template<typename P, typename M> void
 Particle<P, M, V001>::insert(id_type const &s, value_type const &v) { insert(s, &v, &v + 1); }
 
 
-template<typename P, typename M>
-template<typename Hash, typename TRange>
-void
+template<typename P, typename M> template<typename Hash, typename TRange> void
 Particle<P, M, V001>::insert(Hash const &hash, TRange const &v_r)
 {
     parallel::parallel_for(v_r, [&](TRange const &r) { for (auto const &p: v_r) { insert(hash(p), p); }});
@@ -642,8 +658,7 @@ template<typename TInputIterator>
 void
 Particle<P, M, V001>::insert(id_type const &s, TInputIterator ib, TInputIterator ie)
 {
-    std::unique_lock<std::mutex> pool_lock(m_pool_mutex_);
-    detail::insert<value_type>(m_data_, m_pool_, s, ib, ie);
+    _insert(m_data_.get(), s, ib, ie);
 }
 
 //*******************************************************************************
@@ -679,9 +694,7 @@ Particle<P, M, V001>::remove_if(range_type const &r0, Predicate const &pred)
 
 //*******************************************************************************
 
-template<typename P, typename M>
-template<typename THash>
-void
+template<typename P, typename M> template<typename THash> void
 Particle<P, M, V001>::rehash(id_type const &key0, THash const &hash, buffer_type *out_buffer)
 {
     assert(out_buffer != nullptr);
@@ -696,7 +709,7 @@ Particle<P, M, V001>::rehash(id_type const &key0, THash const &hash, buffer_type
             if (key1 != key0)
             {
                 std::unique_lock<std::mutex> pool_lock(m_pool_mutex_);
-                detail::template insert<value_type>(*out_buffer, m_pool_, key1, &p, &p + 1);
+                _insert(out_buffer, key1, &p, &p + 1);
                 return true;
             }
             else
