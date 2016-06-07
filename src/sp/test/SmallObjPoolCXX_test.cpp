@@ -15,12 +15,12 @@ struct point_s
 int main(int argc, char **argv)
 {
     std::shared_ptr<sp::spPagePool> pool = sp::makePagePool(sizeof(point_s));
-    std::shared_ptr<sp::spPage> pg = sp::makePage(pool.get());
+    std::shared_ptr<sp::spPage> pg = sp::makePage(pool);
 
     {
 
         size_t count = 0;
-        SP_OBJ_INSERT(200, point_s, p, pg.get(), pool.get())
+        SP_OBJ_INSERT(200, point_s, p, pg.get())
         {
 
             p->x = count + 20000;

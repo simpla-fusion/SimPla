@@ -107,8 +107,9 @@ public:
 //            os << std::setw(indent + 1) << " id=" << boost::uuids::hash_value(item.first) << ",";
             item.second->print(os, indent + 2);
 //            os << "";
-            return os;
+
         }
+        return os;
     }
 
     /** register MeshBlockId to attribute m_data collection.  */

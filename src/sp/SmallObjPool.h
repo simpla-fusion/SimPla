@@ -90,10 +90,10 @@ for (struct spIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
  * example:
  * SP_ADD_NEW_ELEMENT(200,struct point_s, p, pg, p_pool) {p->x = 0; }
  */
-#define SP_OBJ_INSERT(__NUMBER__, __TYPE__, __PTR__, __PG_HEAD__, __POOL__)          \
+#define SP_OBJ_INSERT(__NUMBER__, __TYPE__, __PTR__, __PG_HEAD__)          \
 __TYPE__ *__PTR__; size_t __count = __NUMBER__; \
 for (struct spIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
-(__PTR__ =  spInsertIterator(&__it, __POOL__)) != 0x0 && (__count>1);--__count)
+(__PTR__ =  spInsertIterator(&__it )) != 0x0 && (__count>1);--__count)
 
 #define SP_OBJ_REMOVE_IF(__TYPE__, __PTR__, __PG_HEAD__, __TAG__)          \
 __TYPE__ *__PTR__ = 0x0; int __TAG__=0;\
@@ -116,12 +116,12 @@ for (sp::spIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
 /**
  * insert elements to page .
  * example:
- * SP_ADD_NEW_ELEMENT(200,struct point_s, p, pg, p_pool) {p->x = 0; }
+ * SP_ADD_NEW_ELEMENT(200,struct point_s, p, pg) {p->x = 0; }
  */
-#define SP_OBJ_INSERT(__NUMBER__, __TYPE__, __PTR__, __PG_HEAD__, __POOL__)          \
+#define SP_OBJ_INSERT(__NUMBER__, __TYPE__, __PTR__, __PG_HEAD__)          \
 __TYPE__ *__PTR__; size_t __count = __NUMBER__; \
 for (sp::spIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
-(__PTR__ =  reinterpret_cast<__TYPE__ *>(sp::spInsertIterator(&__it, __POOL__))) != 0x0 && (__count>1);--__count)
+(__PTR__ =  reinterpret_cast<__TYPE__ *>(sp::spInsertIterator(&__it))) != 0x0 && (__count>1);--__count)
 
 #define SP_OBJ_REMOVE_IF(__TYPE__, __PTR__, __PG_HEAD__, __TAG__)          \
 __TYPE__ *__PTR__ = 0x0; int __TAG__=0;\

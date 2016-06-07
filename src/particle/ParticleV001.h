@@ -17,7 +17,8 @@
 namespace simpla { namespace particle
 {
 
-template<typename ...> struct Particle;
+template<typename ...>
+struct Particle;
 typedef typename simpla::tags::VERSION<0, 0, 1> V001;
 
 
@@ -45,6 +46,7 @@ public:
 private:
     mesh_type const *m_mesh_;
     pool_type m_pool_;
+    std::mutex m_pool_mutex_;
     std::shared_ptr<container_type> m_data_;
     std::shared_ptr<base_type> m_holder_;
     static constexpr mesh::MeshEntityType iform = mesh::VOLUME;
@@ -175,7 +177,7 @@ public:
 
     virtual void dataset(data_model::DataSet const &);
 
-    virtual void dataset(mesh::MeshEntityRange const &, data_model::DataSet const &) { UNIMPLEMENTED; }
+    virtual void dataset(mesh::MeshEntityRange const &, data_model::DataSet const &);
 
 
     virtual size_t size() const { return count(m_mesh_->range(entity_type())); }
@@ -188,7 +190,8 @@ public:
     template<typename TV, typename ...Others, typename ...Args>
     void gather(Field<TV, mesh_type, Others...> *res, Args &&...args) const;
 
-    template<typename ...Args> void push(Args &&...args);
+    template<typename ...Args>
+    void push(Args &&...args);
 
 
     template<typename TFun, typename ...Args>
@@ -197,12 +200,14 @@ public:
     template<typename TFun, typename ...Args>
     void apply(range_type const &r, TFun const &op, Args &&...) const;
 
-    template<typename TOP, typename ...Args> void apply(TOP const &op, Args &&...args)
+    template<typename TOP, typename ...Args>
+    void apply(TOP const &op, Args &&...args)
     {
         apply(m_mesh_->range(entity_type()), op, std::forward<Args>(args)...);
     };
 
-    template<typename TOP, typename ...Args> void apply(TOP const &op, Args &&...args) const
+    template<typename TOP, typename ...Args>
+    void apply(TOP const &op, Args &&...args) const
     {
         apply(m_mesh_->range(entity_type()), op, std::forward<Args>(args)...);
     };
@@ -212,13 +217,17 @@ public:
     //! @{
     void insert(id_type const &s, value_type const &v);
 
-    template<typename TInputIterator> void insert(id_type const &s, TInputIterator, TInputIterator);
+    template<typename TInputIterator>
+    void insert(id_type const &s, TInputIterator, TInputIterator);
 
-    template<typename Hash, typename TRange> void insert(Hash const &, TRange const &);
+    template<typename Hash, typename TRange>
+    void insert(Hash const &, TRange const &);
 
-    template<typename Predicate> void remove_if(id_type const &s, Predicate const &pred);
+    template<typename Predicate>
+    void remove_if(id_type const &s, Predicate const &pred);
 
-    template<typename Predicate> void remove_if(range_type const &r, Predicate const &pred);
+    template<typename Predicate>
+    void remove_if(range_type const &r, Predicate const &pred);
 
     void erase(id_type const &s);
 
@@ -234,16 +243,19 @@ public:
 
     size_t count() const { return count(m_mesh_->range(entity_type())); };
 
-    template<typename OutputIT> OutputIT copy(id_type const &s, OutputIT out_it) const;
+    template<typename OutputIT>
+    OutputIT copy(id_type const &s, OutputIT out_it) const;
 
-    template<typename OutputIT> OutputIT copy(range_type const &r, OutputIT out_it) const;
+    template<typename OutputIT>
+    OutputIT copy(range_type const &r, OutputIT out_it) const;
 
     void merge(buffer_type *other);
 
 };//class Particle
 
 
-template<typename P, typename M> void
+template<typename P, typename M>
+void
 Particle<P, M, V001>::clear()
 {
     deploy();
@@ -251,7 +263,8 @@ Particle<P, M, V001>::clear()
 }
 
 
-template<typename P, typename M> bool
+template<typename P, typename M>
+bool
 Particle<P, M, V001>::deploy()
 {
     bool success = false;
@@ -308,7 +321,9 @@ std::ostream &Particle<P, M, V001>::print(std::ostream &os, int indent) const
 }
 
 //**************************************************************************************************
-template<typename P, typename M> template<typename TRes, typename ...Args> void
+template<typename P, typename M>
+template<typename TRes, typename ...Args>
+void
 Particle<P, M, V001>::gather(TRes *res, mesh::point_type const &x0, Args &&...args) const
 {
     *res = 0;
@@ -335,7 +350,9 @@ Particle<P, M, V001>::gather(TRes *res, mesh::point_type const &x0, Args &&...ar
 
 }
 
-template<typename P, typename M> template<typename TV, typename ...Others, typename ...Args> void
+template<typename P, typename M>
+template<typename TV, typename ...Others, typename ...Args>
+void
 Particle<P, M, V001>::gather(Field<TV, mesh_type, Others...> *res, Args &&...args) const
 {
 
@@ -359,7 +376,9 @@ Particle<P, M, V001>::gather(Field<TV, mesh_type, Others...> *res, Args &&...arg
     }
 };
 
-template<typename P, typename M> template<typename ...Args> void
+template<typename P, typename M>
+template<typename ...Args>
+void
 Particle<P, M, V001>::push(Args &&...args)
 {
     if (is_valid())
@@ -393,7 +412,9 @@ Particle<P, M, V001>::push(Args &&...args)
 }
 //**************************************************************************************************
 
-template<typename P, typename M> template<typename TFun, typename ...Args> void
+template<typename P, typename M>
+template<typename TFun, typename ...Args>
+void
 Particle<P, M, V001>::apply(range_type const &r0, TFun const &op, Args &&...args)
 {
     parallel::parallel_for(r0, [&](range_type const &r)
@@ -415,7 +436,8 @@ Particle<P, M, V001>::apply(range_type const &r0, TFun const &op, Args &&...args
 }
 
 template<typename P, typename M>
-template<typename TFun, typename ...Args> void
+template<typename TFun, typename ...Args>
+void
 Particle<P, M, V001>::apply(range_type const &r0, TFun const &op, Args &&...args) const
 {
     parallel::parallel_for(
@@ -440,17 +462,20 @@ Particle<P, M, V001>::apply(range_type const &r0, TFun const &op, Args &&...args
 
 //**************************************************************************************************
 
-template<typename P, typename M> void
+template<typename P, typename M>
+void
 Particle<P, M, V001>::erase(id_type const &key) { m_data_->erase(key); }
 
-template<typename P, typename M> void
+template<typename P, typename M>
+void
 Particle<P, M, V001>::erase(range_type const &r) { for (auto const &s:r) { erase(s); }}
 //**************************************************************************************************
 
 //**************************************************************************************************
 
 
-template<typename P, typename M> data_model::DataSet
+template<typename P, typename M>
+data_model::DataSet
 Particle<P, M, V001>::dataset(range_type const &r0) const
 {
     data_model::DataSet ds;
@@ -477,9 +502,17 @@ Particle<P, M, V001>::dataset(data_model::DataSet const &)
     UNIMPLEMENTED;
 };
 
+template<typename P, typename M> void
+Particle<P, M, V001>::dataset(mesh::MeshEntityRange const &, data_model::DataSet const &)
+{
+    UNIMPLEMENTED;
+};
+
+
 //**************************************************************************************************
 
-template<typename P, typename M> size_t
+template<typename P, typename M>
+size_t
 Particle<P, M, V001>::count(range_type const &r0) const
 {
 
@@ -504,7 +537,8 @@ Particle<P, M, V001>::count(range_type const &r0) const
 
 
 template<typename P, typename M>
-template<typename OutputIterator> OutputIterator
+template<typename OutputIterator>
+OutputIterator
 Particle<P, M, V001>::copy(id_type const &s, OutputIterator out_it) const
 {
     typename container_type::const_accessor c_accessor;
@@ -521,7 +555,8 @@ Particle<P, M, V001>::copy(id_type const &s, OutputIterator out_it) const
 }
 
 template<typename P, typename M>
-template<typename OutputIT> OutputIT
+template<typename OutputIT>
+OutputIT
 Particle<P, M, V001>::copy(range_type const &r, OutputIT out_it) const
 {
     //TODO need optimize
@@ -533,7 +568,8 @@ Particle<P, M, V001>::copy(range_type const &r, OutputIT out_it) const
 //*******************************************************************************
 
 
-template<typename P, typename M> void
+template<typename P, typename M>
+void
 Particle<P, M, V001>::merge(buffer_type *buffer)
 {
     parallel::parallel_for(
@@ -560,8 +596,9 @@ namespace detail
 {
 
 
-template<typename value_type, typename container_type, typename TPool, typename TID, typename TInputIterator> void
-insert(std::shared_ptr<container_type> &m_data_, std::shared_ptr<TPool> &m_pool_, TID const &s, TInputIterator ib,
+template<typename value_type, typename container_type, typename TPool, typename TID, typename TInputIterator>
+void
+insert(std::shared_ptr<container_type> &m_data_, std::shared_ptr<TPool> &pool, TID const &s, TInputIterator ib,
        TInputIterator ie)
 {
     typename container_type::accessor acc;
@@ -579,7 +616,7 @@ insert(std::shared_ptr<container_type> &m_data_, std::shared_ptr<TPool> &m_pool_
         {
             //FIXME  here need atomic op
             sp::spPage *p = acc->second.get();
-            sp::makePage(m_pool_).swap(acc->second);
+            sp::makePage(pool).swap(acc->second);
             acc->second->next = p;
 
         }
@@ -587,25 +624,33 @@ insert(std::shared_ptr<container_type> &m_data_, std::shared_ptr<TPool> &m_pool_
 };
 };//namespace detail
 
-template<typename P, typename M> void
+template<typename P, typename M>
+void
 Particle<P, M, V001>::insert(id_type const &s, value_type const &v) { insert(s, &v, &v + 1); }
 
 
-template<typename P, typename M> template<typename Hash, typename TRange> void
+template<typename P, typename M>
+template<typename Hash, typename TRange>
+void
 Particle<P, M, V001>::insert(Hash const &hash, TRange const &v_r)
 {
     parallel::parallel_for(v_r, [&](TRange const &r) { for (auto const &p: v_r) { insert(hash(p), p); }});
 };
 
-template<typename P, typename M> template<typename TInputIterator> void
+template<typename P, typename M>
+template<typename TInputIterator>
+void
 Particle<P, M, V001>::insert(id_type const &s, TInputIterator ib, TInputIterator ie)
 {
+    std::unique_lock<std::mutex> pool_lock(m_pool_mutex_);
     detail::insert<value_type>(m_data_, m_pool_, s, ib, ie);
 }
 
 //*******************************************************************************
 
-template<typename P, typename M> template<typename Predicate> void
+template<typename P, typename M>
+template<typename Predicate>
+void
 Particle<P, M, V001>::remove_if(id_type const &s, Predicate const &pred)
 {
     typename container_type::accessor acc;
@@ -622,7 +667,9 @@ Particle<P, M, V001>::remove_if(id_type const &s, Predicate const &pred)
 }
 
 
-template<typename P, typename M> template<typename Predicate> void
+template<typename P, typename M>
+template<typename Predicate>
+void
 Particle<P, M, V001>::remove_if(range_type const &r0, Predicate const &pred)
 {
     parallel::parallel_for(r0, [&](range_type const &r) { for (auto const &s:r) { remove_if(s, pred); }});
@@ -632,7 +679,9 @@ Particle<P, M, V001>::remove_if(range_type const &r0, Predicate const &pred)
 
 //*******************************************************************************
 
-template<typename P, typename M> template<typename THash> void
+template<typename P, typename M>
+template<typename THash>
+void
 Particle<P, M, V001>::rehash(id_type const &key0, THash const &hash, buffer_type *out_buffer)
 {
     assert(out_buffer != nullptr);
@@ -646,6 +695,7 @@ Particle<P, M, V001>::rehash(id_type const &key0, THash const &hash, buffer_type
             auto key1 = hash(p);
             if (key1 != key0)
             {
+                std::unique_lock<std::mutex> pool_lock(m_pool_mutex_);
                 detail::template insert<value_type>(*out_buffer, m_pool_, key1, &p, &p + 1);
                 return true;
             }
@@ -662,7 +712,9 @@ Particle<P, M, V001>::rehash(id_type const &key0, THash const &hash, buffer_type
 
 };
 
-template<typename P, typename M> template<typename THash> void
+template<typename P, typename M>
+template<typename THash>
+void
 Particle<P, M, V001>::rehash(range_type const &r, THash const &hash, buffer_type *out_buffer)
 {
     parallel::parallel_for(r, [&](range_type const &r) { for (auto const &s: r) { rehash(s, hash, out_buffer); }});

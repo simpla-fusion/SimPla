@@ -18,7 +18,7 @@ int main(int argc, char **argv)
 
     {
         size_t count = 0;
-        SP_OBJ_INSERT(200, struct point_s, p, pg, p_pool)
+        SP_OBJ_INSERT(200, struct point_s, p, pg)
         {
             p->x = count + 20000;
             ++count;

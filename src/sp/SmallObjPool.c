@@ -5,6 +5,10 @@
 #include <memory.h>
 #include <malloc.h>
 
+#ifndef __STDC_NO_THREADS__
+#include <threads.h>
+#endif
+
 #include "SmallObjPool.h"
 
 #define SP_NUMBER_OF_PAGES_IN_GROUP 64
@@ -18,6 +22,10 @@ struct spPageGroup
 };
 struct spPagePool
 {
+#ifndef __STDC_NO_THREADS__
+    mtx_t m_mutex_;
+#endif
+
     size_t obj_size_in_byte;
     struct spPageGroup *head;
     struct spPage *m_free_page;
@@ -38,18 +46,31 @@ void spPagePoolExtent(struct spPagePool *);
 
 struct spPage *spPageCreate(struct spPagePool *pool)
 {
+#ifndef __STDC_NO_THREADS__
+    mtx_lock(&pool->m_mutex_ );
+#endif
     if (pool->m_free_page == 0x0) { spPagePoolExtent(pool); }
     struct spPage *ret = pool->m_free_page;
     pool->m_free_page = pool->m_free_page->next;
     ret->next = 0x0;
     ret->tag = 0x0;
+#ifndef __STDC_NO_THREADS__
+    mtx_unlock(&pool->m_mutex_ );
+#endif
     return ret;
 }
 
 void spPageClose(struct spPage *p, struct spPagePool *pool)
 {
+#ifndef __STDC_NO_THREADS__
+    mtx_lock(&pool->m_mutex_ );
+#endif
     p->next = pool->m_free_page;
     pool->m_free_page = p;
+
+#ifndef __STDC_NO_THREADS__
+    mtx_unlock(&pool->m_mutex_ );
+#endif
 }
 
 
@@ -163,6 +184,9 @@ struct spPagePool *spPagePoolCreate(size_t size_in_byte)
     res->head = 0x0;
     res->m_free_page = 0x0;
     res->obj_size_in_byte = size_in_byte;
+#ifndef __STDC_NO_THREADS__
+    mtx_init(&res->m_mutex_,mtx_plain);
+#endif
     return res;
 }
 
@@ -170,18 +194,31 @@ struct spPagePool *spPagePoolCreate(size_t size_in_byte)
 void spPagePoolExtent(struct spPagePool *pool)
 {
     struct spPageGroup *pg = spPageGroupCreate(pool->obj_size_in_byte);
+#ifndef __STDC_NO_THREADS__
+    mtx_lock(&pool->m_mutex_ );
+#endif
     pg->next = pool->head;
     pool->head = pg;
     pg->m_pages[SP_NUMBER_OF_PAGES_IN_GROUP - 1].next = pool->m_free_page;
     pool->m_free_page = &(pg->m_pages[0]);
+#ifndef __STDC_NO_THREADS__
+    mtx_unlock(&pool->m_mutex_ );
+#endif
 }
 
 void spPagePoolClose(struct spPagePool *pool)
 {
+#ifndef  __STDC_NO_THREADS__
+    mtx_lock(&pool->m_mutex_);
+#endif
     while (pool->head != 0x0)
     {
         pool->head = spPageGroupClose(pool->head);
     }
+#ifndef __STDC_NO_THREADS__
+    mtx_unlock(&pool->m_mutex_ );
+    mtx_destroy(&pool->m_mutex_ );
+#endif
 
 }
 
