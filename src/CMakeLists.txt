@@ -33,5 +33,6 @@ TARGET_LINK_LIBRARIES(simpla_lib
         physics
         #        geometry
         utilities
+        sp #  'C' library
         )
 
