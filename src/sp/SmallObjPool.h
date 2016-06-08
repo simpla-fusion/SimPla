@@ -120,7 +120,7 @@ void spPushBack(struct spPage **, struct spPage *);
  **/
 void spPopBack(struct spPage **, struct spPagePool *);
 
-void spPushFront(struct spPage **, struct spPage *);
+void spPushFront(struct spPage **, struct spPage **);
 
 void spPopFront(struct spPage **, struct spPagePool *);
 
@@ -131,6 +131,8 @@ void spPopFront(struct spPage **, struct spPagePool *);
  */
 size_t spInsert(struct spPage *p, size_t N, size_t size_in_byte, void const *src);
 
+
+size_t spFill(struct spPage *p, size_t N, size_t size_in_byte, void const *src);
 /****************************************************************************
  * Operations
  */
@@ -232,12 +234,12 @@ for (sp::spIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
 
 std::shared_ptr<spPagePool> makePagePool(size_t size_in_byte)
 {
-    return std::shared_ptr<spPagePool>(spPagePoolCreate(size_in_byte), &spPagePoolClose);
+    return std::shared_ptr<spPagePool>(spPagePoolCreate(size_in_byte), [=](spPagePool *pg) { spPagePoolClose(&pg ); });
 }
 
 std::shared_ptr<spPage> makePage(std::shared_ptr<spPagePool> pool)
 {
-    return std::shared_ptr<spPage>(spPageCreate(pool.get()), [=](spPage *pg) { spPageClose(pg, pool.get()); });
+    return std::shared_ptr<spPage>(spPageCreate(pool.get()), [=](spPage *pg) { spPageClose(&pg, pool.get()); });
 }
 
 

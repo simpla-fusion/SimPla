@@ -26,7 +26,7 @@ struct spPagePool
     mtx_t m_mutex_;
 #endif
 
-    size_t obj_size_in_byte;
+    size_t ele_size_in_byte;
     struct spPageGroup *head;
     struct spPage *m_free_page;
 };
@@ -64,17 +64,17 @@ void spPageClose(struct spPage **p, struct spPagePool *pool)
 }
 
 
-struct spPageGroup *spPageGroupCreate(size_t obj_size_in_byte)
+struct spPageGroup *spPageGroupCreate(size_t ele_size_in_byte)
 {
     struct spPageGroup *ret = (struct spPageGroup *) (malloc(sizeof(struct spPageGroup)));
     ret->next = 0x0;
-    ret->m_data = malloc(obj_size_in_byte
+    ret->m_data = malloc(ele_size_in_byte
                          * SP_NUMBER_OF_ELEMENT_IN_PAGE
                          * SP_NUMBER_OF_PAGES_IN_GROUP);
     for (int i = 0; i < SP_NUMBER_OF_PAGES_IN_GROUP; ++i)
     {
         ret->m_pages[i].next = &(ret->m_pages[i + 1]);
-        ret->m_pages[i].data = ret->m_data + i * (obj_size_in_byte
+        ret->m_pages[i].data = ret->m_data + i * (ele_size_in_byte
                                                   * SP_NUMBER_OF_ELEMENT_IN_PAGE);
     }
     ret->m_pages[SP_NUMBER_OF_PAGES_IN_GROUP - 1].next = 0x0;
@@ -142,14 +142,14 @@ struct spPagePool *spPagePoolCreate(size_t size_in_byte)
     struct spPagePool *res = (struct spPagePool *) (malloc(sizeof(struct spPagePool)));
     res->head = 0x0;
     res->m_free_page = 0x0;
-    res->obj_size_in_byte = size_in_byte;
+    res->ele_size_in_byte = size_in_byte;
     return res;
 }
 
 
 void spPagePoolExtent(struct spPagePool *pool)
 {
-    struct spPageGroup *pg = spPageGroupCreate(pool->obj_size_in_byte);
+    struct spPageGroup *pg = spPageGroupCreate(pool->ele_size_in_byte);
     pg->next = pool->head;
     pool->head = pg;
     pg->m_pages[SP_NUMBER_OF_PAGES_IN_GROUP - 1].next = pool->m_free_page;
@@ -305,19 +305,27 @@ void spPopBack(struct spPage **p, struct spPagePool *pool)
 
 }
 
-void spPushFront(struct spPage **p, struct spPage *other)
+void spPushFront(struct spPage **p, struct spPage **other)
 {
-    if (other != 0x0)
+    if (other != 0x0 && *other != 0x0)
     {
-        other->next = *p;
-        *p = other;
+        (*other)->next = *p;
+        *p = *other;
+        *other = 0x0;
     }
 
 };
 
 void spPopFront(struct spPage **p, struct spPagePool *pool)
 {
-    spRemove(p, pool);
+    if (p != 0x0 && *p != 0x0)
+    {
+        struct spPage *t = *p;
+        *p = (*p)->next;
+        t->next = 0x0;
+        spPushFront(&(pool->m_free_page), t);
+    }
+
 };
 
 /****************************************************************************
@@ -359,6 +367,24 @@ size_t spInsert(struct spPage *p, size_t N, size_t size_in_byte, void const *src
 }
 
 
+size_t spFill(struct spPage *p, size_t N, size_t size_in_byte, void const *src)
+{
+    while (N > 0 && p != 0x0)
+    {
+        size_t n = (N < SP_NUMBER_OF_ELEMENT_IN_PAGE) ? N : SP_NUMBER_OF_ELEMENT_IN_PAGE;
+
+        memcpy(p->data, src, size_in_byte * n);
+
+        src += size_in_byte * n;
+
+        N -= n;
+
+        p = p->next;
+    }
+    return N;
+
+}
+
 void *spItTraverse(struct spIterator *it)
 {
     //TODO need optimize
@@ -373,12 +399,12 @@ void *spItTraverse(struct spIterator *it)
         else
         {
             it->tag <<= 1;
-            it->p += it->obj_size_in_byte;
+            it->p += it->ele_size_in_byte;
         }
         while (((it->page->tag & (it->tag)) == 0) && (it->tag != 0))
         {
             it->tag <<= 1;
-            it->p += it->obj_size_in_byte;
+            it->p += it->ele_size_in_byte;
         }
         if (it->tag != 0)
         {
@@ -405,7 +431,7 @@ void *spItInsert(struct spIterator *it)
     while ((it->page->tag & it->tag) != 0)
     {
         it->tag <<= 1;
-        it->p += it->obj_size_in_byte;
+        it->p += it->ele_size_in_byte;
 
         if (it->page->tag + 1 == 0x0 || it->tag == 0x0)
         {
@@ -439,12 +465,12 @@ void *spItRemoveIf(struct spIterator *it, int flag)
             if (flag > 0) { it->page->tag &= ~(it->tag); }
 
             it->tag <<= 1;
-            it->p += it->obj_size_in_byte;
+            it->p += it->ele_size_in_byte;
         }
         while (((it->page->tag & (it->tag)) == 0) && (it->tag != 0))
         {
             it->tag <<= 1;
-            it->p += it->obj_size_in_byte;
+            it->p += it->ele_size_in_byte;
         }
         if (it->tag != 0)
         {

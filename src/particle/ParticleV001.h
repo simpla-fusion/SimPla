@@ -14,12 +14,15 @@
 #include "../mesh/MeshAttribute.h"
 #include "../sp/SmallObjPool.h"
 
-namespace simpla { namespace particle
+namespace simpla
+{
+namespace particle
 {
 
 template<typename ...>
 struct Particle;
 typedef typename simpla::tags::VERSION<0, 0, 1> V001;
+
 
 
 template<typename P, typename M>
@@ -36,17 +39,16 @@ public:
     typedef M mesh_type;
     typedef P engine_type;
     typedef typename P::point_s value_type;
-    typedef std::shared_ptr<struct sp::spPage> bucket_type;
-    typedef std::shared_ptr<struct sp::spPagePool> pool_type;
     typedef typename mesh::MeshEntityId id_type;
     typedef typename mesh::MeshEntityRange range_type;
-    typedef parallel::concurrent_hash_map<id_type, bucket_type> container_type;
+
+    typedef parallel::concurrent_hash_map<id_type, sp::spPage *> container_type;
+
     typedef container_type buffer_type;
 
 private:
     mesh_type const *m_mesh_;
-    pool_type m_pool_;
-    std::mutex m_pool_mutex_;
+    std::shared_ptr<struct sp::spPagePool> m_pool_;
     std::shared_ptr<container_type> m_data_;
     std::shared_ptr<base_type> m_holder_;
     static constexpr mesh::MeshEntityType iform = mesh::VOLUME;
@@ -238,11 +240,11 @@ public:
 
     void erase(range_type const &r);
 
-    template<typename THash>
-    void rehash(id_type const &key, THash const &hash, buffer_type *out_buffer);
+    void rehash(id_type const &key, buffer_type *out_buffer);
 
-    template<typename THash>
-    void rehash(range_type const &key, THash const &hash, buffer_type *out_buffer);
+    void rehash(range_type const &, buffer_type *out_buffer);
+
+    void rehash(range_type const &);
 
     size_t count(range_type const &r) const;
 
@@ -346,7 +348,7 @@ Particle<P, M, V001>::gather(TRes *res, mesh::point_type const &x0, Args &&...ar
         {
 
             for (sp::spIterator __it = {0x0, 0x0, acc1->second.get(), sizeof(value_type)};
-                 sp::spTraverseIterator(&__it) != 0x0;)
+                 sp::spItTraverse(&__it) != 0x0;)
             {
                 engine_type::gather(res, *reinterpret_cast<value_type *>(__it.p), x0, std::forward<Args>(args) ...);
             }
@@ -368,7 +370,9 @@ Particle<P, M, V001>::gather(Field<TV, mesh_type, Others...> *res, Args &&...arg
         res->apply(res->entity_id_range(),
                    [&](point_type const &x)
                    {
-                       typename traits::field_value_type<Field<TV, mesh_type, Others...>>::type v;
+                       typename traits::field_value_type<Field < TV, mesh_type, Others...>>
+                       ::type
+                       v;
                        this->gather(&v, x, std::forward<Args>(args)                               ...);
                        return v;
                    });
@@ -400,7 +404,7 @@ Particle<P, M, V001>::push(Args &&...args)
                         if (m_data_->find(acc, s))
                         {
                             for (sp::spIterator __it = {0x0, 0x0, acc->second.get(), sizeof(value_type)};
-                                 sp::spTraverseIterator(&__it) != 0x0;)
+                                 sp::spItTraverse(&__it) != 0x0;)
                             {
                                 engine_type::push(reinterpret_cast<value_type *>(__it.p), std::forward<Args>(args) ...);
                             }
@@ -430,7 +434,7 @@ Particle<P, M, V001>::apply(range_type const &r0, TFun const &op, Args &&...args
             if (m_data_->find(acc, s))
             {
                 for (sp::spIterator __it = {0x0, 0x0, acc->second.get(), sizeof(value_type)};
-                     sp::spTraverseIterator(&__it) != 0x0;)
+                     sp::spItTraverse(&__it) != 0x0;)
                 {
                     fun(reinterpret_cast<value_type *>(__it.p), std::forward<Args>(args) ...);
                 }
@@ -455,7 +459,7 @@ Particle<P, M, V001>::apply(range_type const &r0, TFun const &op, Args &&...args
                     if (m_data_->find(acc, s))
                     {
                         for (sp::spIterator __it = {0x0, 0x0, acc->second.get(), sizeof(value_type)};
-                             sp::spTraverseIterator(&__it) != 0x0;)
+                             sp::spItTraverse(&__it) != 0x0;)
                         {
                             fun(*reinterpret_cast<value_type *>(__it.p), std::forward<Args>(args) ...);
                         }
@@ -502,35 +506,40 @@ Particle<P, M, V001>::dataset(range_type const &r0) const
 };
 
 template<typename P, typename M> void
-Particle<P, M, V001>::dataset(data_model::DataSet const &)
+Particle<P, M, V001>::dataset(data_model::DataSet const &d)
 {
-    UNIMPLEMENTED;
+    dataset(m_mesh_->range(entity_type()), d);
 };
 
 template<typename P, typename M> void
-Particle<P, M, V001>::dataset(mesh::MeshEntityRange const &, data_model::DataSet const &ds)
+Particle<P, M, V001>::dataset(mesh::MeshEntityRange const &r0, data_model::DataSet const &ds)
 {
-    value_type const *src = reinterpret_cast<value_type const *>(ds.data.get());
-    size_t count = ds.memory_space.num_of_elements();
-    sp::spPage *pg = sp::spPageCreate(m_pool_.get());
 
-    while (count > 0)
-    {
-        for (sp::spIterator __it = {0x0, 0x0, pg, sizeof(value_type)};
-             sp::spInsertIterator(&__it) != 0x0 && (count != 0); --count, ++src)
-        {
-            *reinterpret_cast<value_type *>(__it.p) = *src;
-        }
-        if (count != 0)
-        {
-            std::unique_lock<std::mutex> pool_lock(m_pool_mutex_);
-            sp::spPage *p = pg;
-            pg = sp::spPageCreate(m_pool_.get());
-            pg->next = p;
-        }
-    }
-    std::unique_lock<std::mutex> pool_lock(m_pool_mutex_);
-    sp::spPageClose(pg, m_pool_.get());
+
+//    ptrdiff_t inc = std::max(10, (num_of_element / r.size()));
+//    std::map<id_type, std::tuple<size_t, void *>> ptr;
+//
+//    {
+//        auto it = r0.begin();
+//
+//        auto ie = r0.end();
+//
+//
+//
+//        while ((num_of_element > 0) && (it != ie))
+//        {
+//            size_t n = std::min(inc, num_of_element);
+//
+//            ptr.emplace(std::make_pair(*it, std::make_tuple(n, v));
+//
+//            v += n * size_in_byte;
+//            num_of_element -= n;
+//            ++it;
+//        }
+//    }
+
+
+
 };
 
 
@@ -549,7 +558,7 @@ Particle<P, M, V001>::count(range_type const &r0) const
                 {
                     typename container_type::const_accessor acc;
 
-                    if (m_data_->find(acc, s)) { init += sp::spPageCount(acc->second.get()); }
+                    if (m_data_->find(acc, s)) { init += sp::spSize(acc->second.get()); }
                 }
 
                 return init;
@@ -570,7 +579,7 @@ Particle<P, M, V001>::copy(id_type const &s, OutputIterator out_it) const
     if (m_data_->find(c_accessor, s))
     {
         for (sp::spIterator __it = {0x0, 0x0, c_accessor->second.get(), sizeof(value_type)};
-             sp::spTraverseIterator(&__it) != 0x0;)
+             sp::spItTraverse(&__it) != 0x0;)
         {
             *out_it = *reinterpret_cast<value_type *>(__it.p);
         }
@@ -628,7 +637,7 @@ Particle<P, M, V001>::_insert(container_type *data, id_type const &s,
     while (ib != ie)
     {
         for (sp::spIterator __it = {0x0, 0x0, acc->second.get(), sizeof(value_type)};
-             sp::spInsertIterator(&__it) != 0x0 && (ib != ie); ++ib)
+             sp::spItInsert(&__it) != 0x0 && (ib != ie); ++ib)
         {
             *reinterpret_cast<value_type *>(__it.p) = *ib;
         }
@@ -674,7 +683,7 @@ Particle<P, M, V001>::remove_if(id_type const &s, Predicate const &pred)
     {
         int flag = 0;
         for (sp::spIterator __it = {0x0, 0x0, acc->second.get(), sizeof(value_type)};
-             sp::spRemoveIfIterator(&__it, flag) != 0x0;)
+             sp::spItRemoveIf(&__it, flag) != 0x0;)
         {
             flag = pred(reinterpret_cast<value_type *>(__it.p)) ? 1 : 0;
         }
@@ -694,8 +703,8 @@ Particle<P, M, V001>::remove_if(range_type const &r0, Predicate const &pred)
 
 //*******************************************************************************
 
-template<typename P, typename M> template<typename THash> void
-Particle<P, M, V001>::rehash(id_type const &key0, THash const &hash, buffer_type *out_buffer)
+template<typename P, typename M> void
+Particle<P, M, V001>::rehash(id_type const &key0, buffer_type *out_buffer)
 {
     assert(out_buffer != nullptr);
 
@@ -705,12 +714,11 @@ Particle<P, M, V001>::rehash(id_type const &key0, THash const &hash, buffer_type
     {
         remove_if(key0, [&](value_type const &p)
         {
-            auto key1 = hash(p);
+            auto key1 = m_mesh->hash(engine::project(p));
             if (key1 != key0)
             {
                 std::unique_lock<std::mutex> pool_lock(m_pool_mutex_);
                 _insert(out_buffer, key1, &p, &p + 1);
-                return true;
             }
             else
             {
@@ -728,11 +736,20 @@ Particle<P, M, V001>::rehash(id_type const &key0, THash const &hash, buffer_type
 template<typename P, typename M>
 template<typename THash>
 void
-Particle<P, M, V001>::rehash(range_type const &r, THash const &hash, buffer_type *out_buffer)
+Particle<P, M, V001>::rehash(range_type const &r, buffer_type *out_buffer)
 {
-    parallel::parallel_for(r, [&](range_type const &r) { for (auto const &s: r) { rehash(s, hash, out_buffer); }});
+    parallel::parallel_for(r, [&](range_type const &r) { for (auto const &s: r) { rehash(s, out_buffer); }});
 };
 
+
+template<typename P, typename M> void
+Particle<P, M, V001>::rehash(range_type const &r)
+{
+    buffer_type buffer;
+    rehash(r, &buffer);
+    merge(&buffer);
+};
 //**************************************************************************************************
-}}//namespace simpla { namespace particle
+}
+}//namespace simpla { namespace particle
 #endif //SIMPLA_PARTICLELITE_H

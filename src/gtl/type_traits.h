@@ -32,6 +32,19 @@ template<size_t I> using index_const=std::integral_constant<size_t, I>;
 namespace tags { struct do_nothing { template<typename ...Args> void operator()(Args &&...) const { }}; }
 
 
+namespace traits
+{
+template<typename ...> class type_id;
+
+template<size_t I>
+struct type_id<std::integral_constant<size_t, I> >
+{
+    static std::string name()
+    {
+        return "[" + simpla::type_cast<std::string>(I) + "]";
+    }
+};
+}
 namespace _impl
 {
 template<typename Func, typename Tup, int ... index>
@@ -133,7 +146,9 @@ template<typename T> struct rank : public std::integral_constant<int, std::rank<
 
 template<typename T, int N = 0> struct extent : public std::extent<T, N> { };
 template<typename _Tp, _Tp ...N>
-struct extent<integer_sequence<_Tp, N...>, 0> : public index_const<sizeof...(N)> { };
+struct extent<integer_sequence<_Tp, N...>, 0> : public index_const<sizeof...(N)>
+{
+};
 
 
 //**********************************************************************************************************************
@@ -145,7 +160,10 @@ template<typename T> struct value_type<std::complex<T>> { typedef std::complex<T
 
 template<> struct value_type<std::string> { typedef std::string type; };
 
-template<typename _Tp, _Tp ...N> struct value_type<integer_sequence<_Tp, N...> > { typedef _Tp type; };
+template<typename _Tp, _Tp ...N> struct value_type<integer_sequence<_Tp, N...> >
+{
+    typedef _Tp type;
+};
 
 template<typename T> using value_type_t=typename value_type<T>::type;
 

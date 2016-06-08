@@ -1,3 +1,3 @@
-add_library(particle ../sp/SmallObjPool.c)
+add_library(particle ../sp/SmallObjPool.c ParticleV001.cpp)
 
-ADD_SUBDIRECTORY( test)
+ADD_SUBDIRECTORY(test)
