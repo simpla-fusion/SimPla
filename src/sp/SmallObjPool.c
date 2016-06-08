@@ -32,78 +32,37 @@ struct spPagePool
 };
 
 
-struct spPageGroup *spPageGroupCreate(size_t obj_size_in_byte);
-
-struct spPageGroup *spPageGroupClose(struct spPageGroup *pg);
-
-size_t spPageGroupCount(struct spPageGroup const *pg);
-
-struct spPage *spPageGroupClean(struct spPageGroup **pg);
-
-
-void spPagePoolExtent(struct spPagePool *);
-
-
 struct spPage *spPageCreate(struct spPagePool *pool)
 {
-#ifndef __STDC_NO_THREADS__
-    mtx_lock(&pool->m_mutex_ );
-#endif
+
     if (pool->m_free_page == 0x0) { spPagePoolExtent(pool); }
     struct spPage *ret = pool->m_free_page;
     pool->m_free_page = pool->m_free_page->next;
     ret->next = 0x0;
     ret->tag = 0x0;
-#ifndef __STDC_NO_THREADS__
-    mtx_unlock(&pool->m_mutex_ );
-#endif
+
     return ret;
 }
 
-void spPageClose(struct spPage *p, struct spPagePool *pool)
+struct spPage *spPageCreateN(struct spPagePool *pool, size_t num)
 {
-#ifndef __STDC_NO_THREADS__
-    mtx_lock(&pool->m_mutex_ );
-#endif
-    p->next = pool->m_free_page;
-    pool->m_free_page = p;
-
-#ifndef __STDC_NO_THREADS__
-    mtx_unlock(&pool->m_mutex_ );
-#endif
-}
-
-
-size_t bit_count64(uint64_t x)
-{
-    static const uint64_t m1 = 0x5555555555555555; //binary: 0101...
-    static const uint64_t m2 = 0x3333333333333333; //binary: 00110011..
-    static const uint64_t m4 = 0x0f0f0f0f0f0f0f0f; //binary:  4 zeros,  4 ones ...
-    static const uint64_t m8 = 0x00ff00ff00ff00ff; //binary:  8 zeros,  8 ones ...
-    static const uint64_t m16 = 0x0000ffff0000ffff; //binary: 16 zeros, 16 ones ...
-    static const uint64_t m32 = 0x00000000ffffffff; //binary: 32 zeros, 32 ones
-
-
-    x = (x & m1) + ((x >> 1) & m1); //put count of each  2 bits into those  2 bits
-    x = (x & m2) + ((x >> 2) & m2); //put count of each  4 bits into those  4 bits
-    x = (x & m4) + ((x >> 4) & m4); //put count of each  8 bits into those  8 bits
-    x = (x & m8) + ((x >> 8) & m8); //put count of each 16 bits into those 16 bits
-    x = (x & m16) + ((x >> 16) & m16); //put count of each 32 bits into those 32 bits
-    x = (x & m32) + ((x >> 32) & m32); //put count of each 64 bits into those 64 bits
-    return (size_t) x;
-
-}
-
-size_t spPageCount(struct spPage const *p)
-{
-    size_t res = 0;
-    while (p != 0x0)
+    struct spPage *front = spPageCreate(pool);
+    struct spPage *back = front;
+    for (int i = 0; i < num - 1; ++i)
     {
-        res += bit_count64(p->tag);
-        p = p->next;
+        back->next = spPageCreate(pool);
+        back = back->next;
     }
-    return res;
+    return front;
+};
+
+void spPageClose(struct spPage **p, struct spPagePool *pool)
+{
+    spClear(*p);
+    spPushFront(&(pool->m_free_page), *p);
+    *p = 0x0;
 }
+
 
 struct spPageGroup *spPageGroupCreate(size_t obj_size_in_byte)
 {
@@ -139,7 +98,7 @@ size_t spPageGroupCount(struct spPageGroup const *pg)
     size_t count = 0;
     for (int i = 0; i < SP_NUMBER_OF_PAGES_IN_GROUP; ++i)
     {
-        count += spPageCount(&pg->m_pages[i]);
+        count += spSize(&pg->m_pages[i]);
     }
     return count;
 }
@@ -151,7 +110,7 @@ size_t spPageGroupCount(struct spPageGroup const *pg)
 struct spPage *spPageGroupClean(struct spPageGroup **pg)
 {
     struct spPage *ret = 0x0;
-    while (pg != 0x0)
+    while (*pg != 0x0)
     {
         struct spPageGroup *pg0 = *pg;
         (*pg) = (*pg)->next;
@@ -184,9 +143,6 @@ struct spPagePool *spPagePoolCreate(size_t size_in_byte)
     res->head = 0x0;
     res->m_free_page = 0x0;
     res->obj_size_in_byte = size_in_byte;
-#ifndef __STDC_NO_THREADS__
-    mtx_init(&res->m_mutex_,mtx_plain);
-#endif
     return res;
 }
 
@@ -194,51 +150,216 @@ struct spPagePool *spPagePoolCreate(size_t size_in_byte)
 void spPagePoolExtent(struct spPagePool *pool)
 {
     struct spPageGroup *pg = spPageGroupCreate(pool->obj_size_in_byte);
-#ifndef __STDC_NO_THREADS__
-    mtx_lock(&pool->m_mutex_ );
-#endif
     pg->next = pool->head;
     pool->head = pg;
     pg->m_pages[SP_NUMBER_OF_PAGES_IN_GROUP - 1].next = pool->m_free_page;
     pool->m_free_page = &(pg->m_pages[0]);
-#ifndef __STDC_NO_THREADS__
-    mtx_unlock(&pool->m_mutex_ );
-#endif
+
 }
 
-void spPagePoolClose(struct spPagePool *pool)
+void spPagePoolClose(struct spPagePool **pool)
 {
-#ifndef  __STDC_NO_THREADS__
-    mtx_lock(&pool->m_mutex_);
-#endif
-    while (pool->head != 0x0)
-    {
-        pool->head = spPageGroupClose(pool->head);
-    }
-#ifndef __STDC_NO_THREADS__
-    mtx_unlock(&pool->m_mutex_ );
-    mtx_destroy(&pool->m_mutex_ );
-#endif
 
+    while ((*pool)->head != 0x0)
+    {
+        (*pool)->head = spPageGroupClose((*pool)->head);
+    }
+    (*pool) = 0x0;
+
+}
+/****************************************************************************
+ * Element access
+ */
+/**
+ *  access the first element
+ */
+struct spPage *spFront(struct spPage *p) { return p; }
+
+/**
+ *  access the last element
+ */
+struct spPage *spBack(struct spPage *p)
+{
+    if (p != 0x0) { while (p->next != 0x0) { p = p->next; }}
+    return p;
 }
 
 
-size_t spInsertObj(size_t count, size_t size_in_byte, void const *src, struct spPage *head)
+/****************************************************************************
+ * Capacity
+ */
+
+int spEmpty(struct spPage const *p)
+{
+    int res = 0;
+    while (p != 0x0)
+    {
+        res += (p->tag > 0x0) ? 1 : 0;
+        p = p->next;
+    }
+    return (res == 0) ? 1 : 0;
+};
+
+int spFull(struct spPage const *p)
+{
+    int res = 0;
+    while (p != 0x0)
+    {
+        res += ((p->tag + 1) != 0x0) ? 1 : 0;
+        p = p->next;
+    }
+    return (res == 0) ? 1 : 0;
+};
+
+size_t spMaxSize(struct spPage const *p)
+{
+    return (size_t) (-1);
+};
+
+size_t bit_count64(uint64_t x)
+{
+    static const uint64_t m1 = 0x5555555555555555; //binary: 0101...
+    static const uint64_t m2 = 0x3333333333333333; //binary: 00110011..
+    static const uint64_t m4 = 0x0f0f0f0f0f0f0f0f; //binary:  4 zeros,  4 ones ...
+    static const uint64_t m8 = 0x00ff00ff00ff00ff; //binary:  8 zeros,  8 ones ...
+    static const uint64_t m16 = 0x0000ffff0000ffff; //binary: 16 zeros, 16 ones ...
+    static const uint64_t m32 = 0x00000000ffffffff; //binary: 32 zeros, 32 ones
+
+
+    x = (x & m1) + ((x >> 1) & m1); //put count of each  2 bits into those  2 bits
+    x = (x & m2) + ((x >> 2) & m2); //put count of each  4 bits into those  4 bits
+    x = (x & m4) + ((x >> 4) & m4); //put count of each  8 bits into those  8 bits
+    x = (x & m8) + ((x >> 8) & m8); //put count of each 16 bits into those 16 bits
+    x = (x & m16) + ((x >> 16) & m16); //put count of each 32 bits into those 32 bits
+    x = (x & m32) + ((x >> 32) & m32); //put count of each 64 bits into those 64 bits
+    return (size_t) x;
+
+}
+
+size_t spSize(struct spPage const *p)
+{
+    size_t res = 0;
+    while (p != 0x0)
+    {
+        res += bit_count64(p->tag);
+        p = p->next;
+    }
+    return res;
+}
+
+size_t spCapacity(struct spPage const *p)
+{
+    size_t res = 0;
+    while (p != 0x0)
+    {
+        res += SP_NUMBER_OF_ELEMENT_IN_PAGE;
+        p = p->next;
+    }
+    return res;
+};
+
+void spReserve(struct spPage **p, size_t num, struct spPagePool *pool)
+{
+    if (num > spCapacity(*p))
+    {
+        spPushFront(p, spPageCreateN(pool, (size_t) ((num - spCapacity(*p)) / SP_NUMBER_OF_ELEMENT_IN_PAGE + 1)));
+    }
+
+
+};
+
+void spShrinkToFit(struct spPage **p, struct spPagePool *pool)
+{
+    if (p == 0x0) { return; }
+
+    struct spPage **t = p;
+    while (*t != 0x0)
+    {
+        if ((*t)->tag == 0x0) { spRemove(t, pool); }
+        else { t = &((*t)->next); }
+    }
+
+};
+
+/** adds an element to the end */
+void spPushBack(struct spPage **p, struct spPage *other)
+{
+    if (p == 0x0) { return; }
+    else
+    {
+        while ((*p) != 0x0) { p = &((*p)->next); }
+        *p = other;
+    }
+
+
+};
+
+/** removes the last element */
+void spPopBack(struct spPage **p, struct spPagePool *pool)
+{
+    if (p != 0x0 && *p != 0x0)
+    {
+        while ((*p)->next != 0x0) { p = &((*p)->next); }
+        spRemove(p, pool);
+    }
+
+}
+
+void spPushFront(struct spPage **p, struct spPage *other)
+{
+    if (other != 0x0)
+    {
+        other->next = *p;
+        *p = other;
+    }
+
+};
+
+void spPopFront(struct spPage **p, struct spPagePool *pool)
+{
+    spRemove(p, pool);
+};
+
+/****************************************************************************
+ * Modifiers
+ */
+
+void spClear(struct spPage *p)
+{
+    while (p != 0x0)
+    {
+        p->tag = 0x0;
+        p = p->next;
+    }
+};
+
+void spRemove(struct spPage **p, struct spPagePool *pool)
+{
+    if (p != 0x0 && *p != 0x0)
+    {
+        struct spPage *t = *p;
+        *p = (*p)->next;
+        t->next = 0x0;
+        spPushFront(&(pool->m_free_page), t);
+    }
+}
+
+
+size_t spInsert(struct spPage *p, size_t N, size_t size_in_byte, void const *src)
 {
     void *dest = 0x0;
-    for (struct spIterator __it = {0x0, 0x0, head, size_in_byte};
-         ((dest = spInsertIterator(&__it)) != 0x0) && (count > 1); --count)
+    for (struct spIterator __it = {0x0, 0x0, p, size_in_byte};
+         (N > 0) && ((dest = spItInsert(&__it)) != 0x0); --N)
     {
         memcpy(dest, src, size_in_byte);
         src += size_in_byte;
     }
-    return count;
 
-
+    return N;
 }
 
 
-void *spTraverseIterator(struct spIterator *it)
+void *spItTraverse(struct spIterator *it)
 {
     //TODO need optimize
     void *ret = 0x0;
@@ -268,7 +389,7 @@ void *spTraverseIterator(struct spIterator *it)
     return ret;
 }
 
-void *spInsertIterator(struct spIterator *it)
+void *spItInsert(struct spIterator *it)
 {
     //TODO need optimize
     void *ret = 0x0;
@@ -301,7 +422,7 @@ void *spInsertIterator(struct spIterator *it)
 }
 
 
-void *spRemoveIfIterator(struct spIterator *it, int flag)
+void *spItRemoveIf(struct spIterator *it, int flag)
 {
     //TODO need optimize
     void *ret = 0x0;

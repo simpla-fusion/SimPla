@@ -18,12 +18,12 @@ int main(int argc, char **argv)
 
     {
         size_t count = 0;
-        SP_OBJ_INSERT(200, struct point_s, p, pg)
+        SP_OBJ_INSERT(200, struct point_s, p, pg)(NULL, , 0, NULL)
         {
             p->x = count + 20000;
             ++count;
         }
-        printf("  count=%0lu \n", spPageCount(pg));
+        printf("  count=%0lu \n", spSize(pg));
 
     }
     {
@@ -33,7 +33,7 @@ int main(int argc, char **argv)
             p->x = count;
             ++count;
         }
-        printf("  count=%0lu \n", spPageCount(pg));
+        printf("  count=%0lu \n", spSize(pg));
     }
     {
 
@@ -43,7 +43,7 @@ int main(int argc, char **argv)
             tag = ((count % 3) == 0) ? 0 : 1;
             ++count;
         }
-        printf("  count=%0lu \n", spPageCount(pg));
+        printf("  count=%0lu \n", spSize(pg));
 
     }
 

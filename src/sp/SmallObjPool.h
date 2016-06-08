@@ -28,20 +28,121 @@ struct spPagePool;
 
 struct spPage *spPageCreate(struct spPagePool *pool);
 
-void spPageClose(struct spPage *p, struct spPagePool *pool);
+struct spPage *spPageCreateN(struct spPagePool *pool, size_t num);
 
-size_t spPageCount(struct spPage const *p);
+void spPageClose(struct spPage **p, struct spPagePool *pool);
 
 struct spPagePool *spPagePoolCreate(size_t size_in_byte);
 
-void spPagePoolClose(struct spPagePool *pool);
+void spPagePoolClose(struct spPagePool **pool);
+
+/****************************************************************************
+ * Element access
+ */
+/**
+ *  access the first element
+ */
+struct spPage *spFront(struct spPage *p);
+
+/**
+ *  access the last element
+ */
+struct spPage *spBack(struct spPage *p);
+
+/****************************************************************************
+ * Capacity
+ */
+
+/**
+ *  checks whether the container is empty
+ *  @return if empty return 1, else return 0
+ */
+int spEmpty(struct spPage const *p);
+
+
+/**
+ *  checks whether the container is full
+ *  @return if full return 1, else return 0
+ */
+int spFull(struct spPage const *p);
+
+/**
+ * @return  the number of elements
+ */
+size_t spSize(struct spPage const *p);
+
+/**
+ * @ returns the maximum possible number of elements
+ */
+size_t spMaxSize(struct spPage const *p);
+
+/**
+ * @return the number of elements that can be held in currently allocated storage
+ */
+size_t spCapacity(struct spPage const *p);
+
+/**
+ *  reserves storage
+ */
+void spReserve(struct spPage **p, size_t num, struct spPagePool *pool);
+
+
+/**
+ * reduces memory usage by freeing unused memory
+ * @return removed page
+ */
+void spShrinkToFit(struct spPage **p, struct spPagePool *);
+
+/****************************************************************************
+ * Modifiers
+ */
+
+/**
+ * 	clears the contents, but do not release memory
+ * 	size=0, but do not change capacity
+ *
+ */
+void spClear(struct spPage *);
+
+/**
+ * 	remove
+ * 	@return *p=(old *p)->next;
+ */
+void spRemove(struct spPage **p, struct spPagePool *pool);
+
+/** adds an element to the end
+ *  @return last element
+ **/
+void spPushBack(struct spPage **, struct spPage *);
+
+/** removes the last element
+ *  @return last element
+ **/
+void spPopBack(struct spPage **, struct spPagePool *);
+
+void spPushFront(struct spPage **, struct spPage *);
+
+void spPopFront(struct spPage **, struct spPagePool *);
 
 /**
  *  1. insert 'num' objects to 'dest' page
- *  @return if 'dest' is full then return number of remain objects;
+ *  @return if 'p' is full then return number of remain objects;
  *          else return 0;
  */
-size_t spInsertObj(size_t num, size_t size_in_byte, void const *src, struct spPage *dest);
+size_t spInsert(struct spPage *p, size_t N, size_t size_in_byte, void const *src);
+
+/****************************************************************************
+ * Operations
+ */
+/**
+ * merges two sorted lists
+ */
+void spMerge(struct spPage *, struct spPage **);
+
+
+/****************************************************************************
+ * Iterators
+ */
 
 struct spIterator
 {
@@ -57,13 +158,14 @@ struct spIterator
  * @return  if 'next obj' is available then return pointer to 'next obj'
  *           else return 0x0
  */
-void *spTraverseIterator(struct spIterator *it);
+void *spItTraverse(struct spIterator *it);
 
 /**
  * 1. insert new obj to page
  * @return if page is full return 0x0, else return pointer to new obj
  */
-void *spInsertIterator(struct spIterator *it);
+void *spItInsert(struct spIterator *it);
+
 
 /**
  * 1. if flag > 0 then remove 'current obj', else do nothing
@@ -71,8 +173,7 @@ void *spInsertIterator(struct spIterator *it);
  * @return if 'next obj' is available then return pointer to 'next obj',
  *          else return 0x0
  */
-void *spRemoveIfIterator(struct spIterator *it, int flag);
-
+void *spItRemoveIf(struct spIterator *it, int flag);
 
 #ifndef __cplusplus
 /**
@@ -83,7 +184,7 @@ void *spRemoveIfIterator(struct spIterator *it, int flag);
 #define SP_OBJ_FOREACH(__TYPE__, __PTR__, __PG_HEAD__)          \
 __TYPE__ *__PTR__ = 0x0; \
 for (struct spIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
-(__PTR__ =  spTraverseIterator(&__it)) != 0x0;)
+(__PTR__ =  spItTraverse(&__it)) != 0x0;)
 
 /**
  * insert elements to page .
@@ -93,12 +194,12 @@ for (struct spIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
 #define SP_OBJ_INSERT(__NUMBER__, __TYPE__, __PTR__, __PG_HEAD__)          \
 __TYPE__ *__PTR__; size_t __count = __NUMBER__; \
 for (struct spIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
-(__PTR__ =  spInsertIterator(&__it )) != 0x0 && (__count>1);--__count)
+(__PTR__ =  spItInsert(&__it )) != 0x0 && (__count>1);--__count)
 
 #define SP_OBJ_REMOVE_IF(__TYPE__, __PTR__, __PG_HEAD__, __TAG__)          \
 __TYPE__ *__PTR__ = 0x0; int __TAG__=0;\
 for (struct spIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
-(__PTR__ =  spRemoveIfIterator(&__it,__TAG__)) != 0x0;)
+(__PTR__ =  spItRemoveIf(&__it,__TAG__)) != 0x0;)
 
 #else
 }// extern "C" {
@@ -111,7 +212,7 @@ for (struct spIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
 #define SP_OBJ_FOREACH(__TYPE__, __PTR__, __PG_HEAD__)          \
 __TYPE__ *__PTR__ = 0x0; \
 for (sp::spIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
-(__PTR__ =  reinterpret_cast<__TYPE__ *>(sp::spTraverseIterator(&__it))) != 0x0;)
+(__PTR__ =  reinterpret_cast<__TYPE__ *>(sp::spItTraverse(&__it))) != 0x0;)
 
 /**
  * insert elements to page .
@@ -121,12 +222,12 @@ for (sp::spIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
 #define SP_OBJ_INSERT(__NUMBER__, __TYPE__, __PTR__, __PG_HEAD__)          \
 __TYPE__ *__PTR__; size_t __count = __NUMBER__; \
 for (sp::spIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
-(__PTR__ =  reinterpret_cast<__TYPE__ *>(sp::spInsertIterator(&__it))) != 0x0 && (__count>1);--__count)
+(__PTR__ =  reinterpret_cast<__TYPE__ *>(sp::spItInsert(&__it))) != 0x0 && (__count>1);--__count)
 
 #define SP_OBJ_REMOVE_IF(__TYPE__, __PTR__, __PG_HEAD__, __TAG__)          \
 __TYPE__ *__PTR__ = 0x0; int __TAG__=0;\
 for (sp::spIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
-(__PTR__ = reinterpret_cast<__TYPE__ *>( sp::spRemoveIfIterator(&__it,__TAG__))) != 0x0;)
+(__PTR__ = reinterpret_cast<__TYPE__ *>( sp::spItRemoveIf(&__it,__TAG__))) != 0x0;)
 
 
 std::shared_ptr<spPagePool> makePagePool(size_t size_in_byte)
