@@ -13,166 +13,31 @@
 
 #define SP_NUMBER_OF_PAGES_IN_GROUP 64
 
+
 struct spPageGroup
 {
     struct spPageGroup *next;
     struct spPage m_pages[SP_NUMBER_OF_PAGES_IN_GROUP];
-    status_tag_type tag;
     void *m_data;
 };
 struct spPagePool
 {
     size_t ele_size_in_byte;
-    struct spPageGroup *head;
+    struct spPageGroup *m_page_group_head;
     struct spPage *m_free_page;
 };
 
 struct spPagePool *spPagePoolCreate(size_t size_in_byte);
 
-void spPagePoolClose(struct spPagePool **pool);
+void spPagePoolDestroy(struct spPagePool **pool);
 
-size_t spSizeInByte(struct spPagePool const *pool);
+void spPagePoolRelease(struct spPagePool *pool);
 
 size_t spSizeInByte(struct spPagePool const *pool) { return pool->ele_size_in_byte; }
 
-void spPagePoolExtent(struct spPagePool *pool);
-
-struct spPage *spPageCreate(struct spPage **buffer)
-{
-    struct spPage *ret = *buffer;
-
-    if (*buffer != 0x0) { *buffer = (*buffer)->next; }
-    ret->next = 0x0;
-    ret->tag = 0x0;
-    return ret;
-}
-
-//struct spPage *spPageCreateN(struct spPage **buffer, size_t num)
-//{
-//    struct spPage *head = *buffer;
-//
-//    for (int i = 0; i < num - 1; ++i)
-//    {
-//        (*buffer)->tag = 0x0;
-//        *buffer = (*buffer)->next;
-//    }
-//    struct spPage *tail = *buffer;
-//    *buffer = (*buffer)->next;
-//    tail->next = 0x0;
-//    return head;
-//};
-
-//void spPageClose(struct spPage **p, struct spPage **buffer)
-//{
-//
-//    spPushFront(buffer, p);
-//
-//}
+struct spPageGroup *spPageGroupCreate(size_t ele_size_in_byte);
 
 
-struct spPageGroup *spPageGroupCreate(size_t ele_size_in_byte)
-{
-    struct spPageGroup *ret = (struct spPageGroup *) (malloc(sizeof(struct spPageGroup)));
-    ret->next = 0x0;
-    ret->m_data = malloc(ele_size_in_byte
-                         * SP_NUMBER_OF_ELEMENT_IN_PAGE
-                         * SP_NUMBER_OF_PAGES_IN_GROUP);
-    for (int i = 0; i < SP_NUMBER_OF_PAGES_IN_GROUP; ++i)
-    {
-        ret->m_pages[i].next = &(ret->m_pages[i + 1]);
-        ret->m_pages[i].data = ret->m_data + i * (ele_size_in_byte
-                                                  * SP_NUMBER_OF_ELEMENT_IN_PAGE);
-    }
-    ret->m_pages[SP_NUMBER_OF_PAGES_IN_GROUP - 1].next = 0x0;
-    return ret;
-}
-
-/**
- * @return next page group
- */
-struct spPageGroup *spPageGroupClose(struct spPageGroup *pg)
-{
-    struct spPageGroup *ret;
-    ret = pg->next;
-    free(pg->m_data);
-    free(pg);
-    return ret;
-}
-
-size_t spPageGroupCount(struct spPageGroup const *pg)
-{
-    size_t count = 0;
-    for (int i = 0; i < SP_NUMBER_OF_PAGES_IN_GROUP; ++i)
-    {
-        count += spSize(&pg->m_pages[i]);
-    }
-    return count;
-}
-
-/**
- *  @return first free page
- *    pg = first page group
- */
-struct spPage *spPageGroupClean(struct spPageGroup **pg)
-{
-    struct spPage *ret = 0x0;
-    while (*pg != 0x0)
-    {
-        struct spPageGroup *pg0 = *pg;
-        (*pg) = (*pg)->next;
-        struct spPage *tmp = ret;
-        size_t count = 0;
-        for (int i = 0; i < SP_NUMBER_OF_PAGES_IN_GROUP; ++i)
-        {
-            if (pg0->m_pages[i].tag == 0)
-            {
-                pg0->m_pages[i].next = ret;
-                ret = &(pg0->m_pages[i]);
-                ++count;
-            }
-        }
-        //
-        if (count >= SP_NUMBER_OF_PAGES_IN_GROUP) //group is empty
-        {
-            ret = tmp;
-            spPageGroupClose(pg0);
-        }
-
-    }
-
-    return ret;
-}
-
-struct spPagePool *spPagePoolCreate(size_t size_in_byte)
-{
-    struct spPagePool *res = (struct spPagePool *) (malloc(sizeof(struct spPagePool)));
-    res->head = 0x0;
-    res->m_free_page = 0x0;
-    res->ele_size_in_byte = size_in_byte;
-    return res;
-}
-
-
-void spPagePoolExtent(struct spPagePool *pool)
-{
-    struct spPageGroup *pg = spPageGroupCreate(pool->ele_size_in_byte);
-    pg->next = pool->head;
-    pool->head = pg;
-    pg->m_pages[SP_NUMBER_OF_PAGES_IN_GROUP - 1].next = pool->m_free_page;
-    pool->m_free_page = &(pg->m_pages[0]);
-
-}
-
-void spPagePoolClose(struct spPagePool **pool)
-{
-
-    while ((*pool)->head != 0x0)
-    {
-        (*pool)->head = spPageGroupClose((*pool)->head);
-    }
-    (*pool) = 0x0;
-
-}
 /****************************************************************************
  * Element access
  */
@@ -529,4 +394,119 @@ void *spItRemoveIf(struct spIterator *it, int flag)
     return ret;
 }
 
+/*******************************************************************************************/
 
+struct spPage *spPageCreate(struct spPagePool *pool, size_t num)
+{
+    struct spPage *tail = pool->m_free_page;
+    while (num > 0)
+    {
+        while (tail->next != 0x0)
+        {
+            tail = tail->next;
+            --num;
+        }
+        if (num > 0)
+        {
+            struct spPageGroup *pg = spPageGroupCreate(pool->ele_size_in_byte);
+            pg->next = pool->m_page_group_head;
+            pool->m_page_group_head = pg;
+            tail->next = &(pg->m_pages[0]);
+
+        }
+    }
+    struct spPage *head = pool->m_free_page;
+    pool->m_free_page = tail->next;
+    tail->next = 0x0;
+    return head;
+};
+
+size_t spPageDestroy(struct spPagePool *pool, struct spPage **p, size_t num)
+{
+    return spMoveN(num, p, &(pool->m_free_page));
+}
+
+
+struct spPageGroup *spPageGroupCreate(size_t ele_size_in_byte)
+{
+    struct spPageGroup *ret = (struct spPageGroup *) (malloc(sizeof(struct spPageGroup)));
+    ret->next = 0x0;
+    ret->m_data = malloc(ele_size_in_byte
+                         * SP_NUMBER_OF_ELEMENT_IN_PAGE
+                         * SP_NUMBER_OF_PAGES_IN_GROUP);
+    for (int i = 0; i < SP_NUMBER_OF_PAGES_IN_GROUP; ++i)
+    {
+        ret->m_pages[i].next = &(ret->m_pages[i + 1]);
+        ret->m_pages[i].data = ret->m_data + i * (ele_size_in_byte
+                                                  * SP_NUMBER_OF_ELEMENT_IN_PAGE);
+    }
+    ret->m_pages[SP_NUMBER_OF_PAGES_IN_GROUP - 1].next = 0x0;
+    return ret;
+}
+
+/**
+ * @return next page group
+ */
+void spPageGroupDestroy(struct spPageGroup **pg)
+{
+    free((*pg)->m_data);
+    free((*pg));
+    (*pg) = 0x0;
+}
+
+/**
+ *  @return first free page
+ *    pg = first page group
+ */
+struct spPage *spPageGroupClean(struct spPageGroup **pg)
+{
+    struct spPage *ret = 0x0;
+    while (*pg != 0x0)
+    {
+        struct spPageGroup *pg0 = *pg;
+        (*pg) = (*pg)->next;
+        struct spPage *tmp = ret;
+        size_t count = 0;
+        for (int i = 0; i < SP_NUMBER_OF_PAGES_IN_GROUP; ++i)
+        {
+            if (pg0->m_pages[i].tag == 0)
+            {
+                pg0->m_pages[i].next = ret;
+                ret = &(pg0->m_pages[i]);
+                ++count;
+            }
+        }
+        //
+        if (count >= SP_NUMBER_OF_PAGES_IN_GROUP) //group is empty
+        {
+            ret = tmp;
+            spPageGroupDestroy(pg0);
+        }
+
+    }
+
+    return ret;
+}
+
+struct spPagePool *spPagePoolCreate(size_t size_in_byte)
+{
+    struct spPagePool *res = (struct spPagePool *) (malloc(sizeof(struct spPagePool)));
+    res->m_page_group_head = 0x0;
+    res->m_free_page = 0x0;
+    res->ele_size_in_byte = size_in_byte;
+    return res;
+}
+
+
+void spPagePoolDestroy(struct spPagePool **pool)
+{
+
+    while ((*pool)->m_page_group_head != 0x0)
+    {
+        struct spPageGroup *pg = (*pool)->m_page_group_head;
+        (*pool)->m_page_group_head = (*pool)->m_page_group_head->next;
+        spPageGroupDestroy(&pg);
+    }
+    (*pool) = 0x0;
+
+}

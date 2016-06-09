@@ -111,6 +111,7 @@ public:
 
     virtual mesh::MeshEntityRange entity_id_range(mesh::MeshEntityStatus entityStatus = mesh::VALID) const
     {
+        assert(m_mesh_ != nullptr);
         return m_mesh_->range(entity_type(), entityStatus);
     }
 

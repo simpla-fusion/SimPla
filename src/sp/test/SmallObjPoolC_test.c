@@ -50,6 +50,6 @@ int main(int argc, char **argv)
 
     printf("done!");
     spPageClose(pg, p_pool);
-    spPagePoolClose(p_pool);
+    spPagePoolDestroy(p_pool);
     exit(0);
 }

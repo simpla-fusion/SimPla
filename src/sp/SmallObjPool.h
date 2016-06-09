@@ -25,12 +25,35 @@ struct spPage
     void *data;
     struct spPage *next;
 };
+struct spPagePool;
 
-struct spPage *spPageCreate(struct spPage **buffer);
+struct spPagePool *spPagePoolCreate(size_t size_in_byte);
 
-struct spPage *spPageCreateN(struct spPage **pool, size_t num);
+void spPagePoolDestroy(struct spPagePool **pool);
 
-void spPageClose(struct spPage **p, struct spPage **buffer);
+/**
+ * release empty page group
+ * @NOTE not complete
+ */
+void spPagePoolRelease(struct spPagePool *pool);
+
+/****************************************************************************
+ *  Create
+ */
+/**
+ *  pop 'num' pages from pool
+ *  @return pointer of first page
+ */
+struct spPage *spPageCreate(struct spPagePool *pool, size_t num);
+
+/**
+ * push 'num' pages back to pool
+ * @return number of actually destroyed pages
+ *         *p point to  the first remained page,
+ *         if no page is remained *p=0x0
+ */
+size_t spPageDestroy(struct spPagePool *pool, struct spPage **p, size_t num);
+
 
 
 /****************************************************************************
@@ -177,7 +200,7 @@ struct spPagePool;
 
 struct spPagePool *spPagePoolCreate(size_t size_in_byte);
 
-void spPagePoolClose(struct spPagePool **pool);
+void spPagePoolDestroy(struct spPagePool **pool);
 
 
 #ifndef __cplusplus
@@ -237,7 +260,7 @@ for (sp::spIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
 
 //std::shared_ptr<spPagePool> makePagePool(size_t size_in_byte)
 //{
-//    return std::shared_ptr<spPagePool>(spPagePoolCreate(size_in_byte), [=](spPagePool *pg) { spPagePoolClose(&pg ); });
+//    return std::shared_ptr<spPagePool>(spPagePoolCreate(size_in_byte), [=](spPagePool *pg) { spPagePoolDestroy(&pg ); });
 //}
 //
 //std::shared_ptr<spPage> makePage(std::shared_ptr<spPagePool> pool)

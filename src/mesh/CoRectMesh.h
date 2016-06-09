@@ -235,17 +235,18 @@ public:
             case LOCAL : //local and valid
                 MeshEntityRange(MeshEntityIdCoder::make_range(m_inner_lower_, m_inner_upper_, entityType)).swap(res);
                 break;
-            case GHOST : //local and valid
-                UNIMPLEMENTED;
-                break;
+
 //            case AFFECTED:
 //                MeshEntityRange(m_affected_entities_[entityType]).swap(res);
 //                break;
             case INTERFACE: //INTERFACE
                 MeshEntityRange(m_interface_entities_[entityType]).swap(res);
                 break;
+            case GHOST : //local and valid
+                UNIMPLEMENTED;
+                break;
             default:
-                RUNTIME_ERROR << "illegal box region!" << std::endl;
+                UNIMPLEMENTED;
                 break;
         }
         return std::move(res);

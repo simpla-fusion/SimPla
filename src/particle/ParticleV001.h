@@ -56,7 +56,7 @@ public:
 
     virtual Properties &properties()
     {
-        assert(m_properties_ != nullptr);
+        if (m_properties_ == nullptr) { m_properties_ = std::make_shared<Properties>(); }
         return *m_properties_;
     };
 
@@ -311,7 +311,10 @@ template<typename P, typename M>
 bool
 Particle<P, M, V001>::deploy()
 {
-    bool success = false;
+    bool success = true;
+    success = success && field_type::deploy();
+    engine_type::deploy();
+
 //
 //    if (m_holder_ == nullptr)
 //    {
@@ -347,7 +350,6 @@ Particle<P, M, V001>::deploy()
 //        }
 //    }
 
-    engine_type::deploy();
 
     return success;
 
