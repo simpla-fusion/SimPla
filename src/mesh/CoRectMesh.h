@@ -227,24 +227,42 @@ public:
     virtual MeshEntityRange range(MeshEntityType entityType = VERTEX, MeshEntityStatus status = VALID) const
     {
         MeshEntityRange res;
+
+        /**
+         *   |<-----------------------------     valid   --------------------------------->|
+         *   |<- not owned  ->|<-------------------       owned     ---------------------->|
+         *   |----------------*----------------*---*---------------------------------------|
+         *   |<---- ghost --->|                |   |                                       |
+         *   |<------------ shared  ---------->|<--+--------  not shared  ---------------->|
+         *   |<------------- DMZ    -------------->|<----------   not DMZ   -------------->|
+         *
+         */
         switch (status)
         {
             case VALID : //all valid
                 MeshEntityRange(MeshEntityIdCoder::make_range(m_lower_, m_upper_, entityType)).swap(res);
                 break;
-            case LOCAL : //local and valid
+            case NON_LOCAL : // = SHARED | OWNED, //              0b000101
+            case SHARED : //       = 0x04,                    0b000100 shared by two or more get_mesh blocks
+                break;
+            case NOT_SHARED  : // = 0x08, //                       0b001000 not shared by other get_mesh blocks
+                break;
+
+            case GHOST : // = SHARED | NOT_OWNED, //              0b000110
+
+            case DMZ: //  = 0x100,
+            case NOT_DMZ: //  = 0x200,
+
+            case LOCAL : // = NOT_SHARED | OWNED, //              0b001001
                 MeshEntityRange(MeshEntityIdCoder::make_range(m_inner_lower_, m_inner_upper_, entityType)).swap(res);
                 break;
 
-//            case AFFECTED:
-//                MeshEntityRange(m_affected_entities_[entityType]).swap(res);
-//                break;
-            case INTERFACE: //INTERFACE
+
+            case INTERFACE: //  = 0x010, //                        0b010000 interface(boundary) shared by two get_mesh blocks,
                 MeshEntityRange(m_interface_entities_[entityType]).swap(res);
                 break;
-            case GHOST : //local and valid
-                UNIMPLEMENTED;
-                break;
+
+
             default:
                 UNIMPLEMENTED;
                 break;
