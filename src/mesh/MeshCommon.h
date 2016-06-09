@@ -92,6 +92,15 @@ enum MeshEntityType
 //    MAX_POLYHEDRON = MAX_POLYGON + (1 << 6)
 
 };
+/**
+ *   |<-----------------------------     valid   --------------------------------->|
+ *   |<- not owned  ->|<-------------------       owned     ---------------------->|
+ *   |----------------*----------------*---*---------------------------------------|
+ *   |<---- ghost --->|                |   |                                       |
+ *   |<------------ shared  ---------->|<--+--------  not shared  ---------------->|
+ *   |<------------- DMZ    -------------->|<----------   not DMZ   -------------->|
+ *
+ */
 enum MeshEntityStatus
 {
     INVALID = 0x00, //                          0b000000
@@ -103,8 +112,9 @@ enum MeshEntityStatus
     LOCAL = NOT_SHARED | OWNED, //              0b001001
     GHOST = SHARED | NOT_OWNED, //              0b000110
     NON_LOCAL = SHARED | OWNED, //              0b000101
-    AFFECTED = GHOST | NON_LOCAL, //            0b000111
-    INTERFACE = 0x10, //                        0b010000 interface(boundary) shared by two get_mesh blocks,
+    INTERFACE = 0x010, //                        0b010000 interface(boundary) shared by two get_mesh blocks,
+    DMZ = 0x100,
+    NOT_DMZ = 0x200,
     UNDEFINED = 0xFFFF
 };
 

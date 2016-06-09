@@ -86,14 +86,14 @@ public:
 
     virtual void ghost_width(index_tuple const &) = 0;
 
-    virtual box_type box(size_t entityStatus = VALID) const = 0;
+    virtual box_type box(MeshEntityStatus entityStatus = VALID) const = 0;
 
     virtual MeshEntityRange select(box_type const &b,
                                    MeshEntityType entityType = VERTEX,
-                                   size_t entityStatus = VALID) const = 0;
+                                   MeshEntityStatus entityStatus = VALID) const = 0;
 
     virtual MeshEntityRange range(MeshEntityType entityType = VERTEX,
-                                  size_t entityStatus = VALID) const = 0;
+                                  MeshEntityStatus entityStatus = VALID) const = 0;
 
     virtual size_t max_hash(MeshEntityType entityType = VERTEX) const = 0;
 

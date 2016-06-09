@@ -25,7 +25,7 @@ namespace simpla
 /**
  * @brief an alternative implement of `std::unordered_multiset`
  * - elements are organized into buckets,
- * - optimized for frequently rehash,insert and remove
+ * - optimized for frequently neighbour_resort,insert and remove
  * -
  *
  *>  Unordered multi-set is an associative container that contains set

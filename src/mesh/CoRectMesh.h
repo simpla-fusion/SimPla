@@ -167,7 +167,7 @@ public:
     typedef typename MeshEntityIdCoder::range_type block_range_type;
 
     virtual MeshEntityRange select(box_type const &other, MeshEntityType entityType = VERTEX,
-                                   size_t status = VALID) const
+                                   MeshEntityStatus status = VALID) const
     {
 
         point_type c_lower, c_upper;
@@ -195,7 +195,7 @@ public:
 
     };
 
-    virtual box_type box(size_t status = VALID) const
+    virtual box_type box(MeshEntityStatus status = VALID) const
     {
         box_type res;
 
@@ -215,7 +215,6 @@ public:
                 break;
             case INTERFACE: //INTERFACE
             case GHOST : //local and valid
-            case AFFECTED:
             default:
                 UNIMPLEMENTED;
                 break;
@@ -225,7 +224,7 @@ public:
         return std::move(res);
     }
 
-    virtual MeshEntityRange range(MeshEntityType entityType = VERTEX, size_t status = VALID) const
+    virtual MeshEntityRange range(MeshEntityType entityType = VERTEX, MeshEntityStatus status = VALID) const
     {
         MeshEntityRange res;
         switch (status)
@@ -239,9 +238,9 @@ public:
             case GHOST : //local and valid
                 UNIMPLEMENTED;
                 break;
-            case AFFECTED:
-                MeshEntityRange(m_affected_entities_[entityType]).swap(res);
-                break;
+//            case AFFECTED:
+//                MeshEntityRange(m_affected_entities_[entityType]).swap(res);
+//                break;
             case INTERFACE: //INTERFACE
                 MeshEntityRange(m_interface_entities_[entityType]).swap(res);
                 break;

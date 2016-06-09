@@ -1,0 +1,89 @@
+//
+// Created by salmon on 16-6-9.
+//
+#include <memory.h>
+#include "../sp/SmallObjPool.h"
+#include "ParticleCommon.h"
+
+
+int spParticleCopy(size_t key, size_t size_in_byte, struct spPage const *src_page, struct spPage **dest_page,
+                   struct spPage **buffer)
+{
+
+//    size_t size_in_byte = spSizeInByte(pool);
+
+    size_t src_tag = 0x0, dest_tag = 0x0;
+
+    void *src_v = 0x0, *dest_v = 0x0;
+
+    while (src_page != 0x0)
+    {
+        if (src_tag == 0x0)
+        {
+            src_tag = 0x1;
+            src_v = src_page->data;
+        }
+
+        if ((src_page->tag & src_tag != 0) && (((struct point_head *) (src_v))->_cell == key))
+        {
+            if (dest_tag == 0x0)
+            {
+                if (*dest_page == 0x0)
+                {
+                    *dest_page = *buffer;
+                    if (*buffer == 0x0) { return SP_BUFFER_EMPTY; }
+                    *buffer = (*buffer)->next;
+                    (*dest_page)->next = 0x0;
+                }
+                dest_v = (*dest_page)->data;
+                dest_tag = 0x1;
+            }
+
+            memcpy(dest_v, src_v, size_in_byte);
+
+            dest_tag <<= 1;
+            dest_v += size_in_byte;
+            if (dest_tag == 0x0) { (*dest_page) = (*dest_page)->next; }
+
+        }
+
+        src_tag <<= 1;
+        src_v += size_in_byte;
+        if (src_tag == 0x0) { src_page = src_page->next; }
+    }
+    return SP_SUCCESS;
+}
+
+void spParticleClear(size_t key, size_t size_in_byte, struct spPage **pg)
+{
+//    size_t size_in_byte = spSizeInByte(pool);
+
+    size_t src_tag = 0x0, dest_tag = 0x0;
+
+    void *src_v = 0x0, *dest_v = 0x0;
+
+    while ((*pg) != 0x0)
+    {
+        if (src_tag == 0x0)
+        {
+            src_tag = 0x1;
+            src_v = (*pg)->data;
+        }
+
+        if ((((struct point_head *) (src_v))->_cell != key))
+        {
+            (*pg)->tag &= ~src_tag;
+
+
+        }
+
+        src_tag <<= 1;
+        src_v += size_in_byte;
+        if (src_tag == 0x0)
+        {
+            struct spPage *t = *pg;
+            (*pg) = (*pg)->next;
+        }
+
+    }
+}

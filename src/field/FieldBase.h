@@ -109,7 +109,10 @@ public:
         return false;
     }
 
-    virtual mesh::MeshEntityRange entity_id_range() const { return m_mesh_->range(entity_type()); }
+    virtual mesh::MeshEntityRange entity_id_range(mesh::MeshEntityStatus entityStatus = mesh::VALID) const
+    {
+        return m_mesh_->range(entity_type(), entityStatus);
+    }
 
     virtual bool deploy()
     {
@@ -264,8 +267,7 @@ public:
     /**@}*/
 public:
 
-    template<typename TFun>
-    this_type &
+    template<typename TFun> this_type &
     apply(mesh::MeshEntityRange const &r0, TFun const &op,
           FUNCTION_REQUIREMENT((std::is_same<typename std::result_of<TFun(
                   typename mesh::point_type const &,
@@ -292,8 +294,7 @@ public:
         return *this;
     }
 
-    template<typename TFun>
-    this_type &
+    template<typename TFun> this_type &
     apply(mesh::MeshEntityRange const &r0, TFun const &op,
           FUNCTION_REQUIREMENT((std::is_same<typename std::result_of<TFun(
                   typename mesh::point_type const &)>::type, field_value_type>::value))
@@ -319,8 +320,7 @@ public:
         return *this;
     }
 
-    template<typename TFun>
-    this_type &
+    template<typename TFun> this_type &
     apply(mesh::MeshEntityRange const &r0, TFun const &op,
           FUNCTION_REQUIREMENT(
                   (std::is_same<typename std::result_of<TFun(mesh::MeshEntityId const &)>::type, value_type>::value)
@@ -341,8 +341,7 @@ public:
         return *this;
     }
 
-    template<typename TFun>
-    this_type &
+    template<typename TFun> this_type &
     apply(mesh::MeshEntityRange const &r0, TFun const &op,
           FUNCTION_REQUIREMENT(
                   (std::is_same<typename std::result_of<TFun(value_type &)>::type, void>::value)
@@ -365,8 +364,7 @@ public:
     }
 
 
-    template<typename TFun>
-    this_type &
+    template<typename TFun> this_type &
     apply(mesh::MeshEntityRange const &r0, TFun const &f,
           FUNCTION_REQUIREMENT((traits::is_indexable<TFun, typename mesh::MeshEntityId>::value)))
     {
@@ -384,6 +382,18 @@ public:
             );
         }
 
+        return *this;
+    }
+
+    template<typename TOP> this_type &
+    apply(TOP const &op)
+    {
+        deploy();
+
+        apply(m_mesh_->range(entity_type(), mesh::NON_LOCAL), op);
+        base_type::nonblocking_sync();
+        apply(m_mesh_->range(entity_type(), mesh::LOCAL), op);
+        base_type::wait();
         return *this;
     }
 
@@ -411,14 +421,14 @@ private:
     {
         deploy();
 
-        apply_expr(m_mesh_->range(entity_type(), mesh::AFFECTED), op, other);
+        apply_expr(m_mesh_->range(entity_type(), mesh::NON_LOCAL), op, other);
         base_type::nonblocking_sync();
         apply_expr(m_mesh_->range(entity_type(), mesh::LOCAL), op, other);
         base_type::wait();
         return *this;
     }
 
-
+protected:
     mesh_type const *m_mesh_;
     std::shared_ptr<value_type> m_data_;
     std::shared_ptr<base_type> m_holder_;

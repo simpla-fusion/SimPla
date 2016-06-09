@@ -434,7 +434,7 @@ std::string make_msg(Others const &...others)
 
 #define LOG_CMD1(_LEVEL_, _MSG_, _CMD_) {auto __logger=logger::Logger(_LEVEL_);__logger<<_MSG_;_CMD_;__logger<<DONE;}
 
-#define LOG_CMD2(_MSG_, _CMD_) {auto __logger=logger::Logger(logger::LOG_LOG);__logger<<_MSG_<<__STRING(_CMD_);_CMD_;__logger<<DONE;}
+//#define LOG_CMD2(_MSG_, _CMD_) {auto __logger=logger::Logger(logger::LOG_LOG);__logger<<_MSG_<<__STRING(_CMD_);_CMD_;__logger<<DONE;}
 
 
 #define CHECK_BIT(_MSG_)  std::cout<<std::setfill(' ')<<std::setw(80) <<__STRING(_MSG_)<<" = 0b"<< simpla::logger::ShowBit( _MSG_)  << std::endl

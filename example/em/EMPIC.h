@@ -169,9 +169,9 @@ void EMPIC<TM>::next_step(Real dt)
 
     J1.clear();
 
-    H.gather(&J1);
+    H.gather_all(&J1);
 
-    H.push(dt, E1, B0);
+    H.push_all(dt, E1, B0);
 
     if (J_src_fun)
     {

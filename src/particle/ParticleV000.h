@@ -183,7 +183,7 @@ public:
     void gather(TRes *res, mesh::point_type const &x0, Args &&...args) const;
 
     template<typename TV, typename ...Others, typename ...Args>
-    void gather(Field<TV, mesh_type, Others...> *res, Args &&...args) const;
+    void gather_all(Field<TV, mesh_type, Others...> *res, Args &&...args) const;
 
     template<typename ...Args> void push(Args &&...args);
 
@@ -194,14 +194,14 @@ public:
     template<typename TFun, typename ...Args>
     void apply(range_type const &r, TFun const &op, Args &&...) const;
 
-    template<typename ...Args> void apply(Args &&...args)
+    template<typename TOP, typename ...Args> void apply(TOP const &op, Args &&...args)
     {
-        apply(m_mesh_->range(entity_type()), std::forward<Args>(args)...);
+        apply(this->entity_id_range(), op, std::forward<Args>(args)...);
     };
 
-    template<typename ...Args> void apply(Args &&...args) const
+    template<typename TOP, typename ...Args> void apply(TOP const &op, Args &&...args) const
     {
-        apply(m_mesh_->range(entity_type()), std::forward<Args>(args)...);
+        apply(this->entity_id_range(), op, std::forward<Args>(args)...);
     };
 
     //**************************************************************************************************
@@ -271,7 +271,6 @@ Particle<P, M>::deploy()
             if (m_mesh_ == nullptr) { RUNTIME_ERROR << "get_mesh is not valid!" << std::endl; }
             else
             {
-
                 m_data_ = std::make_shared<container_type>();
                 m_properties_ = std::make_shared<Properties>();
 
@@ -335,7 +334,7 @@ Particle<P, M>::gather(TRes *res, mesh::point_type const &x0, Args &&...args) co
 }
 
 template<typename P, typename M> template<typename TV, typename ...Others, typename ...Args> void
-Particle<P, M>::gather(Field<TV, mesh_type, Others...> *res, Args &&...args) const
+Particle<P, M>::gather_all(Field<TV, mesh_type, Others...> *res, Args &&...args) const
 {
 
     //FIXME  using this->box() select entity_id_range
@@ -362,39 +361,6 @@ Particle<P, M>::gather(Field<TV, mesh_type, Others...> *res, Args &&...args) con
     }
 };
 
-template<typename P, typename M>
-template<typename ...Args> void
-Particle<P, M>::push(Args &&...args)
-{
-    if (is_valid())
-    {
-        LOGGER << "Push   [" << get_class_name() << "]" << std::endl;
-
-        parallel::parallel_for(
-                m_mesh_->range(entity_type()),
-                [&](range_type const &r)
-                {
-                    typename container_type::accessor acc;
-                    for (auto const &s:r)
-                    {
-                        if (m_data_->find(acc, s))
-                        {
-                            for (auto &p:acc->second)
-                            {
-                                engine_type::push(&p, std::forward<Args>(args)...);
-                            }
-                        }
-                        acc.release();
-                    }
-
-                });
-
-    }
-    else
-    {
-        LOGGER << "Particle is not valid! [" << get_class_name() << "]" << std::endl;
-    }
-}
 //**************************************************************************************************
 
 template<typename P, typename M>
