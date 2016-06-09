@@ -364,7 +364,7 @@ void DistributedObject::sync() { pimpl_->sync(); }
 
 void DistributedObject::wait() { pimpl_->wait(); }
 
-bool DistributedObject::is_ready() const { pimpl_->is_ready(); }
+bool DistributedObject::is_ready() const { return pimpl_->is_ready(); }
 
 
 void DistributedObject::add_send_link(size_t id, const nTuple<ptrdiff_t, 3> &offset, const data_model::DataSet *ds)

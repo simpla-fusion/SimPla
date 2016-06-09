@@ -5,9 +5,7 @@
 #include <memory.h>
 #include <malloc.h>
 
-#ifndef __STDC_NO_THREADS__
-#include <threads.h>
-#endif
+#include <pthread.h>
 
 #include "SmallObjPool.h"
 
@@ -25,6 +23,8 @@ struct spPagePool
     size_t ele_size_in_byte;
     struct spPageGroup *m_page_group_head;
     struct spPage *m_free_page;
+    pthread_mutex_t m_pool_mutex_;
+
 };
 
 struct spPagePool *spPagePoolCreate(size_t size_in_byte);
@@ -398,6 +398,7 @@ void *spItRemoveIf(struct spIterator *it, int flag)
 
 struct spPage *spPageCreate(struct spPagePool *pool, size_t num)
 {
+    pthread_mutex_lock(&(pool->m_pool_mutex_));
     struct spPage *tail = pool->m_free_page;
     while (num > 0)
     {
@@ -418,15 +419,28 @@ struct spPage *spPageCreate(struct spPagePool *pool, size_t num)
     struct spPage *head = pool->m_free_page;
     pool->m_free_page = tail->next;
     tail->next = 0x0;
+    pthread_mutex_unlock(&(pool->m_pool_mutex_));
     return head;
 };
 
-size_t spPageDestroy(struct spPagePool *pool, struct spPage **p, size_t num)
+size_t spPageDestroyN(struct spPagePool *pool, struct spPage **p, size_t num)
 {
-    return spMoveN(num, p, &(pool->m_free_page));
+    pthread_mutex_lock(&(pool->m_pool_mutex_));
+    size_t res = spMoveN(num, p, &(pool->m_free_page));
+    pthread_mutex_unlock(&(pool->m_pool_mutex_));
+
+    return res;
 }
 
+void spPageDestroy(struct spPagePool *pool, struct spPage **p)
+{
+    pthread_mutex_lock(&(pool->m_pool_mutex_));
+    spMerge(p, &(pool->m_free_page));
+    pthread_mutex_unlock(&(pool->m_pool_mutex_));
 
+}
+
+/*******************************************************************************************/
 struct spPageGroup *spPageGroupCreate(size_t ele_size_in_byte)
 {
     struct spPageGroup *ret = (struct spPageGroup *) (malloc(sizeof(struct spPageGroup)));
@@ -480,7 +494,7 @@ struct spPage *spPageGroupClean(struct spPageGroup **pg)
         if (count >= SP_NUMBER_OF_PAGES_IN_GROUP) //group is empty
         {
             ret = tmp;
-            spPageGroupDestroy(pg0);
+            spPageGroupDestroy(&pg0);
         }
 
     }
@@ -494,6 +508,7 @@ struct spPagePool *spPagePoolCreate(size_t size_in_byte)
     res->m_page_group_head = 0x0;
     res->m_free_page = 0x0;
     res->ele_size_in_byte = size_in_byte;
+    pthread_mutex_init(&(res->m_pool_mutex_), NULL);
     return res;
 }
 
@@ -507,6 +522,7 @@ void spPagePoolDestroy(struct spPagePool **pool)
         (*pool)->m_page_group_head = (*pool)->m_page_group_head->next;
         spPageGroupDestroy(&pg);
     }
+    free(*pool);
     (*pool) = 0x0;
 
 }

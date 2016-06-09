@@ -1,2 +1,2 @@
-add_library(particle ../sp/SmallObjPool.c ParticlePage.c)
+add_library(particle SmallObjPool.c ParticlePage.c)
 ADD_SUBDIRECTORY(test)

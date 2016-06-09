@@ -22,7 +22,6 @@ ADD_SUBDIRECTORY(field)
 
 ADD_SUBDIRECTORY(particle)
 
-ADD_SUBDIRECTORY(sp)
 
 add_library(simpla_lib dummy.cpp)
 TARGET_LINK_LIBRARIES(simpla_lib
@@ -35,6 +34,6 @@ TARGET_LINK_LIBRARIES(simpla_lib
         physics
         #        geometry
         utilities
-        sp  #  'C' library
+        particle
         )
 

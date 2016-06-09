@@ -12,7 +12,6 @@
 #include "../gtl/type_traits.h"
 #include "../parallel/Parallel.h"
 #include "../mesh/MeshAttribute.h"
-#include "../sp/SmallObjPool.h"
 #include "ParticlePage.h"
 
 namespace simpla { namespace particle
@@ -25,7 +24,7 @@ typedef typename simpla::tags::VERSION<0, 0, 1> V001;
 template<typename P, typename M>
 struct Particle<P, M, V001>
         : public P,
-          public Field<sp::spPage *, M, index_const<mesh::VOLUME> >,
+          public Field<spPage *, M, index_const<mesh::VOLUME> >,
           public std::enable_shared_from_this<Particle<P, M, V001>>
 {
 private:
@@ -37,14 +36,14 @@ public:
 
     typedef M mesh_type;
     typedef P engine_type;
-    typedef Field<sp::spPage *, M, index_const<mesh::VOLUME> > field_type;
+    typedef Field<spPage *, M, index_const<mesh::VOLUME> > field_type;
     typedef typename P::point_s value_type;
     typedef typename mesh::MeshEntityId id_type;
     typedef typename mesh::MeshEntityRange range_type;
 
 
 private:
-    std::shared_ptr<struct sp::spPagePool> m_pool_;
+    std::shared_ptr<struct spPagePool> m_pool_;
 
 public:
     virtual Properties const &properties() const
@@ -130,6 +129,7 @@ public:
 
     using field_type::entity_id_range;
     using field_type::entity_type;
+    using field_type::get;
 
     std::ostream &print(std::ostream &os, int indent) const;
 
@@ -165,7 +165,7 @@ public:
 
 
     template<typename TRes, typename ...Args,
-            typename std::enable_if<has_member_function_gather<TRes *, sp::spPage *, Args...>::value>::type * = nullptr>
+            typename std::enable_if<has_member_function_gather<TRes *, spPage *, Args...>::value>::type * = nullptr>
     void gather(TRes *res, mesh::point_type const &x0, Args &&...args) const
     {
         *res = 0;
@@ -184,7 +184,7 @@ public:
 
 
     template<typename TRes, typename ...Args,
-            typename std::enable_if<!has_member_function_gather<TRes *, sp::spPage *, Args...>::value>::type * = nullptr>
+            typename std::enable_if<!has_member_function_gather<TRes *, spPage *, Args...>::value>::type * = nullptr>
     void gather(TRes *res, mesh::point_type const &x0, Args &&...args) const
     {
         *res = 0;
@@ -204,15 +204,13 @@ public:
         }
     }
 
-    template<typename TV, typename ...Others, typename ...Args>
-    void gather(Field<TV, mesh_type, Others...> *res, range_type const &, Args &&...args) const;
 
     template<typename TV, typename ...Others, typename ...Args>
     void gather_all(Field<TV, mesh_type, Others...> *res, Args &&...args) const;
 
 
     template<typename ...Args,
-            typename std::enable_if<!has_member_function_push<engine_type, sp::spPage *, Args...>::value>::type * = nullptr>
+            typename std::enable_if<!has_member_function_push<engine_type, spPage *, Args...>::value>::type * = nullptr>
     void push(range_type const &r0, Args &&...args)
     {
         parallel::parallel_for(
@@ -221,7 +219,7 @@ public:
                 {
                     for (auto const &s: r)
                     {
-                        sp::spPage *pg = this->get(s);
+                        spPage *pg = this->get(s);
 
                         SP_PAGE_FOREACH(value_type, p, pg)
                         {
@@ -233,7 +231,7 @@ public:
     };
 
     template<typename ...Args,
-            typename std::enable_if<has_member_function_push<engine_type, sp::spPage *, Args...>::value>::type * = nullptr>
+            typename std::enable_if<has_member_function_push<engine_type, spPage *, Args...>::value>::type * = nullptr>
     void push(range_type const &r0, Args &&...args)
     {
         parallel::parallel_for(r0, [&](range_type const &r)
@@ -307,50 +305,16 @@ Particle<P, M, V001>::clear()
 }
 
 
-template<typename P, typename M>
-bool
+template<typename P, typename M> bool
 Particle<P, M, V001>::deploy()
 {
     bool success = true;
-    success = success && field_type::deploy();
-    engine_type::deploy();
-
-//
-//    if (m_holder_ == nullptr)
-//    {
-//        if (m_data_ == nullptr)
-//        {
-//            if (m_mesh_ == nullptr)
-//            {
-//                RUNTIME_ERROR << "get_mesh is not valid!" <<
-//                std::endl;
-//            }
-//            else
-//            {
-//                m_data_ = std::make_shared<container_type>();
-//                m_properties_ = std::make_shared<Properties>();
-//                sp::makePagePool(sizeof(value_type)).swap(m_pool_);
-//            }
-//
-//            success = true;
-//        }
-//    }
-//    else
-//    {
-//        if (m_holder_->is_a<this_type>())
-//        {
-//            m_holder_->deploy();
-//
-//            auto self = std::dynamic_pointer_cast<this_type>(m_holder_);
-//            m_mesh_ = self->m_mesh_;
-//            m_data_ = self->m_data_;
-//            m_properties_ = self->m_properties_;
-//            m_pool_ = self->m_pool_;
-//            success = true;
-//        }
-//    }
-
-
+    if (m_pool_ == nullptr)
+    {
+        m_pool_ = sp::makePagePool(sizeof(value_type));
+        success = success && field_type::deploy();
+        engine_type::deploy();
+    }
     return success;
 
 }
@@ -377,19 +341,16 @@ Particle<P, M, V001>::apply(range_type const &r0, TFun const &op, Args &&...args
 {
     parallel::parallel_for(r0, [&](range_type const &r)
     {
-//        typename container_type::accessor acc;
-//        for (auto const &s: r)
-//        {
-//            if (m_data_->find(acc, s))
-//            {
-//                for (sp::spIterator __it = {0x0, 0x0, acc->second, sizeof(value_type)};
-//                     sp::spItTraverse(&__it) != 0x0;)
-//                {
-//                    fun(reinterpret_cast<value_type *>(__it.p), std::forward<Args>(args) ...);
-//                }
-//            }
-//            acc.release();
-//        }
+        for (auto const &s: r)
+        {
+
+            for (spIterator __it = {0x0, 0x0, get(s), sizeof(value_type)};
+                 spNext(&__it) != 0x0;)
+            {
+                fun(reinterpret_cast<value_type *>(__it.p), std::forward<Args>(args) ...);
+            }
+
+        }
     });
 }
 
@@ -402,19 +363,16 @@ Particle<P, M, V001>::apply(range_type const &r0, TFun const &op, Args &&...args
             r0,
             [&](range_type const &r)
             {
-//                typename container_type::const_accessor acc;
-//                for (auto const &s: r)
-//                {
-//                    if (m_data_->find(acc, s))
-//                    {
-//                        for (sp::spIterator __it = {0x0, 0x0, acc->second, sizeof(value_type)};
-//                             sp::spItTraverse(&__it) != 0x0;)
-//                        {
-//                            fun(*reinterpret_cast<value_type *>(__it.p), std::forward<Args>(args) ...);
-//                        }
-//                    }
-//                    acc.release();
-//                }
+                for (auto const &s: r)
+                {
+
+                    for (spIterator __it = {0x0, 0x0, get(s), sizeof(value_type)};
+                         spNext(&__it) != 0x0;)
+                    {
+                        fun(*reinterpret_cast<value_type *>(__it.p), std::forward<Args>(args) ...);
+                    }
+
+                }
             });
 }
 
@@ -504,13 +462,7 @@ Particle<P, M, V001>::count(range_type const &r0) const
             r0, 0U,
             [&](range_type const &r, size_t init) -> size_t
             {
-//                for (auto const &s:r)
-//                {
-//                    typename container_type::const_accessor acc;
-//
-//                    if (m_data_->find(acc, s)) { init += sp::spSize(acc->second); }
-//                }
-
+                for (auto const &s:r) { init += spSize(this->get(s)); }
                 return init;
             },
             [](size_t x, size_t y) -> size_t { return x + y; }
@@ -560,29 +512,23 @@ Particle<P, M, V001>::count(range_type const &r0) const
 
 
 template<typename P, typename M> template<typename TInputIterator> void
-Particle<P, M, V001>::insert(id_type const &s,
-                             TInputIterator ib, TInputIterator ie)
+Particle<P, M, V001>::insert(id_type const &s, TInputIterator ib, TInputIterator ie)
 {
-//    typename container_type::accessor acc;
-//    std::mutex m_pool_mutex_;
-//    data->insert(acc, s);
-//
-//    while (ib != ie)
-//    {
-//        for (sp::spIterator __it = {0x0, 0x0, acc->second, sizeof(value_type)};
-//             sp::spItInsert(&__it) != 0x0 && (ib != ie); ++ib)
-//        {
-//            *reinterpret_cast<value_type *>(__it.p) = *ib;
-//        }
-//        if (ib != ie)
-//        {
-//            //FIXME  here need atomic op
-//            std::unique_lock<std::mutex> pool_lock(m_pool_mutex_);
-//            sp::spPage *p = acc->second;
-//            acc->second = sp::spPageCreate(m_pool_.get());
-//            acc->second->next = p;
-//        }
-//    }
+
+    while (ib != ie)
+    {
+        for (spIterator __it = {0x0, 0x0, get(s), sizeof(value_type)};
+             spNextBlank(&__it) != 0x0 && (ib != ie); ++ib)
+        {
+            *reinterpret_cast<value_type *>(__it.p) = *ib;
+        }
+        if (ib != ie)
+        {
+            spPage *p = spPageCreate(m_pool_.get(), 1);
+            p->next = get(s);
+            get(s) = p;
+        }
+    }
 }
 
 //template<typename P, typename M> void
@@ -610,17 +556,14 @@ template<typename Predicate>
 void
 Particle<P, M, V001>::remove_if(id_type const &s, Predicate const &pred)
 {
-//    typename container_type::accessor acc;
-//
-//    if (m_data_->find(acc, s))
-//    {
-//        int flag = 0;
-//        for (sp::spIterator __it = {0x0, 0x0, acc->second, sizeof(value_type)};
-//             sp::spItRemoveIf(&__it, flag) != 0x0;)
-//        {
-//            flag = pred(reinterpret_cast<value_type *>(__it.p)) ? 1 : 0;
-//        }
-//    }
+
+    int flag = 0;
+    for (spIterator __it = {0x0, 0x0, get(s), sizeof(value_type)};
+         spItRemoveIf(&__it, flag) != 0x0;)
+    {
+        flag = pred(reinterpret_cast<value_type *>(__it.p)) ? 1 : 0;
+    }
+
 }
 
 
@@ -652,46 +595,46 @@ Particle<P, M, V001>::neighbour_resort()
 template<typename P, typename M> void
 Particle<P, M, V001>::neighbour_resort(range_type const &r)
 {
-    parallel::parallel_for(r, [&](range_type const &r)
-    {
-        for (auto const &key: r)
-        {
-
-            size_t number_of_neighbours = this->m_mesh_->get_adjacent_entities(entity_type(), key);
-
-            mesh::MeshEntityId neighbour_ids[number_of_neighbours];
-
-            this->m_mesh_->get_adjacent_entities(entity_type(), key, neighbour_ids);
-
-            sp::spPage *neighbour[number_of_neighbours];
-
-            for (int s = 0; s < number_of_neighbours; ++s)
+    parallel::parallel_for(
+            r, [&](range_type const &r)
             {
-                neighbour[s] = field_type::operator[](s);
+                for (auto const &key: r)
+                {
+
+                    size_t number_of_neighbours = this->m_mesh_->get_adjacent_entities(entity_type(), key);
+
+                    mesh::MeshEntityId neighbour_ids[number_of_neighbours];
+
+                    this->m_mesh_->get_adjacent_entities(entity_type(), key, neighbour_ids);
+
+                    spPage *neighbour[number_of_neighbours];
+
+                    for (int s = 0; s < number_of_neighbours; ++s)
+                    {
+                        neighbour[s] = field_type::operator[](s);
+                    }
+
+                    spPage **self = &(*this)[key];
+
+                    spPage **buffer = 0x0;
+
+                    spPage *t = spPageCreate(m_pool_.get(), 5);
+
+                    spMoveN(5, &t, buffer);
+
+                    spSetTag(*buffer, 0x0);
+
+                    spParticleCopyN(key, sizeof(value_type), number_of_neighbours, &neighbour[0], self, buffer);
+
+                    spParticleClear(key, sizeof(value_type), self, buffer);
+
+
+                    spPageDestroy(m_pool_.get(), buffer);
+
+                }
             }
 
-            sp::spPage **self = &(*this)[key];
-
-            sp::spPage **buffer;
-
-//            {
-//                std::unique_lock<std::mutex> pool_lock(m_pool_mutex_);
-//                sp::spPage *t = sp::spPageCreateN(5, m_pool_.get());
-//            }
-//
-//            sp::PushFront(&sp::spPageCreateN(5, m_pool_.get()), buffer);
-//
-//            sp::spSetTag(*buffer, 0x0);
-//
-//            spParticleCopyN(key0, sizeof(value_type), number_of_neighbours, neighbour, self, &buffer);
-//            spParticleClear(key0, self);
-//
-//            {
-//                std::unique_lock<std::mutex> pool_lock(m_pool_mutex_);
-//                sp::Merge(buffer, &(m_pool_.get()));
-//            }
-        }
-    });
+    );
 };
 
 

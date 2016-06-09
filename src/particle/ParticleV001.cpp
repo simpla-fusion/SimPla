@@ -2,7 +2,7 @@
 // Created by salmon on 16-6-8.
 //
 #include <cstddef>
-#include "../sp/SmallObjPool.h"
+#include "SmallObjPool.h"
 #include "../mesh/MeshCommon.h"
 #include "ParticleCommon.h"
 #include "ParticleV001.h"

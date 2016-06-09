@@ -6,8 +6,7 @@
 #define SIMPLA_SMALLOBJPOOL_H_
 
 #ifdef __cplusplus
-namespace simpla { namespace sp
-{
+
 extern "C" {
 #endif
 
@@ -52,7 +51,9 @@ struct spPage *spPageCreate(struct spPagePool *pool, size_t num);
  *         *p point to  the first remained page,
  *         if no page is remained *p=0x0
  */
-size_t spPageDestroy(struct spPagePool *pool, struct spPage **p, size_t num);
+size_t spPageDestroyN(struct spPagePool *pool, struct spPage **p, size_t num);
+
+void spPageDestroy(struct spPagePool *pool, struct spPage **p);
 
 
 
@@ -231,7 +232,7 @@ for (struct spIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
 
 #else
 }// extern "C" {
-
+namespace simpla { namespace sp{
 /**
  *   traverses all element
  *   example:
@@ -239,8 +240,8 @@ for (struct spIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
  */
 #define SP_PAGE_FOREACH(__TYPE__, _PTR_NAME_, __PG_HEAD__)          \
 __TYPE__ *_PTR_NAME_ = 0x0; \
-for (sp::spIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
-(_PTR_NAME_ =  reinterpret_cast<__TYPE__ *>(sp::spNext(&__it))) != 0x0;)
+for (spIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
+(_PTR_NAME_ =  reinterpret_cast<__TYPE__ *>(spNext(&__it))) != 0x0;)
 
 /**
  * insert elements to page .
@@ -249,19 +250,19 @@ for (sp::spIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
  */
 #define SP_PAGE_INSERT(__NUMBER__, __TYPE__, _PTR_NAME_, __PG_HEAD__)          \
 __TYPE__ *_PTR_NAME_; size_t __count = __NUMBER__; \
-for (sp::spIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
-(_PTR_NAME_ =  reinterpret_cast<__TYPE__ *>(sp::spNextBlank(&__it))) != 0x0 && (__count>1);--__count)
+for (spIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
+(_PTR_NAME_ =  reinterpret_cast<__TYPE__ *>(spNextBlank(&__it))) != 0x0 && (__count>1);--__count)
 
 #define SP_OBJ_REMOVE_IF(__TYPE__, _PTR_NAME_, __PG_HEAD__, __TAG__)          \
 __TYPE__ *_PTR_NAME_ = 0x0; int __TAG__=0;\
-for (sp::spIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
-(_PTR_NAME_ = reinterpret_cast<__TYPE__ *>( sp::spItRemoveIf(&__it,__TAG__))) != 0x0;)
+for (spIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
+(_PTR_NAME_ = reinterpret_cast<__TYPE__ *>( spItRemoveIf(&__it,__TAG__))) != 0x0;)
 
 
-//std::shared_ptr<spPagePool> makePagePool(size_t size_in_byte)
-//{
-//    return std::shared_ptr<spPagePool>(spPagePoolCreate(size_in_byte), [=](spPagePool *pg) { spPagePoolDestroy(&pg ); });
-//}
+std::shared_ptr<spPagePool> makePagePool(size_t size_in_byte)
+{
+    return std::shared_ptr<spPagePool>(spPagePoolCreate(size_in_byte), [=](spPagePool *pg) { spPagePoolDestroy(&pg ); });
+}
 //
 //std::shared_ptr<spPage> makePage(std::shared_ptr<spPagePool> pool)
 //{

@@ -2,7 +2,7 @@
 // Created by salmon on 16-6-9.
 //
 #include <memory.h>
-#include "../sp/SmallObjPool.h"
+#include "SmallObjPool.h"
 #include "ParticleCommon.h"
 
 
@@ -54,7 +54,16 @@ int spParticleCopy(size_t key, size_t size_in_byte, struct spPage const *src_pag
     return SP_SUCCESS;
 }
 
-void spParticleClear(size_t key, size_t size_in_byte, struct spPage **pg)
+int spParticleCopyN(size_t key, size_t size_in_byte, size_t src_num, struct spPage **src_page,
+                    struct spPage **dest_page, struct spPage **buffer)
+{
+    for (int i = 0; i < src_num; ++i)
+    {
+        spParticleCopy(key, size_in_byte, src_page[i], dest_page, buffer);
+    }
+}
+
+void spParticleClear(size_t key, size_t size_in_byte, struct spPage **pg, struct spPage **buffer)
 {
 //    size_t size_in_byte = spSizeInByte(pool);
 
