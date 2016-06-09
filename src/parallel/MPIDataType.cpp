@@ -58,7 +58,7 @@ MPIDataType MPIDataType::create(data_model::DataType const &data_type, //
     {
         is_predefined = false;
         //TODO create MPI structure DataType
-        //		MPI_Type_contiguous(DataType.obj_size_in_byte(), MPI_BYTE,
+        //		MPI_Type_contiguous(DataType.ele_size_in_byte(), MPI_BYTE,
         //				&res.m_type_);
 
         ////		int MPI_Type_create_struct(

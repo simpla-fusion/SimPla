@@ -24,7 +24,6 @@ struct Particle;
 typedef typename simpla::tags::VERSION<0, 0, 1> V001;
 
 
-
 template<typename P, typename M>
 struct Particle<P, M, V001>
         : public mesh::MeshAttribute::View, public P,
@@ -347,7 +346,7 @@ Particle<P, M, V001>::gather(TRes *res, mesh::point_type const &x0, Args &&...ar
         if (m_data_->find(acc1, neighbours[i]))
         {
 
-            for (sp::spIterator __it = {0x0, 0x0, acc1->second.get(), sizeof(value_type)};
+            for (sp::spIterator __it = {0x0, 0x0, acc1->second, sizeof(value_type)};
                  sp::spItTraverse(&__it) != 0x0;)
             {
                 engine_type::gather(res, *reinterpret_cast<value_type *>(__it.p), x0, std::forward<Args>(args) ...);
@@ -403,7 +402,7 @@ Particle<P, M, V001>::push(Args &&...args)
                     {
                         if (m_data_->find(acc, s))
                         {
-                            for (sp::spIterator __it = {0x0, 0x0, acc->second.get(), sizeof(value_type)};
+                            for (sp::spIterator __it = {0x0, 0x0, acc->second, sizeof(value_type)};
                                  sp::spItTraverse(&__it) != 0x0;)
                             {
                                 engine_type::push(reinterpret_cast<value_type *>(__it.p), std::forward<Args>(args) ...);
@@ -433,7 +432,7 @@ Particle<P, M, V001>::apply(range_type const &r0, TFun const &op, Args &&...args
         {
             if (m_data_->find(acc, s))
             {
-                for (sp::spIterator __it = {0x0, 0x0, acc->second.get(), sizeof(value_type)};
+                for (sp::spIterator __it = {0x0, 0x0, acc->second, sizeof(value_type)};
                      sp::spItTraverse(&__it) != 0x0;)
                 {
                     fun(reinterpret_cast<value_type *>(__it.p), std::forward<Args>(args) ...);
@@ -458,7 +457,7 @@ Particle<P, M, V001>::apply(range_type const &r0, TFun const &op, Args &&...args
                 {
                     if (m_data_->find(acc, s))
                     {
-                        for (sp::spIterator __it = {0x0, 0x0, acc->second.get(), sizeof(value_type)};
+                        for (sp::spIterator __it = {0x0, 0x0, acc->second, sizeof(value_type)};
                              sp::spItTraverse(&__it) != 0x0;)
                         {
                             fun(*reinterpret_cast<value_type *>(__it.p), std::forward<Args>(args) ...);
@@ -510,6 +509,12 @@ Particle<P, M, V001>::dataset(data_model::DataSet const &d)
 {
     dataset(m_mesh_->range(entity_type()), d);
 };
+namespace _impl
+{
+void load_dataset(mesh::MeshEntityRange const &r0, data_model::DataSet const &ds,
+                  sp::spPagePool *pool,
+                  parallel::concurrent_hash_map<typename mesh::MeshEntityId, sp::spPage *> *data);
+}
 
 template<typename P, typename M> void
 Particle<P, M, V001>::dataset(mesh::MeshEntityRange const &r0, data_model::DataSet const &ds)
@@ -558,7 +563,7 @@ Particle<P, M, V001>::count(range_type const &r0) const
                 {
                     typename container_type::const_accessor acc;
 
-                    if (m_data_->find(acc, s)) { init += sp::spSize(acc->second.get()); }
+                    if (m_data_->find(acc, s)) { init += sp::spSize(acc->second); }
                 }
 
                 return init;
@@ -578,7 +583,7 @@ Particle<P, M, V001>::copy(id_type const &s, OutputIterator out_it) const
     typename container_type::const_accessor c_accessor;
     if (m_data_->find(c_accessor, s))
     {
-        for (sp::spIterator __it = {0x0, 0x0, c_accessor->second.get(), sizeof(value_type)};
+        for (sp::spIterator __it = {0x0, 0x0, c_accessor->second, sizeof(value_type)};
              sp::spItTraverse(&__it) != 0x0;)
         {
             *out_it = *reinterpret_cast<value_type *>(__it.p);
@@ -615,7 +620,7 @@ Particle<P, M, V001>::merge(buffer_type *buffer)
                     typename container_type::accessor acc1;
                     m_data_->insert(acc1, item.first);
 
-                    auto *p = acc1->second.get();
+                    auto *p = acc1->second;
                     acc1->second = item.second;
                     acc1->second->next = p;
 
@@ -631,12 +636,12 @@ Particle<P, M, V001>::_insert(container_type *data, id_type const &s,
                               TInputIterator ib, TInputIterator ie)
 {
     typename container_type::accessor acc;
-
+    std::mutex m_pool_mutex_;
     data->insert(acc, s);
 
     while (ib != ie)
     {
-        for (sp::spIterator __it = {0x0, 0x0, acc->second.get(), sizeof(value_type)};
+        for (sp::spIterator __it = {0x0, 0x0, acc->second, sizeof(value_type)};
              sp::spItInsert(&__it) != 0x0 && (ib != ie); ++ib)
         {
             *reinterpret_cast<value_type *>(__it.p) = *ib;
@@ -645,8 +650,8 @@ Particle<P, M, V001>::_insert(container_type *data, id_type const &s,
         {
             //FIXME  here need atomic op
             std::unique_lock<std::mutex> pool_lock(m_pool_mutex_);
-            sp::spPage *p = acc->second.get();
-            sp::makePage(m_pool_).swap(acc->second);
+            sp::spPage *p = acc->second;
+            acc->second = sp::spPageCreate(m_pool_.get());
             acc->second->next = p;
         }
     }
@@ -682,7 +687,7 @@ Particle<P, M, V001>::remove_if(id_type const &s, Predicate const &pred)
     if (m_data_->find(acc, s))
     {
         int flag = 0;
-        for (sp::spIterator __it = {0x0, 0x0, acc->second.get(), sizeof(value_type)};
+        for (sp::spIterator __it = {0x0, 0x0, acc->second, sizeof(value_type)};
              sp::spItRemoveIf(&__it, flag) != 0x0;)
         {
             flag = pred(reinterpret_cast<value_type *>(__it.p)) ? 1 : 0;
@@ -714,10 +719,10 @@ Particle<P, M, V001>::rehash(id_type const &key0, buffer_type *out_buffer)
     {
         remove_if(key0, [&](value_type const &p)
         {
-            auto key1 = m_mesh->hash(engine::project(p));
+            auto key1 = m_mesh_->hash(engine_type::project(p));
             if (key1 != key0)
             {
-                std::unique_lock<std::mutex> pool_lock(m_pool_mutex_);
+//                std::unique_lock<std::mutex> pool_lock(m_pool_mutex_);
                 _insert(out_buffer, key1, &p, &p + 1);
             }
             else

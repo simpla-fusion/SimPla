@@ -9,7 +9,8 @@
 #ifdef __cplusplus
 
 #include <cstddef>
-namespace simpla { namespace sp
+
+namespace simpla { namespace particle
 {
 extern "C" {
 
@@ -28,7 +29,7 @@ struct point_head
 
 #ifdef __cplusplus
 }// extern "C" {
-}//namespace simpla { namespace sp
+}}//namespace simpla { namespace particle
 #endif
 
 #endif //SIMPLA_PARTICLECOMMON_H

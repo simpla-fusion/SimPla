@@ -31,6 +31,7 @@ struct spPagePool
     struct spPage *m_free_page;
 };
 
+void spPagePoolExtent(struct spPagePool *pool);
 
 struct spPage *spPageCreate(struct spPagePool *pool)
 {
@@ -59,7 +60,7 @@ struct spPage *spPageCreateN(struct spPagePool *pool, size_t num)
 void spPageClose(struct spPage **p, struct spPagePool *pool)
 {
     spClear(*p);
-    spPushFront(&(pool->m_free_page), *p);
+    spPushFront(&(pool->m_free_page), p);
     *p = 0x0;
 }
 
@@ -262,7 +263,8 @@ void spReserve(struct spPage **p, size_t num, struct spPagePool *pool)
 {
     if (num > spCapacity(*p))
     {
-        spPushFront(p, spPageCreateN(pool, (size_t) ((num - spCapacity(*p)) / SP_NUMBER_OF_ELEMENT_IN_PAGE + 1)));
+        struct spPage *t = spPageCreateN(pool, (size_t) ((num - spCapacity(*p)) / SP_NUMBER_OF_ELEMENT_IN_PAGE + 1));
+        spPushFront(p, &t);
     }
 
 

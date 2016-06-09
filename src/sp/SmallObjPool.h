@@ -151,7 +151,7 @@ struct spIterator
     status_tag_type tag;
     void *p;
     struct spPage *page;
-    size_t obj_size_in_byte;
+    size_t ele_size_in_byte;
 };
 
 /**
