@@ -24,7 +24,7 @@ int spParticleCopy(size_t key, size_t size_in_byte, struct spPage const *src_pag
             src_v = src_page->data;
         }
 
-        if ((src_page->tag & src_tag != 0) && (((struct point_head *) (src_v))->_cell == key))
+        if (((src_page->tag & src_tag) != 0) && (((struct point_head *) (src_v))->_cell == key))
         {
             if (dest_tag == 0x0)
             {

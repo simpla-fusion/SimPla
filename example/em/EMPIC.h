@@ -76,7 +76,7 @@ public:
     field_t<scalar_type, EDGE> E1/*   */{*this, "E1"};
     field_t<scalar_type, EDGE> J1/*   */{*this, "J1"};
 
-    field_t<scalar_type, VERTEX> rho{*this, "rho"};
+//    field_t<scalar_type, VERTEX> rho{*this, "rho"};
 
     typedef particle::BorisParticle<mesh_type> particle_type;
     particle::BorisParticle<mesh_type> H{*this, "H"};

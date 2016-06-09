@@ -206,7 +206,7 @@ void spClear(struct spPage **p, struct spPage **buffer)
 //size_t spInsert(struct spPage *p, size_t N, size_t size_in_byte, void const *src)
 //{
 //    void *dest = 0x0;
-//    for (struct spIterator __it = {0x0, 0x0, p, size_in_byte};
+//    for (struct spOutputIterator __it = {0x0, 0x0, p, size_in_byte};
 //         (N > 0) && ((dest = spItInsert(&__it)) != 0x0); --N)
 //    {
 //        memcpy(dest, src, size_in_byte);
@@ -235,23 +235,53 @@ size_t spFill(struct spPage *p, size_t N, size_t size_in_byte, void const *src)
 
 }
 
-void *spNext(struct spIterator *it)
+void *spNext(struct spOutputIterator *it)
+{
+    //TODO need optimize
+//    void *ret = 0x0;
+//    for (; (*(it->page)) != 0x0; (*(it->page)) = (*(it->page))->next)
+//    {
+//        if (it->tag == 0x0 || it->p == 0x0)
+//        {
+//            it->tag = 0x01;
+//            it->p = (*(it->page))->data;
+//        }
+//        else
+//        {
+//            it->tag <<= 1;
+//            it->p += it->ele_size_in_byte;
+//        }
+//        while ((((*(it->page))->tag & (it->tag)) == 0) && (it->tag != 0))
+//        {
+//            it->tag <<= 1;
+//            it->p += it->ele_size_in_byte;
+//        }
+//        if (it->tag != 0)
+//        {
+//            ret = it->p;
+//            break;
+//        }
+//    }
+    return ret;
+}
+
+void *spItTraverse(struct spOutputIterator *it)
 {
     //TODO need optimize
     void *ret = 0x0;
-    for (; it->page != 0x0; it->page = it->page->next)
+    for (; (*(it->page)) != 0x0; (*(it->page)) = (*(it->page))->next)
     {
         if (it->tag == 0x0 || it->p == 0x0)
         {
             it->tag = 0x01;
-            it->p = it->page->data;
+            it->p = (*(it->page))->data;
         }
         else
         {
             it->tag <<= 1;
             it->p += it->ele_size_in_byte;
         }
-        while (((it->page->tag & (it->tag)) == 0) && (it->tag != 0))
+        while ((((*(it->page))->tag & (it->tag)) == 0) && (it->tag != 0))
         {
             it->tag <<= 1;
             it->p += it->ele_size_in_byte;
@@ -265,122 +295,118 @@ void *spNext(struct spIterator *it)
     return ret;
 }
 
-void *spItTraverse(struct spIterator *it)
+void *spInputIteratorNext(struct spInputIterator *it, struct spPagePool *pool)
 {
-    //TODO need optimize
-    void *ret = 0x0;
-    for (; it->page != 0x0; it->page = it->page->next)
+    if (it == 0x0) { return 0x0; }
+
+    struct spPage **pg = (it->page);
+
+    while (1)
     {
+        if (*pg == 0x0) { (*pg) = spPageCreate(pool, 1); }
+
         if (it->tag == 0x0 || it->p == 0x0)
         {
-            it->tag = 0x01;
-            it->p = it->page->data;
+            it->tag = 0x1;
+            it->p = (*pg)->data;
         }
-        else
-        {
-            it->tag <<= 1;
-            it->p += it->ele_size_in_byte;
-        }
-        while (((it->page->tag & (it->tag)) == 0) && (it->tag != 0))
-        {
-            it->tag <<= 1;
-            it->p += it->ele_size_in_byte;
-        }
-        if (it->tag != 0)
-        {
-            ret = it->p;
-            break;
-        }
+
+
+        it->tag <<= 1;
+        it->p += it->ele_size_in_byte;
+
+        if ((*pg)->tag + 1 == 0x0) { pg = &((*pg)->next); }
+        if ((*pg)->tag & (it->tag) == 0x0) { break; }
     }
-    return ret;
+
+    (*pg)->tag |= it->tag;
+
+
+    return it->p;
 }
 
-void *spNextBlank(struct spIterator *it)
+size_t spNextBlank2(struct spPage **pg, size_t *tag, void **p, struct spPagePool *pool)
+{
+    START:
+    if (*pg == 0x0) { *pg = spPageCreate(pool, 1); }
+
+    if (tag == 0x0 || *p == 0x0)
+    {
+        *tag = 0x1;
+        *p = (*pg)->data;
+    }
+
+
+    while (((*pg)->tag & (*tag)) != 0)
+    {
+        (*tag) <<= 1;
+        *p += pool->ele_size_in_byte;
+
+        if ((*pg)->tag + 1 == 0x0 || (*tag) == 0x0)
+        {
+            pg = &((*pg)->next);
+            goto START;
+        }
+    }
+
+    (*pg)->tag |= (*tag);
+    return (*tag);
+}
+
+
+void *spItInsert(struct spOutputIterator *it)
 {
     //TODO need optimize
     void *ret = 0x0;
-    if (it->page == 0x0) { goto RETURN; }
+    if ((*(it->page)) == 0x0) { goto RETURN; }
 
     if (it->tag == 0x0 || it->p == 0x0)
     {
         it->tag = 0x1;
-        it->p = it->page->data;
+        it->p = (*(it->page))->data;
     }
 
 
-    while ((it->page->tag & it->tag) != 0)
+    while (((*(it->page))->tag & it->tag) != 0)
     {
         it->tag <<= 1;
         it->p += it->ele_size_in_byte;
 
-        if (it->page->tag + 1 == 0x0 || it->tag == 0x0)
+        if ((*(it->page))->tag + 1 == 0x0 || it->tag == 0x0)
         {
-            if (it->page->next == 0x0) { goto RETURN; }
-            it->page = it->page->next;
+            if ((*(it->page))->next == 0x0) { goto RETURN; }
+            (*(it->page)) = (*(it->page))->next;
             it->tag = 0x01;
-            it->p = it->page->data;
+            it->p = (*(it->page))->data;
         }
     }
-    it->page->tag |= it->tag;
+    (*(it->page))->tag |= it->tag;
     ret = it->p;
     RETURN:
     return ret;
 }
 
 
-void *spItInsert(struct spIterator *it)
+void *spItRemoveIf(struct spOutputIterator *it, int flag)
 {
     //TODO need optimize
     void *ret = 0x0;
-    if (it->page == 0x0) { goto RETURN; }
-
-    if (it->tag == 0x0 || it->p == 0x0)
-    {
-        it->tag = 0x1;
-        it->p = it->page->data;
-    }
-
-
-    while ((it->page->tag & it->tag) != 0)
-    {
-        it->tag <<= 1;
-        it->p += it->ele_size_in_byte;
-
-        if (it->page->tag + 1 == 0x0 || it->tag == 0x0)
-        {
-            if (it->page->next == 0x0) { goto RETURN; }
-            it->page = it->page->next;
-            it->tag = 0x01;
-            it->p = it->page->data;
-        }
-    }
-    it->page->tag |= it->tag;
-    ret = it->p;
-    RETURN:
-    return ret;
-}
-
-
-void *spItRemoveIf(struct spIterator *it, int flag)
-{
-    //TODO need optimize
-    void *ret = 0x0;
-    for (; it->page != 0x0; it->page = it->page->next)
+    for (; (*(it->page)) != 0x0; (*(it->page)) = (*(it->page))->next)
     {
 
         if (it->tag == 0x0 || it->p == 0x0)
         {
             it->tag = 0x01;
-            it->p = it->page->data;
+            it->p = (*(it->page))->data;
         }
         else
         {
-            if (flag > 0) { it->page->tag &= ~(it->tag); }
+            if (flag > 0) { (*(it->page))->tag &= ~(it->tag); }
 
             it->tag <<= 1;
             it->p += it->ele_size_in_byte;
         }
-        while (((it->page->tag & (it->tag)) == 0) && (it->tag != 0))
+        while ((((*(it->page))->tag & (it->tag)) == 0) && (it->tag != 0))
         {
             it->tag <<= 1;
             it->p += it->ele_size_in_byte;
@@ -399,26 +425,31 @@ void *spItRemoveIf(struct spIterator *it, int flag)
 struct spPage *spPageCreate(struct spPagePool *pool, size_t num)
 {
     pthread_mutex_lock(&(pool->m_pool_mutex_));
-    struct spPage *tail = pool->m_free_page;
+    struct spPage *head = 0x0;
+    struct spPage **tail = &(pool->m_free_page);
     while (num > 0)
     {
-        while (tail->next != 0x0)
-        {
-            tail = tail->next;
-            --num;
-        }
-        if (num > 0)
+        if ((*tail) == 0x0)
         {
             struct spPageGroup *pg = spPageGroupCreate(pool->ele_size_in_byte);
             pg->next = pool->m_page_group_head;
             pool->m_page_group_head = pg;
-            tail->next = &(pg->m_pages[0]);
-
+            (*tail) = &((pool->m_page_group_head->m_pages)[0]);
         }
+        if (head == 0x0)
+        {
+            head = (*tail);
+        }
+
+        while (num > 0 && (*tail) != 0x0)
+        {
+            tail = &((*tail)->next);
+            --num;
+        }
+
     }
-    struct spPage *head = pool->m_free_page;
-    pool->m_free_page = tail->next;
-    tail->next = 0x0;
+    pool->m_free_page = (*tail)->next;
+    (*tail)->next = 0x0;
     pthread_mutex_unlock(&(pool->m_pool_mutex_));
     return head;
 };

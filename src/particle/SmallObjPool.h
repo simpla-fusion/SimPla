@@ -6,7 +6,6 @@
 #define SIMPLA_SMALLOBJPOOL_H_
 
 #ifdef __cplusplus
-
 extern "C" {
 #endif
 
@@ -164,13 +163,11 @@ size_t spFill(struct spPage *p, size_t N, size_t size_in_byte, void const *src);
 /****************************************************************************
  * Iterators
  */
-
-struct spIterator
+struct spOutputIterator
 {
     status_tag_type tag;
-    void *p;
-    struct spPage *page;
-    size_t ele_size_in_byte;
+    void *const p;
+    struct spPage **const page;
 };
 
 /**
@@ -179,13 +176,25 @@ struct spIterator
  * @return  if 'next obj' is available then return pointer to 'next obj'
  *           else return 0x0
  */
-void *spNext(struct spIterator *it);
+void *spNext(struct spOutputIterator *it);
+
+struct spInputIterator
+{
+    status_tag_type tag;
+    void *p;
+    struct spPage **page;
+    size_t ele_size_in_byte;
+
+};
 
 /**
  * 1. insert new obj to page
  * @return if page is full return 0x0, else return pointer to new obj
  */
-void *spNextBlank(struct spIterator *it);
+void *spInputIteratorNext(struct spInputIterator *it, struct spPagePool *pool);
+
+
+size_t spNextBlank2(struct spPage **pg, size_t *tag, void **p, struct spPagePool *pool);
 
 
 /**
@@ -194,7 +203,7 @@ void *spNextBlank(struct spIterator *it);
  * @return if 'next obj' is available then return pointer to 'next obj',
  *          else return 0x0
  */
-void *spItRemoveIf(struct spIterator *it, int flag);
+void *spItRemoveIf(struct spOutputIterator *it, int flag);
 
 
 struct spPagePool;
@@ -227,12 +236,12 @@ for (struct spIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
 
 #define SP_OBJ_REMOVE_IF(__TYPE__, _PTR_NAME_, __PG_HEAD__, __TAG__)          \
 __TYPE__ *_PTR_NAME_ = 0x0; int __TAG__=0;\
-for (struct spIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
+for (struct spOutputIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
 (_PTR_NAME_ =  spItRemoveIf(&__it,__TAG__)) != 0x0;)
 
 #else
-}// extern "C" {
-namespace simpla { namespace sp{
+}// extern "C"
+namespace simpla {
 /**
  *   traverses all element
  *   example:
@@ -240,7 +249,7 @@ namespace simpla { namespace sp{
  */
 #define SP_PAGE_FOREACH(__TYPE__, _PTR_NAME_, __PG_HEAD__)          \
 __TYPE__ *_PTR_NAME_ = 0x0; \
-for (spIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
+for (spOutputIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
 (_PTR_NAME_ =  reinterpret_cast<__TYPE__ *>(spNext(&__it))) != 0x0;)
 
 /**
@@ -250,12 +259,12 @@ for (spIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
  */
 #define SP_PAGE_INSERT(__NUMBER__, __TYPE__, _PTR_NAME_, __PG_HEAD__)          \
 __TYPE__ *_PTR_NAME_; size_t __count = __NUMBER__; \
-for (spIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
+for (spOutputIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
 (_PTR_NAME_ =  reinterpret_cast<__TYPE__ *>(spNextBlank(&__it))) != 0x0 && (__count>1);--__count)
 
 #define SP_OBJ_REMOVE_IF(__TYPE__, _PTR_NAME_, __PG_HEAD__, __TAG__)          \
 __TYPE__ *_PTR_NAME_ = 0x0; int __TAG__=0;\
-for (spIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
+for (spOutputIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
 (_PTR_NAME_ = reinterpret_cast<__TYPE__ *>( spItRemoveIf(&__it,__TAG__))) != 0x0;)
 
 
@@ -270,8 +279,7 @@ std::shared_ptr<spPagePool> makePagePool(size_t size_in_byte)
 //}
 
 
-}} //namespace simpla { namespace sp
-
+}  //namespace simpla
 #endif
 
 

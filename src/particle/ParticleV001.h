@@ -12,6 +12,7 @@
 #include "../gtl/type_traits.h"
 #include "../parallel/Parallel.h"
 #include "../mesh/MeshAttribute.h"
+#include "SmallObjPool.h"
 #include "ParticlePage.h"
 
 namespace simpla { namespace particle
@@ -197,7 +198,7 @@ public:
 
         for (int i = 0; i < num; ++i)
         {
-            SP_PAGE_FOREACH(value_type, p, this->get(neighbours[i]))
+            SP_PAGE_FOREACH(value_type, p, &(const_cast<this_type *>(this)->get(neighbours[i])))
             {
                 engine_type::gather(res, *p, x0, std::forward<Args>(args) ...);
             }
@@ -221,7 +222,7 @@ public:
                     {
                         spPage *pg = this->get(s);
 
-                        SP_PAGE_FOREACH(value_type, p, pg)
+                        SP_PAGE_FOREACH(value_type, p, &pg)
                         {
                             engine_type::push(p, std::forward<Args>(args) ...);
                         }
@@ -311,7 +312,8 @@ Particle<P, M, V001>::deploy()
     bool success = true;
     if (m_pool_ == nullptr)
     {
-        m_pool_ = sp::makePagePool(sizeof(value_type));
+        m_pool_ = std::shared_ptr<spPagePool>(spPagePoolCreate(sizeof(value_type)),
+                                              [=](spPagePool *pg) { spPagePoolDestroy(&pg); });
         success = success && field_type::deploy();
         engine_type::deploy();
     }
@@ -344,7 +346,7 @@ Particle<P, M, V001>::apply(range_type const &r0, TFun const &op, Args &&...args
         for (auto const &s: r)
         {
 
-            for (spIterator __it = {0x0, 0x0, get(s), sizeof(value_type)};
+            for (spOutputIterator __it = {0x0, 0x0, get(s), sizeof(value_type)};
                  spNext(&__it) != 0x0;)
             {
                 fun(reinterpret_cast<value_type *>(__it.p), std::forward<Args>(args) ...);
@@ -366,7 +368,7 @@ Particle<P, M, V001>::apply(range_type const &r0, TFun const &op, Args &&...args
                 for (auto const &s: r)
                 {
 
-                    for (spIterator __it = {0x0, 0x0, get(s), sizeof(value_type)};
+                    for (spOutputIterator __it = {0x0, 0x0, get(s), sizeof(value_type)};
                          spNext(&__it) != 0x0;)
                     {
                         fun(*reinterpret_cast<value_type *>(__it.p), std::forward<Args>(args) ...);
@@ -514,21 +516,15 @@ Particle<P, M, V001>::count(range_type const &r0) const
 template<typename P, typename M> template<typename TInputIterator> void
 Particle<P, M, V001>::insert(id_type const &s, TInputIterator ib, TInputIterator ie)
 {
+    spPage **pg = &(get(s));
 
-    while (ib != ie)
+    for (spInputIterator __it = {0x1, 0x0, pg};
+         spNextBlank(&__it, m_pool_.get()) != 0x0 && (ib != ie); ++ib)
     {
-        for (spIterator __it = {0x0, 0x0, get(s), sizeof(value_type)};
-             spNextBlank(&__it) != 0x0 && (ib != ie); ++ib)
-        {
-            *reinterpret_cast<value_type *>(__it.p) = *ib;
-        }
-        if (ib != ie)
-        {
-            spPage *p = spPageCreate(m_pool_.get(), 1);
-            p->next = get(s);
-            get(s) = p;
-        }
+        *reinterpret_cast<value_type *>(__it.p) = *ib;
     }
+
+
 }
 
 //template<typename P, typename M> void
@@ -558,7 +554,7 @@ Particle<P, M, V001>::remove_if(id_type const &s, Predicate const &pred)
 {
 
     int flag = 0;
-    for (spIterator __it = {0x0, 0x0, get(s), sizeof(value_type)};
+    for (spOutputIterator __it = {0x0, 0x0, get(s), sizeof(value_type)};
          spItRemoveIf(&__it, flag) != 0x0;)
     {
         flag = pred(reinterpret_cast<value_type *>(__it.p)) ? 1 : 0;
