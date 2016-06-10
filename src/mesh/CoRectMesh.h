@@ -166,7 +166,8 @@ public:
 
     typedef typename MeshEntityIdCoder::range_type block_range_type;
 
-    virtual MeshEntityRange select(box_type const &other, MeshEntityType entityType = VERTEX,
+    virtual MeshEntityRange select(box_type const &other,
+                                   MeshEntityType entityType = VERTEX,
                                    MeshEntityStatus status = VALID) const
     {
 

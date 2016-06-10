@@ -771,112 +771,112 @@ struct MeshEntityIdCoder_
         }
         return m_adjacent_cell_num_[IFORM][nodeid];
     }
-
-    struct iterator : public gtl::IteratorBlock<index_type, 3 + 1>
-    {
-    private:
-        typedef gtl::IteratorBlock<index_type, 3 + 1> base_type;
-
-        int m_iform_;
-
-    public:
-
-        typedef std::random_access_iterator_tag iterator_category;
-        typedef id_type value_type;
-        typedef MeshEntityIdDiff difference_type;
-        typedef value_type *pointer;
-        typedef value_type reference;
-
-        iterator() : base_type(), m_iform_(0) { }
-
-        iterator(id_type s, id_type b, id_type e)
-                : base_type(unpack_index(s), unpack_index(b), unpack_index(e)), m_iform_(iform(s))
-        {
-            nTuple<index_type, ndims + 1> self, min, max;
-            self = unpack_index(s);
-            min = unpack_index(b);
-            max = unpack_index(e);
-
-            self[ndims] = 0;
-
-            min[ndims] = 0;
-
-            max[ndims] = num_of_ele_in_cell(s);
-
-            base_type(self, min, max).swap(*this);
-
-        }
-
-        template<typename T0, typename T1, typename T2>
-        iterator(T0 const &pself, T1 const &pmin, T2 const &pmax, int IFORM = 0) :
-                m_iform_(IFORM)
-        {
-            nTuple<index_type, ndims + 1> self, min, max;
-            self = pself;
-            min = pmin;
-            max = pmax;
-
-            self[ndims] = 0;
-
-            min[ndims] = 0;
-
-            max[ndims] = (IFORM == 0 || IFORM == 3) ? 1 : 3;
-
-            base_type(self, min, max).swap(*this);
-        }
-
-        iterator(iterator const &other) : base_type(other), m_iform_(other.m_iform_)
-        {
-        }
-
-        iterator(iterator &&other) : base_type(other), m_iform_(other.m_iform_)
-        {
-        }
-
-        iterator(base_type const &other, int IFORM) : base_type(other), m_iform_(IFORM)
-        {
-        }
-
-        ~iterator() { }
-
-        iterator end() const
-        {
-            return iterator(base_type::end(), m_iform_);
-        }
-
-        iterator &operator=(iterator const &other)
-        {
-            iterator(other).swap(*this);
-            return *this;
-        }
-
-        iterator &operator=(base_type const &other)
-        {
-            base_type(other).swap(*this);
-            return *this;
-        }
-
-        iterator operator+(difference_type const &s) const
-        {
-            iterator res(*this);
-            res.advance(s);
-            return std::move(res);
-        }
-
-        void swap(iterator &other)
-        {
-            base_type::swap(other);
-            std::swap(m_iform_, other.m_iform_);
-        }
-
-        value_type operator*() const { return pack_(base_type::operator*()); }
-
-        value_type pack_(nTuple<index_type, ndims + 1> const &idx) const
-        {
-            return pack_index(idx, m_sub_index_to_id_[m_iform_][idx[ndims]]);
-        }
-
-    };
+//
+//    struct iterator : public gtl::IteratorBlock<index_type, 3 + 1>
+//    {
+//    private:
+//        typedef gtl::IteratorBlock<index_type, 3 + 1> base_type;
+//
+//        int m_iform_;
+//
+//    public:
+//
+//        typedef std::random_access_iterator_tag iterator_category;
+//        typedef id_type value_type;
+//        typedef MeshEntityIdDiff difference_type;
+//        typedef value_type *pointer;
+//        typedef value_type reference;
+//
+//        iterator() : base_type(), m_iform_(0) { }
+//
+//        iterator(id_type s, id_type b, id_type e)
+//                : base_type(unpack_index(s), unpack_index(b), unpack_index(e)), m_iform_(iform(s))
+//        {
+//            nTuple<index_type, ndims + 1> self, min, max;
+//            self = unpack_index(s);
+//            min = unpack_index(b);
+//            max = unpack_index(e);
+//
+//            self[ndims] = 0;
+//
+//            min[ndims] = 0;
+//
+//            max[ndims] = num_of_ele_in_cell(s);
+//
+//            base_type(self, min, max).swap(*this);
+//
+//        }
+//
+//        template<typename T0, typename T1, typename T2>
+//        iterator(T0 const &pself, T1 const &pmin, T2 const &pmax, int IFORM = 0) :
+//                m_iform_(IFORM)
+//        {
+//            nTuple<index_type, ndims + 1> self, min, max;
+//            self = pself;
+//            min = pmin;
+//            max = pmax;
+//
+//            self[ndims] = 0;
+//
+//            min[ndims] = 0;
+//
+//            max[ndims] = (IFORM == 0 || IFORM == 3) ? 1 : 3;
+//
+//            base_type(self, min, max).swap(*this);
+//        }
+//
+//        iterator(iterator const &other) : base_type(other), m_iform_(other.m_iform_)
+//        {
+//        }
+//
+//        iterator(iterator &&other) : base_type(other), m_iform_(other.m_iform_)
+//        {
+//        }
+//
+//        iterator(base_type const &other, int IFORM) : base_type(other), m_iform_(IFORM)
+//        {
+//        }
+//
+//        ~iterator() { }
+//
+//        iterator end() const
+//        {
+//            return iterator(base_type::end(), m_iform_);
+//        }
+//
+//        iterator &operator=(iterator const &other)
+//        {
+//            iterator(other).swap(*this);
+//            return *this;
+//        }
+//
+//        iterator &operator=(base_type const &other)
+//        {
+//            base_type(other).swap(*this);
+//            return *this;
+//        }
+//
+//        iterator operator+(difference_type const &s) const
+//        {
+//            iterator res(*this);
+//            res.advance(s);
+//            return std::move(res);
+//        }
+//
+//        void swap(iterator &other)
+//        {
+//            base_type::swap(other);
+//            std::swap(m_iform_, other.m_iform_);
+//        }
+//
+//        value_type operator*() const { return pack_(base_type::operator*()); }
+//
+//        value_type pack_(nTuple<index_type, ndims + 1> const &idx) const
+//        {
+//            return pack_index(idx, m_sub_index_to_id_[m_iform_][idx[ndims]]);
+//        }
+//
+//    };
 
     struct range_type
     {
@@ -884,7 +884,7 @@ struct MeshEntityIdCoder_
         typedef range_type this_type;
     public:
 
-        typedef iterator const_iterator;
+//        typedef iterator const_iterator;
 
         range_type() : m_iform_(VERTEX), m_min_(), m_max_(m_min_), m_grain_size_(m_min_) { }
 
@@ -1003,12 +1003,12 @@ struct MeshEntityIdCoder_
         }
 
         // iterators
-        const_iterator begin() const { return const_iterator(m_min_, m_min_, m_max_, m_iform_); }
+//        const_iterator begin() const { return const_iterator(m_min_, m_min_, m_max_, m_iform_); }
+//        const_iterator end() const { return const_iterator(m_min_, m_min_, m_max_, m_iform_).end(); }
 
-        const_iterator end() const { return const_iterator(m_min_, m_min_, m_max_, m_iform_).end(); }
 
         template<typename Body>
-        void foreach(Body const &body) const
+        void parallel_foreach(Body const &body) const
         {
 #ifdef USE_TBB
             tbb::parallel_for(*this, [&](range_type const &r)
@@ -1032,7 +1032,31 @@ struct MeshEntityIdCoder_
         }
 
         template<typename Body>
-        void parallel_foreach(Body const &body) const { foreach(body); }
+        void serial_foreach(Body const &body) const
+        {
+            range_type const &r = *this;
+            for (index_type i = r.m_min_[0], ie = r.m_max_[0]; i < ie; ++i)
+                for (index_type j = r.m_min_[1], je = r.m_max_[1]; j < je; ++j)
+                    for (index_type k = r.m_min_[2], ke = r.m_max_[2]; k < ke; ++k)
+                        for (index_type n = 0, ne = m_iform_to_num_of_ele_in_cell_[r.m_iform_]; n < ne; ++n)
+                        {
+                            body(pack_index(i, j, k, m_sub_index_to_id_[r.m_iform_][n]));
+                        }
+
+        }
+
+        template<typename Body>
+        void foreach(Body const &body, bool auto_parallel = false) const
+        {
+            if (auto_parallel)
+            {
+                parallel_foreach(body);
+            }
+            else
+            {
+                serial_foreach(body);
+            }
+        }
 
     private:
 

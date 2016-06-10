@@ -169,7 +169,7 @@ public:
     virtual void clear()
     {
         deploy();
-        m_mesh_->range(entity_type()).foreach([&](mesh::MeshEntityId const &s) { get(s) = 0; });
+        parallel::parallel_foreach(m_mesh_->range(entity_type()), [&](mesh::MeshEntityId const &s) { get(s) = 0; });
     }
 
 

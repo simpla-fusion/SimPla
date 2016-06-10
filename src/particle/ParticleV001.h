@@ -460,7 +460,7 @@ Particle<P, M, V001>::count(range_type const &r0) const
             r0, 0U,
             [&](range_type const &r, size_t init) -> size_t
             {
-                r.foreach([&](mesh::MeshEntityId const &s) { init += spSize(this->get(s)); });
+                parallel::parallel_foreach(r, [&](mesh::MeshEntityId const &s) { init += spSize(this->get(s)); });
                 return init;
             },
             [](size_t x, size_t y) -> size_t { return x + y; }
