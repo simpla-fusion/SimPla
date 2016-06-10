@@ -418,11 +418,9 @@ std::string make_msg(Others const &...others)
 #define INFORM2(_MSG_) logger::Logger(logger::LOG_INFORM)<<__STRING(_MSG_)<<" = "<<_MSG_;
 
 #define DOUBLELINE  std::setw(80) << std::setfill('=') << "="
-//"--=============================================================--"
 #define SINGLELINE  std::setw(80) << std::setfill('-') << "-"
 
 #define SEPERATOR(_C_) std::setw(80) << std::setfill(_C_) << _C_
-//"-----------------------------------------------------------------"
 #define CMD VERBOSE<<"CMD:\t"
 
 #define LOG_CMD(_CMD_) try{logger::Logger __logger(logger::LOG_VERBOSE);__logger<<"CMD:\t"<<std::string(__STRING(_CMD_));_CMD_;__logger<<DONE;}catch (std::exception const &error){ RUNTIME_ERROR<<("[",__STRING(_CMD_), "]",error.what())<<std::endl;}

@@ -16,12 +16,11 @@ namespace simpla { namespace particle { namespace engine
 
 struct Boris
 {
-    SP_DEFINE_STRUCT(point_s,
-                     Vec3, x,
-                     Vec3, v,
-                     Real, f,
-                     Real, w,
-                     size_t, tag
+    SP_DEFINE_PARTICLE(point_s,
+                       Vec3, x,
+                       Vec3, v,
+                       Real, f,
+                       Real, w
     );
 
 

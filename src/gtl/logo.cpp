@@ -11,7 +11,8 @@
 
 #include "Log.h"
 
-namespace simpla {
+namespace simpla
+{
 
 #ifndef IDENTIFY
 #	define IDENTIFY "UNKNOWN"
@@ -56,39 +57,41 @@ std::string ShowCopyRight()
 
 void TheStart(int flag)
 {
-    switch (flag) {
+    switch (flag)
+    {
         default:
-            INFORM << SINGLELINE;
-            VERBOSE << "So far so good, let's start work! ";
-            INFORM << "[MISSOIN     START]: ";
-            INFORM << SINGLELINE;
+            INFORM << SINGLELINE << std::endl;
+            VERBOSE << "So far so good, let's start work! " << std::endl;
+            INFORM << "[MISSOIN     START]: " << std::endl;
+            INFORM << SINGLELINE << std::endl;
     }
 }
 
 void TheEnd(int flag)
 {
-    switch (flag) {
+    switch (flag)
+    {
         case -2:
-            INFORM << "Oop! Some thing wrong! Don't worry, maybe not your fault!\n"
-                    " Just maybe! Please Check your configure file again! ";
+            INFORM << "Oop! Some thing wrong! Don't worry, maybe not your fault! " << std::endl
+            << " Just maybe! Please Check your configure file again! " << std::endl;
             break;
         case -1:
-            INFORM << "Sorry! I can't help you now! Please, Try again later!";
+            INFORM << "Sorry! I can't help you now! Please, Try again later!" << std::endl;
             break;
         case 0:
             break;
         case 1:
         default:
-            LOGGER << "MISSION COMPLETED!";
+            LOGGER << "MISSION COMPLETED!" << std::endl;
 
-            INFORM << SINGLELINE;
-            INFORM << "[MISSION COMPLETED]: ";
-            VERBOSE << "Job is Done!! ";
-            VERBOSE << "	I'm so GOOD!";
-            VERBOSE << "		Thanks me please!";
-            VERBOSE << "			Thanks me please!";
-            VERBOSE << "You are welcome!";
-            INFORM << SINGLELINE;
+            INFORM << SINGLELINE << std::endl;
+            INFORM << "[MISSION COMPLETED]: " << std::endl;
+            VERBOSE << "Job is Done!! " << std::endl;
+            VERBOSE << "	I'm so GOOD!" << std::endl;
+            VERBOSE << "		Thanks me please!" << std::endl;
+            VERBOSE << "			Thanks me please!" << std::endl;
+            VERBOSE << "You are welcome!" << std::endl;
+            INFORM << SINGLELINE << std::endl;
 
     }
     exit(0);

@@ -412,7 +412,7 @@ Particle<P, M, V001>::dataset(mesh::MeshEntityRange const &r0) const
 
     ds.data_type = data_model::DataType::create<value_type>();
 
-    size_t num = count(r0);
+    size_t num = count(r0) + 100;
 
     if (num > 0)
     {

@@ -102,8 +102,8 @@ int main(int argc, char **argv)
                     (options["number_of_check_point"].as<int>(1));
 
 
-    MESSAGE << "====================================================" << std::endl;
-    INFORM << "\t >>> START <<< " << std::endl;
+    //   MESSAGE << "====================================================" << std::endl;
+    TheStart();
     INFORM << "\t >>> Time [" << problem_domain->time() << "] <<< " << std::endl;
 
     Real current_time = problem_domain->time();
@@ -127,21 +127,17 @@ int main(int argc, char **argv)
     INFORM << "\t >>> Done <<< " << std::endl;
 
 
-    MESSAGE << "====================================================" << std::endl;
+    // MESSAGE << "====================================================" << std::endl;
     io::cd("/dump/");
-
     problem_domain->save(io::global());
-
     problem_domain->teardown();
-
     problem_domain.reset();
 
+    TheEnd();
+
     io::close();
-
     parallel::close();
-
     logger::close();
-
 }
 
 

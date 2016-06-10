@@ -40,7 +40,7 @@ elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
 else ()
     SET(CMAKE_CXX_FLAGS "-std=c++11   ")
 endif ()
-
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wc++14-extensions ")
 
 #include(FindPackageHandleStandardArgs)
 

@@ -72,7 +72,7 @@ public:
     std::function<Vec3(Real, point_type const &, vector_type const &v)> J_src_fun;
 
 
-    field_t<scalar_type, EDGE> E0/*   */{*this, "E0"};
+//    field_t<scalar_type, EDGE> E0/*   */{*this, "E0"};
     field_t<scalar_type, FACE> B0/*   */{*this, "B0"};
     field_t<scalar_type, FACE> B1/*   */{*this, "B1"};
     field_t<scalar_type, EDGE> E1/*   */{*this, "E1"};
