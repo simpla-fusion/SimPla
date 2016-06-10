@@ -607,9 +607,9 @@ Particle<P, M, V001>::neighbour_resort(range_type const &r)
                 spPage **self = &((*this)[key]);
 
 
-                spParticleCopyN(key, sizeof(value_type), number_of_neighbours, &neighbour[0], self, m_pool_.get());
+                spParticleCopyN(key, number_of_neighbours, &neighbour[0], self, m_pool_.get());
 
-                spParticleClear(key, sizeof(value_type), self, m_pool_.get());
+                spParticleClear(key, self, m_pool_.get());
 
             }
 

@@ -6,11 +6,10 @@
 #include "ParticleCommon.h"
 
 
-int spParticleCopy(size_t key, size_t size_in_byte, struct spPage const *src_page, struct spPage **dest_page,
-                   struct spPagePool *buffer)
+int spParticleCopy(size_t key, struct spPage const *src_page, struct spPage **dest_page, struct spPagePool *pool)
 {
 
-//    size_t size_in_byte = spSizeInByte(pool);
+    size_t size_in_byte = spSizeInByte(pool);
 
     size_t src_tag = 0x0, dest_tag = 0x0;
 
@@ -54,18 +53,19 @@ int spParticleCopy(size_t key, size_t size_in_byte, struct spPage const *src_pag
     return SP_SUCCESS;
 }
 
-int spParticleCopyN(size_t key, size_t size_in_byte, size_t src_num, struct spPage **src_page,
-                    struct spPage **dest_page, struct spPagePool *buffer)
+int spParticleCopyN(size_t key, size_t src_num, struct spPage **src_page, struct spPage **dest_page,
+                    struct spPagePool *buffer)
 {
     for (int i = 0; i < src_num; ++i)
     {
-        spParticleCopy(key, size_in_byte, src_page[i], dest_page, buffer);
+        spParticleCopy(key, src_page[i], dest_page, buffer);
     }
 }
 
-void spParticleClear(size_t key, size_t size_in_byte, struct spPage **pg, struct spPagePool *buffer)
+void spParticleClear(size_t key, struct spPage **pg, struct spPagePool *buffer)
 {
-//    size_t size_in_byte = spSizeInByte(pool);
+    size_t size_in_byte = spSizeInByte(buffer);
+
     if (*pg == 0x0) { return; }
 
     size_t src_tag = 0x0, dest_tag = 0x0;

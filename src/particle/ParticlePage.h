@@ -16,12 +16,11 @@ struct spPage;
 struct spPagePool;
 
 
-int spParticleCopy(size_t key, size_t size_in_byte, struct spPage const *src_page, struct spPage **dest_page,
-                   spPagePool *buffer);
+int spParticleCopy(size_t key, struct spPage const *src_page, struct spPage **dest_page, struct spPagePool *buffer);
 
-int spParticleCopyN(size_t key, size_t size_in_byte, size_t src_num, struct spPage **src_page,
-                    struct spPage **dest_page, spPagePool *buffer);
-void spParticleClear(size_t key, size_t size_in_byte, struct spPage **pg, spPagePool *buffer);
+int spParticleCopyN(size_t key, size_t s_num, struct spPage **s_page, struct spPage **dest_page, spPagePool *buffer);
+
+void spParticleClear(size_t key, struct spPage **pg, struct spPagePool *buffer);
 
 
 #ifdef __cplusplus

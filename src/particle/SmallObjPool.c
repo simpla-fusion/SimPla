@@ -568,3 +568,8 @@ void spPagePoolDestroy(struct spPagePool **pool)
     (*pool) = 0x0;
 
 }
+
+void spPagePoolRelease(struct spPagePool *pool)
+{
+
+}

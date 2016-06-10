@@ -212,6 +212,10 @@ struct spPagePool *spPagePoolCreate(size_t size_in_byte);
 
 void spPagePoolDestroy(struct spPagePool **pool);
 
+void spPagePoolRelease(struct spPagePool *pool);
+
+
+size_t spSizeInByte(struct spPagePool const *pool);
 
 #ifndef __cplusplus
 /**
