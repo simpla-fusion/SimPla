@@ -83,13 +83,21 @@ public:
     }
 
     //factory construct
+//    template<typename TFactory, typename ... Args, typename std::enable_if<TFactory::is_factory>::type * = nullptr>
+//    Particle(TFactory &factory, Args &&...args)
+//            : field_type(factory, std::forward<Args>(args)...), m_properties_(nullptr), m_pool_(nullptr)
+//    {
+//        deploy();
+//    }
+
     template<typename TFactory, typename ... Args, typename std::enable_if<TFactory::is_factory>::type * = nullptr>
     Particle(TFactory &factory, Args &&...args)
-            : field_type(factory, std::forward<Args>(args)...), m_properties_(nullptr), m_pool_(nullptr)
+            : m_properties_(nullptr), m_pool_(nullptr)
     {
+        field_type::m_holder_ = (std::dynamic_pointer_cast<base_type>(
+                factory.template create<this_type>(std::forward<Args>(args)...)));
         deploy();
     }
-
 
     //copy construct
     Particle(this_type const &other)
@@ -134,7 +142,10 @@ public:
 
     std::ostream &print(std::ostream &os, int indent) const;
 
-    virtual bool is_a(std::type_info const &t_info) const { return t_info == typeid(this_type); };
+    virtual bool is_a(std::type_info const &t_info) const
+    {
+        return t_info == typeid(this_type) || t_info == typeid(field_type);
+    };
 
     virtual std::string get_class_name() const { return class_name(); };
 
@@ -143,14 +154,13 @@ public:
 
     virtual bool deploy();
 
-    virtual data_model::DataSet dataset() const { return dataset(entity_id_range(mesh::VALID)); }
+    virtual data_model::DataSet dataset() const;
 
-    virtual data_model::DataSet dataset(range_type const &) const;
+    virtual data_model::DataSet dataset(mesh::MeshEntityRange const &) const;
 
     virtual void dataset(data_model::DataSet const &);
 
     virtual void dataset(mesh::MeshEntityRange const &, data_model::DataSet const &);
-
 
     virtual size_t size() const { return count(entity_id_range()); }
 
@@ -304,7 +314,8 @@ Particle<P, M, V001>::clear()
 template<typename P, typename M> bool
 Particle<P, M, V001>::deploy()
 {
-    bool success = true;
+    bool success = field_type::deploy();
+
     if (m_pool_ == nullptr)
     {
         m_pool_ = std::shared_ptr<spPagePool>(spPagePoolCreate(sizeof(value_type)),
@@ -312,7 +323,7 @@ Particle<P, M, V001>::deploy()
         success = success && field_type::deploy();
         engine_type::deploy();
     }
-    field_type::deploy();
+
 //    field_type::fill(reinterpret_cast<spPage *>(0x0));
 
     parallel::parallel_foreach(entity_id_range(), [&](mesh::MeshEntityId const &s) { get(s) = nullptr; });
@@ -391,18 +402,20 @@ Particle<P, M, V001>::erase(range_type const &r)
 
 //**************************************************************************************************
 
+template<typename P, typename M> data_model::DataSet
+Particle<P, M, V001>::dataset() const { return dataset(entity_id_range()); }
 
-template<typename P, typename M>
-data_model::DataSet
-Particle<P, M, V001>::dataset(range_type const &r0) const
+template<typename P, typename M> data_model::DataSet
+Particle<P, M, V001>::dataset(mesh::MeshEntityRange const &r0) const
 {
     data_model::DataSet ds;
 
+    ds.data_type = data_model::DataType::create<value_type>();
+
     size_t num = count(r0);
+
     if (num > 0)
     {
-        ds.data_type = data_model::DataType::create<value_type>();
-
         ds.data = sp_alloc_memory(num * sizeof(value_type));
 
 //    ds.properties = this->properties();
@@ -417,7 +430,7 @@ Particle<P, M, V001>::dataset(range_type const &r0) const
 template<typename P, typename M> void
 Particle<P, M, V001>::dataset(data_model::DataSet const &d)
 {
-    dataset(field_type::m_mesh_->range(field_type::entity_type()), d);
+    dataset(entity_id_range(), d);
 };
 
 

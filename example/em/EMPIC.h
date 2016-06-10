@@ -54,6 +54,8 @@ public:
 
     virtual io::IOStream &check_point(io::IOStream &os) const;
 
+//    virtual io::IOStream &save(io::IOStream &os) const;
+
 
     MeshEntityRange limiter_boundary;
     MeshEntityRange vertex_boundary;
@@ -162,6 +164,13 @@ io::IOStream &EMPIC<TM>::check_point(io::IOStream &os) const
     os.write("J1", J1.dataset(), io::SP_RECORD);
     return os;
 }
+
+//template<typename TM>
+//io::IOStream &EMPIC<TM>::save(io::IOStream &os) const
+//{
+//    os.write("H", H.dataset(), io::SP_NEW);
+//    return os;
+//}
 
 
 template<typename TM>

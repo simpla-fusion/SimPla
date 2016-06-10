@@ -117,7 +117,7 @@ public:
 
     virtual bool deploy()
     {
-        bool success = false;
+        bool success = true;
 
         if (m_holder_ == nullptr)
         {
@@ -137,14 +137,14 @@ public:
         }
         else
         {
-            if (m_holder_->is_a<this_type>())
-            {
-                m_holder_->deploy();
-                auto self = std::dynamic_pointer_cast<this_type>(m_holder_);
-                m_mesh_ = self->m_mesh_;
-                m_data_ = self->m_data_;
-                success = true;
-            }
+            assert (m_holder_->is_a<this_type>());
+
+            m_holder_->deploy();
+            auto self = std::dynamic_pointer_cast<this_type>(m_holder_);
+            m_mesh_ = self->m_mesh_;
+            m_data_ = self->m_data_;
+            success = true;
+
         }
 
         return success;

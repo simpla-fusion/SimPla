@@ -56,10 +56,7 @@ ProblemDomain::attribute(std::string const &s_name) const
 void ProblemDomain::setup(ConfigParser const &dict)
 {
 
-
     init(dict);
-
-
     LOGGER << "Setup problem domain [" << get_class_name() << "]" << std::endl;
 
 };

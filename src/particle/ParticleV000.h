@@ -168,7 +168,7 @@ public:
 
     virtual data_model::DataSet dataset(range_type const &) const;
 
-    virtual data_model::DataSet dataset() const final { return dataset(m_mesh_->range(entity_type())); }
+    virtual data_model::DataSet dataset() const { return dataset(m_mesh_->range(entity_type())); }
 
     virtual void dataset(data_model::DataSet const &);
 
