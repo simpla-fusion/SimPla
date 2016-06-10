@@ -88,21 +88,49 @@ template<typename TRange, typename Body,
         typename std::enable_if<(detail::foreach_dispatch<TRange, Body>::value & 0x18UL) == 0x08UL>::type * = nullptr>
 void parallel_foreach(TRange const &r, Body const &body)
 {
-    tbb::parallel_for(r, [&](TRange const &r1) { r1.serial_foreach(body); });
+    parallel_for(r, [&](TRange const &r1) { r1.serial_foreach(body); });
 }
 
 template<typename TRange, typename Body,
         typename std::enable_if<(detail::foreach_dispatch<TRange, Body>::value & 0x1CUL) == 0x04UL>::type * = nullptr>
 void parallel_foreach(TRange const &r, Body const &body)
 {
-    tbb::parallel_for(r, [&](TRange const &r1) { r1.foreach(body); });
+    parallel_for(r, [&](TRange const &r1) { r1.foreach(body); });
 }
 
 template<typename TRange, typename Body,
         typename std::enable_if<(detail::foreach_dispatch<TRange, Body>::value & 0x1FUL) == 0x03UL>::type * = nullptr>
 void parallel_foreach(TRange const &r, Body const &body)
 {
-    tbb::parallel_for(r, [&](TRange const &r1) { for (auto const &s: r1) { body(s); }});
+    parallel_for(r, [&](TRange const &r1) { for (auto const &s: r1) { body(s); }});
+}
+
+template<typename TRange, typename Body,
+        typename std::enable_if<(detail::foreach_dispatch<TRange, Body>::value & 0x1FUL) == 0x10UL>::type * = nullptr>
+void serial_foreach(TRange const &r, Body const &body)
+{
+    UNIMPLEMENTED;
+}
+
+template<typename TRange, typename Body,
+        typename std::enable_if<(detail::foreach_dispatch<TRange, Body>::value & 0x0CUL) == 0x08UL>::type * = nullptr>
+void serial_foreach(TRange const &r, Body const &body)
+{
+    r.serial_foreach(body);
+}
+
+template<typename TRange, typename Body,
+        typename std::enable_if<(detail::foreach_dispatch<TRange, Body>::value & 0x0CUL) == 0x04UL>::type * = nullptr>
+void serial_foreach(TRange const &r, Body const &body)
+{
+    r.foreach(body);
+}
+
+template<typename TRange, typename Body,
+        typename std::enable_if<(detail::foreach_dispatch<TRange, Body>::value & 0x1FUL) == 0x03UL>::type * = nullptr>
+void serial_foreach(TRange const &r, Body const &body)
+{
+    for (auto const &s: r) { body(s); }
 }
 }}// namespace simpla { namespace parallel
 

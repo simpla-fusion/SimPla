@@ -337,7 +337,7 @@ public:
 
     typedef std::function<void(MeshEntityId const &)> foreach_body_type;
 
-    void parallel_foreach(foreach_body_type const &body) const { m_holder_->parallel_foreach(body); }
+    void foreach(foreach_body_type const &body) const { m_holder_->foreach(body); }
 
 
 private:
@@ -382,7 +382,7 @@ private:
         }
 
 
-        virtual void parallel_foreach(foreach_body_type const &body) const = 0;
+        virtual void foreach(foreach_body_type const &body) const = 0;
     };
 
 
@@ -439,7 +439,7 @@ private:
 
     public:
 
-        virtual void parallel_foreach(foreach_body_type const &body) const
+        virtual void foreach(foreach_body_type const &body) const
         {
             parallel::parallel_foreach(m_range_, body);
         };
@@ -501,7 +501,7 @@ private:
 //
 //        virtual iterator end() { return iterator(m_range_.end()); }
 
-        virtual void parallel_foreach(foreach_body_type const &body) const
+        virtual void foreach(foreach_body_type const &body) const
         {
             parallel::parallel_foreach(m_range_, body);
         };
