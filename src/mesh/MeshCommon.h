@@ -71,7 +71,7 @@ enum MeshEntityType
 //
 //    QUADRILATERAL = (4 << 2) | 2,
 //
-//    // place Holder
+//    // place RangeHolder
 //
 //    POLYGON = ((-1) << 2) | 2,
 //
@@ -85,7 +85,7 @@ enum MeshEntityType
 //    KNIFE,
 //
 //    HEXAHEDRON = MAX_POLYGON + 12,
-//    // place Holder
+//    // place RangeHolder
 //            POLYHEDRON = MAX_POLYGON + (1 << 5),
 //    // custom POLYHEDRON
 //

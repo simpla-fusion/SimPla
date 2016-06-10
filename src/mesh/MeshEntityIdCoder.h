@@ -16,7 +16,7 @@
 #include "../gtl/primitives.h"
 #include "../gtl/IteratorBlock.h"
 #include "../gtl/iterator/Range.h"
-
+#include "../parallel/ParallelTbb.h"
 #include "MeshCommon.h"
 #include "MeshEntity.h"
 
@@ -179,7 +179,12 @@ struct MeshEntityIdCoder_
             {0,  _R, _R},          // 111
 
     };
-
+    static constexpr int m_iform_to_num_of_ele_in_cell_[] = {
+            1, // VETEX
+            3, // EDGE
+            3, // FACE
+            1  // VOLUME
+    };
     static constexpr int m_id_to_num_of_ele_in_cell_[] = {
 
             1,        // 000
@@ -247,6 +252,16 @@ struct MeshEntityIdCoder_
                     static_cast<id_type>(idx[1]) << MESH_RESOLUTION,
 
                     static_cast<id_type>(idx[2]) << MESH_RESOLUTION) | m_id_to_shift_[n_id];
+    }
+
+    static constexpr id_type pack_index(index_type i, index_type j, index_type k, index_type n_id = 0)
+    {
+
+        return pack(static_cast<id_type>(i) << MESH_RESOLUTION,
+
+                    static_cast<id_type>(j) << MESH_RESOLUTION,
+
+                    static_cast<id_type>(k) << MESH_RESOLUTION) | m_id_to_shift_[n_id];
     }
 
     static constexpr id_type extent_flag_bit(id_type const &s, int n = ID_DIGITS - 2)
@@ -992,6 +1007,33 @@ struct MeshEntityIdCoder_
 
         const_iterator end() const { return const_iterator(m_min_, m_min_, m_max_, m_iform_).end(); }
 
+        template<typename Body>
+        void foreach(Body const &body) const
+        {
+#ifdef USE_TBB
+            tbb::parallel_for(*this, [&](range_type const &r)
+            {
+#else
+                range_type const &r = *this;
+#   ifdef  _OPENMP
+#           pragma omp parallel for
+#   endif
+#endif
+                for (index_type i = r.m_min_[0], ie = r.m_max_[0]; i < ie; ++i)
+                    for (index_type j = r.m_min_[1], je = r.m_max_[1]; j < je; ++j)
+                        for (index_type k = r.m_min_[2], ke = r.m_max_[2]; k < ke; ++k)
+                            for (index_type n = 0, ne = m_iform_to_num_of_ele_in_cell_[r.m_iform_]; n < ne; ++n)
+                            {
+                                body(pack_index(i, j, k, m_sub_index_to_id_[r.m_iform_][n]));
+                            }
+#ifdef USE_TBB
+            });
+#endif
+        }
+
+        template<typename Body>
+        void parallel_foreach(Body const &body) const { foreach(body); }
+
     private:
 
 
@@ -999,7 +1041,7 @@ struct MeshEntityIdCoder_
         index_tuple m_min_, m_max_, m_grain_size_;
     };
 
-//    typedef Range<iterator> range_type;
+//    typedef RangeHolder<iterator> range_type;
 
     template<typename T0, typename T1>
     static range_type make_range(T0 const &min, T1 const &max, int iform = 0)
@@ -1265,6 +1307,7 @@ template<int L> constexpr int MeshEntityIdCoder_<L>::m_id_to_index_[];
 template<int L> constexpr int MeshEntityIdCoder_<L>::m_id_to_iform_[];
 template<int L> constexpr int MeshEntityIdCoder_<L>::m_id_to_num_of_ele_in_cell_[];
 template<int L> constexpr int MeshEntityIdCoder_<L>::m_adjacent_cell_num_[4][8];
+template<int L> constexpr int MeshEntityIdCoder_<L>::m_iform_to_num_of_ele_in_cell_[];
 template<int L> constexpr typename MeshEntityIdCoder_<L>::id_type MeshEntityIdCoder_<L>::m_id_to_shift_[];
 template<int L> constexpr int MeshEntityIdCoder_<L>::m_sub_index_to_id_[4][3];
 template<int L> constexpr MeshEntityId MeshEntityIdCoder_<L>::m_adjacent_cell_matrix_[4/* to iform*/][NUM_OF_NODE_ID/* node id*/][MAX_NUM_OF_ADJACENT_CELL/*id shift*/];

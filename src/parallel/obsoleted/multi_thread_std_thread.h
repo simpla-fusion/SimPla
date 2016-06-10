@@ -18,7 +18,7 @@
 namespace simpla
 {
 //template<typename TI>
-//Range<TI> make_divisible_range(TI const & b, TI const &e)
+//RangeHolder<TI> make_divisible_range(TI const & b, TI const &e)
 //{
 //	size_t grainsize = b - e;
 //
@@ -29,7 +29,7 @@ namespace simpla
 //		grainsize = grainsize / max_thread + 1;
 //	}
 //
-//	return std::move(Range<TI>(b, e, grainsize));
+//	return std::move(RangeHolder<TI>(b, e, grainsize));
 //}
 //
 //template<typename TRange, typename Func>

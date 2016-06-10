@@ -322,7 +322,7 @@ public:
     virtual index_tuple
     point_to_index(point_type const &g, int nId = 0) const
     {
-        m::unpack(std::get<0>(m::coordinates_global_to_local(
+        return m::unpack_index(std::get<0>(m::coordinates_global_to_local(
                 point_type{{
                                    std::fma(g[0], m_g2l_scale_[0], m_g2l_shift_[0]),
                                    std::fma(g[1], m_g2l_scale_[1], m_g2l_shift_[1]),

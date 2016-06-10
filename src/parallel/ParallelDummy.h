@@ -16,13 +16,10 @@ namespace simpla { namespace serial
 
 namespace tags
 {
-struct split
-{
-};
+struct split { };
 
 struct proportional_split
 {
-
     size_t left() { return m_left_; }
 
     size_t right() { return m_right_; }
@@ -45,23 +42,22 @@ void parallel_do(Range const &range, OP const &op)
 
 /**
  *
- * @param entity_id_range Range Concept
- * @param op std::function<void(Range)>
+ * @param entity_id_range RangeHolder Concept
+ * @param op std::function<void(RangeHolder)>
  */
-template<typename Range, typename OP>
-void parallel_for(Range const &range, OP const &op)
+template<typename Range, typename Body>
+void parallel_for(Range const &range, Body const &op)
 {
-//    if (!entity_id_range.empty())
-        op(range);
+    op(range);
 }
 
 ///**
 // *
-// * @param entity_id_range Range Concept
-// * @param op std::function<void(*Range::iterator)>
+// * @param entity_id_range RangeHolder Concept
+// * @param op std::function<void(*RangeHolder::iterator)>
 // */
-//template<typename Range, typename Body>
-//void parallel_foreach(Range const &entity_id_range, Body const &body)
+//template<typename RangeHolder, typename Body>
+//void parallel_foreach(RangeHolder const &entity_id_range, Body const &body)
 //{
 //	for (auto &&i : entity_id_range)
 //	{
@@ -80,8 +76,8 @@ void parallel_for(Range const &range, OP const &op)
 
 /**
  *
- * @param entity_id_range  Range Concept
- * @param op     std::function<T(Range)>
+ * @param entity_id_range  RangeHolder Concept
+ * @param op     std::function<T(RangeHolder)>
  * @param reduce std::function<T(T,T)>
  * @return T
  */
@@ -95,8 +91,8 @@ typename std::result_of<OP(Range const &)>::type
 
 /**
  *
- * @param entity_id_range  Range Concept
- * @param op     std::function<T(Range)>
+ * @param entity_id_range  RangeHolder Concept
+ * @param op     std::function<T(RangeHolder)>
  * @return T
  */
 template<typename Value, typename Range, typename OP>

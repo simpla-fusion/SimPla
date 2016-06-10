@@ -256,7 +256,7 @@ Particle<P, M>::clear()
 template<typename P, typename M> void
 Particle<P, M>::clear(range_type const &r)
 {
-    parallel::parallel_for(r, [&](range_type const &r0) { for (auto const &s:r) { m_data_->erase(s); }});
+    parallel::parallel_foreach([&](MeshEntityId const &s) { m_data_->erase(s); });
 };
 
 template<typename P, typename M> bool

@@ -42,7 +42,7 @@ public:
             m_begin_(iterator(b)), m_end_(iterator(e)), m_grain_size_(grain_size) { }
 
     //****************************************************************************
-    // TBB Range Concept Begin
+    // TBB RangeHolder Concept Begin
 
     ~Range() { }
 
@@ -93,7 +93,7 @@ public:
         std::swap(m_grain_size_, other.m_grain_size_);
     }
 
-    // TBB Range Concept End
+    // TBB RangeHolder Concept End
     //****************************************************************************
     iterator begin() const { return m_begin_; }
 

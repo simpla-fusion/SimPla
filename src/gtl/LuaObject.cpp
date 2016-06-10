@@ -8,9 +8,7 @@
 #include "PrettyStream.h"
 #include "nTupleExt.h"
 
-namespace simpla
-{
-namespace lua
+namespace simpla { namespace lua
 {
 
 
@@ -807,5 +805,4 @@ bool LuaObject::set(std::string const &key, Properties const &res) const
     UNIMPLEMENTED;
     return false;
 }
-}
-}
+}}

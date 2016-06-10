@@ -27,7 +27,7 @@ public :
     RangeAdapter() : m_holder_(nullptr) { }
 
     //****************************************************************************
-    // TBB Range Concept Begin
+    // TBB RangeHolder Concept Begin
     template<typename TOtherRange>
     RangeAdapter(TOtherRange const &other) :
             m_holder_(std::dynamic_pointer_cast<HolderBase>(std::make_shared<Holder<TOtherRange>>(other)))
@@ -73,7 +73,7 @@ public :
 
     iterator end() const { return m_holder_->end(); }
 
-    // TBB Range Concept End
+    // TBB RangeHolder Concept End
     //****************************************************************************
 private:
 
@@ -111,7 +111,7 @@ private:
     public:
 
 //        template<typename ...Args>
-//        Holder(Args &&... args) : m_range_(std::forward<Args>(args)...) { }
+//        RangeHolder(Args &&... args) : m_range_(std::forward<Args>(args)...) { }
 //
 
         Holder(TOtherRange const &other) : m_range_(other) { }

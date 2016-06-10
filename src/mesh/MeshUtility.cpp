@@ -32,16 +32,16 @@ MeshEntityRange select(MeshBase const &m, MeshEntityRange const &r, box_type con
     point_type xl, xu;
     std::tie(xl, xu) = b;
 
-    for (auto const &s:r)
-    {
-        auto x0 = m.point(s);
-        if (xl[0] <= x0[0] && x0[0] <= xu[0] &&
-            xl[1] <= x0[1] && x0[1] <= xu[1] &&
-            xl[2] <= x0[2] && x0[2] <= xu[2])
-        {
-            i_set.insert(s);
-        }
-    }
+    r.foreach([&](MeshEntityId const &s)
+              {
+                  auto x0 = m.point(s);
+                  if (xl[0] <= x0[0] && x0[0] <= xu[0] &&
+                      xl[1] <= x0[1] && x0[1] <= xu[1] &&
+                      xl[2] <= x0[2] && x0[2] <= xu[2])
+                  {
+                      i_set.insert(s);
+                  }
+              });
 
 
     return MeshEntityRange(i_set);

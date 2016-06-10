@@ -150,9 +150,17 @@ size_t spMove(struct spPage **src, struct spPage **dest)
 void spMerge(struct spPage **src, struct spPage **dest)
 {
     size_t count = 0;
+
     if (src != 0x0 && *src != 0x0)
     {
-        spBack(*dest)->next = *src;
+        if (*dest == 0x0)
+        {
+            *dest = *src;
+        } else
+        {
+            spBack(*dest)->next = *src;
+        }
+
         *src = 0x0;
     }
 
@@ -161,14 +169,17 @@ void spMerge(struct spPage **src, struct spPage **dest)
 size_t spMoveN(size_t n, struct spPage **src, struct spPage **dest)
 {
     size_t count = 0;
-    while (src != 0x0 && *src != 0x0)
+    struct spPage *head = *src;
+    while (*src != 0x0 && count < n)
     {
-        struct spPage *tmp = *src;
         *src = (*src)->next;
-        tmp->next = *dest;
-        *dest = tmp;
         ++count;
     }
+    struct spPage *tail = *src;
+    *src = (*src)->next;
+    tail->next = *dest;
+    *dest = tail;
+
     return count;
 };
 
@@ -238,7 +249,7 @@ size_t spFill(struct spPage *p, size_t N, size_t size_in_byte, void const *src)
 void *spNext(struct spOutputIterator *it)
 {
     //TODO need optimize
-//    void *ret = 0x0;
+    void *ret = 0x0;
 //    for (; (*(it->page)) != 0x0; (*(it->page)) = (*(it->page))->next)
 //    {
 //        if (it->tag == 0x0 || it->p == 0x0)
@@ -269,33 +280,33 @@ void *spItTraverse(struct spOutputIterator *it)
 {
     //TODO need optimize
     void *ret = 0x0;
-    for (; (*(it->page)) != 0x0; (*(it->page)) = (*(it->page))->next)
-    {
-        if (it->tag == 0x0 || it->p == 0x0)
-        {
-            it->tag = 0x01;
-            it->p = (*(it->page))->data;
-        }
-        else
-        {
-            it->tag <<= 1;
-            it->p += it->ele_size_in_byte;
-        }
-        while ((((*(it->page))->tag & (it->tag)) == 0) && (it->tag != 0))
-        {
-            it->tag <<= 1;
-            it->p += it->ele_size_in_byte;
-        }
-        if (it->tag != 0)
-        {
-            ret = it->p;
-            break;
-        }
-    }
+//    for (; (*(it->page)) != 0x0; (*(it->page)) = (*(it->page))->next)
+//    {
+//        if (it->tag == 0x0 || it->p == 0x0)
+//        {
+//            it->tag = 0x01;
+//            it->p = (*(it->page))->data;
+//        }
+//        else
+//        {
+//            it->tag <<= 1;
+//            it->p += it->ele_size_in_byte;
+//        }
+//        while ((((*(it->page))->tag & (it->tag)) == 0) && (it->tag != 0))
+//        {
+//            it->tag <<= 1;
+//            it->p += it->ele_size_in_byte;
+//        }
+//        if (it->tag != 0)
+//        {
+//            ret = it->p;
+//            break;
+//        }
+//    }
     return ret;
 }
 
-void *spInputIteratorNext(struct spInputIterator *it, struct spPagePool *pool)
+void *spInputIteratorNext(struct spInputIterator *it)
 {
     if (it == 0x0) { return 0x0; }
 
@@ -303,7 +314,7 @@ void *spInputIteratorNext(struct spInputIterator *it, struct spPagePool *pool)
 
     while (1)
     {
-        if (*pg == 0x0) { (*pg) = spPageCreate(pool, 1); }
+        if (*pg == 0x0) { (*pg) = spPageCreate(it->pool, 1); }
 
         if (it->tag == 0x0 || it->p == 0x0)
         {
@@ -313,10 +324,10 @@ void *spInputIteratorNext(struct spInputIterator *it, struct spPagePool *pool)
 
 
         it->tag <<= 1;
-        it->p += it->ele_size_in_byte;
+        it->p += it->pool->ele_size_in_byte;
 
         if ((*pg)->tag + 1 == 0x0) { pg = &((*pg)->next); }
-        if ((*pg)->tag & (it->tag) == 0x0) { break; }
+        if (((*pg)->tag & (it->tag)) == 0x0) { break; }
     }
 
     (*pg)->tag |= it->tag;
@@ -358,31 +369,31 @@ void *spItInsert(struct spOutputIterator *it)
 {
     //TODO need optimize
     void *ret = 0x0;
-    if ((*(it->page)) == 0x0) { goto RETURN; }
-
-    if (it->tag == 0x0 || it->p == 0x0)
-    {
-        it->tag = 0x1;
-        it->p = (*(it->page))->data;
-    }
-
-
-    while (((*(it->page))->tag & it->tag) != 0)
-    {
-        it->tag <<= 1;
-        it->p += it->ele_size_in_byte;
-
-        if ((*(it->page))->tag + 1 == 0x0 || it->tag == 0x0)
-        {
-            if ((*(it->page))->next == 0x0) { goto RETURN; }
-            (*(it->page)) = (*(it->page))->next;
-            it->tag = 0x01;
-            it->p = (*(it->page))->data;
-        }
-    }
-    (*(it->page))->tag |= it->tag;
-    ret = it->p;
-    RETURN:
+//    if ((*(it->page)) == 0x0) { goto RETURN; }
+//
+//    if (it->tag == 0x0 || it->p == 0x0)
+//    {
+//        it->tag = 0x1;
+//        it->p = (*(it->page))->data;
+//    }
+//
+//
+//    while (((*(it->page))->tag & it->tag) != 0)
+//    {
+//        it->tag <<= 1;
+//        it->p += it->ele_size_in_byte;
+//
+//        if ((*(it->page))->tag + 1 == 0x0 || it->tag == 0x0)
+//        {
+//            if ((*(it->page))->next == 0x0) { goto RETURN; }
+//            (*(it->page)) = (*(it->page))->next;
+//            it->tag = 0x01;
+//            it->p = (*(it->page))->data;
+//        }
+//    }
+//    (*(it->page))->tag |= it->tag;
+//    ret = it->p;
+//    RETURN:
     return ret;
 }
 
@@ -391,32 +402,32 @@ void *spItRemoveIf(struct spOutputIterator *it, int flag)
 {
     //TODO need optimize
     void *ret = 0x0;
-    for (; (*(it->page)) != 0x0; (*(it->page)) = (*(it->page))->next)
-    {
-
-        if (it->tag == 0x0 || it->p == 0x0)
-        {
-            it->tag = 0x01;
-            it->p = (*(it->page))->data;
-        }
-        else
-        {
-            if (flag > 0) { (*(it->page))->tag &= ~(it->tag); }
-
-            it->tag <<= 1;
-            it->p += it->ele_size_in_byte;
-        }
-        while ((((*(it->page))->tag & (it->tag)) == 0) && (it->tag != 0))
-        {
-            it->tag <<= 1;
-            it->p += it->ele_size_in_byte;
-        }
-        if (it->tag != 0)
-        {
-            ret = it->p;
-            break;
-        }
-    }
+//    for (; (*(it->page)) != 0x0; (*(it->page)) = (*(it->page))->next)
+//    {
+//
+//        if (it->tag == 0x0 || it->p == 0x0)
+//        {
+//            it->tag = 0x01;
+//            it->p = (*(it->page))->data;
+//        }
+//        else
+//        {
+//            if (flag > 0) { (*(it->page))->tag &= ~(it->tag); }
+//
+//            it->tag <<= 1;
+//            it->p += it->ele_size_in_byte;
+//        }
+//        while ((((*(it->page))->tag & (it->tag)) == 0) && (it->tag != 0))
+//        {
+//            it->tag <<= 1;
+//            it->p += it->ele_size_in_byte;
+//        }
+//        if (it->tag != 0)
+//        {
+//            ret = it->p;
+//            break;
+//        }
+//    }
     return ret;
 }
 

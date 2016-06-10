@@ -109,30 +109,33 @@ void EMPIC<TM>::init(ConfigParser const &options)
         {
             std::function<vector_type(point_type const &)> fun;
             options["InitValue"]["B0"]["Value"].as(&fun);
-            for (auto const &s:m->range(FACE))
-            {
-                B0[s] = m->template sample<FACE>(s, fun(m->point(s)));
-            }
+            parallel::parallel_foreach(
+                    m->range(FACE), [&](mesh::MeshEntityId const &s)
+                    {
+                        B0[s] = m->template sample<FACE>(s, fun(m->point(s)));
+                    });
         }
 
         if (options["InitValue"]["B1"])
         {
             std::function<vector_type(point_type const &)> fun;
             options["InitValue"]["B1"]["Value"].as(&fun);
-            for (auto const &s:m->range(FACE))
-            {
-                B1[s] = m->template sample<FACE>(s, fun(m->point(s)));
-            }
+            parallel::parallel_foreach(
+                    m->range(FACE), [&](mesh::MeshEntityId const &s)
+                    {
+                        B1[s] = m->template sample<FACE>(s, fun(m->point(s)));
+                    });
         }
 
         if (options["InitValue"]["E1"])
         {
             std::function<vector_type(point_type const &)> fun;
             options["InitValue"]["E1"]["Value"].as(&fun);
-            for (auto const &s:m->range(EDGE))
-            {
-                E1[s] = m->template sample<EDGE>(s, fun(m->point(s)));
-            }
+            parallel::parallel_foreach(
+                    m->range(EDGE), [&](mesh::MeshEntityId const &s)
+                    {
+                        E1[s] = m->template sample<EDGE>(s, fun(m->point(s)));
+                    });
         }
     }
 
@@ -178,12 +181,13 @@ void EMPIC<TM>::next_step(Real dt)
         Real current_time = time();
 
         auto f = J_src_fun;
-        for (auto const &s:J_src_range)
-        {
-            auto x0 = m->point(s);
-            auto v = J_src_fun(current_time, x0, J1(x0));
-            J1[s] += m->template sample<EDGE>(s, v);
-        }
+        parallel::parallel_foreach(
+                J_src_range, [&](mesh::MeshEntityId const &s)
+                {
+                    auto x0 = m->point(s);
+                    auto v = J_src_fun(current_time, x0, J1(x0));
+                    J1[s] += m->template sample<EDGE>(s, v);
+                });
     }
 
     LOG_CMD(B1 -= curl(E1) * (dt * 0.5));

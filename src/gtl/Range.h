@@ -18,7 +18,7 @@ template<typename ...> struct Range;
 
 /**
  *
- * PlaceHolder on Range concept in TBB
+ * PlaceHolder on RangeHolder concept in TBB
  *
  */
 

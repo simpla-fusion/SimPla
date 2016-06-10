@@ -21,17 +21,19 @@
 
 #endif
 
-//#ifdef USE_TBB
+#ifdef USE_TBB
 
 #   include "ParallelTbb.h"
-//#elif _OPENMP
-//#include "multi_thread_openmp.h"
-//#include "parallel_openmp.h"
-//#else
-////#include "multi_thread_std_thread.h"
-//#include "ParallelDummy.h"
-//
-//#endif
+
+#elif _OPENMP
+
+#   include "ParallelOpenMP.h"
+
+#else
+
+#   include "ParallelDummy.h"
+
+#endif
 
 #include "DistributedObject.h"
 

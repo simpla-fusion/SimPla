@@ -169,7 +169,7 @@ public:
     virtual void clear()
     {
         deploy();
-        for (auto const &s: m_mesh_->range(entity_type())) { get(s) = 0; }
+        m_mesh_->range(entity_type()).foreach([&](mesh::MeshEntityId const &s) { get(s) = 0; });
     }
 
 
@@ -279,15 +279,11 @@ public:
 
         if (!r0.empty())
         {
-            parallel::parallel_for(
-                    r0,
-                    [&](typename mesh::MeshEntityRange const &r)
+            parallel::parallel_foreach(
+                    r0, [&](typename mesh::MeshEntityId const &s)
                     {
-                        for (auto const &s: r)
-                        {
-                            auto x = m_mesh_->point(s);
-                            get(s) = m_mesh_->template sample<IFORM>(s, op(x, gather(x)));
-                        }
+                        auto x = m_mesh_->point(s);
+                        get(s) = m_mesh_->template sample<IFORM>(s, op(x, gather(x)));
                     }
             );
         }
@@ -305,15 +301,12 @@ public:
 
         if (!r0.empty())
         {
-            parallel::parallel_for(
-                    r0,
-                    [&](typename mesh::MeshEntityRange const &r)
+            parallel::parallel_foreach(
+                    r0, [&](typename mesh::MeshEntityId const &s)
                     {
-                        for (auto const &s: r)
-                        {
-                            auto v = op(m_mesh_->point(s));
-                            get(s) = m_mesh_->template sample<IFORM>(s, v);
-                        }
+                        auto v = op(m_mesh_->point(s));
+                        get(s) = m_mesh_->template sample<IFORM>(s, v);
+
                     }
             );
         }
@@ -331,13 +324,7 @@ public:
 
         if (!r0.empty())
         {
-            parallel::parallel_for(
-                    r0,
-                    [&](typename mesh::MeshEntityRange const &r)
-                    {
-                        for (auto const &s: r) { get(s) = op(s); }
-                    }
-            );
+            parallel::parallel_foreach(r0, [&](typename mesh::MeshEntityId const &s) { get(s) = op(s); });
         }
         return *this;
     }
@@ -352,13 +339,7 @@ public:
 
         if (!r0.empty())
         {
-            parallel::parallel_for(
-                    r0,
-                    [&](typename mesh::MeshEntityRange const &r)
-                    {
-                        for (auto const &s: r) { op(get(s)); }
-                    }
-            );
+            parallel::parallel_foreach(r0, [&](typename mesh::MeshEntityId const &s) { op(get(s)); });
         }
 
         return *this;
@@ -374,13 +355,7 @@ public:
 
         if (!r0.empty())
         {
-            parallel::parallel_for(
-                    r0,
-                    [&](typename mesh::MeshEntityRange const &r)
-                    {
-                        for (auto const &s: r) { get(s) = f[s]; }
-                    }
-            );
+            parallel::parallel_foreach(r0, [&](typename mesh::MeshEntityId const &s) { get(s) = f[s]; });
         }
 
         return *this;
@@ -405,12 +380,12 @@ private:
     {
         if (!r.empty())
         {
-            parallel::parallel_for(
-                    r,
-                    [&](typename mesh::MeshEntityRange const &r)
+            parallel::parallel_foreach(
+                    r, [&](typename mesh::MeshEntityId const &s)
                     {
-                        for (auto const &s:r) { op(get(s), m_mesh_->eval(other, s)); }
+                        op(get(s), m_mesh_->eval(other, s));
                     }
+
             );
         }
         return *this;

@@ -231,9 +231,9 @@ class MeshEntityRange
 {
     typedef MeshEntityRange this_type;
 
-    class HolderBase;
+    class RangeBase;
 
-    template<typename, bool> struct Holder;
+    template<typename, bool> struct RangeHolder;
 
     HAS_MEMBER_FUNCTION(range)
 
@@ -243,11 +243,11 @@ public :
     MeshEntityRange() : m_holder_(nullptr) { }
 
     //****************************************************************************
-    // TBB Range Concept Begin
+    // TBB RangeHolder Concept Begin
     template<typename TOther>
     MeshEntityRange(TOther const &other) :
-            m_holder_(std::dynamic_pointer_cast<HolderBase>(
-                    std::make_shared<Holder<TOther,
+            m_holder_(std::dynamic_pointer_cast<RangeBase>(
+                    std::make_shared<RangeHolder<TOther,
                             has_member_function_range<TOther>::value>>(other)))
     {
     }
@@ -276,16 +276,16 @@ public:
     size_t size() const { return m_holder_->size(); }
 
 
-    iterator begin() { return m_holder_->begin(); }
-
-    iterator end() { return m_holder_->end(); }
-
-    iterator begin() const { return m_holder_->begin(); }
-
-    iterator end() const { return m_holder_->end(); }
+//    iterator begin() { return m_holder_->begin(); }
+//
+//    iterator end() { return m_holder_->end(); }
+//
+//    iterator begin() const { return m_holder_->begin(); }
+//
+//    iterator end() const { return m_holder_->end(); }
 
     //****************************************************************************
-    // TBB Range Concept End
+    // TBB RangeHolder Concept End
     //    enum op_tag { AND, OR, XOR };
     //
     //    MeshEntityRange op(op_tag tag, MeshEntityRange const &other) const
@@ -295,12 +295,22 @@ public:
     //        return std::move(res);
     //    }
 
-    template<typename T, typename ...Args>
+    template<typename T, typename ...Args,
+            typename std::enable_if<!std::is_base_of<RangeBase, T>::value>::type * = nullptr>
     static MeshEntityRange create(Args &&...args)
     {
         MeshEntityRange res;
-        res.m_holder_ = std::dynamic_pointer_cast<HolderBase>(
-                Holder<T, has_member_function_range<T>::value>::create(std::forward<Args>(args)...));
+        res.m_holder_ = std::dynamic_pointer_cast<RangeBase>(
+                RangeHolder<T, has_member_function_range<T>::value>::create(std::forward<Args>(args)...));
+        return std::move(res);
+    }
+
+    template<typename T, typename ...Args,
+            typename std::enable_if<std::is_base_of<RangeBase, T>::value>::type * = nullptr>
+    static MeshEntityRange create(Args &&...args)
+    {
+        MeshEntityRange res;
+        res.m_holder_ = std::dynamic_pointer_cast<RangeBase>(std::make_shared<T>(std::forward<Args>(args)...));
         return std::move(res);
     }
 
@@ -327,15 +337,20 @@ public:
         return m_holder_->as<T>();
     }
 
+    typedef std::function<void(MeshEntityId const &)> foreach_body_type;
+
+    void foreach(foreach_body_type const &body) const { m_holder_->foreach(body); }
+
+
 private:
 
-    std::shared_ptr<HolderBase> m_holder_;
+    std::shared_ptr<RangeBase> m_holder_;
 
-    struct HolderBase
+    struct RangeBase
     {
-        virtual std::shared_ptr<HolderBase> clone() const = 0;
+        virtual std::shared_ptr<RangeBase> clone() const = 0;
 
-        virtual std::shared_ptr<HolderBase> split() = 0;
+        virtual std::shared_ptr<RangeBase> split() = 0;
 
         virtual bool is_a(std::type_info const &) const = 0;
 
@@ -345,19 +360,19 @@ private:
 
         virtual bool empty() const = 0;
 
-        virtual iterator begin() const = 0;
-
-        virtual iterator end() const = 0;
-
-        virtual iterator begin() = 0;
-
-        virtual iterator end() = 0;
+//        virtual iterator begin() const = 0;
+//
+//        virtual iterator end() const = 0;
+//
+//        virtual iterator begin() = 0;
+//
+//        virtual iterator end() = 0;
 
         template<typename T> T &as()
         {
             assert(is_a(typeid(T)));
 
-            return std::dynamic_pointer_cast<Holder<T, has_member_function_range<T>::value> *>(this)->self();
+            return std::dynamic_pointer_cast<RangeHolder<T, has_member_function_range<T>::value> *>(this)->self();
 
         }
 
@@ -365,26 +380,27 @@ private:
         {
             assert(is_a(typeid(T)));
 
-            return std::dynamic_pointer_cast<Holder<T, has_member_function_range<T>::value> const *>(this)->self();
+            return std::dynamic_pointer_cast<RangeHolder<T, has_member_function_range<T>::value> const *>(this)->self();
         }
 
 
+        virtual void foreach(foreach_body_type const &body) const = 0;
     };
 
 
     template<typename TOtherRange>
-    struct Holder<TOtherRange, false> : public HolderBase
+    struct RangeHolder<TOtherRange, false> : public RangeBase
     {
-        typedef Holder<TOtherRange, false> this_type;
+        typedef RangeHolder<TOtherRange, false> this_type;
         TOtherRange m_range_;
     public:
 
-        Holder(TOtherRange const &other) : m_range_(other) { }
+        RangeHolder(TOtherRange const &other) : m_range_(other) { }
 
         template<typename ...Args>
-        Holder(this_type &other, Args &&...args) : m_range_(other.m_range_, std::forward<Args>(args)...) { }
+        RangeHolder(this_type &other, Args &&...args) : m_range_(other.m_range_, std::forward<Args>(args)...) { }
 
-        virtual  ~Holder() { }
+        virtual  ~RangeHolder() { }
 
         TOtherRange &self() { return m_range_; }
 
@@ -396,14 +412,14 @@ private:
             return std::shared_ptr<this_type>(new this_type{TOtherRange(std::forward<Args>(args)...)});
         }
 
-        virtual std::shared_ptr<HolderBase> clone() const
+        virtual std::shared_ptr<RangeBase> clone() const
         {
-            return std::dynamic_pointer_cast<HolderBase>(std::make_shared<this_type>(*this));
+            return std::dynamic_pointer_cast<RangeBase>(std::make_shared<this_type>(*this));
         }
 
-        virtual std::shared_ptr<HolderBase> split()
+        virtual std::shared_ptr<RangeBase> split()
         {
-            return std::dynamic_pointer_cast<HolderBase>(std::make_shared<this_type>(*this, parallel::tags::split()));
+            return std::dynamic_pointer_cast<RangeBase>(std::make_shared<this_type>(*this, parallel::tags::split()));
         };
 
         virtual size_t size() const { return m_range_.size(); }
@@ -414,35 +430,57 @@ private:
 
         virtual bool empty() const { return m_range_.empty(); }
 
-        virtual iterator begin() const { return iterator(m_range_.begin()); }
+//        virtual iterator begin() const { return iterator(m_range_.begin()); }
+//
+//        virtual iterator end() const { return iterator(m_range_.end()); }
+//
+//        virtual iterator begin() { return iterator(m_range_.begin()); }
+//
+//        virtual iterator end() { return iterator(m_range_.end()); }
 
-        virtual iterator end() const { return iterator(m_range_.end()); }
+    private:
+        HAS_CONST_MEMBER_FUNCTION(foreach)
 
-        virtual iterator begin() { return iterator(m_range_.begin()); }
+        void _foreach(foreach_body_type const &body, std::integral_constant<bool, true>) const
+        {
+            m_range_.foreach(body);
+        };
 
-        virtual iterator end() { return iterator(m_range_.end()); }
+        void _foreach(foreach_body_type const &body, std::integral_constant<bool, false>) const
+        {
+            for (auto const &s:m_range_)
+            {
+                body(s);
+            }
+        };
 
+    public:
 
+        virtual void foreach(foreach_body_type const &body) const
+        {
+            _foreach(body,
+                     std::integral_constant<bool, has_const_member_function_foreach<TOtherRange, foreach_body_type>::value>());
+        };
     };
 
 
     template<typename TContainer>
-    struct Holder<TContainer, true> : public HolderBase
+    struct RangeHolder<TContainer, true> : public RangeBase
     {
         typedef typename TContainer::const_range_type range_type;
-        typedef Holder<TContainer, true> this_type;
+        typedef RangeHolder<TContainer, true> this_type;
         TContainer const *m_container_;
         range_type m_range_;
     public:
 
-        Holder(TContainer const &other) :
+        RangeHolder(TContainer const &other) :
                 m_container_(&other), m_range_(m_container_->range()) { }
 
         template<typename ...Args>
-        Holder(this_type &other, Args &&...args) :
+        RangeHolder(this_type &other, Args &&...args) :
                 m_container_(other.m_container_), m_range_(other.m_range_, std::forward<Args>(args)...) { }
 
-        virtual  ~Holder() { }
+        virtual  ~RangeHolder() { }
 
         template<typename ...Args> static std::shared_ptr<this_type>
         create(Args &&...  args)
@@ -454,14 +492,14 @@ private:
 
         range_type const &self() const { return m_range_; }
 
-        virtual std::shared_ptr<HolderBase> clone() const
+        virtual std::shared_ptr<RangeBase> clone() const
         {
-            return std::dynamic_pointer_cast<HolderBase>(std::make_shared<this_type>(*this));
+            return std::dynamic_pointer_cast<RangeBase>(std::make_shared<this_type>(*this));
         }
 
-        virtual std::shared_ptr<HolderBase> split()
+        virtual std::shared_ptr<RangeBase> split()
         {
-            return std::dynamic_pointer_cast<HolderBase>(std::make_shared<this_type>(*this, parallel::tags::split()));
+            return std::dynamic_pointer_cast<RangeBase>(std::make_shared<this_type>(*this, parallel::tags::split()));
         };
 
         virtual size_t size() const { return m_container_->size(); }
@@ -473,13 +511,39 @@ private:
 
         virtual bool empty() const { return m_range_.empty(); }
 
-        virtual iterator begin() const { return iterator(m_range_.begin()); }
+//        virtual iterator begin() const { return iterator(m_range_.begin()); }
+//
+//        virtual iterator end() const { return iterator(m_range_.end()); }
+//
+//        virtual iterator begin() { return iterator(m_range_.begin()); }
+//
+//        virtual iterator end() { return iterator(m_range_.end()); }
 
-        virtual iterator end() const { return iterator(m_range_.end()); }
+    private:
+        HAS_CONST_MEMBER_FUNCTION(foreach)
 
-        virtual iterator begin() { return iterator(m_range_.begin()); }
 
-        virtual iterator end() { return iterator(m_range_.end()); }
+        void _foreach(foreach_body_type const &body, std::integral_constant<bool, true>) const
+        {
+            m_range_.foreach(body);
+        };
+
+        void _foreach(foreach_body_type const &body, std::integral_constant<bool, false>) const
+        {
+            for (auto const &s:m_range_)
+            {
+                body(s);
+            }
+        };
+
+    public:
+        virtual bool has_foreach() const { return has_const_member_function_foreach<range_type, foreach_body_type>::value; };
+
+        virtual void foreach(foreach_body_type const &body) const
+        {
+            _foreach(body,
+                     std::integral_constant<bool, has_const_member_function_foreach<range_type, foreach_body_type>::value>());
+        };
 
 
     };

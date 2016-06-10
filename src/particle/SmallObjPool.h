@@ -168,6 +168,7 @@ struct spOutputIterator
     status_tag_type tag;
     void *const p;
     struct spPage **const page;
+    size_t ele_size_in_byte;
 };
 
 /**
@@ -183,15 +184,14 @@ struct spInputIterator
     status_tag_type tag;
     void *p;
     struct spPage **page;
-    size_t ele_size_in_byte;
-
+    struct spPagePool *pool;
 };
 
 /**
  * 1. insert new obj to page
  * @return if page is full return 0x0, else return pointer to new obj
  */
-void *spInputIteratorNext(struct spInputIterator *it, struct spPagePool *pool);
+void *spInputIteratorNext(struct spInputIterator *it);
 
 
 size_t spNextBlank2(struct spPage **pg, size_t *tag, void **p, struct spPagePool *pool);
@@ -221,7 +221,7 @@ void spPagePoolDestroy(struct spPagePool **pool);
  */
 #define SP_PAGE_FOREACH(__TYPE__, _PTR_NAME_, __PG_HEAD__)          \
 __TYPE__ *_PTR_NAME_ = 0x0; \
-for (struct spIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
+for (struct spOutputIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
 (_PTR_NAME_ =  spNext(&__it)) != 0x0;)
 
 /**
@@ -229,9 +229,9 @@ for (struct spIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
  * example:
  * SP_ADD_NEW_ELEMENT(200,struct point_s, p, pg, p_pool) {p->x = 0; }
  */
-#define SP_PAGE_INSERT(__NUMBER__, __TYPE__, _PTR_NAME_, __PG_HEAD__)          \
+#define SP_PAGE_INSERT_PTR(__NUMBER__, __TYPE__, _PTR_NAME_, __PG_HEAD__, __POOL__)          \
 __TYPE__ *_PTR_NAME_; size_t __count = __NUMBER__; \
-for (struct spIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
+for (struct spInputIterator __it = {0x0, 0x0, __PG_HEAD__, __POOL__}; \
 (_PTR_NAME_ =  spNextBlank(&__it )) != 0x0 && (__count>1);--__count)
 
 #define SP_OBJ_REMOVE_IF(__TYPE__, _PTR_NAME_, __PG_HEAD__, __TAG__)          \
@@ -257,9 +257,9 @@ for (spOutputIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
  * example:
  * SP_ADD_NEW_ELEMENT(200,struct point_s, p, pg) {p->x = 0; }
  */
-#define SP_PAGE_INSERT(__NUMBER__, __TYPE__, _PTR_NAME_, __PG_HEAD__)          \
+#define SP_PAGE_INSERT_PTR(__NUMBER__, __TYPE__, _PTR_NAME_, __PG_HEAD__)          \
 __TYPE__ *_PTR_NAME_; size_t __count = __NUMBER__; \
-for (spOutputIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
+for (spInputIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
 (_PTR_NAME_ =  reinterpret_cast<__TYPE__ *>(spNextBlank(&__it))) != 0x0 && (__count>1);--__count)
 
 #define SP_OBJ_REMOVE_IF(__TYPE__, _PTR_NAME_, __PG_HEAD__, __TAG__)          \

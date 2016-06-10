@@ -30,11 +30,11 @@ namespace simpla
  *
  *   Pseudo-Signature                    | Semantics
  *	 ------------------------------------|----------
- * 	 `typedef std::shared_ptr<X> Holder` | hold the ownership of object;
+ * 	 `typedef std::shared_ptr<X> RangeHolder` | hold the ownership of object;
  * 	 `private  X()`                      | disable directly construct object;
- * 	 `static Holder  create()`           | create an object, and return the Holder
- * 	 `Holder shared_from_this()`         | Returns a `Holder` that shares ownership of `*this` ;
- *   `Holder shared_from_this() const`   | Returns a `read-only Holder` that shares `const` ownership of `*this` ;
+ * 	 `static RangeHolder  create()`           | create an object, and return the RangeHolder
+ * 	 `RangeHolder shared_from_this()`         | Returns a `RangeHolder` that shares ownership of `*this` ;
+ *   `RangeHolder shared_from_this() const`   | Returns a `read-only RangeHolder` that shares `const` ownership of `*this` ;
  *
  *  @}
  */
@@ -96,7 +96,7 @@ namespace simpla
  *
  * @code{
  *
- *     struct X:public Holder<X>
+ *     struct X:public RangeHolder<X>
  *     {
  *       X(args...);
  *       ....
@@ -183,7 +183,7 @@ struct enable_create_from_this: public std::enable_shared_from_this<TObject>
 	using std::enable_shared_from_this<object_type>::shared_from_this;
 
 //	template<typename ...Args>
-//	Holder select_from_this(Args && ...args)
+//	RangeHolder select_from_this(Args && ...args)
 //	{
 //		return std::move(
 //				create_from_this<object_type>(self(), op_select(),
@@ -191,20 +191,20 @@ struct enable_create_from_this: public std::enable_shared_from_this<TObject>
 //	}
 //
 //	template<typename ...Args>
-//	Holder select_from_this(Args && ...args) const
+//	RangeHolder select_from_this(Args && ...args) const
 //	{
 //		return std::move(
 //				create_from_this(self(), op_select(),
 //						std::forward<Args>(args)...));
 //	}
 //
-//	Holder merge_with_this(object_type && ...args) const
+//	RangeHolder merge_with_this(object_type && ...args) const
 //	{
 //		return std::move(
 //				create_from_this(self(), op_merge(),
 //						std::forward<object_type>(args)...));
 //	}
-//	Holder merge_with_this(object_type && ...args)
+//	RangeHolder merge_with_this(object_type && ...args)
 //	{
 //		return std::move(
 //				create_from_this(self(), op_merge(),

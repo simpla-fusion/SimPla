@@ -8,7 +8,7 @@
 #ifndef CORE_PARTICLE_PARTICLE_H_
 #define CORE_PARTICLE_PARTICLE_H_
 
-#include "ParticleV000.h"
+//#include "ParticleV000.h"
 #include "ParticleV001.h"
 
 namespace simpla { namespace particle

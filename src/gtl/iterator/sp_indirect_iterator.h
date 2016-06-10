@@ -122,7 +122,7 @@ struct sp_indirect_range
     {
     }
 
-    //! @name TBB::Range Concept
+    //! @name TBB::RangeHolder Concept
     //! @{
 
     template<typename ...Others>
