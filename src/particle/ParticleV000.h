@@ -12,7 +12,9 @@
 #include "../parallel/Parallel.h"
 #include "../mesh/MeshAttribute.h"
 
-namespace simpla { namespace particle
+namespace simpla
+{
+namespace particle
 {
 
 
@@ -35,7 +37,7 @@ public:
     typedef std::list<value_type> bucket_type;
     typedef typename mesh::MeshEntityId id_type;
     typedef typename mesh::MeshEntityRange range_type;
-    typedef parallel::concurrent_hash_map <id_type, bucket_type> container_type;
+    typedef parallel::concurrent_hash_map<id_type, bucket_type> container_type;
     typedef container_type buffer_type;
 
 private:
@@ -166,7 +168,7 @@ public:
 
     virtual data_model::DataSet dataset(range_type const &) const;
 
-    virtual data_model::DataSet dataset() const { return dataset(m_mesh_->range(entity_type())); }
+    virtual data_model::DataSet dataset() const final { return dataset(m_mesh_->range(entity_type())); }
 
     virtual void dataset(data_model::DataSet const &);
 
@@ -256,7 +258,10 @@ Particle<P, M>::clear()
 template<typename P, typename M> void
 Particle<P, M>::clear(range_type const &r)
 {
-    parallel::parallel_foreach([&](MeshEntityId const &s) { m_data_->erase(s); });
+    parallel::parallel_foreach([&](MeshEntityId const &s) { m_data_->erase(s); }
+}
+
+);
 };
 
 template<typename P, typename M> bool
@@ -346,8 +351,9 @@ Particle<P, M>::gather_all(Field<TV, mesh_type, Others...> *res, Args &&...args)
                    [&](point_type const &x)
                    {
 
-                       typename traits::field_value_type<Field<TV, mesh_type, Others...>>
-                       ::type v;
+                       typename traits::field_value_type<Field < TV, mesh_type, Others...>>
+                       ::type
+                       v;
                        this->gather(&v, x, std::forward<Args>(args)...);
                        return v;
                    });
@@ -671,7 +677,8 @@ Particle<V, K>::remove_if(range_type const &r0, Predicate const &pred)
 }
 
 
-}} //namespace simpla { namespace particle
+}
+} //namespace simpla { namespace particle
 
 
 #endif //SIMPLA_PARTICLEV000_H

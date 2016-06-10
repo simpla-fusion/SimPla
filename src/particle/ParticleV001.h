@@ -143,9 +143,9 @@ public:
 
     virtual bool deploy();
 
+    virtual data_model::DataSet dataset() const { return dataset(entity_id_range(mesh::VALID)); }
 
     virtual data_model::DataSet dataset(range_type const &) const;
-
 
     virtual void dataset(data_model::DataSet const &);
 
@@ -312,6 +312,10 @@ Particle<P, M, V001>::deploy()
         success = success && field_type::deploy();
         engine_type::deploy();
     }
+    field_type::deploy();
+//    field_type::fill(reinterpret_cast<spPage *>(0x0));
+
+    parallel::parallel_foreach(entity_id_range(), [&](mesh::MeshEntityId const &s) { get(s) = nullptr; });
     return success;
 
 }

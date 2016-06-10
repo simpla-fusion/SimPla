@@ -188,6 +188,12 @@ public:
         return res;
     };
 
+    virtual data_model::DataSet dataset(mesh::MeshEntityRange const &) const
+    {
+        UNIMPLEMENTED;
+        return data_model::DataSet();
+    }
+
     virtual void dataset(data_model::DataSet const &)
     {
         UNIMPLEMENTED;
@@ -196,12 +202,6 @@ public:
     virtual void dataset(mesh::MeshEntityRange const &, data_model::DataSet const &)
     {
         UNIMPLEMENTED;
-    }
-
-    virtual data_model::DataSet dataset(mesh::MeshEntityRange const &) const
-    {
-        UNIMPLEMENTED;
-        return data_model::DataSet();
     }
 
 
@@ -370,6 +370,18 @@ public:
         base_type::nonblocking_sync();
         apply(m_mesh_->range(entity_type(), mesh::LOCAL), op);
         base_type::wait();
+        return *this;
+    }
+
+    template<typename Other> this_type &
+    fill(Other const &other)
+    {
+        this->deploy();
+
+        parallel::parallel_foreach(
+                entity_id_range(mesh::VALID),
+                [&](typename mesh::MeshEntityId const &s) { get(s) = other; });
+
         return *this;
     }
 
