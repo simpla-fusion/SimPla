@@ -51,7 +51,7 @@ extern "C" {
  *  @note different get_mesh should use different 'code and hash ruler'  -- salmon. 2016.5.24
  */
 
-#define SP_STATIC_CONST static  const
+#define SP_STATIC_CONST   static  const
 /// @name level independent
 /// @{
 
