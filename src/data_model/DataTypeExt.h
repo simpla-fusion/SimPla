@@ -8,13 +8,7 @@
 #ifndef CORE_DATASET_DATATYPE_EXT_H_
 #define CORE_DATASET_DATATYPE_EXT_H_
 
-#include <typeinfo>
-#include "../gtl/type_traits.h"
-#include "../gtl/nTuple.h"
-#include "DataType.h"
 
-namespace simpla
-{
 /*
  * Count the number of arguments passed to MACRO, very carefully
  * tiptoeing around an MSVC bug where it improperly expands __VA_ARGS__ as a
@@ -101,19 +95,37 @@ namespace simpla
 #define SP_DEFINE_STRUCT_DESC_CHOOSE_HELPER(count) SP_DEFINE_STRUCT_DESC_CHOOSE_HELPER1(count)
 #define SP_DEFINE_STRUCT_DESC(_S_NAME_, ...) SP_DEFINE_STRUCT_DESC_CHOOSE_HELPER(COUNT_MACRO_ARGS(__VA_ARGS__)) (_S_NAME_,__VA_ARGS__)
 
-#define SP_DEFINE_STRUCT(_S_NAME_, ...)                 \
-struct _S_NAME_  {                                      \
-    SP_DEFINE_STRUCT_MEMBER(__VA_ARGS__)                \
-                                                        \
-    static ::simpla::data_model::DataType data_type()                          \
+
+#define SP_DEFINE_STRUCT_DATATYPE2(_S_NAME_, ...) \
+   static ::simpla::data_model::DataType data_type()   \
     {                                                   \
         ::simpla::data_model::DataType d_type(typeid(_S_NAME_),sizeof(_S_NAME_),0,nullptr,__STRING(_S_NAME_));                                \
         SP_DEFINE_STRUCT_DESC(_S_NAME_, __VA_ARGS__);   \
         return std::move(d_type);                       \
     }                                                   \
-} ;                                                     \
 
 
-}  // namespace simpla
+#ifdef __cplusplus
+
+#   define SP_DEFINE_STRUCT_TYPE_DESC(_S_NAME_, ...)                    \
+   static constexpr bool is_self_describing=true;                   \
+   static std::string  name(){return __STRING(_S_NAME_);}          \
+   static ::simpla::data_model::DataType data_type()                \
+    {                                                               \
+        ::simpla::data_model::DataType d_type(typeid(_S_NAME_),     \
+       sizeof(_S_NAME_),0,nullptr,__STRING(_S_NAME_));              \
+        SP_DEFINE_STRUCT_DESC(_S_NAME_, __VA_ARGS__);               \
+        return std::move(d_type);                                   \
+    }
+#else
+#   define SP_DEFINE_STRUCT_TYPE_DESC(_S_NAME_, ...)
+#endif
+
+
+#define SP_DEFINE_STRUCT(_S_NAME_, ...)                       \
+struct _S_NAME_{SP_DEFINE_STRUCT_MEMBER(__VA_ARGS__)        \
+SP_DEFINE_STRUCT_TYPE_DESC(_S_NAME_, __VA_ARGS__) };             \
+
+
 
 #endif /* CORE_DATASET_DATATYPE_EXT_H_ */

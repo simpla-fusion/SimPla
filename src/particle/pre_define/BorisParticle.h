@@ -10,19 +10,23 @@
 
 #include "../Particle.h"
 #include "../ParticleEngine.h"
+#include "../../gtl/type_traits.h"
+
 
 namespace simpla { namespace particle { namespace engine
 {
 
+
 struct Boris
 {
+
+
     SP_DEFINE_PARTICLE(point_s,
                        Vec3, x,
                        Vec3, v,
                        Real, f,
                        Real, w
     );
-
 
     virtual Properties &properties() = 0;
 
@@ -91,7 +95,6 @@ struct Boris
 namespace simpla { namespace particle
 {
 template<typename TM> using BorisParticle =  DefaultParticle<engine::Boris, TM>;
-
 }}//namespace simpla { namespace particle
 
 

@@ -152,7 +152,7 @@ public:
 
     static std::string class_name()
     {
-        return "Manifold<" + traits::type_id<mesh_type, Policies<mesh_type>...>::name() + " > ";
+        return "Manifold<" + traits::type_id_list<mesh_type, Policies<mesh_type>...>::name() + " > ";
     }
 
 private:

@@ -42,7 +42,10 @@ public:
     static std::string class_name()
     {
         return std::string("Field<") +
-               traits::type_id<value_type, mesh_type, index_const<IFORM>>::name() + ">";
+               traits::type_id<value_type>::name() + "," +
+               traits::type_id<mesh_type>::name() + "," +
+               traits::type_id<index_const<IFORM>>::name()
+               + ">";
     }
 
 

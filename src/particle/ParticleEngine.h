@@ -16,8 +16,8 @@
 #include "../data_model/DataType.h"
 #include "../data_model/DataTypeExt.h"
 
-namespace simpla { namespace particle
-{
+
+
 
 
 /**
@@ -391,9 +391,6 @@ private:bool m_is_valid_=false;                              \
 public: bool is_valid()const{return m_is_valid_;}            \
 void deploy( ){ update_properties();update(); m_is_valid_=true;}
 
-template<typename ...> struct ParticleEngine;
 #define SP_DEFINE_PARTICLE(_S_NAME_, ...)   SP_DEFINE_STRUCT(_S_NAME_,size_t,_cell,size_t,_tag,__VA_ARGS__)
-
-}}// namespace simpla
 
 #endif /* PARTICLE_ENGINE_H_ */

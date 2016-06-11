@@ -144,13 +144,7 @@ private:
         return std::move(
 
                 DataType(std::type_index(typeid(element_type)),
-
-                         ele_size_in_byte,
-
-                         ::simpla::traits::rank<obj_type>::value,
-                         &d[0],
-
-                         name)
+                         ele_size_in_byte, ::simpla::traits::rank<obj_type>::value, &d[0], name)
 
         );
 
@@ -162,7 +156,7 @@ public:
     static DataType create(std::string const &name = "")
     {
         return create_(((name != "") ? name : (typeid(T).name())),
-                       std::integral_constant<bool, has_static_member_function_data_type<T>::value>());
+                       std::integral_constant<bool, has_static_member_function_data_type<traits::type_id<T>>::value>());
     }
 
 

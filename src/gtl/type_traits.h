@@ -32,19 +32,6 @@ template<size_t I> using index_const=std::integral_constant<size_t, I>;
 namespace tags { struct do_nothing { template<typename ...Args> void operator()(Args &&...) const { }}; }
 
 
-namespace traits
-{
-template<typename ...> class type_id;
-
-template<size_t I>
-struct type_id<std::integral_constant<size_t, I> >
-{
-    static std::string name()
-    {
-        return "[" + simpla::type_cast<std::string>(I) + "]";
-    }
-};
-}
 namespace _impl
 {
 template<typename Func, typename Tup, int ... index>
@@ -62,11 +49,7 @@ DECL_RET_TYPE((_impl::invoke_helper(std::forward<Func>(func),
 
 namespace traits
 {
-
-
-template<typename ...> struct type_id;
-
-template<typename T> struct type_id<T>
+template<typename T, class Enable = void> struct type_id
 {
 
 private:
@@ -84,6 +67,48 @@ public:
 
 };
 
+template<size_t I>
+struct type_id<std::integral_constant<size_t, I> >
+{
+    static std::string name()
+    {
+        return "[" + simpla::type_cast<std::string>(I) + "]";
+    }
+};
+
+namespace detail
+{
+//CHECK_STATIC_BOOL_MEMBER(is_self_describing)
+
+template<typename T>
+struct check_static_bool_member_is_self_describing
+{
+private:
+    HAS_STATIC_TYPE_MEMBER(is_self_describing)
+
+    typedef std::true_type yes;
+    typedef std::false_type no;
+
+    template<typename U>
+    static auto test(int,
+                     std::enable_if_t<has_static_type_member_is_self_describing<U, bool>::value> * = nullptr)
+            -> std::integral_constant<bool, U::is_self_describing>;
+
+    template<typename> static no test(...);
+
+public:
+    static constexpr bool value = !std::is_same<decltype(test<T>(0)), no>::value;
+};
+}
+template<typename T>
+struct type_id<T, typename std::enable_if_t<detail::check_static_bool_member_is_self_describing<T>::value> >
+{
+    static std::string name() { return T::name()(); }
+
+    static auto data_type() -> decltype(T::data_type()) { return T::data_type(); }
+};
+
+
 template<int I> struct type_id<std::integral_constant<int, I>>
 {
     static std::string name()
@@ -92,14 +117,21 @@ template<int I> struct type_id<std::integral_constant<int, I>>
     }
 };
 
-template<typename T, typename ...Others> struct type_id<T, Others...>
+template<typename T, typename ...Others> struct type_id_list
 {
     static std::string name()
     {
-        return type_id<T>::name() + "," + type_id<Others...>::name();
+        return type_id_list<T>::name() + "," + type_id_list<Others...>::name();
     }
 };
 
+template<typename T> struct type_id_list<T>
+{
+    static std::string name()
+    {
+        return type_id<T>::name();
+    }
+};
 
 #define DEFINE_TYPE_ID_NAME(_NAME_) template<>struct type_id<_NAME_>{static std::string name(){return #_NAME_;}};
 
