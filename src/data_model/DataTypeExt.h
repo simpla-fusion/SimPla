@@ -71,7 +71,7 @@
 //#define SP_PARTICLE_GET_NAME_CHOOSE_HELPER(count) SP_PARTICLE_GET_NAME_CHOOSE_HELPER1(count)
 //#define SP_PARTICLE_GET_NAME(...) SP_PARTICLE_GET_NAME_CHOOSE_HELPER(COUNT_MACRO_ARGS(__VA_ARGS__)) (__VA_ARGS__)
 
-#define SP_DEFINE_STRUCT_DESC_HELPER2(_S_NAME_, _T0_, _N0_) d_type.push_back(::simpla::data_model::DataType::template create<::simpla::traits::primary_type_t<_T0_> >(), #_N0_, offsetof(_S_NAME_, _N0_));
+#define SP_DEFINE_STRUCT_DESC_HELPER2(_S_NAME_, _T0_, _N0_) d_type.push_back(::simpla::data_model::DataType::template create<_T0_  >(), #_N0_, offsetof(_S_NAME_, _N0_));
 #define SP_DEFINE_STRUCT_DESC_HELPER4(_S_NAME_, _T0_, _N0_, _T1_, _N1_) SP_DEFINE_STRUCT_DESC_HELPER2(_S_NAME_,_T0_,_N0_) \
       SP_DEFINE_STRUCT_DESC_HELPER2(_S_NAME_,_T1_,_N1_)
 #define SP_DEFINE_STRUCT_DESC_HELPER6(_S_NAME_, _T0_, _N0_, _T1_, _N1_, _T2_, _N2_)  SP_DEFINE_STRUCT_DESC_HELPER2(_S_NAME_,_T0_,_N0_) \

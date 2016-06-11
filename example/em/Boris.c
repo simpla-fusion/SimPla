@@ -3,7 +3,7 @@
 //
 
 #include "Boris.h"
-//#include "../../src/mesh/MeshIdHasher.h"
+#include "../../src/mesh/MeshIdHasher.h"
 
 
 void spBorisPushN(struct spPage *p, double dt, double const *E, double const *B, struct coRectMesh_s const *m)

@@ -76,6 +76,14 @@ struct type_id<std::integral_constant<size_t, I> >
     }
 };
 
+template<int I>
+struct type_id<std::integral_constant<int, I>>
+{
+    static std::string name()
+    {
+        return std::string("[") + traits::type_cast<int, std::string>::eval(I) + "]";
+    }
+};
 namespace detail
 {
 //CHECK_STATIC_BOOL_MEMBER(is_self_describing)
@@ -108,14 +116,16 @@ struct type_id<T, typename std::enable_if_t<detail::check_static_bool_member_is_
     static auto data_type() -> decltype(T::data_type()) { return T::data_type(); }
 };
 
-
-template<int I> struct type_id<std::integral_constant<int, I>>
-{
-    static std::string name()
-    {
-        return std::string("[") + traits::type_cast<int, std::string>::eval(I) + "]";
-    }
-};
+//template<typename T, size_t N>
+//struct type_id<T[N], void>
+//{
+//    static std::string name()
+//    {
+//        return type_id<T[N]>::name() + "[" + traits::type_cast<int, std::string>::eval(I) + "]";
+//    }
+//
+//    static auto data_type() -> decltype(T::data_type()) { return T::data_type(); }
+//};
 
 template<typename T, typename ...Others> struct type_id_list
 {

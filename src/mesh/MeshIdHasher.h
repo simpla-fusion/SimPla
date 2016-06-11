@@ -51,35 +51,35 @@ extern "C" {
  *  @note different get_mesh should use different 'code and hash ruler'  -- salmon. 2016.5.24
  */
 
-#define SP_FUNCTION_PREFIX static  const
+#define SP_STATIC_CONST static  const
 /// @name level independent
 /// @{
 
-SP_FUNCTION_PREFIX int ndims = 3;
-SP_FUNCTION_PREFIX int MAX_NUM_OF_NEIGHBOURS = 12;
-SP_FUNCTION_PREFIX int MESH_RESOLUTION = 1;
+SP_STATIC_CONST int ndims = 3;
+SP_STATIC_CONST int MAX_NUM_OF_NEIGHBOURS = 12;
+SP_STATIC_CONST int MESH_RESOLUTION = 1;
 
 
-SP_FUNCTION_PREFIX int FULL_DIGITS = 64; // id_type is int64_t
+SP_STATIC_CONST int FULL_DIGITS = 64; // id_type is int64_t
 
-SP_FUNCTION_PREFIX int ID_DIGITS = 21;
+SP_STATIC_CONST int ID_DIGITS = 21;
 
-SP_FUNCTION_PREFIX int HEAD_DIGITS = (FULL_DIGITS - ID_DIGITS * 3);
+SP_STATIC_CONST int HEAD_DIGITS = (FULL_DIGITS - ID_DIGITS * 3);
 
-SP_FUNCTION_PREFIX id_type ID_MASK = (1UL << ID_DIGITS) - 1;
+SP_STATIC_CONST id_type ID_MASK = (1UL << ID_DIGITS) - 1;
 
-SP_FUNCTION_PREFIX id_type NO_HAED = (1UL << (ID_DIGITS * 3)) - 1;
+SP_STATIC_CONST id_type NO_HAED = (1UL << (ID_DIGITS * 3)) - 1;
 
-SP_FUNCTION_PREFIX id_type OVERFLOW_FLAG = (1UL) << (ID_DIGITS - 1);
+SP_STATIC_CONST id_type OVERFLOW_FLAG = (1UL) << (ID_DIGITS - 1);
 
-SP_FUNCTION_PREFIX id_type FULL_OVERFLOW_FLAG =
+SP_STATIC_CONST id_type FULL_OVERFLOW_FLAG =
         OVERFLOW_FLAG | (OVERFLOW_FLAG << ID_DIGITS) | (OVERFLOW_FLAG << (ID_DIGITS * 2));
 
-SP_FUNCTION_PREFIX id_type INDEX_ZERO = (1UL) << (ID_DIGITS - 2);
+SP_STATIC_CONST id_type INDEX_ZERO = (1UL) << (ID_DIGITS - 2);
 
-SP_FUNCTION_PREFIX id_type ID_ZERO = INDEX_ZERO | (INDEX_ZERO << ID_DIGITS) | (INDEX_ZERO << (ID_DIGITS * 2));
+SP_STATIC_CONST id_type ID_ZERO = INDEX_ZERO | (INDEX_ZERO << ID_DIGITS) | (INDEX_ZERO << (ID_DIGITS * 2));
 
-SP_FUNCTION_PREFIX Real EPSILON = 1.0 / (Real) (INDEX_ZERO);
+SP_STATIC_CONST Real EPSILON = 1.0 / (Real) (INDEX_ZERO);
 
 
 /// @}
@@ -87,31 +87,31 @@ SP_FUNCTION_PREFIX Real EPSILON = 1.0 / (Real) (INDEX_ZERO);
 /// @name level dependent
 /// @{
 
-SP_FUNCTION_PREFIX id_type SUB_ID_MASK = ((1UL << MESH_RESOLUTION) - 1);
+SP_STATIC_CONST id_type SUB_ID_MASK = ((1UL << MESH_RESOLUTION) - 1);
 
-SP_FUNCTION_PREFIX id_type _D = 1UL << (MESH_RESOLUTION - 1);
+SP_STATIC_CONST id_type _D = 1UL << (MESH_RESOLUTION - 1);
 
-SP_FUNCTION_PREFIX Real _R = (Real) (_D);
-
-
-SP_FUNCTION_PREFIX id_type _DI = _D;
-SP_FUNCTION_PREFIX id_type _DJ = _D << (ID_DIGITS);
-SP_FUNCTION_PREFIX id_type _DK = _D << (ID_DIGITS * 2);
-SP_FUNCTION_PREFIX id_type _DA = _DI | _DJ | _DK;
+SP_STATIC_CONST Real _R = (Real) (_D);
 
 
-SP_FUNCTION_PREFIX id_type PRIMARY_ID_MASK_ = ID_MASK & (~SUB_ID_MASK);
-SP_FUNCTION_PREFIX id_type PRIMARY_ID_MASK = PRIMARY_ID_MASK_
-                                             | (PRIMARY_ID_MASK_ << ID_DIGITS)
-                                             | (PRIMARY_ID_MASK_ << (ID_DIGITS * 2));
+SP_STATIC_CONST id_type _DI = _D;
+SP_STATIC_CONST id_type _DJ = _D << (ID_DIGITS);
+SP_STATIC_CONST id_type _DK = _D << (ID_DIGITS * 2);
+SP_STATIC_CONST id_type _DA = _DI | _DJ | _DK;
 
 
-SP_FUNCTION_PREFIX Real GRID_WIDTH = (Real) (1UL << MESH_RESOLUTION);
-SP_FUNCTION_PREFIX Real INV_GRID_WIDTH = 1.0 / GRID_WIDTH;
+SP_STATIC_CONST id_type PRIMARY_ID_MASK_ = ID_MASK & (~SUB_ID_MASK);
+SP_STATIC_CONST id_type PRIMARY_ID_MASK = PRIMARY_ID_MASK_
+                                          | (PRIMARY_ID_MASK_ << ID_DIGITS)
+                                          | (PRIMARY_ID_MASK_ << (ID_DIGITS * 2));
+
+
+SP_STATIC_CONST Real GRID_WIDTH = (Real) (1UL << MESH_RESOLUTION);
+SP_STATIC_CONST Real INV_GRID_WIDTH = 1.0 / GRID_WIDTH;
 
 /// @}
 
-SP_FUNCTION_PREFIX int spm_sub_index_to_id_[4][3] = { //
+SP_STATIC_CONST int spm_sub_index_to_id_[4][3] = { //
 
         {0, 0, 0}, /*VERTEX*/
         {1, 2, 4}, /*EDGE*/
@@ -120,7 +120,7 @@ SP_FUNCTION_PREFIX int spm_sub_index_to_id_[4][3] = { //
 
 };
 
-SP_FUNCTION_PREFIX id_type spm_id_to_sub_index_[8] = { //
+SP_STATIC_CONST id_type spm_id_to_sub_index_[8] = { //
 
         0, // 000
         0, // 001
@@ -132,7 +132,7 @@ SP_FUNCTION_PREFIX id_type spm_id_to_sub_index_[8] = { //
         0, // 111
 };
 
-SP_FUNCTION_PREFIX id_type spm_id_to_shift_[] = {
+SP_STATIC_CONST id_type spm_id_to_shift_[] = {
 
         0,                    // 000
         _DI,                    // 001
@@ -145,7 +145,7 @@ SP_FUNCTION_PREFIX id_type spm_id_to_shift_[] = {
 
 };
 
-SP_FUNCTION_PREFIX Real spm_id_to_coordinates_shift_[][3] = {
+SP_STATIC_CONST Real spm_id_to_coordinates_shift_[][3] = {
 
         {0,  0,  0},            // 000
         {_R, 0,  0},           // 001
@@ -157,13 +157,13 @@ SP_FUNCTION_PREFIX Real spm_id_to_coordinates_shift_[][3] = {
         {0,  _R, _R},          // 111
 
 };
-SP_FUNCTION_PREFIX int spm_iform_to_num_of_ele_in_cell_[] = {
+SP_STATIC_CONST int spm_iform_to_num_of_ele_in_cell_[] = {
         1, // VETEX
         3, // EDGE
         3, // FACE
         1  // VOLUME
 };
-SP_FUNCTION_PREFIX int spm_id_to_num_of_ele_in_cell_[] = {
+SP_STATIC_CONST int spm_id_to_num_of_ele_in_cell_[] = {
 
         1,        // 000
         3,        // 001
@@ -175,7 +175,7 @@ SP_FUNCTION_PREFIX int spm_id_to_num_of_ele_in_cell_[] = {
         1        // 111
 };
 
-SP_FUNCTION_PREFIX int spm_id_to_iform_[] = { //
+SP_STATIC_CONST int spm_id_to_iform_[] = { //
 
         0, // 000
         1, // 001
@@ -187,28 +187,28 @@ SP_FUNCTION_PREFIX int spm_id_to_iform_[] = { //
         3 // 111
 };
 
-SP_FUNCTION_PREFIX size_type sp_node_id(id_type s);
+static inline size_type sp_node_id(id_type s);
 
-SP_FUNCTION_PREFIX id_type sp_mininal_vertex(id_type s)
+static inline id_type sp_mininal_vertex(id_type s)
 {
     return (s | FULL_OVERFLOW_FLAG) - (_DA);
 
 }
 
-SP_FUNCTION_PREFIX int sp_sub_index_to_id(int IFORM, int n)
+static inline int sp_sub_index_to_id(int IFORM, int n)
 {
     return spm_sub_index_to_id_[IFORM][n];
 }
 
-SP_FUNCTION_PREFIX int sp_iform(id_type s) { return spm_id_to_iform_[sp_node_id(s)]; }
+static inline int sp_iform(id_type s) { return spm_id_to_iform_[sp_node_id(s)]; }
 
-SP_FUNCTION_PREFIX id_type sp_pack(id_type i0, id_type i1, id_type i2)
+static inline id_type sp_pack(id_type i0, id_type i1, id_type i2)
 {
     return (i0 & ID_MASK) | ((i1 & ID_MASK) << ID_DIGITS) | ((i2 & ID_MASK) << (ID_DIGITS * 2)) |
            FULL_OVERFLOW_FLAG;
 }
 
-SP_FUNCTION_PREFIX id_type sp_pack_index_v(index_type const *idx, int n_id)
+static inline id_type sp_pack_index_v(index_type const *idx, int n_id)
 {
     return sp_pack((id_type) (idx[0]) << MESH_RESOLUTION,
 
@@ -217,7 +217,7 @@ SP_FUNCTION_PREFIX id_type sp_pack_index_v(index_type const *idx, int n_id)
                    (id_type) (idx[2]) << MESH_RESOLUTION) | spm_id_to_shift_[n_id];
 }
 
-SP_FUNCTION_PREFIX id_type sp_pack_index(index_type i, index_type j, index_type k, index_type n_id)
+static inline id_type sp_pack_index(index_type i, index_type j, index_type k, index_type n_id)
 {
 
     return
@@ -225,17 +225,17 @@ SP_FUNCTION_PREFIX id_type sp_pack_index(index_type i, index_type j, index_type 
                     (id_type) (k) << MESH_RESOLUTION) | spm_id_to_shift_[n_id];
 }
 
-SP_FUNCTION_PREFIX id_type sp_extent_flag_bit(id_type s, int n)
+static inline id_type sp_extent_flag_bit(id_type s, int n)
 {
     return s | (((s & (1UL << n)) == 0) ? 0UL : ((id_type) (-1L << (n + 1))));
 }
 
-SP_FUNCTION_PREFIX id_type sp_unpack_id(id_type s, int n)
+static inline id_type sp_unpack_id(id_type s, int n)
 {
     return sp_extent_flag_bit(((s & (~FULL_OVERFLOW_FLAG)) >> (ID_DIGITS * n)) & ID_MASK, n);
 }
 
-SP_FUNCTION_PREFIX index_type sp_unpack_index(id_type s, int n)
+static inline index_type sp_unpack_index(id_type s, int n)
 {
     return
             (index_type) (sp_extent_flag_bit(
@@ -244,14 +244,14 @@ SP_FUNCTION_PREFIX index_type sp_unpack_index(id_type s, int n)
 }
 
 
-SP_FUNCTION_PREFIX void sp_unpack(id_type s, id_type res[3])
+static inline void sp_unpack(id_type s, id_type res[3])
 {
     res[0] = sp_unpack_id(s, 0);
     res[1] = sp_unpack_id(s, 1);
     res[2] = sp_unpack_id(s, 2);
 }
 
-SP_FUNCTION_PREFIX void sp_unpack_indexN(id_type s, index_type res[3])
+static inline void sp_unpack_indexN(id_type s, index_type res[3])
 {
 
     res[0] = sp_unpack_index(s, 0);
@@ -269,13 +269,13 @@ static void sp_point(id_type s, Real res[3])
 }
 
 
-SP_FUNCTION_PREFIX int sp_num_of_ele_in_cell(id_type s)
+static inline int sp_num_of_ele_in_cell(id_type s)
 {
     return spm_id_to_num_of_ele_in_cell_[sp_node_id(s)];
 }
 
 
-SP_FUNCTION_PREFIX id_type sp_coordinates_global_to_local(Real x[3], int n_id)
+static inline id_type sp_coordinates_global_to_local(Real x[3], int n_id)
 {
 
     id_type s = (sp_pack(x[0] - spm_id_to_coordinates_shift_[n_id][0],
@@ -290,28 +290,27 @@ SP_FUNCTION_PREFIX id_type sp_coordinates_global_to_local(Real x[3], int n_id)
     return s;
 }
 
-static void coordinates_local_to_global(id_type s, Real r[3])
+static inline void coordinates_local_to_global(id_type s, Real r[3])
 {
     sp_point(s, r);
 //    +x * _R * 2;
 }
 
 
-
 //! @name id auxiliary functions
 //! @{
-SP_FUNCTION_PREFIX id_type sp_dual(id_type s) { return (s & (~_DA)) | ((~(s & _DA)) & _DA); }
+static inline id_type sp_dual(id_type s) { return (s & (~_DA)) | ((~(s & _DA)) & _DA); }
 
-SP_FUNCTION_PREFIX id_type sp_DI(int n, id_type s) { return (s >> (n * ID_DIGITS)) & _D; }
+static inline id_type sp_DI(int n, id_type s) { return (s >> (n * ID_DIGITS)) & _D; }
 
-SP_FUNCTION_PREFIX id_type sp_delta_index(id_type s) { return (s & _DA); }
+static inline id_type sp_delta_index(id_type s) { return (s & _DA); }
 
-SP_FUNCTION_PREFIX id_type sp_rotate(id_type s)
+static inline id_type sp_rotate(id_type s)
 {
     return ((s & (~_DA)) | (((s & (_DA)) << ID_DIGITS) | ((s & _DK) >> (ID_DIGITS * 2)))) & NO_HAED;
 }
 
-SP_FUNCTION_PREFIX id_type sp_inverse_rotate(id_type s)
+static inline id_type sp_inverse_rotate(id_type s)
 {
     return ((s & (~_DA)) | (((s & (_DA)) >> ID_DIGITS) | ((s & _DI) << (ID_DIGITS * 2)))) & NO_HAED;
 }
@@ -351,14 +350,14 @@ enum node_id_tag
     TAG_VOLUME = 7
 };
 
-SP_FUNCTION_PREFIX size_type sp_node_id(id_type s)
+static inline size_type sp_node_id(id_type s)
 {
     return ((s >> (MESH_RESOLUTION - 1)) & 1UL)
            | ((s >> (ID_DIGITS + MESH_RESOLUTION - 2)) & 2UL)
            | ((s >> (ID_DIGITS * 2 + MESH_RESOLUTION - 3)) & 4UL);
 }
 
-SP_FUNCTION_PREFIX int spm_id_to_index_[8] = { //
+SP_STATIC_CONST int spm_id_to_index_[8] = { //
 
         0, // 000
         0, // 001
@@ -370,7 +369,7 @@ SP_FUNCTION_PREFIX int spm_id_to_index_[8] = { //
         0, // 111
 };
 
-SP_FUNCTION_PREFIX int sp_sub_index(id_type s) { return spm_id_to_index_[sp_node_id(s)]; }
+SP_STATIC_CONST int sp_sub_index(id_type s) { return spm_id_to_index_[sp_node_id(s)]; }
 
 /**
  * \verbatim
@@ -395,7 +394,7 @@ SP_FUNCTION_PREFIX int sp_sub_index(id_type s) { return spm_id_to_index_[sp_node
 #define MAX_NUM_OF_ADJACENT_CELL   12
 
 
-SP_FUNCTION_PREFIX int spm_adjacent_cell_num_[4/* to iform*/][8/* node id*/] =
+SP_STATIC_CONST int spm_adjacent_cell_num_[4/* to iform*/][8/* node id*/] =
 
         { // VERTEX
                 {
@@ -447,7 +446,7 @@ SP_FUNCTION_PREFIX int spm_adjacent_cell_num_[4/* to iform*/][8/* node id*/] =
 
         };
 
-SP_FUNCTION_PREFIX id_type spm_adjacent_cell_matrix_[4/* to iform*/][NUM_OF_NODE_ID/* node id*/][MAX_NUM_OF_ADJACENT_CELL/*id shift*/] =
+SP_STATIC_CONST id_type spm_adjacent_cell_matrix_[4/* to iform*/][NUM_OF_NODE_ID/* node id*/][MAX_NUM_OF_ADJACENT_CELL/*id shift*/] =
         {
                 //To VERTEX
                 {
@@ -713,7 +712,7 @@ static index_type sp_hash(id_type s, index_type const *b, index_type const *e)
 }
 
 
-SP_FUNCTION_PREFIX size_type sp_max_hash(index_type const *b, index_type const *e, int IFORM)
+SP_STATIC_CONST size_type sp_max_hash(index_type const *b, index_type const *e, int IFORM)
 {
     return ((e[0] - b[0]) * (e[1] - b[1]) * (e[2] - b[2])) *
            spm_id_to_num_of_ele_in_cell_[spm_sub_index_to_id_[IFORM][0]];

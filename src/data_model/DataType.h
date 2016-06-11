@@ -142,7 +142,6 @@ private:
         d = traits::seq_value<traits::extents<obj_type> >::value;
 
         return std::move(
-
                 DataType(std::type_index(typeid(element_type)),
                          ele_size_in_byte, ::simpla::traits::rank<obj_type>::value, &d[0], name)
 
@@ -162,6 +161,49 @@ public:
 
 };
 
+template<typename T, size_t N>
+struct DataType::create_helper<T[N]>
+{
+
+    static DataType create(std::string const &name = "")
+    {
+        typedef typename std::remove_cv<T>::type obj_type;
+
+        typedef typename traits::value_type<obj_type>::type element_type;
+
+        size_t ele_size_in_byte = sizeof(element_type) / sizeof(char);
+
+        size_t d = N;
+
+        return std::move(
+                DataType(std::type_index(typeid(element_type)),
+                         ele_size_in_byte, 1, &d, name)
+
+        );
+    }
+};
+
+template<typename T, size_t N, size_t M>
+struct DataType::create_helper<T[N][M]>
+{
+
+    static DataType create(std::string const &name = "")
+    {
+        typedef typename std::remove_cv<T>::type obj_type;
+
+        typedef typename traits::value_type<obj_type>::type element_type;
+
+        size_t ele_size_in_byte = sizeof(element_type) / sizeof(char);
+
+        size_t d[] = {N, M};
+
+        return std::move(
+                DataType(std::type_index(typeid(element_type)),
+                         ele_size_in_byte, 2, d, name)
+
+        );
+    }
+};
 }}//namespace simpla { namespace data_model
 
 

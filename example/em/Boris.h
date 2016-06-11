@@ -46,7 +46,7 @@ void spBorisGatherVN(double **res, struct spPage const *p, struct coRectMesh_s c
 namespace simpla{namespace traits{
 template<>struct type_id<boris_point_s,void>{
 
-SP_DEFINE_STRUCT_DESCRIBE(boris_point_s ,
+SP_DEFINE_PARTICLE_DESCRIBE(boris_point_s ,
     double, v,
     double, f,
     double, w

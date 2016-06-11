@@ -5,26 +5,34 @@
 #ifndef SIMPLA_PARTICLEINTERPOLATE_H
 #define SIMPLA_PARTICLEINTERPOLATE_H
 
+#include <math.h>
 #include "ParticleEngine.h"
 
-double spGetValue(hash, f, s)
+#include "../sp_config.h"
+#include "../mesh/MeshIdHasher.h"
 
-double gather(long s, double r0, double r1, double r2, doube *f, struct hash_s const &hash)
+inline double gather(double *f, point_head const *p, id_type shift, index_type const i_lower[],
+                     index_type const i_upper[])
 {
-    return hash(f, ((s + X) + Y) + Z) * r0 * r1 * r2 //
-           + hash(f, (s + X) + Y) * r0 * r1 * (1.0 - r2) //
-           + hash(f, (s + X) + Z) * r0 * (1.0 - r1) * r2 //
-           + hash(f, (s + X)) * r0 * (1.0 - r1) * (1.0 - r2) //
-           + hash(f, (s + Y) + Z) * (1.0 - r[0]) * r1 * r2 //
-           + hash(f, (s + Y)) * (1.0 - r0) * r1 * (1.0 - r2) //
-           + hash(f, s + Z) * (1.0 - r0) * (1.0 - r1) * r2 //
-           + hash(f, s) * (1.0 - r0) * (1.0 - r1) * (1.0 - r2);
+    double const *r = p->r;
+    id_type s = p->_cell - shift;
+
+    auto X = (_DI) << 1;
+    auto Y = (_DJ) << 1;
+    auto Z = (_DK) << 1;
+    return f[sp_hash(((s + X) + Y) + Z,/*  */i_lower, i_upper)] * r[0] * r[1] * r[2] //
+           + f[sp_hash((s + X) + Y, /*     */i_lower, i_upper)] * r[0] * r[1] * (1.0 - r[2]) //
+           + f[sp_hash((s + X) + Z, /*     */i_lower, i_upper)] * r[0] * (1.0 - r[1]) * r[2] //
+           + f[sp_hash((s + X), /*         */i_lower, i_upper)] * r[0] * (1.0 - r[1]) * (1.0 - r[2]) //
+           + f[sp_hash((s + Y) + Z, /*     */i_lower, i_upper)] * (1.0 - r[0]) * r[1] * r[2] //
+           + f[sp_hash((s + Y),/*          */i_lower, i_upper)] * (1.0 - r[0]) * r[1] * (1.0 - r[2]) //
+           + f[sp_hash(s + Z, /*           */i_lower, i_upper)] * (1.0 - r[0]) * (1.0 - r[1]) * r[2] //
+           + f[sp_hash(s, /*               */i_lower, i_upper)] * (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
 }
 
-double scatter(struct hash_s const *hash, long s, double *f, double d0, double d1, double d2, double r0, double r1,
-               double r2)
+inline double scatter(point_head const *p, id_type shift)
 {
-    return spGetValue(hash, f, s) * std::abs((d0 - r0) * (d1 - r1) * (d2 - r2));
+    return fabs((d[0] - r[0]) * (d[1] - r[1]) * (d[2] - r[2]));
 
 
 }
