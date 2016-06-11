@@ -4,6 +4,7 @@
 
 #ifndef SIMPLA_BORIS_H
 #define SIMPLA_BORIS_H
+
 #include "../../src/particle/ParticleEngine.h"
 #include "../../src/particle/SmallObjPool.h"
 
@@ -14,9 +15,7 @@ extern "C" {
 struct boris_point_s
 {
     POINT_HEAD;
-    double x;
-    double y;
-    double z;
+
     double v;
     double f;
     double w;
@@ -44,16 +43,15 @@ void spBorisGatherVN(double **res, struct spPage const *p, struct coRectMesh_s c
 #include "../../src/gtl/type_traits.h"
 #include "../../src/data_model/DataType.h"
 
+namespace simpla{namespace traits{
+template<>struct type_id<boris_point_s,void>{
 
-SP_DEFINE_PARTICLE_TYPE_ID(boris_point_s ,
-    double, x,
-    double, y,
-    double, z,
+SP_DEFINE_STRUCT_DESCRIBE(boris_point_s ,
     double, v,
     double, f,
     double, w
            );
-
+     };}}
 namespace simpla
 {
 

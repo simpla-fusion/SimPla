@@ -8,6 +8,8 @@
 #ifndef PRIMITIVES_H_
 #define PRIMITIVES_H_
 
+#include "../sp_config.h"
+#include <limits>
 #include <sys/types.h>
 #include <cmath>
 #include <cstdlib>
@@ -54,13 +56,9 @@ enum ArrayOrder
     C_ORDER, // SLOW FIRST
     FORTRAN_ORDER //  FAST_FIRST
 };
-typedef int8_t ByteType; // int8_t
-typedef double Real;
 
-typedef long Integral;
 
 typedef std::complex<Real> Complex;
-
 typedef nTuple<Real, 3> Vec3;
 typedef nTuple<Real, 3> Covec3;
 
@@ -69,11 +67,9 @@ typedef nTuple<Integral, 3> IVec3;
 typedef nTuple<Real, 3> RVec3;
 
 typedef nTuple<Complex, 3> CVec3;
-
 static constexpr Real INIFITY = std::numeric_limits<Real>::infinity();
 
 static constexpr Real EPSILON = std::numeric_limits<Real>::epsilon();
-
 static constexpr unsigned int MAX_NDIMS_OF_ARRAY = 8;
 static constexpr unsigned int CARTESIAN_XAXIS = 0;
 static constexpr unsigned int CARTESIAN_YAXIS = 1;

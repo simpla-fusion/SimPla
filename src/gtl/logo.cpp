@@ -3,6 +3,7 @@
  * @author salmon
  * @date 2015-10-21.
  */
+#include "../sp_config.h"
 
 #include "logo.h"
 #include <cstdlib>
@@ -13,17 +14,9 @@
 
 namespace simpla
 {
-
 #ifndef IDENTIFY
 #	define IDENTIFY "UNKNOWN"
 #endif
-
-#define  AUTHOR " YU Zhi <yuzhi@ipp.ac.cn> "
-
-#ifndef COPYRIGHT
-#define  COPYRIGHT "All rights reserved. (2016 )"
-#endif
-
 static const char SIMPLA_LOGO[] = "\n"
         "\t        ____ ___ __  __ ____  _       \n"
         "\t       / ___|_ _|  \\/  |  _ \\| | __ _ \n"
@@ -39,6 +32,7 @@ static const char SIMPLA_LOGO[] = "\n"
         " Build Date: " __DATE__ " " __TIME__"                   \n"
         " ID:" IDENTIFY "\n"
         " Author: " AUTHOR "\n";
+
 
 std::string ShowLogo()
 {
