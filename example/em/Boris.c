@@ -7,15 +7,26 @@
 #include "../../src/particle/ParticleUtility.h"
 #include "../../src/particle/SmallObjPool.h"
 
-void spBorisPush(struct boris_point_s *p, Real cmr, double dt, Real const *fE, Real const *fB,
-                 index_type const *i_lower, index_type const *i_upper, const Real inv_dx[3])
+void spBorisPushOne(struct boris_point_s *p, Real cmr, double dt, Real tE[][27], Real tB[][27],
+                    const Real *inv_dx)
 {
-    Real E[3], B[3];
-    gatherV(E, (struct point_head const *) (p), fE, EDGE, i_lower, i_upper);
-    gatherV(B, (struct point_head const *) (p), fB, FACE, i_lower, i_upper);
 
 
-    Real inc_x[3] = {p->v[0] * dt * 0.5, p->v[1] * dt * 0.5, p->v[2] * dt * 0.5};
+    Real E[3] = {
+            gather((struct point_head const *) (p), tE[0], spm_id_to_coordinates_shift_[spm_sub_index_to_id_[EDGE][0]]),
+            gather((struct point_head const *) (p), tE[1], spm_id_to_coordinates_shift_[spm_sub_index_to_id_[EDGE][1]]),
+            gather((struct point_head const *) (p), tE[2], spm_id_to_coordinates_shift_[spm_sub_index_to_id_[EDGE][2]])
+    };
+
+    Real B[3] = {
+            gather((struct point_head const *) (p), tB[0], spm_id_to_coordinates_shift_[spm_sub_index_to_id_[FACE][0]]),
+            gather((struct point_head const *) (p), tB[1], spm_id_to_coordinates_shift_[spm_sub_index_to_id_[FACE][1]]),
+            gather((struct point_head const *) (p), tB[2], spm_id_to_coordinates_shift_[spm_sub_index_to_id_[FACE][2]])
+    };
+
+    p->r[0] += p->v[0] * dt * 0.5 * inv_dx[0];
+    p->r[1] += p->v[1] * dt * 0.5 * inv_dx[1];
+    p->r[2] += p->v[2] * dt * 0.5 * inv_dx[2];
 
     Real v_[3], t[3];
 
@@ -43,17 +54,19 @@ void spBorisPush(struct boris_point_s *p, Real cmr, double dt, Real const *fE, R
     p->v[1] += E[1] * (cmr * dt * 0.5);
     p->v[2] += E[2] * (cmr * dt * 0.5);
 
-    inc_x[0] += p->v[0] * dt * 0.5;
-    inc_x[1] += p->v[1] * dt * 0.5;
-    inc_x[2] += p->v[2] * dt * 0.5;
+    p->r[0] += p->v[0] * dt * 0.5 * inv_dx[0];
+    p->r[1] += p->v[1] * dt * 0.5 * inv_dx[1];
+    p->r[2] += p->v[2] * dt * 0.5 * inv_dx[2];
 
-    move_particle((struct point_head *) (p), inc_x, inv_dx);
 }
 
-void spBorisPushN(struct spPage *pg, Real cmr, double dt, Real const *fE, Real const *fB,
-                  index_type const *i_lower, index_type const *i_upper, const Real inv_dx[3])
+void spBorisPushN(struct spPage *pg, Real cmr, double dt, Real const *fE, Real const *fB, const Real inv_dx[3])
 {
-    SP_PAGE_FOREACH(struct boris_point_s, p, &pg) { spBorisPush(p, cmr, dt, fE, fB, i_lower, i_upper, inv_dx); }
+
+    Real tE[3][27], tB[3][27];
+    SP_PAGE_FOREACH(struct boris_point_s, p, &pg) { spBorisPushOne(p, cmr, dt, tE, tB, inv_dx); }
+
+
 }
 
 Real spBorisGather(struct spPage *pg, Real const r_shift[3])
@@ -61,7 +74,7 @@ Real spBorisGather(struct spPage *pg, Real const r_shift[3])
     Real res = 0;
     SP_PAGE_FOREACH(struct boris_point_s, p, &pg)
     {
-        res += p->f * shape_factor(p->r, r_shift);
+        res += p->f * shape_factor(p, r_shift);
     }
     return res;
 }
@@ -72,7 +85,7 @@ Real spBorisGatherV(struct spPage *pg, Real const r_shift[3], int sub_index)
     Real res = 0;
     SP_PAGE_FOREACH(struct boris_point_s, p, &pg)
     {
-        res += p->v[sub_index] * shape_factor(p->r, r_shift);
+        res += p->v[sub_index] * shape_factor(p, r_shift);
     }
     return res;
 
@@ -83,7 +96,8 @@ Real spBorisGatherE(struct spPage *pg, Real const r_shift[3])
     Real res = 0;
     SP_PAGE_FOREACH(struct boris_point_s, p, &pg)
     {
-        res += 0.5 * p->f * (p->v[0] * p->v[0] + p->v[1] * p->v[1] + p->v[2] * p->v[2]) * shape_factor(p->r, r_shift);
+        res += 0.5 * p->f * (p->v[0] * p->v[0] + p->v[1] * p->v[1] + p->v[2] * p->v[2]) *
+               shape_factor(p, r_shift);
     }
     return res;
 

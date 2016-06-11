@@ -11,15 +11,15 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#define POINT_HEAD long _tag;long _cell;  double r[3];
+#define POINT_HEAD long _tag;  Real r[3];
 
 struct point_head
 {
     POINT_HEAD
     char data[];
 };
-#define SP_DEFINE_PARTICLE(_S_NAME_, ...)   SP_DEFINE_C_STRUCT(_S_NAME_,long,_tag,long,_cell,double[3], r, __VA_ARGS__)
-#define SP_DEFINE_PARTICLE_DESCRIBE(_S_NAME_, ...)   SP_DEFINE_STRUCT_DESCRIBE(_S_NAME_,long,_tag,long,_cell,double[3], r,__VA_ARGS__)
+#define SP_DEFINE_PARTICLE(_S_NAME_, ...)   SP_DEFINE_C_STRUCT(_S_NAME_,long,_tag,Real[3], r, __VA_ARGS__)
+#define SP_DEFINE_PARTICLE_DESCRIBE(_S_NAME_, ...)   SP_DEFINE_STRUCT_DESCRIBE(_S_NAME_,long,_tag, Real[3], r,__VA_ARGS__)
 
 enum ParticleMomentType
 {

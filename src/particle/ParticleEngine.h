@@ -8,7 +8,7 @@
 #ifndef PARTICLE_ENGINE_H_
 #define PARTICLE_ENGINE_H_
 
-#include "ParticleCommon.h"
+#include "ParticleInterface.h"
 #include <stddef.h>
 #include "../data_model/DataTypeExt.h"
 

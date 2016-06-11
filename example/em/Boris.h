@@ -5,7 +5,7 @@
 #ifndef SIMPLA_BORIS_H
 #define SIMPLA_BORIS_H
 
-#include "../../src/particle/ParticleEngine.h"
+#include "../../src/particle/ParticleInterface.h"
 #include "../../src/particle/SmallObjPool.h"
 #include "../../src/sp_config.h"
 
@@ -31,8 +31,7 @@ void spBorisProject(struct boris_point_s const *p, double *res, struct coRectMes
 
 void spBorisLift(double *res, struct boris_point_s const *p, struct coRectMesh_s const *m);
 
-void spBorisPushN(struct spPage *p, Real cmr, double dt, double const *E, double const *B, index_type const *i_lower,
-                  index_type const *i_upper, const Real dx[3]);
+void spBorisPushN(struct spPage *p, Real cmr, double dt, Real const *E, Real const *B, const Real dx[3]);
 
 void spBorisGatherN(double *res, struct spPage const *p, struct coRectMesh_s const *m);
 

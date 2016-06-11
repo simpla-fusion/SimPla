@@ -4,7 +4,7 @@
 #include <cstddef>
 #include "SmallObjPool.h"
 #include "../mesh/MeshCommon.h"
-#include "ParticleCommon.h"
+#include "ParticleInterface.h"
 #include "ParticleV001.h"
 
 namespace simpla { namespace particle
