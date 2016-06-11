@@ -125,7 +125,7 @@ private:
 
     static DataType create_(std::string const &name, std::integral_constant<bool, true>)
     {
-        return T::data_type();
+        return traits::type_id<T>::data_type();
     }
 
     static DataType create_(std::string const &name, std::integral_constant<bool, false>)

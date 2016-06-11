@@ -11,9 +11,10 @@
 #include "../../src/mesh/Mesh.h"
 #include "../../src/mesh/MeshEntity.h"
 #include "../../src/particle/Particle.h"
-#include "../../src/particle/pre_define/BorisParticle.h"
+//#include "../../src/particle/pre_define/BorisParticle.h"
 #include "../../src/particle/ParticleGenerator.h"
 #include "../../src/mesh/MeshUtility.h"
+#include "Boris.h"
 
 namespace simpla
 {
@@ -80,8 +81,8 @@ public:
 
 //    field_t<scalar_type, VERTEX> rho{*this, "rho"};
 
-    typedef particle::BorisParticle<mesh_type> particle_type;
-    particle::BorisParticle<mesh_type> H{*this, "H"};
+    typedef particle::DefaultParticle<Boris, mesh_type> particle_type;
+    particle_type H{*this, "H"};
 
 
 };

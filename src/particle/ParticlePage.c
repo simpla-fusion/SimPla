@@ -3,7 +3,7 @@
 //
 #include <memory.h>
 #include "SmallObjPool.h"
-#include "ParticleCommon.h"
+#include "ParticleEngine.h"
 
 
 int spParticleCopy(size_t key, struct spPage const *src_page, struct spPage **dest_page, struct spPagePool *pool)
@@ -60,6 +60,7 @@ int spParticleCopyN(size_t key, size_t src_num, struct spPage **src_page, struct
     {
         spParticleCopy(key, src_page[i], dest_page, buffer);
     }
+    return src_num;
 }
 
 void spParticleClear(size_t key, struct spPage **pg, struct spPagePool *buffer)

@@ -104,12 +104,9 @@
         return std::move(d_type);                       \
     }                                                   \
 
-
-#ifdef __cplusplus
-
-#   define SP_DEFINE_STRUCT_TYPE_DESC(_S_NAME_, ...)                    \
-   static constexpr bool is_self_describing=true;                   \
-   static std::string  name(){return __STRING(_S_NAME_);}          \
+#define SP_DEFINE_STRUCT_DESCRIBE(_S_NAME_, ...)                  \
+ static constexpr bool is_self_describing=true;                   \
+   static std::string  name(){return __STRING(_S_NAME_);}            \
    static ::simpla::data_model::DataType data_type()                \
     {                                                               \
         ::simpla::data_model::DataType d_type(typeid(_S_NAME_),     \
@@ -117,15 +114,14 @@
         SP_DEFINE_STRUCT_DESC(_S_NAME_, __VA_ARGS__);               \
         return std::move(d_type);                                   \
     }
-#else
-#   define SP_DEFINE_STRUCT_TYPE_DESC(_S_NAME_, ...)
-#endif
 
+#define SP_DEFINE_STRUCT(_S_NAME_, ...)                             \
+struct _S_NAME_{                                                    \
+     SP_DEFINE_STRUCT_MEMBER(__VA_ARGS__)                           \
+     SP_DEFINE_STRUCT_DESCRIBE(_S_NAME_, __VA_ARGS__)                \
+};
 
-#define SP_DEFINE_STRUCT(_S_NAME_, ...)                       \
-struct _S_NAME_{SP_DEFINE_STRUCT_MEMBER(__VA_ARGS__)        \
-SP_DEFINE_STRUCT_TYPE_DESC(_S_NAME_, __VA_ARGS__) };             \
-
-
+#   define SP_DEFINE_C_STRUCT_TYPE_ID(_S_NAME_, ...)                             \
+     namespace simpla{namespace traits{template<>struct type_id<_S_NAME_,void>{ SP_DEFINE_STRUCT_DESCRIBE(_S_NAME_, __VA_ARGS__)    };}}
 
 #endif /* CORE_DATASET_DATATYPE_EXT_H_ */
