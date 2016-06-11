@@ -4,7 +4,6 @@
 
 #ifndef SIMPLA_BORIS_H
 #define SIMPLA_BORIS_H
-
 #include "../../src/particle/ParticleEngine.h"
 #include "../../src/particle/SmallObjPool.h"
 
@@ -43,7 +42,6 @@ void spBorisGatherVN(double **res, struct spPage const *p, struct coRectMesh_s c
 
 #include "../../src/particle/Particle.h"
 #include "../../src/gtl/type_traits.h"
-#include "../../src/data_model/DataTypeExt.h"
 #include "../../src/data_model/DataType.h"
 
 

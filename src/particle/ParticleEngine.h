@@ -9,6 +9,8 @@
 #define PARTICLE_ENGINE_H_
 
 #include <stddef.h>
+#include "../data_model/DataTypeExt.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
