@@ -50,8 +50,12 @@ extern "C" {
  *  @comment similar to MOAB::EntityHandle but using different code ruler and more efficienct for FD and SAMR  -- salmon. 2016.5.24
  *  @note different get_mesh should use different 'code and hash ruler'  -- salmon. 2016.5.24
  */
+#ifdef __cplusplus
+#define SP_STATIC_CONST   static  constexpr
 
-#define SP_STATIC_CONST   static  const
+#else
+#define SP_STATIC_CONST   static const
+#endif
 /// @name level independent
 /// @{
 
@@ -111,7 +115,7 @@ SP_STATIC_CONST Real INV_GRID_WIDTH = 1.0 / GRID_WIDTH;
 
 /// @}
 
-SP_STATIC_CONST int spm_sub_index_to_id_[4][3] = { //
+SP_STATIC_CONST int sub_index_to_id_[4][3] = { //
 
         {0, 0, 0}, /*VERTEX*/
         {1, 2, 4}, /*EDGE*/
@@ -145,7 +149,7 @@ SP_STATIC_CONST id_type spm_id_to_shift_[] = {
 
 };
 
-SP_STATIC_CONST Real spm_id_to_coordinates_shift_[][3] = {
+SP_STATIC_CONST Real id_to_shift_[][3] = {
 
         {0,  0,  0},            // 000
         {_R, 0,  0},           // 001
@@ -197,7 +201,7 @@ static inline id_type sp_mininal_vertex(id_type s)
 
 static inline int sp_sub_index_to_id(int IFORM, int n)
 {
-    return spm_sub_index_to_id_[IFORM][n];
+    return sub_index_to_id_[IFORM][n];
 }
 
 static inline int sp_iform(id_type s) { return spm_id_to_iform_[sp_node_id(s)]; }
@@ -278,9 +282,9 @@ static inline int sp_num_of_ele_in_cell(id_type s)
 static inline id_type sp_coordinates_global_to_local(Real x[3], int n_id)
 {
 
-    id_type s = (sp_pack(x[0] - spm_id_to_coordinates_shift_[n_id][0],
-                         x[1] - spm_id_to_coordinates_shift_[n_id][1],
-                         x[2] - spm_id_to_coordinates_shift_[n_id][2])
+    id_type s = (sp_pack(x[0] - id_to_shift_[n_id][0],
+                         x[1] - id_to_shift_[n_id][1],
+                         x[2] - id_to_shift_[n_id][2])
                  & PRIMARY_ID_MASK) | spm_id_to_shift_[n_id];
 
     Real r[3];
@@ -715,7 +719,7 @@ static index_type sp_hash(id_type s, index_type const *b, index_type const *e)
 SP_STATIC_CONST size_type sp_max_hash(index_type const *b, index_type const *e, int IFORM)
 {
     return ((e[0] - b[0]) * (e[1] - b[1]) * (e[2] - b[2])) *
-           spm_id_to_num_of_ele_in_cell_[spm_sub_index_to_id_[IFORM][0]];
+           spm_id_to_num_of_ele_in_cell_[sub_index_to_id_[IFORM][0]];
 }
 
 /**

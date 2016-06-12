@@ -3,7 +3,7 @@
 //
 #include <memory.h>
 #include "SmallObjPool.h"
-#include "ParticleEngine.h"
+#include "ParticleInterface.h"
 
 
 int spParticleCopy(size_t key, struct spPage const *src_page, struct spPage **dest_page, struct spPagePool *pool)
@@ -83,7 +83,7 @@ void spParticleClear(size_t key, struct spPage **pg, struct spPagePool *buffer)
             src_v = (*pg)->data;
         }
 
-        if ((((struct point_head *) (src_v))->_cell != key))
+//        if ((((struct point_head *) (src_v))->_cell != key))
         {
             (*pg)->tag &= ~src_tag;
         }

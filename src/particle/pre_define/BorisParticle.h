@@ -17,7 +17,7 @@ namespace simpla { namespace particle { namespace engine
 {
 
 
-struct Boris
+struct BorisYeeCXXWrap
 {
 
 
@@ -94,7 +94,7 @@ struct Boris
 }}}//namespace simpla { namespace particle { namespace engine
 namespace simpla { namespace particle
 {
-template<typename TM> using BorisParticle =  DefaultParticle<engine::Boris, TM>;
+template<typename TM> using BorisParticle =  DefaultParticle<engine::BorisYeeCXXWrap, TM>;
 
 }}//namespace simpla { namespace particle
 

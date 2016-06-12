@@ -217,7 +217,6 @@ void spPagePoolRelease(struct spPagePool *pool);
 
 size_t spSizeInByte(struct spPagePool const *pool);
 
-#ifndef __cplusplus
 /**
  *   traverses all element
  *   example:
@@ -226,7 +225,7 @@ size_t spSizeInByte(struct spPagePool const *pool);
 #define SP_PAGE_FOREACH(__TYPE__, _PTR_NAME_, __PG_HEAD__)          \
 __TYPE__ *_PTR_NAME_ = 0x0; \
 for (struct spOutputIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
-(_PTR_NAME_ =  spNext(&__it)) != 0x0;)
+(_PTR_NAME_ =(__TYPE__ *)  spNext(&__it)) != 0x0;)
 
 /**
  * insert elements to page .
@@ -243,47 +242,8 @@ __TYPE__ *_PTR_NAME_ = 0x0; int __TAG__=0;\
 for (struct spOutputIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
 (_PTR_NAME_ =  spItRemoveIf(&__it,__TAG__)) != 0x0;)
 
-#else
+#ifdef __cplusplus
 }// extern "C"
-namespace simpla {
-/**
- *   traverses all element
- *   example:
- *       SP_FOREACH_ELEMENT(struct point_s, p, pg){ p->x = 0;}
- */
-#define SP_PAGE_FOREACH(__TYPE__, _PTR_NAME_, __PG_HEAD__)          \
-__TYPE__ *_PTR_NAME_ = 0x0; \
-for (spOutputIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
-(_PTR_NAME_ =  reinterpret_cast<__TYPE__ *>(spNext(&__it))) != 0x0;)
-
-/**
- * insert elements to page .
- * example:
- * SP_ADD_NEW_ELEMENT(200,struct point_s, p, pg) {p->x = 0; }
- */
-#define SP_PAGE_INSERT_PTR(__NUMBER__, __TYPE__, _PTR_NAME_, __PG_HEAD__)          \
-__TYPE__ *_PTR_NAME_; size_t __count = __NUMBER__; \
-for (spInputIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
-(_PTR_NAME_ =  reinterpret_cast<__TYPE__ *>(spNextBlank(&__it))) != 0x0 && (__count>1);--__count)
-
-#define SP_OBJ_REMOVE_IF(__TYPE__, _PTR_NAME_, __PG_HEAD__, __TAG__)          \
-__TYPE__ *_PTR_NAME_ = 0x0; int __TAG__=0;\
-for (spOutputIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
-(_PTR_NAME_ = reinterpret_cast<__TYPE__ *>( spItRemoveIf(&__it,__TAG__))) != 0x0;)
-
-
-std::shared_ptr<spPagePool> makePagePool(size_t size_in_byte)
-{
-    return std::shared_ptr<spPagePool>(spPagePoolCreate(size_in_byte), [=](spPagePool *pg) { spPagePoolDestroy(&pg ); });
-}
-//
-//std::shared_ptr<spPage> makePage(std::shared_ptr<spPagePool> pool)
-//{
-//    return std::shared_ptr<spPage>(spPageCreate(pool.get()), [=](spPage *pg) { spPageClose(&pg, pool.get()); });
-//}
-
-
-}  //namespace simpla
 #endif
 
 

@@ -250,29 +250,29 @@ void *spNext(struct spOutputIterator *it)
 {
     //TODO need optimize
     void *ret = 0x0;
-//    for (; (*(it->page)) != 0x0; (*(it->page)) = (*(it->page))->next)
-//    {
-//        if (it->tag == 0x0 || it->p == 0x0)
-//        {
-//            it->tag = 0x01;
-//            it->p = (*(it->page))->data;
-//        }
-//        else
-//        {
-//            it->tag <<= 1;
-//            it->p += it->ele_size_in_byte;
-//        }
-//        while ((((*(it->page))->tag & (it->tag)) == 0) && (it->tag != 0))
-//        {
-//            it->tag <<= 1;
-//            it->p += it->ele_size_in_byte;
-//        }
-//        if (it->tag != 0)
-//        {
-//            ret = it->p;
-//            break;
-//        }
-//    }
+    for (; (*(it->page)) != 0x0; (*(it->page)) = (*(it->page))->next)
+    {
+        if (it->tag == 0x0 || it->p == 0x0)
+        {
+            it->tag = 0x01;
+            it->p = (*(it->page))->data;
+        }
+        else
+        {
+            it->tag <<= 1;
+            it->p += it->ele_size_in_byte;
+        }
+        while ((((*(it->page))->tag & (it->tag)) == 0) && (it->tag != 0))
+        {
+            it->tag <<= 1;
+            it->p += it->ele_size_in_byte;
+        }
+        if (it->tag != 0)
+        {
+            ret = it->p;
+            break;
+        }
+    }
     return ret;
 }
 

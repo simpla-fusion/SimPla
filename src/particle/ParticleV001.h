@@ -142,6 +142,8 @@ public:
 
     std::ostream &print(std::ostream &os, int indent) const;
 
+    virtual mesh_type const &mesh() const { return *this->m_mesh_; }
+
     virtual bool is_a(std::type_info const &t_info) const
     {
         return t_info == typeid(this_type) || t_info == typeid(field_type);

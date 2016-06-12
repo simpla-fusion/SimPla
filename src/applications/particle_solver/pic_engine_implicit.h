@@ -23,7 +23,7 @@ template<typename TM, typename Policy> class Interpolator;
 
 /**
  *  @ingroup ParticleEngine
- *  \brief default PIC pusher, using Boris mover
+ *  \brief default PIC pusher, using BorisYeeCXXWrap mover
  */
 
 template<typename TM, typename TInterpolator = Interpolator<TM, std::nullptr_t>> struct PICEngineImplicit

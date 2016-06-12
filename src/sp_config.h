@@ -8,12 +8,12 @@
 #ifndef SIMPLA_DEFS_H_
 #define SIMPLA_DEFS_H_
 
-
-#ifdef __cplusplus
-extern "C"
-{
 #include <stdint.h>
-#endif
+
+//#ifdef __cplusplus
+//extern "C"
+//{
+//#endif
 
 #define  AUTHOR " YU Zhi <yuzhi@ipp.ac.cn> "
 #define  COPYRIGHT "All rights reserved. (2016 )"
@@ -26,8 +26,18 @@ typedef int64_t id_type;
 typedef int64_t index_type;
 typedef uint64_t size_type;
 
+//
+//#ifdef __cplusplus
+//};
+//#endif
 
-#ifdef __cplusplus
-};
-#endif
+//#ifdef USE_CUDA
+//#   define CUDA_DEVICE __device__
+//#   define CUDA_GLOBAL __global__
+//#   define CUDA_HOST   __host__
+//#else
+//#   define CUDA_DEVICE
+//#   define CUDA_GLOBAL
+//#   define CUDA_HOST
+//#endif
 #endif /* SIMPLA_DEFS_H_ */

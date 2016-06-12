@@ -40,7 +40,6 @@ elseif (${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
 else ()
     SET(CMAKE_CXX_FLAGS "-std=c++11   ")
 endif ()
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wc++14-extensions ")
 
 #include(FindPackageHandleStandardArgs)
 
@@ -258,8 +257,11 @@ ENDIF (NOT ${GTEST_FOUND})
 FIND_PACKAGE(GTest REQUIRED)
 
 include_directories(${GTEST_INCLUDE_DIRS})
-#FIND_PACKAGE(CUDA 7.0)
 
+FIND_PACKAGE(CUDA 7.5)
+IF (CUDA_FOUND)
+    ADD_DEFINITIONS(-DUSE_CUDA)
+ENDIF (CUDA_FOUND)
 
 execute_process(COMMAND git describe --all --dirty --long
         OUTPUT_VARIABLE PROJECT_IDENTIFY

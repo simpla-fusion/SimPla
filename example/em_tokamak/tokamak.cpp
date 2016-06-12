@@ -321,7 +321,7 @@ void EMTokamak::initialize(int argc, char **argv)
             dict.second["PICEngine"].template as<std::string>(&engine);
 
 
-//            if (engine == "Boris")
+//            if (engine == "BorisYeeCXXWrap")
 //            {
 //                particle_sp[key] = create_particle<particle::BorisParticle<mesh_type>>(
 //                        key, dict.second,

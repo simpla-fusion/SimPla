@@ -17,7 +17,7 @@ namespace simpla
 {
 /**
  *  @ingroup ParticleEngine
- *  \brief default PIC pusher, using Boris mover
+ *  \brief default PIC pusher, using BorisYeeCXXWrap mover
  */
 
 class PICEngineFullF
