@@ -24,7 +24,7 @@ extern "C" {
  *  particle only storage local relative coordinate in cell  ,
  *  cell id is storage in the page
  */
-#define POINT_HEAD int _tag;  Real r[3];
+#define POINT_HEAD int bin_shift;  Real r[3];
 
 struct point_head
 {
@@ -34,7 +34,7 @@ struct point_head
 struct page_head
 {
 
-    id_type cell_id;
+    id_type bin_id;
     status_tag_type tag;
     struct spPage *next;
 
@@ -42,8 +42,8 @@ struct page_head
     byte_type data[];
 
 };
-#define SP_DEFINE_PARTICLE(_S_NAME_, ...)   SP_DEFINE_C_STRUCT(_S_NAME_,long,_tag,Real[3], r, __VA_ARGS__)
-#define SP_DEFINE_PARTICLE_DESCRIBE(_S_NAME_, ...)   SP_DEFINE_STRUCT_DESCRIBE(_S_NAME_,long,_tag, Real[3], r,__VA_ARGS__)
+#define SP_DEFINE_PARTICLE(_S_NAME_, ...)   SP_DEFINE_C_STRUCT(_S_NAME_,long,bin_shift,Real[3], r, __VA_ARGS__)
+#define SP_DEFINE_PARTICLE_DESCRIBE(_S_NAME_, ...)   SP_DEFINE_STRUCT_DESCRIBE(_S_NAME_,long,bin_shift, Real[3], r,__VA_ARGS__)
 
 enum ParticleMomentType
 {

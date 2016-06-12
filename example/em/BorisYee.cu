@@ -1,6 +1,8 @@
 //
 // Created by salmon on 16-6-11.
 //
+#include <curand_mtgp32_kernel.h>
+#include <cuda_builtin_vars.h>
 #include "BorisYee.h"
 
 #include "../../src/particle/SmallObjPool.h"
@@ -30,37 +32,39 @@ struct spPage;
 #define ll -0.5
 #define rr 0.5
 
-CUDA_DEVICE
-void cache_gather(Real *v, Real const f[CACHE_SIZE], Real const *r0,
-		const Real *r1) {
-	Real r[3] = { r0[0] - r1[0], r0[1] - r1[1], r0[2] - r1[2] };
-	id_type s = (int) (r[0]) * IX + (int) (r[1]) * IY + (int) (r[2]) * IZ;
+CUDA_DEVICE void
+cache_gather(Real *v, Real const f[CACHE_SIZE], Real const *r0,
+             const Real *r1)
+{
+    Real r[3] = {r0[0] - r1[0], r0[1] - r1[1], r0[2] - r1[2]};
+    id_type s = (int) (r[0]) * IX + (int) (r[1]) * IY + (int) (r[2]) * IZ;
 
-	*v = f[s + IX + IY + IZ /* */] * (r[0] - ll) * (r[1] - ll) * (r[2] - ll)
-			+ f[s + IX + IY /*     */] * (r[0] - ll) * (r[1] - ll) * (rr - r[2])
-			+ f[s + IX + IZ /*     */] * (r[0] - ll) * (rr - r[1]) * (r[2] - ll)
-			+ f[s + IX /*          */] * (r[0] - ll) * (rr - r[1]) * (rr - r[2])
-			+ f[s + IY + IZ /*     */] * (rr - r[0]) * (r[1] - ll) * (r[2] - ll)
-			+ f[s + IY /*           */] * (rr - r[0]) * (r[1] - ll)
-					* (rr - r[2])
-			+ f[s + IZ /*          */] * (rr - r[0]) * (rr - r[1]) * (r[2] - ll)
-			+ f[s /*               */] * (rr - r[0]) * (rr - r[1])
-					* (rr - r[2]);
+    *v = f[s + IX + IY + IZ /* */] * (r[0] - ll) * (r[1] - ll) * (r[2] - ll)
+         + f[s + IX + IY /*     */] * (r[0] - ll) * (r[1] - ll) * (rr - r[2])
+         + f[s + IX + IZ /*     */] * (r[0] - ll) * (rr - r[1]) * (r[2] - ll)
+         + f[s + IX /*          */] * (r[0] - ll) * (rr - r[1]) * (rr - r[2])
+         + f[s + IY + IZ /*     */] * (rr - r[0]) * (r[1] - ll) * (r[2] - ll)
+         + f[s + IY /*           */] * (rr - r[0]) * (r[1] - ll)
+           * (rr - r[2])
+         + f[s + IZ /*          */] * (rr - r[0]) * (rr - r[1]) * (r[2] - ll)
+         + f[s /*               */] * (rr - r[0]) * (rr - r[1])
+           * (rr - r[2]);
 }
 
-CUDA_DEVICE
-void cache_scatter(Real f[CACHE_SIZE], Real v, Real const *r0, Real const *r1) {
-	Real r[3] = { r0[0] - r1[0], r0[1] - r1[1], r0[2] - r1[2] };
-	id_type s = (int) (r[0]) * IX + (int) (r[1]) * IY + (int) (r[2]) * IZ;
+CUDA_DEVICE void
+cache_scatter(Real f[CACHE_SIZE], Real v, Real const *r0, Real const *r1)
+{
+    Real r[3] = {r0[0] - r1[0], r0[1] - r1[1], r0[2] - r1[2]};
+    id_type s = (int) (r[0]) * IX + (int) (r[1]) * IY + (int) (r[2]) * IZ;
 
-	f[s + IX + IY + IZ /*  */] += v * (r[0] - ll) * (r[1] - ll) * (r[2] - ll);
-	f[s + IX + IY /*       */] += v * (r[0] - ll) * (r[1] - ll) * (rr - r[2]);
-	f[s + IX + IZ /*       */] += v * (r[0] - ll) * (rr - r[1]) * (r[2] - ll);
-	f[s + IX /*            */] += v * (r[0] - ll) * (rr - r[1]) * (rr - r[2]);
-	f[s + IY + IZ /*       */] += v * (rr - r[0]) * (r[1] - ll) * (r[2] - ll);
-	f[s + IY /*            */] += v * (rr - r[0]) * (r[1] - ll) * (rr - r[2]);
-	f[s + IZ /*            */] += v * (rr - r[0]) * (rr - r[1]) * (r[2] - ll);
-	f[s/*                  */] += v * (rr - r[0]) * (rr - r[1]) * (rr - r[2]);
+    f[s + IX + IY + IZ /*  */] += v * (r[0] - ll) * (r[1] - ll) * (r[2] - ll);
+    f[s + IX + IY /*       */] += v * (r[0] - ll) * (r[1] - ll) * (rr - r[2]);
+    f[s + IX + IZ /*       */] += v * (r[0] - ll) * (rr - r[1]) * (r[2] - ll);
+    f[s + IX /*            */] += v * (r[0] - ll) * (rr - r[1]) * (rr - r[2]);
+    f[s + IY + IZ /*       */] += v * (rr - r[0]) * (r[1] - ll) * (r[2] - ll);
+    f[s + IY /*            */] += v * (rr - r[0]) * (r[1] - ll) * (rr - r[2]);
+    f[s + IZ /*            */] += v * (rr - r[0]) * (rr - r[1]) * (r[2] - ll);
+    f[s/*                  */] += v * (rr - r[0]) * (rr - r[1]) * (rr - r[2]);
 
 }
 
@@ -96,74 +100,108 @@ void cache_scatter(Real f[CACHE_SIZE], Real v, Real const *r0, Real const *r1) {
 #define _R 1.0
 
 CUDA_DEVICE Real id_to_shift_[][3] = { //
-		{ 0, 0, 0 },           // 000
-				{ _R, 0, 0 },           // 001
-				{ 0, _R, 0 },           // 010
-				{ 0, 0, _R },          // 011
-				{ _R, _R, 0 },           // 100
-				{ _R, 0, _R },          // 101
-				{ 0, _R, _R },          // 110
-				{ 0, _R, _R },          // 111
-		};
+        {0,  0,  0},           // 000
+        {_R, 0,  0},           // 001
+        {0,  _R, 0},           // 010
+        {0,  0,  _R},          // 011
+        {_R, _R, 0},           // 100
+        {_R, 0,  _R},          // 101
+        {0,  _R, _R},          // 110
+        {0,  _R, _R},          // 111
+};
 CUDA_DEVICE int sub_index_to_id_[4][3] = { //
-		{ 0, 0, 0 }, /*VERTEX*/
-		{ 1, 2, 4 }, /*EDGE*/
-		{ 6, 5, 3 }, /*FACE*/
-		{ 7, 7, 7 } /*VOLUME*/
+        {0, 0, 0}, /*VERTEX*/
+        {1, 2, 4}, /*EDGE*/
+        {6, 5, 3}, /*FACE*/
+        {7, 7, 7} /*VOLUME*/
 
-		};
+};
 
 #undef _R
 
 /* @formatter:on*/
 
-CUDA_GLOBAL void spBorisYeePush_kernel(struct spPage *pg, Real cmr, double dt,
-		const Real *E, const Real *B, const Real *inv_dx) {
-	int i = threadIdx.x;
-	CUDA_SHARED Real tE[3][CACHE_SIZE], tB[3][CACHE_SIZE];
+CUDA_GLOBAL void
+spBorisYeePush_kernel(Real cmr, double dt, const Real *inv_dx, size_type const *i_lower, size_type const *i_upper,
+                      struct spPage **ppg, const Real *E, const Real *B, Real *rho, Real *J)
+{
+    size_type blk_x = blockIdx.x, blk_y = blockIdx.x, blk_z = blockIdx.x;
+    size_type blk_xn = blockDim.x, blk_y = blockDim.y, blk_z = blockDim.z;
 
-	while (pg != 0x0) {
-		if (pg->tag & (0x1 << i) != 0) {
+    int i = threadIdx.x;
+    CUDA_SHARED Real tE[3][CACHE_SIZE], tB[3][CACHE_SIZE], tJ[4][CACHE_SIZE];
+    CUDA_SHARED struct spPage *buffer[CACHE_SIZE];
+    size_type s;
+    for (size_type g_x = blockIdx.x + i_lower[0]; g_x < i_upper[0]; g_x += blockDim.x)
+        for (size_type g_y = blockIdx.y + i_lower[1]; g_y < i_upper[1]; g_y += blockDim.y)
+            for (size_type g_z = blockIdx.z + i_lower[2]; g_z < i_upper[2]; g_z += blockDim.z)
+            {
+                struct spPage *pg = ppg[s];
+                // TODO UPDATE field cache
+                // read tE,tB from E,B
+                // clear tJ
+                while (pg != 0x0)
+                {
+                    if (pg->tag & (0x1 << i) != 0)
+                    {
 
-			struct boris_point_s *p = (struct boris_point_s *) (pg->data
-					+ i * sizeof(struct boris_point_s));
-			Real E[3], B[3];
+                        struct boris_point_s *p = (struct boris_point_s *)
+                                (pg->data + i * sizeof(struct boris_point_s));
 
-			cache_gather(&E[0], tE[0], p->r,
-					id_to_shift_[sub_index_to_id_[1/*EDGE*/][0]]);
-			cache_gather(&E[1], tE[1], p->r,
-					id_to_shift_[sub_index_to_id_[1/*EDGE*/][1]]);
-			cache_gather(&E[2], tE[2], p->r,
-					id_to_shift_[sub_index_to_id_[1/*EDGE*/][2]]);
+                        Real E[3], B[3];
 
-			cache_gather(&B[0], tB[0], p->r,
-					id_to_shift_[sub_index_to_id_[2/*FACE*/][0]]);
-			cache_gather(&B[1], tB[1], p->r,
-					id_to_shift_[sub_index_to_id_[2/*FACE*/][1]]);
-			cache_gather(&B[2], tB[2], p->r,
-					id_to_shift_[sub_index_to_id_[2/*FACE*/][2]]);
+                        cache_gather(&E[0], tE[0], p->r,
+                                     id_to_shift_[sub_index_to_id_[1/*EDGE*/][0]]);
+                        cache_gather(&E[1], tE[1], p->r,
+                                     id_to_shift_[sub_index_to_id_[1/*EDGE*/][1]]);
+                        cache_gather(&E[2], tE[2], p->r,
+                                     id_to_shift_[sub_index_to_id_[1/*EDGE*/][2]]);
 
-			spBorisPushOne(p, cmr, dt, E, B, inv_dx);
+                        cache_gather(&B[0], tB[0], p->r,
+                                     id_to_shift_[sub_index_to_id_[2/*FACE*/][0]]);
+                        cache_gather(&B[1], tB[1], p->r,
+                                     id_to_shift_[sub_index_to_id_[2/*FACE*/][1]]);
+                        cache_gather(&B[2], tB[2], p->r,
+                                     id_to_shift_[sub_index_to_id_[2/*FACE*/][2]]);
 
-		}
-		pg = pg->next;
-	}
+                        spBorisPushOne(p, cmr, dt, E, B, inv_dx);
+                        int r_bin;
+                        tJ[0][r_bin] += spBorisGetRho(p);
+                        tJ[1][r_bin] += spBorisGetJ(p, 0);
+                        tJ[2][r_bin] += spBorisGetJ(p, 1);
+                        tJ[4][r_bin] += spBorisGetJ(p, 2);
 
+                        if(p->bin_shift!=0)
+                        {
+                          //TODO MOVE out particles
+
+                        }
+
+                    }
+                    pg = pg->next;
+                }
+                __syncthreads();
+
+                // TODO UPDATE field cache
+                // write tJ back to rho,J
+            }
 }
 
-CUDA_HOST void spBorisYeePush(struct spPage *pg, Real cmr, double dt,
-		const Real *E, const Real *B, size_type const *i_self_,
-		size_type const *i_lower_, size_type const *i_upper_,
-		const Real *inv_dx) {
+CUDA_HOST void
+spBorisYeePush(struct spPage *pg, Real cmr, double dt,
+               const Real *E, const Real *B, size_type const *i_self_,        8
+               size_type const *i_lower_, size_type const *i_upper_,
+               const Real *inv_dx)
+{
 
 //    size_t els_size_in_byte = sizeof(struct boris_point_s);
 
-	/* @formatter:off*/
-	int numBlocks = 1;
-	dim3 threadsPerBlock(SP_NUMBER_OF_ELEMENT_IN_PAGE, 1);
-	spBorisYeePush_kernel<<<numBlocks, threadsPerBlock>>>(pg, cmr, dt, tE, tB,
-			inv_dx);
-	/* @formatter:on*/
+    /* @formatter:off*/
+    dim3 numBlocks(NX, NY, NZ);
+    dim3 threadsPerBlock(SP_NUMBER_OF_ELEMENT_IN_PAGE, 1, 1);
+    spBorisYeePush_kernel << < numBlocks, threadsPerBlock >> > (pg, cmr, dt, tE, tB,
+            inv_dx);
+    /* @formatter:on*/
 
 }
 #define DEFINE_INTEGRAL_FUNC(_FUN_PREFIX_, _TYPE_, _ATOMIC_FUN_)                                               \

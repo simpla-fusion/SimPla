@@ -16,15 +16,15 @@ extern "C" {
 
 enum { SP_SUCCESS, SP_BUFFER_EMPTY };
 
+// digits of status_tag_type
 #define SP_NUMBER_OF_ELEMENT_IN_PAGE 64
 typedef uint64_t status_tag_type;
 
 struct spPage
 {
-    id_type cell_id;
+    id_type bim_id;
     status_tag_type tag;
     struct spPage *next;
-
     size_t obj_size_in_byte;
     void *data;
 };
