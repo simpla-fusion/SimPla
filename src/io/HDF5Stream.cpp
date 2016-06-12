@@ -1191,7 +1191,7 @@ std::string HDF5Stream::read(std::string const &url, data_model::DataSet *ds, si
 //		}
 //		else
 //		{
-//			sp_make_shared_array<ByteType>(cache_memory_size * cache_depth).swap(
+//			sp_make_shared_array<byte_type>(cache_memory_size * cache_depth).swap(
 //					std::get<0>(cache_[url]));
 //
 //			h5_dataset & item = std::get<1>(cache_[url]);

@@ -63,19 +63,18 @@ extern inline void cache_scatter(Real f[CACHE_SIZE], Real v, Real const *r0, Rea
  *  p->r+=inc_r
  *  @return [0,26] shift of  local cell id
  */
-extern inline id_type move_point_one(struct point_head *p, struct spPage **res, struct spPage *pool)
+extern inline void update_tag(struct point_head *p)
 {
     index_type D[3] = {(index_type) (p->r[0]), (index_type) (p->r[1]), (index_type) (p->r[2])};
 
+    int tag[4] = {0, 1, 0, 3}
 
     p->r[0] -= D[0];
     p->r[1] -= D[1];
     p->r[2] -= D[2];
 
-//    struct point_head *p1 = spPushFront(p, &res[D[0] * IX + D[1] * IY + D[2] * IZ], pool);;
-//    p1->r[0] -= (Real) (D[0]);
-//    p1->r[1] -= (Real) (D[1]);
-//    p1->r[2] -= (Real) (D[2]);
+    p->_tag = (int) ((2 - D[0]) | ((2 - D[1]) << 2) | ((2 - D[1]) << 4));
+
 }
 
 void move_points(struct spPage *pg, struct spPage **res, struct spPage *pool)

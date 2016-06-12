@@ -5,6 +5,8 @@
 #ifndef SIMPLA_SMALLOBJPOOL_H_
 #define SIMPLA_SMALLOBJPOOL_H_
 
+#include "../sp_config.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -16,13 +18,17 @@ enum { SP_SUCCESS, SP_BUFFER_EMPTY };
 
 #define SP_NUMBER_OF_ELEMENT_IN_PAGE 64
 typedef uint64_t status_tag_type;
+
 struct spPage
 {
-    size_t obj_size_in_byte;
+    id_type cell_id;
     status_tag_type tag;
-    void *data;
     struct spPage *next;
+
+    size_t obj_size_in_byte;
+    void *data;
 };
+
 struct spPagePool;
 
 struct spPagePool *spPagePoolCreate(size_t size_in_byte);

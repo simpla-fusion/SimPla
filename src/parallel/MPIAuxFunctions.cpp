@@ -106,7 +106,7 @@ void allreduce(void const *send_data, void *recv_data, size_t count,
 
 }
 //
-//std::tuple<std::shared_ptr<ByteType>, int> update_ghost_unorder(
+//std::tuple<std::shared_ptr<byte_type>, int> update_ghost_unorder(
 //		void const* m_send_links_, std::vector<
 //
 //		std::tuple<int, // dest;
@@ -127,7 +127,7 @@ void allreduce(void const *send_data, void *recv_data, size_t count,
 //	for (auto const & item : info)
 //	{
 //
-//		MPI_Isend( reinterpret_cast<ByteType*>(const_cast<void* >(m_send_links_))+std::get<3>(item) ,
+//		MPI_Isend( reinterpret_cast<byte_type*>(const_cast<void* >(m_send_links_))+std::get<3>(item) ,
 //				std::get<4>(item), MPI_BYTE, std::get<0>(item), std::get<1>(item),
 //				GLOBAL_COMM.comm(), &requests[req_count]);
 //
@@ -160,7 +160,7 @@ void allreduce(void const *send_data, void *recv_data, size_t count,
 //	for(auto const & v:mem_size)
 //	{	recv_buffer_size+=v;}
 //
-//	auto m_recv_links_ = sp_make_shared_array<ByteType>(recv_buffer_size);
+//	auto m_recv_links_ = sp_make_shared_array<byte_type>(recv_buffer_size);
 //
 //	int pos = 0;
 //	for (int i = 0; i < info.size(); ++i)

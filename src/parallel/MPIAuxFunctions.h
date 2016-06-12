@@ -128,7 +128,7 @@ void allreduce(nTuple<T, DIMS> *p_send, std::string const &op_c = "Sum")
 
 }
 
-std::tuple<std::shared_ptr<ByteType>, int> update_ghost_unorder(
+std::tuple<std::shared_ptr<byte_type>, int> update_ghost_unorder(
         void const *send_buffer, std::vector<std::tuple<int, // dest;
         int, // send_tag;
         int, // recv_tag;
