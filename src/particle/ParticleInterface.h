@@ -14,43 +14,47 @@
 extern "C" {
 #endif
 /**
- *  _tag : relative cell shift  _tag= 0bzzyyxx
- *         _tag= 0bzzyyxx
- *               10,00-> 0, 01->1, 11->-1
+ *  uint64_t _tag;
+ *   0b0000000000000000000000zzyyxx
+ *   first 38 bits are vonstant index number of particle,
+ *   last  6 bits 'zzyyxx' are relative cell shift
+ *         000000 means particle is the correct cell
+ *         if xx = 00 means particle is the correct cell
+ *                 01 -> (+1) right neighbour cell
+ *                 11 -> (-1)left neighbour cell
+ *                 10  not neighbour, if xx=10 , r[0]>2 or r[0]<-1
+ *
+ *        |   001010   |    001000     |   001001      |
+ * -------+------------+---------------+---------------+---------------
+ *        |            |               |               |
+ *        |            |               |               |
+ * 000011 |   000010   |    000000     |   000001      |   000011
+ *        |            |               |               |
+ *        |            |               |               |
+ * -------+------------+---------------+---------------+---------------
+ *        |   000110   |    000100     |   000101      |
+ *
  *  r    : local coordinate r\in [0,1]
  *
- *  cell index I[0] = page.cell_tag.x + (2-_tag&0b000011)%2 )
- *  coordinate x[0] = I[0] + r[0]*dx[0]
+ *
+ *               11             00              01
+ * ---------+------------+-------@--------+-------------+---------------
+ *r=       -1.5         -0.5     0       0.5           1.5
  *  particle only storage local relative coordinate in cell  ,
  *  cell id is storage in the page
  */
-#define POINT_HEAD int bin_shift;  Real r[3];
+#define POINT_HEAD uint64_t _tag;  Real r[3];
 
 struct point_head
 {
     POINT_HEAD
-    char data[];
+    byte_type *data;
 };
-struct page_head
-{
 
-    id_type bin_id;
-    status_tag_type tag;
-    struct spPage *next;
+#define SP_DEFINE_PARTICLE(_S_NAME_, ...)   SP_DEFINE_C_STRUCT(_S_NAME_,uint64_t,_tag,Real[3], r, __VA_ARGS__)
+#define SP_DEFINE_PARTICLE_DESCRIBE(_S_NAME_, ...)   SP_DEFINE_STRUCT_DESCRIBE(_S_NAME_,uint64_t,_tag, Real[3], r,__VA_ARGS__)
 
-    size_type ele_size_in_byte;
-    byte_type data[];
 
-};
-#define SP_DEFINE_PARTICLE(_S_NAME_, ...)   SP_DEFINE_C_STRUCT(_S_NAME_,long,bin_shift,Real[3], r, __VA_ARGS__)
-#define SP_DEFINE_PARTICLE_DESCRIBE(_S_NAME_, ...)   SP_DEFINE_STRUCT_DESCRIBE(_S_NAME_,long,bin_shift, Real[3], r,__VA_ARGS__)
-
-enum ParticleMomentType
-{
-    DENSITY,
-    CURRENT,  //v
-    KINETIC_ENERGY //0.5*m*(v*v)
-};
 #ifdef __cplusplus
 }// extern "C" {
 #endif

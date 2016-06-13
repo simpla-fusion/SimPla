@@ -85,4 +85,9 @@ void move_points(struct spPage *pg, struct spPage **res, struct spPage *pool)
     }
 }
 
+size_t spInsertParticle(struct spPage **p, size_t N, size_t size_in_byte, const byte_type *src,
+                        struct spPagePool *pool);
+
+status_flag_type spParticleFlag(Real const r[3]);
+
 #endif //SIMPLA_PARTICLEINTERPOLATE_H

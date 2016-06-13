@@ -15,7 +15,8 @@
 struct spPageGroup
 {
     struct spPageGroup *next;
-    struct spPage m_pages[SP_NUMBER_OF_PAGES_IN_GROUP];
+    size_type number_of_pages;
+    struct spPage *m_pages;
     void *m_data;
 };
 struct spPagePool
@@ -65,7 +66,7 @@ int spEmpty(struct spPage const *p)
     int res = 0;
     while (p != 0x0)
     {
-        res += (p->tag > 0x0) ? 1 : 0;
+        res += (p->flag > 0x0) ? 1 : 0;
         p = p->next;
     }
     return (res == 0) ? 1 : 0;
@@ -76,7 +77,7 @@ int spFull(struct spPage const *p)
     int res = 0;
     while (p != 0x0)
     {
-        res += ((p->tag + 1) != 0x0) ? 1 : 0;
+        res += ((p->flag + 1) != 0x0) ? 1 : 0;
         p = p->next;
     }
     return (res == 0) ? 1 : 0;
@@ -112,7 +113,7 @@ size_t spSize(struct spPage const *p)
     size_t res = 0;
     while (p != 0x0)
     {
-        res += bit_count64(p->tag);
+        res += bit_count64(p->flag);
         p = p->next;
     }
     return res;
@@ -195,11 +196,11 @@ size_t spMoveN(size_t n, struct spPage **src, struct spPage **dest)
 //};
 
 
-void spSetTag(struct spPage *p, size_t tag)
+void spSetPageFlag(struct spPage *p, size_t tag)
 {
     while (p != 0x0)
     {
-        p->tag = tag;
+        p->flag = tag;
         p = p->next;
     }
 }
@@ -208,7 +209,7 @@ void spClear(struct spPage **p, struct spPage **buffer)
 {
     while (*p != 0x0)
     {
-        if ((*p)->tag == 0x0) { spMove(p, buffer); }
+        if ((*p)->flag == 0x0) { spMove(p, buffer); }
         else { *p = (*p)->next; }
     }
 };
@@ -228,7 +229,7 @@ void spClear(struct spPage **p, struct spPage **buffer)
 //}
 
 
-size_t spFill(struct spPage *p, size_t N, size_t size_in_byte, void const *src)
+size_t spFill(struct spPage *p, size_t N, size_t size_in_byte, const byte_type *src)
 {
     while (N > 0 && p != 0x0)
     {
@@ -252,22 +253,22 @@ void *spNext(struct spOutputIterator *it)
     void *ret = 0x0;
     for (; (*(it->page)) != 0x0; (*(it->page)) = (*(it->page))->next)
     {
-        if (it->tag == 0x0 || it->p == 0x0)
+        if (it->flag == 0x0 || it->p == 0x0)
         {
-            it->tag = 0x01;
+            it->flag = 0x01;
             it->p = (*(it->page))->data;
         }
         else
         {
-            it->tag <<= 1;
+            it->flag <<= 1;
             it->p += it->ele_size_in_byte;
         }
-        while ((((*(it->page))->tag & (it->tag)) == 0) && (it->tag != 0))
+        while ((((*(it->page))->flag & (it->flag)) == 0) && (it->flag != 0))
         {
-            it->tag <<= 1;
+            it->flag <<= 1;
             it->p += it->ele_size_in_byte;
         }
-        if (it->tag != 0)
+        if (it->flag != 0)
         {
             ret = it->p;
             break;
@@ -326,17 +327,17 @@ void *spInputIteratorNext(struct spInputIterator *it)
         it->tag <<= 1;
         it->p += it->pool->ele_size_in_byte;
 
-        if ((*pg)->tag + 1 == 0x0) { pg = &((*pg)->next); }
-        if (((*pg)->tag & (it->tag)) == 0x0) { break; }
+        if ((*pg)->flag + 1 == 0x0) { pg = &((*pg)->next); }
+        if (((*pg)->flag & (it->tag)) == 0x0) { break; }
     }
 
-    (*pg)->tag |= it->tag;
+    (*pg)->flag |= it->tag;
 
 
     return it->p;
 }
 
-size_t spNextBlank2(struct spPage **pg, size_t *tag, void **p, struct spPagePool *pool)
+size_t spNextBlank2(struct spPage **pg, size_t *tag, byte_type **p, struct spPagePool *pool)
 {
     START:
     if (*pg == 0x0) { *pg = spPageCreate(pool, 1); }
@@ -348,19 +349,19 @@ size_t spNextBlank2(struct spPage **pg, size_t *tag, void **p, struct spPagePool
     }
 
 
-    while (((*pg)->tag & (*tag)) != 0)
+    while (((*pg)->flag & (*tag)) != 0)
     {
         (*tag) <<= 1;
         *p += pool->ele_size_in_byte;
 
-        if ((*pg)->tag + 1 == 0x0 || (*tag) == 0x0)
+        if ((*pg)->flag + 1 == 0x0 || (*tag) == 0x0)
         {
             pg = &((*pg)->next);
             goto START;
         }
     }
 
-    (*pg)->tag |= (*tag);
+    (*pg)->flag |= (*tag);
     return (*tag);
 }
 
@@ -525,7 +526,7 @@ struct spPage *spPageGroupClean(struct spPageGroup **pg)
         size_t count = 0;
         for (int i = 0; i < SP_NUMBER_OF_PAGES_IN_GROUP; ++i)
         {
-            if (pg0->m_pages[i].tag == 0)
+            if (pg0->m_pages[i].flag == 0)
             {
                 pg0->m_pages[i].next = ret;
                 ret = &(pg0->m_pages[i]);

@@ -5,6 +5,7 @@
 #ifndef SIMPLA_BORISYEE_H
 #define SIMPLA_BORISYEE_H
 
+#include "../../src/sp_cuda_config.h"
 #include "../../src/particle/ParticleInterface.h"
 
 #ifdef __cplusplus
@@ -20,9 +21,8 @@ extern "C" {
 
 struct spPage;
 
-
-spBorisYeeIntegralRho(struct spPage *pg, Real tf[CACHE_SIZE], size_type iform);
-
+void spBorisYeePush(struct spPage *pg, Real cmr, double dt, const Real *E, const Real *B, size_type const *i_self_,
+                    size_type const *i_lower_, size_type const *i_upper_, const Real *inv_dx);
 
 void spBorisYeeIntegralRho(struct spPage *pg, Real *cf, size_type iform, size_type sub_index);
 

@@ -7,7 +7,9 @@ target_compile_options(demo_em PUBLIC -DCARTESIAN_COORDINATE_SYTEM)
 TARGET_LINK_LIBRARIES(demo_em simpla_lib)
 
 
-IF (CUDA_FOUND)
-    CUDA_ADD_LIBRARY(boris BorisYee.cu)
-#    TARGET_COMPILE_OPTIONS(boris PUBLIC "--xcu")
-ENDIF (CUDA_FOUND)
+IF (USE_CUDA)
+    CUDA_ADD_LIBRARY(boris BorisYee.c)
+    #    TARGET_COMPILE_OPTIONS(boris PUBLIC "--xcu")
+ELSE (USE_CUDA)
+    ADD_LIBRARY(boris BorisYee.c)
+ENDIF (USE_CUDA)

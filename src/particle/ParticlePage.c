@@ -85,12 +85,12 @@ void spParticleClear(size_t key, struct spPage **pg, struct spPagePool *buffer)
 
 //        if ((((struct point_head *) (src_v))->_cell != key))
         {
-            (*pg)->tag &= ~src_tag;
+            (*pg)->flag &= ~src_tag;
         }
 
         src_tag <<= 1;
         src_v += size_in_byte;
-        if ((*pg)->tag == 0x0) { spMove(pg, &trash); }
+        if ((*pg)->flag == 0x0) { spMove(pg, &trash); }
         else if (src_tag == 0x0) { (*pg) = (*pg)->next; }
 
     }

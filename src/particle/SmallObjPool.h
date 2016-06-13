@@ -16,17 +16,20 @@ extern "C" {
 
 enum { SP_SUCCESS, SP_BUFFER_EMPTY };
 
-// digits of status_tag_type
+// digits of status_flag_type
+
 #define SP_NUMBER_OF_ELEMENT_IN_PAGE 64
-typedef uint64_t status_tag_type;
+typedef uint64_t status_flag_type;  //
 
 struct spPage
 {
-    id_type bim_id;
-    status_tag_type tag;
     struct spPage *next;
-    size_t obj_size_in_byte;
-    void *data;
+    id_type tag;   // tag of page group. In default, it storage 'bin id' for bucket sorting
+    status_flag_type flag; // flag of element in the page, 'SP_NUMBER_OF_ELEMENT_IN_PAGE', 1 ->valid ,0 -> blank
+
+    size_type ele_size_in_byte;
+    byte_type *data;
+
 };
 
 struct spPagePool;
@@ -133,11 +136,12 @@ void spClear(struct spPage **p, struct spPage **buffer);
 /**
 * set all page->tag=0x0
 */
-void spSetTag(struct spPage *p, size_t tag);
+void spSetPageFlag(struct spPage *p, size_t tag);
+
 //
-//void spPushFront(struct spPage **, struct spPage **);
-//
-//void spPopFront(struct spPage **, struct spPage **);
+void spPushFront(struct spPage **from, struct spPage **to);
+
+void spPopFront(struct spPage **from, struct spPage **to);
 //
 ///** adds an element to the end
 // *  @return last element
@@ -154,10 +158,13 @@ void spSetTag(struct spPage *p, size_t tag);
  *  @return if 'p' is full then return number of remain objects;
  *          else return 0;
  */
-size_t spInsert(struct spPage *p, size_t N, size_t size_in_byte, void const *src);
+size_t spInsert(struct spPage *p, size_t N, size_t size_in_byte, const byte_type *src);
 
+byte_type *spInsertOne(struct spPage **p);
 
-size_t spFill(struct spPage *p, size_t N, size_t size_in_byte, void const *src);
+byte_type *spAtomicInsert(struct spPage **p, struct spPagePool *pool);
+
+size_t spFill(struct spPage *p, size_t N, size_t size_in_byte, const byte_type *src);
 /****************************************************************************
  * Operations
  */
@@ -171,7 +178,7 @@ size_t spFill(struct spPage *p, size_t N, size_t size_in_byte, void const *src);
  */
 struct spOutputIterator
 {
-    status_tag_type tag;
+    status_flag_type flag;
     void *const p;
     struct spPage **const page;
     size_t ele_size_in_byte;
@@ -187,7 +194,7 @@ void *spNext(struct spOutputIterator *it);
 
 struct spInputIterator
 {
-    status_tag_type tag;
+    status_flag_type tag;
     void *p;
     struct spPage **page;
     struct spPagePool *pool;
@@ -200,7 +207,7 @@ struct spInputIterator
 void *spInputIteratorNext(struct spInputIterator *it);
 
 
-size_t spNextBlank2(struct spPage **pg, size_t *tag, void **p, struct spPagePool *pool);
+size_t spNextBlank2(struct spPage **pg, size_t *tag, byte_type **p, struct spPagePool *pool);
 
 
 /**
