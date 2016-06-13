@@ -14,12 +14,48 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 
+
 enum { SP_SUCCESS, SP_BUFFER_EMPTY };
 
-// digits of status_flag_type
 
+#define BUCKET_ELEMENT_HEAD uint64_t _tag;
+/**
+ * bucket_elements_head
+ *  uint64_t shift;
+ *   0b0000000000000000000000zzyyxx
+ *   first 38 bits is not defined for 'bucket_elements_head',
+ *       (for 'particle', they are constant index number of particle),
+ *   last  6 bits 'zzyyxx' are relative cell offsets
+ *         000000 means particle is the correct cell
+ *         if xx = 00 means particle is the correct cell
+ *                 01 -> (+1) right neighbour cell
+ *                 11 -> (-1)left neighbour cell
+ *                 10  not neighbour, if xx=10 , r[0]>2 or r[0]<-1
+ *
+ *        |   001010   |    001000     |   001001      |
+ * -------+------------+---------------+---------------+---------------
+ *        |            |               |               |
+ *        |            |               |               |
+ * 000011 |   000010   |    000000     |   000001      |   000011
+ *        |            |               |               |
+ *        |            |               |               |
+ * -------+------------+---------------+---------------+---------------
+ *        |   000110   |    000100     |   000101      |
+ *
+ *  r    : local coordinate r\in [0,1]
+ *
+ *
+ *               11             00              01
+ * ---------+------------+-------@--------+-------------+---------------
+ */
+struct spBucketElementHead
+{
+    BUCKET_ELEMENT_HEAD
+    byte_type *data;
+};
+// digits of status_flag_type
 #define SP_NUMBER_OF_ELEMENT_IN_PAGE 64
-typedef uint64_t status_flag_type;  //
+typedef uint64_t status_flag_type;
 
 struct spPage
 {
@@ -31,8 +67,22 @@ struct spPage
     byte_type *data;
 
 };
-
 struct spPagePool;
+
+/**
+ * @brief Resort elements in buckets. Elements in same bucket are unordered.
+ *        assume the distance from element to its bucket is less or equal one .
+ * @param buckets    array of buckets
+ * @param ndims      number of dimensions of bucket array
+ * @param dims       dimensions of bucket array
+ * @param pool       pool of pages
+ * @return
+ */
+void spBucketResort(struct spPage **buckets, int ndims, size_type const *dims, struct spPagePool *pool);
+
+/****************************************************************************/
+
+
 
 struct spPagePool *spPagePoolCreate(size_t size_in_byte);
 
@@ -161,8 +211,6 @@ void spPopFront(struct spPage **from, struct spPage **to);
 size_t spInsert(struct spPage *p, size_t N, size_t size_in_byte, const byte_type *src);
 
 byte_type *spInsertOne(struct spPage **p);
-
-byte_type *spAtomicInsert(struct spPage **p, struct spPagePool *pool);
 
 size_t spFill(struct spPage *p, size_t N, size_t size_in_byte, const byte_type *src);
 /****************************************************************************

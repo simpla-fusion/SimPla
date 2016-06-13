@@ -12,7 +12,7 @@
 #include "../gtl/type_traits.h"
 #include "../parallel/Parallel.h"
 #include "../mesh/MeshAttribute.h"
-#include "SmallObjPool.h"
+#include "BucketContainer.h"
 #include "ParticlePage.h"
 
 namespace simpla { namespace particle

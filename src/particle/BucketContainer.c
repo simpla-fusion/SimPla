@@ -1,16 +1,13 @@
 //
 // Created by salmon on 16-6-6.
 //
+#include "BucketContainer.h"
 
 #include <memory.h>
 #include <malloc.h>
 
 #include <pthread.h>
-
-#include "SmallObjPool.h"
-
-#define SP_NUMBER_OF_PAGES_IN_GROUP 64
-
+#include "../../src/sp_config.h"
 
 struct spPageGroup
 {
@@ -27,15 +24,19 @@ struct spPagePool
     pthread_mutex_t m_pool_mutex_;
 
 };
-
+MC_DEVICE MC_HOST
 struct spPagePool *spPagePoolCreate(size_t size_in_byte);
 
+MC_DEVICE MC_HOST
 void spPagePoolDestroy(struct spPagePool **pool);
 
+MC_DEVICE MC_HOST
 void spPagePoolRelease(struct spPagePool *pool);
 
+MC_DEVICE MC_HOST
 size_t spSizeInByte(struct spPagePool const *pool) { return pool->ele_size_in_byte; }
 
+MC_DEVICE MC_HOST
 struct spPageGroup *spPageGroupCreate(size_t ele_size_in_byte);
 
 
@@ -45,11 +46,13 @@ struct spPageGroup *spPageGroupCreate(size_t ele_size_in_byte);
 /**
  *  access the first element
  */
+MC_DEVICE MC_HOST
 struct spPage *spFront(struct spPage *p) { return p; }
 
 /**
  *  access the last element
  */
+MC_DEVICE MC_HOST
 struct spPage *spBack(struct spPage *p)
 {
     if (p != 0x0) { while (p->next != 0x0) { p = p->next; }}
@@ -60,7 +63,7 @@ struct spPage *spBack(struct spPage *p)
 /****************************************************************************
  * Capacity
  */
-
+MC_DEVICE MC_HOST
 int spEmpty(struct spPage const *p)
 {
     int res = 0;
@@ -71,7 +74,7 @@ int spEmpty(struct spPage const *p)
     }
     return (res == 0) ? 1 : 0;
 };
-
+MC_DEVICE MC_HOST
 int spFull(struct spPage const *p)
 {
     int res = 0;
@@ -82,12 +85,13 @@ int spFull(struct spPage const *p)
     }
     return (res == 0) ? 1 : 0;
 };
-
+MC_DEVICE MC_HOST
 size_t spMaxSize(struct spPage const *p)
 {
     return (size_t) (-1);
 };
 
+MC_INLINE
 size_t bit_count64(uint64_t x)
 {
     static const uint64_t m1 = 0x5555555555555555; //binary: 0101...
@@ -108,6 +112,7 @@ size_t bit_count64(uint64_t x)
 
 }
 
+MC_DEVICE MC_HOST
 size_t spSize(struct spPage const *p)
 {
     size_t res = 0;
@@ -119,6 +124,7 @@ size_t spSize(struct spPage const *p)
     return res;
 }
 
+MC_DEVICE MC_HOST
 size_t spCapacity(struct spPage const *p)
 {
     size_t res = 0;
@@ -133,7 +139,7 @@ size_t spCapacity(struct spPage const *p)
 /****************************************************************************
  * Modifiers
  */
-
+MC_DEVICE MC_HOST
 size_t spMove(struct spPage **src, struct spPage **dest)
 {
     size_t ret = 0;
@@ -147,7 +153,7 @@ size_t spMove(struct spPage **src, struct spPage **dest)
     }
     return ret;
 };
-
+MC_DEVICE MC_HOST
 void spMerge(struct spPage **src, struct spPage **dest)
 {
     size_t count = 0;
@@ -167,6 +173,7 @@ void spMerge(struct spPage **src, struct spPage **dest)
 
 }
 
+MC_DEVICE MC_HOST
 size_t spMoveN(size_t n, struct spPage **src, struct spPage **dest)
 {
     size_t count = 0;
@@ -195,7 +202,7 @@ size_t spMoveN(size_t n, struct spPage **src, struct spPage **dest)
 //
 //};
 
-
+MC_DEVICE MC_HOST
 void spSetPageFlag(struct spPage *p, size_t tag)
 {
     while (p != 0x0)
@@ -205,6 +212,7 @@ void spSetPageFlag(struct spPage *p, size_t tag)
     }
 }
 
+MC_DEVICE MC_HOST
 void spClear(struct spPage **p, struct spPage **buffer)
 {
     while (*p != 0x0)
@@ -228,7 +236,7 @@ void spClear(struct spPage **p, struct spPage **buffer)
 //    return N;
 //}
 
-
+MC_DEVICE MC_HOST
 size_t spFill(struct spPage *p, size_t N, size_t size_in_byte, const byte_type *src)
 {
     while (N > 0 && p != 0x0)
@@ -247,6 +255,7 @@ size_t spFill(struct spPage *p, size_t N, size_t size_in_byte, const byte_type *
 
 }
 
+MC_DEVICE MC_HOST
 void *spNext(struct spOutputIterator *it)
 {
     //TODO need optimize
@@ -277,6 +286,7 @@ void *spNext(struct spOutputIterator *it)
     return ret;
 }
 
+MC_DEVICE MC_HOST
 void *spItTraverse(struct spOutputIterator *it)
 {
     //TODO need optimize
@@ -307,6 +317,7 @@ void *spItTraverse(struct spOutputIterator *it)
     return ret;
 }
 
+MC_DEVICE MC_HOST
 void *spInputIteratorNext(struct spInputIterator *it)
 {
     if (it == 0x0) { return 0x0; }
@@ -337,6 +348,7 @@ void *spInputIteratorNext(struct spInputIterator *it)
     return it->p;
 }
 
+MC_DEVICE MC_HOST
 size_t spNextBlank2(struct spPage **pg, size_t *tag, byte_type **p, struct spPagePool *pool)
 {
     START:
@@ -365,7 +377,7 @@ size_t spNextBlank2(struct spPage **pg, size_t *tag, byte_type **p, struct spPag
     return (*tag);
 }
 
-
+MC_DEVICE MC_HOST
 void *spItInsert(struct spOutputIterator *it)
 {
     //TODO need optimize
@@ -398,7 +410,7 @@ void *spItInsert(struct spOutputIterator *it)
     return ret;
 }
 
-
+MC_DEVICE MC_HOST
 void *spItRemoveIf(struct spOutputIterator *it, int flag)
 {
     //TODO need optimize
@@ -433,7 +445,7 @@ void *spItRemoveIf(struct spOutputIterator *it, int flag)
 }
 
 /*******************************************************************************************/
-
+MC_DEVICE MC_HOST
 struct spPage *spPageCreate(struct spPagePool *pool, size_t num)
 {
     pthread_mutex_lock(&(pool->m_pool_mutex_));
@@ -465,7 +477,7 @@ struct spPage *spPageCreate(struct spPagePool *pool, size_t num)
     pthread_mutex_unlock(&(pool->m_pool_mutex_));
     return head;
 };
-
+MC_DEVICE MC_HOST
 size_t spPageDestroyN(struct spPagePool *pool, struct spPage **p, size_t num)
 {
     pthread_mutex_lock(&(pool->m_pool_mutex_));
@@ -475,6 +487,7 @@ size_t spPageDestroyN(struct spPagePool *pool, struct spPage **p, size_t num)
     return res;
 }
 
+MC_DEVICE MC_HOST
 void spPageDestroy(struct spPagePool *pool, struct spPage **p)
 {
     pthread_mutex_lock(&(pool->m_pool_mutex_));
@@ -483,6 +496,7 @@ void spPageDestroy(struct spPagePool *pool, struct spPage **p)
 
 }
 
+MC_DEVICE MC_HOST
 /*******************************************************************************************/
 struct spPageGroup *spPageGroupCreate(size_t ele_size_in_byte)
 {
@@ -504,6 +518,7 @@ struct spPageGroup *spPageGroupCreate(size_t ele_size_in_byte)
 /**
  * @return next page group
  */
+MC_DEVICE MC_HOST
 void spPageGroupDestroy(struct spPageGroup **pg)
 {
     free((*pg)->m_data);
@@ -515,6 +530,7 @@ void spPageGroupDestroy(struct spPageGroup **pg)
  *  @return first free page
  *    pg = first page group
  */
+MC_DEVICE MC_HOST
 struct spPage *spPageGroupClean(struct spPageGroup **pg)
 {
     struct spPage *ret = 0x0;
@@ -545,6 +561,7 @@ struct spPage *spPageGroupClean(struct spPageGroup **pg)
     return ret;
 }
 
+MC_DEVICE MC_HOST
 struct spPagePool *spPagePoolCreate(size_t size_in_byte)
 {
     struct spPagePool *res = (struct spPagePool *) (malloc(sizeof(struct spPagePool)));
@@ -555,7 +572,7 @@ struct spPagePool *spPagePoolCreate(size_t size_in_byte)
     return res;
 }
 
-
+MC_DEVICE MC_HOST
 void spPagePoolDestroy(struct spPagePool **pool)
 {
 
@@ -570,7 +587,101 @@ void spPagePoolDestroy(struct spPagePool **pool)
 
 }
 
+MC_DEVICE MC_HOST
 void spPagePoolRelease(struct spPagePool *pool)
 {
 
+}
+
+
+MC_GLOBAL
+void spBucketResortKernel(struct spPage **buckets, int ndims, size_type const *dims, struct spPagePool *pool)
+{
+
+    MC_SHARED struct spPage *read_buffer[CACHE_SIZE];
+    MC_SHARED struct spPage *write_buffer[CACHE_SIZE];
+    MC_SHARED
+    status_flag_type shift_flag[CACHE_SIZE];
+
+    size_type ele_size_in_byte = args->ele_size_in_type;
+#ifdef __CUDACC__
+    for (size_type _blk_s = blockIdx.x, _blk_e = args->number_of_idx; _blk_s < _blk_e; _blk_s += blockDim.x)
+#else
+    for (size_type _blk_s = 0, _blk_e = args->number_of_idx; _blk_s < _blk_e; ++_blk_s)
+#endif
+    {
+        size_type cell_idx = args->cell_idx[_blk_s];
+
+        // read tE,tB from E,B
+        // clear tJ
+        MC_SHARED  struct spPage **self;
+
+        // TODO load data to cache
+
+        for (int n = 0; n < CACHE_SIZE; ++n)
+        {
+            struct spPage const *from = read_buffer[n];
+
+            status_flag_type p_flag = shift_flag[n];
+
+            while (from != 0x0)
+            {
+                byte_type const *v = from->data;
+
+#ifdef __CUDACC__
+                int i = threadIdx.x;
+#else
+                for (int i = 0; i < SP_NUMBER_OF_ELEMENT_IN_PAGE; ++i)
+#endif
+                {
+                    status_flag_type flag = 0x1UL << i;
+
+                    struct boris_point_s *p = (struct boris_point_s *) (v + ele_size_in_byte * i);
+
+                    if ((from->flag & flag) != 0 && ((p->_tag & 0x3F) == p_flag))
+                    {
+
+
+                        struct boris_point_s *p_next = (struct boris_point_s *) spAtomicInsert(self,
+                                                                                               args->pool);
+                        p_next->_tag = p->_tag;
+
+//                        spBorisPushOne(p, p_next, args->cmr, dt, E, B, args->inv_dx);
+
+                        p_next->_tag &= ~(0x3F);
+                        // TODO r -> tag
+//                        p_next->_tag |= spParticleFlag(p_next->r);
+
+
+                    }
+                }
+                from = from->next;
+
+            }//   while (from != 0x0)
+
+        }// foreach CACHE
+#ifdef __CUDACC__
+        __syncthreads();
+    MC_COPY(self, &(next[cell_idx]));
+#else
+        spPushFront(self, &(buckets[cell_idx]));
+
+
+#endif
+    }//foreach block
+
+}
+
+
+void spBucketResort(struct spPage **buckets, int ndims, size_type const *dims, struct spPagePool *pool)
+{
+#ifdef __CUDACC__
+    /* @formatter:off*/
+     int numBlocks(number_of_core/SP_NUMBER_OF_ELEMENT_IN_PAGE);
+     dim3 threadsPerBlock(SP_NUMBER_OF_ELEMENT_IN_PAGE, 1);
+     spBucketResortKernel<<<numBlocks,threadsPerBlock >>> (args,  dt,prev,next, fE, fB,fRho,fJ);
+/* @formatter:on*/
+#else
+    spBucketResortKernel(buckets, ndims, dims, pool);
+#endif
 }
