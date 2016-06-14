@@ -12,21 +12,21 @@ size_t spInsertParticle(struct spPage **pg, size_t N, const byte_type *src,
 
         pg = &((*pg)->next);
     }
-    status_flag_type flag = 0x1;
-    size_type ele_size_in_byte = spSizeInByte(pool);
+    bucket_page_status_flag_t flag = 0x1;
+    size_type ele_size_in_byte = spPagePoolEntitySizeInByte(pool);
     size_type num_of_pages = N / SP_NUMBER_OF_ELEMENT_IN_PAGE;
-    struct spPage *head = spPageCreate(pool, num_of_pages);
+    struct spPage *head = spPageCreate(num_of_pages, pool);
     struct spPage *tail = head;
     while (N > SP_NUMBER_OF_ELEMENT_IN_PAGE)
     {
 
 
-        struct spPage *head = spPageCreate(pool, num_of_pages);
+        struct spPage *head = spPageCreate(num_of_pages, pool);
         struct spPage *tail = head;
         while ()
 
     }
-    if (*pg == 0x0) { *pg = spPageCreate(pool, N / SP_NUMBER_OF_ELEMENT_IN_PAGE + 1); };
+    if (*pg == 0x0) { *pg = spPageCreate(N / SP_NUMBER_OF_ELEMENT_IN_PAGE + 1, pool); };
 
     while (*pg != 0x0)
     {

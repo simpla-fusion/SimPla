@@ -14,7 +14,7 @@ int main(int argc, char **argv)
 {
 
     struct spPagePool *p_pool = spPagePoolCreate(sizeof(struct point_s));
-    struct spPage *pg = spPageCreate(p_pool);
+    struct spPage *pg = spPageCreate(0, p_pool);
 
     {
         size_t count = 0;

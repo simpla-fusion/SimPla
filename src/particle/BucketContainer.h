@@ -18,7 +18,7 @@ extern "C" {
 enum { SP_SUCCESS, SP_BUFFER_EMPTY };
 
 
-#define BUCKET_ELEMENT_HEAD uint64_t _tag;
+#define SP_ENTITY_HEAD uint64_t _tag;
 /**
  * bucket_elements_head
  *  uint64_t shift;
@@ -48,260 +48,183 @@ enum { SP_SUCCESS, SP_BUFFER_EMPTY };
  *               11             00              01
  * ---------+------------+-------@--------+-------------+---------------
  */
-struct spBucketElementHead
+typedef struct spEntity_s
 {
-    BUCKET_ELEMENT_HEAD
+    SP_ENTITY_HEAD
     byte_type *data;
-};
-// digits of status_flag_type
+} spEntity;
+// digits of bucket_page_status_flag_t
 #define SP_NUMBER_OF_ELEMENT_IN_PAGE 64
-typedef uint64_t status_flag_type;
+typedef uint64_t bucket_page_status_flag_t;
 
-struct spPage
+typedef struct spPage_s
 {
-    struct spPage *next;
+    struct spPage_s *next;
+    bucket_page_status_flag_t flag; // flag of element in the page, 'SP_NUMBER_OF_ELEMENT_IN_PAGE', 1 ->valid ,0 -> blank
     id_type tag;   // tag of page group. In default, it storage 'bin id' for bucket sorting
-    status_flag_type flag; // flag of element in the page, 'SP_NUMBER_OF_ELEMENT_IN_PAGE', 1 ->valid ,0 -> blank
 
-    size_type ele_size_in_byte;
+    size_type entity_size_in_byte;
     byte_type *data;
 
-};
-struct spPagePool;
-
-/**
- * @brief Resort elements in buckets. Elements in same bucket are unordered.
- *        assume the distance from element to its bucket is less or equal one .
- * @param buckets    array of buckets
- * @param ndims      number of dimensions of bucket array
- * @param dims       dimensions of bucket array
- * @param pool       pool of pages
- * @return
- */
-void spBucketResort(struct spPage **buckets, int ndims, size_type const *dims, struct spPagePool *pool);
-
-/****************************************************************************/
+} spPage;
+struct spPagePool_s;
+typedef struct spPagePool_s spPagePool;
 
 
+/***************************************************************************/
+/*  spPage Pool
+ **/
 
-struct spPagePool *spPagePoolCreate(size_t size_in_byte);
 
-void spPagePoolDestroy(struct spPagePool **pool);
+spPagePool *spPagePoolCreate(size_type entity_size_in_byte);
 
-/**
- * release empty page group
- * @NOTE not complete
- */
-void spPagePoolRelease(struct spPagePool *pool);
+void spPagePoolDestroy(spPagePool **pool);
 
-/****************************************************************************
- *  Create
- */
+void spPagePoolReleaseEnpty(spPagePool *pool);
+
+size_type spPagePoolEntitySizeInByte(spPagePool const *pool);
+
+/***************************************************************************/
+/*  spPage
+ **/
+/*-----------------------------------------------------------------------------*/
+/*  Page create and modify */
 /**
  *  pop 'num' pages from pool
  *  @return pointer of first page
  */
-struct spPage *spPageCreate(struct spPagePool *pool, size_t num);
+MC_DEVICE MC_HOST spPage *spPageCreate(size_type num, spPagePool *pool);
 
 /**
- * push 'num' pages back to pool
- * @return number of actually destroyed pages
- *         *p point to  the first remained page,
- *         if no page is remained *p=0x0
+ * push page list back to pool
+ * @return if success then *p=(p->next), return size of *p
+ *                    else *p is not changed ,return 0
  */
-size_t spPageDestroyN(struct spPagePool *pool, struct spPage **p, size_t num);
-
-void spPageDestroy(struct spPagePool *pool, struct spPage **p);
+MC_DEVICE MC_HOST size_type spPageDestroy(spPage **p, spPagePool *pool);
 
 
-
-/****************************************************************************
- * Element access
+/**
+ * insert an page to the beginning
+ * @return if success then *p=old *p ->next, return old *p
+ *                    else *p is not changed ,return 0x0
  */
+MC_DEVICE MC_HOST void spPagePushFront(spPage **p, spPage *f);
+/**
+ * remove first page from list
+ * @return if success then *p=old *p ->next, return old *p
+ *                    else *p is not changed ,return 0x0
+ */
+MC_DEVICE MC_HOST spPage *spPagePopFront(spPage **p);
+
+/**
+ *  transfers one page from one list to an other
+ *   move the front page from 'other' to 'self', and push front
+ *  @return if success then *self = (old *other), (*self)->next=old (*self)
+ *                          *other =(old *other) ->next
+ *                           return 1
+ *                     else  *self,*other is not changed
+ *                           return 0
+ */
+MC_DEVICE MC_HOST size_type spPageSplice(spPage **self, spPage **other);
+
+
+/**
+ *  transfers one list to another
+ *   move the front page from 'other' to 'self', and push front
+ */
+MC_DEVICE MC_HOST size_type spPageSpliceAll(spPage **self, spPage **other);
+
+/*-----------------------------------------------------------------------------*/
+/* Element access */
 /**
  *  access the first element
  */
-struct spPage *spFront(struct spPage *p);
+MC_DEVICE MC_HOST spPage **spPageFront(spPage **p);
 
 /**
- *  access the last element
+ *  @return if success then  return the pointer to the last page
+ *                      else  return 0x0
  */
-struct spPage *spBack(struct spPage *p);
+MC_DEVICE MC_HOST spPage **spPageBack(spPage **p);
+/*-----------------------------------------------------------------------------*/
+/*  Capacity  */
 
-/****************************************************************************
- * Capacity
+/**
+ * @return  the number of pages
  */
+MC_DEVICE MC_HOST size_type spPageSize(spPage const *p);
+
 
 /**
  *  checks whether the container is empty
- *  @return if empty return 1, else return 0
+ *  @return if empty return >0, else return 0
  */
-int spEmpty(struct spPage const *p);
+MC_DEVICE MC_HOST int spPageIsEmpty(spPage const *p);
 
 
 /**
  *  checks whether the container is full
- *  @return if full return 1, else return 0
+ *  @return if every pages are full return >0, else return 0
  */
-int spFull(struct spPage const *p);
+MC_DEVICE MC_HOST int spPageIsFull(spPage const *p);
 
-/**
- * @return  the number of elements
- */
-size_t spSize(struct spPage const *p);
 
-/**
- * @ returns the maximum possible number of elements
- */
-size_t spMaxSize(struct spPage const *p);
 
 /**
  * @return the number of elements that can be held in currently allocated storage
  */
-size_t spCapacity(struct spPage const *p);
-
-
-
-/****************************************************************************
- * Modifiers
- */
+MC_DEVICE MC_HOST size_type spPageCapacity(spPage const *p);
 /**
- *  move first page from "src" to "dest"
- *  @return number of moved page, if success return 1 else return 0
+ * @return  the number of entities in pages
  */
-size_t spMove(struct spPage **src, struct spPage **dest);
+MC_DEVICE MC_HOST size_type spPageNumberOfEntities(spPage const *p);
 
-size_t spMoveN(size_t n, struct spPage **src, struct spPage **dest);
+/***************************************************************************/
+/*  Entity
+ **/
 
 /**
- * 	Merge 'src' to 'dest'
+ *  set page flag=0, do not change the capacity of pages
  */
-void spMerge(struct spPage **src, struct spPage **dest);
+MC_DEVICE MC_HOST void spEntityClear(spPage *p);
 
 /**
- * move empty page to buffer
- */
-void spClear(struct spPage **p, struct spPage **buffer);
-
-/**
-* set all page->tag=0x0
-*/
-void spSetPageFlag(struct spPage *p, size_t tag);
-
-//
-void spPushFront(struct spPage **from, struct spPage **to);
-
-void spPopFront(struct spPage **from, struct spPage **to);
-//
-///** adds an element to the end
-// *  @return last element
-// **/
-//void spPushBack(struct spPage **, struct spPage *);
-//
-///** removes the last element
-// *  @return last element
-// **/
-//void spPopBack(struct spPage **, struct spPage **buffer);
-
-/**
- *  1. insert 'num' objects to 'dest' page
- *  @return if 'p' is full then return number of remain objects;
- *          else return 0;
- */
-size_t spInsert(struct spPage *p, size_t N, size_t size_in_byte, const byte_type *src);
-
-byte_type *spInsertOne(struct spPage **p);
-
-size_t spFill(struct spPage *p, size_t N, size_t size_in_byte, const byte_type *src);
-/****************************************************************************
- * Operations
- */
-/**
- * merges two sorted lists
- */
-
-
-/****************************************************************************
- * Iterators
- */
-struct spOutputIterator
-{
-    status_flag_type flag;
-    void *const p;
-    struct spPage **const page;
-    size_t ele_size_in_byte;
-};
-
-/**
- * 1. move 'it' to 'next obj'
+ *  @return first entity after 'flag' , if flag=0x0 start from beginning
  *
- * @return  if 'next obj' is available then return pointer to 'next obj'
- *           else return 0x0
  */
-void *spNext(struct spOutputIterator *it);
-
-struct spInputIterator
-{
-    status_flag_type tag;
-    void *p;
-    struct spPage **page;
-    struct spPagePool *pool;
-};
+MC_DEVICE MC_HOST spEntity *spEntityNext(spPage **pg, bucket_page_status_flag_t *flag);
+/**
+ *  find first blank entity
+ *  @param  flag  search from the 'flag'
+ *           (default: flag=0x0, start from beginning),
+ *
+ *  @return if success then *p point to the page of result, flag point the position of result
+ *                           and set flag to 1
+ *                     else return 0x0, *p ,flag is undefined
+ *
+ */
+MC_DEVICE MC_HOST spEntity *spEntityInsertWithHint(spPage **p, bucket_page_status_flag_t *flag);
 
 /**
- * 1. insert new obj to page
- * @return if page is full return 0x0, else return pointer to new obj
+ *  @return if success then return pointer to the first blank entity, and set flag to 1
+ *                     else return 0x0
  */
-void *spInputIteratorNext(struct spInputIterator *it);
-
-
-size_t spNextBlank2(struct spPage **pg, size_t *tag, byte_type **p, struct spPagePool *pool);
-
-
+MC_DEVICE MC_HOST spEntity *spEntityInsert(spPage *pg);
 /**
- * 1. if flag > 0 then remove 'current obj', else do nothing
- * 2. move 'it' to next obj
- * @return if 'next obj' is available then return pointer to 'next obj',
- *          else return 0x0
+ * clear page, and fill N entities to page
+ * @return number of remained entities.
  */
-void *spItRemoveIf(struct spOutputIterator *it, int flag);
+MC_DEVICE MC_HOST size_type spEntityFill(spPage *p, size_type num, const byte_type *src);
+
+MC_DEVICE MC_HOST void spEntityRemove(spPage *p, bucket_page_status_flag_t flag);
 
 
-struct spPagePool;
+/***************************************************************************/
+/*  Algorithm
+ **/
 
-struct spPagePool *spPagePoolCreate(size_t size_in_byte);
+void spBucketResort(spPage **buckets, int ndims, size_type const *dims, spPagePool *pool);
 
-void spPagePoolDestroy(struct spPagePool **pool);
-
-void spPagePoolRelease(struct spPagePool *pool);
-
-
-size_t spSizeInByte(struct spPagePool const *pool);
-
-/**
- *   traverses all element
- *   example:
- *       SP_FOREACH_ELEMENT(struct point_s, p, pg){ p->x = 0;}
- */
-#define SP_PAGE_FOREACH(__TYPE__, _PTR_NAME_, __PG_HEAD__)          \
-__TYPE__ *_PTR_NAME_ = 0x0; \
-for (struct spOutputIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
-(_PTR_NAME_ =(__TYPE__ *)  spNext(&__it)) != 0x0;)
-
-/**
- * insert elements to page .
- * example:
- * SP_ADD_NEW_ELEMENT(200,struct point_s, p, pg, p_pool) {p->x = 0; }
- */
-#define SP_PAGE_INSERT_PTR(__NUMBER__, __TYPE__, _PTR_NAME_, __PG_HEAD__, __POOL__)          \
-__TYPE__ *_PTR_NAME_; size_t __count = __NUMBER__; \
-for (struct spInputIterator __it = {0x0, 0x0, __PG_HEAD__, __POOL__}; \
-(_PTR_NAME_ =  spNextBlank(&__it )) != 0x0 && (__count>1);--__count)
-
-#define SP_OBJ_REMOVE_IF(__TYPE__, _PTR_NAME_, __PG_HEAD__, __TAG__)          \
-__TYPE__ *_PTR_NAME_ = 0x0; int __TAG__=0;\
-for (struct spOutputIterator __it = {0x0, 0x0, __PG_HEAD__, sizeof(__TYPE__)}; \
-(_PTR_NAME_ =  spItRemoveIf(&__it,__TAG__)) != 0x0;)
 
 #ifdef __cplusplus
 }// extern "C"

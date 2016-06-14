@@ -9,7 +9,7 @@
 int spParticleCopy(size_t key, struct spPage const *src_page, struct spPage **dest_page, struct spPagePool *pool)
 {
 
-    size_t size_in_byte = spSizeInByte(pool);
+    size_t size_in_byte = spPagePoolEntitySizeInByte(pool);
 
     size_t src_tag = 0x0, dest_tag = 0x0;
 
@@ -65,7 +65,7 @@ int spParticleCopyN(size_t key, size_t src_num, struct spPage **src_page, struct
 
 void spParticleClear(size_t key, struct spPage **pg, struct spPagePool *buffer)
 {
-    size_t size_in_byte = spSizeInByte(buffer);
+    size_t size_in_byte = spPagePoolEntitySizeInByte(buffer);
 
     if (*pg == 0x0) { return; }
 
@@ -90,10 +90,10 @@ void spParticleClear(size_t key, struct spPage **pg, struct spPagePool *buffer)
 
         src_tag <<= 1;
         src_v += size_in_byte;
-        if ((*pg)->flag == 0x0) { spMove(pg, &trash); }
+        if ((*pg)->flag == 0x0) { spPageMove(pg, &trash); }
         else if (src_tag == 0x0) { (*pg) = (*pg)->next; }
 
     }
 
-    spPageDestroy(buffer, &trash);
+    spPageDestroy(buffer, NULL);
 }

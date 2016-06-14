@@ -43,6 +43,6 @@ typedef uint64_t size_type;
 #   define MC_GLOBAL
 #   define MC_HOST
 #   define MC_SHARED
-#   define MC_INLINE inline
+#   define MC_INLINE extern inline
 #endif
 #endif /* SIMPLA_DEFS_H_ */

@@ -8,7 +8,7 @@
 #include <stddef.h>
 #include "../sp_config.h"
 #include "../data_model/DataTypeExt.h"
-
+#include "BucketContainer.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -24,7 +24,7 @@ extern "C" {
  *  particle only storage local relative coordinate in cell  ,
  *  cell id is storage in the page
  */
-#define POINT_HEAD  BUCKET_ELEMENTS_HEAD  Real r[3];
+#define POINT_HEAD  SP_ENTITY_HEAD  Real r[3];
 
 struct point_head
 {
