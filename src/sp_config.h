@@ -18,7 +18,6 @@
 #define  AUTHOR " YU Zhi <yuzhi@ipp.ac.cn> "
 #define  COPYRIGHT "All rights reserved. (2016 )"
 
-
 typedef int8_t byte_type; // int8_t
 typedef double Real;
 typedef long Integral;
@@ -31,7 +30,6 @@ typedef uint64_t size_type;
 //};
 //#endif
 
-
 #ifdef __CUDACC__
 #   define MC_DEVICE __device__
 #   define MC_GLOBAL __global__
@@ -43,6 +41,6 @@ typedef uint64_t size_type;
 #   define MC_GLOBAL
 #   define MC_HOST
 #   define MC_SHARED
-#   define MC_INLINE extern inline
+#   define MC_INLINE   inline
 #endif
 #endif /* SIMPLA_DEFS_H_ */

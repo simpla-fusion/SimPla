@@ -8,8 +8,7 @@ TARGET_LINK_LIBRARIES(demo_em simpla_lib)
 
 
 IF (USE_CUDA)
-    CUDA_ADD_LIBRARY(boris BorisYee.c)
-    #    TARGET_COMPILE_OPTIONS(boris PUBLIC "--xcu")
+    CUDA_ADD_LIBRARY(boris_cuda BorisYee.cu  )
 ELSE (USE_CUDA)
     ADD_LIBRARY(boris BorisYee.c)
 ENDIF (USE_CUDA)

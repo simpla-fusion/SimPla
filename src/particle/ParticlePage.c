@@ -6,7 +6,7 @@
 #include "ParticleInterface.h"
 
 
-int spParticleCopy(size_t key, struct spPage const *src_page, struct spPage **dest_page, struct spPagePool *pool)
+int spParticleCopy(size_t key, struct spPage const *src_page, struct spPage **dest_page, spPagePool *pool)
 {
 
     size_t size_in_byte = spPagePoolEntitySizeInByte(pool);

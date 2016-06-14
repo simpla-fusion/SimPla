@@ -12,16 +12,11 @@ extern "C" {
 
 #endif
 
-struct spPage;
-struct spPagePool;
+int spParticleCopy(size_t key,  spPage const *src_page,  spPage **dest_page,  spPagePool *buffer);
 
+int spParticleCopyN(size_t key, size_t s_num,  spPage **s_page,  spPage **dest_page, spPagePool *buffer);
 
-int spParticleCopy(size_t key, struct spPage const *src_page, struct spPage **dest_page, struct spPagePool *buffer);
-
-int spParticleCopyN(size_t key, size_t s_num, struct spPage **s_page, struct spPage **dest_page, spPagePool *buffer);
-
-void spParticleClear(size_t key, struct spPage **pg, struct spPagePool *buffer);
-
+void spParticleClear(size_t key,  spPage **pg,  spPagePool *buffer);
 
 #ifdef __cplusplus
 }
