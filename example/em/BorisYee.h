@@ -5,33 +5,17 @@
 #ifndef SIMPLA_BORISYEE_H
 #define SIMPLA_BORISYEE_H
 
-#include "../../src/sp_config.h"
-#include "../../src/particle/ParticleInterface.h"
+#include "../../src/capi/spParticle.h"
+#include "../../src/capi/spMesh.h"
+#include "../../src/capi/spField.h"
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-typedef struct BorisYeeUpdateArgs_s
-{
-	Real cmr;
-	Real inv_dx[3];
-	size_type i_lower[3];
-	size_type i_upper[3];
-	size_type i_dims[3];
-	size_type number_of_idx;
-	size_type *cell_idx;
-	size_type ele_size_in_type;
+void spInitializeParticle_BorisYee(spMesh *ctx, sp_particle_type *pg);
 
-} BorisYeeUpdateArgs;
+void spUpdateParticle_BorisYee(spMesh *ctx, sp_particle_type *pg, Real dt,
+		const sp_field_type * fE, const sp_field_type * fB,
+		sp_field_type * fRho, sp_field_type * fJ);
 
-void spBorisYeeUpdate(BorisYeeUpdateArgs const *args, Real dt, spPage **first,
-		spPage **second, spPagePool *pool, const Real *fE, const Real *fB,
-		Real *fRho, Real *fJ);
-
-#ifdef __cplusplus
-}
-;
-#endif
+void spUpdateField_Yee(spMesh *ctx, Real dt, const sp_field_type * fRho,
+		const sp_field_type * fJ, sp_field_type * fE, sp_field_type * fB);
 
 #endif //SIMPLA_BORISYEE_H

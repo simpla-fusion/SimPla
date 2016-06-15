@@ -3,13 +3,23 @@
 //
 
 #include "BorisYee.h"
+#include <stdio.h>
+#include "../../src/capi/sp_def_cuda.h"
+#include "../../src/capi/spField.h"
+#include "../../src/capi/spMesh.h"
+#include "../../src/capi/spParticle.h"
+#include "../../src/capi/spBucketFunction.h"
 #include "Boris.h"
 
-#include "../../src/sp_config.h"
-#include "../../src/particle/BucketContainer.h"
-//#include "../../src/particle/ParticleUtility.h
+__device__ void spBorisPushOne(struct boris_point_s const *p,
+		struct boris_point_s *p_next, Real cmr, Real dt, Real const E[3],
+		Real const B[3], const Real *inv_dx);
 
-#include "../../src/particle/BucketContainer.c"
+__device__ Real spBorisGetRho(struct boris_point_s const *p);
+
+__device__ Real spBorisGetJ(struct boris_point_s const *p, int n);
+
+__device__ Real spBorisGetE(struct boris_point_s const *p);
 
 #define CACHE_EXTENT_X 4
 #define CACHE_EXTENT_Y 4
@@ -20,10 +30,16 @@
 #define IY  CACHE_EXTENT_X
 #define IZ  CACHE_EXTENT_X*CACHE_EXTENT_Y
 
+__global__
+void spInitializeParticle_BorisYee_Kernel(spMesh *ctx, sp_particle_type *pg)
+{
+
+}
+
 #define ll 0
 #define rr 1.0
 
-__device__  void cache_gather(Real *v, Real const f[CACHE_SIZE], Real const *r0,
+__device__ void cache_gather(Real *v, Real const f[CACHE_SIZE], Real const *r0,
 		const Real *r1)
 {
 	Real r[3] =
@@ -89,18 +105,19 @@ __device__ void cache_scatter(Real f[CACHE_SIZE], Real v, Real const *r0,
 
 /* @formatter:off*/
 #define _R 1.0
-__device__ Real id_to_shift_[][3] =
+__constant__ Real id_to_shift_[][3] =
 { //
 		{ 0, 0, 0 },           // 000
 				{ _R, 0, 0 },           // 001
-				{ 0, _R, 0 },           // 010
+				{ 0,
+				_R, 0 },           // 010
 				{ 0, 0, _R },          // 011
 				{ _R, _R, 0 },           // 100
 				{ _R, 0, _R },          // 101
 				{ 0, _R, _R },          // 110
 				{ 0, _R, _R },          // 111
 		};
-__device__ int sub_index_to_id_[4][3] =
+__constant__ int sub_index_to_id_[4][3] =
 { //
 		{ 0, 0, 0 }, /*VERTEX*/
 		{ 1, 2, 4 }, /*EDGE*/
@@ -108,74 +125,69 @@ __device__ int sub_index_to_id_[4][3] =
 		{ 7, 7, 7 } /*VOLUME*/
 
 		};
+__constant__ int cache_cell_offset_tag[CACHE_SIZE] =
+{
 
+};
+__constant__ size_type cache_cell_offset[CACHE_SIZE] =
+{
+
+};
 #undef _R
 
 /* @formatter:on*/
-__device__
-void spBorisYeeUpdate_kernel(BorisYeeUpdateArgs const *args, Real dt,
-		spPage **first, spPage **second, spPagePool *pool, const Real *fE,
-		const Real *fB, Real *fRho, Real *fJ)
+__global__
+void spUpdateParticle_BorisYee_Kernel(spMesh *m, sp_particle_type *sp, Real dt,
+		const sp_field_type * fE, const sp_field_type * fB,
+		sp_field_type * fRho, sp_field_type * fJ)
 {
-	size_type entity_size_in_byte = (*first)->entity_size_in_byte;
+	size_type entity_size_in_byte = sp->entity_size_in_byte;
+	Real cmr = sp->charge / sp->mass;
+	Real charge = sp->charge;
 
-	__shared__ Real tE[3][CACHE_SIZE], tB[3][CACHE_SIZE], tJ[4][CACHE_SIZE];
-	__shared__ spPage *read_buffer[CACHE_SIZE];
-//	__shared__ spPage *write_buffer[CACHE_SIZE];
-//	__shared__ bucket_page_status_flag_t shift_flag[CACHE_SIZE];
+	Real tE[3][CACHE_SIZE], tB[3][CACHE_SIZE], tJ[4][CACHE_SIZE];
+	sp_particle_type read_cache[CACHE_SIZE];
 
-	for (size_type _blk_s = blockIdx.x, _blk_e = args->number_of_idx;
+	__shared__ int write_cache_count;
+	__shared__ byte_type write_cache[sizeof(boris_point_s)
+			* SP_NUMBER_OF_ENTITIES_IN_PAGE * 2];
+
+	for (size_type _blk_s = blockIdx.x, _blk_e = m->number_of_idx;
 			_blk_s < _blk_e; _blk_s += blockDim.x)
 	{
-		size_type cell_idx = args->cell_idx[_blk_s];
+		size_type cell_idx = m->cell_idx[_blk_s];
 
 		// read tE,tB from E,B
 		// clear tJ
-		spPage **src = &first[cell_idx];
-		spPage **dest = &second[cell_idx];
-		id_type tag = 0x0;
-		size_type num = spEntityCountIf(*src, tag);
 
-		__shared__ byte_type write_buffer[sizeof(boris_point_s)
-				* SP_NUMBER_OF_ENTITIES_IN_PAGE];
-//		write_buffer=malloc( num * SP_NUMBER_OF_ENTITIES_IN_PAGE);
+		write_cache_count = 0;
+		__syncthreads();
 
 		// TODO load data to cache
 
 		for (int n = 0; n < CACHE_SIZE; ++n)
 		{
+			id_type tag = cache_cell_offset_tag[n];
+			bucket_type pg = sp->buckets[cell_idx + cache_cell_offset[n]];
 
-			spPage *pg = read_buffer[n];
+			bucket_entity_flag_t dest_flag = 0x0;
 
-			bucket_page_status_flag_t dest_flag = 0x0;
+			bucket_entity_flag_t read_flag = 0x0;
 
-			bucket_page_status_flag_t read_flag = 0x0;
+//			for (boris_point_s *p0, *p1 = 0x0; (p0 =
+//					(boris_point_s *) spEntityNext(&pg, &read_flag)) != 0x0;)
 
-			bucket_page_status_flag_t write_flag = 0x0;
-
-			for (boris_point_s *p0, *p1 = 0x0; (p0 =
-					(boris_point_s *) spEntityNext(&pg, &read_flag)) != 0x0;)
+			while (pg != 0x0)
 			{
-				if ((p0->_tag & 0x3F) == tag)
+				boris_point_s *p0 = (boris_point_s *) (pg->data
+						+ threadIdx.x * entity_size_in_byte);
+
+				if ((pg->tag & (0x1 << threadIdx.x) != 0)
+						&& (p0->_tag & 0x3F) == tag)
 				{
-					if (write_flag == 0x0 || write_buffer == 0x0)
-					{
-						/** atomic */
-
-						/** atomic */
-						spPage *t = spPageCreate(1, pool);
-
-//						cudaMemcpy(t->data, write_buffer,
-//						SP_NUMBER_OF_ENTITIES_IN_PAGE * entity_size_in_byte,
-//								cudaMemcpyDeviceToDevice);
-
-						t->flag = dest_flag;
-						spPagePushFront(dest, t);
-						dest_flag = 0x0;
-						write_flag = 0x0;
-						p1 = (boris_point_s *) write_buffer;
-					}
-					/****************************************************************/
+					boris_point_s * p1 = (boris_point_s *) (write_cache
+							+ atomicAdd(&write_cache_count, 1)
+									* entity_size_in_byte);
 
 					Real E[3], B[3];
 
@@ -193,52 +205,71 @@ void spBorisYeeUpdate_kernel(BorisYeeUpdateArgs const *args, Real dt,
 					cache_gather(&B[2], tB[2], p0->r,
 							id_to_shift_[sub_index_to_id_[2/*FACE*/][2]]);
 
-					spBorisPushOne(p0, p1, args->cmr, dt, E, B, args->inv_dx);
+					spBorisPushOne(p0, p1, cmr, dt, E, B, m->inv_dx);
 
-					cache_scatter(tJ[0], spBorisGetRho(p1), p1->r,
+					cache_scatter(tJ[0], spBorisGetRho(p1) * charge, p1->r,
 							id_to_shift_[sub_index_to_id_[0/*VERTEX*/][0]]);
-					cache_scatter(tJ[1], spBorisGetJ(p1, 0), p1->r,
+					cache_scatter(tJ[1], spBorisGetJ(p1, 0) * charge, p1->r,
 							id_to_shift_[sub_index_to_id_[1/*EDGE*/][0]]);
-					cache_scatter(tJ[2], spBorisGetJ(p1, 1), p1->r,
+					cache_scatter(tJ[2], spBorisGetJ(p1, 1) * charge, p1->r,
 							id_to_shift_[sub_index_to_id_[1/*EDGE*/][1]]);
-					cache_scatter(tJ[3], spBorisGetJ(p1, 2), p1->r,
+					cache_scatter(tJ[3], spBorisGetJ(p1, 2) * charge, p1->r,
 							id_to_shift_[sub_index_to_id_[1/*EDGE*/][2]]);
 
 					/****************************************************************/
-					p1->_tag &= ~(0x3F); // clear tag
-					dest_flag |= write_flag;
-					write_flag <<= 1;
-					p1 += entity_size_in_byte;
 
 				}
-			}
-			__syncthreads();
 
-			//TODO atomic_add tJ to fJ
-			for (int s = 0; s < CACHE_SIZE; ++s)
-			{
-//				size_type idx = posFromCacheIdx(s, args->i_dims);
+				pg = pg->next;
+			}		//	while (pg != 0x0)
+		}		//	for (int n = 0; n < CACHE_SIZE; ++n)
+
+		__syncthreads();
+
+		//TODO copy write_cache to memory
+
+		//TODO atomic_add tJ to fJ
+#pragma unroll
+		for (int s = 0; s < CACHE_SIZE; ++s)
+		{
+//				size_type idx = posFromCacheIdx(s, ctx->i_dims);
 //				atomicAdd(&(fRho[idx]), tJ[0][idx]);
 //				atomicAdd(&(fJ[idx * 3 + 0]), tJ[1][idx]);
 //				atomicAdd(&(fJ[idx * 3 + 0]), tJ[2][idx]);
 //				atomicAdd(&(fJ[idx * 3 + 0]), tJ[3][idx]);
-			}
-
-		}        //foreach block
+		}
 
 	}
 }
 
-void spBorisYeeUpdate(BorisYeeUpdateArgs const *args, Real dt, spPage **first,
-		spPage **second, spPagePool *pool, const Real *fE, const Real *fB,
-		Real *fRho, Real *fJ)
+__global__
+void spUpdateField_Yee_kernel(spMesh *ctx, Real dt, const sp_field_type* fRho,
+		const sp_field_type *fJ, sp_field_type* fE, sp_field_type *fB)
 {
-	//number_of_core / SP_NUMBER_OF_ELEMENT_IN_PAGE
-//	int numBlocks = (16);
-//
-//	dim3 threadsPerBlock(SP_NUMBER_OF_ENTITIES_IN_PAGE, 1);
-//
-//	spBorisYeeUpdate_kernel<<<numBlocks, threadsPerBlock>>>(args, dt, first,
-//			second, pool, fE, fB, fRho, fJ);
 
 }
+
+void spInitializeParticle_BorisYee(spMesh *ctx, sp_particle_type *pg)
+{
+	spInitializeParticle_BorisYee_Kernel<<<ctx->numBlocks, ctx->threadsPerBlock>>>(
+			ctx, pg);
+}
+
+void spUpdateParticle_BorisYee(spMesh *ctx, sp_particle_type *pg, Real dt,
+		const sp_field_type * fE, const sp_field_type * fB,
+		sp_field_type * fRho, sp_field_type * fJ)
+{
+	//number_of_core / SP_NUMBER_OF_ELEMENT_IN_PAGE
+
+	spUpdateParticle_BorisYee_Kernel<<<ctx->numBlocks, ctx->threadsPerBlock>>>(
+			ctx, pg, dt, fE, fB, fRho, fJ);
+
+}
+
+void spUpdateField_Yee(spMesh *ctx, Real dt, const sp_field_type* fRho,
+		const sp_field_type* fJ, sp_field_type* fE, sp_field_type* fB)
+{
+	spUpdateField_Yee_kernel<<<ctx->numBlocks, ctx->threadsPerBlock>>>(ctx, dt,
+			fRho, fJ, fE, fB);
+}
+

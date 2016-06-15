@@ -30,17 +30,5 @@ typedef uint64_t size_type;
 //};
 //#endif
 
-#ifdef __CUDACC__
-#   define MC_DEVICE __device__
-#   define MC_GLOBAL __global__
-#   define MC_HOST   __host__
-#   define MC_SHARED  __shared__
-#   define MC_INLINE __device__ __forceinline__
-#else
-#   define MC_DEVICE
-#   define MC_GLOBAL
-#   define MC_HOST
-#   define MC_SHARED
-#   define MC_INLINE   inline
-#endif
+
 #endif /* SIMPLA_DEFS_H_ */
