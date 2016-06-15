@@ -17,7 +17,7 @@ struct boris_point_s
   Real f;
   Real w;
 };
-MC_HOST_DEVICE_PREFIX void
+inline void
 spBorisPushOne (struct boris_point_s const *p, struct boris_point_s *p_next,
 				Real cmr, Real dt, Real const E[3], Real const B[3],
 				const Real *inv_dx)
@@ -56,21 +56,20 @@ spBorisPushOne (struct boris_point_s const *p, struct boris_point_s *p_next,
   p_next->r[2] += p_next->v[2] * dt * 0.5 * inv_dx[2];
 
 }
-
-MC_HOST_DEVICE_PREFIX Real
+inline Real
 spBorisGetRho (struct boris_point_s const *p)
 {
 
   return p->f * p->w;
 }
 
-MC_HOST_DEVICE_PREFIX Real
+inline Real
 spBorisGetJ (struct boris_point_s const *p, int n)
 {
   return p->f * p->w * p->v[n];
 }
 
-MC_HOST_DEVICE_PREFIX Real
+inline Real
 spBorisGetE (struct boris_point_s const *p)
 {
   return 0.5 * p->f * p->w

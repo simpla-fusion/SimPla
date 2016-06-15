@@ -249,8 +249,7 @@ spUpdateField_Yee_kernel (spMesh *ctx, Real dt, const sp_field_type* fRho,
 void
 spInitializeParticle_BorisYee (spMesh *ctx, sp_particle_type *pg)
 {
-  spInitializeParticle_BorisYee_Kernel <<<ctx->numBlocks, ctx->threadsPerBlock>>> (
-	  ctx, pg);
+  spInitializeParticle_BorisYee_Kernel <<<ctx->numBlocks, ctx->threadsPerBlock>>> (  ctx, pg);
 }
 
 void
