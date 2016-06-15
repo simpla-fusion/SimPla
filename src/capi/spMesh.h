@@ -18,4 +18,8 @@ void spCreateMesh(spMesh **ctx);
 
 void spDestroyMesh(spMesh **ctx);
 
+int spWriteMesh(const spMesh *ctx, const char *name, int flag);
+
+int spReadMesh(spMesh *ctx, char const name[], int flag);
+
 #endif /* SPMESH_H_ */

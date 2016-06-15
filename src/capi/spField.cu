@@ -10,7 +10,7 @@
 #include "spField.h"
 
 void
-spCreateField (spMesh *ctx, sp_field_type **f, int iform)
+spCreateField(const spMesh *ctx, sp_field_type **f, int iform)
 {
   CUDA_CHECK_RETURN(cudaMalloc (f, sizeof(sp_field_type)));
   CUDA_CHECK_RETURN(
@@ -21,7 +21,7 @@ spCreateField (spMesh *ctx, sp_field_type **f, int iform)
 }
 
 void
-spDestroyField (spMesh *ctx, sp_field_type **f)
+spDestroyField(const spMesh *ctx, sp_field_type **f)
 {
   CUDA_CHECK_RETURN(cudaFree ((*f)->data));
   CUDA_CHECK_RETURN(cudaFree ((*f)));

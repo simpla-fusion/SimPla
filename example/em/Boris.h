@@ -59,7 +59,6 @@ spBorisPushOne (struct boris_point_s const *p, struct boris_point_s *p_next,
 inline Real
 spBorisGetRho (struct boris_point_s const *p)
 {
-
   return p->f * p->w;
 }
 

@@ -14,8 +14,15 @@ struct spField_s;
 
 typedef struct spField_s sp_field_type;
 
-void spCreateField(spMesh *ctx, sp_field_type **f, int iform);
+void spCreateField(const spMesh *ctx, sp_field_type **f, int iform);
 
-void spDestroyField(spMesh *ctx, sp_field_type**f);
+void spDestroyField(const spMesh *ctx, sp_field_type **f);
+
+int spWriteField(spMesh const *ctx, sp_field_type *f, char const name[], int flag);
+
+int spReadField(spMesh const *ctx, sp_field_type **f, char const name[], int flag);
+
+int spSyncField(spMesh const *ctx, sp_field_type **f, int flag);
+
 
 #endif /* SPFIELD_H_ */

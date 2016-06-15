@@ -18,7 +18,7 @@ typedef struct spPagePool_s
   size_type entity_size_in_byte;
   spPageGroup *m_page_group_head;
   spPage *m_free_page;
-  pthread_mutex_t m_pool_mutex_;
+//  pthread_mutex_t m_pool_mutex_;
 
 } spPagePool;
 #define DEFAULT_NUMBER_OF_PAGES_IN_GROUP 64

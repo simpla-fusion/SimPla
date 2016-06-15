@@ -45,9 +45,7 @@ struct spMesh_s
   size_type i_dims[3];
   size_type number_of_idx;
   size_type *cell_idx;
-
   dim3 numBlocks;
-
   dim3 threadsPerBlock;
 };
 
