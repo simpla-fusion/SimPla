@@ -4,12 +4,11 @@
  *  Created on: 2016年6月15日
  *      Author: salmon
  */
-
-#include "sp_def_cuda.h"
+#include "sp_cuda_common.h"
+#include "sp_def.h"
 #include "spMesh.h"
 #include "spParticle.h"
 #include "spBucketFunction.h"
-
 void spCreateParticle(spMesh *ctx, sp_particle_type **sp, size_type num_of_pic)
 {
 	CUDA_CHECK_RETURN(cudaMalloc(sp, sizeof(sp_particle_type)));

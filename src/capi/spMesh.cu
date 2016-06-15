@@ -6,14 +6,17 @@
  */
 
 #include "../sp_config.h"
-#include "sp_def_cuda.h"
+#include "sp_def.h"
+#include "sp_cuda_common.h"
 #include "spMesh.h"
-void spCreateMesh(spMesh **ctx)
+void
+spCreateMesh (spMesh **ctx)
 {
-	CUDA_CHECK_RETURN(cudaMalloc(ctx, sizeof(spMesh)));
+  CUDA_CHECK_RETURN(cudaMalloc (ctx, sizeof(spMesh)));
 }
-void spDestroyMesh(spMesh **ctx)
+void
+spDestroyMesh (spMesh **ctx)
 {
-	CUDA_CHECK_RETURN(cudaFree(*ctx));
-	*ctx = 0x0;
+  CUDA_CHECK_RETURN(cudaFree (*ctx));
+  *ctx = 0x0;
 }
