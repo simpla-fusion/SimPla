@@ -8,7 +8,7 @@
 #ifndef SPBUCKET_H_
 #define SPBUCKET_H_
 
-#include "../sp_config.h"
+#include "sp_config.h"
 
 // digits of bucket_page_status_flag_t
 #define SP_NUMBER_OF_ENTITIES_IN_PAGE 64

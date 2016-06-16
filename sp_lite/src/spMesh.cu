@@ -5,27 +5,19 @@
  *      Author: salmon
  */
 
-#include "../sp_config.h"
 #include "sp_def.h"
 #include "sp_cuda_common.h"
 #include "spMesh.h"
 
-struct spMesh_pimpl_s
+MC_HOST_DEVICE void spCreateMesh(spMesh **ctx)
 {
-	dim3 numBlocks;
-	dim3 threadsPerBlock;
-};
-
-void spCreateMesh(spMesh **ctx)
-{
-	CUDA_CHECK_RETURN(cudaMalloc(ctx, sizeof(spMesh)));
+	spCreateObject((spObject **) ctx, sizeof(spMesh));
 }
-void spDestroyMesh(spMesh **ctx)
+MC_HOST_DEVICE void spDestroyMesh(spMesh **ctx)
 {
-	CUDA_CHECK_RETURN(cudaFree(*ctx));
-	*ctx = 0x0;
+	spDestroyObject((spObject **) ctx);
 }
-void spInitializeMesh(spMesh *self)
+MC_HOST_DEVICE void spInitializeMesh(spMesh *self)
 {
 //	sp_malloc((void**) (&(self->pimpl_)), sizeof(struct spMesh_pimpl_s), true);
 

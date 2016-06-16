@@ -1,10 +1,8 @@
 //
 // Created by salmon on 16-6-14.
 //
-#include "../sp_config.h"
 #include "sp_def.h"
 #include "spBucketFunction.h"
-#include "sp_cuda_common.h"
 
 typedef struct spPageGroup_s
 {
@@ -25,13 +23,13 @@ typedef struct spPagePool_s
 } spPagePool;
 #define DEFAULT_NUMBER_OF_PAGES_IN_GROUP 64
 /*******************************************************************************************/
-
-MC_HOST_DEVICE size_type spPagePoolEntitySizeInByte(spPagePool const *pool)
+MC_HOST_DEVICE
+size_type spPagePoolEntitySizeInByte(spPagePool const *pool)
 {
 	return pool->entity_size_in_byte;
 }
 //
-//MC_HOST_DEVICE spPageGroup *
+// spPageGroup *
 //spPageGroupCreate(size_type entity_size_in_byte, size_type num_of_pages)
 //{
 //	spPageGroup *res = 0x0;
@@ -58,7 +56,7 @@ MC_HOST_DEVICE size_type spPagePoolEntitySizeInByte(spPagePool const *pool)
 ///**
 // * @return next page group
 // */
-//MC_HOST_DEVICE void spPageGroupDestroy(spPageGroup **pg)
+// void spPageGroupDestroy(spPageGroup **pg)
 //{
 //	if (pg != 0 && *pg != 0)
 //	{
@@ -76,7 +74,7 @@ MC_HOST_DEVICE size_type spPagePoolEntitySizeInByte(spPagePool const *pool)
 // *  @return first free page
 // *    pg = first page group
 // */
-//MC_HOST_DEVICE size_type spPageGroupSize(spPageGroup const *pg)
+// size_type spPageGroupSize(spPageGroup const *pg)
 //{
 //
 //	size_type count = 0;
@@ -87,15 +85,15 @@ MC_HOST_DEVICE size_type spPagePoolEntitySizeInByte(spPagePool const *pool)
 //	}
 //	return count;
 //}
-
-MC_HOST void spPagePoolCreate(spPagePool **res, size_type size_in_byte, size_type max_number_of_entity)
+MC_HOST_DEVICE
+void spPagePoolCreate(spPagePool **res, size_type size_in_byte, size_type max_number_of_entity)
 {
 	*res = 0x0;
 
 	size_type number_of_pages = max_number_of_entity / SP_NUMBER_OF_ENTITIES_IN_PAGE + 1;
-	CUDA_CHECK_RETURN(cudaMalloc(res, sizeof(spPagePool)));
-	CUDA_CHECK_RETURN(cudaMalloc(&((*res)->m_pages), sizeof(spPage) * number_of_pages));
-	CUDA_CHECK_RETURN(cudaMalloc(&((*res)->m_data ), size_in_byte * number_of_pages* SP_NUMBER_OF_ENTITIES_IN_PAGE));
+	*res = (spPagePool *) malloc(sizeof(spPagePool));
+	(*res)->m_pages = (spPage*) malloc(sizeof(spPage) * number_of_pages);
+	(*res)->m_data = (byte_type*) malloc(size_in_byte * number_of_pages * SP_NUMBER_OF_ENTITIES_IN_PAGE);
 
 	for (size_type s = 0; s < number_of_pages; ++s)
 	{
@@ -110,18 +108,20 @@ MC_HOST void spPagePoolCreate(spPagePool **res, size_type size_in_byte, size_typ
 	(*res)->m_pages[number_of_pages - 1].next = 0x0;
 
 }
-
-MC_HOST void spPagePoolDestroy(spPagePool **pool)
+MC_HOST_DEVICE
+void spPagePoolDestroy(spPagePool **pool)
 {
-
-	CUDA_CHECK_RETURN(cudaFree(((*pool)->m_pages)));
-	CUDA_CHECK_RETURN(cudaFree(((*pool)->m_data)));
-	CUDA_CHECK_RETURN(cudaFree(*pool));
-	(*pool) = 0x0;
+	if (*pool != 0x0)
+	{
+		free((*pool)->m_pages);
+		free((*pool)->m_data);
+		free(*pool);
+		(*pool) = 0x0;
+	}
 
 }
-
-MC_HOST_DEVICE void spPagePoolReleaseEnpty(spPagePool *pool)
+MC_HOST_DEVICE
+void spPagePoolReleaseEnpty(spPagePool *pool)
 {
 //	spPageGroup *head = pool->m_page_group_head;
 //	while (head != 0x0)
@@ -140,7 +140,6 @@ MC_HOST_DEVICE void spPagePoolReleaseEnpty(spPagePool *pool)
 /****************************************************************************
  *  Page create and modify
  */
-
 MC_HOST_DEVICE spPage *
 spPageCreate(size_type num, spPagePool *pool)
 {
@@ -157,8 +156,8 @@ spPageCreate(size_type num, spPagePool *pool)
 
 	return head;
 }
-
-MC_HOST_DEVICE size_t spPageDestroy(spPage **p, spPagePool *pool)
+MC_HOST_DEVICE
+size_t spPageDestroy(spPage **p, spPagePool *pool)
 {
 //	pthread_mutex_lock(&(pool->m_pool_mutex_));
 
@@ -330,7 +329,7 @@ MC_HOST_DEVICE size_type spEntityFill(spPage *p, size_type num, const byte_type 
 
 }
 
-MC_HOST_DEVICE spEntity *
+spEntity *
 spEntityInsert(spPage *pg)
 {
 	spPage *t = pg;
@@ -338,7 +337,7 @@ spEntityInsert(spPage *pg)
 	return spEntityInsertWithHint(&t, &flag);
 }
 
-MC_HOST_DEVICE spEntity *
+spEntity *
 spEntityInsertWithHint(spPage **pg, bucket_entity_flag_t *flag)
 {
 	byte_type *res = 0x0;

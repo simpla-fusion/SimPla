@@ -4,15 +4,16 @@
 
 #include "Boris.h"
 #include <stdio.h>
-#include "../../src/capi/sp_def.h"
-#include "../../src/capi/spField.h"
-#include "../../src/capi/spMesh.h"
-#include "../../src/capi/spParticle.h"
-#include "../../src/capi/spBucketFunction.h"
-#include "../../src/capi/spBucketFunction.cu"
-#include "../../src/capi/spMesh.cu"
-#include "../../src/capi/spField.cu"
-#include "../../src/capi/spParticle.cu"
+#include "../../src/sp_def.h"
+#include "../../src/spField.h"
+#include "../../src/spMesh.h"
+#include "../../src/spParticle.h"
+#include "../../src/spBucketFunction.h"
+
+#include "../../src/spBucketFunction.cu"
+#include "../../src/spMesh.cu"
+#include "../../src/spField.cu"
+#include "../../src/spParticle.cu"
 
 #define CACHE_EXTENT_X 4
 #define CACHE_EXTENT_Y 4
@@ -249,21 +250,20 @@ __global__ void spUpdateField_Yee_kernel(spMesh *ctx, Real dt, const sp_field_ty
 
 void spInitializeParticle_BorisYee(spMesh *ctx, sp_particle_type *pg, size_type NUM_OF_PIC)
 {
-//	spInitializeParticle_BorisYee_Kernel<<<ctx->pimpl_->numBlocks, ctx->pimpl_->threadsPerBlock>>>(ctx, pg, NUM_OF_PIC);
+//	spInitializeParticle_BorisYee_Kernel<<<ctx->numBlocks, ctx->threadsPerBlock>>>(ctx, pg, NUM_OF_PIC);
 }
 
 void spUpdateParticle_BorisYee(spMesh *ctx, sp_particle_type *pg, Real dt, const sp_field_type *fE,
 		const sp_field_type *fB, sp_field_type *fRho, sp_field_type *fJ)
 {
 
-	spUpdateParticle_BorisYee_Kernel<<<ctx->pimpl_->numBlocks, ctx->pimpl_->threadsPerBlock>>>(ctx, pg, dt, fE, fB,
-			fRho, fJ);
+	spUpdateParticle_BorisYee_Kernel<<<ctx->numBlocks, ctx->threadsPerBlock>>>(ctx, pg, dt, fE, fB, fRho, fJ);
 
 }
 
 void spUpdateField_Yee(spMesh *ctx, Real dt, const sp_field_type *fRho, const sp_field_type *fJ, sp_field_type *fE,
 		sp_field_type *fB)
 {
-	spUpdateField_Yee_kernel<<<ctx->pimpl_->numBlocks, ctx->pimpl_->threadsPerBlock>>>(ctx, dt, fRho, fJ, fE, fB);
+	spUpdateField_Yee_kernel<<<ctx->numBlocks, ctx->threadsPerBlock>>>(ctx, dt, fRho, fJ, fE, fB);
 }
 

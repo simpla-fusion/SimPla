@@ -29,10 +29,10 @@ struct point_head
 	byte_type data[];
 };
 
-MC_HOST void spCreateParticle(const spMesh *ctx, sp_particle_type **pg, size_type entity_size_in_byte, Real mass,
+MC_HOST_DEVICE void spCreateParticle(const spMesh *ctx, sp_particle_type **pg, size_type entity_size_in_byte, Real mass,
 		Real charge);
 
-MC_HOST void spDestroyParticle(const spMesh *ctx, sp_particle_type **pg);
+MC_HOST_DEVICE void spDestroyParticle(sp_particle_type **pg);
 
 MC_HOST int spWriteParticle(spMesh const *ctx, sp_particle_type const*f, char const name[], int flag);
 
@@ -40,6 +40,6 @@ MC_HOST int spReadParticle(spMesh const *ctx, sp_particle_type **f, char const n
 
 MC_HOST int spSyncParticle(spMesh const *ctx, sp_particle_type **f, int flag);
 
-MC_DEVICE bucket_type *spParticleCreateBucket(sp_particle_type const *p, size_type num);
+MC_HOST_DEVICE bucket_type *spParticleCreateBucket(sp_particle_type const *p, size_type num);
 
 #endif /* SPPARTICLE_H_ */

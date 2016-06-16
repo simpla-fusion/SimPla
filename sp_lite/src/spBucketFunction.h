@@ -10,11 +10,11 @@
 /***************************************************************************/
 /*  spPage Pool
  **/
-MC_HOST void spPagePoolCreate(spPagePool **res, size_type size_in_byte);
+MC_HOST_DEVICE void spPagePoolCreate(spPagePool **res, size_type size_in_byte, size_type max_number_of_entity);
 
-MC_HOST void spPagePoolDestroy(spPagePool **pool);
+MC_HOST_DEVICE void spPagePoolDestroy(spPagePool **pool);
 
-MC_HOST void spPagePoolReleaseEnpty(spPagePool *pool);
+MC_HOST_DEVICE void spPagePoolReleaseEnpty(spPagePool *pool);
 
 MC_HOST_DEVICE size_type spPagePoolEntitySizeInByte(spPagePool const *pool);
 

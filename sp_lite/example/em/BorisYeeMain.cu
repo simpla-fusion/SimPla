@@ -6,11 +6,10 @@
  */
 
 #include <stdio.h>
-#include "../../src/sp_config.h"
-#include "../../src/capi/sp_cuda_common.h"
-#include "../../src/capi/spMesh.h"
-#include "../../src/capi/spField.h"
-#include "../../src/capi/spParticle.h"
+#include "../../src/sp_def.h"
+#include "../../src/spMesh.h"
+#include "../../src/spField.h"
+#include "../../src/spParticle.h"
 #include "Boris.h"
 #include "BorisYee.h"
 
@@ -22,7 +21,7 @@ int main(int argc, char **argv)
 	CUDA_CHECK_RETURN(cudaThreadSynchronize()); // Wait for the GPU launched work to complete
 	CUDA_CHECK_RETURN(cudaGetLastError());
 #endif
-	MC_DEVICE spMesh *mesh;
+	spMesh *mesh;
 	spCreateMesh(&mesh);
 	mesh->dims[0] = 10;
 	mesh->dims[1] = 10;
@@ -31,18 +30,18 @@ int main(int argc, char **argv)
 	mesh->dx[1] = 10;
 	mesh->dx[2] = 10;
 
-	MC_DEVICE sp_particle_type *pg = 0x0;
-	MC_DEVICE sp_field_type *d_fE = 0x0;
-	MC_DEVICE sp_field_type *d_fB = 0x0;
-	MC_DEVICE sp_field_type *d_fRho = 0x0;
-	MC_DEVICE sp_field_type *d_fJ = 0x0;
+	sp_particle_type *pg = 0x0;
+	sp_field_type *d_fE = 0x0;
+	sp_field_type *d_fB = 0x0;
+	sp_field_type *d_fRho = 0x0;
+	sp_field_type *d_fJ = 0x0;
 
 	spInitializeMesh(mesh);
 
-	spCreateField(mesh, &d_fE, 1/*EDGE*/);
-	spCreateField(mesh, &d_fB, 2/*FACE*/);
-	spCreateField(mesh, &d_fJ, 1/*EDGE*/);
-	spCreateField(mesh, &d_fRho, 0/*VERTEX*/);
+	spCreateField(mesh, &d_fE, 1);
+	spCreateField(mesh, &d_fB, 1);
+	spCreateField(mesh, &d_fJ, 1);
+	spCreateField(mesh, &d_fRho, 1);
 
 	int NUMBER_OF_PIC = 256;
 	spCreateParticle(mesh, &pg, sizeof(struct boris_point_s), 1.0, 1.0);
@@ -53,9 +52,9 @@ int main(int argc, char **argv)
 
 	while (count > 0)
 	{
-		spUpdateParticle_BorisYee(mesh, pg, dt, d_fE, d_fB, d_fRho, d_fJ);
-
-		spUpdateField_Yee(mesh, dt, d_fRho, d_fJ, d_fE, d_fB);
+//		spUpdateParticle_BorisYee(mesh, pg, dt, d_fE, d_fB, d_fRho, d_fJ);
+//
+//		spUpdateField_Yee(mesh, dt, d_fRho, d_fJ, d_fE, d_fB);
 ////        spSyncParticle(mesh, pg, MPI_COMMON_GLOBAL);
 ////        spSyncField(mesh, d_fJ, MPI_COMMON_GLOBAL);
 ////        spSyncField(mesh, d_fRho, MPI_COMMON_GLOBAL);
@@ -83,6 +82,7 @@ int main(int argc, char **argv)
 	spDestroyParticle(&pg);
 
 	spDestroyMesh(&mesh);
+
 #if defined(__CUDA_ARCH__)
 	CUDA_CHECK_RETURN(cudaDeviceReset());
 #endif

@@ -1,15 +1,9 @@
 //
-// Created by salmon on 16-6-6.
+// Created by salmon on 16-6-14.
 //
-
 #include "../sp_config.h"
-
-#include "BucketContainer.h"
-
-#include <memory.h>
-#include <malloc.h>
-
-#include <pthread.h>
+#include "sp_def.h"
+#include "spBucketFunction.h"
 
 typedef struct spPageGroup_s
 {
@@ -22,182 +16,148 @@ typedef struct spPageGroup_s
 typedef struct spPagePool_s
 {
 	size_type entity_size_in_byte;
-	spPageGroup *m_page_group_head;
 	spPage *m_free_page;
-	pthread_mutex_t m_pool_mutex_;
+	spPage *m_pages;
+	byte_type *m_data;
+//  pthread_mutex_t m_pool_mutex_;
 
 } spPagePool;
 #define DEFAULT_NUMBER_OF_PAGES_IN_GROUP 64
 /*******************************************************************************************/
 
-size_type spPagePoolEntitySizeInByte(spPagePool const *pool)
+ size_type spPagePoolEntitySizeInByte(spPagePool const *pool)
 {
 	return pool->entity_size_in_byte;
 }
+//
+// spPageGroup *
+//spPageGroupCreate(size_type entity_size_in_byte, size_type num_of_pages)
+//{
+//	spPageGroup *res = 0x0;
+//
+//	res = (spPageGroup *) (malloc(sizeof(spPageGroup)));
+//	res->m_pages = (spPage*) malloc(sizeof(spPage) * num_of_pages);
+//	res->m_data = (byte_type*) malloc(entity_size_in_byte * SP_NUMBER_OF_ENTITIES_IN_PAGE * num_of_pages);
+//
+//	res->next = 0x0;
+//	res->number_of_pages = num_of_pages;
+//
+//	for (int i = 0; i < num_of_pages; ++i)
+//	{
+//		res->m_pages[i].next = &(res->m_pages[i + 1]);
+//		res->m_pages[i].flag = 0x0;
+//		res->m_pages[i].tag = 0x0;
+//		res->m_pages[i].entity_size_in_byte = entity_size_in_byte;
+//		res->m_pages[i].data = res->m_data + i * (entity_size_in_byte * SP_NUMBER_OF_ENTITIES_IN_PAGE);
+//	}
+//	res->m_pages[num_of_pages - 1].next = 0x0;
+//	return res;
+//}
+//
+///**
+// * @return next page group
+// */
+// void spPageGroupDestroy(spPageGroup **pg)
+//{
+//	if (pg != 0 && *pg != 0)
+//	{
+//		spPageGroup *t = (*pg);
+//		(*pg) = (*pg)->next;
+//
+//		free(t->m_data);
+//		free(t->m_pages);
+//		free(t);
+//
+//	}
+//}
+//
+///**
+// *  @return first free page
+// *    pg = first page group
+// */
+// size_type spPageGroupSize(spPageGroup const *pg)
+//{
+//
+//	size_type count = 0;
+//
+//	for (int i = 0; i < pg->number_of_pages; ++i)
+//	{
+//		count += spPageNumberOfEntities(&(pg->m_pages[i]));
+//	}
+//	return count;
+//}
 
-spPageGroup *spPageGroupCreate(size_type entity_size_in_byte,
-		size_type num_of_pages)
-{
-	spPageGroup *res = 0x0;
-
-//#ifdef __CUDACC__
-////	cudaMalloc(&res, sizeof(spPageGroup));
-////	cudaMalloc(&(res->m_pages), sizeof(spPage) * num_of_pages);
-////	cudaMalloc(&(res->m_data),
-////			entity_size_in_byte * SP_NUMBER_OF_ENTITIES_IN_PAGE * num_of_pages);
-//#else
-	res = (spPageGroup *) (malloc(sizeof(spPageGroup)));
-	res->m_pages = (spPage*) malloc(sizeof(spPage) * num_of_pages);
-	res->m_data = (byte_type*) malloc(
-			entity_size_in_byte * SP_NUMBER_OF_ENTITIES_IN_PAGE * num_of_pages);
-//#endif
-
-	res->next = 0x0;
-	res->number_of_pages = num_of_pages;
-
-	for (int i = 0; i < num_of_pages; ++i)
-	{
-		res->m_pages[i].next = &(res->m_pages[i + 1]);
-		res->m_pages[i].flag = 0x0;
-		res->m_pages[i].tag = 0x0;
-		res->m_pages[i].entity_size_in_byte = entity_size_in_byte;
-		res->m_pages[i].data = res->m_data
-				+ i * (entity_size_in_byte * SP_NUMBER_OF_ENTITIES_IN_PAGE);
-	}
-	res->m_pages[num_of_pages - 1].next = 0x0;
-	return res;
-}
-
-/**
- * @return next page group
- */
-
-void spPageGroupDestroy(spPageGroup **pg)
-{
-	if (pg != 0 && *pg != 0)
-	{
-		spPageGroup *t = (*pg);
-		(*pg) = (*pg)->next;
-
-//#ifdef __CUDACC__
-////		cudaFree(t->m_data);
-////		cudaFree(t->m_pages);
-////		cudaFree(t);
-//#else
-		free(t->m_data);
-		free(t->m_pages);
-		free(t);
-//#endif
-
-	}
-}
-
-/**
- *  @return first free page
- *    pg = first page group
- */
-
-size_type spPageGroupSize(spPageGroup const *pg)
-{
-
-	size_type count = 0;
-
-	for (int i = 0; i < pg->number_of_pages; ++i)
-	{
-		count += spPageNumberOfEntities(&(pg->m_pages[i]));
-	}
-	return count;
-}
-
-
-void spPagePoolCreate(spPagePool **res, size_type size_in_byte)
+ void spPagePoolCreate(spPagePool **res, size_type size_in_byte, size_type max_number_of_entity)
 {
 	*res = 0x0;
 
-//#ifdef __CUDACC__
-////	cudaMalloc(&res, sizeof(spPagePool));
-//#else
-	*res = (spPagePool *) (malloc(sizeof(spPagePool)));
-//#endif
-	(*res)->entity_size_in_byte = size_in_byte;
-	(*res)->m_page_group_head = 0x0;
-	(*res)->m_free_page = 0x0;
-#ifndef __CUDACC__
-	pthread_mutex_init(&(res->m_pool_mutex_), NULL);
-#endif
+	size_type number_of_pages = max_number_of_entity / SP_NUMBER_OF_ENTITIES_IN_PAGE + 1;
+	*res = (spPagePool *) malloc(sizeof(spPagePool));
+	(*res)->m_pages = (spPage*) malloc(sizeof(spPage) * number_of_pages);
+	(*res)->m_data = (byte_type*) malloc(size_in_byte * number_of_pages * SP_NUMBER_OF_ENTITIES_IN_PAGE);
+
+	for (size_type s = 0; s < number_of_pages; ++s)
+	{
+		(*res)->m_pages[s].flag = 0;
+		(*res)->m_pages[s].tag = 0;
+		(*res)->m_pages[s].entity_size_in_byte = size_in_byte;
+		(*res)->m_pages[s].data = (*res)->m_data + s * size_in_byte * SP_NUMBER_OF_ENTITIES_IN_PAGE;
+		(*res)->m_pages[s].next = &((*res)->m_pages[s + 1]);
+
+	}
+	(*res)->m_free_page = &((*res)->m_pages[0]);
+	(*res)->m_pages[number_of_pages - 1].next = 0x0;
 
 }
 
-void spPagePoolDestroy(spPagePool **pool)
+ void spPagePoolDestroy(spPagePool **pool)
 {
 
-	while ((*pool)->m_page_group_head != 0x0)
-	{
-		spPageGroup *pg = (*pool)->m_page_group_head;
-		(*pool)->m_page_group_head = (*pool)->m_page_group_head->next;
-		spPageGroupDestroy(&pg);
-	}
-//	pthread_mutex_destroy(&(*pool)->m_pool_mutex_);
+	free((*pool)->m_pages);
+	free((*pool)->m_data);
 	free(*pool);
 	(*pool) = 0x0;
 
 }
 
-void spPagePoolReleaseEnpty(spPagePool *pool)
+ void spPagePoolReleaseEnpty(spPagePool *pool)
 {
-	spPageGroup *head = pool->m_page_group_head;
-	while (head != 0x0)
-	{
-		if (spPageGroupSize(head) == 0)
-		{
-			spPageGroupDestroy(&head);
-		}
-		else
-		{
-			head = head->next;
-		}
-	}
+//	spPageGroup *head = pool->m_page_group_head;
+//	while (head != 0x0)
+//	{
+//		if (spPageGroupSize(head) == 0)
+//		{
+//			spPageGroupDestroy(&head);
+//		}
+//		else
+//		{
+//			head = head->next;
+//		}
+//	}
 }
 
 /****************************************************************************
  *  Page create and modify
  */
 
-spPage *spPageCreate(size_type num, spPagePool *pool)
+ spPage *
+spPageCreate(size_type num, spPagePool *pool)
 {
 //	pthread_mutex_lock(&(pool->m_pool_mutex_));
-	spPage *head = 0x0;
+	spPage *head = pool->m_free_page;
 	spPage **tail = &(pool->m_free_page);
-	while (num > 0)
+	while (num > 0 && (*tail) == 0x0)
 	{
-		if ((*tail) == 0x0)
-		{
-			spPageGroup *pg = spPageGroupCreate(pool->entity_size_in_byte,
-			DEFAULT_NUMBER_OF_PAGES_IN_GROUP);
-			pg->next = pool->m_page_group_head;
-			pool->m_page_group_head = pg;
-			(*tail) = &((pool->m_page_group_head->m_pages)[0]);
-		}
-		if (head == 0x0)
-		{
-			head = (*tail);
-		}
-
-		while (num > 0 && (*tail) != 0x0)
-		{
-			tail = &((*tail)->next);
-			--num;
-		}
-
+		tail = &((*tail)->next);
+		--num;
 	}
 	pool->m_free_page = (*tail)->next;
 	(*tail)->next = 0x0;
-//	pthread_mutex_unlock(&(pool->m_pool_mutex_));
+
 	return head;
 }
-;
 
-size_t spPageDestroy(spPage **p, spPagePool *pool)
+ size_t spPageDestroy(spPage **p, spPagePool *pool)
 {
 //	pthread_mutex_lock(&(pool->m_pool_mutex_));
 
@@ -210,7 +170,7 @@ size_t spPageDestroy(spPage **p, spPagePool *pool)
 	return res;
 }
 
-spPage *
+ spPage *
 spPagePushFront(spPage **p, spPage *f)
 {
 	if (f != 0x0)
@@ -223,7 +183,7 @@ spPagePushFront(spPage **p, spPage *f)
 
 }
 
-spPage *
+ spPage *
 spPagePopFront(spPage **p)
 {
 	spPage *res = 0x0;
@@ -236,20 +196,18 @@ spPagePopFront(spPage **p)
 	}
 	return res;
 }
-;
 
 /****************************************************************************
  * Element access
  */
 
-spPage **
+ spPage **
 spPageFront(spPage **p)
 {
 	return p;
 }
-;
 
-spPage **
+ spPage **
 spPageBack(spPage **p)
 {
 	while (p != 0x0 && *p != 0x0 && (*p)->next != 0x0)
@@ -262,7 +220,7 @@ spPageBack(spPage **p)
 /****************************************************************************
  * Capacity
  */
-size_type spPageSize(spPage const *p)
+ size_type spPageSize(spPage const *p)
 {
 	size_type res = 0;
 	while (p != 0x0)
@@ -273,7 +231,7 @@ size_type spPageSize(spPage const *p)
 	return res;
 }
 
-int spPageIsEmpty(spPage const *p)
+ int spPageIsEmpty(spPage const *p)
 {
 	int count = 0;
 	while (p != 0x0)
@@ -284,8 +242,8 @@ int spPageIsEmpty(spPage const *p)
 
 	return (count > 0) ? 0 : 1;
 }
-;
-int spPageIsFull(spPage const *p)
+
+ int spPageIsFull(spPage const *p)
 {
 	if (p == 0x0)
 	{
@@ -302,9 +260,8 @@ int spPageIsFull(spPage const *p)
 		return count;
 	}
 }
-;
 
-size_type bit_count64(uint64_t x)
+ size_type bit_count64(uint64_t x)
 {
 #define m1   0x5555555555555555
 #define m2   0x3333333333333333
@@ -323,7 +280,7 @@ size_type bit_count64(uint64_t x)
 
 }
 
-size_type spPageNumberOfEntities(spPage const *p)
+ size_type spPageNumberOfEntities(spPage const *p)
 {
 	size_type res = 0;
 	while (p != 0x0)
@@ -334,7 +291,7 @@ size_type spPageNumberOfEntities(spPage const *p)
 	return res;
 }
 
-size_type spPageCapacity(spPage const *p)
+ size_type spPageCapacity(spPage const *p)
 {
 	return spPageSize(p) * SP_NUMBER_OF_ENTITIES_IN_PAGE;
 }
@@ -343,7 +300,7 @@ size_type spPageCapacity(spPage const *p)
 /*  Entity
  **/
 
-void spEntityClear(spPage *p)
+ void spEntityClear(spPage *p)
 {
 	while (p != 0x0)
 	{
@@ -353,13 +310,11 @@ void spEntityClear(spPage *p)
 }
 ;
 
-size_type spEntityFill(spPage *p, size_type num, const byte_type *src)
+ size_type spEntityFill(spPage *p, size_type num, const byte_type *src)
 {
 	while (num > 0 && p != 0x0)
 	{
-		size_type n =
-				(num < SP_NUMBER_OF_ENTITIES_IN_PAGE) ?
-						num : SP_NUMBER_OF_ENTITIES_IN_PAGE;
+		size_type n = (num < SP_NUMBER_OF_ENTITIES_IN_PAGE) ? num : SP_NUMBER_OF_ENTITIES_IN_PAGE;
 
 		memcpy(p->data, src, p->entity_size_in_byte * n);
 
@@ -367,23 +322,23 @@ size_type spEntityFill(spPage *p, size_type num, const byte_type *src)
 
 		num -= n;
 
-		p->flag = (bucket_page_status_flag_t) (0 - 1);
+		p->flag = (bucket_entity_flag_t) (0 - 1);
 		p = p->next;
 	}
 	return num;
 
 }
 
-spEntity *
+ spEntity *
 spEntityInsert(spPage *pg)
 {
 	spPage *t = pg;
-	bucket_page_status_flag_t flag = 0x0;
+	bucket_entity_flag_t flag = 0x0;
 	return spEntityInsertWithHint(&t, &flag);
 }
 
-spEntity *
-spEntityInsertWithHint(spPage **pg, bucket_page_status_flag_t *flag)
+ spEntity *
+spEntityInsertWithHint(spPage **pg, bucket_entity_flag_t *flag)
 {
 	byte_type *res = 0x0;
 	if (*flag == 0x0)
@@ -415,8 +370,8 @@ spEntityInsertWithHint(spPage **pg, bucket_page_status_flag_t *flag)
 	RETURN: return (spEntity *) res;
 }
 
-spEntity *
-spEntityNext(spPage **pg, bucket_page_status_flag_t *flag)
+ spEntity *
+spEntityNext(spPage **pg, bucket_entity_flag_t *flag)
 {
 
 	byte_type *res = 0x0;
@@ -448,28 +403,27 @@ spEntityNext(spPage **pg, bucket_page_status_flag_t *flag)
 	RETURN: return (spEntity *) res;
 }
 
-void spEntityRemove(spPage *p, bucket_page_status_flag_t flag)
+ void spEntityRemove(spPage *p, bucket_entity_flag_t flag)
 {
 	p->flag &= (~flag);
 }
-;
 
 #ifndef DEFAULT_COPY
 #   define DEFAULT_COPY(_SRC_, _DEST_)  memcpy(_DEST_,_SRC_,entity_size_in_byte)
 #endif
 
-size_type spEntityCountIf(spPage *src, id_type tag)
+ size_type spEntityCountIf(spPage *src, id_type tag)
 {
 
 	size_type count = 0;
 
 	spPage *pg = src;
 
-	bucket_page_status_flag_t read_flag = 0x0;
+	bucket_entity_flag_t read_flag = 0x0;
 
 	for (spEntity *p; (p = spEntityNext(&pg, &read_flag)) != 0x0;)
 	{
-		if ((p->_tag & 0x3F) == tag)
+		if ((p->tag & 0x3F) == tag)
 		{
 			++count;
 		}
@@ -477,22 +431,22 @@ size_type spEntityCountIf(spPage *src, id_type tag)
 	return count;
 }
 
-void spEntityCopyIf(spPage *src, spPage **dest, id_type tag, spPagePool *pool)
+ void spEntityCopyIf(spPage *src, spPage **dest, id_type tag, spPagePool *pool)
 {
 
 	spPage *pg = src;
 
 	size_type entity_size_in_byte = spPagePoolEntitySizeInByte(pool);
 
-	bucket_page_status_flag_t read_flag = 0x0;
+	bucket_entity_flag_t read_flag = 0x0;
 
 	spPage *write_buffer = 0x0;
 
-	bucket_page_status_flag_t write_flag = 0x0;
+	bucket_entity_flag_t write_flag = 0x0;
 
 	for (spEntity *p0, *p1 = 0x0; (p0 = spEntityNext(&pg, &read_flag)) != 0x0;)
 	{
-		if ((p0->_tag & 0x3F) == tag)
+		if ((p0->tag & 0x3F) == tag)
 		{
 			if (write_flag == 0x0 || write_buffer == 0x0)
 			{
@@ -505,7 +459,7 @@ void spEntityCopyIf(spPage *src, spPage **dest, id_type tag, spPagePool *pool)
 			}
 
 			DEFAULT_COPY(p0, p1);
-			p1->_tag &= ~(0x3F); // clear tag
+			p1->tag &= ~(0x3F); // clear tag
 			write_buffer->flag |= write_flag;
 			write_flag <<= 1;
 			p1 = (spEntity *) (((byte_type *) p1) + entity_size_in_byte);
@@ -514,7 +468,7 @@ void spEntityCopyIf(spPage *src, spPage **dest, id_type tag, spPagePool *pool)
 	}
 }
 
-int spBucketEnternalSort(spPage **src, spPage **dest)
+ int spBucketEnternalSort(spPage **src, spPage **dest)
 {
 	return 0;
 }
