@@ -4,7 +4,7 @@
 #include "spParticle.h"
 
 int
-spWriteParticle(spMesh const *ctx, sp_particle_type const *f, char const name[], int flag)
+int spWriteParticle(spMesh const *ctx, sp_particle_type const*f, char const name[], int flag);
 {
 
 }

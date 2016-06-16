@@ -17,4 +17,21 @@
 		exit(1);															\
 	} }
 
+#define CUDA_CHECK(_CMD_)  											\
+		fprintf(stderr, "[line %d in file %s]\n %s = %d \n",					\
+				 __LINE__, __FILE__,__STRING(_CMD_),(_CMD_));		\
+
+inline int sp_is_device_ptr(void const *p)
+{
+	cudaPointerAttributes attribute;
+	CUDA_CHECK_RETURN(cudaPointerGetAttributes(&attribute, p));
+	return (attribute.device == cudaMemoryTypeDevice) ? 1 : 0;
+
+}
+
+inline void sp_memcpy(void *dest, const void *src, size_type s)
+{
+	CUDA_CHECK_RETURN(cudaMemcpy(dest, src, s, cudaMemcpyDefault));
+}
+
 #endif /* SP_CUDA_COMMON_H_ */

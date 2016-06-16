@@ -9,14 +9,29 @@
 #include "sp_def.h"
 #include "sp_cuda_common.h"
 #include "spMesh.h"
-void
-spCreateMesh (spMesh **ctx)
+
+struct spMesh_pimpl_s
 {
-  CUDA_CHECK_RETURN(cudaMalloc (ctx, sizeof(spMesh)));
-}
-void
-spDestroyMesh (spMesh **ctx)
+	dim3 numBlocks;
+	dim3 threadsPerBlock;
+};
+
+void spCreateMesh(spMesh **ctx)
 {
-  CUDA_CHECK_RETURN(cudaFree (*ctx));
-  *ctx = 0x0;
+	CUDA_CHECK_RETURN(cudaMalloc(ctx, sizeof(spMesh)));
 }
+void spDestroyMesh(spMesh **ctx)
+{
+	CUDA_CHECK_RETURN(cudaFree(*ctx));
+	*ctx = 0x0;
+}
+void spInitializeMesh(spMesh *self)
+{
+//	sp_malloc((void**) (&(self->pimpl_)), sizeof(struct spMesh_pimpl_s), true);
+
+}
+MC_HOST_DEVICE size_type spMeshGetNumberOfEntity(spMesh const *self, int iform)
+{
+	return self->dims[0] * self->dims[1] * self->dims[2] * ((iform == 0 || iform == 3) ? 1 : 3);
+}
+

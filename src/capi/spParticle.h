@@ -11,25 +11,35 @@
 #include "spMesh.h"
 #include "spBucket.h"
 
-struct spParticleSpecies_s;
+struct spParticleSpecies_s
+{
+	Real mass;
+	Real charge;
+	size_type entity_size_in_byte;
+	spPagePool * pool;
+	bucket_type ** buckets;
+
+};
 typedef struct spParticleSpecies_s sp_particle_type;
 
 #define POINT_HEAD  SP_BUCKET_ENTITY_HEAD  Real r[3];
 struct point_head
 {
-    POINT_HEAD
-    byte_type data[];
+	POINT_HEAD
+	byte_type data[];
 };
 
-void spCreateParticle(const spMesh *ctx, sp_particle_type **pg, size_type num_of_pic);
+MC_HOST void spCreateParticle(const spMesh *ctx, sp_particle_type **pg, size_type entity_size_in_byte, Real mass,
+		Real charge);
 
-void spDestroyParticle(const spMesh *ctx, sp_particle_type **pg);
+MC_HOST void spDestroyParticle(const spMesh *ctx, sp_particle_type **pg);
 
-int spWriteParticle(spMesh const *ctx, sp_particle_type *f, char const name[], int flag);
+MC_HOST int spWriteParticle(spMesh const *ctx, sp_particle_type const*f, char const name[], int flag);
 
-int spReadParticle(spMesh const *ctx, sp_particle_type **f, char const name[], int flag);
+MC_HOST int spReadParticle(spMesh const *ctx, sp_particle_type **f, char const name[], int flag);
 
-int spSyncParticle(spMesh const *ctx, sp_particle_type **f, int flag);
+MC_HOST int spSyncParticle(spMesh const *ctx, sp_particle_type **f, int flag);
 
+MC_DEVICE bucket_type *spParticleCreateBucket(sp_particle_type const *p, size_type num);
 
 #endif /* SPPARTICLE_H_ */

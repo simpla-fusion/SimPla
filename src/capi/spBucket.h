@@ -44,7 +44,7 @@ typedef uint64_t bucket_entity_flag_t;
  *               11             00              01
  * ---------+------------+-------@--------+-------------+---------------
  */
-#define SP_BUCKET_ENTITY_HEAD bucket_entity_flag_t _tag;
+#define SP_BUCKET_ENTITY_HEAD bucket_entity_flag_t  tag;
 
 typedef struct spEntity_s
 {
@@ -65,6 +65,6 @@ typedef struct spPage_s
 struct spPagePool_s;
 typedef struct spPagePool_s spPagePool;
 
-typedef spPage * bucket_type;
+typedef spPage bucket_type;
 
 #endif /* SPBUCKET_H_ */

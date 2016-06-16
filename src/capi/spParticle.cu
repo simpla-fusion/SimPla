@@ -9,32 +9,43 @@
 #include "spMesh.h"
 #include "spParticle.h"
 #include "spBucketFunction.h"
-void
-spCreateParticle(const spMesh *ctx, sp_particle_type **sp, size_type num_of_pic)
+MC_HOST void spCreateParticle(const spMesh *mesh, sp_particle_type **sp, size_type entity_size_in_byte, Real mass,
+		Real charge)
 {
-  CUDA_CHECK_RETURN(cudaMalloc (sp, sizeof(sp_particle_type)));
 
-  spPagePoolCreate (&((*sp)->pool), (*sp)->entity_size_in_byte);
+	sp_particle_type t_sp;
+	t_sp.entity_size_in_byte = entity_size_in_byte;
+	t_sp.mass = mass;
+	t_sp.charge = charge;
 
-  CUDA_CHECK_RETURN(
-	  cudaMalloc ((*sp)->buckets, ctx->number_of_cell * sizeof(bucket_type)));
+	CUDA_CHECK_RETURN(cudaMalloc(&t_sp.buckets, spMeshGetNumberOfEntity(mesh, 3/*volume*/) * sizeof(Real)));
 
-  for (size_type s = 0, se = ctx->number_of_cell; s < se; ++s)
-	{
-	  (*sp)->buckets[s] = 0x0;
-	}
+	CUDA_CHECK_RETURN(cudaMalloc(&t_sp.pool, sizeof(spPagePool)));
+
+	CUDA_CHECK_RETURN(cudaMalloc(sp, sizeof(sp_particle_type)));
+
+	CUDA_CHECK_RETURN(cudaMemcpy(*sp, &t_sp, sizeof(sp_particle_type), cudaMemcpyHostToDevice));
+
 }
 
-void
-spDestroyParticle(const spMesh *ctx, sp_particle_type **sp)
+__global__ void spParticleInitialize(const spMesh *ctx, sp_particle_type **sp, size_type entity_size_in_byte)
 {
-  spPagePoolDestroy (&((*sp)->pool));
 
-  for (size_type s = 0, se = ctx->number_of_cell; s < se; ++s)
-	{
-	  spPageDestroy (&((*sp)->buckets[s]), (*sp)->pool);
-	}
-  CUDA_CHECK_RETURN(cudaFree (((*sp)->buckets)));
-  CUDA_CHECK_RETURN(cudaFree (((*sp))));
-  *sp = 0x0;
 }
+void spDestroyParticle(const spMesh *ctx, sp_particle_type **sp)
+{
+	CUDA_CHECK(2);
+
+	spPagePoolDestroy(&((*sp)->pool));
+	CUDA_CHECK(2);
+	cudaFree((*sp)->buckets);
+	CUDA_CHECK(3);
+	cudaFree(*sp);
+
+}
+
+MC_HOST MC_DEVICE bucket_type * spParticleCreateBucket(sp_particle_type const *p, size_type num)
+{
+	return spPageCreate(num, p->pool);
+}
+

@@ -9,21 +9,31 @@
 #include "spMesh.h"
 #include "spField.h"
 
-void
-spCreateField(const spMesh *ctx, sp_field_type **f, int iform)
+void spCreateField(const spMesh *mesh, sp_field_type **f, int iform)
 {
-  CUDA_CHECK_RETURN(cudaMalloc (f, sizeof(sp_field_type)));
-  CUDA_CHECK_RETURN(
-	  cudaMalloc (
-		  &((*f)->data),
-		  ctx->number_of_cell * ((iform == 1 || iform == 2) ? 3 : 1)
-			  * sizeof(Real)));
+#if !defined(__CUDA_ARCH__)
+
+	CUDA_CHECK_RETURN(cudaMalloc(f, sizeof(sp_field_type)));
+	CUDA_CHECK(spMeshGetNumberOfEntity(mesh, iform));
+	Real * data=0x0;
+	CUDA_CHECK_RETURN(cudaMalloc(&data, spMeshGetNumberOfEntity(mesh, iform) * sizeof(Real)));
+	cudaMemcpy(&((**f).data),&data,sizeof(Real*),cudaMemcpyHostToDevice);
+#else
+	*f = (sp_field_type*) malloc(sizeof(sp_field_type));
+	(*f)->data = (Real*) malloc(sizeof(Real) * spMeshGetNumberOfEntity(mesh, iform));
+#endif
 }
 
-void
-spDestroyField(const spMesh *ctx, sp_field_type **f)
+void spDestroyField(const spMesh *ctx, sp_field_type **f)
 {
-  CUDA_CHECK_RETURN(cudaFree ((*f)->data));
-  CUDA_CHECK_RETURN(cudaFree ((*f)));
-  *f = 0x0;
+#if !defined(__CUDA_ARCH__)
+	Real * data=0x0;
+	cudaMemcpy(&data,&((**f).data),sizeof(Real*),cudaMemcpyDeviceToHost);
+	CUDA_CHECK_RETURN(cudaFree(data));
+	CUDA_CHECK_RETURN(cudaFree((*f)));
+	*f = 0x0;
+#else
+	free((*f)->data);
+	free(*f);
+#endif
 }
