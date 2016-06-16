@@ -17,8 +17,9 @@ typedef struct spPageGroup_s
 typedef struct spPagePool_s
 {
 	size_type entity_size_in_byte;
-	spPageGroup *m_page_group_head;
 	spPage *m_free_page;
+	spPage *m_pages;
+	byte_type *m_data;
 //  pthread_mutex_t m_pool_mutex_;
 
 } spPagePool;
@@ -29,103 +30,111 @@ MC_HOST_DEVICE size_type spPagePoolEntitySizeInByte(spPagePool const *pool)
 {
 	return pool->entity_size_in_byte;
 }
-
-MC_HOST_DEVICE spPageGroup *
-spPageGroupCreate(size_type entity_size_in_byte, size_type num_of_pages)
-{
-	spPageGroup *res = 0x0;
-
-	res = (spPageGroup *) (malloc(sizeof(spPageGroup)));
-	res->m_pages = (spPage*) malloc(sizeof(spPage) * num_of_pages);
-	res->m_data = (byte_type*) malloc(entity_size_in_byte * SP_NUMBER_OF_ENTITIES_IN_PAGE * num_of_pages);
-
-	res->next = 0x0;
-	res->number_of_pages = num_of_pages;
-
-	for (int i = 0; i < num_of_pages; ++i)
-	{
-		res->m_pages[i].next = &(res->m_pages[i + 1]);
-		res->m_pages[i].flag = 0x0;
-		res->m_pages[i].tag = 0x0;
-		res->m_pages[i].entity_size_in_byte = entity_size_in_byte;
-		res->m_pages[i].data = res->m_data + i * (entity_size_in_byte * SP_NUMBER_OF_ENTITIES_IN_PAGE);
-	}
-	res->m_pages[num_of_pages - 1].next = 0x0;
-	return res;
-}
-
-/**
- * @return next page group
- */
-MC_HOST_DEVICE void spPageGroupDestroy(spPageGroup **pg)
-{
-	if (pg != 0 && *pg != 0)
-	{
-		spPageGroup *t = (*pg);
-		(*pg) = (*pg)->next;
-
-		free(t->m_data);
-		free(t->m_pages);
-		free(t);
-
-	}
-}
-
-/**
- *  @return first free page
- *    pg = first page group
- */
-MC_HOST_DEVICE size_type spPageGroupSize(spPageGroup const *pg)
-{
-
-	size_type count = 0;
-
-	for (int i = 0; i < pg->number_of_pages; ++i)
-	{
-		count += spPageNumberOfEntities(&(pg->m_pages[i]));
-	}
-	return count;
-}
+//
+//MC_HOST_DEVICE spPageGroup *
+//spPageGroupCreate(size_type entity_size_in_byte, size_type num_of_pages)
+//{
+//	spPageGroup *res = 0x0;
+//
+//	res = (spPageGroup *) (malloc(sizeof(spPageGroup)));
+//	res->m_pages = (spPage*) malloc(sizeof(spPage) * num_of_pages);
+//	res->m_data = (byte_type*) malloc(entity_size_in_byte * SP_NUMBER_OF_ENTITIES_IN_PAGE * num_of_pages);
+//
+//	res->next = 0x0;
+//	res->number_of_pages = num_of_pages;
+//
+//	for (int i = 0; i < num_of_pages; ++i)
+//	{
+//		res->m_pages[i].next = &(res->m_pages[i + 1]);
+//		res->m_pages[i].flag = 0x0;
+//		res->m_pages[i].tag = 0x0;
+//		res->m_pages[i].entity_size_in_byte = entity_size_in_byte;
+//		res->m_pages[i].data = res->m_data + i * (entity_size_in_byte * SP_NUMBER_OF_ENTITIES_IN_PAGE);
+//	}
+//	res->m_pages[num_of_pages - 1].next = 0x0;
+//	return res;
+//}
+//
+///**
+// * @return next page group
+// */
+//MC_HOST_DEVICE void spPageGroupDestroy(spPageGroup **pg)
+//{
+//	if (pg != 0 && *pg != 0)
+//	{
+//		spPageGroup *t = (*pg);
+//		(*pg) = (*pg)->next;
+//
+//		free(t->m_data);
+//		free(t->m_pages);
+//		free(t);
+//
+//	}
+//}
+//
+///**
+// *  @return first free page
+// *    pg = first page group
+// */
+//MC_HOST_DEVICE size_type spPageGroupSize(spPageGroup const *pg)
+//{
+//
+//	size_type count = 0;
+//
+//	for (int i = 0; i < pg->number_of_pages; ++i)
+//	{
+//		count += spPageNumberOfEntities(&(pg->m_pages[i]));
+//	}
+//	return count;
+//}
 
 MC_HOST void spPagePoolCreate(spPagePool **res, size_type size_in_byte, size_type max_number_of_entity)
 {
 	*res = 0x0;
 
-	*res = (spPagePool *) (malloc(sizeof(spPagePool)));
-	(*res)->entity_size_in_byte = size_in_byte;
-	(*res)->m_page_group_head = 0x0;
-	(*res)->m_free_page = 0x0;
+	size_type number_of_pages = max_number_of_entity / SP_NUMBER_OF_ENTITIES_IN_PAGE + 1;
+	CUDA_CHECK_RETURN(cudaMalloc(res, sizeof(spPagePool)));
+	CUDA_CHECK_RETURN(cudaMalloc(&((*res)->m_pages), sizeof(spPage) * number_of_pages));
+	CUDA_CHECK_RETURN(cudaMalloc(&((*res)->m_data ), size_in_byte * number_of_pages* SP_NUMBER_OF_ENTITIES_IN_PAGE));
+
+	for (size_type s = 0; s < number_of_pages; ++s)
+	{
+		(*res)->m_pages[s].flag = 0;
+		(*res)->m_pages[s].tag = 0;
+		(*res)->m_pages[s].entity_size_in_byte = size_in_byte;
+		(*res)->m_pages[s].data = (*res)->m_data + s * size_in_byte * SP_NUMBER_OF_ENTITIES_IN_PAGE;
+		(*res)->m_pages[s].next = &((*res)->m_pages[s + 1]);
+
+	}
+	(*res)->m_free_page = &((*res)->m_pages[0]);
+	(*res)->m_pages[number_of_pages - 1].next = 0x0;
 
 }
 
 MC_HOST void spPagePoolDestroy(spPagePool **pool)
 {
 
-	while ((*pool)->m_page_group_head != 0x0)
-	{
-		spPageGroup *pg = (*pool)->m_page_group_head;
-		(*pool)->m_page_group_head = (*pool)->m_page_group_head->next;
-		spPageGroupDestroy(&pg);
-	}
-	cudaFree(*pool);
+	CUDA_CHECK_RETURN(cudaFree(((*pool)->m_pages)));
+	CUDA_CHECK_RETURN(cudaFree(((*pool)->m_data)));
+	CUDA_CHECK_RETURN(cudaFree(*pool));
 	(*pool) = 0x0;
 
 }
 
 MC_HOST_DEVICE void spPagePoolReleaseEnpty(spPagePool *pool)
 {
-	spPageGroup *head = pool->m_page_group_head;
-	while (head != 0x0)
-	{
-		if (spPageGroupSize(head) == 0)
-		{
-			spPageGroupDestroy(&head);
-		}
-		else
-		{
-			head = head->next;
-		}
-	}
+//	spPageGroup *head = pool->m_page_group_head;
+//	while (head != 0x0)
+//	{
+//		if (spPageGroupSize(head) == 0)
+//		{
+//			spPageGroupDestroy(&head);
+//		}
+//		else
+//		{
+//			head = head->next;
+//		}
+//	}
 }
 
 /****************************************************************************
@@ -136,33 +145,16 @@ MC_HOST_DEVICE spPage *
 spPageCreate(size_type num, spPagePool *pool)
 {
 //	pthread_mutex_lock(&(pool->m_pool_mutex_));
-	spPage *head = 0x0;
+	spPage *head = pool->m_free_page;
 	spPage **tail = &(pool->m_free_page);
-	while (num > 0)
+	while (num > 0 && (*tail) == 0x0)
 	{
-		if ((*tail) == 0x0)
-		{
-			spPageGroup *pg = spPageGroupCreate(pool->entity_size_in_byte,
-			DEFAULT_NUMBER_OF_PAGES_IN_GROUP);
-			pg->next = pool->m_page_group_head;
-			pool->m_page_group_head = pg;
-			(*tail) = &((pool->m_page_group_head->m_pages)[0]);
-		}
-		if (head == 0x0)
-		{
-			head = (*tail);
-		}
-
-		while (num > 0 && (*tail) != 0x0)
-		{
-			tail = &((*tail)->next);
-			--num;
-		}
-
+		tail = &((*tail)->next);
+		--num;
 	}
 	pool->m_free_page = (*tail)->next;
 	(*tail)->next = 0x0;
-//	pthread_mutex_unlock(&(pool->m_pool_mutex_));
+
 	return head;
 }
 
