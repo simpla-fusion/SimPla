@@ -51,16 +51,21 @@ MC_HOST extern inline void spDestroyObject(spObject ** obj)
 	}
 	*obj = 0x0;
 }
+
 MC_HOST extern inline void spObjectHostToDevice(spObject * obj)
 {
+
 	spObject * tmp = obj->device_self;
+
 	if (tmp == 0x0)
 	{
 		CUDA_CHECK_RETURN(cudaMalloc(&(tmp), obj->size_in_byte));
 	}
+
 	obj->device_self = 0x0;
 	CUDA_CHECK_RETURN(
 			cudaMemcpy(tmp, obj, obj->size_in_byte, cudaMemcpyDefault));
+
 	obj->device_self = tmp;
 }
 MC_HOST inline void spObjectDeviceToHost(spObject * obj)
@@ -74,5 +79,11 @@ MC_HOST inline void spObjectDeviceToHost(spObject * obj)
 						cudaMemcpyDefault));
 		obj->device_self = tmp;
 	}
+}
+MC_HOST extern inline spObject * spObject_device_(spObject * obj)
+{
+	spObjectHostToDevice(obj);
+
+	return obj->device_self;
 }
 #endif /* SPOBJECT_H_ */

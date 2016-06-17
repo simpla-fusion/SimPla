@@ -12,6 +12,7 @@
 
 struct spMesh_s
 {
+	SP_OBJECT_HEAD
 	Real dx[3];
 	Real inv_dx[3];
 

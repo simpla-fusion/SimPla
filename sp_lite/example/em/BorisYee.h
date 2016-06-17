@@ -9,12 +9,14 @@
 #include "../../src/spMesh.h"
 #include "../../src/spField.h"
 
-void spInitializeParticle_BorisYee(spMesh *ctx, sp_particle_type *pg, size_type NUM_OF_PIC);
+void spInitializeParticle_BorisYee(spMesh *ctx, sp_particle_type *pg,
+		size_type NUM_OF_PIC);
 
-void spUpdateParticle_BorisYee(spMesh *ctx, sp_particle_type *pg, Real dt, const sp_field_type * fE,
-		const sp_field_type * fB, sp_field_type * fRho, sp_field_type * fJ);
+void spUpdateParticle_BorisYee(spMesh *ctx, Real dt, sp_particle_type *pg,
+		const sp_field_type * fE, const sp_field_type * fB,
+		sp_field_type * fRho, sp_field_type * fJ);
 
-void spUpdateField_Yee(spMesh *ctx, Real dt, const sp_field_type * fRho, const sp_field_type * fJ, sp_field_type * fE,
-		sp_field_type * fB);
+void spUpdateField_Yee(spMesh *ctx, Real dt, const sp_field_type * fRho,
+		const sp_field_type * fJ, sp_field_type * fE, sp_field_type * fB);
 
 #endif //SIMPLA_BORISYEE_H

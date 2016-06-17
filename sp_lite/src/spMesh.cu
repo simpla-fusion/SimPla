@@ -10,7 +10,8 @@
 
 MC_HOST void spCreateMesh(spMesh **ctx)
 {
-	*ctx = (spMesh *) malloc(sizeof(spMesh));
+	spCreateObject((spObject**) ctx, sizeof(spMesh));
+//	*ctx = (spMesh *) malloc(sizeof(spMesh));
 
 }
 MC_HOST void spDestroyMesh(spMesh **ctx)

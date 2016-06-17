@@ -47,7 +47,7 @@ typedef uint64_t size_type;
 	} }
 
 #define CUDA_CHECK(_CMD_)  											\
-		fprintf(stderr, "[line %d in file %s]\n %s = %d \n",					\
+		fprintf(stderr, "[line %d in file %s]\n %s = %u \n",					\
 				 __LINE__, __FILE__,__STRING(_CMD_),(_CMD_));		\
 
 inline bool sp_is_device_ptr(void const *p)

@@ -12,6 +12,9 @@
 MC_HOST void spCreateParticle(const spMesh *mesh, sp_particle_type **sp,
 		size_type entity_size_in_byte, size_type PIC)
 {
+	spCreateObject((spObject **) sp, sizeof(sp_particle_type));
+	//	*sp = (sp_particle_type*) malloc(sizeof(sp_particle_type));
+
 	size_type max_number_of_cell = spMeshGetNumberOfEntity(mesh, 3/*volume*/);
 
 	size_type max_number_of_pages = max_number_of_cell
@@ -19,9 +22,6 @@ MC_HOST void spCreateParticle(const spMesh *mesh, sp_particle_type **sp,
 
 	size_type max_number_of_particle = max_number_of_pages
 			* SP_NUMBER_OF_ENTITIES_IN_PAGE;
-
-	spCreateObject((spObject **) sp, sizeof(sp_particle_type));
-//	*sp = (sp_particle_type*) malloc(sizeof(sp_particle_type));
 
 	(*sp)->entity_size_in_byte = entity_size_in_byte;
 
