@@ -10,10 +10,9 @@
 
 #include "sp_def.h"
 
-struct spMesh_pimpl_s;
 struct spMesh_s
 {
-	SP_OBJECT_HEAD
+	struct spMesh_s *self;
 
 	Real dx[3];
 	Real inv_dx[3];
@@ -27,22 +26,20 @@ struct spMesh_s
 
 	dim3 numBlocks;
 	dim3 threadsPerBlock;
-
-	spMesh_s *d_self;
 };
 
 typedef struct spMesh_s spMesh;
 
-MC_HOST_DEVICE void spCreateMesh(spMesh **ctx);
+MC_HOST void spCreateMesh(spMesh **ctx);
 
-MC_HOST_DEVICE void spDestroyMesh(spMesh **ctx);
+MC_HOST void spDestroyMesh(spMesh **ctx);
 
-MC_HOST_DEVICE void spInitializeMesh(spMesh *self);
+MC_HOST void spInitializeMesh(spMesh *self);
+
+MC_HOST int spWriteMesh(const spMesh *ctx, const char *name, int flag);
+
+MC_HOST int spReadMesh(spMesh *ctx, char const name[], int flag);
 
 MC_HOST_DEVICE size_type spMeshGetNumberOfEntity(spMesh const *, int iform);
-
-MC_HOST_DEVICE int spWriteMesh(const spMesh *ctx, const char *name, int flag);
-
-MC_HOST_DEVICE int spReadMesh(spMesh *ctx, char const name[], int flag);
 
 #endif /* SPMESH_H_ */

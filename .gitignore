@@ -38,3 +38,5 @@ third_part
 
 # misc
 .tags
+.cproject
+.project

@@ -22,8 +22,7 @@ ADD_SUBDIRECTORY(field)
 
 ADD_SUBDIRECTORY(particle)
 
-ADD_SUBDIRECTORY(capi)
-
+ 
 add_library(simpla_lib dummy.cpp)
 TARGET_LINK_LIBRARIES(simpla_lib
         ${MPI_C_LIBRARIES} ${HDF5_C_LIBRARIES} ${HDF5_HL_LIBRARIES} ${TBB_LIBRARIES} ${LUA_LIBRARIES}

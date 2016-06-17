@@ -8,6 +8,7 @@
 #ifndef SPFIELD_H_
 #define SPFIELD_H_
 #include "sp_def.h"
+#include "spObject.h"
 #include "spMesh.h"
 
 typedef struct spField_s
@@ -16,11 +17,12 @@ typedef struct spField_s
 	int iform;
 	size_type number_of_entities;
 	Real * data;
+
 } sp_field_type;
 
-MC_HOST_DEVICE void spCreateField(const spMesh *ctx, sp_field_type **f, int iform);
+MC_HOST void spCreateField(const spMesh *ctx, sp_field_type **f, int iform);
 
-MC_HOST_DEVICE void spDestroyField(sp_field_type **f);
+MC_HOST void spDestroyField(sp_field_type **f);
 
 MC_HOST int spWriteField(spMesh const *ctx, sp_field_type *f, char const name[], int flag);
 

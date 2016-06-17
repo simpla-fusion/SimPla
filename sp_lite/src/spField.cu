@@ -7,25 +7,26 @@
 #include "sp_def.h"
 #include "spMesh.h"
 #include "spField.h"
+#include "spObject.h"
 
-void spCreateField(const spMesh *mesh, sp_field_type **f, int iform)
+MC_HOST void spCreateField(const spMesh *mesh, sp_field_type **f, int iform)
 {
 	spCreateObject((spObject **) f, sizeof(sp_field_type));
+
 	(*f)->number_of_entities = spMeshGetNumberOfEntity(mesh, iform);
-	(*f)->data = (Real*) malloc(sizeof(Real) * spMeshGetNumberOfEntity(mesh, iform));
+
+	CUDA_CHECK_RETURN(cudaMalloc(&((*f)->data), (*f)->number_of_entities * sizeof(Real)));
+
+	spObjectHostToDevice((spObject*) *f);
 
 }
 
-void spDestroyField(sp_field_type **f)
+MC_HOST void spDestroyField(sp_field_type **f)
 {
-
 	if (*f != 0x0)
 	{
-		spDestroyObject((spObject**) &f);
-
-		free((**f).data);
-		free((*f));
-		*f = 0x0;
+		spFree((void **) &((**f).data));
+		spDestroyObject((spObject**) f);
 	}
-	spDestroyObject((spObject**) &f);
+	*f = 0x0;
 }

@@ -7,7 +7,7 @@
 
 #ifndef BORIS_H_
 #define BORIS_H_
-#include "../../src/sp_config.h"
+#include "../../src/sp_def.h"
 #include "../../src/spParticle.h" //for POINT_HEAD
 #include "../../src/spMesh.h" //for POINT_HEAD
 

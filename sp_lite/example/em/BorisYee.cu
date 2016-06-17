@@ -8,9 +8,8 @@
 #include "../../src/spField.h"
 #include "../../src/spMesh.h"
 #include "../../src/spParticle.h"
-#include "../../src/spBucketFunction.h"
+#include "../../src/spPage.h"
 
-#include "../../src/spBucketFunction.cu"
 #include "../../src/spMesh.cu"
 #include "../../src/spField.cu"
 #include "../../src/spParticle.cu"
@@ -162,8 +161,6 @@ void cache_scatter(Real f[], Real v, Real const *r0, Real const *r1);
 MC_HOST_DEVICE
 void cache_gather(Real *v, Real const f[], Real const *r0, const Real *r1);
 
-MC_HOST_DEVICE spPage *spPageCreate(size_type num, spPagePool *pool);
-
 __global__ void spInitializeParticle_BorisYee_Kernel(spMesh *ctx, sp_particle_type *p, size_type NUM_OF_PIC)
 {
 
@@ -171,7 +168,6 @@ __global__ void spInitializeParticle_BorisYee_Kernel(spMesh *ctx, sp_particle_ty
 
 	if (threadIdx.x == 0)
 	{
-		spPagePushFront(&(p->buckets[pos]), spPageCreate(1, p->pool));
 	}
 	__syncthreads();
 	{
@@ -194,7 +190,7 @@ __global__ void spUpdateParticle_BorisYee_Kernel(spMesh *m, sp_particle_type *sp
 	id_type cell_idx = m->cell_idx[pos];
 	size_type sub_idx = threadIdx.x;
 
-	bucket_type * write_cache = spParticleCreateBucket(sp, 2);
+	spPage * write_cache = spParticleCreateBucket(sp, 2);
 
 	// read tE,tB from E,B
 	// clear tJ
@@ -209,7 +205,7 @@ __global__ void spUpdateParticle_BorisYee_Kernel(spMesh *m, sp_particle_type *sp
 	for (int n = 0; n < CACHE_SIZE; ++n)
 	{
 		id_type tag = cache_cell_offset_tag[n];
-		bucket_type *pg = sp->buckets[cell_idx + cache_cell_offset[n]];
+		spPage *pg = sp->buckets[cell_idx + cache_cell_offset[n]];
 		while (pg != 0x0)
 		{
 			boris_point_s *p0 = (boris_point_s *) (pg->data + sub_idx * entity_size_in_byte);
@@ -217,7 +213,7 @@ __global__ void spUpdateParticle_BorisYee_Kernel(spMesh *m, sp_particle_type *sp
 			if ((pg->tag & (0x1 << sub_idx) != 0) && (p0->tag & 0x3F) == tag)
 			{
 
-				spBorisPushOne(p0, (boris_point_s *) spEntityInsert(write_cache),		//
+				spBorisPushOne(p0, (boris_point_s *) spEntityInsert(write_cache, entity_size_in_byte),		//
 				dt, charge, mass, tE, tB, tJ, m->inv_dx);
 
 			}
@@ -250,14 +246,16 @@ __global__ void spUpdateField_Yee_kernel(spMesh *ctx, Real dt, const sp_field_ty
 
 void spInitializeParticle_BorisYee(spMesh *ctx, sp_particle_type *pg, size_type NUM_OF_PIC)
 {
-//	spInitializeParticle_BorisYee_Kernel<<<ctx->numBlocks, ctx->threadsPerBlock>>>(ctx, pg, NUM_OF_PIC);
+	spInitializeParticle_BorisYee_Kernel<<<ctx->numBlocks, ctx->threadsPerBlock>>>(ctx, pg, NUM_OF_PIC);
 }
 
 void spUpdateParticle_BorisYee(spMesh *ctx, sp_particle_type *pg, Real dt, const sp_field_type *fE,
 		const sp_field_type *fB, sp_field_type *fRho, sp_field_type *fJ)
 {
 
-	spUpdateParticle_BorisYee_Kernel<<<ctx->numBlocks, ctx->threadsPerBlock>>>(ctx, pg, dt, fE, fB, fRho, fJ);
+	spUpdateParticle_BorisYee_Kernel<<<ctx->numBlocks, ctx->threadsPerBlock>>>(ctx, (sp_particle_type *) pg->self, dt,
+			(const sp_field_type *) fE->self, (const sp_field_type *) fB->self, (sp_field_type *) fRho->self,
+			(sp_field_type *) fJ->self);
 
 }
 

@@ -1,9 +1,7 @@
-ADD_LIBRARY(sp_capi  spMesh.c spField.c spParticle.c spBucketFunction.c   )
 
+FILE(GLOB_RECURSE SP_API_CUDA_SRC ./*.cu )
 
-IF (CUDA_FOUND)
-	SET(SP_CAPI_CUDA_SRC spBucketFunction.cu  spMesh.cu spField.cu spParticle.cu  )
-	CUDA_ADD_LIBRARY(sp_capi_cuda ${SP_CAPI_CUDA_SRC} )
-    TARGET_LINK_LIBRARIES(sp_capi_cuda sp_capi -lcuda  ${CUDA_LIBRARIES})
-ENDIF (CUDA_FOUND)
+CUDA_ADD_LIBRARY(sp_api_cuda ${SP_API_CUDA_SRC} )
 
+TARGET_LINK_LIBRARIES(sp_api_cuda  -lcuda  ${CUDA_LIBRARIES})
+ 
