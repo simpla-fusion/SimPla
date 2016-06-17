@@ -50,11 +50,11 @@ typedef uint64_t size_type;
 		fprintf(stderr, "[line %d in file %s]\n %s = %d \n",					\
 				 __LINE__, __FILE__,__STRING(_CMD_),(_CMD_));		\
 
-inline int sp_is_device_ptr(void const *p)
+inline bool sp_is_device_ptr(void const *p)
 {
 	cudaPointerAttributes attribute;
 	CUDA_CHECK_RETURN(cudaPointerGetAttributes(&attribute, p));
-	return (attribute.device == cudaMemoryTypeDevice) ? 1 : 0;
+	return (attribute.device == cudaMemoryTypeDevice);
 
 }
 

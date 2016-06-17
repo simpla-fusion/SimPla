@@ -7,13 +7,11 @@
 
 #ifndef SPMESH_H_
 #define SPMESH_H_
-
 #include "sp_def.h"
+#include "spObject.h"
 
 struct spMesh_s
 {
-	struct spMesh_s *self;
-
 	Real dx[3];
 	Real inv_dx[3];
 
