@@ -45,15 +45,15 @@ int main(int argc, char **argv)
 
 	int NUMBER_OF_PIC = 256;
 
-	spCreateParticle(mesh, &pg, sizeof(struct boris_point_s), NUMBER_OF_PIC);
-
-	spInitializeParticle_BorisYee(mesh, pg, NUMBER_OF_PIC);
+//	spCreateParticle(mesh, &pg, sizeof(struct boris_point_s), NUMBER_OF_PIC);
+//
+//	spInitializeParticle_BorisYee(mesh, pg, NUMBER_OF_PIC);
 
 	int count = 10;
 
 	while (count > 0)
 	{
-		spUpdateParticle_BorisYee(mesh, pg, dt, d_fE, d_fB, d_fRho, d_fJ);
+//		spUpdateParticle_BorisYee(mesh, pg, dt, d_fE, d_fB, d_fRho, d_fJ);
 //
 //		spUpdateField_Yee(mesh, dt, d_fRho, d_fJ, d_fE, d_fB);
 ////        spSyncParticle(mesh, pg, MPI_COMMON_GLOBAL);

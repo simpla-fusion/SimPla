@@ -14,7 +14,7 @@
 
 struct spParticleSpecies_s
 {
-	struct spParticleSpecies_s *self;
+	SP_OBJECT_HEAD
 	Real mass;
 	Real charge;
 	size_type entity_size_in_byte;

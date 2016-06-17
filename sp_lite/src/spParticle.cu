@@ -5,6 +5,7 @@
  *      Author: salmon
  */
 #include "sp_def.h"
+#include "spObject.h"
 #include "spMesh.h"
 #include "spParticle.h"
 #include "spPage.h"
@@ -16,7 +17,7 @@ MC_HOST void spCreateParticle(const spMesh *mesh, sp_particle_type **sp, size_ty
 
 	size_type max_number_of_particle = max_number_of_pages * SP_NUMBER_OF_ENTITIES_IN_PAGE;
 
-	*sp = (sp_particle_type *) malloc(sizeof(sp_particle_type));
+	spCreateObject((spObject**) sp, sizeof(sp_particle_type));
 
 	(*sp)->entity_size_in_byte = entity_size_in_byte;
 
@@ -71,5 +72,6 @@ void spParticleInitialize(const spMesh *mesh, sp_particle_type *sp, size_type PI
 {
 	spObjectHostToDevice((spObject*) sp);
 
-	spInitializeParticle_Kernel<<<mesh->numBlocks, mesh->threadsPerBlock>>>(mesh->self, sp->self, PIC);
+	spInitializeParticle_Kernel<<<mesh->numBlocks, mesh->threadsPerBlock>>>((const spMesh *) mesh->self,
+			(sp_particle_type *) sp->self, PIC);
 }
