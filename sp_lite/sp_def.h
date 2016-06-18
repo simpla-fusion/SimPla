@@ -62,6 +62,7 @@ enum
 #define CUDA_CHECK(_CMD_)
 #endif
 #define DONE	 	fprintf(stderr, "====== DONE ======\n" );
+#define CHECK	 	fprintf(stderr, "[ line %d in file%s]====== CHECK ======\n", __LINE__, __FILE__ );
 
 inline bool sp_is_device_ptr(void const *p)
 {

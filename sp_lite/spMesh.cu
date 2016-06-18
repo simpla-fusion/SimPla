@@ -30,6 +30,16 @@ MC_HOST void spInitializeMesh(spMesh *self)
 	self->dims[3] = 3;
 	self->offset[3] = 0;
 	self->count[3] = 3;
+
+	self->threadsPerBlock.x = 4;
+	self->threadsPerBlock.y = 4;
+	self->threadsPerBlock.z = 4;
+
+	self->number_of_shared_blocks = 0;
+	self->private_block.x = self->dims[0];
+	self->private_block.y = self->dims[1];
+	self->private_block.z = self->dims[2];
+
 }
 
 MC_HOST_DEVICE size_type spMeshGetNumberOfEntity(spMesh const *self, int iform)

@@ -33,15 +33,18 @@ MC_HOST void spDestroyField(sp_field_type **f)
 MC_HOST int spWriteField(spMesh const *mesh, sp_field_type const *f, char const url[], int flag)
 {
 	size_type num_of_entity = spMeshGetNumberOfEntity(mesh, f->iform);
-
+	CUDA_CHECK(num_of_entity);
 	Real * tmp = (Real*) malloc(num_of_entity * sizeof(Real));
 
 	CUDA_CHECK_RETURN(cudaMemcpy(tmp, (void* )(f->data), num_of_entity * sizeof(Real), cudaMemcpyDeviceToHost));
+	for (size_type s = 0; s < num_of_entity; ++s)
+	{
+		printf(" %f ", (tmp[s]));
 
-	int ndims = (f->iform == 1 || f->iform == 2) ? 3 : 4;
+	}
+	int ndims = (f->iform == 1 || f->iform == 2) ? 4 : 3;
 
-	hdf5_write_field(url, (void*) tmp, (f->iform == 1 || f->iform == 2) ? mesh->ndims : mesh->ndims + 1, mesh->dims,
-			mesh->offset, mesh->count, flag);
+	hdf5_write_field(url, (void*) tmp, ndims, mesh->dims, mesh->offset, mesh->count, flag);
 	free(tmp);
 	return 0;
 }

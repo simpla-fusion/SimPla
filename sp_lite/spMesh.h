@@ -28,7 +28,11 @@ struct spMesh_s
 	size_type number_of_idx;
 	size_type *cell_idx;
 
-	dim3 numBlocks;
+//	spDistributedObject dist_obj;
+
+	size_type number_of_shared_blocks;
+	dim3 *shared_blocks;
+	dim3 private_block;
 	dim3 threadsPerBlock;
 };
 

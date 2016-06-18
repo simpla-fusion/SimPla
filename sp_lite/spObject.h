@@ -33,8 +33,7 @@ MC_HOST extern inline void spFree(void **p)
 	*p = 0x0;
 }
 
-MC_HOST extern inline void spCreateObject(spObject ** obj,
-		size_type size_in_byte)
+MC_HOST extern inline void spCreateObject(spObject ** obj, size_type size_in_byte)
 {
 	*obj = (spObject *) malloc(size_in_byte);
 	(*obj)->size_in_byte = size_in_byte;
@@ -56,17 +55,14 @@ MC_HOST extern inline void spObjectHostToDevice(spObject * obj)
 {
 
 	spObject * tmp = obj->device_self;
-
 	if (tmp == 0x0)
 	{
 		CUDA_CHECK_RETURN(cudaMalloc(&(tmp), obj->size_in_byte));
+		obj->device_self = 0x0;
+		CUDA_CHECK_RETURN(cudaMemcpy(tmp, obj, obj->size_in_byte, cudaMemcpyHostToDevice));
+		obj->device_self = tmp;
 	}
 
-	obj->device_self = 0x0;
-	CUDA_CHECK_RETURN(
-			cudaMemcpy(tmp, obj, obj->size_in_byte, cudaMemcpyDefault));
-
-	obj->device_self = tmp;
 }
 MC_HOST inline void spObjectDeviceToHost(spObject * obj)
 {
@@ -74,9 +70,7 @@ MC_HOST inline void spObjectDeviceToHost(spObject * obj)
 	{
 		spObject * tmp = obj->device_self;
 
-		CUDA_CHECK_RETURN(
-				cudaMemcpy(obj, obj->device_self, obj->size_in_byte,
-						cudaMemcpyDefault));
+		CUDA_CHECK_RETURN(cudaMemcpy(obj, obj->device_self, obj->size_in_byte, cudaMemcpyDefault));
 		obj->device_self = tmp;
 	}
 }
