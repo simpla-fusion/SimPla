@@ -14,10 +14,6 @@
 #include "../../sp_lite/spField.cu"
 #include "../../sp_lite/spParticle.cu"
 
-#define CACHE_EXTENT_X 4
-#define CACHE_EXTENT_Y 4
-#define CACHE_EXTENT_Z 4
-#define CACHE_SIZE (CACHE_EXTENT_X*CACHE_EXTENT_Y*CACHE_EXTENT_Z)
 
 #define IX  1
 #define IY  CACHE_EXTENT_X
@@ -162,8 +158,8 @@ __global__ void spInitializeParticle_BorisYee_Kernel(spMesh *ctx, sp_particle_ty
 }
 /******************************************************************************************/
 
-__global__ void spUpdateParticle_BorisYee_Kernel(spMesh *m, Real dt, sp_particle_type *sp, const sp_field_type *fE,
-		const sp_field_type *fB, sp_field_type *fRho, sp_field_type *fJ)
+__global__ void spUpdateParticle_BorisYee_Kernel(spMesh *m, Real dt, sp_particle_type *sp, const Real *fE,
+		const Real *fB, Real *fRho, Real *fJ)
 {
 	size_type entity_size_in_byte = sp->entity_size_in_byte;
 	Real mass = sp->mass;
@@ -288,13 +284,18 @@ void spUpdateParticle_BorisYee(spMesh *ctx, Real dt, sp_particle_type *pg, const
 //		sp_field_type *fE, sp_field_type *fB)
 __global__ void spUpdateField_Yee_kernel(spMesh *ctx, Real dt, const Real *fRho, const Real *fJ, Real *fE, Real *fB)
 {
-	int n = (blockIdx.x * blockDim.x + threadIdx.x)
-			+ ((blockIdx.y * blockDim.y + threadIdx.y)
-					+ (blockIdx.z * blockDim.z + threadIdx.z) * gridDim.y * blockDim.y) * gridDim.x * blockDim.x;
+	index_type ix = (blockIdx.x * blockDim.x + threadIdx.x);
+	index_type iy = (blockIdx.y * blockDim.y + threadIdx.y);
+	index_type iz = (blockIdx.z * blockDim.z + threadIdx.z);
+	size_type dim_x = gridDim.x * blockDim.x;
+	size_type dim_y = gridDim.y * blockDim.y;
+	size_type dim_z = gridDim.z * blockDim.z;
 
-	(fE)[n * 3 + 0] = (blockIdx.x * blockDim.x + threadIdx.x);
-	(fE)[n * 3 + 1] = (blockIdx.y * blockDim.y + threadIdx.y);
-	(fE)[n * 3 + 2] = (blockIdx.z * blockDim.z + threadIdx.z);
+	int n = ix + (iy + iz * dim_y) * dim_z;
+
+	(fE)[n * 3 + 0] = ix;
+	(fE)[n * 3 + 1] = iy;
+	(fE)[n * 3 + 2] = iz;
 
 }
 void spUpdateField_Yee(spMesh *ctx, Real dt, const sp_field_type *fRho, const sp_field_type *fJ, sp_field_type *fE,
@@ -328,7 +329,7 @@ void spUpdateField_Yee(spMesh *ctx, Real dt, const sp_field_type *fRho, const sp
 	grid_dim.y = ctx->private_block.y / ctx->threadsPerBlock.y;
 	grid_dim.z = ctx->private_block.z / ctx->threadsPerBlock.z;
 	spUpdateField_Yee_kernel<<<grid_dim, ctx->threadsPerBlock>>>((spMesh *) spObject_device_((spObject*) ctx), dt, //
-			((Real*) fRho->data), ((Real*) fJ->data), ((Real*) fE->data), ((Real*) fB->data));
+			((Real*) fRho->device_data), ((Real*) fJ->device_data), ((Real*) fE->device_data), ((Real*) fB->device_data));
 //	for (int i = 0, ie = ctx->number_of_shared_blocks; i < ie; ++i)
 //	{
 //		cudaStreamSynchronize(s_shared[i]); //wait for boundary

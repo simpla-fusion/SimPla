@@ -15,14 +15,15 @@ typedef struct spField_s
 {
 	SP_OBJECT_HEAD
 	int iform;
-	size_type number_of_entities;
-	Real * data;
-	Real * shared_buffer[];
+	Real * device_data;
+	Real * host_data;
 } sp_field_type;
 
 MC_HOST void spCreateField(const spMesh *ctx, sp_field_type **f, int iform);
 
 MC_HOST void spDestroyField(sp_field_type **f);
+
+MC_HOST void spClearField(spMesh const *mesh, sp_field_type *f);
 
 MC_HOST int spWriteField(spMesh const *ctx, sp_field_type const *f, char const name[], int flag);
 

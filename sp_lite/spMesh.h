@@ -9,6 +9,10 @@
 #define SPMESH_H_
 #include "sp_def.h"
 #include "spObject.h"
+#define CACHE_EXTENT_X 4
+#define CACHE_EXTENT_Y 4
+#define CACHE_EXTENT_Z 4
+#define CACHE_SIZE (CACHE_EXTENT_X*CACHE_EXTENT_Y*CACHE_EXTENT_Z)
 
 struct spMesh_s
 {
@@ -29,6 +33,7 @@ struct spMesh_s
 	size_type *cell_idx;
 
 //	spDistributedObject dist_obj;
+	__constant__ Real coeff[CACHE_EXTENT_X][CACHE_EXTENT_Y][CACHE_EXTENT_Z];
 
 	size_type number_of_shared_blocks;
 	dim3 *shared_blocks;
