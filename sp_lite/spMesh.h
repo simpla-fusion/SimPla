@@ -20,6 +20,9 @@ struct spMesh_s
 	size_type x_upper[3];
 	size_type dims[3];
 
+	size_type offset[4];
+	size_type count[4];
+
 	size_type number_of_idx;
 	size_type *cell_idx;
 

@@ -92,3 +92,9 @@ void spParticleInitialize(const spMesh *mesh, sp_particle_type *sp,
 //	spInitializeParticle_Kernel<<<mesh->numBlocks, mesh->threadsPerBlock>>>(
 //			(const spMesh *) mesh->self, (sp_particle_type *) sp->self, PIC);
 }
+MC_HOST int spWriteParticle(spMesh const *ctx, sp_particle_type const*f,
+		char const name[], int flag)
+{
+	return 0;
+
+}

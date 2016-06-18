@@ -283,7 +283,9 @@ add_executable(all_clion ${clion_all_headers} src/dummy.h src/dummy.cpp tools/ge
 
 ADD_CUSTOM_TARGET(alltest)
 
+
 add_subdirectory(src)
+add_subdirectory(sp_lite)
 add_subdirectory(example)
 add_subdirectory(tools)
 add_subdirectory(docs)

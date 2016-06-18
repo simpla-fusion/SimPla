@@ -24,7 +24,6 @@ MC_HOST void spInitializeMesh(spMesh *self)
 
 MC_HOST_DEVICE size_type spMeshGetNumberOfEntity(spMesh const *self, int iform)
 {
-	return self->dims[0] * self->dims[1] * self->dims[2]
-			* ((iform == 0 || iform == 3) ? 1 : 3);
+	return self->dims[0] * self->dims[1] * self->dims[2] * ((iform == 0 || iform == 3) ? 1 : 3);
 }
 

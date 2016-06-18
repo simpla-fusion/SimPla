@@ -5,9 +5,9 @@
 #ifndef SIMPLA_BORISYEE_H
 #define SIMPLA_BORISYEE_H
 
-#include "../../src/spParticle.h"
-#include "../../src/spMesh.h"
-#include "../../src/spField.h"
+#include "../../sp_lite/spParticle.h"
+#include "../../sp_lite/spMesh.h"
+#include "../../sp_lite/spField.h"
 
 void spInitializeParticle_BorisYee(spMesh *ctx, sp_particle_type *pg,
 		size_type NUM_OF_PIC);

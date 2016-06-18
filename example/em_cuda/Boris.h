@@ -7,9 +7,9 @@
 
 #ifndef BORIS_H_
 #define BORIS_H_
-#include "../../src/sp_def.h"
-#include "../../src/spParticle.h" //for POINT_HEAD
-#include "../../src/spMesh.h" //for POINT_HEAD
+#include "../../sp_lite/sp_def.h"
+#include "../../sp_lite/spParticle.h" //for POINT_HEAD
+#include "../../sp_lite/spMesh.h" //for POINT_HEAD
 
 struct boris_point_s
 {
@@ -118,5 +118,4 @@ struct boris_point_s
 //	cache_scatter(tJ[3], p1->f * p1->w * p1->v[2] * q, p1->r, id_to_shift_[sub_index_to_id_[1/*EDGE*/][2]]);
 //
 //}
-
 #endif /* BORIS_H_ */

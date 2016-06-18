@@ -4,15 +4,15 @@
 
 #include "Boris.h"
 #include <stdio.h>
-#include "../../src/sp_def.h"
-#include "../../src/spField.h"
-#include "../../src/spMesh.h"
-#include "../../src/spParticle.h"
-#include "../../src/spPage.h"
+#include "../../sp_lite/sp_def.h"
+#include "../../sp_lite/spField.h"
+#include "../../sp_lite/spMesh.h"
+#include "../../sp_lite/spParticle.h"
+#include "../../sp_lite/spPage.h"
 
-#include "../../src/spMesh.cu"
-#include "../../src/spField.cu"
-#include "../../src/spParticle.cu"
+#include "../../sp_lite/spMesh.cu"
+#include "../../sp_lite/spField.cu"
+#include "../../sp_lite/spParticle.cu"
 
 #define CACHE_EXTENT_X 4
 #define CACHE_EXTENT_Y 4

@@ -1,7 +1,0 @@
-
-FILE(GLOB_RECURSE SP_API_CUDA_SRC ./*.cu )
-
-CUDA_ADD_LIBRARY(sp_api_cuda ${SP_API_CUDA_SRC} )
-
-TARGET_LINK_LIBRARIES(sp_api_cuda  -lcuda  ${CUDA_LIBRARIES})
- 

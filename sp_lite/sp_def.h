@@ -21,6 +21,7 @@ typedef int64_t id_type;
 typedef int64_t index_type;
 typedef uint64_t size_type;
 
+#ifdef __CUDACC__
 #if !defined(__CUDA_ARCH__)
 #define MC_HOST_DEVICE
 #define MC_HOST
@@ -38,17 +39,21 @@ typedef uint64_t size_type;
 
 #endif
 
-#define CUDA_CHECK_RETURN(value) {											\
-	cudaError_t _m_cudaStat = value;										\
+#define CUDA_CHECK_RETURN(_CMD_) {											\
+	cudaError_t _m_cudaStat = _CMD_;										\
 	if (_m_cudaStat != cudaSuccess) {										\
 		fprintf(stderr, "Error %s at line %d in file %s\n",					\
 				cudaGetErrorString(_m_cudaStat), __LINE__, __FILE__);		\
 		exit(1);															\
 	} }
-
+#if !defined(__CUDA_ARCH__)
 #define CUDA_CHECK(_CMD_)  											\
-		fprintf(stderr, "[line %d in file %s]\n %s = %u \n",					\
-				 __LINE__, __FILE__,__STRING(_CMD_),(_CMD_));		\
+		fprintf(stderr, "[line %d in file %s]\n %s = %d \n",					\
+				 __LINE__, __FILE__,__STRING(_CMD_),(_CMD_));
+#else
+#define CUDA_CHECK(_CMD_)
+#endif
+#define DONE	 	fprintf(stderr, "====== DONE ======\n" );
 
 inline bool sp_is_device_ptr(void const *p)
 {
@@ -57,5 +62,12 @@ inline bool sp_is_device_ptr(void const *p)
 	return (attribute.device == cudaMemoryTypeDevice);
 
 }
+inline int sp_pointer_type(void const *p)
+{
+	cudaPointerAttributes attribute;
+	CUDA_CHECK_RETURN(cudaPointerGetAttributes(&attribute, p));
+	return (attribute.device);
 
+}
+#endif //__CUDACC__
 #endif /* SP_DEF_H_ */
