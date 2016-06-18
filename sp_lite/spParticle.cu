@@ -9,6 +9,8 @@
 #include "spMesh.h"
 #include "spParticle.h"
 #include "spPage.h"
+#include "spSimPlaWrap.h"
+
 MC_HOST void spCreateParticle(const spMesh *mesh, sp_particle_type **sp, size_type entity_size_in_byte, size_type PIC)
 {
 	spCreateObject((spObject **) sp, sizeof(sp_particle_type));

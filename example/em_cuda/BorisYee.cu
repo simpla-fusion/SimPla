@@ -22,7 +22,13 @@
 #define IX  1
 #define IY  CACHE_EXTENT_X
 #define IZ  CACHE_EXTENT_X*CACHE_EXTENT_Y
+__global__ void spUpdateField_Yee_kernel(spMesh *ctx, Real dt, const sp_field_type *fRho, const sp_field_type *fJ,
+		sp_field_type *fE, sp_field_type *fB)
+{
 
+}
+
+/******************************************************************************************/
 #define ll 0
 #define rr 1.0
 MC_HOST_DEVICE
@@ -143,23 +149,7 @@ inline void spBorisPushOne(struct boris_point_s const *p0, struct boris_point_s 
 	cache_scatter(tJ[3], p1->f * p1->w * p1->v[2] * q, p1->r, id_to_shift_[sub_index_to_id_[1/*EDGE*/][2]]);
 
 }
-
-MC_HOST_DEVICE void
-spBorisPushOne(struct boris_point_s const *p0, struct boris_point_s *p1, Real dt, Real q, Real m,
-		Real const tE[3][CACHE_SIZE], Real const tB[3][CACHE_SIZE], Real tJ[4][CACHE_SIZE], const Real *inv_dx);
-
-MC_HOST_DEVICE Real
-spBorisGetRho(struct boris_point_s const *p);
-
-MC_HOST_DEVICE Real
-spBorisGetJ(struct boris_point_s const *p, int n);
-
-MC_HOST_DEVICE Real
-spBorisGetE(struct boris_point_s const *p);
-MC_HOST_DEVICE
-void cache_scatter(Real f[], Real v, Real const *r0, Real const *r1);
-MC_HOST_DEVICE
-void cache_gather(Real *v, Real const f[], Real const *r0, const Real *r1);
+/******************************************************************************************/
 
 __global__ void spInitializeParticle_BorisYee_Kernel(spMesh *ctx, sp_particle_type *p, size_type NUM_OF_PIC)
 {
@@ -175,7 +165,8 @@ __global__ void spInitializeParticle_BorisYee_Kernel(spMesh *ctx, sp_particle_ty
 	}
 
 }
-/* @formatter:on*/
+/******************************************************************************************/
+
 __global__ void spUpdateParticle_BorisYee_Kernel(spMesh *m, Real dt, sp_particle_type *sp, const sp_field_type *fE,
 		const sp_field_type *fB, sp_field_type *fRho, sp_field_type *fJ)
 {
@@ -208,16 +199,13 @@ __global__ void spUpdateParticle_BorisYee_Kernel(spMesh *m, Real dt, sp_particle
 		spPage *pg = sp->buckets[cell_idx + cache_cell_offset[n]];
 		while (pg != 0x0)
 		{
-			boris_point_s *p0 = (boris_point_s *) (pg->data
-					+ sub_idx * entity_size_in_byte);
+			boris_point_s *p0 = (boris_point_s *) (pg->data + sub_idx * entity_size_in_byte);
 
 			if ((pg->tag & (0x1 << sub_idx) != 0) && (p0->tag & 0x3F) == tag)
 			{
 
-				spBorisPushOne(p0,
-						(boris_point_s *) spEntityInsert(write_cache,
-								entity_size_in_byte),		//
-						dt, charge, mass, tE, tB, tJ, m->inv_dx);
+				spBorisPushOne(p0, (boris_point_s *) spEntityInsert(write_cache, entity_size_in_byte),		//
+				dt, charge, mass, tE, tB, tJ, m->inv_dx);
 
 			}
 
@@ -241,22 +229,38 @@ __global__ void spUpdateParticle_BorisYee_Kernel(spMesh *m, Real dt, sp_particle
 
 }
 
-__global__ void spUpdateField_Yee_kernel(spMesh *ctx, Real dt, const sp_field_type *fRho, const sp_field_type *fJ,
-		sp_field_type *fE, sp_field_type *fB)
-{
-
-}
-
 void spInitializeParticle_BorisYee(spMesh *ctx, sp_particle_type *pg, size_type NUM_OF_PIC)
 {
 //	spInitializeParticle_BorisYee_Kernel<<<ctx->numBlocks, ctx->threadsPerBlock>>>(ctx, pg, NUM_OF_PIC);
+
+	cudaStream_t s1;
+	cudaStreamCreate(&s1);
+	cudaStream_t s2;
+	cudaStreamCreate(&s2);
+
+	spInitializeParticle_BorisYee_Kernel<<<ctx->numBlocks, ctx->threadsPerBlock, 0, s1>>>(
+			(spMesh *) spObject_device_((spObject*) ctx), (sp_particle_type *) spObject_device_((spObject*) pg),
+			NUM_OF_PIC);
+
+	spInitializeParticle_BorisYee_Kernel<<<ctx->numBlocks, ctx->threadsPerBlock, 0, s2>>>(
+			(spMesh *) spObject_device_((spObject*) ctx), (sp_particle_type *) spObject_device_((spObject*) pg),
+			NUM_OF_PIC);
+	cudaStreamSynchronize(s1); //wait for boundary
+
+	spSyncParticle(ctx, pg);
+
+	cudaDeviceSynchronize(); //wait for iteration to finish
 }
 
 void spUpdateParticle_BorisYee(spMesh *ctx, Real dt, sp_particle_type *pg, const sp_field_type *fE,
 		const sp_field_type *fB, sp_field_type *fRho, sp_field_type *fJ)
 {
+	cudaStream_t s1;
+	cudaStreamCreate(&s1);
+	cudaStream_t s2;
+	cudaStreamCreate(&s2);
 
-	spUpdateParticle_BorisYee_Kernel<<<ctx->numBlocks, ctx->threadsPerBlock>>>(
+	spUpdateParticle_BorisYee_Kernel<<<ctx->numBlocks, ctx->threadsPerBlock, 0, s1>>>(
 			(spMesh *) spObject_device_((spObject*) ctx),
 			dt, //
 			(sp_particle_type *) spObject_device_((spObject*) pg),
@@ -264,22 +268,46 @@ void spUpdateParticle_BorisYee(spMesh *ctx, Real dt, sp_particle_type *pg, const
 			(const sp_field_type *) spObject_device_((spObject*) fB),
 			(sp_field_type *) spObject_device_((spObject*) fRho), (sp_field_type *) spObject_device_((spObject*) fJ));
 
+	spUpdateParticle_BorisYee_Kernel<<<ctx->numBlocks, ctx->threadsPerBlock, 0, s2>>>(
+			(spMesh *) spObject_device_((spObject*) ctx),
+			dt, //
+			(sp_particle_type *) spObject_device_((spObject*) pg),
+			(const sp_field_type *) spObject_device_((spObject*) fE),
+			(const sp_field_type *) spObject_device_((spObject*) fB),
+			(sp_field_type *) spObject_device_((spObject*) fRho), (sp_field_type *) spObject_device_((spObject*) fJ));
+	cudaStreamSynchronize(s1); //wait for boundary
+
 	spSyncParticle(ctx, pg);
 	spSyncField(ctx, fJ);
 	spSyncField(ctx, fRho);
+	cudaDeviceSynchronize(); //wait for iteration to finish
 
 }
 
 void spUpdateField_Yee(spMesh *ctx, Real dt, const sp_field_type *fRho, const sp_field_type *fJ, sp_field_type *fE,
 		sp_field_type *fB)
 {
-	spUpdateField_Yee_kernel<<<ctx->numBlocks, ctx->threadsPerBlock>>>((spMesh *) spObject_device_((spObject*) ctx),
+	cudaStream_t s1;
+	cudaStreamCreate(&s1);
+	cudaStream_t s2;
+	cudaStreamCreate(&s2);
+	spUpdateField_Yee_kernel<<<ctx->numBlocks, ctx->threadsPerBlock, 0, s1>>>(
+			(spMesh *) spObject_device_((spObject*) ctx),
 			dt, //
 			(const sp_field_type *) spObject_device_((spObject*) fRho),
 			(const sp_field_type *) spObject_device_((spObject*) fJ),
 			(sp_field_type *) spObject_device_((spObject*) fE), (sp_field_type *) spObject_device_((spObject*) fB));
+	spUpdateField_Yee_kernel<<<ctx->numBlocks, ctx->threadsPerBlock, 0, s2>>>(
+			(spMesh *) spObject_device_((spObject*) ctx),
+			dt, //
+			(const sp_field_type *) spObject_device_((spObject*) fRho),
+			(const sp_field_type *) spObject_device_((spObject*) fJ),
+			(sp_field_type *) spObject_device_((spObject*) fE), (sp_field_type *) spObject_device_((spObject*) fB));
+	cudaStreamSynchronize(s1); //wait for boundary
 
 	spSyncField(ctx, fE);
 	spSyncField(ctx, fB);
+	cudaDeviceSynchronize(); //wait for iteration to finish
+
 }
 

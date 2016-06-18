@@ -20,7 +20,15 @@ typedef long Integral;
 typedef int64_t id_type;
 typedef int64_t index_type;
 typedef uint64_t size_type;
+enum
+{
+	SP_NEW = 1UL << 1, SP_APPEND = 1UL << 2, SP_BUFFER = (1UL << 3), SP_RECORD = (1UL << 4)
+};
 
+enum
+{
+	SP_INT, SP_LONG, SP_DOUBLE, SP_FLOAT, SP_OPAQUE
+};
 #ifdef __CUDACC__
 #if !defined(__CUDA_ARCH__)
 #define MC_HOST_DEVICE

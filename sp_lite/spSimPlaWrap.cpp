@@ -7,9 +7,12 @@
 
 #include <memory>
 #include "../src/io/IO.h"
+#include "../src/parallel/DistributedObject.h"
+
 #include "../src/data_model/DataSet.h"
 #include "../src/data_model/DataType.h"
 #include "../src/data_model/DataSpace.h"
+#include "spSimPlaWrap.h"
 
 #include "sp_def.h"
 using namespace simpla;
@@ -29,3 +32,25 @@ void hdf5_write_field(char const url[], void *d, int ndims, size_type const * di
 	simpla::io::write(url, dset, flag);
 }
 
+struct spDistributedObject_s
+{
+	simpla::parallel::DistributedObject self;
+};
+void spCreateDistributeObject(spDistributedObject**obj)
+{
+	*obj = new spDistributedObject_s;
+
+}
+void spCreateDestroyObject(spDistributedObject**obj)
+{
+	delete *obj;
+	*obj = 0x0;
+}
+void spDestroyObjectNonblockingSync(spDistributedObject* obj)
+{
+	obj->self.sync();
+}
+void spDestroyObjectWait(spDistributedObject* obj)
+{
+	obj->self.wait();
+}

@@ -8,7 +8,7 @@
 #include "spMesh.h"
 #include "spField.h"
 #include "spObject.h"
-#include "spMisc.h"
+#include "spSimPlaWrap.h"
 
 MC_HOST void spCreateField(const spMesh *mesh, sp_field_type **f, int iform)
 {

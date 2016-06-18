@@ -7,6 +7,7 @@
 
 #include "sp_def.h"
 #include "spMesh.h"
+#include "spSimPlaWrap.h"
 
 MC_HOST void spCreateMesh(spMesh **ctx)
 {

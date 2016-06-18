@@ -10,7 +10,6 @@
 #include "../../sp_lite/spMesh.h"
 #include "../../sp_lite/spField.h"
 #include "../../sp_lite/spParticle.h"
-#include "../../sp_lite/spMisc.h"
 #include "Boris.h"
 #include "BorisYee.h"
 
@@ -29,9 +28,9 @@ int main(int argc, char **argv)
 	mesh->dims[0] = 10;
 	mesh->dims[1] = 10;
 	mesh->dims[2] = 10;
-	mesh->dx[0] = 10;
-	mesh->dx[1] = 10;
-	mesh->dx[2] = 10;
+	mesh->dx[0] = 1;
+	mesh->dx[1] = 1;
+	mesh->dx[2] = 1;
 	spInitializeMesh(mesh);
 	spCreateField(mesh, &fE, 1);
 	spCreateField(mesh, &fB, 2);
@@ -64,7 +63,6 @@ int main(int argc, char **argv)
 	spWriteField(mesh, fJ, "/dump/J", SP_NEW);
 	spWriteField(mesh, fRho, "/dump/rho", SP_NEW);
 	spWriteParticle(mesh, pg, "/dump/H", SP_NEW);
-
 
 	spDestroyField(&fE);
 	spDestroyField(&fB);
