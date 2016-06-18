@@ -8,7 +8,7 @@
 #include "spMesh.h"
 #include "spField.h"
 #include "spObject.h"
-#include "spIO.h"
+#include "spMisc.h"
 
 MC_HOST void spCreateField(const spMesh *mesh, sp_field_type **f, int iform)
 {
@@ -39,21 +39,13 @@ MC_HOST int spWriteField(spMesh const *mesh, sp_field_type const *f, char const 
 	CUDA_CHECK_RETURN(cudaMemcpy(tmp, (void* )(f->data), num_of_entity * sizeof(Real), cudaMemcpyDeviceToHost));
 
 	int ndims = (f->iform == 1 || f->iform == 2) ? 3 : 4;
-	size_type dims[4];
-	size_type offset[4];
-	size_type count[4];
 
-	for (int i = 0; i < 3; ++i)
-	{
-		dims[i] = mesh->dims[i];
-		offset[i] = mesh->offset[i];
-		count[i] = mesh->count[i];
-	}
-	dims[3] = 3;
-	offset[3] = 0;
-	count[3] = 3;
-
-	hdf5_write(url, (void*) tmp, sizeof(Real), SP_DOUBLE, ndims, dims, offset, count, flag);
+	hdf5_write_field(url, (void*) tmp, (f->iform == 1 || f->iform == 2) ? mesh->ndims : mesh->ndims + 1, mesh->dims,
+			mesh->offset, mesh->count, flag);
 	free(tmp);
 	return 0;
+}
+MC_HOST int spSyncField(spMesh const *mesh, sp_field_type *f)
+{
+
 }

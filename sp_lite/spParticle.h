@@ -43,7 +43,7 @@ MC_HOST int spWriteParticle(spMesh const *ctx, sp_particle_type const*f, char co
 
 MC_HOST int spReadParticle(spMesh const *ctx, sp_particle_type **f, char const name[], int flag);
 
-MC_HOST int spSyncParticle(spMesh const *ctx, sp_particle_type **f, int flag);
+MC_HOST int spSyncParticle(spMesh const *ctx, sp_particle_type * f);
 
 MC_HOST_DEVICE spPage *spParticleCreateBucket(sp_particle_type const *p, size_type num);
 

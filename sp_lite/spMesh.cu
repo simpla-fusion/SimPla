@@ -20,6 +20,15 @@ MC_HOST void spDestroyMesh(spMesh **ctx)
 }
 MC_HOST void spInitializeMesh(spMesh *self)
 {
+	self->ndims = 3;
+	for (int i = 0; i < 3; ++i)
+	{
+		self->offset[i] = 0;
+		self->count[i] = self->dims[i];
+	}
+	self->dims[3] = 3;
+	self->offset[3] = 0;
+	self->count[3] = 3;
 }
 
 MC_HOST_DEVICE size_type spMeshGetNumberOfEntity(spMesh const *self, int iform)

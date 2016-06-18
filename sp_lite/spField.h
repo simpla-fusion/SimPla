@@ -17,7 +17,7 @@ typedef struct spField_s
 	int iform;
 	size_type number_of_entities;
 	Real * data;
-
+	Real * shared_buffer[];
 } sp_field_type;
 
 MC_HOST void spCreateField(const spMesh *ctx, sp_field_type **f, int iform);
@@ -28,6 +28,6 @@ MC_HOST int spWriteField(spMesh const *ctx, sp_field_type const *f, char const n
 
 MC_HOST int spReadField(spMesh const *ctx, sp_field_type **f, char const name[], int flag);
 
-MC_HOST int spSyncField(spMesh const *ctx, sp_field_type **f, int flag);
+MC_HOST int spSyncField(spMesh const *ctx, sp_field_type *f);
 
 #endif /* SPFIELD_H_ */

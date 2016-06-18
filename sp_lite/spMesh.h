@@ -16,11 +16,13 @@ struct spMesh_s
 	Real dx[3];
 	Real inv_dx[3];
 
+	int ndims = 3;
+
 	size_type x_lower[3];
 	size_type x_upper[3];
-	size_type dims[3];
+	size_type dims[4];
 
-	size_type offset[4];
+	ptrdiff_t offset[4];
 	size_type count[4];
 
 	size_type number_of_idx;

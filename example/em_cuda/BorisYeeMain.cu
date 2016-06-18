@@ -10,7 +10,7 @@
 #include "../../sp_lite/spMesh.h"
 #include "../../sp_lite/spField.h"
 #include "../../sp_lite/spParticle.h"
-#include "../../sp_lite/spIO.h"
+#include "../../sp_lite/spMisc.h"
 #include "Boris.h"
 #include "BorisYee.h"
 
@@ -42,37 +42,29 @@ int main(int argc, char **argv)
 	spCreateParticle(mesh, &pg, sizeof(struct boris_point_s), NUMBER_OF_PIC);
 	spInitializeParticle_BorisYee(mesh, pg, NUMBER_OF_PIC);
 
-	int count = 100;
+	int count = 5;
 	Real dt = 1.0;
 	while (count > 0)
 	{
+		printf("====== REMINED STEP= %d ======\n", count);
 		spUpdateParticle_BorisYee(mesh, dt, pg, fE, fB, fRho, fJ);
+
 		spUpdateField_Yee(mesh, dt, fRho, fJ, fE, fB);
-//		spSyncParticle(mesh, &pg, MPI_COMMON_GLOBAL);
-//		spSyncField(mesh, &fJ, MPI_COMMON_GLOBAL);
-//		spSyncField(mesh, &fRho, MPI_COMMON_GLOBAL);
 
 		spWriteField(mesh, fE, "/checkpoint/E", SP_RECORD);
 		spWriteField(mesh, fB, "/checkpoint/B", SP_RECORD);
 		spWriteField(mesh, fJ, "/checkpoint/J", SP_RECORD);
 		spWriteField(mesh, fRho, "/checkpoint/rho", SP_RECORD);
 
-//		spSyncField(mesh, &fE, MPI_COMMON_GLOBAL);
-//		spSyncField(mesh, &fB, MPI_COMMON_GLOBAL);
-
 		--count;
 	}
-//
+
 	spWriteField(mesh, fE, "/dump/E", SP_NEW);
-
 	spWriteField(mesh, fB, "/dump/B", SP_NEW);
-
 	spWriteField(mesh, fJ, "/dump/J", SP_NEW);
-
 	spWriteField(mesh, fRho, "/dump/rho", SP_NEW);
-
 	spWriteParticle(mesh, pg, "/dump/H", SP_NEW);
-//
+
 
 	spDestroyField(&fE);
 	spDestroyField(&fB);
