@@ -59,13 +59,14 @@ enum
 
 #if !defined(__CUDA_ARCH__)
 #define CUDA_CHECK(_CMD_)  											\
-		fprintf(stderr, "[line %d in file %s]\n %s = %d \n",					\
+		 printf(  "[line %d in file %s]\n %s = %d \n",					\
 				 __LINE__, __FILE__,__STRING(_CMD_),(_CMD_));
 #else
-#define CUDA_CHECK(_CMD_)
+#define CUDA_CHECK(_CMD_) printf(  "[line %d in file %s : block=[%i,%i,%i] thread=[%i,%i,%i] ]\t %s = %d\n",					\
+		 __LINE__, __FILE__,blockIdx.x, blockIdx.y, blockIdx.z, threadIdx.x , threadIdx.y, threadIdx.z, __STRING(_CMD_),(_CMD_));
 #endif
-#define DONE	 	fprintf(stderr, "====== DONE ======\n" );
-#define CHECK	 	fprintf(stderr, "[ line %d in file%s]====== CHECK ======\n", __LINE__, __FILE__ );
+#define DONE	 	printf( "====== DONE ======\n" );
+#define CHECK	 	printf( "[ line %d in file%s]====== CHECK ======\n", __LINE__, __FILE__ );
 
 inline bool sp_is_device_ptr(void const *p)
 {

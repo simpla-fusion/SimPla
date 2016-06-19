@@ -18,7 +18,7 @@ int main(int argc, char **argv)
 	CUDA_CHECK_RETURN(cudaThreadSynchronize()); // Wait for the GPU launched work to complete
 	CUDA_CHECK_RETURN(cudaGetLastError());
 	spMesh *mesh;
-	sp_particle_type *pg = 0x0;
+	sp_particle_type *ps = 0x0;
 	sp_field_type *fE = 0x0;
 	sp_field_type *fB = 0x0;
 	sp_field_type *fRho = 0x0;
@@ -43,8 +43,8 @@ int main(int argc, char **argv)
 	spClearField(mesh, fRho);
 
 	int NUMBER_OF_PIC = 256;
-	spCreateParticle(mesh, &pg, sizeof(struct boris_point_s), NUMBER_OF_PIC);
-	spInitializeParticle_BorisYee(mesh, pg, NUMBER_OF_PIC);
+	spCreateParticle(mesh, &ps, sizeof(struct boris_point_s), NUMBER_OF_PIC);
+	spInitializeParticle_BorisYee(mesh, ps, NUMBER_OF_PIC);
 
 	int count = 1;
 	Real dt = 1.0;
@@ -57,7 +57,7 @@ int main(int argc, char **argv)
 	while (count > 0)
 	{
 		printf("====== REMINED STEP= %d ======\n", count);
-		spUpdateParticle_BorisYee(mesh, dt, pg, fE, fB, fRho, fJ);
+		spUpdateParticle_BorisYee(mesh, dt, ps, fE, fB, fRho, fJ);
 //		spUpdateField_Yee(mesh, dt, fRho, fJ, fE, fB);
 
 //		spWriteField(mesh, fE, "/checkpoint/E", SP_RECORD);
@@ -67,7 +67,7 @@ int main(int argc, char **argv)
 
 		--count;
 	}
-	printf("====== REMINED STEP= The End ======\n", count);
+	printf("======  The End ======\n", count);
 
 	spWriteField(mesh, fE, "/dump/E", SP_NEW);
 	spWriteField(mesh, fB, "/dump/B", SP_NEW);
@@ -78,7 +78,7 @@ int main(int argc, char **argv)
 	spDestroyField(&fB);
 	spDestroyField(&fJ);
 	spDestroyField(&fRho);
-	spDestroyParticle(&pg);
+	spDestroyParticle(&ps);
 	spDestroyMesh(&mesh);
 
 	CUDA_CHECK_RETURN(cudaDeviceReset());
