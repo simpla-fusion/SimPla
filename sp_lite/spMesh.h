@@ -13,17 +13,17 @@
 struct spMesh_s
 {
 	SP_OBJECT_HEAD
-	Real dx[3];
-	Real inv_dx[3];
+	float3 dx;
+	float3 inv_dx;
 
-	int ndims = 3;
+	int ndims;
 
-	size_type x_lower[3];
-	size_type x_upper[3];
-	size_type dims[4];
+	dim3 x_lower;
+	dim3 x_upper;
+	int4 dims;
 
-	ptrdiff_t offset[4];
-	size_type count[4];
+	int4 offset;
+	int4 count;
 
 	size_type number_of_idx;
 	size_type *cell_idx;

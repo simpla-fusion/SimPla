@@ -4,6 +4,7 @@
  *  Created on: 2016年6月15日
  *      Author: salmon
  */
+#include <assert.h>
 #include "sp_def.h"
 #include "spMesh.h"
 #include "spField.h"
@@ -55,16 +56,15 @@ MC_HOST void spClearField(spMesh const *mesh, sp_field_type *f)
 MC_HOST int spWriteField(spMesh const *mesh, sp_field_type *f, char const url[], int flag)
 {
 	size_type num_of_entities = spMeshGetNumberOfEntity(mesh, f->iform);
-
+	assert(f->host_data != 0);
 //	CUDA_CHECK_RETURN(
-	cudaMemcpy((void*) (f->host_data), (void*) (f->device_data), num_of_entities * sizeof(Real), cudaMemcpyDefault)
-//	)
-			;
-	int ndims = (f->iform == 1 || f->iform == 2) ? 4 : 3;
-	hdf5_write_field(url, (void*) f->host_data, ndims, mesh->dims, mesh->offset, mesh->count, flag);
+//			cudaMemcpy((void* ) (f->host_data), (void* ) (f->device_data), num_of_entities * sizeof(Real),
+//					cudaMemcpyDeviceToHost));
+//	int ndims = (f->iform == 1 || f->iform == 2) ? 4 : 3;
+//	hdf5_write_field(url, (void*) f->host_data, ndims, mesh->dims, mesh->offset, mesh->count, flag);
 	return 0;
 }
 MC_HOST int spSyncField(spMesh const *mesh, sp_field_type *f)
 {
-
+	return 0;
 }

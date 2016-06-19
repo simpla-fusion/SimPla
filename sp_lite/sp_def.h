@@ -50,8 +50,8 @@ enum
 #define CUDA_CHECK_RETURN(_CMD_) {											\
 	cudaError_t _m_cudaStat = _CMD_;										\
 	if (_m_cudaStat != cudaSuccess) {										\
-		fprintf(stderr, "Error %s at line %d in file %s\n",					\
-				cudaGetErrorString(_m_cudaStat), __LINE__, __FILE__);		\
+		fprintf(stderr, "Error [code=0x%x] %s at line %d in file %s\n",					\
+				_m_cudaStat,cudaGetErrorString(_m_cudaStat), __LINE__, __FILE__);		\
 		exit(1);															\
 	} }
 
