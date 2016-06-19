@@ -25,9 +25,9 @@ int main(int argc, char **argv)
 	sp_field_type *fJ = 0x0;
 
 	spCreateMesh(&mesh);
-	mesh->dims[0] = 8;
-	mesh->dims[1] = 8;
-	mesh->dims[2] = 8;
+	mesh->dims[0] = 16;
+	mesh->dims[1] = 16;
+	mesh->dims[2] = 16;
 	mesh->dx[0] = 1;
 	mesh->dx[1] = 1;
 	mesh->dx[2] = 1;
@@ -48,12 +48,17 @@ int main(int argc, char **argv)
 
 	int count = 1;
 	Real dt = 1.0;
+
+	spWriteField(mesh, fE, "/start/E", SP_NEW);
+	spWriteField(mesh, fB, "/start/B", SP_NEW);
+	spWriteField(mesh, fJ, "/start/J", SP_NEW);
+	spWriteField(mesh, fRho, "/start/rho", SP_NEW);
+
 	while (count > 0)
 	{
 		printf("====== REMINED STEP= %d ======\n", count);
 		spUpdateParticle_BorisYee(mesh, dt, pg, fE, fB, fRho, fJ);
-
-		spUpdateField_Yee(mesh, dt, fRho, fJ, fE, fB);
+//		spUpdateField_Yee(mesh, dt, fRho, fJ, fE, fB);
 
 //		spWriteField(mesh, fE, "/checkpoint/E", SP_RECORD);
 //		spWriteField(mesh, fB, "/checkpoint/B", SP_RECORD);
@@ -62,6 +67,7 @@ int main(int argc, char **argv)
 
 		--count;
 	}
+	printf("====== REMINED STEP= The End ======\n", count);
 
 	spWriteField(mesh, fE, "/dump/E", SP_NEW);
 	spWriteField(mesh, fB, "/dump/B", SP_NEW);
@@ -77,6 +83,5 @@ int main(int argc, char **argv)
 
 	CUDA_CHECK_RETURN(cudaDeviceReset());
 	DONE
-
 	return 0;
 }

@@ -22,15 +22,17 @@ MC_HOST extern inline void spFree(void **p)
 	if (p != 0x0 && *p != 0x0)
 	{
 
-#if !defined(__CUDA_ARCH__)
 		if (sp_is_device_ptr(*p))
-		{	CUDA_CHECK_RETURN(cudaFree(*p));}
-# else
-		free(*p);
-#endif
+		{
+			CUDA_CHECK_RETURN(cudaFree(*p));
+		}
+		else
+		{
+			free(*p);
+		}
+		*p = 0x0;
 	}
 
-	*p = 0x0;
 }
 
 MC_HOST extern inline void spCreateObject(spObject ** obj, size_type size_in_byte)

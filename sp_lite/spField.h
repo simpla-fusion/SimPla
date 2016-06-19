@@ -25,7 +25,7 @@ MC_HOST void spDestroyField(sp_field_type **f);
 
 MC_HOST void spClearField(spMesh const *mesh, sp_field_type *f);
 
-MC_HOST int spWriteField(spMesh const *ctx, sp_field_type const *f, char const name[], int flag);
+MC_HOST int spWriteField(spMesh const *ctx, sp_field_type *f, char const name[], int flag);
 
 MC_HOST int spReadField(spMesh const *ctx, sp_field_type **f, char const name[], int flag);
 

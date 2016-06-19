@@ -4,6 +4,8 @@
 
 #include "Boris.h"
 #include <stdio.h>
+#include <assert.h>
+
 #include "../../sp_lite/sp_def.h"
 #include "../../sp_lite/spField.h"
 #include "../../sp_lite/spMesh.h"
@@ -105,28 +107,28 @@ void spInitializeParticle_BorisYee(spMesh *ctx, sp_particle_type *sp, size_type 
 //}
 #define ll 0
 #define rr 1.0
-#define CACHE_EXTENT_X 4
-#define CACHE_EXTENT_Y 4
-#define CACHE_EXTENT_Z 4
+#define RADIUS 2
+#define CACHE_EXTENT_X RADIUS*2
+#define CACHE_EXTENT_Y RADIUS*2
+#define CACHE_EXTENT_Z RADIUS*2
 #define CACHE_SIZE (CACHE_EXTENT_X*CACHE_EXTENT_Y*CACHE_EXTENT_Z)
 #define IX  1
 #define IY  CACHE_EXTENT_X
 #define IZ  CACHE_EXTENT_X*CACHE_EXTENT_Y
 __device__
-void cache_gather(Real *v, Real const f[], Real const *r0, const Real *r1)
+void cache_gather(Real *v, Real const *f, Real const *r0, const Real *r1)
 {
 	Real r[3] =
 	{ r0[0] - r1[0], r0[1] - r1[1], r0[2] - r1[2] };
-	id_type s = (int) (r[0]) * IX + (int) (r[1]) * IY + (int) (r[2]) * IZ;
 
-	*v = f[s + IX + IY + IZ /*  */] * (r[0] - ll) * (r[1] - ll) * (r[2] - ll)
-			+ f[s + IX + IY /*     */] * (r[0] - ll) * (r[1] - ll) * (rr - r[2])
-			+ f[s + IX + IZ /*     */] * (r[0] - ll) * (rr - r[1]) * (r[2] - ll)
-			+ f[s + IX /*          */] * (r[0] - ll) * (rr - r[1]) * (rr - r[2])
-			+ f[s + IY + IZ /*     */] * (rr - r[0]) * (r[1] - ll) * (r[2] - ll)
-			+ f[s + IY /*          */] * (rr - r[0]) * (r[1] - ll) * (rr - r[2])
-			+ f[s + IZ /*          */] * (rr - r[0]) * (rr - r[1]) * (r[2] - ll)
-			+ f[s /*               */] * (rr - r[0]) * (rr - r[1]) * (rr - r[2]);
+	*v = f[ IX + IY + IZ /*  */] * (r[0] - ll) * (r[1] - ll) * (r[2] - ll)
+			+ f[ IX + IY /*     */] * (r[0] - ll) * (r[1] - ll) * (rr - r[2])
+			+ f[ IX + IZ /*     */] * (r[0] - ll) * (rr - r[1]) * (r[2] - ll)
+			+ f[ IX /*          */] * (r[0] - ll) * (rr - r[1]) * (rr - r[2])
+			+ f[ IY + IZ /*     */] * (rr - r[0]) * (r[1] - ll) * (r[2] - ll)
+			+ f[ IY /*          */] * (rr - r[0]) * (r[1] - ll) * (rr - r[2])
+			+ f[ IZ /*          */] * (rr - r[0]) * (rr - r[1]) * (r[2] - ll)
+			+ f[0 /*               */] * (rr - r[0]) * (rr - r[1]) * (rr - r[2]);
 }
 __device__
 void cache_scatter(Real *f, Real v, Real const *r0, Real const *r1)
@@ -134,15 +136,16 @@ void cache_scatter(Real *f, Real v, Real const *r0, Real const *r1)
 	Real r[3] =
 	{ r0[0] - r1[0], r0[1] - r1[1], r0[2] - r1[2] };
 
-	atomicAdd(&(f[ IX + IY + IZ /*  */]), 1.0); // * (r[0] - ll) * (r[1] - ll) * (r[2] - ll));
-	atomicAdd(&(f[ IX + IY /*       */]), 1.0); // * (r[0] - ll) * (r[1] - ll) * (rr - r[2]));
-	atomicAdd(&(f[ IX + IZ /*       */]), 1.0); // * (r[0] - ll) * (rr - r[1]) * (r[2] - ll));
-	atomicAdd(&(f[ IX /*            */]), 1.0); // * (r[0] - ll) * (rr - r[1]) * (rr - r[2]));
-	atomicAdd(&(f[ IY + IZ /*       */]), 1.0); // * (rr - r[0]) * (r[1] - ll) * (r[2] - ll));
-	atomicAdd(&(f[ IY /*            */]), 1.0); // * (rr - r[0]) * (r[1] - ll) * (rr - r[2]));
-	atomicAdd(&(f[ IZ /*            */]), 1.0); // * (rr - r[0]) * (rr - r[1]) * (r[2] - ll));
-	atomicAdd(&(f[0 /*             */]), 1.0); // * (rr - r[0]) * (rr - r[1]) * (rr - r[2]));
+	printf("%d [%d,%d,%d]\n", v, r[0], r[1], r[2]);
 
+	atomicAdd(&(f[ IX + IY + IZ /*  */]), v * (r[0] - ll) * (r[1] - ll) * (r[2] - ll));
+	atomicAdd(&(f[ IX + IY /*       */]), v * (r[0] - ll) * (r[1] - ll) * (rr - r[2]));
+	atomicAdd(&(f[ IX + IZ /*       */]), v * (r[0] - ll) * (rr - r[1]) * (r[2] - ll));
+	atomicAdd(&(f[ IX /*            */]), v * (r[0] - ll) * (rr - r[1]) * (rr - r[2]));
+	atomicAdd(&(f[ IY + IZ /*       */]), v * (rr - r[0]) * (r[1] - ll) * (r[2] - ll));
+	atomicAdd(&(f[ IY /*            */]), v * (rr - r[0]) * (r[1] - ll) * (rr - r[2]));
+	atomicAdd(&(f[ IZ /*            */]), v * (rr - r[0]) * (rr - r[1]) * (r[2] - ll));
+	atomicAdd(&(f[0 /*              */]), v * (rr - r[0]) * (rr - r[1]) * (rr - r[2]));
 }
 
 #undef ll
@@ -178,7 +181,7 @@ MC_CONSTANT size_type cache_cell_offset[CACHE_SIZE] =
 
 __device__
 inline void spBorisPushOne(struct boris_point_s const *p0, struct boris_point_s *p1, Real dt, Real q, Real m,
-		Real const *tE[3], Real const * tB[3], Real *tJ[4], const Real *inv_dx)
+		Real const ** tE, Real const ** tB, Real ** tJ, const Real *inv_dx)
 {
 
 	Real E[3], B[3];
@@ -232,8 +235,6 @@ inline void spBorisPushOne(struct boris_point_s const *p0, struct boris_point_s 
 
 /******************************************************************************************/
 
-#define RADIUS 2
-#define BUFFER_SIZE 2*RADUIS*2*RADUIS*2*RADUIS
 __global__ void spUpdateParticle_BorisYee_Kernel(spMesh *m, Real dt, Real charge, Real mass,
 		size_type entity_size_in_byte, spPage** buckets, const Real *fE, const Real *fB, Real *fRho, Real *fJ)
 {
@@ -258,30 +259,18 @@ __global__ void spUpdateParticle_BorisYee_Kernel(spMesh *m, Real dt, Real charge
 	int g_num = g_x + (g_y + g_z * g_dim_y) * g_dim_x;
 	int t_num = t_x + (t_y + t_z * t_dim_y) * t_dim_x;
 
-	int t_max_num = 64;
+	int t_max_num = t_dim_x * t_dim_y * t_dim_z;
 
-	MC_SHARED Real ttE[3][CACHE_SIZE], ttB[3][CACHE_SIZE], ttJ[4][CACHE_SIZE];
+	assert(t_max_num==CACHE_SIZE);
 
-	int CACHE_SHIFT = RADIUS + (RADIUS + RADIUS * g_dim_y) * g_dim_x;
-
-	Real * tE[3], *tB[3], *tJ[4];
-	tE[0] = ttE[0] + CACHE_SHIFT;
-	tE[1] = ttE[1] + CACHE_SHIFT;
-	tE[2] = ttE[2] + CACHE_SHIFT;
-
-	tB[0] = ttB[0] + CACHE_SHIFT;
-	tB[1] = ttB[1] + CACHE_SHIFT;
-	tB[2] = ttB[2] + CACHE_SHIFT;
-
-	tJ[0] = ttJ[0] + CACHE_SHIFT;
-	tJ[1] = ttJ[1] + CACHE_SHIFT;
-	tJ[2] = ttJ[2] + CACHE_SHIFT;
-	tJ[3] = ttJ[3] + CACHE_SHIFT;
+	__shared__ Real ttE[3][CACHE_SIZE], ttB[3][CACHE_SIZE], ttJ[4][CACHE_SIZE];
 
 	int g_f_x = (g_x + t_x + g_dim_x - RADIUS) % g_dim_x;
 	int g_f_y = (g_y + t_y + g_dim_y - RADIUS) % g_dim_y;
 	int g_f_z = (g_z + t_z + g_dim_z - RADIUS) % g_dim_z;
 	int g_f_num = g_f_x + (g_f_y + g_f_z * g_dim_y) * g_dim_x;
+	int t_ox = RADIUS + (RADIUS + RADIUS * t_dim_y) * t_dim_x;
+
 	{
 #ifndef DEFAULT_SoA
 		ttE[0][t_num] = fE[g_f_num * 3 + 0];
@@ -308,6 +297,21 @@ __global__ void spUpdateParticle_BorisYee_Kernel(spMesh *m, Real dt, Real charge
 		ttJ[3][t_num] = 0;
 
 	}
+
+	__shared__ Real * tE[3], *tB[3], *tJ[4];
+	tE[0] = ttE[0] + t_ox;
+	tE[1] = ttE[1] + t_ox;
+	tE[2] = ttE[2] + t_ox;
+
+	tB[0] = ttB[0] + t_ox;
+	tB[1] = ttB[1] + t_ox;
+	tB[2] = ttB[2] + t_ox;
+
+	tJ[0] = ttJ[0] + t_ox;
+	tJ[1] = ttJ[1] + t_ox;
+	tJ[2] = ttJ[2] + t_ox;
+	tJ[3] = ttJ[3] + t_ox;
+
 	MC_SHARED int buffer_tail;
 	MC_SHARED byte_type *p_buffer;
 
@@ -321,6 +325,7 @@ __global__ void spUpdateParticle_BorisYee_Kernel(spMesh *m, Real dt, Real charge
 
 	spPage *src = buckets[g_f_num];
 
+	int count = 0;
 	int pos;
 // FIXME DANGAURE!!! if buffer overflow then particle will be abandoned.
 	while ((pos = atomicAdd(&buffer_tail, 1)) < boris_buffer_s_DEPTH)
@@ -329,17 +334,20 @@ __global__ void spUpdateParticle_BorisYee_Kernel(spMesh *m, Real dt, Real charge
 		bucket_entity_flag_t check_flag = 0x1;
 		byte_type *p0 = src->data;
 		byte_type *p1 = p_buffer + pos * entity_size_in_byte;
-		if ((src->flag & tag != 0) && (((spEntity_s*) p0)->tag & 0x3F) == check_flag)
+//		if ((src->flag & tag != 0) && (((spEntity_s*) p0)->tag & 0x3F) == check_flag)
 		{
-			spBorisPushOne((struct boris_point_s const *) p0, (struct boris_point_s *) p1, dt, charge, mass, tE, tB, tJ,
-					m->inv_dx);
-
+			spBorisPushOne((struct boris_point_s const *) p0, (struct boris_point_s *) p1, dt, charge, mass, //
+					(Real const **) tE, (Real const**) tB, (Real **) tJ, &(m->inv_dx[0]));
 		}
 
 		tag <<= 1;
 		p0 += entity_size_in_byte;
-
+		++count;
+		assert(pos < boris_buffer_s_DEPTH);
 	}        //	for (int n = 0; n < CACHE_SIZE; ++n)
+
+//	atomicAdd(&(ttJ[0][t_ox]), 1.0);        // (count == 0) ? 1.234 : 5.678);
+
 	__syncthreads();
 	if (t_num == 0)
 	{
@@ -370,7 +378,7 @@ void spUpdateParticle_BorisYee(spMesh *ctx, Real dt, sp_particle_type *pg, const
 //			(sp_field_type *) spObject_device_((spObject*) fRho), (sp_field_type *) spObject_device_((spObject*) fJ));
 //
 	spUpdateParticle_BorisYee_Kernel<<<ctx->private_block, ctx->threadsPerBlock>>>(
-			(spMesh *) spObject_device_((spObject*) ctx), dt, pg->charge, pg->mass, pg->entity_size_in_byte,   //
+			(spMesh *) spObject_device_((spObject*) ctx), dt, pg->charge, pg->mass, pg->entity_size_in_byte,        //
 			pg->buckets, fE->device_data, fB->device_data, fRho->device_data, fJ->device_data);
 //	cudaStreamSynchronize(s1); //wait for boundary
 //
@@ -430,7 +438,7 @@ void spUpdateField_Yee(spMesh *ctx, Real dt, const sp_field_type *fRho, const sp
 	grid_dim.y = ctx->private_block.y / ctx->threadsPerBlock.y;
 	grid_dim.z = ctx->private_block.z / ctx->threadsPerBlock.z;
 	spUpdateField_Yee_kernel<<<grid_dim, ctx->threadsPerBlock>>>((spMesh *) spObject_device_((spObject*) ctx),
-			dt, //
+			dt,        //
 			((Real*) fRho->device_data), ((Real*) fJ->device_data), ((Real*) fE->device_data),
 			((Real*) fB->device_data));
 //	for (int i = 0, ie = ctx->number_of_shared_blocks; i < ie; ++i)
@@ -441,7 +449,7 @@ void spUpdateField_Yee(spMesh *ctx, Real dt, const sp_field_type *fRho, const sp
 //	spSyncField(ctx, fE);
 //	spSyncField(ctx, fB);
 
-	cudaDeviceSynchronize(); //wait for iteration to finish
+	cudaDeviceSynchronize();        //wait for iteration to finish
 
 }
 

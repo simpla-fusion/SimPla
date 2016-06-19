@@ -54,6 +54,9 @@ enum
 				cudaGetErrorString(_m_cudaStat), __LINE__, __FILE__);		\
 		exit(1);															\
 	} }
+
+//#define CUDA_CHECK_RETURN(_CMD_) _CMD_;
+
 #if !defined(__CUDA_ARCH__)
 #define CUDA_CHECK(_CMD_)  											\
 		fprintf(stderr, "[line %d in file %s]\n %s = %d \n",					\
