@@ -32,13 +32,13 @@ MC_HOST void spDestroyField(sp_field_type **f)
 }
 MC_HOST void spClearField(spMesh const *mesh, sp_field_type *f)
 {
-	size_type num_of_entity = spMeshGetNumberOfEntity(mesh, f->iform);
-
+	size_type num_of_entities = spMeshGetNumberOfEntity(mesh, f->iform);
+	CUDA_CHECK(num_of_entities);
 	if (f->device_data == 0x0)
 	{
-		CUDA_CHECK_RETURN(cudaMalloc((void ** ) &(f->device_data), num_of_entity * sizeof(Real)));
+		CUDA_CHECK_RETURN(cudaMalloc((void ** ) &(f->device_data), num_of_entities * sizeof(Real)));
 	}
-	CUDA_CHECK_RETURN(cudaMemset(f->device_data, 0, num_of_entity * sizeof(float)));
+	CUDA_CHECK_RETURN(cudaMemset(f->device_data, 0, num_of_entities * sizeof(Real)));
 }
 
 MC_HOST int spWriteField(spMesh const *mesh, sp_field_type const *f, char const url[], int flag)

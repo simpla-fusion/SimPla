@@ -15,8 +15,8 @@
 #define  COPYRIGHT "All rights reserved. (2016 )"
 
 typedef int8_t byte_type; // int8_t
-typedef double Real;
-typedef long Integral;
+typedef float Real;
+typedef int Integral;
 typedef int64_t id_type;
 typedef int64_t index_type;
 typedef uint64_t size_type;

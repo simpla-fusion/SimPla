@@ -37,20 +37,21 @@ int main(int argc, char **argv)
 	spCreateField(mesh, &fJ, 1);
 	spCreateField(mesh, &fRho, 0);
 
-//	int NUMBER_OF_PIC = 256;
-//	spCreateParticle(mesh, &pg, sizeof(struct boris_point_s), NUMBER_OF_PIC);
-//	spInitializeParticle_BorisYee(mesh, pg, NUMBER_OF_PIC);
 	spClearField(mesh, fE);
 	spClearField(mesh, fB);
 	spClearField(mesh, fJ);
 	spClearField(mesh, fRho);
+
+	int NUMBER_OF_PIC = 256;
+	spCreateParticle(mesh, &pg, sizeof(struct boris_point_s), NUMBER_OF_PIC);
+	spInitializeParticle_BorisYee(mesh, pg, NUMBER_OF_PIC);
 
 	int count = 1;
 	Real dt = 1.0;
 	while (count > 0)
 	{
 		printf("====== REMINED STEP= %d ======\n", count);
-//		spUpdateParticle_BorisYee(mesh, dt, pg, fE, fB, fRho, fJ);
+		spUpdateParticle_BorisYee(mesh, dt, pg, fE, fB, fRho, fJ);
 
 		spUpdateField_Yee(mesh, dt, fRho, fJ, fE, fB);
 
@@ -65,13 +66,13 @@ int main(int argc, char **argv)
 	spWriteField(mesh, fE, "/dump/E", SP_NEW);
 	spWriteField(mesh, fB, "/dump/B", SP_NEW);
 	spWriteField(mesh, fJ, "/dump/J", SP_NEW);
-//	spWriteField(mesh, fRho, "/dump/rho", SP_NEW);
+	spWriteField(mesh, fRho, "/dump/rho", SP_NEW);
 //	spWriteParticle(mesh, pg, "/dump/H", SP_NEW);
 	spDestroyField(&fE);
 	spDestroyField(&fB);
 	spDestroyField(&fJ);
 	spDestroyField(&fRho);
-//	spDestroyParticle(&pg);
+	spDestroyParticle(&pg);
 	spDestroyMesh(&mesh);
 
 	CUDA_CHECK_RETURN(cudaDeviceReset());

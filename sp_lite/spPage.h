@@ -51,12 +51,10 @@ typedef struct spEntity_s
 	SP_BUCKET_ENTITY_HEAD
 	byte_type data[];
 } spEntity;
-
+#define SP_PAGE_HEAD struct spPage_s *next;	bucket_entity_flag_t flag;
 typedef struct spPage_s
 {
-	struct spPage_s *next;
-	bucket_entity_flag_t flag; // flag of element in the page, 'SP_NUMBER_OF_ENTITIES_IN_PAGE', 1 ->valid ,0 -> blank
-	id_type tag; // tag of page group. In default, it storage 'bin id' for bucket sorting
+	SP_PAGE_HEAD
 	byte_type *data;
 } spPage;
 

@@ -11,6 +11,17 @@
 #include "../../sp_lite/spParticle.h" //for POINT_HEAD
 #include "../../sp_lite/spMesh.h" //for POINT_HEAD
 
+#define boris_buffer_s_DEPTH SP_NUMBER_OF_ENTITIES_IN_PAGE * 2
+
+struct boris_buffer_s
+{
+	int tag[boris_buffer_s_DEPTH];
+	Real r[3][boris_buffer_s_DEPTH];
+	Real v[3][boris_buffer_s_DEPTH];
+	Real f[boris_buffer_s_DEPTH];
+	Real w[boris_buffer_s_DEPTH];
+};
+
 struct boris_point_s
 {
 	POINT_HEAD

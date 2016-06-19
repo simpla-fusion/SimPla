@@ -32,7 +32,6 @@ MC_HOST void spCreateParticle(const spMesh *mesh, sp_particle_type **sp, size_ty
 		for (size_type s = 0; s < max_number_of_pages; ++s)
 		{
 			t_pages[s].flag = 0;
-			t_pages[s].tag = 0;
 			t_pages[s].data = (byte_type*) ((*sp)->m_data) + s * entity_size_in_byte * SP_NUMBER_OF_ENTITIES_IN_PAGE;
 			t_pages[s].next = (*sp)->m_pages + (s + 1);
 
