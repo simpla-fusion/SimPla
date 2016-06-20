@@ -53,7 +53,11 @@ int main(int argc, char **argv)
 	spWriteField(mesh, fB, "/start/B", SP_NEW);
 	spWriteField(mesh, fJ, "/start/J", SP_NEW);
 	spWriteField(mesh, fRho, "/start/rho", SP_NEW);
-
+#ifdef ENABLE_SOA
+	printf("====== Enable SOA ======\n", count);
+#else
+	printf("====== Enable AOS ======\n", count);
+#endif
 	while (count > 0)
 	{
 		printf("====== REMINED STEP= %d ======\n", count);

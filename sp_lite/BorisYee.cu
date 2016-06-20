@@ -295,6 +295,7 @@ __global__ void spUpdateParticle_BorisYee_Kernel(spMesh *m, Real dt, Real charge
 				__syncthreads();
 
 				spPage *src = buckets[g_f_num];
+				Real beta = (charge / mass * dt * 0.5);
 
 				while (src != 0x0)
 				{
@@ -340,45 +341,47 @@ __global__ void spUpdateParticle_BorisYee_Kernel(spMesh *m, Real dt, Real charge
 						cache_gather(&Bz, tB + 8 * 2, rx, ry, rz); //, id_to_shift_[sub_index_to_id_[2/*FACE*/][2]]);
 
 						rx += vx * dt * 0.5 * inv_dx;
-						ry += ry * dt * 0.5 * inv_dy;
-						rz += rz * dt * 0.5 * inv_dz;
+						ry += vy * dt * 0.5 * inv_dy;
+						rz += vz * dt * 0.5 * inv_dz;
 
-						tx = Bx * (charge / mass * dt * 0.5);
-						ty = By * (charge / mass * dt * 0.5);
-						tz = Bz * (charge / mass * dt * 0.5);
+						tx = Bx * beta;
+						ty = By * beta;
+						tz = Bz * beta;
 
-						vx = vx + Ex * (charge / mass * dt * 0.5);
-						ry = ry + Ey * (charge / mass * dt * 0.5);
-						rz = rz + Ez * (charge / mass * dt * 0.5);
+						vx += Ex * beta;
+						vy += Ey * beta;
+						vz += Ez * beta;
 
-						v_x = vx + (ry * tz - rz * ty);
-						v_y = ry + (rz * tx - vx * tz);
-						v_z = rz + (vx * ty - ry * tx);
+						v_x = vx + (vy * tz - vz * ty);
+						v_y = vy + (vz * tx - vx * tz);
+						v_z = vz + (vx * ty - vy * tx);
 
-						vx += (v_y * tz - v_z * ty) * 2.0 / (tx * tx + ty * ty + tz * tz + 1.0);
-						ry += (v_z * tx - v_x * tz) * 2.0 / (tx * tx + ty * ty + tz * tz + 1.0);
-						rz += (v_x * ty - v_y * tx) * 2.0 / (tx * tx + ty * ty + tz * tz + 1.0);
+						Real tt = 2.0 / (tx * tx + ty * ty + tz * tz + 1.0);
 
-						vx += Ex * (charge / mass * dt * 0.5);
-						ry += Ey * (charge / mass * dt * 0.5);
-						rz += Ez * (charge / mass * dt * 0.5);
+						vx += (v_y * tz - v_z * ty) * tt;
+						vy += (v_z * tx - v_x * tz) * tt;
+						vz += (v_x * ty - v_y * tx) * tt;
+
+						vx += Ex * beta;
+						vy += Ey * beta;
+						vz += Ez * beta;
 
 						rx += vx * dt * 0.5 * inv_dx;
 						ry += vy * dt * 0.5 * inv_dy;
 						rz += vz * dt * 0.5 * inv_dz;
 
-						cache_scatter(tJ + 8 * 0, f * w * charge, rx, ry, rz); //, id_to_shift_[sub_index_to_id_[0/*VERTEX*/]x[o+t_num]]);
-						cache_scatter(tJ + 8 * 1, f * w * vx * charge, rx, ry, rz); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/]x[o+t_num]]);
-						cache_scatter(tJ + 8 * 2, f * w * vy * charge, rx, ry, rz); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][1]]);
-						cache_scatter(tJ + 8 * 3, f * w * vz * charge, rx, ry, rz); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][2]]);
+//						cache_scatter(tJ + 8 * 0, f * w * charge, rx, ry, rz); //, id_to_shift_[sub_index_to_id_[0/*VERTEX*/]x[o+t_num]]);
+//						cache_scatter(tJ + 8 * 1, f * w * vx * charge, rx, ry, rz); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/]x[o+t_num]]);
+//						cache_scatter(tJ + 8 * 2, f * w * vy * charge, rx, ry, rz); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][1]]);
+//						cache_scatter(tJ + 8 * 3, f * w * vz * charge, rx, ry, rz); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][2]]);
 #ifdef ENABLE_SOA
-								pd->r[0][s] = rx;
-								pd->r[1][s] = ry;
-								pd->r[2][s] = rz;
+						pd->r[0][s] = rx;
+						pd->r[1][s] = ry;
+						pd->r[2][s] = rz;
 
-								pd->v[0][s] = vx;
-								pd->v[1][s] = vy;
-								pd->v[2][s] = vz;
+						pd->v[0][s] = vx;
+						pd->v[1][s] = vy;
+						pd->v[2][s] = vz;
 #else
 						p->r[0] = rx;
 						p->r[1] = ry;
