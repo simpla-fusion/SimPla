@@ -21,7 +21,13 @@ struct boris_buffer_s
 	Real f[boris_buffer_s_DEPTH];
 	Real w[boris_buffer_s_DEPTH];
 };
-
+struct boris_page_s
+{
+	Real __align__(32) r[3][SP_NUMBER_OF_ENTITIES_IN_PAGE];
+	Real __align__(64) v[3][SP_NUMBER_OF_ENTITIES_IN_PAGE];
+	Real __align__(32) f[SP_NUMBER_OF_ENTITIES_IN_PAGE];
+	Real __align__(32) w[SP_NUMBER_OF_ENTITIES_IN_PAGE];
+};
 struct __align__(64) boris_point_s
 {
 	POINT_HEAD

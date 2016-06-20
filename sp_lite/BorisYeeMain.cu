@@ -46,7 +46,7 @@ int main(int argc, char **argv)
 	spCreateParticle(mesh, &ps, sizeof(struct boris_point_s), NUMBER_OF_PIC);
 	spInitializeParticle_BorisYee(mesh, ps, NUMBER_OF_PIC);
 
-	int count = 1;
+	int count = 5;
 	Real dt = 1.0;
 
 	spWriteField(mesh, fE, "/start/E", SP_NEW);

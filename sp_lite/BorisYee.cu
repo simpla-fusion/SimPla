@@ -117,36 +117,36 @@ void spInitializeParticle_BorisYee(spMesh *ctx, sp_particle_type *sp, size_type 
 #define IY  CACHE_EXTENT_X
 #define IZ  CACHE_EXTENT_X*CACHE_EXTENT_Y
 __device__
-void cache_gather(Real *v, Real const *f, Real const *r)
+void cache_gather(Real *v, Real const *f, Real rx, Real ry, Real rz)
 {
 
-	*v = f[ IX + IY + IZ /*  */] * (r[0] - ll) * (r[1] - ll) * (r[2] - ll)
-			+ f[ IX + IY /*     */] * (r[0] - ll) * (r[1] - ll) * (rr - r[2])
-			+ f[ IX + IZ /*     */] * (r[0] - ll) * (rr - r[1]) * (r[2] - ll)
-			+ f[ IX /*          */] * (r[0] - ll) * (rr - r[1]) * (rr - r[2])
-			+ f[ IY + IZ /*     */] * (rr - r[0]) * (r[1] - ll) * (r[2] - ll)
-			+ f[ IY /*          */] * (rr - r[0]) * (r[1] - ll) * (rr - r[2])
-			+ f[ IZ /*          */] * (rr - r[0]) * (rr - r[1]) * (r[2] - ll)
-			+ f[0 /*               */] * (rr - r[0]) * (rr - r[1]) * (rr - r[2]);
+	*v = f[ IX + IY + IZ /*  */] * (rx - ll) * (ry - ll) * (rz - ll)
+			+ f[ IX + IY /*     */] * (rx - ll) * (ry - ll) * (rr - rz)
+			+ f[ IX + IZ /*     */] * (rx - ll) * (rr - ry) * (rz - ll)
+			+ f[ IX /*          */] * (rx - ll) * (rr - ry) * (rr - rz)
+			+ f[ IY + IZ /*     */] * (rr - rx) * (ry - ll) * (rz - ll)
+			+ f[ IY /*          */] * (rr - rx) * (ry - ll) * (rr - rz)
+			+ f[ IZ /*          */] * (rr - rx) * (rr - ry) * (rz - ll)
+			+ f[0 /*               */] * (rr - rx) * (rr - ry) * (rr - rz);
 }
 __device__
-void cache_scatter(Real *f, Real v, Real const *r)
+void cache_scatter(Real *f, Real v, Real rx, Real ry, Real rz)
 {
-	atomicAdd(&(f[ IX + IY + IZ /*  */]), v * (r[0] - ll) * (r[1] - ll) * (r[2] - ll));
-	atomicAdd(&(f[ IX + IY /*       */]), v * (r[0] - ll) * (r[1] - ll) * (rr - r[2]));
-	atomicAdd(&(f[ IX + IZ /*       */]), v * (r[0] - ll) * (rr - r[1]) * (r[2] - ll));
-	atomicAdd(&(f[ IX /*            */]), v * (r[0] - ll) * (rr - r[1]) * (rr - r[2]));
-	atomicAdd(&(f[ IY + IZ /*       */]), v * (rr - r[0]) * (r[1] - ll) * (r[2] - ll));
-	atomicAdd(&(f[ IY /*            */]), v * (rr - r[0]) * (r[1] - ll) * (rr - r[2]));
-	atomicAdd(&(f[ IZ /*            */]), v * (rr - r[0]) * (rr - r[1]) * (r[2] - ll));
-	atomicAdd(&(f[0 /*              */]), v * (rr - r[0]) * (rr - r[1]) * (rr - r[2]));
+	atomicAdd(&(f[ IX + IY + IZ /*  */]), v * (rx - ll) * (ry - ll) * (rz - ll));
+	atomicAdd(&(f[ IX + IY /*       */]), v * (rx - ll) * (ry - ll) * (rr - rz));
+	atomicAdd(&(f[ IX + IZ /*       */]), v * (rx - ll) * (rr - ry) * (rz - ll));
+	atomicAdd(&(f[ IX /*            */]), v * (rx - ll) * (rr - ry) * (rr - rz));
+	atomicAdd(&(f[ IY + IZ /*       */]), v * (rr - rx) * (ry - ll) * (rz - ll));
+	atomicAdd(&(f[ IY /*            */]), v * (rr - rx) * (ry - ll) * (rr - rz));
+	atomicAdd(&(f[ IZ /*            */]), v * (rr - rx) * (rr - ry) * (rz - ll));
+	atomicAdd(&(f[0 /*              */]), v * (rr - rx) * (rr - ry) * (rr - rz));
 }
 
-#undef ll
-#undef rr
-#undef IX
-#undef IY
-#undef IZ
+//#undef ll
+//#undef rr
+//#undef IX
+//#undef IY
+//#undef IZ
 #define _R 1.0
 MC_CONSTANT Real id_to_shift_[][3] =
 { //
@@ -172,89 +172,92 @@ MC_CONSTANT int cache_cell_offset_tag[CACHE_SIZE] =
 MC_CONSTANT size_type cache_cell_offset[CACHE_SIZE] =
 { };
 #undef _R
-
-__device__
-inline void spBorisPushOne(struct boris_point_s const *p0, struct boris_point_s *p1, Real dt, Real q, Real m,
-		Real const ** tE, Real const ** tB, Real ** tJ, const float3 inv_dx)
-{
-
-	Real E[3], B[3];
-
-	cache_gather(&E[0], tE[0], p0->r); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][0]]);
-	cache_gather(&E[1], tE[1], p0->r); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][1]]);
-	cache_gather(&E[2], tE[2], p0->r); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][2]]);
-
-	cache_gather(&B[0], tB[0], p0->r); //, id_to_shift_[sub_index_to_id_[2/*FACE*/][0]]);
-	cache_gather(&B[1], tB[1], p0->r); //, id_to_shift_[sub_index_to_id_[2/*FACE*/][1]]);
-	cache_gather(&B[2], tB[2], p0->r); //, id_to_shift_[sub_index_to_id_[2/*FACE*/][2]]);
-
-	p1->r[0] = p0->r[0] + p0->v[0] * dt * 0.5 * inv_dx.x;
-	p1->r[1] = p0->r[1] + p0->v[1] * dt * 0.5 * inv_dx.y;
-	p1->r[2] = p0->r[2] + p0->v[2] * dt * 0.5 * inv_dx.z;
-
-	Real v_[3], t[3];
-
-	t[0] = B[0] * (q / m * dt * 0.5);
-	t[1] = B[1] * (q / m * dt * 0.5);
-	t[2] = B[2] * (q / m * dt * 0.5);
-
-	p1->v[0] = p0->v[0] + E[0] * (q / m * dt * 0.5);
-	p1->v[1] = p0->v[1] + E[1] * (q / m * dt * 0.5);
-	p1->v[2] = p0->v[2] + E[2] * (q / m * dt * 0.5);
-
-	v_[0] = p1->v[0] + (p1->v[1] * t[2] - p1->v[2] * t[1]);
-	v_[1] = p1->v[1] + (p1->v[2] * t[0] - p1->v[0] * t[2]);
-	v_[2] = p1->v[2] + (p1->v[0] * t[1] - p1->v[1] * t[0]);
-
-	Real tt = t[0] * t[0] + t[1] * t[1] + t[2] * t[2] + 1.0;
-
-	p1->v[0] += (v_[1] * t[2] - v_[2] * t[1]) * 2.0 / tt;
-	p1->v[1] += (v_[2] * t[0] - v_[0] * t[2]) * 2.0 / tt;
-	p1->v[2] += (v_[0] * t[1] - v_[1] * t[0]) * 2.0 / tt;
-
-	p1->v[0] += E[0] * (q / m * dt * 0.5);
-	p1->v[1] += E[1] * (q / m * dt * 0.5);
-	p1->v[2] += E[2] * (q / m * dt * 0.5);
-
-	p1->r[0] += p1->v[0] * dt * 0.5 * inv_dx.x;
-	p1->r[1] += p1->v[1] * dt * 0.5 * inv_dx.y;
-	p1->r[2] += p1->v[2] * dt * 0.5 * inv_dx.z;
-
-//	cache_scatter(tJ[0], p1->f * p1->w * q, p1->r); //, id_to_shift_[sub_index_to_id_[0/*VERTEX*/][0]]);
-//	cache_scatter(tJ[1], p1->f * p1->w * p1->v[0] * q, p1->r); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][0]]);
-//	cache_scatter(tJ[2], p1->f * p1->w * p1->v[1] * q, p1->r); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][1]]);
-//	cache_scatter(tJ[3], p1->f * p1->w * p1->v[2] * q, p1->r); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][2]]);
-
-}
+//
+//__device__
+//inline void spBorisPushOne(struct boris_point_s const *p0, struct boris_point_s *p1, Real dt, Real q, Real m,
+//		Real const * tE, Real const * tB, Real * tJ, const float3 inv_dx)
+//{
+//
+//	Real E[3], B[3];
+//
+//	cache_gather(&E[0], tE + CACHE_SIZE * 0, p0->r); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][0]]);
+//	cache_gather(&E[1], tE + CACHE_SIZE * 1, p0->r); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][1]]);
+//	cache_gather(&E[2], tE + CACHE_SIZE * 2, p0->r); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][2]]);
+//
+//	cache_gather(&B[0], tB + CACHE_SIZE * 0, p0->r); //, id_to_shift_[sub_index_to_id_[2/*FACE*/][0]]);
+//	cache_gather(&B[1], tB + CACHE_SIZE * 1, p0->r); //, id_to_shift_[sub_index_to_id_[2/*FACE*/][1]]);
+//	cache_gather(&B[2], tB + CACHE_SIZE * 2, p0->r); //, id_to_shift_[sub_index_to_id_[2/*FACE*/][2]]);
+//
+//	p1->r[0] = p0->r[0] + p0->v[0] * dt * 0.5 * inv_dx.x;
+//	p1->r[1] = p0->r[1] + p0->v[1] * dt * 0.5 * inv_dx.y;
+//	p1->r[2] = p0->r[2] + p0->v[2] * dt * 0.5 * inv_dx.z;
+//
+//	Real v_[3], t[3];
+//
+//	t[0] = B[0] * (q / m * dt * 0.5);
+//	t[1] = B[1] * (q / m * dt * 0.5);
+//	t[2] = B[2] * (q / m * dt * 0.5);
+//
+//	p1->v[0] = p0->v[0] + E[0] * (q / m * dt * 0.5);
+//	p1->v[1] = p0->v[1] + E[1] * (q / m * dt * 0.5);
+//	p1->v[2] = p0->v[2] + E[2] * (q / m * dt * 0.5);
+//
+//	v_[0] = p1->v[0] + (p1->v[1] * t[2] - p1->v[2] * t[1]);
+//	v_[1] = p1->v[1] + (p1->v[2] * t[0] - p1->v[0] * t[2]);
+//	v_[2] = p1->v[2] + (p1->v[0] * t[1] - p1->v[1] * t[0]);
+//
+//	Real tt = t[0] * t[0] + t[1] * t[1] + t[2] * t[2] + 1.0;
+//
+//	p1->v[0] += (v_[1] * t[2] - v_[2] * t[1]) * 2.0 / tt;
+//	p1->v[1] += (v_[2] * t[0] - v_[0] * t[2]) * 2.0 / tt;
+//	p1->v[2] += (v_[0] * t[1] - v_[1] * t[0]) * 2.0 / tt;
+//
+//	p1->v[0] += E[0] * (q / m * dt * 0.5);
+//	p1->v[1] += E[1] * (q / m * dt * 0.5);
+//	p1->v[2] += E[2] * (q / m * dt * 0.5);
+//
+//	p1->r[0] += p1->v[0] * dt * 0.5 * inv_dx.x;
+//	p1->r[1] += p1->v[1] * dt * 0.5 * inv_dx.y;
+//	p1->r[2] += p1->v[2] * dt * 0.5 * inv_dx.z;
+//
+//	cache_scatter(tJ + CACHE_SIZE * 0, p1->f * p1->w * q, p1->r); //, id_to_shift_[sub_index_to_id_[0/*VERTEX*/][0]]);
+//	cache_scatter(tJ + CACHE_SIZE * 1, p1->f * p1->w * p1->v[0] * q, p1->r); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][0]]);
+//	cache_scatter(tJ + CACHE_SIZE * 2, p1->f * p1->w * p1->v[1] * q, p1->r); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][1]]);
+//	cache_scatter(tJ + CACHE_SIZE * 3, p1->f * p1->w * p1->v[2] * q, p1->r); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][2]]);
+//
+//}
 
 /******************************************************************************************/
+#define NUMBER_OF_THREAD 128
+
+//#define DISABLE_SOA
 
 __global__ void spUpdateParticle_BorisYee_Kernel(spMesh *m, Real dt, Real charge, Real mass, //
 		int lower_x, int lower_y, int lower_z, int upper_x, int upper_y, int upper_z, //
 		size_type entity_size_in_byte, spPage** buckets, const Real *fE, const Real *fB, Real *fRho, Real *fJ)
 {
 
-	int x_lower = lower_x + (blockIdx.x * (upper_x - lower_x)) / gridDim.x;
-	int y_lower = lower_y + (blockIdx.y * (upper_y - lower_y)) / gridDim.y;
-	int z_lower = lower_z + (blockIdx.z * (upper_z - lower_z)) / gridDim.z;
-	int x_upper = lower_x + ((blockIdx.x + 1) * (upper_x - lower_x)) / gridDim.x;
-	int y_upper = lower_y + ((blockIdx.y + 1) * (upper_y - lower_y)) / gridDim.y;
-	int z_upper = lower_z + ((blockIdx.z + 1) * (upper_z - lower_z)) / gridDim.z;
 	int dim_x = m->dims.x;
 	int dim_y = m->dims.y;
 	int dim_z = m->dims.z;
 	int total_g_num = dim_x * dim_y * dim_z;
 
-	int t_num = threadIdx.x + (threadIdx.y + threadIdx.z * blockDim.y) * blockDim.x;
-	assert(blockDim.y* blockDim.x* blockDim.z==CACHE_SIZE);
-	__shared__ Real ttE[3][CACHE_SIZE], ttB[3][CACHE_SIZE], ttJ[4][CACHE_SIZE];
-	__shared__ struct boris_point_s p_buffer;
+	const int t_num = threadIdx.x + (threadIdx.y + threadIdx.z * blockDim.y) * blockDim.x;
 
-	__shared__ int buffer_tail;
+	const int num_t = blockDim.x * blockDim.y * blockDim.z;
 
-	for (int g_x = x_lower; g_x < x_upper; ++g_x)
-		for (int g_y = y_lower; g_y < y_upper; ++g_y)
-			for (int g_z = z_lower; g_z < z_upper; ++g_z)
+	const Real inv_dx = m->inv_dx.x;
+	const Real inv_dy = m->inv_dx.y;
+	const Real inv_dz = m->inv_dx.z;
+
+	__shared__ Real tE[24], tB[3 * 8], tJ[4 * 8];
+
+	for (int g_x = (lower_x + (blockIdx.x * (upper_x - lower_x)) / gridDim.x), //
+			x_upper = (lower_x + ((blockIdx.x + 1) * (upper_x - lower_x)) / gridDim.x); g_x < x_upper; ++g_x)
+		for (int g_y = (lower_y + (blockIdx.y * (upper_y - lower_y)) / gridDim.y), //
+				y_upper = (lower_y + ((blockIdx.y + 1) * (upper_y - lower_y)) / gridDim.y); g_y < y_upper; ++g_y)
+			for (int g_z = (lower_z + (blockIdx.z * (upper_z - lower_z)) / gridDim.z), //
+					z_upper = (lower_z + ((blockIdx.z + 1) * (upper_z - lower_z)) / gridDim.z); g_z < z_upper; ++g_z)
 			{
 				int g_num = g_x + (g_y + g_z * dim_y) * dim_x;
 
@@ -264,70 +267,141 @@ __global__ void spUpdateParticle_BorisYee_Kernel(spMesh *m, Real dt, Real charge
 				int g_f_y = (g_y + threadIdx.y + dim_y - RADIUS) % dim_y;
 				int g_f_z = (g_z + threadIdx.z + dim_z - RADIUS) % dim_z;
 				int g_f_num = g_f_x + (g_f_y + g_f_z * dim_y) * dim_x;
-				int t_ox = RADIUS + (RADIUS + RADIUS * blockDim.y) * blockDim.x;
 
-//				{
-//#ifndef DEFAULT_SoA
-//					ttE[0][t_num] = fE[g_f_num * 3 + 0];
-//					ttE[1][t_num] = fE[g_f_num * 3 + 1];
-//					ttE[2][t_num] = fE[g_f_num * 3 + 2];
-//
-//					ttB[0][t_num] = fB[g_f_num * 3 + 0];
-//					ttB[1][t_num] = fB[g_f_num * 3 + 1];
-//					ttB[2][t_num] = fB[g_f_num * 3 + 2];
-//
-//#else
-//					ttE[0][t_num] = fE[g_f_num ];
-//					ttE[1][t_num] = fE[g_f_num + total_g_num];
-//					ttE[2][t_num] = fE[g_f_num + total_g_num*2];
-//
-//					ttE[0][t_num] = fE[g_f_num ];
-//					ttE[1][t_num] = fE[g_f_num + total_g_num];
-//					ttE[2][t_num] = fE[g_f_num + total_g_num*2];
-//
-//#endif
-//					ttJ[0][t_num] = 0;
-//					ttJ[1][t_num] = 0;
-//					ttJ[2][t_num] = 0;
-//					ttJ[3][t_num] = 0;
-//
-//				}
-//
-
-				if (t_num == 0)
+//				if (threadIdx.x < CACHE_EXTENT_X && threadIdx.y < CACHE_EXTENT_Y && threadIdx.z < CACHE_EXTENT_Y)
 				{
-//					p_buffer = (byte_type*) malloc(boris_buffer_s_DEPTH * entity_size_in_byte);
-					buffer_tail = 0;
+//					tE[0][threadIdx.x % blockDim.x][threadIdx.y % blockDim.y][threadIdx.z % blockDim.z] = fE[g_f_num * 3
+//							+ 0];
+//					tE[1][threadIdx.x % blockDim.x][threadIdx.y % blockDim.y][threadIdx.z % blockDim.z] = fE[g_f_num * 3
+//							+ 0];
+//					tE[2][threadIdx.x % blockDim.x][threadIdx.y % blockDim.y][threadIdx.z % blockDim.z] = fE[g_f_num * 3
+//							+ 0];
+
+//					tE[0 * CACHE_SIZE + t_num] = fE[g_f_num * 3 + 0];
+//					tE[1 * CACHE_SIZE + t_num] = fE[g_f_num * 3 + 1];
+//					tE[2 * CACHE_SIZE + t_num] = fE[g_f_num * 3 + 2];
+//
+//					tB[0 * CACHE_SIZE + t_num] = fB[g_f_num * 3 + 0];
+//					tB[1 * CACHE_SIZE + t_num] = fB[g_f_num * 3 + 1];
+//					tB[2 * CACHE_SIZE + t_num] = fB[g_f_num * 3 + 2];
+//
+//					tJ[0 * CACHE_SIZE + t_num] = 0;
+//					tJ[1 * CACHE_SIZE + t_num] = 0;
+//					tJ[2 * CACHE_SIZE + t_num] = 0;
+//					tJ[3 * CACHE_SIZE + t_num] = 0;
+
 				}
 
 				__syncthreads();
 
 				spPage *src = buckets[g_f_num];
 
-				int count = 0;
-				int pos;
-
-				// FIXME DANGAURE!!! if buffer overflow then particle will be abandoned.
-
-				bucket_entity_flag_t tag = 0x1;
-				bucket_entity_flag_t check_flag = 0x0;
-
-				byte_type *p0 = src->data;
-
-				while ((pos = atomicAdd(&buffer_tail, 1)) < boris_buffer_s_DEPTH)
+				while (src != 0x0)
 				{
-					assert(src->flag == ~0);
 
-					byte_type *p1 = (byte_type *) &p_buffer; // + pos * entity_size_in_byte;
+#ifdef ENABLE_SOA
 
-//					if ((src->flag & tag != 0) && (((spEntity_s*) p0)->tag & 0x3F) == check_flag)
+					struct boris_page_s * pd = (struct boris_page_s *) src->data;
+
+#endif
+
+					for (int s = t_num; s < SP_NUMBER_OF_ENTITIES_IN_PAGE; s += num_t)
 					{
+#ifdef ENABLE_SOA
 
-						spBorisPushOne((struct boris_point_s const *) p0, (struct boris_point_s *) p1, dt, charge, mass, //
-								(Real const **) ttE, (Real const**) ttB, (Real **) ttJ, m->inv_dx);
-						++count;
+						Real rx = pd->r[0][s], ry = pd->r[1][s], rz = pd->r[2][s];
+
+						Real vx = pd->v[0][s], vy = pd->v[1][s], vz = pd->v[2][s];
+
+						Real f = pd->f[s], w = pd->w[s];
+
+#else
+
+						struct boris_point_s *p = (struct boris_point_s *) (src->data + s * entity_size_in_byte);
+
+						Real rx = p->r[0], ry = p->r[1], rz = p->r[2];
+
+						Real vx = p->v[0], vy = p->v[1], vz = p->v[2];
+
+						Real f = p->f, w = p->w;
+#endif
+						Real v_x, v_y, v_z;
+
+						Real tx, ty, tz;
+
+						Real Bx, By, Bz, Ex, Ey, Ez;
+
+						cache_gather(&Ex, tE + 8 * 0, rx, ry, rz); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][0]]);
+						cache_gather(&Ey, tE + 8 * 1, rx, ry, rz); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][1]]);
+						cache_gather(&Ez, tE + 8 * 2, rx, ry, rz); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][2]]);
+
+						cache_gather(&Bx, tB + 8 * 0, rx, ry, rz); //, id_to_shift_[sub_index_to_id_[2/*FACE*/][0]]);
+						cache_gather(&By, tB + 8 * 1, rx, ry, rz); //, id_to_shift_[sub_index_to_id_[2/*FACE*/][1]]);
+						cache_gather(&Bz, tB + 8 * 2, rx, ry, rz); //, id_to_shift_[sub_index_to_id_[2/*FACE*/][2]]);
+
+						rx += vx * dt * 0.5 * inv_dx;
+						ry += ry * dt * 0.5 * inv_dy;
+						rz += rz * dt * 0.5 * inv_dz;
+
+						tx = Bx * (charge / mass * dt * 0.5);
+						ty = By * (charge / mass * dt * 0.5);
+						tz = Bz * (charge / mass * dt * 0.5);
+
+						vx = vx + Ex * (charge / mass * dt * 0.5);
+						ry = ry + Ey * (charge / mass * dt * 0.5);
+						rz = rz + Ez * (charge / mass * dt * 0.5);
+
+						v_x = vx + (ry * tz - rz * ty);
+						v_y = ry + (rz * tx - vx * tz);
+						v_z = rz + (vx * ty - ry * tx);
+
+						vx += (v_y * tz - v_z * ty) * 2.0 / (tx * tx + ty * ty + tz * tz + 1.0);
+						ry += (v_z * tx - v_x * tz) * 2.0 / (tx * tx + ty * ty + tz * tz + 1.0);
+						rz += (v_x * ty - v_y * tx) * 2.0 / (tx * tx + ty * ty + tz * tz + 1.0);
+
+						vx += Ex * (charge / mass * dt * 0.5);
+						ry += Ey * (charge / mass * dt * 0.5);
+						rz += Ez * (charge / mass * dt * 0.5);
+
+						rx += vx * dt * 0.5 * inv_dx;
+						ry += vy * dt * 0.5 * inv_dy;
+						rz += vz * dt * 0.5 * inv_dz;
+
+						cache_scatter(tJ + 8 * 0, f * w * charge, rx, ry, rz); //, id_to_shift_[sub_index_to_id_[0/*VERTEX*/]x[o+t_num]]);
+						cache_scatter(tJ + 8 * 1, f * w * vx * charge, rx, ry, rz); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/]x[o+t_num]]);
+						cache_scatter(tJ + 8 * 2, f * w * vy * charge, rx, ry, rz); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][1]]);
+						cache_scatter(tJ + 8 * 3, f * w * vz * charge, rx, ry, rz); //, id_to_shift_[sub_index_to_id_[1/*EDGE*/][2]]);
+#ifdef ENABLE_SOA
+								pd->r[0][s] = rx;
+								pd->r[1][s] = ry;
+								pd->r[2][s] = rz;
+
+								pd->v[0][s] = vx;
+								pd->v[1][s] = vy;
+								pd->v[2][s] = vz;
+#else
+						p->r[0] = rx;
+						p->r[1] = ry;
+						p->r[2] = rz;
+
+						p->v[0] = vx;
+						p->v[1] = vy;
+						p->v[2] = vz;
+#endif
 
 					}
+					__syncthreads();
+
+					src = src->next;
+				}        //	for (int n = 0; n < CACHE_SIZE; ++n)
+
+			}
+//	atomicAdd(&(fRho[g_f_num]), ttJ[0][t_num]);
+//	atomicAdd(&(fJ[g_f_num * 3 + 0]), ttJ[1][t_num]);
+//	atomicAdd(&(fJ[g_f_num * 3 + 1]), ttJ[2][t_num]);
+//	atomicAdd(&(fJ[g_f_num * 3 + 2]), ttJ[3][t_num]);
+}
+
 //		if (t_num == 0 && g_f_num == 0)
 //		{
 //			printf("page flag = %x,  tag=%x, r=[%d,%d,%d], v=[%d,%d,%d], f= %d, w=%d, \n",
@@ -338,38 +412,6 @@ __global__ void spUpdateParticle_BorisYee_Kernel(spMesh *m, Real dt, Real charge
 //					((struct boris_point_s const *) p0)->v[2], ((struct boris_point_s const *) p0)->f,
 //					((struct boris_point_s const *) p0)->w);
 //		}
-
-					tag <<= 1;
-					p0 += entity_size_in_byte;
-					if (tag == 0x0)
-					{
-						src = src->next;
-						if (src == 0x0)
-						{
-							break;
-						}
-						else
-						{
-							p0 = src->data;
-							tag = 0x1;
-						}
-					}
-
-				}        //	for (int n = 0; n < CACHE_SIZE; ++n)
-
-				__syncthreads();
-
-//				if (t_num == 0)
-//				{
-//					free(p_buffer);
-//				}
-			}
-//	atomicAdd(&(fRho[g_f_num]), ttJ[0][t_num]);
-//	atomicAdd(&(fJ[g_f_num * 3 + 0]), ttJ[1][t_num]);
-//	atomicAdd(&(fJ[g_f_num * 3 + 1]), ttJ[2][t_num]);
-//	atomicAdd(&(fJ[g_f_num * 3 + 2]), ttJ[3][t_num]);
-}
-
 void spUpdateParticle_BorisYee(spMesh *ctx, Real dt, sp_particle_type *pg, const sp_field_type *fE,
 		const sp_field_type *fB, sp_field_type *fRho, sp_field_type *fJ)
 {
@@ -386,13 +428,11 @@ void spUpdateParticle_BorisYee(spMesh *ctx, Real dt, sp_particle_type *pg, const
 //			(const sp_field_type *) spObject_device_((spObject*) fB),
 //			(sp_field_type *) spObject_device_((spObject*) fRho), (sp_field_type *) spObject_device_((spObject*) fJ));
 	dim3 grid_dim;
-	grid_dim.x = 4;
-	grid_dim.y = 4;
-	grid_dim.z = 1;
-	cudaStream_t s1;
-	cudaStreamCreate(&s1);
+	grid_dim.x = 8;
+	grid_dim.y = 8;
+	grid_dim.z = 4;
 
-	spUpdateParticle_BorisYee_Kernel<<<grid_dim, ctx->threadsPerBlock, 0, s1>>>( //
+	spUpdateParticle_BorisYee_Kernel<<<grid_dim, NUMBER_OF_THREAD>>>( //
 			(spMesh*) (ctx->device_self), //
 			dt, pg->charge, pg->mass, //
 			ctx->x_lower.x, ctx->x_lower.y, ctx->x_lower.z, //
@@ -404,8 +444,6 @@ void spUpdateParticle_BorisYee(spMesh *ctx, Real dt, sp_particle_type *pg, const
 			((Real*) fRho->device_data), //
 			((Real*) fJ->device_data) //
 			);
-	cudaStreamSynchronize(s1); //wait for boundary
-	cudaStreamDestroy(s1);
 
 //	spSyncParticle(ctx, pg);
 //	spSyncField(ctx, fJ);
@@ -459,14 +497,17 @@ void spUpdateField_Yee(spMesh *ctx, Real dt, const sp_field_type *fRho, const sp
 //			(sp_field_type *) spObject_device_((spObject*) fE), (sp_field_type *) spObject_device_((spObject*) fB));
 
 	dim3 grid_dim;
-	grid_dim.x = 2;
-	grid_dim.y = 2;
-	grid_dim.z = 2;
-
+	grid_dim.x = 4;
+	grid_dim.y = 4;
+	grid_dim.z = 4;
+	dim3 t_per_block;
+	t_per_block.x = 8;
+	t_per_block.y = 4;
+	t_per_block.z = 4;
 //	grid_dim.x = ctx->private_block.x / ctx->threadsPerBlock.x;
 //	grid_dim.y = ctx->private_block.y / ctx->threadsPerBlock.y;
 //	grid_dim.z = ctx->private_block.z / ctx->threadsPerBlock.z;
-	spUpdateField_Yee_kernel<<<grid_dim, ctx->threadsPerBlock>>>( //
+	spUpdateField_Yee_kernel<<<grid_dim, t_per_block>>>( //
 			(spMesh*) (ctx->device_self), dt,        //
 			((Real*) fRho->device_data), //
 			((Real*) fJ->device_data), //

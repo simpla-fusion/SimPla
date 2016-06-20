@@ -11,7 +11,6 @@
 #include "sp_def.h"
 
 // digits of bucket_page_status_flag_t
-#define SP_NUMBER_OF_ENTITIES_IN_PAGE 64
 
 typedef uint64_t bucket_entity_flag_t;
 
