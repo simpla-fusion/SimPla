@@ -12,7 +12,6 @@
 
 struct spMesh_s
 {
-	SP_OBJECT_HEAD
 	float3 dx;
 
 	int ndims;
@@ -35,16 +34,18 @@ struct spMesh_s
 
 typedef struct spMesh_s spMesh;
 
-MC_HOST void spCreateMesh(spMesh **ctx);
+void spCreateMesh(spMesh **ctx);
 
-MC_HOST void spDestroyMesh(spMesh **ctx);
+void spDestroyMesh(spMesh **ctx);
 
-MC_HOST void spInitializeMesh(spMesh *self);
+void spInitializeMesh(spMesh *self);
 
-MC_HOST int spWriteMesh(const spMesh *ctx, const char *name, int flag);
+int spWriteMesh(const spMesh *ctx, const char *name, int flag);
 
-MC_HOST int spReadMesh(spMesh *ctx, char const name[], int flag);
+int spReadMesh(spMesh *ctx, char const name[], int flag);
 
-MC_HOST_DEVICE size_type spMeshGetNumberOfEntity(spMesh const *, int iform);
+size_type spMeshGetNumberOfEntity(spMesh const *, int iform);
+
+
 
 #endif /* SPMESH_H_ */

@@ -13,7 +13,7 @@
 // digits of bucket_page_status_flag_t
 #define SP_NUMBER_OF_ENTITIES_IN_PAGE 128
 
-typedef unsigned int bucket_entity_flag_t;
+typedef unsigned int bucket_entity_flag_t ;
 
 /**
  * bucket_elements_head
@@ -46,11 +46,10 @@ typedef unsigned int bucket_entity_flag_t;
  */
 typedef byte_type spEntity;
 #define SP_PAGE_HEAD struct spPage_s *next;	bucket_entity_flag_t flag;
-#define SP_PAGE_HEAD_SIZE (sizeof(struct spPage_s *)+sizeof(bucket_entity_flag_t))
 typedef struct spPage_s
 {
 	SP_PAGE_HEAD
-	byte_type *data;
+	byte_type *data[];
 } spPage;
 
 /***************************************************************************/
@@ -277,169 +276,169 @@ MC_HOST_DEVICE extern inline size_type spPageCapacity(spPage const *p)
 {
 	return spPageSize(p) * SP_NUMBER_OF_ENTITIES_IN_PAGE;
 }
-
-/***************************************************************************/
-/*  Entity
- **/
-
-MC_HOST_DEVICE extern inline void spEntityClear(spPage *p)
-{
-	while (p != 0x0)
-	{
-		p->flag = 0x0;
-		p = p->next;
-	}
-}
-/**
- *  @return if success then return pointer to the first blank entity, and set flag to 1
- *                     else return 0x0
- */
-MC_HOST_DEVICE extern inline spEntity *
-spEntityInsert(spPage *pg, size_type entity_size_in_byte)
-{
-	spPage *t = pg;
-	bucket_entity_flag_t flag = 0x0;
-	return spEntityInsertWithHint(&t, &flag, entity_size_in_byte);
-}
-/**
- *  find first blank entity
- *  @param  flag  search from the 'flag'
- *           (default: flag=0x0, start from beginning),
- *
- *  @return if success then *p point to the page of result, flag point the position of result
- *                           and set flag to 1
- *                     else return 0x0, *p ,flag is undefined
- *
- */
-MC_HOST_DEVICE extern inline spEntity *
-spEntityInsertWithHint(spPage **pg, bucket_entity_flag_t *flag, size_type entity_size_in_byte)
-{
-	byte_type *res = 0x0;
-	if (*flag == 0x0)
-	{
-		*flag = 0x1;
-	}
-
-	while ((*pg) != 0)
-	{
-		res = (*pg)->data;
-
-		while (((*pg)->flag + 1 != 0x0) && *flag != 0x0)
-		{
-			if (((*pg)->flag & *flag) == 0x0)
-			{
-				(*pg)->flag |= *flag;
-				goto RETURN;
-			}
-
-			res += entity_size_in_byte;
-			*flag <<= 1;
-
-		}
-
-		*flag = 0x1;
-		pg = &(*pg)->next;
-
-	}
-	RETURN: return (spEntity *) res;
-}
+//
+///***************************************************************************/
+///*  Entity
+// **/
+//
+//MC_HOST_DEVICE extern inline void spEntityClear(spPage *p)
+//{
+//	while (p != 0x0)
+//	{
+//		p->flag = 0x0;
+//		p = p->next;
+//	}
+//}
+///**
+// *  @return if success then return pointer to the first blank entity, and set flag to 1
+// *                     else return 0x0
+// */
+//MC_HOST_DEVICE extern inline spEntity *
+//spEntityInsert(spPage *pg, size_type entity_size_in_byte)
+//{
+//	spPage *t = pg;
+//	bucket_entity_flag_t flag = 0x0;
+//	return spEntityInsertWithHint(&t, &flag, entity_size_in_byte);
+//}
+///**
+// *  find first blank entity
+// *  @param  flag  search from the 'flag'
+// *           (default: flag=0x0, start from beginning),
+// *
+// *  @return if success then *p point to the page of result, flag point the position of result
+// *                           and set flag to 1
+// *                     else return 0x0, *p ,flag is undefined
+// *
+// */
+//MC_HOST_DEVICE extern inline spEntity *
+//spEntityInsertWithHint(spPage **pg, bucket_entity_flag_t *flag, size_type entity_size_in_byte)
+//{
+////	byte_type *res = 0x0;
+////	if (*flag == 0x0)
+////	{
+////		*flag = 0x1;
+////	}
+////
+////	while ((*pg) != 0)
+////	{
+//////		res = (*pg)->data;
+////
+////		while (((*pg)->flag + 1 != 0x0) && *flag != 0x0)
+////		{
+////			if (((*pg)->flag & *flag) == 0x0)
+////			{
+////				(*pg)->flag |= *flag;
+////				goto RETURN;
+////			}
+////
+////			res += entity_size_in_byte;
+////			*flag <<= 1;
+////
+////		}
+////
+////		*flag = 0x1;
+////		pg = &(*pg)->next;
+////
+////	}
+//	RETURN: return (spEntity *) res;
+//}
 /**
  *  @return first entity after 'flag' , if flag=0x0 start from beginning
  *
  */
-MC_HOST_DEVICE extern inline spEntity *
-spEntityNext(spPage **pg, bucket_entity_flag_t *flag, size_type entity_size_in_byte)
-{
-
-	byte_type *res = 0x0;
-	if (*flag == 0x0)
-	{
-		*flag = 0x1;
-	}
-
-	while ((*pg) != 0)
-	{
-		res = (*pg)->data;
-
-		while (((*pg)->flag != 0x0) && *flag != 0x0)
-		{
-			if (((*pg)->flag & *flag) != 0x0)
-			{
-				goto RETURN;
-			}
-
-			res += entity_size_in_byte;
-			*flag <<= 1;
-
-		}
-
-		*flag = 0x1;
-		pg = &(*pg)->next;
-
-	}
-	RETURN: return (spEntity *) res;
-}
-
-MC_HOST_DEVICE extern inline void spEntityRemove(spPage *p, bucket_entity_flag_t flag)
-{
-	p->flag &= (~flag);
-}
-
-#ifndef DEFAULT_COPY
-#   define DEFAULT_COPY(_SRC_, _DEST_)  memcpy(_DEST_,_SRC_,entity_size_in_byte)
-#endif
-
-MC_HOST_DEVICE extern inline size_type spEntityCountIf(spPage *src, id_type tag, size_type entity_size_in_byte)
-{
+//MC_HOST_DEVICE extern inline spEntity *
+//spEntityNext(spPage **pg, bucket_entity_flag_t *flag, size_type entity_size_in_byte)
+//{
 //
-//	size_type count = 0;
-//
-//	spPage *pg = src;
-//
-//	bucket_entity_flag_t read_flag = 0x0;
-//
-//	for (spEntity *p; (p = spEntityNext(&pg, &read_flag, entity_size_in_byte)) != 0x0;)
+//	byte_type *res = 0x0;
+//	if (*flag == 0x0)
 //	{
-////		if ((p->flag & 0x3F) == tag)
-////		{
-////			++count;
-////		}
+//		*flag = 0x1;
 //	}
-	return 0;
-}
-
-MC_HOST_DEVICE extern inline void spEntityCopyIf(spPage *src, spPage **dest, id_type tag, size_type entity_size_in_byte)
-{
-
-//	spPage *pg = src;
 //
-//	bucket_entity_flag_t read_flag = 0x0;
-//
-//	spPage *write_buffer = 0x0;
-//
-//	bucket_entity_flag_t write_flag = 0x0;
-//
-//	for (spEntity *p0, *p1 = 0x0; (p0 = spEntityNext(&pg, &read_flag, entity_size_in_byte)) != 0x0;)
+//	while ((*pg) != 0)
 //	{
-////		if ((p0->tag & 0x3F) == tag)
-////		{
-////			if (write_flag == 0x0 || write_buffer == 0x0)
-////			{
-////				break;
-////			}
-////
-////			DEFAULT_COPY(p0, p1);
-////			p1->tag &= ~(0x3F); // clear tag
-////			write_buffer->flag |= write_flag;
-////			write_flag <<= 1;
-////			p1 = (spEntity *) (((byte_type *) p1) + entity_size_in_byte);
-////
-////		}
+//		res = (*pg)->data;
+//
+//		while (((*pg)->flag != 0x0) && *flag != 0x0)
+//		{
+//			if (((*pg)->flag & *flag) != 0x0)
+//			{
+//				goto RETURN;
+//			}
+//
+//			res += entity_size_in_byte;
+//			*flag <<= 1;
+//
+//		}
+//
+//		*flag = 0x1;
+//		pg = &(*pg)->next;
+//
 //	}
-}
-
-MC_HOST_DEVICE extern inline int spBucketEnternalSort(spPage **src, spPage **dest)
-{
-	return 0;
-}
+//	RETURN: return (spEntity *) res;
+//}
+//
+//MC_HOST_DEVICE extern inline void spEntityRemove(spPage *p, bucket_entity_flag_t flag)
+//{
+//	p->flag &= (~flag);
+//}
+//
+//#ifndef DEFAULT_COPY
+//#   define DEFAULT_COPY(_SRC_, _DEST_)  memcpy(_DEST_,_SRC_,entity_size_in_byte)
+//#endif
+//
+//MC_HOST_DEVICE extern inline size_type spEntityCountIf(spPage *src, id_type tag, size_type entity_size_in_byte)
+//{
+////
+////	size_type count = 0;
+////
+////	spPage *pg = src;
+////
+////	bucket_entity_flag_t read_flag = 0x0;
+////
+////	for (spEntity *p; (p = spEntityNext(&pg, &read_flag, entity_size_in_byte)) != 0x0;)
+////	{
+//////		if ((p->flag & 0x3F) == tag)
+//////		{
+//////			++count;
+//////		}
+////	}
+//	return 0;
+//}
+//
+//MC_HOST_DEVICE extern inline void spEntityCopyIf(spPage *src, spPage **dest, id_type tag, size_type entity_size_in_byte)
+//{
+//
+////	spPage *pg = src;
+////
+////	bucket_entity_flag_t read_flag = 0x0;
+////
+////	spPage *write_buffer = 0x0;
+////
+////	bucket_entity_flag_t write_flag = 0x0;
+////
+////	for (spEntity *p0, *p1 = 0x0; (p0 = spEntityNext(&pg, &read_flag, entity_size_in_byte)) != 0x0;)
+////	{
+//////		if ((p0->tag & 0x3F) == tag)
+//////		{
+//////			if (write_flag == 0x0 || write_buffer == 0x0)
+//////			{
+//////				break;
+//////			}
+//////
+//////			DEFAULT_COPY(p0, p1);
+//////			p1->tag &= ~(0x3F); // clear tag
+//////			write_buffer->flag |= write_flag;
+//////			write_flag <<= 1;
+//////			p1 = (spEntity *) (((byte_type *) p1) + entity_size_in_byte);
+//////
+//////		}
+////	}
+//}
+//
+//MC_HOST_DEVICE extern inline int spBucketEnternalSort(spPage **src, spPage **dest)
+//{
+//	return 0;
+//}
 #endif /* SPBUCKET_H_ */

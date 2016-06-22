@@ -25,9 +25,9 @@ int main(int argc, char **argv)
 	sp_field_type *fJ = 0x0;
 
 	spCreateMesh(&mesh);
-	mesh->dims.x = 256;
-	mesh->dims.y = 256;
-	mesh->dims.z = 256;
+	mesh->dims.x = 0x1F;
+	mesh->dims.y = 0x1F;
+	mesh->dims.z = 0x1F;
 	mesh->dx.x = 1;
 	mesh->dx.y = 1;
 	mesh->dx.z = 1;
@@ -43,8 +43,7 @@ int main(int argc, char **argv)
 	spClearField(mesh, fRho);
 
 	int NUMBER_OF_PIC = 256;
-	spCreateParticle(mesh, &ps, (sizeof(struct boris_page_s) - SP_PAGE_HEAD_SIZE) / SP_NUMBER_OF_ENTITIES_IN_PAGE,
-			NUMBER_OF_PIC);
+	spCreateParticle(mesh, &ps);
 	spInitializeParticle_BorisYee(mesh, ps, NUMBER_OF_PIC);
 
 	int count = 5;
@@ -54,11 +53,7 @@ int main(int argc, char **argv)
 	spWriteField(mesh, fB, "/start/B", SP_NEW);
 	spWriteField(mesh, fJ, "/start/J", SP_NEW);
 	spWriteField(mesh, fRho, "/start/rho", SP_NEW);
-#ifdef ENABLE_SOA
-	printf("====== Enable SOA ======\n");
-#else
-	printf("====== Enable AOS ======\n");
-#endif
+
 	while (count > 0)
 	{
 		printf("====== REMINED STEP= %i ======\n", count);
@@ -73,14 +68,13 @@ int main(int argc, char **argv)
 		--count;
 	}
 	printf("======  The End ======\n");
+	CUDA_CHECK_RETURN(cudaDeviceSynchronize()); // Wait for the GPU launched work to complete
 
 	spWriteField(mesh, fE, "/dump/E", SP_NEW);
 	spWriteField(mesh, fB, "/dump/B", SP_NEW);
 	spWriteField(mesh, fJ, "/dump/J", SP_NEW);
 	spWriteField(mesh, fRho, "/dump/rho", SP_NEW);
 	spWriteParticle(mesh, ps, "/dump/H", SP_NEW);
-
-	CUDA_CHECK_RETURN(cudaDeviceSynchronize()); // Wait for the GPU launched work to complete
 
 	spDestroyField(&fE);
 	spDestroyField(&fB);

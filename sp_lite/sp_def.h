@@ -22,14 +22,21 @@ typedef int64_t index_type;
 typedef uint64_t size_type;
 enum
 {
-	SP_NEW = 1UL << 1, SP_APPEND = 1UL << 2, SP_BUFFER = (1UL << 3), SP_RECORD = (1UL << 4)
+	SP_TYPE_FLOAT, SP_TYPE_DOUBLE, SP_TYPE_INT, SP_TYPE_LONG, SP_TYPE_OPAQUE
 };
+#define SP_TYPE_REAL SP_TYPE_FLOAT
 
 enum
 {
-	SP_INT, SP_LONG, SP_DOUBLE, SP_FLOAT, SP_OPAQUE
+	SP_NEW = 1UL << 1, SP_APPEND = 1UL << 2, SP_BUFFER = (1UL << 3), SP_RECORD = (1UL << 4)
 };
+
 #ifdef __CUDACC__
+
+#ifndef NUMBER_OF_THREADS_PER_BLOCK
+#	define NUMBER_OF_THREADS_PER_BLOCK 128
+#endif //NUMBER_OF_THREADS_PER_BLOCK
+
 #if !defined(__CUDA_ARCH__)
 #define MC_HOST_DEVICE
 #define MC_HOST
@@ -62,7 +69,7 @@ enum
 		 printf(  "[line %d in file %s]\n %s = %d \n",					\
 				 __LINE__, __FILE__,__STRING(_CMD_),(_CMD_));
 #else
-#define CUDA_CHECK(_CMD_) printf(  "[line %d in file %s : block=[%i,%i,%i] thread=[%i,%i,%i] ]\t %s = %d\n",					\
+#	define CUDA_CHECK(_CMD_) printf(  "[line %d in file %s : block=[%i,%i,%i] thread=[%i,%i,%i] ]\t %s = %d\n",					\
 		 __LINE__, __FILE__,blockIdx.x, blockIdx.y, blockIdx.z, threadIdx.x , threadIdx.y, threadIdx.z, __STRING(_CMD_),(_CMD_));
 #endif
 #define DONE	 	printf( "====== DONE ======\n" );

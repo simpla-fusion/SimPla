@@ -8,43 +8,53 @@
 #ifndef SPPARTICLE_H_
 #define SPPARTICLE_H_
 
-#include "spObject.h"
+#include "sp_def.h"
 #include "spPage.h"
 #include "spMesh.h"
 
+struct spParticleDesc_attr_entity_s
+{
+	size_type size_in_byte;
+	size_type type_tag;
+	char name[255];
+	byte_type * data;
+};
+#define SP_MAX_NUMBER_OF_PARTICLE_ATTR 32
 
 struct spParticleSpecies_s
 {
-	SP_OBJECT_HEAD
+
 	Real mass;
 	Real charge;
-	size_type entity_size_in_byte;
+
+	size_type number_of_pages_per_cell;
+	size_type max_number_of_particles;
+	size_type max_number_of_pages;
+	size_type page_size_in_byte;
+
+	int number_of_attrs;
+	struct spParticleDesc_attr_entity_s attrs[SP_MAX_NUMBER_OF_PARTICLE_ATTR];
 
 	spPage *m_free_page;
-
-	spPage *m_pages;
+	spPage *m_pages_holder;
 	spPage ** buckets;
 
-	byte_type __align__(8) *m_data;
 };
+
 typedef struct spParticleSpecies_s sp_particle_type;
 
-#define POINT_HEAD  SP_BUCKET_ENTITY_HEAD  Real r[3];
-struct point_head
-{
-	byte_type __align__(8) data[];
-};
+void spCreateParticle(const spMesh *ctx, sp_particle_type **pg);
 
-MC_HOST void spCreateParticle(const spMesh *ctx, sp_particle_type **pg, size_type entity_size_in_byte, size_type PIC);
+void spDestroyParticle(sp_particle_type **sp);
 
-MC_HOST void spDestroyParticle(sp_particle_type **pg);
+int spParticleAddAttribute(sp_particle_type *pg, char const *name, int type_tag, int size_in_byte);
 
-MC_HOST int spWriteParticle(spMesh const *ctx, sp_particle_type const*f, char const name[], int flag);
+void spParticleInitialize(const spMesh *mesh, sp_particle_type *sp, size_type PIC);
 
-MC_HOST int spReadParticle(spMesh const *ctx, sp_particle_type **f, char const name[], int flag);
+int spWriteParticle(spMesh const *ctx, sp_particle_type const*f, char const url[], int flag);
 
-MC_HOST int spSyncParticle(spMesh const *ctx, sp_particle_type * f);
+int spReadParticle(spMesh const *ctx, sp_particle_type **f, char const url[], int flag);
 
-MC_HOST_DEVICE spPage *spParticleCreateBucket(sp_particle_type const *p, size_type num);
+int spSyncParticle(spMesh const *ctx, sp_particle_type * f);
 
 #endif /* SPPARTICLE_H_ */

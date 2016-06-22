@@ -15,10 +15,16 @@ struct boris_page_s
 {
 	SP_PAGE_HEAD
 
-	Real __align__(8) r[3][SP_NUMBER_OF_ENTITIES_IN_PAGE];
-	Real __align__(8) v[3][SP_NUMBER_OF_ENTITIES_IN_PAGE];
-	Real __align__(8) f[SP_NUMBER_OF_ENTITIES_IN_PAGE];
-	Real __align__(8) w[SP_NUMBER_OF_ENTITIES_IN_PAGE];
+	Real *rx;
+	Real *ry;
+	Real *rz;
+
+	Real *vx;
+	Real *vy;
+	Real *vz;
+
+	Real*f;
+	Real *w;
 };
 
 /**

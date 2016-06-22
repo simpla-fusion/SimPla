@@ -9,17 +9,16 @@
 #include "spMesh.h"
 #include "spSimPlaWrap.h"
 
-MC_HOST void spCreateMesh(spMesh **ctx)
+void spCreateMesh(spMesh **ctx)
 {
-	spCreateObject((spObject**) ctx, sizeof(spMesh));
-//	*ctx = (spMesh *) malloc(sizeof(spMesh));
+	*ctx = (spMesh *) malloc(sizeof(spMesh));
 
 }
-MC_HOST void spDestroyMesh(spMesh **ctx)
+void spDestroyMesh(spMesh **ctx)
 {
 	free(*ctx);
 }
-MC_HOST void spInitializeMesh(spMesh *self)
+void spInitializeMesh(spMesh *self)
 {
 	self->ndims = 3;
 	self->offset.x = 0;
@@ -46,10 +45,10 @@ MC_HOST void spInitializeMesh(spMesh *self)
 	self->private_block.x = self->dims.x;
 	self->private_block.y = self->dims.y;
 	self->private_block.z = self->dims.z;
-	spObjectHostToDevice((spObject*) self);
+
 }
 
-MC_HOST_DEVICE size_type spMeshGetNumberOfEntity(spMesh const *self, int iform)
+size_type spMeshGetNumberOfEntity(spMesh const *self, int iform)
 {
 	return self->dims.x * self->dims.y * self->dims.z * ((iform == 0 || iform == 3) ? 1 : 3);
 }

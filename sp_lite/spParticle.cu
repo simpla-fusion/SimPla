@@ -5,86 +5,128 @@
  *      Author: salmon
  */
 #include "sp_def.h"
-#include "spObject.h"
 #include "spMesh.h"
 #include "spParticle.h"
 #include "spPage.h"
-#include "spSimPlaWrap.h"
 
-MC_HOST void spCreateParticle(const spMesh *mesh, sp_particle_type **sp, size_type entity_size_in_byte, size_type PIC)
+void spCreateParticle(const spMesh *mesh, sp_particle_type **sp)
 {
-	spCreateObject((spObject **) sp, sizeof(sp_particle_type));
-	//	*sp = (sp_particle_type*) malloc(sizeof(sp_particle_type));
-
-	size_type max_number_of_cell = spMeshGetNumberOfEntity(mesh, 3/*volume*/);
-
-	size_type max_number_of_pages = max_number_of_cell * (PIC / SP_NUMBER_OF_ENTITIES_IN_PAGE + 1) * 2;
-
-	size_type max_number_of_particle = max_number_of_pages * SP_NUMBER_OF_ENTITIES_IN_PAGE;
-
-	(*sp)->entity_size_in_byte = entity_size_in_byte;
-
-	CUDA_CHECK_RETURN(cudaMalloc(&((*sp)->m_data), max_number_of_particle * entity_size_in_byte));
-
+	*sp = (sp_particle_type*) malloc(sizeof(sp_particle_type));
+	(*sp)->number_of_attrs = 0;
+	for (int i = 0; i < SP_MAX_NUMBER_OF_PARTICLE_ATTR; ++i)
 	{
-		spPage *t_pages = (spPage *) malloc(sizeof(spPage) * max_number_of_pages);
-
-		for (size_type s = 0; s < max_number_of_pages; ++s)
-		{
-			t_pages[s].flag = 0;
-			t_pages[s].data = (byte_type*) ((*sp)->m_data) + s * entity_size_in_byte * SP_NUMBER_OF_ENTITIES_IN_PAGE;
-			t_pages[s].next = (*sp)->m_pages + (s + 1);
-
-		}
-		t_pages[max_number_of_pages - 1].next = 0x0;
-
-		CUDA_CHECK_RETURN(cudaMalloc(&((*sp)->m_pages), max_number_of_pages * sizeof(spPage)));
-		CUDA_CHECK_RETURN(cudaMemcpy((*sp)->m_pages, t_pages, max_number_of_pages * sizeof(spPage*), cudaMemcpyDefault));
-		(*sp)->m_free_page = (*sp)->m_pages;
-		free(t_pages);
+		(*sp)->attrs[i].data = 0x0;
 	}
-	CUDA_CHECK_RETURN(cudaMalloc(&((*sp)->buckets), max_number_of_cell * sizeof(spPage*)));
-	CUDA_CHECK_RETURN(cudaMemset((*sp)->buckets, 0x0, cudaMemcpyDefault));
+	(*sp)->m_free_page = 0x0;
+	(*sp)->m_pages_holder = 0x0;
+	(*sp)->buckets = 0x0;
 
 }
-MC_HOST
+
 void spDestroyParticle(sp_particle_type **sp)
 {
-	CUDA_CHECK_RETURN(cudaFree((*sp)->buckets));
-	CUDA_CHECK_RETURN(cudaFree((*sp)->m_pages));
-	CUDA_CHECK_RETURN(cudaFree((*sp)->m_data));
 
+	for (int i = 0; i < SP_MAX_NUMBER_OF_PARTICLE_ATTR; ++i)
+	{
+		if ((*sp)->attrs[i].data != 0x0)
+		{
+			CUDA_CHECK_RETURN(cudaFree((*sp)->attrs[i].data));
+		}
+	}
+	CUDA_CHECK_RETURN(cudaFree((*sp)->buckets));
+	CUDA_CHECK_RETURN(cudaFree((*sp)->m_pages_holder));
 	free(*sp);
 	*sp = 0x0;
-
 }
-
-MC_HOST_DEVICE spPage *
-spParticleCreateBucket(sp_particle_type *p, size_type num)
+int spParticleAddAttribute(sp_particle_type *pg, char const *name, int type_tag, int size_in_byte)
 {
-	return spPagePopFrontN(&(p->m_free_page), num);
+	strcpy(pg->attrs[pg->number_of_attrs].name, name);
+	pg->attrs[pg->number_of_attrs].type_tag = type_tag;
+	pg->attrs[pg->number_of_attrs].size_in_byte = size_in_byte;
+	++pg->number_of_attrs;
+	return pg->number_of_attrs;
 }
-
-__global__
-void spInitializeParticle_Kernel(const spMesh *mesh, sp_particle_type *pg, size_type NUM_OF_PIC)
+__constant__ size_type page_size_in_byte;
+__constant__ size_type number_of_pages_per_cell;
+__constant__ size_type attrs_size_in_byte[SP_MAX_NUMBER_OF_PARTICLE_ATTR];
+__global__ void spInitializeParticle_Kernel(spPage** buckets, spPage * pages, int num_of_attrs, void ** data)
 {
+#define MESH_ID blockDim.x 	+ (blockDim.y + blockDim.z * gridDim.y) * gridDim.x
+	spPage** t = &(buckets[MESH_ID]);
+
+	for (int i = 0; i < number_of_pages_per_cell; ++i)
+	{
+		*t = (spPage *) (((byte_type*) pages) + page_size_in_byte * (MESH_ID * number_of_pages_per_cell + i));
+		for (int j = 0; j < num_of_attrs; ++j)
+		{
+			(*t)->data[j] = (byte_type*) (data[j])
+					+ attrs_size_in_byte[j] * SP_NUMBER_OF_ENTITIES_IN_PAGE * (MESH_ID * number_of_pages_per_cell + i);
+		}
+		(*t)->flag = 0x0;
+		t = &((*t)->next);
+	}
+#undef MESH_ID
+
 }
 
-MC_HOST
 void spParticleInitialize(const spMesh *mesh, sp_particle_type *sp, size_type PIC)
 {
-	spObjectHostToDevice((spObject*) sp);
+	if (sp->number_of_attrs <= 0)
+	{
+		return;
+	}
 
-//	spInitializeParticle_Kernel<<<mesh->numBlocks, mesh->threadsPerBlock>>>(
-//			(const spMesh *) mesh->self, (sp_particle_type *) sp->self, PIC);
+	size_type number_of_cell = spMeshGetNumberOfEntity(mesh, 3/*volume*/);
+
+	sp->page_size_in_byte = sizeof(spPage) + sizeof(void*) * sp->number_of_attrs;
+
+	sp->number_of_pages_per_cell = (PIC * 3 / SP_NUMBER_OF_ENTITIES_IN_PAGE) / 2;
+
+	sp->max_number_of_pages = number_of_cell * sp->number_of_pages_per_cell;
+
+	sp->max_number_of_particles = sp->max_number_of_pages * SP_NUMBER_OF_ENTITIES_IN_PAGE;
+
+	CUDA_CHECK_RETURN(cudaMalloc(&(sp->m_pages_holder), sp->max_number_of_pages * sp->page_size_in_byte));
+
+	CUDA_CHECK_RETURN(cudaMalloc(&(sp->buckets), number_of_cell * sizeof(spPage*)));
+
+	for (int i = 0; i < sp->number_of_attrs; ++i)
+	{
+		CUDA_CHECK_RETURN(
+				cudaMalloc((byte_type** )(&(sp->attrs[i].data)),
+						sp->attrs[i].size_in_byte * sp->max_number_of_particles));
+	}
+
+	void *l_data[SP_MAX_NUMBER_OF_PARTICLE_ATTR];
+	size_type l_size_in_byte[SP_MAX_NUMBER_OF_PARTICLE_ATTR];
+	for (int i = 0; i < SP_MAX_NUMBER_OF_PARTICLE_ATTR; ++i)
+	{
+		l_size_in_byte[i] = sp->attrs[i].size_in_byte;
+		l_data[i] = sp->attrs[i].data;
+	}
+	CUDA_CHECK_RETURN(cudaMemcpyToSymbol(page_size_in_byte, &(sp->page_size_in_byte), sizeof(size_type)));
+
+	CUDA_CHECK_RETURN(cudaMemcpyToSymbol(attrs_size_in_byte, &l_size_in_byte, sp->number_of_attrs * sizeof(size_type)));
+
+	CUDA_CHECK_RETURN(cudaMemcpyToSymbol(number_of_pages_per_cell, &(sp->number_of_pages_per_cell), sizeof(size_type)));
+
+	void **data = 0x0;
+
+	CUDA_CHECK_RETURN(cudaMalloc(&data, sp->number_of_attrs * sizeof(void*)));
+
+	CUDA_CHECK_RETURN(cudaMemcpy(data, l_data, sp->number_of_attrs * sizeof(void*), cudaMemcpyDefault));
+
+	spInitializeParticle_Kernel<<<mesh->dims, NUMBER_OF_THREADS_PER_BLOCK>>>(sp->buckets, sp->m_pages_holder,
+			sp->number_of_attrs, data);
+
+	CUDA_CHECK_RETURN(cudaFree(data));
+
 }
-MC_HOST int spWriteParticle(spMesh const *ctx, sp_particle_type const*f, char const name[], int flag)
+int spWriteParticle(spMesh const *ctx, sp_particle_type const*f, char const name[], int flag)
 {
 	return 0;
-
 }
-MC_HOST int spSyncParticle(spMesh const *ctx, sp_particle_type *f)
+int spSyncParticle(spMesh const *ctx, sp_particle_type *f)
 {
 	return 0;
-
 }
