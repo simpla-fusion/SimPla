@@ -34,9 +34,9 @@ MC_HOST void spInitializeMesh(spMesh *self)
 	self->x_upper.y = self->dims.y;
 	self->x_upper.z = self->dims.z;
 
-	self->dims.w = 3;
-	self->offset.w = 0;
-	self->count.w = 3;
+//	self->dims.w = 3;
+//	self->offset.w = 0;
+//	self->count.w = 3;
 
 	self->threadsPerBlock.x = 4;
 	self->threadsPerBlock.y = 4;

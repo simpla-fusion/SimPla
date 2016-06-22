@@ -11,8 +11,9 @@
 #include "sp_def.h"
 
 // digits of bucket_page_status_flag_t
+#define SP_NUMBER_OF_ENTITIES_IN_PAGE 128
 
-typedef uint64_t bucket_entity_flag_t;
+typedef unsigned int bucket_entity_flag_t;
 
 /**
  * bucket_elements_head
@@ -43,14 +44,9 @@ typedef uint64_t bucket_entity_flag_t;
  *               11             00              01
  * ---------+------------+-------@--------+-------------+---------------
  */
-#define SP_BUCKET_ENTITY_HEAD bucket_entity_flag_t  tag;
-
-typedef struct spEntity_s
-{
-	SP_BUCKET_ENTITY_HEAD
-	byte_type data[];
-} spEntity;
+typedef byte_type spEntity;
 #define SP_PAGE_HEAD struct spPage_s *next;	bucket_entity_flag_t flag;
+#define SP_PAGE_HEAD_SIZE (sizeof(struct spPage_s *)+sizeof(bucket_entity_flag_t))
 typedef struct spPage_s
 {
 	SP_PAGE_HEAD
@@ -395,51 +391,51 @@ MC_HOST_DEVICE extern inline void spEntityRemove(spPage *p, bucket_entity_flag_t
 
 MC_HOST_DEVICE extern inline size_type spEntityCountIf(spPage *src, id_type tag, size_type entity_size_in_byte)
 {
-
-	size_type count = 0;
-
-	spPage *pg = src;
-
-	bucket_entity_flag_t read_flag = 0x0;
-
-	for (spEntity *p; (p = spEntityNext(&pg, &read_flag, entity_size_in_byte)) != 0x0;)
-	{
-		if ((p->tag & 0x3F) == tag)
-		{
-			++count;
-		}
-	}
-	return count;
+//
+//	size_type count = 0;
+//
+//	spPage *pg = src;
+//
+//	bucket_entity_flag_t read_flag = 0x0;
+//
+//	for (spEntity *p; (p = spEntityNext(&pg, &read_flag, entity_size_in_byte)) != 0x0;)
+//	{
+////		if ((p->flag & 0x3F) == tag)
+////		{
+////			++count;
+////		}
+//	}
+	return 0;
 }
 
 MC_HOST_DEVICE extern inline void spEntityCopyIf(spPage *src, spPage **dest, id_type tag, size_type entity_size_in_byte)
 {
 
-	spPage *pg = src;
-
-	bucket_entity_flag_t read_flag = 0x0;
-
-	spPage *write_buffer = 0x0;
-
-	bucket_entity_flag_t write_flag = 0x0;
-
-	for (spEntity *p0, *p1 = 0x0; (p0 = spEntityNext(&pg, &read_flag, entity_size_in_byte)) != 0x0;)
-	{
-		if ((p0->tag & 0x3F) == tag)
-		{
-			if (write_flag == 0x0 || write_buffer == 0x0)
-			{
-				break;
-			}
-
-			DEFAULT_COPY(p0, p1);
-			p1->tag &= ~(0x3F); // clear tag
-			write_buffer->flag |= write_flag;
-			write_flag <<= 1;
-			p1 = (spEntity *) (((byte_type *) p1) + entity_size_in_byte);
-
-		}
-	}
+//	spPage *pg = src;
+//
+//	bucket_entity_flag_t read_flag = 0x0;
+//
+//	spPage *write_buffer = 0x0;
+//
+//	bucket_entity_flag_t write_flag = 0x0;
+//
+//	for (spEntity *p0, *p1 = 0x0; (p0 = spEntityNext(&pg, &read_flag, entity_size_in_byte)) != 0x0;)
+//	{
+////		if ((p0->tag & 0x3F) == tag)
+////		{
+////			if (write_flag == 0x0 || write_buffer == 0x0)
+////			{
+////				break;
+////			}
+////
+////			DEFAULT_COPY(p0, p1);
+////			p1->tag &= ~(0x3F); // clear tag
+////			write_buffer->flag |= write_flag;
+////			write_flag <<= 1;
+////			p1 = (spEntity *) (((byte_type *) p1) + entity_size_in_byte);
+////
+////		}
+//	}
 }
 
 MC_HOST_DEVICE extern inline int spBucketEnternalSort(spPage **src, spPage **dest)

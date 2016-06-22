@@ -40,3 +40,6 @@ third_part
 .tags
 .cproject
 .project
+.settings/
+sp_lite/.cproject
+sp_lite/.project

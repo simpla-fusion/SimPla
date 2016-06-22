@@ -25,9 +25,9 @@ int main(int argc, char **argv)
 	sp_field_type *fJ = 0x0;
 
 	spCreateMesh(&mesh);
-	mesh->dims.x = 16;
-	mesh->dims.y = 16;
-	mesh->dims.z = 16;
+	mesh->dims.x = 256;
+	mesh->dims.y = 256;
+	mesh->dims.z = 256;
 	mesh->dx.x = 1;
 	mesh->dx.y = 1;
 	mesh->dx.z = 1;
@@ -43,7 +43,8 @@ int main(int argc, char **argv)
 	spClearField(mesh, fRho);
 
 	int NUMBER_OF_PIC = 256;
-	spCreateParticle(mesh, &ps, sizeof(struct boris_point_s), NUMBER_OF_PIC);
+	spCreateParticle(mesh, &ps, (sizeof(struct boris_page_s) - SP_PAGE_HEAD_SIZE) / SP_NUMBER_OF_ENTITIES_IN_PAGE,
+			NUMBER_OF_PIC);
 	spInitializeParticle_BorisYee(mesh, ps, NUMBER_OF_PIC);
 
 	int count = 5;
@@ -54,13 +55,13 @@ int main(int argc, char **argv)
 	spWriteField(mesh, fJ, "/start/J", SP_NEW);
 	spWriteField(mesh, fRho, "/start/rho", SP_NEW);
 #ifdef ENABLE_SOA
-	printf("====== Enable SOA ======\n", count);
+	printf("====== Enable SOA ======\n");
 #else
-	printf("====== Enable AOS ======\n", count);
+	printf("====== Enable AOS ======\n");
 #endif
 	while (count > 0)
 	{
-		printf("====== REMINED STEP= %d ======\n", count);
+		printf("====== REMINED STEP= %i ======\n", count);
 		spUpdateParticle_BorisYee(mesh, dt, ps, fE, fB, fRho, fJ);
 //		spUpdateField_Yee(mesh, dt, fRho, fJ, fE, fB);
 
@@ -71,7 +72,7 @@ int main(int argc, char **argv)
 
 		--count;
 	}
-	printf("======  The End ======\n", count);
+	printf("======  The End ======\n");
 
 	spWriteField(mesh, fE, "/dump/E", SP_NEW);
 	spWriteField(mesh, fB, "/dump/B", SP_NEW);

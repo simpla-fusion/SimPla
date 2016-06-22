@@ -14,13 +14,12 @@ struct spMesh_s
 {
 	SP_OBJECT_HEAD
 	float3 dx;
-	float3 inv_dx;
 
 	int ndims;
 
 	dim3 x_lower;
 	dim3 x_upper;
-	int4 dims;
+	dim3 dims;
 
 	int4 offset;
 	int4 count;

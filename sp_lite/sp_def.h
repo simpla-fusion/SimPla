@@ -14,9 +14,6 @@
 #define  AUTHOR " YU Zhi <yuzhi@ipp.ac.cn> "
 #define  COPYRIGHT "All rights reserved. (2016 )"
 
-
-#define SP_NUMBER_OF_ENTITIES_IN_PAGE 128
-
 typedef int8_t byte_type; // int8_t
 typedef float Real;
 typedef int Integral;

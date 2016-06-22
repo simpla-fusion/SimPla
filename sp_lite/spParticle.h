@@ -12,6 +12,7 @@
 #include "spPage.h"
 #include "spMesh.h"
 
+
 struct spParticleSpecies_s
 {
 	SP_OBJECT_HEAD
@@ -24,15 +25,14 @@ struct spParticleSpecies_s
 	spPage *m_pages;
 	spPage ** buckets;
 
-	byte_type *m_data;
+	byte_type __align__(8) *m_data;
 };
 typedef struct spParticleSpecies_s sp_particle_type;
 
 #define POINT_HEAD  SP_BUCKET_ENTITY_HEAD  Real r[3];
 struct point_head
 {
-	POINT_HEAD
-	byte_type data[];
+	byte_type __align__(8) data[];
 };
 
 MC_HOST void spCreateParticle(const spMesh *ctx, sp_particle_type **pg, size_type entity_size_in_byte, size_type PIC);
