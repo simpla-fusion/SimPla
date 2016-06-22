@@ -12,6 +12,8 @@
 #include "spPage.h"
 #include "spMesh.h"
 
+#define SP_MAX_NUMBER_OF_PARTICLE_ATTR 32
+
 struct spParticleDesc_attr_entity_s
 {
 	size_type size_in_byte;
@@ -19,7 +21,6 @@ struct spParticleDesc_attr_entity_s
 	char name[255];
 	byte_type * data;
 };
-#define SP_MAX_NUMBER_OF_PARTICLE_ATTR 32
 
 struct spParticleSpecies_s
 {

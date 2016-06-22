@@ -22,13 +22,13 @@ typedef int64_t index_type;
 typedef uint64_t size_type;
 enum
 {
-	SP_TYPE_FLOAT, SP_TYPE_DOUBLE, SP_TYPE_INT, SP_TYPE_LONG, SP_TYPE_OPAQUE
+	SP_TYPE_float, SP_TYPE_double, SP_TYPE_int, SP_TYPE_long, SP_TYPE_OPAQUE
 };
-#define SP_TYPE_REAL SP_TYPE_FLOAT
+#define SP_TYPE_Real SP_TYPE_float
 
 enum
 {
-	SP_NEW = 1UL << 1, SP_APPEND = 1UL << 2, SP_BUFFER = (1UL << 3), SP_RECORD = (1UL << 4)
+	SP_FILE_NEW = 1UL << 1, SP_FILE_APPEND = 1UL << 2, SP_FILE_BUFFER = (1UL << 3), SP_FILE_RECORD = (1UL << 4)
 };
 
 #ifdef __CUDACC__

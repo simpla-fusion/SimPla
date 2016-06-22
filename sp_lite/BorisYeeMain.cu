@@ -49,32 +49,32 @@ int main(int argc, char **argv)
 	int count = 5;
 	Real dt = 1.0;
 
-	spWriteField(mesh, fE, "/start/E", SP_NEW);
-	spWriteField(mesh, fB, "/start/B", SP_NEW);
-	spWriteField(mesh, fJ, "/start/J", SP_NEW);
-	spWriteField(mesh, fRho, "/start/rho", SP_NEW);
+	spWriteField(mesh, fE, "/start/E", SP_FILE_NEW);
+	spWriteField(mesh, fB, "/start/B", SP_FILE_NEW);
+	spWriteField(mesh, fJ, "/start/J", SP_FILE_NEW);
+	spWriteField(mesh, fRho, "/start/rho", SP_FILE_NEW);
 
 	while (count > 0)
 	{
 		printf("====== REMINED STEP= %i ======\n", count);
 		spUpdateParticle_BorisYee(mesh, dt, ps, fE, fB, fRho, fJ);
-//		spUpdateField_Yee(mesh, dt, fRho, fJ, fE, fB);
+		spUpdateField_Yee(mesh, dt, fRho, fJ, fE, fB);
 
-//		spWriteField(mesh, fE, "/checkpoint/E", SP_RECORD);
-//		spWriteField(mesh, fB, "/checkpoint/B", SP_RECORD);
-//		spWriteField(mesh, fJ, "/checkpoint/J", SP_RECORD);
-//		spWriteField(mesh, fRho, "/checkpoint/rho", SP_RECORD);
+		spWriteField(mesh, fE, "/checkpoint/E", SP_FILE_RECORD);
+		spWriteField(mesh, fB, "/checkpoint/B", SP_FILE_RECORD);
+		spWriteField(mesh, fJ, "/checkpoint/J", SP_FILE_RECORD);
+		spWriteField(mesh, fRho, "/checkpoint/rho", SP_FILE_RECORD);
 
 		--count;
 	}
 	printf("======  The End ======\n");
 	CUDA_CHECK_RETURN(cudaDeviceSynchronize()); // Wait for the GPU launched work to complete
 
-	spWriteField(mesh, fE, "/dump/E", SP_NEW);
-	spWriteField(mesh, fB, "/dump/B", SP_NEW);
-	spWriteField(mesh, fJ, "/dump/J", SP_NEW);
-	spWriteField(mesh, fRho, "/dump/rho", SP_NEW);
-	spWriteParticle(mesh, ps, "/dump/H", SP_NEW);
+	spWriteField(mesh, fE, "/dump/E", SP_FILE_NEW);
+	spWriteField(mesh, fB, "/dump/B", SP_FILE_NEW);
+	spWriteField(mesh, fJ, "/dump/J", SP_FILE_NEW);
+	spWriteField(mesh, fRho, "/dump/rho", SP_FILE_NEW);
+	spWriteParticle(mesh, ps, "/dump/H", SP_FILE_NEW);
 
 	spDestroyField(&fE);
 	spDestroyField(&fB);

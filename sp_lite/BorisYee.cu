@@ -24,14 +24,14 @@ __constant__ unsigned int SP_NEIGHBOUR_OFFSET_flag[27];
 void spInitializeParticle_BorisYee(spMesh *ctx, sp_particle_type *sp, size_type NUM_OF_PIC)
 {
 
-	spParticleAddAttribute(sp, "rx", SP_TYPE_REAL, sizeof(Real));
-	spParticleAddAttribute(sp, "ry", SP_TYPE_REAL, sizeof(Real));
-	spParticleAddAttribute(sp, "rz", SP_TYPE_REAL, sizeof(Real));
-	spParticleAddAttribute(sp, "vx", SP_TYPE_REAL, sizeof(Real));
-	spParticleAddAttribute(sp, "vy", SP_TYPE_REAL, sizeof(Real));
-	spParticleAddAttribute(sp, "vz", SP_TYPE_REAL, sizeof(Real));
-	spParticleAddAttribute(sp, "f", SP_TYPE_REAL, sizeof(Real));
-	spParticleAddAttribute(sp, "w", SP_TYPE_REAL, sizeof(Real));
+	spParticleAddAttribute(sp, "rx", SP_TYPE_Real, sizeof(Real));
+	spParticleAddAttribute(sp, "ry", SP_TYPE_Real, sizeof(Real));
+	spParticleAddAttribute(sp, "rz", SP_TYPE_Real, sizeof(Real));
+	spParticleAddAttribute(sp, "vx", SP_TYPE_Real, sizeof(Real));
+	spParticleAddAttribute(sp, "vy", SP_TYPE_Real, sizeof(Real));
+	spParticleAddAttribute(sp, "vz", SP_TYPE_Real, sizeof(Real));
+	spParticleAddAttribute(sp, "f", SP_TYPE_Real, sizeof(Real));
+	spParticleAddAttribute(sp, "w", SP_TYPE_Real, sizeof(Real));
 
 	spParticleInitialize(ctx, sp, NUM_OF_PIC);
 
