@@ -46,6 +46,7 @@ int spReadMesh(spMesh *ctx, char const name[], int flag);
 
 size_type spMeshGetNumberOfEntity(spMesh const *, int iform);
 
-
+__constant__ int3 SP_NEIGHBOUR_OFFSET[27];
+__constant__ unsigned int SP_NEIGHBOUR_OFFSET_flag[27];
 
 #endif /* SPMESH_H_ */

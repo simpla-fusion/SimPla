@@ -14,12 +14,12 @@
 
 #define SP_MAX_NUMBER_OF_PARTICLE_ATTR 32
 
-struct spParticleDesc_attr_entity_s
+struct spParticleAttrEntity_s
 {
 	size_type size_in_byte;
 	size_type type_tag;
+	size_type addr_offset;
 	char name[255];
-	byte_type * data;
 };
 
 struct spParticleSpecies_s
@@ -28,14 +28,13 @@ struct spParticleSpecies_s
 	Real mass;
 	Real charge;
 
-	size_type number_of_pages_per_cell;
 	size_type max_number_of_particles;
 	size_type max_number_of_pages;
-	size_type page_size_in_byte;
 
 	int number_of_attrs;
-	struct spParticleDesc_attr_entity_s attrs[SP_MAX_NUMBER_OF_PARTICLE_ATTR];
+	struct spParticleAttrEntity_s attrs[SP_MAX_NUMBER_OF_PARTICLE_ATTR];
 
+	void *data;
 	spPage *m_free_page;
 	spPage *m_pages_holder;
 	spPage ** buckets;

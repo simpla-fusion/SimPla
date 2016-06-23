@@ -16,13 +16,12 @@ __constant__ Real cmr_dt;
 __constant__ int3 mesh_offset;
 __constant__ int SP_MESH_NUM_OF_ENTITY_IN_GRID;
 __constant__ float3 mesh_inv_dv;
-__constant__ int3 SP_NEIGHBOUR_OFFSET[27];
-__constant__ unsigned int SP_NEIGHBOUR_OFFSET_flag[27];
 
 /******************************************************************************************/
 
 void spInitializeParticle_BorisYee(spMesh *ctx, sp_particle_type *sp, size_type NUM_OF_PIC)
 {
+	assert(sp != 0x0);
 
 	spParticleAddAttribute(sp, "rx", SP_TYPE_Real, sizeof(Real));
 	spParticleAddAttribute(sp, "ry", SP_TYPE_Real, sizeof(Real));
@@ -36,50 +35,6 @@ void spInitializeParticle_BorisYee(spMesh *ctx, sp_particle_type *sp, size_type 
 	spParticleInitialize(ctx, sp, NUM_OF_PIC);
 
 	spSyncParticle(ctx, sp);
-
-	int3 neighbour_offset[27];
-	int neighbour_flag[27];
-	/**          -1
-	 *
-	 *    -1     0    1
-	 *
-	 *           1
-	 */
-	/**
-	 *\verbatim
-	 *                ^y
-	 *               /
-	 *        z     /
-	 *        ^    /
-	 *    PIXEL0 110-------------111 VOXEL
-	 *        |  /|              /|
-	 *        | / |             / |
-	 *        |/  |    PIXEL1  /  |
-	 * EDGE2 100--|----------101  |
-	 *        | m |           |   |
-	 *        |  010----------|--011 PIXEL2
-	 *        |  / EDGE1      |  /
-	 *        | /             | /
-	 *        |/              |/
-	 *       000-------------001---> x
-	 *                       EDGE0
-	 *
-	 *\endverbatim
-	 */
-
-	int count = 0;
-	for (int i = -1; i <= 1; ++i)
-		for (int j = -1; j <= 1; ++j)
-			for (int k = -1; k <= 1; ++k)
-			{
-				neighbour_offset[count].x = i;
-				neighbour_offset[count].y = j;
-				neighbour_offset[count].z = k;
-				neighbour_flag[count] = (i + 1) | ((j + 1) << 2) | ((k + 1) << 4);
-				++count;
-			}
-	CUDA_CHECK_RETURN(cudaMemcpyToSymbol(SP_NEIGHBOUR_OFFSET, neighbour_offset, sizeof(int3) * 27));
-	CUDA_CHECK_RETURN(cudaMemcpyToSymbol(SP_NEIGHBOUR_OFFSET_flag, neighbour_flag, sizeof(int) * 27));
 
 }
 
@@ -139,9 +94,9 @@ __global__ void spUpdateParticle_push_Boris_Kernel(spPage** buckets, const Real 
 
 	{
 
-		int g_f_num = ((blockDim.x + threadIdx.x + gridDim.x - RADIUS) % gridDim.x)
-				+ (((blockDim.y + threadIdx.y + gridDim.y - RADIUS) % gridDim.y)
-						+ ((blockDim.z + threadIdx.z + gridDim.z - RADIUS) % gridDim.z) * gridDim.y) * gridDim.x;
+		int g_f_num = ((blockIdx.x + threadIdx.x + gridDim.x - RADIUS) % gridDim.x)
+				+ (((blockIdx.y + threadIdx.y + gridDim.y - RADIUS) % gridDim.y)
+						+ ((blockIdx.z + threadIdx.z + gridDim.z - RADIUS) % gridDim.z) * gridDim.y) * gridDim.x;
 
 		if (threadIdx.x < 8)
 		{
@@ -249,9 +204,7 @@ __global__ void spUpdateParticle_push_Boris_Kernel(spPage** buckets, const Real 
 __global__ void spUpdateParticle_sort_Boris_kernel(spPage ** buckets)
 {
 
-	assert(blockDim.x * blockDim.y * blockDim.z<=NUMBER_OF_THREADS_PER_BLOCK);
-
-#define MESH_ID (blockDim.x+mesh_offset.x + (blockDim.y+mesh_offset.y +( blockDim.z+mesh_offset.z) * gridDim.y) * gridDim.x)
+#define MESH_ID (blockIdx.x + (blockIdx.y + blockIdx.z * gridDim.y) * gridDim.x)
 
 	__shared__ bucket_entity_flag_t src_flag;
 //	__shared__ bucket_entity_flag_t dest_flag;
@@ -261,21 +214,25 @@ __global__ void spUpdateParticle_sort_Boris_kernel(spPage ** buckets)
 
 	struct boris_page_s * dest = (struct boris_page_s *) buckets[MESH_ID];
 
+	assert(dest != 0x0);
+
 	for (int i = 26; i >= 0; --i)
 	{
 
 		struct boris_page_s * pg = (struct boris_page_s *) buckets[ //
-				((blockDim.x + SP_NEIGHBOUR_OFFSET[i].x + gridDim.x) % gridDim.x)
-						+ (((blockDim.y + SP_NEIGHBOUR_OFFSET[i].y + gridDim.y) % gridDim.y)
-								+ ((blockDim.z + SP_NEIGHBOUR_OFFSET[i].z + gridDim.z) % gridDim.z) * gridDim.y)
+				((blockIdx.x + SP_NEIGHBOUR_OFFSET[i].x + gridDim.x) % gridDim.x)
+						+ (((blockIdx.y + SP_NEIGHBOUR_OFFSET[i].y + gridDim.y) % gridDim.y)
+								+ ((blockIdx.z + SP_NEIGHBOUR_OFFSET[i].z + gridDim.z) % gridDim.z) * gridDim.y)
 								* gridDim.x];
+
+		assert(pg != 0x0);
 
 		while (pg != 0x0)
 		{
+
 			if (threadIdx.x == 0)
 			{
 				src_flag = pg->flag;
-
 			}
 
 			for (int s = threadIdx.x; s < SP_NUMBER_OF_ENTITIES_IN_PAGE; s += blockDim.x)
@@ -321,8 +278,11 @@ __global__ void spUpdateParticle_scatter_Boris_kernel(spPage ** buckets, Real *f
 #define MESH_ID (blockDim.x+mesh_offset.x + (blockDim.y+mesh_offset.y +( blockDim.z+mesh_offset.z) * gridDim.y) * gridDim.x)
 
 	struct boris_page_s const * pg = (struct boris_page_s *) buckets[MESH_ID];
+
 	while (pg != 0x0)
 	{
+
+		// FIXME THIS IS WRONG!!!
 
 		bucket_entity_flag_t dest_flag = pg->flag;
 
@@ -370,12 +330,12 @@ void spUpdateParticle_BorisYee(spMesh *ctx, Real dt, sp_particle_type *pg, const
 	spUpdateParticle_push_Boris_Kernel<<<ctx->dims, NUMBER_OF_THREADS_PER_BLOCK>>>(pg->buckets,
 			((Real*) fE->device_data), ((Real*) fB->device_data));
 
-	spUpdateParticle_sort_Boris_kernel<<<ctx->dims, NUMBER_OF_THREADS_PER_BLOCK>>>(pg->buckets);
+	spUpdateParticle_sort_Boris_kernel<<<ctx->dims, 1>>>(pg->buckets);
 
 	spUpdateParticle_scatter_Boris_kernel<<<ctx->dims, NUMBER_OF_THREADS_PER_BLOCK>>>(pg->buckets,
 			((Real*) fRho->device_data), ((Real*) fJ->device_data));
 
-	cudaDeviceSynchronize();
+	cudaDeviceSynchronize();        //wait for iteration to finish
 
 	spSyncParticle(ctx, pg);
 	spSyncField(ctx, fJ);

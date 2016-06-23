@@ -55,8 +55,8 @@ MC_HOST void spClearField(spMesh const *mesh, sp_field_type *f)
 
 MC_HOST int spWriteField(spMesh const *mesh, sp_field_type *f, char const url[], int flag)
 {
-	size_type num_of_entities = spMeshGetNumberOfEntity(mesh, f->iform);
-	assert(f->host_data != 0);
+//	size_type num_of_entities = spMeshGetNumberOfEntity(mesh, f->iform);
+//	assert(f->host_data != 0);
 //	CUDA_CHECK_RETURN(
 //			cudaMemcpy((void* ) (f->host_data), (void* ) (f->device_data), num_of_entities * sizeof(Real),
 //					cudaMemcpyDeviceToHost));
