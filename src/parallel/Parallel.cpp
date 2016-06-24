@@ -5,10 +5,15 @@
  * @author salmon
  */
 
-#include "../gtl/design_pattern/SingletonHolder.h"
+
 #include "../gtl/parse_command_line.h"
+
+#ifdef HAS_MPI
+#include "../gtl/design_pattern/SingletonHolder.h"
 #include "MPIComm.h"
 #include "DistributedObject.h"
+#endif
+
 
 namespace simpla { namespace parallel
 {
@@ -27,21 +32,23 @@ void init(int argc, char **argv)
                    }
 
     );
-#ifndef NOMPI
+#ifdef HAS_MPI
     if (!no_mpi) { SingletonHolder<MPIComm>::instance().init(argc, argv); }
 #endif
 }
 
 void close()
 {
-#ifndef NOMPI
+#ifdef HAS_MPI
     SingletonHolder<MPIComm>::instance().close();
 #endif
 }
 
 std::string help_message()
 {
+#ifdef HAS_MPI
     return MPIComm::help_message();
+#endif
 };
 
 

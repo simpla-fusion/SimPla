@@ -17,7 +17,7 @@
 namespace simpla
 {
 /**
- * @ingroup Manifold
+ * @ingroup CoordinateChart
  */
 namespace manifold { namespace policy
 {
@@ -168,7 +168,7 @@ public:
 
     }
 };//template<typename TGeo> struct StoragePolicy
-}} //namespace Manifold //namespace policy
+}} //namespace CoordinateChart //namespace policy
 
 
 

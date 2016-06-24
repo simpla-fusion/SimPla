@@ -9,7 +9,7 @@
 
 #include "../../src/field/Field.h"
 #include "../../src/physics/PhysicalConstants.h"
-#include "../../src/task_flow/ProblemDomain.h"
+#include "../../src/simulation/ProblemDomain.h"
 #include "../../src/mesh/Mesh.h"
 #include "../../src/mesh/MeshEntity.h"
 #include "../../src/mesh/MeshUtility.h"
@@ -31,12 +31,10 @@ public:
         return typeid(this_type) == info || ProblemDomain::is_a(info);
     }
 
-    template<typename _UOTHER_>
-    bool is_a() const { return is_a(typeid(_UOTHER_)); }
-
+//    template<typename _UOTHER_>
+//    bool is_a() const { return is_a(typeid(_UOTHER_)); }
 
     virtual std::string get_class_name() const { return class_name(); }
-
 
     static std::string class_name() { return "EMFluid<" + traits::type_id<TM>::name() + ">"; }
 

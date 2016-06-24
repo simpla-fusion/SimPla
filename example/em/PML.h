@@ -10,7 +10,7 @@
 #include "../../src/physics/PhysicalConstants.h"
 #include "../../src/field/Field.h"
 #include "../../src/manifold/Calculus.h"
-#include "../../src/task_flow/Context.h"
+#include "../../src/simulation/Context.h"
 
 namespace simpla
 {
@@ -21,9 +21,9 @@ using namespace mesh;
  *  @brief absorb boundary condition, PML
  */
 template<typename TM>
-class PML : public task_flow::ProblemDomain
+class PML : public ProblemDomain
 {
-    typedef task_flow::ProblemDomain base_type;
+    typedef ProblemDomain base_type;
     typedef TM mesh_type;
 public:
     template<typename ValueType, size_t IFORM> using field_t =  Field<ValueType, TM, std::integral_constant<size_t, IFORM> >;;

@@ -5,5 +5,5 @@
 add_subdirectory(test)
 
 
-#add_library(mesh get_mesh/MeshBlock.cpp)
-#target_link_libraries(get_mesh data_model)
+FILE(GLOB_RECURSE manifold_SRC ./*.cpp)
+add_library(manifold ${manifold_SRC})

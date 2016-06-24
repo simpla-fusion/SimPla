@@ -9,10 +9,11 @@
 
 #include "../../src/io/IO.h"
 #include "../../src/gtl/Utilities.h"
-#include "../../src/parallel/Parallel.h"
 #include "../../src/manifold/pre_define/PreDefine.h"
+#include "../../src/parallel/Parallel.h"
+
 #include "EMFluid.h"
-#include "EMPIC.h"
+//#include "PML.h"
 
 using namespace simpla;
 
@@ -31,8 +32,8 @@ int main(int argc, char **argv)
 #ifndef NDEBUG
     logger::set_stdout_level(20);
 #endif
-    parallel::init(argc, argv);
 
+    parallel::init(argc, argv);
     io::init(argc, argv);
 
     options.init(argc, argv);
@@ -71,39 +72,55 @@ int main(int argc, char **argv)
 
     std::shared_ptr<ProblemDomain> problem_domain;
 
-    {
-        std::string str = options["ProblemDomain"].as<std::string>();
 
-        if (str == "PIC")
-        {
-            problem_domain = std::make_shared<EMPIC<mesh_type>>(&mesh);
-        }
-        else if (str == "Fluid")
-        {
-            problem_domain = std::make_shared<EMFluid<mesh_type>>(&mesh);
-        }
-        else
-        {
-            RUNTIME_ERROR << "Unknown problem type [" << str << "]" << std::endl;
-        }
+//    {
+//        std::string str = options["ProblemDomain"].as<std::string>();
+//        if (str == "PIC")
+//        {
+//            problem_domain = std::make_shared<EMPIC < mesh_type>>
+//            (&mesh);
+//        }
+//        else if (str == "Fluid")
+//        {
+//            problem_domain = std::make_shared<EMFluid<mesh_type>>(&mesh);
+//
+//        }
+//        else
+//        {
+//            RUNTIME_ERROR << "Unknown problem type [" << str << "]" << std::endl;
+//        }
+//
+//    }
 
-    }
+
+    problem_domain = std::make_shared<EMFluid<mesh_type>>(&mesh);
+
     problem_domain->setup(options);
 
     problem_domain->print(std::cout);
+
+//    if (options["PML"])
+//    {
+//        std::shared_ptr<ProblemDomain> boundary_domain;
+//
+//        boundary_domain = std::make_shared<PML<mesh_type>>(&mesh);
+//        boundary_domain->setup(options["PML"]);
+//        boundary_domain->print(std::cout);
+//    }
 
 
     Real stop_time = options["stop_time"].as<Real>(problem_domain->time() + problem_domain->dt());
 
     int num_of_steps = options["number_of_steps"].as<int>(1);
 
-
     Real inc_time = (stop_time - problem_domain->time()) /
                     (options["number_of_check_point"].as<int>(1));
 
 
-    //   MESSAGE << "====================================================" << std::endl;
+    MESSAGE << "====================================================" << std::endl;
+
     TheStart();
+
     INFORM << "\t >>> Time [" << problem_domain->time() << "] <<< " << std::endl;
 
     Real current_time = problem_domain->time();

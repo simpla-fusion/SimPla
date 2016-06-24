@@ -18,7 +18,7 @@
 namespace simpla { namespace manifold { namespace policy
 {
 /**
- * @ingroup Manifold
+ * @ingroup CoordinateChart
  */
 
 template<typename TMesh>
@@ -204,7 +204,7 @@ void  ParallelPolicy<TMesh>::for_each_center(Func const &fun) const
 };
 
 
-}}}// namespace simpla { namespace Manifold { namespace policy
+}}}// namespace simpla { namespace CoordinateChart { namespace policy
 
 
 

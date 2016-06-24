@@ -17,14 +17,13 @@
 #include "../mesh/MeshAtlas.h"
 #include "../io/IOStream.h"
 
+#include "../manifold/Manifold.h"
+
 #include "ProblemDomain.h"
 
 namespace simpla
 {
-namespace mesh
-{
-struct MeshBase;
-}
+namespace mesh { struct MeshBase; }
 
 class Context
 {
@@ -35,7 +34,13 @@ private:
     typedef typename mesh::MeshBlockId block_id;
 
 public:
-    mesh::MeshAtlas m;
+    static constexpr int MAX_MESH_LEVEL = 10;
+
+    manifold::Atlas m_atlas_;
+
+    std::multimap<mesh::MeshBlockId, std::shared_ptr<ProblemDomain>> m_domains_;
+
+    int m_refine_ratio = 2;
 
     void setup();
 
@@ -47,7 +52,10 @@ public:
 
     io::IOStream &load(io::IOStream &is);
 
-    void next_step(Real dt);
+    void update(int level, int flag = 0);
+
+    void run(Real dt, int level = 1);
+
 
 //    template<typename TF>
 //    std::shared_ptr<TF> get_attribute(std::string const &s_name)

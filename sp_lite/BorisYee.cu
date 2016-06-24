@@ -12,11 +12,6 @@
 #include "spParticle.h"
 #include "spPage.h"
 
-__constant__ Real cmr_dt;
-__constant__ int3 mesh_offset;
-__constant__ int SP_MESH_NUM_OF_ENTITY_IN_GRID;
-__constant__ float3 mesh_inv_dv;
-
 /******************************************************************************************/
 
 void spInitializeParticle_BorisYee(spMesh *ctx, sp_particle_type *sp, size_type NUM_OF_PIC)
@@ -201,6 +196,10 @@ __global__ void spUpdateParticle_push_Boris_Kernel(spPage** buckets, const Real 
 
 }
 
+__constant__ Real cmr_dt;
+__constant__ int3 mesh_offset;
+__constant__ int SP_MESH_NUM_OF_ENTITY_IN_GRID;
+__constant__ float3 mesh_inv_dv;
 __global__ void spUpdateParticle_sort_Boris_kernel(spPage ** buckets)
 {
 
@@ -330,7 +329,7 @@ void spUpdateParticle_BorisYee(spMesh *ctx, Real dt, sp_particle_type *pg, const
 	spUpdateParticle_push_Boris_Kernel<<<ctx->dims, NUMBER_OF_THREADS_PER_BLOCK>>>(pg->buckets,
 			((Real*) fE->device_data), ((Real*) fB->device_data));
 
-	spUpdateParticle_sort_Boris_kernel<<<ctx->dims, 1>>>(pg->buckets);
+	spUpdateParticle_sort_Boris_kernel<<<ctx->dims, NUMBER_OF_THREADS_PER_BLOCK>>>(pg->buckets);
 
 	spUpdateParticle_scatter_Boris_kernel<<<ctx->dims, NUMBER_OF_THREADS_PER_BLOCK>>>(pg->buckets,
 			((Real*) fRho->device_data), ((Real*) fJ->device_data));

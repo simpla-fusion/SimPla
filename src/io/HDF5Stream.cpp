@@ -886,7 +886,7 @@ std::string HDF5Stream::write(std::string const &url, data_model::DataSet const 
 
     if ((ds.data == nullptr) || ds.memory_space.size() == 0)
     {
-        WARNING << "ignore empty m_data set! " << url << std::endl;
+        VERBOSE << "ignore empty m_data set! " << url << std::endl;
         return "";
     }
     typedef nTuple<hsize_t, MAX_NDIMS_OF_ARRAY> index_tuple;

@@ -66,7 +66,7 @@ template<typename T> using is_expression_field_t=  std::enable_if_t<is_field<T>:
 }
 /**
  * @ingroup diff_geo
- * @defgroup calculus Calculus on Manifold
+ * @defgroup calculus Calculus on CoordinateChart
  * @ingroup calculus
  * @{
  **/

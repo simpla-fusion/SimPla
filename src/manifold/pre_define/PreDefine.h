@@ -9,7 +9,7 @@
 
 #include "../../mesh/CoRectMesh.h"
 
-#include "../Manifold.h"
+#include "../CoordinateChart.h"
 #include "../schemes/FVMStructured.h"
 #include "../schemes/LinearInterpolator.h"
 
@@ -24,10 +24,10 @@
 namespace simpla { namespace manifold
 {
 //template<typename MESH, template<typename> class ...Policies>
-//using ManifoldWithPolicies= Manifold<MESH, Policies<MESH>...>;
+//using ManifoldWithPolicies= CoordinateChart<MESH, Policies<MESH>...>;
 
 template<typename MESH = mesh::CoRectMesh, template<typename> class METRIC_POLICY= metric::Cartesian>
-using DefaultManifold= Manifold<MESH,
+using DefaultManifold= CoordinateChart<MESH,
         METRIC_POLICY,
         schemes::FiniteVolume,
         schemes::LinearInterpolator
@@ -40,7 +40,7 @@ using CylindricalManifold= DefaultManifold<mesh::CoRectMesh, metric::Cylindrical
 using CartesianManifold = DefaultManifold<mesh::CoRectMesh, metric::Cartesian>;
 
 
-}}// namespace simpla { namespace Manifold
+}}// namespace simpla { namespace CoordinateChart
 
 namespace simpla { namespace tags { struct function; }}
 

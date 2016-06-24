@@ -37,10 +37,53 @@ io::IOStream &Context::load(io::IOStream &is)
     return is;
 }
 
-void Context::next_step(Real dt)
+void Context::run(Real dt, int level)
 {
 
+    //TODO async run
+    update(level); //  get data from parent level
+
+    for (int i = 0; i < m_refine_ratio; ++i)
+    {
+        run(dt / m_refine_ratio, level + 1);
+    }
+
+    for (manifold::ChartBase const &chart_node: m_atlas_.find_at_level(level))
+    {
+        for (auto p_it = m_domains_.find(chart_node.id()); p_it != m_domains_.end(); ++p_it)
+        {
+            p_it->second->run(dt);
+        };
+    }
+
 };
+
+void Context::update(int level, int flag)
+{
+
+    //TODO async update
+
+    for (manifold::ChartBase const &chart_node: m_atlas_.find_at_level(dest))
+    {
+        for (manifold::TransitionMap const &map_edge:m_atlas_.find_conection(chart_node.id()))
+        {
+            for (auto p_it = m_domains_.find(chart_node.id()); p_it != m_domains_.end(); ++p_it)
+            {
+
+                for (auto p_o_it = m_domains_.find(map_edge.second.id()); p_o_it != m_domains_.end(); ++p_o_it)
+                {
+                    p_it->second->sync(map_edge, p_o_it.second);
+                }
+
+            }
+        };
+    }
+
+
+};
+
+
+
 //void Context::apply(ProblemDomain &w, uuid const &id, Real dt)
 //{
 //

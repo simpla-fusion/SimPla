@@ -47,6 +47,7 @@ __global__ void spInitializeParticle_Kernel(spPage** buckets, spPage * pages, vo
 		return;
 	}
 
+	// TODO need optimize
 #define MESH_ID (blockIdx.x + (blockIdx.y + blockIdx.z * gridDim.y) * gridDim.x)
 
 	size_type page_size_in_byte = (sizeof(spPage) + num_of_attrs * sizeof(void*));
@@ -113,8 +114,8 @@ void spParticleInitialize(const spMesh *mesh, sp_particle_type *sp, size_type PI
 
 	CUDA_CHECK_RETURN(cudaMemcpy((void* )particle_attrs, (sp->attrs), sizeof(sp->attrs), cudaMemcpyDefault));
 
-	spInitializeParticle_Kernel<<<mesh->dims, 1>>>(sp->buckets, sp->m_pages_holder, sp->data, sp->number_of_attrs,
-			particle_attrs, number_of_pages_per_cell);
+	spInitializeParticle_Kernel<<<mesh->dims, NUMBER_OF_THREADS_PER_BLOCK>>>(sp->buckets, sp->m_pages_holder, sp->data,
+			sp->number_of_attrs, particle_attrs, number_of_pages_per_cell);
 
 	cudaDeviceSynchronize();        //wait for iteration to finish
 

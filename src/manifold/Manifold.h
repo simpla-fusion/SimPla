@@ -1,233 +1,136 @@
-/**
- * @file manifold.h
- *
- * @date 2015-2-9
- * @author salmon
- */
+//
+// Created by salmon on 16-6-24.
+//
 
-#ifndef CORE_MANIFOLD_H_
-#define CORE_MANIFOLD_H_
+#ifndef SIMPLA_MANIFOLD_H
+#define SIMPLA_MANIFOLD_H
 
-#include <iostream>
 #include <memory>
-#include "../gtl/Log.h"
-#include "../gtl/macro.h"
-#include "../gtl/nTuple.h"
-
-#include "../model/CoordinateSystem.h"
-#include "ManifoldTraits.h"
-
+#include "../mesh/MeshCommon.h"
+#include "../mesh/MeshEntity.h"
+#include "../gtl/type_traits.h"
 
 namespace simpla { namespace manifold
 {
 
-
 /**
- * @defgroup diff_geo Differential Geometry
- * @brief collection of get_mesh and differential scheme
- *
- * @detail
- * ## Summary
- * Differential geometry is a mathematical discipline that
- *  uses the techniques of differential calculus, integral calculus,
- *  linear algebra and multilinear algebra to study problems in geometry.
- *   The theory of plane and space curves and surfaces in the three-dimensional
- *    Euclidean space formed the basis for development of differential
- *     geometry during the 18th century and the 19th century.
+ *  Manifold (Differential Manifold):
+ *  A presentation of a _topological manifold_ is a second countable Hausdorff space that is locally homeomorphic
+ *  to a linear space, by a collection (called an atlas) of homeomorphisms called _charts_. The composition of one
+ *  _chart_ with the inverse of another chart is a function called a _transition map_, and defines a homeomorphism
+ *  of an open subset of the linear space onto another open subset of the linear space.
  */
-/**
- * @ingroup diff_geo
- * @addtogroup   Manifold Differential Manifold
- * @{
- *    @brief  Manifold
- *
-
- * ## Requirements
- *
- ~~~~~~~~~~~~~{.cpp}
- template <typename BaseManifold,template<typename> class Policy1,template<typename> class Policy2>
- class mesh:
- public BaseManifold,
- public Policy1<BaseManifold>,
- public Policy2<BaseManifold>
- {
- .....
- };
- ~~~~~~~~~~~~~
- * The following table lists requirements for a mesh type `M`,
- *
- *  Pseudo-Signature  		| Semantics
- *  ------------------------|-------------
- *  `M( const M& )` 		| Copy constructor.
- *  `~M()` 				    | Destructor.
- *  `mesh_type`		    | BaseManifold type of geometry, which describes coordinates and Metric
- *  `mesh_type`		    | Topology structure of geometry,   Topology of grid points
- *  `coordiantes_type` 	    | m_data type of coordinates, i.e. nTuple<3,Real>
- *  `index_type`			| m_data type of the index of grid points, i.e. unsigned long
- *  `Domain  domain()`	    | Root domain of geometry
- *
- *
- * mesh policy concept {#concept_manifold_policy}
- * ================================================
- *   Poilcies define the behavior of geometry , such as  interpolate or calculus;
- ~~~~~~~~~~~~~{.cpp}
- template <typename BaseManifold > class P;
- ~~~~~~~~~~~~~
- *
- *  The following table lists requirements for a get_mesh policy type `P`,
- *
- *  Pseudo-Signature  	   | Semantics
- *  -----------------------|-------------
- *  `P( BaseManifold  & )` 	   | Constructor.
- *  `P( P const  & )`	   | Copy constructor.
- *  `~P( )` 			   | Copy Destructor.
- *
- * ## Interpolator policy
- *   Interpolator, map between discrete space and continue space, i.e. Gather & Scatter
- *
- *    Pseudo-Signature  	   | Semantics
- *  ---------------------------|-------------
- *  `gather(field_type const &f, coordinate_tuple x  )` 	    | gather m_data from `f` at coordinates `x`.
- *  `scatter(field_type &f, coordinate_tuple x ,value_type v)` 	| scatter `v` to field  `f` at coordinates `x`.
- *
- * ## Calculus  policy
- *  Define calculus operation of  fields on the geometry, such  as algebra or differential calculus.
- *  Differential calculus scheme , i.e. FDM,FVM,FEM,DG ....
- *
- *
- *  Pseudo-Signature  		| Semantics
- *  ------------------------|-------------
- *  `diff_scheme(TOP op, field_type const &f, field_type const &f, index_type s ) `	| `diff_scheme`  binary operation `op` at grid point `s`.
- *  `diff_scheme(TOP op, field_type const &f,  index_type s )` 	| `diff_scheme`  unary operation  `op`  at grid point `s`.
- *
- *
- *  ## Differential Form
- *  @brief In the mathematical fields of @ref diff_geo and tensor calculus,
- *   differential forms are an approach to multivariable calculus that
- *     is independent of coordinates. --wiki
- *
- *
- * ## Summary
- * \note Let \f$M\f$ be a _smooth manifold_. A _differential form_ of degree \f$k\f$ is
- *  a smooth section of the \f$k\f$th exterior power of the cotangent bundle of \f$M\f$.
- *  At any point \f$p \in M\f$, a k-form \f$\beta\f$ defines an alternating multilinear map
- * \f[
- *   \beta_p\colon T_p M\times \cdots \times T_p M \to \mathbb{R}
- * \f]
- * (with k factors of \f$T_p M\f$ in the product), where TpM is the tangent space to \f$M\f$ at \f$p\f$.
- *  Equivalently, \f$\beta\f$ is a totally antisymetric covariant tensor field of rank \f$k\f$.
- *
- *  Differential form is a field
- *
- * ## Requirements
-
- */
-
-/**
- * Manifold
- */
-template<typename TMesh, template<typename...> class ...Policies>
-class Manifold
-        : public TMesh,
-          public Policies<TMesh> ...
+struct ChartBase
 {
-    typedef Manifold<TMesh, Policies ...> this_type;
+    virtual mesh::point_type point(mesh::MeshEntityId const &s) const = 0;
+
+    virtual size_type hash(mesh::MeshEntityId s) const = 0;
+
+    virtual mesh::MeshEntityRange range(mesh::box_type const &b, int entity_type) const = 0;
+
+    virtual mesh::MeshBlockId id() const = 0;
+
+    template<typename TFrom>
+    Real sample(mesh::MeshEntityId s, TFrom const &v) const { return 0.0; }
+
+    Real sample(mesh::MeshEntityId s, Real const &v) const { return v; }
+
+
+};
+
+/**
+ *   TransitionMap: \f$\psi\f$,
+ *   *Mapping: Two overlapped charts \f$x\in M\f$ and \f$y\in N\f$, and a mapping
+ *    \f[
+ *       \psi:M\rightarrow N,\quad y=\psi\left(x\right)
+ *    \f].
+ *   * Pull back: Let \f$g:N\rightarrow\mathbb{R}\f$ is a function on \f$N\f$,
+ *     _pull-back_ of function \f$g\left(y\right)\f$ induce a function on \f$M\f$
+ *   \f[
+ *       \psi^{*}g&\equiv g\circ\psi,\;\psi^{*}g=&g\left(\psi\left(x\right)\right)
+ *   \f]
+ *
+ *
+ */
+struct TransitionMap
+{
 
 public:
+    TransitionMap(ChartBase const *m, ChartBase const *n);
 
-    typedef TMesh mesh_type;
-
-    Manifold() : Policies<mesh_type>(static_cast<mesh_type &>(*this))... { }
-
-    virtual ~Manifold() { }
-
-    Manifold(this_type const &m) = delete;
-
-    this_type &operator=(const this_type &other) = delete;
+    ~TransitionMap();
 
 
-    virtual bool is_a(std::type_info const &info) const { return typeid(this_type) == info || TMesh::is_a(info); }
+    virtual int map(mesh::point_type *) const = 0;
 
-    virtual std::string get_class_name() const { return class_name(); }
+    virtual mesh::point_type map(mesh::point_type const &) const = 0;
 
-    static std::string class_name()
+    virtual mesh::MeshEntityId direct_map(mesh::MeshEntityId) const = 0;
+
+    virtual void push_forward(mesh::point_type const &x, Real const *v, Real *u) const
     {
-        return "Manifold<" + traits::type_id_list<mesh_type, Policies<mesh_type>...>::name() + " > ";
+
+        u[0] = v[0];
+        u[1] = v[1];
+        u[2] = v[2];
+    }
+
+
+    mesh::point_type operator()(mesh::point_type const &x) const { return map(x); }
+
+
+    template<typename Tg>
+    auto pull_back(Tg const &g, mesh::point_type const &x) const
+    DECL_RET_TYPE((g(map(x))))
+
+    template<typename Tg, typename Tf>
+    void pull_back(Tg const &g, Tf *f, int entity_type = mesh::VERTEX) const
+    {
+        m_chart_M_->range(m_overlap_region_M_, entity_type).foreach(
+                [&](mesh::MeshEntityId s)
+                {
+                    (*f)[m_chart_M_->hash(s)] =
+                            m_chart_M_->sample(s, pull_back(g, m_chart_M_->point(s)));
+                });
+    }
+
+
+    int direct_pull_back(Real const *g, Real *f, int entity_type = mesh::VERTEX) const;
+
+
+    template<typename TScalar>
+    void push_forward(mesh::point_type const &x, TScalar const *v, TScalar *u) const
+    {
+
     }
 
 private:
-    template<typename T> void deploy_dispatch() { T::deploy(); }
-
-    template<typename T, typename T1, typename ...Others>
-    void deploy_dispatch()
-    {
-        deploy_dispatch<T>();
-        deploy_dispatch<T1, Others...>();
-    }
+    ChartBase const *m_chart_M_;
+    ChartBase const *m_chart_N_;
+    mesh::box_type m_overlap_region_M_;
+};
 
 
+class Atlas
+{
 public:
-    virtual void deploy()
-    {
-        mesh_type::deploy();
-        deploy_dispatch<Policies<mesh_type>...>();
-        this->touch();
-    }
+    void add_chart(std::string const &, std::shared_ptr<ChartBase>);
 
-    template<typename TDict>
-    void setup(TDict const &dict)
-    {
-        mesh_type::setup(dict);
-    }
+    void add_map(std::string const &, std::string const &, std::shared_ptr<TransitionMap>);
+
+    void update(mesh::MeshBlockId m_id, mesh::MeshBlockId n_id, Real const *l, Real *r, int entity_type) const;
 
 
-    virtual std::ostream &print(std::ostream &os, int indent = 1) const
-    {
-        os << std::setw(indent) << " " << "Manifold = {" << std::endl;
+    ChartBase const *get_chart(mesh::MeshBlockId m_id) const;
 
-        this_type::mesh_type::print(os, indent + 1);
-        this_type::metric_policy::print(os, indent + 1);
-        this_type::calculus_policy::print(os, indent + 1);
-        this_type::interpolate_policy::print(os, indent + 1);
+    ChartBase *get_chart(mesh::MeshBlockId m_id);
 
-        os << std::setw(indent) << " " << "}  -- Manifold " << std::endl;
+    TransitionMap const &get_map(mesh::MeshBlockId m_id, mesh::MeshBlockId n_id) const;
 
+private:
+    struct pimpl_s;
+    std::unique_ptr<pimpl_s> m_pimpl_;
+};
+}}//namespace simpla { namespace manifold
 
-        return os;
-    }
-
-
-//    virtual data_model::DataSet grid_vertices() const
-//    {
-//        auto ds = this->storage_policy::template dataset<point_type, VERTEX>();
-//
-//        ds.m_data = sp_alloc_memory(ds.memory_space.size() * sizeof(point_type));
-//
-//        point_type *p = reinterpret_cast<point_type *>(ds.m_data.get());
-//
-//        parallel::parallel_for(
-//                this->template entity_id_range<VERTEX>(),
-//                [&](range_type const &r)
-//                {
-//                    for (auto const &s: r)
-//                    {
-//                        p[this->hash(s)] = this->map_to_cartesian(this->point(s));
-//                    }
-//                }
-//        );
-//
-//        return std::move(ds);
-//
-//    };
-
-
-
-
-
-}; //class Manifold
-
-/* @}@} */
-
-}}//namespace simpla::manifold
-
-#endif /* CORE_MANIFOLD_H_ */
+#endif //SIMPLA_MANIFOLD_H

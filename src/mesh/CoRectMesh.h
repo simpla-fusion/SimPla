@@ -390,7 +390,7 @@ public:
 
             m_dx_[i] = (m_coords_upper_[i] - m_coords_lower_[i]) / static_cast<Real>( m_dims_[i]);
 
-            m_inv_dx_[i] = 1.0 / m_dx_[i];
+            m_inv_dx_[i] = static_cast<Real>(1.0) / m_dx_[i];
 
             m_ghost_width_[i] = (m_dims_[i] < m_ghost_width_[i] * 2) ? 0 : m_ghost_width_[i];
 
@@ -409,7 +409,7 @@ public:
             m_l2g_scale_[i] = (m_dims_[i] <= 1) ? 0 : m_dx_[i];
             m_l2g_shift_ = m_coords_lower_;
 
-            m_g2l_scale_[i] = (m_dims_[i] <= 1) ? 0 : 1.0 / m_dx_[i];
+            m_g2l_scale_[i] = (m_dims_[i] <= 1) ? 0 : static_cast<Real>(1.0) / m_dx_[i];
             m_g2l_shift_[i] = (m_dims_[i] <= 1) ? 0 : -m_coords_lower_[i] * m_g2l_scale_[i];
 
         }

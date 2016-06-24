@@ -380,7 +380,7 @@ private:
 
 
     template<typename TF>
-    constexpr inline
+    const inline
     nTuple<typename traits::value_type<TF>::type, 3>
     mapto(TF const &expr, id_type s, index_sequence<EDGE, VERTEX>) const
     {
@@ -395,14 +395,14 @@ private:
 
         s = (s | m.FULL_OVERFLOW_FLAG) - M::_DA;
 
-        return field_value_type
+        return nTuple<typename traits::value_type<TF>::type, 3>
                 {
-                        (eval_(l, s + M::_DA - X) +
-                         eval_(l, s + M::_DA + X)) * 0.5,
-                        (eval_(l, s + M::_DA - Y) +
-                         eval_(l, s + M::_DA + Y)) * 0.5,
-                        (eval_(l, s + M::_DA - Z) +
-                         eval_(l, s + M::_DA + Z)) * 0.5
+                        static_cast<typename traits::value_type<TF>::type>((eval_(l, s + M::_DA - X) +
+                                                                            eval_(l, s + M::_DA + X)) * 0.5),
+                        static_cast<typename traits::value_type<TF>::type>((eval_(l, s + M::_DA - Y) +
+                                                                            eval_(l, s + M::_DA + Y)) * 0.5),
+                        static_cast<typename traits::value_type<TF>::type>((eval_(l, s + M::_DA - Z) +
+                                                                            eval_(l, s + M::_DA + Z)) * 0.5)
 
                 };
 
@@ -425,18 +425,18 @@ private:
 
         return nTuple<typename traits::value_type<TF>::type, 3>
                 {
-                        (eval_(l, (s + M::_DA - Y - Z)) +
-                         eval_(l, (s + M::_DA - Y + Z)) +
-                         eval_(l, (s + M::_DA + Y - Z)) +
-                         eval_(l, (s + M::_DA + Y + Z))),
-                        (eval_(l, (s + M::_DA - Z - X)) +
-                         eval_(l, (s + M::_DA - Z + X)) +
-                         eval_(l, (s + M::_DA + Z - X)) +
-                         eval_(l, (s + M::_DA + Z + X))),
-                        (eval_(l, (s + M::_DA - X - Y)) +
-                         eval_(l, (s + M::_DA - X + Y)) +
-                         eval_(l, (s + M::_DA + X - Y)) +
-                         eval_(l, (s + M::_DA + X + Y)))
+                        static_cast<typename traits::value_type<TF>::type>(eval_(l, (s + M::_DA - Y - Z)) +
+                                                                           eval_(l, (s + M::_DA - Y + Z)) +
+                                                                           eval_(l, (s + M::_DA + Y - Z)) +
+                                                                           eval_(l, (s + M::_DA + Y + Z))),
+                        static_cast<typename traits::value_type<TF>::type>(eval_(l, (s + M::_DA - Z - X)) +
+                                                                           eval_(l, (s + M::_DA - Z + X)) +
+                                                                           eval_(l, (s + M::_DA + Z - X)) +
+                                                                           eval_(l, (s + M::_DA + Z + X))),
+                        static_cast<typename traits::value_type<TF>::type>(eval_(l, (s + M::_DA - X - Y)) +
+                                                                           eval_(l, (s + M::_DA - X + Y)) +
+                                                                           eval_(l, (s + M::_DA + X - Y)) +
+                                                                           eval_(l, (s + M::_DA + X + Y)))
                 };
 
 

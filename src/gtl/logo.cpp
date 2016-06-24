@@ -55,7 +55,7 @@ void TheStart(int flag)
     {
         default:
             INFORM << SINGLELINE << std::endl;
-            VERBOSE << "So far so good, let's start work! " << std::endl;
+            VERBOSE << "So far so good, let's begin! " << std::endl;
             INFORM << "[MISSOIN     START]: " << std::endl;
             INFORM << SINGLELINE << std::endl;
     }
@@ -82,9 +82,9 @@ void TheEnd(int flag)
             INFORM << "[MISSION COMPLETED]: " << std::endl;
             VERBOSE << "Job is Done!! " << std::endl;
             VERBOSE << "	I'm so GOOD!" << std::endl;
-            VERBOSE << "		Thanks me please!" << std::endl;
-            VERBOSE << "			Thanks me please!" << std::endl;
-            VERBOSE << "You are welcome!" << std::endl;
+//            VERBOSE << "		Thanks me please!" << std::endl;
+//            VERBOSE << "			Thanks me please!" << std::endl;
+//            VERBOSE << "You are welcome!" << std::endl;
             INFORM << SINGLELINE << std::endl;
 
     }

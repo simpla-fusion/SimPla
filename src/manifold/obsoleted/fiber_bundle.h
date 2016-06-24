@@ -130,7 +130,7 @@ public:
 
 
 
-}}//namespace simpla{namespace Manifold
+}}//namespace simpla{namespace CoordinateChart
 
 
 #endif //SIMPLA_FIBER_BUNDLE_H

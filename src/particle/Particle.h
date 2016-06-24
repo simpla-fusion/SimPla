@@ -11,7 +11,6 @@
 #include <memory>
 #include "../gtl/type_traits.h"
 #include "../gtl/Properties.h"
-#include "BucketContainer.h"
 
 namespace simpla { template<typename ...> struct Field; }
 

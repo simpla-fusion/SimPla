@@ -44,6 +44,8 @@ public:
 
     ProblemDomain(const mesh::MeshBase *);
 
+    mesh::MeshBlockId mesh_id() const { return m->uuid(); }
+
     virtual  ~ProblemDomain();
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const;

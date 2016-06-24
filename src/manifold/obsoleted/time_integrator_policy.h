@@ -64,7 +64,7 @@ private:
 
 };
 
-}}}//namespace  namespace policy namespace Manifold
+}}}//namespace  namespace policy namespace CoordinateChart
 namespace simpla { namespace traits
 {
 template<typename ... T>

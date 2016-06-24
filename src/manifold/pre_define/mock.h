@@ -27,6 +27,6 @@ using Mock= Manifold<CartesianCoordinate, Calculate<CartesianCoordinate, calcula
 		DataSetPolicy<CartesianCoordinate>>;
 
 
-}//namespace  Manifold
+}//namespace  CoordinateChart
 }//namespace simpla
 #endif //SIMPLA_MOCK_H

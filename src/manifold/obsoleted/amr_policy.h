@@ -190,6 +190,6 @@ AMR::~AMR()
 {
 
 }
-}}}//namespace simpla{namespace Manifold{namespace policy
+}}}//namespace simpla{namespace CoordinateChart{namespace policy
 
 #endif //SIMPLA_AMR_H
