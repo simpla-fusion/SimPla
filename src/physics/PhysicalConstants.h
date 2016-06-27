@@ -11,7 +11,7 @@
 #include <iostream>
 #include <map>
 #include <string>
-#include "../sp_config.h"
+#include "../sp_def.h"
 #include "../gtl/MemoryPool.h"
 #include "Constants.h"
 

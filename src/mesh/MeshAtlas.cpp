@@ -4,73 +4,84 @@
  */
 
 #include "MeshAtlas.h"
+#include "../gtl/BoxUtility.h"
 
 namespace simpla { namespace mesh
 {
 
-void MeshAtlas::decompose(int num, int rank)
+TransitionMap::TransitionMap(Chart const *p_first, Chart const *p_second, int p_flag)
+        : first(p_first), second(p_second), flag(p_flag),
+          m_overlap_region_M_(gtl::box_overlap(first->box(SP_ES_LOCAL), second->box(SP_ES_OWNED)))
 {
 
 };
 
-void MeshAtlas::decompose(nTuple<int, 3> const &dims, nTuple<int, 3> const &self) { }
+TransitionMap::~TransitionMap() { };
 
-void MeshAtlas::load_balance() { }
+int TransitionMap::direct_pull_back(Real const *g, Real *f, mesh::MeshEntityType entity_type) const
+{
+    first->range(m_overlap_region_M_, entity_type).foreach(
+            [&](mesh::MeshEntityId const &s)
+            {
+                f[first->hash(s)] = g[second->hash(direct_map(s))];
+            });
+};
 
-void MeshAtlas::sync(std::string const &n, int level = 0) { }
+MeshBlockId Atlas::add_block(std::shared_ptr<Chart> p_m)
+{
+    m_.emplace(std::make_pair(p_m->id(), p_m));
+}
 
-void MeshAtlas::sync(int level = 0) { }
+std::shared_ptr<Chart> Atlas::get_block(mesh::MeshBlockId m_id) const
+{
+    return m_.at(m_id);
+}
 
-void MeshAtlas::refine(int level = 0) { }
+void Atlas::remove_block(MeshBlockId const &m_id)
+{
+    UNIMPLEMENTED;
+}
 
-void MeshAtlas::coarsen(int level = 0) { }
+void Atlas::add_adjacency(mesh::MeshBlockId first, mesh::MeshBlockId second, int flag)
+{
+    UNIMPLEMENTED;
+}
 
-//void MeshAtlas::apply(MeshBlockId const &self, MeshWorker const &o_walker, Real dt)
-//{
-//    auto walker = o_walker.clone(*get(self));
-//
-//    // update ghost from neighbours;
-//    for (auto const &neighbour:this->adjacent_blocks(self, 0)) { walker->update_ghost_from(*get(neighbour)); }
-//    walker->work(dt);
-//
-//
-//}
-//
-//void MeshAtlas::update_level(int level, MeshWorker const &o_walker, Real dt)
-//{
-//    // 1. update remote data (MPI)
-//
-//}
-//
-//void MeshAtlas::apply(MeshWorker const &o_walker, Real dt)
-//{
-//    /** 1.|--|- global update ghost
-//     *    |  |- update center domain
-//     *  2.|--- update boundary domain
-//     *
-//     */
-//    this->apply(m_root_, o_walker, dt);
-//
-//
-//    auto children = this->adjacent_blocks(self, +1);
-//    // copy data to child box
-//    for (auto const &child:children) { walker->refine(*get(child)); }
-//
-//    for (int n = 0; n < m_level_ratio_; ++n)
-//    {
-//        //parallel for
-//        for (auto const &child:children) { this->apply(child, *walker, dt / m_level_ratio_); }
-//        // TODO: add mpi sync at here
-//    }
-//
-//    //copy data from lower level
-//    for (auto const &child:children) { if (walker->coarsen(*get(child))) { this->remove(child); }; }
-//
-//}
-//
-//std::vector<MeshBlockId>
-//MeshAtlas::adjacent_blocks(MeshBlockId const &id, int inc_level = 0)
-//{
-//
-//}
+MeshBlockId Atlas::extent_block(mesh::MeshBlockId first_id, int const *offset_direction, size_type width)
+{
+    auto second_id = add_block(get_block(first_id)->extend(width, offset_direction));
+
+    add_adjacency(first_id, second_id, SP_MB_SYNC);
+    add_adjacency(second_id, first_id, SP_MB_SYNC);
+
+    return second_id;
+
+};
+
+
+MeshBlockId Atlas::refine_block(mesh::MeshBlockId first, box_type const &)
+{
+    UNIMPLEMENTED;
+}
+
+MeshBlockId Atlas::coarsen_block(mesh::MeshBlockId first, box_type const &)
+{
+    UNIMPLEMENTED;
+}
+
+void Atlas::get_adjacencies(mesh::MeshBlockId first, int flag, std::list<std::shared_ptr<TransitionMap>> *res) const
+{
+    for (auto const &item:m_adjacency_list_.at(first))
+    {
+        if ((item->flag & flag) != 0x0)
+        {
+            assert(item->first->id() == first);
+
+            res->push_back(item);
+        }
+    }
+
+};
+
+
 }}//namespace simpla{namespace mesh{

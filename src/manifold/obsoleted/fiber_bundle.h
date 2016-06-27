@@ -7,7 +7,7 @@
 #ifndef SIMPLA_FIBER_BUNDLE_H
 #define SIMPLA_FIBER_BUNDLE_H
 
-#include "../gtl/primitives.h"
+#include "../sp_def.h"
 #include "Properties.h"
 
 namespace simpla { namespace manifold
@@ -130,7 +130,7 @@ public:
 
 
 
-}}//namespace simpla{namespace CoordinateChart
+}}//namespace simpla{namespace CoordinateSystem
 
 
 #endif //SIMPLA_FIBER_BUNDLE_H

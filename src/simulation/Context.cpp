@@ -6,34 +6,117 @@
  */
 
 #include "Context.h"
+#include "ProblemDomain.h"
+//#include <functional>
+//#include <iostream>
+//#include <map>
+//#include <memory>
+//#include <string>
+//#include <tuple>
 
-#include <functional>
-#include <iostream>
-#include <map>
-#include <memory>
-#include <string>
-#include <tuple>
 
-
-namespace simpla
+namespace simpla { namespace simulation
 {
 
-void Context::setup() { };
+struct Context::pimpl_s
+{
+    std::map<mesh::MeshBlockId, std::shared_ptr<ProblemDomain>> m_domains_;
+    mesh::Atlas m_atlas_;
 
-void Context::teardown() { };
+};
+
+Context::Context() : m_pimpl_(new pimpl_s)
+{
+
+};
+
+Context::~Context()
+{
+
+};
+
+void Context::setup()
+{
+
+};
+
+void Context::teardown()
+{
+
+};
+
+std::ostream &Context::print(std::ostream &os, int indent) const
+{
+    os << "{" << std::endl;
+    for (auto const &item:m_pimpl_->m_domains_)
+    {
+        item.second->print(os, indent + 1);
+    }
+    os << "}" << std::endl;
+    return os;
+}
+
+
+void Context::add_mesh(std::shared_ptr<mesh::Chart> m, int level)
+{
+    m_pimpl_->m_atlas_.add_block(m);
+}
+
+std::shared_ptr<mesh::Chart>
+Context::get_mesh_chart(mesh::MeshBlockId id, int level) const
+{
+    return m_pimpl_->m_atlas_.get_block(id);
+}
+
+
+std::shared_ptr<ProblemDomain> Context::get_domain(mesh::MeshBlockId id) const
+{
+    return m_pimpl_->m_domains_.at(id);
+};
+
+
+std::shared_ptr<ProblemDomain> Context::add_domain(std::shared_ptr<ProblemDomain> pb, int level)
+{
+    auto id = pb->m->id();
+
+    m_pimpl_->m_domains_.emplace(std::make_pair(pb->m->id(), pb));
+//
+//    if (m_pimpl_->m_atlas_.find(id) == m_pimpl_->m_atlas_.end())
+//    {
+//        add_mesh(const_cast<mesh::Chart *>(pb->m)->shared_from_this(), level);
+//    }
+    return pb;
+}
+
 
 io::IOStream &Context::check_point(io::IOStream &os) const
 {
+    for (auto const &item:m_pimpl_->m_domains_)
+    {
+        item.second->check_point(os);
+
+    }
     return os;
 }
 
 io::IOStream &Context::save(io::IOStream &os) const
 {
+
+    for (auto const &item:m_pimpl_->m_domains_)
+    {
+        item.second->save(os);
+
+    }
     return os;
 }
 
 io::IOStream &Context::load(io::IOStream &is)
 {
+    for (auto const &item:m_pimpl_->m_domains_)
+    {
+        item.second->load(is);
+
+    }
     return is;
 }
 
@@ -41,91 +124,55 @@ void Context::run(Real dt, int level)
 {
 
     //TODO async run
-    update(level); //  get data from parent level
+    update(level + 1, mesh::SP_MB_REFINE); //  push data to next level
 
     for (int i = 0; i < m_refine_ratio; ++i)
     {
         run(dt / m_refine_ratio, level + 1);
     }
 
-    for (manifold::ChartBase const &chart_node: m_atlas_.find_at_level(level))
-    {
-        for (auto p_it = m_domains_.find(chart_node.id()); p_it != m_domains_.end(); ++p_it)
-        {
-            p_it->second->run(dt);
-        };
-    }
 
+//    for (auto const &chart_node: m_pimpl_->m_atlas_)
+//    {
+//        for (auto p_it = m_pimpl_->m_domains_.find(chart_node.second->id());
+//             p_it != m_pimpl_->m_domains_.end(); ++p_it)
+//        {
+//            p_it->second->next_step(dt);
+//        };
+//        chart_node.second->next_step(dt);
+//    }
+    update(level, mesh::SP_MB_COARSEN | mesh::SP_MB_SYNC);
+
+    next_time_step(dt);
 };
+
 
 void Context::update(int level, int flag)
 {
 
     //TODO async update
 
-    for (manifold::ChartBase const &chart_node: m_atlas_.find_at_level(dest))
-    {
-        for (manifold::TransitionMap const &map_edge:m_atlas_.find_conection(chart_node.id()))
-        {
-            for (auto p_it = m_domains_.find(chart_node.id()); p_it != m_domains_.end(); ++p_it)
-            {
-
-                for (auto p_o_it = m_domains_.find(map_edge.second.id()); p_o_it != m_domains_.end(); ++p_o_it)
-                {
-                    p_it->second->sync(map_edge, p_o_it.second);
-                }
-
-            }
-        };
-    }
+//    for (auto &m_id: m_pimpl_->m_atlas_[level])
+//    {
+//        auto this_domain = m_pimpl_->m_domains_.find(m_id.second->id());
+//        if (this_domain != m_pimpl_->m_domains_.find(m_id.second->id()))
+//        {
+//            for (auto const &trans_map:m_pimpl_->m_atlas_.get_adjacencies(m_id.second->id()))
+//            {
+//                auto other_domain = m_pimpl_->m_domains_.find(trans_map->second->id());
+//                if ((trans_map->flag & flag) != 0x0 && other_domain != m_pimpl_->m_domains_.end())
+//                {
+//                    this_domain->second->sync(*trans_map, *(other_domain->second));
+//                }
+//
+//            };
+//        };
+//    }
 
 
 };
 
 
+}} // namespace simpla { namespace simulation
 
-//void Context::apply(ProblemDomain &w, uuid const &id, Real dt)
-//{
-//
-//    int ratio = m_mesh_atlas_.refine_ratio(id);
-//
-//    auto children = m_mesh_atlas_.children(id);
-//
-//    Real sub_dt = dt / ratio;
-//
-//    // copy m_data to lower level
-//    for (auto &sub_id:children) { refine(id, sub_id); }
-//
-//    // push lower level
-//    for (int n = 0; n < ratio; ++n)
-//    {
-//        for (auto &sub_id:children) { update(sub_id, sub_dt); }
-//
-//        for (auto &sub_id:children)
-//        {
-//            // move to lower level
-//
-//            for (auto const &oid:m_mesh_atlas_.neighbour(sub_id))
-//            {
-//                sync(sub_id, oid);
-//            }
-//        }
-//
-//        // TODO: add mpi sync at here
-//    }
-//
-//    //copy m_data from lower level
-//    for (auto &sub_id:children) { coarsen(sub_id, id); }
-//    // push this level
-//    update(id, id);
-//}
-//
-//void Context::sync(get_mesh::uuid const &id, ProblemDomain w)
-//{
-//    w.view(id);
-//
-//    for (auto const &oid: m_mesh_atlas_.sibling(id)) { w.sync(oid); }
-//}
-
-}  // namespace simpla
 

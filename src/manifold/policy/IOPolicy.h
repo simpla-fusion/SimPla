@@ -16,7 +16,7 @@ template<typename ...> class Field;
 namespace manifold { namespace policy
 {
 /**
- * @ingroup CoordinateChart
+ * @ingroup CoordinateSystem
  */
 
 template<typename ...> struct IOPolicy;
@@ -105,7 +105,7 @@ public:
 };//template<typename TGeo> struct IoPolicy
 
 } //namespace policy
-} //namespace CoordinateChart
+} //namespace CoordinateSystem
 
 namespace traits
 {

@@ -15,7 +15,7 @@
 #include "../gtl/nTuple.h"
 
 #include "../model/CoordinateSystem.h"
-#include "Manifold.h"
+
 #include "ManifoldTraits.h"
 
 
@@ -38,9 +38,9 @@ namespace simpla { namespace manifold
  */
 /**
  * @ingroup diff_geo
- * @addtogroup   CoordinateChart Differential CoordinateChart
+ * @addtogroup   CoordinateSystem Differential CoordinateSystem
  * @{
- *    @brief  CoordinateChart
+ *    @brief  CoordinateSystem
  *
 
  * ## Requirements
@@ -125,24 +125,24 @@ namespace simpla { namespace manifold
  */
 
 /**
- * CoordinateChart
+ * CoordinateSystem
  */
 template<typename TMesh, template<typename...> class ...Policies>
-class CoordinateChart
+class CoordinateSystem
         : public TMesh,
           public Policies<TMesh> ...
 {
-    typedef CoordinateChart<TMesh, Policies ...> this_type;
+    typedef CoordinateSystem<TMesh, Policies ...> this_type;
 
 public:
 
     typedef TMesh mesh_type;
 
-    CoordinateChart() : Policies<mesh_type>(static_cast<mesh_type &>(*this))... { }
+    CoordinateSystem() : Policies<mesh_type>(static_cast<mesh_type &>(*this))... { }
 
-    virtual ~CoordinateChart() { }
+    virtual ~CoordinateSystem() { }
 
-    CoordinateChart(this_type const &m) = delete;
+    CoordinateSystem(this_type const &m) = delete;
 
     this_type &operator=(const this_type &other) = delete;
 
@@ -153,7 +153,7 @@ public:
 
     static std::string class_name()
     {
-        return "CoordinateChart<" + traits::type_id_list<mesh_type, Policies<mesh_type>...>::name() + " > ";
+        return "CoordinateSystem<" + traits::type_id_list<mesh_type, Policies<mesh_type>...>::name() + " > ";
     }
 
 private:
@@ -184,14 +184,14 @@ public:
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const
     {
-        os << std::setw(indent) << " " << "CoordinateChart = {" << std::endl;
+        os << std::setw(indent) << " " << "CoordinateSystem = {" << std::endl;
 
         this_type::mesh_type::print(os, indent + 1);
         this_type::metric_policy::print(os, indent + 1);
         this_type::calculus_policy::print(os, indent + 1);
         this_type::interpolate_policy::print(os, indent + 1);
 
-        os << std::setw(indent) << " " << "}  -- CoordinateChart " << std::endl;
+        os << std::setw(indent) << " " << "}  -- CoordinateSystem " << std::endl;
 
 
         return os;
@@ -225,7 +225,7 @@ public:
 
 
 
-}; //class CoordinateChart
+}; //class CoordinateSystem
 
 /* @}@} */
 

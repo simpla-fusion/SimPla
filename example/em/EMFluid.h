@@ -20,15 +20,15 @@ using namespace mesh;
 
 
 template<typename TM>
-class EMFluid : public ProblemDomain
+class EMFluid : public simulation::ProblemDomain
 {
     typedef EMFluid<TM> this_type;
-    typedef ProblemDomain base_type;
+    typedef simulation::ProblemDomain base_type;
 
 public:
     virtual bool is_a(std::type_info const &info) const
     {
-        return typeid(this_type) == info || ProblemDomain::is_a(info);
+        return typeid(this_type) == info || simulation::ProblemDomain::is_a(info);
     }
 
 //    template<typename _UOTHER_>
@@ -44,6 +44,7 @@ public:
     typedef typename mesh_type::scalar_type scalar_type;
     mesh_type const *m;
 
+
     EMFluid(const mesh_type *mp) : base_type(mp), m(mp) { }
 
     virtual ~EMFluid() { }
@@ -54,6 +55,7 @@ public:
 
     virtual io::IOStream &check_point(io::IOStream &os) const;
 
+    virtual void sync(mesh::TransitionMap const &, simulation::ProblemDomain const &other) { };
 
     MeshEntityRange limiter_boundary;
     MeshEntityRange vertex_boundary;
@@ -122,9 +124,9 @@ void EMFluid<TM>::init(ConfigParser const &options)
         mesh::select(*m, m->range(EDGE), options["Constraints"]["J"]["Box"].as<box_type>()).swap(J_src_range);
 
     }
-    dt(options["Mesh"]["dt"].as<Real>(1.0));
-
-    time(options["Mesh"]["time"].as<Real>(0.0));
+//    dt(options["Mesh"]["dt"].as<Real>(1.0));
+//
+//    time(options["Mesh"]["time"].as<Real>(0.0));
 
     J1.clear();
     B1.clear();
@@ -189,7 +191,7 @@ void EMFluid<TM>::next_step(Real dt)
 
     if (J_src_fun)
     {
-        Real current_time = time();
+        Real current_time = m->time();
 
         auto f = J_src_fun;
         parallel::parallel_foreach(

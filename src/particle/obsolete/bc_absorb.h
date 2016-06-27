@@ -12,7 +12,7 @@
 #include <string>
 
 #include "../gtl/ntuple.h"
-#include "../gtl/primitives.h"
+#include "../sp_def.h"
 #include "../model/surface.h"
 
 namespace simpla

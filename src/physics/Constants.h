@@ -8,8 +8,10 @@
 #ifndef CONSTANT_H_
 #define CONSTANT_H_
 
-#include "../sp_config.h"
+#include "../sp_def.h"
 
+namespace simpla
+{
 constexpr Real PI = 3.1415926535897932384626433;
 
 constexpr Real HALFPI = 0.50 * PI;
@@ -66,5 +68,5 @@ constexpr Real SI_electron_volt = 1.602176565e-19;
 /*2.2e-8*/
 
 constexpr Real SI_atomic_mass_unit = 1.660538921e-27; /*4.4e-8*/
-
+}//namespace simpla{
 #endif /* CONSTANT_H_ */

@@ -7,7 +7,7 @@
 #ifndef SIMPLA_MOCK_H
 #define SIMPLA_MOCK_H
 
-#include "../../gtl/primitives.h"
+#include "../../sp_def.h"
 #include "../../geometry/csCartesian.h"
 #include "base_manifold.h"
 #include "co_rect_mesh.h"
@@ -27,6 +27,6 @@ using Mock= Manifold<CartesianCoordinate, Calculate<CartesianCoordinate, calcula
 		DataSetPolicy<CartesianCoordinate>>;
 
 
-}//namespace  CoordinateChart
+}//namespace  CoordinateSystem
 }//namespace simpla
 #endif //SIMPLA_MOCK_H

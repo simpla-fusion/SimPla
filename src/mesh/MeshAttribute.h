@@ -74,7 +74,7 @@ public:
 
         virtual bool set_mesh(MeshBase const *) = 0;
 
-        virtual MeshEntityRange entity_id_range(MeshEntityStatus status = VALID) const = 0;
+        virtual MeshEntityRange entity_id_range(MeshEntityStatus status = SP_ES_VALID) const = 0;
 
         virtual MeshEntityType entity_type() const = 0;
 

@@ -9,10 +9,11 @@
 
 #include <memory>
 #include "../base/Object.h"
-#include "../gtl/primitives.h"
+#include "../sp_def.h"
 #include "../gtl/Log.h"
 
 #include "../mesh/Mesh.h"
+#include "../mesh/MeshAtlas.h"
 #include "../mesh/MeshAttribute.h"
 #include "../gtl/ConfigParser.h"
 
@@ -30,7 +31,7 @@ class MeshAttribute;
 } //namespace get_mesh
 } //namespace simpla
 
-namespace simpla
+namespace simpla { namespace simulation
 {
 
 
@@ -52,19 +53,7 @@ public:
 
     virtual std::shared_ptr<ProblemDomain> clone(mesh::MeshBase const &) const;
 
-//    virtual bool view(get_mesh::MeshBase const &other);
-
-//    virtual void view(get_mesh::MeshBlockId const &);
-
-//    virtual void update_ghost_from(get_mesh::MeshBase const &other);
-
     virtual bool same_as(mesh::MeshBase const &) const;
-
-    virtual std::vector<mesh::box_type> refine_boxes() const;
-
-    virtual void refine(mesh::MeshBase const &other);
-
-    virtual bool coarsen(mesh::MeshBase const &other);
 
     virtual void setup(ConfigParser const &dict);
 
@@ -74,12 +63,13 @@ public:
 
     virtual void next_step(Real dt) = 0;
 
-
     virtual io::IOStream &check_point(io::IOStream &os) const;
 
     virtual io::IOStream &save(io::IOStream &os) const;
 
     virtual io::IOStream &load(io::IOStream &is) const;
+
+    virtual void sync(mesh::TransitionMap const &, ProblemDomain const &other) = 0;
 
 
 
@@ -99,19 +89,6 @@ public:
         return (attribute(s)->template add<TF>(m, std::forward<Args>(args)...));
     }
 
-    //------------------------------------------------------------------------------------------------------------------
-
-
-    Real const &dt() const;
-
-    void dt(Real pdt);
-
-    Real time() const;
-
-    void time(Real t);
-
-    void run(Real stop_time, int num_of_step = 0);
-
 
     const mesh::MeshBase *m;
 
@@ -121,5 +98,6 @@ private:
     std::unique_ptr<pimpl_s> m_pimpl_;
 
 };
-}//namespace simpla
+}}//namespace simpla { namespace simulation
+
 #endif //SIMPLA_MESHWALKER_H

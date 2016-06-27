@@ -15,7 +15,7 @@
 #include <gtest/gtest.h>
 
 #include "../../gtl/macro.h"
-#include "../../gtl/primitives.h"
+#include "../../sp_def.h"
 #include "../../gtl/type_traits.h"
 #include "../../gtl/Log.h"
 #include "../../manifold/ManifoldTraits.h"

@@ -335,7 +335,9 @@ public:
         return m_holder_->as<T>();
     }
 
-    typedef std::function<void(MeshEntityId const &)> foreach_body_type;
+    typedef std::function< void(MeshEntityId const
+    &)>
+    foreach_body_type;
 
     void foreach(foreach_body_type const &body) const { m_holder_->foreach(body); }
 

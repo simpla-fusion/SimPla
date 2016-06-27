@@ -112,7 +112,7 @@ public:
         return false;
     }
 
-    virtual mesh::MeshEntityRange entity_id_range(mesh::MeshEntityStatus entityStatus = mesh::VALID) const
+    virtual mesh::MeshEntityRange entity_id_range(mesh::MeshEntityStatus entityStatus = mesh::SP_ES_VALID) const
     {
         assert(m_mesh_ != nullptr);
         return m_mesh_->range(entity_type(), entityStatus);
@@ -274,7 +274,7 @@ public:
     template<typename TFun> this_type &
     apply(mesh::MeshEntityRange const &r0, TFun const &op,
           FUNCTION_REQUIREMENT((std::is_same<typename std::result_of<TFun(
-                  typename mesh::point_type const &,
+                  point_type const &,
                   field_value_type const &)>::type, field_value_type>::value))
     )
     {
@@ -297,7 +297,7 @@ public:
     template<typename TFun> this_type &
     apply(mesh::MeshEntityRange const &r0, TFun const &op,
           FUNCTION_REQUIREMENT((std::is_same<typename std::result_of<TFun(
-                  typename mesh::point_type const &)>::type, field_value_type>::value))
+                  point_type const &)>::type, field_value_type>::value))
     )
     {
         deploy();
@@ -369,9 +369,9 @@ public:
     {
         deploy();
 
-        apply(m_mesh_->range(entity_type(), mesh::NON_LOCAL), op);
+        apply(m_mesh_->range(entity_type(), mesh::SP_ES_NON_LOCAL), op);
         base_type::nonblocking_sync();
-        apply(m_mesh_->range(entity_type(), mesh::LOCAL), op);
+        apply(m_mesh_->range(entity_type(), mesh::SP_ES_LOCAL), op);
         base_type::wait();
         return *this;
     }
@@ -382,7 +382,7 @@ public:
         this->deploy();
 
         parallel::parallel_foreach(
-                entity_id_range(mesh::VALID),
+                entity_id_range(mesh::SP_ES_VALID),
                 [&](typename mesh::MeshEntityId const &s) { get(s) = other; });
 
         return *this;
@@ -412,9 +412,9 @@ private:
     {
         deploy();
 
-        apply_expr(m_mesh_->range(entity_type(), mesh::NON_LOCAL), op, other);
+        apply_expr(m_mesh_->range(entity_type(), mesh::SP_ES_NON_LOCAL), op, other);
         base_type::nonblocking_sync();
-        apply_expr(m_mesh_->range(entity_type(), mesh::LOCAL), op, other);
+        apply_expr(m_mesh_->range(entity_type(), mesh::SP_ES_LOCAL), op, other);
         base_type::wait();
         return *this;
     }

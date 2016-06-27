@@ -6,7 +6,7 @@
 #define SIMPLA_PML_H
 
 #include "../../src/gtl/Log.h"
-#include "../../src/gtl/primitives.h"
+#include "../../src/sp_def.h"
 #include "../../src/physics/PhysicalConstants.h"
 #include "../../src/field/Field.h"
 #include "../../src/manifold/Calculus.h"
@@ -21,15 +21,13 @@ using namespace mesh;
  *  @brief absorb boundary condition, PML
  */
 template<typename TM>
-class PML : public ProblemDomain
+class PML : public simulation::ProblemDomain
 {
-    typedef ProblemDomain base_type;
+    typedef simulation::ProblemDomain base_type;
     typedef TM mesh_type;
 public:
     template<typename ValueType, size_t IFORM> using field_t =  Field<ValueType, TM, std::integral_constant<size_t, IFORM> >;;
 
-    typedef typename mesh_type::scalar_type scalar_type;
-    typedef typename mesh_type::point_type point_type;
 
     field_t<scalar_type, mesh::EDGE> E{*this, "E"};
     field_t<scalar_type, mesh::FACE> B{*this, "B"};
@@ -87,7 +85,7 @@ template<typename TM> void
 PML<TM>::setup()
 {
 
-    mesh::point_type xmin, xmax;
+    point_type xmin, xmax;
 
     std::tie(xmin, xmax) = m->box();
 

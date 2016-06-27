@@ -13,7 +13,7 @@
 #include <tuple>
 #include "../gtl/nTuple.h"
 #include "../gtl/Log.h"
-#include "../gtl/primitives.h"
+#include "../sp_def.h"
 #include "Attribute.h"
 
 namespace simpla { namespace base

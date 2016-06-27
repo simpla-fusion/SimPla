@@ -50,6 +50,6 @@ public:
 };
 
 
-}}}//namespace simpla{namespace CoordinateChart { namespace policy
+}}}//namespace simpla{namespace CoordinateSystem { namespace policy
 
 #endif //SIMPLA_EMBEDDED_POLICY_H

@@ -12,7 +12,7 @@
 #include <cstdbool>
 #include <type_traits>
 
-#include "../gtl/primitives.h"
+#include "../sp_def.h"
 #include "../gtl/type_traits.h"
 
 namespace simpla { namespace geometry

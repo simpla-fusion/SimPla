@@ -16,6 +16,7 @@
 
 #include "type_cast.h"
 #include "LuaObject.h"
+#include "../sp_def.h"
 
 namespace simpla
 {

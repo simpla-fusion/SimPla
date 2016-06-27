@@ -11,7 +11,7 @@
 #include <iostream>
 #include "../src/gtl/Log.h"
 #include "../src/gtl/nTuple.h"
-#include "../src/gtl/primitives.h"
+#include "../src/sp_def.h"
 #include "../src/gtl/type_traits.h"
 #include "../src/geometry/GeoObject.h"
 

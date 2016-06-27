@@ -8,7 +8,7 @@
 #include <math.h>
 #include "ParticleInterface.h"
 #include "BucketContainer.h"
-#include "../sp_config.h"
+#include "../sp_def.h"
 //#include "../mesh/MeshIdHasher.h"
 //
 //#define CACHE_EXTENT_X 4

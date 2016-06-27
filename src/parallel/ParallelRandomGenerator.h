@@ -12,7 +12,7 @@
 #include <mutex>
 #include <thread>
 #include "../gtl/type_traits.h"
-#include "../gtl/primitives.h"
+#include "../sp_def.h"
 #include "../parallel/MPIComm.h"
 #include "../parallel/MPIUpdate.h"
 

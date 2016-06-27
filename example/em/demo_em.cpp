@@ -11,8 +11,10 @@
 #include "../../src/gtl/Utilities.h"
 #include "../../src/manifold/pre_define/PreDefine.h"
 #include "../../src/parallel/Parallel.h"
+#include "../../src/simulation/Context.h"
 
 #include "EMFluid.h"
+
 //#include "PML.h"
 
 using namespace simpla;
@@ -34,6 +36,7 @@ int main(int argc, char **argv)
 #endif
 
     parallel::init(argc, argv);
+
     io::init(argc, argv);
 
     options.init(argc, argv);
@@ -65,24 +68,38 @@ int main(int argc, char **argv)
 
     }
 
+    simulation::Context ctx;
 
-    mesh_type mesh;
+    {
+        auto mesh_center = ctx.add_mesh<mesh_type>();
 
-    mesh.setup(options["Mesh"]);
+        mesh_center->setup(options["Mesh"]);
 
-    std::shared_ptr<ProblemDomain> problem_domain;
+        ctx.add_problem_domain<EMFluid<mesh_type>>(mesh_center)->setup(options);
 
 
+//        if (options["PML"])
+//        {
+//
+//            std::shared_ptr<simulation::ProblemDomain> boundary_domain;
+//
+//            boundary_domain = std::make_shared<PML < mesh_type>>
+//            (&mesh_center);
+//            boundary_domain->setup(options["PML"]);
+//            boundary_domain->print(std::cout);
+//        }
+//
+//
 //    {
 //        std::string str = options["ProblemDomain"].as<std::string>();
 //        if (str == "PIC")
 //        {
 //            problem_domain = std::make_shared<EMPIC < mesh_type>>
-//            (&mesh);
+//            (&mesh_center);
 //        }
 //        else if (str == "Fluid")
 //        {
-//            problem_domain = std::make_shared<EMFluid<mesh_type>>(&mesh);
+//            problem_domain = std::make_shared<EMFluid<mesh_type>>(&mesh_center);
 //
 //        }
 //        else
@@ -93,27 +110,15 @@ int main(int argc, char **argv)
 //    }
 
 
-    problem_domain = std::make_shared<EMFluid<mesh_type>>(&mesh);
-
-    problem_domain->setup(options);
-
-    problem_domain->print(std::cout);
-
-//    if (options["PML"])
-//    {
-//        std::shared_ptr<ProblemDomain> boundary_domain;
-//
-//        boundary_domain = std::make_shared<PML<mesh_type>>(&mesh);
-//        boundary_domain->setup(options["PML"]);
-//        boundary_domain->print(std::cout);
-//    }
+    }
+    ctx.print(std::cout);
 
 
-    Real stop_time = options["stop_time"].as<Real>(problem_domain->time() + problem_domain->dt());
+    Real stop_time = options["stop_time"].as<Real>(ctx.time());
 
     int num_of_steps = options["number_of_steps"].as<int>(1);
 
-    Real inc_time = (stop_time - problem_domain->time()) /
+    Real inc_time = (stop_time - ctx.time()) /
                     (options["number_of_check_point"].as<int>(1));
 
 
@@ -121,20 +126,20 @@ int main(int argc, char **argv)
 
     TheStart();
 
-    INFORM << "\t >>> Time [" << problem_domain->time() << "] <<< " << std::endl;
+    INFORM << "\t >>> Time [" << ctx.time() << "] <<< " << std::endl;
 
-    Real current_time = problem_domain->time();
+    Real current_time = ctx.time();
     io::cd("/checkpoint/");
-    problem_domain->check_point(io::global());
+    ctx.check_point(io::global());
 
-    while (problem_domain->time() < stop_time)
+    while (ctx.time() < stop_time)
     {
 
-        problem_domain->run(current_time + inc_time);
+        ctx.run(current_time + inc_time);
 
-        current_time = problem_domain->time();
+        current_time = ctx.time();
 
-        problem_domain->check_point(io::global());
+        ctx.check_point(io::global());
 
         INFORM << "\t >>> Time [" << current_time << "] <<< " << std::endl;
 
@@ -146,9 +151,8 @@ int main(int argc, char **argv)
 
     // MESSAGE << "====================================================" << std::endl;
     io::cd("/dump/");
-    problem_domain->save(io::global());
-    problem_domain->teardown();
-    problem_domain.reset();
+    ctx.save(io::global());
+    ctx.teardown();
 
     TheEnd();
 

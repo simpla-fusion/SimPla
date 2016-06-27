@@ -13,7 +13,7 @@
 #include <functional>
 #include <mutex>
 
-#include "../gtl/primitives.h"
+#include "../sp_def.h"
 #include "../modlel/geometry.h"
 
 namespace simpla

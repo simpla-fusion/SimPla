@@ -39,7 +39,7 @@ std::shared_ptr<Manifold<TMesh, Policies...>> make_mesh()
     return std::make_shared<Manifold<TMesh, Policies...>>();
 }
 /**
- *  Default value of CoordinateChart are defined following
+ *  Default value of CoordinateSystem are defined following
  */
 namespace traits
 {
@@ -53,7 +53,7 @@ struct type_id<Manifold<TMesh, Policies...> >
 {
     static std::string name()
     {
-        return "CoordinateChart<" + type_id<TMesh>::name() + " >";
+        return "CoordinateSystem<" + type_id<TMesh>::name() + " >";
     }
 };
 

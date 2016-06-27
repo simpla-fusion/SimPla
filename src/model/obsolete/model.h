@@ -18,7 +18,7 @@
 
 #include "model_base.h"
 
-#include "../gtl/primitives.h"
+#include "../sp_def.h"
 #include "../gtl/type_traits.h"
 #include "../gtl/utilities/utilities.h"
 #include "../manifold/topology/block.h"

@@ -11,34 +11,29 @@
 #include <memory>
 #include <list>
 #include <map>
-#include "../gtl/primitives.h"
+#include "../sp_def.h"
 #include "../mesh/MeshEntity.h"
 #include "../mesh/MeshAttribute.h"
 #include "../mesh/MeshAtlas.h"
 #include "../io/IOStream.h"
-
-#include "../manifold/Manifold.h"
-
 #include "ProblemDomain.h"
 
-namespace simpla
+
+namespace simpla { namespace simulation
 {
-namespace mesh { struct MeshBase; }
+
+
+class ProblemDomain;
 
 class Context
 {
 private:
     typedef Context this_type;
-
-
-    typedef typename mesh::MeshBlockId block_id;
-
 public:
-    static constexpr int MAX_MESH_LEVEL = 10;
 
-    manifold::Atlas m_atlas_;
+    Context();
 
-    std::multimap<mesh::MeshBlockId, std::shared_ptr<ProblemDomain>> m_domains_;
+    ~Context();
 
     int m_refine_ratio = 2;
 
@@ -46,88 +41,82 @@ public:
 
     void teardown();
 
+
+    std::ostream &print(std::ostream &os, int indent = 1) const;
+
     io::IOStream &check_point(io::IOStream &os) const;
 
     io::IOStream &save(io::IOStream &os) const;
 
     io::IOStream &load(io::IOStream &is);
 
-    void update(int level, int flag = 0);
 
-    void run(Real dt, int level = 1);
+    void add_mesh(std::shared_ptr<mesh::Chart>, int level = 0);
 
-
-//    template<typename TF>
-//    std::shared_ptr<TF> get_attribute(std::string const &s_name)
-//    {
-//        static_assert(std::is_base_of<Attribute, TF>::value, "TF is not a Attribute");
-//
-//        auto it = m_attributes_.find(s_name);
-//
-//        if (it == m_attributes_.end())
-//        {
-//            return create_attribute<TF>(s_name);
-//        }
-//        else if (it->second.lock()->is_a(typeid(TF)))
-//        {
-//            return std::dynamic_pointer_cast<TF>(it->second.lock());
-//        }
-//        else
-//        {
-//            return nullptr;
-//        }
-//
-//    }
-//
-//    template<typename TF>
-//    std::shared_ptr<TF> create_attribute(std::string const &s_name = "")
-//    {
-//        static_assert(std::is_base_of<Attribute, TF>::value, "TF is not a Attribute");
-//
-//        auto res = std::make_shared<TF>(*this);
-//
-//        if (s_name != "") { enroll(s_name, std::dynamic_pointer_cast<Attribute>(res)); }
-//
-//        return res;
-//    }
-//
-//    template<typename TF>
-//    std::shared_ptr<TF> create_attribute() const
-//    {
-//        return std::make_shared<TF>(*this);
-//    }
-//
-//    template<typename TF>
-//    void enroll(std::string const &name, std::shared_ptr<TF> p)
-//    {
-//        static_assert(std::is_base_of<Attribute, TF>::value, "TF is not a Attribute");
-//
-//        m_attributes_.insert(std::make_pair(name, std::dynamic_pointer_cast<Attribute>(p)));
-//    };
-
-
-    template<typename TSolver, typename TM, typename ...Args>
-    std::shared_ptr<TSolver> register_solver(TM const &m, Args &&...args)
+    template<typename TM, typename ...Args>
+    std::shared_ptr<TM> add_mesh(int level = 0, Args &&...args)
     {
-        static_assert(std::is_base_of<ProblemDomain, TSolver>::value, "TSovler is not derived from ProblemDomain.");
-        auto res = std::make_shared<TSolver>(m, std::forward<Args>(args)...);
-        m_workers_.emplace(std::make_pair(m.uuid(), std::dynamic_pointer_cast<ProblemDomain>(res)));
+        auto res = std::make_shared<TM>(std::forward<Args>(args)...);
+        add_mesh(std::dynamic_pointer_cast<mesh::Chart>(res), level);
         return res;
-    }
+    };
 
-    template<typename TSolver>
-    std::shared_ptr<TSolver> get_worker(mesh::MeshBlockId const &w_id) const
+    std::shared_ptr<mesh::Chart> get_mesh_chart(mesh::MeshBlockId id, int level = 0) const;
+
+    template<typename TM, typename ...Args>
+    std::shared_ptr<const TM> get_mesh(Args &&...args) const
     {
-        assert(m_workers_.at(w_id)->template is_a<TSolver>());
-        return std::dynamic_pointer_cast<TSolver>(m_workers_.at(w_id));
+        return std::dynamic_pointer_cast<const TM>(std::forward<Args>(args)...);
     }
 
-    std::map<mesh::MeshBlockId, std::shared_ptr<ProblemDomain> > m_workers_;
+
+    std::shared_ptr<ProblemDomain> add_domain(std::shared_ptr<ProblemDomain> pb, int level = 0);
 
 
+    template<typename TProb, typename TM>
+    std::shared_ptr<TProb> add_problem_domain(std::shared_ptr<TM> m, int level = 0)
+    {
+        auto res = std::make_shared<TProb>(m.get());
+        add_domain(res, level);
+        return res;
+    };
+
+    template<typename TProb>
+    std::shared_ptr<TProb> add_problem_domain(mesh::MeshBlockId id, int level = 0)
+    {
+        return add_problem_domain<TProb>(get_mesh_chart(id, level), level);
+    };
+
+    std::shared_ptr<ProblemDomain> get_domain(mesh::MeshBlockId id) const;
+
+    template<typename TProb, typename ...Args>
+    std::shared_ptr<TProb> get_problem_domain(Args &&...args) const
+    {
+        return std::dynamic_pointer_cast<TProb>(get_domain(std::forward<Args>(args)...));
+
+    }
+
+
+    void update(int level = 0, int flag = mesh::SP_MB_SYNC);
+
+    void run(Real dt, int level = 0);
+
+    //------------------------------------------------------------------------------------------------------------------
+    Real time() const { return m_time_; }
+
+    void time(Real t) { m_time_ = t; };
+
+    void next_time_step(Real dt) { m_time_ += dt; };
+
+private:
+    Real m_time_;
+private:
+    struct pimpl_s;
+    std::unique_ptr<pimpl_s> m_pimpl_;
 };
 
 
-}// namespace simpla
+}}// namespace simpla{namespace simulation
+
 
 #endif /* CORE_APPLICATION_CONTEXT_H_ */

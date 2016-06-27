@@ -11,7 +11,7 @@
 #include <memory>
 #include <list>
 #include "../../gtl/type_traits.h"
-#include "../../gtl/primitives.h"
+#include "../../sp_def.h"
 #include "../../data_model/dataset.h"
 #include "Attribute.h"
 #include "Patch.h"
@@ -190,6 +190,6 @@ AMR::~AMR()
 {
 
 }
-}}}//namespace simpla{namespace CoordinateChart{namespace policy
+}}}//namespace simpla{namespace CoordinateSystem{namespace policy
 
 #endif //SIMPLA_AMR_H

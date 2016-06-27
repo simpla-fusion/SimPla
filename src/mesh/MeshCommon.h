@@ -7,8 +7,9 @@
 
 
 #ifdef __cplusplus
-namespace simpla{namespace mesh{
-extern "C"{
+namespace simpla { namespace mesh
+{
+extern "C" {
 #endif
 enum MeshEntityType
 {
@@ -50,26 +51,27 @@ enum MeshEntityType
  */
 enum MeshEntityStatus
 {
-    INVALID = 0x00, //                          0b000000
-    VALID = 0x0F, //                            0b001111 NOT_SHARED| SHARED | OWNED | NOT_OWNED
-    OWNED = 0x01, //                            0b000001 owned by local get_mesh block
-    NOT_OWNED = 0x02, //                        0b000010 not owned by local get_mesh block
-    SHARED = 0x04, //                           0b000100 shared by two or more get_mesh blocks
-    NOT_SHARED = 0x08, //                       0b001000 not shared by other get_mesh blocks
-    LOCAL = NOT_SHARED | OWNED, //              0b001001
-    GHOST = SHARED | NOT_OWNED, //              0b000110
-    NON_LOCAL = SHARED | OWNED, //              0b000101
-    INTERFACE = 0x010, //                        0b010000 interface(boundary) shared by two get_mesh blocks,
-    DMZ = 0x100,
-    NOT_DMZ = 0x200,
-    UNDEFINED = 0xFFFF
+    SP_ES_INVALID = 0x00, //                          0b000000
+    SP_ES_VALID = 0x0F, //                            0b001111 SP_ES_NOT_SHARED| SP_ES_SHARED | SP_ES_OWNED | SP_ES_NOT_OWNED
+    SP_ES_OWNED = 0x01, //                            0b000001 owned by local get_mesh block
+    SP_ES_NOT_OWNED = 0x02, //                        0b000010 not owned by local get_mesh block
+    SP_ES_SHARED = 0x04, //                           0b000100 shared by two or more get_mesh blocks
+    SP_ES_NOT_SHARED = 0x08, //                       0b001000 not shared by other get_mesh blocks
+    SP_ES_LOCAL = SP_ES_NOT_SHARED | SP_ES_OWNED, //              0b001001
+    SP_ES_GHOST = SP_ES_SHARED | SP_ES_NOT_OWNED, //              0b000110
+    SP_ES_NON_LOCAL = SP_ES_SHARED | SP_ES_OWNED, //              0b000101
+    SP_ES_INTERFACE = 0x010, //                        0b010000 interface(boundary) shared by two get_mesh blocks,
+    SP_ES_DMZ = 0x100,
+    SP_ES_NOT_DMZ = 0x200,
+    SP_ES_UNDEFINED = 0xFFFF
 };
 #ifdef __cplusplus
 };//extern "C"{
 }};//namespace mesh{namespace mesh{
 #include <boost/uuid/uuid.hpp>
-#include "../gtl/primitives.h"
+#include "../sp_def.h"
 #include "../gtl/nTuple.h"
+
 namespace simpla { namespace mesh
 {
 
@@ -107,19 +109,6 @@ namespace simpla { namespace mesh
 
 //typedef size_t id_type; //!< Data type  of entity id
 
-typedef nTuple<Real, 3ul> point_type; //!< DataType of configuration space point (coordinates i.e. (x,y,z) )
-
-typedef nTuple<Real, 3ul> vector_type;
-
-typedef std::tuple<point_type, point_type> box_type; //! two corner of rectangle (or hexahedron ) , <lower ,upper>
-
-typedef long index_type; //!< Data type of vertex's index , i.e. i,j
-
-typedef long difference_type; //!< Data type of the difference between indices,i.e.  s = i - j
-
-typedef nTuple<index_type, 3> index_tuple;
-
-typedef std::tuple<index_tuple, index_tuple> index_box_type;
 
 typedef unsigned long MeshEntityId;
 

@@ -8,7 +8,7 @@
 #ifndef CORE_GEOMETRY_GEOMETRY_H_
 #define CORE_GEOMETRY_GEOMETRY_H_
 
-#include "../gtl/primitives.h"
+#include "../sp_def.h"
 #include "../gtl/nTuple.h"
 
 #include "CoordinateSystem.h"

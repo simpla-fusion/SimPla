@@ -12,7 +12,7 @@
 #include <string>
 
 #include "../../core/application/application.h"
-#include "../../core/gtl/primitives.h"
+#include "../../core/sp_def.h"
 #include "../../core/gtl/type_cast.h"
 #include "../../core/io/IO.h"
 #include "../../core/io/IOExt.h"

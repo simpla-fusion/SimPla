@@ -5,18 +5,14 @@
  *  */
 
 #include "ProblemDomain.h"
-#include "../mesh/MeshAtlas.h"
-#include "../mesh/MeshAttribute.h"
-
 #include "../io/IOStream.h"
-#include "../gtl/ConfigParser.h"
 
-namespace simpla
+namespace simpla { namespace simulation
 {
 struct ProblemDomain::pimpl_s
 {
-    Real m_dt_ = 0;
-    Real m_time_ = 0;
+//    Real m_dt_ = 0;
+//    Real m_time_ = 0;
     std::map<std::string, std::shared_ptr<mesh::MeshAttribute> > m_attr_;
     parallel::DistributedObject m_dist_obj_;
 };
@@ -28,13 +24,13 @@ ProblemDomain::ProblemDomain(const mesh::MeshBase *msh) : m(msh), m_pimpl_(new p
 ProblemDomain::~ProblemDomain() { teardown(); }
 
 
-Real const &ProblemDomain::dt() const { return m_pimpl_->m_dt_; }
-
-void ProblemDomain::dt(Real pdt) { m_pimpl_->m_dt_ = pdt; }
-
-Real ProblemDomain::time() const { return m_pimpl_->m_time_; }
-
-void ProblemDomain::time(Real t) { m_pimpl_->m_time_ = t; }
+//Real const &ProblemDomain::dt() const { return m_pimpl_->m_dt_; }
+//
+//void ProblemDomain::dt(Real pdt) { m_pimpl_->m_dt_ = pdt; }
+//
+//Real ProblemDomain::time() const { return m_pimpl_->m_time_; }
+//
+//void ProblemDomain::time(Real t) { m_pimpl_->m_time_ = t; }
 
 std::shared_ptr<mesh::MeshAttribute>
 ProblemDomain::attribute(std::string const &s_name)
@@ -78,23 +74,23 @@ ProblemDomain::clone(mesh::MeshBase const &) const
 };
 
 
-void
-ProblemDomain::run(Real stop_time, int num_of_step)
-{
-    Real inc_t = (num_of_step > 0) ? ((stop_time - time()) / num_of_step) : dt();
-
-    while (stop_time - time() > inc_t)
-    {
-        next_step(inc_t);
-
-        sync();
-
-        time(time() + inc_t);
-    }
-    next_step(stop_time - time());
-    sync();
-    time(stop_time);
-}
+//void
+//ProblemDomain::run(Real stop_time, int num_of_step)
+//{
+//    Real inc_t = (num_of_step > 0) ? ((stop_time - time()) / num_of_step) : dt();
+//
+//    while (stop_time - time() > inc_t)
+//    {
+//        next_time_step(inc_t);
+//
+////        sync();
+//
+//        time(time() + inc_t);
+//    }
+//    next_time_step(stop_time - time());
+//    sync();
+//    time(stop_time);
+//}
 
 
 std::ostream &
@@ -111,7 +107,7 @@ ProblemDomain::print(std::ostream &os, int indent) const
     m->print(os, indent + 2);
     os << std::setw(indent + 1) << " }," << std::endl;
 
-    os << std::setw(indent + 1) << " time =" << m_pimpl_->m_time_ << ", dt =" << m_pimpl_->m_dt_ << "," << std::endl;
+//    os << std::setw(indent + 1) << " time =" << m_pimpl_->m_time_ << ", dt =" << m_pimpl_->m_dt_ << "," << std::endl;
 
 
     os << std::setw(indent + 1) << " Attributes= {  ";
@@ -177,19 +173,19 @@ bool ProblemDomain::same_as(mesh::MeshBase const &) const
     return false;
 };
 
-std::vector<mesh::box_type> ProblemDomain::refine_boxes() const
-{
-    UNIMPLEMENTED;
-    return std::vector<mesh::box_type>();
-}
+//std::vector<mesh::box_type> ProblemDomain::refine_boxes() const
+//{
+//    UNIMPLEMENTED;
+//    return std::vector<mesh::box_type>();
+//}
+//
+//void ProblemDomain::refine(mesh::MeshBase const &other) { UNIMPLEMENTED; };
+//
+//bool ProblemDomain::coarsen(mesh::MeshBase const &other)
+//{
+//    UNIMPLEMENTED;
+//    return false;
+//};
 
-void ProblemDomain::refine(mesh::MeshBase const &other) { UNIMPLEMENTED; };
 
-bool ProblemDomain::coarsen(mesh::MeshBase const &other)
-{
-    UNIMPLEMENTED;
-    return false;
-};
-
-
-} //namespace simpla
+}} //namespace simpla { namespace simulation

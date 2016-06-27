@@ -11,7 +11,7 @@
 #include "application.h"
 #include "../io/IO.h"
 #include "../parallel/Parallel.h"
-#include "../sp_config.h"
+#include "../sp_def.h"
 #include "../gtl/Log.h"
 #include "../gtl/ConfigParser.h"
 #include "../gtl/logo.h"

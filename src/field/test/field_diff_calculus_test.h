@@ -19,7 +19,7 @@
 #include "../../io/IO.h"
 
 #include "../../gtl/nTuple.h"
-#include "../../gtl/primitives.h"
+#include "../../sp_def.h"
 #include "../../field/Field.h"
 #include "../../field/FieldExpression.h"
 #include "../../field/FieldTraits.h"

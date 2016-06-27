@@ -13,18 +13,12 @@
 #include "MeshBase.h"
 #include "MeshEntity.h"
 
+namespace simpla { namespace data_model { struct DataSpace; }}
 
-namespace simpla
+namespace simpla { namespace mesh
 {
-namespace data_model
-{
-struct DataSpace;
-}
-namespace mesh
-{
-class MeshAtlas;
 
-class MeshBase : public base::Object
+class MeshBase : public base::Object, public std::enable_shared_from_this<MeshBase>
 {
     int m_level_;
     unsigned long m_status_flag_ = 0;
@@ -86,14 +80,16 @@ public:
 
     virtual void ghost_width(index_tuple const &) = 0;
 
-    virtual box_type box(MeshEntityStatus entityStatus = VALID) const = 0;
+    virtual box_type box(MeshEntityStatus entityStatus = SP_ES_VALID) const = 0;
 
     virtual MeshEntityRange select(box_type const &b,
                                    MeshEntityType entityType = VERTEX,
-                                   MeshEntityStatus entityStatus = VALID) const = 0;
+                                   MeshEntityStatus entityStatus = SP_ES_VALID) const = 0;
 
     virtual MeshEntityRange range(MeshEntityType entityType = VERTEX,
-                                  MeshEntityStatus entityStatus = VALID) const = 0;
+                                  MeshEntityStatus entityStatus = SP_ES_VALID) const = 0;
+
+    virtual MeshEntityRange range(box_type const &b, MeshEntityType entityType = VERTEX) const = 0;
 
     virtual size_t max_hash(MeshEntityType entityType = VERTEX) const = 0;
 
@@ -129,8 +125,37 @@ public:
 
     virtual std::tuple<data_model::DataSpace, data_model::DataSpace> data_space(MeshEntityType const &t) const = 0;
 
+
+    virtual std::shared_ptr<MeshBase> extend(size_type w, int const *)
+    {
+        UNIMPLEMENTED;
+        return std::shared_ptr<MeshBase>(nullptr);
+    };
+
+    virtual std::shared_ptr<MeshBase> refine(box_type const &, int refine_ratio = 2)
+    {
+        UNIMPLEMENTED;
+        return std::shared_ptr<MeshBase>(nullptr);
+    };
+
+    virtual std::shared_ptr<MeshBase> coarsen(box_type const &, int refine_ratio = 2)
+    {
+        UNIMPLEMENTED;
+        return std::shared_ptr<MeshBase>(nullptr);
+    };
+
+
+    //------------------------------------------------------------------------------------------------------------------
+    Real time() const { return m_time_; }
+
+    void time(Real t) { m_time_ = t; };
+
+    void next_step(Real dt) { m_time_ += dt; };
+
+private:
+    Real m_time_;
+
 };
 
-}
-}//namespace simpla{namespace get_mesh{
+}}//namespace simpla{namespace get_mesh{
 #endif //SIMPLA_MESHBASE_H

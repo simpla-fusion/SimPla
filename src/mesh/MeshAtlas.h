@@ -18,128 +18,123 @@
 namespace simpla { namespace mesh
 {
 
+/**
+ *  Manifold (Differential Manifold):
+ *  A presentation of a _topological manifold_ is a second countable Hausdorff space that is locally homeomorphic
+ *  to a linear space, by a collection (called an atlas) of homeomorphisms called _charts_. The composition of one
+ *  _chart_ with the inverse of another chart is a function called a _transition map_, and defines a homeomorphism
+ *  of an open subset of the linear space onto another open subset of the linear space.
+ */
+typedef mesh::MeshBase Chart;
+
+enum { SP_MB_SYNC = 0x1, SP_MB_COARSEN = 0x2, SP_MB_REFINE = 0x4 };
 
 /**
- *  manager of get_mesh blocks
- *  - adjacencies (graph, ?r-tree)
- *  - refine and coarsen
- *  - coordinates map on overlap region
+ *   TransitionMap: \f$\psi\f$,
+ *   *Mapping: Two overlapped charts \f$x\in M\f$ and \f$y\in N\f$, and a mapping
+ *    \f[
+ *       \psi:M\rightarrow N,\quad y=\psi\left(x\right)
+ *    \f].
+ *   * Pull back: Let \f$g:N\rightarrow\mathbb{R}\f$ is a function on \f$N\f$,
+ *     _pull-back_ of function \f$g\left(y\right)\f$ induce a function on \f$M\f$
+ *   \f[
+ *       \psi^{*}g&\equiv g\circ\psi,\;\psi^{*}g=&g\left(\psi\left(x\right)\right)
+ *   \f]
+ *
+ *
  */
-class MeshAtlas
+struct TransitionMap
 {
 
 public:
+    TransitionMap(Chart const *m, Chart const *n, int flag = SP_MB_SYNC);
 
-//    template<typename T, typename ...Args>
-//    T make_attribute(Args &&...args) const
-//    {
-//        static_assert(std::is_base_of<MeshAttribute, typename T::attribute_type>::value,
-//                      " T can not be converted to MeshAttribute!!");
-//        return T(*this, std::forward<Args>(args)...);
-//    }
-//
-//    template<typename T>
-//    T make_attribute() const
-//    {
-//        static_assert(std::is_base_of<MeshAttribute, typename T::attribute_type>::value,
-//                      " T can not be converted to MeshAttribute!!");
-//        return T(*this);
-//    }
+    ~TransitionMap();
 
-//    std::vector<MeshBlockId> adjacent_blocks(MeshBlockId const &id, int inc_level = 0, int status_flag = 0) { };
-//
-//    std::vector<MeshBlockId> find(int level = 0, int status_flag = 0) { };
+    int flag;
 
-    void decompose(int num, int rank);
+    Chart const *first;
+    Chart const *second;
 
-    void decompose(nTuple<int, 3> const &dims, nTuple<int, 3> const &self);
 
-    void load_balance();
+    virtual int map(point_type *) const = 0;
 
-    void sync(std::string const &n, int level = 0);
+    virtual point_type map(point_type const &) const = 0;
 
-    void sync(int level = 0);
+    virtual mesh::MeshEntityId direct_map(mesh::MeshEntityId) const = 0;
 
-    void refine(int level = 0);
-
-    void coarsen(int level = 0);
-
-    int count(int level = 0, unsigned long status_flag = 0) { return 0; };
-
-    bool has(MeshBlockId const &id) const { return m_mesh_atlas_.find(id) != m_mesh_atlas_.end(); }
-
-    /**return the id of  root block*/
-    MeshBlockId root() const { return m_mesh_atlas_.begin()->first; }
-
-    void set(MeshBlockId const &id, std::shared_ptr<MeshBase> ptr) { m_mesh_atlas_[id].swap(ptr); }
-
-    std::shared_ptr<MeshBase> at(MeshBlockId const &id) const { return m_mesh_atlas_.at(id); }
-
-    template<typename TM>
-    TM *at(MeshBlockId const &id) const
+    virtual void push_forward(point_type const &x, Real const *v, Real *u) const
     {
 
-        auto res = m_mesh_atlas_.at(id);
-
-
-        static_assert(std::is_base_of<MeshBase, TM>::value, "TM is not derived from MeshBase!!");
-
-
-        if (!res->template is_a<TM>()) { BAD_CAST << ("illegal get_mesh type conversion!") << std::endl; }
-
-
-        auto ptr = std::dynamic_pointer_cast<TM>(res).get();
-
-
-        return ptr;
+        u[0] = v[0];
+        u[1] = v[1];
+        u[2] = v[2];
     }
 
-    int level_ratio() const
+
+    point_type operator()(point_type const &x) const { return map(x); }
+
+
+    template<typename Tg>
+    auto pull_back(Tg const &g, point_type const &x) const
+    DECL_RET_TYPE((g(map(x))))
+
+    template<typename Tg, typename Tf>
+    void pull_back(Tg const &g, Tf *f, mesh::MeshEntityType entity_type = mesh::VERTEX) const
     {
-        return m_level_ratio_;
+        first->range(m_overlap_region_M_, entity_type).foreach(
+                [&](mesh::MeshEntityId s)
+                {
+//                    (*f)[first->hash(s)] =
+//                            first->sample(s, pull_back(g, first->point(s)));
+                });
     }
 
-    void level_ratio(int m_level_ratio_)
-    {
-        MeshAtlas::m_level_ratio_ = m_level_ratio_;
-    }
 
-    int max_level() const
-    {
-        return m_max_level_;
-    }
+    int direct_pull_back(Real const *g, Real *f, mesh::MeshEntityType entity_type = mesh::VERTEX) const;
 
-    template<typename TM, typename ...Args>
-    std::shared_ptr<TM> add(Args &&...args)
-    {
-        auto ptr = std::make_shared<TM>(std::forward<Args>(args)...);
-        MeshBlockId uuid = ptr->uuid();
-        m_mesh_atlas_.emplace(std::make_pair(uuid, std::dynamic_pointer_cast<MeshBase>(ptr)));
 
-        return ptr;
-    };
-
-    void remove(MeshBlockId const &id)
+    template<typename TScalar>
+    void push_forward(point_type const &x, TScalar const *v, TScalar *u) const
     {
-        m_mesh_atlas_.erase(id);
-        while (count(m_max_level_ - 1) == 0)
-        {
-            --m_max_level_;
-            if (m_max_level_ == 0)break;
-        }
+
     }
 
 
 private:
-    int m_level_ratio_;
 
-    MeshBlockId m_root_;
-
-    std::map<MeshBlockId, std::shared_ptr<MeshBase> > m_mesh_atlas_;
-    std::vector<parallel::DistributedObject> m_dist_objs_;
-    int m_max_level_ = 1;
+    //TODO use geometric object replace box
+    box_type m_overlap_region_M_;
 };
 
+
+class Atlas
+{
+public:
+
+    MeshBlockId add_block(std::shared_ptr<Chart> p_m);
+
+    std::shared_ptr<Chart> get_block(mesh::MeshBlockId m_id) const;
+
+    void remove_block(MeshBlockId const &m_id);
+
+    MeshBlockId extent_block(mesh::MeshBlockId first, int const *offset_direction, size_type width);
+
+    MeshBlockId refine_block(mesh::MeshBlockId first, box_type const &);
+
+    MeshBlockId coarsen_block(mesh::MeshBlockId first, box_type const &);
+
+
+    void get_adjacencies(mesh::MeshBlockId first, int flag, std::list<std::shared_ptr<TransitionMap>> *) const;
+
+
+private:
+    void add_adjacency(mesh::MeshBlockId first, mesh::MeshBlockId second, int flag);
+
+    std::map<mesh::MeshBlockId, std::list<std::shared_ptr<TransitionMap>>> m_adjacency_list_;
+    std::map<mesh::MeshBlockId, std::shared_ptr<Chart>> m_;
+
+};
 }}//namespace simpla{namespace get_mesh{
 
 #endif //SIMPLA_MESH_MESHATLAS_H

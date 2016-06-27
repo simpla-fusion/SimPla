@@ -8,7 +8,7 @@
 #define SIMPLA_PARTICLETRACKER_H
 
 #include "../data_model/DataTypeExt.h"
-#include "../gtl/primitives.h"
+#include "../sp_def.h"
 
 namespace simpla { namespace particle
 {

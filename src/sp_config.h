@@ -18,12 +18,11 @@
 #define  AUTHOR " YU Zhi <yuzhi@ipp.ac.cn> "
 #define  COPYRIGHT "All rights reserved. (2016 )"
 
-typedef int8_t byte_type; // int8_t
-typedef float Real;
-typedef int Integral;
-typedef int64_t id_type;
-typedef int64_t index_type;
-typedef uint64_t size_type;
+#ifndef USE_DOUBLE
+#   define  SP_REAL float
+#else
+#   define  SP_REAL double
+#endif
 
 //
 //#ifdef __cplusplus

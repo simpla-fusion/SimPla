@@ -12,7 +12,7 @@
 #include <memory>
 
 #include "../gtl/nTuple.h"
-#include "../gtl/primitives.h"
+#include "../sp_def.h"
 #include "../gtl/Properties.h"
 #include "../gtl/Log.h"
 #include "../base/Object.h"

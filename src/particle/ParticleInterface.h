@@ -6,7 +6,7 @@
 #define SIMPLA_PARTICLECOMMON_H
 
 #include <stddef.h>
-#include "../sp_config.h"
+#include "../sp_def.h"
 #include "../data_model/DataTypeExt.h"
 
 #ifdef __cplusplus

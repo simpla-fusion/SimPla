@@ -10,7 +10,7 @@
 #include "use_case.h"
 #include "../io/IO.h"
 #include "Parallel.h"
-#include "../sp_config.h"
+#include "../sp_def.h"
 #include "../gtl/utilities/Log.h"
 #include "../gtl/utilities/ConfigParser.h"
 #include "../gtl/utilities/logo.h"

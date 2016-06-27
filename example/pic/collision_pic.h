@@ -16,7 +16,7 @@
 #include "../../core/dataset/datatype_ext.h"
 
 #include "../../core/gtl/ntuple.h"
-#include "../../core/gtl/primitives.h"
+#include "../../core/sp_def.h"
 #include "../../core/gtl/type_traits.h"
 
 #include "../../core/physics/PhysicalConstants.h"

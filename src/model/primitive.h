@@ -82,7 +82,7 @@ template<typename> struct is_primitive;
 namespace model
 {
 /**
- *  @brief CoordinateChart or geometric primitive , geometric primitive
+ *  @brief CoordinateSystem or geometric primitive , geometric primitive
  *  representing a single, connected, homogeneous element of space
  */
 /**

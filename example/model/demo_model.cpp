@@ -11,7 +11,7 @@
 #include "../../core/application/application.h"
 #include "../../core/application/use_case.h"
 #include "../../core/gtl/ntuple.h"
-#include "../../core/gtl/primitives.h"
+#include "../../core/sp_def.h"
 #include "../../core/io/IO.h"
 #include "../../core/mesh/mesh.h"
 #include "utilities.h"

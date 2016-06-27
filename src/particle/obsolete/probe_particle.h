@@ -16,7 +16,7 @@
 #include "../gtl/enable_create_from_this.h"
 #include "../physics/physical_object.h"
 #include "../gtl/utilities/utilities.h"
-#include "../gtl/primitives.h"
+#include "../sp_def.h"
 
 namespace simpla {
 /**

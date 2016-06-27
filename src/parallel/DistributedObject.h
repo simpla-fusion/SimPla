@@ -10,7 +10,7 @@
 #include <vector>
 #include <memory>
 #include <boost/uuid/uuid.hpp>
-#include "../gtl/primitives.h"
+#include "../sp_def.h"
 
 namespace simpla
 {

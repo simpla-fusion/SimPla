@@ -13,7 +13,7 @@
 #include <tuple>
 
 #include "../gtl/nTuple.h"
-#include "../gtl/primitives.h"
+#include "../sp_def.h"
 #include "../gtl/IteratorBlock.h"
 #include "../gtl/iterator/Range.h"
 #include "../parallel/ParallelTbb.h"

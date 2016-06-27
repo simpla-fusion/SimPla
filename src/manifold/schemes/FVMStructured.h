@@ -14,7 +14,7 @@
 
 
 #include "../../gtl/macro.h"
-#include "../../gtl/primitives.h"
+#include "../../sp_def.h"
 #include "../../gtl/type_traits.h"
 #include "../../gtl/ExpressionTemplate.h"
 #include "../Calculus.h"

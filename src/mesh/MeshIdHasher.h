@@ -6,7 +6,7 @@
 #define SIMPLA_MESHIDHASHER_H
 
 
-#include "../sp_config.h"
+#include "../sp_def.h"
 
 
 #ifdef __cplusplus

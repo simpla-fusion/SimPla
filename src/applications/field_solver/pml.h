@@ -10,7 +10,7 @@
 #include <cstdbool>
 #include <string>
 
-#include "../../core/gtl/primitives.h"
+#include "../../core/sp_def.h"
 #include "../../core/mesh/mesh.h"
 #include "../../core/physics/PhysicalConstants.h"
 #include "utilities.h"

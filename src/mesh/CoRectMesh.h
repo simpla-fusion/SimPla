@@ -12,7 +12,7 @@
 #include <iomanip>
 
 #include "../gtl/macro.h"
-#include "../gtl/primitives.h"
+#include "../sp_def.h"
 #include "../gtl/nTuple.h"
 #include "../gtl/nTupleExt.h"
 #include "../gtl/PrettyStream.h"
@@ -168,7 +168,7 @@ public:
 
     virtual MeshEntityRange select(box_type const &other,
                                    MeshEntityType entityType = VERTEX,
-                                   MeshEntityStatus status = VALID) const
+                                   MeshEntityStatus status = SP_ES_VALID) const
     {
 
         point_type c_lower, c_upper;
@@ -196,26 +196,26 @@ public:
 
     };
 
-    virtual box_type box(MeshEntityStatus status = VALID) const
+    virtual box_type box(MeshEntityStatus status = SP_ES_VALID) const
     {
         box_type res;
 
         switch (status)
         {
-            case VALID : //all valid
+            case SP_ES_VALID : //all valid
                 std::get<0>(res) = m_coords_lower_ - m_dx_ * m_ghost_width_;
                 std::get<1>(res) = m_coords_upper_ + m_dx_ * m_ghost_width_;;
                 break;
-            case LOCAL : //local and valid
+            case SP_ES_LOCAL : //local and valid
                 std::get<0>(res) = m_coords_lower_ + m_dx_ * m_ghost_width_;;
                 std::get<1>(res) = m_coords_upper_ - m_dx_ * m_ghost_width_;
                 break;
-            case OWNED:
+            case SP_ES_OWNED:
                 std::get<0>(res) = m_coords_lower_;
                 std::get<1>(res) = m_coords_upper_;
                 break;
-            case INTERFACE: //INTERFACE
-            case GHOST : //local and valid
+            case SP_ES_INTERFACE: //SP_ES_INTERFACE
+            case SP_ES_GHOST : //local and valid
             default:
                 UNIMPLEMENTED;
                 break;
@@ -225,7 +225,12 @@ public:
         return std::move(res);
     }
 
-    virtual MeshEntityRange range(MeshEntityType entityType = VERTEX, MeshEntityStatus status = VALID) const
+    virtual MeshEntityRange range(box_type const &b, MeshEntityType entityType = VERTEX) const
+    {
+
+    }
+
+    virtual MeshEntityRange range(MeshEntityType entityType = VERTEX, MeshEntityStatus status = SP_ES_VALID) const
     {
         MeshEntityRange res;
 
@@ -240,26 +245,26 @@ public:
          */
         switch (status)
         {
-            case VALID : //all valid
+            case SP_ES_VALID : //all valid
                 MeshEntityRange(MeshEntityIdCoder::make_range(m_lower_, m_upper_, entityType)).swap(res);
                 break;
-            case NON_LOCAL : // = SHARED | OWNED, //              0b000101
-            case SHARED : //       = 0x04,                    0b000100 shared by two or more get_mesh blocks
+            case SP_ES_NON_LOCAL : // = SP_ES_SHARED | SP_ES_OWNED, //              0b000101
+            case SP_ES_SHARED : //       = 0x04,                    0b000100 shared by two or more get_mesh blocks
                 break;
-            case NOT_SHARED  : // = 0x08, //                       0b001000 not shared by other get_mesh blocks
+            case SP_ES_NOT_SHARED  : // = 0x08, //                       0b001000 not shared by other get_mesh blocks
                 break;
 
-            case GHOST : // = SHARED | NOT_OWNED, //              0b000110
+            case SP_ES_GHOST : // = SP_ES_SHARED | SP_ES_NOT_OWNED, //              0b000110
 
-            case DMZ: //  = 0x100,
-            case NOT_DMZ: //  = 0x200,
+            case SP_ES_DMZ: //  = 0x100,
+            case SP_ES_NOT_DMZ: //  = 0x200,
 
-            case LOCAL : // = NOT_SHARED | OWNED, //              0b001001
+            case SP_ES_LOCAL : // = SP_ES_NOT_SHARED | SP_ES_OWNED, //              0b001001
                 MeshEntityRange(MeshEntityIdCoder::make_range(m_inner_lower_, m_inner_upper_, entityType)).swap(res);
                 break;
 
 
-            case INTERFACE: //  = 0x010, //                        0b010000 interface(boundary) shared by two get_mesh blocks,
+            case SP_ES_INTERFACE: //  = 0x010, //                        0b010000 interface(boundary) shared by two get_mesh blocks,
                 MeshEntityRange(m_interface_entities_[entityType]).swap(res);
                 break;
 
