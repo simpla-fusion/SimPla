@@ -101,7 +101,6 @@ Context::check_point(io::IOStream &os) const
     for (auto const &item:m_pimpl_->m_domains_)
     {
         item.second->check_point(os);
-
     }
     return os;
 }

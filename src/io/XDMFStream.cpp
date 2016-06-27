@@ -40,38 +40,52 @@ std::string XDMFStream::path() const
 }
 
 
-void XDMFStream::open(std::string const &prefix, std::string const &grid_name)
+std::tuple<bool, std::string> XDMFStream::open(std::string const &url, size_t flag)
 {
 
     close();
 
-    m_prefix_ = prefix;
+    std::string file_name = IOStream::current_file_name();
+    std::string grp_name = IOStream::current_group_name();
+    std::string obj_name = "";
 
-    m_file_stream_.open(m_prefix_ + ".xdmf");
+    if (url != "")
+    {
+        std::tie(file_name, grp_name, obj_name, std::ignore) = IOStream::parser_url(url);
+    }
 
-    m_h5_stream_.open(m_prefix_ + ".h5:/");
+    m_file_stream_.open(file_name);
+
+    VERBOSE << "File [" << file_name << "] is opened. " << std::endl;
+
+    m_prefix_ = file_name.substr(0, file_name.find_last_of('.'));
+    auto res = m_h5_stream_.open(m_prefix_ + ".h5:" + grp_name, SP_NEW);
 
     m_file_stream_
     << std::endl
     << "<Xdmf xmlns:xi=\"http://www.w3.org/2003/XInclude\" Version=\"2\">\n"
     << "<Domain>\n";
-
-
+    return res;
 }
-
 
 void XDMFStream::close()
 {
-    while (!m_path_.empty()) { close_grid(); }
+    if (m_file_stream_
+            .is_open())
+    {
+        while (!m_path_.empty()) { close_grid(); }
 
-    m_h5_stream_.close();
+        m_h5_stream_.close();
 
-    m_file_stream_
-    << "</Domain>" << std::endl
-    << "</Xdmf>" << std::endl;
-    m_h5_stream_.close();
-    m_file_stream_.close();
+        m_file_stream_
+        << "</Domain>" << std::endl
+        << "</Xdmf>" << std::endl;
 
+        VERBOSE << "File [" << IOStream::current_file_name() << "] is closed. " << std::endl;
+
+        m_h5_stream_.close();
+        m_file_stream_.close();
+    }
 }
 
 
@@ -143,12 +157,12 @@ void _str_replace(std::string *s, std::string const &place_holder, std::string c
 }
 
 
-void XDMFStream::write(std::string const &ds_name, data_model::DataSet const &ds)
+std::string XDMFStream::write(std::string const &ds_name, data_model::DataSet const &ds, size_t flag)
 {
     if (ds.empty())
     {
         VERBOSE << "Try to write empty dataset: [" << ds_name << "] Ignored!" << std::endl;
-        return;
+        return "";
     }
 
     std::string url;
@@ -181,58 +195,56 @@ void XDMFStream::write(std::string const &ds_name, data_model::DataSet const &ds
 
     << std::setw(level * 2 + 6) << "" << url << std::endl
     << std::setw(level * 2 + 4) << "" << "</DataItem>\n";
-
-
 }
-
-void XDMFStream::write(std::string const &ds_name,
-                       base::AttributeObject const &attr)
-{
-    if (attr.data_set().empty())
-    {
-        VERBOSE << "Try to write empty Attribute: [" << ds_name << "] Ignored!" << std::endl;
-
-        return;
-    }
-    static const char a_Center_str[][10] = {
-            "Node",
-            "Edge",
-            "Face",
-            "Cell"
-    };
-
-    static const char a_AttributeType_str[][10] = {
-            "Scalar",
-            "Vector",
-            "Tensor",
-            "Cell"
-    };
-
-    int level = static_cast<int>( m_path_.size());
-
-// @FIXME ParaView do not support EDEG or FACE
-
-//    std::string center_type = a_Center_str[attr.center_type()];
-//    std::string attr_type = a_AttributeType_str[attr.rank()];
-
-    std::string center_type = "Node";
-    std::string attr_type = a_AttributeType_str[
-            attr.rank()
-            + ((attr.center_type() == 1 || attr.center_type() == 2) ? 1 : 0)
-    ];
-
-    m_file_stream_ << ""
-    << std::setw(level * 2 + 2) << "" << "<Attribute Name=\"" << ds_name << " \" "
-    << "AttributeType=\"" << attr_type << "\" "
-    << "Center=\"" << center_type << "\">" << std::endl;
-
-    this->write(ds_name, attr.data_set());
-
-    m_file_stream_ << std::setw(level * 2 + 2) << "" << "</Attribute>" << std::endl;
-
-
-//    VERBOSE << "data_set [" << ds_name << "] is saved in [" << path() << "]!" << std::endl;
-}
+//
+//void XDMFStream::write(std::string const &ds_name,
+//                       base::AttributeObject const &attr)
+//{
+//    if (attr.data_set().empty())
+//    {
+//        VERBOSE << "Try to write empty Attribute: [" << ds_name << "] Ignored!" << std::endl;
+//
+//        return;
+//    }
+//    static const char a_Center_str[][10] = {
+//            "Node",
+//            "Edge",
+//            "Face",
+//            "Cell"
+//    };
+//
+//    static const char a_AttributeType_str[][10] = {
+//            "Scalar",
+//            "Vector",
+//            "Tensor",
+//            "Cell"
+//    };
+//
+//    int level = static_cast<int>( m_path_.size());
+//
+//// @FIXME ParaView do not support EDEG or FACE
+//
+////    std::string center_type = a_Center_str[attr.center_type()];
+////    std::string attr_type = a_AttributeType_str[attr.rank()];
+//
+//    std::string center_type = "Node";
+//    std::string attr_type = a_AttributeType_str[
+//            attr.rank()
+//            + ((attr.center_type() == 1 || attr.center_type() == 2) ? 1 : 0)
+//    ];
+//
+//    m_file_stream_ << ""
+//    << std::setw(level * 2 + 2) << "" << "<Attribute Name=\"" << ds_name << " \" "
+//    << "AttributeType=\"" << attr_type << "\" "
+//    << "Center=\"" << center_type << "\">" << std::endl;
+//
+//    this->write(ds_name, attr.data_set());
+//
+//    m_file_stream_ << std::setw(level * 2 + 2) << "" << "</Attribute>" << std::endl;
+//
+//
+////    VERBOSE << "data_set [" << ds_name << "] is saved in [" << path() << "]!" << std::endl;
+//}
 
 
 /**

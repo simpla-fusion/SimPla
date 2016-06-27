@@ -15,33 +15,32 @@ namespace simpla { namespace io
 void IOStream::init(int argc, char **argv)
 {
 
-
-    bool show_help = false;
-
-    parse_cmd_line(
-            argc, argv,
-
-            [&, this](std::string const &opt, std::string const &value) -> int
-            {
-                if (opt == "o" || opt == "prefix")
-                {
-
-                    std::string f_name, g_name;
-                    std::tie(f_name, g_name, std::ignore, std::ignore)
-                            = IOStream::parser_url(value);
-
-                    IOStream::current_file_name(f_name);
-
-                }
-                else if (opt == "h" || opt == "help")
-                {
-                    show_help = true;
-                    return TERMINATE;
-                }
-                return CONTINUE;
-            }
-
-    );
+//    bool show_help = false;
+//
+//    parse_cmd_line(
+//            argc, argv,
+//
+//            [&, this](std::string const &opt, std::string const &value) -> int
+//            {
+//                if (opt == "o" || opt == "prefix")
+//                {
+//
+//                    std::string f_name, g_name;
+//                    std::tie(f_name, g_name, std::ignore, std::ignore)
+//                            = IOStream::parser_url(value);
+//
+//                    IOStream::current_file_name(f_name);
+//
+//                }
+//                else if (opt == "h" || opt == "help")
+//                {
+//                    show_help = true;
+//                    return TERMINATE;
+//                }
+//                return CONTINUE;
+//            }
+//
+//    );
 
 //    current_group_name("/");
 
@@ -62,7 +61,7 @@ IOStream::parser_url(std::string const &url_hint) const
     std::string grp_name(current_group_name());
     std::string obj_name(""), attribute("");
 
-    if (file_name == "") { file_name = "untitled.h5"; }
+    if (file_name == "") { file_name = "untitled." + ext_name(); }
     if (grp_name == "") { grp_name = "/"; }
 
     std::string url = url_hint;

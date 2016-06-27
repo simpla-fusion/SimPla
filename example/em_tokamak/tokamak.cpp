@@ -199,7 +199,7 @@ void EMTokamak::initialize(int argc, char **argv)
     VERBOSE << "Clear fields" << std::endl;
 
 
-    out_stream.open(options["output"].as<std::string>("tokamak"), "GEqdsk");
+    out_stream.open(options["output"].as<std::string>("tokamak"), "GEqdsk", 0);
 
     out_stream.set_topology_geometry("Main", m.grid_vertices());
 

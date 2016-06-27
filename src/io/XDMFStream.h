@@ -10,7 +10,7 @@
 #include <fstream>
 #include <memory>
 #include "../data_model/DataSet.h"
-#include "../base/Attribute.h"
+//#include "../base/Attribute.h"
 #include "HDF5Stream.h"
 
 
@@ -35,15 +35,21 @@ public:
         UNIFORM = 0, COLLECTION_TEMPORAL = 1, TREE = 2
     };
 
+    virtual std::string ext_name() const { return "xmf"; }
+
 
     std::string path() const;
 
-    void open(std::string const &prefix, std::string const &grid_name = "Unamed");
+
+    virtual std::tuple<bool, std::string> open(std::string const &url, size_t flag = 0UL);
+
+    virtual std::string read(std::string const &url, data_model::DataSet *ds, size_t flag = 0UL) { return ""; };
 
     void close();
 
     void open_grid(const std::string &g_name, int TAG);
 
+    virtual void set_attribute(std::string const &url, Properties const &v) { };
 
     void set_topology_geometry(std::string const &name, int ndims, size_t const *dims, Real const *xmin,
                                Real const *dx);
@@ -54,9 +60,9 @@ public:
 
     void time(Real time);
 
-    void write(std::string const &s, data_model::DataSet const &ds, size_t flag = 0UL);
+    std::string write(std::string const &s, data_model::DataSet const &ds, size_t flag = 0UL);
 
-    void write(std::string const &s, base::AttributeObject const &ds);
+//    void write(std::string const &s, base::AttributeObject const &ds);
 
 
     void reference_topology_geometry(std::string const &id);

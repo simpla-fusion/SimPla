@@ -9,7 +9,7 @@
 #define XDMF_IO_H_
 
 #include <Xdmf.h>
-#include "../data_model/DataType.h"
+#include "../../data_model/DataType.h"
 
 namespace simpla
 {
@@ -36,12 +36,9 @@ DEF_XDMF_TYPE_TRAITS(long
                              long, XDMF_INT64_TYPE);
 DEF_XDMF_TYPE_TRAITS(float, XDMF_FLOAT32_TYPE);
 DEF_XDMF_TYPE_TRAITS(double, XDMF_FLOAT64_TYPE);
-DEF_XDMF_TYPE_TRAITS(unsigned
-                             char, XDMF_UINT8_TYPE);
-DEF_XDMF_TYPE_TRAITS(unsigned
-                             short, XDMF_UINT16_TYPE);
-DEF_XDMF_TYPE_TRAITS(unsigned
-                             int, XDMF_UINT32_TYPE);
+DEF_XDMF_TYPE_TRAITS(unsigned  char, XDMF_UINT8_TYPE);
+DEF_XDMF_TYPE_TRAITS(unsigned   short, XDMF_UINT16_TYPE);
+DEF_XDMF_TYPE_TRAITS(unsigned   int, XDMF_UINT32_TYPE);
 
 #undef DEF_XDMF_TYPE_TRAITS
 

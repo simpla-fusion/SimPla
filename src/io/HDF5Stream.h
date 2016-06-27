@@ -34,6 +34,7 @@ public:
 
     virtual ~HDF5Stream();
 
+    virtual std::string ext_name() const { return "h5"; }
 
     /**
      *	  change the working path (file/group) of m_data stream ,

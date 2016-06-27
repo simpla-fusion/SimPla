@@ -7,9 +7,9 @@
 #ifndef SIMPLA_WRITEBUFFER_H
 #define SIMPLA_WRITEBUFFER_H
 
-#include "../data_model/DataType.h"
-#include "../data_model/DataSpace.h"
-#include "HDF5Stream.h"
+#include "../../data_model/DataType.h"
+#include "../../data_model/DataSpace.h"
+#include "../HDF5Stream.h"
 
 namespace simpla { namespace io
 {

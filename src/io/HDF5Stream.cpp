@@ -49,8 +49,8 @@ struct HDF5Stream::pimpl_s
     ~pimpl_s();
 
 
-    hid_t base_file_id_;
-    hid_t base_group_id_;
+    hid_t base_file_id_ = -1;
+    hid_t base_group_id_ = -1;
 
 
     void set_attribute(hid_t loc_id, std::string const &name, any const &v);
@@ -110,8 +110,7 @@ std::tuple<bool, std::string> HDF5Stream::open(std::string const &url, size_t fl
 
     //TODO using regex parser url
 
-
-    if (IOStream::current_file_name() != file_name)
+    if (IOStream::current_file_name() != file_name || m_pimpl_->base_file_id_ <= 0)
     {
         open_file(file_name, flag);
     }

@@ -59,6 +59,8 @@ public:
         set_attribute(url, Properties(v));
     }
 
+    virtual std::string ext_name() const = 0;
+
     std::tuple<std::string, std::string, std::string, std::string>
             parser_url(std::string const &url_hint) const;
 
@@ -66,6 +68,9 @@ public:
 
     std::string auto_increase_file_name(std::string filename, std::string const &ext_str = ".h5") const;
 
+    virtual void close() = 0;
+
+    virtual std::tuple<bool, std::string> open(std::string const &url, size_t flag = 0UL) = 0;
 
     virtual std::string write(std::string const &url, data_model::DataSet const &, size_t flag = 0UL) = 0;
 

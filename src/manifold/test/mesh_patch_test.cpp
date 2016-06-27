@@ -19,7 +19,7 @@ TEST(MeshMultiBlock, RectMesh)
     typedef manifold::CartesianManifold mesh_type;
 
     io::XDMFStream out_stream;
-    out_stream.open(("test_amr"), "GEqdsk");
+    out_stream.open(("test_amr"), "GEqdsk", 0);
 
     mesh_type m;
     m.box(std::make_tuple(nTuple<Real, 3> {0, 0, 0}, nTuple<Real, 3> {1, 1, 1}));
