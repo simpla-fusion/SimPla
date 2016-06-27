@@ -156,7 +156,7 @@ The relationship between physical models and numerical algorithms is not 1:1. On
  physical model (despite the used numerical algorithm)
 4. Easy to implement new physical model by code and m_data structure reuse.
 The separation of computation from numerical algorithms has similar advantages. And, in particular,
-this separation makes it possible to perform the performance optimization on computational level without
+this separation makes it possible to perform the performance optimization on computational at_level without
 affecting the physical model, numerical algorithms and program results.
 
 * Idea(4) Discretization of partial differential equations using a human-readable syntax;

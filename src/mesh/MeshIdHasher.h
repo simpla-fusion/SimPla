@@ -56,7 +56,7 @@ extern "C" {
 #else
 #define SP_STATIC_CONST   static const
 #endif
-/// @name level independent
+/// @name at_level independent
 /// @{
 
 SP_STATIC_CONST int ndims = 3;
@@ -88,7 +88,7 @@ SP_STATIC_CONST Real EPSILON = 1.0 / (Real) (INDEX_ZERO);
 
 /// @}
 
-/// @name level dependent
+/// @name at_level dependent
 /// @{
 
 SP_STATIC_CONST id_type SUB_ID_MASK = ((1UL << MESH_RESOLUTION) - 1);

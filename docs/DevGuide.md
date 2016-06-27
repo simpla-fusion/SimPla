@@ -5,7 +5,7 @@ Develop Guide
 
 ## Name style and directory structure
 
-* namespace : Namespace names are all lower-case. Top-level namespace names are based on the project name .
+* namespace : Namespace names are all lower-case. Top-at_level namespace names are based on the project name .
 * type name : Type names start with a capital letter and have a capital letter for each new word, with no underscores: MyExcitingClass, MyExcitingEnum.
 * file name : File are based on the class name.               
 * module    :  

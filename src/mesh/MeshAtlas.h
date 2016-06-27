@@ -125,14 +125,20 @@ public:
     MeshBlockId coarsen_block(mesh::MeshBlockId first, box_type const &);
 
 
-    void get_adjacencies(mesh::MeshBlockId first, int flag, std::list<std::shared_ptr<TransitionMap>> *) const;
-
+    std::map<mesh::MeshBlockId, std::shared_ptr<Chart>> const &at_level(int l = 0) const { return m_; };
 
 private:
     void add_adjacency(mesh::MeshBlockId first, mesh::MeshBlockId second, int flag);
 
-    std::map<mesh::MeshBlockId, std::list<std::shared_ptr<TransitionMap>>> m_adjacency_list_;
+    typedef std::multimap<mesh::MeshBlockId, std::shared_ptr<TransitionMap>> adjacency_list_t;
+
+    adjacency_list_t m_adjacency_list_;
+
     std::map<mesh::MeshBlockId, std::shared_ptr<Chart>> m_;
+
+public:
+    auto get_adjacencies(mesh::MeshBlockId first) const DECL_RET_TYPE((this->m_adjacency_list_.equal_range(first)))
+
 
 };
 }}//namespace simpla{namespace get_mesh{

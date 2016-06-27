@@ -1442,7 +1442,7 @@ MATHJAX_FORMAT         = HTML-CSS
 # When MathJax is enabled you need to specify the location relative to the HTML
 # output directory using the MATHJAX_RELPATH option. The destination directory
 # should contain the MathJax.js script. For instance, if the mathjax directory
-# is located at the same level as the HTML output directory, then
+# is located at the same at_level as the HTML output directory, then
 # MATHJAX_RELPATH should be ../mathjax. The default value points to the MathJax
 # Content Delivery Network so you can quickly see the result without installing
 # MathJax. However, it is strongly recommended to install a local copy of

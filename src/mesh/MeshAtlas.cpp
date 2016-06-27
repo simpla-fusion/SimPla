@@ -69,19 +69,5 @@ MeshBlockId Atlas::coarsen_block(mesh::MeshBlockId first, box_type const &)
     UNIMPLEMENTED;
 }
 
-void Atlas::get_adjacencies(mesh::MeshBlockId first, int flag, std::list<std::shared_ptr<TransitionMap>> *res) const
-{
-    for (auto const &item:m_adjacency_list_.at(first))
-    {
-        if ((item->flag & flag) != 0x0)
-        {
-            assert(item->first->id() == first);
-
-            res->push_back(item);
-        }
-    }
-
-};
-
 
 }}//namespace simpla{namespace mesh{

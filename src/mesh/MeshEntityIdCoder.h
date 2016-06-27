@@ -64,7 +64,7 @@ namespace simpla { namespace mesh
 template<int LEVEL = 4>
 struct MeshEntityIdCoder_
 {
-    /// @name level independent
+    /// @name at_level independent
     /// @{
 
     static constexpr int MAX_NUM_OF_NEIGHBOURS = 12;
@@ -106,7 +106,7 @@ struct MeshEntityIdCoder_
 
     /// @}
 
-    /// @name level dependent
+    /// @name at_level dependent
     /// @{
 
     static constexpr id_type SUB_ID_MASK = ((1UL << MESH_RESOLUTION) - 1);
