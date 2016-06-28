@@ -123,7 +123,7 @@ Particles = {
         --        end
     }
 }
-PML = {}
+--PML = {}
 
 PEC = {
     Domain = {
@@ -144,9 +144,6 @@ Constraints = {
         Value = function(t, x, v)
             local tau = t * omega_ext + x[1] * TWOPI / LX
             local amp = math.sin(tau) * (1 - math.exp(-tau * tau))
-            --            print(x[1], x[2], x[3])
-
-
             return { amp, amp, amp }
         end
     },

@@ -151,15 +151,15 @@ PML<TM>::set_direction(int const *od)
 #define DEF(_N_)                                                                    \
         if (od[_N_] ==-1)                                                         \
         {                                                                           \
-            Real r = (xmin[_N_] - x[_N_]) / (xmin[_N_] - ymin[_N_]);                        \
+            Real r = (xmax[_N_] - x[_N_]) / (xmax[_N_] - xmin[_N_]);                        \
             a##_N_[s] = alpha_(r, expN, dB);                                            \
-            s##_N_[s] = sigma_(r, expN, dB) * speed_of_light / (xmin[_N_] - ymin[_N_]);     \
+            s##_N_[s] = sigma_(r, expN, dB) * speed_of_light / (xmax[_N_] - xmin[_N_]);     \
         }                                                                           \
         else if (od[_N_] ==1)                                                    \
         {                                                                           \
-            Real r = (x[_N_] - xmax[_N_]) / (ymax[_N_] - xmax[_N_]);                        \
+            Real r = (x[_N_] - xmin[_N_]) / (xmax[_N_] - xmin[_N_]);                        \
             a##_N_[s] = alpha_(r, expN, dB);                                            \
-            s##_N_[s] = sigma_(r, expN, dB) * speed_of_light / (ymax[_N_] - xmax[_N_]);     \
+            s##_N_[s] = sigma_(r, expN, dB) * speed_of_light / (xmax[_N_] - xmin[_N_]);     \
         };
 
                 DEF(0)
@@ -184,7 +184,7 @@ PML<TM>::check_point(io::IOStream &) const
 template<typename TM>
 void PML<TM>::next_step(Real dt)
 {
-    VERBOSE << "Mesh Block[" << m->short_id() << "] PML push E" << std::endl;
+//    VERBOSE << "Mesh Block[" << m->short_id() << "] PML push E" << std::endl;
 
     DEFINE_PHYSICAL_CONST
 
@@ -203,7 +203,7 @@ void PML<TM>::next_step(Real dt)
     X12 += dX1;
     E += dX1;
 
-    VERBOSE << "Mesh Block[" << m->short_id() << "] PML Push B" << std::endl;
+//    VERBOSE << "Mesh Block[" << m->short_id() << "] PML Push B" << std::endl;
 
     field_t<scalar_type, mesh::FACE> dX2{*this};
     dX2.clear();

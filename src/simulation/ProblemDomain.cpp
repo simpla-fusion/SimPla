@@ -131,7 +131,9 @@ ProblemDomain::save(io::IOStream &os) const
     auto m_id = m_mesh_->uuid();
     for (auto const &item:m_pimpl_->m_attr_)
     {
-        os.write(item.first, item.second->dataset(), io::SP_NEW);
+        CHECK(item.first);
+        CHECK(item.second->empty());
+        if (!item.second->empty()) { os.write(item.first, item.second->dataset(), io::SP_NEW); }
     }
     return os;
 }
@@ -142,17 +144,11 @@ ProblemDomain::check_point(io::IOStream &os) const
     auto m_id = m_mesh_->uuid();
     for (auto const &item:m_pimpl_->m_attr_)
     {
-        auto ds = item.second->dataset();
-        if (ds.is_valid()) { os.write(item.first, ds, io::SP_RECORD); }
+        if (!item.second->empty()) { os.write(item.first, item.second->dataset(), io::SP_RECORD); }
 
     }
     return os;
 }
-
-
-//void ProblemDomain::view(get_mesh::MeshBlockId const &) { }
-//
-//void ProblemDomain::update_ghost_from(get_mesh::MeshBase const &other) { };
 
 bool ProblemDomain::same_as(mesh::MeshBase const &) const
 {

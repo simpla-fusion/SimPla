@@ -144,7 +144,6 @@ Context::save(io::IOStream &os) const
     for (auto const &item:m_pimpl_->m_domains_)
     {
         item.second->save(os);
-
     }
     return os;
 }

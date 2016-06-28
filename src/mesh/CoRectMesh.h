@@ -272,7 +272,10 @@ public:
 
     virtual MeshEntityRange range(box_type const &b, MeshEntityType entityType = VERTEX) const
     {
-
+        index_tuple lower, upper;
+        lower = m_lower_ + m_dims_ * (std::get<0>(b) - m_coords_lower_) / (m_coords_upper_ - m_coords_lower_);
+        upper = m_lower_ + m_dims_ * (std::get<1>(b) - m_coords_lower_) / (m_coords_upper_ - m_coords_lower_) + 1;
+        return MeshEntityIdCoder::make_range(lower, upper, entityType);
     }
 
     virtual MeshEntityRange range(MeshEntityType entityType = VERTEX, MeshEntityStatus status = SP_ES_VALID) const

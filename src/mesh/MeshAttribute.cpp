@@ -21,11 +21,90 @@ struct MeshAttribute::pimpl_s
         data_model::DataSet m_send_dataset_;
     };
     std::map<int, link_s> m_links_;
+
+
+    MeshBase const *m_mesh_;
+    std::shared_ptr<void> m_data_;
+    std::shared_ptr<MeshAttribute> m_holder_;
+
+
 };
 
 MeshAttribute::MeshAttribute() : m_pimpl_(new pimpl_s) { }
 
+MeshAttribute::MeshAttribute(MeshBase const *m, MeshAttribute *other) : m_pimpl_(new pimpl_s)
+{
+    m_pimpl_->m_mesh_ = m;
+    m_pimpl_->m_data_ = nullptr;
+    m_pimpl_->m_holder_ = std::shared_ptr<MeshAttribute>(other);
+}
+
+MeshAttribute::MeshAttribute(std::shared_ptr<MeshAttribute> other) : m_pimpl_(new pimpl_s)
+{
+    assert (other->is_valid());
+
+    m_pimpl_->m_mesh_ = other->m_pimpl_->m_mesh_;
+    m_pimpl_->m_data_ = other->m_pimpl_->m_data_;
+    m_pimpl_->m_holder_ = other;
+
+}
+
+MeshAttribute::MeshAttribute(MeshAttribute const &other)
+{
+    assert (other.is_valid());
+
+    std::unique_ptr<pimpl_s>(new pimpl_s).swap(m_pimpl_);
+    m_pimpl_->m_mesh_ = other.m_pimpl_->m_mesh_;
+    m_pimpl_->m_data_ = other.m_pimpl_->m_data_;
+    m_pimpl_->m_holder_ = other.m_pimpl_->m_holder_;
+
+}
+
+
 MeshAttribute::~MeshAttribute() { }
+
+bool MeshAttribute::is_valid() const { return m_pimpl_ != nullptr; }
+
+bool MeshAttribute::empty() const { return (!is_valid()) || (m_pimpl_->m_data_ == nullptr); }
+
+void MeshAttribute::swap(MeshAttribute &other)
+{
+    std::swap(m_pimpl_, other.m_pimpl_);
+}
+
+std::shared_ptr<MeshAttribute>
+MeshAttribute::holder() { return m_pimpl_->m_holder_; }
+
+MeshBase const *
+MeshAttribute::mesh() const { return m_pimpl_->m_mesh_; }
+
+void *MeshAttribute::data() { return m_pimpl_->m_data_.get(); }
+
+const void *MeshAttribute::data() const { return m_pimpl_->m_data_.get(); }
+
+size_type MeshAttribute::size_in_byte() const
+{
+    assert(m_pimpl_ != nullptr);
+    assert(m_pimpl_->m_mesh_ != nullptr);
+    return m_pimpl_->m_mesh_->max_hash(entity_type()) * entity_size_in_byte();
+}
+
+bool MeshAttribute::deploy()
+{
+    assert(m_pimpl_ != nullptr);
+
+    if (m_pimpl_->m_data_ == 0x0)
+    {
+        m_pimpl_->m_data_ = sp_alloc_memory(size_in_byte());
+    }
+    return true;
+}
+
+void MeshAttribute::clear()
+{
+    deploy();
+    memset(m_pimpl_->m_data_.get(), 0, size_in_byte());
+}
 
 void MeshAttribute::sync(bool is_blocking)
 {

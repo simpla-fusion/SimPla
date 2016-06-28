@@ -84,20 +84,19 @@ public:
     void add_attribute(std::string const &s_name, std::shared_ptr<mesh::MeshAttribute> attr);
 
     template<typename TF>
-    TF create()
+    std::shared_ptr<TF> create()
     {
         auto res = std::make_shared<TF>(m_mesh_);
         res->deploy();
-        return *res;
+        return res;
     }
 
     template<typename TF, typename ...Args>
-    TF create(std::string const &s, Args &&...args)
+    std::shared_ptr<TF> create(std::string const &s, Args &&...args)
     {
         auto res = std::make_shared<TF>(m_mesh_, std::forward<Args>(args)...);
-        res->deploy();
-        add_attribute(s, std::dynamic_pointer_cast<mesh::MeshAttribute>(res));
-        return *res;
+        add_attribute(s, res);
+        return res;
     }
 
     const mesh::MeshBase *m_mesh_;

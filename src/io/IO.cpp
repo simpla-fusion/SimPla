@@ -20,7 +20,7 @@ namespace simpla { namespace io
 {
 void init(int argc, char **argv)
 {
-    std::string url = "untitile.h5";
+    std::string url = "untitled.h5";
     parse_cmd_line(
             argc, argv,
             [&](std::string const &opt, std::string const &value) -> int

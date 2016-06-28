@@ -20,13 +20,16 @@ namespace simpla { namespace mesh
 {
 struct MeshAttribute : public base::Object
 {
+
     MeshAttribute();
 
+    MeshAttribute(MeshBase const *m, MeshAttribute *other);
+
+    MeshAttribute(std::shared_ptr<MeshAttribute>);
+
+    MeshAttribute(MeshAttribute const &other);
+
     ~MeshAttribute();
-
-    MeshAttribute(MeshAttribute const &other) = delete;
-
-    MeshAttribute(MeshAttribute &&other) = delete;
 
 
     MeshAttribute &operator=(MeshAttribute const &other) = delete;
@@ -36,26 +39,35 @@ struct MeshAttribute : public base::Object
     template<typename T>
     inline bool is_a() const { return (std::is_base_of<MeshAttribute, T>::value && is_a(typeid(T))); }
 
-    virtual std::string get_class_name() const = 0;
+    std::shared_ptr<MeshAttribute> holder();
+
+    MeshBase const *mesh() const;
+
+    void *data();
+
+    const void *data() const;
+
+    virtual bool deploy();
+
+    virtual void clear();
+
+    virtual void swap(MeshAttribute &other);
 
     virtual std::ostream &print(std::ostream &os, int indent = 1) const { return os; }
 
-    virtual void swap(MeshAttribute &other) = 0;
+    virtual bool is_valid() const;
 
-    virtual bool is_valid() const = 0;
+    virtual bool empty() const;
 
-    virtual bool deploy() = 0;
+    virtual size_type size_in_byte() const;
 
-    virtual void clear() = 0;
-
-    virtual MeshBase const *get_mesh() const = 0;
-
-    virtual bool set_mesh(MeshBase const *) = 0;
+    virtual std::string get_class_name() const = 0;
 
     virtual MeshEntityRange entity_id_range(MeshEntityStatus status = SP_ES_VALID) const = 0;
 
-    virtual MeshEntityType entity_type() const = 0;
+    virtual size_type entity_size_in_byte() const = 0;
 
+    virtual MeshEntityType entity_type() const = 0;
 //    virtual void dataset(data_model::DataSet const &) = 0;
 //
 //    virtual void dataset(mesh::MeshEntityRange const &, data_model::DataSet const &) = 0;

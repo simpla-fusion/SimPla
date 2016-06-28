@@ -132,7 +132,8 @@ int main(int argc, char **argv)
 
     Real inc_time = (stop_time - ctx.time()) /
                     (options["number_of_check_point"].as<int>(1));
-
+    io::cd("/start/");
+    ctx.save(io::global());
 
     MESSAGE << "====================================================" << std::endl;
 
